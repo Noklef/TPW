@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "../src/game/rsse/rsse.h"
+#include "../src/game/terrain/terrain_blend.h"
 #include "../src/hook/hooks.h"
 
 static int g_failures = 0;
@@ -44,6 +45,116 @@ static void test_rsse_operand_value() {
     CHECK(RSSE_OperandValue(&ctx, 0x0001FFFF) == -1);    // high bits of an immediate are dropped
     CHECK(RSSE_OperandValue(&ctx, 0x20000005u) == 5);    // a label used as a source: low 16 bits
     CHECK(RSSE_OperandValue(&ctx, 0x41000000u) == 0);    // tag test is on the whole top byte
+}
+
+// --- terrain blend ------------------------------------------------------------
+static bool same4(const u8 *p, u8 a, u8 b, u8 c, u8 d) { return p[0] == a && p[1] == b && p[2] == c && p[3] == d; }
+
+static void test_lnd_ramp() {
+    u8 t[256];
+    Lnd_BuildRamp(t, 48, 40);  // half 20: 0 up to 28, 255 past 68
+    CHECK(t[27] == 0 && t[28] == 0);
+    CHECK(t[48] == 124);       // (48 - 28) * 255 / 41
+    CHECK(t[68] == 248 && t[69] == 255 && t[255] == 255);
+    Lnd_BuildRamp(t, 0, 0);    // a step: 0 at 0, 255 above
+    CHECK(t[0] == 0 && t[1] == 255);
+}
+
+// A 2 x 2 tile map with 16-pixel tiles; every texture 32 x 32 so windows start at 0 or 16.
+struct TestLnd {
+    Lnd lnd = {};
+    std::vector<u8> control = std::vector<u8>(9 * 9 * 4, (u8)0xff);
+    std::vector<std::vector<u8>> tex;
+
+    TestLnd() {
+        lnd.tile_size = 16;
+        lnd.level = 0;
+        lnd.tiles_x = lnd.tiles_y = 2;
+        lnd.control = {9, 9, 4, control.data()};
+        lnd.levels[0].tile_size = 16;
+        Array3D *a = &lnd.levels[0].colour_a0;
+        static const bool colour[13] = {1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0};
+        for (int i = 0; i < 13; ++i) {
+            u32 bpp = colour[i] ? 4 : 1;
+            tex.emplace_back(32 * 32 * bpp, (u8)0);
+            a[i] = {32, 32, bpp, tex.back().data()};
+        }
+    }
+    void fill(Array3D &a, const u8 *value) {
+        for (u32 i = 0; i < a.width * a.height; ++i) std::memcpy(a.data + i * a.depth, value, a.depth);
+    }
+    void channel(int ch, u8 v) { for (size_t i = ch; i < control.size(); i += 4) control[i] = v; }
+};
+
+static void test_lnd_weight_map() {
+    TestLnd t;
+    for (u32 i = 0; i < 81; ++i) t.control[i * 4 + 1] = (u8)((i % 9) * 10);  // W1 = 10 per texel in x
+    u8 w[16 * 16];
+    CHECK(TerrainBlend_WeightMap(&t.lnd.control, 0, 0, 1, 16, w));
+    static const u8 row[16] = {0, 2, 5, 7, 10, 12, 15, 17, 20, 22, 25, 27, 30, 32, 35, 37};
+    CHECK(std::memcmp(w, row, 16) == 0 && std::memcmp(w + 15 * 16, row, 16) == 0);
+    CHECK(!TerrainBlend_WeightMap(&t.lnd.control, 0, 0, 1, 24, w));
+}
+
+static void test_lnd_blend() {
+    u8 out[16 * 16 * 4], scratch[16 * 16 * 4];
+    {   // procedural texturing off: flat grey
+        TestLnd t;
+        t.channel(0, 0);
+        TerrainBlend_TileInto(&t.lnd, out, 0, 0, nullptr, scratch);
+        CHECK(same4(out, 0x00, 0x7f, 0x7f, 0x7f) && same4(out + 1020, 0x00, 0x7f, 0x7f, 0x7f));
+    }
+    {   // selector C 255 everywhere: group C alone (all four bytes lerped)
+        TestLnd t;
+        LndLevel &lv = t.lnd.levels[0];
+        const u8 c0[4] = {4, 10, 20, 30}, c1[4] = {0, 110, 120, 130}, full = 0xff;
+        t.fill(lv.colour_c0, c0); t.fill(lv.colour_c1, c1);
+        t.fill(lv.mask_c, &full); t.fill(lv.select_c0, &full);
+        TerrainBlend_TileInto(&t.lnd, out, 1, 1, nullptr, scratch);  // ramps (0, 0) are steps
+        CHECK(same4(out, 0x03, 0x0a, 0x14, 0x1e));  // byte 0: 0 + 4 * 255 >> 8 = 3
+    }
+    {   // C off, B on in even columns only: the scalar two-group path, byte 0 cleared
+        TestLnd t;
+        LndLevel &lv = t.lnd.levels[0];
+        t.channel(3, 0);
+        const u8 b[4] = {0x55, 200, 200, 200};
+        t.fill(lv.colour_b0, b); t.fill(lv.colour_b1, b);
+        for (u32 i = 0; i < 32 * 32; i += 2) lv.select_b0.data[i] = 0xff;
+        TerrainBlend_TileInto(&t.lnd, out, 0, 0, nullptr, scratch);
+        CHECK(same4(out, 0x00, 0xc7, 0xc7, 0xc7));  // 200 * 255 >> 8 = 199
+        CHECK(same4(out + 4, 0, 0, 0, 0));
+    }
+}
+
+static void test_lnd_overlay() {
+    TestLnd t;
+    LndLevel &lv = t.lnd.levels[0];
+    for (u32 i = 0; i < 81; ++i) t.control[i * 4 + 1] = (u8)((i % 9) * 30 + (i / 9) * 2);
+    const u8 white[4] = {0, 255, 255, 255}, full = 0xff;
+    t.fill(lv.colour_a0, white); t.fill(lv.mask_a, &full);
+    t.lnd.ramps[0][0] = 128; t.lnd.ramps[0][1] = 255;  // a smooth ramp
+    t.channel(2, 0); t.channel(3, 0);
+    u8 plain[16 * 16 * 4], out[16 * 16 * 4], scratch[16 * 16 * 4];
+    TerrainBlend_TileInto(&t.lnd, plain, 0, 0, nullptr, scratch);
+    CHECK(plain[4 * 15 + 1] != plain[1]);  // a gradient across the tile
+
+    std::vector<u8> clear(32 * 32 * 4, 0);  // alpha 0: shows the tile, re-oriented
+    TerrainOverlay ov = {clear.data(), 32, 32, 4, 0x10};
+    TerrainBlend_TileInto(&t.lnd, out, 0, 0, &ov, scratch);
+    bool turned = true;
+    for (int i = 0; i < 256; ++i) turned &= std::memcmp(out + 4 * i, plain + 4 * (255 - i), 4) == 0;
+    CHECK(turned);
+    ov.flags = 0x40 | 0x08;  // mirrored top to bottom
+    TerrainBlend_TileInto(&t.lnd, out, 0, 0, &ov, scratch);
+    bool flipped = true;
+    for (int r = 0; r < 16; ++r) flipped &= std::memcmp(out + 64 * r, plain + 64 * (15 - r), 64) == 0;
+    CHECK(flipped);
+
+    std::vector<u8> solid(32 * 32 * 2);  // ARGB4444 opaque red: 0xff00 little-endian
+    for (size_t i = 0; i < solid.size(); i += 2) { solid[i] = 0x00; solid[i + 1] = 0xff; }
+    ov = {solid.data(), 32, 32, 2, 0};
+    TerrainBlend_TileInto(&t.lnd, out, 0, 0, &ov, scratch);
+    CHECK(out[0] == 0 && out[1] == (u8)(plain[1] + ((0xf0 - plain[1]) * 0xf0 >> 8)) && out[2] == (u8)(plain[2] + ((0 - plain[2]) * 0xf0 >> 8)));
 }
 
 // --- patcher self-test on functions in this process ---------------------------
@@ -107,6 +218,10 @@ static void test_hook_table(const char *exe_path) {
 int main(int argc, char **argv) {
     test_rsse_fetch_word();
     test_rsse_operand_value();
+    test_lnd_ramp();
+    test_lnd_weight_map();
+    test_lnd_blend();
+    test_lnd_overlay();
     test_patcher();
     if (argc > 1) test_hook_table(argv[1]);
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);

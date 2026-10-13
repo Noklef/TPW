@@ -3,12 +3,14 @@
 #include "hooks.h"
 
 #include "../game/rsse/rsse.h"
+#include "../game/terrain/terrain_blend.h"
 
 namespace tpw::hook {
 
 const Hook kHooks[] = {
     {"RSSE_FetchWord",    0x00557a70, (void *)&RSSE_FetchWord,    {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"RSSE_OperandValue", 0x005573a0, (void *)&RSSE_OperandValue, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"TerrainBlend_Tile", 0x0055f780, (void *)&TerrainBlend_Tile, {0x55, 0x8b, 0xec, 0x81, 0xec}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
