@@ -60,6 +60,10 @@ The master load-game function (`FUN_00415270`) reads a fixed sequence of modules
 | 8 | `RSYS` | Ride system | 17 | `ADSC` | Advisor scoring |
 | 9 | `TRAK` | Track rides | | | |
 
+Saving (`SaveGame_Save`) serialises all modules into an in-memory stream, compresses the buffer, and writes the result after a header. All file I/O goes through a small polymorphic C++ stream class, so file and memory streams share one vtable interface (read `+0x08`, tell `+0x18`, open `+0x24`).
+
+**Retail build quirk:** the developers' debug/assert function (`Debug_Printf`, `0x5da3c0`) is an **empty function**, so all logging was compiled out. The thousands of log strings survive only as call arguments, which makes them ideal for naming functions.
+
 This list is effectively the game's **top-level module map**. Each tag's load/save pair is a natural boundary for reimplementation.
 
 Other subsystems seen in strings: peeps/guests (`Peep %d added to ride %d`), staff (`Cannot place staff member here`), litter (`mLitterScript`), research/upgrades, loans/finance (`Cannot pay off a loan you haven't bought`), challenges, weather/particles (`Tp2.plb`), lip-synced advisor speech, online chat/lobby, park hoardings (billboards), and a debug screenshot dump (`Scr%05ld.tga`).

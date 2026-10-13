@@ -1,0 +1,58 @@
+address,name,kind,confidence,notes
+0x00414920,SaveGame_Save,function,high,"thiscall; writes header, saves modules to memory stream, compresses, writes file"
+0x00414d40,SaveGame_Load,function,medium,caller of SaveGame_LoadModules
+0x00415270,SaveGame_LoadModules,function,high,"loads 17 modules in order, verifies 4-byte tag after each (SAD)"
+0x004164c0,SaveGame_SaveModules,function,high,mirror of SaveGame_LoadModules
+0x00415f50,SaveGame_WriteHeader,function,medium,"logs 'Saved header: %s'"
+0x005da3c0,Debug_Printf,function,high,"EMPTY in retail build: all debug/assert output compiled out. arg0 = condition or channel (0, 2, 0x499602d2)"
+0x0067a7d0,crt_atexit,function,high,registers destructor in MSVC function-static init guard pattern
+0x0067acc0,Mem_Alloc,function,medium,malloc/operator new wrapper
+0x0067acb0,Mem_Free,function,medium,free/operator delete wrapper
+0x005f5ad0,FileStream_Open,function,high,"allocates 8-byte stream object with vtable FileStream_vtable, calls vtbl+0x24 open"
+0x005f5e20,Stream_Read,function,high,"(result*, stream, buf, len) via vtbl+0x08; result = (bytesRead == len)"
+0x005f5e50,Stream_Write,function,medium,symmetric to Stream_Read
+0x005f5bb0,Stream_Tell,function,medium,vtbl+0x18; used for 'X: loaded %d bytes' deltas
+0x005f5b80,Stream_Close,function,medium,
+0x005f5d60,File_Delete,function,medium,calls DeleteFileA
+0x005f72c0,MemStream_Open,function,medium,used by SaveGame_Save to save into memory first
+0x005f8050,Buffer_Compress,function,medium,"compresses save buffer; 'Need to allocate a bigger buffer'"
+0x006fd930,FileStream_vtable,data,high,
+0x00403780,ActionRec_Serialize,function,high,"(stream, isSave, ?, ?) — called with isSave=0 on load, 1 on save; GActionRec"
+0x005179c0,World_Load,function,high,module WRLD
+0x00516c80,World_Save,function,high,module WRLD
+0x00475730,SpriteScripts_Load,function,high,module SPSC
+0x00475650,SpriteScripts_Save,function,high,module SPSC
+0x0051f7a0,Particles_Load,function,high,module PART
+0x0051f680,Particles_Save,function,high,module PART
+0x0040fd60,MessageCentre_Load,function,high,module MESS
+0x0040fc80,MessageCentre_Save,function,high,module MESS
+0x00402e30,Clock_Load,function,high,module CLOK
+0x00402e00,Clock_Save,function,high,module CLOK
+0x00403260,VanillaTime_Load,function,high,module VANT
+0x00403220,VanillaTime_Save,function,high,module VANT
+0x005506e0,GameSystem_Load,function,high,module GSYS
+0x00550520,GameSystem_Save,function,high,module GSYS
+0x004647a0,RideSystem_Load,function,high,module RSYS
+0x00464140,RideSystem_Save,function,high,module RSYS
+0x00543560,TrackRides_Load,function,high,module TRAK
+0x005428e0,TrackRides_Save,function,high,module TRAK
+0x0055e020,FlyingRides_Load,function,high,module FLYR
+0x0055de70,FlyingRides_Save,function,high,module FLYR
+0x005597a0,RSSE_Load,function,high,module RSSE
+0x00559350,RSSE_Save,function,high,module RSSE
+0x0042cec0,Camera_Load,function,high,module KAME
+0x0042cdc0,Camera_Save,function,high,module KAME
+0x00437b60,Coasters_Load,function,high,module COAS
+0x00437300,Coasters_Save,function,high,module COAS
+0x00599d00,Advisor_Load,function,high,module ADVS
+0x00599c30,Advisor_Save,function,high,"module ADVS; original logs 'Coasters: saved' here (copy-paste bug)"
+0x0051c400,Sound_Load,function,high,module SOUN
+0x0051c350,Sound_Save,function,high,module SOUN
+0x00405570,CheatSystem_Load,function,high,module CHTS
+0x004055d0,CheatSystem_Save,function,high,module CHTS
+0x004053b0,CheatSystem_Construct,function,medium,function-static singleton constructor
+0x0059c860,AdvisorScoring_Load,function,high,module ADSC
+0x0059c890,AdvisorScoring_Save,function,high,module ADSC
+0x0059bea0,AdvisorScoring_Construct,function,medium,function-static singleton constructor
+0x00481680,UI_Load,function,high,"last module, no tag check"
+0x004816a0,UI_Save,function,high,"last module; original logs 'UI: loaded' here (copy-paste bug)"

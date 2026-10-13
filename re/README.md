@@ -1,0 +1,24 @@
+# re/: reverse-engineering knowledge (tracked)
+
+The Ghidra database (`_re/ghidra`) is binary, large and git-ignored. **This folder is the source of truth** for everything we've learned about `tp.exe`, in diff-friendly text. Anyone with the exe can rebuild a fully annotated Ghidra project from it.
+
+| File | Contents |
+|---|---|
+| `symbols.csv` | `address,name,kind,confidence,notes`, one row per named function or data label |
+
+## Naming conventions
+- `Subsystem_Verb` in PascalCase: `Coasters_Load`, `Stream_Read`, `SaveGame_SaveModules`.
+- `confidence`: `high` = proven by strings or call structure; `medium` = strongly suggested; `low` = guess, verify before relying on it.
+- `notes` become Ghidra plate comments. Record *why* a name is believed, quirks, and original-code bugs.
+
+## Applying to Ghidra
+```
+"<GHIDRA>\support\analyzeHeadless.bat" C:\git\Noklef\TPW\_re\ghidra TPW -process tp.exe -noanalysis ^
+    -scriptPath C:\git\Noklef\TPW\tools -postScript ApplySymbols.java C:\git\Noklef\TPW\re\symbols.csv
+```
+The script is idempotent: re-run it after every edit to `symbols.csv`.
+
+## Rebuilding from scratch
+1. Import and analyse the exe and dump the decompile (see `tools/ExportDecomp.java`, `.docs/02-decompile-recompile-plan.md`).
+2. Run `ApplySymbols.java` as above.
+3. Re-run `ExportDecomp.java` to get a decompile dump with the names applied.

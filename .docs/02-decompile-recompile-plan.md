@@ -87,7 +87,8 @@ Goal: see the original running on modern Windows, so there's a ground truth to c
 - [ ] Apply Function ID signatures for MSVC CRT/STL. Identify the zlib/libjpeg/TGQ functions and mark them **library: don't decompile**.
 - [ ] Name functions from debug strings (`"Coasters failed to load"` → `Coasters_Load`). Script it: every string xref gives a function name hint.
 - [ ] Recover the core structs: Ride, Peep, Park, Object, RSSE script context, the save chunk header.
-- [ ] Export names/types to `re/` in git, so the knowledge isn't locked in a binary Ghidra DB.
+- [x] `re/symbols.csv` + `tools/ApplySymbols.java`: names live in git and are applied to Ghidra (see `re/README.md`). First batch: the save/load system (all 17 module load/save pairs), stream I/O, the CRT allocator.
+- [ ] Recovered types (`re/types.h`) + an apply script for them.
 
 ### Phase 2: Asset formats and tools
 These also become the engine's loaders later.
