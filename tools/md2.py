@@ -3,7 +3,8 @@
 A .md2 is a serialised C struct: pointer fields hold file offsets, which MD2_Load
 (0x46d6d0) relocates by adding the load address. Header (u32 words unless noted):
   [0x00] magic 0x1CD15D46   [0x01] version 221   [0x02] sub-version (203)
-  [0x0c] flags: bit 0 = has geometry tables; 0x10/0x20 = motion data only (block at [0x26])
+  [0x0c] flags: bit 0 = has geometry tables; 0x10/0x20 = motion data only (block at [0x26],
+         see tools/md2motion.py)
   u16 0x36 material count   u16 0x42 node count (all)   u16 0x44 geometry nodes
   [0x15] materials (16 B: u32 flags, u32 texture handle, u16, u16, char *texture name)
   [0x16] positions   [0x17] normals   [0x18] UVs   [0x1a] triangles   [0x1c] nodes
