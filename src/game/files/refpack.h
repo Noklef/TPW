@@ -20,3 +20,12 @@ s32 __stdcall RefPack_Decode(u8 *dst, const u8 *src, s32 unused);
 // else after 5 bytes.
 u32 __stdcall RefPack_DecodedSize(const u8 *src);
 }
+
+// 0x641a50 (vtable slot 1), not hooked: nothing in the game constructs a codec that encodes,
+// so this is for tools. Same output as the original byte for byte (it reproduces every
+// compressed entry of the shipped .wad files), always with the plain 0x10FB header.
+// dst must hold RefPack_EncodeBound(len) bytes. Returns the encoded size; note the
+// original returned that plus 5.
+u32 RefPack_Encode(u8 *dst, const u8 *src, u32 len);
+// Literal runs cost one byte per 112, every match saves at least one, plus header and end.
+inline u32 RefPack_EncodeBound(u32 len) { return len + len / 112 + 8; }

@@ -208,6 +208,40 @@ static void test_refpack() {
     CHECK(RefPack_Decode(out, nullptr, 0) == 0);
 }
 
+static void test_refpack_encode() {
+    u8 empty[16];
+    CHECK(RefPack_Encode(empty, nullptr, 0) == 6);
+    CHECK(std::memcmp(empty, "\x10\xfb\x00\x00\x00\xfc", 6) == 0);
+
+    // One part per command form: noise (literal runs), a short near repeat (2 bytes), 30
+    // bytes from 1.5 KB back (3 bytes), a long run and a repeat from 20 KB back (4 bytes).
+    std::vector<u8> plain;
+    u32 x = 12345;
+    auto noise = [&](int n) { while (n--) plain.push_back((u8)((x = x * 1103515245 + 12345) >> 24)); };
+    noise(2000);
+    for (const char *w = "hello, hello, world"; *w; ++w) plain.push_back((u8)*w);
+    plain.insert(plain.end(), plain.begin() + 500, plain.begin() + 530);
+    plain.insert(plain.end(), 3000, (u8)'z');
+    noise(20000);
+    plain.insert(plain.end(), plain.begin() + 100, plain.begin() + 400);
+
+    std::vector<u8> enc(RefPack_EncodeBound((u32)plain.size())), dec(plain.size() + 16, 0xee);
+    u32 n = RefPack_Encode(enc.data(), plain.data(), (u32)plain.size());
+    CHECK(n < plain.size());
+    bool forms[4] = {};
+    for (u32 i = 5; i < n;) {  // walk the commands
+        u8 b = enc[i];
+        if (b < 0x80) forms[0] = true, i += 2 + (b & 3);
+        else if (b < 0xc0) forms[1] = true, i += 3 + (enc[i + 1] >> 6);
+        else if (b < 0xe0) forms[2] = true, i += 4 + (b & 3);
+        else if (b < 0xfc) forms[3] = true, i += 1 + (b & 0x1f) * 4 + 4;
+        else { CHECK(i + 1 + (b & 3) == n); break; }
+    }
+    CHECK(forms[0] && forms[1] && forms[2] && forms[3]);
+    CHECK(RefPack_Decode(dec.data(), enc.data(), 0) == (s32)plain.size());
+    CHECK(std::memcmp(dec.data(), plain.data(), plain.size()) == 0 && dec[plain.size()] == 0xee);
+}
+
 static bool read_va(const std::vector<unsigned char> &pe, std::uint32_t va, std::uint8_t *out, size_t n) {
     auto u16 = [&](size_t o) { return std::uint32_t(pe[o] | pe[o + 1] << 8); };
     auto u32 = [&](size_t o) { return u16(o) | u16(o + 2) << 16; };
@@ -246,6 +280,7 @@ int main(int argc, char **argv) {
     test_lnd_blend();
     test_lnd_overlay();
     test_refpack();
+    test_refpack_encode();
     test_patcher();
     if (argc > 1) test_hook_table(argv[1]);
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);
