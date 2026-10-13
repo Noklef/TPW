@@ -9,11 +9,16 @@ older files and clears flag 0x20 for newer ones. Motion_Apply 0x4721f0 runs Trac
 Motion header (offsets from the block):
   0x00 u32 flags (bit 1: material animation, table at 0x30)     0x08 u32 length in frames
   0x0c u16 position curves   0x0e u16 scale keys   0x10 u16 rotation keys   0x12 u16 tracks
-  0x14 u16, 0x16 u16 (not traced)   0x18 u16 material animation entries   0x1a u16 nodes used
+  0x14 u16 path tracks       0x16 u16 vertices over all raw vertex tracks (0x4000)
+  0x18 u16 material animation entries   0x1a u16 nodes used
   0x20 -> position curves (16 B each)    0x24 -> all scale keys     0x28 -> all rotation keys
-  0x2c -> tracks (64 B each)             0x30 -> material animation (8 B each: u32, pointer)
+  0x2c -> tracks (64 B each)             0x30 -> material animation (8 B each, below)
   0x38 -> u16 node indices the motion uses (shown when it starts)  0x3c -> all ease tables
-The three key totals always equal the sums over the tracks.
+All five totals always equal the sums over the tracks.
+Material animation (0x470c90, run after the tracks): {u16 material, u16 keys, -> u32 keys
+(u16 frame, u16 value)}; the last key at or before the frame writes value into the model's
+material (8-byte records at model +0x50) at +2 and marks it changed (+1 |= 4). The shipped
+ones blink between 0 and 1 (gates, islands).
 
 Track (64 B):
   0x00 u32 index   0x04 u32 channels (below)   0x0c u32 (a frame number; not read here)
@@ -29,11 +34,16 @@ Channels (bits of 0x04):
          (Bezier, 3 * (keys - 1) + 1 points) and 0x18 (linear, a point per key).
   0x0008 rotation: 20-byte keys {u16 frame, s16 ease, f32 x, y, z, w}; slerp (0x4742a0), or
          plain lerp under a global flag; keys loop. The ease number counts up from 0 per key
-         and selects a u8 ramp in the track's ease tables (0x34) for the segment after the key;
-         -1 = none. 0x10/0x20/0x40 come with it (not traced).
+         and selects an 8-byte ease table in the track's tables (0x34) for the segment after
+         the key; -1 = none. With table e and segment fraction t, u = 9t, i = floor(u): the
+         eased t lerps (u - i) between points i and i+1 of 0, e[0]/255 .. e[7]/255, 1.
+         0x10/0x20/0x40 come with it (not traced).
   0x0080 scale: 16-byte keys {u16 frame, u16, f32 x, y, z}, lerped; rescales the node's axes
          (0x46f910). 0x0100 comes with it.
-  0x0200 path (0x0400: also face along it): follows a curve from the model's path table
+  0x0200 path (0x0400: also face along it): {u32 start frame, u32 frames, u32 0, -> float per
+         frame}, the floats the position along the path in percent (mod 100, lerped). The
+         curve (a position-curve record) is the geometry model's path table (+0xac, 16 B each)
+         entry named by the node (+0x52); 0x400 turns the node along its tangent.
   0x1000 vertex animation: with 0x4000 a {-> index map or 0, u32 vertices a frame,
          -> float3 per vertex per frame} block, lerped between frames; without it, packed keys
          (0x4714a0): 10:10:10 signed ints per vertex, value * scale + offset (floats at
@@ -77,10 +87,16 @@ class Motion:
         self.base = base
         h = struct.unpack_from('<16I', data, base)
         self.flags, self.length = h[0], h[2]
-        (self.n_curves, self.n_scale, self.n_rot, self.n_tracks, self.unk14, self.unk16,
+        (self.n_curves, self.n_scale, self.n_rot, self.n_tracks, self.n_paths, self.n_raw_vertices,
          self.n_material, self.n_nodes) = struct.unpack_from('<8H', data, base + 0xc)
         self.nodes = list(struct.unpack_from('<%dH' % self.n_nodes, data, h[0xe])) if self.n_nodes else []
         self.tracks = [self._track(h[0xb] + 0x40 * i) for i in range(self.n_tracks)]
+        self.material = []
+        for i in range(self.n_material if self.flags & 2 else 0):
+            o = self._ptr(h[0xc] + 8 * i, 8)
+            mat, n, keys = struct.unpack_from('<HHI', data, o)
+            self._ptr(keys, 4 * n)
+            self.material.append((mat, [struct.unpack_from('<HH', data, keys + 4 * k) for k in range(n)]))
 
     def _ptr(self, p, size=1):
         if p and p + size > len(self.d):
@@ -114,16 +130,28 @@ class Motion:
         if ch & 0x10000:
             t['uv'] = self._ptr(r[11], 20)
         if ch & 0x200:
-            t['path'] = self._ptr(r[9], 16)
-        t['ease'] = r[13]
+            start, frames, _, table = struct.unpack_from('<4I', d, self._ptr(r[9], 16))
+            self._ptr(table, 4 * frames)
+            t['path'] = {'start': start, 'percent': struct.unpack_from('<%df' % frames, d, table)}
+        if ch & 0x4000:
+            t['raw_vertices'] = struct.unpack_from('<I', d, t['vertex'] + 4)[0]
+        t['ease'] = [d[r[13] + 8 * i:r[13] + 8 * i + 8]
+                     for i in range(max([k[1] for k in t.get('rotation', ())] + [-1]) + 1)]
+        if t['ease']:
+            self._ptr(r[13], 8 * len(t['ease']))
         return t
 
     def check(self):
         """Raise ValueError on anything inconsistent."""
         sums = [sum(1 for t in self.tracks if 'position' in t), sum(len(t.get('scale', ())) for t in self.tracks),
-                sum(len(t.get('rotation', ())) for t in self.tracks)]
-        if sums != [self.n_curves, self.n_scale, self.n_rot]:
-            raise ValueError('header totals %s, tracks %s' % ([self.n_curves, self.n_scale, self.n_rot], sums))
+                sum(len(t.get('rotation', ())) for t in self.tracks), sum(1 for t in self.tracks if 'path' in t),
+                sum(t.get('raw_vertices', 0) for t in self.tracks)]
+        totals = [self.n_curves, self.n_scale, self.n_rot, self.n_paths, self.n_raw_vertices]
+        if sums != totals:
+            raise ValueError('header totals %s, tracks %s' % (totals, sums))
+        for mat, keys in self.material:
+            if [k[0] for k in keys] != sorted(k[0] for k in keys):
+                raise ValueError('material %d keys out of order' % mat)
         for t in self.tracks:
             for name in ('rotation', 'scale'):
                 frames = [k[0] for k in t.get(name, ())]
@@ -153,6 +181,11 @@ def describe(t, verbose):
         parts.append('%d scale keys' % len(t['scale']))
     if 'visibility' in t:
         parts.append('visibility %s' % t['visibility'])
+    if 'path' in t:
+        p = t['path']['percent']
+        parts.append('path from frame %d, %d frames, %.1f%%..%.1f%%' % (t['path']['start'], len(p), min(p), max(p)))
+    if t['ease']:
+        parts.append('%d ease tables' % len(t['ease']))
     lines = [', '.join(parts)]
     if verbose:
         for k in t.get('rotation', ()):
@@ -164,7 +197,17 @@ def describe(t, verbose):
             lines.append('    pos   frames %s' % p['frames'])
             for pt in p['points']:
                 lines.append('          %s' % ' '.join('%9.3f' % c for c in pt))
+        for i, e in enumerate(t['ease']):
+            lines.append('    ease %d: %s' % (i, ' '.join('%3d' % v for v in e)))
     return lines
+
+
+def ease(table, t):
+    """The eased fraction for segment fraction t (0 <= t < 1) through an 8-byte ease table."""
+    points = [0.0] + [v / 255 for v in table] + [1.0]
+    u = t * 8.999995
+    i = int(u)
+    return points[i] + (points[i + 1] - points[i]) * (u - i)
 
 
 def inputs(path):
@@ -216,6 +259,8 @@ def main():
             for t in m.tracks:
                 for line in describe(t, verbose):
                     print('  ' + line)
+            for mat, keys in m.material:
+                print('  material %d: %s' % (mat, ' '.join('@%d=%d' % k for k in keys)))
     if check:
         print('%d motion blocks consistent, %d not' % (good, bad))
 

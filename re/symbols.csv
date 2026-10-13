@@ -351,3 +351,5 @@ address,name,kind,confidence,notes
 0x00fb3540,gAdvisorScoring,data,high,"AdvisorScoring: advisor.sam values (mMinScoreForConsideration at 0xfb3560); guard bit 0xfb2766 & 1"
 0x004d1ce0,Challenges_LoadSam,function,medium,"reads data/challenges.sam into a stack BalanceChallenges (vtable 0x700398) and copies the challenges out"
 0x00414410,TrackType_LoadSam,function,low,"reads a track type .sam into a stack BalanceTrack (vtable 0x6fd8b0)"
+0x00470c90,Motion_ApplyMaterial,function,high,"material animation: last (frame, value) key at or before the frame sets material +2, flags +1 |= 4"
+0x00474ea0,Path_PercentAt,function,high,"lerps a path track's per-frame percent table (wraps when the curve is closed)"
