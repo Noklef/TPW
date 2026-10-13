@@ -1,5 +1,5 @@
 // Packed vertex animation of .md2 motion tracks (channel 0x1000 without 0x4000):
-// reimplementation of the lerps 0x470e90 and 0x4711d0.
+// reimplementation of Motion_UnpackVertices 0x4714a0 and its lerps 0x470e90 and 0x4711d0.
 #pragma once
 
 #include "../../../re/types.h"
@@ -25,4 +25,13 @@ void __cdecl Motion_LerpPackedVertices(const void *block, float *positions, cons
 // 0x4711d0: the same for the first two entries of the group, a bounding box: min - (scale
 // + 0.25) into box[0..2], max + scale + 0.25 into box[3..5].
 void __cdecl Motion_LerpPackedBox(const void *block, float *box, const PackedGroup *group, float t, s32 add);
+
+// 0x4714a0: unpack a vertex-animation block into the node at the frame. The block: flags
+// (byte +0; 2: group 1 holds raw keys, unpacked once), group count (u16 +2), groups (+0xc),
+// offsets (+0x14), scales (+0x20). The node: flags (u32 +0), positions (+0x60), box (+0x78).
+// Group 0 is the bounding box, the rest are vertices. Each group's key advances while the
+// next key's frame is before the frame; t is the fraction between the two. Until the node
+// has flag 0x800000 the keys restart at 0 and the raw group is written (the flag is set
+// unless adding). Flag 0x10000 is always set. The fifth argument is unused.
+void __cdecl Motion_UnpackVertices(u32 *node, const u8 *block, float frame, u32 unused, s32 add);
 }

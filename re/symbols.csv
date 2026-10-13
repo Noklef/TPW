@@ -352,7 +352,7 @@ address,name,kind,confidence,notes
 0x00474840,Curve_Bezier,function,high,"reimplemented (src/game/motion); cubic Bezier position, segment i at points[base+3i-1..+2] mod gCurvePointCount; per-component association kept"
 0x00474bf0,Curve_Linear,function,high,"reimplemented; linear position between points[base+i] and [base+i+1]"
 0x00474cc0,Curve_CatmullRom,function,high,"reimplemented; Catmull-Rom position (0.5 * ...), indices wrap; Track_Apply also calls it for the tangent; unused by shipped files"
-0x004714a0,Motion_UnpackVertices,function,medium,"packed vertex keys: 10:10:10 signed ints * scale + offset"
+0x004714a0,Motion_UnpackVertices,function,high,"reimplemented (src/game/motion/vertexanim); (node, block, frame, unused, add): group 0 lerped into the node box (+0x78), raw group 1 once (block flag 2), the rest into the positions (+0x60); node flags 0x800000 (unpacked once), 0x10000"
 0x004745c0,Motion_ApplyUVs,function,high,"reimplemented (src/game/motion/uvanim); (state, track, add): per-UV keys around the whole frame lerped, set or added into the node's {u[4], v[4]} blocks (node +0x68)"
 0x00fb3540,gAdvisorScoring,data,high,"AdvisorScoring: advisor.sam values (mMinScoreForConsideration at 0xfb3560); guard bit 0xfb2766 & 1"
 0x004d1ce0,Challenges_LoadSam,function,medium,"reads data/challenges.sam into a stack BalanceChallenges (vtable 0x700398) and copies the challenges out"

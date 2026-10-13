@@ -540,6 +540,32 @@ static void test_packed_vertices() {
           box[5] == 3.75f);
     Motion_LerpPackedBox(block, box, &group, 0.5f, 1);
     CHECK(box[0] == 3.5f && box[5] == 7.5f);
+
+    // Unpack: box group, raw group, vertex group; frames 0, 10, 20.
+    const u16 frames[3] = {0, 10, 20};
+    const u32 boxkeys[6] = {pack(0, 0, 0), pack(2, 2, 2), pack(2, 0, 0), pack(4, 2, 2), pack(4, 0, 0), pack(6, 2, 2)};
+    const u32 rawkeys[1] = {pack(8, 0, 0)};
+    const u32 vtxkeys[3] = {pack(0, 0, 0), pack(4, 0, 0), pack(8, 0, 0)};
+    const u16 rawslot[1] = {1}, vtxslot[1] = {2};
+    PackedGroup groups[3] = {{0, 2, nullptr, frames, boxkeys, 1}, {0, 1, rawslot, frames, rawkeys, 0},
+                             {0, 1, vtxslot, frames, vtxkeys, 1}};
+    u8 vblock[0x2c] = {2, 0, 3, 0};
+    PackedGroup *gp = groups;
+    std::memcpy(vblock + 0xc, &gp, 4);
+    std::memcpy(vblock + 0x14, block + 5, 24);  // the offsets and scales above
+    float vpos[12] = {};
+    u32 node[0x24] = {};
+    float *vp = vpos;
+    std::memcpy(&node[0x18], &vp, 4);
+    Motion_UnpackVertices(node, vblock, 15, 0, 0);  // first unpack: keys restart, then advance to 1
+    CHECK(node[0] == 0x810000 && groups[0].key == 1 && groups[2].key == 1);
+    CHECK(vpos[1] == 5 && vpos[2] == 4);  // raw 8 * 0.5 + 1; lerp of 2 and 4 by 0.5 at slot 2
+    float nbox[6];
+    std::memcpy(nbox, &node[0x1e], 24);
+    CHECK(nbox[0] == 1.75f && nbox[3] == 4.25f);  // x of 2.5 / 3.5 out by 0.75
+    vpos[1] = 0;
+    Motion_UnpackVertices(node, vblock, 5, 0, 0);  // flagged: no restart (key stays 1), raw skipped
+    CHECK(groups[2].key == 1 && vpos[1] == 0 && vpos[2] == 2);  // t = -1: 3 - 1
 }
 
 static void test_hook_table(const char *exe_path) {

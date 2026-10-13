@@ -72,6 +72,7 @@ const Hook kHooks[] = {
     {"Matrix_PreMul33", 0x00470d10, (void *)&Matrix_PreMul33, {0x51, 0x8b, 0x4c, 0x24, 0x0c}},
     {"Motion_LerpPackedVertices", 0x00470e90, (void *)&Motion_LerpPackedVertices, {0x83, 0xec, 0x2c, 0x8b, 0x4c}},
     {"Motion_LerpPackedBox", 0x004711d0, (void *)&Motion_LerpPackedBox, {0x83, 0xec, 0x10, 0x8b, 0x54}},
+    {"Motion_UnpackVertices", 0x004714a0, (void *)&Motion_UnpackVertices, {0x83, 0xec, 0x08, 0x8d, 0x44}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
