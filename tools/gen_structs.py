@@ -25,8 +25,11 @@ END = '/* END GENERATED */'
 # (name, serializer, schema for types, size or None if unknown, [(offset, type, member)],
 #  extra fields not seen by the extractor as (offset, ctype, name, count), comment)
 SPEC = [
-    ('Thing', '0050b090', tpsave.THING, 0x0c, [], [(0, 'u32', 'unk_00', 1)],
-     'Base of every world object (0x50b090). unk_00 is probably the vtable.'),
+    ('Thing', '0050b090', tpsave.THING, 0x0c, [],
+     [(0, 'u16', 'unk_00', 1), (2, 'u8', 'model', 1), (3, 'u8', 'unk_03', 1)],
+     'Base of every world object (0x50b090). Not polymorphic: Thing_Update and\n'
+     ' * Thing_HandleMessage switch on `model` (1 Visitor, 3 Object, 4..8 staff, ...). The world\n'
+     ' * update skips things whose unk_03 is non-zero.'),
     ('SpriteAnim', '004d3ee0', tpsave.ANIM, 0x0c, [], [], 'Sprite animation state (0x4d3ee0).'),
     ('Thoughts', '0050bad0', tpsave.THOUGHTS, 0x90, [], [(0x04, 'u32', 'mEventHistory', 32)],
      'Recent thoughts and events of a person (0x50bad0).'),

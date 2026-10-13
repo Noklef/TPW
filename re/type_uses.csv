@@ -4,3 +4,56 @@ address,target,type,notes
 0x005573a0,param0,RsseContext *,RSSE_OperandValue
 0x005573d0,param0,RsseContext *,RSSE_TriggerCustomEvent
 0x008791b0,data,RsseContext *,RSSE_ScriptList head
+0x0050b090,param0,Thing *,Thing_Serialize (this)
+0x004d3ee0,param0,SpriteAnim *,SpriteAnim_Serialize (this)
+0x0050bad0,param0,Thoughts *,Thoughts_Serialize (this)
+0x0050d150,param0,Nav *,Nav_Serialize (this)
+0x004f8b10,param0,Sprite *,Sprite_Serialize (this)
+0x004fb530,param0,Visitor *,Visitor_Serialize (this)
+0x00504de0,param0,Staff *,Staff_Serialize (this)
+0x004da110,param0,Mechanic *,Mechanic_Serialize (this)
+0x004d6d60,param0,Handyman *,Handyman_Serialize (this)
+0x004d4460,param0,Entertainer *,Entertainer_Serialize (this)
+0x004d6000,param0,Guard *,Guard_Serialize (this)
+0x00502760,param0,Researcher *,Researcher_Serialize (this)
+0x004e2c10,param0,CircBufU32_30 *,CircBufU32_30_Serialize (this)
+0x004db7d0,param0,Object *,Object_Serialize (this)
+0x004d0b30,param0,MapCellBase *,MapCellBase_Serialize (this)
+0x004d8dd0,param0,MapCell *,MapCell_Serialize (this)
+0x0050c200,param0,TrackCell *,TrackCell_Serialize (this)
+0x005132a0,param0,Forecast *,Forecast_Serialize (this)
+0x00512010,param0,Weather *,Weather_Serialize (this)
+0x004d0f90,param0,Challenge *,Challenge_Serialize (this)
+0x004d2320,param0,Challenges *,Challenges_Serialize (this)
+0x00504210,param0,ResearchProject *,ResearchProject_Serialize (this)
+0x00504760,param0,ResearchGroup *,ResearchGroup_Serialize (this)
+0x00502dc0,param0,ResearchLab *,ResearchLab_Serialize (this)
+0x004cf920,param0,BankAccount *,BankAccount_Serialize (this)
+0x004f7f30,param0,GameClock *,GameClock_Serialize (this)
+0x0050b360,param0,Thing *,Thing_Update
+0x0050b550,param0,Thing *,Thing_HandleMessage
+0x0050b6a0,param0,Thing *,Thing_SetPos
+0x00501650,param0,Visitor *,Visitor_Update
+0x005019f0,param0,Visitor *,Visitor_PostUpdate
+0x004fb360,param0,Visitor *,Visitor_HandleMessage
+0x004e0b90,param0,Object *,Object_Update
+0x004e0e00,param0,Object *,Object_PostUpdate
+0x004dd320,param0,Object *,Object_HandleMessage
+0x004da490,param0,Mechanic *,Mechanic_PostUpdate
+0x004da0c0,param0,Mechanic *,Mechanic_HandleMessage
+0x004d7060,param0,Handyman *,Handyman_Update
+0x004d73c0,param0,Handyman *,Handyman_PostUpdate
+0x004d6cf0,param0,Handyman *,Handyman_HandleMessage
+0x004d4660,param0,Entertainer *,Entertainer_Update
+0x004d4810,param0,Entertainer *,Entertainer_PostUpdate
+0x004d4450,param0,Staff *,Staff_HandleMessageDefault
+0x004d6360,param0,Guard *,Guard_Update
+0x004d6410,param0,Guard *,Guard_PostUpdate
+0x004d5fb0,param0,Guard *,Guard_HandleMessage
+0x00502960,param0,Researcher *,Researcher_Update
+0x005029f0,param0,Researcher *,Researcher_PostUpdate
+0x00503d40,param0,ResearchLab *,ResearchLab_HandleMessage
+0x00512880,param0,Weather *,Weather_Update
+0x005127a0,param0,Weather *,Weather_HandleMessage
+0x004d02d0,param0,BankAccount *,BankAccount_HandleMessage
+0x004d2860,param0,Challenges *,Challenges_HandleMessage

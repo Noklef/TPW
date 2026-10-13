@@ -169,9 +169,13 @@ typedef struct TpwU64 { u32 lo; u32 hi; } TpwU64;  /* 64-bit time values */
 typedef struct Vec2 { float x, y; } Vec2;
 typedef struct Vec3 { float x, y, z; } Vec3;
 
-/* Base of every world object (0x50b090). unk_00 is probably the vtable. */
+/* Base of every world object (0x50b090). Not polymorphic: Thing_Update and
+ * Thing_HandleMessage switch on `model` (1 Visitor, 3 Object, 4..8 staff, ...). The world
+ * update skips things whose unk_03 is non-zero. */
 typedef struct Thing {
-    u32 unk_00;                          /* 0x00 */
+    u16 unk_00;                          /* 0x00 */
+    u8 model;                            /* 0x02 */
+    u8 unk_03;                           /* 0x03 */
     u16 mX;                              /* 0x04 */
     u16 mY;                              /* 0x06 */
     u16 mMapParent;                      /* 0x08 */
@@ -611,6 +615,8 @@ typedef struct GameClock {
 #define TPW_CHECK(name, cond) typedef char tpw_check_##name[(cond) ? 1 : -1]
 #define TPW_OFF(t, f) ((u32)(unsigned long)&((t *)0)->f)
 TPW_CHECK(Thing_unk_00, TPW_OFF(Thing, unk_00) == 0x0);
+TPW_CHECK(Thing_model, TPW_OFF(Thing, model) == 0x2);
+TPW_CHECK(Thing_unk_03, TPW_OFF(Thing, unk_03) == 0x3);
 TPW_CHECK(Thing_mX, TPW_OFF(Thing, mX) == 0x4);
 TPW_CHECK(Thing_mY, TPW_OFF(Thing, mY) == 0x6);
 TPW_CHECK(Thing_mMapParent, TPW_OFF(Thing, mMapParent) == 0x8);

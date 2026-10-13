@@ -14,6 +14,8 @@ import ghidra.app.decompiler.DecompInterface;
 import ghidra.app.decompiler.DecompileResults;
 import ghidra.app.script.GhidraScript;
 import ghidra.app.util.cparser.C.CParser;
+import ghidra.program.model.listing.Function.FunctionUpdateType;
+import ghidra.program.model.listing.ParameterImpl;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.data.*;
 import ghidra.program.model.listing.Function;
@@ -81,6 +83,19 @@ public class ApplyTypes extends GhidraScript {
             }
             if (idx >= f.getParameterCount()) { printerr(f.getName() + ": no param " + idx); continue; }
             Parameter p = f.getParameter(idx);
+            if (p.isAutoParameter()) {
+                // __thiscall's implicit `this` can't be retyped: switch the function to custom
+                // storage, which turns it into an ordinary ECX parameter.
+                List<Parameter> params = new ArrayList<>();
+                for (Parameter q : f.getParameters()) {
+                    params.add(new ParameterImpl(q.isAutoParameter() ? "this" : q.getName(),
+                            q == p ? dt : q.getDataType(), q.getVariableStorage(), currentProgram));
+                }
+                f.updateFunction(f.getCallingConventionName(), f.getReturn(), params,
+                        FunctionUpdateType.CUSTOM_STORAGE, true, SourceType.USER_DEFINED);
+                applied++;
+                continue;
+            }
             p.setDataType(dt, SourceType.USER_DEFINED);
             if (p.getName().startsWith("param_") && dt instanceof Pointer
                     && ((Pointer) dt).getDataType().getName().equals("RsseContext"))

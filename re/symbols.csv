@@ -175,3 +175,41 @@ address,name,kind,confidence,notes
 0x006c58f0,SoundBank_OpenSdt,function,medium,"appends HD.sdt or HW.sdt to the bank path and opens it, falling back to the other; arg3 == 0 tries HW first"
 0x006c5a00,SoundBank_Open,function,low,calls SoundBank_OpenSdt and returns 0 / -1
 0x006d62c0,LbMpeg_MmxTransform,function,low,"MMX int16 transform over 8 qwords using the Q14 cosine table in section lbmpeg_d (0xfc0000); likely MPEG decoder matrixing"
+0x004e2c10,CircBufU32_30_Serialize,function,high,"ring buffer of 30 u32 (mTemp, mData[30], mCurrentEntry, mNumEntries, mWrappedAround); 6 per Object"
+0x00516380,World_Tick,function,medium,"increments the tick counter at +0x1da70c and calls Thing_Update for every live thing (skips things whose byte +3 is set)"
+0x0050b360,Thing_Update,function,high,per-tick dispatch on Thing.model (byte +2); most models call an Update and a PostUpdate method
+0x0050b550,Thing_HandleMessage,function,high,"dispatch on Thing.model to the model's message handler; called from the message centre (0x40fb10)"
+0x0050b6a0,Thing_SetPos,function,high,"sets mX/mY; asserts ""Attempt to move thing to invalid..."" when the cell id is >= 0x4001"
+0x00501650,Visitor_Update,function,medium,Thing_Update case 1 (first call)
+0x005019f0,Visitor_PostUpdate,function,medium,Thing_Update case 1 (second call)
+0x004fb360,Visitor_HandleMessage,function,high,Thing_HandleMessage case 1
+0x004e0b90,Object_Update,function,medium,Thing_Update case 3 (first call)
+0x004e0e00,Object_PostUpdate,function,medium,Thing_Update case 3 (second call)
+0x004dd320,Object_HandleMessage,function,high,Thing_HandleMessage case 3
+0x004da490,Mechanic_PostUpdate,function,medium,Thing_Update case 4 (second call; the first goes through a thunk to 0x505490)
+0x004da0c0,Mechanic_HandleMessage,function,high,Thing_HandleMessage case 4
+0x004d7060,Handyman_Update,function,medium,Thing_Update case 5 (first call)
+0x004d73c0,Handyman_PostUpdate,function,medium,Thing_Update case 5 (second call)
+0x004d6cf0,Handyman_HandleMessage,function,high,Thing_HandleMessage case 5
+0x004d4660,Entertainer_Update,function,medium,Thing_Update case 6 (first call)
+0x004d4810,Entertainer_PostUpdate,function,medium,Thing_Update case 6 (second call)
+0x004d4450,Staff_HandleMessageDefault,function,medium,Thing_HandleMessage for both Entertainer (6) and Researcher (8)
+0x004d6360,Guard_Update,function,medium,Thing_Update case 7 (first call)
+0x004d6410,Guard_PostUpdate,function,medium,Thing_Update case 7 (second call)
+0x004d5fb0,Guard_HandleMessage,function,high,Thing_HandleMessage case 7
+0x00502960,Researcher_Update,function,medium,Thing_Update case 8 (first call)
+0x005029f0,Researcher_PostUpdate,function,medium,Thing_Update case 8 (second call)
+0x00508a30,StaffHQ_HandleMessage,function,high,Thing_HandleMessage case 9
+0x004dadc0,MechanicHQ_HandleMessage,function,high,Thing_HandleMessage case 10
+0x0059b060,Advisor_HandleMessage,function,high,Thing_HandleMessage case 11
+0x0059a550,Advisor_Update,function,medium,Thing_Update case 11 (works on a global; skipped when DAT_00fb3b7c == 1)
+0x00509bf0,TagSystem_HandleMessage,function,high,Thing_HandleMessage case 12
+0x004c7370,ParkAnalyser_HandleMessage,function,high,Thing_HandleMessage case 13
+0x00503d40,ResearchLab_HandleMessage,function,high,Thing_HandleMessage case 14
+0x00512880,Weather_Update,function,medium,Thing_Update case 15
+0x005127a0,Weather_HandleMessage,function,high,Thing_HandleMessage case 15
+0x004d02d0,BankAccount_HandleMessage,function,high,Thing_HandleMessage case 16
+0x0050ca50,UIMsgReceiver_HandleMessage,function,high,Thing_HandleMessage case 17
+0x004f7c50,Model18_HandleMessage,function,medium,"Thing_HandleMessage case 18 (model 18 is unidentified; its update, 0x4f7c60 + 0x4f7c90, only runs when DAT_00fb3b7c == 1)"
+0x004d2860,Challenges_HandleMessage,function,high,Thing_HandleMessage case 19
+0x004d1e90,Challenges_Update,function,medium,Thing_Update case 19 (works on a global; skipped when DAT_00fb3b7c == 1)
