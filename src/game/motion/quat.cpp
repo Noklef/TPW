@@ -1,20 +1,13 @@
-// Quaternion helpers: reimplementation of 0x474120-0x474575 (and the sine table, 0x4708d0).
+// Quaternion helpers: reimplementation of 0x474120-0x474575.
 // The expression trees are the original's (tools/x87sym.py); Ghidra's C shows a different
 // association.
 #include "quat.h"
 
 #include <cmath>
-#include <xmmintrin.h>
 
 namespace {
 
-const float kTwoPi = 6.28318548f;   // 0x6feba0
 const float kHalfPi = 1.57079637f;  // 0x6fec74
-
-// fistp under the default round-to-nearest-even; out of range gives 0x80000000 like fistp.
-s32 round_int(float v) { return _mm_cvtss_si32(_mm_set_ss(v)); }
-
-float sin_at(const SinTable &s, float scaled) { return s.values[(u32)round_int(scaled) & s.mask]; }
 
 // The CRT's acos (0x67b4e0) as the game calls it. It keeps the caller's precision control,
 // so under Direct3D's single precision 1 + x, 1 - x, their product and the square root all
@@ -25,20 +18,7 @@ double crt_acos(float x) {
     return std::atan2((double)r, (double)x);
 }
 
-SinTable game_sin_table() {
-    return {reinterpret_cast<const float *>(0x007b0968), *reinterpret_cast<const u32 *>(0x007b0960),
-            *reinterpret_cast<const float *>(0x007b095c)};
-}
-
 }  // namespace
-
-void SinTable_Build(float *values, u32 n, u32 *mask, float *scale) {
-    const float nf = (float)n;
-    *mask = n - 1;
-    *scale = nf * 0.159154937f;  // 0x6feb9c; exact in double, so one rounding to float
-    for (u32 i = 0; i < n; ++i)
-        values[i] = (float)std::sin((double)i / nf * kTwoPi);
-}
 
 extern "C" void __cdecl Quat_ToMatrix(const float *q, float *m) {
     const float x = q[0], y = q[1], z = q[2], w = q[3];
@@ -64,8 +44,8 @@ void Quat_SlerpWith(const SinTable &sines, const float *a, const float *b, float
         out[1] = a[0];
         out[2] = -a[3];
         out[3] = a[2];
-        const float s0 = sin_at(sines, ((1.0f - t) * kHalfPi) * sines.scale);
-        const float s1 = sin_at(sines, (t * kHalfPi) * sines.scale);
+        const float s0 = SinTable_At(sines, ((1.0f - t) * kHalfPi) * sines.scale);
+        const float s1 = SinTable_At(sines, (t * kHalfPi) * sines.scale);
         out[0] = out[0] * s1 + a[0] * s0;
         out[1] = s1 * out[1] + s0 * a[1];
         out[2] = s1 * out[2] + s0 * a[2];
@@ -78,9 +58,9 @@ void Quat_SlerpWith(const SinTable &sines, const float *a, const float *b, float
     } else {
         const double theta = crt_acos(dot);
         const float theta_f = (float)theta;
-        const float sin_theta = sin_at(sines, (float)(theta * sines.scale));  // the double times scale
-        s0 = sin_at(sines, ((1.0f - t) * theta_f) * sines.scale) / sin_theta;
-        s1 = sin_at(sines, (theta_f * t) * sines.scale) / sin_theta;
+        const float sin_theta = SinTable_At(sines, (float)(theta * sines.scale));  // the double times scale
+        s0 = SinTable_At(sines, ((1.0f - t) * theta_f) * sines.scale) / sin_theta;
+        s1 = SinTable_At(sines, (theta_f * t) * sines.scale) / sin_theta;
     }
     out[0] = a[0] * s0 + b[0] * s1;
     out[1] = s0 * a[1] + s1 * b[1];
@@ -106,10 +86,10 @@ void Motion_RotationAtWith(const SinTable &sines, const RotationKey *keys, u32 c
 }
 
 extern "C" void __cdecl Quat_Slerp(const float *a, const float *b, float t, float *out) {
-    Quat_SlerpWith(game_sin_table(), a, b, t, out);
+    Quat_SlerpWith(SinTable_Game(), a, b, t, out);
 }
 
 extern "C" void __cdecl Motion_RotationAt(const RotationKey *keys, u32 index, float t, float *m) {
-    Motion_RotationAtWith(game_sin_table(), keys, *reinterpret_cast<const u32 *>(0x007b4988),
+    Motion_RotationAtWith(SinTable_Game(), keys, *reinterpret_cast<const u32 *>(0x007b4988),
                           *reinterpret_cast<const u32 *>(0x007b4980), index, t, m);
 }

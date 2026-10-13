@@ -2,14 +2,7 @@
 #pragma once
 
 #include "../../../re/types.h"
-
-// The game's sine lookup table (gSinTable, 0x7b0968): values[i] = sin(2 pi i / n), and an
-// angle a (radians) is looked up as values[round(a * scale) & mask].
-struct SinTable {
-    const float *values;
-    u32 mask;     // n - 1 (0x7b0960)
-    float scale;  // n / (2 pi) (0x7b095c)
-};
+#include "../math/sintable.h"
 
 // A key of a node's rotation track (md2 motion, track flag 0x8).
 struct RotationKey {
@@ -18,11 +11,6 @@ struct RotationKey {
     float q[4];  // x, y, z, w
 };
 static_assert(sizeof(RotationKey) == 20, "RotationKey is 20 bytes");
-
-// 0x4708d0 (n = 4096) as the game first runs it: at the x87's default 53-bit precision,
-// before Direct3D exists. values must hold n floats. Not hooked: the game builds the table
-// again at shutdown, after Direct3D has lowered the precision, and that copy differs.
-void SinTable_Build(float *values, u32 n, u32 *mask, float *scale);
 
 // 0x4742a0 with the table given.
 void Quat_SlerpWith(const SinTable &sines, const float *a, const float *b, float t, float *out);

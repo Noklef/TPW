@@ -3,6 +3,7 @@
 #include "hooks.h"
 
 #include "../game/files/refpack.h"
+#include "../game/math/matrix.h"
 #include "../game/motion/curve.h"
 #include "../game/motion/quat.h"
 #include "../game/rsse/rsse.h"
@@ -25,6 +26,28 @@ const Hook kHooks[] = {
     {"Quat_ToMatrix",       0x00474120, (void *)&Quat_ToMatrix,       {0x83, 0xec, 0x14, 0x8b, 0x44}},
     {"Quat_Slerp",          0x004742a0, (void *)&Quat_Slerp,          {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Motion_RotationAt",   0x00474490, (void *)&Motion_RotationAt,   {0xa1, 0x88, 0x49, 0x7b, 0x00}},
+    {"Matrix_Identity",        0x0046f150, (void *)&Matrix_Identity,        {0x8b, 0x54, 0x24, 0x04, 0x85}},
+    {"Matrix_ResetRotation",   0x0046f180, (void *)&Matrix_ResetRotation,   {0x8b, 0x44, 0x24, 0x04, 0xb9}},
+    {"Matrix_Heading",         0x0046f1c0, (void *)&Matrix_Heading,         {0x8b, 0x4c, 0x24, 0x04, 0xd9}},
+    {"Matrix_Roll",            0x0046f200, (void *)&Matrix_Roll,            {0x8b, 0x44, 0x24, 0x04, 0xd9}},
+    {"Vec3_AngleX",            0x0046f210, (void *)&Vec3_AngleX,            {0x8b, 0x44, 0x24, 0x04, 0xd9}},
+    {"Vec3_AngleY",            0x0046f220, (void *)&Vec3_AngleY,            {0x8b, 0x44, 0x24, 0x04, 0xd9}},
+    {"Vec3_AngleZ",            0x0046f230, (void *)&Vec3_AngleZ,            {0x8b, 0x44, 0x24, 0x04, 0xd9}},
+    {"Matrix_RotateX4",        0x0046f240, (void *)&Matrix_RotateX4,        {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"Matrix_RotateX",         0x0046f350, (void *)&Matrix_RotateX,         {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"Matrix_RotateY4",        0x0046f420, (void *)&Matrix_RotateY4,        {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"Matrix_RotateZ4",        0x0046f4f0, (void *)&Matrix_RotateZ4,        {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"Matrix_RotateZ",         0x0046f5c0, (void *)&Matrix_RotateZ,         {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"Matrix_RotateY",         0x0046f650, (void *)&Matrix_RotateY,         {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"Matrix_RotateEulerFast", 0x0046f6f0, (void *)&Matrix_RotateEulerFast, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Matrix_RotateEuler",     0x0046f870, (void *)&Matrix_RotateEuler,     {0x8b, 0x44, 0x24, 0x08, 0x56}},
+    {"Matrix_SetAxisLengths",  0x0046f910, (void *)&Matrix_SetAxisLengths,  {0x83, 0xec, 0x10, 0x8b, 0x44}},
+    {"Matrix_ScaleAxesV",      0x0046fa70, (void *)&Matrix_ScaleAxesV,      {0x8b, 0x4c, 0x24, 0x08, 0x8b}},
+    {"Matrix_ScaleAxes",       0x0046fad0, (void *)&Matrix_ScaleAxes,       {0x8b, 0x44, 0x24, 0x04, 0xd9}},
+    {"Matrix_FromPitchYaw",    0x0046fb50, (void *)&Matrix_FromPitchYaw,    {0xd9, 0x44, 0x24, 0x08, 0xd9}},
+    {"Matrix_SetAxes",         0x0046fbb0, (void *)&Matrix_SetAxes,         {0x8b, 0x4c, 0x24, 0x08, 0x8b}},
+    {"Matrix_TransformPoint",  0x0046fc00, (void *)&Matrix_TransformPoint,  {0x83, 0xec, 0x0c, 0x8b, 0x4c}},
+    {"Matrix_TransformVector", 0x0046fca0, (void *)&Matrix_TransformVector, {0x83, 0xec, 0x0c, 0x8b, 0x4c}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

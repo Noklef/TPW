@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "../src/game/files/refpack.h"
+#include "../src/game/math/matrix.h"
 #include "../src/game/motion/curve.h"
 #include "../src/game/motion/quat.h"
 #include "../src/game/rsse/rsse.h"
@@ -338,6 +339,57 @@ static bool read_va(const std::vector<unsigned char> &pe, std::uint32_t va, std:
     return false;
 }
 
+static void test_matrix() {
+    float m[16];
+    Matrix_Identity(m);
+    CHECK(m[0] == 1 && m[5] == 1 && m[10] == 1 && m[15] == 1 && m[1] == 0 && m[12] == 0);
+    m[12] = 1, m[13] = 2, m[14] = 3, m[2] = 7;
+    Matrix_ResetRotation(m);  // the translation stays
+    CHECK(m[2] == 0 && m[12] == 1 && m[13] == 2 && m[14] == 3);
+    float v[3] = {4, 5, 6};
+    Matrix_TransformPoint(m, v);
+    CHECK(v[0] == 5 && v[1] == 7 && v[2] == 9);
+    Matrix_TransformVector(m, v);
+    CHECK(v[0] == 5 && v[1] == 7 && v[2] == 9);
+
+    Matrix_RotateZ(m, 0, 1);  // 90 degrees about z: x axis -> y, translation untouched
+    CHECK(m[0] == 0 && m[1] == 1 && m[4] == -1 && m[5] == 0 && m[12] == 1 && m[13] == 2);
+    Matrix_RotateZ4(m, 0, 1);  // the 4 form turns the translation too
+    CHECK(m[0] == -1 && m[1] == 0 && m[12] == -2 && m[13] == 1);
+    Matrix_Identity(m);
+    Matrix_RotateY(m, 0, 1);  // z axis -> x
+    CHECK(m[8] == 1 && m[10] == 0 && m[0] == 0 && m[2] == -1);
+    auto near = [](double a, double b) { return a - b < 1e-6 && b - a < 1e-6; };
+    CHECK(near(Matrix_Heading(m), 1.5707963267948966));
+    const float up[3] = {1, 0, 0};
+    CHECK(near(Vec3_AngleY(up), 1.5707963267948966) && Vec3_AngleZ(up) < -1.57 && Vec3_AngleX(up) == 0);
+
+    static float values[4096];
+    SinTable sines{values, 0, 0};
+    SinTable_Build(values, 4096, &sines.mask, &sines.scale);
+    const float angles[3] = {0, 1.5707964f, 0};
+    Matrix_Identity(m);
+    Matrix_RotateEulerWith(sines, m, 0, angles);  // "FUK": nothing
+    Matrix_RotateEulerWith(sines, m, 10, angles);  // "XYZ": 90 degrees about y
+    CHECK(m[0] == values[2048] && m[2] == -1 && m[8] == 1 && m[5] == 1);  // cos(pi/2) is sin(pi_f): -8.7e-8
+    Matrix_Identity(m);
+    Matrix_RotateEuler(m, 2, angles + 1);  // "Y" through fsin/fcos
+    CHECK(near(m[8], 1) && near(m[2], -1) && near(m[0], 0));
+
+    Matrix_Identity(m);
+    m[0] = 3, m[1] = 4;
+    const float two = 2, one = 1, half = 0.5f;
+    Matrix_SetAxisLengths(m, &two, &one, &half);
+    CHECK(m[0] == 1.2f && m[1] == 1.6f && m[5] == 1 && m[10] == 0.5f);
+    Matrix_ScaleAxes(m, 10, 1, 2);
+    CHECK(m[0] == 12 && m[10] == 1);
+    const float x[3] = {1, 2, 3};
+    Matrix_SetAxes(m, nullptr, x, nullptr);
+    CHECK(m[0] == 12 && m[4] == 1 && m[5] == 2 && m[6] == 3);
+    Matrix_FromPitchYaw(m, 0, 0);
+    CHECK(m[0] == 1 && m[5] == 1 && m[10] == 1 && m[6] == 0 && m[9] == 0);
+}
+
 static void test_hook_table(const char *exe_path) {
     std::ifstream f(exe_path, std::ios::binary);
     if (!f) { std::printf("cannot open %s\n", exe_path); ++g_failures; return; }
@@ -364,6 +416,7 @@ int main(int argc, char **argv) {
     test_curves();
     test_quat();
     test_slerp();
+    test_matrix();
     test_patcher();
     if (argc > 1) test_hook_table(argv[1]);
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);

@@ -10,7 +10,9 @@ harmless in IEEE arithmetic (a+b == b+a), so only the tree shape has to be kept.
 
 LISTING is "ADDRESS  MNEMONIC OPERANDS" lines (as written by the DumpAsm Ghidra script).
 NAME=MEMORY gives memory operands names, e.g. a.x="EBP + ECX*0x4" or t="ESP + 0x24";
-float constants in the exe are read and shown as numbers. Unknown operands keep their text.
+float constants in the exe are read and shown as numbers. Unknown operands keep their text,
+except ESP-relative ones, which follow PUSH/POP/SUB/ADD ESP from the start address and are
+shown relative to the entry ESP: argN for the Nth stack argument, local_N for [entry - N].
 """
 import re
 import struct
@@ -35,12 +37,25 @@ class X87:
         self.names = names
         self.stores = []      # (address, destination, expression)
         self.memory = {}      # values stored earlier, by operand name
+        self.esp = 0          # ESP relative to its value at the start address
+        self.regs = {}        # general registers holding a known value (integer copies)
+
+    def written(self, reg):
+        """reg gets a new value: forget it, and what was stored through it as a base."""
+        self.regs.pop(reg, None)
+        for k in [k for k in self.memory if re.search(r'\b' + reg + r'\b', k)]:
+            del self.memory[k]
 
     def mem(self, operand):
         m = re.search(r'\[(.*)\]', operand)
         inner = m.group(1).strip()
         if inner in self.names:
             return self.names[inner]
+        sp = re.fullmatch(r'ESP(?: \+ (0x[0-9a-f]+))?', inner)
+        if sp:
+            k = self.esp + int(sp.group(1) or '0', 16)
+            return f'arg{(k - 4) // 4}' if k >= 4 and k % 4 == 0 else f'local_{-k:x}' if k < 0 else f'[entry+{k:x}]'
+
         if re.fullmatch(r'0x[0-9a-f]+', inner):
             v = rdata_float(int(inner, 16))
             if v is not None:
@@ -83,8 +98,8 @@ class X87:
         elif mnemonic == 'FXCH':
             i = ops[0][1] if ops else 1
             self.st[0], self.st[i] = self.st[i], self.st[0]
-        elif mnemonic == 'FCHS':
-            self.st[0] = ('neg', self.st[0])
+        elif mnemonic in ('FCHS', 'FABS', 'FSQRT', 'FSIN', 'FCOS'):
+            self.st[0] = ({'FCHS': 'neg'}.get(mnemonic, mnemonic[1:].lower()), self.st[0])
         elif base in arith:
             op = arith[base]
             if not ops:                       # FADDP etc.: ST1 = ST1 op ST0, pop
@@ -107,6 +122,8 @@ def infix(e):
         return f'(float){infix(e[1])}'
     if e[0] == 'neg':
         return f'-{infix(e[1])}'
+    if len(e) == 2:
+        return f'{e[0]}({infix(e[1])})'
     return f'({infix(e[1])} {e[0]} {infix(e[2])})'
 
 
@@ -123,6 +140,26 @@ def replay(lines, start, end, names, memory=None):
             continue
         if mnem == 'CALL' and ops.strip() == FTOL:  # __ftol pops ST0 (truncated into EAX)
             cpu.st.pop(0)
+            continue
+        m32 = re.fullmatch(r'(E[A-DS][XIP]|E[SD]I),(?:dword ptr )?(\[.*\])', ops.strip())
+        if mnem == 'MOV' and m32:  # integer copies of floats: register <- memory
+            v = cpu.value(('mem', cpu.mem(m32.group(2))))
+            cpu.written(m32.group(1))
+            cpu.regs[m32.group(1)] = v
+            continue
+        m32 = re.fullmatch(r'(?:dword ptr )?(\[.*\]),(E[A-DS][XIP]|E[SD]I)', ops.strip())
+        if mnem == 'MOV' and m32:  # memory <- register
+            cpu.memory[cpu.mem(m32.group(1))] = cpu.regs.get(m32.group(2), m32.group(2))
+            continue
+        m32 = re.match(r'(E[A-DS][XIP]|E[SD]I)\b', ops.strip())
+        if m32 and not mnem.startswith('F') and mnem not in ('CMP', 'TEST', 'PUSH'):
+            cpu.written(m32.group(1))  # any other write to a register forgets it
+        if mnem in ('PUSH', 'POP'):
+            cpu.esp += -4 if mnem == 'PUSH' else 4
+            continue
+        sp = re.fullmatch(r'ESP,(0x[0-9a-f]+|\d+)', ops.strip())
+        if mnem in ('SUB', 'ADD') and sp:
+            cpu.esp += (-1 if mnem == 'SUB' else 1) * int(sp.group(1), 0)
             continue
         if not mnem.startswith('F'):
             continue
