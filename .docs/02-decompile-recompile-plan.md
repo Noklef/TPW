@@ -110,7 +110,7 @@ These also become the engine's loaders later.
 - [ ] `cat_*.map` / `SndReverb.map` sound category and reverb maps
 - [x] Save games / `.TPWI` (`tools/tpsave.py`): container, BILZ payload, module split, and the **whole world module** (header, 128×128 map cells, all 16 thing models) decode byte-exact, with the game's own field names. Other 16 modules: split only.
 - [x] `.omp` emitters and `.tpt` weather test data (tools/omp.py)
-- [ ] `.lnd`, `.tct` level data
+- [x] `.lnd` terrain texture source and `.tct` tile tables (tools/lnd.py)
 - [x] `.hmp` object height maps (tools/hmp.py)
 
 ### Phase 3: Hook layer

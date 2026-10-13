@@ -267,3 +267,13 @@ address,name,kind,confidence,notes
 0x00803a3c,gSndThemeRides,data,high,
 0x00803a40,gSndThemeSpeech,data,high,
 0x00803a44,gSndThemeMusic,data,high,
+0x004504c0,Terrain_Load,function,high,"loads <theme>/Terrain base.md2 (or TestBase), flags steep grid squares, then base.lnd when procedural textures are on"
+0x0056dfe0,TerrainTex_Load,function,medium,"refuses when procedural textures are disabled, else TerrainTex_Init"
+0x0056e550,TerrainTex_Init,function,medium,"allocates the 0x10014-byte tile cache and reads the .lnd"
+0x005723f0,TerrainTexCache_ReadLnd,function,medium,
+0x00572440,TerrainTexCache_Update,function,low,"LRU tile cache keyed by (x, y); blends missing tiles"
+0x00560ff0,Lnd_Read,function,high,"base.lnd: version 3, 5 blend ramps, 384x344x4 control map, 3 detail levels of 13 textures"
+0x0055f470,Lnd_ReadLevel,function,high,"u32 tile size, u8 level, 13 x Array3D_Read"
+0x0055f630,Lnd_Clear,function,medium,"level i gets tile size 0x40 >> i"
+0x0055f720,Lnd_SetTileSize,function,medium,"0x40/0x20/0x10 -> detail level 0/1/2"
+0x005e78b0,Array3D_Read,function,high,"u32 w, h, bpp + w*h*bpp bytes"
