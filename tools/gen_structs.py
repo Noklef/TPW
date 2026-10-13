@@ -118,7 +118,7 @@ def build(spec, src, pe):
                 if any(o == f['off'] for o, *_ in fields):
                     continue
                 fname = '%s_%x' % (fname, f['off'])
-            t = types.get(fname) or ('f32' if f.get('type') == 'float' else None)
+            t = types.get(fname) or types.get(fname + '_p') or ('f32' if f.get('type') == 'float' else None)
             ctype = CTYPES[t] if t in CTYPES and SIZES[CTYPES[t]] == f['size'] else BY_SIZE[f['size']]
             if f.get('type') == 'float':
                 ctype = 'float'
@@ -180,6 +180,8 @@ def main():
         '\n\n'.join(blocks),
         '',
         '#ifndef __GHIDRA__',
+        '#define TPW_CHECK(name, cond) typedef char tpw_check_##name[(cond) ? 1 : -1]',
+        '#define TPW_OFF(t, f) ((u32)(unsigned long)&((t *)0)->f)',
         '\n'.join(checks),
         '#endif',
         END])

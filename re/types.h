@@ -214,8 +214,8 @@ typedef struct Nav {
     u32 path_count;                      /* 0x5c */
     u8 path_finished;                    /* 0x60 */
     u8 unk_61[0x3];
-    TpwU64 subpath_buffer[5];            /* 0x64 */
-    u32 subpath_dist[5];                 /* 0x8c */
+    Vec2 subpath_buffer[5];              /* 0x64 */
+    float subpath_dist[5];               /* 0x8c */
     float path_total_dist;               /* 0xa0 */
     float path_subpath_dist;             /* 0xa4 */
     float path_tail_dist;                /* 0xa8 */
@@ -608,6 +608,8 @@ typedef struct GameClock {
 } GameClock;
 
 #ifndef __GHIDRA__
+#define TPW_CHECK(name, cond) typedef char tpw_check_##name[(cond) ? 1 : -1]
+#define TPW_OFF(t, f) ((u32)(unsigned long)&((t *)0)->f)
 TPW_CHECK(Thing_unk_00, TPW_OFF(Thing, unk_00) == 0x0);
 TPW_CHECK(Thing_mX, TPW_OFF(Thing, mX) == 0x4);
 TPW_CHECK(Thing_mY, TPW_OFF(Thing, mY) == 0x6);
