@@ -143,7 +143,7 @@ Bullfrog's archive format, shared with Dungeon Keeper 2. There are 312 archives 
 | `.bf4` | 37 loose | Bullfrog bitmap font (magic `F4FB`): 249 Unicode glyphs, each raw 4bpp, nibble-RLE 4bpp or 1bpp, with x/y offsets and advance | **decoded** (`tools/bf4.py` → PNG sheet + metrics) |
 | `.str` | 21 loose | String tables (magic `BFST`); text in a custom 8-bit code page mapped by `MBToUni.dat` | **decoded** (`tools/bfst.py`) |
 | `.sdt` | 43 banks | Sound banks: named entries of plain MPEG-2 Layer I/II audio (see below) | **decoded** (`tools/sdt.py` → WAV) |
-| `cat_*BANK.map`, `cat_*SFX.map`, `SndReverb.map` | — | Sound category / reverb maps (start with a GUID) | needs RE |
+| `cat_*BANK.map`, `cat_*SFX.map`, `SndReverb.map` | 28 pairs + 1 | Sound categories. BANK.map lists the `.sdt` banks a category draws on; SFX.map is a fixed-up memory image of its sounds: each sound is a small Markov chain of variations (weighted samples, then percentage links to the next variation). SndReverb.map holds 15 reverb presets of 13 values | **Decoded** (`tools/sndmap.py`, names every sample); reverb values unnamed |
 | `.omp` | 4 | `Scape.omp`: the theme's fixed ambient sound and particle emitters (`OBJ_` records; tools/omp.py) | Decoded |
 | `.tpt` | 2 | `test.tpt`: weather keyframes (temperature, wind, cloud by day); not read by tp.exe | Decoded, unused |
 | `.lnd` | 4 | `terrain.wad/base.lnd`: procedural terrain texture source: 5 blend ramps, a 384x344x4 control map (on/off + 3 blend weights), and 13 source textures at 3 detail levels (64/32/16-pixel tiles) | **Decoded** (`tools/lnd.py`); the MMX blend itself still open |
