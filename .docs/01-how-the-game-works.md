@@ -62,6 +62,35 @@ The master load-game function (`FUN_00415270`) reads a fixed sequence of modules
 
 Saving (`SaveGame_Save`) serialises all modules into an in-memory stream, compresses the buffer, and writes the result after a header. All file I/O goes through a small polymorphic C++ stream class, so file and memory streams share one vtable interface (read `+0x08`, tell `+0x18`, open `+0x24`).
 
+#### Save file layout (`tools/tpsave.py`)
+| Offset | Contents |
+|---|---|
+| `0x000` | u32 version (400; the loader refuses anything above 500) |
+| `0x004` | u8 language (0 English … 6 Japanese) |
+| `0x005` | `0x500` bytes: UTF-16 legal notice. The loader rejects the file if it was edited |
+| `0x505` | `0x100` bytes (first 32 copied to/from `DAT_00802080`) |
+| `0x605` | u32 **big-endian** magic `0x01221985` |
+| `0x609` | u32: 1 if a preview header follows |
+| `0x60d` | `BILZ` blob (zlib) holding the module stream above |
+
+Every serializer announces each field through a debug stub, `Save_FieldName(size, "mName", isLoad)`. That stub compiles to `return 0`, but its string arguments survive, so the save format comes with the developers' own field names. The world module is:
+
+1. The world header (game tick, random seed, the handles of singleton things such as the bank and weather).
+2. Object controls, the staff pool, the game clock (`mFunnyTimeStart` is a FILETIME for 2000-01-01) and the park gates.
+3. **128×128 map cells.** Each cell has a status byte selecting a map cell (52 bytes), a track cell (31) and an "RE" cell (10).
+4. A linked list of **things**, each a `next` handle, a model number and that model's fields:
+
+| Model | Thing | Model | Thing |
+|---|---|---|---|
+| 1 | Visitor | 10 | MechanicHQ |
+| 3 | Object (ride/shop/facility) | 11 | Advisor (message queue) |
+| 4–8 | Mechanic, Handyman, Entertainer, Guard, Researcher | 12 / 17 | TagSystem / UIMsgReceiver (base only) |
+| 9 | StaffHQ (strikes, training budget) | 13 | ParkAnalyser (32×32 grid + stats) |
+| 14 | ResearchLab | 15 | Weather |
+| 16 | BankAccount (8 loans) | 19 | Challenges |
+
+Thing positions are 8.8 fixed-point cell coordinates; cell ids are `y*128 + x + 1`. Some fields named `pv` are raw pointers that were saved by mistake. `Easymode.TPWI` was written by a debug build: unused name characters hold MSVC's `0xCDCD` heap fill.
+
 **Retail build quirk:** the developers' debug/assert function (`Debug_Printf`, `0x5da3c0`) is an **empty function**, so all logging was compiled out. The thousands of log strings survive only as call arguments, which makes them ideal for naming functions.
 
 This list is effectively the game's **top-level module map**. Each tag's load/save pair is a natural boundary for reimplementation.
@@ -115,7 +144,7 @@ Bullfrog's archive format, shared with Dungeon Keeper 2. There are 312 archives 
 | `.sdt` + `.map` | — | Sound banks + index maps | needs RE |
 | `.omp` | 4 | Level object placement (`OBJ_` magic), one per theme | needs RE |
 | `.tpt` | 2 | Tagged level data (`WTHR`, `TEMP` chunks) | needs RE |
-| `.TPWI` | 1 | Save-game-style initial state ("THE SAVE GAME DATA…", UTF-16) | needs RE |
+| `.TPWI` | 1 | A real **saved game** used as the level's starting state (same format as player saves) | **decoded** (`tools/tpsave.py`, world module) |
 | `.tga`, `.ani`, `.cur` | — | Standard image/cursor formats | standard |
 | `00000409.016` etc. | — | Plain BMPs (installer/autorun art) | standard |
 

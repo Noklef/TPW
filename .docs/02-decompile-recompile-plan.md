@@ -103,10 +103,11 @@ These also become the engine's loaders later.
 - [x] `.md2` geometry → OBJ (`tools/md2.py`; all 639 geometry meshes pass consistency checks)
 - [x] `.md2` node hierarchy: OBJ export assembles multi-part models (the advisor renders correctly)
 - [x] `.md2` material groups → textured export (`tools/md2.py --wad <wad> <dir>`: OBJ + MTL + PNG)
-- [ ] `.md2` motion files (flag `0x10`/`0x20`, block at header word `0x26`) (flag `0x10`/`0x20`, block at word `0x26`)
+- [ ] `.md2` motion files (flag `0x10`/`0x20`, block at header word `0x26`)
 - [x] `.RSE` disassembler (`tools/rsse_disasm.py`): all 308 scripts decode with 0 errors. See `03-rsse-scripting.md`.
 - [ ] `.sdt`/`.map` sound banks → WAV
-- [ ] `.omp`, `.tpt`, `.TPWI`, `.hmp`, `.lnd`, `.tct` level data
+- [x] Save games / `.TPWI` (`tools/tpsave.py`): container, BILZ payload, module split, and the **whole world module** (header, 128×128 map cells, all 16 thing models) decode byte-exact, with the game's own field names. Other 16 modules: split only.
+- [ ] `.omp`, `.tpt`, `.hmp`, `.lnd`, `.tct` level data
 
 ### Phase 3: Hook layer
 - [x] CMake 32-bit build (`build.bat`, VS 2022 Build Tools + Ninja) of a proxy `dinput.dll` that forwards `DirectInputCreateA` to the system DLL

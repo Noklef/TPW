@@ -3,7 +3,6 @@ address,name,kind,confidence,notes
 0x00414d40,SaveGame_Load,function,medium,caller of SaveGame_LoadModules
 0x00415270,SaveGame_LoadModules,function,high,"loads 17 modules in order, verifies 4-byte tag after each (SAD)"
 0x004164c0,SaveGame_SaveModules,function,high,mirror of SaveGame_LoadModules
-0x00415f50,SaveGame_WriteHeader,function,medium,"logs 'Saved header: %s'"
 0x005da3c0,Debug_Printf,function,high,"EMPTY in retail build: all debug/assert output compiled out. arg0 = condition or channel (0, 2, 0x499602d2)"
 0x0067a7d0,crt_atexit,function,high,registers destructor in MSVC function-static init guard pattern
 0x0067acc0,Mem_Alloc,function,medium,malloc/operator new wrapper
@@ -115,3 +114,61 @@ address,name,kind,confidence,notes
 0x0087919c,RSSE_CritLock,data,high,set by CRIT_LOCK
 0x00879190,RSSE_ScriptVersion,data,medium,expected .RSE version (0x10F51)
 0x0046d6d0,MD2_Load,function,high,"loads a .md2 mesh: magic 0x1CD15D46, version <=0xDE; relocates ~18 header offsets and nested table pointers"
+0x00416e10,Save_FieldName,function,high,"(size, name, isLoad) debug stub, compiled to 'return 0'; every serializer announces each field through it, which names the save format"
+0x0041a860,TimeSig_Serialize,function,high,u32 mTimeSig
+0x00415f50,SaveGame_WriteHeader,function,high,"u8 language, 0x500 UTF-16 legal text, 0x100 block, u32 BE magic 0x01221985, u32 has-preview"
+0x00416240,SaveGame_ReadHeader,function,high,mirror of SaveGame_WriteHeader; rejects edited legal text
+0x00749870,SaveGame_Magic,data,high,0x01221985 (written big-endian via htonl)
+0x004fae10,Save_ReadU32,function,high,"(stream, dst, name, quiet)"
+0x004d37e0,Save_ReadU16,function,high,
+0x00424c20,Save_ReadU8,function,high,
+0x00510240,Save_Read8Bytes,function,high,"u64 times / 2D float vectors"
+0x005134d0,Save_Read12Bytes,function,high,3D float vectors
+0x004ced70,Save_WriteU32,function,high,
+0x004cee50,Save_WriteU8,function,high,
+0x004ceec0,Save_WriteU16,function,high,
+0x004cede0,Save_Write8Bytes,function,high,
+0x0050b090,Thing_Serialize,function,high,"CThing base: u16 mX, mY (8.8 fixed-point cell coords), mMapChild, mMapParent"
+0x00509bc0,ThingBasic_Serialize,function,high,thing models 12 (TagSystem) and 17 (UIMsgReceiver): base only
+0x004d7a70,WorldGlobals_Serialize,function,high,"staff pool, game clock, park gates"
+0x00507850,StaffPool_Serialize,function,high,0x20 x StaffPoolEntry + 5 categories
+0x005070a0,StaffPoolEntry_Serialize,function,high,
+0x004f7f30,GameClock_Serialize,function,high,"mFunnyTimeStart (FILETIME, 2000-01-01), mSessionStart, mFunnySecsPerRealSec"
+0x004cf050,ParkGates_Serialize,function,high,"arrival rate, bus capacity, gates open"
+0x004d3aa0,ObjectControls_Serialize,function,high,0x96 x 32-byte mObjectControls
+0x004d7ea0,Map_Serialize,function,high,"128x128 cells; per-cell status byte: bit0 map cell, bit1 track cell, bit2 RE cell"
+0x004d0b30,MapCellBase_Serialize,function,high,"29 bytes: direction, flags, mesh instance, neighbours, overlap, parent, tile data, type, hoarding"
+0x004d8dd0,MapCell_Serialize,function,high,base + litter fields
+0x0050c200,TrackCell_Serialize,function,high,base + mSegmentNumber
+0x00502490,RECell_Serialize,function,high,5 x u16 mpEffect
+0x004f8b10,Sprite_Serialize,function,high,moving-person base (anim, speeds, nav, thoughts)
+0x004d3ee0,SpriteAnim_Serialize,function,high,"mSpriteScript, mNextAnim, mNextServiceInterval"
+0x0050d150,Nav_Serialize,function,high,steering/pathing state (float vectors)
+0x0050bad0,Thoughts_Serialize,function,high,event history + thought bubble
+0x004fb530,Visitor_Serialize,function,high,thing model 1
+0x00504de0,Staff_Serialize,function,high,"staff base: pay grade, UTF-16 name[0x21], patrol region, time hired"
+0x004da110,Mechanic_Serialize,function,high,thing model 4
+0x004d6d60,Handyman_Serialize,function,high,thing model 5
+0x004d4460,Entertainer_Serialize,function,high,thing model 6
+0x004d6000,Guard_Serialize,function,high,thing model 7
+0x00502760,Researcher_Serialize,function,high,thing model 8
+0x004db7d0,Object_Serialize,function,high,"thing model 3: rides, shops, facilities"
+0x00508bb0,StaffHQ_Serialize,function,high,thing model 9
+0x0050c640,StaffTraining_Serialize,function,high,5 x u32 mBudget + mHaveEverTrained
+0x004da960,MechanicHQ_Serialize,function,high,thing model 10
+0x00599f60,Advisor_Serialize,function,high,thing model 11: message queue + history
+0x0059ba30,AdvisorMsg_Serialize,function,high,
+0x004c5d70,ParkAnalyser_Serialize,function,high,"thing model 13: 32x32 analysis grid + circular-buffer statistics"
+0x004c85b0,AnalyserCell_Serialize,function,high,
+0x004cd9c0,AnalyserVal_Serialize,function,high,"u32 mVal, u8 mWorkedOut"
+0x004cdb80,CircBufU16_Serialize,function,high,"mCurrentEntry, mNumEntries, mWrappedAround, mTemp, mData[mNumEntries]"
+0x004cdf00,CircBufU32_Serialize,function,high,
+0x004cea00,CircBufU8_Serialize,function,high,
+0x00502dc0,ResearchLab_Serialize,function,high,"thing model 14: 0x100 projects, 5 groups"
+0x00504210,ResearchProject_Serialize,function,high,
+0x00504760,ResearchGroup_Serialize,function,high,
+0x00512010,Weather_Serialize,function,high,thing model 15
+0x005132a0,Forecast_Serialize,function,high,
+0x004cf920,BankAccount_Serialize,function,high,"thing model 16: balance, admission fee, 8 loans"
+0x004d2320,Challenges_Serialize,function,high,thing model 19: 0x14 challenges
+0x004d0f90,Challenge_Serialize,function,high,
