@@ -113,7 +113,8 @@ These also become the engine's loaders later.
 - [x] `.lnd` terrain texture source and `.tct` tile tables (tools/lnd.py)
 - [x] `.hmp` object height maps (tools/hmp.py)
 - [x] `.sgn` sign styles, including their wavelet-coded backgrounds (tools/sgn.py)
-- [ ] `.lip` lip-sync, `.esp`/`.tpc`/`.fpc` entertainer sprites, `.emt` emitters
+- [x] `.lip` advisor lip-sync and the response table (tools/lip.py)
+- [ ] `.esp`/`.tpc`/`.fpc` entertainer sprites, `.emt` emitters
 
 ### Phase 3: Hook layer
 - [x] CMake 32-bit build (`build.bat`, VS 2022 Build Tools + Ninja) of a proxy `dinput.dll` that forwards `DirectInputCreateA` to the system DLL
