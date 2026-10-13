@@ -21,6 +21,7 @@
 #include "../src/game/motion/uvanim.h"
 #include "../src/game/motion/vertexanim.h"
 #include "../src/game/rsse/rsse.h"
+#include "../src/game/sprite/script.h"
 #include "../src/game/terrain/terrain_blend.h"
 #include "../src/hook/hooks.h"
 
@@ -814,6 +815,20 @@ static void test_animator_reset() {
     CHECK(X87_FloatThrough(0x7f800001) == 0x7fc00001 && X87_FloatThrough(0x7f800000) == 0x7f800000);
 }
 
+static void test_sprite_script() {
+    // fild n; fadd f rounds the exact sum once: 2^30 + 64 is a 24-bit midpoint, and a tiny
+    // f says which way it goes, where the double sum alone would tie to even.
+    const double mid = 1073741888.0, tiny = std::ldexp(1.0, -30);
+    CHECK(X87_Add(mid, tiny) == 1073741952.0 && X87_Add(mid, -tiny) == 1073741824.0);
+    CHECK(X87_Add(mid, 0) == 1073741824.0 && X87_Add(-mid, -tiny) == -1073741952.0);
+    CHECK(X87_Add(1.5, 2.25) == 3.75 && X87_Add(1, -1) == 0);
+    // The VM itself works on its globals at 0x7b49f0; it is checked against the original
+    // under x87emu with those mapped. Sprite_Show only marks the script shown.
+    u8 script[0x118] = {};
+    Sprite_Show(script);
+    CHECK(script[0x114] == 1);
+}
+
 static void test_normals() {
     // Vertices 0 (0,0,0), 1 (1,0,0), 2 (0,1,0) in one block of four; face 0 {normal 0,
     // v1 = 1, v0 = 0, v2 = 2}: (v2 - v0) x (v1 - v0) = (0, 0, -1). Face 1 is degenerate.
@@ -1089,6 +1104,7 @@ int main(int argc, char **argv) {
     test_normals();
     test_animator_update();
     test_animator_reset();
+    test_sprite_script();
     test_patcher();
     if (argc > 1) test_hook_table(argv[1]);
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);

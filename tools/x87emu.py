@@ -460,14 +460,14 @@ class Emu:
                     self.write(self.r['EDI'], struct.pack('<I', self.r['EAX']))
                 self.r['EDI'] = (self.r['EDI'] + 4) & 0xffffffff
                 self.r['ECX'] -= 1
-        elif mn == 'JMP':
-            return int(o[0], 16)
+        elif mn == 'JMP':  # direct, or through a register or a jump table
+            return self.get(o[0])
         elif mn.startswith('SET'):
             self.put(o[0], int(self.cond('J' + mn[3:])))
         elif mn.startswith('J'):
             return int(o[0], 16) if self.cond(mn) else nxt
         elif mn == 'CALL':
-            target = int(o[0], 16)
+            target = self.get(o[0])
             if target in self.hooks:
                 self.hooks[target](self)
                 return nxt

@@ -44,6 +44,22 @@ inline double X87_MulInt(u32 n, float f) {
     return f < 0 ? -r : r;
 }
 
+// a + b (doubles, e.g. a fild'd int and a float) rounded once to a 24-bit significand, as
+// fild n; fadd f does. The double sum can round onto a 24-bit midpoint and then tie the
+// wrong way; its exact error (TwoSum) says which side of the midpoint the true sum is on.
+inline double X87_Add(double a, double b) {
+    const double s = a + b;
+    if (!std::isfinite(s) || s == 0) return s;
+    const double bb = s - a, e = (a - (s - bb)) + (b - bb);
+    int exp;
+    const double frac = std::frexp(std::fabs(s), &exp);
+    const unsigned long long m = (unsigned long long)std::ldexp(frac, 53);
+    if (e == 0 || (m & ((1ull << 29) - 1)) != (1ull << 28)) return X87_Round(s);
+    const unsigned long long kept = (m >> 29) + (((e > 0) == (s > 0)) ? 1 : 0);
+    const double r = std::ldexp((double)kept, exp - 24);
+    return s < 0 ? -r : r;
+}
+
 // A float loaded and stored by the x87 (fld m32; fstp m32), as bits: the value is kept,
 // except that a signalling NaN comes out quiet.
 inline u32 X87_FloatThrough(u32 bits) {
