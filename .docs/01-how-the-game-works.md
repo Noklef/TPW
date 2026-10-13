@@ -141,12 +141,31 @@ Bullfrog's archive format, shared with Dungeon Keeper 2. There are 312 archives 
 | `.ttf` | 17 | TrueType fonts | standard |
 | `.bf4` | 37 loose | Bullfrog bitmap font (magic `F4FB`) | needs RE |
 | `.str` | 21 loose | String tables (magic `BFST`); text in a custom 8-bit code page mapped by `MBToUni.dat` | **decoded** (`tools/bfst.py`) |
-| `.sdt` + `.map` | — | Sound banks + index maps | needs RE |
+| `.sdt` | 43 banks | Sound banks: named entries of plain MPEG-2 Layer I/II audio (see below) | **decoded** (`tools/sdt.py` → WAV) |
+| `cat_*BANK.map`, `cat_*SFX.map`, `SndReverb.map` | — | Sound category / reverb maps (start with a GUID) | needs RE |
 | `.omp` | 4 | Level object placement (`OBJ_` magic), one per theme | needs RE |
 | `.tpt` | 2 | Tagged level data (`WTHR`, `TEMP` chunks) | needs RE |
 | `.TPWI` | 1 | A real **saved game** used as the level's starting state (same format as player saves) | **decoded** (`tools/tpsave.py`, world module) |
 | `.tga`, `.ani`, `.cur` | — | Standard image/cursor formats | standard |
 | `00000409.016` etc. | — | Plain BMPs (installer/autorun art) | standard |
+
+#### Sound banks: `.sdt` (`tools/sdt.py`)
+The game loads `<name>HD.sdt` (the exe also knows an `HW.sdt` variant, which isn't shipped) next to `cat_<name>BANK.map` / `cat_<name>SFX.map`.
+
+| Offset | Contents |
+|---|---|
+| 0 | u32 entry count, then count × u32 absolute entry offsets |
+| entry + 0x00 | u32 header size (always 40), u32 data size |
+| entry + 0x08 | char[16] file name, e.g. `blnl_error1.mp2` (cut at 16 bytes: `rj_laypath_2.mp`) |
+| entry + 0x18 | u32 format: low 16 bits = sample rate, next byte = 0x10 (16-bit), top byte 0x24 mono / 0x25 stereo |
+| entry + 0x1c | u32 0 |
+| entry + 0x20 | u32 length of the original sound in bytes of 16-bit PCM |
+| entry + 0x24 | u32 0 |
+| entry + 0x28 | the MPEG audio frames |
+
+The audio is MPEG-2 (22,050 Hz) Layer I or Layer II, plus a few MPEG-1 Layer I files at 44,100 Hz. Windows has no Layer I decoder out of the box, so `tools/sdt.py` carries a small pure-Python Layer I/II decoder. Decoded audio lags the original by the filterbank's 481-sample delay, and the last frame is padded, so the sound is `pcm[481:][:length]`. Every entry decodes with at least that many samples. The trim offset is inferred from the codec, not read from the game's mixer. Each entry's data ends with one stray byte after the last frame.
+
+Survey of all 43 banks: 3,310 entries, about 2 hours of audio. 2,650 are Layer I (5 of them MPEG-1 at 44.1 kHz) and 660 are Layer II; 20 are stereo. All decode without errors. Every Layer II frame is consumed to within 2 bytes, and the rest is zero padding, which checks the allocation tables. Loader: `SoundBank_OpenSdt` (0x6c58f0) tries `HD.sdt`, then `HW.sdt`, or the other order when its third argument is 0.
 
 ### Content layout
 Four themed worlds, each with the same structure:
