@@ -291,3 +291,19 @@ address,name,kind,confidence,notes
 0x00599050,Advisor_Say,function,high,"'Advisor says ResponseID %d': looks up gAdvisorResponses, loads Speech/lips/sp_%03d.lip, starts gesture and animation"
 0x00599880,Advisor_UpdateSpeech,function,medium,"plays the sample 200 ms after the animation starts; toggles the mouth at each .lip time"
 0x00768fb8,gAdvisorResponses,data,high,"0x20-byte rows: response id, sample, lip number, gesture, theme<<16|anim, ?, ?, ?; ends with 9999"
+0x00541d90,Sprites_LoadAll,function,high,"loads every esprites.wad folder in gSpriteFolders order; arg 1 = particles only"
+0x00541310,Sprites_LoadFolder,function,high,"finds *.ESP in a folder; loads gAvatarSprites first ('Loading Avatar Sprites')"
+0x00540d90,Sprite_LoadEsp,function,high,"thiscall; reads ESP_FILE2.00 (name, 2 flags, 16 anims, 4 actions) then the .tpc/.fpc frames"
+0x00540bd0,Sprite_Ctor,function,high,fastcall; 0x260-byte sprite definition
+0x00540c70,Sprite_GetAction,function,medium,"thiscall; special action 0..3 -> animation slot, entry in 0x74f7c8 table, 2 bytes"
+0x00540c60,Sprite_GetAnimFrameCount,function,medium,thiscall; frame count byte of an animation slot
+0x00540900,Sprites_Init,function,medium,"(ground camera, particles only); calls Sprites_LoadAll"
+0x00542420,Sprites_UseGroundFrames,function,high,reloads .fpc frames for sprites whose ESP ground-frames flag is set
+0x00542640,Sprites_UseParkFrames,function,high,reloads the .tpc frames
+0x00587db0,SpriteFrames_Load,function,medium,reads a .tpc/.fpc stream into a frame set
+0x0042ab20,Camera_SetMode,function,medium,"2 = walk, 4 = follow a thing, 0x40 = park view; flags in gCameraFlags"
+0x0042ae70,Camera_ToggleWalkMode,function,medium,switches sprite frame sets with the camera
+0x0042a560,Camera_FollowThing,function,low,sets camera mode 4 on a thing and picks the sprite frame set
+0x00763f88,gSpriteFolders,data,high,"14 x (char* folder, first sprite index, count)"
+0x00764030,gAvatarSprites,data,high,"SPR_BI/KI/TA/SU.ESP"
+0x00790ab0,gCameraFlags,data,medium,"bits 2/4/0x10 = ground-level camera"

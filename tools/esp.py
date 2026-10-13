@@ -4,21 +4,30 @@ The wad holds one folder per sprite group (Generic/Kids, Fantasy/Entertainers, G
 ...). Only the first entry of each folder carries the folder path; later entries are bare names,
 so names such as SPR_SP.ESP repeat between folders. Each sprite has:
 
-  SPR_xx.ESP  animation table, 350 bytes:
-    char magic[12]     "ESP_FILE2.00"
+  SPR_xx.ESP  animation table, 350 bytes, read by Sprite_LoadEsp 0x540d90:
+    char magic[12]     "ESP_FILE2.00" (only its length is checked)
     char name[256]     the sprite's file stem with a .TPS extension ("SPR_KI.TPS")
-    u8   flags[2]      not traced yet
-    20 x (u16 first frame, u8 frame count, u8 directions)
+    u8   ground frames 1 = also use the .fpc frames for the ground-level cameras (see below)
+    u8   ?             stored at +0x206 but never read; it splits the kids into two groups
+                       (CH, KI, SA, SU = 1; BE, BI, FR, TA = 0), the same in their heads
+    16 x (u16 first frame, u8 frame count, u8 directions)
                        an animation covers frames first + direction * count + frame, for
                        max(directions, 1) directions. People have 5 directions, from behind
                        to the front (the other 3 of 8 are presumably mirrored); effects and
                        litter have 0. Heads (Kidsheads, Costumeheads) have one record,
                        (0, 8, 7): 8 headings x 7 tilts, drawn over the body so the head can
-                       turn on its own. Unused slots are zero; in entertainers slot 16 is
-                       01 05 xx xx, which is not a frame range.
+                       turn on its own. Unused slots are zero.
+    4 x (u8 animation slot + 1, u8 entry + 1, u8, u8)
+                       special actions 0..3, read only if present (0 = unused).
+                       Sprite_GetAction 0x540c70 hands back the animation slot, an entry in the
+                       pointer table at 0x74f7c8 and the two other bytes. Only entertainers
+                       use one (01 05 00 00; Dracula 01 05 02 28).
   SPR_xx.TPC  frames for the normal park camera
-  SPR_xx.FPC  the same frames drawn from a lower, more side-on camera (taller images; only
-              people have one). Which view uses them is not traced yet.
+  SPR_xx.FPC  the same frames drawn from a lower, more side-on camera (taller images). When the
+              camera drops to ground level (walking the park as a visitor, or following a ride
+              or a person: Camera_SetMode 0x42ab20 modes 2 and 4), Sprites_UseGroundFrames
+              0x542420 reloads the .fpc frames of every sprite whose ground-frames flag is set,
+              and Sprites_UseParkFrames 0x542640 switches back.
 
   .tpc / .fpc layout (little-endian):
     u16 3, u16 3, u32 frame count
@@ -32,9 +41,14 @@ so names such as SPR_SP.ESP repeat between folders. Each sprite has:
       every row decodes to exactly width pixels
 
 Shipped data quirks: Generic/Kidsheads/SPR_BE.TPC has 55 frames but its .ESP asks for 56, and
-Jungle/Entertainers/SPR_EX.FPC has 210 frames, 9 short of its walk (frames 179-218).
-The loader in tp.exe has not been found yet (its extension strings sit in a table copied into
-dozens of functions, and "ESP_FILE" never appears in the exe).
+Jungle/Entertainers/SPR_EX.FPC has 210 frames, 9 short of its walk (frames 179-218); its
+ground-frames flag is 0, so the game never loads that .fpc.
+
+Sprites_LoadAll 0x541d90 loads the folders in the order of the table at 0x763f88 (kids,
+kidsheads, costumes, costumeheads, entertainers, handymen, mechanics, guards, researchers,
+thoughts, balloons, litter, specialfx, particles) with Sprites_LoadFolder 0x541310. That finds
+every *.ESP in the folder and loads the four walk-mode avatars (SPR_BI, SPR_KI, SPR_TA,
+SPR_SU; table 0x764030) first.
 
 Usage:
   python -I tools/esp.py <esprites.wad> [out_dir]   list the animations, and write sprite sheets
@@ -55,8 +69,10 @@ def parse_esp(data):
     if data[:12] != ESP_MAGIC:
         raise ValueError('not an ESP_FILE2.00 file')
     name = data[12:268].split(b'\0')[0].decode('latin-1')
-    anims = [struct.unpack_from('<HBB', data, 270 + 4 * i) for i in range(20)]
-    return {'name': name, 'flags': tuple(data[268:270]), 'anims': anims}
+    anims = [struct.unpack_from('<HBB', data, 270 + 4 * i) for i in range(16)]
+    actions = [tuple(data[334 + 4 * i:338 + 4 * i]) for i in range(4)] if len(data) >= 350 else []
+    return {'name': name, 'ground_frames': data[268], 'unknown': data[269], 'anims': anims,
+            'actions': actions}
 
 
 def parse_frames(data):
@@ -135,8 +151,11 @@ def main():
     for key, parts in sorted(sprites(sys.argv[1]).items()):
         esp = parse_esp(parts['esp'])
         views = {v: parse_frames(parts[v]) for v in ('tpc', 'fpc') if v in parts}
-        print('%s (%s): %s, flags %s' % (key, esp['name'], ', '.join(
-            '%s %d frames' % (v, len(fr)) for v, (_, fr) in views.items()), esp['flags']))
+        print('%s (%s): %s, ground frames %d, ? %d' % (key, esp['name'], ', '.join(
+            '%s %d frames' % (v, len(fr)) for v, (_, fr) in views.items()), esp['ground_frames'], esp['unknown']))
+        for i, (anim, entry, c, d) in enumerate(esp['actions']):
+            if anim:
+                print('  action %d: anim %d, entry %d, %d %d' % (i, anim - 1, entry - 1, c, d))
         for slot, (first, count, dirs) in enumerate(esp['anims']):
             if not count:
                 continue
