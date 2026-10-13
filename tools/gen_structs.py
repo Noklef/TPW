@@ -14,6 +14,7 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import samtool  # noqa: E402
 import tpsave  # noqa: E402
 from pe_read import PE  # noqa: E402
 from save_schema import load_functions  # noqa: E402
@@ -27,11 +28,12 @@ END = '/* END GENERATED */'
 # reads mExitLevel, 0x19c, 0x1a8, mLastPosX, so 0x19c and 0x1a8 sort between E and La.
 PV_NAMES = {
     ('Visitor', 0x19c): ('mHappiness', '"Sideshow won - happiness up" adds here'),
-    ('Visitor', 0x1a4): ('mThirst', '0..100; drinks subtract the object def\'s +0x144'),
-    ('Visitor', 0x1a8): ('mHunger', '0..100; food subtracts the object def\'s +0x148'),
+    ('Visitor', 0x1a4): ('mThirst', '0..100; drinks subtract ObjectDef.mThirstEffect'),
+    ('Visitor', 0x1a8): ('mHunger', '0..100; food subtracts ObjectDef.mHungerEffect'),
     ('Visitor', 0x1ac): ('mToilet', 'zeroed by a toilet; grows over time'),
-    ('Visitor', 0x1b0): ('mIllness', 'rides add the object def\'s +0x14c; sick above 90'),
-    ('Visitor', 0x1b4): ('mLitter', '"Litter gone up by %d" adds the object def\'s +0x154'),
+    ('Visitor', 0x1b0): ('mVomit', 'ObjectDef.mVomitEffect adds; sick above 90'),
+    ('Visitor', 0x1b8): ('mTiredness', 'name from its sort slot; only ever zeroed and saved'),
+    ('Visitor', 0x1b4): ('mLitter', '"Litter gone up by %d" adds ObjectDef.mLitterEffect'),
     ('Staff', 0x1f8): ('mHappiness', 'probably; drains faster on low pay grades'),
     ('Staff', 0x1fc): ('mEnergy', 'too tired below a balance threshold (0x506680)'),
 }
@@ -52,8 +54,8 @@ SPEC = [
      [(0x00, 'Thing', 'base'), (0x0c, 'SpriteAnim', 'mAnim'), (0x30, 'Thoughts', 'mThoughts'),
       (0xd4, 'Nav', 'mNav')], [], 'A walking person: base of Visitor and Staff (0x4f8b10).'),
     ('Visitor', '004fb530', tpsave.VISITOR, None, [(0, 'Sprite', 'base')], [],
-     'Thing model 1 (0x4fb530). The needs (mHappiness .. mLitter) are 0..100 floats saved as\n'
-     ' * 0..255 under the placeholder name "pv"; pv_1b8 is only ever zeroed and saved.'),
+     'Thing model 1 (0x4fb530). The needs (mHappiness .. mTiredness) are 0..100 floats saved as\n'
+     ' * 0..255 under the placeholder name "pv".'),
     ('Staff', '00504de0', tpsave.STAFF, 0x210, [(0, 'Sprite', 'base')], [],
      'Base of the five staff types (0x504de0).'),
     ('Mechanic', '004da110', tpsave.MECHANIC, None, [(0, 'Staff', 'base')], [], 'Thing model 4 (0x4da110).'),
@@ -97,7 +99,45 @@ SPEC = [
 CTYPES = {'u8': 'u8', 'u16': 'u16', 'u32': 'u32', 'i32': 's32', 'f32': 'float', 'u64': 'TpwU64',
           'v2': 'Vec2', 'v3': 'Vec3'}
 BY_SIZE = {1: 'u8', 2: 'u16', 4: 'u32', 8: 'TpwU64', 12: 'Vec3'}
-SIZES = {'u8': 1, 'u16': 2, 'u32': 4, 's32': 4, 'float': 4, 'TpwU64': 8, 'Vec2': 8, 'Vec3': 12}
+SIZES = {'u8': 1, 'u16': 2, 'u32': 4, 's32': 4, 'float': 4, 'TpwU64': 8, 'Vec2': 8, 'Vec3': 12,
+         'char *': 4, 'void *': 4}
+# .sam schema value types (tools/samtool.py) -> C
+SAM_CTYPES = {4: 's32', 5: 'u32', 6: 's32', 7: 'float', 8: 'float', 9: 'float', 10: 'char *', 11: 'void *'}
+
+
+def object_def_specs(pe):
+    """ObjectDef (ride/shop/... descriptions) and its table rows, laid out from the .sam schema.
+
+    Each schema value owns one 4-byte slot at def + 0xc + 4 * slot (see tools/samtool.py).
+    """
+    va, base, _ = samtool.SCHEMAS['object']
+    top, tables = [], {}
+    for k in samtool.read_schema(pe, va):
+        off, ctype = base + 4 * k['slot'], SAM_CTYPES[k['type']]
+        group, field = k['key'].rsplit('.', 1)
+        if 'stride' in k:
+            tables.setdefault(group[:-2], []).append((off, ctype, field, k))
+        else:
+            top.append((off, ctype, 'm' + field, 1))
+    specs = []
+    for table, fs in tables.items():
+        first, rows, stride = fs[0][0], fs[0][3]['rows'], fs[0][3]['stride']
+        if len(fs) == 1:   # one key per row: a plain array
+            top.append((first, fs[0][1], 'm' + table + ('' if fs[0][2] == 'FileName' else fs[0][2]), rows))
+            continue
+        sub = 'ObjectDef' + table.rstrip('s')
+        specs.append((sub, None, [], stride, [], [(o - first, c, 'm' + f, 1) for o, c, f, _ in fs],
+                      'One row of ObjectDef.m%s: the %s[i].* keys of a .sam description.' % (table, table)))
+        top.append((first, sub, 'm' + table, rows))
+    top += [(0x00, 'u16', 'mLookupId', 1), (0x04, 'void *', 'vtable', 1), (0x08, 'void *', 'mSlotInfo', 1),
+            (0x28c, 'u8', 'mSamPath', 0x104)]
+    specs.append(('ObjectDef', None, [], None, [], top,
+                  'A ride/shop/sideshow/feature description, loaded from its .sam file (0x413c10) and\n'
+                  ' * found by id with ObjectDefs_Find (0x412e90). Fields are the .sam keys in schema order\n'
+                  ' * (tools/samtool.py schema object); e.g. UsageInfo.ThirstEffect is mThirstEffect.\n'
+                  ' * The vtable and mSlotInfo belong to the generic balance-file base class (0x401030),\n'
+                  ' * which starts at +4. Runtime state follows mSamPath (up to ~0x500).'))
+    return specs
 
 
 def schema_types(schema, out=None):
@@ -184,7 +224,7 @@ def main():
     src, pe = load_functions(dump), PE(exe)
     sizes = dict(SIZES)
     blocks, checks = [], []
-    for spec in SPEC:
+    for spec in SPEC + object_def_specs(pe):
         text, c = emit(spec, build(spec, src, pe), sizes)
         blocks.append(text)
         checks += c

@@ -97,7 +97,7 @@ Goal: see the original running on modern Windows, so there's a ground truth to c
 These also become the engine's loaders later.
 - [x] `.wad` + RefPack
 - [x] `.str` string tables (`tools/bfst.py`, custom code page via `MBToUni.dat`; all strings decode)
-- [ ] `.sam` (trivial text)
+- [x] `.sam` balance files: key schemas read from the exe, all 400 files checked (`tools/samtool.py`); `ObjectDef` struct generated from the object schema
 - [x] `.bf4` fonts → PNG glyph sheet + metrics (`tools/bf4.py`)
 - [x] `.wct` v0x13 textures → PNG (`tools/wct2png.py`). Exact quantiser from the caller `0x564e20`: Y step `1 + q/2`, Cb/Cr `1 + q/4`, alpha `q + 1`.
 - [x] `.wct` v0x12 (993 mostly-UI textures): same one-level D4, rows stored `[low…, high…]`; streams are `BILZ` = 28-byte header + zlib 1.1.3 (the save-file compressor). All textures now decode.

@@ -256,19 +256,19 @@ typedef struct Sprite {
     u32 mStrandedTime;                   /* 0x198 */
 } Sprite;
 
-/* Thing model 1 (0x4fb530). The needs (mHappiness .. mLitter) are 0..100 floats saved as
- * 0..255 under the placeholder name "pv"; pv_1b8 is only ever zeroed and saved.
+/* Thing model 1 (0x4fb530). The needs (mHappiness .. mTiredness) are 0..100 floats saved as
+ * 0..255 under the placeholder name "pv".
  * Only the saved fields are known: the real object may be larger. */
 typedef struct Visitor {
     Sprite base;                         /* 0x00 */
     float mHappiness;                    /* 0x19c: "Sideshow won - happiness up" adds here */
     s32 mCash;                           /* 0x1a0 */
-    float mThirst;                       /* 0x1a4: 0..100; drinks subtract the object def's +0x144 */
-    float mHunger;                       /* 0x1a8: 0..100; food subtracts the object def's +0x148 */
+    float mThirst;                       /* 0x1a4: 0..100; drinks subtract ObjectDef.mThirstEffect */
+    float mHunger;                       /* 0x1a8: 0..100; food subtracts ObjectDef.mHungerEffect */
     float mToilet;                       /* 0x1ac: zeroed by a toilet; grows over time */
-    float mIllness;                      /* 0x1b0: rides add the object def's +0x14c; sick above 90 */
-    float mLitter;                       /* 0x1b4: "Litter gone up by %d" adds the object def's +0x154 */
-    float pv_1b8;                        /* 0x1b8 */
+    float mVomit;                        /* 0x1b0: ObjectDef.mVomitEffect adds; sick above 90 */
+    float mLitter;                       /* 0x1b4: "Litter gone up by %d" adds ObjectDef.mLitterEffect */
+    float mTiredness;                    /* 0x1b8: name from its sort slot; only ever zeroed and saved */
     u32 mExitLevel;                      /* 0x1bc */
     u8 mPrankeryIndex;                   /* 0x1c0 */
     u8 unk_1c1[0x3];
@@ -611,6 +611,143 @@ typedef struct GameClock {
     u32 mFunnySecsPerRealSec;            /* 0x1c */
 } GameClock;
 
+/* One row of ObjectDef.mUpgrades: the Upgrades[i].* keys of a .sam description. */
+typedef struct ObjectDefUpgrade {
+    u32 mCostOfResearch;                 /* 0x00 */
+    s32 mEstimatedPriceVariance;         /* 0x04 */
+    u32 mScrapValueYear1;                /* 0x08 */
+    u32 mScrapValueYear2;                /* 0x0c */
+    u32 mScrapValueYear3;                /* 0x10 */
+    u32 mScrapValueYear4;                /* 0x14 */
+    u32 mInitCapacity;                   /* 0x18 */
+    u32 mRedLineCapacity;                /* 0x1c */
+    u32 mInitDuration;                   /* 0x20 */
+    u32 mRedLineDuration;                /* 0x24 */
+    u32 mInitSpeed;                      /* 0x28 */
+    u32 mRedLineSpeed;                   /* 0x2c */
+    u32 mWearRate;                       /* 0x30 */
+    float mQueueWaitTimeConstant;        /* 0x34 */
+    u32 mCostOfUpgrade;                  /* 0x38 */
+    u32 mDurationOfUpgrade;              /* 0x3c */
+} ObjectDefUpgrade;
+
+/* A ride/shop/sideshow/feature description, loaded from its .sam file (0x413c10) and
+ * found by id with ObjectDefs_Find (0x412e90). Fields are the .sam keys in schema order
+ * (tools/samtool.py schema object); e.g. UsageInfo.ThirstEffect is mThirstEffect.
+ * The vtable and mSlotInfo belong to the generic balance-file base class (0x401030),
+ * which starts at +4. Runtime state follows mSamPath (up to ~0x500).
+ * Only the saved fields are known: the real object may be larger. */
+typedef struct ObjectDef {
+    u16 mLookupId;                       /* 0x00 */
+    u8 unk_02[0x2];
+    void * vtable;                       /* 0x04 */
+    void * mSlotInfo;                    /* 0x08 */
+    u8 unk_0c[0x4];
+    u32 mId;                             /* 0x10 */
+    char * mName;                        /* 0x14 */
+    void * mShape;                       /* 0x18 */
+    void * mHoarding;                    /* 0x1c */
+    u32 mEngineMapOffsetOverrideX;       /* 0x20 */
+    u32 mEngineMapOffsetOverrideY;       /* 0x24 */
+    u32 mEngineFootprintWidthOverride;   /* 0x28 */
+    u32 mEngineFootprintHeightOverride;  /* 0x2c */
+    u32 mMapOffsetX;                     /* 0x30 */
+    u32 mMapOffsetY;                     /* 0x34 */
+    s32 mDontApplyOffset;                /* 0x38 */
+    s32 mIsChoosable;                    /* 0x3c */
+    s32 mHasQueue;                       /* 0x40 */
+    s32 mCanBreakDown;                   /* 0x44 */
+    s32 mRunsContinuously;               /* 0x48 */
+    s32 mWhichUIType;                    /* 0x4c */
+    s32 mDontDeformBase;                 /* 0x50 */
+    u32 mOverwritePriority;              /* 0x54 */
+    u32 mAttractionValue;                /* 0x58 */
+    s32 mNewAttractionDecayTime;         /* 0x5c */
+    s32 mCreateParticleEffect;           /* 0x60 */
+    s32 mDestroyParticleEffect;          /* 0x64 */
+    s32 mRepairParticleEffect;           /* 0x68 */
+    s32 mUpgradeParticleEffect;          /* 0x6c */
+    u32 mDurationUnit;                   /* 0x70 */
+    u32 mUsesCars;                       /* 0x74 */
+    char * mPreviewAnimType;             /* 0x78 */
+    u32 mPreviewAnimNum;                 /* 0x7c */
+    s32 mFirstPersonSprites;             /* 0x80 */
+    s32 mDoHeadProcessing;               /* 0x84 */
+    s32 mTurnOffAnimatingTextures;       /* 0x88 */
+    s32 mTurnOffScrollingTextures;       /* 0x8c */
+    u32 mRideTypeStringIndex;            /* 0x90 */
+    s32 mDownloadedRideNumber;           /* 0x94 */
+    s32 mIsPreviewRide;                  /* 0x98 */
+    s32 mWhichTrackType;                 /* 0x9c */
+    s32 mBumperType;                     /* 0xa0 */
+    s32 mNorthXAdjust;                   /* 0xa4 */
+    s32 mNorthYAdjust;                   /* 0xa8 */
+    s32 mEastXAdjust;                    /* 0xac */
+    s32 mEastYAdjust;                    /* 0xb0 */
+    s32 mSouthXAdjust;                   /* 0xb4 */
+    s32 mSouthYAdjust;                   /* 0xb8 */
+    s32 mWestXAdjust;                    /* 0xbc */
+    s32 mWestYAdjust;                    /* 0xc0 */
+    u32 mGoldenTicketCost;               /* 0xc4 */
+    u32 mLength;                         /* 0xc8 */
+    u32 mWidth;                          /* 0xcc */
+    u32 mHeight;                         /* 0xd0 */
+    float mEntryCellStandPosX;           /* 0xd4 */
+    float mEntryCellStandPosY;           /* 0xd8 */
+    float mExitCellAppearPosX;           /* 0xdc */
+    float mExitCellAppearPosY;           /* 0xe0 */
+    u32 mInitPricePerUse;                /* 0xe4 */
+    u32 mFatigueEffect;                  /* 0xe8 */
+    s32 mInitChanceOfLoosing;            /* 0xec */
+    s32 mProvidesSecurity;               /* 0xf0 */
+    s32 mProvidesRelief;                 /* 0xf4 */
+    s32 mHoldsLitter;                    /* 0xf8 */
+    s32 mChillsYouOut;                   /* 0xfc */
+    s32 mRequiresTeleport;               /* 0x100 */
+    s32 mRideHandlesSprite;              /* 0x104 */
+    s32 mRequiresWatering;               /* 0x108 */
+    s32 mNonWinnableSideshow;            /* 0x10c */
+    s32 mIsFireworks;                    /* 0x110 */
+    s32 mISIndoors;                      /* 0x114 */
+    s32 mCannotRide;                     /* 0x118 */
+    s32 mConstrainCamera;                /* 0x11c */
+    u32 mPukeReductionLevel;             /* 0x120 */
+    u32 mMinCapacity;                    /* 0x124 */
+    u32 mMaxCapacity;                    /* 0x128 */
+    u32 mMinDuration;                    /* 0x12c */
+    u32 mMaxDuration;                    /* 0x130 */
+    u32 mMinSpeed;                       /* 0x134 */
+    u32 mMaxSpeed;                       /* 0x138 */
+    s32 mExcitementLevel;                /* 0x13c */
+    u32 mInitCostOfGoods;                /* 0x140 */
+    s32 mThirstEffect;                   /* 0x144 */
+    s32 mHungerEffect;                   /* 0x148 */
+    s32 mVomitEffect;                    /* 0x14c */
+    s32 mHappinessEffect;                /* 0x150 */
+    s32 mLitterEffect;                   /* 0x154 */
+    s32 mSpecialIngredient;              /* 0x158 */
+    s32 mAppearanceEffect;               /* 0x15c */
+    u32 mInitPrizeValue;                 /* 0x160 */
+    s32 mShopType;                       /* 0x164 */
+    s32 mExciteFactor;                   /* 0x168 */
+    u32 mRipOffOK;                       /* 0x16c */
+    u32 mNumSimultAnims;                 /* 0x170 */
+    u32 mCost;                           /* 0x174 */
+    s32 mGroup;                          /* 0x178 */
+    s32 mCategory;                       /* 0x17c */
+    ObjectDefUpgrade mUpgrades[3];       /* 0x180 */
+    u8 unk_240[0x4];
+    char * mSupplementalMeshes[8];       /* 0x244 */
+    u8 unk_264[0x4];
+    u32 mAttractionNewBonus[3];          /* 0x268 */
+    u8 unk_274[0x4];
+    char * mSignTextures[2];             /* 0x278 */
+    u8 unk_280[0x4];
+    u32 mUpgradesId;                     /* 0x284 */
+    u32 mUpgradeType;                    /* 0x288 */
+    u8 mSamPath[260];                    /* 0x28c */
+} ObjectDef;
+
 #ifndef __GHIDRA__
 #define TPW_CHECK(name, cond) typedef char tpw_check_##name[(cond) ? 1 : -1]
 #define TPW_OFF(t, f) ((u32)(unsigned long)&((t *)0)->f)
@@ -685,9 +822,9 @@ TPW_CHECK(Visitor_mCash, TPW_OFF(Visitor, mCash) == 0x1a0);
 TPW_CHECK(Visitor_mThirst, TPW_OFF(Visitor, mThirst) == 0x1a4);
 TPW_CHECK(Visitor_mHunger, TPW_OFF(Visitor, mHunger) == 0x1a8);
 TPW_CHECK(Visitor_mToilet, TPW_OFF(Visitor, mToilet) == 0x1ac);
-TPW_CHECK(Visitor_mIllness, TPW_OFF(Visitor, mIllness) == 0x1b0);
+TPW_CHECK(Visitor_mVomit, TPW_OFF(Visitor, mVomit) == 0x1b0);
 TPW_CHECK(Visitor_mLitter, TPW_OFF(Visitor, mLitter) == 0x1b4);
-TPW_CHECK(Visitor_pv_1b8, TPW_OFF(Visitor, pv_1b8) == 0x1b8);
+TPW_CHECK(Visitor_mTiredness, TPW_OFF(Visitor, mTiredness) == 0x1b8);
 TPW_CHECK(Visitor_mExitLevel, TPW_OFF(Visitor, mExitLevel) == 0x1bc);
 TPW_CHECK(Visitor_mPrankeryIndex, TPW_OFF(Visitor, mPrankeryIndex) == 0x1c0);
 TPW_CHECK(Visitor_mNumRides, TPW_OFF(Visitor, mNumRides) == 0x1c4);
@@ -903,6 +1040,125 @@ TPW_CHECK(GameClock_mMonthAtLastUpdate, TPW_OFF(GameClock, mMonthAtLastUpdate) =
 TPW_CHECK(GameClock_mDayAtLastUpdate, TPW_OFF(GameClock, mDayAtLastUpdate) == 0x14);
 TPW_CHECK(GameClock_mFunnySecsPerRealSec, TPW_OFF(GameClock, mFunnySecsPerRealSec) == 0x1c);
 TPW_CHECK(GameClock_size, sizeof(GameClock) == 0x20);
+TPW_CHECK(ObjectDefUpgrade_mCostOfResearch, TPW_OFF(ObjectDefUpgrade, mCostOfResearch) == 0x0);
+TPW_CHECK(ObjectDefUpgrade_mEstimatedPriceVariance, TPW_OFF(ObjectDefUpgrade, mEstimatedPriceVariance) == 0x4);
+TPW_CHECK(ObjectDefUpgrade_mScrapValueYear1, TPW_OFF(ObjectDefUpgrade, mScrapValueYear1) == 0x8);
+TPW_CHECK(ObjectDefUpgrade_mScrapValueYear2, TPW_OFF(ObjectDefUpgrade, mScrapValueYear2) == 0xc);
+TPW_CHECK(ObjectDefUpgrade_mScrapValueYear3, TPW_OFF(ObjectDefUpgrade, mScrapValueYear3) == 0x10);
+TPW_CHECK(ObjectDefUpgrade_mScrapValueYear4, TPW_OFF(ObjectDefUpgrade, mScrapValueYear4) == 0x14);
+TPW_CHECK(ObjectDefUpgrade_mInitCapacity, TPW_OFF(ObjectDefUpgrade, mInitCapacity) == 0x18);
+TPW_CHECK(ObjectDefUpgrade_mRedLineCapacity, TPW_OFF(ObjectDefUpgrade, mRedLineCapacity) == 0x1c);
+TPW_CHECK(ObjectDefUpgrade_mInitDuration, TPW_OFF(ObjectDefUpgrade, mInitDuration) == 0x20);
+TPW_CHECK(ObjectDefUpgrade_mRedLineDuration, TPW_OFF(ObjectDefUpgrade, mRedLineDuration) == 0x24);
+TPW_CHECK(ObjectDefUpgrade_mInitSpeed, TPW_OFF(ObjectDefUpgrade, mInitSpeed) == 0x28);
+TPW_CHECK(ObjectDefUpgrade_mRedLineSpeed, TPW_OFF(ObjectDefUpgrade, mRedLineSpeed) == 0x2c);
+TPW_CHECK(ObjectDefUpgrade_mWearRate, TPW_OFF(ObjectDefUpgrade, mWearRate) == 0x30);
+TPW_CHECK(ObjectDefUpgrade_mQueueWaitTimeConstant, TPW_OFF(ObjectDefUpgrade, mQueueWaitTimeConstant) == 0x34);
+TPW_CHECK(ObjectDefUpgrade_mCostOfUpgrade, TPW_OFF(ObjectDefUpgrade, mCostOfUpgrade) == 0x38);
+TPW_CHECK(ObjectDefUpgrade_mDurationOfUpgrade, TPW_OFF(ObjectDefUpgrade, mDurationOfUpgrade) == 0x3c);
+TPW_CHECK(ObjectDefUpgrade_size, sizeof(ObjectDefUpgrade) == 0x40);
+TPW_CHECK(ObjectDef_mLookupId, TPW_OFF(ObjectDef, mLookupId) == 0x0);
+TPW_CHECK(ObjectDef_vtable, TPW_OFF(ObjectDef, vtable) == 0x4);
+TPW_CHECK(ObjectDef_mSlotInfo, TPW_OFF(ObjectDef, mSlotInfo) == 0x8);
+TPW_CHECK(ObjectDef_mId, TPW_OFF(ObjectDef, mId) == 0x10);
+TPW_CHECK(ObjectDef_mName, TPW_OFF(ObjectDef, mName) == 0x14);
+TPW_CHECK(ObjectDef_mShape, TPW_OFF(ObjectDef, mShape) == 0x18);
+TPW_CHECK(ObjectDef_mHoarding, TPW_OFF(ObjectDef, mHoarding) == 0x1c);
+TPW_CHECK(ObjectDef_mEngineMapOffsetOverrideX, TPW_OFF(ObjectDef, mEngineMapOffsetOverrideX) == 0x20);
+TPW_CHECK(ObjectDef_mEngineMapOffsetOverrideY, TPW_OFF(ObjectDef, mEngineMapOffsetOverrideY) == 0x24);
+TPW_CHECK(ObjectDef_mEngineFootprintWidthOverride, TPW_OFF(ObjectDef, mEngineFootprintWidthOverride) == 0x28);
+TPW_CHECK(ObjectDef_mEngineFootprintHeightOverride, TPW_OFF(ObjectDef, mEngineFootprintHeightOverride) == 0x2c);
+TPW_CHECK(ObjectDef_mMapOffsetX, TPW_OFF(ObjectDef, mMapOffsetX) == 0x30);
+TPW_CHECK(ObjectDef_mMapOffsetY, TPW_OFF(ObjectDef, mMapOffsetY) == 0x34);
+TPW_CHECK(ObjectDef_mDontApplyOffset, TPW_OFF(ObjectDef, mDontApplyOffset) == 0x38);
+TPW_CHECK(ObjectDef_mIsChoosable, TPW_OFF(ObjectDef, mIsChoosable) == 0x3c);
+TPW_CHECK(ObjectDef_mHasQueue, TPW_OFF(ObjectDef, mHasQueue) == 0x40);
+TPW_CHECK(ObjectDef_mCanBreakDown, TPW_OFF(ObjectDef, mCanBreakDown) == 0x44);
+TPW_CHECK(ObjectDef_mRunsContinuously, TPW_OFF(ObjectDef, mRunsContinuously) == 0x48);
+TPW_CHECK(ObjectDef_mWhichUIType, TPW_OFF(ObjectDef, mWhichUIType) == 0x4c);
+TPW_CHECK(ObjectDef_mDontDeformBase, TPW_OFF(ObjectDef, mDontDeformBase) == 0x50);
+TPW_CHECK(ObjectDef_mOverwritePriority, TPW_OFF(ObjectDef, mOverwritePriority) == 0x54);
+TPW_CHECK(ObjectDef_mAttractionValue, TPW_OFF(ObjectDef, mAttractionValue) == 0x58);
+TPW_CHECK(ObjectDef_mNewAttractionDecayTime, TPW_OFF(ObjectDef, mNewAttractionDecayTime) == 0x5c);
+TPW_CHECK(ObjectDef_mCreateParticleEffect, TPW_OFF(ObjectDef, mCreateParticleEffect) == 0x60);
+TPW_CHECK(ObjectDef_mDestroyParticleEffect, TPW_OFF(ObjectDef, mDestroyParticleEffect) == 0x64);
+TPW_CHECK(ObjectDef_mRepairParticleEffect, TPW_OFF(ObjectDef, mRepairParticleEffect) == 0x68);
+TPW_CHECK(ObjectDef_mUpgradeParticleEffect, TPW_OFF(ObjectDef, mUpgradeParticleEffect) == 0x6c);
+TPW_CHECK(ObjectDef_mDurationUnit, TPW_OFF(ObjectDef, mDurationUnit) == 0x70);
+TPW_CHECK(ObjectDef_mUsesCars, TPW_OFF(ObjectDef, mUsesCars) == 0x74);
+TPW_CHECK(ObjectDef_mPreviewAnimType, TPW_OFF(ObjectDef, mPreviewAnimType) == 0x78);
+TPW_CHECK(ObjectDef_mPreviewAnimNum, TPW_OFF(ObjectDef, mPreviewAnimNum) == 0x7c);
+TPW_CHECK(ObjectDef_mFirstPersonSprites, TPW_OFF(ObjectDef, mFirstPersonSprites) == 0x80);
+TPW_CHECK(ObjectDef_mDoHeadProcessing, TPW_OFF(ObjectDef, mDoHeadProcessing) == 0x84);
+TPW_CHECK(ObjectDef_mTurnOffAnimatingTextures, TPW_OFF(ObjectDef, mTurnOffAnimatingTextures) == 0x88);
+TPW_CHECK(ObjectDef_mTurnOffScrollingTextures, TPW_OFF(ObjectDef, mTurnOffScrollingTextures) == 0x8c);
+TPW_CHECK(ObjectDef_mRideTypeStringIndex, TPW_OFF(ObjectDef, mRideTypeStringIndex) == 0x90);
+TPW_CHECK(ObjectDef_mDownloadedRideNumber, TPW_OFF(ObjectDef, mDownloadedRideNumber) == 0x94);
+TPW_CHECK(ObjectDef_mIsPreviewRide, TPW_OFF(ObjectDef, mIsPreviewRide) == 0x98);
+TPW_CHECK(ObjectDef_mWhichTrackType, TPW_OFF(ObjectDef, mWhichTrackType) == 0x9c);
+TPW_CHECK(ObjectDef_mBumperType, TPW_OFF(ObjectDef, mBumperType) == 0xa0);
+TPW_CHECK(ObjectDef_mNorthXAdjust, TPW_OFF(ObjectDef, mNorthXAdjust) == 0xa4);
+TPW_CHECK(ObjectDef_mNorthYAdjust, TPW_OFF(ObjectDef, mNorthYAdjust) == 0xa8);
+TPW_CHECK(ObjectDef_mEastXAdjust, TPW_OFF(ObjectDef, mEastXAdjust) == 0xac);
+TPW_CHECK(ObjectDef_mEastYAdjust, TPW_OFF(ObjectDef, mEastYAdjust) == 0xb0);
+TPW_CHECK(ObjectDef_mSouthXAdjust, TPW_OFF(ObjectDef, mSouthXAdjust) == 0xb4);
+TPW_CHECK(ObjectDef_mSouthYAdjust, TPW_OFF(ObjectDef, mSouthYAdjust) == 0xb8);
+TPW_CHECK(ObjectDef_mWestXAdjust, TPW_OFF(ObjectDef, mWestXAdjust) == 0xbc);
+TPW_CHECK(ObjectDef_mWestYAdjust, TPW_OFF(ObjectDef, mWestYAdjust) == 0xc0);
+TPW_CHECK(ObjectDef_mGoldenTicketCost, TPW_OFF(ObjectDef, mGoldenTicketCost) == 0xc4);
+TPW_CHECK(ObjectDef_mLength, TPW_OFF(ObjectDef, mLength) == 0xc8);
+TPW_CHECK(ObjectDef_mWidth, TPW_OFF(ObjectDef, mWidth) == 0xcc);
+TPW_CHECK(ObjectDef_mHeight, TPW_OFF(ObjectDef, mHeight) == 0xd0);
+TPW_CHECK(ObjectDef_mEntryCellStandPosX, TPW_OFF(ObjectDef, mEntryCellStandPosX) == 0xd4);
+TPW_CHECK(ObjectDef_mEntryCellStandPosY, TPW_OFF(ObjectDef, mEntryCellStandPosY) == 0xd8);
+TPW_CHECK(ObjectDef_mExitCellAppearPosX, TPW_OFF(ObjectDef, mExitCellAppearPosX) == 0xdc);
+TPW_CHECK(ObjectDef_mExitCellAppearPosY, TPW_OFF(ObjectDef, mExitCellAppearPosY) == 0xe0);
+TPW_CHECK(ObjectDef_mInitPricePerUse, TPW_OFF(ObjectDef, mInitPricePerUse) == 0xe4);
+TPW_CHECK(ObjectDef_mFatigueEffect, TPW_OFF(ObjectDef, mFatigueEffect) == 0xe8);
+TPW_CHECK(ObjectDef_mInitChanceOfLoosing, TPW_OFF(ObjectDef, mInitChanceOfLoosing) == 0xec);
+TPW_CHECK(ObjectDef_mProvidesSecurity, TPW_OFF(ObjectDef, mProvidesSecurity) == 0xf0);
+TPW_CHECK(ObjectDef_mProvidesRelief, TPW_OFF(ObjectDef, mProvidesRelief) == 0xf4);
+TPW_CHECK(ObjectDef_mHoldsLitter, TPW_OFF(ObjectDef, mHoldsLitter) == 0xf8);
+TPW_CHECK(ObjectDef_mChillsYouOut, TPW_OFF(ObjectDef, mChillsYouOut) == 0xfc);
+TPW_CHECK(ObjectDef_mRequiresTeleport, TPW_OFF(ObjectDef, mRequiresTeleport) == 0x100);
+TPW_CHECK(ObjectDef_mRideHandlesSprite, TPW_OFF(ObjectDef, mRideHandlesSprite) == 0x104);
+TPW_CHECK(ObjectDef_mRequiresWatering, TPW_OFF(ObjectDef, mRequiresWatering) == 0x108);
+TPW_CHECK(ObjectDef_mNonWinnableSideshow, TPW_OFF(ObjectDef, mNonWinnableSideshow) == 0x10c);
+TPW_CHECK(ObjectDef_mIsFireworks, TPW_OFF(ObjectDef, mIsFireworks) == 0x110);
+TPW_CHECK(ObjectDef_mISIndoors, TPW_OFF(ObjectDef, mISIndoors) == 0x114);
+TPW_CHECK(ObjectDef_mCannotRide, TPW_OFF(ObjectDef, mCannotRide) == 0x118);
+TPW_CHECK(ObjectDef_mConstrainCamera, TPW_OFF(ObjectDef, mConstrainCamera) == 0x11c);
+TPW_CHECK(ObjectDef_mPukeReductionLevel, TPW_OFF(ObjectDef, mPukeReductionLevel) == 0x120);
+TPW_CHECK(ObjectDef_mMinCapacity, TPW_OFF(ObjectDef, mMinCapacity) == 0x124);
+TPW_CHECK(ObjectDef_mMaxCapacity, TPW_OFF(ObjectDef, mMaxCapacity) == 0x128);
+TPW_CHECK(ObjectDef_mMinDuration, TPW_OFF(ObjectDef, mMinDuration) == 0x12c);
+TPW_CHECK(ObjectDef_mMaxDuration, TPW_OFF(ObjectDef, mMaxDuration) == 0x130);
+TPW_CHECK(ObjectDef_mMinSpeed, TPW_OFF(ObjectDef, mMinSpeed) == 0x134);
+TPW_CHECK(ObjectDef_mMaxSpeed, TPW_OFF(ObjectDef, mMaxSpeed) == 0x138);
+TPW_CHECK(ObjectDef_mExcitementLevel, TPW_OFF(ObjectDef, mExcitementLevel) == 0x13c);
+TPW_CHECK(ObjectDef_mInitCostOfGoods, TPW_OFF(ObjectDef, mInitCostOfGoods) == 0x140);
+TPW_CHECK(ObjectDef_mThirstEffect, TPW_OFF(ObjectDef, mThirstEffect) == 0x144);
+TPW_CHECK(ObjectDef_mHungerEffect, TPW_OFF(ObjectDef, mHungerEffect) == 0x148);
+TPW_CHECK(ObjectDef_mVomitEffect, TPW_OFF(ObjectDef, mVomitEffect) == 0x14c);
+TPW_CHECK(ObjectDef_mHappinessEffect, TPW_OFF(ObjectDef, mHappinessEffect) == 0x150);
+TPW_CHECK(ObjectDef_mLitterEffect, TPW_OFF(ObjectDef, mLitterEffect) == 0x154);
+TPW_CHECK(ObjectDef_mSpecialIngredient, TPW_OFF(ObjectDef, mSpecialIngredient) == 0x158);
+TPW_CHECK(ObjectDef_mAppearanceEffect, TPW_OFF(ObjectDef, mAppearanceEffect) == 0x15c);
+TPW_CHECK(ObjectDef_mInitPrizeValue, TPW_OFF(ObjectDef, mInitPrizeValue) == 0x160);
+TPW_CHECK(ObjectDef_mShopType, TPW_OFF(ObjectDef, mShopType) == 0x164);
+TPW_CHECK(ObjectDef_mExciteFactor, TPW_OFF(ObjectDef, mExciteFactor) == 0x168);
+TPW_CHECK(ObjectDef_mRipOffOK, TPW_OFF(ObjectDef, mRipOffOK) == 0x16c);
+TPW_CHECK(ObjectDef_mNumSimultAnims, TPW_OFF(ObjectDef, mNumSimultAnims) == 0x170);
+TPW_CHECK(ObjectDef_mCost, TPW_OFF(ObjectDef, mCost) == 0x174);
+TPW_CHECK(ObjectDef_mGroup, TPW_OFF(ObjectDef, mGroup) == 0x178);
+TPW_CHECK(ObjectDef_mCategory, TPW_OFF(ObjectDef, mCategory) == 0x17c);
+TPW_CHECK(ObjectDef_mUpgrades, TPW_OFF(ObjectDef, mUpgrades) == 0x180);
+TPW_CHECK(ObjectDef_mSupplementalMeshes, TPW_OFF(ObjectDef, mSupplementalMeshes) == 0x244);
+TPW_CHECK(ObjectDef_mAttractionNewBonus, TPW_OFF(ObjectDef, mAttractionNewBonus) == 0x268);
+TPW_CHECK(ObjectDef_mSignTextures, TPW_OFF(ObjectDef, mSignTextures) == 0x278);
+TPW_CHECK(ObjectDef_mUpgradesId, TPW_OFF(ObjectDef, mUpgradesId) == 0x284);
+TPW_CHECK(ObjectDef_mUpgradeType, TPW_OFF(ObjectDef, mUpgradeType) == 0x288);
+TPW_CHECK(ObjectDef_mSamPath, TPW_OFF(ObjectDef, mSamPath) == 0x28c);
 #endif
 /* END GENERATED */
 

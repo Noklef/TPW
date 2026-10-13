@@ -65,3 +65,5 @@ address,target,type,notes
 0x00506760,param0,Staff *,Staff_TireB
 0x00506870,param0,Staff *,Staff_GetWage
 0x004dd4e0,param0,Object *,Object_GetDef
+0x004dd4e0,return,ObjectDef *,Object_GetDef
+0x00412e90,return,ObjectDef *,ObjectDefs_Find
