@@ -1,22 +1,28 @@
 """Convert Theme Park World .wct wavelet textures to PNG (pure Python, no dependencies).
 
-Reimplements the game's version-0x13 decoder (tp.exe FUN_00595920, reached via the wavelet
-codec object's decode dispatch FUN_00592060):
+Reimplements the game's decoders (tp.exe WaveletCodec_DecodeV13 0x595920 and
+WaveletCodec_DecodeV12 0x593ab0, dispatched by WaveletCodec_Decode 0x592060):
 
   header (28 bytes, little-endian)
-    0x00 u8  version (0x13)       0x01 u8 alpha flag     0x02 u8 bpp (24/32)   0x03 u8 ?
+    0x00 u8  version (0x12/0x13)  0x01 u8 alpha flag     0x02 u8 bpp (24/32)   0x03 u8 ?
     0x04 u16 width                0x06 u16 height
-    0x08 u16 qY, qU, qV, qA       quantiser per plane
+    0x08 u16 quality Y, Cr, Cb, A (note: Cr before Cb)
     0x10 u32 main stream bytes    0x14 u32 alpha stream bytes
     0x18 u32 average colour (ARGB)
     0x1C main stream, then alpha stream
 
-  each stream: LZ77 bitstream (16-bit LE words, LSB-first bits):
+  quantiser step per plane (the texture object's caller, e.g. FUN_00564e20, constants 0x7011b8..):
+    Y: 1 + q/2     Cb, Cr: 1 + q/4     A: q + 1
+
+  v0x13 streams: LZ77 bitstream (16-bit LE words, LSB-first bits):
     flag 0 -> 8-bit literal;  flag 1 -> 12-bit distance, 7-bit length-1; distance 0 ends
+  v0x12 streams: "BILZ" container = 28-byte header (magic, unpacked size, packed size,
+    zlib windowBits, level, 0, 0) + a zlib 1.1.3 stream; a few small streams are stored raw
   decompressed: signed-byte coefficients, 0x80 escapes a following int16
-  planes: Y and A are SxS, U and V are (S/2)x(S/2); S = next pow2 >= max(w,h), min 8
-  one-level 2D inverse Daubechies-4 wavelet, periodic boundaries:
-    rows hold interleaved (low, high) pairs; columns hold low rows then high rows
+  planes in stream order: Y (SxS), Cb, Cr ((S/2)x(S/2)); alpha in its own stream (SxS);
+    S = next pow2 >= max(w,h), min 8
+  one-level 2D inverse Daubechies-4 wavelet, periodic boundaries; columns hold low rows then
+    high rows. Rows hold interleaved (low, high) pairs in v0x13, [all low, all high] in v0x12
   colour: JPEG YCbCr -> RGB (B = Y + 1.772 Cb, G = Y - 0.344136 Cb - 0.714136 Cr, R = Y + 1.402 Cr)
 
 Usage:
@@ -35,12 +41,18 @@ from wadtool import read_wad  # noqa: E402
 R3, S2 = math.sqrt(3), math.sqrt(2)
 H0, H1, H2, H3 = (1 + R3) / (4 * S2), (3 + R3) / (4 * S2), (3 - R3) / (4 * S2), (1 - R3) / (4 * S2)
 
-# EMPIRICAL: effective quantiser = header value * scale. Measured by comparing decoded plane
-# means with each texture's stored average colour across ~150 textures (spread < 2%).
-# The filter itself is verified exact: a static initialiser at 0x591600 computes the textbook
-# (1±√3)/(4√2), (3±√3)/(4√2). So the scaling must happen in the decoder's caller, not found yet.
-Q_SCALE_LUMA = 0.56
-Q_SCALE_CHROMA = 0.298
+
+
+def q_luma(q):
+    return 1 + q / 2
+
+
+def q_chroma(q):
+    return 1 + q / 4
+
+
+def q_alpha(q):
+    return q + 1
 
 
 def lz_decompress(data):
@@ -100,13 +112,14 @@ def inverse_d4(s, d):
     return out
 
 
-def decode_plane(cr, size, q):
+def decode_plane(cr, size, q, interleaved=True):
     """Read size*size coefficients and run the 2D inverse transform (rows, then columns)."""
     half = size // 2
     rows = []
     for _ in range(size):
-        pairs = [(cr.next() * q, cr.next() * q) for _ in range(half)]
-        rows.append(inverse_d4([p[0] for p in pairs], [p[1] for p in pairs]))
+        c = [cr.next() * q for _ in range(size)]
+        s, d = (c[0::2], c[1::2]) if interleaved else (c[:half], c[half:])
+        rows.append(inverse_d4(s, d))
     # columns: first half of rows are low-pass, second half high-pass
     out = [[0.0] * size for _ in range(size)]
     for x in range(size):
@@ -118,20 +131,22 @@ def decode_plane(cr, size, q):
 
 def decode_wct(data):
     ver, alpha_flag, bpp, _unk = data[0], data[1], data[2], data[3]
-    if ver != 0x13:
+    if ver not in (0x12, 0x13):
         raise ValueError(f'unsupported .wct version {ver:#x}')
     w, h = struct.unpack_from('<HH', data, 4)
-    qy, qu, qv, qa = struct.unpack_from('<4H', data, 8)
+    qy, qcr, qcb, qa = struct.unpack_from('<4H', data, 8)
     n_main, n_alpha = struct.unpack_from('<II', data, 0x10)
     main = data[0x1C:0x1C + n_main]
     alpha = data[0x1C + n_main:0x1C + n_main + n_alpha] if n_alpha else b''
+    unpack = lz_decompress if ver == 0x13 else bilz_decompress
+    inter = ver == 0x13
 
     size = max(8, 1 << max(0, math.ceil(math.log2(max(w, h)))))
-    cr = Coeffs(lz_decompress(main))
-    Y = decode_plane(cr, size, qy * Q_SCALE_LUMA)
-    U = decode_plane(cr, size // 2, qu * Q_SCALE_CHROMA)
-    V = decode_plane(cr, size // 2, qv * Q_SCALE_CHROMA)
-    A = decode_plane(Coeffs(lz_decompress(alpha)), size, qa * Q_SCALE_LUMA) if alpha else None
+    cr = Coeffs(unpack(main))
+    Y = decode_plane(cr, size, q_luma(qy), inter)
+    U = decode_plane(cr, size // 2, q_chroma(qcb), inter)
+    V = decode_plane(cr, size // 2, q_chroma(qcr), inter)
+    A = decode_plane(Coeffs(unpack(alpha)), size, q_alpha(qa), inter) if alpha else None
 
     clamp = lambda v: 0 if v < 0 else 255 if v > 255 else int(round(v))
     pixels = bytearray()
@@ -142,7 +157,18 @@ def decode_wct(data):
                              clamp(yy - 0.344136 * cb - 0.714136 * crv),
                              clamp(yy + 1.772 * cb),
                              clamp(A[y][x]) if A else 255))
-    return w, h, bytes(pixels), {'alpha_flag': alpha_flag, 'bpp': bpp, 'q': (qy, qu, qv, qa)}
+    return w, h, bytes(pixels), {'version': ver, 'alpha_flag': alpha_flag, 'bpp': bpp, 'q': (qy, qcr, qcb, qa)}
+
+
+def bilz_decompress(data):
+    """v0x12 stream: 'BILZ' + 7 header words, then zlib. Streams without the magic are raw."""
+    if data[:4] != b'BILZ':
+        return data
+    size = struct.unpack_from('<I', data, 4)[0]
+    out = zlib.decompress(data[28:])
+    if len(out) != size:
+        raise ValueError(f'BILZ size mismatch {len(out)} != {size}')
+    return out
 
 
 def write_png(path, w, h, rgba):

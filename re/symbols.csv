@@ -16,6 +16,14 @@ address,name,kind,confidence,notes
 0x005f5d60,File_Delete,function,medium,calls DeleteFileA
 0x005f72c0,MemStream_Open,function,medium,used by SaveGame_Save to save into memory first
 0x005f8050,Buffer_Compress,function,medium,"compresses save buffer; 'Need to allocate a bigger buffer'"
+0x005f8100,Buffer_Decompress,function,high,"inverse of Buffer_Compress via the compressor singleton (slot 2); used by saves and .wct v0x12"
+0x005f8080,Compressor_Get,function,medium,returns the global compressor singleton (concrete vtable 0x703128)
+0x00703128,ZlibCompressor_vtable,data,medium,"slot 1 = compress 0x619280, slot 2 = decompress 0x619380"
+0x00619280,ZlibCompressor_Compress,function,medium,"writes the 28-byte BILZ header (magic, unpacked, packed, windowBits 15, level 9, 0, 0) + zlib stream"
+0x00619380,ZlibCompressor_Decompress,function,high,"checks BILZ magic, inflateInit2_ / inflate(Z_FINISH) / inflateEnd"
+0x00636600,zlib_inflateInit2_,function,high,"statically linked zlib 1.1.3 (version string '1.1.3', stream size 0x38)"
+0x00636710,zlib_inflate,function,high,
+0x006365b0,zlib_inflateEnd,function,high,
 0x006fd930,FileStream_vtable,data,high,
 0x00403780,ActionRec_Serialize,function,high,"(stream, isSave, ?, ?) — called with isSave=0 on load, 1 on save; GActionRec"
 0x005179c0,World_Load,function,high,module WRLD
@@ -74,7 +82,7 @@ address,name,kind,confidence,notes
 0x00591ab0,WaveletCodec_Encode,function,high,RGB -> YUV float planes -> forward D4 -> quantise (1/q) -> Buffer_Compress
 0x00592060,WaveletCodec_Decode,function,high,"dispatch on format version: 0x12 -> vtable slot 0 (DecodeV12), 0x13 -> slot 2 (DecodeV13)"
 0x005920f0,WaveletCodec_DecodeScaled,function,medium,dispatch for version > 0x12 to DecodeV13Scaled
-0x00593ab0,WaveletCodec_DecodeV12,function,high,older multi-level codec; payload starts with 'BILZ'. Not yet ported
+0x00593ab0,WaveletCodec_DecodeV12,function,high,"one-level D4 like v0x13 but rows stored [all low, all high]; streams are BILZ (zlib); ported in tools/wct2png.py"
 0x00595920,WaveletCodec_DecodeV13,function,high,"one-level D4 wavelet, YUV 4:2:0 + optional alpha; ported in tools/wct2png.py"
 0x00597100,WaveletCodec_DecodeV13Scaled,function,medium,resampling variant; calls DecodeV13 when sizes match
 0x00597090,Wavelet_ReadBits,function,high,"LSB-first bit reader over 16-bit LE words"
@@ -93,6 +101,7 @@ address,name,kind,confidence,notes
 0x00c2720c,D4_h1,data,high,(3+sqrt3)/(4 sqrt2)
 0x00c27210,D4_h2,data,high,(3-sqrt3)/(4 sqrt2)
 0x00c27214,D4_h3,data,high,(1-sqrt3)/(4 sqrt2)
+0x00564e20,Texture_DecodeWct,function,medium,"computes quantiser steps from header q (Y 1+q/2, Cb/Cr 1+q/4, A q+1; constants 0x7011b8..c4) and calls WaveletCodec_Decode"
 0x005516b0,RSSE_Tick,function,high,"scheduler: runs each script every 8th tick ((id^tick)&7==0) or every tick if TURBO; budget = header[0x10]; CRIT_LOCK instructions are free"
 0x00557a70,RSSE_FetchWord,function,high,next code word; pc=-10000 on overrun
 0x005573a0,RSSE_OperandValue,function,high,"variable value, or immediate sign-extended from 16 bits"

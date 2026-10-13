@@ -98,8 +98,8 @@ These also become the engine's loaders later.
 - [x] `.wad` + RefPack
 - [x] `.str` string tables (`tools/bfst.py`, custom code page via `MBToUni.dat`; all strings decode)
 - [ ] `.sam` (trivial text), `.bf4` fonts
-- [x] `.wct` v0x13 textures → PNG (`tools/wct2png.py`, 88% of textures). Quantiser scale is still empirical (0.56 luma, 0.298 chroma, measured against each file's stored average colour); find the exact formula in the decoder's caller.
-- [ ] `.wct` v0x12 (`BILZ`, 993 mostly-UI textures): port `WaveletCodec_DecodeV12` (`0x593ab0`)
+- [x] `.wct` v0x13 textures → PNG (`tools/wct2png.py`). Exact quantiser from the caller `0x564e20`: Y step `1 + q/2`, Cb/Cr `1 + q/4`, alpha `q + 1`.
+- [x] `.wct` v0x12 (993 mostly-UI textures): same one-level D4, rows stored `[low…, high…]`; streams are `BILZ` = 28-byte header + zlib 1.1.3 (the save-file compressor). All textures now decode.
 - [x] `.md2` geometry → OBJ (`tools/md2.py`; all 639 geometry meshes pass consistency checks)
 - [x] `.md2` node hierarchy: OBJ export assembles multi-part models (the advisor renders correctly)
 - [x] `.md2` material groups → textured export (`tools/md2.py --wad <wad> <dir>`: OBJ + MTL + PNG)
