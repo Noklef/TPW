@@ -8,7 +8,7 @@ The MSVC linker lays out object files roughly in source order, so **address rang
 |---|---:|---:|---|---|
 | `0x400000`–`0x560000` | 3,250 | 1,048 KB | **game** | Park simulation: save system, clock, camera, coasters, rides, people/staff, park history, world, particles, meshes, track rides, RSSE VM |
 | `0x560000`–`0x590000` | 505 | 172 KB | engine | Renderer: DirectDraw/Direct3D 6 init and devices, software rasteriser, display buffers, weather |
-| `0x590000`–`0x5a0000` | 113 | 47 KB | **game** | Advisor + advisor scoring |
+| `0x590000`–`0x5a0000` | 113 | 47 KB | engine + **game** | `0x591000`–`0x599000`: **wavelet texture codec** (`WaveletCodec_*`); `0x599000`+: advisor + advisor scoring |
 | `0x5a0000`–`0x5b0000` | 39 | 10 KB | **game** | Language / text |
 | `0x5b0000`–`0x5d0000` | 318 | 71 KB | online | EA Online: login, news, FTP download, city lists, park upload, chat, mail/postcards |
 | `0x5d0000`–`0x5e0000` | 184 | 35 KB | engine | Memory / disk / system utilities (`Debug_Printf` lives here) |

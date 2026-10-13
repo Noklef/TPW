@@ -67,3 +67,24 @@ address,name,kind,confidence,notes
 0x005573d0,RSSE_TriggerCustomEvent,function,medium,'Tried to trigger a custom event'
 0x00551130,RSSE_StartScream,function,medium,'Started screaming without ...'
 0x00556f40,RSSE_SetupWalkNodes,function,low,"walk/head node validation, 'Walknodes need a setwalk'"
+0x00572780,Engine_Init,function,high,"'Initializing engine internals'; logs a checkpoint after each renderer subsystem (… 'wavelet/printf ok')"
+0x00564b20,Wavelet_Init,function,medium,creates the global wavelet codec (DAT_00879a64) during Engine_Init
+0x005985c0,WaveletCodec_Create,function,medium,allocates 0x58 bytes and constructs; returns the IWaveletCodec interface pointer
+0x005916c0,WaveletCodec_Construct,function,high,"builds clamp table (0xc27008) and 16-bit pixel tables, allocates work buffers"
+0x00591ab0,WaveletCodec_Encode,function,high,RGB -> YUV float planes -> forward D4 -> quantise (1/q) -> Buffer_Compress
+0x00592060,WaveletCodec_Decode,function,high,"dispatch on format version: 0x12 -> vtable slot 0 (DecodeV12), 0x13 -> slot 2 (DecodeV13)"
+0x005920f0,WaveletCodec_DecodeScaled,function,medium,dispatch for version > 0x12 to DecodeV13Scaled
+0x00593ab0,WaveletCodec_DecodeV12,function,high,older multi-level codec; payload starts with 'BILZ'. Not yet ported
+0x00595920,WaveletCodec_DecodeV13,function,high,"one-level D4 wavelet, YUV 4:2:0 + optional alpha; ported in tools/wct2png.py"
+0x00597100,WaveletCodec_DecodeV13Scaled,function,medium,resampling variant; calls DecodeV13 when sizes match
+0x00597090,Wavelet_ReadBits,function,high,"LSB-first bit reader over 16-bit LE words"
+0x00591a60,WaveletCodec_AddRef,function,high,
+0x00591a70,WaveletCodec_GetRefCount,function,high,
+0x00591a80,WaveletCodec_Release,function,high,
+0x00598800,WaveletCodec_DeletingDtor,function,medium,
+0x007026d8,WaveletCodec_vtable,data,high,"slots: DecodeV12, DecodeV13Scaled, DecodeV13"
+0x007026b8,IWaveletCodec_vtable,data,high,interface vtable (this-adjusting thunks at 0x598780..)
+0x0046ead0,TextureSet_Load,function,medium,"builds dir+name, forces '.wct', 'Could not load texture %s'"
+0x0046f120,File_Exists,function,medium,opens via VFS_Open and closes
+0x005c4d50,VFS_Open,function,medium,"tries the mounted WAD archives first, then the disk"
+0x00477ff0,UITexture_Construct,function,medium,"thiscall(name); loads UI textures such as 'happygrad.wct'"

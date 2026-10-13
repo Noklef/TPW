@@ -32,6 +32,8 @@ def is_code(va):
 HEADER = re.compile(r'^// ==== (\S+) @ ([0-9a-f]{8}) ====$')
 # "*param_1 = &PTR_FUN_006fd708;" (offset 0) or "*(T *)(param_1 + 0x24) = &PTR_...;" (subobject)
 STORE = re.compile(r'^\s*\*(?:\([^)]*\)\s*\(\s*(\w+)\s*\+\s*(0x[0-9a-f]+|\d+)\s*\)|(\w+))\s*=\s*&?PTR_\w*?_([0-9a-f]{8});')
+# Any other pointer store, e.g. virtual-base subobjects "*(T)(*(int *)(p[1] + 4) + 4 + p) = &PTR_..."
+STORE_ANY = re.compile(r'^\s*\*.*=\s*&?PTR_\w*?_([0-9a-f]{8});')
 CALL = re.compile(r'\b(?:FUN|thunk_FUN)_([0-9a-f]{8})\(')
 
 stores = defaultdict(list)      # func addr -> [(vtable, offset)]
@@ -51,6 +53,10 @@ for path in sorted(glob.glob(os.path.join(dump_dir, 'decomp_*.c'))):
         if s:
             off = int(s.group(2), 0) if s.group(2) else 0
             stores[cur].append((int(s.group(4), 16), off))
+        else:
+            s = STORE_ANY.match(line)
+            if s:
+                stores[cur].append((int(s.group(1), 16), -1))  # -1: unknown/virtual-base offset
         callees[cur].update(CALL.findall(line))
 
 hints = {}

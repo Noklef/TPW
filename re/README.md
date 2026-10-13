@@ -5,10 +5,18 @@ The Ghidra database (`_re/ghidra`) is binary, large and git-ignored. **This fold
 | File | Contents |
 |---|---|
 | `symbols.csv` | `address,name,kind,confidence,notes`, one row per named function or data label |
+| `vtable_functions.txt` | Addresses of virtual methods / thunk targets that need `CreateFunctions.java` |
 | `rsse_opcodes.csv` | The RSSE script VM instruction set (index, mnemonic, operand count), extracted from the exe's table at `0x765280` |
 
 ## Repairs (Ghidra analysis fixes)
 Ghidra's auto-analysis misses some things. Apply these once after import, before `ApplySymbols`:
+
+```
+REM Virtual methods reachable only through vtables (801 functions Ghidra never created).
+REM Regenerate the list with tools/vtables.py + tools/find_vtable_functions.py after big changes.
+"<GHIDRA>\support\analyzeHeadless.bat" C:\git\Noklef\TPW\_re\ghidra TPW -process tp.exe -noanalysis ^
+    -scriptPath C:\git\Noklef\TPW\tools -postScript CreateFunctions.java C:\git\Noklef\TPW\re\vtable_functions.txt
+```
 
 ```
 REM RSSE interpreter jump table: 106 opcode handlers (adds ~19 KB of code to RSSE_ExecuteInstruction)

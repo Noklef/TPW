@@ -97,7 +97,8 @@ Goal: see the original running on modern Windows, so there's a ground truth to c
 These also become the engine's loaders later.
 - [x] `.wad` + RefPack
 - [ ] `.sam` (trivial text), `.str` string tables, `.bf4` fonts
-- [ ] `.wct` textures → PNG (needed to *see* anything)
+- [x] `.wct` v0x13 textures → PNG (`tools/wct2png.py`, 88% of textures). Quantiser scale is still empirical (0.56 luma, 0.298 chroma, measured against each file's stored average colour); find the exact formula in the decoder's caller.
+- [ ] `.wct` v0x12 (`BILZ`, 993 mostly-UI textures): port `WaveletCodec_DecodeV12` (`0x593ab0`)
 - [ ] `.md2` meshes → glTF/OBJ
 - [x] `.RSE` disassembler (`tools/rsse_disasm.py`): all 308 scripts decode with 0 errors. See `03-rsse-scripting.md`.
 - [ ] `.sdt`/`.map` sound banks → WAV
