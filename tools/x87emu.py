@@ -237,10 +237,17 @@ class Emu:
         if re.fullmatch(r'ST\d', op):
             return self.st[int(op[2])]
         a, kind = self.mem_operand(op)
+        # a signalling NaN loads quiet (invalid operation, masked)
         if kind == 'float':
-            return struct.unpack('<f', self.read(a, 4))[0]
+            b = struct.unpack('<I', self.read(a, 4))[0]
+            if b & 0x7f800000 == 0x7f800000 and b & 0x7fffff:
+                b |= 0x400000
+            return struct.unpack('<f', struct.pack('<I', b))[0]
         if kind == 'double':
-            return struct.unpack('<d', self.read(a, 8))[0]
+            b = struct.unpack('<Q', self.read(a, 8))[0]
+            if b >> 52 & 0x7ff == 0x7ff and b & (1 << 52) - 1:
+                b |= 1 << 51
+            return struct.unpack('<d', struct.pack('<Q', b))[0]
         if kind == 'extended double':
             b = self.read(a, 10)
             mant, se = struct.unpack('<QH', b)
@@ -290,6 +297,9 @@ class Emu:
         return self.st[0]
 
     def step(self, pc):
+        if pc not in self.code and pc in self.hooks:  # a tail call (jmp): the hook sees the return address at [ESP]
+            self.hooks[pc](self)
+            return self.pop()
         if pc not in self.code:
             raise KeyError('no listing for %08x' % pc)
         mn, ops = self.code[pc]

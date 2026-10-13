@@ -43,3 +43,10 @@ inline double X87_MulInt(u32 n, float f) {
     const double r = X87_Round24((unsigned long long)n * (unsigned long long)std::ldexp(frac, 24), e - 24);
     return f < 0 ? -r : r;
 }
+
+// A float loaded and stored by the x87 (fld m32; fstp m32), as bits: the value is kept,
+// except that a signalling NaN comes out quiet.
+inline u32 X87_FloatThrough(u32 bits) {
+    if ((bits & 0x7f800000) == 0x7f800000 && (bits & 0x7fffff) && !(bits & 0x400000)) bits |= 0x400000;
+    return bits;
+}

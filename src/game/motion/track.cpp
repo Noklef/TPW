@@ -332,3 +332,26 @@ extern "C" void __cdecl Motion_ResetChannels(const void *animator, const u8 *blo
 extern "C" s32 __cdecl Track_Apply(const void *state, u8 *model, u32, u32 *node, const u8 *track) {
     return Track_ApplyWith(game_env(), state, model, node, track);
 }
+
+extern "C" void __cdecl Block_BindNodes(const u8 *holder, const u8 *block, s32 first) {
+    const u8 *model = field<const u8 *>(holder, 4);
+    u8 *track = field<u8 *>(block, 0x2c);
+    for (s32 k = 0; k < (s32)field<u16>(block, 0x12); ++k, track += 0x40) {
+        u8 *&node = *reinterpret_cast<u8 **>(track + 0x3c);
+        const u16 index = field<u16>(track, 0x14);
+        if (holder[0] & 4) {
+            const u32 primary = field<u16>(model, 0x44);
+            for (u32 i = 0; i < primary; ++i) {
+                u8 *candidate = field<u8 *>(model, 0x70) + 0xa0 * i;
+                if (field<u16>(candidate, 0x50) == index) {
+                    node = candidate;
+                    break;
+                }
+            }
+        } else {
+            node = Model_Node(model, index);
+        }
+        *reinterpret_cast<u32 *>(node) |= 0x800;
+        if (!first) *reinterpret_cast<u32 *>(node) &= ~0x100u;
+    }
+}

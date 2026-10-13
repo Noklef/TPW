@@ -727,6 +727,93 @@ static void test_animator_update() {
     CHECK(Animator_UpdateWith(env, animator, nullptr, 0) == 1 && g_attaches == 2);
 }
 
+static void test_animator_reset() {
+    // One primary node (index 0, id 7) and one secondary; a block with one track on node 0.
+    u8 nodes[0xa0] = {}, extra[0x58] = {}, model[0x80] = {}, holder[8] = {};
+    u8 *np = nodes, *xp = extra, *mp = model;
+    const u16 one = 1, two = 2, seven = 7;
+    std::memcpy(model + 0x42, &two, 2);
+    std::memcpy(model + 0x44, &one, 2);
+    std::memcpy(model + 0x70, &np, 4);
+    std::memcpy(model + 0x74, &xp, 4);
+    std::memcpy(nodes + 0x50, &seven, 2);
+    std::memcpy(holder + 4, &mp, 4);
+    u8 track[0x40] = {}, block[0x30] = {};
+    u8 *tp = track, *bp = block;
+    std::memcpy(block + 0x12, &one, 2);
+    std::memcpy(block + 0x2c, &tp, 4);
+    const u32 end = 60;
+    std::memcpy(block + 8, &end, 4);
+    u32 flags;
+
+    nodes[1] = 1;  // 0x100
+    Block_BindNodes(holder, block, 0);  // by index: node 0 gets 0x800 and loses 0x100
+    u8 *bound;
+    std::memcpy(&bound, track + 0x3c, 4);
+    std::memcpy(&flags, nodes, 4);
+    CHECK(bound == nodes && flags == 0x800);
+    nodes[1] = 1;
+    Block_BindNodes(holder, block, 1);  // first: 0x100 kept
+    std::memcpy(&flags, nodes, 4);
+    CHECK(flags == 0x900);
+    holder[0] = 4;  // by id: track index 7 finds node 0 through its id
+    std::memcpy(track + 0x14, &seven, 2);
+    std::memset(track + 0x3c, 0, 4);
+    Block_BindNodes(holder, block, 1);
+    std::memcpy(&bound, track + 0x3c, 4);
+    CHECK(bound == nodes);
+    holder[0] = 0;
+    std::memset(track + 0x14, 0, 2);
+
+    // The animator: one layer, bank 0 loaded with the block.
+    u8 layer[0x38] = {}, animator[0xd0] = {}, entries[12] = {};
+    u8 *lp = layer, *ep = entries, *hp = holder;
+    std::memcpy(entries + 4, &bp, 4);
+    std::memcpy(animator + 8, &hp, 4);
+    std::memcpy(animator + 0xe, &one, 2);
+    std::memcpy(animator + 0x10, &lp, 4);
+    animator[0x18] = 1;
+    const u32 count = 1, flags_in = 0x20;
+    std::memcpy(animator + 0x1c, &count, 4);
+    std::memcpy(animator + 0x20, &ep, 4);
+    std::memcpy(layer, &flags_in, 4);
+    layer[4] = 3;
+    layer[0x24] = 3;
+    std::memset(nodes, 0, 4);
+    std::memset(extra, 0, 4);
+    CHECK(Animator_Reset(animator, 1, 1, 0) == 1);
+    std::memcpy(&flags, layer, 4);
+    CHECK(flags == 0x60 && layer[4] == 0xc && layer[0x24] == 0xc);
+    std::memcpy(&flags, nodes, 4);
+    CHECK(flags == 0x900 && extra[1] == 1 && (animator[4] & 0x10));  // only bank 0: flag 0x10
+    animator[4] = 0;
+    std::memcpy(animator + 0x1c + 12, &count, 4);  // bank 1 has an entry (null block)
+    std::memcpy(animator + 0x20 + 12, &ep, 4);
+    std::memset(entries + 4, 0, 4);
+    CHECK(Animator_Reset(animator, 0, 0, 1) == 1 && animator[4] == 0);
+
+    // The accessors.
+    std::memcpy(entries + 4, &bp, 4);
+    layer[4] = 0;
+    layer[8] = 0;
+    const float speed = 2.0f, length = 30.0f, at_frame = 15.0f;
+    std::memcpy(layer + 0x1c, &length, 4);
+    std::memcpy(layer + 0x20, &at_frame, 4);
+    u32 bank = 99, entry = 99, loops = 99;
+    CHECK(Layer_GetPlayback(animator, &bank, &entry, &loops, 0) == 499 && bank == 0 && entry == 0 && loops == 0);
+    CHECK(Layer_GetPlayback(animator, nullptr, nullptr, nullptr, 0) == 499);
+    CHECK(Layer_GetFlags(animator, &bank, &entry, 0) == 0x60);
+    layer[0x28] = 5;
+    Layer_GetQueued(animator, &bank, &entry, 0);
+    CHECK(bank == 0xc && entry == 5);
+    Animator_SetQueuedSpeed(animator, speed);
+    Layer_SetSpeed(animator, speed, 0);
+    CHECK(std::memcmp(layer + 0x30, &speed, 4) == 0 && std::memcmp(layer + 0xc, &speed, 4) == 0);
+    CHECK(Animator_MotionEndMs(animator, 0, 0) == 2000 && Animator_MotionEndMs(animator, 0, 1) == 0);
+    CHECK(Animator_MotionEndMs(animator, 0xc, 0) == 0);
+    CHECK(X87_FloatThrough(0x7f800001) == 0x7fc00001 && X87_FloatThrough(0x7f800000) == 0x7f800000);
+}
+
 static void test_normals() {
     // Vertices 0 (0,0,0), 1 (1,0,0), 2 (0,1,0) in one block of four; face 0 {normal 0,
     // v1 = 1, v0 = 0, v2 = 2}: (v2 - v0) x (v1 - v0) = (0, 0, -1). Face 1 is degenerate.
@@ -1001,6 +1088,7 @@ int main(int argc, char **argv) {
     test_animator();
     test_normals();
     test_animator_update();
+    test_animator_reset();
     test_patcher();
     if (argc > 1) test_hook_table(argv[1]);
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);

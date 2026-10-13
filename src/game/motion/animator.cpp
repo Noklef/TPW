@@ -1,6 +1,9 @@
 // Animator_ResetLayers, the layer helpers, Layer_Play, Animator_Play, Motion_UpdateClocks
-// and the per-tick updates: reimplementation of 0x4726d0, 0x472bc0-0x4735d0 and 0x473c70.
+// the per-tick updates and the accessors: reimplementation of 0x4726d0 and
+// 0x472bc0-0x4740d0.
 #include "animator.h"
+
+#include <cstring>
 
 #include "../math/x87.h"
 #include "keys.h"
@@ -554,3 +557,71 @@ extern "C" void __cdecl Motion_UpdateClocks() {
                             reinterpret_cast<Clock>(0x00402d70)(clocks, nullptr));
     *reinterpret_cast<u32 *>(0x007b4974) = reinterpret_cast<Clock>(0x00402d80)(clocks, nullptr);
 }
+
+extern "C" s32 __cdecl Animator_Reset(u8 *animator, s32 clear, s32 realTime, s32 keepNodes) {
+    u8 *layer = field<u8 *>(animator, 0x10);
+    for (u32 n = field<u16>(animator, 0xe); n != 0; --n, layer += 0x38) {
+        if (realTime) at<u32>(layer, 0) |= 0x40;
+        Layer_StartWith(0, 0, layer, nullptr, 0, 0);  // no block: no clock is read
+        if (clear) at<u32>(layer, 4) = at<u32>(layer, 0x24) = 0xc;
+    }
+    bool only_base = false;
+    if (!keepNodes) {
+        u8 *model = field<u8 *>(field<const u8 *>(animator, 8), 4);
+        for (u32 i = 0; i < field<u16>(model, 0x42); ++i) flags_of(Model_Node(model, i)) |= 0x100;
+        only_base = true;
+    }
+    for (u32 bank = 0; bank < 12; ++bank) {
+        for (u32 k = 0; k < field<u32>(animator, 0x1c + 12 * bank); ++k) {
+            const u8 *block = entry_block(animator, bank, k);
+            if (block) Block_BindNodes(field<const u8 *>(animator, 8), block, bank == 0);
+        }
+        if (bank != 0 && field<u32>(animator, 0x1c + 12 * bank)) only_base = false;
+    }
+    if (only_base) at<u32>(animator, 4) |= 0x10;
+    return 1;
+}
+
+namespace {
+u8 *layer_at(const u8 *animator, u32 index) { return field<u8 *>(animator, 0x10) + 0x38 * index; }
+}  // namespace
+
+extern "C" u32 __cdecl Layer_GetPlayback(const u8 *animator, u32 *bank, u32 *entry, u32 *loops, u32 index) {
+    const u8 *layer = layer_at(animator, index);
+    if (bank) *bank = field<u32>(layer, 4);
+    if (entry) *entry = field<u32>(layer, 8);
+    if (loops) *loops = layer[0] & 1;
+    return (u32)(long long)Layer_TimeLeft(layer);
+}
+
+extern "C" u32 __cdecl Layer_GetFlags(const u8 *animator, u32 *bank, u32 *entry, u32 index) {
+    const u8 *layer = layer_at(animator, index);
+    if (bank) *bank = field<u32>(layer, 4);
+    if (entry) *entry = field<u32>(layer, 8);
+    return field<u32>(layer, 0);
+}
+
+extern "C" void __cdecl Layer_GetQueued(const u8 *animator, u32 *bank, u32 *entry, u32 index) {
+    const u8 *layer = layer_at(animator, index);
+    if (bank) *bank = field<u32>(layer, 0x24);
+    if (entry) *entry = field<u32>(layer, 0x28);
+}
+
+extern "C" void __cdecl Animator_SetQueuedSpeed(u8 *animator, float speed) {
+    u32 bits;
+    std::memcpy(&bits, &speed, 4);
+    for (u32 i = 0; i < field<u16>(animator, 0xe); ++i) at<u32>(layer_at(animator, i), 0x30) = X87_FloatThrough(bits);
+}
+
+extern "C" void __cdecl Layer_SetSpeed(u8 *animator, float speed, u32 index) {
+    u32 bits;
+    std::memcpy(&bits, &speed, 4);
+    at<u32>(layer_at(animator, index), 0xc) = X87_FloatThrough(bits);
+}
+
+extern "C" u32 __cdecl Animator_MotionEndMs(const u8 *animator, u32 bank, u32 entry) {
+    if (!has_entry(animator, bank, entry)) return 0;
+    return field<u32>(entry_block(animator, bank, entry), 8) * 1000u / 30;
+}
+
+extern "C" void __cdecl Motion_SetFlags(u32 flags) { *reinterpret_cast<u32 *>(0x007b4980) = flags; }

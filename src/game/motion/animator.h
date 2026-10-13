@@ -1,7 +1,8 @@
 // A model's animator and its motion layers: reimplementation of Animator_ResetLayers
 // (0x4726d0), the layer helpers at 0x472bc0-0x472f40, Layer_Play (0x472f60),
 // Animator_Play (0x4732a0), Motion_UpdateClocks (0x473440), Animator_IsIdle (0x473490),
-// Animator_RefreshNodes (0x473550), Layer_Update (0x4735d0) and Animator_Update (0x473c70).
+// Animator_RefreshNodes (0x473550), Layer_Update (0x4735d0), Animator_Update (0x473c70),
+// Animator_Reset (0x473e30) and the accessors at 0x473f50-0x4740d0.
 #pragma once
 
 #include "../../../re/types.h"
@@ -129,6 +130,35 @@ s32 Animator_UpdateWith(const AnimatorEnv &env, u8 *animator, const u8 *block, u
 extern "C" {
 // 0x473490, 0x473550, 0x4735d0, 0x473c70 on the game's globals.
 s32 __cdecl Animator_Update(u8 *animator, const u8 *block, u32 mode);
+
+// 0x473e30 (animator, clear, real time, keep nodes): every layer is emptied of its block
+// (Layer_Start with none; real time sets flag 0x40 first; clear also drops its bank and
+// queue). Unless keep nodes, every node of the model gets flag 0x100. Every block of
+// every bank is bound to the model (Block_BindNodes; first for bank 0). The animator gets
+// flag 0x10 when the nodes were not kept and no bank but 0 has entries. Returns 1.
+s32 __cdecl Animator_Reset(u8 *animator, s32 clear, s32 realTime, s32 keepNodes);
+
+// 0x473f50 (animator, &bank, &entry, &loops, layer index): the layer's bank, entry and
+// flag 1 (each pointer may be null); returns the ms left, __ftol'd (low half).
+u32 __cdecl Layer_GetPlayback(const u8 *animator, u32 *bank, u32 *entry, u32 *loops, u32 index);
+
+// 0x473fb0 (animator, &bank, &entry, layer index): bank and entry; returns the flags.
+u32 __cdecl Layer_GetFlags(const u8 *animator, u32 *bank, u32 *entry, u32 index);
+
+// 0x473ff0 (animator, &bank, &entry, layer index): the queued bank and entry.
+void __cdecl Layer_GetQueued(const u8 *animator, u32 *bank, u32 *entry, u32 index);
+
+// 0x474020 (animator, speed): every layer's queued speed (+0x30); 0x474050 (animator,
+// speed, layer index): the layer's speed (+0xc). Both copy through the x87.
+void __cdecl Animator_SetQueuedSpeed(u8 *animator, float speed);
+void __cdecl Layer_SetSpeed(u8 *animator, float speed, u32 index);
+
+// 0x474070 (animator, bank, entry): the entry's end frame (block u32 +8, not its length)
+// in ms, end * 1000 / 30 in 32-bit integers; 0 when the bank does not have it.
+u32 __cdecl Animator_MotionEndMs(const u8 *animator, u32 bank, u32 entry);
+
+// 0x4740d0: gMotionFlags (0x7b4980) = flags.
+void __cdecl Motion_SetFlags(u32 flags);
 s32 __cdecl Animator_IsIdle(u8 *animator);
 void __cdecl Animator_RefreshNodes(u8 *animator);
 void __cdecl Layer_Update(u8 *animator, u8 *layer, const u8 *block);
