@@ -428,6 +428,12 @@ class Emu:
             self.push(self.get(o[0]))
         elif mn == 'POP':
             self.put(o[0], self.pop())
+        elif mn == 'MOVSB.REP':
+            while self.r['ECX']:
+                self.write(self.r['EDI'], self.read(self.r['ESI'], 1))
+                self.r['ESI'] = (self.r['ESI'] + 1) & 0xffffffff
+                self.r['EDI'] = (self.r['EDI'] + 1) & 0xffffffff
+                self.r['ECX'] -= 1
         elif mn in ('MOVSD.REP', 'STOSD.REP'):
             while self.r['ECX']:
                 if mn == 'MOVSD.REP':

@@ -606,6 +606,51 @@ static void test_track_apply() {
     CHECK(m[12] == 5 && m[13] == 10 && m[14] == 15 && m[15] == 1);  // half way along the path
     state[8] = 101;  // past the end: nothing happens
     CHECK(Track_ApplyWith(env, state, model, node, track) == 0);
+
+    // The same track twice in a block: the second scales the scaled axes again.
+    u8 tracks[0x80];
+    std::memcpy(tracks, track, 0x40);
+    std::memcpy(tracks + 0x40, track, 0x40);
+    u32 *np = node;
+    std::memcpy(tracks + 0x3c, &np, 4);
+    std::memcpy(tracks + 0x7c, &np, 4);
+    u8 block[0x30] = {};
+    const u16 two = 2;
+    u8 *tp = tracks, *mp = model;
+    std::memcpy(block + 0x12, &two, 2);
+    std::memcpy(block + 0x2c, &tp, 4);
+    u8 holder[8] = {};
+    std::memcpy(holder + 4, &mp, 4);
+    state[8] = 5;
+    Matrix_Identity(reinterpret_cast<float *>(node + 4));
+    CHECK(Motion_ApplyWith(env, state, holder, block) == 1);
+    CHECK(m[0] == 2 && m[12] == 5);  // set, not doubled: model flag 4 is clear
+    model[0x30] = 4;  // adding: the path position adds up
+    CHECK(Motion_ApplyWith(env, state, holder, block) == 1 && m[12] == 15 && m[14] == 45);
+    CHECK(Motion_Apply(state, holder, nullptr) == 1);
+
+    // Copying a node's vertices and box: only flagged nodes unless all.
+    float from_pos[24], to_pos[24] = {};
+    for (int i = 0; i < 24; ++i) from_pos[i] = (float)i;
+    u8 from_nodes[0xa0] = {}, to_nodes[0xa0] = {}, from_model[0x80] = {}, to_model[0x80] = {};
+    const u16 five = 5, one = 1;
+    float *fp = from_pos, *tpp = to_pos;
+    std::memcpy(from_nodes + 0x58, &five, 2);
+    std::memcpy(from_nodes + 0x60, &fp, 4);
+    from_nodes[0x78] = 7;
+    std::memcpy(to_nodes + 0x58, &one, 2);
+    std::memcpy(to_nodes + 0x60, &tpp, 4);
+    u8 *fn = from_nodes, *tn = to_nodes, *fm = from_model, *tm = to_model;
+    std::memcpy(from_model + 0x70, &fn, 4);
+    std::memcpy(to_model + 0x70, &tn, 4);
+    std::memcpy(to_model + 0x44, &one, 2);
+    u8 from_holder[8] = {}, to_holder[8] = {};
+    std::memcpy(from_holder + 4, &fm, 4);
+    std::memcpy(to_holder + 4, &tm, 4);
+    Motion_CopyVertices(from_holder, to_holder, 0);  // to's node lacks 0x200000
+    CHECK(to_pos[23] == 0 && to_nodes[0x78] == 0);
+    Motion_CopyVertices(from_holder, to_holder, 1);  // the source's 5 vertices: 2 blocks
+    CHECK(to_pos[23] == 23 && to_nodes[0x78] == 7);
 }
 
 static void test_hook_table(const char *exe_path) {

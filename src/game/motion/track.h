@@ -1,5 +1,6 @@
-// Applying one .md2 motion track to its node at the state's frame: reimplementation of
-// Track_Apply (0x471860), which drives everything else in src/game/motion.
+// Applying .md2 motion to a model's nodes at the state's frame: reimplementation of
+// Motion_Apply (0x4721f0) and Track_Apply (0x471860), which drive everything else in
+// src/game/motion, and of Motion_CopyVertices (0x472270).
 #pragma once
 
 #include "../../../re/types.h"
@@ -29,8 +30,24 @@ struct MotionEnv {
 // Returns 0 (doing nothing) when the frame (+0x20) is past the state's end (+0x1c).
 s32 Track_ApplyWith(const MotionEnv &env, const void *state, u8 *model, u32 *node, const u8 *track);
 
+// Every track of the block (u16 count +0x12, 64-byte tracks at +0x2c, each driving the node
+// at track +0x3c) on the holder's model (+4), then, with block flag 2 and without
+// gMotionFlags 0x8, the block's material animation. Always returns 1.
+s32 Motion_ApplyWith(const MotionEnv &env, const void *state, const void *holder, const u8 *block);
+
 extern "C" {
 // 0x471860 (state, model, unused, node, track); the original passes [unused + 8] on to
 // Motion_UnpackVertices, which ignores it, and uses its stack slot for a key index.
 s32 __cdecl Track_Apply(const void *state, u8 *model, u32 unused, u32 *node, const u8 *track);
+
+// 0x4721f0 (state, holder, block): Motion_ApplyWith on the game's globals; a null block does
+// nothing. Motion_Apply passes the block as Track_Apply's unused argument.
+s32 __cdecl Motion_Apply(const void *state, const void *holder, const u8 *block);
+
+// 0x472270 (from, to, all): copy the vertex positions ((count + 3) / 4 blocks of 48 bytes)
+// and bounding box of each node of from's model into to's (models at holder +4; nodes are
+// 0xa0 bytes at model +0x70, count u16 at to's model +0x44). Nodes without vertices are
+// skipped, and unless all is set so are those without flag 0x200000; the positions are
+// copied only when both sides have some, the box always.
+void __cdecl Motion_CopyVertices(const void *from, const void *to, s32 all);
 }

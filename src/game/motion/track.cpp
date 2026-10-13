@@ -1,7 +1,9 @@
-// Track_Apply: reimplementation of 0x471860.
+// Motion_Apply, Track_Apply and Motion_CopyVertices: reimplementation of 0x4721f0,
+// 0x471860 and 0x472270.
 #include "track.h"
 
 #include <cmath>
+#include <cstring>
 
 #include "../math/matrix.h"
 #include "curve.h"
@@ -207,8 +209,40 @@ s32 Track_ApplyWith(const MotionEnv &env, const void *state, u8 *model, u32 *nod
     return 1;
 }
 
+s32 Motion_ApplyWith(const MotionEnv &env, const void *state, const void *holder, const u8 *block) {
+    const u8 *track = field<const u8 *>(block, 0x2c);
+    for (s32 k = 0; k < (s32)field<u16>(block, 0x12); ++k, track += 0x40)
+        Track_ApplyWith(env, state, field<u8 *>(holder, 4), field<u32 *>(track, 0x3c), track);
+    if ((block[0] & 2) && !(*env.motionFlags & 8)) Motion_ApplyMaterial(field<u8 *>(holder, 4), block, state);
+    return 1;
+}
+
+namespace {
+MotionEnv game_env() {
+    return {reinterpret_cast<u32 *>(0x007b4988), reinterpret_cast<u32 *>(0x007b49e8),
+            reinterpret_cast<const u32 *>(0x007b4980), SinTable_Game()};
+}
+}  // namespace
+
+extern "C" s32 __cdecl Motion_Apply(const void *state, const void *holder, const u8 *block) {
+    return block ? Motion_ApplyWith(game_env(), state, holder, block) : 1;
+}
+
+extern "C" void __cdecl Motion_CopyVertices(const void *from, const void *to, s32 all) {
+    const u8 *src = field<const u8 *>(field<const u8 *>(from, 4), 0x70);
+    const u8 *to_model = field<const u8 *>(to, 4);
+    u8 *dst = field<u8 *>(to_model, 0x70);
+    for (u32 n = field<u16>(to_model, 0x44); n != 0; --n, src += 0xa0, dst += 0xa0) {
+        if (field<u16>(dst, 0x58) == 0) continue;
+        if (!(field<u32>(dst, 0) & 0x200000) && !all) continue;
+        void *positions = field<void *>(dst, 0x60);
+        const void *source = field<const void *>(src, 0x60);
+        const u32 blocks = ((u32)field<u16>(src, 0x58) + 3) >> 2;
+        if (positions && source && blocks) std::memmove(positions, source, 48 * blocks);
+        std::memmove(dst + 0x78, src + 0x78, 24);
+    }
+}
+
 extern "C" s32 __cdecl Track_Apply(const void *state, u8 *model, u32, u32 *node, const u8 *track) {
-    const MotionEnv env{reinterpret_cast<u32 *>(0x007b4988), reinterpret_cast<u32 *>(0x007b49e8),
-                        reinterpret_cast<const u32 *>(0x007b4980), SinTable_Game()};
-    return Track_ApplyWith(env, state, model, node, track);
+    return Track_ApplyWith(game_env(), state, model, node, track);
 }

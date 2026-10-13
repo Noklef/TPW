@@ -75,6 +75,8 @@ const Hook kHooks[] = {
     {"Motion_LerpPackedBox", 0x004711d0, (void *)&Motion_LerpPackedBox, {0x83, 0xec, 0x10, 0x8b, 0x54}},
     {"Motion_UnpackVertices", 0x004714a0, (void *)&Motion_UnpackVertices, {0x83, 0xec, 0x08, 0x8d, 0x44}},
     {"Track_Apply", 0x00471860, (void *)&Track_Apply, {0x8b, 0x4c, 0x24, 0x04, 0x83}},
+    {"Motion_Apply", 0x004721f0, (void *)&Motion_Apply, {0x53, 0x55, 0x56, 0x57, 0x8b}},
+    {"Motion_CopyVertices", 0x00472270, (void *)&Motion_CopyVertices, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
