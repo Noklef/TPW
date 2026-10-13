@@ -105,39 +105,69 @@ SIZES = {'u8': 1, 'u16': 2, 'u32': 4, 's32': 4, 'float': 4, 'TpwU64': 8, 'Vec2':
 SAM_CTYPES = {4: 's32', 5: 'u32', 6: 's32', 7: 'float', 8: 'float', 9: 'float', 10: 'char *', 11: 'void *'}
 
 
-def object_def_specs(pe):
-    """ObjectDef (ride/shop/... descriptions) and its table rows, laid out from the .sam schema.
+def balance_specs(pe, schema, name, base, header, size, comment):
+    """A struct for a .sam-backed object, laid out from its key schema (tools/samtool.py).
 
-    Each schema value owns one 4-byte slot at def + 0xc + 4 * slot (see tools/samtool.py).
+    Each value owns one 4-byte slot at this + base + 4 * slot; multi-key tables become arrays of
+    a row struct, single-key tables plain arrays. Returns the row structs, then the struct.
     """
-    va, base, _ = samtool.SCHEMAS['object']
-    top, tables = [], {}
-    for k in samtool.read_schema(pe, va):
+    keys, slots = samtool.read_schema(pe, samtool.SCHEMAS[schema][0], with_slots=True)
+    seen = [k['key'].rsplit('.', 1)[1] for k in keys if 'stride' not in k]
+    top, tables = list(header), {}
+    for k in keys:
         off, ctype = base + 4 * k['slot'], SAM_CTYPES[k['type']]
         group, field = k['key'].rsplit('.', 1)
         if 'stride' in k:
             tables.setdefault(group[:-2], []).append((off, ctype, field, k))
         else:
-            top.append((off, ctype, 'm' + field, 1))
+            top.append((off, ctype, 'm' + (group + field if seen.count(field) > 1 else field), 1))
     specs = []
     for table, fs in tables.items():
         first, rows, stride = fs[0][0], fs[0][3]['rows'], fs[0][3]['stride']
         if len(fs) == 1:   # one key per row: a plain array
             top.append((first, fs[0][1], 'm' + table + ('' if fs[0][2] == 'FileName' else fs[0][2]), rows))
             continue
-        sub = 'ObjectDef' + table.rstrip('s')
+        sub = name + table[0].upper() + table[1:].rstrip('s')
         specs.append((sub, None, [], stride, [], [(o - first, c, 'm' + f, 1) for o, c, f, _ in fs],
-                      'One row of ObjectDef.m%s: the %s[i].* keys of a .sam description.' % (table, table)))
+                      'One row of %s.m%s: the %s[i].* keys.' % (name, table, table)))
         top.append((first, sub, 'm' + table, rows))
-    top += [(0x00, 'u16', 'mLookupId', 1), (0x04, 'void *', 'vtable', 1), (0x08, 'void *', 'mSlotInfo', 1),
-            (0x28c, 'u8', 'mSamPath', 0x104)]
-    specs.append(('ObjectDef', None, [], None, [], top,
-                  'A ride/shop/sideshow/feature description, loaded from its .sam file (0x413c10) and\n'
-                  ' * found by id with ObjectDefs_Find (0x412e90). Fields are the .sam keys in schema order\n'
-                  ' * (tools/samtool.py schema object); e.g. UsageInfo.ThirstEffect is mThirstEffect.\n'
-                  ' * The vtable and mSlotInfo belong to the generic balance-file base class (0x401030),\n'
-                  ' * which starts at +4. Runtime state follows mSamPath (up to ~0x500).'))
+    if size is True:
+        size = base + 4 * slots
+    specs.append((name, None, [], size, [], top, comment))
     return specs
+
+
+BALANCE_HEADER = [(0x00, 'void *', 'vtable', 1), (0x04, 'void *', 'mSlotInfo', 1)]
+# Balance files with static instances: (schema, struct, label, addresses, contents). The
+# constructors at 0x402a20.. store each vtable straight into the global.
+BALANCE_GLOBALS = [
+    ('level', 'BalanceLevel', 'gBalanceLevel', [0x785040], 'Standard.sam (peeps, staff, bank, map, ...)'),
+    ('online', 'BalanceOnline', 'gBalanceOnline', [0x785828], 'Online.sam'),
+    ('graphics', 'BalanceGraphics', 'gBalanceGraphics', [0x785868], 'low/med/high.sam'),
+    ('resolution', 'BalanceResolution', 'gBalanceResolution', [0x7858e0], 'Resolution.sam'),
+    ('sound', 'BalanceSound', 'gBalanceSound', [0x7858f0], 'the sound settings'),
+    ('hoardings', 'BalanceHoardings', 'gBalanceHoardings', [0x784e30, 0x784c20],
+     'Hoardings.sam / EndHoardings.sam (one each)'),
+]
+
+
+def balance_structs(pe):
+    out = balance_specs(
+        pe, 'object', 'ObjectDef', 0x0c,
+        [(0x00, 'u16', 'mLookupId', 1), (0x04, 'void *', 'vtable', 1), (0x08, 'void *', 'mSlotInfo', 1),
+         (0x28c, 'u8', 'mSamPath', 0x104)], None,
+        'A ride/shop/sideshow/feature description, loaded from its .sam file (0x413c10) and\n'
+        ' * found by id with ObjectDefs_Find (0x412e90). Fields are the .sam keys in schema order\n'
+        ' * (tools/samtool.py schema object); e.g. UsageInfo.ThirstEffect is mThirstEffect.\n'
+        ' * The vtable and mSlotInfo belong to the generic balance-file base class (0x401030),\n'
+        ' * which starts at +4. Runtime state follows mSamPath (up to ~0x500).')
+    for schema, name, label, addrs, what in BALANCE_GLOBALS:
+        out += balance_specs(pe, schema, name, 0x08, BALANCE_HEADER, True,
+                             'Values of %s; static instance %s at %s. Fields are the .sam keys\n'
+                             ' * in schema order (tools/samtool.py schema %s); vtable and mSlotInfo\n'
+                             ' * belong to the balance-file base class (0x401030).'
+                             % (what, label, ', '.join('%#x' % a for a in addrs), schema))
+    return out
 
 
 def schema_types(schema, out=None):
@@ -224,7 +254,7 @@ def main():
     src, pe = load_functions(dump), PE(exe)
     sizes = dict(SIZES)
     blocks, checks = [], []
-    for spec in SPEC + object_def_specs(pe):
+    for spec in SPEC + balance_structs(pe):
         text, c = emit(spec, build(spec, src, pe), sizes)
         blocks.append(text)
         checks += c

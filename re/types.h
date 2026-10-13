@@ -611,7 +611,7 @@ typedef struct GameClock {
     u32 mFunnySecsPerRealSec;            /* 0x1c */
 } GameClock;
 
-/* One row of ObjectDef.mUpgrades: the Upgrades[i].* keys of a .sam description. */
+/* One row of ObjectDef.mUpgrades: the Upgrades[i].* keys. */
 typedef struct ObjectDefUpgrade {
     u32 mCostOfResearch;                 /* 0x00 */
     s32 mEstimatedPriceVariance;         /* 0x04 */
@@ -747,6 +747,427 @@ typedef struct ObjectDef {
     u32 mUpgradeType;                    /* 0x288 */
     u8 mSamPath[260];                    /* 0x28c */
 } ObjectDef;
+
+/* One row of BalanceLevel.mPeepTypes: the PeepTypes[i].* keys. */
+typedef struct BalanceLevelPeepType {
+    s32 mPreferredExcitement;            /* 0x00 */
+    u32 mStartingCash;                   /* 0x04 */
+    s32 mBoredomThreshold;               /* 0x08 */
+} BalanceLevelPeepType;
+
+/* One row of BalanceLevel.mLoanInfo: the LoanInfo[i].* keys. */
+typedef struct BalanceLevelLoanInfo {
+    u32 mLoanAmount;                     /* 0x00 */
+    s32 mAPRInPercent;                   /* 0x04 */
+    u32 mRepaymentPeriodInMonths;        /* 0x08 */
+    u32 mLendername;                     /* 0x0c */
+} BalanceLevelLoanInfo;
+
+/* One row of BalanceLevel.mPerGradeStaffConsts: the PerGradeStaffConsts[i].* keys. */
+typedef struct BalanceLevelPerGradeStaffConst {
+    u32 mBaseWage;                       /* 0x00 */
+    u32 mIdleDuration;                   /* 0x04 */
+    float mRecuperationRate;             /* 0x08 */
+    float mHappinessRecuperationRate;    /* 0x0c */
+} BalanceLevelPerGradeStaffConst;
+
+/* One row of BalanceLevel.mEntertainerConstsPerGrade: the EntertainerConstsPerGrade[i].* keys. */
+typedef struct BalanceLevelEntertainerConstsPerGrade {
+    u32 mWorkDuration;                   /* 0x00 */
+    u32 mHappinessEffectOnCell;          /* 0x04 */
+    u32 mActivationDistance;             /* 0x08 */
+    u32 mPoundsPerTrainingPoint;         /* 0x0c */
+} BalanceLevelEntertainerConstsPerGrade;
+
+/* One row of BalanceLevel.mHandymanConstsPerGrade: the HandymanConstsPerGrade[i].* keys. */
+typedef struct BalanceLevelHandymanConstsPerGrade {
+    u32 mWorkDuration;                   /* 0x00 */
+    u32 mDetectionRange;                 /* 0x04 */
+    u32 mPoundsPerTrainingPoint;         /* 0x08 */
+} BalanceLevelHandymanConstsPerGrade;
+
+/* One row of BalanceLevel.mMechanicConstsPerGrade: the MechanicConstsPerGrade[i].* keys. */
+typedef struct BalanceLevelMechanicConstsPerGrade {
+    u32 mWorkDuration;                   /* 0x00 */
+    u32 mPoundsPerTrainingPoint;         /* 0x04 */
+} BalanceLevelMechanicConstsPerGrade;
+
+/* One row of BalanceLevel.mResearcherConstsPerGrade: the ResearcherConstsPerGrade[i].* keys. */
+typedef struct BalanceLevelResearcherConstsPerGrade {
+    u32 mWorkDuration;                   /* 0x00 */
+    u32 mResearchAbility;                /* 0x04 */
+    u32 mPoundsPerTrainingPoint;         /* 0x08 */
+} BalanceLevelResearcherConstsPerGrade;
+
+/* One row of BalanceLevel.mGuardConstsPerGrade: the GuardConstsPerGrade[i].* keys. */
+typedef struct BalanceLevelGuardConstsPerGrade {
+    u32 mWorkDuration;                   /* 0x00 */
+    u32 mPoundsPerTrainingPoint;         /* 0x04 */
+} BalanceLevelGuardConstsPerGrade;
+
+/* One row of BalanceLevel.mSeasons: the Seasons[i].* keys. */
+typedef struct BalanceLevelSeason {
+    s32 mAvgWeatherQuality;              /* 0x00 */
+    s32 mNormalTolerance;                /* 0x04 */
+    s32 mChanceForExceptionalWeather;    /* 0x08 */
+} BalanceLevelSeason;
+
+/* One row of BalanceLevel.mRegionFX: the RegionFX[i].* keys. */
+typedef struct BalanceLevelRegionFX {
+    u32 mRadius;                         /* 0x00 */
+    s32 mHappiness;                      /* 0x04 */
+    s32 mIllness;                        /* 0x08 */
+    s32 mHunger;                         /* 0x0c */
+    s32 mSecurity;                       /* 0x10 */
+    s32 mAttraction;                     /* 0x14 */
+} BalanceLevelRegionFX;
+
+/* One row of BalanceLevel.mThemeAdvisorCostumes: the ThemeAdvisorCostumes[i].* keys. */
+typedef struct BalanceLevelThemeAdvisorCostume {
+    s32 mAddOns;                         /* 0x00 */
+    s32 mSubOffs;                        /* 0x04 */
+} BalanceLevelThemeAdvisorCostume;
+
+/* One row of BalanceLevel.mSkyObjects: the SkyObjects[i].* keys. */
+typedef struct BalanceLevelSkyObject {
+    float mX;                            /* 0x00 */
+    float mY;                            /* 0x04 */
+    float mZ;                            /* 0x08 */
+    float mSize;                         /* 0x0c */
+    u32 mFrontFlag;                      /* 0x10 */
+    char * mFilename;                    /* 0x14 */
+} BalanceLevelSkyObject;
+
+/* Values of Standard.sam (peeps, staff, bank, map, ...); static instance gBalanceLevel at 0x785040. Fields are the .sam keys
+ * in schema order (tools/samtool.py schema level); vtable and mSlotInfo
+ * belong to the balance-file base class (0x401030). */
+typedef struct BalanceLevel {
+    void * vtable;                       /* 0x00 */
+    void * mSlotInfo;                    /* 0x04 */
+    u8 unk_08[0x4];
+    u32 mExitLevel;                      /* 0x0c */
+    u32 mExitLevelVar;                   /* 0x10 */
+    s32 mStartingCashVarPc;              /* 0x14 */
+    u32 mSmallHappinessChange;           /* 0x18 */
+    u32 mMediumHappinessChange;          /* 0x1c */
+    u32 mBigHappinessChange;             /* 0x20 */
+    u32 mPerfectRide;                    /* 0x24 */
+    u32 mGoodRide;                       /* 0x28 */
+    u32 mOKRide;                         /* 0x2c */
+    u32 mRideVomitDivisor;               /* 0x30 */
+    u32 mToiletDesparate;                /* 0x34 */
+    u32 mVomitCapacity;                  /* 0x38 */
+    u32 mExcitementToCostDivisor;        /* 0x3c */
+    u32 mMinimumEntryFee;                /* 0x40 */
+    float mCheapPriceMultiplier;         /* 0x44 */
+    float mAveragePriceMultiplier;       /* 0x48 */
+    float mExpensivePriceMultiplier;     /* 0x4c */
+    u32 mDecisionVariable1;              /* 0x50 */
+    u32 mDecisionVariable2;              /* 0x54 */
+    u32 mDecisionVariable3;              /* 0x58 */
+    u32 mDecisionVariable4;              /* 0x5c */
+    u32 mDecisionVariable5;              /* 0x60 */
+    u32 mDecisionVariable6;              /* 0x64 */
+    u32 mDecisionVariable7;              /* 0x68 */
+    u32 mDecisionVariable8;              /* 0x6c */
+    u32 mDecisionVarDistWeight;          /* 0x70 */
+    u32 mDecisionVarQueueWeight;         /* 0x74 */
+    u32 mDecisionVarExcitementWeight;    /* 0x78 */
+    u32 mDecisionVarThirstWeight;        /* 0x7c */
+    u32 mDecisionVarHungerWeight;        /* 0x80 */
+    u32 mDecisionVarToiletWeight;        /* 0x84 */
+    u32 mDecisionVarIllnessWeight;       /* 0x88 */
+    s32 mOpinionForMuchTooHigh;          /* 0x8c */
+    s32 mOpinionForTooHigh;              /* 0x90 */
+    s32 mOpinionForTooLow;               /* 0x94 */
+    s32 mOpinionForAboutRight;           /* 0x98 */
+    s32 mPrankeryLikelihood;             /* 0x9c */
+    s32 mStinkbombLikelihood;            /* 0xa0 */
+    BalanceLevelPeepType mPeepTypes[20]; /* 0xa4 */
+    u8 unk_194[0x4];
+    s32 mInitialCash;                    /* 0x198 */
+    u32 mInitialAdmissionFee;            /* 0x19c */
+    BalanceLevelLoanInfo mLoanInfo[10];  /* 0x1a0 */
+    u8 unk_240[0x4];
+    s32 mChanceToGetGreatHandymen;       /* 0x244 */
+    s32 mChanceToGetGreatMechanics;      /* 0x248 */
+    s32 mChanceToGetGreatEntertainers;   /* 0x24c */
+    s32 mChanceToGetGreatGuards;         /* 0x250 */
+    s32 mChanceToGetGreatResearchers;    /* 0x254 */
+    s32 mAvgGradeOfHandymen;             /* 0x258 */
+    s32 mAvgGradeOfMechanics;            /* 0x25c */
+    s32 mAvgGradeOfEntertainers;         /* 0x260 */
+    s32 mAvgGradeOfGuards;               /* 0x264 */
+    s32 mAvgGradeOfResearchers;          /* 0x268 */
+    u32 mBeginningNumberOfHandymen;      /* 0x26c */
+    u32 mBeginningNumberOfMechanics;     /* 0x270 */
+    u32 mBeginningNumberOfEntertainers;  /* 0x274 */
+    u32 mBeginningNumberOfGuards;        /* 0x278 */
+    u32 mBeginningNumberOfResearchers;   /* 0x27c */
+    u32 mMaxHandymen;                    /* 0x280 */
+    u32 mMaxMechanics;                   /* 0x284 */
+    u32 mMaxEntertainers;                /* 0x288 */
+    u32 mMaxGuards;                      /* 0x28c */
+    u32 mMaxResearchers;                 /* 0x290 */
+    u32 mMinHandymenInPool;              /* 0x294 */
+    u32 mMinMechanicsInPool;             /* 0x298 */
+    u32 mMinEntertainersInPool;          /* 0x29c */
+    u32 mMinGuardsInPool;                /* 0x2a0 */
+    u32 mMinResearchersInPool;           /* 0x2a4 */
+    u32 mMaxHandymenInPark;              /* 0x2a8 */
+    u32 mMaxMechanicsInPark;             /* 0x2ac */
+    u32 mMaxEntertainersInPark;          /* 0x2b0 */
+    u32 mMaxGuardsInPark;                /* 0x2b4 */
+    u32 mMaxResearchersInPark;           /* 0x2b8 */
+    u32 mBaseCostPerStaff;               /* 0x2bc */
+    u32 mCostPerQualityLevel;            /* 0x2c0 */
+    u32 mTimeBetweenStaffUpdates;        /* 0x2c4 */
+    u32 mMaxNumberOfStaffPerUpdate;      /* 0x2c8 */
+    u32 mStaffTimeoutTime;               /* 0x2cc */
+    u32 mMinPeople;                      /* 0x2d0 */
+    u32 mTimeBetweenArrivals;            /* 0x2d4 */
+    s32 mFixedRate;                      /* 0x2d8 */
+    s32 mNewParkBonus;                   /* 0x2dc */
+    u32 mPointsPerVisitor;               /* 0x2e0 */
+    s32 mRestLevel;                      /* 0x2e4 */
+    u32 mHappyHitCosNoRestArea;          /* 0x2e8 */
+    BalanceLevelPerGradeStaffConst mPerGradeStaffConsts[5]; /* 0x2ec */
+    u8 unk_33c[0x4];
+    u32 mPerTypeStaffConstsPayMultiplier[5]; /* 0x340 */
+    u8 unk_354[0x4];
+    BalanceLevelEntertainerConstsPerGrade mEntertainerConstsPerGrade[5]; /* 0x358 */
+    u8 unk_3a8[0x4];
+    BalanceLevelHandymanConstsPerGrade mHandymanConstsPerGrade[5]; /* 0x3ac */
+    u8 unk_3e8[0x4];
+    BalanceLevelMechanicConstsPerGrade mMechanicConstsPerGrade[5]; /* 0x3ec */
+    u8 unk_414[0x4];
+    BalanceLevelResearcherConstsPerGrade mResearcherConstsPerGrade[5]; /* 0x418 */
+    u8 unk_454[0x4];
+    BalanceLevelGuardConstsPerGrade mGuardConstsPerGrade[5]; /* 0x458 */
+    u8 unk_480[0x4];
+    BalanceLevelSeason mSeasons[4];      /* 0x484 */
+    u8 unk_4b4[0x4];
+    u32 mDaysOfWarning;                  /* 0x4b8 */
+    s32 mDaysBetweenChanges;             /* 0x4bc */
+    s32 mSpeedOfChange;                  /* 0x4c0 */
+    s32 mQualityForSnowLow;              /* 0x4c4 */
+    s32 mQualityForSnowHigh;             /* 0x4c8 */
+    s32 mQualityForRainLow;              /* 0x4cc */
+    s32 mQualityForRainHigh;             /* 0x4d0 */
+    s32 mQualityForLightningLow;         /* 0x4d4 */
+    s32 mQualityForLightningHigh;        /* 0x4d8 */
+    s32 mLightningCountdownSpeed;        /* 0x4dc */
+    s32 mLightningCountdownFrom;         /* 0x4e0 */
+    u32 mLightningTime;                  /* 0x4e4 */
+    s32 mThunderStartsThisFarAway;       /* 0x4e8 */
+    s32 mThunderRandomiser;              /* 0x4ec */
+    s32 mMaxRaindrops;                   /* 0x4f0 */
+    u32 mMinTimeAnyMessage;              /* 0x4f4 */
+    u32 mMinTimeSameMessage;             /* 0x4f8 */
+    s32 mResearchTechPercentageForThisTech[10]; /* 0x4fc */
+    u8 unk_524[0x4];
+    s32 mResearchCategoriesEffort[5];    /* 0x528 */
+    u8 unk_53c[0x4];
+    s32 mStartingWorkLoad;               /* 0x540 */
+    s32 mHeightfieldXStart;              /* 0x544 */
+    s32 mHeightfieldYStart;              /* 0x548 */
+    s32 mHeightfieldWidth;               /* 0x54c */
+    s32 mHeightfieldHeight;              /* 0x550 */
+    s32 mFixedItemOriginX;               /* 0x554 */
+    s32 mFixedItemOriginY;               /* 0x558 */
+    u32 mTicketBoothAPosX;               /* 0x55c */
+    u32 mTicketBoothAPosY;               /* 0x560 */
+    u32 mTicketBoothBPosX;               /* 0x564 */
+    u32 mTicketBoothBPosY;               /* 0x568 */
+    u32 mBusStopAPosX;                   /* 0x56c */
+    u32 mBusStopAPosY;                   /* 0x570 */
+    u32 mBusStopBPosX;                   /* 0x574 */
+    u32 mBusStopBPosY;                   /* 0x578 */
+    u32 mEntranceAPosX;                  /* 0x57c */
+    u32 mEntranceAPosY;                  /* 0x580 */
+    u32 mEntranceBPosX;                  /* 0x584 */
+    u32 mEntranceBPosY;                  /* 0x588 */
+    u32 mCrossingParkSideAPosX;          /* 0x58c */
+    u32 mCrossingParkSideAPosY;          /* 0x590 */
+    u32 mCrossingParkSideBPosX;          /* 0x594 */
+    u32 mCrossingParkSideBPosY;          /* 0x598 */
+    u32 mCrossingBSSideAPosX;            /* 0x59c */
+    u32 mCrossingBSSideAPosY;            /* 0x5a0 */
+    u32 mCrossingBSSideBPosX;            /* 0x5a4 */
+    u32 mCrossingBSSideBPosY;            /* 0x5a8 */
+    u32 mStrikeAreaStartX;               /* 0x5ac */
+    u32 mStrikeAreaStartY;               /* 0x5b0 */
+    u32 mStrikeAreaSizeX;                /* 0x5b4 */
+    u32 mStrikeAreaSizeY;                /* 0x5b8 */
+    u32 mQueueCell;                      /* 0x5bc */
+    u32 mPathCell;                       /* 0x5c0 */
+    u32 mKartTrackCell;                  /* 0x5c4 */
+    u32 mWaterTrackCell;                 /* 0x5c8 */
+    u32 mMapCell;                        /* 0x5cc */
+    BalanceLevelRegionFX mRegionFX[8];   /* 0x5d0 */
+    u8 unk_690[0x4];
+    s32 mFogColour;                      /* 0x694 */
+    s32 mAmbientLightLevel;              /* 0x698 */
+    s32 mDirectionalLightLevel;          /* 0x69c */
+    s32 mProceduralTexturingXOffset;     /* 0x6a0 */
+    s32 mProceduralTexturingYOffset;     /* 0x6a4 */
+    float mLightNormalX;                 /* 0x6a8 */
+    float mLightNormalY;                 /* 0x6ac */
+    float mLightNormalZ;                 /* 0x6b0 */
+    BalanceLevelThemeAdvisorCostume mThemeAdvisorCostumes[4]; /* 0x6b4 */
+    u8 unk_6d4[0x4];
+    float mWaterStartPosX;               /* 0x6d8 */
+    float mWaterStartPosY;               /* 0x6dc */
+    float mWaterStartPosZ;               /* 0x6e0 */
+    u32 mn;                              /* 0x6e4 */
+    BalanceLevelSkyObject mSkyObjects[4]; /* 0x6e8 */
+    u8 unk_748[0x4];
+    s32 mReverb;                         /* 0x74c */
+    s32 mVisitors;                       /* 0x750 */
+    s32 mPeopleInPark;                   /* 0x754 */
+    s32 mHappiness;                      /* 0x758 */
+    u32 mAtLeastThisManyHappyPeople;     /* 0x75c */
+    s32 mProfitYear;                     /* 0x760 */
+    s32 mRecentVisitors;                 /* 0x764 */
+    s32 mRecentVisitorMonths;            /* 0x768 */
+    s32 mCoasterHeight;                  /* 0x76c */
+    s32 mGokartExcitement;               /* 0x770 */
+    s32 mWaterLength;                    /* 0x774 */
+    s32 mMinCellsOwned;                  /* 0x778 */
+    s32 mMinCellsCovered;                /* 0x77c */
+    s32 mDaysAfterCompletedChallenge;    /* 0x780 */
+    s32 mDaysAfterDeclinedChallenge;     /* 0x784 */
+    s32 mDaysUntilFirstChallenge;        /* 0x788 */
+    s32 mDeclinesToForfeit;              /* 0x78c */
+    s32 mShortTimeLeftWarningAt;         /* 0x790 */
+    s32 mChallengesInThisLevelChallengeType[20]; /* 0x794 */
+    u8 unk_7e4[0x4];
+} BalanceLevel;
+
+/* Values of Online.sam; static instance gBalanceOnline at 0x785828. Fields are the .sam keys
+ * in schema order (tools/samtool.py schema online); vtable and mSlotInfo
+ * belong to the balance-file base class (0x401030). */
+typedef struct BalanceOnline {
+    void * vtable;                       /* 0x00 */
+    void * mSlotInfo;                    /* 0x04 */
+    u8 unk_08[0x4];
+    s32 mMailPort;                       /* 0x0c */
+    s32 mChatPort;                       /* 0x10 */
+    s32 mLoginPort;                      /* 0x14 */
+    s32 mCityPort;                       /* 0x18 */
+    s32 mNewsPort;                       /* 0x1c */
+    s32 mVotePort;                       /* 0x20 */
+    char * mMailServer;                  /* 0x24 */
+    char * mChatServer;                  /* 0x28 */
+    char * mLoginServer;                 /* 0x2c */
+    char * mCityServer;                  /* 0x30 */
+    char * mNewsServer;                  /* 0x34 */
+    char * mVoteServer;                  /* 0x38 */
+    char * mComplainEmail;               /* 0x3c */
+} BalanceOnline;
+
+/* Values of low/med/high.sam; static instance gBalanceGraphics at 0x785868. Fields are the .sam keys
+ * in schema order (tools/samtool.py schema graphics); vtable and mSlotInfo
+ * belong to the balance-file base class (0x401030). */
+typedef struct BalanceGraphics {
+    void * vtable;                       /* 0x00 */
+    void * mSlotInfo;                    /* 0x04 */
+    u8 unk_08[0x4];
+    s32 mTEXTUREQUALITY;                 /* 0x0c */
+    s32 mTEXTUREFILTERING;               /* 0x10 */
+    s32 mPROCEDURALTEXTURING;            /* 0x14 */
+    s32 mPROCEDURALTEXTURECACHE;         /* 0x18 */
+    s32 mANIMATINGTEXTURES;              /* 0x1c */
+    s32 mSKYQUALITY;                     /* 0x20 */
+    s32 mSKYDETAIL;                      /* 0x24 */
+    s32 mSKYSHADOW;                      /* 0x28 */
+    s32 mMESHSHADOW;                     /* 0x2c */
+    s32 mSPRITESHADOW;                   /* 0x30 */
+    s32 mTRIPLEBUFFER;                   /* 0x34 */
+    s32 mFOG;                            /* 0x38 */
+    s32 mMIPMAP;                         /* 0x3c */
+    s32 mRENDER32;                       /* 0x40 */
+    s32 mTEXTURE32;                      /* 0x44 */
+    s32 mBUMPMAPPING;                    /* 0x48 */
+    s32 mFIRSTPERSONVIEWDISTANCE;        /* 0x4c */
+    s32 mLIGHTING;                       /* 0x50 */
+    s32 mFORCELOWALPHAREF;               /* 0x54 */
+    s32 mCOASTERSMOOTHNESS;              /* 0x58 */
+    s32 mCOASTERTRACKDETAIL;             /* 0x5c */
+    s32 mPARTICLEDENSITY;                /* 0x60 */
+    s32 mTOTALPARTICLES;                 /* 0x64 */
+    s32 mNUMKIDS;                        /* 0x68 */
+    s32 mWEATHER;                        /* 0x6c */
+    s32 mWATER;                          /* 0x70 */
+    s32 mLOBBYOBJECTS;                   /* 0x74 */
+} BalanceGraphics;
+
+/* Values of Resolution.sam; static instance gBalanceResolution at 0x7858e0. Fields are the .sam keys
+ * in schema order (tools/samtool.py schema resolution); vtable and mSlotInfo
+ * belong to the balance-file base class (0x401030). */
+typedef struct BalanceResolution {
+    void * vtable;                       /* 0x00 */
+    void * mSlotInfo;                    /* 0x04 */
+    u8 unk_08[0x4];
+    s32 mRESOLUTION;                     /* 0x0c */
+} BalanceResolution;
+
+/* One row of BalanceSound.mChannelInfo: the ChannelInfo[i].* keys. */
+typedef struct BalanceSoundChannelInfo {
+    s32 mCHANNELS;                       /* 0x00 */
+    s32 mSWITCH;                         /* 0x04 */
+} BalanceSoundChannelInfo;
+
+/* One row of BalanceSound.mRadiusInfo: the RadiusInfo[i].* keys. */
+typedef struct BalanceSoundRadiusInfo {
+    float mMINRADIUS;                    /* 0x00 */
+    s32 mSWITCH;                         /* 0x04 */
+} BalanceSoundRadiusInfo;
+
+/* Values of the sound settings; static instance gBalanceSound at 0x7858f0. Fields are the .sam keys
+ * in schema order (tools/samtool.py schema sound); vtable and mSlotInfo
+ * belong to the balance-file base class (0x401030). */
+typedef struct BalanceSound {
+    void * vtable;                       /* 0x00 */
+    void * mSlotInfo;                    /* 0x04 */
+    u8 unk_08[0x4];
+    s32 mQSOUND;                         /* 0x0c */
+    s32 mREAR;                           /* 0x10 */
+    s32 mCROSSOVER;                      /* 0x14 */
+    s32 mEAX;                            /* 0x18 */
+    s32 mGEOMETRY;                       /* 0x1c */
+    s32 mMPEGRATE;                       /* 0x20 */
+    s32 mDUCKINGLEVEL;                   /* 0x24 */
+    s32 mDROPPABLELEVEL;                 /* 0x28 */
+    s32 mDEFAULTQUALITY;                 /* 0x2c */
+    s32 mFADETOGGLE;                     /* 0x30 */
+    s32 mSOUNDON;                        /* 0x34 */
+    s32 mSFX;                            /* 0x38 */
+    s32 mMUSIC;                          /* 0x3c */
+    s32 mSPEECH;                         /* 0x40 */
+    s32 mMOVIE;                          /* 0x44 */
+    BalanceSoundChannelInfo mChannelInfo[3]; /* 0x48 */
+    u8 unk_60[0x4];
+    BalanceSoundRadiusInfo mRadiusInfo[3]; /* 0x64 */
+    u8 unk_7c[0x4];
+} BalanceSound;
+
+/* One row of BalanceHoardings.mHoardingClicks: the HoardingClicks[i].* keys. */
+typedef struct BalanceHoardingsHoardingClick {
+    s32 mX;                              /* 0x00 */
+    s32 mY;                              /* 0x04 */
+} BalanceHoardingsHoardingClick;
+
+/* Values of Hoardings.sam / EndHoardings.sam (one each); static instance gBalanceHoardings at 0x784e30, 0x784c20. Fields are the .sam keys
+ * in schema order (tools/samtool.py schema hoardings); vtable and mSlotInfo
+ * belong to the balance-file base class (0x401030). */
+typedef struct BalanceHoardings {
+    void * vtable;                       /* 0x00 */
+    void * mSlotInfo;                    /* 0x04 */
+    u8 unk_08[0x4];
+    BalanceHoardingsHoardingClick mHoardingClicks[64]; /* 0x0c */
+    u8 unk_20c[0x4];
+} BalanceHoardings;
 
 #ifndef __GHIDRA__
 #define TPW_CHECK(name, cond) typedef char tpw_check_##name[(cond) ? 1 : -1]
@@ -1159,6 +1580,327 @@ TPW_CHECK(ObjectDef_mSignTextures, TPW_OFF(ObjectDef, mSignTextures) == 0x278);
 TPW_CHECK(ObjectDef_mUpgradesId, TPW_OFF(ObjectDef, mUpgradesId) == 0x284);
 TPW_CHECK(ObjectDef_mUpgradeType, TPW_OFF(ObjectDef, mUpgradeType) == 0x288);
 TPW_CHECK(ObjectDef_mSamPath, TPW_OFF(ObjectDef, mSamPath) == 0x28c);
+TPW_CHECK(BalanceLevelPeepType_mPreferredExcitement, TPW_OFF(BalanceLevelPeepType, mPreferredExcitement) == 0x0);
+TPW_CHECK(BalanceLevelPeepType_mStartingCash, TPW_OFF(BalanceLevelPeepType, mStartingCash) == 0x4);
+TPW_CHECK(BalanceLevelPeepType_mBoredomThreshold, TPW_OFF(BalanceLevelPeepType, mBoredomThreshold) == 0x8);
+TPW_CHECK(BalanceLevelPeepType_size, sizeof(BalanceLevelPeepType) == 0xc);
+TPW_CHECK(BalanceLevelLoanInfo_mLoanAmount, TPW_OFF(BalanceLevelLoanInfo, mLoanAmount) == 0x0);
+TPW_CHECK(BalanceLevelLoanInfo_mAPRInPercent, TPW_OFF(BalanceLevelLoanInfo, mAPRInPercent) == 0x4);
+TPW_CHECK(BalanceLevelLoanInfo_mRepaymentPeriodInMonths, TPW_OFF(BalanceLevelLoanInfo, mRepaymentPeriodInMonths) == 0x8);
+TPW_CHECK(BalanceLevelLoanInfo_mLendername, TPW_OFF(BalanceLevelLoanInfo, mLendername) == 0xc);
+TPW_CHECK(BalanceLevelLoanInfo_size, sizeof(BalanceLevelLoanInfo) == 0x10);
+TPW_CHECK(BalanceLevelPerGradeStaffConst_mBaseWage, TPW_OFF(BalanceLevelPerGradeStaffConst, mBaseWage) == 0x0);
+TPW_CHECK(BalanceLevelPerGradeStaffConst_mIdleDuration, TPW_OFF(BalanceLevelPerGradeStaffConst, mIdleDuration) == 0x4);
+TPW_CHECK(BalanceLevelPerGradeStaffConst_mRecuperationRate, TPW_OFF(BalanceLevelPerGradeStaffConst, mRecuperationRate) == 0x8);
+TPW_CHECK(BalanceLevelPerGradeStaffConst_mHappinessRecuperationRate, TPW_OFF(BalanceLevelPerGradeStaffConst, mHappinessRecuperationRate) == 0xc);
+TPW_CHECK(BalanceLevelPerGradeStaffConst_size, sizeof(BalanceLevelPerGradeStaffConst) == 0x10);
+TPW_CHECK(BalanceLevelEntertainerConstsPerGrade_mWorkDuration, TPW_OFF(BalanceLevelEntertainerConstsPerGrade, mWorkDuration) == 0x0);
+TPW_CHECK(BalanceLevelEntertainerConstsPerGrade_mHappinessEffectOnCell, TPW_OFF(BalanceLevelEntertainerConstsPerGrade, mHappinessEffectOnCell) == 0x4);
+TPW_CHECK(BalanceLevelEntertainerConstsPerGrade_mActivationDistance, TPW_OFF(BalanceLevelEntertainerConstsPerGrade, mActivationDistance) == 0x8);
+TPW_CHECK(BalanceLevelEntertainerConstsPerGrade_mPoundsPerTrainingPoint, TPW_OFF(BalanceLevelEntertainerConstsPerGrade, mPoundsPerTrainingPoint) == 0xc);
+TPW_CHECK(BalanceLevelEntertainerConstsPerGrade_size, sizeof(BalanceLevelEntertainerConstsPerGrade) == 0x10);
+TPW_CHECK(BalanceLevelHandymanConstsPerGrade_mWorkDuration, TPW_OFF(BalanceLevelHandymanConstsPerGrade, mWorkDuration) == 0x0);
+TPW_CHECK(BalanceLevelHandymanConstsPerGrade_mDetectionRange, TPW_OFF(BalanceLevelHandymanConstsPerGrade, mDetectionRange) == 0x4);
+TPW_CHECK(BalanceLevelHandymanConstsPerGrade_mPoundsPerTrainingPoint, TPW_OFF(BalanceLevelHandymanConstsPerGrade, mPoundsPerTrainingPoint) == 0x8);
+TPW_CHECK(BalanceLevelHandymanConstsPerGrade_size, sizeof(BalanceLevelHandymanConstsPerGrade) == 0xc);
+TPW_CHECK(BalanceLevelMechanicConstsPerGrade_mWorkDuration, TPW_OFF(BalanceLevelMechanicConstsPerGrade, mWorkDuration) == 0x0);
+TPW_CHECK(BalanceLevelMechanicConstsPerGrade_mPoundsPerTrainingPoint, TPW_OFF(BalanceLevelMechanicConstsPerGrade, mPoundsPerTrainingPoint) == 0x4);
+TPW_CHECK(BalanceLevelMechanicConstsPerGrade_size, sizeof(BalanceLevelMechanicConstsPerGrade) == 0x8);
+TPW_CHECK(BalanceLevelResearcherConstsPerGrade_mWorkDuration, TPW_OFF(BalanceLevelResearcherConstsPerGrade, mWorkDuration) == 0x0);
+TPW_CHECK(BalanceLevelResearcherConstsPerGrade_mResearchAbility, TPW_OFF(BalanceLevelResearcherConstsPerGrade, mResearchAbility) == 0x4);
+TPW_CHECK(BalanceLevelResearcherConstsPerGrade_mPoundsPerTrainingPoint, TPW_OFF(BalanceLevelResearcherConstsPerGrade, mPoundsPerTrainingPoint) == 0x8);
+TPW_CHECK(BalanceLevelResearcherConstsPerGrade_size, sizeof(BalanceLevelResearcherConstsPerGrade) == 0xc);
+TPW_CHECK(BalanceLevelGuardConstsPerGrade_mWorkDuration, TPW_OFF(BalanceLevelGuardConstsPerGrade, mWorkDuration) == 0x0);
+TPW_CHECK(BalanceLevelGuardConstsPerGrade_mPoundsPerTrainingPoint, TPW_OFF(BalanceLevelGuardConstsPerGrade, mPoundsPerTrainingPoint) == 0x4);
+TPW_CHECK(BalanceLevelGuardConstsPerGrade_size, sizeof(BalanceLevelGuardConstsPerGrade) == 0x8);
+TPW_CHECK(BalanceLevelSeason_mAvgWeatherQuality, TPW_OFF(BalanceLevelSeason, mAvgWeatherQuality) == 0x0);
+TPW_CHECK(BalanceLevelSeason_mNormalTolerance, TPW_OFF(BalanceLevelSeason, mNormalTolerance) == 0x4);
+TPW_CHECK(BalanceLevelSeason_mChanceForExceptionalWeather, TPW_OFF(BalanceLevelSeason, mChanceForExceptionalWeather) == 0x8);
+TPW_CHECK(BalanceLevelSeason_size, sizeof(BalanceLevelSeason) == 0xc);
+TPW_CHECK(BalanceLevelRegionFX_mRadius, TPW_OFF(BalanceLevelRegionFX, mRadius) == 0x0);
+TPW_CHECK(BalanceLevelRegionFX_mHappiness, TPW_OFF(BalanceLevelRegionFX, mHappiness) == 0x4);
+TPW_CHECK(BalanceLevelRegionFX_mIllness, TPW_OFF(BalanceLevelRegionFX, mIllness) == 0x8);
+TPW_CHECK(BalanceLevelRegionFX_mHunger, TPW_OFF(BalanceLevelRegionFX, mHunger) == 0xc);
+TPW_CHECK(BalanceLevelRegionFX_mSecurity, TPW_OFF(BalanceLevelRegionFX, mSecurity) == 0x10);
+TPW_CHECK(BalanceLevelRegionFX_mAttraction, TPW_OFF(BalanceLevelRegionFX, mAttraction) == 0x14);
+TPW_CHECK(BalanceLevelRegionFX_size, sizeof(BalanceLevelRegionFX) == 0x18);
+TPW_CHECK(BalanceLevelThemeAdvisorCostume_mAddOns, TPW_OFF(BalanceLevelThemeAdvisorCostume, mAddOns) == 0x0);
+TPW_CHECK(BalanceLevelThemeAdvisorCostume_mSubOffs, TPW_OFF(BalanceLevelThemeAdvisorCostume, mSubOffs) == 0x4);
+TPW_CHECK(BalanceLevelThemeAdvisorCostume_size, sizeof(BalanceLevelThemeAdvisorCostume) == 0x8);
+TPW_CHECK(BalanceLevelSkyObject_mX, TPW_OFF(BalanceLevelSkyObject, mX) == 0x0);
+TPW_CHECK(BalanceLevelSkyObject_mY, TPW_OFF(BalanceLevelSkyObject, mY) == 0x4);
+TPW_CHECK(BalanceLevelSkyObject_mZ, TPW_OFF(BalanceLevelSkyObject, mZ) == 0x8);
+TPW_CHECK(BalanceLevelSkyObject_mSize, TPW_OFF(BalanceLevelSkyObject, mSize) == 0xc);
+TPW_CHECK(BalanceLevelSkyObject_mFrontFlag, TPW_OFF(BalanceLevelSkyObject, mFrontFlag) == 0x10);
+TPW_CHECK(BalanceLevelSkyObject_mFilename, TPW_OFF(BalanceLevelSkyObject, mFilename) == 0x14);
+TPW_CHECK(BalanceLevelSkyObject_size, sizeof(BalanceLevelSkyObject) == 0x18);
+TPW_CHECK(BalanceLevel_vtable, TPW_OFF(BalanceLevel, vtable) == 0x0);
+TPW_CHECK(BalanceLevel_mSlotInfo, TPW_OFF(BalanceLevel, mSlotInfo) == 0x4);
+TPW_CHECK(BalanceLevel_mExitLevel, TPW_OFF(BalanceLevel, mExitLevel) == 0xc);
+TPW_CHECK(BalanceLevel_mExitLevelVar, TPW_OFF(BalanceLevel, mExitLevelVar) == 0x10);
+TPW_CHECK(BalanceLevel_mStartingCashVarPc, TPW_OFF(BalanceLevel, mStartingCashVarPc) == 0x14);
+TPW_CHECK(BalanceLevel_mSmallHappinessChange, TPW_OFF(BalanceLevel, mSmallHappinessChange) == 0x18);
+TPW_CHECK(BalanceLevel_mMediumHappinessChange, TPW_OFF(BalanceLevel, mMediumHappinessChange) == 0x1c);
+TPW_CHECK(BalanceLevel_mBigHappinessChange, TPW_OFF(BalanceLevel, mBigHappinessChange) == 0x20);
+TPW_CHECK(BalanceLevel_mPerfectRide, TPW_OFF(BalanceLevel, mPerfectRide) == 0x24);
+TPW_CHECK(BalanceLevel_mGoodRide, TPW_OFF(BalanceLevel, mGoodRide) == 0x28);
+TPW_CHECK(BalanceLevel_mOKRide, TPW_OFF(BalanceLevel, mOKRide) == 0x2c);
+TPW_CHECK(BalanceLevel_mRideVomitDivisor, TPW_OFF(BalanceLevel, mRideVomitDivisor) == 0x30);
+TPW_CHECK(BalanceLevel_mToiletDesparate, TPW_OFF(BalanceLevel, mToiletDesparate) == 0x34);
+TPW_CHECK(BalanceLevel_mVomitCapacity, TPW_OFF(BalanceLevel, mVomitCapacity) == 0x38);
+TPW_CHECK(BalanceLevel_mExcitementToCostDivisor, TPW_OFF(BalanceLevel, mExcitementToCostDivisor) == 0x3c);
+TPW_CHECK(BalanceLevel_mMinimumEntryFee, TPW_OFF(BalanceLevel, mMinimumEntryFee) == 0x40);
+TPW_CHECK(BalanceLevel_mCheapPriceMultiplier, TPW_OFF(BalanceLevel, mCheapPriceMultiplier) == 0x44);
+TPW_CHECK(BalanceLevel_mAveragePriceMultiplier, TPW_OFF(BalanceLevel, mAveragePriceMultiplier) == 0x48);
+TPW_CHECK(BalanceLevel_mExpensivePriceMultiplier, TPW_OFF(BalanceLevel, mExpensivePriceMultiplier) == 0x4c);
+TPW_CHECK(BalanceLevel_mDecisionVariable1, TPW_OFF(BalanceLevel, mDecisionVariable1) == 0x50);
+TPW_CHECK(BalanceLevel_mDecisionVariable2, TPW_OFF(BalanceLevel, mDecisionVariable2) == 0x54);
+TPW_CHECK(BalanceLevel_mDecisionVariable3, TPW_OFF(BalanceLevel, mDecisionVariable3) == 0x58);
+TPW_CHECK(BalanceLevel_mDecisionVariable4, TPW_OFF(BalanceLevel, mDecisionVariable4) == 0x5c);
+TPW_CHECK(BalanceLevel_mDecisionVariable5, TPW_OFF(BalanceLevel, mDecisionVariable5) == 0x60);
+TPW_CHECK(BalanceLevel_mDecisionVariable6, TPW_OFF(BalanceLevel, mDecisionVariable6) == 0x64);
+TPW_CHECK(BalanceLevel_mDecisionVariable7, TPW_OFF(BalanceLevel, mDecisionVariable7) == 0x68);
+TPW_CHECK(BalanceLevel_mDecisionVariable8, TPW_OFF(BalanceLevel, mDecisionVariable8) == 0x6c);
+TPW_CHECK(BalanceLevel_mDecisionVarDistWeight, TPW_OFF(BalanceLevel, mDecisionVarDistWeight) == 0x70);
+TPW_CHECK(BalanceLevel_mDecisionVarQueueWeight, TPW_OFF(BalanceLevel, mDecisionVarQueueWeight) == 0x74);
+TPW_CHECK(BalanceLevel_mDecisionVarExcitementWeight, TPW_OFF(BalanceLevel, mDecisionVarExcitementWeight) == 0x78);
+TPW_CHECK(BalanceLevel_mDecisionVarThirstWeight, TPW_OFF(BalanceLevel, mDecisionVarThirstWeight) == 0x7c);
+TPW_CHECK(BalanceLevel_mDecisionVarHungerWeight, TPW_OFF(BalanceLevel, mDecisionVarHungerWeight) == 0x80);
+TPW_CHECK(BalanceLevel_mDecisionVarToiletWeight, TPW_OFF(BalanceLevel, mDecisionVarToiletWeight) == 0x84);
+TPW_CHECK(BalanceLevel_mDecisionVarIllnessWeight, TPW_OFF(BalanceLevel, mDecisionVarIllnessWeight) == 0x88);
+TPW_CHECK(BalanceLevel_mOpinionForMuchTooHigh, TPW_OFF(BalanceLevel, mOpinionForMuchTooHigh) == 0x8c);
+TPW_CHECK(BalanceLevel_mOpinionForTooHigh, TPW_OFF(BalanceLevel, mOpinionForTooHigh) == 0x90);
+TPW_CHECK(BalanceLevel_mOpinionForTooLow, TPW_OFF(BalanceLevel, mOpinionForTooLow) == 0x94);
+TPW_CHECK(BalanceLevel_mOpinionForAboutRight, TPW_OFF(BalanceLevel, mOpinionForAboutRight) == 0x98);
+TPW_CHECK(BalanceLevel_mPrankeryLikelihood, TPW_OFF(BalanceLevel, mPrankeryLikelihood) == 0x9c);
+TPW_CHECK(BalanceLevel_mStinkbombLikelihood, TPW_OFF(BalanceLevel, mStinkbombLikelihood) == 0xa0);
+TPW_CHECK(BalanceLevel_mPeepTypes, TPW_OFF(BalanceLevel, mPeepTypes) == 0xa4);
+TPW_CHECK(BalanceLevel_mInitialCash, TPW_OFF(BalanceLevel, mInitialCash) == 0x198);
+TPW_CHECK(BalanceLevel_mInitialAdmissionFee, TPW_OFF(BalanceLevel, mInitialAdmissionFee) == 0x19c);
+TPW_CHECK(BalanceLevel_mLoanInfo, TPW_OFF(BalanceLevel, mLoanInfo) == 0x1a0);
+TPW_CHECK(BalanceLevel_mChanceToGetGreatHandymen, TPW_OFF(BalanceLevel, mChanceToGetGreatHandymen) == 0x244);
+TPW_CHECK(BalanceLevel_mChanceToGetGreatMechanics, TPW_OFF(BalanceLevel, mChanceToGetGreatMechanics) == 0x248);
+TPW_CHECK(BalanceLevel_mChanceToGetGreatEntertainers, TPW_OFF(BalanceLevel, mChanceToGetGreatEntertainers) == 0x24c);
+TPW_CHECK(BalanceLevel_mChanceToGetGreatGuards, TPW_OFF(BalanceLevel, mChanceToGetGreatGuards) == 0x250);
+TPW_CHECK(BalanceLevel_mChanceToGetGreatResearchers, TPW_OFF(BalanceLevel, mChanceToGetGreatResearchers) == 0x254);
+TPW_CHECK(BalanceLevel_mAvgGradeOfHandymen, TPW_OFF(BalanceLevel, mAvgGradeOfHandymen) == 0x258);
+TPW_CHECK(BalanceLevel_mAvgGradeOfMechanics, TPW_OFF(BalanceLevel, mAvgGradeOfMechanics) == 0x25c);
+TPW_CHECK(BalanceLevel_mAvgGradeOfEntertainers, TPW_OFF(BalanceLevel, mAvgGradeOfEntertainers) == 0x260);
+TPW_CHECK(BalanceLevel_mAvgGradeOfGuards, TPW_OFF(BalanceLevel, mAvgGradeOfGuards) == 0x264);
+TPW_CHECK(BalanceLevel_mAvgGradeOfResearchers, TPW_OFF(BalanceLevel, mAvgGradeOfResearchers) == 0x268);
+TPW_CHECK(BalanceLevel_mBeginningNumberOfHandymen, TPW_OFF(BalanceLevel, mBeginningNumberOfHandymen) == 0x26c);
+TPW_CHECK(BalanceLevel_mBeginningNumberOfMechanics, TPW_OFF(BalanceLevel, mBeginningNumberOfMechanics) == 0x270);
+TPW_CHECK(BalanceLevel_mBeginningNumberOfEntertainers, TPW_OFF(BalanceLevel, mBeginningNumberOfEntertainers) == 0x274);
+TPW_CHECK(BalanceLevel_mBeginningNumberOfGuards, TPW_OFF(BalanceLevel, mBeginningNumberOfGuards) == 0x278);
+TPW_CHECK(BalanceLevel_mBeginningNumberOfResearchers, TPW_OFF(BalanceLevel, mBeginningNumberOfResearchers) == 0x27c);
+TPW_CHECK(BalanceLevel_mMaxHandymen, TPW_OFF(BalanceLevel, mMaxHandymen) == 0x280);
+TPW_CHECK(BalanceLevel_mMaxMechanics, TPW_OFF(BalanceLevel, mMaxMechanics) == 0x284);
+TPW_CHECK(BalanceLevel_mMaxEntertainers, TPW_OFF(BalanceLevel, mMaxEntertainers) == 0x288);
+TPW_CHECK(BalanceLevel_mMaxGuards, TPW_OFF(BalanceLevel, mMaxGuards) == 0x28c);
+TPW_CHECK(BalanceLevel_mMaxResearchers, TPW_OFF(BalanceLevel, mMaxResearchers) == 0x290);
+TPW_CHECK(BalanceLevel_mMinHandymenInPool, TPW_OFF(BalanceLevel, mMinHandymenInPool) == 0x294);
+TPW_CHECK(BalanceLevel_mMinMechanicsInPool, TPW_OFF(BalanceLevel, mMinMechanicsInPool) == 0x298);
+TPW_CHECK(BalanceLevel_mMinEntertainersInPool, TPW_OFF(BalanceLevel, mMinEntertainersInPool) == 0x29c);
+TPW_CHECK(BalanceLevel_mMinGuardsInPool, TPW_OFF(BalanceLevel, mMinGuardsInPool) == 0x2a0);
+TPW_CHECK(BalanceLevel_mMinResearchersInPool, TPW_OFF(BalanceLevel, mMinResearchersInPool) == 0x2a4);
+TPW_CHECK(BalanceLevel_mMaxHandymenInPark, TPW_OFF(BalanceLevel, mMaxHandymenInPark) == 0x2a8);
+TPW_CHECK(BalanceLevel_mMaxMechanicsInPark, TPW_OFF(BalanceLevel, mMaxMechanicsInPark) == 0x2ac);
+TPW_CHECK(BalanceLevel_mMaxEntertainersInPark, TPW_OFF(BalanceLevel, mMaxEntertainersInPark) == 0x2b0);
+TPW_CHECK(BalanceLevel_mMaxGuardsInPark, TPW_OFF(BalanceLevel, mMaxGuardsInPark) == 0x2b4);
+TPW_CHECK(BalanceLevel_mMaxResearchersInPark, TPW_OFF(BalanceLevel, mMaxResearchersInPark) == 0x2b8);
+TPW_CHECK(BalanceLevel_mBaseCostPerStaff, TPW_OFF(BalanceLevel, mBaseCostPerStaff) == 0x2bc);
+TPW_CHECK(BalanceLevel_mCostPerQualityLevel, TPW_OFF(BalanceLevel, mCostPerQualityLevel) == 0x2c0);
+TPW_CHECK(BalanceLevel_mTimeBetweenStaffUpdates, TPW_OFF(BalanceLevel, mTimeBetweenStaffUpdates) == 0x2c4);
+TPW_CHECK(BalanceLevel_mMaxNumberOfStaffPerUpdate, TPW_OFF(BalanceLevel, mMaxNumberOfStaffPerUpdate) == 0x2c8);
+TPW_CHECK(BalanceLevel_mStaffTimeoutTime, TPW_OFF(BalanceLevel, mStaffTimeoutTime) == 0x2cc);
+TPW_CHECK(BalanceLevel_mMinPeople, TPW_OFF(BalanceLevel, mMinPeople) == 0x2d0);
+TPW_CHECK(BalanceLevel_mTimeBetweenArrivals, TPW_OFF(BalanceLevel, mTimeBetweenArrivals) == 0x2d4);
+TPW_CHECK(BalanceLevel_mFixedRate, TPW_OFF(BalanceLevel, mFixedRate) == 0x2d8);
+TPW_CHECK(BalanceLevel_mNewParkBonus, TPW_OFF(BalanceLevel, mNewParkBonus) == 0x2dc);
+TPW_CHECK(BalanceLevel_mPointsPerVisitor, TPW_OFF(BalanceLevel, mPointsPerVisitor) == 0x2e0);
+TPW_CHECK(BalanceLevel_mRestLevel, TPW_OFF(BalanceLevel, mRestLevel) == 0x2e4);
+TPW_CHECK(BalanceLevel_mHappyHitCosNoRestArea, TPW_OFF(BalanceLevel, mHappyHitCosNoRestArea) == 0x2e8);
+TPW_CHECK(BalanceLevel_mPerGradeStaffConsts, TPW_OFF(BalanceLevel, mPerGradeStaffConsts) == 0x2ec);
+TPW_CHECK(BalanceLevel_mPerTypeStaffConstsPayMultiplier, TPW_OFF(BalanceLevel, mPerTypeStaffConstsPayMultiplier) == 0x340);
+TPW_CHECK(BalanceLevel_mEntertainerConstsPerGrade, TPW_OFF(BalanceLevel, mEntertainerConstsPerGrade) == 0x358);
+TPW_CHECK(BalanceLevel_mHandymanConstsPerGrade, TPW_OFF(BalanceLevel, mHandymanConstsPerGrade) == 0x3ac);
+TPW_CHECK(BalanceLevel_mMechanicConstsPerGrade, TPW_OFF(BalanceLevel, mMechanicConstsPerGrade) == 0x3ec);
+TPW_CHECK(BalanceLevel_mResearcherConstsPerGrade, TPW_OFF(BalanceLevel, mResearcherConstsPerGrade) == 0x418);
+TPW_CHECK(BalanceLevel_mGuardConstsPerGrade, TPW_OFF(BalanceLevel, mGuardConstsPerGrade) == 0x458);
+TPW_CHECK(BalanceLevel_mSeasons, TPW_OFF(BalanceLevel, mSeasons) == 0x484);
+TPW_CHECK(BalanceLevel_mDaysOfWarning, TPW_OFF(BalanceLevel, mDaysOfWarning) == 0x4b8);
+TPW_CHECK(BalanceLevel_mDaysBetweenChanges, TPW_OFF(BalanceLevel, mDaysBetweenChanges) == 0x4bc);
+TPW_CHECK(BalanceLevel_mSpeedOfChange, TPW_OFF(BalanceLevel, mSpeedOfChange) == 0x4c0);
+TPW_CHECK(BalanceLevel_mQualityForSnowLow, TPW_OFF(BalanceLevel, mQualityForSnowLow) == 0x4c4);
+TPW_CHECK(BalanceLevel_mQualityForSnowHigh, TPW_OFF(BalanceLevel, mQualityForSnowHigh) == 0x4c8);
+TPW_CHECK(BalanceLevel_mQualityForRainLow, TPW_OFF(BalanceLevel, mQualityForRainLow) == 0x4cc);
+TPW_CHECK(BalanceLevel_mQualityForRainHigh, TPW_OFF(BalanceLevel, mQualityForRainHigh) == 0x4d0);
+TPW_CHECK(BalanceLevel_mQualityForLightningLow, TPW_OFF(BalanceLevel, mQualityForLightningLow) == 0x4d4);
+TPW_CHECK(BalanceLevel_mQualityForLightningHigh, TPW_OFF(BalanceLevel, mQualityForLightningHigh) == 0x4d8);
+TPW_CHECK(BalanceLevel_mLightningCountdownSpeed, TPW_OFF(BalanceLevel, mLightningCountdownSpeed) == 0x4dc);
+TPW_CHECK(BalanceLevel_mLightningCountdownFrom, TPW_OFF(BalanceLevel, mLightningCountdownFrom) == 0x4e0);
+TPW_CHECK(BalanceLevel_mLightningTime, TPW_OFF(BalanceLevel, mLightningTime) == 0x4e4);
+TPW_CHECK(BalanceLevel_mThunderStartsThisFarAway, TPW_OFF(BalanceLevel, mThunderStartsThisFarAway) == 0x4e8);
+TPW_CHECK(BalanceLevel_mThunderRandomiser, TPW_OFF(BalanceLevel, mThunderRandomiser) == 0x4ec);
+TPW_CHECK(BalanceLevel_mMaxRaindrops, TPW_OFF(BalanceLevel, mMaxRaindrops) == 0x4f0);
+TPW_CHECK(BalanceLevel_mMinTimeAnyMessage, TPW_OFF(BalanceLevel, mMinTimeAnyMessage) == 0x4f4);
+TPW_CHECK(BalanceLevel_mMinTimeSameMessage, TPW_OFF(BalanceLevel, mMinTimeSameMessage) == 0x4f8);
+TPW_CHECK(BalanceLevel_mResearchTechPercentageForThisTech, TPW_OFF(BalanceLevel, mResearchTechPercentageForThisTech) == 0x4fc);
+TPW_CHECK(BalanceLevel_mResearchCategoriesEffort, TPW_OFF(BalanceLevel, mResearchCategoriesEffort) == 0x528);
+TPW_CHECK(BalanceLevel_mStartingWorkLoad, TPW_OFF(BalanceLevel, mStartingWorkLoad) == 0x540);
+TPW_CHECK(BalanceLevel_mHeightfieldXStart, TPW_OFF(BalanceLevel, mHeightfieldXStart) == 0x544);
+TPW_CHECK(BalanceLevel_mHeightfieldYStart, TPW_OFF(BalanceLevel, mHeightfieldYStart) == 0x548);
+TPW_CHECK(BalanceLevel_mHeightfieldWidth, TPW_OFF(BalanceLevel, mHeightfieldWidth) == 0x54c);
+TPW_CHECK(BalanceLevel_mHeightfieldHeight, TPW_OFF(BalanceLevel, mHeightfieldHeight) == 0x550);
+TPW_CHECK(BalanceLevel_mFixedItemOriginX, TPW_OFF(BalanceLevel, mFixedItemOriginX) == 0x554);
+TPW_CHECK(BalanceLevel_mFixedItemOriginY, TPW_OFF(BalanceLevel, mFixedItemOriginY) == 0x558);
+TPW_CHECK(BalanceLevel_mTicketBoothAPosX, TPW_OFF(BalanceLevel, mTicketBoothAPosX) == 0x55c);
+TPW_CHECK(BalanceLevel_mTicketBoothAPosY, TPW_OFF(BalanceLevel, mTicketBoothAPosY) == 0x560);
+TPW_CHECK(BalanceLevel_mTicketBoothBPosX, TPW_OFF(BalanceLevel, mTicketBoothBPosX) == 0x564);
+TPW_CHECK(BalanceLevel_mTicketBoothBPosY, TPW_OFF(BalanceLevel, mTicketBoothBPosY) == 0x568);
+TPW_CHECK(BalanceLevel_mBusStopAPosX, TPW_OFF(BalanceLevel, mBusStopAPosX) == 0x56c);
+TPW_CHECK(BalanceLevel_mBusStopAPosY, TPW_OFF(BalanceLevel, mBusStopAPosY) == 0x570);
+TPW_CHECK(BalanceLevel_mBusStopBPosX, TPW_OFF(BalanceLevel, mBusStopBPosX) == 0x574);
+TPW_CHECK(BalanceLevel_mBusStopBPosY, TPW_OFF(BalanceLevel, mBusStopBPosY) == 0x578);
+TPW_CHECK(BalanceLevel_mEntranceAPosX, TPW_OFF(BalanceLevel, mEntranceAPosX) == 0x57c);
+TPW_CHECK(BalanceLevel_mEntranceAPosY, TPW_OFF(BalanceLevel, mEntranceAPosY) == 0x580);
+TPW_CHECK(BalanceLevel_mEntranceBPosX, TPW_OFF(BalanceLevel, mEntranceBPosX) == 0x584);
+TPW_CHECK(BalanceLevel_mEntranceBPosY, TPW_OFF(BalanceLevel, mEntranceBPosY) == 0x588);
+TPW_CHECK(BalanceLevel_mCrossingParkSideAPosX, TPW_OFF(BalanceLevel, mCrossingParkSideAPosX) == 0x58c);
+TPW_CHECK(BalanceLevel_mCrossingParkSideAPosY, TPW_OFF(BalanceLevel, mCrossingParkSideAPosY) == 0x590);
+TPW_CHECK(BalanceLevel_mCrossingParkSideBPosX, TPW_OFF(BalanceLevel, mCrossingParkSideBPosX) == 0x594);
+TPW_CHECK(BalanceLevel_mCrossingParkSideBPosY, TPW_OFF(BalanceLevel, mCrossingParkSideBPosY) == 0x598);
+TPW_CHECK(BalanceLevel_mCrossingBSSideAPosX, TPW_OFF(BalanceLevel, mCrossingBSSideAPosX) == 0x59c);
+TPW_CHECK(BalanceLevel_mCrossingBSSideAPosY, TPW_OFF(BalanceLevel, mCrossingBSSideAPosY) == 0x5a0);
+TPW_CHECK(BalanceLevel_mCrossingBSSideBPosX, TPW_OFF(BalanceLevel, mCrossingBSSideBPosX) == 0x5a4);
+TPW_CHECK(BalanceLevel_mCrossingBSSideBPosY, TPW_OFF(BalanceLevel, mCrossingBSSideBPosY) == 0x5a8);
+TPW_CHECK(BalanceLevel_mStrikeAreaStartX, TPW_OFF(BalanceLevel, mStrikeAreaStartX) == 0x5ac);
+TPW_CHECK(BalanceLevel_mStrikeAreaStartY, TPW_OFF(BalanceLevel, mStrikeAreaStartY) == 0x5b0);
+TPW_CHECK(BalanceLevel_mStrikeAreaSizeX, TPW_OFF(BalanceLevel, mStrikeAreaSizeX) == 0x5b4);
+TPW_CHECK(BalanceLevel_mStrikeAreaSizeY, TPW_OFF(BalanceLevel, mStrikeAreaSizeY) == 0x5b8);
+TPW_CHECK(BalanceLevel_mQueueCell, TPW_OFF(BalanceLevel, mQueueCell) == 0x5bc);
+TPW_CHECK(BalanceLevel_mPathCell, TPW_OFF(BalanceLevel, mPathCell) == 0x5c0);
+TPW_CHECK(BalanceLevel_mKartTrackCell, TPW_OFF(BalanceLevel, mKartTrackCell) == 0x5c4);
+TPW_CHECK(BalanceLevel_mWaterTrackCell, TPW_OFF(BalanceLevel, mWaterTrackCell) == 0x5c8);
+TPW_CHECK(BalanceLevel_mMapCell, TPW_OFF(BalanceLevel, mMapCell) == 0x5cc);
+TPW_CHECK(BalanceLevel_mRegionFX, TPW_OFF(BalanceLevel, mRegionFX) == 0x5d0);
+TPW_CHECK(BalanceLevel_mFogColour, TPW_OFF(BalanceLevel, mFogColour) == 0x694);
+TPW_CHECK(BalanceLevel_mAmbientLightLevel, TPW_OFF(BalanceLevel, mAmbientLightLevel) == 0x698);
+TPW_CHECK(BalanceLevel_mDirectionalLightLevel, TPW_OFF(BalanceLevel, mDirectionalLightLevel) == 0x69c);
+TPW_CHECK(BalanceLevel_mProceduralTexturingXOffset, TPW_OFF(BalanceLevel, mProceduralTexturingXOffset) == 0x6a0);
+TPW_CHECK(BalanceLevel_mProceduralTexturingYOffset, TPW_OFF(BalanceLevel, mProceduralTexturingYOffset) == 0x6a4);
+TPW_CHECK(BalanceLevel_mLightNormalX, TPW_OFF(BalanceLevel, mLightNormalX) == 0x6a8);
+TPW_CHECK(BalanceLevel_mLightNormalY, TPW_OFF(BalanceLevel, mLightNormalY) == 0x6ac);
+TPW_CHECK(BalanceLevel_mLightNormalZ, TPW_OFF(BalanceLevel, mLightNormalZ) == 0x6b0);
+TPW_CHECK(BalanceLevel_mThemeAdvisorCostumes, TPW_OFF(BalanceLevel, mThemeAdvisorCostumes) == 0x6b4);
+TPW_CHECK(BalanceLevel_mWaterStartPosX, TPW_OFF(BalanceLevel, mWaterStartPosX) == 0x6d8);
+TPW_CHECK(BalanceLevel_mWaterStartPosY, TPW_OFF(BalanceLevel, mWaterStartPosY) == 0x6dc);
+TPW_CHECK(BalanceLevel_mWaterStartPosZ, TPW_OFF(BalanceLevel, mWaterStartPosZ) == 0x6e0);
+TPW_CHECK(BalanceLevel_mn, TPW_OFF(BalanceLevel, mn) == 0x6e4);
+TPW_CHECK(BalanceLevel_mSkyObjects, TPW_OFF(BalanceLevel, mSkyObjects) == 0x6e8);
+TPW_CHECK(BalanceLevel_mReverb, TPW_OFF(BalanceLevel, mReverb) == 0x74c);
+TPW_CHECK(BalanceLevel_mVisitors, TPW_OFF(BalanceLevel, mVisitors) == 0x750);
+TPW_CHECK(BalanceLevel_mPeopleInPark, TPW_OFF(BalanceLevel, mPeopleInPark) == 0x754);
+TPW_CHECK(BalanceLevel_mHappiness, TPW_OFF(BalanceLevel, mHappiness) == 0x758);
+TPW_CHECK(BalanceLevel_mAtLeastThisManyHappyPeople, TPW_OFF(BalanceLevel, mAtLeastThisManyHappyPeople) == 0x75c);
+TPW_CHECK(BalanceLevel_mProfitYear, TPW_OFF(BalanceLevel, mProfitYear) == 0x760);
+TPW_CHECK(BalanceLevel_mRecentVisitors, TPW_OFF(BalanceLevel, mRecentVisitors) == 0x764);
+TPW_CHECK(BalanceLevel_mRecentVisitorMonths, TPW_OFF(BalanceLevel, mRecentVisitorMonths) == 0x768);
+TPW_CHECK(BalanceLevel_mCoasterHeight, TPW_OFF(BalanceLevel, mCoasterHeight) == 0x76c);
+TPW_CHECK(BalanceLevel_mGokartExcitement, TPW_OFF(BalanceLevel, mGokartExcitement) == 0x770);
+TPW_CHECK(BalanceLevel_mWaterLength, TPW_OFF(BalanceLevel, mWaterLength) == 0x774);
+TPW_CHECK(BalanceLevel_mMinCellsOwned, TPW_OFF(BalanceLevel, mMinCellsOwned) == 0x778);
+TPW_CHECK(BalanceLevel_mMinCellsCovered, TPW_OFF(BalanceLevel, mMinCellsCovered) == 0x77c);
+TPW_CHECK(BalanceLevel_mDaysAfterCompletedChallenge, TPW_OFF(BalanceLevel, mDaysAfterCompletedChallenge) == 0x780);
+TPW_CHECK(BalanceLevel_mDaysAfterDeclinedChallenge, TPW_OFF(BalanceLevel, mDaysAfterDeclinedChallenge) == 0x784);
+TPW_CHECK(BalanceLevel_mDaysUntilFirstChallenge, TPW_OFF(BalanceLevel, mDaysUntilFirstChallenge) == 0x788);
+TPW_CHECK(BalanceLevel_mDeclinesToForfeit, TPW_OFF(BalanceLevel, mDeclinesToForfeit) == 0x78c);
+TPW_CHECK(BalanceLevel_mShortTimeLeftWarningAt, TPW_OFF(BalanceLevel, mShortTimeLeftWarningAt) == 0x790);
+TPW_CHECK(BalanceLevel_mChallengesInThisLevelChallengeType, TPW_OFF(BalanceLevel, mChallengesInThisLevelChallengeType) == 0x794);
+TPW_CHECK(BalanceLevel_size, sizeof(BalanceLevel) == 0x7e8);
+TPW_CHECK(BalanceOnline_vtable, TPW_OFF(BalanceOnline, vtable) == 0x0);
+TPW_CHECK(BalanceOnline_mSlotInfo, TPW_OFF(BalanceOnline, mSlotInfo) == 0x4);
+TPW_CHECK(BalanceOnline_mMailPort, TPW_OFF(BalanceOnline, mMailPort) == 0xc);
+TPW_CHECK(BalanceOnline_mChatPort, TPW_OFF(BalanceOnline, mChatPort) == 0x10);
+TPW_CHECK(BalanceOnline_mLoginPort, TPW_OFF(BalanceOnline, mLoginPort) == 0x14);
+TPW_CHECK(BalanceOnline_mCityPort, TPW_OFF(BalanceOnline, mCityPort) == 0x18);
+TPW_CHECK(BalanceOnline_mNewsPort, TPW_OFF(BalanceOnline, mNewsPort) == 0x1c);
+TPW_CHECK(BalanceOnline_mVotePort, TPW_OFF(BalanceOnline, mVotePort) == 0x20);
+TPW_CHECK(BalanceOnline_mMailServer, TPW_OFF(BalanceOnline, mMailServer) == 0x24);
+TPW_CHECK(BalanceOnline_mChatServer, TPW_OFF(BalanceOnline, mChatServer) == 0x28);
+TPW_CHECK(BalanceOnline_mLoginServer, TPW_OFF(BalanceOnline, mLoginServer) == 0x2c);
+TPW_CHECK(BalanceOnline_mCityServer, TPW_OFF(BalanceOnline, mCityServer) == 0x30);
+TPW_CHECK(BalanceOnline_mNewsServer, TPW_OFF(BalanceOnline, mNewsServer) == 0x34);
+TPW_CHECK(BalanceOnline_mVoteServer, TPW_OFF(BalanceOnline, mVoteServer) == 0x38);
+TPW_CHECK(BalanceOnline_mComplainEmail, TPW_OFF(BalanceOnline, mComplainEmail) == 0x3c);
+TPW_CHECK(BalanceOnline_size, sizeof(BalanceOnline) == 0x40);
+TPW_CHECK(BalanceGraphics_vtable, TPW_OFF(BalanceGraphics, vtable) == 0x0);
+TPW_CHECK(BalanceGraphics_mSlotInfo, TPW_OFF(BalanceGraphics, mSlotInfo) == 0x4);
+TPW_CHECK(BalanceGraphics_mTEXTUREQUALITY, TPW_OFF(BalanceGraphics, mTEXTUREQUALITY) == 0xc);
+TPW_CHECK(BalanceGraphics_mTEXTUREFILTERING, TPW_OFF(BalanceGraphics, mTEXTUREFILTERING) == 0x10);
+TPW_CHECK(BalanceGraphics_mPROCEDURALTEXTURING, TPW_OFF(BalanceGraphics, mPROCEDURALTEXTURING) == 0x14);
+TPW_CHECK(BalanceGraphics_mPROCEDURALTEXTURECACHE, TPW_OFF(BalanceGraphics, mPROCEDURALTEXTURECACHE) == 0x18);
+TPW_CHECK(BalanceGraphics_mANIMATINGTEXTURES, TPW_OFF(BalanceGraphics, mANIMATINGTEXTURES) == 0x1c);
+TPW_CHECK(BalanceGraphics_mSKYQUALITY, TPW_OFF(BalanceGraphics, mSKYQUALITY) == 0x20);
+TPW_CHECK(BalanceGraphics_mSKYDETAIL, TPW_OFF(BalanceGraphics, mSKYDETAIL) == 0x24);
+TPW_CHECK(BalanceGraphics_mSKYSHADOW, TPW_OFF(BalanceGraphics, mSKYSHADOW) == 0x28);
+TPW_CHECK(BalanceGraphics_mMESHSHADOW, TPW_OFF(BalanceGraphics, mMESHSHADOW) == 0x2c);
+TPW_CHECK(BalanceGraphics_mSPRITESHADOW, TPW_OFF(BalanceGraphics, mSPRITESHADOW) == 0x30);
+TPW_CHECK(BalanceGraphics_mTRIPLEBUFFER, TPW_OFF(BalanceGraphics, mTRIPLEBUFFER) == 0x34);
+TPW_CHECK(BalanceGraphics_mFOG, TPW_OFF(BalanceGraphics, mFOG) == 0x38);
+TPW_CHECK(BalanceGraphics_mMIPMAP, TPW_OFF(BalanceGraphics, mMIPMAP) == 0x3c);
+TPW_CHECK(BalanceGraphics_mRENDER32, TPW_OFF(BalanceGraphics, mRENDER32) == 0x40);
+TPW_CHECK(BalanceGraphics_mTEXTURE32, TPW_OFF(BalanceGraphics, mTEXTURE32) == 0x44);
+TPW_CHECK(BalanceGraphics_mBUMPMAPPING, TPW_OFF(BalanceGraphics, mBUMPMAPPING) == 0x48);
+TPW_CHECK(BalanceGraphics_mFIRSTPERSONVIEWDISTANCE, TPW_OFF(BalanceGraphics, mFIRSTPERSONVIEWDISTANCE) == 0x4c);
+TPW_CHECK(BalanceGraphics_mLIGHTING, TPW_OFF(BalanceGraphics, mLIGHTING) == 0x50);
+TPW_CHECK(BalanceGraphics_mFORCELOWALPHAREF, TPW_OFF(BalanceGraphics, mFORCELOWALPHAREF) == 0x54);
+TPW_CHECK(BalanceGraphics_mCOASTERSMOOTHNESS, TPW_OFF(BalanceGraphics, mCOASTERSMOOTHNESS) == 0x58);
+TPW_CHECK(BalanceGraphics_mCOASTERTRACKDETAIL, TPW_OFF(BalanceGraphics, mCOASTERTRACKDETAIL) == 0x5c);
+TPW_CHECK(BalanceGraphics_mPARTICLEDENSITY, TPW_OFF(BalanceGraphics, mPARTICLEDENSITY) == 0x60);
+TPW_CHECK(BalanceGraphics_mTOTALPARTICLES, TPW_OFF(BalanceGraphics, mTOTALPARTICLES) == 0x64);
+TPW_CHECK(BalanceGraphics_mNUMKIDS, TPW_OFF(BalanceGraphics, mNUMKIDS) == 0x68);
+TPW_CHECK(BalanceGraphics_mWEATHER, TPW_OFF(BalanceGraphics, mWEATHER) == 0x6c);
+TPW_CHECK(BalanceGraphics_mWATER, TPW_OFF(BalanceGraphics, mWATER) == 0x70);
+TPW_CHECK(BalanceGraphics_mLOBBYOBJECTS, TPW_OFF(BalanceGraphics, mLOBBYOBJECTS) == 0x74);
+TPW_CHECK(BalanceGraphics_size, sizeof(BalanceGraphics) == 0x78);
+TPW_CHECK(BalanceResolution_vtable, TPW_OFF(BalanceResolution, vtable) == 0x0);
+TPW_CHECK(BalanceResolution_mSlotInfo, TPW_OFF(BalanceResolution, mSlotInfo) == 0x4);
+TPW_CHECK(BalanceResolution_mRESOLUTION, TPW_OFF(BalanceResolution, mRESOLUTION) == 0xc);
+TPW_CHECK(BalanceResolution_size, sizeof(BalanceResolution) == 0x10);
+TPW_CHECK(BalanceSoundChannelInfo_mCHANNELS, TPW_OFF(BalanceSoundChannelInfo, mCHANNELS) == 0x0);
+TPW_CHECK(BalanceSoundChannelInfo_mSWITCH, TPW_OFF(BalanceSoundChannelInfo, mSWITCH) == 0x4);
+TPW_CHECK(BalanceSoundChannelInfo_size, sizeof(BalanceSoundChannelInfo) == 0x8);
+TPW_CHECK(BalanceSoundRadiusInfo_mMINRADIUS, TPW_OFF(BalanceSoundRadiusInfo, mMINRADIUS) == 0x0);
+TPW_CHECK(BalanceSoundRadiusInfo_mSWITCH, TPW_OFF(BalanceSoundRadiusInfo, mSWITCH) == 0x4);
+TPW_CHECK(BalanceSoundRadiusInfo_size, sizeof(BalanceSoundRadiusInfo) == 0x8);
+TPW_CHECK(BalanceSound_vtable, TPW_OFF(BalanceSound, vtable) == 0x0);
+TPW_CHECK(BalanceSound_mSlotInfo, TPW_OFF(BalanceSound, mSlotInfo) == 0x4);
+TPW_CHECK(BalanceSound_mQSOUND, TPW_OFF(BalanceSound, mQSOUND) == 0xc);
+TPW_CHECK(BalanceSound_mREAR, TPW_OFF(BalanceSound, mREAR) == 0x10);
+TPW_CHECK(BalanceSound_mCROSSOVER, TPW_OFF(BalanceSound, mCROSSOVER) == 0x14);
+TPW_CHECK(BalanceSound_mEAX, TPW_OFF(BalanceSound, mEAX) == 0x18);
+TPW_CHECK(BalanceSound_mGEOMETRY, TPW_OFF(BalanceSound, mGEOMETRY) == 0x1c);
+TPW_CHECK(BalanceSound_mMPEGRATE, TPW_OFF(BalanceSound, mMPEGRATE) == 0x20);
+TPW_CHECK(BalanceSound_mDUCKINGLEVEL, TPW_OFF(BalanceSound, mDUCKINGLEVEL) == 0x24);
+TPW_CHECK(BalanceSound_mDROPPABLELEVEL, TPW_OFF(BalanceSound, mDROPPABLELEVEL) == 0x28);
+TPW_CHECK(BalanceSound_mDEFAULTQUALITY, TPW_OFF(BalanceSound, mDEFAULTQUALITY) == 0x2c);
+TPW_CHECK(BalanceSound_mFADETOGGLE, TPW_OFF(BalanceSound, mFADETOGGLE) == 0x30);
+TPW_CHECK(BalanceSound_mSOUNDON, TPW_OFF(BalanceSound, mSOUNDON) == 0x34);
+TPW_CHECK(BalanceSound_mSFX, TPW_OFF(BalanceSound, mSFX) == 0x38);
+TPW_CHECK(BalanceSound_mMUSIC, TPW_OFF(BalanceSound, mMUSIC) == 0x3c);
+TPW_CHECK(BalanceSound_mSPEECH, TPW_OFF(BalanceSound, mSPEECH) == 0x40);
+TPW_CHECK(BalanceSound_mMOVIE, TPW_OFF(BalanceSound, mMOVIE) == 0x44);
+TPW_CHECK(BalanceSound_mChannelInfo, TPW_OFF(BalanceSound, mChannelInfo) == 0x48);
+TPW_CHECK(BalanceSound_mRadiusInfo, TPW_OFF(BalanceSound, mRadiusInfo) == 0x64);
+TPW_CHECK(BalanceSound_size, sizeof(BalanceSound) == 0x80);
+TPW_CHECK(BalanceHoardingsHoardingClick_mX, TPW_OFF(BalanceHoardingsHoardingClick, mX) == 0x0);
+TPW_CHECK(BalanceHoardingsHoardingClick_mY, TPW_OFF(BalanceHoardingsHoardingClick, mY) == 0x4);
+TPW_CHECK(BalanceHoardingsHoardingClick_size, sizeof(BalanceHoardingsHoardingClick) == 0x8);
+TPW_CHECK(BalanceHoardings_vtable, TPW_OFF(BalanceHoardings, vtable) == 0x0);
+TPW_CHECK(BalanceHoardings_mSlotInfo, TPW_OFF(BalanceHoardings, mSlotInfo) == 0x4);
+TPW_CHECK(BalanceHoardings_mHoardingClicks, TPW_OFF(BalanceHoardings, mHoardingClicks) == 0xc);
+TPW_CHECK(BalanceHoardings_size, sizeof(BalanceHoardings) == 0x210);
 #endif
 /* END GENERATED */
 

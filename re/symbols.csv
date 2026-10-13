@@ -215,7 +215,7 @@ address,name,kind,confidence,notes
 0x004d1e90,Challenges_Update,function,medium,Thing_Update case 19 (works on a global; skipped when DAT_00fb3b7c == 1)
 0x004fcc30,Visitor_ScoreOption,function,medium,"thiscall(visitor, object); 'Calculating option score': distance, queue, thirst/hunger/toilet/illness match"
 0x004fe1e0,Visitor_UseObject,function,medium,"thiscall(visitor, object); applies the object def effects (+0x144 thirst, +0x148 hunger, +0x14c illness, +0x150 happiness, +0x154 litter) to the needs, balloons, costumes, sideshow wins"
-0x00506680,Staff_IsTooTired,function,high,mEnergy below DAT_00785324
+0x00506680,Staff_IsTooTired,function,high,mEnergy below gBalanceLevel.mRestLevel
 0x005066a0,Staff_TireA,function,medium,"drains mEnergy and mHappiness by (6 - pay grade) * rate; one of two rates"
 0x00506760,Staff_TireB,function,medium,"as Staff_TireA with the other pair of rates"
 0x00506830,Staff_SetName,function,high,copies 32 chars to mName
@@ -229,3 +229,17 @@ address,name,kind,confidence,notes
 0x00412c90,ObjectDef_GetSchema,function,high,"returns &key record i of the object .sam schema at 0x744b30 (0x3c bytes each)"
 0x00412c20,ObjectDef_Ctor,function,medium,vtable at +4 (0x6fd8a8) then BalanceFile_Init; zeroes runtime fields 0x494..0x500
 0x00413c10,ObjectDefs_Load,function,medium,"allocates an ObjectDef (max 0x14a), copies the .sam path to +0x28c and parses it"
+0x00785040,gBalanceLevel,data,high,"BalanceLevel: Standard.sam values (static instance, ctor 0x402ae0)"
+0x00785828,gBalanceOnline,data,high,"BalanceOnline: Online.sam (ctor 0x402b50)"
+0x00785868,gBalanceGraphics,data,high,"BalanceGraphics: low/med/high.sam (ctor 0x402bc0)"
+0x007858e0,gBalanceResolution,data,high,"BalanceResolution: Resolution.sam (ctor 0x402c30)"
+0x007858f0,gBalanceSound,data,high,"BalanceSound (ctor 0x402ca0)"
+0x00784e30,gBalanceHoardingsA,data,medium,"BalanceHoardings: Hoardings.sam or EndHoardings.sam (ctor 0x402a20)"
+0x00784c20,gBalanceHoardingsB,data,medium,"BalanceHoardings: the other of Hoardings.sam / EndHoardings.sam (ctor 0x402a90)"
+0x00402a50,BalanceHoardings_GetSchema,function,high,returns &key record i of the schema at 0x73fb40
+0x00402b10,BalanceLevel_GetSchema,function,high,returns &key record i of the schema at 0x73fc70
+0x00402b80,BalanceOnline_GetSchema,function,high,returns &key record i of the schema at 0x743f00
+0x00402bf0,BalanceGraphics_GetSchema,function,high,returns &key record i of the schema at 0x7442c0
+0x00402c60,BalanceResolution_GetSchema,function,high,returns &key record i of the schema at 0x744a40
+0x00402cd0,BalanceSound_GetSchema,function,high,returns &key record i of the schema at 0x746a20
+0x005b0d60,BalanceFile_GetValues,function,high,returns this+8 (vtable slot 1 of every balance class)

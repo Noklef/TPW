@@ -67,3 +67,10 @@ address,target,type,notes
 0x004dd4e0,param0,Object *,Object_GetDef
 0x004dd4e0,return,ObjectDef *,Object_GetDef
 0x00412e90,return,ObjectDef *,ObjectDefs_Find
+0x00785040,data,BalanceLevel,gBalanceLevel
+0x00785828,data,BalanceOnline,gBalanceOnline
+0x00785868,data,BalanceGraphics,gBalanceGraphics
+0x007858e0,data,BalanceResolution,gBalanceResolution
+0x007858f0,data,BalanceSound,gBalanceSound
+0x00784e30,data,BalanceHoardings,gBalanceHoardingsA
+0x00784c20,data,BalanceHoardings,gBalanceHoardingsB

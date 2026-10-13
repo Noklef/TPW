@@ -50,8 +50,10 @@ SCHEMAS = {
 TYPE_NAMES = {4: 'int', 5: 'uint', 6: 'int', 7: 'float', 8: 'ufloat', 9: 'float', 10: 'string', 11: 'shape'}
 
 
-def read_schema(pe, va):
-    """Key records up to the end marker, as dicts with the full dotted key and storage slot."""
+def read_schema(pe, va, with_slots=False):
+    """Key records up to the end marker, as dicts with the full dotted key and storage slot.
+
+    with_slots also returns the number of slots the storage needs (slot 0 included)."""
     raw = []
     for i in range(1000):
         rec = pe.bytes(va + i * 0x3c, 0x3c)
@@ -97,7 +99,8 @@ def read_schema(pe, va):
         elif 'slot' in r:
             r['key'] = r['name']
             (in_table if in_table is not None else pending).append(r)
-    return sorted(keys + pending, key=lambda k: k['slot'])
+    keys = sorted(keys + pending, key=lambda k: k['slot'])
+    return (keys, slot) if with_slots else keys
 
 
 def describe(k, base):
