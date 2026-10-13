@@ -126,6 +126,7 @@ These also become the engine's loaders later.
 - [x] `tpw_tests`: unit tests of reimplementations, a patcher self-test, and a check of every hook's expected bytes against `tp.exe` read as a file
 - [x] First replacements: `RSSE_FetchWord`, `RSSE_OperandValue`
 - [x] `TerrainBlend_Tile` (0x55f780, `src/game/terrain/`): the MMX terrain blender in portable C++, matching tools/lnd.py byte for byte on every tile of all 4 themes x 3 detail levels (both written from the same reading of the asm, so the in-game run is still the real test)
+- [x] `RefPack_Decode` / `RefPack_DecodedSize` (0x641f10 / 0x642110, `src/game/files/`): .wad decompression; identical to tools/wadtool.py on all 6804 compressed entries. They are callee-pops virtual methods (`ret 0xc` / `ret 4`), so the C++ uses `__stdcall`. Check the original `ret` before choosing a convention: prologue bytes do not show it
 - [ ] First in-game run with the DLL. This needs Phase 0 (the game running at all), in a VM if the no-CD exe is untrusted. Install: copy `build\dinput.dll` next to `tp.exe`, run, read `tpw.log`
 
 ### Phase 4: Reimplement subsystems (the long haul)

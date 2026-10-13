@@ -8,6 +8,7 @@
 #include <iterator>
 #include <vector>
 
+#include "../src/game/files/refpack.h"
 #include "../src/game/rsse/rsse.h"
 #include "../src/game/terrain/terrain_blend.h"
 #include "../src/hook/hooks.h"
@@ -185,6 +186,28 @@ static void test_patcher() {
 }
 
 // --- hook table vs. the exe on disk ----------------------------------------------
+static void test_refpack() {
+    // 4 literals, then 2 literals + a 4-byte copy from 2 back (overlapping), then the end.
+    const u8 short_form[] = {0x10, 0xfb, 0x00, 0x00, 0x0a, 0xe0, 'a', 'b', 'c', 'd',
+                             0x06, 0x01, 'e', 'f', 0xfc};
+    u8 out[32];
+    std::memset(out, 0xee, sizeof out);
+    CHECK(RefPack_DecodedSize(short_form) == 10);
+    CHECK(RefPack_Decode(out, short_form, 0) == 10);
+    CHECK(std::memcmp(out, "abcdefefef", 10) == 0 && out[10] == 0xee);
+
+    // Flag 0x01: a compressed size comes first. Then 4 literals; the 3-byte form (1 literal,
+    // 5 bytes from 5 back); the 4-byte form (6 bytes from 10 back); 1 last literal.
+    const u8 long_form[] = {0x11, 0xfb, 0x00, 0x00, 0x17, 0x00, 0x00, 0x11, 0xe0, 'w', 'x', 'y', 'z',
+                            0x81, 0x40, 0x04, 'q', 0xc0, 0x00, 0x09, 0x01, 0xfd, '!'};
+    std::memset(out, 0xee, sizeof out);
+    CHECK(RefPack_DecodedSize(long_form) == 0x11);
+    CHECK(RefPack_Decode(out, long_form, 0) == 0x11);
+    CHECK(std::memcmp(out, "wxyzqwxyzqwxyzqw!", 0x11) == 0 && out[0x11] == 0xee);
+
+    CHECK(RefPack_Decode(out, nullptr, 0) == 0);
+}
+
 static bool read_va(const std::vector<unsigned char> &pe, std::uint32_t va, std::uint8_t *out, size_t n) {
     auto u16 = [&](size_t o) { return std::uint32_t(pe[o] | pe[o + 1] << 8); };
     auto u32 = [&](size_t o) { return u16(o) | u16(o + 2) << 16; };
@@ -222,6 +245,7 @@ int main(int argc, char **argv) {
     test_lnd_weight_map();
     test_lnd_blend();
     test_lnd_overlay();
+    test_refpack();
     test_patcher();
     if (argc > 1) test_hook_table(argv[1]);
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);
