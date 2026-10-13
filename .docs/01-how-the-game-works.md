@@ -111,7 +111,7 @@ Bullfrog's archive format, shared with Dungeon Keeper 2. There are 312 archives 
 | `.esp`/`.tpc`/`.fpc` | 46/46/29 | Entertainer/costume sprites (`esprites.wad`) | needs RE |
 | `.ttf` | 17 | TrueType fonts | standard |
 | `.bf4` | 37 loose | Bullfrog bitmap font (magic `F4FB`) | needs RE |
-| `.str` | 21 loose | String tables (magic `BFST`), per language | easy |
+| `.str` | 21 loose | String tables (magic `BFST`); text in a custom 8-bit code page mapped by `MBToUni.dat` | **decoded** (`tools/bfst.py`) |
 | `.sdt` + `.map` | — | Sound banks + index maps | needs RE |
 | `.omp` | 4 | Level object placement (`OBJ_` magic), one per theme | needs RE |
 | `.tpt` | 2 | Tagged level data (`WTHR`, `TEMP` chunks) | needs RE |

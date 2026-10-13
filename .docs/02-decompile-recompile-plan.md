@@ -96,7 +96,8 @@ Goal: see the original running on modern Windows, so there's a ground truth to c
 ### Phase 2: Asset formats and tools
 These also become the engine's loaders later.
 - [x] `.wad` + RefPack
-- [ ] `.sam` (trivial text), `.str` string tables, `.bf4` fonts
+- [x] `.str` string tables (`tools/bfst.py`, custom code page via `MBToUni.dat`; all strings decode)
+- [ ] `.sam` (trivial text), `.bf4` fonts
 - [x] `.wct` v0x13 textures → PNG (`tools/wct2png.py`, 88% of textures). Quantiser scale is still empirical (0.56 luma, 0.298 chroma, measured against each file's stored average colour); find the exact formula in the decoder's caller.
 - [ ] `.wct` v0x12 (`BILZ`, 993 mostly-UI textures): port `WaveletCodec_DecodeV12` (`0x593ab0`)
 - [ ] `.md2` meshes → glTF/OBJ
