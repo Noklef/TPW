@@ -101,7 +101,8 @@ These also become the engine's loaders later.
 - [x] `.wct` v0x13 textures → PNG (`tools/wct2png.py`, 88% of textures). Quantiser scale is still empirical (0.56 luma, 0.298 chroma, measured against each file's stored average colour); find the exact formula in the decoder's caller.
 - [ ] `.wct` v0x12 (`BILZ`, 993 mostly-UI textures): port `WaveletCodec_DecodeV12` (`0x593ab0`)
 - [x] `.md2` geometry → OBJ (`tools/md2.py`; all 639 geometry meshes pass consistency checks)
-- [ ] `.md2` node transforms/hierarchy (to assemble multi-part models), material groups, motion files (flag `0x10`/`0x20`, block at word `0x26`)
+- [x] `.md2` node hierarchy: OBJ export assembles multi-part models (the advisor renders correctly)
+- [ ] `.md2` material groups → textured export, motion files (flag `0x10`/`0x20`, block at word `0x26`)
 - [x] `.RSE` disassembler (`tools/rsse_disasm.py`): all 308 scripts decode with 0 errors. See `03-rsse-scripting.md`.
 - [ ] `.sdt`/`.map` sound banks → WAV
 - [ ] `.omp`, `.tpt`, `.TPWI`, `.hmp`, `.lnd`, `.tct` level data

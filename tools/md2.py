@@ -9,13 +9,18 @@ A .md2 is a serialised C struct: pointer fields hold file offsets, which MD2_Loa
   [0x16] positions   [0x17] normals   [0x18] UVs   [0x1a] triangles   [0x1c] nodes
   [0x20..0x25] bounding box (min xyz, max xyz floats)
 
-Geometry node (160 B, table at [0x1c]); all pointers point into the shared tables above:
-  +0x54 char *name    +0x58 u16 vertex count    +0x5a u16 group count   +0x5c u16 triangle count
+Transform node (88 B; dummies/bones in the table at [0x1d], count u16 0x42 - u16 0x44):
+  +0x00 flags   +0x04 parent node   +0x10 float[16] local matrix, row-major, translation in
+  the last row (D3D row-vector convention: model = local * parent * ...)   +0x50 index
+  +0x54 char *name
+Geometry node (160 B, table at [0x1c]) = transform node + mesh data. Pointers point into
+the shared tables above:
+  +0x58 u16 position count   +0x5a u16 group count   +0x5c u16 triangle count   +0x5e u16 render vertex count
   +0x60 positions: SoA blocks of 4 vertices: float X[4], Y[4], Z[4]   (48 B per block)
   +0x64 normals: 3 floats each; vertex normals first, then face normals
   +0x68 UVs: SoA blocks of 4: float U[4], V[4]                           (32 B per block)
   +0x6c groups (16 B)   +0x70 triangles: u16 face_normal, v0, v1, v2
-  +0x78 node bounding box (6 floats)
+  +0x78 node bounding box (6 floats)   +0x94 u16[render vertices] -> position index
 
 Usage:
   python -I tools/md2.py <file.md2> [out.obj]          dump / export
@@ -28,6 +33,7 @@ import sys
 
 MAGIC = 0x1CD15D46
 NODE_SIZE = 160
+DUMMY_SIZE = 88
 
 
 class Node:
@@ -49,6 +55,14 @@ class Mesh:
             name_off = self.u32(w[0x15] + 16 * i + 12)
             self.materials.append(self.cstr(name_off) if name_off else '')
         self.nodes = [self._node(w[0x1c] + NODE_SIZE * i) for i in range(self.node_count if self.flags & 1 else 0)]
+        # Transform-only nodes (dummies/bones), 88 B each: the common prefix of a geometry node.
+        self.dummies = {}
+        if self.flags & 1 and w[0x1d]:
+            for i in range(self.u16(0x42) - self.node_count):
+                o = w[0x1d] + DUMMY_SIZE * i
+                self.dummies[o] = (self.u32(o + 4), struct.unpack_from('<16f', data, o + 0x10))
+        self.transforms = {n.offset: (n.parent, n.matrix) for n in self.nodes}
+        self.transforms.update(self.dummies)
 
     def u16(self, o):
         return struct.unpack_from('<H', self.d, o)[0]
@@ -63,6 +77,8 @@ class Mesh:
         n = Node()
         n.offset = o
         n.name = self.cstr(self.u32(o + 0x54)) if self.u32(o + 0x54) else ''
+        n.parent = self.u32(o + 4)
+        n.matrix = struct.unpack_from('<16f', self.d, o + 0x10)
         n.npositions, n.ngroups, n.ntris, n.nverts = (self.u16(o + k) for k in (0x58, 0x5a, 0x5c, 0x5e))
         pos, nrm, uv, tri = (self.u32(o + k) for k in (0x60, 0x64, 0x68, 0x70))
         n.positions = [self._soa(pos, 3, i) for i in range(n.npositions)]
@@ -73,6 +89,21 @@ class Mesh:
         n.triangles = [struct.unpack_from('<4H', self.d, tri + 8 * i) for i in range(n.ntris)] if tri else []
         n.bbox = struct.unpack_from('<6f', self.d, o + 0x78)
         return n
+
+    def world_matrix(self, offset):
+        """Node-to-model matrix: local * parent * grandparent ... (row vectors, D3D style)."""
+        m = (1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
+        seen = set()
+        while offset and offset in self.transforms and offset not in seen:
+            seen.add(offset)
+            parent, local = self.transforms[offset]
+            m = tuple(sum(m[r * 4 + k] * local[k * 4 + c] for k in range(4)) for r in range(4) for c in range(4))
+            offset = parent
+        return m
+
+    def world_positions(self, n):
+        m = self.world_matrix(n.offset)
+        return [tuple(x * m[c] + y * m[4 + c] + z * m[8 + c] + m[12 + c] for c in range(3)) for x, y, z in n.positions]
 
     def _soa(self, table, dims, i):
         """Element i of a structure-of-arrays table stored in blocks of 4."""
@@ -85,7 +116,7 @@ class Mesh:
         vbase = tbase = 1
         for n in self.nodes:
             out.append(f'o {n.name or "node_%x" % n.offset}')
-            out += [f'v {x:.6f} {y:.6f} {z:.6f}' for x, y, z in n.positions]
+            out += [f'v {x:.6f} {y:.6f} {z:.6f}' for x, y, z in self.world_positions(n)]
             out += [f'vt {u:.6f} {1 - v:.6f}' for u, v in n.uvs]
             for _, *corners in n.triangles:
                 if n.uvs:
