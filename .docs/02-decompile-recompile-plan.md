@@ -74,7 +74,7 @@ Goal: see the original running on modern Windows, so there's a ground truth to c
 - The no-CD exe removes the SafeDisc/`secdrv.sys` problem.
 - A DirectX wrapper (**dgVoodoo2** or **DDrawCompat**) fixes DirectDraw/D3D6 on modern GPUs.
 - Movies are missing from the install (they're on the CD). The game may need `Data\Movies` stubs or the CD contents.
-- ⚠ The no-CD exe came from a 2000-era crack group. Run it in a VM or sandbox first.
+- The no-CD exe is third-party. A static audit (`05-nocd-exe-audit.md`) found no sign of tampering, so it's low risk. A VM or Windows Sandbox is still the cautious choice for a first run.
 
 ### Phase 1: Reverse-engineering foundation *(started)*
 - [x] Ghidra project from the decrypted exe (`_re/ghidra`, 12,124 functions)
