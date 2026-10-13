@@ -10,6 +10,7 @@ address,name,kind,confidence,notes
 0x004315f0,Matrix_RotateYAngle,function,high,"reimplemented (src/game/math/vector); (m, angle): Matrix_RotateY with cos/sin from gSinTable"
 0x005da3c0,Debug_Printf,function,high,"EMPTY in retail build: all debug/assert output compiled out. arg0 = condition or channel (0, 2, 0x499602d2)"
 0x0067a7d0,crt_atexit,function,high,registers destructor in MSVC function-static init guard pattern
+0x0067a830,CRT_ftol,function,high,"MSVC CRT __ftol: st0 truncated to a 64-bit integer in EDX:EAX, popped"
 0x0067acc0,Mem_Alloc,function,medium,malloc/operator new wrapper
 0x0067acb0,Mem_Free,function,medium,free/operator delete wrapper
 0x005f5ad0,FileStream_Open,function,high,"allocates 8-byte stream object with vtable FileStream_vtable, calls vtbl+0x24 open"
@@ -352,7 +353,7 @@ address,name,kind,confidence,notes
 0x00474bf0,Curve_Linear,function,high,"reimplemented; linear position between points[base+i] and [base+i+1]"
 0x00474cc0,Curve_CatmullRom,function,high,"reimplemented; Catmull-Rom position (0.5 * ...), indices wrap; Track_Apply also calls it for the tangent; unused by shipped files"
 0x004714a0,Motion_UnpackVertices,function,medium,"packed vertex keys: 10:10:10 signed ints * scale + offset"
-0x004745c0,Motion_ApplyUVs,function,medium,"per-UV keyframes, lerped into the node's UV blocks"
+0x004745c0,Motion_ApplyUVs,function,high,"reimplemented (src/game/motion/uvanim); (state, track, add): per-UV keys around the whole frame lerped, set or added into the node's {u[4], v[4]} blocks (node +0x68)"
 0x00fb3540,gAdvisorScoring,data,high,"AdvisorScoring: advisor.sam values (mMinScoreForConsideration at 0xfb3560); guard bit 0xfb2766 & 1"
 0x004d1ce0,Challenges_LoadSam,function,medium,"reads data/challenges.sam into a stack BalanceChallenges (vtable 0x700398) and copies the challenges out"
 0x00414410,TrackType_LoadSam,function,low,"reads a track type .sam into a stack BalanceTrack (vtable 0x6fd8b0)"

@@ -21,6 +21,7 @@ add_library(tpw_game STATIC
     src/game/math/sintable.cpp
     src/game/motion/curve.cpp
     src/game/motion/quat.cpp
+    src/game/motion/uvanim.cpp
     src/game/terrain/terrain_blend.cpp
 )
 

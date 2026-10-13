@@ -26,7 +26,7 @@ SENTINEL = 0xdead0000
 REGS = ('EAX', 'ECX', 'EDX', 'EBX', 'ESP', 'EBP', 'ESI', 'EDI')
 LOW8 = {'AL': 'EAX', 'CL': 'ECX', 'DL': 'EDX', 'BL': 'EBX'}
 HIGH8 = {'AH': 'EAX', 'CH': 'ECX', 'DH': 'EDX', 'BH': 'EBX'}
-LOW16 = {'AX': 'EAX', 'CX': 'ECX', 'DX': 'EDX', 'BX': 'EBX'}
+LOW16 = {'AX': 'EAX', 'CX': 'ECX', 'DX': 'EDX', 'BX': 'EBX', 'SI': 'ESI', 'DI': 'EDI', 'BP': 'EBP'}
 SIZES = {'byte': 1, 'word': 2, 'dword': 4, 'float': 4, 'qword': 8, 'double': 8, 'extended double': 10}
 
 

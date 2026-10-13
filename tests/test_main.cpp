@@ -13,6 +13,7 @@
 #include "../src/game/math/vector.h"
 #include "../src/game/motion/curve.h"
 #include "../src/game/motion/quat.h"
+#include "../src/game/motion/uvanim.h"
 #include "../src/game/rsse/rsse.h"
 #include "../src/game/terrain/terrain_blend.h"
 #include "../src/hook/hooks.h"
@@ -460,6 +461,18 @@ static void test_vector() {
     CHECK(x[0] == m[0] && x[2] == m[2] && x[2] == -1);
 }
 
+static void test_uv_animation() {
+    const UvRange ranges[2] = {{0, 2}, {2, 3}};
+    const u16 frames[5] = {0, 10, 0, 4, 8};
+    const float uvs[10] = {0, 0, 1, 2, /* UV 1: */ 0, 1, 4, 5, 8, 9};
+    const UvTrack track{2, ranges, 0, frames, uvs};
+    float blocks[8] = {9, 9, 9, 9, 1, 1, 1, 1};
+    Motion_UVsAt(&track, 5, blocks, 0);  // UV 0 half way, UV 1 past its middle key
+    CHECK(blocks[0] == 0.5f && blocks[4] == 1 && blocks[1] == 5 && blocks[5] == 6 && blocks[2] == 9);
+    Motion_UVsAt(&track, 20, blocks, 1);  // past the last keys: t = 1 on the last pair, added
+    CHECK(blocks[0] == 1.5f && blocks[4] == 3 && blocks[1] == 13 && blocks[5] == 15);
+}
+
 static void test_hook_table(const char *exe_path) {
     std::ifstream f(exe_path, std::ios::binary);
     if (!f) { std::printf("cannot open %s\n", exe_path); ++g_failures; return; }
@@ -489,6 +502,7 @@ int main(int argc, char **argv) {
     test_matrix();
     test_matrix_products();
     test_vector();
+    test_uv_animation();
     test_patcher();
     if (argc > 1) test_hook_table(argv[1]);
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);
