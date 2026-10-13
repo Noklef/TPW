@@ -5,6 +5,17 @@ The Ghidra database (`_re/ghidra`) is binary, large and git-ignored. **This fold
 | File | Contents |
 |---|---|
 | `symbols.csv` | `address,name,kind,confidence,notes`, one row per named function or data label |
+| `rsse_opcodes.csv` | The RSSE script VM instruction set (index, mnemonic, operand count), extracted from the exe's table at `0x765280` |
+
+## Repairs (Ghidra analysis fixes)
+Ghidra's auto-analysis misses some things. Apply these once after import, before `ApplySymbols`:
+
+```
+REM RSSE interpreter jump table: 106 opcode handlers (adds ~19 KB of code to RSSE_ExecuteInstruction)
+"<GHIDRA>\support\analyzeHeadless.bat" C:\git\Noklef\TPW\_re\ghidra TPW -process tp.exe -noanalysis ^
+    -scriptPath C:\git\Noklef\TPW\tools -postScript FixJumpTable.java 0x551d3d 0x5567d8 106 ^
+    C:\git\Noklef\TPW\re\rsse_opcodes.csv RSSE_op_
+```
 
 ## Naming conventions
 - `Subsystem_Verb` in PascalCase: `Coasters_Load`, `Stream_Read`, `SaveGame_SaveModules`.
@@ -20,5 +31,6 @@ The script is idempotent: re-run it after every edit to `symbols.csv`.
 
 ## Rebuilding from scratch
 1. Import and analyse the exe and dump the decompile (see `tools/ExportDecomp.java`, `.docs/02-decompile-recompile-plan.md`).
-2. Run `ApplySymbols.java` as above.
-3. Re-run `ExportDecomp.java` to get a decompile dump with the names applied.
+2. Apply the **Repairs** above.
+3. Run `ApplySymbols.java` as above.
+4. Re-run `ExportDecomp.java` to get a decompile dump with the names applied. Pass addresses after the output dir to decompile only those functions (into `selected.c`).

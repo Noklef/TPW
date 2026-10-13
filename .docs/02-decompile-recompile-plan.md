@@ -85,7 +85,10 @@ Goal: see the original running on modern Windows, so there's a ground truth to c
   Ghidra refuses project paths with a component starting with `.`, which is why the project lives in `_re/` and not `.data/`.
 - [x] Mapped the save/load module order from the decompiled loader (see `01-how-the-game-works.md`)
 - [ ] Apply Function ID signatures for MSVC CRT/STL. Identify the zlib/libjpeg/TGQ functions and mark them **library: don't decompile**.
-- [ ] Name functions from debug strings (`"Coasters failed to load"` → `Coasters_Load`). Script it: every string xref gives a function name hint.
+- [ ] Name functions from debug strings (`"Coasters failed to load"` → `Coasters_Load`). `tools/string_hints.py` lists the strings each function references. Only **932 of 7,938** unnamed functions reference a string directly, so the rest need:
+  - **call-graph propagation**: helpers called only from one named subsystem belong to it
+  - **vtable grouping**: functions sharing a vtable are methods of one C++ class
+- [x] Repaired Ghidra's missed jump table in the RSSE interpreter (`tools/FixJumpTable.java`; ~19 KB of code was invisible). Other big switches may need the same treatment.
 - [ ] Recover the core structs: Ride, Peep, Park, Object, RSSE script context, the save chunk header.
 - [x] `re/symbols.csv` + `tools/ApplySymbols.java`: names live in git and are applied to Ghidra (see `re/README.md`). First batch: the save/load system (all 17 module load/save pairs), stream I/O, the CRT allocator.
 - [ ] Recovered types (`re/types.h`) + an apply script for them.
@@ -96,7 +99,7 @@ These also become the engine's loaders later.
 - [ ] `.sam` (trivial text), `.str` string tables, `.bf4` fonts
 - [ ] `.wct` textures → PNG (needed to *see* anything)
 - [ ] `.md2` meshes → glTF/OBJ
-- [ ] `.RSE` disassembler, using the opcode table from the exe plus the VM dispatch function in Ghidra
+- [x] `.RSE` disassembler (`tools/rsse_disasm.py`): all 308 scripts decode with 0 errors. See `03-rsse-scripting.md`.
 - [ ] `.sdt`/`.map` sound banks → WAV
 - [ ] `.omp`, `.tpt`, `.TPWI`, `.hmp`, `.lnd`, `.tct` level data
 

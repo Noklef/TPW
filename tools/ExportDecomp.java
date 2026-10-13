@@ -1,5 +1,6 @@
 // Exports a function index and the decompiled C for every function in the program.
-// Usage (headless): -postScript ExportDecomp.java <output_dir>
+// Usage (headless): -postScript ExportDecomp.java <output_dir> [addr ...]
+// With addresses, only the functions containing them are written to <output_dir>/selected.c.
 // @category Export
 
 import ghidra.app.decompiler.DecompInterface;
@@ -20,6 +21,23 @@ public class ExportDecomp extends GhidraScript {
 
         DecompInterface decomp = new DecompInterface();
         decomp.openProgram(currentProgram);
+
+        if (args.length > 1) {
+            try (PrintWriter sel = new PrintWriter(new File(outDir, "selected.c"), "UTF-8")) {
+                for (int i = 1; i < args.length; i++) {
+                    Function f = getFunctionContaining(toAddr(args[i]));
+                    if (f == null) { sel.println("// no function at " + args[i]); continue; }
+                    sel.printf("%n// ==== %s @ %s ====%n", f.getName(), f.getEntryPoint());
+                    DecompileResults res = decomp.decompileFunction(f, 300, monitor);
+                    sel.println(res != null && res.decompileCompleted()
+                            ? res.getDecompiledFunction().getC()
+                            : "// decompilation failed: " + (res == null ? "null" : res.getErrorMessage()));
+                }
+            }
+            decomp.dispose();
+            println("ExportDecomp: wrote selected.c");
+            return;
+        }
 
         int total = currentProgram.getFunctionManager().getFunctionCount();
         int done = 0, failed = 0, chunk = 0;

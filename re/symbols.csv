@@ -56,3 +56,14 @@ address,name,kind,confidence,notes
 0x0059bea0,AdvisorScoring_Construct,function,medium,function-static singleton constructor
 0x00481680,UI_Load,function,high,"last module, no tag check"
 0x004816a0,UI_Save,function,high,"last module; original logs 'UI: loaded' here (copy-paste bug)"
+0x00551cb0,RSSE_ExecuteInstruction,function,high,"fetches one code word, dispatches via 106-entry jump table (0x5567d8); needs tools/FixJumpTable.java to decompile. ctx: +0x18 code*, +0x1c vars*, +0x3c pc (-10000 = error), +0x50 code_len"
+0x005567d8,RSSE_OpcodeHandlerTable,data,high,106 handler addresses indexed by opcode; see re/rsse_opcodes.csv
+0x00765280,RSSE_OpcodeNameTable,data,high,"106 x {char* mnemonic, char* operand_count}"
+0x005587f0,RSSE_LoadScriptFile,function,high,"'Not a RSSE script file', 'Zero length script', 'Cannot load Script file'"
+0x00551600,RSSE_Init,function,medium,'Tried to Initialise twice'
+0x00559060,RSSE_KillScript,function,medium,'Cant kill a script - system is not initialised'
+0x00556ab0,RSSE_Malloc,function,medium,"'RSSE Malloc %ld', 'Tried to MALLOC 0'"
+0x005584b0,RSSE_CheckLeaks,function,medium,'Something malloced but not freed'
+0x005573d0,RSSE_TriggerCustomEvent,function,medium,'Tried to trigger a custom event'
+0x00551130,RSSE_StartScream,function,medium,'Started screaming without ...'
+0x00556f40,RSSE_SetupWalkNodes,function,low,"walk/head node validation, 'Walknodes need a setwalk'"
