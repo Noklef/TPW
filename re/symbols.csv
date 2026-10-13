@@ -342,3 +342,6 @@ address,name,kind,confidence,notes
 0x00474cc0,Curve_CatmullRom,function,high,"Catmull-Rom position (0.5 * ...), indices wrap; unused by shipped files"
 0x004714a0,Motion_UnpackVertices,function,medium,"packed vertex keys: 10:10:10 signed ints * scale + offset"
 0x004745c0,Motion_ApplyUVs,function,medium,"per-UV keyframes, lerped into the node's UV blocks"
+0x00fb3540,gAdvisorScoring,data,high,"AdvisorScoring: advisor.sam values (mMinScoreForConsideration at 0xfb3560); guard bit 0xfb2766 & 1"
+0x004d1ce0,Challenges_LoadSam,function,medium,"reads data/challenges.sam into a stack BalanceChallenges (vtable 0x700398) and copies the challenges out"
+0x00414410,TrackType_LoadSam,function,low,"reads a track type .sam into a stack BalanceTrack (vtable 0x6fd8b0)"

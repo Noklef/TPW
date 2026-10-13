@@ -1169,6 +1169,696 @@ typedef struct BalanceHoardings {
     u8 unk_20c[0x4];
 } BalanceHoardings;
 
+/* One row of BalanceTrack.masTextureData: the asTextureData[i].* keys. */
+typedef struct BalanceTrackAsTextureData {
+    char * mpcTextureFilename;           /* 0x00 */
+    s32 mbIsSelfIlluminating;            /* 0x04 */
+    float mfScrollRate;                  /* 0x08 */
+} BalanceTrackAsTextureData;
+
+/* One row of BalanceTrack.masCrossSectionPointsN: the asCrossSectionPointsN[i].* keys. */
+typedef struct BalanceTrackAsCrossSectionPoint {
+    float mfX;                           /* 0x00 */
+    float mfY;                           /* 0x04 */
+    float mfU;                           /* 0x08 */
+    float mfNx;                          /* 0x0c */
+    float mfNy;                          /* 0x10 */
+} BalanceTrackAsCrossSectionPoint;
+
+/* One row of BalanceTrack.masCrossSectionEdgesN: the asCrossSectionEdgesN[i].* keys. */
+typedef struct BalanceTrackAsCrossSectionEdge {
+    s32 musTexture;                      /* 0x00 */
+    s32 musCSPoint1;                     /* 0x04 */
+    s32 musCSPoint2;                     /* 0x08 */
+} BalanceTrackAsCrossSectionEdge;
+
+/* One row of BalanceTrack.masCrossSections: the asCrossSections[i].* keys. */
+typedef struct BalanceTrackAsCrossSection {
+    s32 musCSPointBlockIndex;            /* 0x00 */
+    s32 musCSEdgeBlockIndex;             /* 0x04 */
+    s32 musTrackEdge;                    /* 0x08 */
+    s32 musBlendToCSPointBlockIndex;     /* 0x0c */
+    float mfBlendLength;                 /* 0x10 */
+} BalanceTrackAsCrossSection;
+
+/* One row of BalanceTrack.masCrossSectionSelects: the asCrossSectionSelects[i].* keys. */
+typedef struct BalanceTrackAsCrossSectionSelect {
+    float mfSpeedRangeMin;               /* 0x00 */
+    float mfSpeedRangeMax;               /* 0x04 */
+    float mfDirectionRangeMin;           /* 0x08 */
+    float mfDirectionRangeMax;           /* 0x0c */
+    float mfPitchRangeMin;               /* 0x10 */
+    float mfPitchRangeMax;               /* 0x14 */
+    float mfBankRangeMin;                /* 0x18 */
+    float mfBankRangeMax;                /* 0x1c */
+    s32 musCrossSectionIndex;            /* 0x20 */
+    s32 musBlendFromCrossSectionIndex;   /* 0x24 */
+    s32 musBlendToCrossSectionIndex;     /* 0x28 */
+} BalanceTrackAsCrossSectionSelect;
+
+/* One row of BalanceTrack.masPylonControls: the asPylonControls[i].* keys. */
+typedef struct BalanceTrackAsPylonControl {
+    char * mpcMeshFilename;              /* 0x00 */
+    u32 muiPylonTypeUniqueID;            /* 0x04 */
+    s32 mbDontDisableBaseOnStack;        /* 0x08 */
+    float mfCollisionPossibleRadius;     /* 0x0c */
+    float mfPylonStraightDotThreshold;   /* 0x10 */
+    s32 muiPylonWidthCells;              /* 0x14 */
+    s32 muiPylonLengthCells;             /* 0x18 */
+    s32 muiMaxStackedPylons;             /* 0x1c */
+    float mfMinHeight;                   /* 0x20 */
+    float mfMaxHeight;                   /* 0x24 */
+    float mfMaxHeightDiffPerGSquareDist; /* 0x28 */
+    float mfEntranceMinXZAngleAtMinDist; /* 0x2c */
+    float mfEntranceMaxXZAngleAtMinDist; /* 0x30 */
+    float mfEntranceMinXZAngleAtMaxDist; /* 0x34 */
+    float mfEntranceMaxXZAngleAtMaxDist; /* 0x38 */
+    float mfMinXZAngleAtMinDist;         /* 0x3c */
+    float mfMaxXZAngleAtMinDist;         /* 0x40 */
+    float mfMinXZAngleAtMaxDist;         /* 0x44 */
+    float mfMaxXZAngleAtMaxDist;         /* 0x48 */
+    float mfMaxRotnAngleDeviance;        /* 0x4c */
+    float mfMaxLoopRotnAngleDeviance;    /* 0x50 */
+    u32 muiMinPlaceDist;                 /* 0x54 */
+    u32 muiMaxPlaceDist;                 /* 0x58 */
+    float mfMaxLoopHeightDifference;     /* 0x5c */
+    float mfCostPerUnit;                 /* 0x60 */
+    float mfCostPer2DLength;             /* 0x64 */
+    float mfCostPerHeight;               /* 0x68 */
+    float mfLoftAnimStartCap;            /* 0x6c */
+    float mfLoftAnimEndCap;              /* 0x70 */
+    float mfLoftAnimMultiplier;          /* 0x74 */
+    float mfLoftAnimAdd;                 /* 0x78 */
+    float mfRotateAnimStartCap;          /* 0x7c */
+    float mfRotateAnimEndCap;            /* 0x80 */
+    float mfRotateAnimMultiplier;        /* 0x84 */
+    float mfRotateAnimAdd;               /* 0x88 */
+    float mfInclineAnimStartCap;         /* 0x8c */
+    float mfInclineAnimEndCap;           /* 0x90 */
+    float mfInclineAnimMultiplier;       /* 0x94 */
+    float mfInclineAnimAdd;              /* 0x98 */
+    float mfBankAnimStartCap;            /* 0x9c */
+    float mfBankAnimEndCap;              /* 0xa0 */
+    float mfBankAnimMultiplier;          /* 0xa4 */
+    float mfBankAnimAdd;                 /* 0xa8 */
+    float mfLoopRotateAnimStartCap;      /* 0xac */
+    float mfLoopRotateAnimEndCap;        /* 0xb0 */
+    float mfLoopRotateAnimMultiplier;    /* 0xb4 */
+    float mfLoopRotateAnimAdd;           /* 0xb8 */
+} BalanceTrackAsPylonControl;
+
+/* One row of BalanceTrack.masCarTypes: the asCarTypes[i].* keys. */
+typedef struct BalanceTrackAsCarType {
+    s32 mbBendCar;                       /* 0x00 */
+    u32 muiCarTypeUniqueID;              /* 0x04 */
+    char * mpcMeshFilename;              /* 0x08 */
+    float mfFrontDistanceAdd;            /* 0x0c */
+    float mfRearDistanceAdd;             /* 0x10 */
+    float mfYOffset;                     /* 0x14 */
+    float mfAnimSpeedMultiplier;         /* 0x18 */
+} BalanceTrackAsCarType;
+
+/* One row of BalanceTrack.masTrackCollisionPoints: the asTrackCollisionPoints[i].* keys. */
+typedef struct BalanceTrackAsTrackCollisionPoint {
+    float mfCollisionX;                  /* 0x00 */
+    float mfCollisionY;                  /* 0x04 */
+} BalanceTrackAsTrackCollisionPoint;
+
+/* Values of a coaster/track type .sam (textures, cross sections, cars),
+ * read into a stack object (vtable 0x6fd8b0) and copied out. Fields are the .sam keys in schema order
+ * (tools/samtool.py schema track); vtable and mSlotInfo belong to the
+ * balance-file base class (0x401030). */
+typedef struct BalanceTrack {
+    void * vtable;                       /* 0x00 */
+    void * mSlotInfo;                    /* 0x04 */
+    u8 unk_08[0x4];
+    BalanceTrackAsTextureData masTextureData[20]; /* 0x0c */
+    u8 unk_fc[0x4];
+    BalanceTrackAsCrossSectionPoint masCrossSectionPoints1[20]; /* 0x100 */
+    u8 unk_290[0x4];
+    BalanceTrackAsCrossSectionPoint masCrossSectionPoints2[20]; /* 0x294 */
+    u8 unk_424[0x4];
+    BalanceTrackAsCrossSectionPoint masCrossSectionPoints3[20]; /* 0x428 */
+    u8 unk_5b8[0x4];
+    BalanceTrackAsCrossSectionPoint masCrossSectionPoints4[20]; /* 0x5bc */
+    u8 unk_74c[0x4];
+    BalanceTrackAsCrossSectionPoint masCrossSectionPoints5[20]; /* 0x750 */
+    u8 unk_8e0[0x4];
+    BalanceTrackAsCrossSectionPoint masCrossSectionPoints6[20]; /* 0x8e4 */
+    u8 unk_a74[0x4];
+    BalanceTrackAsCrossSectionPoint masCrossSectionPoints7[20]; /* 0xa78 */
+    u8 unk_c08[0x4];
+    BalanceTrackAsCrossSectionPoint masCrossSectionPoints8[20]; /* 0xc0c */
+    u8 unk_d9c[0x4];
+    BalanceTrackAsCrossSectionPoint masCrossSectionPoints9[20]; /* 0xda0 */
+    u8 unk_f30[0x4];
+    BalanceTrackAsCrossSectionPoint masCrossSectionPoints10[20]; /* 0xf34 */
+    u8 unk_10c4[0x4];
+    BalanceTrackAsCrossSectionPoint masCrossSectionPoints11[20]; /* 0x10c8 */
+    u8 unk_1258[0x4];
+    BalanceTrackAsCrossSectionPoint masCrossSectionPoints12[20]; /* 0x125c */
+    u8 unk_13ec[0x4];
+    BalanceTrackAsCrossSectionPoint masCrossSectionPoints13[20]; /* 0x13f0 */
+    u8 unk_1580[0x4];
+    BalanceTrackAsCrossSectionPoint masCrossSectionPoints14[20]; /* 0x1584 */
+    u8 unk_1714[0x4];
+    BalanceTrackAsCrossSectionPoint masCrossSectionPoints15[20]; /* 0x1718 */
+    u8 unk_18a8[0x4];
+    BalanceTrackAsCrossSectionPoint masCrossSectionPoints16[20]; /* 0x18ac */
+    u8 unk_1a3c[0x4];
+    BalanceTrackAsCrossSectionPoint masCrossSectionPoints17[20]; /* 0x1a40 */
+    u8 unk_1bd0[0x4];
+    BalanceTrackAsCrossSectionPoint masCrossSectionPoints18[20]; /* 0x1bd4 */
+    u8 unk_1d64[0x4];
+    BalanceTrackAsCrossSectionPoint masCrossSectionPoints19[20]; /* 0x1d68 */
+    u8 unk_1ef8[0x4];
+    BalanceTrackAsCrossSectionPoint masCrossSectionPoints20[20]; /* 0x1efc */
+    u8 unk_208c[0x4];
+    BalanceTrackAsCrossSectionEdge masCrossSectionEdges1[20]; /* 0x2090 */
+    u8 unk_2180[0x4];
+    BalanceTrackAsCrossSectionEdge masCrossSectionEdges2[20]; /* 0x2184 */
+    u8 unk_2274[0x4];
+    BalanceTrackAsCrossSectionEdge masCrossSectionEdges3[20]; /* 0x2278 */
+    u8 unk_2368[0x4];
+    BalanceTrackAsCrossSectionEdge masCrossSectionEdges4[20]; /* 0x236c */
+    u8 unk_245c[0x4];
+    BalanceTrackAsCrossSectionEdge masCrossSectionEdges5[20]; /* 0x2460 */
+    u8 unk_2550[0x4];
+    BalanceTrackAsCrossSectionEdge masCrossSectionEdges6[20]; /* 0x2554 */
+    u8 unk_2644[0x4];
+    BalanceTrackAsCrossSectionEdge masCrossSectionEdges7[20]; /* 0x2648 */
+    u8 unk_2738[0x4];
+    BalanceTrackAsCrossSectionEdge masCrossSectionEdges8[20]; /* 0x273c */
+    u8 unk_282c[0x4];
+    BalanceTrackAsCrossSectionEdge masCrossSectionEdges9[20]; /* 0x2830 */
+    u8 unk_2920[0x4];
+    BalanceTrackAsCrossSectionEdge masCrossSectionEdges10[20]; /* 0x2924 */
+    u8 unk_2a14[0x4];
+    BalanceTrackAsCrossSectionEdge masCrossSectionEdges11[20]; /* 0x2a18 */
+    u8 unk_2b08[0x4];
+    BalanceTrackAsCrossSectionEdge masCrossSectionEdges12[20]; /* 0x2b0c */
+    u8 unk_2bfc[0x4];
+    BalanceTrackAsCrossSectionEdge masCrossSectionEdges13[20]; /* 0x2c00 */
+    u8 unk_2cf0[0x4];
+    BalanceTrackAsCrossSectionEdge masCrossSectionEdges14[20]; /* 0x2cf4 */
+    u8 unk_2de4[0x4];
+    BalanceTrackAsCrossSectionEdge masCrossSectionEdges15[20]; /* 0x2de8 */
+    u8 unk_2ed8[0x4];
+    BalanceTrackAsCrossSectionEdge masCrossSectionEdges16[20]; /* 0x2edc */
+    u8 unk_2fcc[0x4];
+    BalanceTrackAsCrossSectionEdge masCrossSectionEdges17[20]; /* 0x2fd0 */
+    u8 unk_30c0[0x4];
+    BalanceTrackAsCrossSectionEdge masCrossSectionEdges18[20]; /* 0x30c4 */
+    u8 unk_31b4[0x4];
+    BalanceTrackAsCrossSectionEdge masCrossSectionEdges19[20]; /* 0x31b8 */
+    u8 unk_32a8[0x4];
+    BalanceTrackAsCrossSectionEdge masCrossSectionEdges20[20]; /* 0x32ac */
+    u8 unk_339c[0x4];
+    BalanceTrackAsCrossSection masCrossSections[20]; /* 0x33a0 */
+    u8 unk_3530[0x4];
+    BalanceTrackAsCrossSectionSelect masCrossSectionSelects[20]; /* 0x3534 */
+    u8 unk_38a4[0x4];
+    BalanceTrackAsPylonControl masPylonControls[2]; /* 0x38a8 */
+    u8 unk_3a20[0x4];
+    BalanceTrackAsCarType masCarTypes[3]; /* 0x3a24 */
+    u8 unk_3a78[0x4];
+    u32 muiMaxCars;                      /* 0x3a7c */
+    s32 muiFrontCarTypeIndex;            /* 0x3a80 */
+    s32 muiCentreCarTypeIndex;           /* 0x3a84 */
+    s32 muiRearCarTypeIndex;             /* 0x3a88 */
+    float mfFrontCarSpacing;             /* 0x3a8c */
+    float mfStdCarSpacing;               /* 0x3a90 */
+    float mfEndCarSpacing;               /* 0x3a94 */
+    BalanceTrackAsTrackCollisionPoint masTrackCollisionPoints[6]; /* 0x3a98 */
+    u8 unk_3ac8[0x4];
+    float mfCurviness;                   /* 0x3acc */
+    float mfStraightDivisor;             /* 0x3ad0 */
+    float mfAutoBankDivisor;             /* 0x3ad4 */
+    float mfAccelerationPerHeight;       /* 0x3ad8 */
+    float mfUphillAccelModifier;         /* 0x3adc */
+    float mfDownhillAccelModifier;       /* 0x3ae0 */
+    float mfInitialPylonLoftHeight;      /* 0x3ae4 */
+    s32 muiMaxTrains;                    /* 0x3ae8 */
+    u32 muiTrainReleaseRate;             /* 0x3aec */
+    s32 mbSpecialIsTrough;               /* 0x3af0 */
+    s32 mbIsSuspendedCoaster;            /* 0x3af4 */
+    s32 mbNoAutoBanking;                 /* 0x3af8 */
+    s32 mbVisibleEndPylon;               /* 0x3afc */
+    s32 muiInvalidCrossSection;          /* 0x3b00 */
+    s32 muiWinchCrossSection;            /* 0x3b04 */
+    float mfTrackHeightAdjust;           /* 0x3b08 */
+    float mfWinchSpeed;                  /* 0x3b0c */
+    float mfMinSpeed;                    /* 0x3b10 */
+    float mfMaxSpeedAtMinSetting;        /* 0x3b14 */
+    float mfMaxSpeedAtMaxSetting;        /* 0x3b18 */
+    float mfFrictionMultiplier;          /* 0x3b1c */
+    float mfBendElevationLow;            /* 0x3b20 */
+    float mfBendElevationHigh;           /* 0x3b24 */
+    float mfGravityX;                    /* 0x3b28 */
+    float mfGravityY;                    /* 0x3b2c */
+    float mfGravityZ;                    /* 0x3b30 */
+    float mfForceMultiplier;             /* 0x3b34 */
+    float mfInitialSickness;             /* 0x3b38 */
+    float mfInitialExcitement;           /* 0x3b3c */
+    float mfInitialUncomfortableness;    /* 0x3b40 */
+    float mfGForceSicknessModifier;      /* 0x3b44 */
+    float mfUpsideDownSicknessModifier;  /* 0x3b48 */
+    float mfSpeedExcitementModifier;     /* 0x3b4c */
+    float mfGForceExcitementModifier;    /* 0x3b50 */
+    float mfUpsideDownExcitementModifier; /* 0x3b54 */
+    float mfBankExcitementModifier;      /* 0x3b58 */
+    float mfXGForceUncomfortableModifier; /* 0x3b5c */
+    float mfInvertedUncomfortableModifier; /* 0x3b60 */
+    float mfNormalScreamStartExciteDelta; /* 0x3b64 */
+    float mfTerrorScreamStartExciteDelta; /* 0x3b68 */
+    float mfNormalScreamSustainExcitement; /* 0x3b6c */
+    float mfTerrorScreamSustainExcitement; /* 0x3b70 */
+    float mfEntranceSizeInterval;        /* 0x3b74 */
+    s32 miTrackSectionMeshVerts;         /* 0x3b78 */
+    s32 miTrackSectionMeshFaces;         /* 0x3b7c */
+} BalanceTrack;
+
+/* One row of BalanceChallenges.mChallenges: the Challenges[i].* keys. */
+typedef struct BalanceChallengesChallenge {
+    s32 mType;                           /* 0x00 */
+    s32 mFollowupType;                   /* 0x04 */
+    s32 mTargetTime;                     /* 0x08 */
+    s32 mTargetVal;                      /* 0x0c */
+    s32 mTargetObj;                      /* 0x10 */
+    s32 mTargetObj2;                     /* 0x14 */
+    s32 mTargetStaffType;                /* 0x18 */
+    s32 mPrize;                          /* 0x1c */
+    s32 mCheckAtEndOnly;                 /* 0x20 */
+    s32 mIndependent;                    /* 0x24 */
+} BalanceChallengesChallenge;
+
+/* Values of data/challenges.sam, read into a stack object
+ * (vtable 0x700398) by the challenge loader 0x4d1ce0. Fields are the .sam keys in schema order
+ * (tools/samtool.py schema challenges); vtable and mSlotInfo belong to the
+ * balance-file base class (0x401030). */
+typedef struct BalanceChallenges {
+    void * vtable;                       /* 0x00 */
+    void * mSlotInfo;                    /* 0x04 */
+    u8 unk_08[0x4];
+    BalanceChallengesChallenge mChallenges[60]; /* 0x0c */
+    u8 unk_96c[0x4];
+} BalanceChallenges;
+
+/* Values of a theme's .sam (tickets, keys, park gate); heap object (vtable
+ * 0x702800) whose owner keeps it at +0x1c. Fields are the .sam keys in schema order
+ * (tools/samtool.py schema theme); vtable and mSlotInfo belong to the
+ * balance-file base class (0x401030). */
+typedef struct BalanceTheme {
+    void * vtable;                       /* 0x00 */
+    void * mSlotInfo;                    /* 0x04 */
+    u8 unk_08[0x4];
+    s32 mCanEarnTicketsInTheme;          /* 0x0c */
+    s32 mCanSpendTicketsInTheme;         /* 0x10 */
+    s32 mCostToEnter;                    /* 0x14 */
+    u32 mGateObjectId;                   /* 0x18 */
+} BalanceTheme;
+
+/* One row of AdvisorScoring.mMessageGroups: the MessageGroups[i].* keys. */
+typedef struct AdvisorScoringMessageGroup {
+    u32 mMinTimeSameMessage;             /* 0x00 */
+    s32 mSayOnlyOnce;                    /* 0x04 */
+    u32 mDiscardAfterSlaps;              /* 0x08 */
+} AdvisorScoringMessageGroup;
+
+/* data/advisor/advisor.sam: how the advisor scores and picks messages. A function-static
+ * singleton at 0xfb3540 (AdvisorScoring_Construct 0x59bea0, guard bit 0xfb2766 & 1);
+ * the balance-file base class sits at +0xc, so the .sam keys (tools/samtool.py schema
+ * advisor) start at +0x14. */
+typedef struct AdvisorScoring {
+    u8 unk_00[0xc];
+    void * vtable;                       /* 0x0c */
+    void * mSlotInfo;                    /* 0x10 */
+    u8 unk_14[0x4];
+    u32 mMinTimeAnyMessage;              /* 0x18 */
+    u32 mMinTimeSameMessage;             /* 0x1c */
+    u32 mMinScoreForConsideration;       /* 0x20 */
+    AdvisorScoringMessageGroup mMessageGroups[10]; /* 0x24 */
+    u8 unk_9c[0x4];
+    s32 mWelcomeScore;                   /* 0xa0 */
+    s32 mScorePerWaitingPerson;          /* 0xa4 */
+    s32 mCloseParkScore;                 /* 0xa8 */
+    s32 mScorePerThirstyPerson;          /* 0xac */
+    s32 mThirstierThan;                  /* 0xb0 */
+    s32 mScorePerHungryPerson;           /* 0xb4 */
+    s32 mHungrierThan;                   /* 0xb8 */
+    s32 mScorePerWornRide;               /* 0xbc */
+    s32 mPoorerStateThan;                /* 0xc0 */
+    s32 mScorePerBrokenRide;             /* 0xc4 */
+    s32 mIdealNumberOfRidesPerMechanic;  /* 0xc8 */
+    s32 mScorePerExtraRide;              /* 0xcc */
+    s32 mStaffHireHandymen1ScorePerLitterPoint; /* 0xd0 */
+    s32 mStaffHireHandymen1LitterPointCutoffLow; /* 0xd4 */
+    s32 mLitterPointCutoffHigh;          /* 0xd8 */
+    s32 mStaffHireHandymen2ScorePerLitterPoint; /* 0xdc */
+    s32 mStaffHireHandymen2LitterPointCutoffLow; /* 0xe0 */
+    s32 mIdealDevelopedCellsPerHandyman; /* 0xe4 */
+    s32 mStaffHireHandymen3ScorePerExtra10Cells; /* 0xe8 */
+    s32 mStaffHireHandymen3MinCellsForConsideration; /* 0xec */
+    s32 mStaffHireGuards1AtLeastThisBusy; /* 0xf0 */
+    s32 mStaffHireGuards1ScorePerExtraBusyPoint; /* 0xf4 */
+    s32 mStaffHireGuards2Score;          /* 0xf8 */
+    s32 mAdditionalPerMisbehavingKid;    /* 0xfc */
+    s32 mIdealDevelopedCellsPerGuard;    /* 0x100 */
+    s32 mStaffHireGuards3ScorePerExtra10Cells; /* 0x104 */
+    s32 mStaffHireGuards3MinCellsForConsideration; /* 0x108 */
+    s32 mStaffHireEntertainers1AtLeastThisBusy; /* 0x10c */
+    s32 mStaffHireEntertainers1ScorePerExtraBusyPoint; /* 0x110 */
+    s32 mMost;                           /* 0x114 */
+    s32 mPointsPerExtraPct;              /* 0x118 */
+    s32 mStaffHireResearchers2Score;     /* 0x11c */
+    u32 mStaffHireResearchers3MonthsIntoGameForConsideration; /* 0x120 */
+    s32 mSlowerThan;                     /* 0x124 */
+    s32 mStaffHireResearchers3Score;     /* 0x128 */
+    s32 mStaffSetMechanicAreaAtLeastThisMany; /* 0x12c */
+    s32 mStaffSetMechanicAreaDontBotherIfPatrolledUp; /* 0x130 */
+    s32 mStaffSetMechanicAreaScorePerUnpatrolledPct; /* 0x134 */
+    s32 mStaffSetMechanicAreaMonthsIntoGameForConsideration; /* 0x138 */
+    s32 mStaffMechanicCoverageScore;     /* 0x13c */
+    s32 mStaffMechanicCoverageScorePerNonCoveredPercent; /* 0x140 */
+    s32 mStaffSetHandymanAreaAtLeastThisMany; /* 0x144 */
+    s32 mStaffSetHandymanAreaDontBotherIfPatrolledUp; /* 0x148 */
+    s32 mStaffSetHandymanAreaScorePerUnpatrolledPct; /* 0x14c */
+    s32 mStaffSetHandymanAreaMonthsIntoGameForConsideration; /* 0x150 */
+    s32 mStaffHandymanCoverageScore;     /* 0x154 */
+    s32 mStaffHandymanCoverageScorePerNonCoveredPercent; /* 0x158 */
+    u32 mAcceptableTrouble;              /* 0x15c */
+    s32 mStaffGuardBuildCameraScore;     /* 0x160 */
+    s32 mStaffSetGuardAreaAtLeastThisMany; /* 0x164 */
+    s32 mStaffSetGuardAreaDontBotherIfPatrolledUp; /* 0x168 */
+    s32 mStaffSetGuardAreaScorePerUnpatrolledPct; /* 0x16c */
+    s32 mStaffSetGuardAreaMonthsIntoGameForConsideration; /* 0x170 */
+    s32 mStaffGuardCoverageScore;        /* 0x174 */
+    s32 mStaffGuardCoverageScorePerNonCoveredPercent; /* 0x178 */
+    s32 mStaffSetEntertainerAreaAtLeastThisMany; /* 0x17c */
+    s32 mStaffSetEntertainerAreaDontBotherIfPatrolledUp; /* 0x180 */
+    s32 mStaffSetEntertainerAreaScorePerUnpatrolledPct; /* 0x184 */
+    s32 mStaffSetEntertainerAreaMonthsIntoGameForConsideration; /* 0x188 */
+    s32 mStaffEntertainerCoverageScore;  /* 0x18c */
+    s32 mStaffEntertainerCoverageScorePerNonCoveredPercent; /* 0x190 */
+    s32 mStaffTrainMechanicsWorseThan;   /* 0x194 */
+    s32 mStaffTrainMechanicsScore;       /* 0x198 */
+    s32 mStaffTrainHandymenWorseThan;    /* 0x19c */
+    s32 mStaffTrainHandymenScore;        /* 0x1a0 */
+    s32 mStaffTrainGuardsWorseThan;      /* 0x1a4 */
+    s32 mStaffTrainGuardsScore;          /* 0x1a8 */
+    s32 mStaffTrainEntertainersWorseThan; /* 0x1ac */
+    s32 mStaffTrainEntertainersScore;    /* 0x1b0 */
+    s32 mStaffTrainResearchersWorseThan; /* 0x1b4 */
+    s32 mStaffTrainResearchersScore;     /* 0x1b8 */
+    s32 mStaffUnhappyMechanicsScore;     /* 0x1bc */
+    s32 mStaffUnhappyHandymenScore;      /* 0x1c0 */
+    s32 mStaffUnhappyGuardsScore;        /* 0x1c4 */
+    s32 mStaffUnhappyEntertainersScore;  /* 0x1c8 */
+    s32 mStaffUnhappyResearchersScore;   /* 0x1cc */
+    s32 mStaffVeryUnhappyMechanicsScore; /* 0x1d0 */
+    s32 mStaffVeryUnhappyHandymenScore;  /* 0x1d4 */
+    s32 mStaffVeryUnhappyGuardsScore;    /* 0x1d8 */
+    s32 mStaffVeryUnhappyEntertainersScore; /* 0x1dc */
+    s32 mStaffVeryUnhappyResearchersScore; /* 0x1e0 */
+    s32 mStaffStrikingMechanicsScore;    /* 0x1e4 */
+    s32 mStaffStrikingHandymenScore;     /* 0x1e8 */
+    s32 mStaffStrikingGuardsScore;       /* 0x1ec */
+    s32 mStaffStrikingEntertainersScore; /* 0x1f0 */
+    s32 mStaffStrikingResearchersScore;  /* 0x1f4 */
+    s32 mStaffHappierMechanicsScore;     /* 0x1f8 */
+    s32 mStaffHappierHandymenScore;      /* 0x1fc */
+    s32 mStaffHappierGuardsScore;        /* 0x200 */
+    s32 mStaffHappierEntertainersScore;  /* 0x204 */
+    s32 mStaffHappierResearchersScore;   /* 0x208 */
+    s32 mStrikeEndBadMechanicsScore;     /* 0x20c */
+    s32 mStrikeEndBadHandymenScore;      /* 0x210 */
+    s32 mStrikeEndBadGuardsScore;        /* 0x214 */
+    s32 mStrikeEndBadEntertainersScore;  /* 0x218 */
+    s32 mStrikeEndBadResearchersScore;   /* 0x21c */
+    s32 mRidesPoorSelectionPoorerThan;   /* 0x220 */
+    s32 mMoreRidesThan;                  /* 0x224 */
+    s32 mRidesPoorSelectionScore;        /* 0x228 */
+    s32 mRidesResearchMoreScore;         /* 0x22c */
+    s32 mRidesBuildRidesScore;           /* 0x230 */
+    s32 mRidesBuildRidesAdditionalPerDay; /* 0x234 */
+    u32 mRidesNoUpgradesMonthsIntoGameForConsideration; /* 0x238 */
+    s32 mRidesNoUpgradesScore;           /* 0x23c */
+    s32 mLessAvailableThan;              /* 0x240 */
+    s32 mRidesMoreUpgradesScore;         /* 0x244 */
+    s32 mRidesBreakdownImminentScore;    /* 0x248 */
+    s32 mRidesBreakdownNoMechanicsScore; /* 0x24c */
+    s32 mRidesBreakdownBusyMechanicsScore; /* 0x250 */
+    s32 mRidesBreakdownMechanicOnItScore; /* 0x254 */
+    s32 mShopsPoorSelectionPoorerThan;   /* 0x258 */
+    s32 mMoreShopsThan;                  /* 0x25c */
+    s32 mShopsPoorSelectionScore;        /* 0x260 */
+    s32 mShopsResearchMoreScore;         /* 0x264 */
+    s32 mShopsBuildShopsScore;           /* 0x268 */
+    s32 mShopsBuildShopsAdditionalPerDay; /* 0x26c */
+    float mShopsPerRideRatio;            /* 0x270 */
+    s32 mShopsBuildMoreShopsWealthMoreThan; /* 0x274 */
+    s32 mShopsBuildMoreShopsScore;       /* 0x278 */
+    s32 mSideshowsPoorSelectionPoorerThan; /* 0x27c */
+    s32 mMoreSideshowsThan;              /* 0x280 */
+    s32 mSideshowsPoorSelectionScore;    /* 0x284 */
+    s32 mSideshowsResearchMoreScore;     /* 0x288 */
+    s32 mSideshowsBuildSideshowsScore;   /* 0x28c */
+    s32 mSideshowsBuildSideshowsAdditionalPerDay; /* 0x290 */
+    float mSideshowsPerRideRatio;        /* 0x294 */
+    s32 mSideshowsBuildMoreSideshowsWealthMoreThan; /* 0x298 */
+    s32 mSideshowsBuildMoreSideshowsScore; /* 0x29c */
+    s32 mFeaturesPoorSelectionPoorerThan; /* 0x2a0 */
+    s32 mMoreFeaturesThan;               /* 0x2a4 */
+    s32 mFeaturesPoorSelectionScore;     /* 0x2a8 */
+    s32 mFeaturesResearchMoreScore;      /* 0x2ac */
+    s32 mFeaturesBuildFeaturesScore;     /* 0x2b0 */
+    s32 mFeaturesBuildFeaturesAdditionalPerDay; /* 0x2b4 */
+    s32 mNeedingMoreThan;                /* 0x2b8 */
+    s32 mMorePeopleThanThisNeeding;      /* 0x2bc */
+    s32 mFeaturesNoToiletsScore;         /* 0x2c0 */
+    s32 mFeaturesFarToToiletsScore;      /* 0x2c4 */
+    float mAverageQueueLongerThan;       /* 0x2c8 */
+    s32 mFeaturesNotEnoughToiletsScore;  /* 0x2cc */
+    s32 mFeaturesDirtyToilets1FilthierThan; /* 0x2d0 */
+    s32 mFeaturesDirtyToilets1PointsPerFilthPct; /* 0x2d4 */
+    s32 mFeaturesDirtyToilets2FilthierThan; /* 0x2d8 */
+    s32 mFeaturesDirtyToilets2PointsPerFilthPct; /* 0x2dc */
+    s32 mFeaturesDirtyToilets3FilthierThan; /* 0x2e0 */
+    s32 mFeaturesDirtyToilets3PointsPerFilthPct; /* 0x2e4 */
+    s32 mFeaturesDirtyToilets4FilthierThan; /* 0x2e8 */
+    s32 mFeaturesDirtyToilets4PointsPerFilthPct; /* 0x2ec */
+    s32 mTicketSatisfactionUnder;        /* 0x2f0 */
+    s32 mPricingTicketTooExpensiveScore; /* 0x2f4 */
+    s32 mTicketSatisfactionOver;         /* 0x2f8 */
+    s32 mPricingTicketTooCheapScore;     /* 0x2fc */
+    s32 mResearchRideResearchedScore;    /* 0x300 */
+    s32 mResearchAddonResearchedScore;   /* 0x304 */
+    s32 mResearchShopResearchedScore;    /* 0x308 */
+    s32 mResearchSideshowResearchedScore; /* 0x30c */
+    s32 mResearchFeatureResearchedScore; /* 0x310 */
+    s32 mMoreThanThisGotAway;            /* 0x314 */
+    s32 mScorePerGetAway;                /* 0x318 */
+    s32 mGeneralWonGoldenTicketScore;    /* 0x31c */
+    s32 mAwardGivenScore;                /* 0x320 */
+    s32 mAwardMovedScore;                /* 0x324 */
+    s32 mHelpMessageScore;               /* 0x328 */
+    s32 mContextHelpScore;               /* 0x32c */
+    s32 mMoreMoneyThan;                  /* 0x330 */
+    s32 mWealthHighScore;                /* 0x334 */
+    float mMargin;                       /* 0x338 */
+    s32 mWealthHighRepayLoanScore;       /* 0x33c */
+    s32 mTakeLoanScore;                  /* 0x340 */
+    s32 mInTheRedSixMonthsScore;         /* 0x344 */
+    s32 mInTheRedThreeMonthsScore;       /* 0x348 */
+    s32 mInTheRedMonthLeftScore;         /* 0x34c */
+    s32 mBankruptedScore;                /* 0x350 */
+    float mWagesTimesHigherThanIncome;   /* 0x354 */
+    s32 mAverageOverMonths;              /* 0x358 */
+    s32 mWagesHighScore;                 /* 0x35c */
+    s32 mLotsHandymanFudgeFactor;        /* 0x360 */
+    s32 mLotsHandymanScore;              /* 0x364 */
+    s32 mLotsEntertainersFudgeFactor;    /* 0x368 */
+    s32 mLotsEntertainersScore;          /* 0x36c */
+    s32 mLotsMechanicsFudgeFactor;       /* 0x370 */
+    s32 mLotsMechanicsScore;             /* 0x374 */
+    s32 mLotsSecurityFudgeFactor;        /* 0x378 */
+    s32 mLotsSecurityScore;              /* 0x37c */
+    s32 mLotsResearchersFudgeFactor;     /* 0x380 */
+    s32 mLotsResearchersScore;           /* 0x384 */
+    s32 mQueueUnconnectedScore;          /* 0x388 */
+    s32 mMaxHandymenMoreThan;            /* 0x38c */
+    s32 mMaxHandymenScore;               /* 0x390 */
+    s32 mMaxHandymenV2Score;             /* 0x394 */
+    s32 mMaxEntertainersMoreThan;        /* 0x398 */
+    s32 mMaxEntertainersScore;           /* 0x39c */
+    s32 mMaxEntertainersV2Score;         /* 0x3a0 */
+    s32 mMaxMechanicsMoreThan;           /* 0x3a4 */
+    s32 mMaxMechanicsScore;              /* 0x3a8 */
+    s32 mMaxMechanicsV2Score;            /* 0x3ac */
+    s32 mMaxGuardsMoreThan;              /* 0x3b0 */
+    s32 mMaxGuardsScore;                 /* 0x3b4 */
+    s32 mMaxGuardsV2Score;               /* 0x3b8 */
+    s32 mMaxResearchersMoreThan;         /* 0x3bc */
+    s32 mMaxResearchersScore;            /* 0x3c0 */
+    s32 mMaxResearchersV2Score;          /* 0x3c4 */
+    s32 mMaxMonths;                      /* 0x3c8 */
+    s32 mDroppedPercent;                 /* 0x3cc */
+    s32 mHypeNewparkScore;               /* 0x3d0 */
+    s32 mPrankSbombScore;                /* 0x3d4 */
+    s32 mPrankLitterScore;               /* 0x3d8 */
+    s32 mPrankBalloonScore;              /* 0x3dc */
+    s32 mParkNowOpenScore;               /* 0x3e0 */
+    s32 mParkNowClosedScore;             /* 0x3e4 */
+    s32 mUpgradeHireMechanicScore;       /* 0x3e8 */
+    s32 mUpgradeStikingMechanicsScore;   /* 0x3ec */
+    s32 mNewUpgradeNoMechanicScore;      /* 0x3f0 */
+    s32 mNewResearchGroupRideScore;      /* 0x3f4 */
+    s32 mNewResearchGroupShopScore;      /* 0x3f8 */
+    s32 mNewResearchGroupSideshowScore;  /* 0x3fc */
+    s32 mNewResearchGroupFeatureScore;   /* 0x400 */
+    s32 mBusArrivedScore;                /* 0x404 */
+    s32 mPlaneArrivedScore;              /* 0x408 */
+    s32 mBoatArrivedScore;               /* 0x40c */
+    s32 mHowBigIsBig;                    /* 0x410 */
+    s32 mBigBusloadArrivedScore;         /* 0x414 */
+    s32 mAverageScarierThan;             /* 0x418 */
+    s32 mMinimumRides;                   /* 0x41c */
+    s32 mVisitorsTooScaredScore;         /* 0x420 */
+    s32 mOnlineNewItemScore;             /* 0x424 */
+    s32 mOnlineMessageScore;             /* 0x428 */
+    s32 mMinimumStaff;                   /* 0x42c */
+    s32 mCongratStaffHappyHappierThan;   /* 0x430 */
+    s32 mCongratStaffHappyScore;         /* 0x434 */
+    s32 mMinimumVisitors;                /* 0x438 */
+    s32 mCongratVisitorsHappyHappierThan; /* 0x43c */
+    s32 mCongratVisitorsHappyScore;      /* 0x440 */
+    s32 mMinimumGuards;                  /* 0x444 */
+    s32 mCongratSecurityTrainedBetterThan; /* 0x448 */
+    s32 mCongratSecurityTrainedScore;    /* 0x44c */
+    s32 mMinimumResearchers;             /* 0x450 */
+    s32 mCongratResearchersTrainedBetterThan; /* 0x454 */
+    s32 mCongratResearchersTrainedScore; /* 0x458 */
+    s32 mMinimumHandymen;                /* 0x45c */
+    s32 mCongratHandymenTrainedBetterThan; /* 0x460 */
+    s32 mCongratHandymenTrainedScore;    /* 0x464 */
+    s32 mMinimumEntertainers;            /* 0x468 */
+    s32 mCongratEntertainersTrainedBetterThan; /* 0x46c */
+    s32 mCongratEntertainersTrainedScore; /* 0x470 */
+    s32 mMinimumMechanics;               /* 0x474 */
+    s32 mCongratMechanicsTrainedBetterThan; /* 0x478 */
+    s32 mCongratMechanicsTrainedScore;   /* 0x47c */
+    s32 mCongratPublishParkValueBetterThan; /* 0x480 */
+    s32 mCongratPublishParkHappinessGreaterThan; /* 0x484 */
+    s32 mCongratPublishParkVisitorsMoreThan; /* 0x488 */
+    s32 mCongratPublishParkScore;        /* 0x48c */
+    s32 mCongratSendPostcardValueBetterThan; /* 0x490 */
+    s32 mCongratSendPostcardHappinessGreaterThan; /* 0x494 */
+    s32 mCongratSendPostcardVisitorsMoreThan; /* 0x498 */
+    s32 mCongratSendPostcardScore;       /* 0x49c */
+    s32 mCongratBalloonsMoreThan;        /* 0x4a0 */
+    s32 mCongratBalloonsScore;           /* 0x4a4 */
+    s32 mCongratCostumesMoreThan;        /* 0x4a8 */
+    s32 mCongratCostumesScore;           /* 0x4ac */
+    s32 mCongratAllCompleteScore;        /* 0x4b0 */
+    s32 mCongratAllCompleteLeavingScore; /* 0x4b4 */
+    s32 mPctOfStaffTired;                /* 0x4b8 */
+    s32 mNeedStaffRoomScore;             /* 0x4bc */
+    s32 mHireStaffGeneralScore;          /* 0x4c0 */
+    s32 mMinVisitorsEver;                /* 0x4c4 */
+    s32 mSetPatrolsGeneralMinStaffForMessage; /* 0x4c8 */
+    s32 mSetPatrolsGeneralScore;         /* 0x4cc */
+    s32 mTrainStaffGeneralMinStaffForMessage; /* 0x4d0 */
+    s32 mTrainStaffGeneralScore;         /* 0x4d4 */
+    s32 mFoodPoorValueValueWorseThan;    /* 0x4d8 */
+    s32 mFoodPoorValueScorePerPoint;     /* 0x4dc */
+    s32 mShopsPoorValueValueWorseThan;   /* 0x4e0 */
+    s32 mShopsPoorValueScorePerPoint;    /* 0x4e4 */
+    s32 mRestaurantPoorValueValueWorseThan; /* 0x4e8 */
+    s32 mRestaurantPoorValueScorePerPoint; /* 0x4ec */
+    s32 mDrinksPoorValueValueWorseThan;  /* 0x4f0 */
+    s32 mDrinksPoorValueScorePerPoint;   /* 0x4f4 */
+    s32 mSideshowsPoorValueValueWorseThan; /* 0x4f8 */
+    s32 mSideshowsPoorValueScorePerPoint; /* 0x4fc */
+    s32 mFoodPoorSatisfactionSatisfactionWorseThan; /* 0x500 */
+    s32 mFoodPoorSatisfactionScorePerPoint; /* 0x504 */
+    s32 mShopsPoorSatisfactionSatisfactionWorseThan; /* 0x508 */
+    s32 mShopsPoorSatisfactionScorePerPoint; /* 0x50c */
+    s32 mRestaurantPoorSatisfactionSatisfactionWorseThan; /* 0x510 */
+    s32 mRestaurantPoorSatisfactionScorePerPoint; /* 0x514 */
+    s32 mDrinksPoorSatisfactionSatisfactionWorseThan; /* 0x518 */
+    s32 mDrinksPoorSatisfactionScorePerPoint; /* 0x51c */
+    s32 mSideshowsPoorSatisfactionSatisfactionWorseThan; /* 0x520 */
+    s32 mSideshowsPoorSatisfactionScorePerPoint; /* 0x524 */
+    s32 mFoodGreatValueValueBetterThan;  /* 0x528 */
+    s32 mFoodGreatValueScorePerPoint;    /* 0x52c */
+    s32 mShopsGreatValueValueBetterThan; /* 0x530 */
+    s32 mShopsGreatValueScorePerPoint;   /* 0x534 */
+    s32 mRestaurantGreatValueValueBetterThan; /* 0x538 */
+    s32 mRestaurantGreatValueScorePerPoint; /* 0x53c */
+    s32 mDrinksGreatValueValueBetterThan; /* 0x540 */
+    s32 mDrinksGreatValueScorePerPoint;  /* 0x544 */
+    s32 mSideshowsGreatValueValueBetterThan; /* 0x548 */
+    s32 mSideshowsGreatValueScorePerPoint; /* 0x54c */
+    s32 mFoodGreatSatisfactionSatisfactionBetterThan; /* 0x550 */
+    s32 mFoodGreatSatisfactionScorePerPoint; /* 0x554 */
+    s32 mShopsGreatSatisfactionSatisfactionBetterThan; /* 0x558 */
+    s32 mShopsGreatSatisfactionScorePerPoint; /* 0x55c */
+    s32 mRestaurantGreatSatisfactionSatisfactionBetterThan; /* 0x560 */
+    s32 mRestaurantGreatSatisfactionScorePerPoint; /* 0x564 */
+    s32 mDrinksGreatSatisfactionSatisfactionBetterThan; /* 0x568 */
+    s32 mDrinksGreatSatisfactionScorePerPoint; /* 0x56c */
+    s32 mSideshowsGreatSatisfactionSatisfactionBetterThan; /* 0x570 */
+    s32 mSideshowsGreatSatisfactionScorePerPoint; /* 0x574 */
+    s32 mRideCondemnedScore;             /* 0x578 */
+    u32 mAtLeastThisManyRides;           /* 0x57c */
+    s32 mRidesClosedMoreThanThisPercentClosed; /* 0x580 */
+    s32 mRidesClosedScore;               /* 0x584 */
+    s32 mShopsClosedMoreThanThisPercentClosed; /* 0x588 */
+    s32 mShopsClosedScore;               /* 0x58c */
+    s32 mSideshowsClosedMoreThanThisPercentClosed; /* 0x590 */
+    s32 mSideshowsClosedScore;           /* 0x594 */
+    s32 mToiletsClosedMoreThanThisPercentClosed; /* 0x598 */
+    s32 mToiletsClosedScore;             /* 0x59c */
+    s32 mStaffroomClosedMoreThanThisPercentClosed; /* 0x5a0 */
+    s32 mStaffroomClosedScore;           /* 0x5a4 */
+    s32 mMorePrankstersThan;             /* 0x5a8 */
+    s32 mLotsOfPranksScore;              /* 0x5ac */
+    s32 mRideExitBlockedScore;           /* 0x5b0 */
+    s32 mWonFirstGoldenTicketScore;      /* 0x5b4 */
+    float mGoldTicketNearToFirstOnePeopleMultiplier; /* 0x5b8 */
+    s32 mGoldTicketNearToFirstOneScore;  /* 0x5bc */
+    s32 mGoldTicketCluesForRemainderScore; /* 0x5c0 */
+    float mGoldTicketNearToXPeepsPeopleMultiplier; /* 0x5c4 */
+    s32 mGoldTicketNearToXPeepsScore;    /* 0x5c8 */
+    float mHappinessMultiplier;          /* 0x5cc */
+    s32 mGoldTicketNearToXHappinessScore; /* 0x5d0 */
+    float mProfitMultiplier;             /* 0x5d4 */
+    s32 mGoldTicketNearToXProfitScore;   /* 0x5d8 */
+    u32 mTutorialUIPanelAfterTime;       /* 0x5dc */
+    u32 mTutorialUIPanelCutoffTime;      /* 0x5e0 */
+    s32 mTutorialUIPanelScore;           /* 0x5e4 */
+    u32 mTutorialExplainTooltipsAfterTime; /* 0x5e8 */
+    u32 mTutorialExplainTooltipsCutoffTime; /* 0x5ec */
+    s32 mTutorialExplainTooltipsScore;   /* 0x5f0 */
+    s32 mGoldTicketExplanationScore;     /* 0x5f4 */
+    s32 mPrebuiltParkScore;              /* 0x5f8 */
+    s32 mGTAllResearchedAHigherPctThanThis; /* 0x5fc */
+    s32 mGTAllResearchedAScore;          /* 0x600 */
+    s32 mGTAllResearchedBHigherPctThanThis; /* 0x604 */
+    s32 mGTAllResearchedBScore;          /* 0x608 */
+    s32 mGTAllResearchedCHigherPctThanThis; /* 0x60c */
+    s32 mGTAllResearchedCScore;          /* 0x610 */
+    s32 mGTAmountVisitorsAHigherPctThanThis; /* 0x614 */
+    s32 mGTAmountVisitorsAScore;         /* 0x618 */
+    s32 mGTAmountVisitorsBHigherPctThanThis; /* 0x61c */
+    s32 mGTAmountVisitorsBScore;         /* 0x620 */
+    s32 mGTAmountVisitorsCHigherPctThanThis; /* 0x624 */
+    s32 mGTAmountVisitorsCScore;         /* 0x628 */
+    s32 mChallengeScore;                 /* 0x62c */
+    u32 mDaysForStaff;                   /* 0x630 */
+    u32 mDaysForObjects;                 /* 0x634 */
+} AdvisorScoring;
+
 #ifndef __GHIDRA__
 #define TPW_CHECK(name, cond) typedef char tpw_check_##name[(cond) ? 1 : -1]
 #define TPW_OFF(t, f) ((u32)(unsigned long)&((t *)0)->f)
@@ -1901,6 +2591,589 @@ TPW_CHECK(BalanceHoardings_vtable, TPW_OFF(BalanceHoardings, vtable) == 0x0);
 TPW_CHECK(BalanceHoardings_mSlotInfo, TPW_OFF(BalanceHoardings, mSlotInfo) == 0x4);
 TPW_CHECK(BalanceHoardings_mHoardingClicks, TPW_OFF(BalanceHoardings, mHoardingClicks) == 0xc);
 TPW_CHECK(BalanceHoardings_size, sizeof(BalanceHoardings) == 0x210);
+TPW_CHECK(BalanceTrackAsTextureData_mpcTextureFilename, TPW_OFF(BalanceTrackAsTextureData, mpcTextureFilename) == 0x0);
+TPW_CHECK(BalanceTrackAsTextureData_mbIsSelfIlluminating, TPW_OFF(BalanceTrackAsTextureData, mbIsSelfIlluminating) == 0x4);
+TPW_CHECK(BalanceTrackAsTextureData_mfScrollRate, TPW_OFF(BalanceTrackAsTextureData, mfScrollRate) == 0x8);
+TPW_CHECK(BalanceTrackAsTextureData_size, sizeof(BalanceTrackAsTextureData) == 0xc);
+TPW_CHECK(BalanceTrackAsCrossSectionPoint_mfX, TPW_OFF(BalanceTrackAsCrossSectionPoint, mfX) == 0x0);
+TPW_CHECK(BalanceTrackAsCrossSectionPoint_mfY, TPW_OFF(BalanceTrackAsCrossSectionPoint, mfY) == 0x4);
+TPW_CHECK(BalanceTrackAsCrossSectionPoint_mfU, TPW_OFF(BalanceTrackAsCrossSectionPoint, mfU) == 0x8);
+TPW_CHECK(BalanceTrackAsCrossSectionPoint_mfNx, TPW_OFF(BalanceTrackAsCrossSectionPoint, mfNx) == 0xc);
+TPW_CHECK(BalanceTrackAsCrossSectionPoint_mfNy, TPW_OFF(BalanceTrackAsCrossSectionPoint, mfNy) == 0x10);
+TPW_CHECK(BalanceTrackAsCrossSectionPoint_size, sizeof(BalanceTrackAsCrossSectionPoint) == 0x14);
+TPW_CHECK(BalanceTrackAsCrossSectionEdge_musTexture, TPW_OFF(BalanceTrackAsCrossSectionEdge, musTexture) == 0x0);
+TPW_CHECK(BalanceTrackAsCrossSectionEdge_musCSPoint1, TPW_OFF(BalanceTrackAsCrossSectionEdge, musCSPoint1) == 0x4);
+TPW_CHECK(BalanceTrackAsCrossSectionEdge_musCSPoint2, TPW_OFF(BalanceTrackAsCrossSectionEdge, musCSPoint2) == 0x8);
+TPW_CHECK(BalanceTrackAsCrossSectionEdge_size, sizeof(BalanceTrackAsCrossSectionEdge) == 0xc);
+TPW_CHECK(BalanceTrackAsCrossSection_musCSPointBlockIndex, TPW_OFF(BalanceTrackAsCrossSection, musCSPointBlockIndex) == 0x0);
+TPW_CHECK(BalanceTrackAsCrossSection_musCSEdgeBlockIndex, TPW_OFF(BalanceTrackAsCrossSection, musCSEdgeBlockIndex) == 0x4);
+TPW_CHECK(BalanceTrackAsCrossSection_musTrackEdge, TPW_OFF(BalanceTrackAsCrossSection, musTrackEdge) == 0x8);
+TPW_CHECK(BalanceTrackAsCrossSection_musBlendToCSPointBlockIndex, TPW_OFF(BalanceTrackAsCrossSection, musBlendToCSPointBlockIndex) == 0xc);
+TPW_CHECK(BalanceTrackAsCrossSection_mfBlendLength, TPW_OFF(BalanceTrackAsCrossSection, mfBlendLength) == 0x10);
+TPW_CHECK(BalanceTrackAsCrossSection_size, sizeof(BalanceTrackAsCrossSection) == 0x14);
+TPW_CHECK(BalanceTrackAsCrossSectionSelect_mfSpeedRangeMin, TPW_OFF(BalanceTrackAsCrossSectionSelect, mfSpeedRangeMin) == 0x0);
+TPW_CHECK(BalanceTrackAsCrossSectionSelect_mfSpeedRangeMax, TPW_OFF(BalanceTrackAsCrossSectionSelect, mfSpeedRangeMax) == 0x4);
+TPW_CHECK(BalanceTrackAsCrossSectionSelect_mfDirectionRangeMin, TPW_OFF(BalanceTrackAsCrossSectionSelect, mfDirectionRangeMin) == 0x8);
+TPW_CHECK(BalanceTrackAsCrossSectionSelect_mfDirectionRangeMax, TPW_OFF(BalanceTrackAsCrossSectionSelect, mfDirectionRangeMax) == 0xc);
+TPW_CHECK(BalanceTrackAsCrossSectionSelect_mfPitchRangeMin, TPW_OFF(BalanceTrackAsCrossSectionSelect, mfPitchRangeMin) == 0x10);
+TPW_CHECK(BalanceTrackAsCrossSectionSelect_mfPitchRangeMax, TPW_OFF(BalanceTrackAsCrossSectionSelect, mfPitchRangeMax) == 0x14);
+TPW_CHECK(BalanceTrackAsCrossSectionSelect_mfBankRangeMin, TPW_OFF(BalanceTrackAsCrossSectionSelect, mfBankRangeMin) == 0x18);
+TPW_CHECK(BalanceTrackAsCrossSectionSelect_mfBankRangeMax, TPW_OFF(BalanceTrackAsCrossSectionSelect, mfBankRangeMax) == 0x1c);
+TPW_CHECK(BalanceTrackAsCrossSectionSelect_musCrossSectionIndex, TPW_OFF(BalanceTrackAsCrossSectionSelect, musCrossSectionIndex) == 0x20);
+TPW_CHECK(BalanceTrackAsCrossSectionSelect_musBlendFromCrossSectionIndex, TPW_OFF(BalanceTrackAsCrossSectionSelect, musBlendFromCrossSectionIndex) == 0x24);
+TPW_CHECK(BalanceTrackAsCrossSectionSelect_musBlendToCrossSectionIndex, TPW_OFF(BalanceTrackAsCrossSectionSelect, musBlendToCrossSectionIndex) == 0x28);
+TPW_CHECK(BalanceTrackAsCrossSectionSelect_size, sizeof(BalanceTrackAsCrossSectionSelect) == 0x2c);
+TPW_CHECK(BalanceTrackAsPylonControl_mpcMeshFilename, TPW_OFF(BalanceTrackAsPylonControl, mpcMeshFilename) == 0x0);
+TPW_CHECK(BalanceTrackAsPylonControl_muiPylonTypeUniqueID, TPW_OFF(BalanceTrackAsPylonControl, muiPylonTypeUniqueID) == 0x4);
+TPW_CHECK(BalanceTrackAsPylonControl_mbDontDisableBaseOnStack, TPW_OFF(BalanceTrackAsPylonControl, mbDontDisableBaseOnStack) == 0x8);
+TPW_CHECK(BalanceTrackAsPylonControl_mfCollisionPossibleRadius, TPW_OFF(BalanceTrackAsPylonControl, mfCollisionPossibleRadius) == 0xc);
+TPW_CHECK(BalanceTrackAsPylonControl_mfPylonStraightDotThreshold, TPW_OFF(BalanceTrackAsPylonControl, mfPylonStraightDotThreshold) == 0x10);
+TPW_CHECK(BalanceTrackAsPylonControl_muiPylonWidthCells, TPW_OFF(BalanceTrackAsPylonControl, muiPylonWidthCells) == 0x14);
+TPW_CHECK(BalanceTrackAsPylonControl_muiPylonLengthCells, TPW_OFF(BalanceTrackAsPylonControl, muiPylonLengthCells) == 0x18);
+TPW_CHECK(BalanceTrackAsPylonControl_muiMaxStackedPylons, TPW_OFF(BalanceTrackAsPylonControl, muiMaxStackedPylons) == 0x1c);
+TPW_CHECK(BalanceTrackAsPylonControl_mfMinHeight, TPW_OFF(BalanceTrackAsPylonControl, mfMinHeight) == 0x20);
+TPW_CHECK(BalanceTrackAsPylonControl_mfMaxHeight, TPW_OFF(BalanceTrackAsPylonControl, mfMaxHeight) == 0x24);
+TPW_CHECK(BalanceTrackAsPylonControl_mfMaxHeightDiffPerGSquareDist, TPW_OFF(BalanceTrackAsPylonControl, mfMaxHeightDiffPerGSquareDist) == 0x28);
+TPW_CHECK(BalanceTrackAsPylonControl_mfEntranceMinXZAngleAtMinDist, TPW_OFF(BalanceTrackAsPylonControl, mfEntranceMinXZAngleAtMinDist) == 0x2c);
+TPW_CHECK(BalanceTrackAsPylonControl_mfEntranceMaxXZAngleAtMinDist, TPW_OFF(BalanceTrackAsPylonControl, mfEntranceMaxXZAngleAtMinDist) == 0x30);
+TPW_CHECK(BalanceTrackAsPylonControl_mfEntranceMinXZAngleAtMaxDist, TPW_OFF(BalanceTrackAsPylonControl, mfEntranceMinXZAngleAtMaxDist) == 0x34);
+TPW_CHECK(BalanceTrackAsPylonControl_mfEntranceMaxXZAngleAtMaxDist, TPW_OFF(BalanceTrackAsPylonControl, mfEntranceMaxXZAngleAtMaxDist) == 0x38);
+TPW_CHECK(BalanceTrackAsPylonControl_mfMinXZAngleAtMinDist, TPW_OFF(BalanceTrackAsPylonControl, mfMinXZAngleAtMinDist) == 0x3c);
+TPW_CHECK(BalanceTrackAsPylonControl_mfMaxXZAngleAtMinDist, TPW_OFF(BalanceTrackAsPylonControl, mfMaxXZAngleAtMinDist) == 0x40);
+TPW_CHECK(BalanceTrackAsPylonControl_mfMinXZAngleAtMaxDist, TPW_OFF(BalanceTrackAsPylonControl, mfMinXZAngleAtMaxDist) == 0x44);
+TPW_CHECK(BalanceTrackAsPylonControl_mfMaxXZAngleAtMaxDist, TPW_OFF(BalanceTrackAsPylonControl, mfMaxXZAngleAtMaxDist) == 0x48);
+TPW_CHECK(BalanceTrackAsPylonControl_mfMaxRotnAngleDeviance, TPW_OFF(BalanceTrackAsPylonControl, mfMaxRotnAngleDeviance) == 0x4c);
+TPW_CHECK(BalanceTrackAsPylonControl_mfMaxLoopRotnAngleDeviance, TPW_OFF(BalanceTrackAsPylonControl, mfMaxLoopRotnAngleDeviance) == 0x50);
+TPW_CHECK(BalanceTrackAsPylonControl_muiMinPlaceDist, TPW_OFF(BalanceTrackAsPylonControl, muiMinPlaceDist) == 0x54);
+TPW_CHECK(BalanceTrackAsPylonControl_muiMaxPlaceDist, TPW_OFF(BalanceTrackAsPylonControl, muiMaxPlaceDist) == 0x58);
+TPW_CHECK(BalanceTrackAsPylonControl_mfMaxLoopHeightDifference, TPW_OFF(BalanceTrackAsPylonControl, mfMaxLoopHeightDifference) == 0x5c);
+TPW_CHECK(BalanceTrackAsPylonControl_mfCostPerUnit, TPW_OFF(BalanceTrackAsPylonControl, mfCostPerUnit) == 0x60);
+TPW_CHECK(BalanceTrackAsPylonControl_mfCostPer2DLength, TPW_OFF(BalanceTrackAsPylonControl, mfCostPer2DLength) == 0x64);
+TPW_CHECK(BalanceTrackAsPylonControl_mfCostPerHeight, TPW_OFF(BalanceTrackAsPylonControl, mfCostPerHeight) == 0x68);
+TPW_CHECK(BalanceTrackAsPylonControl_mfLoftAnimStartCap, TPW_OFF(BalanceTrackAsPylonControl, mfLoftAnimStartCap) == 0x6c);
+TPW_CHECK(BalanceTrackAsPylonControl_mfLoftAnimEndCap, TPW_OFF(BalanceTrackAsPylonControl, mfLoftAnimEndCap) == 0x70);
+TPW_CHECK(BalanceTrackAsPylonControl_mfLoftAnimMultiplier, TPW_OFF(BalanceTrackAsPylonControl, mfLoftAnimMultiplier) == 0x74);
+TPW_CHECK(BalanceTrackAsPylonControl_mfLoftAnimAdd, TPW_OFF(BalanceTrackAsPylonControl, mfLoftAnimAdd) == 0x78);
+TPW_CHECK(BalanceTrackAsPylonControl_mfRotateAnimStartCap, TPW_OFF(BalanceTrackAsPylonControl, mfRotateAnimStartCap) == 0x7c);
+TPW_CHECK(BalanceTrackAsPylonControl_mfRotateAnimEndCap, TPW_OFF(BalanceTrackAsPylonControl, mfRotateAnimEndCap) == 0x80);
+TPW_CHECK(BalanceTrackAsPylonControl_mfRotateAnimMultiplier, TPW_OFF(BalanceTrackAsPylonControl, mfRotateAnimMultiplier) == 0x84);
+TPW_CHECK(BalanceTrackAsPylonControl_mfRotateAnimAdd, TPW_OFF(BalanceTrackAsPylonControl, mfRotateAnimAdd) == 0x88);
+TPW_CHECK(BalanceTrackAsPylonControl_mfInclineAnimStartCap, TPW_OFF(BalanceTrackAsPylonControl, mfInclineAnimStartCap) == 0x8c);
+TPW_CHECK(BalanceTrackAsPylonControl_mfInclineAnimEndCap, TPW_OFF(BalanceTrackAsPylonControl, mfInclineAnimEndCap) == 0x90);
+TPW_CHECK(BalanceTrackAsPylonControl_mfInclineAnimMultiplier, TPW_OFF(BalanceTrackAsPylonControl, mfInclineAnimMultiplier) == 0x94);
+TPW_CHECK(BalanceTrackAsPylonControl_mfInclineAnimAdd, TPW_OFF(BalanceTrackAsPylonControl, mfInclineAnimAdd) == 0x98);
+TPW_CHECK(BalanceTrackAsPylonControl_mfBankAnimStartCap, TPW_OFF(BalanceTrackAsPylonControl, mfBankAnimStartCap) == 0x9c);
+TPW_CHECK(BalanceTrackAsPylonControl_mfBankAnimEndCap, TPW_OFF(BalanceTrackAsPylonControl, mfBankAnimEndCap) == 0xa0);
+TPW_CHECK(BalanceTrackAsPylonControl_mfBankAnimMultiplier, TPW_OFF(BalanceTrackAsPylonControl, mfBankAnimMultiplier) == 0xa4);
+TPW_CHECK(BalanceTrackAsPylonControl_mfBankAnimAdd, TPW_OFF(BalanceTrackAsPylonControl, mfBankAnimAdd) == 0xa8);
+TPW_CHECK(BalanceTrackAsPylonControl_mfLoopRotateAnimStartCap, TPW_OFF(BalanceTrackAsPylonControl, mfLoopRotateAnimStartCap) == 0xac);
+TPW_CHECK(BalanceTrackAsPylonControl_mfLoopRotateAnimEndCap, TPW_OFF(BalanceTrackAsPylonControl, mfLoopRotateAnimEndCap) == 0xb0);
+TPW_CHECK(BalanceTrackAsPylonControl_mfLoopRotateAnimMultiplier, TPW_OFF(BalanceTrackAsPylonControl, mfLoopRotateAnimMultiplier) == 0xb4);
+TPW_CHECK(BalanceTrackAsPylonControl_mfLoopRotateAnimAdd, TPW_OFF(BalanceTrackAsPylonControl, mfLoopRotateAnimAdd) == 0xb8);
+TPW_CHECK(BalanceTrackAsPylonControl_size, sizeof(BalanceTrackAsPylonControl) == 0xbc);
+TPW_CHECK(BalanceTrackAsCarType_mbBendCar, TPW_OFF(BalanceTrackAsCarType, mbBendCar) == 0x0);
+TPW_CHECK(BalanceTrackAsCarType_muiCarTypeUniqueID, TPW_OFF(BalanceTrackAsCarType, muiCarTypeUniqueID) == 0x4);
+TPW_CHECK(BalanceTrackAsCarType_mpcMeshFilename, TPW_OFF(BalanceTrackAsCarType, mpcMeshFilename) == 0x8);
+TPW_CHECK(BalanceTrackAsCarType_mfFrontDistanceAdd, TPW_OFF(BalanceTrackAsCarType, mfFrontDistanceAdd) == 0xc);
+TPW_CHECK(BalanceTrackAsCarType_mfRearDistanceAdd, TPW_OFF(BalanceTrackAsCarType, mfRearDistanceAdd) == 0x10);
+TPW_CHECK(BalanceTrackAsCarType_mfYOffset, TPW_OFF(BalanceTrackAsCarType, mfYOffset) == 0x14);
+TPW_CHECK(BalanceTrackAsCarType_mfAnimSpeedMultiplier, TPW_OFF(BalanceTrackAsCarType, mfAnimSpeedMultiplier) == 0x18);
+TPW_CHECK(BalanceTrackAsCarType_size, sizeof(BalanceTrackAsCarType) == 0x1c);
+TPW_CHECK(BalanceTrackAsTrackCollisionPoint_mfCollisionX, TPW_OFF(BalanceTrackAsTrackCollisionPoint, mfCollisionX) == 0x0);
+TPW_CHECK(BalanceTrackAsTrackCollisionPoint_mfCollisionY, TPW_OFF(BalanceTrackAsTrackCollisionPoint, mfCollisionY) == 0x4);
+TPW_CHECK(BalanceTrackAsTrackCollisionPoint_size, sizeof(BalanceTrackAsTrackCollisionPoint) == 0x8);
+TPW_CHECK(BalanceTrack_vtable, TPW_OFF(BalanceTrack, vtable) == 0x0);
+TPW_CHECK(BalanceTrack_mSlotInfo, TPW_OFF(BalanceTrack, mSlotInfo) == 0x4);
+TPW_CHECK(BalanceTrack_masTextureData, TPW_OFF(BalanceTrack, masTextureData) == 0xc);
+TPW_CHECK(BalanceTrack_masCrossSectionPoints1, TPW_OFF(BalanceTrack, masCrossSectionPoints1) == 0x100);
+TPW_CHECK(BalanceTrack_masCrossSectionPoints2, TPW_OFF(BalanceTrack, masCrossSectionPoints2) == 0x294);
+TPW_CHECK(BalanceTrack_masCrossSectionPoints3, TPW_OFF(BalanceTrack, masCrossSectionPoints3) == 0x428);
+TPW_CHECK(BalanceTrack_masCrossSectionPoints4, TPW_OFF(BalanceTrack, masCrossSectionPoints4) == 0x5bc);
+TPW_CHECK(BalanceTrack_masCrossSectionPoints5, TPW_OFF(BalanceTrack, masCrossSectionPoints5) == 0x750);
+TPW_CHECK(BalanceTrack_masCrossSectionPoints6, TPW_OFF(BalanceTrack, masCrossSectionPoints6) == 0x8e4);
+TPW_CHECK(BalanceTrack_masCrossSectionPoints7, TPW_OFF(BalanceTrack, masCrossSectionPoints7) == 0xa78);
+TPW_CHECK(BalanceTrack_masCrossSectionPoints8, TPW_OFF(BalanceTrack, masCrossSectionPoints8) == 0xc0c);
+TPW_CHECK(BalanceTrack_masCrossSectionPoints9, TPW_OFF(BalanceTrack, masCrossSectionPoints9) == 0xda0);
+TPW_CHECK(BalanceTrack_masCrossSectionPoints10, TPW_OFF(BalanceTrack, masCrossSectionPoints10) == 0xf34);
+TPW_CHECK(BalanceTrack_masCrossSectionPoints11, TPW_OFF(BalanceTrack, masCrossSectionPoints11) == 0x10c8);
+TPW_CHECK(BalanceTrack_masCrossSectionPoints12, TPW_OFF(BalanceTrack, masCrossSectionPoints12) == 0x125c);
+TPW_CHECK(BalanceTrack_masCrossSectionPoints13, TPW_OFF(BalanceTrack, masCrossSectionPoints13) == 0x13f0);
+TPW_CHECK(BalanceTrack_masCrossSectionPoints14, TPW_OFF(BalanceTrack, masCrossSectionPoints14) == 0x1584);
+TPW_CHECK(BalanceTrack_masCrossSectionPoints15, TPW_OFF(BalanceTrack, masCrossSectionPoints15) == 0x1718);
+TPW_CHECK(BalanceTrack_masCrossSectionPoints16, TPW_OFF(BalanceTrack, masCrossSectionPoints16) == 0x18ac);
+TPW_CHECK(BalanceTrack_masCrossSectionPoints17, TPW_OFF(BalanceTrack, masCrossSectionPoints17) == 0x1a40);
+TPW_CHECK(BalanceTrack_masCrossSectionPoints18, TPW_OFF(BalanceTrack, masCrossSectionPoints18) == 0x1bd4);
+TPW_CHECK(BalanceTrack_masCrossSectionPoints19, TPW_OFF(BalanceTrack, masCrossSectionPoints19) == 0x1d68);
+TPW_CHECK(BalanceTrack_masCrossSectionPoints20, TPW_OFF(BalanceTrack, masCrossSectionPoints20) == 0x1efc);
+TPW_CHECK(BalanceTrack_masCrossSectionEdges1, TPW_OFF(BalanceTrack, masCrossSectionEdges1) == 0x2090);
+TPW_CHECK(BalanceTrack_masCrossSectionEdges2, TPW_OFF(BalanceTrack, masCrossSectionEdges2) == 0x2184);
+TPW_CHECK(BalanceTrack_masCrossSectionEdges3, TPW_OFF(BalanceTrack, masCrossSectionEdges3) == 0x2278);
+TPW_CHECK(BalanceTrack_masCrossSectionEdges4, TPW_OFF(BalanceTrack, masCrossSectionEdges4) == 0x236c);
+TPW_CHECK(BalanceTrack_masCrossSectionEdges5, TPW_OFF(BalanceTrack, masCrossSectionEdges5) == 0x2460);
+TPW_CHECK(BalanceTrack_masCrossSectionEdges6, TPW_OFF(BalanceTrack, masCrossSectionEdges6) == 0x2554);
+TPW_CHECK(BalanceTrack_masCrossSectionEdges7, TPW_OFF(BalanceTrack, masCrossSectionEdges7) == 0x2648);
+TPW_CHECK(BalanceTrack_masCrossSectionEdges8, TPW_OFF(BalanceTrack, masCrossSectionEdges8) == 0x273c);
+TPW_CHECK(BalanceTrack_masCrossSectionEdges9, TPW_OFF(BalanceTrack, masCrossSectionEdges9) == 0x2830);
+TPW_CHECK(BalanceTrack_masCrossSectionEdges10, TPW_OFF(BalanceTrack, masCrossSectionEdges10) == 0x2924);
+TPW_CHECK(BalanceTrack_masCrossSectionEdges11, TPW_OFF(BalanceTrack, masCrossSectionEdges11) == 0x2a18);
+TPW_CHECK(BalanceTrack_masCrossSectionEdges12, TPW_OFF(BalanceTrack, masCrossSectionEdges12) == 0x2b0c);
+TPW_CHECK(BalanceTrack_masCrossSectionEdges13, TPW_OFF(BalanceTrack, masCrossSectionEdges13) == 0x2c00);
+TPW_CHECK(BalanceTrack_masCrossSectionEdges14, TPW_OFF(BalanceTrack, masCrossSectionEdges14) == 0x2cf4);
+TPW_CHECK(BalanceTrack_masCrossSectionEdges15, TPW_OFF(BalanceTrack, masCrossSectionEdges15) == 0x2de8);
+TPW_CHECK(BalanceTrack_masCrossSectionEdges16, TPW_OFF(BalanceTrack, masCrossSectionEdges16) == 0x2edc);
+TPW_CHECK(BalanceTrack_masCrossSectionEdges17, TPW_OFF(BalanceTrack, masCrossSectionEdges17) == 0x2fd0);
+TPW_CHECK(BalanceTrack_masCrossSectionEdges18, TPW_OFF(BalanceTrack, masCrossSectionEdges18) == 0x30c4);
+TPW_CHECK(BalanceTrack_masCrossSectionEdges19, TPW_OFF(BalanceTrack, masCrossSectionEdges19) == 0x31b8);
+TPW_CHECK(BalanceTrack_masCrossSectionEdges20, TPW_OFF(BalanceTrack, masCrossSectionEdges20) == 0x32ac);
+TPW_CHECK(BalanceTrack_masCrossSections, TPW_OFF(BalanceTrack, masCrossSections) == 0x33a0);
+TPW_CHECK(BalanceTrack_masCrossSectionSelects, TPW_OFF(BalanceTrack, masCrossSectionSelects) == 0x3534);
+TPW_CHECK(BalanceTrack_masPylonControls, TPW_OFF(BalanceTrack, masPylonControls) == 0x38a8);
+TPW_CHECK(BalanceTrack_masCarTypes, TPW_OFF(BalanceTrack, masCarTypes) == 0x3a24);
+TPW_CHECK(BalanceTrack_muiMaxCars, TPW_OFF(BalanceTrack, muiMaxCars) == 0x3a7c);
+TPW_CHECK(BalanceTrack_muiFrontCarTypeIndex, TPW_OFF(BalanceTrack, muiFrontCarTypeIndex) == 0x3a80);
+TPW_CHECK(BalanceTrack_muiCentreCarTypeIndex, TPW_OFF(BalanceTrack, muiCentreCarTypeIndex) == 0x3a84);
+TPW_CHECK(BalanceTrack_muiRearCarTypeIndex, TPW_OFF(BalanceTrack, muiRearCarTypeIndex) == 0x3a88);
+TPW_CHECK(BalanceTrack_mfFrontCarSpacing, TPW_OFF(BalanceTrack, mfFrontCarSpacing) == 0x3a8c);
+TPW_CHECK(BalanceTrack_mfStdCarSpacing, TPW_OFF(BalanceTrack, mfStdCarSpacing) == 0x3a90);
+TPW_CHECK(BalanceTrack_mfEndCarSpacing, TPW_OFF(BalanceTrack, mfEndCarSpacing) == 0x3a94);
+TPW_CHECK(BalanceTrack_masTrackCollisionPoints, TPW_OFF(BalanceTrack, masTrackCollisionPoints) == 0x3a98);
+TPW_CHECK(BalanceTrack_mfCurviness, TPW_OFF(BalanceTrack, mfCurviness) == 0x3acc);
+TPW_CHECK(BalanceTrack_mfStraightDivisor, TPW_OFF(BalanceTrack, mfStraightDivisor) == 0x3ad0);
+TPW_CHECK(BalanceTrack_mfAutoBankDivisor, TPW_OFF(BalanceTrack, mfAutoBankDivisor) == 0x3ad4);
+TPW_CHECK(BalanceTrack_mfAccelerationPerHeight, TPW_OFF(BalanceTrack, mfAccelerationPerHeight) == 0x3ad8);
+TPW_CHECK(BalanceTrack_mfUphillAccelModifier, TPW_OFF(BalanceTrack, mfUphillAccelModifier) == 0x3adc);
+TPW_CHECK(BalanceTrack_mfDownhillAccelModifier, TPW_OFF(BalanceTrack, mfDownhillAccelModifier) == 0x3ae0);
+TPW_CHECK(BalanceTrack_mfInitialPylonLoftHeight, TPW_OFF(BalanceTrack, mfInitialPylonLoftHeight) == 0x3ae4);
+TPW_CHECK(BalanceTrack_muiMaxTrains, TPW_OFF(BalanceTrack, muiMaxTrains) == 0x3ae8);
+TPW_CHECK(BalanceTrack_muiTrainReleaseRate, TPW_OFF(BalanceTrack, muiTrainReleaseRate) == 0x3aec);
+TPW_CHECK(BalanceTrack_mbSpecialIsTrough, TPW_OFF(BalanceTrack, mbSpecialIsTrough) == 0x3af0);
+TPW_CHECK(BalanceTrack_mbIsSuspendedCoaster, TPW_OFF(BalanceTrack, mbIsSuspendedCoaster) == 0x3af4);
+TPW_CHECK(BalanceTrack_mbNoAutoBanking, TPW_OFF(BalanceTrack, mbNoAutoBanking) == 0x3af8);
+TPW_CHECK(BalanceTrack_mbVisibleEndPylon, TPW_OFF(BalanceTrack, mbVisibleEndPylon) == 0x3afc);
+TPW_CHECK(BalanceTrack_muiInvalidCrossSection, TPW_OFF(BalanceTrack, muiInvalidCrossSection) == 0x3b00);
+TPW_CHECK(BalanceTrack_muiWinchCrossSection, TPW_OFF(BalanceTrack, muiWinchCrossSection) == 0x3b04);
+TPW_CHECK(BalanceTrack_mfTrackHeightAdjust, TPW_OFF(BalanceTrack, mfTrackHeightAdjust) == 0x3b08);
+TPW_CHECK(BalanceTrack_mfWinchSpeed, TPW_OFF(BalanceTrack, mfWinchSpeed) == 0x3b0c);
+TPW_CHECK(BalanceTrack_mfMinSpeed, TPW_OFF(BalanceTrack, mfMinSpeed) == 0x3b10);
+TPW_CHECK(BalanceTrack_mfMaxSpeedAtMinSetting, TPW_OFF(BalanceTrack, mfMaxSpeedAtMinSetting) == 0x3b14);
+TPW_CHECK(BalanceTrack_mfMaxSpeedAtMaxSetting, TPW_OFF(BalanceTrack, mfMaxSpeedAtMaxSetting) == 0x3b18);
+TPW_CHECK(BalanceTrack_mfFrictionMultiplier, TPW_OFF(BalanceTrack, mfFrictionMultiplier) == 0x3b1c);
+TPW_CHECK(BalanceTrack_mfBendElevationLow, TPW_OFF(BalanceTrack, mfBendElevationLow) == 0x3b20);
+TPW_CHECK(BalanceTrack_mfBendElevationHigh, TPW_OFF(BalanceTrack, mfBendElevationHigh) == 0x3b24);
+TPW_CHECK(BalanceTrack_mfGravityX, TPW_OFF(BalanceTrack, mfGravityX) == 0x3b28);
+TPW_CHECK(BalanceTrack_mfGravityY, TPW_OFF(BalanceTrack, mfGravityY) == 0x3b2c);
+TPW_CHECK(BalanceTrack_mfGravityZ, TPW_OFF(BalanceTrack, mfGravityZ) == 0x3b30);
+TPW_CHECK(BalanceTrack_mfForceMultiplier, TPW_OFF(BalanceTrack, mfForceMultiplier) == 0x3b34);
+TPW_CHECK(BalanceTrack_mfInitialSickness, TPW_OFF(BalanceTrack, mfInitialSickness) == 0x3b38);
+TPW_CHECK(BalanceTrack_mfInitialExcitement, TPW_OFF(BalanceTrack, mfInitialExcitement) == 0x3b3c);
+TPW_CHECK(BalanceTrack_mfInitialUncomfortableness, TPW_OFF(BalanceTrack, mfInitialUncomfortableness) == 0x3b40);
+TPW_CHECK(BalanceTrack_mfGForceSicknessModifier, TPW_OFF(BalanceTrack, mfGForceSicknessModifier) == 0x3b44);
+TPW_CHECK(BalanceTrack_mfUpsideDownSicknessModifier, TPW_OFF(BalanceTrack, mfUpsideDownSicknessModifier) == 0x3b48);
+TPW_CHECK(BalanceTrack_mfSpeedExcitementModifier, TPW_OFF(BalanceTrack, mfSpeedExcitementModifier) == 0x3b4c);
+TPW_CHECK(BalanceTrack_mfGForceExcitementModifier, TPW_OFF(BalanceTrack, mfGForceExcitementModifier) == 0x3b50);
+TPW_CHECK(BalanceTrack_mfUpsideDownExcitementModifier, TPW_OFF(BalanceTrack, mfUpsideDownExcitementModifier) == 0x3b54);
+TPW_CHECK(BalanceTrack_mfBankExcitementModifier, TPW_OFF(BalanceTrack, mfBankExcitementModifier) == 0x3b58);
+TPW_CHECK(BalanceTrack_mfXGForceUncomfortableModifier, TPW_OFF(BalanceTrack, mfXGForceUncomfortableModifier) == 0x3b5c);
+TPW_CHECK(BalanceTrack_mfInvertedUncomfortableModifier, TPW_OFF(BalanceTrack, mfInvertedUncomfortableModifier) == 0x3b60);
+TPW_CHECK(BalanceTrack_mfNormalScreamStartExciteDelta, TPW_OFF(BalanceTrack, mfNormalScreamStartExciteDelta) == 0x3b64);
+TPW_CHECK(BalanceTrack_mfTerrorScreamStartExciteDelta, TPW_OFF(BalanceTrack, mfTerrorScreamStartExciteDelta) == 0x3b68);
+TPW_CHECK(BalanceTrack_mfNormalScreamSustainExcitement, TPW_OFF(BalanceTrack, mfNormalScreamSustainExcitement) == 0x3b6c);
+TPW_CHECK(BalanceTrack_mfTerrorScreamSustainExcitement, TPW_OFF(BalanceTrack, mfTerrorScreamSustainExcitement) == 0x3b70);
+TPW_CHECK(BalanceTrack_mfEntranceSizeInterval, TPW_OFF(BalanceTrack, mfEntranceSizeInterval) == 0x3b74);
+TPW_CHECK(BalanceTrack_miTrackSectionMeshVerts, TPW_OFF(BalanceTrack, miTrackSectionMeshVerts) == 0x3b78);
+TPW_CHECK(BalanceTrack_miTrackSectionMeshFaces, TPW_OFF(BalanceTrack, miTrackSectionMeshFaces) == 0x3b7c);
+TPW_CHECK(BalanceTrack_size, sizeof(BalanceTrack) == 0x3b80);
+TPW_CHECK(BalanceChallengesChallenge_mType, TPW_OFF(BalanceChallengesChallenge, mType) == 0x0);
+TPW_CHECK(BalanceChallengesChallenge_mFollowupType, TPW_OFF(BalanceChallengesChallenge, mFollowupType) == 0x4);
+TPW_CHECK(BalanceChallengesChallenge_mTargetTime, TPW_OFF(BalanceChallengesChallenge, mTargetTime) == 0x8);
+TPW_CHECK(BalanceChallengesChallenge_mTargetVal, TPW_OFF(BalanceChallengesChallenge, mTargetVal) == 0xc);
+TPW_CHECK(BalanceChallengesChallenge_mTargetObj, TPW_OFF(BalanceChallengesChallenge, mTargetObj) == 0x10);
+TPW_CHECK(BalanceChallengesChallenge_mTargetObj2, TPW_OFF(BalanceChallengesChallenge, mTargetObj2) == 0x14);
+TPW_CHECK(BalanceChallengesChallenge_mTargetStaffType, TPW_OFF(BalanceChallengesChallenge, mTargetStaffType) == 0x18);
+TPW_CHECK(BalanceChallengesChallenge_mPrize, TPW_OFF(BalanceChallengesChallenge, mPrize) == 0x1c);
+TPW_CHECK(BalanceChallengesChallenge_mCheckAtEndOnly, TPW_OFF(BalanceChallengesChallenge, mCheckAtEndOnly) == 0x20);
+TPW_CHECK(BalanceChallengesChallenge_mIndependent, TPW_OFF(BalanceChallengesChallenge, mIndependent) == 0x24);
+TPW_CHECK(BalanceChallengesChallenge_size, sizeof(BalanceChallengesChallenge) == 0x28);
+TPW_CHECK(BalanceChallenges_vtable, TPW_OFF(BalanceChallenges, vtable) == 0x0);
+TPW_CHECK(BalanceChallenges_mSlotInfo, TPW_OFF(BalanceChallenges, mSlotInfo) == 0x4);
+TPW_CHECK(BalanceChallenges_mChallenges, TPW_OFF(BalanceChallenges, mChallenges) == 0xc);
+TPW_CHECK(BalanceChallenges_size, sizeof(BalanceChallenges) == 0x970);
+TPW_CHECK(BalanceTheme_vtable, TPW_OFF(BalanceTheme, vtable) == 0x0);
+TPW_CHECK(BalanceTheme_mSlotInfo, TPW_OFF(BalanceTheme, mSlotInfo) == 0x4);
+TPW_CHECK(BalanceTheme_mCanEarnTicketsInTheme, TPW_OFF(BalanceTheme, mCanEarnTicketsInTheme) == 0xc);
+TPW_CHECK(BalanceTheme_mCanSpendTicketsInTheme, TPW_OFF(BalanceTheme, mCanSpendTicketsInTheme) == 0x10);
+TPW_CHECK(BalanceTheme_mCostToEnter, TPW_OFF(BalanceTheme, mCostToEnter) == 0x14);
+TPW_CHECK(BalanceTheme_mGateObjectId, TPW_OFF(BalanceTheme, mGateObjectId) == 0x18);
+TPW_CHECK(BalanceTheme_size, sizeof(BalanceTheme) == 0x1c);
+TPW_CHECK(AdvisorScoringMessageGroup_mMinTimeSameMessage, TPW_OFF(AdvisorScoringMessageGroup, mMinTimeSameMessage) == 0x0);
+TPW_CHECK(AdvisorScoringMessageGroup_mSayOnlyOnce, TPW_OFF(AdvisorScoringMessageGroup, mSayOnlyOnce) == 0x4);
+TPW_CHECK(AdvisorScoringMessageGroup_mDiscardAfterSlaps, TPW_OFF(AdvisorScoringMessageGroup, mDiscardAfterSlaps) == 0x8);
+TPW_CHECK(AdvisorScoringMessageGroup_size, sizeof(AdvisorScoringMessageGroup) == 0xc);
+TPW_CHECK(AdvisorScoring_vtable, TPW_OFF(AdvisorScoring, vtable) == 0xc);
+TPW_CHECK(AdvisorScoring_mSlotInfo, TPW_OFF(AdvisorScoring, mSlotInfo) == 0x10);
+TPW_CHECK(AdvisorScoring_mMinTimeAnyMessage, TPW_OFF(AdvisorScoring, mMinTimeAnyMessage) == 0x18);
+TPW_CHECK(AdvisorScoring_mMinTimeSameMessage, TPW_OFF(AdvisorScoring, mMinTimeSameMessage) == 0x1c);
+TPW_CHECK(AdvisorScoring_mMinScoreForConsideration, TPW_OFF(AdvisorScoring, mMinScoreForConsideration) == 0x20);
+TPW_CHECK(AdvisorScoring_mMessageGroups, TPW_OFF(AdvisorScoring, mMessageGroups) == 0x24);
+TPW_CHECK(AdvisorScoring_mWelcomeScore, TPW_OFF(AdvisorScoring, mWelcomeScore) == 0xa0);
+TPW_CHECK(AdvisorScoring_mScorePerWaitingPerson, TPW_OFF(AdvisorScoring, mScorePerWaitingPerson) == 0xa4);
+TPW_CHECK(AdvisorScoring_mCloseParkScore, TPW_OFF(AdvisorScoring, mCloseParkScore) == 0xa8);
+TPW_CHECK(AdvisorScoring_mScorePerThirstyPerson, TPW_OFF(AdvisorScoring, mScorePerThirstyPerson) == 0xac);
+TPW_CHECK(AdvisorScoring_mThirstierThan, TPW_OFF(AdvisorScoring, mThirstierThan) == 0xb0);
+TPW_CHECK(AdvisorScoring_mScorePerHungryPerson, TPW_OFF(AdvisorScoring, mScorePerHungryPerson) == 0xb4);
+TPW_CHECK(AdvisorScoring_mHungrierThan, TPW_OFF(AdvisorScoring, mHungrierThan) == 0xb8);
+TPW_CHECK(AdvisorScoring_mScorePerWornRide, TPW_OFF(AdvisorScoring, mScorePerWornRide) == 0xbc);
+TPW_CHECK(AdvisorScoring_mPoorerStateThan, TPW_OFF(AdvisorScoring, mPoorerStateThan) == 0xc0);
+TPW_CHECK(AdvisorScoring_mScorePerBrokenRide, TPW_OFF(AdvisorScoring, mScorePerBrokenRide) == 0xc4);
+TPW_CHECK(AdvisorScoring_mIdealNumberOfRidesPerMechanic, TPW_OFF(AdvisorScoring, mIdealNumberOfRidesPerMechanic) == 0xc8);
+TPW_CHECK(AdvisorScoring_mScorePerExtraRide, TPW_OFF(AdvisorScoring, mScorePerExtraRide) == 0xcc);
+TPW_CHECK(AdvisorScoring_mStaffHireHandymen1ScorePerLitterPoint, TPW_OFF(AdvisorScoring, mStaffHireHandymen1ScorePerLitterPoint) == 0xd0);
+TPW_CHECK(AdvisorScoring_mStaffHireHandymen1LitterPointCutoffLow, TPW_OFF(AdvisorScoring, mStaffHireHandymen1LitterPointCutoffLow) == 0xd4);
+TPW_CHECK(AdvisorScoring_mLitterPointCutoffHigh, TPW_OFF(AdvisorScoring, mLitterPointCutoffHigh) == 0xd8);
+TPW_CHECK(AdvisorScoring_mStaffHireHandymen2ScorePerLitterPoint, TPW_OFF(AdvisorScoring, mStaffHireHandymen2ScorePerLitterPoint) == 0xdc);
+TPW_CHECK(AdvisorScoring_mStaffHireHandymen2LitterPointCutoffLow, TPW_OFF(AdvisorScoring, mStaffHireHandymen2LitterPointCutoffLow) == 0xe0);
+TPW_CHECK(AdvisorScoring_mIdealDevelopedCellsPerHandyman, TPW_OFF(AdvisorScoring, mIdealDevelopedCellsPerHandyman) == 0xe4);
+TPW_CHECK(AdvisorScoring_mStaffHireHandymen3ScorePerExtra10Cells, TPW_OFF(AdvisorScoring, mStaffHireHandymen3ScorePerExtra10Cells) == 0xe8);
+TPW_CHECK(AdvisorScoring_mStaffHireHandymen3MinCellsForConsideration, TPW_OFF(AdvisorScoring, mStaffHireHandymen3MinCellsForConsideration) == 0xec);
+TPW_CHECK(AdvisorScoring_mStaffHireGuards1AtLeastThisBusy, TPW_OFF(AdvisorScoring, mStaffHireGuards1AtLeastThisBusy) == 0xf0);
+TPW_CHECK(AdvisorScoring_mStaffHireGuards1ScorePerExtraBusyPoint, TPW_OFF(AdvisorScoring, mStaffHireGuards1ScorePerExtraBusyPoint) == 0xf4);
+TPW_CHECK(AdvisorScoring_mStaffHireGuards2Score, TPW_OFF(AdvisorScoring, mStaffHireGuards2Score) == 0xf8);
+TPW_CHECK(AdvisorScoring_mAdditionalPerMisbehavingKid, TPW_OFF(AdvisorScoring, mAdditionalPerMisbehavingKid) == 0xfc);
+TPW_CHECK(AdvisorScoring_mIdealDevelopedCellsPerGuard, TPW_OFF(AdvisorScoring, mIdealDevelopedCellsPerGuard) == 0x100);
+TPW_CHECK(AdvisorScoring_mStaffHireGuards3ScorePerExtra10Cells, TPW_OFF(AdvisorScoring, mStaffHireGuards3ScorePerExtra10Cells) == 0x104);
+TPW_CHECK(AdvisorScoring_mStaffHireGuards3MinCellsForConsideration, TPW_OFF(AdvisorScoring, mStaffHireGuards3MinCellsForConsideration) == 0x108);
+TPW_CHECK(AdvisorScoring_mStaffHireEntertainers1AtLeastThisBusy, TPW_OFF(AdvisorScoring, mStaffHireEntertainers1AtLeastThisBusy) == 0x10c);
+TPW_CHECK(AdvisorScoring_mStaffHireEntertainers1ScorePerExtraBusyPoint, TPW_OFF(AdvisorScoring, mStaffHireEntertainers1ScorePerExtraBusyPoint) == 0x110);
+TPW_CHECK(AdvisorScoring_mMost, TPW_OFF(AdvisorScoring, mMost) == 0x114);
+TPW_CHECK(AdvisorScoring_mPointsPerExtraPct, TPW_OFF(AdvisorScoring, mPointsPerExtraPct) == 0x118);
+TPW_CHECK(AdvisorScoring_mStaffHireResearchers2Score, TPW_OFF(AdvisorScoring, mStaffHireResearchers2Score) == 0x11c);
+TPW_CHECK(AdvisorScoring_mStaffHireResearchers3MonthsIntoGameForConsideration, TPW_OFF(AdvisorScoring, mStaffHireResearchers3MonthsIntoGameForConsideration) == 0x120);
+TPW_CHECK(AdvisorScoring_mSlowerThan, TPW_OFF(AdvisorScoring, mSlowerThan) == 0x124);
+TPW_CHECK(AdvisorScoring_mStaffHireResearchers3Score, TPW_OFF(AdvisorScoring, mStaffHireResearchers3Score) == 0x128);
+TPW_CHECK(AdvisorScoring_mStaffSetMechanicAreaAtLeastThisMany, TPW_OFF(AdvisorScoring, mStaffSetMechanicAreaAtLeastThisMany) == 0x12c);
+TPW_CHECK(AdvisorScoring_mStaffSetMechanicAreaDontBotherIfPatrolledUp, TPW_OFF(AdvisorScoring, mStaffSetMechanicAreaDontBotherIfPatrolledUp) == 0x130);
+TPW_CHECK(AdvisorScoring_mStaffSetMechanicAreaScorePerUnpatrolledPct, TPW_OFF(AdvisorScoring, mStaffSetMechanicAreaScorePerUnpatrolledPct) == 0x134);
+TPW_CHECK(AdvisorScoring_mStaffSetMechanicAreaMonthsIntoGameForConsideration, TPW_OFF(AdvisorScoring, mStaffSetMechanicAreaMonthsIntoGameForConsideration) == 0x138);
+TPW_CHECK(AdvisorScoring_mStaffMechanicCoverageScore, TPW_OFF(AdvisorScoring, mStaffMechanicCoverageScore) == 0x13c);
+TPW_CHECK(AdvisorScoring_mStaffMechanicCoverageScorePerNonCoveredPercent, TPW_OFF(AdvisorScoring, mStaffMechanicCoverageScorePerNonCoveredPercent) == 0x140);
+TPW_CHECK(AdvisorScoring_mStaffSetHandymanAreaAtLeastThisMany, TPW_OFF(AdvisorScoring, mStaffSetHandymanAreaAtLeastThisMany) == 0x144);
+TPW_CHECK(AdvisorScoring_mStaffSetHandymanAreaDontBotherIfPatrolledUp, TPW_OFF(AdvisorScoring, mStaffSetHandymanAreaDontBotherIfPatrolledUp) == 0x148);
+TPW_CHECK(AdvisorScoring_mStaffSetHandymanAreaScorePerUnpatrolledPct, TPW_OFF(AdvisorScoring, mStaffSetHandymanAreaScorePerUnpatrolledPct) == 0x14c);
+TPW_CHECK(AdvisorScoring_mStaffSetHandymanAreaMonthsIntoGameForConsideration, TPW_OFF(AdvisorScoring, mStaffSetHandymanAreaMonthsIntoGameForConsideration) == 0x150);
+TPW_CHECK(AdvisorScoring_mStaffHandymanCoverageScore, TPW_OFF(AdvisorScoring, mStaffHandymanCoverageScore) == 0x154);
+TPW_CHECK(AdvisorScoring_mStaffHandymanCoverageScorePerNonCoveredPercent, TPW_OFF(AdvisorScoring, mStaffHandymanCoverageScorePerNonCoveredPercent) == 0x158);
+TPW_CHECK(AdvisorScoring_mAcceptableTrouble, TPW_OFF(AdvisorScoring, mAcceptableTrouble) == 0x15c);
+TPW_CHECK(AdvisorScoring_mStaffGuardBuildCameraScore, TPW_OFF(AdvisorScoring, mStaffGuardBuildCameraScore) == 0x160);
+TPW_CHECK(AdvisorScoring_mStaffSetGuardAreaAtLeastThisMany, TPW_OFF(AdvisorScoring, mStaffSetGuardAreaAtLeastThisMany) == 0x164);
+TPW_CHECK(AdvisorScoring_mStaffSetGuardAreaDontBotherIfPatrolledUp, TPW_OFF(AdvisorScoring, mStaffSetGuardAreaDontBotherIfPatrolledUp) == 0x168);
+TPW_CHECK(AdvisorScoring_mStaffSetGuardAreaScorePerUnpatrolledPct, TPW_OFF(AdvisorScoring, mStaffSetGuardAreaScorePerUnpatrolledPct) == 0x16c);
+TPW_CHECK(AdvisorScoring_mStaffSetGuardAreaMonthsIntoGameForConsideration, TPW_OFF(AdvisorScoring, mStaffSetGuardAreaMonthsIntoGameForConsideration) == 0x170);
+TPW_CHECK(AdvisorScoring_mStaffGuardCoverageScore, TPW_OFF(AdvisorScoring, mStaffGuardCoverageScore) == 0x174);
+TPW_CHECK(AdvisorScoring_mStaffGuardCoverageScorePerNonCoveredPercent, TPW_OFF(AdvisorScoring, mStaffGuardCoverageScorePerNonCoveredPercent) == 0x178);
+TPW_CHECK(AdvisorScoring_mStaffSetEntertainerAreaAtLeastThisMany, TPW_OFF(AdvisorScoring, mStaffSetEntertainerAreaAtLeastThisMany) == 0x17c);
+TPW_CHECK(AdvisorScoring_mStaffSetEntertainerAreaDontBotherIfPatrolledUp, TPW_OFF(AdvisorScoring, mStaffSetEntertainerAreaDontBotherIfPatrolledUp) == 0x180);
+TPW_CHECK(AdvisorScoring_mStaffSetEntertainerAreaScorePerUnpatrolledPct, TPW_OFF(AdvisorScoring, mStaffSetEntertainerAreaScorePerUnpatrolledPct) == 0x184);
+TPW_CHECK(AdvisorScoring_mStaffSetEntertainerAreaMonthsIntoGameForConsideration, TPW_OFF(AdvisorScoring, mStaffSetEntertainerAreaMonthsIntoGameForConsideration) == 0x188);
+TPW_CHECK(AdvisorScoring_mStaffEntertainerCoverageScore, TPW_OFF(AdvisorScoring, mStaffEntertainerCoverageScore) == 0x18c);
+TPW_CHECK(AdvisorScoring_mStaffEntertainerCoverageScorePerNonCoveredPercent, TPW_OFF(AdvisorScoring, mStaffEntertainerCoverageScorePerNonCoveredPercent) == 0x190);
+TPW_CHECK(AdvisorScoring_mStaffTrainMechanicsWorseThan, TPW_OFF(AdvisorScoring, mStaffTrainMechanicsWorseThan) == 0x194);
+TPW_CHECK(AdvisorScoring_mStaffTrainMechanicsScore, TPW_OFF(AdvisorScoring, mStaffTrainMechanicsScore) == 0x198);
+TPW_CHECK(AdvisorScoring_mStaffTrainHandymenWorseThan, TPW_OFF(AdvisorScoring, mStaffTrainHandymenWorseThan) == 0x19c);
+TPW_CHECK(AdvisorScoring_mStaffTrainHandymenScore, TPW_OFF(AdvisorScoring, mStaffTrainHandymenScore) == 0x1a0);
+TPW_CHECK(AdvisorScoring_mStaffTrainGuardsWorseThan, TPW_OFF(AdvisorScoring, mStaffTrainGuardsWorseThan) == 0x1a4);
+TPW_CHECK(AdvisorScoring_mStaffTrainGuardsScore, TPW_OFF(AdvisorScoring, mStaffTrainGuardsScore) == 0x1a8);
+TPW_CHECK(AdvisorScoring_mStaffTrainEntertainersWorseThan, TPW_OFF(AdvisorScoring, mStaffTrainEntertainersWorseThan) == 0x1ac);
+TPW_CHECK(AdvisorScoring_mStaffTrainEntertainersScore, TPW_OFF(AdvisorScoring, mStaffTrainEntertainersScore) == 0x1b0);
+TPW_CHECK(AdvisorScoring_mStaffTrainResearchersWorseThan, TPW_OFF(AdvisorScoring, mStaffTrainResearchersWorseThan) == 0x1b4);
+TPW_CHECK(AdvisorScoring_mStaffTrainResearchersScore, TPW_OFF(AdvisorScoring, mStaffTrainResearchersScore) == 0x1b8);
+TPW_CHECK(AdvisorScoring_mStaffUnhappyMechanicsScore, TPW_OFF(AdvisorScoring, mStaffUnhappyMechanicsScore) == 0x1bc);
+TPW_CHECK(AdvisorScoring_mStaffUnhappyHandymenScore, TPW_OFF(AdvisorScoring, mStaffUnhappyHandymenScore) == 0x1c0);
+TPW_CHECK(AdvisorScoring_mStaffUnhappyGuardsScore, TPW_OFF(AdvisorScoring, mStaffUnhappyGuardsScore) == 0x1c4);
+TPW_CHECK(AdvisorScoring_mStaffUnhappyEntertainersScore, TPW_OFF(AdvisorScoring, mStaffUnhappyEntertainersScore) == 0x1c8);
+TPW_CHECK(AdvisorScoring_mStaffUnhappyResearchersScore, TPW_OFF(AdvisorScoring, mStaffUnhappyResearchersScore) == 0x1cc);
+TPW_CHECK(AdvisorScoring_mStaffVeryUnhappyMechanicsScore, TPW_OFF(AdvisorScoring, mStaffVeryUnhappyMechanicsScore) == 0x1d0);
+TPW_CHECK(AdvisorScoring_mStaffVeryUnhappyHandymenScore, TPW_OFF(AdvisorScoring, mStaffVeryUnhappyHandymenScore) == 0x1d4);
+TPW_CHECK(AdvisorScoring_mStaffVeryUnhappyGuardsScore, TPW_OFF(AdvisorScoring, mStaffVeryUnhappyGuardsScore) == 0x1d8);
+TPW_CHECK(AdvisorScoring_mStaffVeryUnhappyEntertainersScore, TPW_OFF(AdvisorScoring, mStaffVeryUnhappyEntertainersScore) == 0x1dc);
+TPW_CHECK(AdvisorScoring_mStaffVeryUnhappyResearchersScore, TPW_OFF(AdvisorScoring, mStaffVeryUnhappyResearchersScore) == 0x1e0);
+TPW_CHECK(AdvisorScoring_mStaffStrikingMechanicsScore, TPW_OFF(AdvisorScoring, mStaffStrikingMechanicsScore) == 0x1e4);
+TPW_CHECK(AdvisorScoring_mStaffStrikingHandymenScore, TPW_OFF(AdvisorScoring, mStaffStrikingHandymenScore) == 0x1e8);
+TPW_CHECK(AdvisorScoring_mStaffStrikingGuardsScore, TPW_OFF(AdvisorScoring, mStaffStrikingGuardsScore) == 0x1ec);
+TPW_CHECK(AdvisorScoring_mStaffStrikingEntertainersScore, TPW_OFF(AdvisorScoring, mStaffStrikingEntertainersScore) == 0x1f0);
+TPW_CHECK(AdvisorScoring_mStaffStrikingResearchersScore, TPW_OFF(AdvisorScoring, mStaffStrikingResearchersScore) == 0x1f4);
+TPW_CHECK(AdvisorScoring_mStaffHappierMechanicsScore, TPW_OFF(AdvisorScoring, mStaffHappierMechanicsScore) == 0x1f8);
+TPW_CHECK(AdvisorScoring_mStaffHappierHandymenScore, TPW_OFF(AdvisorScoring, mStaffHappierHandymenScore) == 0x1fc);
+TPW_CHECK(AdvisorScoring_mStaffHappierGuardsScore, TPW_OFF(AdvisorScoring, mStaffHappierGuardsScore) == 0x200);
+TPW_CHECK(AdvisorScoring_mStaffHappierEntertainersScore, TPW_OFF(AdvisorScoring, mStaffHappierEntertainersScore) == 0x204);
+TPW_CHECK(AdvisorScoring_mStaffHappierResearchersScore, TPW_OFF(AdvisorScoring, mStaffHappierResearchersScore) == 0x208);
+TPW_CHECK(AdvisorScoring_mStrikeEndBadMechanicsScore, TPW_OFF(AdvisorScoring, mStrikeEndBadMechanicsScore) == 0x20c);
+TPW_CHECK(AdvisorScoring_mStrikeEndBadHandymenScore, TPW_OFF(AdvisorScoring, mStrikeEndBadHandymenScore) == 0x210);
+TPW_CHECK(AdvisorScoring_mStrikeEndBadGuardsScore, TPW_OFF(AdvisorScoring, mStrikeEndBadGuardsScore) == 0x214);
+TPW_CHECK(AdvisorScoring_mStrikeEndBadEntertainersScore, TPW_OFF(AdvisorScoring, mStrikeEndBadEntertainersScore) == 0x218);
+TPW_CHECK(AdvisorScoring_mStrikeEndBadResearchersScore, TPW_OFF(AdvisorScoring, mStrikeEndBadResearchersScore) == 0x21c);
+TPW_CHECK(AdvisorScoring_mRidesPoorSelectionPoorerThan, TPW_OFF(AdvisorScoring, mRidesPoorSelectionPoorerThan) == 0x220);
+TPW_CHECK(AdvisorScoring_mMoreRidesThan, TPW_OFF(AdvisorScoring, mMoreRidesThan) == 0x224);
+TPW_CHECK(AdvisorScoring_mRidesPoorSelectionScore, TPW_OFF(AdvisorScoring, mRidesPoorSelectionScore) == 0x228);
+TPW_CHECK(AdvisorScoring_mRidesResearchMoreScore, TPW_OFF(AdvisorScoring, mRidesResearchMoreScore) == 0x22c);
+TPW_CHECK(AdvisorScoring_mRidesBuildRidesScore, TPW_OFF(AdvisorScoring, mRidesBuildRidesScore) == 0x230);
+TPW_CHECK(AdvisorScoring_mRidesBuildRidesAdditionalPerDay, TPW_OFF(AdvisorScoring, mRidesBuildRidesAdditionalPerDay) == 0x234);
+TPW_CHECK(AdvisorScoring_mRidesNoUpgradesMonthsIntoGameForConsideration, TPW_OFF(AdvisorScoring, mRidesNoUpgradesMonthsIntoGameForConsideration) == 0x238);
+TPW_CHECK(AdvisorScoring_mRidesNoUpgradesScore, TPW_OFF(AdvisorScoring, mRidesNoUpgradesScore) == 0x23c);
+TPW_CHECK(AdvisorScoring_mLessAvailableThan, TPW_OFF(AdvisorScoring, mLessAvailableThan) == 0x240);
+TPW_CHECK(AdvisorScoring_mRidesMoreUpgradesScore, TPW_OFF(AdvisorScoring, mRidesMoreUpgradesScore) == 0x244);
+TPW_CHECK(AdvisorScoring_mRidesBreakdownImminentScore, TPW_OFF(AdvisorScoring, mRidesBreakdownImminentScore) == 0x248);
+TPW_CHECK(AdvisorScoring_mRidesBreakdownNoMechanicsScore, TPW_OFF(AdvisorScoring, mRidesBreakdownNoMechanicsScore) == 0x24c);
+TPW_CHECK(AdvisorScoring_mRidesBreakdownBusyMechanicsScore, TPW_OFF(AdvisorScoring, mRidesBreakdownBusyMechanicsScore) == 0x250);
+TPW_CHECK(AdvisorScoring_mRidesBreakdownMechanicOnItScore, TPW_OFF(AdvisorScoring, mRidesBreakdownMechanicOnItScore) == 0x254);
+TPW_CHECK(AdvisorScoring_mShopsPoorSelectionPoorerThan, TPW_OFF(AdvisorScoring, mShopsPoorSelectionPoorerThan) == 0x258);
+TPW_CHECK(AdvisorScoring_mMoreShopsThan, TPW_OFF(AdvisorScoring, mMoreShopsThan) == 0x25c);
+TPW_CHECK(AdvisorScoring_mShopsPoorSelectionScore, TPW_OFF(AdvisorScoring, mShopsPoorSelectionScore) == 0x260);
+TPW_CHECK(AdvisorScoring_mShopsResearchMoreScore, TPW_OFF(AdvisorScoring, mShopsResearchMoreScore) == 0x264);
+TPW_CHECK(AdvisorScoring_mShopsBuildShopsScore, TPW_OFF(AdvisorScoring, mShopsBuildShopsScore) == 0x268);
+TPW_CHECK(AdvisorScoring_mShopsBuildShopsAdditionalPerDay, TPW_OFF(AdvisorScoring, mShopsBuildShopsAdditionalPerDay) == 0x26c);
+TPW_CHECK(AdvisorScoring_mShopsPerRideRatio, TPW_OFF(AdvisorScoring, mShopsPerRideRatio) == 0x270);
+TPW_CHECK(AdvisorScoring_mShopsBuildMoreShopsWealthMoreThan, TPW_OFF(AdvisorScoring, mShopsBuildMoreShopsWealthMoreThan) == 0x274);
+TPW_CHECK(AdvisorScoring_mShopsBuildMoreShopsScore, TPW_OFF(AdvisorScoring, mShopsBuildMoreShopsScore) == 0x278);
+TPW_CHECK(AdvisorScoring_mSideshowsPoorSelectionPoorerThan, TPW_OFF(AdvisorScoring, mSideshowsPoorSelectionPoorerThan) == 0x27c);
+TPW_CHECK(AdvisorScoring_mMoreSideshowsThan, TPW_OFF(AdvisorScoring, mMoreSideshowsThan) == 0x280);
+TPW_CHECK(AdvisorScoring_mSideshowsPoorSelectionScore, TPW_OFF(AdvisorScoring, mSideshowsPoorSelectionScore) == 0x284);
+TPW_CHECK(AdvisorScoring_mSideshowsResearchMoreScore, TPW_OFF(AdvisorScoring, mSideshowsResearchMoreScore) == 0x288);
+TPW_CHECK(AdvisorScoring_mSideshowsBuildSideshowsScore, TPW_OFF(AdvisorScoring, mSideshowsBuildSideshowsScore) == 0x28c);
+TPW_CHECK(AdvisorScoring_mSideshowsBuildSideshowsAdditionalPerDay, TPW_OFF(AdvisorScoring, mSideshowsBuildSideshowsAdditionalPerDay) == 0x290);
+TPW_CHECK(AdvisorScoring_mSideshowsPerRideRatio, TPW_OFF(AdvisorScoring, mSideshowsPerRideRatio) == 0x294);
+TPW_CHECK(AdvisorScoring_mSideshowsBuildMoreSideshowsWealthMoreThan, TPW_OFF(AdvisorScoring, mSideshowsBuildMoreSideshowsWealthMoreThan) == 0x298);
+TPW_CHECK(AdvisorScoring_mSideshowsBuildMoreSideshowsScore, TPW_OFF(AdvisorScoring, mSideshowsBuildMoreSideshowsScore) == 0x29c);
+TPW_CHECK(AdvisorScoring_mFeaturesPoorSelectionPoorerThan, TPW_OFF(AdvisorScoring, mFeaturesPoorSelectionPoorerThan) == 0x2a0);
+TPW_CHECK(AdvisorScoring_mMoreFeaturesThan, TPW_OFF(AdvisorScoring, mMoreFeaturesThan) == 0x2a4);
+TPW_CHECK(AdvisorScoring_mFeaturesPoorSelectionScore, TPW_OFF(AdvisorScoring, mFeaturesPoorSelectionScore) == 0x2a8);
+TPW_CHECK(AdvisorScoring_mFeaturesResearchMoreScore, TPW_OFF(AdvisorScoring, mFeaturesResearchMoreScore) == 0x2ac);
+TPW_CHECK(AdvisorScoring_mFeaturesBuildFeaturesScore, TPW_OFF(AdvisorScoring, mFeaturesBuildFeaturesScore) == 0x2b0);
+TPW_CHECK(AdvisorScoring_mFeaturesBuildFeaturesAdditionalPerDay, TPW_OFF(AdvisorScoring, mFeaturesBuildFeaturesAdditionalPerDay) == 0x2b4);
+TPW_CHECK(AdvisorScoring_mNeedingMoreThan, TPW_OFF(AdvisorScoring, mNeedingMoreThan) == 0x2b8);
+TPW_CHECK(AdvisorScoring_mMorePeopleThanThisNeeding, TPW_OFF(AdvisorScoring, mMorePeopleThanThisNeeding) == 0x2bc);
+TPW_CHECK(AdvisorScoring_mFeaturesNoToiletsScore, TPW_OFF(AdvisorScoring, mFeaturesNoToiletsScore) == 0x2c0);
+TPW_CHECK(AdvisorScoring_mFeaturesFarToToiletsScore, TPW_OFF(AdvisorScoring, mFeaturesFarToToiletsScore) == 0x2c4);
+TPW_CHECK(AdvisorScoring_mAverageQueueLongerThan, TPW_OFF(AdvisorScoring, mAverageQueueLongerThan) == 0x2c8);
+TPW_CHECK(AdvisorScoring_mFeaturesNotEnoughToiletsScore, TPW_OFF(AdvisorScoring, mFeaturesNotEnoughToiletsScore) == 0x2cc);
+TPW_CHECK(AdvisorScoring_mFeaturesDirtyToilets1FilthierThan, TPW_OFF(AdvisorScoring, mFeaturesDirtyToilets1FilthierThan) == 0x2d0);
+TPW_CHECK(AdvisorScoring_mFeaturesDirtyToilets1PointsPerFilthPct, TPW_OFF(AdvisorScoring, mFeaturesDirtyToilets1PointsPerFilthPct) == 0x2d4);
+TPW_CHECK(AdvisorScoring_mFeaturesDirtyToilets2FilthierThan, TPW_OFF(AdvisorScoring, mFeaturesDirtyToilets2FilthierThan) == 0x2d8);
+TPW_CHECK(AdvisorScoring_mFeaturesDirtyToilets2PointsPerFilthPct, TPW_OFF(AdvisorScoring, mFeaturesDirtyToilets2PointsPerFilthPct) == 0x2dc);
+TPW_CHECK(AdvisorScoring_mFeaturesDirtyToilets3FilthierThan, TPW_OFF(AdvisorScoring, mFeaturesDirtyToilets3FilthierThan) == 0x2e0);
+TPW_CHECK(AdvisorScoring_mFeaturesDirtyToilets3PointsPerFilthPct, TPW_OFF(AdvisorScoring, mFeaturesDirtyToilets3PointsPerFilthPct) == 0x2e4);
+TPW_CHECK(AdvisorScoring_mFeaturesDirtyToilets4FilthierThan, TPW_OFF(AdvisorScoring, mFeaturesDirtyToilets4FilthierThan) == 0x2e8);
+TPW_CHECK(AdvisorScoring_mFeaturesDirtyToilets4PointsPerFilthPct, TPW_OFF(AdvisorScoring, mFeaturesDirtyToilets4PointsPerFilthPct) == 0x2ec);
+TPW_CHECK(AdvisorScoring_mTicketSatisfactionUnder, TPW_OFF(AdvisorScoring, mTicketSatisfactionUnder) == 0x2f0);
+TPW_CHECK(AdvisorScoring_mPricingTicketTooExpensiveScore, TPW_OFF(AdvisorScoring, mPricingTicketTooExpensiveScore) == 0x2f4);
+TPW_CHECK(AdvisorScoring_mTicketSatisfactionOver, TPW_OFF(AdvisorScoring, mTicketSatisfactionOver) == 0x2f8);
+TPW_CHECK(AdvisorScoring_mPricingTicketTooCheapScore, TPW_OFF(AdvisorScoring, mPricingTicketTooCheapScore) == 0x2fc);
+TPW_CHECK(AdvisorScoring_mResearchRideResearchedScore, TPW_OFF(AdvisorScoring, mResearchRideResearchedScore) == 0x300);
+TPW_CHECK(AdvisorScoring_mResearchAddonResearchedScore, TPW_OFF(AdvisorScoring, mResearchAddonResearchedScore) == 0x304);
+TPW_CHECK(AdvisorScoring_mResearchShopResearchedScore, TPW_OFF(AdvisorScoring, mResearchShopResearchedScore) == 0x308);
+TPW_CHECK(AdvisorScoring_mResearchSideshowResearchedScore, TPW_OFF(AdvisorScoring, mResearchSideshowResearchedScore) == 0x30c);
+TPW_CHECK(AdvisorScoring_mResearchFeatureResearchedScore, TPW_OFF(AdvisorScoring, mResearchFeatureResearchedScore) == 0x310);
+TPW_CHECK(AdvisorScoring_mMoreThanThisGotAway, TPW_OFF(AdvisorScoring, mMoreThanThisGotAway) == 0x314);
+TPW_CHECK(AdvisorScoring_mScorePerGetAway, TPW_OFF(AdvisorScoring, mScorePerGetAway) == 0x318);
+TPW_CHECK(AdvisorScoring_mGeneralWonGoldenTicketScore, TPW_OFF(AdvisorScoring, mGeneralWonGoldenTicketScore) == 0x31c);
+TPW_CHECK(AdvisorScoring_mAwardGivenScore, TPW_OFF(AdvisorScoring, mAwardGivenScore) == 0x320);
+TPW_CHECK(AdvisorScoring_mAwardMovedScore, TPW_OFF(AdvisorScoring, mAwardMovedScore) == 0x324);
+TPW_CHECK(AdvisorScoring_mHelpMessageScore, TPW_OFF(AdvisorScoring, mHelpMessageScore) == 0x328);
+TPW_CHECK(AdvisorScoring_mContextHelpScore, TPW_OFF(AdvisorScoring, mContextHelpScore) == 0x32c);
+TPW_CHECK(AdvisorScoring_mMoreMoneyThan, TPW_OFF(AdvisorScoring, mMoreMoneyThan) == 0x330);
+TPW_CHECK(AdvisorScoring_mWealthHighScore, TPW_OFF(AdvisorScoring, mWealthHighScore) == 0x334);
+TPW_CHECK(AdvisorScoring_mMargin, TPW_OFF(AdvisorScoring, mMargin) == 0x338);
+TPW_CHECK(AdvisorScoring_mWealthHighRepayLoanScore, TPW_OFF(AdvisorScoring, mWealthHighRepayLoanScore) == 0x33c);
+TPW_CHECK(AdvisorScoring_mTakeLoanScore, TPW_OFF(AdvisorScoring, mTakeLoanScore) == 0x340);
+TPW_CHECK(AdvisorScoring_mInTheRedSixMonthsScore, TPW_OFF(AdvisorScoring, mInTheRedSixMonthsScore) == 0x344);
+TPW_CHECK(AdvisorScoring_mInTheRedThreeMonthsScore, TPW_OFF(AdvisorScoring, mInTheRedThreeMonthsScore) == 0x348);
+TPW_CHECK(AdvisorScoring_mInTheRedMonthLeftScore, TPW_OFF(AdvisorScoring, mInTheRedMonthLeftScore) == 0x34c);
+TPW_CHECK(AdvisorScoring_mBankruptedScore, TPW_OFF(AdvisorScoring, mBankruptedScore) == 0x350);
+TPW_CHECK(AdvisorScoring_mWagesTimesHigherThanIncome, TPW_OFF(AdvisorScoring, mWagesTimesHigherThanIncome) == 0x354);
+TPW_CHECK(AdvisorScoring_mAverageOverMonths, TPW_OFF(AdvisorScoring, mAverageOverMonths) == 0x358);
+TPW_CHECK(AdvisorScoring_mWagesHighScore, TPW_OFF(AdvisorScoring, mWagesHighScore) == 0x35c);
+TPW_CHECK(AdvisorScoring_mLotsHandymanFudgeFactor, TPW_OFF(AdvisorScoring, mLotsHandymanFudgeFactor) == 0x360);
+TPW_CHECK(AdvisorScoring_mLotsHandymanScore, TPW_OFF(AdvisorScoring, mLotsHandymanScore) == 0x364);
+TPW_CHECK(AdvisorScoring_mLotsEntertainersFudgeFactor, TPW_OFF(AdvisorScoring, mLotsEntertainersFudgeFactor) == 0x368);
+TPW_CHECK(AdvisorScoring_mLotsEntertainersScore, TPW_OFF(AdvisorScoring, mLotsEntertainersScore) == 0x36c);
+TPW_CHECK(AdvisorScoring_mLotsMechanicsFudgeFactor, TPW_OFF(AdvisorScoring, mLotsMechanicsFudgeFactor) == 0x370);
+TPW_CHECK(AdvisorScoring_mLotsMechanicsScore, TPW_OFF(AdvisorScoring, mLotsMechanicsScore) == 0x374);
+TPW_CHECK(AdvisorScoring_mLotsSecurityFudgeFactor, TPW_OFF(AdvisorScoring, mLotsSecurityFudgeFactor) == 0x378);
+TPW_CHECK(AdvisorScoring_mLotsSecurityScore, TPW_OFF(AdvisorScoring, mLotsSecurityScore) == 0x37c);
+TPW_CHECK(AdvisorScoring_mLotsResearchersFudgeFactor, TPW_OFF(AdvisorScoring, mLotsResearchersFudgeFactor) == 0x380);
+TPW_CHECK(AdvisorScoring_mLotsResearchersScore, TPW_OFF(AdvisorScoring, mLotsResearchersScore) == 0x384);
+TPW_CHECK(AdvisorScoring_mQueueUnconnectedScore, TPW_OFF(AdvisorScoring, mQueueUnconnectedScore) == 0x388);
+TPW_CHECK(AdvisorScoring_mMaxHandymenMoreThan, TPW_OFF(AdvisorScoring, mMaxHandymenMoreThan) == 0x38c);
+TPW_CHECK(AdvisorScoring_mMaxHandymenScore, TPW_OFF(AdvisorScoring, mMaxHandymenScore) == 0x390);
+TPW_CHECK(AdvisorScoring_mMaxHandymenV2Score, TPW_OFF(AdvisorScoring, mMaxHandymenV2Score) == 0x394);
+TPW_CHECK(AdvisorScoring_mMaxEntertainersMoreThan, TPW_OFF(AdvisorScoring, mMaxEntertainersMoreThan) == 0x398);
+TPW_CHECK(AdvisorScoring_mMaxEntertainersScore, TPW_OFF(AdvisorScoring, mMaxEntertainersScore) == 0x39c);
+TPW_CHECK(AdvisorScoring_mMaxEntertainersV2Score, TPW_OFF(AdvisorScoring, mMaxEntertainersV2Score) == 0x3a0);
+TPW_CHECK(AdvisorScoring_mMaxMechanicsMoreThan, TPW_OFF(AdvisorScoring, mMaxMechanicsMoreThan) == 0x3a4);
+TPW_CHECK(AdvisorScoring_mMaxMechanicsScore, TPW_OFF(AdvisorScoring, mMaxMechanicsScore) == 0x3a8);
+TPW_CHECK(AdvisorScoring_mMaxMechanicsV2Score, TPW_OFF(AdvisorScoring, mMaxMechanicsV2Score) == 0x3ac);
+TPW_CHECK(AdvisorScoring_mMaxGuardsMoreThan, TPW_OFF(AdvisorScoring, mMaxGuardsMoreThan) == 0x3b0);
+TPW_CHECK(AdvisorScoring_mMaxGuardsScore, TPW_OFF(AdvisorScoring, mMaxGuardsScore) == 0x3b4);
+TPW_CHECK(AdvisorScoring_mMaxGuardsV2Score, TPW_OFF(AdvisorScoring, mMaxGuardsV2Score) == 0x3b8);
+TPW_CHECK(AdvisorScoring_mMaxResearchersMoreThan, TPW_OFF(AdvisorScoring, mMaxResearchersMoreThan) == 0x3bc);
+TPW_CHECK(AdvisorScoring_mMaxResearchersScore, TPW_OFF(AdvisorScoring, mMaxResearchersScore) == 0x3c0);
+TPW_CHECK(AdvisorScoring_mMaxResearchersV2Score, TPW_OFF(AdvisorScoring, mMaxResearchersV2Score) == 0x3c4);
+TPW_CHECK(AdvisorScoring_mMaxMonths, TPW_OFF(AdvisorScoring, mMaxMonths) == 0x3c8);
+TPW_CHECK(AdvisorScoring_mDroppedPercent, TPW_OFF(AdvisorScoring, mDroppedPercent) == 0x3cc);
+TPW_CHECK(AdvisorScoring_mHypeNewparkScore, TPW_OFF(AdvisorScoring, mHypeNewparkScore) == 0x3d0);
+TPW_CHECK(AdvisorScoring_mPrankSbombScore, TPW_OFF(AdvisorScoring, mPrankSbombScore) == 0x3d4);
+TPW_CHECK(AdvisorScoring_mPrankLitterScore, TPW_OFF(AdvisorScoring, mPrankLitterScore) == 0x3d8);
+TPW_CHECK(AdvisorScoring_mPrankBalloonScore, TPW_OFF(AdvisorScoring, mPrankBalloonScore) == 0x3dc);
+TPW_CHECK(AdvisorScoring_mParkNowOpenScore, TPW_OFF(AdvisorScoring, mParkNowOpenScore) == 0x3e0);
+TPW_CHECK(AdvisorScoring_mParkNowClosedScore, TPW_OFF(AdvisorScoring, mParkNowClosedScore) == 0x3e4);
+TPW_CHECK(AdvisorScoring_mUpgradeHireMechanicScore, TPW_OFF(AdvisorScoring, mUpgradeHireMechanicScore) == 0x3e8);
+TPW_CHECK(AdvisorScoring_mUpgradeStikingMechanicsScore, TPW_OFF(AdvisorScoring, mUpgradeStikingMechanicsScore) == 0x3ec);
+TPW_CHECK(AdvisorScoring_mNewUpgradeNoMechanicScore, TPW_OFF(AdvisorScoring, mNewUpgradeNoMechanicScore) == 0x3f0);
+TPW_CHECK(AdvisorScoring_mNewResearchGroupRideScore, TPW_OFF(AdvisorScoring, mNewResearchGroupRideScore) == 0x3f4);
+TPW_CHECK(AdvisorScoring_mNewResearchGroupShopScore, TPW_OFF(AdvisorScoring, mNewResearchGroupShopScore) == 0x3f8);
+TPW_CHECK(AdvisorScoring_mNewResearchGroupSideshowScore, TPW_OFF(AdvisorScoring, mNewResearchGroupSideshowScore) == 0x3fc);
+TPW_CHECK(AdvisorScoring_mNewResearchGroupFeatureScore, TPW_OFF(AdvisorScoring, mNewResearchGroupFeatureScore) == 0x400);
+TPW_CHECK(AdvisorScoring_mBusArrivedScore, TPW_OFF(AdvisorScoring, mBusArrivedScore) == 0x404);
+TPW_CHECK(AdvisorScoring_mPlaneArrivedScore, TPW_OFF(AdvisorScoring, mPlaneArrivedScore) == 0x408);
+TPW_CHECK(AdvisorScoring_mBoatArrivedScore, TPW_OFF(AdvisorScoring, mBoatArrivedScore) == 0x40c);
+TPW_CHECK(AdvisorScoring_mHowBigIsBig, TPW_OFF(AdvisorScoring, mHowBigIsBig) == 0x410);
+TPW_CHECK(AdvisorScoring_mBigBusloadArrivedScore, TPW_OFF(AdvisorScoring, mBigBusloadArrivedScore) == 0x414);
+TPW_CHECK(AdvisorScoring_mAverageScarierThan, TPW_OFF(AdvisorScoring, mAverageScarierThan) == 0x418);
+TPW_CHECK(AdvisorScoring_mMinimumRides, TPW_OFF(AdvisorScoring, mMinimumRides) == 0x41c);
+TPW_CHECK(AdvisorScoring_mVisitorsTooScaredScore, TPW_OFF(AdvisorScoring, mVisitorsTooScaredScore) == 0x420);
+TPW_CHECK(AdvisorScoring_mOnlineNewItemScore, TPW_OFF(AdvisorScoring, mOnlineNewItemScore) == 0x424);
+TPW_CHECK(AdvisorScoring_mOnlineMessageScore, TPW_OFF(AdvisorScoring, mOnlineMessageScore) == 0x428);
+TPW_CHECK(AdvisorScoring_mMinimumStaff, TPW_OFF(AdvisorScoring, mMinimumStaff) == 0x42c);
+TPW_CHECK(AdvisorScoring_mCongratStaffHappyHappierThan, TPW_OFF(AdvisorScoring, mCongratStaffHappyHappierThan) == 0x430);
+TPW_CHECK(AdvisorScoring_mCongratStaffHappyScore, TPW_OFF(AdvisorScoring, mCongratStaffHappyScore) == 0x434);
+TPW_CHECK(AdvisorScoring_mMinimumVisitors, TPW_OFF(AdvisorScoring, mMinimumVisitors) == 0x438);
+TPW_CHECK(AdvisorScoring_mCongratVisitorsHappyHappierThan, TPW_OFF(AdvisorScoring, mCongratVisitorsHappyHappierThan) == 0x43c);
+TPW_CHECK(AdvisorScoring_mCongratVisitorsHappyScore, TPW_OFF(AdvisorScoring, mCongratVisitorsHappyScore) == 0x440);
+TPW_CHECK(AdvisorScoring_mMinimumGuards, TPW_OFF(AdvisorScoring, mMinimumGuards) == 0x444);
+TPW_CHECK(AdvisorScoring_mCongratSecurityTrainedBetterThan, TPW_OFF(AdvisorScoring, mCongratSecurityTrainedBetterThan) == 0x448);
+TPW_CHECK(AdvisorScoring_mCongratSecurityTrainedScore, TPW_OFF(AdvisorScoring, mCongratSecurityTrainedScore) == 0x44c);
+TPW_CHECK(AdvisorScoring_mMinimumResearchers, TPW_OFF(AdvisorScoring, mMinimumResearchers) == 0x450);
+TPW_CHECK(AdvisorScoring_mCongratResearchersTrainedBetterThan, TPW_OFF(AdvisorScoring, mCongratResearchersTrainedBetterThan) == 0x454);
+TPW_CHECK(AdvisorScoring_mCongratResearchersTrainedScore, TPW_OFF(AdvisorScoring, mCongratResearchersTrainedScore) == 0x458);
+TPW_CHECK(AdvisorScoring_mMinimumHandymen, TPW_OFF(AdvisorScoring, mMinimumHandymen) == 0x45c);
+TPW_CHECK(AdvisorScoring_mCongratHandymenTrainedBetterThan, TPW_OFF(AdvisorScoring, mCongratHandymenTrainedBetterThan) == 0x460);
+TPW_CHECK(AdvisorScoring_mCongratHandymenTrainedScore, TPW_OFF(AdvisorScoring, mCongratHandymenTrainedScore) == 0x464);
+TPW_CHECK(AdvisorScoring_mMinimumEntertainers, TPW_OFF(AdvisorScoring, mMinimumEntertainers) == 0x468);
+TPW_CHECK(AdvisorScoring_mCongratEntertainersTrainedBetterThan, TPW_OFF(AdvisorScoring, mCongratEntertainersTrainedBetterThan) == 0x46c);
+TPW_CHECK(AdvisorScoring_mCongratEntertainersTrainedScore, TPW_OFF(AdvisorScoring, mCongratEntertainersTrainedScore) == 0x470);
+TPW_CHECK(AdvisorScoring_mMinimumMechanics, TPW_OFF(AdvisorScoring, mMinimumMechanics) == 0x474);
+TPW_CHECK(AdvisorScoring_mCongratMechanicsTrainedBetterThan, TPW_OFF(AdvisorScoring, mCongratMechanicsTrainedBetterThan) == 0x478);
+TPW_CHECK(AdvisorScoring_mCongratMechanicsTrainedScore, TPW_OFF(AdvisorScoring, mCongratMechanicsTrainedScore) == 0x47c);
+TPW_CHECK(AdvisorScoring_mCongratPublishParkValueBetterThan, TPW_OFF(AdvisorScoring, mCongratPublishParkValueBetterThan) == 0x480);
+TPW_CHECK(AdvisorScoring_mCongratPublishParkHappinessGreaterThan, TPW_OFF(AdvisorScoring, mCongratPublishParkHappinessGreaterThan) == 0x484);
+TPW_CHECK(AdvisorScoring_mCongratPublishParkVisitorsMoreThan, TPW_OFF(AdvisorScoring, mCongratPublishParkVisitorsMoreThan) == 0x488);
+TPW_CHECK(AdvisorScoring_mCongratPublishParkScore, TPW_OFF(AdvisorScoring, mCongratPublishParkScore) == 0x48c);
+TPW_CHECK(AdvisorScoring_mCongratSendPostcardValueBetterThan, TPW_OFF(AdvisorScoring, mCongratSendPostcardValueBetterThan) == 0x490);
+TPW_CHECK(AdvisorScoring_mCongratSendPostcardHappinessGreaterThan, TPW_OFF(AdvisorScoring, mCongratSendPostcardHappinessGreaterThan) == 0x494);
+TPW_CHECK(AdvisorScoring_mCongratSendPostcardVisitorsMoreThan, TPW_OFF(AdvisorScoring, mCongratSendPostcardVisitorsMoreThan) == 0x498);
+TPW_CHECK(AdvisorScoring_mCongratSendPostcardScore, TPW_OFF(AdvisorScoring, mCongratSendPostcardScore) == 0x49c);
+TPW_CHECK(AdvisorScoring_mCongratBalloonsMoreThan, TPW_OFF(AdvisorScoring, mCongratBalloonsMoreThan) == 0x4a0);
+TPW_CHECK(AdvisorScoring_mCongratBalloonsScore, TPW_OFF(AdvisorScoring, mCongratBalloonsScore) == 0x4a4);
+TPW_CHECK(AdvisorScoring_mCongratCostumesMoreThan, TPW_OFF(AdvisorScoring, mCongratCostumesMoreThan) == 0x4a8);
+TPW_CHECK(AdvisorScoring_mCongratCostumesScore, TPW_OFF(AdvisorScoring, mCongratCostumesScore) == 0x4ac);
+TPW_CHECK(AdvisorScoring_mCongratAllCompleteScore, TPW_OFF(AdvisorScoring, mCongratAllCompleteScore) == 0x4b0);
+TPW_CHECK(AdvisorScoring_mCongratAllCompleteLeavingScore, TPW_OFF(AdvisorScoring, mCongratAllCompleteLeavingScore) == 0x4b4);
+TPW_CHECK(AdvisorScoring_mPctOfStaffTired, TPW_OFF(AdvisorScoring, mPctOfStaffTired) == 0x4b8);
+TPW_CHECK(AdvisorScoring_mNeedStaffRoomScore, TPW_OFF(AdvisorScoring, mNeedStaffRoomScore) == 0x4bc);
+TPW_CHECK(AdvisorScoring_mHireStaffGeneralScore, TPW_OFF(AdvisorScoring, mHireStaffGeneralScore) == 0x4c0);
+TPW_CHECK(AdvisorScoring_mMinVisitorsEver, TPW_OFF(AdvisorScoring, mMinVisitorsEver) == 0x4c4);
+TPW_CHECK(AdvisorScoring_mSetPatrolsGeneralMinStaffForMessage, TPW_OFF(AdvisorScoring, mSetPatrolsGeneralMinStaffForMessage) == 0x4c8);
+TPW_CHECK(AdvisorScoring_mSetPatrolsGeneralScore, TPW_OFF(AdvisorScoring, mSetPatrolsGeneralScore) == 0x4cc);
+TPW_CHECK(AdvisorScoring_mTrainStaffGeneralMinStaffForMessage, TPW_OFF(AdvisorScoring, mTrainStaffGeneralMinStaffForMessage) == 0x4d0);
+TPW_CHECK(AdvisorScoring_mTrainStaffGeneralScore, TPW_OFF(AdvisorScoring, mTrainStaffGeneralScore) == 0x4d4);
+TPW_CHECK(AdvisorScoring_mFoodPoorValueValueWorseThan, TPW_OFF(AdvisorScoring, mFoodPoorValueValueWorseThan) == 0x4d8);
+TPW_CHECK(AdvisorScoring_mFoodPoorValueScorePerPoint, TPW_OFF(AdvisorScoring, mFoodPoorValueScorePerPoint) == 0x4dc);
+TPW_CHECK(AdvisorScoring_mShopsPoorValueValueWorseThan, TPW_OFF(AdvisorScoring, mShopsPoorValueValueWorseThan) == 0x4e0);
+TPW_CHECK(AdvisorScoring_mShopsPoorValueScorePerPoint, TPW_OFF(AdvisorScoring, mShopsPoorValueScorePerPoint) == 0x4e4);
+TPW_CHECK(AdvisorScoring_mRestaurantPoorValueValueWorseThan, TPW_OFF(AdvisorScoring, mRestaurantPoorValueValueWorseThan) == 0x4e8);
+TPW_CHECK(AdvisorScoring_mRestaurantPoorValueScorePerPoint, TPW_OFF(AdvisorScoring, mRestaurantPoorValueScorePerPoint) == 0x4ec);
+TPW_CHECK(AdvisorScoring_mDrinksPoorValueValueWorseThan, TPW_OFF(AdvisorScoring, mDrinksPoorValueValueWorseThan) == 0x4f0);
+TPW_CHECK(AdvisorScoring_mDrinksPoorValueScorePerPoint, TPW_OFF(AdvisorScoring, mDrinksPoorValueScorePerPoint) == 0x4f4);
+TPW_CHECK(AdvisorScoring_mSideshowsPoorValueValueWorseThan, TPW_OFF(AdvisorScoring, mSideshowsPoorValueValueWorseThan) == 0x4f8);
+TPW_CHECK(AdvisorScoring_mSideshowsPoorValueScorePerPoint, TPW_OFF(AdvisorScoring, mSideshowsPoorValueScorePerPoint) == 0x4fc);
+TPW_CHECK(AdvisorScoring_mFoodPoorSatisfactionSatisfactionWorseThan, TPW_OFF(AdvisorScoring, mFoodPoorSatisfactionSatisfactionWorseThan) == 0x500);
+TPW_CHECK(AdvisorScoring_mFoodPoorSatisfactionScorePerPoint, TPW_OFF(AdvisorScoring, mFoodPoorSatisfactionScorePerPoint) == 0x504);
+TPW_CHECK(AdvisorScoring_mShopsPoorSatisfactionSatisfactionWorseThan, TPW_OFF(AdvisorScoring, mShopsPoorSatisfactionSatisfactionWorseThan) == 0x508);
+TPW_CHECK(AdvisorScoring_mShopsPoorSatisfactionScorePerPoint, TPW_OFF(AdvisorScoring, mShopsPoorSatisfactionScorePerPoint) == 0x50c);
+TPW_CHECK(AdvisorScoring_mRestaurantPoorSatisfactionSatisfactionWorseThan, TPW_OFF(AdvisorScoring, mRestaurantPoorSatisfactionSatisfactionWorseThan) == 0x510);
+TPW_CHECK(AdvisorScoring_mRestaurantPoorSatisfactionScorePerPoint, TPW_OFF(AdvisorScoring, mRestaurantPoorSatisfactionScorePerPoint) == 0x514);
+TPW_CHECK(AdvisorScoring_mDrinksPoorSatisfactionSatisfactionWorseThan, TPW_OFF(AdvisorScoring, mDrinksPoorSatisfactionSatisfactionWorseThan) == 0x518);
+TPW_CHECK(AdvisorScoring_mDrinksPoorSatisfactionScorePerPoint, TPW_OFF(AdvisorScoring, mDrinksPoorSatisfactionScorePerPoint) == 0x51c);
+TPW_CHECK(AdvisorScoring_mSideshowsPoorSatisfactionSatisfactionWorseThan, TPW_OFF(AdvisorScoring, mSideshowsPoorSatisfactionSatisfactionWorseThan) == 0x520);
+TPW_CHECK(AdvisorScoring_mSideshowsPoorSatisfactionScorePerPoint, TPW_OFF(AdvisorScoring, mSideshowsPoorSatisfactionScorePerPoint) == 0x524);
+TPW_CHECK(AdvisorScoring_mFoodGreatValueValueBetterThan, TPW_OFF(AdvisorScoring, mFoodGreatValueValueBetterThan) == 0x528);
+TPW_CHECK(AdvisorScoring_mFoodGreatValueScorePerPoint, TPW_OFF(AdvisorScoring, mFoodGreatValueScorePerPoint) == 0x52c);
+TPW_CHECK(AdvisorScoring_mShopsGreatValueValueBetterThan, TPW_OFF(AdvisorScoring, mShopsGreatValueValueBetterThan) == 0x530);
+TPW_CHECK(AdvisorScoring_mShopsGreatValueScorePerPoint, TPW_OFF(AdvisorScoring, mShopsGreatValueScorePerPoint) == 0x534);
+TPW_CHECK(AdvisorScoring_mRestaurantGreatValueValueBetterThan, TPW_OFF(AdvisorScoring, mRestaurantGreatValueValueBetterThan) == 0x538);
+TPW_CHECK(AdvisorScoring_mRestaurantGreatValueScorePerPoint, TPW_OFF(AdvisorScoring, mRestaurantGreatValueScorePerPoint) == 0x53c);
+TPW_CHECK(AdvisorScoring_mDrinksGreatValueValueBetterThan, TPW_OFF(AdvisorScoring, mDrinksGreatValueValueBetterThan) == 0x540);
+TPW_CHECK(AdvisorScoring_mDrinksGreatValueScorePerPoint, TPW_OFF(AdvisorScoring, mDrinksGreatValueScorePerPoint) == 0x544);
+TPW_CHECK(AdvisorScoring_mSideshowsGreatValueValueBetterThan, TPW_OFF(AdvisorScoring, mSideshowsGreatValueValueBetterThan) == 0x548);
+TPW_CHECK(AdvisorScoring_mSideshowsGreatValueScorePerPoint, TPW_OFF(AdvisorScoring, mSideshowsGreatValueScorePerPoint) == 0x54c);
+TPW_CHECK(AdvisorScoring_mFoodGreatSatisfactionSatisfactionBetterThan, TPW_OFF(AdvisorScoring, mFoodGreatSatisfactionSatisfactionBetterThan) == 0x550);
+TPW_CHECK(AdvisorScoring_mFoodGreatSatisfactionScorePerPoint, TPW_OFF(AdvisorScoring, mFoodGreatSatisfactionScorePerPoint) == 0x554);
+TPW_CHECK(AdvisorScoring_mShopsGreatSatisfactionSatisfactionBetterThan, TPW_OFF(AdvisorScoring, mShopsGreatSatisfactionSatisfactionBetterThan) == 0x558);
+TPW_CHECK(AdvisorScoring_mShopsGreatSatisfactionScorePerPoint, TPW_OFF(AdvisorScoring, mShopsGreatSatisfactionScorePerPoint) == 0x55c);
+TPW_CHECK(AdvisorScoring_mRestaurantGreatSatisfactionSatisfactionBetterThan, TPW_OFF(AdvisorScoring, mRestaurantGreatSatisfactionSatisfactionBetterThan) == 0x560);
+TPW_CHECK(AdvisorScoring_mRestaurantGreatSatisfactionScorePerPoint, TPW_OFF(AdvisorScoring, mRestaurantGreatSatisfactionScorePerPoint) == 0x564);
+TPW_CHECK(AdvisorScoring_mDrinksGreatSatisfactionSatisfactionBetterThan, TPW_OFF(AdvisorScoring, mDrinksGreatSatisfactionSatisfactionBetterThan) == 0x568);
+TPW_CHECK(AdvisorScoring_mDrinksGreatSatisfactionScorePerPoint, TPW_OFF(AdvisorScoring, mDrinksGreatSatisfactionScorePerPoint) == 0x56c);
+TPW_CHECK(AdvisorScoring_mSideshowsGreatSatisfactionSatisfactionBetterThan, TPW_OFF(AdvisorScoring, mSideshowsGreatSatisfactionSatisfactionBetterThan) == 0x570);
+TPW_CHECK(AdvisorScoring_mSideshowsGreatSatisfactionScorePerPoint, TPW_OFF(AdvisorScoring, mSideshowsGreatSatisfactionScorePerPoint) == 0x574);
+TPW_CHECK(AdvisorScoring_mRideCondemnedScore, TPW_OFF(AdvisorScoring, mRideCondemnedScore) == 0x578);
+TPW_CHECK(AdvisorScoring_mAtLeastThisManyRides, TPW_OFF(AdvisorScoring, mAtLeastThisManyRides) == 0x57c);
+TPW_CHECK(AdvisorScoring_mRidesClosedMoreThanThisPercentClosed, TPW_OFF(AdvisorScoring, mRidesClosedMoreThanThisPercentClosed) == 0x580);
+TPW_CHECK(AdvisorScoring_mRidesClosedScore, TPW_OFF(AdvisorScoring, mRidesClosedScore) == 0x584);
+TPW_CHECK(AdvisorScoring_mShopsClosedMoreThanThisPercentClosed, TPW_OFF(AdvisorScoring, mShopsClosedMoreThanThisPercentClosed) == 0x588);
+TPW_CHECK(AdvisorScoring_mShopsClosedScore, TPW_OFF(AdvisorScoring, mShopsClosedScore) == 0x58c);
+TPW_CHECK(AdvisorScoring_mSideshowsClosedMoreThanThisPercentClosed, TPW_OFF(AdvisorScoring, mSideshowsClosedMoreThanThisPercentClosed) == 0x590);
+TPW_CHECK(AdvisorScoring_mSideshowsClosedScore, TPW_OFF(AdvisorScoring, mSideshowsClosedScore) == 0x594);
+TPW_CHECK(AdvisorScoring_mToiletsClosedMoreThanThisPercentClosed, TPW_OFF(AdvisorScoring, mToiletsClosedMoreThanThisPercentClosed) == 0x598);
+TPW_CHECK(AdvisorScoring_mToiletsClosedScore, TPW_OFF(AdvisorScoring, mToiletsClosedScore) == 0x59c);
+TPW_CHECK(AdvisorScoring_mStaffroomClosedMoreThanThisPercentClosed, TPW_OFF(AdvisorScoring, mStaffroomClosedMoreThanThisPercentClosed) == 0x5a0);
+TPW_CHECK(AdvisorScoring_mStaffroomClosedScore, TPW_OFF(AdvisorScoring, mStaffroomClosedScore) == 0x5a4);
+TPW_CHECK(AdvisorScoring_mMorePrankstersThan, TPW_OFF(AdvisorScoring, mMorePrankstersThan) == 0x5a8);
+TPW_CHECK(AdvisorScoring_mLotsOfPranksScore, TPW_OFF(AdvisorScoring, mLotsOfPranksScore) == 0x5ac);
+TPW_CHECK(AdvisorScoring_mRideExitBlockedScore, TPW_OFF(AdvisorScoring, mRideExitBlockedScore) == 0x5b0);
+TPW_CHECK(AdvisorScoring_mWonFirstGoldenTicketScore, TPW_OFF(AdvisorScoring, mWonFirstGoldenTicketScore) == 0x5b4);
+TPW_CHECK(AdvisorScoring_mGoldTicketNearToFirstOnePeopleMultiplier, TPW_OFF(AdvisorScoring, mGoldTicketNearToFirstOnePeopleMultiplier) == 0x5b8);
+TPW_CHECK(AdvisorScoring_mGoldTicketNearToFirstOneScore, TPW_OFF(AdvisorScoring, mGoldTicketNearToFirstOneScore) == 0x5bc);
+TPW_CHECK(AdvisorScoring_mGoldTicketCluesForRemainderScore, TPW_OFF(AdvisorScoring, mGoldTicketCluesForRemainderScore) == 0x5c0);
+TPW_CHECK(AdvisorScoring_mGoldTicketNearToXPeepsPeopleMultiplier, TPW_OFF(AdvisorScoring, mGoldTicketNearToXPeepsPeopleMultiplier) == 0x5c4);
+TPW_CHECK(AdvisorScoring_mGoldTicketNearToXPeepsScore, TPW_OFF(AdvisorScoring, mGoldTicketNearToXPeepsScore) == 0x5c8);
+TPW_CHECK(AdvisorScoring_mHappinessMultiplier, TPW_OFF(AdvisorScoring, mHappinessMultiplier) == 0x5cc);
+TPW_CHECK(AdvisorScoring_mGoldTicketNearToXHappinessScore, TPW_OFF(AdvisorScoring, mGoldTicketNearToXHappinessScore) == 0x5d0);
+TPW_CHECK(AdvisorScoring_mProfitMultiplier, TPW_OFF(AdvisorScoring, mProfitMultiplier) == 0x5d4);
+TPW_CHECK(AdvisorScoring_mGoldTicketNearToXProfitScore, TPW_OFF(AdvisorScoring, mGoldTicketNearToXProfitScore) == 0x5d8);
+TPW_CHECK(AdvisorScoring_mTutorialUIPanelAfterTime, TPW_OFF(AdvisorScoring, mTutorialUIPanelAfterTime) == 0x5dc);
+TPW_CHECK(AdvisorScoring_mTutorialUIPanelCutoffTime, TPW_OFF(AdvisorScoring, mTutorialUIPanelCutoffTime) == 0x5e0);
+TPW_CHECK(AdvisorScoring_mTutorialUIPanelScore, TPW_OFF(AdvisorScoring, mTutorialUIPanelScore) == 0x5e4);
+TPW_CHECK(AdvisorScoring_mTutorialExplainTooltipsAfterTime, TPW_OFF(AdvisorScoring, mTutorialExplainTooltipsAfterTime) == 0x5e8);
+TPW_CHECK(AdvisorScoring_mTutorialExplainTooltipsCutoffTime, TPW_OFF(AdvisorScoring, mTutorialExplainTooltipsCutoffTime) == 0x5ec);
+TPW_CHECK(AdvisorScoring_mTutorialExplainTooltipsScore, TPW_OFF(AdvisorScoring, mTutorialExplainTooltipsScore) == 0x5f0);
+TPW_CHECK(AdvisorScoring_mGoldTicketExplanationScore, TPW_OFF(AdvisorScoring, mGoldTicketExplanationScore) == 0x5f4);
+TPW_CHECK(AdvisorScoring_mPrebuiltParkScore, TPW_OFF(AdvisorScoring, mPrebuiltParkScore) == 0x5f8);
+TPW_CHECK(AdvisorScoring_mGTAllResearchedAHigherPctThanThis, TPW_OFF(AdvisorScoring, mGTAllResearchedAHigherPctThanThis) == 0x5fc);
+TPW_CHECK(AdvisorScoring_mGTAllResearchedAScore, TPW_OFF(AdvisorScoring, mGTAllResearchedAScore) == 0x600);
+TPW_CHECK(AdvisorScoring_mGTAllResearchedBHigherPctThanThis, TPW_OFF(AdvisorScoring, mGTAllResearchedBHigherPctThanThis) == 0x604);
+TPW_CHECK(AdvisorScoring_mGTAllResearchedBScore, TPW_OFF(AdvisorScoring, mGTAllResearchedBScore) == 0x608);
+TPW_CHECK(AdvisorScoring_mGTAllResearchedCHigherPctThanThis, TPW_OFF(AdvisorScoring, mGTAllResearchedCHigherPctThanThis) == 0x60c);
+TPW_CHECK(AdvisorScoring_mGTAllResearchedCScore, TPW_OFF(AdvisorScoring, mGTAllResearchedCScore) == 0x610);
+TPW_CHECK(AdvisorScoring_mGTAmountVisitorsAHigherPctThanThis, TPW_OFF(AdvisorScoring, mGTAmountVisitorsAHigherPctThanThis) == 0x614);
+TPW_CHECK(AdvisorScoring_mGTAmountVisitorsAScore, TPW_OFF(AdvisorScoring, mGTAmountVisitorsAScore) == 0x618);
+TPW_CHECK(AdvisorScoring_mGTAmountVisitorsBHigherPctThanThis, TPW_OFF(AdvisorScoring, mGTAmountVisitorsBHigherPctThanThis) == 0x61c);
+TPW_CHECK(AdvisorScoring_mGTAmountVisitorsBScore, TPW_OFF(AdvisorScoring, mGTAmountVisitorsBScore) == 0x620);
+TPW_CHECK(AdvisorScoring_mGTAmountVisitorsCHigherPctThanThis, TPW_OFF(AdvisorScoring, mGTAmountVisitorsCHigherPctThanThis) == 0x624);
+TPW_CHECK(AdvisorScoring_mGTAmountVisitorsCScore, TPW_OFF(AdvisorScoring, mGTAmountVisitorsCScore) == 0x628);
+TPW_CHECK(AdvisorScoring_mChallengeScore, TPW_OFF(AdvisorScoring, mChallengeScore) == 0x62c);
+TPW_CHECK(AdvisorScoring_mDaysForStaff, TPW_OFF(AdvisorScoring, mDaysForStaff) == 0x630);
+TPW_CHECK(AdvisorScoring_mDaysForObjects, TPW_OFF(AdvisorScoring, mDaysForObjects) == 0x634);
+TPW_CHECK(AdvisorScoring_size, sizeof(AdvisorScoring) == 0x638);
 #endif
 /* END GENERATED */
 

@@ -121,16 +121,23 @@ def balance_specs(pe, schema, name, base, header, size, comment):
             tables.setdefault(group[:-2], []).append((off, ctype, field, k))
         else:
             top.append((off, ctype, 'm' + (group + field if seen.count(field) > 1 else field), 1))
-    specs = []
+    specs, rows_by_shape = [], {}
     for table, fs in tables.items():
         first, rows, stride = fs[0][0], fs[0][3]['rows'], fs[0][3]['stride']
         if len(fs) == 1:   # one key per row: a plain array
             top.append((first, fs[0][1], 'm' + table + ('' if fs[0][2] == 'FileName' else fs[0][2]), rows))
             continue
-        sub = name + table[0].upper() + table[1:].rstrip('s')
-        specs.append((sub, None, [], stride, [], [(o - first, c, 'm' + f, 1) for o, c, f, _ in fs],
-                      'One row of %s.m%s: the %s[i].* keys.' % (name, table, table)))
-        top.append((first, sub, 'm' + table, rows))
+        members = [(o - first, c, 'm' + f, 1) for o, c, f, _ in fs]
+        # Numbered tables with the same rows (asCrossSectionPoints1..N) share one row struct.
+        family = table.rstrip('0123456789')
+        shape = (family, stride, tuple(members))
+        if shape not in rows_by_shape:
+            sub = name + family[0].upper() + family[1:].rstrip('s')
+            rows_by_shape[shape] = sub
+            specs.append((sub, None, [], stride, [], members,
+                          'One row of %s.m%s: the %s[i].* keys.'
+                          % (name, family + ('N' if family != table else ''), family + ('N' if family != table else ''))))
+        top.append((first, rows_by_shape[shape], 'm' + table, rows))
     if size is True:
         size = base + 4 * slots
     specs.append((name, None, [], size, [], top, comment))
@@ -167,7 +174,30 @@ def balance_structs(pe):
                              ' * in schema order (tools/samtool.py schema %s); vtable and mSlotInfo\n'
                              ' * belong to the balance-file base class (0x401030).'
                              % (what, label, ', '.join('%#x' % a for a in addrs), schema))
+    for schema, name, where in BALANCE_LOCALS:
+        out += balance_specs(pe, schema, name, 0x08, BALANCE_HEADER, True,
+                             'Values of %s. Fields are the .sam keys in schema order\n'
+                             ' * (tools/samtool.py schema %s); vtable and mSlotInfo belong to the\n'
+                             ' * balance-file base class (0x401030).' % (where, schema))
+    out += balance_specs(
+        pe, 'advisor', 'AdvisorScoring', 0x14,
+        [(0x0c, 'void *', 'vtable', 1), (0x10, 'void *', 'mSlotInfo', 1)], True,
+        'data/advisor/advisor.sam: how the advisor scores and picks messages. A function-static\n'
+        ' * singleton at 0xfb3540 (AdvisorScoring_Construct 0x59bea0, guard bit 0xfb2766 & 1);\n'
+        ' * the balance-file base class sits at +0xc, so the .sam keys (tools/samtool.py schema\n'
+        ' * advisor) start at +0x14.')
     return out
+
+
+# Balance files read into objects that live on the stack or the heap: (schema, struct, where).
+BALANCE_LOCALS = [
+    ('track', 'BalanceTrack', 'a coaster/track type .sam (textures, cross sections, cars),\n'
+     ' * read into a stack object (vtable 0x6fd8b0) and copied out'),
+    ('challenges', 'BalanceChallenges', 'data/challenges.sam, read into a stack object\n'
+     ' * (vtable 0x700398) by the challenge loader 0x4d1ce0'),
+    ('theme', 'BalanceTheme', "a theme's .sam (tickets, keys, park gate); heap object (vtable\n"
+     ' * 0x702800) whose owner keeps it at +0x1c'),
+]
 
 
 def schema_types(schema, out=None):
