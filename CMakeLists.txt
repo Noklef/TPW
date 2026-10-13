@@ -16,6 +16,7 @@ add_compile_options(/W4 /permissive- /utf-8)
 add_library(tpw_game STATIC
     src/game/rsse/rsse_vm.cpp
     src/game/files/refpack.cpp
+    src/game/motion/curve.cpp
     src/game/terrain/terrain_blend.cpp
 )
 

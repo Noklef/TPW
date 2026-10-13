@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "../src/game/files/refpack.h"
+#include "../src/game/motion/curve.h"
 #include "../src/game/rsse/rsse.h"
 #include "../src/game/terrain/terrain_blend.h"
 #include "../src/hook/hooks.h"
@@ -208,6 +209,31 @@ static void test_refpack() {
     CHECK(RefPack_Decode(out, nullptr, 0) == 0);
 }
 
+static bool same3(const Vec3 &v, float x, float y, float z) { return v.x == x && v.y == y && v.z == z; }
+
+static void test_curves() {
+    const Vec3 p[5] = {{0, 0, 0}, {1, 2, 3}, {3, 2, 1}, {4, 4, 4}, {8, 0, -8}};
+    Vec3 o;
+    // Bezier segment i starts at point base + 3i - 1 (wrapping); at fraction 0 it is that point,
+    // with tangent 3 * (next - first).
+    Curve_BezierAt(p, 5, 1, 0.0f, &o);
+    CHECK(same3(o, 0, 0, 0));
+    Curve_BezierAt(p, 5, 0, 0.0f, &o);  // wraps to point 4
+    CHECK(same3(o, 8, 0, -8));
+    Curve_BezierAt(p, 5, 1, 0.5f, &o);  // (a + 3b + 3c + d) / 8 = (0+3+9+4, 0+6+6+4, 0+9+3+4) / 8
+    CHECK(same3(o, 2.0f, 2.0f, 2.0f));
+    Curve_BezierTangentAt(p, 5, 1, 0.0f, &o);
+    CHECK(same3(o, 3, 6, 9));
+    // Linear: segment i between points base + i and base + i + 1; no wrapping.
+    Curve_LinearAt(p, 1, 1.25f, &o);
+    CHECK(same3(o, 3.25f, 2.5f, 1.75f));
+    Curve_LinearTangentAt(p, 1, 1.25f, &o);
+    CHECK(same3(o, 1, 2, 3));
+    // Catmull-Rom passes through b at fraction 0.
+    Curve_CatmullRomAt(p, 5, 2, 0.0f, &o);
+    CHECK(same3(o, 3, 2, 1));
+}
+
 static void test_refpack_encode() {
     u8 empty[16];
     CHECK(RefPack_Encode(empty, nullptr, 0) == 6);
@@ -281,6 +307,7 @@ int main(int argc, char **argv) {
     test_lnd_overlay();
     test_refpack();
     test_refpack_encode();
+    test_curves();
     test_patcher();
     if (argc > 1) test_hook_table(argv[1]);
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);
