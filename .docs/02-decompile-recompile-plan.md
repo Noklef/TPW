@@ -50,6 +50,7 @@ TPW/
 │  ├─ wadtool.py             DWFB + RefPack read/extract/repack, byte-exact ✔
 │  ├─ samtool.py             .sam parser
 │  ├─ rsse_disasm.py         .RSE disassembler
+│  ├─ spritescript.py        sprite script table disassembler (scripts compiled into tp.exe)
 │  └─ …                      wct/md2/str/bf4/sdt converters
 ├─ src/
 │  ├─ hook/                  proxy dinput.dll, function patcher, hook registry
@@ -147,7 +148,7 @@ These also become the engine's loaders later.
 - [x] `Node_UpdateNormals` (0x473a40) and `Model_UpdateNormals` (0x473c30) (`src/game/motion/normals`): face normals of moved vertices, kept in x87 precision with its wide exponent where the original never stores to a float; 3,000 cases equal under `x87emu`, coordinates up to 1e18 and inf/NaN included, every instruction run. 79 hooks in all
 - [x] `Animator_Update` (0x473c70), the per-tick animator driver (`src/game/motion/animator`): 1,500 cases equal under `x87emu` (the motion code it calls run in the emulator too; Track_Apply, the material, holder and attach calls recorded), every instruction run. 80 hooks in all
 - [x] `Animator_Reset` (0x473e30), `Block_BindNodes` (0x470a00) and the layer accessors 0x473f50-0x4740d0 (`Layer_GetPlayback`, `Layer_GetFlags`, `Layer_GetQueued`, `Animator_SetQueuedSpeed`, `Layer_SetSpeed`, `Animator_MotionEndMs`, `Motion_SetFlags`): 3,906 cases equal under `x87emu`, every instruction run but the store in `Motion_SetFlags` and a dead branch. 89 hooks in all
-- [x] The sprite script VM (`src/game/sprite/script`): `SpriteScript_Run` (0x475010) and its stack and block skipping (0x4750c0-0x475260), the 18 opcodes 0x476020-0x476a10 (GOTO, IF/ELSE/ENDIF, GOSUB, REPEAT/UNTIL, SET/ADD/SUB/MOVE, the play opcodes; END is the empty `Debug_Printf`), `Sprite_Show` (0x540b90). Scripts are threaded code in one table (0x74dab8-0x74f7c0). Checked under `x87emu` with the globals, the code table and the script at their real addresses (the driver is based at 0x400000 so its .bss covers them): 17,000 cases equal over three seeds, real and generated scripts, every instruction run. `fild n; fadd f` needs `X87_Add` (one rounding of the exact sum). 113 hooks in all
+- [x] The sprite script VM (`src/game/sprite/script`): `SpriteScript_Run` (0x475010) and its stack and block skipping (0x4750c0-0x475260), the 18 opcodes 0x476020-0x476a10 (GOTO, IF/ELSE/ENDIF, GOSUB, REPEAT/UNTIL, SET/ADD/SUB/MOVE, the play opcodes; END is the empty `Debug_Printf`), `Sprite_Show` (0x540b90). Scripts are threaded code in one table (0x74dab8-0x74f7c0). Checked under `x87emu` with the globals, the code table and the script at their real addresses (the driver is based at 0x400000 so its .bss covers them): 17,000 cases equal over three seeds, real and generated scripts, every instruction run. `fild n; fadd f` needs `X87_Add` (one rounding of the exact sum). 113 hooks in all. `tools/spritescript.py` lists the scripts: 863 instructions, 42 entry points from code and 4 special actions; `--check` finds every jump on an instruction and every IF/REPEAT closed
 - [ ] First in-game run with the DLL. This needs Phase 0 (the game running at all), in a VM if the no-CD exe is untrusted. Install: copy `build\dinput.dll` next to `tp.exe`, run, read `tpw.log`
 
 ### Phase 4: Reimplement subsystems (the long haul)
