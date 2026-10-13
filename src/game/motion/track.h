@@ -35,10 +35,18 @@ s32 Track_ApplyWith(const MotionEnv &env, const void *state, u8 *model, u32 *nod
 // gMotionFlags 0x8, the block's material animation. Always returns 1.
 s32 Motion_ApplyWith(const MotionEnv &env, const void *state, const void *holder, const u8 *block);
 
+// A model's node by index (u16 +0x42 in all): the first u16 +0x44 are 0xa0-byte nodes at
+// +0x70, the rest 0x58-byte ones at +0x74.
+u8 *Model_Node(const u8 *model, u32 index);
+
+// Reset a node's channels that the track flags name from the rest model's node: the
+// 3x4 matrix (0x289), the positions ((to's u16 +0x58 + 3) / 4 blocks of 48 bytes, when both
+// have some) and box (0x1000), the UVs (to's u16 +0x5e, 32-byte blocks; 0x10000).
+void Motion_ResetNode(u8 *to, const u8 *from, u32 flags);
+
 // 0x472310 with the globals given (gMotionFlags' value; gTrackFlags, the per-node array
 // that 0x7aecd4 points to). The animator: rest model at [[+0]+8]+4, flags +4, target model
-// at [+8]+4. Models index their nodes 0 .. (u16 +0x42): the first (u16 +0x44) are 0xa0-byte
-// nodes at +0x70, the rest 0x58-byte ones at +0x74.
+// at [+8]+4.
 //  - animator flag 8 shows every node (clears 0x10); flag 0x100000 otherwise acts as
 //    gMotionFlags 0x1;
 //  - the block's listed nodes (u16 count +0x1a, u16 indices +0x38) and those its tracks
@@ -46,8 +54,7 @@ s32 Motion_ApplyWith(const MotionEnv &env, const void *state, const void *holder
 //    target model flag 4: only 0x800000);
 //  - gTrackFlags[node] = the flags of the block's track on it (0 for the others);
 //  - unless gMotionFlags 0x1 without adding: the channels prev's tracks drove are dropped,
-//    and the rest are reset from the rest model: the 3x4 matrix (track flags 0x289), the
-//    positions and box (0x1000), the UVs (0x10000);
+//    and the rest are reset from the rest model (Motion_ResetNode);
 //  - with block flag 2 and without gMotionFlags 0x8, the target's materials flagged 0x40
 //    are marked changed (+1 |= 4) with value (+2) 0.
 void Motion_ResetChannelsWith(u32 motionFlags, u32 *trackFlags, const void *animator, const u8 *block,

@@ -11,6 +11,8 @@
 #include "../src/game/files/refpack.h"
 #include "../src/game/math/matrix.h"
 #include "../src/game/math/vector.h"
+#include "../src/game/math/x87.h"
+#include "../src/game/motion/animator.h"
 #include "../src/game/motion/curve.h"
 #include "../src/game/motion/keys.h"
 #include "../src/game/motion/quat.h"
@@ -696,6 +698,154 @@ static void test_track_apply() {
     CHECK(tm4[0] == 0 && track_flags[0] == 0);
 }
 
+static void test_animator() {
+    // fild n; fmul f rounds the exact product once; through a double it is one ulp off here.
+    const u32 trap_bits = 0x3fcfbb3f;
+    float trap;
+    std::memcpy(&trap, &trap_bits, 4);
+    CHECK((float)X87_MulInt(1793438911u, trap) == 2910575360.0f);
+    CHECK((float)((double)1793438911u * trap) != 2910575360.0f);
+
+    // Layer timing: 33.333332 ms a frame at speed 1.
+    u8 layer[0x38] = {};
+    const float one_speed = 1;
+    std::memcpy(layer + 0xc, &one_speed, 4);
+    const u32 frames[3] = {0, 10, 70};  // 60 frames
+    const u8 *range = reinterpret_cast<const u8 *>(frames);
+    u32 times[3];
+    float length_frame[2];
+    auto read = [&] {
+        std::memcpy(times, layer + 0x10, 12);
+        std::memcpy(length_frame, layer + 0x1c, 8);
+    };
+    const u32 start_time = 5000;
+    std::memcpy(layer + 0x14, &start_time, 4);
+    Layer_StartWith(100, 200, layer, range, 0, 30);  // 30 * 33.333332 = 999.99994: 999 ms back
+    read();
+    CHECK(times[0] == 4001 && times[2] == 4001 && length_frame[0] == 60);
+    Layer_StartWith(100, 200, layer, range, 0, 100);  // at most the length: 1999 ms back
+    read();
+    CHECK(times[0] == 3001);
+    const u32 now = 4001;
+    Layer_StartWith(100, 200, layer, range, 0, 30);
+    Layer_Advance(layer, &now);
+    read();
+    CHECK(times[1] == 4001 && times[2] == 4001 && length_frame[1] == 0);
+    const u32 later = 5001;
+    Layer_Advance(layer, &later);  // 1000 ms * 0.03
+    read();
+    CHECK(length_frame[1] == 30);
+    Layer_SetBlock(layer, range);
+    read();
+    CHECK(length_frame[0] == 60 && length_frame[1] == 30);
+    CHECK(Layer_TimeLeft(layer) == 999.9999389648438);
+    layer[0] = 0x40;  // restarting on the real-time clock
+    Layer_StartWith(100, 200, layer, range, 1, 0);
+    read();
+    CHECK(times[0] == 200 && times[1] == 200 && times[2] == 200);
+    Layer_SetBlock(layer, nullptr);
+    read();
+    CHECK(times[0] == 0 && length_frame[0] == 0 && length_frame[1] == 0);
+
+    // An animator over a one-node model, bank 0 loaded with two motions.
+    u8 node[0xa0] = {}, rest_node[0xa0] = {}, model[0x80] = {}, rest_model[0x80] = {};
+    for (int i = 0; i < 16; ++i) reinterpret_cast<float *>(rest_node + 0x10)[i] = (float)(i + 1);
+    const u16 one = 1, id = 7;
+    u8 *np = node, *rnp = rest_node, *mp = model, *rmp = rest_model;
+    for (u8 *m : {model, rest_model}) {
+        std::memcpy(m + 0x42, &one, 2);
+        std::memcpy(m + 0x44, &one, 2);
+    }
+    std::memcpy(model + 0x70, &np, 4);
+    std::memcpy(rest_model + 0x70, &rnp, 4);
+    std::memcpy(node + 0x50, &id, 2);
+    u8 holder[8] = {}, rest_holder[8] = {}, rest_outer[12] = {}, animator[0xb0] = {};
+    u8 *rhp = rest_holder, *rop = rest_outer, *hp = holder;
+    std::memcpy(holder + 4, &mp, 4);
+    std::memcpy(rest_holder + 4, &rmp, 4);
+    std::memcpy(rest_outer + 8, &rhp, 4);
+    std::memcpy(animator, &rop, 4);
+    std::memcpy(animator + 8, &hp, 4);
+    // a block driving node 0's matrix and vertices, listing node 0
+    u8 track[0x40] = {}, block[0x40] = {}, empty[0x40] = {};
+    const u32 track_flags = 0x1008;
+    std::memcpy(track + 4, &track_flags, 4);
+    std::memcpy(track + 0x3c, &np, 4);
+    const u16 listed[1] = {0};
+    const u16 *lp = listed;
+    u8 *tp = track;
+    std::memcpy(block + 0x12, &one, 2);
+    std::memcpy(block + 0x1a, &one, 2);
+    std::memcpy(block + 0x2c, &tp, 4);
+    std::memcpy(block + 0x38, &lp, 4);
+    u8 entries[16] = {};
+    u8 *bp = block, *ep = empty, *entp = entries;
+    std::memcpy(entries + 4, &ep, 4);
+    std::memcpy(entries + 12, &bp, 4);
+    const u32 two = 2;
+    animator[0x18] = 1;
+    std::memcpy(animator + 0x1c, &two, 4);
+    std::memcpy(animator + 0x20, &entp, 4);
+    u8 *const ap = animator;
+    CHECK(Animator_HasMotion(&ap, 0, 1) == 1 && Animator_HasMotion(&ap, 0, 2) == 0);
+    CHECK(Animator_HasMotion(&ap, 1, 0) == 0 && Animator_HasMotion(&ap, 0xc, 0) == 0);
+
+    Motion_MarkNodes(block, holder);
+    u32 node_flags;
+    std::memcpy(&node_flags, node, 4);
+    CHECK(node_flags == (0x40000 | 0x200000 | 0x100000 | 0x10));
+    std::memset(node, 0, 4);
+    holder[0] = 4;  // listed by id: 0 is no node's
+    Motion_MarkNodes(block, holder);
+    std::memcpy(&node_flags, node, 4);
+    CHECK(node_flags == 0x340000);
+    const u16 by_id[1] = {7};
+    const u16 *idp = by_id;
+    std::memcpy(block + 0x38, &idp, 4);
+    Motion_MarkNodes(block, holder);
+    std::memcpy(&node_flags, node, 4);
+    CHECK(node_flags == 0x340010);
+    std::memcpy(block + 0x38, &lp, 4);
+    holder[0] = 0;
+
+    // two layers: one on bank 0 entry 0 (an empty block) that last played block, one off
+    u8 layers[0x70] = {};
+    const u32 none = 0xc;
+    std::memcpy(layers + 0x34, &bp, 4);
+    std::memcpy(layers + 0x38 + 4, &none, 4);
+    u8 *lyp = layers;
+    const u16 nlayers = 2;
+    std::memcpy(animator + 0xe, &nlayers, 2);
+    std::memcpy(animator + 0x10, &lyp, 4);
+    Animator_CountLayers(animator);
+    u32 playing, model_flags;
+    std::memcpy(&playing, animator + 0x14, 4);
+    std::memcpy(&model_flags, model + 0x30, 4);
+    CHECK(playing == 1 && model_flags == 0x80000);
+    std::memcpy(layers + 4, &none, 4);
+    Animator_CountLayers(animator);
+    std::memcpy(&playing, animator + 0x14, 4);
+    std::memcpy(&model_flags, model + 0x30, 4);
+    CHECK(playing == 0 && model_flags == 0);
+    Animator_SetPlaying(animator);
+    std::memcpy(&playing, animator + 0x14, 4);
+    std::memcpy(&model_flags, model + 0x30, 4);
+    CHECK(playing == 1 && model_flags == 0x80000);
+    std::memset(layers + 4, 0, 4);
+    std::memset(model + 0x30, 0, 4);
+
+    // Resetting: node 0 is shown, loses 0xf40000, and gets the rest pose back.
+    const u32 shown = 0xf40010;
+    std::memcpy(node, &shown, 4);
+    layers[0] = 4;
+    u32 per_node[1] = {9};
+    Animator_ResetLayersWith(0, per_node, animator);
+    std::memcpy(&node_flags, node, 4);
+    CHECK(per_node[0] == track_flags && node_flags == 0);  // the empty block marks nothing
+    CHECK(reinterpret_cast<const float *>(node + 0x10)[0] == 1 && reinterpret_cast<const float *>(node + 0x10)[14] == 15);
+    CHECK(layers[0] == 0x14);
+}
+
 static void test_hook_table(const char *exe_path) {
     std::ifstream f(exe_path, std::ios::binary);
     if (!f) { std::printf("cannot open %s\n", exe_path); ++g_failures; return; }
@@ -729,6 +879,7 @@ int main(int argc, char **argv) {
     test_motion_keys();
     test_packed_vertices();
     test_track_apply();
+    test_animator();
     test_patcher();
     if (argc > 1) test_hook_table(argv[1]);
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);

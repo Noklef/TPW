@@ -25,6 +25,7 @@ add_library(tpw_game STATIC
     src/game/motion/uvanim.cpp
     src/game/motion/vertexanim.cpp
     src/game/motion/track.cpp
+    src/game/motion/animator.cpp
     src/game/terrain/terrain_blend.cpp
 )
 

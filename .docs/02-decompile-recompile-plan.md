@@ -141,6 +141,7 @@ These also become the engine's loaders later.
 - [x] `Track_Apply` (0x471860, `src/game/motion/track`): every channel of a motion track; its globals go through a `MotionEnv` so it runs outside the game. 4,500 random tracks bit-exact under `x87emu` running it and all its callees, every instruction covered. 58 hooks in all
 - [x] `Motion_Apply` (0x4721f0) and `Motion_CopyVertices` (0x472270) (`src/game/motion/track`); the copy 1,000 cases equal under `x87emu`. 60 hooks in all
 - [x] `Motion_ResetChannels` (0x472310, `src/game/motion/track`): 2,000 cases equal under `x87emu`, every instruction run. 61 hooks in all
+- [x] `Animator_ResetLayers` (0x4726d0) and the layer helpers 0x472bc0-0x472f40 (`src/game/motion/animator`; `src/game/math/x87.h` rounds fild-integer products exactly): 9,000 cases equal under `x87emu`, every instruction run, plus 600 double-rounding traps (`x87emu` now rounds the exact result once, with the register's wide exponent). 70 hooks in all
 - [ ] First in-game run with the DLL. This needs Phase 0 (the game running at all), in a VM if the no-CD exe is untrusted. Install: copy `build\dinput.dll` next to `tp.exe`, run, read `tpw.log`
 
 ### Phase 4: Reimplement subsystems (the long haul)

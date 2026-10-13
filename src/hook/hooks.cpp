@@ -5,6 +5,7 @@
 #include "../game/files/refpack.h"
 #include "../game/math/matrix.h"
 #include "../game/math/vector.h"
+#include "../game/motion/animator.h"
 #include "../game/motion/curve.h"
 #include "../game/motion/keys.h"
 #include "../game/motion/quat.h"
@@ -78,6 +79,15 @@ const Hook kHooks[] = {
     {"Motion_Apply", 0x004721f0, (void *)&Motion_Apply, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"Motion_CopyVertices", 0x00472270, (void *)&Motion_CopyVertices, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Motion_ResetChannels", 0x00472310, (void *)&Motion_ResetChannels, {0x83, 0xec, 0x0c, 0xa1, 0x80}},
+    {"Animator_ResetLayers", 0x004726d0, (void *)&Animator_ResetLayers, {0x83, 0xec, 0x2c, 0xa1, 0x80}},
+    {"Layer_Start", 0x00472bc0, (void *)&Layer_Start, {0x8b, 0x44, 0x24, 0x08, 0x83}},
+    {"Layer_Advance", 0x00472c60, (void *)&Layer_Advance, {0x8b, 0x4c, 0x24, 0x08, 0x8b}},
+    {"Layer_SetBlock", 0x00472cb0, (void *)&Layer_SetBlock, {0x8b, 0x44, 0x24, 0x08, 0x33}},
+    {"Animator_HasMotion", 0x00472d10, (void *)&Animator_HasMotion, {0x8b, 0x54, 0x24, 0x08, 0x83}},
+    {"Layer_TimeLeft", 0x00472d50, (void *)&Layer_TimeLeft, {0x8b, 0x44, 0x24, 0x04, 0xd9}},
+    {"Motion_MarkNodes", 0x00472d70, (void *)&Motion_MarkNodes, {0x83, 0xec, 0x10, 0x8b, 0x44}},
+    {"Animator_CountLayers", 0x00472ee0, (void *)&Animator_CountLayers, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"Animator_SetPlaying", 0x00472f40, (void *)&Animator_SetPlaying, {0x8b, 0x44, 0x24, 0x04, 0xc7}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

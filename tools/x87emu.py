@@ -3,7 +3,8 @@ against the original instruction stream (never against a reading of it). Nothing
 exe runs: the listing text is interpreted, and constants are read from the file as data.
 
 The x87 unit runs as the game leaves it, at single precision (Direct3D): every FADD/FSUB/
-FMUL/FDIV/FSQRT result is rounded to float. FSIN/FCOS/FPATAN are exempt from precision
+FMUL/FDIV/FSQRT (and FIADD...) result is the exact result rounded once to a 24-bit
+significand, with the register's wide exponent (it becomes a float only when stored). FSIN/FCOS/FPATAN are exempt from precision
 control on real hardware; here they are evaluated in double, standing in for 64-bit
 extended. Integer flags cover what compiled MSVC 6 code tests.
 
@@ -51,27 +52,34 @@ def farith(fn, a, b):
     return INDEFINITE if math.isnan(r) else r
 
 
-def f32_exact(q):
-    """The rational q rounded once to float (nearest even), for an int operand: a double
-    in between could round twice."""
+def r24(q):
+    """The nonzero rational q rounded once to a 24-bit significand (nearest even) with the
+    exponent unbounded: an x87 register at the game's precision, whose exponent range is far
+    wider than a float's (it only becomes one, rounding again if subnormal, when stored)."""
     from fractions import Fraction
-    q = Fraction(q)
-    if q == 0:
-        return 0.0
-    sign, m = (-1.0 if q < 0 else 1.0), abs(q)
+    sign, m = (-1.0 if q < 0 else 1.0), abs(Fraction(q))
     e = m.numerator.bit_length() - m.denominator.bit_length()
     if Fraction(2) ** e > m:
         e -= 1
-    e = max(e, -126)  # subnormals keep the minimum exponent
     scaled = m * Fraction(2) ** (23 - e)
     n = scaled.numerator // scaled.denominator
     rest = scaled - n
     if rest > Fraction(1, 2) or (rest == Fraction(1, 2) and n & 1):
         n += 1
-    try:
-        return f32(sign * math.ldexp(n, e - 23))
-    except OverflowError:
-        return sign * math.inf
+    return sign * math.ldexp(n, e - 23)
+
+
+def x87op(fn, a, b):
+    """fn(a, b) (fn exact on Fractions as on floats) as the x87 computes it at 24-bit
+    precision: the exact result rounded once."""
+    from fractions import Fraction
+    if math.isfinite(a) and math.isfinite(b):
+        try:
+            q = fn(Fraction(a), Fraction(b))
+        except ZeroDivisionError:
+            return farith(fn, a, b)
+        return r24(q) if q != 0 else fn(a, b)  # an exact zero: its sign as IEEE has it
+    return farith(fn, a, b)
 
 
 def f32(x):
@@ -287,37 +295,30 @@ class Emu:
         mn, ops = self.code[pc]
         o = [x.strip() for x in re.split(r',(?![^\[]*\])', ops)] if ops else []
         nxt = self.next.get(pc)
-        arith = {'FADD': lambda a, b: farith(lambda x, y: x + y, a, b),
-                 'FSUB': lambda a, b: farith(lambda x, y: x - y, a, b),
-                 'FMUL': lambda a, b: farith(lambda x, y: x * y, a, b),
-                 'FDIV': lambda a, b: farith(lambda x, y: x / y, a, b),
-                 'FSUBR': lambda a, b: farith(lambda x, y: x - y, b, a),
-                 'FDIVR': lambda a, b: farith(lambda x, y: x / y, b, a)}
+        arith = {'FADD': lambda a, b: x87op(lambda x, y: x + y, a, b),
+                 'FSUB': lambda a, b: x87op(lambda x, y: x - y, a, b),
+                 'FMUL': lambda a, b: x87op(lambda x, y: x * y, a, b),
+                 'FDIV': lambda a, b: x87op(lambda x, y: x / y, a, b),
+                 'FSUBR': lambda a, b: x87op(lambda x, y: x - y, b, a),
+                 'FDIVR': lambda a, b: x87op(lambda x, y: x / y, b, a)}
         base = mn[:-1] if mn.endswith('P') and mn[:-1] in arith else mn
         if base in arith:
             fn = arith[base]
             if not o:
                 o = ['ST1', 'ST0']
             if len(o) == 1:
-                self.st[0] = f32(fn(self.st[0], self.fload(o[0])))
+                self.st[0] = fn(self.st[0], self.fload(o[0]))
             else:
                 d = int(o[0][2])
-                self.st[d] = f32(fn(self.st[d], self.fload(o[1])))
+                self.st[d] = fn(self.st[d], self.fload(o[1]))
             if mn != base:
                 self.st.pop(0)
         elif mn in ('FIADD', 'FISUB', 'FISUBR', 'FIMUL', 'FIDIV', 'FIDIVR'):
             a, kind = self.mem_operand(o[0])
             n = int.from_bytes(self.read(a, SIZES.get(kind, 4)), 'little', signed=True)
-            x = self.st[0]
-            if not math.isfinite(x) or (mn == 'FIDIV' and n == 0) or (mn == 'FIDIVR' and x == 0):
-                fn = {'FIADD': lambda p, q: p + q, 'FISUB': lambda p, q: p - q, 'FISUBR': lambda p, q: q - p,
-                      'FIMUL': lambda p, q: p * q, 'FIDIV': lambda p, q: p / q, 'FIDIVR': lambda p, q: q / p}[mn]
-                self.st[0] = f32(farith(fn, x, float(n)))
-            else:
-                from fractions import Fraction
-                X, N = Fraction(x), Fraction(n)
-                self.st[0] = f32_exact({'FIADD': X + N, 'FISUB': X - N, 'FISUBR': N - X, 'FIMUL': X * N,
-                                        'FIDIV': X / N if n else 0, 'FIDIVR': N / X if x else 0}[mn])
+            fn = {'FIADD': lambda p, q: p + q, 'FISUB': lambda p, q: p - q, 'FISUBR': lambda p, q: q - p,
+                  'FIMUL': lambda p, q: p * q, 'FIDIV': lambda p, q: p / q, 'FIDIVR': lambda p, q: q / p}[mn]
+            self.st[0] = x87op(fn, self.st[0], float(n))
         elif mn == 'FLD':
             self.st.insert(0, self.fload(o[0]))
         elif mn == 'FILD':
@@ -345,7 +346,7 @@ class Emu:
             self.st[0] = abs(self.st[0])
         elif mn == 'FSQRT':
             v = self.st[0]
-            self.st[0] = v if math.isnan(v) else f32(math.sqrt(v)) if v >= 0 else INDEFINITE
+            self.st[0] = v if math.isnan(v) or v == 0 or v == math.inf else r24(math.sqrt(v)) if v > 0 else INDEFINITE
         elif mn in ('FSIN', 'FCOS'):
             self.st[0] = (math.sin if mn == 'FSIN' else math.cos)(self.st[0])
         elif mn == 'FPATAN':
