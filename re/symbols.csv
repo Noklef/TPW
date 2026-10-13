@@ -307,3 +307,14 @@ address,name,kind,confidence,notes
 0x00763f88,gSpriteFolders,data,high,"14 x (char* folder, first sprite index, count)"
 0x00764030,gAvatarSprites,data,high,"SPR_BI/KI/TA/SU.ESP"
 0x00790ab0,gCameraFlags,data,medium,"bits 2/4/0x10 = ground-level camera"
+0x0051f370,ParticleLib_Load,function,high,"reads Data/Particle/Tp2.plb: effects (0x140) into 0x804370, effectors (0x68) into 0x80c6b0, 2 settings"
+0x00520560,Particle_Emit,function,medium,"emits one particle from a live system (spawn volume, lifetime, colour)"
+0x005214a0,Particles_Update,function,medium,"ages particles: ramp colour, sprite frame, size, random kick, drag; spawns the on-death effect"
+0x00521810,Particle_RandSigned,function,medium,(rand >> 16) % n
+0x00521850,Particle_Rand,function,medium,(rand >> 16 & 0x7fff) % n
+0x0051fd80,Particles_SetReduced,function,medium,sets 0x80ced8; optional effects (record byte 0xc1) are not spawned
+0x00522360,Effector_Spawn,function,medium,starts an effector record (attractor/repeller)
+0x005222e0,Particle_IsAlive,function,medium,handle = serial << 16 | slot
+0x00804370,gParticleEffects,data,high,0x69 x 0x140-byte effect definitions from Tp2.plb
+0x0080c6b0,gParticleEffectors,data,high,20 x 0x68-byte effector definitions
+0x0080cefc,gParticleSystems,data,high,live systems: 0x140-byte copies of an effect definition
