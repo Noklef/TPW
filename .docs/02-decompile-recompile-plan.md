@@ -107,7 +107,6 @@ These also become the engine's loaders later.
 - [ ] `.md2` motion files (flag `0x10`/`0x20`, block at header word `0x26`)
 - [x] `.RSE` disassembler (`tools/rsse_disasm.py`): all 308 scripts decode with 0 errors. See `03-rsse-scripting.md`.
 - [x] `.sdt` sound banks → WAV (`tools/sdt.py`, pure-Python MPEG Layer I/II decoder)
-- [ ] `cat_*.map` / `SndReverb.map` sound category and reverb maps
 - [x] Save games / `.TPWI` (`tools/tpsave.py`): container, BILZ payload, module split, and the **whole world module** (header, 128×128 map cells, all 16 thing models) decode byte-exact, with the game's own field names. Other 16 modules: split only.
 - [x] `.omp` emitters and `.tpt` weather test data (tools/omp.py)
 - [x] `.lnd` terrain texture source and `.tct` tile tables (tools/lnd.py)
@@ -117,6 +116,7 @@ These also become the engine's loaders later.
 - [x] `.esp`/`.tpc`/`.fpc` people and effect sprites (tools/esp.py; loader Sprite_LoadEsp 0x540d90)
 - [x] `.plb` particle library and `.emt` emitters (tools/plb.py)
 - [x] `cat_*.map` sound categories and `SndReverb.map` (tools/sndmap.py)
+- [x] TP2M `base.map` terrain attribute maps (tools/tp2m.py; cell defaults via MapCell_Reset 0x536490)
 
 ### Phase 3: Hook layer
 - [x] CMake 32-bit build (`build.bat`, VS 2022 Build Tools + Ninja) of a proxy `dinput.dll` that forwards `DirectInputCreateA` to the system DLL

@@ -147,6 +147,7 @@ Bullfrog's archive format, shared with Dungeon Keeper 2. There are 312 archives 
 | `.omp` | 4 | `Scape.omp`: the theme's fixed ambient sound and particle emitters (`OBJ_` records; tools/omp.py) | Decoded |
 | `.tpt` | 2 | `test.tpt`: weather keyframes (temperature, wind, cloud by day); not read by tp.exe | Decoded, unused |
 | `.lnd` | 4 | `terrain.wad/base.lnd`: procedural terrain texture source: 5 blend ramps, a 384x344x4 control map (on/off + 3 blend weights), and 13 source textures at 3 detail levels (64/32/16-pixel tiles) | **Decoded** (`tools/lnd.py`); the MMX blend itself still open |
+| `.map` (TP2M) | 4 (+1 unused) | `terrain.wad/base.map`: the theme's 128x128 attribute map ("Theme Park 2 Attribute Map File", chunks `MAP `/`END `). One byte per map cell gives its default state: border, entrance plaza and walkway, starting path, water and bridge. MapCell_Reset turns it into the cell type whenever a cell is cleared, and saves store only the cells that differ from it | **Decoded** (`tools/tp2m.py`, ASCII view and PNG); bits 0x01 and 0x04 only partly traced |
 | `.tct` | 4 | `<Theme>.tct`: text table mapping path/queue tile indices to texture names (`PathTex`, `QueueTex` sections) | readable |
 | `.TPWI` | 1 | A real **saved game** used as the level's starting state (same format as player saves) | **decoded** (`tools/tpsave.py`, world module) |
 | `.tga`, `.ani`, `.cur` | — | Standard image/cursor formats | standard |

@@ -323,3 +323,12 @@ address,name,kind,confidence,notes
 0x006c0360,SoundCategory_ReadSfxImage,function,medium,checks the GUID and loads the rest as one block
 0x006c0510,SfxMap_Fixup,function,medium,"relocates the image: categories 0x18, sounds 0x14, variations 0x2a, samples 0x10, links 8"
 0x006c5d20,SndReverb_Load,function,medium,"SndReverb.map: version 2000, 32 slots of (u8 present, 13 dwords)"
+0x00450900,TerrainAttrMap_Load,function,medium,"formats %s\Terrain\Base.map and reads it through TP2M_ReadChunks"
+0x005192d0,TP2M_ReadChunks,function,medium,"TP2M chunk reader set up with one handler for the MAP chunk (vtable 0x700aa8)"
+0x00519390,AttrMapHandler_MatchTag,function,medium,"MAP chunk handler: tag test"
+0x004d8cf0,AttrMap_ReadMapChunk,function,high,"copies the w x h bytes into MapCell.mStatusFlags (+0x26), offset by gBalanceLevel.mHeightfieldXStart/YStart"
+0x00450420,Terrain_IsParkLand,function,medium,"(x, y): bit 0 clear in the base.md2 heightfield cell (model+0x6c, 4 bytes a cell); 1 when no terrain is loaded"
+0x00536490,MapCell_Reset,function,high,"default type/flags from the attribute byte: outside park 2/0x1e/7, inside 1 (path, bit 0x08) or 0; 0x10 -> flags 0x80, 0x04 -> flags 0x400"
+0x00527ee0,Path_CheckDeadEnds,function,low,"counts path neighbours; attribute bit 0x08 exempts a cell"
+0x0080239c,gWorld,data,medium,"world structure; map cells at +0x2d8 (0x44 each, 1-based ids), track cells at +0x1102d8"
+0x008023a0,gMapCells,data,medium,"gWorld + 0x2d8"
