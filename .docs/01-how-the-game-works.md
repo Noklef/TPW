@@ -101,7 +101,7 @@ Bullfrog's archive format, shared with Dungeon Keeper 2. There are 312 archives 
 | Ext | Count | Content | Status |
 |---|---|---|---|
 | `.wct` | 8,375 | **Wavelet-compressed textures**: 7,382 × v`0x13` (one-level Daubechies-4, YUV 4:2:0, optional alpha, LZ77 bitstream) and 993 × v`0x12` (older multi-level codec, `BILZ` payload, mostly UI) | **v0x13 decoded** (`tools/wct2png.py`); v0x12 todo |
-| `.md2` | 2,118 | 3D meshes/animations. **Not** Quake MD2 (magic `46 5D D1 1C`) | needs RE |
+| `.md2` | 2,118 | 3D meshes, **not** Quake MD2: magic `0x1CD15D46`, version 221. A serialised C struct with relative offsets fixed up at load (`MD2_Load`, `0x46d6d0`). Known so far: materials (16 B each, count at `+0x36`), per-vertex normals (12 B), UVs (8 B float pairs), triangles (4 × u16: corner-data index, v0, v1, v2), node/bone table (160 B each), animation table (20 B each), bounding box at `+0x80` | partly mapped |
 | `.txt` | 935 | `qickload.txt` preload lists (plain text) | readable |
 | `.lip` | 639 | Lip-sync timing for advisor speech | needs RE |
 | `.hmp` | 435 | Height/hoarding maps | needs RE |
