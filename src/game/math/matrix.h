@@ -1,4 +1,4 @@
-// The engine's matrix library (0x46f150-0x470a00): 4x4 float matrices in Direct3D's row
+// The engine's matrix library (0x46f150-0x4709d0): 4x4 float matrices in Direct3D's row
 // layout, m[0..2] the x axis, m[4..6] y, m[8..10] z and m[12..14] the translation. The
 // expression trees are the original's (tools/x87sym.py); see curve.h for why that matters.
 #pragma once
@@ -56,4 +56,31 @@ void __cdecl Matrix_SetAxes(float *m, const float *x, const float *y, const floa
 // 0x46fc00, 0x46fca0: v = v * m, in place, with and without the translation.
 void __cdecl Matrix_TransformPoint(const float *m, float *v);
 void __cdecl Matrix_TransformVector(const float *m, float *v);
+
+// Products for row vectors (v * a * b applies a first). Only the 3x4 affine part is
+// computed; m[3], m[7], m[11] and m[15] of the result are left as they were.
+// 0x4700f0: a = a * b, stored by rows.
+void __cdecl Matrix_Mul(float *a, const float *b);
+// 0x4702d0: b = a * b, stored by columns.
+void __cdecl Matrix_PreMul(const float *a, float *b);
+// 0x4704c0: b = a * b for the 3x3 rotation parts only, stored by columns.
+void __cdecl Matrix_PreMul3(const float *a, float *b);
+
+// Numerical Recipes' ludcmp (0x46fe20) and lubksb (0x46fd40) for n = 4, without the
+// singular-matrix error: a zero pivot becomes 1e-20.
+void __cdecl Matrix_LUDecompose(float *a, s32 *index, float *parity);
+void __cdecl Matrix_LUBackSubstitute(const float *a, const s32 *index, float *b);
+// 0x470040: dst = src^-1 by LU decomposition, one column at a time; dst may be src.
+void __cdecl Matrix_Invert(float *dst, const float *src);
+
+// 0x470630: stable merge sort of n offsets by the float at keys + offset, ascending.
+// Call with depth 0: the result is in b, and a is left in pieces.
+void __cdecl Sort_MergeByKey(s32 n, s32 *a, s32 *b, s32 depth, const u8 *keys);
+
+// 0x470780: point the z axis along dir, keeping the y axis as the up hint:
+// x = normalize(y x dir), y = dir x x, z = dir (none of it normalised but x).
+void __cdecl Matrix_LookAlong(float *m, const float *dir);
+
+// 0x470940: |a - b| (returned in st0, rounded to float by the 24-bit precision).
+float __cdecl Vec3_Distance(const float *a, const float *b);
 }

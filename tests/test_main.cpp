@@ -390,6 +390,52 @@ static void test_matrix() {
     CHECK(m[0] == 1 && m[5] == 1 && m[10] == 1 && m[6] == 0 && m[9] == 0);
 }
 
+static void test_matrix_products() {
+    float t[16], r[16], m[16];
+    Matrix_Identity(t);
+    t[12] = 1, t[13] = 2, t[14] = 3;
+    Matrix_Identity(r);
+    Matrix_RotateZ(r, 0, 1);  // (x, y) -> (-y, x)
+    std::memcpy(m, t, sizeof m);
+    Matrix_Mul(m, r);  // row vectors: translate, then rotate
+    float v[3] = {1, 0, 0};
+    Matrix_TransformPoint(m, v);
+    CHECK(v[0] == -2 && v[1] == 2 && v[2] == 3);
+    float p[16];
+    std::memcpy(p, r, sizeof p);
+    Matrix_PreMul(t, p);  // the same product, into the second argument
+    CHECK(std::memcmp(p, m, sizeof p) == 0);
+    std::memcpy(p, r, sizeof p);
+    Matrix_PreMul3(t, p);  // rotation parts only: the translation of r (none) stays
+    CHECK(p[1] == 1 && p[4] == -1 && p[12] == 0 && p[13] == 0);
+
+    Matrix_Invert(m, t);
+    CHECK(m[12] == -1 && m[13] == -2 && m[14] == -3 && m[0] == 1 && m[15] == 1 && m[1] == 0);
+    Matrix_Invert(t, t);  // in place
+    CHECK(std::memcmp(t, m, sizeof t) == 0);
+    float lu[16] = {0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}, parity;
+    s32 index[4];
+    Matrix_LUDecompose(lu, index, &parity);  // rows 0 and 1 swap
+    CHECK(index[0] == 1 && index[1] == 1 && index[2] == 2 && index[3] == 3 && parity == -1);
+    float sing[16] = {1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+    Matrix_LUDecompose(sing, index, &parity);  // singular: zero pivots become 1e-20
+    CHECK(index[0] == 1 && index[1] == 3 && index[2] == 2 && index[3] == 3 && parity == 1);
+    CHECK(sing[5] == 1e-20f && sing[15] == 1e-20f && sing[7] == 1);  // ties pivot on the last row
+
+    Matrix_Identity(m);
+    const float dir[3] = {1, 0, 0};
+    Matrix_LookAlong(m, dir);  // x = y cross dir, y = dir cross x
+    CHECK(m[0] == 0 && m[1] == 0 && m[2] == -1 && m[4] == 0 && m[5] == 1 && m[6] == 0 && m[8] == 1 && m[10] == 0);
+
+    const float a[3] = {1, 1, 1}, b[3] = {4, 5, 1};
+    CHECK(Vec3_Distance(a, b) == 5);
+
+    const float keys[5] = {3, 1, 2, 1, 0};
+    s32 in[5] = {0, 4, 8, 12, 16}, out[5];
+    Sort_MergeByKey(5, in, out, 0, reinterpret_cast<const u8 *>(keys));
+    CHECK(out[0] == 16 && out[1] == 4 && out[2] == 12 && out[3] == 8 && out[4] == 0);  // stable
+}
+
 static void test_hook_table(const char *exe_path) {
     std::ifstream f(exe_path, std::ios::binary);
     if (!f) { std::printf("cannot open %s\n", exe_path); ++g_failures; return; }
@@ -417,6 +463,7 @@ int main(int argc, char **argv) {
     test_quat();
     test_slerp();
     test_matrix();
+    test_matrix_products();
     test_patcher();
     if (argc > 1) test_hook_table(argv[1]);
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);
