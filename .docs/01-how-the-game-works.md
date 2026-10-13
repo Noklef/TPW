@@ -121,10 +121,19 @@ Bullfrog's archive format, shared with Dungeon Keeper 2. There are 312 archives 
 0x4C  u32      name-table offset
 0x50  u32      name-table size
 0x58  entry[count], 40 bytes each:
-      u32 ?, name_off, name_len, data_off, stored_size, comp_type, unpacked_size, 0, 0, 0
+      u32 tag, name_off, name_len, data_off, stored_size, comp_type, unpacked_size, 0, 0, 0
+then the data, contiguous in entry order, then the NUL-terminated names in entry order
 ```
-`comp_type` 4 = **EA RefPack/QFS** (stream starts `10 FB` + 24-bit big-endian size), 0 = stored.
-`tools/wadtool.py` implements both. All 13,394 entries decompress with sizes verified.
+`comp_type` 4 = **EA RefPack/QFS** (stream starts `10 FB` + 24-bit big-endian size), 0 = stored
+(`unpacked_size` 0). An entry is compressed exactly when that makes it smaller: none of the
+6,590 stored entries would shrink. `tag` depends on the name only; its meaning is unknown.
+The game copies it into each file node (+0x10), but name lookup (linked lists of nodes, the
+find result from 0x638570) never reads it, so a new file can probably take any tag. The game loader accepts versions below 3.
+
+tp.exe also contains EA's RefPack *encoder* (0x641a50, unused by the game). Ported, it
+re-creates all 6,804 compressed entries byte for byte, so the shipped wads were packed by this
+very routine. `tools/wadtool.py` reads, extracts, and repacks (`--pack`): rebuilding any of the
+312 wads from its contents gives the original file exactly (`--check`).
 
 ### Formats inside the archives and loose files
 | Ext | Count | Content | Status |

@@ -47,7 +47,7 @@ TPW/
 │  ├─ types.h                recovered structs/enums (Ride, Peep, Park, RSSE VM state…)
 │  └─ ghidra_scripts/        import/export scripts, so the Ghidra DB can be rebuilt from git
 ├─ tools/                    asset tooling (Python today, C# later if wanted)
-│  ├─ wadtool.py             DWFB + RefPack ✔
+│  ├─ wadtool.py             DWFB + RefPack read/extract/repack, byte-exact ✔
 │  ├─ samtool.py             .sam parser
 │  ├─ rsse_disasm.py         .RSE disassembler
 │  └─ …                      wct/md2/str/bf4/sdt converters
