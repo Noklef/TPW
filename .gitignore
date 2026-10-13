@@ -1,0 +1,11 @@
+# Original game files and the no-CD exe: copyrighted, never commit.
+.data/
+
+# Ghidra project database and raw decompiler dumps (regenerable, large).
+_re/
+
+# Extracted assets
+extracted/
+
+__pycache__/
+*.pyc
