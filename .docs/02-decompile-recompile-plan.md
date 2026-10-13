@@ -109,7 +109,8 @@ These also become the engine's loaders later.
 - [x] `.sdt` sound banks → WAV (`tools/sdt.py`, pure-Python MPEG Layer I/II decoder)
 - [ ] `cat_*.map` / `SndReverb.map` sound category and reverb maps
 - [x] Save games / `.TPWI` (`tools/tpsave.py`): container, BILZ payload, module split, and the **whole world module** (header, 128×128 map cells, all 16 thing models) decode byte-exact, with the game's own field names. Other 16 modules: split only.
-- [ ] `.omp`, `.tpt`, `.hmp`, `.lnd`, `.tct` level data
+- [ ] `.omp`, `.tpt`, `.lnd`, `.tct` level data
+- [x] `.hmp` object height maps (tools/hmp.py)
 
 ### Phase 3: Hook layer
 - [x] CMake 32-bit build (`build.bat`, VS 2022 Build Tools + Ninja) of a proxy `dinput.dll` that forwards `DirectInputCreateA` to the system DLL

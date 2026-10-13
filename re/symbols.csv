@@ -243,3 +243,6 @@ address,name,kind,confidence,notes
 0x00402c60,BalanceResolution_GetSchema,function,high,returns &key record i of the schema at 0x744a40
 0x00402cd0,BalanceSound_GetSchema,function,high,returns &key record i of the schema at 0x746a20
 0x005b0d60,BalanceFile_GetValues,function,high,returns this+8 (vtable slot 1 of every balance class)
+0x00451640,HeightMap_LoadOrBuild,function,high,"loads <model>.hmp (magic 0xab1e0003, 0x00640005), rebuilds and rewrites it when missing or the footprint differs; result at model+0xcc"
+0x00451880,HeightMap_Build,function,high,"allocates header + w*h*0x1b bytes; 5x5 cells per tile, tile max heights, footprint flags"
+0x00451e20,HeightMap_Rasterize,function,medium,"rasterises model triangles into the cell grid; height byte = y*2.55, y clamped to [0,100)"
