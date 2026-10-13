@@ -91,7 +91,7 @@ Goal: see the original running on modern Windows, so there's a ground truth to c
 - [x] Repaired Ghidra's missed jump table in the RSSE interpreter (`tools/FixJumpTable.java`; ~19 KB of code was invisible). Other big switches may need the same treatment.
 - [ ] Recover the core structs: Ride, Peep, Park, Object, RSSE script context, the save chunk header.
 - [x] `re/symbols.csv` + `tools/ApplySymbols.java`: names live in git and are applied to Ghidra (see `re/README.md`). First batch: the save/load system (all 17 module load/save pairs), stream I/O, the CRT allocator.
-- [ ] Recovered types (`re/types.h`) + an apply script for them.
+- [x] Recovered types (`re/types.h`) + `tools/ApplyTypes.java`. First batch: the RSSE context and file headers. Turns `*(int *)(param_1 + 0x3c)` into `ctx->pc`.
 
 ### Phase 2: Asset formats and tools
 These also become the engine's loaders later.

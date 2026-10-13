@@ -6,6 +6,8 @@ The Ghidra database (`_re/ghidra`) is binary, large and git-ignored. **This fold
 |---|---|
 | `symbols.csv` | `address,name,kind,confidence,notes`, one row per named function or data label |
 | `vtable_functions.txt` | Addresses of virtual methods / thunk targets that need `CreateFunctions.java` |
+| `types.h` | Recovered structs (RSSE context, file headers), byte-exact for 32-bit; layout checked by static asserts |
+| `type_uses.csv` | `address,target,type,notes`: which parameters/globals get which recovered type |
 | `rsse_opcodes.csv` | The RSSE script VM instruction set (index, mnemonic, operand count), extracted from the exe's table at `0x765280` |
 
 ## Repairs (Ghidra analysis fixes)
@@ -37,8 +39,15 @@ REM RSSE interpreter jump table: 106 opcode handlers (adds ~19 KB of code to RSS
 ```
 The script is idempotent: re-run it after every edit to `symbols.csv`.
 
+Types work the same way. The script is also idempotent; re-run it after editing `types.h` or `type_uses.csv`:
+```
+"<GHIDRA>\support\analyzeHeadless.bat" C:\git\Noklef\TPW\_re\ghidra TPW -process tp.exe -noanalysis ^
+    -scriptPath C:\git\Noklef\TPW\tools -postScript ApplyTypes.java C:\git\Noklef\TPW\re
+```
+Ghidra's C parser has no preprocessor, so the script strips `#` lines and the `#ifndef __GHIDRA__` check block. Keep `types.h` plain C. Parameters typed `RsseContext *` are also renamed `ctx`.
+
 ## Rebuilding from scratch
 1. Import and analyse the exe and dump the decompile (see `tools/ExportDecomp.java`, `.docs/02-decompile-recompile-plan.md`).
 2. Apply the **Repairs** above.
-3. Run `ApplySymbols.java` as above.
+3. Run `ApplySymbols.java`, then `ApplyTypes.java`, as above.
 4. Re-run `ExportDecomp.java` to get a decompile dump with the names applied. Pass addresses after the output dir to decompile only those functions (into `selected.c`).
