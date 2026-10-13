@@ -277,3 +277,14 @@ address,name,kind,confidence,notes
 0x0055f630,Lnd_Clear,function,medium,"level i gets tile size 0x40 >> i"
 0x0055f720,Lnd_SetTileSize,function,medium,"0x40/0x20/0x10 -> detail level 0/1/2"
 0x005e78b0,Array3D_Read,function,high,"u32 w, h, bpp + w*h*bpp bytes"
+0x00467a80,Sign_Apply,function,high,"splits a name into two lines, loads <theme>/<style>.sgn, renders it onto the model's sign1/sign2.tga with GDI"
+0x005ebfc0,SignStyle_Ctor,function,high,"two line styles, default LOGFONT Arial Black, weight 400"
+0x005ec220,SignStyle_Dtor,function,medium,
+0x005ec3a0,SignStyle_Load,function,high,".sgn: version >= 100, 2 line styles (font, ttf, x, y, LOGFONTA, layout), effects, 2 fill strips, background"
+0x005eb1a0,SignStyle_ReadLayout,function,high,"11 dwords after each LOGFONT"
+0x005ecb40,SignStyle_Render,function,medium,"(HDC, text lines + target textures)"
+0x005e7990,Array3D_ReadCompressed,function,high,"u32 w, h, bpp + float quantisers + BILZ wavelet streams, decoded via IWaveletCodec slot 3"
+0x005987b0,WaveletCodec_DecodePlanes,function,high,"vtable slot 3: colour -> 0x592730, grey -> 0x592e60; takes float quantiser steps"
+0x00592730,WaveletCodec_DecodeColourStream,function,high,"Buffer_Decompress, then Y (q1), Cb (q2), Cr (q3) planes, inverse D4, YUV->RGB"
+0x00592e60,WaveletCodec_DecodeGreyStream,function,medium,
+0x005935a0,WaveletCodec_YuvToRgb,function,high,"1.402 / 0.344136 / 0.714136 / 1.772"

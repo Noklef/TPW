@@ -135,8 +135,8 @@ Bullfrog's archive format, shared with Dungeon Keeper 2. There are 312 archives 
 | `.lip` | 639 | Lip-sync timing for advisor speech | needs RE |
 | `.hmp` | 435 | Object height maps: 5x5 cells per footprint tile, tile max heights and footprint flags; a cache the game rebuilds from the .md2 (tools/hmp.py) | Decoded |
 | `.sam` | 344 + 56 loose | **"Balance files"**: plain-text `Group.Key value` lines (`#` comments; `Table[i].Key`; `Group.A.B.C v1 v2 v3`; shape grids between `---` lines). Each kind has a key schema built into the exe (0x3c-byte records: type, name, range, table rows), which also fixes where every value lives in memory: one 4-byte slot each, in schema order. Kinds: object (ride/shop/sideshow/feature descriptions), level (`Standard.sam`), track (coaster types), advisor, challenges, theme, graphics (`low/med/high.sam`), resolution, sound, hoardings, online | **Decoded**: `tools/samtool.py` dumps the 11 schemas and checks all 400 files (every key known); `ObjectDef` in `re/types.h` is generated from the object schema |
-| `.rse` | 308 | RSSE script bytecode | opcode names known; encoding needs RE |
-| `.sgn` | 84 | Sign/billboard definitions | needs RE |
+| `.rse` | 308 | RSSE script bytecode | **decoded** (`tools/rsse_disasm.py`, all 308 scripts; see `03-rsse-scripting.md`) |
+| `.sgn` | 84 | **Sign styles** for painting a park/ride name onto `sign1/sign2.tga`: two text lines (TTF font, position, `LOGFONTA`), outline/shadow effects, gradient fills and a background image (v101: raw wavelet-encoder streams with float quantisers) | **Decoded** (`tools/sgn.py` → PNG) |
 | `.esp`/`.tpc`/`.fpc` | 46/46/29 | Entertainer/costume sprites (`esprites.wad`) | needs RE |
 | `.ttf` | 17 | TrueType fonts | standard |
 | `.bf4` | 37 loose | Bullfrog bitmap font (magic `F4FB`): 249 Unicode glyphs, each raw 4bpp, nibble-RLE 4bpp or 1bpp, with x/y offsets and advance | **decoded** (`tools/bf4.py` → PNG sheet + metrics) |
