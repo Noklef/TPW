@@ -138,6 +138,7 @@ These also become the engine's loaders later.
 - [x] `Motion_FindKeys` (0x470b60) and `Motion_ApplyMaterial` (0x470c90) (`src/game/motion/keys`): 6,000 cases bit-exact under `x87emu`. 53 hooks in all
 - [x] `Matrix_PreMul33` (0x470d10), `Motion_LerpPackedVertices` (0x470e90) and `Motion_LerpPackedBox` (0x4711d0) (`src/game/motion/vertexanim`): packed 10:10:10 vertex keys lerped into the mesh and its bounding box; 3,000 cases bit-exact under `x87emu`. 56 hooks in all
 - [x] `Motion_UnpackVertices` (0x4714a0, `src/game/motion/vertexanim`): 2,000 cases bit-exact under `x87emu` (scratch harness: memory images with pointer fixups, run by both). 57 hooks in all
+- [x] `Track_Apply` (0x471860, `src/game/motion/track`): every channel of a motion track; its globals go through a `MotionEnv` so it runs outside the game. 4,500 random tracks bit-exact under `x87emu` running it and all its callees, every instruction covered. 58 hooks in all
 - [ ] First in-game run with the DLL. This needs Phase 0 (the game running at all), in a VM if the no-CD exe is untrusted. Install: copy `build\dinput.dll` next to `tp.exe`, run, read `tpw.log`
 
 ### Phase 4: Reimplement subsystems (the long haul)

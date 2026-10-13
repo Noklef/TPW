@@ -51,6 +51,29 @@ def farith(fn, a, b):
     return INDEFINITE if math.isnan(r) else r
 
 
+def f32_exact(q):
+    """The rational q rounded once to float (nearest even), for an int operand: a double
+    in between could round twice."""
+    from fractions import Fraction
+    q = Fraction(q)
+    if q == 0:
+        return 0.0
+    sign, m = (-1.0 if q < 0 else 1.0), abs(q)
+    e = m.numerator.bit_length() - m.denominator.bit_length()
+    if Fraction(2) ** e > m:
+        e -= 1
+    e = max(e, -126)  # subnormals keep the minimum exponent
+    scaled = m * Fraction(2) ** (23 - e)
+    n = scaled.numerator // scaled.denominator
+    rest = scaled - n
+    if rest > Fraction(1, 2) or (rest == Fraction(1, 2) and n & 1):
+        n += 1
+    try:
+        return f32(sign * math.ldexp(n, e - 23))
+    except OverflowError:
+        return sign * math.inf
+
+
 def f32(x):
     try:
         return struct.unpack('<f', struct.pack('<f', x))[0]
@@ -282,6 +305,19 @@ class Emu:
                 self.st[d] = f32(fn(self.st[d], self.fload(o[1])))
             if mn != base:
                 self.st.pop(0)
+        elif mn in ('FIADD', 'FISUB', 'FISUBR', 'FIMUL', 'FIDIV', 'FIDIVR'):
+            a, kind = self.mem_operand(o[0])
+            n = int.from_bytes(self.read(a, SIZES.get(kind, 4)), 'little', signed=True)
+            x = self.st[0]
+            if not math.isfinite(x) or (mn == 'FIDIV' and n == 0) or (mn == 'FIDIVR' and x == 0):
+                fn = {'FIADD': lambda p, q: p + q, 'FISUB': lambda p, q: p - q, 'FISUBR': lambda p, q: q - p,
+                      'FIMUL': lambda p, q: p * q, 'FIDIV': lambda p, q: p / q, 'FIDIVR': lambda p, q: q / p}[mn]
+                self.st[0] = f32(farith(fn, x, float(n)))
+            else:
+                from fractions import Fraction
+                X, N = Fraction(x), Fraction(n)
+                self.st[0] = f32_exact({'FIADD': X + N, 'FISUB': X - N, 'FISUBR': N - X, 'FIMUL': X * N,
+                                        'FIDIV': X / N if n else 0, 'FIDIVR': N / X if x else 0}[mn])
         elif mn == 'FLD':
             self.st.insert(0, self.fload(o[0]))
         elif mn == 'FILD':
@@ -342,6 +378,13 @@ class Emu:
                 res = self.flags(res, bits, a < b, sa != sb and sr != sa)
             if mn != 'CMP':
                 self.put(o[0], res)
+        elif mn in ('NEG', 'NOT'):
+            a, bits = self.get(o[0]), 8 * self.size(o[0])
+            if mn == 'NEG':
+                res = self.flags(-a, bits, a != 0, a == 1 << (bits - 1))
+            else:
+                res = ~a & ((1 << bits) - 1)  # NOT leaves the flags
+            self.put(o[0], res)
         elif mn in ('INC', 'DEC'):
             a, cf = self.get(o[0]), self.cf
             res = self.flags(a + (1 if mn == 'INC' else -1), 32, cf,
@@ -360,6 +403,21 @@ class Emu:
             self.put(o[0], self.flags(res, 32))
         elif mn == 'CDQ':
             self.r['EDX'] = 0xffffffff if self.r['EAX'] >> 31 else 0
+        elif mn in ('MUL', 'IMUL', 'DIV', 'IDIV') and len(o) == 1:  # with EDX:EAX
+            signed = lambda x, bits: x - (1 << bits) if x >> (bits - 1) else x
+            v = self.get(o[0])
+            if mn in ('MUL', 'IMUL'):
+                full = signed(self.r['EAX'], 32) * signed(v, 32) if mn == 'IMUL' else self.r['EAX'] * v
+                full &= (1 << 64) - 1
+                self.r['EAX'], self.r['EDX'] = full & 0xffffffff, full >> 32
+            else:
+                n = self.r['EDX'] << 32 | self.r['EAX']
+                if mn == 'IDIV':
+                    n, v = signed(n, 64), signed(v, 32)
+                if v == 0:
+                    raise ZeroDivisionError('%08x: divide by zero' % pc)
+                q = abs(n) // abs(v) * (1 if (n < 0) == (v < 0) else -1)
+                self.r['EAX'], self.r['EDX'] = q & 0xffffffff, (n - q * v) & 0xffffffff
         elif mn == 'IMUL' and len(o) >= 2:  # IMUL r, r/m (, imm): low 32 bits, CF = OF = overflow
             signed = lambda x: x - (1 << 32) if x >> 31 else x
             a, b = (self.get(o[0]), self.get(o[1])) if len(o) == 2 else (self.get(o[1]), self.get(o[2]))

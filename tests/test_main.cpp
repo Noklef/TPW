@@ -14,6 +14,7 @@
 #include "../src/game/motion/curve.h"
 #include "../src/game/motion/keys.h"
 #include "../src/game/motion/quat.h"
+#include "../src/game/motion/track.h"
 #include "../src/game/motion/uvanim.h"
 #include "../src/game/motion/vertexanim.h"
 #include "../src/game/rsse/rsse.h"
@@ -568,6 +569,45 @@ static void test_packed_vertices() {
     CHECK(groups[2].key == 1 && vpos[1] == 0 && vpos[2] == 2);  // t = -1: 3 - 1
 }
 
+static void test_track_apply() {
+    // Visibility, a scale lerp and a linear path, at frame 5 of 0 .. 10.
+    float state[16] = {};
+    state[7] = 100, state[8] = 5;  // end (+0x1c), frame (+0x20)
+    const s16 visible[2] = {0, -3};  // from frame 3: hidden
+    struct ScaleKey { u16 frame, pad; float s[3]; } scales[2] = {{0, 0, {1, 1, 1}}, {10, 0, {3, 3, 3}}};
+    const u16 pathkeys[4] = {0, 0, 10, 0};
+    const Vec3 points[2] = {{0, 0, 0}, {10, 20, 30}};
+    u8 path[16] = {8, 0, 0, 0, 2, 0, 2, 0};  // linear, 2 points, 2 keys
+    const Vec3 *pp = points;
+    const u16 *kp = pathkeys;
+    std::memcpy(path + 8, &pp, 4);
+    std::memcpy(path + 12, &kp, 4);
+    u8 track[0x40] = {}, model[0xb0] = {};
+    const u32 flags = 0x20000 | 0x80 | 0x1;
+    const u16 nvis = 2, nscale = 2;
+    const void *ptrs[3] = {path, scales, visible};
+    std::memcpy(track + 4, &flags, 4);
+    std::memcpy(track + 0x12, &nscale, 2);
+    std::memcpy(track + 0x16, &nvis, 2);
+    std::memcpy(track + 0x18, &ptrs[0], 4);
+    std::memcpy(track + 0x20, &ptrs[1], 4);
+    std::memcpy(track + 0x30, &ptrs[2], 4);
+    u32 node[0x24] = {};
+    Matrix_Identity(reinterpret_cast<float *>(node + 4));
+    u32 rotations = 0, points_count = 0, motion = 0;
+    float values[4096];
+    SinTable sines{values, 0, 0};
+    SinTable_Build(values, 4096, &sines.mask, &sines.scale);
+    const MotionEnv env{&rotations, &points_count, &motion, sines};
+    CHECK(Track_ApplyWith(env, state, model, node, track) == 1);
+    const float *m = reinterpret_cast<const float *>(node + 4);
+    CHECK(node[0] == 0x10 && points_count == 2);
+    CHECK(m[0] == 2 && m[5] == 2 && m[10] == 2 && m[1] == 0);   // axes scaled to 2
+    CHECK(m[12] == 5 && m[13] == 10 && m[14] == 15 && m[15] == 1);  // half way along the path
+    state[8] = 101;  // past the end: nothing happens
+    CHECK(Track_ApplyWith(env, state, model, node, track) == 0);
+}
+
 static void test_hook_table(const char *exe_path) {
     std::ifstream f(exe_path, std::ios::binary);
     if (!f) { std::printf("cannot open %s\n", exe_path); ++g_failures; return; }
@@ -600,6 +640,7 @@ int main(int argc, char **argv) {
     test_uv_animation();
     test_motion_keys();
     test_packed_vertices();
+    test_track_apply();
     test_patcher();
     if (argc > 1) test_hook_table(argv[1]);
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);

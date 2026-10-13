@@ -24,6 +24,7 @@ address,name,kind,confidence,notes
 0x005f8100,Buffer_Decompress,function,high,"inverse of Buffer_Compress via the compressor singleton (slot 2); used by saves and .wct v0x12"
 0x005f8080,Compressor_Get,function,medium,returns the global compressor singleton (concrete vtable 0x703128)
 0x0067b280,CRT_modf,function,high,"MSVC CRT modf(double, double*); exact"
+0x0067b24a,CRT_CIfmod,function,high,"_CIfmod: fmod(st1, st0) via __cintrindisp2 (fprem loop at 0x67b254); exact"
 0x00703128,ZlibCompressor_vtable,data,medium,"slot 1 = compress 0x619280, slot 2 = decompress 0x619380"
 0x00619280,ZlibCompressor_Compress,function,medium,"writes the 28-byte BILZ header (magic, unpacked, packed, windowBits 15, level 9, 0, 0) + zlib stream"
 0x00619380,ZlibCompressor_Decompress,function,high,"checks BILZ magic, inflateInit2_ / inflate(Z_FINISH) / inflateEnd"
@@ -346,7 +347,7 @@ address,name,kind,confidence,notes
 0x0080239c,gWorld,data,medium,"world structure; map cells at +0x2d8 (0x44 each, 1-based ids), track cells at +0x1102d8"
 0x008023a0,gMapCells,data,medium,"gWorld + 0x2d8"
 0x004721f0,Motion_Apply,function,medium,"runs Track_Apply on each 64-byte track of an .md2 motion block, then the material animation"
-0x00471860,Track_Apply,function,medium,"one motion track at the current frame: visibility 0x20000, vertex 0x1000, rotation 0x8, scale 0x80, position 0x1 / path 0x200, UV 0x10000"
+0x00471860,Track_Apply,function,high,"reimplemented (src/game/motion/track); (state, model, unused, node, track): visibility 0x20000, vertex 0x1000 (0x4000 unpacked: both lerp ends are the same key), rotation 0x8 (eased), scale 0x80, path 0x1 / ride path 0x200 (model +0xac), facing 0x400 (Catmull-Rom: a point 0.1 ahead, not a tangent), UV 0x10000; model flag 4 adds"
 0x00470b60,Motion_FindKeys,function,high,"reimplemented (src/game/motion/keys); (state, keys, count, kind 1/2/4 = 4/20/16-byte keys, loop, &i, &j, &t): last key at or before the whole frame and the next (looping or frame + 1 at the end); 0 if none"
 0x00474490,Motion_RotationAt,function,high,"reimplemented; (keys, index, t, m): slerp (or lerp if gMotionFlags & 2) from key index to index + 1 (the last key holds), then Quat_ToMatrix"
 0x00474840,Curve_Bezier,function,high,"reimplemented (src/game/motion); cubic Bezier position, segment i at points[base+3i-1..+2] mod gCurvePointCount; per-component association kept"

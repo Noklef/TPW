@@ -1,0 +1,36 @@
+// Applying one .md2 motion track to its node at the state's frame: reimplementation of
+// Track_Apply (0x471860), which drives everything else in src/game/motion.
+#pragma once
+
+#include "../../../re/types.h"
+#include "../math/sintable.h"
+
+// The globals Track_Apply reads and writes, so that it can run outside the game too.
+struct MotionEnv {
+    u32 *rotationKeyCount;  // gRotationKeyCount (0x7b4988), set for Motion_RotationAt
+    u32 *curvePointCount;   // gCurvePointCount (0x7b49e8), set for the Curve_* functions
+    const u32 *motionFlags; // gMotionFlags (0x7b4980): 0x2 lerps rotations, 0x10 (see below)
+    SinTable sines;
+};
+
+// The track (64 bytes; see tools/md2motion.py), by flag (+4):
+//   0x20000  visibility keys (s16, |key| = frame, key <= 0 hides: node flag 0x10), +0x16 count, +0x30
+//   0x1000   vertex animation (+0x28): packed (Motion_UnpackVertices) or, with 0x4000, unpacked
+//            {remap (or null), vertices a frame, float[3] vertices}
+//   0x8      rotation keys (RotationKey, +0x1c, count +0x10), eased through 8-byte tables (+0x34)
+//   0x80     scale keys (16 bytes: frame, x, y, z; +0x20, count +0x12)
+//   0x1      path (+0x18): {flags, u16 +4 points, u16 +6 keys, points +8, keys +0xc}; with 0x200
+//            (and no 0x1), a ride path: the model's paths (+0xac, 16 bytes each) picked by the
+//            node's object (+4, flag 8; path at +0x52), timed by the range at +0x24 {start,
+//            length, ?, per-frame percent table}
+//   0x400    the node faces along the path (with no rotation track, its y axis is reset first)
+//   0x10000  UV animation (Motion_ApplyUVs)
+// The model's flag 4 (+0x30) adds the results onto the node instead of setting them.
+// Returns 0 (doing nothing) when the frame (+0x20) is past the state's end (+0x1c).
+s32 Track_ApplyWith(const MotionEnv &env, const void *state, u8 *model, u32 *node, const u8 *track);
+
+extern "C" {
+// 0x471860 (state, model, unused, node, track); the original passes [unused + 8] on to
+// Motion_UnpackVertices, which ignores it, and uses its stack slot for a key index.
+s32 __cdecl Track_Apply(const void *state, u8 *model, u32 unused, u32 *node, const u8 *track);
+}
