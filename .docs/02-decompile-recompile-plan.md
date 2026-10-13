@@ -114,7 +114,8 @@ These also become the engine's loaders later.
 - [x] `.hmp` object height maps (tools/hmp.py)
 - [x] `.sgn` sign styles, including their wavelet-coded backgrounds (tools/sgn.py)
 - [x] `.lip` advisor lip-sync and the response table (tools/lip.py)
-- [ ] `.esp`/`.tpc`/`.fpc` entertainer sprites, `.emt` emitters
+- [x] `.esp`/`.tpc`/`.fpc` people and effect sprites (tools/esp.py; loader still unfound)
+- [ ] `.emt` emitters
 
 ### Phase 3: Hook layer
 - [x] CMake 32-bit build (`build.bat`, VS 2022 Build Tools + Ninja) of a proxy `dinput.dll` that forwards `DirectInputCreateA` to the system DLL
