@@ -1,9 +1,10 @@
 // Animator_ResetLayers, the layer helpers, Layer_Play, Animator_Play, Motion_UpdateClocks
-// and the per-tick updates: reimplementation of 0x4726d0 and 0x472bc0-0x4735d0.
+// and the per-tick updates: reimplementation of 0x4726d0, 0x472bc0-0x4735d0 and 0x473c70.
 #include "animator.h"
 
 #include "../math/x87.h"
 #include "keys.h"
+#include "normals.h"
 #include "track.h"
 
 namespace {
@@ -462,6 +463,37 @@ void Layer_UpdateWith(const AnimatorEnv &env, u8 *animator, u8 *layer, const u8 
     if (finished) Layer_PlayWith(env, animator, 0xc, 0, layer, 4, 1.0f);
 }
 
+s32 Animator_UpdateWith(const AnimatorEnv &env, u8 *animator, const u8 *block, u32 mode) {
+    if (!animator) return 0;
+    if (!(field<u32>(animator, 4) & 0x8004)) {
+        for (u32 tries = 0; Animator_IsIdleWith(env.time, env.realTime, animator) == 1;) {
+            Animator_PlayWith(env, animator, 5, 0, mode, 1.0f, 0);
+            if (++tries >= 3) break;
+        }
+    }
+    u8 *holder = field<u8 *>(animator, 8);
+    if (field<u32>(animator, 0xa8)) {
+        if (field<u8 *>(holder, 4)[0x30] & 4) {  // adding: back to the rest pose first
+            const u8 *layer = field<const u8 *>(animator, 0x10);
+            for (u32 n = field<u16>(animator, 0xe); n != 0; --n, layer += 0x38) {
+                if (field<u32>(layer, 4) == 0xc) continue;
+                Motion_ResetChannelsWith(env.motionFlags, env.trackFlags, animator, bank_block(animator, layer),
+                                         nullptr);
+            }
+        }
+        u8 *layer = field<u8 *>(animator, 0x10);
+        for (u32 n = field<u16>(animator, 0xe); n != 0; --n, layer += 0x38) Layer_UpdateWith(env, animator, layer, block);
+        if (field<u32>(animator, 4) & 0x40000000) Animator_RefreshNodesWith(animator, env.sceneFlags);
+        at<u32>(animator, 4) &= ~0x400000u;
+        u8 *model = field<u8 *>(holder, 4);
+        if (model[0x30] & 4) Model_UpdateNormals(model);
+    }
+    if (field<u32>(holder, 0x28) && (!(mode & 8) || (field<u8 *>(holder, 4)[0x30] & 4)) &&
+        !(field<u32>(animator, 4) & 0x20000000))
+        env.attach(holder);
+    return 1;
+}
+
 namespace {
 AnimatorEnv game_env() {
     AnimatorEnv env{*reinterpret_cast<const u32 *>(0x007b4980), *reinterpret_cast<u32 **>(0x007aecd4),
@@ -471,6 +503,8 @@ AnimatorEnv game_env() {
     env.material = &Motion_ApplyMaterial;
     env.idle = reinterpret_cast<void(__cdecl *)(u8 *)>(0x0045bdd0);
     env.idleAt = reinterpret_cast<void(__cdecl *)(u8 *, u32, u32)>(0x0045be80);
+    env.sceneFlags = reinterpret_cast<u32 *>(0x008bd508);
+    env.attach = reinterpret_cast<void(__cdecl *)(u8 *)>(0x0044ab30);
     return env;
 }
 }  // namespace
@@ -486,6 +520,10 @@ extern "C" void __cdecl Animator_RefreshNodes(u8 *animator) {
 
 extern "C" void __cdecl Layer_Update(u8 *animator, u8 *layer, const u8 *block) {
     Layer_UpdateWith(game_env(), animator, layer, block);
+}
+
+extern "C" s32 __cdecl Animator_Update(u8 *animator, const u8 *block, u32 mode) {
+    return Animator_UpdateWith(game_env(), animator, block, mode);
 }
 
 extern "C" u32 __cdecl Layer_Play(u8 *animator, u32 bank, u32 entry, u8 *layer, u32 mode, float speed) {

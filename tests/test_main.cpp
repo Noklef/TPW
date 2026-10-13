@@ -704,6 +704,29 @@ static void __cdecl count_wake(u8 *, u32, s32) { ++g_wakes; }
 static int g_tracks = 0;
 static s32 __cdecl count_track(const void *, u8 *, u32, u32 *, const u8 *) { return ++g_tracks; }
 
+static int g_attaches = 0;
+static void __cdecl count_attach(u8 *) { ++g_attaches; }
+
+static void test_animator_update() {
+    // No motions (+0xa8 0), posed (flag 4: no idle motions): only the attach step runs.
+    u8 model[0x80] = {}, holder[0x30] = {}, animator[0xd0] = {};
+    u8 *mp = model, *hp = holder;
+    std::memcpy(holder + 4, &mp, 4);
+    holder[0x28] = 1;  // carries something
+    std::memcpy(animator + 8, &hp, 4);
+    animator[4] = 4;
+    AnimatorEnv env{};
+    env.attach = &count_attach;
+    g_attaches = 0;
+    CHECK(Animator_UpdateWith(env, nullptr, nullptr, 0) == 0);
+    CHECK(Animator_UpdateWith(env, animator, nullptr, 0) == 1 && g_attaches == 1);
+    CHECK(Animator_UpdateWith(env, animator, nullptr, 8) == 1 && g_attaches == 1);  // mode 8, not adding
+    model[0x30] = 4;
+    CHECK(Animator_UpdateWith(env, animator, nullptr, 8) == 1 && g_attaches == 2);  // adding
+    animator[7] = 0x20;  // flag 0x20000000
+    CHECK(Animator_UpdateWith(env, animator, nullptr, 0) == 1 && g_attaches == 2);
+}
+
 static void test_normals() {
     // Vertices 0 (0,0,0), 1 (1,0,0), 2 (0,1,0) in one block of four; face 0 {normal 0,
     // v1 = 1, v0 = 0, v2 = 2}: (v2 - v0) x (v1 - v0) = (0, 0, -1). Face 1 is degenerate.
@@ -977,6 +1000,7 @@ int main(int argc, char **argv) {
     test_track_apply();
     test_animator();
     test_normals();
+    test_animator_update();
     test_patcher();
     if (argc > 1) test_hook_table(argv[1]);
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);

@@ -98,6 +98,7 @@ const Hook kHooks[] = {
     {"Layer_Update", 0x004735d0, (void *)&Layer_Update, {0x83, 0xec, 0x10, 0x33, 0xc9}},
     {"Node_UpdateNormals", 0x00473a40, (void *)&Node_UpdateNormals, {0x83, 0xec, 0x34, 0x33, 0xc0}},
     {"Model_UpdateNormals", 0x00473c30, (void *)&Model_UpdateNormals, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"Animator_Update", 0x00473c70, (void *)&Animator_Update, {0x56, 0x8b, 0x74, 0x24, 0x08}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

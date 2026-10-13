@@ -1,7 +1,7 @@
 // A model's animator and its motion layers: reimplementation of Animator_ResetLayers
 // (0x4726d0), the layer helpers at 0x472bc0-0x472f40, Layer_Play (0x472f60),
 // Animator_Play (0x4732a0), Motion_UpdateClocks (0x473440), Animator_IsIdle (0x473490),
-// Animator_RefreshNodes (0x473550) and Layer_Update (0x4735d0).
+// Animator_RefreshNodes (0x473550), Layer_Update (0x4735d0) and Animator_Update (0x473c70).
 #pragma once
 
 #include "../../../re/types.h"
@@ -41,6 +41,9 @@ struct AnimatorEnv {
     void(__cdecl *material)(void *model, const void *block, const void *layer);
     void(__cdecl *idle)(u8 *holder);                    // 0x45bdd0
     void(__cdecl *idleAt)(u8 *holder, u32 a, u32 b);    // 0x45be80
+    // for Animator_UpdateWith
+    u32 *sceneFlags;                                    // 0x8bd508
+    void(__cdecl *attach)(u8 *holder);                  // 0x44ab30: places what the holder carries (+0x28)
 };
 
 // 0x4726d0 with the globals given (gMotionFlags' value; gTrackFlags, the per-node array
@@ -112,8 +115,20 @@ void Animator_RefreshNodesWith(u8 *animator, u32 *sceneFlags);
 // block unless the layer is run to the end (flag 4 without 0x10).
 void Layer_UpdateWith(const AnimatorEnv &env, u8 *animator, u8 *layer, const u8 *block);
 
+// 0x473c70 (animator, block, mode): one tick of the animator; 0 for a null one, else 1.
+//  - unless flagged 4 or 0x8000: while Animator_IsIdle, an idle motion (bank 5 entry 0,
+//    the mode given) plays on layer 0, at most three times;
+//  - with motions (+0xa8): when the model adds (flag 4 at +0x30), every layer with a bank
+//    first has its entry's channels reset (Motion_ResetChannels, no next block; the bank's
+//    load state is not checked); Layer_Update on each layer; with animator flag 0x40000000
+//    Animator_RefreshNodes; flag 0x400000 cleared; for an adding model, Model_UpdateNormals;
+//  - when the holder carries something (+0x28), unless animator flag 0x20000000 or mode 8
+//    on a model that does not add, env.attach(holder).
+s32 Animator_UpdateWith(const AnimatorEnv &env, u8 *animator, const u8 *block, u32 mode);
+
 extern "C" {
-// 0x473490, 0x473550, 0x4735d0 on the game's globals.
+// 0x473490, 0x473550, 0x4735d0, 0x473c70 on the game's globals.
+s32 __cdecl Animator_Update(u8 *animator, const u8 *block, u32 mode);
 s32 __cdecl Animator_IsIdle(u8 *animator);
 void __cdecl Animator_RefreshNodes(u8 *animator);
 void __cdecl Layer_Update(u8 *animator, u8 *layer, const u8 *block);
