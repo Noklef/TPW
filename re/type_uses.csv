@@ -1,0 +1,6 @@
+address,target,type,notes
+0x00551cb0,param0,RsseContext *,RSSE_ExecuteInstruction
+0x00557a70,param0,RsseContext *,RSSE_FetchWord
+0x005573a0,param0,RsseContext *,RSSE_OperandValue
+0x005573d0,param0,RsseContext *,RSSE_TriggerCustomEvent
+0x008791b0,data,RsseContext *,RSSE_ScriptList head
