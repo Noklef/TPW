@@ -110,8 +110,10 @@ def infix(e):
     return f'({infix(e[1])} {e[0]} {infix(e[2])})'
 
 
-def replay(lines, start, end, names):
+def replay(lines, start, end, names, memory=None):
+    """memory: initial values of named slots that integer moves filled (names it ignores)."""
     cpu = X87(names)
+    cpu.memory.update(memory or {})
     for line in lines:
         m = re.match(r'([0-9a-f]{8})\s+(\S+)\s*(.*)', line.strip())
         if not m:

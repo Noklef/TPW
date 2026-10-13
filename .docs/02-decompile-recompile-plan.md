@@ -129,6 +129,7 @@ These also become the engine's loaders later.
 - [x] `RefPack_Decode` / `RefPack_DecodedSize` (0x641f10 / 0x642110, `src/game/files/`): .wad decompression; identical to tools/wadtool.py on all 6804 compressed entries. They are callee-pops virtual methods (`ret 0xc` / `ret 4`), so the C++ uses `__stdcall`. Check the original `ret` before choosing a convention: prologue bytes do not show it
 - [x] `RefPack_Encode` (0x641a50, not hooked: unreachable in the game) ported for tools: re-encoding the decoded data reproduces all 6804 compressed .wad entries byte for byte, so the shipped wads were packed by this very routine and repacked wads can match them exactly
 - [x] Path curves (`Curve_Bezier`/`BezierTangent`/`Linear`/`LinearTangent`/`CatmullRom`, 0x474840-0x474cc0, `src/game/motion/`): x87 code ported to float. The game runs the FPU at single precision (Direct3D without DDSCL_FPUPRESERVE), so each component reproduces the original expression tree, recovered from the asm with `tools/x87sym.py`; the compiler associated x, y and z differently, and a single formula would differ in the last bit about 13% of the time. Bit-exact against those trees on 20,000 random cases
+- [x] `Quat_ToMatrix` (0x474120) and `Path_PercentAt` (0x474ea0) the same way (the latter through exact `modf`/`fmod`); 12 hooks in all
 - [ ] First in-game run with the DLL. This needs Phase 0 (the game running at all), in a VM if the no-CD exe is untrusted. Install: copy `build\dinput.dll` next to `tp.exe`, run, read `tpw.log`
 
 ### Phase 4: Reimplement subsystems (the long haul)

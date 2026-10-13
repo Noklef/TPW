@@ -28,4 +28,9 @@ void __cdecl Curve_BezierTangent(const void *curve, const Vec3 *points, s32 base
 void __cdecl Curve_Linear(const void *curve, const Vec3 *points, s32 base, float t, Vec3 *out);          // 0x474bf0
 void __cdecl Curve_LinearTangent(const void *curve, const Vec3 *points, s32 base, float t, Vec3 *out);   // 0x474c70
 void __cdecl Curve_CatmullRom(const void *curve, const Vec3 *points, s32 base, float t, Vec3 *out);      // 0x474cc0
+
+// 0x474ea0: position along a path in percent at frame t, lerped from the per-frame table of
+// count values. At t == count it returns the last value. Closed paths wrap to the first entry,
+// and neighbours more than 50 apart are taken to cross 100 -> 0 (lerped modulo 100).
+void __cdecl Path_PercentAt(const float *table, u32 count, float t, float *out, s32 closed);
 }

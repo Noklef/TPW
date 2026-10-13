@@ -2,6 +2,8 @@
 // component keeps its own association.
 #include "curve.h"
 
+#include <cmath>
+
 namespace {
 
 struct Segment {
@@ -93,4 +95,30 @@ extern "C" void __cdecl Curve_LinearTangent(const void *curve, const Vec3 * /*po
 }
 extern "C" void __cdecl Curve_CatmullRom(const void *curve, const Vec3 *points, s32 base, float t, Vec3 *out) {
     Curve_CatmullRomAt(own_points(curve, points), game_point_count(), base, t, out);
+}
+
+// modf and fmod are the CRT's (0x67b280, 0x67b24a), both exact, so the double steps match.
+extern "C" void __cdecl Path_PercentAt(const float *table, u32 count, float t, float *out, s32 closed) {
+    double whole;
+    float f = (float)std::modf((double)t, &whole);
+    u32 i = (u32)(s32)whole;
+    if (i == count) {
+        f = f - -1.0f;
+        --i;
+    }
+    float a, b;
+    if (closed) {
+        a = table[i];
+        b = table[(i + 1) % count];
+    } else {
+        a = table[i];
+        b = i < count - 1 ? table[i + 1] : table[i];
+    }
+    if (std::fabs(a - b) > 50.0f) {
+        if (a < b) a = a - -100.0f;
+        else b = b - -100.0f;
+        *out = (float)std::fmod((double)((1.0f - f) * a + f * b), 100.0);
+        return;
+    }
+    *out = (1.0f - f) * a + f * b;
 }

@@ -10,6 +10,7 @@
 
 #include "../src/game/files/refpack.h"
 #include "../src/game/motion/curve.h"
+#include "../src/game/motion/quat.h"
 #include "../src/game/rsse/rsse.h"
 #include "../src/game/terrain/terrain_blend.h"
 #include "../src/hook/hooks.h"
@@ -232,6 +233,31 @@ static void test_curves() {
     // Catmull-Rom passes through b at fraction 0.
     Curve_CatmullRomAt(p, 5, 2, 0.0f, &o);
     CHECK(same3(o, 3, 2, 1));
+
+    const float pct[4] = {10, 30, 90, 5};
+    float r;
+    Path_PercentAt(pct, 4, 0.5f, &r, 0);
+    CHECK(r == 20);
+    Path_PercentAt(pct, 4, 4.0f, &r, 0);  // t == count: the end of the last segment
+    CHECK(r == 5);
+    Path_PercentAt(pct, 4, 2.5f, &r, 0);  // 90 -> 5 crosses 100: lerp 90 -> 105, modulo 100
+    CHECK(r == 97.5f);
+    Path_PercentAt(pct, 4, 3.5f, &r, 0);  // open: the last segment holds its value
+    CHECK(r == 5);
+    Path_PercentAt(pct, 4, 3.5f, &r, 1);  // closed: wraps to the first entry
+    CHECK(r == 7.5f);
+}
+
+static void test_quat() {
+    float m[9];
+    const float id[4] = {0, 0, 0, 2};  // not unit length: scaled by 2 / |q|^2
+    Quat_ToMatrix(id, m);
+    CHECK(m[0] == 1 && m[1] == 0 && m[2] == 0 && m[3] == 0 && m[4] == 1 && m[5] == 0 && m[8] == 1);
+    const float half = 0.70710677f;  // 90 degrees about z
+    const float rz[4] = {0, 0, half, half};
+    Quat_ToMatrix(rz, m);
+    auto near = [](float a, float b) { return a - b < 1e-6f && b - a < 1e-6f; };
+    CHECK(near(m[0], 0) && near(m[1], 1) && near(m[3], -1) && near(m[4], 0) && near(m[8], 1));
 }
 
 static void test_refpack_encode() {
@@ -308,6 +334,7 @@ int main(int argc, char **argv) {
     test_refpack();
     test_refpack_encode();
     test_curves();
+    test_quat();
     test_patcher();
     if (argc > 1) test_hook_table(argv[1]);
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);
