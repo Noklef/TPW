@@ -1,5 +1,6 @@
 // A model's animator and its motion layers: reimplementation of Animator_ResetLayers
-// (0x4726d0) and the layer helpers at 0x472bc0-0x472f40.
+// (0x4726d0), the layer helpers at 0x472bc0-0x472f40, Layer_Play (0x472f60),
+// Animator_Play (0x4732a0) and Motion_UpdateClocks (0x473440).
 #pragma once
 
 #include "../../../re/types.h"
@@ -19,7 +20,17 @@
 //   +4     bank, +8 entry; +0xc speed
 //   +0x10  start time, +0x14 time, +0x18 start time again (u32 ms)
 //   +0x1c  length, +0x20 frame (floats; 30 frames a second at speed 1)
+//   +0x24  the motion queued while it plays: bank (0xc none), +0x28 entry, +0x2c mode,
+//          +0x30 speed
 //   +0x34  the block it last played
+
+// What the layer functions read of the game, so that they can run outside it.
+struct AnimatorEnv {
+    u32 motionFlags;                              // gMotionFlags' value
+    u32 *trackFlags;                              // gTrackFlags (0x7aecd4)
+    u32 time, realTime;                           // gMotionTime, gMotionRealTime
+    void(__cdecl *wake)(u8 *holder, u32 value, s32 on);  // 0x45bd30
+};
 
 // 0x4726d0 with the globals given (gMotionFlags' value; gTrackFlags, the per-node array
 // that 0x7aecd4 points to). Motion_ResetChannelsWith for every layer that is not off, its
@@ -40,7 +51,42 @@ void Animator_ResetLayersWith(u32 motionFlags, u32 *trackFlags, u8 *animator);
 // 0x472bc0 with the clocks given.
 void Layer_StartWith(u32 time, u32 realTime, u8 *layer, const u8 *block, s32 restart, float frame);
 
+// 0x472f60 (animator, bank, entry, layer, mode, speed): switch the layer to the bank's
+// entry. Mode 1 sets layer flag 1 (else clears it), mode 4 flag 0x20 (off); mode 8 skips
+// Motion_MarkNodes, and modes 4 and 8 the reset of the channels the last motion drove
+// (Motion_ResetChannels against the new block). Banks 0xd and 0xe stop the layer where it
+// is (flag 2, or 0x14 and running to the end); an unloaded bank or 0xc empties it.
+// Otherwise the layer is (re)started: from the start, or the frames it ran past the end
+// of its last motion into the new one; unless animator flag 0x8000 the frame is then
+// recomputed from the times. Unless animator flag 0x1000000, Animator_CountLayers.
+// Returns the new motion's length in ms (0 for none).
+u32 Layer_PlayWith(const AnimatorEnv &env, u8 *animator, u32 bank, u32 entry, u8 *layer, u32 mode, float speed);
+
+// 0x4732a0 (animator, bank, entry, mode, speed, layer index): with animator flag 8 and
+// holder flag 1 clear, wake the holder (0x45bd30 with animator +0xc8) unless the bank is
+// 0xc. While the layer plays a motion to its end (no flag 2 or 4) the new one is queued
+// unless mode 2 (bank 0xd and 0xe never queue), and the ms until it would end are
+// returned: what is left plus its length (1000 for none). Otherwise mode 2 empties the
+// queue and the layer plays it now (Layer_PlayWith), returning its length or 1000.
+u32 Animator_PlayWith(const AnimatorEnv &env, u8 *animator, u32 bank, u32 entry, u32 mode, float speed,
+                      u32 index);
+
+// 0x473440 with the game clock's read given: gMotionTime (0x7b496c) becomes now, and
+// gMotionTimeStep (0x7b497c) the seconds since its last value.
+void Motion_UpdateClocksWith(u32 *time, float *step, u32 now);
+
 extern "C" {
+// 0x472f60, 0x4732a0 on the game's globals.
+u32 __cdecl Layer_Play(u8 *animator, u32 bank, u32 entry, u8 *layer, u32 mode, float speed);
+u32 __cdecl Animator_Play(u8 *animator, u32 bank, u32 entry, u32 mode, float speed, u32 index);
+
+// 0x473270 (animator, layer index): empty the layer's queue; 1 if there was one.
+s32 __cdecl Layer_ClearQueue(u8 *animator, u32 index);
+
+// 0x473440: gMotionTime from 0x402d70, then gMotionRealTime from 0x402d80 (methods of the
+// object at 0x785970).
+void __cdecl Motion_UpdateClocks();
+
 // 0x4726d0 (animator) on the game's globals.
 void __cdecl Animator_ResetLayers(u8 *animator);
 

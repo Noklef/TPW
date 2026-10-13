@@ -53,16 +53,17 @@ void Motion_ResetNode(u8 *to, const u8 *from, u32 flags);
 //    drive are shown unless flagged 0x80000000, and the driven ones lose 0xf40000 (adding,
 //    target model flag 4: only 0x800000);
 //  - gTrackFlags[node] = the flags of the block's track on it (0 for the others);
-//  - unless gMotionFlags 0x1 without adding: the channels prev's tracks drove are dropped,
-//    and the rest are reset from the rest model (Motion_ResetNode);
+//  - unless gMotionFlags 0x1 without adding: the channels next's tracks will drive are
+//    dropped, and the rest are reset from the rest model (Motion_ResetNode);
 //  - with block flag 2 and without gMotionFlags 0x8, the target's materials flagged 0x40
 //    are marked changed (+1 |= 4) with value (+2) 0.
 void Motion_ResetChannelsWith(u32 motionFlags, u32 *trackFlags, const void *animator, const u8 *block,
-                              const u8 *prev);
+                              const u8 *next);
 
 extern "C" {
-// 0x472310 (animator, block, prev block or null) on the game's globals.
-void __cdecl Motion_ResetChannels(const void *animator, const u8 *block, const u8 *prev);
+// 0x472310 (animator, the block played until now, the block to play next or null) on the
+// game's globals.
+void __cdecl Motion_ResetChannels(const void *animator, const u8 *block, const u8 *next);
 
 // 0x471860 (state, model, unused, node, track); the original passes [unused + 8] on to
 // Motion_UnpackVertices, which ignores it, and uses its stack slot for a key index.

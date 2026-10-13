@@ -698,6 +698,9 @@ static void test_track_apply() {
     CHECK(tm4[0] == 0 && track_flags[0] == 0);
 }
 
+static int g_wakes = 0;
+static void __cdecl count_wake(u8 *, u32, s32) { ++g_wakes; }
+
 static void test_animator() {
     // fild n; fmul f rounds the exact product once; through a double it is one ulp off here.
     const u32 trap_bits = 0x3fcfbb3f;
@@ -844,6 +847,33 @@ static void test_animator() {
     CHECK(per_node[0] == track_flags && node_flags == 0);  // the empty block marks nothing
     CHECK(reinterpret_cast<const float *>(node + 0x10)[0] == 1 && reinterpret_cast<const float *>(node + 0x10)[14] == 15);
     CHECK(layers[0] == 0x14);
+    // Playing bank 0's entry 1 (30 frames: 999 ms) on layer 0, over its finished motion.
+    const u32 thirty = 30;
+    std::memcpy(block + 8, &thirty, 4);
+    const AnimatorEnv env{0, per_node, 5000, 7000, &count_wake};
+    g_wakes = 0;
+    CHECK(Layer_PlayWith(env, animator, 0, 1, layers, 8, 1.0f) == 999);
+    u32 layer_times[3], bank_entry[2];
+    std::memcpy(layer_times, layers + 0x10, 12);
+    std::memcpy(bank_entry, layers + 4, 8);
+    CHECK(bank_entry[0] == 0 && bank_entry[1] == 1 && layer_times[0] == 5000 && layer_times[2] == 5000);
+    CHECK(layers[0] == 0x10);  // flags 4 and 2 cleared on a switch
+    // Busy until frame 30: the next motion (entry 0, empty) is queued and ends in 999 ms.
+    animator[4] = 8;  // the holder is woken
+    CHECK(Animator_PlayWith(env, animator, 0, 0, 0, 1.0f, 0) == 999 && g_wakes == 1);
+    animator[4] = 0;
+    CHECK(Layer_ClearQueue(animator, 0) == 1 && Layer_ClearQueue(animator, 0) == 0);
+    // An unloaded bank empties the layer.
+    CHECK(Layer_PlayWith(env, animator, 5, 0, layers, 8, 2.0f) == 0);
+    std::memcpy(bank_entry, layers + 4, 8);
+    float empty_speed;
+    std::memcpy(&empty_speed, layers + 0xc, 4);
+    CHECK(bank_entry[0] == 0xc && empty_speed == 1);
+
+    u32 clock = 1000;
+    float step = 0;
+    Motion_UpdateClocksWith(&clock, &step, 1500);
+    CHECK(clock == 1500 && step == 0.5f);
 }
 
 static void test_hook_table(const char *exe_path) {

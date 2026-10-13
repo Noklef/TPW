@@ -252,7 +252,7 @@ void show(u8 *node) {
 }  // namespace
 
 void Motion_ResetChannelsWith(u32 motionFlags, u32 *trackFlags, const void *animator, const u8 *block,
-                              const u8 *prev) {
+                              const u8 *next) {
     const u8 *rest = field<const u8 *>(field<const u8 *>(field<const u8 *>(animator, 0), 8), 4);
     const u8 *target = field<const u8 *>(field<const u8 *>(animator, 8), 4);
     const u32 animator_flags = field<u32>(animator, 4);
@@ -277,10 +277,10 @@ void Motion_ResetChannelsWith(u32 motionFlags, u32 *trackFlags, const void *anim
         show(node);
     }
     if (!(flags_now & 1) || add) {
-        if (prev) {
-            const u8 *old = field<const u8 *>(prev, 0x2c);
-            for (u32 k = 0; k < field<u16>(prev, 0x12); ++k)
-                trackFlags[field<u16>(old + 0x40 * k, 0x14)] &= ~field<u32>(old + 0x40 * k, 4);
+        if (next) {
+            const u8 *coming = field<const u8 *>(next, 0x2c);
+            for (u32 k = 0; k < field<u16>(next, 0x12); ++k)
+                trackFlags[field<u16>(coming + 0x40 * k, 0x14)] &= ~field<u32>(coming + 0x40 * k, 4);
         }
         for (u32 k = 0; k < field<u16>(block, 0x12); ++k) {
             const u16 index = field<u16>(tracks + 0x40 * k, 0x14);
@@ -324,9 +324,9 @@ extern "C" void __cdecl Motion_CopyVertices(const void *from, const void *to, s3
     }
 }
 
-extern "C" void __cdecl Motion_ResetChannels(const void *animator, const u8 *block, const u8 *prev) {
+extern "C" void __cdecl Motion_ResetChannels(const void *animator, const u8 *block, const u8 *next) {
     Motion_ResetChannelsWith(*reinterpret_cast<const u32 *>(0x007b4980), *reinterpret_cast<u32 **>(0x007aecd4),
-                             animator, block, prev);
+                             animator, block, next);
 }
 
 extern "C" s32 __cdecl Track_Apply(const void *state, u8 *model, u32, u32 *node, const u8 *track) {

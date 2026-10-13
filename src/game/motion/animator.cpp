@@ -1,5 +1,5 @@
-// Animator_ResetLayers and the layer helpers: reimplementation of 0x4726d0 and
-// 0x472bc0-0x472f40.
+// Animator_ResetLayers, the layer helpers, Layer_Play, Animator_Play and
+// Motion_UpdateClocks: reimplementation of 0x4726d0 and 0x472bc0-0x473440.
 #include "animator.h"
 
 #include "../math/x87.h"
@@ -23,13 +23,22 @@ void hide(u8 *node) {
     if (!(flags_of(node) & 0x80000000)) flags_of(node) |= 0x10;
 }
 
-const u8 *bank_block(const u8 *animator, const u8 *layer) {
-    const u8 *entries = field<const u8 *>(animator, 0x20 + 12 * field<u32>(layer, 4));
-    return field<const u8 *>(entries, 4 + 8 * field<u32>(layer, 8));
+const u8 *entry_block(const u8 *animator, u32 bank, u32 entry) {
+    return field<const u8 *>(field<const u8 *>(animator, 0x20 + 12 * bank), 4 + 8 * entry);
 }
-bool bank_loaded(const u8 *animator, const u8 *layer) {
-    const u32 bank = field<u32>(layer, 4);
-    return bank != 0xc && (animator[0x18 + 12 * bank] & 3);
+const u8 *bank_block(const u8 *animator, const u8 *layer) {
+    return entry_block(animator, field<u32>(layer, 4), field<u32>(layer, 8));
+}
+bool loaded(const u8 *animator, u32 bank) { return bank != 0xc && (animator[0x18 + 12 * bank] & 3); }
+bool bank_loaded(const u8 *animator, const u8 *layer) { return loaded(animator, field<u32>(layer, 4)); }
+bool has_entry(const u8 *animator, u32 bank, u32 entry) {
+    return loaded(animator, bank) && entry < field<u32>(animator, 0x1c + 12 * bank);
+}
+
+// The entry's length in ms: frames * 33.333332, __ftol'd.
+u32 motion_ms(const u8 *animator, u32 bank, u32 entry) {
+    const u8 *block = entry_block(animator, bank, entry);
+    return (u32)(long long)X87_MulInt(field<u32>(block, 8) - field<u32>(block, 4), kMsPerFrame);
 }
 
 // The block's frame count, as fild loads it and fst stores it.
@@ -207,4 +216,136 @@ extern "C" void __cdecl Animator_CountLayers(u8 *animator) {
 extern "C" void __cdecl Animator_SetPlaying(u8 *animator) {
     at<u32>(animator, 0x14) = 1;
     at<u32>(field<u8 *>(field<const u8 *>(animator, 8), 4), 0x30) |= 0x80000;
+}
+
+u32 Layer_PlayWith(const AnimatorEnv &env, u8 *animator, u32 bank, u32 entry, u8 *layer, u32 mode, float speed) {
+    u32 &flags = at<u32>(layer, 0);
+    flags = (mode & 1) ? flags | 1 : flags & ~1u;
+    flags = (mode & 4) ? flags | 0x20 : flags & ~0x20u;
+    const bool stop = bank == 0xd || bank == 0xe;
+    const u32 old_bank = field<u32>(layer, 4);
+    s32 restart = 0;
+    float frame = 0;
+    const u8 *old_block = nullptr;
+    if (old_bank == 0xc) {
+        restart = 1;
+    } else {
+        if (stop) {
+            flags |= bank == 0xd ? 2 : 0x14;
+        } else if (has_entry(animator, bank, entry)) {
+            // past the end of the last motion: the overrun carries into the new one
+            const float at_frame = field<float>(layer, 0x20), length = field<float>(layer, 0x1c);
+            if (at_frame > length) frame = at_frame - length;
+            else restart = 1;
+            flags &= ~6u;
+        }
+        old_block = bank_block(animator, layer);
+    }
+    bool played = false;
+    if (!stop) {
+        const bool reset = old_bank != 0xc && !(mode & 0xc);
+        if (!loaded(animator, bank)) {
+            if (reset) Motion_ResetChannelsWith(env.motionFlags, env.trackFlags, animator, old_block, nullptr);
+            at<u32>(layer, 4) = 0xc;
+        } else {
+            const u8 *block = entry_block(animator, bank, entry);
+            if (reset) Motion_ResetChannelsWith(env.motionFlags, env.trackFlags, animator, old_block, block);
+            at<u32>(layer, 8) = entry;
+            at<u32>(layer, 4) = bank;
+            at<float>(layer, 0xc) = speed;
+            Layer_StartWith(env.time, env.realTime, layer, block, restart, frame);
+            if (!(field<u32>(animator, 4) & 0x8000)) {
+                const u32 elapsed = field<u32>(layer, 0x14) - field<u32>(layer, 0x10);
+                at<float>(layer, 0x20) =
+                    (float)X87_Round(X87_MulInt(elapsed, field<float>(layer, 0xc)) * kFramesPerMs);
+            }
+            played = true;
+            if (!(mode & 8)) Motion_MarkNodes(block, field<const u8 *>(animator, 8));
+        }
+    }
+    if (!played) {
+        if (!stop) {
+            at<u32>(layer, 0x10) = at<u32>(layer, 0x14) = at<u32>(layer, 0x18) = 0;
+            at<float>(layer, 0xc) = 1;
+            at<u32>(layer, 0x20) = 0;
+        } else {
+            const u32 clock = (flags & 0x40) ? env.realTime : env.time;
+            at<u32>(layer, 0x10) = clock;
+            if (flags & 2) {
+                at<u32>(layer, 0x14) = clock;
+                at<u32>(layer, 0x20) = 0;
+            } else {  // the time goes ahead by the length (-33.333332 ms a frame, 0x6fec18)
+                const double ms = X87_Round(X87_Round((double)field<float>(layer, 0x1c) * -kMsPerFrame) /
+                                            field<float>(layer, 0xc));
+                at<u32>(layer, 0x14) = clock - (u32)(long long)ms;
+                at<u32>(layer, 0x20) = field<u32>(layer, 0x1c);  // the frame becomes the length
+            }
+            at<u32>(layer, 0x18) = at<u32>(layer, 0x10);
+        }
+    }
+    if (!(field<u32>(animator, 4) & 0x1000000)) Animator_CountLayers(animator);
+    const u32 now_bank = field<u32>(layer, 4), now_entry = field<u32>(layer, 8);
+    return has_entry(animator, now_bank, now_entry) ? motion_ms(animator, now_bank, now_entry) : 0;
+}
+
+u32 Animator_PlayWith(const AnimatorEnv &env, u8 *animator, u32 bank, u32 entry, u32 mode, float speed,
+                      u32 index) {
+    u8 *layer = field<u8 *>(animator, 0x10) + 0x38 * index;
+    u8 *holder = field<u8 *>(animator, 8);
+    if ((field<u32>(animator, 4) & 8) && !(holder[0] & 1) && bank != 0xc) env.wake(holder, field<u32>(animator, 0xc8), 1);
+    const bool busy = has_entry(animator, field<u32>(layer, 4), field<u32>(layer, 8)) &&
+                      !(field<float>(layer, 0x20) > field<float>(layer, 0x1c)) && !(layer[0] & 6) && bank != 0xd &&
+                      bank != 0xe;
+    if (busy && !(mode & 2)) {
+        at<u32>(layer, 0x2c) = mode;
+        at<u32>(layer, 0x24) = bank;
+        at<u32>(layer, 0x28) = entry;
+        at<float>(layer, 0x30) = speed;
+        const u32 left = (u32)(long long)Layer_TimeLeft(layer);
+        return left + (has_entry(animator, bank, entry) ? motion_ms(animator, bank, entry) : 1000);
+    }
+    if (mode & 2) {
+        at<u32>(layer, 0x24) = 0xc;
+        at<u32>(layer, 0x28) = 0;
+        at<u32>(layer, 0x30) = 0;
+    }
+    const u32 ms = Layer_PlayWith(env, animator, bank, entry, layer, mode, speed);
+    return ms ? ms : 1000;
+}
+
+namespace {
+AnimatorEnv game_env() {
+    return {*reinterpret_cast<const u32 *>(0x007b4980), *reinterpret_cast<u32 **>(0x007aecd4),
+            *reinterpret_cast<const u32 *>(0x007b496c), *reinterpret_cast<const u32 *>(0x007b4974),
+            reinterpret_cast<void(__cdecl *)(u8 *, u32, s32)>(0x0045bd30)};
+}
+}  // namespace
+
+extern "C" u32 __cdecl Layer_Play(u8 *animator, u32 bank, u32 entry, u8 *layer, u32 mode, float speed) {
+    return Layer_PlayWith(game_env(), animator, bank, entry, layer, mode, speed);
+}
+
+extern "C" u32 __cdecl Animator_Play(u8 *animator, u32 bank, u32 entry, u32 mode, float speed, u32 index) {
+    return Animator_PlayWith(game_env(), animator, bank, entry, mode, speed, index);
+}
+
+extern "C" s32 __cdecl Layer_ClearQueue(u8 *animator, u32 index) {
+    u32 &queued = at<u32>(field<u8 *>(animator, 0x10) + 0x38 * index, 0x24);
+    if (queued == 0xc) return 0;
+    queued = 0xc;
+    return 1;
+}
+
+void Motion_UpdateClocksWith(u32 *time, float *step, u32 now) {
+    const u32 before = *time;
+    *time = now;
+    *step = (float)X87_MulInt(now - before, 0.001f);  // 0x6fec1c
+}
+
+extern "C" void __cdecl Motion_UpdateClocks() {
+    using Clock = u32(__fastcall *)(void *self, void *unused);  // thiscall without arguments
+    void *const clocks = reinterpret_cast<void *>(0x00785970);
+    Motion_UpdateClocksWith(reinterpret_cast<u32 *>(0x007b496c), reinterpret_cast<float *>(0x007b497c),
+                            reinterpret_cast<Clock>(0x00402d70)(clocks, nullptr));
+    *reinterpret_cast<u32 *>(0x007b4974) = reinterpret_cast<Clock>(0x00402d80)(clocks, nullptr);
 }
