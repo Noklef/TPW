@@ -1,6 +1,6 @@
 // Applying .md2 motion to a model's nodes at the state's frame: reimplementation of
 // Motion_Apply (0x4721f0) and Track_Apply (0x471860), which drive everything else in
-// src/game/motion, and of Motion_CopyVertices (0x472270).
+// src/game/motion, and of Motion_CopyVertices (0x472270) and Motion_ResetChannels (0x472310).
 #pragma once
 
 #include "../../../re/types.h"
@@ -35,7 +35,28 @@ s32 Track_ApplyWith(const MotionEnv &env, const void *state, u8 *model, u32 *nod
 // gMotionFlags 0x8, the block's material animation. Always returns 1.
 s32 Motion_ApplyWith(const MotionEnv &env, const void *state, const void *holder, const u8 *block);
 
+// 0x472310 with the globals given (gMotionFlags' value; gTrackFlags, the per-node array
+// that 0x7aecd4 points to). The animator: rest model at [[+0]+8]+4, flags +4, target model
+// at [+8]+4. Models index their nodes 0 .. (u16 +0x42): the first (u16 +0x44) are 0xa0-byte
+// nodes at +0x70, the rest 0x58-byte ones at +0x74.
+//  - animator flag 8 shows every node (clears 0x10); flag 0x100000 otherwise acts as
+//    gMotionFlags 0x1;
+//  - the block's listed nodes (u16 count +0x1a, u16 indices +0x38) and those its tracks
+//    drive are shown unless flagged 0x80000000, and the driven ones lose 0xf40000 (adding,
+//    target model flag 4: only 0x800000);
+//  - gTrackFlags[node] = the flags of the block's track on it (0 for the others);
+//  - unless gMotionFlags 0x1 without adding: the channels prev's tracks drove are dropped,
+//    and the rest are reset from the rest model: the 3x4 matrix (track flags 0x289), the
+//    positions and box (0x1000), the UVs (0x10000);
+//  - with block flag 2 and without gMotionFlags 0x8, the target's materials flagged 0x40
+//    are marked changed (+1 |= 4) with value (+2) 0.
+void Motion_ResetChannelsWith(u32 motionFlags, u32 *trackFlags, const void *animator, const u8 *block,
+                              const u8 *prev);
+
 extern "C" {
+// 0x472310 (animator, block, prev block or null) on the game's globals.
+void __cdecl Motion_ResetChannels(const void *animator, const u8 *block, const u8 *prev);
+
 // 0x471860 (state, model, unused, node, track); the original passes [unused + 8] on to
 // Motion_UnpackVertices, which ignores it, and uses its stack slot for a key index.
 s32 __cdecl Track_Apply(const void *state, u8 *model, u32 unused, u32 *node, const u8 *track);

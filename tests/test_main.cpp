@@ -651,6 +651,49 @@ static void test_track_apply() {
     CHECK(to_pos[23] == 0 && to_nodes[0x78] == 0);
     Motion_CopyVertices(from_holder, to_holder, 1);  // the source's 5 vertices: 2 blocks
     CHECK(to_pos[23] == 23 && to_nodes[0x78] == 7);
+
+    // Resetting the channels a block drives: one node, a rotation track on it.
+    u8 rest_node[0xa0] = {}, target_node[0xa0] = {}, rest_model[0x80] = {}, target_model[0x80] = {};
+    for (int i = 0; i < 16; ++i) reinterpret_cast<float *>(rest_node + 0x10)[i] = (float)(i + 1);
+    const u32 hidden = 0xf40010;
+    std::memcpy(target_node, &hidden, 4);
+    u8 materials[16] = {0x40, 0, 0xff, 0xff, 0, 0, 0, 0, 0x00, 0, 0xff, 0xff};
+    u8 *rn = rest_node, *tgn = target_node, *mats = materials, *rm = rest_model, *tgm = target_model;
+    for (u8 *mm : {rest_model, target_model}) {
+        std::memcpy(mm + 0x42, &one, 2);
+        std::memcpy(mm + 0x44, &one, 2);
+    }
+    std::memcpy(rest_model + 0x70, &rn, 4);
+    std::memcpy(target_model + 0x70, &tgn, 4);
+    const u16 two_mats = 2;
+    std::memcpy(target_model + 0x36, &two_mats, 2);
+    std::memcpy(target_model + 0x50, &mats, 4);
+    // animator: [[+0] + 8] + 4 is the rest model, [+8] + 4 the target
+    u8 rest_holder[8] = {}, rest_outer[12] = {}, target_holder[8] = {}, animator[12] = {};
+    u8 *rh = rest_holder, *ro = rest_outer, *th = target_holder;
+    std::memcpy(rest_holder + 4, &rm, 4);
+    std::memcpy(rest_outer + 8, &rh, 4);
+    std::memcpy(target_holder + 4, &tgm, 4);
+    std::memcpy(animator, &ro, 4);
+    std::memcpy(animator + 8, &th, 4);
+    u8 reset_track[0x40] = {}, reset_block[0x40] = {};
+    const u32 rotation = 0x88;
+    std::memcpy(reset_track + 4, &rotation, 4);
+    u8 *rt = reset_track;
+    reset_block[0] = 2;
+    std::memcpy(reset_block + 0x12, &one, 2);
+    std::memcpy(reset_block + 0x2c, &rt, 4);
+    u32 track_flags[2] = {7, 7};
+    Motion_ResetChannelsWith(0, track_flags, animator, reset_block, nullptr);
+    const float *tm4 = reinterpret_cast<const float *>(target_node + 0x10);
+    CHECK(std::memcmp(target_node, "\0\0\0\0", 4) == 0 && track_flags[0] == 0x88 && track_flags[1] == 7);
+    CHECK(tm4[0] == 1 && tm4[2] == 3 && tm4[3] == 0 && tm4[4] == 5 && tm4[14] == 15 && tm4[15] == 0);
+    CHECK(materials[1] == 4 && materials[2] == 0 && materials[3] == 0 && materials[9] == 0 && materials[10] == 0xff);
+    std::memset(target_node + 0x10, 0, 64);
+    Motion_ResetChannelsWith(1, track_flags, animator, reset_block, nullptr);  // gMotionFlags 1: no copy
+    CHECK(tm4[0] == 0 && track_flags[0] == 0x88);
+    Motion_ResetChannelsWith(0, track_flags, animator, reset_block, reset_block);  // prev drops its flags
+    CHECK(tm4[0] == 0 && track_flags[0] == 0);
 }
 
 static void test_hook_table(const char *exe_path) {

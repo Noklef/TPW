@@ -1,5 +1,5 @@
-// Motion_Apply, Track_Apply and Motion_CopyVertices: reimplementation of 0x4721f0,
-// 0x471860 and 0x472270.
+// Motion_Apply, Track_Apply, Motion_CopyVertices and Motion_ResetChannels:
+// reimplementation of 0x4721f0, 0x471860, 0x472270 and 0x472310.
 #include "track.h"
 
 #include <cmath>
@@ -218,6 +218,87 @@ s32 Motion_ApplyWith(const MotionEnv &env, const void *state, const void *holder
 }
 
 namespace {
+
+// A model's node by index: 0xa0-byte nodes first, then 0x58-byte ones.
+u8 *model_node(const u8 *model, u32 index) {
+    const u32 primary = field<u16>(model, 0x44);
+    return index < primary ? field<u8 *>(model, 0x70) + 0xa0 * index
+                           : field<u8 *>(model, 0x74) + 0x58 * (index - primary);
+}
+
+void show(u8 *node) {
+    u32 &flags = *reinterpret_cast<u32 *>(node);
+    if (!(flags & 0x80000000)) flags &= ~0x10u;
+}
+
+}  // namespace
+
+void Motion_ResetChannelsWith(u32 motionFlags, u32 *trackFlags, const void *animator, const u8 *block,
+                              const u8 *prev) {
+    const u8 *rest = field<const u8 *>(field<const u8 *>(field<const u8 *>(animator, 0), 8), 4);
+    const u8 *target = field<const u8 *>(field<const u8 *>(animator, 8), 4);
+    const u32 animator_flags = field<u32>(animator, 4);
+    u32 flags_now = motionFlags;  // a copy: the animator's 0x100000 sets 0x1 in it only
+    if (animator_flags & 8) {
+        for (u32 i = 0; i < field<u16>(target, 0x42); ++i) *reinterpret_cast<u32 *>(model_node(target, i)) &= ~0x10u;
+    } else if (animator_flags & 0x100000) {
+        flags_now |= 1;
+    }
+    const bool add = target[0x30] & 4;
+    const u32 cleared = add ? 0x800000 : 0xf40000;
+    const u16 *listed = field<const u16 *>(block, 0x38);
+    for (u32 n = field<u16>(block, 0x1a); n != 0; --n) show(model_node(target, *listed++));
+    for (u32 i = 0; i < field<u16>(target, 0x42); ++i) trackFlags[i] = 0;
+    const u8 *tracks = field<const u8 *>(block, 0x2c);
+    for (u32 k = 0; k < field<u16>(block, 0x12); ++k) {
+        const u8 *track = tracks + 0x40 * k;
+        const u16 index = field<u16>(track, 0x14);
+        trackFlags[index] = field<u32>(track, 4);
+        u8 *node = model_node(target, index);
+        *reinterpret_cast<u32 *>(node) &= ~cleared;
+        show(node);
+    }
+    if (!(flags_now & 1) || add) {
+        if (prev) {
+            const u8 *old = field<const u8 *>(prev, 0x2c);
+            for (u32 k = 0; k < field<u16>(prev, 0x12); ++k)
+                trackFlags[field<u16>(old + 0x40 * k, 0x14)] &= ~field<u32>(old + 0x40 * k, 4);
+        }
+        for (u32 k = 0; k < field<u16>(block, 0x12); ++k) {
+            const u16 index = field<u16>(tracks + 0x40 * k, 0x14);
+            u8 *to = model_node(target, index);
+            const u8 *from = model_node(rest, index);
+            const u32 flags = trackFlags[index];
+            if (flags & 0x289) {
+                for (u32 row = 0x10; row <= 0x40; row += 0x10) std::memmove(to + row, from + row, 12);
+            }
+            if (flags & 0x1000) {
+                void *positions = field<void *>(to, 0x60);
+                const void *source = field<const void *>(from, 0x60);
+                const u32 blocks = ((u32)field<u16>(to, 0x58) + 3) >> 2;
+                if (positions && source && blocks) std::memmove(positions, source, 48 * blocks);
+                std::memmove(to + 0x78, from + 0x78, 24);
+            }
+            if (flags & 0x10000) {
+                void *uvs = field<void *>(to, 0x68);
+                const void *source = field<const void *>(from, 0x68);
+                const u32 blocks = ((u32)field<u16>(to, 0x5e) + 3) >> 2;
+                if (uvs && source && blocks) std::memmove(uvs, source, 32 * blocks);
+            }
+        }
+    }
+    if ((block[0] & 2) && !(motionFlags & 8)) {
+        u8 *material = field<u8 *>(target, 0x50);
+        for (u32 n = field<u16>(target, 0x36); n != 0; --n, material += 8) {
+            if (material[0] & 0x40) {
+                material[1] |= 4;
+                material[2] = material[3] = 0;
+            }
+        }
+    }
+}
+
+namespace {
 MotionEnv game_env() {
     return {reinterpret_cast<u32 *>(0x007b4988), reinterpret_cast<u32 *>(0x007b49e8),
             reinterpret_cast<const u32 *>(0x007b4980), SinTable_Game()};
@@ -241,6 +322,11 @@ extern "C" void __cdecl Motion_CopyVertices(const void *from, const void *to, s3
         if (positions && source && blocks) std::memmove(positions, source, 48 * blocks);
         std::memmove(dst + 0x78, src + 0x78, 24);
     }
+}
+
+extern "C" void __cdecl Motion_ResetChannels(const void *animator, const u8 *block, const u8 *prev) {
+    Motion_ResetChannelsWith(*reinterpret_cast<const u32 *>(0x007b4980), *reinterpret_cast<u32 **>(0x007aecd4),
+                             animator, block, prev);
 }
 
 extern "C" s32 __cdecl Track_Apply(const void *state, u8 *model, u32, u32 *node, const u8 *track) {

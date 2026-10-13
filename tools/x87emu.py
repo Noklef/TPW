@@ -364,18 +364,19 @@ class Emu:
             self.put(o[0], v - (1 << (8 * n)) if v >> (8 * n - 1) else v)
         elif mn == 'LEA':
             self.put(o[0], self.ea(re.search(r'\[(.*)\]', o[1]).group(1)))
-        elif mn in ('ADD', 'SUB', 'CMP'):
+        elif mn in ('ADD', 'SUB', 'CMP', 'ADC', 'SBB'):
             a, b, bits = self.get(o[0]), self.get(o[1]), 8 * self.size(o[0])
             mask = (1 << bits) - 1
             b &= mask
-            if mn == 'ADD':
-                res = a + b
+            carry = int(mn in ('ADC', 'SBB') and self.cf)
+            if mn in ('ADD', 'ADC'):
+                res = a + b + carry
                 sa, sb, sr = a >> (bits - 1), b >> (bits - 1), (res >> (bits - 1)) & 1
                 res = self.flags(res, bits, res > mask, sa == sb and sr != sa)
             else:
-                res = a - b
+                res = a - b - carry
                 sa, sb, sr = a >> (bits - 1), b >> (bits - 1), (res >> (bits - 1)) & 1
-                res = self.flags(res, bits, a < b, sa != sb and sr != sa)
+                res = self.flags(res, bits, a < b + carry, sa != sb and sr != sa)
             if mn != 'CMP':
                 self.put(o[0], res)
         elif mn in ('NEG', 'NOT'):
@@ -428,6 +429,11 @@ class Emu:
             self.push(self.get(o[0]))
         elif mn == 'POP':
             self.put(o[0], self.pop())
+        elif mn == 'STOSB.REP':
+            while self.r['ECX']:
+                self.write(self.r['EDI'], bytes([self.r['EAX'] & 0xff]))
+                self.r['EDI'] = (self.r['EDI'] + 1) & 0xffffffff
+                self.r['ECX'] -= 1
         elif mn == 'MOVSB.REP':
             while self.r['ECX']:
                 self.write(self.r['EDI'], self.read(self.r['ESI'], 1))
