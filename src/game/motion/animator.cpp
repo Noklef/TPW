@@ -1,8 +1,9 @@
-// Animator_ResetLayers, the layer helpers, Layer_Play, Animator_Play and
-// Motion_UpdateClocks: reimplementation of 0x4726d0 and 0x472bc0-0x473440.
+// Animator_ResetLayers, the layer helpers, Layer_Play, Animator_Play, Motion_UpdateClocks
+// and the per-tick updates: reimplementation of 0x4726d0 and 0x472bc0-0x4735d0.
 #include "animator.h"
 
 #include "../math/x87.h"
+#include "keys.h"
 #include "track.h"
 
 namespace {
@@ -39,6 +40,19 @@ bool has_entry(const u8 *animator, u32 bank, u32 entry) {
 u32 motion_ms(const u8 *animator, u32 bank, u32 entry) {
     const u8 *block = entry_block(animator, bank, entry);
     return (u32)(long long)X87_MulInt(field<u32>(block, 8) - field<u32>(block, 4), kMsPerFrame);
+}
+
+// How far a layer run to its end is ahead of its start: length * -33.333332 (0x6fec18) /
+// speed ms, __ftol'd.
+u32 run_back_ms(const u8 *layer) {
+    return (u32)(long long)X87_Round(X87_Round((double)field<float>(layer, 0x1c) * -kMsPerFrame) /
+                                     field<float>(layer, 0xc));
+}
+
+// The frame (time - start) * speed * 0.03, as the x87 holds it.
+double frame_at(const u8 *layer) {
+    return X87_Round(X87_MulInt(field<u32>(layer, 0x14) - field<u32>(layer, 0x10), field<float>(layer, 0xc)) *
+                     kFramesPerMs);
 }
 
 // The block's frame count, as fild loads it and fst stores it.
@@ -275,9 +289,7 @@ u32 Layer_PlayWith(const AnimatorEnv &env, u8 *animator, u32 bank, u32 entry, u8
                 at<u32>(layer, 0x14) = clock;
                 at<u32>(layer, 0x20) = 0;
             } else {  // the time goes ahead by the length (-33.333332 ms a frame, 0x6fec18)
-                const double ms = X87_Round(X87_Round((double)field<float>(layer, 0x1c) * -kMsPerFrame) /
-                                            field<float>(layer, 0xc));
-                at<u32>(layer, 0x14) = clock - (u32)(long long)ms;
+                at<u32>(layer, 0x14) = clock - run_back_ms(layer);
                 at<u32>(layer, 0x20) = field<u32>(layer, 0x1c);  // the frame becomes the length
             }
             at<u32>(layer, 0x18) = at<u32>(layer, 0x10);
@@ -313,13 +325,168 @@ u32 Animator_PlayWith(const AnimatorEnv &env, u8 *animator, u32 bank, u32 entry,
     return ms ? ms : 1000;
 }
 
+s32 Animator_IsIdleWith(u32 time, u32 realTime, u8 *animator) {
+    if (!animator) return 1;
+    if (!field<u32>(animator, 0xa8) || (field<u32>(animator, 4) & 0x8000)) return 0;
+    // The original never steps to the next layer: the first is looked at count times.
+    u8 *layer = field<u8 *>(animator, 0x10);
+    const u32 count = field<u16>(animator, 0xe);
+    const u32 bank = field<u32>(layer, 4);
+    u32 done = 0;
+    for (u32 n = count; n != 0; --n) {
+        if (bank != 0xc) {
+            const u32 clock = (layer[0] & 0x40) ? realTime : time;
+            at<u32>(layer, 0x14) = at<u32>(layer, 0x18) = clock;
+            const double frame = frame_at(layer);
+            at<float>(layer, 0x20) = (float)frame;
+            if (!(frame > field<float>(layer, 0x1c))) continue;
+        }
+        ++done;
+    }
+    return done == count;
+}
+
+void Animator_RefreshNodesWith(u8 *animator, u32 *sceneFlags) {
+    u8 *model = field<u8 *>(field<const u8 *>(animator, 8), 4);
+    bool any = false;
+    for (u32 i = 0; i < field<u16>(model, 0x42); ++i) {
+        u32 &flags = flags_of(Model_Node(model, i));
+        if (flags & 0x100) {
+            any = true;
+            flags &= ~0x800u;
+        }
+    }
+    if (any) *sceneFlags |= 0x80000000;
+    at<u32>(animator, 4) &= ~0x40000000u;
+}
+
 namespace {
-AnimatorEnv game_env() {
-    return {*reinterpret_cast<const u32 *>(0x007b4980), *reinterpret_cast<u32 **>(0x007aecd4),
-            *reinterpret_cast<const u32 *>(0x007b496c), *reinterpret_cast<const u32 *>(0x007b4974),
-            reinterpret_cast<void(__cdecl *)(u8 *, u32, s32)>(0x0045bd30)};
+// The block's tracks and material animation on the holder's model, as Motion_Apply does.
+void apply(const AnimatorEnv &env, u8 *layer, const u8 *holder, const u8 *block) {
+    u8 *model = field<u8 *>(holder, 4);
+    const u8 *track = field<const u8 *>(block, 0x2c);
+    for (s32 k = 0; k < (s32)field<u16>(block, 0x12); ++k, track += 0x40)
+        env.track(layer, model, (u32)(uintptr_t)block, field<u32 *>(track, 0x3c), track);
+    if ((block[0] & 2) && !(env.motionFlags & 8)) env.material(model, block, layer);
+}
+
+// The layer's time and frame at the clock: running (no flag 2 or 4) the time is the clock;
+// stopped (2) it is the start and the frame 0; run to the end (4) the frame is the length.
+void tick(u8 *layer, u32 clock) {
+    const u32 flags = layer[0];
+    if (flags & 6) {
+        if (flags & 2) {
+            at<u32>(layer, 0x20) = 0;
+            at<u32>(layer, 0x14) = field<u32>(layer, 0x10);
+        } else {
+            at<u32>(layer, 0x14) = field<u32>(layer, 0x10) - run_back_ms(layer);
+            at<u32>(layer, 0x20) = field<u32>(layer, 0x1c);
+        }
+        at<u32>(layer, 0x18) = clock;
+    } else {
+        at<u32>(layer, 0x14) = at<u32>(layer, 0x18) = clock;
+        at<float>(layer, 0x20) = (float)frame_at(layer);
+    }
 }
 }  // namespace
+
+void Layer_UpdateWith(const AnimatorEnv &env, u8 *animator, u8 *layer, const u8 *block) {
+    if (!animator) return;
+    const u32 bank = field<u32>(layer, 4);
+    if (bank == 0xc) return;
+    u8 *holder = field<u8 *>(animator, 8);
+    if (field<u32>(animator, 4) & 0x8000) {  // posed by hand: the bank entry is applied as it is
+        if (field<u32>(animator, 0x1c + 12 * bank)) block = entry_block(animator, bank, field<u32>(layer, 8));
+        if (block) apply(env, layer, holder, block);
+        return;
+    }
+    const u32 flags = field<u32>(layer, 0);
+    const u32 clock = (flags & 0x40) ? env.realTime : env.time;
+    tick(layer, clock);
+    const u32 mode = block ? 0 : 8;  // without a block of its own the nodes are not marked
+    bool played = false, finished = false;
+    if (field<float>(layer, 0x20) > field<float>(layer, 0x1c)) {  // at the end of the motion
+        if (bank == 0) at<u32>(layer, 0) = flags | 8;
+        if (field<u32>(layer, 0x24) == 0xc) {
+            const u32 animator_flags = field<u32>(animator, 4);
+            if (!(animator_flags & 0x18)) {
+                played = true;
+                if (layer[0] & 1) {  // looping: again, at the queued speed if one was given
+                    const float queued = field<float>(layer, 0x30);
+                    const float speed = (queued < 0 || queued > 0) ? queued : field<float>(layer, 0xc);
+                    Layer_PlayWith(env, animator, bank, field<u32>(layer, 8), layer, mode | 1, speed);
+                } else {
+                    Layer_PlayWith(env, animator, 0xe, 0, layer, mode, 1.0f);
+                }
+            } else if (animator_flags & 8) {
+                Layer_PlayWith(env, animator, 0xc, 0, layer, 0, 1.0f);
+                if (holder[0] & 1) {  // 0x45bdc0
+                    if (field<u32>(animator, 4) & 0x4000)
+                        env.idleAt(holder, field<u32>(animator, 0xc0), field<u32>(animator, 0xc4));
+                    else
+                        env.idle(holder);
+                }
+            } else {
+                finished = true;
+                at<u32>(layer, 0x20) = field<u32>(layer, 0x1c);
+                at<u32>(animator, 4) |= 0x40400000;
+                at<u32>(layer, 0) &= ~8u;
+            }
+        } else {
+            played = true;
+            Layer_PlayWith(env, animator, field<u32>(layer, 0x24), field<u32>(layer, 0x28), layer,
+                           field<u32>(layer, 0x2c) | mode, field<float>(layer, 0x30));
+            at<u32>(layer, 0x24) = 0xc;
+            at<u32>(layer, 0x28) = 0;
+            at<u32>(layer, 0x30) = 0;
+        }
+    }
+    if (field<u32>(layer, 4) != 0 && (layer[0] & 8)) {
+        at<u32>(animator, 4) |= 0x40000000;
+        at<u32>(layer, 0) &= ~8u;
+    }
+    const u32 now_bank = field<u32>(layer, 4);
+    const u8 *now_block = nullptr;
+    if (now_bank != 0xc) {
+        if (field<u32>(animator, 0x1c + 12 * now_bank))
+            now_block = entry_block(animator, now_bank, field<u32>(layer, 8));
+        else
+            at<u32>(layer, 8) = 0;
+    }
+    if (played && now_bank != 0xc) tick(layer, clock);
+    if ((field<u32>(animator, 4) & 0x400000) || (block && (!(layer[0] & 4) || (layer[0] & 0x10)))) {
+        if (now_block) apply(env, layer, holder, now_block);
+        at<const u8 *>(layer, 0x34) = now_block;
+        at<u32>(layer, 0) &= ~0x10u;
+    }
+    if (finished) Layer_PlayWith(env, animator, 0xc, 0, layer, 4, 1.0f);
+}
+
+namespace {
+AnimatorEnv game_env() {
+    AnimatorEnv env{*reinterpret_cast<const u32 *>(0x007b4980), *reinterpret_cast<u32 **>(0x007aecd4),
+                    *reinterpret_cast<const u32 *>(0x007b496c), *reinterpret_cast<const u32 *>(0x007b4974),
+                    reinterpret_cast<void(__cdecl *)(u8 *, u32, s32)>(0x0045bd30)};
+    env.track = &Track_Apply;
+    env.material = &Motion_ApplyMaterial;
+    env.idle = reinterpret_cast<void(__cdecl *)(u8 *)>(0x0045bdd0);
+    env.idleAt = reinterpret_cast<void(__cdecl *)(u8 *, u32, u32)>(0x0045be80);
+    return env;
+}
+}  // namespace
+
+extern "C" s32 __cdecl Animator_IsIdle(u8 *animator) {
+    return Animator_IsIdleWith(*reinterpret_cast<const u32 *>(0x007b496c), *reinterpret_cast<const u32 *>(0x007b4974),
+                               animator);
+}
+
+extern "C" void __cdecl Animator_RefreshNodes(u8 *animator) {
+    Animator_RefreshNodesWith(animator, reinterpret_cast<u32 *>(0x008bd508));
+}
+
+extern "C" void __cdecl Layer_Update(u8 *animator, u8 *layer, const u8 *block) {
+    Layer_UpdateWith(game_env(), animator, layer, block);
+}
 
 extern "C" u32 __cdecl Layer_Play(u8 *animator, u32 bank, u32 entry, u8 *layer, u32 mode, float speed) {
     return Layer_PlayWith(game_env(), animator, bank, entry, layer, mode, speed);

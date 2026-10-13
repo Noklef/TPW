@@ -452,6 +452,8 @@ class Emu:
                 self.r['ECX'] -= 1
         elif mn == 'JMP':
             return int(o[0], 16)
+        elif mn.startswith('SET'):
+            self.put(o[0], int(self.cond('J' + mn[3:])))
         elif mn.startswith('J'):
             return int(o[0], 16) if self.cond(mn) else nxt
         elif mn == 'CALL':

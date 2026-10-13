@@ -1,22 +1,28 @@
 // A model's animator and its motion layers: reimplementation of Animator_ResetLayers
 // (0x4726d0), the layer helpers at 0x472bc0-0x472f40, Layer_Play (0x472f60),
-// Animator_Play (0x4732a0) and Motion_UpdateClocks (0x473440).
+// Animator_Play (0x4732a0), Motion_UpdateClocks (0x473440), Animator_IsIdle (0x473490),
+// Animator_RefreshNodes (0x473550) and Layer_Update (0x4735d0).
 #pragma once
 
 #include "../../../re/types.h"
 
 // The animator:
 //   +0     [+8]+4: the rest model (the pose channels are reset to)
-//   +4     flags: 8 shows every node, 0x100000 acts as gMotionFlags 0x1 (see
-//          Motion_ResetChannelsWith)
+//   +4     flags: 8 shows every node (and wakes the holder to play, puts it to sleep when a
+//          motion ends), 0x10 holds the last frame, 0x4000 sleeps with +0xc0/+0xc4,
+//          0x8000 posed by hand (no clock), 0x100000 acts as gMotionFlags 0x1 (see
+//          Motion_ResetChannelsWith), 0x400000 applies every layer this tick, 0x40000000
+//          nodes to refresh (Animator_RefreshNodes)
 //   +8     the holder of the animated model (+4); its flag 4 (byte +0) names the listed
 //          nodes of a block by id (node +0x50) instead of by index
 //   +0xe   u16 layer count, +0x10 the layers (0x38 bytes each), +0x14 how many are playing
 //   +0x18  12 motion banks of 12 bytes: flags byte (& 3: loaded), u32 count +4, entries +8
-//          (8 bytes; the block at +4). Bank 0xc is none.
+//          (8 bytes; the block at +4). Bank 0xc is none, 0 the base pose, 5 the idle motions.
+//   +0xa8  nonzero once it has motions to update
 // The layer, which is the state Track_Apply plays:
-//   +0     flags: 0x4 (0x10 is set with it on a reset), 0x20 off, 0x40 timed by
-//          gMotionRealTime (0x7b4974) instead of gMotionTime (0x7b496c)
+//   +0     flags: 1 loops, 2 stopped, 4 run to the end (0x10 is set with it on a reset, to
+//          apply it once more), 8 bank 0 ended, 0x20 off, 0x40 timed by gMotionRealTime
+//          (0x7b4974) instead of gMotionTime (0x7b496c)
 //   +4     bank, +8 entry; +0xc speed
 //   +0x10  start time, +0x14 time, +0x18 start time again (u32 ms)
 //   +0x1c  length, +0x20 frame (floats; 30 frames a second at speed 1)
@@ -30,6 +36,11 @@ struct AnimatorEnv {
     u32 *trackFlags;                              // gTrackFlags (0x7aecd4)
     u32 time, realTime;                           // gMotionTime, gMotionRealTime
     void(__cdecl *wake)(u8 *holder, u32 value, s32 on);  // 0x45bd30
+    // Track_Apply (0x471860) and Motion_ApplyMaterial (0x470c90), for Layer_UpdateWith
+    s32(__cdecl *track)(const void *layer, u8 *model, u32 block, u32 *node, const u8 *track);
+    void(__cdecl *material)(void *model, const void *block, const void *layer);
+    void(__cdecl *idle)(u8 *holder);                    // 0x45bdd0
+    void(__cdecl *idleAt)(u8 *holder, u32 a, u32 b);    // 0x45be80
 };
 
 // 0x4726d0 with the globals given (gMotionFlags' value; gTrackFlags, the per-node array
@@ -75,7 +86,38 @@ u32 Animator_PlayWith(const AnimatorEnv &env, u8 *animator, u32 bank, u32 entry,
 // gMotionTimeStep (0x7b497c) the seconds since its last value.
 void Motion_UpdateClocksWith(u32 *time, float *step, u32 now);
 
+// 0x473490 with the clocks given: 1 when every layer has played its motion out (or has
+// none; and for a null animator), 0 without motions (+0xa8) or when posed by hand (0x8000).
+// The original never steps to the next layer, so it is the first layer that is looked at
+// (and has its time and frame updated) once per layer.
+s32 Animator_IsIdleWith(u32 time, u32 realTime, u8 *animator);
+
+// 0x473550 with the flags word given (0x8bd508): nodes of the holder's model flagged 0x100
+// lose 0x800, and if there were any the word's top bit is set; animator flag 0x40000000 is
+// cleared.
+void Animator_RefreshNodesWith(u8 *animator, u32 *sceneFlags);
+
+// 0x4735d0 (animator, layer, block): one tick of the layer. Posed by hand (animator flag
+// 0x8000) its bank entry (or the block, when the bank has no entries) is applied as it
+// stands. Otherwise the time and frame follow the clock, and at the end of the motion:
+//  - the queued motion plays (mode | 8 without a block);
+//  - with no queue and animator flags 8 and 0x10 clear: a looping layer (flag 1) plays it
+//    again, at the queued speed if nonzero, and the others stop at the end (bank 0xe);
+//  - with flag 8 the layer is emptied and the holder, if awake, put to sleep;
+//  - with flag 0x10 the last frame is held: the animator gets 0x40400000, and after the
+//    apply the layer is emptied (mode 4).
+// A layer flagged 8 (its bank 0 motion ended) that is now on another bank loses the flag and
+// sets animator flag 0x40000000. The bank
+// entry is then applied (and kept at +0x34) when animator flag 0x400000 is set, or with a
+// block unless the layer is run to the end (flag 4 without 0x10).
+void Layer_UpdateWith(const AnimatorEnv &env, u8 *animator, u8 *layer, const u8 *block);
+
 extern "C" {
+// 0x473490, 0x473550, 0x4735d0 on the game's globals.
+s32 __cdecl Animator_IsIdle(u8 *animator);
+void __cdecl Animator_RefreshNodes(u8 *animator);
+void __cdecl Layer_Update(u8 *animator, u8 *layer, const u8 *block);
+
 // 0x472f60, 0x4732a0 on the game's globals.
 u32 __cdecl Layer_Play(u8 *animator, u32 bank, u32 entry, u8 *layer, u32 mode, float speed);
 u32 __cdecl Animator_Play(u8 *animator, u32 bank, u32 entry, u32 mode, float speed, u32 index);

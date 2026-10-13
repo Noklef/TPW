@@ -700,6 +700,8 @@ static void test_track_apply() {
 
 static int g_wakes = 0;
 static void __cdecl count_wake(u8 *, u32, s32) { ++g_wakes; }
+static int g_tracks = 0;
+static s32 __cdecl count_track(const void *, u8 *, u32, u32 *, const u8 *) { return ++g_tracks; }
 
 static void test_animator() {
     // fild n; fmul f rounds the exact product once; through a double it is one ulp off here.
@@ -874,6 +876,35 @@ static void test_animator() {
     float step = 0;
     Motion_UpdateClocksWith(&clock, &step, 1500);
     CHECK(clock == 1500 && step == 0.5f);
+    // Looping entry 1 from 5000; at 6500 it is 45 frames in, past its 30: it plays again,
+    // carrying the 15 over (499 ms back), and with animator flag 0x400000 its track is applied.
+    CHECK(Layer_PlayWith(env, animator, 0, 1, layers, 1, 1.0f) == 999);
+    AnimatorEnv later_env = env;
+    later_env.time = 6500;
+    later_env.track = &count_track;
+    g_tracks = 0;
+    const u32 apply_all = 0x400000;
+    std::memcpy(animator + 4, &apply_all, 4);
+    Layer_UpdateWith(later_env, animator, layers, nullptr);
+    u8 *last_block;
+    std::memcpy(layer_times, layers + 0x10, 12);
+    std::memcpy(&last_block, layers + 0x34, 4);
+    CHECK(layer_times[0] == 6001 && layer_times[1] == 6500 && (layers[0] & 9) == 9);
+    CHECK(g_tracks == 1 && last_block == block);
+    std::memset(animator + 4, 0, 4);
+    // Idle once every layer is past its end (the original only ever looks at the first).
+    CHECK(Animator_IsIdleWith(7000, 0, animator) == 0);  // no motions (+0xa8)
+    animator[0xa8] = 1;
+    CHECK(Animator_IsIdleWith(7000, 0, animator) == 0);   // frame 29.97
+    CHECK(Animator_IsIdleWith(8000, 0, animator) == 1);   // frame 59.97
+    // Refreshing: node 0 (flag 0x100) loses 0x800 and the scene flag is set.
+    const u32 refresh = 0x900, wants = 0x40000000;
+    std::memcpy(node, &refresh, 4);
+    std::memcpy(animator + 4, &wants, 4);
+    u32 scene = 1;
+    Animator_RefreshNodesWith(animator, &scene);
+    std::memcpy(&node_flags, node, 4);
+    CHECK(node_flags == 0x100 && scene == 0x80000001 && animator[7] == 0);
 }
 
 static void test_hook_table(const char *exe_path) {
