@@ -22,11 +22,11 @@ All little-endian 32-bit words.
 0x00  "RSSE"
 0x04  version            0x00010F51 in every shipped script
 0x08  variable count     N: the last N strings in the file are variable names
-0x0C  ?                  (e.g. 3 for Bouncy Dino)
-0x10  ?                  0x32 in all scripts seen so far
-0x14  ?
-0x18  ?                  (e.g. 0xA for Bouncy Dino)
-0x1C  ?
+0x0C  stack size         words (Bouncy Dino: 3)
+0x10  slice budget       instructions per time slice (50 in every script)
+0x14  limbo slots
+0x18  rider slots        (Bouncy Dino: 10)
+0x1C  walker slots       (see "Header, fully mapped" below)
 0x20  "Pad Pad Pad Pad "
 0x30  code_len           number of code words
 0x34  code[code_len]
@@ -80,8 +80,83 @@ L0010:
     BRANCH          L0010
 ```
 
+## Header, fully mapped (from `RSSE_LoadScriptFile`)
+| Offset | Context field | Meaning |
+|---|---|---|
+| `0x04` | | version, must equal `0x00010F51` (checked against `DAT_00879190`) |
+| `0x08` | `+0x8C` → allocates vars at `+0x1C` | variable count |
+| `0x0C` | `+0x54` → allocates `+0x20` | stack size in words (shared by `JSR`/`PUSH` from the top, `HUSH` from the bottom) |
+| `0x10` | `+0x94` | instruction budget per time slice (50 in every shipped script) |
+| `0x14` | `+0x58` → allocates `+0x24` | **limbo** slots, 8 bytes each `{guest, release_time}` |
+| `0x18` | `+0x64` → allocates `+0x28` | **rider** slots, 16 bytes each `{guest, node, release_time, start_time}` (Bouncy Dino: 10) |
+| `0x1C` | `+0x7C` → allocates `+0x2C` | third table, 32-byte entries (walkers, used by `WALK*`) |
+| `0x20` | | 16 pad bytes, skipped |
+| `0x30` | `+0x50` | code length in words |
+
+## Runtime model
+**Scheduler** (`RSSE_Tick`, `0x5516b0`), once per game tick:
+- `tick++`. A script runs if `(script_id ^ tick) & 7 == 0`, i.e. **every 8th tick, staggered by id**, or **every tick** if its `TURBO` byte (`+0xB8`) is set.
+- Each run gets `budget = header[0x10]` instructions (counter at `+0x98`). An instruction executed while the global critical-section flag is set (`CRIT_LOCK`) **doesn't consume budget**. `ENDSLICE` and any wait zero the counter, which yields.
+- A script stops for good when `pc < 0` (`END`, or any error sets `pc = −10000`).
+- Afterwards the script's speed/wear value (`+0xC0`) is pushed into its animation, track and child objects.
+
+All running scripts are on a doubly linked list (head `DAT_008791b0`, count `DAT_008791ac`), found by id with `RSSE_FindScriptById`.
+
+**Script context** (0xF4 bytes) fields known so far:
+`+0x00/+0x04` list next/prev · `+0x08` script id · `+0x0C` child script id · `+0x18` code · `+0x1C` vars · `+0x20` stack · `+0x24` limbo table · `+0x28` rider table · `+0x2C` walker table · `+0x3C` pc · `+0x40` stack pointer (down) · `+0x44` heap pointer (up) · `+0x48` **result register** · `+0x50` code length · `+0x54` stack size · `+0x58/+0x60` limbo capacity/count · `+0x64/+0x6C` rider capacity/count · `+0x70` first rider node · `+0x74` `NAME` string · `+0x8C` var count · `+0x94/+0x98` budget/remaining · `+0x9C` sound · `+0xA0` wait deadline · `+0xA4` animation end time · `+0xA8` current looping animation · `+0xB0` list of added objects · `+0xB8` turbo · `+0xC0` speed/wear (short) · `+0xC8` owning object (index into `DAT_007a4610`)
+
+## Instruction semantics (from `RSSE_ExecuteInstruction`)
+**Operands.** A *source* is a variable (`0x4…`) or an immediate, which is **sign-extended from its low 16 bits**. A *destination* must be a variable, otherwise the instruction is ignored. Labels must carry the `0x2…` tag, and a branch to a non-label ends the script. Most instructions also write their result to the **result register** (`+0x48`), which the conditional branches test.
+
+| Op | Semantics |
+|---|---|
+| `NOP` | nothing |
+| `CRIT_LOCK` / `CRIT_UNLOCK` | set / clear the global critical-section flag (no budget consumed while set). `CRIT_UNLOCK` also yields |
+| `COPY d, s` | d = s; R = d |
+| `SETLV x` | R = raw word x |
+| `ADD d, s` | d += s; R = d |
+| `SUB d, a, b` / `MULT` / `DIV` / `MOD` | d = a op b; R = d. Division or modulo by 0 gives 0 |
+| `RAND d, n` | d = R = \|rng() >> 1\| mod (n+1), i.e. 0..n using the world RNG (`World_Rand`) |
+| `TEST v` | R = v |
+| `CMP a, b` | R = a − b |
+| `BRANCH L` | goto L |
+| `BRANCH_Z/NZ/NV/PV L` | goto L if R == 0 / ≠ 0 / < 0 / > 0 |
+| `JSR L` / `RETURN` | push `pc` (tagged as label) / pop and jump |
+| `PUSH s` / `POP d` | stack from the top; R = value |
+| `HUSH s` / `HOP d` | second LIFO from the bottom of the same block ("heap") |
+| `END` | pc = −10000 (script terminates) |
+| `ENDSLICE` | yield until the script's next turn |
+| `WAIT n` | sleep *n* time units scaled by game speed. Implemented by rewinding `pc` onto itself and yielding until the deadline (`+0xA0`) passes |
+| `WAITABS n` | same, unscaled |
+| `WAIT4ANIM` | sleep until the current animation's end time (`+0xA4`) |
+| `GETTIME d` | d = R = game clock |
+| `TURBO n` | run every tick instead of every 8th (`+0xB8`) |
+| `NAME s` | record name string (debug) |
+| `DBGMSG s` | skip; compiled out in retail |
+| `TRIGANIM ch, anim, d` | start animation *anim* on channel *ch* of the owner's mesh; d = R = duration − 300 ms (min 300); records end time for `WAIT4ANIM` |
+| `WAITANIM ch, anim` | play an animation and wait for it to finish |
+| `LOOPANIM ch, anim` | loop an animation (no-op if already looping it) |
+| `TRIGWAITANIM`, `GETANIM`, `TRIGANIMSPEED`, `FLUSHANIM`, `*_CH` | variants: trigger+wait, query, speed, stop; per-channel forms |
+| `BOUNCE guest, secs` | put *guest* into a free **rider** slot until now + secs×1000. R = 1 if seated, 0 if full |
+| `UNBOUNCE`, `FORCEUNBOUNCE`, `BOUNCING d` | release riders whose time is up / release unconditionally / count riders |
+| `BOUNCESETNODE`, `BOUNCESETBASE` | configure where riders are positioned |
+| `LIMBO guest, secs` | hold *guest* invisibly in a **limbo** slot until now + secs×1000. R = 1/0 |
+| `UNLIMBO`, `FORCEUNLIMBO`, `INLIMBO`, `LIMBOSPACE` | release due / release all / count / free slots |
+| `ADDOBJ…` / `KILLOBJ` / `FADEOBJ` / `SETOBJPARAM` | create, remove, fade or configure a sub-object (prop, particle, sound), kept on the list at `+0xB0` |
+| `SPAWNCHILD s` / `SPAWNSOUND s` / `REMOVECHILD` | load and start another `.RSE` as a child script (`+0x0C`) / kill it |
+| `GET/SETVARINCHILD`, `GET/SETVARINPARENT`, `GET/SETREMOTEVAR` | read/write variables of the child, the parent, or any script by id |
+| `FINDSCRIPTRAND` | pick a random live script matching criteria |
+| `EVENT a, b, c` / `EVENT_EXT` | `RSSE_TriggerCustomEvent(ctx, a, b, c, 1000)` (guest reactions, messages) |
+| `ADDHEAD` / `DELHEAD` | attach/detach a guest "head" (visible rider) to the owner's mesh |
+| `WALKON`, `WALKOFF`, `WALKGET`, `WALKST_FLOAT`, `WALKFLOATSTAT`, `WALKFLOATSTOP` | walk-through attractions: guests follow walk nodes (`RSSE_SetupWalkNodes`) |
+| `TOUR`, `BUMP`, `COAST` | ride-type drivers: tour vehicles, bumper cars, coaster cars (call into the track/coaster code) |
+| `ENABLELIGHT`/`DISABLELIGHT`/`SETLIGHT`/`COLOURLIGHT` | control the owner's mesh lights |
+| `STARTSCREAM`/`STOPSCREAM`/`SINGLESCREAM`/`SCREAMLEVEL` | rider scream sounds |
+| `SPARK`, `REPAIREFFECT`, `GETCUSTPTCLCODE` | particle effects |
+| `SETREVERB`, `DIPMUSIC` | audio environment |
+| `SETTIMER`/`GETTIMER`, `YEAR`…`SEC` | per-script timer; real-time clock fields (via the C runtime's `localtime`) |
+
 ## Open questions
-- Header fields `0x0C`–`0x1C` (stack size? priority? object count?)
-- Exact semantics of each opcode. Read them per case in `RSSE_ExecuteInstruction` and document here
-- How the engine binds `VAR_*` names to its own state (by name lookup at load?)
+- How the engine binds `VAR_*` names to its own state (name lookup at load, or fixed indices per ride type?)
+- Exact arguments of the ride drivers (`TOUR`, `BUMP`, `COAST`) and the `WALK*` family
 - `SPSC` "sprite scripts" in the save file: are they the same VM or a separate one?

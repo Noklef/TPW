@@ -4,7 +4,7 @@ File layout (as observed; little-endian u32 words):
   0x00  "RSSE"
   0x04  version (0x00010F51)
   0x08  variable count (the last N strings are variable names)
-  0x0C..0x1C  more header fields (meaning unknown, printed raw)
+  0x0C  stack size, 0x10 slice budget, 0x14 limbo slots, 0x18 rider slots, 0x1C walker slots
   0x20  16 bytes "Pad Pad Pad Pad "
   0x30  code_len (words), then code_len code words
   then  length-prefixed (u32, includes NUL) strings until EOF:
