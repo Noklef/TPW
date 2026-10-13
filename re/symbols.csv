@@ -14,8 +14,8 @@ address,name,kind,confidence,notes
 0x005f5b80,Stream_Close,function,medium,
 0x005f5d60,File_Delete,function,medium,calls DeleteFileA
 0x005f72c0,MemStream_Open,function,medium,used by SaveGame_Save to save into memory first
-0x005f8050,Buffer_Compress,function,medium,compresses save buffer; 'Need to allocate a bigger buffer'
-0x005f8100,Buffer_Decompress,function,high,inverse of Buffer_Compress via the compressor singleton (slot 2); used by saves and .wct v0x12
+0x005f8050,Buffer_Compress,function,medium,"compresses save buffer; 'Need to allocate a bigger buffer'"
+0x005f8100,Buffer_Decompress,function,high,"inverse of Buffer_Compress via the compressor singleton (slot 2); used by saves and .wct v0x12"
 0x005f8080,Compressor_Get,function,medium,returns the global compressor singleton (concrete vtable 0x703128)
 0x00703128,ZlibCompressor_vtable,data,medium,"slot 1 = compress 0x619280, slot 2 = decompress 0x619380"
 0x00619280,ZlibCompressor_Compress,function,medium,"writes the 28-byte BILZ header (magic, unpacked, packed, windowBits 15, level 9, 0, 0) + zlib stream"
@@ -52,7 +52,7 @@ address,name,kind,confidence,notes
 0x00437b60,Coasters_Load,function,high,module COAS
 0x00437300,Coasters_Save,function,high,module COAS
 0x00599d00,Advisor_Load,function,high,module ADVS
-0x00599c30,Advisor_Save,function,high,module ADVS; original logs 'Coasters: saved' here (copy-paste bug)
+0x00599c30,Advisor_Save,function,high,"module ADVS; original logs 'Coasters: saved' here (copy-paste bug)"
 0x0051c400,Sound_Load,function,high,module SOUN
 0x0051c350,Sound_Save,function,high,module SOUN
 0x00405570,CheatSystem_Load,function,high,module CHTS
@@ -62,7 +62,7 @@ address,name,kind,confidence,notes
 0x0059c890,AdvisorScoring_Save,function,high,module ADSC
 0x0059bea0,AdvisorScoring_Construct,function,medium,function-static singleton constructor
 0x00481680,UI_Load,function,high,"last module, no tag check"
-0x004816a0,UI_Save,function,high,last module; original logs 'UI: loaded' here (copy-paste bug)
+0x004816a0,UI_Save,function,high,"last module; original logs 'UI: loaded' here (copy-paste bug)"
 0x00551cb0,RSSE_ExecuteInstruction,function,high,"fetches one code word, dispatches via 106-entry jump table (0x5567d8); needs tools/FixJumpTable.java to decompile. ctx: +0x18 code*, +0x1c vars*, +0x3c pc (-10000 = error), +0x50 code_len"
 0x005567d8,RSSE_OpcodeHandlerTable,data,high,106 handler addresses indexed by opcode; see re/rsse_opcodes.csv
 0x00765280,RSSE_OpcodeNameTable,data,high,"106 x {char* mnemonic, char* operand_count}"
@@ -74,7 +74,7 @@ address,name,kind,confidence,notes
 0x005573d0,RSSE_TriggerCustomEvent,function,medium,'Tried to trigger a custom event'
 0x00551130,RSSE_StartScream,function,medium,'Started screaming without ...'
 0x00556f40,RSSE_SetupWalkNodes,function,low,"walk/head node validation, 'Walknodes need a setwalk'"
-0x00572780,Engine_Init,function,high,'Initializing engine internals'; logs a checkpoint after each renderer subsystem (… 'wavelet/printf ok')
+0x00572780,Engine_Init,function,high,"'Initializing engine internals'; logs a checkpoint after each renderer subsystem (… 'wavelet/printf ok')"
 0x00564b20,Wavelet_Init,function,medium,creates the global wavelet codec (DAT_00879a64) during Engine_Init
 0x005985c0,WaveletCodec_Create,function,medium,allocates 0x58 bytes and constructs; returns the IWaveletCodec interface pointer
 0x005916c0,WaveletCodec_Construct,function,high,"builds clamp table (0xc27008) and 16-bit pixel tables, allocates work buffers"
@@ -84,7 +84,7 @@ address,name,kind,confidence,notes
 0x00593ab0,WaveletCodec_DecodeV12,function,high,"one-level D4 like v0x13 but rows stored [all low, all high]; streams are BILZ (zlib); ported in tools/wct2png.py"
 0x00595920,WaveletCodec_DecodeV13,function,high,"one-level D4 wavelet, YUV 4:2:0 + optional alpha; ported in tools/wct2png.py"
 0x00597100,WaveletCodec_DecodeV13Scaled,function,medium,resampling variant; calls DecodeV13 when sizes match
-0x00597090,Wavelet_ReadBits,function,high,LSB-first bit reader over 16-bit LE words
+0x00597090,Wavelet_ReadBits,function,high,"LSB-first bit reader over 16-bit LE words"
 0x00591a60,WaveletCodec_AddRef,function,high,
 0x00591a70,WaveletCodec_GetRefCount,function,high,
 0x00591a80,WaveletCodec_Release,function,high,
@@ -94,18 +94,18 @@ address,name,kind,confidence,notes
 0x0046ead0,TextureSet_Load,function,medium,"builds dir+name, forces '.wct', 'Could not load texture %s'"
 0x0046f120,File_Exists,function,medium,opens via VFS_Open and closes
 0x005c4d50,VFS_Open,function,medium,"tries the mounted WAD archives first, then the disk"
-0x00477ff0,UITexture_Construct,function,medium,thiscall(name); loads UI textures such as 'happygrad.wct'
-0x00591600,WaveletCodec_InitD4Filter,data,high,4 static-initialiser stubs (0x591600/30/60/90) computing D4 h0..h3 into 0xc27208..14 via x87; not functions in Ghidra
+0x00477ff0,UITexture_Construct,function,medium,"thiscall(name); loads UI textures such as 'happygrad.wct'"
+0x00591600,WaveletCodec_InitD4Filter,data,high,"4 static-initialiser stubs (0x591600/30/60/90) computing D4 h0..h3 into 0xc27208..14 via x87; not functions in Ghidra"
 0x00c27208,D4_h0,data,high,(1+sqrt3)/(4 sqrt2)
 0x00c2720c,D4_h1,data,high,(3+sqrt3)/(4 sqrt2)
 0x00c27210,D4_h2,data,high,(3-sqrt3)/(4 sqrt2)
 0x00c27214,D4_h3,data,high,(1-sqrt3)/(4 sqrt2)
 0x00564e20,Texture_DecodeWct,function,medium,"computes quantiser steps from header q (Y 1+q/2, Cb/Cr 1+q/4, A q+1; constants 0x7011b8..c4) and calls WaveletCodec_Decode"
-0x005516b0,RSSE_Tick,function,high,scheduler: runs each script every 8th tick ((id^tick)&7==0) or every tick if TURBO; budget = header[0x10]; CRIT_LOCK instructions are free
+0x005516b0,RSSE_Tick,function,high,"scheduler: runs each script every 8th tick ((id^tick)&7==0) or every tick if TURBO; budget = header[0x10]; CRIT_LOCK instructions are free"
 0x00557a70,RSSE_FetchWord,function,high,next code word; pc=-10000 on overrun
 0x005573a0,RSSE_OperandValue,function,high,"variable value, or immediate sign-extended from 16 bits"
 0x0055a070,RSSE_FindScriptById,function,high,walks the live-script list (DAT_008791b0)
-0x004031e0,GameClock_Now,function,high,fastcall; base time + offset at +0x48; used for all RSSE waits
+0x004031e0,GameClock_Now,function,high,"fastcall; base time + offset at +0x48; used for all RSSE waits"
 0x00516330,World_Rand,function,high,"LCG x*0x19660d+0x3c6ef35f, rotr 13, abs; state at world+0x1da708. Must be bit-exact for determinism"
 0x008791b0,RSSE_ScriptList,data,high,head of doubly linked list of live script contexts (0xF4 bytes each)
 0x008791ac,RSSE_ScriptCount,data,high,
@@ -122,7 +122,7 @@ address,name,kind,confidence,notes
 0x004fae10,Save_ReadU32,function,high,"(stream, dst, name, quiet)"
 0x004d37e0,Save_ReadU16,function,high,
 0x00424c20,Save_ReadU8,function,high,
-0x00510240,Save_Read8Bytes,function,high,u64 times / 2D float vectors
+0x00510240,Save_Read8Bytes,function,high,"u64 times / 2D float vectors"
 0x005134d0,Save_Read12Bytes,function,high,3D float vectors
 0x004ced70,Save_WriteU32,function,high,
 0x004cee50,Save_WriteU8,function,high,
@@ -158,7 +158,7 @@ address,name,kind,confidence,notes
 0x004da960,MechanicHQ_Serialize,function,high,thing model 10
 0x00599f60,Advisor_Serialize,function,high,thing model 11: message queue + history
 0x0059ba30,AdvisorMsg_Serialize,function,high,
-0x004c5d70,ParkAnalyser_Serialize,function,high,thing model 13: 32x32 analysis grid + circular-buffer statistics
+0x004c5d70,ParkAnalyser_Serialize,function,high,"thing model 13: 32x32 analysis grid + circular-buffer statistics"
 0x004c85b0,AnalyserCell_Serialize,function,high,
 0x004cd9c0,AnalyserVal_Serialize,function,high,"u32 mVal, u8 mWorkedOut"
 0x004cdb80,CircBufU16_Serialize,function,high,"mCurrentEntry, mNumEntries, mWrappedAround, mTemp, mData[mNumEntries]"
@@ -174,11 +174,11 @@ address,name,kind,confidence,notes
 0x004d0f90,Challenge_Serialize,function,high,
 0x006c58f0,SoundBank_OpenSdt,function,medium,"appends HD.sdt or HW.sdt to the bank path and opens it, falling back to the other; arg3 == 0 tries HW first"
 0x006c5a00,SoundBank_Open,function,low,calls SoundBank_OpenSdt and returns 0 / -1
-0x006d62c0,LbMpeg_MmxTransform,function,low,MMX int16 transform over 8 qwords using the Q14 cosine table in section lbmpeg_d (0xfc0000); likely MPEG decoder matrixing
+0x006d62c0,LbMpeg_MmxTransform,function,low,"MMX int16 transform over 8 qwords using the Q14 cosine table in section lbmpeg_d (0xfc0000); likely MPEG decoder matrixing"
 0x004e2c10,CircBufU32_30_Serialize,function,high,"ring buffer of 30 u32 (mTemp, mData[30], mCurrentEntry, mNumEntries, mWrappedAround); 6 per Object"
-0x00516380,World_Tick,function,medium,increments the tick counter at +0x1da70c and calls Thing_Update for every live thing (skips things whose byte +3 is set)
+0x00516380,World_Tick,function,medium,"increments the tick counter at +0x1da70c and calls Thing_Update for every live thing (skips things whose byte +3 is set)"
 0x0050b360,Thing_Update,function,high,per-tick dispatch on Thing.model (byte +2); most models call an Update and a PostUpdate method
-0x0050b550,Thing_HandleMessage,function,high,dispatch on Thing.model to the model's message handler; called from the message centre (0x40fb10)
+0x0050b550,Thing_HandleMessage,function,high,"dispatch on Thing.model to the model's message handler; called from the message centre (0x40fb10)"
 0x0050b6a0,Thing_SetPos,function,high,"sets mX/mY; asserts ""Attempt to move thing to invalid..."" when the cell id is >= 0x4001"
 0x00501650,Visitor_Update,function,medium,Thing_Update case 1 (first call)
 0x005019f0,Visitor_PostUpdate,function,medium,Thing_Update case 1 (second call)
@@ -216,26 +216,26 @@ address,name,kind,confidence,notes
 0x004fcc30,Visitor_ScoreOption,function,medium,"thiscall(visitor, object); 'Calculating option score': distance, queue, thirst/hunger/toilet/illness match"
 0x004fe1e0,Visitor_UseObject,function,medium,"thiscall(visitor, object); applies the object def effects (+0x144 thirst, +0x148 hunger, +0x14c illness, +0x150 happiness, +0x154 litter) to the needs, balloons, costumes, sideshow wins"
 0x00506680,Staff_IsTooTired,function,high,mEnergy below gBalanceLevel.mRestLevel
-0x005066a0,Staff_TireA,function,medium,drains mEnergy and mHappiness by (6 - pay grade) * rate; one of two rates
-0x00506760,Staff_TireB,function,medium,as Staff_TireA with the other pair of rates
+0x005066a0,Staff_TireA,function,medium,"drains mEnergy and mHappiness by (6 - pay grade) * rate; one of two rates"
+0x00506760,Staff_TireB,function,medium,"as Staff_TireA with the other pair of rates"
 0x00506830,Staff_SetName,function,high,copies 32 chars to mName
 0x00506860,Staff_GetName,function,high,returns &mName
 0x00506870,Staff_GetWage,function,medium,"per-type factor (DAT_00785380) * pay grade table (DAT_0078532c, stride 0x10)"
-0x004dd4e0,Object_GetDef,function,medium,fastcall; ObjectDefs_Find(this->mId at +0xe); the def holds balance values (effects at +0x144..+0x15c)
+0x004dd4e0,Object_GetDef,function,medium,"fastcall; ObjectDefs_Find(this->mId at +0xe); the def holds balance values (effects at +0x144..+0x15c)"
 0x00412e90,ObjectDefs_Find,function,medium,"thiscall; linear search of def pointers (count at +0x528) by leading u16 id, one-entry cache at +0x730"
-0x00401030,BalanceFile_Init,function,high,thiscall; base of every .sam-backed class: walks the key schema (vtable slot 0) and assigns each value a 4-byte slot of the storage (slot 1); tables reserve rows*keys+1
+0x00401030,BalanceFile_Init,function,high,"thiscall; base of every .sam-backed class: walks the key schema (vtable slot 0) and assigns each value a 4-byte slot of the storage (slot 1); tables reserve rows*keys+1"
 0x004013e0,BalanceFile_SetDefaults,function,medium,"type 6 -> min, type 9 -> fmin, others 0; 'InitialiseBalanceValues internal' error"
 0x004017a0,BalanceFile_Parse,function,medium,"parses Group.Key value lines; 'Balance file %s parse error', range checks per type"
-0x00412c90,ObjectDef_GetSchema,function,high,returns &key record i of the object .sam schema at 0x744b30 (0x3c bytes each)
+0x00412c90,ObjectDef_GetSchema,function,high,"returns &key record i of the object .sam schema at 0x744b30 (0x3c bytes each)"
 0x00412c20,ObjectDef_Ctor,function,medium,vtable at +4 (0x6fd8a8) then BalanceFile_Init; zeroes runtime fields 0x494..0x500
 0x00413c10,ObjectDefs_Load,function,medium,"allocates an ObjectDef (max 0x14a), copies the .sam path to +0x28c and parses it"
 0x00785040,gBalanceLevel,data,high,"BalanceLevel: Standard.sam values (static instance, ctor 0x402ae0)"
-0x00785828,gBalanceOnline,data,high,BalanceOnline: Online.sam (ctor 0x402b50)
-0x00785868,gBalanceGraphics,data,high,BalanceGraphics: low/med/high.sam (ctor 0x402bc0)
-0x007858e0,gBalanceResolution,data,high,BalanceResolution: Resolution.sam (ctor 0x402c30)
-0x007858f0,gBalanceSound,data,high,BalanceSound (ctor 0x402ca0)
-0x00784e30,gBalanceHoardingsA,data,medium,BalanceHoardings: Hoardings.sam or EndHoardings.sam (ctor 0x402a20)
-0x00784c20,gBalanceHoardingsB,data,medium,BalanceHoardings: the other of Hoardings.sam / EndHoardings.sam (ctor 0x402a90)
+0x00785828,gBalanceOnline,data,high,"BalanceOnline: Online.sam (ctor 0x402b50)"
+0x00785868,gBalanceGraphics,data,high,"BalanceGraphics: low/med/high.sam (ctor 0x402bc0)"
+0x007858e0,gBalanceResolution,data,high,"BalanceResolution: Resolution.sam (ctor 0x402c30)"
+0x007858f0,gBalanceSound,data,high,"BalanceSound (ctor 0x402ca0)"
+0x00784e30,gBalanceHoardingsA,data,medium,"BalanceHoardings: Hoardings.sam or EndHoardings.sam (ctor 0x402a20)"
+0x00784c20,gBalanceHoardingsB,data,medium,"BalanceHoardings: the other of Hoardings.sam / EndHoardings.sam (ctor 0x402a90)"
 0x00402a50,BalanceHoardings_GetSchema,function,high,returns &key record i of the schema at 0x73fb40
 0x00402b10,BalanceLevel_GetSchema,function,high,returns &key record i of the schema at 0x73fc70
 0x00402b80,BalanceOnline_GetSchema,function,high,returns &key record i of the schema at 0x743f00
@@ -248,10 +248,10 @@ address,name,kind,confidence,notes
 0x00451e20,HeightMap_Rasterize,function,medium,"rasterises model triangles into the cell grid; height byte = y*2.55, y clamped to [0,100)"
 0x00550e00,Scape_LoadObjects,function,high,"reads Scape.omp OBJ_ records: type 1 point sound, 2 particle effect, 3 area sound; coords /1024"
 0x0051bfc0,Sound_PlayAt,function,medium,"(owner, category, sound, x, y, z): posts a positional play command via the sound manager vtable +8"
-0x0051c130,Sound_PlayAtRange,function,medium,Sound_PlayAt with an extra range float
+0x0051c130,Sound_PlayAtRange,function,medium,"Sound_PlayAt with an extra range float"
 0x0051c5d0,Sound_SetArea,function,medium,"(sound, x, z, w, d): spreads an emitter over the rect (x, z)..(x+w, z+d)"
 0x00521e60,Particle_Spawn,function,medium,"(effect 0..0x68, x, y, z in 1/1024 units); pool of 0x140-byte systems"
-0x0051b530,SoundCategory_Register,function,medium,loads a cat_<name> sound category (bank + map)
+0x0051b530,SoundCategory_Register,function,medium,"loads a cat_<name> sound category (bank + map)"
 0x0051b620,SoundCategory_Release,function,medium,
 0x0051eae0,Sound_RegisterGlobalCategories,function,high,"cat_ambient, cat_rides, cat_ui, cat_kids, cat_staff, cat_speech"
 0x0051ec50,Sound_RegisterThemeCategories,function,high,"theme folder's cat_ambient, cat_rides, cat_speech, cat_music"
@@ -269,36 +269,36 @@ address,name,kind,confidence,notes
 0x00803a44,gSndThemeMusic,data,high,
 0x004504c0,Terrain_Load,function,high,"loads <theme>/Terrain base.md2 (or TestBase), flags steep grid squares, then base.lnd when procedural textures are on"
 0x0056dfe0,TerrainTex_Load,function,medium,"refuses when procedural textures are disabled, else TerrainTex_Init"
-0x0056e550,TerrainTex_Init,function,medium,allocates the 0x10014-byte tile cache and reads the .lnd
+0x0056e550,TerrainTex_Init,function,medium,"allocates the 0x10014-byte tile cache and reads the .lnd"
 0x005723f0,TerrainTexCache_ReadLnd,function,medium,
 0x00572440,TerrainTexCache_Update,function,low,"LRU tile cache keyed by (x, y); blends missing tiles"
 0x00560ff0,Lnd_Read,function,high,"base.lnd: version 3, 5 blend ramps, 384x344x4 control map, 3 detail levels of 13 textures"
 0x0055f470,Lnd_ReadLevel,function,high,"u32 tile size, u8 level, 13 x Array3D_Read"
-0x0055f630,Lnd_Clear,function,medium,level i gets tile size 0x40 >> i
-0x0055f720,Lnd_SetTileSize,function,medium,0x40/0x20/0x10 -> detail level 0/1/2
+0x0055f630,Lnd_Clear,function,medium,"level i gets tile size 0x40 >> i"
+0x0055f720,Lnd_SetTileSize,function,medium,"0x40/0x20/0x10 -> detail level 0/1/2"
 0x0055f780,TerrainBlend_Tile,function,high,"reimplemented (src/game/terrain); (out, x, y, overlay): grey unless the tile's control byte 0 is 255; mixes 3 colour groups by 2 selectors in 16-pixel MMX runs, rows bottom-up, then the path overlay"
-0x0055e780,Lnd_BuildWeightMap,function,high,bilinear 16.16 upsampling of a tile's 4x4 control texels (one channel) to tile size
+0x0055e780,Lnd_BuildWeightMap,function,high,"bilinear 16.16 upsampling of a tile's 4x4 control texels (one channel) to tile size"
 0x0055e710,Lnd_BuildRamp,function,high,"(table, centre, width): 256-entry 0..255 ramp"
 0x0055ee10,TerrainBlend_TwoGroups,function,high,"per pixel lerp(group Y, group X, selector) for a 16-pixel run"
 0x0055eaa0,TerrainBlend_ThreeGroups,function,high,"per pixel lerp(lerp(A, B, sB), C, sC) for a 16-pixel run"
-0x008798c8,gTerrainBlendScratch,data,high,tile-sized RGBA scratch the blend writes bottom-up
+0x008798c8,gTerrainBlendScratch,data,high,"tile-sized RGBA scratch the blend writes bottom-up"
 0x005e78b0,Array3D_Read,function,high,"u32 w, h, bpp + w*h*bpp bytes"
 0x00467a80,Sign_Apply,function,high,"splits a name into two lines, loads <theme>/<style>.sgn, renders it onto the model's sign1/sign2.tga with GDI"
 0x005ebfc0,SignStyle_Ctor,function,high,"two line styles, default LOGFONT Arial Black, weight 400"
 0x005ec220,SignStyle_Dtor,function,medium,
 0x005ec3a0,SignStyle_Load,function,high,".sgn: version >= 100, 2 line styles (font, ttf, x, y, LOGFONTA, layout), effects, 2 fill strips, background"
-0x005eb1a0,SignStyle_ReadLayout,function,high,11 dwords after each LOGFONT
+0x005eb1a0,SignStyle_ReadLayout,function,high,"11 dwords after each LOGFONT"
 0x005ecb40,SignStyle_Render,function,medium,"(HDC, text lines + target textures)"
 0x005e7990,Array3D_ReadCompressed,function,high,"u32 w, h, bpp + float quantisers + BILZ wavelet streams, decoded via IWaveletCodec slot 3"
 0x005987b0,WaveletCodec_DecodePlanes,function,high,"vtable slot 3: colour -> 0x592730, grey -> 0x592e60; takes float quantiser steps"
 0x00592730,WaveletCodec_DecodeColourStream,function,high,"Buffer_Decompress, then Y (q1), Cb (q2), Cr (q3) planes, inverse D4, YUV->RGB"
 0x00592e60,WaveletCodec_DecodeGreyStream,function,medium,
-0x005935a0,WaveletCodec_YuvToRgb,function,high,1.402 / 0.344136 / 0.714136 / 1.772
+0x005935a0,WaveletCodec_YuvToRgb,function,high,"1.402 / 0.344136 / 0.714136 / 1.772"
 0x00599050,Advisor_Say,function,high,"'Advisor says ResponseID %d': looks up gAdvisorResponses, loads Speech/lips/sp_%03d.lip, starts gesture and animation"
-0x00599880,Advisor_UpdateSpeech,function,medium,plays the sample 200 ms after the animation starts; toggles the mouth at each .lip time
+0x00599880,Advisor_UpdateSpeech,function,medium,"plays the sample 200 ms after the animation starts; toggles the mouth at each .lip time"
 0x00768fb8,gAdvisorResponses,data,high,"0x20-byte rows: response id, sample, lip number, gesture, theme<<16|anim, ?, ?, ?; ends with 9999"
-0x00541d90,Sprites_LoadAll,function,high,loads every esprites.wad folder in gSpriteFolders order; arg 1 = particles only
-0x00541310,Sprites_LoadFolder,function,high,finds *.ESP in a folder; loads gAvatarSprites first ('Loading Avatar Sprites')
+0x00541d90,Sprites_LoadAll,function,high,"loads every esprites.wad folder in gSpriteFolders order; arg 1 = particles only"
+0x00541310,Sprites_LoadFolder,function,high,"finds *.ESP in a folder; loads gAvatarSprites first ('Loading Avatar Sprites')"
 0x00540d90,Sprite_LoadEsp,function,high,"thiscall; reads ESP_FILE2.00 (name, 2 flags, 16 anims, 4 actions) then the .tpc/.fpc frames"
 0x00540bd0,Sprite_Ctor,function,high,fastcall; 0x260-byte sprite definition
 0x00540c70,Sprite_GetAction,function,medium,"thiscall; special action 0..3 -> animation slot, entry in 0x74f7c8 table, 2 bytes"
@@ -311,8 +311,8 @@ address,name,kind,confidence,notes
 0x0042ae70,Camera_ToggleWalkMode,function,medium,switches sprite frame sets with the camera
 0x0042a560,Camera_FollowThing,function,low,sets camera mode 4 on a thing and picks the sprite frame set
 0x00763f88,gSpriteFolders,data,high,"14 x (char* folder, first sprite index, count)"
-0x00764030,gAvatarSprites,data,high,SPR_BI/KI/TA/SU.ESP
-0x00790ab0,gCameraFlags,data,medium,bits 2/4/0x10 = ground-level camera
+0x00764030,gAvatarSprites,data,high,"SPR_BI/KI/TA/SU.ESP"
+0x00790ab0,gCameraFlags,data,medium,"bits 2/4/0x10 = ground-level camera"
 0x0051f370,ParticleLib_Load,function,high,"reads Data/Particle/Tp2.plb: effects (0x140) into 0x804370, effectors (0x68) into 0x80c6b0, 2 settings"
 0x00520560,Particle_Emit,function,medium,"emits one particle from a live system (spawn volume, lifetime, colour)"
 0x005214a0,Particles_Update,function,medium,"ages particles: ramp colour, sprite frame, size, random kick, drag; spawns the on-death effect"
@@ -329,40 +329,40 @@ address,name,kind,confidence,notes
 0x006c0360,SoundCategory_ReadSfxImage,function,medium,checks the GUID and loads the rest as one block
 0x006c0510,SfxMap_Fixup,function,medium,"relocates the image: categories 0x18, sounds 0x14, variations 0x2a, samples 0x10, links 8"
 0x006c5d20,SndReverb_Load,function,medium,"SndReverb.map: version 2000, 32 slots of (u8 present, 13 dwords)"
-0x00450900,TerrainAttrMap_Load,function,medium,formats %s\Terrain\Base.map and reads it through TP2M_ReadChunks
-0x005192d0,TP2M_ReadChunks,function,medium,TP2M chunk reader set up with one handler for the MAP chunk (vtable 0x700aa8)
-0x00519390,AttrMapHandler_MatchTag,function,medium,MAP chunk handler: tag test
+0x00450900,TerrainAttrMap_Load,function,medium,"formats %s\Terrain\Base.map and reads it through TP2M_ReadChunks"
+0x005192d0,TP2M_ReadChunks,function,medium,"TP2M chunk reader set up with one handler for the MAP chunk (vtable 0x700aa8)"
+0x00519390,AttrMapHandler_MatchTag,function,medium,"MAP chunk handler: tag test"
 0x004d8cf0,AttrMap_ReadMapChunk,function,high,"copies the w x h bytes into MapCell.mStatusFlags (+0x26), offset by gBalanceLevel.mHeightfieldXStart/YStart"
 0x00450420,Terrain_IsParkLand,function,medium,"(x, y): bit 0 clear in the base.md2 heightfield cell (model+0x6c, 4 bytes a cell); 1 when no terrain is loaded"
 0x00536490,MapCell_Reset,function,high,"default type/flags from the attribute byte: outside park 2/0x1e/7, inside 1 (path, bit 0x08) or 0; 0x10 -> flags 0x80, 0x04 -> flags 0x400"
-0x00527ee0,Path_CheckDeadEnds,function,low,counts path neighbours; attribute bit 0x08 exempts a cell
+0x00527ee0,Path_CheckDeadEnds,function,low,"counts path neighbours; attribute bit 0x08 exempts a cell"
 0x0080239c,gWorld,data,medium,"world structure; map cells at +0x2d8 (0x44 each, 1-based ids), track cells at +0x1102d8"
-0x008023a0,gMapCells,data,medium,gWorld + 0x2d8
+0x008023a0,gMapCells,data,medium,"gWorld + 0x2d8"
 0x004721f0,Motion_Apply,function,medium,"runs Track_Apply on each 64-byte track of an .md2 motion block, then the material animation"
 0x00471860,Track_Apply,function,medium,"one motion track at the current frame: visibility 0x20000, vertex 0x1000, rotation 0x8, scale 0x80, position 0x1 / path 0x200, UV 0x10000"
 0x00470b60,Motion_FindKeys,function,medium,"(state, keys, count, kind 1/2/4 = 4/20/16-byte keys, loop, &i, &j, &t): bracketing keys and blend factor"
 0x00474490,Motion_RotationAt,function,medium,"slerp (0x4742a0) or lerp between quaternion keys, then to a matrix (0x474120)"
-0x0046f910,Matrix_ScaleAxes,function,medium,rescales the three axis rows of a node matrix to the given lengths
+0x0046f910,Matrix_ScaleAxes,function,medium,"rescales the three axis rows of a node matrix to the given lengths"
 0x00474840,Curve_Bezier,function,high,"reimplemented (src/game/motion); cubic Bezier position, segment i at points[base+3i-1..+2] mod gCurvePointCount; per-component association kept"
-0x00474bf0,Curve_Linear,function,high,reimplemented; linear position between points[base+i] and [base+i+1]
+0x00474bf0,Curve_Linear,function,high,"reimplemented; linear position between points[base+i] and [base+i+1]"
 0x00474cc0,Curve_CatmullRom,function,high,"reimplemented; Catmull-Rom position (0.5 * ...), indices wrap; Track_Apply also calls it for the tangent; unused by shipped files"
-0x004714a0,Motion_UnpackVertices,function,medium,packed vertex keys: 10:10:10 signed ints * scale + offset
+0x004714a0,Motion_UnpackVertices,function,medium,"packed vertex keys: 10:10:10 signed ints * scale + offset"
 0x004745c0,Motion_ApplyUVs,function,medium,"per-UV keyframes, lerped into the node's UV blocks"
-0x00fb3540,gAdvisorScoring,data,high,AdvisorScoring: advisor.sam values (mMinScoreForConsideration at 0xfb3560); guard bit 0xfb2766 & 1
-0x004d1ce0,Challenges_LoadSam,function,medium,reads data/challenges.sam into a stack BalanceChallenges (vtable 0x700398) and copies the challenges out
-0x00414410,TrackType_LoadSam,function,low,reads a track type .sam into a stack BalanceTrack (vtable 0x6fd8b0)
+0x00fb3540,gAdvisorScoring,data,high,"AdvisorScoring: advisor.sam values (mMinScoreForConsideration at 0xfb3560); guard bit 0xfb2766 & 1"
+0x004d1ce0,Challenges_LoadSam,function,medium,"reads data/challenges.sam into a stack BalanceChallenges (vtable 0x700398) and copies the challenges out"
+0x00414410,TrackType_LoadSam,function,low,"reads a track type .sam into a stack BalanceTrack (vtable 0x6fd8b0)"
 0x00470c90,Motion_ApplyMaterial,function,high,"material animation: last (frame, value) key at or before the frame sets material +2, flags +1 |= 4"
-0x00474ea0,Path_PercentAt,function,high,lerps a path track's per-frame percent table (wraps when the curve is closed)
+0x00474ea0,Path_PercentAt,function,high,"lerps a path track's per-frame percent table (wraps when the curve is closed)"
 0x00641f10,RefPack_Decode,function,high,"reimplemented (src/game/files); (dst, src, unused) -> decoded size, ret 0xc; codec vtable 0x703f00 slot 2; no bounds checks, ignores the 0x80 4-byte-size flag"
 0x00642110,RefPack_DecodedSize,function,high,"reimplemented; (src) -> 3-byte BE size after the magic (0x10FB) or after 5 bytes, ret 4; vtable slot 5"
 0x006419b0,ReadBigEndian,function,high,"(p, n) -> n-byte big-endian integer"
-0x00642100,RefPack_WorkspaceSize,function,high,vtable slot 3; returns 0xc0000 = encoder hash heads (0x10000 x 4) + links (0x20000 x 4)
+0x00642100,RefPack_WorkspaceSize,function,high,"vtable slot 3; returns 0xc0000 = encoder hash heads (0x10000 x 4) + links (0x20000 x 4)"
 0x00638be0,RefPackBuffer_Load,function,low,"thiscall (stream): reads the whole stream, decodes into this+0x10 via RefPack_Decode"
 0x00703f00,RefPackCodec_vtable,data,medium,"slots 0x638c70 (dtor), RefPack_Encode, RefPack_Decode, RefPack_WorkspaceSize, 0x5d60c0, RefPack_DecodedSize, 0x638860, 0x638b60"
 0x00641a50,RefPack_Encode,function,high,"reimplemented, not hooked (unreachable: the only codec object only decodes); thiscall (dst, src, len, workspace) ret 0x10, returns encoded size + 5; greedy LZ over a 128 KB window with CRC-16 hash chains; C++ port reproduces all 6804 shipped .wad blobs"
 0x00641a20,RefPack_MatchLength,function,high,"(a, b, max) -> number of equal leading bytes"
 0x006419e0,WriteBigEndian,function,high,"(dst, value, n): n-byte big-endian store"
 0x00779c60,gCrc16Table,data,high,"CRC-16 (reflected poly 0xA001) table, u32 entries; the RefPack encoder's 3-byte hash"
-0x00474a20,Curve_BezierTangent,function,high,reimplemented; derivative of Curve_Bezier
+0x00474a20,Curve_BezierTangent,function,high,"reimplemented; derivative of Curve_Bezier"
 0x00474c70,Curve_LinearTangent,function,high,"reimplemented; points[base+i+1] - points[base+i], always from curve+8 (ignores the points argument)"
 0x007b49e8,gCurvePointCount,data,high,"u32; set by Track_Apply from the curve (u16 at +4) before calling the Curve_* functions, which wrap indices by it"
