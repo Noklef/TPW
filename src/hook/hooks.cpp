@@ -9,6 +9,7 @@
 #include "../game/motion/keys.h"
 #include "../game/motion/quat.h"
 #include "../game/motion/uvanim.h"
+#include "../game/motion/vertexanim.h"
 #include "../game/rsse/rsse.h"
 #include "../game/terrain/terrain_blend.h"
 
@@ -68,6 +69,9 @@ const Hook kHooks[] = {
     {"Motion_ApplyUVs", 0x004745c0, (void *)&Motion_ApplyUVs, {0x83, 0xec, 0x10, 0x8b, 0x44}},
     {"Motion_FindKeys", 0x00470b60, (void *)&Motion_FindKeys, {0x8b, 0x44, 0x24, 0x10, 0x83}},
     {"Motion_ApplyMaterial", 0x00470c90, (void *)&Motion_ApplyMaterial, {0x8b, 0x44, 0x24, 0x0c, 0x56}},
+    {"Matrix_PreMul33", 0x00470d10, (void *)&Matrix_PreMul33, {0x51, 0x8b, 0x4c, 0x24, 0x0c}},
+    {"Motion_LerpPackedVertices", 0x00470e90, (void *)&Motion_LerpPackedVertices, {0x83, 0xec, 0x2c, 0x8b, 0x4c}},
+    {"Motion_LerpPackedBox", 0x004711d0, (void *)&Motion_LerpPackedBox, {0x83, 0xec, 0x10, 0x8b, 0x54}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

@@ -15,6 +15,7 @@
 #include "../src/game/motion/keys.h"
 #include "../src/game/motion/quat.h"
 #include "../src/game/motion/uvanim.h"
+#include "../src/game/motion/vertexanim.h"
 #include "../src/game/rsse/rsse.h"
 #include "../src/game/terrain/terrain_blend.h"
 #include "../src/hook/hooks.h"
@@ -509,6 +510,38 @@ static void test_motion_keys() {
     CHECK(mats[9] == 0 && mats[10] == 8);
 }
 
+static void test_packed_vertices() {
+    float m[16];
+    for (int i = 0; i < 16; ++i) m[i] = (float)(i + 1);
+    const float twice[9] = {2, 0, 0, 0, 2, 0, 0, 0, 2};
+    Matrix_PreMul33(twice, m);  // rotation part doubled, column 3 and the translation kept
+    CHECK(m[0] == 2 && m[6] == 14 && m[10] == 22 && m[3] == 4 && m[11] == 12 && m[12] == 13);
+    const float swap[9] = {0, 1, 0, 1, 0, 0, 0, 0, 1};  // swaps the x and y axes
+    Matrix_PreMul33(swap, m);
+    CHECK(m[0] == 10 && m[4] == 2 && m[8] == 18);
+
+    auto pack = [](s32 x, s32 y, s32 z) { return (u32)(x & 0x3ff) | (u32)(y & 0x3ff) << 10 | (u32)(z & 0x3ff) << 20; };
+    float block[11] = {};
+    block[5] = 1, block[6] = 2, block[7] = 3;           // offsets (+0x14)
+    block[8] = block[9] = block[10] = 0.5f;             // scales (+0x20)
+    const u32 keys[4] = {pack(2, -4, 0), pack(0, 0, 0), pack(4, 4, 10), pack(0, 0, 0)};  // key 0, then key 1
+    const u16 slots[2] = {5, 0};
+    const PackedGroup group{0, 2, slots, nullptr, keys, 0};
+    float pos[24] = {};
+    pos[13] = 10;
+    Motion_LerpPackedVertices(block, pos, &group, 0.5f, 0);  // slot 5: x at 12 * 1 + 1, y and z 4 apart
+    CHECK(pos[13] == 2.5f && pos[17] == 2 && pos[21] == 5.5f && pos[0] == 1 && pos[4] == 2 && pos[8] == 3);
+    Motion_LerpPackedVertices(block, pos, &group, 0.5f, 1);
+    CHECK(pos[13] == 5 && pos[0] == 2);
+
+    float box[6] = {};
+    Motion_LerpPackedBox(block, box, &group, 0.5f, 0);  // min from entry 0, max from entry 1, out by s + 0.25
+    CHECK(box[0] == 1.75f && box[1] == 1.25f && box[2] == 4.75f && box[3] == 1.75f && box[4] == 2.75f &&
+          box[5] == 3.75f);
+    Motion_LerpPackedBox(block, box, &group, 0.5f, 1);
+    CHECK(box[0] == 3.5f && box[5] == 7.5f);
+}
+
 static void test_hook_table(const char *exe_path) {
     std::ifstream f(exe_path, std::ios::binary);
     if (!f) { std::printf("cannot open %s\n", exe_path); ++g_failures; return; }
@@ -540,6 +573,7 @@ int main(int argc, char **argv) {
     test_vector();
     test_uv_animation();
     test_motion_keys();
+    test_packed_vertices();
     test_patcher();
     if (argc > 1) test_hook_table(argv[1]);
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);

@@ -136,6 +136,7 @@ These also become the engine's loaders later.
 - [x] Vector helpers 0x431480-0x431660 (`src/game/math/vector`): `Float_Modf`, `Vec3_RotateYCS`, table-driven `Vec3_RotateX`/`Vec3_RotateY`/`Matrix_RotateYAngle`; 15,000 cases bit-exact under `x87emu`. 50 hooks in all
 - [x] `Motion_ApplyUVs` (0x4745c0, `src/game/motion/uvanim`): UV animation tracks, set or added into the node's UV blocks; 4,000 cases bit-exact under `x87emu` (its `__ftol` hooked). 51 hooks in all
 - [x] `Motion_FindKeys` (0x470b60) and `Motion_ApplyMaterial` (0x470c90) (`src/game/motion/keys`): 6,000 cases bit-exact under `x87emu`. 53 hooks in all
+- [x] `Matrix_PreMul33` (0x470d10), `Motion_LerpPackedVertices` (0x470e90) and `Motion_LerpPackedBox` (0x4711d0) (`src/game/motion/vertexanim`): packed 10:10:10 vertex keys lerped into the mesh and its bounding box; 3,000 cases bit-exact under `x87emu`. 56 hooks in all
 - [ ] First in-game run with the DLL. This needs Phase 0 (the game running at all), in a VM if the no-CD exe is untrusted. Install: copy `build\dinput.dll` next to `tp.exe`, run, read `tpw.log`
 
 ### Phase 4: Reimplement subsystems (the long haul)

@@ -66,6 +66,9 @@ void __cdecl Matrix_PreMul(const float *a, float *b);
 // 0x4704c0: b = a * b for the 3x3 rotation parts only, stored by columns.
 void __cdecl Matrix_PreMul3(const float *a, float *b);
 
+// 0x470d10: m = r * m on the rotation part, r a packed 3x3 (9 floats, row major).
+void __cdecl Matrix_PreMul33(const float *r, float *m);
+
 // Numerical Recipes' ludcmp (0x46fe20) and lubksb (0x46fd40) for n = 4, without the
 // singular-matrix error: a zero pivot becomes 1e-20.
 void __cdecl Matrix_LUDecompose(float *a, s32 *index, float *parity);
