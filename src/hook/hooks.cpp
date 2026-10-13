@@ -6,6 +6,7 @@
 #include "../game/math/matrix.h"
 #include "../game/math/vector.h"
 #include "../game/motion/animator.h"
+#include "../game/motion/normals.h"
 #include "../game/motion/curve.h"
 #include "../game/motion/keys.h"
 #include "../game/motion/quat.h"
@@ -95,6 +96,8 @@ const Hook kHooks[] = {
     {"Animator_IsIdle", 0x00473490, (void *)&Animator_IsIdle, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"Animator_RefreshNodes", 0x00473550, (void *)&Animator_RefreshNodes, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
     {"Layer_Update", 0x004735d0, (void *)&Layer_Update, {0x83, 0xec, 0x10, 0x33, 0xc9}},
+    {"Node_UpdateNormals", 0x00473a40, (void *)&Node_UpdateNormals, {0x83, 0xec, 0x34, 0x33, 0xc0}},
+    {"Model_UpdateNormals", 0x00473c30, (void *)&Model_UpdateNormals, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

@@ -144,6 +144,7 @@ These also become the engine's loaders later.
 - [x] `Animator_ResetLayers` (0x4726d0) and the layer helpers 0x472bc0-0x472f40 (`src/game/motion/animator`; `src/game/math/x87.h` rounds fild-integer products exactly): 9,000 cases equal under `x87emu`, every instruction run, plus 600 double-rounding traps (`x87emu` now rounds the exact result once, with the register's wide exponent). 70 hooks in all
 - [x] `Layer_Play` (0x472f60), `Layer_ClearQueue` (0x473270), `Animator_Play` (0x4732a0) and `Motion_UpdateClocks` (0x473440) (`src/game/motion/animator`): 6,000 cases equal under `x87emu`, every instruction run but one unreachable. 74 hooks in all
 - [x] `Animator_IsIdle` (0x473490), `Animator_RefreshNodes` (0x473550) and `Layer_Update` (0x4735d0), the per-tick layer update (`src/game/motion/animator`; Track_Apply, the material and the holder calls go through `AnimatorEnv`): 3,000 cases equal under `x87emu` (calls out recorded), every instruction run. 77 hooks in all
+- [x] `Node_UpdateNormals` (0x473a40) and `Model_UpdateNormals` (0x473c30) (`src/game/motion/normals`): face normals of moved vertices, kept in x87 precision with its wide exponent where the original never stores to a float; 3,000 cases equal under `x87emu`, coordinates up to 1e18 and inf/NaN included, every instruction run. 79 hooks in all
 - [ ] First in-game run with the DLL. This needs Phase 0 (the game running at all), in a VM if the no-CD exe is untrusted. Install: copy `build\dinput.dll` next to `tp.exe`, run, read `tpw.log`
 
 ### Phase 4: Reimplement subsystems (the long haul)

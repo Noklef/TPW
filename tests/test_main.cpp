@@ -13,6 +13,7 @@
 #include "../src/game/math/vector.h"
 #include "../src/game/math/x87.h"
 #include "../src/game/motion/animator.h"
+#include "../src/game/motion/normals.h"
 #include "../src/game/motion/curve.h"
 #include "../src/game/motion/keys.h"
 #include "../src/game/motion/quat.h"
@@ -703,6 +704,40 @@ static void __cdecl count_wake(u8 *, u32, s32) { ++g_wakes; }
 static int g_tracks = 0;
 static s32 __cdecl count_track(const void *, u8 *, u32, u32 *, const u8 *) { return ++g_tracks; }
 
+static void test_normals() {
+    // Vertices 0 (0,0,0), 1 (1,0,0), 2 (0,1,0) in one block of four; face 0 {normal 0,
+    // v1 = 1, v0 = 0, v2 = 2}: (v2 - v0) x (v1 - v0) = (0, 0, -1). Face 1 is degenerate.
+    float positions[12] = {0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0};
+    const u16 remap[3] = {0, 1, 2};
+    const u16 faces[8] = {0x8000, 1, 0, 2, 1, 1, 0, 1};
+    float normals[6] = {};
+    u8 node[0xa0] = {};
+    const u32 dirty = 0x10010;
+    const u16 two = 2;
+    std::memcpy(node, &dirty, 4);
+    std::memcpy(node + 0x5c, &two, 2);
+    const void *pointers[4] = {positions, normals, faces, remap};
+    std::memcpy(node + 0x60, &pointers[0], 4);
+    std::memcpy(node + 0x64, &pointers[1], 4);
+    std::memcpy(node + 0x70, &pointers[2], 4);
+    std::memcpy(node + 0x94, &pointers[3], 4);
+    u8 model[0x80] = {};
+    const u16 one = 1;
+    const u32 model_flags = 0x40004;
+    u8 *np = node;
+    std::memcpy(model + 0x44, &one, 2);
+    std::memcpy(model + 0x70, &np, 4);
+    std::memcpy(model + 0x30, &model_flags, 4);
+    Model_UpdateNormals(model);
+    CHECK(normals[0] == 0 && normals[1] == 0 && normals[2] == -1);
+    CHECK(normals[3] == 0 && normals[4] == -1 && normals[5] == 0);
+    u32 flags;
+    std::memcpy(&flags, node, 4);
+    CHECK(flags == 0x10);
+    std::memcpy(&flags, model + 0x30, 4);
+    CHECK(flags == 4);
+}
+
 static void test_animator() {
     // fild n; fmul f rounds the exact product once; through a double it is one ulp off here.
     const u32 trap_bits = 0x3fcfbb3f;
@@ -941,6 +976,7 @@ int main(int argc, char **argv) {
     test_packed_vertices();
     test_track_apply();
     test_animator();
+    test_normals();
     test_patcher();
     if (argc > 1) test_hook_table(argv[1]);
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);
