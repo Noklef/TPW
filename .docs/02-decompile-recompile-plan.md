@@ -102,7 +102,8 @@ These also become the engine's loaders later.
 - [ ] `.wct` v0x12 (`BILZ`, 993 mostly-UI textures): port `WaveletCodec_DecodeV12` (`0x593ab0`)
 - [x] `.md2` geometry → OBJ (`tools/md2.py`; all 639 geometry meshes pass consistency checks)
 - [x] `.md2` node hierarchy: OBJ export assembles multi-part models (the advisor renders correctly)
-- [ ] `.md2` material groups → textured export, motion files (flag `0x10`/`0x20`, block at word `0x26`)
+- [x] `.md2` material groups → textured export (`tools/md2.py --wad <wad> <dir>`: OBJ + MTL + PNG)
+- [ ] `.md2` motion files (flag `0x10`/`0x20`, block at header word `0x26`) (flag `0x10`/`0x20`, block at word `0x26`)
 - [x] `.RSE` disassembler (`tools/rsse_disasm.py`): all 308 scripts decode with 0 errors. See `03-rsse-scripting.md`.
 - [ ] `.sdt`/`.map` sound banks → WAV
 - [ ] `.omp`, `.tpt`, `.TPWI`, `.hmp`, `.lnd`, `.tct` level data

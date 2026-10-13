@@ -24,6 +24,7 @@ the shared tables above:
 
 Usage:
   python -I tools/md2.py <file.md2> [out.obj]          dump / export
+  python -I tools/md2.py --wad <file.wad> <out_dir>     textured OBJ+MTL+PNG for a whole wad
   python -I tools/md2.py --check <dir-or-wad> ...       validate every geometry mesh
 """
 import glob
@@ -86,6 +87,13 @@ class Mesh:
         vmap = self.u32(o + 0x94)
         n.vert_pos = list(struct.unpack_from(f'<{n.nverts}H', self.d, vmap)) if vmap else list(range(n.nverts))
         n.normals_offset = nrm
+        # Material groups: u32 -> [0x14] entry (8 B per material), u16 first_tri, tri_count,
+        # first_vert, last_vert. Material index = (ptr - table) / 8.
+        n.groups = []
+        grp, mat_table = self.u32(o + 0x6c), self.u32(0x14 * 4)
+        for i in range(n.ngroups if grp else 0):
+            ptr, first, count = struct.unpack_from('<I2H', self.d, grp + 16 * i)
+            n.groups.append(((ptr - mat_table) // 8 if ptr else None, first, count))
         n.triangles = [struct.unpack_from('<4H', self.d, tri + 8 * i) for i in range(n.ntris)] if tri else []
         n.bbox = struct.unpack_from('<6f', self.d, o + 0x78)
         return n
@@ -111,21 +119,38 @@ class Mesh:
         return tuple(struct.unpack_from('<f', self.d, table + 16 * dims * b + 16 * axis + 4 * j)[0]
                      for axis in range(dims))
 
-    def to_obj(self):
+    def material_name(self, i):
+        return self.materials[i].rsplit('.', 1)[0] if i is not None and i < len(self.materials) else 'none'
+
+    def to_obj(self, mtllib=None):
         out = [f'# Theme Park World .md2 v{self.version}, {len(self.nodes)} nodes']
+        if mtllib:
+            out.append(f'mtllib {mtllib}')
         vbase = tbase = 1
         for n in self.nodes:
             out.append(f'o {n.name or "node_%x" % n.offset}')
             out += [f'v {x:.6f} {y:.6f} {z:.6f}' for x, y, z in self.world_positions(n)]
             out += [f'vt {u:.6f} {1 - v:.6f}' for u, v in n.uvs]
-            for _, *corners in n.triangles:
-                if n.uvs:
-                    out.append('f ' + ' '.join(f'{n.vert_pos[c] + vbase}/{c + tbase}' for c in corners))
-                else:
-                    out.append('f ' + ' '.join(f'{n.vert_pos[c] + vbase}' for c in corners))
+            spans = [(m, f, c) for m, f, c in n.groups] or [(None, 0, n.ntris)]
+            for mat, first, count in spans:
+                if mtllib:
+                    out.append(f'usemtl {self.material_name(mat)}')
+                for _, *corners in n.triangles[first:first + count]:
+                    if n.uvs:
+                        out.append('f ' + ' '.join(f'{n.vert_pos[c] + vbase}/{c + tbase}' for c in corners))
+                    else:
+                        out.append('f ' + ' '.join(f'{n.vert_pos[c] + vbase}' for c in corners))
             vbase += n.npositions
             tbase += len(n.uvs)
         return '\n'.join(out) + '\n'
+
+    def to_mtl(self):
+        out = []
+        for i, tex in enumerate(self.materials):
+            out += [f'newmtl {self.material_name(i)}', 'Kd 1 1 1']
+            if tex:
+                out.append(f'map_Kd {tex.rsplit(".", 1)[0]}.png')
+        return '\n'.join(out + ['newmtl none', 'Kd 0.8 0.8 0.8']) + '\n'
 
     def problems(self):
         """Consistency checks used to validate the format hypotheses."""
@@ -135,6 +160,12 @@ class Mesh:
                 if max(t[1:]) >= n.nverts:
                     errs.append(f'{n.name}: vertex index {max(t[1:])} >= {n.nverts}')
                     break
+            for mat, first, count in n.groups:
+                if (mat is not None and mat >= self.material_count) or first + count > n.ntris:
+                    errs.append(f'{n.name}: bad group (material {mat}, tris {first}+{count} of {n.ntris})')
+                    break
+            if n.groups and sum(c for _, _, c in n.groups) != n.ntris:
+                errs.append(f'{n.name}: groups cover {sum(c for _, _, c in n.groups)} of {n.ntris} triangles')
             if n.vert_pos and max(n.vert_pos) >= n.npositions:
                 errs.append(f'{n.name}: position index {max(n.vert_pos)} >= {n.npositions}')
             lo, hi = n.bbox[:3], n.bbox[3:]
@@ -160,8 +191,36 @@ def meshes_in(path):
         yield path, open(path, 'rb').read()
 
 
+def export_wad(wad, out_dir):
+    """Every geometry mesh in a .wad -> OBJ + MTL, and every .wct texture -> PNG."""
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from wadtool import read_wad
+    from wct2png import decode_wct, write_png
+    os.makedirs(out_dir, exist_ok=True)
+    for name, data, _ in read_wad(wad):
+        base = os.path.basename(name.replace('\\', '/')).rsplit('.', 1)[0]
+        if name.lower().endswith('.wct'):
+            try:
+                w, h, px, _ = decode_wct(data)
+                write_png(os.path.join(out_dir, base + '.png'), w, h, px)
+            except Exception as e:  # noqa: BLE001  (v0x12 textures aren't supported yet)
+                print(f'{name}: texture skipped ({e})')
+        elif name.lower().endswith('.md2'):
+            try:
+                m = Mesh(data)
+            except ValueError:
+                continue
+            if m.version != 221 or not m.flags & 1:
+                continue
+            open(os.path.join(out_dir, base + '.mtl'), 'w').write(m.to_mtl())
+            open(os.path.join(out_dir, base + '.obj'), 'w').write(m.to_obj(base + '.mtl'))
+            print(f'{name}: {len(m.nodes)} nodes, {sum(n.ntris for n in m.nodes)} triangles')
+
+
 if __name__ == '__main__':
-    if sys.argv[1] == '--check':
+    if sys.argv[1] == '--wad':
+        export_wad(sys.argv[2], sys.argv[3])
+    elif sys.argv[1] == '--check':
         ok = bad = skipped = 0
         for arg in sys.argv[2:]:
             for name, data in meshes_in(arg):
