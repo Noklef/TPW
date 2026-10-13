@@ -135,6 +135,7 @@ These also become the engine's loaders later.
 - [x] Matrix library, second half: multiplies (0x4700f0, 0x4702d0, 0x4704c0; store order kept, since callers may pass the same matrix twice), NR LU decomposition/back substitution (0x46fe20, 0x46fd40) and the inverse built on them (0x470040), look-at basis (0x470780), merge sort by float key (0x470630), `Vec3_Distance` (0x470940). Checked with `tools/x87emu.py`, an interpreter that runs the original listing at 24-bit precision rather than a model of it: 18,000 cases (singular matrices, pivot ties, NaN inputs, aliased arguments) bit-exact, and the earlier slerp and first-half work re-verified the same way (16,000 cases). 45 hooks in all
 - [x] Vector helpers 0x431480-0x431660 (`src/game/math/vector`): `Float_Modf`, `Vec3_RotateYCS`, table-driven `Vec3_RotateX`/`Vec3_RotateY`/`Matrix_RotateYAngle`; 15,000 cases bit-exact under `x87emu`. 50 hooks in all
 - [x] `Motion_ApplyUVs` (0x4745c0, `src/game/motion/uvanim`): UV animation tracks, set or added into the node's UV blocks; 4,000 cases bit-exact under `x87emu` (its `__ftol` hooked). 51 hooks in all
+- [x] `Motion_FindKeys` (0x470b60) and `Motion_ApplyMaterial` (0x470c90) (`src/game/motion/keys`): 6,000 cases bit-exact under `x87emu`. 53 hooks in all
 - [ ] First in-game run with the DLL. This needs Phase 0 (the game running at all), in a VM if the no-CD exe is untrusted. Install: copy `build\dinput.dll` next to `tp.exe`, run, read `tpw.log`
 
 ### Phase 4: Reimplement subsystems (the long haul)

@@ -12,6 +12,7 @@
 #include "../src/game/math/matrix.h"
 #include "../src/game/math/vector.h"
 #include "../src/game/motion/curve.h"
+#include "../src/game/motion/keys.h"
 #include "../src/game/motion/quat.h"
 #include "../src/game/motion/uvanim.h"
 #include "../src/game/rsse/rsse.h"
@@ -473,6 +474,41 @@ static void test_uv_animation() {
     CHECK(blocks[0] == 1.5f && blocks[4] == 3 && blocks[1] == 13 && blocks[5] == 15);
 }
 
+static void test_motion_keys() {
+    const u16 keys[6] = {0, 0xaaaa, 10, 0xaaaa, 20, 0xaaaa};  // 4-byte keys (kind 1)
+    float state[16] = {};
+    u32 i = 99, j = 99;
+    float t = 0;
+    auto at = [&](float frame, s32 loop) {
+        state[8] = frame;  // +0x20
+        return Motion_FindKeys(state, keys, 3, 1, loop, &i, &j, &t);
+    };
+    CHECK(at(15, 0) == 1 && i == 1 && j == 2 && t == 0.5f);
+    CHECK(at(25, 0) == 1 && i == 2 && j == 2 && t == 5);       // last key: frame + 1
+    CHECK(at(25, 1) == 1 && i == 2 && j == 0 && t == -0.25f);  // looping: the first key's frame
+    CHECK(at(-1, 0) == 1 && i == 2);  // (u32)-1: past every key
+    CHECK(at(5, 0) == 1 && i == 0 && j == 1 && t == 0.5f);
+    CHECK(Motion_FindKeys(state, keys, 3, 3, 0, &i, &j, &t) == 0);
+    CHECK(Motion_FindKeys(state, keys, 0, 1, 0, &i, &j, &t) == 0);
+
+    const u32 mkeys[3] = {0 | 7u << 16, 10 | 8u << 16, 20 | 9u << 16};
+    const MaterialAnim anim{1, 3, mkeys};
+    u8 mats[16] = {};
+    u8 table[0x40] = {}, model[0x60] = {};
+    const MaterialAnim *ap = &anim;
+    u8 *mp = mats;
+    const u16 one = 1;
+    std::memcpy(table + 0x18, &one, 2);
+    std::memcpy(table + 0x30, &ap, 4);
+    std::memcpy(model + 0x50, &mp, 4);
+    state[8] = 12;
+    Motion_ApplyMaterial(model, table, state);
+    CHECK(mats[8 + 2] == 8 && mats[8 + 1] == 4);
+    mats[9] = 0;
+    Motion_ApplyMaterial(model, table, state);  // unchanged: not flagged again
+    CHECK(mats[9] == 0 && mats[10] == 8);
+}
+
 static void test_hook_table(const char *exe_path) {
     std::ifstream f(exe_path, std::ios::binary);
     if (!f) { std::printf("cannot open %s\n", exe_path); ++g_failures; return; }
@@ -503,6 +539,7 @@ int main(int argc, char **argv) {
     test_matrix_products();
     test_vector();
     test_uv_animation();
+    test_motion_keys();
     test_patcher();
     if (argc > 1) test_hook_table(argv[1]);
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);

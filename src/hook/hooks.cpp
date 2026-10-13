@@ -6,6 +6,7 @@
 #include "../game/math/matrix.h"
 #include "../game/math/vector.h"
 #include "../game/motion/curve.h"
+#include "../game/motion/keys.h"
 #include "../game/motion/quat.h"
 #include "../game/motion/uvanim.h"
 #include "../game/rsse/rsse.h"
@@ -65,6 +66,8 @@ const Hook kHooks[] = {
     {"Vec3_RotateY", 0x00431570, (void *)&Vec3_RotateY, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Matrix_RotateYAngle", 0x004315f0, (void *)&Matrix_RotateYAngle, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Motion_ApplyUVs", 0x004745c0, (void *)&Motion_ApplyUVs, {0x83, 0xec, 0x10, 0x8b, 0x44}},
+    {"Motion_FindKeys", 0x00470b60, (void *)&Motion_FindKeys, {0x8b, 0x44, 0x24, 0x10, 0x83}},
+    {"Motion_ApplyMaterial", 0x00470c90, (void *)&Motion_ApplyMaterial, {0x8b, 0x44, 0x24, 0x0c, 0x56}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

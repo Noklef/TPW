@@ -360,6 +360,12 @@ class Emu:
             self.put(o[0], self.flags(res, 32))
         elif mn == 'CDQ':
             self.r['EDX'] = 0xffffffff if self.r['EAX'] >> 31 else 0
+        elif mn == 'IMUL' and len(o) >= 2:  # IMUL r, r/m (, imm): low 32 bits, CF = OF = overflow
+            signed = lambda x: x - (1 << 32) if x >> 31 else x
+            a, b = (self.get(o[0]), self.get(o[1])) if len(o) == 2 else (self.get(o[1]), self.get(o[2]))
+            full = signed(a) * signed(b)
+            self.put(o[0], full)
+            self.cf = self.of = full != signed(full & 0xffffffff)
         elif mn == 'PUSH':
             self.push(self.get(o[0]))
         elif mn == 'POP':
