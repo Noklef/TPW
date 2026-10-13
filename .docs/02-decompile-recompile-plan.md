@@ -25,7 +25,7 @@ This is how **OpenRCT2** rebuilt *RollerCoaster Tycoon 2*, a close cousin of thi
 └────────────────────────────────────────────────────────────────────┘
 ```
 
-1. A DLL (`tpw.dll`) is loaded into the original game process. The easiest way is a **proxy `ddraw.dll`** in the game folder: the game imports `DDRAW.dll` anyway, so ours loads first and forwards real DirectDraw calls.
+1. A DLL is loaded into the original game process as a **proxy `dinput.dll`** in the game folder. The game imports exactly one function from `DINPUT.dll` (`DirectInputCreateA`), so ours loads first and forwards that call to the system DLL. We deliberately don't use `ddraw.dll`: the DirectX wrappers needed on modern Windows (dgVoodoo2, DDrawCompat) are `ddraw.dll` proxies themselves. Neither name is a Windows KnownDLL, so the game folder takes precedence.
 2. On load, it patches the entry of each function we've rewritten with a `jmp` to our C++ version.
 3. **The game stays playable at every step.** Each rewritten function can be tested against the original by toggling its hook.
 4. When every game function is replaced, drop the original exe and link `tpw.exe` standalone. It still loads the user's own `data/` folder.
@@ -52,7 +52,7 @@ TPW/
 │  ├─ rsse_disasm.py         .RSE disassembler
 │  └─ …                      wct/md2/str/bf4/sdt converters
 ├─ src/
-│  ├─ hook/                  proxy ddraw.dll, function patcher, hook registry
+│  ├─ hook/                  proxy dinput.dll, function patcher, hook registry
 │  ├─ game/                  reimplemented game code, one folder per subsystem:
 │  │   ├─ core/              game loop, clock, save/load chunks, .sam config
 │  │   ├─ park/              terrain, paths, objects, finance, research, challenges
@@ -106,9 +106,12 @@ These also become the engine's loaders later.
 - [ ] `.omp`, `.tpt`, `.TPWI`, `.hmp`, `.lnd`, `.tct` level data
 
 ### Phase 3: Hook layer
-- [ ] CMake 32-bit build of proxy `ddraw.dll` that forwards to the system DirectDraw
-- [ ] Function patcher + `symbols.csv`-driven hook registry, with a toggle per function
-- [ ] First replacements: small leaf functions (`.sam` parser, string table lookups) to prove the pipeline
+- [x] CMake 32-bit build (`build.bat`, VS 2022 Build Tools + Ninja) of a proxy `dinput.dll` that forwards `DirectInputCreateA` to the system DLL
+- [x] Function patcher (`src/hook/patch.cpp`): 5-byte `jmp`, **only after checking the original prologue bytes**, so an unknown exe build is left untouched
+- [x] Hook registry (`src/hook/hooks.cpp`), per-function toggles in `tpw.ini` (`[hooks] Name=0`, `[tpw] enabled=0`), results logged to `tpw.log`
+- [x] `tpw_tests`: unit tests of reimplementations, a patcher self-test, and a check of every hook's expected bytes against `tp.exe` read as a file
+- [x] First replacements: `RSSE_FetchWord`, `RSSE_OperandValue`
+- [ ] First in-game run with the DLL. This needs Phase 0 (the game running at all), in a VM if the no-CD exe is untrusted. Install: copy `build\dinput.dll` next to `tp.exe`, run, read `tpw.log`
 
 ### Phase 4: Reimplement subsystems (the long haul)
 Roughly in dependency order: core/config/files → save/load chunks → RSSE VM → park/terrain → rides → peeps/staff → finance/research/challenges → advisor → UI.

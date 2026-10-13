@@ -1,0 +1,36 @@
+cmake_minimum_required(VERSION 3.20)
+project(tpw CXX)
+
+# The hook phase runs inside the original 32-bit tp.exe, and re/types.h is byte-exact for x86.
+if(NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
+    message(FATAL_ERROR "Build for 32-bit x86 (vcvars32 + Ninja, or -A Win32).")
+endif()
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# Static CRT: players shouldn't need a VC++ redistributable.
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+add_compile_options(/W4 /permissive- /utf-8)
+
+# Reimplemented game code, shared by the hook DLL and the tests.
+add_library(tpw_game STATIC
+    src/game/rsse/rsse_vm.cpp
+)
+
+# Proxy dinput.dll that loads into tp.exe and installs the hooks.
+add_library(tpw_hook SHARED
+    src/hook/dllmain.cpp
+    src/hook/dinput_proxy.cpp
+    src/hook/hooks.cpp
+    src/hook/patch.cpp
+    src/hook/dinput.def
+)
+set_target_properties(tpw_hook PROPERTIES OUTPUT_NAME dinput)
+target_link_libraries(tpw_hook PRIVATE tpw_game)
+
+add_executable(tpw_tests
+    tests/test_main.cpp
+    src/hook/hooks.cpp
+    src/hook/patch.cpp
+)
+target_link_libraries(tpw_tests PRIVATE tpw_game)
