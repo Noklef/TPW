@@ -139,7 +139,7 @@ Bullfrog's archive format, shared with Dungeon Keeper 2. There are 312 archives 
 | `.sgn` | 84 | Sign/billboard definitions | needs RE |
 | `.esp`/`.tpc`/`.fpc` | 46/46/29 | Entertainer/costume sprites (`esprites.wad`) | needs RE |
 | `.ttf` | 17 | TrueType fonts | standard |
-| `.bf4` | 37 loose | Bullfrog bitmap font (magic `F4FB`) | needs RE |
+| `.bf4` | 37 loose | Bullfrog bitmap font (magic `F4FB`): 249 Unicode glyphs, each raw 4bpp, nibble-RLE 4bpp or 1bpp, with x/y offsets and advance | **decoded** (`tools/bf4.py` → PNG sheet + metrics) |
 | `.str` | 21 loose | String tables (magic `BFST`); text in a custom 8-bit code page mapped by `MBToUni.dat` | **decoded** (`tools/bfst.py`) |
 | `.sdt` | 43 banks | Sound banks: named entries of plain MPEG-2 Layer I/II audio (see below) | **decoded** (`tools/sdt.py` → WAV) |
 | `cat_*BANK.map`, `cat_*SFX.map`, `SndReverb.map` | — | Sound category / reverb maps (start with a GUID) | needs RE |
