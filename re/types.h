@@ -256,18 +256,18 @@ typedef struct Sprite {
     u32 mStrandedTime;                   /* 0x198 */
 } Sprite;
 
-/* Thing model 1 (0x4fb530). The pv_ fields are floats saved as 0..255 under a placeholder
- * name; they are probably the needs (hunger, thirst, ...).
+/* Thing model 1 (0x4fb530). The needs (mHappiness .. mLitter) are 0..100 floats saved as
+ * 0..255 under the placeholder name "pv"; pv_1b8 is only ever zeroed and saved.
  * Only the saved fields are known: the real object may be larger. */
 typedef struct Visitor {
     Sprite base;                         /* 0x00 */
-    float pv_19c;                        /* 0x19c */
+    float mHappiness;                    /* 0x19c: "Sideshow won - happiness up" adds here */
     s32 mCash;                           /* 0x1a0 */
-    float pv_1a4;                        /* 0x1a4 */
-    float pv_1a8;                        /* 0x1a8 */
-    float pv_1ac;                        /* 0x1ac */
-    float pv_1b0;                        /* 0x1b0 */
-    float pv_1b4;                        /* 0x1b4 */
+    float mThirst;                       /* 0x1a4: 0..100; drinks subtract the object def's +0x144 */
+    float mHunger;                       /* 0x1a8: 0..100; food subtracts the object def's +0x148 */
+    float mToilet;                       /* 0x1ac: zeroed by a toilet; grows over time */
+    float mIllness;                      /* 0x1b0: rides add the object def's +0x14c; sick above 90 */
+    float mLitter;                       /* 0x1b4: "Litter gone up by %d" adds the object def's +0x154 */
     float pv_1b8;                        /* 0x1b8 */
     u32 mExitLevel;                      /* 0x1bc */
     u8 mPrankeryIndex;                   /* 0x1c0 */
@@ -312,8 +312,8 @@ typedef struct Staff {
     u8 mPercentageThroughGrade;          /* 0x1e8 */
     u8 unk_1e9[0x7];
     TpwU64 mTimeHired;                   /* 0x1f0 */
-    u8 unk_1f8[0x4];
-    float pv_1fc;                        /* 0x1fc */
+    float mHappiness;                    /* 0x1f8: probably; drains faster on low pay grades */
+    float mEnergy;                       /* 0x1fc: too tired below a balance threshold (0x506680) */
     u32 mTimeStartedIdling;              /* 0x200 */
     u32 mJobsDone;                       /* 0x204 */
     u16 mRestArea;                       /* 0x208 */
@@ -680,13 +680,13 @@ TPW_CHECK(Sprite_mPreviousY, TPW_OFF(Sprite, mPreviousY) == 0x194);
 TPW_CHECK(Sprite_mStrandedTime, TPW_OFF(Sprite, mStrandedTime) == 0x198);
 TPW_CHECK(Sprite_size, sizeof(Sprite) == 0x19c);
 TPW_CHECK(Visitor_base, TPW_OFF(Visitor, base) == 0x0);
-TPW_CHECK(Visitor_pv_19c, TPW_OFF(Visitor, pv_19c) == 0x19c);
+TPW_CHECK(Visitor_mHappiness, TPW_OFF(Visitor, mHappiness) == 0x19c);
 TPW_CHECK(Visitor_mCash, TPW_OFF(Visitor, mCash) == 0x1a0);
-TPW_CHECK(Visitor_pv_1a4, TPW_OFF(Visitor, pv_1a4) == 0x1a4);
-TPW_CHECK(Visitor_pv_1a8, TPW_OFF(Visitor, pv_1a8) == 0x1a8);
-TPW_CHECK(Visitor_pv_1ac, TPW_OFF(Visitor, pv_1ac) == 0x1ac);
-TPW_CHECK(Visitor_pv_1b0, TPW_OFF(Visitor, pv_1b0) == 0x1b0);
-TPW_CHECK(Visitor_pv_1b4, TPW_OFF(Visitor, pv_1b4) == 0x1b4);
+TPW_CHECK(Visitor_mThirst, TPW_OFF(Visitor, mThirst) == 0x1a4);
+TPW_CHECK(Visitor_mHunger, TPW_OFF(Visitor, mHunger) == 0x1a8);
+TPW_CHECK(Visitor_mToilet, TPW_OFF(Visitor, mToilet) == 0x1ac);
+TPW_CHECK(Visitor_mIllness, TPW_OFF(Visitor, mIllness) == 0x1b0);
+TPW_CHECK(Visitor_mLitter, TPW_OFF(Visitor, mLitter) == 0x1b4);
 TPW_CHECK(Visitor_pv_1b8, TPW_OFF(Visitor, pv_1b8) == 0x1b8);
 TPW_CHECK(Visitor_mExitLevel, TPW_OFF(Visitor, mExitLevel) == 0x1bc);
 TPW_CHECK(Visitor_mPrankeryIndex, TPW_OFF(Visitor, mPrankeryIndex) == 0x1c0);
@@ -722,7 +722,8 @@ TPW_CHECK(Staff_mName, TPW_OFF(Staff, mName) == 0x1a0);
 TPW_CHECK(Staff_mCurrentPayGrade, TPW_OFF(Staff, mCurrentPayGrade) == 0x1e4);
 TPW_CHECK(Staff_mPercentageThroughGrade, TPW_OFF(Staff, mPercentageThroughGrade) == 0x1e8);
 TPW_CHECK(Staff_mTimeHired, TPW_OFF(Staff, mTimeHired) == 0x1f0);
-TPW_CHECK(Staff_pv_1fc, TPW_OFF(Staff, pv_1fc) == 0x1fc);
+TPW_CHECK(Staff_mHappiness, TPW_OFF(Staff, mHappiness) == 0x1f8);
+TPW_CHECK(Staff_mEnergy, TPW_OFF(Staff, mEnergy) == 0x1fc);
 TPW_CHECK(Staff_mTimeStartedIdling, TPW_OFF(Staff, mTimeStartedIdling) == 0x200);
 TPW_CHECK(Staff_mJobsDone, TPW_OFF(Staff, mJobsDone) == 0x204);
 TPW_CHECK(Staff_mRestArea, TPW_OFF(Staff, mRestArea) == 0x208);

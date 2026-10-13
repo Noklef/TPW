@@ -57,3 +57,11 @@ address,target,type,notes
 0x005127a0,param0,Weather *,Weather_HandleMessage
 0x004d02d0,param0,BankAccount *,BankAccount_HandleMessage
 0x004d2860,param0,Challenges *,Challenges_HandleMessage
+0x004fcc30,param0,Visitor *,Visitor_ScoreOption
+0x004fcc30,param1,Object *,Visitor_ScoreOption
+0x004fe1e0,param0,Visitor *,Visitor_UseObject
+0x004fe1e0,param1,Object *,Visitor_UseObject
+0x005066a0,param0,Staff *,Staff_TireA
+0x00506760,param0,Staff *,Staff_TireB
+0x00506870,param0,Staff *,Staff_GetWage
+0x004dd4e0,param0,Object *,Object_GetDef

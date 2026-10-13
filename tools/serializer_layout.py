@@ -4,7 +4,7 @@ Each serializer reads a field straight into the object, so its load branch pairs
 name with an offset from `this` (param_1):
   Save_FieldName(n, "mName", 1); Stream_Read(&r, stream, param_1 + OFF, n, &got);
   Save_ReadU32(stream, param_1 + OFF, "mName", 0);           (also U16, U8, 8 and 12 bytes)
-  Save_ReadU32(stream, &tmp, "mName", 0); *(float *)(param_1 + OFF) = tmp;
+  Save_ReadU32(stream, &tmp, "mName", 0); *(float *)(param_1 + OFF) = tmp;   (also via Stream_Read)
   ptr = param_1 + BASE; do { Save_ReadU16(stream, ptr + -8, "mFoo[i]", 0); ptr += 2; } while (i < 4);
 Names behind DAT_ labels (short strings Ghidra didn't type) are read from the exe.
 Calls to other serializers pass `this` in ECX, which the decompiler drops, so their offsets come
@@ -92,8 +92,11 @@ def layout(addr, src, pe, serializers):
         m = re.search(r'Stream_Read\([^,]+,[^,]+,\s*(.+?),\s*' + NUM + r',', s)
         if m and pending_name:
             off = offset_of(m.group(1))
-            fields.append({'off': off, 'size': pending_name[0], 'name': pending_name[1], 'via': 'raw'})
-            pending_name = None
+            pending_name, (size, fname) = None, pending_name
+            if off is None and m.group(1).startswith('&'):
+                pending_tmp = (m.group(1)[1:], size, fname)
+                continue
+            fields.append({'off': off, 'size': size, 'name': fname, 'via': 'raw'})
             continue
         m = re.search(r'FUN_(00[0-9a-f]{6})\(([^,]+),\s*(.+?),\s*([^,]+?),\s*0\)', s)
         if m and m.group(1) in READ_SIZES:

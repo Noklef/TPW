@@ -141,7 +141,7 @@ address,name,kind,confidence,notes
 0x004d8dd0,MapCell_Serialize,function,high,base + litter fields
 0x0050c200,TrackCell_Serialize,function,high,base + mSegmentNumber
 0x00502490,RECell_Serialize,function,high,5 x u16 mpEffect
-0x004f8b10,Sprite_Serialize,function,high,moving-person base (anim, speeds, nav, thoughts)
+0x004f8b10,Sprite_Serialize,function,high,"moving-person base (anim, speeds, nav, thoughts)"
 0x004d3ee0,SpriteAnim_Serialize,function,high,"mSpriteScript, mNextAnim, mNextServiceInterval"
 0x0050d150,Nav_Serialize,function,high,steering/pathing state (float vectors)
 0x0050bad0,Thoughts_Serialize,function,high,event history + thought bubble
@@ -213,3 +213,13 @@ address,name,kind,confidence,notes
 0x004f7c50,Model18_HandleMessage,function,medium,"Thing_HandleMessage case 18 (model 18 is unidentified; its update, 0x4f7c60 + 0x4f7c90, only runs when DAT_00fb3b7c == 1)"
 0x004d2860,Challenges_HandleMessage,function,high,Thing_HandleMessage case 19
 0x004d1e90,Challenges_Update,function,medium,Thing_Update case 19 (works on a global; skipped when DAT_00fb3b7c == 1)
+0x004fcc30,Visitor_ScoreOption,function,medium,"thiscall(visitor, object); 'Calculating option score': distance, queue, thirst/hunger/toilet/illness match"
+0x004fe1e0,Visitor_UseObject,function,medium,"thiscall(visitor, object); applies the object def effects (+0x144 thirst, +0x148 hunger, +0x14c illness, +0x150 happiness, +0x154 litter) to the needs, balloons, costumes, sideshow wins"
+0x00506680,Staff_IsTooTired,function,high,mEnergy below DAT_00785324
+0x005066a0,Staff_TireA,function,medium,"drains mEnergy and mHappiness by (6 - pay grade) * rate; one of two rates"
+0x00506760,Staff_TireB,function,medium,"as Staff_TireA with the other pair of rates"
+0x00506830,Staff_SetName,function,high,copies 32 chars to mName
+0x00506860,Staff_GetName,function,high,returns &mName
+0x00506870,Staff_GetWage,function,medium,"per-type factor (DAT_00785380) * pay grade table (DAT_0078532c, stride 0x10)"
+0x004dd4e0,Object_GetDef,function,medium,"fastcall; ObjectDefs_Find(this->mId at +0xe); the def holds balance values (effects at +0x144..+0x15c)"
+0x00412e90,ObjectDefs_Find,function,medium,"thiscall; linear search of def pointers (count at +0x528) by leading u16 id, one-entry cache at +0x730"
