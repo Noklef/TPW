@@ -110,6 +110,7 @@ These also become the engine's loaders later.
 - [x] Save games / `.TPWI` (`tools/tpsave.py`): container, BILZ payload, module split, and the **whole world module** (header, 128×128 map cells, all 16 thing models) decode byte-exact, with the game's own field names. Other 16 modules: split only.
 - [x] `.omp` emitters and `.tpt` weather test data (tools/omp.py)
 - [x] `.lnd` terrain texture source and `.tct` tile tables (tools/lnd.py)
+- [x] Procedural terrain blend 0x55f780 (MMX) reimplemented in tools/lnd.py `--blend`
 - [x] `.hmp` object height maps (tools/hmp.py)
 - [x] `.sgn` sign styles, including their wavelet-coded backgrounds (tools/sgn.py)
 - [x] `.lip` advisor lip-sync and the response table (tools/lip.py)
