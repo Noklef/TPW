@@ -101,7 +101,7 @@ Bullfrog's archive format, shared with Dungeon Keeper 2. There are 312 archives 
 | Ext | Count | Content | Status |
 |---|---|---|---|
 | `.wct` | 8,375 | **Wavelet-compressed textures**: 7,382 × v`0x13` (one-level Daubechies-4, YUV 4:2:0, optional alpha, LZ77 bitstream) and 993 × v`0x12` (older multi-level codec, `BILZ` payload, mostly UI) | **v0x13 decoded** (`tools/wct2png.py`); v0x12 todo |
-| `.md2` | 2,118 | 3D meshes, **not** Quake MD2: magic `0x1CD15D46`, version 221. A serialised C struct with relative offsets fixed up at load (`MD2_Load`, `0x46d6d0`). Known so far: materials (16 B each, count at `+0x36`), per-vertex normals (12 B), UVs (8 B float pairs), triangles (4 × u16: corner-data index, v0, v1, v2), node/bone table (160 B each), animation table (20 B each), bounding box at `+0x80` | partly mapped |
+| `.md2` | 2,118 | 3D meshes, **not** Quake MD2: magic `0x1CD15D46`, version 221. A serialised C struct whose pointers are file offsets, relocated by `MD2_Load` (`0x46d6d0`). Two kinds: ~640 **geometry** meshes (flag bit 0) and ~1,100 **motion-only** files (`…M1`–`…M5`, data in the block at header word `0x26`). Geometry lives in 160-byte **nodes** (named parts, e.g. the advisor's "Mouth - Aah/Eee/Ooh/Sss" lip-sync shapes). Positions and UVs are **structure-of-arrays in blocks of 4** (`X[4] Y[4] Z[4]`), triangles index render vertices, which map to shared positions. Full layout in `tools/md2.py` | geometry decoded (`tools/md2.py`, 639/639 consistent); node transforms, materials→faces, motion data still open |
 | `.txt` | 935 | `qickload.txt` preload lists (plain text) | readable |
 | `.lip` | 639 | Lip-sync timing for advisor speech | needs RE |
 | `.hmp` | 435 | Height/hoarding maps | needs RE |
