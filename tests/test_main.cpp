@@ -260,6 +260,34 @@ static void test_quat() {
     CHECK(near(m[0], 0) && near(m[1], 1) && near(m[3], -1) && near(m[4], 0) && near(m[8], 1));
 }
 
+static void test_slerp() {
+    static float values[4096];
+    SinTable sines{values, 0, 0};
+    SinTable_Build(values, 4096, &sines.mask, &sines.scale);
+    CHECK(sines.mask == 0xfff && sines.scale == 4096 * 0.159154937f);
+    CHECK(values[0] == 0 && values[1024] == 1 && values[3072] == -1);
+
+    auto near = [](float a, float b) { return a - b < 2e-3f && b - a < 2e-3f; };  // table steps
+    const float id[4] = {0, 0, 0, 1}, rz[4] = {0, 0, 0.70710677f, 0.70710677f};
+    float q[4];
+    Quat_SlerpWith(sines, id, rz, 0, q);  // t = 0 is a exactly
+    CHECK(q[0] == 0 && q[1] == 0 && q[2] == 0 && q[3] == 1);
+    Quat_SlerpWith(sines, id, rz, 0.5f, q);  // 45 degrees about z
+    CHECK(near(q[2], 0.38268343f) && near(q[3], 0.92387953f));
+    Quat_SlerpWith(sines, rz, rz, 0.25f, q);  // equal keys lerp
+    CHECK(near(q[2], 0.70710677f) && near(q[3], 0.70710677f));
+    const float flip[4] = {0, 0, 0, -1};
+    Quat_SlerpWith(sines, id, flip, 1, q);  // opposite: through (-y, x, -w, z); w is never blended
+    CHECK(q[0] == 0 && q[1] == 0 && q[2] == -1 && q[3] == 0);
+
+    const RotationKey keys[2] = {{0, -1, {0, 0, 0, 1}}, {10, -1, {0, 0, 1, 0}}};
+    float m[9];
+    Motion_RotationAtWith(sines, keys, 2, 2, 1, 0.5f, m);  // the last key holds: 180 degrees about z
+    CHECK(m[0] == -1 && m[4] == -1 && m[8] == 1);
+    Motion_RotationAtWith(sines, keys, 2, 2, 0, 0.5f, m);  // flag 0x2 lerps: (0, 0, .5, .5), 90 degrees
+    CHECK(m[0] == 0 && m[1] == 1 && m[3] == -1 && m[8] == 1);
+}
+
 static void test_refpack_encode() {
     u8 empty[16];
     CHECK(RefPack_Encode(empty, nullptr, 0) == 6);
@@ -335,6 +363,7 @@ int main(int argc, char **argv) {
     test_refpack_encode();
     test_curves();
     test_quat();
+    test_slerp();
     test_patcher();
     if (argc > 1) test_hook_table(argv[1]);
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);

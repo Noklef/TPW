@@ -23,6 +23,8 @@ const Hook kHooks[] = {
     {"Curve_CatmullRom",    0x00474cc0, (void *)&Curve_CatmullRom,    {0x51, 0xd9, 0x44, 0x24, 0x14}},
     {"Path_PercentAt",      0x00474ea0, (void *)&Path_PercentAt,      {0xd9, 0x44, 0x24, 0x0c, 0x83}},
     {"Quat_ToMatrix",       0x00474120, (void *)&Quat_ToMatrix,       {0x83, 0xec, 0x14, 0x8b, 0x44}},
+    {"Quat_Slerp",          0x004742a0, (void *)&Quat_Slerp,          {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Motion_RotationAt",   0x00474490, (void *)&Motion_RotationAt,   {0xa1, 0x88, 0x49, 0x7b, 0x00}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
