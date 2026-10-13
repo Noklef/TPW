@@ -3,6 +3,11 @@ address,name,kind,confidence,notes
 0x00414d40,SaveGame_Load,function,medium,caller of SaveGame_LoadModules
 0x00415270,SaveGame_LoadModules,function,high,"loads 17 modules in order, verifies 4-byte tag after each (SAD)"
 0x004164c0,SaveGame_SaveModules,function,high,mirror of SaveGame_LoadModules
+0x00431480,Float_Modf,function,high,"reimplemented (src/game/math/vector); (x, whole*): CRT modf of a float, whole part stored as float if not null, fraction left in st0"
+0x004314b0,Vec3_RotateYCS,function,high,"reimplemented (src/game/math/vector); (v, cos, sin): v about y in place"
+0x004314f0,Vec3_RotateX,function,high,"reimplemented (src/game/math/vector); (v, angle): v about x in place, cos/sin from gSinTable"
+0x00431570,Vec3_RotateY,function,high,"reimplemented (src/game/math/vector); (v, angle): v about y in place, cos/sin from gSinTable"
+0x004315f0,Matrix_RotateYAngle,function,high,"reimplemented (src/game/math/vector); (m, angle): Matrix_RotateY with cos/sin from gSinTable"
 0x005da3c0,Debug_Printf,function,high,"EMPTY in retail build: all debug/assert output compiled out. arg0 = condition or channel (0, 2, 0x499602d2)"
 0x0067a7d0,crt_atexit,function,high,registers destructor in MSVC function-static init guard pattern
 0x0067acc0,Mem_Alloc,function,medium,malloc/operator new wrapper
@@ -17,6 +22,7 @@ address,name,kind,confidence,notes
 0x005f8050,Buffer_Compress,function,medium,"compresses save buffer; 'Need to allocate a bigger buffer'"
 0x005f8100,Buffer_Decompress,function,high,"inverse of Buffer_Compress via the compressor singleton (slot 2); used by saves and .wct v0x12"
 0x005f8080,Compressor_Get,function,medium,returns the global compressor singleton (concrete vtable 0x703128)
+0x0067b280,CRT_modf,function,high,"MSVC CRT modf(double, double*); exact"
 0x00703128,ZlibCompressor_vtable,data,medium,"slot 1 = compress 0x619280, slot 2 = decompress 0x619380"
 0x00619280,ZlibCompressor_Compress,function,medium,"writes the 28-byte BILZ header (magic, unpacked, packed, windowBits 15, level 9, 0, 0) + zlib stream"
 0x00619380,ZlibCompressor_Decompress,function,high,"checks BILZ magic, inflateInit2_ / inflate(Z_FINISH) / inflateEnd"

@@ -4,6 +4,7 @@
 
 #include "../game/files/refpack.h"
 #include "../game/math/matrix.h"
+#include "../game/math/vector.h"
 #include "../game/motion/curve.h"
 #include "../game/motion/quat.h"
 #include "../game/rsse/rsse.h"
@@ -57,6 +58,11 @@ const Hook kHooks[] = {
     {"Sort_MergeByKey", 0x00470630, (void *)&Sort_MergeByKey, {0x8a, 0x44, 0x24, 0x10, 0x83}},
     {"Matrix_LookAlong", 0x00470780, (void *)&Matrix_LookAlong, {0x83, 0xec, 0x20, 0x8b, 0x4c}},
     {"Vec3_Distance", 0x00470940, (void *)&Vec3_Distance, {0x83, 0xec, 0x14, 0x8b, 0x44}},
+    {"Float_Modf", 0x00431480, (void *)&Float_Modf, {0xd9, 0x44, 0x24, 0x04, 0x83}},
+    {"Vec3_RotateYCS", 0x004314b0, (void *)&Vec3_RotateYCS, {0x8b, 0x44, 0x24, 0x04, 0xd9}},
+    {"Vec3_RotateX", 0x004314f0, (void *)&Vec3_RotateX, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Vec3_RotateY", 0x00431570, (void *)&Vec3_RotateY, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Matrix_RotateYAngle", 0x004315f0, (void *)&Matrix_RotateYAngle, {0x55, 0x8b, 0xec, 0x83, 0xec}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

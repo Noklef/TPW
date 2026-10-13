@@ -10,6 +10,7 @@
 
 #include "../src/game/files/refpack.h"
 #include "../src/game/math/matrix.h"
+#include "../src/game/math/vector.h"
 #include "../src/game/motion/curve.h"
 #include "../src/game/motion/quat.h"
 #include "../src/game/rsse/rsse.h"
@@ -436,6 +437,29 @@ static void test_matrix_products() {
     CHECK(out[0] == 16 && out[1] == 4 && out[2] == 12 && out[3] == 8 && out[4] == 0);  // stable
 }
 
+static void test_vector() {
+    float v[3] = {1, 0, 0};
+    Vec3_RotateYCS(v, 0, 1);  // 90 degrees about y: x -> -z
+    CHECK(v[0] == 0 && v[1] == 0 && v[2] == -1);
+    float whole = 0;
+    CHECK(Float_Modf(2.75f, &whole) == 0.75 && whole == 2);
+    CHECK(Float_Modf(-1.5f, nullptr) == -0.5);
+
+    static float values[4096];
+    SinTable sines{values, 0, 0};
+    SinTable_Build(values, 4096, &sines.mask, &sines.scale);
+    float y[3] = {0, 1, 0};
+    Vec3_RotateXWith(sines, y, 0);  // cos 0 = values[1024] = 1, sin 0 = values[0] = 0
+    CHECK(y[0] == 0 && y[1] == 1 && y[2] == 0);
+    Vec3_RotateXWith(sines, y, 1.5707964f);  // y -> z, with the table's cos(pi/2)
+    CHECK(y[1] == values[2048] && y[2] == 1);
+    float x[3] = {1, 0, 0}, m[16];
+    Vec3_RotateYWith(sines, x, 1.5707964f);
+    Matrix_Identity(m);
+    Matrix_RotateYAngleWith(sines, m, 1.5707964f);  // the same turn on the x axis row
+    CHECK(x[0] == m[0] && x[2] == m[2] && x[2] == -1);
+}
+
 static void test_hook_table(const char *exe_path) {
     std::ifstream f(exe_path, std::ios::binary);
     if (!f) { std::printf("cannot open %s\n", exe_path); ++g_failures; return; }
@@ -464,6 +488,7 @@ int main(int argc, char **argv) {
     test_slerp();
     test_matrix();
     test_matrix_products();
+    test_vector();
     test_patcher();
     if (argc > 1) test_hook_table(argv[1]);
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);
