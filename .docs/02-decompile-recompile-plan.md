@@ -124,6 +124,8 @@ Track progress as "% of non-library functions reimplemented".
 - [ ] 64-bit, widescreen and high-DPI, bug fixes, mod support
 
 ## Scale and honesty check
+**Update (code map, `04-code-map.md`):** only **~3,550 functions (1.16 MB) are game logic** that needs real decompilation. About 1,750 are engine code to *rewrite* against modern APIs, ~1,650 are known libraries we don't decompile, ~320 are online code to stub, and ~770 still need identifying. The original estimate below was made before that split.
+
 - 11,760 functions in the exe: **7,938 real unnamed functions** + 3,724 compiler-generated thunks and exception-handling funclets (`thunk_FUN_*`, `Catch@*`, `Unwind@*`) + 98 named imports. Ghidra's Function ID labelled almost none of the MSVC 5/6 CRT, so part of the 7,938 is CRT/STL/zlib/libjpeg/TGQ that still needs identifying (e.g. by matching against those libraries compiled with the same compiler). That still leaves **several thousand game functions**.
 - OpenRCT2 (similar game, similar size) took about 3–4 years of community work to replace all the original code. A one-person project should treat Phases 0–3 as the near-term goal. Phase 4 delivers value continuously, because the game is playable throughout.
 - **Legal:** the repo should contain only original code, tools and docs, never the game's exe or data. Each player supplies their own copy. `.data/` and `_re/` are git-ignored for this reason.
