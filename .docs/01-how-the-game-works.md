@@ -143,8 +143,8 @@ Bullfrog's archive format, shared with Dungeon Keeper 2. There are 312 archives 
 | `.str` | 21 loose | String tables (magic `BFST`); text in a custom 8-bit code page mapped by `MBToUni.dat` | **decoded** (`tools/bfst.py`) |
 | `.sdt` | 43 banks | Sound banks: named entries of plain MPEG-2 Layer I/II audio (see below) | **decoded** (`tools/sdt.py` → WAV) |
 | `cat_*BANK.map`, `cat_*SFX.map`, `SndReverb.map` | — | Sound category / reverb maps (start with a GUID) | needs RE |
-| `.omp` | 4 | Level object placement (`OBJ_` magic), one per theme | needs RE |
-| `.tpt` | 2 | Tagged level data (`WTHR`, `TEMP` chunks) | needs RE |
+| `.omp` | 4 | `Scape.omp`: the theme's fixed ambient sound and particle emitters (`OBJ_` records; tools/omp.py) | Decoded |
+| `.tpt` | 2 | `test.tpt`: weather keyframes (temperature, wind, cloud by day); not read by tp.exe | Decoded, unused |
 | `.TPWI` | 1 | A real **saved game** used as the level's starting state (same format as player saves) | **decoded** (`tools/tpsave.py`, world module) |
 | `.tga`, `.ani`, `.cur` | — | Standard image/cursor formats | standard |
 | `00000409.016` etc. | — | Plain BMPs (installer/autorun art) | standard |

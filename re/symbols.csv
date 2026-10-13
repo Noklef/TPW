@@ -246,3 +246,24 @@ address,name,kind,confidence,notes
 0x00451640,HeightMap_LoadOrBuild,function,high,"loads <model>.hmp (magic 0xab1e0003, 0x00640005), rebuilds and rewrites it when missing or the footprint differs; result at model+0xcc"
 0x00451880,HeightMap_Build,function,high,"allocates header + w*h*0x1b bytes; 5x5 cells per tile, tile max heights, footprint flags"
 0x00451e20,HeightMap_Rasterize,function,medium,"rasterises model triangles into the cell grid; height byte = y*2.55, y clamped to [0,100)"
+0x00550e00,Scape_LoadObjects,function,high,"reads Scape.omp OBJ_ records: type 1 point sound, 2 particle effect, 3 area sound; coords /1024"
+0x0051bfc0,Sound_PlayAt,function,medium,"(owner, category, sound, x, y, z): posts a positional play command via the sound manager vtable +8"
+0x0051c130,Sound_PlayAtRange,function,medium,"Sound_PlayAt with an extra range float"
+0x0051c5d0,Sound_SetArea,function,medium,"(sound, x, z, w, d): spreads an emitter over the rect (x, z)..(x+w, z+d)"
+0x00521e60,Particle_Spawn,function,medium,"(effect 0..0x68, x, y, z in 1/1024 units); pool of 0x140-byte systems"
+0x0051b530,SoundCategory_Register,function,medium,"loads a cat_<name> sound category (bank + map)"
+0x0051b620,SoundCategory_Release,function,medium,
+0x0051eae0,Sound_RegisterGlobalCategories,function,high,"cat_ambient, cat_rides, cat_ui, cat_kids, cat_staff, cat_speech"
+0x0051ec50,Sound_RegisterThemeCategories,function,high,"theme folder's cat_ambient, cat_rides, cat_speech, cat_music"
+0x0051eda0,Sound_ReleaseGlobalCategories,function,high,
+0x0051ee40,Sound_ReleaseThemeCategories,function,high,
+0x00803a20,gSndCatAmbient,data,high,
+0x00803a24,gSndCatKids,data,high,
+0x00803a28,gSndCatRides,data,high,
+0x00803a2c,gSndCatUi,data,high,
+0x00803a30,gSndCatStaff,data,high,
+0x00803a34,gSndCatSpeech,data,high,
+0x00803a38,gSndThemeAmbient,data,high,
+0x00803a3c,gSndThemeRides,data,high,
+0x00803a40,gSndThemeSpeech,data,high,
+0x00803a44,gSndThemeMusic,data,high,
