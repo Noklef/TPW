@@ -37,7 +37,8 @@ H0, H1, H2, H3 = (1 + R3) / (4 * S2), (3 + R3) / (4 * S2), (3 - R3) / (4 * S2), 
 
 # EMPIRICAL: effective quantiser = header value * scale. Measured by comparing decoded plane
 # means with each texture's stored average colour across ~150 textures (spread < 2%).
-# The exact formula the game uses is still to be found in the caller of the decoder.
+# The filter itself is verified exact: a static initialiser at 0x591600 computes the textbook
+# (1±√3)/(4√2), (3±√3)/(4√2). So the scaling must happen in the decoder's caller, not found yet.
 Q_SCALE_LUMA = 0.56
 Q_SCALE_CHROMA = 0.298
 
