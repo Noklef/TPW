@@ -17,6 +17,7 @@
 #include "../game/core/regkey.h"
 #include "../game/gfx/text.h"
 #include "../game/gfx/canvas.h"
+#include "../game/gfx/canvasdraw.h"
 #include "../game/files/memsource.h"
 #include "../game/files/zlibcodec.h"
 #include "../game/files/refpack.h"
@@ -650,6 +651,19 @@ const Hook kHooks[] = {
     {"Canvas_Ctor",               0x006173e0, (void *)&Canvas_Ctor, {0x56, 0x8b, 0xf1, 0x8d, 0x4e}},
     {"Canvas_SetSurface",         0x00617420, (void *)&Canvas_SetSurface, {0x8b, 0x54, 0x24, 0x04, 0x83}},
     {"Canvas_Clip",               0x006175b0, (void *)&Canvas_Clip, {0x8d, 0x41, 0x58, 0xc3, 0x90}},
+    {"Canvas8_Pixel",             0x00601a00, (void *)&Canvas8_Pixel, {0x51, 0x53, 0x55, 0x56, 0x8b}},
+    {"Canvas8_HSpan",             0x00601b40, (void *)&Canvas8_HSpan, {0x83, 0xec, 0x0c, 0x8b, 0x4c}},
+    {"Canvas8_VSpan",             0x00601d10, (void *)&Canvas8_VSpan, {0x83, 0xec, 0x10, 0x8b, 0x4c}},
+    {"Canvas_Outline",            0x006025c0, (void *)&Canvas_Outline, {0x83, 0xec, 0x10, 0x8b, 0x44}},
+    {"Canvas16_Pixel",            0x00608140, (void *)&Canvas16_Pixel, {0x53, 0x8b, 0x5c, 0x24, 0x1c}},
+    {"Canvas16_HSpan",            0x00608270, (void *)&Canvas16_HSpan, {0x83, 0xec, 0x08, 0x8b, 0x4c}},
+    {"Canvas16_VSpan",            0x00608430, (void *)&Canvas16_VSpan, {0x8b, 0x4c, 0x24, 0x1c, 0x83}},
+    {"Canvas24_Pixel",            0x0060ef50, (void *)&Canvas24_Pixel, {0x8b, 0x4c, 0x24, 0x18, 0x53}},
+    {"Canvas24_HSpan",            0x0060f090, (void *)&Canvas24_HSpan, {0x83, 0xec, 0x10, 0x8b, 0x4c}},
+    {"Canvas24_VSpan",            0x0060f240, (void *)&Canvas24_VSpan, {0x83, 0xec, 0x14, 0x8b, 0x4c}},
+    {"Canvas32_Pixel",            0x00615250, (void *)&Canvas32_Pixel, {0x83, 0xec, 0x08, 0x8b, 0x4c}},
+    {"Canvas32_HSpan",            0x00615380, (void *)&Canvas32_HSpan, {0x8b, 0x4c, 0x24, 0x1c, 0x83}},
+    {"Canvas32_VSpan",            0x00615520, (void *)&Canvas32_VSpan, {0x8b, 0x4c, 0x24, 0x1c, 0x83}},
     {"RowReader_Decode",          0x0062fe00, (void *)&RowReader_Decode, {0x6a, 0xff, 0x68, 0x38, 0x2b}},
     {"RowReader_CopyRow",         0x006300c0, (void *)&RowReader_CopyRow, {0x8b, 0xc1, 0x56, 0x57, 0x8b}},
     {"TgaReader_Load",            0x006300f0, (void *)&TgaReader_Load, {0x53, 0x8b, 0x5c, 0x24, 0x10}},

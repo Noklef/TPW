@@ -1197,6 +1197,19 @@ address,name,kind,confidence,notes
 0x00fa7e38,gCanvasDriver16,data,high,"CanvasDriver {table 0x703680}: 16-bit canvas primitives; src/game/gfx/canvas"
 0x00fa7e34,gCanvasDriver24,data,high,"CanvasDriver {table 0x7036b0}: 24-bit canvas primitives; src/game/gfx/canvas"
 0x00fa7e30,gCanvasDriver32,data,high,"CanvasDriver {table 0x7036e0}: 32-bit canvas primitives; src/game/gfx/canvas"
+0x00601a00,Canvas8_Pixel,function,high,"reimplemented (src/game/gfx/canvasdraw); thiscall (surface, clip, flags, x, y, &colour) RET 0x18: CanvasDriver slot 5; flags & 0x18 blends with (mask - (mask & dst)) & src (sic)"
+0x00601b40,Canvas8_HSpan,function,high,"reimplemented (src/game/gfx/canvasdraw); thiscall (surface, clip, flags, x, y, len, &colour) RET 0x1c: slot 2; clipped, filled or blended by the colour's alpha"
+0x00601d10,Canvas8_VSpan,function,high,"reimplemented (src/game/gfx/canvasdraw); thiscall (surface, clip, flags, x, y, len, &colour) RET 0x1c: slot 3, downwards"
+0x006025c0,Canvas_Outline,function,high,"reimplemented (src/game/gfx/canvasdraw); thiscall (surface, clip, flags, &rect, &colour) RET 0x14: slot 7 of every depth; the edges through slots 2 and 3"
+0x00608140,Canvas16_Pixel,function,high,reimplemented (src/game/gfx/canvasdraw); slot 5 of the 16-bit driver; see Canvas8_Pixel
+0x00608270,Canvas16_HSpan,function,high,reimplemented (src/game/gfx/canvasdraw); slot 2 of the 16-bit driver; see Canvas8_HSpan
+0x00608430,Canvas16_VSpan,function,high,reimplemented (src/game/gfx/canvasdraw); slot 3 of the 16-bit driver; see Canvas8_VSpan
+0x0060ef50,Canvas24_Pixel,function,high,reimplemented (src/game/gfx/canvasdraw); slot 5 of the 24-bit driver; blends reading a dword (sic)
+0x0060f090,Canvas24_HSpan,function,high,reimplemented (src/game/gfx/canvasdraw); slot 2 of the 24-bit driver; the blended span never advances (sic)
+0x0060f240,Canvas24_VSpan,function,high,reimplemented (src/game/gfx/canvasdraw); slot 3 of the 24-bit driver
+0x00615250,Canvas32_Pixel,function,high,reimplemented (src/game/gfx/canvasdraw); slot 5 of the 32-bit driver
+0x00615380,Canvas32_HSpan,function,high,reimplemented (src/game/gfx/canvasdraw); slot 2 of the 32-bit driver
+0x00615520,Canvas32_VSpan,function,high,reimplemented (src/game/gfx/canvasdraw); slot 3 of the 32-bit driver
 0x0062fe00,RowReader_Decode,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); rows read ahead (vtable +0 Begin, +4 ReadRow), converted if the formats differ, copied top down or bottom up; a failed row read ends it as success"
 0x006300c0,RowReader_CopyRow,function,high,"reimplemented (src/game/gfx/tga); thiscall; copyBytes from the row buffer to the target, which moves by step; vtable +0xc"
 0x006300f0,TgaReader_Load,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); ReadHeader, then RowReader_Decode"
