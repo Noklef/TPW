@@ -25,6 +25,7 @@
 #include "../game/gfx/palette.h"
 #include "../game/gfx/surface.h"
 #include "../game/gfx/pixconv.h"
+#include "../game/gfx/invmap.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
 #include "../game/motion/curve.h"
@@ -535,6 +536,14 @@ const Hook kHooks[] = {
     {"PixelConversion_Row",       0x00630b70, (void *)&PixelConversion_Row, {0x8b, 0x41, 0x04, 0x8b, 0x51}},
     {"PixelConversion_Rect",      0x00630ba0, (void *)&PixelConversion_Rect, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"PixelConversion_Dtor",      0x00630c30, (void *)&PixelConversion_Dtor, {0x56, 0x8b, 0xf1, 0x8b, 0x0e}},
+    {"InverseMap_Ctor",           0x00642150, (void *)&InverseMap_Ctor, {0x8b, 0xc1, 0xc7, 0x00, 0xc0}},
+    {"InverseMap_DeletingDtor",   0x00642160, (void *)&InverseMap_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"InverseMap_Dtor",           0x00642180, (void *)&InverseMap_Dtor, {0xc7, 0x01, 0xc0, 0x4a, 0x70}},
+    {"InverseMap_Build",          0x00642190, (void *)&InverseMap_Build, {0x83, 0xec, 0x08, 0x56, 0x8b}},
+    {"InverseMap_RedLoop",        0x00642340, (void *)&InverseMap_RedLoop, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
+    {"InverseMap_GreenLoop",      0x00642460, (void *)&InverseMap_GreenLoop, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"InverseMap_BlueLoop",       0x006426b0, (void *)&InverseMap_BlueLoop, {0x83, 0xec, 0x10, 0x53, 0x55}},
+    {"InverseMap_MaxFill",        0x00642840, (void *)&InverseMap_MaxFill, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

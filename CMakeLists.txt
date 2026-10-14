@@ -36,6 +36,7 @@ add_library(tpw_game STATIC
     src/game/gfx/palette.cpp
     src/game/gfx/surface.cpp
     src/game/gfx/pixconv.cpp
+    src/game/gfx/invmap.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp
