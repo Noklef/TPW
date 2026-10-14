@@ -25,9 +25,9 @@ address,name,kind,confidence,notes
 0x005f8080,Compressor_Get,function,medium,returns the global compressor singleton (concrete vtable 0x703128)
 0x0067b280,CRT_modf,function,high,"MSVC CRT modf(double, double*); exact"
 0x0067b24a,CRT_CIfmod,function,high,"_CIfmod: fmod(st1, st0) via __cintrindisp2 (fprem loop at 0x67b254); exact"
-0x00703128,ZlibCompressor_vtable,data,medium,"slot 1 = compress 0x619280, slot 2 = decompress 0x619380"
-0x00619280,ZlibCompressor_Compress,function,medium,"writes the 28-byte BILZ header (magic, unpacked, packed, windowBits 15, level 9, 0, 0) + zlib stream"
-0x00619380,ZlibCompressor_Decompress,function,high,"checks BILZ magic, inflateInit2_ / inflate(Z_FINISH) / inflateEnd"
+0x00703128,ZlibCodec_vtable,data,high,"codec interface (as RefPackCodec_vtable 0x703f00): dtor 0x638c70, Compress, Decompress, WorkSize, InflateWorkSize, UnpackedSize, CompressStream, DecompressStream"
+0x00619280,ZlibCodec_Compress,function,high,"reimplemented (src/game/files/zlibcodec); thiscall (dst, src, size, work) -> packed size or 0; 28-byte BILZ header (magic, unpacked, packed, windowBits 15, memLevel 9, 0, 0) + deflate(Z_FINISH) into at most size bytes; size <= 0x1c: 0"
+0x00619380,ZlibCodec_Decompress,function,high,"reimplemented (src/game/files/zlibcodec); thiscall (dst, src, work) -> unpacked size or 0; BILZ magic, inflateInit2_(header windowBits), inflate(Z_FINISH) with avail_in 0xc0000000"
 0x00636600,zlib_inflateInit2_,function,high,"statically linked zlib 1.1.3 (version string '1.1.3', stream size 0x38)"
 0x00636710,zlib_inflate,function,high,
 0x006365b0,zlib_inflateEnd,function,high,
@@ -745,3 +745,14 @@ address,name,kind,confidence,notes
 0x00630810,SemaphoreLock_Dtor,function,high,reimplemented (src/game/core/semaphore); thiscall; SemaphoreLock_Release
 0x00630820,SemaphoreLock_Acquire,function,high,reimplemented (src/game/core/semaphore); thiscall (forever) -> held; WaitForSingleObject(INFINITE or 5 ms) == 0
 0x00630850,SemaphoreLock_Release,function,high,reimplemented (src/game/core/semaphore); thiscall; ReleaseSemaphore(1) when held and not kept
+0x00619250,ZlibCodec_ArenaAlloc,function,high,"reimplemented (src/game/files/zlibcodec); cdecl (arena {cursor, end}, items, size): the zalloc; moves the cursor on even when the request does not fit, then nullptr"
+0x00619460,ZlibCodec_WorkSize,function,high,reimplemented (src/game/files/zlibcodec); thiscall; 0x62a39 (the deflate work buffer; both one-shot calls use it)
+0x00619470,ZlibCodec_InflateWorkSize,function,high,reimplemented (src/game/files/zlibcodec); thiscall; 0x15388
+0x00619480,ZlibCodec_UnpackedSize,function,high,"reimplemented (src/game/files/zlibcodec); thiscall (header); its unpacked size, 0 when not BILZ"
+0x006194a0,ZlibCodec_CompressStream,function,high,"reimplemented (src/game/files/zlibcodec); thiscall (src, size, buffer, capacity, work, writer) -> packed size or 0; full buffers to writer vtbl+4 (buffer, bytes); the header goes out with packed 0"
+0x00619600,ZlibCodec_DecompressStream,function,high,"reimplemented (src/game/files/zlibcodec); thiscall (dst, buffer, capacity, work, reader) -> unpacked size or 0; reader vtbl+8 (buffer, capacity) refills; inflate(Z_SYNC_FLUSH), windowBits 15; capacity <= 0x1d: 0"
+0x006351a0,zlib_deflateInit2_,function,high,statically linked zlib 1.1.3
+0x00635450,zlib_deflate,function,high,
+0x006357c0,zlib_deflateEnd,function,high,
+0x007780ec,gZlibInputLimit,data,high,0xc0000000: ZlibCodec_Decompress avail_in
+0x007780f0,gZlibVersion,data,high,"""1.1.3"""

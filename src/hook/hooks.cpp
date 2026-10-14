@@ -8,6 +8,7 @@
 #include "../game/files/file.h"
 #include "../game/files/handles.h"
 #include "../game/files/memsource.h"
+#include "../game/files/zlibcodec.h"
 #include "../game/files/refpack.h"
 #include "../game/math/matrix.h"
 #include "../game/math/vector.h"
@@ -304,6 +305,14 @@ const Hook kHooks[] = {
     {"SemaphoreLock_Dtor",      0x00630810, (void *)&SemaphoreLock_Dtor, {0xe9, 0x3b, 0x00, 0x00, 0x00}},
     {"SemaphoreLock_Acquire",   0x00630820, (void *)&SemaphoreLock_Acquire, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"SemaphoreLock_Release",   0x00630850, (void *)&SemaphoreLock_Release, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"ZlibCodec_ArenaAlloc",      0x00619250, (void *)&ZlibCodec_ArenaAlloc, {0x8b, 0x54, 0x24, 0x0c, 0x8b}},
+    {"ZlibCodec_Compress",        0x00619280, (void *)&ZlibCodec_Compress, {0x83, 0xec, 0x40, 0x53, 0x55}},
+    {"ZlibCodec_Decompress",      0x00619380, (void *)&ZlibCodec_Decompress, {0x8b, 0x01, 0x83, 0xec, 0x40}},
+    {"ZlibCodec_WorkSize",        0x00619460, (void *)&ZlibCodec_WorkSize, {0xb8, 0x39, 0x2a, 0x06, 0x00}},
+    {"ZlibCodec_InflateWorkSize", 0x00619470, (void *)&ZlibCodec_InflateWorkSize, {0xb8, 0x88, 0x53, 0x01, 0x00}},
+    {"ZlibCodec_UnpackedSize",    0x00619480, (void *)&ZlibCodec_UnpackedSize, {0x8b, 0x44, 0x24, 0x04, 0x81}},
+    {"ZlibCodec_CompressStream",  0x006194a0, (void *)&ZlibCodec_CompressStream, {0x83, 0xec, 0x48, 0x8b, 0x01}},
+    {"ZlibCodec_DecompressStream", 0x00619600, (void *)&ZlibCodec_DecompressStream, {0x83, 0xec, 0x44, 0x53, 0x55}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
