@@ -19,7 +19,7 @@ address,name,kind,confidence,notes
 0x005f5bb0,Stream_Tell,function,high,reimplemented (src/game/files/file); vtbl+0x18; used for 'X: loaded %d bytes' deltas
 0x005f5b80,Stream_Close,function,high,"reimplemented (src/game/files/file); vtbl+4 close, then the deleting destructor (1)"
 0x005f5d60,File_Delete,function,high,reimplemented (src/game/files/file); DeleteFileA on the resolved path; 0 / -1
-0x005f72c0,MemStream_Open,function,medium,used by SaveGame_Save to save into memory first
+0x005f72c0,StreamBase_OpenMemory,function,high,"reimplemented (src/game/files/handles); thiscall (&result, a); -1 when a source is attached, else a new 0x2c-byte MemorySource (0x618df0 with a) attached, 0; SaveGame_Save saves into memory first"
 0x005f8050,Buffer_Compress,function,medium,"compresses save buffer; 'Need to allocate a bigger buffer'"
 0x005f8100,Buffer_Decompress,function,high,"inverse of Buffer_Compress via the compressor singleton (slot 2); used by saves and .wct v0x12"
 0x005f8080,Compressor_Get,function,medium,returns the global compressor singleton (concrete vtable 0x703128)
@@ -614,7 +614,7 @@ address,name,kind,confidence,notes
 0x0067c080,CRT_strstr,function,high,"MSVC6 strstr; one-char needles go to strchr (0x67bfc6)"
 0x0067bfc0,CRT_strchr,function,high,MSVC6 strchr
 0x0067a520,CRT_atoi,function,high,MSVC6 atoi
-0x0067f330,CRT_isctype,function,high,MSVC6 _isctype
+0x0067f330,CRT_iswctype,function,high,MSVC6 iswctype (wint_t is 16 bits; the upper half of the argument is ignored)
 0x0067c1e0,CRT_vsprintf,function,high,MSVC6 vsprintf
 0x0067acd0,CRT_wcslen,function,high,MSVC6 wcslen
 0x0067bf10,CRT_wcscpy,function,high,MSVC6 wcscpy
@@ -697,3 +697,25 @@ address,name,kind,confidence,notes
 0x005f8510,Handle_Open28,function,high,"reimplemented (src/game/files/handles); thiscall (&result, a); Reset, new 0x28-byte object (0x619950) opened by 0x619d70; held or deleted"
 0x005f85d0,Handle_OpenE0,function,high,"reimplemented (src/game/files/handles); thiscall (&result, a, b); Reset, new 0xe0-byte object (0x61a060) opened by 0x61a250"
 0x00703180,Handle_vtable,data,high,handle class (+4 a RefObject2); 0x6fd9e8 derives from it (own destructor 0x41caf0)
+0x00618df0,MemorySource_Ctor,function,high,thiscall (a); the RefObject StreamBase_OpenMemory attaches (0x2c bytes)
+0x005f7360,Palette_ExpandRgb,function,high,"reimplemented (src/game/gfx/palette); cdecl (dst, src, count): RGB triples to RGBX quads, flags 0"
+0x005f73a0,Palette_Nearest,function,high,"reimplemented (src/game/gfx/palette); cdecl (palette, r, g, b) -> index: least squared distance, then summed distance, then b^2 + 2(r^2 + g^2), then lowest index"
+0x00fa71f8,gPalette,data,high,PALETTEENTRY[256]; Palette_Nearest looks colours up in it
+0x005f76c0,Lib_StrLen,function,high,reimplemented (src/game/core/libc); stdcall; inline strlen
+0x005f76e0,Lib_StrCpy,function,high,reimplemented (src/game/core/libc); stdcall; inline strcpy (REP MOVSD then MOVSB)
+0x005f7710,Lib_StrNCpy,function,high,reimplemented (src/game/core/libc); stdcall; CRT_strncpy
+0x005f7730,Lib_StrCat,function,high,reimplemented (src/game/core/libc); stdcall; inline strcat
+0x005f7770,Lib_StrNCat,function,high,reimplemented (src/game/core/libc); stdcall; CRT_strncat
+0x005f7790,Lib_AtoI,function,high,reimplemented (src/game/core/libc); stdcall; CRT_atoi
+0x005f77a0,Lib_IsDigit,function,high,"reimplemented (src/game/core/libc); stdcall (char); CRT_iswctype(sign-extended to 16 bits, _DIGIT)"
+0x005f77c0,Lib_VSPrintf,function,high,reimplemented (src/game/core/libc); stdcall; CRT_vsprintf
+0x005f77e0,Lib_VSNPrintf,function,high,reimplemented (src/game/core/libc); stdcall; CRT__vsnprintf
+0x005f7800,Lib_WcsLen,function,high,reimplemented (src/game/core/libc); stdcall; CRT_wcslen
+0x005f7810,Lib_WcsCpy,function,high,reimplemented (src/game/core/libc); stdcall; CRT_wcscpy
+0x005f7830,Lib_WcsNCpy,function,high,reimplemented (src/game/core/libc); stdcall; CRT_wcsncpy
+0x005f7850,Lib_WcsCat,function,high,reimplemented (src/game/core/libc); stdcall; CRT_wcscat
+0x005f7870,Lib_WcsNCat,function,high,reimplemented (src/game/core/libc); stdcall; CRT_wcsncat
+0x005f7890,Lib_WtoI,function,high,reimplemented (src/game/core/libc); stdcall; CRT__wtoi
+0x005f78a0,Lib_IsDigitW,function,high,"reimplemented (src/game/core/libc); stdcall (wchar_t); CRT_iswctype(c, _DIGIT)"
+0x005f78c0,Lib_VSWPrintf,function,high,reimplemented (src/game/core/libc); stdcall; CRT_vswprintf
+0x0067f3a0,CRT__vsnprintf,function,high,MSVC6 _vsnprintf

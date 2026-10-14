@@ -1,6 +1,6 @@
 // The file library's reference-counted objects and the classes that hold them:
 // reimplementation of 0x618d20-0x618d80, 0x619800-0x619860, the stream base class
-// (0x5f7180-0x5f7290, 0x4036a0/0x4036c0, 0x639100, FileStream's destructors 0x414d30 and
+// (0x5f7180-0x5f72c0, 0x4036a0/0x4036c0, 0x639100, FileStream's destructors 0x414d30 and
 // 0x5fa950) and the handle class (0x5f8240-0x5f85d0).
 //
 // A RefObject (+0 vtable, +4 link, +8 count) is freed by the Release that takes its count to
@@ -61,6 +61,9 @@ StreamBase *__fastcall StreamBase_DeletingDtor(StreamBase *s, void *edx, u32 fla
 void __fastcall StreamBase_Close(StreamBase *s);
 // 0x5f7240 (source): attaches it (a reference added); nullptr: nothing.
 void __fastcall StreamBase_Attach(StreamBase *s, void *edx, RefObject *source);
+// 0x5f72c0 (&result, a): a new 0x2c-byte source (0x618df0 with a) attached (nothing when the
+// allocation fails), 0; -1 when the stream has one already.
+s32 *__fastcall StreamBase_OpenMemory(StreamBase *s, void *edx, s32 *result, u32 a);
 // The forwarders (vtable +8 to +0x20).
 s32 __fastcall StreamBase_Read(StreamBase *s, void *edx, void *buffer, s32 count);
 s32 __fastcall StreamBase_Write(StreamBase *s, void *edx, const void *buffer, s32 count);
@@ -114,6 +117,7 @@ struct HandlesEnv {
     s32 *(__fastcall *open28)(RefObject2 *o, void *edx, s32 *result, u32 a);  // 0x619d70
     RefObject2 *(__fastcall *ctorE0)(void *self);  // 0x61a060
     s32 *(__fastcall *openE0)(RefObject2 *o, void *edx, s32 *result, u32 a, u32 b);  // 0x61a250
+    RefObject *(__fastcall *ctorMemory)(void *self, void *edx, u32 a);                 // 0x618df0
 };
 // The classes' calls go to env (nullptr: the game's).
 void Handles_SetEnv(const HandlesEnv *env);

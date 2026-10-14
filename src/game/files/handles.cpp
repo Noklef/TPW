@@ -18,6 +18,7 @@ const HandlesEnv kGameEnv = {
     reinterpret_cast<s32 *(__fastcall *)(RefObject2 *, void *, s32 *, u32)>(0x00619d70),
     reinterpret_cast<RefObject2 *(__fastcall *)(void *)>(0x0061a060),
     reinterpret_cast<s32 *(__fastcall *)(RefObject2 *, void *, s32 *, u32, u32)>(0x0061a250),
+    reinterpret_cast<RefObject *(__fastcall *)(void *, void *, u32)>(0x00618df0),
 };
 const HandlesEnv *g_env = &kGameEnv;
 
@@ -107,6 +108,17 @@ void __fastcall StreamBase_Attach(StreamBase *s, void *, RefObject *source) {
     RefObject_AddRef(source);
     if (s->source) vcall<void>(source, 0x28, s->source);
     s->source = source;
+}
+
+s32 *__fastcall StreamBase_OpenMemory(StreamBase *s, void *, s32 *result, u32 a) {
+    if (s->source) {
+        *result = -1;
+        return result;
+    }
+    void *const block = g_env->alloc(0x2c);
+    StreamBase_Attach(s, nullptr, block ? g_env->ctorMemory(block, nullptr, a) : nullptr);
+    *result = 0;
+    return result;
 }
 
 s32 __fastcall StreamBase_Read(StreamBase *s, void *, void *buffer, s32 count) {

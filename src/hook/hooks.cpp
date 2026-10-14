@@ -2,12 +2,14 @@
 // Add a row here when a reimplementation is ready; mark it in re/symbols.csv too.
 #include "hooks.h"
 
+#include "../game/core/libc.h"
 #include "../game/core/string.h"
 #include "../game/files/file.h"
 #include "../game/files/handles.h"
 #include "../game/files/refpack.h"
 #include "../game/math/matrix.h"
 #include "../game/math/vector.h"
+#include "../game/gfx/palette.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
 #include "../game/motion/curve.h"
@@ -255,6 +257,26 @@ const Hook kHooks[] = {
     {"RefObject2_Release",      0x00619810, (void *)&RefObject2_Release, {0x56, 0x8b, 0xf1, 0x57, 0x8d}},
     {"RefObject2_SetLink",      0x00619860, (void *)&RefObject2_SetLink, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
     {"StreamBase_Vfn5",         0x00639100, (void *)&StreamBase_Vfn5, {0x8b, 0x49, 0x04, 0x85, 0xc9}},
+    {"StreamBase_OpenMemory",   0x005f72c0, (void *)&StreamBase_OpenMemory, {0x6a, 0xff, 0x68, 0x6b, 0x21}},
+    {"Palette_ExpandRgb",       0x005f7360, (void *)&Palette_ExpandRgb, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"Palette_Nearest",         0x005f73a0, (void *)&Palette_Nearest, {0x81, 0xec, 0x1c, 0x02, 0x00}},
+    {"Lib_StrLen",              0x005f76c0, (void *)&Lib_StrLen, {0x57, 0x8b, 0x7c, 0x24, 0x08}},
+    {"Lib_StrCpy",              0x005f76e0, (void *)&Lib_StrCpy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
+    {"Lib_StrNCpy",             0x005f7710, (void *)&Lib_StrNCpy, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"Lib_StrCat",              0x005f7730, (void *)&Lib_StrCat, {0x53, 0x56, 0x57, 0x8b, 0x7c}},
+    {"Lib_StrNCat",             0x005f7770, (void *)&Lib_StrNCat, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"Lib_AtoI",                0x005f7790, (void *)&Lib_AtoI, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"Lib_IsDigit",             0x005f77a0, (void *)&Lib_IsDigit, {0x66, 0x0f, 0xbe, 0x44, 0x24}},
+    {"Lib_VSPrintf",            0x005f77c0, (void *)&Lib_VSPrintf, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"Lib_VSNPrintf",           0x005f77e0, (void *)&Lib_VSNPrintf, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
+    {"Lib_WcsLen",              0x005f7800, (void *)&Lib_WcsLen, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"Lib_WcsCpy",              0x005f7810, (void *)&Lib_WcsCpy, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"Lib_WcsNCpy",             0x005f7830, (void *)&Lib_WcsNCpy, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"Lib_WcsCat",              0x005f7850, (void *)&Lib_WcsCat, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"Lib_WcsNCat",             0x005f7870, (void *)&Lib_WcsNCat, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"Lib_WtoI",                0x005f7890, (void *)&Lib_WtoI, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"Lib_IsDigitW",            0x005f78a0, (void *)&Lib_IsDigitW, {0x8b, 0x44, 0x24, 0x04, 0x6a}},
+    {"Lib_VSWPrintf",           0x005f78c0, (void *)&Lib_VSWPrintf, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
