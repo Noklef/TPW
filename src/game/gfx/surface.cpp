@@ -14,8 +14,38 @@ u32 at(const u8 *p, u32 offset) {
     std::memcpy(&v, p + offset, 4);
     return v;
 }
+void put(u8 *p, u32 offset, u32 v) { std::memcpy(p + offset, &v, 4); }
+
+template <typename T>
+T addr(u32 address) {
+    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
+}
+const SurfaceEnv kGameEnv = {addr<void **>(0x00fa76b0), addr<const u8 *>(0x00fa76b4), addr<const void *>(0x00fa71f8)};
+const SurfaceEnv *g_env = &kGameEnv;
+
+const s32 kSurfaceLost = static_cast<s32>(0x887601c2);  // DDERR_SURFACELOST
+const u32 kDescSize = 0x6c;                             // sizeof(DDSURFACEDESC)
+
+// The colour key in info's pixel format: rgb (0xAARRGGBB) through each channel's shifts.
+u32 packKey(const SurfaceInfo *info, u32 rgb) {
+    PixelChannel c[4];
+    PixelChannel_Set(&c[0], nullptr, info->redMask, 0x17);
+    PixelChannel_Set(&c[1], nullptr, info->greenMask, 0xf);
+    PixelChannel_Set(&c[2], nullptr, info->blueMask, 7);
+    PixelChannel_Set(&c[3], nullptr, info->alphaMask, 0x1f);
+    u32 key = 0;
+    for (const PixelChannel &p : c) key |= ((rgb >> (p.up & 31)) << (p.down & 31)) & p.mask;
+    return key;
+}
+
+void setSourceKey(Surface *s, u32 key) {
+    u32 ck[2] = {key, key};                           // DDCOLORKEY: low, high
+    comcall<s32>(s->surface, 0x74, 8u, ck);           // SetColorKey(DDCKEY_SRCBLT)
+}
 
 }  // namespace
+
+void Surface_SetEnv(const SurfaceEnv *e) { g_env = e ? e : &kGameEnv; }
 
 extern "C" {
 
@@ -130,5 +160,136 @@ s32 *__fastcall SurfaceInfo_SubRect(const SurfaceInfo *i, void *, s32 *out, Surf
 }
 
 u32 __fastcall SurfaceInfo_Size(const SurfaceInfo *i) { return i->height * static_cast<u32>(i->pitch); }
+
+void __cdecl Surface_SetDirectDraw(void *directDraw) { *g_env->directDraw = directDraw; }
+
+s32 *__cdecl Surface_Attach(s32 *out, void *surface, Surface *s) {
+    std::memset(s, 0, sizeof *s);
+    u8 desc[kDescSize] = {};
+    put(desc, 0, kDescSize);
+    put(desc, 4, 0x100f);  // DDSD_CAPS | HEIGHT | WIDTH | PITCH | PIXELFORMAT
+    comcall<s32>(surface, 0x58, desc);
+    s->attached = 1;
+    s->surface = surface;
+    Surface_InitHeader(s, at(desc, 0xc), at(desc, 0x8), at(desc, 0x54), 0);
+    *out = 0;
+    return out;
+}
+
+Surface *__cdecl Surface_InitHeader(Surface *s, u32, u32, u32 bitCount, u32 unknown1c) {
+    s->unknown00[0] = 0;
+    s->unknown00[1] = 0;
+    s->unknown00[2] = 0;
+    s->palette = bitCount == 8 ? g_env->palette : nullptr;
+    s->unknown1c = unknown1c;
+    return s;
+}
+
+u32 __cdecl Surface_Restore(Surface *s) {
+    if (comcall<s32>(s->surface, 0x60) == kSurfaceLost && comcall<s32>(s->surface, 0x6c) != 0) return 0;
+    return 1;
+}
+
+s32 *__cdecl Surface_Create(s32 *out, u32 width, u32 height, u32 caps, Surface *s) {
+    u8 desc[kDescSize] = {};
+    put(desc, 0, kDescSize);
+    put(desc, 4, 7);  // DDSD_CAPS | HEIGHT | WIDTH
+    put(desc, 8, height);
+    put(desc, 0xc, width);
+    put(desc, 0x68, caps | 0x40);  // DDSCAPS_OFFSCREENPLAIN
+    if (comcall<s32>(*g_env->directDraw, 0x18, desc, &s->surface, static_cast<void *>(nullptr))) {
+        *out = -1;
+        return out;
+    }
+    std::memset(desc, 0, sizeof desc);
+    put(desc, 0, kDescSize);
+    put(desc, 4, 0x1009);  // DDSD_CAPS | PITCH | PIXELFORMAT
+    comcall<s32>(s->surface, 0x58, desc);
+    Surface_InitHeader(s, width, height, at(desc, 0x54), 0);
+    *out = 0;
+    return out;
+}
+
+s32 *__cdecl Surface_Release(s32 *out, Surface *s) {
+    comcall<u32>(s->surface, 8);
+    s->surface = nullptr;
+    *out = 0;
+    return out;
+}
+
+s32 *__cdecl Surface_BltFast(s32 *out, Surface *dst, u32 x, u32 y, Surface *src, const Rect *srcRect, u32 flags) {
+    const SurfaceInfo *info = Surface_Refresh(src);
+    Surface_Refresh(dst);
+    Rect all = {0, 0, 0, 0};
+    if (!srcRect) {
+        all.right = static_cast<s32>(info->width);
+        all.bottom = static_cast<s32>(info->height);
+        srcRect = &all;
+    }
+    if (flags & 1) setSourceKey(src, info->bitCount == 8 ? src->keyIndex : packKey(info, src->keyRgb));
+    const s32 hr = comcall<s32>(dst->surface, 0x1c, x, y, src->surface, const_cast<Rect *>(srcRect), flags ^ 0x10);
+    if (hr == kSurfaceLost) {
+        Surface_Restore(dst);
+        Surface_Restore(src);
+    }
+    *out = hr ? -1 : 0;
+    return out;
+}
+
+s32 *__cdecl Surface_Blt(s32 *out, Surface *dst, const Rect *dstRect, Surface *src, const Rect *srcRect, u32 flags) {
+    const SurfaceInfo *srcInfo = Surface_Refresh(src);
+    const SurfaceInfo *dstInfo = Surface_Refresh(dst);
+    Rect dstAll = {0, 0, static_cast<s32>(dstInfo->width), static_cast<s32>(dstInfo->height)};
+    Rect srcAll = {0, 0, static_cast<s32>(srcInfo->width), static_cast<s32>(srcInfo->height)};
+    if (!srcRect) srcRect = &srcAll;
+    if (!dstRect) dstRect = &dstAll;
+    u32 fx[0x19] = {};  // DDBLTFX
+    fx[0] = sizeof fx;
+    u32 bltFlags = flags ^ 0x1000000;  // DDBLT_WAIT
+    if (flags & 0x800) {               // DDBLT_DDFX
+        bltFlags |= 0x800;
+        fx[1] |= 8;                    // DDBLTFX_NOTEARING
+    }
+    if (flags & 0x8000) {              // DDBLT_KEYSRC
+        setSourceKey(src, srcInfo->bitCount == 8 ? src->keyIndex : packKey(srcInfo, src->keyRgb));
+        bltFlags |= 0x8000;
+    }
+    const s32 hr = comcall<s32>(dst->surface, 0x14, const_cast<Rect *>(dstRect), src->surface,
+                                const_cast<Rect *>(srcRect), bltFlags, fx);
+    if (hr == kSurfaceLost) {
+        Surface_Restore(dst);
+        Surface_Restore(src);
+    }
+    // The original passes a failure to Debug_Printf (0x5da3c0), empty in this build.
+    *out = hr ? -1 : 0;
+    return out;
+}
+
+s32 *__cdecl Surface_Lock(s32 *out, Surface *s, void **bits) {
+    u8 desc[kDescSize] = {};
+    put(desc, 0, kDescSize);
+    const u32 lockFlags = *g_env->noSysLock ? 0x801u : 1u;  // DDLOCK_WAIT (| DDLOCK_NOSYSLOCK)
+    s32 hr = comcall<s32>(s->surface, 0x64, static_cast<void *>(nullptr), desc, lockFlags, static_cast<void *>(nullptr));
+    if (hr) {
+        if (hr == kSurfaceLost && Surface_Restore(s))
+            hr = comcall<s32>(s->surface, 0x64, static_cast<void *>(nullptr), desc, lockFlags,
+                              static_cast<void *>(nullptr));
+        if (hr < 0) {
+            *out = hr;
+            return out;
+        }
+    }
+    Surface_SetInfo(s, nullptr, desc);
+    if (bits) *bits = reinterpret_cast<void *>(static_cast<std::uintptr_t>(at(desc, 0x24)));
+    *out = 0;
+    return out;
+}
+
+s32 __cdecl Surface_Unlock(Surface *s) { return comcall<s32>(s->surface, 0x80, static_cast<void *>(nullptr)); }
+
+void *__cdecl Surface_GetSurface(Surface *s, s32 addRef) {
+    if (addRef && s->surface) comcall<u32>(s->surface, 4);
+    return s->surface;
+}
 
 }  // extern "C"

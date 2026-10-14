@@ -1087,6 +1087,17 @@ address,name,kind,confidence,notes
 0x005fa760,SurfaceInfo_SubRectAt,function,high,"reimplemented (src/game/gfx/surface); thiscall (&out, dst, &point, &size); SubRect of that rectangle"
 0x005fa7b0,SurfaceInfo_SubRect,function,high,"reimplemented (src/game/gfx/surface); thiscall (&out, dst, &rect); dst views the part inside rect; -1 when empty"
 0x005fa890,SurfaceInfo_Size,function,high,reimplemented (src/game/gfx/surface); thiscall; height * pitch
+0x005f8f80,Surface_SetDirectDraw,function,high,"reimplemented (src/game/gfx/surface); cdecl; the IDirectDraw Create uses (0xfa76b0)"
+0x005f8f90,Surface_Attach,function,high,"reimplemented (src/game/gfx/surface); cdecl; (&out, IDirectDrawSurface, s): wraps a surface made elsewhere"
+0x005f9000,Surface_InitHeader,function,high,"reimplemented (src/game/gfx/surface); cdecl; (s, width, height, bit count, x): the header; palette for 8 bits"
+0x005f9040,Surface_Restore,function,high,"reimplemented (src/game/gfx/surface); cdecl; IsLost then Restore; 0 when that failed"
+0x005f9070,Surface_Create,function,high,"reimplemented (src/game/gfx/surface); cdecl; (&out, width, height, caps, s): an offscreen plain surface"
+0x005f9130,Surface_Release,function,high,"reimplemented (src/game/gfx/surface); cdecl; (&out, s): Release"
+0x005f9160,Surface_BltFast,function,high,"reimplemented (src/game/gfx/surface); cdecl; (&out, dst, x, y, src, &rect, flags): flag 1 sets the colour key"
+0x005f92e0,Surface_Blt,function,high,"reimplemented (src/game/gfx/surface); cdecl; (&out, dst, &dst rect, src, &src rect, flags): 0x8000 sets the colour key"
+0x005f9550,Surface_Lock,function,high,"reimplemented (src/game/gfx/surface); cdecl; (&out, s, &bits): locks all of it, retrying once after a restore"
+0x005f9600,Surface_Unlock,function,high,"reimplemented (src/game/gfx/surface); cdecl; Unlock(0)"
+0x005f9620,Surface_GetSurface,function,high,"reimplemented (src/game/gfx/surface); cdecl; (s, addRef): the IDirectDrawSurface"
 0x005f9fa0,FpuControl_DeletingDtor,function,high,"reimplemented (src/game/core/fpu); thiscall (flags); vtable 0x7035d8 slot 0: Dtor, Mem_Free when flags & 1"
 0x005f9fc0,FpuControl_Dtor,function,high,reimplemented (src/game/core/fpu); thiscall; base vtable 0x7035dc then Restore
 0x005f9fd0,FpuControl_BaseDeletingDtor,function,high,"reimplemented (src/game/core/fpu); thiscall (flags); vtable 0x7035dc slot 0"
@@ -1471,3 +1482,5 @@ address,name,kind,confidence,notes
 0x005f8770,App_GetIconId,function,high,"reimplemented (src/game/core/app); cdecl; u16 at 0xfa7618 (never set)"
 0x005f8780,App_GetName,function,high,"reimplemented (src/game/core/app); cdecl; ""Bullfrog"" (0x775708)"
 0x00fa7608,gApp,data,high,"AppState (src/game/core/app): quit, instance, window, wndProc, iconId, active (0xfa761c)"
+0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
+0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
