@@ -14,6 +14,8 @@ T at(u32 address) {
 const DrawEnv kGameEnv = {
     at<DrawContext *>(0x00fa76b8),
     at<const u8 *>(0x00778108),
+    at<SpriteDrawParams *>(0x00faa4d8),
+    at<void(__cdecl *)(s32, s32, const RleSprite *)>(0x006e73c0),
 };
 const DrawEnv *g_env = &kGameEnv;
 
@@ -421,6 +423,20 @@ void __fastcall Draw8_Text(DrawDriver *, void *, s32 x, s32 y, const char *str, 
 
 void __fastcall Draw8_TextW(DrawDriver *, void *, s32 x, s32 y, const u16 *str, DrawColour c) {
     text(x, y, str, c.index);
+}
+
+void __fastcall Draw8_Sprite(DrawDriver *, void *, s32 x, s32 y, const RleSprite *sprite) {
+    const DrawContext *s = g_env->state;
+    SpriteDrawParams *p = g_env->spriteParams;
+    p->pitch = s->surface->pitch;
+    p->clipWidth = Rect_Width(&s->clip);
+    p->clipHeight = Rect_Height(&s->clip);
+    p->flags = s->flags;
+    p->ghost = s->ghost;
+    p->bits = s->bits;
+    p->clipTop = s->clip.top;
+    p->clipLeft = s->clip.left;
+    g_env->drawSprite(x - s->clip.left, y - s->clip.top, sprite);
 }
 
 }  // extern "C"

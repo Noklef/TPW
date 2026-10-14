@@ -1039,3 +1039,6 @@ address,name,kind,confidence,notes
 0x0061eab0,Draw_Triangle,function,high,"reimplemented (src/game/gfx/draw8); slot 10 of every depth, (x1, y1, x2, y2, x3, y3, colour); outline: three slot-7 lines; else sorted by y and filled with slot-8 spans along 16.16 edges"
 0x0061c630,Draw8_CircleOutline,function,high,"reimplemented (src/game/gfx/draw8); slot 5, (x, y, r, colour); midpoint circle, 8 clipped plots a step; r 0 a dot, r 1 a plus sign; negative r draws nothing"
 0x0061e100,Draw8_CircleFill,function,high,"reimplemented (src/game/gfx/draw8); slot 6, (x, y, r, colour); midpoint circle as slot-8 spans; r 0/1 as the outline; negative r draws the centre span leftwards and two dots"
+0x0061b1e0,Draw8_Sprite,function,high,"reimplemented (src/game/gfx/draw8); slot 14, (x, y, sprite); copies the context to SpriteDrawParams 0xfaa4d8 and calls the cseg blitter 0x6e73c0 with clip-relative x, y"
+0x00faa4d8,gSpriteDrawParams,data,high,"SpriteDrawParams: pitch, clip size, flags, bits, ghost, ?, ?, clip left/top; read by the cseg sprite blitter"
+0x006e73c0,Sprite_DrawRle,function,medium,"hand-written (cseg) run-length sprite blitter, cdecl (x, y, RleSprite *) with x, y relative to the clip; reads gSpriteDrawParams"

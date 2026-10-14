@@ -5,8 +5,9 @@
 //
 // Slots: 0 pixel (x, y), 1 box (rect: 2 outline or 3 filled), 4 circle (x, y, r: 5 outline or
 // 6 filled), 7 line (x1, y1, x2, y2), 8 horizontal and 9 vertical line (x, y, length),
-// 10 triangle, 11 clear the clip rectangle, 12/13 debug text (narrow/wide), 14/15 sprites.
-// Each ends with a DrawColour, passed by value: the paletted primitives draw its index.
+// 10 triangle, 11 clear the clip rectangle, 12/13 debug text (narrow/wide), 14 sprite (x, y,
+// sprite: hands over to the hand-written blitter), 15 a sprite's shape in one colour.
+// All but 14 end with a DrawColour, passed by value: the paletted primitives draw its index.
 //
 // Flags (+0x3c): 4 outlines instead of filling, 8 and 0x10 blend through the 256x256 ghost
 // table (colour*256 + background, or background*256 + colour), 0x20 remaps the colour through
@@ -52,6 +53,29 @@ struct DrawContext {           // 0xfa76b8
 };
 static_assert(sizeof(DrawContext) == 0x74, "DrawContext is 0x74 bytes");
 
+// A run-length sprite: rows of signed counts (n > 0: n pixels follow, n < 0: skip -n, 0: end
+// of the row).
+struct RleSprite {
+    const u8 *data;
+    u16 width;   // +4
+    u16 height;  // +6
+};
+static_assert(sizeof(RleSprite) == 8, "RleSprite is 8 bytes");
+
+// The hand-written sprite blitter's parameters (0xfaa4d8), copied from the context by slot 14.
+struct SpriteDrawParams {
+    s32 pitch;
+    s32 clipWidth;     // +4
+    s32 clipHeight;    // +8
+    u32 flags;         // +0xc
+    u8 *bits;          // +0x10
+    const u8 *ghost;   // +0x14
+    u32 unknown18[2];  // not written here
+    s32 clipLeft;      // +0x20
+    s32 clipTop;       // +0x24
+};
+static_assert(sizeof(SpriteDrawParams) == 0x28, "SpriteDrawParams is 0x28 bytes");
+
 enum : u32 {
     kDrawOutline = 4,
     kDrawGhost = 8,         // ghost[colour * 256 + background]
@@ -77,11 +101,14 @@ void __fastcall Draw8_VLine(DrawDriver *d, void *edx, s32 x, s32 y, s32 length, 
 void __fastcall Draw8_Clear(DrawDriver *d, void *edx, DrawColour c);                       // 0x61ee30 (11)
 void __fastcall Draw8_Text(DrawDriver *d, void *edx, s32 x, s32 y, const char *s, DrawColour c);   // 0x61f0a0 (12)
 void __fastcall Draw8_TextW(DrawDriver *d, void *edx, s32 x, s32 y, const u16 *s, DrawColour c);  // 0x61f220 (13)
+void __fastcall Draw8_Sprite(DrawDriver *d, void *edx, s32 x, s32 y, const RleSprite *sprite);    // 0x61b1e0 (14)
 }
 
 struct DrawEnv {
     DrawContext *state;  // 0xfa76b8
     const u8 *font;    // 0x778108: 6 rows of 5 pixels (bits 0x40-0x04) and the advance, 8 bytes a glyph
+    SpriteDrawParams *spriteParams;  // 0xfaa4d8
+    void(__cdecl *drawSprite)(s32 x, s32 y, const RleSprite *sprite);  // 0x6e73c0, hand-written (cseg)
 };
 // The state and tables go through env (nullptr: the game's).
 void Draw_SetEnv(const DrawEnv *env);
