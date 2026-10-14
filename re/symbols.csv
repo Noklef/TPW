@@ -1153,6 +1153,22 @@ address,name,kind,confidence,notes
 0x00fa7a80,gCursor,data,high,"Cursor (src/game/gfx/cursor), the software cursor singleton, 0x230 bytes"
 0x00fa7a78,gCursorGuard,data,high,Cursor_Get's function-static guard (bit 0)
 0x00775874,gCursorBusy,data,high,"byte; 1 while Cursor_Draw blits, cleared after each blit; nothing reads it"
+0x005fb8e0,AsyncPointer_Ctor,function,high,"reimplemented (src/game/gfx/pointer); thiscall (display); paused, stopped, no cursor, interval 0x42"
+0x005fb920,AsyncPointer_DeletingDtor,function,high,reimplemented (src/game/gfx/pointer); thiscall (flags); vtable 0x703644
+0x005fb940,AsyncPointer_Dtor,function,high,"reimplemented (src/game/gfx/pointer); thiscall; Detach, then the semaphore"
+0x005fb990,AsyncPointer_Detach,function,high,"reimplemented (src/game/gfx/pointer); thiscall; Cursor_Discard the cursor, Stop"
+0x005fb9b0,AsyncPointer_Stop,function,high,"reimplemented (src/game/gfx/pointer); thiscall; stop = 1, waits for a still active thread, closes it"
+0x005fba00,AsyncPointer_ThreadProc,function,high,reimplemented (src/game/gfx/pointer); stdcall (pointer); Run
+0x005fba10,AsyncPointer_Tick,function,high,reimplemented (src/game/gfx/pointer); thiscall (now); Cursor_Draw onto the back surface when due and the lock is free
+0x005fba70,AsyncPointer_Run,function,high,"reimplemented (src/game/gfx/pointer); thiscall; ""Asynchronous Pointer Thread"" loop: Tick, Sleep(0) until stop; _endthreadex"
+0x005fbad0,AsyncPointer_Lock,function,high,reimplemented (src/game/gfx/pointer); thiscall (forever); the semaphore taken and kept; bool
+0x005fbb70,AsyncPointer_Unlock,function,high,reimplemented (src/game/gfx/pointer); thiscall
+0x005fbbd0,AsyncPointer_Attach,function,high,"reimplemented (src/game/gfx/pointer); thiscall (&out, &pos); Cursor_Get, clipped to the display's bounds"
+0x005fbc30,AsyncPointer_Start,function,high,reimplemented (src/game/gfx/pointer); thiscall (&out); _beginthreadex(ThreadProc); -1 without a thread
+0x005fbc80,AsyncPointer_SetPaused,function,high,"reimplemented (src/game/gfx/pointer); thiscall (&out, paused); Stop or Start; 0x4ffe0002 when already so"
+0x005fbcf0,AsyncPointer_SetImage,function,high,"reimplemented (src/game/gfx/pointer); thiscall (&out, image, &rect, &hotspot); Cursor_SetImage under the lock, Tick"
+0x005fbd40,AsyncPointer_BeginFlip,function,high,reimplemented (src/game/gfx/pointer); thiscall; locks; Cursor_Update(front surface)
+0x005fbd90,AsyncPointer_EndFlip,function,high,reimplemented (src/game/gfx/pointer); thiscall; Cursor_Restore(front surface); next tick; unlocks
 0x005f9fa0,FpuControl_DeletingDtor,function,high,"reimplemented (src/game/core/fpu); thiscall (flags); vtable 0x7035d8 slot 0: Dtor, Mem_Free when flags & 1"
 0x005f9fc0,FpuControl_Dtor,function,high,reimplemented (src/game/core/fpu); thiscall; base vtable 0x7035dc then Restore
 0x005f9fd0,FpuControl_BaseDeletingDtor,function,high,"reimplemented (src/game/core/fpu); thiscall (flags); vtable 0x7035dc slot 0"

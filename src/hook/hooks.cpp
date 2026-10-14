@@ -35,6 +35,7 @@
 #include "../game/gfx/screen.h"
 #include "../game/gfx/cursor.h"
 #include "../game/gfx/surfbuf.h"
+#include "../game/gfx/pointer.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
 #include "../game/motion/curve.h"
@@ -604,6 +605,22 @@ const Hook kHooks[] = {
     {"SurfaceBuffer_Dtor",        0x00630720, (void *)&SurfaceBuffer_Dtor, {0xc7, 0x01, 0x98, 0x39, 0x70}},
     {"SurfaceBuffer_Create",      0x00630730, (void *)&SurfaceBuffer_Create, {0x56, 0x8b, 0xf1, 0xe8, 0x58}},
     {"SurfaceBuffer_Release",     0x00630790, (void *)&SurfaceBuffer_Release, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
+    {"AsyncPointer_Ctor",         0x005fb8e0, (void *)&AsyncPointer_Ctor, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"AsyncPointer_DeletingDtor", 0x005fb920, (void *)&AsyncPointer_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"AsyncPointer_Dtor",         0x005fb940, (void *)&AsyncPointer_Dtor, {0x6a, 0xff, 0x68, 0xcb, 0x22}},
+    {"AsyncPointer_Detach",       0x005fb990, (void *)&AsyncPointer_Detach, {0x56, 0x8b, 0xf1, 0x8b, 0x4e}},
+    {"AsyncPointer_Stop",         0x005fb9b0, (void *)&AsyncPointer_Stop, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
+    {"AsyncPointer_ThreadProc",   0x005fba00, (void *)&AsyncPointer_ThreadProc, {0x8b, 0x4c, 0x24, 0x04, 0xe8}},
+    {"AsyncPointer_Tick",         0x005fba10, (void *)&AsyncPointer_Tick, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
+    {"AsyncPointer_Run",          0x005fba70, (void *)&AsyncPointer_Run, {0x56, 0x57, 0x8b, 0x3d, 0xe0}},
+    {"AsyncPointer_Lock",         0x005fbad0, (void *)&AsyncPointer_Lock, {0x6a, 0xff, 0x68, 0xe8, 0x22}},
+    {"AsyncPointer_Unlock",       0x005fbb70, (void *)&AsyncPointer_Unlock, {0x6a, 0xff, 0x68, 0x08, 0x23}},
+    {"AsyncPointer_Attach",       0x005fbbd0, (void *)&AsyncPointer_Attach, {0x83, 0xec, 0x10, 0x56, 0x8b}},
+    {"AsyncPointer_Start",        0x005fbc30, (void *)&AsyncPointer_Start, {0x51, 0x56, 0x8b, 0xf1, 0xe8}},
+    {"AsyncPointer_SetPaused",    0x005fbc80, (void *)&AsyncPointer_SetPaused, {0x56, 0x8b, 0xf1, 0x8a, 0x4c}},
+    {"AsyncPointer_SetImage",     0x005fbcf0, (void *)&AsyncPointer_SetImage, {0x56, 0x57, 0x8b, 0xf1, 0x6a}},
+    {"AsyncPointer_BeginFlip",    0x005fbd40, (void *)&AsyncPointer_BeginFlip, {0x51, 0x56, 0x57, 0x8b, 0xf1}},
+    {"AsyncPointer_EndFlip",      0x005fbd90, (void *)&AsyncPointer_EndFlip, {0x51, 0x56, 0x8b, 0xf1, 0x57}},
     {"PixelConverter_DeletingDtor", 0x00630c50, (void *)&PixelConverter_DeletingDtor, {0x8a, 0x44, 0x24, 0x04, 0x56}},
     {"PixelConverter_DeletingDtor2", 0x00630c70, (void *)&PixelConverter_DeletingDtor2, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"PixelConverter_Dtor",       0x00630c90, (void *)&PixelConverter_Dtor, {0xc7, 0x01, 0xc0, 0x39, 0x70}},
