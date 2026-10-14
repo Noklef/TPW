@@ -51,6 +51,7 @@ add_library(tpw_game STATIC
     src/game/core/events.cpp
     src/game/core/filetime.cpp
     src/game/gfx/color.cpp
+    src/game/gfx/convert.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp

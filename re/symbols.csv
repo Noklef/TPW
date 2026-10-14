@@ -1184,6 +1184,12 @@ address,name,kind,confidence,notes
 0x005fc100,EventQueue_Unlisten,function,high,"reimplemented (src/game/core/events); thiscall (channel, callback, context); every match removed (context 0 matches any)"
 0x005fc220,EventQueue_Clear,function,high,reimplemented (src/game/core/events); thiscall; every listener and node freed
 0x005fc2d0,EventListBase_DeletingDtor,function,high,reimplemented (src/game/core/events); thiscall (flags); vtable 0x70364c
+0x005fc320,Convert_StaticInit,function,high,"reimplemented (src/game/gfx/convert); cdecl static initializer; Construct, RegisterExit"
+0x005fc330,Convert_Construct,function,high,reimplemented (src/game/gfx/convert); cdecl; PixelConversion_Ctor on 0xfa7d18
+0x005fc340,Convert_RegisterExit,function,high,reimplemented (src/game/gfx/convert); cdecl; atexit(0x5fc350)
+0x005fc350,Convert_AtExit,function,high,reimplemented (src/game/gfx/convert); cdecl; PixelConversion_Dtor on 0xfa7d18
+0x005fc360,SurfaceInfo_Convert,function,high,"reimplemented (src/game/gfx/convert); thiscall, this unused (&out, dst, src, palette); row copy for the same format, else PixelConversion 0xfa7d18 set up with the width as flags (sic)"
+0x00fa7d18,gConversion,data,high,PixelConversion (0x10) used by SurfaceInfo_Convert; static (0x5fc320)
 0x005fc530,FileTime_Add,function,high,"reimplemented (src/game/core/filetime); thiscall (&out, &b); out = this + b (64-bit); returns out"
 0x005fc550,FileTime_Sub,function,high,"reimplemented (src/game/core/filetime); thiscall (&out, &b); out = this - b (64-bit); returns out"
 0x005fc570,FileTime_Greater,function,high,reimplemented (src/game/core/filetime); thiscall (&b); this > b (unsigned 64-bit)

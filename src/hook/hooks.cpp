@@ -37,6 +37,7 @@
 #include "../game/gfx/surfbuf.h"
 #include "../game/gfx/pointer.h"
 #include "../game/gfx/color.h"
+#include "../game/gfx/convert.h"
 #include "../game/core/events.h"
 #include "../game/core/filetime.h"
 #include "../game/motion/animator.h"
@@ -639,6 +640,11 @@ const Hook kHooks[] = {
     {"EventQueue_Unlisten",       0x005fc100, (void *)&EventQueue_Unlisten, {0x6a, 0xff, 0x68, 0xa8, 0x23}},
     {"EventQueue_Clear",          0x005fc220, (void *)&EventQueue_Clear, {0x6a, 0xff, 0x68, 0xc8, 0x23}},
     {"EventListBase_DeletingDtor", 0x005fc2d0, (void *)&EventListBase_DeletingDtor, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"Convert_StaticInit",        0x005fc320, (void *)&Convert_StaticInit, {0xe8, 0x0b, 0x00, 0x00, 0x00}},
+    {"Convert_Construct",         0x005fc330, (void *)&Convert_Construct, {0xb9, 0x18, 0x7d, 0xfa, 0x00}},
+    {"Convert_RegisterExit",      0x005fc340, (void *)&Convert_RegisterExit, {0x68, 0x50, 0xc3, 0x5f, 0x00}},
+    {"Convert_AtExit",            0x005fc350, (void *)&Convert_AtExit, {0xb9, 0x18, 0x7d, 0xfa, 0x00}},
+    {"SurfaceInfo_Convert",       0x005fc360, (void *)&SurfaceInfo_Convert, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
     {"FileTime_Add",              0x005fc530, (void *)&FileTime_Add, {0x8b, 0x44, 0x24, 0x08, 0x56}},
     {"FileTime_Sub",              0x005fc550, (void *)&FileTime_Sub, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"FileTime_Greater",          0x005fc570, (void *)&FileTime_Greater, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
