@@ -9,9 +9,10 @@ src/game/sprite/script.cpp. Scripts start where the game's code points into the 
 table at 0x74f7c8 (Sprite_GetAction).
 
 A script has 19 registers (+0x84 of its 0x118-byte object). r1-r6 are floats, r1-r3 the
-position; r9 (a float too, 1.0 at the start) is what STEPR9 steps; r12 is the animation
-(SETANIM) and r13 the frame shown (PLAY); the scripts use r14 as the animation's frame count
-and set r16 to flags. The game sets r17/r18 before the special actions (frame counts).
+position; r7 starts at 0xff, r8 and r9 at 1.0 (STEPR9 steps r9); r10 is the sprite folder
+and r11 the sprite in it; r12 is the animation (SETANIM), r13 the frame shown (PLAY) and
+r14 the animation's frame count; r16 holds flags. A special action sets r17 and r18 from
+the sprite (Sprite_GetAction).
 
 Opcodes (operands: r = register, n = immediate, @ = address in the table):
   GOTO @, GOSUB @ (pushes the return pc; there is no RETURN), IF r test x / ELSE / ENDIF,
@@ -40,7 +41,7 @@ OPS = {
     0x4768b0: ('SETANIM', 'n'), 0x4768d0: ('PLAYREG', 'r'), 0x476940: ('PLAY', 'n'), 0x4769b0: ('PLAYALWAYS', 'n'),
     0x4769f0: ('HIDE', ''), 0x476a10: ('STEPR9', ''), 0x5da3c0: ('END', ''),
 }
-REGS = {1: 'x', 2: 'y', 3: 'z', 12: 'anim', 13: 'frame', 14: 'frames', 16: 'flags'}
+REGS = {1: 'x', 2: 'y', 3: 'z', 10: 'folder', 11: 'sprite', 12: 'anim', 13: 'frame', 14: 'frames', 16: 'flags'}
 KINDS = {mn: kinds for mn, kinds in OPS.values()}
 TESTS = {1: '==', 2: '!=', 3: '>', 4: '<', 5: '==', 6: '!=', 7: '>', 8: '<'}
 

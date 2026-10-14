@@ -1,6 +1,8 @@
-// The sprite script VM: reimplementation of 0x475010-0x475260, 0x476020-0x476a10 and
-// 0x540b90.
+// The sprite script VM: reimplementation of 0x475010-0x475f40, 0x476020-0x476a10,
+// 0x540b90-0x540c70 and 0x541f60.
 #include "script.h"
+
+#include <cstring>
 
 #include "../math/x87.h"
 
@@ -295,3 +297,322 @@ extern "C" void __cdecl SpriteOp_StepR9() {
 }
 
 extern "C" void __cdecl Sprite_Show(u8 *script) { at<u32>(script, 0x114) = 1; }
+
+// ---- the sprite lookups -------------------------------------------------------------
+
+extern "C" u32 __fastcall Sprite_GetAnimFrameCount(const u8 *sprite, void *, u32 anim) {
+    return sprite[0x222 + 4u * anim];
+}
+
+extern "C" void __fastcall Sprite_GetAction(const u8 *sprite, void *, u32 action, u32 *index, u32 *anim, u32 *r17,
+                                            u32 *r18) {
+    if (action > 3) return;
+    const u8 *entry = sprite + 0x20e + 4u * action;
+    *anim = entry[1] - 1u;
+    *index = entry[0] - 1u;
+    *r17 = entry[2];
+    *r18 = entry[3];
+}
+
+extern "C" s32 __cdecl SpriteFolder_Count(u32 folder) {
+    return *reinterpret_cast<const s32 *>(0x00763f90 + 12u * folder);
+}
+
+// ---- the script list ----------------------------------------------------------------
+
+namespace {
+
+s32 __cdecl game_now() {
+    using Clock = s32(__fastcall *)(void *self, void *unused);  // thiscall without arguments
+    return reinterpret_cast<Clock>(0x00402d70)(reinterpret_cast<void *>(0x00785970), nullptr);
+}
+
+const SpriteScriptEnv kGameEnv = {
+    reinterpret_cast<void *(__cdecl *)(u32)>(0x005f5660),
+    reinterpret_cast<void(__cdecl *)(void *)>(0x005f5680),
+    &game_now,
+    reinterpret_cast<u32(__cdecl *)(u8 *)>(0x00475010),
+    reinterpret_cast<void(__cdecl *)()>(0x00540ab0),
+    reinterpret_cast<void(__cdecl *)(u8 *)>(0x00542010),
+    reinterpret_cast<void(__cdecl *)()>(0x00540b30),
+    reinterpret_cast<void(__cdecl *)(u32 *, void *, const void *, u32, u32)>(0x005f5e50),
+    reinterpret_cast<void(__cdecl *)(u32 *, void *, void *, u32, u32)>(0x005f5e20),
+};
+const SpriteScriptEnv *g_env = &kGameEnv;
+const SpriteScriptEnv &env() { return *g_env; }
+
+constexpr u32 kCodeBase = 0x0074dab8, kMagic = 0x53435054;  // "TPCS"
+constexpr u32 kScriptSize = 0x118;
+
+// The script in a slot; null for slot 0 or past the table (empty slots hold null too).
+u8 *script_at(s32 slot) { return slot < 1 || slot >= g().slots ? nullptr : g().scripts[slot]; }
+
+// Kill's body, which the other loops inline: only while the list is ready.
+void kill(s32 slot) {
+    if (!g().ready || slot <= 0 || slot >= g().slots) return;
+    u8 *script = g().scripts[slot];
+    if (!script) return;
+    g().scripts[slot] = nullptr;
+    env().free(script);
+}
+
+void new_table(s32 slots) {
+    g().slots = slots;
+    g().scripts = static_cast<u8 **>(env().alloc(4u * (u32)slots));
+    std::memset(g().scripts, 0, 4u * (u32)g().slots);
+}
+
+// The script into the first free slot, the table growing by 50 until there is one.
+s32 insert(u8 *script) {
+    for (;;) {
+        for (s32 slot = 1; slot < g().slots; ++slot) {
+            if (!g().scripts[slot]) {
+                g().scripts[slot] = script;
+                at<s32>(script, 4) = slot;
+                return slot;
+            }
+        }
+        g().slots += 50;
+        u8 **grown = static_cast<u8 **>(env().alloc(4u * (u32)g().slots));
+        std::memset(grown, 0, 4u * (u32)g().slots);
+        std::memcpy(grown, g().scripts, 4u * (u32)g().slots - 200);
+        env().free(g().scripts);
+        g().scripts = grown;
+    }
+}
+
+// The sprite a script draws: gSprites (0x876b48)[the folder's first index + sprite].
+const u8 *sprite_of(u32 folder, u32 sprite) {
+    const u32 first = *reinterpret_cast<const u32 *>(0x00763f8c + 12u * folder);
+    return *reinterpret_cast<const u8 *const *>(0x00876b48 + 4u * (first + sprite));
+}
+u32 action_code(u32 index) { return *reinterpret_cast<const u32 *>(0x0074f7c8 + 4u * index); }
+bool is_action(u32 code) { return (s32)code >= 0 && (s32)code <= 3; }
+
+}  // namespace
+
+void SpriteScripts_SetEnv(const SpriteScriptEnv *e) { g_env = e ? e : &kGameEnv; }
+
+extern "C" void __cdecl SpriteScripts_Init() {
+    if (g().ready) return;
+    g().ready = 1;
+    g().stepLimit = 50;
+    new_table(100);
+}
+
+extern "C" void __cdecl SpriteScripts_Shutdown() {
+    if (!g().ready) return;
+    g().ready = 0;
+    for (s32 slot = 0; slot < g().slots; ++slot) kill(slot);  // not ready: frees nothing
+    env().free(g().scripts);
+    g().scripts = nullptr;
+    g().slots = 0;
+}
+
+extern "C" u32 __cdecl SpriteScripts_Update() {
+    g().steps = 0;
+    if (g().ready) {
+        g().now = (u32)env().now();
+        for (s32 slot = 1; slot < g().slots; ++slot) {
+            u8 *script = g().scripts[slot];
+            if (!script || (s32)g().now <= at<s32>(script, 0x7c)) continue;
+            if (at<s32>(script, 0x18) == 4) {
+                kill(slot);
+            } else {
+                g().steps += env().run(script);
+                at<u32>(script, 0x7c) = at<u32>(script, 0x80) + g().now;
+            }
+        }
+    }
+    return g().steps;
+}
+
+extern "C" void __cdecl SpriteScripts_Draw() {
+    if (g().ready) {
+        env().drawBegin();
+        for (s32 slot = 1; slot < g().slots; ++slot)
+            if (u8 *script = g().scripts[slot]) env().draw(script);
+    }
+    env().drawEnd();
+}
+
+extern "C" void __cdecl SpriteScript_SetPosition(s32 slot, u32 x, u32 y, u32 z, u32 r15) {
+    u8 *script = script_at(slot);
+    if (!g().ready || !script) return;
+    at<u32>(script, 0x88) = x;
+    at<u32>(script, 0x8c) = y;
+    at<u32>(script, 0x90) = z;
+    at<u32>(script, 0xc0) = r15;
+}
+
+extern "C" void __cdecl SpriteScript_GetPosition(s32 slot, u32 *x, u32 *y, u32 *z, u32 *r15) {
+    u8 *script = script_at(slot);
+    if (!g().ready || !script) return;
+    if (x) *x = at<u32>(script, 0x88);
+    if (y) *y = at<u32>(script, 0x8c);
+    if (z) *z = at<u32>(script, 0x90);
+    if (r15) *r15 = at<u32>(script, 0xc0);
+}
+
+extern "C" void __cdecl SpriteScript_Kill(s32 slot) { kill(slot); }
+
+extern "C" void __cdecl SpriteScript_SetReg(s32 slot, u32 index, u32 value) {
+    u8 *script = script_at(slot);
+    if (g().ready && script && index < 19) at<u32>(script, 0x84 + 4 * index) = value;
+}
+
+extern "C" void __cdecl SpriteScript_SetRegF(s32 slot, u32 index, u32 bits) {
+    u8 *script = script_at(slot);
+    if (g().ready && script && index < 19) at<u32>(script, 0x84 + 4 * index) = X87_FloatThrough(bits);  // fld; fstp
+}
+
+extern "C" void __cdecl SpriteScript_SetPeriod(s32 slot, u32 ms) {
+    u8 *script = script_at(slot);
+    if (g().ready && script) at<u32>(script, 0x80) = ms;
+}
+
+extern "C" void __cdecl SpriteScripts_Save(void *stream) {
+    if (!g().ready) return;
+    u32 result, value = kMagic;
+    env().write(&result, stream, &value, 4, 0);
+    value = kScriptSize;
+    env().write(&result, stream, &value, 4, 0);
+    env().write(&result, stream, &g().slots, 4, 0);
+    env().write(&result, stream, g().scripts, 4u * (u32)g().slots, 0);
+    for (s32 slot = 1; slot < g().slots; ++slot)
+        if (u8 *script = g().scripts[slot]) env().write(&result, stream, script, kScriptSize, 0);
+}
+
+extern "C" u32 __cdecl SpriteScripts_Load(void *stream) {
+    if (!g().ready) return 1;
+    for (s32 slot = 0; slot < g().slots; ++slot) kill(slot);
+    env().free(g().scripts);
+    u32 result, magic, size;
+    env().read(&result, stream, &magic, 4, 0);
+    env().read(&result, stream, &size, 4, 0);
+    if (magic != kMagic || size != kScriptSize) {
+        new_table(100);
+        return 1;
+    }
+    env().read(&result, stream, &g().slots, 4, 0);
+    g().scripts = static_cast<u8 **>(env().alloc(4u * (u32)g().slots));
+    env().read(&result, stream, g().scripts, 4u * (u32)g().slots, 0);
+    g().scripts[0] = nullptr;
+    for (s32 slot = 1; slot < g().slots; ++slot) {
+        if (!g().scripts[slot]) continue;  // the saved pointers: nonzero where a script follows
+        g().scripts[slot] = static_cast<u8 *>(env().alloc(kScriptSize));
+        env().read(&result, stream, g().scripts[slot], kScriptSize, 0);
+        at<u32>(g().scripts[slot], 0x14) = kCodeBase;
+    }
+    return 0;
+}
+
+extern "C" void __cdecl SpriteScript_Init(u8 *script, u32 code, u32 folder, u32 sprite, u32 anim, u32 x, u32 y,
+                                          u32 z, u32 r17, u32 r18) {
+    const s32 pc = (s32)(code - kCodeBase) >> 2;
+    at<s32>(script, 8) = pc;
+    at<s32>(script, 0xc) = pc;
+    at<u32>(script, 0x14) = kCodeBase;
+    at<s32>(script, 0x1c) = 20;
+    at<s32>(script, 0x18) = 1;
+    at<s32>(script, 0x70) = at<s32>(script, 0x74) = at<s32>(script, 0x78) = 0;
+    u32 *r = &at<u32>(script, 0x84);
+    r[1] = x, r[2] = y, r[3] = z;
+    r[4] = r[5] = r[6] = 0;
+    r[7] = 0xff;
+    r[8] = r[9] = 0x3f800000;  // 1.0f
+    r[10] = folder, r[11] = sprite, r[12] = anim;
+    r[15] = r[16] = 0;
+    r[17] = r17, r[18] = r18;
+    at<u32>(script, 0xf8) = 0;
+    at<u32>(script, 0x114) = 0;
+    at<s32>(script, 0x80) = 62;
+    at<s32>(script, 0x7c) = env().now() + at<s32>(script, 0x80);
+    r[14] = Sprite_GetAnimFrameCount(sprite_of(folder, sprite), nullptr, anim);
+}
+
+extern "C" s32 __cdecl SpriteScript_Start(u32 code, u32 folder, u32 sprite, u32 anim, u32 x, u32 y, u32 z) {
+    if (!g().ready) return 0;
+    u32 r17 = 0, r18 = 0;
+    u8 *script = static_cast<u8 *>(env().alloc(kScriptSize));
+    if (script) {
+        if (is_action(code)) {  // (and Debug_Printf, empty, of the folder's name)
+            u32 index;
+            Sprite_GetAction(sprite_of(folder, sprite), nullptr, code, &index, &anim, &r17, &r18);
+            code = action_code(index);
+        }
+        SpriteScript_Init(script, code, folder, sprite, anim, x, y, z, r17, r18);
+    }
+    return insert(script);
+}
+
+extern "C" void __cdecl SpriteScript_Jump(s32 slot, u32 code) {
+    u8 *script = script_at(slot);
+    if (!g().ready || !script) return;
+    if (is_action(code)) {
+        const u8 *sprite = sprite_of(at<u32>(script, 0xac), at<u32>(script, 0xb0));
+        u32 index, r17, r18;
+        Sprite_GetAction(sprite, nullptr, code, &index, &at<u32>(script, 0xb4), &r17, &r18);
+        code = action_code(index);
+        at<u32>(script, 0xbc) = Sprite_GetAnimFrameCount(sprite, nullptr, at<u32>(script, 0xb4));
+    }
+    at<s32>(script, 0x1c) = 20;
+    at<s32>(script, 0x70) = 0;
+    const s32 pc = (s32)(code - at<u32>(script, 0x14)) >> 2;
+    at<s32>(script, 8) = pc;
+    at<s32>(script, 0x74) = at<s32>(script, 0x78) = 0;
+    at<s32>(script, 0xc) = pc;
+}
+
+extern "C" u32 __cdecl SpriteScript_IsAt(s32 slot, u32 code) {
+    if (!g().ready) return 0;
+    u8 *script = script_at(slot);
+    if (!script) return 0;
+    if (is_action(code)) {
+        u32 index, r17, r18;
+        Sprite_GetAction(sprite_of(at<u32>(script, 0xac), at<u32>(script, 0xb0)), nullptr, code, &index,
+                         &at<u32>(script, 0xb4), &r17, &r18);
+        code = action_code(index);
+    }
+    return kCodeBase + 4u * at<u32>(script, 0xc) == code ? 1 : 0;
+}
+
+extern "C" s32 __cdecl SpriteScript_Clone(s32 slot, u32 x, u32 y, u32 z, u32 r8) {
+    if (!g().ready) return 0;
+    u8 *script = static_cast<u8 *>(env().alloc(kScriptSize));
+    if (script) {
+        std::memcpy(script, script_at(slot), kScriptSize);
+        at<u32>(script, 0x88) = x;
+        at<u32>(script, 0x8c) = y;
+        at<u32>(script, 0x90) = z;
+        at<u32>(script, 0xa4) = r8;
+        at<u32>(script, 0xc4) = (at<u32>(script, 0xc4) & ~0x200u) | 0x50000;
+    }
+    return insert(script);
+}
+
+extern "C" void __cdecl SpriteScript_CopyFrom(s32 slot, s32 from) {
+    static const u32 kCopied[] = {0x14, 0x8, 0xac, 0xb0, 0xb4, 0xc8, 0xcc, 0xa0, 0xa8, 0xc0, 0x114, 0xb8, 0xbc};
+    u8 *to = script_at(slot), *src = script_at(from);
+    for (u32 offset : kCopied) at<u32>(to, offset) = at<u32>(src, offset);
+    at<u32>(to, 0xc4) = (at<u32>(to, 0xc4) & ~0x200u) | 0x50000;
+}
+
+extern "C" s32 __cdecl SpriteScript_FindShown(const u8 *drawn) {
+    if (!g().ready) return 0;
+    for (s32 slot = 1; slot < g().slots; ++slot) {
+        u8 *script = g().scripts[slot];
+        if (script && at<u32>(script, 0x114) && script + 0xd0 == drawn) return slot;
+    }
+    return 0;
+}
+
+extern "C" void __cdecl SpriteScripts_WrapSprites() {
+    if (!g().ready) return;
+    for (s32 slot = 1; slot < g().slots; ++slot) {
+        if (u8 *script = g().scripts[slot]) {
+            const s32 count = SpriteFolder_Count(at<u32>(script, 0xac));
+            at<s32>(script, 0xb0) %= count;
+        }
+    }
+}

@@ -35,8 +35,8 @@ address,name,kind,confidence,notes
 0x00403780,ActionRec_Serialize,function,high,"(stream, isSave, ?, ?) — called with isSave=0 on load, 1 on save; GActionRec"
 0x005179c0,World_Load,function,high,module WRLD
 0x00516c80,World_Save,function,high,module WRLD
-0x00475730,SpriteScripts_Load,function,high,module SPSC
-0x00475650,SpriteScripts_Save,function,high,module SPSC
+0x00475730,SpriteScripts_Load,function,high,"reimplemented (src/game/sprite/script); module SPSC; frees the list and reads one; 1 (and an empty 100-slot table) on a bad header"
+0x00475650,SpriteScripts_Save,function,high,"reimplemented (src/game/sprite/script); module SPSC; TPCS, 0x118, table size, table, the scripts"
 0x0051f7a0,Particles_Load,function,high,module PART
 0x0051f680,Particles_Save,function,high,module PART
 0x0040fd60,MessageCentre_Load,function,high,module MESS
@@ -309,8 +309,8 @@ address,name,kind,confidence,notes
 0x00541310,Sprites_LoadFolder,function,high,"finds *.ESP in a folder; loads gAvatarSprites first ('Loading Avatar Sprites')"
 0x00540d90,Sprite_LoadEsp,function,high,"thiscall; reads ESP_FILE2.00 (name, 2 flags, 16 anims, 4 actions) then the .tpc/.fpc frames"
 0x00540bd0,Sprite_Ctor,function,high,fastcall; 0x260-byte sprite definition
-0x00540c70,Sprite_GetAction,function,medium,"thiscall; special action 0..3 -> animation slot, entry in 0x74f7c8 table, 2 bytes"
-0x00540c60,Sprite_GetAnimFrameCount,function,medium,thiscall; frame count byte of an animation slot
+0x00540c70,Sprite_GetAction,function,high,"reimplemented (src/game/sprite/script); thiscall (action 0-3, &entry, &anim, &r17, &r18): bytes +0x20e + 4 * action (entry + 1, anim + 1, r17, r18); entry indexes gSpriteScriptActions"
+0x00540c60,Sprite_GetAnimFrameCount,function,high,"reimplemented (src/game/sprite/script); thiscall (anim): byte +0x222 + 4 * anim"
 0x00540900,Sprites_Init,function,medium,"(ground camera, particles only); calls Sprites_LoadAll"
 0x00542420,Sprites_UseGroundFrames,function,high,reloads .fpc frames for sprites whose ESP ground-frames flag is set
 0x00542640,Sprites_UseParkFrames,function,high,reloads the .tpc frames
@@ -465,24 +465,24 @@ address,name,kind,confidence,notes
 0x00475130,SpriteScript_SkipToElse,function,high,"reimplemented (src/game/sprite/script); a failed IF: to its ELSE (stepped over) or ENDIF"
 0x00475230,SpriteScript_Push,function,high,"reimplemented (src/game/sprite/script); (value): the script stack (sp +0x1c counts down from 20, words at +0x20)"
 0x00475260,SpriteScript_Pop,function,high,"reimplemented (src/game/sprite/script); the script stack; 0 when empty"
-0x00475290,SpriteScripts_Init,function,medium,"100-slot table (0x7b49f0), step limit 50"
-0x004752e0,SpriteScripts_Shutdown,function,medium,"frees the slot table; clears the ready flag before its loop, so the scripts themselves leak"
-0x00475360,SpriteScripts_Update,function,medium,"each script due (+0x7c) runs (SpriteScript_Run) and is rescheduled by its period (+0x80); ended ones are freed. Returns the opcodes run"
-0x00475430,SpriteScripts_Draw,function,medium,"draws every script (0x542010) between 0x540ab0 and 0x540b30"
-0x00475480,SpriteScript_SetPosition,function,medium,"(slot, r1, r2, r3, r15)"
-0x004754e0,SpriteScript_GetPosition,function,medium,"(slot, &r1, &r2, &r3, &r15), each may be null"
-0x00475550,SpriteScript_Kill,function,medium,"(slot): frees it"
-0x00475590,SpriteScript_SetReg,function,medium,"(slot, register < 19, value); 0x4755d0 is the same code"
-0x004755d0,SpriteScript_SetRegF,function,medium,"(slot, register < 19, value), same code as 0x475590"
-0x00475610,SpriteScript_SetPeriod,function,medium,"(slot, ms): +0x80"
-0x004758f0,SpriteScript_Init,function,medium,"(script, code, set, frame, anim, r1, r2, r3, r17, r18): state 1, empty stack, period 62 ms, r7 0xff, r8 r9 1.0f"
-0x00475a10,SpriteScript_Start,function,medium,"(code or action 0-3, set, frame, anim, r1, r2, r3): allocates a 0x118-byte script in a free slot (the table grows by 50); returns the slot"
-0x00475b80,SpriteScript_Jump,function,medium,"(slot, code or action 0-3): restarts the script there"
-0x00475c50,SpriteScript_IsAt,function,medium,"(slot, code or action): 1 when the script started there"
-0x00475cf0,SpriteScript_Clone,function,medium,"(slot, r1, r2, r3, r8): a copy in a new slot"
-0x00475e10,SpriteScript_CopyFrom,function,medium,"(slot, from slot): code, pc and sprite registers"
-0x00475ef0,SpriteScript_FindShown,function,medium,"(sprite +0xd0): the slot of the shown script that holds it"
-0x00475f40,SpriteScripts_WrapFrames,function,medium,"every script frame (r11) modulo its set's count (0x541f60)"
+0x00475290,SpriteScripts_Init,function,high,"reimplemented (src/game/sprite/script); a 100-slot table (0x7b49f0), step limit 50"
+0x004752e0,SpriteScripts_Shutdown,function,high,"reimplemented (src/game/sprite/script); frees the slot table; clears the ready flag before its loop, so the scripts themselves leak"
+0x00475360,SpriteScripts_Update,function,high,"reimplemented (src/game/sprite/script); each script due (now > +0x7c) runs (SpriteScript_Run) and is rescheduled by its period (+0x80); ended ones are freed. Returns the opcodes run"
+0x00475430,SpriteScripts_Draw,function,high,"reimplemented (src/game/sprite/script); draws every script (0x542010) between 0x540ab0 and 0x540b30"
+0x00475480,SpriteScript_SetPosition,function,high,"reimplemented (src/game/sprite/script); (slot, r1, r2, r3, r15)"
+0x004754e0,SpriteScript_GetPosition,function,high,"reimplemented (src/game/sprite/script); (slot, &r1, &r2, &r3, &r15), each may be null"
+0x00475550,SpriteScript_Kill,function,high,"reimplemented (src/game/sprite/script); (slot): frees it"
+0x00475590,SpriteScript_SetReg,function,high,"reimplemented (src/game/sprite/script); (slot, register < 19, value)"
+0x004755d0,SpriteScript_SetRegF,function,high,"reimplemented (src/game/sprite/script); (slot, register < 19, float): fld/fstp, so a signalling NaN comes out quiet"
+0x00475610,SpriteScript_SetPeriod,function,high,"reimplemented (src/game/sprite/script); (slot, ms): +0x80"
+0x004758f0,SpriteScript_Init,function,high,"reimplemented (src/game/sprite/script); (script, code, folder, sprite, anim, r1, r2, r3, r17, r18): state 1, empty stack, period 62 ms, r7 0xff, r8 r9 1.0f, r14 the frame count"
+0x00475a10,SpriteScript_Start,function,high,"reimplemented (src/game/sprite/script); (code or action 0-3, folder, sprite, anim, r1, r2, r3): allocates a 0x118-byte script in the first free slot (the table grows by 50); returns the slot"
+0x00475b80,SpriteScript_Jump,function,high,"reimplemented (src/game/sprite/script); (slot, code or action 0-3): restarts the script there"
+0x00475c50,SpriteScript_IsAt,function,high,"reimplemented (src/game/sprite/script); (slot, code or action): 1 when the script started there; an action sets its animation"
+0x00475cf0,SpriteScript_Clone,function,high,"reimplemented (src/game/sprite/script); (slot, r1, r2, r3, r8): a copy in a new slot, flags without 0x200, with 0x50000"
+0x00475e10,SpriteScript_CopyFrom,function,high,"reimplemented (src/game/sprite/script); (slot, from slot): code, pc and sprite registers"
+0x00475ef0,SpriteScript_FindShown,function,high,"reimplemented (src/game/sprite/script); (drawn, a script +0xd0): the slot of the shown script that holds it"
+0x00475f40,SpriteScripts_WrapSprites,function,high,"reimplemented (src/game/sprite/script); every script sprite (r11) modulo its folder count (SpriteFolder_Count)"
 0x00476020,SpriteOp_Goto,function,high,"reimplemented (src/game/sprite/script); sprite script opcode (address)"
 0x00476050,SpriteOp_If,function,high,"reimplemented (src/game/sprite/script); sprite script opcode (r, test, r or n): 1-4 ==, !=, >, < a register, 5-8 an immediate; r1-r6 compare as floats (fcom, NaN as the condition codes say); false: SpriteScript_SkipToElse"
 0x004762f0,SpriteOp_EndIf,function,high,"reimplemented (src/game/sprite/script); sprite script opcode"
@@ -513,3 +513,5 @@ address,name,kind,confidence,notes
 0x007b4a10,gSpriteScriptStepLimit,data,high,"u32, 50"
 0x007b4a14,gSpriteScriptsReady,data,high,"s32"
 0x007b4a18,gSpriteScriptCurrent,data,high,"the script the opcodes work on"
+0x00541f60,SpriteFolder_Count,function,high,"reimplemented (src/game/sprite/script); (folder): gSpriteFolders[folder].count"
+0x00876b48,gSprites,data,medium,"sprite*[]: the loaded sprites, gSpriteFolders[folder].first + index"

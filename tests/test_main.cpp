@@ -827,6 +827,20 @@ static void test_sprite_script() {
     u8 script[0x118] = {};
     Sprite_Show(script);
     CHECK(script[0x114] == 1);
+    // A sprite's special actions: 4 bytes each from +0x20e (entry + 1, animation + 1, r17,
+    // r18); the animation's frame count is the byte at +0x222 + 4 * animation.
+    u8 sprite[0x240] = {};
+    const u8 action1[4] = {3, 0, 9, 200};
+    std::memcpy(sprite + 0x212, action1, 4);
+    sprite[0x222 + 4 * 6] = 17;
+    u32 index = 7, anim = 7, r17 = 7, r18 = 7;
+    Sprite_GetAction(sprite, nullptr, 1, &index, &anim, &r17, &r18);
+    CHECK(index == 2 && anim == 0xffffffffu && r17 == 9 && r18 == 200);
+    Sprite_GetAction(sprite, nullptr, 4, &index, &anim, &r17, &r18);  // not an action: nothing
+    CHECK(index == 2 && anim == 0xffffffffu);
+    Sprite_GetAction(sprite, nullptr, 1, &index, &index, &r17, &r18);  // the entry is written last
+    CHECK(index == 2);
+    CHECK(Sprite_GetAnimFrameCount(sprite, nullptr, 6) == 17 && Sprite_GetAnimFrameCount(sprite, nullptr, 5) == 0);
 }
 
 static void test_normals() {
