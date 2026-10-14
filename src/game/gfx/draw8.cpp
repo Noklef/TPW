@@ -48,6 +48,45 @@ void blend(const DrawContext *s, u8 *p, s32 count, u8 index, s32 step) {
     }
 }
 
+// a * b / c as imul, cdq, idiv: the product wraps to 32 bits.
+s32 mulDiv(s32 a, s32 b, s32 c) {
+    return static_cast<s32>(static_cast<u32>(a) * static_cast<u32>(b)) / c;
+}
+
+// Clip one axis of a line to [lo, hi): u is the axis clipped, v the other. False: the line is
+// entirely outside. Both ends are moved by interpolation; the far end of the other axis is not
+// checked again.
+bool clipAxis(s32 &u1, s32 &v1, s32 &u2, s32 &v2, s32 lo, s32 hi) {
+    s32 d;
+    if (u1 < lo) {
+        if (u2 < lo) return false;
+        v1 -= mulDiv(u1 - lo, v1 - v2, u1 - u2);
+        u1 = lo;
+        if (u2 < hi) return true;
+        d = mulDiv(u2 - hi + 1, v2 - v1, u2 - lo);
+        u2 = hi - 1;
+    } else if (u1 < hi) {
+        if (u2 < lo) {
+            d = mulDiv(u2 - lo, v2 - v1, u2 - u1);
+            u2 = lo;
+        } else if (hi <= u2) {
+            d = mulDiv(u2 - hi + 1, v2 - v1, u2 - u1);
+            u2 = hi - 1;
+        } else {
+            return true;
+        }
+    } else {
+        if (hi <= u2) return false;
+        v1 -= mulDiv(u1 - hi + 1, v1 - v2, u1 - u2);
+        u1 = hi - 1;
+        if (lo <= u2) return true;
+        d = mulDiv(u2 - lo, v2 - v1, u2 - u1);
+        u2 = lo;
+    }
+    v2 -= d;
+    return true;
+}
+
 // The 5x6 debug font: glyph rows 0x40..0x04, the advance in byte 6.
 template <typename C>
 void text(s32 x, s32 y, const C *str, u8 index) {
@@ -129,6 +168,56 @@ void __fastcall Draw8_BoxFill(DrawDriver *, void *, const Rect *r, DrawColour c)
     for (; h; --h, offset += pitch - w) {
         blend(s, s->bits + offset, static_cast<s32>(w), c.index, 1);
         if (static_cast<s32>(w) - 1 >= 0) offset += w;
+    }
+}
+
+void __fastcall Draw8_Line(DrawDriver *d, void *, s32 x1, s32 y1, s32 x2, s32 y2, DrawColour c) {
+    if (x1 == x2) {
+        vcall<void>(d, 0x24, x1, y1, y2 - y1, c);
+        return;
+    }
+    if (y1 == y2) {
+        vcall<void>(d, 0x20, x1, y1, x2 - x1, c);
+        return;
+    }
+    const DrawContext *s = g_env->state;
+    if (!clipAxis(x1, y1, x2, y2, s->clip.left, s->clip.right)) return;
+    if (!clipAxis(y1, x1, y2, x2, s->clip.top, s->clip.bottom)) return;
+    // Bresenham, stepping along the longer axis (y on a tie).
+    const s32 dx = x2 - x1, dy = y2 - y1;
+    const s32 ddx = 2 * (dx < 0 ? -dx : dx), ddy = 2 * (dy < 0 ? -dy : dy);
+    const s32 sx = dx < 1 ? -1 : 1, sy = dy < 1 ? -1 : 1;
+    const s32 pitch = s->surface->pitch, stepY = sy * pitch;
+    s32 offset = y1 * pitch + x1;
+    const bool blended = (s->flags & (kDrawGhost | kDrawGhostReverse)) != 0;
+    const u8 index = blended ? c.index : plain(s, c.index);
+    auto draw = [&] {
+        u8 *p = s->bits + offset;
+        if (s->flags & kDrawGhost) *p = s->ghost[index * 256u + *p];
+        else if (s->flags & kDrawGhostReverse) *p = s->ghost[*p * 256u + index];
+        else *p = index;
+    };
+    draw();
+    if (ddx <= ddy) {
+        for (s32 err = -(ddy >> 1); y1 != y2; y1 += sy) {
+            err += ddx;
+            if (err >= 0) {
+                offset += sx;
+                err -= ddy;
+            }
+            offset += stepY;
+            draw();
+        }
+    } else {
+        for (s32 err = -(ddx >> 1); x1 != x2; x1 += sx) {
+            err += ddy;
+            if (err >= 0) {
+                offset += stepY;
+                err -= ddx;
+            }
+            offset += sx;
+            draw();
+        }
     }
 }
 

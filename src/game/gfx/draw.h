@@ -67,6 +67,7 @@ void __fastcall Draw_Circle(DrawDriver *d, void *edx, s32 x, s32 y, s32 r, DrawC
 // 8 bits.
 void __fastcall Draw8_Pixel(DrawDriver *d, void *edx, s32 x, s32 y, DrawColour c);         // 0x61baf0 (0)
 void __fastcall Draw8_BoxFill(DrawDriver *d, void *edx, const Rect *r, DrawColour c);      // 0x61eed0 (3)
+void __fastcall Draw8_Line(DrawDriver *d, void *edx, s32 x1, s32 y1, s32 x2, s32 y2, DrawColour c);  // 0x61bce0 (7)
 void __fastcall Draw8_HLine(DrawDriver *d, void *edx, s32 x, s32 y, s32 length, DrawColour c);  // 0x61c2e0 (8)
 void __fastcall Draw8_VLine(DrawDriver *d, void *edx, s32 x, s32 y, s32 length, DrawColour c);  // 0x61c490 (9)
 void __fastcall Draw8_Clear(DrawDriver *d, void *edx, DrawColour c);                       // 0x61ee30 (11)
