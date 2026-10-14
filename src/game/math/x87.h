@@ -6,6 +6,7 @@
 #pragma once
 
 #include <cmath>
+#include <cstring>
 
 #include "../../../re/types.h"
 
@@ -47,7 +48,18 @@ inline double X87_MulInt(u32 n, float f) {
 // a + b (doubles, e.g. a fild'd int and a float) rounded once to a 24-bit significand, as
 // fild n; fadd f does. The double sum can round onto a 24-bit midpoint and then tie the
 // wrong way; its exact error (TwoSum) says which side of the midpoint the true sum is on.
+// A NaN operand comes through as the x87 has it: both NaNs, the one with the larger
+// significand (a, the destination, on a tie), where SSE would take the first operand.
 inline double X87_Add(double a, double b) {
+    if (a != a || b != b) {
+        if (a != a && b != b) {
+            unsigned long long ma, mb;
+            std::memcpy(&ma, &a, 8);
+            std::memcpy(&mb, &b, 8);
+            return (ma & ((1ull << 52) - 1)) >= (mb & ((1ull << 52) - 1)) ? a : b;
+        }
+        return a != a ? a : b;
+    }
     const double s = a + b;
     if (!std::isfinite(s) || s == 0) return s;
     const double bb = s - a, e = (a - (s - bb)) + (b - bb);

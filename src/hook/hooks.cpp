@@ -14,6 +14,7 @@
 #include "../game/motion/uvanim.h"
 #include "../game/motion/vertexanim.h"
 #include "../game/rsse/rsse.h"
+#include "../game/sprite/draw.h"
 #include "../game/sprite/script.h"
 #include "../game/terrain/terrain_blend.h"
 
@@ -156,6 +157,9 @@ const Hook kHooks[] = {
     {"Sprite_GetAnimFrameCount", 0x00540c60, (void *)&Sprite_GetAnimFrameCount, {0x8b, 0x54, 0x24, 0x04, 0x33}},
     {"Sprite_GetAction",         0x00540c70, (void *)&Sprite_GetAction, {0x8b, 0x44, 0x24, 0x04, 0x83}},
     {"SpriteFolder_Count",       0x00541f60, (void *)&SpriteFolder_Count, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
+    {"SpriteDraw_Begin",         0x00540ab0, (void *)&SpriteDraw_Begin, {0x57, 0xb9, 0x10, 0x00, 0x00}},
+    {"SpriteDraw_End",           0x00540b30, (void *)&SpriteDraw_End, {0xa1, 0x48, 0x73, 0x87, 0x00}},
+    {"Sprite_DrawScript",        0x00542010, (void *)&Sprite_DrawScript, {0x83, 0xec, 0x38, 0x53, 0x55}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
