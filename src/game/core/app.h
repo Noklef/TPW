@@ -45,3 +45,6 @@ struct AppEnv {
 };
 // The calls and state go through env (nullptr: the game's).
 void App_SetEnv(const AppEnv *env);
+// Sets the active flag (+0x14); not a function in the original (the screen window procedure
+// writes the byte itself).
+void App_SetActive(u8 active);

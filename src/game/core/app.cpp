@@ -21,6 +21,7 @@ const AppEnv *g_env = &kGameEnv;
 }  // namespace
 
 void App_SetEnv(const AppEnv *e) { g_env = e ? e : &kGameEnv; }
+void App_SetActive(u8 active) { g_env->state->active = active; }
 
 extern "C" {
 
