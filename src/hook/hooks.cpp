@@ -61,6 +61,7 @@
 #include "../game/sprite/draw.h"
 #include "../game/sprite/script.h"
 #include "../game/sprite/sprite.h"
+#include "../game/coaster/rating.h"
 #include "../game/terrain/terrain_blend.h"
 #include "../game/world/random.h"
 #include "../game/world/things.h"
@@ -696,6 +697,9 @@ const Hook kHooks[] = {
     {"Canvas16_Disc",             0x006066c0, (void *)&Canvas16_Disc, {0x81, 0xec, 0x94, 0x00, 0x00}},
     {"Canvas24_Disc",             0x0060d4f0, (void *)&Canvas24_Disc, {0x81, 0xec, 0x94, 0x00, 0x00}},
     {"Canvas32_Disc",             0x006139a0, (void *)&Canvas32_Disc, {0x81, 0xec, 0x94, 0x00, 0x00}},
+    {"CoasterRating_Reset",       0x0043dbf0, (void *)&CoasterRating_Reset, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"CoasterRating_Step",        0x0043dc50, (void *)&CoasterRating_Step, {0x51, 0xd9, 0x05, 0xcc, 0x23}},
+    {"CoasterRating_Finish",      0x0043df90, (void *)&CoasterRating_Finish, {0xd9, 0x05, 0xb0, 0x23, 0x79}},
     {"RowReader_Decode",          0x0062fe00, (void *)&RowReader_Decode, {0x6a, 0xff, 0x68, 0x38, 0x2b}},
     {"RowReader_CopyRow",         0x006300c0, (void *)&RowReader_CopyRow, {0x8b, 0xc1, 0x56, 0x57, 0x8b}},
     {"TgaReader_Load",            0x006300f0, (void *)&TgaReader_Load, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
