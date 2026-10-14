@@ -12,10 +12,16 @@ T at(u32 address) {
 }
 const PixConvEnv kGameEnv = {
     at<void(__cdecl *)(void *)>(0x0067acb0),
+    at<void *(__stdcall *)(u32)>(0x00642860),
+    at<s32(__stdcall *)(void *)>(0x00642880),
+    at<void *(__fastcall *)(void *, void *)>(0x00642150),
+    at<void(__fastcall *)(void *, void *, u32, u32, const u32 *, u32, u32 *, u8 *)>(0x00642190),
+    at<void(__fastcall *)(void *, void *)>(0x00642180),
 };
 const PixConvEnv *g_env = &kGameEnv;
 
 void *const *const kBaseVtable = at<void *const *>(0x007039c0);
+void *const *const kIndexVtable = at<void *const *>(0x00703fa8);
 
 // A mask's top set bit and the length of the run of set bits under it (mask != 0).
 void run(u32 mask, s32 *top, s32 *width) {
@@ -66,6 +72,15 @@ u32 rgb(const RgbConverter *c, const u8 *src) {
         out |= t & c->targetMask[k];
     }
     return out;
+}
+
+u8 indexed(IndexConverter *c, const u8 *src) {
+    u32 s;
+    std::memcpy(&s, src, 4);
+    u32 v[3];
+    for (int k = 0; k < 3; ++k) v[k] = ((s & c->mask[k]) >> (c->right[k] & 31)) << (c->left[k] & 31);
+    if (c->table) return c->table[v[0] | v[1] | v[2]];
+    return IndexConverter_Nearest(c, nullptr, v[0] & 0xff, v[1] & 0xff, v[2] & 0xff);
 }
 
 }  // namespace
@@ -173,6 +188,89 @@ void __fastcall RgbConverter_ChannelShift(RgbConverter *c, void *, u32 source, u
     if (*width < targetWidth && !c->widens) c->widens = 1;
     const s32 r = top - targetTop;
     *rotate = static_cast<u32>(r < 0 ? r + 32 : r);
+}
+
+IndexConverter *__fastcall IndexConverter_Ctor(IndexConverter *c, void *, const u32 *format, const u32 *palette) {
+    c->table = nullptr;
+    c->built = nullptr;
+    c->vtable = kIndexVtable;
+    IndexConverter_Init(c, nullptr, format, palette);
+    return c;
+}
+
+void __fastcall IndexConverter_Dtor(IndexConverter *c) {
+    c->vtable = kIndexVtable;
+    IndexConverter_FreeTable(c);
+    c->vtable = kBaseVtable;
+}
+
+void *__fastcall IndexConverter_DeletingDtor(IndexConverter *c, void *, u32 flags) {
+    IndexConverter_Dtor(c);
+    if (flags & 1) g_env->free(c);
+    return c;
+}
+
+void __fastcall IndexConverter_Init(IndexConverter *c, void *, const u32 *format, const u32 *palette) {
+    std::memcpy(c->palette, palette, sizeof c->palette);
+    c->bits = 5;
+    c->levels = 0x20;
+    c->bytes = (format[4] + 7) >> 3;
+    if (!c->table) c->table = static_cast<u8 *>(g_env->alloc(0x8000));
+    if (c->table && palette != c->built) {
+        u8 map[0x58];
+        g_env->mapInit(map, nullptr);
+        u32 *work = static_cast<u32 *>(g_env->alloc((1u << (c->bits * 3 & 31)) << 2));
+        g_env->mapBuild(map, nullptr, 0, 0x100, palette, c->bits, work, c->table);
+        g_env->release(work);
+        g_env->mapDone(map, nullptr);
+    }
+    c->built = palette;
+    for (int k = 0; k < 3; ++k) c->mask[k] = format[k];
+    u32 field[3] = {0xff, 0xff, 0xff};
+    if (c->table) {
+        field[2] = c->levels - 1;
+        field[1] = field[2] << (c->bits & 31);
+        field[0] = field[1] << (c->bits & 31);
+    }
+    for (int k = 0; k < 3; ++k) Mask_Shifts(c->mask[k], field[k], &c->right[k], &c->left[k]);
+}
+
+void __fastcall IndexConverter_FreeTable(IndexConverter *c) {
+    if (c->table) g_env->release(c->table);
+}
+
+void __fastcall IndexConverter_Convert(IndexConverter *c, void *, u8 *dst, const u8 *src, u32 count) {
+    for (u32 i = 0; i < count; ++i, src += c->bytes) dst[i] = indexed(c, src);
+}
+
+void __fastcall IndexConverter_ConvertBack(IndexConverter *c, void *, u8 *dst, const u8 *src, u32 count) {
+    src += c->bytes * (count - 1);
+    for (u32 i = count; i; --i, src -= c->bytes) dst[i - 1] = indexed(c, src);
+}
+
+u8 __fastcall IndexConverter_Nearest(IndexConverter *c, void *, u32 red, u32 green, u32 blue) {
+    const u8 *p = reinterpret_cast<const u8 *>(c->palette);
+    u32 best = 0x7fffffff;
+    u8 found = static_cast<u8>(red);
+    for (u32 i = 0; i < 0x100 && best; ++i, p += 4) {
+        const s32 r = static_cast<s32>(red & 0xff) - p[0];
+        const s32 g = static_cast<s32>(green & 0xff) - p[1];
+        const s32 b = static_cast<s32>(blue & 0xff) - p[2];
+        const u32 d = static_cast<u32>(r * r + g * g + b * b);
+        if (d < best) {
+            best = d;
+            found = static_cast<u8>(i);
+        }
+    }
+    return found;
+}
+
+void __fastcall PixelConverter3_Dtor(void *c) { *static_cast<void *const **>(c) = kBaseVtable; }
+
+void *__fastcall PixelConverter3_DeletingDtor(void *c, void *, u32 flags) {
+    PixelConverter3_Dtor(c);
+    if (flags & 1) g_env->free(c);
+    return c;
 }
 
 }  // extern "C"

@@ -19,6 +19,14 @@
 // pixels are read as whole dwords whatever their size (up to 3 bytes past the row); bits that
 // rotate round land in the target's low bits; a channel either side lacks gets rotation 0 and
 // keeps its old width (Init leaves it unset).
+//
+// The index converter (0x63a7b0-0x63ad80, vtable 0x703fa8) goes the other way, direct colour to
+// a 256-entry palette: with its 32K table (5 bits a channel, built once per palette pointer by
+// the inverse-colormap builder 0x642150/0x642190) a pixel is one lookup; without it (the
+// allocation failed) each channel is cut to 8 bits (shifted as a byte) and the nearest palette
+// entry searched for, the first of equals winning. Quirks kept: a palette is only rebuilt when
+// its pointer changes, so new colours at the same address keep the old table; the table is not
+// cleared on free; a failed work-buffer allocation still builds into null.
 #pragma once
 
 #include "../../../re/types.h"
@@ -47,6 +55,20 @@ struct RgbConverter {        // vtable 0x7039b0, 0x54 bytes
 };
 static_assert(sizeof(RgbConverter) == 0x54, "RgbConverter is 0x54 bytes");
 
+struct IndexConverter {      // vtable 0x703fa8, 0x43c bytes
+    void *const *vtable;
+    u32 palette[256];        // +4
+    const u32 *built;        // +0x404: the palette the table was built from
+    u8 *table;               // +0x408: 1 << 15 indices
+    u32 bits;                // +0x40c: per channel in the table (5)
+    u32 levels;              // +0x410: 1 << bits
+    u32 mask[3];             // +0x414: the source's red, green, blue
+    u32 right[3];            // +0x420
+    u32 left[3];             // +0x42c
+    u32 bytes;               // +0x438: per source pixel
+};
+static_assert(sizeof(IndexConverter) == 0x43c, "IndexConverter is 0x43c bytes");
+
 extern "C" {
 // 0x630c50 (flags): the base's deleting destructor. 0x630c90: the destructor (the base's
 // vtable). 0x630c70 (flags): the palette (and 0x7039b0) converter's deleting destructor.
@@ -68,10 +90,32 @@ void __fastcall RgbConverter_ConvertBack(RgbConverter *c, void *edx, u8 *dst, co
 // 0x63a700 (source mask, target mask, &rotate, &width): sets widens when the target is wider.
 void __fastcall RgbConverter_ChannelShift(RgbConverter *c, void *edx, u32 source, u32 target, u32 *rotate,
                                           s32 *width);
+// 0x63a7b0 (&source format, palette): returns c. 0x63a810 (flags) / 0x63a830: the destructors.
+IndexConverter *__fastcall IndexConverter_Ctor(IndexConverter *c, void *edx, const u32 *format, const u32 *palette);
+void *__fastcall IndexConverter_DeletingDtor(IndexConverter *c, void *edx, u32 flags);
+void __fastcall IndexConverter_Dtor(IndexConverter *c);
+// 0x63a880 (&source format, palette).
+void __fastcall IndexConverter_Init(IndexConverter *c, void *edx, const u32 *format, const u32 *palette);
+// 0x63aa20: frees the table (and leaves the pointer).
+void __fastcall IndexConverter_FreeTable(IndexConverter *c);
+// 0x63aa40 / 0x63ab70 (dst, src, count; +4 / +8).
+void __fastcall IndexConverter_Convert(IndexConverter *c, void *edx, u8 *dst, const u8 *src, u32 count);
+void __fastcall IndexConverter_ConvertBack(IndexConverter *c, void *edx, u8 *dst, const u8 *src, u32 count);
+// 0x63ad80 (red, green, blue; low bytes): the nearest palette entry.
+u8 __fastcall IndexConverter_Nearest(IndexConverter *c, void *edx, u32 red, u32 green, u32 blue);
+// 0x63ae60 (flags) / 0x63ae80: the 0x703fb8 converter's destructors (the base's vtable).
+void *__fastcall PixelConverter3_DeletingDtor(void *c, void *edx, u32 flags);
+void __fastcall PixelConverter3_Dtor(void *c);
 }
 
 struct PixConvEnv {
     void(__cdecl *free)(void *block);  // Mem_Free (0x67acb0)
+    void *(__stdcall *alloc)(u32 size);  // 0x642860, counted
+    s32(__stdcall *release)(void *block);  // 0x642880, counted
+    void *(__fastcall *mapInit)(void *map, void *edx);  // 0x642150: the 0x58-byte builder
+    void(__fastcall *mapBuild)(void *map, void *edx, u32 first, u32 count, const u32 *palette, u32 bits,
+                               u32 *work, u8 *table);  // 0x642190
+    void(__fastcall *mapDone)(void *map, void *edx);  // 0x642180
 };
 // The calls go through env (nullptr: the game's).
 void PixConv_SetEnv(const PixConvEnv *env);
