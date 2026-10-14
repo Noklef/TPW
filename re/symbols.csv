@@ -1004,3 +1004,8 @@ address,name,kind,confidence,notes
 0x0063b140,Rgb16Converter_Convert,function,high,"reimplemented (src/game/gfx/pixconv); thiscall (dst, src, count); vtable +4; count / 2 pairs, 0 or 1 runs away"
 0x00faa268,gFormatRgb888,data,high,"masks ff0000/ff00/ff, 24 bits (set by 0x631750)"
 0x00faa280,gFormatArgb8888,data,high,"masks ff0000/ff00/ff/ff000000, 32 bits (set by 0x6317a0)"
+0x00630880,PixelConversion_Ctor,function,high,"reimplemented (src/game/gfx/pixconv); thiscall; 0x10 bytes {converter, source/target bytes, kind 4}"
+0x00630890,PixelConversion_Setup,function,high,"reimplemented (src/game/gfx/pixconv); thiscall (&target, &source format, palette, flags); picks the converter class"
+0x00630b70,PixelConversion_Row,function,high,"reimplemented (src/game/gfx/pixconv); thiscall (dst, src, count); backwards when widening"
+0x00630ba0,PixelConversion_Rect,function,high,"reimplemented (src/game/gfx/pixconv); thiscall (dst or 0, src, dst pitch, src pitch, rows, width); in place backwards when narrowing (sic)"
+0x00630c30,PixelConversion_Dtor,function,high,"reimplemented (src/game/gfx/pixconv); thiscall"

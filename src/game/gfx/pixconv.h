@@ -36,6 +36,15 @@
 // and the target is 16 bits; a field's rotation counts the gaps in a broken mask; the count is
 // halved (toward zero), so an odd last pixel is dropped and a count of 0 or 1 runs the loop
 // 2^32 times.
+//
+// A conversion (0x630880-0x630c4d) owns one converter and picks its class from the two formats
+// (Setup): RGB888/ARGB8888 into 16 bits (unless flags bit 0) takes the 16-bit converter, other
+// direct colour the RGB one, a paletted source the palette one, a paletted target the index one
+// (both need the palette; paletted to paletted gets nothing); the same class again is only
+// re-initialised. A row runs backwards when the pixels widen, so it can convert in place.
+// Quirks kept: Setup re-initialises a null converter (after a failed allocation) when the class
+// matches; Rect, converting in place, runs backwards when the pixels narrow (the wrong way round,
+// unlike Row); the destructor leaves the class alone when there is no converter.
 #pragma once
 
 #include "../../../re/types.h"
@@ -87,6 +96,14 @@ struct Rgb16Converter {      // vtable 0x703fb8, 0x2c bytes
 };
 static_assert(sizeof(Rgb16Converter) == 0x2c, "Rgb16Converter is 0x2c bytes");
 
+struct PixelConversion {
+    void *converter;         // vtable +0 deleting destructor, +4 forwards, +8 backwards
+    u32 sourceBytes;         // +4: per pixel
+    u32 targetBytes;         // +8
+    u32 kind;                // +0xc: 0 16-bit, 1 RGB, 2 palette, 3 index, 4 none
+};
+static_assert(sizeof(PixelConversion) == 0x10, "PixelConversion is 0x10 bytes");
+
 extern "C" {
 // 0x630c50 (flags): the base's deleting destructor. 0x630c90: the destructor (the base's
 // vtable). 0x630c70 (flags): the palette (and 0x7039b0) converter's deleting destructor.
@@ -129,6 +146,17 @@ void *__fastcall Rgb16Converter_DeletingDtor(void *c, void *edx, u32 flags);
 void __fastcall Rgb16Converter_Dtor(void *c);
 // 0x63b140 (dst, src, count; +4): count pixels, two at a time.
 void __fastcall Rgb16Converter_Convert(Rgb16Converter *c, void *edx, u8 *dst, const u8 *src, s32 count);
+// 0x630880: no converter. 0x630c30: deletes it.
+PixelConversion *__fastcall PixelConversion_Ctor(PixelConversion *c);
+void __fastcall PixelConversion_Dtor(PixelConversion *c);
+// 0x630890 (&target, &source format, palette, flags).
+void __fastcall PixelConversion_Setup(PixelConversion *c, void *edx, const u32 *target, const u32 *source,
+                                      const u32 *palette, u32 flags);
+// 0x630b70 (dst, src, count).
+void __fastcall PixelConversion_Row(PixelConversion *c, void *edx, u8 *dst, const u8 *src, u32 count);
+// 0x630ba0 (dst or null for in place, src, dst pitch, src pitch, rows, width).
+void __fastcall PixelConversion_Rect(PixelConversion *c, void *edx, u8 *dst, const u8 *src, s32 dstPitch,
+                                     s32 srcPitch, u32 rows, u32 width);
 }
 
 struct PixConvEnv {
@@ -141,6 +169,7 @@ struct PixConvEnv {
     void(__fastcall *mapDone)(void *map, void *edx);  // 0x642180
     const u32 *rgb888;    // 0xfaa268: masks, bit count, paletted
     const u32 *argb8888;  // 0xfaa280
+    void *(__cdecl *allocate)(u32 size);  // Mem_Alloc (0x67acc0)
 };
 // The calls go through env (nullptr: the game's).
 void PixConv_SetEnv(const PixConvEnv *env);

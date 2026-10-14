@@ -1,6 +1,8 @@
 // The pixel converters: see pixconv.h.
 #include "pixconv.h"
 
+#include "../core/vcall.h"
+
 #include <cstdint>
 #include <cstring>
 
@@ -19,12 +21,15 @@ const PixConvEnv kGameEnv = {
     at<void(__fastcall *)(void *, void *)>(0x00642180),
     at<const u32 *>(0x00faa268),
     at<const u32 *>(0x00faa280),
+    at<void *(__cdecl *)(u32)>(0x0067acc0),
 };
 const PixConvEnv *g_env = &kGameEnv;
 
 void *const *const kBaseVtable = at<void *const *>(0x007039c0);
 void *const *const kIndexVtable = at<void *const *>(0x00703fa8);
 void *const *const kRgb16Vtable = at<void *const *>(0x00703fb8);
+void *const *const kRgbVtable = at<void *const *>(0x007039b0);
+void *const *const kPaletteVtable = at<void *const *>(0x007039a0);
 
 // A mask's top set bit and the length of the run of set bits under it (mask != 0).
 void run(u32 mask, s32 *top, s32 *width) {
@@ -102,6 +107,14 @@ void field(u32 mask, u32 *rotate, u32 *keep) {
 u32 rotl(u32 v, u32 n) {
     n &= 31;
     return n ? v << n | v >> (32 - n) : v;
+}
+
+// Drops the converter for a new one of kind (allocated, or null).
+void *replace(PixelConversion *c, u32 kind, u32 size) {
+    if (c->converter) vcall<void *>(c->converter, 0, 1u);
+    c->converter = g_env->allocate(size);
+    c->kind = kind;
+    return c->converter;
 }
 
 }  // namespace
@@ -335,6 +348,67 @@ void __fastcall Rgb16Converter_Convert(Rgb16Converter *c, void *, u8 *dst, const
         dst += 4;
         src += 2 * step;
     } while (--pairs);
+}
+
+PixelConversion *__fastcall PixelConversion_Ctor(PixelConversion *c) {
+    c->converter = nullptr;
+    c->kind = 4;
+    return c;
+}
+
+void __fastcall PixelConversion_Dtor(PixelConversion *c) {
+    if (!c->converter) return;
+    vcall<void *>(c->converter, 0, 1u);
+    c->converter = nullptr;
+    c->kind = 4;
+}
+
+void __fastcall PixelConversion_Setup(PixelConversion *c, void *, const u32 *target, const u32 *source,
+                                      const u32 *palette, u32 flags) {
+    c->sourceBytes = (source[4] + 7) >> 3;
+    const u32 targetBytes = (target[4] + 7) >> 3;
+    c->targetBytes = targetBytes;
+    if ((sameFormat(source, g_env->argb8888) || sameFormat(source, g_env->rgb888)) && !(flags & 1) &&
+        targetBytes == 2) {
+        if (c->kind == 0) {
+            Rgb16Converter_Init(static_cast<Rgb16Converter *>(c->converter), nullptr, source, target);
+        } else if (void *p = replace(c, 0, 0x2c)) {
+            c->converter = Rgb16Converter_Ctor(static_cast<Rgb16Converter *>(p), nullptr, source, target);
+        }
+    } else if (!source[5] && !target[5]) {
+        if (c->kind == 1) {
+            RgbConverter_Init(static_cast<RgbConverter *>(c->converter), nullptr, source, target);
+        } else if (void *p = replace(c, 1, 0x54)) {
+            static_cast<RgbConverter *>(p)->vtable = kRgbVtable;
+            RgbConverter_Init(static_cast<RgbConverter *>(p), nullptr, source, target);
+        }
+    } else if (source[5] && !target[5]) {
+        if (!palette) return;
+        if (c->kind == 2) {
+            PaletteConverter_Init(static_cast<PaletteConverter *>(c->converter), nullptr, palette, target);
+        } else if (void *p = replace(c, 2, 0x430)) {
+            static_cast<PaletteConverter *>(p)->vtable = kPaletteVtable;
+            PaletteConverter_Init(static_cast<PaletteConverter *>(p), nullptr, palette, target);
+        }
+    } else if (!source[5] && target[5]) {
+        if (!palette) return;
+        if (c->kind == 3) {
+            IndexConverter_Init(static_cast<IndexConverter *>(c->converter), nullptr, source, palette);
+        } else if (void *p = replace(c, 3, 0x43c)) {
+            c->converter = IndexConverter_Ctor(static_cast<IndexConverter *>(p), nullptr, source, palette);
+        }
+    }
+}
+
+void __fastcall PixelConversion_Row(PixelConversion *c, void *, u8 *dst, const u8 *src, u32 count) {
+    vcall<void>(c->converter, c->sourceBytes < c->targetBytes ? 8 : 4, dst, src, count);
+}
+
+void __fastcall PixelConversion_Rect(PixelConversion *c, void *, u8 *dst, const u8 *src, s32 dstPitch,
+                                     s32 srcPitch, u32 rows, u32 width) {
+    if (!dst) dst = const_cast<u8 *>(src);
+    const bool back = dst == src && c->targetBytes < c->sourceBytes;
+    for (; rows; --rows, src += srcPitch, dst += dstPitch) vcall<void>(c->converter, back ? 8 : 4, dst, src, width);
 }
 
 }  // extern "C"
