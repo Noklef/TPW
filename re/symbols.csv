@@ -1222,6 +1222,10 @@ address,name,kind,confidence,notes
 0x00608e80,Canvas16_Triangle,function,high,reimplemented (src/game/gfx/canvasdraw); 16-bit copy of Canvas8_Triangle
 0x0060fc90,Canvas24_Triangle,function,high,"reimplemented (src/game/gfx/canvasdraw); 24-bit copy of Canvas8_Triangle (vertices saved as dwords, put back as 3 bytes)"
 0x00615ea0,Canvas32_Triangle,function,high,reimplemented (src/game/gfx/canvasdraw); 32-bit copy of Canvas8_Triangle
+0x00602d70,Canvas8_Mask,function,high,"reimplemented (src/game/gfx/canvasdraw); thiscall (surface, clip, flags, x, y, &mask{codes, u16 w, u16 h}, &colour) RET 0x1c: CanvasDriver slot 10; run-length mask in one colour, clipped, flipped by flags 1/2 (the unclipped flip draws forwards and skips a code after each skip)"
+0x00609320,Canvas16_Mask,function,high,reimplemented (src/game/gfx/canvasdraw); 16-bit copy of Canvas8_Mask (the clipped flip steps a byte a pixel)
+0x00610160,Canvas24_Mask,function,high,reimplemented (src/game/gfx/canvasdraw); 24-bit copy of Canvas8_Mask (the clipped flip steps a byte a pixel)
+0x00616340,Canvas32_Mask,function,high,reimplemented (src/game/gfx/canvasdraw); 32-bit copy of Canvas8_Mask (the clipped flip steps a byte a pixel)
 0x0062fe00,RowReader_Decode,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); rows read ahead (vtable +0 Begin, +4 ReadRow), converted if the formats differ, copied top down or bottom up; a failed row read ends it as success"
 0x006300c0,RowReader_CopyRow,function,high,"reimplemented (src/game/gfx/tga); thiscall; copyBytes from the row buffer to the target, which moves by step; vtable +0xc"
 0x006300f0,TgaReader_Load,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); ReadHeader, then RowReader_Decode"

@@ -28,6 +28,12 @@ struct CanvasDrawEnv {
     u32(__fastcall *overlaps)(const Rect *, void *, const Rect *);   // Rect_Overlaps 0x62f890
     Rect *(__fastcall *clip)(const Rect *, void *, Rect *, const Rect *);  // Rect_Clip 0x62f810
 };
+// Slot 10's run-length mask.
+struct CanvasMask {
+    const u8 *codes;
+    u16 width, height;
+};
+
 // nullptr restores the game's.
 void CanvasDraw_SetEnv(const CanvasDrawEnv *e);
 
@@ -81,6 +87,21 @@ void __fastcall Canvas24_Triangle(CanvasDriver *d, void *edx, const SurfaceInfo 
                                   s32 x0, s32 y0, s32 x1, s32 y1, s32 x2, s32 y2, Color *colour);
 void __fastcall Canvas32_Triangle(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
                                   s32 x0, s32 y0, s32 x1, s32 y1, s32 x2, s32 y2, Color *colour);
+// Slot 10: (surface, clip, flags, x, y, &mask, colour): the mask's rows of codes (n < 0 skips -n
+// pixels, n > 0 draws n pixels of the colour and is followed by n bytes it ignores, 0 ends the
+// row) drawn clipped, mirrored across by flag 1 and up and down by flag 2. Never blended.
+// - Flipped across but not clipped across it draws forwards from the right end, and each skip
+//   also passes the code after it.
+// - Clipped across, a run the left edge cuts is dropped when the byte where its drawing would
+//   resume is 0 (and the row is then taken to end there).
+void __fastcall Canvas8_Mask(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x,
+                             s32 y, const CanvasMask *mask, Color *colour);
+void __fastcall Canvas16_Mask(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x,
+                              s32 y, const CanvasMask *mask, Color *colour);
+void __fastcall Canvas24_Mask(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x,
+                              s32 y, const CanvasMask *mask, Color *colour);
+void __fastcall Canvas32_Mask(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x,
+                              s32 y, const CanvasMask *mask, Color *colour);
 // Slot 8: (surface, clip, flags, &rect, colour): the rectangle, ordered and clipped, filled.
 void __fastcall Canvas8_FillRect(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
                                  const Rect *rect, Color *colour);

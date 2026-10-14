@@ -302,6 +302,138 @@ void drawTriangle(CanvasDriver *d, const SurfaceInfo *s, const Rect *clip, u32 f
     rows(y2, aLeft);
 }
 
+// Past the rest of a row's codes and its terminator.
+const u8 *skipRow(const u8 *p) {
+    for (s8 c; (c = static_cast<s8>(*p)) != 0;) p += c > 0 ? c + 1 : 1;
+    return p + 1;
+}
+template <u32 Bytes>
+u8 *fillRun(u8 *q, s32 n, s32 step, u32 pixel) {
+    for (; n > 0; --n) {
+        store<Bytes>(q, pixel);
+        q += step;
+    }
+    return q;
+}
+
+template <u32 Bytes>
+void drawMask(const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x, s32 y, const CanvasMask *m, Color *colour) {
+    if (!m->width || !m->height) return;
+    s32 w = m->width, h = m->height, skipX = 0, skipY = 0;
+    if (clip->left > x) {
+        if (!(flags & 1)) skipX = sub(clip->left, x);
+        w = add(w, sub(x, clip->left));
+        x = clip->left;
+        if (w <= 0) return;
+    }
+    if (clip->right < add(x, w)) {
+        if (flags & 1) skipX = sub(add(w, x), clip->right);
+        w = sub(clip->right, x);
+        if (w <= 0) return;
+    }
+    if (clip->top > y) {
+        if (!(flags & 2)) skipY = sub(clip->top, y);
+        h = add(h, sub(y, clip->top));
+        y = clip->top;
+        if (h <= 0) return;
+    }
+    if (clip->bottom < add(y, h)) {
+        if (flags & 2) skipY = sub(add(h, y), clip->bottom);
+        h = sub(clip->bottom, y);
+        if (h <= 0) return;
+    }
+    const bool flipX = (flags & 1) != 0;
+    s32 stride = s->pitch;
+    if (flipX) x = sub(add(x, w), 1);
+    if (flags & 2) {
+        stride = sub(0, stride);
+        y = sub(add(y, h), 1);
+    }
+    const u8 *p = m->codes;
+    for (s32 i = skipY; i > 0; --i) p = skipRow(p);
+    const u32 pixel = g_env->toPixel(colour, nullptr, reinterpret_cast<const PixelFormat *>(s));
+    u8 *row = pixelAt<Bytes>(s, x, y);
+    const s32 B = static_cast<s32>(Bytes);
+    if (w == m->width) {
+        // Unclipped across: the codes as they come. Flipped it still draws forwards, from the
+        // right end, and a skip passes the code after it too.
+        for (; h > 0; --h, row += stride) {
+            u8 *q = row;
+            for (s8 c; (c = static_cast<s8>(*p)) != 0;) {
+                if (c < 0) {
+                    q += sub(0, c) * B;
+                    p += flipX ? 2 : 1;
+                } else {
+                    p += c + 1;
+                    q = fillRun<Bytes>(q, c, B, pixel);
+                }
+            }
+            ++p;
+        }
+        return;
+    }
+    // Clipped across: skipX columns of codes passed (a code they end inside carried over), then
+    // at most w drawn, backwards when flipped: a byte a pixel (sic) but for a carried-over skip.
+    const s32 step = flipX ? -1 : B;
+    for (; h > 0; --h, row += stride) {
+        s32 left = skipX, skip = 0, run = 0;
+        while (left > 0 && *p) {
+            const s8 c = static_cast<s8>(*p);
+            if (c < 0) {
+                if (-c >= left) {
+                    skip = sub(0, add(left, c));
+                    ++p;
+                    break;
+                }
+                left += c;
+                ++p;
+            } else {
+                if (c >= left) {
+                    run = c - left;
+                    p += left + 1;
+                    break;
+                }
+                left -= c;
+                p += c + 1;
+            }
+        }
+        if (!*p) skip = run = 0;
+        u8 *q = row;
+        left = w;
+        if (skip) {
+            if (skip < left) {
+                left -= skip;
+                q += skip * (flipX ? -B : B);
+            } else left = 0;
+        } else if (run) {
+            p += run;
+            if (run < left) {
+                left -= run;
+                q = fillRun<Bytes>(q, run, step, pixel);
+            } else {
+                fillRun<Bytes>(q, left, step, pixel);
+                left = 0;
+            }
+        }
+        for (s8 c; left > 0 && (c = static_cast<s8>(*p)) != 0;) {
+            p += c < 0 ? 1 : c + 1;
+            if (c < 0) {
+                if (-c < left) {
+                    left += c;
+                    q += -c * step;
+                } else left = 0;
+            } else if (c < left) {
+                left -= c;
+                q = fillRun<Bytes>(q, c, step, pixel);
+            } else {
+                fillRun<Bytes>(q, left, step, pixel);
+                left = 0;
+            }
+        }
+        p = skipRow(p);
+    }
+}
+
 template <u32 Bytes>
 void fillRect(const SurfaceInfo *s, const Rect *clip, u32 flags, const Rect *rect, Color *colour) {
     Rect r = *rect;
@@ -347,6 +479,10 @@ extern "C" {
                                          u32 flags, s32 x0, s32 y0, s32 x1, s32 y1, s32 x2, s32 y2,               \
                                          Color *colour) {                                                          \
         drawTriangle<BYTES>(d, s, clip, flags, x0, y0, x1, y1, x2, y2, colour);                                    \
+    }                                                                                                              \
+    void __fastcall Canvas##N##_Mask(CanvasDriver *, void *, const SurfaceInfo *s, const Rect *clip, u32 flags,    \
+                                     s32 x, s32 y, const CanvasMask *mask, Color *colour) {                        \
+        drawMask<BYTES>(s, clip, flags, x, y, mask, colour);                                                       \
     }
 CANVAS_DEPTH(8, 1)
 CANVAS_DEPTH(16, 2)
