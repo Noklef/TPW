@@ -17,12 +17,16 @@ u16 pack(const DrawContext *s, u32 rgb) {
     return static_cast<u16>(channel(p.red) | channel(p.green) | channel(p.blue) | channel(p.alpha));
 }
 
+// A palette entry, opaque.
+u16 paletteColour(const DrawContext *s, u8 index) {
+    const u8 *e = g_env->palette + index * 4u;
+    return pack(s, 0xff000000u | e[0] << 16 | e[1] << 8 | e[2]);
+}
+
 // The colour a primitive draws: remapped through the palette only without the ghost flags.
 u16 colour(const DrawContext *s, DrawColour c) {
-    if (!(s->flags & (kDrawGhost | kDrawGhostReverse)) && (s->flags & kDrawRemap)) {
-        const u8 *e = g_env->palette + s->remap[c.index] * 4u;
-        return pack(s, 0xff000000u | e[0] << 16 | e[1] << 8 | e[2]);
-    }
+    if (!(s->flags & (kDrawGhost | kDrawGhostReverse)) && (s->flags & kDrawRemap))
+        return paletteColour(s, s->remap[c.index]);
     return pack(s, c.rgb);
 }
 
@@ -121,6 +125,121 @@ void __fastcall Draw16_Text(DrawDriver *, void *, s32 x, s32 y, const char *str,
 
 void __fastcall Draw16_TextW(DrawDriver *, void *, s32 x, s32 y, const u16 *str, DrawColour c) {
     text<u16>(x, y, str, pack(g_env->state, c.rgb));
+}
+
+// At 8 bits slot 14 hands the sprite to the cseg blitter; here it is drawn in place, each byte a
+// palette index (no remap, no ghosting).
+void __fastcall Draw16_Sprite(DrawDriver *, void *, s32 x, s32 y, const RleSprite *sprite) {
+    const DrawContext *s = g_env->state;
+    const Rect &clip = s->clip;
+    const s32 w = sprite->width, h = sprite->height;
+    if (!w || !h) return;
+    const bool flipX = (s->flags & kDrawFlipX) != 0, flipY = (s->flags & kDrawFlipY) != 0;
+    // The visible size, and the data columns and rows clipped off before it (mirrored, those
+    // are at the right or bottom).
+    s32 cols = w, rows = h, skipX = 0, skipY = 0;
+    if (clip.left > x) {
+        if (!flipX) skipX = clip.left - x;
+        cols += x - clip.left;
+        x = clip.left;
+        if (cols <= 0) return;
+    }
+    if (clip.right < x + cols) {
+        if (flipX) skipX = x + cols - clip.right;
+        cols = clip.right - x;
+        if (cols <= 0) return;
+    }
+    if (clip.top > y) {
+        if (!flipY) skipY = clip.top - y;
+        rows += y - clip.top;
+        y = clip.top;
+        if (rows <= 0) return;
+    }
+    if (clip.bottom < y + rows) {
+        if (flipY) skipY = y + rows - clip.bottom;
+        rows = clip.bottom - y;
+        if (rows <= 0) return;
+    }
+    if (flipX) x += cols - 1;
+    s32 step = s->surface->pitch;
+    if (flipY) {
+        y += rows - 1;
+        step = -step;
+    }
+    const s8 *data = reinterpret_cast<const s8 *>(sprite->data);
+    for (; skipY > 0; --skipY) data = skipRow(data);
+    const s32 dir = flipX ? -2 : 2;
+    s32 off;
+    auto draw = [&](s32 n) {
+        for (; n > 0; --n, off += dir) *reinterpret_cast<u16 *>(s->bits + static_cast<u32>(off)) = paletteColour(s, *data++);
+    };
+    for (s32 row = s->surface->pitch * y + x * 2; rows > 0; --rows, row += step) {
+        off = row;
+        if (cols == w) {
+            // Not clipped across: every run drawn.
+            for (s8 n; (n = *data) != 0;) {
+                ++data;
+                if (n < 0) off -= n * dir;
+                else draw(n);
+            }
+            ++data;
+            continue;
+        }
+        // The clipped columns; a run straddling the edge leaves a gap or pixels still to draw.
+        s32 rem = skipX, gap = 0, pending = 0;
+        while (rem > 0) {
+            const s8 n = *data;
+            if (!n) break;
+            if (n < 0) {
+                if (-n >= rem) {
+                    gap = -n - rem;
+                    ++data;
+                    break;
+                }
+                rem += n;
+                ++data;
+            } else {
+                if (n >= rem) {
+                    pending = n - rem;
+                    data += rem + 1;
+                    break;
+                }
+                rem -= n;
+                data += n + 1;
+            }
+        }
+        // Mirrored, the next byte is taken for a row end even when it is the next pixel: a
+        // straddling run whose first visible index is 0 ends the row.
+        if (flipX && !*data) gap = pending = 0;
+        s32 left = cols;
+        if (gap) {
+            const s32 n = gap < left ? gap : left;
+            off += n * dir;
+            left -= n;
+        } else if (pending) {
+            const s32 n = pending < left ? pending : left;
+            draw(n);
+            left -= n;
+            data += pending - n;
+        }
+        // The visible columns; a run may overshoot them, ending the row.
+        while (left > 0) {
+            const s8 n = *data;
+            if (!n) break;
+            ++data;
+            if (n < 0) {
+                const s32 g = -n < left ? -n : left;
+                off += g * dir;
+                left -= g;
+            } else {
+                const s32 k = n < left ? n : left;
+                draw(k);
+                left -= k;
+                data += n - k;
+            }
+        }
+        data = skipRow(data);
+    }
 }
 
 }  // extern "C"
