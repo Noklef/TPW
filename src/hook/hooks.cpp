@@ -3,6 +3,7 @@
 #include "hooks.h"
 
 #include "../game/core/libc.h"
+#include "../game/core/result.h"
 #include "../game/core/semaphore.h"
 #include "../game/core/string.h"
 #include "../game/files/file.h"
@@ -508,6 +509,14 @@ const Hook kHooks[] = {
     {"PixelShifts_Set",           0x0061b0e0, (void *)&PixelShifts_Set, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"Surface_SetInfo",           0x0061b130, (void *)&Surface_SetInfo, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Surface_Refresh",           0x0061b190, (void *)&Surface_Refresh, {0x83, 0xec, 0x6c, 0x56, 0x8b}},
+    {"Result_FromLastError",      0x005fa650, (void *)&Result_FromLastError, {0xff, 0x15, 0x38, 0xd1, 0x6f}},
+    {"SurfaceInfo_Ctor",          0x005fa680, (void *)&SurfaceInfo_Ctor, {0x8b, 0xc1, 0x33, 0xc9, 0x89}},
+    {"SurfaceInfo_Init",          0x005fa6a0, (void *)&SurfaceInfo_Init, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
+    {"SurfaceInfo_Alloc",         0x005fa6f0, (void *)&SurfaceInfo_Alloc, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"SurfaceInfo_Free",          0x005fa740, (void *)&SurfaceInfo_Free, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"SurfaceInfo_SubRectAt",     0x005fa760, (void *)&SurfaceInfo_SubRectAt, {0x83, 0xec, 0x10, 0x8b, 0x54}},
+    {"SurfaceInfo_SubRect",       0x005fa7b0, (void *)&SurfaceInfo_SubRect, {0x83, 0xec, 0x10, 0x8b, 0x54}},
+    {"SurfaceInfo_Size",          0x005fa890, (void *)&SurfaceInfo_Size, {0x8b, 0x41, 0x20, 0x0f, 0xaf}},
     {"PixelConverter_DeletingDtor", 0x00630c50, (void *)&PixelConverter_DeletingDtor, {0x8a, 0x44, 0x24, 0x04, 0x56}},
     {"PixelConverter_DeletingDtor2", 0x00630c70, (void *)&PixelConverter_DeletingDtor2, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"PixelConverter_Dtor",       0x00630c90, (void *)&PixelConverter_Dtor, {0xc7, 0x01, 0xc0, 0x39, 0x70}},

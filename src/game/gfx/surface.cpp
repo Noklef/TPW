@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "../core/vcall.h"
+#include "../files/file.h"
 
 namespace {
 
@@ -68,5 +69,66 @@ SurfaceInfo *__fastcall Surface_Refresh(Surface *s) {
     }
     return &s->info;
 }
+
+SurfaceInfo *__fastcall SurfaceInfo_Ctor(SurfaceInfo *i) {
+    i->bitCount = 0;
+    i->paletted = 0;
+    i->bits = nullptr;
+    i->width = 0;
+    i->height = 0;
+    i->pitch = 0;
+    return i;
+}
+
+SurfaceInfo *__fastcall SurfaceInfo_Init(SurfaceInfo *i, void *, const u32 *size, const u32 *format, void *bits,
+                                         s32 pitch) {
+    std::memcpy(i, format, 0x18);
+    i->bits = bits;
+    i->width = size[0];
+    i->height = size[1];
+    i->pitch = pitch ? pitch : static_cast<s32>(((i->bitCount + 7) >> 3) * i->width);
+    return i;
+}
+
+s32 *__fastcall SurfaceInfo_Alloc(SurfaceInfo *i, void *, s32 *out) {
+    if (!i->bits) {
+        i->pitch = static_cast<s32>(i->width * ((i->bitCount + 7) >> 3));
+        i->bits = Mem_GlobalAlloc(SurfaceInfo_Size(i));
+        if (i->bits) {
+            *out = 0;
+            return out;
+        }
+    }
+    *out = -1;
+    return out;
+}
+
+void __fastcall SurfaceInfo_Free(SurfaceInfo *i) {
+    if (i->bits) {
+        Mem_GlobalFree(i->bits);
+        i->bits = nullptr;
+    }
+}
+
+s32 *__fastcall SurfaceInfo_SubRectAt(const SurfaceInfo *i, void *, s32 *out, SurfaceInfo *dst, const s32 *at,
+                                      const s32 *size) {
+    const Rect r = {at[0], at[1], at[0] + size[0], at[1] + size[1]};
+    return SurfaceInfo_SubRect(i, nullptr, out, dst, &r);
+}
+
+s32 *__fastcall SurfaceInfo_SubRect(const SurfaceInfo *i, void *, s32 *out, SurfaceInfo *dst, const Rect *r) {
+    Rect part = {0, 0, static_cast<s32>(i->width), static_cast<s32>(i->height)};
+    if (!Rect_Intersect(&part, r)) Rect_Collapse(&part);
+    *dst = *i;
+    dst->width = static_cast<u32>(part.right - part.left);
+    dst->height = static_cast<u32>(part.bottom - part.top);
+    const u32 offset = static_cast<u32>(part.top) * static_cast<u32>(i->pitch) +
+                       ((dst->bitCount + 7) >> 3) * static_cast<u32>(part.left);
+    dst->bits = reinterpret_cast<void *>(reinterpret_cast<std::uintptr_t>(dst->bits) + offset);
+    *out = dst->width && dst->height ? 0 : -1;
+    return out;
+}
+
+u32 __fastcall SurfaceInfo_Size(const SurfaceInfo *i) { return i->height * static_cast<u32>(i->pitch); }
 
 }  // extern "C"

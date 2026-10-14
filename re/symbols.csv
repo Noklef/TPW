@@ -1079,3 +1079,11 @@ address,name,kind,confidence,notes
 0x00622540,Draw24_TextW,function,high,"reimplemented (src/game/gfx/drawrgb, the Draw16_TextW template at 3 bytes a pixel); 24-bit slot 13; the colour's low three bytes (blue, green, red)"
 0x00622740,Draw24_Sprite,function,high,"reimplemented (src/game/gfx/drawrgb, the Draw16_Sprite template at 3 bytes a pixel); 24-bit slot 14; the colour's low three bytes (blue, green, red)"
 0x00622fd0,Draw24_SpriteShape,function,high,"reimplemented (src/game/gfx/drawrgb, the Draw16_SpriteShape template at 3 bytes a pixel); 24-bit slot 15; the colour's low three bytes (blue, green, red)"
+0x005fa650,Result_FromLastError,function,high,"reimplemented (src/game/core/result); cdecl (&out); GetLastError as 0x8007xxxx (low 16 bits), 0 for none; returns out"
+0x005fa680,SurfaceInfo_Ctor,function,high,"reimplemented (src/game/gfx/surface); thiscall; zeroes bitCount..pitch, the masks left; returns this"
+0x005fa6a0,SurfaceInfo_Init,function,high,"reimplemented (src/game/gfx/surface); thiscall (&size, &format, bits, pitch); pitch 0: width * bytes a pixel; returns this"
+0x005fa6f0,SurfaceInfo_Alloc,function,high,"reimplemented (src/game/gfx/surface); thiscall (&out); GlobalAlloc'd bits at the tight pitch; -1 when it already has bits"
+0x005fa740,SurfaceInfo_Free,function,high,reimplemented (src/game/gfx/surface); thiscall; GlobalFree of the bits (if any)
+0x005fa760,SurfaceInfo_SubRectAt,function,high,"reimplemented (src/game/gfx/surface); thiscall (&out, dst, &point, &size); SubRect of that rectangle"
+0x005fa7b0,SurfaceInfo_SubRect,function,high,"reimplemented (src/game/gfx/surface); thiscall (&out, dst, &rect); dst views the part inside rect; -1 when empty"
+0x005fa890,SurfaceInfo_Size,function,high,reimplemented (src/game/gfx/surface); thiscall; height * pitch

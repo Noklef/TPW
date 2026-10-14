@@ -17,6 +17,7 @@ add_library(tpw_game STATIC
     src/game/rsse/rsse_vm.cpp
     src/game/core/libc.cpp
     src/game/core/ptrlist.cpp
+    src/game/core/result.cpp
     src/game/core/semaphore.cpp
     src/game/core/string.cpp
     src/game/files/dirsource.cpp
