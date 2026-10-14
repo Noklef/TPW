@@ -1226,6 +1226,10 @@ address,name,kind,confidence,notes
 0x00609320,Canvas16_Mask,function,high,reimplemented (src/game/gfx/canvasdraw); 16-bit copy of Canvas8_Mask (the clipped flip steps a byte a pixel)
 0x00610160,Canvas24_Mask,function,high,reimplemented (src/game/gfx/canvasdraw); 24-bit copy of Canvas8_Mask (the clipped flip steps a byte a pixel)
 0x00616340,Canvas32_Mask,function,high,reimplemented (src/game/gfx/canvasdraw); 32-bit copy of Canvas8_Mask (the clipped flip steps a byte a pixel)
+0x006033a0,Canvas8_Sprite,function,high,"reimplemented (src/game/gfx/canvasdraw); thiscall (surface, clip, flags, table, x, y, &sprite) RET 0x1c: CanvasDriver slot 11, run-length codes indexing a pixel table, clipped and flipped"
+0x00609910,Canvas16_Sprite,function,high,"reimplemented (src/game/gfx/canvasdraw); thiscall (surface, clip, flags, table, x, y, &sprite) RET 0x1c: CanvasDriver slot 11 (16 bits)"
+0x006106e0,Canvas24_Sprite,function,high,"reimplemented (src/game/gfx/canvasdraw); thiscall (surface, clip, flags, table, x, y, &sprite) RET 0x1c: CanvasDriver slot 11 (24 bits; steps 4 bytes a pixel)"
+0x00616890,Canvas32_Sprite,function,high,"reimplemented (src/game/gfx/canvasdraw); thiscall (surface, clip, flags, table, x, y, &sprite) RET 0x1c: CanvasDriver slot 11 (32 bits)"
 0x0062fe00,RowReader_Decode,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); rows read ahead (vtable +0 Begin, +4 ReadRow), converted if the formats differ, copied top down or bottom up; a failed row read ends it as success"
 0x006300c0,RowReader_CopyRow,function,high,"reimplemented (src/game/gfx/tga); thiscall; copyBytes from the row buffer to the target, which moves by step; vtable +0xc"
 0x006300f0,TgaReader_Load,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); ReadHeader, then RowReader_Decode"

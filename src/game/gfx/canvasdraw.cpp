@@ -316,48 +316,87 @@ u8 *fillRun(u8 *q, s32 n, s32 step, u32 pixel) {
     return q;
 }
 
-template <u32 Bytes>
-void drawMask(const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x, s32 y, const CanvasMask *m, Color *colour) {
-    if (!m->width || !m->height) return;
+// A mask or sprite clipped: its first pixel (the right or bottom end when flipped), the size
+// left, the columns and rows to pass and the row step. False when nothing is left.
+struct MaskClip {
+    s32 x, y, w, h, skipX, skipY, stride;
+};
+bool clipMask(const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x, s32 y, const CanvasMask *m, MaskClip *o) {
+    if (!m->width || !m->height) return false;
     s32 w = m->width, h = m->height, skipX = 0, skipY = 0;
     if (clip->left > x) {
         if (!(flags & 1)) skipX = sub(clip->left, x);
         w = add(w, sub(x, clip->left));
         x = clip->left;
-        if (w <= 0) return;
+        if (w <= 0) return false;
     }
     if (clip->right < add(x, w)) {
         if (flags & 1) skipX = sub(add(w, x), clip->right);
         w = sub(clip->right, x);
-        if (w <= 0) return;
+        if (w <= 0) return false;
     }
     if (clip->top > y) {
         if (!(flags & 2)) skipY = sub(clip->top, y);
         h = add(h, sub(y, clip->top));
         y = clip->top;
-        if (h <= 0) return;
+        if (h <= 0) return false;
     }
     if (clip->bottom < add(y, h)) {
         if (flags & 2) skipY = sub(add(h, y), clip->bottom);
         h = sub(clip->bottom, y);
-        if (h <= 0) return;
+        if (h <= 0) return false;
     }
-    const bool flipX = (flags & 1) != 0;
     s32 stride = s->pitch;
-    if (flipX) x = sub(add(x, w), 1);
+    if (flags & 1) x = sub(add(x, w), 1);
     if (flags & 2) {
         stride = sub(0, stride);
         y = sub(add(y, h), 1);
     }
+    *o = {x, y, w, h, skipX, skipY, stride};
+    return true;
+}
+// Passes left columns of a row's codes; a skip or run they end inside is carried over in skip or
+// run (both dropped, when atZero, if the byte reached is 0).
+const u8 *passColumns(const u8 *p, s32 left, s32 &skip, s32 &run, bool atZero = true) {
+    skip = run = 0;
+    while (left > 0 && *p) {
+        const s8 c = static_cast<s8>(*p);
+        if (c < 0) {
+            if (-c >= left) {
+                skip = sub(0, add(left, c));
+                ++p;
+                break;
+            }
+            left += c;
+            ++p;
+        } else {
+            if (c >= left) {
+                run = c - left;
+                p += left + 1;
+                break;
+            }
+            left -= c;
+            p += c + 1;
+        }
+    }
+    if (atZero && !*p) skip = run = 0;
+    return p;
+}
+
+template <u32 Bytes>
+void drawMask(const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x, s32 y, const CanvasMask *m, Color *colour) {
+    MaskClip k;
+    if (!clipMask(s, clip, flags, x, y, m, &k)) return;
+    const bool flipX = (flags & 1) != 0;
     const u8 *p = m->codes;
-    for (s32 i = skipY; i > 0; --i) p = skipRow(p);
+    for (s32 i = k.skipY; i > 0; --i) p = skipRow(p);
     const u32 pixel = g_env->toPixel(colour, nullptr, reinterpret_cast<const PixelFormat *>(s));
-    u8 *row = pixelAt<Bytes>(s, x, y);
+    u8 *row = pixelAt<Bytes>(s, k.x, k.y);
     const s32 B = static_cast<s32>(Bytes);
-    if (w == m->width) {
+    if (k.w == m->width) {
         // Unclipped across: the codes as they come. Flipped it still draws forwards, from the
         // right end, and a skip passes the code after it too.
-        for (; h > 0; --h, row += stride) {
+        for (; k.h > 0; --k.h, row += k.stride) {
             u8 *q = row;
             for (s8 c; (c = static_cast<s8>(*p)) != 0;) {
                 if (c < 0) {
@@ -372,34 +411,14 @@ void drawMask(const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x, s32 y, c
         }
         return;
     }
-    // Clipped across: skipX columns of codes passed (a code they end inside carried over), then
-    // at most w drawn, backwards when flipped: a byte a pixel (sic) but for a carried-over skip.
+    // Clipped across: at most w drawn, backwards when flipped: a byte a pixel (sic) but for a
+    // carried-over skip.
     const s32 step = flipX ? -1 : B;
-    for (; h > 0; --h, row += stride) {
-        s32 left = skipX, skip = 0, run = 0;
-        while (left > 0 && *p) {
-            const s8 c = static_cast<s8>(*p);
-            if (c < 0) {
-                if (-c >= left) {
-                    skip = sub(0, add(left, c));
-                    ++p;
-                    break;
-                }
-                left += c;
-                ++p;
-            } else {
-                if (c >= left) {
-                    run = c - left;
-                    p += left + 1;
-                    break;
-                }
-                left -= c;
-                p += c + 1;
-            }
-        }
-        if (!*p) skip = run = 0;
+    for (; k.h > 0; --k.h, row += k.stride) {
+        s32 skip, run;
+        p = passColumns(p, k.skipX, skip, run);
         u8 *q = row;
-        left = w;
+        s32 left = k.w;
         if (skip) {
             if (skip < left) {
                 left -= skip;
@@ -431,6 +450,68 @@ void drawMask(const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x, s32 y, c
             }
         }
         p = skipRow(p);
+    }
+}
+
+// n pixels from the table by the indices at p, from q by step bytes.
+template <u32 Bytes>
+u8 *copyRun(u8 *q, const u8 *&p, s32 n, s32 step, const u32 *table) {
+    for (; n > 0; --n) {
+        if constexpr (Bytes == 3) {  // a byte at a time (the table may be the destination)
+            const u8 *e = reinterpret_cast<const u8 *>(&table[*p++]);
+            for (int i = 0; i < 3; ++i) q[i] = e[i];
+        } else store<Bytes>(q, table[*p++]);
+        q += step;
+    }
+    return q;
+}
+
+template <u32 Bytes>
+void drawSprite(const SurfaceInfo *s, const Rect *clip, u32 flags, const u32 *table, s32 x, s32 y,
+                const CanvasMask *m) {
+    MaskClip k;
+    if (!clipMask(s, clip, flags, x, y, m, &k)) return;
+    const u8 *p = m->codes;
+    for (s32 i = k.skipY; i > 0; --i) p = skipRow(p);
+    u8 *row = pixelAt<Bytes>(s, k.x, k.y);
+    // The 24-bit code steps 4 bytes a pixel (sic).
+    const s32 B = Bytes == 3 ? 4 : static_cast<s32>(Bytes), step = flags & 1 ? -B : B;
+    const bool clipped = k.w != m->width;
+    for (; k.h > 0; --k.h, row += k.stride) {
+        u8 *q = row;
+        s32 left = k.w;
+        if (clipped) {
+            s32 skip, run;
+            p = passColumns(p, k.skipX, skip, run, (flags & 1) != 0);
+            if (skip) {
+                if (skip < left) {
+                    left -= skip;
+                    q += skip * step;
+                } else left = 0;
+            } else if (run) {
+                const s32 n = run < left ? run : left;
+                q = copyRun<Bytes>(q, p, n, step, table);
+                p += run - n;
+                left = run < left ? left - run : 0;
+            }
+        }
+        for (s8 c; (!clipped || left > 0) && (c = static_cast<s8>(*p)) != 0;) {
+            ++p;
+            if (!clipped) {
+                q = c < 0 ? q + -c * step : copyRun<Bytes>(q, p, c, step, table);
+            } else if (c < 0) {
+                if (-c < left) {
+                    left += c;
+                    q += -c * step;
+                } else left = 0;
+            } else {
+                const s32 n = c < left ? c : left;
+                q = copyRun<Bytes>(q, p, n, step, table);
+                p += c - n;
+                left = c < left ? left - c : 0;
+            }
+        }
+        p = clipped ? skipRow(p) : p + 1;
     }
 }
 
@@ -483,6 +564,10 @@ extern "C" {
     void __fastcall Canvas##N##_Mask(CanvasDriver *, void *, const SurfaceInfo *s, const Rect *clip, u32 flags,    \
                                      s32 x, s32 y, const CanvasMask *mask, Color *colour) {                        \
         drawMask<BYTES>(s, clip, flags, x, y, mask, colour);                                                       \
+    }                                                                                                              \
+    void __fastcall Canvas##N##_Sprite(CanvasDriver *, void *, const SurfaceInfo *s, const Rect *clip, u32 flags,  \
+                                       const u32 *table, s32 x, s32 y, const CanvasMask *sprite) {                 \
+        drawSprite<BYTES>(s, clip, flags, table, x, y, sprite);                                                    \
     }
 CANVAS_DEPTH(8, 1)
 CANVAS_DEPTH(16, 2)

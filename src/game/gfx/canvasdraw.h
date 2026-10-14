@@ -1,5 +1,6 @@
-// The canvas primitives' pixel, spans, line, outline and filled rectangle (CanvasDriver slots 2,
-// 3, 4, 5, 7 and 8; thiscall on the driver, which only the line and outline use). Each depth has its own copy of the pixel and span code
+// The canvas primitives: pixel, spans, line, outline, filled rectangle, triangle, mask and sprite
+// (CanvasDriver slots 2-5 and 7-11; thiscall on the driver, which only the line, outline and
+// triangle use). Each depth has its own copy of the code; the pixel and spans are at
 // (8 bits 0x601a00-0x601ed9, 16 bits 0x608140-0x608421, 24 bits 0x60ef50-0x60f407, 32 bits
 // 0x615250-0x6156b6); the outline (0x6025c0) is shared. They take the surface, the clip rectangle
 // and the canvas's flags: with neither 8 nor 0x10 the colour's pixel is written, otherwise each
@@ -102,6 +103,17 @@ void __fastcall Canvas24_Mask(CanvasDriver *d, void *edx, const SurfaceInfo *s, 
                               s32 y, const CanvasMask *mask, Color *colour);
 void __fastcall Canvas32_Mask(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x,
                               s32 y, const CanvasMask *mask, Color *colour);
+// Slot 11: (surface, clip, flags, table, x, y, &sprite): the same codes, each run's bytes indices
+// into the table of pixels, drawn clipped and flipped likewise (correctly, but for the 24-bit
+// code stepping 4 bytes a pixel).
+void __fastcall Canvas8_Sprite(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
+                               const u32 *table, s32 x, s32 y, const CanvasMask *sprite);
+void __fastcall Canvas16_Sprite(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
+                                const u32 *table, s32 x, s32 y, const CanvasMask *sprite);
+void __fastcall Canvas24_Sprite(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
+                                const u32 *table, s32 x, s32 y, const CanvasMask *sprite);
+void __fastcall Canvas32_Sprite(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
+                                const u32 *table, s32 x, s32 y, const CanvasMask *sprite);
 // Slot 8: (surface, clip, flags, &rect, colour): the rectangle, ordered and clipped, filled.
 void __fastcall Canvas8_FillRect(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
                                  const Rect *rect, Color *colour);
