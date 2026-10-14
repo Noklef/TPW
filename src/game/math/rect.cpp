@@ -67,4 +67,19 @@ Rect *__fastcall Rect_Union(const Rect *a, void *, Rect *out, const Rect *b) {
 
 void __fastcall Rect_Order(Rect *r) { Rect_Normalize(r); }
 
+void __fastcall Rect_MoveTo(Rect *r, void *, s32 x, s32 y) {
+    r->right += x - r->left;
+    r->bottom += y - r->top;
+    r->left = x;
+    r->top = y;
+}
+
+Rect *__fastcall Rect_Set(Rect *r, void *, s32 left, s32 top, s32 right, s32 bottom) {
+    r->left = left;
+    r->top = top;
+    r->right = right;
+    r->bottom = bottom;
+    return r;
+}
+
 }  // extern "C"

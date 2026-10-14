@@ -26,4 +26,7 @@ Rect *__fastcall Rect_Clip(const Rect *a, void *edx, Rect *out, const Rect *b); 
 u32 __fastcall Rect_Overlaps(const Rect *a, void *edx, const Rect *b);           // 0x62f890: edges inclusive
 Rect *__fastcall Rect_Union(const Rect *a, void *edx, Rect *out, const Rect *b);  // 0x62f8d0: bounding box
 void __fastcall Rect_Order(Rect *r);  // 0x62f940: Rect_Normalize as a method (by xor swaps)
+// Two more thiscall methods that sit with the cursor (0x5fb250, 0x5fb770).
+void __fastcall Rect_MoveTo(Rect *r, void *edx, s32 x, s32 y);  // 0x5fb250: keeps the size
+Rect *__fastcall Rect_Set(Rect *r, void *edx, s32 left, s32 top, s32 right, s32 bottom);  // 0x5fb770
 }

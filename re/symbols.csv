@@ -1123,6 +1123,36 @@ address,name,kind,confidence,notes
 0x005fa490,Screen_RegisterClass,function,high,"reimplemented (src/game/gfx/screen); cdecl; the _BullfrogLibScreen window class, once"
 0x005fa540,Screen_WndProc,function,high,"reimplemented (src/game/gfx/screen); stdcall; the screen window procedure"
 0x005fa630,Screen_SetActive,function,high,"reimplemented (src/game/gfx/screen); cdecl; (active): 0xfa795c; SetCursor(0)"
+0x005fad40,Surface_GetInfo,function,high,"reimplemented (src/game/gfx/cursor); cdecl; (&out, s): Surface_Refresh's info copied out"
+0x005fad80,Cursor_Get,function,high,"reimplemented (src/game/gfx/cursor); cdecl; the function-static cursor (0xfa7a80, guard 0xfa7a78), made on first use"
+0x005fadc0,Cursor_AtExit,function,high,"reimplemented (src/game/gfx/cursor); cdecl; the cursor's destructor, registered by Cursor_Get"
+0x005fadd0,Cursor_Ctor,function,high,"reimplemented (src/game/gfx/cursor); thiscall; no image, key 0xff000000, position 0x7fffffff, three empty buffers"
+0x005faeb0,Cursor_DeletingDtor,function,high,reimplemented (src/game/gfx/cursor); thiscall (flags); vtable 0x703640
+0x005faed0,Cursor_Dtor,function,high,"reimplemented (src/game/gfx/cursor); thiscall; the buffers' destructors, last first"
+0x005faef0,Cursor_Draw,function,high,"reimplemented (src/game/gfx/cursor); thiscall (&pos, target); move, save under, erase the old one, paint, flip"
+0x005faf70,Cursor_Discard,function,high,"reimplemented (src/game/gfx/cursor); thiscall; shown = 0, buffers released"
+0x005faf80,Cursor_CreateBuffers,function,high,reimplemented (src/game/gfx/cursor); thiscall (&out); three system-memory surfaces of the largest image size
+0x005fb020,Cursor_Flip,function,high,"reimplemented (src/game/gfx/cursor); thiscall; shown = next, next = the other save buffer"
+0x005fb060,Cursor_ReleaseBuffers,function,high,reimplemented (src/game/gfx/cursor); thiscall
+0x005fb090,Cursor_SetImage,function,high,"reimplemented (src/game/gfx/cursor); thiscall (&out, image, &rect, &hotspot); the rect of image into buffer 0"
+0x005fb250,Rect_MoveTo,function,high,"reimplemented (src/game/math/rect); thiscall (x, y); keeps the size"
+0x005fb290,Cursor_SaveUnder,function,high,reimplemented (src/game/gfx/cursor); thiscall; what the new place covers into the next buffer; bool
+0x005fb400,Cursor_EraseShown,function,high,reimplemented (src/game/gfx/cursor); thiscall; the shown buffer back onto its target; bool
+0x005fb4d0,Cursor_Paint,function,high,"reimplemented (src/game/gfx/cursor); thiscall; buffer 0 onto the target, colour keyed; bool"
+0x005fb520,Cursor_Move,function,high,reimplemented (src/game/gfx/cursor); thiscall (&pos); the clipped place and the overlap with the shown one
+0x005fb770,Rect_Set,function,high,"reimplemented (src/game/math/rect); thiscall (left, top, right, bottom); returns this"
+0x005fb790,Cursor_ClearImage,function,high,reimplemented (src/game/gfx/cursor); thiscall (&out); size 0
+0x005fb7b0,Cursor_SetKey,function,high,"reimplemented (src/game/gfx/cursor); thiscall (&key): keyRgb and keyIndex, into the buffers too"
+0x005fb7f0,Cursor_Update,function,high,"reimplemented (src/game/gfx/cursor); thiscall (&pos, unused, target, park, also); parks the shown buffer when both are set; Draw"
+0x005fb820,Cursor_Restore,function,high,"reimplemented (src/game/gfx/cursor); thiscall (target, dst, erase, parked); the shown (or parked) background onto dst"
+0x006306c0,SurfaceBuffer_Ctor,function,high,"reimplemented (src/game/gfx/surfbuf); thiscall; vtable 0x703998; no key, no surface, not created"
+0x00630700,SurfaceBuffer_DeletingDtor,function,high,reimplemented (src/game/gfx/surfbuf); thiscall (flags)
+0x00630720,SurfaceBuffer_Dtor,function,high,reimplemented (src/game/gfx/surfbuf); thiscall; Release
+0x00630730,SurfaceBuffer_Create,function,high,"reimplemented (src/game/gfx/surfbuf); thiscall (&out, &size, caps); Surface_Create; -1 on failure"
+0x00630790,SurfaceBuffer_Release,function,high,reimplemented (src/game/gfx/surfbuf); thiscall; Surface_Release unless borrowed (+0x58)
+0x00fa7a80,gCursor,data,high,"Cursor (src/game/gfx/cursor), the software cursor singleton, 0x230 bytes"
+0x00fa7a78,gCursorGuard,data,high,Cursor_Get's function-static guard (bit 0)
+0x00775874,gCursorBusy,data,high,"byte; 1 while Cursor_Draw blits, cleared after each blit; nothing reads it"
 0x005f9fa0,FpuControl_DeletingDtor,function,high,"reimplemented (src/game/core/fpu); thiscall (flags); vtable 0x7035d8 slot 0: Dtor, Mem_Free when flags & 1"
 0x005f9fc0,FpuControl_Dtor,function,high,reimplemented (src/game/core/fpu); thiscall; base vtable 0x7035dc then Restore
 0x005f9fd0,FpuControl_BaseDeletingDtor,function,high,"reimplemented (src/game/core/fpu); thiscall (flags); vtable 0x7035dc slot 0"
