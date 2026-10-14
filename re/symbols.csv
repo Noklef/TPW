@@ -961,6 +961,7 @@ address,name,kind,confidence,notes
 0x0061aff0,Rect_Normalize,function,high,"reimplemented (src/game/math/rect); cdecl (rect); swaps edges so left <= right, top <= bottom"
 0x005f7ed0,FileStream_OpenPath,function,high,"reimplemented (src/game/files/filestream); thiscall (&result, path, mode; FileStream vtable +0x24): the folder opened as a directory source, the name opened into the stream"
 0x006fd9e8,FolderHandle_vtable,data,high,"a Handle subclass vtable (the base's slots, its own deleting dtor 0x41caf0); src/game/files/filestream"
+0x006fda18,WadHandle_vtable,data,high,"a Handle subclass vtable for a WAD archive (Handle_OpenE0); src/game/files/streamopen"
 0x006fd154,imp_IsDBCSLeadByte,data,high,KERNEL32 import slot
 0x0061b090,PixelChannel_Set,function,high,"reimplemented (src/game/gfx/surface); thiscall (mask, top); the mask's top bit (31 for none) against top, as down/up shifts"
 0x0061b0e0,PixelShifts_Set,function,high,"reimplemented (src/game/gfx/surface); thiscall (&masks r,g,b,a); channels for 0xAARRGGBB, alpha first"
@@ -1152,6 +1153,8 @@ address,name,kind,confidence,notes
 0x005fb7b0,Cursor_SetKey,function,high,"reimplemented (src/game/gfx/cursor); thiscall (&key): keyRgb and keyIndex, into the buffers too"
 0x005fb7f0,Cursor_Update,function,high,"reimplemented (src/game/gfx/cursor); thiscall (&pos, unused, target, park, also); parks the shown buffer when both are set; Draw"
 0x005fb820,Cursor_Restore,function,high,"reimplemented (src/game/gfx/cursor); thiscall (target, dst, erase, parked); the shown (or parked) background onto dst"
+0x0062fa40,StreamBase_OpenIn,function,high,"reimplemented (src/game/files/streamopen); thiscall (&out, name, container or null); container: GetFileAttributesA picks a folder (Handle_Open28, resolved) or WAD (Handle_OpenE0, as given), then its OpenEntry (vtable +0xc, 0x80000001); none: the resolved path split at its last / or \"
+0x0062fd30,StreamBase_OpenBuffered,function,high,"reimplemented (src/game/files/streamopen); thiscall (&out, other, capacity); attaches other's source, then a new BufferedSource over it (deleted if it can't open)"
 0x0062fe00,RowReader_Decode,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); rows read ahead (vtable +0 Begin, +4 ReadRow), converted if the formats differ, copied top down or bottom up; a failed row read ends it as success"
 0x006300c0,RowReader_CopyRow,function,high,"reimplemented (src/game/gfx/tga); thiscall; copyBytes from the row buffer to the target, which moves by step; vtable +0xc"
 0x006300f0,TgaReader_Load,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); ReadHeader, then RowReader_Decode"
@@ -1634,6 +1637,8 @@ address,name,kind,confidence,notes
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
+0x007035e0,ImageFileStream_vtable,data,high,"StreamBase subclass (FileStream_vtable's first 9 slots, no OpenPath) the image loaders open with StreamBase_OpenIn"
+0x00703608,ImageBufferedStream_vtable,data,high,"StreamBase subclass (the same 9 slots) the image loaders read through, made by StreamBase_OpenBuffered"
 0x00703630,TgaReader_vtable,data,high,"TgaReader (0x44: RowReader, run-length/mirrored flags, rows left, row bytes, header +0x30; src/game/gfx/tga): Begin, ReadRow, RowBytes, RowReader_CopyRow"
 0x00700140,JpegCodec_vtable,data,high,"JpegCodec (0x42c: vtable, SurfaceInfo, palette[256]): 0x47e750 deleting dtor, GetInfo, Load, IsJpeg"
 0x00faa298,gFormatPal8,data,high,"masks 0, 8 bits, paletted (set at 0x6316c2)"
