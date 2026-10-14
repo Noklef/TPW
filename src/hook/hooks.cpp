@@ -20,6 +20,7 @@
 #include "../game/files/bufsource.h"
 #include "../game/math/matrix.h"
 #include "../game/math/vector.h"
+#include "../game/math/rect.h"
 #include "../game/gfx/palette.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -491,6 +492,12 @@ const Hook kHooks[] = {
     {"BufferedSource_CopyWindow", 0x00639150, (void *)&BufferedSource_CopyWindow, {0x51, 0x8b, 0xd1, 0x53, 0x57}},
     {"BufferedSource_Fill",       0x006391b0, (void *)&BufferedSource_Fill, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"BufferedSource_ReadRaw",    0x006391e0, (void *)&BufferedSource_ReadRaw, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
+    {"Rect_Copy",                 0x0061af20, (void *)&Rect_Copy, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"Rect_Width",                0x0061af40, (void *)&Rect_Width, {0x8b, 0x4c, 0x24, 0x04, 0x8b}},
+    {"Rect_Height",               0x0061af50, (void *)&Rect_Height, {0x8b, 0x4c, 0x24, 0x04, 0x8b}},
+    {"Rect_Intersect",            0x0061af60, (void *)&Rect_Intersect, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Rect_Collapse",             0x0061afe0, (void *)&Rect_Collapse, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Rect_Normalize",            0x0061aff0, (void *)&Rect_Normalize, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

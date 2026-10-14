@@ -35,6 +35,7 @@ add_library(tpw_game STATIC
     src/game/gfx/palette.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
+    src/game/math/rect.cpp
     src/game/math/sintable.cpp
     src/game/motion/curve.cpp
     src/game/motion/keys.cpp

@@ -953,3 +953,9 @@ address,name,kind,confidence,notes
 0x006391b0,BufferedSource_Fill,function,high,reimplemented (src/game/files/bufsource); thiscall; the raw read of a whole buffer becomes the window
 0x006391e0,BufferedSource_ReadRaw,function,high,"reimplemented (src/game/files/bufsource); thiscall (buffer, count); seeks the wrapped source (relative) when its position differs, then reads"
 0x00703f78,BufferedSource_vtable,data,high,src/game/files/bufsource
+0x0061af20,Rect_Copy,function,high,"reimplemented (src/game/math/rect); cdecl (dst, src)"
+0x0061af40,Rect_Width,function,high,reimplemented (src/game/math/rect); cdecl (rect); right - left
+0x0061af50,Rect_Height,function,high,reimplemented (src/game/math/rect); cdecl (rect); bottom - top
+0x0061af60,Rect_Intersect,function,high,"reimplemented (src/game/math/rect); cdecl (a, b); a becomes the intersection (even empty), 1 when not empty"
+0x0061afe0,Rect_Collapse,function,high,"reimplemented (src/game/math/rect); cdecl (rect); right = left, bottom = top"
+0x0061aff0,Rect_Normalize,function,high,"reimplemented (src/game/math/rect); cdecl (rect); swaps edges so left <= right, top <= bottom"
