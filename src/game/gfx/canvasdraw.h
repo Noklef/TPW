@@ -1,5 +1,5 @@
-// The canvas primitives: pixel, spans, line, outline, text, filled rectangle, triangle, mask and
-// sprite (CanvasDriver slots 2-11; thiscall on the driver, which only the line, outline and
+// The canvas primitives: circle, disc, pixel, spans, line, outline, text, filled rectangle, triangle,
+// mask and sprite (CanvasDriver slots 0-11; thiscall on the driver, which only the line, outline and
 // triangle use). Each depth has its own copy of the code; the pixel and spans are at
 // (8 bits 0x601a00-0x601ed9, 16 bits 0x608140-0x608421, 24 bits 0x60ef50-0x60f407, 32 bits
 // 0x615250-0x6156b6); the outline (0x6025c0) is shared. They take the surface, the clip rectangle
@@ -116,6 +116,33 @@ void __fastcall Canvas24_Sprite(CanvasDriver *d, void *edx, const SurfaceInfo *s
                                 const u32 *table, s32 x, s32 y, const CanvasMask *sprite);
 void __fastcall Canvas32_Sprite(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
                                 const u32 *table, s32 x, s32 y, const CanvasMask *sprite);
+// Slot 0: (surface, clip, flags, x, y, radius, colour): a circle's outline by Bresenham, clipped
+// pixel by pixel unless wholly inside. Radius 0 is the centre, 1 a plus sign with its centre.
+// - Plain, each step's eight points are drawn even where they meet (the ends and diagonals twice);
+//   blended, the ends and diagonals are drawn once.
+// - A negative radius draws nothing plain but its four ends blended, unclipped when its inside-out
+//   box tests as wholly inside.
+void __fastcall Canvas8_Circle(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
+                               s32 x, s32 y, s32 radius, Color *colour);
+void __fastcall Canvas16_Circle(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
+                                s32 x, s32 y, s32 radius, Color *colour);
+void __fastcall Canvas24_Circle(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
+                                s32 x, s32 y, s32 radius, Color *colour);
+void __fastcall Canvas32_Circle(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
+                                s32 x, s32 y, s32 radius, Color *colour);
+// Slot 1: (surface, clip, flags, x, y, radius, colour): a filled circle by the same Bresenham, as
+// rows clamped across and dropped outside the clip down; radius 0 and 1 as the circle's.
+// - Each row starts at the surface's own (bitCount + 7) / 8 bytes a pixel, not the driver's.
+// - 24-bit blended, each row blends its first pixel over and over (as the filled rectangle's).
+// - A negative radius gives a negative span length, which the original fills without end.
+void __fastcall Canvas8_Disc(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
+                             s32 x, s32 y, s32 radius, Color *colour);
+void __fastcall Canvas16_Disc(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
+                              s32 x, s32 y, s32 radius, Color *colour);
+void __fastcall Canvas24_Disc(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
+                              s32 x, s32 y, s32 radius, Color *colour);
+void __fastcall Canvas32_Disc(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
+                              s32 x, s32 y, s32 radius, Color *colour);
 // Slot 6: (surface, clip, flags, x, y, text, colour): the text in the 6x6 debug font (eight bytes a
 // glyph from ' ': six rows of five pixels from bit 0x40, then the advance), '\t' to the next 32
 // pixels and '\n' 8 down to the start. Nothing unless the first line fits the clip.

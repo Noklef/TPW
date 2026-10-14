@@ -532,6 +532,112 @@ void fillRect(const SurfaceInfo *s, const Rect *clip, u32 flags, const Rect *rec
 }
 
 template <u32 Bytes>
+void drawCircle(const SurfaceInfo *s, const Rect *clip, u32 flags, s32 cx, s32 cy, s32 r, Color *colour) {
+    const u32 pixel = g_env->toPixel(colour, nullptr, reinterpret_cast<const PixelFormat *>(s));
+    const bool blended = (flags & 0x18) != 0;
+    const u32 src = source<Bytes>(pixel);
+    const u32 srcMasked[3] = {s->redMask & src, s->greenMask & src, s->blueMask & src};
+    const u32 alpha = alphaOf(colour, flags);
+    bool checked = true;
+    auto put = [&](s32 x, s32 y) {
+        if (checked && !inside(clip, x, y)) return;
+        u8 *p = pixelAt<Bytes>(s, x, y);
+        store<Bytes>(p, blended ? blend(s, srcMasked, load<Bytes>(p), alpha) : pixel);
+    };
+    if (r == 0) {
+        put(cx, cy);
+        return;
+    }
+    const Rect bounds = {sub(cx, r), sub(cy, r), add(add(cx, r), 1), add(add(cy, r), 1)};
+    if (!g_env->overlaps(clip, nullptr, &bounds)) return;
+    if (r == 1) {
+        put(sub(cx, 1), cy);
+        put(cx, sub(cy, 1));
+        put(add(cx, 1), cy);
+        put(cx, add(cy, 1));
+        put(cx, cy);
+        return;
+    }
+    // Unchecked when the box is wholly inside: a negative radius's box is inside out, so its ends can
+    // land outside the clip. (The unchecked code also orders its points by column, which never shows.)
+    checked = clip->left > bounds.left || clip->top > bounds.top || clip->right < bounds.right ||
+              clip->bottom < bounds.bottom;
+    u32 d = 3 - 2 * static_cast<u32>(r);
+    s32 x = 0, y = r;
+    auto advance = [&] {
+        if (static_cast<s32>(d) < 0) d += 4 * static_cast<u32>(x) + 6;
+        else d += 4 * static_cast<u32>(sub(x, y)) + 10, --y;
+        ++x;
+    };
+    auto four = [&](s32 dx, s32 dy) {  // (cx -+ dx, cy -+ dy), across then down
+        put(sub(cx, dx), sub(cy, dy)), put(add(cx, dx), sub(cy, dy));
+        put(sub(cx, dx), add(cy, dy)), put(add(cx, dx), add(cy, dy));
+    };
+    if (!blended) {
+        for (; x <= y; advance()) four(x, y), four(y, x);  // a negative radius never enters
+        return;
+    }
+    // Blended, each pixel once: the four ends, the octants between, then the four diagonals.
+    put(cx, sub(cy, r)), put(cx, add(cy, r)), put(sub(cx, r), cy), put(add(cx, r), cy);
+    for (advance(); x < y; advance()) four(x, y), four(y, x);
+    if (x == y) four(x, x);
+}
+
+s32 clampX(const Rect *clip, s32 x) { return x < clip->left ? clip->left : x > clip->right ? clip->right : x; }
+
+template <u32 Bytes>
+void drawDisc(const SurfaceInfo *s, const Rect *clip, u32 flags, s32 cx, s32 cy, s32 r, Color *colour) {
+    const u32 pixel = g_env->toPixel(colour, nullptr, reinterpret_cast<const PixelFormat *>(s));
+    auto put = [&](s32 x, s32 y) {
+        if (!inside(clip, x, y)) return;
+        drawSpan<Bytes, false>(s, pixelAt<Bytes>(s, x, y), Bytes, 1, flags, pixel, colour);
+    };
+    if (r == 0) {
+        put(cx, cy);
+        return;
+    }
+    const Rect bounds = {sub(cx, r), sub(cy, r), add(add(cx, r), 1), add(add(cy, r), 1)};
+    if (!g_env->overlaps(clip, nullptr, &bounds)) return;
+    if (r == 1) {
+        put(sub(cx, 1), cy);
+        put(cx, sub(cy, 1));
+        put(add(cx, 1), cy);
+        put(cx, add(cy, 1));
+        put(cx, cy);
+        return;
+    }
+    // Rows from xs to xe, clamped across; the first pixel found by the surface's own depth (sic).
+    const u32 depthBytes = (s->bitCount + 7) >> 3;
+    auto span = [&](s32 y, s32 xs, s32 xe) {
+        const s32 from = clampX(clip, xs), n = sub(clampX(clip, xe), from);
+        if (y < clip->top || y >= clip->bottom) return;
+        const u32 a = static_cast<u32>(reinterpret_cast<std::uintptr_t>(s->bits)) +
+                      static_cast<u32>(s->pitch) * static_cast<u32>(y) + depthBytes * static_cast<u32>(from);
+        drawSpan<Bytes, Bytes == 3>(s, reinterpret_cast<u8 *>(static_cast<std::uintptr_t>(a)), Bytes,
+                                    static_cast<u32>(n), flags, pixel, colour);
+    };
+    u32 d = 3 - 2 * static_cast<u32>(r);
+    s32 x = 0, y = r;
+    span(cy, sub(cx, r), add(add(cx, r), 1));
+    for (;;) {
+        if (static_cast<s32>(d) < 0) {
+            d += 4 * static_cast<u32>(x) + 6;
+        } else {
+            span(sub(cy, y), sub(cx, x), add(add(cx, x), 1));
+            span(add(cy, y), sub(cx, x), add(add(cx, x), 1));
+            d += 4 * static_cast<u32>(sub(x, y)) + 10;
+            --y;
+        }
+        if (++x >= y) break;
+        span(sub(cy, x), sub(cx, y), add(add(cx, y), 1));
+        span(add(cy, x), sub(cx, y), add(add(cx, y), 1));
+    }
+    if (x != y) return;
+    span(sub(cy, x), sub(cx, y), add(add(cx, y), 1));
+    span(add(cy, x), sub(cx, y), add(add(cx, y), 1));
+}
+
+template <u32 Bytes>
 void drawText(const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x, s32 y, const char *text, Color *colour) {
     if (!s || add(y, 6) > clip->bottom || y < clip->top || add(x, 6) > clip->right || !text || !*text) return;
     const u32 pixel = g_env->toPixel(colour, nullptr, reinterpret_cast<const PixelFormat *>(s));
@@ -609,6 +715,14 @@ extern "C" {
     void __fastcall Canvas##N##_Sprite(CanvasDriver *, void *, const SurfaceInfo *s, const Rect *clip, u32 flags,  \
                                        const u32 *table, s32 x, s32 y, const CanvasMask *sprite) {                 \
         drawSprite<BYTES>(s, clip, flags, table, x, y, sprite);                                                    \
+    }                                                                                                              \
+    void __fastcall Canvas##N##_Circle(CanvasDriver *, void *, const SurfaceInfo *s, const Rect *clip, u32 flags,  \
+                                       s32 x, s32 y, s32 radius, Color *colour) {                                  \
+        drawCircle<BYTES>(s, clip, flags, x, y, radius, colour);                                                   \
+    }                                                                                                              \
+    void __fastcall Canvas##N##_Disc(CanvasDriver *, void *, const SurfaceInfo *s, const Rect *clip, u32 flags,    \
+                                     s32 x, s32 y, s32 radius, Color *colour) {                                    \
+        drawDisc<BYTES>(s, clip, flags, x, y, radius, colour);                                                     \
     }                                                                                                              \
     void __fastcall Canvas##N##_Text(CanvasDriver *, void *, const SurfaceInfo *s, const Rect *clip, u32 flags,    \
                                      s32 x, s32 y, const char *text, Color *colour) {                              \
