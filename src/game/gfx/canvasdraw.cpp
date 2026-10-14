@@ -127,6 +127,116 @@ void drawVSpan(const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x, s32 y, 
     drawSpan<Bytes, false>(s, pixelAt<Bytes>(s, x, y), s->pitch, static_cast<u32>(len), flags, pixel, colour);
 }
 
+s32 mul(s32 a, s32 b) { return static_cast<s32>(static_cast<u32>(a) * static_cast<u32>(b)); }
+
+// The line clipped as the original does: x first, then y, the far end moved along the line to
+// the edge (right and bottom less one), nothing re-checked. False when it misses.
+bool clipLine(const Rect *c, s32 &x0, s32 &y0, s32 &x1, s32 &y1) {
+    if (x0 < c->left) {
+        if (x1 < c->left) return false;
+        y0 = sub(y0, mul(sub(x0, c->left), sub(y0, y1)) / sub(x0, x1));
+        x0 = c->left;
+        if (x1 >= c->right) {
+            y1 = sub(y1, mul(add(sub(x1, c->right), 1), sub(y1, y0)) / sub(x1, x0));
+            x1 = sub(c->right, 1);
+        }
+    } else if (x0 >= c->right) {
+        if (x1 >= c->right) return false;
+        y0 = sub(y0, mul(add(sub(x0, c->right), 1), sub(y0, y1)) / sub(x0, x1));
+        x0 = sub(c->right, 1);
+        if (x1 < c->left) {
+            y1 = sub(y1, mul(sub(x1, c->left), sub(y1, y0)) / sub(x1, x0));
+            x1 = c->left;
+        }
+    } else if (x1 < c->left) {
+        y1 = sub(y1, mul(sub(x1, c->left), sub(y1, y0)) / sub(x1, x0));
+        x1 = c->left;
+    } else if (x1 >= c->right) {
+        y1 = sub(y1, mul(add(sub(x1, c->right), 1), sub(y1, y0)) / sub(x1, x0));
+        x1 = sub(c->right, 1);
+    }
+    if (y0 < c->top) {
+        if (y1 < c->top) return false;
+        x0 = sub(x0, mul(sub(y0, c->top), sub(x0, x1)) / sub(y0, y1));
+        y0 = c->top;
+        if (y1 >= c->bottom) {
+            x1 = sub(x1, mul(add(sub(y1, c->bottom), 1), sub(x1, x0)) / sub(y1, y0));
+            y1 = sub(c->bottom, 1);
+        }
+    } else if (y0 >= c->bottom) {
+        if (y1 >= c->bottom) return false;
+        x0 = sub(x0, mul(add(sub(y0, c->bottom), 1), sub(x0, x1)) / sub(y0, y1));
+        y0 = sub(c->bottom, 1);
+        if (y1 < c->top) {
+            x1 = sub(x1, mul(sub(y1, c->top), sub(x1, x0)) / sub(y1, y0));
+            y1 = c->top;
+        }
+    } else if (y1 < c->top) {
+        x1 = sub(x1, mul(sub(y1, c->top), sub(x1, x0)) / sub(y1, y0));
+        y1 = c->top;
+    } else if (y1 >= c->bottom) {
+        x1 = sub(x1, mul(add(sub(y1, c->bottom), 1), sub(x1, x0)) / sub(y1, y0));
+        y1 = sub(c->bottom, 1);
+    }
+    return true;
+}
+
+template <u32 Bytes>
+void drawLine(CanvasDriver *d, const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x0, s32 y0, s32 x1, s32 y1,
+              Color *colour) {
+    if (x0 == x1) {
+        reinterpret_cast<SpanFn>(d->table[3])(d, nullptr, s, clip, flags, x0, y0, sub(y1, y0), colour);
+        return;
+    }
+    if (y0 == y1) {
+        reinterpret_cast<SpanFn>(d->table[2])(d, nullptr, s, clip, flags, x0, y0, sub(x1, x0), colour);
+        return;
+    }
+    if (!clipLine(clip, x0, y0, x1, y1)) return;
+    const u32 pixel = g_env->toPixel(colour, nullptr, reinterpret_cast<const PixelFormat *>(s));
+    const s32 dx = sub(x1, x0), dy = sub(y1, y0);
+    const s32 ax = mul(dx < 0 ? sub(0, dx) : dx, 2), ay = mul(dy < 0 ? sub(0, dy) : dy, 2);
+    const s32 sx = dx > 0 ? 1 : -1, sy = dy > 0 ? 1 : -1;
+    const s32 stepX = sx * static_cast<s32>(Bytes), stepY = mul(sy, s->pitch);
+    const bool blended = (flags & 0x18) != 0;
+    const u32 src = source<Bytes>(pixel);
+    u32 srcMasked[3] = {}, alpha = 0;
+    if (blended) {
+        alpha = alphaOf(colour, flags);
+        srcMasked[0] = s->redMask & src;
+        srcMasked[1] = s->greenMask & src;
+        srcMasked[2] = s->blueMask & src;
+    }
+    auto plot = [&](u8 *at) {
+        store<Bytes>(at, blended ? blend(s, srcMasked, load<Bytes>(at), alpha) : pixel);
+    };
+    u8 *p = pixelAt<Bytes>(s, x0, y0);
+    plot(p);
+    if (ax > ay) {
+        for (s32 e = sub(ay, ax >> 1); x0 != x1;) {
+            if (e >= 0) {
+                p += stepY;
+                e = sub(e, ax);
+            }
+            x0 = add(x0, sx);
+            p += stepX;
+            e = add(e, ay);
+            plot(p);
+        }
+    } else {
+        for (s32 e = sub(ax, ay >> 1); y0 != y1;) {
+            if (e >= 0) {
+                p += stepX;
+                e = sub(e, ay);
+            }
+            y0 = add(y0, sy);
+            p += stepY;
+            e = add(e, ax);
+            plot(p);
+        }
+    }
+}
+
 template <u32 Bytes>
 void fillRect(const SurfaceInfo *s, const Rect *clip, u32 flags, const Rect *rect, Color *colour) {
     Rect r = *rect;
@@ -163,6 +273,10 @@ extern "C" {
     void __fastcall Canvas##N##_FillRect(CanvasDriver *, void *, const SurfaceInfo *s, const Rect *clip,           \
                                          u32 flags, const Rect *rect, Color *colour) {                             \
         fillRect<BYTES>(s, clip, flags, rect, colour);                                                             \
+    }                                                                                                              \
+    void __fastcall Canvas##N##_Line(CanvasDriver *d, void *, const SurfaceInfo *s, const Rect *clip, u32 flags,   \
+                                     s32 x0, s32 y0, s32 x1, s32 y1, Color *colour) {                              \
+        drawLine<BYTES>(d, s, clip, flags, x0, y0, x1, y1, colour);                                                \
     }
 CANVAS_DEPTH(8, 1)
 CANVAS_DEPTH(16, 2)

@@ -1214,6 +1214,10 @@ address,name,kind,confidence,notes
 0x00608c60,Canvas16_FillRect,function,high,reimplemented (src/game/gfx/canvasdraw); slot 8 of the 16-bit driver; see Canvas8_FillRect
 0x0060fab0,Canvas24_FillRect,function,high,reimplemented (src/game/gfx/canvasdraw); slot 8 of the 24-bit driver; the blend never advances along a row (sic)
 0x00615cd0,Canvas32_FillRect,function,high,reimplemented (src/game/gfx/canvasdraw); slot 8 of the 32-bit driver
+0x00601ee0,Canvas8_Line,function,high,"reimplemented (src/game/gfx/canvasdraw); thiscall (surface, clip, flags, x0, y0, x1, y1, &colour) RET 0x20: CanvasDriver slot 4; vertical/horizontal through slots 3/2, else clipped (x then y, unchecked) and Bresenham"
+0x00608600,Canvas16_Line,function,high,reimplemented (src/game/gfx/canvasdraw); 16-bit copy of Canvas8_Line
+0x0060f410,Canvas24_Line,function,high,reimplemented (src/game/gfx/canvasdraw); 24-bit copy of Canvas8_Line
+0x006156c0,Canvas32_Line,function,high,reimplemented (src/game/gfx/canvasdraw); 32-bit copy of Canvas8_Line
 0x0062fe00,RowReader_Decode,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); rows read ahead (vtable +0 Begin, +4 ReadRow), converted if the formats differ, copied top down or bottom up; a failed row read ends it as success"
 0x006300c0,RowReader_CopyRow,function,high,"reimplemented (src/game/gfx/tga); thiscall; copyBytes from the row buffer to the target, which moves by step; vtable +0xc"
 0x006300f0,TgaReader_Load,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); ReadHeader, then RowReader_Decode"
