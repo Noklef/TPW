@@ -145,6 +145,61 @@ void __fastcall Draw_Circle(DrawDriver *d, void *, s32 x, s32 y, s32 r, DrawColo
     vcall<void>(d, g_env->state->flags & kDrawOutline ? 0x14 : 0x18, x, y, r, c);
 }
 
+void __fastcall Draw_Triangle(DrawDriver *d, void *, s32 x1, s32 y1, s32 x2, s32 y2, s32 x3, s32 y3,
+                              DrawColour c) {
+    if (g_env->state->flags & kDrawOutline) {
+        vcall<void>(d, 0x1c, x1, y1, x2, y2, c);
+        vcall<void>(d, 0x1c, x2, y2, x3, y3, c);
+        vcall<void>(d, 0x1c, x3, y3, x1, y1, c);
+        return;
+    }
+    auto swap = [](s32 &xa, s32 &ya, s32 &xb, s32 &yb) {
+        const s32 x = xa, y = ya;
+        xa = xb, ya = yb, xb = x, yb = y;
+    };
+    if (y1 > y2) swap(x1, y1, x2, y2);
+    if (y2 > y3) swap(x2, y2, x3, y3);
+    if (y1 > y2) swap(x1, y1, x2, y2);
+    // 16.16 edges; spans [left, right) go to the horizontal line. The long edge (1 to 3) is
+    // walked throughout, the short ones (1 to 2, then 2 to 3) in turn.
+    auto fixed = [](s32 v) { return static_cast<s32>(static_cast<u32>(v) << 16); };
+    auto slope = [&](s32 dx, s32 dy) { return fixed(dx) / dy; };
+    auto spans = [&](s32 &y, s32 to, s32 &left, s32 dl, s32 &right, s32 dr) {
+        for (; y < to; ++y, left += dl, right += dr)
+            vcall<void>(d, 0x20, left >> 16, y, (right >> 16) - (left >> 16), c);
+    };
+    s32 y = y1, left, right, dl, dr;
+    if (y1 == y2) {
+        if (y2 == y3) return;
+        if (x1 < x2) {
+            dl = slope(x3 - x1, y3 - y1);
+            left = fixed(x1);
+            dr = slope(x3 - x2, y3 - y2);
+            right = fixed(x2);
+        } else {
+            dl = slope(x3 - x2, y3 - y2);
+            left = fixed(x2);
+            dr = slope(x3 - x1, y3 - y1);
+            right = fixed(x1);
+        }
+        spans(y, y3, left, dl, right, dr);
+        return;
+    }
+    const s32 dLong = slope(x3 - x1, y3 - y1), dShort = slope(x2 - x1, y2 - y1);
+    s32 edge = fixed(x1), other = fixed(x1);
+    if (dShort <= dLong) {
+        spans(y, y2, other, dShort, edge, dLong);
+        if (y2 == y3) return;
+        other = fixed(x2);
+        spans(y, y3, other, slope(x3 - x2, y3 - y2), edge, dLong);
+    } else {
+        spans(y, y2, edge, dLong, other, dShort);
+        if (y2 == y3) return;
+        other = fixed(x2);
+        spans(y, y3, edge, dLong, other, slope(x3 - x2, y3 - y2));
+    }
+}
+
 void __fastcall Draw8_Pixel(DrawDriver *, void *, s32 x, s32 y, DrawColour c) {
     const DrawContext *s = g_env->state;
     if (!inClip(s, x, y)) return;

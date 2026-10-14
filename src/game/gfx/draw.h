@@ -64,6 +64,8 @@ extern "C" {
 void __fastcall Draw_Box(DrawDriver *d, void *edx, const Rect *r, DrawColour c);         // 0x61bc90 (1)
 void __fastcall Draw_BoxOutline(DrawDriver *d, void *edx, const Rect *r, DrawColour c);  // 0x628aa0 (2)
 void __fastcall Draw_Circle(DrawDriver *d, void *edx, s32 x, s32 y, s32 r, DrawColour c);  // 0x629bf0 (4)
+void __fastcall Draw_Triangle(DrawDriver *d, void *edx, s32 x1, s32 y1, s32 x2, s32 y2, s32 x3, s32 y3,
+                              DrawColour c);  // 0x61eab0 (10)
 // 8 bits.
 void __fastcall Draw8_Pixel(DrawDriver *d, void *edx, s32 x, s32 y, DrawColour c);         // 0x61baf0 (0)
 void __fastcall Draw8_BoxFill(DrawDriver *d, void *edx, const Rect *r, DrawColour c);      // 0x61eed0 (3)
