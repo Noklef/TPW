@@ -1174,6 +1174,18 @@ address,name,kind,confidence,notes
 0x005f8da0,RegKey_Ctor,function,high,reimplemented (src/game/core/regkey); thiscall; the handle zeroed (0x581da0)
 0x00581da0,Ptr_Ctor,function,medium,"thiscall; [this] = 0 (a shared trivial constructor: RegKey's and one other)"
 0x00775748,gCompanyRegPath,data,high,"""software\Bullfrog Productions Ltd"", RegKey_Open's root key path"
+0x005f8db0,Text_Draw,function,high,"reimplemented (src/game/gfx/text); cdecl (x, y, text, DrawColour); each character through the text driver's draw (+0xc), '\n' a line down (Text_LineHeight(' '))"
+0x005f8e20,Font_DrawGlyph,function,high,"reimplemented (src/game/gfx/text); cdecl (font, x, y, ch, colour) -> width; font[ch - ' '] through Draw_Sprite; TextDriver_Font's draw (not in the Ghidra listing)"
+0x005f8e50,Font_Measure,function,high,"reimplemented (src/game/gfx/text); cdecl (font, &size, ch) -> the font; the glyph's width and height (not in the Ghidra listing)"
+0x005f8e80,Font_DrawGlyphShape,function,high,"reimplemented (src/game/gfx/text); cdecl (font, x, y, ch, colour) -> width; through Draw_SpriteShape (not in the Ghidra listing)"
+0x005f8ec0,Text_SetDriver,function,high,"reimplemented (src/game/gfx/text); cdecl (&out, driver, param); the old one's shutdown, then the new one's init (or param as the context)"
+0x005f8f40,Text_LineHeight,function,high,reimplemented (src/game/gfx/text); cdecl (ch) -> the height the driver's measure (+8) gives
+0x0061b030,Draw_Sprite,function,high,"reimplemented (src/game/gfx/text); cdecl (x, y, sprite); the current draw driver's slot 14 (not in the Ghidra listing)"
+0x0061b050,Draw_SpriteShape,function,high,"reimplemented (src/game/gfx/text); cdecl (x, y, sprite, DrawColour); slot 15 (not in the Ghidra listing)"
+0x00fa76a0,gTextDriver,data,high,"const TextDriver *: the current text driver (Text_SetDriver); src/game/gfx/text"
+0x00fa76a4,gTextContext,data,high,"the text driver's context: the font for the game's two; src/game/gfx/text"
+0x007031b0,TextDriver_Font,data,high,"TextDriver {init 0, shutdown 0, Font_Measure, Font_DrawGlyph}; src/game/gfx/text"
+0x007031c0,TextDriver_FontShape,data,high,"TextDriver {init 0, shutdown 0, Font_Measure, Font_DrawGlyphShape}; src/game/gfx/text"
 0x0062fe00,RowReader_Decode,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); rows read ahead (vtable +0 Begin, +4 ReadRow), converted if the formats differ, copied top down or bottom up; a failed row read ends it as success"
 0x006300c0,RowReader_CopyRow,function,high,"reimplemented (src/game/gfx/tga); thiscall; copyBytes from the row buffer to the target, which moves by step; vtable +0xc"
 0x006300f0,TgaReader_Load,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); ReadHeader, then RowReader_Decode"

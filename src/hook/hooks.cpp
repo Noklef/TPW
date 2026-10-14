@@ -15,6 +15,7 @@
 #include "../game/files/streamopen.h"
 #include "../game/files/drives.h"
 #include "../game/core/regkey.h"
+#include "../game/gfx/text.h"
 #include "../game/files/memsource.h"
 #include "../game/files/zlibcodec.h"
 #include "../game/files/refpack.h"
@@ -633,6 +634,14 @@ const Hook kHooks[] = {
     {"RegKey_GetU32Or",           0x005f8cf0, (void *)&RegKey_GetU32Or, {0x8b, 0x44, 0x24, 0x08, 0x56}},
     {"RegKey_TypeOf",             0x005f8d40, (void *)&RegKey_TypeOf, {0x51, 0x56, 0x57, 0x8b, 0x7c}},
     {"RegKey_Ctor",               0x005f8da0, (void *)&RegKey_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0xf8}},
+    {"Text_Draw",                 0x005f8db0, (void *)&Text_Draw, {0x55, 0x8b, 0x6c, 0x24, 0x0c}},
+    {"Font_DrawGlyph",            0x005f8e20, (void *)&Font_DrawGlyph, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
+    {"Font_Measure",              0x005f8e50, (void *)&Font_Measure, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Font_DrawGlyphShape",       0x005f8e80, (void *)&Font_DrawGlyphShape, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
+    {"Text_SetDriver",            0x005f8ec0, (void *)&Text_SetDriver, {0xa1, 0xa0, 0x76, 0xfa, 0x00}},
+    {"Text_LineHeight",           0x005f8f40, (void *)&Text_LineHeight, {0x83, 0xec, 0x08, 0x8b, 0x15}},
+    {"Draw_Sprite",               0x0061b030, (void *)&Draw_Sprite, {0x8b, 0x54, 0x24, 0x0c, 0x8b}},
+    {"Draw_SpriteShape",          0x0061b050, (void *)&Draw_SpriteShape, {0x53, 0x56, 0x8b, 0x74, 0x24}},
     {"RowReader_Decode",          0x0062fe00, (void *)&RowReader_Decode, {0x6a, 0xff, 0x68, 0x38, 0x2b}},
     {"RowReader_CopyRow",         0x006300c0, (void *)&RowReader_CopyRow, {0x8b, 0xc1, 0x56, 0x57, 0x8b}},
     {"TgaReader_Load",            0x006300f0, (void *)&TgaReader_Load, {0x53, 0x8b, 0x5c, 0x24, 0x10}},

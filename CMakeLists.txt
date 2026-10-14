@@ -58,6 +58,7 @@ add_library(tpw_game STATIC
     src/game/files/streamopen.cpp
     src/game/files/drives.cpp
     src/game/core/regkey.cpp
+    src/game/gfx/text.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp
