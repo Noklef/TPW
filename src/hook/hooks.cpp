@@ -36,6 +36,7 @@
 #include "../game/gfx/cursor.h"
 #include "../game/gfx/surfbuf.h"
 #include "../game/gfx/pointer.h"
+#include "../game/gfx/color.h"
 #include "../game/core/events.h"
 #include "../game/core/filetime.h"
 #include "../game/motion/animator.h"
@@ -645,6 +646,22 @@ const Hook kHooks[] = {
     {"FileTime_FromSystemTime",   0x005fc5c0, (void *)&FileTime_FromSystemTime, {0x83, 0xec, 0x10, 0x66, 0x8b}},
     {"FileTime_ToSystemTime",     0x005fc660, (void *)&FileTime_ToSystemTime, {0x83, 0xec, 0x14, 0x8d, 0x44}},
     {"FileTime_FromSpan",         0x005fcc50, (void *)&FileTime_FromSpan, {0x8b, 0x44, 0x24, 0x08, 0x56}},
+    {"PixelFormat_InitArgb8888Unused", 0x005fccf0, (void *)&PixelFormat_InitArgb8888Unused, {0xc7, 0x05, 0x40, 0x7d, 0xfa}},
+    {"PixelFormat_InitArgb1555",  0x005fcd40, (void *)&PixelFormat_InitArgb1555, {0xc7, 0x05, 0xe8, 0x7d, 0xfa}},
+    {"PixelFormat_InitRgb555",    0x005fcd90, (void *)&PixelFormat_InitRgb555, {0x33, 0xc0, 0xc7, 0x05, 0x18}},
+    {"PixelFormat_InitRgb565",    0x005fcde0, (void *)&PixelFormat_InitRgb565, {0x33, 0xc0, 0xc7, 0x05, 0x88}},
+    {"PixelFormat_InitArgb4444",  0x005fce30, (void *)&PixelFormat_InitArgb4444, {0xc7, 0x05, 0x70, 0x7d, 0xfa}},
+    {"PixelFormat_InitRgb888",    0x005fce80, (void *)&PixelFormat_InitRgb888, {0x33, 0xc0, 0xc7, 0x05, 0x00}},
+    {"PixelFormat_InitBgr888",    0x005fced0, (void *)&PixelFormat_InitBgr888, {0x33, 0xc0, 0xc7, 0x05, 0xd0}},
+    {"PixelFormat_InitArgb8888",  0x005fcf20, (void *)&PixelFormat_InitArgb8888, {0xc7, 0x05, 0xb8, 0x7d, 0xfa}},
+    {"PixelFormat_InitAbgr8888",  0x005fcf70, (void *)&PixelFormat_InitAbgr8888, {0xc7, 0x05, 0x58, 0x7d, 0xfa}},
+    {"PixelFormat_InitXrgb8888",  0x005fcfc0, (void *)&PixelFormat_InitXrgb8888, {0x33, 0xc0, 0xc7, 0x05, 0xa0}},
+    {"PixelFormat_InitXbgr8888",  0x005fd010, (void *)&PixelFormat_InitXbgr8888, {0x33, 0xc0, 0xc7, 0x05, 0x28}},
+    {"Color_ToPixel",             0x005fd050, (void *)&Color_ToPixel, {0xa1, 0xe8, 0x7d, 0xfa, 0x00}},
+    {"PixelFormat_Equal",         0x005fd400, (void *)&PixelFormat_Equal, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"ColorShifts_Compute",       0x005fd460, (void *)&ColorShifts_Compute, {0x55, 0x8b, 0xec, 0x53, 0x56}},
+    {"Color_SwapRedBlue",         0x005fd5a0, (void *)&Color_SwapRedBlue, {0x51, 0x8b, 0x09, 0x33, 0xd2}},
+    {"Color_Shift",               0x005fd5c0, (void *)&Color_Shift, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"PixelConverter_DeletingDtor", 0x00630c50, (void *)&PixelConverter_DeletingDtor, {0x8a, 0x44, 0x24, 0x04, 0x56}},
     {"PixelConverter_DeletingDtor2", 0x00630c70, (void *)&PixelConverter_DeletingDtor2, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"PixelConverter_Dtor",       0x00630c90, (void *)&PixelConverter_Dtor, {0xc7, 0x01, 0xc0, 0x39, 0x70}},
