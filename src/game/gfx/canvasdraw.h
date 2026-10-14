@@ -69,6 +69,18 @@ void __fastcall Canvas24_Line(CanvasDriver *d, void *edx, const SurfaceInfo *s, 
                               s32 y0, s32 x1, s32 y1, Color *colour);
 void __fastcall Canvas32_Line(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x0,
                               s32 y0, s32 x1, s32 y1, Color *colour);
+// Slot 9: (surface, clip, flags, x0, y0, x1, y1, x2, y2, colour). With flag 4 the three edges
+// through slot 4, each vertex inside the clip put back as the first line to reach it left it;
+// otherwise the vertices sorted by y and rows y0 to y2 - 1 filled through slot 2 between 16.16
+// edges (the right end excluded).
+void __fastcall Canvas8_Triangle(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
+                                 s32 x0, s32 y0, s32 x1, s32 y1, s32 x2, s32 y2, Color *colour);
+void __fastcall Canvas16_Triangle(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
+                                  s32 x0, s32 y0, s32 x1, s32 y1, s32 x2, s32 y2, Color *colour);
+void __fastcall Canvas24_Triangle(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
+                                  s32 x0, s32 y0, s32 x1, s32 y1, s32 x2, s32 y2, Color *colour);
+void __fastcall Canvas32_Triangle(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
+                                  s32 x0, s32 y0, s32 x1, s32 y1, s32 x2, s32 y2, Color *colour);
 // Slot 8: (surface, clip, flags, &rect, colour): the rectangle, ordered and clipped, filled.
 void __fastcall Canvas8_FillRect(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
                                  const Rect *rect, Color *colour);

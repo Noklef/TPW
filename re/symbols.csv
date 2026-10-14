@@ -1218,6 +1218,10 @@ address,name,kind,confidence,notes
 0x00608600,Canvas16_Line,function,high,reimplemented (src/game/gfx/canvasdraw); 16-bit copy of Canvas8_Line
 0x0060f410,Canvas24_Line,function,high,reimplemented (src/game/gfx/canvasdraw); 24-bit copy of Canvas8_Line
 0x006156c0,Canvas32_Line,function,high,reimplemented (src/game/gfx/canvasdraw); 32-bit copy of Canvas8_Line
+0x006028e0,Canvas8_Triangle,function,high,"reimplemented (src/game/gfx/canvasdraw); thiscall (surface, clip, flags, x0, y0, x1, y1, x2, y2, &colour) RET 0x28: CanvasDriver slot 9; flag 4 outlines through slot 4 keeping each vertex as its first line left it, else sorted by y and filled through slot 2 between 16.16 edges"
+0x00608e80,Canvas16_Triangle,function,high,reimplemented (src/game/gfx/canvasdraw); 16-bit copy of Canvas8_Triangle
+0x0060fc90,Canvas24_Triangle,function,high,"reimplemented (src/game/gfx/canvasdraw); 24-bit copy of Canvas8_Triangle (vertices saved as dwords, put back as 3 bytes)"
+0x00615ea0,Canvas32_Triangle,function,high,reimplemented (src/game/gfx/canvasdraw); 32-bit copy of Canvas8_Triangle
 0x0062fe00,RowReader_Decode,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); rows read ahead (vtable +0 Begin, +4 ReadRow), converted if the formats differ, copied top down or bottom up; a failed row read ends it as success"
 0x006300c0,RowReader_CopyRow,function,high,"reimplemented (src/game/gfx/tga); thiscall; copyBytes from the row buffer to the target, which moves by step; vtable +0xc"
 0x006300f0,TgaReader_Load,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); ReadHeader, then RowReader_Decode"

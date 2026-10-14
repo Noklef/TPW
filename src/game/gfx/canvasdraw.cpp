@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <utility>
 
 namespace {
 
@@ -19,6 +20,8 @@ const CanvasDrawEnv kGameEnv = {
 const CanvasDrawEnv *g_env = &kGameEnv;
 
 using SpanFn = void(__fastcall *)(CanvasDriver *, void *, const SurfaceInfo *, const Rect *, u32, s32, s32, s32,
+                                  Color *);
+using LineFn = void(__fastcall *)(CanvasDriver *, void *, const SurfaceInfo *, const Rect *, u32, s32, s32, s32, s32,
                                   Color *);
 
 s32 add(s32 a, s32 b) { return static_cast<s32>(static_cast<u32>(a) + static_cast<u32>(b)); }
@@ -237,6 +240,68 @@ void drawLine(CanvasDriver *d, const SurfaceInfo *s, const Rect *clip, u32 flags
     }
 }
 
+bool inside(const Rect *clip, s32 x, s32 y) {
+    return x >= clip->left && x < clip->right && y >= clip->top && y < clip->bottom;
+}
+// A 16.16 edge step: (dx << 16) / dy.
+s32 slope(s32 dx, s32 dy) { return static_cast<s32>(static_cast<u32>(dx) << 16) / dy; }
+
+template <u32 Bytes>
+void drawTriangle(CanvasDriver *d, const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x0, s32 y0, s32 x1, s32 y1,
+                  s32 x2, s32 y2, Color *colour) {
+    if (flags & 4) {
+        u8 *const p[3] = {pixelAt<Bytes>(s, x0, y0), pixelAt<Bytes>(s, x1, y1), pixelAt<Bytes>(s, x2, y2)};
+        u32 saved[3] = {};
+        bool kept[3] = {};
+        auto keep = [&](int i, s32 x, s32 y) {
+            if (!inside(clip, x, y)) return;
+            saved[i] = load<Bytes>(p[i]);
+            kept[i] = true;
+        };
+        reinterpret_cast<LineFn>(d->table[4])(d, nullptr, s, clip, flags, x0, y0, x1, y1, colour);
+        keep(0, x0, y0);
+        keep(1, x1, y1);
+        reinterpret_cast<LineFn>(d->table[4])(d, nullptr, s, clip, flags, x1, y1, x2, y2, colour);
+        keep(2, x2, y2);
+        reinterpret_cast<LineFn>(d->table[4])(d, nullptr, s, clip, flags, x2, y2, x0, y0, colour);
+        for (int i = 0; i < 3; ++i)
+            if (kept[i]) store<Bytes>(p[i], saved[i]);
+        return;
+    }
+    if (y0 > y1) std::swap(x0, x1), std::swap(y0, y1);
+    if (y1 > y2) std::swap(x1, x2), std::swap(y1, y2);
+    if (y0 > y1) std::swap(x0, x1), std::swap(y0, y1);
+    // Edge a steps by da and edge b by db; each row spans from the left one to the right one.
+    s32 a, b, da, db, y = y0;
+    auto rows = [&](s32 end, bool aLeft) {
+        for (; y < end; y = add(y, 1), a = add(a, da), b = add(b, db)) {
+            const s32 l = (aLeft ? a : b) >> 16, r = (aLeft ? b : a) >> 16;
+            reinterpret_cast<SpanFn>(d->table[2])(d, nullptr, s, clip, flags, l, y, sub(r, l), colour);
+        }
+    };
+    if (y0 == y1) {
+        if (y1 == y2) return;
+        if (x0 < x1) {
+            a = static_cast<s32>(static_cast<u32>(x0) << 16), da = slope(sub(x2, x0), sub(y2, y0));
+            b = static_cast<s32>(static_cast<u32>(x1) << 16), db = slope(sub(x2, x1), sub(y2, y1));
+        } else {
+            a = static_cast<s32>(static_cast<u32>(x1) << 16), da = slope(sub(x2, x1), sub(y2, y1));
+            b = static_cast<s32>(static_cast<u32>(x0) << 16), db = slope(sub(x2, x0), sub(y2, y0));
+        }
+        rows(y2, true);
+        return;
+    }
+    a = b = static_cast<s32>(static_cast<u32>(x0) << 16);
+    da = slope(sub(x2, x0), sub(y2, y0));
+    db = slope(sub(x1, x0), sub(y1, y0));
+    const bool aLeft = da < db;
+    rows(y1, aLeft);
+    if (y1 == y2) return;
+    b = static_cast<s32>(static_cast<u32>(x1) << 16);
+    db = slope(sub(x2, x1), sub(y2, y1));
+    rows(y2, aLeft);
+}
+
 template <u32 Bytes>
 void fillRect(const SurfaceInfo *s, const Rect *clip, u32 flags, const Rect *rect, Color *colour) {
     Rect r = *rect;
@@ -277,6 +342,11 @@ extern "C" {
     void __fastcall Canvas##N##_Line(CanvasDriver *d, void *, const SurfaceInfo *s, const Rect *clip, u32 flags,   \
                                      s32 x0, s32 y0, s32 x1, s32 y1, Color *colour) {                              \
         drawLine<BYTES>(d, s, clip, flags, x0, y0, x1, y1, colour);                                                \
+    }                                                                                                              \
+    void __fastcall Canvas##N##_Triangle(CanvasDriver *d, void *, const SurfaceInfo *s, const Rect *clip,          \
+                                         u32 flags, s32 x0, s32 y0, s32 x1, s32 y1, s32 x2, s32 y2,               \
+                                         Color *colour) {                                                          \
+        drawTriangle<BYTES>(d, s, clip, flags, x0, y0, x1, y1, x2, y2, colour);                                    \
     }
 CANVAS_DEPTH(8, 1)
 CANVAS_DEPTH(16, 2)
