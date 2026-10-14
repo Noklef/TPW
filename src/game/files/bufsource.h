@@ -43,7 +43,7 @@ u32 __fastcall BufferedSource_Write(BufferedSource *s, void *edx, const void *bu
 // 0x639000 (offset, origin; +0xc): the new position, or -1.
 s32 __fastcall BufferedSource_Seek(BufferedSource *s, void *edx, s32 offset, u32 origin);
 s32 __fastcall BufferedSource_Tell(const BufferedSource *s);  // 0x6390f0 (+0x14): -1 unattached
-s32 __fastcall BufferedSource_Size(BufferedSource *s);        // 0x639100 (+0x10): the wrapped size
+// +0x10 (the wrapped size, -1 unattached) is StreamBase_Size (0x639100, handles.h): one function.
 // 0x639110 (source; +0x28): RefObject_SetLink, both positions from the wrapped tell.
 u32 __fastcall BufferedSource_Attach(BufferedSource *s, void *edx, RefObject *source);
 // 0x639130 (buffer, count): the raw read, added to the position.

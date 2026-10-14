@@ -2,6 +2,7 @@
 //   tpw_tests [path\to\tp.exe]
 // With an exe path it also verifies every hook's expected prologue bytes against
 // the file on disk (read as data; nothing from the exe is executed).
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <fstream>
@@ -1092,6 +1093,20 @@ static void test_hook_table(const char *exe_path) {
         bool ok = read_va(pe, h.address, actual, 5) && std::memcmp(actual, h.expect, 5) == 0;
         std::printf("  %08X %-32s %s\n", h.address, h.name, ok ? "bytes match" : "MISMATCH");
         if (!ok) ++g_failures;
+    }
+
+    // Two rows at one address (a function folded into two classes' vtables, say) or patches that
+    // overlap would install over each other.
+    std::vector<std::size_t> order(tpw::hook::kHookCount);
+    for (std::size_t i = 0; i < order.size(); ++i) order[i] = i;
+    std::sort(order.begin(), order.end(),
+              [](std::size_t x, std::size_t y) { return tpw::hook::kHooks[x].address < tpw::hook::kHooks[y].address; });
+    for (std::size_t i = 1; i < order.size(); ++i) {
+        const auto &p = tpw::hook::kHooks[order[i - 1]], &q = tpw::hook::kHooks[order[i]];
+        if (q.address - p.address < 5) {
+            std::printf("  %08X %s overlaps %08X %s\n", q.address, q.name, p.address, p.name);
+            ++g_failures;
+        }
     }
 }
 

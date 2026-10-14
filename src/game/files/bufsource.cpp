@@ -107,11 +107,6 @@ s32 __fastcall BufferedSource_Tell(const BufferedSource *s) {
     return s->base.link ? static_cast<s32>(s->position) : -1;
 }
 
-s32 __fastcall BufferedSource_Size(BufferedSource *s) {
-    if (!s->base.link) return -1;
-    return vcall<s32>(s->base.link, 0x10);
-}
-
 u32 __fastcall BufferedSource_Attach(BufferedSource *s, void *, RefObject *source) {
     RefObject_SetLink(&s->base, nullptr, source);
     const u32 tell = vcall<u32>(s->base.link, 0x14);

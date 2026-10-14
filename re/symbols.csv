@@ -674,7 +674,7 @@ address,name,kind,confidence,notes
 0x005f7290,StreamBase_Vfn8,function,high,"reimplemented (src/game/files/handles); thiscall (&result); vtbl+0x20 -> source vtbl+0x20, -1"
 0x004036a0,StreamBase_Read,function,high,"reimplemented (src/game/files/handles); thiscall (buf, count); vtbl+8 -> source vtbl+4, -1"
 0x004036c0,StreamBase_Write,function,high,"reimplemented (src/game/files/handles); thiscall (buf, count); vtbl+0xc -> source vtbl+8, -1"
-0x00639100,BufferedSource_Size,function,high,"reimplemented (src/game/files/bufsource); thiscall (+0x10); the wrapped size, -1 unattached"
+0x00639100,StreamBase_Size,function,high,"reimplemented (src/game/files/handles); thiscall; vtbl+0x14 -> source vtbl+0x10 (tail call), -1; also the buffered source's +0x10"
 0x00414d30,FileStream_Dtor,function,high,reimplemented (src/game/files/handles); jmp StreamBase_Dtor
 0x005fa950,FileStream_DeletingDtor,function,high,reimplemented (src/game/files/handles); thiscall (flags); FileStream_vtable slot 0
 0x005f8240,Handle_Ctor,function,high,"reimplemented (src/game/files/handles); thiscall; vtable Handle_vtable, object (+4, a RefObject2) = 0"
