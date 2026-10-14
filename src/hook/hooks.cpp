@@ -24,6 +24,7 @@
 #include "../game/math/rect.h"
 #include "../game/gfx/palette.h"
 #include "../game/gfx/surface.h"
+#include "../game/gfx/pixconv.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
 #include "../game/motion/curve.h"
@@ -505,6 +506,13 @@ const Hook kHooks[] = {
     {"PixelShifts_Set",           0x0061b0e0, (void *)&PixelShifts_Set, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"Surface_SetInfo",           0x0061b130, (void *)&Surface_SetInfo, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Surface_Refresh",           0x0061b190, (void *)&Surface_Refresh, {0x83, 0xec, 0x6c, 0x56, 0x8b}},
+    {"PixelConverter_DeletingDtor", 0x00630c50, (void *)&PixelConverter_DeletingDtor, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"PixelConverter_DeletingDtor2", 0x00630c70, (void *)&PixelConverter_DeletingDtor2, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"PixelConverter_Dtor",       0x00630c90, (void *)&PixelConverter_Dtor, {0xc7, 0x01, 0xc0, 0x39, 0x70}},
+    {"PaletteConverter_Init",     0x00639230, (void *)&PaletteConverter_Init, {0x53, 0x8b, 0xd9, 0x56, 0x8b}},
+    {"PaletteConverter_Convert",  0x006392c0, (void *)&PaletteConverter_Convert, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
+    {"PaletteConverter_ConvertBack", 0x006394d0, (void *)&PaletteConverter_ConvertBack, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"Mask_Shifts",               0x0063acb0, (void *)&Mask_Shifts, {0x8b, 0x54, 0x24, 0x04, 0x53}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

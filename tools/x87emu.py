@@ -413,7 +413,7 @@ class Emu:
                 if mn == 'SAR':
                     a = a - (1 << bits) if a >> (bits - 1) else a
                 res = a << n if mn == 'SHL' else a >> n
-                cf = bool(a >> (bits - n) & 1) if mn == 'SHL' else bool(a >> (n - 1) & 1)
+                cf = bool((a << n) >> bits & 1) if mn == 'SHL' else bool(a >> (n - 1) & 1)
                 self.put(o[0], self.flags(res, bits, cf))
         elif mn in ('ROR', 'ROL'):  # 32-bit; CF = the last bit rotated round, SF/ZF kept
             a, n = self.get(o[0]), self.get(o[1]) & 31

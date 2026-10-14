@@ -967,3 +967,13 @@ address,name,kind,confidence,notes
 0x0061b130,Surface_SetInfo,function,high,reimplemented (src/game/gfx/surface); thiscall (&DDSURFACEDESC); info at +0x28; masks kept for 8 bits
 0x0061b190,Surface_Refresh,function,high,reimplemented (src/game/gfx/surface); thiscall; GetSurfaceDesc (+0x58) into the info (old bits kept when none); &info
 0x00fa7708,g_PixelShifts,data,high,the display format's channel shifts (PixelShifts); src/game/gfx/surface
+0x00630c50,PixelConverter_DeletingDtor,function,high,"reimplemented (src/game/gfx/pixconv); thiscall (flags); base vtable 0x7039c0, Mem_Free when flags & 1"
+0x00630c70,PixelConverter_DeletingDtor2,function,high,"reimplemented (src/game/gfx/pixconv); thiscall (flags); the palette (and 0x7039b0) converter's: 0x630c90 then Mem_Free when flags & 1"
+0x00630c90,PixelConverter_Dtor,function,high,"reimplemented (src/game/gfx/pixconv); thiscall; base vtable 0x7039c0"
+0x00639230,PaletteConverter_Init,function,high,"reimplemented (src/game/gfx/pixconv); thiscall (palette, &format masks + bit count); copies the palette, works out the channel shifts"
+0x006392c0,PaletteConverter_Convert,function,high,"reimplemented (src/game/gfx/pixconv); thiscall (dst, src, count); vtable +4; indices to 1-4 byte pixels"
+0x006394d0,PaletteConverter_ConvertBack,function,high,"reimplemented (src/game/gfx/pixconv); thiscall (dst, src, count); vtable +8; the same from the row's end"
+0x0063acb0,Mask_Shifts,function,high,"reimplemented (src/game/gfx/pixconv); stdcall (source mask, target mask, &right, &left)"
+0x007039a0,PaletteConverter_vtable,data,high,"0x430-byte palette pixel converter"
+0x007039b0,PixelConverter2_vtable,data,high,"pixel converter (init 0x6396b0; +4 0x639780, +8 0x639f40)"
+0x007039c0,PixelConverter_vtable,data,high,"pixel converter base"
