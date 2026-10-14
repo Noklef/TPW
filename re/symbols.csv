@@ -959,3 +959,6 @@ address,name,kind,confidence,notes
 0x0061af60,Rect_Intersect,function,high,"reimplemented (src/game/math/rect); cdecl (a, b); a becomes the intersection (even empty), 1 when not empty"
 0x0061afe0,Rect_Collapse,function,high,"reimplemented (src/game/math/rect); cdecl (rect); right = left, bottom = top"
 0x0061aff0,Rect_Normalize,function,high,"reimplemented (src/game/math/rect); cdecl (rect); swaps edges so left <= right, top <= bottom"
+0x005f7ed0,FileStream_OpenPath,function,high,"reimplemented (src/game/files/filestream); thiscall (&result, path, mode; FileStream vtable +0x24): the folder opened as a directory source, the name opened into the stream"
+0x006fd9e8,FolderHandle_vtable,data,high,"a Handle subclass vtable (the base's slots, its own deleting dtor 0x41caf0); src/game/files/filestream"
+0x006fd154,imp_IsDBCSLeadByte,data,high,KERNEL32 import slot

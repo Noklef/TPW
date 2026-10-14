@@ -18,6 +18,7 @@
 #include "../game/files/wrapsources.h"
 #include "../game/files/wadsource.h"
 #include "../game/files/bufsource.h"
+#include "../game/files/filestream.h"
 #include "../game/math/matrix.h"
 #include "../game/math/vector.h"
 #include "../game/math/rect.h"
@@ -498,6 +499,7 @@ const Hook kHooks[] = {
     {"Rect_Intersect",            0x0061af60, (void *)&Rect_Intersect, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Rect_Collapse",             0x0061afe0, (void *)&Rect_Collapse, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Rect_Normalize",            0x0061aff0, (void *)&Rect_Normalize, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"FileStream_OpenPath",       0x005f7ed0, (void *)&FileStream_OpenPath, {0x6a, 0xff, 0x68, 0x98, 0x21}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
