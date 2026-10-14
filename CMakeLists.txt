@@ -18,6 +18,7 @@ add_library(tpw_game STATIC
     src/game/core/libc.cpp
     src/game/core/semaphore.cpp
     src/game/core/string.cpp
+    src/game/files/dirsource.cpp
     src/game/files/file.cpp
     src/game/files/handles.cpp
     src/game/files/memsource.cpp

@@ -756,3 +756,30 @@ address,name,kind,confidence,notes
 0x006357c0,zlib_deflateEnd,function,high,
 0x007780ec,gZlibInputLimit,data,high,0xc0000000: ZlibCodec_Decompress avail_in
 0x007780f0,gZlibVersion,data,high,"""1.1.3"""
+0x00619730,RefObject2_Ctor,function,high,"reimplemented (src/game/files/handles); thiscall; Semaphore_Ctor(+8), String_Ctor(+0x10 path), vtable 0x703898, refs and link 0"
+0x00619790,RefObject2_DeletingDtor,function,high,"reimplemented (src/game/files/handles); thiscall (flags); destructor, Mem_Free when flags & 1"
+0x006197b0,RefObject2_Dtor,function,high,"reimplemented (src/game/files/handles); thiscall; vtable 0x703898, String_Dtor(path), Semaphore_Dtor"
+0x00619880,RefObject2_Vfn4,function,high,"reimplemented (src/game/files/handles); thiscall (&result, other, a; vtbl+0x10); other vtbl+0x18(&path), vtbl+0x28(a); 0"
+0x006198b0,RefObject2_Vfn5,function,high,"reimplemented (src/game/files/handles); thiscall (&result, buffer, b, capacity; vtbl+0x14); a text writer on buffer (0x636bc0) gets the path (+0x14) and b (+0x18); -1 when it overflowed, else 0"
+0x00619940,RefObject2_Path,function,high,reimplemented (src/game/files/handles); thiscall (vtbl+0x18); the path's text (+0x18)
+0x00619950,DirSource_Ctor,function,high,"reimplemented (src/game/files/dirsource); thiscall; RefObject2_Ctor, vtable 0x7038d0, no search (+0x24 = -1)"
+0x00619970,DirSource_DeletingDtor,function,high,reimplemented (src/game/files/dirsource); thiscall (flags; vtbl+0)
+0x00619990,DirSource_Dtor,function,high,"reimplemented (src/game/files/dirsource); thiscall; closes the search, RefObject2_Dtor"
+0x006199e0,DirSource_FindFirst,function,high,"reimplemented (src/game/files/dirsource); thiscall (&result, pattern, entry; vtbl+8); closes the last search (vtbl+0x34); FindFirstFileA(folder + pattern); 0 with the entry filled, else -1"
+0x00619b30,DirSource_FindNext,function,high,"reimplemented (src/game/files/dirsource); thiscall (&result, entry; vtbl+0xc); FindNextFileA; 0 or -1"
+0x00619ba0,DirSource_Close,function,high,reimplemented (src/game/files/dirsource); thiscall (vtbl+0x34); FindClose when searching
+0x00619bc0,DirSource_FillEntry,function,high,"reimplemented (src/game/files/dirsource); stdcall (entry, findData); size, attributes, write/access/creation times, then the name over entry->name"
+0x00619c20,DirSource_Open,function,high,"reimplemented (src/game/files/dirsource); thiscall (&result, stream, name, mode, unused; vtbl+4); a file (0x636e40) or, mode & 0x8000, mmio (0x6371e0) source on folder + name, attached; -1 when the stream has one or the open fails"
+0x00619d70,DirSource_Mount,function,high,"reimplemented (src/game/files/dirsource); thiscall (&result, path; Handle_Open28); Path_Resolve, GetFileAttributesA; the folder (a trailing \ added) or -1"
+0x00619e10,DirSource_SetAttributes,function,high,"reimplemented (src/game/files/dirsource); thiscall (&result, name, attributes; vtbl+0x1c); File_SetAttributes(folder + name)"
+0x00619e90,DirSource_MakeDir,function,high,"reimplemented (src/game/files/dirsource); thiscall (&result, name; vtbl+0x20); Dir_Create(folder + name)"
+0x00619f10,DirSource_Remove,function,high,"reimplemented (src/game/files/dirsource); thiscall (&result, name; vtbl+0x24); Dir_Remove or File_Delete (folder + name)"
+0x00619fb0,DirSource_Rename,function,high,"reimplemented (src/game/files/dirsource); thiscall (&result, from, to; vtbl+0x28); File_Move(folder + from, folder + to)"
+0x00703898,RefObject2_vtable,data,medium,the RefObject2 base vtable (src/game/files/handles)
+0x007038d0,DirSource_vtable,data,medium,"the directory source vtable: DeletingDtor, Open, FindFirst, FindNext, Vfn4, Vfn5, Path, SetAttributes, MakeDir, Remove, Rename, SetLink, teardown (Debug_Printf), Close"
+0x00636bc0,TextWriter_Ctor,function,medium,"thiscall (buffer, capacity, clear); the fixed-buffer text writer (0x14 bytes, vtable 0x703e08); +0x10 set on overflow"
+0x00636c70,TextWriter_Dtor,function,medium,thiscall; the fixed-buffer text writer
+0x00636e40,FileSource_Ctor,function,medium,thiscall; the CreateFileA stream source (0x20 bytes)
+0x00636f10,FileSource_Open,function,medium,"thiscall (&result, path, mode)"
+0x006371e0,MmioSource_Ctor,function,medium,thiscall; the mmioOpenA stream source (0x18 bytes)
+0x006372b0,MmioSource_Open,function,medium,"thiscall (&result, path, mode)"

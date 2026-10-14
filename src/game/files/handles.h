@@ -5,7 +5,8 @@
 //
 // A RefObject (+0 vtable, +4 link, +8 count) is freed by the Release that takes its count to
 // 0: vtable +0x24 first, then the linked object is released, then the deleting destructor.
-// RefObject2 is the same with the count at +0xc and the hook at +0x30. Attaching an object
+// RefObject2 is the same with the count at +0xc and the hook at +0x30; its base class
+// (vtable 0x703898, 0x24 bytes) also holds a semaphore and a path. Attaching an object
 // to a holder that already has one hands the old one to the new (vtable +0x28 / +0x2c); the
 // old one is not released there.
 //
@@ -17,6 +18,8 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/semaphore.h"
+#include "../core/string.h"
 
 struct RefObject {
     void *const *vtable;
@@ -26,9 +29,11 @@ struct RefObject {
 struct RefObject2 {
     void *const *vtable;
     RefObject2 *link;
-    u32 unknown8;
+    Semaphore lock;
     s32 refs;
+    String path;  // the directory source's folder
 };
+static_assert(sizeof(RefObject2) == 0x24, "RefObject2 is 0x24 bytes");
 struct StreamBase {
     void *const *vtable;  // 0x703100; FileStream 0x6fd930
     RefObject *source;
@@ -61,6 +66,18 @@ u32 __fastcall RefObject_Vfn6(RefObject *o, void *edx, u32 a, u32 b);
 u32 __fastcall RefObject_Vfn7(RefObject *o, void *edx, u32 a);
 void *__fastcall RefObject_GetLock(RefObject *o);
 s32 *__fastcall RefObject_Vfn8(RefObject *o, void *edx, s32 *result);
+// The RefObject2 base class (vtable 0x703898). 0x619730: semaphore and empty path, link and
+// count 0. 0x6197b0 / 0x619790 (flags; vtable +0): destructors.
+RefObject2 *__fastcall RefObject2_Ctor(RefObject2 *o);
+void __fastcall RefObject2_Dtor(RefObject2 *o);
+RefObject2 *__fastcall RefObject2_DeletingDtor(RefObject2 *o, void *edx, u32 flags);
+// 0x619880 (&result, other, a; vtable +0x10): other's vtable +0x18 (&path) and +0x28 (a); 0.
+s32 *__fastcall RefObject2_Vfn4(RefObject2 *o, void *edx, s32 *result, void *other, u32 a);
+// 0x6198b0 (&result, buffer, b, capacity; +0x14): a text buffer over (buffer, capacity) is
+// given the path (its vtable +0x14) and b (+0x18); -1 when it overflowed, else 0.
+s32 *__fastcall RefObject2_Vfn5(RefObject2 *o, void *edx, s32 *result, char *buffer, u32 b, u32 capacity);
+// 0x619940 (+0x18): the path's characters.
+const char *__fastcall RefObject2_Path(RefObject2 *o);
 
 // StreamBase (__thiscall). 0x5f7180 / 0x5f71b0 (other): constructors, the copy adding a
 // reference. 0x5f71e0: destructor. 0x5f7190 (flags; vtable +0): deleting destructor.
@@ -129,6 +146,9 @@ struct HandlesEnv {
     RefObject2 *(__fastcall *ctorE0)(void *self);  // 0x61a060
     s32 *(__fastcall *openE0)(RefObject2 *o, void *edx, s32 *result, u32 a, u32 b);  // 0x61a250
     RefObject *(__fastcall *ctorMemory)(void *self, void *edx, u32 a);                 // 0x618df0
+    // the fixed-buffer text writer (0x14 bytes, vtable 0x703e08): (buffer, capacity, clear)
+    void *(__fastcall *bufferCtor)(void *self, void *edx, char *buffer, u32 capacity, u32 clear);  // 0x636bc0
+    void(__fastcall *bufferDtor)(void *self);  // 0x636c70
 };
 // The classes' calls go to env (nullptr: the game's).
 void Handles_SetEnv(const HandlesEnv *env);

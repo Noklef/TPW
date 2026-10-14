@@ -40,6 +40,7 @@ const FileEnv kGameEnv = {
     iat<void(__stdcall *const *)(u32)>(0x006fd1d4),
     iat<void *(__stdcall *const *)(u32, u32)>(0x006fd1cc),
     iat<void *(__stdcall *const *)(void *)>(0x006fd26c),
+    iat<s32(__stdcall *const *)(void *, void *)>(0x006fd0c8),
 };
 const FileEnv *g_env = &kGameEnv;
 
@@ -88,6 +89,8 @@ s32 *pass_fail(s32 *result, s32 ok) {
 }  // namespace
 
 void Files_SetEnv(const FileEnv *e) { g_env = e ? e : &kGameEnv; }
+
+const FileEnv *Files_GetEnv() { return g_env; }
 
 extern "C" {
 

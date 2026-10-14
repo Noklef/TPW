@@ -112,6 +112,9 @@ struct FileEnv {
     void(__stdcall *const *sleep)(u32 ms);
     void *(__stdcall *const *globalAlloc)(u32 flags, u32 size);
     void *(__stdcall *const *globalFree)(void *block);
+    s32(__stdcall *const *findNextFile)(void *find, void *findData);
 };
 // The layer's calls go to env (nullptr: the game's).
 void Files_SetEnv(const FileEnv *env);
+// The env in use (for the file library's classes).
+const FileEnv *Files_GetEnv();

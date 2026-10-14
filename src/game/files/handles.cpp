@@ -7,6 +7,7 @@
 namespace {
 
 void *const *const kRefObjectVtable = reinterpret_cast<void *const *>(0x00703838);
+void *const *const kRefObject2Vtable = reinterpret_cast<void *const *>(0x00703898);
 void *const *const kStreamVtable = reinterpret_cast<void *const *>(0x00703100);
 void *const *const kHandleVtable = reinterpret_cast<void *const *>(0x00703180);
 
@@ -20,6 +21,8 @@ const HandlesEnv kGameEnv = {
     reinterpret_cast<RefObject2 *(__fastcall *)(void *)>(0x0061a060),
     reinterpret_cast<s32 *(__fastcall *)(RefObject2 *, void *, s32 *, u32, u32)>(0x0061a250),
     reinterpret_cast<RefObject *(__fastcall *)(void *, void *, u32)>(0x00618df0),
+    reinterpret_cast<void *(__fastcall *)(void *, void *, char *, u32, u32)>(0x00636bc0),
+    reinterpret_cast<void(__fastcall *)(void *)>(0x00636c70),
 };
 const HandlesEnv *g_env = &kGameEnv;
 
@@ -100,6 +103,52 @@ s32 *__fastcall RefObject_Vfn8(RefObject *, void *, s32 *result) {
     *result = -1;
     return result;
 }
+
+RefObject2 *__fastcall RefObject2_Ctor(RefObject2 *o) {
+    Semaphore_Ctor(&o->lock);
+    String_Ctor(&o->path);
+    o->vtable = kRefObject2Vtable;
+    o->refs = 0;
+    o->link = nullptr;
+    return o;
+}
+
+void __fastcall RefObject2_Dtor(RefObject2 *o) {
+    o->vtable = kRefObject2Vtable;
+    String_Dtor(&o->path);
+    Semaphore_Dtor(&o->lock);
+}
+
+RefObject2 *__fastcall RefObject2_DeletingDtor(RefObject2 *o, void *, u32 flags) {
+    RefObject2_Dtor(o);
+    if (flags & 1) g_env->free(o);
+    return o;
+}
+
+s32 *__fastcall RefObject2_Vfn4(RefObject2 *o, void *, s32 *result, void *other, u32 a) {
+    vcall<void>(other, 0x18, &o->path);
+    vcall<void>(other, 0x28, a);
+    *result = 0;
+    return result;
+}
+
+s32 *__fastcall RefObject2_Vfn5(RefObject2 *o, void *, s32 *result, char *buffer, u32 b, u32 capacity) {
+    struct TextBuffer {
+        void *const *vtable;
+        u32 length;
+        char *data;
+        u32 capacity;
+        u32 overflow;
+    } text;
+    g_env->bufferCtor(&text, nullptr, buffer, capacity, 1);
+    vcall<void>(&text, 0x14, &o->path);
+    vcall<void>(&text, 0x18, b);
+    *result = text.overflow ? -1 : 0;
+    g_env->bufferDtor(&text);
+    return result;
+}
+
+const char *__fastcall RefObject2_Path(RefObject2 *o) { return o->path.data; }
 
 StreamBase *__fastcall StreamBase_Ctor(StreamBase *s) {
     s->source = nullptr;
