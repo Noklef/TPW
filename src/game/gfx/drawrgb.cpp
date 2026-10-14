@@ -1,10 +1,10 @@
-// The drawing primitives: see draw.h. The 16-bit (0x703518) and 32-bit (0x703598) tables, one
-// template each with the pixel type P.
+// The drawing primitives: see draw.h. The 16-, 24- and 32-bit tables (0x703518, 0x703558,
+// 0x703598), one template each with the pixel type P.
 //
 // A colour is packed into a 16-bit surface's format through the context's PixelShifts, and
-// written as it is (0xAARRGGBB) at 32 bits. The ghost flags do not blend at these depths: they
-// only stop the remap, which (flag 0x20) otherwise takes the colour from the palette entry of the
-// remapped index.
+// written as it is above that: its low three bytes at 24 bits, all of 0xAARRGGBB at 32. The
+// ghost flags do not blend at these depths: they only stop the remap, which (flag 0x20)
+// otherwise takes the colour from the palette entry of the remapped index.
 #include "draw.h"
 
 #include "drawimpl.h"
@@ -26,6 +26,17 @@ u16 pack<u16>(const DrawContext *s, u32 rgb) {
 template <>
 u32 pack<u32>(const DrawContext *, u32 rgb) {
     return rgb;
+}
+
+// A 24-bit pixel: the colour's low three bytes.
+struct Rgb24 {
+    u8 blue, green, red;
+};
+static_assert(sizeof(Rgb24) == 3, "Rgb24 is 3 bytes");
+
+template <>
+Rgb24 pack<Rgb24>(const DrawContext *, u32 rgb) {
+    return {static_cast<u8>(rgb), static_cast<u8>(rgb >> 8), static_cast<u8>(rgb >> 16)};
 }
 
 // A palette entry, opaque.
@@ -304,6 +315,35 @@ void __fastcall Draw16_TextW(DrawDriver *, void *, s32 x, s32 y, const u16 *str,
 void __fastcall Draw16_Sprite(DrawDriver *, void *, s32 x, s32 y, const RleSprite *sp) { sprite<u16>(x, y, sp); }
 void __fastcall Draw16_SpriteShape(DrawDriver *, void *, s32 x, s32 y, const RleSprite *sp, DrawColour c) {
     shape<u16>(x, y, sp, c);
+}
+
+void __fastcall Draw24_Pixel(DrawDriver *, void *, s32 x, s32 y, DrawColour c) { plot<Rgb24>(x, y, c); }
+void __fastcall Draw24_BoxFill(DrawDriver *, void *, const Rect *r, DrawColour c) { boxFill<Rgb24>(r, c); }
+void __fastcall Draw24_CircleOutline(DrawDriver *, void *, s32 x, s32 y, s32 r, DrawColour c) {
+    outline<Rgb24>(x, y, r, c);
+}
+void __fastcall Draw24_CircleFill(DrawDriver *d, void *, s32 x, s32 y, s32 r, DrawColour c) {
+    disc<Rgb24>(d, x, y, r, c);
+}
+void __fastcall Draw24_Line(DrawDriver *d, void *, s32 x1, s32 y1, s32 x2, s32 y2, DrawColour c) {
+    segment<Rgb24>(d, x1, y1, x2, y2, c);
+}
+void __fastcall Draw24_HLine(DrawDriver *, void *, s32 x, s32 y, s32 length, DrawColour c) {
+    hline<Rgb24>(x, y, length, c);
+}
+void __fastcall Draw24_VLine(DrawDriver *, void *, s32 x, s32 y, s32 length, DrawColour c) {
+    vline<Rgb24>(x, y, length, c);
+}
+void __fastcall Draw24_Clear(DrawDriver *, void *, DrawColour c) { clear<Rgb24>(c); }
+void __fastcall Draw24_Text(DrawDriver *, void *, s32 x, s32 y, const char *str, DrawColour c) {
+    text<Rgb24>(x, y, reinterpret_cast<const signed char *>(str), pack<Rgb24>(g_env->state, c.rgb));
+}
+void __fastcall Draw24_TextW(DrawDriver *, void *, s32 x, s32 y, const u16 *str, DrawColour c) {
+    text<Rgb24>(x, y, str, pack<Rgb24>(g_env->state, c.rgb));
+}
+void __fastcall Draw24_Sprite(DrawDriver *, void *, s32 x, s32 y, const RleSprite *sp) { sprite<Rgb24>(x, y, sp); }
+void __fastcall Draw24_SpriteShape(DrawDriver *, void *, s32 x, s32 y, const RleSprite *sp, DrawColour c) {
+    shape<Rgb24>(x, y, sp, c);
 }
 
 void __fastcall Draw32_Pixel(DrawDriver *, void *, s32 x, s32 y, DrawColour c) { plot<u32>(x, y, c); }
