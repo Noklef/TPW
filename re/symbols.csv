@@ -1087,3 +1087,11 @@ address,name,kind,confidence,notes
 0x005fa760,SurfaceInfo_SubRectAt,function,high,"reimplemented (src/game/gfx/surface); thiscall (&out, dst, &point, &size); SubRect of that rectangle"
 0x005fa7b0,SurfaceInfo_SubRect,function,high,"reimplemented (src/game/gfx/surface); thiscall (&out, dst, &rect); dst views the part inside rect; -1 when empty"
 0x005fa890,SurfaceInfo_Size,function,high,reimplemented (src/game/gfx/surface); thiscall; height * pitch
+0x005f9fa0,FpuControl_DeletingDtor,function,high,"reimplemented (src/game/core/fpu); thiscall (flags); vtable 0x7035d8 slot 0: Dtor, Mem_Free when flags & 1"
+0x005f9fc0,FpuControl_Dtor,function,high,reimplemented (src/game/core/fpu); thiscall; base vtable 0x7035dc then Restore
+0x005f9fd0,FpuControl_BaseDeletingDtor,function,high,"reimplemented (src/game/core/fpu); thiscall (flags); vtable 0x7035dc slot 0"
+0x0062f980,FpuControl_Merge,function,high,"reimplemented (src/game/core/fpu); thiscall (cw); (cw & ~(+6 | +8)) | +4, upper half stale"
+0x0062f9a0,FpuControl_Restore,function,high,"reimplemented (src/game/core/fpu); thiscall; FLDCW of the merged word when any bits changed, then zeroes +6 and +8 (never set in the game)"
+0x0062f9e0,List_Init,function,high,"reimplemented (src/game/core/list); cdecl (list); Exec-style: head = &tail, tail = 0, tailPred = list"
+0x0062fa00,List_InsertAfter,function,high,"reimplemented (src/game/core/list); cdecl (list unused, after, node)"
+0x0062fa20,List_First,function,high,"reimplemented (src/game/core/list); cdecl (list); head, 0 when empty"

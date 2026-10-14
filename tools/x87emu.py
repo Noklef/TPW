@@ -125,6 +125,7 @@ class Emu:
         self.r['ESP'] = 0x10000000
         self.st = []
         self.c0 = self.c2 = self.c3 = False
+        self.cw = 0x007f  # the game's (single precision); FLDCW keeps it, arithmetic stays at 24 bits
         self.zf = self.sf = self.cf = self.of = self.pf = False
 
     # memory: written bytes first, then the exe image, else zero
@@ -366,6 +367,10 @@ class Emu:
             self.compare(self.st[0], self.fload(o[0]) if o else self.st[1])
             for _ in range({'FCOM': 0, 'FCOMP': 1, 'FCOMPP': 2}[mn]):
                 self.st.pop(0)
+        elif mn in ('FSTCW', 'FNSTCW'):
+            self.put(o[0], self.cw)
+        elif mn == 'FLDCW':
+            self.cw = self.get(o[0])
         elif mn == 'FNSTSW':
             self.put(o[0], (self.c0 << 8) | (self.c2 << 10) | (self.c3 << 14))
         elif mn == 'MOV':

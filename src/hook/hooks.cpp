@@ -2,7 +2,9 @@
 // Add a row here when a reimplementation is ready; mark it in re/symbols.csv too.
 #include "hooks.h"
 
+#include "../game/core/fpu.h"
 #include "../game/core/libc.h"
+#include "../game/core/list.h"
 #include "../game/core/result.h"
 #include "../game/core/semaphore.h"
 #include "../game/core/string.h"
@@ -314,6 +316,14 @@ const Hook kHooks[] = {
     {"MemorySource_AddChunk",   0x00619170, (void *)&MemorySource_AddChunk, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"MemorySource_Clear",      0x00619200, (void *)&MemorySource_Clear, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
     {"MemorySource_GetLock",    0x00619240, (void *)&MemorySource_GetLock, {0x8d, 0x41, 0x28, 0xc3, 0x90}},
+    {"FpuControl_DeletingDtor",     0x005f9fa0, (void *)&FpuControl_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"FpuControl_Dtor",             0x005f9fc0, (void *)&FpuControl_Dtor, {0xc7, 0x01, 0xdc, 0x35, 0x70}},
+    {"FpuControl_BaseDeletingDtor", 0x005f9fd0, (void *)&FpuControl_BaseDeletingDtor, {0x56, 0x8b, 0xf1, 0xc7, 0x06}},
+    {"FpuControl_Merge",            0x0062f980, (void *)&FpuControl_Merge, {0x66, 0x8b, 0x41, 0x08, 0x66}},
+    {"FpuControl_Restore",          0x0062f9a0, (void *)&FpuControl_Restore, {0x55, 0x8b, 0xec, 0x51, 0x56}},
+    {"List_Init",                   0x0062f9e0, (void *)&List_Init, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
+    {"List_InsertAfter",            0x0062fa00, (void *)&List_InsertAfter, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"List_First",                  0x0062fa20, (void *)&List_First, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Semaphore_Ctor",          0x006307c0, (void *)&Semaphore_Ctor, {0x56, 0x6a, 0x00, 0x6a, 0x01}},
     {"Semaphore_Dtor",          0x006307e0, (void *)&Semaphore_Dtor, {0x8b, 0x01, 0x50, 0xff, 0x15}},
     {"SemaphoreLock_Ctor",      0x006307f0, (void *)&SemaphoreLock_Ctor, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
