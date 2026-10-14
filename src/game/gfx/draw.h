@@ -107,20 +107,33 @@ void __fastcall Draw8_TextW(DrawDriver *d, void *edx, s32 x, s32 y, const u16 *s
 void __fastcall Draw8_Sprite(DrawDriver *d, void *edx, s32 x, s32 y, const RleSprite *sprite);    // 0x61b1e0 (14)
 void __fastcall Draw8_SpriteShape(DrawDriver *d, void *edx, s32 x, s32 y, const RleSprite *sprite,
                                   DrawColour c);  // 0x61b270 (15)
-// 16 bits: see draw16.cpp for the colour.
+// 16 and 32 bits: see drawrgb.cpp for the colour.
 void __fastcall Draw16_Pixel(DrawDriver *d, void *edx, s32 x, s32 y, DrawColour c);         // 0x628870 (0)
 void __fastcall Draw16_BoxFill(DrawDriver *d, void *edx, const Rect *r, DrawColour c);      // 0x62d540 (3)
 void __fastcall Draw16_CircleOutline(DrawDriver *d, void *edx, s32 x, s32 y, s32 r, DrawColour c);  // 0x629c50 (5)
 void __fastcall Draw16_CircleFill(DrawDriver *d, void *edx, s32 x, s32 y, s32 r, DrawColour c);     // 0x62c7d0 (6)
 void __fastcall Draw16_Line(DrawDriver *d, void *edx, s32 x1, s32 y1, s32 x2, s32 y2, DrawColour c);  // 0x628b60 (7)
-void __fastcall Draw16_Sprite(DrawDriver *d, void *edx, s32 x, s32 y, const RleSprite *sprite);  // 0x62dff0 (14)
-void __fastcall Draw16_SpriteShape(DrawDriver *d, void *edx, s32 x, s32 y, const RleSprite *sprite,
-                                   DrawColour c);  // 0x62ed00 (15)
 void __fastcall Draw16_HLine(DrawDriver *d, void *edx, s32 x, s32 y, s32 length, DrawColour c);  // 0x629650 (8)
 void __fastcall Draw16_VLine(DrawDriver *d, void *edx, s32 x, s32 y, s32 length, DrawColour c);  // 0x629910 (9)
 void __fastcall Draw16_Clear(DrawDriver *d, void *edx, DrawColour c);                       // 0x62d440 (11)
 void __fastcall Draw16_Text(DrawDriver *d, void *edx, s32 x, s32 y, const char *s, DrawColour c);   // 0x62d840 (12)
 void __fastcall Draw16_TextW(DrawDriver *d, void *edx, s32 x, s32 y, const u16 *s, DrawColour c);  // 0x62dc10 (13)
+void __fastcall Draw16_Sprite(DrawDriver *d, void *edx, s32 x, s32 y, const RleSprite *sprite);  // 0x62dff0 (14)
+void __fastcall Draw16_SpriteShape(DrawDriver *d, void *edx, s32 x, s32 y, const RleSprite *sprite,
+                                   DrawColour c);  // 0x62ed00 (15)
+void __fastcall Draw32_Pixel(DrawDriver *d, void *edx, s32 x, s32 y, DrawColour c);         // 0x623690 (0)
+void __fastcall Draw32_BoxFill(DrawDriver *d, void *edx, const Rect *r, DrawColour c);      // 0x626f80 (3)
+void __fastcall Draw32_CircleOutline(DrawDriver *d, void *edx, s32 x, s32 y, s32 r, DrawColour c);  // 0x6242e0 (5)
+void __fastcall Draw32_CircleFill(DrawDriver *d, void *edx, s32 x, s32 y, s32 r, DrawColour c);     // 0x6265a0 (6)
+void __fastcall Draw32_Line(DrawDriver *d, void *edx, s32 x1, s32 y1, s32 x2, s32 y2, DrawColour c);  // 0x623880 (7)
+void __fastcall Draw32_HLine(DrawDriver *d, void *edx, s32 x, s32 y, s32 length, DrawColour c);  // 0x623ed0 (8)
+void __fastcall Draw32_VLine(DrawDriver *d, void *edx, s32 x, s32 y, s32 length, DrawColour c);  // 0x6240d0 (9)
+void __fastcall Draw32_Clear(DrawDriver *d, void *edx, DrawColour c);                       // 0x626ee0 (11)
+void __fastcall Draw32_Text(DrawDriver *d, void *edx, s32 x, s32 y, const char *s, DrawColour c);   // 0x6271b0 (12)
+void __fastcall Draw32_TextW(DrawDriver *d, void *edx, s32 x, s32 y, const u16 *s, DrawColour c);  // 0x627480 (13)
+void __fastcall Draw32_Sprite(DrawDriver *d, void *edx, s32 x, s32 y, const RleSprite *sprite);  // 0x627730 (14)
+void __fastcall Draw32_SpriteShape(DrawDriver *d, void *edx, s32 x, s32 y, const RleSprite *sprite,
+                                   DrawColour c);  // 0x6280a0 (15)
 }
 
 struct DrawEnv {

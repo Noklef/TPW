@@ -1,4 +1,4 @@
-// Shared by the drawing primitives' depths (draw8.cpp, draw16.cpp): not part of the interface.
+// Shared by the drawing primitives' depths (draw8.cpp, drawrgb.cpp): not part of the interface.
 #pragma once
 
 #include "draw.h"
