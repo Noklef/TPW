@@ -111,6 +111,12 @@ bool clipAxis(s32 &u1, s32 &v1, s32 &u2, s32 &v2, s32 lo, s32 hi) {
     return true;
 }
 
+// Past the end of one run-length row.
+const s8 *skipRow(const s8 *data) {
+    for (s8 n; (n = *data) != 0;) data += n > 0 ? n + 1 : 1;
+    return data + 1;
+}
+
 // The 5x6 debug font: glyph rows 0x40..0x04, the advance in byte 6.
 template <typename C>
 void text(s32 x, s32 y, const C *str, u8 index) {
@@ -437,6 +443,113 @@ void __fastcall Draw8_Sprite(DrawDriver *, void *, s32 x, s32 y, const RleSprite
     p->clipTop = s->clip.top;
     p->clipLeft = s->clip.left;
     g_env->drawSprite(x - s->clip.left, y - s->clip.top, sprite);
+}
+
+// The sprite's shape in one colour: every opaque pixel is filled (no remap) or blended. The
+// visible rows and columns are counted in bytes, so a sprite with 256 or more of either
+// wraps: a multiple of 256 visible rows runs on through memory, as in the original.
+void __fastcall Draw8_SpriteShape(DrawDriver *, void *, s32 x, s32 y, const RleSprite *sprite, DrawColour c) {
+    const DrawContext *s = g_env->state;
+    const Rect &clip = s->clip;
+    const s32 w = sprite->width, h = sprite->height;
+    if (x + w <= clip.left || x >= clip.right || y + h <= clip.top || y >= clip.bottom) return;
+    const s32 skipLeft = x < clip.left ? clip.left - x : 0;
+    const s32 right = x + w > clip.right ? clip.right - x : w;
+    const s32 skipTop = y < clip.top ? clip.top - y : 0;
+    const s32 bottom = y + h > clip.bottom ? clip.bottom - y : h;
+    const s32 pitch = s->surface->pitch;
+    u8 *p;
+    s32 step;
+    u32 rows, dataRows;
+    if (s->flags & kDrawFlipY) {
+        p = s->bits + (bottom + y - 1) * pitch + skipLeft + x;
+        step = -pitch;
+        dataRows = static_cast<u8>(h - bottom);
+        rows = static_cast<u8>(static_cast<u8>(h - skipTop) - dataRows);
+    } else {
+        p = s->bits + (skipTop + y) * pitch + skipLeft + x;
+        step = pitch;
+        dataRows = static_cast<u32>(skipTop);
+        rows = static_cast<u8>(bottom - skipTop);
+    }
+    const s32 cols = static_cast<u8>(right - skipLeft);
+    const s8 *data = reinterpret_cast<const s8 *>(sprite->data);
+    for (; dataRows; --dataRows) data = skipRow(data);
+    // Mirrored, the row starts at its right end and the skip counts from the sprite's right.
+    s32 dir = 1;
+    u32 skip = static_cast<u32>(skipLeft);
+    if (s->flags & kDrawFlipX) {
+        dir = -1;
+        skip = static_cast<u8>(w - right);
+        p += cols - 1;
+    }
+    const bool blended = (s->flags & (kDrawGhost | kDrawGhostReverse)) != 0;
+    auto draw = [&](u32 n) {
+        for (; n; --n, p += dir) {
+            if (!blended) *p = c.index;
+            else if (s->flags & kDrawGhost) *p = s->ghost[c.index * 256u + *p];
+            else *p = s->ghost[*p * 256u + c.index];
+        }
+    };
+    u8 *next = p + step;
+    for (;;) {
+        s32 left = cols;
+        // Columns clipped off at the start: a run straddling the edge is drawn from the edge.
+        for (u32 rem = skip; rem;) {
+            const s8 n = *data;
+            if (n > 0) {
+                if (static_cast<u32>(n) > rem) {
+                    u32 count = static_cast<u8>(n - static_cast<u8>(rem));
+                    if (count > static_cast<u32>(cols)) count = cols;
+                    draw(count);
+                    data += n + 1;
+                    left = cols - static_cast<s32>(count);
+                    break;
+                }
+                rem -= n;
+                data += n + 1;
+            } else if (n == 0) {
+                left = 0;
+                break;
+            } else {
+                if (n < -static_cast<s32>(rem)) {
+                    const u8 sum = static_cast<u8>(rem + static_cast<u32>(n));
+                    u32 gap = static_cast<u8>(-sum);
+                    if (gap > static_cast<u32>(cols)) gap = cols;
+                    ++data;
+                    p += dir * static_cast<s32>(gap);
+                    left = cols - static_cast<s32>(gap);
+                    break;
+                }
+                rem += static_cast<u32>(n);
+                ++data;
+            }
+        }
+        // The visible columns; a run may overshoot them, ending the row.
+        for (;;) {
+            if (left <= 0) {
+                if (--rows == 0) return;
+                data = skipRow(data);
+                break;
+            }
+            const s8 n = *data;
+            if (n > 0) {
+                draw(n < left ? static_cast<u32>(n) : static_cast<u8>(left));
+                left -= n;
+                data += n + 1;
+            } else if (n < 0) {
+                left += n;
+                p -= dir * n;
+                ++data;
+            } else {
+                if (--rows == 0) return;
+                ++data;
+                break;
+            }
+        }
+        p = next;
+        next += step;
+    }
 }
 
 }  // extern "C"

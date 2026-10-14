@@ -15,7 +15,8 @@
 //
 // The originals' quirks are kept: the line primitives accept x == right (clipped to length 0);
 // the debug text's tab stop is (x + 32) & 0xffe0, which drops x's high bits; clearing an empty
-// clip rectangle with a negative width writes ~4 GB, as the original would.
+// clip rectangle with a negative width writes ~4 GB, as the original would; so does the
+// one-colour sprite on a clip rectangle with no height (its row count is a byte and wraps).
 #pragma once
 
 #include "../../../re/types.h"
@@ -77,6 +78,8 @@ struct SpriteDrawParams {
 static_assert(sizeof(SpriteDrawParams) == 0x28, "SpriteDrawParams is 0x28 bytes");
 
 enum : u32 {
+    kDrawFlipX = 1,          // sprites: mirrored left to right
+    kDrawFlipY = 2,          // sprites: drawn bottom row first
     kDrawOutline = 4,
     kDrawGhost = 8,         // ghost[colour * 256 + background]
     kDrawGhostReverse = 0x10,  // ghost[background * 256 + colour]
@@ -102,6 +105,8 @@ void __fastcall Draw8_Clear(DrawDriver *d, void *edx, DrawColour c);            
 void __fastcall Draw8_Text(DrawDriver *d, void *edx, s32 x, s32 y, const char *s, DrawColour c);   // 0x61f0a0 (12)
 void __fastcall Draw8_TextW(DrawDriver *d, void *edx, s32 x, s32 y, const u16 *s, DrawColour c);  // 0x61f220 (13)
 void __fastcall Draw8_Sprite(DrawDriver *d, void *edx, s32 x, s32 y, const RleSprite *sprite);    // 0x61b1e0 (14)
+void __fastcall Draw8_SpriteShape(DrawDriver *d, void *edx, s32 x, s32 y, const RleSprite *sprite,
+                                  DrawColour c);  // 0x61b270 (15)
 }
 
 struct DrawEnv {
