@@ -2,6 +2,7 @@
 // Add a row here when a reimplementation is ready; mark it in re/symbols.csv too.
 #include "hooks.h"
 
+#include "../game/core/app.h"
 #include "../game/core/fpu.h"
 #include "../game/core/libc.h"
 #include "../game/core/list.h"
@@ -316,6 +317,15 @@ const Hook kHooks[] = {
     {"MemorySource_AddChunk",   0x00619170, (void *)&MemorySource_AddChunk, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"MemorySource_Clear",      0x00619200, (void *)&MemorySource_Clear, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
     {"MemorySource_GetLock",    0x00619240, (void *)&MemorySource_GetLock, {0x8d, 0x41, 0x28, 0xc3, 0x90}},
+    {"App_GetInstance",           0x005f86a0, (void *)&App_GetInstance, {0xa1, 0x0c, 0x76, 0xfa, 0x00}},
+    {"App_SetInstance",           0x005f86b0, (void *)&App_SetInstance, {0x8b, 0x44, 0x24, 0x04, 0xa3}},
+    {"App_GetWindow",             0x005f86c0, (void *)&App_GetWindow, {0xa1, 0x10, 0x76, 0xfa, 0x00}},
+    {"App_SetWindow",             0x005f86d0, (void *)&App_SetWindow, {0x8b, 0x44, 0x24, 0x04, 0xa3}},
+    {"App_PumpMessages",          0x005f86e0, (void *)&App_PumpMessages, {0x83, 0xec, 0x1c, 0x8d, 0x44}},
+    {"App_SetQuit",               0x005f8750, (void *)&App_SetQuit, {0x8b, 0x44, 0x24, 0x04, 0xa3}},
+    {"App_GetWndProc",            0x005f8760, (void *)&App_GetWndProc, {0xa1, 0x14, 0x76, 0xfa, 0x00}},
+    {"App_GetIconId",             0x005f8770, (void *)&App_GetIconId, {0x66, 0xa1, 0x18, 0x76, 0xfa}},
+    {"App_GetName",               0x005f8780, (void *)&App_GetName, {0xb8, 0x08, 0x57, 0x77, 0x00}},
     {"FpuControl_DeletingDtor",     0x005f9fa0, (void *)&FpuControl_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"FpuControl_Dtor",             0x005f9fc0, (void *)&FpuControl_Dtor, {0xc7, 0x01, 0xdc, 0x35, 0x70}},
     {"FpuControl_BaseDeletingDtor", 0x005f9fd0, (void *)&FpuControl_BaseDeletingDtor, {0x56, 0x8b, 0xf1, 0xc7, 0x06}},

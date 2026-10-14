@@ -15,6 +15,7 @@ add_compile_options(/W4 /permissive- /utf-8)
 # Reimplemented game code, shared by the hook DLL and the tests.
 add_library(tpw_game STATIC
     src/game/rsse/rsse_vm.cpp
+    src/game/core/app.cpp
     src/game/core/fpu.cpp
     src/game/core/libc.cpp
     src/game/core/list.cpp
