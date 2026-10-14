@@ -3,6 +3,8 @@
 
 #include "draw.h"
 
+#include "../core/vcall.h"
+
 namespace draw_impl {
 
 extern const DrawEnv *g_env;
@@ -48,6 +50,51 @@ inline bool clipAxis(s32 &u1, s32 &v1, s32 &u2, s32 &v2, s32 lo, s32 hi) {
     }
     v2 -= d;
     return true;
+}
+
+// A line: vertical and horizontal ones go to slots 9 and 8, others are clipped (x, then y) and
+// drawn by Bresenham along the longer axis (y on a tie), both ends included. plot(u8 *) draws
+// one pixel of type P.
+template <typename P, typename Plot>
+void line(DrawDriver *d, s32 x1, s32 y1, s32 x2, s32 y2, DrawColour c, Plot plot) {
+    if (x1 == x2) {
+        vcall<void>(d, 0x24, x1, y1, y2 - y1, c);
+        return;
+    }
+    if (y1 == y2) {
+        vcall<void>(d, 0x20, x1, y1, x2 - x1, c);
+        return;
+    }
+    const DrawContext *s = g_env->state;
+    if (!clipAxis(x1, y1, x2, y2, s->clip.left, s->clip.right)) return;
+    if (!clipAxis(y1, x1, y2, x2, s->clip.top, s->clip.bottom)) return;
+    const s32 dx = x2 - x1, dy = y2 - y1;
+    const s32 ddx = 2 * (dx < 0 ? -dx : dx), ddy = 2 * (dy < 0 ? -dy : dy);
+    const s32 sx = dx < 1 ? -1 : 1, sy = dy < 1 ? -1 : 1;
+    const s32 pitch = s->surface->pitch, stepX = sx * static_cast<s32>(sizeof(P)), stepY = sy * pitch;
+    s32 offset = y1 * pitch + x1 * static_cast<s32>(sizeof(P));
+    plot(s->bits + offset);
+    if (ddx <= ddy) {
+        for (s32 err = -(ddy >> 1); y1 != y2; y1 += sy) {
+            err += ddx;
+            if (err >= 0) {
+                offset += stepX;
+                err -= ddy;
+            }
+            offset += stepY;
+            plot(s->bits + offset);
+        }
+    } else {
+        for (s32 err = -(ddx >> 1); x1 != x2; x1 += sx) {
+            err += ddy;
+            if (err >= 0) {
+                offset += stepY;
+                err -= ddx;
+            }
+            offset += stepX;
+            plot(s->bits + offset);
+        }
+    }
 }
 
 // Past the end of one run-length row.

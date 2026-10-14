@@ -246,53 +246,14 @@ void __fastcall Draw8_BoxFill(DrawDriver *, void *, const Rect *r, DrawColour c)
 }
 
 void __fastcall Draw8_Line(DrawDriver *d, void *, s32 x1, s32 y1, s32 x2, s32 y2, DrawColour c) {
-    if (x1 == x2) {
-        vcall<void>(d, 0x24, x1, y1, y2 - y1, c);
-        return;
-    }
-    if (y1 == y2) {
-        vcall<void>(d, 0x20, x1, y1, x2 - x1, c);
-        return;
-    }
     const DrawContext *s = g_env->state;
-    if (!clipAxis(x1, y1, x2, y2, s->clip.left, s->clip.right)) return;
-    if (!clipAxis(y1, x1, y2, x2, s->clip.top, s->clip.bottom)) return;
-    // Bresenham, stepping along the longer axis (y on a tie).
-    const s32 dx = x2 - x1, dy = y2 - y1;
-    const s32 ddx = 2 * (dx < 0 ? -dx : dx), ddy = 2 * (dy < 0 ? -dy : dy);
-    const s32 sx = dx < 1 ? -1 : 1, sy = dy < 1 ? -1 : 1;
-    const s32 pitch = s->surface->pitch, stepY = sy * pitch;
-    s32 offset = y1 * pitch + x1;
     const bool blended = (s->flags & (kDrawGhost | kDrawGhostReverse)) != 0;
     const u8 index = blended ? c.index : plain(s, c.index);
-    auto draw = [&] {
-        u8 *p = s->bits + offset;
+    line<u8>(d, x1, y1, x2, y2, c, [s, index](u8 *p) {
         if (s->flags & kDrawGhost) *p = s->ghost[index * 256u + *p];
         else if (s->flags & kDrawGhostReverse) *p = s->ghost[*p * 256u + index];
         else *p = index;
-    };
-    draw();
-    if (ddx <= ddy) {
-        for (s32 err = -(ddy >> 1); y1 != y2; y1 += sy) {
-            err += ddx;
-            if (err >= 0) {
-                offset += sx;
-                err -= ddy;
-            }
-            offset += stepY;
-            draw();
-        }
-    } else {
-        for (s32 err = -(ddx >> 1); x1 != x2; x1 += sx) {
-            err += ddy;
-            if (err >= 0) {
-                offset += stepY;
-                err -= ddx;
-            }
-            offset += sx;
-            draw();
-        }
-    }
+    });
 }
 
 void __fastcall Draw8_HLine(DrawDriver *, void *, s32 x, s32 y, s32 length, DrawColour c) {

@@ -1050,3 +1050,4 @@ address,name,kind,confidence,notes
 0x0062d540,Draw16_BoxFill,function,high,"reimplemented (src/game/gfx/draw16); 16-bit slot 3, (Rect *, colour); clipped by Rect_Clip, filled with the packed colour"
 0x0062d840,Draw16_Text,function,high,"reimplemented (src/game/gfx/draw16); 16-bit slot 12, (x, y, char *, colour); the debug font in the packed rgb"
 0x0062dc10,Draw16_TextW,function,high,"reimplemented (src/game/gfx/draw16); 16-bit slot 13, (x, y, u16 *, colour); the debug font in the packed rgb"
+0x00628b60,Draw16_Line,function,high,"reimplemented (src/game/gfx/draw16, the core shared with Draw8_Line in drawimpl.h); 16-bit slot 7, (x1, y1, x2, y2, colour); the packed colour, no blending"

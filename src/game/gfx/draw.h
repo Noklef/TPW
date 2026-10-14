@@ -110,6 +110,7 @@ void __fastcall Draw8_SpriteShape(DrawDriver *d, void *edx, s32 x, s32 y, const 
 // 16 bits: see draw16.cpp for the colour.
 void __fastcall Draw16_Pixel(DrawDriver *d, void *edx, s32 x, s32 y, DrawColour c);         // 0x628870 (0)
 void __fastcall Draw16_BoxFill(DrawDriver *d, void *edx, const Rect *r, DrawColour c);      // 0x62d540 (3)
+void __fastcall Draw16_Line(DrawDriver *d, void *edx, s32 x1, s32 y1, s32 x2, s32 y2, DrawColour c);  // 0x628b60 (7)
 void __fastcall Draw16_HLine(DrawDriver *d, void *edx, s32 x, s32 y, s32 length, DrawColour c);  // 0x629650 (8)
 void __fastcall Draw16_VLine(DrawDriver *d, void *edx, s32 x, s32 y, s32 length, DrawColour c);  // 0x629910 (9)
 void __fastcall Draw16_Clear(DrawDriver *d, void *edx, DrawColour c);                       // 0x62d440 (11)
