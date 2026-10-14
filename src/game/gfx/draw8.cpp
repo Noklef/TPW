@@ -2,8 +2,11 @@
 #include "draw.h"
 
 #include "../core/vcall.h"
+#include "drawimpl.h"
 
 #include <cstdint>
+
+using namespace draw_impl;
 
 namespace {
 
@@ -16,12 +19,8 @@ const DrawEnv kGameEnv = {
     at<const u8 *>(0x00778108),
     at<SpriteDrawParams *>(0x00faa4d8),
     at<void(__cdecl *)(s32, s32, const RleSprite *)>(0x006e73c0),
+    at<const u8 *>(0x00fa71f8),
 };
-const DrawEnv *g_env = &kGameEnv;
-
-bool inClip(const DrawContext *s, s32 x, s32 y) {
-    return s->clip.left <= x && x < s->clip.right && s->clip.top <= y && y < s->clip.bottom;
-}
 
 // The colour a plain (unblended) primitive writes.
 u8 plain(const DrawContext *s, u8 index) { return s->flags & kDrawRemap ? s->remap[index] : index; }
@@ -72,88 +71,11 @@ void blend(const DrawContext *s, u8 *p, s32 count, u8 index, s32 step) {
     }
 }
 
-// a * b / c as imul, cdq, idiv: the product wraps to 32 bits.
-s32 mulDiv(s32 a, s32 b, s32 c) {
-    return static_cast<s32>(static_cast<u32>(a) * static_cast<u32>(b)) / c;
-}
-
-// Clip one axis of a line to [lo, hi): u is the axis clipped, v the other. False: the line is
-// entirely outside. Both ends are moved by interpolation; the far end of the other axis is not
-// checked again.
-bool clipAxis(s32 &u1, s32 &v1, s32 &u2, s32 &v2, s32 lo, s32 hi) {
-    s32 d;
-    if (u1 < lo) {
-        if (u2 < lo) return false;
-        v1 -= mulDiv(u1 - lo, v1 - v2, u1 - u2);
-        u1 = lo;
-        if (u2 < hi) return true;
-        d = mulDiv(u2 - hi + 1, v2 - v1, u2 - lo);
-        u2 = hi - 1;
-    } else if (u1 < hi) {
-        if (u2 < lo) {
-            d = mulDiv(u2 - lo, v2 - v1, u2 - u1);
-            u2 = lo;
-        } else if (hi <= u2) {
-            d = mulDiv(u2 - hi + 1, v2 - v1, u2 - u1);
-            u2 = hi - 1;
-        } else {
-            return true;
-        }
-    } else {
-        if (hi <= u2) return false;
-        v1 -= mulDiv(u1 - hi + 1, v1 - v2, u1 - u2);
-        u1 = hi - 1;
-        if (lo <= u2) return true;
-        d = mulDiv(u2 - lo, v2 - v1, u2 - u1);
-        u2 = lo;
-    }
-    v2 -= d;
-    return true;
-}
-
-// Past the end of one run-length row.
-const s8 *skipRow(const s8 *data) {
-    for (s8 n; (n = *data) != 0;) data += n > 0 ? n + 1 : 1;
-    return data + 1;
-}
-
-// The 5x6 debug font: glyph rows 0x40..0x04, the advance in byte 6.
-template <typename C>
-void text(s32 x, s32 y, const C *str, u8 index) {
-    const DrawContext *s = g_env->state;
-    if (y + 6 > s->clip.bottom || s->clip.top > y || x + 6 > s->clip.right || !str) return;
-    const s32 pitch = s->surface->pitch;
-    u32 cx = static_cast<u32>(x);
-    for (C ch; (ch = *str++) != 0;) {
-        u32 advance = 0;
-        if (ch == 10) {
-            if (s->clip.bottom < y + 14) return;
-            y += 8;
-            cx = static_cast<u32>(x);
-        } else if (ch == 9) {
-            cx = (cx + 0x20) & 0xffe0;
-        } else {
-            u32 glyph = static_cast<u32>(static_cast<s32>(ch)) - 0x20;
-            if (glyph > 0x88) glyph = 0;
-            const u8 *g = g_env->font + glyph * 8;
-            advance = g[6];
-            if (s->clip.left <= static_cast<s32>(cx) && static_cast<s32>(cx + 6) <= s->clip.right) {
-                u8 *p = s->bits + static_cast<u32>(pitch * y) + cx;
-                for (s32 row = 0; row < 6; ++row, p += pitch) {
-                    const u8 bits = g[row];
-                    if (bits & 0x40) p[0] = index;
-                    if (bits & 0x20) p[1] = index;
-                    if (bits & 0x10) p[2] = index;
-                    if (bits & 0x08) p[3] = index;
-                    if (bits & 0x04) p[4] = index;
-                }
-            }
-        }
-        cx += advance;
-    }
-}
-
 }  // namespace
+
+namespace draw_impl {
+const DrawEnv *g_env = &kGameEnv;
+}
 
 void Draw_SetEnv(const DrawEnv *e) { g_env = e ? e : &kGameEnv; }
 
@@ -424,11 +346,11 @@ void __fastcall Draw8_Clear(DrawDriver *, void *, DrawColour c) {
 }
 
 void __fastcall Draw8_Text(DrawDriver *, void *, s32 x, s32 y, const char *str, DrawColour c) {
-    text(x, y, reinterpret_cast<const signed char *>(str), c.index);
+    text<u8>(x, y, reinterpret_cast<const signed char *>(str), c.index);
 }
 
 void __fastcall Draw8_TextW(DrawDriver *, void *, s32 x, s32 y, const u16 *str, DrawColour c) {
-    text(x, y, str, c.index);
+    text<u8>(x, y, str, c.index);
 }
 
 void __fastcall Draw8_Sprite(DrawDriver *, void *, s32 x, s32 y, const RleSprite *sprite) {

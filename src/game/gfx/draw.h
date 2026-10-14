@@ -107,6 +107,14 @@ void __fastcall Draw8_TextW(DrawDriver *d, void *edx, s32 x, s32 y, const u16 *s
 void __fastcall Draw8_Sprite(DrawDriver *d, void *edx, s32 x, s32 y, const RleSprite *sprite);    // 0x61b1e0 (14)
 void __fastcall Draw8_SpriteShape(DrawDriver *d, void *edx, s32 x, s32 y, const RleSprite *sprite,
                                   DrawColour c);  // 0x61b270 (15)
+// 16 bits: see draw16.cpp for the colour.
+void __fastcall Draw16_Pixel(DrawDriver *d, void *edx, s32 x, s32 y, DrawColour c);         // 0x628870 (0)
+void __fastcall Draw16_BoxFill(DrawDriver *d, void *edx, const Rect *r, DrawColour c);      // 0x62d540 (3)
+void __fastcall Draw16_HLine(DrawDriver *d, void *edx, s32 x, s32 y, s32 length, DrawColour c);  // 0x629650 (8)
+void __fastcall Draw16_VLine(DrawDriver *d, void *edx, s32 x, s32 y, s32 length, DrawColour c);  // 0x629910 (9)
+void __fastcall Draw16_Clear(DrawDriver *d, void *edx, DrawColour c);                       // 0x62d440 (11)
+void __fastcall Draw16_Text(DrawDriver *d, void *edx, s32 x, s32 y, const char *s, DrawColour c);   // 0x62d840 (12)
+void __fastcall Draw16_TextW(DrawDriver *d, void *edx, s32 x, s32 y, const u16 *s, DrawColour c);  // 0x62dc10 (13)
 }
 
 struct DrawEnv {
@@ -114,6 +122,7 @@ struct DrawEnv {
     const u8 *font;    // 0x778108: 6 rows of 5 pixels (bits 0x40-0x04) and the advance, 8 bytes a glyph
     SpriteDrawParams *spriteParams;  // 0xfaa4d8
     void(__cdecl *drawSprite)(s32 x, s32 y, const RleSprite *sprite);  // 0x6e73c0, hand-written (cseg)
+    const u8 *palette;  // 0xfa71f8: 256 x (red, green, blue, flags), for the remap above 8 bits
 };
 // The state and tables go through env (nullptr: the game's).
 void Draw_SetEnv(const DrawEnv *env);
