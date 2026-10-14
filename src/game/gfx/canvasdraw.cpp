@@ -16,6 +16,8 @@ const CanvasDrawEnv kGameEnv = {
     at<void(__fastcall *)(Rect *)>(0x0062f940),
     at<u32(__fastcall *)(const Rect *, void *, const Rect *)>(0x0062f890),
     at<Rect *(__fastcall *)(const Rect *, void *, Rect *, const Rect *)>(0x0062f810),
+    at<const u8 *>(0x007796e0),
+    at<const s32 *>(0x00fa76cc),
 };
 const CanvasDrawEnv *g_env = &kGameEnv;
 
@@ -529,6 +531,45 @@ void fillRect(const SurfaceInfo *s, const Rect *clip, u32 flags, const Rect *rec
         drawSpan<Bytes, Bytes == 3>(s, row, Bytes, cols, flags, pixel, colour);
 }
 
+template <u32 Bytes>
+void drawText(const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x, s32 y, const char *text, Color *colour) {
+    if (!s || add(y, 6) > clip->bottom || y < clip->top || add(x, 6) > clip->right || !text || !*text) return;
+    const u32 pixel = g_env->toPixel(colour, nullptr, reinterpret_cast<const PixelFormat *>(s));
+    const bool blended = (flags & 0x18) != 0;
+    const u32 src = source<Bytes>(pixel);
+    const u32 srcMasked[3] = {s->redMask & src, s->greenMask & src, s->blueMask & src};
+    const u32 alpha = alphaOf(colour, flags);
+    // The 24-bit code steps 4 bytes a pixel (sic).
+    const s32 step = Bytes == 3 ? 4 : static_cast<s32>(Bytes), startX = x;
+    while (*text) {
+        const s32 c = static_cast<s8>(*text++);
+        u32 advance = 0;
+        if (c == '\t') {
+            x = add(x, 0x20) & ~0x1f;
+        } else if (c == '\n') {
+            y = add(y, 8);
+            if (add(y, 6) > *g_env->textBottom) return;
+            x = startX;
+        } else {
+            u32 index = static_cast<u32>(c) - 0x20;
+            if (index > 0x88) index = 0;
+            const u8 *glyph = g_env->font + index * 8;
+            advance = glyph[6];
+            if (x >= clip->left && add(x, 6) <= clip->right) {
+                u8 *row = pixelAt<Bytes>(s, x, y);
+                for (int r = 0; r < 6; ++r, row += s->pitch) {
+                    u8 *q = row;
+                    for (u32 bit = 0x40; bit >= 4; bit >>= 1, q += step) {
+                        if (!(glyph[r] & bit)) continue;
+                        store<Bytes>(q, blended ? blend(s, srcMasked, load<Bytes>(q), alpha) : pixel);
+                    }
+                }
+            }
+        }
+        x = add(x, static_cast<s32>(advance));
+    }
+}
+
 }  // namespace
 
 void CanvasDraw_SetEnv(const CanvasDrawEnv *e) { g_env = e ? e : &kGameEnv; }
@@ -568,6 +609,10 @@ extern "C" {
     void __fastcall Canvas##N##_Sprite(CanvasDriver *, void *, const SurfaceInfo *s, const Rect *clip, u32 flags,  \
                                        const u32 *table, s32 x, s32 y, const CanvasMask *sprite) {                 \
         drawSprite<BYTES>(s, clip, flags, table, x, y, sprite);                                                    \
+    }                                                                                                              \
+    void __fastcall Canvas##N##_Text(CanvasDriver *, void *, const SurfaceInfo *s, const Rect *clip, u32 flags,    \
+                                     s32 x, s32 y, const char *text, Color *colour) {                              \
+        drawText<BYTES>(s, clip, flags, x, y, text, colour);                                                       \
     }
 CANVAS_DEPTH(8, 1)
 CANVAS_DEPTH(16, 2)

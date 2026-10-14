@@ -1,5 +1,5 @@
-// The canvas primitives: pixel, spans, line, outline, filled rectangle, triangle, mask and sprite
-// (CanvasDriver slots 2-5 and 7-11; thiscall on the driver, which only the line, outline and
+// The canvas primitives: pixel, spans, line, outline, text, filled rectangle, triangle, mask and
+// sprite (CanvasDriver slots 2-11; thiscall on the driver, which only the line, outline and
 // triangle use). Each depth has its own copy of the code; the pixel and spans are at
 // (8 bits 0x601a00-0x601ed9, 16 bits 0x608140-0x608421, 24 bits 0x60ef50-0x60f407, 32 bits
 // 0x615250-0x6156b6); the outline (0x6025c0) is shared. They take the surface, the clip rectangle
@@ -28,6 +28,8 @@ struct CanvasDrawEnv {
     void(__fastcall *order)(Rect *);                                 // Rect_Order 0x62f940
     u32(__fastcall *overlaps)(const Rect *, void *, const Rect *);   // Rect_Overlaps 0x62f890
     Rect *(__fastcall *clip)(const Rect *, void *, Rect *, const Rect *);  // Rect_Clip 0x62f810
+    const u8 *font;          // slot 6's, 0x7796e0
+    const s32 *textBottom;   // the game's DrawContext clip bottom, 0xfa76cc
 };
 // Slot 10's run-length mask.
 struct CanvasMask {
@@ -114,6 +116,21 @@ void __fastcall Canvas24_Sprite(CanvasDriver *d, void *edx, const SurfaceInfo *s
                                 const u32 *table, s32 x, s32 y, const CanvasMask *sprite);
 void __fastcall Canvas32_Sprite(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
                                 const u32 *table, s32 x, s32 y, const CanvasMask *sprite);
+// Slot 6: (surface, clip, flags, x, y, text, colour): the text in the 6x6 debug font (eight bytes a
+// glyph from ' ': six rows of five pixels from bit 0x40, then the advance), '\t' to the next 32
+// pixels and '\n' 8 down to the start. Nothing unless the first line fits the clip.
+// - Glyphs are clipped whole, and only across: the rows below the first are never checked
+//   against the clip, and a new line stops at the game's clip bottom (0xfa76cc), not this one's.
+// - Other control characters, and every one above 0x7f (taken as signed), draw as ' '.
+// - The 24-bit code steps 4 bytes a pixel.
+void __fastcall Canvas8_Text(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x,
+                             s32 y, const char *text, Color *colour);
+void __fastcall Canvas16_Text(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x,
+                              s32 y, const char *text, Color *colour);
+void __fastcall Canvas24_Text(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x,
+                              s32 y, const char *text, Color *colour);
+void __fastcall Canvas32_Text(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x,
+                              s32 y, const char *text, Color *colour);
 // Slot 8: (surface, clip, flags, &rect, colour): the rectangle, ordered and clipped, filled.
 void __fastcall Canvas8_FillRect(CanvasDriver *d, void *edx, const SurfaceInfo *s, const Rect *clip, u32 flags,
                                  const Rect *rect, Color *colour);
