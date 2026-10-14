@@ -413,6 +413,12 @@ class Emu:
                 a = a - (1 << 32) if a >> 31 else a
             res = a << n if mn == 'SHL' else a >> n
             self.put(o[0], self.flags(res, 32))
+        elif mn in ('ROR', 'ROL'):  # 32-bit; CF = the last bit rotated round, SF/ZF kept
+            a, n = self.get(o[0]), self.get(o[1]) & 31
+            if n:
+                res = ((a >> n) | (a << (32 - n)) if mn == 'ROR' else (a << n) | (a >> (32 - n))) & 0xffffffff
+                self.cf = bool(res >> 31) if mn == 'ROR' else bool(res & 1)
+                self.put(o[0], res)
         elif mn == 'CDQ':
             self.r['EDX'] = 0xffffffff if self.r['EAX'] >> 31 else 0
         elif mn in ('MUL', 'IMUL', 'DIV', 'IDIV') and len(o) == 1:  # with EDX:EAX

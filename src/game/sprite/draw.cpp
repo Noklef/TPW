@@ -1,4 +1,4 @@
-// The sprite draw lists: reimplementation of 0x540ab0, 0x540b30 and 0x542010.
+// The sprite draw lists: reimplementation of 0x540ab0, 0x540b30, 0x542010 and 0x5408e0/0x5408f0.
 #include "draw.h"
 
 #include <cmath>
@@ -157,3 +157,6 @@ extern "C" void __cdecl Sprite_DrawScript(u8 *s) {
         ++counts()[bucket];
     }
 }
+
+extern "C" void __cdecl SpriteDraw_Enable() { global<u8>(0x00763f84) = 1; }
+extern "C" void __cdecl SpriteDraw_Disable() { global<u8>(0x00763f84) = 0; }

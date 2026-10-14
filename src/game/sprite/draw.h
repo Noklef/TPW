@@ -1,5 +1,6 @@
 // The sprite draw lists: reimplementation of 0x540ab0, 0x540b30 and 0x542010, which
-// SpriteScripts_Draw (0x475430) calls each frame around the scripts.
+// SpriteScripts_Draw (0x475430) calls each frame around the scripts, and of the switch
+// 0x5408e0/0x5408f0.
 //
 // A shown script is not drawn here: its draw record (+0xd0 of the script, 0x44 bytes) is
 // filled in and appended to a list for the renderer. The map is split into a 4x4 grid of
@@ -35,6 +36,9 @@ void __cdecl SpriteDraw_End();
 // 0x2000000 or a sprite without directions: direction 0). The direction offset is kept
 // at 0x87734c.
 void __cdecl Sprite_DrawScript(u8 *script);
+// 0x5408e0 / 0x5408f0: sprites are drawn (byte 0x763f84 = 1) / not (0).
+void __cdecl SpriteDraw_Enable();
+void __cdecl SpriteDraw_Disable();
 }
 
 // What the draw path calls in the game, so that it can run outside it.

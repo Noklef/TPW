@@ -16,7 +16,9 @@
 #include "../game/rsse/rsse.h"
 #include "../game/sprite/draw.h"
 #include "../game/sprite/script.h"
+#include "../game/sprite/sprite.h"
 #include "../game/terrain/terrain_blend.h"
+#include "../game/world/random.h"
 
 namespace tpw::hook {
 
@@ -160,6 +162,15 @@ const Hook kHooks[] = {
     {"SpriteDraw_Begin",         0x00540ab0, (void *)&SpriteDraw_Begin, {0x57, 0xb9, 0x10, 0x00, 0x00}},
     {"SpriteDraw_End",           0x00540b30, (void *)&SpriteDraw_End, {0xa1, 0x48, 0x73, 0x87, 0x00}},
     {"Sprite_DrawScript",        0x00542010, (void *)&Sprite_DrawScript, {0x83, 0xec, 0x38, 0x53, 0x55}},
+    {"SpriteDraw_Enable",        0x005408e0, (void *)&SpriteDraw_Enable, {0xc6, 0x05, 0x84, 0x3f, 0x76}},
+    {"SpriteDraw_Disable",       0x005408f0, (void *)&SpriteDraw_Disable, {0xc6, 0x05, 0x84, 0x3f, 0x76}},
+    {"Sprite_Ctor",              0x00540bd0, (void *)&Sprite_Ctor, {0x8b, 0xc1, 0x33, 0xd2, 0x56}},
+    {"SpriteFolder_RandomSprite", 0x00541f70, (void *)&SpriteFolder_RandomSprite, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Sprite_ActionCount",       0x00541fa0, (void *)&Sprite_ActionCount, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
+    {"Sprite_RandomAnim",        0x00541fd0, (void *)&Sprite_RandomAnim, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Sprite_FrameEntry",        0x005423a0, (void *)&Sprite_FrameEntry, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"World_Rand",               0x00516330, (void *)&World_Rand, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"World_SetSeed",            0x00516370, (void *)&World_SetSeed, {0x8b, 0x44, 0x24, 0x04, 0x89}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

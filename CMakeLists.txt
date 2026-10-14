@@ -29,6 +29,8 @@ add_library(tpw_game STATIC
     src/game/motion/normals.cpp
     src/game/sprite/script.cpp
     src/game/sprite/draw.cpp
+    src/game/sprite/sprite.cpp
+    src/game/world/random.cpp
     src/game/terrain/terrain_blend.cpp
 )
 
