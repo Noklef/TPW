@@ -36,6 +36,7 @@
 #include "../game/gfx/cursor.h"
 #include "../game/gfx/surfbuf.h"
 #include "../game/gfx/pointer.h"
+#include "../game/core/events.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
 #include "../game/motion/curve.h"
@@ -621,6 +622,21 @@ const Hook kHooks[] = {
     {"AsyncPointer_SetImage",     0x005fbcf0, (void *)&AsyncPointer_SetImage, {0x56, 0x57, 0x8b, 0xf1, 0x6a}},
     {"AsyncPointer_BeginFlip",    0x005fbd40, (void *)&AsyncPointer_BeginFlip, {0x51, 0x56, 0x57, 0x8b, 0xf1}},
     {"AsyncPointer_EndFlip",      0x005fbd90, (void *)&AsyncPointer_EndFlip, {0x51, 0x56, 0x8b, 0xf1, 0x57}},
+    {"EventQueue_StaticInit",     0x005fbde0, (void *)&EventQueue_StaticInit, {0xe8, 0x0b, 0x00, 0x00, 0x00}},
+    {"EventQueue_Construct",      0x005fbdf0, (void *)&EventQueue_Construct, {0xb9, 0xb0, 0x7c, 0xfa, 0x00}},
+    {"EventQueue_RegisterExit",   0x005fbe00, (void *)&EventQueue_RegisterExit, {0x68, 0x10, 0xbe, 0x5f, 0x00}},
+    {"EventQueue_AtExit",         0x005fbe10, (void *)&EventQueue_AtExit, {0xb9, 0xb0, 0x7c, 0xfa, 0x00}},
+    {"EventQueue_Ctor",           0x005fbe20, (void *)&EventQueue_Ctor, {0x6a, 0xff, 0x68, 0x36, 0x23}},
+    {"EventList_Ctor",            0x005fbe90, (void *)&EventList_Ctor, {0x8b, 0xc1, 0x33, 0xc9, 0x89}},
+    {"EventList_Dtor",            0x005fbeb0, (void *)&EventList_Dtor, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"EventList_DeletingDtor",    0x005fbef0, (void *)&EventList_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0xb8}},
+    {"EventQueue_Dtor",           0x005fbf10, (void *)&EventQueue_Dtor, {0x6a, 0xff, 0x68, 0x56, 0x23}},
+    {"EventQueue_Post",           0x005fbf80, (void *)&EventQueue_Post, {0x6a, 0xff, 0x68, 0x68, 0x23}},
+    {"EventQueue_GuardRelease",   0x005fc010, (void *)&EventQueue_GuardRelease, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"EventQueue_Listen",         0x005fc030, (void *)&EventQueue_Listen, {0x6a, 0xff, 0x68, 0x88, 0x23}},
+    {"EventQueue_Unlisten",       0x005fc100, (void *)&EventQueue_Unlisten, {0x6a, 0xff, 0x68, 0xa8, 0x23}},
+    {"EventQueue_Clear",          0x005fc220, (void *)&EventQueue_Clear, {0x6a, 0xff, 0x68, 0xc8, 0x23}},
+    {"EventListBase_DeletingDtor", 0x005fc2d0, (void *)&EventListBase_DeletingDtor, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"PixelConverter_DeletingDtor", 0x00630c50, (void *)&PixelConverter_DeletingDtor, {0x8a, 0x44, 0x24, 0x04, 0x56}},
     {"PixelConverter_DeletingDtor2", 0x00630c70, (void *)&PixelConverter_DeletingDtor2, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"PixelConverter_Dtor",       0x00630c90, (void *)&PixelConverter_Dtor, {0xc7, 0x01, 0xc0, 0x39, 0x70}},

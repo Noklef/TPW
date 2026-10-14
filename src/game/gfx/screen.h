@@ -86,7 +86,7 @@ struct ScreenEnv {
     Surface *surfaceB;     // 0xfa7730
     Surface *primary;      // 0xfa7780
     void *queue;           // 0xfa7cb0: the event queue
-    void(__fastcall *post)(void *queue, void *edx, u32 unknown, const u32 *event);  // 0x5fbf80
+    void(__fastcall *post)(void *queue, void *edx, u32 channel, const u32 *event);  // 0x5fbf80 EventQueue_Post
     void *(__cdecl *alloc)(u32 size);  // 0x67acc0
     void(__cdecl *free)(void *p);      // 0x67acb0
     const char *listTitle;             // 0x775840: "ModeList"

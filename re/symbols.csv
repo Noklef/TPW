@@ -1169,6 +1169,22 @@ address,name,kind,confidence,notes
 0x005fbcf0,AsyncPointer_SetImage,function,high,"reimplemented (src/game/gfx/pointer); thiscall (&out, image, &rect, &hotspot); Cursor_SetImage under the lock, Tick"
 0x005fbd40,AsyncPointer_BeginFlip,function,high,reimplemented (src/game/gfx/pointer); thiscall; locks; Cursor_Update(front surface)
 0x005fbd90,AsyncPointer_EndFlip,function,high,reimplemented (src/game/gfx/pointer); thiscall; Cursor_Restore(front surface); next tick; unlocks
+0x005fbde0,EventQueue_StaticInit,function,high,"reimplemented (src/game/core/events); cdecl; the queue at 0xfa7cb0 constructed, its destructor registered"
+0x005fbdf0,EventQueue_Construct,function,high,reimplemented (src/game/core/events); cdecl; EventQueue_Ctor(0xfa7cb0)
+0x005fbe00,EventQueue_RegisterExit,function,high,reimplemented (src/game/core/events); cdecl; atexit(EventQueue_AtExit)
+0x005fbe10,EventQueue_AtExit,function,high,reimplemented (src/game/core/events); cdecl; EventQueue_Dtor(0xfa7cb0)
+0x005fbe20,EventQueue_Ctor,function,high,"reimplemented (src/game/core/events); thiscall; a critical section of its own allocation, six empty channels"
+0x005fbe90,EventList_Ctor,function,high,reimplemented (src/game/core/events); thiscall; vtable 0x703648
+0x005fbeb0,EventList_Dtor,function,high,reimplemented (src/game/core/events); thiscall; frees the nodes (not their listeners)
+0x005fbef0,EventList_DeletingDtor,function,high,reimplemented (src/game/core/events); thiscall (flags)
+0x005fbf10,EventQueue_Dtor,function,high,"reimplemented (src/game/core/events); thiscall; Clear, the critical section deleted and freed"
+0x005fbf80,EventQueue_Post,function,high,"reimplemented (src/game/core/events); thiscall (channel, &event); each listener's stdcall callback(channel, &event, context); 6 is none"
+0x005fc010,EventQueue_GuardRelease,function,high,"reimplemented (src/game/core/events); thiscall on a guard {critical section}; leaves it, zeroes it"
+0x005fc030,EventQueue_Listen,function,high,"reimplemented (src/game/core/events); thiscall (channel, callback, context); appended to the channel"
+0x005fc100,EventQueue_Unlisten,function,high,"reimplemented (src/game/core/events); thiscall (channel, callback, context); every match removed (context 0 matches any)"
+0x005fc220,EventQueue_Clear,function,high,reimplemented (src/game/core/events); thiscall; every listener and node freed
+0x005fc2d0,EventListBase_DeletingDtor,function,high,reimplemented (src/game/core/events); thiscall (flags); vtable 0x70364c
+0x00fa7cb0,gEventQueue,data,high,"EventQueue (src/game/core/events), six channels of listeners"
 0x005f9fa0,FpuControl_DeletingDtor,function,high,"reimplemented (src/game/core/fpu); thiscall (flags); vtable 0x7035d8 slot 0: Dtor, Mem_Free when flags & 1"
 0x005f9fc0,FpuControl_Dtor,function,high,reimplemented (src/game/core/fpu); thiscall; base vtable 0x7035dc then Restore
 0x005f9fd0,FpuControl_BaseDeletingDtor,function,high,"reimplemented (src/game/core/fpu); thiscall (flags); vtable 0x7035dc slot 0"
