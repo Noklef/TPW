@@ -50,6 +50,24 @@ void put(u8 *dst, u32 px, u32 bytes) {
     }
 }
 
+u32 rotr(u32 v, u32 n) {
+    n &= 31;
+    return n ? v >> n | v << (32 - n) : v;
+}
+
+u32 rgb(const RgbConverter *c, const u8 *src) {
+    u32 s;
+    std::memcpy(&s, src, 4);
+    u32 out = c->fill;
+    for (int k = 0; k < 4; ++k) {
+        const u32 v = s & c->sourceMask[k];
+        u32 t = rotr(v, c->rotate[k]);
+        if (c->widens) t |= rotr(v, c->rotate[k] + c->width[k]);
+        out |= t & c->targetMask[k];
+    }
+    return out;
+}
+
 }  // namespace
 
 void PixConv_SetEnv(const PixConvEnv *e) { g_env = e ? e : &kGameEnv; }
@@ -115,6 +133,46 @@ void __stdcall Mask_Shifts(u32 source, u32 target, u32 *right, u32 *left) {
     const s32 kept = width < targetWidth ? width : targetWidth;
     *right = static_cast<u32>(top - kept + 1);
     *left = static_cast<u32>(targetTop - targetWidth + 1);
+}
+
+void __fastcall RgbConverter_Init(RgbConverter *c, void *, const u32 *source, const u32 *target) {
+    c->targetBytes = (target[4] + 7) >> 3;
+    c->sourceBytes = (source[4] + 7) >> 3;
+    for (int k = 0; k < 4; ++k) c->sourceMask[k] = source[k];
+    for (int k = 0; k < 4; ++k) c->targetMask[k] = target[k];
+    c->widens = 0;
+    for (int k = 0; k < 4; ++k)
+        RgbConverter_ChannelShift(c, nullptr, source[k], target[k], &c->rotate[k], &c->width[k]);
+    c->fill = 0;
+    if (!source[3]) c->fill = target[3];
+}
+
+void __fastcall RgbConverter_Convert(RgbConverter *c, void *, u8 *dst, const u8 *src, u32 count) {
+    const u32 bytes = c->targetBytes;
+    if (bytes < 1 || bytes > 4) return;
+    for (u32 i = 0; i < count; ++i, dst += bytes, src += c->sourceBytes) put(dst, rgb(c, src), bytes);
+}
+
+void __fastcall RgbConverter_ConvertBack(RgbConverter *c, void *, u8 *dst, const u8 *src, u32 count) {
+    const u32 bytes = c->targetBytes;
+    if (bytes < 1 || bytes > 4) return;
+    dst += bytes * (count - 1);
+    src += c->sourceBytes * (count - 1);
+    for (u32 i = count; i; --i, dst -= bytes, src -= c->sourceBytes) put(dst, rgb(c, src), bytes);
+}
+
+void __fastcall RgbConverter_ChannelShift(RgbConverter *c, void *, u32 source, u32 target, u32 *rotate,
+                                          s32 *width) {
+    if (!source || !target) {
+        *rotate = 0;
+        return;
+    }
+    s32 top, targetTop, targetWidth;
+    run(source, &top, width);
+    run(target, &targetTop, &targetWidth);
+    if (*width < targetWidth && !c->widens) c->widens = 1;
+    const s32 r = top - targetTop;
+    *rotate = static_cast<u32>(r < 0 ? r + 32 : r);
 }
 
 }  // extern "C"
