@@ -819,3 +819,52 @@ address,name,kind,confidence,notes
 0x00703e60,MmioSource_vtable,data,high,the mmio stream source vtable (src/game/files/sources)
 0x00faa2c8,gFileSourcePath,data,high,char[0x104]; the file source's resolved path (src/game/files/sources)
 0x00faa3d0,gMmioSourcePath,data,high,char[0x104]; the mmio source's resolved path (src/game/files/sources)
+0x005e42d0,PtrList_Append,function,high,"reimplemented (src/game/core/ptrlist); thiscall (item); a 0xc-byte node {item, next, prev} at the tail of {vtable, head, tail, count}"
+0x0061ade0,WadFinder_Dtor,function,high,"reimplemented (src/game/files/waddir); thiscall; both String lists (+0x4c, +0x3c), then the Strings at +0x20 and +0"
+0x00637460,WadDir_Ctor,function,high,"reimplemented (src/game/files/waddir); thiscall; 0x1c bytes {root, names, finder, folder pool, file pool}, each pool one new[100] block"
+0x00637550,WadDir_Dtor,function,high,"reimplemented (src/game/files/waddir); thiscall; Clear, then the file and folder pools"
+0x00637630,WadDir_Clear,function,high,"reimplemented (src/game/files/waddir); thiscall; frees the root folder, the name block and the finder"
+0x00637690,WadDir_Load,function,high,"reimplemented (src/game/files/waddir); thiscall (&result, stream, inBlock); a new root and finder (the old finder leaks), the 0x58-byte header, 0x28-byte records and (inBlock) the name block; each entry filed by its normalized name; 0 or -1"
+0x00637a10,WadDir_Normalize,function,high,"reimplemented (src/game/files/waddir); cdecl (TextWriter *); lower-cased (CRT tolower), '/' made '\'"
+0x00637ae0,WadFolder_Dtor,function,high,"reimplemented (src/game/files/waddir); thiscall; an owned name freed, both lists' nodes freed"
+0x00637b50,WadFolder_AddFile,function,high,"reimplemented (src/game/files/waddir); thiscall (name, size, offset, hash, &filePool, inBlock); a pooled file appended to +0x18"
+0x00637be0,WadFolder_AddPath,function,high,"reimplemented (src/game/files/waddir); thiscall (path, &folderPool, inBlock); recursive; a missing folder made (separator cut to NUL) and put first in +8"
+0x00637f30,WadFile_Ctor,function,high,"reimplemented (src/game/files/waddir); thiscall; 0x14 bytes {name, owned, size, offset, name hash}"
+0x00637f40,WadFile_Dtor,function,high,reimplemented (src/game/files/waddir); thiscall; an owned name freed
+0x00637f60,WadFolder_Ctor,function,high,"reimplemented (src/game/files/waddir); thiscall; 0x28 bytes {name, owned, folder list (vtable 0x703e94), file list (0x703e90)}"
+0x00637f90,WadFolderList_DeletingDtor,function,high,reimplemented (src/game/files/waddir); thiscall (flags); vtable 0x703e94
+0x00637fb0,WadFolderList_Dtor,function,high,reimplemented (src/game/files/waddir); thiscall; nodes freed under vtable 0x703e98
+0x00637ff0,WadFileList_DeletingDtor,function,high,reimplemented (src/game/files/waddir); thiscall (flags); vtable 0x703e90
+0x00638010,WadFileList_Dtor,function,high,reimplemented (src/game/files/waddir); thiscall; nodes freed under vtable 0x703e9c
+0x006380d0,StringList_Ctor2,function,high,"reimplemented (src/game/files/waddir); thiscall; empty, vtable 0x6fe67c"
+0x00638640,StringList_Ctor,function,high,"reimplemented (src/game/files/waddir); thiscall; empty, vtable 0x6fe680"
+0x00638660,WadFolderPool_Free,function,high,reimplemented (src/game/files/waddir); thiscall; each block delete[]d (last element first) and freed
+0x006386b0,WadFilePool_Free,function,high,reimplemented (src/game/files/waddir); thiscall; likewise for files
+0x00638700,WadFilePool_Alloc,function,high,"reimplemented (src/game/files/waddir); thiscall; the next file, a new new[100] block first when used reaches 100"
+0x006387a0,WadFolderListBase_DeletingDtor,function,high,reimplemented (src/game/files/waddir); thiscall (flags); vtable 0x703e98
+0x006387f0,WadFileListBase_DeletingDtor,function,high,reimplemented (src/game/files/waddir); thiscall (flags); vtable 0x703e9c
+0x0067acf0,CRT_VectorCtorIterator,function,medium,"stdcall (array, size, count, ctor, dtor); MSVC6 `eh vector constructor iterator` (new T[n])"
+0x0067afa0,CRT_VectorDtorIterator,function,medium,"stdcall (array, size, count, dtor); MSVC6 `eh vector destructor iterator`, last element first"
+0x0067f1a0,CRT_toupper,function,medium,"cdecl; the CRT toupper (locale-aware, ASCII in the C locale)"
+0x0067fa60,CRT_tolower,function,medium,"cdecl; the CRT tolower (locale-aware, ASCII in the C locale)"
+0x006fe67c,StringList2_vtable,data,high,one entry (0x61a7e0); src/game/files/waddir
+0x006fe680,StringList_vtable,data,high,one entry (0x45f8e0); src/game/files/waddir
+0x00703e90,WadFileList_vtable,data,high,one entry (0x637ff0); the vtables 0x703e90-0x703ea0 overlap; src/game/files/waddir
+0x00703e94,WadFolderList_vtable,data,high,one entry (0x637f90); src/game/files/waddir
+0x00703e98,WadFolderListBase_vtable,data,high,one entry (0x6387a0); src/game/files/waddir
+0x00703e9c,WadFileListBase_vtable,data,high,one entry (0x6387f0); src/game/files/waddir
+0x0070393c,WadFinderList_vtable,data,high,one entry (0x61a7e0); the finder's String lists; src/game/files/waddir
+0x00775704,kPathSeparators,data,high,"""\\/""; src/game/files/waddir"
+0x005f8a50,StringListNode_Ctor,function,high,"reimplemented (src/game/files/wadfind); thiscall (String by value, destroyed by the callee); 0x1c bytes {text, next, prev}"
+0x00641820,StringList_PopHead,function,high,"reimplemented (src/game/files/wadfind); thiscall (&out); the head node's text copied out, the node freed"
+0x00641500,Wildcard_Compile,function,high,"reimplemented (src/game/files/wadfind); thiscall (&result, pattern); literal prefix, then one token per ? or *; wildcards after a * dropped"
+0x00641760,Wildcard_Match,function,high,reimplemented (src/game/files/wadfind); thiscall (text); MatchFrom at the first token
+0x00641780,Wildcard_MatchFrom,function,high,"reimplemented (src/game/files/wadfind); stdcall (text, node); * takes the first occurrence only (no backtracking)"
+0x00637e10,WadFolder_Find,function,high,"reimplemented (src/game/files/wadfind); thiscall (path, &out); walks folder names split at \ or /, appending each with a \"
+0x00638050,WadFinder_Ctor,function,high,"reimplemented (src/game/files/wadfind); thiscall (&root, pattern, record); Strings, both lists, then Start"
+0x006380f0,WadFinder_Start,function,high,"reimplemented (src/game/files/wadfind); thiscall (&root, pattern, record); folder part found, name part compiled; an exact name is matched by hash (whole pattern) then name"
+0x00638430,WadFinder_Next,function,high,"reimplemented (src/game/files/wadfind); thiscall; folders first, then files; a .* pattern also tried without it"
+0x00638550,WadFinder_Done,function,high,"reimplemented (src/game/files/wadfind); thiscall; current & ~0xff, else 1 once past the folders"
+0x00638570,WadFinder_Fill,function,high,"reimplemented (src/game/files/wadfind); thiscall (DirEntry *); attributes 0x10 or 0x81, path then name"
+0x00637a50,WadDir_FindFirst,function,high,"reimplemented (src/game/files/wadfind); thiscall (&result, DirEntry *, pattern); Start, Next, Fill"
+0x00637aa0,WadDir_FindNext,function,high,"reimplemented (src/game/files/wadfind); thiscall (&result, DirEntry *); Next, Fill"

@@ -16,6 +16,7 @@ add_compile_options(/W4 /permissive- /utf-8)
 add_library(tpw_game STATIC
     src/game/rsse/rsse_vm.cpp
     src/game/core/libc.cpp
+    src/game/core/ptrlist.cpp
     src/game/core/semaphore.cpp
     src/game/core/string.cpp
     src/game/files/dirsource.cpp
@@ -26,6 +27,8 @@ add_library(tpw_game STATIC
     src/game/files/refpack.cpp
     src/game/files/sources.cpp
     src/game/files/textwriter.cpp
+    src/game/files/waddir.cpp
+    src/game/files/wadfind.cpp
     src/game/gfx/palette.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
