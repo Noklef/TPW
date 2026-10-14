@@ -49,6 +49,7 @@ add_library(tpw_game STATIC
     src/game/gfx/surfbuf.cpp
     src/game/gfx/pointer.cpp
     src/game/core/events.cpp
+    src/game/core/filetime.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp

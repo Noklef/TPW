@@ -37,6 +37,7 @@
 #include "../game/gfx/surfbuf.h"
 #include "../game/gfx/pointer.h"
 #include "../game/core/events.h"
+#include "../game/core/filetime.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
 #include "../game/motion/curve.h"
@@ -637,6 +638,13 @@ const Hook kHooks[] = {
     {"EventQueue_Unlisten",       0x005fc100, (void *)&EventQueue_Unlisten, {0x6a, 0xff, 0x68, 0xa8, 0x23}},
     {"EventQueue_Clear",          0x005fc220, (void *)&EventQueue_Clear, {0x6a, 0xff, 0x68, 0xc8, 0x23}},
     {"EventListBase_DeletingDtor", 0x005fc2d0, (void *)&EventListBase_DeletingDtor, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"FileTime_Add",              0x005fc530, (void *)&FileTime_Add, {0x8b, 0x44, 0x24, 0x08, 0x56}},
+    {"FileTime_Sub",              0x005fc550, (void *)&FileTime_Sub, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"FileTime_Greater",          0x005fc570, (void *)&FileTime_Greater, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"FileTime_Assign",           0x005fc5a0, (void *)&FileTime_Assign, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
+    {"FileTime_FromSystemTime",   0x005fc5c0, (void *)&FileTime_FromSystemTime, {0x83, 0xec, 0x10, 0x66, 0x8b}},
+    {"FileTime_ToSystemTime",     0x005fc660, (void *)&FileTime_ToSystemTime, {0x83, 0xec, 0x14, 0x8d, 0x44}},
+    {"FileTime_FromSpan",         0x005fcc50, (void *)&FileTime_FromSpan, {0x8b, 0x44, 0x24, 0x08, 0x56}},
     {"PixelConverter_DeletingDtor", 0x00630c50, (void *)&PixelConverter_DeletingDtor, {0x8a, 0x44, 0x24, 0x04, 0x56}},
     {"PixelConverter_DeletingDtor2", 0x00630c70, (void *)&PixelConverter_DeletingDtor2, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"PixelConverter_Dtor",       0x00630c90, (void *)&PixelConverter_Dtor, {0xc7, 0x01, 0xc0, 0x39, 0x70}},
