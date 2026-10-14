@@ -30,6 +30,7 @@ add_library(tpw_game STATIC
     src/game/files/waddir.cpp
     src/game/files/wadfind.cpp
     src/game/files/wrapsources.cpp
+    src/game/files/wadsource.cpp
     src/game/gfx/palette.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp

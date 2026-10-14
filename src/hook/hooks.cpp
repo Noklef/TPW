@@ -16,6 +16,7 @@
 #include "../game/files/waddir.h"
 #include "../game/files/wadfind.h"
 #include "../game/files/wrapsources.h"
+#include "../game/files/wadsource.h"
 #include "../game/math/matrix.h"
 #include "../game/math/vector.h"
 #include "../game/gfx/palette.h"
@@ -460,6 +461,23 @@ const Hook kHooks[] = {
     {"TrackedSource_Seek",        0x00641980, (void *)&TrackedSource_Seek, {0x8b, 0x54, 0x24, 0x08, 0x56}},
     {"TrackedSource_Size",        0x006419a0, (void *)&TrackedSource_Size, {0x8b, 0x49, 0x04, 0x8b, 0x01}},
     {"Source_Field0c",            0x006ad810, (void *)&Source_Field0c, {0x8b, 0x41, 0x0c, 0xc3, 0x90}},
+    {"StringList_Dtor",           0x0045d820, (void *)&StringList_Dtor, {0x53, 0x8b, 0xd9, 0x56, 0x8b}},
+    {"WadSource_Ctor",            0x0061a060, (void *)&WadSource_Ctor, {0x6a, 0xff, 0x68, 0xc7, 0x28}},
+    {"WadSource_DeletingDtor",    0x0061a110, (void *)&WadSource_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"WadSource_Dtor",            0x0061a130, (void *)&WadSource_Dtor, {0x6a, 0xff, 0x68, 0x25, 0x29}},
+    {"WadSource_Close",           0x0061a200, (void *)&WadSource_Close, {0x56, 0x8b, 0xf1, 0x8d, 0x8e}},
+    {"WadSource_Open",            0x0061a250, (void *)&WadSource_Open, {0x6a, 0xff, 0x68, 0x54, 0x29}},
+    {"WadSource_FindFirst",       0x0061a550, (void *)&WadSource_FindFirst, {0x6a, 0xff, 0x68, 0x68, 0x29}},
+    {"WadSource_FillEntry",       0x0061a6c0, (void *)&WadSource_FillEntry, {0x8b, 0x41, 0x28, 0x85, 0xc0}},
+    {"WadSource_FindNext",        0x0061a700, (void *)&WadSource_FindNext, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
+    {"WadSource_OpenEntry",       0x0061a760, (void *)&WadSource_OpenEntry, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
+    {"StringList_DeletingDtor",   0x0061a7e0, (void *)&StringList_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x38}},
+    {"WadSource_OpenEntryStream", 0x0061a800, (void *)&WadSource_OpenEntryStream, {0x6a, 0xff, 0x68, 0x7f, 0x2a}},
+    {"WadSource_Vfn7",            0x0061adb0, (void *)&WadSource_Vfn7, {0x8b, 0x44, 0x24, 0x04, 0xc7}},
+    {"WadSource_Vfn8",            0x0061adc0, (void *)&WadSource_Vfn8, {0x8b, 0x44, 0x24, 0x04, 0xc7}},
+    {"WadSource_Vfn9",            0x0061add0, (void *)&WadSource_Vfn9, {0x8b, 0x44, 0x24, 0x04, 0xc7}},
+    {"StringList_Clear",          0x0061aeb0, (void *)&StringList_Clear, {0x53, 0x8b, 0xd9, 0x56, 0x8b}},
+    {"StringListNode_DeletingDtor", 0x0061af00, (void *)&StringListNode_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x38}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

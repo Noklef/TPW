@@ -853,7 +853,7 @@ address,name,kind,confidence,notes
 0x00703e94,WadFolderList_vtable,data,high,one entry (0x637f90); src/game/files/waddir
 0x00703e98,WadFolderListBase_vtable,data,high,one entry (0x6387a0); src/game/files/waddir
 0x00703e9c,WadFileListBase_vtable,data,high,one entry (0x6387f0); src/game/files/waddir
-0x0070393c,WadFinderList_vtable,data,high,one entry (0x61a7e0); the finder's String lists; src/game/files/waddir
+0x0070393c,WadStringList_vtable,data,high,"a String list (0x61a7e0): the finder's lists and the WAD source's; src/game/files/wadfind, wadsource"
 0x00775704,kPathSeparators,data,high,"""\\/""; src/game/files/waddir"
 0x005f8a50,StringListNode_Ctor,function,high,"reimplemented (src/game/files/wadfind); thiscall (String by value, destroyed by the callee); 0x1c bytes {text, next, prev}"
 0x00641820,StringList_PopHead,function,high,"reimplemented (src/game/files/wadfind); thiscall (&out); the head node's text copied out, the node freed"
@@ -921,3 +921,22 @@ address,name,kind,confidence,notes
 0x00703160,CallbackStream_vtable,data,high,src/game/files/wrapsources
 0x00703170,CallbackStreamBase_vtable,data,high,src/game/files/wrapsources
 0x00fa75fc,g_Compressor,data,high,the zlib codec singleton (guard bit 0xfa75f8); src/game/files/wrapsources
+0x0045d820,StringList_Dtor,function,high,"reimplemented (src/game/files/wadsource); thiscall; vtable 0x6fe680, the nodes' Strings freed"
+0x0061a060,WadSource_Ctor,function,high,"reimplemented (src/game/files/wadsource); thiscall; 0xe0 bytes, vtable 0x703908"
+0x0061a110,WadSource_DeletingDtor,function,high,reimplemented (src/game/files/wadsource); thiscall (flags)
+0x0061a130,WadSource_Dtor,function,high,"reimplemented (src/game/files/wadsource); thiscall; Close, then the members"
+0x0061a200,WadSource_Close,function,high,"reimplemented (src/game/files/wadsource); thiscall (vtable +0x30); tree cleared, file closed, paths emptied"
+0x0061a250,WadSource_Open,function,high,"reimplemented (src/game/files/wadsource); thiscall (&result, path, flags); ""archive.wad[*\folder]"", DWFB header version 0-2, directory load"
+0x0061a550,WadSource_FindFirst,function,high,"reimplemented (src/game/files/wadsource); thiscall (&result, pattern, entry; vtable +8)"
+0x0061a6c0,WadSource_FillEntry,function,high,reimplemented (src/game/files/wadsource); thiscall (entry); drops the folder's length - 1 characters from the path
+0x0061a700,WadSource_FindNext,function,high,"reimplemented (src/game/files/wadsource); thiscall (&result, entry; vtable +0xc)"
+0x0061a760,WadSource_OpenEntry,function,high,"reimplemented (src/game/files/wadsource); thiscall (&result, stream, name, flags, unused; vtable +4)"
+0x0061a7e0,StringList_DeletingDtor,function,high,reimplemented (src/game/files/wadsource); thiscall (flags); vtables 0x70393c and 0x6fe67c
+0x0061a800,WadSource_OpenEntryStream,function,high,"reimplemented (src/game/files/wadsource); thiscall (&result, stream, name); shared source, slice, then zlib/RefPack buffer by record flag"
+0x0061adb0,WadSource_Vfn7,function,high,"reimplemented (src/game/files/wadsource); thiscall (&result, a, b); -1 (vtable +0x1c, +0x28)"
+0x0061adc0,WadSource_Vfn8,function,high,"reimplemented (src/game/files/wadsource); thiscall (&result, a); 0 (vtable +0x20)"
+0x0061add0,WadSource_Vfn9,function,high,"reimplemented (src/game/files/wadsource); thiscall (&result, a); -1 (vtable +0x24)"
+0x0061aeb0,StringList_Clear,function,high,reimplemented (src/game/files/wadsource); thiscall; the destructor without the vtable
+0x0061af00,StringListNode_DeletingDtor,function,high,reimplemented (src/game/files/wadsource); thiscall (flags)
+0x004217e0,StreamBase_GetSource,function,high,thiscall; returns +4 (the stream's source)
+0x00703908,WadSource_vtable,data,high,src/game/files/wadsource
