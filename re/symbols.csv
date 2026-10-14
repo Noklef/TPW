@@ -674,7 +674,7 @@ address,name,kind,confidence,notes
 0x005f7290,StreamBase_Vfn8,function,high,"reimplemented (src/game/files/handles); thiscall (&result); vtbl+0x20 -> source vtbl+0x20, -1"
 0x004036a0,StreamBase_Read,function,high,"reimplemented (src/game/files/handles); thiscall (buf, count); vtbl+8 -> source vtbl+4, -1"
 0x004036c0,StreamBase_Write,function,high,"reimplemented (src/game/files/handles); thiscall (buf, count); vtbl+0xc -> source vtbl+8, -1"
-0x00639100,StreamBase_Size,function,high,"reimplemented (src/game/files/handles); thiscall; vtbl+0x14 -> source vtbl+0x10 (tail call), -1"
+0x00639100,BufferedSource_Size,function,high,"reimplemented (src/game/files/bufsource); thiscall (+0x10); the wrapped size, -1 unattached"
 0x00414d30,FileStream_Dtor,function,high,reimplemented (src/game/files/handles); jmp StreamBase_Dtor
 0x005fa950,FileStream_DeletingDtor,function,high,reimplemented (src/game/files/handles); thiscall (flags); FileStream_vtable slot 0
 0x005f8240,Handle_Ctor,function,high,"reimplemented (src/game/files/handles); thiscall; vtable Handle_vtable, object (+4, a RefObject2) = 0"
@@ -940,3 +940,16 @@ address,name,kind,confidence,notes
 0x0061af00,StringListNode_DeletingDtor,function,high,reimplemented (src/game/files/wadsource); thiscall (flags)
 0x004217e0,StreamBase_GetSource,function,high,thiscall; returns +4 (the stream's source)
 0x00703908,WadSource_vtable,data,high,src/game/files/wadsource
+0x00638ef0,BufferedSource_Ctor,function,high,"reimplemented (src/game/files/bufsource); thiscall; 0x28 bytes, vtable 0x703f78; the window end left unset"
+0x00638f20,BufferedSource_Open,function,high,"reimplemented (src/game/files/bufsource); thiscall (&result, capacity); allocates the buffer"
+0x00638f70,BufferedSource_Free,function,high,"reimplemented (src/game/files/bufsource); thiscall (+0x24); frees the buffer, keeps the pointer"
+0x00638f80,BufferedSource_Read,function,high,"reimplemented (src/game/files/bufsource); thiscall (buffer, count; +4); refills the window when outside it and count < capacity"
+0x00639000,BufferedSource_Seek,function,high,"reimplemented (src/game/files/bufsource); thiscall (offset, origin; +0xc); clamps to the size, -1 past it"
+0x00639050,BufferedSource_Write,function,high,"reimplemented (src/game/files/bufsource); thiscall (buffer, count; +8); the wrapped write, trims or moves the window"
+0x006390f0,BufferedSource_Tell,function,high,reimplemented (src/game/files/bufsource); thiscall (+0x14); -1 unattached
+0x00639110,BufferedSource_Attach,function,high,"reimplemented (src/game/files/bufsource); thiscall (source; +0x28); SetLink, both positions from the wrapped tell"
+0x00639130,BufferedSource_ReadDirect,function,high,"reimplemented (src/game/files/bufsource); thiscall (buffer, count); the raw read added to the position"
+0x00639150,BufferedSource_CopyWindow,function,high,"reimplemented (src/game/files/bufsource); thiscall (buffer, count); copies what the window holds at the position"
+0x006391b0,BufferedSource_Fill,function,high,reimplemented (src/game/files/bufsource); thiscall; the raw read of a whole buffer becomes the window
+0x006391e0,BufferedSource_ReadRaw,function,high,"reimplemented (src/game/files/bufsource); thiscall (buffer, count); seeks the wrapped source (relative) when its position differs, then reads"
+0x00703f78,BufferedSource_vtable,data,high,src/game/files/bufsource

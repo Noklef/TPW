@@ -17,6 +17,7 @@
 #include "../game/files/wadfind.h"
 #include "../game/files/wrapsources.h"
 #include "../game/files/wadsource.h"
+#include "../game/files/bufsource.h"
 #include "../game/math/matrix.h"
 #include "../game/math/vector.h"
 #include "../game/gfx/palette.h"
@@ -478,6 +479,19 @@ const Hook kHooks[] = {
     {"WadSource_Vfn9",            0x0061add0, (void *)&WadSource_Vfn9, {0x8b, 0x44, 0x24, 0x04, 0xc7}},
     {"StringList_Clear",          0x0061aeb0, (void *)&StringList_Clear, {0x53, 0x8b, 0xd9, 0x56, 0x8b}},
     {"StringListNode_DeletingDtor", 0x0061af00, (void *)&StringListNode_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x38}},
+    {"BufferedSource_Ctor",       0x00638ef0, (void *)&BufferedSource_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0xd8}},
+    {"BufferedSource_Open",       0x00638f20, (void *)&BufferedSource_Open, {0x8b, 0x44, 0x24, 0x08, 0x56}},
+    {"BufferedSource_Free",       0x00638f70, (void *)&BufferedSource_Free, {0x8b, 0x41, 0x0c, 0x50, 0xe8}},
+    {"BufferedSource_Read",       0x00638f80, (void *)&BufferedSource_Read, {0x51, 0x56, 0x8b, 0xf1, 0xc7}},
+    {"BufferedSource_Seek",       0x00639000, (void *)&BufferedSource_Seek, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"BufferedSource_Write",      0x00639050, (void *)&BufferedSource_Write, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
+    {"BufferedSource_Tell",       0x006390f0, (void *)&BufferedSource_Tell, {0x8b, 0x41, 0x04, 0x85, 0xc0}},
+    {"BufferedSource_Size",       0x00639100, (void *)&BufferedSource_Size, {0x8b, 0x49, 0x04, 0x85, 0xc9}},
+    {"BufferedSource_Attach",     0x00639110, (void *)&BufferedSource_Attach, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"BufferedSource_ReadDirect", 0x00639130, (void *)&BufferedSource_ReadDirect, {0x8b, 0x44, 0x24, 0x08, 0x56}},
+    {"BufferedSource_CopyWindow", 0x00639150, (void *)&BufferedSource_CopyWindow, {0x51, 0x8b, 0xd1, 0x53, 0x57}},
+    {"BufferedSource_Fill",       0x006391b0, (void *)&BufferedSource_Fill, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"BufferedSource_ReadRaw",    0x006391e0, (void *)&BufferedSource_ReadRaw, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
