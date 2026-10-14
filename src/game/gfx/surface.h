@@ -39,8 +39,10 @@ static_assert(sizeof(SurfaceInfo) == 0x28, "SurfaceInfo is 0x28 bytes");
 
 // The surface wrapper: an IDirectDrawSurface, its description and a colour key.
 struct Surface {
-    u32 unknown00[3];  // zeroed by InitHeader
-    u32 unknown0c;
+    u32 drawFlags;     // the DrawContext flags Display_SetSurface takes (kDraw*)
+    const u8 *ghost;   // +4: its ghost table
+    u32 unknown08;     // +8: its unknown34
+    const u8 *remap;   // +0xc: its remap table
     u32 keyRgb;        // +0x10: the colour key, 0xAARRGGBB (for more than 8 bits)
     u8 keyIndex;       // +0x14: the colour key's palette index (8 bits)
     u8 pad15[3];
@@ -88,7 +90,8 @@ u32 __fastcall SurfaceInfo_Size(const SurfaceInfo *i);  // 0x5fa890: height * pi
 void __cdecl Surface_SetDirectDraw(void *directDraw);  // 0x5f8f80: the IDirectDraw Create uses
 // 0x5f8f90 (&out, IDirectDrawSurface, s): s zeroed, then wraps the surface (attached).
 s32 *__cdecl Surface_Attach(s32 *out, void *surface, Surface *s);
-// 0x5f9000 (s, width, height, bit count, x): the header (the size is not kept); returns s.
+// 0x5f9000 (s, width, height, bit count, x): no draw flags, ghost or +8, the palette for 8 bits
+// (the size is not kept); returns s.
 Surface *__cdecl Surface_InitHeader(Surface *s, u32 width, u32 height, u32 bitCount, u32 unknown1c);
 // 0x5f9040: 0 when the surface was lost and could not be restored, else 1.
 u32 __cdecl Surface_Restore(Surface *s);

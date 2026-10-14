@@ -177,9 +177,9 @@ s32 *__cdecl Surface_Attach(s32 *out, void *surface, Surface *s) {
 }
 
 Surface *__cdecl Surface_InitHeader(Surface *s, u32, u32, u32 bitCount, u32 unknown1c) {
-    s->unknown00[0] = 0;
-    s->unknown00[1] = 0;
-    s->unknown00[2] = 0;
+    s->drawFlags = 0;
+    s->ghost = nullptr;
+    s->unknown08 = 0;
     s->palette = bitCount == 8 ? g_env->palette : nullptr;
     s->unknown1c = unknown1c;
     return s;

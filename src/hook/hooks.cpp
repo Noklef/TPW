@@ -31,6 +31,7 @@
 #include "../game/gfx/pixconv.h"
 #include "../game/gfx/invmap.h"
 #include "../game/gfx/draw.h"
+#include "../game/gfx/display.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
 #include "../game/motion/curve.h"
@@ -548,6 +549,19 @@ const Hook kHooks[] = {
     {"Surface_Lock",              0x005f9550, (void *)&Surface_Lock, {0x83, 0xec, 0x6c, 0xa0, 0xb4}},
     {"Surface_Unlock",            0x005f9600, (void *)&Surface_Unlock, {0x8b, 0x44, 0x24, 0x04, 0x6a}},
     {"Surface_GetSurface",        0x005f9620, (void *)&Surface_GetSurface, {0x8b, 0x44, 0x24, 0x08, 0x56}},
+    {"Display_IsVisible",         0x005f9780, (void *)&Display_IsVisible, {0x83, 0xec, 0x10, 0x8b, 0x44}},
+    {"Display_Pixel",             0x005f97c0, (void *)&Display_Pixel, {0x53, 0x56, 0x8b, 0x74, 0x24}},
+    {"Display_Line",              0x005f97f0, (void *)&Display_Line, {0x83, 0xec, 0x10, 0x8b, 0x44}},
+    {"Display_HLine",             0x005f9860, (void *)&Display_HLine, {0x83, 0xec, 0x10, 0x53, 0x8b}},
+    {"Display_VLine",             0x005f98d0, (void *)&Display_VLine, {0x83, 0xec, 0x10, 0x53, 0x8b}},
+    {"Display_Triangle",          0x005f9940, (void *)&Display_Triangle, {0x8b, 0x44, 0x24, 0x18, 0x83}},
+    {"Display_FillRect",          0x005f9a30, (void *)&Display_FillRect, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"Display_BoxFill",           0x005f9a80, (void *)&Display_BoxFill, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Display_SetWindow",         0x005f9ac0, (void *)&Display_SetWindow, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"Display_SetClip",           0x005f9b60, (void *)&Display_SetClip, {0x8b, 0x44, 0x24, 0x04, 0x83}},
+    {"Display_GetClip",           0x005f9ca0, (void *)&Display_GetClip, {0xb8, 0xc0, 0x76, 0xfa, 0x00}},
+    {"Display_SetSurfaceInfo",    0x005f9cb0, (void *)&Display_SetSurfaceInfo, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"Display_SetSurface",        0x005f9d90, (void *)&Display_SetSurface, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"PixelConverter_DeletingDtor", 0x00630c50, (void *)&PixelConverter_DeletingDtor, {0x8a, 0x44, 0x24, 0x04, 0x56}},
     {"PixelConverter_DeletingDtor2", 0x00630c70, (void *)&PixelConverter_DeletingDtor2, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"PixelConverter_Dtor",       0x00630c90, (void *)&PixelConverter_Dtor, {0xc7, 0x01, 0xc0, 0x39, 0x70}},

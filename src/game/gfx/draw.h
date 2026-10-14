@@ -40,9 +40,9 @@ struct DrawContext {           // 0xfa76b8
     Rect clip;               // +8 (0xfa76c0)
     DrawDriver *driver;      // +0x18 (0xfa76d0): the current depth's
     u32 unknown1c;
-    s32 unknown20[4];        // +0x20 (0xfa76d8)
+    Rect window;             // +0x20 (0xfa76d8): where the context draws within the surface
     SurfaceInfo *surface;    // +0x30 (0xfa76e8): pitch at +0x24
-    u32 unknown34;
+    u32 unknown34;           // from a Surface (+8) by Display_SetSurface
     DrawDriver driver8;      // +0x38 (0xfa76f0)
     u32 flags;               // +0x3c (0xfa76f4)
     DrawDriver driver16;     // +0x40
