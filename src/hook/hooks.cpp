@@ -26,6 +26,7 @@
 #include "../game/gfx/surface.h"
 #include "../game/gfx/pixconv.h"
 #include "../game/gfx/invmap.h"
+#include "../game/gfx/draw.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
 #include "../game/motion/curve.h"
@@ -548,6 +549,16 @@ const Hook kHooks[] = {
     {"Rect_Overlaps",             0x0062f890, (void *)&Rect_Overlaps, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Rect_Union",                0x0062f8d0, (void *)&Rect_Union, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Rect_Order",                0x0062f940, (void *)&Rect_Order, {0x8b, 0x11, 0x8b, 0x41, 0x08}},
+    {"Draw_Box",                  0x0061bc90, (void *)&Draw_Box, {0xa0, 0xf4, 0x76, 0xfa, 0x00}},
+    {"Draw_BoxOutline",           0x00628aa0, (void *)&Draw_BoxOutline, {0x51, 0x53, 0x55, 0x56, 0x8b}},
+    {"Draw_Circle",               0x00629bf0, (void *)&Draw_Circle, {0xa0, 0xf4, 0x76, 0xfa, 0x00}},
+    {"Draw8_Pixel",               0x0061baf0, (void *)&Draw8_Pixel, {0xa0, 0xf4, 0x76, 0xfa, 0x00}},
+    {"Draw8_BoxFill",             0x0061eed0, (void *)&Draw8_BoxFill, {0x83, 0xec, 0x1c, 0x8b, 0x4c}},
+    {"Draw8_HLine",               0x0061c2e0, (void *)&Draw8_HLine, {0x8b, 0x4c, 0x24, 0x0c, 0x8b}},
+    {"Draw8_VLine",               0x0061c490, (void *)&Draw8_VLine, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
+    {"Draw8_Clear",               0x0061ee30, (void *)&Draw8_Clear, {0x51, 0xa1, 0xe8, 0x76, 0xfa}},
+    {"Draw8_Text",                0x0061f0a0, (void *)&Draw8_Text, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"Draw8_TextW",               0x0061f220, (void *)&Draw8_TextW, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
