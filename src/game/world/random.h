@@ -1,5 +1,5 @@
 // The park's random number generator: reimplementation of 0x516330 and 0x516370. The
-// state is one word in the world object (gWorld, 0x7cf83c) at +0x1da708; the park's
+// state is one word in the world object (gWorldPtr, 0x7cf83c) at +0x1da708; the park's
 // simulation draws from it, so it must stay bit-exact for saved games and replays to
 // play out the same.
 #pragma once

@@ -10,7 +10,7 @@ template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>
 u32 folderFirst(u32 folder) { return *reinterpret_cast<const u32 *>(0x00763f8c + 12u * folder); }
 u32 folderCount(u32 folder) { return *reinterpret_cast<const u32 *>(0x00763f90 + 12u * folder); }
 u8 *sprite(u32 index) { return reinterpret_cast<u8 **>(0x00876b48)[index]; }  // gSprites
-u8 *world() { return *reinterpret_cast<u8 **>(0x007cf83c); }                  // gWorld
+u8 *world() { return *reinterpret_cast<u8 **>(0x007cf83c); }                  // gWorldPtr
 
 }  // namespace
 

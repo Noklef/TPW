@@ -19,6 +19,7 @@
 #include "../game/sprite/sprite.h"
 #include "../game/terrain/terrain_blend.h"
 #include "../game/world/random.h"
+#include "../game/world/things.h"
 
 namespace tpw::hook {
 
@@ -171,6 +172,17 @@ const Hook kHooks[] = {
     {"Sprite_FrameEntry",        0x005423a0, (void *)&Sprite_FrameEntry, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"World_Rand",               0x00516330, (void *)&World_Rand, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"World_SetSeed",            0x00516370, (void *)&World_SetSeed, {0x8b, 0x44, 0x24, 0x04, 0x89}},
+    {"Things_InitTable",         0x00515f30, (void *)&Things_InitTable, {0x33, 0xd2, 0x56, 0x89, 0x15}},
+    {"World_FirstThing",         0x00516130, (void *)&World_FirstThing, {0xa1, 0x6c, 0xf5, 0x7c, 0x00}},
+    {"World_NextThing",          0x00516160, (void *)&World_NextThing, {0x8b, 0x4c, 0x24, 0x08, 0x8d}},
+    {"World_PrevThing",          0x005161b0, (void *)&World_PrevThing, {0x8b, 0x4c, 0x24, 0x08, 0x8d}},
+    {"World_AddThing",           0x00516270, (void *)&World_AddThing, {0x56, 0x8b, 0x35, 0xbc, 0x1b}},
+    {"ThingSlot_Release",        0x00516200, (void *)&ThingSlot_Release, {0x56, 0x8b, 0xf1, 0x33, 0xc0}},
+    {"Thing_GetHandle",          0x0050b350, (void *)&Thing_GetHandle, {0x8b, 0x44, 0x24, 0x04, 0x66}},
+    {"World_QueueDelete",        0x00516310, (void *)&World_QueueDelete, {0x8b, 0x44, 0x24, 0x04, 0xb9}},
+    {"World_DeleteAllThings",    0x00515fb0, (void *)&World_DeleteAllThings, {0x83, 0xec, 0x08, 0x53, 0x56}},
+    {"HandleQueue_Push",         0x0051ad40, (void *)&HandleQueue_Push, {0x56, 0x8b, 0xf1, 0x6a, 0x0c}},
+    {"HandleQueue_Pop",          0x0051ad90, (void *)&HandleQueue_Pop, {0x8b, 0x41, 0x04, 0x56, 0x33}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
