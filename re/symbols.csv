@@ -555,3 +555,72 @@ address,name,kind,confidence,notes
 0x0051ad90,HandleQueue_Pop,function,high,"reimplemented (src/game/world/things); thiscall (&handle): the head's handle, its node deleted; empty: unchanged"
 0x0050b780,Thing_Delete,function,medium,"thiscall on a thing; the base deletion, queues its handle (World_QueueDelete)"
 0x00801f38,gThingsToDelete,data,high,"HandleQueue: +4 head, +8 tail, +0xc count; handles whose slots DeleteAll releases"
+0x005f5fc0,String_Alloc,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +8: a new block for length units, terminated; the old block is not freed"
+0x005f6000,String_SetLength,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +4: length and terminator within the capacity, else Alloc and copy the old text"
+0x005f6040,String_CtorCopy,function,high,"reimplemented (src/game/core/string); thiscall (&from): a copy of a string or view"
+0x005f60b0,String_CtorStr,function,high,"reimplemented (src/game/core/string); thiscall (text): from a C string; nullptr: empty"
+0x005f6150,String_CtorChar,function,high,"reimplemented (src/game/core/string); thiscall (&c): one char, length 1 even for NUL"
+0x005f61a0,String_Ctor,function,high,"reimplemented (src/game/core/string); thiscall: empty"
+0x005f61e0,String_Dtor,function,high,"reimplemented (src/game/core/string); thiscall: frees the block"
+0x005f6200,String_AssignChar,function,high,"reimplemented (src/game/core/string); thiscall (&c): one char; NUL: empty"
+0x005f6240,String_AssignStr,function,high,"reimplemented (src/game/core/string); thiscall (text): a C string; nullptr: empty"
+0x005f6290,String_AssignWide,function,high,"reimplemented (src/game/core/string); thiscall (&wstring): through a char view of its data (length bytes, not converted)"
+0x005f62d0,String_Assign,function,high,"reimplemented (src/game/core/string); thiscall (&from); vtable +0x1c: a string or view"
+0x005f6320,String_AppendStr,function,high,"reimplemented (src/game/core/string); thiscall (text): a C string; nullptr: nothing"
+0x005f6360,String_AppendChar,function,high,"reimplemented (src/game/core/string); thiscall (&c): one char; NUL: nothing"
+0x005f6390,String_Append,function,high,"reimplemented (src/game/core/string); thiscall (&from): a string or view; the length is read again after SetLength, so a string appended to itself writes past its capacity"
+0x005f63d0,String_Format,function,high,"reimplemented (src/game/core/string); cdecl (this, format, ...); vtable +0: MFC FormatV length estimate, SetLength, then the CRT vsprintf"
+0x005f6870,WString_Alloc,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +8: a new block for length units, terminated; the old block is not freed"
+0x005f68b0,WString_SetLength,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +4: length and terminator within the capacity, else Alloc and copy the old text"
+0x005f6900,WString_CtorCopy,function,high,"reimplemented (src/game/core/string); thiscall (&from): a copy of a string or view"
+0x005f6980,WString_CtorStr,function,high,"reimplemented (src/game/core/string); thiscall (text): from a wide C string; nullptr: empty"
+0x005f6a20,WString_Ctor,function,high,"reimplemented (src/game/core/string); thiscall: empty"
+0x005f6a60,WString_Dtor,function,high,"reimplemented (src/game/core/string); thiscall: frees the block"
+0x005f6a80,WString_AssignChar,function,high,"reimplemented (src/game/core/string); thiscall (&c): one unit; NUL: empty"
+0x005f6ac0,WString_AssignStr,function,high,"reimplemented (src/game/core/string); thiscall (text): a wide C string; nullptr: empty"
+0x005f6b10,WString_AssignNarrow,function,high,"reimplemented (src/game/core/string); thiscall (&string): through a wide view of its data (length units, not converted)"
+0x005f6b50,WString_Assign,function,high,"reimplemented (src/game/core/string); thiscall (&from); vtable +0x1c: a string or view"
+0x005f6ba0,WString_AppendStr,function,high,"reimplemented (src/game/core/string); thiscall (text): a wide C string; nullptr: nothing"
+0x005f6be0,WString_AppendChar,function,high,"reimplemented (src/game/core/string); thiscall (&c): one unit; NUL: nothing"
+0x005f6c10,WString_Append,function,high,"reimplemented (src/game/core/string); thiscall (&from): a string or view; the length is read again after SetLength, so a string appended to itself writes past its capacity"
+0x005f6c50,WString_Format,function,high,"reimplemented (src/game/core/string); cdecl (this, format, ...); vtable +0: MFC FormatV length estimate, SetLength, then the CRT vsprintf"
+0x005f7120,String_DeletingDtor,function,high,"reimplemented (src/game/core/string); thiscall (flags); vtable +0xc: Dtor, and frees the object when bit 0 is set"
+0x005f7150,WString_DeletingDtor,function,high,"reimplemented (src/game/core/string); thiscall (flags); vtable +0xc: Dtor, and frees the object when bit 0 is set"
+0x005f78e0,String_GetBuffer,function,high,"reimplemented (src/game/core/string); thiscall (length): SetLength, returns the data"
+0x005f7900,String_ReleaseBuffer,function,high,"reimplemented (src/game/core/string); thiscall (length): SetLength and terminate; 0x7fffffff: the text length, at most the capacity"
+0x005f7950,String_Equals,function,high,"reimplemented (src/game/core/string); thiscall (&other): same length and strncmp"
+0x005f7980,String_EqualsStr,function,high,"reimplemented (src/game/core/string); thiscall (text): equal to a C string; nullptr: empty"
+0x005f79e0,String_NotEqualsStr,function,high,"reimplemented (src/game/core/string); thiscall (text): !EqualsStr"
+0x005f7a50,String_NotEqualsChar,function,high,"reimplemented (src/game/core/string); thiscall (&c): longer than 1, or the first char differs"
+0x005f7a90,String_Less,function,high,"reimplemented (src/game/core/string); thiscall (&other): strncmp over the shorter length, then the shorter first"
+0x005f7ae0,String_FindChar,function,high,"reimplemented (src/game/core/string); thiscall (&c, start): index or -1"
+0x005f7b40,String_Find,function,high,"reimplemented (src/game/core/string); thiscall (text, start): strstr from start; index or -1"
+0x005f7b90,String_ReverseFindChar,function,high,"reimplemented (src/game/core/string); thiscall (&c, start): backwards from start (at most the last); index or -1"
+0x005f7be0,String_ReverseFind,function,high,"reimplemented (src/game/core/string); thiscall (text, start): backwards; start -1 or past the end: from the last place it fits"
+0x005f7c70,String_FindOneOf,function,high,"reimplemented (src/game/core/string); thiscall (set, start): first char in the set; index or -1"
+0x005f7cf0,String_ReverseFindOneOf,function,high,"reimplemented (src/game/core/string); thiscall (set, start): last char in the set; index or -1"
+0x005f7d60,String_Left,function,high,"reimplemented (src/game/core/string); thiscall (&view, count): the first count chars"
+0x005f7d90,String_Right,function,high,"reimplemented (src/game/core/string); thiscall (&view, count): the last count chars"
+0x005f7dd0,String_From,function,high,"reimplemented (src/game/core/string); thiscall (&view, start): from start on"
+0x005f7e10,String_Mid,function,high,"reimplemented (src/game/core/string); thiscall (&view, start, count): count chars from start"
+0x005f7e60,WString_NotEqualsStr,function,high,"reimplemented (src/game/core/string); thiscall (text): unequal to a wide C string; nullptr: the empty string"
+0x00703090,String_vtable,data,high,"String: [0] Format [1] SetLength [2] Alloc [3] DeletingDtor [4..10] assign/append; nothing derives from it"
+0x007030c8,WString_vtable,data,high,"WString: same slots as String_vtable, the wide functions"
+0x007030c0,StringView_vtable,data,high,"char view (Left/Right/Mid, AssignWide): two empty slots"
+0x007030f8,WStringView_vtable,data,high,"wide view (AssignNarrow): two empty slots"
+0x0067ae00,CRT_strncpy,function,high,"MSVC6 strncpy: a byte at a time to align the source, then a dword at a time (read before written)"
+0x0067b8c0,CRT_strncat,function,high,"MSVC6 strncat: dword-at-a-time copy like strncpy"
+0x0067c250,CRT_strncmp,function,high,MSVC6 strncmp (unsigned)
+0x0067c080,CRT_strstr,function,high,"MSVC6 strstr; one-char needles go to strchr (0x67bfc6)"
+0x0067bfc0,CRT_strchr,function,high,MSVC6 strchr
+0x0067a520,CRT_atoi,function,high,MSVC6 atoi
+0x0067f330,CRT_isctype,function,high,MSVC6 _isctype
+0x0067c1e0,CRT_vsprintf,function,high,MSVC6 vsprintf
+0x0067acd0,CRT_wcslen,function,high,MSVC6 wcslen
+0x0067bf10,CRT_wcscpy,function,high,MSVC6 wcscpy
+0x0067bed0,CRT_wcscat,function,high,MSVC6 wcscat
+0x0067b0d0,CRT_wcsncpy,function,high,MSVC6 wcsncpy
+0x0067f450,CRT_wcsncat,function,high,MSVC6 wcsncat
+0x0067f410,CRT_wcsncmp,function,high,MSVC6 wcsncmp
+0x0067f4a0,CRT__wtoi,function,high,MSVC6 _wtoi
+0x0067f4d0,CRT_vswprintf,function,high,MSVC6 vswprintf

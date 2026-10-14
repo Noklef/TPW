@@ -407,12 +407,14 @@ class Emu:
             res = self.flags({'AND': a & b, 'TEST': a & b, 'OR': a | b, 'XOR': a ^ b}[mn], bits)
             if mn != 'TEST':
                 self.put(o[0], res)
-        elif mn in ('SHL', 'SAR', 'SHR'):
-            a, n = self.get(o[0]), self.get(o[1]) & 31
-            if mn == 'SAR':
-                a = a - (1 << 32) if a >> 31 else a
-            res = a << n if mn == 'SHL' else a >> n
-            self.put(o[0], self.flags(res, 32))
+        elif mn in ('SHL', 'SAR', 'SHR'):  # CF = the last bit shifted out; a count of 0 changes nothing
+            a, n, bits = self.get(o[0]), self.get(o[1]) & 31, 8 * self.size(o[0])
+            if n:
+                if mn == 'SAR':
+                    a = a - (1 << bits) if a >> (bits - 1) else a
+                res = a << n if mn == 'SHL' else a >> n
+                cf = bool(a >> (bits - n) & 1) if mn == 'SHL' else bool(a >> (n - 1) & 1)
+                self.put(o[0], self.flags(res, bits, cf))
         elif mn in ('ROR', 'ROL'):  # 32-bit; CF = the last bit rotated round, SF/ZF kept
             a, n = self.get(o[0]), self.get(o[1]) & 31
             if n:
@@ -451,6 +453,33 @@ class Emu:
                 self.write(self.r['EDI'], bytes([self.r['EAX'] & 0xff]))
                 self.r['EDI'] = (self.r['EDI'] + 1) & 0xffffffff
                 self.r['ECX'] -= 1
+        elif mn == 'SCASB.REPNE':  # the flags are those of the last CMP AL,[EDI] (none when ECX is 0)
+            while self.r['ECX']:
+                b, al = self.rb(self.r['EDI']), self.r['EAX'] & 0xff
+                self.r['EDI'] = (self.r['EDI'] + 1) & 0xffffffff
+                self.r['ECX'] -= 1
+                self.zf, self.cf, self.sf = al == b, al < b, bool((al - b) & 0x80)
+                if self.zf:
+                    break
+        elif mn == 'STOSW.REP':
+            while self.r['ECX']:
+                self.write(self.r['EDI'], struct.pack('<H', self.r['EAX'] & 0xffff))
+                self.r['EDI'] = (self.r['EDI'] + 2) & 0xffffffff
+                self.r['ECX'] -= 1
+        elif mn == 'CMPSB.REPE':  # the flags are those of the last CMP [ESI],[EDI] (none when ECX is 0)
+            while self.r['ECX']:
+                a, b = self.rb(self.r['ESI']), self.rb(self.r['EDI'])
+                self.r['ESI'] = (self.r['ESI'] + 1) & 0xffffffff
+                self.r['EDI'] = (self.r['EDI'] + 1) & 0xffffffff
+                self.r['ECX'] -= 1
+                self.flags(a - b, 8, a < b, bool(((a ^ b) & (a ^ (a - b))) & 0x80))
+                if not self.zf:
+                    break
+        elif mn == 'LEAVE':
+            self.r['ESP'] = self.r['EBP']
+            self.r['EBP'] = self.pop()
+        elif mn == 'JECXZ':
+            return int(o[0], 16) if self.r['ECX'] == 0 else nxt
         elif mn == 'MOVSB.REP':
             while self.r['ECX']:
                 self.write(self.r['EDI'], self.read(self.r['ESI'], 1))
