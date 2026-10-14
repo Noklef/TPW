@@ -1037,3 +1037,5 @@ address,name,kind,confidence,notes
 0x00778108,gDebugFont,data,high,"5x6 debug font, 8 bytes a glyph (rows, advance at +6), chars 0x20-0xa8"
 0x0061bce0,Draw8_Line,function,high,"reimplemented (src/game/gfx/draw8); slot 7, (x1, y1, x2, y2, colour); vertical/horizontal go to slots 9/8, else clipped by integer interpolation and Bresenham"
 0x0061eab0,Draw_Triangle,function,high,"reimplemented (src/game/gfx/draw8); slot 10 of every depth, (x1, y1, x2, y2, x3, y3, colour); outline: three slot-7 lines; else sorted by y and filled with slot-8 spans along 16.16 edges"
+0x0061c630,Draw8_CircleOutline,function,high,"reimplemented (src/game/gfx/draw8); slot 5, (x, y, r, colour); midpoint circle, 8 clipped plots a step; r 0 a dot, r 1 a plus sign; negative r draws nothing"
+0x0061e100,Draw8_CircleFill,function,high,"reimplemented (src/game/gfx/draw8); slot 6, (x, y, r, colour); midpoint circle as slot-8 spans; r 0/1 as the outline; negative r draws the centre span leftwards and two dots"

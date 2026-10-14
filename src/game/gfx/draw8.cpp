@@ -31,6 +31,28 @@ void put(const DrawContext *s, u8 *p, u8 index) {
     else *p = plain(s, index);
 }
 
+// One pixel at (x, y) if it is inside the clip rectangle.
+void plot(const DrawContext *s, s32 x, s32 y, u8 index) {
+    if (inClip(s, x, y)) put(s, s->bits + static_cast<u32>(s->surface->pitch * y) + x, index);
+}
+
+// Radius 0 and 1, the same for both circles: the centre, or a plus sign drawn left, top, right,
+// bottom, then the centre. False: another radius.
+bool smallCircle(s32 x, s32 y, s32 r, u8 index) {
+    const DrawContext *s = g_env->state;
+    if (r == 0) {
+        plot(s, x, y, index);
+        return true;
+    }
+    if (r != 1) return false;
+    plot(s, x - 1, y, index);
+    plot(s, x, y - 1, index);
+    plot(s, x + 1, y, index);
+    plot(s, x, y + 1, index);
+    plot(s, x, y, index);
+    return true;
+}
+
 // A run of count bytes, dwords first (rep stosd, then the rest).
 void fill(u8 *p, u32 count, u8 index) {
     const u32 quad = index * 0x01010101u;
@@ -201,9 +223,76 @@ void __fastcall Draw_Triangle(DrawDriver *d, void *, s32 x1, s32 y1, s32 x2, s32
 }
 
 void __fastcall Draw8_Pixel(DrawDriver *, void *, s32 x, s32 y, DrawColour c) {
+    plot(g_env->state, x, y, c.index);
+}
+
+void __fastcall Draw8_CircleOutline(DrawDriver *, void *, s32 x, s32 y, s32 r, DrawColour c) {
+    if (smallCircle(x, y, r, c.index)) return;
     const DrawContext *s = g_env->state;
-    if (!inClip(s, x, y)) return;
-    put(s, s->bits + static_cast<u32>(s->surface->pitch * y) + x, c.index);
+    // The midpoint circle, eight octants a step; points on the axes and diagonals are drawn
+    // more than once (which shows when blending).
+    auto octants = [&](s32 i, s32 j) {
+        plot(s, x - i, y - j, c.index);
+        plot(s, x + i, y - j, c.index);
+        plot(s, x - i, y + j, c.index);
+        plot(s, x + i, y + j, c.index);
+        plot(s, x - j, y - i, c.index);
+        plot(s, x + j, y - i, c.index);
+        plot(s, x - j, y + i, c.index);
+        plot(s, x + j, y + i, c.index);
+    };
+    s32 i = 0, e = 3 - 2 * r;
+    if (r > 0) {
+        do {
+            octants(i, r);
+            if (e < 0) {
+                e += 6 + 4 * i;
+            } else {
+                e += 10 + 4 * (i - r);
+                --r;
+            }
+            ++i;
+        } while (i < r);
+    }
+    if (i == r) octants(i, r);
+}
+
+void __fastcall Draw8_CircleFill(DrawDriver *d, void *, s32 x, s32 y, s32 r, DrawColour c) {
+    if (smallCircle(x, y, r, c.index)) return;
+    // The midpoint circle again, as mirrored spans: the centre row first, then a pair of rows
+    // each step, and the top and bottom rows whenever the radius steps in. A negative radius
+    // comes here too and draws the centre row leftwards and two dots.
+    auto span = [&](s32 left, s32 row, s32 length) { vcall<void>(d, 0x20, left, row, length, c); };
+    s32 e = 3 - 2 * r;
+    span(x - r, y, 2 * r + 1);
+    if (e < 0) {
+        e += 6;
+    } else {
+        span(x, y - r, 1);
+        span(x, y + r, 1);
+        e += 10 - 4 * r;
+        --r;
+    }
+    s32 i = 1;
+    if (r > 1) {
+        do {
+            span(x - r, y - i, 2 * r + 1);
+            span(x - r, y + i, 2 * r + 1);
+            if (e < 0) {
+                e += 6 + 4 * i;
+            } else {
+                span(x - i, y - r, 2 * i + 1);
+                span(x - i, y + r, 2 * i + 1);
+                e += 10 + 4 * (i - r);
+                --r;
+            }
+            ++i;
+        } while (i < r);
+    }
+    if (i == r) {
+        span(x - r, y - i, 2 * r + 1);
+        span(x - r, y + i, 2 * r + 1);
+    }
 }
 
 void __fastcall Draw8_BoxFill(DrawDriver *, void *, const Rect *r, DrawColour c) {
