@@ -13,12 +13,12 @@ address,name,kind,confidence,notes
 0x0067a830,CRT_ftol,function,high,"MSVC CRT __ftol: st0 truncated to a 64-bit integer in EDX:EAX, popped"
 0x0067acc0,Mem_Alloc,function,medium,malloc/operator new wrapper
 0x0067acb0,Mem_Free,function,medium,free/operator delete wrapper
-0x005f5ad0,FileStream_Open,function,high,"allocates 8-byte stream object with vtable FileStream_vtable, calls vtbl+0x24 open"
-0x005f5e20,Stream_Read,function,high,"(result*, stream, buf, len) via vtbl+0x08; result = (bytesRead == len)"
-0x005f5e50,Stream_Write,function,medium,symmetric to Stream_Read
-0x005f5bb0,Stream_Tell,function,medium,vtbl+0x18; used for 'X: loaded %d bytes' deltas
-0x005f5b80,Stream_Close,function,medium,
-0x005f5d60,File_Delete,function,medium,calls DeleteFileA
+0x005f5ad0,FileStream_Open,function,high,"reimplemented (src/game/files/file); (&result, &stream, path, mode): new 8-byte FileStream (vtable FileStream_vtable), opened with vtbl+0x24; leaked when that fails"
+0x005f5e20,Stream_Read,function,high,"reimplemented (src/game/files/file); (&result, stream, buf, len, &done) via vtbl+0x08; result = (done == len)"
+0x005f5e50,Stream_Write,function,high,"reimplemented (src/game/files/file); (&result, stream, buf, len, &done) via vtbl+0x0c; result = (done == len)"
+0x005f5bb0,Stream_Tell,function,high,reimplemented (src/game/files/file); vtbl+0x18; used for 'X: loaded %d bytes' deltas
+0x005f5b80,Stream_Close,function,high,"reimplemented (src/game/files/file); vtbl+4 close, then the deleting destructor (1)"
+0x005f5d60,File_Delete,function,high,reimplemented (src/game/files/file); DeleteFileA on the resolved path; 0 / -1
 0x005f72c0,MemStream_Open,function,medium,used by SaveGame_Save to save into memory first
 0x005f8050,Buffer_Compress,function,medium,"compresses save buffer; 'Need to allocate a bigger buffer'"
 0x005f8100,Buffer_Decompress,function,high,"inverse of Buffer_Compress via the compressor singleton (slot 2); used by saves and .wct v0x12"
@@ -624,3 +624,36 @@ address,name,kind,confidence,notes
 0x0067f410,CRT_wcsncmp,function,high,MSVC6 wcsncmp
 0x0067f4a0,CRT__wtoi,function,high,MSVC6 _wtoi
 0x0067f4d0,CRT_vswprintf,function,high,MSVC6 vswprintf
+0x005f5660,Mem_GlobalAlloc,function,high,"reimplemented (src/game/files/file); GlobalAlloc(GMEM_FIXED, size); 0 for size 0"
+0x005f5680,Mem_GlobalFree,function,high,reimplemented (src/game/files/file); GlobalFree
+0x005f5690,Dir_SetBase,function,high,"reimplemented (src/game/files/file); sets gBaseDir, a backslash added unless it ends in a slash; nothing past MAX_PATH; reads the char before an empty path"
+0x005f56f0,Dir_GetBase,function,high,"reimplemented (src/game/files/file); gBaseDir, set from the command line (Dir_InitBase) while empty"
+0x005f5710,Path_Resolve,function,high,"reimplemented (src/game/files/file); (&result, out, size unused, path): ""X:\"" and ""\\"" as they are, ""\"" gets the base drive (_splitpath), else base + path; null: the base"
+0x005f5830,File_Load,function,high,"reimplemented (src/game/files/file); (&result, path, buf, max, &size): the whole file unless longer than max; resolves twice (File_GetSize on the resolved path); the read result is not checked"
+0x005f5950,Dir_InitBase,function,high,reimplemented (src/game/files/file); the exe folder from GetCommandLineA (quoted or not) into gBaseDir
+0x005f5a20,File_Open,function,high,reimplemented (src/game/files/file); FileStream_Open
+0x005f5a50,Dir_Create,function,high,reimplemented (src/game/files/file); CreateDirectoryA on the path resolved into gPathBuffer; 0 / -1
+0x005f5a90,Dir_Remove,function,high,reimplemented (src/game/files/file); RemoveDirectoryA on the path resolved into gPathBuffer; 0 / -1
+0x005f5bc0,FileTime_Compare,function,high,reimplemented (src/game/files/file); CompareFileTime; null is less than any time
+0x005f5bf0,Stream_Seek,function,high,"reimplemented (src/game/files/file); vtbl+0x10 (offset, origin)"
+0x005f5c10,File_SetAttributes,function,high,reimplemented (src/game/files/file); SetFileAttributesA on the resolved path; 0 / -1
+0x005f5c70,File_GetSize,function,high,"reimplemented (src/game/files/file); nFileSizeLow from FindFirstFileA on the resolved path, or -1"
+0x005f5cd0,File_Exists,function,high,reimplemented (src/game/files/file); GetFileAttributesA != -1
+0x005f5d10,File_IsDirectory,function,high,reimplemented (src/game/files/file); GetFileAttributesA & 0x10 (0 when missing)
+0x005f5dc0,File_Move,function,high,"reimplemented (src/game/files/file); MoveFileA, paths not resolved; 0 / -1"
+0x005f5df0,File_Copy,function,high,"reimplemented (src/game/files/file); CopyFileA (overwrite), paths not resolved; 0 / -1"
+0x005f5e80,Timer_Init,function,high,"reimplemented (src/game/files/file); thiscall; QueryPerformanceFrequency / 1000 (both halved to 32 bits) as ticks per ms, used when 10..32000000"
+0x005f5f10,Timer_GetMs,function,high,"reimplemented (src/game/files/file); thiscall; (QPC - start) / ticksPerMs + the timeGetTime at init (one IDIV), else timeGetTime"
+0x005f5f80,Time_InitThunk,function,high,jmp Time_Init
+0x005f5f90,Time_Init,function,high,reimplemented (src/game/files/file); Timer_Init(gClock)
+0x005f5fa0,Time_GetMs,function,high,reimplemented (src/game/files/file); Timer_GetMs(gClock)
+0x005f5fb0,Sys_Sleep,function,high,reimplemented (src/game/files/file); Sleep
+0x005f7180,Stream_Ctor,function,high,"thiscall; vtable Stream_vtable, +4 (a ref-counted source) = 0"
+0x00703100,Stream_vtable,data,high,stream base class; FileStream_vtable derives from it
+0x00fa6ec8,gCommandLine,data,high,"char[0x104], the command line copied by Dir_InitBase"
+0x00fa6fd0,gBaseDir,data,high,"char[0x104], the directory relative paths resolve against"
+0x00fa70d8,gPathBuffer,data,high,"char[0x108], Dir_Create / Dir_Remove resolve into it"
+0x00fa71e0,gClock,data,high,"Timer (0x18): enabled, ticksPerMs, baseMs, pad, s64 start"
+0x0067a650,CRT_sprintf,function,high,MSVC6 sprintf
+0x0067b5f0,CRT_strrchr,function,high,MSVC6 strrchr
+0x0067f020,CRT__splitpath,function,high,MSVC6 _splitpath
