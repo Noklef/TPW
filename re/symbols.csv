@@ -1087,6 +1087,13 @@ address,name,kind,confidence,notes
 0x005fa760,SurfaceInfo_SubRectAt,function,high,"reimplemented (src/game/gfx/surface); thiscall (&out, dst, &point, &size); SubRect of that rectangle"
 0x005fa7b0,SurfaceInfo_SubRect,function,high,"reimplemented (src/game/gfx/surface); thiscall (&out, dst, &rect); dst views the part inside rect; -1 when empty"
 0x005fa890,SurfaceInfo_Size,function,high,reimplemented (src/game/gfx/surface); thiscall; height * pitch
+0x005fa8a0,ImageCodec_InfoFromFile,function,high,"reimplemented (src/game/gfx/imagecodec); thiscall (&out, path, mode, &info or 0); InfoFromStream on the file opened by 0x62fa40 (stream vtable 0x7035e0); -1 when it does not open"
+0x005fa970,ImageCodec_InfoFromStream,function,high,"reimplemented (src/game/gfx/imagecodec); thiscall (&out, stream, &info or 0); rewind, GetInfo (vtable +4) into this+4, copied to info"
+0x005faa00,ImageCodec_LoadFromFile,function,high,"reimplemented (src/game/gfx/imagecodec); thiscall (&out, dst, path, mode, &info or 0); LoadFromStream on the file opened by 0x62fa40"
+0x005faab0,ImageCodec_LoadFromStream,function,high,"reimplemented (src/game/gfx/imagecodec); thiscall (&out, dst, stream, &info or 0); Load (vtable +8) through a 0x400-byte buffered stream (0x62fd30, vtable 0x703608); -1 for a dst without bits"
+0x005fabb0,TgaCodec_GetInfo,function,high,"reimplemented (src/game/gfx/imagecodec); thiscall (&out, stream, unused); TGA reader (vtable 0x703630) 0x630150 on the stack; vtable 0x6fefa8 +4"
+0x005fabe0,TgaCodec_Load,function,high,"reimplemented (src/game/gfx/imagecodec); thiscall (&out, dst, stream, unused); TGA reader 0x6300f0; vtable 0x6fefa8 +8"
+0x005fac10,TgaCodec_IsTga,function,high,"reimplemented (src/game/gfx/imagecodec); thiscall (stream); TRUEVISION-XFILE. footer, else header map type/image type/bits checks; vtable 0x6fefa8 +0xc"
 0x005f8f80,Surface_SetDirectDraw,function,high,"reimplemented (src/game/gfx/surface); cdecl; the IDirectDraw Create uses (0xfa76b0)"
 0x005f8f90,Surface_Attach,function,high,"reimplemented (src/game/gfx/surface); cdecl; (&out, IDirectDrawSurface, s): wraps a surface made elsewhere"
 0x005f9000,Surface_InitHeader,function,high,"reimplemented (src/game/gfx/surface); cdecl; (s, width, height, bit count, x): the header; palette for 8 bits"
@@ -1617,5 +1624,6 @@ address,name,kind,confidence,notes
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
+0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
 0x00700140,JpegCodec_vtable,data,high,"JpegCodec (0x42c: vtable, SurfaceInfo, palette[256]): 0x47e750 deleting dtor, GetInfo, Load, IsJpeg"
 0x00faa298,gFormatPal8,data,high,"masks 0, 8 bits, paletted (set at 0x6316c2)"

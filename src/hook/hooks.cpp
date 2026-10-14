@@ -39,6 +39,7 @@
 #include "../game/gfx/color.h"
 #include "../game/gfx/convert.h"
 #include "../game/gfx/jpeg.h"
+#include "../game/gfx/imagecodec.h"
 #include "../game/core/events.h"
 #include "../game/core/filetime.h"
 #include "../game/motion/animator.h"
@@ -547,6 +548,13 @@ const Hook kHooks[] = {
     {"SurfaceInfo_SubRectAt",     0x005fa760, (void *)&SurfaceInfo_SubRectAt, {0x83, 0xec, 0x10, 0x8b, 0x54}},
     {"SurfaceInfo_SubRect",       0x005fa7b0, (void *)&SurfaceInfo_SubRect, {0x83, 0xec, 0x10, 0x8b, 0x54}},
     {"SurfaceInfo_Size",          0x005fa890, (void *)&SurfaceInfo_Size, {0x8b, 0x41, 0x20, 0x0f, 0xaf}},
+    {"ImageCodec_InfoFromFile",   0x005fa8a0, (void *)&ImageCodec_InfoFromFile, {0x6a, 0xff, 0x68, 0x68, 0x22}},
+    {"ImageCodec_InfoFromStream", 0x005fa970, (void *)&ImageCodec_InfoFromStream, {0x53, 0x56, 0x57, 0x8b, 0x7c}},
+    {"ImageCodec_LoadFromFile",   0x005faa00, (void *)&ImageCodec_LoadFromFile, {0x6a, 0xff, 0x68, 0x88, 0x22}},
+    {"ImageCodec_LoadFromStream", 0x005faab0, (void *)&ImageCodec_LoadFromStream, {0x6a, 0xff, 0x68, 0xa8, 0x22}},
+    {"TgaCodec_GetInfo",          0x005fabb0, (void *)&TgaCodec_GetInfo, {0x83, 0xec, 0x44, 0x8b, 0x44}},
+    {"TgaCodec_Load",             0x005fabe0, (void *)&TgaCodec_Load, {0x83, 0xec, 0x44, 0x8b, 0x44}},
+    {"TgaCodec_IsTga",            0x005fac10, (void *)&TgaCodec_IsTga, {0x83, 0xec, 0x28, 0x56, 0x8b}},
     {"Surface_SetDirectDraw",     0x005f8f80, (void *)&Surface_SetDirectDraw, {0x8b, 0x44, 0x24, 0x04, 0xa3}},
     {"Surface_Attach",            0x005f8f90, (void *)&Surface_Attach, {0x83, 0xec, 0x6c, 0x56, 0x8b}},
     {"Surface_InitHeader",        0x005f9000, (void *)&Surface_InitHeader, {0x8b, 0x44, 0x24, 0x04, 0x8b}},

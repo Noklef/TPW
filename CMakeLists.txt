@@ -53,6 +53,7 @@ add_library(tpw_game STATIC
     src/game/gfx/color.cpp
     src/game/gfx/convert.cpp
     src/game/gfx/jpeg.cpp
+    src/game/gfx/imagecodec.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp
