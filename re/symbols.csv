@@ -674,7 +674,7 @@ address,name,kind,confidence,notes
 0x005f7290,StreamBase_Vfn8,function,high,"reimplemented (src/game/files/handles); thiscall (&result); vtbl+0x20 -> source vtbl+0x20, -1"
 0x004036a0,StreamBase_Read,function,high,"reimplemented (src/game/files/handles); thiscall (buf, count); vtbl+8 -> source vtbl+4, -1"
 0x004036c0,StreamBase_Write,function,high,"reimplemented (src/game/files/handles); thiscall (buf, count); vtbl+0xc -> source vtbl+8, -1"
-0x00639100,StreamBase_Vfn5,function,high,"reimplemented (src/game/files/handles); thiscall; vtbl+0x14 -> source vtbl+0x10 (tail call), -1"
+0x00639100,StreamBase_Size,function,high,"reimplemented (src/game/files/handles); thiscall; vtbl+0x14 -> source vtbl+0x10 (tail call), -1"
 0x00414d30,FileStream_Dtor,function,high,reimplemented (src/game/files/handles); jmp StreamBase_Dtor
 0x005fa950,FileStream_DeletingDtor,function,high,reimplemented (src/game/files/handles); thiscall (flags); FileStream_vtable slot 0
 0x005f8240,Handle_Ctor,function,high,"reimplemented (src/game/files/handles); thiscall; vtable Handle_vtable, object (+4, a RefObject2) = 0"
@@ -697,7 +697,7 @@ address,name,kind,confidence,notes
 0x005f8510,Handle_Open28,function,high,"reimplemented (src/game/files/handles); thiscall (&result, a); Reset, new 0x28-byte object (0x619950) opened by 0x619d70; held or deleted"
 0x005f85d0,Handle_OpenE0,function,high,"reimplemented (src/game/files/handles); thiscall (&result, a, b); Reset, new 0xe0-byte object (0x61a060) opened by 0x61a250"
 0x00703180,Handle_vtable,data,high,handle class (+4 a RefObject2); 0x6fd9e8 derives from it (own destructor 0x41caf0)
-0x00618df0,MemorySource_Ctor,function,high,thiscall (a); the RefObject StreamBase_OpenMemory attaches (0x2c bytes)
+0x00618df0,MemorySource_Ctor,function,high,reimplemented (src/game/files/memsource); thiscall (chunk size); the RefObject StreamBase_OpenMemory attaches (0x2c bytes)
 0x005f7360,Palette_ExpandRgb,function,high,"reimplemented (src/game/gfx/palette); cdecl (dst, src, count): RGB triples to RGBX quads, flags 0"
 0x005f73a0,Palette_Nearest,function,high,"reimplemented (src/game/gfx/palette); cdecl (palette, r, g, b) -> index: least squared distance, then summed distance, then b^2 + 2(r^2 + g^2), then lowest index"
 0x00fa71f8,gPalette,data,high,PALETTEENTRY[256]; Palette_Nearest looks colours up in it
@@ -719,3 +719,29 @@ address,name,kind,confidence,notes
 0x005f78a0,Lib_IsDigitW,function,high,"reimplemented (src/game/core/libc); stdcall (wchar_t); CRT_iswctype(c, _DIGIT)"
 0x005f78c0,Lib_VSWPrintf,function,high,reimplemented (src/game/core/libc); stdcall; CRT_vswprintf
 0x0067f3a0,CRT__vsnprintf,function,high,MSVC6 _vsnprintf
+0x00618cd0,RefObject_Ctor,function,high,"reimplemented (src/game/files/handles); thiscall; vtable 0x703838, link and refs 0"
+0x00618cf0,RefObject_DeletingDtor,function,high,"reimplemented (src/game/files/handles); thiscall (flags); RefObject_Dtor, free when flags & 1"
+0x00618d10,RefObject_Dtor,function,high,reimplemented (src/game/files/handles); thiscall; the vtable back to 0x703838
+0x00618da0,RefObject_Vfn6,function,high,"reimplemented (src/game/files/handles); thiscall (a, b); vtbl+0x18 -> link vtbl+0x18 (no null check)"
+0x00618dc0,RefObject_Vfn7,function,high,reimplemented (src/game/files/handles); thiscall (a); vtbl+0x1c -> link vtbl+0x1c (no null check)
+0x00618dd0,RefObject_GetLock,function,high,reimplemented (src/game/files/handles); thiscall; vtbl+0x2c -> link vtbl+0x2c (tail call)
+0x00618de0,RefObject_Vfn8,function,high,reimplemented (src/game/files/handles); thiscall (&result); vtbl+0x20: -1
+0x00703838,RefObject_vtable,data,high,
+0x00703868,MemorySource_vtable,data,high,"RefObject: Read +4, Write +8, Seek +0xc, Size +0x10, Tell +0x14, Clear +0x24, GetLock +0x2c"
+0x00618e60,MemorySource_DeletingDtor,function,high,reimplemented (src/game/files/memsource); thiscall (flags)
+0x00618e80,MemorySource_Dtor,function,high,reimplemented (src/game/files/memsource); thiscall; closes the semaphore; frees no chunks
+0x00618ed0,MemorySource_Teardown,function,high,reimplemented (src/game/files/memsource); thiscall; vtbl+0x24: MemorySource_Clear
+0x00618ee0,MemorySource_Read,function,high,"reimplemented (src/game/files/memsource); thiscall (buffer, count) -> read; stops at the size; a gap in the chunk list makes a negative span and a ~4 GB copy"
+0x00618fc0,MemorySource_Write,function,high,"reimplemented (src/game/files/memsource); thiscall (buffer, count) -> written; adds chunks as needed"
+0x006190d0,MemorySource_Seek,function,high,"reimplemented (src/game/files/memsource); thiscall (offset, origin 0-2) -> position, clamped to [0, size]"
+0x00619150,MemorySource_Size,function,high,reimplemented (src/game/files/memsource); thiscall
+0x00619160,MemorySource_Tell,function,high,reimplemented (src/game/files/memsource); thiscall
+0x00619170,MemorySource_AddChunk,function,high,reimplemented (src/game/files/memsource); thiscall (&result); alloc(chunk size + 0x14) appended; -1 on failure
+0x00619200,MemorySource_Clear,function,high,"reimplemented (src/game/files/memsource); thiscall; frees the chunks, fields to 0"
+0x00619240,MemorySource_GetLock,function,high,reimplemented (src/game/files/memsource); thiscall; &semaphore (+0x28)
+0x006307c0,Semaphore_Ctor,function,high,"reimplemented (src/game/core/semaphore); thiscall; CreateSemaphoreA(0, 1, 1, 0)"
+0x006307e0,Semaphore_Dtor,function,high,reimplemented (src/game/core/semaphore); thiscall; CloseHandle
+0x006307f0,SemaphoreLock_Ctor,function,high,"reimplemented (src/game/core/semaphore); thiscall (semaphore, held); kept = 0"
+0x00630810,SemaphoreLock_Dtor,function,high,reimplemented (src/game/core/semaphore); thiscall; SemaphoreLock_Release
+0x00630820,SemaphoreLock_Acquire,function,high,reimplemented (src/game/core/semaphore); thiscall (forever) -> held; WaitForSingleObject(INFINITE or 5 ms) == 0
+0x00630850,SemaphoreLock_Release,function,high,reimplemented (src/game/core/semaphore); thiscall; ReleaseSemaphore(1) when held and not kept

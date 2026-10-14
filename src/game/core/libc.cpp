@@ -1,13 +1,14 @@
 // The game's __stdcall wrappers around the C library: see libc.h.
 #include "libc.h"
 
+#include <cstdint>
 #include <cstring>
 
 namespace {
 
 template <typename T>
 T at(u32 address) {
-    return reinterpret_cast<T>(static_cast<uintptr_t>(address));
+    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
 }
 const LibcEnv kGameEnv = {
     at<char *(__cdecl *)(char *, const char *, u32)>(0x0067ae00),

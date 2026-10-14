@@ -6,6 +6,7 @@
 
 namespace {
 
+void *const *const kRefObjectVtable = reinterpret_cast<void *const *>(0x00703838);
 void *const *const kStreamVtable = reinterpret_cast<void *const *>(0x00703100);
 void *const *const kHandleVtable = reinterpret_cast<void *const *>(0x00703180);
 
@@ -52,6 +53,8 @@ s32 *forward(Handle *h, u32 offset, s32 *result, A... args) {
 
 void Handles_SetEnv(const HandlesEnv *e) { g_env = e ? e : &kGameEnv; }
 
+const HandlesEnv *Handles_GetEnv() { return g_env; }
+
 extern "C" {
 
 s32 __fastcall RefObject_AddRef(RefObject *o) { return (*g_env->increment)(&o->refs); }
@@ -70,6 +73,32 @@ void __fastcall RefObject_SetLink(RefObject *o, void *, RefObject *link) {
 void __fastcall RefObject2_SetLink(RefObject2 *o, void *, RefObject2 *link) {
     if (o->link) vcall<void>(link, 0x2c, o->link);
     o->link = link;
+}
+
+RefObject *__fastcall RefObject_Ctor(RefObject *o) {
+    o->vtable = kRefObjectVtable;
+    o->link = nullptr;
+    o->refs = 0;
+    return o;
+}
+
+void __fastcall RefObject_Dtor(RefObject *o) { o->vtable = kRefObjectVtable; }
+
+RefObject *__fastcall RefObject_DeletingDtor(RefObject *o, void *, u32 flags) {
+    RefObject_Dtor(o);
+    if (flags & 1) g_env->free(o);
+    return o;
+}
+
+u32 __fastcall RefObject_Vfn6(RefObject *o, void *, u32 a, u32 b) { return vcall<u32>(o->link, 0x18, a, b); }
+
+u32 __fastcall RefObject_Vfn7(RefObject *o, void *, u32 a) { return vcall<u32>(o->link, 0x1c, a); }
+
+void *__fastcall RefObject_GetLock(RefObject *o) { return vcall<void *>(o->link, 0x2c); }
+
+s32 *__fastcall RefObject_Vfn8(RefObject *, void *, s32 *result) {
+    *result = -1;
+    return result;
 }
 
 StreamBase *__fastcall StreamBase_Ctor(StreamBase *s) {
@@ -133,7 +162,7 @@ s32 __fastcall StreamBase_Seek(StreamBase *s, void *, s32 offset, u32 origin) {
     return s->source ? vcall<s32>(s->source, 0xc, offset, origin) : -1;
 }
 
-s32 __fastcall StreamBase_Vfn5(StreamBase *s) { return s->source ? vcall<s32>(s->source, 0x10) : -1; }
+s32 __fastcall StreamBase_Size(StreamBase *s) { return s->source ? vcall<s32>(s->source, 0x10) : -1; }
 
 s32 __fastcall StreamBase_Tell(StreamBase *s) { return s->source ? vcall<s32>(s->source, 0x14) : -1; }
 
