@@ -27,6 +27,15 @@
 // entry searched for, the first of equals winning. Quirks kept: a palette is only rebuilt when
 // its pointer changes, so new colours at the same address keep the old table; the table is not
 // cleared on free; a failed work-buffer allocation still builds into null.
+//
+// The 16-bit converter (0x63ae10-0x63b2b5, vtable 0x703fb8) packs two RGB888 (3 bytes) or
+// ARGB8888 pixels into a dword of two 16-bit ones: each source byte keeps its top bits (as many
+// as the target field is wide) and is rotated into place in both halves at once; RGB888 sources
+// get the target's alpha mask ORed in. Quirks kept: Init does nothing unless the source equals
+// one of the game's two formats (0xfaa268, 0xfaa280; the paletted flags need only agree on zero)
+// and the target is 16 bits; a field's rotation counts the gaps in a broken mask; the count is
+// halved (toward zero), so an odd last pixel is dropped and a count of 0 or 1 runs the loop
+// 2^32 times.
 #pragma once
 
 #include "../../../re/types.h"
@@ -69,6 +78,15 @@ struct IndexConverter {      // vtable 0x703fa8, 0x43c bytes
 };
 static_assert(sizeof(IndexConverter) == 0x43c, "IndexConverter is 0x43c bytes");
 
+struct Rgb16Converter {      // vtable 0x703fb8, 0x2c bytes
+    void *const *vtable;
+    u32 from24;              // +4: the source is RGB888 (else ARGB8888)
+    u32 fill;                // +8: ORed into every pair (RGB888 sources)
+    u32 rotate[4];           // +0xc: red, green, blue, alpha
+    u32 keep[4];             // +0x1c: the top bits of a source byte kept, in both halves
+};
+static_assert(sizeof(Rgb16Converter) == 0x2c, "Rgb16Converter is 0x2c bytes");
+
 extern "C" {
 // 0x630c50 (flags): the base's deleting destructor. 0x630c90: the destructor (the base's
 // vtable). 0x630c70 (flags): the palette (and 0x7039b0) converter's deleting destructor.
@@ -103,9 +121,14 @@ void __fastcall IndexConverter_Convert(IndexConverter *c, void *edx, u8 *dst, co
 void __fastcall IndexConverter_ConvertBack(IndexConverter *c, void *edx, u8 *dst, const u8 *src, u32 count);
 // 0x63ad80 (red, green, blue; low bytes): the nearest palette entry.
 u8 __fastcall IndexConverter_Nearest(IndexConverter *c, void *edx, u32 red, u32 green, u32 blue);
-// 0x63ae60 (flags) / 0x63ae80: the 0x703fb8 converter's destructors (the base's vtable).
-void *__fastcall PixelConverter3_DeletingDtor(void *c, void *edx, u32 flags);
-void __fastcall PixelConverter3_Dtor(void *c);
+// 0x63ae10 (&source, &target format): returns c. 0x63ae90: Init.
+Rgb16Converter *__fastcall Rgb16Converter_Ctor(Rgb16Converter *c, void *edx, const u32 *source, const u32 *target);
+void __fastcall Rgb16Converter_Init(Rgb16Converter *c, void *edx, const u32 *source, const u32 *target);
+// 0x63ae60 (flags) / 0x63ae80: the destructors (the base's vtable).
+void *__fastcall Rgb16Converter_DeletingDtor(void *c, void *edx, u32 flags);
+void __fastcall Rgb16Converter_Dtor(void *c);
+// 0x63b140 (dst, src, count; +4): count pixels, two at a time.
+void __fastcall Rgb16Converter_Convert(Rgb16Converter *c, void *edx, u8 *dst, const u8 *src, s32 count);
 }
 
 struct PixConvEnv {
@@ -116,6 +139,8 @@ struct PixConvEnv {
     void(__fastcall *mapBuild)(void *map, void *edx, u32 first, u32 count, const u32 *palette, u32 bits,
                                u32 *work, u8 *table);  // 0x642190
     void(__fastcall *mapDone)(void *map, void *edx);  // 0x642180
+    const u32 *rgb888;    // 0xfaa268: masks, bit count, paletted
+    const u32 *argb8888;  // 0xfaa280
 };
 // The calls go through env (nullptr: the game's).
 void PixConv_SetEnv(const PixConvEnv *env);

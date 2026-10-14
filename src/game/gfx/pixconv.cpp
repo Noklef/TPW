@@ -17,11 +17,14 @@ const PixConvEnv kGameEnv = {
     at<void *(__fastcall *)(void *, void *)>(0x00642150),
     at<void(__fastcall *)(void *, void *, u32, u32, const u32 *, u32, u32 *, u8 *)>(0x00642190),
     at<void(__fastcall *)(void *, void *)>(0x00642180),
+    at<const u32 *>(0x00faa268),
+    at<const u32 *>(0x00faa280),
 };
 const PixConvEnv *g_env = &kGameEnv;
 
 void *const *const kBaseVtable = at<void *const *>(0x007039c0);
 void *const *const kIndexVtable = at<void *const *>(0x00703fa8);
+void *const *const kRgb16Vtable = at<void *const *>(0x00703fb8);
 
 // A mask's top set bit and the length of the run of set bits under it (mask != 0).
 void run(u32 mask, s32 *top, s32 *width) {
@@ -81,6 +84,24 @@ u8 indexed(IndexConverter *c, const u8 *src) {
     for (int k = 0; k < 3; ++k) v[k] = ((s & c->mask[k]) >> (c->right[k] & 31)) << (c->left[k] & 31);
     if (c->table) return c->table[v[0] | v[1] | v[2]];
     return IndexConverter_Nearest(c, nullptr, v[0] & 0xff, v[1] & 0xff, v[2] & 0xff);
+}
+
+bool sameFormat(const u32 *a, const u32 *b) {
+    for (int k = 0; k < 5; ++k)
+        if (a[k] != b[k]) return false;
+    return !a[5] == !b[5];
+}
+
+// A target field's rotation (from 8) and the top bits of a byte it keeps.
+void field(u32 mask, u32 *rotate, u32 *keep) {
+    if (!mask) return;
+    for (; !(mask & 1); mask >>= 1) ++*rotate;
+    for (; mask; mask >>= 1, ++*rotate) *keep = (*keep >> 1) + 0x80;
+}
+
+u32 rotl(u32 v, u32 n) {
+    n &= 31;
+    return n ? v << n | v >> (32 - n) : v;
 }
 
 }  // namespace
@@ -265,12 +286,55 @@ u8 __fastcall IndexConverter_Nearest(IndexConverter *c, void *, u32 red, u32 gre
     return found;
 }
 
-void __fastcall PixelConverter3_Dtor(void *c) { *static_cast<void *const **>(c) = kBaseVtable; }
+Rgb16Converter *__fastcall Rgb16Converter_Ctor(Rgb16Converter *c, void *, const u32 *source, const u32 *target) {
+    c->vtable = kRgb16Vtable;
+    Rgb16Converter_Init(c, nullptr, source, target);
+    return c;
+}
 
-void *__fastcall PixelConverter3_DeletingDtor(void *c, void *, u32 flags) {
-    PixelConverter3_Dtor(c);
+void __fastcall Rgb16Converter_Init(Rgb16Converter *c, void *, const u32 *source, const u32 *target) {
+    if (!sameFormat(source, g_env->rgb888) && !sameFormat(source, g_env->argb8888)) return;
+    if (((target[4] + 7) & ~7u) != 0x10) return;
+    c->fill = target[3];
+    for (int k = 0; k < 4; ++k) {
+        c->rotate[k] = 8;
+        c->keep[k] = 0;
+    }
+    for (int k = 0; k < 3; ++k) field(target[k], &c->rotate[k], &c->keep[k]);
+    if (sameFormat(source, g_env->rgb888)) {
+        c->from24 = 1;
+        c->fill += c->fill << 16;
+    } else {
+        field(c->fill, &c->rotate[3], &c->keep[3]);
+        c->fill = 0;
+        c->from24 = 0;
+    }
+    for (int k = 0; k < 4; ++k) c->keep[k] += c->keep[k] << 16;
+}
+
+void __fastcall Rgb16Converter_Dtor(void *c) { *static_cast<void *const **>(c) = kBaseVtable; }
+
+void *__fastcall Rgb16Converter_DeletingDtor(void *c, void *, u32 flags) {
+    Rgb16Converter_Dtor(c);
     if (flags & 1) g_env->free(c);
     return c;
+}
+
+void __fastcall Rgb16Converter_Convert(Rgb16Converter *c, void *, u8 *dst, const u8 *src, s32 count) {
+    static const int kChannel[4] = {2, 1, 0, 3};  // the source bytes: blue, green, red, alpha
+    const u32 step = c->from24 ? 3 : 4;
+    const u32 fill = c->from24 ? c->fill : 0;
+    u32 pairs = static_cast<u32>(count / 2);
+    do {
+        u32 px = fill;
+        for (u32 k = 0; k < step; ++k) {
+            const int ch = kChannel[k];
+            px |= rotl(((static_cast<u32>(src[k]) << 16) + src[step + k]) & c->keep[ch], c->rotate[ch]);
+        }
+        std::memcpy(dst, &px, 4);
+        dst += 4;
+        src += 2 * step;
+    } while (--pairs);
 }
 
 }  // extern "C"
