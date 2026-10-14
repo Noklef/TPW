@@ -14,6 +14,7 @@ const CanvasDrawEnv kGameEnv = {
     at<u32(__fastcall *)(Color *, void *, const PixelFormat *)>(0x005fd050),
     at<void(__fastcall *)(Rect *)>(0x0062f940),
     at<u32(__fastcall *)(const Rect *, void *, const Rect *)>(0x0062f890),
+    at<Rect *(__fastcall *)(const Rect *, void *, Rect *, const Rect *)>(0x0062f810),
 };
 const CanvasDrawEnv *g_env = &kGameEnv;
 
@@ -126,6 +127,20 @@ void drawVSpan(const SurfaceInfo *s, const Rect *clip, u32 flags, s32 x, s32 y, 
     drawSpan<Bytes, false>(s, pixelAt<Bytes>(s, x, y), s->pitch, static_cast<u32>(len), flags, pixel, colour);
 }
 
+template <u32 Bytes>
+void fillRect(const SurfaceInfo *s, const Rect *clip, u32 flags, const Rect *rect, Color *colour) {
+    Rect r = *rect;
+    g_env->order(&r);
+    if (!g_env->overlaps(&r, nullptr, clip)) return;
+    Rect o;
+    g_env->clip(&r, nullptr, &o, clip);
+    u8 *row = pixelAt<Bytes>(s, o.left, o.top);
+    const u32 pixel = g_env->toPixel(colour, nullptr, reinterpret_cast<const PixelFormat *>(s));
+    const u32 cols = static_cast<u32>(sub(o.right, o.left));
+    for (u32 rows = static_cast<u32>(sub(o.bottom, o.top)); rows; --rows, row += s->pitch)
+        drawSpan<Bytes, Bytes == 3>(s, row, Bytes, cols, flags, pixel, colour);
+}
+
 }  // namespace
 
 void CanvasDraw_SetEnv(const CanvasDrawEnv *e) { g_env = e ? e : &kGameEnv; }
@@ -144,6 +159,10 @@ extern "C" {
     void __fastcall Canvas##N##_VSpan(CanvasDriver *, void *, const SurfaceInfo *s, const Rect *clip, u32 flags,   \
                                       s32 x, s32 y, s32 len, Color *colour) {                                      \
         drawVSpan<BYTES>(s, clip, flags, x, y, len, colour);                                                       \
+    }                                                                                                              \
+    void __fastcall Canvas##N##_FillRect(CanvasDriver *, void *, const SurfaceInfo *s, const Rect *clip,           \
+                                         u32 flags, const Rect *rect, Color *colour) {                             \
+        fillRect<BYTES>(s, clip, flags, rect, colour);                                                             \
     }
 CANVAS_DEPTH(8, 1)
 CANVAS_DEPTH(16, 2)
