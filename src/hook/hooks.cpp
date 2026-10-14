@@ -13,6 +13,7 @@
 #include "../game/files/dirsource.h"
 #include "../game/files/handles.h"
 #include "../game/files/streamopen.h"
+#include "../game/files/drives.h"
 #include "../game/files/memsource.h"
 #include "../game/files/zlibcodec.h"
 #include "../game/files/refpack.h"
@@ -617,6 +618,11 @@ const Hook kHooks[] = {
     {"Cursor_Restore",            0x005fb820, (void *)&Cursor_Restore, {0x8a, 0x44, 0x24, 0x0c, 0x56}},
     {"StreamBase_OpenIn",         0x0062fa40, (void *)&StreamBase_OpenIn, {0x6a, 0xff, 0x68, 0xf7, 0x2a}},
     {"StreamBase_OpenBuffered",   0x0062fd30, (void *)&StreamBase_OpenBuffered, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"SystemInfo_Ctor",           0x005f8790, (void *)&SystemInfo_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0xd8}},
+    {"SystemInfo_ListDrives",     0x005f87b0, (void *)&SystemInfo_ListDrives, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"SystemInfo_FindVolume",     0x005f8940, (void *)&SystemInfo_FindVolume, {0x8b, 0x44, 0x24, 0x04, 0x83}},
+    {"SystemInfo_DriveLetter",    0x005f89d0, (void *)&SystemInfo_DriveLetter, {0x8b, 0x44, 0x24, 0x04, 0x80}},
+    {"SystemInfo_VolumeLabel",    0x005f89f0, (void *)&SystemInfo_VolumeLabel, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
     {"RowReader_Decode",          0x0062fe00, (void *)&RowReader_Decode, {0x6a, 0xff, 0x68, 0x38, 0x2b}},
     {"RowReader_CopyRow",         0x006300c0, (void *)&RowReader_CopyRow, {0x8b, 0xc1, 0x56, 0x57, 0x8b}},
     {"TgaReader_Load",            0x006300f0, (void *)&TgaReader_Load, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
