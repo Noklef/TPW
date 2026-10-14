@@ -777,9 +777,45 @@ address,name,kind,confidence,notes
 0x00619fb0,DirSource_Rename,function,high,"reimplemented (src/game/files/dirsource); thiscall (&result, from, to; vtbl+0x28); File_Move(folder + from, folder + to)"
 0x00703898,RefObject2_vtable,data,medium,the RefObject2 base vtable (src/game/files/handles)
 0x007038d0,DirSource_vtable,data,medium,"the directory source vtable: DeletingDtor, Open, FindFirst, FindNext, Vfn4, Vfn5, Path, SetAttributes, MakeDir, Remove, Rename, SetLink, teardown (Debug_Printf), Close"
-0x00636bc0,TextWriter_Ctor,function,medium,"thiscall (buffer, capacity, clear); the fixed-buffer text writer (0x14 bytes, vtable 0x703e08); +0x10 set on overflow"
-0x00636c70,TextWriter_Dtor,function,medium,thiscall; the fixed-buffer text writer
-0x00636e40,FileSource_Ctor,function,medium,thiscall; the CreateFileA stream source (0x20 bytes)
-0x00636f10,FileSource_Open,function,medium,"thiscall (&result, path, mode)"
-0x006371e0,MmioSource_Ctor,function,medium,thiscall; the mmioOpenA stream source (0x18 bytes)
-0x006372b0,MmioSource_Open,function,medium,"thiscall (&result, path, mode)"
+0x00636bc0,TextWriter_Ctor,function,high,"reimplemented (src/game/files/textwriter); thiscall (buffer, capacity, clear); 0x14 bytes {vtable 0x703e08, length, data, capacity, overflow}; clear on capacity 0 writes buffer[-1]"
+0x00636c70,TextWriter_Dtor,function,high,reimplemented (src/game/files/textwriter); thiscall; only the vtable
+0x00636e40,FileSource_Ctor,function,high,"reimplemented (src/game/files/sources); thiscall; 0x20 bytes {RefObject, handle (-1), position, mapping, view, Semaphore}, vtable 0x703e30"
+0x00636f10,FileSource_Open,function,high,"reimplemented (src/game/files/sources); thiscall (&result, path, mode); closes (vtbl+0x24), Path_Resolve into 0xfaa2c8, CreateFileA (access mode & 0xc0000000, share mode & 3, disposition from mode & 0x70); 0 or -1"
+0x006371e0,MmioSource_Ctor,function,high,"reimplemented (src/game/files/sources); thiscall; 0x18 bytes {RefObject, HMMIO, position, Semaphore}, vtable 0x703e60"
+0x006372b0,MmioSource_Open,function,high,"reimplemented (src/game/files/sources); thiscall (&result, path, mode); closes (vtbl+0x24), Path_Resolve into 0xfaa3d0; -1 for mode & 0x40000000, else mmioOpenA read with a 16 KB buffer; 0 or -1"
+0x00636b60,TextWriter_DeletingDtor,function,high,"reimplemented (src/game/files/textwriter); thiscall (flags; vtbl+8); vtable 0x703e08, Mem_Free when flags & 1"
+0x00636b80,TextWriter_SetLength,function,high,"reimplemented (src/game/files/textwriter); thiscall (length; vtbl+4); cut to capacity - 1 with +0x10 (overflow) set, NUL there"
+0x00636c80,TextWriter_AssignChar,function,high,reimplemented (src/game/files/textwriter); thiscall (&char; vtbl+0xc); its NUL empties
+0x00636cc0,TextWriter_AssignStr,function,high,reimplemented (src/game/files/textwriter); thiscall (text; vtbl+0x10); null empties; Lib_StrNCpy
+0x00636d10,TextWriter_Assign,function,high,reimplemented (src/game/files/textwriter); thiscall (String *; vtbl+0x14)
+0x00636d40,TextWriter_AppendStr,function,high,reimplemented (src/game/files/textwriter); thiscall (text; vtbl+0x18); Lib_StrNCat
+0x00636d80,TextWriter_AppendChar,function,high,reimplemented (src/game/files/textwriter); thiscall (&char; vtbl+0x1c)
+0x00636dc0,TextWriter_Append,function,high,reimplemented (src/game/files/textwriter); thiscall (String *; vtbl+0x20)
+0x00636e00,TextWriter_Format,function,high,"reimplemented (src/game/files/textwriter); cdecl (writer, format, ...; vtbl+0); Lib_VSNPrintf, its result (-1 too) stored as the length"
+0x00636ea0,FileSource_DeletingDtor,function,high,reimplemented (src/game/files/sources); thiscall (flags; vtbl+0)
+0x00636ec0,FileSource_Dtor,function,high,reimplemented (src/game/files/sources); thiscall; leaves the handle open
+0x00636fb0,FileSource_ReleaseMapping,function,high,"reimplemented (src/game/files/sources); thiscall; CloseHandle(mapping), then vtbl+0x1c(view) which no longer unmaps"
+0x00636fe0,FileSource_Close,function,high,"reimplemented (src/game/files/sources); thiscall (vtbl+0x24); the mapping, then CloseHandle"
+0x00637000,FileSource_Read,function,high,"reimplemented (src/game/files/sources); thiscall (buffer, count; vtbl+4); ReadFile; the bytes read"
+0x00637040,FileSource_Write,function,high,"reimplemented (src/game/files/sources); thiscall (buffer, count; vtbl+8); WriteFile; the bytes written"
+0x00637080,FileSource_Seek,function,high,"reimplemented (src/game/files/sources); thiscall (offset, origin; vtbl+0xc); SetFilePointer; the new position"
+0x006370a0,FileSource_Size,function,high,reimplemented (src/game/files/sources); thiscall (vtbl+0x10); GetFileSize
+0x006370b0,FileSource_Tell,function,high,"reimplemented (src/game/files/sources); thiscall (vtbl+0x14, the mmio source too); the position"
+0x006370c0,FileSource_Map,function,high,"reimplemented (src/game/files/sources); thiscall (offset, size; vtbl+0x18); a read-only view (0, 0: the whole file, kept); an offset up to the allocation granularity maps the whole file"
+0x00637180,FileSource_Unmap,function,high,reimplemented (src/game/files/sources); thiscall (view; vtbl+0x1c); UnmapViewOfFile while mapped
+0x006371a0,FileSource_Lock,function,high,reimplemented (src/game/files/sources); thiscall (vtbl+0x2c); the semaphore
+0x006371b0,FileSource_Flush,function,high,reimplemented (src/game/files/sources); thiscall (&result; vtbl+0x20); FlushFileBuffers; 0 or -1
+0x00637230,MmioSource_DeletingDtor,function,high,reimplemented (src/game/files/sources); thiscall (flags; vtbl+0)
+0x00637250,MmioSource_Dtor,function,high,reimplemented (src/game/files/sources); thiscall; closes
+0x00637340,MmioSource_Close,function,high,reimplemented (src/game/files/sources); thiscall (vtbl+0x24); mmioClose
+0x00637360,MmioSource_Read,function,high,"reimplemented (src/game/files/sources); thiscall (buffer, count; vtbl+4); mmioRead, its result added to the position (-1 too)"
+0x00637390,MmioSource_Write,function,high,"reimplemented (src/game/files/sources); thiscall (buffer, count; vtbl+8); mmioWrite, likewise"
+0x006373c0,MmioSource_Seek,function,high,"reimplemented (src/game/files/sources); thiscall (offset, origin; vtbl+0xc); mmioSeek (0/1/else end)"
+0x006373f0,MmioSource_Size,function,high,reimplemented (src/game/files/sources); thiscall (vtbl+0x10); seeks to the end and back
+0x00637420,MmioSource_Flush,function,high,reimplemented (src/game/files/sources); thiscall (&result; vtbl+0x20); mmioFlush; 0 or -1
+0x00637450,MmioSource_Map,function,high,"reimplemented (src/game/files/sources); thiscall (offset, size; vtbl+0x18); nullptr"
+0x00703e08,TextWriter_vtable,data,high,the fixed-buffer text writer vtable (src/game/files/textwriter)
+0x00703e30,FileSource_vtable,data,high,the CreateFileA stream source vtable (src/game/files/sources)
+0x00703e60,MmioSource_vtable,data,high,the mmio stream source vtable (src/game/files/sources)
+0x00faa2c8,gFileSourcePath,data,high,char[0x104]; the file source's resolved path (src/game/files/sources)
+0x00faa3d0,gMmioSourcePath,data,high,char[0x104]; the mmio source's resolved path (src/game/files/sources)

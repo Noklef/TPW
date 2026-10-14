@@ -24,6 +24,8 @@ add_library(tpw_game STATIC
     src/game/files/memsource.cpp
     src/game/files/zlibcodec.cpp
     src/game/files/refpack.cpp
+    src/game/files/sources.cpp
+    src/game/files/textwriter.cpp
     src/game/gfx/palette.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
