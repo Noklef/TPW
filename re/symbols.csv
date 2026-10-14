@@ -962,3 +962,8 @@ address,name,kind,confidence,notes
 0x005f7ed0,FileStream_OpenPath,function,high,"reimplemented (src/game/files/filestream); thiscall (&result, path, mode; FileStream vtable +0x24): the folder opened as a directory source, the name opened into the stream"
 0x006fd9e8,FolderHandle_vtable,data,high,"a Handle subclass vtable (the base's slots, its own deleting dtor 0x41caf0); src/game/files/filestream"
 0x006fd154,imp_IsDBCSLeadByte,data,high,KERNEL32 import slot
+0x0061b090,PixelChannel_Set,function,high,"reimplemented (src/game/gfx/surface); thiscall (mask, top); the mask's top bit (31 for none) against top, as down/up shifts"
+0x0061b0e0,PixelShifts_Set,function,high,"reimplemented (src/game/gfx/surface); thiscall (&masks r,g,b,a); channels for 0xAARRGGBB, alpha first"
+0x0061b130,Surface_SetInfo,function,high,reimplemented (src/game/gfx/surface); thiscall (&DDSURFACEDESC); info at +0x28; masks kept for 8 bits
+0x0061b190,Surface_Refresh,function,high,reimplemented (src/game/gfx/surface); thiscall; GetSurfaceDesc (+0x58) into the info (old bits kept when none); &info
+0x00fa7708,g_PixelShifts,data,high,the display format's channel shifts (PixelShifts); src/game/gfx/surface

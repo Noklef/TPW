@@ -23,6 +23,7 @@
 #include "../game/math/vector.h"
 #include "../game/math/rect.h"
 #include "../game/gfx/palette.h"
+#include "../game/gfx/surface.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
 #include "../game/motion/curve.h"
@@ -500,6 +501,10 @@ const Hook kHooks[] = {
     {"Rect_Collapse",             0x0061afe0, (void *)&Rect_Collapse, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Rect_Normalize",            0x0061aff0, (void *)&Rect_Normalize, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"FileStream_OpenPath",       0x005f7ed0, (void *)&FileStream_OpenPath, {0x6a, 0xff, 0x68, 0x98, 0x21}},
+    {"PixelChannel_Set",          0x0061b090, (void *)&PixelChannel_Set, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"PixelShifts_Set",           0x0061b0e0, (void *)&PixelShifts_Set, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
+    {"Surface_SetInfo",           0x0061b130, (void *)&Surface_SetInfo, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Surface_Refresh",           0x0061b190, (void *)&Surface_Refresh, {0x83, 0xec, 0x6c, 0x56, 0x8b}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
