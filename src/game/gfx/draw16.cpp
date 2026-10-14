@@ -54,6 +54,22 @@ void __fastcall Draw16_BoxFill(DrawDriver *, void *, const Rect *r, DrawColour c
         fill(row, w, value);
 }
 
+void __fastcall Draw16_CircleOutline(DrawDriver *, void *, s32 x, s32 y, s32 r, DrawColour c) {
+    const DrawContext *s = g_env->state;
+    const u16 value = colour(s, c);
+    circleOutline(x, y, r, [s, value](s32 px, s32 py) {
+        if (inClip(s, px, py)) *pixel(s, px, py) = value;
+    });
+}
+
+void __fastcall Draw16_CircleFill(DrawDriver *d, void *, s32 x, s32 y, s32 r, DrawColour c) {
+    const DrawContext *s = g_env->state;
+    const u16 value = colour(s, c);
+    circleFill(d, x, y, r, c, [s, value](s32 px, s32 py) {
+        if (inClip(s, px, py)) *pixel(s, px, py) = value;
+    });
+}
+
 void __fastcall Draw16_Line(DrawDriver *d, void *, s32 x1, s32 y1, s32 x2, s32 y2, DrawColour c) {
     const u16 value = colour(g_env->state, c);
     line<u16>(d, x1, y1, x2, y2, c, [value](u8 *p) { *reinterpret_cast<u16 *>(p) = value; });
