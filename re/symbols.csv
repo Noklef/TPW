@@ -1186,6 +1186,17 @@ address,name,kind,confidence,notes
 0x00fa76a4,gTextContext,data,high,"the text driver's context: the font for the game's two; src/game/gfx/text"
 0x007031b0,TextDriver_Font,data,high,"TextDriver {init 0, shutdown 0, Font_Measure, Font_DrawGlyph}; src/game/gfx/text"
 0x007031c0,TextDriver_FontShape,data,high,"TextDriver {init 0, shutdown 0, Font_Measure, Font_DrawGlyphShape}; src/game/gfx/text"
+0x00617370,CanvasDriver8_Init,function,high,reimplemented (src/game/gfx/canvas); static initialiser: gCanvasDriver8's table = 0x703650
+0x00617390,CanvasDriver16_Init,function,high,reimplemented (src/game/gfx/canvas); static initialiser: gCanvasDriver16's table = 0x703680
+0x006173b0,CanvasDriver24_Init,function,high,reimplemented (src/game/gfx/canvas); static initialiser: gCanvasDriver24's table = 0x7036b0
+0x006173d0,CanvasDriver32_Init,function,high,reimplemented (src/game/gfx/canvas); static initialiser: gCanvasDriver32's table = 0x7036e0
+0x006173e0,Canvas_Ctor,function,high,"reimplemented (src/game/gfx/canvas); thiscall; two SurfaceInfos (+8, +0x30), clip, driver, flags and the changed flag zeroed; returns this"
+0x00617420,Canvas_SetSurface,function,high,"reimplemented (src/game/gfx/canvas); thiscall (info) RET 4; copies it twice, the clip its whole, the driver by depth (none if paletted); flags a format change"
+0x006175b0,Canvas_Clip,function,high,reimplemented (src/game/gfx/canvas); thiscall -> &clip (+0x58)
+0x00fa7e3c,gCanvasDriver8,data,high,"CanvasDriver {table 0x703650}: 8-bit (non-paletted) canvas primitives; src/game/gfx/canvas"
+0x00fa7e38,gCanvasDriver16,data,high,"CanvasDriver {table 0x703680}: 16-bit canvas primitives; src/game/gfx/canvas"
+0x00fa7e34,gCanvasDriver24,data,high,"CanvasDriver {table 0x7036b0}: 24-bit canvas primitives; src/game/gfx/canvas"
+0x00fa7e30,gCanvasDriver32,data,high,"CanvasDriver {table 0x7036e0}: 32-bit canvas primitives; src/game/gfx/canvas"
 0x0062fe00,RowReader_Decode,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); rows read ahead (vtable +0 Begin, +4 ReadRow), converted if the formats differ, copied top down or bottom up; a failed row read ends it as success"
 0x006300c0,RowReader_CopyRow,function,high,"reimplemented (src/game/gfx/tga); thiscall; copyBytes from the row buffer to the target, which moves by step; vtable +0xc"
 0x006300f0,TgaReader_Load,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); ReadHeader, then RowReader_Decode"

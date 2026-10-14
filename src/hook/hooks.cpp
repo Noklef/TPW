@@ -16,6 +16,7 @@
 #include "../game/files/drives.h"
 #include "../game/core/regkey.h"
 #include "../game/gfx/text.h"
+#include "../game/gfx/canvas.h"
 #include "../game/files/memsource.h"
 #include "../game/files/zlibcodec.h"
 #include "../game/files/refpack.h"
@@ -642,6 +643,13 @@ const Hook kHooks[] = {
     {"Text_LineHeight",           0x005f8f40, (void *)&Text_LineHeight, {0x83, 0xec, 0x08, 0x8b, 0x15}},
     {"Draw_Sprite",               0x0061b030, (void *)&Draw_Sprite, {0x8b, 0x54, 0x24, 0x0c, 0x8b}},
     {"Draw_SpriteShape",          0x0061b050, (void *)&Draw_SpriteShape, {0x53, 0x56, 0x8b, 0x74, 0x24}},
+    {"CanvasDriver8_Init",        0x00617370, (void *)&CanvasDriver8_Init, {0xc7, 0x05, 0x3c, 0x7e, 0xfa}},
+    {"CanvasDriver16_Init",       0x00617390, (void *)&CanvasDriver16_Init, {0xc7, 0x05, 0x38, 0x7e, 0xfa}},
+    {"CanvasDriver24_Init",       0x006173b0, (void *)&CanvasDriver24_Init, {0xc7, 0x05, 0x34, 0x7e, 0xfa}},
+    {"CanvasDriver32_Init",       0x006173d0, (void *)&CanvasDriver32_Init, {0xc7, 0x05, 0x30, 0x7e, 0xfa}},
+    {"Canvas_Ctor",               0x006173e0, (void *)&Canvas_Ctor, {0x56, 0x8b, 0xf1, 0x8d, 0x4e}},
+    {"Canvas_SetSurface",         0x00617420, (void *)&Canvas_SetSurface, {0x8b, 0x54, 0x24, 0x04, 0x83}},
+    {"Canvas_Clip",               0x006175b0, (void *)&Canvas_Clip, {0x8d, 0x41, 0x58, 0xc3, 0x90}},
     {"RowReader_Decode",          0x0062fe00, (void *)&RowReader_Decode, {0x6a, 0xff, 0x68, 0x38, 0x2b}},
     {"RowReader_CopyRow",         0x006300c0, (void *)&RowReader_CopyRow, {0x8b, 0xc1, 0x56, 0x57, 0x8b}},
     {"TgaReader_Load",            0x006300f0, (void *)&TgaReader_Load, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
