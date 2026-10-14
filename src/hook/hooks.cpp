@@ -62,6 +62,7 @@
 #include "../game/sprite/script.h"
 #include "../game/sprite/sprite.h"
 #include "../game/coaster/rating.h"
+#include "../game/coaster/spline.h"
 #include "../game/terrain/terrain_blend.h"
 #include "../game/world/random.h"
 #include "../game/world/things.h"
@@ -700,6 +701,8 @@ const Hook kHooks[] = {
     {"CoasterRating_Reset",       0x0043dbf0, (void *)&CoasterRating_Reset, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"CoasterRating_Step",        0x0043dc50, (void *)&CoasterRating_Step, {0x51, 0xd9, 0x05, 0xcc, 0x23}},
     {"CoasterRating_Finish",      0x0043df90, (void *)&CoasterRating_Finish, {0xd9, 0x05, 0xb0, 0x23, 0x79}},
+    {"TrackSpline_Point",         0x0043e1b0, (void *)&TrackSpline_Point, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"TrackSpline_Tangent",       0x0043e320, (void *)&TrackSpline_Tangent, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"RowReader_Decode",          0x0062fe00, (void *)&RowReader_Decode, {0x6a, 0xff, 0x68, 0x38, 0x2b}},
     {"RowReader_CopyRow",         0x006300c0, (void *)&RowReader_CopyRow, {0x8b, 0xc1, 0x56, 0x57, 0x8b}},
     {"TgaReader_Load",            0x006300f0, (void *)&TgaReader_Load, {0x53, 0x8b, 0x5c, 0x24, 0x10}},

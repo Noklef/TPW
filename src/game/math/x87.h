@@ -78,3 +78,22 @@ inline u32 X87_FloatThrough(u32 bits) {
     if ((bits & 0x7f800000) == 0x7f800000 && (bits & 0x7fffff) && !(bits & 0x400000)) bits |= 0x400000;
     return bits;
 }
+
+// An x87 register at the game's precision, for writing an original's expression as it
+// stands: + - * round the exact result once to a 24-bit significand, keeping the register's
+// wide exponent (a float rounds again, or overflows, only when stored). Of two NaN operands
+// the result is the one with the larger significand, the left operand (the destination) on
+// a tie, so keep each operation's operands in the original's order. At least one operand
+// of each operation has to be an X87Reg, or C++ does it in float.
+struct X87Reg {
+    double v;
+    X87Reg(double x) : v(x) {}
+    explicit operator float() const { return (float)v; }
+};
+inline X87Reg operator+(X87Reg a, X87Reg b) { return X87_Add(a.v, b.v); }
+inline X87Reg operator-(X87Reg a, X87Reg b) {
+    return a.v != a.v || b.v != b.v ? X87_Add(a.v, b.v) : X87_Add(a.v, -b.v);
+}
+inline X87Reg operator*(X87Reg a, X87Reg b) {
+    return a.v != a.v && b.v != b.v ? X87_Add(a.v, b.v) : X87_Round(a.v * b.v);
+}
