@@ -20,4 +20,10 @@ s32 __cdecl Rect_Height(const Rect *r);              // 0x61af50: bottom - top
 u32 __cdecl Rect_Intersect(Rect *a, const Rect *b);
 void __cdecl Rect_Collapse(Rect *r);   // 0x61afe0: right = left, bottom = top
 void __cdecl Rect_Normalize(Rect *r);  // 0x61aff0: left <= right and top <= bottom, by swapping
+// The thiscall methods (0x62f810-0x62f975). Clip and Union read both rectangles before writing
+// out, so out may be either of them; an empty Clip collapses to width or height 0 at its top left.
+Rect *__fastcall Rect_Clip(const Rect *a, void *edx, Rect *out, const Rect *b);   // 0x62f810: out = a & b
+u32 __fastcall Rect_Overlaps(const Rect *a, void *edx, const Rect *b);           // 0x62f890: edges inclusive
+Rect *__fastcall Rect_Union(const Rect *a, void *edx, Rect *out, const Rect *b);  // 0x62f8d0: bounding box
+void __fastcall Rect_Order(Rect *r);  // 0x62f940: Rect_Normalize as a method (by xor swaps)
 }

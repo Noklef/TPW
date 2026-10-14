@@ -1015,3 +1015,7 @@ address,name,kind,confidence,notes
 0x006426b0,InverseMap_BlueLoop,function,high,"reimplemented (src/game/gfx/invmap); thiscall (restart); returns detect, writes dist and map"
 0x00642840,InverseMap_MaxFill,function,high,"reimplemented (src/game/gfx/invmap); stdcall (dist, colormax); colormax^3 dwords of ~0"
 0x00faa500,gInverseMapStatics,data,high,"InverseMapStatics (0x34): the inv_cmap loop statics (here/min/max/inc, gc copies)"
+0x0062f810,Rect_Clip,function,high,"reimplemented (src/game/math/rect); thiscall (out, b): out = this & b, an empty result collapsed; returns out"
+0x0062f890,Rect_Overlaps,function,high,"reimplemented (src/game/math/rect); thiscall (b); edges inclusive"
+0x0062f8d0,Rect_Union,function,high,"reimplemented (src/game/math/rect); thiscall (out, b): bounding box; returns out"
+0x0062f940,Rect_Order,function,high,"reimplemented (src/game/math/rect); thiscall; left <= right, top <= bottom by xor swaps"

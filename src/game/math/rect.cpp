@@ -35,4 +35,36 @@ void __cdecl Rect_Normalize(Rect *r) {
     }
 }
 
+Rect *__fastcall Rect_Clip(const Rect *a, void *, Rect *out, const Rect *b) {
+    const s32 left = a->left > b->left ? a->left : b->left;
+    const s32 top = a->top > b->top ? a->top : b->top;
+    s32 right = a->right < b->right ? a->right : b->right;
+    s32 bottom = a->bottom < b->bottom ? a->bottom : b->bottom;
+    if (right < left) right = left;  // an empty result collapses onto its corner
+    if (bottom < top) bottom = top;
+    out->left = left;
+    out->top = top;
+    out->right = right;
+    out->bottom = bottom;
+    return out;
+}
+
+u32 __fastcall Rect_Overlaps(const Rect *a, void *, const Rect *b) {
+    return a->left <= b->right && a->right >= b->left && a->top <= b->bottom && a->bottom >= b->top;
+}
+
+Rect *__fastcall Rect_Union(const Rect *a, void *, Rect *out, const Rect *b) {
+    const s32 left = a->left < b->left ? a->left : b->left;
+    const s32 top = a->top < b->top ? a->top : b->top;
+    const s32 right = a->right > b->right ? a->right : b->right;
+    const s32 bottom = a->bottom > b->bottom ? a->bottom : b->bottom;
+    out->left = left;
+    out->top = top;
+    out->right = right;
+    out->bottom = bottom;
+    return out;
+}
+
+void __fastcall Rect_Order(Rect *r) { Rect_Normalize(r); }
+
 }  // extern "C"
