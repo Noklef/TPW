@@ -17,6 +17,7 @@ add_library(tpw_game STATIC
     src/game/rsse/rsse_vm.cpp
     src/game/core/string.cpp
     src/game/files/file.cpp
+    src/game/files/handles.cpp
     src/game/files/refpack.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp

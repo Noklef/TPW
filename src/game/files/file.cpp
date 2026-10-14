@@ -4,6 +4,8 @@
 
 #include <cstring>
 
+#include "../core/vcall.h"
+
 namespace {
 
 constexpr u32 kMaxPath = 0x104;
@@ -40,13 +42,6 @@ const FileEnv kGameEnv = {
     iat<void *(__stdcall *const *)(void *)>(0x006fd26c),
 };
 const FileEnv *g_env = &kGameEnv;
-
-// A virtual call (__thiscall) on a stream, offset bytes into its vtable.
-template <typename R, typename... A>
-R vcall(Stream *s, u32 offset, A... args) {
-    using F = R(__fastcall *)(Stream *, void *, A...);
-    return reinterpret_cast<F>(s->vtable[offset / 4])(s, nullptr, args...);
-}
 
 u32 str_len(const char *s) {
     u32 n = 0;

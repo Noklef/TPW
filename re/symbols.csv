@@ -648,8 +648,8 @@ address,name,kind,confidence,notes
 0x005f5f90,Time_Init,function,high,reimplemented (src/game/files/file); Timer_Init(gClock)
 0x005f5fa0,Time_GetMs,function,high,reimplemented (src/game/files/file); Timer_GetMs(gClock)
 0x005f5fb0,Sys_Sleep,function,high,reimplemented (src/game/files/file); Sleep
-0x005f7180,Stream_Ctor,function,high,"thiscall; vtable Stream_vtable, +4 (a ref-counted source) = 0"
-0x00703100,Stream_vtable,data,high,stream base class; FileStream_vtable derives from it
+0x005f7180,StreamBase_Ctor,function,high,"reimplemented (src/game/files/handles); thiscall; vtable StreamBase_vtable, source (+4, a RefObject) = 0"
+0x00703100,StreamBase_vtable,data,high,stream base class (+4 a RefObject source); FileStream_vtable 0x6fd930 derives from it
 0x00fa6ec8,gCommandLine,data,high,"char[0x104], the command line copied by Dir_InitBase"
 0x00fa6fd0,gBaseDir,data,high,"char[0x104], the directory relative paths resolve against"
 0x00fa70d8,gPathBuffer,data,high,"char[0x108], Dir_Create / Dir_Remove resolve into it"
@@ -657,3 +657,43 @@ address,name,kind,confidence,notes
 0x0067a650,CRT_sprintf,function,high,MSVC6 sprintf
 0x0067b5f0,CRT_strrchr,function,high,MSVC6 strrchr
 0x0067f020,CRT__splitpath,function,high,MSVC6 _splitpath
+0x00618d20,RefObject_AddRef,function,high,reimplemented (src/game/files/handles); thiscall; InterlockedIncrement(+8)
+0x00618d30,RefObject_Release,function,high,"reimplemented (src/game/files/handles); thiscall; InterlockedDecrement(+8); at 0: vtbl+0x24, release the link (+4), deleting destructor (1)"
+0x00618d80,RefObject_SetLink,function,high,reimplemented (src/game/files/handles); thiscall (link); the new link gets the old one (vtbl+0x28) before replacing it
+0x00619800,RefObject2_AddRef,function,high,reimplemented (src/game/files/handles); thiscall; InterlockedIncrement(+0xc)
+0x00619810,RefObject2_Release,function,high,"reimplemented (src/game/files/handles); thiscall; InterlockedDecrement(+0xc); at 0: vtbl+0x30, release the link (+4), deleting destructor (1)"
+0x00619860,RefObject2_SetLink,function,high,reimplemented (src/game/files/handles); thiscall (link); the new link gets the old one (vtbl+0x2c)
+0x005f7190,StreamBase_DeletingDtor,function,high,reimplemented (src/game/files/handles); thiscall (flags)
+0x005f71b0,StreamBase_CopyCtor,function,high,"reimplemented (src/game/files/handles); thiscall (other); shares the source, AddRef (a null source crashes)"
+0x005f71e0,StreamBase_Dtor,function,high,"reimplemented (src/game/files/handles); thiscall; vtable, then Close"
+0x005f71f0,StreamBase_Close,function,high,reimplemented (src/game/files/handles); thiscall; vtbl+4: releases the source
+0x005f7210,StreamBase_Seek,function,high,"reimplemented (src/game/files/handles); thiscall (offset, origin); vtbl+0x10 -> source vtbl+0xc, -1 without one"
+0x005f7230,StreamBase_Tell,function,high,"reimplemented (src/game/files/handles); thiscall; vtbl+0x18 -> source vtbl+0x14 (tail call), -1"
+0x005f7240,StreamBase_Attach,function,high,"reimplemented (src/game/files/handles); thiscall (source); AddRef, the new source gets the old one (vtbl+0x28); null: nothing"
+0x005f7270,StreamBase_Vfn7,function,high,"reimplemented (src/game/files/handles); thiscall; vtbl+0x1c -> source vtbl+0x18 (0, 0), 0 without one"
+0x005f7290,StreamBase_Vfn8,function,high,"reimplemented (src/game/files/handles); thiscall (&result); vtbl+0x20 -> source vtbl+0x20, -1"
+0x004036a0,StreamBase_Read,function,high,"reimplemented (src/game/files/handles); thiscall (buf, count); vtbl+8 -> source vtbl+4, -1"
+0x004036c0,StreamBase_Write,function,high,"reimplemented (src/game/files/handles); thiscall (buf, count); vtbl+0xc -> source vtbl+8, -1"
+0x00639100,StreamBase_Vfn5,function,high,"reimplemented (src/game/files/handles); thiscall; vtbl+0x14 -> source vtbl+0x10 (tail call), -1"
+0x00414d30,FileStream_Dtor,function,high,reimplemented (src/game/files/handles); jmp StreamBase_Dtor
+0x005fa950,FileStream_DeletingDtor,function,high,reimplemented (src/game/files/handles); thiscall (flags); FileStream_vtable slot 0
+0x005f8240,Handle_Ctor,function,high,"reimplemented (src/game/files/handles); thiscall; vtable Handle_vtable, object (+4, a RefObject2) = 0"
+0x005f8250,Handle_DeletingDtor,function,high,reimplemented (src/game/files/handles); thiscall (flags); Handle_vtable +0x2c
+0x005f8270,Handle_CopyCtor,function,high,reimplemented (src/game/files/handles); thiscall (other); Set(other object) when it has one
+0x005f82a0,Handle_Dtor,function,high,"reimplemented (src/game/files/handles); thiscall; vtable, then Reset"
+0x005f82b0,Handle_Assign,function,high,reimplemented (src/game/files/handles); thiscall (other); vtbl+0 (Reset) then Set(other object); itself: nothing
+0x005f82e0,Handle_Reset,function,high,reimplemented (src/game/files/handles); thiscall; vtbl+0: releases the object
+0x005f8300,Handle_Vfn4,function,high,"reimplemented (src/game/files/handles); thiscall (&result, a, b); object vtbl+0x10, else *result = -1"
+0x005f8330,Handle_Vfn5,function,high,"reimplemented (src/game/files/handles); thiscall (&result, a, b, c); object vtbl+0x14, else -1"
+0x005f8370,Handle_Vfn1,function,high,"reimplemented (src/game/files/handles); thiscall (&result, a, b); object vtbl+8, else -1"
+0x005f83a0,Handle_Vfn2,function,high,"reimplemented (src/game/files/handles); thiscall (&result, a); object vtbl+0xc, else -1"
+0x005f83d0,Handle_Vfn3,function,high,"reimplemented (src/game/files/handles); thiscall (&result, a, b, c, d); object vtbl+4, else -1"
+0x005f8410,Handle_Vfn6,function,high,"reimplemented (src/game/files/handles); thiscall; object vtbl+0x18 (tail call), else 0"
+0x005f8420,Handle_Set,function,high,"reimplemented (src/game/files/handles); thiscall (object); AddRef (null crashes), the new object gets the old one (vtbl+0x2c)"
+0x005f8450,Handle_Vfn7,function,high,"reimplemented (src/game/files/handles); thiscall (&result, a, b); object vtbl+0x1c, else -1"
+0x005f8480,Handle_Vfn8,function,high,"reimplemented (src/game/files/handles); thiscall (&result, a); object vtbl+0x20, else -1"
+0x005f84b0,Handle_Vfn9,function,high,"reimplemented (src/game/files/handles); thiscall (&result, a); object vtbl+0x24, else -1"
+0x005f84e0,Handle_Vfn10,function,high,"reimplemented (src/game/files/handles); thiscall (&result, a, b); object vtbl+0x28, else -1"
+0x005f8510,Handle_Open28,function,high,"reimplemented (src/game/files/handles); thiscall (&result, a); Reset, new 0x28-byte object (0x619950) opened by 0x619d70; held or deleted"
+0x005f85d0,Handle_OpenE0,function,high,"reimplemented (src/game/files/handles); thiscall (&result, a, b); Reset, new 0xe0-byte object (0x61a060) opened by 0x61a250"
+0x00703180,Handle_vtable,data,high,handle class (+4 a RefObject2); 0x6fd9e8 derives from it (own destructor 0x41caf0)
