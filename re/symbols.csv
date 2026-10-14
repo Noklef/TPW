@@ -1163,6 +1163,17 @@ address,name,kind,confidence,notes
 0x0055e470,CpuInfo_Ctor,function,medium,"thiscall; CPUID probe (EFLAGS.ID test, then the vendor string and features); SystemInfo's base"
 0x0067df40,CRT_stricmp,function,high,"MSVC CRT _stricmp: A-Z folded, or the locale's tolower when one is set"
 0x00f7a7d0,gCdVolumeLabel,data,medium,"const char *: the CD's volume label, looked for on the CD-ROM drives by the CD check (0x5aa585)"
+0x005f8ae0,RegKey_Open,function,high,"reimplemented (src/game/core/regkey); thiscall (&out, subkey or null, nonzero: HKCU else HKLM); the company key (0x775748) made, then the subkey in it; a held key closed first"
+0x005f8b70,RegKey_Dtor,function,high,reimplemented (src/game/core/regkey); thiscall; RegKey_Close
+0x005f8b80,RegKey_Close,function,high,reimplemented (src/game/core/regkey); thiscall (&out); a key whose RegCloseKey fails stays held
+0x005f8bc0,Reg_CreateKey,function,high,"reimplemented (src/game/core/regkey); cdecl (path, root, volatile) -> HKEY or 0; RegCreateKeyExA, KEY_ALL_ACCESS"
+0x005f8c00,RegKey_Query,function,high,"reimplemented (src/game/core/regkey); thiscall (&out, name, buffer, size); RegQueryValueExA"
+0x005f8c50,RegKey_GetU32,function,high,"reimplemented (src/game/core/regkey); thiscall (&out, name, &value); types 4 and 5 as read, 6 (REG_LINK) byte-swapped (sic)"
+0x005f8cf0,RegKey_GetU32Or,function,high,"reimplemented (src/game/core/regkey); thiscall (&out, name, &value, default); GetU32, the default stored when it fails"
+0x005f8d40,RegKey_TypeOf,function,high,"reimplemented (src/game/core/regkey); thiscall (name) -> the REG_ type, -2 for a subkey, -1 for neither"
+0x005f8da0,RegKey_Ctor,function,high,reimplemented (src/game/core/regkey); thiscall; the handle zeroed (0x581da0)
+0x00581da0,Ptr_Ctor,function,medium,"thiscall; [this] = 0 (a shared trivial constructor: RegKey's and one other)"
+0x00775748,gCompanyRegPath,data,high,"""software\Bullfrog Productions Ltd"", RegKey_Open's root key path"
 0x0062fe00,RowReader_Decode,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); rows read ahead (vtable +0 Begin, +4 ReadRow), converted if the formats differ, copied top down or bottom up; a failed row read ends it as success"
 0x006300c0,RowReader_CopyRow,function,high,"reimplemented (src/game/gfx/tga); thiscall; copyBytes from the row buffer to the target, which moves by step; vtable +0xc"
 0x006300f0,TgaReader_Load,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); ReadHeader, then RowReader_Decode"

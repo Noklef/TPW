@@ -14,6 +14,7 @@
 #include "../game/files/handles.h"
 #include "../game/files/streamopen.h"
 #include "../game/files/drives.h"
+#include "../game/core/regkey.h"
 #include "../game/files/memsource.h"
 #include "../game/files/zlibcodec.h"
 #include "../game/files/refpack.h"
@@ -623,6 +624,15 @@ const Hook kHooks[] = {
     {"SystemInfo_FindVolume",     0x005f8940, (void *)&SystemInfo_FindVolume, {0x8b, 0x44, 0x24, 0x04, 0x83}},
     {"SystemInfo_DriveLetter",    0x005f89d0, (void *)&SystemInfo_DriveLetter, {0x8b, 0x44, 0x24, 0x04, 0x80}},
     {"SystemInfo_VolumeLabel",    0x005f89f0, (void *)&SystemInfo_VolumeLabel, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
+    {"RegKey_Open",               0x005f8ae0, (void *)&RegKey_Open, {0x51, 0x56, 0x57, 0x8b, 0xf9}},
+    {"RegKey_Dtor",               0x005f8b70, (void *)&RegKey_Dtor, {0x51, 0x8d, 0x44, 0x24, 0x00}},
+    {"RegKey_Close",              0x005f8b80, (void *)&RegKey_Close, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"Reg_CreateKey",             0x005f8bc0, (void *)&Reg_CreateKey, {0x8b, 0x4c, 0x24, 0x0c, 0x33}},
+    {"RegKey_Query",              0x005f8c00, (void *)&RegKey_Query, {0x8b, 0x54, 0x24, 0x08, 0x85}},
+    {"RegKey_GetU32",             0x005f8c50, (void *)&RegKey_GetU32, {0x55, 0x8b, 0xec, 0x51, 0x56}},
+    {"RegKey_GetU32Or",           0x005f8cf0, (void *)&RegKey_GetU32Or, {0x8b, 0x44, 0x24, 0x08, 0x56}},
+    {"RegKey_TypeOf",             0x005f8d40, (void *)&RegKey_TypeOf, {0x51, 0x56, 0x57, 0x8b, 0x7c}},
+    {"RegKey_Ctor",               0x005f8da0, (void *)&RegKey_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0xf8}},
     {"RowReader_Decode",          0x0062fe00, (void *)&RowReader_Decode, {0x6a, 0xff, 0x68, 0x38, 0x2b}},
     {"RowReader_CopyRow",         0x006300c0, (void *)&RowReader_CopyRow, {0x8b, 0xc1, 0x56, 0x57, 0x8b}},
     {"TgaReader_Load",            0x006300f0, (void *)&TgaReader_Load, {0x53, 0x8b, 0x5c, 0x24, 0x10}},

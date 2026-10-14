@@ -375,6 +375,8 @@ class Emu:
             self.put(o[0], (self.c0 << 8) | (self.c2 << 10) | (self.c3 << 14))
         elif mn in ('MOV', 'MOVZX'):  # get() is already zero-extended
             self.put(o[0], self.get(o[1]))
+        elif mn == 'BSWAP':
+            self.put(o[0], int.from_bytes(self.get(o[0]).to_bytes(4, 'little'), 'big'))
         elif mn == 'MOVSX':
             v, n = self.get(o[1]), self.size(o[1])
             self.put(o[0], v - (1 << (8 * n)) if v >> (8 * n - 1) else v)
