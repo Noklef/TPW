@@ -13,13 +13,13 @@ const ImageCodecEnv kGameEnv = {
     at<StreamBase *(__fastcall *)(StreamBase *)>(0x005f7180),
     at<void(__fastcall *)(StreamBase *)>(0x005f71e0),
     at<s32(__fastcall *)(StreamBase *, void *, s32, u32)>(0x005f7210),
-    at<s32 *(__fastcall *)(StreamBase *, void *, s32 *, const char *, u32)>(0x0062fa40),
+    at<s32 *(__fastcall *)(StreamBase *, void *, s32 *, const char *, const char *)>(0x0062fa40),
     at<s32 *(__fastcall *)(StreamBase *, void *, s32 *, StreamBase *, u32)>(0x0062fd30),
     0x007035e0,
     0x00703608,
     0x00703630,
-    at<s32 *(__fastcall *)(TgaReader *, void *, s32 *, StreamBase *, ImageCodec *)>(0x00630150),
-    at<s32 *(__fastcall *)(TgaReader *, void *, s32 *, SurfaceInfo *, StreamBase *, ImageCodec *)>(0x006300f0),
+    at<s32 *(__fastcall *)(TgaReader *, void *, s32 *, StreamBase *, TgaCodec *)>(0x00630150),
+    at<s32 *(__fastcall *)(TgaReader *, void *, s32 *, SurfaceInfo *, StreamBase *, TgaCodec *)>(0x006300f0),
     at<s32(__cdecl *)(const char *, const char *, u32)>(0x0067c250),
     at<const char *>(0x00775860),
 };
@@ -57,13 +57,13 @@ void ImageCodec_SetEnv(const ImageCodecEnv *e) { g_env = e ? e : &kGameEnv; }
 
 extern "C" {
 
-s32 *__fastcall ImageCodec_InfoFromFile(ImageCodec *c, void *, s32 *out, const char *path, u32 mode,
-                                        SurfaceInfo *info) {
+s32 *__fastcall ImageCodec_InfoFromFile(ImageCodec *c, void *, s32 *out, const char *name,
+                                        const char *container, SurfaceInfo *info) {
     StreamBase file;
     g_env->streamCtor(&file);
     file.vtable = at<void *const *>(g_env->fileVtable);
     s32 opened;
-    if (*g_env->openFile(&file, nullptr, &opened, path, mode) < 0)
+    if (*g_env->openFile(&file, nullptr, &opened, name, container) < 0)
         *out = -1;
     else
         ImageCodec_InfoFromStream(c, nullptr, out, &file, info);
@@ -82,13 +82,13 @@ s32 *__fastcall ImageCodec_InfoFromStream(ImageCodec *c, void *, s32 *out, Strea
     return out;
 }
 
-s32 *__fastcall ImageCodec_LoadFromFile(ImageCodec *c, void *, s32 *out, SurfaceInfo *dst, const char *path,
-                                        u32 mode, SurfaceInfo *info) {
+s32 *__fastcall ImageCodec_LoadFromFile(ImageCodec *c, void *, s32 *out, SurfaceInfo *dst, const char *name,
+                                        const char *container, SurfaceInfo *info) {
     StreamBase file;
     g_env->streamCtor(&file);
     file.vtable = at<void *const *>(g_env->fileVtable);
     s32 opened;
-    if (*g_env->openFile(&file, nullptr, &opened, path, mode) < 0)
+    if (*g_env->openFile(&file, nullptr, &opened, name, container) < 0)
         *out = -1;
     else
         ImageCodec_LoadFromStream(c, nullptr, out, dst, &file, info);
@@ -115,15 +115,15 @@ s32 *__fastcall ImageCodec_LoadFromStream(ImageCodec *c, void *, s32 *out, Surfa
 
 s32 *__fastcall TgaCodec_GetInfo(ImageCodec *c, void *, s32 *out, StreamBase *stream, u32) {
     TgaReader reader;
-    reader.vtable = g_env->tgaVtable;
-    g_env->tgaInfo(&reader, nullptr, out, stream, c);
+    reader.base.vtable = at<void *const *>(g_env->tgaVtable);
+    g_env->tgaInfo(&reader, nullptr, out, stream, reinterpret_cast<TgaCodec *>(c));
     return out;
 }
 
 s32 *__fastcall TgaCodec_Load(ImageCodec *c, void *, s32 *out, SurfaceInfo *dst, StreamBase *stream, u32) {
     TgaReader reader;
-    reader.vtable = g_env->tgaVtable;
-    g_env->tgaLoad(&reader, nullptr, out, dst, stream, c);
+    reader.base.vtable = at<void *const *>(g_env->tgaVtable);
+    g_env->tgaLoad(&reader, nullptr, out, dst, stream, reinterpret_cast<TgaCodec *>(c));
     return out;
 }
 

@@ -15,29 +15,25 @@
 #include "../../../re/types.h"
 #include "../files/handles.h"
 #include "surface.h"
+#include "tga.h"
 
 struct ImageCodec {
     void *const *vtable;
     SurfaceInfo info;  // +4: the last image read
 };
 
-struct TgaReader {  // 0x44 bytes, of which the codec only sets the vtable
-    u32 vtable;     // 0x703630
-    u8 unknown04[0x40];
-};
-
 struct ImageCodecEnv {
     StreamBase *(__fastcall *streamCtor)(StreamBase *);  // 0x5f7180
     void(__fastcall *streamDtor)(StreamBase *);           // 0x5f71e0
     s32(__fastcall *streamSeek)(StreamBase *, void *, s32 offset, u32 origin);  // 0x5f7210
-    s32 *(__fastcall *openFile)(StreamBase *, void *, s32 *out, const char *path, u32 mode);  // 0x62fa40
+    s32 *(__fastcall *openFile)(StreamBase *, void *, s32 *out, const char *name, const char *container);  // 0x62fa40
     s32 *(__fastcall *openBuffered)(StreamBase *, void *, s32 *out, StreamBase *source, u32 size);  // 0x62fd30
     u32 fileVtable;      // 0x7035e0
     u32 bufferedVtable;  // 0x703608
     u32 tgaVtable;       // 0x703630
-    s32 *(__fastcall *tgaInfo)(TgaReader *, void *, s32 *out, StreamBase *stream, ImageCodec *codec);  // 0x630150
+    s32 *(__fastcall *tgaInfo)(TgaReader *, void *, s32 *out, StreamBase *stream, TgaCodec *codec);  // 0x630150
     s32 *(__fastcall *tgaLoad)(TgaReader *, void *, s32 *out, SurfaceInfo *dst, StreamBase *stream,
-                               ImageCodec *codec);  // 0x6300f0
+                               TgaCodec *codec);  // 0x6300f0
     s32(__cdecl *strncmp)(const char *, const char *, u32);  // 0x67c250
     const char *footer;  // 0x775860 "TRUEVISION-XFILE."
 };
@@ -45,14 +41,15 @@ struct ImageCodecEnv {
 void ImageCodec_SetEnv(const ImageCodecEnv *e);
 
 extern "C" {
-// 0x5fa8a0 (&out, path, mode, &info or 0): InfoFromStream on the file; -1 when it does not open.
-s32 *__fastcall ImageCodec_InfoFromFile(ImageCodec *c, void *edx, s32 *out, const char *path, u32 mode,
-                                        SurfaceInfo *info);
+// 0x5fa8a0 (&out, name, container, &info or 0): InfoFromStream on the file (StreamBase_OpenIn); -1 when it
+// does not open.
+s32 *__fastcall ImageCodec_InfoFromFile(ImageCodec *c, void *edx, s32 *out, const char *name,
+                                        const char *container, SurfaceInfo *info);
 // 0x5fa970 (&out, stream, &info or 0): the stream rewound, GetInfo into c->info, copied to info.
 s32 *__fastcall ImageCodec_InfoFromStream(ImageCodec *c, void *edx, s32 *out, StreamBase *stream, SurfaceInfo *info);
-// 0x5faa00 (&out, dst, path, mode, &info or 0): LoadFromStream on the file.
-s32 *__fastcall ImageCodec_LoadFromFile(ImageCodec *c, void *edx, s32 *out, SurfaceInfo *dst, const char *path,
-                                        u32 mode, SurfaceInfo *info);
+// 0x5faa00 (&out, dst, name, container, &info or 0): LoadFromStream on the file.
+s32 *__fastcall ImageCodec_LoadFromFile(ImageCodec *c, void *edx, s32 *out, SurfaceInfo *dst, const char *name,
+                                        const char *container, SurfaceInfo *info);
 // 0x5faab0 (&out, dst, stream, &info or 0): Load into dst through a buffered stream.
 s32 *__fastcall ImageCodec_LoadFromStream(ImageCodec *c, void *edx, s32 *out, SurfaceInfo *dst, StreamBase *stream,
                                           SurfaceInfo *info);

@@ -40,6 +40,7 @@
 #include "../game/gfx/convert.h"
 #include "../game/gfx/jpeg.h"
 #include "../game/gfx/imagecodec.h"
+#include "../game/gfx/tga.h"
 #include "../game/core/events.h"
 #include "../game/core/filetime.h"
 #include "../game/motion/animator.h"
@@ -613,6 +614,15 @@ const Hook kHooks[] = {
     {"Cursor_SetKey",             0x005fb7b0, (void *)&Cursor_SetKey, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Cursor_Update",             0x005fb7f0, (void *)&Cursor_Update, {0x8a, 0x44, 0x24, 0x10, 0x84}},
     {"Cursor_Restore",            0x005fb820, (void *)&Cursor_Restore, {0x8a, 0x44, 0x24, 0x0c, 0x56}},
+    {"RowReader_Decode",          0x0062fe00, (void *)&RowReader_Decode, {0x6a, 0xff, 0x68, 0x38, 0x2b}},
+    {"RowReader_CopyRow",         0x006300c0, (void *)&RowReader_CopyRow, {0x8b, 0xc1, 0x56, 0x57, 0x8b}},
+    {"TgaReader_Load",            0x006300f0, (void *)&TgaReader_Load, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
+    {"TgaReader_ReadHeader",      0x00630150, (void *)&TgaReader_ReadHeader, {0x83, 0xec, 0x08, 0x53, 0x8b}},
+    {"TgaReader_Begin",           0x00630400, (void *)&TgaReader_Begin, {0x33, 0xc0, 0x33, 0xd2, 0x66}},
+    {"TgaReader_ReadRow",         0x00630440, (void *)&TgaReader_ReadRow, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
+    {"TgaReader_MirrorRow",       0x00630500, (void *)&TgaReader_MirrorRow, {0x8a, 0x41, 0x40, 0x53, 0x8b}},
+    {"TgaReader_ReadRunRow",      0x00630580, (void *)&TgaReader_ReadRunRow, {0x83, 0xec, 0x10, 0x53, 0x33}},
+    {"TgaReader_RowBytes",        0x006306a0, (void *)&TgaReader_RowBytes, {0x33, 0xc0, 0x33, 0xd2, 0x8a}},
     {"SurfaceBuffer_Ctor",        0x006306c0, (void *)&SurfaceBuffer_Ctor, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"SurfaceBuffer_DeletingDtor", 0x00630700, (void *)&SurfaceBuffer_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"SurfaceBuffer_Dtor",        0x00630720, (void *)&SurfaceBuffer_Dtor, {0xc7, 0x01, 0x98, 0x39, 0x70}},

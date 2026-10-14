@@ -1152,6 +1152,15 @@ address,name,kind,confidence,notes
 0x005fb7b0,Cursor_SetKey,function,high,"reimplemented (src/game/gfx/cursor); thiscall (&key): keyRgb and keyIndex, into the buffers too"
 0x005fb7f0,Cursor_Update,function,high,"reimplemented (src/game/gfx/cursor); thiscall (&pos, unused, target, park, also); parks the shown buffer when both are set; Draw"
 0x005fb820,Cursor_Restore,function,high,"reimplemented (src/game/gfx/cursor); thiscall (target, dst, erase, parked); the shown (or parked) background onto dst"
+0x0062fe00,RowReader_Decode,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); rows read ahead (vtable +0 Begin, +4 ReadRow), converted if the formats differ, copied top down or bottom up; a failed row read ends it as success"
+0x006300c0,RowReader_CopyRow,function,high,"reimplemented (src/game/gfx/tga); thiscall; copyBytes from the row buffer to the target, which moves by step; vtable +0xc"
+0x006300f0,TgaReader_Load,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); ReadHeader, then RowReader_Decode"
+0x00630150,TgaReader_ReadHeader,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, stream, codec); header to codec+0x430 and this+0x30, palette (BGR) to codec+0x2c, format into codec->info; skips an unused map by length * entry bits (sic)"
+0x00630400,TgaReader_Begin,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, stream); rows left = height, row bytes = width * (bits >> 3), then ReadRow; vtable 0x703630 +0"
+0x00630440,TgaReader_ReadRow,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, stream); raw or run-length row, mirrored if right to left; the rows left go on past 0 (sic); vtable +4"
+0x00630500,TgaReader_MirrorRow,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, row); XOR swaps of the pixels end for end"
+0x00630580,TgaReader_ReadRunRow,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, stream); run-length packets until the width is reached, unbounded by the buffer"
+0x006306a0,TgaReader_RowBytes,function,high,reimplemented (src/game/gfx/tga); thiscall; (bits >> 3) * width; vtable +8
 0x006306c0,SurfaceBuffer_Ctor,function,high,"reimplemented (src/game/gfx/surfbuf); thiscall; vtable 0x703998; no key, no surface, not created"
 0x00630700,SurfaceBuffer_DeletingDtor,function,high,reimplemented (src/game/gfx/surfbuf); thiscall (flags)
 0x00630720,SurfaceBuffer_Dtor,function,high,reimplemented (src/game/gfx/surfbuf); thiscall; Release
@@ -1625,5 +1634,7 @@ address,name,kind,confidence,notes
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
+0x00703630,TgaReader_vtable,data,high,"TgaReader (0x44: RowReader, run-length/mirrored flags, rows left, row bytes, header +0x30; src/game/gfx/tga): Begin, ReadRow, RowBytes, RowReader_CopyRow"
 0x00700140,JpegCodec_vtable,data,high,"JpegCodec (0x42c: vtable, SurfaceInfo, palette[256]): 0x47e750 deleting dtor, GetInfo, Load, IsJpeg"
 0x00faa298,gFormatPal8,data,high,"masks 0, 8 bits, paletted (set at 0x6316c2)"
+0x00faa2b0,gFormatRgb555,data,high,"masks 7c00/3e0/1f, 16 bits (set at 0x631702); the TGA reader's 15- and 16-bit format"
