@@ -38,6 +38,7 @@
 #include "../game/gfx/pointer.h"
 #include "../game/gfx/color.h"
 #include "../game/gfx/convert.h"
+#include "../game/gfx/jpeg.h"
 #include "../game/core/events.h"
 #include "../game/core/filetime.h"
 #include "../game/motion/animator.h"
@@ -651,6 +652,9 @@ const Hook kHooks[] = {
     {"FileTime_Assign",           0x005fc5a0, (void *)&FileTime_Assign, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
     {"FileTime_FromSystemTime",   0x005fc5c0, (void *)&FileTime_FromSystemTime, {0x83, 0xec, 0x10, 0x66, 0x8b}},
     {"FileTime_ToSystemTime",     0x005fc660, (void *)&FileTime_ToSystemTime, {0x83, 0xec, 0x14, 0x8d, 0x44}},
+    {"JpegCodec_GetInfo",         0x005fc740, (void *)&JpegCodec_GetInfo, {0x81, 0xec, 0x4c, 0x02, 0x00}},
+    {"JpegCodec_Load",            0x005fc840, (void *)&JpegCodec_Load, {0x6a, 0xff, 0x68, 0xf6, 0x23}},
+    {"JpegCodec_IsJpeg",          0x005fcbc0, (void *)&JpegCodec_IsJpeg, {0x81, 0xec, 0x34, 0x02, 0x00}},
     {"FileTime_FromSpan",         0x005fcc50, (void *)&FileTime_FromSpan, {0x8b, 0x44, 0x24, 0x08, 0x56}},
     {"PixelFormat_InitArgb8888Unused", 0x005fccf0, (void *)&PixelFormat_InitArgb8888Unused, {0xc7, 0x05, 0x40, 0x7d, 0xfa}},
     {"PixelFormat_InitArgb1555",  0x005fcd40, (void *)&PixelFormat_InitArgb1555, {0xc7, 0x05, 0xe8, 0x7d, 0xfa}},
