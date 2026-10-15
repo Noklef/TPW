@@ -112,4 +112,28 @@ void __cdecl Object_GetPosition(const u8 *object, u32 *out) {
     out[1] = at<u32>(object, 0x34);
     out[2] = at<u32>(object, 0x38);
 }
+
+double __cdecl Car_TravelCost(const u8 *ride, u32 withBase, const u8 *car, const float *x, const float *z,
+                              const float *fromX, const float *fromZ) {
+    const u8 *owner = car ? at<const u8 *>(car, 0x100) : nullptr;
+    const u8 *type = owner ? at<const u8 *>(owner, 0x18) : nullptr;
+    if (!type) return 0.0;
+    const float x0 = fromX ? *fromX : at<float>(at<const u8 *>(car, 0x68), 0x4c);
+    const float z0 = fromZ ? *fromZ : at<float>(at<const u8 *>(car, 0x68), 0x54);
+    const u8 *next = at<const u8 *>(owner, 0x2c);
+    const u8 *other = next ? at<const u8 *>(next, 0x18) : nullptr;
+    const u8 *fallback = at<const u8 *>(ride, 4) + 0xa8;
+    const X87Reg speed = X87Reg(CarType_Lerp(at<float>(car, 0xe8), type)) * 0.1f;
+    const X87Reg dx = X87Reg(x ? *x : at<float>(car, 0x4c)) - x0;
+    const X87Reg dz = X87Reg(x ? *z : at<float>(car, 0x54)) - z0;
+    const X87Reg sum = dx * dx + dz * (float)dz.v;
+    const X87Reg dist = X87Reg(sum.v != sum.v ? sum.v : X87_Round(std::sqrt(sum.v))) * 0.1f;
+    const X87Reg base = withBase ? at<float>(type, 0x5c) : 0.0f;
+    const u8 *s = type;
+    if (at<u32>(type, 0) & 0xc000) {
+        if (!other || !(at<u32>(other, 0) & 0xc000)) s = fallback;
+        if ((at<u32>(s, 0) & 0x4000) && !(at<u8>(at<const u8 *>(car, 0x68), 8) & 0x80)) s = fallback;
+    }
+    return ((X87Reg(at<float>(s, 0x60)) * dist + base) + X87Reg(at<float>(s, 0x64)) * speed).v;
+}
 }

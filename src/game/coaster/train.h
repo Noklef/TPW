@@ -54,4 +54,15 @@ void __cdecl Flags_SetMoved(u32 *flags, u32 high);
 
 // 0x435710: copies object's position (+0x30, three dwords, in order) to out.
 void __cdecl Object_GetPosition(const u8 *object, u32 *out);
+
+// 0x447830: the cost of car (+0x100 -> +0x18 its type; 0 when car or either is missing)
+// reaching x, z (or its own +0x4c, +0x54, when x is null) from fromX, fromZ (or, each when
+// null, its piece's (+0x68) +0x4c, +0x54): with distance = 0.1 * |dx, dz| and speed = 0.1 *
+// CarType_Lerp(car +0xe8, type), (s+0x60 * distance + base) + s+0x64 * speed, base being the
+// type's +0x5c when withBase is set, else 0. s is the type, unless its flags (+0) have 0xc000:
+// then ride +4 -> +0xa8 when the next owner's (+0x100 -> +0x2c -> +0x18) flags lack 0xc000,
+// and so too when s has 0x4000 and the piece lacks 0x80 (+8).
+// sic: dz is squared by its float rounding; z is read only through x.
+double __cdecl Car_TravelCost(const u8 *ride, u32 withBase, const u8 *car, const float *x, const float *z,
+                              const float *fromX, const float *fromZ);
 }

@@ -1825,3 +1825,4 @@ address,name,kind,confidence,notes
 0x004346c0,Flags_SetChanged,function,high,"reimplemented (src/game/coaster/train); cdecl (flags*, also): *flags |= 1, and 0x1000 when also (after the empty Debug_Printf)"
 0x00433220,Flags_SetMoved,function,high,"reimplemented (src/game/coaster/train); cdecl (flags*, high): *flags |= 0x10, and 0x80000000 when high"
 0x00435710,Object_GetPosition,function,high,"reimplemented (src/game/coaster/train); cdecl (object, out*): out[0..2] = object+0x30..0x38 (dwords, in order)"
+0x00447830,Car_TravelCost,function,high,"reimplemented (src/game/coaster/train); cdecl double (ride, withBase, car, x, z, fromX, fromZ): 0.1-scaled distance and lerped speed weighted by the type's (or the ride's fallback) +0x60 / +0x64, plus +0x5c"
