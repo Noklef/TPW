@@ -8,10 +8,10 @@ struct TrackOrientation {  // 0x20 bytes
     u32 flags;             // bit 0: reversed (turn the angles round)
     float yaw;             // +0x04: about y, atan2(x, z) (pi more when reversed)
     float pitch;           // +0x08: atan2(-y, z) of the direction turned back by the yaw
-    u32 unknown0C;         // not written
+    float roll;            // +0x0c: set by TrackSpline_Frame
     float yaw2;            // +0x10: copies of the final yaw and pitch
     float pitch2;          // +0x14
-    u32 unknown18;         // not written
+    float roll2;           // +0x18: its copy
     float rawYaw;          // +0x1c: the yaw before reversing
 };
 static_assert(sizeof(TrackOrientation) == 0x20, "TrackOrientation is 0x20 bytes");

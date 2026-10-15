@@ -1,8 +1,20 @@
 #include "spline.h"
 
+#include <cmath>
+#include <cstring>
+
+#include "../math/matrix.h"
+#include "../math/sintable.h"
 #include "../math/x87.h"
 
 namespace {
+
+const float kMinusHalfPi = -1.57079637f;  // 0x6fe138
+
+float field(const u8 *p, u32 offset) { return *reinterpret_cast<const float *>(p + offset); }
+
+// A node's piece (node +0x10).
+const u8 *piece(const u8 *node) { return *reinterpret_cast<const u8 *const *>(node + 0x10); }
 
 struct Points {
     X87Reg a, b, c, d;  // from.position, from.ahead, to.behind, to.position
@@ -53,5 +65,66 @@ void __cdecl TrackSpline_Tangent(const u8 *from, const u8 *to, float t, Vec3 *ou
         out->z = (float)((p.b * 3.0 - p.a * 3.0) -
                          ((p.b * -6.0 - (p.c + p.a) * -3.0) * -2.0 - (((((p.b * 3.0 - p.a) - p.c * 3.0) + p.d) * u) * 3.0)) * u);
     }
+}
+
+void __cdecl TrackSpline_Frame(const u8 *nodes, const u8 *flags, const u8 *from, const u8 *to, const u8 *upFrom,
+                               const u8 *upTo, float t, Vec3 *out, TrackOrientation *orient) {
+    TrackSpline_Point(from, to, t, out);
+    if (!orient) return;
+    Vec3 tangent;
+    TrackSpline_Tangent(from, to, t, &tangent);
+    const float u = (float)(X87Reg(1.0f) - t);
+    const float blend = (float)((X87Reg(field(to, 0xc)) + field(piece(to), 0x6c)) * t +
+                                (X87Reg(field(from, 0xc)) + field(piece(from), 0x6c)) * u);
+    u32 blendBits;
+    std::memcpy(&blendBits, &blend, 4);
+    TrackOrientation_Set(tangent, blendBits, orient, nullptr);
+
+    // The up spline's point relative to this one, turned back by the yaw, then the pitch.
+    Vec3 up;
+    TrackSpline_Point(upFrom, upTo, t, &up);
+    up.x = (float)(X87Reg(up.x) - out->x);
+    up.y = (float)(X87Reg(up.y) - out->y);
+    up.z = (float)(X87Reg(up.z) - out->z);
+    const SinTable sines = SinTable_Game();
+    {
+        const float turn = -orient->yaw;
+        const X87Reg s = SinTable_At(sines, sines.scale * turn);
+        const X87Reg c = SinTable_At(sines, (turn - kMinusHalfPi) * sines.scale);
+        const X87Reg x = up.x, z = up.z;
+        up.x = (float)(z * s + x * c);
+        up.z = (float)(z * c - x * s);
+    }
+    {
+        const float turn = -orient->pitch;
+        const X87Reg s = SinTable_At(sines, sines.scale * turn);
+        const X87Reg c = SinTable_At(sines, (turn - kMinusHalfPi) * sines.scale);
+        const X87Reg y = up.y, z = up.z;
+        up.y = (float)(y * c - z * s);
+        up.z = (float)(z * c + y * s);
+    }
+    const double roll = Vec3_AngleZ(&up.x);
+    orient->roll = (float)roll;
+
+    if (*flags & 8) {
+        auto bank = [&](const u8 *node) {
+            const u32 i = (u32)(long long)field(node, 8);  // __ftol
+            return (double)field(nodes + i * 0x38, 0x18);
+        };
+        const X87Reg ahead = X87Reg(bank(upTo)) * t;
+        orient->roll = (float)((ahead + X87Reg(bank(upFrom)) * u) + roll);
+    } else {
+        const X87Reg k = X87Reg((double)*reinterpret_cast<const u32 *>(piece(upFrom))) + field(upFrom, 0xc);
+        const X87Reg kUpTo = X87Reg((double)*reinterpret_cast<const u32 *>(piece(upTo))) + field(upTo, 0xc);
+        const float mix = (float)(kUpTo * t + k * u);
+        double whole;
+        std::modf(k.v, &whole);  // CRT modf (0x67b280)
+        X87Reg f = X87Reg(mix) - whole;
+        if (!(f.v > 0)) f = 0.0;
+        if (!(f.v < 1)) f = 1.0;
+        orient->roll = (float)(((X87Reg(1.0f) - f) * field(piece(upFrom), 0xe4) + X87Reg(field(piece(upTo), 0xe4)) * f) +
+                               orient->roll);
+    }
+    orient->roll2 = orient->roll;
 }
 }
