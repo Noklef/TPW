@@ -27,4 +27,9 @@ void __cdecl Terrain_GridSize(u32 *width, u32 *height);
 // are in use. Nothing off the grid. Sic: the set's tile count is first checked (> 0) for the
 // set before it wraps.
 void __cdecl Terrain_PaintCell(const u8 *map, const u8 *sets, s32 x, s32 y, s32 set, s32 tile, u32 rotation);
+
+// 0x450950: *out = a copy of map's attribute grid (+0x6c) in one zeroed block: its 0x30-byte
+// header, then its +4 dwords from +0x28 and its +6 dwords from +0x2c, the copy's pointers
+// moved to them; null when there is no map or grid.
+void __cdecl Terrain_CloneAttrs(const u8 *map, u8 **out);
 }

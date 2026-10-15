@@ -1,6 +1,9 @@
 #include "land.h"
 
 #include <cstdint>
+#include <cstring>
+
+#include "../core/globalmem.h"
 
 namespace {
 
@@ -78,5 +81,25 @@ void __cdecl Terrain_PaintCell(const u8 *map, const u8 *sets, s32 x, s32 y, s32 
 void __cdecl Terrain_GridSize(u32 *width, u32 *height) {
     *width = at<u32>(at<const u8 *>(map(), 0x6c), 0x18);
     *height = at<u32>(at<const u8 *>(map(), 0x6c), 0x1c);
+}
+
+void __cdecl Terrain_CloneAttrs(const u8 *map, u8 **out) {
+    const u8 *const grid = map ? at<const u8 *>(map, 0x6c) : nullptr;
+    if (!grid) {
+        *out = nullptr;
+        return;
+    }
+    u8 *const block = static_cast<u8 *>(GlobalMem_Alloc((at<u16>(grid, 6) + at<u16>(grid, 4)) * 4u + 0x30, 1));
+    u8 *cells = block + 0x30;
+    if (block) std::memcpy(block, grid, 0x30);
+    at<u8 *>(block, 0x28) = cells;
+    const u32 first = at<u16>(grid, 4) * 4u;
+    cells += first;
+    if (at<u8 *>(block, 0x28) && at<const u8 *>(grid, 0x28) && first)
+        std::memcpy(at<u8 *>(block, 0x28), at<const u8 *>(grid, 0x28), first);
+    at<u8 *>(block, 0x2c) = cells;
+    if (cells && at<const u8 *>(grid, 0x2c) && at<u16>(grid, 6))
+        std::memcpy(cells, at<const u8 *>(grid, 0x2c), at<u16>(grid, 6) * 4u);
+    *out = block;
 }
 }
