@@ -154,4 +154,11 @@ void __cdecl Car_SetupCoupling(u8 *car, u32 *coupling, const u8 *spec, const u8 
         at<u8 *>(second + i * 0x58, 0x10) = car;
     }
 }
+
+void __cdecl Car_FreeCoupling(const u8 *car, u32 *coupling) {
+    if (!(at<u8>(at<const u8 *>(car, 0x100), 4) & 1)) GlobalMem_Free(reinterpret_cast<void *>(coupling[1]));
+    GlobalMem_Free(reinterpret_cast<void *>(coupling[2]));
+    coupling[1] = 0;
+    coupling[2] = 0;
+}
 }

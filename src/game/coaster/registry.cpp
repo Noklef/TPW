@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "../core/globalmem.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) {
@@ -206,4 +208,10 @@ void __cdecl Object_LinkParams(const u8 *object, u32 *a, u32 *b, u32 *c, u32 *d)
 void __cdecl Coasters_ResetUnit() { *reinterpret_cast<float *>(0x00792404) = 1.0f; }
 
 void __cdecl Coasters_InitEpsilon() { *reinterpret_cast<float *>(0x007925e0) = 1.0f / 8388608.0f; }
+
+void __cdecl Coasters_AllocTables(u32 nodes, u32 links) {
+    *reinterpret_cast<u32 *>(0x00792400) = links;
+    *reinterpret_cast<void **>(0x007925dc) = GlobalMem_Alloc(links * 0x1c, 1);
+    *reinterpret_cast<void **>(0x00792408) = GlobalMem_Alloc(nodes * 0x10, 1);
+}
 }

@@ -37,4 +37,11 @@ void __cdecl CoasterQueue_Advance(u8 *coaster);
 // part ([car+4]+0x2c) released on the ride's instance (0x7a4610[car+0xc] + 8), the train's
 // rider count (+0x10) stepped down and the seat cleared.
 void __cdecl CoasterTrain_Unload(u8 *coaster, u8 *train, u32 side);
+
+// 0x43b080: an empty ring of capacity slots (allocated zeroed), its limit 0 and its head,
+// tail and buffer the first slot; no stop slot.
+void __cdecl CoasterRing_Init(u8 *ring, u32 capacity);
+
+// 0x43b0c0: frees the ring's buffer (the pointer is left as it was).
+void __cdecl CoasterRing_Free(u8 *ring);
 }

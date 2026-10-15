@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/globalmem.h"
 #include "../model/partstate.h"
 
 namespace {
@@ -87,4 +88,18 @@ void __cdecl CoasterTrain_Unload(u8 *coaster, u8 *train, u32 side) {
         count = 0;
     }
 }
+
+void __cdecl CoasterRing_Init(u8 *ring, u32 capacity) {
+    at<u32>(ring, 0) = capacity;
+    at<u32>(ring, 8) = 0;
+    at<u32>(ring, 0xc) = 0;
+    at<u32>(ring, 0x10) = 0;
+    u32 *const buffer = static_cast<u32 *>(GlobalMem_Alloc(capacity * 4, 1));
+    at<u32 *>(ring, 0x1c) = nullptr;
+    at<u32 *>(ring, 4) = buffer;
+    at<u32 *>(ring, 0x14) = buffer;
+    at<u32 *>(ring, 0x18) = buffer;
+}
+
+void __cdecl CoasterRing_Free(u8 *ring) { GlobalMem_Free(at<u32 *>(ring, 4)); }
 }

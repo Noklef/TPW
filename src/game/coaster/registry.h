@@ -117,4 +117,8 @@ void __cdecl Coasters_ResetUnit();
 
 // 0x43e140: 0x7925e0 = 1.0f / 8388608.0f (constants 0x6fe108 / 0x6fe0d8), one float ulp at 1.
 void __cdecl Coasters_InitEpsilon();
+
+// 0x43e980: 0x792400 = links, 0x7925dc = links zeroed 0x1c-byte blocks and 0x792408 = nodes
+// zeroed 0x10-byte blocks (callers pass 0x790fd0 and 0x791cfc).
+void __cdecl Coasters_AllocTables(u32 nodes, u32 links);
 }

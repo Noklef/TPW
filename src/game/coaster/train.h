@@ -70,4 +70,8 @@ double __cdecl Car_TravelCost(const u8 *ride, u32 withBase, const u8 *car, const
 // both arrays allocated zeroed, and each seat i (in both) given the part with key
 // spec+0x10 + i and flag 0x400000 of holder 0x7ae6a8[type+0x14] (+4) and the car (+0x10).
 void __cdecl Car_SetupCoupling(u8 *car, u32 *coupling, const u8 *spec, const u8 *type);
+
+// 0x433240: frees a coupling's seat arrays - the first only when the car's part (+0x100)
+// lacks flag 1 at +4 - and clears both pointers.
+void __cdecl Car_FreeCoupling(const u8 *car, u32 *coupling);
 }

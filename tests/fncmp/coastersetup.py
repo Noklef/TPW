@@ -3,7 +3,9 @@
 # description's checks, names copied into GlobalMem blocks (global_heap()), fields copied when
 # non-zero (floats by the x87 compare, NaN counting as zero), degrees turned to radians. The
 # whole setup also runs the cross sections (xsection.py's coherent descriptions) and appends
-# the static track entries at 0x74cde0 (varied here).
+# the static track entries at 0x74cde0 (varied here). Also the other allocating helpers: a
+# car's coupling set up / freed (0x4344c0 / 0x433240), the queue rings' init / free (0x43b080 /
+# 0x43b0c0) and the coaster tables (0x43e980).
 # usage: coastersetup.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import sys
@@ -14,7 +16,8 @@ from fncmp import HEAP, Bench, Call, RAM, global_heap, heap, put  # noqa: E402
 import xsection  # noqa: E402
 
 B = Bench([(0x42d130, 0x42eb68), (0x42eb70, 0x42fad0), (0x45b9d0, 0x45ba15), (0x45ba00, 0x45ba30),
-           (0x5da3c0, 0x5da3d0), (0x4344c0, 0x434566), (0x44b140, 0x44b2e0)])
+           (0x5da3c0, 0x5da3d0), (0x4344c0, 0x434566), (0x44b140, 0x44b2e0),
+           (0x43b080, 0x43b0d1), (0x433240, 0x433277), (0x43e980, 0x43e9bb)])
 COASTER, NAMES, SOURCE, HOLDER = RAM, RAM + 0x1000, RAM + 0x10000, RAM + 0x20000
 ZEROS = [0, 0x80000000, 0x7fc00000, 0xffc00000, 0x7f800001]  # zero, -0 and NaNs: all count as zero
 
@@ -109,6 +112,18 @@ def case(r):
         regions.update({SOURCE: spec, HOLDER: holder + model + bytearray(0x40) + parts,
                         0x7ae6a8: put(bytearray(16), 0, '4I', *[HOLDER] * 4)})
         return Call(0x4344c0, [r.getrandbits(32), COASTER + 0x78, SOURCE, SOURCE + 0x100], regions)
+    if op == 'RingInit':
+        return Call(0x43b080, [COASTER + 0xb0, r.choice([0, 1, 8, r.randrange(64)])], regions)
+    if op == 'RingFree':
+        put(regions[COASTER], 0xb4, 'I', r.choice([0, HEAP + 0x40, r.getrandbits(32)]))
+        return Call(0x43b0c0, [COASTER + 0xb0], regions)
+    if op == 'CouplingFree':  # the car's part (+0x100) flag 1 at +4 keeps the first array
+        put(regions[COASTER], 0x100, 'I', COASTER + 0x200)
+        put(regions[COASTER], 0x78, '3I', r.getrandbits(32), *(r.choice([0, HEAP + 0x40, r.getrandbits(32)]) for _ in range(2)))
+        return Call(0x433240, [COASTER, COASTER + 0x78], regions)
+    if op == 'Tables':
+        regions.update({0x792400: bytearray(4), 0x7925dc: bytearray(4), 0x792408: bytearray(4)})
+        return Call(0x43e980, [r.choice([0, 1, r.randrange(300)]), r.choice([0, 1, r.randrange(300)])], regions)
     if op == 'Type':
         src = xsection.source(r, 'Setup')
         setup(r, src, names, regions)
@@ -122,7 +137,7 @@ def case(r):
     return Call(at, args, regions, ret='a')
 
 
-OPS_ALL = ['Pylons', 'Trains', 'Type', 'Type', 'Coupling']
+OPS_ALL = ['Pylons', 'Trains', 'Type', 'Type', 'Coupling', 'RingInit', 'RingFree', 'CouplingFree', 'Tables']
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 
