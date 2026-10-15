@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "../math/matrix.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) {
@@ -22,6 +24,15 @@ void __cdecl Holder_SetPosition(const u8 *holder, u32 x, u32 y, u32 z) {
     at<u32>(matrix, 0x34) = y;
     at<u32>(matrix, 0x38) = z;
 }
+
+void __cdecl Holder_SetScale(const u8 *holder, const float *scale) {
+    float *const m = reinterpret_cast<float *>(at<u8 *>(at<const u8 *>(holder, 4), 0x78) + 0x10);
+    Matrix_ScaleAxes(m, scale[0], scale[1], scale[2]);
+}
+
+void __cdecl Holder_InitUnusedOne() { at<float>(reinterpret_cast<void *>(0x007a1cac), 0) = 1.0f; }
+
+void __cdecl Holder_InitUnusedEpsilon() { at<float>(reinterpret_cast<void *>(0x007a1cdc), 0) = 1.0f / 8388608.0f; }
 
 u32 __cdecl Ride_SlotKey(u32 ride, u32 i) {
     const u8 *holder = at<const u8 *>(reinterpret_cast<const u8 *const *>(0x007a4610)[ride], 8);

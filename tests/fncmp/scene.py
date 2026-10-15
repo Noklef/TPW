@@ -19,14 +19,15 @@ B = Bench([(0x44a590, 0x44b140), (0x44b140, 0x44b2e0), (0x44b3c0, 0x44b410), (0x
            (0x475550, 0x47558b), (0x46f150, 0x46f180), (0x46f240, 0x46f350), (0x46f420, 0x46f5c0),
            (0x4702d0, 0x470630), (0x473a40, 0x473c30), (0x67b410, 0x67b440), (0x450e60, 0x450e99),
            (0x45ba70, 0x45ba92), (0x45bdc0, 0x45bdca), (0x44e510, 0x44e531), (0x473c70, 0x473e30),
-           (0x429ee0, 0x429fd4), (0x429fe0, 0x429ff4)], sines=256)
+           (0x429ee0, 0x429fd4), (0x429fe0, 0x429ff4), (0x45bf20, 0x45bf46), (0x45bf50, 0x45bf83),
+           (0x46fad0, 0x46fb41)], sines=256)
 HOLDER, MODEL, PARTS, FACES, FACES2 = (RAM + k * 0x1000 for k in range(5))
 REF, H2, MAT, SLOTS, MAP, GRID, CELLS, GRID2, CELLS2, OUT = (RAM + k * 0x1000 for k in range(5, 15))
 SETS, ENTRIES, TILES, MDL, MESHES, MFACES, REMAP = (RAM + k * 0x1000 for k in range(15, 22))
 HL, VERTS, HLBUF, SAVED, IDS = (RAM + k * 0x1000 for k in range(22, 27))
 PSA, PSF, PSN, PSM = (RAM + k * 0x1000 for k in range(27, 31))
 PMA, PMN, PMG, PMS = (RAM + k * 0x1000 for k in range(31, 35))
-LA, LH = (RAM + k * 0x1000 for k in range(35, 37))
+LA, LH, VEC = (RAM + k * 0x1000 for k in range(35, 38))
 
 
 def partstates(r, op):
@@ -165,6 +166,8 @@ def mode(r, op):
     bits = r.choice([r.getrandbits(32), 1 << r.randrange(3, 15), 0, r.getrandbits(32) & 0x7838])
     if op in ('Size', 'Depth'):
         return Call({'Size': 0x44a590, 'Depth': 0x44a5d0}[op], [], {0x79d86c: put(bytearray(4), 0, 'I', bits)}, ret='a')
+    if op in ('HolderOne', 'HolderEps'):  # model/holder's unused statics
+        return Call({'HolderOne': 0x45bf50, 'HolderEps': 0x45bf70}[op], [], {0x7a1cac: r.bytes(4), 0x7a1cdc: r.bytes(4)})
     return Call({'ResetScale': 0x44a600, 'Epsilon': 0x44a620}[op], [], {0x79d9e4: r.bytes(4), 0x79d9e8: r.bytes(4)})
 
 
@@ -240,6 +243,9 @@ def holder(r, op):
         return Call(0x45bed0, [REF], regs)
     if op == 'SetPosition':
         return Call(0x45bef0, [HOLDER] + [r.getrandbits(32) for _ in range(3)], regs)
+    if op == 'SetScale':  # the matrix's axes (MAT + 0x10) scaled by the vector at VEC
+        regs[VEC] = struct.pack('<3I', r.f(), r.f(), r.f())
+        return Call(0x45bf20, [HOLDER, VEC], regs)
     return Call(0x4587b0, [ride, i], regs, ret='a')
 
 
@@ -510,7 +516,8 @@ def highlight(r, op):
 
 KINDS = {'Size': mode, 'Depth': mode, 'ResetScale': mode, 'Epsilon': mode, 'MarkMask': parts, 'MarkValue': parts,
          'Count': parts, 'Nth': parts, 'Key4': parts, 'Key8': parts, 'SlotClear': parts, 'SlotSet': parts, 'SlotHolder': parts, 'ResetBounds': frame, 'AddFlags': frame,
-         'SetPoint': frame, 'FlagModel': holder, 'SetPosition': holder, 'SlotKey': holder, 'IsParkLand': land,
+         'SetPoint': frame, 'FlagModel': holder, 'SetPosition': holder, 'SetScale': holder, 'SlotKey': holder,
+         'HolderOne': mode, 'HolderEps': mode, 'IsParkLand': land,
          'Cross': land, 'CopyAttrs': land, 'CloneAttrs': land, 'Footprint': land, 'GridSize': land, 'TexEnable': procedural, 'TexDisable': procedural,
          'ProcEnter': procedural, 'ProcLeave': procedural, 'ProcOn': procedural, 'ProcCells': procedural,
          'PaintCell': paint, 'PaintCell2': paint, 'Remap': remap, 'HlUpdate': highlight, 'HlUpdate2': highlight,

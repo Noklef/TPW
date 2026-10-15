@@ -1950,6 +1950,9 @@ address,name,kind,confidence,notes
 0x0045bed0,Holder_FlagModel,function,high,reimplemented (src/game/model/holder); cdecl (holder**): model (+4) +0x30 |= 0x200
 0x0045bef0,Holder_SetPosition,function,high,"reimplemented (src/game/model/holder); cdecl (holder, x, y, z): model (+4) matrix (+0x78, +0x10) translation = x, y, z"
 0x004587b0,Ride_SlotKey,function,high,"reimplemented (src/game/model/holder); cdecl u32 (ride, i): slot i's +8 of the ride's holder (0x7a4610), 0 for a null slot"
+0x0045bf20,Holder_SetScale,function,high,reimplemented (src/game/model/holder); the model's matrix axes scaled by a vector
+0x0045bf50,Holder_InitUnusedOne,function,high,reimplemented (src/game/model/holder); unused static 0x7a1cac = 1.0f
+0x0045bf70,Holder_InitUnusedEpsilon,function,high,reimplemented (src/game/model/holder); unused static 0x7a1cdc = 1 / 2^23
 0x0046de00,Model_RemapTextures,function,high,"reimplemented (src/game/model/remap); (model, remap, textures, first): face texture pointers and grid cell textures renumbered"
 0x00469180,Highlight_Update,function,high,"reimplemented (src/game/model/highlight); releases the current holder (0x7a1ce0) for another target (0x7afda0), highlights the target: mesh vertex blocks copied into 0x7afd00"
 0x00469340,Highlight_SetTarget,function,high,reimplemented (src/game/model/highlight); 0x7afda0 = holder
