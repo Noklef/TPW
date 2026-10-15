@@ -14,11 +14,63 @@ B = Bench([(0x44a590, 0x44a640), (0x44b140, 0x44b2e0), (0x44b3c0, 0x44b410), (0x
            (0x4587b0, 0x4587d9), (0x45bed0, 0x45bf13), (0x450420, 0x45046d), (0x450a30, 0x450a78),
            (0x450b00, 0x450b24), (0x457a00, 0x457a88), (0x46de00, 0x46e125), (0x56dfb0, 0x56dfdd),
            (0x45d620, 0x45d68c), (0x469180, 0x469405), (0x469470, 0x4698ef),
-           (0x45b9d0, 0x45ba15), (0x468760, 0x4688a7)])
+           (0x45b9d0, 0x45ba15), (0x468760, 0x4688a7), (0x44a870, 0x44ab30), (0x44b4c0, 0x44b505),
+           (0x475550, 0x47558b)])
 HOLDER, MODEL, PARTS, FACES, FACES2 = (RAM + k * 0x1000 for k in range(5))
 REF, H2, MAT, SLOTS, MAP, GRID, CELLS, GRID2, CELLS2, OUT = (RAM + k * 0x1000 for k in range(5, 15))
 SETS, ENTRIES, TILES, MDL, MESHES, MFACES, REMAP = (RAM + k * 0x1000 for k in range(15, 22))
 HL, VERTS, HLBUF, SAVED, IDS = (RAM + k * 0x1000 for k in range(22, 27))
+PSA, PSF, PSN, PSM = (RAM + k * 0x1000 for k in range(27, 31))
+
+
+def partstates(r, op):
+    """An instance (PSA: +4 -> model at PSA + 0x100, +0x28 -> states at PSA + 0x200, entries at
+    PSA + 0x400) whose model has n parts (PSA + 0x300) with faces base.. in two arrays (PSF: the
+    first `first` 0xa0 bytes each, then 0x58 at PSF + 0xa00; each face's +4 -> PSM) and a node
+    tree in PSN (0x60 apart; +8 sibling, +0xc child, +0x50 face index); heap() for GlobalAlloc."""
+    n, base = r.choice([0, 1, r.randrange(1, 13)]), r.randrange(0, 5)
+    first = r.randrange(base + n + 1)
+    psa, psf = bytearray(r.bytes(0x1000)), bytearray(r.bytes(0x1000))
+    put(psa, 4, 'I', PSA + 0x100)
+    put(psa, 0x28, 'I', PSA + 0x200)
+    put(psa, 0x144, '3H', first, base, n)
+    put(psa, 0x170, '4I', PSF, PSF + 0xa00, PSN, PSA + 0x300)
+    bits = [2, 8, 0x10, 0x20, 0x40, 0x10000, 0x40000, 0x30]
+    for i in range(12):
+        flags = r.getrandbits(32) if r.random() < 0.2 else sum(r.sample(bits, r.randrange(4)))
+        put(psa, 0x300 + 0x14 * i, 'I', flags)
+    for k in range(base + n):
+        f = k * 0xa0 if k < first else 0xa00 + (k - first) * 0x58
+        put(psf, f, 'I', r.getrandbits(32) & ~0x20000400 | r.choice([0, 0, 0x400, 0x20000000]))
+        put(psf, f + 4, 'I', PSM + 4 * k)
+    put(psa, 0x200, '5I', r.getrandbits(32), PSA + 0x400, r.choice([0, 1, 2, r.getrandbits(32)]), r.randrange(8),
+        r.choice([HEAP + 0x40, 0, r.getrandbits(32)]))
+    if op == 'PsFree':
+        put(psa, 0x204, 'I', r.choice([PSA + 0x400, HEAP + 0x80, 0]))
+        put(psa, 0x28, 'I', r.choice([PSA + 0x200, PSA + 0x200, 0]))
+    for i in range(12):
+        put(psa, 0x40c + 0x14 * i, 'i', r.choice([-1, 0, r.randrange(1, 6), r.getrandbits(31)]))
+    psn = bytearray(r.bytes(0x1000))
+    count = r.choice([1, r.randrange(1, 11)])
+    parent = {k: r.randrange(k) for k in range(1, count)}
+    kids = {}
+    for k in range(1, count):
+        kids.setdefault(parent[k], []).append(k)
+    for k in range(count):
+        sib = kids[parent[k]] if k else [0]
+        j = sib.index(k)
+        nxt = sib[j + 1] if j + 1 < len(sib) else None
+        child = kids.get(k, [None])[0]
+        put(psn, 0x60 * k + 8, '2I', PSN + 0x60 * nxt if nxt else 0, PSN + 0x60 * child if child else 0)
+        put(psn, 0x60 * k + 0x50, 'H', r.choice([r.randrange(max(base - 2, 0), base + n + 3), r.getrandbits(16)]))
+    regs = {PSA: psa, PSF: psf, PSN: psn, PSM: r.bytes(0x100), HEAP: heap(), **global_heap()}
+    if op == 'PsCreate':
+        return Call(0x44a870, [PSA], regs)
+    if op == 'PsMark':
+        return Call(0x44aa10, [PSA, PSN + 0x60 * r.randrange(count), PSA + 0x100], regs, ret='a')
+    if op == 'PsFree':
+        return Call(0x44aae0, [PSA], regs)
+    return Call(0x44b4c0, [PSA, r.randrange(max(n, 1))], regs)
 
 
 def mode(r, op):
@@ -315,7 +367,8 @@ KINDS = {'Size': mode, 'Depth': mode, 'ResetScale': mode, 'Epsilon': mode, 'Mark
          'HlTarget': highlight, 'HlTints': highlight, 'HlClear': highlight, 'HlCurrent': highlight,
          'HlShown': highlight, 'HlSuspend': highlight, 'HlAlloc': highlight, 'HlFree': highlight,
          'HlFlash': highlight, 'HlFlash2': highlight, 'HlUnflash': highlight, 'HlUnflash2': highlight,
-         'HlPulse': highlight, 'GAlloc': globalmem, 'GFree': globalmem, 'IdAdd': ids, 'IdRemove': ids}
+         'HlPulse': highlight, 'GAlloc': globalmem, 'GFree': globalmem, 'IdAdd': ids, 'IdRemove': ids,
+         'PsCreate': partstates, 'PsMark': partstates, 'PsFree': partstates, 'PsRelease': partstates}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 

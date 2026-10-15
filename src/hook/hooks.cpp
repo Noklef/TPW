@@ -86,7 +86,8 @@
 #include "../game/world/things.h"
 #include "../game/model/holder.h"
 #include "../game/model/parts.h"
-#include "../game/model/highlight.h"
+#include "../game/model/highlight.h"
+#include "../game/model/partstate.h"
 #include "../game/model/remap.h"
 #include "../game/render/frame.h"
 #include "../game/render/mode.h"
@@ -1086,6 +1087,10 @@ const Hook kHooks[] = {
     {"Highlight_Flash",           0x00469580, (void *)&Highlight_Flash, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Highlight_Unflash",         0x00469650, (void *)&Highlight_Unflash, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"Highlight_PulseFlashing",   0x00469840, (void *)&Highlight_PulseFlashing, {0xd9, 0x05, 0x04, 0xfd, 0x7a}},
+    {"PartStates_Create",         0x0044a870, (void *)&PartStates_Create, {0x51, 0x53, 0x55, 0x56, 0x57}},
+    {"PartStates_MarkNodes",      0x0044aa10, (void *)&PartStates_MarkNodes, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"PartStates_Free",           0x0044aae0, (void *)&PartStates_Free, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"PartStates_Release",        0x0044b4c0, (void *)&PartStates_Release, {0x8b, 0x54, 0x24, 0x04, 0x8b}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},

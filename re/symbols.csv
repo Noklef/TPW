@@ -1883,4 +1883,8 @@ address,name,kind,confidence,notes
 0x00469580,Highlight_Flash,function,high,reimplemented (src/game/model/highlight); starts a holder flashing (list 0x7afe14 via +0xd0)
 0x00469650,Highlight_Unflash,function,high,"reimplemented (src/game/model/highlight); stops a holder flashing, restoring its meshes"
 0x00469840,Highlight_PulseFlashing,function,high,reimplemented (src/game/model/highlight); pulses the flashing holders' colours (phase 0x7afd04)
+0x0044a870,PartStates_Create,function,high,"reimplemented (src/game/model/partstate); (instance): the part states +0x28 for the model +4: animated parts (0x10/0x20) flagged, slots of 0x40 per animated face"
+0x0044aa10,PartStates_MarkNodes,function,high,"reimplemented (src/game/model/partstate); (instance, node, model): recursive; 0x20 on animated leaf entries, 0x40000000 on nodes without animated parts below; 1 if none"
+0x0044aae0,PartStates_Free,function,high,reimplemented (src/game/model/partstate); (instance): frees the part states +0x28
+0x0044b4c0,PartStates_Release,function,high,"reimplemented (src/game/model/partstate); (instance, part): active count down (0: flag 4 off), entry flag 2 off, its sprite script killed"
 0x0045aee0,Online_ApplyBalance,function,high,reimplemented (src/game/online/servers); copies Online.sam (gBalanceOnline) into the servers object 0x7a14f0
