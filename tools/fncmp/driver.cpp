@@ -133,6 +133,22 @@ void __cdecl heap_free(void *block) {
     h[3] = h[3] * 33 ^ (u32)(uintptr_t)block;
 }
 
+// GlobalAlloc / GlobalFree (stdcall) for code that calls through the game's import slots
+// (tools/fncmp.py global_heap() points them here, at kStubs + 0x20 and + 0x30): the same heap;
+// GlobalAlloc also hashes the flags in and zeroes the block for GMEM_ZEROINIT (0x40).
+void *__stdcall stub_global_alloc(u32 flags, u32 size) {
+    u8 *p = static_cast<u8 *>(heap_alloc(size));
+    u32 *h = reinterpret_cast<u32 *>((uintptr_t)kHeap);
+    h[1] = h[1] * 33 ^ flags;
+    if (flags & 0x40) std::memset(p, 0, size);
+    return p;
+}
+
+void *__stdcall stub_global_free(void *block) {
+    heap_free(block);
+    return nullptr;
+}
+
 // What throws in the game (std::_Xlen, _Xran): a case that gets there reports a crash.
 void __cdecl heap_throw() { RaiseException(0xe0000001, 0, 0, nullptr); }
 
@@ -141,8 +157,9 @@ const StdStringEnv kStdStringEnv = {&heap_alloc, &heap_free, &heap_throw, &heap_
 void map_stubs() {
     u8 *p = static_cast<u8 *>(VirtualAlloc((void *)(uintptr_t)kStubs, 0x10000, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE));
     if (!p) fail("cannot map the stubs at", kStubs);
-    const void *stubs[] = {(const void *)&stub_read, (const void *)&stub_write};
-    for (u32 i = 0; i < 2; ++i) {
+    const void *stubs[] = {(const void *)&stub_read, (const void *)&stub_write, (const void *)&stub_global_alloc,
+                           (const void *)&stub_global_free};
+    for (u32 i = 0; i < 4; ++i) {
         u8 *at = p + 0x10 * i;
         at[0] = 0xe9;  // jmp rel32
         const u32 rel = (u32)(uintptr_t)stubs[i] - ((u32)(uintptr_t)at + 5);

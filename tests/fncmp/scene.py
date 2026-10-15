@@ -1,5 +1,6 @@
 # 0x448000-0x470000 (render mode, model part tables, frame globals, model holders, the terrain
-# attribute grid, procedural terrain textures, painting cells, texture remaps, the highlight)
+# attribute grid, procedural terrain textures, painting cells, texture remaps, the highlight,
+# flashing holders, the GlobalAlloc wrappers)
 # against the originals.
 # usage: scene.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
@@ -7,12 +8,13 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, put  # noqa: E402
+from fncmp import HEAP, Bench, Call, RAM, fb, global_heap, heap, put  # noqa: E402
 
 B = Bench([(0x44a590, 0x44a640), (0x44b140, 0x44b2e0), (0x44b3c0, 0x44b410), (0x44e570, 0x44e5fc),
            (0x4587b0, 0x4587d9), (0x45bed0, 0x45bf13), (0x450420, 0x45046d), (0x450a30, 0x450a78),
            (0x450b00, 0x450b24), (0x457a00, 0x457a88), (0x46de00, 0x46e125), (0x56dfb0, 0x56dfdd),
-           (0x45d620, 0x45d68c), (0x469180, 0x469405), (0x469470, 0x469507)])
+           (0x45d620, 0x45d68c), (0x469180, 0x469405), (0x469470, 0x4698ef),
+           (0x45b9d0, 0x45ba15)])
 HOLDER, MODEL, PARTS, FACES, FACES2 = (RAM + k * 0x1000 for k in range(5))
 REF, H2, MAT, SLOTS, MAP, GRID, CELLS, GRID2, CELLS2, OUT = (RAM + k * 0x1000 for k in range(5, 15))
 SETS, ENTRIES, TILES, MDL, MESHES, MFACES, REMAP = (RAM + k * 0x1000 for k in range(15, 22))
@@ -198,11 +200,21 @@ def remap(r, op):
     return Call(0x46de00, [MDL, REMAP, r.getrandbits(32), r.choice([0, 1, r.randrange(1000), -5]), r.getrandbits(32)], regs)
 
 
+def globalmem(r, op):
+    if op == 'GAlloc':
+        regs = {HEAP: heap(), **global_heap()}
+        return Call(0x45b9d0, [r.choice([0, 1, 4, r.randrange(0x1000)]), r.choice([0, 1, r.getrandbits(32)])], regs, ret='a')
+    return Call(0x45ba00, [r.choice([0, r.getrandbits(32)])], {HEAP: heap(), **global_heap()}, ret='a')
+
+
 def highlight(r, op):
     """Holders A (HL) and B (HL + 0x40): +4 flags, +8 -> HL + 0x80 / 0xc0, whose +4 -> model at
     HL + 0x100 / 0x180 (+0x30 flags, +0x44 meshes at +0x70 -> HL + 0x200 / 0x400); a mesh's +0x64
     -> VERTS + 0x100 * k. Globals: current 0x7a1ce0, target 0x7afda0, suspended 0x7afda4, buffer
-    0x7afd00 -> HLBUF, saved pointers 0x7afd94 -> SAVED."""
+    0x7afd00 -> HLBUF, saved pointers 0x7afd94 -> SAVED. Flashing: +0xd0 links from 0x7afe14; a
+    model's base +0x9c is HL + 0x800 (+0x5c, meshes at +0x70 -> HL + 0xa00), itself or the other
+    model; +0x5c is the base's or not; +0x4a / +0x58 counts; heap() for the GlobalAlloc slots."""
+    op = op.rstrip('2')  # weighted twice
     hl = bytearray(r.bytes(0x1000))
     a, b = HL, HL + 0x40
     for k, h in enumerate((a, b)):
@@ -213,22 +225,58 @@ def highlight(r, op):
         model = 0x100 + 0x80 * k
         put(hl, model + 0x44, 'H', r.choice([0, 1, 2, 3]))
         put(hl, model + 0x70, 'I', HL + 0x200 + 0x200 * k)
+        put(hl, model + 0x9c, 'I', r.choice([HL + 0x800] * 3 + [HL + model, HL + 0x180 - 0x80 * k]))
+        put(hl, model + 0x4a, 'H', r.choice([0, 1, r.randrange(0x40)]))
         for j in range(3):
             mesh = 0x200 + 0x200 * k + 0xa0 * j
             put(hl, mesh, 'I', r.getrandbits(32) & ~0x4000 | r.choice([0, 0, 0x4000]))
             first, count = r.choice([0, 1, r.randrange(5)]), r.choice([0, 1, r.randrange(7)])
             put(hl, mesh + 0x5c, '2H', count, first)
             put(hl, mesh + 0x64, 'I', VERTS + 0x100 * (3 * k + j) if first or r.random() < 0.8 else 0)
+            put(hl, mesh + 0x58, 'H', r.choice([0, 1, r.randrange(9)]))
+    put(hl, 0x844, 'H', 3)
+    put(hl, 0x870, 'I', HL + 0xa00)
+    for j in range(3):
+        put(hl, 0xa00 + 0xa0 * j + 0x64, 'I', VERTS + 0x800 + 0x100 * j if r.random() < 0.8 else 0)
+    shared = r.getrandbits(32)
+    for model in (0x15c, 0x1dc, 0x85c):
+        put(hl, model, 'I', shared if r.random() < 0.6 else r.getrandbits(32))
+    listed = r.sample([a, b], r.choice([0, 1, 2, 2]))
+    for h, nxt in zip(listed, listed[1:] + [0]):
+        put(hl, h - HL + 0xd0, 'I', nxt)
     who = [a, b, 0]
-    regs = {HL: hl, VERTS: r.bytes(0x1000), HLBUF: r.bytes(0x1000), SAVED: r.bytes(0x40),
+    if op == 'HlUnflash':
+        if not listed:
+            listed = [r.choice([a, b])]
+            put(hl, listed[0] - HL + 0xd0, 'I', 0)
+        who = listed
+    regs = {HL: hl, VERTS: r.bytes(0x1000), HLBUF: r.bytes(0x1000), SAVED: struct.pack('<16I', *(VERTS + 0xc00 + 0x40 * i for i in range(16))),
             0x7a1ce0: put(bytearray(4), 0, 'I', r.choice(who)), 0x7afda0: put(bytearray(4), 0, 'I', r.choice(who)),
             0x7afda4: put(bytearray(4), 0, 'I', r.choice([0, 0, 1])), 0x7afd00: put(bytearray(4), 0, 'I', HLBUF),
-            0x7afd94: put(bytearray(4), 0, 'I', SAVED), 0x7a1c7c: r.bytes(4), 0x7afdb0: r.bytes(0x60)}
+            0x7afd94: put(bytearray(4), 0, 'I', SAVED), 0x7a1c7c: r.bytes(4), 0x7afdb0: r.bytes(0x60),
+            0x7afe14: put(bytearray(4), 0, 'I', listed[0] if listed else 0), HEAP: heap(), **global_heap(),
+            0x7afd90: struct.pack('<I', r.randrange(0x100)), 0x7afd9c: struct.pack('<I', r.randrange(0x100)),
+            0x7afe10: struct.pack('<I', r.choice([0, r.randrange(0x100)])),
+            0x7afd04: struct.pack('<f', r.choice([0, 1, 2, r.uniform(0, 2), r.uniform(-3, 5)])) if r.random() < 0.9 else r.bytes(4),
+            0x7b497c: put(bytearray(4), 0, 'I', r.choice([fb(r.uniform(0, 0.1)), fb(r.uniform(-2, 2)), r.getrandbits(32)]))}
+    regs[HL] = hl
+    if op == 'HlUnflash' and r.random() < 0.5:  # a highlighted holder: released and highlighted again
+        h = who[0] - HL
+        put(hl, h + 4, 'I', struct.unpack_from('<I', hl, h + 4)[0] | 0x20000)
+    if op == 'HlUnflash' and struct.unpack_from('<I', hl, who[0] - HL + 4)[0] & 0x20000:
+        # highlighted again after its meshes take the base's pointers: a null one would read
+        # near 0 (+0x5e entries in), which only the emulator survives
+        for j, mesh in enumerate([0x200 + 0xa0 * j for j in range(3)] + [0x400 + 0xa0 * j for j in range(3)] +
+                                 [0xa00 + 0xa0 * j for j in range(3)]):
+            if not struct.unpack_from('<I', hl, mesh + 0x64)[0]:
+                put(hl, mesh + 0x64, 'I', VERTS + 0x600 + 0x20 * j)
     flag = r.choice([0, 1, r.getrandbits(32)])
     calls = {'HlUpdate': (0x469180, []), 'HlTarget': (0x469340, [r.choice(who)]), 'HlTints': (0x469350, []),
              'HlClear': (0x469470, []), 'HlCurrent': (0x45d620, []), 'HlShown': (0x45d630, [flag]),
-             'HlSuspend': (0x45d660, [flag])}
-    address, args = calls[op.rstrip('2')]  # HlUpdate2: weighted twice
+             'HlSuspend': (0x45d660, [flag]), 'HlAlloc': (0x469510, []), 'HlFree': (0x469550, []),
+             'HlFlash': (0x469580, [r.choice([a, b])]), 'HlUnflash': (0x469650, [r.choice(who)]),
+             'HlPulse': (0x469840, [])}
+    address, args = calls[op]
     return Call(address, args, regs, ret='a' if op == 'HlCurrent' else 'v')
 
 
@@ -239,7 +287,9 @@ KINDS = {'Size': mode, 'Depth': mode, 'ResetScale': mode, 'Epsilon': mode, 'Mark
          'ProcEnter': procedural, 'ProcLeave': procedural, 'ProcOn': procedural, 'ProcCells': procedural,
          'PaintCell': paint, 'PaintCell2': paint, 'Remap': remap, 'HlUpdate': highlight, 'HlUpdate2': highlight,
          'HlTarget': highlight, 'HlTints': highlight, 'HlClear': highlight, 'HlCurrent': highlight,
-         'HlShown': highlight, 'HlSuspend': highlight}
+         'HlShown': highlight, 'HlSuspend': highlight, 'HlAlloc': highlight, 'HlFree': highlight,
+         'HlFlash': highlight, 'HlFlash2': highlight, 'HlUnflash': highlight, 'HlUnflash2': highlight,
+         'HlPulse': highlight, 'GAlloc': globalmem, 'GFree': globalmem}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 

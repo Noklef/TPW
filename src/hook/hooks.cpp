@@ -48,7 +48,8 @@
 #include "../game/gfx/imagecodec.h"
 #include "../game/gfx/tga.h"
 #include "../game/core/events.h"
-#include "../game/core/filetime.h"
+#include "../game/core/filetime.h"
+#include "../game/core/globalmem.h"
 #include "../game/core/stdstring.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -1044,6 +1045,8 @@ const Hook kHooks[] = {
     {"StdString_MaxSize",         0x0045b7c0, (void *)&StdString_MaxSize, {0xb8, 0xfd, 0xff, 0xff, 0xff}},
     {"StdString_Copy",            0x0045b7d0, (void *)&StdString_Copy, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"StdString_Split",           0x0045b8d0, (void *)&StdString_Split, {0x53, 0x55, 0x8b, 0xe9, 0x33}},
+    {"GlobalMem_Alloc",           0x0045b9d0, (void *)&GlobalMem_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"GlobalMem_Free",            0x0045ba00, (void *)&GlobalMem_Free, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
@@ -1068,6 +1071,11 @@ const Hook kHooks[] = {
     {"Highlight_Current",         0x0045d620, (void *)&Highlight_Current, {0xa1, 0xe0, 0x1c, 0x7a, 0x00}},
     {"Highlight_SetShown",        0x0045d630, (void *)&Highlight_SetShown, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Highlight_Suspend",         0x0045d660, (void *)&Highlight_Suspend, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"Highlight_AllocBuffers",    0x00469510, (void *)&Highlight_AllocBuffers, {0xa1, 0x90, 0xfd, 0x7a, 0x00}},
+    {"Highlight_FreeBuffers",     0x00469550, (void *)&Highlight_FreeBuffers, {0xa1, 0x00, 0xfd, 0x7a, 0x00}},
+    {"Highlight_Flash",           0x00469580, (void *)&Highlight_Flash, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"Highlight_Unflash",         0x00469650, (void *)&Highlight_Unflash, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"Highlight_PulseFlashing",   0x00469840, (void *)&Highlight_PulseFlashing, {0xd9, 0x05, 0x04, 0xfd, 0x7a}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},

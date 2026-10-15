@@ -1760,6 +1760,8 @@ address,name,kind,confidence,notes
 0x0045b7c0,StdString_MaxSize,function,high,reimplemented (src/game/core/stdstring); std::string::max_size(): 0xfffffffd
 0x0045b7d0,StdString_Copy,function,high,reimplemented (src/game/core/stdstring); std::string::_Copy(n): new block of n | 31 (sic: copies all old chars unclamped)
 0x0045b8d0,StdString_Split,function,high,reimplemented (src/game/core/stdstring); std::string::_Split(): unshares a copy-on-write block
+0x0045b9d0,GlobalMem_Alloc,function,high,"reimplemented (src/game/core/globalmem); GlobalAlloc(GMEM_ZEROINIT or GMEM_FIXED, size) through the import slot; null for 0"
+0x0045ba00,GlobalMem_Free,function,high,reimplemented (src/game/core/globalmem); GlobalFree through the import slot; null for null
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
@@ -1869,3 +1871,8 @@ address,name,kind,confidence,notes
 0x0045d620,Highlight_Current,function,high,reimplemented (src/game/model/highlight); the current holder 0x7a1ce0
 0x0045d630,Highlight_SetShown,function,high,reimplemented (src/game/model/highlight); 0x7a1c7c = shown && current
 0x0045d660,Highlight_Suspend,function,high,reimplemented (src/game/model/highlight); (on): Highlight_Clear + 0x7afda4 = 1; else 0x7afda4 = 0
+0x00469510,Highlight_AllocBuffers,function,high,reimplemented (src/game/model/highlight); allocates the highlight buffer 0x7afd00 and saved table 0x7afd94
+0x00469550,Highlight_FreeBuffers,function,high,reimplemented (src/game/model/highlight); frees the highlight buffer and saved table
+0x00469580,Highlight_Flash,function,high,reimplemented (src/game/model/highlight); starts a holder flashing (list 0x7afe14 via +0xd0)
+0x00469650,Highlight_Unflash,function,high,"reimplemented (src/game/model/highlight); stops a holder flashing, restoring its meshes"
+0x00469840,Highlight_PulseFlashing,function,high,reimplemented (src/game/model/highlight); pulses the flashing holders' colours (phase 0x7afd04)

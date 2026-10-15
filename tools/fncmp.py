@@ -169,6 +169,30 @@ def _free(e):  # cdecl (block)
     e.write(HEAP + 8, struct.pack('<2I', frees + 1, (h * 33 ^ e.u32(e.r['ESP'])) & 0xffffffff))
 
 
+def global_heap():
+    """Regions pointing the game's GlobalAlloc / GlobalFree import slots (0x6fd1cc, 0x6fd26c) at
+    the stubs that serve them from heap() (which the case must also have): GlobalAlloc hashes
+    the size, then the flags, and zeroes the block for GMEM_ZEROINIT; GlobalFree returns 0."""
+    return {0x6fd1cc: struct.pack('<I', STUBS + 0x20), 0x6fd26c: struct.pack('<I', STUBS + 0x30)}
+
+
+def _global_alloc(e):  # stdcall (flags, size)
+    sp = e.r['ESP']
+    flags, size = e.u32(sp), e.u32(sp + 4)
+    e.write(sp, struct.pack('<I', size))
+    _alloc(e)
+    e.write(HEAP + 4, struct.pack('<I', (e.u32(HEAP + 4) * 33 ^ flags) & 0xffffffff))
+    if flags & 0x40 and size:
+        e.write(e.r['EAX'], bytes(size))
+    e.r['ESP'] = sp + 8
+
+
+def _global_free(e):  # stdcall (block)
+    _free(e)
+    e.r['EAX'] = 0
+    e.r['ESP'] += 4
+
+
 def _memmove(e):  # cdecl (to, from, n) -> to
     sp = e.r['ESP']
     to, frm, n = e.u32(sp), e.u32(sp + 4), e.u32(sp + 8)
@@ -211,6 +235,7 @@ class Bench:
         self.emu = x87emu.Emu([slice_listing(ranges)])
         self.emu.hooks.update({0x67a830: _ftol, 0x67b280: _modf, 0x67b24a: _cifmod,
                                STUBS: _record(False), STUBS + 0x10: _record(True),
+                               STUBS + 0x20: _global_alloc, STUBS + 0x30: _global_free,
                                0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove,
                                0x6918f0: _throw('_Xlen'), 0x691ba0: _throw('_Xran')})
         self.emu.hooks.update(hooks or {})
