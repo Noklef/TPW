@@ -138,4 +138,39 @@ double __cdecl Coaster_SpeedAfterDrop(const u8 *params, float speed, float minim
     const X87Reg next = drop * at<float>(params, toY > fromY ? 0x28 : 0x2c) + speed;
     return next.v > minimum ? next.v : minimum;
 }
+
+void __cdecl Coaster_SetupCars(u8 *coaster, u32 riders, u32 segments, u32 flags) {
+    u8 *car = at<u8 *>(coaster, 0x128);
+    for (u32 i = 0; i < at<u32>(at<const u8 *>(coaster, 4), 0x2e8); ++i, car += 0x80) {
+        if ((at<u8>(car, 0) & 4) || (segments != 0 && segments != at<u32>(car, 0xc))) {
+            if (segments) at<u32>(car, 0xc) = segments;
+            const u32 count = at<u32>(car, 0xc);
+            at<u32>(car, 8) = 0;
+            at<u32>(car, 0x2c) = (count - 1) >> 1;
+            if (count) {
+                CoasterCar_SetSegmentOffsets(coaster, car);
+                CoasterCar_SetExtent(coaster, car);
+            }
+        }
+        u8 *seg = at<u8 *>(car, 0x28);
+        if (!(flags & 1)) continue;
+        if (!riders) riders = at<u32>(at<const u8 *>(car, 4), 8);
+        at<u32>(coaster, 0xf0) = riders;
+        const u8 *type = at<const u8 *>(car, 4);
+        u32 seats = at<u32>(car, 0xc);
+        if (at<u32>(type, 0xc) != at<u32>(type, 0x10)) --seats;
+        if (at<u32>(type, 0x14) != at<u32>(type, 0x10)) --seats;
+        u32 left = riders, seated = 0;
+        for (u32 j = 0; j < at<u32>(car, 0xc); ++j, seg += 0x60) {
+            if (at<u32>(seg, 4) != at<u32>(at<const u8 *>(car, 4), 0x10)) {
+                at<u32>(seg, 0x44) = 0;
+                continue;
+            }
+            const u32 share = left / (seats - seated++);
+            left -= share;
+            at<u32>(seg, 0x44) = share;
+        }
+    }
+    at<u32>(coaster, 0xb8) = at<u32>(coaster, 0xf0);
+}
 }

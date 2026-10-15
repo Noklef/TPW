@@ -60,4 +60,16 @@ void __cdecl CoasterCar_SetExtent(const u8 *coaster, u8 *car);
 // params+0x24 * (+0x28 going up, else +0x2c), but at least minimum (minimum too for NaN).
 // Left in st0, so double.
 double __cdecl Coaster_SpeedAfterDrop(const u8 *params, float speed, float minimum, float fromY, float toY);
+
+// 0x43ba90: sets up each of the coaster's cars (type+0x2e8 of them). A car whose flag 4
+// (+0) is set, or whose segment count (+0xc) differs from a non-zero segments, takes it
+// (when non-zero), restarts at segment 0 (+8) with the middle one at (count - 1) / 2
+// (+0x2c), and when it has segments gets its offsets and extent again. With flag 1 the
+// riders (from the first car's type+8 while zero) go to coaster+0xf0 and are shared out
+// over each car's middle-type segments (+4 equal to its type's +0x10) into +0x44: each
+// takes what is left over the seats still to fill (the segment count, less one each when
+// the front type +0xc or the back type +0x14 is not the middle one); the rest get 0.
+// coaster+0xb8 ends up a copy of +0xf0.
+// sic: more middle segments than seats divides by zero.
+void __cdecl Coaster_SetupCars(u8 *coaster, u32 riders, u32 segments, u32 flags);
 }
