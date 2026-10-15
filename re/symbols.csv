@@ -1974,6 +1974,7 @@ address,name,kind,confidence,notes
 0x004628a0,WorldVerts_Free,function,high,reimplemented (src/game/model/worldverts); frees the block at 0x7aecd4 (pointer left)
 0x004628b0,WorldVerts_TransformFrame,function,high,reimplemented (src/game/model/worldverts); the frame's vertices in world space (its matrix times its parents') into the 0x7aecd4 block
 0x00463a10,WorldVerts_Fetch,function,high,reimplemented (src/game/model/worldverts); copies one of a frame's grouped vertices
+0x00466c80,WorldVerts_TransformNode,function,high,reimplemented (src/game/model/worldverts); a node's vertices through a given matrix into the block
 0x00468200,Instance_FreeRecordBlock,function,high,reimplemented (src/game/model/release); frees the +0xc block of the model's first flagged (8) record
 0x0046b3b0,Instance_FreeHolderBlock,function,high,reimplemented (src/game/model/release); frees the holder's +0x18 block
 0x0046b3d0,Int_Add,function,high,reimplemented (src/game/model/release); a + b

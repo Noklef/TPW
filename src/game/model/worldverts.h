@@ -24,4 +24,9 @@ void __cdecl WorldVerts_TransformFrame(const u8 *frame);
 // 0x463a10: vertex index of a frame's grouped vertices (its +0x60) into out: x, y and z
 // copied as words from its group (index / 4, 0x30 bytes each) at lane index % 4.
 void __cdecl WorldVerts_Fetch(const u8 *groups, u32 index, u32 *out);
+
+// 0x466c80: the node's vertices (as for WorldVerts_TransformFrame) into the block through the
+// given matrix only, in another order on the x87: y' = ((x m1 + z m9) + y m5) + m13,
+// z' = ((x m2 + y m6) + z m10) + m14, x' = ((y m4 + x m0) + m8 z) + m12.
+void __cdecl WorldVerts_TransformNode(const u8 *node, const float *m);
 }

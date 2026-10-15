@@ -1,8 +1,8 @@
 # The world vertex buffer at 0x7aecd4 (src/game/model/worldverts: 0x462870, 0x4628a0, 0x4628b0,
-# 0x463a10)
+# 0x463a10, 0x466c80)
 # against the original: its alloc / free (global_heap()) and the frame transform - a frame with
 # a parent chain of matrices (Matrix_Mul) and SoA vertices, written as world positions into it;
-# and the fetch of one of those vertices.
+# the fetch of one of those vertices; and a node's vertices through a given matrix.
 # usage: worldverts.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import sys
@@ -10,7 +10,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, Bench, Call, RAM, global_heap, heap, put  # noqa: E402
 
-B = Bench([(0x462870, 0x4629c4), (0x463a10, 0x463a42), (0x4700f0, 0x4702d0), (0x45b9d0, 0x45ba15), (0x45ba00, 0x45ba30)])
+B = Bench([(0x462870, 0x4629c4), (0x463a10, 0x463a42), (0x466c80, 0x466d62), (0x4700f0, 0x4702d0), (0x45b9d0, 0x45ba15), (0x45ba00, 0x45ba30)])
 FRAMES, VERTS, OUT = RAM, RAM + 0x1000, RAM + 0x3000
 
 
@@ -23,6 +23,15 @@ def case(r):
     if op == 'Fetch':  # raw words (NaNs too) from 8 groups
         regions.update({VERTS: bytearray(r.bytes(0x180)), OUT: bytearray(r.bytes(16))})
         return Call(0x463a10, [VERTS, r.randrange(32), OUT], regions)
+    if op == 'Node':  # SoA vertices through one matrix (its last column any)
+        n = r.choice([0, 1, 3, 4, 5, r.randrange(1, 24)])
+        node = put(bytearray(r.bytes(0x140)), 0x58, 'H', n)
+        put(node, 0x60, 'I', VERTS)
+        r.floats(node, range(0x100, 0x140, 4), r.choice([1, 2, 100, None]))  # the matrix
+        verts = r.floats(bytearray(0x30 * ((n + 3) // 4 + 1)), range(0, 0x30 * ((n + 3) // 4 + 1), 4))
+        put(regions[0x7aecd4], 0, 'I', OUT)
+        regions.update({FRAMES: node, VERTS: verts, OUT: bytearray(r.bytes(12 * n + 16))})
+        return Call(0x466c80, [FRAMES, FRAMES + 0x100], regions)
     if op == 'Free':
         put(regions[0x7aecd4], 0, 'I', r.choice([0, HEAP + 0x40, r.getrandbits(32)]))
         return Call(0x4628a0, [], regions)
@@ -45,7 +54,7 @@ def case(r):
     return Call(0x4628b0, [FRAMES], regions)
 
 
-OPS_ALL = ['Alloc', 'Free', 'Fetch'] + ['Transform'] * 6
+OPS_ALL = ['Alloc', 'Free', 'Fetch'] + ['Transform', 'Node'] * 6
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

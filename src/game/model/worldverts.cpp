@@ -54,4 +54,22 @@ void __cdecl WorldVerts_Fetch(const u8 *groups, u32 index, u32 *out) {
     out[1] = lane[4];
     out[2] = lane[8];
 }
+
+void __cdecl WorldVerts_TransformNode(const u8 *node, const float *m) {
+    float *out = block();
+    for (u32 i = 0; i < at<u16>(node, 0x58); ++i, out += 3) {
+        const u32 *const group = at<const u32 *>(node, 0x60) + (i >> 2) * 12 + (i & 3);
+        u32 *const raw = reinterpret_cast<u32 *>(out);  // copied as bits, then read back
+        raw[0] = group[0];
+        raw[1] = group[4];
+        raw[2] = group[8];
+        const float x = out[0], y = out[1], z = out[2];
+        const X87Reg ny = X87Reg(x) * m[1] + X87Reg(z) * m[9] + X87Reg(y) * m[5] + m[13];
+        const X87Reg nz = X87Reg(x) * m[2] + X87Reg(y) * m[6] + X87Reg(z) * m[10] + m[14];
+        const X87Reg nx = X87Reg(y) * m[4] + X87Reg(x) * m[0] + X87Reg(m[8]) * z + m[12];
+        out[1] = (float)ny;
+        out[2] = (float)nz;
+        out[0] = (float)nx;
+    }
+}
 }
