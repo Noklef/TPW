@@ -31,6 +31,7 @@
 #include "../game/files/filestream.h"
 #include "../game/files/quickload.h"
 #include "../game/files/textscan.h"
+#include "../game/files/wtext.h"
 #include "../game/math/matrix.h"
 #include "../game/math/vector.h"
 #include "../game/math/rect.h"
@@ -721,6 +722,8 @@ const Hook kHooks[] = {
     {"TextScan_Read",             0x00427540, (void *)&TextScan_Read, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"TextScan_Step",             0x004273c0, (void *)&TextScan_Step, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"TextScan_SkipBlanks",       0x004273e0, (void *)&TextScan_SkipBlanks, {0x8b, 0x4c, 0x24, 0x04, 0x56}},
+    {"WText_WordEquals",          0x00413380, (void *)&WText_WordEquals, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"WText_NextLine",            0x004138b0, (void *)&WText_NextLine, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"RegKey_Open",               0x005f8ae0, (void *)&RegKey_Open, {0x51, 0x56, 0x57, 0x8b, 0xf9}},
     {"RegKey_Dtor",               0x005f8b70, (void *)&RegKey_Dtor, {0x51, 0x8d, 0x44, 0x24, 0x00}},
     {"RegKey_Close",              0x005f8b80, (void *)&RegKey_Close, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
