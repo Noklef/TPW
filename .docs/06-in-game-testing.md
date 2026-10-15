@@ -184,3 +184,10 @@ There are no crash dumps, because WER LocalDumps needs admin. The trace's except
     was verified only against our own Python model (`tools/lnd.py`), never against the original
     MMX code, so a mistake shared by both would pass. Next run: all hooks except that one
     (`4-hooked-no-terrainblend`; `.data\local\ini\<label>.ini` becomes `tpw.ini`).
+- 2026-10-15, all hooks except `TerrainBlend_Tile`: **same glitches**, so it is cleared. The game's
+  `enginedebug.txt` says "Using procedural textures: 0": this setup never calls the blender, and
+  the ground uses the pre-made wavelet textures. The glitches are black ground under ride queues
+  and entrance paths, plus green and brown streaks fanning out from rides. Next: passthrough on the
+  same saved park (baseline), then group bisection: `5-hooked-no-math` (106 maths, model and
+  animation hooks off) and `6-hooked-no-gfx` (332 surface, pixel-format, codec, drawing and sprite
+  hooks off). `run-local.cmd` now also keeps `enginedebug-<label>.txt`.
