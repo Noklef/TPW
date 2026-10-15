@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -130,6 +130,55 @@ def cars(r, op):
                     ret='d')
     if op == 'Dist':
         return Call(0x470940, [SPL, SPL + 12], {SPL: r.floats(r.bytes(24), range(0, 24, 4))}, ret='d')
+    if op == 'Window':
+        cs, vals = r.bytes(0x300), r.bytes(0x300)
+        for k in range(3):  # car k: +0x64 the next car, +0x90 -> +4 -> +8 its value
+            put(cs, k * 0x80 + 0x64, 'I', CARS + (k + 1) % 3 * 0x80)
+            put(cs, k * 0x80 + 0x90, 'I', SPL + k * 0x100)
+            put(vals, k * 0x100 + 4, 'I', SPL + k * 0x100 + 0x80)
+            put(vals, k * 0x100 + 0x88, 'I', r.f())
+        put(c, 0x54, 'I', CARS)
+        put(t, 0x31c, 'I', r.f())
+        if r.random() < 0.3:  # NaNs alike but for the sign: which one an add keeps shows
+            for o in r.sample([0x88, 0x288, -1], 2):
+                nan = r.choice([0x7fc00000, 0xffc00000])
+                put(vals, o, 'I', nan) if o >= 0 else put(t, 0x31c, 'I', nan)
+        return Call(0x43b750, [COAST], {COAST: c, TYPE: t, CARS: cs, SPL: vals})
+    if op == 'InWindow':
+        count, start = r.randrange(0, 10), r.randrange(0, 4)
+        car, segs, types = r.bytes(0x100), r.bytes(14 * 0x60), r.bytes(0x400)
+        put(car, 8, 'II', start, count)
+        put(car, 0x28, 'I', SPL)
+        mode = r.choice(['exact', 'exact', 'tiny', 'wide'])
+        scale = {'exact': r.choice([1.0, 2.0, 0.5]), 'tiny': r.uniform(3, 9), 'wide': r.uniform(0.25, 4)}[mode]
+        pos, ty = [], []
+        f32 = lambda v: struct.unpack('<f', struct.pack('<f', v))[0]  # noqa: E731
+        for k in range(8):
+            if mode == 'exact':
+                v = (r.randrange(6) / 2, r.randrange(6) / 2)
+            elif mode == 'tiny':  # a quotient below float's range: the register keeps its bits
+                v = (r.uniform(1e-38, 4e-38), r.uniform(1e-38, 4e-38))
+            else:
+                v = (r.uniform(0, 3), r.uniform(0, 3))
+            ty.append((f32(v[0]), f32(v[1])))
+            put(types, k * 0x80 + 0x24, 'ff', *ty[-1])
+        for k in range(14):
+            ti = r.randrange(8)
+            x = {'exact': r.randrange(-16, 16) / 2, 'tiny': 0.0, 'wide': r.uniform(-8, 8)}[mode]
+            pos.append((x, ti))
+            put(segs, k * 0x60 + 4, 'I', NODES + ti * 0x80)
+            put(segs, k * 0x60 + 0x40, 'f', x)
+        x, ti = r.choice(pos)
+        lo = r.choice([f32(x + ty[ti][0] / scale), r.uniform(-8, 8)])
+        x, ti = r.choice(pos)
+        hi = r.choice([f32(x - ty[ti][1] / scale), lo + r.uniform(-1, 6)])
+        put(c, 0xf8, 'ff', lo, hi)
+        put(c, 0xac, 'f', scale)
+        if r.random() < 0.15:
+            buf, off = r.choice([(segs, r.randrange(14) * 0x60 + 0x40), (types, r.randrange(8) * 0x80 + r.choice([0x24, 0x28])),
+                                 (c, r.choice([0xac, 0xf8, 0xfc]))])
+            put(buf, off, 'I', r.f())
+        return Call(0x43b7e0, [COAST, CARS, OUT, OUT + 4], {COAST: c, CARS: car, SPL: segs, NODES: types, OUT: r.bytes(8)})
     if op == 'Segs':
         count = r.randrange(0, 13)
         car, segs = r.bytes(0x100), r.bytes(14 * 0x60)
@@ -239,7 +288,7 @@ def lists(r, op):
 
 KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 'Tangent': spline, 'Set': orient,
          'Init': orient, 'Frame': frame, 'At': frame,
-         'RoundUp': helpers, 'Lerp': helpers, 'Swing': cars, 'Space': cars, 'Segs': cars, 'Dist': cars,
+         'RoundUp': helpers, 'Lerp': helpers, 'Swing': cars, 'Space': cars, 'Segs': cars, 'Window': cars, 'InWindow': cars, 'Dist': cars,
          'NodeLerp': nodes, 'PastEnd': nodes, 'Zone': nodes, 'Merge': keys, 'Append': lists}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 

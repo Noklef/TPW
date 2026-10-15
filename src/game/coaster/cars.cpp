@@ -94,4 +94,32 @@ void __cdecl CoasterCar_SetSegmentOffsets(const u8 *coaster, u8 *car) {
         place(seg, sum);
     }
 }
+
+void __cdecl Coaster_SetSegmentWindow(u8 *coaster) {
+    const auto value = [](const u8 *car) { return at<float>(at<const u8 *>(at<const u8 *>(car, 0x90), 4), 8); };
+    const u8 *car = at<const u8 *>(coaster, 0x54);
+    const float a = value(car), b = value(at<const u8 *>(at<const u8 *>(car, 0x64), 0x64));
+    const float k = at<float>(at<const u8 *>(coaster, 4), 0x31c);
+    const X87Reg mid = (X87Reg(b) + a) * 0.5f, near = X87Reg(k) * mid;
+    at<float>(coaster, 0xf8) = (float)(near + (X87Reg(1.0f) - k) * a);
+    at<float>(coaster, 0xfc) = (float)(near + (X87Reg(1.0f) - k) * b);
+}
+
+void __cdecl CoasterCar_FindSegmentsInWindow(const u8 *coaster, const u8 *car, s32 *first, s32 *last) {
+    const float scale = at<float>(coaster, 0xac);
+    const u8 *seg = at<const u8 *>(car, 0x28) + at<u32>(car, 8) * 0x60;
+    const u8 *found = nullptr, *final = nullptr;
+    for (u32 n = at<u32>(car, 0xc); n != 0; --n, seg += 0x60) {
+        const u8 *type = at<const u8 *>(seg, 4);
+        const X87Reg ahead = X87Reg(at<float>(type, 0x24)) / scale, behind = X87Reg(at<float>(type, 0x28)) / scale;
+        const float at40 = at<float>(seg, 0x40);
+        if (!((ahead + at40).v >= at<float>(coaster, 0xf8))) continue;
+        if (X87_SubR(behind, at40).v > at<float>(coaster, 0xfc)) continue;
+        if (!found) found = seg;
+        final = seg;
+    }
+    const uintptr_t base = (uintptr_t)at<const u8 *>(car, 0x28);
+    *first = (s32)((uintptr_t)found - base) / 0x60;
+    *last = (s32)((uintptr_t)final - base) / 0x60;
+}
 }

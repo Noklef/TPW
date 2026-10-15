@@ -34,4 +34,18 @@ void __cdecl Coaster_SpaceCars(u8 *coaster);
 // +0x20. The sums stay unrounded (only the stores round).
 // sic: the middle index is not checked against the count.
 void __cdecl CoasterCar_SetSegmentOffsets(const u8 *coaster, u8 *car);
+
+// 0x43b750: the coaster's segment window (+0xf8, +0xfc): with a the float at
+// car->0x90->4->8 for the car at coaster+0x54 and b the same for the car two along it (+0x64
+// twice), and k the coaster type's (+4) +0x31c, each end is k of the way from its value to
+// their midpoint: k * (a + b) / 2 + (1 - k) * a, and the same with b.
+void __cdecl Coaster_SetSegmentWindow(u8 *coaster);
+
+// 0x43b7e0: of the car's segments (index car+8 on, car+0xc of them), the first and the last
+// whose span, from +0x40 - type+0x28 to +0x40 + type+0x24 (type at segment+4, both over
+// coaster+0xac), reaches into the coaster's segment window (front >= +0xf8 and back not
+// past +0xfc; a NaN front fails, a NaN back passes). Their indices into car+0x28 go to
+// *first and *last.
+// sic: with no match the index is that of a null pointer, -(car+0x28) / 0x60.
+void __cdecl CoasterCar_FindSegmentsInWindow(const u8 *coaster, const u8 *car, s32 *first, s32 *last);
 }

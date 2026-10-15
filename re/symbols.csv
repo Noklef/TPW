@@ -1749,3 +1749,5 @@ address,name,kind,confidence,notes
 0x00faa298,gFormatPal8,data,high,"masks 0, 8 bits, paletted (set at 0x6316c2)"
 0x00faa2b0,gFormatRgb555,data,high,"masks 7c00/3e0/1f, 16 bits (set at 0x631702); the TGA reader's 15- and 16-bit format"
 0x0043bc20,CoasterCar_SetSegmentOffsets,function,high,"reimplemented (src/game/coaster/cars); cdecl (coaster, car): each car segment (0x60 bytes at +0x28) at its distance from the middle one (+0x2c) in +0x38, and that over coaster+0xac in +0x3c; lengths from the car type by segment index (first, middle, last)"
+0x0043b750,Coaster_SetSegmentWindow,function,high,"reimplemented (src/game/coaster/cars); cdecl (coaster): the segment window +0xf8/+0xfc, each end k (type+0x31c) of the way from the value (car->0x90->4->8) of the car at +0x54 / of the car two along to their midpoint"
+0x0043b7e0,CoasterCar_FindSegmentsInWindow,function,high,"reimplemented (src/game/coaster/cars); cdecl (coaster, car, first, last): the indices of the first and last of the car's segments whose span (+0x40 -/+ type+0x28/+0x24 over coaster+0xac) reaches into the window +0xf8..+0xfc"
