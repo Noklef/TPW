@@ -62,4 +62,6 @@ void __cdecl Sprite_ScreenMatrix(float *out, s16 x, s16 y, s16 w, s16 h, float l
     Matrix_Mul(m, scale);
     std::memcpy(out, m, sizeof m);
 }
+
+double __cdecl Sprite_FlipY(s32 y) { return X87_SubR(X87Reg((double)y) / global(0x0074f898), X87Reg(1.0f)).v; }
 }

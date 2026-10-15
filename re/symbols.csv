@@ -551,6 +551,7 @@ address,name,kind,confidence,notes
 0x00541fd0,Sprite_RandomAnim,function,high,"reimplemented (src/game/sprite/sprite); (folder, sprite): (World_Rand >> 2) % the animation count (+0x21e)"
 0x005423a0,Sprite_FrameEntry,function,high,"reimplemented (src/game/sprite/sprite); (anim, frame, dir) in folder 13: the frame table entry; no callers"
 0x00476c50,Sprite_ScreenMatrix,function,high,reimplemented (src/game/sprite/screenmatrix); the matrix that puts a sprite on the screen
+0x00476a70,Sprite_FlipY,function,high,reimplemented (src/game/sprite/screenmatrix); 1 - y / [0x74f898] in ST0
 0x00541ed0,Sprites_FreeAll,function,medium,"frees every sprite and its image set (0x588230), then resets the 17 draw list objects (0x58a520)"
 0x00541210,SpriteFiles_Sort,function,low,"bubble-sorts the 12-byte entries at 0x875970 (count 0x875430) by the name at +0x20 of their first word (0x424cc0 on string copies)"
 0x008751f0,gSpriteDrawListObjs,data,medium,"16 x 0x24-byte render list objects (+4 count), one per map cell; the overlay one at 0x876420; created by Sprites_Init (0x58a4f0)"
@@ -1835,6 +1836,7 @@ address,name,kind,confidence,notes
 0x00477cc0,BarMesh_SetTopVertices,function,high,reimplemented (src/game/gfx/barmesh); virtual: the bar's top edge vertices at its level (+0x120)
 0x00477d20,BarMesh_SetTopTexCoords,function,high,reimplemented (src/game/gfx/barmesh); virtual: the bar's top edge texture v = level * 0.01
 0x004786f0,BarMesh_SetTexCoord,function,high,reimplemented (src/game/gfx/barmesh); texture coordinate i of a 4-lane u/v block array
+0x00476e80,Overlay_ShowFrame,function,high,"reimplemented (src/game/gfx/overlay); shows node base + frame of the holder model list; old node 0x8010 set, new cleared"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"

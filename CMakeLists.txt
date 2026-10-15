@@ -70,6 +70,7 @@ add_library(tpw_game STATIC
     src/game/gfx/texdirs.cpp
     src/game/gfx/gauge.cpp
     src/game/gfx/barmesh.cpp
+    src/game/gfx/overlay.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp

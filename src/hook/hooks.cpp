@@ -50,7 +50,8 @@
 #include "../game/gfx/jpeg.h"
 #include "../game/gfx/imagecodec.h"
 #include "../game/gfx/texdirs.h"
-#include "../game/gfx/barmesh.h"
+#include "../game/gfx/barmesh.h"
+#include "../game/gfx/overlay.h"
 #include "../game/gfx/tga.h"
 #include "../game/core/events.h"
 #include "../game/core/filetime.h"
@@ -264,6 +265,7 @@ const Hook kHooks[] = {
     {"Sprite_RandomAnim",        0x00541fd0, (void *)&Sprite_RandomAnim, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Sprite_FrameEntry",        0x005423a0, (void *)&Sprite_FrameEntry, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Sprite_ScreenMatrix",       0x00476c50, (void *)&Sprite_ScreenMatrix, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"Sprite_FlipY",              0x00476a70, (void *)&Sprite_FlipY, {0xdb, 0x44, 0x24, 0x04, 0xd8}},
     {"World_Rand",               0x00516330, (void *)&World_Rand, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"World_SetSeed",            0x00516370, (void *)&World_SetSeed, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Things_InitTable",         0x00515f30, (void *)&Things_InitTable, {0x33, 0xd2, 0x56, 0x89, 0x15}},
@@ -1090,6 +1092,7 @@ const Hook kHooks[] = {
     {"BarMesh_SetTopVertices",    0x00477cc0, (void *)&BarMesh_SetTopVertices, {0x8b, 0x41, 0x7c, 0x33, 0xd2}},
     {"BarMesh_SetTopTexCoords",   0x00477d20, (void *)&BarMesh_SetTopTexCoords, {0xd9, 0x81, 0x20, 0x01, 0x00}},
     {"BarMesh_SetTexCoord",       0x004786f0, (void *)&BarMesh_SetTexCoord, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"Overlay_ShowFrame",         0x00476e80, (void *)&Overlay_ShowFrame, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

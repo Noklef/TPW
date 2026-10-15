@@ -17,4 +17,7 @@ extern "C" {
 // The 16-bit arguments are read sign-extended from their low words.
 void __cdecl Sprite_ScreenMatrix(float *out, s16 x, s16 y, s16 w, s16 h, float left, float top, float width,
                                  float height, s16 cx, s16 cy, s16 angle);
+
+// 0x476a70: 1 - y / [0x74f898] (in ST0), a frame row as a height up from the bottom.
+double __cdecl Sprite_FlipY(s32 y);
 }
