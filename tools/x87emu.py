@@ -320,7 +320,7 @@ class Emu:
         return self.st[0]
 
     def step(self, pc):
-        if pc not in self.code and pc in self.hooks:  # a tail call (jmp): the hook sees the return address at [ESP]
+        if pc in self.hooks:  # a tail call (jmp), into the listing or not: the hook sees the return address at [ESP]
             self.hooks[pc](self)
             return self.pop()
         if pc not in self.code:

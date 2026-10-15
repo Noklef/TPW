@@ -416,8 +416,12 @@ void Layer_UpdateWith(const AnimatorEnv &env, u8 *animator, u8 *layer, const u8 
             if (!(animator_flags & 0x18)) {
                 played = true;
                 if (layer[0] & 1) {  // looping: again, at the queued speed if one was given
-                    const float queued = field<float>(layer, 0x30);
-                    const float speed = (queued < 0 || queued > 0) ? queued : field<float>(layer, 0xc);
+                    // The speeds move as dwords, so a signalling NaN stays one (a float
+                    // returned through st0, as by field<float>, would come back quiet).
+                    float queued, own;
+                    std::memcpy(&queued, layer + 0x30, 4);
+                    std::memcpy(&own, layer + 0xc, 4);
+                    const float speed = (queued < 0 || queued > 0) ? queued : own;
                     Layer_PlayWith(env, animator, bank, field<u32>(layer, 8), layer, mode | 1, speed);
                 } else {
                     Layer_PlayWith(env, animator, 0xe, 0, layer, mode, 1.0f);
@@ -438,8 +442,10 @@ void Layer_UpdateWith(const AnimatorEnv &env, u8 *animator, u8 *layer, const u8 
             }
         } else {
             played = true;
+            float queued;  // as a dword, as above
+            std::memcpy(&queued, layer + 0x30, 4);
             Layer_PlayWith(env, animator, field<u32>(layer, 0x24), field<u32>(layer, 0x28), layer,
-                           field<u32>(layer, 0x2c) | mode, field<float>(layer, 0x30));
+                           field<u32>(layer, 0x2c) | mode, queued);
             at<u32>(layer, 0x24) = 0xc;
             at<u32>(layer, 0x28) = 0;
             at<u32>(layer, 0x30) = 0;
