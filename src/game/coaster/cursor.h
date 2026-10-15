@@ -36,4 +36,11 @@ u32 __cdecl TrackSelection_ClearFlags();
 // 0x444700: numbers the pieces from piece on (+0x64) after its previous one (+0x68: its +0
 // plus 1, else 0), each at +0 and as a float at +0x6c.
 void __cdecl TrackPieces_Renumber(u8 *piece);
+
+// 0x444090: moves the selection's first end (0x79c628) to piece: unless keep, clears the old
+// selection's flags (TrackSelection_ClearFlags); then flags 0x1000000 (+8) the pieces from
+// the end with the lower index (the other end, 0x79c62c, on a tie) up to but not including
+// the other. When anything changed (the flags, or with keep the end), Flags_SetChanged(the
+// current link (0x790fec), 0).
+void __cdecl TrackSelection_SetFirst(u8 *piece, u32 keep);
 }

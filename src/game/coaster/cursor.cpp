@@ -1,5 +1,7 @@
 #include "cursor.h"
 
+#include "train.h"
+
 #include <cstdint>
 
 namespace {
@@ -92,5 +94,18 @@ void __cdecl TrackPieces_Renumber(u8 *piece) {
         at<u32>(piece, 0) = n;
         at<float>(piece, 0x6c) = (float)(double)n;
     }
+}
+
+void __cdecl TrackSelection_SetFirst(u8 *piece, u32 keep) {
+    u8 *&first = *reinterpret_cast<u8 **>(0x0079c628);
+    u32 changed = keep ? first != piece : TrackSelection_ClearFlags();
+    first = piece;
+    if (piece) {
+        u8 *other = *reinterpret_cast<u8 *const *>(0x0079c62c), *from = other, *to = piece;
+        if (at<u32>(other, 0) > at<u32>(piece, 0)) from = piece, to = other;
+        for (u8 *p = from; p != to; p = at<u8 *>(p, 0x64)) at<u32>(p, 8) |= 0x1000000;
+        changed = 1;
+    }
+    if (changed) Flags_SetChanged(*reinterpret_cast<u32 *const *>(0x00790fec), 0);
 }
 }
