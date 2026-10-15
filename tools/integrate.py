@@ -9,7 +9,8 @@ with the original's first five bytes from the exe), and its row to re/symbols.cs
 the row at that address if there is one, else after the unit's last row). Adds the unit's .cpp
 to tpw_game in CMakeLists.txt and its header to hooks.cpp if missing. Then builds, runs
 tpw_tests and, with --bench, the given fncmp suite. Functions already in kHooks are skipped,
-so a rerun is harmless.
+so a rerun is harmless. Before touching anything it refuses names already used for another
+address (in kHooks or re/symbols.csv) or declared in a header other than the unit's own.
 """
 import csv
 import io
@@ -58,6 +59,28 @@ def unit_names(symbols_text, tag):
 def anchors(unit):
     """Where a unit's rows go: after its own, else after its folder's (a new unit)."""
     return ['(src/game/%s)' % unit, '(src/game/%s/' % unit.rsplit('/', 1)[0]]
+
+
+def check_names(spec, symbols_text):
+    """Exits, before any edit, on a name that is already something else."""
+    hooks = read(HOOKS)
+    bad = []
+    for name, addr, unit, _ in spec:
+        m = re.search(r'\{"%s",\s*0x([0-9a-f]{8}),' % re.escape(name), hooks)
+        if m and int(m.group(1), 16) != addr:
+            bad.append('%s is hooked at 0x%s' % (name, m.group(1)))
+        for row in csv.reader(io.StringIO(symbols_text)):
+            if len(row) > 1 and row[1] == name and int(row[0], 16) != addr:
+                bad.append('%s is %s in re/symbols.csv' % (name, row[0]))
+        own = os.path.normpath(os.path.join(ROOT, 'src', 'game', unit + '.h'))
+        decl = re.compile(r'\b%s\s*\(' % re.escape(name))
+        for d, _, files in os.walk(os.path.join(ROOT, 'src', 'game')):
+            for f in files:
+                path = os.path.normpath(os.path.join(d, f))
+                if f.endswith('.h') and path != own and decl.search(read(path)):
+                    bad.append('%s is declared in %s' % (name, os.path.relpath(path, ROOT)))
+    if bad:
+        sys.exit('name clash, nothing changed:\n  ' + '\n  '.join(bad))
 
 
 def add_hooks(spec, names_by_unit):
@@ -160,6 +183,7 @@ def main():
         sys.exit(__doc__)
     spec = parse_spec(a[0])
     sym = read(SYMBOLS)
+    check_names(spec, sym)
     names_by_unit = {u: [unit_names(sym, t) for t in anchors(u)] for u in {s[2] for s in spec}}
     n = add_hooks(spec, names_by_unit)
     add_symbols(spec)

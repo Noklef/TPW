@@ -24,6 +24,7 @@ import struct
 
 EXE = os.path.join(os.path.dirname(__file__), '..', '.data', 'nocd', 'tp.exe')
 SENTINEL = 0xdead0000
+FS_BASE = 0x0fff0000  # FS: addresses (the thread block), in the stack's lowest 64 KB
 REGS = ('EAX', 'ECX', 'EDX', 'EBX', 'ESP', 'EBP', 'ESI', 'EDI')
 LOW8 = {'AL': 'EAX', 'CL': 'ECX', 'DL': 'EDX', 'BL': 'EBX'}
 HIGH8 = {'AH': 'EAX', 'CH': 'ECX', 'DH': 'EDX', 'BH': 'EBX'}
@@ -104,6 +105,10 @@ def exe_sections():
     return out
 
 
+class MemFault(Exception):
+    """An access outside what a strict emulator allows (see Emu.ranges)."""
+
+
 class Emu:
     def __init__(self, listings):
         self.code = {}
@@ -116,6 +121,8 @@ class Emu:
         self.next = {a: b for a, b in zip(self.order, self.order[1:])}
         self.sections = exe_sections()
         self.mem = {}
+        self.ranges = None  # strict: [(lo, hi, writable)] plus 64 KB chunks (self.chunks) may be touched
+        self.chunks = set()
         self.hooks = {}
         self.heap = 0x20000000
         self.reset()
@@ -129,10 +136,17 @@ class Emu:
         self.zf = self.sf = self.cf = self.of = self.pf = False
 
     # memory: written bytes first, then the exe image, else zero
+    def allowed(self, a, write):
+        if a >> 16 in self.chunks:
+            return True
+        return any(lo <= a < hi and (w or not write) for lo, hi, w in self.ranges)
+
     def rb(self, a):
         a &= 0xffffffff
         if a in self.mem:
             return self.mem[a]
+        if self.ranges is not None and not self.allowed(a, False):
+            raise MemFault('read of %08x' % a)
         for va, data in self.sections:
             if va <= a < va + len(data):
                 return data[a - va]
@@ -143,7 +157,10 @@ class Emu:
 
     def write(self, a, data):
         for i, b in enumerate(data):
-            self.mem[(a + i) & 0xffffffff] = b
+            at = (a + i) & 0xffffffff
+            if self.ranges is not None and at not in self.mem and not self.allowed(at, True):
+                raise MemFault('write of %08x' % at)
+            self.mem[at] = b
 
     def u32(self, a):
         return struct.unpack('<I', self.read(a, 4))[0]
@@ -175,10 +192,11 @@ class Emu:
         return total & 0xffffffff
 
     def mem_operand(self, op):
-        m = re.fullmatch(r'(?:(byte|word|dword|float|qword|double|extended double|tword) ptr )?(?:\w+:)?\[(.*)\]', op)
+        m = re.fullmatch(r'(?:(byte|word|dword|float|qword|double|extended double|tword) ptr )?(?:(\w+):)?\[(.*)\]', op)
         if not m:
             return None
-        return self.ea(m.group(2)), m.group(1) or 'dword'
+        base = FS_BASE if m.group(2) == 'FS' else 0  # the thread block (FS:[0], the SEH chain)
+        return (base + self.ea(m.group(3))) & 0xffffffff, m.group(1) or 'dword'
 
     def get(self, op):
         if op in self.r:

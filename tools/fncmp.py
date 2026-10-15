@@ -15,7 +15,12 @@ A test script defines a case generator and calls run():
 Call(address, args, regions, conv='c'|'s'|'t'|'f', ret='v'|'a'|'b'|'i'|'d'): ret 'a' compares
 EAX, 'b' AL (a flag returned over whatever EAX held), 'i' EAX and EDX, 'd' the double left in
 st0. Region addresses must be in the game's data (0x6e7000-0xfc5200) or at 0x10000000 and up (RAM, ALLOC.. are free slots); anything a case
-does not set reads as the exe image there, else zero, in both.
+does not set reads as the exe image there, else zero, in both. The emulator is strict, like
+the driver: an access outside the regions' 64 KB chunks, the stack and the game's data (the
+exe's code is readable too) faults, so a case with a wild pointer shows up as such ("crash
+... (emu: write of ADDR at PC)") instead of passing in the emulator and crashing natively. A
+case that faults in both counts as the same and is tallied ("crash in both"). STRICT=0 turns
+it off.
 
 Mutation testing: B.mutants(case, [(path, old, new), ...]) applies each edit to the source
 (old must occur once), rebuilds, runs, restores, and reports which edits were caught.
@@ -52,6 +57,8 @@ DRIVER = os.path.join(ROOT, 'build', 'tpw_fncmp.exe')
 LISTING = os.path.join(ROOT, '_re', 'text.asm')
 RAM = 0x30000000  # free addresses for case regions: RAM, RAM + 0x1000, ...
 STUBS = 0x2f000000  # the record stream's read and write (driver.cpp's kStubs)
+GAME_LOW, GAME_HIGH = 0x6e7000, 0xfc5200  # the game's data, which the driver maps (driver.cpp's kGameLow/High)
+CRASH = 'crash c0000005'  # how the driver reports an access violation
 HEAP = 0x2e000000  # heap(): Mem_Alloc / Mem_Free's blocks (driver.cpp's kHeap)
 
 
@@ -231,7 +238,7 @@ def _cifmod(e):  # _CIfmod: st1 fmod st0, popping both; NaNs come through as fro
 
 
 class Bench:
-    def __init__(self, ranges, sines=None, hooks=None):
+    def __init__(self, ranges, sines=None, hooks=None, strict=True):
         self.emu = x87emu.Emu([slice_listing(ranges)])
         self.emu.hooks.update({0x67a830: _ftol, 0x67b280: _modf, 0x67b24a: _cifmod,
                                STUBS: _record(False), STUBS + 0x10: _record(True),
@@ -240,12 +247,21 @@ class Bench:
                                0x6918f0: _throw('_Xlen'), 0x691ba0: _throw('_Xran')})
         self.emu.hooks.update(hooks or {})
         self.extra = {0x7b095c: sine_table(sines)} if sines else {}
+        # strict: the original faults, as the driver would, outside the case's regions, the
+        # stack and the game's data (and only reads the exe's other sections). STRICT=0 in the
+        # environment turns it off.
+        self.strict = strict and os.environ.get('STRICT', '1') != '0'
+        self.ranges = [(GAME_LOW, GAME_HIGH, True)] + [(va, va + len(d), False) for va, d in x87emu.exe_sections()]
 
     def original(self, c):
         e = self.emu
+        e.ranges = None
         e.mem.clear()
         for k, v in c.regions.items():
             e.write(k, bytes(v))
+        if self.strict:  # what the driver maps: the case's regions (in 64 KB chunks), the stack
+            e.chunks = {0x0fff, 0x1000} | {p for k, v in c.regions.items() for p in range(k >> 16, ((k + max(len(v), 1) - 1) >> 16) + 1)}
+            e.ranges = self.ranges
         e.reset()
         args = c.args
         if c.conv in 'tf' and args:
@@ -258,12 +274,16 @@ class Bench:
             e.push(a & 0xffffffff)
         e.push(x87emu.SENTINEL)
         pc = c.address
-        for _ in range(5_000_000):
-            if pc == x87emu.SENTINEL:
-                break
-            pc = e.step(pc)
-        else:
-            return 'step limit'
+        try:
+            for _ in range(5_000_000):
+                if pc == x87emu.SENTINEL:
+                    break
+                at = pc
+                pc = e.step(pc)
+            else:
+                return 'step limit'
+        except x87emu.MemFault as f:
+            return '%s (emu: %s at %08x)' % (CRASH, f, at)
         st0 = struct.unpack('<Q', struct.pack('<d', e.st[0]))[0] if c.ret == 'd' and e.st else 0
         head = ['%08x' % e.r['EAX'] if c.ret in 'ai' else '%02x' % (e.r['EAX'] & 0xff) if c.ret == 'b' else '-', '%08x' % e.r['EDX'] if c.ret == 'i' else '-',
                 '%016x' % st0 if c.ret == 'd' else '-']
@@ -303,10 +323,13 @@ class Bench:
         """Returns the number of differing cases."""
         cases = self.cases(gen, n, seed, wild)
         nat = self.native(cases)
-        bad = 0
+        bad = crashed = 0
         for i, (c, cpp) in enumerate(zip(cases, nat)):
             emu = self.original(c)
             if emu == cpp:
+                continue
+            if isinstance(emu, str) and isinstance(cpp, str) and emu.startswith(CRASH) and cpp == CRASH:
+                crashed += 1  # the original faults too: the same
                 continue
             bad += 1
             if bad > show:
@@ -321,7 +344,8 @@ class Bench:
                     d = next((j for j in range(0, min(len(x), len(y)), 8) if x[j:j + 8] != y[j:j + 8]), 0)
                     print('  %s +%x: cpp %s emu %s' % (name, d // 2, x[d:d + 16], y[d:d + 16]))
         if not quiet:
-            print('%d cases%s, seed %d: %d differ' % (n, ' (wild)' if wild else '', seed, bad))
+            print('%d cases%s, seed %d: %d differ%s' % (n, ' (wild)' if wild else '', seed, bad,
+                                                       ' (%d crash in both)' % crashed if crashed else ''))
         return bad
 
     def main(self, gen):
