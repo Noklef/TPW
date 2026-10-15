@@ -62,4 +62,12 @@ void __cdecl Track_AppendPiece(u8 *piece, u8 *track, u32 open);
 // and piece loses 0x8000.
 // sic: whether piece is the last is never checked; nor is the previous before it is flagged.
 void __cdecl Track_RemovePiece(u8 *piece, u8 *track);
+
+// 0x432840: the gaps from piece's node i (+0x90 -> +4 nodes when selector is set, else +8;
+// 0x58 bytes each, positions at +0x40, count at +0x90 -> +0) to the node before and after it:
+// i - 1, or the previous piece's (+0x68) last; i + 1, or the next piece's (+0x64) first. Each
+// is |a - b| with y scaled by 0.7, to before and after (1.0 when there is no such piece), the
+// vector to it going to beforeVec and afterVec when given.
+void __cdecl TrackPiece_NodeGaps(u32 i, const u8 *piece, float *before, float *after, u32 selector,
+                                 float *beforeVec, float *afterVec);
 }

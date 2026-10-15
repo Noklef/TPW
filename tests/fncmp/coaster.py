@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060), (0x442d10, 0x442d70), (0x443ee0, 0x443f40), (0x444c00, 0x444c50), (0x444040, 0x444090), (0x444700, 0x444740), (0x447790, 0x447830), (0x442cd0, 0x442d10), (0x436820, 0x4368f0), (0x436150, 0x436190), (0x432bd0, 0x432c10), (0x444c50, 0x444cb0), (0x43af70, 0x43afa0), (0x4418d0, 0x4419b0), (0x434650, 0x434740), (0x5da3c0, 0x5da3d0), (0x447990, 0x4479a0), (0x430ac0, 0x430ad0), (0x433220, 0x433240), (0x435710, 0x435730), (0x439920, 0x439ab0), (0x43a060, 0x43a2b0), (0x43d8f0, 0x43dbb0), (0x46f150, 0x46f180), (0x46f350, 0x46f420), (0x46f5c0, 0x46f6f0), (0x444090, 0x444150), (0x445f30, 0x445fb0), (0x436190, 0x436230), (0x445910, 0x445a70), (0x4367a0, 0x436820), (0x447830, 0x447990)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060), (0x442d10, 0x442d70), (0x443ee0, 0x443f40), (0x444c00, 0x444c50), (0x444040, 0x444090), (0x444700, 0x444740), (0x447790, 0x447830), (0x442cd0, 0x442d10), (0x436820, 0x4368f0), (0x436150, 0x436190), (0x432bd0, 0x432c10), (0x444c50, 0x444cb0), (0x43af70, 0x43afa0), (0x4418d0, 0x4419b0), (0x434650, 0x434740), (0x5da3c0, 0x5da3d0), (0x447990, 0x4479a0), (0x430ac0, 0x430ad0), (0x433220, 0x433240), (0x435710, 0x435730), (0x439920, 0x439ab0), (0x43a060, 0x43a2b0), (0x43d8f0, 0x43dbb0), (0x46f150, 0x46f180), (0x46f350, 0x46f420), (0x46f5c0, 0x46f6f0), (0x444090, 0x444150), (0x445f30, 0x445fb0), (0x436190, 0x436230), (0x445910, 0x445a70), (0x4367a0, 0x436820), (0x447830, 0x447990), (0x432840, 0x432b50)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -800,6 +800,37 @@ def cost(r, op):
                                  CARS: ride, SPL: fall, OUT: out}, ret='d')
 
 
+def gaps(r, op):
+    """A piece (COAST; previous +0x68 PIECES, next +0x64 CARS), each +0x90 -> TYPE + 0x10k (count, +4 and +8
+    node lists of 0x58-byte nodes, positions at +0x40) with lists in NODES, SPL and FORCE."""
+    piece, lists = r.bytes(0x100), r.bytes(0x30)
+    put(piece, 0x68, 'I', r.choice([PIECES, PIECES, 0]))
+    put(piece, 0x64, 'I', r.choice([CARS, CARS, 0]))
+    regs = {COAST: piece, TYPE: lists, OUT: r.bytes(0x30)}
+    huge = r.random() < 0.15
+    counts = []
+    for k, (slot, base) in enumerate([(COAST, NODES), (PIECES, SPL), (CARS, FORCE)]):
+        n = r.randrange(1, 6) if k or r.random() < 0.9 else 0  # 0: every node has one after
+        counts.append(n)
+        if slot != COAST:
+            regs[slot] = r.bytes(0x100)
+        put(regs[slot], 0x90, 'I', TYPE + 0x10 * k)
+        put(lists, 0x10 * k, '3I', n, base, base + 0x800)
+        ns = r.bytes(0x800 + 6 * 0x58)
+        for j in range(6):
+            for o in (0, 0x800):
+                r.floats(ns, (o + j * 0x58 + 0x40, o + j * 0x58 + 0x44, o + j * 0x58 + 0x48))
+                if huge:  # differences past the float range
+                    for c in (0x40, 0x44, 0x48):
+                        put(ns, o + j * 0x58 + c, 'I', r.choice([0x7f7fffff, 0x7f400000, 0x7f000000]) | r.choice([0, 0x80000000]))
+                if r.random() < 0.2:
+                    nan_pair(r, ns, (o + j * 0x58 + 0x40, o + j * 0x58 + 0x44, o + j * 0x58 + 0x48), p=1)
+        regs[base] = ns
+    i = r.choice([0, counts[0] - 1, r.randrange(max(counts[0], 1)), r.randrange(5)]) % 5
+    return Call(0x432840, [i, COAST, OUT, OUT + 4, r.choice([0, 1, r.getrandbits(32)]),
+                           r.choice([OUT + 0x10, 0]), r.choice([OUT + 0x20, 0])], regs)
+
+
 def bounds(r, op):
     """Owner +0x54 nodes (+0x64 next, +0xfc point index, +0x100 -> +0x18 type, +0x58 pad),
     +0x9c points 0x38 apart with a position at +4."""
@@ -905,7 +936,7 @@ KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 
          'Link': queue, 'QPush': queue, 'QAdd': queue, 'QRoom': queue, 'QPop': queue, 'QAdvance': queue,
          'CNext': cursor, 'CPrev': cursor, 'CPoint': cursor,
          'Count': registry, 'LinkNodes': registry, 'Pair': registry, 'EntryPos': registry, 'SearchReset': registry,
-         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Pick': train, 'Tile': tiles, 'End': current, 'OnRide': current, 'Marked': current, 'Select': pieces, 'Renumber': pieces, 'RideTrain': ride_train, 'CarValue': ride_train, 'BeginEnd': current, 'Bit18': by_id, 'ById': by_id, 'IdValue': by_id, 'SetById': by_id, 'Key': tiles, 'Event': event, 'SetEnd': current, 'ClearEnd': current, 'ClearPair': contacts, 'ObjLink': by_id, 'ObjOpen': by_id, 'ObjBare': by_id, 'SelGet': small, 'SelSet': small, 'State': small, 'Changed': small, 'LostPair': small, 'Unlerp': small, 'Scale': small, 'Lerp': small, 'Flag1': small, 'SetCur': small, 'Moved': small, 'Position': small, 'Bounds': bounds, 'Segments': segments, 'RideOrient': ride_orient, 'SetFirst': pieces, 'Append': pieces, 'ClearSel': pieces, 'Tools': current, 'Remove': pieces, 'ObjOther': by_id, 'ObjParams': by_id, 'Cost': cost}
+         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Pick': train, 'Tile': tiles, 'End': current, 'OnRide': current, 'Marked': current, 'Select': pieces, 'Renumber': pieces, 'RideTrain': ride_train, 'CarValue': ride_train, 'BeginEnd': current, 'Bit18': by_id, 'ById': by_id, 'IdValue': by_id, 'SetById': by_id, 'Key': tiles, 'Event': event, 'SetEnd': current, 'ClearEnd': current, 'ClearPair': contacts, 'ObjLink': by_id, 'ObjOpen': by_id, 'ObjBare': by_id, 'SelGet': small, 'SelSet': small, 'State': small, 'Changed': small, 'LostPair': small, 'Unlerp': small, 'Scale': small, 'Lerp': small, 'Flag1': small, 'SetCur': small, 'Moved': small, 'Position': small, 'Bounds': bounds, 'Segments': segments, 'RideOrient': ride_orient, 'SetFirst': pieces, 'Append': pieces, 'ClearSel': pieces, 'Tools': current, 'Remove': pieces, 'ObjOther': by_id, 'ObjParams': by_id, 'Cost': cost, 'Gaps': gaps}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 

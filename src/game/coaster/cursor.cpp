@@ -1,7 +1,9 @@
 #include "cursor.h"
 
 #include "train.h"
+#include "../math/x87.h"
 
+#include <cmath>
 #include <cstdint>
 
 namespace {
@@ -14,6 +16,21 @@ u32 nodes(u32 piece) { return at<u32>(at<const u8 *>((const void *)piece, 0x90),
 u32 next(u32 piece) { return at<u32>((const void *)piece, 0x64); }
 u32 prev(u32 piece) { return at<u32>((const void *)piece, 0x68); }
 const u8 *node(u32 piece, u32 index) { return at<const u8 *>(at<const u8 *>((const void *)piece, 0x90), 4) + index * 0x58; }
+
+// |a - b| (positions at node +0x40) with y scaled by 0.7f (0x6fded8), and b - a to vec when
+// given. sic: dy is squared by its float rounding, dz is squared rounded to float.
+float Gap(const u8 *a, const u8 *b, float *vec) {
+    const float *p = &at<const float>(a, 0x40), *q = &at<const float>(b, 0x40);
+    const X87Reg dx = X87Reg(p[0]) - q[0];
+    const X87Reg dy = X87Reg(p[1]) * 0.7f - X87Reg(q[1]) * 0.7f;
+    const float dz = (float)(X87Reg(p[2]) - q[2]).v;
+    const X87Reg sum = (dx * dx + dy * (float)dy.v) + X87Reg(dz) * dz;
+    const X87Reg len = sum.v != sum.v ? sum.v : X87_Round(std::sqrt(sum.v));
+    if (vec) {
+        for (int k = 0; k < 3; ++k) vec[k] = (float)(X87Reg(q[k]) - p[k]).v;
+    }
+    return (float)len.v;
+}
 
 enum { kStart = 0, kStartPiece = 1, kEnd = 2, kEndPiece = 3 };
 
@@ -156,5 +173,25 @@ void __cdecl Track_RemovePiece(u8 *piece, u8 *track) {
     --at<u32>(track, 8);
     TrackPieces_Renumber(at<u8 *>(track, 0x24));
     at<u32>(piece, 8) &= ~0x8000u;
+}
+
+void __cdecl TrackPiece_NodeGaps(u32 i, const u8 *piece, float *before, float *after, u32 selector,
+                                 float *beforeVec, float *afterVec) {
+    const u32 list = selector ? 4 : 8;
+    const auto nodes = [list](const u8 *p) { return at<const u8 *>(at<const u8 *>(p, 0x90), list); };
+    const u8 *ns = nodes(piece);
+    const u8 *prevPiece = at<const u8 *>(piece, 0x68), *nextPiece = at<const u8 *>(piece, 0x64);
+    if (i)
+        *before = Gap(ns + (i - 1) * 0x58, ns + i * 0x58, beforeVec);
+    else if (prevPiece)
+        *before = Gap(nodes(prevPiece) + (at<u32>(at<const u8 *>(prevPiece, 0x90), 0) - 1) * 0x58, ns, beforeVec);
+    else
+        *before = 1.0f;
+    if (i != at<u32>(at<const u8 *>(piece, 0x90), 0) - 1)
+        *after = Gap(ns + i * 0x58, ns + (i + 1) * 0x58, afterVec);
+    else if (nextPiece)
+        *after = Gap(ns + i * 0x58, nodes(nextPiece), afterVec);
+    else
+        *after = 1.0f;
 }
 }
