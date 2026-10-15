@@ -72,7 +72,8 @@
 #include "../game/coaster/cursor.h"
 #include "../game/coaster/registry.h"
 #include "../game/coaster/contacts.h"
-#include "../game/coaster/spline.h"
+#include "../game/coaster/spline.h"
+#include "../game/coaster/train.h"
 #include "../game/terrain/terrain_blend.h"
 #include "../game/world/random.h"
 #include "../game/world/things.h"
@@ -715,6 +716,7 @@ const Hook kHooks[] = {
     {"TrackSpline_Tangent",       0x0043e320, (void *)&TrackSpline_Tangent, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"TrackOrientation_Init",     0x0043e540, (void *)&TrackOrientation_Init, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
     {"TrackOrientation_Set",      0x0043e590, (void *)&TrackOrientation_Set, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"Track_RefreshOrientations", 0x00432b50, (void *)&Track_RefreshOrientations, {0xa1, 0xe4, 0x0f, 0x79, 0x00}},
     {"TrackSpline_Frame",         0x0043e6b0, (void *)&TrackSpline_Frame, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Coaster_FrameAt",           0x0043c0a0, (void *)&Coaster_FrameAt, {0x83, 0xec, 0x08, 0x8d, 0x44}},
     {"Float_RoundUp",             0x0043e160, (void *)&Float_RoundUp, {0xd9, 0x44, 0x24, 0x04, 0x83}},
@@ -753,6 +755,7 @@ const Hook kHooks[] = {
     {"Track_PieceAt",             0x0043e520, (void *)&Track_PieceAt, {0x8b, 0x4c, 0x24, 0x08, 0x8b}},
     {"Contacts_Clear",            0x0043ad50, (void *)&Contacts_Clear, {0x51, 0x8b, 0x54, 0x24, 0x0c}},
     {"Contacts_ClearAll",         0x0043afa0, (void *)&Contacts_ClearAll, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
+    {"Train_SetCouplings",        0x00432d50, (void *)&Train_SetCouplings, {0xa1, 0xfc, 0x0a, 0x79, 0x00}},
     {"RowReader_Decode",          0x0062fe00, (void *)&RowReader_Decode, {0x6a, 0xff, 0x68, 0x38, 0x2b}},
     {"RowReader_CopyRow",         0x006300c0, (void *)&RowReader_CopyRow, {0x8b, 0xc1, 0x56, 0x57, 0x8b}},
     {"TgaReader_Load",            0x006300f0, (void *)&TgaReader_Load, {0x53, 0x8b, 0x5c, 0x24, 0x10}},

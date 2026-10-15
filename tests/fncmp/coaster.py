@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -501,6 +501,32 @@ def contacts(r, op):
     return Call(0x43ad50, [COAST, ptrs[x]], {COAST: owner, NODES: nodes})
 
 
+def train(r, op):
+    if op == 'Refresh':  # pieces +8 flags, +0x64 next, +0x6c, +0x90 -> {count, 0x58-byte nodes}
+        n = r.randrange(0, 5)
+        track, pieces, lists, nodes = r.bytes(0x40), r.bytes(0x500), r.bytes(0x50), r.bytes(5 * 4 * 0x58)
+        put(track, 0x18, 'I', NODES if n else 0)
+        for k in range(n):
+            put(pieces, k * 0x100 + 8, 'I', r.getrandbits(32))
+            put(pieces, k * 0x100 + 0x64, 'If', NODES + (k + 1) * 0x100 if k + 1 < n else 0, 0.0)
+            put(pieces, k * 0x100 + 0x6c, 'I', r.f())
+            put(pieces, k * 0x100 + 0x90, 'I', SPL + k * 0x10)
+            put(lists, k * 0x10, 'II', r.randrange(0, 4), FORCE + k * 4 * 0x58)
+        r.floats(nodes, range(0, len(nodes), 4))
+        return Call(0x432b50, [], {COAST: track, NODES: pieces, SPL: lists, FORCE: nodes,
+                                   0x790fe4: put(bytearray(4), 0, 'I', COAST)})
+    n = r.randrange(0, 6)
+    tr, cars, parts, types = r.bytes(0x60), r.bytes(6 * 0x180), r.bytes(0xc0), r.bytes(0x100)
+    put(tr, 0x30, 'I', n)
+    for k in range(n):
+        put(tr, 0x34 + 4 * k, 'I', NODES + k * 0x180)
+        put(cars, k * 0x180 + 0x100, 'I', SPL + r.randrange(6) * 0x20)
+    for k in range(6):
+        put(parts, k * 0x20 + 0x18, 'I', FORCE + r.randrange(4) * 0x40)
+    return Call(0x432d50, [r.getrandbits(32), COAST], {COAST: tr, NODES: cars, SPL: parts, FORCE: types,
+                                    0x790afc: put(bytearray(4), 0, 'I', r.choice([0, 0, 0, 1]))})
+
+
 KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 'Tangent': spline, 'Set': orient,
          'Init': orient, 'Frame': frame, 'At': frame,
          'RoundUp': helpers, 'Lerp': helpers, 'Dot': helpers, 'Normalize': helpers, 'NormXZ': helpers, 'Swing': cars, 'Space': cars, 'Segs': cars, 'Setup': cars, 'Riders': cars, 'Extent': cars, 'Drop': cars, 'Window': cars, 'InWindow': cars, 'Dist': cars,
@@ -508,7 +534,7 @@ KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 
          'Link': queue, 'QPush': queue, 'QAdd': queue, 'QRoom': queue, 'QPop': queue, 'QAdvance': queue,
          'CNext': cursor, 'CPrev': cursor, 'CPoint': cursor,
          'Count': registry, 'LinkNodes': registry, 'Pair': registry, 'EntryPos': registry, 'SearchReset': registry,
-         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts}
+         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 

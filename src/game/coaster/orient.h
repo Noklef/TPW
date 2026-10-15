@@ -29,4 +29,11 @@ void __cdecl TrackOrientation_Set(Vec3 direction, u32 unused, TrackOrientation *
 // FLT_MAX, which the yaw then replaces) and sets it from *direction.
 void __cdecl TrackOrientation_Init(u32 unused, const Vec3 *direction, u32 unused2, TrackOrientation *out,
                                    u32 unused3, const float *yaw);
+
+// 0x432b50: for each piece of the track (0x790fe4: first piece +0x18, next +0x64), runs
+// TrackOrientation_Init on each of its nodes' +0x28 direction (nodes 0x58 bytes at
+// piece+0x90 -> {count, nodes}; the unused float node+0xc + piece+0x6c), then clears the
+// piece's flag 0x800 (+8) unless 0x1000 is set.
+// sic: the orientations go to a local and are dropped, so only the flags change.
+void __cdecl Track_RefreshOrientations();
 }

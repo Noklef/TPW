@@ -67,4 +67,23 @@ void __cdecl TrackOrientation_Init(u32, const Vec3 *direction, u32 unused, Track
     std::memcpy(&out->rawYaw, &max, 4);
     TrackOrientation_Set(*direction, unused, out, yaw);
 }
+
+void __cdecl Track_RefreshOrientations() {
+    const u8 *track = *reinterpret_cast<u8 *const *>(0x00790fe4);
+    for (u8 *piece = *reinterpret_cast<u8 *const *>(track + 0x18); piece; piece = *reinterpret_cast<u8 **>(piece + 0x64)) {
+        const u32 *list = *reinterpret_cast<const u32 *const *>(piece + 0x90);
+        const u8 *node = reinterpret_cast<const u8 *>(list[1]);
+        for (u32 i = 0; i < **reinterpret_cast<const u32 *const *>(piece + 0x90); ++i, node += 0x58) {
+            const float at = (float)(X87Reg(*reinterpret_cast<const float *>(node + 0xc)) +
+                                     *reinterpret_cast<const float *>(piece + 0x6c));
+            u32 bits;
+            std::memcpy(&bits, &at, 4);
+            TrackOrientation dropped;
+            TrackOrientation_Init((u32)(uintptr_t)track, reinterpret_cast<const Vec3 *>(node + 0x28), bits, &dropped, 1,
+                                  nullptr);
+        }
+        u32 &flags = *reinterpret_cast<u32 *>(piece + 8);
+        if (!(flags & 0x1000)) flags &= ~0x800u;
+    }
+}
 }
