@@ -173,3 +173,14 @@ There are no crash dumps, because WER LocalDumps needs admin. The trace's except
   hid it. The exact code is not yet found; the 0x5f5f10 ms timer itself is exact integer
   arithmetic. When found, it is another bug-for-bug item. `run-local.cmd` now always uses the
   capped config (`.data\local\dgVoodoo-fps60.conf`).
+- 2026-10-15, `3-dll-hooked` (954/954 hooks, 60 fps cap): **first fully hooked run plays**. You can build
+  and play. Two problems:
+  - Alt-tab crashed it at 61 s with the same original-game overflow (0x56af20 on
+    `DDERR_SURFACELOST`, EIP "ject"). Not a hook. Avoid alt-tab until surface loss is handled; Print
+    Screen is safe.
+  - **Graphics differ: a hooking bug.** A newly built entrance path drew as solid black tiles, and
+    the ground texture behind a ride came out stretched up and to the left. Suspect:
+    `TerrainBlend_Tile` (0x55f780), which builds the ground textures including the path overlay. It
+    was verified only against our own Python model (`tools/lnd.py`), never against the original
+    MMX code, so a mistake shared by both would pass. Next run: all hooks except that one
+    (`4-hooked-no-terrainblend`; `.data\local\ini\<label>.ini` becomes `tpw.ini`).
