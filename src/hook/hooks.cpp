@@ -63,21 +63,23 @@
 #include "../game/sprite/sprite.h"
 #include "../game/coaster/orient.h"
 #include "../game/coaster/rating.h"
-#include "../game/coaster/helpers.h"
+#include "../game/coaster/helpers.h"
 #include "../game/coaster/keys.h"
 #include "../game/coaster/lists.h"
-#include "../game/coaster/cars.h"
+#include "../game/coaster/cars.h"
 #include "../game/coaster/nodes.h"
 #include "../game/coaster/queue.h"
-#include "../game/coaster/cursor.h"
+#include "../game/coaster/cursor.h"
 #include "../game/coaster/registry.h"
-#include "../game/coaster/contacts.h"
+#include "../game/coaster/contacts.h"
 #include "../game/coaster/save.h"
-#include "../game/coaster/spline.h"
+#include "../game/coaster/spline.h"
 #include "../game/coaster/train.h"
 #include "../game/terrain/terrain_blend.h"
 #include "../game/world/random.h"
 #include "../game/world/things.h"
+#include "../game/model/parts.h"
+#include "../game/render/mode.h"
 
 namespace tpw::hook {
 
@@ -1026,6 +1028,16 @@ const Hook kHooks[] = {
     {"String_From",              0x005f7dd0, (void *)&String_From, {0x8b, 0x54, 0x24, 0x08, 0x8d}},
     {"String_Mid",               0x005f7e10, (void *)&String_Mid, {0x8b, 0x54, 0x24, 0x08, 0x8d}},
     {"WString_NotEqualsStr",     0x005f7e60, (void *)&WString_NotEqualsStr, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
+    {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
+    {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"RenderMode_InitEpsilon",    0x0044a620, (void *)&RenderMode_InitEpsilon, {0xd9, 0x05, 0xa0, 0xe2, 0x6f}},
+    {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
+    {"Model_NthPart",             0x0044b270, (void *)&Model_NthPart, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"Model_CountParts",          0x0044b2b0, (void *)&Model_CountParts, {0x8b, 0x4c, 0x24, 0x04, 0x33}},
+    {"Model_FindPartByKey8",      0x0044b3c0, (void *)&Model_FindPartByKey8, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

@@ -1827,3 +1827,13 @@ address,name,kind,confidence,notes
 0x00433220,Flags_SetMoved,function,high,"reimplemented (src/game/coaster/train); cdecl (flags*, high): *flags |= 0x10, and 0x80000000 when high"
 0x00435710,Object_GetPosition,function,high,"reimplemented (src/game/coaster/train); cdecl (object, out*): out[0..2] = object+0x30..0x38 (dwords, in order)"
 0x00447830,Car_TravelCost,function,high,"reimplemented (src/game/coaster/train); cdecl double (ride, withBase, car, x, z, fromX, fromZ): 0.1-scaled distance and lerped speed weighted by the type's (or the ride's fallback) +0x60 / +0x64, plus +0x5c"
+0x0044a590,RenderMode_Size,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 0x2000/0x1000/0x800 in 0x79d86c, else 0x4000 if set, else 0x1000"
+0x0044a5d0,RenderMode_Depth,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 8/0x10 in 0x79d86c, else 0x20 if set, else 8"
+0x0044a600,RenderMode_ResetScale,function,high,reimplemented (src/game/render/mode); cdecl (): 0x79d9e4 = 1.0f
+0x0044a620,RenderMode_InitEpsilon,function,high,reimplemented (src/game/render/mode); cdecl (): 0x79d9e8 = 1/8388608
+0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
+0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
+0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
+0x0044b270,Model_NthPart,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, nth): the nth part (from 1) with flags & mask, or -1"
+0x0044b2b0,Model_CountParts,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask): parts with flags & mask"
+0x0044b3c0,Model_FindPartByKey8,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +8 == key and flags & mask (mask defaults 1), or -1"
