@@ -201,9 +201,9 @@ extern "C" void __cdecl Matrix_PreMul(const float *a, float *b) {
 extern "C" void __cdecl Matrix_PreMul33(const float *r, float *m) {
     for (int c = 0; c < 3; ++c) {  // by columns; every read is of the old column
         const float a = m[c], b = m[4 + c], d = m[8 + c];
-        m[c] = (d * r[2] + b * r[1]) + a * r[0];
-        m[4 + c] = (b * r[4] + d * r[5]) + a * r[3];
-        m[8 + c] = (d * r[8] + a * r[6]) + b * r[7];
+        m[c] = (float)((X87Reg(d) * r[2] + X87Reg(b) * r[1]) + X87Reg(a) * r[0]);
+        m[4 + c] = (float)((X87Reg(b) * r[4] + X87Reg(d) * r[5]) + X87Reg(a) * r[3]);
+        m[8 + c] = (float)((X87Reg(d) * r[8] + X87Reg(a) * r[6]) + X87Reg(b) * r[7]);
     }
 }
 

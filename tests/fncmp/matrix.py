@@ -1,4 +1,4 @@
-# The matrix library 0x46f150-0x470990 (src/game/math/matrix) against the originals.
+# The matrix library 0x46f150-0x470990 and 0x470d10 (src/game/math/matrix) against the originals.
 # Known: atan2 and fsin/fcos may differ in the last bit of the double (the 32-bit CRT and Python both
 # stand in for the x87's extended fpatan/fsin), and fsin/fcos past ~1e6 (the x87 reduces by a 66-bit pi).
 # usage: matrix.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x46f150, 0x470990), (0x67a400, 0x690000)], sines=256)
+B = Bench([(0x46f150, 0x470990), (0x470d10, 0x470e90), (0x67a400, 0x690000)], sines=256)
 M, V, OUT = RAM, RAM + 0x1000, RAM + 0x2000  # matrices, vectors, outputs
 
 
@@ -57,10 +57,10 @@ def case(r):
         return Call(0x46fbb0, [M] + [r.choice([V, V + 12, V + 24, 0]) for _ in range(3)], regs)
     if op in ('TransformPoint', 'TransformVector'):
         return Call({'TransformPoint': 0x46fc00, 'TransformVector': 0x46fca0}[op], [M, V], regs)
-    if op in ('Mul', 'PreMul', 'PreMul3'):
+    if op in ('Mul', 'PreMul', 'PreMul3', 'PreMul33'):
         b = r.choice([M + 0x40, M + 0x40, M])
         a, b = (M, b) if r.random() < 0.5 else (b, M)
-        return Call({'Mul': 0x4700f0, 'PreMul': 0x4702d0, 'PreMul3': 0x4704c0}[op], [a, b], regs)
+        return Call({'Mul': 0x4700f0, 'PreMul': 0x4702d0, 'PreMul3': 0x4704c0, 'PreMul33': 0x470d10}[op], [a, b], regs)
     if op == 'LUDecompose':
         return Call(0x46fe20, [M, OUT, OUT + 0x10], regs)
     if op == 'LUBack':
@@ -84,7 +84,7 @@ def case(r):
 
 OPS_ALL = ['Identity', 'ResetRotation', 'Heading', 'Roll', 'AngleX', 'AngleY', 'AngleZ', 'RotX4', 'RotX', 'RotY4',
            'RotZ4', 'RotZ', 'RotY', 'EulerFast', 'Euler', 'SetAxisLengths', 'ScaleAxesV', 'ScaleAxes',
-           'FromPitchYaw', 'SetAxes', 'TransformPoint', 'TransformVector', 'Mul', 'PreMul', 'PreMul3',
+           'FromPitchYaw', 'SetAxes', 'TransformPoint', 'TransformVector', 'Mul', 'PreMul', 'PreMul3', 'PreMul33',
            'LUDecompose', 'LUBack', 'Invert', 'LookAlong', 'Distance', 'Sort']
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
