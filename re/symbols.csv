@@ -1788,6 +1788,11 @@ address,name,kind,confidence,notes
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
+0x0046e610,TexDirs_First,function,high,reimplemented (src/game/gfx/texdirs); the first texture directory or null
+0x0046e630,TexDirs_Current,function,high,reimplemented (src/game/gfx/texdirs); the pointer at 0x7b0620
+0x0046e640,TexDirs_SetCurrent,function,high,reimplemented (src/game/gfx/texdirs); sets the pointer at 0x7b0620
+0x0046e670,TexDirs_Set,function,high,"reimplemented (src/game/gfx/texdirs); sets the three texture directories (base + name + backslash), reusing unchanged strings"
+0x0046ea80,TexDirs_Reset,function,high,reimplemented (src/game/gfx/texdirs); frees the texture directory blocks and clears the table
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"

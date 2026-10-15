@@ -46,7 +46,8 @@
 #include "../game/gfx/color.h"
 #include "../game/gfx/convert.h"
 #include "../game/gfx/jpeg.h"
-#include "../game/gfx/imagecodec.h"
+#include "../game/gfx/imagecodec.h"
+#include "../game/gfx/texdirs.h"
 #include "../game/gfx/tga.h"
 #include "../game/core/events.h"
 #include "../game/core/filetime.h"
@@ -1035,6 +1036,11 @@ const Hook kHooks[] = {
     {"Draw32_TextW",             0x00627480, (void *)&Draw32_TextW, {0x83, 0xec, 0x10, 0x8b, 0x44}},
     {"Draw32_Sprite",            0x00627730, (void *)&Draw32_Sprite, {0x8b, 0x44, 0x24, 0x0c, 0x83}},
     {"Draw32_SpriteShape",       0x006280a0, (void *)&Draw32_SpriteShape, {0x8b, 0x44, 0x24, 0x0c, 0x83}},
+    {"TexDirs_First",             0x0046e610, (void *)&TexDirs_First, {0xa1, 0x80, 0xd9, 0x74, 0x00}},
+    {"TexDirs_Current",           0x0046e630, (void *)&TexDirs_Current, {0xa1, 0x20, 0x06, 0x7b, 0x00}},
+    {"TexDirs_SetCurrent",        0x0046e640, (void *)&TexDirs_SetCurrent, {0x8b, 0x44, 0x24, 0x04, 0xa3}},
+    {"TexDirs_Set",               0x0046e670, (void *)&TexDirs_Set, {0xa1, 0x80, 0xd9, 0x74, 0x00}},
+    {"TexDirs_Reset",             0x0046ea80, (void *)&TexDirs_Reset, {0xa1, 0x28, 0x06, 0x7b, 0x00}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

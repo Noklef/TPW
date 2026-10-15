@@ -66,6 +66,7 @@ add_library(tpw_game STATIC
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
+    src/game/gfx/texdirs.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp
