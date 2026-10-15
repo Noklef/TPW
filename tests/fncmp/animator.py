@@ -204,7 +204,8 @@ def case(r):
     speed = speed_bits(r)
     bank, entry, mode = r.choice([0, 1, 2, 5, r.randrange(12), 0xc, 0xd, 0xe, r.randrange(20)]), r.randrange(4), r.randrange(16)
     if op == 'Start':
-        frame = r.choice([f32(r.uniform(-1, 30)), fl(r), f32(float(r.randrange(30)))])
+        frame = r.choice([f32(r.uniform(-1, 30)), fl(r), f32(float(r.randrange(30))),
+                          f32(float(0x1000000 + 4 * r.randrange(3)))])  # by the counts past 2^24
         return Call(0x472bc0, [layer, blk, r.choice([0, 1]), frame], regs)
     if op == 'Advance':
         return Call(0x472c60, [layer, r.choice([OUT, 0])], regs)
