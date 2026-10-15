@@ -39,11 +39,8 @@ void rotate_euler(float *m, s32 order, const float *angles, CosSin cos_sin) {
     }
 }
 
-void scale_row(float *row, float f) {
-    row[0] = row[0] * f;
-    row[1] = f * row[1];
-    row[2] = f * row[2];
-}
+// fsqrt: a NaN comes through.
+X87Reg sqrt87(X87Reg x) { return x.v != x.v ? x : X87Reg(X87_Round(std::sqrt(x.v))); }
 
 }  // namespace
 
@@ -89,39 +86,65 @@ extern "C" void __cdecl Matrix_RotateEulerFast(float *m, s32 order, const float 
 
 extern "C" void __cdecl Matrix_RotateEuler(float *m, s32 order, const float *angles) {
     rotate_euler(m, order, angles, [](float a, float &c, float &s) {
-        c = (float)std::cos((double)a);
-        s = (float)std::sin((double)a);
+        c = (float)X87_Cos((double)a);
+        s = (float)X87_Sin((double)a);
     });
 }
 
+// The three lengths first; then each row's factor, read after the rows before it are
+// stored. Sic: x's factor goes through a float store, y's length does, and y's factor
+// reaches m[4] from the register but m[5] and m[6] through a float store.
 extern "C" void __cdecl Matrix_SetAxisLengths(float *m, const float *x, const float *y, const float *z) {
-    const float *len[3] = {x, y, z};
-    for (int r = 0; r < 3; ++r) {
-        float *row = m + 4 * r;
-        scale_row(row, *len[r] / std::sqrt((row[0] * row[0] + row[1] * row[1]) + row[2] * row[2]));
-    }
+    const auto length = [](const float *row) {
+        const X87Reg a = row[0], b = row[1], c = row[2];
+        return sqrt87(a * a + b * b + c * c);
+    };
+    const X87Reg len0 = length(m), len2 = length(m + 8);
+    const float len1 = (float)length(m + 4);
+    const float f0 = (float)(X87Reg(*x) / len0);
+    m[0] = (float)(X87Reg(m[0]) * f0);
+    m[1] = (float)(X87Reg(f0) * m[1]);
+    m[2] = (float)(X87Reg(f0) * m[2]);
+    const X87Reg f1 = X87Reg(*y) / len1;
+    const float f1f = (float)f1;
+    m[4] = (float)(f1 * m[4]);
+    m[5] = (float)(X87Reg(f1f) * m[5]);
+    m[6] = (float)(X87Reg(f1f) * m[6]);
+    const X87Reg f2 = X87Reg(*z) / len2;
+    for (int c = 8; c < 11; ++c)
+        m[c] = (float)(f2 * m[c]);
 }
 
 extern "C" void __cdecl Matrix_ScaleAxesV(float *m, const float *s) {
-    for (int r = 0; r < 3; ++r)
-        scale_row(m + 4 * r, s[r]);
+    for (int c = 0; c < 3; ++c)
+        m[c] = (float)(X87Reg(s[0]) * m[c]);
+    m[4] = (float)(X87Reg(s[1]) * m[4]);
+    m[5] = (float)(X87Reg(m[5]) * s[1]);
+    m[6] = (float)(X87Reg(m[6]) * s[1]);
+    m[8] = (float)(X87Reg(s[2]) * m[8]);
+    m[9] = (float)(X87Reg(m[9]) * s[2]);
+    m[10] = (float)(X87Reg(m[10]) * s[2]);
 }
 
 extern "C" void __cdecl Matrix_ScaleAxes(float *m, float x, float y, float z) {
-    scale_row(m, x);
-    scale_row(m + 4, y);
-    scale_row(m + 8, z);
+    m[0] = (float)(X87Reg(m[0]) * x);
+    m[1] = (float)(X87Reg(x) * m[1]);
+    m[2] = (float)(X87Reg(x) * m[2]);
+    for (int c = 4; c < 7; ++c)
+        m[c] = (float)(X87Reg(y) * m[c]);
+    for (int c = 8; c < 11; ++c)
+        m[c] = (float)(X87Reg(z) * m[c]);
 }
 
 extern "C" void __cdecl Matrix_FromPitchYaw(float *m, float pitch, float yaw) {
-    const float s = (float)std::sin((double)pitch), c = (float)std::cos((double)pitch);
+    const float s = (float)X87_Sin((double)pitch), c = (float)X87_Cos((double)pitch);
     m[8] = m[4] = m[2] = m[1] = 0.0f;
     m[0] = 1.0f;
     m[5] = c;
     m[6] = s;
     m[9] = -s;
     m[10] = c;
-    Matrix_RotateY(m, (float)std::cos((double)yaw), (float)std::sin((double)yaw));
+    Matrix_RotateY(m, (float)X87_Cos((double)yaw), (float)X87_Sin((double)yaw));
 }
 
 extern "C" void __cdecl Matrix_SetAxes(float *m, const float *x, const float *y, const float *z) {
@@ -131,17 +154,17 @@ extern "C" void __cdecl Matrix_SetAxes(float *m, const float *x, const float *y,
 }
 
 extern "C" void __cdecl Matrix_TransformPoint(const float *m, float *v) {
-    const float x = v[0], y = v[1], z = v[2];
-    v[0] = ((x * m[0] + z * m[8]) + y * m[4]) + m[12];
-    v[1] = ((z * m[9] + y * m[5]) + x * m[1]) + m[13];
-    v[2] = ((z * m[10] + y * m[6]) + x * m[2]) + m[14];
+    const X87Reg x = v[0], y = v[1], z = v[2];
+    v[0] = (float)(x * m[0] + X87Reg(m[8]) * z + X87Reg(m[4]) * y + m[12]);
+    v[1] = (float)(X87Reg(m[9]) * z + X87Reg(m[5]) * y + X87Reg(m[1]) * x + m[13]);
+    v[2] = (float)(X87Reg(m[10]) * z + X87Reg(m[6]) * y + X87Reg(m[2]) * x + m[14]);
 }
 
 extern "C" void __cdecl Matrix_TransformVector(const float *m, float *v) {
-    const float x = v[0], y = v[1], z = v[2];
-    v[0] = (x * m[0] + z * m[8]) + y * m[4];
-    v[1] = (z * m[9] + y * m[5]) + x * m[1];
-    v[2] = (z * m[10] + y * m[6]) + x * m[2];
+    const X87Reg x = v[0], y = v[1], z = v[2];
+    v[0] = (float)(x * m[0] + X87Reg(m[8]) * z + X87Reg(m[4]) * y);
+    v[1] = (float)(X87Reg(m[9]) * z + X87Reg(m[5]) * y + X87Reg(m[1]) * x);
+    v[2] = (float)(X87Reg(m[10]) * z + X87Reg(m[6]) * y + X87Reg(m[2]) * x);
 }
 
 extern "C" void __cdecl Matrix_Mul(float *a, const float *b) {
@@ -153,11 +176,11 @@ extern "C" void __cdecl Matrix_Mul(float *a, const float *b) {
         const float *lr = l + 4 * r;
         float *ar = a + 4 * r;
         for (int c = 0; c < 3; ++c) {
-            float v = c == 0 ? (lr[1] * b[4] + lr[2] * b[8]) + lr[0] * b[0]
-                             : (lr[0] * b[c] + lr[2] * b[8 + c]) + lr[1] * b[4 + c];
+            X87Reg v = c == 0 ? X87Reg(lr[1]) * b[4] + X87Reg(lr[2]) * b[8] + X87Reg(lr[0]) * b[0]
+                              : X87Reg(lr[0]) * b[c] + X87Reg(lr[2]) * b[8 + c] + X87Reg(lr[1]) * b[4 + c];
             if (r == 3)
                 v = v + b[12 + c];
-            ar[c] = v;
+            ar[c] = (float)v;
         }
     }
 }
@@ -208,33 +231,34 @@ extern "C" void __cdecl Matrix_LUDecompose(float *a, s32 *index, float *parity) 
             if (t > big)
                 big = t;
         }
-        vv[i] = 1.0f / big;  // no singular-matrix check: 1 / 0 is inf
+        vv[i] = (float)(X87Reg(1.0f) / big);  // no singular-matrix check: 1 / 0 is inf
     }
     s32 imax = 0;  // the original's is uninitialised; only an all-NaN column leaves it unset
+    // The sums and dum stay in the registers; big is a float.
     for (int j = 0; j < 4; ++j) {
         for (int i = 0; i < j; ++i) {
-            float sum = a[4 * i + j];
+            X87Reg sum = a[4 * i + j];
             for (int k = 0; k < i; ++k)
-                sum = sum - a[4 * k + j] * a[4 * i + k];
-            a[4 * i + j] = sum;
+                sum = sum - X87Reg(a[4 * k + j]) * a[4 * i + k];
+            a[4 * i + j] = (float)sum;
         }
         float big = 0.0f;
         for (int i = j; i < 4; ++i) {
-            float sum = a[4 * i + j];
+            X87Reg sum = a[4 * i + j];
             for (int k = 0; k < j; ++k)
-                sum = sum - a[4 * k + j] * a[4 * i + k];
-            const float dum = std::fabs(sum) * vv[i];
-            a[4 * i + j] = sum;
-            if (dum >= big) {
-                big = dum;
+                sum = sum - X87Reg(a[4 * k + j]) * a[4 * i + k];
+            const X87Reg dum = X87Reg(std::fabs(sum.v)) * vv[i];
+            a[4 * i + j] = (float)sum;
+            if (dum.v >= big) {
+                big = (float)dum;
                 imax = i;
             }
         }
         if (j != imax) {
-            for (int k = 0; k < 4; ++k) {
+            for (int k = 0; k < 4; ++k) {  // the row j value goes through fld/fstp
                 const float t = a[4 * imax + k];
                 a[4 * imax + k] = a[4 * j + k];
-                a[4 * j + k] = t;
+                a[4 * j + k] = X87_Through(t);
             }
             *parity = -*parity;
             vv[imax] = vv[j];
@@ -243,9 +267,9 @@ extern "C" void __cdecl Matrix_LUDecompose(float *a, s32 *index, float *parity) 
         if (!(a[5 * j] < 0.0f || a[5 * j] > 0.0f))  // zero or NaN
             a[5 * j] = 1e-20f;                      // 0x1e3ce508
         if (j != 3) {
-            const float dum = 1.0f / a[5 * j];
+            const float dum = (float)(X87Reg(1.0f) / a[5 * j]);
             for (int i = j + 1; i < 4; ++i)
-                a[4 * i + j] = dum * a[4 * i + j];
+                a[4 * i + j] = (float)(X87Reg(dum) * a[4 * i + j]);
         }
     }
 }
@@ -254,21 +278,21 @@ extern "C" void __cdecl Matrix_LUBackSubstitute(const float *a, const s32 *index
     s32 ii = -1;
     for (int i = 0; i < 4; ++i) {
         const s32 ip = index[i];
-        float sum = b[ip];
+        X87Reg sum = b[ip];
         b[ip] = b[i];
         if (ii >= 0) {
             for (int j = ii; j < i; ++j)
-                sum = sum - b[j] * a[4 * i + j];
-        } else if (sum < 0.0f || sum > 0.0f) {
+                sum = sum - X87Reg(b[j]) * a[4 * i + j];
+        } else if (sum.v < 0.0 || sum.v > 0.0) {
             ii = i;
         }
-        b[i] = sum;
+        b[i] = (float)sum;
     }
     for (int i = 3; i >= 0; --i) {
-        float sum = b[i];
+        X87Reg sum = b[i];
         for (int j = i + 1; j < 4; ++j)
-            sum = sum - a[4 * i + j] * b[j];
-        b[i] = sum / a[5 * i];
+            sum = sum - X87Reg(a[4 * i + j]) * b[j];
+        b[i] = (float)(sum / a[5 * i]);
     }
 }
 
@@ -316,21 +340,25 @@ extern "C" void __cdecl Sort_MergeByKey(s32 n, s32 *a, s32 *b, s32 depth, const 
 }
 
 extern "C" void __cdecl Matrix_LookAlong(float *m, const float *dir) {
-    const float *y = m + 4;
-    const float c0 = y[1] * dir[2] - y[2] * dir[1];
-    const float c1 = y[2] * dir[0] - y[0] * dir[2];
-    const float c2 = y[0] * dir[1] - y[1] * dir[0];
-    const float len = std::sqrt((c0 * c0 + c1 * c1) + c2 * c2);
-    const float x0 = c0 / len, x1 = c1 / len, x2 = c2 / len;
-    const float y0 = x2 * dir[1] - x1 * dir[2];
-    const float y1 = x0 * dir[2] - x2 * dir[0];
-    const float y2 = x1 * dir[0] - x0 * dir[1];
-    m[0] = x0;
-    m[1] = x1;
-    m[2] = x2;
-    m[4] = y0;
-    m[5] = y1;
-    m[6] = y2;
+    // Sic: each of c0..c2 squares as register times float store but c0 (register squared),
+    // and x1, x2 go through float stores for one of their two uses.
+    const X87Reg y0 = m[4], y1 = m[5], y2 = m[6];
+    const X87Reg c0 = y1 * dir[2] - y2 * dir[1];
+    const X87Reg c1 = y2 * dir[0] - y0 * dir[2];
+    const X87Reg c2 = y0 * dir[1] - y1 * dir[0];
+    const float c0f = (float)c0, c1f = (float)c1, c2f = (float)c2;
+    const float len = (float)sqrt87(c0 * c0 + c1 * c1f + c2 * c2f);
+    const X87Reg x0 = X87Reg(c0f) / len, x1 = X87Reg(c1f) / len, x2 = X87Reg(c2f) / len;
+    const float x1f = (float)x1, x2f = (float)x2;
+    const float n0 = (float)(x2 * dir[1] - x1 * dir[2]);
+    const float n1 = (float)(x0 * dir[2] - X87Reg(x2f) * dir[0]);
+    const float n2 = (float)(X87Reg(x1f) * dir[0] - x0 * dir[1]);
+    m[0] = (float)x0;
+    m[1] = x1f;
+    m[2] = x2f;
+    m[4] = n0;
+    m[5] = n1;
+    m[6] = n2;
     if (dir) {
         m[8] = dir[0];
         m[9] = dir[1];

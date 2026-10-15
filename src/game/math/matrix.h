@@ -1,6 +1,8 @@
 // The engine's matrix library (0x46f150-0x4709d0): 4x4 float matrices in Direct3D's row
 // layout, m[0..2] the x axis, m[4..6] y, m[8..10] z and m[12..14] the translation. The
 // expression trees are the original's (tools/x87sym.py); see curve.h for why that matters.
+// Every port here runs in the x87's registers (X87Reg, x87.h) and is checked bit for bit by
+// tests/fncmp/matrix.py.
 #pragma once
 
 #include "../../../re/types.h"

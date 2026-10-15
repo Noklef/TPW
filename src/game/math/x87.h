@@ -119,6 +119,21 @@ inline X87Reg operator/(X87Reg a, X87Reg b) {
 inline X87Reg X87_SubR(X87Reg dst, X87Reg src) { return src - dst; }
 inline X87Reg X87_DivR(X87Reg dst, X87Reg src) { return src / dst; }
 
+// fsin / fcos (unaffected by the precision control): infinity is invalid and gives the
+// indefinite (negative quiet NaN), a NaN comes through, and from 2^63 on st0 is left as it is
+// (C2 set; the game never checks it).
+inline double X87_Trig(double x, double (*f)(double)) {
+    if (x != x || std::fabs(x) >= 9223372036854775808.0) {
+        if (!std::isinf(x)) return x;
+        const unsigned long long indefinite = 0xfff8000000000000ull;
+        std::memcpy(&x, &indefinite, 8);
+        return x;
+    }
+    return f(x);
+}
+inline double X87_Sin(double x) { return X87_Trig(x, [](double v) { return std::sin(v); }); }
+inline double X87_Cos(double x) { return X87_Trig(x, [](double v) { return std::cos(v); }); }
+
 // A float loaded and stored by the x87 (fld m32; fstp m32), where the compiler would copy it.
 inline float X87_Through(float x) {
     u32 b;

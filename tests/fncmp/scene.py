@@ -1,6 +1,7 @@
 # 0x448000-0x470000 (render mode, model part tables, frame globals, model holders, the terrain
 # attribute grid, procedural terrain textures, painting cells, texture remaps, the highlight,
-# flashing holders, the GlobalAlloc wrappers, id tables, part states and their matrices, with the matrix helpers they use)
+# flashing holders, the GlobalAlloc wrappers, id tables, part states and their matrices, with
+# the matrix helpers they use)
 # against the originals.
 # usage: scene.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os

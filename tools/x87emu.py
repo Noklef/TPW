@@ -390,7 +390,13 @@ class Emu:
             v = self.st[0]
             self.st[0] = v if math.isnan(v) or v == 0 or v == math.inf else r24(math.sqrt(v)) if v > 0 else INDEFINITE
         elif mn in ('FSIN', 'FCOS'):
-            self.st[0] = (math.sin if mn == 'FSIN' else math.cos)(self.st[0])
+            v = self.st[0]
+            # infinity: invalid, the indefinite; beyond 2^63: C2 set, st0 left as it is
+            self.c2 = not math.isnan(v) and math.inf > abs(v) >= 2.0 ** 63
+            if math.isinf(v):
+                self.st[0] = INDEFINITE
+            elif not math.isnan(v) and not self.c2:
+                self.st[0] = (math.sin if mn == 'FSIN' else math.cos)(v)
         elif mn == 'FPATAN':
             x, y = self.st.pop(0), self.st[0]
             # a NaN operand comes through (Python's atan2 would give its own NaN)
