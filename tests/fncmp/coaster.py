@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060), (0x442d10, 0x442d70), (0x443ee0, 0x443f40), (0x444c00, 0x444c50), (0x444040, 0x444090), (0x444700, 0x444740), (0x447790, 0x447830), (0x442cd0, 0x442d10), (0x436820, 0x4368f0), (0x436150, 0x436190), (0x432bd0, 0x432c10), (0x444c50, 0x444cb0), (0x43af70, 0x43afa0), (0x4418d0, 0x441970), (0x434650, 0x434740), (0x5da3c0, 0x5da3d0), (0x447990, 0x4479a0), (0x430ac0, 0x430ad0), (0x433220, 0x433240), (0x435710, 0x435730)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060), (0x442d10, 0x442d70), (0x443ee0, 0x443f40), (0x444c00, 0x444c50), (0x444040, 0x444090), (0x444700, 0x444740), (0x447790, 0x447830), (0x442cd0, 0x442d10), (0x436820, 0x4368f0), (0x436150, 0x436190), (0x432bd0, 0x432c10), (0x444c50, 0x444cb0), (0x43af70, 0x43afa0), (0x4418d0, 0x441970), (0x434650, 0x434740), (0x5da3c0, 0x5da3d0), (0x447990, 0x4479a0), (0x430ac0, 0x430ad0), (0x433220, 0x433240), (0x435710, 0x435730), (0x439920, 0x439ab0)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -716,6 +716,38 @@ def small(r, op):
     return Call({'Unlerp': 0x434650, 'Scale': 0x434680, 'Lerp': 0x4346a0}[op], [x, TYPE], {TYPE: t}, ret='d')
 
 
+def bounds(r, op):
+    """Owner +0x54 nodes (+0x64 next, +0xfc point index, +0x100 -> +0x18 type, +0x58 pad),
+    +0x9c points 0x38 apart with a position at +4."""
+    n = r.randrange(1, 6)
+    owner, nodes, parts, types, points = r.bytes(0x200), r.bytes(6 * 0x110), r.bytes(0x100), r.bytes(0x100), r.bytes(30 * 0x38)
+    put(owner, 0x54, 'I', NODES)
+    put(owner, 0x9c, 'I', FORCE)
+    index = r.randrange(0, 4)
+    for k in range(n):
+        b = k * 0x110
+        put(nodes, b + 0x64, 'I', NODES + (k + 1) * 0x110 if k + 1 < n else 0)
+        put(nodes, b + 0xfc, 'I', index)
+        index = max(0, min(29, index + r.choice([-1, 0, 1, 2, 3, 5])))
+        put(nodes, b + 0x100, 'I', SPL + r.randrange(4) * 0x20)
+    for k in range(4):
+        put(parts, k * 0x20 + 0x18, 'I', r.choice([0, TYPE, TYPE + 0x40]))
+    r.floats(types, (0x58, 0x98))
+    if r.random() < 0.3:
+        exact = [r.choice([0.0, -0.0, 1.0, 2.0, -1.0, 0.5]) for _ in range(4)]
+        for o in range(4, len(points), 4):
+            put(points, o, 'f', r.choice(exact))
+    else:
+        r.floats(points, range(0, len(points), 4))
+    nan_pair(r, points, range(4, 30 * 0x38, 0x38), 0.2)
+    if r.random() < 0.2:  # NaN pads against NaN boxes, for the operand order
+        for o in (0x58, 0x98):
+            put(types, o, 'I', r.choice([0x7fc00000, 0xffc00000]))
+        for o in range(4, len(points), 0x38):
+            put(points, o, 'I', r.choice([0x7fc00000, 0xffc00000]))
+    return Call(0x439920, [COAST], {COAST: owner, NODES: nodes, SPL: parts, TYPE: types, FORCE: points})
+
+
 KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 'Tangent': spline, 'Set': orient,
          'Init': orient, 'Frame': frame, 'At': frame,
          'RoundUp': helpers, 'Lerp': helpers, 'Dot': helpers, 'Normalize': helpers, 'NormXZ': helpers, 'Swing': cars, 'Space': cars, 'Segs': cars, 'Setup': cars, 'Riders': cars, 'Extent': cars, 'Drop': cars, 'Window': cars, 'InWindow': cars, 'Dist': cars,
@@ -723,7 +755,7 @@ KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 
          'Link': queue, 'QPush': queue, 'QAdd': queue, 'QRoom': queue, 'QPop': queue, 'QAdvance': queue,
          'CNext': cursor, 'CPrev': cursor, 'CPoint': cursor,
          'Count': registry, 'LinkNodes': registry, 'Pair': registry, 'EntryPos': registry, 'SearchReset': registry,
-         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Pick': train, 'Tile': tiles, 'End': current, 'OnRide': current, 'Marked': current, 'Select': pieces, 'Renumber': pieces, 'RideTrain': ride_train, 'CarValue': ride_train, 'BeginEnd': current, 'Bit18': by_id, 'ById': by_id, 'IdValue': by_id, 'SetById': by_id, 'Key': tiles, 'Event': event, 'SetEnd': current, 'ClearEnd': current, 'ClearPair': contacts, 'ObjLink': by_id, 'ObjOpen': by_id, 'ObjBare': by_id, 'SelGet': small, 'SelSet': small, 'State': small, 'Changed': small, 'LostPair': small, 'Unlerp': small, 'Scale': small, 'Lerp': small, 'Flag1': small, 'SetCur': small, 'Moved': small, 'Position': small}
+         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Pick': train, 'Tile': tiles, 'End': current, 'OnRide': current, 'Marked': current, 'Select': pieces, 'Renumber': pieces, 'RideTrain': ride_train, 'CarValue': ride_train, 'BeginEnd': current, 'Bit18': by_id, 'ById': by_id, 'IdValue': by_id, 'SetById': by_id, 'Key': tiles, 'Event': event, 'SetEnd': current, 'ClearEnd': current, 'ClearPair': contacts, 'ObjLink': by_id, 'ObjOpen': by_id, 'ObjBare': by_id, 'SelGet': small, 'SelSet': small, 'State': small, 'Changed': small, 'LostPair': small, 'Unlerp': small, 'Scale': small, 'Lerp': small, 'Flag1': small, 'SetCur': small, 'Moved': small, 'Position': small, 'Bounds': bounds}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 

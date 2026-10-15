@@ -23,4 +23,11 @@ void __cdecl Contacts_ClearPair(u8 *node, u8 *owner);
 
 // 0x4346f0: marks node, and its partner (+0x68) if any, 0x200000.
 void __cdecl Contacts_MarkLostPair(u8 *node);
+
+// 0x439920: boxes each node of the owner's list that has a next one: min (+0x98) and max
+// (+0xa4) over the positions (+4) of the owner's points (+0x9c, 0x38 bytes each) from the
+// node's index (+0xfc) to the next node's, padded by the +0x58 of the node's type (+0x100
+// -> +0x18), else of the next node's, else 0.
+// sic: a point compares below min when either is NaN, and then only min takes it.
+void __cdecl Contacts_UpdateBounds(u8 *owner);
 }

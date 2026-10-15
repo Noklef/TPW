@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "../math/x87.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) {
@@ -66,5 +68,33 @@ void __cdecl Contacts_ClearPair(u8 *node, u8 *owner) {
 void __cdecl Contacts_MarkLostPair(u8 *node) {
     at<u32>(node, 8) |= kLost;
     if (u8 *partner = at<u8 *>(node, 0x68)) at<u32>(partner, 8) |= kLost;
+}
+
+void __cdecl Contacts_UpdateBounds(u8 *owner) {
+    const uintptr_t points = at<uintptr_t>(owner, 0x9c);
+    for (u8 *node = at<u8 *>(owner, 0x54), *next; (next = at<u8 *>(node, 0x64)) != nullptr; node = next) {
+        const u32 first = at<u32>(node, 0xfc);
+        const u8 *point = reinterpret_cast<const u8 *>((u32)(points + first * 0x38)) + 4;
+        u32 *min = &at<u32>(node, 0x98), *max = &at<u32>(node, 0xa4);
+        for (int j = 0; j < 3; ++j) min[j] = max[j] = at<u32>(point, 4 * j);
+        u32 rest = at<u32>(next, 0xfc) - first + 1;  // the points through the next node's
+        if (rest) --rest;                              // (none past the first when that wraps to 0)
+        for (; rest; --rest) {
+            point += 0x38;
+            for (int j = 0; j < 3; ++j) {
+                const float v = at<float>(point, 4 * j);
+                if (!(v >= reinterpret_cast<const float *>(min)[j]))
+                    min[j] = at<u32>(point, 4 * j);
+                else if (v > reinterpret_cast<const float *>(max)[j])
+                    max[j] = at<u32>(point, 4 * j);
+            }
+        }
+        const u8 *type = at<const u8 *>(at<const u8 *>(node, 0x100), 0x18);
+        if (!type) type = at<const u8 *>(at<const u8 *>(next, 0x100), 0x18);
+        const float pad = type ? at<float>(type, 0x58) : 0.0f;
+        float *lo = reinterpret_cast<float *>(min), *hi = reinterpret_cast<float *>(max);
+        for (int j = 0; j < 3; ++j) lo[j] = (float)(X87Reg(lo[j]) - pad);
+        for (int j = 0; j < 3; ++j) hi[j] = (float)(X87Reg(pad) + hi[j]);
+    }
 }
 }

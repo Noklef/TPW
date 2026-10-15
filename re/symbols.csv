@@ -1801,6 +1801,7 @@ address,name,kind,confidence,notes
 0x0043afa0,Contacts_ClearAll,function,high,"reimplemented (src/game/coaster/contacts); cdecl (owner): Contacts_Clear on every node of the owner's list, marking each 0x200000"
 0x0043af70,Contacts_ClearPair,function,high,"reimplemented (src/game/coaster/contacts); cdecl (node, owner): Contacts_Clear(owner, node), then for node+0x68 if set"
 0x004346f0,Contacts_MarkLostPair,function,high,reimplemented (src/game/coaster/contacts); cdecl (node): node and its +0x68 partner +8 |= 0x200000
+0x00439920,Contacts_UpdateBounds,function,high,"reimplemented (src/game/coaster/contacts); cdecl (owner): boxes each listed node with a next (+0x98 min, +0xa4 max) over the owner's points (+0x9c, 0x38 apart, +4) from its +0xfc to the next's, padded by its type's +0x58 (else the next's, else 0)"
 0x00432d50,Train_SetCouplings,function,high,"reimplemented (src/game/coaster/train); cdecl (unused, train): unless 0x790afc, marks each car but the last 0x100 and picks its coupling (+0x84/+0x44 for a rear-coupled type, else +0x78/+0x30) into +0x90/+0x74"
 0x00433280,Car_TrainLength,function,high,"reimplemented (src/game/coaster/train); cdecl double (car): sum over car+4 slots of the train's cars of lerp(type+0xbc, type+0xc0, +0xe8) + type+0xc4, plus car's own lerp; 0 without a car"
 0x00436750,Car_PickCoupling,function,high,"reimplemented (src/game/coaster/train); cdecl (car): +0x84/+0x44 for a car marked 0x100 without 0x2000 whose type has flag 8, else +0x78/+0x30, into +0x90/+0x74"
