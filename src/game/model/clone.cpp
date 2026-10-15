@@ -1,5 +1,6 @@
 #include "clone.h"
 
+#include <cstdint>
 #include <cstring>
 
 #include "../core/globalmem.h"
@@ -259,6 +260,50 @@ u32 __cdecl Holder_Clone(const u8 *holder_, u32, u32 flags, u8 **out, u32 mask) 
     const u8 *copied = reinterpret_cast<const u8 *>(block);
     if (flags & 0x1000) Model_MarkFacesNotValue(&copied, mask);
     else Model_MarkFacesByMask(&copied, mask);
+    return 1;
+}
+
+u32 __cdecl ModelPiece_Clone(u32 piece, u32 heap, u32 unused, u32 *out) {
+    (void)heap;  // sic: defaulted to 0x79fb2c when 0, then never used
+    (void)unused;
+    const auto selected = [](u32 part) {
+        const u32 flags = at<u32>(part, 4);
+        return (flags & 0x1000) && !(flags & 0x4000);
+    };
+    u32 size = at<u16>(piece, 0x12) * 0x40u + 0x48;
+    u32 part = at<u32>(piece, 0x2c);
+    for (u32 i = at<u16>(piece, 0x12); i; --i, part += 0x40)
+        if (selected(part)) size += at<u16>(at<u32>(part, 0x28), 2) * 20u + 0x34;
+    const u32 block = (u32)(uintptr_t)GlobalMem_Alloc(size, 0);
+    copy(block, piece, 0x48);
+    *out = block;
+    at<u32>(block, 0x44) = block;
+    u32 cursor = block + 0x48;
+    if (at<u32>(piece, 0x2c)) {
+        at<u32>(block, 0x2c) = cursor;
+        if (at<u16>(piece, 0x12)) {
+            copy(cursor, at<u32>(piece, 0x2c), at<u16>(piece, 0x12) * 0x40u);
+            cursor += at<u16>(piece, 0x12) * 0x40u;
+        }
+    }
+    u32 to = at<u32>(block, 0x2c);
+    part = at<u32>(piece, 0x2c);
+    for (u32 i = at<u16>(piece, 0x12); i; --i, part += 0x40) {
+        if (selected(part)) {
+            at<u32>(to, 0x28) = cursor;
+            if (const u32 sub = at<u32>(part, 0x28)) {
+                copy(cursor, sub, 0x34);
+                cursor += 0x34;
+            }
+            at<u32>(at<u32>(to, 0x28), 0xc) = cursor;
+            const u32 sub = at<u32>(part, 0x28);
+            if (at<u32>(sub, 0xc) && at<u16>(sub, 2)) {
+                copy(cursor, at<u32>(sub, 0xc), at<u16>(sub, 2) * 20u);
+                cursor += at<u16>(at<u32>(part, 0x28), 2) * 20u;
+            }
+        }
+        if (to) to += 0x40;
+    }
     return 1;
 }
 }

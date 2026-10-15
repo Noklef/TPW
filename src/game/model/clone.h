@@ -1,4 +1,4 @@
-// Holder cloning: reimplementation of 0x454a10.
+// Holder and model piece cloning: reimplementations of 0x454a10 and 0x4554d0.
 #pragma once
 
 #include "../../../re/types.h"
@@ -17,4 +17,11 @@ extern "C" {
 // *out = the copy, whose faces are then marked (0x1000: Model_MarkFacesNotValue, else
 // Model_MarkFacesByMask, with mask). Returns 1. The second argument is unused.
 u32 __cdecl Holder_Clone(const u8 *holder, u32 unused, u32 flags, u8 **out, u32 mask);
+
+// 0x4554d0: a copy of a model piece in one block (GlobalMem_Alloc, not zeroed): its 0x48-byte
+// header (+0x44 = the copy), its +0x12 parts (0x40 each, from +0x2c, when it has them), and
+// for each part with flag 0x1000 but not 0x4000 (+4) its +0x28 record (0x34 bytes) and that
+// record's +2 entries of 20 bytes (+0xc), the copies' pointers moved to them. Sized in a
+// first pass. *out = the copy; returns 1. heap (0x79fb2c when 0) and unused are unused.
+u32 __cdecl ModelPiece_Clone(u32 piece, u32 heap, u32 unused, u32 *out);
 }

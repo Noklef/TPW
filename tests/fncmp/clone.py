@@ -1,7 +1,8 @@
 # Holder_Clone (src/game/model/clone: 0x454a10) against the original: a holder (slot table at
 # +0x28) and a model with every array the flags copy, nodes whose pointers lead into them, and
 # the parts Model_MarkFaces* then walk; GlobalMem_Alloc serves the block from heap().
-# usage: clone.py [CASES [SEED]] [--wild|--both] [--show N]
+# Also ModelPiece_Clone 0x4554d0 (op Piece).
+# usage: clone.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Holder,Piece)
 import os
 import struct
 import sys
@@ -9,7 +10,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, Bench, Call, RAM, global_heap, heap, put  # noqa: E402
 
-B = Bench([(0x454a10, 0x4554d0), (0x44b140, 0x44b220), (0x45b9d0, 0x45ba15)])
+B = Bench([(0x454a10, 0x455689), (0x44b140, 0x44b220), (0x45b9d0, 0x45ba15)])
 HOLDER, MODEL, NODES, OUT = (RAM + 0x1000 * k for k in range(4))
 TERRAIN = 0x7a1a8c  # the terrain flags (0x2000: procedural textures could load)
 # MODEL page: the model, then its arrays
@@ -28,7 +29,7 @@ def into(r, base, n, size):
                      base + size * r.randrange(max(n, 1)) + r.randrange(size), base - size, r.getrandbits(32)])
 
 
-def case(r):
+def holder(r):
     total = r.choice([0, 1, 2, r.randrange(1, 9), r.randrange(1, 9)])
     primary = min(total, r.choice([0, 1, total, r.randrange(total + 1)]))
     n36, n38, n3a, n3c, n3e, n4a = small(r, 6), small(r, 6), small(r, 8), small(r, 12), small(r, 8), small(r, 8)
@@ -91,6 +92,33 @@ def case(r):
     regions = {HOLDER: h, MODEL: m, NODES: nodes, OUT: bytearray(r.bytes(4)), HEAP: heap(0x6000),
                TERRAIN: bytearray(struct.pack('<I', r.getrandbits(32) & ~0x2000 | r.choice([0, 0x2000]))), **global_heap()}
     return Call(0x454a10, [HOLDER, r.getrandbits(32), flags, OUT, key if flags & 0x1000 else mask], regions, ret='a')
+
+
+
+def piece(r):
+    """A model piece (MODEL: 0x48 header, +0x12 parts at +0x2c, 0x40 each at PARTS) whose parts with
+    flag 0x1000 but not 0x4000 have a +0x28 record (NODES, 0x40 apart) with +2 20-byte entries (+0xc)."""
+    n = r.choice([0, 1, 2, r.randrange(1, 9)])
+    m = bytearray(r.bytes(0x1000))
+    put(m, 0x12, 'H', n)
+    put(m, 0x2c, 'I', PARTS if n or r.random() < 0.7 else 0)
+    records = bytearray(r.bytes(0x1000))
+    for i in range(n):
+        p = PARTS - MODEL + 0x40 * i
+        put(m, p + 4, 'I', r.getrandbits(32) & ~0x5000 | r.choice([0, 0x1000, 0x1000, 0x5000, 0x4000]))
+        put(m, p + 0x28, 'I', NODES + 0x40 * i)
+        count = r.choice([0, 1, 3, r.randrange(8)])
+        put(records, 0x40 * i + 2, 'H', count)
+        put(records, 0x40 * i + 0xc, 'I', r.choice([NODES + 0x800 + 0x80 * i, NODES + 0x800 + 0x80 * i, 0]))
+    regions = {MODEL: m, NODES: records, OUT: bytearray(r.bytes(4)), HEAP: heap(0x6000), **global_heap()}
+    return Call(0x4554d0, [MODEL, r.choice([0, r.getrandbits(32)]), r.getrandbits(32), OUT], regions, ret='a')
+
+
+def case(r):
+    return {'Holder': holder, 'Piece': piece}[r.choice(OPS)](r)
+
+
+OPS = [k for k in os.environ.get('OPS', 'Holder,Piece').split(',') if k]
 
 
 if __name__ == '__main__':
