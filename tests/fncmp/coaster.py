@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -372,11 +372,36 @@ def queue(r, op):
     return Call(0x43b390, [COAST], regs)
 
 
+def cursor(r, op):
+    """Three pieces in a ring (+0x64 on, +0x68 back), each with a node list {count, nodes}."""
+    pieces, lists, nodes = r.bytes(0x300), r.bytes(0x30), r.bytes(3 * 4 * 0x58)
+    counts = [r.choice([1, 1, 2, 3, 4, 0]) for _ in range(3)]
+    for k in range(3):
+        put(pieces, k * 0x100 + 0x64, 'II', NODES + (k + 1) % 3 * 0x100, NODES + (k + 2) % 3 * 0x100)
+        put(pieces, k * 0x100 + 0x90, 'I', SPL + k * 0x10)
+        put(lists, k * 0x10, 'II', counts[k], FORCE + k * 4 * 0x58)
+    r.floats(nodes, range(0, len(nodes), 4))
+    a = r.randrange(3)
+    b = r.choice([a, a, (a + 1) % 3, r.randrange(3)])
+    ia = r.choice([max(counts[a] - 1, 0), r.randrange(4), 0, 0xffffffff])
+    ib = r.choice([(ia + 1) & 0xffffffff, 0, r.randrange(4)]) if a == b else r.choice([0, r.randrange(4)])
+    cur = put(bytearray(16), 0, 'IIII', ia, NODES + a * 0x100, min(ib, 3), NODES + b * 0x100)
+    regs = {NODES: pieces, SPL: lists, FORCE: nodes, OUT: cur}
+    if op == 'CNext':
+        return Call(0x440ad0, [OUT], regs)
+    if op == 'CPrev':
+        return Call(0x440b50, [OUT], regs)
+    put(cur, 0, 'I', min(ia, 3))
+    regs[YAW] = r.bytes(12)
+    return Call(0x440bc0, [OUT, r.choice([fb(r.random()), fb(0.0), fb(1.0), r.f()]), YAW], regs)
+
+
 KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 'Tangent': spline, 'Set': orient,
          'Init': orient, 'Frame': frame, 'At': frame,
          'RoundUp': helpers, 'Lerp': helpers, 'Dot': helpers, 'Normalize': helpers, 'Swing': cars, 'Space': cars, 'Segs': cars, 'Extent': cars, 'Drop': cars, 'Window': cars, 'InWindow': cars, 'Dist': cars,
          'NodeLerp': nodes, 'PastEnd': nodes, 'Zone': nodes, 'Merge': keys, 'Append': lists,
-         'Link': queue, 'QPush': queue, 'QAdd': queue, 'QRoom': queue, 'QPop': queue, 'QAdvance': queue}
+         'Link': queue, 'QPush': queue, 'QAdd': queue, 'QRoom': queue, 'QPop': queue, 'QAdvance': queue,
+         'CNext': cursor, 'CPrev': cursor, 'CPoint': cursor}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 
