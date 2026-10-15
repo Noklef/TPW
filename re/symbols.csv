@@ -370,7 +370,7 @@ address,name,kind,confidence,notes
 0x00474020,Animator_SetQueuedSpeed,function,high,"reimplemented (src/game/motion/animator); (animator, speed): every layer +0x30 = speed"
 0x00474050,Layer_SetSpeed,function,high,"reimplemented (src/game/motion/animator); (animator, speed, layer): layer +0xc = speed"
 0x00474070,Animator_MotionEndMs,function,high,"reimplemented (src/game/motion/animator); (animator, bank, entry): end frame (block +8) * 1000 / 30, 0 without the entry"
-0x0044ab30,Holder_PlaceAttached,function,low,"(holder): when the holder (flag 1) and what it carries (+0x28, flag 1) are awake, places the carried object from the holder's model (+0x78; via 0x44ab90)"
+0x0044ab30,PartStates_Update,function,low,"(instance): when the instance (flag 1) and its part states (+0x28, flag 1: animated parts) are awake, walks the model's node tree (+0x78; 0x44ab90) from the identity matrix, by value, with the part entries (their 0x40-byte slots are matrices)"
 0x0045bdc0,Holder_IsAwake,function,high,"(holder): flags & 1"
 0x0045bdd0,Holder_Sleep,function,low,"(holder): called when an animator flagged 8 ends its motion (animator flag 0x4000 uses Holder_SleepAt instead); counterpart of 0x45bd30"
 0x0045be80,Holder_SleepAt,function,low,"(holder, animator +0xc0, +0xc4): see Holder_Sleep"

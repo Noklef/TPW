@@ -4,7 +4,8 @@
 // past its index (the first +0x44 faces at +0x70, 0xa0 bytes each, the rest at +0x74, 0x58
 // bytes), and a node tree from +0x78 (+0 flags, +8 next sibling, +0xc first child, +0x50 the
 // node's face index). The instance's +0x28 is then a PartStates block, with one 0x14-byte
-// entry per part (+0 flags, +4 its 0x40-byte slot, +0xc a sprite script, -1 for none).
+// entry per part (+0 flags, +4 its 0x40-byte slot, a matrix 0x44ab30 fills walking the node
+// tree, +0xc a sprite script, -1 for none).
 #pragma once
 
 #include "../../../re/types.h"
