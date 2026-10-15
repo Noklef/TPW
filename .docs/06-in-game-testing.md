@@ -12,7 +12,7 @@ This page covers the test-only parts of the hook DLL and the sandbox used to run
 |---|---|---|---|
 | Hook installer | `dllmain.cpp`, `patch.cpp`, `hooks.cpp` | **Yes**: a 5-byte `jmp` to our reimplementation, only after the original prologue bytes are checked | The decompilation itself |
 | dinput proxy | `dinput_proxy.cpp`, `dinput.def` | No; forwards `DirectInputCreateA` to the system DLL | How the DLL gets loaded (ddraw.dll is taken by dgVoodoo) |
-| **Startup trace** (test tooling) | `trace.cpp` | No; only **import-table slots** are redirected through loggers, which then call the real API | Diagnosing why the game fails to start or crashes |
+| **Startup trace** (test tooling) | `trace.cpp` | No; **import-table slots** are redirected through loggers, which then call the real API. One game function is replaced: the retail build's empty debug print `Debug_Printf` (0x5da3c0, a bare `RET`) becomes a logger that preserves every register and flag | Diagnosing why the game fails to start or crashes, from the game's own error messages |
 | **FPU watcher** (test tooling) | `dllmain.cpp` (`watch_fpu`) | No; reads the main thread's FPU control word once a second | Checking the 24-bit x87 precision our float ports assume |
 | Log writer | `log.cpp` | No | `tpw.log` next to the exe, flushed per line so it survives a crash |
 
@@ -34,7 +34,7 @@ Name=0         ; one hook off, by its re/symbols.csv name (for bisecting a broke
 
 ### Reading tpw.log
 
-1. The build time and every hook's status (`hooked`, `off (tpw.ini)`, or `SKIPPED` if the exe's bytes differ).
+1. The DLL's link timestamp (hex, from its PE header, so it shows which build the game loaded) and every hook's status (`hooked`, `off (tpw.ini)`, or `SKIPPED` if the exe's bytes differ).
 2. `startup trace: N imports redirected`.
 3. Timestamped trace lines. Each carries `from XXXXXXXX`, the return address in `tp.exe`. Look that address up in `_re/text.asm` to find the game code that made the call. The trace logs:
    - message boxes, `PostQuitMessage`, `ExitProcess`
@@ -45,6 +45,7 @@ Name=0         ; one hook off, by its re/symbols.csv name (for bisecting a broke
    - the CD drive queries
    - DirectDraw and DirectSound creation
    - exceptions (the first 30, with registers)
+   - `game debug from XXXXXXXX: ...`: the game's own debug messages (the first 2000), e.g. "Error: Unable to open text resource at %s"
 4. `FPU control word XXXX: precision ...` each time the precision changes. Our float ports assume 24-bit.
 5. `process exiting`.
 
@@ -88,4 +89,10 @@ FPU precision, and the log records that.
 ## Status
 
 - 2026-10-15: first run (`1-original`, dgVoodoo, default settings) quit during startup with
-  exit code 1, no crash. The trace was added to find out where. Next: the same with `2-dll-passthrough`.
+  exit code 1, no crash. The trace was added to find out where.
+- 2026-10-15: the `2-dll-passthrough` run was really hooked: `run.cmd` wrote `echo enabled=0>> tpw.ini`,
+  and cmd read the `0>>` as a redirect of stream 0. It now redirects first (`>>file echo enabled=0`).
+  The trace showed the registry and mutex checks passing, `dialog.tcf` and `save\config.tcf` missing,
+  then exit 1 at 1.0 s with no window created. WinMain (0x45a960) quits when 0x419710 fails: it loads
+  the language text from `Data\Language\` and reports why through the empty debug print. That
+  print is now logged. Next: a true passthrough run.

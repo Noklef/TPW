@@ -1,10 +1,15 @@
 #include "trace.h"
 
+#include <cstdarg>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <intrin.h>
 #include <windows.h>
 
 #include "log.h"
+#include "patch.h"
 
 #pragma intrinsic(_ReturnAddress)
 
@@ -195,6 +200,62 @@ LONG CALLBACK on_exception(EXCEPTION_POINTERS *info) {
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
+// The game's debug print (0x5da3c0) is a bare RET in the retail build, but its 1688 call sites
+// still pass their messages ("Error: Unable to open text resource at %s"). The stub below
+// takes its place: it saves every register and the flags, logs, and returns like the RET did,
+// so callers that use it as an empty function pointer (vtables, zfree, a sprite opcode) are
+// unaffected. Its argument 0 is sometimes a condition or channel number, so the format is
+// whichever of the first two arguments points at text inside tp.exe.
+const uintptr_t kDebugPrint = 0x5da3c0;
+const std::uint8_t kDebugPrintBytes[5] = {0xc3, 0x90, 0x90, 0x90, 0x90};
+LONG g_debug_lines;
+uintptr_t g_image_end;
+
+bool is_image_text(DWORD p) {
+    if (p < 0x400000 || p >= g_image_end) return false;
+    const auto *s = reinterpret_cast<const unsigned char *>(p);
+    int n = 0;
+    for (; n < 300 && s[n]; ++n)
+        if (s[n] < 0x20 && s[n] != '\n' && s[n] != '\r' && s[n] != '\t') return false;
+    return n >= 3 && n < 300;
+}
+
+void ignore_invalid_parameter(const wchar_t *, const wchar_t *, const wchar_t *, unsigned, uintptr_t) {}
+
+extern "C" void __cdecl debug_print_log(const DWORD *stack) {  // stack[0]: return address
+    __try {
+        int format = 0;
+        if (is_image_text(stack[1])) format = 1;
+        else if (is_image_text(stack[2])) format = 2;
+        if (!format) return;
+        const LONG n = InterlockedIncrement(&g_debug_lines);
+        if (n > 2000) return;
+        char text[512];
+        _vsnprintf_s(text, sizeof text, _TRUNCATE, reinterpret_cast<const char *>(stack[format]),
+                     reinterpret_cast<va_list>(const_cast<DWORD *>(&stack[format + 1])));
+        for (size_t len = std::strlen(text); len && (text[len - 1] == '\n' || text[len - 1] == '\r');)
+            text[--len] = 0;
+        log_line("[%6.1fs] game debug from %08X: %s%s", log_seconds(), stack[0], text,
+                 n == 2000 ? " -- no more game debug lines logged" : "");
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        log_line("[%6.1fs] game debug from %08X: (unreadable arguments)", log_seconds(), stack[0]);
+    }
+}
+
+__declspec(naked) void debug_print_stub() {
+    __asm {
+        pushfd
+        pushad
+        lea eax, [esp + 36]  // past pushad (32) and pushfd (4): the return address
+        push eax
+        call debug_print_log
+        add esp, 4
+        popad
+        popfd
+        ret
+    }
+}
+
 struct Redirect {
     const char *dll;
     const char *name;  // nullptr: by ordinal
@@ -275,6 +336,13 @@ void install_trace() {
         }
     }
     AddVectoredExceptionHandler(1, on_exception);
+
+    g_image_end = reinterpret_cast<uintptr_t>(base) + nt->OptionalHeader.SizeOfImage;
+    _set_invalid_parameter_handler(ignore_invalid_parameter);  // a bad game format must not end the process
+    const bool debug = kDebugPrint + 5 <= g_image_end &&
+                       patch_jump(reinterpret_cast<void *>(kDebugPrint), (void *)&debug_print_stub,
+                                  kDebugPrintBytes) == PatchResult::Ok;
+    log_line("startup trace: game debug messages (0x5da3c0) %s", debug ? "logged" : "NOT logged (bytes differ)");
     log_line("startup trace: %d imports redirected, %d of them not yet bound (tpw.ini [tpw] trace=0 turns this off)",
              redirected, unbound);
 }

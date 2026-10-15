@@ -86,7 +86,7 @@ DWORD WINAPI watch_fpu(LPVOID) {
 
 }  // namespace
 
-BOOL WINAPI DllMain(HINSTANCE, DWORD reason, LPVOID) {
+BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID) {
     // Only the game itself, and only the 0x400000-based image the hooks were made for.
     if (reinterpret_cast<std::uintptr_t>(GetModuleHandleA(nullptr)) != 0x400000) return TRUE;
     if (reason == DLL_PROCESS_ATTACH) {
@@ -97,7 +97,11 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD reason, LPVOID) {
         path_in_game_dir(log_path, "tpw.log");
 
         tpw::hook::log_open(log_path);
-        log_line("tpw hook DLL (built " __DATE__ " " __TIME__ "): %u hooks registered",
+        // The link time from our own PE header: unlike __DATE__, it changes with any rebuilt file.
+        const auto *self = reinterpret_cast<const BYTE *>(instance);
+        const auto *nt = reinterpret_cast<const IMAGE_NT_HEADERS *>(
+            self + reinterpret_cast<const IMAGE_DOS_HEADER *>(self)->e_lfanew);
+        log_line("tpw hook DLL (linked %08X): %u hooks registered", (unsigned)nt->FileHeader.TimeDateStamp,
                  (unsigned)tpw::hook::kHookCount);
         install_hooks(ini);
         if (GetPrivateProfileIntA("tpw", "trace", 1, ini)) tpw::hook::install_trace();
