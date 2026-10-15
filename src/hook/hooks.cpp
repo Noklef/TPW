@@ -61,6 +61,7 @@
 #include "../game/core/ime.h"
 #include "../game/core/idtable.h"
 #include "../game/core/keymap.h"
+#include "../game/core/language.h"
 #include "../game/core/stdstring.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
@@ -1227,6 +1228,11 @@ const Hook kHooks[] = {
     {"KeyMaps_ResetAll",          0x0040cfa0, (void *)&KeyMaps_ResetAll, {0x8b, 0x0d, 0x8c, 0x71, 0x78}},
     {"Ime_Ctor",                  0x00478b60, (void *)&Ime_Ctor, {0x51, 0x8a, 0x54, 0x24, 0x03}},
     {"WTraits_Move",              0x00479150, (void *)&WTraits_Move, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Language_SetFontSet",       0x0041a5a0, (void *)&Language_SetFontSet, {0x8b, 0x44, 0x24, 0x04, 0x3d}},
+    {"Language_Buffer",           0x0041a820, (void *)&Language_Buffer, {0xb8, 0x30, 0xf2, 0xf7, 0x00}},
+    {"Language_Id",               0x0041a830, (void *)&Language_Id, {0x8b, 0x41, 0x08, 0xc3, 0x90}},
+    {"Language_SetId",            0x0041a840, (void *)&Language_SetId, {0x8b, 0x44, 0x24, 0x04, 0x89}},
+    {"Language_IsHebrew",         0x0041a850, (void *)&Language_IsHebrew, {0x8b, 0x51, 0x08, 0x33, 0xc0}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

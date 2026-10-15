@@ -68,6 +68,7 @@ add_library(tpw_game STATIC
     src/game/core/keymap.cpp
     src/game/core/ime.cpp
     src/game/core/wtraits.cpp
+    src/game/core/language.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
