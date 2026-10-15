@@ -83,6 +83,7 @@ add_library(tpw_game STATIC
     src/game/sprite/sprite.cpp
     src/game/world/random.cpp
     src/game/world/things.cpp
+    src/game/world/camera.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
@@ -98,6 +99,7 @@ add_library(tpw_game STATIC
     src/game/coaster/train.cpp
     src/game/coaster/save.cpp
     src/game/coaster/xsection.cpp
+    src/game/coaster/setup.cpp
     src/game/terrain/terrain_blend.cpp
     src/game/terrain/land.cpp
     src/game/terrain/procedural.cpp
@@ -108,6 +110,7 @@ add_library(tpw_game STATIC
     src/game/model/partstate.cpp
     src/game/model/scratch.cpp
     src/game/model/clone.cpp
+    src/game/model/slots.cpp
     src/game/render/mode.cpp
     src/game/render/frame.cpp
     src/game/render/screen.cpp

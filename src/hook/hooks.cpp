@@ -28,7 +28,7 @@
 #include "../game/files/wrapsources.h"
 #include "../game/files/wadsource.h"
 #include "../game/files/bufsource.h"
-#include "../game/files/filestream.h"
+#include "../game/files/filestream.h"
 #include "../game/files/quickload.h"
 #include "../game/math/matrix.h"
 #include "../game/math/vector.h"
@@ -49,7 +49,7 @@
 #include "../game/gfx/imagecodec.h"
 #include "../game/gfx/tga.h"
 #include "../game/core/events.h"
-#include "../game/core/filetime.h"
+#include "../game/core/filetime.h"
 #include "../game/core/globalmem.h"
 #include "../game/core/idtable.h"
 #include "../game/core/stdstring.h"
@@ -76,25 +76,28 @@
 #include "../game/coaster/cursor.h"
 #include "../game/coaster/registry.h"
 #include "../game/coaster/contacts.h"
+#include "../game/coaster/setup.h"
 #include "../game/coaster/save.h"
 #include "../game/coaster/spline.h"
-#include "../game/coaster/train.h"
+#include "../game/coaster/train.h"
 #include "../game/coaster/xsection.h"
 #include "../game/terrain/land.h"
 #include "../game/terrain/procedural.h"
 #include "../game/terrain/terrain_blend.h"
 #include "../game/world/random.h"
+#include "../game/world/camera.h"
 #include "../game/world/things.h"
 #include "../game/model/holder.h"
 #include "../game/model/parts.h"
-#include "../game/model/highlight.h"
+#include "../game/model/highlight.h"
 #include "../game/model/partstate.h"
-#include "../game/model/remap.h"
+#include "../game/model/remap.h"
 #include "../game/model/clone.h"
 #include "../game/model/scratch.h"
-#include "../game/render/frame.h"
+#include "../game/model/slots.h"
+#include "../game/render/frame.h"
 #include "../game/render/screen.h"
-#include "../game/render/mode.h"
+#include "../game/render/mode.h"
 #include "../game/online/servers.h"
 
 namespace tpw::hook {
@@ -259,6 +262,14 @@ const Hook kHooks[] = {
     {"World_DeleteAllThings",    0x00515fb0, (void *)&World_DeleteAllThings, {0x83, 0xec, 0x08, 0x53, 0x56}},
     {"HandleQueue_Push",         0x0051ad40, (void *)&HandleQueue_Push, {0x56, 0x8b, 0xf1, 0x6a, 0x0c}},
     {"HandleQueue_Pop",          0x0051ad90, (void *)&HandleQueue_Pop, {0x8b, 0x41, 0x04, 0x56, 0x33}},
+    {"Camera_InitUnusedOne",      0x0042a0f0, (void *)&Camera_InitUnusedOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"Camera_InitUnusedEpsilon",  0x0042a110, (void *)&Camera_InitUnusedEpsilon, {0xd9, 0x05, 0x54, 0xdd, 0x6f}},
+    {"Camera_Init7909ec",         0x0042a130, (void *)&Camera_Init7909ec, {0xa1, 0x40, 0xdd, 0x6f, 0x00}},
+    {"Camera_InitYaw",            0x0042a140, (void *)&Camera_InitYaw, {0xa1, 0x44, 0xdd, 0x6f, 0x00}},
+    {"Camera_Init7909e0",         0x0042a150, (void *)&Camera_Init7909e0, {0xa1, 0x44, 0xdd, 0x6f, 0x00}},
+    {"Camera_InitPoint",          0x0042a160, (void *)&Camera_InitPoint, {0xa1, 0x48, 0xdd, 0x6f, 0x00}},
+    {"Camera_IsFollowing",        0x0042a410, (void *)&Camera_IsFollowing, {0xf6, 0x05, 0xb0, 0x0a, 0x79}},
+    {"Camera_MatricesClose",      0x0042b070, (void *)&Camera_MatricesClose, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},
@@ -833,6 +844,14 @@ const Hook kHooks[] = {
     {"Coasters_Save",             0x00437300, (void *)&Coasters_Save, {0x81, 0xec, 0xa0, 0x00, 0x00}},
     {"CrossSection_BuildIndices", 0x0042e200, (void *)&CrossSection_BuildIndices, {0x51, 0x53, 0x55, 0x56, 0x8b}},
     {"CrossSection_BuildPoints",  0x0042d6d0, (void *)&CrossSection_BuildPoints, {0x8b, 0x44, 0x24, 0x10, 0x83}},
+    {"CrossSection_BuildPieces",  0x0042d130, (void *)&CrossSection_BuildPieces, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"CrossSection_PackPoints",   0x0042d390, (void *)&CrossSection_PackPoints, {0x51, 0x8b, 0x54, 0x24, 0x0c}},
+    {"CrossSection_DropUnusedPoints", 0x0042d440, (void *)&CrossSection_DropUnusedPoints, {0x83, 0xec, 0x5c, 0x53, 0x55}},
+    {"CrossSection_Setup",        0x0042d5a0, (void *)&CrossSection_Setup, {0x83, 0xec, 0x10, 0x53, 0x55}},
+    {"CrossSection_Emit",         0x0043fd60, (void *)&CrossSection_Emit, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"CoasterPylons_Setup",       0x0042eb70, (void *)&CoasterPylons_Setup, {0x83, 0xec, 0x08, 0x8b, 0x44}},
+    {"CoasterTrains_Setup",       0x0042f1a0, (void *)&CoasterTrains_Setup, {0x83, 0xec, 0x0c, 0x53, 0x55}},
+    {"CoasterType_Setup",         0x0042f390, (void *)&CoasterType_Setup, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"RowReader_Decode",          0x0062fe00, (void *)&RowReader_Decode, {0x6a, 0xff, 0x68, 0x38, 0x2b}},
     {"RowReader_CopyRow",         0x006300c0, (void *)&RowReader_CopyRow, {0x8b, 0xc1, 0x56, 0x57, 0x8b}},
     {"TgaReader_Load",            0x006300f0, (void *)&TgaReader_Load, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
@@ -1111,6 +1130,10 @@ const Hook kHooks[] = {
     {"Model_AllocVertexScratch",  0x00450e60, (void *)&Model_AllocVertexScratch, {0xa1, 0xd0, 0xf7, 0x79, 0x00}},
     {"Model_FreeVertexScratch",   0x00450e80, (void *)&Model_FreeVertexScratch, {0xa1, 0xe0, 0xf7, 0x79, 0x00}},
     {"Holder_Clone",              0x00454a10, (void *)&Holder_Clone, {0x83, 0xec, 0x28, 0x8b, 0x44}},
+    {"ModelSlot_Animate",         0x00429df0, (void *)&ModelSlot_Animate, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
+    {"ModelSlot_ClearPartFlag",   0x00429ee0, (void *)&ModelSlot_ClearPartFlag, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"ModelSlot_SetPartFlag",     0x00429f60, (void *)&ModelSlot_SetPartFlag, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"ModelSlot_Holder",          0x00429fe0, (void *)&ModelSlot_Holder, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},

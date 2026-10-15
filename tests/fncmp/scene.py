@@ -18,7 +18,8 @@ B = Bench([(0x44a590, 0x44b140), (0x44b140, 0x44b2e0), (0x44b3c0, 0x44b410), (0x
            (0x45b9d0, 0x45ba15), (0x468760, 0x4688a7), (0x44b4c0, 0x44b505),
            (0x475550, 0x47558b), (0x46f150, 0x46f180), (0x46f240, 0x46f350), (0x46f420, 0x46f5c0),
            (0x4702d0, 0x470630), (0x473a40, 0x473c30), (0x67b410, 0x67b440), (0x450e60, 0x450e99),
-           (0x45ba70, 0x45ba92), (0x45bdc0, 0x45bdca), (0x44e510, 0x44e531), (0x473c70, 0x473e30)], sines=256)
+           (0x45ba70, 0x45ba92), (0x45bdc0, 0x45bdca), (0x44e510, 0x44e531), (0x473c70, 0x473e30),
+           (0x429ee0, 0x429fd4), (0x429fe0, 0x429ff4)], sines=256)
 HOLDER, MODEL, PARTS, FACES, FACES2 = (RAM + k * 0x1000 for k in range(5))
 REF, H2, MAT, SLOTS, MAP, GRID, CELLS, GRID2, CELLS2, OUT = (RAM + k * 0x1000 for k in range(5, 15))
 SETS, ENTRIES, TILES, MDL, MESHES, MFACES, REMAP = (RAM + k * 0x1000 for k in range(15, 22))
@@ -195,6 +196,18 @@ def parts(r, op):
         return Call(0x44b2b0, [HOLDER, mask], regs, ret='a')
     if op == 'Nth':
         return Call(0x44b270, [HOLDER, mask, r.choice([0, 1, 2, r.randrange(n + 2), r.getrandbits(32)])], regs, ret='a')
+    if op.startswith('Slot'):  # model/slots: the slot table 0x790398 (0xb0 each, +4 the holder)
+        slot = r.randrange(4)
+        table = bytearray(r.bytes(4 * 0xb0))
+        put(table, slot * 0xb0 + 4, 'I', HOLDER)
+        regs[0x790398] = table
+        if n and r.random() < 0.7:  # a part with the key and flag 0x400
+            i = r.randrange(n)
+            put(ps, i * 0x14, 'I', r.getrandbits(32) | 0x400)
+            put(ps, i * 0x14 + 4, 'I', key)
+        if op == 'SlotHolder':
+            return Call(0x429fe0, [slot], regs, ret='a')
+        return Call(0x429ee0 if op == 'SlotClear' else 0x429f60, [key, slot], regs)
     return Call({'Key4': 0x44b220, 'Key8': 0x44b3c0}[op], [HOLDER, mask, key], regs, ret='a')
 
 
@@ -469,7 +482,7 @@ def highlight(r, op):
 
 
 KINDS = {'Size': mode, 'Depth': mode, 'ResetScale': mode, 'Epsilon': mode, 'MarkMask': parts, 'MarkValue': parts,
-         'Count': parts, 'Nth': parts, 'Key4': parts, 'Key8': parts, 'ResetBounds': frame, 'AddFlags': frame,
+         'Count': parts, 'Nth': parts, 'Key4': parts, 'Key8': parts, 'SlotClear': parts, 'SlotSet': parts, 'SlotHolder': parts, 'ResetBounds': frame, 'AddFlags': frame,
          'SetPoint': frame, 'FlagModel': holder, 'SetPosition': holder, 'SlotKey': holder, 'IsParkLand': land,
          'CopyAttrs': land, 'GridSize': land, 'TexEnable': procedural, 'TexDisable': procedural,
          'ProcEnter': procedural, 'ProcLeave': procedural, 'ProcOn': procedural, 'ProcCells': procedural,
