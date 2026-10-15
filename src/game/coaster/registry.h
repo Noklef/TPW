@@ -24,4 +24,9 @@ void __cdecl Coaster_GetPair(u32 index, u32 *a, u32 *b);
 // ride index's (table 0x7a4610) list (+8 -> +0x28 -> +4: 0x14-byte entries, each pointing
 // at its object from +4), or zeros when it has none.
 void __cdecl Ride_EntryPosition(u32 index, const u32 *slot, float *out);
+
+// 0x434000: the first entry, over the links' chains (+0x4c, next +0x28), whose +8 is the
+// tile key x + y * the map width (0x7a0854 -> +0x6c -> +0x18) and whose byte +4 has neither
+// 1 nor 4 set, else 0; the key to *key when key is not null.
+u8 *__cdecl CoasterLinks_FindTile(u32 x, u32 y, u32 *key);
 }

@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -535,11 +535,38 @@ def train(r, op):
     put(tr, 0x30, 'I', n)
     for k in range(n):
         put(tr, 0x34 + 4 * k, 'I', NODES + k * 0x180)
+    for k in range(6):
         put(cars, k * 0x180 + 0x100, 'I', SPL + r.randrange(6) * 0x20)
     for k in range(6):
         put(parts, k * 0x20 + 0x18, 'I', FORCE + r.randrange(4) * 0x40)
+    if op == 'Pick':
+        return Call(0x436750, [NODES + r.randrange(6) * 0x180], {NODES: cars, SPL: parts, FORCE: types})
     return Call(0x432d50, [r.getrandbits(32), COAST], {COAST: tr, NODES: cars, SPL: parts, FORCE: types,
                                     0x790afc: put(bytearray(4), 0, 'I', r.choice([0, 0, 0, 1]))})
+
+
+def tiles(r, op):
+    """Links (0x790fe0, next +0x18) with chains (+0x4c, next +0x28) of keyed (+8) entries."""
+    width = r.choice([r.randrange(1, 9), r.getrandbits(32)])
+    world, links, ents = r.bytes(0x80), r.bytes(4 * 0x60), r.bytes(16 * 0x30)
+    put(world, 0x6c, 'I', TYPE + 0x40)
+    put(world, 0x40 + 0x18, 'I', width)
+    nl = r.randrange(0, 5)
+    free = list(range(16))
+    r.shuffle(free)
+    for k in range(nl):
+        put(links, k * 0x60 + 0x18, 'I', CARS + (k + 1) * 0x60 if k + 1 < nl else 0)
+        chain = [free.pop() for _ in range(r.randrange(0, 4))]
+        put(links, k * 0x60 + 0x4c, 'I', NODES + chain[0] * 0x30 if chain else 0)
+        for j, e in enumerate(chain):
+            put(ents, e * 0x30 + 0x28, 'I', NODES + chain[j + 1] * 0x30 if j + 1 < len(chain) else 0)
+            put(ents, e * 0x30 + 4, 'B', r.choice([0, 0, 1, 4, 5, 2, 8, r.getrandbits(8)]))
+            put(ents, e * 0x30 + 8, 'I', r.choice([r.randrange(0, 12), r.getrandbits(32)]))
+    x, y = r.choice([(r.randrange(0, 6), r.randrange(0, 3)), (r.getrandbits(32), r.getrandbits(32))])
+    return Call(0x434000, [x, y, r.choice([OUT, 0])],
+                {TYPE: world, CARS: links, NODES: ents, OUT: r.bytes(4),
+                 0x7a0854: put(bytearray(4), 0, 'I', TYPE),
+                 0x790fe0: put(bytearray(4), 0, 'I', CARS if nl else 0)}, ret='a')
 
 
 KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 'Tangent': spline, 'Set': orient,
@@ -549,7 +576,7 @@ KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 
          'Link': queue, 'QPush': queue, 'QAdd': queue, 'QRoom': queue, 'QPop': queue, 'QAdvance': queue,
          'CNext': cursor, 'CPrev': cursor, 'CPoint': cursor,
          'Count': registry, 'LinkNodes': registry, 'Pair': registry, 'EntryPos': registry, 'SearchReset': registry,
-         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train}
+         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Pick': train, 'Tile': tiles}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 

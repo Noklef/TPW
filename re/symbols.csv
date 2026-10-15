@@ -1765,6 +1765,7 @@ address,name,kind,confidence,notes
 0x00438730,CoasterLink_Nodes,function,high,"reimplemented (src/game/coaster/registry); cdecl (n, value or null): link n of the list at 0x790fe0: its +0x28 to *value, returns its +0x54 -> +0x90 -> +4 node list"
 0x0043e0b0,Coaster_GetPair,function,high,"reimplemented (src/game/coaster/registry); cdecl (index, a, b): coaster index's +0x100 and +0x104"
 0x004386d0,Ride_EntryPosition,function,high,"reimplemented (src/game/coaster/registry); cdecl (index, slot*, out): the +0x30 position of entry *slot of ride index's (0x7a4610) list (+8 -> +0x28 -> +4, 0x14 bytes), else zeros"
+0x00434000,CoasterLinks_FindTile,function,high,"reimplemented (src/game/coaster/registry); cdecl u8* (x, y, key*): first entry over the links' +0x4c chains with +8 == x + y*width (0x7a0854->+0x6c->+0x18) and byte +4 & 5 clear; key out"
 0x0043b0e0,Coaster_QueuePush,function,high,"reimplemented (src/game/coaster/queue); cdecl (index, peep): appends the peep to the queue ring (+0xb0) of coaster index (table 0x790bd0) when it has room"
 0x0043b130,CoasterQueue_Add,function,high,"reimplemented (src/game/coaster/queue); cdecl (coaster, peep): appends the peep to the queue ring (+0xb0), else to the boarding ring (+0xd0), whichever has room"
 0x0043b1f0,Coaster_QueueRoom,function,high,"reimplemented (src/game/coaster/queue); cdecl (index): the queue ring's limit - reserved - count, at least 0"
@@ -1778,3 +1779,4 @@ address,name,kind,confidence,notes
 0x0043afa0,Contacts_ClearAll,function,high,"reimplemented (src/game/coaster/contacts); cdecl (owner): Contacts_Clear on every node of the owner's list, marking each 0x200000"
 0x00432d50,Train_SetCouplings,function,high,"reimplemented (src/game/coaster/train); cdecl (unused, train): unless 0x790afc, marks each car but the last 0x100 and picks its coupling (+0x84/+0x44 for a rear-coupled type, else +0x78/+0x30) into +0x90/+0x74"
 0x00433280,Car_TrainLength,function,high,"reimplemented (src/game/coaster/train); cdecl double (car): sum over car+4 slots of the train's cars of lerp(type+0xbc, type+0xc0, +0xe8) + type+0xc4, plus car's own lerp; 0 without a car"
+0x00436750,Car_PickCoupling,function,high,"reimplemented (src/game/coaster/train); cdecl (car): +0x84/+0x44 for a car marked 0x100 without 0x2000 whose type has flag 8, else +0x78/+0x30, into +0x90/+0x74"

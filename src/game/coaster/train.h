@@ -18,4 +18,7 @@ void __cdecl Train_SetCouplings(u32 unused, u8 *train);
 // +0xc4 (from the train's type, +0x18), then car's own length without a gap.
 // sic: the count is car+4, not the train's +0x30; empty slots are skipped.
 double __cdecl Car_TrainLength(const u8 *car);
+
+// 0x436750: picks car's coupling as Train_SetCouplings does, without touching its flags.
+void __cdecl Car_PickCoupling(u8 *car);
 }

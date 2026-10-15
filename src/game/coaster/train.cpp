@@ -22,11 +22,16 @@ void __cdecl Train_SetCouplings(u32, u8 *train) {
         u32 flags = at<u32>(car, 8);
         flags = count > 1 && i < count - 1 ? flags | 0x100 : flags & ~0x100u;
         at<u32>(car, 8) = flags;
-        const u8 *type = at<const u8 *>(at<const u8 *>(car, 0x100), 0x18);
-        const bool rear = !(flags & 0x2000) && (flags & 0x100) && (at<u8>(type, 0) & 8);
-        at<u8 *>(car, 0x90) = car + (rear ? 0x84 : 0x78);
-        at<u32>(car, 0x74) = at<u32>(at<const u8 *>(car, 0x100), 0x18) + (rear ? 0x44 : 0x30);
+        Car_PickCoupling(car);
     }
+}
+
+void __cdecl Car_PickCoupling(u8 *car) {
+    const u32 flags = at<u32>(car, 8);
+    const u8 *type = at<const u8 *>(at<const u8 *>(car, 0x100), 0x18);
+    const bool rear = !(flags & 0x2000) && (flags & 0x100) && (at<u8>(type, 0) & 8);
+    at<u8 *>(car, 0x90) = car + (rear ? 0x84 : 0x78);
+    at<u32>(car, 0x74) = at<u32>(at<const u8 *>(car, 0x100), 0x18) + (rear ? 0x44 : 0x30);
 }
 
 double __cdecl Car_TrainLength(const u8 *car) {
