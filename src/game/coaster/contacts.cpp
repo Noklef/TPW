@@ -97,4 +97,44 @@ void __cdecl Contacts_UpdateBounds(u8 *owner) {
         for (int j = 0; j < 3; ++j) hi[j] = (float)(X87Reg(pad) + hi[j]);
     }
 }
+
+void __cdecl Contacts_SegmentsInBox(const u8 *owner, const u8 *node, const u8 *next, const float *box, u8 *out,
+                                    u32 *count) {
+    const u8 *type = at<const u8 *>(at<const u8 *>(node, 0x100), 0x18);
+    if (!type) type = at<const u8 *>(at<const u8 *>(next, 0x100), 0x18);
+    const float pad = type ? at<float>(type, 0x58) : 0.0f;
+    float lo[3], hi[3];
+    for (int j = 0; j < 3; ++j) lo[j] = (float)(X87Reg(box[j]) - pad);
+    for (int j = 0; j < 3; ++j) hi[j] = (float)(X87Reg(box[3 + j]) + pad);
+    const auto inside = [&](const float *p) {
+        for (int j = 0; j < 3; ++j)
+            if (!(p[j] >= lo[j]) || p[j] > hi[j]) return false;
+        return true;
+    };
+    const u32 first = at<u32>(node, 0xfc), n = at<u32>(next, 0xfc) - first;
+    const u8 *point = reinterpret_cast<const u8 *>((u32)(at<u32>(owner, 0x9c) + first * 0x38)) + 4;
+    u32 found = 0;
+    for (u32 i = 0; i < n; ++i, point += 0x38) {
+        const float *a = reinterpret_cast<const float *>(point), *b = reinterpret_cast<const float *>(point + 0x38);
+        if (!inside(a) && !inside(b)) continue;
+        at<u32>(out, 0) = i + at<u32>(node, 0xfc);
+        if (!(a[0] >= b[0])) {
+            at<float>(out, 4) = (float)(X87Reg(a[0]) - pad);
+            at<float>(out, 0x10) = (float)(X87Reg(pad) + b[0]);
+        } else {
+            at<float>(out, 4) = (float)(X87Reg(b[0]) - pad);
+            at<float>(out, 0x10) = (float)(X87Reg(a[0]) + pad);
+        }
+        for (int j = 1; j < 3; ++j) {
+            // pick the ends by pointer: a value select may become minss, which mixes up -0 and +0
+            const bool less = !(a[j] >= b[j]);
+            const float *low = less ? a : b, *high = less ? b : a;
+            at<float>(out, 4 + 4 * j) = (float)(X87Reg(low[j]) - pad);
+            at<float>(out, 0x10 + 4 * j) = (float)(X87Reg(pad) + high[j]);
+        }
+        out += 0x1c;
+        ++found;
+    }
+    *count = found;
+}
 }

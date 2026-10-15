@@ -30,4 +30,13 @@ void __cdecl Contacts_MarkLostPair(u8 *node);
 // -> +0x18), else of the next node's, else 0.
 // sic: a point compares below min when either is NaN, and then only min takes it.
 void __cdecl Contacts_UpdateBounds(u8 *owner);
+
+// 0x43a060: the segments between the owner's points (+0x9c, 0x38 bytes, position at +4)
+// from node's index (+0xfc) up to next's that have an end in box (min xyz, max xyz) grown
+// by the pad (as Contacts_UpdateBounds): each to out as {index, min xyz, max xyz} (0x1c
+// bytes) over its two ends grown by the pad again, and their number to *count.
+// sic: an end is in the box unless below min, NaN or above max, so a NaN max lets it in;
+// and x's max takes end + pad where y and z take pad + end.
+void __cdecl Contacts_SegmentsInBox(const u8 *owner, const u8 *node, const u8 *next, const float *box, u8 *out,
+                                    u32 *count);
 }
