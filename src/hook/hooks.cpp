@@ -78,7 +78,8 @@
 #include "../game/coaster/contacts.h"
 #include "../game/coaster/save.h"
 #include "../game/coaster/spline.h"
-#include "../game/coaster/train.h"
+#include "../game/coaster/train.h"
+#include "../game/coaster/xsection.h"
 #include "../game/terrain/land.h"
 #include "../game/terrain/procedural.h"
 #include "../game/terrain/terrain_blend.h"
@@ -830,6 +831,7 @@ const Hook kHooks[] = {
     {"Object_GetPosition",        0x00435710, (void *)&Object_GetPosition, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Car_TravelCost",            0x00447830, (void *)&Car_TravelCost, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"Coasters_Save",             0x00437300, (void *)&Coasters_Save, {0x81, 0xec, 0xa0, 0x00, 0x00}},
+    {"CrossSection_BuildIndices", 0x0042e200, (void *)&CrossSection_BuildIndices, {0x51, 0x53, 0x55, 0x56, 0x8b}},
     {"RowReader_Decode",          0x0062fe00, (void *)&RowReader_Decode, {0x6a, 0xff, 0x68, 0x38, 0x2b}},
     {"RowReader_CopyRow",         0x006300c0, (void *)&RowReader_CopyRow, {0x8b, 0xc1, 0x56, 0x57, 0x8b}},
     {"TgaReader_Load",            0x006300f0, (void *)&TgaReader_Load, {0x53, 0x8b, 0x5c, 0x24, 0x10}},

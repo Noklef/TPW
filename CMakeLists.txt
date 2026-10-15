@@ -97,6 +97,7 @@ add_library(tpw_game STATIC
     src/game/coaster/contacts.cpp
     src/game/coaster/train.cpp
     src/game/coaster/save.cpp
+    src/game/coaster/xsection.cpp
     src/game/terrain/terrain_blend.cpp
     src/game/terrain/land.cpp
     src/game/terrain/procedural.cpp
