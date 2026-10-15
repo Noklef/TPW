@@ -100,3 +100,36 @@ FPU precision, and the log records that.
   to American". The registry `Language` was 0x409 (from the no-CD `.reg`), which the game maps to
   "American" (0x5c0e13; unknown ids fall back to 0x809 "English"). This European CD only has
   `Data\Language\English` (and `00000809.*`), so the sandbox now sets `Language` = 0x809.
+- 2026-10-15: with `Language` = 0x809, passthrough starts and plays: window at 1.0 s, DirectDraw and
+  DirectSound up, the park loads, the advisor speaks. Two sandbox problems, both outside the game code:
+  - The mouse sticks to the window's top edge or slides down its side. The sandbox delivers the
+    mouse over an RDP-style connection, which breaks DirectInput's relative mouse.
+  - At 173 s it crashed: an access violation inside `amdxx32.dll` (the AMD driver, through the
+    sandbox vGPU and dgVoodoo). The game had just printed "...this surface should have Restore
+    called on it": a lost DirectDraw surface. The run was passthrough, so this is original code.
+  So testing moves to the local scripts (below). The sandbox stays for clean-room checks.
+- FPU precision, from the passthrough log: 53-bit at start, 24-bit (0x007F) after Direct3D starts
+  (3.0 s). The main thread then flips to 53-bit (0x027F) around the advisor's speech (29 s, 40 s,
+  71 s, 86 s) and back again. At 125 s it read 0x0C7F: 24-bit with **round toward zero**. Something
+  (the game, QMixer or the driver) changes the control word mid-game. Float ports have to match the
+  original under each of these modes, not only 24-bit round-to-nearest. To investigate.
+
+## Local runs (`.data/local`, not in git)
+
+The same three modes on the host PC, without the sandbox's mouse and vGPU problems.
+`setup-local.cmd` builds a test copy in `.data\local\TPW`:
+
+- the install
+- the CD extras
+- the no-CD exe
+- a windowed dgVoodoo
+
+It never touches the real install and writes no registry values. The host's existing
+`Bullfrog Productions Ltd\Theme Park World` key already has `Language` = 0x809.
+`1-original`, `2-dll-passthrough` and `3-dll-hooked` run it. They log to `.data\local\out`:
+
+- `results.txt`
+- `tpw-<mode>.log`
+- `config-<mode>.tcf`
+
+There are no crash dumps, because WER LocalDumps needs admin. The trace's exception log covers the gap.
