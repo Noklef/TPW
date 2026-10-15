@@ -126,4 +126,18 @@ u32 __cdecl CoasterLink_IdValue(u32 id) {
 void __cdecl CoasterLink_SetById(u32 id, u32 value) {
     if (u8 *link = CoasterLink_ById(id)) at<u32>(link, 0x28) = value;
 }
+
+void __cdecl CoasterLink_SetEnd() {
+    const u8 *link = *reinterpret_cast<const u8 *const *>(0x00790fec);
+    if (!link || !(at<u8>(at<const u8 *>(link, 4), 0) & 2)) return;
+    *reinterpret_cast<u32 *>(0x0079c664) = 1;
+    *reinterpret_cast<u32 *>(0x0079c658) |= 0x40;
+}
+
+void __cdecl CoasterLink_ClearEnd() {
+    const u8 *link = *reinterpret_cast<const u8 *const *>(0x00790fec);
+    if (!link || !(at<u8>(at<const u8 *>(link, 4), 0) & 2)) return;
+    *reinterpret_cast<u32 *>(0x0079c664) = 0;
+    *reinterpret_cast<u32 *>(0x0079c658) &= ~0x40u;
+}
 }

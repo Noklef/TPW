@@ -16,4 +16,8 @@ void __cdecl Contacts_Clear(u8 *owner, u8 *node);
 
 // 0x43afa0: clears the contacts of every node in the owner's list, marking each 0x200000.
 void __cdecl Contacts_ClearAll(u8 *owner);
+
+// 0x43af70: Contacts_Clear for node, then for its partner (+0x68) if any.
+// sic: node comes before owner here.
+void __cdecl Contacts_ClearPair(u8 *node, u8 *owner);
 }

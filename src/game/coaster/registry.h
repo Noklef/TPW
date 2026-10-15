@@ -64,4 +64,12 @@ u32 __cdecl CoasterLink_IdValue(u32 id);
 
 // 0x4368c0: sets +0x28 of link id, if any.
 void __cdecl CoasterLink_SetById(u32 id, u32 value);
+
+// 0x444c50: when the current link (0x790fec) has type (+4) flag 2, sets 0x79c664 to 1 and
+// flag 0x40 of 0x79c658.
+void __cdecl CoasterLink_SetEnd();
+
+// 0x444c80: when the current link has type flag 2, sets 0x79c664 to 0 and clears flag 0x40
+// of 0x79c658.
+void __cdecl CoasterLink_ClearEnd();
 }

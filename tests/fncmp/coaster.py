@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060), (0x442d10, 0x442d70), (0x443ee0, 0x443f40), (0x444c00, 0x444c50), (0x444040, 0x444090), (0x444700, 0x444740), (0x447790, 0x447830), (0x442cd0, 0x442d10), (0x436820, 0x4368f0), (0x436150, 0x436190), (0x432bd0, 0x432c10)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060), (0x442d10, 0x442d70), (0x443ee0, 0x443f40), (0x444c00, 0x444c50), (0x444040, 0x444090), (0x444700, 0x444740), (0x447790, 0x447830), (0x442cd0, 0x442d10), (0x436820, 0x4368f0), (0x436150, 0x436190), (0x432bd0, 0x432c10), (0x444c50, 0x444cb0), (0x43af70, 0x43afa0)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -493,10 +493,13 @@ def contacts(r, op):
             if k == x and j < c:
                 v = r.choice(ptrs)  # held contacts are followed
             put(nodes, b + 0xb4 + 4 * j, 'I', v)
-    if op == 'ClearAll':
+    if op in ('ClearAll', 'ClearPair'):
         for k in range(n):  # every node's held contacts are followed
             for j in range(struct.unpack_from('<I', nodes, k * 0x100 + 0xb0)[0]):
                 put(nodes, k * 0x100 + 0xb4 + 4 * j, 'I', r.choice(ptrs))
+        if op == 'ClearPair':  # node, then its partner (+0x68)
+            put(nodes, x * 0x100 + 0x68, 'I', r.choice(ptrs + [0]))
+            return Call(0x43af70, [ptrs[x], COAST], {COAST: owner, NODES: nodes})
         return Call(0x43afa0, [COAST], {COAST: owner, NODES: nodes})
     return Call(0x43ad50, [COAST, ptrs[x]], {COAST: owner, NODES: nodes})
 
@@ -575,9 +578,9 @@ def tiles(r, op):
 def current(r, op):
     """The current link (0x790fec)."""
     link = r.bytes(0x80)
-    if op == 'BeginEnd':  # unless 0x79c658 has 0x40, with type flag 2: 0x79c664 = 2
+    if op in ('BeginEnd', 'SetEnd', 'ClearEnd'):  # with type flag 2: 0x79c664 and 0x79c658 flag 0x40
         put(link, 4, 'I', TYPE)
-        return Call(0x442cd0, [], {COAST: link, TYPE: r.bytes(4), 0x79c658: r.bytes(4), 0x79c664: r.bytes(4),
+        return Call({'BeginEnd': 0x442cd0, 'SetEnd': 0x444c50, 'ClearEnd': 0x444c80}[op], [], {COAST: link, TYPE: r.bytes(4), 0x79c658: r.bytes(4), 0x79c664: r.bytes(4),
                                    0x790fec: put(bytearray(4), 0, 'I', r.choice([COAST] * 9 + [0]))}, ret='a')
     if op in ('End', 'Marked'):  # +4 type flag 2; +0x3c flags 1, 2; end pieces +0x58/+0x60 flag 0x80 (+8)
         put(link, 4, 'I', TYPE)
@@ -678,7 +681,7 @@ KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 
          'Link': queue, 'QPush': queue, 'QAdd': queue, 'QRoom': queue, 'QPop': queue, 'QAdvance': queue,
          'CNext': cursor, 'CPrev': cursor, 'CPoint': cursor,
          'Count': registry, 'LinkNodes': registry, 'Pair': registry, 'EntryPos': registry, 'SearchReset': registry,
-         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Pick': train, 'Tile': tiles, 'End': current, 'OnRide': current, 'Marked': current, 'Select': pieces, 'Renumber': pieces, 'RideTrain': ride_train, 'CarValue': ride_train, 'BeginEnd': current, 'Bit18': by_id, 'ById': by_id, 'IdValue': by_id, 'SetById': by_id, 'Key': tiles, 'Event': event}
+         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Pick': train, 'Tile': tiles, 'End': current, 'OnRide': current, 'Marked': current, 'Select': pieces, 'Renumber': pieces, 'RideTrain': ride_train, 'CarValue': ride_train, 'BeginEnd': current, 'Bit18': by_id, 'ById': by_id, 'IdValue': by_id, 'SetById': by_id, 'Key': tiles, 'Event': event, 'SetEnd': current, 'ClearEnd': current, 'ClearPair': contacts}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 
