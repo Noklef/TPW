@@ -68,6 +68,7 @@
 #include "../game/coaster/lists.h"
 #include "../game/coaster/cars.h"
 #include "../game/coaster/nodes.h"
+#include "../game/coaster/queue.h"
 #include "../game/coaster/spline.h"
 #include "../game/terrain/terrain_blend.h"
 #include "../game/world/random.h"
@@ -729,6 +730,12 @@ const Hook kHooks[] = {
     {"Coaster_FindZone",          0x0043e9c0, (void *)&Coaster_FindZone, {0x51, 0x8b, 0x44, 0x24, 0x08}},
     {"Keys_MergeSamples",         0x0043f030, (void *)&Keys_MergeSamples, {0x8b, 0x54, 0x24, 0x0c, 0x83}},
     {"CoasterList_Append",        0x0043fcd0, (void *)&CoasterList_Append, {0xa1, 0x18, 0x22, 0x79, 0x00}},
+    {"CoasterLink_Find",          0x0043b050, (void *)&CoasterLink_Find, {0xa1, 0xe0, 0x0f, 0x79, 0x00}},
+    {"Coaster_QueuePush",         0x0043b0e0, (void *)&Coaster_QueuePush, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"CoasterQueue_Add",          0x0043b130, (void *)&CoasterQueue_Add, {0x8b, 0x4c, 0x24, 0x04, 0x56}},
+    {"Coaster_QueueRoom",         0x0043b1f0, (void *)&Coaster_QueueRoom, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Coaster_BoardingPop",       0x0043b220, (void *)&Coaster_BoardingPop, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"CoasterQueue_Advance",      0x0043b390, (void *)&CoasterQueue_Advance, {0x8b, 0x4c, 0x24, 0x04, 0x53}},
     {"RowReader_Decode",          0x0062fe00, (void *)&RowReader_Decode, {0x6a, 0xff, 0x68, 0x38, 0x2b}},
     {"RowReader_CopyRow",         0x006300c0, (void *)&RowReader_CopyRow, {0x8b, 0xc1, 0x56, 0x57, 0x8b}},
     {"TgaReader_Load",            0x006300f0, (void *)&TgaReader_Load, {0x53, 0x8b, 0x5c, 0x24, 0x10}},

@@ -1755,3 +1755,9 @@ address,name,kind,confidence,notes
 0x0043b7e0,CoasterCar_FindSegmentsInWindow,function,high,"reimplemented (src/game/coaster/cars); cdecl (coaster, car, first, last): the indices of the first and last of the car's segments whose span (+0x40 -/+ type+0x28/+0x24 over coaster+0xac) reaches into the window +0xf8..+0xfc"
 0x0043bdb0,CoasterCar_SetExtent,function,high,"reimplemented (src/game/coaster/cars); cdecl (coaster, car): the car's front (+0x20) and back (+0x24) along the track, from its position +0x74 and its first and last segments' offsets and type lengths over coaster+0xac"
 0x0043bfb0,Coaster_SpeedAfterDrop,function,high,"reimplemented (src/game/coaster/cars); cdecl (params, speed, minimum, fromY, toY), double in st0: speed + (fromY - toY) * +0x24 * (+0x28 going up, else +0x2c), at least minimum"
+0x0043b050,CoasterLink_Find,function,high,"reimplemented (src/game/coaster/queue); cdecl (key): +0x14 of the first entry of the list at 0x790fe0 (next +0x18) whose +0x24 is key, else 0"
+0x0043b0e0,Coaster_QueuePush,function,high,"reimplemented (src/game/coaster/queue); cdecl (index, peep): appends the peep to the queue ring (+0xb0) of coaster index (table 0x790bd0) when it has room"
+0x0043b130,CoasterQueue_Add,function,high,"reimplemented (src/game/coaster/queue); cdecl (coaster, peep): appends the peep to the queue ring (+0xb0), else to the boarding ring (+0xd0), whichever has room"
+0x0043b1f0,Coaster_QueueRoom,function,high,"reimplemented (src/game/coaster/queue); cdecl (index): the queue ring's limit - reserved - count, at least 0"
+0x0043b220,Coaster_BoardingPop,function,high,reimplemented (src/game/coaster/queue); cdecl (index): takes the next peep from the boarding ring; 0 when empty or at its stop slot
+0x0043b390,CoasterQueue_Advance,function,high,"reimplemented (src/game/coaster/queue); cdecl (coaster): moves min(boarding room, queued) peeps from the queue ring to the boarding ring, dropping zeros (and peeps that find it full)"

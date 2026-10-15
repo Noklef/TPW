@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -337,10 +337,46 @@ def lists(r, op):
     return Call(0x43fcd0, [OUT], regs, ret='a')
 
 
+def ring(r, c, off, buf):
+    """A ring at c+off over buf: capacity 1..8, pointers on its slots, small counts."""
+    cap = r.randrange(1, 9)
+    slot = lambda: buf + 4 * r.choice([r.randrange(cap), r.randrange(cap), cap - 1, 0, r.randrange(-4, 0) if r.random() < 0.2 else 0])  # noqa: E731
+    head = slot()
+    put(c, off, 'IIIIIIII', cap, buf, r.randrange(-2, 10) & 0xffffffff, r.randrange(0, cap + 1), r.choice([0, 0, r.randrange(4)]),
+        head, slot(), r.choice([0, head, slot()]))
+
+
+def queue(r, op):
+    if op == 'Link':
+        nodes, n = r.bytes(0x300), r.randrange(0, 8)
+        keys = [r.randrange(6) for _ in range(n)]
+        for k in range(n):
+            put(nodes, k * 0x30 + 0x14, 'II', r.getrandbits(32), NODES + (k + 1) * 0x30 if k + 1 < n else 0)
+            put(nodes, k * 0x30 + 0x24, 'I', keys[k])
+        regs = {NODES: nodes, 0x790fe0: put(bytearray(4), 0, 'I', NODES if n else 0)}
+        return Call(0x43b050, [r.randrange(6)], regs, ret='a')
+    c, index = r.bytes(0x200), r.randrange(4)
+    ring(r, c, 0xb0, PIECES + 0x20)  # pointers may sit up to 4 slots before a buffer
+    ring(r, c, 0xd0, PIECES + 0x60)
+    regs = {COAST: c, PIECES: r.bytes(0x100), 0x790bd0: put(r.bytes(16), index * 4, 'I', COAST)}
+    if op == 'QPush':
+        return Call(0x43b0e0, [index, r.getrandbits(32)], regs)
+    if op == 'QAdd':
+        return Call(0x43b130, [COAST, r.getrandbits(32)], regs)
+    if op == 'QRoom':
+        return Call(0x43b1f0, [index], regs, ret='a')
+    if op == 'QPop':
+        return Call(0x43b220, [index], regs, ret='a')
+    if r.random() < 0.3:  # zero peeps are taken but not passed on
+        put(regs[PIECES], 0, 'IIII', 0, 0, r.getrandbits(32), 0)
+    return Call(0x43b390, [COAST], regs)
+
+
 KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 'Tangent': spline, 'Set': orient,
          'Init': orient, 'Frame': frame, 'At': frame,
          'RoundUp': helpers, 'Lerp': helpers, 'Dot': helpers, 'Normalize': helpers, 'Swing': cars, 'Space': cars, 'Segs': cars, 'Extent': cars, 'Drop': cars, 'Window': cars, 'InWindow': cars, 'Dist': cars,
-         'NodeLerp': nodes, 'PastEnd': nodes, 'Zone': nodes, 'Merge': keys, 'Append': lists}
+         'NodeLerp': nodes, 'PastEnd': nodes, 'Zone': nodes, 'Merge': keys, 'Append': lists,
+         'Link': queue, 'QPush': queue, 'QAdd': queue, 'QRoom': queue, 'QPop': queue, 'QAdvance': queue}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 
