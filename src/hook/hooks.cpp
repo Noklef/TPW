@@ -50,6 +50,7 @@
 #include "../game/gfx/jpeg.h"
 #include "../game/gfx/imagecodec.h"
 #include "../game/gfx/texdirs.h"
+#include "../game/gfx/barmesh.h"
 #include "../game/gfx/tga.h"
 #include "../game/core/events.h"
 #include "../game/core/filetime.h"
@@ -1085,6 +1086,9 @@ const Hook kHooks[] = {
     {"Gauge_SetColour1",          0x0047fba0, (void *)&Gauge_SetColour1, {0x8b, 0x44, 0x24, 0x04, 0x8a}},
     {"Gauge_SetColour2",          0x0047fbc0, (void *)&Gauge_SetColour2, {0x8b, 0x44, 0x24, 0x04, 0x8a}},
     {"Gauge_SetColour3",          0x0047fbe0, (void *)&Gauge_SetColour3, {0x8b, 0x44, 0x24, 0x04, 0x8a}},
+    {"BarMesh_SetVertex",         0x00477c00, (void *)&BarMesh_SetVertex, {0x8b, 0x4c, 0x24, 0x08, 0x8b}},
+    {"BarMesh_SetTopVertices",    0x00477cc0, (void *)&BarMesh_SetTopVertices, {0x8b, 0x41, 0x7c, 0x33, 0xd2}},
+    {"BarMesh_SetTopTexCoords",   0x00477d20, (void *)&BarMesh_SetTopTexCoords, {0xd9, 0x81, 0x20, 0x01, 0x00}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
