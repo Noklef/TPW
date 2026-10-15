@@ -100,6 +100,8 @@ add_library(tpw_game STATIC
 # Proxy dinput.dll that loads into tp.exe and installs the hooks.
 add_library(tpw_hook SHARED
     src/hook/dllmain.cpp
+    src/hook/log.cpp
+    src/hook/trace.cpp
     src/hook/dinput_proxy.cpp
     src/hook/hooks.cpp
     src/hook/patch.cpp
