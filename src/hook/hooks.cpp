@@ -87,7 +87,8 @@
 #include "../game/model/highlight.h"
 #include "../game/model/remap.h"
 #include "../game/render/frame.h"
-#include "../game/render/mode.h"
+#include "../game/render/mode.h"
+#include "../game/online/servers.h"
 
 namespace tpw::hook {
 
@@ -1086,6 +1087,7 @@ const Hook kHooks[] = {
     {"Terrain_ProceduralEnter",   0x00457a00, (void *)&Terrain_ProceduralEnter, {0xa1, 0x8c, 0x1a, 0x7a, 0x00}},
     {"TerrainTex_Disable",        0x0056dfd0, (void *)&TerrainTex_Disable, {0xa1, 0x50, 0xd5, 0x8b, 0x00}},
     {"TerrainTex_Enable",         0x0056dfb0, (void *)&TerrainTex_Enable, {0xa1, 0x50, 0xd5, 0x8b, 0x00}},
+    {"Online_ApplyBalance",       0x0045aee0, (void *)&Online_ApplyBalance, {0x6a, 0xff, 0x68, 0x08, 0x89}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

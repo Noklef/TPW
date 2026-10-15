@@ -305,6 +305,13 @@ class Emu:
             raise KeyError('no listing for %08x' % pc)
         mn, ops = self.code[pc]
         o = [x.strip() for x in re.split(r',(?![^\[]*\])', ops)] if ops else []
+        if len(o) == 2 and mn not in ('MOVZX', 'MOVSX'):  # Ghidra leaves the size off [m] when a register implies it
+            for i in (0, 1):
+                if '[' in o[i] and ' ptr ' not in o[i]:
+                    if o[1 - i] in LOW8 or o[1 - i] in HIGH8:
+                        o[i] = 'byte ptr ' + o[i]
+                    elif o[1 - i] in LOW16:
+                        o[i] = 'word ptr ' + o[i]
         nxt = self.next.get(pc)
         arith = {'FADD': lambda a, b: x87op(lambda x, y: x + y, a, b),
                  'FSUB': lambda a, b: x87op(lambda x, y: x - y, a, b),

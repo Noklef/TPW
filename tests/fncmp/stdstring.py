@@ -1,4 +1,5 @@
-# The game's MSVC6 std::string members (0x45b340-0x45b998) against the originals.
+# The game's MSVC6 std::string members (0x45b340-0x45b998) and their users (the online
+# servers' settings 0x45aee0) against the originals.
 # usage: stdstring.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import sys
@@ -6,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
-B = Bench([(0x45b340, 0x45b9a0)])
+B = Bench([(0x45b340, 0x45b9a0), (0x45aee0, 0x45b1e4)])
 STRS, BLOCKS, CHARS = RAM, RAM + 0x1000, RAM + 0x2000
 S, X = STRS, STRS + 0x10  # the string under test and a second one
 SLOT = 0x80  # a block per string in BLOCKS: count byte, then up to 0x7e characters + NUL
@@ -29,8 +30,37 @@ def string(r, blocks, k):
     return BLOCKS + at + 1, n, res
 
 
+def online(r):
+    """Online_ApplyBalance: gBalanceOnline (ports, then seven C strings in CHARS or in a server
+    string's block) into the seven strings at 0x7a14f0 (blocks in BLOCKS, some shared)."""
+    blocks = bytearray(r.bytes(8 * SLOT))
+    servers = bytearray(r.bytes(0x7c))
+    made = []
+    for k, at in enumerate((0, 0x10, 0x20, 0x30, 0x40, 0x50, 0x6c)):
+        x = string(r, blocks, k)
+        if made and r.random() < 0.15:
+            x = r.choice(made)
+            if x[0]:
+                blocks[x[0] - BLOCKS - 1] = r.choice([1, 2, 0xfd, 0xfe])
+        made.append(x)
+        put(servers, at + 4, '3I', *x)
+    chars = bytearray(r.bytes(0x100))
+    names = []
+    for k in range(7):
+        n = r.choice([0, 1, r.randrange(20)])
+        chars[0x20 * k:0x20 * k + n] = bytes(r.randrange(1, 256) for _ in range(n))
+        chars[0x20 * k + n] = 0
+        own = [x for x in made if x[0] and 0 in blocks[x[0] - BLOCKS:x[0] - BLOCKS + 0x7f]]
+        names.append(r.choice(own)[0] if own and r.random() < 0.1 else CHARS + 0x20 * k)
+    bal = bytearray(r.bytes(0x40))
+    put(bal, 0xc, '13I', *([r.getrandbits(32) for _ in range(6)] + names))
+    return Call(0x45aee0, [], {BLOCKS: blocks, CHARS: chars, HEAP: heap(), 0x785828: bal, 0x7a14f0: servers})
+
+
 def case(r):
     op = r.choice(OPS)
+    if op == 'Online':
+        return online(r)
     blocks = bytearray(r.bytes(4 * SLOT))
     strs = bytearray(r.bytes(0x20))
     s = string(r, blocks, 0)
@@ -69,7 +99,7 @@ def case(r):
     return Call(0x45b380, [S, src, pos, count], regions, conv='t', ret='a')
 
 
-KINDS = ['Dtor', 'Tidy', 'AssignChars', 'Eos', 'Grow', 'MaxSize', 'Copy', 'Split', 'AssignSub', 'AssignSub']
+KINDS = ['Dtor', 'Tidy', 'AssignChars', 'Eos', 'Grow', 'MaxSize', 'Copy', 'Split', 'AssignSub', 'AssignSub', 'Online']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':
