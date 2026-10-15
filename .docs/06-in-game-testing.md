@@ -212,3 +212,15 @@ There are no crash dumps, because WER LocalDumps needs admin. The trace's except
   copies `b` and reads `a` live, as 0x4702d0 does. Round 2 splits the 28 in registry order into
   groups of 7: G1 Identity..RotateY4, G2 RotateZ4..ScaleAxesV, G3 ScaleAxes..LUDecompose,
   G4 Invert..PreMul33. Same pattern: `round2-a` switches off G1+G2, `round2-b` switches off G1+G3.
+- 2026-10-15, round 2: `round2-a` glitch, `round2-b` glitch, so the culprit is in G4 (Invert, Mul, PreMul,
+  PreMul3, LookAlong, RotateYAngle, PreMul33). **Found: `Matrix_Invert` (0x470040) returns `dst` in EAX**
+  (`MOV EAX,[ESP+0xb4]` before the RET). All four callers (0x42cd18, 0x44b637, 0x44b99d, 0x469b37)
+  copy the 16-float result from the returned pointer (`MOV ESI,EAX; REP MOVSD`). Our port was
+  `void`, so the callers copied 64 bytes from whatever EAX held. Those garbage matrices are the
+  streaks and black ground. The port now returns `dst`, with a unit test.
+  - The fncmp benches compare what a function writes, not what it leaves in EAX, so they cannot
+    catch this. `tools/retcheck.py` now scans every hook for callers that read EAX right after the
+    call while our port is `void`. With the old declaration it flags `Matrix_Invert` (4/4 callers);
+    with the fix, the only report is `App_GetWndProc`, a false positive (it returns a function
+    pointer, whose declaration the scan can't parse). Run it after adding hooks. It only looks at
+    the 5 instructions after each call, so a value used later is not seen.

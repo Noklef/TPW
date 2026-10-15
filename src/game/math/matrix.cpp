@@ -271,7 +271,7 @@ extern "C" void __cdecl Matrix_LUBackSubstitute(const float *a, const s32 *index
     }
 }
 
-extern "C" void __cdecl Matrix_Invert(float *dst, const float *src) {
+extern "C" float *__cdecl Matrix_Invert(float *dst, const float *src) {
     float lu[16], inv[16], parity;
     s32 index[4];
     std::memcpy(lu, src, sizeof lu);
@@ -284,6 +284,7 @@ extern "C" void __cdecl Matrix_Invert(float *dst, const float *src) {
             inv[4 * i + j] = col[i];
     }
     std::memcpy(dst, inv, sizeof inv);
+    return dst;
 }
 
 extern "C" void __cdecl Sort_MergeByKey(s32 n, s32 *a, s32 *b, s32 depth, const u8 *keys) {

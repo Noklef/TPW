@@ -419,7 +419,7 @@ static void test_matrix_products() {
     Matrix_PreMul3(t, p);  // rotation parts only: the translation of r (none) stays
     CHECK(p[1] == 1 && p[4] == -1 && p[12] == 0 && p[13] == 0);
 
-    Matrix_Invert(m, t);
+    CHECK(Matrix_Invert(m, t) == m);  // the game's callers copy from the returned pointer
     CHECK(m[12] == -1 && m[13] == -2 && m[14] == -3 && m[0] == 1 && m[15] == 1 && m[1] == 0);
     Matrix_Invert(t, t);  // in place
     CHECK(std::memcmp(t, m, sizeof t) == 0);

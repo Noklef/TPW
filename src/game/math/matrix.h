@@ -74,7 +74,8 @@ void __cdecl Matrix_PreMul33(const float *r, float *m);
 void __cdecl Matrix_LUDecompose(float *a, s32 *index, float *parity);
 void __cdecl Matrix_LUBackSubstitute(const float *a, const s32 *index, float *b);
 // 0x470040: dst = src^-1 by LU decomposition, one column at a time; dst may be src.
-void __cdecl Matrix_Invert(float *dst, const float *src);
+// Returns dst: every caller copies the result from the returned pointer (0x42cd18 etc.).
+float *__cdecl Matrix_Invert(float *dst, const float *src);
 
 // 0x470630: stable merge sort of n offsets by the float at keys + offset, ascending.
 // Call with depth 0: the result is in b, and a is left in pieces.
