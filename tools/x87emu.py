@@ -537,6 +537,11 @@ class Emu:
                 self.r['ESI'] = (self.r['ESI'] + self.dstep(1)) & 0xffffffff
                 self.r['EDI'] = (self.r['EDI'] + self.dstep(1)) & 0xffffffff
                 self.r['ECX'] -= 1
+        elif mn in ('MOVSB', 'MOVSW', 'MOVSD'):  # one element, no REP
+            n = {'MOVSB': 1, 'MOVSW': 2, 'MOVSD': 4}[mn]
+            self.write(self.r['EDI'], self.read(self.r['ESI'], n))
+            self.r['ESI'] = (self.r['ESI'] + self.dstep(n)) & 0xffffffff
+            self.r['EDI'] = (self.r['EDI'] + self.dstep(n)) & 0xffffffff
         elif mn in ('MOVSD.REP', 'STOSD.REP'):
             while self.r['ECX']:
                 if mn == 'MOVSD.REP':
