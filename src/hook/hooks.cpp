@@ -77,7 +77,8 @@
 #include "../game/coaster/queue.h"
 #include "../game/coaster/cursor.h"
 #include "../game/coaster/registry.h"
-#include "../game/coaster/contacts.h"
+#include "../game/coaster/contacts.h"
+#include "../game/coaster/ridebounds.h"
 #include "../game/coaster/setup.h"
 #include "../game/coaster/save.h"
 #include "../game/coaster/spline.h"
@@ -898,6 +899,7 @@ const Hook kHooks[] = {
     {"CoasterPylons_Setup",       0x0042eb70, (void *)&CoasterPylons_Setup, {0x83, 0xec, 0x08, 0x8b, 0x44}},
     {"CoasterTrains_Setup",       0x0042f1a0, (void *)&CoasterTrains_Setup, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"CoasterType_Setup",         0x0042f390, (void *)&CoasterType_Setup, {0x83, 0xec, 0x0c, 0x53, 0x55}},
+    {"Ride_Bounds",               0x00466b70, (void *)&Ride_Bounds, {0x8b, 0x44, 0x24, 0x04, 0x83}},
     {"RowReader_Decode",          0x0062fe00, (void *)&RowReader_Decode, {0x6a, 0xff, 0x68, 0x38, 0x2b}},
     {"RowReader_CopyRow",         0x006300c0, (void *)&RowReader_CopyRow, {0x8b, 0xc1, 0x56, 0x57, 0x8b}},
     {"TgaReader_Load",            0x006300f0, (void *)&TgaReader_Load, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
