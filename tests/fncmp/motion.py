@@ -1,5 +1,5 @@
-# Vector helpers (0x431480-0x431660), quaternions (0x474120-0x4745c0) and path curves
-# (0x474840-0x475010) against the originals.
+# Vector helpers (0x431480-0x431660), packed vertex animation (0x470e90-0x471860),
+# quaternions (0x474120-0x4745c0) and path curves (0x474840-0x475010) against the originals.
 # usage: motion.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -8,9 +8,10 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x431480, 0x431660), (0x474120, 0x4745c0), (0x474840, 0x475010), (0x46f650, 0x46f6f0),
+B = Bench([(0x431480, 0x431660), (0x470e90, 0x471860), (0x474120, 0x4745c0), (0x474840, 0x475010), (0x46f650, 0x46f6f0),
            (0x67a400, 0x690000)], sines=256)
 A, PTS, OUT = RAM, RAM + 0x1000, RAM + 0x2000  # small inputs, curve points / keys, outputs
+BLK, POS, GRP = RAM + 0x3000, RAM + 0x4000, RAM + 0x5000  # packed block, position blocks, groups
 GLOBALS = 0x7b4980  # gMotionFlags (+0), gRotationKeyCount (+8), gCurvePointCount (+0x68)
 
 
@@ -42,6 +43,39 @@ def quat(r, buf, off):
         prev = struct.unpack_from('<4f', buf, off - 0x14)
         sign = r.choice([1, -1])
         put(buf, off, '4f', *[sign * x + r.uniform(-1e-4, 1e-4) * r.choice([0, 1]) for x in prev])
+
+
+def packed(r, op, regs, t):
+    """A packed vertex-animation block (flags, group count, groups +0xc, offsets +0x14, scales
+    +0x20) whose groups (count, slots, frames, keys, key) share one ascending frames array."""
+    blk, pos, grp = bytearray(r.bytes(0x100)), bytearray(r.bytes(0x400)), bytearray(r.bytes(0x1000))
+    regs.update({BLK: blk, POS: pos, GRP: grp})
+    ngroups, nkeys, flags = r.randrange(1, 5), r.randrange(2, 8), r.choice([0, 2, r.randrange(256)])
+    if flags & 2 and r.random() < 0.9:  # else the group count runs out past the raw group: crashes
+        ngroups = max(ngroups, 2)
+    put(blk, 0, 'BxH', flags, ngroups)
+    put(blk, 0xc, 'I', GRP)
+    floats(r, blk, 0x14, 6)
+    frames, f = [], r.randrange(50)
+    for _ in range(nkeys):
+        frames.append(f)
+        f += r.choice([0, 1, 5, 20]) if r.random() < 0.1 else r.randrange(1, 20)
+    put(grp, 0xf00, '%dH' % nkeys, *frames)
+    for g in range(ngroups):
+        n, base = r.randrange(2, 9), GRP + 0x100 + 0x300 * g
+        put(grp, 20 * g, 'HHIIII', r.randrange(65536), n, base, GRP + 0xf00, base + 0x40, r.randrange(nkeys - 1))
+        put(grp, base - GRP, '%dH' % n, *[r.randrange(32) for _ in range(n)])
+        put(grp, base + 0x40 - GRP, '%dI' % (n * nkeys), *[r.getrandbits(32) for _ in range(n * nkeys)])
+    add = r.choice([0, 1])
+    if op == 'LerpVerts':
+        return Call(0x470e90, [BLK, POS, GRP + 20 * r.randrange(ngroups), t, add], regs)
+    if op == 'LerpBox':
+        return Call(0x4711d0, [BLK, OUT, GRP + 20 * r.randrange(ngroups), t, add], regs)
+    node = regs[A]
+    put(node, 0, 'I', r.getrandbits(32) & ~0x800000 | r.choice([0, 0x800000]))
+    put(node, 0x60, 'I', POS)
+    frame = r.uniform(frames[0] - 5, frames[-1]) if r.random() < 0.8 else r.choice([frames[0], frames[-1]])
+    return Call(0x4714a0, [A, BLK, struct.unpack('<I', struct.pack('<f', frame))[0], r.getrandbits(32), add], regs)
 
 
 def case(r):
@@ -80,6 +114,8 @@ def case(r):
         if isinstance(tt, float):
             tt = struct.unpack('<I', struct.pack('<f', tt))[0]
         return Call(0x474ea0, [PTS, n, tt, OUT, r.choice([0, 1])], regs)
+    if op in ('LerpVerts', 'LerpBox', 'Unpack'):
+        return packed(r, op, regs, t)
     # the curves: own points at curve + 8 or the given ones; count from gCurvePointCount
     n = r.randrange(1, 12)
     floats(r, pts, 0, 3 * 40)
@@ -98,7 +134,7 @@ def case(r):
 
 
 OPS_ALL = ['Modf', 'RotYCS', 'Vec3RotX', 'Vec3RotY', 'MatRotY', 'QuatToMatrix', 'Slerp', 'RotationAt', 'Percent',
-           'Bezier', 'BezierTan', 'Linear', 'LinearTan', 'CatmullRom']
+           'Bezier', 'BezierTan', 'Linear', 'LinearTan', 'CatmullRom', 'LerpVerts', 'LerpBox', 'Unpack']
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 
