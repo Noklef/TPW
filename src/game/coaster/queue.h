@@ -30,4 +30,11 @@ u32 __cdecl Coaster_BoardingPop(u32 index);
 // to the boarding queue if it has room.
 // sic: a peep taken when the boarding queue is full is dropped.
 void __cdecl CoasterQueue_Advance(u8 *coaster);
+
+// 0x43b480: empties one side of each of the train's cars (from +8, +0xc of them, 0x60 each
+// at +0x28): side non-zero the riders at car +0x28 (count +0x30), else +0x2c (+0x34). Each
+// rider is appended to the boarding queue when it has room (else dropped, sic), its seat
+// part ([car+4]+0x2c) released on the ride's instance (0x7a4610[car+0xc] + 8), the train's
+// rider count (+0x10) stepped down and the seat cleared.
+void __cdecl CoasterTrain_Unload(u8 *coaster, u8 *train, u32 side);
 }
