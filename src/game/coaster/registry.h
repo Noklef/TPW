@@ -103,4 +103,18 @@ void __cdecl CoasterLink_SetCurrent(u8 *link);
 // Stored to *out (when given) and 0x79c6e0, and returned.
 // sic: three paths by 0x79c638's flags all come to the same.
 u32 __cdecl CoasterEdit_Tools(u32 *out);
+
+// 0x441970: whether object's link (Object_CoasterLink) is another open one: it has no +0x140,
+// flag 1 but not 2 in +0x3c, and is not the current link (0x790fec).
+u32 __cdecl Object_LinkOtherOpen(const u8 *object);
+
+// 0x43e0e0: object's link's (Object_CoasterLink, which must be found) +0x10c, +0x110, +0x114
+// and +0x108, to a, b, c and d.
+void __cdecl Object_LinkParams(const u8 *object, u32 *a, u32 *b, u32 *c, u32 *d);
+
+// 0x43e120: 0x792404 = 1.0f.
+void __cdecl Coasters_ResetUnit();
+
+// 0x43e140: 0x7925e0 = 1.0f / 8388608.0f (constants 0x6fe108 / 0x6fe0d8), one float ulp at 1.
+void __cdecl Coasters_InitEpsilon();
 }

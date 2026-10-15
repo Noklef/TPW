@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060), (0x442d10, 0x442d70), (0x443ee0, 0x443f40), (0x444c00, 0x444c50), (0x444040, 0x444090), (0x444700, 0x444740), (0x447790, 0x447830), (0x442cd0, 0x442d10), (0x436820, 0x4368f0), (0x436150, 0x436190), (0x432bd0, 0x432c10), (0x444c50, 0x444cb0), (0x43af70, 0x43afa0), (0x4418d0, 0x441970), (0x434650, 0x434740), (0x5da3c0, 0x5da3d0), (0x447990, 0x4479a0), (0x430ac0, 0x430ad0), (0x433220, 0x433240), (0x435710, 0x435730), (0x439920, 0x439ab0), (0x43a060, 0x43a2b0), (0x43d8f0, 0x43dbb0), (0x46f150, 0x46f180), (0x46f350, 0x46f420), (0x46f5c0, 0x46f6f0), (0x444090, 0x444150), (0x445f30, 0x445fb0), (0x436190, 0x436230), (0x445910, 0x445a70)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060), (0x442d10, 0x442d70), (0x443ee0, 0x443f40), (0x444c00, 0x444c50), (0x444040, 0x444090), (0x444700, 0x444740), (0x447790, 0x447830), (0x442cd0, 0x442d10), (0x436820, 0x4368f0), (0x436150, 0x436190), (0x432bd0, 0x432c10), (0x444c50, 0x444cb0), (0x43af70, 0x43afa0), (0x4418d0, 0x4419b0), (0x434650, 0x434740), (0x5da3c0, 0x5da3d0), (0x447990, 0x4479a0), (0x430ac0, 0x430ad0), (0x433220, 0x433240), (0x435710, 0x435730), (0x439920, 0x439ab0), (0x43a060, 0x43a2b0), (0x43d8f0, 0x43dbb0), (0x46f150, 0x46f180), (0x46f350, 0x46f420), (0x46f5c0, 0x46f6f0), (0x444090, 0x444150), (0x445f30, 0x445fb0), (0x436190, 0x436230), (0x445910, 0x445a70), (0x4367a0, 0x436820)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -636,6 +636,19 @@ def pieces(r, op):
         put(track, 0x24, 'I', NODES + k * 0x80)
         put(track, 0x1c, 'I', r.choice([NODES + k * 0x80, NODES + r.randrange(n) * 0x80, 0]))
         return Call(0x436190, [NODES + n * 0x80, COAST, r.choice([0, 1, r.getrandbits(32)])], {NODES: ps, COAST: track})
+    if op == 'Remove':  # piece k as (or not as) the track's last; its previous is set when flagged
+        track = r.bytes(0x40)
+        k = r.randrange(n)
+        put(ps, 0x68, 'I', r.choice([0, NODES + n * 0x80]))  # outside the chain, or none
+        put(ps, n * 0x80 + 0x68, 'I', r.choice([0, NODES + n * 0x80]))  # which has none, or itself
+        for j in range(1, n):
+            put(ps, j * 0x80 + 0x68, 'I', NODES + (j - 1) * 0x80)
+        last = r.choice([NODES + k * 0x80, NODES + r.randrange(n) * 0x80])
+        put(track, 0x24, 'I', last)
+        put(track, 0x1c, 'I', r.choice([last, NODES + r.randrange(n) * 0x80, 0]))
+        if k == 0 and not any(ps[0x68:0x6c]) and track[0x1c:0x20] != track[0x24:0x28]:  # the previous would be flagged
+            put(ps, k * 0x80 + 8, 'I', r.getrandbits(32) & ~0x8000)
+        return Call(0x4367a0, [NODES + k * 0x80, COAST], {NODES: ps, COAST: track})
     if op == 'ClearSel':
         i, j = sorted((r.randrange(n), r.randrange(n)))
         return Call(0x445f30, [], {NODES: ps, COAST: r.bytes(4), 0x7925d0: r.bytes(4),
@@ -693,12 +706,22 @@ def by_id(r, op):
     put(deep, 0x34, 'I', SPL + 0x20)
     want = r.choice(ids + [r.choice([1, 2, 3]), r.getrandbits(32)] + [i ^ 0x10000 for i in ids])
     regs = {CARS: links, SPL: deep, 0x790fe0: put(bytearray(4), 0, 'I', CARS if n else 0)}
-    if op in ('ObjLink', 'ObjOpen', 'ObjBare'):  # object +0x20 is the id
+    if op in ('ObjLink', 'ObjOpen', 'ObjBare', 'ObjOther', 'ObjParams'):  # object +0x20 is the id
+        if op == 'ObjParams':
+            want = r.choice(ids) if n else want
         for k in range(n):
             put(links, k * 0x150 + 0x3c, 'I', r.getrandbits(32))
             put(links, k * 0x150 + 0x140, 'I', r.choice([0, 0, r.getrandbits(32)]))
         regs[TYPE] = put(r.bytes(0x40), 0x20, 'I', want)
-        return Call({'ObjLink': 0x4418f0, 'ObjOpen': 0x441910, 'ObjBare': 0x441940}[op],
+        if op == 'ObjParams':
+            if not n:
+                return Call(0x43e120 if r.random() < 0.5 else 0x43e140, [],
+                            {0x792404: r.bytes(4), 0x7925e0: r.bytes(4)})
+            regs[OUT] = r.bytes(16)
+            return Call(0x43e0e0, [TYPE, OUT, OUT + 4, OUT + 8, OUT + 12], regs)
+        if op == 'ObjOther':
+            regs[0x790fec] = put(bytearray(4), 0, 'I', CARS + r.randrange(max(n, 1)) * 0x150)
+        return Call({'ObjLink': 0x4418f0, 'ObjOpen': 0x441910, 'ObjBare': 0x441940, 'ObjOther': 0x441970}[op],
                     [r.choice([TYPE] * 9 + [0])], regs, ret='a')
     if op == 'ById':
         return Call(0x436860, [want], regs, ret='a')
@@ -851,7 +874,7 @@ KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 
          'Link': queue, 'QPush': queue, 'QAdd': queue, 'QRoom': queue, 'QPop': queue, 'QAdvance': queue,
          'CNext': cursor, 'CPrev': cursor, 'CPoint': cursor,
          'Count': registry, 'LinkNodes': registry, 'Pair': registry, 'EntryPos': registry, 'SearchReset': registry,
-         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Pick': train, 'Tile': tiles, 'End': current, 'OnRide': current, 'Marked': current, 'Select': pieces, 'Renumber': pieces, 'RideTrain': ride_train, 'CarValue': ride_train, 'BeginEnd': current, 'Bit18': by_id, 'ById': by_id, 'IdValue': by_id, 'SetById': by_id, 'Key': tiles, 'Event': event, 'SetEnd': current, 'ClearEnd': current, 'ClearPair': contacts, 'ObjLink': by_id, 'ObjOpen': by_id, 'ObjBare': by_id, 'SelGet': small, 'SelSet': small, 'State': small, 'Changed': small, 'LostPair': small, 'Unlerp': small, 'Scale': small, 'Lerp': small, 'Flag1': small, 'SetCur': small, 'Moved': small, 'Position': small, 'Bounds': bounds, 'Segments': segments, 'RideOrient': ride_orient, 'SetFirst': pieces, 'Append': pieces, 'ClearSel': pieces, 'Tools': current}
+         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Pick': train, 'Tile': tiles, 'End': current, 'OnRide': current, 'Marked': current, 'Select': pieces, 'Renumber': pieces, 'RideTrain': ride_train, 'CarValue': ride_train, 'BeginEnd': current, 'Bit18': by_id, 'ById': by_id, 'IdValue': by_id, 'SetById': by_id, 'Key': tiles, 'Event': event, 'SetEnd': current, 'ClearEnd': current, 'ClearPair': contacts, 'ObjLink': by_id, 'ObjOpen': by_id, 'ObjBare': by_id, 'SelGet': small, 'SelSet': small, 'State': small, 'Changed': small, 'LostPair': small, 'Unlerp': small, 'Scale': small, 'Lerp': small, 'Flag1': small, 'SetCur': small, 'Moved': small, 'Position': small, 'Bounds': bounds, 'Segments': segments, 'RideOrient': ride_orient, 'SetFirst': pieces, 'Append': pieces, 'ClearSel': pieces, 'Tools': current, 'Remove': pieces, 'ObjOther': by_id, 'ObjParams': by_id}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 

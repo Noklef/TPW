@@ -138,4 +138,23 @@ void __cdecl Track_AppendPiece(u8 *piece, u8 *track, u32 open) {
     ++at<u32>(track, 8);
     TrackPieces_Renumber(piece);
 }
+
+void __cdecl Track_RemovePiece(u8 *piece, u8 *track) {
+    if (!(at<u32>(piece, 8) & 0x8000)) return;
+    if (at<u8 *>(track, 0x1c) == at<u8 *>(track, 0x24)) {
+        at<u8 *>(track, 0x1c) = at<u8 *>(piece, 0x68);
+    } else {
+        at<u32>(piece, 8) &= 0xfffaffff;
+        at<u32>(at<u8 *>(piece, 0x68), 8) |= 0x50000;
+    }
+    at<u8 *>(track, 0x24) = at<u8 *>(piece, 0x68);
+    if (u8 *prev = at<u8 *>(piece, 0x68)) at<u8 *>(prev, 0x64) = at<u8 *>(piece, 0x64);
+    if (u8 *next = at<u8 *>(piece, 0x64)) at<u8 *>(next, 0x68) = at<u8 *>(piece, 0x68);
+    at<u8 *>(piece, 0x68) = nullptr;
+    at<u8 *>(piece, 0x64) = nullptr;
+    at<u32>(piece, 0) = 0;
+    --at<u32>(track, 8);
+    TrackPieces_Renumber(at<u8 *>(track, 0x24));
+    at<u32>(piece, 8) &= ~0x8000u;
+}
 }

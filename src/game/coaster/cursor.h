@@ -54,4 +54,12 @@ void __cdecl TrackSelection_Clear();
 // has 0x200) and flags piece 0x50000, else piece becomes +0x1c. Then piece is the last, the
 // count (+8) goes up and the pieces from it are renumbered.
 void __cdecl Track_AppendPiece(u8 *piece, u8 *track, u32 open);
+
+// 0x4367a0: unlinks piece when it is flagged 0x8000 (+8), as the track's last (+0x24): when
+// the track's +0x1c is its last, +0x1c becomes piece's previous (+0x68); else piece loses
+// 0x50000 and its previous gains it. The previous becomes the last, the piece's links and
+// index (+0) are zeroed, the count (+8) goes down, the pieces from the last are renumbered
+// and piece loses 0x8000.
+// sic: whether piece is the last is never checked; nor is the previous before it is flagged.
+void __cdecl Track_RemovePiece(u8 *piece, u8 *track);
 }

@@ -185,4 +185,25 @@ u32 __cdecl CoasterEdit_Tools(u32 *out) {
     *reinterpret_cast<u32 *>(0x0079c6e0) = *out;
     return *out;
 }
+
+u32 __cdecl Object_LinkOtherOpen(const u8 *object) {
+    if (!object) return 0;
+    const u8 *link = CoasterLink_ById(at<u32>(object, 0x20));
+    if (!link || at<u32>(link, 0x140)) return 0;
+    const u32 flags = at<u32>(link, 0x3c);
+    if (!(flags & 1) || (flags & 2)) return 0;
+    return link != *reinterpret_cast<const u8 *const *>(0x00790fec);
+}
+
+void __cdecl Object_LinkParams(const u8 *object, u32 *a, u32 *b, u32 *c, u32 *d) {
+    const u8 *link = Object_CoasterLink(object);
+    *a = at<u32>(link, 0x10c);
+    *b = at<u32>(link, 0x110);
+    *c = at<u32>(link, 0x114);
+    *d = at<u32>(link, 0x108);
+}
+
+void __cdecl Coasters_ResetUnit() { *reinterpret_cast<float *>(0x00792404) = 1.0f; }
+
+void __cdecl Coasters_InitEpsilon() { *reinterpret_cast<float *>(0x007925e0) = 1.0f / 8388608.0f; }
 }
