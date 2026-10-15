@@ -1762,6 +1762,8 @@ address,name,kind,confidence,notes
 0x0045b8d0,StdString_Split,function,high,reimplemented (src/game/core/stdstring); std::string::_Split(): unshares a copy-on-write block
 0x0045b9d0,GlobalMem_Alloc,function,high,"reimplemented (src/game/core/globalmem); GlobalAlloc(GMEM_ZEROINIT or GMEM_FIXED, size) through the import slot; null for 0"
 0x0045ba00,GlobalMem_Free,function,high,reimplemented (src/game/core/globalmem); GlobalFree through the import slot; null for null
+0x00468760,IdTable_Add,function,high,reimplemented (src/game/core/idtable); stores a value under a new or given id (used/holes/next counters)
+0x00468810,IdTable_Remove,function,high,"reimplemented (src/game/core/idtable); frees an id, fixing the used/holes/next counters"
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

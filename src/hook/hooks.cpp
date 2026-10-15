@@ -50,6 +50,7 @@
 #include "../game/core/events.h"
 #include "../game/core/filetime.h"
 #include "../game/core/globalmem.h"
+#include "../game/core/idtable.h"
 #include "../game/core/stdstring.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -1048,6 +1049,8 @@ const Hook kHooks[] = {
     {"StdString_Split",           0x0045b8d0, (void *)&StdString_Split, {0x53, 0x55, 0x8b, 0xe9, 0x33}},
     {"GlobalMem_Alloc",           0x0045b9d0, (void *)&GlobalMem_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"GlobalMem_Free",            0x0045ba00, (void *)&GlobalMem_Free, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"IdTable_Add",               0x00468760, (void *)&IdTable_Add, {0x8b, 0x44, 0x24, 0x1c, 0x53}},
+    {"IdTable_Remove",            0x00468810, (void *)&IdTable_Remove, {0x8b, 0x44, 0x24, 0x14, 0x53}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

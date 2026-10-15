@@ -1,6 +1,6 @@
 # 0x448000-0x470000 (render mode, model part tables, frame globals, model holders, the terrain
 # attribute grid, procedural terrain textures, painting cells, texture remaps, the highlight,
-# flashing holders, the GlobalAlloc wrappers)
+# flashing holders, the GlobalAlloc wrappers, id tables)
 # against the originals.
 # usage: scene.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
@@ -14,11 +14,11 @@ B = Bench([(0x44a590, 0x44a640), (0x44b140, 0x44b2e0), (0x44b3c0, 0x44b410), (0x
            (0x4587b0, 0x4587d9), (0x45bed0, 0x45bf13), (0x450420, 0x45046d), (0x450a30, 0x450a78),
            (0x450b00, 0x450b24), (0x457a00, 0x457a88), (0x46de00, 0x46e125), (0x56dfb0, 0x56dfdd),
            (0x45d620, 0x45d68c), (0x469180, 0x469405), (0x469470, 0x4698ef),
-           (0x45b9d0, 0x45ba15)])
+           (0x45b9d0, 0x45ba15), (0x468760, 0x4688a7)])
 HOLDER, MODEL, PARTS, FACES, FACES2 = (RAM + k * 0x1000 for k in range(5))
 REF, H2, MAT, SLOTS, MAP, GRID, CELLS, GRID2, CELLS2, OUT = (RAM + k * 0x1000 for k in range(5, 15))
 SETS, ENTRIES, TILES, MDL, MESHES, MFACES, REMAP = (RAM + k * 0x1000 for k in range(15, 22))
-HL, VERTS, HLBUF, SAVED = (RAM + k * 0x1000 for k in range(22, 26))
+HL, VERTS, HLBUF, SAVED, IDS = (RAM + k * 0x1000 for k in range(22, 27))
 
 
 def mode(r, op):
@@ -200,6 +200,32 @@ def remap(r, op):
     return Call(0x46de00, [MDL, REMAP, r.getrandbits(32), r.choice([0, 1, r.randrange(1000), -5]), r.getrandbits(32)], regs)
 
 
+def ids(r, op):
+    """An id table at IDS + 0x10 (0x100 entries; ids from 1) and its counters used, holes, next at
+    IDS: consistent (ids 1..used + holes taken but for the holes, next the first free) or not."""
+    table = [0] * 0x100
+    used, holes = r.randrange(12), r.choice([0, 0, 1, r.randrange(5)])
+    for i in range(1, used + holes + 1):
+        table[i] = r.getrandbits(32) | 1
+    for i in r.sample(range(1, used + holes + 1), min(holes, used + holes)):
+        table[i] = 0
+    free = [i for i in range(1, 0x40) if not table[i]]
+    nxt = free[0]
+    if r.random() < 0.3:
+        used, holes, nxt = r.randrange(16), r.randrange(6), r.randrange(1, 24)
+    if r.random() < 0.1:
+        table[r.randrange(1, 24)] ^= r.getrandbits(32)
+    region = struct.pack('<4I', used, holes, nxt, 0) + struct.pack('<256I', *table)
+    regs = {IDS: region}
+    a = [IDS, IDS + 4, IDS + 8]
+    if op == 'IdAdd':
+        cap = r.choice([used, used + 1, r.randrange(20), 0xff])
+        return Call(0x468760, a + [cap, IDS + 0x10, r.getrandbits(32), r.choice([-1, -1, -1, r.randrange(24)])], regs, ret='a')
+    taken = [i for i in range(1, 24) if table[i]]
+    victim = r.choice(taken) if taken and r.random() < 0.8 else r.randrange(24)
+    return Call(0x468810, a + [IDS + 0x10, victim], regs)
+
+
 def globalmem(r, op):
     if op == 'GAlloc':
         regs = {HEAP: heap(), **global_heap()}
@@ -289,7 +315,7 @@ KINDS = {'Size': mode, 'Depth': mode, 'ResetScale': mode, 'Epsilon': mode, 'Mark
          'HlTarget': highlight, 'HlTints': highlight, 'HlClear': highlight, 'HlCurrent': highlight,
          'HlShown': highlight, 'HlSuspend': highlight, 'HlAlloc': highlight, 'HlFree': highlight,
          'HlFlash': highlight, 'HlFlash2': highlight, 'HlUnflash': highlight, 'HlUnflash2': highlight,
-         'HlPulse': highlight, 'GAlloc': globalmem, 'GFree': globalmem}
+         'HlPulse': highlight, 'GAlloc': globalmem, 'GFree': globalmem, 'IdAdd': ids, 'IdRemove': ids}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 
