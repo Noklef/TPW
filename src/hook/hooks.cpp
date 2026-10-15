@@ -93,7 +93,9 @@
 #include "../game/model/highlight.h"
 #include "../game/model/partstate.h"
 #include "../game/model/remap.h"
-#include "../game/model/clone.h"
+#include "../game/model/clone.h"
+#include "../game/model/faces.h"
+#include "../game/model/release.h"
 #include "../game/model/scratch.h"
 #include "../game/model/slots.h"
 #include "../game/model/worldverts.h"
@@ -1158,6 +1160,12 @@ const Hook kHooks[] = {
     {"WorldVerts_Alloc",          0x00462870, (void *)&WorldVerts_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"WorldVerts_Free",           0x004628a0, (void *)&WorldVerts_Free, {0xa1, 0xd4, 0xec, 0x7a, 0x00}},
     {"WorldVerts_TransformFrame", 0x004628b0, (void *)&WorldVerts_TransformFrame, {0x83, 0xec, 0x4c, 0xb9, 0x10}},
+    {"Face_MarkTextures",         0x0046a550, (void *)&Face_MarkTextures, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"Instance_FreeRecordBlock",  0x00468200, (void *)&Instance_FreeRecordBlock, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"Instance_FreeHolderBlock",  0x0046b3b0, (void *)&Instance_FreeHolderBlock, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Int_Add",                   0x0046b3d0, (void *)&Int_Add, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"Release_InitUnusedOne",     0x0046b3e0, (void *)&Release_InitUnusedOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"Release_InitUnusedEpsilon", 0x0046b400, (void *)&Release_InitUnusedEpsilon, {0xd9, 0x05, 0xc8, 0xe8, 0x6f}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
