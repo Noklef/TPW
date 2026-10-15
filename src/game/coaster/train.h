@@ -12,4 +12,10 @@ extern "C" {
 // flag 0x2000 whose type has flag 8, else +0x78 with the type's +0x30.
 // (Callers pass the car's +0x18 first; it is unused.)
 void __cdecl Train_SetCouplings(u32 unused, u8 *train);
+
+// 0x433280: the length of car's train (0 for no car): over the first car+4 slots of its
+// train's cars (+0x100 -> +0x34), each car's length bc + (c0 - bc) * its +0xe8 plus the gap
+// +0xc4 (from the train's type, +0x18), then car's own length without a gap.
+// sic: the count is car+4, not the train's +0x30; empty slots are skipped.
+double __cdecl Car_TrainLength(const u8 *car);
 }
