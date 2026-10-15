@@ -20,7 +20,8 @@ B = Bench([(0x44a590, 0x44b140), (0x44b140, 0x44b2e0), (0x44b3c0, 0x44b410), (0x
            (0x4702d0, 0x470630), (0x473a40, 0x473c30), (0x67b410, 0x67b440), (0x450e60, 0x450e99),
            (0x45ba70, 0x45ba92), (0x45bdc0, 0x45bdca), (0x44e510, 0x44e531), (0x473c70, 0x473e30),
            (0x429ee0, 0x429fd4), (0x429fe0, 0x429ff4), (0x45bf20, 0x45bf46), (0x45bf50, 0x45bf83),
-           (0x46fad0, 0x46fb41), (0x457e10, 0x457e26), (0x457e30, 0x457e63), (0x452e10, 0x452e63)], sines=256)
+           (0x46fad0, 0x46fb41), (0x457e10, 0x457e26), (0x457e30, 0x457e63), (0x452e10, 0x452e63),
+           (0x45ba20, 0x45ba63)], sines=256)
 HOLDER, MODEL, PARTS, FACES, FACES2 = (RAM + k * 0x1000 for k in range(5))
 REF, H2, MAT, SLOTS, MAP, GRID, CELLS, GRID2, CELLS2, OUT = (RAM + k * 0x1000 for k in range(5, 15))
 SETS, ENTRIES, TILES, MDL, MESHES, MFACES, REMAP = (RAM + k * 0x1000 for k in range(15, 22))
@@ -163,7 +164,8 @@ def partmatrices(r, op):
 
 
 STATICS = {'HolderOne': 0x45bf50, 'HolderEps': 0x45bf70, 'TerrOne': 0x457e30, 'TerrEps': 0x457e50,
-           'Tolerances': 0x452e10, 'ScratchOne': 0x452e30, 'ScratchEps': 0x452e50}
+           'Tolerances': 0x452e10, 'ScratchOne': 0x452e30, 'ScratchEps': 0x452e50, 'GmFlag': 0x45ba20,
+           'GmOne': 0x45ba30, 'GmEps': 0x45ba50}
 
 
 def mode(r, op):
@@ -172,7 +174,8 @@ def mode(r, op):
         return Call({'Size': 0x44a590, 'Depth': 0x44a5d0}[op], [], {0x79d86c: put(bytearray(4), 0, 'I', bits)}, ret='a')
     if op in STATICS:  # the units' unused statics (model/holder, terrain/procedural, model/scratch)
         return Call(STATICS[op], [], {a: r.bytes(4) for a in (0x7a1cac, 0x7a1cdc, 0x7a0b28, 0x7a0b48, 0x79f7dc,
-                                                                0x79fb1c, 0x79fb24, 0x79fb28)})
+                                                                0x79fb1c, 0x79fb24, 0x79fb28, 0x7a1c60, 0x7a1c64,
+                                                                0x7a1c68)})
     return Call({'ResetScale': 0x44a600, 'Epsilon': 0x44a620}[op], [], {0x79d9e4: r.bytes(4), 0x79d9e8: r.bytes(4)})
 
 
@@ -526,7 +529,7 @@ KINDS = {'Size': mode, 'Depth': mode, 'ResetScale': mode, 'Epsilon': mode, 'Mark
          'Count': parts, 'Nth': parts, 'Key4': parts, 'Key8': parts, 'SlotClear': parts, 'SlotSet': parts, 'SlotHolder': parts, 'ResetBounds': frame, 'AddFlags': frame,
          'SetPoint': frame, 'FlagModel': holder, 'SetPosition': holder, 'SetScale': holder, 'SlotKey': holder,
          'HolderOne': mode, 'HolderEps': mode, 'TerrOne': mode, 'TerrEps': mode, 'Tolerances': mode,
-         'ScratchOne': mode, 'ScratchEps': mode, 'RestoreCells': land, 'IsParkLand': land,
+         'ScratchOne': mode, 'ScratchEps': mode, 'GmFlag': mode, 'GmOne': mode, 'GmEps': mode, 'RestoreCells': land, 'IsParkLand': land,
          'Cross': land, 'CopyAttrs': land, 'CloneAttrs': land, 'Footprint': land, 'GridSize': land, 'TexEnable': procedural, 'TexDisable': procedural,
          'ProcEnter': procedural, 'ProcLeave': procedural, 'ProcOn': procedural, 'ProcCells': procedural,
          'PaintCell': paint, 'PaintCell2': paint, 'Remap': remap, 'HlUpdate': highlight, 'HlUpdate2': highlight,

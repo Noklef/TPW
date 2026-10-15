@@ -1817,6 +1817,9 @@ address,name,kind,confidence,notes
 0x0045ba00,GlobalMem_Free,function,high,reimplemented (src/game/core/globalmem); GlobalFree through the import slot; null for null
 0x0045ba70,GlobalMem_AllocCounted,function,high,reimplemented (src/game/core/globalmem); a zeroed 0x40-byte block with count at +4; null for 0
 0x0045baa0,GlobalMem_FreeAtB0,function,high,reimplemented (src/game/core/globalmem); GlobalMem_Free of the block at owner +0xb0
+0x0045ba20,GlobalMem_InitUnusedFlag,function,high,reimplemented (src/game/core/globalmem); unused static 0x7a1c60 = 1
+0x0045ba30,GlobalMem_InitUnusedOne,function,high,reimplemented (src/game/core/globalmem); unused static 0x7a1c64 = 1.0f
+0x0045ba50,GlobalMem_InitUnusedEpsilon,function,high,reimplemented (src/game/core/globalmem); unused static 0x7a1c68 = 1 / 2^23
 0x00468760,IdTable_Add,function,high,reimplemented (src/game/core/idtable); stores a value under a new or given id (used/holes/next counters)
 0x00468810,IdTable_Remove,function,high,"reimplemented (src/game/core/idtable); frees an id, fixing the used/holes/next counters"
 0x00468750,IdTable_Init,function,high,reimplemented (src/game/core/idtable); next = 1

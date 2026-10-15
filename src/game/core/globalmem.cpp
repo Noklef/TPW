@@ -31,4 +31,10 @@ void *__cdecl GlobalMem_AllocCounted(u32 count) {
 void *__cdecl GlobalMem_FreeAtB0(const u8 *owner) {
     return GlobalMem_Free(*reinterpret_cast<void *const *>(owner + 0xb0));
 }
+
+void __cdecl GlobalMem_InitUnusedFlag() { *reinterpret_cast<u32 *>(0x007a1c60) = 1; }
+
+void __cdecl GlobalMem_InitUnusedOne() { *reinterpret_cast<float *>(0x007a1c64) = 1.0f; }
+
+void __cdecl GlobalMem_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x007a1c68) = 1.0f / 8388608.0f; }
 }
