@@ -5,7 +5,7 @@
 #include <share.h>
 #include <windows.h>
 
-namespace tpw::hook {
+namespace tpw::testing {
 
 namespace {
 
@@ -35,4 +35,4 @@ void log_line(const char *format, ...) {
 
 double log_seconds() { return (GetTickCount() - g_start) / 1000.0; }
 
-}  // namespace tpw::hook
+}  // namespace tpw::testing

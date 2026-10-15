@@ -6,15 +6,27 @@ This page covers the test-only parts of the hook DLL and the sandbox used to run
 
 ## What the hook DLL contains
 
-`build\dinput.dll` (sources in `src/hook/`) has two kinds of code. Keep them apart.
+`build\dinput.dll` has two kinds of code, kept in separate folders and libraries.
 
 | Part | Files | Changes game behaviour? | Purpose |
 |---|---|---|---|
-| Hook installer | `dllmain.cpp`, `patch.cpp`, `hooks.cpp` | **Yes**: a 5-byte `jmp` to our reimplementation, only after the original prologue bytes are checked | The decompilation itself |
-| dinput proxy | `dinput_proxy.cpp`, `dinput.def` | No; forwards `DirectInputCreateA` to the system DLL | How the DLL gets loaded (ddraw.dll is taken by dgVoodoo) |
-| **Startup trace** (test tooling) | `trace.cpp` | No; **import-table slots** are redirected through loggers, which then call the real API. One game function is replaced: the retail build's empty debug print `Debug_Printf` (0x5da3c0, a bare `RET`) becomes a logger that preserves every register and flag | Diagnosing why the game fails to start or crashes, from the game's own error messages |
-| **FPU watcher** (test tooling) | `dllmain.cpp` (`watch_fpu`) | No; reads the main thread's FPU control word once a second | Checking the 24-bit x87 precision our float ports assume |
-| Log writer | `log.cpp` | No | `tpw.log` next to the exe, flushed per line so it survives a crash |
+| Hook installer | `src/hook/`: `dllmain.cpp`, `patch.cpp`, `hooks.cpp` | **Yes**: a 5-byte `jmp` to our reimplementation, only after the original prologue bytes are checked | The decompilation itself (with `src/game/`) |
+| dinput proxy | `src/hook/`: `dinput_proxy.cpp`, `dinput.def` | No; forwards `DirectInputCreateA` to the system DLL | How the DLL gets loaded (ddraw.dll is taken by dgVoodoo) |
+| **Startup trace** (test tooling) | `src/testing/trace.cpp` | No; **import-table slots** are redirected through loggers, which then call the real API. One game function is replaced: the retail build's empty debug print `Debug_Printf` (0x5da3c0, a bare `RET`) becomes a logger that preserves every register and flag | Diagnosing why the game fails to start or crashes, from the game's own error messages |
+| **FPU watcher** (test tooling) | `src/testing/fpu_watch.cpp` | No; reads the main thread's FPU control word once a second | Checking the 24-bit x87 precision our float ports assume |
+| **Log writer** (test tooling) | `src/testing/log.cpp` | No | `tpw.log` next to the exe, flushed per line so it survives a crash |
+
+**How the separation is enforced** (since 2026-10-15):
+
+- `src/testing/` builds as its own library, `tpw_testing`. It links into the hook DLL only. The game
+  library (`tpw_game`), the tests and fncmp never see it.
+- The DLL reaches it through one header, `src/testing/testing.h`. Every call in `dllmain.cpp` sits
+  under `#ifdef TPW_TEST_TOOLING`.
+- `cmake -DTPW_TEST_TOOLING=OFF` builds the DLL as the reimplementation alone: no log, no trace,
+  no watcher, KERNEL32 as its only import. The default is ON, for in-game testing.
+- CMake refuses to configure if any file under `src/game/` mentions `testing/`, `tpw::testing` or
+  `TPW_TEST_TOOLING`.
+- With tooling on, the first line of `tpw.log` says "test tooling on".
 
 The trace and the FPU watcher were written for the first sandbox runs (October 2026). They are
 diagnostics, not part of the reimplementation. Never move game logic into them. Never

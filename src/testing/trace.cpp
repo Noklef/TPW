@@ -9,11 +9,11 @@
 #include <windows.h>
 
 #include "log.h"
-#include "patch.h"
+#include "../hook/patch.h"
 
 #pragma intrinsic(_ReturnAddress)
 
-namespace tpw::hook {
+namespace tpw::testing {
 
 namespace {
 
@@ -340,11 +340,11 @@ void install_trace() {
     g_image_end = reinterpret_cast<uintptr_t>(base) + nt->OptionalHeader.SizeOfImage;
     _set_invalid_parameter_handler(ignore_invalid_parameter);  // a bad game format must not end the process
     const bool debug = kDebugPrint + 5 <= g_image_end &&
-                       patch_jump(reinterpret_cast<void *>(kDebugPrint), (void *)&debug_print_stub,
-                                  kDebugPrintBytes) == PatchResult::Ok;
+                       hook::patch_jump(reinterpret_cast<void *>(kDebugPrint), (void *)&debug_print_stub,
+                                  kDebugPrintBytes) == hook::PatchResult::Ok;
     log_line("startup trace: game debug messages (0x5da3c0) %s", debug ? "logged" : "NOT logged (bytes differ)");
     log_line("startup trace: %d imports redirected, %d of them not yet bound (tpw.ini [tpw] trace=0 turns this off)",
              redirected, unbound);
 }
 
-}  // namespace tpw::hook
+}  // namespace tpw::testing

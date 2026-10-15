@@ -6,8 +6,8 @@
 // passthrough run still behaves as the original game.
 #pragma once
 
-namespace tpw::hook {
+namespace tpw::testing {
 
 void install_trace();
 
-}  // namespace tpw::hook
+}  // namespace tpw::testing

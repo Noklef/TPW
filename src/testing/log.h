@@ -2,7 +2,7 @@
 // flushed as written, so the log survives a crash.
 #pragma once
 
-namespace tpw::hook {
+namespace tpw::testing {
 
 // Starts the log (truncating it) at `path`; lines before this are dropped.
 void log_open(const char *path);
@@ -13,4 +13,4 @@ void log_line(const char *format, ...);
 // Seconds since log_open, for timestamps.
 double log_seconds();
 
-}  // namespace tpw::hook
+}  // namespace tpw::testing
