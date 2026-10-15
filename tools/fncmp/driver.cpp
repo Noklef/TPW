@@ -28,6 +28,7 @@ namespace {
 
 using u8 = std::uint8_t;
 using u32 = std::uint32_t;
+using s32 = std::int32_t;
 
 const u32 kGameLow = 0x006e7000, kGameHigh = 0x00fc5200;  // cseg .. .rsrc
 u8 g_game[0xb00000];
@@ -84,6 +85,42 @@ void map(u32 addr, u32 size) {
         if (g_chunks.count(p)) continue;
         if (!VirtualAlloc((void *)(uintptr_t)p, 0x10000, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) fail("cannot map", p);
         g_chunks.insert(p);
+    }
+}
+
+// Stubs for what a case hands the code under test, at fixed addresses that tools/fncmp.py's
+// emulator hooks too: a record stream's read (vtable +8) and write (+0xc) at kStubs and
+// kStubs + 0x10. The stream is +4 cursor, +8 bytes left; each copies at most what is left
+// from or to the cursor, moves it on and returns the count.
+const u32 kStubs = 0x2f000000;
+
+s32 __fastcall stub_read(u8 *self, void *, u8 *buffer, u32 count) {
+    u32 &cursor = *reinterpret_cast<u32 *>(self + 4), &left = *reinterpret_cast<u32 *>(self + 8);
+    const u32 n = count < left ? count : left;
+    std::memmove(buffer, reinterpret_cast<const void *>((uintptr_t)cursor), n);
+    cursor += n;
+    left -= n;
+    return (s32)n;
+}
+
+s32 __fastcall stub_write(u8 *self, void *, const u8 *buffer, u32 count) {
+    u32 &cursor = *reinterpret_cast<u32 *>(self + 4), &left = *reinterpret_cast<u32 *>(self + 8);
+    const u32 n = count < left ? count : left;
+    std::memmove(reinterpret_cast<void *>((uintptr_t)cursor), buffer, n);
+    cursor += n;
+    left -= n;
+    return (s32)n;
+}
+
+void map_stubs() {
+    u8 *p = static_cast<u8 *>(VirtualAlloc((void *)(uintptr_t)kStubs, 0x10000, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE));
+    if (!p) fail("cannot map the stubs at", kStubs);
+    const void *stubs[] = {(const void *)&stub_read, (const void *)&stub_write};
+    for (u32 i = 0; i < 2; ++i) {
+        u8 *at = p + 0x10 * i;
+        at[0] = 0xe9;  // jmp rel32
+        const u32 rel = (u32)(uintptr_t)stubs[i] - ((u32)(uintptr_t)at + 5);
+        std::memcpy(at + 1, &rel, 4);
     }
 }
 
@@ -150,6 +187,7 @@ int main(int argc, char **argv) {
         return 1;
     }
     load_exe(argv[1]);
+    map_stubs();
     static char token[1 << 22];
     for (;;) {
         u32 address, count;

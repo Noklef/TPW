@@ -23,6 +23,10 @@ Mutation testing: B.mutants(case, [(path, old, new), ...]) applies each edit to 
 Expected result: 0 differ with and without --wild (see the precision policy in
 src/game/math/x87.h). Suites live in tests/fncmp/.
 
+A case can hand the code a record stream (record_stream(at, cursor, left) is its region):
+reads and writes through its vtable copy from or to cursor, at most left bytes, in both (the
+driver's stubs at STUBS, the emulator's hooks).
+
 The emulator gets __ftol, modf and _CIfmod stubs; Bench(..., sines=N) also gives both sides
 an N-entry sine table at 0x7b095c (see sintable.h).
 """
@@ -43,6 +47,27 @@ EXE = os.path.join(ROOT, '.data', 'nocd', 'tp.exe')
 DRIVER = os.path.join(ROOT, 'build', 'tpw_fncmp.exe')
 LISTING = os.path.join(ROOT, '_re', 'text.asm')
 RAM = 0x30000000  # free addresses for case regions: RAM, RAM + 0x1000, ...
+STUBS = 0x2f000000  # the record stream's read and write (driver.cpp's kStubs)
+
+
+def record_stream(at, cursor, left):
+    """A record stream's region at `at`: vtable (at + 0x10), cursor, bytes left; then the vtable."""
+    return bytearray(struct.pack('<4I4I', at + 0x10, cursor, left, 0, 0, 0, STUBS, STUBS + 0x10))
+
+
+def _record(write):
+    def hook(e):  # thiscall (buffer, count): pops its two arguments
+        sp, s = e.r['ESP'], e.r['ECX']
+        buf, count = e.u32(sp), e.u32(sp + 4)
+        cursor, left = e.u32(s + 4), e.u32(s + 8)
+        n = min(count, left)
+        if n:
+            src, dst = (buf, cursor) if write else (cursor, buf)
+            e.write(dst, e.read(src, n))
+        e.write(s + 4, struct.pack('<2I', (cursor + n) & 0xffffffff, left - n))
+        e.r['EAX'] = n
+        e.r['ESP'] = sp + 8
+    return hook
 
 
 def fb(x):
@@ -146,7 +171,8 @@ def _cifmod(e):  # _CIfmod: st1 fmod st0, popping both; NaNs come through as fro
 class Bench:
     def __init__(self, ranges, sines=None, hooks=None):
         self.emu = x87emu.Emu([slice_listing(ranges)])
-        self.emu.hooks.update({0x67a830: _ftol, 0x67b280: _modf, 0x67b24a: _cifmod})
+        self.emu.hooks.update({0x67a830: _ftol, 0x67b280: _modf, 0x67b24a: _cifmod,
+                               STUBS: _record(False), STUBS + 0x10: _record(True)})
         self.emu.hooks.update(hooks or {})
         self.extra = {0x7b095c: sine_table(sines)} if sines else {}
 
