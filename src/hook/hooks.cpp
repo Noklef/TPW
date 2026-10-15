@@ -71,6 +71,7 @@
 #include "../game/coaster/queue.h"
 #include "../game/coaster/cursor.h"
 #include "../game/coaster/registry.h"
+#include "../game/coaster/contacts.h"
 #include "../game/coaster/spline.h"
 #include "../game/terrain/terrain_blend.h"
 #include "../game/world/random.h"
@@ -749,6 +750,7 @@ const Hook kHooks[] = {
     {"TrackCursor_Prev",          0x00440b50, (void *)&TrackCursor_Prev, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"TrackCursor_Point",         0x00440bc0, (void *)&TrackCursor_Point, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"Track_PieceAt",             0x0043e520, (void *)&Track_PieceAt, {0x8b, 0x4c, 0x24, 0x08, 0x8b}},
+    {"Contacts_Clear",            0x0043ad50, (void *)&Contacts_Clear, {0x51, 0x8b, 0x54, 0x24, 0x0c}},
     {"RowReader_Decode",          0x0062fe00, (void *)&RowReader_Decode, {0x6a, 0xff, 0x68, 0x38, 0x2b}},
     {"RowReader_CopyRow",         0x006300c0, (void *)&RowReader_CopyRow, {0x8b, 0xc1, 0x56, 0x57, 0x8b}},
     {"TgaReader_Load",            0x006300f0, (void *)&TgaReader_Load, {0x53, 0x8b, 0x5c, 0x24, 0x10}},

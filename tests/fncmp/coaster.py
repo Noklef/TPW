@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43af70)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -463,6 +463,29 @@ def registry(r, op):
     return Call(0x43e520, [COAST, r.randrange(12)], {COAST: put(r.bytes(0x20), 0x18, 'I', NODES), NODES: pieces}, ret='a')
 
 
+def contacts(r, op):
+    """Nodes 0x100 apart: +8 flags, +0x64 next in the owner's list, +0xb0 count, +0xb4 contacts."""
+    n = r.randrange(1, 7)
+    nodes, owner = r.bytes(0x700), r.bytes(0x200)
+    ptrs = [NODES + k * 0x100 for k in range(n)]
+    x = r.randrange(n)
+    listed = [k for k in range(n) if r.random() < 0.8 or k == x] if r.random() < 0.9 else []
+    for i, k in enumerate(listed):
+        put(nodes, k * 0x100 + 0x64, 'I', ptrs[listed[i + 1]] if i + 1 < len(listed) else 0)
+    put(owner, 0x54, 'I', ptrs[listed[0]] if listed else 0)
+    for k in range(n):
+        b = k * 0x100
+        put(nodes, b + 8, 'I', r.getrandbits(32) & ~0x600000 | r.choice([0, 0x400000, 0x200000, 0x600000]))
+        c = r.randrange(0, 9)
+        put(nodes, b + 0xb0, 'I', c)
+        for j in range(8):
+            v = r.choice([ptrs[x], ptrs[x], r.choice(ptrs), 0]) if j < c else r.choice([0, r.getrandbits(32), ptrs[x]])
+            if k == x and j < c:
+                v = r.choice(ptrs)  # held contacts are followed
+            put(nodes, b + 0xb4 + 4 * j, 'I', v)
+    return Call(0x43ad50, [COAST, ptrs[x]], {COAST: owner, NODES: nodes})
+
+
 KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 'Tangent': spline, 'Set': orient,
          'Init': orient, 'Frame': frame, 'At': frame,
          'RoundUp': helpers, 'Lerp': helpers, 'Dot': helpers, 'Normalize': helpers, 'NormXZ': helpers, 'Swing': cars, 'Space': cars, 'Segs': cars, 'Setup': cars, 'Extent': cars, 'Drop': cars, 'Window': cars, 'InWindow': cars, 'Dist': cars,
@@ -470,7 +493,7 @@ KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 
          'Link': queue, 'QPush': queue, 'QAdd': queue, 'QRoom': queue, 'QPop': queue, 'QAdvance': queue,
          'CNext': cursor, 'CPrev': cursor, 'CPoint': cursor,
          'Count': registry, 'LinkNodes': registry, 'Pair': registry, 'EntryPos': registry, 'SearchReset': registry,
-         'PieceAt': registry}
+         'PieceAt': registry, 'Contacts': contacts}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 

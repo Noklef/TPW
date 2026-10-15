@@ -1772,3 +1772,4 @@ address,name,kind,confidence,notes
 0x00440b50,TrackCursor_Prev,function,high,"reimplemented (src/game/coaster/cursor); cdecl (cursor): steps the cursor one node back, onto the previous piece (+0x68) at its start"
 0x00440bc0,TrackCursor_Point,function,high,"reimplemented (src/game/coaster/cursor); cdecl (cursor, t, out): TrackSpline_Point between the cursor's two nodes (0x58 bytes, piece+0x90 -> {count, nodes})"
 0x0043e520,Track_PieceAt,function,high,"reimplemented (src/game/coaster/cursor); cdecl (track, n): piece n from the first (+0x18) along +0x64"
+0x0043ad50,Contacts_Clear,function,high,"reimplemented (src/game/coaster/contacts); cdecl (owner, node): drops all of the node's contacts (8 at +0xb4, count +0xb0), from every node of the owner's list (+0x54, next +0x64) when it overflowed (0x400000), else from those it holds; owner+0x140 counts them"
