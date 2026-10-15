@@ -118,6 +118,7 @@ add_library(tpw_game STATIC
     src/game/model/faces.cpp
     src/game/model/release.cpp
     src/game/model/ridemodel.cpp
+    src/game/model/bounds.cpp
     src/game/render/mode.cpp
     src/game/render/frame.cpp
     src/game/render/screen.cpp

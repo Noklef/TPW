@@ -1981,4 +1981,5 @@ address,name,kind,confidence,notes
 0x0046a550,Face_MarkTextures,function,high,reimplemented (src/game/model/faces); sets or clears bit 0x800 of each of a face's texture entries
 0x00469930,Flags_AnyLow4,function,high,reimplemented (src/game/model/faces); 1 when flags has any of its low 4 bits
 0x00461ed0,Ride_MarkModel,function,high,"reimplemented (src/game/model/ridemodel); flags a loading ride's model, its root and its instance"
+0x0046ed80,Model_TransformBounds,function,high,reimplemented (src/game/model/bounds); puts the model's bounds through its root's matrix
 0x0045aee0,Online_ApplyBalance,function,high,reimplemented (src/game/online/servers); copies Online.sam (gBalanceOnline) into the servers object 0x7a14f0
