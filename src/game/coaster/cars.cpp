@@ -173,4 +173,14 @@ void __cdecl Coaster_SetupCars(u8 *coaster, u32 riders, u32 segments, u32 flags)
     }
     at<u32>(coaster, 0xb8) = at<u32>(coaster, 0xf0);
 }
+
+void __cdecl Coaster_SetRiders(u32 index, s32 n) {
+    u8 *coaster = reinterpret_cast<u8 **>(0x00790bd0)[index];
+    if (n < 0) n = 0;
+    const s32 most = at<s32>(at<const u8 *>(coaster, 4), 0x318);
+    if (most < n) n = most;
+    const s32 seats = at<s32>(at<const u8 *>(at<const u8 *>(coaster, 0x128), 4), 8);
+    if (seats < n) n = seats;
+    if ((u32)n != at<u32>(coaster, 0xf0)) Coaster_SetupCars(coaster, (u32)n, 0, 1);
+}
 }

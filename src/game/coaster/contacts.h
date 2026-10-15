@@ -13,4 +13,7 @@ extern "C" {
 // closes up its list (zeroing the rest), and is marked 0x200000 when marked 0x400000; the
 // owner's count drops by those and by node's own.
 void __cdecl Contacts_Clear(u8 *owner, u8 *node);
+
+// 0x43afa0: clears the contacts of every node in the owner's list, marking each 0x200000.
+void __cdecl Contacts_ClearAll(u8 *owner);
 }

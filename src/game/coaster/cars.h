@@ -72,4 +72,9 @@ double __cdecl Coaster_SpeedAfterDrop(const u8 *params, float speed, float minim
 // coaster+0xb8 ends up a copy of +0xf0.
 // sic: more middle segments than seats divides by zero.
 void __cdecl Coaster_SetupCars(u8 *coaster, u32 riders, u32 segments, u32 flags);
+
+// 0x43b330: sets coaster index's (table 0x790bd0) riders to n, clamped to 0..its type's
+// +0x318 and to its first car's type +8 (signed), through Coaster_SetupCars(coaster, n, 0,
+// 1) when that changes +0xf0.
+void __cdecl Coaster_SetRiders(u32 index, s32 n);
 }

@@ -1758,6 +1758,7 @@ address,name,kind,confidence,notes
 0x0043bdb0,CoasterCar_SetExtent,function,high,"reimplemented (src/game/coaster/cars); cdecl (coaster, car): the car's front (+0x20) and back (+0x24) along the track, from its position +0x74 and its first and last segments' offsets and type lengths over coaster+0xac"
 0x0043bfb0,Coaster_SpeedAfterDrop,function,high,"reimplemented (src/game/coaster/cars); cdecl (params, speed, minimum, fromY, toY), double in st0: speed + (fromY - toY) * +0x24 * (+0x28 going up, else +0x2c), at least minimum"
 0x0043ba90,Coaster_SetupCars,function,high,"reimplemented (src/game/coaster/cars); cdecl (coaster, riders, segments, flags): resizes each car to segments (or when flag 4) and redoes its offsets and extent; with flag 1 shares the riders (coaster+0xf0, +0xb8) over the cars' middle segments (+0x44)"
+0x0043b330,Coaster_SetRiders,function,high,"reimplemented (src/game/coaster/cars); cdecl (index, n): n clamped to 0..type+0x318 and the first car type's +8, through Coaster_SetupCars(coaster, n, 0, 1) when it changes +0xf0"
 0x0043b050,CoasterLink_Find,function,high,"reimplemented (src/game/coaster/registry); cdecl (key): +0x14 of the first entry of the list at 0x790fe0 (next +0x18) whose +0x24 is key, else 0"
 0x00438720,Coaster_Count,function,high,reimplemented (src/game/coaster/registry); cdecl (): the coaster count (0x792214)
 0x00438730,CoasterLink_Nodes,function,high,"reimplemented (src/game/coaster/registry); cdecl (n, value or null): link n of the list at 0x790fe0: its +0x28 to *value, returns its +0x54 -> +0x90 -> +4 node list"
@@ -1773,3 +1774,4 @@ address,name,kind,confidence,notes
 0x00440bc0,TrackCursor_Point,function,high,"reimplemented (src/game/coaster/cursor); cdecl (cursor, t, out): TrackSpline_Point between the cursor's two nodes (0x58 bytes, piece+0x90 -> {count, nodes})"
 0x0043e520,Track_PieceAt,function,high,"reimplemented (src/game/coaster/cursor); cdecl (track, n): piece n from the first (+0x18) along +0x64"
 0x0043ad50,Contacts_Clear,function,high,"reimplemented (src/game/coaster/contacts); cdecl (owner, node): drops all of the node's contacts (8 at +0xb4, count +0xb0), from every node of the owner's list (+0x54, next +0x64) when it overflowed (0x400000), else from those it holds; owner+0x140 counts them"
+0x0043afa0,Contacts_ClearAll,function,high,"reimplemented (src/game/coaster/contacts); cdecl (owner): Contacts_Clear on every node of the owner's list, marking each 0x200000"

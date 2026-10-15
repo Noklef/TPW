@@ -50,4 +50,11 @@ void __cdecl Contacts_Clear(u8 *owner, u8 *node) {
     at<u32>(owner, 0x140) -= count(node);
     count(node) = 0;
 }
+
+void __cdecl Contacts_ClearAll(u8 *owner) {
+    for (u8 *node = at<u8 *>(owner, 0x54); node; node = at<u8 *>(node, 0x64)) {
+        Contacts_Clear(owner, node);
+        at<u32>(node, 8) |= kLost;
+    }
+}
 }

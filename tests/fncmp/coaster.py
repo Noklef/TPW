@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43af70)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -230,9 +230,11 @@ def cars(r, op):
                                  (c, r.choice([0xac, 0xf8, 0xfc]))])
             put(buf, off, 'I', r.f())
         return Call(0x43b7e0, [COAST, CARS, OUT, OUT + 4], {COAST: c, CARS: car, SPL: segs, NODES: types, OUT: r.bytes(8)})
-    if op == 'Setup':
+    if op in ('Setup', 'Riders'):
         ncars, segments, flags = r.randrange(0, 4), r.choice([0, 0, r.randrange(1, 9)]), r.choice([0, 1, 1, r.getrandbits(32)])
         riders = r.choice([0, 0, r.randrange(1, 40), r.getrandbits(32)])
+        if op == 'Riders':
+            segments = 0
         cs, segs, ctypes, stypes = r.bytes(4 * 0x80), r.bytes(0x1000), r.bytes(0x140), r.bytes(0x100)
         put(t, 0x2e8, 'I', ncars)
         put(c, 0x128, 'I', CARS)
@@ -257,8 +259,16 @@ def cars(r, op):
             if m > seats:  # more middle segments than seats divides by zero (sic): give this car its own type
                 put(ctypes, 0x100, 'IIII', 0, 1, 2, 3)
                 put(cs, b + 4, 'I', FLAGS + 0x100)
-        return Call(0x43ba90, [COAST, riders, segments, flags],
-                    {COAST: c, TYPE: t, CARS: cs, SPL: segs, FLAGS: ctypes, ORIENT: stypes})
+        regs = {COAST: c, TYPE: t, CARS: cs, SPL: segs, FLAGS: ctypes, ORIENT: stypes}
+        if op == 'Riders':  # through SetupCars(coaster, n, 0, 1) unless n is already +0xf0
+            index, most = r.randrange(4), r.choice([r.randrange(-3, 40), 0x7fffffff, r.getrandbits(32)])
+            put(t, 0x318, 'I', most & 0xffffffff)
+            put(c, 0xf0, 'I', r.choice([r.randrange(0, 40), r.getrandbits(32)]))
+            regs[0x790bd0] = put(r.bytes(16), index * 4, 'I', COAST)
+            if ncars == 0:
+                put(t, 0x2e8, 'I', 1)
+            return Call(0x43b330, [index, r.choice([r.randrange(-3, 40), r.getrandbits(32), riders])], regs)
+        return Call(0x43ba90, [COAST, riders, segments, flags], regs)
     if op == 'Segs':
         count = r.randrange(0, 13)
         car, segs = r.bytes(0x100), r.bytes(14 * 0x60)
@@ -483,17 +493,22 @@ def contacts(r, op):
             if k == x and j < c:
                 v = r.choice(ptrs)  # held contacts are followed
             put(nodes, b + 0xb4 + 4 * j, 'I', v)
+    if op == 'ClearAll':
+        for k in range(n):  # every node's held contacts are followed
+            for j in range(struct.unpack_from('<I', nodes, k * 0x100 + 0xb0)[0]):
+                put(nodes, k * 0x100 + 0xb4 + 4 * j, 'I', r.choice(ptrs))
+        return Call(0x43afa0, [COAST], {COAST: owner, NODES: nodes})
     return Call(0x43ad50, [COAST, ptrs[x]], {COAST: owner, NODES: nodes})
 
 
 KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 'Tangent': spline, 'Set': orient,
          'Init': orient, 'Frame': frame, 'At': frame,
-         'RoundUp': helpers, 'Lerp': helpers, 'Dot': helpers, 'Normalize': helpers, 'NormXZ': helpers, 'Swing': cars, 'Space': cars, 'Segs': cars, 'Setup': cars, 'Extent': cars, 'Drop': cars, 'Window': cars, 'InWindow': cars, 'Dist': cars,
+         'RoundUp': helpers, 'Lerp': helpers, 'Dot': helpers, 'Normalize': helpers, 'NormXZ': helpers, 'Swing': cars, 'Space': cars, 'Segs': cars, 'Setup': cars, 'Riders': cars, 'Extent': cars, 'Drop': cars, 'Window': cars, 'InWindow': cars, 'Dist': cars,
          'NodeLerp': nodes, 'PastEnd': nodes, 'Zone': nodes, 'Merge': keys, 'Append': lists,
          'Link': queue, 'QPush': queue, 'QAdd': queue, 'QRoom': queue, 'QPop': queue, 'QAdvance': queue,
          'CNext': cursor, 'CPrev': cursor, 'CPoint': cursor,
          'Count': registry, 'LinkNodes': registry, 'Pair': registry, 'EntryPos': registry, 'SearchReset': registry,
-         'PieceAt': registry, 'Contacts': contacts}
+         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 
