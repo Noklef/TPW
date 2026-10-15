@@ -169,16 +169,16 @@ extern "C" void __cdecl SpriteOp_If() {
         default: return;  // "Bad test code in IF statement": runs the block
         }
     } else {
-        const s32 ra = (s32)reg(a);
+        const auto ra = [a] { return (s32)reg(a); };  // read in each test: a bad code reads nothing
         switch (test) {
-        case 1: holds = (s32)reg(c) == ra; break;
-        case 2: holds = (s32)reg(c) != ra; break;
-        case 3: holds = ra > (s32)reg(c); break;
-        case 4: holds = ra < (s32)reg(c); break;
-        case 5: holds = (s32)c == ra; break;
-        case 6: holds = (s32)c != ra; break;
-        case 7: holds = ra > (s32)c; break;
-        case 8: holds = ra < (s32)c; break;
+        case 1: holds = (s32)reg(c) == ra(); break;
+        case 2: holds = (s32)reg(c) != ra(); break;
+        case 3: holds = ra() > (s32)reg(c); break;
+        case 4: holds = ra() < (s32)reg(c); break;
+        case 5: holds = (s32)c == ra(); break;
+        case 6: holds = (s32)c != ra(); break;
+        case 7: holds = ra() > (s32)c; break;
+        case 8: holds = ra() < (s32)c; break;
         default: return;
         }
     }
@@ -220,16 +220,16 @@ extern "C" void __cdecl SpriteOp_Until() {
         default: break;  // "Bad test code in UNTIL statement": the loop ends
         }
     } else {
-        const s32 ra = (s32)reg(a);
+        const auto ra = [a] { return (s32)reg(a); };  // read in each test: a bad code reads nothing
         switch (test) {
-        case 1: again = (s32)reg(c) != ra; break;
-        case 2: again = (s32)reg(c) == ra; break;
-        case 3: again = ra <= (s32)reg(c); break;
-        case 4: again = ra >= (s32)reg(c); break;
-        case 5: again = (s32)c != ra; break;
-        case 6: again = (s32)c == ra; break;
-        case 7: again = ra <= (s32)c; break;
-        case 8: again = ra >= (s32)c; break;
+        case 1: again = (s32)reg(c) != ra(); break;
+        case 2: again = (s32)reg(c) == ra(); break;
+        case 3: again = ra() <= (s32)reg(c); break;
+        case 4: again = ra() >= (s32)reg(c); break;
+        case 5: again = (s32)c != ra(); break;
+        case 6: again = (s32)c == ra(); break;
+        case 7: again = ra() <= (s32)c; break;
+        case 8: again = ra() >= (s32)c; break;
         default: break;
         }
     }
