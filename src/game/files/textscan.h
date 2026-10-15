@@ -1,5 +1,5 @@
 // A text scanner's character classes and token reader (the level and terrain text files):
-// reimplementation of 0x427450-0x427614. The scanner is +0 the next character, +4 its position
+// reimplementation of 0x4273c0-0x427614. The scanner is +0 the next character, +4 its position
 // and +8 the text's length; the class tests take a pointer to the next-character pointer and
 // compare the character signed (bytes from 0x80 are in no class but the blank one).
 #pragma once
@@ -13,6 +13,14 @@ struct TextScan {
 };
 
 extern "C" {
+
+// 0x4273c0: steps to the next character and returns 0, or returns 1 when pos has reached the
+// length.
+u32 __cdecl TextScan_Step(TextScan *scan);
+
+// 0x4273e0: steps past blank characters (TextScan_IsBlank's); 0 at one that is not, 1 when
+// pos reaches the length first (on a blank).
+u32 __cdecl TextScan_SkipBlanks(TextScan *scan);
 
 // 0x427450 / 0x427480 / 0x4274a0: 1 when **at is a letter (A-Z, a-z) / a digit / punctuation
 // (! to /, : to @, [ to `, { to ~), else 0.

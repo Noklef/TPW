@@ -13,6 +13,21 @@ bool mark(s8 c) { return c == '#' || c == ';'; }
 
 extern "C" {
 
+u32 __cdecl TextScan_Step(TextScan *scan) {
+    if (scan->pos >= scan->length) return 1;
+    ++scan->next;
+    ++scan->pos;
+    return 0;
+}
+
+u32 __cdecl TextScan_SkipBlanks(TextScan *scan) {
+    for (;;) {
+        const s8 c = *scan->next;
+        if (alpha(c) || digit(c) || punct(c) || mark(c)) return 0;
+        if (TextScan_Step(scan)) return 1;
+    }
+}
+
 u32 __cdecl TextScan_IsAlpha(const char *const *at) { return alpha(**at) ? 1 : 0; }
 
 u32 __cdecl TextScan_IsDigit(const char *const *at) { return digit(**at) ? 1 : 0; }
