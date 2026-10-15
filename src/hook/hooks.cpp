@@ -86,7 +86,8 @@
 #include "../game/terrain/procedural.h"
 #include "../game/terrain/terrain_blend.h"
 #include "../game/world/random.h"
-#include "../game/world/camera.h"
+#include "../game/world/camera.h"
+#include "../game/world/mousemode.h"
 #include "../game/world/things.h"
 #include "../game/model/holder.h"
 #include "../game/model/parts.h"
@@ -279,6 +280,18 @@ const Hook kHooks[] = {
     {"Camera_SetView",            0x0042aab0, (void *)&Camera_SetView, {0x8b, 0x44, 0x24, 0x04, 0xc7}},
     {"Camera_SetFlag80",          0x0042afd0, (void *)&Camera_SetFlag80, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Camera_ClampCell",          0x0042cd40, (void *)&Camera_ClampCell, {0x8b, 0x4c, 0x24, 0x04, 0x56}},
+    {"MouseMode_Nop4",            0x0046c450, (void *)&MouseMode_Nop4, {0xc2, 0x10, 0x00, 0x90, 0x90}},
+    {"MouseMode_DeletingDtor",    0x0046c460, (void *)&MouseMode_DeletingDtor, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"MouseModeTile_Ctor",        0x0046c580, (void *)&MouseModeTile_Ctor, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
+    {"MouseModeTile_CtorKind",    0x0046c5a0, (void *)&MouseModeTile_CtorKind, {0x8b, 0x54, 0x24, 0x04, 0x8b}},
+    {"MouseMode_Nop2",            0x0046c650, (void *)&MouseMode_Nop2, {0xc2, 0x08, 0x00, 0x90, 0x90}},
+    {"MouseModeOnlineBase_Ctor",  0x0046c6a0, (void *)&MouseModeOnlineBase_Ctor, {0x8b, 0xc1, 0xc7, 0x00, 0x10}},
+    {"MMPlaceStaff_Ctor",         0x0046c6d0, (void *)&MMPlaceStaff_Ctor, {0x8b, 0x54, 0x24, 0x04, 0x8b}},
+    {"MouseMode_DerivedDeletingDtor", 0x0046c710, (void *)&MouseMode_DerivedDeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0xb8}},
+    {"MMStaffDrop_Ctor",          0x0046cbc0, (void *)&MMStaffDrop_Ctor, {0x8a, 0x54, 0x24, 0x08, 0x8b}},
+    {"MouseMode_Dtor",            0x0046ced0, (void *)&MouseMode_Dtor, {0xc7, 0x01, 0xb0, 0xe9, 0x6f}},
+    {"MouseMode6feaa0_Ctor",      0x0046cfc0, (void *)&MouseMode6feaa0_Ctor, {0x8b, 0xc1, 0xc7, 0x40, 0x04}},
+    {"MouseMode6fead0_Ctor",      0x0046cff0, (void *)&MouseMode6fead0_Ctor, {0x8b, 0xc1, 0xc7, 0x40, 0x04}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},

@@ -85,6 +85,7 @@ add_library(tpw_game STATIC
     src/game/world/random.cpp
     src/game/world/things.cpp
     src/game/world/camera.cpp
+    src/game/world/mousemode.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
