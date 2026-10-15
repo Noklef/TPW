@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import HEAP, Bench, Call, RAM, fb, global_heap, heap, put  # noqa: E402
 
 B = Bench([(0x44a590, 0x44b140), (0x44b140, 0x44b2e0), (0x44b3c0, 0x44b410), (0x44e570, 0x44e5fc),
-           (0x4587b0, 0x4587d9), (0x45bed0, 0x45bf13), (0x450420, 0x45046d), (0x450950, 0x450a24), (0x450a30, 0x450a78), (0x466f90, 0x46702f),
+           (0x4587b0, 0x4587d9), (0x45bed0, 0x45bf13), (0x450420, 0x45046d), (0x4508b0, 0x4508f1), (0x450950, 0x450a24), (0x450a30, 0x450a78), (0x466f90, 0x46702f),
            (0x450b00, 0x450b24), (0x457a00, 0x457a88), (0x46de00, 0x46e125), (0x56dfb0, 0x56dfdd),
            (0x45d620, 0x45d68c), (0x441840, 0x4418cb), (0x469180, 0x469405), (0x469470, 0x4698ef),
            (0x45b9d0, 0x45ba15), (0x468760, 0x4688a7), (0x44b4c0, 0x44b505),
@@ -263,6 +263,10 @@ def land(r, op):
             x, y = r.choice([(r.randrange(w), r.randrange(h))] * 2 + [(w, r.randrange(h)), (r.randrange(w), h)])
         put(g, 0x2c, 'I', CELLS)
         return Call(0x450420, [x, y], regs, ret='a')
+    if op == 'Cross':  # two vectors at OUT, OUT + 12; the result over either, or apart
+        regs[OUT] = r.floats(bytearray(36), range(0, 36, 4), r.choice([1, 100, None]))
+        a, b = r.choice([(OUT, OUT + 12), (OUT + 12, OUT)])
+        return Call(0x4508b0, [a, b, r.choice([OUT + 24, OUT + 24, OUT, OUT + 12, OUT + 4])], regs)
     if op == 'CopyAttrs':
         return Call(0x450a30, [r.choice([MAP, MAP, MAP, 0]), GRID2], regs)
     if op == 'Footprint':  # (x*, y*, angle, outX*, outY*, width, height)
@@ -507,7 +511,7 @@ def highlight(r, op):
 KINDS = {'Size': mode, 'Depth': mode, 'ResetScale': mode, 'Epsilon': mode, 'MarkMask': parts, 'MarkValue': parts,
          'Count': parts, 'Nth': parts, 'Key4': parts, 'Key8': parts, 'SlotClear': parts, 'SlotSet': parts, 'SlotHolder': parts, 'ResetBounds': frame, 'AddFlags': frame,
          'SetPoint': frame, 'FlagModel': holder, 'SetPosition': holder, 'SlotKey': holder, 'IsParkLand': land,
-         'CopyAttrs': land, 'CloneAttrs': land, 'Footprint': land, 'GridSize': land, 'TexEnable': procedural, 'TexDisable': procedural,
+         'Cross': land, 'CopyAttrs': land, 'CloneAttrs': land, 'Footprint': land, 'GridSize': land, 'TexEnable': procedural, 'TexDisable': procedural,
          'ProcEnter': procedural, 'ProcLeave': procedural, 'ProcOn': procedural, 'ProcCells': procedural,
          'PaintCell': paint, 'PaintCell2': paint, 'Remap': remap, 'HlUpdate': highlight, 'HlUpdate2': highlight,
          'HlTarget': highlight, 'HlCar': highlight, 'HlTints': highlight, 'HlClear': highlight, 'HlCurrent': highlight,

@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "../core/globalmem.h"
+#include "../math/x87.h"
 
 namespace {
 
@@ -81,6 +82,12 @@ void __cdecl Terrain_PaintCell(const u8 *map, const u8 *sets, s32 x, s32 y, s32 
 void __cdecl Terrain_GridSize(u32 *width, u32 *height) {
     *width = at<u32>(at<const u8 *>(map(), 0x6c), 0x18);
     *height = at<u32>(at<const u8 *>(map(), 0x6c), 0x1c);
+}
+
+void __cdecl Vec3_Cross(const float *a, const float *b, float *out) {
+    out[0] = (float)(X87Reg(b[2]) * a[1] - X87Reg(a[2]) * b[1]);
+    out[1] = (float)(X87Reg(b[0]) * a[2] - X87Reg(a[0]) * b[2]);
+    out[2] = (float)(X87Reg(a[0]) * b[1] - X87Reg(b[0]) * a[1]);
 }
 
 void __cdecl Terrain_CloneAttrs(const u8 *map, u8 **out) {

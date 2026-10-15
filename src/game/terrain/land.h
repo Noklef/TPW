@@ -1,6 +1,6 @@
 // The terrain attribute grid (TerrainAttrMap_Load 0x450900; the map 0x7a0854 +0x6c): width
 // +0x18, height +0x1c, a dword per cell from +0x2c, and a cell count at +6 (u16) for copies.
-// Reimplementation of 0x450420, 0x450a30, 0x450b00 and 0x46df50.
+// Reimplementation of 0x450420, 0x450a30, 0x450b00 and 0x46df50; 0x4508b0, a vector helper.
 #pragma once
 
 #include "../../../re/types.h"
@@ -27,6 +27,10 @@ void __cdecl Terrain_GridSize(u32 *width, u32 *height);
 // are in use. Nothing off the grid. Sic: the set's tile count is first checked (> 0) for the
 // set before it wraps.
 void __cdecl Terrain_PaintCell(const u8 *map, const u8 *sets, s32 x, s32 y, s32 set, s32 tile, u32 rotation);
+
+// 0x4508b0: out = a x b (b2 a1 - a2 b1, b0 a2 - a0 b2, a0 b1 - b0 a1 on the x87), each
+// component stored before the next is read (out may be a or b).
+void __cdecl Vec3_Cross(const float *a, const float *b, float *out);
 
 // 0x450950: *out = a copy of map's attribute grid (+0x6c) in one zeroed block: its 0x30-byte
 // header, then its +4 dwords from +0x28 and its +6 dwords from +0x2c, the copy's pointers
