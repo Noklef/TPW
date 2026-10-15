@@ -140,4 +140,29 @@ void __cdecl CoasterLink_ClearEnd() {
     *reinterpret_cast<u32 *>(0x0079c664) = 0;
     *reinterpret_cast<u32 *>(0x0079c658) &= ~0x40u;
 }
+
+u8 *__cdecl Coaster_SelectedCar() { return *reinterpret_cast<u8 *const *>(0x0079c640); }
+
+void __cdecl Coaster_SelectCar(u8 *car) { *reinterpret_cast<u8 **>(0x0079c640) = car; }
+
+u8 *__cdecl Object_CoasterLink(const u8 *object) {
+    return object ? CoasterLink_ById(at<u32>(object, 0x20)) : nullptr;
+}
+
+u32 __cdecl Object_LinkOpen(const u8 *object) {
+    const u8 *link = Object_CoasterLink(object);
+    return link && (at<u32>(link, 0x3c) & 3) == 1;
+}
+
+u32 __cdecl Object_LinkBare(const u8 *object) {
+    const u8 *link = Object_CoasterLink(object);
+    return link && !at<u32>(link, 0x140);
+}
+
+void __cdecl Coasters_GetState(u32 *a, u32 *b, u32 *c, u32 *d) {
+    *a = *reinterpret_cast<const u32 *>(0x0079221c);
+    *b = *reinterpret_cast<const u32 *>(0x00790fd8);
+    *c = *reinterpret_cast<const u32 *>(0x0079104c);
+    *d = *reinterpret_cast<const u32 *>(0x00791cf8);
+}
 }

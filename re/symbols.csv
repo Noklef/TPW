@@ -1778,6 +1778,12 @@ address,name,kind,confidence,notes
 0x00436150,CoasterLinks_FindKey,function,high,"reimplemented (src/game/coaster/registry); cdecl u8* (tile): first entry over the links' +0x4c chains with +8 == tile and byte +4 & 5 clear, else 0"
 0x00444c50,CoasterLink_SetEnd,function,high,"reimplemented (src/game/coaster/registry); cdecl (): with the current link's type flag 2, 0x79c664 = 1 and 0x79c658 |= 0x40"
 0x00444c80,CoasterLink_ClearEnd,function,high,"reimplemented (src/game/coaster/registry); cdecl (): with the current link's type flag 2, 0x79c664 = 0 and 0x79c658 &= ~0x40"
+0x004418d0,Coaster_SelectedCar,function,high,reimplemented (src/game/coaster/registry); cdecl u8* (): 0x79c640
+0x004418e0,Coaster_SelectCar,function,high,reimplemented (src/game/coaster/registry); cdecl (car): 0x79c640 = car
+0x004418f0,Object_CoasterLink,function,high,"reimplemented (src/game/coaster/registry); cdecl u8* (object): CoasterLink_ById(object+0x20), 0 for no object"
+0x00441910,Object_LinkOpen,function,high,reimplemented (src/game/coaster/registry); cdecl bool (object): object's link has +0x3c flag 1 without 2
+0x00441940,Object_LinkBare,function,high,reimplemented (src/game/coaster/registry); cdecl bool (object): object's link has no contacts (+0x140 == 0)
+0x00434710,Coasters_GetState,function,high,"reimplemented (src/game/coaster/registry); cdecl (a*, b*, c*, d*): copies 0x79221c, 0x790fd8, 0x79104c, 0x791cf8 out"
 0x0043b0e0,Coaster_QueuePush,function,high,"reimplemented (src/game/coaster/queue); cdecl (index, peep): appends the peep to the queue ring (+0xb0) of coaster index (table 0x790bd0) when it has room"
 0x0043b130,CoasterQueue_Add,function,high,"reimplemented (src/game/coaster/queue); cdecl (coaster, peep): appends the peep to the queue ring (+0xb0), else to the boarding ring (+0xd0), whichever has room"
 0x0043b1f0,Coaster_QueueRoom,function,high,"reimplemented (src/game/coaster/queue); cdecl (index): the queue ring's limit - reserved - count, at least 0"
@@ -1792,9 +1798,14 @@ address,name,kind,confidence,notes
 0x0043ad50,Contacts_Clear,function,high,"reimplemented (src/game/coaster/contacts); cdecl (owner, node): drops all of the node's contacts (8 at +0xb4, count +0xb0), from every node of the owner's list (+0x54, next +0x64) when it overflowed (0x400000), else from those it holds; owner+0x140 counts them"
 0x0043afa0,Contacts_ClearAll,function,high,"reimplemented (src/game/coaster/contacts); cdecl (owner): Contacts_Clear on every node of the owner's list, marking each 0x200000"
 0x0043af70,Contacts_ClearPair,function,high,"reimplemented (src/game/coaster/contacts); cdecl (node, owner): Contacts_Clear(owner, node), then for node+0x68 if set"
+0x004346f0,Contacts_MarkLostPair,function,high,reimplemented (src/game/coaster/contacts); cdecl (node): node and its +0x68 partner +8 |= 0x200000
 0x00432d50,Train_SetCouplings,function,high,"reimplemented (src/game/coaster/train); cdecl (unused, train): unless 0x790afc, marks each car but the last 0x100 and picks its coupling (+0x84/+0x44 for a rear-coupled type, else +0x78/+0x30) into +0x90/+0x74"
 0x00433280,Car_TrainLength,function,high,"reimplemented (src/game/coaster/train); cdecl double (car): sum over car+4 slots of the train's cars of lerp(type+0xbc, type+0xc0, +0xe8) + type+0xc4, plus car's own lerp; 0 without a car"
 0x00436750,Car_PickCoupling,function,high,"reimplemented (src/game/coaster/train); cdecl (car): +0x84/+0x44 for a car marked 0x100 without 0x2000 whose type has flag 8, else +0x78/+0x30, into +0x90/+0x74"
 0x00447790,Ride_Train,function,high,"reimplemented (src/game/coaster/train); cdecl u8* (index, cars*): ride's (0x7a4610) train (+0xd4->+0x100) and its car count (less one with train flag 0x20) when the ride has flag 0x80000, else 0/0"
 0x004477d0,Train_CarValue,function,high,"reimplemented (src/game/coaster/train); cdecl u32 (train, n): +0x70 of car n, counting only cars without 0x2000 (0 past them) when the train has flag 0x20"
 0x00432bd0,CoasterEvent_Make,function,high,"reimplemented (src/game/coaster/train); cdecl u32* (a, b, c, d): static 0x791ce8 = {c, d, 0, &0x791050 = {a, b}}; returns it"
+0x00434650,CarType_Unlerp,function,high,"reimplemented (src/game/coaster/train); cdecl double (float length, type): (length - type+0xbc) / (type+0xc0 - type+0xbc)"
+0x00434680,CarType_Scale,function,high,"reimplemented (src/game/coaster/train); cdecl double (float length, type): length / (type+0xc0 - type+0xbc)"
+0x004346a0,CarType_Lerp,function,high,"reimplemented (src/game/coaster/train); cdecl double (float t, type): (type+0xc0 - type+0xbc) * t + type+0xbc"
+0x004346c0,Flags_SetChanged,function,high,"reimplemented (src/game/coaster/train); cdecl (flags*, also): *flags |= 1, and 0x1000 when also (after the empty Debug_Printf)"

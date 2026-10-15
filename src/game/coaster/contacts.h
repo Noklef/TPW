@@ -20,4 +20,7 @@ void __cdecl Contacts_ClearAll(u8 *owner);
 // 0x43af70: Contacts_Clear for node, then for its partner (+0x68) if any.
 // sic: node comes before owner here.
 void __cdecl Contacts_ClearPair(u8 *node, u8 *owner);
+
+// 0x4346f0: marks node, and its partner (+0x68) if any, 0x200000.
+void __cdecl Contacts_MarkLostPair(u8 *node);
 }

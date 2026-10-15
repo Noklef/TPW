@@ -62,4 +62,9 @@ void __cdecl Contacts_ClearPair(u8 *node, u8 *owner) {
     Contacts_Clear(owner, node);
     if (u8 *partner = at<u8 *>(node, 0x68)) Contacts_Clear(owner, partner);
 }
+
+void __cdecl Contacts_MarkLostPair(u8 *node) {
+    at<u32>(node, 8) |= kLost;
+    if (u8 *partner = at<u8 *>(node, 0x68)) at<u32>(partner, 8) |= kLost;
+}
 }

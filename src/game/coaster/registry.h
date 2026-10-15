@@ -72,4 +72,22 @@ void __cdecl CoasterLink_SetEnd();
 // 0x444c80: when the current link has type flag 2, sets 0x79c664 to 0 and clears flag 0x40
 // of 0x79c658.
 void __cdecl CoasterLink_ClearEnd();
+
+// 0x4418d0: the selected car (0x79c640).
+u8 *__cdecl Coaster_SelectedCar();
+
+// 0x4418e0: sets the selected car.
+void __cdecl Coaster_SelectCar(u8 *car);
+
+// 0x4418f0: CoasterLink_ById(object+0x20), 0 for no object.
+u8 *__cdecl Object_CoasterLink(const u8 *object);
+
+// 0x441910: whether object's link has flag 1 but not 2 at +0x3c.
+u32 __cdecl Object_LinkOpen(const u8 *object);
+
+// 0x441940: whether object's link holds no contacts (+0x140).
+u32 __cdecl Object_LinkBare(const u8 *object);
+
+// 0x434710: copies 0x79221c, 0x790fd8, 0x79104c and 0x791cf8 to *a, *b, *c and *d.
+void __cdecl Coasters_GetState(u32 *a, u32 *b, u32 *c, u32 *d);
 }

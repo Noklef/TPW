@@ -85,4 +85,23 @@ u32 *__cdecl CoasterEvent_Make(u32 a, u32 b, u32 c, u32 d) {
     event[3] = 0x00791050;
     return event;
 }
+
+double __cdecl CarType_Unlerp(float length, const u8 *type) {
+    const float shortest = at<float>(type, 0xbc);
+    return ((X87Reg(length) - shortest) / (X87Reg(at<float>(type, 0xc0)) - shortest)).v;
+}
+
+double __cdecl CarType_Scale(float length, const u8 *type) {
+    return X87_DivR(X87Reg(at<float>(type, 0xc0)) - at<float>(type, 0xbc), length).v;
+}
+
+double __cdecl CarType_Lerp(float t, const u8 *type) {
+    const float shortest = at<float>(type, 0xbc);
+    return ((X87Reg(at<float>(type, 0xc0)) - shortest) * t + shortest).v;
+}
+
+void __cdecl Flags_SetChanged(u32 *flags, u32 also) {
+    *flags |= 1;
+    if (also) *flags |= 0x1000;
+}
 }

@@ -34,4 +34,18 @@ u32 __cdecl Train_CarValue(const u8 *train, u32 n);
 // 0x432bd0: fills the static record at 0x791ce8 with c, d, 0 and a pointer to the static
 // pair {a, b} at 0x791050, and returns it.
 u32 *__cdecl CoasterEvent_Make(u32 a, u32 b, u32 c, u32 d);
+
+// 0x434650: where length lies between the type's shortest (+0xbc) and longest (+0xc0) car,
+// (length - shortest) / (longest - shortest).
+double __cdecl CarType_Unlerp(float length, const u8 *type);
+
+// 0x434680: length / (longest - shortest).
+double __cdecl CarType_Scale(float length, const u8 *type);
+
+// 0x4346a0: (longest - shortest) * t + shortest.
+double __cdecl CarType_Lerp(float t, const u8 *type);
+
+// 0x4346c0: sets flag 1 of *flags, and 0x1000 too when also is set.
+// (The original first passes flags to the empty Debug_Printf.)
+void __cdecl Flags_SetChanged(u32 *flags, u32 also);
 }
