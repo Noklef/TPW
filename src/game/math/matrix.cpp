@@ -13,12 +13,13 @@ const char *const kEulerOrders[16] = {"FUK", "X",  "Y",  "Z",   "XY",  "YX",  "Y
                                       "XZ",  "ZX", "XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"};
 
 // One rotation of rows [0, rows) on the pair of columns (i, j): i' = i c - j s, j' = i s + j c.
+// In the x87's registers; about y the original sums j' the other way round (j c + i s).
 void rotate(float *m, int rows, int i, int j, float c, float s) {
     for (int r = 0; r < rows; ++r) {
         float *row = m + 4 * r;
-        const float a = row[i], b = row[j];
-        row[i] = a * c - b * s;
-        row[j] = a * s + b * c;
+        const X87Reg a = row[i], b = row[j];
+        row[i] = (float)(a * c - b * s);
+        row[j] = (float)(j == 0 ? b * c + a * s : a * s + b * c);
     }
 }
 
@@ -167,10 +168,10 @@ extern "C" void __cdecl Matrix_PreMul(const float *a, float *b) {
     for (int c = 0; c < 3; ++c)  // stored by columns
         for (int r = 0; r < 4; ++r) {
             const float *ar = a + 4 * r;
-            float v = (l[8 + c] * ar[2] + l[4 + c] * ar[1]) + l[c] * ar[0];
+            X87Reg v = X87Reg(l[8 + c]) * ar[2] + X87Reg(l[4 + c]) * ar[1] + X87Reg(l[c]) * ar[0];
             if (r == 3)
                 v = v + l[12 + c];
-            b[4 * r + c] = v;
+            b[4 * r + c] = (float)v;
         }
 }
 
@@ -187,10 +188,10 @@ extern "C" void __cdecl Matrix_PreMul3(const float *a, float *b) {
     float l[16];
     std::memcpy(l, b, sizeof l);
     for (int c = 0; c < 3; ++c) {  // stored by columns
-        b[c] = (l[4 + c] * a[1] + l[8 + c] * a[2]) + l[c] * a[0];
+        b[c] = (float)(X87Reg(l[4 + c]) * a[1] + X87Reg(l[8 + c]) * a[2] + X87Reg(l[c]) * a[0]);
         for (int r = 1; r < 3; ++r) {
             const float *ar = a + 4 * r;
-            b[4 * r + c] = (l[c] * ar[0] + l[4 + c] * ar[1]) + l[8 + c] * ar[2];
+            b[4 * r + c] = (float)(X87Reg(l[c]) * ar[0] + X87Reg(l[4 + c]) * ar[1] + X87Reg(l[8 + c]) * ar[2]);
         }
     }
 }

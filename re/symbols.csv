@@ -370,7 +370,7 @@ address,name,kind,confidence,notes
 0x00474020,Animator_SetQueuedSpeed,function,high,"reimplemented (src/game/motion/animator); (animator, speed): every layer +0x30 = speed"
 0x00474050,Layer_SetSpeed,function,high,"reimplemented (src/game/motion/animator); (animator, speed, layer): layer +0xc = speed"
 0x00474070,Animator_MotionEndMs,function,high,"reimplemented (src/game/motion/animator); (animator, bank, entry): end frame (block +8) * 1000 / 30, 0 without the entry"
-0x0044ab30,PartStates_Update,function,low,"(instance): when the instance (flag 1) and its part states (+0x28, flag 1: animated parts) are awake, walks the model's node tree (+0x78; 0x44ab90) from the identity matrix, by value, with the part entries (their 0x40-byte slots are matrices)"
+0x0044ab30,PartStates_Update,function,high,"reimplemented (src/game/model/partstate); cdecl (instance): when the instance (flag 1) and its part states (+0x28, flag 1) are awake, walks the model's node tree (+0x78; 0x44ab90) from the identity matrix, filling the part entries' matrix slots"
 0x0045bdc0,Holder_IsAwake,function,high,"(holder): flags & 1"
 0x0045bdd0,Holder_Sleep,function,low,"(holder): called when an animator flagged 8 ends its motion (animator flag 0x4000 uses Holder_SleepAt instead); counterpart of 0x45bd30"
 0x0045be80,Holder_SleepAt,function,low,"(holder, animator +0xc0, +0xc4): see Holder_Sleep"
@@ -1887,4 +1887,7 @@ address,name,kind,confidence,notes
 0x0044aa10,PartStates_MarkNodes,function,high,"reimplemented (src/game/model/partstate); (instance, node, model): recursive; 0x20 on animated leaf entries, 0x40000000 on nodes without animated parts below; 1 if none"
 0x0044aae0,PartStates_Free,function,high,reimplemented (src/game/model/partstate); (instance): frees the part states +0x28
 0x0044b4c0,PartStates_Release,function,high,"reimplemented (src/game/model/partstate); (instance, part): active count down (0: flag 4 off), entry flag 2 off, its sprite script killed"
+0x0044b040,Face_AttachPoint,function,high,"reimplemented (src/game/model/partstate); cdecl (a, b, c, normal, attach, onFace, out): the point of face (a, b, c) at the attachment's t (+4), s (+8): lerp(lerp(a, b, t), c, s), copied to onFace, then lifted by +0xc along normal"
+0x0044a640,Matrix_AttachAim,function,high,"reimplemented (src/game/model/partstate); cdecl (from, to, up, attach, m): m's rotation rows = up x n, up, n for n = normalize(to - from) (NaN: up rotated, sic), turned by the attachment's angles (attach - u16 attach+2: z, y, x via the sine table)"
+0x0044ab90,PartStates_UpdateNode,function,high,"reimplemented (src/game/model/partstate); cdecl (node, model, Matrix44 m by value, parent, entries): accumulates node matrices (+0x10) down the tree; parts with 0x40040 on a 0x200000 host (+4) are placed on the host's face (0x44b040, aimed with 0x40000 by 0x44a640) in parent's space; the part entry's slot (+4) gets the matrix; normals refreshed (0x473a40) for 0x10000000|0x10000; skips children with 0x40000000"
 0x0045aee0,Online_ApplyBalance,function,high,reimplemented (src/game/online/servers); copies Online.sam (gBalanceOnline) into the servers object 0x7a14f0

@@ -1,6 +1,6 @@
 # 0x448000-0x470000 (render mode, model part tables, frame globals, model holders, the terrain
 # attribute grid, procedural terrain textures, painting cells, texture remaps, the highlight,
-# flashing holders, the GlobalAlloc wrappers, id tables)
+# flashing holders, the GlobalAlloc wrappers, id tables, part states and their matrices, with the matrix helpers they use)
 # against the originals.
 # usage: scene.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
@@ -10,17 +10,19 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, Bench, Call, RAM, fb, global_heap, heap, put  # noqa: E402
 
-B = Bench([(0x44a590, 0x44a640), (0x44b140, 0x44b2e0), (0x44b3c0, 0x44b410), (0x44e570, 0x44e5fc),
+B = Bench([(0x44a590, 0x44b140), (0x44b140, 0x44b2e0), (0x44b3c0, 0x44b410), (0x44e570, 0x44e5fc),
            (0x4587b0, 0x4587d9), (0x45bed0, 0x45bf13), (0x450420, 0x45046d), (0x450a30, 0x450a78),
            (0x450b00, 0x450b24), (0x457a00, 0x457a88), (0x46de00, 0x46e125), (0x56dfb0, 0x56dfdd),
            (0x45d620, 0x45d68c), (0x469180, 0x469405), (0x469470, 0x4698ef),
-           (0x45b9d0, 0x45ba15), (0x468760, 0x4688a7), (0x44a870, 0x44ab30), (0x44b4c0, 0x44b505),
-           (0x475550, 0x47558b)])
+           (0x45b9d0, 0x45ba15), (0x468760, 0x4688a7), (0x44b4c0, 0x44b505),
+           (0x475550, 0x47558b), (0x46f150, 0x46f180), (0x46f240, 0x46f350), (0x46f420, 0x46f5c0),
+           (0x4702d0, 0x470630), (0x473a40, 0x473c30), (0x67b410, 0x67b440)], sines=256)
 HOLDER, MODEL, PARTS, FACES, FACES2 = (RAM + k * 0x1000 for k in range(5))
 REF, H2, MAT, SLOTS, MAP, GRID, CELLS, GRID2, CELLS2, OUT = (RAM + k * 0x1000 for k in range(5, 15))
 SETS, ENTRIES, TILES, MDL, MESHES, MFACES, REMAP = (RAM + k * 0x1000 for k in range(15, 22))
 HL, VERTS, HLBUF, SAVED, IDS = (RAM + k * 0x1000 for k in range(22, 27))
 PSA, PSF, PSN, PSM = (RAM + k * 0x1000 for k in range(27, 31))
+PMA, PMN, PMG, PMS = (RAM + k * 0x1000 for k in range(31, 35))
 
 
 def partstates(r, op):
@@ -71,6 +73,88 @@ def partstates(r, op):
     if op == 'PsFree':
         return Call(0x44aae0, [PSA], regs)
     return Call(0x44b4c0, [PSA, r.randrange(max(n, 1))], regs)
+
+
+def attach(r, buf, off):
+    """An attachment at buf + off: face < 16, angles 0x20 back, t and s mostly in 0..1, a lift."""
+    put(buf, off - 0x20, '3I', r.f(7), r.f(7), r.f(7))
+    put(buf, off, '2H', r.choice([r.randrange(16), r.randrange(16), r.getrandbits(4)]), 0x20)
+    put(buf, off + 4, '3I', r.pos(1) if r.random() < 0.8 else r.f(), r.pos(1) if r.random() < 0.8 else r.f(), r.f())
+
+
+def partmatrices(r, op):
+    """PsUpdate: an instance (PMA: +4 -> model at PMA + 0x100, +0x28 -> states at PMA + 0x200,
+    entries at PMA + 0x400, slots in PMS) whose model has n parts (PMA + 0x300; attachments from
+    PMA + 0x820, 0x40 apart) and a node tree in PMN (0x100 apart; +4 a host node, +0x10 a
+    matrix; all share the geometry in PMG). PsPoint / PsAim call the attachment helpers alone."""
+    pma = bytearray(r.bytes(0x1000))
+    if op in ('MxPreMul', 'MxPreMul3'):
+        r.floats(pma, range(0, 0x80, 4), r.choice([1, 10, None]))
+        b = PMA + r.choice([0x40, 0x40, 0x40, 0])
+        return Call({'MxPreMul': 0x4702d0, 'MxPreMul3': 0x4704c0}[op], [PMA, b], {PMA: pma})
+    if op in ('MxRotX4', 'MxRotY4', 'MxRotZ4'):
+        r.floats(pma, range(0, 0x40, 4), r.choice([1, 10, None]))
+        if r.random() < 0.2:  # NaNs that differ only in sign: which one an addition keeps
+            for o in range(0, 0x40, 4):
+                put(pma, o, 'I', r.choice([r.f(), 0x7fc00000, 0xffc00000]))
+        return Call({'MxRotX4': 0x46f240, 'MxRotY4': 0x46f420, 'MxRotZ4': 0x46f4f0}[op], [PMA, r.f(1), r.f(1)],
+                    {PMA: pma})
+    if op == 'PsPoint':
+        r.floats(pma, range(0, 0x30, 4))
+        attach(r, pma, 0x100)
+        return Call(0x44b040, [PMA, PMA + 12, PMA + 24, PMA + 36, PMA + 0x100, PMA + 0x200, PMA + 0x20c], {PMA: pma})
+    if op == 'PsAim':
+        r.floats(pma, range(0, 0x24, 4))
+        if r.random() < 0.15:
+            pma[12:24] = pma[0:12]
+        if r.random() < 0.1:  # signalling NaNs in up: fld/fstp quiets them, a copy would not
+            put(pma, 24 + 4 * r.randrange(3), 'I', r.choice([0x7f800001, 0xff812345]))
+        r.floats(pma, range(0x200, 0x240, 4))
+        attach(r, pma, 0x100)
+        return Call(0x44a640, [PMA, PMA + 12, PMA + 24, PMA + 0x100, PMA + 0x200], {PMA: pma})
+    n, base = r.randrange(1, 13), r.randrange(0, 5)
+    put(pma, 0, 'I', r.getrandbits(32) | r.choice([1, 1, 1, 0]))
+    put(pma, 4, 'I', PMA + 0x100)
+    put(pma, 0x28, 'I', PMA + 0x200)
+    put(pma, 0x146, 'H', base)
+    put(pma, 0x178, '2I', PMN, PMA + 0x300)
+    put(pma, 0x200, '2I', r.getrandbits(32) | r.choice([1, 1, 1, 0]), PMA + 0x400)
+    bits = [0x40, 0x40000, 0x40040, 0x40040, 0x10, 0x20]
+    for i in range(n):
+        put(pma, 0x300 + 0x14 * i, 'I', r.getrandbits(32) if r.random() < 0.1 else sum(r.sample(bits, r.randrange(3))))
+        put(pma, 0x30c + 0x14 * i, 'I', PMA + 0x820 + 0x40 * i)
+        attach(r, pma, 0x820 + 0x40 * i)
+        put(pma, 0x400 + 0x14 * i, '2I', r.choice([0, 0x20, 0x21, 0x21, 0x22, 0x28, 0x24, 1, r.getrandbits(32)]), PMS + 0x40 * i)
+    pmg = bytearray(r.bytes(0x1000))
+    r.floats(pmg, range(0, 0x180, 4))
+    for k in range(32):
+        put(pmg, 0x200 + 2 * k, 'H', r.randrange(32))
+    for k in range(16):
+        put(pmg, 0x300 + 8 * k, '4H', r.randrange(16) | r.choice([0, 0x8000]), r.randrange(32), r.randrange(32),
+            r.randrange(32))
+    r.floats(pmg, range(0x400, 0x4c0, 4), 1)
+    pmn = bytearray(r.bytes(0x1000))
+    count = r.choice([1, r.randrange(1, 13)])
+    parent = {k: r.randrange(k) for k in range(1, count)}
+    kids = {}
+    for k in range(1, count):
+        kids.setdefault(parent[k], []).append(k)
+    nodebits = [0x20000000, 0x20000000, 0x10000000, 0x10000, 0x40000000, 0x200000, 0x200000]
+    for k in range(count):
+        o = 0x100 * k
+        sib = kids[parent[k]] if k else [0]
+        j = sib.index(k)
+        nxt = sib[j + 1] if j + 1 < len(sib) else None
+        child = kids.get(k, [None])[0]
+        put(pmn, o, '2I', sum(r.sample(nodebits, r.randrange(5))), PMN + 0x100 * r.randrange(count))
+        put(pmn, o + 8, '2I', PMN + 0x100 * nxt if nxt else 0, PMN + 0x100 * child if child else 0)
+        r.floats(pmn, range(o + 0x10, o + 0x50, 4), r.choice([1, 10, None]))
+        put(pmn, o + 0x50, 'H', base + r.randrange(n) if r.random() < 0.95 else r.getrandbits(16) % (base + 13))
+        put(pmn, o + 0x5c, 'H', r.randrange(17))
+        put(pmn, o + 0x60, '2I', PMG, PMG + 0x400)
+        put(pmn, o + 0x70, 'I', PMG + 0x300)
+        put(pmn, o + 0x94, 'I', PMG + 0x200)
+    return Call(0x44ab30, [PMA], {PMA: pma, PMN: pmn, PMG: pmg, PMS: r.bytes(0x400)})
 
 
 def mode(r, op):
@@ -368,7 +452,9 @@ KINDS = {'Size': mode, 'Depth': mode, 'ResetScale': mode, 'Epsilon': mode, 'Mark
          'HlShown': highlight, 'HlSuspend': highlight, 'HlAlloc': highlight, 'HlFree': highlight,
          'HlFlash': highlight, 'HlFlash2': highlight, 'HlUnflash': highlight, 'HlUnflash2': highlight,
          'HlPulse': highlight, 'GAlloc': globalmem, 'GFree': globalmem, 'IdAdd': ids, 'IdRemove': ids,
-         'PsCreate': partstates, 'PsMark': partstates, 'PsFree': partstates, 'PsRelease': partstates}
+         'PsCreate': partstates, 'PsMark': partstates, 'PsFree': partstates, 'PsRelease': partstates,
+         'PsUpdate': partmatrices, 'PsPoint': partmatrices, 'PsAim': partmatrices, 'MxPreMul': partmatrices,
+         'MxPreMul3': partmatrices, 'MxRotX4': partmatrices, 'MxRotY4': partmatrices, 'MxRotZ4': partmatrices}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 
