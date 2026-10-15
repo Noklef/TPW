@@ -1775,6 +1775,7 @@ address,name,kind,confidence,notes
 0x00436860,CoasterLink_ById,function,high,"reimplemented (src/game/coaster/registry); cdecl u8* (id): first link of 0x790fe0 with +0x10 == id, else 0"
 0x00436880,CoasterLink_IdValue,function,high,"reimplemented (src/game/coaster/registry); cdecl u32 (id): link id's +0x124->+0x34->+0xc when it has flag 0x800, else 0"
 0x004368c0,CoasterLink_SetById,function,high,"reimplemented (src/game/coaster/registry); cdecl (id, value): link id's +0x28 = value, if found"
+0x00436150,CoasterLinks_FindKey,function,high,"reimplemented (src/game/coaster/registry); cdecl u8* (tile): first entry over the links' +0x4c chains with +8 == tile and byte +4 & 5 clear, else 0"
 0x0043b0e0,Coaster_QueuePush,function,high,"reimplemented (src/game/coaster/queue); cdecl (index, peep): appends the peep to the queue ring (+0xb0) of coaster index (table 0x790bd0) when it has room"
 0x0043b130,CoasterQueue_Add,function,high,"reimplemented (src/game/coaster/queue); cdecl (coaster, peep): appends the peep to the queue ring (+0xb0), else to the boarding ring (+0xd0), whichever has room"
 0x0043b1f0,Coaster_QueueRoom,function,high,"reimplemented (src/game/coaster/queue); cdecl (index): the queue ring's limit - reserved - count, at least 0"
@@ -1793,3 +1794,4 @@ address,name,kind,confidence,notes
 0x00436750,Car_PickCoupling,function,high,"reimplemented (src/game/coaster/train); cdecl (car): +0x84/+0x44 for a car marked 0x100 without 0x2000 whose type has flag 8, else +0x78/+0x30, into +0x90/+0x74"
 0x00447790,Ride_Train,function,high,"reimplemented (src/game/coaster/train); cdecl u8* (index, cars*): ride's (0x7a4610) train (+0xd4->+0x100) and its car count (less one with train flag 0x20) when the ride has flag 0x80000, else 0/0"
 0x004477d0,Train_CarValue,function,high,"reimplemented (src/game/coaster/train); cdecl u32 (train, n): +0x70 of car n, counting only cars without 0x2000 (0 past them) when the train has flag 0x20"
+0x00432bd0,CoasterEvent_Make,function,high,"reimplemented (src/game/coaster/train); cdecl u32* (a, b, c, d): static 0x791ce8 = {c, d, 0, &0x791050 = {a, b}}; returns it"

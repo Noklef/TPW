@@ -53,12 +53,16 @@ void __cdecl Ride_EntryPosition(u32 index, const u32 *slot, float *out) {
 u8 *__cdecl CoasterLinks_FindTile(u32 x, u32 y, u32 *key) {
     const u8 *map = at<const u8 *>(*reinterpret_cast<const u8 *const *>(0x007a0854), 0x6c);
     const u32 tile = at<u32>(map, 0x18) * y + x;
-    u8 *found = nullptr;
-    for (const u8 *link = *reinterpret_cast<const u8 *const *>(0x00790fe0); link && !found; link = at<const u8 *>(link, 0x18))
-        for (found = at<u8 *>(link, 0x4c); found; found = at<u8 *>(found, 0x28))
-            if (!(at<u8>(found, 4) & 5) && at<u32>(found, 8) == tile) break;
+    u8 *found = CoasterLinks_FindKey(tile);
     if (key) *key = tile;
     return found;
+}
+
+u8 *__cdecl CoasterLinks_FindKey(u32 tile) {
+    for (const u8 *link = *reinterpret_cast<const u8 *const *>(0x00790fe0); link; link = at<const u8 *>(link, 0x18))
+        for (u8 *found = at<u8 *>(link, 0x4c); found; found = at<u8 *>(found, 0x28))
+            if (!(at<u8>(found, 4) & 5) && at<u32>(found, 8) == tile) return found;
+    return nullptr;
 }
 
 u32 __cdecl CoasterLink_EndMarked() {

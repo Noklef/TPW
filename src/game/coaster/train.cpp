@@ -74,4 +74,15 @@ u32 __cdecl Train_CarValue(const u8 *train, u32 n) {
     }
     return 0;
 }
+
+u32 *__cdecl CoasterEvent_Make(u32 a, u32 b, u32 c, u32 d) {
+    u32 *pair = reinterpret_cast<u32 *>(0x00791050), *event = reinterpret_cast<u32 *>(0x00791ce8);
+    pair[0] = a;
+    pair[1] = b;
+    event[0] = c;
+    event[1] = d;
+    event[2] = 0;
+    event[3] = 0x00791050;
+    return event;
+}
 }

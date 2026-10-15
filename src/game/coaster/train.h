@@ -30,4 +30,8 @@ u8 *__cdecl Ride_Train(u32 index, u32 *cars);
 // 0x4477d0: the +0x70 of the train's car n - counting only cars without flag 0x2000 (+8),
 // and 0 when there are not enough, when the train has flag 0x20 at byte +4.
 u32 __cdecl Train_CarValue(const u8 *train, u32 n);
+
+// 0x432bd0: fills the static record at 0x791ce8 with c, d, 0 and a pointer to the static
+// pair {a, b} at 0x791050, and returns it.
+u32 *__cdecl CoasterEvent_Make(u32 a, u32 b, u32 c, u32 d);
 }
