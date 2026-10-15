@@ -29,6 +29,11 @@ void __cdecl Instance_FreeRecordBlock(const u8 *instance) {
     }
 }
 
+void __cdecl Instance_FreeBlockCC(u8 *instance) {
+    GlobalMem_Free(at<void *>(instance, 0xcc));
+    at<void *>(instance, 0xcc) = nullptr;
+}
+
 void __cdecl Instance_FreeHolderBlock(const u8 *instance) {
     GlobalMem_Free(at<void *>(at<u8 *>(instance, 8), 0x18));
     at<void *>(at<u8 *>(instance, 8), 0x18) = nullptr;

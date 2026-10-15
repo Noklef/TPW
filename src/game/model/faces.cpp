@@ -12,6 +12,8 @@ template <typename T> T &at(const void *p, u32 offset) {
 
 extern "C" {
 
+u32 __cdecl Flags_AnyLow4(u32 flags) { return (flags & 0xf) ? 1 : 0; }
+
 void __cdecl Face_MarkTextures(u32, const u8 *face, u32 set) {
     if (at<u32>(face, 0) & 0x200) return;
     const u8 *entry = at<const u8 *>(face, 0x6c);

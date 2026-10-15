@@ -37,6 +37,9 @@ void __cdecl Highlight_Clear();
 // 0x45d620: the current holder.
 u8 *__cdecl Highlight_Current();
 
+// 0x45d610: the point at 0x7a1c90 (3 floats; the place-staff mode reads it).
+float *__cdecl Highlight_Point();
+
 // 0x45d630: 0x7a1c7c = 1 when shown and there is a current holder, else 0.
 void __cdecl Highlight_SetShown(u32 shown);
 

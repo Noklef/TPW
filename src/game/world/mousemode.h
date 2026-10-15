@@ -1,7 +1,7 @@
 // The mouse modes (what a click in the park does: CMMPlaceStaff, CMMOnline, ...): a base class
 // (vtable 0x6fe9b0, 12 slots: 0 the deleting destructor) and its derived classes, each with its
 // own vtable. Reimplementation of their constructors, destructors and empty methods in
-// 0x46c450-0x46d000. All __thiscall (self in ECX), written as __fastcall with an unused EDX.
+// 0x46c450-0x46d000, and of the statics and frame step before them (0x46c070-0x46c100). All __thiscall (self in ECX), written as __fastcall with an unused EDX.
 //
 // Their layouts: +0 the vtable, then by class
 //   0x6fe9e0 (the tile modes): +4 1, +8 the argument, +0xc 0 or 1, +0x10 (u16) a kind;
@@ -21,6 +21,17 @@ struct MouseModeEnv {
 void MouseModes_SetEnv(const MouseModeEnv *env);
 
 extern "C" {
+
+// 0x46c070 / 0x46c090: static initialisers of two floats nothing reads: 0x7b05a0 = 1 and
+// 0x7b05a4 = 1 / 2^23 (as camera's). 0x46c0b0: the pointer state's tile (0x7b05cc, u16) = 1
+// and 0x7b05d0 = 0.
+void __cdecl MouseModes_InitUnusedOne();
+void __cdecl MouseModes_InitUnusedEpsilon();
+void __cdecl MouseModes_InitTile();
+
+// 0x46c100: a new frame for the pointer state (0x7b05a8): its +0xc count stepped and its
+// picked thing (+0) cleared.
+void __fastcall MouseState_NewFrame(u8 *self);
 
 // 0x46c450 / 0x46c650: empty methods (taking 4 and 2 arguments).
 void __fastcall MouseMode_Nop4(void *self, void *edx, u32, u32, u32, u32);

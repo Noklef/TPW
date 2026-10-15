@@ -15,6 +15,21 @@ void MouseModes_SetEnv(const MouseModeEnv *env) { g_env = env ? env : &kGameEnv;
 
 extern "C" {
 
+void __cdecl MouseModes_InitUnusedOne() { *reinterpret_cast<float *>(0x007b05a0) = 1.0f; }
+
+void __cdecl MouseModes_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x007b05a4) = 1.0f / 8388608.0f; }
+
+void __cdecl MouseModes_InitTile() {
+    *reinterpret_cast<u16 *>(0x007b05cc) = 1;
+    *reinterpret_cast<u32 *>(0x007b05d0) = 0;
+}
+
+void __fastcall MouseState_NewFrame(u8 *self) {
+    const u32 count = at<u32>(self, 0xc);
+    at<u32>(self, 0) = 0;
+    at<u32>(self, 0xc) = count + 1;
+}
+
 void __fastcall MouseMode_Nop4(void *, void *, u32, u32, u32, u32) {}
 
 void __fastcall MouseMode_Nop2(void *, void *, u32, u32) {}

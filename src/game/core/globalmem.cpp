@@ -27,4 +27,8 @@ void *__cdecl GlobalMem_AllocCounted(u32 count) {
     block[1] = count;
     return block;
 }
+
+void *__cdecl GlobalMem_FreeAtB0(const u8 *owner) {
+    return GlobalMem_Free(*reinterpret_cast<void *const *>(owner + 0xb0));
+}
 }

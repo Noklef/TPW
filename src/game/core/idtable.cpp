@@ -2,6 +2,8 @@
 
 extern "C" {
 
+void __cdecl IdTable_Init(u32 *, u32 *, u32 *next) { *next = 1; }
+
 u32 __cdecl IdTable_Add(u32 *used, u32 *holes, u32 *next, u32 capacity, u32 *table, u32 value, s32 id) {
     if (id != -1) {
         table[id] = value;

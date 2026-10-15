@@ -79,6 +79,8 @@ void __cdecl Highlight_Clear() {
 
 u8 *__cdecl Highlight_Current() { return current(); }
 
+float *__cdecl Highlight_Point() { return reinterpret_cast<float *>(0x007a1c90); }
+
 void __cdecl Highlight_SetShown(u32 shown) { global<u32>(0x007a1c7c) = shown && current() ? 1 : 0; }
 
 void __cdecl Highlight_Suspend(u32 suspend) {

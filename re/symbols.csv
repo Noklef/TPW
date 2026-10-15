@@ -589,6 +589,10 @@ address,name,kind,confidence,notes
 0x0046ced0,MouseMode_Dtor,function,high,reimplemented (src/game/world/mousemode); the base mouse mode's destructor
 0x0046cfc0,MouseMode6feaa0_Ctor,function,high,reimplemented (src/game/world/mousemode); the 0x6feaa0 mode's constructor
 0x0046cff0,MouseMode6fead0_Ctor,function,high,reimplemented (src/game/world/mousemode); the 0x6fead0 mode's constructor
+0x0046c070,MouseModes_InitUnusedOne,function,high,reimplemented (src/game/world/mousemode); static initialiser: 0x7b05a0 = 1
+0x0046c090,MouseModes_InitUnusedEpsilon,function,high,reimplemented (src/game/world/mousemode); static initialiser: 0x7b05a4 = 2^-23
+0x0046c0b0,MouseModes_InitTile,function,high,"reimplemented (src/game/world/mousemode); static initialiser: 0x7b05cc = 1, 0x7b05d0 = 0"
+0x0046c100,MouseState_NewFrame,function,high,reimplemented (src/game/world/mousemode); steps the pointer state's frame count and clears its picked thing
 0x0050b780,Thing_Delete,function,medium,"thiscall on a thing; the base deletion, queues its handle (World_QueueDelete)"
 0x00801f38,gThingsToDelete,data,high,"HandleQueue: +4 head, +8 tail, +0xc count; handles whose slots DeleteAll releases"
 0x005f5fc0,String_Alloc,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +8: a new block for length units, terminated; the old block is not freed"
@@ -1795,8 +1799,10 @@ address,name,kind,confidence,notes
 0x0045b9d0,GlobalMem_Alloc,function,high,"reimplemented (src/game/core/globalmem); GlobalAlloc(GMEM_ZEROINIT or GMEM_FIXED, size) through the import slot; null for 0"
 0x0045ba00,GlobalMem_Free,function,high,reimplemented (src/game/core/globalmem); GlobalFree through the import slot; null for null
 0x0045ba70,GlobalMem_AllocCounted,function,high,reimplemented (src/game/core/globalmem); a zeroed 0x40-byte block with count at +4; null for 0
+0x0045baa0,GlobalMem_FreeAtB0,function,high,reimplemented (src/game/core/globalmem); GlobalMem_Free of the block at owner +0xb0
 0x00468760,IdTable_Add,function,high,reimplemented (src/game/core/idtable); stores a value under a new or given id (used/holes/next counters)
 0x00468810,IdTable_Remove,function,high,"reimplemented (src/game/core/idtable); frees an id, fixing the used/holes/next counters"
+0x00468750,IdTable_Init,function,high,reimplemented (src/game/core/idtable); next = 1
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
@@ -1939,6 +1945,7 @@ address,name,kind,confidence,notes
 0x00469580,Highlight_Flash,function,high,reimplemented (src/game/model/highlight); starts a holder flashing (list 0x7afe14 via +0xd0)
 0x00469650,Highlight_Unflash,function,high,"reimplemented (src/game/model/highlight); stops a holder flashing, restoring its meshes"
 0x00469840,Highlight_PulseFlashing,function,high,reimplemented (src/game/model/highlight); pulses the flashing holders' colours (phase 0x7afd04)
+0x0045d610,Highlight_Point,function,high,reimplemented (src/game/model/highlight); the point at 0x7a1c90
 0x0044a870,PartStates_Create,function,high,"reimplemented (src/game/model/partstate); (instance): the part states +0x28 for the model +4: animated parts (0x10/0x20) flagged, slots of 0x40 per animated face"
 0x0044aa10,PartStates_MarkNodes,function,high,"reimplemented (src/game/model/partstate); (instance, node, model): recursive; 0x20 on animated leaf entries, 0x40000000 on nodes without animated parts below; 1 if none"
 0x0044aae0,PartStates_Free,function,high,reimplemented (src/game/model/partstate); (instance): frees the part states +0x28
@@ -1962,5 +1969,7 @@ address,name,kind,confidence,notes
 0x0046b3d0,Int_Add,function,high,reimplemented (src/game/model/release); a + b
 0x0046b3e0,Release_InitUnusedOne,function,high,reimplemented (src/game/model/release); static initialiser: 0x7b0468 = 1
 0x0046b400,Release_InitUnusedEpsilon,function,high,reimplemented (src/game/model/release); static initialiser: 0x7b046c = 2^-23
+0x00452540,Instance_FreeBlockCC,function,high,reimplemented (src/game/model/release); frees the instance's +0xcc block
 0x0046a550,Face_MarkTextures,function,high,reimplemented (src/game/model/faces); sets or clears bit 0x800 of each of a face's texture entries
+0x00469930,Flags_AnyLow4,function,high,reimplemented (src/game/model/faces); 1 when flags has any of its low 4 bits
 0x0045aee0,Online_ApplyBalance,function,high,reimplemented (src/game/online/servers); copies Online.sam (gBalanceOnline) into the servers object 0x7a14f0

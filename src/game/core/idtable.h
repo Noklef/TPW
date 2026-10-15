@@ -1,4 +1,4 @@
-// Id tables: reimplementation of 0x468760-0x4688a6. A table of pointers indexed by id from 1
+// Id tables: reimplementation of 0x468750-0x4688a6. A table of pointers indexed by id from 1
 // (the coaster links' is 0x790bd0, 0xff ids), with three counters kept by the caller: used,
 // holes (free ids below the highest used) and next (the id the next add takes).
 #pragma once
@@ -6,6 +6,9 @@
 #include "../../../re/types.h"
 
 extern "C" {
+
+// 0x468750: next = 1 (used and holes are left as they are).
+void __cdecl IdTable_Init(u32 *used, u32 *holes, u32 *next);
 
 // 0x468760: stores value under a new id (or under id, unless that is -1, returning it).
 // Returns 0, storing nothing, when there are no holes and used has reached capacity. Taking a
