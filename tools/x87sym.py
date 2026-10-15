@@ -2,9 +2,9 @@
 FST/FSTP, with the exact association the original computes in.
 
 The game runs with the x87 unit at single precision (Direct3D sets it; the game never asks
-it not to), where every x87 operation rounds like an SSE float operation. A C++ port then
-matches bit for bit if it evaluates the same expression trees in float. Commutation is
-harmless in IEEE arithmetic (a+b == b+a), so only the tree shape has to be kept.
+it not to). A C++ port matches bit for bit if it evaluates the same expression trees with
+X87Reg (src/game/math/x87.h), which also keeps the registers' wide exponent. The left
+operand of each node is the x87 destination, which decides which of two NaNs survives.
 
   x87sym.py LISTING START END [NAME=MEMORY ...]
 
@@ -13,6 +13,11 @@ NAME=MEMORY gives memory operands names, e.g. a.x="EBP + ECX*0x4" or t="ESP + 0x
 float constants in the exe are read and shown as numbers. Unknown operands keep their text,
 except ESP-relative ones, which follow PUSH/POP/SUB/ADD ESP from the start address and are
 shown relative to the entry ESP: argN for the Nth stack argument, local_N for [entry - N].
+General registers follow MOV/ADD/SUB/LEA/XOR from loaded slots, so [EAX + 0x324] after
+MOV EAX,[ESP + 0x4]; MOV EAX,[EAX + 0x4] shows as arg0->0x4->0x324. NAME=REG (e.g. this=ECX)
+names a register's value on entry. FCOM and friends print as "compare = (st0 cmp other)".
+Code is replayed in address order, ignoring jumps, so after a branch rejoins, the stack
+and registers are those of the fall-through path.
 """
 import re
 import struct
@@ -21,6 +26,7 @@ import os
 
 EXE = os.path.join(os.path.dirname(__file__), '..', '.data', 'nocd', 'tp.exe')
 FTOL = '0x0067a830'
+REG = r'E(?:[A-D]X|[SB]P|[SD]I)'
 
 
 def rdata_float(va):
@@ -46,15 +52,26 @@ class X87:
         for k in [k for k in self.memory if re.search(r'\b' + reg + r'\b', k)]:
             del self.memory[k]
 
+    def pointer(self, reg):
+        """(symbol, offset) when reg holds a known slot's value plus offset, else None."""
+        v = self.regs.get(reg)
+        return v if v and isinstance(v[0], str) else None
+
     def mem(self, operand):
         m = re.search(r'\[(.*)\]', operand)
         inner = m.group(1).strip()
         if inner in self.names:
             return self.names[inner]
-        sp = re.fullmatch(r'ESP(?: \+ (0x[0-9a-f]+))?', inner)
+        sp = re.fullmatch(r'ESP(?: ([+-]) (0x[0-9a-f]+))?', inner)
         if sp:
-            k = self.esp + int(sp.group(1) or '0', 16)
+            k = self.esp + (-1 if sp.group(1) == '-' else 1) * int(sp.group(2) or '0', 16)
             return f'arg{(k - 4) // 4}' if k >= 4 and k % 4 == 0 else f'local_{-k:x}' if k < 0 else f'[entry+{k:x}]'
+        based = re.fullmatch(r'(' + REG + r')(?: ([+-]) (0x[0-9a-f]+))?', inner)
+        if based and self.pointer(based.group(1)):
+            sym, off = self.pointer(based.group(1))
+            off += (-1 if based.group(2) == '-' else 1) * int(based.group(3) or '0', 16)
+            name = f'{sym}->{off:#x}' if off >= 0 else f'{sym}->-{-off:#x}'
+            return self.names.get(name, name)
 
         if re.fullmatch(r'0x[0-9a-f]+', inner):
             v = rdata_float(int(inner, 16))
@@ -66,7 +83,7 @@ class X87:
         text = text.strip()
         if re.fullmatch(r'ST\d', text):
             return ('st', int(text[2]))
-        return ('mem', self.mem(text))
+        return ('mem', self.mem(text)) if '[' in text else ('reg', text)
 
     def value(self, op):
         return self.st[op[1]] if op[0] == 'st' else self.memory.get(op[1], op[1])
@@ -111,6 +128,13 @@ class X87:
                 self.st[d[1]] = apply(op, self.st[d[1]], self.value(s))
             if pop:
                 self.st.pop(0)
+        elif mnemonic in ('FCOM', 'FCOMP', 'FCOMPP', 'FUCOM', 'FUCOMP', 'FUCOMPP', 'FTST'):
+            other = '0.0f' if mnemonic == 'FTST' else self.value(ops[0]) if ops else self.st[1]
+            self.stores.append((addr, 'compare', ('cmp', self.st[0], other)))
+            for _ in range(mnemonic.count('P')):
+                self.st.pop(0)
+        elif mnemonic in ('FNSTSW', 'FSTSW', 'FLDCW', 'FNSTCW', 'FSTCW', 'FWAIT', 'FNCLEX'):
+            pass
         else:
             raise ValueError(f'{addr}: unhandled {mnemonic} {operands}')
 
@@ -127,10 +151,12 @@ def infix(e):
     return f'({infix(e[1])} {e[0]} {infix(e[2])})'
 
 
-def replay(lines, start, end, names, memory=None):
-    """memory: initial values of named slots that integer moves filled (names it ignores)."""
+def replay(lines, start, end, names, memory=None, regs=None):
+    """memory: initial values of named slots that integer moves filled (names it ignores);
+    regs: {REG: name} for registers holding a named value on entry."""
     cpu = X87(names)
     cpu.memory.update(memory or {})
+    cpu.regs.update({r: (n, 0) for r, n in (regs or {}).items()})
     for line in lines:
         m = re.match(r'([0-9a-f]{8})\s+(\S+)\s*(.*)', line.strip())
         if not m:
@@ -141,17 +167,48 @@ def replay(lines, start, end, names, memory=None):
         if mnem == 'CALL' and ops.strip() == FTOL:  # __ftol pops ST0 (truncated into EAX)
             cpu.st.pop(0)
             continue
-        m32 = re.fullmatch(r'(E[A-DS][XIP]|E[SD]I),(?:dword ptr )?(\[.*\])', ops.strip())
-        if mnem == 'MOV' and m32:  # integer copies of floats: register <- memory
+        o = ops.strip()
+        m32 = re.fullmatch(r'(' + REG + r'),(?:dword ptr )?(\[.*\])', o)
+        if mnem == 'MOV' and m32:  # register <- memory: a float's bits, or a pointer
             v = cpu.value(('mem', cpu.mem(m32.group(2))))
             cpu.written(m32.group(1))
-            cpu.regs[m32.group(1)] = v
+            cpu.regs[m32.group(1)] = (v, 0)
             continue
-        m32 = re.fullmatch(r'(?:dword ptr )?(\[.*\]),(E[A-DS][XIP]|E[SD]I)', ops.strip())
+        m32 = re.fullmatch(r'(?:dword ptr )?(\[.*\]),(' + REG + r')', o)
         if mnem == 'MOV' and m32:  # memory <- register
-            cpu.memory[cpu.mem(m32.group(1))] = cpu.regs.get(m32.group(2), m32.group(2))
+            v = cpu.regs.get(m32.group(2))
+            cpu.memory[cpu.mem(m32.group(1))] = (v[0] if not v[1] else f'({v[0]} + {v[1]:#x})') if v else m32.group(2)
             continue
-        m32 = re.match(r'(E[A-DS][XIP]|E[SD]I)\b', ops.strip())
+        rr = re.fullmatch(r'(' + REG + r'),(' + REG + r'|0x[0-9a-f]+|\d+)', o)
+        if rr and rr.group(1) != 'ESP' and mnem in ('MOV', 'ADD', 'SUB', 'XOR'):
+            d, s = rr.groups()
+            known = cpu.pointer(d) if mnem in ('ADD', 'SUB') else None
+            imm = None if re.fullmatch(REG, s) else int(s, 0)
+            cpu.written(d)
+            if mnem == 'MOV':  # copy, or a constant
+                if imm is None and s in cpu.regs:
+                    cpu.regs[d] = cpu.regs[s]
+                elif imm is not None:
+                    cpu.regs[d] = (f'{imm:#x}', 0)
+            elif mnem == 'XOR' and s == d:
+                cpu.regs[d] = ('0', 0)
+            elif known and imm is not None:  # pointer arithmetic
+                cpu.regs[d] = (known[0], known[1] + (imm if mnem == 'ADD' else -imm))
+            continue
+        lea = re.fullmatch(r'(' + REG + r'),\[(' + REG + r')(?: ([+-]) (0x[0-9a-f]+))?\]', o)
+        if mnem == 'LEA' and lea and lea.group(1) != 'ESP':
+            d, s = lea.group(1), lea.group(2)
+            disp = (-1 if lea.group(3) == '-' else 1) * int(lea.group(4) or '0', 16)
+            if s == 'ESP':  # the address of a stack slot
+                src = ('&' + cpu.mem('[ESP + %#x]' % disp) if disp >= 0 else None, 0)
+            else:
+                p = cpu.pointer(s)
+                src = (p[0], p[1] + disp) if p else (None, 0)
+            cpu.written(d)
+            if src[0]:
+                cpu.regs[d] = src
+            continue
+        m32 = re.match(r'(' + REG + r')\b', o)
         if m32 and not mnem.startswith('F') and mnem not in ('CMP', 'TEST', 'PUSH'):
             cpu.written(m32.group(1))  # any other write to a register forgets it
         if mnem in ('PUSH', 'POP'):
@@ -170,11 +227,14 @@ def replay(lines, start, end, names, memory=None):
 
 def main():
     listing, start, end = sys.argv[1], int(sys.argv[2], 16), int(sys.argv[3], 16)
-    names = {}
+    names, regs = {}, {}
     for arg in sys.argv[4:]:
         k, v = arg.split('=', 1)
-        names[v.strip()] = k
-    cpu = replay(open(listing).read().splitlines(), start, end, names)
+        if re.fullmatch(REG, v.strip()):
+            regs[v.strip()] = k
+        else:
+            names[v.strip()] = k
+    cpu = replay(open(listing).read().splitlines(), start, end, names, regs=regs)
     for addr, dest, e in cpu.stores:
         print(f'{addr} {dest} = {infix(e)}')
     if cpu.st:
