@@ -30,6 +30,12 @@ void __cdecl BarMesh_SetVertex(float *verts, u32 i, float x, float y, float z) {
     at<u32>(v, 0x20) = X87_FloatThrough(bitsOf(z));
 }
 
+void __cdecl BarMesh_SetTexCoord(float *coords, u32 i, float u, float v) {
+    u8 *t = reinterpret_cast<u8 *>(coords) + (i >> 2) * 0x20 + (i & 3) * 4;
+    at<u32>(t, 0) = X87_FloatThrough(bitsOf(u));
+    at<u32>(t, 0x10) = X87_FloatThrough(bitsOf(v));
+}
+
 void __fastcall BarMesh_SetTopVertices(const u8 *bar) {
     u8 *v = at<u8 *>(bar, 0x7c);
     u32 level = X87_FloatThrough(at<u32>(bar, 0x120));

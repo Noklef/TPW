@@ -1834,6 +1834,7 @@ address,name,kind,confidence,notes
 0x00477c00,BarMesh_SetVertex,function,high,reimplemented (src/game/gfx/barmesh); vertex i of a 4-lane x/y/z block array
 0x00477cc0,BarMesh_SetTopVertices,function,high,reimplemented (src/game/gfx/barmesh); virtual: the bar's top edge vertices at its level (+0x120)
 0x00477d20,BarMesh_SetTopTexCoords,function,high,reimplemented (src/game/gfx/barmesh); virtual: the bar's top edge texture v = level * 0.01
+0x004786f0,BarMesh_SetTexCoord,function,high,reimplemented (src/game/gfx/barmesh); texture coordinate i of a 4-lane u/v block array
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"

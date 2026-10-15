@@ -1,6 +1,7 @@
-# The bar mesh (src/game/gfx/barmesh: 0x477c00, 0x477cc0, 0x477d20) against the original: a
-# vertex set, and the top edge's vertices and texture coordinates at the bar's level, with the
-# vertex / texture-coordinate arrays apart from the bar or overlapping it (level, pointers).
+# The bar mesh (src/game/gfx/barmesh: 0x477c00, 0x4786f0, 0x477cc0, 0x477d20) against the
+# original: a vertex and a texture coordinate set, and the top edge's vertices and texture
+# coordinates at the bar's level, with the arrays apart from the bar or overlapping it (level,
+# pointers).
 # usage: barmesh.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -9,9 +10,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM  # noqa: E402
 
-B = Bench([(0x477c00, 0x477c30), (0x477cc0, 0x477d19), (0x477d20, 0x477d70)])
+B = Bench([(0x477c00, 0x477c30), (0x477cc0, 0x477d19), (0x477d20, 0x477d70), (0x4786f0, 0x478715)])
 BAR, ARR = RAM, RAM + 0x1000
-CALLS = ('Vertex', 'TopVerts', 'TopTex')
+CALLS = ('Vertex', 'TexCoord', 'TopVerts', 'TopTex')
 
 
 def case(r):
@@ -19,6 +20,9 @@ def case(r):
     if op == 'Vertex':  # vertex i of ARR (blocks of 0x30)
         i = r.choice([r.randrange(8), r.randrange(0x40)])
         return Call(0x477c00, [ARR, i, r.f(), r.f(), r.f()], {ARR: r.bytes(0x400)})
+    if op == 'TexCoord':  # coordinate i of ARR (blocks of 0x20)
+        i = r.choice([r.randrange(8), r.randrange(0x40)])
+        return Call(0x4786f0, [ARR, i, r.f(), r.f()], {ARR: r.bytes(0x400)})
     bar = bytearray(r.bytes(0x200))
     struct.pack_into('<I', bar, 0x120, r.f())
     for off in (0x7c, 0x84):  # apart, or inside the bar (over the level or the pointers)
