@@ -1,6 +1,7 @@
 #include "xsection.h"
 
 #include "../core/globalmem.h"
+#include "../math/x87.h"
 
 namespace {
 
@@ -13,6 +14,53 @@ const u32 kBuckets = 20;
 }  // namespace
 
 extern "C" {
+
+u32 __cdecl CrossSection_BuildPoints(u8 *coaster, u8 *sections, const u8 *source, u32 *shared) {
+    *shared = 0;
+    const auto count = [source](u32 b) { return at<s32>(source, 0x290 + 0x194 * b); };
+    u32 total = 0;
+    for (u32 b = 0; b < kBuckets; ++b) total += (u32)count(b);
+    u32 used = kBuckets;  // the last non-empty bucket, from 1
+    while (used && !count(used - 1)) --used;
+    if (!used || !total) return 0;
+
+    u8 *point = static_cast<u8 *>(GlobalMem_Alloc(total * 20, 1));
+    u8 **const pointers = static_cast<u8 **>(GlobalMem_Alloc(used << 2, 1));
+    s32 *const counts = static_cast<s32 *>(GlobalMem_Alloc(used << 2, 1));
+    at<u8 *>(coaster, 0x90) = point;
+    u8 **pointer = pointers;
+    s32 *n = counts;
+    for (u32 b = 0; b < kBuckets; ++b) {
+        if (count(b)) {
+            *pointer++ = point;
+            *n++ = count(b);
+        }
+        const u8 *from = source + 0x100 + 0x194 * b;
+        for (s32 i = 0; i < count(b); ++i, from += 20, point += 20) {
+            for (u32 k = 0; k < 20; k += 4) at<u32>(point, k) = at<u32>(from, k);
+            at<float>(point, 4) = (float)(X87Reg(at<float>(coaster, 0x40)) + at<float>(point, 4));
+        }
+    }
+
+    const u8 *record = source + 0x33a0;
+    u8 *section = sections;
+    for (s32 k = 0; k < at<s32>(source, 0x3530); ++k, record += 0x14, section += 0x18) {
+        const s32 bucket = at<s32>(record, 0);
+        if (!bucket) return 0;  // sic: the lists leak
+        at<u8 *>(section, 8) = pointers[bucket - 1];
+        at<s32>(section, 0) = counts[bucket - 1];
+        const s32 second = at<s32>(record, 0xc);
+        if (second) {
+            *shared = 1;
+            if (counts[second - 1] != at<s32>(section, 0)) return 0;  // sic: the lists leak
+            at<u8 *>(section, 0x10) = pointers[second - 1];
+            at<u32>(section, 0x14) = at<u32>(record, 0x10);
+        }
+    }
+    GlobalMem_Free(counts);
+    GlobalMem_Free(pointers);
+    return 1;
+}
 
 u32 __cdecl CrossSection_BuildIndices(u8 *coaster, u8 *sections, const u8 *source) {
     const auto count = [source](u32 b) { return at<s32>(source, 0x2180 + 0xf4 * b); };
@@ -41,7 +89,7 @@ u32 __cdecl CrossSection_BuildIndices(u8 *coaster, u8 *sections, const u8 *sourc
         }
     }
 
-    const u8 *record = source + 0x33a4;
+    const u8 *record = source + 0x33a4;  // the records' indices bucket
     u8 *section = sections;
     for (s32 k = 0; k < at<s32>(source, 0x3530); ++k, record += 0x14, section += 0x18) {
         const s32 bucket = at<s32>(record, 0);
