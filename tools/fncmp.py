@@ -12,8 +12,8 @@ A test script defines a case generator and calls run():
         return Call(0x43e1b0, [A, B_, r.f(), OUT], {A: node, ...})
     B.main(case)                                # cmd line: CASES SEED [--wild] [--show N]
 
-Call(address, args, regions, conv='c'|'s'|'t'|'f', ret='v'|'a'|'b'|'i'|'d'): ret 'a' compares
-EAX, 'b' AL (a flag returned over whatever EAX held), 'i' EAX and EDX, 'd' the double left in
+Call(address, args, regions, conv='c'|'s'|'t'|'f', ret='v'|'a'|'b'|'w'|'i'|'d'): ret 'a' compares
+EAX, 'b' AL (a flag returned over whatever EAX held), 'w' AX (likewise a u16), 'i' EAX and EDX, 'd' the double left in
 st0. Region addresses must be in the game's data (0x6e7000-0xfc5200) or at 0x10000000 and up (RAM, ALLOC.. are free slots); anything a case
 does not set reads as the exe image there, else zero, in both. The emulator is strict, like
 the driver: an access outside the regions' 64 KB chunks, the stack and the game's data (the
@@ -288,7 +288,7 @@ class Bench:
         except x87emu.MemFault as f:
             return '%s (emu: %s at %08x)' % (CRASH, f, at)
         st0 = struct.unpack('<Q', struct.pack('<d', e.st[0]))[0] if c.ret == 'd' and e.st else 0
-        head = ['%08x' % e.r['EAX'] if c.ret in 'ai' else '%02x' % (e.r['EAX'] & 0xff) if c.ret == 'b' else '-', '%08x' % e.r['EDX'] if c.ret == 'i' else '-',
+        head = ['%08x' % e.r['EAX'] if c.ret in 'ai' else '%02x' % (e.r['EAX'] & 0xff) if c.ret == 'b' else '%04x' % (e.r['EAX'] & 0xffff) if c.ret == 'w' else '-', '%08x' % e.r['EDX'] if c.ret == 'i' else '-',
                 '%016x' % st0 if c.ret == 'd' else '-']
         return head + [e.read(k, len(v)).hex() for k, v in c.regions.items()]
 
@@ -317,7 +317,7 @@ class Bench:
             if len(w) < 3 or w[0] in ('crash', 'nohook', 'fncmp:'):
                 out.append(line)
                 continue
-            out.append([w[0] if c.ret in 'ai' else w[0][-2:] if c.ret == 'b' else '-', w[1] if c.ret == 'i' else '-', w[2] if c.ret == 'd' else '-'] + w[3:])
+            out.append([w[0] if c.ret in 'ai' else w[0][-2:] if c.ret == 'b' else w[0][-4:] if c.ret == 'w' else '-', w[1] if c.ret == 'i' else '-', w[2] if c.ret == 'd' else '-'] + w[3:])
         if len(out) < len(cases):
             out += ['driver stopped (exit %x): %s' % (p.returncode & 0xffffffff, p.stderr.strip()[:200])] * (len(cases) - len(out))
         return out

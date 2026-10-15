@@ -1818,6 +1818,13 @@ address,name,kind,confidence,notes
 0x00468760,IdTable_Add,function,high,reimplemented (src/game/core/idtable); stores a value under a new or given id (used/holes/next counters)
 0x00468810,IdTable_Remove,function,high,"reimplemented (src/game/core/idtable); frees an id, fixing the used/holes/next counters"
 0x00468750,IdTable_Init,function,high,reimplemented (src/game/core/idtable); next = 1
+0x0040c870,KeyMap_FindKey,function,high,"reimplemented (src/game/core/keymap); index of the first entry for key + modifiers, or -1"
+0x0040c8c0,KeyMap_FindAction,function,high,"reimplemented (src/game/core/keymap); index of the first entry for an action, or -1"
+0x0040ca20,KeyMap_IsHeld,function,high,reimplemented (src/game/core/keymap); held flag of an action's entry (u16 in AX)
+0x0040cb40,KeyMap_Enable,function,high,reimplemented (src/game/core/keymap); enabled = 1
+0x0040cb50,KeyMap_Reset,function,high,"reimplemented (src/game/core/keymap); enabled = 0, every held flag cleared"
+0x0040cf60,KeyMaps_EnableAll,function,high,reimplemented (src/game/core/keymap); Enable on the five keyboard maps
+0x0040cfa0,KeyMaps_ResetAll,function,high,reimplemented (src/game/core/keymap); Reset on the five keyboard maps
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

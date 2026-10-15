@@ -58,7 +58,8 @@
 #include "../game/core/events.h"
 #include "../game/core/filetime.h"
 #include "../game/core/globalmem.h"
-#include "../game/core/idtable.h"
+#include "../game/core/idtable.h"
+#include "../game/core/keymap.h"
 #include "../game/core/stdstring.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -1165,6 +1166,13 @@ const Hook kHooks[] = {
     {"IdTable_Add",               0x00468760, (void *)&IdTable_Add, {0x8b, 0x44, 0x24, 0x1c, 0x53}},
     {"IdTable_Remove",            0x00468810, (void *)&IdTable_Remove, {0x8b, 0x44, 0x24, 0x14, 0x53}},
     {"IdTable_Init",              0x00468750, (void *)&IdTable_Init, {0x8b, 0x44, 0x24, 0x0c, 0xc7}},
+    {"KeyMap_FindKey",            0x0040c870, (void *)&KeyMap_FindKey, {0x53, 0x55, 0x0f, 0xbf, 0x59}},
+    {"KeyMap_FindAction",         0x0040c8c0, (void *)&KeyMap_FindAction, {0x53, 0x55, 0x56, 0x57, 0x0f}},
+    {"KeyMap_IsHeld",             0x0040ca20, (void *)&KeyMap_IsHeld, {0x53, 0x56, 0x57, 0x66, 0x8b}},
+    {"KeyMap_Enable",             0x0040cb40, (void *)&KeyMap_Enable, {0x66, 0xc7, 0x41, 0x06, 0x01}},
+    {"KeyMap_Reset",              0x0040cb50, (void *)&KeyMap_Reset, {0x56, 0x33, 0xf6, 0x33, 0xc0}},
+    {"KeyMaps_EnableAll",         0x0040cf60, (void *)&KeyMaps_EnableAll, {0x8b, 0x0d, 0x8c, 0x71, 0x78}},
+    {"KeyMaps_ResetAll",          0x0040cfa0, (void *)&KeyMaps_ResetAll, {0x8b, 0x0d, 0x8c, 0x71, 0x78}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
