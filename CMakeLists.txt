@@ -101,3 +101,13 @@ add_executable(tpw_tests
     src/hook/patch.cpp
 )
 target_link_libraries(tpw_tests PRIVATE tpw_game)
+
+# Comparison driver for tools/fncmp.py: calls hooked functions by their original address,
+# fixed at the game's image base so absolute game addresses work as they do in tp.exe.
+add_executable(tpw_fncmp
+    tools/fncmp/driver.cpp
+    src/hook/hooks.cpp
+    src/hook/patch.cpp
+)
+target_link_libraries(tpw_fncmp PRIVATE tpw_game)
+target_link_options(tpw_fncmp PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x400000)
