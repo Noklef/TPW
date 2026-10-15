@@ -57,9 +57,16 @@ def uses_eax(i):
     return None
 
 
+# Checked by hand: they do return the value their callers read.
+KNOWN_OK = {
+    'App_GetWndProc': 'returns a function pointer; the declaration syntax defeats the parser',
+}
+
 found = 0
 for name, addr in hooks:
     addr = addr.lower().rjust(8, '0')
+    if name in KNOWN_OK:
+        continue
     users = [u for u in (uses_eax(i) for i in calls.get(addr, [])) if u]
     if not users:
         continue
@@ -69,3 +76,4 @@ for name, addr in hooks:
         print('%s %s  %d/%d callers read EAX, e.g. %s' % (addr, name, len(users), len(calls[addr]), users[0].strip()))
         print('    port: %s' % decl.strip())
 print('%d suspect hooks' % found)
+sys.exit(1 if found else 0)

@@ -178,6 +178,12 @@ def main():
     print('tests: %d hooks match, %s' % (matched, 'all passed' if passed else 'FAILED'))
     if not passed:
         print('\n'.join(l for l in out.splitlines() if re.search(r'fail|mismatch', l, re.I))[:3000])
+    # Callers that use EAX after a call to a port declared void (benches can't see this).
+    p = run([sys.executable, '-I', os.path.join(ROOT, 'tools', 'retcheck.py')])
+    print('retcheck: ' + p.stdout.strip().splitlines()[-1])
+    if p.returncode:
+        print(p.stdout.strip()[-3000:])
+        passed = False
     if '--bench' in a:
         i = a.index('--bench')
         p = run([sys.executable, '-I'] + a[i + 1:])

@@ -224,3 +224,6 @@ There are no crash dumps, because WER LocalDumps needs admin. The trace's except
     with the fix, the only report is `App_GetWndProc`, a false positive (it returns a function
     pointer, whose declaration the scan can't parse). Run it after adding hooks. It only looks at
     the 5 instructions after each call, so a value used later is not seen.
+- 2026-10-15, `3-dll-hooked` with the fix: **clean**. All 954 hooks on, it plays like the original,
+  and it quit with exit 0. `tools/integrate.py` now runs `retcheck.py` and fails the integration on
+  any suspect.
