@@ -88,4 +88,38 @@ u8 *__cdecl CoasterLink_FindCarOnRide(u32 ride) {
     }
     return nullptr;
 }
+
+u32 __cdecl CoasterLink_BeginEnd() {
+    u32 &flags = *reinterpret_cast<u32 *>(0x0079c658);
+    const u8 *link = *reinterpret_cast<const u8 *const *>(0x00790fec);
+    if (!(flags & 0x40) && link && (at<u8>(at<const u8 *>(link, 4), 0) & 2)) {
+        *reinterpret_cast<u32 *>(0x0079c664) = 2;
+        flags |= 0x40;
+    }
+    return 1;
+}
+
+u32 __cdecl Table7ae6a8_Bit18(u32 index) {
+    return at<u32>(reinterpret_cast<const u8 *const *>(0x007ae6a8)[index], 4) >> 18 & 1;
+}
+
+u32 __cdecl Ride_Bit18(u32 index) {
+    return at<u32>(reinterpret_cast<const u8 *const *>(0x007a4610)[index], 4) >> 18 & 1;
+}
+
+u8 *__cdecl CoasterLink_ById(u32 id) {
+    for (u8 *link = *reinterpret_cast<u8 *const *>(0x00790fe0); link; link = at<u8 *>(link, 0x18))
+        if (at<u32>(link, 0x10) == id) return link;
+    return nullptr;
+}
+
+u32 __cdecl CoasterLink_IdValue(u32 id) {
+    const u8 *link = CoasterLink_ById(id);
+    if (!link || !(at<u32>(link, 0) & 0x800)) return 0;
+    return at<u32>(at<const u8 *>(at<const u8 *>(link, 0x124), 0x34), 0xc);
+}
+
+void __cdecl CoasterLink_SetById(u32 id, u32 value) {
+    if (u8 *link = CoasterLink_ById(id)) at<u32>(link, 0x28) = value;
+}
 }

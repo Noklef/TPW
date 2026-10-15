@@ -1769,6 +1769,12 @@ address,name,kind,confidence,notes
 0x00442d10,CoasterLink_CheckEnd,function,high,"reimplemented (src/game/coaster/registry); cdecl (): when the current link (0x790fec) has type flag 2 and its end piece (+0x58, or +0x60 when +0x3c has 1 and 2) is marked 0x80, sets 0x79c664 = 1 and 0x79c658 |= 0x40"
 0x00443ee0,CoasterLink_FindCarOnRide,function,high,"reimplemented (src/game/coaster/registry); cdecl u8* (ride): first car over the current link's trains (+0x4c, not flagged 1) whose 0x7a4610[car+0x70] is ride, else 0 (0 when link+0x54 is 0)"
 0x00444c00,CoasterLink_EndMarked,function,high,"reimplemented (src/game/coaster/registry); cdecl bool (): the current link (0x790fec) has type flag 2 and its end piece (+0x58, or +0x60 when +0x3c has 1 and 2) is marked 0x80"
+0x00442cd0,CoasterLink_BeginEnd,function,high,"reimplemented (src/game/coaster/registry); cdecl u32 (): unless 0x79c658 has 0x40, with the current link's type flag 2 sets 0x79c664 = 2 and that flag; returns 1"
+0x00436820,Table7ae6a8_Bit18,function,high,reimplemented (src/game/coaster/registry); cdecl u32 (index): bit 18 of 0x7ae6a8[index]->+4
+0x00436840,Ride_Bit18,function,high,reimplemented (src/game/coaster/registry); cdecl u32 (index): bit 18 of 0x7a4610[index]->+4
+0x00436860,CoasterLink_ById,function,high,"reimplemented (src/game/coaster/registry); cdecl u8* (id): first link of 0x790fe0 with +0x10 == id, else 0"
+0x00436880,CoasterLink_IdValue,function,high,"reimplemented (src/game/coaster/registry); cdecl u32 (id): link id's +0x124->+0x34->+0xc when it has flag 0x800, else 0"
+0x004368c0,CoasterLink_SetById,function,high,"reimplemented (src/game/coaster/registry); cdecl (id, value): link id's +0x28 = value, if found"
 0x0043b0e0,Coaster_QueuePush,function,high,"reimplemented (src/game/coaster/queue); cdecl (index, peep): appends the peep to the queue ring (+0xb0) of coaster index (table 0x790bd0) when it has room"
 0x0043b130,CoasterQueue_Add,function,high,"reimplemented (src/game/coaster/queue); cdecl (coaster, peep): appends the peep to the queue ring (+0xb0), else to the boarding ring (+0xd0), whichever has room"
 0x0043b1f0,Coaster_QueueRoom,function,high,"reimplemented (src/game/coaster/queue); cdecl (index): the queue ring's limit - reserved - count, at least 0"

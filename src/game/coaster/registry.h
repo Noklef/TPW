@@ -42,4 +42,23 @@ void __cdecl CoasterLink_CheckEnd();
 // cars: count +0x30, pointers +0x34) not flagged 1 (+4), whose ride (0x7a4610[car+0x70]) is
 // ride, else 0; 0 at once when the link's +0x54 is 0.
 u8 *__cdecl CoasterLink_FindCarOnRide(u32 ride);
+
+// 0x442cd0: unless 0x79c658 has flag 0x40, when the current link (0x790fec) has type (+4)
+// flag 2, sets 0x79c664 to 2 and that flag; returns 1.
+u32 __cdecl CoasterLink_BeginEnd();
+
+// 0x436820: bit 18 of +4 of entry index of the table at 0x7ae6a8.
+u32 __cdecl Table7ae6a8_Bit18(u32 index);
+
+// 0x436840: bit 18 of ride index's (table 0x7a4610) +4.
+u32 __cdecl Ride_Bit18(u32 index);
+
+// 0x436860: the first link of the list at 0x790fe0 whose +0x10 is id, else 0.
+u8 *__cdecl CoasterLink_ById(u32 id);
+
+// 0x436880: +0x124 -> +0x34 -> +0xc of link id when it has flag 0x800 (+0), else 0.
+u32 __cdecl CoasterLink_IdValue(u32 id);
+
+// 0x4368c0: sets +0x28 of link id, if any.
+void __cdecl CoasterLink_SetById(u32 id, u32 value);
 }
