@@ -88,6 +88,7 @@ add_library(tpw_game STATIC
     src/game/coaster/lists.cpp
     src/game/coaster/queue.cpp
     src/game/coaster/cursor.cpp
+    src/game/coaster/registry.cpp
     src/game/terrain/terrain_blend.cpp
 )
 

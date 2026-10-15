@@ -18,4 +18,8 @@ u32 __cdecl Coaster_IsPastEnd(const u8 *coaster, float x);
 // the last box's. The second argument is unused.
 // sic: with no boxes, count - 1 wraps and the search reads on until it finds a match.
 u32 __cdecl Coaster_FindZone(const u8 *owner, u32 unused, const float *pos, float t);
+
+// 0x43ea90: resets a nearest-match search: seven zeros, then FLT_MAX as the best distance
+// so far (+0x1c).
+void __cdecl CoasterSearch_Reset(u32 *search);
 }

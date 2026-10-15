@@ -44,4 +44,14 @@ void __cdecl Vec3_Normalize(float *v) {
     v[1] = y;
     v[2] = z;
 }
+
+void __cdecl Vec3_NormalizeXZ(float *v) {
+    const X87Reg sum = X87Reg(v[0]) * v[0] + X87Reg(v[2]) * v[2];
+    const float length = (float)(sum.v != sum.v ? sum.v : X87_Round(std::sqrt(sum.v)));
+    const float x = (float)(X87Reg(v[0]) / length), y = (float)(X87Reg(v[1]) / length);
+    const float z = (float)(X87Reg(v[2]) / length);
+    v[0] = x;
+    v[1] = y;
+    v[2] = z;
+}
 }

@@ -9,10 +9,6 @@
 
 extern "C" {
 
-// 0x43b050: +0x14 of the first entry in the list at 0x790fe0 (linked by +0x18) whose +0x24
-// is key, else 0.
-u32 __cdecl CoasterLink_Find(u32 key);
-
 // 0x43b0e0: appends peep to coaster index's queue when count + reserved is below the
 // capacity (else nothing).
 void __cdecl Coaster_QueuePush(u32 index, u32 peep);

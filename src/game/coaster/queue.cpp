@@ -39,12 +39,6 @@ u32 take(u8 *ring) {
 
 extern "C" {
 
-u32 __cdecl CoasterLink_Find(u32 key) {
-    for (const u8 *link = *reinterpret_cast<u8 **>(0x00790fe0); link; link = at<const u8 *>(link, 0x18))
-        if (at<u32>(link, 0x24) == key) return at<u32>(link, 0x14);
-    return 0;
-}
-
 void __cdecl Coaster_QueuePush(u32 index, u32 peep) { push(queue(coaster_at(index)), peep); }
 
 void __cdecl CoasterQueue_Add(u8 *coaster, u32 peep) {

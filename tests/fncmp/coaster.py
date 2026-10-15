@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -117,7 +117,7 @@ def nan_pair(r, buf, offsets, p=0.25):
 
 
 def helpers(r, op):
-    if op in ('Dot', 'Normalize'):
+    if op in ('Dot', 'Normalize', 'NormXZ'):
         a, b = (r.floats(r.bytes(12), range(0, 12, 4)) for _ in range(2))
         if r.random() < 0.2:  # tiny or huge: the registers' range shows
             put(a, 0, 'fff', *(r.choice([1e-30, 3e-25, 1e25, 2e30, 3e38, 1e-39, 1e-42]) * r.uniform(-1, 1) for _ in range(3)))
@@ -125,7 +125,7 @@ def helpers(r, op):
         if op == 'Dot':
             ab = nan_pair(r, a + b, range(0, 24, 4))
             return Call(0x43a970, [OUT, OUT + 12], {OUT: ab}, ret='d')
-        return Call(0x43a9a0, [OUT], {OUT: a})
+        return Call(0x43a9a0 if op == 'Normalize' else 0x4387a0, [OUT], {OUT: a})
     if op == 'RoundUp':
         x = r.choice([r.f(), fb(r.randrange(-50, 50) + r.choice([0, 0, 0.5, r.random()])), fb(-0.25), fb(2 ** 40)])
         return Call(0x43e160, [x], {}, ret='a')
@@ -396,12 +396,52 @@ def cursor(r, op):
     return Call(0x440bc0, [OUT, r.choice([fb(r.random()), fb(0.0), fb(1.0), r.f()]), YAW], regs)
 
 
+def registry(r, op):
+    if op == 'Count':
+        return Call(0x438720, [], {0x792214: r.bytes(4)}, ret='a')
+    if op == 'LinkNodes':
+        links, n = r.bytes(0x400), r.randrange(1, 8)
+        for k in range(n):
+            put(links, k * 0x60 + 0x18, 'I', NODES + (k + 1) * 0x60 if k + 1 < n else 0)
+            put(links, k * 0x60 + 0x54, 'I', SPL + k * 0x100)
+        spl = r.bytes(0x800)
+        for k in range(n):
+            put(spl, k * 0x100 + 0x90, 'I', SPL + k * 0x100 + 0x80)
+        out = r.choice([0, OUT])
+        return Call(0x438730, [r.randrange(n), out], {NODES: links, SPL: spl, OUT: r.bytes(4),
+                                                     0x790fe0: put(bytearray(4), 0, 'I', NODES)}, ret='a')
+    if op == 'Pair':
+        index = r.randrange(4)
+        return Call(0x43e0b0, [index, OUT, OUT + 4], {COAST: r.bytes(0x200), OUT: r.bytes(8),
+                                                     0x790bd0: put(r.bytes(16), index * 4, 'I', COAST)})
+    if op == 'EntryPos':
+        index, slot = r.randrange(4), r.randrange(6)
+        ride, a, b, entries, objs = r.bytes(0x10), r.bytes(0x30), r.bytes(8), r.bytes(6 * 0x14), r.bytes(0x100)
+        put(ride, 8, 'I', NODES)
+        put(a, 0x28, 'I', SPL)
+        put(b, 4, 'I', FORCE)
+        put(entries, slot * 0x14 + 4, 'I', r.choice([0, YAW]))
+        put(objs, 0x30, 'III', r.f(), r.f(), r.f())
+        return Call(0x4386d0, [index, OUT, OUT + 4], {COAST: ride, NODES: a, SPL: b, FORCE: entries, YAW: objs,
+                                                     OUT: put(r.bytes(16), 0, 'I', slot),
+                                                     0x7a4610: put(r.bytes(16), index * 4, 'I', COAST)})
+    if op == 'SearchReset':
+        return Call(0x43ea90, [OUT], {OUT: r.bytes(0x20)})
+    # PieceAt: a chain of pieces on through +0x64
+    pieces, n = r.bytes(0x800), r.randrange(1, 8)
+    for k in range(n):
+        put(pieces, k * 0x100 + 0x64, 'I', NODES + (k + 1) % n * 0x100)
+    return Call(0x43e520, [COAST, r.randrange(12)], {COAST: put(r.bytes(0x20), 0x18, 'I', NODES), NODES: pieces}, ret='a')
+
+
 KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 'Tangent': spline, 'Set': orient,
          'Init': orient, 'Frame': frame, 'At': frame,
-         'RoundUp': helpers, 'Lerp': helpers, 'Dot': helpers, 'Normalize': helpers, 'Swing': cars, 'Space': cars, 'Segs': cars, 'Extent': cars, 'Drop': cars, 'Window': cars, 'InWindow': cars, 'Dist': cars,
+         'RoundUp': helpers, 'Lerp': helpers, 'Dot': helpers, 'Normalize': helpers, 'NormXZ': helpers, 'Swing': cars, 'Space': cars, 'Segs': cars, 'Extent': cars, 'Drop': cars, 'Window': cars, 'InWindow': cars, 'Dist': cars,
          'NodeLerp': nodes, 'PastEnd': nodes, 'Zone': nodes, 'Merge': keys, 'Append': lists,
          'Link': queue, 'QPush': queue, 'QAdd': queue, 'QRoom': queue, 'QPop': queue, 'QAdvance': queue,
-         'CNext': cursor, 'CPrev': cursor, 'CPoint': cursor}
+         'CNext': cursor, 'CPrev': cursor, 'CPoint': cursor,
+         'Count': registry, 'LinkNodes': registry, 'Pair': registry, 'EntryPos': registry, 'SearchReset': registry,
+         'PieceAt': registry}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 

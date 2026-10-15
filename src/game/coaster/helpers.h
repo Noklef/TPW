@@ -25,4 +25,8 @@ double __cdecl Vec3_Dot(const float *a, const float *b);
 // 0x43a9a0: v over its length (rounded to a float first), in place.
 // sic: a zero vector becomes NaNs.
 void __cdecl Vec3_Normalize(float *v);
+
+// 0x4387a0: v over the length of its x and z alone (rounded to a float first), y too, in
+// place. sic: a vertical vector becomes NaNs or infinities.
+void __cdecl Vec3_NormalizeXZ(float *v);
 }

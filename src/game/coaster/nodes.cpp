@@ -45,4 +45,9 @@ u32 __cdecl Coaster_FindZone(const u8 *owner, u32, const float *pos, float t) {
     }
     return found ? found : at<u32>(boxes, count * 0x2c - 0xc);
 }
+
+void __cdecl CoasterSearch_Reset(u32 *search) {
+    for (int i = 0; i < 7; ++i) search[i] = 0;
+    search[7] = 0x7f7fffff;
+}
 }

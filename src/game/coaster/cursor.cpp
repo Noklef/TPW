@@ -68,4 +68,10 @@ void __cdecl TrackCursor_Prev(u32 *c) {
 void __cdecl TrackCursor_Point(const u32 *c, float t, Vec3 *out) {
     TrackSpline_Point(node(c[kStartPiece], c[kStart]), node(c[kEndPiece], c[kEnd]), t, out);
 }
+
+u32 __cdecl Track_PieceAt(const u8 *track, u32 n) {
+    u32 piece = at<u32>(track, 0x18);
+    for (; n != 0; --n) piece = next(piece);
+    return piece;
+}
 }

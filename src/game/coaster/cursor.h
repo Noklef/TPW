@@ -24,4 +24,7 @@ void __cdecl TrackCursor_Prev(u32 *cursor);
 
 // 0x440bc0: TrackSpline_Point between the cursor's two nodes at t.
 void __cdecl TrackCursor_Point(const u32 *cursor, float t, Vec3 *out);
+
+// 0x43e520: piece n of the track: from its first (+0x18), n steps on (+0x64).
+u32 __cdecl Track_PieceAt(const u8 *track, u32 n);
 }

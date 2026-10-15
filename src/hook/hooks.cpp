@@ -69,7 +69,8 @@
 #include "../game/coaster/cars.h"
 #include "../game/coaster/nodes.h"
 #include "../game/coaster/queue.h"
-#include "../game/coaster/cursor.h"
+#include "../game/coaster/cursor.h"
+#include "../game/coaster/registry.h"
 #include "../game/coaster/spline.h"
 #include "../game/terrain/terrain_blend.h"
 #include "../game/world/random.h"
@@ -719,6 +720,7 @@ const Hook kHooks[] = {
     {"Angle_Lerp",                0x0043e480, (void *)&Angle_Lerp, {0x51, 0xd9, 0x44, 0x24, 0x08}},
     {"Vec3_Dot",                  0x0043a970, (void *)&Vec3_Dot, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Vec3_Normalize",            0x0043a9a0, (void *)&Vec3_Normalize, {0x83, 0xec, 0x08, 0x8b, 0x44}},
+    {"Vec3_NormalizeXZ",          0x004387a0, (void *)&Vec3_NormalizeXZ, {0x83, 0xec, 0x08, 0x8b, 0x44}},
     {"CoasterCar_SwingRate",      0x0043c160, (void *)&CoasterCar_SwingRate, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
     {"Coaster_SpaceCars",         0x0043c1f0, (void *)&Coaster_SpaceCars, {0x83, 0xec, 0x1c, 0x53, 0x55}},
     {"CoasterCar_SetSegmentOffsets", 0x0043bc20, (void *)&CoasterCar_SetSegmentOffsets, {0x8b, 0x4c, 0x24, 0x08, 0x53}},
@@ -729,9 +731,14 @@ const Hook kHooks[] = {
     {"CoasterNode_Lerp",          0x0043c000, (void *)&CoasterNode_Lerp, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Coaster_IsPastEnd",         0x0043c080, (void *)&Coaster_IsPastEnd, {0x8b, 0x44, 0x24, 0x04, 0xd9}},
     {"Coaster_FindZone",          0x0043e9c0, (void *)&Coaster_FindZone, {0x51, 0x8b, 0x44, 0x24, 0x08}},
+    {"CoasterSearch_Reset",       0x0043ea90, (void *)&CoasterSearch_Reset, {0x8b, 0x44, 0x24, 0x04, 0x33}},
     {"Keys_MergeSamples",         0x0043f030, (void *)&Keys_MergeSamples, {0x8b, 0x54, 0x24, 0x0c, 0x83}},
     {"CoasterList_Append",        0x0043fcd0, (void *)&CoasterList_Append, {0xa1, 0x18, 0x22, 0x79, 0x00}},
     {"CoasterLink_Find",          0x0043b050, (void *)&CoasterLink_Find, {0xa1, 0xe0, 0x0f, 0x79, 0x00}},
+    {"Coaster_Count",             0x00438720, (void *)&Coaster_Count, {0xa1, 0x14, 0x22, 0x79, 0x00}},
+    {"CoasterLink_Nodes",         0x00438730, (void *)&CoasterLink_Nodes, {0x8b, 0x4c, 0x24, 0x04, 0xa1}},
+    {"Coaster_GetPair",           0x0043e0b0, (void *)&Coaster_GetPair, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Ride_EntryPosition",        0x004386d0, (void *)&Ride_EntryPosition, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Coaster_QueuePush",         0x0043b0e0, (void *)&Coaster_QueuePush, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"CoasterQueue_Add",          0x0043b130, (void *)&CoasterQueue_Add, {0x8b, 0x4c, 0x24, 0x04, 0x56}},
     {"Coaster_QueueRoom",         0x0043b1f0, (void *)&Coaster_QueueRoom, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
@@ -740,6 +747,7 @@ const Hook kHooks[] = {
     {"TrackCursor_Next",          0x00440ad0, (void *)&TrackCursor_Next, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"TrackCursor_Prev",          0x00440b50, (void *)&TrackCursor_Prev, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"TrackCursor_Point",         0x00440bc0, (void *)&TrackCursor_Point, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"Track_PieceAt",             0x0043e520, (void *)&Track_PieceAt, {0x8b, 0x4c, 0x24, 0x08, 0x8b}},
     {"RowReader_Decode",          0x0062fe00, (void *)&RowReader_Decode, {0x6a, 0xff, 0x68, 0x38, 0x2b}},
     {"RowReader_CopyRow",         0x006300c0, (void *)&RowReader_CopyRow, {0x8b, 0xc1, 0x56, 0x57, 0x8b}},
     {"TgaReader_Load",            0x006300f0, (void *)&TgaReader_Load, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
