@@ -49,6 +49,7 @@
 #include "../game/gfx/tga.h"
 #include "../game/core/events.h"
 #include "../game/core/filetime.h"
+#include "../game/core/stdstring.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
 #include "../game/motion/curve.h"
@@ -1031,6 +1032,15 @@ const Hook kHooks[] = {
     {"String_From",              0x005f7dd0, (void *)&String_From, {0x8b, 0x54, 0x24, 0x08, 0x8d}},
     {"String_Mid",               0x005f7e10, (void *)&String_Mid, {0x8b, 0x54, 0x24, 0x08, 0x8d}},
     {"WString_NotEqualsStr",     0x005f7e60, (void *)&WString_NotEqualsStr, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"StdString_Dtor",            0x0045b340, (void *)&StdString_Dtor, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"StdString_AssignSub",       0x0045b380, (void *)&StdString_AssignSub, {0x53, 0x55, 0x56, 0x8b, 0x74}},
+    {"StdString_Tidy",            0x0045b590, (void *)&StdString_Tidy, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"StdString_AssignChars",     0x0045b5e0, (void *)&StdString_AssignChars, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"StdString_Eos",             0x0045b680, (void *)&StdString_Eos, {0x8b, 0x44, 0x24, 0x04, 0x89}},
+    {"StdString_Grow",            0x0045b6a0, (void *)&StdString_Grow, {0x53, 0x56, 0x57, 0x8b, 0x7c}},
+    {"StdString_MaxSize",         0x0045b7c0, (void *)&StdString_MaxSize, {0xb8, 0xfd, 0xff, 0xff, 0xff}},
+    {"StdString_Copy",            0x0045b7d0, (void *)&StdString_Copy, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"StdString_Split",           0x0045b8d0, (void *)&StdString_Split, {0x53, 0x55, 0x8b, 0xe9, 0x33}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

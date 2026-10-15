@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 
+#include "../../src/game/core/stdstring.h"
 #include "../../src/hook/hooks.h"
 
 namespace {
@@ -112,6 +113,31 @@ s32 __fastcall stub_write(u8 *self, void *, const u8 *buffer, u32 count) {
     return (s32)n;
 }
 
+// The heap a case hands the code (tools/fncmp.py heap(), emulated the same way there): a bump
+// allocator whose state is the head of its region at kHeap, +0 next block, +4 a hash of the
+// sizes asked for, +8 frees, +0xc a hash of the freed pointers. Blocks are 16-byte aligned;
+// nothing is reused.
+const u32 kHeap = 0x2e000000;
+
+void *__cdecl heap_alloc(u32 size) {
+    u32 *h = reinterpret_cast<u32 *>((uintptr_t)kHeap);
+    const u32 p = h[0];
+    h[0] = p + ((size + 15) & ~15u);
+    h[1] = h[1] * 33 ^ size;
+    return reinterpret_cast<void *>((uintptr_t)p);
+}
+
+void __cdecl heap_free(void *block) {
+    u32 *h = reinterpret_cast<u32 *>((uintptr_t)kHeap);
+    ++h[2];
+    h[3] = h[3] * 33 ^ (u32)(uintptr_t)block;
+}
+
+// What throws in the game (std::_Xlen, _Xran): a case that gets there reports a crash.
+void __cdecl heap_throw() { RaiseException(0xe0000001, 0, 0, nullptr); }
+
+const StdStringEnv kStdStringEnv = {&heap_alloc, &heap_free, &heap_throw, &heap_throw};
+
 void map_stubs() {
     u8 *p = static_cast<u8 *>(VirtualAlloc((void *)(uintptr_t)kStubs, 0x10000, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE));
     if (!p) fail("cannot map the stubs at", kStubs);
@@ -188,6 +214,7 @@ int main(int argc, char **argv) {
     }
     load_exe(argv[1]);
     map_stubs();
+    StdStrings_SetEnv(&kStdStringEnv);
     static char token[1 << 22];
     for (;;) {
         u32 address, count;

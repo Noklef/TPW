@@ -12,9 +12,9 @@ A test script defines a case generator and calls run():
         return Call(0x43e1b0, [A, B_, r.f(), OUT], {A: node, ...})
     B.main(case)                                # cmd line: CASES SEED [--wild] [--show N]
 
-Call(address, args, regions, conv='c'|'s'|'t'|'f', ret='v'|'a'|'i'|'d'): ret 'a' compares
-EAX, 'i' EAX and EDX, 'd' the double left in st0. Region addresses must be in the game's data
-(0x6e7000-0xfc5200) or at 0x10000000 and up (RAM, ALLOC.. are free slots); anything a case
+Call(address, args, regions, conv='c'|'s'|'t'|'f', ret='v'|'a'|'b'|'i'|'d'): ret 'a' compares
+EAX, 'b' AL (a flag returned over whatever EAX held), 'i' EAX and EDX, 'd' the double left in
+st0. Region addresses must be in the game's data (0x6e7000-0xfc5200) or at 0x10000000 and up (RAM, ALLOC.. are free slots); anything a case
 does not set reads as the exe image there, else zero, in both.
 
 Mutation testing: B.mutants(case, [(path, old, new), ...]) applies each edit to the source
@@ -26,6 +26,10 @@ src/game/math/x87.h). Suites live in tests/fncmp/.
 A case can hand the code a record stream (record_stream(at, cursor, left) is its region):
 reads and writes through its vtable copy from or to cursor, at most left bytes, in both (the
 driver's stubs at STUBS, the emulator's hooks).
+
+A case can hand the code a heap (heap() is its region at HEAP): the same bump allocator in
+both for Mem_Alloc / Mem_Free (and memmove 0x67bb90 in the emulator); _Xlen / _Xran fail the
+case (the driver reports a crash, the emulator raises).
 
 The emulator gets __ftol, modf and _CIfmod stubs; Bench(..., sines=N) also gives both sides
 an N-entry sine table at 0x7b095c (see sintable.h).
@@ -48,6 +52,7 @@ DRIVER = os.path.join(ROOT, 'build', 'tpw_fncmp.exe')
 LISTING = os.path.join(ROOT, '_re', 'text.asm')
 RAM = 0x30000000  # free addresses for case regions: RAM, RAM + 0x1000, ...
 STUBS = 0x2f000000  # the record stream's read and write (driver.cpp's kStubs)
+HEAP = 0x2e000000  # heap(): Mem_Alloc / Mem_Free's blocks (driver.cpp's kHeap)
 
 
 def record_stream(at, cursor, left):
@@ -145,6 +150,39 @@ def slice_listing(ranges):
     return path
 
 
+def heap(size=0x4000):
+    """The heap region: +0 next block, +4 hash of the sizes asked for, +8 frees, +0xc hash of the
+    freed pointers; blocks from +0x10 (16-byte aligned, never reused, filled with 0xcd so code
+    must set what it reads). Code that allocates (Mem_Alloc 0x67acc0, Mem_Free 0x67acb0) gets
+    these in both; give the case this region at HEAP."""
+    return bytearray(struct.pack('<4I', HEAP + 0x10, 0, 0, 0)) + bytearray([0xcd]) * (size - 0x10)
+
+
+def _alloc(e):  # cdecl (size)
+    nxt, h, size = e.u32(HEAP), e.u32(HEAP + 4), e.u32(e.r['ESP'])
+    e.write(HEAP, struct.pack('<2I', (nxt + ((size + 15) & ~15)) & 0xffffffff, (h * 33 ^ size) & 0xffffffff))
+    e.r['EAX'] = nxt
+
+
+def _free(e):  # cdecl (block)
+    frees, h = e.u32(HEAP + 8), e.u32(HEAP + 12)
+    e.write(HEAP + 8, struct.pack('<2I', frees + 1, (h * 33 ^ e.u32(e.r['ESP'])) & 0xffffffff))
+
+
+def _memmove(e):  # cdecl (to, from, n) -> to
+    sp = e.r['ESP']
+    to, frm, n = e.u32(sp), e.u32(sp + 4), e.u32(sp + 8)
+    if n:
+        e.write(to, e.read(frm, n))
+    e.r['EAX'] = to
+
+
+def _throw(name):
+    def hook(e):
+        raise RuntimeError('the original called %s' % name)
+    return hook
+
+
 def _ftol(e):
     x = e.st.pop(0)
     v = int(x) if math.isfinite(x) and -2 ** 63 <= int(x) < 2 ** 63 else -2 ** 63
@@ -172,7 +210,9 @@ class Bench:
     def __init__(self, ranges, sines=None, hooks=None):
         self.emu = x87emu.Emu([slice_listing(ranges)])
         self.emu.hooks.update({0x67a830: _ftol, 0x67b280: _modf, 0x67b24a: _cifmod,
-                               STUBS: _record(False), STUBS + 0x10: _record(True)})
+                               STUBS: _record(False), STUBS + 0x10: _record(True),
+                               0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove,
+                               0x6918f0: _throw('_Xlen'), 0x691ba0: _throw('_Xran')})
         self.emu.hooks.update(hooks or {})
         self.extra = {0x7b095c: sine_table(sines)} if sines else {}
 
@@ -200,7 +240,7 @@ class Bench:
         else:
             return 'step limit'
         st0 = struct.unpack('<Q', struct.pack('<d', e.st[0]))[0] if c.ret == 'd' and e.st else 0
-        head = ['%08x' % e.r['EAX'] if c.ret in 'ai' else '-', '%08x' % e.r['EDX'] if c.ret == 'i' else '-',
+        head = ['%08x' % e.r['EAX'] if c.ret in 'ai' else '%02x' % (e.r['EAX'] & 0xff) if c.ret == 'b' else '-', '%08x' % e.r['EDX'] if c.ret == 'i' else '-',
                 '%016x' % st0 if c.ret == 'd' else '-']
         return head + [e.read(k, len(v)).hex() for k, v in c.regions.items()]
 
@@ -229,7 +269,7 @@ class Bench:
             if len(w) < 3 or w[0] in ('crash', 'nohook', 'fncmp:'):
                 out.append(line)
                 continue
-            out.append([w[0] if c.ret in 'ai' else '-', w[1] if c.ret == 'i' else '-', w[2] if c.ret == 'd' else '-'] + w[3:])
+            out.append([w[0] if c.ret in 'ai' else w[0][-2:] if c.ret == 'b' else '-', w[1] if c.ret == 'i' else '-', w[2] if c.ret == 'd' else '-'] + w[3:])
         if len(out) < len(cases):
             out += ['driver stopped (exit %x): %s' % (p.returncode & 0xffffffff, p.stderr.strip()[:200])] * (len(cases) - len(out))
         return out

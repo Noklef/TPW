@@ -1744,6 +1744,15 @@ address,name,kind,confidence,notes
 0x005f8770,App_GetIconId,function,high,"reimplemented (src/game/core/app); cdecl; u16 at 0xfa7618 (never set)"
 0x005f8780,App_GetName,function,high,"reimplemented (src/game/core/app); cdecl; ""Bullfrog"" (0x775708)"
 0x00fa7608,gApp,data,high,"AppState (src/game/core/app): quit, instance, window, wndProc, iconId, active (0xfa761c)"
+0x0045b340,StdString_Dtor,function,high,reimplemented (src/game/core/stdstring); std::string::~basic_string (MSVC6 <xstring>): _Tidy(true)
+0x0045b380,StdString_AssignSub,function,high,"reimplemented (src/game/core/stdstring); std::string::assign(const string &x, pos, n): shares x's block when it is all of x; returns this"
+0x0045b590,StdString_Tidy,function,high,"reimplemented (src/game/core/stdstring); std::string::_Tidy(built): frees or unshares the block, empties"
+0x0045b5e0,StdString_AssignChars,function,high,"reimplemented (src/game/core/stdstring); std::string::assign(const char *, n); returns this"
+0x0045b680,StdString_Eos,function,high,reimplemented (src/game/core/stdstring); std::string::_Eos(n): length + terminator
+0x0045b6a0,StdString_Grow,function,high,"reimplemented (src/game/core/stdstring); std::string::_Grow(n, trim): AL = characters to write"
+0x0045b7c0,StdString_MaxSize,function,high,reimplemented (src/game/core/stdstring); std::string::max_size(): 0xfffffffd
+0x0045b7d0,StdString_Copy,function,high,reimplemented (src/game/core/stdstring); std::string::_Copy(n): new block of n | 31 (sic: copies all old chars unclamped)
+0x0045b8d0,StdString_Split,function,high,reimplemented (src/game/core/stdstring); std::string::_Split(): unshares a copy-on-write block
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
