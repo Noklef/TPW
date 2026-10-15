@@ -1205,6 +1205,11 @@ address,name,kind,confidence,notes
 0x00461820,Quickload_Has,function,high,reimplemented (src/game/files/quickload); whether a quickload index lists a name (stricmp); -1 before loading
 0x004618a0,Quickload_Find,function,high,"reimplemented (src/game/files/quickload); the first quickload index listing a name, or -1"
 0x00461920,Quickload_HasStem,function,high,"reimplemented (src/game/files/quickload); Quickload_Has comparing names without extensions (path, index, second)"
+0x00427450,TextScan_IsAlpha,function,high,reimplemented (src/game/files/textscan); 1 when the scanner's character is a letter
+0x00427480,TextScan_IsDigit,function,high,reimplemented (src/game/files/textscan); 1 when the scanner's character is a digit
+0x004274a0,TextScan_IsPunct,function,high,reimplemented (src/game/files/textscan); 1 when the scanner's character is punctuation
+0x004274e0,TextScan_IsBlank,function,high,reimplemented (src/game/files/textscan); 1 when the scanner's character is in no class
+0x00427540,TextScan_Read,function,high,reimplemented (src/game/files/textscan); reads a run of characters in the chosen classes
 0x0055e470,CpuInfo_Ctor,function,medium,"thiscall; CPUID probe (EFLAGS.ID test, then the vendor string and features); SystemInfo's base"
 0x0067df40,CRT_stricmp,function,high,"MSVC CRT _stricmp: A-Z folded, or the locale's tolower when one is set"
 0x00f7a7d0,gCdVolumeLabel,data,medium,"const char *: the CD's volume label, looked for on the CD-ROM drives by the CD check (0x5aa585)"

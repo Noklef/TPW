@@ -29,7 +29,8 @@
 #include "../game/files/wadsource.h"
 #include "../game/files/bufsource.h"
 #include "../game/files/filestream.h"
-#include "../game/files/quickload.h"
+#include "../game/files/quickload.h"
+#include "../game/files/textscan.h"
 #include "../game/math/matrix.h"
 #include "../game/math/vector.h"
 #include "../game/math/rect.h"
@@ -701,6 +702,11 @@ const Hook kHooks[] = {
     {"Quickload_Has",             0x00461820, (void *)&Quickload_Has, {0xa1, 0x5c, 0x44, 0x7a, 0x00}},
     {"Quickload_Find",            0x004618a0, (void *)&Quickload_Find, {0xa1, 0x5c, 0x44, 0x7a, 0x00}},
     {"Quickload_HasStem",         0x00461920, (void *)&Quickload_HasStem, {0x81, 0xec, 0x08, 0x02, 0x00}},
+    {"TextScan_IsAlpha",          0x00427450, (void *)&TextScan_IsAlpha, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"TextScan_IsDigit",          0x00427480, (void *)&TextScan_IsDigit, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"TextScan_IsPunct",          0x004274a0, (void *)&TextScan_IsPunct, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"TextScan_IsBlank",          0x004274e0, (void *)&TextScan_IsBlank, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"TextScan_Read",             0x00427540, (void *)&TextScan_Read, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"RegKey_Open",               0x005f8ae0, (void *)&RegKey_Open, {0x51, 0x56, 0x57, 0x8b, 0xf9}},
     {"RegKey_Dtor",               0x005f8b70, (void *)&RegKey_Dtor, {0x51, 0x8d, 0x44, 0x24, 0x00}},
     {"RegKey_Close",              0x005f8b80, (void *)&RegKey_Close, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
