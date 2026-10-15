@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060), (0x442d10, 0x442d70), (0x443ee0, 0x443f40)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -569,6 +569,36 @@ def tiles(r, op):
                  0x790fe0: put(bytearray(4), 0, 'I', CARS if nl else 0)}, ret='a')
 
 
+def current(r, op):
+    """The current link (0x790fec)."""
+    link = r.bytes(0x80)
+    if op == 'End':  # +4 type flag 2; +0x3c flags 1, 2; end pieces +0x58/+0x60 flag 0x80 (+8)
+        put(link, 4, 'I', TYPE)
+        put(link, 0x58, 'I', NODES)
+        put(link, 0x60, 'I', NODES + 0x40)
+        return Call(0x442d10, [], {COAST: link, TYPE: r.bytes(4), NODES: r.bytes(0x80),
+                                   0x79c658: r.bytes(4), 0x79c664: r.bytes(4),
+                                   0x790fec: put(bytearray(4), 0, 'I', r.choice([COAST] * 9 + [0]))})
+    # trains on +0x4c (next +0x28, +4 flag 1, cars +0x30/+0x34), cars' ride index +0x70
+    rides = [r.choice([1, 2, 3, r.getrandbits(32)]) for _ in range(8)]
+    trains, cars = r.bytes(4 * 0x60), r.bytes(12 * 0x80)
+    nt = r.randrange(0, 5)
+    put(link, 0x54, 'I', r.choice([0, 1, r.getrandbits(32)]))
+    put(link, 0x4c, 'I', CARS if nt else 0)
+    for k in range(nt):
+        put(trains, k * 0x60 + 0x28, 'I', CARS + (k + 1) * 0x60 if k + 1 < nt else 0)
+        put(trains, k * 0x60 + 4, 'B', r.choice([0, 1, 2, r.getrandbits(8)]))
+        nc = r.randrange(0, 4)
+        put(trains, k * 0x60 + 0x30, 'I', nc)
+        for j in range(nc):
+            put(trains, k * 0x60 + 0x34 + 4 * j, 'I', NODES + r.randrange(12) * 0x80)
+    for k in range(12):
+        put(cars, k * 0x80 + 0x70, 'I', r.randrange(8))
+    return Call(0x443ee0, [r.choice(rides[:4] + [r.getrandbits(32)])],
+                {COAST: link, CARS: trains, NODES: cars, 0x7a4610: struct.pack('<8I', *rides),
+                 0x790fec: put(bytearray(4), 0, 'I', COAST)}, ret='a')
+
+
 KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 'Tangent': spline, 'Set': orient,
          'Init': orient, 'Frame': frame, 'At': frame,
          'RoundUp': helpers, 'Lerp': helpers, 'Dot': helpers, 'Normalize': helpers, 'NormXZ': helpers, 'Swing': cars, 'Space': cars, 'Segs': cars, 'Setup': cars, 'Riders': cars, 'Extent': cars, 'Drop': cars, 'Window': cars, 'InWindow': cars, 'Dist': cars,
@@ -576,7 +606,7 @@ KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 
          'Link': queue, 'QPush': queue, 'QAdd': queue, 'QRoom': queue, 'QPop': queue, 'QAdvance': queue,
          'CNext': cursor, 'CPrev': cursor, 'CPoint': cursor,
          'Count': registry, 'LinkNodes': registry, 'Pair': registry, 'EntryPos': registry, 'SearchReset': registry,
-         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Pick': train, 'Tile': tiles}
+         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Pick': train, 'Tile': tiles, 'End': current, 'OnRide': current}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 

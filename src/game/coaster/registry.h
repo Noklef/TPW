@@ -29,4 +29,14 @@ void __cdecl Ride_EntryPosition(u32 index, const u32 *slot, float *out);
 // tile key x + y * the map width (0x7a0854 -> +0x6c -> +0x18) and whose byte +4 has neither
 // 1 nor 4 set, else 0; the key to *key when key is not null.
 u8 *__cdecl CoasterLinks_FindTile(u32 x, u32 y, u32 *key);
+
+// 0x442d10: when the current link (0x790fec) has type (+4) flag 2 and its end piece is
+// marked 0x80 (+8) - the +0x60 piece when +0x3c has 1 (then only with 2 too), else the
+// +0x58 one - sets 0x79c664 to 1 and flag 0x40 of 0x79c658.
+void __cdecl CoasterLink_CheckEnd();
+
+// 0x443ee0: the first car, over the current link's (0x790fec) trains (+0x4c, next +0x28;
+// cars: count +0x30, pointers +0x34) not flagged 1 (+4), whose ride (0x7a4610[car+0x70]) is
+// ride, else 0; 0 at once when the link's +0x54 is 0.
+u8 *__cdecl CoasterLink_FindCarOnRide(u32 ride);
 }

@@ -60,4 +60,32 @@ u8 *__cdecl CoasterLinks_FindTile(u32 x, u32 y, u32 *key) {
     if (key) *key = tile;
     return found;
 }
+
+void __cdecl CoasterLink_CheckEnd() {
+    const u8 *link = *reinterpret_cast<const u8 *const *>(0x00790fec);
+    if (!link || !(at<u8>(at<const u8 *>(link, 4), 0) & 2)) return;
+    const u32 flags = at<u32>(link, 0x3c);
+    bool marked;
+    if (flags & 1)
+        marked = (flags & 2) && (at<u8>(at<const u8 *>(link, 0x60), 8) & 0x80);
+    else
+        marked = at<u8>(at<const u8 *>(link, 0x58), 8) & 0x80;
+    if (!marked) return;
+    *reinterpret_cast<u32 *>(0x0079c664) = 1;
+    *reinterpret_cast<u32 *>(0x0079c658) |= 0x40;
+}
+
+u8 *__cdecl CoasterLink_FindCarOnRide(u32 ride) {
+    const u8 *link = *reinterpret_cast<const u8 *const *>(0x00790fec);
+    if (!at<u32>(link, 0x54)) return nullptr;
+    const u32 *rides = reinterpret_cast<const u32 *>(0x007a4610);
+    for (const u8 *train = at<const u8 *>(link, 0x4c); train; train = at<const u8 *>(train, 0x28)) {
+        if (at<u8>(train, 4) & 1) continue;
+        for (u32 i = 0, n = at<u32>(train, 0x30); i < n; ++i) {
+            u8 *car = at<u8 *>(train, 0x34 + 4 * i);
+            if (rides[at<u32>(car, 0x70)] == ride) return car;
+        }
+    }
+    return nullptr;
+}
 }
