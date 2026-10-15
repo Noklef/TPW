@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "../../src/game/core/stdstring.h"
+#include "crt.h"
 #include "../../src/hook/hooks.h"
 
 namespace {
@@ -170,6 +171,8 @@ void map_stubs() {
 void *find(u32 address) {
     for (std::size_t i = 0; i < tpw::hook::kHookCount; ++i)
         if (tpw::hook::kHooks[i].address == address) return tpw::hook::kHooks[i].replacement;
+    for (u32 i = 0; i < kCrtStandInCount; ++i)
+        if (kCrtStandIns[i].address == address) return kCrtStandIns[i].fn;
     return nullptr;
 }
 
@@ -232,6 +235,7 @@ int main(int argc, char **argv) {
     load_exe(argv[1]);
     map_stubs();
     StdStrings_SetEnv(&kStdStringEnv);
+    Crt_SetEnv(&kDriverCrt);
     static char token[1 << 22];
     for (;;) {
         u32 address, count;

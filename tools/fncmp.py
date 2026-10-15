@@ -54,6 +54,8 @@ import x87emu  # noqa: E402
 
 EXE = os.path.join(ROOT, '.data', 'nocd', 'tp.exe')
 DRIVER = os.path.join(ROOT, 'build', 'tpw_fncmp.exe')
+MUT = os.path.join(ROOT, 'build', 'mut')  # mutants: a copy of the sources (tree) and its build (out)
+MIRRORED = ('CMakeLists.txt', 'src', 're', 'tests', os.path.join('tools', 'fncmp'))
 LISTING = os.path.join(ROOT, '_re', 'text.asm')
 RAM = 0x30000000  # free addresses for case regions: RAM, RAM + 0x1000, ...
 STUBS = 0x2f000000  # the record stream's read and write (driver.cpp's kStubs)
@@ -247,6 +249,7 @@ class Bench:
                                0x6918f0: _throw('_Xlen'), 0x691ba0: _throw('_Xran')})
         self.emu.hooks.update(hooks or {})
         self.extra = {0x7b095c: sine_table(sines)} if sines else {}
+        self.driver = DRIVER
         # strict: the original faults, as the driver would, outside the case's regions, the
         # stack and the game's data (and only reads the exe's other sections). STRICT=0 in the
         # environment turns it off.
@@ -304,7 +307,7 @@ class Bench:
             c.address, c.conv, c.ret, len(c.args), ' '.join('%x' % (a & 0xffffffff) for a in c.args), len(c.regions),
             ' '.join('%x %s' % (k, bytes(v).hex()) for k, v in c.regions.items())) for c in cases)
         try:  # a case that loops forever in the C++ would hang the bench
-            p = subprocess.run([DRIVER, EXE], input=inp, capture_output=True, text=True, timeout=600)
+            p = subprocess.run([self.driver, EXE], input=inp, capture_output=True, text=True, timeout=600)
         except subprocess.TimeoutExpired as t:
             p = subprocess.CompletedProcess(t.cmd, 0x102, t.stdout or '', 'timed out')
             p.stdout = p.stdout.decode() if isinstance(p.stdout, bytes) else p.stdout
@@ -361,30 +364,55 @@ class Bench:
         sys.exit(1 if bad else 0)
 
     def mutants(self, gen, edits, n=1500, seed=7, wild=False):
-        """Applies each (path, old, new) edit alone, rebuilds and runs; True where caught."""
+        """Applies each (path, old, new) edit alone to a copy of the sources (build/mut), builds
+        its driver there and runs; True where caught. The working tree and build/ are untouched."""
+        tree = mirror()
+        out = os.path.join(MUT, 'out')
         results = []
         for path, old, new in edits:
-            full = path if os.path.isabs(path) else os.path.join(ROOT, path)
+            rel = os.path.relpath(path if os.path.isabs(path) else os.path.join(ROOT, path), ROOT)
+            full = os.path.join(tree, rel)
             src = open(full, newline='').read()
             if src.count(old) != 1:
                 raise ValueError('%s: %r occurs %d times' % (path, old, src.count(old)))
             open(full, 'w', newline='').write(src.replace(old, new))
             try:
-                ok = build()
+                ok = build(tree, out, 'tpw_fncmp')
+                self.driver = os.path.join(out, 'tpw_fncmp.exe')
                 bad = self.run(gen, n, seed, wild, show=0, quiet=True) if ok else None
             finally:
                 open(full, 'w', newline='').write(src)
+                self.driver = DRIVER
             print('%-9s %s: %r -> %r' % ('BUILD ERR' if bad is None else 'caught' if bad else 'SURVIVED',
                                         os.path.basename(path), old[:50], new[:50]))
             results.append(bool(bad))
-        build()
         return results
 
 
-def build():
-    """Runs build.bat; True if it succeeded."""
+def mirror():
+    """Brings build/mut/tree up to the working tree's sources, rewriting only the files that
+    differ (so its build stays incremental); returns its path."""
+    tree = os.path.join(MUT, 'tree')
+    for top in MIRRORED:
+        here = os.path.join(ROOT, top)
+        files = [here] if os.path.isfile(here) else [
+            os.path.join(d, f) for d, _, fs in os.walk(here) if '__pycache__' not in d for f in fs]
+        for f in files:
+            to = os.path.join(tree, os.path.relpath(f, ROOT))
+            data = open(f, 'rb').read()
+            if not os.path.exists(to) or open(to, 'rb').read() != data:
+                os.makedirs(os.path.dirname(to), exist_ok=True)
+                open(to, 'wb').write(data)
+    return tree
+
+
+def build(src=None, out=None, target=None):
+    """Runs build.bat (on another source tree, into another directory, for one target); True if
+    it succeeded."""
+    env = {k: v for k, v in os.environ.items() if k not in ('TPW_SRC', 'TPW_OUT', 'TPW_TARGET')}
+    env.update({k: v for k, v in (('TPW_SRC', src), ('TPW_OUT', out), ('TPW_TARGET', target)) if v})
     p = subprocess.run(['cmd', '/c', os.path.join(ROOT, 'build.bat')], capture_output=True, text=True,
-                       stdin=subprocess.DEVNULL)
+                       stdin=subprocess.DEVNULL, env=env)
     if p.returncode:
         print('\n'.join(l for l in p.stdout.splitlines() if 'error' in l.lower())[:2000])
     return p.returncode == 0

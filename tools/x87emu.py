@@ -134,8 +134,12 @@ class Emu:
         self.c0 = self.c2 = self.c3 = False
         self.cw = 0x007f  # the game's (single precision); FLDCW keeps it, arithmetic stays at 24 bits
         self.zf = self.sf = self.cf = self.of = self.pf = False
+        self.df = False  # the direction flag (STD / CLD): string instructions step down when set
 
     # memory: written bytes first, then the exe image, else zero
+    def dstep(self, n):
+        return -n if self.df else n
+
     def allowed(self, a, write):
         if a >> 16 in self.chunks:
             return True
@@ -486,12 +490,12 @@ class Emu:
         elif mn == 'STOSB.REP':
             while self.r['ECX']:
                 self.write(self.r['EDI'], bytes([self.r['EAX'] & 0xff]))
-                self.r['EDI'] = (self.r['EDI'] + 1) & 0xffffffff
+                self.r['EDI'] = (self.r['EDI'] + self.dstep(1)) & 0xffffffff
                 self.r['ECX'] -= 1
         elif mn == 'SCASB.REPNE':  # the flags are those of the last CMP AL,[EDI] (none when ECX is 0)
             while self.r['ECX']:
                 b, al = self.rb(self.r['EDI']), self.r['EAX'] & 0xff
-                self.r['EDI'] = (self.r['EDI'] + 1) & 0xffffffff
+                self.r['EDI'] = (self.r['EDI'] + self.dstep(1)) & 0xffffffff
                 self.r['ECX'] -= 1
                 self.zf, self.cf, self.sf = al == b, al < b, bool((al - b) & 0x80)
                 if self.zf:
@@ -499,17 +503,23 @@ class Emu:
         elif mn == 'STOSW.REP':
             while self.r['ECX']:
                 self.write(self.r['EDI'], struct.pack('<H', self.r['EAX'] & 0xffff))
-                self.r['EDI'] = (self.r['EDI'] + 2) & 0xffffffff
+                self.r['EDI'] = (self.r['EDI'] + self.dstep(2)) & 0xffffffff
                 self.r['ECX'] -= 1
         elif mn == 'CMPSB.REPE':  # the flags are those of the last CMP [ESI],[EDI] (none when ECX is 0)
             while self.r['ECX']:
                 a, b = self.rb(self.r['ESI']), self.rb(self.r['EDI'])
-                self.r['ESI'] = (self.r['ESI'] + 1) & 0xffffffff
-                self.r['EDI'] = (self.r['EDI'] + 1) & 0xffffffff
+                self.r['ESI'] = (self.r['ESI'] + self.dstep(1)) & 0xffffffff
+                self.r['EDI'] = (self.r['EDI'] + self.dstep(1)) & 0xffffffff
                 self.r['ECX'] -= 1
                 self.flags(a - b, 8, a < b, bool(((a ^ b) & (a ^ (a - b))) & 0x80))
                 if not self.zf:
                     break
+        elif mn in ('STD', 'CLD'):
+            self.df = mn == 'STD'
+        elif mn == 'XCHG':
+            a, b = self.get(o[0]), self.get(o[1])
+            self.put(o[0], b)
+            self.put(o[1], a)
         elif mn == 'LEAVE':
             self.r['ESP'] = self.r['EBP']
             self.r['EBP'] = self.pop()
@@ -518,17 +528,17 @@ class Emu:
         elif mn == 'MOVSB.REP':
             while self.r['ECX']:
                 self.write(self.r['EDI'], self.read(self.r['ESI'], 1))
-                self.r['ESI'] = (self.r['ESI'] + 1) & 0xffffffff
-                self.r['EDI'] = (self.r['EDI'] + 1) & 0xffffffff
+                self.r['ESI'] = (self.r['ESI'] + self.dstep(1)) & 0xffffffff
+                self.r['EDI'] = (self.r['EDI'] + self.dstep(1)) & 0xffffffff
                 self.r['ECX'] -= 1
         elif mn in ('MOVSD.REP', 'STOSD.REP'):
             while self.r['ECX']:
                 if mn == 'MOVSD.REP':
                     self.write(self.r['EDI'], self.read(self.r['ESI'], 4))
-                    self.r['ESI'] = (self.r['ESI'] + 4) & 0xffffffff
+                    self.r['ESI'] = (self.r['ESI'] + self.dstep(4)) & 0xffffffff
                 else:
                     self.write(self.r['EDI'], struct.pack('<I', self.r['EAX']))
-                self.r['EDI'] = (self.r['EDI'] + 4) & 0xffffffff
+                self.r['EDI'] = (self.r['EDI'] + self.dstep(4)) & 0xffffffff
                 self.r['ECX'] -= 1
         elif mn == 'JMP':  # direct, or through a register or a jump table
             return self.get(o[0])

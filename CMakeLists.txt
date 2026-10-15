@@ -16,6 +16,7 @@ add_compile_options(/W4 /permissive- /utf-8)
 add_library(tpw_game STATIC
     src/game/rsse/rsse_vm.cpp
     src/game/core/app.cpp
+    src/game/core/crt.cpp
     src/game/core/fpu.cpp
     src/game/core/libc.cpp
     src/game/core/list.cpp
@@ -153,6 +154,7 @@ target_link_libraries(tpw_tests PRIVATE tpw_game)
 # fixed at the game's image base so absolute game addresses work as they do in tp.exe.
 add_executable(tpw_fncmp
     tools/fncmp/driver.cpp
+    tools/fncmp/crt.cpp
     src/hook/hooks.cpp
     src/hook/patch.cpp
 )
