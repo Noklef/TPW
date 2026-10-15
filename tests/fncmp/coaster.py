@@ -1,12 +1,13 @@
 # src/game/coaster: ratings, track spline, orientation and frame against the originals.
 # usage: coaster.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
+import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x43c0a0, 0x43c3d0), (0x43dbf0, 0x43e980), (0x46f210, 0x46f240), (0x470940, 0x470990)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -153,9 +154,41 @@ def cars(r, op):
     return Call(0x43c1f0, [COAST], {COAST: c, TYPE: t, NODES: nodes, CARS: cs, SPL: spl})
 
 
+
+def nodes(r, op):
+    c = r.bytes(0x200)
+    put(c, 0x9c, 'I', NODES)
+    if op == 'NodeLerp':
+        ns = r.floats(r.bytes(12 * 0x38), [k * 0x38 + o for k in range(12) for o in (4, 8, 0xc)])
+        t = r.choice([fb(r.random()), fb(0.0), fb(1.0), r.f()])
+        return Call(0x43c000, [COAST, r.randrange(11), t, OUT], {COAST: c, NODES: ns, OUT: r.bytes(12)})
+    if op == 'PastEnd':
+        put(c, 0xa8, 'I', r.f(10))
+        x = r.choice([r.f(10), struct.unpack('<I', c[0xa8:0xac])[0]])
+        return Call(0x43c080, [COAST, x], {COAST: c}, ret='a')
+    count = r.randrange(1, 9)
+    boxes = r.bytes(8 * 0x2c)
+    for k in range(8):
+        for j in range(4):
+            lo = r.uniform(-50, 40)
+            put(boxes, k * 0x2c + 8 * j, 'ff', lo, lo + r.uniform(0, 30))
+            if r.random() < 0.05:
+                put(boxes, k * 0x2c + 8 * j + 4 * r.randrange(2), 'I', r.f())
+        put(boxes, k * 0x2c + 0x20, 'I', r.choice([0, r.getrandbits(32)]))
+    put(c, 0x78, 'II', SPL, count)
+    k = r.randrange(8) * 0x2c
+    inside = [struct.unpack_from('<f', boxes, k + 8 * j)[0] + r.uniform(0, 1) for j in range(4)]
+    if r.random() < 0.3:  # a NaN bound on the box the point is in
+        put(boxes, k + 4 * r.randrange(8), 'I', r.choice([0x7fc00000, 0xffc00000]))
+    pos = put(bytearray(16), 0, '4I', r.getrandbits(32), *[fb(v) if r.random() < 0.9 else r.f() for v in inside[1:]])
+    t = fb(inside[0]) if r.random() < 0.9 else r.f()
+    return Call(0x43e9c0, [COAST, r.getrandbits(32), OUT, t], {COAST: c, SPL: boxes, OUT: pos}, ret='a')
+
+
 KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 'Tangent': spline, 'Set': orient,
          'Init': orient, 'Frame': frame, 'At': frame,
-         'RoundUp': helpers, 'Lerp': helpers, 'Swing': cars, 'Space': cars, 'Dist': cars}
+         'RoundUp': helpers, 'Lerp': helpers, 'Swing': cars, 'Space': cars, 'Dist': cars,
+         'NodeLerp': nodes, 'PastEnd': nodes, 'Zone': nodes}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 
