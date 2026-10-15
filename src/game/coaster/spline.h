@@ -33,4 +33,12 @@ void __cdecl TrackSpline_Tangent(const u8 *from, const u8 *to, float t, Vec3 *ou
 // first case, the stored float in the second.
 void __cdecl TrackSpline_Frame(const u8 *nodes, const u8 *flags, const u8 *from, const u8 *to, const u8 *upFrom,
                                const u8 *upTo, float t, Vec3 *out, TrackOrientation *orient);
+
+// 0x43c0a0 (coaster, position, out, orient or null): TrackSpline_Frame at a distance along
+// the track. The spline nodes are lists (next at +0x18, distance at +0x8); the search starts
+// at coaster node (int)position (0x38-byte nodes at coaster +0x9c, spline node at +0x2c, up
+// spline node at +0x30) and walks both lists to the segment whose end is at or past the
+// position, t being the position's fraction of it. A NaN distance or position never gets
+// there (sic: the walk goes round for ever). The coaster's flags are at +0x3c.
+void __cdecl Coaster_FrameAt(u8 *coaster, float position, Vec3 *out, TrackOrientation *orient);
 }

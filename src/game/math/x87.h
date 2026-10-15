@@ -101,3 +101,6 @@ inline X87Reg operator-(X87Reg a, X87Reg b) {
 inline X87Reg operator*(X87Reg a, X87Reg b) {
     return a.v != a.v && b.v != b.v ? X87_Add(a.v, b.v) : X87_Round(a.v * b.v);
 }
+inline X87Reg operator/(X87Reg a, X87Reg b) {
+    return a.v != a.v && b.v != b.v ? X87_Add(a.v, b.v) : X87_Round(a.v / b.v);
+}

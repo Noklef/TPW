@@ -128,3 +128,22 @@ void __cdecl TrackSpline_Frame(const u8 *nodes, const u8 *flags, const u8 *from,
     orient->roll2 = orient->roll;
 }
 }
+
+extern "C" void __cdecl Coaster_FrameAt(u8 *coaster, float position, Vec3 *out, TrackOrientation *orient) {
+    double whole;
+    std::modf((double)position, &whole);  // CRT modf (0x67b280)
+    const u32 i = (u32)(long long)whole;   // __ftol
+    const u8 *nodes = *reinterpret_cast<const u8 *const *>(coaster + 0x9c);
+    auto next = [](const u8 *node) { return *reinterpret_cast<const u8 *const *>(node + 0x18); };
+    const u8 *from = *reinterpret_cast<const u8 *const *>(nodes + i * 0x38 + 0x2c);
+    const u8 *upFrom = *reinterpret_cast<const u8 *const *>(nodes + i * 0x38 + 0x30);
+    const u8 *to = next(from), *upTo = next(upFrom);
+    while (!(field(to, 8) >= position)) {  // unordered counts as below
+        from = to;
+        to = next(to);
+        upFrom = upTo;
+        upTo = next(upTo);
+    }
+    const float t = (float)((X87Reg(position) - field(from, 8)) / (X87Reg(field(to, 8)) - field(from, 8)));
+    TrackSpline_Frame(nodes, coaster + 0x3c, from, to, upFrom, upTo, t, out, orient);
+}
