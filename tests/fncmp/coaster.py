@@ -107,8 +107,18 @@ def frame(r, op):
     return Call(0x43c0a0, [COAST, fb(pos), OUT, o], regs)
 
 
+def helpers(r, op):
+    if op == 'RoundUp':
+        x = r.choice([r.f(), fb(r.randrange(-50, 50) + r.choice([0, 0, 0.5, r.random()])), fb(-0.25), fb(2 ** 40)])
+        return Call(0x43e160, [x], {}, ret='a')
+    a, b = (r.choice([r.f(4), r.f(), fb(r.uniform(-3.2, 3.2)), fb(r.uniform(-7, 7))]) for _ in range(2))
+    t = r.choice([fb(r.random()), fb(0.0), fb(1.0), r.f()])
+    return Call(0x43e480, [a, b, t], {}, ret='d')
+
+
 KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 'Tangent': spline, 'Set': orient,
-         'Init': orient, 'Frame': frame, 'At': frame}
+         'Init': orient, 'Frame': frame, 'At': frame,
+         'RoundUp': helpers, 'Lerp': helpers}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 

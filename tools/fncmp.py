@@ -12,8 +12,8 @@ A test script defines a case generator and calls run():
         return Call(0x43e1b0, [A, B_, r.f(), OUT], {A: node, ...})
     B.main(case)                                # cmd line: CASES SEED [--wild] [--show N]
 
-Call(address, args, regions, conv='c'|'s'|'t'|'f', ret='v'|'i'|'d'): ret 'i' compares EAX
-(and EDX), 'd' the double left in st0. Region addresses must be in the game's data
+Call(address, args, regions, conv='c'|'s'|'t'|'f', ret='v'|'a'|'i'|'d'): ret 'a' compares
+EAX, 'i' EAX and EDX, 'd' the double left in st0. Region addresses must be in the game's data
 (0x6e7000-0xfc5200) or at 0x10000000 and up (RAM, ALLOC.. are free slots); anything a case
 does not set reads as the exe image there, else zero, in both.
 
@@ -135,9 +135,12 @@ def _modf(e):  # modf(double x, double *whole): args at [ESP] (hooks see no retu
     e.st.insert(0, frac)
 
 
-def _cifmod(e):  # _CIfmod: st1 fmod st0, popping both
-    y, x = e.st.pop(0), e.st.pop(0)
-    e.st.insert(0, math.fmod(x, y) if math.isfinite(x) and y != 0 and not math.isnan(y) else x87emu.INDEFINITE)
+def _cifmod(e):  # _CIfmod: st1 fmod st0, popping both; NaNs come through as from fprem
+    y, x = e.st.pop(0), e.st.pop(0)  # (assumed: the CRT's dispatcher, 0x6843e0, is not emulated)
+    if math.isnan(x) or math.isnan(y):
+        e.st.insert(0, x87emu.farith(None, x, y))
+    else:
+        e.st.insert(0, math.fmod(x, y) if math.isfinite(x) and y != 0 else x87emu.INDEFINITE)
 
 
 class Bench:
@@ -171,7 +174,7 @@ class Bench:
         else:
             return 'step limit'
         st0 = struct.unpack('<Q', struct.pack('<d', e.st[0]))[0] if c.ret == 'd' and e.st else 0
-        head = ['%08x' % e.r['EAX'] if c.ret == 'i' else '-', '%08x' % e.r['EDX'] if c.ret == 'i' else '-',
+        head = ['%08x' % e.r['EAX'] if c.ret in 'ai' else '-', '%08x' % e.r['EDX'] if c.ret == 'i' else '-',
                 '%016x' % st0 if c.ret == 'd' else '-']
         return head + [e.read(k, len(v)).hex() for k, v in c.regions.items()]
 
@@ -196,7 +199,7 @@ class Bench:
             if len(w) < 3 or w[0] in ('crash', 'nohook', 'fncmp:'):
                 out.append(line)
                 continue
-            out.append([w[0] if c.ret == 'i' else '-', w[1] if c.ret == 'i' else '-', w[2] if c.ret == 'd' else '-'] + w[3:])
+            out.append([w[0] if c.ret in 'ai' else '-', w[1] if c.ret == 'i' else '-', w[2] if c.ret == 'd' else '-'] + w[3:])
         if len(out) < len(cases):
             out += ['driver stopped (exit %x): %s' % (p.returncode & 0xffffffff, p.stderr.strip()[:200])] * (len(cases) - len(out))
         return out
