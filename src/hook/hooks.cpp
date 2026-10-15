@@ -89,6 +89,7 @@
 #include "../game/model/highlight.h"
 #include "../game/model/partstate.h"
 #include "../game/model/remap.h"
+#include "../game/model/clone.h"
 #include "../game/model/scratch.h"
 #include "../game/render/frame.h"
 #include "../game/render/mode.h"
@@ -1101,6 +1102,7 @@ const Hook kHooks[] = {
     {"PartStates_Update",         0x0044ab30, (void *)&PartStates_Update, {0x83, 0xec, 0x40, 0x56, 0x8b}},
     {"Model_AllocVertexScratch",  0x00450e60, (void *)&Model_AllocVertexScratch, {0xa1, 0xd0, 0xf7, 0x79, 0x00}},
     {"Model_FreeVertexScratch",   0x00450e80, (void *)&Model_FreeVertexScratch, {0xa1, 0xe0, 0xf7, 0x79, 0x00}},
+    {"Holder_Clone",              0x00454a10, (void *)&Holder_Clone, {0x83, 0xec, 0x28, 0x8b, 0x44}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
