@@ -1748,3 +1748,4 @@ address,name,kind,confidence,notes
 0x00700140,JpegCodec_vtable,data,high,"JpegCodec (0x42c: vtable, SurfaceInfo, palette[256]): 0x47e750 deleting dtor, GetInfo, Load, IsJpeg"
 0x00faa298,gFormatPal8,data,high,"masks 0, 8 bits, paletted (set at 0x6316c2)"
 0x00faa2b0,gFormatRgb555,data,high,"masks 7c00/3e0/1f, 16 bits (set at 0x631702); the TGA reader's 15- and 16-bit format"
+0x0043bc20,CoasterCar_SetSegmentOffsets,function,high,"reimplemented (src/game/coaster/cars); cdecl (coaster, car): each car segment (0x60 bytes at +0x28) at its distance from the middle one (+0x2c) in +0x38, and that over coaster+0xac in +0x3c; lengths from the car type by segment index (first, middle, last)"

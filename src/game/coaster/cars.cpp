@@ -66,4 +66,32 @@ void __cdecl Coaster_SpaceCars(u8 *coaster) {
         before = car;
     }
 }
+
+void __cdecl CoasterCar_SetSegmentOffsets(const u8 *coaster, u8 *car) {
+    const u8 *type = at<const u8 *>(car, 4);
+    const auto segment = [car](s32 i) { return at<u8 *>(car, 0x28) + i * 0x60; };
+    const auto length = [car, type](const u8 *seg) {
+        const u32 i = at<u32>(seg, 8);
+        return at<float>(type, i == 0 ? 0x1c : i == at<u32>(car, 0xc) - 1 ? 0x24 : 0x20);
+    };
+    const auto place = [coaster](u8 *seg, X87Reg offset) {
+        at<float>(seg, 0x38) = (float)offset;
+        at<float>(seg, 0x3c) = (float)(offset / at<float>(coaster, 0xac));
+    };
+    const s32 mid = at<s32>(car, 0x2c);
+    at<u32>(segment(mid), 0x38) = 0;
+    at<u32>(segment(mid), 0x3c) = 0;
+    X87Reg sum = 0.0f;
+    for (s32 i = (s32)((u32)mid - 1); i >= 0; --i) {
+        u8 *seg = segment(i);
+        sum = sum + length(seg);
+        place(seg, sum);
+    }
+    sum = 0.0f;
+    for (s32 i = (s32)((u32)mid + 1); i < at<s32>(car, 0xc); ++i) {
+        u8 *seg = segment(i);
+        sum = sum - length(seg);
+        place(seg, sum);
+    }
+}
 }

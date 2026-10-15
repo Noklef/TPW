@@ -25,4 +25,13 @@ double __cdecl CoasterCar_SwingRate(const u8 *coaster, const u8 *car, float x);
 // sic: no cars divides by zero, and a NaN or a node length that is zero or negative never
 // reaches the gap, so the walk loops forever; node indices are not checked.
 void __cdecl Coaster_SpaceCars(u8 *coaster);
+
+// 0x43bc20: sets each of the car's segments (0x60 bytes at car+0x28, count +0xc) at its
+// distance from the middle one (index car+0x2c): +0x38 the running sum of the segment
+// lengths from the middle (exclusive) outwards, positive towards index 0 and negative
+// past it, and +0x3c that over coaster+0xac; the middle one gets zeros. A segment's
+// length is the car's type (+4) +0x1c when its +8 is 0, +0x24 when it is count - 1, else
+// +0x20. The sums stay unrounded (only the stores round).
+// sic: the middle index is not checked against the count.
+void __cdecl CoasterCar_SetSegmentOffsets(const u8 *coaster, u8 *car);
 }

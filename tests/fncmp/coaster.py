@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -130,6 +130,22 @@ def cars(r, op):
                     ret='d')
     if op == 'Dist':
         return Call(0x470940, [SPL, SPL + 12], {SPL: r.floats(r.bytes(24), range(0, 24, 4))}, ret='d')
+    if op == 'Segs':
+        count = r.randrange(0, 13)
+        car, segs = r.bytes(0x100), r.bytes(14 * 0x60)
+        put(car, 4, 'I', TYPE)
+        put(car, 0xc, 'I', count)
+        put(car, 0x28, 'I', SPL)
+        put(car, 0x2c, 'I', r.choice([(count - 1) // 2 if count else 0, r.randrange(max(count, 1)), 0, count]))
+        for k in range(14):
+            put(segs, k * 0x60 + 8, 'I', r.choice([k, k, 0, (count - 1) & 0xffffffff, r.getrandbits(32)]))
+        for o in (0x1c, 0x20, 0x24):
+            put(t, o, 'I', r.f())
+        if r.random() < 0.2:  # two NaNs alike but for the sign: the sum keeps its own (dst wins)
+            put(t, r.choice([0x1c, 0x20, 0x24]), 'I', 0x7fc00000)
+            put(t, r.choice([0x1c, 0x20, 0x24]), 'I', 0xffc00000)
+        put(c, 0xac, 'I', r.f())
+        return Call(0x43bc20, [COAST, CARS], {COAST: c, TYPE: t, CARS: car, SPL: segs})
     # SpaceCars: loop-critical values stay finite and positive, or the walk never ends (sic)
     count, n = r.randrange(2, 13), r.randrange(1, 7)
     length = r.choice([float(count), float(count), count - r.random()])
@@ -223,7 +239,7 @@ def lists(r, op):
 
 KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 'Tangent': spline, 'Set': orient,
          'Init': orient, 'Frame': frame, 'At': frame,
-         'RoundUp': helpers, 'Lerp': helpers, 'Swing': cars, 'Space': cars, 'Dist': cars,
+         'RoundUp': helpers, 'Lerp': helpers, 'Swing': cars, 'Space': cars, 'Segs': cars, 'Dist': cars,
          'NodeLerp': nodes, 'PastEnd': nodes, 'Zone': nodes, 'Merge': keys, 'Append': lists}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
