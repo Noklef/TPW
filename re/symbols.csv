@@ -1820,6 +1820,14 @@ address,name,kind,confidence,notes
 0x0046e640,TexDirs_SetCurrent,function,high,reimplemented (src/game/gfx/texdirs); sets the pointer at 0x7b0620
 0x0046e670,TexDirs_Set,function,high,"reimplemented (src/game/gfx/texdirs); sets the three texture directories (base + name + backslash), reusing unchanged strings"
 0x0046ea80,TexDirs_Reset,function,high,reimplemented (src/game/gfx/texdirs); frees the texture directory blocks and clears the table
+0x0047faa0,Gauge_Init,function,high,reimplemented (src/game/gfx/gauge); a framed gauge zeroed
+0x0047fb10,Gauge_SetMarksX,function,high,reimplemented (src/game/gfx/gauge); the gauge's three marks' x
+0x0047fb30,Gauge_SetMarksY,function,high,reimplemented (src/game/gfx/gauge); the gauge's three marks' y
+0x0047fb50,Gauge_SetRect,function,high,reimplemented (src/game/gfx/gauge); the gauge's frame and size
+0x0047fb80,Gauge_SetColour0,function,high,reimplemented (src/game/gfx/gauge); the gauge's colour 0
+0x0047fba0,Gauge_SetColour1,function,high,reimplemented (src/game/gfx/gauge); the gauge's colour 1
+0x0047fbc0,Gauge_SetColour2,function,high,reimplemented (src/game/gfx/gauge); the gauge's colour 2
+0x0047fbe0,Gauge_SetColour3,function,high,reimplemented (src/game/gfx/gauge); the gauge's colour 3
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"

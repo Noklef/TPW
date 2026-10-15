@@ -45,7 +45,8 @@
 #include "../game/gfx/surfbuf.h"
 #include "../game/gfx/pointer.h"
 #include "../game/gfx/color.h"
-#include "../game/gfx/convert.h"
+#include "../game/gfx/convert.h"
+#include "../game/gfx/gauge.h"
 #include "../game/gfx/jpeg.h"
 #include "../game/gfx/imagecodec.h"
 #include "../game/gfx/texdirs.h"
@@ -1076,6 +1077,14 @@ const Hook kHooks[] = {
     {"TexDirs_SetCurrent",        0x0046e640, (void *)&TexDirs_SetCurrent, {0x8b, 0x44, 0x24, 0x04, 0xa3}},
     {"TexDirs_Set",               0x0046e670, (void *)&TexDirs_Set, {0xa1, 0x80, 0xd9, 0x74, 0x00}},
     {"TexDirs_Reset",             0x0046ea80, (void *)&TexDirs_Reset, {0xa1, 0x28, 0x06, 0x7b, 0x00}},
+    {"Gauge_Init",                0x0047faa0, (void *)&Gauge_Init, {0x8b, 0xc1, 0x33, 0xc9, 0x88}},
+    {"Gauge_SetMarksX",           0x0047fb10, (void *)&Gauge_SetMarksX, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"Gauge_SetMarksY",           0x0047fb30, (void *)&Gauge_SetMarksY, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"Gauge_SetRect",             0x0047fb50, (void *)&Gauge_SetRect, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"Gauge_SetColour0",          0x0047fb80, (void *)&Gauge_SetColour0, {0x8b, 0x44, 0x24, 0x04, 0x8a}},
+    {"Gauge_SetColour1",          0x0047fba0, (void *)&Gauge_SetColour1, {0x8b, 0x44, 0x24, 0x04, 0x8a}},
+    {"Gauge_SetColour2",          0x0047fbc0, (void *)&Gauge_SetColour2, {0x8b, 0x44, 0x24, 0x04, 0x8a}},
+    {"Gauge_SetColour3",          0x0047fbe0, (void *)&Gauge_SetColour3, {0x8b, 0x44, 0x24, 0x04, 0x8a}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
