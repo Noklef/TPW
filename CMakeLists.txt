@@ -99,6 +99,7 @@ add_library(tpw_game STATIC
     src/game/model/parts.cpp
     src/game/model/holder.cpp
     src/game/model/remap.cpp
+    src/game/model/highlight.cpp
     src/game/render/mode.cpp
     src/game/render/frame.cpp
 )

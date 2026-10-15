@@ -1,5 +1,6 @@
 # 0x448000-0x470000 (render mode, model part tables, frame globals, model holders, the terrain
-# attribute grid, procedural terrain textures, painting cells, texture remaps) against the originals.
+# attribute grid, procedural terrain textures, painting cells, texture remaps, the highlight)
+# against the originals.
 # usage: scene.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -10,10 +11,12 @@ from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x44a590, 0x44a640), (0x44b140, 0x44b2e0), (0x44b3c0, 0x44b410), (0x44e570, 0x44e5fc),
            (0x4587b0, 0x4587d9), (0x45bed0, 0x45bf13), (0x450420, 0x45046d), (0x450a30, 0x450a78),
-           (0x450b00, 0x450b24), (0x457a00, 0x457a88), (0x46de00, 0x46e125), (0x56dfb0, 0x56dfdd)])
+           (0x450b00, 0x450b24), (0x457a00, 0x457a88), (0x46de00, 0x46e125), (0x56dfb0, 0x56dfdd),
+           (0x45d620, 0x45d68c), (0x469180, 0x469405), (0x469470, 0x469507)])
 HOLDER, MODEL, PARTS, FACES, FACES2 = (RAM + k * 0x1000 for k in range(5))
 REF, H2, MAT, SLOTS, MAP, GRID, CELLS, GRID2, CELLS2, OUT = (RAM + k * 0x1000 for k in range(5, 15))
 SETS, ENTRIES, TILES, MDL, MESHES, MFACES, REMAP = (RAM + k * 0x1000 for k in range(15, 22))
+HL, VERTS, HLBUF, SAVED = (RAM + k * 0x1000 for k in range(22, 26))
 
 
 def mode(r, op):
@@ -195,12 +198,48 @@ def remap(r, op):
     return Call(0x46de00, [MDL, REMAP, r.getrandbits(32), r.choice([0, 1, r.randrange(1000), -5]), r.getrandbits(32)], regs)
 
 
+def highlight(r, op):
+    """Holders A (HL) and B (HL + 0x40): +4 flags, +8 -> HL + 0x80 / 0xc0, whose +4 -> model at
+    HL + 0x100 / 0x180 (+0x30 flags, +0x44 meshes at +0x70 -> HL + 0x200 / 0x400); a mesh's +0x64
+    -> VERTS + 0x100 * k. Globals: current 0x7a1ce0, target 0x7afda0, suspended 0x7afda4, buffer
+    0x7afd00 -> HLBUF, saved pointers 0x7afd94 -> SAVED."""
+    hl = bytearray(r.bytes(0x1000))
+    a, b = HL, HL + 0x40
+    for k, h in enumerate((a, b)):
+        o = h - HL
+        flags = r.getrandbits(32) & ~0x4020000 | r.choice([0, 0x20000]) | r.choice([0, 0x4000000])
+        put(hl, o + 4, '2I', flags, HL + 0x80 + 0x40 * k)
+        put(hl, 0x84 + 0x40 * k, 'I', HL + 0x100 + 0x80 * k)
+        model = 0x100 + 0x80 * k
+        put(hl, model + 0x44, 'H', r.choice([0, 1, 2, 3]))
+        put(hl, model + 0x70, 'I', HL + 0x200 + 0x200 * k)
+        for j in range(3):
+            mesh = 0x200 + 0x200 * k + 0xa0 * j
+            put(hl, mesh, 'I', r.getrandbits(32) & ~0x4000 | r.choice([0, 0, 0x4000]))
+            first, count = r.choice([0, 1, r.randrange(5)]), r.choice([0, 1, r.randrange(7)])
+            put(hl, mesh + 0x5c, '2H', count, first)
+            put(hl, mesh + 0x64, 'I', VERTS + 0x100 * (3 * k + j) if first or r.random() < 0.8 else 0)
+    who = [a, b, 0]
+    regs = {HL: hl, VERTS: r.bytes(0x1000), HLBUF: r.bytes(0x1000), SAVED: r.bytes(0x40),
+            0x7a1ce0: put(bytearray(4), 0, 'I', r.choice(who)), 0x7afda0: put(bytearray(4), 0, 'I', r.choice(who)),
+            0x7afda4: put(bytearray(4), 0, 'I', r.choice([0, 0, 1])), 0x7afd00: put(bytearray(4), 0, 'I', HLBUF),
+            0x7afd94: put(bytearray(4), 0, 'I', SAVED), 0x7a1c7c: r.bytes(4), 0x7afdb0: r.bytes(0x60)}
+    flag = r.choice([0, 1, r.getrandbits(32)])
+    calls = {'HlUpdate': (0x469180, []), 'HlTarget': (0x469340, [r.choice(who)]), 'HlTints': (0x469350, []),
+             'HlClear': (0x469470, []), 'HlCurrent': (0x45d620, []), 'HlShown': (0x45d630, [flag]),
+             'HlSuspend': (0x45d660, [flag])}
+    address, args = calls[op.rstrip('2')]  # HlUpdate2: weighted twice
+    return Call(address, args, regs, ret='a' if op == 'HlCurrent' else 'v')
+
+
 KINDS = {'Size': mode, 'Depth': mode, 'ResetScale': mode, 'Epsilon': mode, 'MarkMask': parts, 'MarkValue': parts,
          'Count': parts, 'Nth': parts, 'Key4': parts, 'Key8': parts, 'ResetBounds': frame, 'AddFlags': frame,
          'SetPoint': frame, 'FlagModel': holder, 'SetPosition': holder, 'SlotKey': holder, 'IsParkLand': land,
          'CopyAttrs': land, 'GridSize': land, 'TexEnable': procedural, 'TexDisable': procedural,
          'ProcEnter': procedural, 'ProcLeave': procedural, 'ProcOn': procedural, 'ProcCells': procedural,
-         'PaintCell': paint, 'PaintCell2': paint, 'Remap': remap}
+         'PaintCell': paint, 'PaintCell2': paint, 'Remap': remap, 'HlUpdate': highlight, 'HlUpdate2': highlight,
+         'HlTarget': highlight, 'HlTints': highlight, 'HlClear': highlight, 'HlCurrent': highlight,
+         'HlShown': highlight, 'HlSuspend': highlight}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 

@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <cstring>
 
+#include "movs.h"
+
 namespace {
 
 const u8 kFrozen = 0xff;
@@ -28,16 +30,6 @@ void empty(StdString *s) {
     s->ptr = nullptr;
     s->len = 0;
     s->res = 0;
-}
-
-// _Tr::copy as inlined: rep movsd, then rep movsb for the rest.
-void rep_movs(char *to, const char *from, u32 n) {
-    for (u32 i = n >> 2; i; --i, to += 4, from += 4) {
-        u32 v;
-        std::memcpy(&v, from, 4);
-        std::memcpy(to, &v, 4);
-    }
-    for (u32 i = n & 3; i; --i) *to++ = *from++;
 }
 
 // erase(p, m) as inlined into assign: shifts the tail down over [p, p + m).
@@ -77,7 +69,7 @@ StdString *__fastcall StdString_AssignSub(StdString *s, void *, const StdString 
     } else {
         if (StdString_MaxSize(s, nullptr) < n) g_env->xlen();
         if (StdString_Grow(s, nullptr, n, 1)) {
-            rep_movs(s->ptr, c_str(x) + pos, n);
+            Rep_Movs(s->ptr, c_str(x) + pos, n);
             StdString_Eos(s, nullptr, n);
         }
     }
@@ -97,7 +89,7 @@ void __fastcall StdString_Tidy(StdString *s, void *, u8 built) {
 StdString *__fastcall StdString_AssignChars(StdString *s, void *, const char *chars, u32 n) {
     if (n > kMaxSize) g_env->xlen();
     if (StdString_Grow(s, nullptr, n, 1)) {
-        rep_movs(s->ptr, chars, n);
+        Rep_Movs(s->ptr, chars, n);
         StdString_Eos(s, nullptr, n);
     }
     return s;
@@ -142,7 +134,7 @@ void __fastcall StdString_Copy(StdString *s, void *, u32 n) {
     if (res > kMaxSize) res = n;
     const u32 size = res + 2;  // allocator::allocate: a negative count asks for 0
     char *block = static_cast<char *>(g_env->alloc((s32)size < 0 ? 0 : size));
-    if (s->len) rep_movs(block + 1, s->ptr, s->len);  // sic: not clamped to res
+    if (s->len) Rep_Movs(block + 1, s->ptr, s->len);  // sic: not clamped to res
     const u32 len = s->len;
     StdString_Tidy(s, nullptr, 1);
     s->ptr = block + 1;

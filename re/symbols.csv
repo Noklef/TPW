@@ -1862,3 +1862,10 @@ address,name,kind,confidence,notes
 0x0045bef0,Holder_SetPosition,function,high,"reimplemented (src/game/model/holder); cdecl (holder, x, y, z): model (+4) matrix (+0x78, +0x10) translation = x, y, z"
 0x004587b0,Ride_SlotKey,function,high,"reimplemented (src/game/model/holder); cdecl u32 (ride, i): slot i's +8 of the ride's holder (0x7a4610), 0 for a null slot"
 0x0046de00,Model_RemapTextures,function,high,"reimplemented (src/game/model/remap); (model, remap, textures, first): face texture pointers and grid cell textures renumbered"
+0x00469180,Highlight_Update,function,high,"reimplemented (src/game/model/highlight); releases the current holder (0x7a1ce0) for another target (0x7afda0), highlights the target: mesh vertex blocks copied into 0x7afd00"
+0x00469340,Highlight_SetTarget,function,high,reimplemented (src/game/model/highlight); 0x7afda0 = holder
+0x00469350,Highlight_ResetTints,function,high,reimplemented (src/game/model/highlight); six RGB at 0x7afdb0 (stride 16) = 1.0; never read
+0x00469470,Highlight_Clear,function,high,reimplemented (src/game/model/highlight); releases the current holder if highlighted (mesh +0x64 back from 0x7afd94)
+0x0045d620,Highlight_Current,function,high,reimplemented (src/game/model/highlight); the current holder 0x7a1ce0
+0x0045d630,Highlight_SetShown,function,high,reimplemented (src/game/model/highlight); 0x7a1c7c = shown && current
+0x0045d660,Highlight_Suspend,function,high,reimplemented (src/game/model/highlight); (on): Highlight_Clear + 0x7afda4 = 1; else 0x7afda4 = 0

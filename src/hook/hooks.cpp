@@ -83,6 +83,7 @@
 #include "../game/world/things.h"
 #include "../game/model/holder.h"
 #include "../game/model/parts.h"
+#include "../game/model/highlight.h"
 #include "../game/model/remap.h"
 #include "../game/render/frame.h"
 #include "../game/render/mode.h"
@@ -1060,6 +1061,13 @@ const Hook kHooks[] = {
     {"Holder_SetPosition",        0x0045bef0, (void *)&Holder_SetPosition, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Holder_FlagModel",          0x0045bed0, (void *)&Holder_FlagModel, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Model_RemapTextures",       0x0046de00, (void *)&Model_RemapTextures, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"Highlight_Update",          0x00469180, (void *)&Highlight_Update, {0x51, 0x53, 0x55, 0x56, 0x8b}},
+    {"Highlight_SetTarget",       0x00469340, (void *)&Highlight_SetTarget, {0x8b, 0x44, 0x24, 0x04, 0xa3}},
+    {"Highlight_ResetTints",      0x00469350, (void *)&Highlight_ResetTints, {0xc7, 0x05, 0xb0, 0xfd, 0x7a}},
+    {"Highlight_Clear",           0x00469470, (void *)&Highlight_Clear, {0x57, 0x8b, 0x3d, 0xe0, 0x1c}},
+    {"Highlight_Current",         0x0045d620, (void *)&Highlight_Current, {0xa1, 0xe0, 0x1c, 0x7a, 0x00}},
+    {"Highlight_SetShown",        0x0045d630, (void *)&Highlight_SetShown, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"Highlight_Suspend",         0x0045d660, (void *)&Highlight_Suspend, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
