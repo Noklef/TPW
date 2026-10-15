@@ -63,7 +63,8 @@
 #include "../game/sprite/sprite.h"
 #include "../game/coaster/orient.h"
 #include "../game/coaster/rating.h"
-#include "../game/coaster/helpers.h"
+#include "../game/coaster/helpers.h"
+#include "../game/coaster/keys.h"
 #include "../game/coaster/cars.h"
 #include "../game/coaster/nodes.h"
 #include "../game/coaster/spline.h"
@@ -718,6 +719,7 @@ const Hook kHooks[] = {
     {"CoasterNode_Lerp",          0x0043c000, (void *)&CoasterNode_Lerp, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Coaster_IsPastEnd",         0x0043c080, (void *)&Coaster_IsPastEnd, {0x8b, 0x44, 0x24, 0x04, 0xd9}},
     {"Coaster_FindZone",          0x0043e9c0, (void *)&Coaster_FindZone, {0x51, 0x8b, 0x44, 0x24, 0x08}},
+    {"Keys_MergeSamples",         0x0043f030, (void *)&Keys_MergeSamples, {0x8b, 0x54, 0x24, 0x0c, 0x83}},
     {"RowReader_Decode",          0x0062fe00, (void *)&RowReader_Decode, {0x6a, 0xff, 0x68, 0x38, 0x2b}},
     {"RowReader_CopyRow",         0x006300c0, (void *)&RowReader_CopyRow, {0x8b, 0xc1, 0x56, 0x57, 0x8b}},
     {"TgaReader_Load",            0x006300f0, (void *)&TgaReader_Load, {0x53, 0x8b, 0x5c, 0x24, 0x10}},

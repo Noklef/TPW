@@ -1258,6 +1258,7 @@ address,name,kind,confidence,notes
 0x0043c000,CoasterNode_Lerp,function,high,"reimplemented (src/game/coaster/nodes); cdecl (coaster, index, t, out): node index's +4 vector t of the way to node index+1's"
 0x0043c080,Coaster_IsPastEnd,function,high,"reimplemented (src/game/coaster/nodes); cdecl (coaster, x): x >= the track length (+0xa8), 0 for NaN"
 0x0043e9c0,Coaster_FindZone,function,high,"reimplemented (src/game/coaster/nodes); cdecl (owner, unused, pos, t): +0x20 of the first of the first count-1 boxes (0x2c bytes at +0x78) holding t and pos[1..3], else the last box's"
+0x0043f030,Keys_MergeSamples,function,high,"reimplemented (src/game/coaster/keys); cdecl (a, b, keys, out, span): n samples start + i/(n-1)*span (start at 0x79240c; n = **(b+0x90) when a == b, else 11) with the key times (0x10-byte keys) between them; returns the count written"
 0x0062fe00,RowReader_Decode,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); rows read ahead (vtable +0 Begin, +4 ReadRow), converted if the formats differ, copied top down or bottom up; a failed row read ends it as success"
 0x006300c0,RowReader_CopyRow,function,high,"reimplemented (src/game/gfx/tga); thiscall; copyBytes from the row buffer to the target, which moves by step; vtable +0xc"
 0x006300f0,TgaReader_Load,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); ReadHeader, then RowReader_Decode"

@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -185,10 +185,28 @@ def nodes(r, op):
     return Call(0x43e9c0, [COAST, r.getrandbits(32), OUT, t], {COAST: c, SPL: boxes, OUT: pos}, ret='a')
 
 
+
+def keys(r, op):
+    start = r.choice([0.0, r.uniform(-5, 5), r.uniform(0, 100)])
+    span = r.choice([r.uniform(0, 20), r.uniform(-5, 5), 0.0, 1.0])
+    n = r.choice([0, 1, 2, 3, r.randrange(2, 20)])
+    same = r.random() < 0.6
+    b = put(r.bytes(0x100), 0x90, 'I', TYPE)
+    ks, t = r.bytes(64 * 0x10), start - r.uniform(0, 3) * r.randrange(3)
+    for k in range(63):  # rising, with repeats and exact sample times
+        t += r.choice([0, r.uniform(0, 1), r.uniform(0, 4)])
+        v = r.choice([t, t, start + span * r.randrange(max(n, 1)) / max(n - 1, 1)])
+        put(ks, k * 0x10, 'f', v)
+    put(ks, 63 * 0x10, 'f', 1e30 if r.random() < 0.9 else float('inf'))
+    regs = {COAST: r.bytes(0x100), SPL: b, TYPE: put(bytearray(4), 0, 'I', n), NODES: ks, OUT: r.bytes(0x600),
+            0x79240c: put(bytearray(4), 0, 'f', start)}
+    return Call(0x43f030, [SPL if same else COAST, SPL, NODES, OUT, fb(span)], regs, ret='a')
+
+
 KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 'Tangent': spline, 'Set': orient,
          'Init': orient, 'Frame': frame, 'At': frame,
          'RoundUp': helpers, 'Lerp': helpers, 'Swing': cars, 'Space': cars, 'Dist': cars,
-         'NodeLerp': nodes, 'PastEnd': nodes, 'Zone': nodes}
+         'NodeLerp': nodes, 'PastEnd': nodes, 'Zone': nodes, 'Merge': keys}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 
