@@ -104,4 +104,12 @@ void __cdecl Flags_SetChanged(u32 *flags, u32 also) {
     *flags |= 1;
     if (also) *flags |= 0x1000;
 }
+
+void __cdecl Flags_SetMoved(u32 *flags, u32 high) { *flags |= high ? 0x80000010 : 0x10; }
+
+void __cdecl Object_GetPosition(const u8 *object, u32 *out) {
+    out[0] = at<u32>(object, 0x30);
+    out[1] = at<u32>(object, 0x34);
+    out[2] = at<u32>(object, 0x38);
+}
 }

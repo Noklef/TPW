@@ -1784,6 +1784,8 @@ address,name,kind,confidence,notes
 0x00441910,Object_LinkOpen,function,high,reimplemented (src/game/coaster/registry); cdecl bool (object): object's link has +0x3c flag 1 without 2
 0x00441940,Object_LinkBare,function,high,reimplemented (src/game/coaster/registry); cdecl bool (object): object's link has no contacts (+0x140 == 0)
 0x00434710,Coasters_GetState,function,high,"reimplemented (src/game/coaster/registry); cdecl (a*, b*, c*, d*): copies 0x79221c, 0x790fd8, 0x79104c, 0x791cf8 out"
+0x00447990,CoasterEdit_Flag1,function,high,reimplemented (src/game/coaster/registry); cdecl u32 (): 0x79c658 & 1
+0x00430ac0,CoasterLink_SetCurrent,function,high,reimplemented (src/game/coaster/registry); cdecl (link): 0x790fec = link
 0x0043b0e0,Coaster_QueuePush,function,high,"reimplemented (src/game/coaster/queue); cdecl (index, peep): appends the peep to the queue ring (+0xb0) of coaster index (table 0x790bd0) when it has room"
 0x0043b130,CoasterQueue_Add,function,high,"reimplemented (src/game/coaster/queue); cdecl (coaster, peep): appends the peep to the queue ring (+0xb0), else to the boarding ring (+0xd0), whichever has room"
 0x0043b1f0,Coaster_QueueRoom,function,high,"reimplemented (src/game/coaster/queue); cdecl (index): the queue ring's limit - reserved - count, at least 0"
@@ -1809,3 +1811,5 @@ address,name,kind,confidence,notes
 0x00434680,CarType_Scale,function,high,"reimplemented (src/game/coaster/train); cdecl double (float length, type): length / (type+0xc0 - type+0xbc)"
 0x004346a0,CarType_Lerp,function,high,"reimplemented (src/game/coaster/train); cdecl double (float t, type): (type+0xc0 - type+0xbc) * t + type+0xbc"
 0x004346c0,Flags_SetChanged,function,high,"reimplemented (src/game/coaster/train); cdecl (flags*, also): *flags |= 1, and 0x1000 when also (after the empty Debug_Printf)"
+0x00433220,Flags_SetMoved,function,high,"reimplemented (src/game/coaster/train); cdecl (flags*, high): *flags |= 0x10, and 0x80000000 when high"
+0x00435710,Object_GetPosition,function,high,"reimplemented (src/game/coaster/train); cdecl (object, out*): out[0..2] = object+0x30..0x38 (dwords, in order)"

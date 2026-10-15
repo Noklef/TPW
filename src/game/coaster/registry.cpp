@@ -165,4 +165,8 @@ void __cdecl Coasters_GetState(u32 *a, u32 *b, u32 *c, u32 *d) {
     *c = *reinterpret_cast<const u32 *>(0x0079104c);
     *d = *reinterpret_cast<const u32 *>(0x00791cf8);
 }
+
+u32 __cdecl CoasterEdit_Flag1() { return *reinterpret_cast<const u32 *>(0x0079c658) & 1; }
+
+void __cdecl CoasterLink_SetCurrent(u8 *link) { *reinterpret_cast<u8 **>(0x00790fec) = link; }
 }

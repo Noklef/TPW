@@ -48,4 +48,10 @@ double __cdecl CarType_Lerp(float t, const u8 *type);
 // 0x4346c0: sets flag 1 of *flags, and 0x1000 too when also is set.
 // (The original first passes flags to the empty Debug_Printf.)
 void __cdecl Flags_SetChanged(u32 *flags, u32 also);
+
+// 0x433220: sets flag 0x10 of *flags, and 0x80000000 too when high is set.
+void __cdecl Flags_SetMoved(u32 *flags, u32 high);
+
+// 0x435710: copies object's position (+0x30, three dwords, in order) to out.
+void __cdecl Object_GetPosition(const u8 *object, u32 *out);
 }

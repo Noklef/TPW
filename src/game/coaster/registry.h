@@ -90,4 +90,10 @@ u32 __cdecl Object_LinkBare(const u8 *object);
 
 // 0x434710: copies 0x79221c, 0x790fd8, 0x79104c and 0x791cf8 to *a, *b, *c and *d.
 void __cdecl Coasters_GetState(u32 *a, u32 *b, u32 *c, u32 *d);
+
+// 0x447990: flag 1 of 0x79c658.
+u32 __cdecl CoasterEdit_Flag1();
+
+// 0x430ac0: sets the current link (0x790fec).
+void __cdecl CoasterLink_SetCurrent(u8 *link);
 }
