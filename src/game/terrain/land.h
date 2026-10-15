@@ -32,4 +32,10 @@ void __cdecl Terrain_PaintCell(const u8 *map, const u8 *sets, s32 x, s32 y, s32 
 // header, then its +4 dwords from +0x28 and its +6 dwords from +0x2c, the copy's pointers
 // moved to them; null when there is no map or grid.
 void __cdecl Terrain_CloneAttrs(const u8 *map, u8 **out);
+
+// 0x466f90: the origin cell of a width x height footprint at (x, y) turned by angle (90, 180
+// or 270; anything else leaves it): 90 steps y on and takes width off it, 180 steps both on
+// and takes width / height off, 270 steps x on and takes height off. The stepped x / y are
+// written back (sic).
+void __cdecl Terrain_RotateFootprint(s32 *x, s32 *y, s32 angle, s32 *outX, s32 *outY, s32 width, s32 height);
 }

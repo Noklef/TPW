@@ -102,4 +102,28 @@ void __cdecl Terrain_CloneAttrs(const u8 *map, u8 **out) {
         std::memcpy(cells, at<const u8 *>(grid, 0x2c), at<u16>(grid, 6) * 4u);
     *out = block;
 }
+
+void __cdecl Terrain_RotateFootprint(s32 *x, s32 *y, s32 angle, s32 *outX, s32 *outY, s32 width, s32 height) {
+    switch (angle) {
+    case 90:
+        ++*y;
+        *outX = *x;
+        *outY = *y - width;
+        break;
+    case 180:
+        ++*x;
+        ++*y;
+        *outX = *x - width;
+        *outY = *y - height;
+        break;
+    case 270:
+        ++*x;
+        *outX = *x - height;
+        *outY = *y;
+        break;
+    default:
+        *outX = *x;
+        *outY = *y;
+    }
+}
 }

@@ -346,6 +346,7 @@ address,name,kind,confidence,notes
 0x00450b00,Terrain_GridSize,function,high,"reimplemented (src/game/terrain/land); cdecl (width*, height*): the attribute grid's width and height"
 0x0046df50,Terrain_PaintCell,function,high,"reimplemented (src/game/terrain/land); (map, sets, x, y, set, tile, rotation): texture + rotation into a grid cell; set 0 tile 8 erases, tile 0x37 restores"
 0x00450950,Terrain_CloneAttrs,function,high,"reimplemented (src/game/terrain/land); *out = a copy of map's attribute grid (+0x6c) in one zeroed block (header, +4 dwords from +0x28, +6 from +0x2c); null without one"
+0x00466f90,Terrain_RotateFootprint,function,high,"reimplemented (src/game/terrain/land); the origin cell of a width x height footprint turned by 90/180/270 (stepped x / y written back, sic)"
 0x0056dfb0,TerrainTex_Enable,function,high,reimplemented (src/game/terrain/procedural); renderer flags 0x8bd550 |= 4 unless 0x10000000
 0x0056dfd0,TerrainTex_Disable,function,high,reimplemented (src/game/terrain/procedural); renderer flags 0x8bd550 &= ~4
 0x00457a00,Terrain_ProceduralEnter,function,high,reimplemented (src/game/terrain/procedural); procedural terrain textures on (0x7a1a8c 0x4000) per option 0x78d8d8
