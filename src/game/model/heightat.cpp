@@ -1,0 +1,86 @@
+#include "heightat.h"
+
+#include <cstdint>
+
+#include "../math/x87.h"
+
+namespace {
+
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>(address); }
+template <typename T> T &at(const void *p, u32 offset) {
+    return *reinterpret_cast<T *>((uintptr_t)p + offset);
+}
+
+X87Reg neg(X87Reg a) { return -a.v; }  // fchs
+
+}  // namespace
+
+extern "C" {
+
+float __cdecl Model_HeightAt(const u8 *model, const u8 *instance, float x, float z, const float *normals, s32 first) {
+    float best = -100.0f;
+    const u32 groups = at<u16>(model, 0x5a);
+    const u8 *group = at<const u8 *>(model, 0x6c);
+    const u8 *const faces = at<const u8 *>(model, 0x70);
+    for (u32 g = 0; g < groups; ++g, group += 0x10) {
+        const u16 *face = reinterpret_cast<const u16 *>(faces + at<u16>(group, 4) * 8);
+        const u8 *verts = global<const u8 *>(0x0079f7e0);
+        if (instance) verts += at<u16>(instance, 0x10) * 12;
+        for (u32 left = at<u16>(group, 6); left; --left, face += 4) {
+            if (!(face[0] & 0x8000)) continue;
+            const float *normal;
+            if (normals) {
+                normal = normals;
+                normals += 3;
+            } else {
+                normal = reinterpret_cast<const float *>(at<const u8 *>(model, 0x64) + (face[0] & 0x7fff) * 12);
+            }
+            const u16 *const remap = at<const u16 *>(model, 0x94);
+            float v[3][3];
+            for (u32 k = 0; k < 3; ++k) {
+                const u32 *const from = reinterpret_cast<const u32 *>(verts + remap[face[1 + k]] * 12);
+                for (u32 c = 0; c < 3; ++c) reinterpret_cast<u32 &>(v[k][c]) = from[c];
+            }
+            bool under = true;
+            for (u32 e = 3; e; --e) {  // edges 2 -> 0, 1 -> 2, 0 -> 1
+                const float *const a = v[e - 1], *const b = v[e % 3];
+                const X87Reg dz = X87Reg(b[2]) - a[2];
+                const X87Reg nx = neg(b[0]) - neg(a[0]);
+                const float dzf = (float)dz;  // through a local
+                const X87Reg c = dz * a[0] + nx * a[2];
+                const X87Reg side = neg(c) + X87Reg(dzf) * x + nx * z;
+                if (!(side.v >= 0.0)) {  // fcomp 0: below, or unordered
+                    under = false;
+                    break;
+                }
+            }
+            if (!under) continue;
+            const float ny = normal[1];
+            X87Reg pa = 0.0, pb = 0.0;  // the normal's z and x, turned with the view
+            switch (at<s32>(global<const u8 *>(0x0079fb18), 0x10)) {
+            case 90:
+                pa = neg(normal[0]);
+                pb = normal[2];
+                break;
+            case 180:
+                pa = neg(normal[2]);
+                pb = neg(normal[0]);
+                break;
+            case 270:
+                pa = normal[0];
+                pb = neg(normal[2]);
+                break;
+            default:
+                pa = normal[2];
+                pb = normal[0];
+                break;
+            }
+            const X87Reg d = pb * v[0][0] + X87Reg(ny) * v[0][1] + pa * v[0][2];
+            const X87Reg h = neg((neg(d) + pb * x + pa * z) / ny);
+            if (h.v > best) best = (float)h;  // fcom: not when below, equal or unordered
+            if (first) return best;
+        }
+    }
+    return best;
+}
+}

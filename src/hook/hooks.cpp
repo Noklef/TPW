@@ -96,7 +96,8 @@
 #include "../game/model/partstate.h"
 #include "../game/model/remap.h"
 #include "../game/model/clone.h"
-#include "../game/model/faces.h"
+#include "../game/model/faces.h"
+#include "../game/model/heightat.h"
 #include "../game/model/release.h"
 #include "../game/model/ridemodel.h"
 #include "../game/model/scratch.h"
@@ -1203,6 +1204,7 @@ const Hook kHooks[] = {
     {"Ride_MarkModel",            0x00461ed0, (void *)&Ride_MarkModel, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Model_TransformBounds",     0x0046ed80, (void *)&Model_TransformBounds, {0x83, 0xec, 0x0c, 0x8b, 0x4c}},
     {"StripAnim_Apply",           0x004543c0, (void *)&StripAnim_Apply, {0x8b, 0x44, 0x24, 0x04, 0x83}},
+    {"Model_HeightAt",            0x00451390, (void *)&Model_HeightAt, {0x83, 0xec, 0x50, 0x8b, 0x4c}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
