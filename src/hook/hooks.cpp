@@ -64,7 +64,8 @@
 #include "../game/motion/uvanim.h"
 #include "../game/motion/vertexanim.h"
 #include "../game/rsse/rsse.h"
-#include "../game/sprite/draw.h"
+#include "../game/sprite/draw.h"
+#include "../game/sprite/screenmatrix.h"
 #include "../game/sprite/script.h"
 #include "../game/sprite/sprite.h"
 #include "../game/coaster/orient.h"
@@ -260,6 +261,7 @@ const Hook kHooks[] = {
     {"Sprite_ActionCount",       0x00541fa0, (void *)&Sprite_ActionCount, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
     {"Sprite_RandomAnim",        0x00541fd0, (void *)&Sprite_RandomAnim, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Sprite_FrameEntry",        0x005423a0, (void *)&Sprite_FrameEntry, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Sprite_ScreenMatrix",       0x00476c50, (void *)&Sprite_ScreenMatrix, {0x55, 0x8b, 0xec, 0x81, 0xec}},
     {"World_Rand",               0x00516330, (void *)&World_Rand, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"World_SetSeed",            0x00516370, (void *)&World_SetSeed, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Things_InitTable",         0x00515f30, (void *)&Things_InitTable, {0x33, 0xd2, 0x56, 0x89, 0x15}},
