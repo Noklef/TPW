@@ -207,3 +207,8 @@ There are no crash dumps, because WER LocalDumps needs admin. The trace's except
   | clean | glitch | G2 |
   | glitch | clean | G3 |
   | glitch | glitch | G4 |
+- 2026-10-15, round 1: `round1-a` clean, `round1-b` clean, so the culprit is in **G1, the 28 `Matrix_` hooks**.
+  Their aliasing behaviour matches the original: `Matrix_Mul` reads `b` live, and `Matrix_PreMul`
+  copies `b` and reads `a` live, as 0x4702d0 does. Round 2 splits the 28 in registry order into
+  groups of 7: G1 Identity..RotateY4, G2 RotateZ4..ScaleAxesV, G3 ScaleAxes..LUDecompose,
+  G4 Invert..PreMul33. Same pattern: `round2-a` switches off G1+G2, `round2-b` switches off G1+G3.
