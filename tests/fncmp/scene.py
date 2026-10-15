@@ -21,7 +21,7 @@ B = Bench([(0x44a590, 0x44b140), (0x44b140, 0x44b2e0), (0x44b3c0, 0x44b410), (0x
            (0x45ba70, 0x45ba92), (0x45bdc0, 0x45bdca), (0x44e510, 0x44e531), (0x473c70, 0x473e30),
            (0x429ee0, 0x429fd4), (0x429fe0, 0x429ff4), (0x45bf20, 0x45bf46), (0x45bf50, 0x45bf83),
            (0x46fad0, 0x46fb41), (0x457e10, 0x457e26), (0x457e30, 0x457e63), (0x452e10, 0x452e63),
-           (0x45ba20, 0x45ba63)], sines=256)
+           (0x45ba20, 0x45ba63), (0x450470, 0x4504b2)], sines=256)
 HOLDER, MODEL, PARTS, FACES, FACES2 = (RAM + k * 0x1000 for k in range(5))
 REF, H2, MAT, SLOTS, MAP, GRID, CELLS, GRID2, CELLS2, OUT = (RAM + k * 0x1000 for k in range(5, 15))
 SETS, ENTRIES, TILES, MDL, MESHES, MFACES, REMAP = (RAM + k * 0x1000 for k in range(15, 22))
@@ -351,6 +351,13 @@ def paint(r, op):
     y = r.choice([r.randrange(h), r.randrange(h), -1, h, r.getrandbits(32)])
     s, t = r.choice([(0, 8), (0, 0x37), (0, r.randrange(16)), (r.randrange(1, max(count, 1) + 3), r.randrange(16))])
     rotation = r.choice([0, 90, 180, 270, 45, r.getrandbits(32)])
+    if op == 'PaintAt':  # through 0x450470: the sets at 0x74c8a8, gated by the map's flag 2 (+0x30)
+        regs[0x74c8a8] = regs[SETS]
+        regs[VEC] = struct.pack('<3I', s, t, rotation)
+        regs[0x79e884] = r.bytes(4)
+        if r.random() < 0.1:
+            regs[0x7a0854] = bytes(4)
+        return Call(0x450470, [x, y, VEC], regs)
     return Call(0x46df50, [MAP, SETS, x, y, s, t, rotation], regs)
 
 
@@ -532,7 +539,7 @@ KINDS = {'Size': mode, 'Depth': mode, 'ResetScale': mode, 'Epsilon': mode, 'Mark
          'ScratchOne': mode, 'ScratchEps': mode, 'GmFlag': mode, 'GmOne': mode, 'GmEps': mode, 'RestoreCells': land, 'IsParkLand': land,
          'Cross': land, 'CopyAttrs': land, 'CloneAttrs': land, 'Footprint': land, 'GridSize': land, 'TexEnable': procedural, 'TexDisable': procedural,
          'ProcEnter': procedural, 'ProcLeave': procedural, 'ProcOn': procedural, 'ProcCells': procedural,
-         'PaintCell': paint, 'PaintCell2': paint, 'Remap': remap, 'HlUpdate': highlight, 'HlUpdate2': highlight,
+         'PaintCell': paint, 'PaintCell2': paint, 'PaintAt': paint, 'Remap': remap, 'HlUpdate': highlight, 'HlUpdate2': highlight,
          'HlTarget': highlight, 'HlCar': highlight, 'HlTints': highlight, 'HlClear': highlight, 'HlCurrent': highlight,
          'HlShown': highlight, 'HlSuspend': highlight, 'HlAlloc': highlight, 'HlFree': highlight,
          'HlFlash': highlight, 'HlFlash2': highlight, 'HlUnflash': highlight, 'HlUnflash2': highlight,

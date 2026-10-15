@@ -350,6 +350,7 @@ address,name,kind,confidence,notes
 0x00450950,Terrain_CloneAttrs,function,high,"reimplemented (src/game/terrain/land); *out = a copy of map's attribute grid (+0x6c) in one zeroed block (header, +4 dwords from +0x28, +6 from +0x2c); null without one"
 0x00466f90,Terrain_RotateFootprint,function,high,"reimplemented (src/game/terrain/land); the origin cell of a width x height footprint turned by 90/180/270 (stepped x / y written back, sic)"
 0x004508b0,Vec3_Cross,function,high,reimplemented (src/game/terrain/land); the cross product of two vectors
+0x00450470,Terrain_PaintAt,function,high,"reimplemented (src/game/terrain/land); paints a cell with the sets 0x74c8a8 when the map has flag 2, then Frame_AddFlags(1)"
 0x0056dfb0,TerrainTex_Enable,function,high,reimplemented (src/game/terrain/procedural); renderer flags 0x8bd550 |= 4 unless 0x10000000
 0x0056dfd0,TerrainTex_Disable,function,high,reimplemented (src/game/terrain/procedural); renderer flags 0x8bd550 &= ~4
 0x00457a00,Terrain_ProceduralEnter,function,high,reimplemented (src/game/terrain/procedural); procedural terrain textures on (0x7a1a8c 0x4000) per option 0x78d8d8
@@ -1831,6 +1832,7 @@ address,name,kind,confidence,notes
 0x0040cf60,KeyMaps_EnableAll,function,high,reimplemented (src/game/core/keymap); Enable on the five keyboard maps
 0x0040cfa0,KeyMaps_ResetAll,function,high,reimplemented (src/game/core/keymap); Reset on the five keyboard maps
 0x00478b60,Ime_Ctor,function,high,"reimplemented (src/game/core/ime); the IME support: vectors empty (allocator bytes = this>>24, sic), +0x54 = -1"
+0x00479150,WTraits_Move,function,high,reimplemented (src/game/core/wtraits); moves n 16-bit characters (from the end when dst overlaps src's tail); returns dst
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

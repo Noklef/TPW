@@ -61,7 +61,8 @@
 #include "../game/core/ime.h"
 #include "../game/core/idtable.h"
 #include "../game/core/keymap.h"
-#include "../game/core/stdstring.h"
+#include "../game/core/stdstring.h"
+#include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
 #include "../game/motion/curve.h"
@@ -1182,6 +1183,7 @@ const Hook kHooks[] = {
     {"KeyMaps_EnableAll",         0x0040cf60, (void *)&KeyMaps_EnableAll, {0x8b, 0x0d, 0x8c, 0x71, 0x78}},
     {"KeyMaps_ResetAll",          0x0040cfa0, (void *)&KeyMaps_ResetAll, {0x8b, 0x0d, 0x8c, 0x71, 0x78}},
     {"Ime_Ctor",                  0x00478b60, (void *)&Ime_Ctor, {0x51, 0x8a, 0x54, 0x24, 0x03}},
+    {"WTraits_Move",              0x00479150, (void *)&WTraits_Move, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
@@ -1268,6 +1270,7 @@ const Hook kHooks[] = {
     {"Terrain_CloneAttrs",        0x00450950, (void *)&Terrain_CloneAttrs, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"Terrain_RotateFootprint",   0x00466f90, (void *)&Terrain_RotateFootprint, {0x8b, 0x44, 0x24, 0x0c, 0x83}},
     {"Vec3_Cross",                0x004508b0, (void *)&Vec3_Cross, {0x8b, 0x4c, 0x24, 0x04, 0x8b}},
+    {"Terrain_PaintAt",           0x00450470, (void *)&Terrain_PaintAt, {0x8b, 0x0d, 0x54, 0x08, 0x7a}},
     {"Terrain_SetProceduralCells", 0x0046ded0, (void *)&Terrain_SetProceduralCells, {0x8b, 0x0d, 0x54, 0xfc, 0x79}},
     {"Terrain_ProceduralOn",      0x00457a70, (void *)&Terrain_ProceduralOn, {0xa1, 0x8c, 0x1a, 0x7a, 0x00}},
     {"Terrain_ProceduralLeave",   0x00457a40, (void *)&Terrain_ProceduralLeave, {0xa1, 0x8c, 0x1a, 0x7a, 0x00}},

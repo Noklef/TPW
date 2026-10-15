@@ -5,6 +5,7 @@
 
 #include "../core/globalmem.h"
 #include "../math/x87.h"
+#include "../render/frame.h"
 
 namespace {
 
@@ -132,5 +133,12 @@ void __cdecl Terrain_RotateFootprint(s32 *x, s32 *y, s32 angle, s32 *outX, s32 *
         *outX = *x;
         *outY = *y;
     }
+}
+
+void __cdecl Terrain_PaintAt(s32 x, s32 y, const s32 *paint) {
+    const u8 *map = *reinterpret_cast<const u8 *const *>(0x007a0854);
+    if (!map || !(at<u8>(map, 0x30) & 2)) return;
+    Terrain_PaintCell(map, reinterpret_cast<const u8 *>(0x0074c8a8), x, y, paint[0], paint[1], (u32)paint[2]);
+    Frame_AddFlags(1);
 }
 }

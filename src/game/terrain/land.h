@@ -1,6 +1,7 @@
 // The terrain attribute grid (TerrainAttrMap_Load 0x450900; the map 0x7a0854 +0x6c): width
 // +0x18, height +0x1c, a dword per cell from +0x2c, and a cell count at +6 (u16) for copies.
-// Reimplementation of 0x450420, 0x450a30, 0x450b00 and 0x46df50; 0x4508b0, a vector helper.
+// Reimplementation of 0x450420, 0x450470, 0x450a30, 0x450b00 and 0x46df50; 0x4508b0, a vector
+// helper.
 #pragma once
 
 #include "../../../re/types.h"
@@ -42,4 +43,8 @@ void __cdecl Terrain_CloneAttrs(const u8 *map, u8 **out);
 // and takes width / height off, 270 steps x on and takes height off. The stepped x / y are
 // written back (sic).
 void __cdecl Terrain_RotateFootprint(s32 *x, s32 *y, s32 angle, s32 *outX, s32 *outY, s32 width, s32 height);
+
+// 0x450470: when there is a map (0x7a0854) with flag 2 (+0x30), Terrain_PaintCell(map, the
+// sets 0x74c8a8, x, y, paint[0] set, paint[1] tile, paint[2] rotation) and Frame_AddFlags(1).
+void __cdecl Terrain_PaintAt(s32 x, s32 y, const s32 *paint);
 }
