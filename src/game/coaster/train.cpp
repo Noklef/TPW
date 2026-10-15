@@ -49,4 +49,29 @@ double __cdecl Car_TrainLength(const u8 *car) {
     }
     return ((sum + (X87Reg(longest) - shortest) * at<float>(car, 0xe8)) + shortest).v;
 }
+
+u8 *__cdecl Ride_Train(u32 index, u32 *cars) {
+    const u8 *ride = reinterpret_cast<const u8 *const *>(0x007a4610)[index];
+    if (!(at<u32>(ride, 4) & 0x80000)) {
+        *cars = 0;
+        return nullptr;
+    }
+    u8 *train = at<u8 *>(at<const u8 *>(ride, 0xd4), 0x100);
+    u32 n = at<u32>(train, 0x30);
+    if (at<u8>(train, 4) & 0x20) --n;
+    *cars = n;
+    return train;
+}
+
+u32 __cdecl Train_CarValue(const u8 *train, u32 n) {
+    if (!(at<u8>(train, 4) & 0x20)) return at<u32>(at<const u8 *>(train, 0x34 + 4 * n), 0x70);
+    u32 seen = 0;
+    for (u32 i = 0, count = at<u32>(train, 0x30); i < count; ++i) {
+        const u8 *car = at<const u8 *>(train, 0x34 + 4 * i);
+        if (at<u32>(car, 8) & 0x2000) continue;
+        if (seen == n) return at<u32>(car, 0x70);
+        ++seen;
+    }
+    return 0;
+}
 }

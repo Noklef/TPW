@@ -21,4 +21,13 @@ double __cdecl Car_TrainLength(const u8 *car);
 
 // 0x436750: picks car's coupling as Train_SetCouplings does, without touching its flags.
 void __cdecl Car_PickCoupling(u8 *car);
+
+// 0x447790: ride index's (table 0x7a4610) train (+0xd4 -> +0x100) and its car count (+0x30,
+// less one when the train has flag 0x20 at byte +4) to *cars, when the ride has flag
+// 0x80000 (+4); else 0 and 0.
+u8 *__cdecl Ride_Train(u32 index, u32 *cars);
+
+// 0x4477d0: the +0x70 of the train's car n - counting only cars without flag 0x2000 (+8),
+// and 0 when there are not enough, when the train has flag 0x20 at byte +4.
+u32 __cdecl Train_CarValue(const u8 *train, u32 n);
 }
