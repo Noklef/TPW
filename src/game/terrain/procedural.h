@@ -1,5 +1,5 @@
-// Procedural terrain textures on and off: reimplementation of 0x457a00-0x457a87, 0x46ded0 and
-// 0x56dfb0 / 0x56dfd0.
+// Procedural terrain textures on and off: reimplementation of 0x457a00-0x457a87, 0x457e10-0x457e50,
+// 0x46ded0 and 0x56dfb0 / 0x56dfd0.
 //
 // 0x7a1a8c bit 0x2000 says the procedural textures could be loaded (TerrainTex_Load 0x56dfe0),
 // 0x4000 that they are in use; the renderer's flags 0x8bd550 have them at bit 2 (unless bit
@@ -32,4 +32,12 @@ u32 __cdecl Terrain_ProceduralOn();
 // 0x46ded0: on: clears bits 3-6 of each cell; off: replaces bits 3-7 with the loaded grid's.
 // Reads the loaded grid's cell pointer either way.
 void __cdecl Terrain_SetProceduralCells(u32 on);
+
+// 0x457e10: every cell back as loaded (Terrain_CopyAttrs(*0x7a0854, *0x79fc54)); the save
+// (0x41501d) does it unless saving the slot-1 kind.
+void __cdecl Terrain_RestoreCells();
+
+// 0x457e30, 0x457e50: the unit's unused statics, 0x7a0b28 = 1.0f and 0x7a0b48 = 1 / 2^23.
+void __cdecl Terrain_InitUnusedOne();
+void __cdecl Terrain_InitUnusedEpsilon();
 }

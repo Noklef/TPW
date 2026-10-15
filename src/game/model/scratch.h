@@ -1,6 +1,6 @@
-// The node vertex scratch buffer: reimplementation of 0x450e60 and 0x450e80. 12 bytes (a
-// vector) for each vertex of the biggest node loaded: the model loader raises the count at
-// 0x79f7d0, the buffer is at 0x79f7e0.
+// The node vertex scratch buffer: reimplementation of 0x450e60-0x450f20 and 0x452e10-0x452e50.
+// 12 bytes (a vector) for each vertex of the biggest node loaded: the model loader raises the
+// count at 0x79f7d0, the buffer is at 0x79f7e0.
 #pragma once
 
 #include "../../../re/types.h"
@@ -28,4 +28,12 @@ void __cdecl Model_FillVertexScratch(const u8 *view, s32 mainOnly);
 // with all its vertices filled, when its holder (+0x28) has flag 8; else 1 when its model's
 // (+4) +0x30 has 0x80 or its +0xa0 is not 0; else (0, or NaN) 4, with the main node's filled.
 void __cdecl Model_BeginView(const u8 *view);
+
+// 0x452e10: 0x79f7dc and 0x79fb1c = 0.02f; nothing reads either (the level setup at 0x457d20
+// calls it after Model_AllocVertexScratch).
+void __cdecl Model_InitUnusedTolerances();
+
+// 0x452e30, 0x452e50: the unit's unused statics, 0x79fb24 = 1.0f and 0x79fb28 = 1 / 2^23.
+void __cdecl Model_InitUnusedOne();
+void __cdecl Model_InitUnusedEpsilon();
 }

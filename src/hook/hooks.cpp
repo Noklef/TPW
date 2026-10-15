@@ -1201,6 +1201,9 @@ const Hook kHooks[] = {
     {"Model_FreeVertexScratch",   0x00450e80, (void *)&Model_FreeVertexScratch, {0xa1, 0xe0, 0xf7, 0x79, 0x00}},
     {"Model_FillVertexScratch",   0x00450f20, (void *)&Model_FillVertexScratch, {0x83, 0xec, 0x24, 0x53, 0x55}},
     {"Model_BeginView",           0x00450ea0, (void *)&Model_BeginView, {0x8b, 0x4c, 0x24, 0x04, 0x89}},
+    {"Model_InitUnusedTolerances", 0x00452e10, (void *)&Model_InitUnusedTolerances, {0xc7, 0x05, 0xdc, 0xf7, 0x79}},
+    {"Model_InitUnusedOne",       0x00452e30, (void *)&Model_InitUnusedOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"Model_InitUnusedEpsilon",   0x00452e50, (void *)&Model_InitUnusedEpsilon, {0xd9, 0x05, 0x40, 0xe4, 0x6f}},
     {"Holder_Clone",              0x00454a10, (void *)&Holder_Clone, {0x83, 0xec, 0x28, 0x8b, 0x44}},
     {"ModelPiece_Clone",          0x004554d0, (void *)&ModelPiece_Clone, {0x83, 0xec, 0x14, 0x53, 0x55}},
     {"ModelSlot_Animate",         0x00429df0, (void *)&ModelSlot_Animate, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
@@ -1239,6 +1242,9 @@ const Hook kHooks[] = {
     {"Terrain_ProceduralEnter",   0x00457a00, (void *)&Terrain_ProceduralEnter, {0xa1, 0x8c, 0x1a, 0x7a, 0x00}},
     {"TerrainTex_Disable",        0x0056dfd0, (void *)&TerrainTex_Disable, {0xa1, 0x50, 0xd5, 0x8b, 0x00}},
     {"TerrainTex_Enable",         0x0056dfb0, (void *)&TerrainTex_Enable, {0xa1, 0x50, 0xd5, 0x8b, 0x00}},
+    {"Terrain_RestoreCells",      0x00457e10, (void *)&Terrain_RestoreCells, {0xa1, 0x54, 0xfc, 0x79, 0x00}},
+    {"Terrain_InitUnusedOne",     0x00457e30, (void *)&Terrain_InitUnusedOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"Terrain_InitUnusedEpsilon", 0x00457e50, (void *)&Terrain_InitUnusedEpsilon, {0xd9, 0x05, 0x38, 0xe5, 0x6f}},
     {"Online_ApplyBalance",       0x0045aee0, (void *)&Online_ApplyBalance, {0x6a, 0xff, 0x68, 0x08, 0x89}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);

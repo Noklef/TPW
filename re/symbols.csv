@@ -354,6 +354,9 @@ address,name,kind,confidence,notes
 0x00457a40,Terrain_ProceduralLeave,function,high,reimplemented (src/game/terrain/procedural); procedural terrain textures off; cells get bits 3-7 back from the loaded grid
 0x00457a70,Terrain_ProceduralOn,function,high,reimplemented (src/game/terrain/procedural); (0x7a1a8c & 0x6000) == 0x6000
 0x0046ded0,Terrain_SetProceduralCells,function,high,"reimplemented (src/game/terrain/procedural); (on): cells lose bits 3-6, or get bits 3-7 from the loaded grid 0x79fc54"
+0x00457e10,Terrain_RestoreCells,function,high,reimplemented (src/game/terrain/procedural); every terrain cell back as loaded (CopyAttrs from 0x79fc54)
+0x00457e30,Terrain_InitUnusedOne,function,high,reimplemented (src/game/terrain/procedural); unused static 0x7a0b28 = 1.0f
+0x00457e50,Terrain_InitUnusedEpsilon,function,high,reimplemented (src/game/terrain/procedural); unused static 0x7a0b48 = 1 / 2^23
 0x00536490,MapCell_Reset,function,high,"default type/flags from the attribute byte: outside park 2/0x1e/7, inside 1 (path, bit 0x08) or 0; 0x10 -> flags 0x80, 0x04 -> flags 0x400"
 0x00527ee0,Path_CheckDeadEnds,function,low,"counts path neighbours; attribute bit 0x08 exempts a cell"
 0x0080239c,gWorld,data,medium,"world structure; map cells at +0x2d8 (0x44 each, 1-based ids), track cells at +0x1102d8"
@@ -1978,6 +1981,9 @@ address,name,kind,confidence,notes
 0x00450e80,Model_FreeVertexScratch,function,high,reimplemented (src/game/model/scratch); frees and clears the vertex scratch buffer 0x79f7e0
 0x00450f20,Model_FillVertexScratch,function,high,reimplemented (src/game/model/scratch); the view's node vertices put in the world
 0x00450ea0,Model_BeginView,function,high,reimplemented (src/game/model/scratch); makes a view current and fills its vertices
+0x00452e10,Model_InitUnusedTolerances,function,high,"reimplemented (src/game/model/scratch); unused statics 0x79f7dc, 0x79fb1c = 0.02f"
+0x00452e30,Model_InitUnusedOne,function,high,reimplemented (src/game/model/scratch); unused static 0x79fb24 = 1.0f
+0x00452e50,Model_InitUnusedEpsilon,function,high,reimplemented (src/game/model/scratch); unused static 0x79fb28 = 1 / 2^23
 0x00454a10,Holder_Clone,function,high,"reimplemented (src/game/model/clone); (holder, unused, flags, &out, mask): a copy of the holder and its model in one GlobalMem block, arrays by flag (1 nodes, 4 +0x58, 8 +0x5c, 0x20 +0x68, 0x40 +0x64, 0x80/0x10 runs, 0x200 +0x50), node pointers rebased; then Model_MarkFaces* (0x1000: NotValue)"
 0x004554d0,ModelPiece_Clone,function,high,"reimplemented (src/game/model/clone); a copy of a model piece in one block: header, parts, and each flag-0x1000 (not 0x4000) part's +0x28 record and its 20-byte entries; returns 1"
 0x00429df0,ModelSlot_Animate,function,high,"reimplemented (src/game/model/slots); Animator_Update(slot holder, 1, 0) when the slot (0x790398, 0xb0 each) has one"

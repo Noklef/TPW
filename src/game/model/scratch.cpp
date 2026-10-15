@@ -119,4 +119,13 @@ void __cdecl Model_FillVertexScratch(const u8 *view, s32 mainOnly) {
         }
     }
 }
+
+void __cdecl Model_InitUnusedTolerances() {
+    global<u32>(0x0079f7dc) = 0x3ca3d70a;  // 0.02f
+    global<u32>(0x0079fb1c) = 0x3ca3d70a;
+}
+
+void __cdecl Model_InitUnusedOne() { global<float>(0x0079fb24) = 1.0f; }
+
+void __cdecl Model_InitUnusedEpsilon() { global<float>(0x0079fb28) = 1.0f / 8388608.0f; }
 }

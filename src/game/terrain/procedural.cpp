@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "land.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) {
@@ -64,4 +66,10 @@ void __cdecl Terrain_SetProceduralCells(u32 on) {
         }
     }
 }
+
+void __cdecl Terrain_RestoreCells() { Terrain_CopyAttrs(pointer(0x007a0854), pointer(0x0079fc54)); }
+
+void __cdecl Terrain_InitUnusedOne() { *reinterpret_cast<float *>(0x007a0b28) = 1.0f; }
+
+void __cdecl Terrain_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x007a0b48) = 1.0f / 8388608.0f; }
 }
