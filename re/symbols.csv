@@ -58,7 +58,7 @@ address,name,kind,confidence,notes
 0x0042cec0,Camera_Load,function,high,module KAME
 0x0042cdc0,Camera_Save,function,high,module KAME
 0x00437b60,Coasters_Load,function,high,module COAS
-0x00437300,Coasters_Save,function,high,module COAS
+0x00437300,Coasters_Save,function,high,"reimplemented (src/game/coaster/save); cdecl u32 (stream): link count, three globals, per link a 0x20-byte record, its pieces' 0x22-byte records and word lists, its cars' 0x1b- and seats' 0xb-byte records and arrays; failed writes never stop it; returns 1"
 0x00599d00,Advisor_Load,function,high,module ADVS
 0x00599c30,Advisor_Save,function,high,"module ADVS; original logs 'Coasters: saved' here (copy-paste bug)"
 0x0051c400,Sound_Load,function,high,module SOUN
