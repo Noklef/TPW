@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -203,10 +203,28 @@ def keys(r, op):
     return Call(0x43f030, [SPL if same else COAST, SPL, NODES, OUT, fb(span)], regs, ret='a')
 
 
+
+def lists(r, op):
+    g, r1, r2, mesh, m2, slots, pool, lst, tail = (r.bytes(0x100) for _ in range(9))
+    put(g, 0x38, 'I', TYPE)
+    put(r1, 0x24, 'I', NODES)
+    put(r2, 4, 'I', FORCE)
+    put(mesh, 0x78, 'I', CARS)
+    put(m2, 0x6c, 'I', SPL)
+    put(lst, 8, 'I', r.choice([0, PIECES]))
+    put(lst, 0xc, 'I', r.choice([0, YAW]))
+    put(lst, 0x10, 'I', r.choice([0, 0, r.getrandbits(32)]))
+    regs = {COAST: g, TYPE: r1, NODES: r2, FORCE: mesh, CARS: m2, SPL: slots, ORIENT: pool,
+            OUT: lst, YAW: tail, 0x792218: put(bytearray(4), 0, 'I', COAST),
+            0x79c604: put(bytearray(4), 0, 'I', ORIENT + 0x10 * r.randrange(8)),
+            0x7925c8: put(bytearray(4), 0, 'I', r.randrange(12))}
+    return Call(0x43fcd0, [OUT], regs, ret='a')
+
+
 KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 'Tangent': spline, 'Set': orient,
          'Init': orient, 'Frame': frame, 'At': frame,
          'RoundUp': helpers, 'Lerp': helpers, 'Swing': cars, 'Space': cars, 'Dist': cars,
-         'NodeLerp': nodes, 'PastEnd': nodes, 'Zone': nodes, 'Merge': keys}
+         'NodeLerp': nodes, 'PastEnd': nodes, 'Zone': nodes, 'Merge': keys, 'Append': lists}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 
