@@ -2,6 +2,7 @@
 
 #include "train.h"
 #include "../math/x87.h"
+#include "../model/highlight.h"
 
 #include <cmath>
 #include <cstdint>
@@ -132,6 +133,16 @@ void __cdecl TrackSelection_Clear() {
     *reinterpret_cast<u32 *>(0x0079c628) = 0;
     *reinterpret_cast<u32 *>(0x007925d0) = 0;
     if (changed) Flags_SetChanged(*reinterpret_cast<u32 *const *>(0x00790fec), 0);
+}
+
+void __cdecl TrackSelection_End() {
+    u32 &flags = *reinterpret_cast<u32 *>(0x0079c658);
+    if (flags & 0x80) {
+        Highlight_SetShown(0);
+        *reinterpret_cast<u32 *>(0x0079c6dc) = 0;
+        TrackSelection_Clear();
+    }
+    flags &= ~0xa0u;
 }
 
 void __cdecl Track_AppendPiece(u8 *piece, u8 *track, u32 open) {

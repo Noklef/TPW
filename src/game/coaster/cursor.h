@@ -48,6 +48,11 @@ void __cdecl TrackSelection_SetFirst(u8 *piece, u32 keep);
 // 0x7925d0; Flags_SetChanged(the current link (0x790fec), 0) when there was one.
 void __cdecl TrackSelection_Clear();
 
+// 0x445fb0: ends selecting: when the track flags (0x79c658) have 0x80, hides the highlight
+// (Highlight_SetShown(0)), clears 0x79c6dc and the selection (as TrackSelection_Clear, which
+// the original inlines); then clears flags 0x80 and 0x20.
+void __cdecl TrackSelection_End();
+
 // 0x436190: links piece in after the track's last piece (+0x24), before that one's next:
 // flags it 0x8000 (+8) and 0x4000 unless open is set (clearing it otherwise); when the last
 // piece is not the track's +0x1c, clears the last one's 0x10000 (and 0x40000 too unless it
