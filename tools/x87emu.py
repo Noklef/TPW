@@ -362,7 +362,8 @@ class Emu:
             self.st[0] = (math.sin if mn == 'FSIN' else math.cos)(self.st[0])
         elif mn == 'FPATAN':
             x, y = self.st.pop(0), self.st[0]
-            self.st[0] = math.atan2(y, x)
+            # a NaN operand comes through (Python's atan2 would give its own NaN)
+            self.st[0] = farith(math.atan2, y, x)
         elif mn in ('FCOM', 'FCOMP', 'FCOMPP'):
             self.compare(self.st[0], self.fload(o[0]) if o else self.st[1])
             for _ in range({'FCOM': 0, 'FCOMP': 1, 'FCOMPP': 2}[mn]):

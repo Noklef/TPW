@@ -72,6 +72,10 @@ inline double X87_Add(double a, double b) {
     return s < 0 ? -r : r;
 }
 
+// fpatan (y in st1, the destination; x in st0): atan2, except that NaNs come through as the
+// x87 has them (two: the larger significand, y on a tie), where the CRT's may not.
+inline double X87_Atan2(double y, double x) { return y != y || x != x ? X87_Add(y, x) : std::atan2(y, x); }
+
 // A float loaded and stored by the x87 (fld m32; fstp m32), as bits: the value is kept,
 // except that a signalling NaN comes out quiet.
 inline u32 X87_FloatThrough(u32 bits) {

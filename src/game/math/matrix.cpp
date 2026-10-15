@@ -4,6 +4,8 @@
 #include <cmath>
 #include <cstring>
 
+#include "x87.h"
+
 namespace {
 
 // gEulerOrders (0x74da38)
@@ -56,14 +58,14 @@ extern "C" void __cdecl Matrix_ResetRotation(float *m) {
 
 extern "C" double __cdecl Matrix_Heading(const float *m) {
     if (m[9] <= 0.9f && !(m[9] < -0.9f))
-        return std::atan2((double)m[8], (double)m[10]);
-    return std::atan2(-(double)m[2], (double)m[0]);
+        return X87_Atan2((double)m[8], (double)m[10]);
+    return X87_Atan2(-(double)m[2], (double)m[0]);
 }
 
-extern "C" double __cdecl Matrix_Roll(const float *m) { return std::atan2(-(double)m[4], (double)m[5]); }
-extern "C" double __cdecl Vec3_AngleX(const float *v) { return std::atan2(-(double)v[1], (double)v[2]); }
-extern "C" double __cdecl Vec3_AngleY(const float *v) { return std::atan2((double)v[0], (double)v[2]); }
-extern "C" double __cdecl Vec3_AngleZ(const float *v) { return std::atan2(-(double)v[0], (double)v[1]); }
+extern "C" double __cdecl Matrix_Roll(const float *m) { return X87_Atan2(-(double)m[4], (double)m[5]); }
+extern "C" double __cdecl Vec3_AngleX(const float *v) { return X87_Atan2(-(double)v[1], (double)v[2]); }
+extern "C" double __cdecl Vec3_AngleY(const float *v) { return X87_Atan2((double)v[0], (double)v[2]); }
+extern "C" double __cdecl Vec3_AngleZ(const float *v) { return X87_Atan2(-(double)v[0], (double)v[1]); }
 
 // About x: (y, z) turn; about y: (z, x); about z: (x, y).
 extern "C" void __cdecl Matrix_RotateX4(float *m, float c, float s) { rotate(m, 4, 1, 2, c, s); }
