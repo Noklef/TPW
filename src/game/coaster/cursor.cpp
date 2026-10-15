@@ -74,4 +74,23 @@ u32 __cdecl Track_PieceAt(const u8 *track, u32 n) {
     for (; n != 0; --n) piece = next(piece);
     return piece;
 }
+
+u32 __cdecl TrackSelection_ClearFlags() {
+    u8 *a = *reinterpret_cast<u8 *const *>(0x0079c628), *b = *reinterpret_cast<u8 *const *>(0x0079c62c);
+    if (!a) return 0;
+    u8 *from = b, *to = a;
+    if (at<u32>(b, 0) > at<u32>(a, 0)) from = a, to = b;
+    for (u8 *piece = from; piece != to; piece = at<u8 *>(piece, 0x64)) at<u32>(piece, 8) &= 0xfeffbfff;
+    return 1;
+}
+
+void __cdecl TrackPieces_Renumber(u8 *piece) {
+    if (!piece) return;
+    const u8 *prev = at<const u8 *>(piece, 0x68);
+    u32 n = prev ? at<u32>(prev, 0) + 1 : 0;
+    for (; piece; piece = at<u8 *>(piece, 0x64), ++n) {
+        at<u32>(piece, 0) = n;
+        at<float>(piece, 0x6c) = (float)(double)n;
+    }
+}
 }

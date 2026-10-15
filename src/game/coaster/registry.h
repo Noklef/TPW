@@ -30,9 +30,12 @@ void __cdecl Ride_EntryPosition(u32 index, const u32 *slot, float *out);
 // 1 nor 4 set, else 0; the key to *key when key is not null.
 u8 *__cdecl CoasterLinks_FindTile(u32 x, u32 y, u32 *key);
 
-// 0x442d10: when the current link (0x790fec) has type (+4) flag 2 and its end piece is
-// marked 0x80 (+8) - the +0x60 piece when +0x3c has 1 (then only with 2 too), else the
-// +0x58 one - sets 0x79c664 to 1 and flag 0x40 of 0x79c658.
+// 0x444c00: whether the current link (0x790fec) has type (+4) flag 2 and its end piece is
+// marked 0x80 (+8): the +0x60 piece when +0x3c has 1 (then only with 2 too), else the
+// +0x58 one.
+u32 __cdecl CoasterLink_EndMarked();
+
+// 0x442d10: when CoasterLink_EndMarked, sets 0x79c664 to 1 and flag 0x40 of 0x79c658.
 void __cdecl CoasterLink_CheckEnd();
 
 // 0x443ee0: the first car, over the current link's (0x790fec) trains (+0x4c, next +0x28;

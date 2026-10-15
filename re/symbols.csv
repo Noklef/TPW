@@ -1768,6 +1768,7 @@ address,name,kind,confidence,notes
 0x00434000,CoasterLinks_FindTile,function,high,"reimplemented (src/game/coaster/registry); cdecl u8* (x, y, key*): first entry over the links' +0x4c chains with +8 == x + y*width (0x7a0854->+0x6c->+0x18) and byte +4 & 5 clear; key out"
 0x00442d10,CoasterLink_CheckEnd,function,high,"reimplemented (src/game/coaster/registry); cdecl (): when the current link (0x790fec) has type flag 2 and its end piece (+0x58, or +0x60 when +0x3c has 1 and 2) is marked 0x80, sets 0x79c664 = 1 and 0x79c658 |= 0x40"
 0x00443ee0,CoasterLink_FindCarOnRide,function,high,"reimplemented (src/game/coaster/registry); cdecl u8* (ride): first car over the current link's trains (+0x4c, not flagged 1) whose 0x7a4610[car+0x70] is ride, else 0 (0 when link+0x54 is 0)"
+0x00444c00,CoasterLink_EndMarked,function,high,"reimplemented (src/game/coaster/registry); cdecl bool (): the current link (0x790fec) has type flag 2 and its end piece (+0x58, or +0x60 when +0x3c has 1 and 2) is marked 0x80"
 0x0043b0e0,Coaster_QueuePush,function,high,"reimplemented (src/game/coaster/queue); cdecl (index, peep): appends the peep to the queue ring (+0xb0) of coaster index (table 0x790bd0) when it has room"
 0x0043b130,CoasterQueue_Add,function,high,"reimplemented (src/game/coaster/queue); cdecl (coaster, peep): appends the peep to the queue ring (+0xb0), else to the boarding ring (+0xd0), whichever has room"
 0x0043b1f0,Coaster_QueueRoom,function,high,"reimplemented (src/game/coaster/queue); cdecl (index): the queue ring's limit - reserved - count, at least 0"
@@ -1777,6 +1778,8 @@ address,name,kind,confidence,notes
 0x00440b50,TrackCursor_Prev,function,high,"reimplemented (src/game/coaster/cursor); cdecl (cursor): steps the cursor one node back, onto the previous piece (+0x68) at its start"
 0x00440bc0,TrackCursor_Point,function,high,"reimplemented (src/game/coaster/cursor); cdecl (cursor, t, out): TrackSpline_Point between the cursor's two nodes (0x58 bytes, piece+0x90 -> {count, nodes})"
 0x0043e520,Track_PieceAt,function,high,"reimplemented (src/game/coaster/cursor); cdecl (track, n): piece n from the first (+0x18) along +0x64"
+0x00444040,TrackSelection_ClearFlags,function,high,reimplemented (src/game/coaster/cursor); cdecl (): clears 0x1004000 on the pieces from the lower-indexed selection end (0x79c628/0x79c62c) up to the other; 0 without 0x79c628
+0x00444700,TrackPieces_Renumber,function,high,"reimplemented (src/game/coaster/cursor); cdecl (piece): numbers the pieces from piece on after its previous one's +0 (else 0), at +0 and as a float at +0x6c"
 0x0043ad50,Contacts_Clear,function,high,"reimplemented (src/game/coaster/contacts); cdecl (owner, node): drops all of the node's contacts (8 at +0xb4, count +0xb0), from every node of the owner's list (+0x54, next +0x64) when it overflowed (0x400000), else from those it holds; owner+0x140 counts them"
 0x0043afa0,Contacts_ClearAll,function,high,"reimplemented (src/game/coaster/contacts); cdecl (owner): Contacts_Clear on every node of the owner's list, marking each 0x200000"
 0x00432d50,Train_SetCouplings,function,high,"reimplemented (src/game/coaster/train); cdecl (unused, train): unless 0x790afc, marks each car but the last 0x100 and picks its coupling (+0x84/+0x44 for a rear-coupled type, else +0x78/+0x30) into +0x90/+0x74"

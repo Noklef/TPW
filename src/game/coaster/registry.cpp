@@ -61,16 +61,16 @@ u8 *__cdecl CoasterLinks_FindTile(u32 x, u32 y, u32 *key) {
     return found;
 }
 
-void __cdecl CoasterLink_CheckEnd() {
+u32 __cdecl CoasterLink_EndMarked() {
     const u8 *link = *reinterpret_cast<const u8 *const *>(0x00790fec);
-    if (!link || !(at<u8>(at<const u8 *>(link, 4), 0) & 2)) return;
+    if (!link || !(at<u8>(at<const u8 *>(link, 4), 0) & 2)) return 0;
     const u32 flags = at<u32>(link, 0x3c);
-    bool marked;
-    if (flags & 1)
-        marked = (flags & 2) && (at<u8>(at<const u8 *>(link, 0x60), 8) & 0x80);
-    else
-        marked = at<u8>(at<const u8 *>(link, 0x58), 8) & 0x80;
-    if (!marked) return;
+    if (flags & 1) return (flags & 2) && (at<u8>(at<const u8 *>(link, 0x60), 8) & 0x80);
+    return (at<u8>(at<const u8 *>(link, 0x58), 8) & 0x80) != 0;
+}
+
+void __cdecl CoasterLink_CheckEnd() {
+    if (!CoasterLink_EndMarked()) return;
     *reinterpret_cast<u32 *>(0x0079c664) = 1;
     *reinterpret_cast<u32 *>(0x0079c658) |= 0x40;
 }

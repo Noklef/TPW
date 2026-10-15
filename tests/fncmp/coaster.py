@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060), (0x442d10, 0x442d70), (0x443ee0, 0x443f40)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b480), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060), (0x442d10, 0x442d70), (0x443ee0, 0x443f40), (0x444c00, 0x444c50), (0x444040, 0x444090), (0x444700, 0x444740)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -572,13 +572,14 @@ def tiles(r, op):
 def current(r, op):
     """The current link (0x790fec)."""
     link = r.bytes(0x80)
-    if op == 'End':  # +4 type flag 2; +0x3c flags 1, 2; end pieces +0x58/+0x60 flag 0x80 (+8)
+    if op in ('End', 'Marked'):  # +4 type flag 2; +0x3c flags 1, 2; end pieces +0x58/+0x60 flag 0x80 (+8)
         put(link, 4, 'I', TYPE)
         put(link, 0x58, 'I', NODES)
         put(link, 0x60, 'I', NODES + 0x40)
-        return Call(0x442d10, [], {COAST: link, TYPE: r.bytes(4), NODES: r.bytes(0x80),
+        return Call(0x442d10 if op == 'End' else 0x444c00, [], {COAST: link, TYPE: r.bytes(4), NODES: r.bytes(0x80),
                                    0x79c658: r.bytes(4), 0x79c664: r.bytes(4),
-                                   0x790fec: put(bytearray(4), 0, 'I', r.choice([COAST] * 9 + [0]))})
+                                   0x790fec: put(bytearray(4), 0, 'I', r.choice([COAST] * 9 + [0]))},
+                    ret='v' if op == 'End' else 'a')
     # trains on +0x4c (next +0x28, +4 flag 1, cars +0x30/+0x34), cars' ride index +0x70
     rides = [r.choice([1, 2, 3, r.getrandbits(32)]) for _ in range(8)]
     trains, cars = r.bytes(4 * 0x60), r.bytes(12 * 0x80)
@@ -599,6 +600,27 @@ def current(r, op):
                  0x790fec: put(bytearray(4), 0, 'I', COAST)}, ret='a')
 
 
+def pieces(r, op):
+    """A chain of pieces (+0 index, +8 flags, +0x64 next, +0x68 previous) in NODES."""
+    n = r.randrange(1, 6)
+    ps = r.bytes(n * 0x80 + 0x80)
+    base = r.choice([0, r.randrange(0, 1 << 31), 0xfffffffe - n, 0x80000000 - r.randrange(1, n + 1)])
+    for k in range(n):
+        put(ps, k * 0x80 + 0x64, 'I', NODES + (k + 1) * 0x80 if k + 1 < n else 0)
+        put(ps, k * 0x80, 'I', base + k)
+    if op == 'Renumber':  # the previous piece is outside the chain
+        put(ps, n * 0x80, 'I', r.choice([r.randrange(0, 9), r.getrandbits(32), 0xffffffff]))
+        put(ps, 0x68, 'I', r.choice([NODES + n * 0x80, 0]))
+        return Call(0x444700, [r.choice([NODES] * 9 + [0])], {NODES: ps})
+    i, j = r.randrange(n), r.randrange(n)
+    if r.random() < 0.3:  # equal indices: from 0x79c62c, which must come first
+        j, i = sorted((i, j))
+        i = j if r.random() < 0.3 else i
+        put(ps, j * 0x80, 'I', base + i)
+    return Call(0x444040, [], {NODES: ps, 0x79c628: put(bytearray(4), 0, 'I', r.choice([NODES + i * 0x80] * 9 + [0])),
+                               0x79c62c: put(bytearray(4), 0, 'I', NODES + j * 0x80)}, ret='a')
+
+
 KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 'Tangent': spline, 'Set': orient,
          'Init': orient, 'Frame': frame, 'At': frame,
          'RoundUp': helpers, 'Lerp': helpers, 'Dot': helpers, 'Normalize': helpers, 'NormXZ': helpers, 'Swing': cars, 'Space': cars, 'Segs': cars, 'Setup': cars, 'Riders': cars, 'Extent': cars, 'Drop': cars, 'Window': cars, 'InWindow': cars, 'Dist': cars,
@@ -606,7 +628,7 @@ KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 
          'Link': queue, 'QPush': queue, 'QAdd': queue, 'QRoom': queue, 'QPop': queue, 'QAdvance': queue,
          'CNext': cursor, 'CPrev': cursor, 'CPoint': cursor,
          'Count': registry, 'LinkNodes': registry, 'Pair': registry, 'EntryPos': registry, 'SearchReset': registry,
-         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Pick': train, 'Tile': tiles, 'End': current, 'OnRide': current}
+         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Pick': train, 'Tile': tiles, 'End': current, 'OnRide': current, 'Marked': current, 'Select': pieces, 'Renumber': pieces}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 
