@@ -133,6 +133,8 @@ inline double X87_Trig(double x, double (*f)(double)) {
 }
 inline double X87_Sin(double x) { return X87_Trig(x, [](double v) { return std::sin(v); }); }
 inline double X87_Cos(double x) { return X87_Trig(x, [](double v) { return std::cos(v); }); }
+// fsqrt: rounded at the precision control; a NaN comes through, a negative is the indefinite.
+inline X87Reg X87_Sqrt(X87Reg x) { return x.v != x.v ? x : X87Reg(X87_Round(std::sqrt(x.v))); }
 
 // A float loaded and stored by the x87 (fld m32; fstp m32), where the compiler would copy it.
 inline float X87_Through(float x) {
