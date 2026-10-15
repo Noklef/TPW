@@ -164,3 +164,12 @@ There are no crash dumps, because WER LocalDumps needs admin. The trace's except
   - The root is lost DirectDraw surfaces that the game never restores: that is also the freeze. The
     overflow then turns the lost surface into a crash. Neither function is hooked yet. When ported,
     the overflow has to be kept (or documented as a deliberate divergence).
+- 2026-10-15, `2-dll-passthrough` uncapped, take 2: the UI responds (menus, "Create new"), but game
+  time does not advance. The camera and the park's people stay frozen, and each Print Screen press
+  nudges time forward. Print Screen stalls one frame, so that frame gets a real time step.
+- 2026-10-15, passthrough with dgVoodoo `FPSLimit = 60`: **plays normally**. Built rides and quit from
+  the menu after 89 s with exit 0. So on a modern PC, uncapped frames finish so fast that the game's
+  per-frame time step rounds to nothing. It was written for 1999 frame times; the slower sandbox
+  hid it. The exact code is not yet found; the 0x5f5f10 ms timer itself is exact integer
+  arithmetic. When found, it is another bug-for-bug item. `run-local.cmd` now always uses the
+  capped config (`.data\local\dgVoodoo-fps60.conf`).
