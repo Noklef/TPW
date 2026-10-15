@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put, record_stream  # noqa: E402
 
-B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b5ff), (0x44b4c0, 0x44b505), (0x475550, 0x47558b), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060), (0x442d10, 0x442d70), (0x443ee0, 0x443f40), (0x444c00, 0x444c50), (0x444040, 0x444090), (0x444700, 0x444740), (0x447790, 0x447830), (0x442cd0, 0x442d10), (0x436820, 0x4368f0), (0x436150, 0x436190), (0x432bd0, 0x432c10), (0x444c50, 0x444cb0), (0x43af70, 0x43afa0), (0x4418d0, 0x4419b0), (0x434650, 0x434740), (0x5da3c0, 0x5da3d0), (0x447990, 0x4479a0), (0x430ac0, 0x430ad0), (0x433220, 0x433240), (0x435710, 0x435730), (0x439920, 0x439ab0), (0x43a060, 0x43a2b0), (0x43d8f0, 0x43dbb0), (0x46f150, 0x46f180), (0x46f350, 0x46f420), (0x46f5c0, 0x46f6f0), (0x444090, 0x444150), (0x445f30, 0x446042), (0x45d630, 0x45d660), (0x436190, 0x436230), (0x445910, 0x445a70), (0x4367a0, 0x436820), (0x447830, 0x447990), (0x432840, 0x432b50), (0x437300, 0x4379a0), (0x5f5e50, 0x5f5e80)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b5ff), (0x44b4c0, 0x44b505), (0x475550, 0x47558b), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060), (0x442d10, 0x442d70), (0x443ee0, 0x443f40), (0x444c00, 0x444c50), (0x444040, 0x444090), (0x444700, 0x444740), (0x447790, 0x447830), (0x442cd0, 0x442d10), (0x436820, 0x4368f0), (0x436150, 0x436190), (0x432bd0, 0x432c10), (0x444c50, 0x444cb0), (0x43af70, 0x43afa0), (0x4418d0, 0x4419b0), (0x434650, 0x434740), (0x5da3c0, 0x5da3d0), (0x447990, 0x4479a0), (0x430ac0, 0x430ad0), (0x433220, 0x433240), (0x435710, 0x435730), (0x439920, 0x439ab0), (0x43a060, 0x43a2b0), (0x43d8f0, 0x43dbb0), (0x46f150, 0x46f180), (0x46f350, 0x46f420), (0x46f5c0, 0x46f6f0), (0x444090, 0x444150), (0x445f30, 0x446042), (0x45d630, 0x45d660), (0x436190, 0x436230), (0x445910, 0x445a70), (0x4367a0, 0x436820), (0x447830, 0x447990), (0x432840, 0x432b50), (0x437300, 0x4379a0), (0x5f5e50, 0x5f5e80), (0x463ab0, 0x463c7a), (0x412e90, 0x412eea)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -758,6 +758,52 @@ def by_id(r, op):
     return Call(0x4368c0, [want, r.getrandbits(32)], regs)
 
 
+def claim(r, op):
+    """Ride_Claim: rides (0x7a4610, at CARS) typed by 0x7ae6a8 (TYPE), the definitions set 0x7890a0
+    (PIECES, its entries at FORCE), the description at OUT and the links at 0x790fe0 (NODES)."""
+    m, n = r.randrange(0, 5), r.randrange(0, 7)
+    types = [TYPE + r.randrange(m + 1) * 0x100 for _ in range(m + 1)]
+    tobjs = r.bytes(0x600)
+    for k in range(6):
+        put(tobjs, k * 0x100 + 0xf8, 'I', r.choice([1, 2, r.getrandbits(32)]))
+    desc = put(put(bytearray(r.bytes(0x40)), 0, '3I', *(r.choice([1, 2]) for _ in range(3))), 0xc, 'I',
+               r.choice([0, OUT + 0x20, OUT + 0x20]))
+    put(desc, 0x20, '2I', r.choice([1, 2]), r.choice([1, 2]))
+    rides, deep = r.bytes(0x800), r.bytes(0x100)
+    table = [0] + [r.choice([CARS + k * 0x100] * 4 + [0]) for k in range(n)]
+    for k in range(n):
+        o = k * 0x100
+        put(rides, o, 'I', r.choice(types + [r.getrandbits(32)]))
+        put(rides, o + 4, 'I', r.getrandbits(32) & ~0x50000 | r.choice([0, 0, 0x10000, 0x40000, 0x50000]))
+        put(rides, o + 8, 'I', SPL + k * 0x20)
+        put(deep, k * 0x20 + 0x10, 'I', r.choice([1, 2]))
+        put(rides, o + 0xe4, '4I', *(r.choice([1, 2]) for _ in range(4)))
+        put(rides, o + 0xf4, 'I', r.choice([1, 2]))
+    defs, items = bytearray(r.bytes(0x740)), bytearray(r.bytes(0x100))
+    put(defs, 0, 'I', FORCE)
+    put(defs, 0x528, 'I', r.randrange(2))
+    put(defs, 0x730, 'HxxI', 0xffff, 0)
+    put(items, 0, 'H', r.choice([1, 2]))
+    put(items, 0x18, 'I', r.choice([OUT + 0x20, 1]))
+    links = put(bytearray(r.bytes(0x40)), 0x10, 'I', r.randrange(n + 1))
+    put(links, 0x18, 'I', 0)
+    key, type_ = r.choice([1, 2]), r.randrange(m + 1)
+    for k in range(n):  # some rides that fit the description
+        if r.random() < 0.3:
+            put(rides, k * 0x100, 'I', types[type_] if type_ else r.getrandbits(32))
+            put(rides, k * 0x100 + 0xe4, '3I', key, *struct.unpack_from('<2I', desc))
+            put(deep, k * 0x20 + 0x10, 'I', struct.unpack_from('<I', desc, 8)[0])
+    split = r.randrange(n + 1)
+    index = r.choice([0, 0] + [i for i in range(1, n + 1) if table[i]])
+    regs = {CARS: rides, SPL: deep, TYPE: tobjs, OUT: desc, FORCE: items, NODES: links,
+            0x7ae6a8: struct.pack(f'<{m + 1}I', *types), 0x7a439c: struct.pack('<I', m),
+            0x7a3ebc: struct.pack('<I', split), 0x7a4084: struct.pack('<I', n - split),
+            0x7a4610: struct.pack(f'<{n + 1}I', *table), 0x7890a0: defs,
+            0x790fe0: put(bytearray(4), 0, 'I', r.choice([0, NODES]))}
+    return Call(0x463ab0, [index, type_, key, r.choice([OUT, OUT, 0]), r.getrandbits(32),
+                           r.getrandbits(32), r.choice([0, 0, 1, 2]), r.choice([0, 0, 1, 2])], regs, ret='a')
+
+
 def event(r, op):
     return Call(0x432bd0, [r.getrandbits(32) for _ in range(4)], {0x791050: r.bytes(8), 0x791ce8: r.bytes(16)}, ret='a')
 
@@ -1026,7 +1072,7 @@ KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 
          'Link': queue, 'Unload': queue, 'QPush': queue, 'QAdd': queue, 'QRoom': queue, 'QPop': queue, 'QAdvance': queue,
          'CNext': cursor, 'CPrev': cursor, 'CPoint': cursor,
          'Count': registry, 'LinkNodes': registry, 'Pair': registry, 'EntryPos': registry, 'SearchReset': registry,
-         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Pick': train, 'Tile': tiles, 'End': current, 'OnRide': current, 'Marked': current, 'Select': pieces, 'Renumber': pieces, 'RideTrain': ride_train, 'CarValue': ride_train, 'BeginEnd': current, 'Bit18': by_id, 'ById': by_id, 'IdValue': by_id, 'SetById': by_id, 'Key': tiles, 'Event': event, 'SetEnd': current, 'ClearEnd': current, 'ClearPair': contacts, 'ObjLink': by_id, 'ObjOpen': by_id, 'ObjBare': by_id, 'SelGet': small, 'SelSet': small, 'State': small, 'Changed': small, 'LostPair': small, 'Unlerp': small, 'Scale': small, 'Lerp': small, 'Flag1': small, 'SetCur': small, 'Moved': small, 'Position': small, 'Bounds': bounds, 'Segments': segments, 'RideOrient': ride_orient, 'SetFirst': pieces, 'Append': pieces, 'ClearSel': pieces, 'EndSel': pieces, 'Tools': current, 'Remove': pieces, 'ObjOther': by_id, 'ObjParams': by_id, 'Cost': cost, 'Gaps': gaps, 'Save': save}
+         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Pick': train, 'Tile': tiles, 'End': current, 'OnRide': current, 'Marked': current, 'Select': pieces, 'Renumber': pieces, 'RideTrain': ride_train, 'CarValue': ride_train, 'BeginEnd': current, 'Bit18': by_id, 'ById': by_id, 'IdValue': by_id, 'SetById': by_id, 'Key': tiles, 'Event': event, 'SetEnd': current, 'ClearEnd': current, 'ClearPair': contacts, 'ObjLink': by_id, 'ObjOpen': by_id, 'ObjBare': by_id, 'SelGet': small, 'SelSet': small, 'State': small, 'Changed': small, 'LostPair': small, 'Unlerp': small, 'Scale': small, 'Lerp': small, 'Flag1': small, 'SetCur': small, 'Moved': small, 'Position': small, 'Bounds': bounds, 'Segments': segments, 'RideOrient': ride_orient, 'SetFirst': pieces, 'Append': pieces, 'ClearSel': pieces, 'EndSel': pieces, 'Tools': current, 'Remove': pieces, 'ObjOther': by_id, 'ObjParams': by_id, 'Cost': cost, 'Gaps': gaps, 'Save': save, 'Claim': claim}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 

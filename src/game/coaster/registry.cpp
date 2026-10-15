@@ -4,6 +4,7 @@
 
 #include "../core/globalmem.h"
 #include "../model/highlight.h"
+#include "../world/objectdefs.h"
 
 namespace {
 
@@ -233,5 +234,43 @@ void __cdecl Coaster_FlashCar(u8 *coaster, u32 which) {
     u8 *const ride = rides[*reinterpret_cast<const u32 *>(car + 0x70)];
     if (!(*reinterpret_cast<const u32 *>(ride + 4) & 0x4000000)) Highlight_Flash(ride);
     *reinterpret_cast<u8 **>(coaster + 0x144) = car;
+}
+
+u32 __cdecl Ride_Claim(u32 index, u32 type, u32 key, const u32 *desc, u32, u32 value, u32 a, u32 b) {
+    if (!a) a = desc && desc[3] ? reinterpret_cast<const u32 *>(desc[3])[0] : 0;
+    if (!b) b = desc && desc[3] ? reinterpret_cast<const u32 *>(desc[3])[1] : 0;
+    u8 *const *const rides = reinterpret_cast<u8 *const *>(0x007a4610);
+    const u8 *const *const types = reinterpret_cast<const u8 *const *>(0x007ae6a8);
+    const u8 *def = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, (u16)at<u32>(types[type], 0xf8));
+    u8 *ride;
+    if (index) {
+        ride = rides[index];
+    } else {
+        const u32 count = *reinterpret_cast<const u32 *>(0x007a3ebc) + *reinterpret_cast<const u32 *>(0x007a4084);
+        u32 i = 1;
+        for (;; ++i) {
+            if (i > count) return 0;
+            ride = rides[i];
+            if (!ride) continue;
+            u32 t = *reinterpret_cast<const u32 *>(0x007a439c);
+            for (; t != 0; --t)
+                if (reinterpret_cast<const u32 *>(types)[t] == at<u32>(ride, 0)) break;
+            if (at<u32>(ride, 4) & 0x10000 || t != type || at<u32>(ride, 0xe4) != key) continue;
+            if (!desc) break;
+            if (at<u32>(ride, 0xe8) != desc[0] || at<u32>(ride, 0xec) != desc[1] ||
+                at<u32>(at<const u8 *>(ride, 8), 0x10) != desc[2])
+                continue;
+            if (!desc[3]) break;
+            if (def) {
+                if (at<u32>(def, 0x18) == desc[3]) break;
+            } else if (at<u32>(ride, 0xf0) == a && at<u32>(ride, 0xf4) == b) {
+                break;
+            }
+        }
+        index = i;
+    }
+    if (at<u32>(ride, 4) & 0x40000) CoasterLink_SetById(index, value);
+    at<u32>(ride, 4) |= 0x10000;
+    return index;
 }
 }

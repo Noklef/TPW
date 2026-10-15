@@ -127,4 +127,13 @@ void __cdecl Coasters_AllocTables(u32 nodes, u32 links);
 // (+0x60 with the coaster's 2 at +0x3c), else which & 2 the one at +0x54 (+0x64), its ride
 // flashed unless it already has 0x4000000, and kept at +0x144.
 void __cdecl Coaster_FlashCar(u8 *coaster, u32 which);
+
+// 0x463ab0: claims ride index (table 0x7a4610) or, when index is 0, the first of 1..0x7a3ebc +
+// 0x7a4084 not yet claimed (+4 flag 0x10000) whose type (its +0 found in 0x7ae6a8 from
+// 0x7a439c down) is type and +0xe4 key, and when desc is given whose +0xe8 / +0xec / +8 -> +0x10
+// are desc[0..2] and, when desc[3] is set, either the object definition of type's +0xf8 (set
+// 0x7890a0) has +0x18 desc[3] or, with no definition, +0xf0 / +0xf4 are a / b (desc[3]'s two
+// words when 0). Sets value on its coaster link (by index) when it has +4 flag 0x40000, flags it
+// claimed and returns index, else 0. The fifth argument is unused.
+u32 __cdecl Ride_Claim(u32 index, u32 type, u32 key, const u32 *desc, u32, u32 value, u32 a, u32 b);
 }
