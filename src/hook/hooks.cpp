@@ -28,7 +28,8 @@
 #include "../game/files/wrapsources.h"
 #include "../game/files/wadsource.h"
 #include "../game/files/bufsource.h"
-#include "../game/files/filestream.h"
+#include "../game/files/filestream.h"
+#include "../game/files/quickload.h"
 #include "../game/math/matrix.h"
 #include "../game/math/vector.h"
 #include "../game/math/rect.h"
@@ -653,6 +654,11 @@ const Hook kHooks[] = {
     {"SystemInfo_FindVolume",     0x005f8940, (void *)&SystemInfo_FindVolume, {0x8b, 0x44, 0x24, 0x04, 0x83}},
     {"SystemInfo_DriveLetter",    0x005f89d0, (void *)&SystemInfo_DriveLetter, {0x8b, 0x44, 0x24, 0x04, 0x80}},
     {"SystemInfo_VolumeLabel",    0x005f89f0, (void *)&SystemInfo_VolumeLabel, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
+    {"Quickload_Init",            0x00461790, (void *)&Quickload_Init, {0xa1, 0x28, 0xe2, 0x6f, 0x00}},
+    {"Quickload_Free",            0x004617e0, (void *)&Quickload_Free, {0xa1, 0xdc, 0x45, 0x7a, 0x00}},
+    {"Quickload_Has",             0x00461820, (void *)&Quickload_Has, {0xa1, 0x5c, 0x44, 0x7a, 0x00}},
+    {"Quickload_Find",            0x004618a0, (void *)&Quickload_Find, {0xa1, 0x5c, 0x44, 0x7a, 0x00}},
+    {"Quickload_HasStem",         0x00461920, (void *)&Quickload_HasStem, {0x81, 0xec, 0x08, 0x02, 0x00}},
     {"RegKey_Open",               0x005f8ae0, (void *)&RegKey_Open, {0x51, 0x56, 0x57, 0x8b, 0xf9}},
     {"RegKey_Dtor",               0x005f8b70, (void *)&RegKey_Dtor, {0x51, 0x8d, 0x44, 0x24, 0x00}},
     {"RegKey_Close",              0x005f8b80, (void *)&RegKey_Close, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},

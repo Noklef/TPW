@@ -58,6 +58,7 @@ add_library(tpw_game STATIC
     src/game/gfx/tga.cpp
     src/game/files/streamopen.cpp
     src/game/files/drives.cpp
+    src/game/files/quickload.cpp
     src/game/core/regkey.cpp
     src/game/core/stdstring.cpp
     src/game/core/globalmem.cpp
