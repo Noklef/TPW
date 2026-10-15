@@ -18,4 +18,12 @@ extern "C" {
 // -(((-(n.x v0.x + n.y v0.y + n.z v0.z) + n.x x) + n.z z) / n.y), kept when above the best
 // so far. With first, the first face under the point ends the search.
 float __cdecl Model_HeightAt(const u8 *model, const u8 *instance, float x, float z, const float *normals, s32 first);
+
+// 0x451290: the view's (0x79fb18) floor height under (x, z): unless noMain, its main node's
+// (+0x2c, with its normals at +0x30, the first face found), or the root's y (model +4 -> +0x78
+// -> +0x44) when that finds none (-100, or NaN); then, unless noParts and when the holder
+// (+0x28) has flag 8, the higher of each part flagged 2 (model +0x48 of them from +0x46, all
+// taken as big nodes, 0xa0 bytes apart, sic; instances holder +4) whose flags have 4 ends it
+// with that height (first found) when it is higher. -100 when nothing is found.
+float __cdecl Model_FloorHeight(float x, float z, s32 noParts, s32 noMain);
 }

@@ -83,4 +83,31 @@ float __cdecl Model_HeightAt(const u8 *model, const u8 *instance, float x, float
     }
     return best;
 }
+
+float __cdecl Model_FloorHeight(float x, float z, s32 noParts, s32 noMain) {
+    const u8 *view = global<const u8 *>(0x0079fb18);
+    const u8 *const model = at<const u8 *>(view, 4);
+    const u8 *const holder = at<const u8 *>(view, 0x28);
+    float best = -100.0f;
+    if (!noMain && at<const u8 *>(view, 0x2c)) {
+        best = Model_HeightAt(at<const u8 *>(view, 0x2c), nullptr, x, z, at<const float *>(view, 0x30), 1);
+        view = global<const u8 *>(0x0079fb18);
+        if (!(best != -100.0f)) {  // fcomp: equal, or unordered
+            at<u32>(&best, 0) = at<u32>(at<const u8 *>(at<const u8 *>(view, 4), 0x78), 0x44);
+        }
+    }
+    if (noParts || !holder || !(at<u8>(holder, 0) & 8)) return best;
+    const u8 *node = at<const u8 *>(model, 0x70) + at<u16>(model, 0x46) * 0xa0;  // sic: big nodes only
+    const u8 *flags = at<const u8 *>(model, 0x7c);
+    const u8 *instance = at<const u8 *>(at<const u8 *>(view, 0x28), 4);
+    for (u32 left = at<u16>(model, 0x48); left; --left, node += 0xa0, flags += 0x14, instance += 0x14) {
+        const u32 bits = at<u32>(flags, 0);
+        if (!(bits & 2)) continue;
+        const float h = Model_HeightAt(node, instance, x, z, nullptr, bits & 4);
+        if (!(h > best)) continue;  // fcom: below, equal or unordered
+        if (at<u8>(flags, 0) & 4) return h;
+        best = h;
+    }
+    return best;
+}
 }
