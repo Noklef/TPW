@@ -344,6 +344,13 @@ address,name,kind,confidence,notes
 0x00450420,Terrain_IsParkLand,function,high,"reimplemented (src/game/terrain/land); cdecl u32 (x, y): bit 0 of the cell clear; 0 off the grid, 1 without map or grid"
 0x00450a30,Terrain_CopyAttrs,function,high,"reimplemented (src/game/terrain/land); cdecl (map, grid): copies grid's cells over map's grid cells (count +6)"
 0x00450b00,Terrain_GridSize,function,high,"reimplemented (src/game/terrain/land); cdecl (width*, height*): the attribute grid's width and height"
+0x0046df50,Terrain_PaintCell,function,high,"reimplemented (src/game/terrain/land); (map, sets, x, y, set, tile, rotation): texture + rotation into a grid cell; set 0 tile 8 erases, tile 0x37 restores"
+0x0056dfb0,TerrainTex_Enable,function,high,reimplemented (src/game/terrain/procedural); renderer flags 0x8bd550 |= 4 unless 0x10000000
+0x0056dfd0,TerrainTex_Disable,function,high,reimplemented (src/game/terrain/procedural); renderer flags 0x8bd550 &= ~4
+0x00457a00,Terrain_ProceduralEnter,function,high,reimplemented (src/game/terrain/procedural); procedural terrain textures on (0x7a1a8c 0x4000) per option 0x78d8d8
+0x00457a40,Terrain_ProceduralLeave,function,high,reimplemented (src/game/terrain/procedural); procedural terrain textures off; cells get bits 3-7 back from the loaded grid
+0x00457a70,Terrain_ProceduralOn,function,high,reimplemented (src/game/terrain/procedural); (0x7a1a8c & 0x6000) == 0x6000
+0x0046ded0,Terrain_SetProceduralCells,function,high,"reimplemented (src/game/terrain/procedural); (on): cells lose bits 3-6, or get bits 3-7 from the loaded grid 0x79fc54"
 0x00536490,MapCell_Reset,function,high,"default type/flags from the attribute byte: outside park 2/0x1e/7, inside 1 (path, bit 0x08) or 0; 0x10 -> flags 0x80, 0x04 -> flags 0x400"
 0x00527ee0,Path_CheckDeadEnds,function,low,"counts path neighbours; attribute bit 0x08 exempts a cell"
 0x0080239c,gWorld,data,medium,"world structure; map cells at +0x2d8 (0x44 each, 1-based ids), track cells at +0x1102d8"
@@ -1854,3 +1861,4 @@ address,name,kind,confidence,notes
 0x0045bed0,Holder_FlagModel,function,high,reimplemented (src/game/model/holder); cdecl (holder**): model (+4) +0x30 |= 0x200
 0x0045bef0,Holder_SetPosition,function,high,"reimplemented (src/game/model/holder); cdecl (holder, x, y, z): model (+4) matrix (+0x78, +0x10) translation = x, y, z"
 0x004587b0,Ride_SlotKey,function,high,"reimplemented (src/game/model/holder); cdecl u32 (ride, i): slot i's +8 of the ride's holder (0x7a4610), 0 for a null slot"
+0x0046de00,Model_RemapTextures,function,high,"reimplemented (src/game/model/remap); (model, remap, textures, first): face texture pointers and grid cell textures renumbered"

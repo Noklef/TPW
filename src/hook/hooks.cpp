@@ -77,11 +77,13 @@
 #include "../game/coaster/spline.h"
 #include "../game/coaster/train.h"
 #include "../game/terrain/land.h"
+#include "../game/terrain/procedural.h"
 #include "../game/terrain/terrain_blend.h"
 #include "../game/world/random.h"
 #include "../game/world/things.h"
 #include "../game/model/holder.h"
 #include "../game/model/parts.h"
+#include "../game/model/remap.h"
 #include "../game/render/frame.h"
 #include "../game/render/mode.h"
 
@@ -1057,9 +1059,17 @@ const Hook kHooks[] = {
     {"Ride_SlotKey",              0x004587b0, (void *)&Ride_SlotKey, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Holder_SetPosition",        0x0045bef0, (void *)&Holder_SetPosition, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Holder_FlagModel",          0x0045bed0, (void *)&Holder_FlagModel, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Model_RemapTextures",       0x0046de00, (void *)&Model_RemapTextures, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
+    {"Terrain_PaintCell",         0x0046df50, (void *)&Terrain_PaintCell, {0x53, 0x55, 0x56, 0x8b, 0x74}},
+    {"Terrain_SetProceduralCells", 0x0046ded0, (void *)&Terrain_SetProceduralCells, {0x8b, 0x0d, 0x54, 0xfc, 0x79}},
+    {"Terrain_ProceduralOn",      0x00457a70, (void *)&Terrain_ProceduralOn, {0xa1, 0x8c, 0x1a, 0x7a, 0x00}},
+    {"Terrain_ProceduralLeave",   0x00457a40, (void *)&Terrain_ProceduralLeave, {0xa1, 0x8c, 0x1a, 0x7a, 0x00}},
+    {"Terrain_ProceduralEnter",   0x00457a00, (void *)&Terrain_ProceduralEnter, {0xa1, 0x8c, 0x1a, 0x7a, 0x00}},
+    {"TerrainTex_Disable",        0x0056dfd0, (void *)&TerrainTex_Disable, {0xa1, 0x50, 0xd5, 0x8b, 0x00}},
+    {"TerrainTex_Enable",         0x0056dfb0, (void *)&TerrainTex_Enable, {0xa1, 0x50, 0xd5, 0x8b, 0x00}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

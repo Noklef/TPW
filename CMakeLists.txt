@@ -95,8 +95,10 @@ add_library(tpw_game STATIC
     src/game/coaster/save.cpp
     src/game/terrain/terrain_blend.cpp
     src/game/terrain/land.cpp
+    src/game/terrain/procedural.cpp
     src/game/model/parts.cpp
     src/game/model/holder.cpp
+    src/game/model/remap.cpp
     src/game/render/mode.cpp
     src/game/render/frame.cpp
 )

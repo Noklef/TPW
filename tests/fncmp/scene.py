@@ -1,5 +1,5 @@
 # 0x448000-0x470000 (render mode, model part tables, frame globals, model holders, the terrain
-# attribute grid) against the originals.
+# attribute grid, procedural terrain textures, painting cells, texture remaps) against the originals.
 # usage: scene.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -10,9 +10,10 @@ from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x44a590, 0x44a640), (0x44b140, 0x44b2e0), (0x44b3c0, 0x44b410), (0x44e570, 0x44e5fc),
            (0x4587b0, 0x4587d9), (0x45bed0, 0x45bf13), (0x450420, 0x45046d), (0x450a30, 0x450a78),
-           (0x450b00, 0x450b24)])
+           (0x450b00, 0x450b24), (0x457a00, 0x457a88), (0x46de00, 0x46e125), (0x56dfb0, 0x56dfdd)])
 HOLDER, MODEL, PARTS, FACES, FACES2 = (RAM + k * 0x1000 for k in range(5))
 REF, H2, MAT, SLOTS, MAP, GRID, CELLS, GRID2, CELLS2, OUT = (RAM + k * 0x1000 for k in range(5, 15))
+SETS, ENTRIES, TILES, MDL, MESHES, MFACES, REMAP = (RAM + k * 0x1000 for k in range(15, 22))
 
 
 def mode(r, op):
@@ -112,10 +113,94 @@ def land(r, op):
     return Call(0x450b00, [OUT, OUT + 4], regs)
 
 
+def terrain(r, w=None, h=None):
+    """The map 0x7a0854 -> MAP (+0x6c -> GRID, cells CELLS) and the loaded grid 0x79fc54 -> GRID2
+    (cells CELLS2), with a w x h grid holding w * h cells; flags 0x7a1a8c and 0x8bd550."""
+    w = r.choice([1, r.randrange(1, 17)]) if w is None else w
+    h = r.choice([1, r.randrange(1, 17)]) if h is None else h
+    m, g, g2 = bytearray(r.bytes(0x80)), bytearray(r.bytes(0x40)), bytearray(r.bytes(0x40))
+    put(g, 0x18, '2I', w, h)
+    put(g, 6, 'H', r.choice([w * h, 0, 1]))
+    put(g, 0x2c, 'I', CELLS)
+    put(g2, 0x2c, 'I', CELLS2)
+    put(m, 0x6c, 'I', GRID)
+    bits = r.choice([0x6000, 0x2000, 0x4000, 0]) | (r.getrandbits(32) & ~0x6000)
+    cells = bytearray(r.bytes(0x400))
+    for i in range(0, 0x400, 4):  # fewer cells with 0x81 so most get changed
+        if r.random() < 0.7:
+            cells[i] &= 0x7e
+    return {MAP: m, GRID: g, GRID2: g2, CELLS: cells, CELLS2: r.bytes(0x400),
+            0x7a0854: put(bytearray(4), 0, 'I', MAP), 0x79fc54: put(bytearray(4), 0, 'I', GRID2),
+            0x7a1a8c: put(bytearray(4), 0, 'I', bits), 0x78d8d8: put(bytearray(4), 0, 'I', r.choice([0, 1, 2])),
+            0x8bd550: put(bytearray(4), 0, 'I', r.getrandbits(32) & r.choice([0xffffffff, 0xefffffff]))}
+
+
+def procedural(r, op):
+    regs = terrain(r)
+    address = {'TexEnable': 0x56dfb0, 'TexDisable': 0x56dfd0, 'ProcEnter': 0x457a00, 'ProcLeave': 0x457a40,
+               'ProcOn': 0x457a70}.get(op)
+    if address:
+        return Call(address, [], regs, ret='a' if op == 'ProcOn' else 'v')
+    return Call(0x46ded0, [r.choice([0, 1, r.getrandbits(32)])], regs)
+
+
+def paint(r, op):
+    """PaintCell (map, sets, x, y, set, tile, rotation): sets {count, ENTRIES}, 8 entries of 12 bytes
+    (+4 tile count, +8 -> TILES + 0x100 * k), tiles of 12 bytes (texture u16 at +8). Entries past
+    the count may hold anything (the unwrapped set's count is checked first)."""
+    w, h = r.randrange(1, 17), r.randrange(1, 17)
+    regs = terrain(r, w, h)
+    count = r.choice([1, 2, 3, r.randrange(1, 7), 0, -1])
+    entries = bytearray(r.bytes(8 * 12))
+    for k in range(8):
+        tiles = r.randrange(1, 9) if k < count else r.choice([0, -1, r.randrange(1, 9)])
+        put(entries, 12 * k + 4, '2I', tiles & 0xffffffff, TILES + 0x100 * k)
+    regs.update({SETS: put(bytearray(8), 0, '2I', count & 0xffffffff, ENTRIES), ENTRIES: entries,
+                 TILES: r.bytes(0x800)})
+    if r.random() < 0.3:
+        put(regs[0x79fc54], 0, 'I', r.choice([0, GRID2]))
+    x = r.choice([r.randrange(w), r.randrange(w), -1, w, r.getrandbits(32)])
+    y = r.choice([r.randrange(h), r.randrange(h), -1, h, r.getrandbits(32)])
+    s, t = r.choice([(0, 8), (0, 0x37), (0, r.randrange(16)), (r.randrange(1, max(count, 1) + 3), r.randrange(16))])
+    rotation = r.choice([0, 90, 180, 270, 45, r.getrandbits(32)])
+    return Call(0x46df50, [MAP, SETS, x, y, s, t, rotation], regs)
+
+
+def remap(r, op):
+    """A model MDL (+0x44 meshes at +0x70 -> MESHES, 0xa0 each: +0x5a faces at +0x6c -> MFACES + 0x100 * k,
+    0x10 each; +0x50 its textures; +0x6c a grid or 0) renumbered through REMAP (64 entries)."""
+    base = r.getrandbits(32) & ~7
+    model, meshes = bytearray(r.bytes(0x80)), bytearray(r.bytes(3 * 0xa0))
+    n = r.choice([0, 1, 2, 3])
+    put(model, 0x44, 'H', n)
+    put(model, 0x50, 'I', base)
+    put(model, 0x6c, 'I', r.choice([GRID, 0]))
+    put(model, 0x70, 'I', MESHES)
+    faces = bytearray(r.bytes(0x300))
+    for k in range(3):
+        put(meshes, 0xa0 * k + 0x5a, 'H', r.choice([0, 1, r.randrange(9)]))
+        put(meshes, 0xa0 * k + 0x6c, 'I', MFACES + 0x100 * k)
+        for j in range(8):
+            put(faces, 0x100 * k + 0x10 * j, 'I', r.choice([0, (base + 8 * r.randrange(64) + r.randrange(8)) & 0xffffffff]))
+    regs = terrain(r)
+    cells = regs[CELLS]
+    count = r.choice([0, 1, r.randrange(64)])
+    put(regs[GRID], 6, 'H', count)
+    for i in range(count):
+        put(cells, 4 * i + 2, 'H', r.randrange(64))
+    table = bytearray(256)
+    for i in range(64):
+        put(table, 4 * i, 'i', r.choice([0, -1, r.randrange(1, 100), -r.randrange(1, 100)]))
+    regs.update({MDL: model, MESHES: meshes, MFACES: faces, REMAP: table})
+    return Call(0x46de00, [MDL, REMAP, r.getrandbits(32), r.choice([0, 1, r.randrange(1000), -5]), r.getrandbits(32)], regs)
+
+
 KINDS = {'Size': mode, 'Depth': mode, 'ResetScale': mode, 'Epsilon': mode, 'MarkMask': parts, 'MarkValue': parts,
          'Count': parts, 'Nth': parts, 'Key4': parts, 'Key8': parts, 'ResetBounds': frame, 'AddFlags': frame,
          'SetPoint': frame, 'FlagModel': holder, 'SetPosition': holder, 'SlotKey': holder, 'IsParkLand': land,
-         'CopyAttrs': land, 'GridSize': land}
+         'CopyAttrs': land, 'GridSize': land, 'TexEnable': procedural, 'TexDisable': procedural,
+         'ProcEnter': procedural, 'ProcLeave': procedural, 'ProcOn': procedural, 'ProcCells': procedural,
+         'PaintCell': paint, 'PaintCell2': paint, 'Remap': remap}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 

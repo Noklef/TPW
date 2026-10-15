@@ -31,6 +31,50 @@ void __cdecl Terrain_CopyAttrs(const u8 *map, const u8 *grid) {
     for (u32 n = at<u16>(own, 6); n; --n) *to++ = *from++;
 }
 
+void __cdecl Terrain_PaintCell(const u8 *map, const u8 *sets, s32 x, s32 y, s32 set, s32 tile, u32 rotation) {
+    const bool erase = !set && tile == 8, restore = !set && tile == 0x37;
+    if (!erase && !restore) {
+        if (!set) set = 1;
+        const s32 count = at<s32>(sets, 0);
+        if (count <= 0) return;
+        const u8 *entries = at<const u8 *>(sets, 4);
+        if (at<s32>(entries, (u32)set * 12 - 8) <= 0) return;  // sic: before set wraps
+        set = (s32)((u32)set - 1) % count + 1;
+        tile %= at<s32>(entries, (u32)set * 12 - 8);
+    }
+    if (x < 0) return;
+    const u8 *grid = at<const u8 *>(map, 0x6c);
+    const s32 width = at<s32>(grid, 0x18);
+    if (x >= width || y < 0 || y >= at<s32>(grid, 0x1c)) return;
+    const u32 offset = ((u32)y * (u32)width + (u32)x) * 4;
+    auto flags = [&]() -> u16 & { return at<u16>(at<const u8 *>(at<const u8 *>(map, 0x6c), 0x2c), offset); };
+    if (erase) {
+        flags() |= 0x101;
+        flags() &= 0xff7f;
+        return;
+    }
+    if (restore) {
+        if (!*reinterpret_cast<const u8 *const *>(0x0079fc54)) return;
+        auto loaded = [&]() { return at<const u8 *>(*reinterpret_cast<const u8 *const *>(0x0079fc54), 0x2c) + offset; };
+        at<u16>(&flags(), 2) = at<u16>(loaded(), 2);
+        flags() = at<u16>(loaded(), 0);
+        reinterpret_cast<u8 *>(&flags())[1] |= 1;
+        if (*reinterpret_cast<const u32 *>(0x007a1a8c) & 0x4000) flags() &= 0xff87;
+        return;
+    }
+    const u8 *tiles = at<const u8 *>(at<const u8 *>(sets, 4), (u32)set * 12 - 4);
+    at<u16>(&flags(), 2) = at<u16>(tiles, (u32)tile * 12 + 8);
+    flags() &= 0xff87;
+    flags() &= 0xfffe;
+    flags() |= 0x180;
+    if (rotation == 90)
+        flags() |= 0x20;
+    else if (rotation == 180)
+        flags() |= 0x10;
+    else if (rotation == 270)
+        flags() |= 8;
+}
+
 void __cdecl Terrain_GridSize(u32 *width, u32 *height) {
     *width = at<u32>(at<const u8 *>(map(), 0x6c), 0x18);
     *height = at<u32>(at<const u8 *>(map(), 0x6c), 0x1c);
