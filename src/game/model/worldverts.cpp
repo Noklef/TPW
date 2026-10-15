@@ -47,4 +47,11 @@ void __cdecl WorldVerts_TransformFrame(const u8 *frame) {
         out[0] = (float)nx;
     }
 }
+
+void __cdecl WorldVerts_Fetch(const u8 *groups, u32 index, u32 *out) {
+    const u32 *const lane = reinterpret_cast<const u32 *>(groups + (index >> 2) * 0x30) + (index & 3);
+    out[0] = lane[0];
+    out[1] = lane[4];
+    out[2] = lane[8];
+}
 }

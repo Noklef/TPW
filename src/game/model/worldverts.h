@@ -1,6 +1,6 @@
 // The shared buffer at 0x7aecd4 (12 bytes per entry; the motion code reads it as
 // gTrackFlags, a u32 per node) and the frame transform that fills it with world positions:
-// reimplementations of 0x462870, 0x4628a0 and 0x4628b0.
+// reimplementations of 0x462870, 0x4628a0, 0x4628b0 and 0x463a10.
 #pragma once
 
 #include "../../../re/types.h"
@@ -20,4 +20,8 @@ void __cdecl WorldVerts_Free();
 // x' = (m8 z + m4 y) + m0 x + m12, and likewise y' (m9, m5, m1, m13) and z' (m10, m6, m2,
 // m14), in that order on the x87.
 void __cdecl WorldVerts_TransformFrame(const u8 *frame);
+
+// 0x463a10: vertex index of a frame's grouped vertices (its +0x60) into out: x, y and z
+// copied as words from its group (index / 4, 0x30 bytes each) at lane index % 4.
+void __cdecl WorldVerts_Fetch(const u8 *groups, u32 index, u32 *out);
 }

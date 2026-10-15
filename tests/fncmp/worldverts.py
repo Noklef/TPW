@@ -1,6 +1,8 @@
-# The world vertex buffer at 0x7aecd4 (src/game/model/worldverts: 0x462870, 0x4628a0, 0x4628b0)
+# The world vertex buffer at 0x7aecd4 (src/game/model/worldverts: 0x462870, 0x4628a0, 0x4628b0,
+# 0x463a10)
 # against the original: its alloc / free (global_heap()) and the frame transform - a frame with
-# a parent chain of matrices (Matrix_Mul) and SoA vertices, written as world positions into it.
+# a parent chain of matrices (Matrix_Mul) and SoA vertices, written as world positions into it;
+# and the fetch of one of those vertices.
 # usage: worldverts.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import sys
@@ -8,7 +10,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, Bench, Call, RAM, global_heap, heap, put  # noqa: E402
 
-B = Bench([(0x462870, 0x4629c4), (0x4700f0, 0x4702d0), (0x45b9d0, 0x45ba15), (0x45ba00, 0x45ba30)])
+B = Bench([(0x462870, 0x4629c4), (0x463a10, 0x463a42), (0x4700f0, 0x4702d0), (0x45b9d0, 0x45ba15), (0x45ba00, 0x45ba30)])
 FRAMES, VERTS, OUT = RAM, RAM + 0x1000, RAM + 0x3000
 
 
@@ -18,6 +20,9 @@ def case(r):
     if op == 'Alloc':
         regions[0x7a42ac] = put(bytearray(4), 0, 'I', r.choice([0, 1, 7, r.randrange(300)]))
         return Call(0x462870, [r.choice([0, 0, 1, r.getrandbits(32)])], regions)
+    if op == 'Fetch':  # raw words (NaNs too) from 8 groups
+        regions.update({VERTS: bytearray(r.bytes(0x180)), OUT: bytearray(r.bytes(16))})
+        return Call(0x463a10, [VERTS, r.randrange(32), OUT], regions)
     if op == 'Free':
         put(regions[0x7aecd4], 0, 'I', r.choice([0, HEAP + 0x40, r.getrandbits(32)]))
         return Call(0x4628a0, [], regions)
@@ -40,7 +45,7 @@ def case(r):
     return Call(0x4628b0, [FRAMES], regions)
 
 
-OPS_ALL = ['Alloc', 'Free'] + ['Transform'] * 6
+OPS_ALL = ['Alloc', 'Free', 'Fetch'] + ['Transform'] * 6
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 
