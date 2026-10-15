@@ -16,4 +16,9 @@ u32 __cdecl RenderMode_Depth();
 // 0x44a600: 0x79d9e4 = 1.0f. 0x44a620: 0x79d9e8 = 1.0f / 8388608.0f (0x6fe2a0 / 0x6fe270).
 void __cdecl RenderMode_ResetScale();
 void __cdecl RenderMode_InitEpsilon();
+
+// 0x44a3d0 / 0x44a3f0: the same pair for 0x79d9c4 (1.0f) and 0x79d9cc (1.0f / 8388608.0f,
+// 0x6fe268 / 0x6fe238), static initialisers too; nothing reads either.
+void __cdecl RenderMode_InitUnusedOne();
+void __cdecl RenderMode_InitUnusedEpsilon();
 }

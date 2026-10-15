@@ -26,4 +26,8 @@ u32 __cdecl RenderMode_Depth() {
 void __cdecl RenderMode_ResetScale() { *reinterpret_cast<float *>(0x0079d9e4) = 1.0f; }
 
 void __cdecl RenderMode_InitEpsilon() { *reinterpret_cast<float *>(0x0079d9e8) = 1.0f / 8388608.0f; }
+
+void __cdecl RenderMode_InitUnusedOne() { *reinterpret_cast<float *>(0x0079d9c4) = 1.0f; }
+
+void __cdecl RenderMode_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x0079d9cc) = 1.0f / 8388608.0f; }
 }

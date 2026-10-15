@@ -91,7 +91,8 @@
 #include "../game/model/remap.h"
 #include "../game/model/clone.h"
 #include "../game/model/scratch.h"
-#include "../game/render/frame.h"
+#include "../game/render/frame.h"
+#include "../game/render/screen.h"
 #include "../game/render/mode.h"
 #include "../game/online/servers.h"
 
@@ -1065,10 +1066,14 @@ const Hook kHooks[] = {
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"RenderMode_InitEpsilon",    0x0044a620, (void *)&RenderMode_InitEpsilon, {0xd9, 0x05, 0xa0, 0xe2, 0x6f}},
+    {"RenderMode_InitUnusedOne",  0x0044a3d0, (void *)&RenderMode_InitUnusedOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"RenderMode_InitUnusedEpsilon", 0x0044a3f0, (void *)&RenderMode_InitUnusedEpsilon, {0xd9, 0x05, 0x68, 0xe2, 0x6f}},
     {"Frame_ResetBounds",         0x0044e570, (void *)&Frame_ResetBounds, {0xc7, 0x05, 0x00, 0x06, 0x7b}},
     {"Frame_AddFlags",            0x0044e5b0, (void *)&Frame_AddFlags, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Frame_SetPoint",            0x0044e5d0, (void *)&Frame_SetPoint, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Frame_Begin",               0x0044e510, (void *)&Frame_Begin, {0xa1, 0xb4, 0xfc, 0x79, 0x00}},
+    {"Screen_Init",               0x00449ec0, (void *)&Screen_Init, {0xa1, 0x6c, 0xcb, 0x79, 0x00}},
+    {"Screen_Shutdown",           0x0044a1d0, (void *)&Screen_Shutdown, {0x68, 0x00, 0x10, 0x00, 0x00}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

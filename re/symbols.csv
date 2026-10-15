@@ -1859,10 +1859,14 @@ address,name,kind,confidence,notes
 0x0044a5d0,RenderMode_Depth,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 8/0x10 in 0x79d86c, else 0x20 if set, else 8"
 0x0044a600,RenderMode_ResetScale,function,high,reimplemented (src/game/render/mode); cdecl (): 0x79d9e4 = 1.0f
 0x0044a620,RenderMode_InitEpsilon,function,high,reimplemented (src/game/render/mode); cdecl (): 0x79d9e8 = 1/8388608
+0x0044a3d0,RenderMode_InitUnusedOne,function,high,reimplemented (src/game/render/mode); cdecl static initialiser: 0x79d9c4 = 1.0f (never read)
+0x0044a3f0,RenderMode_InitUnusedEpsilon,function,high,reimplemented (src/game/render/mode); cdecl static initialiser: 0x79d9cc = 1/8388608 (never read)
 0x0044e570,Frame_ResetBounds,function,high,"reimplemented (src/game/render/frame); cdecl (): bounds 0x7b0600 to FLT_MAX x3, -FLT_MAX x3"
 0x0044e5b0,Frame_AddFlags,function,high,reimplemented (src/game/render/frame); cdecl (flags): 0x79e884 |= flags
 0x0044e5d0,Frame_SetPoint,function,high,"reimplemented (src/game/render/frame); cdecl (point*): 0x79e248 = point (when given), 0x79dcd4 = 0"
 0x0044e510,Frame_Begin,function,high,"reimplemented (src/game/render/frame); clears frame flags 0x79e884, ticks the animator at 0x79fcb4 (Animator_Update(a, 1, 4))"
+0x00449ec0,Screen_Init,function,high,"reimplemented (src/game/render/screen); cdecl (): the search path table (0x79cb4c: one copy of 0x79cb70), the screen size 0x7a1968 x 0x7a1930 (option flags 0x7a1a8c when 0x78d968 == 1, else Resolution.sam 1-7 or 0x78d8dc; above 7 kept, sic), its centre, 0x7a1a14 |= 8, Frame_ResetBounds, Quickload_Init"
+0x0044a1d0,Screen_Shutdown,function,high,"reimplemented (src/game/render/screen); cdecl (): SinTable_Build(4096) again, Quickload_Free, frees the search path text and table"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"

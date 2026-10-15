@@ -109,6 +109,7 @@ add_library(tpw_game STATIC
     src/game/model/clone.cpp
     src/game/render/mode.cpp
     src/game/render/frame.cpp
+    src/game/render/screen.cpp
     src/game/online/servers.cpp
 )
 
