@@ -93,8 +93,11 @@ add_library(tpw_game STATIC
     src/game/coaster/train.cpp
     src/game/coaster/save.cpp
     src/game/terrain/terrain_blend.cpp
+    src/game/terrain/land.cpp
     src/game/model/parts.cpp
+    src/game/model/holder.cpp
     src/game/render/mode.cpp
+    src/game/render/frame.cpp
 )
 
 # Proxy dinput.dll that loads into tp.exe and installs the hooks.

@@ -341,7 +341,9 @@ address,name,kind,confidence,notes
 0x005192d0,TP2M_ReadChunks,function,medium,"TP2M chunk reader set up with one handler for the MAP chunk (vtable 0x700aa8)"
 0x00519390,AttrMapHandler_MatchTag,function,medium,"MAP chunk handler: tag test"
 0x004d8cf0,AttrMap_ReadMapChunk,function,high,"copies the w x h bytes into MapCell.mStatusFlags (+0x26), offset by gBalanceLevel.mHeightfieldXStart/YStart"
-0x00450420,Terrain_IsParkLand,function,medium,"(x, y): bit 0 clear in the base.md2 heightfield cell (model+0x6c, 4 bytes a cell); 1 when no terrain is loaded"
+0x00450420,Terrain_IsParkLand,function,high,"reimplemented (src/game/terrain/land); cdecl u32 (x, y): bit 0 of the cell clear; 0 off the grid, 1 without map or grid"
+0x00450a30,Terrain_CopyAttrs,function,high,"reimplemented (src/game/terrain/land); cdecl (map, grid): copies grid's cells over map's grid cells (count +6)"
+0x00450b00,Terrain_GridSize,function,high,"reimplemented (src/game/terrain/land); cdecl (width*, height*): the attribute grid's width and height"
 0x00536490,MapCell_Reset,function,high,"default type/flags from the attribute byte: outside park 2/0x1e/7, inside 1 (path, bit 0x08) or 0; 0x10 -> flags 0x80, 0x04 -> flags 0x400"
 0x00527ee0,Path_CheckDeadEnds,function,low,"counts path neighbours; attribute bit 0x08 exempts a cell"
 0x0080239c,gWorld,data,medium,"world structure; map cells at +0x2d8 (0x44 each, 1-based ids), track cells at +0x1102d8"
@@ -1831,9 +1833,15 @@ address,name,kind,confidence,notes
 0x0044a5d0,RenderMode_Depth,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 8/0x10 in 0x79d86c, else 0x20 if set, else 8"
 0x0044a600,RenderMode_ResetScale,function,high,reimplemented (src/game/render/mode); cdecl (): 0x79d9e4 = 1.0f
 0x0044a620,RenderMode_InitEpsilon,function,high,reimplemented (src/game/render/mode); cdecl (): 0x79d9e8 = 1/8388608
+0x0044e570,Frame_ResetBounds,function,high,"reimplemented (src/game/render/frame); cdecl (): bounds 0x7b0600 to FLT_MAX x3, -FLT_MAX x3"
+0x0044e5b0,Frame_AddFlags,function,high,reimplemented (src/game/render/frame); cdecl (flags): 0x79e884 |= flags
+0x0044e5d0,Frame_SetPoint,function,high,"reimplemented (src/game/render/frame); cdecl (point*): 0x79e248 = point (when given), 0x79dcd4 = 0"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
 0x0044b270,Model_NthPart,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, nth): the nth part (from 1) with flags & mask, or -1"
 0x0044b2b0,Model_CountParts,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask): parts with flags & mask"
 0x0044b3c0,Model_FindPartByKey8,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +8 == key and flags & mask (mask defaults 1), or -1"
+0x0045bed0,Holder_FlagModel,function,high,reimplemented (src/game/model/holder); cdecl (holder**): model (+4) +0x30 |= 0x200
+0x0045bef0,Holder_SetPosition,function,high,"reimplemented (src/game/model/holder); cdecl (holder, x, y, z): model (+4) matrix (+0x78, +0x10) translation = x, y, z"
+0x004587b0,Ride_SlotKey,function,high,"reimplemented (src/game/model/holder); cdecl u32 (ride, i): slot i's +8 of the ride's holder (0x7a4610), 0 for a null slot"

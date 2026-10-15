@@ -37,7 +37,7 @@ def write(path, text):
 
 
 def eol(text):
-    return '\r\n' if '\r\n' in text else '\n'
+    return '\r\n' if text.count('\r\n') * 2 > text.count('\n') else '\n'  # the majority
 
 
 def parse_spec(path):

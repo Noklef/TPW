@@ -75,10 +75,13 @@
 #include "../game/coaster/save.h"
 #include "../game/coaster/spline.h"
 #include "../game/coaster/train.h"
+#include "../game/terrain/land.h"
 #include "../game/terrain/terrain_blend.h"
 #include "../game/world/random.h"
 #include "../game/world/things.h"
+#include "../game/model/holder.h"
 #include "../game/model/parts.h"
+#include "../game/render/frame.h"
 #include "../game/render/mode.h"
 
 namespace tpw::hook {
@@ -1032,12 +1035,21 @@ const Hook kHooks[] = {
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"RenderMode_InitEpsilon",    0x0044a620, (void *)&RenderMode_InitEpsilon, {0xd9, 0x05, 0xa0, 0xe2, 0x6f}},
+    {"Frame_ResetBounds",         0x0044e570, (void *)&Frame_ResetBounds, {0xc7, 0x05, 0x00, 0x06, 0x7b}},
+    {"Frame_AddFlags",            0x0044e5b0, (void *)&Frame_AddFlags, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Frame_SetPoint",            0x0044e5d0, (void *)&Frame_SetPoint, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"Model_NthPart",             0x0044b270, (void *)&Model_NthPart, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"Model_CountParts",          0x0044b2b0, (void *)&Model_CountParts, {0x8b, 0x4c, 0x24, 0x04, 0x33}},
     {"Model_FindPartByKey8",      0x0044b3c0, (void *)&Model_FindPartByKey8, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
+    {"Ride_SlotKey",              0x004587b0, (void *)&Ride_SlotKey, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Holder_SetPosition",        0x0045bef0, (void *)&Holder_SetPosition, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Holder_FlagModel",          0x0045bed0, (void *)&Holder_FlagModel, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
+    {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
