@@ -113,3 +113,20 @@ inline X87Reg operator*(X87Reg a, X87Reg b) {
 inline X87Reg operator/(X87Reg a, X87Reg b) {
     return a.v != a.v && b.v != b.v ? X87_Add(a.v, b.v) : X87_Round(a.v / b.v);
 }
+// fsubr / fdivr (and their p forms): src - dst and src / dst, where dst, the destination,
+// wins a tie between two NaNs.
+inline X87Reg X87_SubR(X87Reg dst, X87Reg src) {
+    return dst.v != dst.v && src.v != src.v ? X87_Add(dst.v, src.v) : src - dst;
+}
+inline X87Reg X87_DivR(X87Reg dst, X87Reg src) {
+    return dst.v != dst.v && src.v != src.v ? X87_Add(dst.v, src.v) : src / dst;
+}
+
+// A float loaded and stored by the x87 (fld m32; fstp m32), where the compiler would copy it.
+inline float X87_Through(float x) {
+    u32 b;
+    std::memcpy(&b, &x, 4);
+    b = X87_FloatThrough(b);
+    std::memcpy(&x, &b, 4);
+    return x;
+}

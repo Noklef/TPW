@@ -336,7 +336,9 @@ extern "C" void __cdecl Matrix_LookAlong(float *m, const float *dir) {
     }
 }
 
-extern "C" float __cdecl Vec3_Distance(const float *a, const float *b) {
-    const float dx = a[0] - b[0], dy = a[1] - b[1], dz = a[2] - b[2];
-    return std::sqrt((dx * dx + dy * dy) + dz * dz);
+extern "C" double __cdecl Vec3_Distance(const float *a, const float *b) {
+    const X87Reg dx = X87Reg(a[0]) - b[0], dy = X87Reg(a[1]) - b[1];
+    const float dz = (float)(X87Reg(a[2]) - b[2]);
+    const X87Reg sum = (dx * dx + dy * (float)dy) + X87Reg(dz) * dz;
+    return sum.v != sum.v ? sum.v : X87_Round(std::sqrt(sum.v));  // fsqrt keeps a NaN
 }

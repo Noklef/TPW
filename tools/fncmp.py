@@ -192,7 +192,11 @@ class Bench:
         inp = ''.join('%x %s %s %x %s %x %s\n' % (
             c.address, c.conv, c.ret, len(c.args), ' '.join('%x' % (a & 0xffffffff) for a in c.args), len(c.regions),
             ' '.join('%x %s' % (k, bytes(v).hex()) for k, v in c.regions.items())) for c in cases)
-        p = subprocess.run([DRIVER, EXE], input=inp, capture_output=True, text=True)
+        try:  # a case that loops forever in the C++ would hang the bench
+            p = subprocess.run([DRIVER, EXE], input=inp, capture_output=True, text=True, timeout=600)
+        except subprocess.TimeoutExpired as t:
+            p = subprocess.CompletedProcess(t.cmd, 0x102, t.stdout or '', 'timed out')
+            p.stdout = p.stdout.decode() if isinstance(p.stdout, bytes) else p.stdout
         out = []
         for c, line in zip(cases, p.stdout.splitlines()):
             w = line.split()

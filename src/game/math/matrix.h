@@ -84,6 +84,8 @@ void __cdecl Sort_MergeByKey(s32 n, s32 *a, s32 *b, s32 depth, const u8 *keys);
 // x = normalize(y x dir), y = dir x x, z = dir (none of it normalised but x).
 void __cdecl Matrix_LookAlong(float *m, const float *dir);
 
-// 0x470940: |a - b| (returned in st0, rounded to float by the 24-bit precision).
-float __cdecl Vec3_Distance(const float *a, const float *b);
+// 0x470940: |a - b|, left in st0 at the 24-bit precision with the register's exponent, so
+// double: sqrt((dx*dx + dy*(float)dy) + (float)dz*(float)dz), dx squared in the register
+// (through a double store), dy and dz through float stores (which overflow past float).
+double __cdecl Vec3_Distance(const float *a, const float *b);
 }

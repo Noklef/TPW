@@ -82,6 +82,7 @@ add_library(tpw_game STATIC
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
     src/game/coaster/helpers.cpp
+    src/game/coaster/cars.cpp
     src/game/terrain/terrain_blend.cpp
 )
 

@@ -121,6 +121,8 @@ class X87:
             op = arith[base]
             if not ops:                       # FADDP etc.: ST1 = ST1 op ST0, pop
                 ops = [('st', 1), ('st', 0)]
+            if pop and len(ops) == 1:         # FMULP STi: STi = STi op ST0, pop
+                ops = [ops[0], ('st', 0)]
             if len(ops) == 1:                 # ST0 = ST0 op operand
                 self.st[0] = apply(op, self.st[0], self.value(ops[0]))
             else:                             # dest = dest op src

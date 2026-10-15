@@ -64,6 +64,7 @@
 #include "../game/coaster/orient.h"
 #include "../game/coaster/rating.h"
 #include "../game/coaster/helpers.h"
+#include "../game/coaster/cars.h"
 #include "../game/coaster/spline.h"
 #include "../game/terrain/terrain_blend.h"
 #include "../game/world/random.h"
@@ -711,6 +712,8 @@ const Hook kHooks[] = {
     {"Coaster_FrameAt",           0x0043c0a0, (void *)&Coaster_FrameAt, {0x83, 0xec, 0x08, 0x8d, 0x44}},
     {"Float_RoundUp",             0x0043e160, (void *)&Float_RoundUp, {0xd9, 0x44, 0x24, 0x04, 0x83}},
     {"Angle_Lerp",                0x0043e480, (void *)&Angle_Lerp, {0x51, 0xd9, 0x44, 0x24, 0x08}},
+    {"CoasterCar_SwingRate",      0x0043c160, (void *)&CoasterCar_SwingRate, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
+    {"Coaster_SpaceCars",         0x0043c1f0, (void *)&Coaster_SpaceCars, {0x83, 0xec, 0x1c, 0x53, 0x55}},
     {"RowReader_Decode",          0x0062fe00, (void *)&RowReader_Decode, {0x6a, 0xff, 0x68, 0x38, 0x2b}},
     {"RowReader_CopyRow",         0x006300c0, (void *)&RowReader_CopyRow, {0x8b, 0xc1, 0x56, 0x57, 0x8b}},
     {"TgaReader_Load",            0x006300f0, (void *)&TgaReader_Load, {0x53, 0x8b, 0x5c, 0x24, 0x10}},

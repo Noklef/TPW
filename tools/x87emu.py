@@ -317,6 +317,8 @@ class Emu:
             fn = arith[base]
             if not o:
                 o = ['ST1', 'ST0']
+            if len(o) == 1 and mn != base:  # FMULP STi: STi = STi op ST0, pop
+                o = [o[0], 'ST0']
             if len(o) == 1:
                 self.st[0] = fn(self.st[0], self.fload(o[0]))
             else:

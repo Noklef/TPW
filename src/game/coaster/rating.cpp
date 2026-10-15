@@ -1,7 +1,6 @@
 #include "rating.h"
 
 #include <cmath>
-#include <cstring>
 
 #include "../math/x87.h"
 
@@ -10,14 +9,6 @@ namespace {
 CoasterRatingState &state() { return *reinterpret_cast<CoasterRatingState *>(0x007923a8); }
 
 template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>(static_cast<u8 *>(p) + offset); }
-// fld m32; fstp m32 (a signalling NaN comes out quiet), where the compiler would just copy.
-float through(float x) {
-    u32 b;
-    std::memcpy(&b, &x, 4);
-    b = X87_FloatThrough(b);
-    std::memcpy(&x, &b, 4);
-    return x;
-}
 template <typename T> const T &at(const void *p, u32 offset) {
     return *reinterpret_cast<const T *>(static_cast<const u8 *>(p) + offset);
 }
@@ -60,7 +51,7 @@ void __cdecl CoasterRating_Reset(const u8 *coaster) {
     const u8 *type = at<const u8 *>(coaster, 4);
     CoasterRatingState &g = state();
     g.sickness = at<float>(type, kInitialSickness);
-    g.excitement = g.lastExcitement = through(at<float>(type, kInitialExcitement));
+    g.excitement = g.lastExcitement = X87_Through(at<float>(type, kInitialExcitement));
     g.lastForce[0] = g.lastForce[1] = g.lastForce[2] = 0;
     g.unknownA8 = 0;
     g.lastBank = 0;
@@ -141,8 +132,8 @@ void __cdecl CoasterRating_Finish(u8 *coaster, float maxHeight, float topSpeed, 
     for (u8 *car = at<u8 *>(coaster, 0x54); car; car = at<u8 *>(car, 0x64))
         if ((at<u32>(car, 8) & 0x40) && (at<u32>(car, 8) & 0x80)) ++at<u32>(coaster, 0x108);
     const float product = (float)mul(at<float>(coaster, 0xac), at<float>(coaster, 0xa8));
-    at<float>(coaster, 0x110) = through(maxHeight);
+    at<float>(coaster, 0x110) = X87_Through(maxHeight);
     at<float>(coaster, 0x10c) = product;
-    at<float>(coaster, 0x114) = through(topSpeed);
+    at<float>(coaster, 0x114) = X87_Through(topSpeed);
 }
 }

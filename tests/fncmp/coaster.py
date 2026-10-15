@@ -6,7 +6,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x43c0a0, 0x43c160), (0x43dbf0, 0x43e980), (0x46f210, 0x46f240)], sines=256)
+B = Bench([(0x43c0a0, 0x43c3d0), (0x43dbf0, 0x43e980), (0x46f210, 0x46f240), (0x470940, 0x470990)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -116,9 +116,46 @@ def helpers(r, op):
     return Call(0x43e480, [a, b, t], {}, ret='d')
 
 
+def cars(r, op):
+    c, t = r.bytes(0x200), r.bytes(0x400)
+    put(c, 4, 'I', TYPE)
+    if op == 'Swing':
+        car = r.floats(r.bytes(0x100), range(0x4c, 0x58, 4))
+        put(car, 0x94, 'I', r.choice([0, 0x80000000, r.f(4), r.f()]))
+        put(car, 8, 'I', r.choice([0, 0x100, r.getrandbits(32)]))
+        put(car, 0x64, 'II', CARS, CARS + 0x80)
+        put(t, 0x10, 'I', r.f())
+        return Call(0x43c160, [COAST, OUT, r.f()], {COAST: c, TYPE: t, OUT: car, CARS: r.floats(r.bytes(0x100), range(0, 0x100, 4))},
+                    ret='d')
+    if op == 'Dist':
+        return Call(0x470940, [SPL, SPL + 12], {SPL: r.floats(r.bytes(24), range(0, 24, 4))}, ret='d')
+    # SpaceCars: loop-critical values stay finite and positive, or the walk never ends (sic)
+    count, n = r.randrange(2, 13), r.randrange(1, 7)
+    length = r.choice([float(count), float(count), count - r.random()])
+    nodes = r.bytes(16 * 0x38)
+    for k in range(16):
+        put(nodes, k * 0x38 + 0x1c, 'f', r.uniform(0.5, 4))
+    put(t, 0x2ec, 'I', r.choice([0, r.randrange(100, 4000), r.randrange(8000)]))
+    put(c, 0x9c, 'I', NODES)
+    put(c, 0xa4, 'Iff', count, length, r.uniform(0.5, 4))
+    put(c, 0xf4, 'I', n)
+    put(c, 0x128, 'I', CARS)
+    cs, spl = r.bytes(8 * 0x80), r.bytes(14 * 0x60)
+    for k in range(1, 14):
+        put(spl, k * 0x60 - 0x20, 'f', r.choice([r.uniform(-length, length), float(r.randrange(count)), 0.0]))
+        if n == 1 and r.random() < 0.3:  # one car keeps its seed, so a NaN ends no walk
+            put(spl, k * 0x60 - 0x20, 'I', r.choice([0x7fc00000, 0xffc00000, 0x7f800001, 0xff812345]))
+    for k in range(8):
+        a = r.randrange(0, 13)
+        b = r.randrange(1, 14 - a) if a == 0 else r.randrange(0, 14 - a)
+        put(cs, k * 0x80 + 8, 'II', a, b)
+        put(cs, k * 0x80 + 0x28, 'I', SPL)
+    return Call(0x43c1f0, [COAST], {COAST: c, TYPE: t, NODES: nodes, CARS: cs, SPL: spl})
+
+
 KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 'Tangent': spline, 'Set': orient,
          'Init': orient, 'Frame': frame, 'At': frame,
-         'RoundUp': helpers, 'Lerp': helpers}
+         'RoundUp': helpers, 'Lerp': helpers, 'Swing': cars, 'Space': cars, 'Dist': cars}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 
