@@ -1,5 +1,6 @@
-# Vector helpers (0x431480-0x431660), packed vertex animation (0x470e90-0x471860),
-# quaternions (0x474120-0x4745c0) and path curves (0x474840-0x475010) against the originals.
+# Vector helpers (0x431480-0x431660), key search (0x470b60-0x470d10), packed vertex animation
+# (0x470e90-0x471860), quaternions (0x474120-0x4745c0) and path curves (0x474840-0x475010)
+# against the originals.
 # usage: motion.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -8,7 +9,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x431480, 0x431660), (0x470e90, 0x471860), (0x474120, 0x4745c0), (0x474840, 0x475010), (0x46f650, 0x46f6f0),
+B = Bench([(0x431480, 0x431660), (0x470b60, 0x470d10), (0x470e90, 0x471860), (0x474120, 0x4745c0), (0x474840, 0x475010), (0x46f650, 0x46f6f0),
            (0x67a400, 0x690000)], sines=256)
 A, PTS, OUT = RAM, RAM + 0x1000, RAM + 0x2000  # small inputs, curve points / keys, outputs
 BLK, POS, GRP = RAM + 0x3000, RAM + 0x4000, RAM + 0x5000  # packed block, position blocks, groups
@@ -114,6 +115,31 @@ def case(r):
         if isinstance(tt, float):
             tt = struct.unpack('<I', struct.pack('<f', tt))[0]
         return Call(0x474ea0, [PTS, n, tt, OUT, r.choice([0, 1])], regs)
+    if op == 'FindKeys':
+        kind = r.choice([1, 2, 4, 1, 2, 4, r.randrange(8)])
+        stride, n = {1: 4, 2: 20, 4: 16}.get(kind, 4), r.randrange(0, 9)
+        f = r.randrange(30)
+        for k in range(n):
+            put(pts, stride * k, 'H', f)
+            f += r.choice([0, 1, r.randrange(1, 30), r.randrange(65536)])
+            f &= 0xffff
+        frame = r.choice([r.uniform(-2, f + 2), float(r.randrange(f + 1)), r.f(1e5)])
+        put(a, 0x20, 'f', frame) if isinstance(frame, float) else put(a, 0x20, 'I', frame)
+        return Call(0x470b60, [A, PTS, n, kind, r.choice([0, 1]), OUT, OUT + 4, OUT + 8], regs, ret='a')
+    if op == 'ApplyMaterial':
+        n = r.randrange(0, 6)
+        put(a, 0x50, 'I', OUT)
+        put(pts, 0x18, 'H', n)
+        put(pts, 0x30, 'I', PTS + 0x100)
+        for e in range(n):
+            nk = r.randrange(0, 6)
+            put(pts, 0x100 + 8 * e, 'HHI', r.randrange(16), nk, PTS + 0x200 + 0x40 * e)
+            f = r.randrange(20)
+            for k in range(nk):
+                put(pts, 0x200 + 0x40 * e + 4 * k, 'HH', f, r.choice([r.randrange(4), r.randrange(65536)]))
+                f += r.randrange(0, 20)
+        put(a, 0x20, 'f', r.uniform(-2, 120))
+        return Call(0x470c90, [A, PTS, A], regs)
     if op in ('LerpVerts', 'LerpBox', 'Unpack'):
         return packed(r, op, regs, t)
     # the curves: own points at curve + 8 or the given ones; count from gCurvePointCount
@@ -134,7 +160,7 @@ def case(r):
 
 
 OPS_ALL = ['Modf', 'RotYCS', 'Vec3RotX', 'Vec3RotY', 'MatRotY', 'QuatToMatrix', 'Slerp', 'RotationAt', 'Percent',
-           'Bezier', 'BezierTan', 'Linear', 'LinearTan', 'CatmullRom', 'LerpVerts', 'LerpBox', 'Unpack']
+           'Bezier', 'BezierTan', 'Linear', 'LinearTan', 'CatmullRom', 'LerpVerts', 'LerpBox', 'Unpack', 'FindKeys', 'ApplyMaterial']
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

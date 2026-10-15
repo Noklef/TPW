@@ -11,9 +11,13 @@
 // own addresses, reloaded from tp.exe before each case, and any other region is mapped on
 // demand and zeroed before each case. The driver is fixed at 0x400000 like the game, so its
 // own code covers the game's .text; g_game, a .bss array, is placed to cover the rest.
+//
+// Each case runs with the x87 at single precision, as the game runs it (Direct3D sets it),
+// so that float code the compiler leaves on the x87 rounds there as it will in the game.
 #define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 
+#include <cfloat>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -269,6 +273,7 @@ int main(int argc, char **argv) {
         }
         u32 eax = 0, edxOut = 0;
         double st0 = 0;
+        _control87(_PC_24 | _RC_NEAR, _MCW_PC | _MCW_RC);
         const int code = invoke(fn, ecx, edx, args.data() + skip, count - skip, ret[0] == 'd', &eax, &edxOut, &st0);
         if (code) {
             std::printf("crash %08x\n", (u32)code);
