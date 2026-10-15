@@ -1,5 +1,5 @@
-// The camera's globals (module KAME): their static initialisers 0x42a0f0-0x42a182 and the
-// follow test 0x42a410.
+// The camera's globals (module KAME): their static initialisers 0x42a0f0-0x42a182, the
+// follow test 0x42a410 and the small helpers around them.
 #pragma once
 
 #include "../../../re/types.h"
@@ -28,4 +28,24 @@ u32 __cdecl Camera_IsFollowing(const void *thing);
 // the order the original's schedule gives, with its running total stored to a float after
 // every second term (from the third on), so overflow matches.
 u32 __cdecl Camera_MatricesClose(const float *a, const float *b);
+
+// 0x42a4e0: the followed thing (0x790a44) when the camera follows one (flag 4, 0x790988);
+// else null.
+const void *__cdecl Camera_Followed();
+
+// 0x42a720: the face of part *part of the instance's model ((*instance)+4): +0x70 (0xa0 each)
+// below the model's +0x44 count, else +0x74 (0x58 each); the index is offset by +0x46.
+u8 *__cdecl Camera_PartFace(u8 *const *instance, const u32 *part);
+
+// 0x42aab0: clears 0x790a88-0x790a90, then sets each given value: the point's x and z
+// (0x7908f0 / 0x7908f8; z is read whenever x is given), 0x7909ec, the yaw 0x790a38 and
+// 0x74c9bc.
+void __cdecl Camera_SetView(const u32 *x, const u32 *z, const u32 *zoom, const u32 *yaw, const u32 *other);
+
+// 0x42afd0: sets (on) or clears gCameraFlags bit 0x80.
+void __cdecl Camera_SetFlag80(u32 on);
+
+// 0x42cd40: clamps a cell to [0, 0x7a0314 - 1] x [0, 0x7a0374 - 1] (signed; the lower bound
+// first).
+void __cdecl Camera_ClampCell(s32 *x, s32 *z);
 }
