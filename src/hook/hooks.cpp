@@ -52,6 +52,7 @@
 #include "../game/gfx/texdirs.h"
 #include "../game/gfx/barmesh.h"
 #include "../game/gfx/overlay.h"
+#include "../game/gfx/screensurfaces.h"
 #include "../game/gfx/tga.h"
 #include "../game/core/events.h"
 #include "../game/core/filetime.h"
@@ -1093,6 +1094,9 @@ const Hook kHooks[] = {
     {"BarMesh_SetTopTexCoords",   0x00477d20, (void *)&BarMesh_SetTopTexCoords, {0xd9, 0x81, 0x20, 0x01, 0x00}},
     {"BarMesh_SetTexCoord",       0x004786f0, (void *)&BarMesh_SetTexCoord, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Overlay_ShowFrame",         0x00476e80, (void *)&Overlay_ShowFrame, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"ScreenSurfaces_Ctor",       0x0047e2f0, (void *)&ScreenSurfaces_Ctor, {0x6a, 0xff, 0x68, 0x88, 0x8f}},
+    {"SurfaceSource_Dtor",        0x0047e390, (void *)&SurfaceSource_Dtor, {0xc7, 0x01, 0x90, 0xef, 0x6f}},
+    {"ScreenSurfaces_Bounds",     0x0047e570, (void *)&ScreenSurfaces_Bounds, {0xa1, 0x68, 0x19, 0x7a, 0x00}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
