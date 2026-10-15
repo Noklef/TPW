@@ -2,7 +2,9 @@
 
 #include <cstdint>
 
+#include "../core/globalmem.h"
 #include "../math/x87.h"
+#include "../model/parts.h"
 
 namespace {
 
@@ -135,5 +137,21 @@ double __cdecl Car_TravelCost(const u8 *ride, u32 withBase, const u8 *car, const
         if ((at<u32>(s, 0) & 0x4000) && !(at<u8>(at<const u8 *>(car, 0x68), 8) & 0x80)) s = fallback;
     }
     return ((X87Reg(at<float>(s, 0x60)) * dist + base) + X87Reg(at<float>(s, 0x64)) * speed).v;
+}
+
+void __cdecl Car_SetupCoupling(u8 *car, u32 *coupling, const u8 *spec, const u8 *type) {
+    coupling[0] = at<u32>(spec, 0xc);
+    u8 *const first = static_cast<u8 *>(GlobalMem_Alloc(coupling[0] * 0x58, 1));
+    coupling[1] = (u32)(uintptr_t)first;
+    u8 *const second = static_cast<u8 *>(GlobalMem_Alloc(coupling[0] * 0x58, 1));
+    coupling[2] = (u32)(uintptr_t)second;
+    const u8 *const holder = reinterpret_cast<u8 *const *>(0x007ae6a8)[at<u32>(type, 0x14)];
+    for (u32 i = 0; i < coupling[0]; ++i) {
+        const u32 part = Model_FindPartByKey4(holder, 0x400000, at<u32>(spec, 0x10) + i);
+        at<u32>(first + i * 0x58, 4) = part;
+        at<u32>(second + i * 0x58, 4) = part;
+        at<u8 *>(first + i * 0x58, 0x10) = car;
+        at<u8 *>(second + i * 0x58, 0x10) = car;
+    }
 }
 }

@@ -65,4 +65,9 @@ void __cdecl Object_GetPosition(const u8 *object, u32 *out);
 // sic: dz is squared by its float rounding; z is read only through x.
 double __cdecl Car_TravelCost(const u8 *ride, u32 withBase, const u8 *car, const float *x, const float *z,
                               const float *fromX, const float *fromZ);
+
+// 0x4344c0: sets up a coupling {count, two arrays of 0x58-byte seats}: count from spec+0xc,
+// both arrays allocated zeroed, and each seat i (in both) given the part with key
+// spec+0x10 + i and flag 0x400000 of holder 0x7ae6a8[type+0x14] (+4) and the car (+0x10).
+void __cdecl Car_SetupCoupling(u8 *car, u32 *coupling, const u8 *spec, const u8 *type);
 }

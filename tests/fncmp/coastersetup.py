@@ -14,8 +14,8 @@ from fncmp import HEAP, Bench, Call, RAM, global_heap, heap, put  # noqa: E402
 import xsection  # noqa: E402
 
 B = Bench([(0x42d130, 0x42eb68), (0x42eb70, 0x42fad0), (0x45b9d0, 0x45ba15), (0x45ba00, 0x45ba30),
-           (0x5da3c0, 0x5da3d0)])
-COASTER, NAMES, SOURCE = RAM, RAM + 0x1000, RAM + 0x10000
+           (0x5da3c0, 0x5da3d0), (0x4344c0, 0x434566), (0x44b140, 0x44b2e0)])
+COASTER, NAMES, SOURCE, HOLDER = RAM, RAM + 0x1000, RAM + 0x10000, RAM + 0x20000
 ZEROS = [0, 0x80000000, 0x7fc00000, 0xffc00000, 0x7f800001]  # zero, -0 and NaNs: all count as zero
 
 
@@ -93,6 +93,22 @@ def case(r):
     op = r.choice(OPS)
     names = Names(r)
     regions = {COASTER: bytearray(r.bytes(0x360)), HEAP: heap(0x10000), **global_heap()}
+    if op == 'Coupling':  # spec (+0xc count, +0x10 first key) and type (+0x14 holder index)
+        base, n = r.getrandbits(32), r.choice([0, 1, 2, r.randrange(6)])
+        spec = put(bytearray(r.bytes(0x200)), 0xc, 'II', n, base)
+        put(spec, 0x114, 'I', r.randrange(4))
+        holder, model, parts = bytearray(r.bytes(0x40)), bytearray(r.bytes(0x80)), bytearray(r.bytes(12 * 0x14))
+        put(holder, 0, 'I', HOLDER + 0x20)
+        put(holder, 8, 'I', HOLDER + 0x20)
+        put(holder, 0x24, 'I', HOLDER + 0x40)
+        put(model, 0x48, 'H', r.choice([0, 3, 12]))
+        put(model, 0x7c, 'I', HOLDER + 0x100)
+        for i in range(12):  # keys near the spec's, some with flag 0x400000
+            put(parts, i * 0x14, 'I', r.getrandbits(32) | r.choice([0, 0x400000, 0x400000]))
+            put(parts, i * 0x14 + 4, 'I', (base + r.randrange(-1, 7)) & 0xffffffff)
+        regions.update({SOURCE: spec, HOLDER: holder + model + bytearray(0x40) + parts,
+                        0x7ae6a8: put(bytearray(16), 0, '4I', *[HOLDER] * 4)})
+        return Call(0x4344c0, [r.getrandbits(32), COASTER + 0x78, SOURCE, SOURCE + 0x100], regions)
     if op == 'Type':
         src = xsection.source(r, 'Setup')
         setup(r, src, names, regions)
@@ -106,7 +122,7 @@ def case(r):
     return Call(at, args, regions, ret='a')
 
 
-OPS_ALL = ['Pylons', 'Trains', 'Type', 'Type']
+OPS_ALL = ['Pylons', 'Trains', 'Type', 'Type', 'Coupling']
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 
