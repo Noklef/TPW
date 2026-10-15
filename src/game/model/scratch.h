@@ -23,4 +23,9 @@ void __cdecl Model_FreeVertexScratch();
 // (none for a node without a parent), then put about the root's +0x40 vector (model +0x78)
 // turned by the view's angle (+0x10: 90, 180 or 270; other angles none).
 void __cdecl Model_FillVertexScratch(const u8 *view, s32 mainOnly);
+
+// 0x450ea0: makes view current (0x79fb18) and picks how its floor is found (0x79fb10): 2,
+// with all its vertices filled, when its holder (+0x28) has flag 8; else 1 when its model's
+// (+4) +0x30 has 0x80 or its +0xa0 is not 0; else (0, or NaN) 4, with the main node's filled.
+void __cdecl Model_BeginView(const u8 *view);
 }

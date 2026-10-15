@@ -1966,6 +1966,7 @@ address,name,kind,confidence,notes
 0x00450e60,Model_AllocVertexScratch,function,high,"reimplemented (src/game/model/scratch); 0x79f7e0 = GlobalMem_Alloc(12 * vertex high-water count 0x79f7d0, zeroed)"
 0x00450e80,Model_FreeVertexScratch,function,high,reimplemented (src/game/model/scratch); frees and clears the vertex scratch buffer 0x79f7e0
 0x00450f20,Model_FillVertexScratch,function,high,reimplemented (src/game/model/scratch); the view's node vertices put in the world
+0x00450ea0,Model_BeginView,function,high,reimplemented (src/game/model/scratch); makes a view current and fills its vertices
 0x00454a10,Holder_Clone,function,high,"reimplemented (src/game/model/clone); (holder, unused, flags, &out, mask): a copy of the holder and its model in one GlobalMem block, arrays by flag (1 nodes, 4 +0x58, 8 +0x5c, 0x20 +0x68, 0x40 +0x64, 0x80/0x10 runs, 0x200 +0x50), node pointers rebased; then Model_MarkFaces* (0x1000: NotValue)"
 0x004554d0,ModelPiece_Clone,function,high,"reimplemented (src/game/model/clone); a copy of a model piece in one block: header, parts, and each flag-0x1000 (not 0x4000) part's +0x28 record and its 20-byte entries; returns 1"
 0x00429df0,ModelSlot_Animate,function,high,"reimplemented (src/game/model/slots); Animator_Update(slot holder, 1, 0) when the slot (0x790398, 0xb0 each) has one"

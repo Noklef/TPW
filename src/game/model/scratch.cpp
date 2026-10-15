@@ -25,6 +25,24 @@ void __cdecl Model_FreeVertexScratch() {
     global<void *>(0x0079f7e0) = nullptr;
 }
 
+void __cdecl Model_BeginView(const u8 *view) {
+    global<const u8 *>(0x0079fb18) = view;
+    const u8 *const holder = at<const u8 *>(view, 0x28);
+    if (holder && (at<u8>(holder, 0) & 8)) {
+        global<u32>(0x0079fb10) = 2;
+        Model_FillVertexScratch(view, 0);
+        return;
+    }
+    const u8 *const model = at<const u8 *>(view, 4);
+    const float y = at<float>(model, 0xa0);
+    if ((at<u8>(model, 0x30) & 0x80) || y < 0.0f || y > 0.0f) {  // fcomp 0: neither equal nor unordered
+        global<u32>(0x0079fb10) = 1;
+        return;
+    }
+    global<u32>(0x0079fb10) = 4;
+    Model_FillVertexScratch(view, 1);
+}
+
 void __cdecl Model_FillVertexScratch(const u8 *view, s32 mainOnly) {
     const u8 *const model = at<const u8 *>(view, 4);
     const s32 passes = mainOnly ? 1 : 2;
