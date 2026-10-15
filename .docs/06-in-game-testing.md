@@ -133,3 +133,22 @@ It never touches the real install and writes no registry values. The host's exis
 - `config-<mode>.tcf`
 
 There are no crash dumps, because WER LocalDumps needs admin. The trace's exception log covers the gap.
+
+### Local run log
+
+- 2026-10-15, `2-dll-passthrough`: first try exited 1 at once. A windowless `tp.exe` left over from an
+  earlier launch still held the `TPWMutex` single-instance mutex (`CreateMutexA` last error 183).
+- 2026-10-15, `2-dll-passthrough` again: the park loads and the music plays, but the picture freezes.
+  Pressing Print Screen advances it a frame. At 122 s it crashed with the **same crash as the sandbox**,
+  so it isn't the sandbox's vGPU, and it isn't the AMD driver either. That earlier blame was wrong:
+  `0x7463xxxx` just happened to sit inside `amdxx32.dll`. The cause is a **stack buffer overflow in the
+  original game** (sic):
+  - The DirectDraw error recorder 0x56af20 runs `sprintf(buf[100], "%s", DDErrorString(hr))`
+    (0x56a770 maps the HRESULT to text). It does this when the flags word at 0x8bd508 has bit
+    0x1000000 set and the severity argument is 3.
+  - `DDERR_SURFACELOST`'s description is 165 bytes ("Access to this surface is being refused ... should
+    have Restore called on it."), so it overwrites the return address with the text "ject". EIP
+    0x7463656A is "ject"; the stack at the crash starts "ntin".
+  - The root is lost DirectDraw surfaces that the game never restores: that is also the freeze. The
+    overflow then turns the lost surface into a crash. Neither function is hooked yet. When ported,
+    the overflow has to be kept (or documented as a deliberate divergence).
