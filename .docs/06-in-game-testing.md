@@ -191,3 +191,19 @@ There are no crash dumps, because WER LocalDumps needs admin. The trace's except
   same saved park (baseline), then group bisection: `5-hooked-no-math` (106 maths, model and
   animation hooks off) and `6-hooked-no-gfx` (332 surface, pixel-format, codec, drawing and sprite
   hooks off). `run-local.cmd` now also keeps `enginedebug-<label>.txt`.
+- 2026-10-15, bisection round 0: `1-original` clean, hooked with the 106 maths hooks off **clean**, hooked
+  with the 332 graphics hooks off **glitched**. So the culprit is in the maths group. Round 1 splits it
+  into four groups, using two runs that each switch off two groups:
+  - G1 `Matrix_` (28)
+  - G2 `Vec3_`/`Quat_`/`Angle_`/`Float_`/`Curve_`/`Path_PercentAt`/`FpuControl_` (26)
+  - G3 `Motion_`/`Animator_` (24)
+  - G4 `Model_`/`World_`/`Object_`/`Thing*`/`Ride*` (28)
+
+  Run `round1-a` switches off G1 and G2; `round1-b` switches off G1 and G3. The results map to a group:
+
+  | round1-a | round1-b | Culprit |
+  |---|---|---|
+  | clean | clean | G1 |
+  | clean | glitch | G2 |
+  | glitch | clean | G3 |
+  | glitch | glitch | G4 |
