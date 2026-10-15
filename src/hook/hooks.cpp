@@ -97,6 +97,7 @@
 #include "../game/world/random.h"
 #include "../game/world/camera.h"
 #include "../game/world/mousemode.h"
+#include "../game/world/objectdefs.h"
 #include "../game/world/things.h"
 #include "../game/model/holder.h"
 #include "../game/model/parts.h"
@@ -311,6 +312,9 @@ const Hook kHooks[] = {
     {"MouseModes_InitUnusedEpsilon", 0x0046c090, (void *)&MouseModes_InitUnusedEpsilon, {0xd9, 0x05, 0x38, 0xe9, 0x6f}},
     {"MouseModes_InitTile",       0x0046c0b0, (void *)&MouseModes_InitTile, {0x66, 0xc7, 0x05, 0xcc, 0x05}},
     {"MouseState_NewFrame",       0x0046c100, (void *)&MouseState_NewFrame, {0x8b, 0x41, 0x0c, 0xc7, 0x01}},
+    {"ObjectDefs_Find",           0x00412e90, (void *)&ObjectDefs_Find, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"ObjectDefs_FindAt390",      0x00412ef0, (void *)&ObjectDefs_FindAt390, {0x53, 0x66, 0x8b, 0x5c, 0x24}},
+    {"ObjectDefs_FindAt410",      0x00412f50, (void *)&ObjectDefs_FindAt410, {0x53, 0x66, 0x8b, 0x5c, 0x24}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},

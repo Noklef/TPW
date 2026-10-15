@@ -230,7 +230,9 @@ address,name,kind,confidence,notes
 0x00506860,Staff_GetName,function,high,returns &mName
 0x00506870,Staff_GetWage,function,medium,"per-type factor (DAT_00785380) * pay grade table (DAT_0078532c, stride 0x10)"
 0x004dd4e0,Object_GetDef,function,medium,"fastcall; ObjectDefs_Find(this->mId at +0xe); the def holds balance values (effects at +0x144..+0x15c)"
-0x00412e90,ObjectDefs_Find,function,medium,"thiscall; linear search of def pointers (count at +0x528) by leading u16 id, one-entry cache at +0x730"
+0x00412e90,ObjectDefs_Find,function,high,"reimplemented (src/game/world/objectdefs); thiscall(id): the definition with an id (one-entry cache), or 0"
+0x00412ef0,ObjectDefs_FindAt390,function,high,"reimplemented (src/game/world/objectdefs); the found definition's +0x390 part, or 0"
+0x00412f50,ObjectDefs_FindAt410,function,high,"reimplemented (src/game/world/objectdefs); the found definition's +0x410 part, or 0"
 0x00401030,BalanceFile_Init,function,high,"thiscall; base of every .sam-backed class: walks the key schema (vtable slot 0) and assigns each value a 4-byte slot of the storage (slot 1); tables reserve rows*keys+1"
 0x004013e0,BalanceFile_SetDefaults,function,medium,"type 6 -> min, type 9 -> fmin, others 0; 'InitialiseBalanceValues internal' error"
 0x004017a0,BalanceFile_Parse,function,medium,"parses Group.Key value lines; 'Balance file %s parse error', range checks per type"
