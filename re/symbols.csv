@@ -602,6 +602,47 @@ address,name,kind,confidence,notes
 0x0046c090,MouseModes_InitUnusedEpsilon,function,high,reimplemented (src/game/world/mousemode); static initialiser: 0x7b05a4 = 2^-23
 0x0046c0b0,MouseModes_InitTile,function,high,"reimplemented (src/game/world/mousemode); static initialiser: 0x7b05cc = 1, 0x7b05d0 = 0"
 0x0046c100,MouseState_NewFrame,function,high,reimplemented (src/game/world/mousemode); steps the pointer state's frame count and clears its picked thing
+0x0040f290,ThingMsg01_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (a): +8 a; vtable set, +4 cleared; returns this"
+0x0040f240,ThingMsg02_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (c, b): +8 b, +0xc c; vtable set, +4 cleared; returns this"
+0x0040f330,ThingMsg06_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (u16 a): +8 a; vtable set, +4 cleared; returns this"
+0x0040f380,ThingMsg07_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (u16 a): +8 a; vtable set, +4 cleared; returns this"
+0x0040f3d0,ThingMsg08_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (u16 a): +8 a; vtable set, +4 cleared; returns this"
+0x0040f420,ThingMsg09_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (u16 a): +8 a; vtable set, +4 cleared; returns this"
+0x0040f470,ThingMsg0a_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (u16 a): +8 a; vtable set, +4 cleared; returns this"
+0x0040f4c0,ThingMsg0b_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall no fields; vtable set, +4 cleared; returns this"
+0x0040f500,ThingMsg0c_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall no fields; vtable set, +4 cleared; returns this"
+0x0040f540,ThingMsg0d_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall no fields; vtable set, +4 cleared; returns this"
+0x0040f580,ThingMsg11_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (u16 a, b): +8 a, +0xc b; vtable set, +4 cleared; returns this"
+0x0040f5e0,ThingMsg12_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (a): +8 a; vtable set, +4 cleared; returns this"
+0x0040f630,ThingMsg13_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (a): +8 a; vtable set, +4 cleared; returns this"
+0x0040f680,ThingMsg14_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (u16 a): +8 a; vtable set, +4 cleared; returns this"
+0x0040f6d0,ThingMsg15_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (u8 a): +8 a; vtable 0x6fd6c8; vtable set, +4 cleared; returns this"
+0x0040f6f0,ThingMsg17_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (a, b): +8 a, +0xc b; vtable set, +4 cleared; returns this"
+0x0040f740,ThingMsg18_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (a, u16 b, c, d): +8 a, +0xc b, +0x10 d, +0x14 c; vtable set, +4 cleared; returns this"
+0x0040f7a0,ThingMsg19_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (11 fields): +8..+0x2c; vtable set, +4 cleared; returns this"
+0x0040f840,ThingMsg1a_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (a, b, u16 c, u16 d): +8 a, +0xc b, +0x10 c, +0x12 d; vtable set, +4 cleared; returns this"
+0x0040f900,ThingMsg1b_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (u16 a): +8 a; vtable set, +4 cleared; returns this"
+0x0040f8b0,ThingMsg1c_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (u16 a): +8 a; vtable set, +4 cleared; returns this"
+0x0040f260,ThingMsg02_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x02
+0x0040f2d0,ThingMsg05_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x05
+0x0040f350,ThingMsg06_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x06
+0x0040f3a0,ThingMsg07_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x07
+0x0040f3f0,ThingMsg08_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x08
+0x0040f440,ThingMsg09_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x09
+0x0040f490,ThingMsg0a_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x0a
+0x0040f4d0,ThingMsg0b_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x0b
+0x0040f510,ThingMsg0c_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x0c
+0x0040f550,ThingMsg0d_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x0d
+0x0040f5b0,ThingMsg11_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x11
+0x0040f600,ThingMsg12_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x12
+0x0040f650,ThingMsg13_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x13
+0x0040f6a0,ThingMsg14_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x14
+0x0040f710,ThingMsg17_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x17
+0x0040f770,ThingMsg18_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x18
+0x0040f810,ThingMsg19_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x19
+0x0040f880,ThingMsg1a_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x1a
+0x0040f8d0,ThingMsg1c_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x1c
+0x0040f920,ThingMsg1b_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x1b
 0x0050b780,Thing_Delete,function,medium,"thiscall on a thing; the base deletion, queues its handle (World_QueueDelete)"
 0x00801f38,gThingsToDelete,data,high,"HandleQueue: +4 head, +8 tail, +0xc count; handles whose slots DeleteAll releases"
 0x005f5fc0,String_Alloc,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +8: a new block for length units, terminated; the old block is not freed"
