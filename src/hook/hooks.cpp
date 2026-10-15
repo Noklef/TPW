@@ -98,6 +98,7 @@
 #include "../game/model/clone.h"
 #include "../game/model/faces.h"
 #include "../game/model/release.h"
+#include "../game/model/ridemodel.h"
 #include "../game/model/scratch.h"
 #include "../game/model/slots.h"
 #include "../game/model/worldverts.h"
@@ -1197,6 +1198,7 @@ const Hook kHooks[] = {
     {"Release_InitUnusedOne",     0x0046b3e0, (void *)&Release_InitUnusedOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"Release_InitUnusedEpsilon", 0x0046b400, (void *)&Release_InitUnusedEpsilon, {0xd9, 0x05, 0xc8, 0xe8, 0x6f}},
     {"Instance_FreeBlockCC",      0x00452540, (void *)&Instance_FreeBlockCC, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Ride_MarkModel",            0x00461ed0, (void *)&Ride_MarkModel, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
