@@ -1932,4 +1932,7 @@ address,name,kind,confidence,notes
 0x00429ee0,ModelSlot_ClearPartFlag,function,high,reimplemented (src/game/model/slots); clears flag 0x10 of the face of the slot holder's part with key and flag 0x400
 0x00429f60,ModelSlot_SetPartFlag,function,high,reimplemented (src/game/model/slots); sets flag 0x10 of the face of the slot holder's part with key and flag 0x400
 0x00429fe0,ModelSlot_Holder,function,high,reimplemented (src/game/model/slots); the holder of slot (0x790398 + 0xb0 slot + 4)
+0x00462870,WorldVerts_Alloc,function,high,reimplemented (src/game/model/worldverts); 0x7aecd4 = a zeroed block of 12 bytes for each of 0x400 entries (large) or [0x7a42ac]
+0x004628a0,WorldVerts_Free,function,high,reimplemented (src/game/model/worldverts); frees the block at 0x7aecd4 (pointer left)
+0x004628b0,WorldVerts_TransformFrame,function,high,reimplemented (src/game/model/worldverts); the frame's vertices in world space (its matrix times its parents') into the 0x7aecd4 block
 0x0045aee0,Online_ApplyBalance,function,high,reimplemented (src/game/online/servers); copies Online.sam (gBalanceOnline) into the servers object 0x7a14f0

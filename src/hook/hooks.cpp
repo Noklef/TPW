@@ -94,7 +94,8 @@
 #include "../game/model/remap.h"
 #include "../game/model/clone.h"
 #include "../game/model/scratch.h"
-#include "../game/model/slots.h"
+#include "../game/model/slots.h"
+#include "../game/model/worldverts.h"
 #include "../game/render/frame.h"
 #include "../game/render/screen.h"
 #include "../game/render/mode.h"
@@ -1145,6 +1146,9 @@ const Hook kHooks[] = {
     {"ModelSlot_ClearPartFlag",   0x00429ee0, (void *)&ModelSlot_ClearPartFlag, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"ModelSlot_SetPartFlag",     0x00429f60, (void *)&ModelSlot_SetPartFlag, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"ModelSlot_Holder",          0x00429fe0, (void *)&ModelSlot_Holder, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
+    {"WorldVerts_Alloc",          0x00462870, (void *)&WorldVerts_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"WorldVerts_Free",           0x004628a0, (void *)&WorldVerts_Free, {0xa1, 0xd4, 0xec, 0x7a, 0x00}},
+    {"WorldVerts_TransformFrame", 0x004628b0, (void *)&WorldVerts_TransformFrame, {0x83, 0xec, 0x4c, 0xb9, 0x10}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
