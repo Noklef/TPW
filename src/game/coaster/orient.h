@@ -36,4 +36,10 @@ void __cdecl TrackOrientation_Init(u32 unused, const Vec3 *direction, u32 unused
 // piece's flag 0x800 (+8) unless 0x1000 is set.
 // sic: the orientations go to a local and are dropped, so only the flags change.
 void __cdecl Track_RefreshOrientations();
+
+// 0x43d8f0: sets the matrix of object's ride (+0xc into 0x7a4610; +8 -> +4 -> +0x78, matrix
+// at +0x10) to the identity turned about z, x and y by angles[3], [2] and [1] (sine table
+// lookups), turns v (if any) by the same angles in the same order, and copies the matrix's
+// third row to object+0x10.
+void __cdecl RideObject_Orient(u8 *object, const float *angles, float *v);
 }

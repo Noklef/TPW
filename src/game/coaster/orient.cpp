@@ -86,4 +86,30 @@ void __cdecl Track_RefreshOrientations() {
         if (!(flags & 0x1000)) flags &= ~0x800u;
     }
 }
+
+void __cdecl RideObject_Orient(u8 *object, const float *angles, float *v) {
+    const u8 *ride = reinterpret_cast<const u8 *const *>(0x007a4610)[*reinterpret_cast<const u32 *>(object + 0xc)];
+    const u8 *holder = *reinterpret_cast<const u8 *const *>(*reinterpret_cast<const u8 *const *>(ride + 8) + 4);
+    float *m = reinterpret_cast<float *>(*reinterpret_cast<u8 *const *>(holder + 0x78) + 0x10);
+    Matrix_Identity(m);
+    const SinTable sines = SinTable_Game();
+    const auto sine = [&](float a) { return SinTable_At(sines, (float)(X87Reg(sines.scale) * a)); };
+    const auto cosine = [&](float a) { return SinTable_At(sines, (float)((X87Reg(a) - kMinusHalfPi) * sines.scale)); };
+    Matrix_RotateZ(m, cosine(angles[3]), sine(angles[3]));
+    Matrix_RotateX(m, cosine(angles[2]), sine(angles[2]));
+    Matrix_RotateY(m, cosine(angles[1]), sine(angles[1]));
+    if (v) {
+        const auto turn = [&](float a, int i, int j) {  // about z (0, 1) and x (1, 2)
+            const X87Reg s = sine(a), c = cosine(a), first = v[i];
+            v[i] = (float)(first * c - s * v[j]);
+            v[j] = (float)(c * v[j] + first * s);
+        };
+        turn(angles[3], 0, 1);
+        turn(angles[2], 1, 2);
+        const X87Reg s = sine(angles[1]), c = cosine(angles[1]), first = v[0];  // about y
+        v[0] = (float)(s * v[2] + first * c);
+        v[2] = (float)(c * v[2] - first * s);
+    }
+    std::memcpy(object + 0x10, m + 8, 12);
+}
 }
