@@ -57,7 +57,8 @@
 #include "../game/gfx/tga.h"
 #include "../game/core/events.h"
 #include "../game/core/filetime.h"
-#include "../game/core/globalmem.h"
+#include "../game/core/globalmem.h"
+#include "../game/core/ime.h"
 #include "../game/core/idtable.h"
 #include "../game/core/keymap.h"
 #include "../game/core/stdstring.h"
@@ -1177,6 +1178,7 @@ const Hook kHooks[] = {
     {"KeyMap_Reset",              0x0040cb50, (void *)&KeyMap_Reset, {0x56, 0x33, 0xf6, 0x33, 0xc0}},
     {"KeyMaps_EnableAll",         0x0040cf60, (void *)&KeyMaps_EnableAll, {0x8b, 0x0d, 0x8c, 0x71, 0x78}},
     {"KeyMaps_ResetAll",          0x0040cfa0, (void *)&KeyMaps_ResetAll, {0x8b, 0x0d, 0x8c, 0x71, 0x78}},
+    {"Ime_Ctor",                  0x00478b60, (void *)&Ime_Ctor, {0x51, 0x8a, 0x54, 0x24, 0x03}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

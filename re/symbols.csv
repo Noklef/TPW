@@ -1827,6 +1827,7 @@ address,name,kind,confidence,notes
 0x0040cb50,KeyMap_Reset,function,high,"reimplemented (src/game/core/keymap); enabled = 0, every held flag cleared"
 0x0040cf60,KeyMaps_EnableAll,function,high,reimplemented (src/game/core/keymap); Enable on the five keyboard maps
 0x0040cfa0,KeyMaps_ResetAll,function,high,reimplemented (src/game/core/keymap); Reset on the five keyboard maps
+0x00478b60,Ime_Ctor,function,high,"reimplemented (src/game/core/ime); the IME support: vectors empty (allocator bytes = this>>24, sic), +0x54 = -1"
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
