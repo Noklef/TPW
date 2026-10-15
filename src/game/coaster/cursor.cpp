@@ -108,4 +108,34 @@ void __cdecl TrackSelection_SetFirst(u8 *piece, u32 keep) {
     }
     if (changed) Flags_SetChanged(*reinterpret_cast<u32 *const *>(0x00790fec), 0);
 }
+
+void __cdecl TrackSelection_Clear() {
+    const u32 changed = TrackSelection_ClearFlags();
+    *reinterpret_cast<u32 *>(0x0079c62c) = 0;
+    *reinterpret_cast<u32 *>(0x0079c628) = 0;
+    *reinterpret_cast<u32 *>(0x007925d0) = 0;
+    if (changed) Flags_SetChanged(*reinterpret_cast<u32 *const *>(0x00790fec), 0);
+}
+
+void __cdecl Track_AppendPiece(u8 *piece, u8 *track, u32 open) {
+    u32 flags = at<u32>(piece, 8);
+    flags = open ? flags & ~0x4000u : flags | 0x4000;
+    at<u32>(piece, 8) = flags;
+    at<u32>(piece, 8) = flags | 0x8000;
+    at<u8 *>(piece, 0x68) = at<u8 *>(track, 0x24);
+    at<u8 *>(piece, 0x64) = at<u8 *>(at<u8 *>(track, 0x24), 0x64);
+    if (u8 *prev = at<u8 *>(piece, 0x68)) at<u8 *>(prev, 0x64) = piece;
+    if (u8 *next = at<u8 *>(piece, 0x64)) at<u8 *>(next, 0x68) = piece;
+    u8 *last = at<u8 *>(track, 0x24);
+    if (at<u8 *>(track, 0x1c) == last) {
+        at<u8 *>(track, 0x1c) = piece;
+    } else {
+        const u32 old = at<u32>(last, 8);
+        at<u32>(last, 8) = old & (old & 0x200 ? 0xfffeffff : 0xfffaffff);
+        at<u32>(piece, 8) |= 0x50000;
+    }
+    at<u8 *>(track, 0x24) = piece;
+    ++at<u32>(track, 8);
+    TrackPieces_Renumber(piece);
+}
 }

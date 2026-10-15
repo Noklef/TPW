@@ -43,4 +43,15 @@ void __cdecl TrackPieces_Renumber(u8 *piece);
 // the other. When anything changed (the flags, or with keep the end), Flags_SetChanged(the
 // current link (0x790fec), 0).
 void __cdecl TrackSelection_SetFirst(u8 *piece, u32 keep);
+
+// 0x445f30: clears the selection: its flags (TrackSelection_ClearFlags), both ends and
+// 0x7925d0; Flags_SetChanged(the current link (0x790fec), 0) when there was one.
+void __cdecl TrackSelection_Clear();
+
+// 0x436190: links piece in after the track's last piece (+0x24), before that one's next:
+// flags it 0x8000 (+8) and 0x4000 unless open is set (clearing it otherwise); when the last
+// piece is not the track's +0x1c, clears the last one's 0x10000 (and 0x40000 too unless it
+// has 0x200) and flags piece 0x50000, else piece becomes +0x1c. Then piece is the last, the
+// count (+8) goes up and the pieces from it are renumbered.
+void __cdecl Track_AppendPiece(u8 *piece, u8 *track, u32 open);
 }
