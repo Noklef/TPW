@@ -4,7 +4,11 @@
 
 #include <cmath>
 
+#include "../math/x87.h"
+
 namespace {
+
+using R = X87Reg;
 
 struct Segment {
     const Vec3 &a, &b, &c, &d;
@@ -25,59 +29,68 @@ u32 game_point_count() { return *reinterpret_cast<const u32 *>(0x007b49e8); }  /
 }  // namespace
 
 extern "C" void Curve_BezierAt(const Vec3 *points, u32 count, s32 base, float t, Vec3 *out) {
-    s32 i = (s32)t;
-    float f = t - (float)i;
+    s32 i = (s32)(long long)t;  // __ftol: 64-bit truncation, low half
+    const float f = (float)(R(t) - (double)i);  // fild; fsubr; stored
     Segment s = wrapped(points, count, base + 3 * i);
     const Vec3 &a = s.a, &b = s.b, &c = s.c, &d = s.d;
-    out->x = (((d.x - ((c.x * 3.0f + a.x * 1.0f) + b.x * -3.0f)) * f + (b.x * -6.0f - (c.x + a.x) * -3.0f)) * f
-              + (b.x * 3.0f - a.x * 3.0f)) * f + a.x;
-    out->y = (((((d.y - b.y * -3.0f) - a.y) - c.y * 3.0f) * f + (b.y * -6.0f - (c.y + a.y) * -3.0f)) * f
-              + (a.y * -3.0f - b.y * -3.0f)) * f + a.y;
-    out->z = (((((d.z - c.z * 3.0f) - b.z * -3.0f) - a.z) * f + (b.z * -6.0f - (a.z + c.z) * -3.0f)) * f
-              + (a.z * -3.0f - b.z * -3.0f)) * f + a.z;
+    out->x = (float)((((d.x - ((R(c.x) * 3.0f + R(a.x) * 1.0f) + R(b.x) * -3.0f)) * f
+                        + (R(b.x) * -6.0f - (R(c.x) + a.x) * -3.0f)) * f
+                       + (R(b.x) * 3.0f - R(a.x) * 3.0f)) * f + a.x);
+    out->y = (float)((((((d.y - R(b.y) * -3.0f) - a.y) - R(c.y) * 3.0f) * f
+                        + (R(b.y) * -6.0f - (R(c.y) + a.y) * -3.0f)) * f
+                       + (R(a.y) * -3.0f - R(b.y) * -3.0f)) * f + a.y);
+    out->z = (float)((((((d.z - R(c.z) * 3.0f) - R(b.z) * -3.0f) - a.z) * f
+                        + (R(b.z) * -6.0f - (R(a.z) + c.z) * -3.0f)) * f
+                       + (R(a.z) * -3.0f - R(b.z) * -3.0f)) * f + a.z);
 }
 
 extern "C" void Curve_BezierTangentAt(const Vec3 *points, u32 count, s32 base, float t, Vec3 *out) {
-    s32 i = (s32)t;
-    float f = t - (float)i;
+    s32 i = (s32)(long long)t;  // __ftol: 64-bit truncation, low half
+    const float f = (float)(R(t) - (double)i);  // fild; fsubr; stored
     Segment s = wrapped(points, count, base + 3 * i);
     const Vec3 &a = s.a, &b = s.b, &c = s.c, &d = s.d;
-    out->x = (b.x * 3.0f - a.x * 3.0f)
-             - ((b.x * -6.0f - (a.x + c.x) * -3.0f) * -2.0f - ((d.x - ((c.x * 3.0f + a.x * 1.0f) + b.x * -3.0f)) * f) * 3.0f) * f;
-    out->y = (a.y * -3.0f - b.y * -3.0f)
-             - ((b.y * -6.0f - (a.y + c.y) * -3.0f) * -2.0f - ((((d.y - b.y * -3.0f) - a.y) - c.y * 3.0f) * f) * 3.0f) * f;
-    out->z = (a.z * -3.0f - b.z * -3.0f)
-             - ((b.z * -6.0f - (c.z + a.z) * -3.0f) * -2.0f - ((((d.z - b.z * -3.0f) - a.z) - c.z * 3.0f) * f) * 3.0f) * f;
+    out->x = (float)((R(b.x) * 3.0f - R(a.x) * 3.0f)
+                     - ((R(b.x) * -6.0f - (R(a.x) + c.x) * -3.0f) * -2.0f
+                        - ((d.x - ((R(c.x) * 3.0f + R(a.x) * 1.0f) + R(b.x) * -3.0f)) * f) * 3.0f) * f);
+    out->y = (float)((R(a.y) * -3.0f - R(b.y) * -3.0f)
+                     - ((R(b.y) * -6.0f - (R(a.y) + c.y) * -3.0f) * -2.0f
+                        - ((((d.y - R(b.y) * -3.0f) - a.y) - R(c.y) * 3.0f) * f) * 3.0f) * f);
+    out->z = (float)((R(a.z) * -3.0f - R(b.z) * -3.0f)
+                     - ((R(b.z) * -6.0f - (R(c.z) + a.z) * -3.0f) * -2.0f
+                        - ((((d.z - R(b.z) * -3.0f) - a.z) - R(c.z) * 3.0f) * f) * 3.0f) * f);
 }
 
 extern "C" void Curve_LinearAt(const Vec3 *points, s32 base, float t, Vec3 *out) {
-    s32 i = (s32)t;
-    float f = t - (float)i, g = 1.0f - f;
+    s32 i = (s32)(long long)t;  // __ftol: 64-bit truncation, low half
+    const R f = R(t) - (double)i, g = R(1.0f) - f;  // both stay in the registers
     const Vec3 &p0 = points[base + i], &p1 = points[base + i + 1];
-    out->x = p0.x * g + p1.x * f;
-    out->y = p0.y * g + p1.y * f;
-    out->z = p0.z * g + p1.z * f;
+    out->x = (float)(R(p0.x) * g + R(p1.x) * f);
+    out->y = (float)(R(p0.y) * g + R(p1.y) * f);
+    out->z = (float)(R(p0.z) * g + R(p1.z) * f);
 }
 
 extern "C" void Curve_LinearTangentAt(const Vec3 *points, s32 base, float t, Vec3 *out) {
-    s32 i = (s32)t;
+    s32 i = (s32)(long long)t;  // __ftol: 64-bit truncation, low half
     const Vec3 &p0 = points[base + i], &p1 = points[base + i + 1];
-    out->x = p1.x - p0.x;
-    out->y = p1.y - p0.y;
-    out->z = p1.z - p0.z;
+    out->x = (float)(R(p1.x) - p0.x);
+    out->y = (float)(R(p1.y) - p0.y);
+    out->z = (float)(R(p1.z) - p0.z);
 }
 
 extern "C" void Curve_CatmullRomAt(const Vec3 *points, u32 count, s32 base, float t, Vec3 *out) {
-    s32 i = (s32)t;
-    float f = t - (float)i;
+    s32 i = (s32)(long long)t;  // __ftol: 64-bit truncation, low half
+    const float f = (float)(R(t) - (double)i);  // fild; fsubr; stored
     Segment s = wrapped(points, count, base + i);
     const Vec3 &a = s.a, &b = s.b, &c = s.c, &d = s.d;
-    out->x = ((((d.x - ((c.x * 3.0f + a.x * 1.0f) + b.x * -3.0f)) * f + (((a.x + a.x) - c.x * -4.0f) - b.x * 5.0f - d.x)) * f
-               + (c.x - a.x)) * f + (b.x + b.x)) * 0.5f;
-    out->y = ((((((d.y - c.y * 3.0f) - b.y * -3.0f) - a.y) * f + (((b.y * -5.0f - c.y * -4.0f) - a.y * -2.0f) - d.y)) * f
-               + (c.y - a.y)) * f + (b.y + b.y)) * 0.5f;
-    out->z = ((((((d.z - b.z * -3.0f) - a.z) - c.z * 3.0f) * f + (((a.z + a.z) - b.z * 5.0f) - c.z * -4.0f - d.z)) * f
-               + (c.z - a.z)) * f + (b.z + b.z)) * 0.5f;
+    out->x = (float)(((((d.x - ((R(c.x) * 3.0f + R(a.x) * 1.0f) + R(b.x) * -3.0f)) * f
+                        + ((((R(a.x) + a.x) - R(c.x) * -4.0f) - R(b.x) * 5.0f) - d.x)) * f
+                       + (R(c.x) - a.x)) * f + (R(b.x) + b.x)) * 0.5f);
+    out->y = (float)(((((((d.y - R(c.y) * 3.0f) - R(b.y) * -3.0f) - a.y) * f
+                        + (((R(b.y) * -5.0f - R(c.y) * -4.0f) - R(a.y) * -2.0f) - d.y)) * f
+                       + (R(c.y) - a.y)) * f + (R(b.y) + b.y)) * 0.5f);
+    out->z = (float)(((((((d.z - R(b.z) * -3.0f) - a.z) - R(c.z) * 3.0f) * f
+                        + ((((R(a.z) + a.z) - R(b.z) * 5.0f) - R(c.z) * -4.0f) - d.z)) * f
+                       + (R(c.z) - a.z)) * f + (R(b.z) + b.z)) * 0.5f);
 }
 
 extern "C" void __cdecl Curve_Bezier(const void *curve, const Vec3 *points, s32 base, float t, Vec3 *out) {
@@ -101,7 +114,7 @@ extern "C" void __cdecl Curve_CatmullRom(const void *curve, const Vec3 *points, 
 extern "C" void __cdecl Path_PercentAt(const float *table, u32 count, float t, float *out, s32 closed) {
     double whole;
     float f = (float)std::modf((double)t, &whole);
-    u32 i = (u32)(s32)whole;
+    u32 i = (u32)(long long)whole;  // __ftol: 64-bit truncation, low half
     if (i == count) {
         f = f - -1.0f;
         --i;
@@ -117,8 +130,8 @@ extern "C" void __cdecl Path_PercentAt(const float *table, u32 count, float t, f
     if (std::fabs(a - b) > 50.0f) {
         if (a < b) a = a - -100.0f;
         else b = b - -100.0f;
-        *out = (float)std::fmod((double)((1.0f - f) * a + f * b), 100.0);
+        *out = (float)std::fmod((R(f) * b + (R(1.0f) - f) * a).v, 100.0);  // the register's sum
         return;
     }
-    *out = (1.0f - f) * a + f * b;
+    *out = (float)(R(f) * b + (R(1.0f) - f) * a);
 }

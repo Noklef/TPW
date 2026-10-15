@@ -409,7 +409,7 @@ class Emu:
             self.put(o[0], self.cw)
         elif mn == 'FLDCW':
             self.cw = self.get(o[0])
-        elif mn == 'FNSTSW':
+        elif mn in ('FNSTSW', 'FSTSW'):
             self.put(o[0], (self.c0 << 8) | (self.c2 << 10) | (self.c3 << 14))
         elif mn in ('MOV', 'MOVZX'):  # get() is already zero-extended
             self.put(o[0], self.get(o[1]))

@@ -3,9 +3,11 @@
 //
 // The originals are x87 code and the game runs the FPU at single precision (Direct3D sets
 // it; SetCooperativeLevel gets neither DDSCL_FPUSETUP nor DDSCL_FPUPRESERVE), where each x87
-// operation rounds like a float operation. Each component below therefore evaluates exactly
-// the expression tree the original computes (recovered with tools/x87sym.py; the compiler
-// associated x, y and z differently), so results match bit for bit.
+// operation rounds like a float operation but keeps the register's exponent. Each component
+// below therefore evaluates exactly the expression tree the original computes, in X87Reg
+// (recovered with tools/x87sym.py; the compiler associated x, y and z differently), so
+// results match bit for bit, overflow and NaNs included (tests/fncmp/motion.py). The segment
+// index is __ftol's: a t beyond the int range gives the low half of its 64-bit truncation.
 #pragma once
 
 #include "../../../re/types.h"

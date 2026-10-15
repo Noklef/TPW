@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "matrix.h"
+#include "x87.h"
 
 namespace {
 
@@ -18,16 +19,16 @@ void Vec3_RotateXWith(const SinTable &sines, float *v, float angle) {
     float c, s;
     cos_sin(sines, angle, c, s);
     const float y = v[1];
-    v[1] = y * c - s * v[2];
-    v[2] = c * v[2] + s * y;
+    v[1] = (float)(X87Reg(y) * c - X87Reg(s) * v[2]);
+    v[2] = (float)(X87Reg(c) * v[2] + X87Reg(s) * y);
 }
 
 void Vec3_RotateYWith(const SinTable &sines, float *v, float angle) {
     float c, s;
     cos_sin(sines, angle, c, s);
     const float x = v[0];
-    v[0] = x * c + s * v[2];
-    v[2] = c * v[2] - s * x;
+    v[0] = (float)(X87Reg(s) * v[2] + X87Reg(x) * c);
+    v[2] = (float)(X87Reg(c) * v[2] - X87Reg(s) * x);
 }
 
 void Matrix_RotateYAngleWith(const SinTable &sines, float *m, float angle) {
@@ -46,8 +47,8 @@ extern "C" double __cdecl Float_Modf(float x, float *whole) {
 
 extern "C" void __cdecl Vec3_RotateYCS(float *v, float c, float s) {
     const float x = v[0];
-    v[0] = x * c + s * v[2];
-    v[2] = c * v[2] - x * s;
+    v[0] = (float)(X87Reg(s) * v[2] + X87Reg(x) * c);
+    v[2] = (float)(X87Reg(c) * v[2] - X87Reg(x) * s);
 }
 
 extern "C" void __cdecl Vec3_RotateX(float *v, float angle) { Vec3_RotateXWith(SinTable_Game(), v, angle); }
