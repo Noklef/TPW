@@ -25,6 +25,11 @@ void __cdecl WorldVerts_TransformFrame(const u8 *frame);
 // copied as words from its group (index / 4, 0x30 bytes each) at lane index % 4.
 void __cdecl WorldVerts_Fetch(const u8 *groups, u32 index, u32 *out);
 
+// 0x463a50: v turned about y by angle (90: x, z = z, -x; 180: x, z = x * -1, z * -1; 270:
+// x, z = -z, x; any other angle leaves it), in place. The moved floats pass through the x87
+// (a signalling NaN comes out quiet) but for 90's new x, copied as a word.
+void __cdecl Vec3_TurnY(float *v, s32 angle);
+
 // 0x466c80: the node's vertices (as for WorldVerts_TransformFrame) into the block through the
 // given matrix only, in another order on the x87: y' = ((x m1 + z m9) + y m5) + m13,
 // z' = ((x m2 + y m6) + z m10) + m14, x' = ((y m4 + x m0) + m8 z) + m12.

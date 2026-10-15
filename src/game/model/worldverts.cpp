@@ -55,6 +55,23 @@ void __cdecl WorldVerts_Fetch(const u8 *groups, u32 index, u32 *out) {
     out[2] = lane[8];
 }
 
+void __cdecl Vec3_TurnY(float *v, s32 angle) {
+    u32 *const raw = reinterpret_cast<u32 *>(v);
+    if (angle == 90) {
+        const u32 x = raw[0], z = raw[2];
+        raw[2] = X87_FloatThrough(x) ^ 0x80000000;  // fchs
+        raw[0] = z;
+    } else if (angle == 180) {
+        const X87Reg x = X87Reg(v[0]) * -1.0f, z = X87Reg(v[2]) * -1.0f;
+        v[0] = (float)x;
+        v[2] = (float)z;
+    } else if (angle == 270) {
+        const u32 x = raw[0], z = raw[2];
+        raw[0] = X87_FloatThrough(z) ^ 0x80000000;
+        raw[2] = X87_FloatThrough(x);
+    }
+}
+
 void __cdecl WorldVerts_TransformNode(const u8 *node, const float *m) {
     float *out = block();
     for (u32 i = 0; i < at<u16>(node, 0x58); ++i, out += 3) {
