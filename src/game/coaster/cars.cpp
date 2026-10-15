@@ -122,4 +122,20 @@ void __cdecl CoasterCar_FindSegmentsInWindow(const u8 *coaster, const u8 *car, s
     *first = (s32)((uintptr_t)found - base) / 0x60;
     *last = (s32)((uintptr_t)final - base) / 0x60;
 }
+
+void __cdecl CoasterCar_SetExtent(const u8 *coaster, u8 *car) {
+    const float scale = at<float>(coaster, 0xac);
+    const u8 *front = at<const u8 *>(car, 0x28) + at<u32>(car, 8) * 0x60;
+    const u8 *back = front + at<u32>(car, 0xc) * 0x60 - 0x60;
+    const auto offset = [scale, car](const u8 *seg) { return X87Reg(at<float>(seg, 0x38)) / scale + at<float>(car, 0x74); };
+    const auto length = [scale](const u8 *seg, u32 at_) { return X87Reg(at<float>(at<const u8 *>(seg, 4), at_)) / scale; };
+    at<float>(car, 0x20) = (float)(offset(front) + length(front, 0x24));
+    at<float>(car, 0x24) = (float)(offset(back) - length(back, 0x28));
+}
+
+double __cdecl Coaster_SpeedAfterDrop(const u8 *params, float speed, float minimum, float fromY, float toY) {
+    const X87Reg drop = (X87Reg(fromY) - toY) * at<float>(params, 0x24);
+    const X87Reg next = drop * at<float>(params, toY > fromY ? 0x28 : 0x2c) + speed;
+    return next.v > minimum ? next.v : minimum;
+}
 }

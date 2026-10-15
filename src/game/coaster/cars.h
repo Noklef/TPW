@@ -48,4 +48,16 @@ void __cdecl Coaster_SetSegmentWindow(u8 *coaster);
 // *first and *last.
 // sic: with no match the index is that of a null pointer, -(car+0x28) / 0x60.
 void __cdecl CoasterCar_FindSegmentsInWindow(const u8 *coaster, const u8 *car, s32 *first, s32 *last);
+
+// 0x43bdb0: the car's extent along the track: +0x20 the front of its first segment (index
+// car+8), position +0x74 plus its offset (+0x38) and its type's (+4) +0x24, and +0x24 the
+// back of its last one (car+0xc on), the same less the type's +0x28; offsets and lengths
+// over coaster+0xac.
+// sic: with no segments the "last" is the one before the first.
+void __cdecl CoasterCar_SetExtent(const u8 *coaster, u8 *car);
+
+// 0x43bfb0: speed after the climb or drop from fromY to toY: speed + (fromY - toY) *
+// params+0x24 * (+0x28 going up, else +0x2c), but at least minimum (minimum too for NaN).
+// Left in st0, so double.
+double __cdecl Coaster_SpeedAfterDrop(const u8 *params, float speed, float minimum, float fromY, float toY);
 }

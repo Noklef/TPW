@@ -18,4 +18,11 @@ int __cdecl Float_RoundUp(float x);
 // sic: the wrap goes from b when a < 0 but from a otherwise, so at t = 0 the result is a
 // only for a >= 0 (the coaster car's heading between two track frames).
 double __cdecl Angle_Lerp(float a, float b, float t);
+
+// 0x43a970: a . b, as (a.y b.y + a.z b.z) + a.x b.x. Left in st0, so double.
+double __cdecl Vec3_Dot(const float *a, const float *b);
+
+// 0x43a9a0: v over its length (rounded to a float first), in place.
+// sic: a zero vector becomes NaNs.
+void __cdecl Vec3_Normalize(float *v);
 }

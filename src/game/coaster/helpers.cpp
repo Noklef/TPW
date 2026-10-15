@@ -30,4 +30,18 @@ double __cdecl Angle_Lerp(float a, float b, float t) {
     const X87Reg x = !(a >= 0.0f) ? (X87Reg(1.0f) - t) * around + b : X87Reg(around) * t + a;
     return (X87Reg(std::fmod((x - kMinusPiD).v, kTwoPiD)) - kPi).v;
 }
+
+double __cdecl Vec3_Dot(const float *a, const float *b) {
+    return ((X87Reg(b[1]) * a[1] + X87Reg(b[2]) * a[2]) + X87Reg(a[0]) * b[0]).v;
+}
+
+void __cdecl Vec3_Normalize(float *v) {
+    const X87Reg sum = (X87Reg(v[0]) * v[0] + X87Reg(v[1]) * v[1]) + X87Reg(v[2]) * v[2];
+    const float length = (float)(sum.v != sum.v ? sum.v : X87_Round(std::sqrt(sum.v)));
+    const float x = (float)(X87Reg(v[0]) / length), y = (float)(X87Reg(v[1]) / length);
+    const float z = (float)(X87Reg(v[2]) / length);
+    v[0] = x;
+    v[1] = y;
+    v[2] = z;
+}
 }

@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -108,7 +108,24 @@ def frame(r, op):
     return Call(0x43c0a0, [COAST, fb(pos), OUT, o], regs)
 
 
+def nan_pair(r, buf, offsets, p=0.25):
+    """Two NaNs alike but for the sign, which an add or multiply picks between by operand order."""
+    if r.random() < p:
+        for o in r.sample(list(offsets), 2):
+            put(buf, o, 'I', r.choice([0x7fc00000, 0xffc00000]))
+    return buf
+
+
 def helpers(r, op):
+    if op in ('Dot', 'Normalize'):
+        a, b = (r.floats(r.bytes(12), range(0, 12, 4)) for _ in range(2))
+        if r.random() < 0.2:  # tiny or huge: the registers' range shows
+            put(a, 0, 'fff', *(r.choice([1e-30, 3e-25, 1e25, 2e30, 3e38, 1e-39, 1e-42]) * r.uniform(-1, 1) for _ in range(3)))
+        nan_pair(r, a, range(0, 12, 4))
+        if op == 'Dot':
+            ab = nan_pair(r, a + b, range(0, 24, 4))
+            return Call(0x43a970, [OUT, OUT + 12], {OUT: ab}, ret='d')
+        return Call(0x43a9a0, [OUT], {OUT: a})
     if op == 'RoundUp':
         x = r.choice([r.f(), fb(r.randrange(-50, 50) + r.choice([0, 0, 0.5, r.random()])), fb(-0.25), fb(2 ** 40)])
         return Call(0x43e160, [x], {}, ret='a')
@@ -130,6 +147,40 @@ def cars(r, op):
                     ret='d')
     if op == 'Dist':
         return Call(0x470940, [SPL, SPL + 12], {SPL: r.floats(r.bytes(24), range(0, 24, 4))}, ret='d')
+    if op == 'Extent':
+        count = r.randrange(0, 6)
+        car, segs, types = r.bytes(0x100), r.bytes(14 * 0x60), r.bytes(0x400)
+        put(car, 8, 'II', r.randrange(0, 6), count)
+        put(car, 0x28, 'I', SPL + 0x60)  # no segments reads the one before
+        put(car, 0x74, 'I', r.f())
+        for k in range(14):
+            put(segs, k * 0x60 + 4, 'I', NODES + r.randrange(8) * 0x80)
+            put(segs, k * 0x60 + 0x38, 'I', r.f())
+        for k in range(8):
+            put(types, k * 0x80 + 0x24, 'II', r.f(), r.f())
+        put(c, 0xac, 'I', r.f())
+        if r.random() < 0.3:  # sign-pair NaNs in the front sum: its offset, position, length
+            nan = [0x7fc00000, 0xffc00000]
+            r.shuffle(nan)
+            front = r.choice([0, 1])
+            sel = r.sample([0, 1, 2], 2)
+            for i, n in zip(sel, nan):
+                if i == 0:
+                    put(segs, front * 0x60 + 0x60 + 0x38, 'I', n)
+                elif i == 1:
+                    put(car, 0x74, 'I', n)
+                else:
+                    put(types, 0x24, 'I', n)
+                    put(segs, front * 0x60 + 0x60 + 4, 'I', NODES)
+            put(car, 8, 'I', front)
+        return Call(0x43bdb0, [COAST, CARS], {COAST: c, CARS: car, SPL: segs, NODES: types})
+    if op == 'Drop':
+        put(t, 0x24, 'III', r.f(), r.f(), r.f())
+        y = r.f()
+        args = [r.f(), r.f(), y, r.choice([y, y ^ 0x80000000, r.f(), r.f()])]
+        if r.random() < 0.2:  # no drop and no speed: +0 against a -0 minimum
+            args = [r.choice([0, 0x80000000]), r.choice([0, 0x80000000]), y, y]
+        return Call(0x43bfb0, [TYPE] + args, {TYPE: t}, ret='d')
     if op == 'Window':
         cs, vals = r.bytes(0x300), r.bytes(0x300)
         for k in range(3):  # car k: +0x64 the next car, +0x90 -> +4 -> +8 its value
@@ -288,7 +339,7 @@ def lists(r, op):
 
 KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 'Tangent': spline, 'Set': orient,
          'Init': orient, 'Frame': frame, 'At': frame,
-         'RoundUp': helpers, 'Lerp': helpers, 'Swing': cars, 'Space': cars, 'Segs': cars, 'Window': cars, 'InWindow': cars, 'Dist': cars,
+         'RoundUp': helpers, 'Lerp': helpers, 'Dot': helpers, 'Normalize': helpers, 'Swing': cars, 'Space': cars, 'Segs': cars, 'Extent': cars, 'Drop': cars, 'Window': cars, 'InWindow': cars, 'Dist': cars,
          'NodeLerp': nodes, 'PastEnd': nodes, 'Zone': nodes, 'Merge': keys, 'Append': lists}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
