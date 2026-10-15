@@ -216,7 +216,7 @@ bool is_image_text(DWORD p) {
     const auto *s = reinterpret_cast<const unsigned char *>(p);
     int n = 0;
     for (; n < 300 && s[n]; ++n)
-        if (s[n] < 0x20 && s[n] != '\n' && s[n] != '\r' && s[n] != '\t') return false;
+        if ((s[n] < 0x20 && s[n] != '\n' && s[n] != '\r' && s[n] != '\t') || s[n] >= 0x7f) return false;
     return n >= 3 && n < 300;
 }
 

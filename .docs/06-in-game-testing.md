@@ -61,7 +61,7 @@ dgVoodoo (`.data\dgvoodoo-fresh-copy`), `build\` and `.data\sandbox\scripts`.
 - the CD's `Data` files the install left out
 - the no-CD exe
 - dgVoodoo's `DDraw.dll`/`D3DImm.dll` and a windowed `dgVoodoo.conf`
-- the registry key, under WOW6432Node
+- the registry key, under WOW6432Node, with `Language` = 0x809 (UK English: the only language text on this CD; 0x409 makes the game quit)
 - crash dumps (WER LocalDumps to `C:\dumps`)
 
 Windows Sandbox cannot mount the ISO, because it has no virtual disk provider.
@@ -96,3 +96,7 @@ FPU precision, and the log records that.
   then exit 1 at 1.0 s with no window created. WinMain (0x45a960) quits when 0x419710 fails: it loads
   the language text from `Data\Language\` and reports why through the empty debug print. That
   print is now logged. Next: a true passthrough run.
+- 2026-10-15: true passthrough, same exit. The game's own message: "Error: Unable to set language
+  to American". The registry `Language` was 0x409 (from the no-CD `.reg`), which the game maps to
+  "American" (0x5c0e13; unknown ids fall back to 0x809 "English"). This European CD only has
+  `Data\Language\English` (and `00000809.*`), so the sandbox now sets `Language` = 0x809.
