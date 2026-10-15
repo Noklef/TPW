@@ -17,13 +17,15 @@ B = Bench([(0x44a590, 0x44b140), (0x44b140, 0x44b2e0), (0x44b3c0, 0x44b410), (0x
            (0x45d620, 0x45d68c), (0x469180, 0x469405), (0x469470, 0x4698ef),
            (0x45b9d0, 0x45ba15), (0x468760, 0x4688a7), (0x44b4c0, 0x44b505),
            (0x475550, 0x47558b), (0x46f150, 0x46f180), (0x46f240, 0x46f350), (0x46f420, 0x46f5c0),
-           (0x4702d0, 0x470630), (0x473a40, 0x473c30), (0x67b410, 0x67b440)], sines=256)
+           (0x4702d0, 0x470630), (0x473a40, 0x473c30), (0x67b410, 0x67b440), (0x450e60, 0x450e99),
+           (0x45ba70, 0x45ba92), (0x45bdc0, 0x45bdca), (0x44e510, 0x44e531), (0x473c70, 0x473e30)], sines=256)
 HOLDER, MODEL, PARTS, FACES, FACES2 = (RAM + k * 0x1000 for k in range(5))
 REF, H2, MAT, SLOTS, MAP, GRID, CELLS, GRID2, CELLS2, OUT = (RAM + k * 0x1000 for k in range(5, 15))
 SETS, ENTRIES, TILES, MDL, MESHES, MFACES, REMAP = (RAM + k * 0x1000 for k in range(15, 22))
 HL, VERTS, HLBUF, SAVED, IDS = (RAM + k * 0x1000 for k in range(22, 27))
 PSA, PSF, PSN, PSM = (RAM + k * 0x1000 for k in range(27, 31))
 PMA, PMN, PMG, PMS = (RAM + k * 0x1000 for k in range(31, 35))
+LA, LH = (RAM + k * 0x1000 for k in range(35, 37))
 
 
 def partstates(r, op):
@@ -367,7 +369,30 @@ def globalmem(r, op):
     if op == 'GAlloc':
         regs = {HEAP: heap(), **global_heap()}
         return Call(0x45b9d0, [r.choice([0, 1, 4, r.randrange(0x1000)]), r.choice([0, 1, r.getrandbits(32)])], regs, ret='a')
+    if op == 'GCounted':
+        return Call(0x45ba70, [r.choice([0, 1, 7, r.getrandbits(32)])], {HEAP: heap(), **global_heap()}, ret='a')
     return Call(0x45ba00, [r.choice([0, r.getrandbits(32)])], {HEAP: heap(), **global_heap()}, ret='a')
+
+
+def leaves(r, op):
+    """Small leaves: the vertex scratch buffer (count 0x79f7d0, buffer 0x79f7e0), the holder's
+    awake flag, and the frame start (flags 0x79e884; an animator at 0x79fcb4 that only ticks:
+    flag 4, no layers active (+0xa8), its holder (+8) with nothing to attach (+0x28))."""
+    scratch = put(bytearray(r.bytes(0x14)), 0, 'I', r.choice([0, 1, 5, 100, r.randrange(0x300)]))
+    put(scratch, 0x10, 'I', r.choice([0, r.getrandbits(32)]))
+    regs = {HEAP: heap(), **global_heap(), 0x79f7d0: scratch}
+    if op == 'VScratch':
+        return Call(0x450e60, [], regs)
+    if op == 'VScratchFree':
+        return Call(0x450e80, [], regs)
+    if op == 'Awake':
+        return Call(0x45bdc0, [LH], {LH: r.bytes(8)}, ret='a')
+    anim = put(bytearray(r.bytes(0x100)), 4, 'I', r.getrandbits(32) & ~0x20000000 | 4 | r.choice([0, 0x20000000]))
+    put(anim, 8, 'I', LH)
+    put(anim, 0xa8, 'I', 0)
+    holder = put(bytearray(r.bytes(0x40)), 0x28, 'I', 0)
+    return Call(0x44e510, [], {LA: anim, LH: holder, 0x79fcb4: struct.pack('<I', r.choice([0, LA])),
+                               0x79e880: r.bytes(8)})
 
 
 def highlight(r, op):
@@ -452,7 +477,8 @@ KINDS = {'Size': mode, 'Depth': mode, 'ResetScale': mode, 'Epsilon': mode, 'Mark
          'HlTarget': highlight, 'HlTints': highlight, 'HlClear': highlight, 'HlCurrent': highlight,
          'HlShown': highlight, 'HlSuspend': highlight, 'HlAlloc': highlight, 'HlFree': highlight,
          'HlFlash': highlight, 'HlFlash2': highlight, 'HlUnflash': highlight, 'HlUnflash2': highlight,
-         'HlPulse': highlight, 'GAlloc': globalmem, 'GFree': globalmem, 'IdAdd': ids, 'IdRemove': ids,
+         'HlPulse': highlight, 'GAlloc': globalmem, 'GFree': globalmem, 'GCounted': globalmem, 'VScratch': leaves,
+         'VScratchFree': leaves, 'Awake': leaves, 'FrameBegin': leaves, 'IdAdd': ids, 'IdRemove': ids,
          'PsCreate': partstates, 'PsMark': partstates, 'PsFree': partstates, 'PsRelease': partstates,
          'PsUpdate': partmatrices, 'PsPoint': partmatrices, 'PsAim': partmatrices, 'MxPreMul': partmatrices,
          'MxPreMul3': partmatrices, 'MxRotX4': partmatrices, 'MxRotY4': partmatrices, 'MxRotZ4': partmatrices}

@@ -88,7 +88,8 @@
 #include "../game/model/parts.h"
 #include "../game/model/highlight.h"
 #include "../game/model/partstate.h"
-#include "../game/model/remap.h"
+#include "../game/model/remap.h"
+#include "../game/model/scratch.h"
 #include "../game/render/frame.h"
 #include "../game/render/mode.h"
 #include "../game/online/servers.h"
@@ -1056,6 +1057,7 @@ const Hook kHooks[] = {
     {"StdString_Split",           0x0045b8d0, (void *)&StdString_Split, {0x53, 0x55, 0x8b, 0xe9, 0x33}},
     {"GlobalMem_Alloc",           0x0045b9d0, (void *)&GlobalMem_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"GlobalMem_Free",            0x0045ba00, (void *)&GlobalMem_Free, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"GlobalMem_AllocCounted",    0x0045ba70, (void *)&GlobalMem_AllocCounted, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"IdTable_Add",               0x00468760, (void *)&IdTable_Add, {0x8b, 0x44, 0x24, 0x1c, 0x53}},
     {"IdTable_Remove",            0x00468810, (void *)&IdTable_Remove, {0x8b, 0x44, 0x24, 0x14, 0x53}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
@@ -1065,6 +1067,7 @@ const Hook kHooks[] = {
     {"Frame_ResetBounds",         0x0044e570, (void *)&Frame_ResetBounds, {0xc7, 0x05, 0x00, 0x06, 0x7b}},
     {"Frame_AddFlags",            0x0044e5b0, (void *)&Frame_AddFlags, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Frame_SetPoint",            0x0044e5d0, (void *)&Frame_SetPoint, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"Frame_Begin",               0x0044e510, (void *)&Frame_Begin, {0xa1, 0xb4, 0xfc, 0x79, 0x00}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
@@ -1074,6 +1077,7 @@ const Hook kHooks[] = {
     {"Ride_SlotKey",              0x004587b0, (void *)&Ride_SlotKey, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Holder_SetPosition",        0x0045bef0, (void *)&Holder_SetPosition, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Holder_FlagModel",          0x0045bed0, (void *)&Holder_FlagModel, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Holder_IsAwake",            0x0045bdc0, (void *)&Holder_IsAwake, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Model_RemapTextures",       0x0046de00, (void *)&Model_RemapTextures, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Highlight_Update",          0x00469180, (void *)&Highlight_Update, {0x51, 0x53, 0x55, 0x56, 0x8b}},
     {"Highlight_SetTarget",       0x00469340, (void *)&Highlight_SetTarget, {0x8b, 0x44, 0x24, 0x04, 0xa3}},
@@ -1095,6 +1099,8 @@ const Hook kHooks[] = {
     {"Matrix_AttachAim",          0x0044a640, (void *)&Matrix_AttachAim, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"PartStates_UpdateNode",     0x0044ab90, (void *)&PartStates_UpdateNode, {0x83, 0xec, 0x58, 0x53, 0x55}},
     {"PartStates_Update",         0x0044ab30, (void *)&PartStates_Update, {0x83, 0xec, 0x40, 0x56, 0x8b}},
+    {"Model_AllocVertexScratch",  0x00450e60, (void *)&Model_AllocVertexScratch, {0xa1, 0xd0, 0xf7, 0x79, 0x00}},
+    {"Model_FreeVertexScratch",   0x00450e80, (void *)&Model_FreeVertexScratch, {0xa1, 0xe0, 0xf7, 0x79, 0x00}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},

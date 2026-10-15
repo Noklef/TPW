@@ -12,6 +12,8 @@ template <typename T> T &at(const void *p, u32 offset) {
 
 extern "C" {
 
+u32 __cdecl Holder_IsAwake(const u8 *holder) { return at<u32>(holder, 0) & 1; }
+
 void __cdecl Holder_FlagModel(const u8 *const *ref) { at<u32>(at<const u8 *>(*ref, 4), 0x30) |= 0x200; }
 
 void __cdecl Holder_SetPosition(const u8 *holder, u32 x, u32 y, u32 z) {

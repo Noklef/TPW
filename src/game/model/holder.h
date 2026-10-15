@@ -1,10 +1,13 @@
 // Model holders (flags +0, model +4, slot table +0x28: +0 flags, +4 slots of 0x14 bytes,
-// +8 count): reimplementation of 0x45bed0, 0x45bef0 and 0x4587b0.
+// +8 count): reimplementation of 0x45bdc0, 0x45bed0, 0x45bef0 and 0x4587b0.
 #pragma once
 
 #include "../../../re/types.h"
 
 extern "C" {
+
+// 0x45bdc0: flag 1 (+0), set while the holder is awake (Animator_Play wakes it).
+u32 __cdecl Holder_IsAwake(const u8 *holder);
 
 // 0x45bed0: sets flag 0x200 in the model's +0x30 (the holder reached through *ref).
 void __cdecl Holder_FlagModel(const u8 *const *ref);

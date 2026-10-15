@@ -105,6 +105,7 @@ add_library(tpw_game STATIC
     src/game/model/remap.cpp
     src/game/model/highlight.cpp
     src/game/model/partstate.cpp
+    src/game/model/scratch.cpp
     src/game/render/mode.cpp
     src/game/render/frame.cpp
     src/game/online/servers.cpp

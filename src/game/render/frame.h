@@ -1,9 +1,13 @@
-// Per-frame render globals: reimplementation of 0x44e570-0x44e5fb.
+// Per-frame render globals: reimplementation of 0x44e510 and 0x44e570-0x44e5fb.
 #pragma once
 
 #include "../../../re/types.h"
 
 extern "C" {
+
+// 0x44e510: clears the frame flags (0x79e884), then ticks the animator at 0x79fcb4, if any,
+// as Animator_Update(animator, (block) 1, 4).
+void __cdecl Frame_Begin();
 
 // 0x44e570: the bounds at 0x7b0600 (min x, y, z then max x, y, z) to FLT_MAX and -FLT_MAX.
 void __cdecl Frame_ResetBounds();

@@ -19,4 +19,12 @@ void *__cdecl GlobalMem_Free(void *block) {
     if (!block) return block;
     return slot<void *(__stdcall *)(void *)>(0x006fd26c)(block);
 }
+
+void *__cdecl GlobalMem_AllocCounted(u32 count) {
+    if (!count) return nullptr;
+    u32 *block = static_cast<u32 *>(GlobalMem_Alloc(0x40, 1));
+    block[0] = 0;
+    block[1] = count;
+    return block;
+}
 }

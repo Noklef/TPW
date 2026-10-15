@@ -371,7 +371,7 @@ address,name,kind,confidence,notes
 0x00474050,Layer_SetSpeed,function,high,"reimplemented (src/game/motion/animator); (animator, speed, layer): layer +0xc = speed"
 0x00474070,Animator_MotionEndMs,function,high,"reimplemented (src/game/motion/animator); (animator, bank, entry): end frame (block +8) * 1000 / 30, 0 without the entry"
 0x0044ab30,PartStates_Update,function,high,"reimplemented (src/game/model/partstate); cdecl (instance): when the instance (flag 1) and its part states (+0x28, flag 1) are awake, walks the model's node tree (+0x78; 0x44ab90) from the identity matrix, filling the part entries' matrix slots"
-0x0045bdc0,Holder_IsAwake,function,high,"(holder): flags & 1"
+0x0045bdc0,Holder_IsAwake,function,high,reimplemented (src/game/model/holder); holder flag 1 (awake)
 0x0045bdd0,Holder_Sleep,function,low,"(holder): called when an animator flagged 8 ends its motion (animator flag 0x4000 uses Holder_SleepAt instead); counterpart of 0x45bd30"
 0x0045be80,Holder_SleepAt,function,low,"(holder, animator +0xc0, +0xc4): see Holder_Sleep"
 0x008bd508,gSceneFlags,data,low,"u32; Animator_RefreshNodes sets 0x80000000 when nodes flagged 0x100 changed"
@@ -1767,6 +1767,7 @@ address,name,kind,confidence,notes
 0x0045b8d0,StdString_Split,function,high,reimplemented (src/game/core/stdstring); std::string::_Split(): unshares a copy-on-write block
 0x0045b9d0,GlobalMem_Alloc,function,high,"reimplemented (src/game/core/globalmem); GlobalAlloc(GMEM_ZEROINIT or GMEM_FIXED, size) through the import slot; null for 0"
 0x0045ba00,GlobalMem_Free,function,high,reimplemented (src/game/core/globalmem); GlobalFree through the import slot; null for null
+0x0045ba70,GlobalMem_AllocCounted,function,high,reimplemented (src/game/core/globalmem); a zeroed 0x40-byte block with count at +4; null for 0
 0x00468760,IdTable_Add,function,high,reimplemented (src/game/core/idtable); stores a value under a new or given id (used/holes/next counters)
 0x00468810,IdTable_Remove,function,high,"reimplemented (src/game/core/idtable); frees an id, fixing the used/holes/next counters"
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
@@ -1861,6 +1862,7 @@ address,name,kind,confidence,notes
 0x0044e570,Frame_ResetBounds,function,high,"reimplemented (src/game/render/frame); cdecl (): bounds 0x7b0600 to FLT_MAX x3, -FLT_MAX x3"
 0x0044e5b0,Frame_AddFlags,function,high,reimplemented (src/game/render/frame); cdecl (flags): 0x79e884 |= flags
 0x0044e5d0,Frame_SetPoint,function,high,"reimplemented (src/game/render/frame); cdecl (point*): 0x79e248 = point (when given), 0x79dcd4 = 0"
+0x0044e510,Frame_Begin,function,high,"reimplemented (src/game/render/frame); clears frame flags 0x79e884, ticks the animator at 0x79fcb4 (Animator_Update(a, 1, 4))"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
@@ -1890,4 +1892,6 @@ address,name,kind,confidence,notes
 0x0044b040,Face_AttachPoint,function,high,"reimplemented (src/game/model/partstate); cdecl (a, b, c, normal, attach, onFace, out): the point of face (a, b, c) at the attachment's t (+4), s (+8): lerp(lerp(a, b, t), c, s), copied to onFace, then lifted by +0xc along normal"
 0x0044a640,Matrix_AttachAim,function,high,"reimplemented (src/game/model/partstate); cdecl (from, to, up, attach, m): m's rotation rows = up x n, up, n for n = normalize(to - from) (NaN: up rotated, sic), turned by the attachment's angles (attach - u16 attach+2: z, y, x via the sine table)"
 0x0044ab90,PartStates_UpdateNode,function,high,"reimplemented (src/game/model/partstate); cdecl (node, model, Matrix44 m by value, parent, entries): accumulates node matrices (+0x10) down the tree; parts with 0x40040 on a 0x200000 host (+4) are placed on the host's face (0x44b040, aimed with 0x40000 by 0x44a640) in parent's space; the part entry's slot (+4) gets the matrix; normals refreshed (0x473a40) for 0x10000000|0x10000; skips children with 0x40000000"
+0x00450e60,Model_AllocVertexScratch,function,high,"reimplemented (src/game/model/scratch); 0x79f7e0 = GlobalMem_Alloc(12 * vertex high-water count 0x79f7d0, zeroed)"
+0x00450e80,Model_FreeVertexScratch,function,high,reimplemented (src/game/model/scratch); frees and clears the vertex scratch buffer 0x79f7e0
 0x0045aee0,Online_ApplyBalance,function,high,reimplemented (src/game/online/servers); copies Online.sam (gBalanceOnline) into the servers object 0x7a14f0
