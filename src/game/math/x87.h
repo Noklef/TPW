@@ -3,6 +3,15 @@
 // loads a 32-bit integer exactly: fild n; fmul f rounds the exact (up to 56-bit) product
 // once, where (float)n * f would round n first. These return the register's value as a
 // double, which holds every 24-bit significand exactly, whatever the exponent.
+//
+// Policy for reimplementations: write an original's float expressions with X87Reg, in its
+// order of operations, storing to float only where it stores, so that results match bit for
+// bit for every input, including overflow past float range and NaNs. Plain float or double
+// is fine only where the bench (tools/fncmp.py, normal and --wild) shows no difference.
+// Which of two NaNs comes out depends on operand order; keep the original's order where it
+// costs nothing, but don't contort code for it (a commuted operand that differs only in
+// NaN payloads is an accepted difference, noted in the function's header). A float moved
+// with fld/fstp quiets a signalling NaN where a compiler's copy would not: X87_FloatThrough.
 #pragma once
 
 #include <cmath>

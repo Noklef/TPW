@@ -20,6 +20,9 @@ does not set reads as the exe image there, else zero, in both.
 Mutation testing: B.mutants(case, [(path, old, new), ...]) applies each edit to the source
 (old must occur once), rebuilds, runs, restores, and reports which edits were caught.
 
+Expected result: 0 differ with and without --wild (see the precision policy in
+src/game/math/x87.h). Suites live in tests/fncmp/.
+
 The emulator gets __ftol, modf and _CIfmod stubs; Bench(..., sines=N) also gives both sides
 an N-entry sine table at 0x7b095c (see sintable.h).
 """
