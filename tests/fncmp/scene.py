@@ -14,7 +14,7 @@ from fncmp import HEAP, Bench, Call, RAM, fb, global_heap, heap, put  # noqa: E4
 B = Bench([(0x44a590, 0x44b140), (0x44b140, 0x44b2e0), (0x44b3c0, 0x44b410), (0x44e570, 0x44e5fc),
            (0x4587b0, 0x4587d9), (0x45bed0, 0x45bf13), (0x450420, 0x45046d), (0x450950, 0x450a24), (0x450a30, 0x450a78), (0x466f90, 0x46702f),
            (0x450b00, 0x450b24), (0x457a00, 0x457a88), (0x46de00, 0x46e125), (0x56dfb0, 0x56dfdd),
-           (0x45d620, 0x45d68c), (0x469180, 0x469405), (0x469470, 0x4698ef),
+           (0x45d620, 0x45d68c), (0x441840, 0x4418cb), (0x469180, 0x469405), (0x469470, 0x4698ef),
            (0x45b9d0, 0x45ba15), (0x468760, 0x4688a7), (0x44b4c0, 0x44b505),
            (0x475550, 0x47558b), (0x46f150, 0x46f180), (0x46f240, 0x46f350), (0x46f420, 0x46f5c0),
            (0x4702d0, 0x470630), (0x473a40, 0x473c30), (0x67b410, 0x67b440), (0x450e60, 0x450e99),
@@ -481,8 +481,21 @@ def highlight(r, op):
                                  [0xa00 + 0xa0 * j for j in range(3)]):
             if not struct.unpack_from('<I', hl, mesh + 0x64)[0]:
                 put(hl, mesh + 0x64, 'I', VERTS + 0x600 + 0x20 * j)
+    car_args = []
+    if op == 'HlCar':  # coaster/registry Coaster_FlashCar: cars (HL + 0xc00, 0xc80; +0x70 -> ride a / b)
+        for h in (a, b):  # flashing (0x4000000) exactly when listed
+            f = struct.unpack_from('<I', hl, h - HL + 4)[0]
+            put(hl, h - HL + 4, 'I', f | 0x4000000 if h in listed else f & ~0x4000000)
+        cars = [HL + 0xc00, HL + 0xc80]
+        for k, car in enumerate(cars):
+            put(hl, car - HL + 0x70, 'I', k)
+        for off in (0x54, 0x58, 0x60, 0x64):
+            put(hl, 0xe00 + off, 'I', r.choice(cars + [0]))
+        put(hl, 0xe00 + 0x144, 'I', r.choice(cars + [0]))
+        regs[0x7a4610] = struct.pack('<2I', a, b)
+        car_args = [HL + 0xe00, r.choice([0, 1, 2, 3, r.getrandbits(32)])]
     flag = r.choice([0, 1, r.getrandbits(32)])
-    calls = {'HlUpdate': (0x469180, []), 'HlTarget': (0x469340, [r.choice(who)]), 'HlTints': (0x469350, []),
+    calls = {'HlCar': (0x441840, car_args), 'HlUpdate': (0x469180, []), 'HlTarget': (0x469340, [r.choice(who)]), 'HlTints': (0x469350, []),
              'HlClear': (0x469470, []), 'HlCurrent': (0x45d620, []), 'HlShown': (0x45d630, [flag]),
              'HlSuspend': (0x45d660, [flag]), 'HlAlloc': (0x469510, []), 'HlFree': (0x469550, []),
              'HlFlash': (0x469580, [r.choice([a, b])]), 'HlUnflash': (0x469650, [r.choice(who)]),
@@ -497,7 +510,7 @@ KINDS = {'Size': mode, 'Depth': mode, 'ResetScale': mode, 'Epsilon': mode, 'Mark
          'CopyAttrs': land, 'CloneAttrs': land, 'Footprint': land, 'GridSize': land, 'TexEnable': procedural, 'TexDisable': procedural,
          'ProcEnter': procedural, 'ProcLeave': procedural, 'ProcOn': procedural, 'ProcCells': procedural,
          'PaintCell': paint, 'PaintCell2': paint, 'Remap': remap, 'HlUpdate': highlight, 'HlUpdate2': highlight,
-         'HlTarget': highlight, 'HlTints': highlight, 'HlClear': highlight, 'HlCurrent': highlight,
+         'HlTarget': highlight, 'HlCar': highlight, 'HlTints': highlight, 'HlClear': highlight, 'HlCurrent': highlight,
          'HlShown': highlight, 'HlSuspend': highlight, 'HlAlloc': highlight, 'HlFree': highlight,
          'HlFlash': highlight, 'HlFlash2': highlight, 'HlUnflash': highlight, 'HlUnflash2': highlight,
          'HlPulse': highlight, 'GAlloc': globalmem, 'GFree': globalmem, 'GCounted': globalmem, 'VScratch': leaves,

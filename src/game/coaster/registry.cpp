@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/globalmem.h"
+#include "../model/highlight.h"
 
 namespace {
 
@@ -213,5 +214,24 @@ void __cdecl Coasters_AllocTables(u32 nodes, u32 links) {
     *reinterpret_cast<u32 *>(0x00792400) = links;
     *reinterpret_cast<void **>(0x007925dc) = GlobalMem_Alloc(links * 0x1c, 1);
     *reinterpret_cast<void **>(0x00792408) = GlobalMem_Alloc(nodes * 0x10, 1);
+}
+
+void __cdecl Coaster_FlashCar(u8 *coaster, u32 which) {
+    u8 *const *const rides = reinterpret_cast<u8 *const *>(0x007a4610);
+    if (const u8 *const old = *reinterpret_cast<const u8 *const *>(coaster + 0x144)) {
+        u8 *const ride = rides[*reinterpret_cast<const u32 *>(old + 0x70)];
+        if (*reinterpret_cast<const u32 *>(ride + 4) & 0x4000000) Highlight_Unflash(ride);
+        *reinterpret_cast<u8 **>(coaster + 0x144) = nullptr;
+    }
+    const bool other = *(coaster + 0x3c) & 2;
+    u8 *car = nullptr;
+    if ((u8)which & 1)
+        car = *reinterpret_cast<u8 *const *>(coaster + (other ? 0x60 : 0x58));
+    else if ((u8)which & 2)
+        car = *reinterpret_cast<u8 *const *>(coaster + (other ? 0x64 : 0x54));
+    if (!car) return;
+    u8 *const ride = rides[*reinterpret_cast<const u32 *>(car + 0x70)];
+    if (!(*reinterpret_cast<const u32 *>(ride + 4) & 0x4000000)) Highlight_Flash(ride);
+    *reinterpret_cast<u8 **>(coaster + 0x144) = car;
 }
 }
