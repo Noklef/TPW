@@ -169,4 +169,20 @@ void __cdecl Coasters_GetState(u32 *a, u32 *b, u32 *c, u32 *d) {
 u32 __cdecl CoasterEdit_Flag1() { return *reinterpret_cast<const u32 *>(0x0079c658) & 1; }
 
 void __cdecl CoasterLink_SetCurrent(u8 *link) { *reinterpret_cast<u8 **>(0x00790fec) = link; }
+
+u32 __cdecl CoasterEdit_Tools(u32 *out) {
+    u32 local;
+    if (!out) out = &local;
+    *out = 0x1fc;
+    if (!CoasterLink_EndMarked()) *out |= 1;
+    const u8 *link = *reinterpret_cast<const u8 *const *>(0x00790fec);
+    const u8 *type = at<const u8 *>(link, 4);
+    if (at<u8>(type, 0) & 0x80) {
+        *out |= 2;
+        if (at<u32>(type, 0) & 0x100) *out |= 0x200;
+    }
+    *out &= (at<u32>(link, 0x3c) & 3) == 1 ? ~3u : ~0x40u;
+    *reinterpret_cast<u32 *>(0x0079c6e0) = *out;
+    return *out;
+}
 }

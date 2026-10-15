@@ -96,4 +96,11 @@ u32 __cdecl CoasterEdit_Flag1();
 
 // 0x430ac0: sets the current link (0x790fec).
 void __cdecl CoasterLink_SetCurrent(u8 *link);
+
+// 0x445910: the edit tools on offer for the current link (0x790fec, which must be set):
+// 0x1fc, plus 1 unless CoasterLink_EndMarked; 2 when its type (+4) has flag 0x80, and 0x200
+// too when that has 0x100; less 1 and 2 when +0x3c has flag 1 but not 2, else less 0x40.
+// Stored to *out (when given) and 0x79c6e0, and returned.
+// sic: three paths by 0x79c638's flags all come to the same.
+u32 __cdecl CoasterEdit_Tools(u32 *out);
 }

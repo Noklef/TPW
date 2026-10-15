@@ -1787,6 +1787,7 @@ address,name,kind,confidence,notes
 0x00434710,Coasters_GetState,function,high,"reimplemented (src/game/coaster/registry); cdecl (a*, b*, c*, d*): copies 0x79221c, 0x790fd8, 0x79104c, 0x791cf8 out"
 0x00447990,CoasterEdit_Flag1,function,high,reimplemented (src/game/coaster/registry); cdecl u32 (): 0x79c658 & 1
 0x00430ac0,CoasterLink_SetCurrent,function,high,reimplemented (src/game/coaster/registry); cdecl (link): 0x790fec = link
+0x00445910,CoasterEdit_Tools,function,high,"reimplemented (src/game/coaster/registry); cdecl u32 (out*): 0x1fc | 1 unless CoasterLink_EndMarked | 2 (type 0x80) | 0x200 (and 0x100), less 3 or 0x40 by link+0x3c; to *out, 0x79c6e0 and returned"
 0x0043b0e0,Coaster_QueuePush,function,high,"reimplemented (src/game/coaster/queue); cdecl (index, peep): appends the peep to the queue ring (+0xb0) of coaster index (table 0x790bd0) when it has room"
 0x0043b130,CoasterQueue_Add,function,high,"reimplemented (src/game/coaster/queue); cdecl (coaster, peep): appends the peep to the queue ring (+0xb0), else to the boarding ring (+0xd0), whichever has room"
 0x0043b1f0,Coaster_QueueRoom,function,high,"reimplemented (src/game/coaster/queue); cdecl (index): the queue ring's limit - reserved - count, at least 0"
