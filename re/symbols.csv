@@ -2311,6 +2311,13 @@ address,name,kind,confidence,notes
 0x00451390,Model_HeightAt,function,high,reimplemented (src/game/model/heightat); the height of a model's floor under a point
 0x00451290,Model_FloorHeight,function,high,reimplemented (src/game/model/heightat); the view's floor height under a point
 0x0045aee0,Online_ApplyBalance,function,high,reimplemented (src/game/online/servers); copies Online.sam (gBalanceOnline) into the servers object 0x7a14f0
+0x005b6450,Online_LoggedIn,function,high,"reimplemented (src/game/online/session); thiscall u32: the online session's (0xf7d88c) +0x60, set while logged in"
+0x005b6460,Online_Restricted,function,high,reimplemented (src/game/online/session); thiscall u32: 1 unless logged in (+0x60) with the user's flag 0x20 (+0x58) clear
+0x005b6480,Online_String14,function,high,reimplemented (src/game/online/session); thiscall char*: the online session's C string +0x14
+0x005b6490,Online_String28,function,high,reimplemented (src/game/online/session); thiscall char*: the online session's C string +0x28
+0x005b64a0,Online_UserName,function,high,"reimplemented (src/game/online/session); thiscall u16*: the online user's name (+0x44, wide)"
+0x005b64b0,Online_UserFlags,function,high,reimplemented (src/game/online/session); thiscall u32: the online user's flags (+0x58)
+0x005b64c0,Online_User5c,function,high,reimplemented (src/game/online/session); thiscall u32: the online user's +0x5c
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"

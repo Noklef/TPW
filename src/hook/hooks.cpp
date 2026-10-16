@@ -144,6 +144,7 @@
 #include "../game/render/particles.h"
 #include "../game/online/servers.h"
 #include "../game/frontend/lobbymodel.h"
+#include "../game/online/session.h"
 
 namespace tpw::hook {
 
@@ -1591,6 +1592,13 @@ const Hook kHooks[] = {
     {"Terrain_InitUnusedOne",     0x00457e30, (void *)&Terrain_InitUnusedOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"Terrain_InitUnusedEpsilon", 0x00457e50, (void *)&Terrain_InitUnusedEpsilon, {0xd9, 0x05, 0x38, 0xe5, 0x6f}},
     {"Online_ApplyBalance",       0x0045aee0, (void *)&Online_ApplyBalance, {0x6a, 0xff, 0x68, 0x08, 0x89}},
+    {"Online_LoggedIn",           0x005b6450, (void *)&Online_LoggedIn, {0x8b, 0x41, 0x60, 0xc3, 0x90}},
+    {"Online_Restricted",         0x005b6460, (void *)&Online_Restricted, {0x8b, 0x51, 0x60, 0x33, 0xc0}},
+    {"Online_String14",           0x005b6480, (void *)&Online_String14, {0x8b, 0x41, 0x14, 0xc3, 0x90}},
+    {"Online_String28",           0x005b6490, (void *)&Online_String28, {0x8b, 0x41, 0x28, 0xc3, 0x90}},
+    {"Online_UserName",           0x005b64a0, (void *)&Online_UserName, {0x8b, 0x41, 0x44, 0xc3, 0x90}},
+    {"Online_UserFlags",          0x005b64b0, (void *)&Online_UserFlags, {0x8b, 0x41, 0x58, 0xc3, 0x90}},
+    {"Online_User5c",             0x005b64c0, (void *)&Online_User5c, {0x8b, 0x41, 0x5c, 0xc3, 0x90}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
