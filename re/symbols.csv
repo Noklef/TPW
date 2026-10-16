@@ -654,6 +654,14 @@ address,name,kind,confidence,notes
 0x0040f880,ThingMsg1a_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x1a
 0x0040f8d0,ThingMsg1c_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x1c
 0x0040f920,ThingMsg1b_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x1b
+0x004c5d10,AnalyserCell_Ctor,function,high,"reimplemented (src/game/world/analyser); thiscall on a 0x7c-byte cell: nine (0, best, flag 0) trackers from +0x10, two float (-999.0f) then int (-999)"
+0x004cdb60,AnalyserSlot_Ctor,function,high,"reimplemented (src/game/world/analyser); thiscall on a 0x14-byte slot (four at analyser +0x1f068): u16 +0 = 0, +8 = -1, +0xc = 3, byte +0x10 = 0"
+0x004c74b0,ParkAnalyser_Record,function,high,"reimplemented (src/game/world/analyser); thiscall (ring, value): byte ring at +0x216fc + ring * 0x40: cursor on (wrapping at its size, sets wrapped), value stored"
+0x004c74f0,ParkAnalyser_Tally,function,high,"reimplemented (src/game/world/analyser); thiscall (flag): +0x21bfc and +0x21c04 counted, +0x21c00 when flag is 0"
+0x004c94a0,ParkAnalyser_Tallied,function,high,"reimplemented (src/game/world/analyser); thiscall (flag): +0x21c00 when flag's low byte is set, else +0x21bfc"
+0x004c94c0,ParkAnalyser_Total,function,high,"reimplemented (src/game/world/analyser); thiscall: the running total, +0x21c08"
+0x004c94d0,ParkAnalyser_TotalSince,function,high,"reimplemented (src/game/world/analyser); thiscall (back): the total less its value back entries ago in the ring at +0x20824, or 0 for none"
+0x004c7b70,ParkAnalyser_Cell,function,high,"reimplemented (src/game/world/analyser); thiscall (pos): the cell of pos - 1 on a 128-wide grid, row and column divided by +0xc, row stride +0x10"
 0x0050b780,Thing_Delete,function,medium,"thiscall on a thing; the base deletion, queues its handle (World_QueueDelete)"
 0x00801f38,gThingsToDelete,data,high,"HandleQueue: +4 head, +8 tail, +0xc count; handles whose slots DeleteAll releases"
 0x005f5fc0,String_Alloc,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +8: a new block for length units, terminated; the old block is not freed"

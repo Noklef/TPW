@@ -105,6 +105,7 @@
 #include "../game/world/objectdefs.h"
 #include "../game/world/staff.h"
 #include "../game/world/thingmsg.h"
+#include "../game/world/analyser.h"
 #include "../game/world/things.h"
 #include "../game/model/holder.h"
 #include "../game/model/parts.h"
@@ -380,6 +381,14 @@ const Hook kHooks[] = {
     {"World_StaffList740",        0x00481fe0, (void *)&World_StaffList740, {0x8b, 0x44, 0x24, 0x04, 0x66}},
     {"World_StaffList742",        0x00482000, (void *)&World_StaffList742, {0x8b, 0x44, 0x24, 0x04, 0x66}},
     {"World_StaffList744",        0x00482020, (void *)&World_StaffList744, {0x8b, 0x44, 0x24, 0x04, 0x66}},
+    {"AnalyserCell_Ctor",         0x004c5d10, (void *)&AnalyserCell_Ctor, {0x8b, 0xc1, 0xba, 0x00, 0xc0}},
+    {"AnalyserSlot_Ctor",         0x004cdb60, (void *)&AnalyserSlot_Ctor, {0x8b, 0xc1, 0x66, 0xc7, 0x00}},
+    {"ParkAnalyser_Record",       0x004c74b0, (void *)&ParkAnalyser_Record, {0x8b, 0x44, 0x24, 0x04, 0xc1}},
+    {"ParkAnalyser_Tally",        0x004c74f0, (void *)&ParkAnalyser_Tally, {0x8b, 0x81, 0xfc, 0x1b, 0x02}},
+    {"ParkAnalyser_Tallied",      0x004c94a0, (void *)&ParkAnalyser_Tallied, {0x8a, 0x44, 0x24, 0x04, 0x84}},
+    {"ParkAnalyser_Total",        0x004c94c0, (void *)&ParkAnalyser_Total, {0x8b, 0x81, 0x08, 0x1c, 0x02}},
+    {"ParkAnalyser_TotalSince",   0x004c94d0, (void *)&ParkAnalyser_TotalSince, {0x53, 0x56, 0x8b, 0x74, 0x24}},
+    {"ParkAnalyser_Cell",         0x004c7b70, (void *)&ParkAnalyser_Cell, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},

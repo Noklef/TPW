@@ -102,6 +102,7 @@ add_library(tpw_game STATIC
     src/game/world/objectdefs.cpp
     src/game/world/thingmsg.cpp
     src/game/world/staff.cpp
+    src/game/world/analyser.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
