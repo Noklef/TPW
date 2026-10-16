@@ -55,6 +55,9 @@ def _wrapper(addr, texts, known, decls):
     n = len(texts)
     i = 0
     tail = None
+    ctor = texts[:2] == ['PUSH ESI', 'MOV ESI,ECX']   # PUSH ESI; MOV ESI,ECX; CALL base; MOV [ESI..],vtable; MOV EAX,ESI; POP ESI; RET
+    if ctor:
+        i = 2
     while i < n:
         t = texts[i]
         i += 1
@@ -80,10 +83,19 @@ def _wrapper(addr, texts, known, decls):
         if m:
             ecx = 'at<u8 *>(%s, %s)' % (ecx, off(num(m.group(1))))
             continue
-        m = re.match(r'^LEA ECX,\[ECX(?: \+ %s)?\]$' % H, t)
+        m = re.match(r'^(?:LEA ECX,\[ECX(?: \+ %s)?\]|ADD ECX,%s)$' % (H, H), t)
+        if m and m.group(1) is None and m.group(2) is not None:
+            m = None
+            k = num(re.match(r'^ADD ECX,%s$' % H, t).group(1))
+            ecx = '(%s) + 0x%x' % (ecx, k)
+            continue
         if m:
             k = num(m.group(1))
             ecx = '(%s) %s 0x%x' % (ecx, '-' if k < 0 else '+', abs(k))
+            continue
+        m = re.match(r'^MOV (?:dword ptr )?\[ECX(?: \+ %s)?\],(-?0x[0-9a-f]+)$' % H, t)
+        if m and ecx == 'o' and not ctor:
+            pre_stores.append('at<u32>(o, %s) = 0x%x;' % (off(num(m.group(1) or '0')), num(m.group(2)) & 0xffffffff))
             continue
         m = re.match(r'^PUSH (-?0x[0-9a-f]+)$', t)
         if m:
@@ -106,6 +118,19 @@ def _wrapper(addr, texts, known, decls):
         raise Unsupported('callee')
     rest = texts[after:]
     ret_pop = 0
+    post_stores = []
+    if ctor:
+        if kind != 'CALL' or ecx != 'o' or stack or state['args'] or eax is not None:
+            raise Unsupported('ctor shape')
+        while rest:
+            m = re.match(r'^MOV (?:dword ptr )?\[ESI(?: \+ %s)?\],(-?0x[0-9a-f]+)$' % H, rest[0])
+            if not m:
+                break
+            post_stores.append('at<u32>(o, %s) = 0x%x;' % (off(num(m.group(1) or '0')), num(m.group(2)) & 0xffffffff))
+            rest = rest[1:]
+        if rest != ['MOV EAX,ESI', 'POP ESI', 'RET']:
+            raise Unsupported('ctor tail')
+        rest = ['RET']
     if kind == 'CALL':
         if rest and re.match(r'^ADD ESP,0x[0-9a-f]+$', rest[0]):
             rest = rest[1:]
@@ -158,9 +183,14 @@ def _wrapper(addr, texts, known, decls):
     else:
         call = '%s(%s)' % (name, ', '.join(casts))
     ret = d['ret']
-    if ret not in ('void', 'u32', 's32', 'u8', 'u16', 'u8 *', 'const u8 *'):
+    if ret not in ('void', 'u32', 's32', 'u8', 'u16', 'u8 *', 'const u8 *') and not ret.endswith('*'):
         raise Unsupported('return type')
     rk = {'void': 'v', 'u32': 'a', 's32': 'a', 'u8': 'b', 'u16': 'w'}.get(ret, 'p' if ret.endswith('*') else 'a')
     body = ('return ' if ret != 'void' else '') + call + ';'
+    if pre_stores:
+        body = ' '.join(pre_stores) + ' ' + body
+    if ctor:
+        ret, rk = 'u8 *', 'p'
+        body = call + '; ' + ' '.join(post_stores) + (' ' if post_stores else '') + 'return o;'
     return dict(name='Wrap_%s_%06x' % (name, addr), conv=conv, nargs=nargs, ret=rk, rettype=ret, doc='calls %s' % name, body=body, callee=target,
                 includes=[d['header']], globals=[])
