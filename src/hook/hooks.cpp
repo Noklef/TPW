@@ -128,6 +128,7 @@
 #include "../game/core/small7.h"
 #include "../game/core/small8.h"
 #include "../game/core/small9.h"
+#include "../game/core/stdlist.h"
 #include "../game/core/tiny_g.h"
 #include "../game/core/tiny_h.h"
 #include "../game/core/tiny_i.h"
@@ -2718,6 +2719,10 @@ const Hook kHooks[] = {
     {"Obj_ReleaseSevenIfMode1",   0x00564140, (void *)&Obj_ReleaseSevenIfMode1, {0x8b, 0x15, 0x24, 0xd5, 0x8b}},
     {"Globals816d40_Free",        0x0051fd20, (void *)&Globals816d40_Free, {0xa1, 0x40, 0x6d, 0x81, 0x00}},
     {"Strings5_Ctor",             0x005c4ce0, (void *)&Strings5_Ctor, {0x6a, 0xff, 0x68, 0x39, 0x03}},
+    {"StdListString_Clear",       0x005cde80, (void *)&StdListString_Clear, {0x53, 0x8b, 0xd9, 0x55, 0x57}},
+    {"StdListString_PushBack",    0x005cdf00, (void *)&StdListString_PushBack, {0x53, 0x55, 0x8b, 0xe9, 0x56}},
+    {"StdListString_Insert",      0x005d0330, (void *)&StdListString_Insert, {0x53, 0x55, 0x56, 0x57, 0x8b}},
+    {"StdListDword_PushBack",     0x00618160, (void *)&StdListDword_PushBack, {0x53, 0x8b, 0xd9, 0x56, 0x57}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

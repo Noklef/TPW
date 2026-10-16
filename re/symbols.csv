@@ -3186,6 +3186,10 @@ address,name,kind,confidence,notes
 0x00564140,Obj_ReleaseSevenIfMode1,function,high,reimplemented (src/game/core/small23); releases the seven COM members in mode 1
 0x0051fd20,Globals816d40_Free,function,high,reimplemented (src/game/core/small23); frees two global blocks
 0x005c4ce0,Strings5_Ctor,function,high,reimplemented (src/game/core/small23); constructs five empty strings
+0x005cde80,StdListString_Clear,function,high,reimplemented (src/game/core/stdlist); empties a list of strings and frees its sentinel
+0x005cdf00,StdListString_PushBack,function,high,reimplemented (src/game/core/stdlist); appends a copy of a string to a list of strings
+0x005d0330,StdListString_Insert,function,high,reimplemented (src/game/core/stdlist); inserts a copy of a string before a node
+0x00618160,StdListDword_PushBack,function,high,reimplemented (src/game/core/stdlist); appends a dword to a list of dwords
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
