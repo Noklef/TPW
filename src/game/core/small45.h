@@ -10,6 +10,9 @@ extern "C" {
 // (String_Less), the head for none.
 u8 *__fastcall StdTreeF_LowerBound(u8 *tree, void *, const u8 *key);
 
+// 0x5b20c0 (thiscall; out, key, pops 8): *out = the lower bound; returns out.
+u8 **__fastcall StdTreeF_FindLower(u8 *tree, void *, u8 **out, const u8 *key);
+
 // 0x5b0c40 (thiscall on an object whose tree head is at +0x3c): true when every node's mapped object (the pointer at +0x20) has a non-zero byte at +0xb9, else false at the
 // first that has not (in order from the leftmost).
 u8 __fastcall StdTreeF_AllFlagged(u8 *object);

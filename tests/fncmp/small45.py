@@ -12,15 +12,15 @@ import gamestring  # noqa: E402
 import stdtree  # noqa: E402
 from fncmp import Bench, Call, HEAP, RAM, heap  # noqa: E402
 
-CALLS = {'Lower': 0x5b2f40, 'All': 0x5b0c40}
-B = Bench([(0x5b2f40, 0x5b2fd0), (0x5b0c40, 0x5b0ca0), (0x5b2480, 0x5b2530), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000)],
+CALLS = {'Lower': 0x5b2f40, 'All': 0x5b0c40, 'Find': 0x5b20c0}
+B = Bench([(0x5b20c0, 0x5b20e0), (0x5b2f40, 0x5b2fd0), (0x5b0c40, 0x5b0ca0), (0x5b2480, 0x5b2530), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000)],
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})
 OBJS = RAM + 0x30000
 
 
 def case(r):
     name = r.choice(OPS)
-    n = r.choice([0, 1, 2, 3, 5, 8, 12]) if name == 'Lower' else r.choice([1, 2, 3, 4, 6])
+    n = r.choice([0, 1, 2, 3, 5, 8, 12]) if name in ('Lower', 'Find') else r.choice([1, 2, 3, 4, 6])
     nodes, root = stdtree.build(r, n) if n else ({}, None)
     keys = sorted(nodes)
     addr = {k: stdtree.NODES + 0x40 * i for i, k in enumerate(keys)}
@@ -42,8 +42,11 @@ def case(r):
     tree = bytearray(0x40)
     struct.pack_into('<II', tree, 4, stdtree.HEAD, 0)
     regions = {stdtree.TREE: tree, stdtree.HEAD: head, stdtree.NIL: nil, stdtree.NODES: blob, 0xf7c968: struct.pack('<I', stdtree.NIL), OBJS: objs, HEAP: heap(), **extra}
-    if name == 'Lower':
+    if name in ('Lower', 'Find'):
         gamestring.string(r, 0, RAM + 0x800, RAM + 0x900, regions)
+        if name == 'Find':
+            regions[RAM + 0xa00] = r.bytes(8)
+            return Call(CALLS[name], [stdtree.TREE, RAM + 0xa00, RAM + 0x800], regions, conv='t', ret='a')
         return Call(CALLS[name], [stdtree.TREE, RAM + 0x800], regions, conv='t', ret='a')
     struct.pack_into('<I', tree, 0x3c, stdtree.HEAD)
     return Call(CALLS[name], [stdtree.TREE], regions, conv='t', ret='b')

@@ -3345,6 +3345,7 @@ address,name,kind,confidence,notes
 0x00598630,IntArray_SetSize,function,high,"reimplemented (src/game/core/small44); resizes the dword array, growing by its step"
 0x005b2f40,StdTreeF_LowerBound,function,high,reimplemented (src/game/core/small45); lower bound of a string key in the string map
 0x005b0c40,StdTreeF_AllFlagged,function,high,reimplemented (src/game/core/small45); whether every mapped object has the byte at +0xb9 set
+0x005b20c0,StdTreeF_FindLower,function,high,reimplemented (src/game/core/small45); stores the lower bound of a string key
 0x005ce080,StdListString_Unique,function,high,reimplemented (src/game/core/small46); removes elements equal to the one before from a list of counted strings
 0x005d0590,StdListDword_Merge,function,high,reimplemented (src/game/core/small46); merges a sorted list of dwords into another
 0x0041e2c0,Class6fda48_Dtor,function,high,reimplemented (src/game/core/small47); derived destructor: vtable then the 0x6fd9d8 base destructor

@@ -29,6 +29,11 @@ u8 *__fastcall StdTreeF_LowerBound(u8 *tree, void *, const u8 *key) {
     return result;
 }
 
+u8 **__fastcall StdTreeF_FindLower(u8 *tree, void *, u8 **out, const u8 *key) {
+    *out = StdTreeF_LowerBound(tree, nullptr, key);
+    return out;
+}
+
 u8 __fastcall StdTreeF_AllFlagged(u8 *object) {
     u8 *const head = at<u8 *>(object, 0x3c);
     u8 *node = at<u8 *>(head, 0);
