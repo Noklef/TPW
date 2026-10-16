@@ -118,6 +118,7 @@
 #include "../game/core/small19.h"
 #include "../game/core/small20.h"
 #include "../game/core/small21.h"
+#include "../game/core/small22.h"
 #include "../game/core/small2.h"
 #include "../game/core/small3.h"
 #include "../game/core/small4.h"
@@ -2693,6 +2694,15 @@ const Hook kHooks[] = {
     {"Mem_AllocChecked",          0x0051f630, (void *)&Mem_AllocChecked, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_AllocLogged",           0x00556ab0, (void *)&Mem_AllocLogged, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mem_FreeChecked",           0x0051f660, (void *)&Mem_FreeChecked, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"Counted_AddRef",            0x004f5d10, (void *)&Counted_AddRef, {0x51, 0x56, 0x8b, 0xf1, 0x8d}},
+    {"Obj_ShareMember20",         0x004ef7f0, (void *)&Obj_ShareMember20, {0x51, 0x56, 0x8b, 0x71, 0x20}},
+    {"Obj_ShareMember34",         0x005d0dc0, (void *)&Obj_ShareMember34, {0x51, 0x56, 0x8b, 0x71, 0x34}},
+    {"Id_Get",                    0x004f21a0, (void *)&Id_Get, {0x51, 0x56, 0x8b, 0xf1, 0x8d}},
+    {"Obj_Init4f1520",            0x004f1520, (void *)&Obj_Init4f1520, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"Counted_CopyCtor",          0x004f5d40, (void *)&Counted_CopyCtor, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"Node14_New",                0x005b3110, (void *)&Node14_New, {0x6a, 0x14, 0xe8, 0xa9, 0x7b}},
+    {"Sentinel_Ctor",             0x00618130, (void *)&Sentinel_Ctor, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"Obj_NameToWString",         0x005b9020, (void *)&Obj_NameToWString, {0x51, 0x8b, 0x41, 0x54, 0x56}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

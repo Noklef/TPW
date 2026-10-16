@@ -3163,6 +3163,15 @@ address,name,kind,confidence,notes
 0x0051b4d0,Sound_Free,function,high,reimplemented (src/game/core/small21); counted global free
 0x0051f630,Mem_AllocChecked,function,high,reimplemented (src/game/core/small21); global allocation that refuses 0
 0x0051f660,Mem_FreeChecked,function,high,reimplemented (src/game/core/small21); global free that refuses 0
+0x004f5d10,Counted_AddRef,function,high,reimplemented (src/game/core/small22); adds a use to a counted object (saturating)
+0x004ef7f0,Obj_ShareMember20,function,high,reimplemented (src/game/core/small22); shares the counted object at +0x20
+0x005d0dc0,Obj_ShareMember34,function,high,reimplemented (src/game/core/small22); shares the counted object at +0x34
+0x004f21a0,Id_Get,function,high,reimplemented (src/game/core/small22); hands out the next id once
+0x004f1520,Obj_Init4f1520,function,high,reimplemented (src/game/core/small22); sets a field and copies three globals
+0x004f5d40,Counted_CopyCtor,function,high,reimplemented (src/game/core/small22); copy constructor sharing a counted object
+0x005b3110,Node14_New,function,high,reimplemented (src/game/core/small22); allocates a 0x14-byte node with two fields
+0x00618130,Sentinel_Ctor,function,high,reimplemented (src/game/core/small22); constructs a list head with a sentinel node
+0x005b9020,Obj_NameToWString,function,high,reimplemented (src/game/core/small22); constructs a wide string from the text at +0x54
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
