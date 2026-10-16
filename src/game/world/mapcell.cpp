@@ -240,6 +240,21 @@ u8 *__fastcall Map_StepCellInDirection(const u16 *cell, void *, u32 direction) {
     return Map_StepCell(cell, nullptr, at<s32>(reinterpret_cast<const void *>(table), 0), at<s32>(reinterpret_cast<const void *>(table), 4), 1);
 }
 
+u16 *__cdecl Map_FindFacingNeighbour(u16 *out, u32 cell) {
+    const u8 *here = at<u8 *>(reinterpret_cast<const void *>(0x007cf83c), 0) + 0x294 + (cell & 0xffff) * 0x44;
+    // the neighbour in a direction (1, 0x10, 4, 0x40) that is a type 3 cell (not 9) facing the opposite one (0x10, 1, 0x40, 4): its id
+    static const u32 directions[4][2] = {{0x01, 0x10}, {0x10, 0x01}, {0x04, 0x40}, {0x40, 0x04}};
+    for (const auto &d : directions) {
+        const u8 *next = Map_StepCellInDirection(reinterpret_cast<const u16 *>(here), nullptr, d[0]);
+        if (next && MapCell_IsType3Or9(next) && !MapCell_IsType9(next) && MapCell_Direction(next) == d[1]) {
+            *out = at<u16>(next, 0);
+            return out;
+        }
+    }
+    *out = 0;
+    return out;
+}
+
 s32 __cdecl Map_CountSpecialCells() {
     const u8 *map = at<u8 *>(reinterpret_cast<const void *>(0x0080239c), 0) + 0x2d8;
     s32 count = 0;

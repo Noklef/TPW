@@ -56,6 +56,10 @@ void __fastcall Map_SpreadValues(u8 *world, void *, u32 add, u32 index, u32 cell
 // the eight region records at +0x1d9104 (12 bytes: five words, the radius byte at +0xa) the values of gBalanceLevel's region effects.
 void __fastcall World_InitBlock(u8 *world);
 
+// 0x4de670 (cdecl; out word, cell id): the first of the four neighbours (steps 0x7cdba0, 0x7cdba8, 0x7cdbc8, 0x7cdbd0 of the cell at [0x7cf83c] + 0x294 + id * 0x44,
+// by Map_StepCellInDirection) that is a type 3 cell but not 9 and has the direction (+0xd) 0x10, 1, 0x40, 4 respectively: its id word; else 0. Returns out.
+u16 *__cdecl Map_FindFacingNeighbour(u16 *out, u32 cell);
+
 // 0x4d97e0 (thiscall on a cell id word; direction bit, pops 4): Map_StepCell by the (dx, dy) pair of the direction (the pairs from 0x7cdba0, 0x7cdbd8, 0x7cdbc8, 0x7cdbb8,
 // 0x7cdba8, 0x7cdbb0, 0x7cdbd0, 0x7cdbc0 for the bits 1 to 0x80) with scale 1; null for anything else (an assert is left out).
 u8 *__fastcall Map_StepCellInDirection(const u16 *cell, void *, u32 direction);
