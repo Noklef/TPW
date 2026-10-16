@@ -363,3 +363,9 @@ extern "C" void __cdecl Block_BindNodes(const u8 *holder, const u8 *block, s32 f
         if (!first) *reinterpret_cast<u32 *>(node) &= ~0x100u;
     }
 }
+
+extern "C" s32 __cdecl Block_MarkModel(const u8 *holder, const u8 *block) {
+    u8 *model = field<u8 *>(holder, 4);
+    if (block && field<u16>(block, 0x12)) *reinterpret_cast<u32 *>(model + 0x30) |= 0x20;
+    return 1;
+}

@@ -1,7 +1,7 @@
 // Applying .md2 motion to a model's nodes at the state's frame: reimplementation of
 // Motion_Apply (0x4721f0) and Track_Apply (0x471860), which drive everything else in
 // src/game/motion, and of Motion_CopyVertices (0x472270), Motion_ResetChannels (0x472310) and
-// Block_BindNodes (0x470a00).
+// Block_BindNodes (0x470a00) and Block_MarkModel (0x470b30).
 #pragma once
 
 #include "../../../re/types.h"
@@ -86,4 +86,8 @@ void __cdecl Motion_CopyVertices(const void *from, const void *to, s32 all);
 // flag 4 the first primary node whose id (u16 +0x50) is that value (none found: the
 // pointer is left as it was). The node gets flag 0x800, and loses 0x100 unless first.
 void __cdecl Block_BindNodes(const u8 *holder, const u8 *block, s32 first);
+
+// 0x470b30: when there is a block with tracks (u16 +0x12), the holder's model (+4) gets flag
+// 0x20 (+0x30). Always returns 1.
+s32 __cdecl Block_MarkModel(const u8 *holder, const u8 *block);
 }
