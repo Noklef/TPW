@@ -27,4 +27,11 @@ u8 *__fastcall SpriteImage_Init(u8 *image) {
     at<u32>(image, 4) = 0;
     return image;
 }
+
+void __fastcall SpriteFrames_MarkTextures(u8 *set) {
+    for (s32 i = 0; i < at<s32>(set, 0); ++i) {
+        u8 *texture = at<u8 *>(at<u8 *>(set, 4), i * 0x18);
+        at<u32>(texture, 8) = (at<u32>(texture, 8) & ~0x100u) | 0x200;
+    }
+}
 }
