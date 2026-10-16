@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "objectdefs.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -79,6 +81,22 @@ u32 __fastcall Obj_RideElement7Positive(const u8 *object) { return (s32)Rides_Ge
 
 u32 __fastcall Obj_RideElement0Differs(const u8 *object) {
     return Rides_GetElement(Rides_FindById(at<s32>(object, 0x24)), 0) != at<u16>(object, 0x3c);
+}
+
+void __fastcall Obj_SetSpeed(u8 *object, void *, u32 speed) {
+    Rides_SetWordC0(Rides_FindById(at<s32>(object, 0x24)), speed);
+    at<u32>(object, 0x58) = speed;
+}
+
+void __fastcall Obj_SetDuration(u8 *object, void *, u32 duration) {
+    u8 *defs = reinterpret_cast<u8 *>(0x007890a0);
+    s32 value = (s32)(duration & 0xff);
+    if (value < at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x12c))
+        value = (u8)at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x12c);
+    else if (value > at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x130))
+        value = (u8)at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x130);
+    Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 3, (u8)value);
+    at<u8>(object, 0x5c) = (u8)value;
 }
 
 }  // extern "C"

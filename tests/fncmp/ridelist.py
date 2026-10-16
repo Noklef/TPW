@@ -7,11 +7,14 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from thingenv import park  # noqa: E402
 
 # name: (address, size, arguments: id, rec, rec+index, rec+index+value, recword, linked)
 CALLS = {'Find': (0x55a070, 0x40, 'id'), 'Set': (0x55a0b0, 0x50, 'rec2v'), 'Get': (0x55a390, 0x50, 'rec2'), 'SetW': (0x55a300, 0x30, 'recv'),
-         'GetW': (0x55a330, 0x30, 'rec'), 'G9c': (0x55a360, 0x30, 'rec'), 'Link': (0x55a3e0, 0x90, 'id2'), 'Clr4': (0x4e03f0, 0x30, 'this'), 'E7': (0x4e0410, 0x30, 'this'), 'E0': (0x4e0a70, 0x40, 'this')}
-B = Bench([(a, a + n) for (a, n, _s) in CALLS.values()] + [(0x5da3c0, 0x5da3c1)])
+         'GetW': (0x55a330, 0x30, 'rec'), 'G9c': (0x55a360, 0x30, 'rec'), 'Link': (0x55a3e0, 0x90, 'id2'), 'Clr4': (0x4e03f0, 0x30, 'this'), 'E7': (0x4e0410, 0x30, 'this'), 'E0': (0x4e0a70, 0x40, 'this'),
+         'Spd': (0x4dd6e0, 0x40, 'thisv'), 'Dur': (0x4dd720, 0xd0, 'thisv')}
+B = Bench([(a, a + n) for (a, n, _s) in CALLS.values()] + [(0x5da3c0, 0x5da3c1), (0x412e90, 0x412eea)])
 NODES, ARRAYS = RAM + 0x1000, RAM + 0x4000
 
 
@@ -39,8 +42,13 @@ def case(r):
     put(obj, 0x24, 'I', ident)
     put(obj, 0x3c, 'H', r.choice([0, 1, 0x7fff, r.getrandbits(16)]))
     regions[RAM] = obj
-    args = {'this': [RAM], 'id': [ident], 'rec2v': [rec, index, value], 'rec2': [rec, index], 'recv': [rec, value], 'rec': [rec], 'id2': [ident, index]}[shape]
-    return Call(address, args, regions, conv='t' if shape == 'this' else 'c', ret='v' if name in ('Set', 'SetW', 'Clr4') else 'a')
+    if name == 'Dur':  # the object definitions the limits come from, the object one of them
+        defs, _h, _a = park(r, count=0, defs=True)
+        regions.update({k: v for k, v in defs.items() if k in (0x7890a0, 0x30008000)})
+        items = defs[0x30008000]
+        put(obj, 0xe, 'H', struct.unpack_from('<H', items, 0x500 * r.randrange(16))[0])
+    args = {'this': [RAM], 'id': [ident], 'rec2v': [rec, index, value], 'rec2': [rec, index], 'recv': [rec, value], 'rec': [rec], 'id2': [ident, index], 'thisv': [RAM, r.choice([0, 1, 5, 99, 0x100, 0x1ff, 0x80, 0xffffffff])]}[shape]
+    return Call(address, args, regions, conv='t' if shape.startswith('this') else 'c', ret='v' if name in ('Set', 'SetW', 'Clr4', 'Spd', 'Dur') else 'a')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]

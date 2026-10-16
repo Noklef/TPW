@@ -33,4 +33,11 @@ void __fastcall Obj_ClearRideElement4(const u8 *object);
 u32 __fastcall Obj_RideElement7Positive(const u8 *object);
 u32 __fastcall Obj_RideElement0Differs(const u8 *object);
 
+// 0x4dd6e0 (thiscall; speed, pops 4): the word at +0xc0 of the object's ride record set from the speed, and the dword at +0x58 = the speed.
+void __fastcall Obj_SetSpeed(u8 *object, void *, u32 speed);
+
+// 0x4dd720 (thiscall; duration, pops 4): the low byte of the duration limited to the bounds of the object's definition (the dwords at
+// +0x12c and +0x130; ObjectDefs_Find of the id at +0xe, signed compares) is stored as element 3 of the ride record and at +0x5c (a byte).
+void __fastcall Obj_SetDuration(u8 *object, void *, u32 duration);
+
 }  // extern "C"
