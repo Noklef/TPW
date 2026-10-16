@@ -106,6 +106,7 @@
 #include "../game/core/base64.h"
 #include "../game/core/selectors.h"
 #include "../game/core/seqs.h"
+#include "../game/core/small10.h"
 #include "../game/core/small2.h"
 #include "../game/core/small3.h"
 #include "../game/core/small4.h"
@@ -2497,6 +2498,17 @@ const Hook kHooks[] = {
     {"ByteString_Compare",        0x005d1330, (void *)&ByteString_Compare, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"CountedVector14_Clear",     0x004791c0, (void *)&CountedVector14_Clear, {0x53, 0x55, 0x8b, 0xe9, 0x56}},
     {"CountedVector4_Clear",      0x0047aba0, (void *)&CountedVector4_Clear, {0x53, 0x55, 0x8b, 0xe9, 0x56}},
+    {"Ring16_Get",                0x004caa70, (void *)&Ring16_Get, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"Table76e300_GetByte",       0x0059c320, (void *)&Table76e300_GetByte, {0x8b, 0x4c, 0x24, 0x04, 0x81}},
+    {"Kinds_Compatible",          0x00535600, (void *)&Kinds_Compatible, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"Class7028b8_Ctor",          0x005bce60, (void *)&Class7028b8_Ctor, {0x56, 0x57, 0x8b, 0xf1, 0x33}},
+    {"Class7028e0_Ctor",          0x005bd2a0, (void *)&Class7028e0_Ctor, {0x56, 0x57, 0x8b, 0xf1, 0x33}},
+    {"Class702908_Ctor",          0x005bd6b0, (void *)&Class702908_Ctor, {0x56, 0x57, 0x8b, 0xf1, 0x33}},
+    {"List68_EraseMatching",      0x005cc700, (void *)&List68_EraseMatching, {0x53, 0x55, 0x56, 0x57, 0x8b}},
+    {"List74_EraseMatching",      0x005cc830, (void *)&List74_EraseMatching, {0x53, 0x55, 0x56, 0x57, 0x8b}},
+    {"List_EraseNodeCounted",     0x005cdf70, (void *)&List_EraseNodeCounted, {0x55, 0x56, 0x8b, 0x74, 0x24}},
+    {"Array3D_Realloc",           0x005e7840, (void *)&Array3D_Realloc, {0x53, 0x8b, 0xd9, 0x55, 0x56}},
+    {"KeyRecord_Push",            0x005ed700, (void *)&KeyRecord_Push, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
@@ -2664,6 +2676,7 @@ const Hook kHooks[] = {
     {"Landscape_List",            0x00585ef0, (void *)&Landscape_List, {0x8b, 0x81, 0xd0, 0x1f, 0x00}},
     {"Landscape_Point",           0x00585f00, (void *)&Landscape_Point, {0x8d, 0x81, 0xa0, 0x1f, 0x00}},
     {"TerrainTexCache_Ctor",      0x005720d0, (void *)&TerrainTexCache_Ctor, {0x8b, 0xd1, 0x57, 0xb9, 0x00}},
+    {"Lnd_BuildRamp",             0x0055e710, (void *)&Lnd_BuildRamp, {0x0f, 0xbf, 0x44, 0x24, 0x0c}},
     {"Online_ApplyBalance",       0x0045aee0, (void *)&Online_ApplyBalance, {0x6a, 0xff, 0x68, 0x08, 0x89}},
     {"Online_LoggedIn",           0x005b6450, (void *)&Online_LoggedIn, {0x8b, 0x41, 0x60, 0xc3, 0x90}},
     {"Online_Restricted",         0x005b6460, (void *)&Online_Restricted, {0x8b, 0x51, 0x60, 0x33, 0xc0}},

@@ -106,7 +106,7 @@ void draw_overlay(const u8 *scratch, u32 size, const TerrainOverlay *ov, u8 *out
 
 extern "C" void __cdecl Lnd_BuildRamp(u8 *table, s16 centre, s16 width) {
     int half = (width + 1) >> 1;
-    int lo = centre - half, hi = centre + half;
+    int lo = (s16)(centre - half), hi = (s16)(centre + half);  // the edges are words (the original keeps them in 16-bit registers)
     for (int i = 0; i < 256; ++i)
         table[i] = i < lo ? 0 : i > hi ? 0xff : (u8)((i * 255 - lo * 255) / (width + 1));
 }
