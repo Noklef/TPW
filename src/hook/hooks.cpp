@@ -61,7 +61,8 @@
 #include "../game/core/events.h"
 #include "../game/core/filetime.h"
 #include "../game/core/gameclock.h"
-#include "../game/core/globalmem.h"
+#include "../game/core/globalmem.h"
+#include "../game/core/globalsave.h"
 #include "../game/core/ime.h"
 #include "../game/core/idtable.h"
 #include "../game/core/keymap.h"
@@ -1472,6 +1473,16 @@ const Hook kHooks[] = {
     {"Sound_IsOn",                0x0051c6f0, (void *)&Sound_IsOn, {0xa1, 0xc8, 0x2b, 0x80, 0x00}},
     {"Sound_Set803acc",           0x0051e6f0, (void *)&Sound_Set803acc, {0x8b, 0x44, 0x24, 0x04, 0xc7}},
     {"Sound_Set803ad0",           0x0051e710, (void *)&Sound_Set803ad0, {0x66, 0x8b, 0x44, 0x24, 0x04}},
+    {"GlobalSave_ThemeByte",      0x005af7f0, (void *)&GlobalSave_ThemeByte, {0x8b, 0x41, 0x48, 0x8b, 0x4c}},
+    {"GlobalSave_Byte26",         0x005af800, (void *)&GlobalSave_Byte26, {0x8b, 0x44, 0x24, 0x04, 0x8a}},
+    {"GlobalSave_Inc20",          0x005afc30, (void *)&GlobalSave_Inc20, {0xff, 0x41, 0x20, 0xc3, 0x90}},
+    {"GlobalSave_Byte24",         0x005afc40, (void *)&GlobalSave_Byte24, {0x8a, 0x41, 0x24, 0xc3, 0x90}},
+    {"GlobalSave_SetByte24",      0x005afc50, (void *)&GlobalSave_SetByte24, {0x8a, 0x44, 0x24, 0x04, 0x88}},
+    {"GlobalSave_SetByte25",      0x005b09a0, (void *)&GlobalSave_SetByte25, {0x8a, 0x44, 0x24, 0x04, 0x88}},
+    {"GlobalSave_Byte25",         0x005b09b0, (void *)&GlobalSave_Byte25, {0x8a, 0x41, 0x25, 0xc3, 0x90}},
+    {"GlobalSave_SetAllResearchCompleted", 0x005b0ca0, (void *)&GlobalSave_SetAllResearchCompleted, {0x8b, 0x41, 0x48, 0x85, 0xc0}},
+    {"GlobalSave_Byte4c",         0x005b0cb0, (void *)&GlobalSave_Byte4c, {0x8a, 0x41, 0x4c, 0xc3, 0x90}},
+    {"GlobalSave_ClearByte4c",    0x005b0cc0, (void *)&GlobalSave_ClearByte4c, {0xc6, 0x41, 0x4c, 0x00, 0xc3}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

@@ -2095,6 +2095,16 @@ address,name,kind,confidence,notes
 0x0051c6f0,Sound_IsOn,function,high,reimplemented (src/game/core/soundset); cdecl: the sound-on flag [0x802bc8] (set by 0x51b660)
 0x0051e6f0,Sound_Set803acc,function,high,"reimplemented (src/game/core/soundset); cdecl (value): [0x803acc] = value, changed"
 0x0051e710,Sound_Set803ad0,function,high,"reimplemented (src/game/core/soundset); cdecl (value): the u16 [0x803ad0] = value, changed"
+0x005af7f0,GlobalSave_ThemeByte,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte i of the global save info's (0xf7c58c) current theme record (+0x48)
+0x005af800,GlobalSave_Byte26,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte +0x26 + i of the global save info
+0x005afc30,GlobalSave_Inc20,function,high,reimplemented (src/game/core/globalsave); thiscall: the global save info's counter +0x20 incremented
+0x005afc40,GlobalSave_Byte24,function,high,reimplemented (src/game/core/globalsave); thiscall u8: the global save info's byte +0x24
+0x005afc50,GlobalSave_SetByte24,function,high,reimplemented (src/game/core/globalsave); thiscall (value): the global save info's byte +0x24 = value
+0x005b09a0,GlobalSave_SetByte25,function,high,reimplemented (src/game/core/globalsave); thiscall (value): the global save info's byte +0x25 = value
+0x005b09b0,GlobalSave_Byte25,function,high,reimplemented (src/game/core/globalsave); thiscall u8: the global save info's byte +0x25
+0x005b0ca0,GlobalSave_SetAllResearchCompleted,function,high,"reimplemented (src/game/core/globalsave); thiscall: the current theme record's (+0x48) mAllResearchCompleted (+0xb9) = 1, when there is one"
+0x005b0cb0,GlobalSave_Byte4c,function,high,reimplemented (src/game/core/globalsave); thiscall u8: the global save info's byte +0x4c
+0x005b0cc0,GlobalSave_ClearByte4c,function,high,reimplemented (src/game/core/globalsave); thiscall: the global save info's byte +0x4c = 0
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
