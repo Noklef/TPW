@@ -3007,6 +3007,9 @@ address,name,kind,confidence,notes
 0x005cdf70,List_EraseNodeCounted,function,high,reimplemented (src/game/core/small10); erases a list node with a counted buffer
 0x005e7840,Array3D_Realloc,function,high,reimplemented (src/game/core/small10); a new cleared block for the dimensions
 0x005ed700,KeyRecord_Push,function,high,reimplemented (src/game/core/small10); pushes a key into a 68-byte record
+0x004d27a0,Slots_AddIfMatch,function,high,reimplemented (src/game/core/small11); adds an amount when the selected slot matches
+0x00503a20,Slots_GetValue,function,high,reimplemented (src/game/core/small11); a value of a slot's definition or control record
+0x004f3400,List_EraseRangeCounted,function,high,reimplemented (src/game/core/small11); erases a range of list nodes with counted buffers
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

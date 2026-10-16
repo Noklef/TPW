@@ -107,6 +107,7 @@
 #include "../game/core/selectors.h"
 #include "../game/core/seqs.h"
 #include "../game/core/small10.h"
+#include "../game/core/small11.h"
 #include "../game/core/small2.h"
 #include "../game/core/small3.h"
 #include "../game/core/small4.h"
@@ -2511,6 +2512,9 @@ const Hook kHooks[] = {
     {"List_EraseNodeCounted",     0x005cdf70, (void *)&List_EraseNodeCounted, {0x55, 0x56, 0x8b, 0x74, 0x24}},
     {"Array3D_Realloc",           0x005e7840, (void *)&Array3D_Realloc, {0x53, 0x8b, 0xd9, 0x55, 0x56}},
     {"KeyRecord_Push",            0x005ed700, (void *)&KeyRecord_Push, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"Slots_AddIfMatch",          0x004d27a0, (void *)&Slots_AddIfMatch, {0x8b, 0x81, 0xcc, 0x03, 0x00}},
+    {"Slots_GetValue",            0x00503a20, (void *)&Slots_GetValue, {0x51, 0x8b, 0x54, 0x24, 0x08}},
+    {"List_EraseRangeCounted",    0x004f3400, (void *)&List_EraseRangeCounted, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
