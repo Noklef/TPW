@@ -376,6 +376,7 @@ address,name,kind,confidence,notes
 0x00520030,ParticleSystem_SetVectorB,function,high,reimplemented (src/game/render/particles); a live system's vector at +0x44 from three values over 16
 0x0051fd90,ParticleSystem_SetScaled,function,high,reimplemented (src/game/render/particles); a live system's vector at +0x38 from three values times +0xb0 over 1024
 0x005200b0,Particles_EndAll,function,high,reimplemented (src/game/render/particles); every live system and effector is ended
+0x005204c0,ParticleSystem_Release,function,high,reimplemented (src/game/render/particles); a system leaves the live list and joins the free list
 0x00804370,gParticleEffects,data,high,0x69 x 0x140-byte effect definitions from Tp2.plb
 0x0080c6b0,gParticleEffectors,data,high,20 x 0x68-byte effector definitions
 0x0080cefc,gParticleSystems,data,high,live systems: 0x140-byte copies of an effect definition

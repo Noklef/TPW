@@ -1,5 +1,5 @@
 // The particle systems' handle accessors: reimplementation of 0x51fa80, 0x51fd80, 0x51fe30, 0x51fd90, 0x51feb0,
-// 0x520030, 0x5200b0, 0x51ff10, 0x51ff70, 0x51ffd0, 0x520470, 0x5222e0 and 0x522320. Nothing works before the
+// 0x520030, 0x5200b0, 0x5204c0, 0x51ff10, 0x51ff70, 0x51ffd0, 0x520470, 0x5222e0 and 0x522320. Nothing works before the
 // particles are set up (0x816d40 set). A system handle is serial << 16 | slot: slot (u16) below
 // 0x78 in gParticleSystems (0x80cefc, 0x140 bytes each, copies of an effect definition), its
 // serial the system's u16 +0xa; 0 is none. A system's +0x20 is its age (-2 ends it) and +0xd4 its
@@ -41,6 +41,12 @@ void __cdecl ParticleSystem_SetScaled(u32 handle, s32 x, s32 y, s32 z);
 // word +0x2a = 1; and every effector on its list (0x816d1e, next in +0x60) whose byte +0x45 is set
 // gets +0x4c = -2.
 void __cdecl Particles_EndAll();
+
+// 0x5204c0 (slot; negative does nothing): takes the system off the live list (head 0x816d1c; the
+// next in the word +0xd0 and the previous in +0xd2, negative for none), clears its words +0 and
+// +0xa (the serial) and puts it on the free list (head: the word 0x816d20; the system's +0xd0 =
+// the old head, +0xd2 = -1).
+void __cdecl ParticleSystem_Release(s32 slot);
 
 // 0x51ff10 / 0x51ffd0: a live system's u16 +0x2a / +0xa2 set.
 void __cdecl ParticleSystem_Set2a(u32 handle, u32 value);

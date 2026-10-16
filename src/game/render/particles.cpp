@@ -67,6 +67,24 @@ void __cdecl ParticleSystem_SetScaled(u32 handle, s32 x, s32 y, s32 z) {
     }
 }
 
+void __cdecl ParticleSystem_Release(s32 slot) {
+    if (slot < 0)
+        return;
+    u8 *s = system((u32)slot);
+    const s16 prev = *reinterpret_cast<s16 *>(s + 0xd2), next = *reinterpret_cast<s16 *>(s + 0xd0);
+    if (global<s16>(0x00816d1c) == slot)
+        global<s16>(0x00816d1c) = next;
+    if (prev >= 0)
+        *reinterpret_cast<s16 *>(system((u32)prev) + 0xd0) = *reinterpret_cast<s16 *>(s + 0xd0);
+    if (next >= 0)
+        *reinterpret_cast<s16 *>(system((u32)next) + 0xd2) = *reinterpret_cast<s16 *>(s + 0xd2);
+    *reinterpret_cast<u16 *>(s) = 0;
+    *reinterpret_cast<s16 *>(s + 0xd0) = global<s16>(0x00816d20);
+    *reinterpret_cast<u16 *>(s + 0xd2) = 0xffff;
+    *reinterpret_cast<u16 *>(s + 0xa) = 0;
+    global<s16>(0x00816d20) = (s16)slot;
+}
+
 void __cdecl Particles_EndAll() {
     if (global<u32>(0x00816d40) == 0)
         return;
