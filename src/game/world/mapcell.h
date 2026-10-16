@@ -2,7 +2,8 @@
 // +0x110000, both named by a 1-based u16 handle) and the "World Struture" memory ranges at
 // 0x7cdb30: reimplementation of 0x4d0a70-0x4d0b10; and the map's (gWorld + 0x2d8) bounds check,
 // RE cells, fixed positions and block values, 0x4d8300-0x4d8ca0, and the cell constructor
-// 0x4d8da0; the 0x28-byte cells' accessors 0x522700-0x5228a0, 0x535db0 and 0x536300-0x5363e0.
+// 0x4d8da0; the 0x28-byte cells' accessors 0x522700-0x5228a0, 0x535db0, 0x536300-0x536440,
+// 0x539210, 0x53a510-0x53a530 and 0x53ad20-0x53aef0.
 // A position is the u16 handle
 // y * 128 + x + 1.
 #pragma once
@@ -68,8 +69,9 @@ s32 __cdecl Map_IdAt(s32 x, s32 y);
 
 // A 0x28-byte cell's fields as MapCellBase_Serialize (0x4d0b30) names them: +0xc mNeighbours and
 // +0x22 mHoardingNeighbours (a bit for each of the 8 neighbours, the sides the even ones), +0xd
-// mDirection (bits likewise), +0x20 mOverlapCounter (u16), +8 mType, +0xe mFlags (u16). Byte +2
-// is its kind, 2 a track cell's.
+// mDirection (bits likewise), +0x20 mOverlapCounter (u16), +8 mType, +0xe mFlags (u16), +0x10
+// mParentID (u16). Byte +2 is its kind, 2 a track cell's; u16 +0 its own handle. The world's
+// cell for a handle is gWorld + 0x1102b0 + handle * 0x28 (the same as MapHandle_Entry28's).
 // The neighbour methods (thiscall on the cell) work on mHoardingNeighbours for a track cell while
 // 0x81b4cc is set (around the hoardings' placing, 0x532408 / 0x532814), else on mNeighbours.
 
@@ -113,4 +115,41 @@ u32 __fastcall MapCell_IsType1e(const u8 *cell);
 u32 __fastcall MapCell_IsType3Or9(const u8 *cell);
 u32 __fastcall MapCell_IsType7Or1e(const u8 *cell);
 u32 __fastcall MapCell_IsType5Or7Or2(const u8 *cell);
+
+// 0x53ad60: mType 0x19. 0x53ad70: 0xb or 0x10. 0x53ad90: 0xc or 0x11 (a cell with a parent).
+// 0x53ad30: 0xb, 0xd, 0x10, 0x12 or 0x19.
+u32 __fastcall MapCell_IsType19(const u8 *cell);
+u32 __fastcall MapCell_IsTypeBOr10(const u8 *cell);
+u32 __fastcall MapCell_IsTypeCOr11(const u8 *cell);
+u32 __fastcall MapCell_IsTypeBDOr10Or12Or19(const u8 *cell);
+
+// 0x53adb0: mType 0xd or 0x12, or for a 0xc / 0x11 cell its parent's (the world's cell).
+u32 __fastcall MapCell_IsTypeDOr12ViaParent(const u8 *cell);
+
+// 0x5363f0 (thiscall on a u16 handle): 0x53ad30 of its cell (MapHandle_Entry28), or for a 0xc /
+// 0x11 cell of its parent (0 for none). 0x536440 (likewise): 0x53ad90 of its cell.
+u32 __fastcall MapHandle_IsTypeBDOr10Or12Or19(const u16 *handle);
+u32 __fastcall MapHandle_IsTypeCOr11(const u16 *handle);
+
+// 0x539210 (u16 parent, passed as a dword): mParentID set.
+void __fastcall MapCell_SetParent(u8 *cell, void *, u32 parent);
+
+// 0x53a510 (value) / 0x53a520 / 0x53a530 (bits): mFlags set / read (in AX only) / bits cleared.
+// 0x53ad20: 1 when any of mFlags' low 4 bits is set.
+void __fastcall MapCell_SetFlags(u8 *cell, void *, u32 value);
+u16 __fastcall MapCell_Flags(const u8 *cell);
+void __fastcall MapCell_ClearFlags(u8 *cell, void *, u32 bits);
+u32 __fastcall MapCell_HasLowFlags(const u8 *cell);
+
+// 0x53ae00 / 0x53ae50: the neighbour bits when exactly 2 of the sides are set and they make a
+// corner (one of 1 / 0x10 with one of 4 / 0x40) / a straight (1 and 0x10, or 4 and 0x40), else 0.
+// 0x53ae90: the neighbour bits when more than 2 sides are set, else 0. All in AL only.
+u8 __fastcall MapCell_CornerNeighbours(const u8 *cell);
+u8 __fastcall MapCell_StraightNeighbours(const u8 *cell);
+u8 __fastcall MapCell_JunctionNeighbours(const u8 *cell);
+
+// 0x53aec0: the u16 +0x24, or for a 0xc / 0x11 cell its parent's (in AX only). 0x53aef0
+// (value): the u16 +0x24 set.
+u16 __fastcall MapCell_Word24(const u8 *cell);
+void __fastcall MapCell_SetWord24(u8 *cell, void *, u32 value);
 }

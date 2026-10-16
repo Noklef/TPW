@@ -17,6 +17,14 @@ u8 &neighbours(const u8 *cell) {
     return global<u8>(0x0081b4cc) != 0 && cell[2] == 2 ? at<u8>(cell, 0x22) : at<u8>(cell, 0xc);
 }
 
+// The world's 0x28-byte cell for a handle (wrapping as the originals' 32-bit sums do).
+const u8 *world_cell(u32 handle) { return reinterpret_cast<const u8 *>(global<u32>(0x007cf83c) + 0x1102b0 + handle * 0x28); }
+
+u32 type_in(const u8 *cell, u32 a, u32 b) {
+    const u32 type = at<u32>(cell, 8);
+    return type == a || type == b ? 1 : 0;
+}
+
 // How many of the bits in mask are set in byte, counted a bit at a time as the originals do.
 u32 count(u8 byte, u32 mask) {
     u32 n = 0;
@@ -167,4 +175,64 @@ u32 __fastcall MapCell_IsType5Or7Or2(const u8 *cell) {
     const u32 type = at<u32>(cell, 8);
     return type == 5 || type == 7 || type == 2 ? 1 : 0;
 }
+
+u32 __fastcall MapCell_IsType19(const u8 *cell) { return at<u32>(cell, 8) == 0x19 ? 1 : 0; }
+u32 __fastcall MapCell_IsTypeBOr10(const u8 *cell) { return type_in(cell, 0xb, 0x10); }
+u32 __fastcall MapCell_IsTypeCOr11(const u8 *cell) { return type_in(cell, 0xc, 0x11); }
+
+u32 __fastcall MapCell_IsTypeBDOr10Or12Or19(const u8 *cell) {
+    const u32 type = at<u32>(cell, 8);
+    return type == 0xb || type == 0xd || type == 0x10 || type == 0x12 || type == 0x19 ? 1 : 0;
+}
+
+u32 __fastcall MapCell_IsTypeDOr12ViaParent(const u8 *cell) {
+    if (MapCell_IsTypeCOr11(cell)) {
+        const u8 *parent = world_cell(at<u16>(cell, 0x10));
+        if (parent != nullptr && type_in(parent, 0xd, 0x12)) return 1;
+    }
+    return type_in(cell, 0xd, 0x12);
+}
+
+u32 __fastcall MapHandle_IsTypeBDOr10Or12Or19(const u16 *handle) {
+    const u8 *cell = MapHandle_Entry28(handle);
+    if (!MapCell_IsTypeCOr11(cell)) return MapCell_IsTypeBDOr10Or12Or19(cell);
+    const u16 parent = at<u16>(cell, 0x10);
+    return parent != 0 ? MapCell_IsTypeBDOr10Or12Or19(world_cell(parent)) : 0;
+}
+
+u32 __fastcall MapHandle_IsTypeCOr11(const u16 *handle) { return MapCell_IsTypeCOr11(MapHandle_Entry28(handle)); }
+
+void __fastcall MapCell_SetParent(u8 *cell, void *, u32 parent) { at<u16>(cell, 0x10) = (u16)parent; }
+
+void __fastcall MapCell_SetFlags(u8 *cell, void *, u32 value) { at<u16>(cell, 0xe) = (u16)value; }
+
+u16 __fastcall MapCell_Flags(const u8 *cell) { return at<u16>(cell, 0xe); }
+
+void __fastcall MapCell_ClearFlags(u8 *cell, void *, u32 bits) { at<u16>(cell, 0xe) &= (u16)~bits; }
+
+u32 __fastcall MapCell_HasLowFlags(const u8 *cell) { return (cell[0xe] & 0xf) != 0 ? 1 : 0; }
+
+u8 __fastcall MapCell_CornerNeighbours(const u8 *cell) {
+    const u8 bits = MapCell_Neighbours(cell);
+    if (MapCell_SideNeighbourCount(cell) != 2) return 0;
+    return (bits & 0x11) && (bits & 0x44) ? bits : 0;
+}
+
+u8 __fastcall MapCell_StraightNeighbours(const u8 *cell) {
+    const u8 bits = MapCell_Neighbours(cell);
+    if (MapCell_SideNeighbourCount(cell) != 2) return 0;
+    return ((bits & 1) && (bits & 0x10)) || ((bits & 4) && (bits & 0x40)) ? bits : 0;
+}
+
+u8 __fastcall MapCell_JunctionNeighbours(const u8 *cell) {
+    const u8 bits = MapCell_Neighbours(cell);
+    return MapCell_SideNeighbourCount(cell) <= 2 ? 0 : bits;
+}
+
+u16 __fastcall MapCell_Word24(const u8 *cell) {
+    if (!MapCell_IsTypeCOr11(cell)) return at<u16>(cell, 0x24);
+    return at<u16>(world_cell(at<u16>(cell, 0x10)), 0x24);
+}
+
+void __fastcall MapCell_SetWord24(u8 *cell, void *, u32 value) { at<u16>(cell, 0x24) = (u16)value; }
 }

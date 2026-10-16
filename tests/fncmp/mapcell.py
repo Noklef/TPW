@@ -2,7 +2,8 @@
 # and the map's bounds check, RE cells, fixed positions, block values and cell constructor
 # (0x4d8300-0x4d8ca0, 0x4d8da0) and the RE cells' constructor and comparison (0x502460, 0x502470)
 # the track cell's constructor (0x50c1d0), the map id of a cell (0x510870) and the 0x28-byte
-# cells' accessors (0x522700-0x5228a0, track cells or not, 0x81b4cc set or not) against the
+# cells' accessors (0x522700-0x5228a0, 0x535db0-0x536440, 0x539210, 0x53a510-0x53aef0: track
+# cells or not, 0x81b4cc set or not, parents 0 and a few in a table of the world's) against the
 # originals: handles 0, 1 and wild under any gMapCells, ranges set at any index, coordinates
 # about 0 and 128, positions of any value for A and B.
 # usage: mapcell.py [CASES [SEED]] [--wild|--both] [--show N]
@@ -14,11 +15,17 @@ from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x4d0a70, 0x4d0a86), (0x4d0a90, 0x4d0ab1), (0x4d0ac0, 0x4d0ae1), (0x4d0af0, 0x4d0b06),
            (0x4d0b10, 0x4d0b27), (0x4d8300, 0x4d8328), (0x4d8410, 0x4d8434), (0x4d8610, 0x4d8750), (0x4d8c60, 0x4d8cc8),
-           (0x4d8da0, 0x4d8dc2), (0x502460, 0x502487), (0x50c1d0, 0x50c1e6), (0x510870, 0x51089d), (0x522700, 0x5228ac), (0x535db0, 0x535dc3), (0x536300, 0x5363ec)])
+           (0x4d8da0, 0x4d8dc2), (0x502460, 0x502487), (0x50c1d0, 0x50c1e6), (0x510870, 0x51089d), (0x522700, 0x5228ac), (0x535db0, 0x535dc3), (0x536300, 0x53644c),
+           (0x539210, 0x53921c), (0x53a510, 0x53a53d), (0x53ad20, 0x53aefc)])
 CELL = {0x522700: 'v', 0x522730: 'v', 0x522770: 'b', 0x522790: 'a', 0x5227e0: 'v', 0x5227f0: 'v', 0x522810: 'a',
         0x522850: 'b', 0x522860: 'a', 0x522890: 'v', 0x5228a0: 'v', 0x535db0: 'a', 0x5363b0: 'a',
         **{a: 'a' for a in (0x536300, 0x536310, 0x536320, 0x536340, 0x536350, 0x536360, 0x536380, 0x536390,
-                            0x5363a0, 0x5363c0, 0x5363e0)}}
+                            0x5363a0, 0x5363c0, 0x5363e0, 0x53ad20, 0x53ad30, 0x53ad60, 0x53ad70, 0x53ad90,
+                            0x53adb0)},
+        0x539210: 'v', 0x53a510: 'v', 0x53a520: 'w', 0x53a530: 'v', 0x53ae00: 'b', 0x53ae50: 'b', 0x53ae90: 'b',
+        0x53aec0: 'w', 0x53aef0: 'v', 0x5363f0: 'a', 0x536440: 'a'}
+TYPES = [0, 1, 2, 3, 4, 5, 7, 9, 0xa, 0xb, 0xc, 0xd, 0x10, 0x11, 0x12, 0x15, 0x19, 0x1e, 0x115, 0x111]
+TABLE = RAM + 0x400  # the world's cells for handles 0-5: gWorld and gMapCells placed to reach it
 POS = [0x4d8610, 0x4d8650, 0x4d8690, 0x4d86d0, 0x4d8710]
 
 
@@ -36,12 +43,26 @@ def case(r):
         mode = bytearray(r.bytes(4))
         mode[0] = r.choice([0, 1, r.getrandbits(8)])
         put(cell, 0x20, 'H', r.choice([0, 1, 0xffff, r.getrandbits(16)]))
-        put(cell, 8, 'I', r.choice([0, 1, 2, 3, 4, 5, 7, 9, 0xa, 0x15, 0x1e, 0x115, r.randrange(0x20), r.getrandbits(32)]))
-        put(cell, 0xe, 'H', r.choice([0, 0x400, r.getrandbits(16)]))
+        table = bytearray(r.bytes(6 * 0x28))
+        for c, k in [(cell, 0)] + [(table, i * 0x28) for i in range(6)]:
+            put(c, k + 8, 'I', r.choice(TYPES + [r.randrange(0x20), r.getrandbits(32)]))
+            put(c, k + 0xe, 'H', r.choice([0, 0x400, 8, r.getrandbits(16)]))
+            put(c, k + 0x10, 'H', r.choice([0, 1, 2, 5, r.randrange(6)]))
+            for f in (0xc, 0x22):  # side pairs: corners, straights, junctions
+                c[k + f] = r.choice([0x11, 0x44, 0x14, 0x41, 0x50, 0x05, 0x55, 0x15, r.getrandbits(8)]) | r.choice([0, 0xaa, r.getrandbits(8) & 0xaa])
+        h = r.randrange(6)
+        if r.random() < 0.5:  # a parented cell: the one tested, or the handle's
+            put(cell, 8, 'I', r.choice([0xc, 0x11]))
+            put(table, h * 0x28 + 8, 'I', r.choice([0xc, 0x11]))
         args = [RAM + 0x40]
-        if fn in (0x522700, 0x522730, 0x5227e0, 0x5227f0, 0x5228a0, 0x535db0):
-            args.append(r.choice([0, 1, 0x55, 0xff, 0x400, 0x10000, r.getrandbits(8), r.getrandbits(32)]))
-        return Call(fn, args, {RAM + 0x40: cell, 0x81b4cc: mode}, conv='t', ret=CELL[fn])
+        handle = put(bytearray(4), 0, 'I', h | r.getrandbits(16) << 16)
+        if fn in (0x5363f0, 0x536440):
+            args = [RAM + 0x100]
+        if fn in (0x522700, 0x522730, 0x5227e0, 0x5227f0, 0x5228a0, 0x535db0, 0x539210, 0x53a510, 0x53a530, 0x53aef0):
+            args.append(r.choice([0, 1, 0x55, 0xff, 0x400, 0x8000, 0xffff, 0x10000, r.getrandbits(8), r.getrandbits(32)]))
+        regions = {RAM + 0x40: cell, RAM + 0x100: handle, TABLE: table, 0x81b4cc: mode,
+                   0x7cf83c: put(bytearray(4), 0, 'I', TABLE - 0x1102b0), 0x8023a0: put(bytearray(4), 0, 'I', TABLE - 0x10ffd8)}
+        return Call(fn, args, regions, conv='t', ret=CELL[fn])
     if op == 12:
         return Call(0x510870, [coord(r), coord(r)], {}, ret='a')
     if op == 11:

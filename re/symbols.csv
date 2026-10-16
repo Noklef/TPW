@@ -737,6 +737,23 @@ address,name,kind,confidence,notes
 0x005363b0,MapCell_Flag400,function,high,reimplemented (src/game/world/mapcell); thiscall: mFlags (u16 +0xe) bit 10
 0x005363c0,MapCell_IsType5Or7Or2,function,high,"reimplemented (src/game/world/mapcell); thiscall: mType (+8) is 5, 7 or 2"
 0x005363e0,MapCell_IsType15,function,high,reimplemented (src/game/world/mapcell); thiscall: mType (+8) == 0x15
+0x005363f0,MapHandle_IsTypeBDOr10Or12Or19,function,high,"reimplemented (src/game/world/mapcell); thiscall on a u16 handle: 0x53ad30 of its cell (MapHandle_Entry28), or for a 0xc / 0x11 cell of its parent's world cell (0 for no parent)"
+0x00536440,MapHandle_IsTypeCOr11,function,high,reimplemented (src/game/world/mapcell); thiscall on a u16 handle: 0x53ad90 of its cell (MapHandle_Entry28)
+0x00539210,MapCell_SetParent,function,high,reimplemented (src/game/world/mapcell); thiscall (u16 parent): mParentID (u16 +0x10)
+0x0053a510,MapCell_SetFlags,function,high,reimplemented (src/game/world/mapcell); thiscall (value): mFlags (u16 +0xe)
+0x0053a520,MapCell_Flags,function,high,"reimplemented (src/game/world/mapcell); thiscall: mFlags (u16 +0xe), in AX only"
+0x0053a530,MapCell_ClearFlags,function,high,reimplemented (src/game/world/mapcell); thiscall (bits): mFlags &= ~bits
+0x0053ad20,MapCell_HasLowFlags,function,high,reimplemented (src/game/world/mapcell); thiscall: 1 when any of mFlags' low 4 bits is set
+0x0053ad30,MapCell_IsTypeBDOr10Or12Or19,function,high,"reimplemented (src/game/world/mapcell); thiscall: mType (+8) is 0xb, 0xd, 0x10, 0x12 or 0x19"
+0x0053ad60,MapCell_IsType19,function,high,reimplemented (src/game/world/mapcell); thiscall: mType (+8) == 0x19
+0x0053ad70,MapCell_IsTypeBOr10,function,high,reimplemented (src/game/world/mapcell); thiscall: mType (+8) is 0xb or 0x10
+0x0053ad90,MapCell_IsTypeCOr11,function,high,"reimplemented (src/game/world/mapcell); thiscall: mType (+8) is 0xc or 0x11 (a cell with a parent, mParentID +0x10)"
+0x0053adb0,MapCell_IsTypeDOr12ViaParent,function,high,"reimplemented (src/game/world/mapcell); thiscall: mType 0xd or 0x12, or for a 0xc / 0x11 cell its parent's (world + 0x1102b0 + parent * 0x28)"
+0x0053ae00,MapCell_CornerNeighbours,function,high,"reimplemented (src/game/world/mapcell); thiscall: the neighbour bits when exactly 2 sides are set making a corner, else 0 (AL)"
+0x0053ae50,MapCell_StraightNeighbours,function,high,"reimplemented (src/game/world/mapcell); thiscall: the neighbour bits when exactly 2 sides are set making a straight, else 0 (AL)"
+0x0053ae90,MapCell_JunctionNeighbours,function,high,"reimplemented (src/game/world/mapcell); thiscall: the neighbour bits when more than 2 sides are set, else 0 (AL)"
+0x0053aec0,MapCell_Word24,function,high,"reimplemented (src/game/world/mapcell); thiscall: the u16 +0x24, or for a 0xc / 0x11 cell its parent's (AX)"
+0x0053aef0,MapCell_SetWord24,function,high,reimplemented (src/game/world/mapcell); thiscall (value): the u16 +0x24
 0x004d1c80,Challenges_DropOrphans,function,high,reimplemented (src/game/world/challenges); thiscall: each challenge in use (+0) naming another (+0x18) is dropped (+0 = 0) unless another in use has that id (from Challenges_LoadSam)
 0x004d2840,Challenges_Current,function,high,"reimplemented (src/game/world/challenges); thiscall: &challenges[+0x3cc] (0x30 bytes from +0xc) for an index 0-19, else null"
 0x004d1e60,BalanceChallenges_GetSchema,function,high,"reimplemented (src/game/world/challenges); thiscall (index), vtable 0x700398 slot 0: 0x739b98 + index * 0x3c"
