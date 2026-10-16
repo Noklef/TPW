@@ -57,7 +57,8 @@
 #include "../game/gfx/imagecodec.h"
 #include "../game/gfx/texdirs.h"
 #include "../game/gfx/barmesh.h"
-#include "../game/gfx/overlay.h"
+#include "../game/gfx/overlay.h"
+#include "../game/gfx/spriteframe.h"
 #include "../game/gfx/screensurfaces.h"
 #include "../game/gfx/texcache.h"
 #include "../game/gfx/texman.h"
@@ -1378,6 +1379,8 @@ const Hook kHooks[] = {
     {"Texture_SetKeep",           0x00590f90, (void *)&Texture_SetKeep, {0x8b, 0x41, 0x08, 0x80, 0xcc}},
     {"Texture_ClearKeep",         0x00590fa0, (void *)&Texture_ClearKeep, {0x8b, 0x41, 0x08, 0x80, 0xe4}},
     {"Texture_UsesDriverFilter",  0x00590fb0, (void *)&Texture_UsesDriverFilter, {0xf7, 0x41, 0x08, 0x00, 0x00}},
+    {"SpriteFrame_Init",          0x00588d70, (void *)&SpriteFrame_Init, {0x8b, 0xc1, 0x33, 0xc9, 0x89}},
+    {"SpriteImage_Init",          0x00588320, (void *)&SpriteImage_Init, {0x8b, 0xc1, 0x33, 0xc9, 0x66}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
