@@ -12,4 +12,17 @@ u16 *__cdecl WTraits_Move(u16 *dst, const u16 *src, u32 n) {
     }
     return dst;
 }
+
+u16 *__cdecl WTraits_Copy(u16 *dst, const u16 *src, u32 n) {
+    // A character at a time, forward: where dst overlaps src from above, what it copies repeats
+    // (volatile, so it is not made a memmove).
+    const volatile u16 *from = src;
+    for (u32 i = 0; i != n; ++i) dst[i] = from[i];
+    return dst;
+}
+
+u16 *__cdecl WTraits_Assign(u16 *dst, u32 ch, u32 n) {
+    for (u32 i = 0; i != n; ++i) dst[i] = (u16)ch;
+    return dst;
+}
 }

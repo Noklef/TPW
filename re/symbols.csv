@@ -1874,7 +1874,11 @@ address,name,kind,confidence,notes
 0x0040cf60,KeyMaps_EnableAll,function,high,reimplemented (src/game/core/keymap); Enable on the five keyboard maps
 0x0040cfa0,KeyMaps_ResetAll,function,high,reimplemented (src/game/core/keymap); Reset on the five keyboard maps
 0x00478b60,Ime_Ctor,function,high,"reimplemented (src/game/core/ime); the IME support: vectors empty (allocator bytes = this>>24, sic), +0x54 = -1"
+0x0047c910,ImeVector_Copy,function,high,"reimplemented (src/game/core/ime); thiscall (first, last, dest), this unused: u32s constructed in place (null dest skipped); returns dest's end"
+0x0047c940,ImeVector_Fill,function,high,"reimplemented (src/game/core/ime); thiscall (dest, n, &value), this unused: n u32s of *value constructed in place (null dest skipped)"
 0x00479150,WTraits_Move,function,high,reimplemented (src/game/core/wtraits); moves n 16-bit characters (from the end when dst overlaps src's tail); returns dst
+0x00479230,WTraits_Copy,function,high,"reimplemented (src/game/core/wtraits); cdecl (dst, src, n): n u16 copied forward one at a time; returns dst"
+0x00478cf0,WTraits_Assign,function,high,"reimplemented (src/game/core/wtraits); cdecl (dst, ch, n): n u16 of ch (rep stosd, then a stosw); returns dst"
 0x0041a5a0,Language_SetFontSet,function,high,"reimplemented (src/game/core/language); thiscall (width): +4 = 0 up to 512, 1 up to 640, 2 up to 800, else 3 (signed); picks the font set"
 0x0041a820,Language_Buffer,function,high,"reimplemented (src/game/core/language); thiscall; returns the buffer 0xf7f230, used as a string"
 0x0041a830,Language_Id,function,high,reimplemented (src/game/core/language); thiscall; the Windows language id (+8)

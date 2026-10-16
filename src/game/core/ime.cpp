@@ -28,4 +28,15 @@ u8 *__fastcall Ime_Ctor(u8 *ime) {
     at<u32>(ime, 0) = 0x006fef04;
     return ime;
 }
+
+u32 *__fastcall ImeVector_Copy(void *, void *, const u32 *first, const u32 *last, u32 *dest) {
+    for (; first != last; ++first, ++dest)
+        if (dest) *dest = *first;
+    return dest;
+}
+
+void __fastcall ImeVector_Fill(void *, void *, u32 *dest, u32 n, const u32 *value) {
+    for (; n != 0; --n, ++dest)
+        if (dest) *dest = *value;
+}
 }
