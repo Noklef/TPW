@@ -2192,6 +2192,10 @@ address,name,kind,confidence,notes
 0x0058c8b0,TexSurfaceB_Area,function,high,reimplemented (src/game/gfx/texsurface); surface class B: its virtual base's two dwords multiplied
 0x0058b3e0,TexSurfaceA_Ctor,function,high,reimplemented (src/game/gfx/texsurface); surface class A constructor (virtual base at +0x3c)
 0x0058c610,TexSurfaceB_Ctor,function,high,reimplemented (src/game/gfx/texsurface); surface class B constructor (virtual base at +0x10)
+0x005e7740,Array3D_Fill,function,high,"reimplemented (src/game/gfx/array3d); fills the pixels with a colour (4 bytes: d, a, b, c; 1 byte: d)"
+0x005e77c0,Array3D_CopyTo,function,high,reimplemented (src/game/gfx/array3d); copies the pixel bytes to another buffer
+0x005e77f0,Array3D_ReverseBytes,function,high,reimplemented (src/game/gfx/array3d); reverses the bytes of each 4-byte pixel
+0x005e7ef0,Array3D_MaxInto,function,high,reimplemented (src/game/gfx/array3d); the larger bytes of this buffer and another into the other
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"

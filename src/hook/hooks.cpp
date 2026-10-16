@@ -68,6 +68,7 @@
 #include "../game/gfx/animtex.h"
 #include "../game/gfx/texsurface.h"
 #include "../game/gfx/tga.h"
+#include "../game/gfx/array3d.h"
 #include "../game/gfx/wavelet.h"
 #include "../game/core/events.h"
 #include "../game/core/filetime.h"
@@ -1415,6 +1416,10 @@ const Hook kHooks[] = {
     {"TexSurfaceB_Area",          0x0058c8b0, (void *)&TexSurfaceB_Area, {0x8b, 0x41, 0xf0, 0x8b, 0x50}},
     {"TexSurfaceA_Ctor",          0x0058b3e0, (void *)&TexSurfaceA_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},
     {"TexSurfaceB_Ctor",          0x0058c610, (void *)&TexSurfaceB_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},
+    {"Array3D_Fill",              0x005e7740, (void *)&Array3D_Fill, {0x8b, 0x41, 0x0c, 0x53, 0x56}},
+    {"Array3D_CopyTo",            0x005e77c0, (void *)&Array3D_CopyTo, {0x8b, 0xc1, 0x56, 0x8b, 0x70}},
+    {"Array3D_ReverseBytes",      0x005e77f0, (void *)&Array3D_ReverseBytes, {0x51, 0x8b, 0x11, 0x8b, 0x41}},
+    {"Array3D_MaxInto",           0x005e7ef0, (void *)&Array3D_MaxInto, {0x55, 0x8b, 0x6c, 0x24, 0x08}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
