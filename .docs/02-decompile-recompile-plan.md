@@ -39,7 +39,7 @@ The alternative, **decompile everything and make it compile in one go**, never p
 TPW/
 ├─ .data/                    (git-ignored) original install + no-CD exe; each user supplies their own
 │  ├─ game-install-files/
-│  └─ nocd/tp.exe            ← decompilation input (sha256 5472f97b…1b805)
+│  └─ nocd/tp.exe            ← decompilation input (sha256 5472f97b…1b805; provenance in 05-nocd-exe-audit.md)
 ├─ _re/                      (git-ignored) Ghidra project + raw full decompile dumps (regenerable)
 ├─ .docs/                    findings, file-format specs, this plan
 ├─ re/                       (tracked) the *knowledge* exported from Ghidra:
