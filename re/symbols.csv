@@ -2425,6 +2425,100 @@ address,name,kind,confidence,notes
 0x0056a510,SoftRenderer_PixelAt,function,high,"reimplemented (src/game/core/misc); a dword of the software renderer's buffer at x, y"
 0x0056b630,Table879d08_Fill,function,high,reimplemented (src/game/core/misc); the sixteen dwords at 0x879d08 = 16 down to 1
 0x0056b830,Obj_Set30_34,function,high,reimplemented (src/game/core/misc); +0x30 = a and +0x34 = b
+0x0047f910,Fn_47f910,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = a value, +0x4 = 0x0, +0x8 = 0x0, +0xc = 0x0, +0x10 = 0x0, +0x14 = 0x0, +0x18 = 0x0, +0x1c = 0x0, +0x20 = 0x0, +0x24 = 0x0, +0x28 = 0x0, +0x2c = 0x0"
+0x0048c9e0,Fn_48c9e0,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = 0x6ff1f0, 0x7c2658 = 0x0, +0x10 = 0x0, +0x18 = 0x0, +0x14 = 0x0, +0x1c = 0x0"
+0x004e0210,Fn_4e0210,function,high,"reimplemented (src/game/core/tiny_d); stores +0x5e = 0x0, +0x60 = 0x0"
+0x004e0de0,Fn_4e0de0,function,high,reimplemented (src/game/core/tiny_d); stores +0x30 = argument
+0x004f0150,Fn_4f0150,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = a value, +0x4 = 0x0, +0x8 = 0x0, +0xc = 0x0"
+0x004f6010,Fn_4f6010,function,high,reimplemented (src/game/core/tiny_d); returns a constant
+0x00509ae0,Fn_509ae0,function,high,reimplemented (src/game/core/tiny_d); stores +0x60 = argument
+0x0050b080,Fn_50b080,function,high,reimplemented (src/game/core/tiny_d); stores +0x0 = argument
+0x0052c2a0,Fn_52c2a0,function,high,reimplemented (src/game/core/tiny_d); stores 0x818c54 = 0x0
+0x0052c6c0,Fn_52c6c0,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = a value, +0x0 = a value, +0x0 = a value, +0x0 = a value"
+0x0052fbd0,Fn_52fbd0,function,high,reimplemented (src/game/core/tiny_d); stores 0x820a8c = 0x0
+0x00564730,Fn_564730,function,high,"reimplemented (src/game/core/tiny_d); stores +0xc = argument, +0x10 = argument"
+0x0056b620,Fn_56b620,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x005ce530,Fn_5ce530,function,high,reimplemented (src/game/core/tiny_d); stores +0x0 = a value
+0x005cec50,Fn_5cec50,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x005d0e00,Fn_5d0e00,function,high,"reimplemented (src/game/core/tiny_d); stores +0xc = argument, +0x10 = argument, +0x1c = argument, +0x20 = argument, +0x2c = argument, +0x30 = argument"
+0x005d1400,Fn_5d1400,function,high,reimplemented (src/game/core/tiny_d); returns a constant
+0x005d1420,Fn_5d1420,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = argument, +0x0 = argument"
+0x005d29b0,Fn_5d29b0,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = 0x700620, 0xf827ec = 0x774178, 0xf827f0 = 0x7741e0"
+0x005d5f70,Fn_5d5f70,function,high,"reimplemented (src/game/core/tiny_d); stores +0x18 = 0x0, +0x1c = 0x0, +0x20 = 0x0, +0x28 = 0x0"
+0x005e1bb0,Fn_5e1bb0,function,high,"reimplemented (src/game/core/tiny_d); stores +0x28 = argument, +0x2c = argument, +0x30 = argument"
+0x005ebe30,Fn_5ebe30,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = argument, +0x4 = argument, +0x8 = argument"
+0x005ebef0,Fn_5ebef0,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = 0x0, +0x1 = 0x0, +0x2 = 0x0, +0x3 = 0x0, +0x4 = 0x0, +0x8 = 0x0, +0xc = 0x0, +0x10 = 0x0"
+0x005eda40,Fn_5eda40,function,high,"reimplemented (src/game/core/tiny_d); stores 0xf86988 = argument, 0xf8698c = argument, 0xf86990 = argument, 0xf86994 = argument"
+0x0064a450,Fn_64a450,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = a value, +0x0 = a value, +0x0 = 0x77a0a0, +0x0 = 0x77b0a0"
+0x0064dd60,Fn_64dd60,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = 0x64ddec, +0x4 = 0x64de4f, +0x8 = 0x64de13, +0xc = 0x64dead, +0x10 = 0x64dff8, +0x68 = 0x0, +0x6c = 0x0, +0x14 = 0x0, +0x70 = 0x7054b8, +0x74 = 0x77, +0x78 = 0x0, +0x7c = 0x0, +0x80 = 0x0"
+0x00657d30,Fn_657d30,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = 0x7058d8, +0xc = 0x0, +0x4 = 0x0, +0x6 = 0x2, +0x8 = 0x2"
+0x006590c3,Fn_6590c3,function,high,reimplemented (src/game/core/tiny_d); stores 0xfaa5d4 = argument
+0x006590ea,Fn_6590ea,function,high,reimplemented (src/game/core/tiny_d); stores 0xfaa5fc = argument
+0x006593ff,Fn_6593ff,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x006595a8,Fn_6595a8,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x00659770,Fn_659770,function,high,reimplemented (src/game/core/tiny_d); stores +0x0 = 0x7058f0
+0x00659ce0,Fn_659ce0,function,high,reimplemented (src/game/core/tiny_d); stores +0x10 = 0x1
+0x0065a9d0,Fn_65a9d0,function,high,reimplemented (src/game/core/tiny_d); stores +0x0 = 0x705938
+0x0065aa80,Fn_65aa80,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x0065b850,Fn_65b850,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x0065bc70,Fn_65bc70,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x0065d547,Fn_65d547,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x0065d55a,Fn_65d55a,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x0065d56b,Fn_65d56b,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x0065d57c,Fn_65d57c,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x0065d7bc,Fn_65d7bc,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x006617d0,Fn_6617d0,function,high,reimplemented (src/game/core/tiny_d); stores +0x0 = 0x705938
+0x006617f0,Fn_6617f0,function,high,reimplemented (src/game/core/tiny_d); stores +0x12 = 0x1
+0x00661830,Fn_661830,function,high,reimplemented (src/game/core/tiny_d); stores +0x90 = argument
+0x00661850,Fn_661850,function,high,reimplemented (src/game/core/tiny_d); stores +0x94 = argument
+0x00661870,Fn_661870,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = 0x7059b0, +0x5 = 0x0, +0x6 = 0x0, +0x4 = 0x1, +0x10 = 0x0"
+0x006618a6,Fn_6618a6,function,high,reimplemented (src/game/core/tiny_d); stores +0x0 = 0x7059b0
+0x006618e6,Fn_6618e6,function,high,reimplemented (src/game/core/tiny_d); stores +0x4 = 0x1
+0x006618f8,Fn_6618f8,function,high,reimplemented (src/game/core/tiny_d); stores +0x4 = 0x0
+0x00661c0b,Fn_661c0b,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = 0x0, +0x4 = 0x0"
+0x00661f9b,Fn_661f9b,function,high,reimplemented (src/game/core/tiny_d); stores +0x14 = 0x1
+0x00662086,Fn_662086,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x00662097,Fn_662097,function,high,reimplemented (src/game/core/tiny_d); stores +0x10 = 0x0
+0x006620cc,Fn_6620cc,function,high,reimplemented (src/game/core/tiny_d); stores +0x8 = argument
+0x00662411,Fn_662411,function,high,reimplemented (src/game/core/tiny_d); stores 0xfaa638 = 0x1
+0x00667801,Fn_667801,function,high,reimplemented (src/game/core/tiny_d); stores +0x140 = argument
+0x0066781a,Fn_66781a,function,high,reimplemented (src/game/core/tiny_d); stores +0x144 = argument
+0x00668d84,Fn_668d84,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x006693d0,Fn_6693d0,function,high,reimplemented (src/game/core/tiny_d); stores +0x140 = argument
+0x006693f0,Fn_6693f0,function,high,reimplemented (src/game/core/tiny_d); stores +0x13c = argument
+0x00669700,Fn_669700,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = 0x0, +0x4 = 0x0, +0x8 = 0x0, +0xc = 0x0"
+0x00669c30,Fn_669c30,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x00669c41,Fn_669c41,function,high,"reimplemented (src/game/core/tiny_d); stores +0x4 = 0x0, +0x0 = 0x0"
+0x00669f80,Fn_669f80,function,high,reimplemented (src/game/core/tiny_d); stores +0x6 = 0x1
+0x00669f94,Fn_669f94,function,high,reimplemented (src/game/core/tiny_d); stores +0x6 = 0x0
+0x00669fa8,Fn_669fa8,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = 0x705a80, +0x4 = 0x1, +0x6 = 0x0, +0x14 = 0x0, +0x10 = 0x0, +0xc = 0x0"
+0x00669fee,Fn_669fee,function,high,reimplemented (src/game/core/tiny_d); stores +0x0 = 0x705a80
+0x0066a002,Fn_66a002,function,high,reimplemented (src/game/core/tiny_d); stores +0x4 = 0x1
+0x0066a281,Fn_66a281,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x0066a6c7,Fn_66a6c7,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x0066b469,Fn_66b469,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x0066b53e,Fn_66b53e,function,high,reimplemented (src/game/core/tiny_d); stores +0x148 = argument
+0x0066bff7,Fn_66bff7,function,high,reimplemented (src/game/core/tiny_d); stores +0x0 = 0x705938
+0x0066c922,Fn_66c922,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x0066cc7c,Fn_66cc7c,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x0066d950,Fn_66d950,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x0066dad2,Fn_66dad2,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x0067a610,Fn_67a610,function,high,"reimplemented (src/game/core/tiny_d); stores 0x77eca4 = 0x6805d0, 0x77eca0 = 0x680a30, 0x77eca8 = 0x680660, 0x77ecac = 0x680570, 0x77ecb0 = 0x680640, 0x77ecb4 = 0x680a30"
+0x00682440,Fn_682440,function,high,"reimplemented (src/game/core/tiny_d); stores +0x50 = 0x781490, +0x14 = 0x1"
+0x0068bda0,Fn_68bda0,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = 0x0, +0x4 = 0x0, +0x8 = 0x0"
+0x006a65e0,Fn_6a65e0,function,high,reimplemented (src/game/core/tiny_d); returns a constant
+0x006b52e0,Fn_6b52e0,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = argument, +0x4 = argument, +0x8 = argument, +0xc = argument, +0x10 = argument, +0x14 = argument"
+0x006b5310,Fn_6b5310,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = argument, +0x4 = argument, +0x8 = argument, +0xc = argument, +0x10 = argument, +0x14 = argument"
+0x006b5430,Fn_6b5430,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = argument, +0x4 = 0x0, +0x5 = argument, +0x8 = 0x0"
+0x006bb220,Fn_6bb220,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = argument, +0x4 = argument, +0x8 = argument"
+0x006c0200,Fn_6c0200,function,high,reimplemented (src/game/core/tiny_d); stores +0x0 = 0x0
+0x006c3900,Fn_6c3900,function,high,reimplemented (src/game/core/tiny_d); returns a field or global
+0x006c54c0,Fn_6c54c0,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = the object, +0x0 = 0x0"
+0x006c58d0,Fn_6c58d0,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = argument, +0xc = argument"
+0x006c6a00,Fn_6c6a00,function,high,"reimplemented (src/game/core/tiny_d); stores +0x4 = 0x0, +0x8 = 0x0, +0xc = 0x0, +0x14 = argument, +0x0 = 0x70a678, +0x1c = a value, +0x20 = a value, +0x0 = 0x70aba8"
+0x006d1a50,Fn_6d1a50,function,high,"reimplemented (src/game/core/tiny_d); stores +0x2468 = a value, +0x2430 = 0x0, +0x242c = 0x0, +0x2464 = 0x0, +0x2410 = 0x0"
+0x006d2780,Fn_6d2780,function,high,reimplemented (src/game/core/tiny_d); stores +0x0 = 0x0
+0x006d3b90,Fn_6d3b90,function,high,"reimplemented (src/game/core/tiny_d); stores +0x8 = 0x0, +0xc = 0x0, +0x10 = 0x0, +0x14 = 0x0, +0x18 = 0x0"
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
