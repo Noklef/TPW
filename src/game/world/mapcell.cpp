@@ -12,6 +12,20 @@ u16 *store_pos(u16 *out, u32 x, u32 y) {
     return out;
 }
 
+// A 0x28-byte cell's neighbour bits: mHoardingNeighbours for a track cell while 0x81b4cc is set.
+u8 &neighbours(const u8 *cell) {
+    return global<u8>(0x0081b4cc) != 0 && cell[2] == 2 ? at<u8>(cell, 0x22) : at<u8>(cell, 0xc);
+}
+
+// How many of the bits in mask are set in byte, counted a bit at a time as the originals do.
+u32 count(u8 byte, u32 mask) {
+    u32 n = 0;
+    for (u32 bit = 1; bit < 0x100; bit <<= 1) {
+        if ((mask & bit) && (byte & bit)) ++n;
+    }
+    return n;
+}
+
 // A gBalanceLevel pair of positions at a: A x, A y, B x, B y.
 u16 *balance_pos(u16 *out, u32 b, u32 a) {
     return b == 0 ? store_pos(out, global<u32>(a), global<u32>(a + 4)) : store_pos(out, global<u32>(a + 8), global<u32>(a + 0xc));
@@ -102,5 +116,55 @@ u32 __fastcall RECell_Equals(const u8 *cell, void *, const u8 *other) {
         if (cell[i] != other[i]) return 0;
     }
     return 1;
+}
+
+void __fastcall MapCell_AddNeighbours(u8 *cell, void *, u32 bits) { neighbours(cell) |= (u8)bits; }
+
+void __fastcall MapCell_RemoveNeighbours(u8 *cell, void *, u32 bits) { neighbours(cell) &= (u8)~bits; }
+
+u8 __fastcall MapCell_Neighbours(const u8 *cell) { return neighbours(cell); }
+
+u32 __fastcall MapCell_NeighbourCount(const u8 *cell) { return count(neighbours(cell), 0xff); }
+
+u32 __fastcall MapCell_SideNeighbourCount(const u8 *cell) { return count(neighbours(cell), 0x55); }
+
+void __fastcall MapCell_SetDirection(u8 *cell, void *, u32 value) { cell[0xd] = (u8)value; }
+
+void __fastcall MapCell_ClearDirection(u8 *cell, void *, u32 bits) { cell[0xd] &= (u8)~bits; }
+
+u8 __fastcall MapCell_Direction(const u8 *cell) { return cell[0xd]; }
+
+u32 __fastcall MapCell_SideDirectionCount(const u8 *cell) { return count(cell[0xd], 0x55); }
+
+void __fastcall MapCell_DecOverlap(u8 *cell) { --at<u16>(cell, 0x20); }
+
+void __fastcall MapCell_SetOverlap(u8 *cell, void *, u32 value) { at<u16>(cell, 0x20) = (u16)value; }
+
+u32 __fastcall MapCell_HasFlags(const u8 *cell, void *, u32 flags) { return (at<u16>(cell, 0xe) & (u16)flags) != 0 ? 1 : 0; }
+
+u32 __fastcall MapCell_Flag400(const u8 *cell) { return at<u16>(cell, 0xe) >> 10 & 1; }
+
+u32 __fastcall MapCell_IsType0(const u8 *cell) { return at<u32>(cell, 8) == 0 ? 1 : 0; }
+u32 __fastcall MapCell_IsType1(const u8 *cell) { return at<u32>(cell, 8) == 1 ? 1 : 0; }
+u32 __fastcall MapCell_IsType2(const u8 *cell) { return at<u32>(cell, 8) == 2 ? 1 : 0; }
+u32 __fastcall MapCell_IsType4(const u8 *cell) { return at<u32>(cell, 8) == 4 ? 1 : 0; }
+u32 __fastcall MapCell_IsType9(const u8 *cell) { return at<u32>(cell, 8) == 9 ? 1 : 0; }
+u32 __fastcall MapCell_IsTypeA(const u8 *cell) { return at<u32>(cell, 8) == 0xa ? 1 : 0; }
+u32 __fastcall MapCell_IsType15(const u8 *cell) { return at<u32>(cell, 8) == 0x15 ? 1 : 0; }
+u32 __fastcall MapCell_IsType1e(const u8 *cell) { return at<u32>(cell, 8) == 0x1e ? 1 : 0; }
+
+u32 __fastcall MapCell_IsType3Or9(const u8 *cell) {
+    const u32 type = at<u32>(cell, 8);
+    return type == 3 || type == 9 ? 1 : 0;
+}
+
+u32 __fastcall MapCell_IsType7Or1e(const u8 *cell) {
+    const u32 type = at<u32>(cell, 8);
+    return type == 7 || type == 0x1e ? 1 : 0;
+}
+
+u32 __fastcall MapCell_IsType5Or7Or2(const u8 *cell) {
+    const u32 type = at<u32>(cell, 8);
+    return type == 5 || type == 7 || type == 2 ? 1 : 0;
 }
 }

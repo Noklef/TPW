@@ -1,8 +1,8 @@
 # The map cell handles' lookups and the memory ranges (src/game/world/mapcell: 0x4d0a70-0x4d0b10)
 # and the map's bounds check, RE cells, fixed positions, block values and cell constructor
 # (0x4d8300-0x4d8ca0, 0x4d8da0) and the RE cells' constructor and comparison (0x502460, 0x502470)
-# the track cell's constructor (0x50c1d0) and the map id of a cell (0x510870)
-# against the
+# the track cell's constructor (0x50c1d0), the map id of a cell (0x510870) and the 0x28-byte
+# cells' accessors (0x522700-0x5228a0, track cells or not, 0x81b4cc set or not) against the
 # originals: handles 0, 1 and wild under any gMapCells, ranges set at any index, coordinates
 # about 0 and 128, positions of any value for A and B.
 # usage: mapcell.py [CASES [SEED]] [--wild|--both] [--show N]
@@ -14,7 +14,11 @@ from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x4d0a70, 0x4d0a86), (0x4d0a90, 0x4d0ab1), (0x4d0ac0, 0x4d0ae1), (0x4d0af0, 0x4d0b06),
            (0x4d0b10, 0x4d0b27), (0x4d8300, 0x4d8328), (0x4d8410, 0x4d8434), (0x4d8610, 0x4d8750), (0x4d8c60, 0x4d8cc8),
-           (0x4d8da0, 0x4d8dc2), (0x502460, 0x502487), (0x50c1d0, 0x50c1e6), (0x510870, 0x51089d)])
+           (0x4d8da0, 0x4d8dc2), (0x502460, 0x502487), (0x50c1d0, 0x50c1e6), (0x510870, 0x51089d), (0x522700, 0x5228ac), (0x535db0, 0x535dc3), (0x536300, 0x5363ec)])
+CELL = {0x522700: 'v', 0x522730: 'v', 0x522770: 'b', 0x522790: 'a', 0x5227e0: 'v', 0x5227f0: 'v', 0x522810: 'a',
+        0x522850: 'b', 0x522860: 'a', 0x522890: 'v', 0x5228a0: 'v', 0x535db0: 'a', 0x5363b0: 'a',
+        **{a: 'a' for a in (0x536300, 0x536310, 0x536320, 0x536340, 0x536350, 0x536360, 0x536380, 0x536390,
+                            0x5363a0, 0x5363c0, 0x5363e0)}}
 POS = [0x4d8610, 0x4d8650, 0x4d8690, 0x4d86d0, 0x4d8710]
 
 
@@ -24,7 +28,20 @@ def coord(r):
 
 def case(r):
     mem = r.bytes(0x200)
-    op = r.randrange(13)
+    op = 13 if r.random() < 0.5 else r.randrange(13)  # half on the many cell accessors
+    if op == 13:
+        fn = r.choice(list(CELL))
+        cell = bytearray(r.bytes(0x28))
+        cell[2] = r.choice([2, 2, 0, 1, 3, r.getrandbits(8)])
+        mode = bytearray(r.bytes(4))
+        mode[0] = r.choice([0, 1, r.getrandbits(8)])
+        put(cell, 0x20, 'H', r.choice([0, 1, 0xffff, r.getrandbits(16)]))
+        put(cell, 8, 'I', r.choice([0, 1, 2, 3, 4, 5, 7, 9, 0xa, 0x15, 0x1e, 0x115, r.randrange(0x20), r.getrandbits(32)]))
+        put(cell, 0xe, 'H', r.choice([0, 0x400, r.getrandbits(16)]))
+        args = [RAM + 0x40]
+        if fn in (0x522700, 0x522730, 0x5227e0, 0x5227f0, 0x5228a0, 0x535db0):
+            args.append(r.choice([0, 1, 0x55, 0xff, 0x400, 0x10000, r.getrandbits(8), r.getrandbits(32)]))
+        return Call(fn, args, {RAM + 0x40: cell, 0x81b4cc: mode}, conv='t', ret=CELL[fn])
     if op == 12:
         return Call(0x510870, [coord(r), coord(r)], {}, ret='a')
     if op == 11:

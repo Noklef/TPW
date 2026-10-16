@@ -713,6 +713,30 @@ address,name,kind,confidence,notes
 0x00502470,RECell_Equals,function,high,reimplemented (src/game/world/mapcell); thiscall (other): whether the two RE cells' 10 bytes match (repe cmpsb)
 0x0050c1d0,TrackCell_Ctor,function,high,"reimplemented (src/game/world/mapcell); thiscall: a 0x28-byte track cell zeroed (rep stosd), byte +2 = 2; returns it"
 0x00510870,Map_IdAt,function,high,"reimplemented (src/game/world/mapcell); cdecl (x, y): (y << 7) + x + 1 (16 bits) when Map_InBounds, else -1"
+0x00522700,MapCell_AddNeighbours,function,high,reimplemented (src/game/world/mapcell); thiscall on a 0x28-byte cell (bits): mNeighbours (+0xc) |= bits; mHoardingNeighbours (+0x22) for a track cell (byte +2 == 2) while 0x81b4cc is set
+0x00522730,MapCell_RemoveNeighbours,function,high,reimplemented (src/game/world/mapcell); thiscall (bits): the neighbour bits (as 0x522700 picks them) &= ~bits
+0x00522770,MapCell_Neighbours,function,high,"reimplemented (src/game/world/mapcell); thiscall: the neighbour bits (as 0x522700 picks them), in AL only"
+0x00522790,MapCell_NeighbourCount,function,high,reimplemented (src/game/world/mapcell); thiscall: how many of the 8 neighbour bits are set
+0x005227e0,MapCell_SetDirection,function,high,reimplemented (src/game/world/mapcell); thiscall (value): mDirection (+0xd) = value
+0x005227f0,MapCell_ClearDirection,function,high,reimplemented (src/game/world/mapcell); thiscall (bits): mDirection &= ~bits
+0x00522810,MapCell_SideNeighbourCount,function,high,reimplemented (src/game/world/mapcell); thiscall: how many of the 4 side (even) neighbour bits are set
+0x00522850,MapCell_Direction,function,high,"reimplemented (src/game/world/mapcell); thiscall: mDirection (+0xd), in AL only"
+0x00522860,MapCell_SideDirectionCount,function,high,reimplemented (src/game/world/mapcell); thiscall: how many of mDirection's 4 side (even) bits are set
+0x00522890,MapCell_DecOverlap,function,high,reimplemented (src/game/world/mapcell); thiscall: --mOverlapCounter (u16 +0x20)
+0x005228a0,MapCell_SetOverlap,function,high,reimplemented (src/game/world/mapcell); thiscall (value): mOverlapCounter (u16 +0x20) = value
+0x00535db0,MapCell_HasFlags,function,high,reimplemented (src/game/world/mapcell); thiscall (flags): 1 when mFlags (u16 +0xe) & flags (low 16) is nonzero
+0x00536300,MapCell_IsType2,function,high,reimplemented (src/game/world/mapcell); thiscall: mType (+8) == 2
+0x00536310,MapCell_IsType1,function,high,reimplemented (src/game/world/mapcell); thiscall: mType (+8) == 1
+0x00536320,MapCell_IsType3Or9,function,high,reimplemented (src/game/world/mapcell); thiscall: mType (+8) is 3 or 9
+0x00536340,MapCell_IsType9,function,high,reimplemented (src/game/world/mapcell); thiscall: mType (+8) == 9
+0x00536350,MapCell_IsTypeA,function,high,reimplemented (src/game/world/mapcell); thiscall: mType (+8) == 0xa
+0x00536360,MapCell_IsType7Or1e,function,high,reimplemented (src/game/world/mapcell); thiscall: mType (+8) is 7 or 0x1e
+0x00536380,MapCell_IsType4,function,high,reimplemented (src/game/world/mapcell); thiscall: mType (+8) == 4
+0x00536390,MapCell_IsType0,function,high,reimplemented (src/game/world/mapcell); thiscall: mType (+8) == 0
+0x005363a0,MapCell_IsType1e,function,high,reimplemented (src/game/world/mapcell); thiscall: mType (+8) == 0x1e
+0x005363b0,MapCell_Flag400,function,high,reimplemented (src/game/world/mapcell); thiscall: mFlags (u16 +0xe) bit 10
+0x005363c0,MapCell_IsType5Or7Or2,function,high,"reimplemented (src/game/world/mapcell); thiscall: mType (+8) is 5, 7 or 2"
+0x005363e0,MapCell_IsType15,function,high,reimplemented (src/game/world/mapcell); thiscall: mType (+8) == 0x15
 0x004d1c80,Challenges_DropOrphans,function,high,reimplemented (src/game/world/challenges); thiscall: each challenge in use (+0) naming another (+0x18) is dropped (+0 = 0) unless another in use has that id (from Challenges_LoadSam)
 0x004d2840,Challenges_Current,function,high,"reimplemented (src/game/world/challenges); thiscall: &challenges[+0x3cc] (0x30 bytes from +0xc) for an index 0-19, else null"
 0x004d1e60,BalanceChallenges_GetSchema,function,high,"reimplemented (src/game/world/challenges); thiscall (index), vtable 0x700398 slot 0: 0x739b98 + index * 0x3c"

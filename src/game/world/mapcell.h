@@ -2,7 +2,9 @@
 // +0x110000, both named by a 1-based u16 handle) and the "World Struture" memory ranges at
 // 0x7cdb30: reimplementation of 0x4d0a70-0x4d0b10; and the map's (gWorld + 0x2d8) bounds check,
 // RE cells, fixed positions and block values, 0x4d8300-0x4d8ca0, and the cell constructor
-// 0x4d8da0. A position is the u16 handle y * 128 + x + 1.
+// 0x4d8da0; the 0x28-byte cells' accessors 0x522700-0x5228a0, 0x535db0 and 0x536300-0x5363e0.
+// A position is the u16 handle
+// y * 128 + x + 1.
 #pragma once
 
 #include "../../../re/types.h"
@@ -63,4 +65,52 @@ u8 *__fastcall TrackCell_Ctor(u8 *cell);
 // 0x510870 (x, y): the map id of the cell, (y << 7) + x + 1 cut to 16 bits; -1 when Map_InBounds
 // says it is off the map.
 s32 __cdecl Map_IdAt(s32 x, s32 y);
+
+// A 0x28-byte cell's fields as MapCellBase_Serialize (0x4d0b30) names them: +0xc mNeighbours and
+// +0x22 mHoardingNeighbours (a bit for each of the 8 neighbours, the sides the even ones), +0xd
+// mDirection (bits likewise), +0x20 mOverlapCounter (u16), +8 mType, +0xe mFlags (u16). Byte +2
+// is its kind, 2 a track cell's.
+// The neighbour methods (thiscall on the cell) work on mHoardingNeighbours for a track cell while
+// 0x81b4cc is set (around the hoardings' placing, 0x532408 / 0x532814), else on mNeighbours.
+
+// 0x522700 / 0x522730 (bits, the low 8): the neighbour bits set / cleared.
+void __fastcall MapCell_AddNeighbours(u8 *cell, void *, u32 bits);
+void __fastcall MapCell_RemoveNeighbours(u8 *cell, void *, u32 bits);
+
+// 0x522770: the neighbour bits (in AL only; the rest of EAX is left as it was).
+u8 __fastcall MapCell_Neighbours(const u8 *cell);
+
+// 0x522790 / 0x522810: how many of the neighbour bits are set / of the 4 side ones.
+u32 __fastcall MapCell_NeighbourCount(const u8 *cell);
+u32 __fastcall MapCell_SideNeighbourCount(const u8 *cell);
+
+// 0x5227e0 (value) / 0x5227f0 (bits): mDirection set / its bits cleared. 0x522850: mDirection
+// (in AL only). 0x522860: how many of its 4 side bits are set.
+void __fastcall MapCell_SetDirection(u8 *cell, void *, u32 value);
+void __fastcall MapCell_ClearDirection(u8 *cell, void *, u32 bits);
+u8 __fastcall MapCell_Direction(const u8 *cell);
+u32 __fastcall MapCell_SideDirectionCount(const u8 *cell);
+
+// 0x522890: mOverlapCounter decremented. 0x5228a0 (value): mOverlapCounter set.
+void __fastcall MapCell_DecOverlap(u8 *cell);
+void __fastcall MapCell_SetOverlap(u8 *cell, void *, u32 value);
+
+// 0x535db0 (flags): 1 when any of mFlags' bits in flags (the low 16) is set. 0x5363b0: mFlags'
+// bit 10.
+u32 __fastcall MapCell_HasFlags(const u8 *cell, void *, u32 flags);
+u32 __fastcall MapCell_Flag400(const u8 *cell);
+
+// 0x536390, 0x536310, 0x536300, 0x536380, 0x536340, 0x536350, 0x5363e0, 0x5363a0: 1 when mType
+// is 0, 1, 2, 4, 9, 0xa, 0x15, 0x1e. 0x536320: 3 or 9. 0x536360: 7 or 0x1e. 0x5363c0: 5, 7 or 2.
+u32 __fastcall MapCell_IsType0(const u8 *cell);
+u32 __fastcall MapCell_IsType1(const u8 *cell);
+u32 __fastcall MapCell_IsType2(const u8 *cell);
+u32 __fastcall MapCell_IsType4(const u8 *cell);
+u32 __fastcall MapCell_IsType9(const u8 *cell);
+u32 __fastcall MapCell_IsTypeA(const u8 *cell);
+u32 __fastcall MapCell_IsType15(const u8 *cell);
+u32 __fastcall MapCell_IsType1e(const u8 *cell);
+u32 __fastcall MapCell_IsType3Or9(const u8 *cell);
+u32 __fastcall MapCell_IsType7Or1e(const u8 *cell);
+u32 __fastcall MapCell_IsType5Or7Or2(const u8 *cell);
 }
