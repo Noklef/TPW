@@ -9,6 +9,8 @@
 #include "accessors.h"
 #include "tiny_c.h"
 #include "tiny_d.h"
+#include "small.h"
+#include "string.h"
 #include "tiny_e.h"
 
 namespace {
@@ -341,6 +343,36 @@ u32 __fastcall Obj_Flags1cAnd(const u8 *object, void *, u32 mask) { return at<u3
 u32 __stdcall Span_Limited(u32, u32 from, u32 to, u32 limit) {
     const u32 span = to - from;
     return limit < span ? limit : span;
+}
+
+u32 __stdcall Obj_Positive40(const u8 *object) { return at<s32>(object, 0x40) > 0 ? 1 : 0; }
+
+void __fastcall Obj_SetOrKeepC(u8 *object, void *, u32 value) {
+    if (value) {
+        at<u32>(object, 0xc) = value;
+        at<u32>(object, 0x14) = 0;
+    }
+}
+
+u8 *__fastcall Class703c18_Ctor(u8 *object) {
+    Class703770_Ctor(object);
+    at<u32>(object, 0) = 0x00703c18;
+    at<u32>(object, 8) = 0;
+    at<u32>(object, 0xc) = 0;
+    return object;
+}
+
+u8 *__fastcall WString_CtorReturning(u8 *string) {
+    WString_Ctor(reinterpret_cast<WString *>(string));
+    return string;
+}
+
+u32 __cdecl DirEntry_IsRealDir(const u8 *entry) {
+    if (at<u8>(entry, 4) & 0x10) {
+        if (*at<const char *>(entry, 0x20) != '.')
+            return 1;
+    }
+    return 0;
 }
 
 u32 __cdecl PairTable_Add(u32 a, u32 b) {

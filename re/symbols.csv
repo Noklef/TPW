@@ -2474,6 +2474,11 @@ address,name,kind,confidence,notes
 0x005b0d40,Table73f8a8_At,function,high,reimplemented (src/game/core/misc); the address of a 60-byte record of the table at 0x73f8a8
 0x005d5ee0,Obj_Flags1cAnd,function,high,reimplemented (src/game/core/misc); the dword at +0x1c masked
 0x005d1440,Span_Limited,function,high,"reimplemented (src/game/core/misc); to - from, at most a limit"
+0x005dd810,Obj_Positive40,function,high,reimplemented (src/game/core/misc); 1 when the signed dword at +0x40 is above 0
+0x005e2750,Obj_SetOrKeepC,function,high,reimplemented (src/game/core/misc); +0xc = value and +0x14 = 0 for a non-zero value
+0x00633120,Class703c18_Ctor,function,high,"reimplemented (src/game/core/misc); Class703770_Ctor, vtable 0x703c18 and two zeroed dwords"
+0x005c7490,WString_CtorReturning,function,high,"reimplemented (src/game/core/misc); an empty wide string, returned"
+0x005c5230,DirEntry_IsRealDir,function,high,reimplemented (src/game/core/misc); a directory entry whose name does not start with a full stop
 0x0047f910,Fn_47f910,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = a value, +0x4 = 0x0, +0x8 = 0x0, +0xc = 0x0, +0x10 = 0x0, +0x14 = 0x0, +0x18 = 0x0, +0x1c = 0x0, +0x20 = 0x0, +0x24 = 0x0, +0x28 = 0x0, +0x2c = 0x0"
 0x0048c9e0,Fn_48c9e0,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = 0x6ff1f0, 0x7c2658 = 0x0, +0x10 = 0x0, +0x18 = 0x0, +0x14 = 0x0, +0x1c = 0x0"
 0x004e0210,Fn_4e0210,function,high,"reimplemented (src/game/core/tiny_d); stores +0x5e = 0x0, +0x60 = 0x0"
