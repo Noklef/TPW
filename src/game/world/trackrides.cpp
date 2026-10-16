@@ -2,6 +2,9 @@
 
 #include <cstdint>
 
+#include "../motion/animator.h"
+#include "../render/particles.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -88,6 +91,108 @@ u32 __cdecl TrakChunk_ReadDword(u8 *chunk) {
         return 0;
     at<u32>(chunk, 8) += done;
     return done == 4 ? value : 0;
+}
+
+void __cdecl TrakRide_Fixed(u32 handle) {
+    u8 *ride = RideOf(handle);
+    if (handle != NameOf(ride))
+        return;
+    const u32 was = at<u32>(ride, 0x54);
+    at<u32>(ride, 0x54) = 0;
+    if (was != 2)
+        return;
+    const s32 kind = at<s32>(ride, 0);
+    if (!(kind > -15 && (kind < -2 || kind == -1)))
+        return;
+    u8 *record = global<u8 *>(0x00877b68);
+    u32 left = global<u32>(0x00877b6c);
+    while (left != 0) {
+        if ((at<u8>(record, 0) & 1) && (--left, at<u8 *>(record, 0x9c) == ride) && at<u32>(record, 0x2c) != 0xffffffffu) {
+            ParticleSystem_End(at<u32>(record, 0x2c));
+            at<u32>(record, 0x2c) = 0xffffffffu;
+            if (at<s32>(at<u8 *>(record, 0x9c), 0) == -1 && (at<u32>(record, 0) & 0x4000)) {
+                at<u32>(record, 0x10) = 5;
+                if (at<u32>(record, 8) != 0)
+                    Layer_ClearQueue(reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(record, 8)], 0);
+                if (at<u32>(record, 8) != 0)
+                    Animator_Play(reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(record, 8)], 5, 0, 1, 1.0f, 0);
+            }
+        }
+        record += 0xac;
+    }
+}
+
+void __cdecl TrakRide_SetPerformance(u32 handle, s32 percent) {
+    u8 *ride = RideOf(handle);
+    if (handle != NameOf(ride))
+        return;
+    if (percent < 0)
+        percent = 0;
+    else if (percent > 99)
+        percent = 100;
+    at<s32>(ride, 0x1c) = percent;
+    for (u32 i = 0; i < 4; ++i) {
+        const s32 from = at<s32>(ride, 0x30 + 4 * i), to = at<s32>(ride, 0x40 + 4 * i);
+        at<s32>(ride, 0x20 + 4 * i) = (to - from) * percent / 100 + from;
+    }
+}
+
+s32 __cdecl TrakRide_CountPieces(u32 handle, s32 *others, s32 *longestRun, s32 *kind11, s32 *free) {
+    u8 *ride = RideOf(handle);
+    if (handle != NameOf(ride))
+        return 0;
+    s32 total = 0, run = 0, kind11Count = 0, longest = 0, freeCount = 0, otherCount = 0;
+    for (s32 pass = 2; pass != 0; --pass) {
+        for (u8 *piece = at<u8 *>(ride, 0xbc); piece; piece = at<u8 *>(piece, 0x24)) {
+            switch (at<u32>(piece, 4) & 0xffff) {
+            case 11:
+                ++run;
+                ++kind11Count;
+                break;
+            case 12:
+            case 13:
+                if (at<s32>(piece, 8) == 0)
+                    ++freeCount;
+                ++run;
+                break;
+            case 9:
+            case 10:
+                ++run;
+                break;
+            default:
+                if (longest < run)
+                    longest = run;
+                run = 0;
+                ++otherCount;
+            }
+            ++total;
+        }
+    }
+    if (others)
+        *others = otherCount / 2;
+    if (longestRun)
+        *longestRun = longest;
+    if (kind11)
+        *kind11 = kind11Count / 2;
+    if (free)
+        *free = freeCount;
+    return total / 2;
+}
+
+u32 __cdecl TrakRide_AddNextCar(u32 handle, u32 value) {
+    u8 *ride = RideOf(handle);
+    if (handle != NameOf(ride) || at<u32>(ride, 0x50) == 0)
+        return 0;
+    u8 *node = global<u8 *>(0x00877b8c);
+    if (!node)
+        return 0;
+    global<u32>(0x00877b8c) = at<u32>(node, 0x10);
+    at<u32>(node, 0x10) = at<u32>(ride, 0xc4);
+    at<u8 *>(ride, 0xc4) = node;
+    at<u32>(node, 0) = value;
+    at<u32>(node, 4) = handle;
+    at<u32>(node, 8) = 0xffffffffu;
+    return 1;
 }
 
 void __cdecl TrakRide_Close(u32 handle) {

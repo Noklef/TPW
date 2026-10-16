@@ -57,4 +57,23 @@ u32 __cdecl TrakChunk_ReadDword(u8 *chunk);
 // appended (or becomes it when empty) and +0xc4 is cleared; for the five ride kinds (the dword at +0 is -14, -11, -6, -3 or -1) the pool records at [0x877b68] (0xac bytes
 // each, as many used ones - bit 0 of +0 - as the dword at 0x877b6c counts) that belong to the ride (+0x9c) get +0x88 cleared and bits 0x10020 set, 0x405e cleared in +0.
 void __cdecl TrakRide_Close(u32 handle);
+
+// 0x544e50 (handle): when the module is loaded and the handle names the ride, its dword at +0x54 is cleared; if it was 2 (the ride was worn out and is fixed now), for the kinds -14
+// to -3 and -1 (+0) the pool records of the ride (as in TrakRide_Close) whose dword at +0x2c is not -1 end that particle system (ParticleSystem_End) and get -1 there; for the
+// kind -1, when bit 0x4000 of the record is set, +0x10 = 5 and the object the table at 0x7a4610 holds for the record's dword at +8 (when it is not 0) has its layer queue cleared
+// and animation bank 5 entry 0 started in mode 1 at speed 1.
+void __cdecl TrakRide_Fixed(u32 handle);
+
+// 0x545180 (handle, percent): the ride's performance (+0x1c) is set to the percent (below 0: 0, above 99: 100) and its four values at +0x20..+0x2c are set to the point that
+// far (of 100) from the dwords at +0x30..+0x3c to those at +0x40..+0x4c.
+void __cdecl TrakRide_SetPerformance(u32 handle, s32 percent);
+
+// 0x545310 (handle, &a, &b, &c, &d): counts the pieces of the ride's chain (the head at +0xbc, +0x24 the next; the kind in the word at +4) twice over and stores (each pointer when not
+// 0): a = the pieces of any other kind / 2, b = the longest run of kinds 9 to 13, c = kind 11 pieces / 2, d = the pieces of kind 12 or 13 with +8 zero (sic: twice
+// over). Returns all the pieces / 2; 0 when the handle does not name the ride.
+s32 __cdecl TrakRide_CountPieces(u32 handle, s32 *others, s32 *longestRun, s32 *kind11, s32 *free);
+
+// 0x54aa80 (handle, value): when the module is loaded, the handle names the ride, its dword at +0x50 is not 0 and the free node list at 0x877b8c has a node: the node is taken off
+// it, put at the head of the ride's list at +0xc4, given the value at +0, the handle at +4 and -1 at +8. Returns 1, otherwise 0.
+u32 __cdecl TrakRide_AddNextCar(u32 handle, u32 value);
 }

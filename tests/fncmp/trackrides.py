@@ -10,14 +10,60 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put, record_stream  # noqa: E402
 
 B = Bench([(0x5452a0, 0x545307), (0x54ab40, 0x54abc3), (0x543490, 0x5434d0), (0x54bbb0, 0x54bbd6), (0x549b50, 0x549b71), (0x549d30, 0x549da6),
-           (0x5f5e20, 0x5f5e50), (0x5f5e50, 0x5f5e80), (0x544a10, 0x544b50), (0x544160, 0x5441f0), (0x5441f0, 0x544290), (0x544c00, 0x544c80), (0x545100, 0x545180), (0x54abd0, 0x54ac70), (0x5da3c0, 0x5da3c1)])
+           (0x5f5e20, 0x5f5e50), (0x5f5e50, 0x5f5e80), (0x544a10, 0x544b50), (0x544e50, 0x544f90), (0x545180, 0x5452a0), (0x545310, 0x545450), (0x54aa80, 0x54ab40), (0x51feb0, 0x51ff10), (0x544160, 0x5441f0), (0x5441f0, 0x544290), (0x544c00, 0x544c80), (0x545100, 0x545180), (0x54abd0, 0x54ac70), (0x5da3c0, 0x5da3c1)])
 STREAM, SINK, BUF, POOL, LINKS, GLOBALS = RAM + 0x100, RAM + 0x200, RAM + 0x400, RAM + 0x1000, RAM + 0x800, 0x877b58
-CALLS = ['Write', 'Read', 'Free', 'Linked', 'Field5c', 'PopNode', 'Worn', 'Dur', 'PushNode', 'ReadN', 'ReadD', 'Close']
+SETUPREG, SYSTEMS_AT = 0x816d40, 0x80cefc
+CALLS = ['Write', 'Read', 'Free', 'Linked', 'Field5c', 'PopNode', 'Worn', 'Dur', 'PushNode', 'ReadN', 'ReadD', 'Close', 'Fixed', 'Perf', 'Count', 'AddCar']
 
 
 def case(r):
     op = r.choice(OPS)
     globals_ = bytearray(r.bytes(0x40))
+    if op in ('Perf', 'Count', 'AddCar', 'Fixed'):
+        rides = bytearray(r.bytes(0x100 * 0xd0))
+        index = r.choice([0, 1, 0xff, r.randrange(0x100)])
+        kind = r.choice([-14, -11, -6, -3, -1, 0, 1, 5, -2, -13, -15]) if op == 'Fixed' else r.choice([0, 1, 5, -7, 0x1234])
+        put(rides, index * 0xd0, 'i', kind)
+        put(globals_, 0, 'I', 0x4a454647 if r.random() < 0.9 else r.getrandbits(32))
+        put(globals_, 8, 'I', POOL)
+        handle = r.choice([index | (kind << 8) & 0xffffffff] * 5 + [index | (kind ^ 1) << 8 & 0xffffffff, r.getrandbits(32), 1]) & 0xffffffff
+        regions = {GLOBALS: globals_, POOL: rides}
+        if op == 'Perf':
+            return Call(0x545180, [handle, r.choice([-5, 0, 1, 50, 99, 100, 101, 1000, -0x80000000, r.getrandbits(32)]) & 0xffffffff], regions, ret='v')
+        if op == 'AddCar':
+            put(rides, index * 0xd0 + 0x50, 'I', r.choice([0, 1, 7]))
+            put(rides, index * 0xd0 + 0xc4, 'I', r.choice([LINKS + 0x20, 0, r.getrandbits(32)]))
+            put(globals_, 0x34, 'I', r.choice([LINKS, LINKS, 0]))
+            regions[LINKS] = r.bytes(0x40)
+            return Call(0x54aa80, [handle, r.getrandbits(32)], regions, ret='a')
+        if op == 'Count':  # a chain of pieces (kind in the word at +4, a value at +8, the next at +0x24)
+            n = r.choice([0, 1, 2, 3, 5])
+            pieces = bytearray(r.bytes(0x40 * 6))
+            for k in range(n):
+                put(pieces, 0x40 * k + 4, 'H', r.choice([8, 9, 10, 11, 11, 12, 13, 13, 14, 0, 0xffff, 0x100b]))
+                put(pieces, 0x40 * k + 8, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
+                put(pieces, 0x40 * k + 0x24, 'I', RAM + 0x8000 + 0x40 * (k + 1) if k + 1 < n else 0)
+            put(rides, index * 0xd0 + 0xbc, 'I', RAM + 0x8000 if n else 0)
+            regions[RAM + 0x8000] = pieces
+            outs = [RAM + 0x600 + 4 * k if r.random() < 0.8 else 0 for k in range(4)]
+            regions[RAM + 0x600] = r.bytes(0x10)
+            return Call(0x545310, [handle] + outs, regions, ret='a')
+        # Fixed: pool records of the ride with particle system handles (valid ones among them), flags 0x4000 and no animator
+        put(rides, index * 0xd0 + 0x54, 'I', r.choice([0, 1, 2, 2, 2, 3]))
+        recs = bytearray(r.bytes(8 * 0xac))
+        systems = bytearray(r.bytes(0x78 * 0x140))
+        used = 0
+        for k in range(8):
+            used += recs[k * 0xac] & 1
+            put(recs, k * 0xac + 0x9c, 'I', POOL + index * 0xd0 if r.random() < 0.7 else r.getrandbits(32))
+            put(recs, k * 0xac + 8, 'I', 0)
+            slot, serial = r.randrange(0x78), r.getrandbits(16)
+            put(systems, slot * 0x140 + 0xa, 'H', serial)
+            put(recs, k * 0xac + 0x2c, 'I', r.choice([serial << 16 | slot, serial << 16 | slot, 0xffffffff, r.getrandbits(32)]))
+        regions.update({SETUPREG: bytes([r.choice([0, 1, 1, 1])]) + bytes(0xf), SYSTEMS_AT: systems, RAM + 0x30000: recs})
+        put(globals_, 0x10, 'I', RAM + 0x30000 if r.random() < 0.9 else 0)
+        put(globals_, 0x14, 'I', r.choice([0, 1, used, max(used - 1, 0), 2]))
+        return Call(0x544e50, [handle], regions, ret='v')
     if op == 'Close':  # a ride of one of the kinds (the first dword, also the serial of its handle) with a list at +0xc8 / +0xc4 and pool records pointing at it
         rides = bytearray(r.bytes(0x100 * 0xd0))
         index = r.choice([0, 1, 0xff, r.randrange(0x100)])
