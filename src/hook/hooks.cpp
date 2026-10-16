@@ -66,7 +66,8 @@
 #include "../game/core/keymap.h"
 #include "../game/core/language.h"
 #include "../game/core/options.h"
-#include "../game/core/stdstring.h"
+#include "../game/core/stdstring.h"
+#include "../game/core/textarg.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -1356,6 +1357,9 @@ const Hook kHooks[] = {
     {"CircBufU8_50_Ctor",         0x004ce9e0, (void *)&CircBufU8_50_Ctor, {0x8b, 0xc1, 0xc6, 0x00, 0x00}},
     {"CircBufU32_144_Push",       0x004ce290, (void *)&CircBufU32_144_Push, {0x8b, 0x81, 0x44, 0x02, 0x00}},
     {"CircBufU32_30_Get",         0x00495cf0, (void *)&CircBufU32_30_Get, {0x8b, 0x54, 0x24, 0x08, 0x53}},
+    {"TextArg_Ctor",              0x004a77a0, (void *)&TextArg_Ctor, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
+    {"TextArgString_Ctor",        0x004ea220, (void *)&TextArgString_Ctor, {0x8b, 0x54, 0x24, 0x08, 0x8b}},
+    {"TextArgInt_Ctor",           0x0050aef0, (void *)&TextArgInt_Ctor, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

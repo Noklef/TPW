@@ -1981,6 +1981,9 @@ address,name,kind,confidence,notes
 0x004ce9e0,CircBufU8_50_Ctor,function,high,"reimplemented (src/game/core/circbuf); thiscall: a CircBufU8 of 50: byte +0 = 0, cursor +0x34 = -1, size +0x38 = 50, wrapped +0x3c = 0"
 0x004ce290,CircBufU32_144_Push,function,high,"reimplemented (src/game/core/circbuf); thiscall (value): CircBufU32 of 144: cursor +0x244 on (0 at size +0x248, sets wrapped +0x24c), value at +4 + cursor * 4"
 0x00495cf0,CircBufU32_30_Get,function,high,"reimplemented (src/game/core/circbuf); thiscall (&value, back): CircBufU32 of 30: the value back entries before cursor +0x7c (size +0x80, wrapped +0x84); AL 1, or 0 for none"
+0x004a77a0,TextArg_Ctor,function,high,"reimplemented (src/game/core/textarg); thiscall (n): the abstract format argument (vtable 0x6ffb34: _purecall, tag 'MRAV', number +8)"
+0x004ea220,TextArgString_Ctor,function,high,"reimplemented (src/game/core/textarg); thiscall (n, string): a string format argument (vtable 0x6ff174)"
+0x0050aef0,TextArgInt_Ctor,function,high,"reimplemented (src/game/core/textarg); thiscall (n, value, isSigned): a number format argument (vtable 0x6ff170, L""%d""); signed negatives as magnitude + flag (+0x10)"
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
