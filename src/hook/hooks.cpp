@@ -152,6 +152,7 @@
 #include "../game/world/things.h"
 #include "../game/world/analysercell.h"
 #include "../game/world/linestep.h"
+#include "../game/world/personscripts.h"
 #include "../game/world/world.h"
 #include "../game/model/holder.h"
 #include "../game/model/parts.h"
@@ -588,6 +589,9 @@ const Hook kHooks[] = {
     {"FlyingRide_Busy",           0x0055de30, (void *)&FlyingRide_Busy, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"AnalyserCell_TypePlain",    0x004fa990, (void *)&AnalyserCell_TypePlain, {0x33, 0xc0, 0x33, 0xd2, 0x8a}},
     {"LineStep_Init",             0x00511350, (void *)&LineStep_Init, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Visitor_PreviousRideTick",  0x004fdc90, (void *)&Visitor_PreviousRideTick, {0xa1, 0x9c, 0x23, 0x80, 0x00}},
+    {"Person_JumpScript210",      0x004fe950, (void *)&Person_JumpScript210, {0x56, 0x8b, 0xf1, 0x8b, 0x86}},
+    {"Person_KillScript84",       0x0050c0d0, (void *)&Person_KillScript84, {0x56, 0x8b, 0xf1, 0x8b, 0x86}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},
