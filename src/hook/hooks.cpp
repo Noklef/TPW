@@ -103,6 +103,7 @@
 #include "../game/core/base64.h"
 #include "../game/core/selectors.h"
 #include "../game/core/small2.h"
+#include "../game/core/tiny_g.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -2168,6 +2169,18 @@ const Hook kHooks[] = {
     {"Global8bba78_SetOne",       0x0057cb30, (void *)&Global8bba78_SetOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"Globals8bcb80_SetOne",      0x0057cb70, (void *)&Globals8bcb80_SetOne, {0xb8, 0x01, 0x00, 0x00, 0x00}},
     {"Obj_SetColour8b4",          0x005832e0, (void *)&Obj_SetColour8b4, {0x83, 0xec, 0x08, 0x8b, 0x44}},
+    {"Wrap_Fn_669fa8_492020",     0x00492020, (void *)&Wrap_Fn_669fa8_492020, {0x56, 0x8b, 0xf1, 0xe8, 0x80}},
+    {"Wrap_Fn_669fee_492060",     0x00492060, (void *)&Wrap_Fn_669fee_492060, {0xc7, 0x01, 0x98, 0xf5, 0x6f}},
+    {"Wrap_Set4_4217f0_4fa460",   0x004fa460, (void *)&Wrap_Set4_4217f0_4fa460, {0x6a, 0x03, 0x83, 0xc1, 0x0c}},
+    {"Wrap_Vtbl70a078_Set_6b4a50_6b0470", 0x006b0470, (void *)&Wrap_Vtbl70a078_Set_6b4a50_6b0470, {0xc7, 0x01, 0x58, 0xa1, 0x70}},
+    {"Wrap_Init_6b4a60_6b0710",   0x006b0710, (void *)&Wrap_Init_6b4a60_6b0710, {0x56, 0x8b, 0xf1, 0xe8, 0x48}},
+    {"Wrap_Vtbl70a258_Set_6b4a90_6b0750", 0x006b0750, (void *)&Wrap_Vtbl70a258_Set_6b4a90_6b0750, {0xc7, 0x01, 0x88, 0xa1, 0x70}},
+    {"Wrap_Init_6b4a60_6b1de0",   0x006b1de0, (void *)&Wrap_Init_6b4a60_6b1de0, {0x56, 0x8b, 0xf1, 0xe8, 0x78}},
+    {"Wrap_Vtbl70a258_Set_6b4a90_6b1e20", 0x006b1e20, (void *)&Wrap_Vtbl70a258_Set_6b4a90_6b1e20, {0xc7, 0x01, 0xa8, 0xa1, 0x70}},
+    {"Wrap_Init_6b4a60_6b2a10",   0x006b2a10, (void *)&Wrap_Init_6b4a60_6b2a10, {0x56, 0x8b, 0xf1, 0xe8, 0x48}},
+    {"Wrap_Vtbl70a258_Set_6b4a90_6b2a50", 0x006b2a50, (void *)&Wrap_Vtbl70a258_Set_6b4a90_6b2a50, {0xc7, 0x01, 0xc8, 0xa1, 0x70}},
+    {"Wrap_Init_6b4a60_6b3c00",   0x006b3c00, (void *)&Wrap_Init_6b4a60_6b3c00, {0x56, 0x8b, 0xf1, 0xe8, 0x58}},
+    {"Wrap_Vtbl70a258_Set_6b4a90_6b3c40", 0x006b3c40, (void *)&Wrap_Vtbl70a258_Set_6b4a90_6b3c40, {0xc7, 0x01, 0xe8, 0xa1, 0x70}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

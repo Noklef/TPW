@@ -95,6 +95,7 @@ add_library(tpw_game STATIC
     src/game/core/fieldops.cpp
     src/game/core/methods.cpp
     src/game/core/small2.cpp
+    src/game/core/tiny_g.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

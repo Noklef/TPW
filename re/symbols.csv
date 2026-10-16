@@ -2692,6 +2692,18 @@ address,name,kind,confidence,notes
 0x0057cb30,Global8bba78_SetOne,function,high,reimplemented (src/game/core/small2); sets the float at 0x8bba78 to 1.0
 0x0057cb70,Globals8bcb80_SetOne,function,high,reimplemented (src/game/core/small2); sets four globals to one
 0x005832e0,Obj_SetColour8b4,function,high,reimplemented (src/game/core/small2); stores a colour and its four byte parts as floats
+0x00492020,Wrap_Fn_669fa8_492020,function,high,reimplemented (src/game/core/tiny_g); calls Fn_669fa8
+0x00492060,Wrap_Fn_669fee_492060,function,high,reimplemented (src/game/core/tiny_g); calls Fn_669fee
+0x004fa460,Wrap_Set4_4217f0_4fa460,function,high,reimplemented (src/game/core/tiny_g); calls Set4_4217f0
+0x006b0470,Wrap_Vtbl70a078_Set_6b4a50_6b0470,function,high,reimplemented (src/game/core/tiny_g); calls Vtbl70a078_Set_6b4a50
+0x006b0710,Wrap_Init_6b4a60_6b0710,function,high,reimplemented (src/game/core/tiny_g); calls Init_6b4a60
+0x006b0750,Wrap_Vtbl70a258_Set_6b4a90_6b0750,function,high,reimplemented (src/game/core/tiny_g); calls Vtbl70a258_Set_6b4a90
+0x006b1de0,Wrap_Init_6b4a60_6b1de0,function,high,reimplemented (src/game/core/tiny_g); calls Init_6b4a60
+0x006b1e20,Wrap_Vtbl70a258_Set_6b4a90_6b1e20,function,high,reimplemented (src/game/core/tiny_g); calls Vtbl70a258_Set_6b4a90
+0x006b2a10,Wrap_Init_6b4a60_6b2a10,function,high,reimplemented (src/game/core/tiny_g); calls Init_6b4a60
+0x006b2a50,Wrap_Vtbl70a258_Set_6b4a90_6b2a50,function,high,reimplemented (src/game/core/tiny_g); calls Vtbl70a258_Set_6b4a90
+0x006b3c00,Wrap_Init_6b4a60_6b3c00,function,high,reimplemented (src/game/core/tiny_g); calls Init_6b4a60
+0x006b3c40,Wrap_Vtbl70a258_Set_6b4a90_6b3c40,function,high,reimplemented (src/game/core/tiny_g); calls Vtbl70a258_Set_6b4a90
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
