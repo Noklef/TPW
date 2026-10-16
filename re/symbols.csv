@@ -3038,6 +3038,8 @@ address,name,kind,confidence,notes
 0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/small17); whether the first name is after the second, case blind"
 0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/small17); whether two names are equal, case blind"
 0x0044b2e0,Model_FindMouthPart,function,high,reimplemented (src/game/core/small17); the index of the model element named for a mouth part
+0x005d45b0,Blocks7_Ctor,function,high,reimplemented (src/game/core/small18); clears the seven-array object
+0x005d4170,Pixels_BlendOnto,function,high,reimplemented (src/game/core/small18); blends an alpha image onto another image
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
