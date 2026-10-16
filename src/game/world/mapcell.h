@@ -46,6 +46,9 @@ s32 __cdecl Map_CountSpecialCells();
 // world + 0x294 + 0x44 times (the id + dx + dy * 128, 16 bits) (the offset is not scaled there, sic); null when it falls outside.
 u8 *__fastcall Map_StepCell(const u16 *cell, void *, s32 dx, s32 dy, s32 scale);
 
+// 0x50c320: the same for the 0x28-byte entries: world + (the id + 0x6cde) * 0x28 (the world pointer at 0x80239c), null outside the map.
+u8 *__fastcall Map_StepCell28(const u16 *cell, void *, s32 dx, s32 dy, s32 scale);
+
 // 0x4d8480 (thiscall on the world block; add, index, cell id, pops 12): to the five words of every cell within the radius (the byte at +0x1d910e of the index's 12-byte
 // record, at world + index * 12, clamped to the map) of the cell (the words at world + 0x1b1104 + (id - 1) * 10), the five words of the record (at +0x1d9104) are added, each
 // multiplied by +1 (add set) or -1 and divided (truncating) by the cell's distance, x + y + 1.

@@ -215,6 +215,15 @@ void __fastcall World_InitBlock(u8 *world) {
     }
 }
 
+u8 *__fastcall Map_StepCell28(const u16 *cell, void *, s32 dx, s32 dy, s32 scale) {
+    const u32 index = (u32)*cell - 1;
+    const s32 x = (s32)(index & 0x7f) + dx * scale;
+    const s32 y = (s32)(index >> 7) + dy * scale;
+    if (!Map_InBounds(x, y)) return nullptr;
+    const u32 id = ((u32)(dy * scale) << 7) + *cell + (u32)(dx * scale);  // (the scaled offset, unlike Map_StepCell)
+    return at<u8 *>(reinterpret_cast<const void *>(0x0080239c), 0) + ((id & 0xffff) + 0x6cde) * 0x28;
+}
+
 u8 *__fastcall Map_StepCell(const u16 *cell, void *, s32 dx, s32 dy, s32 scale) {
     const u32 index = (u32)*cell - 1;
     const s32 x = (s32)(index & 0x7f) + dx * scale;

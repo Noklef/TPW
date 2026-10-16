@@ -8,8 +8,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM  # noqa: E402
 
-CALLS = {'Step': 0x4d96f0, 'Dir': 0x4d97e0, 'Spread': 0x4d8480, 'Init': 0x4d7bb0, 'Facing': 0x4de670}
-B = Bench([(0x4d96f0, 0x4d97b0), (0x4d97b0, 0x4d97e0), (0x4d97e0, 0x4d9920), (0x4d99c0, 0x4d99e0), (0x4d8300, 0x4d8328), (0x5da3c0, 0x5da3c1), (0x4d8480, 0x4d8620), (0x4d7bb0, 0x4d7ea0), (0x4de670, 0x4de7e0), (0x536300, 0x53644c), (0x522850, 0x522860)])
+CALLS = {'Step28': 0x50c320, 'Step': 0x4d96f0, 'Dir': 0x4d97e0, 'Spread': 0x4d8480, 'Init': 0x4d7bb0, 'Facing': 0x4de670}
+B = Bench([(0x4d96f0, 0x4d97b0), (0x4d97b0, 0x4d97e0), (0x4d97e0, 0x4d9920), (0x4d99c0, 0x4d99e0), (0x4d8300, 0x4d8328), (0x5da3c0, 0x5da3c1), (0x4d8480, 0x4d8620), (0x4d7bb0, 0x4d7ea0), (0x4de670, 0x4de7e0), (0x50c320, 0x50c3e0), (0x536300, 0x53644c), (0x522850, 0x522860)])
 CELL = RAM
 
 
@@ -40,7 +40,7 @@ def case(r):
     cell = r.choice([1, 2, 0x7f, 0x80, 0x81, 0x4000, 0x3f81, 0x2000, r.randrange(1, 0x4001), 0, 0x4001, r.getrandbits(16)])
     regions = {CELL: struct.pack('<I', cell), 0x80239c: struct.pack('<I', RAM + 0x1000 + 4 * r.randrange(0x100))}
     small = lambda: r.choice([0, 1, -1, 2, -2, 3, 127, -127, 128, r.randrange(-5, 6), r.getrandbits(32) - (1 << 31)]) & 0xffffffff  # noqa: E731
-    if name == 'Step':
+    if name in ('Step', 'Step28'):
         return Call(CALLS[name], [CELL, small(), small(), r.choice([1, 1, 0, 2, 3, -1 & 0xffffffff, small()])], regions, conv='t', ret='a')
     pairs = bytearray(0x40)
     for i in range(0, 0x40, 4):
