@@ -227,6 +227,7 @@ add_library(tpw_game STATIC
     src/game/world/gamesystem.cpp
     src/game/world/ridesearch.cpp
     src/game/world/ridesweep.cpp
+    src/game/world/objectmsg.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp

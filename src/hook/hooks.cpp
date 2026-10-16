@@ -225,6 +225,7 @@
 #include "../game/world/analysercell.h"
 #include "../game/world/linestep.h"
 #include "../game/world/money.h"
+#include "../game/world/objectmsg.h"
 #include "../game/world/personscripts.h"
 #include "../game/world/ridelist.h"
 #include "../game/world/ridesearch.h"
@@ -789,6 +790,7 @@ const Hook kHooks[] = {
     {"Objects_ForEachKind3Flag1", 0x00482270, (void *)&Objects_ForEachKind3Flag1, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
     {"Objects_ForEachKind3NoFlags", 0x00482340, (void *)&Objects_ForEachKind3NoFlags, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
     {"Objects_ForEachKind3Flag2", 0x00482400, (void *)&Objects_ForEachKind3Flag2, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
+    {"Object_HandleDayMessage",   0x004dd320, (void *)&Object_HandleDayMessage, {0x53, 0x56, 0x57, 0x8b, 0x7c}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},

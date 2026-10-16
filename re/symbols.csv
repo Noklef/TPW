@@ -210,7 +210,7 @@ address,name,kind,confidence,notes
 0x004fb360,Visitor_HandleMessage,function,high,Thing_HandleMessage case 1
 0x004e0b90,Object_Update,function,medium,Thing_Update case 3 (first call)
 0x004e0e00,Object_PostUpdate,function,medium,Thing_Update case 3 (second call)
-0x004dd320,Object_HandleMessage,function,high,Thing_HandleMessage case 3
+0x004dd320,Object_HandleDayMessage,function,high,reimplemented (src/game/world/objectmsg); advances the six history rings at the end of the day
 0x004da490,Mechanic_PostUpdate,function,medium,Thing_Update case 4 (second call; the first goes through a thunk to 0x505490)
 0x004da0c0,Mechanic_HandleMessage,function,high,Thing_HandleMessage case 4
 0x004d7060,Handyman_Update,function,medium,Thing_Update case 5 (first call)
