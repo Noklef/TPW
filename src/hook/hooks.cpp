@@ -109,7 +109,8 @@
 #include "../game/world/thingmsg.h"
 #include "../game/world/analyser.h"
 #include "../game/world/challenges.h"
-#include "../game/world/mapcell.h"
+#include "../game/world/mapcell.h"
+#include "../game/world/object.h"
 #include "../game/world/things.h"
 #include "../game/model/holder.h"
 #include "../game/model/parts.h"
@@ -412,6 +413,14 @@ const Hook kHooks[] = {
     {"Challenges_DropOrphans",    0x004d1c80, (void *)&Challenges_DropOrphans, {0x51, 0x53, 0x55, 0x33, 0xed}},
     {"Challenges_Current",        0x004d2840, (void *)&Challenges_Current, {0x8b, 0x81, 0xcc, 0x03, 0x00}},
     {"BalanceChallenges_GetSchema", 0x004d1e60, (void *)&BalanceChallenges_GetSchema, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
+    {"Object_GetDef",             0x004dd4e0, (void *)&Object_GetDef, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
+    {"Object_AddWalkAway",        0x004e1670, (void *)&Object_AddWalkAway, {0x8b, 0x81, 0xa4, 0x01, 0x00}},
+    {"Object_AddCustomer",        0x004e1690, (void *)&Object_AddCustomer, {0x8b, 0x81, 0xa0, 0x01, 0x00}},
+    {"Object_AddHappinessChange", 0x004e1e00, (void *)&Object_AddHappinessChange, {0x8b, 0x81, 0x40, 0x03, 0x00}},
+    {"Object_SetQualityOfGoods",  0x004e2190, (void *)&Object_SetQualityOfGoods, {0x8b, 0x44, 0x24, 0x04, 0x25}},
+    {"Object_SetChanceOfWinning", 0x004e21c0, (void *)&Object_SetChanceOfWinning, {0x8b, 0x44, 0x24, 0x04, 0x25}},
+    {"Object_DefWord284",         0x004e2710, (void *)&Object_DefWord284, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
+    {"Object_DefIsKind3",         0x004e2b50, (void *)&Object_DefIsKind3, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},

@@ -237,7 +237,14 @@ address,name,kind,confidence,notes
 0x004d6330,Guard_IsFree,function,high,reimplemented (src/game/world/staff); thiscall: the guard's state (+0x19c) is 0 or 1 (the nearest guard search at 0x509a97 takes only those)
 0x004d6350,Guard_IsState12,function,high,reimplemented (src/game/world/staff); thiscall: the guard's state (+0x19c) is 0x12
 0x00506870,Staff_GetWage,function,medium,"per-type factor (DAT_00785380) * pay grade table (DAT_0078532c, stride 0x10)"
-0x004dd4e0,Object_GetDef,function,medium,"fastcall; ObjectDefs_Find(this->mId at +0xe); the def holds balance values (effects at +0x144..+0x15c)"
+0x004dd4e0,Object_GetDef,function,high,reimplemented (src/game/world/object); the object's definition
+0x004e1670,Object_AddWalkAway,function,high,reimplemented (src/game/world/object); a walk-away counted
+0x004e1690,Object_AddCustomer,function,high,reimplemented (src/game/world/object); a customer counted
+0x004e1e00,Object_AddHappinessChange,function,high,reimplemented (src/game/world/object); the happiness change average
+0x004e2190,Object_SetQualityOfGoods,function,high,reimplemented (src/game/world/object); mQualityOfGoods set
+0x004e21c0,Object_SetChanceOfWinning,function,high,reimplemented (src/game/world/object); mChanceOfWinning set
+0x004e2710,Object_DefWord284,function,high,reimplemented (src/game/world/object); the definition's +0x284
+0x004e2b50,Object_DefIsKind3,function,high,reimplemented (src/game/world/object); whether the definition's +0x9c is 3
 0x00412e90,ObjectDefs_Find,function,high,"reimplemented (src/game/world/objectdefs); thiscall(id): the definition with an id (one-entry cache), or 0"
 0x00412ef0,ObjectDefs_FindAt390,function,high,"reimplemented (src/game/world/objectdefs); the found definition's +0x390 part, or 0"
 0x00412f50,ObjectDefs_FindAt410,function,high,"reimplemented (src/game/world/objectdefs); the found definition's +0x410 part, or 0"
