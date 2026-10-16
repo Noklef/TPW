@@ -9,10 +9,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x424ed0, 0x424ee9), (0x4922d0, 0x4922e0), (0x4e1c60, 0x4e1c70), (0x4f00f0, 0x4f0110), (0x4f6020, 0x4f6080), (0x40f300, 0x40f329), (0x59b550, 0x59b590), (0x458910, 0x458935), (0x458940, 0x458965),
-           (0x5836b0, 0x5836c2), (0x4a9350, 0x4a9375), (0x4b4670, 0x4b4695), (0x4bcec0, 0x4bcef0), (0x52fbf0, 0x52fc21), (0x5646c0, 0x564708), (0x564ba0, 0x564bf0), (0x56b570, 0x56b5b2), (0x4583d0, 0x4583f6), (0x5651c0, 0x56520b), (0x4d09a0, 0x4d09e6), (0x458310, 0x45834d), (0x402ef0, 0x402f10), (0x4032b0, 0x4032ca), (0x402f30, 0x402f50), (0x4030c0, 0x4030c4),
+           (0x5836b0, 0x5836c2), (0x4a9350, 0x4a9375), (0x4b4670, 0x4b4695), (0x4bcec0, 0x4bcef0), (0x52fbf0, 0x52fc21), (0x56e780, 0x56e7de), (0x54b290, 0x54b2f0), (0x56b340, 0x56b37d), (0x576540, 0x5765b8), (0x583360, 0x5833ba), (0x5646c0, 0x564708), (0x564ba0, 0x564bf0), (0x56b570, 0x56b5b2), (0x4583d0, 0x4583f6), (0x5651c0, 0x56520b), (0x4d09a0, 0x4d09e6), (0x458310, 0x45834d), (0x402ef0, 0x402f10), (0x4032b0, 0x4032ca), (0x402f30, 0x402f50), (0x4030c0, 0x4030c4),
            (0x47f940, 0x47f95a), (0x657d30, 0x657d6c), (0x4d4170, 0x4d4186), (0x475550, 0x47558b), (0x4d9600, 0x4d9619), (0x4e01f0, 0x4e0209), (0x4f6820, 0x4f6850),
            (0x4f6850, 0x4f6880), (0x56a510, 0x56a540), (0x56b630, 0x56b650), (0x56b830, 0x56b850)])
-CALLS = ['Virt5646', 'Virt564b', 'FindSet', 'SetVec', 'Ctor1260', 'Smallest', 'CtorVirtual', 'PairAdd', 'CtorPart', 'MeshClear', 'MeshSet', 'Countdown', 'Kill24', 'Choose', 'Advance', 'CtorOne', 'CtorValue', 'KillSlot', 'Stamp30', 'Stamp5e', 'InitBuf', 'Clear0', 'Clear18', 'Diff', 'Virtual', 'Setg', 'Setp', 'Pixel', 'Fill', 'Set3034']
+CALLS = ['Extents', 'FreeAll', 'ReleaseR', 'TopBits', 'Virt5646', 'Virt564b', 'FindSet', 'SetVec', 'Ctor1260', 'Smallest', 'CtorVirtual', 'PairAdd', 'CtorPart', 'MeshClear', 'MeshSet', 'Countdown', 'Kill24', 'Choose', 'Advance', 'CtorOne', 'CtorValue', 'KillSlot', 'Stamp30', 'Stamp5e', 'InitBuf', 'Clear0', 'Clear18', 'Diff', 'Virtual', 'Setg', 'Setp', 'Pixel', 'Fill', 'Set3034']
 BUF = RAM + 0x1000
 
 
@@ -20,6 +20,48 @@ def case(r):
     op = r.choice(OPS)
     obj = bytearray(r.bytes(0x400))
     regions = {RAM: obj}
+    if op == 'Extents':
+        arg = lambda: r.choice([0, 1, 5, 9, -1, -5, 100, 0x7f, 0x80, -0x80, 0x1ff, -0x1ff, r.randrange(-300, 300)]) & 0xffffffff
+        first = r.randrange(0, 10)
+        return Call(0x56e780, [RAM, arg(), first, arg(), first + r.randrange(0, 6) - (2 if r.random() < 0.1 else 0)], regions, conv='t')
+    if op == 'FreeAll':
+        # chunks at RAM + 0x100 + 0x40 * i (list head at the owner's +0xbc), their nodes at RAM + 0x400 + 0x20 * j
+        owner = RAM + 0x20
+        obj = bytearray(obj) + bytes(0x200)
+        nodes = [RAM + 0x400 + 0x20 * j for j in range(6)]
+        cs = [RAM + 0x100 + 0x40 * i for i in range(3)]
+        put(obj, 0x20 + 0xbc, 'I', cs[0] if r.random() < 0.9 else 0)
+        for i, c in enumerate(cs):
+            put(obj, 0x100 + 0x40 * i + 0x24, 'I', cs[i + 1] if i + 1 < len(cs) and r.random() < 0.8 else 0)
+            put(obj, 0x100 + 0x40 * i + 0x1c, 'I', r.choice([0, nodes[2 * i]]))
+            put(obj, 0x100 + 0x40 * i, 'I', r.getrandbits(32))
+        for j in range(6):
+            put(obj, 0x400 + 0x20 * j + 0x14, 'I', nodes[j + 1] if j % 2 == 0 and r.random() < 0.7 else 0)
+            put(obj, 0x400 + 0x20 * j, 'I', r.getrandbits(32))
+        regions[RAM] = obj
+        regions[0x877b70] = r.bytes(0x20)
+        return Call(0x54b290, [owner], regions)
+    if op == 'ReleaseR':
+        put(obj, 0, 'I', r.choice([0, 1, 1, 0xffffffff, r.getrandbits(32)]))
+        put(obj, 4, 'I', r.choice([0, RAM + 0x100]))
+        put(obj, 0x100, 'I', RAM + 0x300)  # the part's vtable: +4 = the virtual base offset
+        offset = r.choice([0, 0x10, 0x20])
+        put(obj, 0x304, 'I', offset)
+        renderer = bytearray(r.bytes(0x100))
+        put(renderer, 0x28, 'I', r.choice([0, RAM + 0x1100, RAM + 0x1100]))  # the tag 0x60 list: one node, the part's or not
+        put(renderer, 4, 'I', 0)
+        put(renderer, 0xc, 'I', 5)
+        regions[RAM + 0x1100] = put(put(bytearray(8), 0, 'I', RAM + 0x100 + offset if r.random() < 0.6 else r.getrandbits(32)), 4, 'I', 0)
+        regions.update({0x87a6d0: put(bytearray(r.bytes(0x10)), 0, 'I', r.choice([RAM + 0x1000, RAM + 0x1000, 0])),
+                        RAM + 0x1000: renderer, 0x8bd500: r.bytes(0x20)})
+        return Call(0x56b340, [RAM], regions, conv='t', ret='a')
+    if op == 'TopBits':
+        obj = bytearray(obj) + bytes(0x600)
+        masks = [0xff0000, 0xff00, 0xff, 0xf800, 0x7e0, 0x1f, 0, 0x80000000, 1, r.getrandbits(32)]
+        for off in (0x8fc, 0x904, 0x90c):
+            put(obj, off, 'I', r.choice(masks))
+        regions[RAM] = obj
+        return Call(0x583360, [RAM], regions, conv='t', ret='a')
     if op in ('Virt5646', 'Virt564b'):
         off = r.choice([0x18, 0x18, 0x1c, 0x20] if op == 'Virt5646' else [0x2c, 0x2c, 0x30, 0x34])
         put(obj, 0, 'I', RAM + 0x300)

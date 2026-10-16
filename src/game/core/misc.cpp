@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <initializer_list>
 
+#include "../render/renderer.h"
 #include "../render/state.h"
 #include "../sprite/script.h"
 #include "accessors.h"
@@ -169,6 +170,64 @@ u32 __fastcall PtrArray_SetVectorOf(const u8 *list, void *, u8 *key, u32 a, u32 
     at<u32>(key, 0x18) = b;
     at<u32>(key, 0x1c) = c;
     return 1;
+}
+
+void __fastcall Extents_Include(u8 *extents, void *, s32 low, s32 first, s32 high, s32 last) {
+    if (at<s32>(extents, 0x20) > first)
+        at<s32>(extents, 0x20) = first;
+    if (at<s32>(extents, 0x24) < last)
+        at<s32>(extents, 0x24) = last;
+    for (s32 column = first; column <= last; column++) {
+        s8 &lowest = at<s8>(extents, 0x28 + (u32)column);
+        s8 &highest = at<s8>(extents, 0xa8 + (u32)column);
+        if (lowest > low)
+            lowest = (s8)low;
+        if (highest < high)
+            highest = (s8)high;
+    }
+}
+
+void __cdecl Pool_FreeAll(u8 *owner) {
+    while (u8 *chunk = at<u8 *>(owner, 0xbc)) {
+        while (u8 *node = at<u8 *>(chunk, 0x1c)) {
+            at<u32>(chunk, 0x1c) = at<u32>(node, 0x14);
+            global<u32>(0x00877b74)--;
+            at<u32>(node, 0) &= 0xfffffffe;
+        }
+        at<u32>(owner, 0xbc) = at<u32>(chunk, 0x24);
+        at<u32>(chunk, 0) &= 0xfffffffe;
+        global<u32>(0x00877b84)--;
+    }
+}
+
+u32 __fastcall Obj_ReleaseFromRenderer(u8 *object) {
+    if (!(at<u32>(object, 0) & 1))
+        return 1;
+    at<u32>(object, 0) &= 0xfffffffe;
+    u8 *renderer = global<u8 *>(0x0087a6d0);
+    if (!renderer)
+        return 0;
+    u8 *part = at<u8 *>(object, 4);
+    if (part)
+        part += at<u32>(at<u8 *>(part, 0), 4);
+    return Renderer_RemoveFromSlot(renderer, nullptr, (u32)(uintptr_t)part, 0x60) ? 1 : 0;
+}
+
+u32 __fastcall Masks_TopBits(u8 *object) {
+    auto top = [](u32 mask) {
+        u32 bit = 0x80000000;
+        while (!(mask & bit) && (bit >>= 1)) {
+        }
+        return bit;
+    };
+    const u32 red = top(at<u32>(object, 0x8fc));
+    at<u32>(object, 0x900) = red;
+    const u32 green = top(at<u32>(object, 0x904));
+    at<u32>(object, 0x908) = green;
+    const u32 blue = top(at<u32>(object, 0x90c));
+    at<u32>(object, 0x910) = blue;
+    at<u32>(object, 0x918) = blue | green | red;
+    return blue | green | red;
 }
 
 u32 __cdecl PairTable_Add(u32 a, u32 b) {

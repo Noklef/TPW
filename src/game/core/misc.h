@@ -1,4 +1,4 @@
-// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x458310, 0x4583d0, 0x4bcec0, 0x5646c0, 0x564ba0, 0x56b570, 0x5651c0, 0x4d09a0, 0x52fbf0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
+// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x458310, 0x4583d0, 0x4bcec0, 0x54b290, 0x56b340, 0x56e780, 0x583360, 0x5646c0, 0x564ba0, 0x56b570, 0x5651c0, 0x4d09a0, 0x52fbf0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
 // 0x4e1c60, 0x4f00f0, 0x4f6020, 0x4f6820, 0x4f6850, 0x56a510, 0x56b630 and 0x56b830.
 #pragma once
 
@@ -60,6 +60,27 @@ u8 *__fastcall Obj_CtorVirtual564ba0(u8 *object, void *, u32 mostDerived);
 // backwards for the key; when found the key's dwords at +0x14, +0x18, +0x1c = a, b, c and 1 is
 // returned, else 0.
 u32 __fastcall PtrArray_SetVectorOf(const u8 *list, void *, u8 *key, u32 a, u32 b, u32 c);
+
+// 0x56e780 (thiscall; low, first, high, last, pops 16): the extents of a column range. +0x20 =
+// min(+0x20, first) and +0x24 = max(+0x24, last) (signed); then for each column from first to last
+// inclusive, the signed byte at +0x28 + column is lowered to the low byte of `low` when above it
+// (compared as a dword) and the byte at +0xa8 + column raised to the low byte of `high` when below.
+void __fastcall Extents_Include(u8 *extents, void *, s32 low, s32 first, s32 high, s32 last);
+
+// 0x54b290 (cdecl; owner): every chunk on the list at owner +0xbc is freed: its nodes (the list at
+// chunk +0x1c, next at node +0x14) have bit 0 of their first dword cleared and 0x877b74 stepped down,
+// then the owner's head = chunk +0x24, bit 0 of the chunk's first dword cleared and 0x877b84 stepped down.
+void __cdecl Pool_FreeAll(u8 *owner);
+
+// 0x56b340 (thiscall): 1 when bit 0 of the first dword is already clear. Else it is cleared and the part
+// at +4 (a virtual base: the pointer plus the offset at +4 of its vtable; 0 for none) removed from the
+// renderer's tag 0x60 list (Renderer_RemoveFromSlot): 1 if that succeeded, 0 if it failed or there is
+// no renderer ([0x87a6d0]).
+u32 __fastcall Obj_ReleaseFromRenderer(u8 *object);
+
+// 0x583360 (thiscall): the highest set bit of the masks at +0x8fc, +0x904 and +0x90c (0 for a zero mask)
+// stored at +0x900, +0x908 and +0x910, and their union at +0x918, which is returned.
+u32 __fastcall Masks_TopBits(u8 *object);
 
 // 0x52fbf0 (cdecl; a, b): appends the pair to the table of 8-byte entries at 0x81b740 (count at
 // 0x820a8c), unless the count is above 0x400 (signed): 0 then, else 1.
