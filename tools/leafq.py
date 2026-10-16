@@ -27,7 +27,8 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 EXE = os.path.join(ROOT, '.data', 'nocd', 'tp.exe')
 
 
-PROVIDED = {0x5da3c0, 0x67acb0, 0x67acc0}
+PROVIDED = {0x5da3c0, 0x67acb0, 0x67acc0,  # Debug_Printf, operator delete / new (core/gameheap)
+            0x67df40, 0x67b5f0, 0x67bfc0, 0x67c250, 0x67c080, 0x67f1a0, 0x67fa60, 0x67a520, 0x67a650, 0x67acd0}  # the CRT calls of core/crt (CrtEnv)
 
 
 def opt(name, default):
