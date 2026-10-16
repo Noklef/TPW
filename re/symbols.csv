@@ -2486,6 +2486,9 @@ address,name,kind,confidence,notes
 0x005d03b0,Obj_SwapPair,function,high,reimplemented (src/game/core/misc); the dwords at +4 and +8 swapped with another object's
 0x005dd3d0,Obj_ChooseVector,function,high,reimplemented (src/game/core/misc); the vector at +0x10 taken from one of two others
 0x005ddac0,Obj_Pending,function,high,reimplemented (src/game/core/misc); +0x60 is 0 and +0x40 is below +0x64
+0x005f4490,Obj_SetShown,function,high,"reimplemented (src/game/core/misc); a shown value kept, and bit 0 of the object at +0x28 flipped to match"
+0x00633dc0,Class703ca0_Ctor,function,high,"reimplemented (src/game/core/misc); Class703770_Ctor, vtables 0x703ca0 and 0x703c98 and zeroed fields"
+0x006486e0,Records32_MaxWeight,function,high,reimplemented (src/game/core/misc); the 0x20-byte record with the greatest positive weight
 0x0047f910,Fn_47f910,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = a value, +0x4 = 0x0, +0x8 = 0x0, +0xc = 0x0, +0x10 = 0x0, +0x14 = 0x0, +0x18 = 0x0, +0x1c = 0x0, +0x20 = 0x0, +0x24 = 0x0, +0x28 = 0x0, +0x2c = 0x0"
 0x0048c9e0,Fn_48c9e0,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = 0x6ff1f0, 0x7c2658 = 0x0, +0x10 = 0x0, +0x18 = 0x0, +0x14 = 0x0, +0x1c = 0x0"
 0x004e0210,Fn_4e0210,function,high,"reimplemented (src/game/core/tiny_d); stores +0x5e = 0x0, +0x60 = 0x0"

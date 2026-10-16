@@ -11,6 +11,7 @@
 #include "tiny_d.h"
 #include "small.h"
 #include "string.h"
+#include "tiny_d.h"
 #include "tiny_e.h"
 
 namespace {
@@ -403,6 +404,42 @@ void __fastcall Obj_ChooseVector(u8 *object) {
 
 u32 __stdcall Obj_Pending(const u8 *object) {
     return at<u32>(object, 0x60) == 0 && at<s32>(object, 0x40) < at<s32>(object, 0x64) ? 1 : 0;
+}
+
+u32 __fastcall Obj_SetShown(u8 *object, void *, u32 value) {
+    if (at<u32>(object, 0x2c) == value)
+        return value;
+    at<u32>(object, 0x2c) = value;
+    u8 *target = reinterpret_cast<u8 *>(Fn_56b620(at<u32>(object, 0x28)));
+    at<u32>(target, 0x10) = value ? at<u32>(target, 0x10) & 0xfffffffe : at<u32>(target, 0x10) | 1;
+    return (u32)(uintptr_t)target;
+}
+
+u8 *__fastcall Class703ca0_Ctor(u8 *object) {
+    Class703770_Ctor(object);
+    at<u32>(object, 8) = 0;
+    at<u32>(object, 0xc) = 0x00703748;
+    at<u32>(object, 0x14) = 0;
+    at<u32>(object, 0x18) = 0;
+    at<u32>(object, 0x10) = 0x00703744;
+    at<u32>(object, 0x1c) = 0;
+    at<u32>(object, 0x20) = 0;
+    at<u32>(object, 0) = 0x00703ca0;
+    at<u32>(object, 0xc) = 0x00703c98;
+    return object;
+}
+
+u8 *__cdecl Records32_MaxWeight(u8 *records, s32 count) {
+    u8 *best = nullptr;
+    s32 weight = 0;
+    for (s32 i = 0; i < count; i++) {
+        u8 *record = records + 0x20 * (u32)i;
+        if (at<s32>(record, 0x1c) > weight && at<s32>(record, 0x18) > 0) {
+            best = record;
+            weight = at<s32>(record, 0x1c);
+        }
+    }
+    return best;
 }
 
 u32 __cdecl PairTable_Add(u32 a, u32 b) {
