@@ -1,0 +1,40 @@
+# The circular buffers' constructors, push and look back (src/game/core/circbuf: 0x4cdb60,
+# 0x4ce9e0, 0x4ce290, 0x495cf0) against the originals: cursors before, at and past the size,
+# sizes of either sign, wrapped or not, looks back of every sign about the cursor and size.
+# usage: circbuf.py [CASES [SEED]] [--wild|--both] [--show N]
+import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
+from fncmp import Bench, Call, RAM, put  # noqa: E402
+
+B = Bench([(0x4cdb60, 0x4cdb7a), (0x4ce9e0, 0x4ce9f8), (0x4ce290, 0x4ce2c9), (0x495cf0, 0x495d3e)])
+BUF = RAM + 0x100
+
+
+def case(r):
+    mem = r.bytes(0x600)
+    op = r.randrange(4)
+    if op == 0:
+        return Call(r.choice([0x4cdb60, 0x4ce9e0]), [BUF + 4 * r.randrange(8)], {RAM: mem}, conv='t', ret='a')
+    if op == 1:
+        size = r.choice([0, 1, 2, 0x90, r.randrange(0x90), r.randrange(-3, 3)])
+        put(mem, 0x100 + 0x248, 'i', size)
+        put(mem, 0x100 + 0x244, 'i', r.choice([size - 1, size - 2, size, -1, -2, r.randrange(-2, 0x92)]))
+        if r.random() < 0.5:
+            put(mem, 0x100 + 0x24c, 'B', 0)
+        return Call(0x4ce290, [BUF, r.getrandbits(32)], {RAM: mem}, conv='t')
+    size = r.choice([0, 1, 30, r.randrange(31), r.randrange(-3, 3)])
+    cursor = r.choice([-1, 0, size - 1, size, r.randrange(-3, max(size, 0) + 1)])
+    put(mem, 0x100 + 0x80, 'i', size)
+    put(mem, 0x100 + 0x7c, 'i', cursor)
+    put(mem, 0x100 + 0x84, 'I', r.choice([0, 1, r.getrandbits(8)]) | r.choice([0, r.getrandbits(24) << 8]))
+    back = r.choice([0, 1, -1, cursor, cursor + 1, size, size - 1, r.randrange(-4, max(size, 0) + 4),
+                     r.getrandbits(32) - (1 << 31)])
+    if back < 0 and cursor - back > 30:
+        back = -1
+    return Call(0x495cf0, [BUF, RAM + 0x500, back & 0xffffffff], {RAM: mem}, conv='t', ret='b')
+
+
+if __name__ == '__main__':
+    B.main(case)

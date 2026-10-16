@@ -3,6 +3,7 @@
 #include "hooks.h"
 
 #include "../game/core/app.h"
+#include "../game/core/circbuf.h"
 #include "../game/core/fpu.h"
 #include "../game/core/libc.h"
 #include "../game/core/list.h"
@@ -29,7 +30,7 @@
 #include "../game/files/wadsource.h"
 #include "../game/files/bufsource.h"
 #include "../game/files/filestream.h"
-#include "../game/files/quickload.h"
+#include "../game/files/quickload.h"
 #include "../game/files/textscan.h"
 #include "../game/files/wtext.h"
 #include "../game/math/matrix.h"
@@ -46,25 +47,25 @@
 #include "../game/gfx/surfbuf.h"
 #include "../game/gfx/pointer.h"
 #include "../game/gfx/color.h"
-#include "../game/gfx/convert.h"
+#include "../game/gfx/convert.h"
 #include "../game/gfx/gauge.h"
 #include "../game/gfx/jpeg.h"
-#include "../game/gfx/imagecodec.h"
+#include "../game/gfx/imagecodec.h"
 #include "../game/gfx/texdirs.h"
-#include "../game/gfx/barmesh.h"
+#include "../game/gfx/barmesh.h"
 #include "../game/gfx/overlay.h"
 #include "../game/gfx/screensurfaces.h"
 #include "../game/gfx/tga.h"
 #include "../game/core/events.h"
-#include "../game/core/filetime.h"
+#include "../game/core/filetime.h"
 #include "../game/core/gameclock.h"
-#include "../game/core/globalmem.h"
+#include "../game/core/globalmem.h"
 #include "../game/core/ime.h"
-#include "../game/core/idtable.h"
+#include "../game/core/idtable.h"
 #include "../game/core/keymap.h"
 #include "../game/core/language.h"
 #include "../game/core/options.h"
-#include "../game/core/stdstring.h"
+#include "../game/core/stdstring.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -75,7 +76,7 @@
 #include "../game/motion/uvanim.h"
 #include "../game/motion/vertexanim.h"
 #include "../game/rsse/rsse.h"
-#include "../game/sprite/draw.h"
+#include "../game/sprite/draw.h"
 #include "../game/sprite/screenmatrix.h"
 #include "../game/sprite/script.h"
 #include "../game/sprite/sprite.h"
@@ -89,7 +90,7 @@
 #include "../game/coaster/queue.h"
 #include "../game/coaster/cursor.h"
 #include "../game/coaster/registry.h"
-#include "../game/coaster/contacts.h"
+#include "../game/coaster/contacts.h"
 #include "../game/coaster/ridebounds.h"
 #include "../game/coaster/setup.h"
 #include "../game/coaster/save.h"
@@ -100,26 +101,27 @@
 #include "../game/terrain/procedural.h"
 #include "../game/terrain/terrain_blend.h"
 #include "../game/world/random.h"
-#include "../game/world/camera.h"
+#include "../game/world/camera.h"
 #include "../game/world/mousemode.h"
-#include "../game/world/objectdefs.h"
+#include "../game/world/objectdefs.h"
 #include "../game/world/staff.h"
 #include "../game/world/thingmsg.h"
 #include "../game/world/analyser.h"
+#include "../game/world/mapcell.h"
 #include "../game/world/things.h"
 #include "../game/model/holder.h"
 #include "../game/model/parts.h"
 #include "../game/model/highlight.h"
 #include "../game/model/partstate.h"
 #include "../game/model/remap.h"
-#include "../game/model/clone.h"
-#include "../game/model/faces.h"
+#include "../game/model/clone.h"
+#include "../game/model/faces.h"
 #include "../game/model/heightat.h"
 #include "../game/model/release.h"
 #include "../game/model/ridemodel.h"
 #include "../game/model/scratch.h"
-#include "../game/model/slots.h"
-#include "../game/model/bounds.h"
+#include "../game/model/slots.h"
+#include "../game/model/bounds.h"
 #include "../game/model/stripanim.h"
 #include "../game/model/worldverts.h"
 #include "../game/render/frame.h"
@@ -382,13 +384,17 @@ const Hook kHooks[] = {
     {"World_StaffList742",        0x00482000, (void *)&World_StaffList742, {0x8b, 0x44, 0x24, 0x04, 0x66}},
     {"World_StaffList744",        0x00482020, (void *)&World_StaffList744, {0x8b, 0x44, 0x24, 0x04, 0x66}},
     {"AnalyserCell_Ctor",         0x004c5d10, (void *)&AnalyserCell_Ctor, {0x8b, 0xc1, 0xba, 0x00, 0xc0}},
-    {"AnalyserSlot_Ctor",         0x004cdb60, (void *)&AnalyserSlot_Ctor, {0x8b, 0xc1, 0x66, 0xc7, 0x00}},
     {"ParkAnalyser_Record",       0x004c74b0, (void *)&ParkAnalyser_Record, {0x8b, 0x44, 0x24, 0x04, 0xc1}},
     {"ParkAnalyser_Tally",        0x004c74f0, (void *)&ParkAnalyser_Tally, {0x8b, 0x81, 0xfc, 0x1b, 0x02}},
     {"ParkAnalyser_Tallied",      0x004c94a0, (void *)&ParkAnalyser_Tallied, {0x8a, 0x44, 0x24, 0x04, 0x84}},
     {"ParkAnalyser_Total",        0x004c94c0, (void *)&ParkAnalyser_Total, {0x8b, 0x81, 0x08, 0x1c, 0x02}},
     {"ParkAnalyser_TotalSince",   0x004c94d0, (void *)&ParkAnalyser_TotalSince, {0x53, 0x56, 0x8b, 0x74, 0x24}},
     {"ParkAnalyser_Cell",         0x004c7b70, (void *)&ParkAnalyser_Cell, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"MapHandle_Entry28",         0x004d0af0, (void *)&MapHandle_Entry28, {0x33, 0xc0, 0x66, 0x8b, 0x01}},
+    {"MapHandle_Cell44",          0x004d0b10, (void *)&MapHandle_Cell44, {0x33, 0xc0, 0x8b, 0x15, 0xa0}},
+    {"MemRanges_Set",             0x004d0a70, (void *)&MemRanges_Set, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"MemRanges_SetCells44",      0x004d0a90, (void *)&MemRanges_SetCells44, {0x8b, 0x4c, 0x24, 0x08, 0x8b}},
+    {"MemRanges_SetCells28",      0x004d0ac0, (void *)&MemRanges_SetCells28, {0x8b, 0x4c, 0x24, 0x08, 0x8b}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},
@@ -1291,6 +1297,10 @@ const Hook kHooks[] = {
     {"GameClock_Load4c",          0x004031b0, (void *)&GameClock_Load4c, {0x8b, 0x44, 0x24, 0x04, 0x6a}},
     {"Clock_Save",                0x00402e00, (void *)&Clock_Save, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"Clock_Load",                0x00402e30, (void *)&Clock_Load, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
+    {"CircBufU16_3_Ctor",         0x004cdb60, (void *)&CircBufU16_3_Ctor, {0x8b, 0xc1, 0x66, 0xc7, 0x00}},
+    {"CircBufU8_50_Ctor",         0x004ce9e0, (void *)&CircBufU8_50_Ctor, {0x8b, 0xc1, 0xc6, 0x00, 0x00}},
+    {"CircBufU32_144_Push",       0x004ce290, (void *)&CircBufU32_144_Push, {0x8b, 0x81, 0x44, 0x02, 0x00}},
+    {"CircBufU32_30_Get",         0x00495cf0, (void *)&CircBufU32_30_Get, {0x8b, 0x54, 0x24, 0x08, 0x53}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

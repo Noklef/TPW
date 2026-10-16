@@ -19,14 +19,6 @@ u8 *__fastcall AnalyserCell_Ctor(u8 *cell) {
     return cell;
 }
 
-u8 *__fastcall AnalyserSlot_Ctor(u8 *slot) {
-    at<u16>(slot, 0) = 0;
-    at<u32>(slot, 8) = 0xffffffff;
-    at<u32>(slot, 0xc) = 3;
-    at<u8>(slot, 0x10) = 0;
-    return slot;
-}
-
 void __fastcall ParkAnalyser_Record(u8 *analyser, void *, u32 ring, u32 value) {
     u8 *const r = analyser + 0x216fc + (ring << 6);
     const s32 size = at<s32>(r, 0x38);

@@ -1,5 +1,5 @@
 # The park analyser's small methods (src/game/world/analyser: 0x4c5d10, 0x4c74b0, 0x4c74f0,
-# 0x4c7b70, 0x4c94a0-0x4c94d0, 0x4cdb60) against the originals: rings with cursors before, at
+# 0x4c7b70, 0x4c94a0-0x4c94d0) against the originals: rings with cursors before, at
 # and past their sizes, wrapped or not; looks back of every sign about the cursor and size;
 # positions 0 and beyond the grid with scales of either sign.
 # usage: analyser.py [CASES [SEED]] [--wild|--both] [--show N]
@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x4c5d10, 0x4c5d70), (0x4c74b0, 0x4c74e9), (0x4c74f0, 0x4c751b), (0x4c7b70, 0x4c7bab),
-           (0x4c94a0, 0x4c952b), (0x4cdb60, 0x4cdb7a)])
+           (0x4c94a0, 0x4c952b)])
 A = RAM  # the analyser; its +0x20800 on is the region at HI
 HI = RAM + 0x20800
 
@@ -20,7 +20,7 @@ def case(r):
     regions = {RAM: lo, HI: hi}
     op = r.randrange(7)
     if op == 0:
-        return Call(r.choice([0x4c5d10, 0x4cdb60]), [RAM + 0x1000 + 4 * r.randrange(8)], {RAM + 0x1000: r.bytes(0x100)},
+        return Call(0x4c5d10, [RAM + 0x1000 + 4 * r.randrange(8)], {RAM + 0x1000: r.bytes(0x100)},
                     conv='t', ret='a')
     if op == 1:
         ring = r.randrange(1, 18)

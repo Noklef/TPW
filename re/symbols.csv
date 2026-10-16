@@ -655,13 +655,17 @@ address,name,kind,confidence,notes
 0x0040f8d0,ThingMsg1c_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x1c
 0x0040f920,ThingMsg1b_Type,function,high,reimplemented (src/game/world/thingmsg); thiscall; the message number 0x1b
 0x004c5d10,AnalyserCell_Ctor,function,high,"reimplemented (src/game/world/analyser); thiscall on a 0x7c-byte cell: nine (0, best, flag 0) trackers from +0x10, two float (-999.0f) then int (-999)"
-0x004cdb60,AnalyserSlot_Ctor,function,high,"reimplemented (src/game/world/analyser); thiscall on a 0x14-byte slot (four at analyser +0x1f068): u16 +0 = 0, +8 = -1, +0xc = 3, byte +0x10 = 0"
 0x004c74b0,ParkAnalyser_Record,function,high,"reimplemented (src/game/world/analyser); thiscall (ring, value): byte ring at +0x216fc + ring * 0x40: cursor on (wrapping at its size, sets wrapped), value stored"
 0x004c74f0,ParkAnalyser_Tally,function,high,"reimplemented (src/game/world/analyser); thiscall (flag): +0x21bfc and +0x21c04 counted, +0x21c00 when flag is 0"
 0x004c94a0,ParkAnalyser_Tallied,function,high,"reimplemented (src/game/world/analyser); thiscall (flag): +0x21c00 when flag's low byte is set, else +0x21bfc"
 0x004c94c0,ParkAnalyser_Total,function,high,"reimplemented (src/game/world/analyser); thiscall: the running total, +0x21c08"
 0x004c94d0,ParkAnalyser_TotalSince,function,high,"reimplemented (src/game/world/analyser); thiscall (back): the total less its value back entries ago in the ring at +0x20824, or 0 for none"
 0x004c7b70,ParkAnalyser_Cell,function,high,"reimplemented (src/game/world/analyser); thiscall (pos): the cell of pos - 1 on a 128-wide grid, row and column divided by +0xc, row stride +0x10"
+0x004d0af0,MapHandle_Entry28,function,high,reimplemented (src/game/world/mapcell); thiscall on a u16 handle: gMapCells + 0x10ffd8 + handle * 0x28
+0x004d0b10,MapHandle_Cell44,function,high,reimplemented (src/game/world/mapcell); thiscall on a u16 handle: gMapCells + (handle - 1) * 0x44
+0x004d0a70,MemRanges_Set,function,high,"reimplemented (src/game/world/mapcell); thiscall on 0x7cdb30 (index, a, b, name): entry index = (a, b); name unused (""World Struture"")"
+0x004d0a90,MemRanges_SetCells44,function,high,"reimplemented (src/game/world/mapcell); cdecl (base, stride): 0x7cdb40 = base, 0x7cdb44 = base + stride * 0x4000, 0x7cdb50 = stride"
+0x004d0ac0,MemRanges_SetCells28,function,high,"reimplemented (src/game/world/mapcell); cdecl (base, stride): 0x7cdb48 = base, 0x7cdb4c = base + stride * 0x4000, 0x7cdb54 = stride"
 0x0050b780,Thing_Delete,function,medium,"thiscall on a thing; the base deletion, queues its handle (World_QueueDelete)"
 0x00801f38,gThingsToDelete,data,high,"HandleQueue: +4 head, +8 tail, +0xc count; handles whose slots DeleteAll releases"
 0x005f5fc0,String_Alloc,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +8: a new block for length units, terminated; the old block is not freed"
@@ -1924,6 +1928,10 @@ address,name,kind,confidence,notes
 0x00403120,GameClock_Load24,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); reads +0x24 (4 bytes); Stream_Read's result >= 0, always 1 (sic)"
 0x00403180,GameClock_Save4c,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); writes +0x4c (4 bytes); Stream_Write's result >= 0, always 1 (sic)"
 0x004031b0,GameClock_Load4c,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); reads +0x4c (4 bytes); Stream_Read's result >= 0, always 1 (sic)"
+0x004cdb60,CircBufU16_3_Ctor,function,high,"reimplemented (src/game/core/circbuf); thiscall: a CircBufU16 of 3 (four at park analyser +0x1f068): u16 +0 = 0, cursor +8 = -1, size +0xc = 3, wrapped +0x10 = 0"
+0x004ce9e0,CircBufU8_50_Ctor,function,high,"reimplemented (src/game/core/circbuf); thiscall: a CircBufU8 of 50: byte +0 = 0, cursor +0x34 = -1, size +0x38 = 50, wrapped +0x3c = 0"
+0x004ce290,CircBufU32_144_Push,function,high,"reimplemented (src/game/core/circbuf); thiscall (value): CircBufU32 of 144: cursor +0x244 on (0 at size +0x248, sets wrapped +0x24c), value at +4 + cursor * 4"
+0x00495cf0,CircBufU32_30_Get,function,high,"reimplemented (src/game/core/circbuf); thiscall (&value, back): CircBufU32 of 30: the value back entries before cursor +0x7c (size +0x80, wrapped +0x84); AL 1, or 0 for none"
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

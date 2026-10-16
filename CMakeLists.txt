@@ -71,6 +71,7 @@ add_library(tpw_game STATIC
     src/game/core/language.cpp
     src/game/core/options.cpp
     src/game/core/gameclock.cpp
+    src/game/core/circbuf.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -103,6 +104,7 @@ add_library(tpw_game STATIC
     src/game/world/thingmsg.cpp
     src/game/world/staff.cpp
     src/game/world/analyser.cpp
+    src/game/world/mapcell.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
