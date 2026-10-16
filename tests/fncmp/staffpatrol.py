@@ -10,12 +10,12 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x506650, 0x506674), (0x5068f0, 0x50690f), (0x506e50, 0x506f2e), (0x507bd0, 0x507beb),
+B = Bench([(0x506650, 0x506674), (0x5068f0, 0x50690f), (0x506870, 0x5068d4), (0x5da3c0, 0x5da3c1), (0x506e50, 0x506f2e), (0x507bd0, 0x507beb),
            (0x5087b0, 0x5087c9), (0x50c620, 0x50c638), (0x50b350, 0x50b35d),
            (0x519650, 0x519686), (0x5197c0, 0x5197f6), (0x519930, 0x519966), (0x519aa0, 0x519ad6), (0x519c10, 0x519c46),
            (0x519d80, 0x519db3)])
 STAFF = RAM
-CALLS = {'State3': 0x506650, 'Wage': 0x5068f0, 'Set': 0x506e50, 'Get': 0x506e70, 'Clear': 0x506e90,
+CALLS = {'State3': 0x506650, 'Wage': 0x5068f0, 'GetWage': 0x506870, 'Set': 0x506e50, 'Get': 0x506e70, 'Clear': 0x506e90,
          'Has': 0x506eb0, 'In': 0x506ed0, 'Entry': 0x507bd0, 'FirstInvalid': 0x5087b0, 'Training': 0x50c620, 'Push': 0}
 
 
@@ -47,6 +47,10 @@ def case(r):
                     {RAM: mem}, conv='t')
     if op == 'Training':
         return Call(0x50c620, [STAFF + r.randrange(16)], regions, conv='t', ret='a')
+    if op == 'GetWage':
+        put(staff, 2, 'B', r.choice([4, 5, 6, 7, 8, 3, 9, 0, 0xff, r.getrandbits(8)]))
+        put(staff, 0x1e4, 'I', r.choice([0, 1, 2, 3, 4, 0x10, r.randrange(0x10)]))
+        return Call(0x506870, [STAFF], {STAFF: staff, 0x785300: r.bytes(0x1100)}, conv='t', ret='a')
     if op == 'Wage':
         regions = {0x785300: r.bytes(0x1100)}
         return Call(0x5068f0, [r.randrange(0x30), r.choice([r.randrange(8), r.getrandbits(32)])], regions, ret='a')

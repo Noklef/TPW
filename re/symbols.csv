@@ -271,7 +271,7 @@ address,name,kind,confidence,notes
 0x00519d80,World_AddObject,function,high,"reimplemented (src/game/world/staff); thiscall on the world (thing): the list at +0x1da746, next at the thing's +0xc"
 0x00500f00,Staff_NearestInList1da740,function,high,reimplemented (src/game/world/staff); the nearest thing of the list at +0x1da740
 0x005099c0,Guard_NearestFree,function,high,reimplemented (src/game/world/staff); the nearest free guard
-0x00506870,Staff_GetWage,function,medium,"per-type factor (DAT_00785380) * pay grade table (DAT_0078532c, stride 0x10)"
+0x00506870,Staff_GetWage,function,high,reimplemented (src/game/world/staff); wage of a staff member from its type and pay grade
 0x004dd4e0,Object_GetDef,function,high,reimplemented (src/game/world/object); the object's definition
 0x004e1670,Object_AddWalkAway,function,high,reimplemented (src/game/world/object); a walk-away counted
 0x004e1690,Object_AddCustomer,function,high,reimplemented (src/game/world/object); a customer counted

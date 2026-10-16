@@ -111,6 +111,19 @@ s32 __cdecl Staff_WageFor(u32 type, u32 grade) {
     return (s32)(global<u32>(0x0078532c + (grade & 0xff) * 16) * global<u32>(0x00785380 + type * 4));
 }
 
+s32 __fastcall Staff_GetWage(const u8 *staff) {
+    u32 type;
+    switch (at<u8>(staff, 2)) {
+    case 4: type = 1; break;
+    case 5: type = 0; break;
+    case 6: type = 2; break;
+    case 7: type = 3; break;
+    case 8: type = 4; break;
+    default: type = 5;
+    }
+    return (s32)(global<u32>(0x00785380 + type * 4) * global<u32>(0x0078532c + (at<u32>(staff, 0x1e4) << 4)));
+}
+
 void __fastcall Staff_SetPatrolRegion(u8 *staff, void *, u32 bl, u32 tr) {
     at<u16>(staff, 0x20a) = (u16)bl;
     at<u16>(staff, 0x20c) = (u16)tr;

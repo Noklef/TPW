@@ -72,6 +72,10 @@ u32 __fastcall Staff_IsState3At(const u8 *staff, void *, u32 area);
 // the type's factor ([0x785380 + type * 4]).
 s32 __cdecl Staff_WageFor(u32 type, u32 grade);
 
+// 0x506870 (thiscall): the staff member's wage: the factor of the type its model byte (+2) names (4 to 8 are the types 1, 0, 2, 3, 4; any other model is the type 5, the
+// debug message of the original is gone) times the wage of the pay grade in the dword at +0x1e4 (16 bytes each from 0x78532c).
+s32 __fastcall Staff_GetWage(const u8 *staff);
+
 // 0x506e50 (bl, tr) / 0x506e70 (&bl, &tr) / 0x506e90: the patrol region set, read (bl, then
 // tr), or set to none; 0x506eb0: whether it is not none.
 void __fastcall Staff_SetPatrolRegion(u8 *staff, void *, u32 bl, u32 tr);
