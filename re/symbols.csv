@@ -3017,6 +3017,10 @@ address,name,kind,confidence,notes
 0x0059c390,Table76e300_GetObjectDword,function,high,reimplemented (src/game/core/small12); a dword of the object indexed through a record of the table
 0x0059c410,Table76e300_ObjectDwordSet,function,high,reimplemented (src/game/core/small12); whether a dword of the object indexed through a record of the table is set
 0x005b15a0,CountedList_Clear,function,high,reimplemented (src/game/core/small12); clears a list of counted buffers
+0x005cdfe0,List_EraseRangeCounted1,function,high,reimplemented (src/game/core/small13); erases a range of list nodes with counted buffers (count byte first)
+0x0059c570,Table76e300_LimitCheck,function,high,reimplemented (src/game/core/small13); whether a limit reaches a table record's indexed object dword
+0x005b6230,Obj_HasActivity,function,high,reimplemented (src/game/core/small13); whether any of an object's activity fields is set
+0x005cd660,List_EraseNthCounted,function,high,reimplemented (src/game/core/small13); erases the nth list node with a counted buffer
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

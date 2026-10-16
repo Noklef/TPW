@@ -109,6 +109,7 @@
 #include "../game/core/small10.h"
 #include "../game/core/small11.h"
 #include "../game/core/small12.h"
+#include "../game/core/small13.h"
 #include "../game/core/small2.h"
 #include "../game/core/small3.h"
 #include "../game/core/small4.h"
@@ -2523,6 +2524,10 @@ const Hook kHooks[] = {
     {"Table76e300_GetObjectDword", 0x0059c390, (void *)&Table76e300_GetObjectDword, {0x56, 0x8b, 0xf1, 0x8b, 0x4c}},
     {"Table76e300_ObjectDwordSet", 0x0059c410, (void *)&Table76e300_ObjectDwordSet, {0x56, 0x8b, 0xf1, 0x8b, 0x4c}},
     {"CountedList_Clear",         0x005b15a0, (void *)&CountedList_Clear, {0x53, 0x8b, 0xd9, 0x55, 0x57}},
+    {"List_EraseRangeCounted1",   0x005cdfe0, (void *)&List_EraseRangeCounted1, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
+    {"Table76e300_LimitCheck",    0x0059c570, (void *)&Table76e300_LimitCheck, {0x56, 0x8b, 0xf1, 0x8b, 0x4c}},
+    {"Obj_HasActivity",           0x005b6230, (void *)&Obj_HasActivity, {0x83, 0x39, 0x00, 0x0f, 0x85}},
+    {"List_EraseNthCounted",      0x005cd660, (void *)&List_EraseNthCounted, {0x55, 0x8b, 0xe9, 0x56, 0x33}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
