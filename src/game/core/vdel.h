@@ -25,6 +25,11 @@ u8 *__fastcall Class702940_ScalarDtor(u8 *object, void *, u32 flags);
 u8 *__fastcall Class702948_ScalarDtor(u8 *object, void *, u32 flags);
 u8 *__fastcall Class709914_ScalarDtor(u8 *object, void *, u32 flags);
 
+// 0x5da270 / 0x5e0330 / 0x5e3c90 (thiscall; flags, pops 4): the same over Class702b08_Dtor / Class702cb0_Dtor / Class702d78_Dtor (small32).
+u8 *__fastcall Class702b08_ScalarDtor(u8 *object, void *, u32 flags);
+u8 *__fastcall Class702cb0_ScalarDtor(u8 *object, void *, u32 flags);
+u8 *__fastcall Class702d78_ScalarDtor(u8 *object, void *, u32 flags);
+
 // 0x5d8b00 (thiscall): Class7029d0_Ctor on the object, then the vtable pointer 0x702a90 and +0x20 cleared. Returns the object.
 // 0x5d8b40 (thiscall): the vtable pointer 0x702a90 is set and Class7029d0_Release run (returns what it returns).
 // 0x5d8b20 (thiscall; flags, pops 4): the release, and the object freed when bit 0 of the flags is set. Returns the object.

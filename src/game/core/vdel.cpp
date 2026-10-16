@@ -5,6 +5,7 @@
 #include "gameheap.h"
 #include "small14.h"
 #include "small29.h"
+#include "small32.h"
 #include "vdtor.h"
 #include "vobj2.h"
 
@@ -21,6 +22,21 @@ u8 *Finish(u8 *object, u32 flags) {
 }  // namespace
 
 extern "C" {
+
+u8 *__fastcall Class702b08_ScalarDtor(u8 *object, void *, u32 flags) {
+    Class702b08_Dtor(object);
+    return Finish(object, flags);
+}
+
+u8 *__fastcall Class702cb0_ScalarDtor(u8 *object, void *, u32 flags) {
+    Class702cb0_Dtor(object);
+    return Finish(object, flags);
+}
+
+u8 *__fastcall Class702d78_ScalarDtor(u8 *object, void *, u32 flags) {
+    Class702d78_Dtor(object);
+    return Finish(object, flags);
+}
 
 u8 *__fastcall Class702880_ScalarDtor(u8 *object, void *, u32 flags) {
     Class702880_Dtor(object);
