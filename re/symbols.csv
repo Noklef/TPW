@@ -800,6 +800,8 @@ address,name,kind,confidence,notes
 0x004cd720,Map_PercentWithRE,function,high,reimplemented (src/game/world/mapcell); the share of non-water cells whose RE cell has a positive word
 0x00536450,MapHandle_ParentIsType19,function,high,reimplemented (src/game/world/mapcell); whether the parent cell of a handle is of type 0x19
 0x004cd7f0,Map_CountSpecialCells,function,high,reimplemented (src/game/world/mapcell); counts the cells of types 9 a 4 15 and the handle test
+0x004d96f0,Map_StepCell,function,high,"reimplemented (src/game/world/mapcell); the cell an offset from a cell id, null outside the map"
+0x004d97e0,Map_StepCellInDirection,function,high,reimplemented (src/game/world/mapcell); the cell next to a cell id in one of eight directions
 0x004d1c80,Challenges_DropOrphans,function,high,reimplemented (src/game/world/challenges); thiscall: each challenge in use (+0) naming another (+0x18) is dropped (+0 = 0) unless another in use has that id (from Challenges_LoadSam)
 0x004d2840,Challenges_Current,function,high,"reimplemented (src/game/world/challenges); thiscall: &challenges[+0x3cc] (0x30 bytes from +0xc) for an index 0-19, else null"
 0x004d1e60,BalanceChallenges_GetSchema,function,high,"reimplemented (src/game/world/challenges); thiscall (index), vtable 0x700398 slot 0: 0x739b98 + index * 0x3c"

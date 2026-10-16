@@ -173,6 +173,31 @@ s32 __cdecl Map_PercentWithRE() {
     return total ? counted * 100 / total : 0;
 }
 
+u8 *__fastcall Map_StepCell(const u16 *cell, void *, s32 dx, s32 dy, s32 scale) {
+    const u32 index = (u32)*cell - 1;
+    const s32 x = (s32)(index & 0x7f) + dx * scale;
+    const s32 y = (s32)(index >> 7) + dy * scale;
+    if (!Map_InBounds(x, y)) return nullptr;
+    const u32 id = ((u32)dy << 7) + *cell + (u32)dx;
+    return at<u8 *>(reinterpret_cast<const void *>(0x0080239c), 0) + 0x294 + (id & 0xffff) * 0x44;
+}
+
+u8 *__fastcall Map_StepCellInDirection(const u16 *cell, void *, u32 direction) {
+    u32 table = 0;
+    switch (direction & 0xff) {
+    case 0x01: table = 0x007cdba0; break;
+    case 0x02: table = 0x007cdbd8; break;
+    case 0x04: table = 0x007cdbc8; break;
+    case 0x08: table = 0x007cdbb8; break;
+    case 0x10: table = 0x007cdba8; break;
+    case 0x20: table = 0x007cdbb0; break;
+    case 0x40: table = 0x007cdbd0; break;
+    case 0x80: table = 0x007cdbc0; break;
+    default: return nullptr;  // (the original's Debug_Printf assert is left out)
+    }
+    return Map_StepCell(cell, nullptr, at<s32>(reinterpret_cast<const void *>(table), 0), at<s32>(reinterpret_cast<const void *>(table), 4), 1);
+}
+
 s32 __cdecl Map_CountSpecialCells() {
     const u8 *map = at<u8 *>(reinterpret_cast<const void *>(0x0080239c), 0) + 0x2d8;
     s32 count = 0;

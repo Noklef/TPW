@@ -42,6 +42,14 @@ s32 __cdecl Map_PercentWithRE();
 // 0x4cd7f0 (cdecl): over all 128 x 128 cells, how many are of type 9, 0xa, 4 or 0x15 or pass MapHandle_IsTypeBDOr10Or12Or19 on their first word taken as a handle (sic).
 s32 __cdecl Map_CountSpecialCells();
 
+// 0x4d96f0 (thiscall on a cell id word; dx, dy, scale, pops 12): the cell the offset (dx, dy) times scale from the cell is, for the map's 128 x 128 (Map_InBounds), at
+// world + 0x294 + 0x44 times (the id + dx + dy * 128, 16 bits) (the offset is not scaled there, sic); null when it falls outside.
+u8 *__fastcall Map_StepCell(const u16 *cell, void *, s32 dx, s32 dy, s32 scale);
+
+// 0x4d97e0 (thiscall on a cell id word; direction bit, pops 4): Map_StepCell by the (dx, dy) pair of the direction (the pairs from 0x7cdba0, 0x7cdbd8, 0x7cdbc8, 0x7cdbb8,
+// 0x7cdba8, 0x7cdbb0, 0x7cdbd0, 0x7cdbc0 for the bits 1 to 0x80) with scale 1; null for anything else (an assert is left out).
+u8 *__fastcall Map_StepCellInDirection(const u16 *cell, void *, u32 direction);
+
 // 0x4d8610, 0x4d8650, 0x4d8690, 0x4d86d0, 0x4d8710 (thiscall on the map, unused; &pos, b):
 // the position of the A (b 0) or B one of gBalanceLevel's ticket booths (+0x55c), bus stops
 // (+0x56c), entrances (+0x57c), park side crossings (+0x58c) and bus stop side crossings
