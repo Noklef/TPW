@@ -232,6 +232,10 @@ u8 *__fastcall Map_StepCell28(const u16 *cell, void *, s32 dx, s32 dy, s32 scale
     return at<u8 *>(reinterpret_cast<const void *>(0x0080239c), 0) + ((id & 0xffff) + 0x6cde) * 0x28;
 }
 
+void __fastcall Map_SpreadAdd(u8 *world, void *, u32 index, u32 cell) { Map_SpreadValues(world, nullptr, 1, index, cell); }
+
+void __fastcall Map_SpreadRemove(u8 *world, void *, u32 index, u32 cell) { Map_SpreadValues(world, nullptr, 0, index, cell); }
+
 u8 *__fastcall Map_StepCell(const u16 *cell, void *, s32 dx, s32 dy, s32 scale) {
     const u32 index = (u32)*cell - 1;
     const s32 x = (s32)(index & 0x7f) + dx * scale;

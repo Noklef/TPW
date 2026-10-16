@@ -8,8 +8,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM  # noqa: E402
 
-CALLS = {'Dir28': 0x50c3e0, 'Step28': 0x50c320, 'Step': 0x4d96f0, 'Dir': 0x4d97e0, 'Spread': 0x4d8480, 'Init': 0x4d7bb0, 'Facing': 0x4de670}
-B = Bench([(0x4d96f0, 0x4d97b0), (0x4d97b0, 0x4d97e0), (0x4d97e0, 0x4d9920), (0x4d99c0, 0x4d99e0), (0x4d8300, 0x4d8328), (0x5da3c0, 0x5da3c1), (0x4d8480, 0x4d8620), (0x4d7bb0, 0x4d7ea0), (0x4de670, 0x4de7e0), (0x50c320, 0x50c3e0), (0x50c3e0, 0x50c540), (0x536300, 0x53644c), (0x522850, 0x522860)])
+CALLS = {'Dir28': 0x50c3e0, 'Step28': 0x50c320, 'Step': 0x4d96f0, 'Dir': 0x4d97e0, 'Spread': 0x4d8480, 'SpreadAdd': 0x4d8440, 'SpreadRemove': 0x4d8460, 'Init': 0x4d7bb0, 'Facing': 0x4de670}
+B = Bench([(0x4d96f0, 0x4d97b0), (0x4d97b0, 0x4d97e0), (0x4d97e0, 0x4d9920), (0x4d99c0, 0x4d99e0), (0x4d8300, 0x4d8328), (0x5da3c0, 0x5da3c1), (0x4d8440, 0x4d8480), (0x4d8480, 0x4d8620), (0x4d7bb0, 0x4d7ea0), (0x4de670, 0x4de7e0), (0x50c320, 0x50c3e0), (0x50c3e0, 0x50c540), (0x536300, 0x53644c), (0x522850, 0x522860)])
 CELL = RAM
 
 
@@ -27,7 +27,7 @@ def case(r):
     if name == 'Init':
         world = RAM + 0x10000
         return Call(CALLS[name], [world], {world: r.bytes(0x1d9180), 0x785610: r.bytes(0xc0)}, conv='t', ret='v')
-    if name == 'Spread':
+    if name in ('Spread', 'SpreadAdd', 'SpreadRemove'):
         world = RAM + 0x10000
         records = bytearray(r.bytes(12 * 4))
         for k in range(4):
@@ -36,7 +36,7 @@ def case(r):
         re_cells = bytearray(r.bytes(10 * 0x302))
         cell = r.choice([1, 2, 0x7f, 0x80, 0x81, 0x100, 0x14a, r.randrange(1, 0x100), 0xfe])
         regions = {world + 0x1d9104: records, world + 0x1b1104: re_cells}
-        return Call(CALLS[name], [world, r.choice([0, 1, 2]), r.randrange(4), cell], regions, conv='t', ret='v')
+        return Call(CALLS[name], [world] + ([r.choice([0, 1, 2])] if name == 'Spread' else []) + [r.randrange(4), cell], regions, conv='t', ret='v')
     cell = r.choice([1, 2, 0x7f, 0x80, 0x81, 0x4000, 0x3f81, 0x2000, r.randrange(1, 0x4001), 0, 0x4001, r.getrandbits(16)])
     regions = {CELL: struct.pack('<I', cell), 0x80239c: struct.pack('<I', RAM + 0x1000 + 4 * r.randrange(0x100))}
     small = lambda: r.choice([0, 1, -1, 2, -2, 3, 127, -127, 128, r.randrange(-5, 6), r.getrandbits(32) - (1 << 31)]) & 0xffffffff  # noqa: E731

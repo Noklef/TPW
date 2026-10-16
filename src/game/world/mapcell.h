@@ -57,6 +57,10 @@ u8 *__fastcall Map_StepCell28InDirection(const u16 *cell, void *, u32 direction,
 // multiplied by +1 (add set) or -1 and divided (truncating) by the cell's distance, x + y + 1.
 void __fastcall Map_SpreadValues(u8 *world, void *, u32 add, u32 index, u32 cell);
 
+// 0x4d8440 / 0x4d8460 (thiscall; index, cell id, pops 8): Map_SpreadValues with add set / clear.
+void __fastcall Map_SpreadAdd(u8 *world, void *, u32 index, u32 cell);
+void __fastcall Map_SpreadRemove(u8 *world, void *, u32 index, u32 cell);
+
 // 0x4d7bb0 (thiscall on the world block): clears its first 0x1b1104 bytes, gives the
 // 128 x 128 cells their ids (the words at world + id * 0x44 - 0x44 and world + id * 0x28 + 0x10ffd8, the bytes 1 at +id * 0x44 - 0x42 and 2 at id * 0x28 + 0x10ffda) and
 // the eight region records at +0x1d9104 (12 bytes: five words, the radius byte at +0xa) the values of gBalanceLevel's region effects.

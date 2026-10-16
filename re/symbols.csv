@@ -810,6 +810,8 @@ address,name,kind,confidence,notes
 0x004de670,Map_FindFacingNeighbour,function,high,reimplemented (src/game/world/mapcell); the neighbour cell that faces back
 0x0050c320,Map_StepCell28,function,high,"reimplemented (src/game/world/mapcell); the entry-28 cell an offset from a cell id, null outside the map"
 0x0050c3e0,Map_StepCell28InDirection,function,high,reimplemented (src/game/world/mapcell); the entry-28 cell next to a cell id in one of eight directions
+0x004d8440,Map_SpreadAdd,function,high,reimplemented (src/game/world/mapcell); spreads a record's values around a cell (add)
+0x004d8460,Map_SpreadRemove,function,high,reimplemented (src/game/world/mapcell); takes a record's values back from around a cell
 0x004d1c80,Challenges_DropOrphans,function,high,reimplemented (src/game/world/challenges); thiscall: each challenge in use (+0) naming another (+0x18) is dropped (+0 = 0) unless another in use has that id (from Challenges_LoadSam)
 0x004d2840,Challenges_Current,function,high,"reimplemented (src/game/world/challenges); thiscall: &challenges[+0x3cc] (0x30 bytes from +0xc) for an index 0-19, else null"
 0x004d1e60,BalanceChallenges_GetSchema,function,high,"reimplemented (src/game/world/challenges); thiscall (index), vtable 0x700398 slot 0: 0x739b98 + index * 0x3c"
