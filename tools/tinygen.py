@@ -185,6 +185,100 @@ def functions(lo, hi):
     return body, end
 
 
+@shape(r'MOV EAX,\[ESP \+ 0x4\]', r'MOV \[EAX\],(-?0x[0-9a-f]+)', r'RET (0x[0-9a-f]+)')
+def _ptrstore(a, m):
+    c, n = num(m[1].group(1)) & 0xffffffff, num(m[2].group(1)) // 4
+    return dict(name='StoreThrough_%x_%06x' % (c, a), conv='s', nargs=n, ret='a', doc='*first argument = 0x%x; returns that pointer' % c,
+                body='at<u32>((void *)(uintptr_t)v0, 0) = 0x%x;\n    return v0;' % c)
+
+
+@shape(r'MOV EAX,\[ESP \+ 0x4\]', r'MOV ECX,%s' % FIELD, r'MOV \[EAX\],ECX', r'RET 0x4')
+def _ptrcopy(a, m):
+    k = num(m[1].group(1))
+    return dict(name='CopyTo_%s_%06x' % (nm(k), a), conv='t', nargs=1, ret='a', doc='*argument = the dword at %s; returns the pointer' % hexs(k),
+                body='at<u32>((void *)(uintptr_t)v0, 0) = at<u32>(o, %s);\n    return v0;' % offs(k))
+
+
+@shape(r'MOV EAX,\[ESP \+ 0x4\]', r'MOV \[ECX \+ (0x[0-9a-f]+)\],EAX', r'MOV EAX,\[ECX \+ (0x[0-9a-f]+)\]',
+       r'OR (AL|AH|EAX),(0x[0-9a-f]+)', r'MOV \[ECX \+ (0x[0-9a-f]+)\],EAX', r'RET 0x4')
+def _flagset(a, m):
+    k1, k2, k3 = num(m[1].group(1)), num(m[2].group(1)), num(m[4].group(1))
+    if k2 != k3:
+        return None
+    bits = num(m[3].group(2)) << (8 if m[3].group(1) == 'AH' else 0)
+    return dict(name='SetThenFlag%x_%x_%06x' % (k1, k2, a), conv='t', nargs=1, ret='a',
+                doc='+0x%x = value; the flags at +0x%x |= 0x%x; returns the flags' % (k1, k2, bits),
+                body='at<u32>(o, 0x%x) = v0;\n    at<u32>(o, 0x%x) |= 0x%x;\n    return at<u32>(o, 0x%x);' % (k1, k2, bits, k2))
+
+
+@shape(r'MOV EAX,\[ECX \+ (0x[0-9a-f]+)\]', r'OR EAX,(0x[0-9a-f]+)', r'MOV \[ECX \+ (0x[0-9a-f]+)\],EAX', r'MOV EAX,\[ESP \+ 0x4\]',
+       r'MOV \[ECX \+ (0x[0-9a-f]+)\],EAX', r'RET 0x4')
+def _flagthenset(a, m):
+    k1, bits, k2, k3 = num(m[0].group(1)), num(m[1].group(1)), num(m[2].group(1)), num(m[4].group(1))
+    if k1 != k2:
+        return None
+    return dict(name='FlagThenSet%x_%x_%06x' % (k1, k3, a), conv='t', nargs=1, ret='a',
+                doc='the flags at +0x%x |= 0x%x; +0x%x = value; returns it' % (k1, bits, k3),
+                body='at<u32>(o, 0x%x) |= 0x%x;\n    at<u32>(o, 0x%x) = v0;\n    return v0;' % (k1, bits, k3))
+
+
+@shape(r'MOV EDX,%s' % FIELD, r'XOR EAX,EAX', r'CMP EDX,(0x[0-9a-f]+)', r'SETZ AL', r'RET')
+def _feq(a, m):
+    k, c = num(m[0].group(1)), num(m[2].group(1))
+    return dict(name='Is%s_Eq%x_%06x' % (nm(k), c, a), conv='t', nargs=0, ret='a', doc='1 when the dword at %s is 0x%x, else 0' % (hexs(k), c),
+                body='return at<u32>(o, %s) == 0x%x ? 1 : 0;' % (offs(k), c))
+
+
+@shape(r'MOV EDX,%s' % FIELD, r'XOR EAX,EAX', r'TEST EDX,EDX', r'SETZ AL', r'RET')
+def _fzero(a, m):
+    k = num(m[0].group(1))
+    return dict(name='Is%s_Zero_%06x' % (nm(k), a), conv='t', nargs=0, ret='a', doc='1 when the dword at %s is 0, else 0' % hexs(k),
+                body='return at<u32>(o, %s) == 0 ? 1 : 0;' % offs(k))
+
+
+@shape(r'OR AX,(-?0x[0-9a-f]+)', r'RET(?: (0x[0-9a-f]+))?')
+def _orax(a, m):
+    c = num(m[0].group(1)) & 0xffff
+    n = num(m[1].group(1)) // 4 if m[1].group(1) else 0
+    return dict(name='WordConst%x_%06x' % (c, a), conv='s' if n else 'c', nargs=n, ret='w', doc='returns the word 0x%x' % c, body='return 0x%x;' % c)
+
+
+def ctor(a, texts):
+    """MOV EAX,ECX; [XOR ECX,ECX | XOR CL,CL | MOV ECX,[ESP + 4]]; stores through EAX; RET [4]: a constructor that fills fields."""
+    if texts[0] != 'MOV EAX,ECX' or len(texts) < 3:
+        return None
+    m = re.match(r'^RET(?: (0x[0-9a-f]+))?$', texts[-1])
+    if not m:
+        return None
+    n = num(m.group(1)) // 4 if m.group(1) else 0
+    ecx = None  # what ECX holds after the first instruction(s)
+    stores = []
+    for t in texts[1:-1]:
+        if t in ('XOR ECX,ECX', 'XOR CL,CL'):
+            ecx = '0'
+        elif t == 'MOV ECX,[ESP + 0x4]' and n == 1:
+            ecx = 'v0'
+        else:
+            mm = re.match(r'^MOV (b?)\[EAX(?: \+ (0x[0-9a-f]+))?\],(ECX|CL|-?0x[0-9a-f]+)$', t)
+            if not mm:
+                return None
+            width = 'u8' if mm.group(1) else 'u32'
+            k = num(mm.group(2))
+            src = mm.group(3)
+            if src in ('ECX', 'CL'):
+                if ecx is None or (src == 'CL' and width != 'u8') or (src == 'ECX' and width != 'u32'):
+                    return None
+                val = ecx
+            else:
+                val = '0x%x' % (num(src) & (0xff if width == 'u8' else 0xffffffff))
+            stores.append((width, k, val))
+    if not stores:
+        return None
+    fields = ', '.join('+0x%x' % k for _, k, _ in stores)
+    body = '\n    '.join('at<%s>(o, 0x%x) = %s;' % (w, k, v) for w, k, v in stores) + '\n    return o;'
+    return dict(name='Init_%06x' % a, conv='t', nargs=n, ret='p', doc='sets %s; returns the object' % fields, body=body)
+
+
 def frame(a, texts):
     """A function in the debug build's frame style: PUSH EBP; MOV EBP,ESP; [save ECX]; [a constant result]; POP EBP; RET [n]."""
     if len(texts) < 4 or texts[:2] != ['PUSH EBP', 'MOV EBP,ESP'] or texts[-2] != 'POP EBP' or not texts[-1].startswith('RET'):
@@ -219,7 +313,7 @@ def frame(a, texts):
 
 def match(a, ins):
     texts = [t for _, t in ins]
-    d = frame(a, texts)
+    d = frame(a, texts) or ctor(a, texts)
     if d:
         d.setdefault('globals', [])
         d['addr'] = a
@@ -230,6 +324,8 @@ def match(a, ins):
         ms = [p.match(t) for p, t in zip(pats, texts)]
         if all(ms):
             d = fn(a, ms)
+            if d is None:
+                continue
             d.setdefault('globals', [])
             d['addr'] = a
             return d
@@ -312,16 +408,18 @@ def main():
                 '# usage: tiny_%s.py [CASES [SEED]] [--wild|--both] [--show N]\n' % (tag, tag))
         f.write('import os\nimport sys\n\nsys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), \'..\', \'..\', \'tools\'))\n'
                 'from fncmp import Bench, Call, RAM  # noqa: E402\n\n')
-        f.write('# (address, end, convention, stack arguments, returns, globals touched)\nFUNCS = [\n')
+        f.write('# (address, end, convention, stack arguments, returns, globals touched, first argument a pointer)\nFUNCS = [\n')
         for d in found:
-            f.write('    (0x%06x, 0x%06x, %r, %d, %r, %r),\n' % (d['addr'], d['end'], d['conv'], d['nargs'], 'a' if d['ret'] in 'ap' else d['ret'], d['globals']))
+            f.write('    (0x%06x, 0x%06x, %r, %d, %r, %r, %r),\n' % (d['addr'], d['end'], d['conv'], d['nargs'], 'a' if d['ret'] in 'ap' else d['ret'], d['globals'], '(void *)(uintptr_t)v0' in d['body']))
         f.write(']\nB = Bench([(a, e) for a, e, *_ in FUNCS])\n\n\n'
                 'def case(r):\n'
-                '    address, _end, conv, n, ret, globs = r.choice(FUNCS)\n'
+                '    address, _end, conv, n, ret, globs, ptr = r.choice(FUNCS)\n'
                 '    regions = {RAM: r.bytes(0x400)}\n'
                 '    for g in globs:\n'
                 '        regions[g & ~0xf] = r.bytes(0x20)\n'
                 '    args = [r.choice([0, 1, 0xff, 0x7fffffff, 0xffffffff, r.getrandbits(32)]) for _ in range(n)]\n'
+                '    if ptr:\n'
+                '        args[0] = RAM + 0x200 + r.choice([0, 4, 0x20])\n'
                 '    if conv == \'t\':\n'
                 '        args = [RAM + 0x80] + args\n'
                 '    return Call(address, args, regions, conv=conv, ret=ret)\n\n\n'
