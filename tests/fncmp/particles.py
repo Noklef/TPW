@@ -67,7 +67,9 @@ def case(r):
         put(systems, 0xa, 'H', 0)
     args = [handle]
     if op in ('VecA', 'VecB', 'Scaled'):
-        args += [r.choice([0, 16, -16, 0x7fffffff, -0x80000000, r.getrandbits(32)]) & 0xffffffff for _ in range(3)]
+        args += [r.choice([0, 16, -16, -1, -1023, -1024, 1023, 1025, 0x7fffffff, -0x80000000, r.getrandbits(32)]) & 0xffffffff for _ in range(3)]
+        if op == 'Scaled' and slot < 0x78:
+            put(systems, slot * 0x140 + 0xb0, 'I', r.choice([1, 1, 0x400, 3, r.getrandbits(32)]))
         return Call(CALLS[op], args, {SETUP: setup, SYSTEMS: systems}, ret='v')
     if op != 'Alive' and op != 'End':
         args.append(r.choice([0, 0xffff, 0x10000, r.getrandbits(32)]))
