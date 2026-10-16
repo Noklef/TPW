@@ -1,0 +1,38 @@
+// A few small functions that belong to no known unit yet: reimplementation of 0x424ed0, 0x4922d0,
+// 0x4e1c60, 0x4f00f0, 0x4f6820, 0x4f6850, 0x56a510, 0x56b630 and 0x56b830.
+#pragma once
+
+#include "../../../re/types.h"
+
+extern "C" {
+
+// 0x424ed0 (cdecl; pointer): bit 0 of the dword cleared; returns 1.
+u32 __cdecl Dword_ClearBit0(u32 *p);
+
+// 0x4922d0 (thiscall): +0x18 = 0 and the word +0xc = 0; returns 0.
+u32 __fastcall Obj_Clear18_0c(u8 *object);
+
+// 0x4e1c60 (thiscall): the dword at +0x180 minus the one at +0x184.
+u32 __fastcall Obj_Diff180_184(const u8 *object);
+
+// 0x4f00f0 (thiscall on a sub-object; the vtable pointer at this - 4 reaches its virtual base): the
+// dword at base offset - 4 + this (base offset = the vtable's +4) = 0x7099ec.
+void __fastcall Vtbl7099ec_SetVirtual(u8 *sub);
+
+// 0x4f6820 / 0x4f6850 (thiscall; the std::basic_string streambuf's setg and setp over wide characters,
+// pops 12 / 8): the pointers behind +0xc, +0x1c, +0x2c (first, next, count) / +0x10, +0x20, +0x30
+// get first, next and (last - next) / 2 (setg: first, next, last; setp: first, last, with next =
+// first). Returns the count pointer.
+u32 *__fastcall Wstreambuf_Setg(u8 *object, void *, u32 first, u32 next, u32 last);
+u32 *__fastcall Wstreambuf_Setp(u8 *object, void *, u32 first, u32 last);
+
+// 0x56a510 (stdcall; x, y, out, pops 12): *out = the dword at (y * width + x) in the software
+// renderer's buffer (0x879dac: +8 the buffer; width 0x8bcbd0); returns 1.
+u32 __stdcall SoftRenderer_PixelAt(s32 x, s32 y, u32 *out);
+
+// 0x56b630 (cdecl): the sixteen dwords at 0x879d08 = 16, 15 ... 1; returns 0.
+u32 __cdecl Table879d08_Fill();
+
+// 0x56b830 (thiscall; a, b, pops 8): +0x30 = a and +0x34 = b; returns a.
+u32 __fastcall Obj_Set30_34(u8 *object, void *, u32 a, u32 b);
+}

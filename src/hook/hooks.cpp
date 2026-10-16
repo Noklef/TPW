@@ -80,7 +80,8 @@
 #include "../game/core/idtable.h"
 #include "../game/core/keymap.h"
 #include "../game/core/language.h"
-#include "../game/core/liveobjects.h"
+#include "../game/core/liveobjects.h"
+#include "../game/core/misc.h"
 #include "../game/core/small.h"
 #include "../game/core/options.h"
 #include "../game/core/soundset.h"
@@ -1870,6 +1871,15 @@ const Hook kHooks[] = {
     {"StoreThrough_ffffffff_6d27a0", 0x006d27a0, (void *)&StoreThrough_ffffffff_6d27a0, {0x8b, 0x44, 0x24, 0x04, 0xc7}},
     {"StoreThrough_ffffffff_6d29e0", 0x006d29e0, (void *)&StoreThrough_ffffffff_6d29e0, {0x8b, 0x44, 0x24, 0x04, 0xc7}},
     {"Init_6d6c50",               0x006d6c50, (void *)&Init_6d6c50, {0x8b, 0xc1, 0x33, 0xc9, 0x89}},
+    {"Dword_ClearBit0",           0x00424ed0, (void *)&Dword_ClearBit0, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Obj_Clear18_0c",            0x004922d0, (void *)&Obj_Clear18_0c, {0x33, 0xc0, 0x89, 0x41, 0x18}},
+    {"Obj_Diff180_184",           0x004e1c60, (void *)&Obj_Diff180_184, {0x8b, 0x81, 0x80, 0x01, 0x00}},
+    {"Vtbl7099ec_SetVirtual",     0x004f00f0, (void *)&Vtbl7099ec_SetVirtual, {0x8b, 0x41, 0xfc, 0x8b, 0x50}},
+    {"Wstreambuf_Setg",           0x004f6820, (void *)&Wstreambuf_Setg, {0x8b, 0x41, 0x0c, 0x8b, 0x54}},
+    {"Wstreambuf_Setp",           0x004f6850, (void *)&Wstreambuf_Setp, {0x8b, 0x51, 0x10, 0x8b, 0x44}},
+    {"SoftRenderer_PixelAt",      0x0056a510, (void *)&SoftRenderer_PixelAt, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"Table879d08_Fill",          0x0056b630, (void *)&Table879d08_Fill, {0xb9, 0x08, 0x9d, 0x87, 0x00}},
+    {"Obj_Set30_34",              0x0056b830, (void *)&Obj_Set30_34, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
