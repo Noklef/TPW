@@ -1,4 +1,4 @@
-// Small render state setters: reimplementation of 0x5836b0 and 0x5d9680-0x5d96c0.
+// Small render state setters: reimplementation of 0x4080e0, 0x5836b0 and 0x5d9680-0x5d96c0.
 //
 // 0x8bcc40 is the display device's generation, bumped each time the device is restored
 // (0x583730, 0x583790). 0x8bcbc8 is the engine's render flags (0x2000: fog), and the fog's
@@ -9,6 +9,13 @@
 #include "../../../re/types.h"
 
 extern "C" {
+
+// 0x4080e0 (cdecl): the environment settings kept at 0x7855fc-0x785720 copied to where they are
+// used: the fog colour 0x8bd47c, the globals 0x7a0b30-0x7a0b44, 0x7a006c and 0x7a01c0 (the latter two
+// with a negative or zero value made 0), 0x870ec8-0x870ed0, the 4 pairs at 0x7856f4 (one dword
+// before and at each 8 bytes) to 0xf797a4 and 0xf797b4, and four values to the setters
+// 0x52fb10-0x52fb70 (Global81b6dc_Set and its kind). Returns 1.
+u32 __cdecl Environment_Apply();
 
 // 0x5836b0 (thiscall on a flags pair, the scene's at 0x8bd508): flag 0x40000000 set and +4 =
 // the device generation (0x8bcc40).

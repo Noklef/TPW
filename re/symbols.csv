@@ -2609,6 +2609,7 @@ address,name,kind,confidence,notes
 0x005d9690,Render_FogOff,function,high,reimplemented (src/game/render/state); thiscall (object unused): fog off (0x8bcbc8 &= ~0x2000)
 0x005d96a0,Render_SetFog,function,high,"reimplemented (src/game/render/state); thiscall (object unused; colour, start, end): the fog colour 0x8bd47c, start 0x8bd490 and end 0x8bd494 (floats)"
 0x005d96c0,Render_FadeFog,function,high,reimplemented (src/game/render/state); steps the fog fade a sixteenth of the way and fills 0x8c2788 with the colour
+0x004080e0,Environment_Apply,function,high,reimplemented (src/game/render/state); the environment settings copied to where they are used
 0x0057d910,WeatherFx_SetDropCount,function,high,"reimplemented (src/game/render/weatherfx); thiscall (the weather renderer, [0x8bcbac]; count): +0x3318 = how many drops fall"
 0x0057dc40,WeatherFx_SetFallSpeed,function,high,"reimplemented (src/game/render/weatherfx); thiscall (speed): the fall speed of each kind showing (+0x3338 when bit 1 of +0, +0x333c when bit 2)"
 0x0057dc70,WeatherFx_RequestReload,function,high,"reimplemented (src/game/render/weatherfx); thiscall: +4 = 1, the textures to be reloaded (0x57d850 clears it)"
