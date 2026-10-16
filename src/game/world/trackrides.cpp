@@ -63,6 +63,33 @@ u32 __cdecl TrakRide_PopNode(u32 handle) {
     return at<u32>(node, 0);
 }
 
+u32 __cdecl TrakChunk_Read(u8 *chunk, u8 *buffer, u32 count) {
+    u32 n = at<u32>(chunk, 0x10) - at<u32>(chunk, 8);
+    if (count < n)
+        n = count;
+    s32 result, done;
+    Stream_Read(&result, at<Stream *>(chunk, 4), buffer, n, &done);
+    if (result < 0)
+        return 0;  // (the debug output is gone)
+    at<u32>(chunk, 8) += done;
+    for (u32 i = done; i < count && (u32)done < count; ++i)
+        buffer[i] = 0;
+    return done;
+}
+
+u32 __cdecl TrakChunk_ReadDword(u8 *chunk) {
+    u32 value = (u32)(uintptr_t)chunk;  // (the slot the read goes to starts as the chunk pointer)
+    u32 n = at<u32>(chunk, 0x10) - at<u32>(chunk, 8);
+    if (4 < n)
+        n = 4;
+    s32 result, done;
+    Stream_Read(&result, at<Stream *>(chunk, 4), &value, n, &done);
+    if (result < 0)
+        return 0;
+    at<u32>(chunk, 8) += done;
+    return done == 4 ? value : 0;
+}
+
 void __cdecl TrakRide_MarkWornOut(u32 handle) {
     u8 *ride = RideOf(handle);
     if (handle == NameOf(ride))

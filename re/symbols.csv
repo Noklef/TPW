@@ -832,6 +832,8 @@ address,name,kind,confidence,notes
 0x00544c00,TrakRide_MarkWornOut,function,high,reimplemented (src/game/world/trackrides); marks the named ride worn out
 0x00545100,TrakRide_SetField4,function,high,reimplemented (src/game/world/trackrides); sets the dword at +4 of the named ride
 0x0054abd0,TrakRide_PushNode,function,high,reimplemented (src/game/world/trackrides); takes a free node onto the ride list
+0x00544160,TrakChunk_Read,function,high,reimplemented (src/game/world/trackrides); reads bytes from a chunk and zero fills the rest
+0x005441f0,TrakChunk_ReadDword,function,high,reimplemented (src/game/world/trackrides); reads a dword from a chunk
 0x0055a570,FlyingRide_FirstSlotRide,function,high,"reimplemented (src/game/world/flyingrides); cdecl u32 (index): flying ride index's (1-99, 0x8791f8) first slot's ride (+0x11c), else 0"
 0x0055d610,FlyingRide_StepInSlot,function,high,"reimplemented (src/game/world/flyingrides); cdecl u32 (index): first slot in state 1 (slot +0x80) with a negative step (+0x8c): its ride part (key (base + -step) % count + 1, flag 0x80) released, step +1, +0x48 -1, the step's u32 (+0x90 + -step * 4); else 0"
 0x0055d720,FlyingRide_StepOutSlot,function,high,reimplemented (src/game/world/flyingrides); cdecl u32 (index): as 0x55d610 for the first slot with a positive step: step -1
