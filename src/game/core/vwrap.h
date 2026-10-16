@@ -53,4 +53,30 @@ u32 __fastcall Obj_ApplyIfShared(u8 *object, void *, u8 *a);
 // 0x48ccd0 (thiscall; a, pops 4): the object's slot 0x2c when a is the dword at 0x7c2658, otherwise a.
 u32 __fastcall Obj_CallSlot2cIfGlobal(u8 *object, void *, u32 a);
 
+// 0x569ef0 / 0x5667a0 (cdecl): when the dword at 0x879acc / 0x879ac0 is not 0 the object it points to is deleted (slot 0 with 1) and the dword cleared. Returns 1
+// when there was one, otherwise 0.
+u32 __cdecl Global879acc_Delete();
+u32 __cdecl Global879ac0_Delete();
+
+// 0x47e990 (cdecl): when the dword at 0x7b4b84 is not 0 the object it points to is deleted (slot 0 with 1); the dword is left.
+void __cdecl Global7b4b84_Delete();
+
+// 0x4b3f20 (cdecl): the objects the dwords at 0x7cc2fc, 0x7cc300 and 0x7cc304 point to (when not 0) are each released (slot 8 with 1); the dwords are left.
+void __cdecl Globals7cc2fc_Release();
+
+// 0x48eaf0 (cdecl): over the ten 0x208-byte records from 0x7c26b0: those whose word at +4 is 0 and whose first dword is set have that object released (slot 8 with
+// 1) and the dword cleared.
+void __cdecl Table7c26b0_ReleaseIdle();
+
+// 0x57c4a0 (cdecl): when the dword at 0x8bba48 is not 0 the virtual base of the object it points to (the offset in dword +4 of its vtable) is deleted (its slot 0
+// with 1) and the dword cleared. Returns 1 when there was one, otherwise 0.
+u32 __cdecl Global8bba48_DeleteVBase();
+
+// 0x576230 (thiscall on a list node {object, next}): while the object's slot 8 returns 1 its slot 4 is called and the next node taken.
+void __fastcall ListNodes_Drain(u8 *node);
+
+// 0x591a80 (thiscall on the field 0x4c into an object): the count there is lowered; when it is no longer above 0 the virtual base of the object 0x54 below (a pointer
+// at its +4; the offset in dword +4 of its vtable, from 4 past the object) gets its slot 0x1c called with 1. Returns the count.
+s32 __fastcall Refcounted_Release(u8 *field);
+
 }  // extern "C"

@@ -95,7 +95,7 @@ address,name,kind,confidence,notes
 0x00597090,Wavelet_ReadBits,function,high,"LSB-first bit reader over 16-bit LE words"
 0x00591a60,Obj_IncBefore4c,function,high,reimplemented (src/game/core/selectors); increments the dword at -0x4c and returns it
 0x00591a70,WaveletCodec_GetRefCount,function,high,reimplemented (src/game/core/tiny_a); the dword at -0x4c
-0x00591a80,WaveletCodec_Release,function,high,
+0x00591a80,Refcounted_Release,function,high,reimplemented (src/game/core/vwrap); lowers a count and deletes the virtual base at zero
 0x00598800,WaveletCodec_DeletingDtor,function,medium,
 0x007026d8,WaveletCodec_vtable,data,high,"slots: DecodeV12, DecodeV13Scaled, DecodeV13"
 0x007026b8,IWaveletCodec_vtable,data,high,interface vtable (this-adjusting thunks at 0x598780..)
@@ -3074,6 +3074,13 @@ address,name,kind,confidence,notes
 0x00565560,Obj_CallSlot10IfSized,function,high,reimplemented (src/game/core/vwrap); calls slot 0x10 when the argument has a size
 0x00565930,Obj_ApplyIfShared,function,high,reimplemented (src/game/core/vwrap); calls slot 0x10 when the flags share a bit and marks the argument
 0x0048ccd0,Obj_CallSlot2cIfGlobal,function,high,reimplemented (src/game/core/vwrap); calls slot 0x2c when the argument is the global one
+0x00569ef0,Global879acc_Delete,function,high,reimplemented (src/game/core/vwrap); deletes a global object
+0x005667a0,Global879ac0_Delete,function,high,reimplemented (src/game/core/vwrap); deletes a global object
+0x0047e990,Global7b4b84_Delete,function,high,reimplemented (src/game/core/vwrap); deletes a global object without clearing it
+0x004b3f20,Globals7cc2fc_Release,function,high,reimplemented (src/game/core/vwrap); releases three global objects
+0x0048eaf0,Table7c26b0_ReleaseIdle,function,high,reimplemented (src/game/core/vwrap); releases the idle objects of a table
+0x0057c4a0,Global8bba48_DeleteVBase,function,high,reimplemented (src/game/core/vwrap); deletes the virtual base of a global object
+0x00576230,ListNodes_Drain,function,high,reimplemented (src/game/core/vwrap); drains the objects of a list while they report 1
 0x005e3b90,Class702d48_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor that registers the object with a global one
 0x005e3c00,Class702d48_Release,function,high,reimplemented (src/game/core/vdtor); releases the object from a global one
 0x005e3bd0,Class702d48_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor that releases the object from a global one

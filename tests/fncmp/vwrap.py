@@ -13,9 +13,11 @@ CALLS = {'S18': (0x5c5510, 't', 'a', 0x20), 'Pass': (0x617dd0, 't', 'a', 0x20), 
          'G14': (0x46c330, 's', 'a', 0x30), 'G1e0': (0x498b90, 'c', 'v', 0x30), 'G1c8': (0x4987d0, 'c', 'v', 0x30), 'G1d8': (0x578390, 'c', 'v', 0x30),
          'Sub14': (0x5c5530, 't', 'a', 0x30), 'Sub28': (0x5c5560, 't', 'a', 0x30), 'M14': (0x617a30, 't', 'a', 0x30), 'M18': (0x617b00, 't', 'a', 0x30),
          'M10': (0x617b30, 't', 'a', 0x30), 'Fin': (0x5c4f80, 'c', 'a', 0x30), 'Prod': (0x5c4f60, 'c', 'a', 0x30), 'Sized': (0x565560, 't', 'a', 0x30),
-         'Shared': (0x565930, 't', 'a', 0x50), 'G2c': (0x48ccd0, 't', 'a', 0x30)}
+         'Shared': (0x565930, 't', 'a', 0x50), 'G2c': (0x48ccd0, 't', 'a', 0x30), 'D9acc': (0x569ef0, 'c', 'a', 0x30), 'D9ac0': (0x5667a0, 'c', 'a', 0x30),
+         'D4b84': (0x47e990, 'c', 'v', 0x20), 'R2fc': (0x4b3f20, 'c', 'v', 0x40), 'T26b0': (0x48eaf0, 'c', 'v', 0x30), 'VB48': (0x57c4a0, 'c', 'a', 0x30),
+         'Drain': (0x576230, 't', 'v', 0x30), 'Rel': (0x591a80, 't', 'a', 0x30)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()])
-OBJ, OBJ2, VT = RAM, RAM + 0x200, RAM + 0x1000
+OBJ, OBJ2, VT, VT2 = RAM, RAM + 0x200, RAM + 0x1000, RAM + 0x1100
 
 
 def case(r):
@@ -72,6 +74,56 @@ def case(r):
         put(arg, 4, 'I', r.choice([0, 1, 4, 0x10, 0xff]))
         regions[RAM + 0x400] = arg
         return Call(address, [OBJ, RAM + 0x400], regions, conv=conv, ret=ret)
+    if name in ('D9acc', 'D9ac0', 'D4b84'):
+        glob = {'D9acc': 0x879acc, 'D9ac0': 0x879ac0, 'D4b84': 0x7b4b84}[name]
+        regions[glob] = struct.pack('<I', OBJ if r.random() < 0.7 else 0)
+        put(obj, 0, 'I', VT)
+        regions[VT] = vtable({0: 1})
+        return Call(address, [], regions, conv=conv, ret=ret)
+    if name == 'R2fc':
+        for g, o in ((0x7cc2fc, OBJ), (0x7cc300, OBJ2), (0x7cc304, RAM + 0x300)):
+            regions[g] = struct.pack('<I', o if r.random() < 0.6 else 0)
+            regions[o] = struct.pack('<I', VT) + r.bytes(0x20)
+        regions[VT] = vtable({2: 1})
+        return Call(address, [], regions, conv=conv, ret=ret)
+    if name == 'T26b0':
+        table = bytearray(r.bytes(0x1450))
+        for k in range(10):
+            put(table, 0x208 * k, 'I', RAM + 0x2000 + 0x40 * k if r.random() < 0.6 else 0)
+            put(table, 0x208 * k + 4, 'H', r.choice([0, 0, 1, 7]))
+            regions[RAM + 0x2000 + 0x40 * k] = struct.pack('<I', VT) + r.bytes(0x20)
+        regions[0x7c26b0] = table
+        regions[VT] = vtable({2: 1})
+        return Call(address, [], regions, conv=conv, ret=ret)
+    if name == 'VB48':
+        regions[0x8bba48] = struct.pack('<I', OBJ if r.random() < 0.7 else 0)
+        put(obj, 0, 'I', VT)
+        regions[VT] = bytearray(vtable({}))
+        off = r.choice([0x40, 0x80])
+        struct.pack_into('<I', regions[VT], 4, off)
+        put(obj, off, 'I', VT2)
+        regions[VT2] = vtable({0: 1})
+        return Call(address, [], regions, conv=conv, ret=ret)
+    if name == 'Drain':
+        nodes = bytearray(r.bytes(0x80))
+        n = r.choice([0, 1, 2, 3])
+        for k in range(n):
+            put(nodes, 8 * k, 'II', RAM + 0x2000 + 0x40 * k, RAM + 0x100 + 8 * (k + 1) if k + 1 < n else 0)
+            regions[RAM + 0x2000 + 0x40 * k] = struct.pack('<I', VT) + r.bytes(0x20)
+        regions[RAM + 0x100] = nodes
+        regions[VT] = vtable({2: 0, 1: 0})
+        return Call(address, [RAM + 0x100 if n else 0], regions, conv=conv, ret=ret)
+    if name == 'Rel':
+        # the field is 0x54 into the owner, whose dword +4 points to an object of a class whose vtable's dword +4 is the base's offset
+        own = bytearray(r.bytes(0x300))
+        put(own, 8, 'i', r.choice([1, 2, 5, 0, -1]))
+        put(own, 4, 'I', RAM + 0x600)
+        off = r.choice([0x40, 0x80])
+        put(own, 4 + off, 'I', VT2)
+        held = bytearray(struct.pack('<I', VT) + r.bytes(0x20))
+        regions.update({RAM + 0x3000: own, RAM + 0x600: held, VT: bytearray(vtable({})), VT2: vtable({7: 1})})
+        struct.pack_into('<I', regions[VT], 4, off)
+        return Call(address, [RAM + 0x3000 + 0x54], regions, conv=conv, ret=ret)
     if name == 'G2c':
         put(obj, 0, 'I', VT)
         regions[VT] = vtable({11: 0})

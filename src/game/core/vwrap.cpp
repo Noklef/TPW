@@ -105,4 +105,79 @@ u32 __fastcall Obj_CallSlot2cIfGlobal(u8 *object, void *, u32 a) {
     return a;
 }
 
+u32 __cdecl Global879acc_Delete() {
+    if (u8 *object = global<u8 *>(0x00879acc)) {
+        vcall<u32>(object, 0, 1u);
+        global<u32>(0x00879acc) = 0;
+        return 1;
+    }
+    return 0;
+}
+
+u32 __cdecl Global879ac0_Delete() {
+    if (u8 *object = global<u8 *>(0x00879ac0)) {
+        vcall<u32>(object, 0, 1u);
+        global<u32>(0x00879ac0) = 0;
+        return 1;
+    }
+    return 0;
+}
+
+void __cdecl Global7b4b84_Delete() {
+    if (u8 *object = global<u8 *>(0x007b4b84))
+        vcall<u32>(object, 0, 1u);
+}
+
+void __cdecl Globals7cc2fc_Release() {
+    if (u8 *object = global<u8 *>(0x007cc2fc))
+        vcall<u32>(object, 8, 1u);
+    if (u8 *object = global<u8 *>(0x007cc300))
+        vcall<u32>(object, 8, 1u);
+    if (u8 *object = global<u8 *>(0x007cc304))
+        vcall<u32>(object, 8, 1u);
+}
+
+void __cdecl Table7c26b0_ReleaseIdle() {
+    for (u32 record = 0x007c26b0; (s32)record < 0x007c3b00; record += 0x208) {
+        if (global<u16>(record + 4) == 0 && global<u8 *>(record)) {
+            vcall<u32>(global<u8 *>(record), 8, 1u);
+            global<u32>(record) = 0;
+        }
+    }
+}
+
+u32 __cdecl Global8bba48_DeleteVBase() {
+    if (u8 *object = global<u8 *>(0x008bba48)) {
+        u8 *base = object + at<u32>(at<u8 *>(object, 0), 4);
+        vcall<u32>(base, 0, 1u);
+        global<u32>(0x008bba48) = 0;
+        return 1;
+    }
+    return 0;
+}
+
+void __fastcall ListNodes_Drain(u8 *node) {
+    while (node) {
+        u8 *object = at<u8 *>(node, 0);
+        if (vcall<u32>(object, 8) != 1)
+            return;
+        vcall<u32>(at<u8 *>(node, 0), 4);
+        node = at<u8 *>(node, 4);
+    }
+}
+
+s32 __fastcall Refcounted_Release(u8 *field) {
+    const s32 count = at<s32>(field, (u32)-0x4c) - 1;
+    at<s32>(field, (u32)-0x4c) = count;
+    if (count <= 0) {
+        u8 *owner = field - 0x54;
+        if (owner) {
+            u8 *held = at<u8 *>(owner, 4);
+            u8 *base = owner + at<u32>(held, 4) + 4;
+            vcall<u32>(base, 0x1c, 1u);
+        }
+    }
+    return count;
+}
+
 }  // extern "C"
