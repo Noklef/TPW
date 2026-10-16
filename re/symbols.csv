@@ -2146,6 +2146,10 @@ address,name,kind,confidence,notes
 0x00633b60,Obj_Set10,function,high,reimplemented (src/game/core/small); +0x10 = value
 0x006428b0,DivCeil,function,high,"reimplemented (src/game/core/small); (a + b - 1) / b, signed"
 0x00642b20,Const_1000000,function,high,reimplemented (src/game/core/small); 1000000
+0x006339a0,Obj_TakeWords,function,high,"reimplemented (src/game/core/small); takes a dword, a byte and two words from another object; kind 1"
+0x006344c0,Obj_Copy4At34,function,high,reimplemented (src/game/core/small); four dwords copied to +0x34 (nothing for a null source)
+0x006404d0,Bits_Reverse,function,high,reimplemented (src/game/core/small); the low bits of a code in reverse order (zlib's bi_reverse)
+0x00631280,Codec631280_Init,function,high,reimplemented (src/game/core/small); an object's function pointer table and fields
 0x00632200,DequeIter_Set,function,high,reimplemented (src/game/core/dequeiter); the iterator at a position in a block of the map
 0x00632230,DequeIter_Plus,function,high,"reimplemented (src/game/core/dequeiter); the iterator n dwords on, across blocks"
 0x00632290,DequeIter_Diff,function,high,reimplemented (src/game/core/dequeiter); this - other in dwords through the blocks
