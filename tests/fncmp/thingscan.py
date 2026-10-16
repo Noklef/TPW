@@ -20,7 +20,7 @@ CALLS = {'C1': (0x4c9f90, 'c', 0xa0, 'n'), 'C2': (0x4ca0c0, 'c', 0xa0, 'n'), 'Ma
          'Re': (0x4c9ee0, 't', 0xb0, 'g'), 'D4': (0x4ca8e0, 's', 0xd0, 'vv'), 'D5': (0x4ca9b0, 's', 0xc0, 'v'),
          'B4ac': (0x483280, 'c', 0x140, 'vp'), 'Bw': (0x4833c0, 'c', 0x120, 'p'), 'Bu2': (0x4834e0, 'c', 0x140, 'p'), 'Bf2': (0x483620, 'c', 0x120, 'p'),
          'P1': (0x4c9130, 'c', 0xa0, 'n'), 'P2': (0x4c9530, 'c', 0xa0, 'n'), 'P3': (0x4c95d0, 'c', 0xa0, 'n'),
-         'Sum': (0x4c9e60, 'c', 0x70, 'n'), 'U3c': (0x519690, 't', 0x130, 'u'), 'U3e': (0x519800, 't', 0x130, 'u'), 'U40': (0x519970, 't', 0x130, 'u'),
+         'Sum': (0x4c9e60, 'c', 0x70, 'n'), 'Cs': (0x4c9a10, 'c', 0xa0, 'n'), 'U3c': (0x519690, 't', 0x130, 'u'), 'U3e': (0x519800, 't', 0x130, 'u'), 'U40': (0x519970, 't', 0x130, 'u'),
          'U42': (0x519c50, 't', 0x130, 'u'), 'U44': (0x519ae0, 't', 0x130, 'u'), 'U46': (0x519dc0, 't', 0x130, 'u'), 'S5': (0x59edd0, 't', 0x50, 's'), 'S6': (0x59ee20, 't', 0x50, 's'), 'S4': (0x59ee70, 't', 0x50, 's'), 'S7': (0x59eec0, 't', 0x50, 's')}
 B = Bench([(a, a + n) for (a, _c, n, _s) in CALLS.values()] + [(0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x4e0440, 0x4e0450),
                                                               (0x4e2710, 0x4e2740), (0x4dd4e0, 0x4dd500), (0x412e90, 0x412eea), (0x5da3c0, 0x5da3c1), (0x41a960, 0x41a970), (0x5161b0, 0x516200), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c), (0x519510, 0x519550)])
@@ -31,8 +31,8 @@ def case(r):
     name = r.choice(OPS)
     address, conv, _n, shape = CALLS[name]
     regions, handles, things = park(r, count=r.choice([1, 2, 3, 4, 6]) if shape in ('o', 'u') or name.startswith('B') else None,
-                                    defs=name not in ('C1', 'C2', 'Max', 'C3', 'Staff', 'Avg', 'Re', 'P1', 'P2', 'P3', 'Sum') and shape != 'u',
-                                    kinds=(4, 5, 6, 7, 8, 3, 1, 0) if name in ('Staff', 'S5', 'S6', 'S4', 'S7') else (1, 1, 1, 3, 0, 0xff) if name[0] == 'P' else (3, 3, 3, 1, 2, 0xff, 0),
+                                    defs=name not in ('C1', 'C2', 'Max', 'C3', 'Staff', 'Avg', 'Re', 'P1', 'P2', 'P3', 'Sum', 'Cs') and shape != 'u',
+                                    kinds=(4, 5, 6, 7, 8, 3, 1, 0) if name in ('Staff', 'S5', 'S6', 'S4', 'S7', 'Cs') else (1, 1, 1, 3, 0, 0xff) if name[0] == 'P' else (3, 3, 3, 1, 2, 0xff, 0),
                                     cells=name[0] == 'P')
     if shape == 'u':  # a singly linked list of some of the things (head word in the game object, links in each thing), one of them taken out
         head = {'U3c': 0x1da73c, 'U3e': 0x1da73e, 'U40': 0x1da740, 'U42': 0x1da742, 'U44': 0x1da744, 'U46': 0x1da746}[name]

@@ -30,6 +30,21 @@ s32 CountKind3(u8 flag) {
     return count;
 }
 
+// The count of things of kind 4 to 8.
+s32 CountKinds4To8() {
+    s32 count = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        const u8 kind = at<u8>(thing, 2);
+        if (kind == 4 || kind == 5 || kind == 6 || kind == 8 || kind == 7)
+            ++count;
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    return count;
+}
+
 // The first thing after the previous one (the newest for none) that the test accepts, 0 for none.
 template <typename Test> u8 *FindFrom(const u8 *previous, Test test) {
     u16 handle;
@@ -130,6 +145,8 @@ u32 __cdecl Things_SumChain() {
 }
 
 s32 __cdecl Things_CountKind3Flag1() { return CountKind3(1); }
+
+s32 __cdecl Things_CountStaff() { return CountKinds4To8(); }
 
 s32 __cdecl Things_CountKind3Flag2() { return CountKind3(2); }
 

@@ -9,6 +9,9 @@ extern "C" {
 
 // 0x4c9f90 / 0x4ca0c0 (cdecl): how many things of kind 3 have bit 0 / bit 1 of the byte at +0x32 set and a dword at +0x68 that is 0.
 s32 __cdecl Things_CountKind3Flag1();
+
+// 0x4c9a10 (cdecl): the things of kind 4 to 8 (the staff).
+s32 __cdecl Things_CountStaff();
 // 0x519690 / 0x519800 / 0x519970 / 0x519c50 / 0x519ae0 (thiscall on the game object; thing, pops 4): the thing is taken out of the singly linked list of
 // things whose head handle is the word at +0x1da73c / +0x1da73e / +0x1da740 / +0x1da742 / +0x1da744 and whose links are the words at +0x210 of each: when it is
 // the head the head becomes its link, otherwise the link of the thing before it becomes its link (found by walking from the head; a thing that is not in the
