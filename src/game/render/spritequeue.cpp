@@ -10,6 +10,23 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 extern "C" {
 
+u32 __fastcall SpriteQueue_Ready(u8 *setPlus20) {
+    u8 *set = setPlus20 - 0x20;
+    const u32 stampA = *reinterpret_cast<u32 *>(0x008bcc40), stampB = *reinterpret_cast<u32 *>(0x008bcc44);
+    if (at<u32>(set, 0xc) == stampA && at<u32>(set, 0x10) == stampB)
+        return 1;
+    u8 *queue = *reinterpret_cast<u8 **>(0x008c47a0);
+    u32 result = 0;
+    if (at<s32>(queue, 0x240c) < 0x80) {
+        at<u32>(queue, 0x2200 + at<s32>(queue, 0x240c) * 4) = (u32)(uintptr_t)set;
+        at<s32>(queue, 0x240c) = at<s32>(queue, 0x240c) + 1;
+        result = 1;
+    }
+    at<u32>(set, 0xc) = stampA;
+    at<u32>(set, 0x10) = stampB;
+    return result;
+}
+
 u32 __fastcall SpriteQueue_Add(u8 *queue, void *, u32 frame) {
     s32 n = at<s32>(queue, 0x2404);
     if (n >= 0x800)

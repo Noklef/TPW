@@ -1,4 +1,4 @@
-// The sprite queue's appends: reimplementation of 0x58a6b0 and 0x58a6e0.
+// The sprite queue's appends: reimplementation of 0x58a550, 0x58a6b0 and 0x58a6e0.
 //
 // The sprite queue is the object at [0x8c47a0]: the sprite frames readied this frame (0x588ef0)
 // waiting to be drawn (0x58a770). It has a list of 0x800 at +0 (count +0x2404), a second list at
@@ -8,6 +8,12 @@
 #include "../../../re/types.h"
 
 extern "C" {
+
+// 0x58a550 (thiscall on a frame set's +0x20; _ = the set's address + 0x20): the set is queued
+// once for the current stamp (0x8bcc40, 0x8bcc44). If its stamp (+0xc, +0x10) already matches,
+// 1. Otherwise the stamp is taken, and the set is appended to the frame sets of the queue at
+// [0x8c47a0] when there is room (0x80): 1, or 0 when full.
+u32 __fastcall SpriteQueue_Ready(u8 *setPlus20);
 
 // 0x58a6b0 (thiscall; frame): appended to the first list when there is room; 1, or 0 when full.
 u32 __fastcall SpriteQueue_Add(u8 *queue, void *, u32 frame);
