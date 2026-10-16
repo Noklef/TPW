@@ -3260,6 +3260,9 @@ address,name,kind,confidence,notes
 0x004cd300,Thing_ByHandle,function,high,reimplemented (src/game/core/small27); the thing a handle names
 0x004cd4e0,Cell_MakeHandle,function,high,reimplemented (src/game/core/small27); makes a map cell handle from coordinates
 0x00413340,Obj_FreeFourBuffers,function,high,reimplemented (src/game/core/small27); frees four global memory buffers
+0x00421770,NamedList_Find,function,high,reimplemented (src/game/core/small28); finds the object with the key's name
+0x0041ede0,Obj_HasNamedObject,function,high,reimplemented (src/game/core/small28); whether a listed object has the key's name
+0x005c4c60,Strings5_Dtor,function,high,reimplemented (src/game/core/small28); destroys five strings
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

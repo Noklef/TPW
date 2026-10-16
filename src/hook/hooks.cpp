@@ -126,6 +126,7 @@
 #include "../game/core/small25.h"
 #include "../game/core/small26.h"
 #include "../game/core/small27.h"
+#include "../game/core/small28.h"
 #include "../game/core/small2.h"
 #include "../game/core/small3.h"
 #include "../game/core/small4.h"
@@ -2807,6 +2808,9 @@ const Hook kHooks[] = {
     {"Thing_ByHandle",            0x004cd300, (void *)&Thing_ByHandle, {0x8b, 0x15, 0x90, 0xfb, 0x7c}},
     {"Cell_MakeHandle",           0x004cd4e0, (void *)&Cell_MakeHandle, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"Obj_FreeFourBuffers",       0x00413340, (void *)&Obj_FreeFourBuffers, {0x56, 0x57, 0x8d, 0xb1, 0xf4}},
+    {"NamedList_Find",            0x00421770, (void *)&NamedList_Find, {0x53, 0x55, 0x8b, 0xe9, 0x56}},
+    {"Obj_HasNamedObject",        0x0041ede0, (void *)&Obj_HasNamedObject, {0x8b, 0x41, 0x4c, 0x56, 0x85}},
+    {"Strings5_Dtor",             0x005c4c60, (void *)&Strings5_Dtor, {0x6a, 0xff, 0x68, 0xf9, 0x02}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
