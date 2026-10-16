@@ -3192,6 +3192,9 @@ address,name,kind,confidence,notes
 0x005cdf00,StdListString_PushBack,function,high,reimplemented (src/game/core/stdlist); appends a copy of a string to a list of strings
 0x005d0330,StdListString_Insert,function,high,reimplemented (src/game/core/stdlist); inserts a copy of a string before a node
 0x00618160,StdListDword_PushBack,function,high,reimplemented (src/game/core/stdlist); appends a dword to a list of dwords
+0x004925d0,Format_FillInfo,function,high,reimplemented (src/game/core/small24); fills a display format info from the current format record
+0x005d0510,List_SpliceOne,function,high,reimplemented (src/game/core/small24); moves one node of a circular list in front of another
+0x004b0aa0,Obj_ApplyToGlobalObject,function,high,reimplemented (src/game/core/small24); sets three values on the global game object
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

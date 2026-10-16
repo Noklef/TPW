@@ -120,6 +120,7 @@
 #include "../game/core/small21.h"
 #include "../game/core/small22.h"
 #include "../game/core/small23.h"
+#include "../game/core/small24.h"
 #include "../game/core/small2.h"
 #include "../game/core/small3.h"
 #include "../game/core/small4.h"
@@ -2725,6 +2726,9 @@ const Hook kHooks[] = {
     {"StdListString_PushBack",    0x005cdf00, (void *)&StdListString_PushBack, {0x53, 0x55, 0x8b, 0xe9, 0x56}},
     {"StdListString_Insert",      0x005d0330, (void *)&StdListString_Insert, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"StdListDword_PushBack",     0x00618160, (void *)&StdListDword_PushBack, {0x53, 0x8b, 0xd9, 0x56, 0x57}},
+    {"Format_FillInfo",           0x004925d0, (void *)&Format_FillInfo, {0x8b, 0x44, 0x24, 0x08, 0x83}},
+    {"List_SpliceOne",            0x005d0510, (void *)&List_SpliceOne, {0x8b, 0x54, 0x24, 0x04, 0x56}},
+    {"Obj_ApplyToGlobalObject",   0x004b0aa0, (void *)&Obj_ApplyToGlobalObject, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
