@@ -2650,6 +2650,21 @@ address,name,kind,confidence,notes
 0x00633b80,Obj_Get1cOrWindow,function,high,"reimplemented (src/game/core/selectors); the dword at +0x1c, or the application window when it is -1"
 0x004f0240,Obj_Get4Or6fd6c4,function,high,"reimplemented (src/game/core/selectors); the dword at +4, or 0x6fd6c4 when it is 0"
 0x0067d340,Obj_Get4Or7089cc,function,high,"reimplemented (src/game/core/selectors); the dword at +4, or 0x7089cc when it is 0"
+0x006c5190,Obj_SetFirstFlag80,function,high,reimplemented (src/game/core/fieldops); sets bit 7 of the dword at +0x14 and the dword at +0 to the value
+0x006c51b0,Obj_SetSecondFlag8,function,high,reimplemented (src/game/core/fieldops); sets bit 3 of the dword at +0x14 and the dword at +4 to the value
+0x006b7130,Obj_SetByte44Flag400,function,high,reimplemented (src/game/core/fieldops); sets the byte at +0x44 and bit 10 of the dword at +0x30
+0x006cc760,Obj_Set242cTimes8,function,high,reimplemented (src/game/core/fieldops); sets the dwords at +0x242c and +0x2430 to the value times 8
+0x006b9c90,Obj_Set54And58Flag8,function,high,reimplemented (src/game/core/fieldops); sets +0x54 and +0x58 and bit 3 of the dword at +0x4c
+0x006c6fd0,Obj_SampleRate20,function,high,reimplemented (src/game/core/fieldops); a sample rate chosen by bits 3 and 4 of the byte at +0x20
+0x006b0560,Obj_WordFrom6,function,high,"reimplemented (src/game/core/fieldops); the word at +6 of what +0xc points to, when +8 is set"
+0x006b05e0,Obj_ByteFrom5,function,high,"reimplemented (src/game/core/fieldops); the byte at +5 of what +0xc points to, when +8 is set"
+0x006b6240,Chain24_Promote400To100,function,high,reimplemented (src/game/core/fieldops); moves bit 10 to bit 8 of the flags along a chain
+0x006b6970,Chain20_Find2c,function,high,reimplemented (src/game/core/fieldops); the first node of a chain whose dword at +0x2c equals a value
+0x006b54a0,Nibble_Select,function,high,reimplemented (src/game/core/fieldops); the low or high nibble of a byte chosen by a flag
+0x0056afa0,Entries8_Pop,function,high,reimplemented (src/game/core/fieldops); pops an 8-byte entry index and returns its address
+0x006d48f0,Offsets_Resolve,function,high,"reimplemented (src/game/core/fieldops); an address from a table of offsets, bounds checked"
+0x005d0e30,Targets3_Set,function,high,"reimplemented (src/game/core/fieldops); stores a, b and c - b through three pointers"
+0x005d0e50,Targets2_Set,function,high,"reimplemented (src/game/core/fieldops); stores a, a and b - a through three pointers"
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
