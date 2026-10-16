@@ -72,4 +72,12 @@ u8 __cdecl Palette_Nearest(const u8 *palette, u32 red, u32 green, u32 blue) {
     return result;
 }
 
+void __fastcall PalColour_Set(u8 *colour, void *, u32 red, u32 green, u32 blue) {
+    colour[2] = (u8)red;
+    colour[1] = (u8)green;
+    colour[0] = (u8)blue;
+    colour[3] = 0xff;
+    colour[4] = Palette_Nearest(reinterpret_cast<const u8 *>(0x00fa71f8), red, green, blue);
+}
+
 }  // extern "C"
