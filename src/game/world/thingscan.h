@@ -32,4 +32,25 @@ u8 *__cdecl Things_FindNextKind3Flag2(const u8 *previous);
 // pointer). Returns out.
 u16 *__cdecl Things_LastHandle(u16 *out);
 
+// 0x4ca030 (cdecl): how many things of kind 3 have bit 1 of the byte at +0x32 set.
+s32 __cdecl Things_CountKind3Flag2Any();
+
+// 0x4c9960 (stdcall; kind): how many staff things (kinds 4 to 8) there are of that kind whose byte at +3 is 0.
+s32 __stdcall Things_CountStaffOfKind(u32 kind);
+
+// 0x4c9c00 (stdcall; kind): over the things of that kind byte (at +2), the sum of their dwords at +0x1e4 times 100 over 5 times their
+// number (0 for none).
+s32 __stdcall Things_AverageOfKind(u32 kind);
+
+// 0x4c9ee0 (thiscall on the game object): +0x1f0e0 = how many things of kind 3 have bit 0 of the byte at +0x32 set, +0x1f0e4 = 1, and
+// +0x1f0dc set from the game time (Out_SetFromGame1da70c). Returns the count.
+u32 __fastcall Game_RecountKind3Flag1(u8 *game);
+
+// 0x4ca8e0 (stdcall; value, least): how many things of kind 3 have a definition whose dword at +0x4ac is the value, and, when the value is
+// 0, a byte at +0x50 that is at least the least (signed).
+s32 __stdcall Things_CountByDef4ac(s32 value, s32 least);
+
+// 0x4ca9b0 (stdcall; value): the same without the least, for the things whose dword at +0x68 is 0.
+s32 __stdcall Things_CountByDef4acIdle(s32 value);
+
 }  // extern "C"

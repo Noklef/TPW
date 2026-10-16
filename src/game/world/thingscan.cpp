@@ -2,7 +2,9 @@
 
 #include <cstdint>
 
+#include "../core/indexed.h"
 #include "object.h"
+#include "objectdefs.h"
 #include "things.h"
 
 namespace {
@@ -104,6 +106,95 @@ u16 *__cdecl Things_LastHandle(u16 *out) {
     }
     Thing_GetHandle(last, nullptr, out);
     return out;
+}
+
+s32 __cdecl Things_CountKind3Flag2Any() {
+    s32 count = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (at<u8>(thing, 2) == 3 && (at<u8>(thing, 0x32) & 2))
+            ++count;
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    return count;
+}
+
+s32 __stdcall Things_CountStaffOfKind(u32 kind) {
+    s32 count = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        const u8 k = at<u8>(thing, 2);
+        if (k >= 4 && k <= 8 && k == kind && at<u8>(thing, 3) == 0)
+            ++count;
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    return count;
+}
+
+s32 __stdcall Things_AverageOfKind(u32 kind) {
+    s32 sum = 0;
+    s32 count = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (at<u8>(thing, 2) == kind) {
+            ++count;
+            sum = (s32)((u32)sum + at<u32>(thing, 0x1e4));
+        }
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    if (count == 0)
+        return 0;
+    return (s32)((u32)sum * 100) / (count * 5);
+}
+
+u32 __fastcall Game_RecountKind3Flag1(u8 *game) {
+    s32 count = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (at<u8>(thing, 2) == 3 && (at<u8>(thing, 0x32) & 1))
+            ++count;
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    at<s32>(game, 0x1f0e0) = count;
+    at<u8>(game, 0x1f0e4) = 1;
+    Out_SetFromGame1da70c(reinterpret_cast<u32 *>(game + 0x1f0dc));
+    return at<u32>(game, 0x1f0e0);
+}
+
+s32 __stdcall Things_CountByDef4ac(s32 value, s32 least) {
+    s32 count = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (at<u8>(thing, 2) == 3 && (s32)at<u32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(thing, 0xe)), 0x4ac) == value &&
+            (value != 0 || (s32)at<u8>(thing, 0x50) >= least))
+            ++count;
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    return count;
+}
+
+s32 __stdcall Things_CountByDef4acIdle(s32 value) {
+    s32 count = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (at<u8>(thing, 2) == 3 && (s32)at<u32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(thing, 0xe)), 0x4ac) == value &&
+            at<u32>(thing, 0x68) == 0)
+            ++count;
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    return count;
 }
 
 }  // extern "C"
