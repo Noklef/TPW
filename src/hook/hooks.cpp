@@ -109,6 +109,7 @@
 #include "../game/core/small2.h"
 #include "../game/core/small3.h"
 #include "../game/core/small4.h"
+#include "../game/core/small5.h"
 #include "../game/core/tiny_g.h"
 #include "../game/core/tiny_h.h"
 #include "../game/core/tiny_i.h"
@@ -2442,6 +2443,15 @@ const Hook kHooks[] = {
     {"ListRemove6c_5dd4b0",       0x005dd4b0, (void *)&ListRemove6c_5dd4b0, {0x8b, 0x49, 0x6c, 0x56, 0x8b}},
     {"ListRemove8_5e15c0",        0x005e15c0, (void *)&ListRemove8_5e15c0, {0x8b, 0x49, 0x08, 0x56, 0x8b}},
     {"ListRemove18_5e4250",       0x005e4250, (void *)&ListRemove18_5e4250, {0x8b, 0x49, 0x18, 0x56, 0x8b}},
+    {"Debug_Nop_46cfb0",          0x0046cfb0, (void *)&Debug_Nop_46cfb0, {0x68, 0x68, 0xd9, 0x74, 0x00}},
+    {"Buffer_FreeIfOwned",        0x0047b1a0, (void *)&Buffer_FreeIfOwned, {0x80, 0x39, 0x00, 0x74, 0x0c}},
+    {"Buffer_FreeAndClear",       0x0047b170, (void *)&Buffer_FreeAndClear, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
+    {"Node28_New",                0x005b2fd0, (void *)&Node28_New, {0x6a, 0x28, 0xe8, 0xe9, 0x7c}},
+    {"Node18_New",                0x005b1680, (void *)&Node18_New, {0x6a, 0x18, 0xe8, 0x39, 0x96}},
+    {"ListHead_Ctor",             0x005cd400, (void *)&ListHead_Ctor, {0x51, 0x8a, 0x44, 0x24, 0x03}},
+    {"Array3D_Init",              0x005d3830, (void *)&Array3D_Init, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"Array3D_Free",              0x005d3860, (void *)&Array3D_Free, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"Deleter_Minus2c_569c80",    0x00569c80, (void *)&Deleter_Minus2c_569c80, {0x56, 0x8b, 0xf1, 0xe8, 0xa8}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

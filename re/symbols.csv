@@ -2946,6 +2946,15 @@ address,name,kind,confidence,notes
 0x005dd4b0,ListRemove6c_5dd4b0,function,high,"reimplemented (src/game/core/tiny_o); removes the first node with a value from the linked list at +0x6c (unlinks it, counts it off, frees it)"
 0x005e15c0,ListRemove8_5e15c0,function,high,"reimplemented (src/game/core/tiny_o); removes the first node with a value from the linked list at +0x8 (unlinks it, counts it off, frees it)"
 0x005e4250,ListRemove18_5e4250,function,high,"reimplemented (src/game/core/tiny_o); removes the first node with a value from the linked list at +0x18 (unlinks it, counts it off, frees it)"
+0x0046cfb0,Debug_Nop_46cfb0,function,high,reimplemented (src/game/core/small5); only a debug print in the original
+0x0047b1a0,Buffer_FreeIfOwned,function,high,reimplemented (src/game/core/small5); frees the block at +4 when the flag byte is set
+0x0047b170,Buffer_FreeAndClear,function,high,reimplemented (src/game/core/small5); frees the block at +4 and clears the fields
+0x005b2fd0,Node28_New,function,high,reimplemented (src/game/core/small5); a new 0x28-byte node with two fields set
+0x005b1680,Node18_New,function,high,"reimplemented (src/game/core/small5); a new 0x18-byte node with two links, each itself when 0"
+0x005cd400,ListHead_Ctor,function,high,reimplemented (src/game/core/small5); a circular list head with its count and first dword
+0x005d3830,Array3D_Init,function,high,reimplemented (src/game/core/small5); dimensions and a block of their product
+0x005d3860,Array3D_Free,function,high,reimplemented (src/game/core/small5); clears the dimensions and frees the block
+0x00569c80,Deleter_Minus2c_569c80,function,high,reimplemented (src/game/core/small5); deleting destructor of the object 0x2c bytes in
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
