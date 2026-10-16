@@ -23,7 +23,10 @@ def case(r):
     if op == 'Extents':
         arg = lambda: r.choice([0, 1, 5, 9, -1, -5, 100, 0x7f, 0x80, -0x80, 0x1ff, -0x1ff, r.randrange(-300, 300)]) & 0xffffffff
         first = r.randrange(0, 10)
-        return Call(0x56e780, [RAM, arg(), first, arg(), first + r.randrange(0, 6) - (2 if r.random() < 0.1 else 0)], regions, conv='t')
+        last = first + r.randrange(0, 6) - (2 if r.random() < 0.1 else 0)
+        put(obj, 0x20, 'i', first + r.choice([-1, 0, 1, r.randrange(-20, 20)]))  # the stored extents about the new ones
+        put(obj, 0x24, 'i', last + r.choice([-1, 0, 1, r.randrange(-20, 20)]))
+        return Call(0x56e780, [RAM, arg(), first, arg(), last], regions, conv='t')
     if op == 'FreeAll':
         # chunks at RAM + 0x100 + 0x40 * i (list head at the owner's +0xbc), their nodes at RAM + 0x400 + 0x20 * j
         owner = RAM + 0x20
