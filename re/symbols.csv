@@ -2162,6 +2162,8 @@ address,name,kind,confidence,notes
 0x00590f90,Texture_SetKeep,function,high,"reimplemented (src/game/gfx/texture); thiscall: flag 0x4000 set (its cache item kept, 0x58f83d)"
 0x00590fa0,Texture_ClearKeep,function,high,reimplemented (src/game/gfx/texture); thiscall: flag 0x4000 cleared
 0x00590fb0,Texture_UsesDriverFilter,function,high,reimplemented (src/game/gfx/texture); thiscall: 1 when a flag of 0x30000 is set and the display driver kind (0x8bd524) is 1 (Direct3D)
+0x00590a00,Texture_Ctor,function,high,"reimplemented (src/game/gfx/texture); the texture constructor (most-derived flag: vbtable 0x702538, virtual base at +0x48)"
+0x00590c40,Texture_FormatBits,function,high,"reimplemented (src/game/gfx/texture); the format word for the driver from the flags (0x300, 0x4000000, driver filter)"
 0x00588d70,SpriteFrame_Init,function,high,"reimplemented (src/game/gfx/spriteframe); thiscall (a sprite frame, 0x48 bytes): +0x10/+0x28/+0x30/+0x34 = 0, +0x24 = -1, +0x2c = 1.0f; returns the frame"
 0x00588320,SpriteImage_Init,function,high,"reimplemented (src/game/gfx/spriteframe); thiscall (a sprite image, 0x18 bytes): +0, +4 and the u16 sizes +0xc..+0x16 cleared; returns the image"
 0x005882e0,SpriteFrames_MarkTextures,function,high,"reimplemented (src/game/gfx/spriteframe); each image texture: flag 0x200 set, 0x100 cleared"

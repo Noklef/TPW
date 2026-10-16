@@ -1,6 +1,7 @@
 #include "texture.h"
 
 #include <cstdint>
+#include <initializer_list>
 
 namespace {
 
@@ -10,6 +11,39 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 }  // namespace
 
 extern "C" {
+
+u8 *__fastcall Texture_Ctor(u8 *texture, void *, u32 mostDerived) {
+    if (mostDerived) {
+        at<u32>(texture, 0) = 0x00702538;
+        for (u32 offset = 0x48; offset < 0x60; offset += 4)
+            at<u32>(texture, offset) = 0;
+    }
+    at<u32>(texture, 0xc) = 0xffffffff;
+    at<u32>(texture, 8) = 0;
+    for (u32 offset = 0x10; offset < 0x18; offset += 2)
+        at<u16>(texture, offset) = 0;
+    for (u32 offset : {0x1cu, 0x24u, 0x20u, 0x2cu, 0x28u, 0x40u, 0x3cu, 4u, 0x18u, 0x30u})
+        at<u32>(texture, offset) = 0;
+    at<u16>(texture, 0x34) = 0;
+    return texture;
+}
+
+u32 __fastcall Texture_FormatBits(const u8 *texture) {
+    const u32 flags = at<u32>(texture, 8);
+    u32 bits = Texture_UsesDriverFilter(texture) ? 0x400000 : 0;
+    if (flags & 0x4000000)
+        bits |= 0x7000000;
+    switch (flags & 0x300) {
+    case 0x100:
+        return bits | 0x2756;
+    case 0x200:
+        return bits | 0x556;
+    case 0x300:
+        return bits | 0x200552;
+    default:
+        return bits | 0x1256;
+    }
+}
 
 void __fastcall Texture_UpdateWrapMask(u8 *texture) {
     s32 width = at<s16>(texture, 0x14);

@@ -1,14 +1,26 @@
-// The engine textures' small methods: reimplementation of 0x590cb0, 0x590cf0 and 0x590f80-0x590fb0.
+// The engine textures' small methods: reimplementation of 0x590a00, 0x590c40, 0x590cb0, 0x590cf0 and
+// 0x590f80-0x590fb0.
 //
 // A texture keeps its flags at +8 (0x30: the level given in the low 3 bits; 0x1000-0x4000 cache
 // state, 0x4000 marking its cache item to be kept, 0x58f83d; 0x30000 bits only the Direct3D
 // driver honours) and its width and height (s16) at +0x14 / +0x16. +0x44 is the mask for
-// wrapping texture coordinates, set after the size changes (0x5904cd).
+// wrapping texture coordinates, set after the size changes (0x5904cd). The texture class has a
+// virtual base at +0x48 (its vbtable 0x702538 holds 0, 0x48).
 #pragma once
 
 #include "../../../re/types.h"
 
 extern "C" {
+
+// 0x590a00 (thiscall): the constructor. When most derived, the vbtable pointer and the virtual
+// base's six dwords (+0x48-+0x5c) first; then +0xc = -1 and the other fields to +0x40 zeroed.
+// Returns the texture.
+u8 *__fastcall Texture_Ctor(u8 *texture, void *, u32 mostDerived);
+
+// 0x590c40 (thiscall): the format word for the driver: 0x400000 when it uses the driver filter
+// (as 0x590fb0), 0x7000000 when flag 0x4000000 is set, and by flags & 0x300: 0x100 0x2756,
+// 0x200 0x556, 0x300 0x200552, none 0x1256.
+u32 __fastcall Texture_FormatBits(const u8 *texture);
 
 // 0x590cb0 (thiscall): +0x44 = (height - 1) << 8 | (width - 1) when both are powers of two above
 // 0, else -1.
