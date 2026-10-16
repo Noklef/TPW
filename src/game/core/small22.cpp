@@ -3,6 +3,8 @@
 #include <cstdint>
 
 #include "gameheap.h"
+#include "small21.h"
+#include "vcall.h"
 #include "string.h"
 
 namespace {
@@ -74,6 +76,26 @@ u8 *__fastcall Sentinel_Ctor(u8 *object, void *, const u8 *from) {
 u8 *__fastcall Obj_NameToWString(u8 *object, void *, u8 *out) {
     WString_CtorStr((WString *)out, nullptr, at<const u16 *>(object, 0x54));
     return out;
+}
+
+void __cdecl Global7ced44_Release() {
+    u8 *shared = global<u8 *>(0x007ced44);
+    const u32 count = at<u32>(shared, 4);
+    if (count != 0 && count != 0xffffffffu)
+        at<u32>(shared, 4) = count - 1;
+    if (at<u32>(shared, 4) == 0)
+        vcall<u32>(shared, 0, 1u);
+    global<u32>(0x007ced44) = 0;
+}
+
+void __cdecl Globalf827dc_Release() {
+    u8 *shared = global<u8 *>(0x00f827dc);
+    const u32 count = at<u32>(shared, 4);
+    if (count != 0 && count != 0xffffffffu)
+        at<u32>(shared, 4) = count - 1;
+    if (at<u32>(shared, 4) == 0)
+        vcall<u32>(shared, 0, 1u);
+    global<u32>(0x00f827dc) = 0;
 }
 
 }  // extern "C"

@@ -3200,6 +3200,8 @@ address,name,kind,confidence,notes
 0x005b3110,Node14_New,function,high,reimplemented (src/game/core/small22); allocates a 0x14-byte node with two fields
 0x00618130,Sentinel_Ctor,function,high,reimplemented (src/game/core/small22); constructs a list head with a sentinel node
 0x005b9020,Obj_NameToWString,function,high,reimplemented (src/game/core/small22); constructs a wide string from the text at +0x54
+0x004f7970,Global7ced44_Release,function,high,reimplemented (src/game/core/small22); releases the counted global object
+0x005d15d0,Globalf827dc_Release,function,high,reimplemented (src/game/core/small22); releases the counted global object
 0x005f46a0,List_PopHeadObject,function,high,reimplemented (src/game/core/small23); pops the head node of a list and returns its object
 0x005bd230,Names_FindLastValue,function,high,reimplemented (src/game/core/small23); value of the last listed object with the given name
 0x005b9fd0,Shared_Release66,function,high,reimplemented (src/game/core/small23); releases a shared record with an array of 0x66-byte elements

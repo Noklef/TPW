@@ -6,12 +6,12 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
+from fncmp import Bench, Call, HEAP, LOG, RAM, heap, log_region, put, vtable  # noqa: E402
 
 # name: (address, convention, returns, size)
 CALLS = {'AddRef': (0x4f5d10, 't', 'v', 0x30), 'Sh20': (0x4ef7f0, 't', 'a', 0x40), 'Sh34': (0x5d0dc0, 't', 'a', 0x40), 'Id': (0x4f21a0, 't', 'a', 0x30),
          'Init': (0x4f1520, 't', 'a', 0x40), 'Copy': (0x4f5d40, 't', 'a', 0x20), 'Node': (0x5b3110, 's', 'a', 0x20), 'Sent': (0x618130, 't', 'a', 0x30),
-         'Name': (0x5b9020, 't', 'a', 0x20)}
+         'Name': (0x5b9020, 't', 'a', 0x20), 'G44': (0x4f7970, 'c', 'v', 0xa0), 'Gf8': (0x5d15d0, 'c', 'v', 0xa0)}
 
 
 def lock(e):  # the STL lock (0x691de0, thiscall, returns its argument; 0x691ea0 releases)
@@ -22,6 +22,10 @@ B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()] + [(0x5f5fc0, 0x5f7f
 COUNTS = [0, 1, 2, 5, 0xfffffffe, 0xffffffff, 0x7fffffff, 0x80000000]
 
 
+def shared_count(r):
+    return r.choice([0, 1, 1, 2, 3, 0xffffffff, 0xfffffffe])
+
+
 def case(r):
     name = r.choice(OPS)
     address, conv, ret, _n = CALLS[name]
@@ -30,6 +34,12 @@ def case(r):
     shared = bytearray(r.bytes(0x20))
     put(shared, 4, 'I', r.choice(COUNTS))
     regions[RAM + 0x200] = shared
+    if name in ('G44', 'Gf8'):  # the counted object the global points to (its slot 0 is a recorder)
+        regions[LOG] = log_region()
+        regions[0x7ced44 if name == 'G44' else 0xf827dc] = struct.pack('<I', RAM + 0x200) if r.random() < 0.95 else bytes(4)
+        regions[RAM + 0x200] = struct.pack('<II', RAM + 0x1000, shared_count(r)) + r.bytes(0x20)
+        regions[RAM + 0x1000] = vtable({0: 1})
+        return Call(address, [], regions, conv=conv, ret=ret)
     if name == 'AddRef':
         return Call(address, [RAM + 0x200], regions, conv=conv, ret=ret)
     if name in ('Sh20', 'Sh34'):

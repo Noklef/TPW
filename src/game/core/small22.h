@@ -31,4 +31,9 @@ u8 *__fastcall Sentinel_Ctor(u8 *object, void *, const u8 *from);
 // 0x5b9020 (thiscall; out, pops 4): out is constructed as a wide string from the text pointer at +0x54 (WString_CtorStr). Returns out.
 u8 *__fastcall Obj_NameToWString(u8 *object, void *, u8 *out);
 
+// 0x4f7970 / 0x5d15d0 (cdecl): the counted object the dword at 0x7ced44 / 0xf827dc points to loses a use (as Counted_Release) and is deleted (slot 0 with 1) when it has none left;
+// the dword is cleared. (A null dword faults.)
+void __cdecl Global7ced44_Release();
+void __cdecl Globalf827dc_Release();
+
 }  // extern "C"
