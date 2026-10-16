@@ -8,13 +8,16 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM  # noqa: E402
 
-CALLS = {'Step': 0x4d96f0, 'Dir': 0x4d97e0, 'Spread': 0x4d8480}
-B = Bench([(0x4d96f0, 0x4d97b0), (0x4d97b0, 0x4d97e0), (0x4d97e0, 0x4d9920), (0x4d99c0, 0x4d99e0), (0x4d8300, 0x4d8328), (0x5da3c0, 0x5da3c1), (0x4d8480, 0x4d8620)])
+CALLS = {'Step': 0x4d96f0, 'Dir': 0x4d97e0, 'Spread': 0x4d8480, 'Init': 0x4d7bb0}
+B = Bench([(0x4d96f0, 0x4d97b0), (0x4d97b0, 0x4d97e0), (0x4d97e0, 0x4d9920), (0x4d99c0, 0x4d99e0), (0x4d8300, 0x4d8328), (0x5da3c0, 0x5da3c1), (0x4d8480, 0x4d8620), (0x4d7bb0, 0x4d7ea0)])
 CELL = RAM
 
 
 def case(r):
     name = r.choice(OPS)
+    if name == 'Init':
+        world = RAM + 0x10000
+        return Call(CALLS[name], [world], {world: r.bytes(0x1d9180), 0x785610: r.bytes(0xc0)}, conv='t', ret='v')
     if name == 'Spread':
         world = RAM + 0x10000
         records = bytearray(r.bytes(12 * 4))
@@ -37,7 +40,7 @@ def case(r):
     return Call(CALLS[name], [CELL, r.choice([1, 2, 4, 8, 0x10, 0x20, 0x40, 0x80, 0, 3, 0x100, 0x101, 0xff, r.getrandbits(32)])], regions, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
+OPS = [k for k in os.environ.get('OPS', ','.join(k for k in CALLS if k != 'Init')).split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

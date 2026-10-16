@@ -193,6 +193,28 @@ void __fastcall Map_SpreadValues(u8 *world, void *, u32 add, u32 index, u32 cell
     }
 }
 
+void __fastcall World_InitBlock(u8 *world) {
+    for (u32 offset = 0; offset < 0x1b1104; offset += 4)  // (0x110000, 0xa0000 and 0x1104 bytes in three runs)
+        *reinterpret_cast<u32 *>(world + offset) = 0;
+    for (s32 x = 0; x < 0x80; ++x) {
+        for (s32 y = 0; y < 0x80; ++y) {
+            const u16 id = (u16)((y << 7) + 1 + x);
+            *reinterpret_cast<u16 *>(world + (u32)id * 0x44 - 0x44) = id;
+            *reinterpret_cast<u16 *>(world + (u32)id * 0x28 + 0x10ffd8) = id;
+            world[(u32)id * 0x44 - 0x42] = 1;
+            world[(u32)id * 0x28 + 0x10ffda] = 2;
+        }
+    }
+    // (the eight region effects of the level balance: a radius dword and five values, 0x18 bytes each, from 0x785610)
+    for (u32 k = 0; k < 8; ++k)
+        world[0x1d910e + 12 * k] = *reinterpret_cast<const u8 *>(0x00785610 + 0x18 * k);
+    for (u32 k = 0; k < 8; ++k) {
+        u16 *to = reinterpret_cast<u16 *>(world + 0x1d9104 + 12 * k);
+        for (u32 j = 0; j < 5; ++j)
+            to[j] = *reinterpret_cast<const u16 *>(0x00785614 + 0x18 * k + 4 * j);
+    }
+}
+
 u8 *__fastcall Map_StepCell(const u16 *cell, void *, s32 dx, s32 dy, s32 scale) {
     const u32 index = (u32)*cell - 1;
     const s32 x = (s32)(index & 0x7f) + dx * scale;
