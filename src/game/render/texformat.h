@@ -1,4 +1,4 @@
-// The renderer settings' texture format helpers: reimplementation of 0x5839a0 and 0x5839e0.
+// The renderer settings' texture format helpers: reimplementation of 0x581790, 0x5839a0 and 0x5839e0.
 //
 // The renderer settings are the object at 0x8bd550 (its +0 the renderer flags; +4 the current
 // texture format, read all over as 0x8bd554). 0x5839f0 fills its tables, 0x1000 bytes per format
@@ -9,6 +9,16 @@
 #include "../../../re/types.h"
 
 extern "C" {
+
+// 0x581790 (thiscall on an object whose +4 points at a flags dword and +8 is a flags dword;
+// request, texture): the word for the driver to load a texture with. From the scene flags
+// (0x8bcbc8: 0x2000 -> 0x100000, 0x400 -> 0x80000), the object's flags (+4's: 2 -> 0x800,
+// 0x2000000 -> 0x5156, 0x8000000 -> 0x20000; +8: 0x10000000 -> 0x10000000, 0x4000000 ->
+// 0x30000000, 0x8000000 -> 0x50000000), the request's byte +0xc & 2 -> 0x800000 and, when there
+// is a request (its first dword) and a texture, the texture: Texture_FormatBits, or 0x1256 when
+// the request's byte +1 has 8; flag 0x100000 -> 0x40000, 0x30000 -> 0x400000, and 0x400 with
+// no dword at +0x3c -> 0x80. Without either, 0x1256.
+u32 __fastcall TexLoad_DriverFlags(const u8 *object, void *, const u8 *request, const u8 *texture);
 
 // 0x5839a0 (thiscall): the DDPIXELFORMAT at +0x68 = size 0x20, flags 0x41 (RGB with alpha), no
 // FourCC, 32 bits, masks 0xff0000, 0xff00, 0xff and 0xff000000.
