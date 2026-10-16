@@ -2295,6 +2295,10 @@ address,name,kind,confidence,notes
 0x00576260,Renderer_SetRestoreCallback,function,high,"reimplemented (src/game/render/renderer); thiscall (the renderer, [0x87a6d0]; fn): +0x78 = fn, called when the display device generation moves on (0x576c26)"
 0x005763f0,Renderer_SetStateFlags,function,high,"reimplemented (src/game/render/renderer); thiscall (flags): +0x48, the render state flags (0x1f31 by default)"
 0x00576400,Renderer_StateFlags,function,high,"reimplemented (src/game/render/renderer); thiscall: +0x48, the render state flags"
+0x00576540,Renderer_RemoveFromSlot,function,high,reimplemented (src/game/render/renderer); a node with a key leaves a slot list (tag >> 4); the scene flag is set when none
+0x005765c0,Renderer_ClearSlot,function,high,reimplemented (src/game/render/renderer); every node leaves a slot list; the scene flag is set
+0x005766e0,Renderer_RemoveInRect,function,high,reimplemented (src/game/render/renderer); a key leaves each grid cell of a rectangle (clamped)
+0x00576820,Renderer_ClearAll,function,high,reimplemented (src/game/render/renderer); every grid cell and slot list is emptied; the scene flag is set for each
 0x005777a0,Backdrop_Clear5c,function,high,"reimplemented (src/game/render/backdrop); thiscall (the tiled backdrop, 0x87aee8): +0x5c = 0"
 0x00577940,Backdrop_SetRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the rectangle drawn into, +0x20..+0x2c, and flag 2 in +0"
 0x00577970,Backdrop_SetSourceRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the part of the image drawn, +0x30..+0x3c"

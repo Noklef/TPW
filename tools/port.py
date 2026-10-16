@@ -21,7 +21,7 @@ import sys
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 AUTHOR = ['-c', 'user.name=Noklef', '-c', 'user.email=281545466+Noklef@users.noreply.github.com']
-TRAILER = 'Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>'
+TRAILER = 'Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>'
 FLAGS = ('--msg', '--mut', '--also')
 
 

@@ -1,4 +1,5 @@
-// The renderer object's accessors: reimplementation of 0x576260, 0x5763f0 and 0x576400.
+// The renderer object's accessors and its entry lists: reimplementation of 0x576260, 0x5763f0,
+// 0x576400, 0x576540, 0x5765c0, 0x5766e0 and 0x576820.
 //
 // The renderer is the object at [0x87a6d0] (built at 0x576162 with a pool of 0x4800 8-byte nodes
 // at +0; its frame buffer, +0x38 wide by +0x3c high, at +0x10). +0x48 starts its render state
@@ -6,6 +7,13 @@
 // 0x2821) and put back around their drawing (0x4a3aa0, 0x5f0bad). +0x78 is a function called
 // when the display device has been restored since the last frame (its generation, 0x8bcc40,
 // differs from +0x74; 0x576c26).
+//
+// Entries are 8-byte nodes {key, next} drawn from the pool: +4 heads the free list and +0xc counts
+// the live nodes. Live nodes hang off list heads: a grid of +0x38 by +0x3c heads at the pointer
+// in +0x10, and seven slot heads at +0x14-+0x2c, slot n chosen by (tag >> 4) for a tag with a
+// bit of 0x70. Removing a node returns it to the free list. A removal that finds nothing sets
+// 0x80000000 in the scene flags (0x8bd508), and so does every list cleared by 0x576820 and
+// 0x5765c0.
 #pragma once
 
 #include "../../../re/types.h"
@@ -20,4 +28,22 @@ void __fastcall Renderer_SetStateFlags(u8 *renderer, void *, u32 flags);
 
 // 0x576400 (thiscall): +0x48.
 u32 __fastcall Renderer_StateFlags(const u8 *renderer);
+
+// 0x576540 (thiscall; key, tag): the first node with that key leaves the tag's slot list.
+// 0 without a bit of 0x70 in the tag; otherwise 1 if found, or 0 with the scene flag set.
+u32 __fastcall Renderer_RemoveFromSlot(u8 *renderer, void *, u32 key, u32 tag);
+
+// 0x5765c0 (thiscall; tag): every node leaves the tag's slot list, which is set empty, and the
+// scene flag set. 0 without a bit of 0x70 in the tag, else 1.
+u32 __fastcall Renderer_ClearSlot(u8 *renderer, void *, u32 tag);
+
+// 0x5766e0 (thiscall; x0, y0, x1, y1, key): removes the node with that key from each grid cell
+// of the rectangle (clamped to the grid; the order is rows, then columns). 1 when every cell
+// had one (and when the grid is missing or the rectangle empty after clamping), else 0 with
+// the scene flag set; 0 as well, doing nothing, for a rectangle wholly outside the grid.
+u32 __fastcall Renderer_RemoveInRect(u8 *renderer, void *, s32 x0, s32 y0, s32 x1, s32 y1, u32 key);
+
+// 0x576820 (thiscall): empties every grid cell (the scene flag set for each) and the seven slot
+// lists, returning their nodes to the free list; always 1. The grid pointer is not checked (sic).
+u32 __fastcall Renderer_ClearAll(u8 *renderer);
 }

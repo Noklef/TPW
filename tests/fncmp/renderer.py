@@ -1,18 +1,75 @@
-# The renderer object's accessors (src/game/render/renderer: 0x576260, 0x5763f0, 0x576400) against
-# the originals: any object bytes, any values.
+# The renderer object's accessors and entry lists (src/game/render/renderer: 0x576260, 0x5763f0,
+# 0x576400, 0x576540, 0x5765c0, 0x5766e0, 0x576820) against the originals: any object bytes for the
+# accessors; for the lists a pool of nodes dealt over the grid cells, the slots and the free list
+# (keys from a few values so that removals both find and miss), grids from empty to 6 by 5, tags
+# with and without 0x70, rectangles from beyond the grid on every side.
 # usage: renderer.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetRestoreCallback,...)
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM  # noqa: E402
+from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x576260, 0x57626a), (0x5763f0, 0x5763fa), (0x576400, 0x576404)])
-CALLS = {'SetRestoreCallback': 0x576260, 'SetStateFlags': 0x5763f0, 'StateFlags': 0x576400}
+B = Bench([(0x576260, 0x57626a), (0x5763f0, 0x5763fa), (0x576400, 0x576404), (0x576540, 0x5765b8),
+           (0x5765c0, 0x576616), (0x5766e0, 0x57681a), (0x576820, 0x57690c)])
+CALLS = {'SetRestoreCallback': 0x576260, 'SetStateFlags': 0x5763f0, 'StateFlags': 0x576400,
+         'RemoveFromSlot': 0x576540, 'ClearSlot': 0x5765c0, 'RemoveInRect': 0x5766e0, 'ClearAll': 0x576820}
+LISTS = ('RemoveFromSlot', 'ClearSlot', 'RemoveInRect', 'ClearAll')
+GRID, POOL = RAM + 0x1000, RAM + 0x2000
+
+
+def lists_case(op, r):
+    width, height = r.choice([(0, 0), (1, 1), (3, 2), (6, 5), (4, 4), (2, 5), (-1, 3), (3, -2)])
+    cells = max(width, 0) * max(height, 0)
+    obj = bytearray(0x100)
+    put(obj, 0x38, 'ii', width, height)
+    heads = [0] * (cells + 16)
+    nodes = bytearray(0x200)
+    free = list(range(48))
+    r.shuffle(free)
+    keys = [r.choice([1, 2, 3, 0x1234, r.getrandbits(32)]) for _ in range(3)]
+    for slot in range(cells + 7):
+        prev = 0
+        for _ in range(r.choice([0, 0, 1, 2, 3])):
+            if len(free) < 4:
+                break
+            i = free.pop()
+            put(nodes, 8 * i, 'II', r.choice(keys), prev)
+            prev = POOL + 8 * i
+        heads[slot] = prev
+    prev = 0
+    for i in free[:r.randrange(len(free) + 1)]:
+        put(nodes, 8 * i, 'II', r.getrandbits(32), prev)
+        prev = POOL + 8 * i
+    live = 48 - len(free)
+    put(obj, 4, 'I', prev)
+    put(obj, 0xc, 'I', live + r.choice([0, 0, 5]))
+    put(obj, 0x10, 'I', r.choice([GRID, GRID, GRID, 0]))
+    for n in range(7):
+        put(obj, 0x14 + 4 * n, 'I', heads[cells + n])
+    grid = bytearray(0x100)
+    for c in range(cells):
+        put(grid, 4 * c, 'I', heads[c])
+    regions = {RAM: obj, GRID: grid, POOL: nodes, 0x8bd508: r.bytes(4)}
+    tag = r.choice([0, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x15, 0x7f, 0x80, 0x90, 0xf0, 0x100])
+    key = r.choice(keys + [7])
+    if op == 'RemoveFromSlot':
+        args = [RAM, key, tag]
+    elif op == 'ClearSlot':
+        args = [RAM, tag]
+    elif op == 'RemoveInRect':
+        w, h = max(width, 1), max(height, 1)
+        args = [RAM, r.randrange(-2, w + 2), r.randrange(-2, h + 2), r.randrange(-2, w + 2), r.randrange(-2, h + 2), key]
+        args = [a & 0xffffffff for a in args]
+    else:
+        args = [RAM]
+    return Call(CALLS[op], args, regions, conv='t', ret='a')
 
 
 def case(r):
     op = r.choice(OPS)
+    if op in LISTS:
+        return lists_case(op, r)
     args = [RAM]
     if op != 'StateFlags':
         args.append(r.choice([0, 0x21, 0x2821, 0x54e2b0, r.getrandbits(32)]))
