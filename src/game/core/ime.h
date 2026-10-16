@@ -30,4 +30,8 @@ u32 __fastcall ImeVector16_Capacity(const u8 *vec);
 u8 *__fastcall Ime_Current(const u8 *ime);
 // 0x47a980: +0x58 = limit, at most the constant at 0x6feee0 (12).
 void __fastcall Ime_SetLimit(u8 *ime, void *, u32 limit);
+// 0x480e70: the constructor of the global at 0x7b4e38, which holds an IME at +0x1c: that
+// constructed, +0x17c, +0x190-+0x198, +0 and +8 zeroed, byte +0xc too, +0x10 = -1, and byte
+// +0x18c the top byte of host (an unset local, sic). Returns host.
+u8 *__fastcall ImeHost_Ctor(u8 *host);
 }

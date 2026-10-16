@@ -228,6 +228,12 @@ address,name,kind,confidence,notes
 0x00506760,Staff_TireB,function,high,reimplemented (src/game/world/staff); thiscall: as Staff_TireA by 0.025f and 0.01
 0x00506830,Staff_SetName,function,high,"reimplemented (src/game/world/staff); thiscall (name): wcsncpy 32 units to mName (+0x1a0), +0x1e0 zeroed"
 0x00506860,Staff_GetName,function,high,reimplemented (src/game/world/staff); thiscall: returns &mName (+0x1a0)
+0x00481f80,Thing_IsStaff,function,high,"reimplemented (src/game/world/staff); thiscall: the thing's type (byte +2) is 4-8, a staff one"
+0x00481fa0,World_StaffList73c,function,high,reimplemented (src/game/world/staff); thiscall (&handle): the staff list head at world +0x1da73c
+0x00481fc0,World_StaffList73e,function,high,reimplemented (src/game/world/staff); thiscall (&handle): the staff list head at world +0x1da73e
+0x00481fe0,World_StaffList740,function,high,reimplemented (src/game/world/staff); thiscall (&handle): the staff list head at world +0x1da740
+0x00482000,World_StaffList742,function,high,reimplemented (src/game/world/staff); thiscall (&handle): the staff list head at world +0x1da742
+0x00482020,World_StaffList744,function,high,reimplemented (src/game/world/staff); thiscall (&handle): the staff list head at world +0x1da744
 0x00506870,Staff_GetWage,function,medium,"per-type factor (DAT_00785380) * pay grade table (DAT_0078532c, stride 0x10)"
 0x004dd4e0,Object_GetDef,function,medium,"fastcall; ObjectDefs_Find(this->mId at +0xe); the def holds balance values (effects at +0x144..+0x15c)"
 0x00412e90,ObjectDefs_Find,function,high,"reimplemented (src/game/world/objectdefs); thiscall(id): the definition with an id (one-entry cache), or 0"
@@ -1888,6 +1894,7 @@ address,name,kind,confidence,notes
 0x0047b300,ImeVector16_Capacity,function,high,"reimplemented (src/game/core/ime); thiscall; a 16-byte-entry vector's capacity, (+0xc - +4) >> 4 (signed), 0 when +4 is null"
 0x0047a960,Ime_Current,function,high,"reimplemented (src/game/core/ime); thiscall; the 0x24-byte entry +0x54 of the list at +0x3c, or null when +0x54 is -1"
 0x0047a980,Ime_SetLimit,function,high,"reimplemented (src/game/core/ime); thiscall (limit); +0x58 = limit, at most the constant at 0x6feee0 (12)"
+0x00480e70,ImeHost_Ctor,function,high,reimplemented (src/game/core/ime); thiscall: constructor of the global 0x7b4e38 (an IME at +0x1c); byte +0x18c from an unset local (sic)
 0x00479150,WTraits_Move,function,high,reimplemented (src/game/core/wtraits); moves n 16-bit characters (from the end when dst overlaps src's tail); returns dst
 0x00479230,WTraits_Copy,function,high,"reimplemented (src/game/core/wtraits); cdecl (dst, src, n): n u16 copied forward one at a time; returns dst"
 0x00478cf0,WTraits_Assign,function,high,"reimplemented (src/game/core/wtraits); cdecl (dst, ch, n): n u16 of ch (rep stosd, then a stosw); returns dst"
@@ -1897,6 +1904,8 @@ address,name,kind,confidence,notes
 0x0041a830,Language_Id,function,high,reimplemented (src/game/core/language); thiscall; the Windows language id (+8)
 0x0041a840,Language_SetId,function,high,reimplemented (src/game/core/language); thiscall (id); +8 = id
 0x0041a850,Language_IsHebrew,function,high,reimplemented (src/game/core/language); thiscall; +8 == 0x40d
+0x00485a70,Language_Font,function,high,"reimplemented (src/game/core/language); cdecl (index): &fonts[set +4][index] (0x18-byte entries, 13 a set, from 0x78b54c); null from 13"
+0x004925a0,Language_MirrorAlign,function,high,reimplemented (src/game/core/language); cdecl (&align): in Hebrew 0 becomes 2 and 2 becomes 0
 0x00423ad0,Options_Revert,function,high,"reimplemented (src/game/core/options); thiscall; the copy +0x3c..+0x78 back over +0..+0x3c, +0x94 = 0, +0x98 &= ~7"
 0x00423b00,Options_Keep,function,high,"reimplemented (src/game/core/options); thiscall; +0..+0x3c over the copy at +0x3c, +0x94 raised to 0 when negative, +0x98 &= ~7"
 0x00423b40,Options_Set30,function,high,reimplemented (src/game/core/options); thiscall (value); +0x30 = value

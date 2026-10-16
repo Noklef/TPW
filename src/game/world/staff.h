@@ -1,5 +1,6 @@
 // The staff base class's small methods (the thing's pay grade +0x1e4, happiness +0x1f8,
-// energy +0x1fc, name +0x1a0): reimplementation of 0x506680-0x506860.
+// energy +0x1fc, name +0x1a0): reimplementation of 0x506680-0x506860, and the staff check and
+// list heads 0x481f80-0x482020.
 #pragma once
 
 #include "../../../re/types.h"
@@ -24,4 +25,16 @@ void __fastcall Staff_SetName(u8 *staff, void *, const u16 *name);
 
 // 0x506860 (thiscall): the name, +0x1a0.
 u16 *__fastcall Staff_GetName(u8 *staff);
+
+// 0x481f80 (thiscall on a thing): whether its type (byte +2) is a staff one, 4 to 8.
+u32 __fastcall Thing_IsStaff(const u8 *thing);
+
+// 0x481fa0, 0x481fc0, 0x481fe0, 0x482000, 0x482020 (thiscall on the world; &handle): the
+// handle at the head of one of the staff lists (u16 world +0x1da73c, +0x1da73e, +0x1da740,
+// +0x1da742, +0x1da744; each thing's next at +0x210). Return the pointer.
+u16 *__fastcall World_StaffList73c(const u8 *world, void *, u16 *out);
+u16 *__fastcall World_StaffList73e(const u8 *world, void *, u16 *out);
+u16 *__fastcall World_StaffList740(const u8 *world, void *, u16 *out);
+u16 *__fastcall World_StaffList742(const u8 *world, void *, u16 *out);
+u16 *__fastcall World_StaffList744(const u8 *world, void *, u16 *out);
 }

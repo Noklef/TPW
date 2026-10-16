@@ -55,4 +55,15 @@ void __fastcall Staff_SetName(u8 *staff, void *, const u16 *name) {
 }
 
 u16 *__fastcall Staff_GetName(u8 *staff) { return &at<u16>(staff, 0x1a0); }
+
+u32 __fastcall Thing_IsStaff(const u8 *thing) {
+    const u8 type = at<u8>(thing, 2);
+    return type == 4 || type == 5 || type == 6 || type == 8 || type == 7;
+}
+
+u16 *__fastcall World_StaffList73c(const u8 *world, void *, u16 *out) { return *out = at<u16>(world, 0x1da73c), out; }
+u16 *__fastcall World_StaffList73e(const u8 *world, void *, u16 *out) { return *out = at<u16>(world, 0x1da73e), out; }
+u16 *__fastcall World_StaffList740(const u8 *world, void *, u16 *out) { return *out = at<u16>(world, 0x1da740), out; }
+u16 *__fastcall World_StaffList742(const u8 *world, void *, u16 *out) { return *out = at<u16>(world, 0x1da742), out; }
+u16 *__fastcall World_StaffList744(const u8 *world, void *, u16 *out) { return *out = at<u16>(world, 0x1da744), out; }
 }

@@ -1,4 +1,5 @@
-# The staff base class's tiring, rest check and name (src/game/world/staff: 0x506680-0x506860)
+# The staff base class's tiring, rest check and name (src/game/world/staff: 0x506680-0x506860),
+# the staff type check and the world's staff list heads (0x481f80-0x482020)
 # against the originals: grades in and beyond 0-6 (negative, wild), energy and happiness
 # about 0 and 100, just above a drain (so that its rounding shows), NaN and infinite.
 # usage: staff.py [CASES [SEED]] [--wild|--both] [--show N]
@@ -8,7 +9,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, f32, put  # noqa: E402
 
-B = Bench([(0x506680, 0x5066a0), (0x5066a0, 0x50675b), (0x506760, 0x50682b), (0x506830, 0x506867), (0x67b0d0, 0x67b10f)])
+B = Bench([(0x506680, 0x5066a0), (0x5066a0, 0x50675b), (0x506760, 0x50682b), (0x506830, 0x506867), (0x67b0d0, 0x67b10f),
+           (0x481f80, 0x48202f)])
 STAFF = RAM + 0x100
 RATES = [0.012, 0.005, f32(0.025), 0.01]
 # 6 - grade where the product rounded to a double and then to 24 bits is off by one (0.012,
@@ -40,7 +42,13 @@ def case(r):
     put(mem, 0x100 + 0x1f8, 'I', level(r, k))
     put(mem, 0x100 + 0x1fc, 'I', level(r, k))
     regions = {RAM: mem}
-    op = r.randrange(6)
+    op = r.randrange(8)
+    if op == 6:
+        put(mem, 0x102, 'B', r.choice([r.randrange(12), r.getrandbits(8)]))
+        return Call(0x481f80, [STAFF], regions, conv='t', ret='a')
+    if op == 7:  # the heads land at RAM + 0x200
+        return Call(r.choice([0x481fa0, 0x481fc0, 0x481fe0, 0x482000, 0x482020]), [RAM + 0x200 - 0x1da73c, RAM + 0x300],
+                    regions, conv='t', ret='a')
     if op == 0:
         regions[0x785324] = bytearray(put(bytearray(4), 0, 'i', r.choice([r.randrange(-5, 300), r.getrandbits(32) - (1 << 31)])))
         return Call(0x506680, [STAFF], regions, conv='t', ret='a')

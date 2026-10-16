@@ -73,4 +73,19 @@ void __fastcall Ime_SetLimit(u8 *ime, void *, u32 limit) {
     const u32 most = *reinterpret_cast<const u32 *>(0x006feee0);
     at<u32>(ime, 0x58) = limit < most ? limit : most;
 }
+
+u8 *__fastcall ImeHost_Ctor(u8 *host) {
+    Ime_Ctor(host + 0x1c);
+    at<u32>(host, 0x17c) = 0;
+    // Another unset local (the push ecx's slot): the pushed this's top byte (sic).
+    at<u8>(host, 0x18c) = (u8)((uintptr_t)host >> 24);
+    at<u32>(host, 0x190) = 0;
+    at<u32>(host, 0x194) = 0;
+    at<u32>(host, 0x198) = 0;
+    at<u32>(host, 8) = 0;
+    at<u32>(host, 0) = 0;
+    at<u8>(host, 0xc) = 0;
+    at<u32>(host, 0x10) = 0xffffffff;
+    return host;
+}
 }

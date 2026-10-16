@@ -21,4 +21,19 @@ u32 __fastcall Language_Id(const u8 *lang) { return at<u32>(lang, 8); }
 void __fastcall Language_SetId(u8 *lang, void *, u32 id) { at<u32>(lang, 8) = id; }
 
 u32 __fastcall Language_IsHebrew(const u8 *lang) { return at<u32>(lang, 8) == 0x40d; }
+
+u8 *__cdecl Language_Font(u32 index) {
+    if (index >= 13) return nullptr;
+    u8 *const lang = reinterpret_cast<u8 *>(0x0078b530);
+    return lang + 0x1c + (index + at<u32>(lang, 4) * 13) * 0x18;
+}
+
+void __cdecl Language_MirrorAlign(u32 *align) {
+    if (!(u8)Language_IsHebrew(reinterpret_cast<const u8 *>(0x0078b530))) return;
+    if (*align == 0) {
+        *align = 2;
+    } else if (*align == 2) {
+        *align = 0;
+    }
+}
 }
