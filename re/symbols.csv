@@ -2315,6 +2315,7 @@ address,name,kind,confidence,notes
 0x00584e30,LightList_First,function,high,reimplemented (src/game/render/lightlist); cursor = 0; the first entry or null
 0x00584e50,LightList_Next,function,high,reimplemented (src/game/render/lightlist); the next entry or null
 0x00573ca0,SoftRenderer_ClearBuffer,function,high,reimplemented (src/game/render/softrender); the w*h*4-byte buffer zeroed; returns 1
+0x00573e30,SoftRenderer_TextureMemory,function,high,"reimplemented (src/game/render/softrender); the texture memory: the option, else a quarter of RAM within 8-24 MB"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
