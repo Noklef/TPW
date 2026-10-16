@@ -39,6 +39,7 @@ void __cdecl FlyingRide_SetOn(s32 index, u32 on);
 
 // 0x55dcf0 (index, value): +4 = value, and +0 too while +0x38 is set.
 void __cdecl FlyingRide_Set4(s32 index, u32 value);
+void __cdecl FlyingRide_SetBounds();
 void __cdecl FlyingRide_ReleaseSlotPart(s32 index, s32 slotIndex, s32 step);
 
 // 0x55dd20 (index): +0x3c (else 0).

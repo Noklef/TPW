@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/tiny_d.h"
 #include "../model/parts.h"
 #include "../model/partstate.h"
 
@@ -38,6 +39,16 @@ extern "C" {
 u32 __cdecl FlyingRide_FirstSlotRide(s32 index) {
     u8 *const rec = record(index);
     return rec ? at<u32>(slot(rec, 0), 0xc0) : 0;
+}
+
+// The four fly-by bounds (0x7660bc, 0x7660c4, 0x7660b8, 0x7660c0): the globals Fn_52c6c0 copies, scaled by 3000 and offset by 0x2904 (the last two negatively).
+void __cdecl FlyingRide_SetBounds() {
+    u32 &a = *reinterpret_cast<u32 *>(0x007660bc), &b = *reinterpret_cast<u32 *>(0x007660c4), &c = *reinterpret_cast<u32 *>(0x007660b8), &d = *reinterpret_cast<u32 *>(0x007660c0);
+    Fn_52c6c0(0x007660bc, 0x007660c4, 0x007660b8, 0x007660c0);
+    a = a * 3000 + 0x2904;
+    b = b * 3000 + 0x2904;
+    c = c * 3000 - 0x2904;
+    d = d * 3000 - 0x2904;
 }
 
 // The part a slot of the record at index (not checked: the table entry is used as it is) steps to.
