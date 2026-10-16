@@ -178,6 +178,7 @@
 #include "../game/world/personscripts.h"
 #include "../game/world/ridelist.h"
 #include "../game/world/thingscan.h"
+#include "../game/world/trackpools.h"
 #include "../game/world/world.h"
 #include "../game/model/holder.h"
 #include "../game/model/parts.h"
@@ -661,6 +662,10 @@ const Hook kHooks[] = {
     {"Rides_Get9c",               0x0055a360, (void *)&Rides_Get9c, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"Rides_GetElement",          0x0055a390, (void *)&Rides_GetElement, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"Rides_GetLinkedElement",    0x0055a3e0, (void *)&Rides_GetLinkedElement, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
+    {"Buoy_FindFree",             0x0054b130, (void *)&Buoy_FindFree, {0xa1, 0x78, 0x7b, 0x87, 0x00}},
+    {"Buoy_Alloc",                0x0054b170, (void *)&Buoy_Alloc, {0xa1, 0x78, 0x7b, 0x87, 0x00}},
+    {"CollNode_FindFree",         0x0054b1e0, (void *)&CollNode_FindFree, {0xa1, 0x70, 0x7b, 0x87, 0x00}},
+    {"CollNode_Alloc",            0x0054b210, (void *)&CollNode_Alloc, {0xa1, 0x70, 0x7b, 0x87, 0x00}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},
