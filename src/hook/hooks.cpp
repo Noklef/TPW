@@ -102,6 +102,7 @@
 #include "../game/core/volumes.h"
 #include "../game/core/base64.h"
 #include "../game/core/selectors.h"
+#include "../game/core/small2.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -2157,6 +2158,12 @@ const Hook kHooks[] = {
     {"Obj_ByteForMask",           0x006bc040, (void *)&Obj_ByteForMask, {0x8b, 0x41, 0x08, 0x8b, 0x54}},
     {"Obj_RemapFlags",            0x006d22d0, (void *)&Obj_RemapFlags, {0x8b, 0x51, 0x0c, 0x33, 0xc0}},
     {"DequeIter_Advance",         0x006b9b30, (void *)&DequeIter_Advance, {0x8b, 0x41, 0x08, 0x8b, 0x54}},
+    {"Obj_GetBefore14c",          0x0057ac90, (void *)&Obj_GetBefore14c, {0x8b, 0x81, 0xb4, 0xfe, 0xff}},
+    {"Global8bb628_SetOne",       0x0057aca0, (void *)&Global8bb628_SetOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"Obj_Set14_18_10",           0x0057cb10, (void *)&Obj_Set14_18_10, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"Global8bba78_SetOne",       0x0057cb30, (void *)&Global8bba78_SetOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"Globals8bcb80_SetOne",      0x0057cb70, (void *)&Globals8bcb80_SetOne, {0xb8, 0x01, 0x00, 0x00, 0x00}},
+    {"Obj_SetColour8b4",          0x005832e0, (void *)&Obj_SetColour8b4, {0x83, 0xec, 0x08, 0x8b, 0x44}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

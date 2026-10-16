@@ -2682,6 +2682,12 @@ address,name,kind,confidence,notes
 0x006bc040,Obj_ByteForMask,function,high,reimplemented (src/game/core/methods); a byte chosen by which of two masks a bit set matches
 0x006d22d0,Obj_RemapFlags,function,high,reimplemented (src/game/core/methods); builds a bit set from flags and a rate
 0x006b9b30,DequeIter_Advance,function,high,reimplemented (src/game/core/methods); moves a deque iterator on across blocks
+0x0057ac90,Obj_GetBefore14c,function,high,reimplemented (src/game/core/small2); the dword 0x14c before the object
+0x0057aca0,Global8bb628_SetOne,function,high,reimplemented (src/game/core/small2); sets the float at 0x8bb628 to 1.0
+0x0057cb10,Obj_Set14_18_10,function,high,reimplemented (src/game/core/small2); sets three fields from three arguments
+0x0057cb30,Global8bba78_SetOne,function,high,reimplemented (src/game/core/small2); sets the float at 0x8bba78 to 1.0
+0x0057cb70,Globals8bcb80_SetOne,function,high,reimplemented (src/game/core/small2); sets four globals to one
+0x005832e0,Obj_SetColour8b4,function,high,reimplemented (src/game/core/small2); stores a colour and its four byte parts as floats
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
