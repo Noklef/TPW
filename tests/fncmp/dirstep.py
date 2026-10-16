@@ -18,7 +18,9 @@ def case(r):
     pos = struct.pack('<ii', r.choice([0, 1, -1, 100, 0x7fffffff, -0x80000000, r.randrange(-500, 500)]),
                       r.choice([0, 1, -1, 100, 0x7fffffff, -0x80000000, r.randrange(-500, 500)]))
     direction = r.choice(DIRS) & 0xffffffff if r.random() < 0.8 else r.getrandbits(32)
-    return Call(CALLS[name], [RAM, RAM + 4, direction], {RAM: pos}, conv='c', ret='a')
+    # the position's address varies too: the original's fallback result is that address (its low byte shows in StepB)
+    at = r.choice([0, 1, 3, 5, 0x10, 0x1f, 0x7f, 0x80, 0xff])
+    return Call(CALLS[name], [RAM + at, RAM + at + 4, direction], {RAM: bytes(at) + pos + bytes(0x20)}, conv='c', ret='a')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
