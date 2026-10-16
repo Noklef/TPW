@@ -816,6 +816,7 @@ address,name,kind,confidence,notes
 0x0055de10,FlyingRide_Set24,function,high,"reimplemented (src/game/world/flyingrides); cdecl (index, value): +0x24 = value"
 0x0055de30,FlyingRide_Busy,function,high,"reimplemented (src/game/world/flyingrides); cdecl u32 (index): 0 when +0x48 == 0, +0x3c set and +0xc == 1, or no record; else 1"
 0x004fa990,AnalyserCell_TypePlain,function,high,"reimplemented (src/game/world/analysercell); 1 when the cell under the record is type 0, 1, 3, 9 or 0xa"
+0x004de040,Object_NeighbourCellId,function,high,reimplemented (src/game/world/analysercell); the id of the cell a neighbour bit points to
 0x00511350,LineStep_Init,function,high,"reimplemented (src/game/world/linestep); distances, directions and the major axis between two cell positions"
 0x004fdc90,Visitor_PreviousRideTick,function,high,reimplemented (src/game/world/personscripts); every 20th clock tick a visitor pushes a previous ride
 0x004fe950,Person_JumpScript210,function,high,reimplemented (src/game/world/personscripts); the script at +0x210 sent to entry point 0x74f4c0 and cleared

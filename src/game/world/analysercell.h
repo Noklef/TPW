@@ -1,4 +1,4 @@
-// The park analyser's cells: reimplementation of 0x4fa990.
+// The park analyser's cells: reimplementation of 0x4de040 and 0x4fa990.
 //
 // [0x8023a0] points at 0x44-byte cells, 128 to a row; an analysed record keeps its cell's column at
 // +5 and row at +7.
@@ -7,6 +7,12 @@
 #include "../../../re/types.h"
 
 extern "C" {
+
+// 0x4de040 (thiscall; out, pops 4): the id of a neighbouring cell. The object's cell id is the word at
+// +0x36; the neighbour bits of that cell (MapCell_Neighbours) pick the first direction set among bit 0,
+// 0x10, 0x40 and 4, whose step is a column delta (0x7cdba0, 0x7cdba8, 0x7cdbd0, 0x7cdbc8) and a row delta
+// (0x7cdba4, 0x7cdbac, 0x7cdbd4, 0x7cdbcc): *out = (row << 7) + column + the id (16 bits). No direction: 0.
+void __fastcall Object_NeighbourCellId(const u8 *object, void *, u16 *out);
 
 // 0x4fa990 (thiscall on the record): 1 when the cell at its column and row has type (the dword at
 // +8; MapCell_IsType1/3Or9/9/A/0) 0, 1, 3, 9 or 0xa, else 0. The index is the row * 128 + column,
