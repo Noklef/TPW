@@ -134,7 +134,8 @@
 #include "../game/core/tiny_m.h"
 #include "../game/core/tiny_n.h"
 #include "../game/core/tiny_o.h"
-#include "../game/core/vdtor.h"
+#include "../game/core/vdtor.h"
+#include "../game/core/vobj2.h"
 #include "../game/core/vlist.h"
 #include "../game/core/vregs.h"
 #include "../game/core/vstream.h"
@@ -2650,6 +2651,17 @@ const Hook kHooks[] = {
     {"Stream_SeekFailed",         0x005c4fa0, (void *)&Stream_SeekFailed, {0x8b, 0x44, 0x24, 0x0c, 0x83}},
     {"Obj_DrainList0c",           0x005d8a10, (void *)&Obj_DrainList0c, {0x53, 0x8b, 0xd9, 0x57, 0x33}},
     {"Obj_DrainList04",           0x005da3e0, (void *)&Obj_DrainList04, {0x53, 0x8b, 0xd9, 0x57, 0x33}},
+    {"Obj_ReleaseTwoComMembers",  0x0047e460, (void *)&Obj_ReleaseTwoComMembers, {0x56, 0x8b, 0xf1, 0x57, 0x33}},
+    {"Obj_DeleteFiveMembers",     0x005e4140, (void *)&Obj_DeleteFiveMembers, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
+    {"ListRef_DrainAndDelete",    0x00421520, (void *)&ListRef_DrainAndDelete, {0x53, 0x8b, 0xd9, 0x57, 0x33}},
+    {"ListRef_AnyHandles",        0x00421720, (void *)&ListRef_AnyHandles, {0x8b, 0x01, 0x53, 0x56, 0x57}},
+    {"Obj_SetNameAndWords",       0x005b7990, (void *)&Obj_SetNameAndWords, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"Class709914_Dtor",          0x005cea40, (void *)&Class709914_Dtor, {0x51, 0x56, 0x57, 0xc7, 0x01}},
+    {"Class7099a4_Dtor",          0x004f0650, (void *)&Class7099a4_Dtor, {0x51, 0x56, 0x57, 0xc7, 0x01}},
+    {"Pointers_MarkAndCallSlot4", 0x00579c80, (void *)&Pointers_MarkAndCallSlot4, {0x53, 0x8b, 0xd9, 0x57, 0x33}},
+    {"Class702198_DeletingDtor",  0x0058c370, (void *)&Class702198_DeletingDtor, {0x8b, 0x41, 0xc4, 0x56, 0x8d}},
+    {"Obj_PickByName",            0x005e1fa0, (void *)&Obj_PickByName, {0x53, 0x8b, 0xd9, 0x56, 0x57}},
+    {"Class702da0_Dtor",          0x005e4020, (void *)&Class702da0_Dtor, {0x56, 0x57, 0x8b, 0xf9, 0xc7}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

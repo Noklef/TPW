@@ -3125,6 +3125,17 @@ address,name,kind,confidence,notes
 0x005c4fa0,Stream_SeekFailed,function,high,reimplemented (src/game/core/vregs); whether a seek through slot 0x10 failed
 0x005d8a10,Obj_DrainList0c,function,high,reimplemented (src/game/core/vregs); deletes the objects of the list at +0xc
 0x005da3e0,Obj_DrainList04,function,high,reimplemented (src/game/core/vregs); deletes the objects of the list at +4
+0x0047e460,Obj_ReleaseTwoComMembers,function,high,reimplemented (src/game/core/vobj2); releases two COM members
+0x005e4140,Obj_DeleteFiveMembers,function,high,reimplemented (src/game/core/vobj2); calls slot 0x10 of a list of objects and deletes five members
+0x00421520,ListRef_DrainAndDelete,function,high,reimplemented (src/game/core/vobj2); deletes the objects of a list and the list
+0x00421720,ListRef_AnyHandles,function,high,reimplemented (src/game/core/vobj2); whether a listed object handles a message
+0x005b7990,Obj_SetNameAndWords,function,high,"reimplemented (src/game/core/vobj2); sets a flag, a name through a member and 256 words"
+0x005cea40,Class709914_Dtor,function,high,reimplemented (src/game/core/vobj2); destructor releasing a counted object
+0x004f0650,Class7099a4_Dtor,function,high,reimplemented (src/game/core/vobj2); destructor releasing a counted object
+0x00579c80,Pointers_MarkAndCallSlot4,function,high,reimplemented (src/game/core/vobj2); marks the things it points to and calls their virtual base
+0x0058c370,Class702198_DeletingDtor,function,high,reimplemented (src/game/core/vobj2); deleting destructor of a virtual base class
+0x005e1fa0,Obj_PickByName,function,high,reimplemented (src/game/core/vobj2); picks the listed object with the global name
+0x005e4020,Class702da0_Dtor,function,high,reimplemented (src/game/core/vobj2); destructor freeing a chain and telling a global object
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

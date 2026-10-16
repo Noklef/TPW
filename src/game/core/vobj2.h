@@ -1,0 +1,50 @@
+// Methods that hand their members to virtual methods and little else (COM releases, deleting destructors, drains of lists of objects, a loop over the slots of
+// pointed-to objects): reimplementation of 0x47e460, 0x5e4140, 0x421520, 0x421720, 0x5b7990, 0x5cea40, 0x4f0650, 0x579c80, 0x58c370, 0x5e1fa0 and 0x5e4020.
+// Named by what they do until the classes are known.
+#pragma once
+
+#include "../../../re/types.h"
+
+extern "C" {
+
+// 0x47e460 (thiscall): the dwords at +0xa8 and +0xa4 are cleared; the COM objects at +0xac and +0xb0 (when set) are released (slot 8), the pointers cleared.
+void __fastcall Obj_ReleaseTwoComMembers(u8 *object);
+
+// 0x5e4140 (thiscall): the objects of the list at +0x18 (nodes {object, next} from the head at +4) each get their slot 0x10 called; then the members at +0x14,
+// +0x10, +0xc, +8 and +4 (in that order) are deleted (slot 0 with 1) when set and cleared.
+void __fastcall Obj_DeleteFiveMembers(u8 *object);
+
+// 0x421520 (thiscall on a pointer to a list): while the list (+4 head, +8 tail, +0xc count; the count compared unsigned) has entries the head node is popped, freed and
+// the object it held deleted (slot 0 with 1); then the list itself is deleted (slot 0 with 1) and the pointer cleared.
+void __fastcall ListRef_DrainAndDelete(u8 **ref);
+
+// 0x421720 (thiscall on a pointer to a list; a, b, pops 8): over the nodes of the list (head at +4) the held object slot 8 is called with a, b and 0x80000001; 1 as
+// soon as one returns 1, otherwise 0.
+u32 __fastcall ListRef_AnyHandles(u8 **ref, void *, u32 a, u32 b);
+
+// 0x5b7990 (thiscall; flag, text, table, pops 12): the flag is stored at +0x108; when it is not 0 the member object at +0x10c gets its slot 0x14 called with the text
+// (the string at 0x786de4 when 0) and the 256 words at the table are copied to +0x120.
+void __fastcall Obj_SetNameAndWords(u8 *object, void *, u32 flag, u8 *text, const u16 *table);
+
+// 0x5cea40 / 0x4f0650 (thiscall): the vtable pointer 0x709914 / 0x7099a4 is set; the counted object at +0x34 loses a use (the count at +4 is lowered unless it is 0 or
+// -1) and is deleted (slot 0 with 1) when the count is then 0.
+void __fastcall Class709914_Dtor(u8 *object);
+void __fastcall Class7099a4_Dtor(u8 *object);
+
+// 0x579c80 (thiscall; returns 1): for each of the +0x400 pointers from the start of the object the flag 0x10 is set in the dword at +4 of the thing it points to and the
+// virtual base of that thing (the offset in dword +4 of its vtable) gets its slot 4 called.
+u32 __fastcall Pointers_MarkAndCallSlot4(u8 *object);
+
+// 0x58c370 (thiscall on the field 0x3c into an object; flags, pops 4: bit 0 also frees the object): the virtual base of the object is given the vtable pointer
+// 0x7021f0, the word 4 below it the offset of the field, and its slot 4 is called; the vtable pointer of the object at +0x3c is set to 0x702198. Returns the object.
+u8 *__fastcall Class702198_DeletingDtor(u8 *field, void *, u32 flags);
+
+// 0x5e1fa0 (thiscall; flag, pops 4): +0xc is set to the first object of the list at +8 -> +4; with the flag the object at 0xf85480 gets its slot 0x14 called with the
+// string at 0x786de4, otherwise +0xc is set to each object of the list whose name at +0x30 equals the one the dword at 0xf85488 points to (the last one wins).
+void __fastcall Obj_PickByName(u8 *object, void *, u32 flag);
+
+// 0x5e4020 (thiscall): the vtable pointer 0x702da0 is set, +8 = 0x702f10, +0x10 and +0xc cleared and the chain of nodes (next at +4) that was at +0xc freed; +0x14 is
+// cleared and the vtable pointer 0x702d48 set; the object the dword at 0xf85614 points to gets its slot 0x1c called with the object.
+void __fastcall Class702da0_Dtor(u8 *object);
+
+}  // extern "C"
