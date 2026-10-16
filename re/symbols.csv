@@ -848,6 +848,9 @@ address,name,kind,confidence,notes
 0x004833c0,Things_FindPrevWithDefWord,function,high,reimplemented (src/game/world/thingscan); the previous object whose definition word at 0x284 is not 0
 0x004834e0,Things_FindPrevWithDefWordUpgrade2,function,high,reimplemented (src/game/world/thingscan); the previous object with that word set and the dword at 0x288 equal to 2
 0x00483620,Things_FindPrevKind3Flag2,function,high,reimplemented (src/game/world/thingscan); the previous object with flag bit 1
+0x004c9130,Things_CountKind1OnPlainCell,function,high,reimplemented (src/game/world/thingscan); counts the kind 1 things on a plain analyser cell
+0x004c9530,Things_CountKind1OnPlainCellWith210,function,high,reimplemented (src/game/world/thingscan); counts those with a dword at +0x210
+0x004c95d0,Things_CountKind1OnPlainCellMode2,function,high,reimplemented (src/game/world/thingscan); counts those with mode 2 at +0x24
 0x0050b780,Thing_Delete,function,medium,"thiscall on a thing; the base deletion, queues its handle (World_QueueDelete)"
 0x00801f38,gThingsToDelete,data,high,"HandleQueue: +4 head, +8 tail, +0xc count; handles whose slots DeleteAll releases"
 0x005f5fc0,String_Alloc,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +8: a new block for length units, terminated; the old block is not freed"

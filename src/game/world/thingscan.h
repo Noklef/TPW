@@ -62,4 +62,10 @@ u8 *__cdecl Things_FindPrevWithDefWord(const u8 *previous);
 u8 *__cdecl Things_FindPrevWithDefWordUpgrade2(const u8 *previous);
 u8 *__cdecl Things_FindPrevKind3Flag2(const u8 *previous);
 
+// 0x4c9130 / 0x4c9530 / 0x4c95d0 (cdecl): how many things of kind 1 are on a plain analyser cell (AnalyserCell_TypePlain) and, for the
+// second, have a dword at +0x210 that is not 0, for the third, a dword at +0x24 that is 2.
+s32 __cdecl Things_CountKind1OnPlainCell();
+s32 __cdecl Things_CountKind1OnPlainCellWith210();
+s32 __cdecl Things_CountKind1OnPlainCellMode2();
+
 }  // extern "C"

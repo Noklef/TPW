@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/indexed.h"
+#include "analysercell.h"
 #include "object.h"
 #include "objectdefs.h"
 #include "things.h"
@@ -75,6 +76,19 @@ u16 DefWord(const u8 *thing) {
     return word;
 }
 
+template <typename Extra> s32 CountKind1OnPlainCell(Extra extra) {
+    s32 count = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (at<u8>(thing, 2) == 1 && AnalyserCell_TypePlain(thing) && extra(thing))
+            ++count;
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    return count;
+}
+
 }  // namespace
 
 extern "C" {
@@ -134,6 +148,18 @@ u8 *__cdecl Things_FindPrevWithDefWordUpgrade2(const u8 *previous) {
 
 u8 *__cdecl Things_FindPrevKind3Flag2(const u8 *previous) {
     return FindBackFrom(previous, [](const u8 *t) { return at<u8>(t, 2) == 3 && (at<u8>(t, 0x32) & 2); });
+}
+
+s32 __cdecl Things_CountKind1OnPlainCell() {
+    return CountKind1OnPlainCell([](const u8 *) { return true; });
+}
+
+s32 __cdecl Things_CountKind1OnPlainCellWith210() {
+    return CountKind1OnPlainCell([](const u8 *t) { return at<u32>(t, 0x210) != 0; });
+}
+
+s32 __cdecl Things_CountKind1OnPlainCellMode2() {
+    return CountKind1OnPlainCell([](const u8 *t) { return at<s32>(t, 0x24) == 2; });
 }
 
 u16 *__cdecl Things_LastHandle(u16 *out) {
