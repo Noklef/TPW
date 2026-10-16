@@ -175,6 +175,7 @@
 #include "../game/world/analysercell.h"
 #include "../game/world/linestep.h"
 #include "../game/world/personscripts.h"
+#include "../game/world/thingscan.h"
 #include "../game/world/world.h"
 #include "../game/model/holder.h"
 #include "../game/model/parts.h"
@@ -624,6 +625,9 @@ const Hook kHooks[] = {
     {"Person_KillScript84After",  0x0050be40, (void *)&Person_KillScript84After, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
     {"Position_StepA",            0x0052a3a0, (void *)&Position_StepA, {0x8b, 0x44, 0x24, 0x0c, 0x56}},
     {"Position_StepB",            0x0052a420, (void *)&Position_StepB, {0x8b, 0x54, 0x24, 0x0c, 0x56}},
+    {"Things_CountKind3Flag1",    0x004c9f90, (void *)&Things_CountKind3Flag1, {0x8b, 0x0d, 0x9c, 0x23, 0x80}},
+    {"Things_CountKind3Flag2",    0x004ca0c0, (void *)&Things_CountKind3Flag2, {0x8b, 0x0d, 0x9c, 0x23, 0x80}},
+    {"Things_MaxKind3Byte50",     0x004ca820, (void *)&Things_MaxKind3Byte50, {0x8b, 0x0d, 0x9c, 0x23, 0x80}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},
