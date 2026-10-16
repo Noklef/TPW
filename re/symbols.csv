@@ -362,9 +362,16 @@ address,name,kind,confidence,notes
 0x005214a0,Particles_Update,function,medium,"ages particles: ramp colour, sprite frame, size, random kick, drag; spawns the on-death effect"
 0x00521810,Particle_RandSigned,function,medium,(rand >> 16) % n
 0x00521850,Particle_Rand,function,medium,(rand >> 16 & 0x7fff) % n
-0x0051fd80,Particles_SetReduced,function,medium,sets 0x80ced8; optional effects (record byte 0xc1) are not spawned
+0x0051fd80,Particles_SetReduced,function,high,reimplemented (src/game/render/particles); cdecl: sets 0x80ced8; optional effects (record byte 0xc1) are not spawned
 0x00522360,Effector_Spawn,function,medium,starts an effector record (attractor/repeller)
-0x005222e0,Particle_IsAlive,function,medium,handle = serial << 16 | slot
+0x005222e0,Particle_IsAlive,function,high,"reimplemented (src/game/render/particles); cdecl (handle = serial << 16 | slot): 1 when set up (0x816d40), slot < 0x78 and the system's serial (+0xa) matches"
+0x00522320,ParticleEffector_IsAlive,function,high,"reimplemented (src/game/render/particles); cdecl (handle): 1 when set up, slot < 0x14 and the effector's serial (0x816504 + slot * 0x68) matches"
+0x0051fa80,ParticleEffect_Clear118,function,high,"reimplemented (src/game/render/particles); cdecl (effect): when set up and effect < 0x69, the effect definition's byte +0x118 = 0"
+0x0051feb0,ParticleSystem_End,function,high,reimplemented (src/game/render/particles); cdecl (handle): a live system's age (+0x20) = -2
+0x0051ff70,ParticleSystem_SetAge,function,high,"reimplemented (src/game/render/particles); cdecl (handle, age): a live system's age (+0x20)"
+0x0051ff10,ParticleSystem_Set2a,function,high,"reimplemented (src/game/render/particles); cdecl (handle, value): a live system's u16 +0x2a"
+0x0051ffd0,ParticleSystem_SetA2,function,high,"reimplemented (src/game/render/particles); cdecl (handle, value): a live system's u16 +0xa2"
+0x00520470,ParticleSystem_QuarterByte,function,high,"reimplemented (src/game/render/particles); cdecl (slot): signed byte +0x6b/+0x6a/+0x69 for the quarter of life (age * 4 / lifetime) 0/1/2, else +0x68"
 0x00804370,gParticleEffects,data,high,0x69 x 0x140-byte effect definitions from Tp2.plb
 0x0080c6b0,gParticleEffectors,data,high,20 x 0x68-byte effector definitions
 0x0080cefc,gParticleSystems,data,high,live systems: 0x140-byte copies of an effect definition
