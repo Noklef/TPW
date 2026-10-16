@@ -173,6 +173,22 @@ s32 __cdecl Map_PercentWithRE() {
     return total ? counted * 100 / total : 0;
 }
 
+s32 __cdecl Map_CountSpecialCells() {
+    const u8 *map = at<u8 *>(reinterpret_cast<const void *>(0x0080239c), 0) + 0x2d8;
+    s32 count = 0;
+    for (s32 x = 0x7f; x >= 0; x--) {
+        for (s32 y = 0x7f; y >= 0; y--) {
+            const u32 id = ((u32)y << 7) + (u32)x + 1;
+            const u8 *cell = map + (id & 0xffff) * 17 * 4 - 0x44;
+            // (sic) the fourth test takes the cell as a handle: its first word
+            if (MapCell_IsType9(cell) || MapCell_IsTypeA(cell) || MapCell_IsType4(cell) || MapHandle_IsTypeBDOr10Or12Or19(reinterpret_cast<const u16 *>(cell)) ||
+                MapCell_IsType15(cell))
+                count++;
+        }
+    }
+    return count;
+}
+
 u32 __fastcall MapCell_IsType0(const u8 *cell) { return at<u32>(cell, 8) == 0 ? 1 : 0; }
 u32 __fastcall MapCell_IsType1(const u8 *cell) { return at<u32>(cell, 8) == 1 ? 1 : 0; }
 u32 __fastcall MapCell_IsType2(const u8 *cell) { return at<u32>(cell, 8) == 2 ? 1 : 0; }

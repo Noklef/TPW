@@ -39,6 +39,9 @@ u8 *__fastcall Map_RECell(u8 *map, void *, u32 pos);
 // returns the second count times 100 over the first (a signed division), or 0 when the first is 0.
 s32 __cdecl Map_PercentWithRE();
 
+// 0x4cd7f0 (cdecl): over all 128 x 128 cells, how many are of type 9, 0xa, 4 or 0x15 or pass MapHandle_IsTypeBDOr10Or12Or19 on their first word taken as a handle (sic).
+s32 __cdecl Map_CountSpecialCells();
+
 // 0x4d8610, 0x4d8650, 0x4d8690, 0x4d86d0, 0x4d8710 (thiscall on the map, unused; &pos, b):
 // the position of the A (b 0) or B one of gBalanceLevel's ticket booths (+0x55c), bus stops
 // (+0x56c), entrances (+0x57c), park side crossings (+0x58c) and bus stop side crossings
