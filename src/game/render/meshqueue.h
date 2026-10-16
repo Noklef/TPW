@@ -17,6 +17,11 @@ void __fastcall MeshQueue_Clear(u8 *queue);
 // 0x57c260 (static initialiser): the second queue (0x8bb638) emptied.
 void __cdecl MeshQueue2_Init();
 
+// 0x57d1d0 (thiscall, a 0xa1bc-byte render object, built by 0x57d13e): its defaults. +0 = 1, +4 and
+// most of the floats around +0x3308-+0x3354 and +0xa16c-+0xa1b8 set (1.0f diagonal of a matrix
+// at +0x9d58), the rest of the object left as it was. Returns the object.
+u8 *__fastcall Render3d_Init(u8 *object);
+
 // 0x57c270 (thiscall, the second queue; mesh): appended when there is room; 1, or 0 when full.
 u32 __fastcall MeshQueue2_Add(u32 *queue, void *, u32 mesh);
 }
