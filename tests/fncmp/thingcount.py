@@ -56,7 +56,7 @@ def case(r):
             put(pool, THING * i + 0x30, 'i', r.choice([0, 1, 2, 3, 4, 5, 10, 21, 22, r.randrange(23)]))
         regions[POOL] = pool
         regions[OUT] = r.bytes(0x10)
-        return Call(CALLS[name], [OUT, OUT + 4, OUT + 8], regions, ret='v')
+        return Call(CALLS[name], [OUT, OUT + 4, OUT + 8], regions, conv='s', ret='v')
     # a chain per cell around the id: every thing goes in the list of some cell near it
     cell = r.choice([1, 2, 3, 0x80, 0x81, 0x82, 0xfe, 0x100, 0x101, 0x14a, r.randrange(1, 0x100)])
     radius = r.choice([0, 0, 1, 2, 3, 3])
@@ -75,7 +75,7 @@ def case(r):
             put(grid, idx * 0x44 - 0x20, 'H', 0)
     regions[POOL] = pool
     regions[CELLS] = grid
-    return Call(CALLS[name], [r.choice([1, 1, 2, 3, 0, 0xff]), cell if (((cell - 1) >> 7) + radius + 3) < 5 else cell & 0x7f or 1, radius, r.choice([0, 0, 1])], regions, ret='a')
+    return Call(CALLS[name], [r.choice([1, 1, 2, 3, 0, 0xff]), cell if (((cell - 1) >> 7) + radius + 3) < 5 else cell & 0x7f or 1, radius, r.choice([0, 0, 1])], regions, conv='s', ret='a')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]

@@ -148,7 +148,7 @@ s32 __cdecl Things_CountKind3Flag1() { return CountKind3(1); }
 
 s32 __cdecl Things_CountStaff() { return CountKinds4To8(); }
 
-void __cdecl Things_TopThreeValues(u8 *first, u8 *second, u8 *third) {
+void __stdcall Things_TopThreeValues(u8 *first, u8 *second, u8 *third) {
     s32 counts[23] = {};
     u16 handle;
     World_FirstThing(world(), nullptr, &handle);
@@ -228,7 +228,7 @@ void __fastcall Things_UnlinkFromChain(u8 *game, void *, u32 handle) {
     at<u16>(thing, 10) = 0;
 }
 
-s32 __cdecl Things_CountOfKindAround(u32 kind, u32 cell, s32 radius, s32 firstOnly) {
+s32 __stdcall Things_CountOfKindAround(u32 kind, u32 cell, s32 radius, s32 firstOnly) {
     const u32 index = (cell & 0xffff) - 1;
     const s32 x = (s32)(index & 0x7f), y = (s32)(index >> 7);
     const u32 xmin = (u32)(x - radius < 0 ? 0 : x - radius), ymin = (u32)(y - radius < 0 ? 0 : y - radius);

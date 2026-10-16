@@ -80,7 +80,7 @@ def case(r):
     struct.pack_into('<I', regions[VT], 4, offset)
     put(obj, offset, 'I', VT2)
     regions[VT2] = vtable({2: 1})
-    return Call(address, [OBJ + 0x18, r.getrandbits(32)], regions, conv=conv, ret=ret)
+    return Call(address, [OBJ + 0x18, r.getrandbits(32), r.getrandbits(32)], regions, conv=conv, ret=ret)
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]

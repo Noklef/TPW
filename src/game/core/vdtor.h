@@ -32,7 +32,7 @@ u32 __fastcall Obj_CallSlot20ThenSub1cAnd48(u8 *object);
 
 // 0x564a60 (thiscall on the object 0x18 into a class; a, pops 8): the virtual base (at the offset in dword +4 of the vtable of the class pointer 0x18 below
 // the object, from that pointer) gets its slot 8 called with a. Returns what it returns.
-u32 __fastcall VBase_CallSlot8(u8 *object, void *, u32 a);
+u32 __fastcall VBase_CallSlot8(u8 *object, void *, u32 a, u32 unused);  // (pops 8; only the first is passed on)
 
 // The destructors of the classes the constructors Class702880_Ctor, Class702890_Ctor (small9) and Class7028b8_Ctor, Class7028e0_Ctor, Class702908_Ctor (small10)
 // build (0x5b5600 / 0x5b56c0 / 0x5bcef0 / 0x5bd330 / 0x5bd740 for the vtable pointers 0x702880 / 0x702890 / 0x7028d0 / 0x7028f8 / 0x702920; thiscall): the vtable

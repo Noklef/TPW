@@ -43,11 +43,11 @@ def case(r):
     elif name == 'NN':
         obj[0] = r.choice([0, 1, 0xff])
         struct.pack_into('<I', obj, 4, POOL + r.randrange(0, 0x100))
-        args += [OUT]
+        args += [OUT, r.choice([0, 1, 5])]
     elif name == 'BN':
         obj[0] = r.choice([1, 2, 4, 0x40, 0x80, 0x01, 0, 0xff, r.getrandbits(8)])
         struct.pack_into('<I', obj, 4, POOL + r.randrange(0, 0x100))
-        args += [OUT]
+        args += [OUT, r.choice([0, 1, 5])]
     return Call(address, args, regions, conv='t', ret=ret)
 
 

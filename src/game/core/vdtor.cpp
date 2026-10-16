@@ -131,7 +131,7 @@ u32 __fastcall Obj_CallSlot20ThenSub1cAnd48(u8 *object) {
     return vcall<u32>(at<u8 *>(global<u8 *>(0x00f85614), 4), 0x48);
 }
 
-u32 __fastcall VBase_CallSlot8(u8 *object, void *, u32 a) {
+u32 __fastcall VBase_CallSlot8(u8 *object, void *, u32 a, u32) {
     u8 *base = object - 0x18;
     u8 *target = base + at<u32>(at<u8 *>(base, 0), 4);
     return vcall<u32>(target, 8, a);

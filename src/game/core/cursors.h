@@ -25,10 +25,10 @@ u32 __fastcall Nibble_Write(u8 *object, void *, u32 nibble);
 // 0x6b54c0 (thiscall; out, pops 8): the state of the nibble cursor (+0 = whether the next is the low half, +4 = the byte) is
 // copied to out (out+0 = the flag, out+4 = the byte) and then moves: the byte on when the flag was set, the flag flipped.
 // Returns out.
-u8 *__fastcall Nibble_Next(u8 *object, void *, u8 *out);
+u8 *__fastcall Nibble_Next(u8 *object, void *, u8 *out, u32 unused);  // (pops 8: its callers push a second, unused word)
 
 // 0x6b54f0 (thiscall; out, pops 8): the same for a bit cursor (+0 = the mask, +4 = the byte): the old state to out, then the
 // mask rotated right by one, the byte moving on when the mask becomes 0x80. Returns out.
-u8 *__fastcall Bit_Next(u8 *object, void *, u8 *out);
+u8 *__fastcall Bit_Next(u8 *object, void *, u8 *out, u32 unused);
 
 }  // extern "C"

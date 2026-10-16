@@ -49,7 +49,7 @@ u32 __fastcall Nibble_Write(u8 *object, void *, u32 nibble) {
     return ++at<u32>(object, 8);
 }
 
-u8 *__fastcall Nibble_Next(u8 *object, void *, u8 *out) {
+u8 *__fastcall Nibble_Next(u8 *object, void *, u8 *out, u32) {
     const u8 flag = at<u8>(object, 0);
     u8 *byte = at<u8 *>(object, 4);
     if (flag)
@@ -60,7 +60,7 @@ u8 *__fastcall Nibble_Next(u8 *object, void *, u8 *out) {
     return out;
 }
 
-u8 *__fastcall Bit_Next(u8 *object, void *, u8 *out) {
+u8 *__fastcall Bit_Next(u8 *object, void *, u8 *out, u32) {
     const u8 mask = at<u8>(object, 0);
     u8 *byte = at<u8 *>(object, 4);
     const u8 rotated = (u8)((mask >> 1) | (mask << 7));

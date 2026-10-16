@@ -13,15 +13,15 @@ s32 __cdecl Things_CountKind3Flag1();
 // 0x4c9a10 (cdecl): the things of kind 4 to 8 (the staff).
 s32 __cdecl Things_CountStaff();
 
-// 0x4c8430 (cdecl; three byte outputs, pops 12): over the things of kind 1 whose analyser cell is plain (AnalyserCell_TypePlain), the three values of the dword at +0x30
+// 0x4c8430 (stdcall; three byte outputs): over the things of kind 1 whose analyser cell is plain (AnalyserCell_TypePlain), the three values of the dword at +0x30
 // (0 to 22; not checked) that occur most, counting from value 3 up and starting from {0, 1, 2} (the count of 0 forced to 0): a later value replaces the entry it beats by the
 // most (a strictly larger gain). Each output is the entry, or 0x17 when its count is 0.
-void __cdecl Things_TopThreeValues(u8 *first, u8 *second, u8 *third);
+void __stdcall Things_TopThreeValues(u8 *first, u8 *second, u8 *third);
 
-// 0x4c8d30 (cdecl; kind, cell id, radius, first only, pops 16): the things of the kind (the byte at +2) in the lists of the cells within the radius (clamped to 0 to 0x7f)
+// 0x4c8d30 (stdcall; kind, cell id, radius, first only): the things of the kind (the byte at +2) in the lists of the cells within the radius (clamped to 0 to 0x7f)
 // of the cell: the list head is the word at -0x20 of each 0x44-byte cell, the links the words at +0xa of each thing. Returns 1 at the first one when first only is set, else
 // the count.
-s32 __cdecl Things_CountOfKindAround(u32 kind, u32 cell, s32 radius, s32 firstOnly);
+s32 __stdcall Things_CountOfKindAround(u32 kind, u32 cell, s32 radius, s32 firstOnly);
 
 // 0x4d9280 (thiscall on the game object; thing handle, pops 4): takes the thing out of the doubly linked chain through its words at +8 (previous) and +0xa (next): the head
 // (the word at +0x24 of the game object) becomes its next when it has no previous, otherwise the previous's next is its next; the next's previous is its previous. Both of its

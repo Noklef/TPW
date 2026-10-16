@@ -208,6 +208,12 @@ def main():
     if p.returncode:
         print(p.stdout.strip()[-3000:])
         passed = False
+    # The stack the port pops against the original's RET (benches cannot see a wrong calling convention).
+    p = run([sys.executable, '-I', os.path.join(ROOT, 'tools', 'convcheck.py')])
+    print('convcheck: ' + p.stdout.strip().splitlines()[-1])
+    if p.returncode:
+        print(p.stdout.strip()[-3000:])
+        passed = False
     if '--bench' in a:
         i = a.index('--bench')
         p = run([sys.executable, '-I'] + a[i + 1:])
