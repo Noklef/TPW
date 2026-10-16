@@ -18,4 +18,9 @@ u32 __fastcall Wstreambuf_Write(u8 *object, void *, const u16 *source, s32 count
 // +0x20, at n rounded down to a multiple of 4 bytes into it; the old block at +0x24 is freed, +0x24 is the new block and +0x28 is n. Returns where the dwords were put.
 u32 *__fastcall Streambuf_Regrow(u8 *object, void *, u32 n);
 
+// 0x5ceaf0 / 0x5ceba0: the same for the narrow streambuf (bytes; the room is the signed dword behind the pointer, an underflow / overflow result of -1 ends, and the
+// overflow slot is given the byte alone).
+u32 __fastcall Streambuf_Read(u8 *object, void *, u8 *destination, s32 count);
+u32 __fastcall Streambuf_Write(u8 *object, void *, const u8 *source, s32 count);
+
 }  // extern "C"

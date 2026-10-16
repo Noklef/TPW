@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, HEAP, LOG, RAM, heap, log_region, put, set_return, vtable  # noqa: E402
 
-CALLS = {'Read': 0x4f0700, 'Write': 0x4f07c0, 'Grow': 0x4f6740}
+CALLS = {'Read': 0x4f0700, 'Write': 0x4f07c0, 'Grow': 0x4f6740, 'NRead': 0x5ceaf0, 'NWrite': 0x5ceba0}
 B = Bench([(a, a + 0xc0) for a in CALLS.values()] + [(0x67acb0, 0x67acb1)])
 OBJ, VT, GP, CNT, PP, PC, GET, PUT, DST, SRC = RAM, RAM + 0x100, RAM + 0x400, RAM + 0x440, RAM + 0x480, RAM + 0x4c0, RAM + 0x1000, RAM + 0x2000, RAM + 0x3000, RAM + 0x4000
 
@@ -36,11 +36,11 @@ def case(r):
     regions = {OBJ: obj, VT: vtable({1: 1, 5: 0}), LOG: log, GP: put(bytearray(4), 0, 'I', GET + 2 * r.randrange(4) if r.random() < 0.85 else 0), CNT: put(bytearray(4), 0, 'I', room(r)),
                PP: put(bytearray(4), 0, 'I', PUT + 2 * r.randrange(4) if r.random() < 0.85 else 0), PC: put(bytearray(4), 0, 'I', room(r)),
                GET: r.bytes(0x100), PUT: r.bytes(0x100), DST: r.bytes(0x100), SRC: r.bytes(0x100)}
-    slot = 5 if name == 'Read' else 1
+    slot = 5 if name in ('Read', 'NRead') else 1
     if r.random() < 0.5:
-        set_return(log, slot, r.choice([0xffff, 0x41, 0x12345678, 0xfffe, 0x1ffff]))
+        set_return(log, slot, r.choice([0xffff, 0x41, 0x12345678, 0xfffe, 0x1ffff, 0xffffffff, 0xff]))
     count = r.choice([0, 1, 2, 3, 5, 8, 0x10, -1, 0x30])
-    return Call(CALLS[name], [OBJ, DST if name == 'Read' else SRC, count & 0xffffffff], regions, conv='t', ret='a')
+    return Call(CALLS[name], [OBJ, DST if name in ('Read', 'NRead') else SRC, count & 0xffffffff], regions, conv='t', ret='a')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]

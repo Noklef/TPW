@@ -3319,6 +3319,8 @@ address,name,kind,confidence,notes
 0x004f0700,Wstreambuf_Read,function,high,"reimplemented (src/game/core/small36); reads wide characters from the get area, else through the underflow slot"
 0x004f07c0,Wstreambuf_Write,function,high,"reimplemented (src/game/core/small36); writes wide characters to the put area, else through the overflow slot"
 0x004f6740,Streambuf_Regrow,function,high,reimplemented (src/game/core/small36); new block taking the buffer dwords
+0x005ceaf0,Streambuf_Read,function,high,"reimplemented (src/game/core/small36); reads bytes from the get area, else through the underflow slot"
+0x005ceba0,Streambuf_Write,function,high,"reimplemented (src/game/core/small36); writes bytes to the put area, else through the overflow slot"
 0x004f6400,WStringMap_LowerBound,function,high,reimplemented (src/game/core/small37); lower bound of a wide string key
 0x004f6940,WStringMap_UpperBound,function,high,reimplemented (src/game/core/small37); upper bound of a wide string key
 0x0047cd00,StdMapA_Insert,function,high,reimplemented (src/game/core/small38); map insert of a key with the sentinel at 0x7b4a54

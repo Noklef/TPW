@@ -67,6 +67,55 @@ u32 __fastcall Wstreambuf_Write(u8 *object, void *, const u16 *source, s32 count
     return (u32)total;
 }
 
+u32 __fastcall Streambuf_Read(u8 *object, void *, u8 *destination, s32 count) {
+    s32 total = 0;
+    while (count > 0) {
+        const u8 *p = *at<u8 **>(object, 0x1c);
+        s32 room = 0;
+        if (p && (room = *at<s32 *>(object, 0x2c)) > 0) {
+            const s32 n = count < room ? count : room;
+            for (s32 i = 0; i < n; ++i)
+                destination[i] = p[i];
+            total += n;
+            count -= n;
+            *at<s32 *>(object, 0x2c) -= n;
+            destination += n;
+            *at<u8 **>(object, 0x1c) += n;
+        } else {
+            const s32 c = vcall<s32>(object, 0x14);
+            if (c == -1) break;
+            *destination++ = (u8)c;
+            ++total;
+            --count;
+        }
+    }
+    return (u32)total;
+}
+
+u32 __fastcall Streambuf_Write(u8 *object, void *, const u8 *source, s32 count) {
+    s32 total = 0;
+    while (count > 0) {
+        u8 *p = *at<u8 **>(object, 0x20);
+        s32 room = 0;
+        if (p && (room = *at<s32 *>(object, 0x30)) > 0) {
+            const s32 n = count < room ? count : room;
+            for (s32 i = 0; i < n; ++i)
+                p[i] = source[i];
+            total += n;
+            count -= n;
+            *at<s32 *>(object, 0x30) -= n;
+            source += n;
+            *at<u8 **>(object, 0x20) += n;
+        } else {
+            if (vcall<s32>(object, 4, (u32)*source) == -1) break;
+            ++source;
+            ++total;
+            --count;
+        }
+    }
+    return (u32)total;
+}
+
 u32 *__fastcall Streambuf_Regrow(u8 *object, void *, u32 n) {
     s32 size = (s32)(n * 4);
     if (size < 0) size = 0;
