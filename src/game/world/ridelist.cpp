@@ -100,6 +100,21 @@ void __fastcall Obj_SetDuration(u8 *object, void *, u32 duration) {
     at<u8>(object, 0x5c) = (u8)value;
 }
 
+s32 __fastcall Game_TakeRideElement1(u8 *game) {
+    u32 handle = at<u16>(game, 0x1da72a);
+    if (handle == 0)
+        return -1;
+    const s32 element = (s32)Rides_GetElement(Rides_FindById(at<s32>(*reinterpret_cast<u8 **>(0x007cfb90 + 20 * handle), 0x24)), 1);
+    if (element != 6)
+        return element;
+    handle = at<u16>(game, 0x1da72a);
+    if (handle == 0)
+        return -1;
+    Rides_SetElement(Rides_FindById(at<s32>(*reinterpret_cast<u8 **>(0x007cfb90 + 20 * handle), 0x24)), 1, 0);
+    at<u16>(game, 0x1da72a) = 0;
+    return -1;
+}
+
 void __cdecl Obj_FillLinkedElements(u8 *object) {
     if (!object)
         return;

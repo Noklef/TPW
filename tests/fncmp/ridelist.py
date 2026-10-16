@@ -13,7 +13,7 @@ from thingenv import POOL, THING, park  # noqa: E402
 # name: (address, size, arguments: id, rec, rec+index, rec+index+value, recword, linked)
 CALLS = {'Find': (0x55a070, 0x40, 'id'), 'Set': (0x55a0b0, 0x50, 'rec2v'), 'Get': (0x55a390, 0x50, 'rec2'), 'SetW': (0x55a300, 0x30, 'recv'),
          'GetW': (0x55a330, 0x30, 'rec'), 'G9c': (0x55a360, 0x30, 'rec'), 'Link': (0x55a3e0, 0x90, 'id2'), 'Clr4': (0x4e03f0, 0x30, 'this'), 'E7': (0x4e0410, 0x30, 'this'), 'E0': (0x4e0a70, 0x40, 'this'),
-         'Spd': (0x4dd6e0, 0x40, 'thisv'), 'Dur': (0x4dd720, 0xd0, 'thisv'), 'GameE': (0x51a290, 0x60, 'this'), 'E41': (0x4e0db0, 0x30, 'this'), 'Fill': (0x4396e0, 0xa0, 'this'), 'Roll': (0x4e2670, 0xa0, 'thisv'), 'SetId': (0x436f60, 0x40, 'this')}
+         'Spd': (0x4dd6e0, 0x40, 'thisv'), 'Dur': (0x4dd720, 0xd0, 'thisv'), 'GameE': (0x51a290, 0x60, 'this'), 'E41': (0x4e0db0, 0x30, 'this'), 'Fill': (0x4396e0, 0xa0, 'this'), 'Roll': (0x4e2670, 0xa0, 'thisv'), 'SetId': (0x436f60, 0x40, 'this'), 'Take': (0x51a690, 0xd0, 'this')}
 B = Bench([(a, a + n) for (a, n, _s) in CALLS.values()] + [(0x5da3c0, 0x5da3c1), (0x412e90, 0x412eea), (0x516330, 0x516370)])
 NODES, ARRAYS = RAM + 0x1000, RAM + 0x4000
 
@@ -47,6 +47,16 @@ def case(r):
         regions.update({k: v for k, v in defs.items() if k in (0x7890a0, 0x30008000)})
         items = defs[0x30008000]
         put(obj, 0xe, 'H', struct.unpack_from('<H', items, 0x500 * r.randrange(16))[0])
+    if name == 'Take':  # the game object: the handle at +0x1da72a, things that name ride ids; element 1 often 6
+        for i in range(count):
+            put(arrays, 0x40 * i + 4, 'I', r.choice([6, 6, 6, 0, 1, 2, 0xffffffff]))
+        things, handles, _a = park(r, defs=False)
+        for i in range(len(handles)):
+            put(things[POOL], THING * i + 0x24, 'I', r.choice(ids + [0, 99]))
+        regions.update(things)
+        game = RAM + 0x40000
+        regions[game] = struct.pack('<H', r.choice(handles + [0, 0]) if handles else 0)
+        return Call(address, [game - 0x1da72a], regions, conv='t', ret='a')
     if name == 'GameE':  # the game object: the handle at +0x1da732, a thing table where the things name ride ids
         things, handles, _a = park(r, defs=False)
         for i in range(len(handles)):
