@@ -132,4 +132,6 @@ s32 __fastcall RegKey_TypeOf(RegKey *k, void *, const char *name) {
     return -1;
 }
 
+void __fastcall Ptr_Ctor(u32 *p) { *p = 0; }
+
 }  // extern "C"

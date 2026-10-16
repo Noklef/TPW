@@ -50,4 +50,7 @@ s32 *__fastcall RegKey_GetU32(RegKey *k, void *edx, s32 *out, const char *name, 
 s32 *__fastcall RegKey_GetU32Or(RegKey *k, void *edx, s32 *out, const char *name, u32 *value, u32 fallback);
 // The value's REG_ type, -2 for a subkey, -1 for neither.
 s32 __fastcall RegKey_TypeOf(RegKey *k, void *edx, const char *name);
+// 0x581da0 (thiscall): the shared trivial constructor RegKey's calls (and the renderer's, 0x576b01):
+// the first dword zeroed.
+void __fastcall Ptr_Ctor(u32 *p);
 }
