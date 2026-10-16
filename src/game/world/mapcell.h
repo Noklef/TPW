@@ -49,4 +49,10 @@ u32 __fastcall Map_BlockValue(const u8 *map, void *, u32 pos);
 
 // 0x4d8da0: a 0x44-byte map cell, zeroed but for u16 +0 = 0x423f and byte +2 = 1. Returns it.
 u8 *__fastcall MapCell_Ctor(u8 *cell);
+
+// 0x502460: an RE cell (5 u16 mpEffect, serialized at 0x502490) zeroed. Returns it.
+u8 *__fastcall RECell_Ctor(u8 *cell);
+
+// 0x502470 (other): whether the two RE cells' 10 bytes are the same.
+u32 __fastcall RECell_Equals(const u8 *cell, void *, const u8 *other);
 }

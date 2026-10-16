@@ -78,4 +78,18 @@ u8 *__fastcall MapCell_Ctor(u8 *cell) {
     at<u16>(cell, 0) = 0x423f;
     return cell;
 }
+
+u8 *__fastcall RECell_Ctor(u8 *cell) {
+    at<u32>(cell, 0) = 0;
+    at<u32>(cell, 4) = 0;
+    at<u16>(cell, 8) = 0;
+    return cell;
+}
+
+u32 __fastcall RECell_Equals(const u8 *cell, void *, const u8 *other) {
+    for (u32 i = 0; i != 10; ++i) {
+        if (cell[i] != other[i]) return 0;
+    }
+    return 1;
+}
 }
