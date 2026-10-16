@@ -469,6 +469,8 @@ class Emu:
                 res = a if not m else ((a >> m) | (a << (bits - m)) if mn == 'ROR' else (a << m) | (a >> (bits - m))) & mask
                 self.cf = bool(res >> (bits - 1)) if mn == 'ROR' else bool(res & 1)
                 self.put(o[0], res)
+        elif mn == 'MOVAPS' and len(o) == 2 and o[0] == o[1]:  # a register moved onto itself: the compiler's alignment filler
+            pass
         elif mn == 'CDQ':
             self.r['EDX'] = 0xffffffff if self.r['EAX'] >> 31 else 0
         elif mn in ('MUL', 'IMUL', 'DIV', 'IDIV') and len(o) == 1:  # with EDX:EAX
