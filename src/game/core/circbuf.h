@@ -8,6 +8,16 @@
 
 extern "C" {
 
+// 0x4801d0 / 0x480380 (cdecl; buffer, out, kind): the greatest / least of the newest samples of a CircBufU32 of
+// 144 (values from +4, cursor +0x244, entries +0x248, wrapped flag +0x24c) within a window of 12 samples
+// (kind 0), 36 (1), 144 (2) or 0 (others), newest first, counted from the cursor back (wrapping if the buffer
+// has wrapped). Only samples above 0 (below 0 for the least) are considered, the first of equals; the scan
+// ends at the window, the entry count or a sample that is not there. The value at the chosen index is then
+// read again (the window itself when there is none: 0x4801d0 even when nothing was chosen, reading the sample
+// beside the cursor; 0x480380 not at all then) and *out is raised / lowered to it (signed).
+void __cdecl CircBufU32_144_MaxInWindow(const u8 *buffer, s32 *out, u32 kind);
+void __cdecl CircBufU32_144_MinInWindow(const u8 *buffer, s32 *out, u32 kind);
+
 // 0x4cdb60: a CircBufU16 of 3 (cursor +8, size +0xc, wrapped +0x10): u16 +0 = 0, cursor -1,
 // size 3, not wrapped.
 u8 *__fastcall CircBufU16_3_Ctor(u8 *buf);

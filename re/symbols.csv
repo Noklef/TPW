@@ -2117,6 +2117,8 @@ address,name,kind,confidence,notes
 0x0051ae30,CircBufU32_144_Ctor,function,high,"reimplemented (src/game/core/circbuf); thiscall: CircBufU32 of 144: mTemp 0, cursor (+0x244) -1, size 144, not wrapped"
 0x0051ae60,CircBufU32_50_Ctor,function,high,"reimplemented (src/game/core/circbuf); thiscall: CircBufU32 of 50: mTemp 0, cursor (+0xcc) -1, size 50, not wrapped"
 0x0051ae90,CircBufU32_5_Ctor,function,high,"reimplemented (src/game/core/circbuf); thiscall: CircBufU32 of 5: mTemp 0, cursor (+0x18) -1, size 5, not wrapped"
+0x004801d0,CircBufU32_144_MaxInWindow,function,high,reimplemented (src/game/core/circbuf); the greatest positive sample in a window of the newest raises an output
+0x00480380,CircBufU32_144_MinInWindow,function,high,reimplemented (src/game/core/circbuf); the least negative sample in a window of the newest lowers an output
 0x004a77a0,TextArg_Ctor,function,high,"reimplemented (src/game/core/textarg); thiscall (n): the abstract format argument (vtable 0x6ffb34: _purecall, tag 'MRAV', number +8)"
 0x004ea220,TextArgString_Ctor,function,high,"reimplemented (src/game/core/textarg); thiscall (n, string): a string format argument (vtable 0x6ff174)"
 0x0050aef0,TextArgInt_Ctor,function,high,"reimplemented (src/game/core/textarg); thiscall (n, value, isSigned): a number format argument (vtable 0x6ff170, L""%d""); signed negatives as magnitude + flag (+0x10)"

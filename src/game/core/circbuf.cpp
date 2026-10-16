@@ -8,7 +8,69 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 }  // namespace
 
+// The sample `back` entries behind the cursor of a buffer of 144, if there is one (a negative index is read as the
+// code does, from beside the cursor).
+static bool Sample(const u8 *buffer, s32 back, s32 &value) {
+    const s32 count = at<s32>(buffer, 0x248), head = at<s32>(buffer, 0x244);
+    if (back >= count)
+        return false;
+    if (back <= head) {
+        value = at<s32>(buffer, 4 + 4 * (u32)(head - back));
+        return true;
+    }
+    if (at<u8>(buffer, 0x24c) == 0)
+        return false;
+    value = at<s32>(buffer, 4 + 4 * (u32)(head - back + count));
+    return true;
+}
+
+static s32 Window(u32 kind) { return kind == 0 ? 0xc : kind == 1 ? 0x24 : kind == 2 ? 0x90 : 0; }
+
 extern "C" {
+
+void __cdecl CircBufU32_144_MaxInWindow(const u8 *buffer, s32 *out, u32 kind) {
+    const s32 window = Window(kind), count = at<s32>(buffer, 0x248);
+    s32 best = 0, bestAt = -1;
+    for (s32 i = 0; count > 0 && i <= window; i++) {
+        s32 value;
+        if (!Sample(buffer, i, value))
+            break;
+        if (value > best) {
+            best = value;
+            bestAt = i;
+        }
+        if (i + 1 >= count)
+            break;
+    }
+    s32 result = window;
+    if (bestAt < count)
+        Sample(buffer, bestAt, result);
+    if (result > *out)
+        *out = result;
+}
+
+void __cdecl CircBufU32_144_MinInWindow(const u8 *buffer, s32 *out, u32 kind) {
+    const s32 window = Window(kind), count = at<s32>(buffer, 0x248);
+    s32 best = 0, bestAt = -1;
+    for (s32 i = 0; count > 0 && i <= window; i++) {
+        s32 value;
+        if (!Sample(buffer, i, value))
+            break;
+        if (value < best) {
+            best = value;
+            bestAt = i;
+        }
+        if (i + 1 >= count)
+            break;
+    }
+    if (bestAt == -1)
+        return;
+    s32 result = window;
+    if (bestAt < count)
+        Sample(buffer, bestAt, result);
+    if (result < *out)
+        *out = result;
+}
 
 u8 *__fastcall CircBufU16_3_Ctor(u8 *buf) {
     at<u16>(buf, 0) = 0;
