@@ -332,6 +332,24 @@ def deleter(a, texts):
                 body=' '.join(stores) + ' if (v0 & 1) GameHeap_Free(o); return o;', includes=['core/gameheap.h'])
 
 
+def listdtor(a, texts):
+    """The destructor of a singly linked list (head +4, tail +8, count +0xc, next at +4 of each node) with the vtable store inlined:
+    clears the list, freeing each node (Mem_Free)."""
+    pats = [r'^PUSH ESI$', r'^PUSH EDI$', r'^MOV EDI,ECX$', r'^MOV ESI,\[EDI \+ 0x4\]$', r'^MOV \[EDI\],(0x[0-9a-f]+)$', r'^TEST ESI,ESI$',
+            r'^MOV \[EDI \+ 0x8\],0x0$', r'^MOV \[EDI \+ 0x4\],0x0$', r'^JZ 0x', r'^MOV EAX,ESI$', r'^MOV ESI,\[ESI \+ 0x4\]$', r'^PUSH EAX$',
+            r'^CALL 0x0067acb0$', r'^ADD ESP,0x4$', r'^TEST ESI,ESI$', r'^JNZ 0x', r'^MOV \[EDI \+ 0xc\],0x0$', r'^POP EDI$', r'^POP ESI$', r'^RET$']
+    if len(texts) != len(pats):
+        return None
+    ms = [re.match(p, t) for p, t in zip(pats, texts)]
+    if not all(ms):
+        return None
+    vt = num(ms[4].group(1))
+    return dict(name='ListDtor%x_%06x' % (vt, a), conv='t', nargs=0, ret='v', doc='a linked list destructor: sets the vtable pointer 0x%x and frees every node' % vt,
+                body='const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x%08x; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; '
+                     'for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } '
+                     'at<u32>(o, 0xc) = 0;' % vt, includes=['core/gameheap.h'], listy=True)
+
+
 def frame(a, texts):
     """A function in the debug build's frame style: PUSH EBP; MOV EBP,ESP; [save ECX]; [a constant result]; POP EBP; RET [n]."""
     if len(texts) < 4 or texts[:2] != ['PUSH EBP', 'MOV EBP,ESP'] or texts[-2] != 'POP EBP' or not texts[-1].startswith('RET'):
@@ -366,7 +384,7 @@ def frame(a, texts):
 
 def match(a, ins):
     texts = [t for _, t in ins]
-    d = frame(a, texts) or ctor(a, texts) or deleter(a, texts)
+    d = frame(a, texts) or ctor(a, texts) or deleter(a, texts) or listdtor(a, texts)
     if d:
         d.setdefault('globals', [])
         d['addr'] = a
@@ -495,7 +513,8 @@ def main():
             extra.add(t)
             todo += list(calls.get(t, ()))
         extra_ranges = [(t, end[t]) for t in sorted(extra)]
-        f.write(']\nEXTRA = %r\nB = Bench([(a, e) for a, e, *_ in FUNCS] + EXTRA)\n\n\n' % (extra_ranges,) +
+        listy = tuple(d['addr'] for d in found if d.get('listy'))
+        f.write(']\nEXTRA = %r\nLISTY = %r  # linked list destructors: a real chain (next at +4) is built for them\nB = Bench([(a, e) for a, e, *_ in FUNCS] + EXTRA)\n\n\n' % (extra_ranges, listy) +
                 'def case(r):\n'
                 '    address, _end, conv, n, ret, globs, ptr = r.choice(FUNCS)\n'
                 '    obj = bytearray(r.bytes(0x400))\n'
@@ -503,6 +522,13 @@ def main():
                 '        if r.random() < 0.5:\n'
                 '            put(obj, k, \'I\', RAM + 0x100 + 4 * r.randrange(0x40))\n'
                 '    regions = {RAM: obj}\n' + ('    regions[HEAP] = heap(0x1000)  # the game heap the code frees into\n' if any('GameHeap_' in d['body'] for d in found) else '') +
+                ('    if address in LISTY:\n'
+                 '        count = r.choice([0, 1, 2, 3, 6])\n'
+                 '        chain = bytearray(r.bytes(0x200))\n'
+                 '        for i in range(count):\n'
+                 '            put(chain, 0x20 * i + 4, \'I\', RAM + 0x1000 + 0x20 * (i + 1) if i + 1 < count else 0)\n'
+                 '        put(obj, 0x84, \'I\', RAM + 0x1000 if count else 0)  # the object is at RAM + 0x80\n'
+                 '        regions[RAM + 0x1000] = chain\n' if any(d.get('listy') for d in found) else '') +
                 '    for g in globs:\n'
                 '        regions[g & ~0xf] = r.bytes(0x20)\n'
                 '    args = [r.choice([0, 1, 0xff, 0x7fffffff, 0xffffffff, r.getrandbits(32)]) for _ in range(n)]\n'

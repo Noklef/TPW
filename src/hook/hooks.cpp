@@ -112,6 +112,7 @@
 #include "../game/core/tiny_g.h"
 #include "../game/core/tiny_h.h"
 #include "../game/core/tiny_i.h"
+#include "../game/core/tiny_j.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -2305,6 +2306,30 @@ const Hook kHooks[] = {
     {"ScalarDelete7029fc_5d5c30", 0x005d5c30, (void *)&ScalarDelete7029fc_5d5c30, {0x8a, 0x44, 0x24, 0x04, 0x56}},
     {"ScalarDelete703748_617930", 0x00617930, (void *)&ScalarDelete703748_617930, {0x8a, 0x44, 0x24, 0x04, 0x56}},
     {"ScalarDelete703770_617ae0", 0x00617ae0, (void *)&ScalarDelete703770_617ae0, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ListDtor6fd708_407c30",     0x00407c30, (void *)&ListDtor6fd708_407c30, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor6fd9e4_41c9a0",     0x0041c9a0, (void *)&ListDtor6fd9e4_41c9a0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor6fdb08_41eb50",     0x0041eb50, (void *)&ListDtor6fdb08_41eb50, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor6fdb10_421640",     0x00421640, (void *)&ListDtor6fdb10_421640, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor700aa0_5193d0",     0x005193d0, (void *)&ListDtor700aa0_5193d0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor7027fc_5ac550",     0x005ac550, (void *)&ListDtor7027fc_5ac550, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor7027fc_5ac590",     0x005ac590, (void *)&ListDtor7027fc_5ac590, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor7028a0_5b58c0",     0x005b58c0, (void *)&ListDtor7028a0_5b58c0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor7028b0_5b9a80",     0x005b9a80, (void *)&ListDtor7028b0_5b9a80, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor7028b4_5b9ac0",     0x005b9ac0, (void *)&ListDtor7028b4_5b9ac0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor70294c_5beae0",     0x005beae0, (void *)&ListDtor70294c_5beae0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor702950_5beb20",     0x005beb20, (void *)&ListDtor702950_5beb20, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor702954_5beb60",     0x005beb60, (void *)&ListDtor702954_5beb60, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor7029f8_5d5800",     0x005d5800, (void *)&ListDtor7029f8_5d5800, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor702a88_5d8610",     0x005d8610, (void *)&ListDtor702a88_5d8610, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor702a8c_5d8650",     0x005d8650, (void *)&ListDtor702a8c_5d8650, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor702afc_5d9f10",     0x005d9f10, (void *)&ListDtor702afc_5d9f10, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor702b28_5da2b0",     0x005da2b0, (void *)&ListDtor702b28_5da2b0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor702c0c_5dc6c0",     0x005dc6c0, (void *)&ListDtor702c0c_5dc6c0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor702c10_5dc700",     0x005dc700, (void *)&ListDtor702c10_5dc700, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor702d00_5e0370",     0x005e0370, (void *)&ListDtor702d00_5e0370, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor702d98_5e3cd0",     0x005e3cd0, (void *)&ListDtor702d98_5e3cd0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor702f10_5e40a0",     0x005e40a0, (void *)&ListDtor702f10_5e40a0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListDtor703084_5f3900",     0x005f3900, (void *)&ListDtor703084_5f3900, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
