@@ -38,6 +38,29 @@ void __fastcall Chain24_Promote400To100(const u8 *object);
 // at +0x2c equals the value, or 0.
 u8 *__fastcall Chain20_Find2c(const u8 *object, void *, u32 value);
 
+// 0x6b6140 (thiscall; value, pops 4): the dword at +0x4c = the value, or 0x1e when that is above it (unsigned). Returns it.
+u32 __fastcall Obj_Set4cMin1e(u8 *object, void *, u32 value);
+
+// 0x6b6a50 / 0x6b6a80 (thiscall; node, pops 4): pushes the node on the front of the doubly linked chain whose head is the
+// dword at +0x20 / +0x24 (next at +0x34, previous at +0x38). Returns the node.
+u8 *__fastcall Chain20_PushFront(u8 *object, void *, u8 *node);
+u8 *__fastcall Chain24_PushFront(u8 *object, void *, u8 *node);
+
+// 0x6b9900 (thiscall; status, index, value, pops 12): when the low byte of the index is below 4 the byte at +0x44 + that is
+// set to the value's low byte and *status = 0; else *status = -1. Returns status.
+u32 *__fastcall Bytes44_Set(u8 *object, void *, u32 *status, u32 index, u32 value);
+
+// 0x6bcb60 (thiscall; value, pops 4): whether bit 1 of the dword at +0x30 is clear and the value is above the dwords at +0x1c
+// and +0x3c added (unsigned).
+bool __fastcall Obj_PastEnd(const u8 *object, void *, u32 value);
+
+// 0x6c0da0 (thiscall; index, pops 4): the dword at that index of the array at +8, or 0 when there is none or the index is not
+// below the count at +4.
+u32 __fastcall Array_AtOrZero(const u8 *object, void *, u32 index);
+
+// 0x6c51f0 (thiscall; a, b, pops 8): bit 18 of the dword at +0x14 set, +0x94 = a and +0x98 = b. Returns a.
+u32 __fastcall Obj_Set94_98_Flag40000(u8 *object, void *, u32 a, u32 b);
+
 // 0x6b54a0 (thiscall): the low nibble of the byte the dword at +4 points to when the byte at +0 is not 0, else the high.
 u32 __fastcall Nibble_Select(const u8 *object);
 

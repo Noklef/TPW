@@ -2665,6 +2665,13 @@ address,name,kind,confidence,notes
 0x006d48f0,Offsets_Resolve,function,high,"reimplemented (src/game/core/fieldops); an address from a table of offsets, bounds checked"
 0x005d0e30,Targets3_Set,function,high,"reimplemented (src/game/core/fieldops); stores a, b and c - b through three pointers"
 0x005d0e50,Targets2_Set,function,high,"reimplemented (src/game/core/fieldops); stores a, a and b - a through three pointers"
+0x006b6140,Obj_Set4cMin1e,function,high,reimplemented (src/game/core/fieldops); sets +0x4c to a value limited to 0x1e
+0x006b6a50,Chain20_PushFront,function,high,reimplemented (src/game/core/fieldops); pushes a node on the front of the chain at +0x20
+0x006b6a80,Chain24_PushFront,function,high,reimplemented (src/game/core/fieldops); pushes a node on the front of the chain at +0x24
+0x006b9900,Bytes44_Set,function,high,"reimplemented (src/game/core/fieldops); sets one of four bytes at +0x44, reporting a status"
+0x006bcb60,Obj_PastEnd,function,high,reimplemented (src/game/core/fieldops); whether a value is past the end when not locked
+0x006c0da0,Array_AtOrZero,function,high,reimplemented (src/game/core/fieldops); an element of an array or 0
+0x006c51f0,Obj_Set94_98_Flag40000,function,high,reimplemented (src/game/core/fieldops); sets two fields and bit 18 of the flags
 0x006d4b00,Obj_Get18Of14,function,high,"reimplemented (src/game/core/methods); the dword at +0x18 of what +0x14 points to, or 0"
 0x006d4b10,Obj_MarkNodeIf14,function,high,reimplemented (src/game/core/methods); marks a node when +0x14 is set and reports a status
 0x006c5ce0,Obj_SetBit1At28,function,high,"reimplemented (src/game/core/methods); sets or clears bit 1 of +0x28 when bit 0 is set, reporting a status"

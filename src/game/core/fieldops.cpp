@@ -79,6 +79,57 @@ u8 *__fastcall Chain20_Find2c(const u8 *object, void *, u32 value) {
     return nullptr;
 }
 
+u32 __fastcall Obj_Set4cMin1e(u8 *object, void *, u32 value) {
+    if (value >= 0x1e)
+        value = 0x1e;
+    at<u32>(object, 0x4c) = value;
+    return value;
+}
+
+u8 *__fastcall Chain20_PushFront(u8 *object, void *, u8 *node) {
+    at<u8 *>(node, 0x34) = at<u8 *>(object, 0x20);
+    at<u32>(node, 0x38) = 0;
+    if (u8 *head = at<u8 *>(object, 0x20))
+        at<u8 *>(head, 0x38) = node;
+    at<u8 *>(object, 0x20) = node;
+    return node;
+}
+
+u8 *__fastcall Chain24_PushFront(u8 *object, void *, u8 *node) {
+    at<u8 *>(node, 0x34) = at<u8 *>(object, 0x24);
+    at<u32>(node, 0x38) = 0;
+    if (u8 *head = at<u8 *>(object, 0x24))
+        at<u8 *>(head, 0x38) = node;
+    at<u8 *>(object, 0x24) = node;
+    return node;
+}
+
+u32 *__fastcall Bytes44_Set(u8 *object, void *, u32 *status, u32 index, u32 value) {
+    if ((u8)index >= 4) {
+        *status = 0xffffffff;
+        return status;
+    }
+    at<u8>(object, 0x44 + (index & 0xff)) = (u8)value;
+    *status = 0;
+    return status;
+}
+
+bool __fastcall Obj_PastEnd(const u8 *object, void *, u32 value) {
+    return !(at<u8>(object, 0x30) & 2) && value > at<u32>(object, 0x1c) + at<u32>(object, 0x3c);
+}
+
+u32 __fastcall Array_AtOrZero(const u8 *object, void *, u32 index) {
+    const u8 *array = at<const u8 *>(object, 8);
+    return array && index < at<u32>(object, 4) ? at<u32>(array, 4 * index) : 0;
+}
+
+u32 __fastcall Obj_Set94_98_Flag40000(u8 *object, void *, u32 a, u32 b) {
+    at<u32>(object, 0x14) |= 0x40000;
+    at<u32>(object, 0x98) = b;
+    at<u32>(object, 0x94) = a;
+    return a;
+}
+
 u32 __fastcall Nibble_Select(const u8 *object) {
     const u8 value = *at<const u8 *>(object, 4);
     return at<u8>(object, 0) ? value & 0xf : value >> 4;

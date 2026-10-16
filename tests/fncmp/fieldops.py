@@ -14,7 +14,10 @@ CALLS = {
     'Times8': (0x6cc760, 't', 1, 'a', 0x14), 'Pair54': (0x6b9c90, 't', 2, 'a', 0x18), 'Rate': (0x6c6fd0, 't', 0, 'a', 0x20),
     'Word6': (0x6b0560, 't', 0, 'a', 0x20), 'Byte5': (0x6b05e0, 't', 0, 'a', 0x20), 'Promote': (0x6b6240, 't', 0, 'v', 0x20),
     'Find': (0x6b6970, 't', 1, 'a', 0x20), 'Nibble': (0x6b54a0, 't', 0, 'a', 0x20), 'Pop': (0x56afa0, 't', 0, 'a', 0x20),
-    'Resolve': (0x6d48f0, 't', 1, 'a', 0x20), 'Set3': (0x5d0e30, 't', 3, 'a', 0x20), 'Set2': (0x5d0e50, 't', 2, 'a', 0x20)}
+    'Resolve': (0x6d48f0, 't', 1, 'a', 0x20), 'Set3': (0x5d0e30, 't', 3, 'a', 0x20), 'Set2': (0x5d0e50, 't', 2, 'a', 0x20),
+    'Min1e': (0x6b6140, 't', 1, 'a', 0x28), 'Push20': (0x6b6a50, 't', 1, 'a', 0x28), 'Push24': (0x6b6a80, 't', 1, 'a', 0x28),
+    'Bytes': (0x6b9900, 't', 3, 'a', 0x30), 'Past': (0x6bcb60, 't', 1, 'b', 0x28), 'AtOr': (0x6c0da0, 't', 1, 'a', 0x24),
+    'S94': (0x6c51f0, 't', 2, 'a', 0x28)}
 B = Bench([(a, a + n) for (a, _c, _s, _r, n) in CALLS.values()])
 VALUES = [0, 1, 2, 3, 0x7f, 0x80, 0xff, 0x100, 0x400, 0x500, 0x7fffffff, 0x80000000, 0xffffffff, 0xfffffbff]
 POOL = RAM + 0x3000
@@ -52,10 +55,30 @@ def case(r):
             slots[1] = slots[0]
         for off, slot in zip((0xc, 0x1c, 0x2c) if name == 'Set3' else (0x10, 0x20, 0x30), slots):
             struct.pack_into('<I', obj, off, slot)
+    OUTP = RAM + 0x2480
+    if name in ('Push20', 'Push24'):
+        struct.pack_into('<I', obj, 0x20 if name == 'Push20' else 0x24, head)
+    elif name == 'Past':
+        obj[0x30] = r.choice([0, 1, 2, 3, 0xff, r.getrandbits(8)])
+        struct.pack_into('<II', obj, 0x1c, r.choice([0, 5, 0x7fffffff, 0xfffffff0]), 0)
+        struct.pack_into('<I', obj, 0x3c, r.choice([0, 3, 0x10, 0x80000000]))
+    elif name == 'AtOr':
+        struct.pack_into('<II', obj, 4, r.randrange(0, 5), r.choice([0, POOL, POOL]))
     regions = {RAM: obj, POOL: pool}
     args = [RAM]
     for _ in range(nargs):
         args.append(r.choice(VALUES))
+    if name == 'Min1e':
+        args[1] = r.choice([0, 1, 0x1d, 0x1e, 0x1f, 0xffffffff, r.getrandbits(32)])
+    elif name in ('Push20', 'Push24'):
+        args[1] = POOL + 0x200
+    elif name == 'Bytes':
+        args = [RAM, OUTP, r.choice([0, 1, 2, 3, 4, 5, 0x100, 0x102, 0x103, 0x104, r.getrandbits(32)]), r.getrandbits(32)]
+    elif name == 'Past':
+        s = (struct.unpack_from('<I', obj, 0x1c)[0] + struct.unpack_from('<I', obj, 0x3c)[0]) & 0xffffffff
+        args[1] = r.choice([s, (s + 1) & 0xffffffff, (s - 1) & 0xffffffff, 0, 0xffffffff, r.getrandbits(32)])
+    elif name == 'AtOr':
+        args[1] = r.randrange(0, 7)
     if name == 'Find' and nodes and r.random() < 0.7:
         args[1] = struct.unpack_from('<I', pool, 0x40 * r.randrange(nodes) + 0x2c)[0]
     if name == 'Resolve':
