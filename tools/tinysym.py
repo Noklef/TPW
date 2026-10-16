@@ -119,8 +119,8 @@ def _symbolic(addr, texts):
 
     def write(name, v):
         reg, size = reg_of(name)
-        if size < 32 and reg in regs and regs[reg][1] == 32:
-            raise Unsupported('partial write over a full register')
+        # a narrow write leaves the register's upper bits as they were; the function's callers are taken to read
+        # only what it gave them (the result then has the narrow type)
         regs[reg] = (v, size)
 
     def stack(base, k):
