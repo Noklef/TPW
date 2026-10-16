@@ -8,8 +8,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM  # noqa: E402
 
-CALLS = {'Step28': 0x50c320, 'Step': 0x4d96f0, 'Dir': 0x4d97e0, 'Spread': 0x4d8480, 'Init': 0x4d7bb0, 'Facing': 0x4de670}
-B = Bench([(0x4d96f0, 0x4d97b0), (0x4d97b0, 0x4d97e0), (0x4d97e0, 0x4d9920), (0x4d99c0, 0x4d99e0), (0x4d8300, 0x4d8328), (0x5da3c0, 0x5da3c1), (0x4d8480, 0x4d8620), (0x4d7bb0, 0x4d7ea0), (0x4de670, 0x4de7e0), (0x50c320, 0x50c3e0), (0x536300, 0x53644c), (0x522850, 0x522860)])
+CALLS = {'Dir28': 0x50c3e0, 'Step28': 0x50c320, 'Step': 0x4d96f0, 'Dir': 0x4d97e0, 'Spread': 0x4d8480, 'Init': 0x4d7bb0, 'Facing': 0x4de670}
+B = Bench([(0x4d96f0, 0x4d97b0), (0x4d97b0, 0x4d97e0), (0x4d97e0, 0x4d9920), (0x4d99c0, 0x4d99e0), (0x4d8300, 0x4d8328), (0x5da3c0, 0x5da3c1), (0x4d8480, 0x4d8620), (0x4d7bb0, 0x4d7ea0), (0x4de670, 0x4de7e0), (0x50c320, 0x50c3e0), (0x50c3e0, 0x50c540), (0x536300, 0x53644c), (0x522850, 0x522860)])
 CELL = RAM
 
 
@@ -43,10 +43,11 @@ def case(r):
     if name in ('Step', 'Step28'):
         return Call(CALLS[name], [CELL, small(), small(), r.choice([1, 1, 0, 2, 3, -1 & 0xffffffff, small()])], regions, conv='t', ret='a')
     pairs = bytearray(0x40)
+    scale = r.choice([1, 1, 2, 0, 3, -1 & 0xffffffff])
     for i in range(0, 0x40, 4):
         struct.pack_into('<I', pairs, i, r.choice([0, 1, 0xffffffff, 2, 0xfffffffe, 0x7f, r.getrandbits(8)]))
     regions[0x7cdba0] = pairs
-    return Call(CALLS[name], [CELL, r.choice([1, 2, 4, 8, 0x10, 0x20, 0x40, 0x80, 0, 3, 0x100, 0x101, 0xff, r.getrandbits(32)])], regions, conv='t', ret='a')
+    return Call(CALLS[name], [CELL, r.choice([1, 2, 4, 8, 0x10, 0x20, 0x40, 0x80, 0, 3, 0x100, 0x101, 0xff, r.getrandbits(32)])] + ([scale] if name == 'Dir28' else []), regions, conv='t', ret='a')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(k for k in CALLS if k != 'Init')).split(',') if k]

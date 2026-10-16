@@ -215,6 +215,14 @@ void __fastcall World_InitBlock(u8 *world) {
     }
 }
 
+static u32 DirectionTable(u32 direction);
+
+u8 *__fastcall Map_StepCell28InDirection(const u16 *cell, void *, u32 direction, s32 scale) {
+    const u32 table = DirectionTable(direction);
+    if (!table) return nullptr;
+    return Map_StepCell28(cell, nullptr, at<s32>(reinterpret_cast<const void *>(table), 0), at<s32>(reinterpret_cast<const void *>(table), 4), scale);
+}
+
 u8 *__fastcall Map_StepCell28(const u16 *cell, void *, s32 dx, s32 dy, s32 scale) {
     const u32 index = (u32)*cell - 1;
     const s32 x = (s32)(index & 0x7f) + dx * scale;
@@ -233,7 +241,7 @@ u8 *__fastcall Map_StepCell(const u16 *cell, void *, s32 dx, s32 dy, s32 scale) 
     return at<u8 *>(reinterpret_cast<const void *>(0x0080239c), 0) + 0x294 + (id & 0xffff) * 0x44;
 }
 
-u8 *__fastcall Map_StepCellInDirection(const u16 *cell, void *, u32 direction) {
+static u32 DirectionTable(u32 direction) {
     u32 table = 0;
     switch (direction & 0xff) {
     case 0x01: table = 0x007cdba0; break;
@@ -244,8 +252,14 @@ u8 *__fastcall Map_StepCellInDirection(const u16 *cell, void *, u32 direction) {
     case 0x20: table = 0x007cdbb0; break;
     case 0x40: table = 0x007cdbd0; break;
     case 0x80: table = 0x007cdbc0; break;
-    default: return nullptr;  // (the original's Debug_Printf assert is left out)
+    default: return 0;  // (the original's Debug_Printf assert is left out)
     }
+    return table;
+}
+
+u8 *__fastcall Map_StepCellInDirection(const u16 *cell, void *, u32 direction) {
+    const u32 table = DirectionTable(direction);
+    if (!table) return nullptr;
     return Map_StepCell(cell, nullptr, at<s32>(reinterpret_cast<const void *>(table), 0), at<s32>(reinterpret_cast<const void *>(table), 4), 1);
 }
 
