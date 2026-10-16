@@ -51,6 +51,22 @@ void __cdecl FlyingRide_SetBounds() {
     d = d * 3000 - 0x2904;
 }
 
+void __cdecl FlyingRide_NextCameraCorner(s32 *camera) {
+    camera[0x16] = camera[0x13];
+    camera[0x18] = camera[0x15];
+    const u8 *record = table()[camera[0]];
+    camera[0x17] = camera[0x14];
+    s32 height = at<s32>(record, 0x18) + 5000;
+    if (height < 14000) height = 14000;
+    camera[0x14] = height;
+    const u32 corner = ((u32)camera[0x22] + 1) & 3;
+    camera[0x22] = (s32)corner;
+    static const s32 signs[4][2] = {{1, 1}, {1, -1}, {-1, -1}, {-1, 1}};
+    record = table()[camera[0]];
+    camera[0x13] = at<s32>(record, 0x14) + signs[corner][0] * 25000;
+    camera[0x15] = at<s32>(record, 0x1c) + signs[corner][1] * 25000;
+}
+
 // The part a slot of the record at index (not checked: the table entry is used as it is) steps to.
 void __cdecl FlyingRide_ReleaseSlotPart(s32 index, s32 slotIndex, s32 step) {
     release(slot(table()[index], (u32)slotIndex), step);

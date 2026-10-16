@@ -12,12 +12,12 @@ B = Bench([(0x55a570, 0x55a592), (0x55d610, 0x55d716), (0x55d720, 0x55d82f), (0x
            (0x55d9b0, 0x55d9e1), (0x55d9f0, 0x55da61), (0x55dcf0, 0x55dd20), (0x55dd20, 0x55dd3f),
            (0x55dd40, 0x55dd74), (0x55dd80, 0x55ddc3), (0x55ddd0, 0x55ddf0), (0x55ddf0, 0x55de10),
            (0x55de10, 0x55de30), (0x55de30, 0x55de65), (0x44b220, 0x44b267), (0x44b4c0, 0x44b505),
-           (0x475550, 0x47558b), (0x55e330, 0x55e3a8), (0x55ab50, 0x55abf0), (0x52c6c0, 0x52c6f0)])
+           (0x475550, 0x47558b), (0x55e330, 0x55e3a8), (0x55c270, 0x55c340), (0x55ab50, 0x55abf0), (0x52c6c0, 0x52c6f0)])
 TABLE, RIDES, SCRIPTS = 0x8791f8, 0x7a4610, 0x7b49f0
 HOLDER, H8, MODEL, PARTS, PS, PSE, REC = (RAM + o for o in (0, 0x40, 0x100, 0x200, 0x300, 0x400, 0x1000))
 CALLS = {'FirstRide': 0x55a570, 'In': 0x55d610, 'Out': 0x55d720, 'Cap': 0x55d950, 'Tenth': 0x55d9b0,
          'On': 0x55d9f0, 'Set4': 0x55dcf0, 'Get3c': 0x55dd20, 'Ready': 0x55dd40, 'Take3c': 0x55dd80,
-         'Set44': 0x55ddd0, 'Set20': 0x55ddf0, 'Set24': 0x55de10, 'Busy': 0x55de30, 'Part': 0x55e330, 'Bounds': 0x55ab50}
+         'Set44': 0x55ddd0, 'Set20': 0x55ddf0, 'Set24': 0x55de10, 'Busy': 0x55de30, 'Part': 0x55e330, 'Corner': 0x55c270, 'Bounds': 0x55ab50}
 RETURNS = {'FirstRide', 'In', 'Out', 'Get3c', 'Ready', 'Take3c', 'Busy'}
 
 
@@ -76,6 +76,20 @@ def case(r):
     regions = {TABLE: table, RIDES: rides, SCRIPTS: scripts, HOLDER: holder, H8: h8, MODEL: model,
                PARTS: parts, PS: ps, PSE: r.bytes(0xa0), REC: record(r, op)}
     args = [index & 0xffffffff]
+    if op == 'Corner':
+        cam = bytearray(r.bytes(0x100))
+        idx = r.randrange(1, 100)
+        put(cam, 0, 'I', idx)
+        put(cam, 0x88, 'I', r.choice([0, 1, 2, 3, 4, 7, 0xffffffff, r.getrandbits(32)]))
+        rec = bytearray(r.bytes(0x40))
+        for off in (0x14, 0x18, 0x1c):
+            put(rec, off, 'i', r.choice([0, 1000, -1000, 9000, 14000, 20000, r.randrange(-60000, 60000)]))
+        tbl = bytearray(r.bytes(0x194))
+        put(tbl, idx * 4, 'I', RAM + 0x2000)
+        regions[TABLE] = tbl
+        regions[RAM + 0x1000] = cam
+        regions[RAM + 0x2000] = rec
+        return Call(CALLS[op], [RAM + 0x1000], regions, ret='v')
     if op == 'Bounds':
         regions.update({0x7660b8: r.bytes(0x10), 0x8186e0: r.bytes(0x10), 0x818c00: r.bytes(0x10)})
         return Call(CALLS[op], [], regions, ret='v')

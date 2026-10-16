@@ -42,6 +42,11 @@ void __cdecl FlyingRide_Set4(s32 index, u32 value);
 void __cdecl FlyingRide_SetBounds();
 void __cdecl FlyingRide_ReleaseSlotPart(s32 index, s32 slotIndex, s32 step);
 
+// 0x55c270 (cdecl; camera dwords: [0] the ride index, [0x13..0x15] the target, [0x16..0x18] the old one, [0x22] the corner): the target moves to the old one, the target
+// height (+0x14) becomes the record's +0x18 plus 5000 (at least 14000) and the corner goes round (0 to 3): the target x / z become the record's +0x14 / +0x1c plus or minus
+// 25000 for the corners (+, +), (+, -), (-, -), (-, +).
+void __cdecl FlyingRide_NextCameraCorner(s32 *camera);
+
 // 0x55dd20 (index): +0x3c (else 0).
 u32 __cdecl FlyingRide_Get3c(s32 index);
 
