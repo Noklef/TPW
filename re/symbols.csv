@@ -2843,6 +2843,32 @@ address,name,kind,confidence,notes
 0x005e3cd0,ListDtor702d98_5e3cd0,function,high,reimplemented (src/game/core/tiny_j); a linked list destructor: sets the vtable pointer 0x702d98 and frees every node
 0x005e40a0,ListDtor702f10_5e40a0,function,high,reimplemented (src/game/core/tiny_j); a linked list destructor: sets the vtable pointer 0x702f10 and frees every node
 0x005f3900,ListDtor703084_5f3900,function,high,reimplemented (src/game/core/tiny_j); a linked list destructor: sets the vtable pointer 0x703084 and frees every node
+0x00407c70,ScalarDeleteVia407c30_407c70,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor6fd708_407c30, then frees the object when bit 0 of the flags is set"
+0x0041c980,ScalarDeleteVia41c9a0_41c980,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor6fd9e4_41c9a0, then frees the object when bit 0 of the flags is set"
+0x0041eb30,ScalarDeleteVia41eb50_41eb30,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor6fdb08_41eb50, then frees the object when bit 0 of the flags is set"
+0x00421620,ScalarDeleteVia421640_421620,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor6fdb10_421640, then frees the object when bit 0 of the flags is set"
+0x00492040,ScalarDeleteVia492060_492040,function,high,"reimplemented (src/game/core/tiny_k); calls Wrap_Fn_669fee_492060, then frees the object when bit 0 of the flags is set"
+0x004e5bc0,ScalarDeleteVia4e5b90_4e5bc0,function,high,"reimplemented (src/game/core/tiny_k); calls Vtbl700620_Set_4e5b90, then frees the object when bit 0 of the flags is set"
+0x005193b0,ScalarDeleteVia5193d0_5193b0,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor700aa0_5193d0, then frees the object when bit 0 of the flags is set"
+0x005ac530,ScalarDeleteVia5ac550_5ac530,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor7027fc_5ac550, then frees the object when bit 0 of the flags is set"
+0x005b5900,ScalarDeleteVia5b58c0_5b5900,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor7028a0_5b58c0, then frees the object when bit 0 of the flags is set"
+0x005b9a40,ScalarDeleteVia5b9a80_5b9a40,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor7028b0_5b9a80, then frees the object when bit 0 of the flags is set"
+0x005b9a60,ScalarDeleteVia5b9ac0_5b9a60,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor7028b4_5b9ac0, then frees the object when bit 0 of the flags is set"
+0x005bea80,ScalarDeleteVia5beae0_5bea80,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor70294c_5beae0, then frees the object when bit 0 of the flags is set"
+0x005beaa0,ScalarDeleteVia5beb20_5beaa0,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor702950_5beb20, then frees the object when bit 0 of the flags is set"
+0x005beac0,ScalarDeleteVia5beb60_5beac0,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor702954_5beb60, then frees the object when bit 0 of the flags is set"
+0x005d57e0,ScalarDeleteVia5d5800_5d57e0,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor7029f8_5d5800, then frees the object when bit 0 of the flags is set"
+0x005d85d0,ScalarDeleteVia5d8610_5d85d0,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor702a88_5d8610, then frees the object when bit 0 of the flags is set"
+0x005d85f0,ScalarDeleteVia5d8650_5d85f0,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor702a8c_5d8650, then frees the object when bit 0 of the flags is set"
+0x005d9ef0,ScalarDeleteVia5d9f10_5d9ef0,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor702afc_5d9f10, then frees the object when bit 0 of the flags is set"
+0x005da290,ScalarDeleteVia5da2b0_5da290,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor702b28_5da2b0, then frees the object when bit 0 of the flags is set"
+0x005dc680,ScalarDeleteVia5dc6c0_5dc680,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor702c0c_5dc6c0, then frees the object when bit 0 of the flags is set"
+0x005dc6a0,ScalarDeleteVia5dc700_5dc6a0,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor702c10_5dc700, then frees the object when bit 0 of the flags is set"
+0x005e0350,ScalarDeleteVia5e0370_5e0350,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor702d00_5e0370, then frees the object when bit 0 of the flags is set"
+0x005e3cb0,ScalarDeleteVia5e3cd0_5e3cb0,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor702d98_5e3cd0, then frees the object when bit 0 of the flags is set"
+0x005e4080,ScalarDeleteVia5e40a0_5e4080,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor702f10_5e40a0, then frees the object when bit 0 of the flags is set"
+0x005f38e0,ScalarDeleteVia5f3900_5f38e0,function,high,"reimplemented (src/game/core/tiny_k); calls ListDtor703084_5f3900, then frees the object when bit 0 of the flags is set"
+0x006175f0,ScalarDeleteVia47e390_6175f0,function,high,"reimplemented (src/game/core/tiny_k); calls SurfaceSource_Dtor, then frees the object when bit 0 of the flags is set"
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

@@ -113,6 +113,7 @@
 #include "../game/core/tiny_h.h"
 #include "../game/core/tiny_i.h"
 #include "../game/core/tiny_j.h"
+#include "../game/core/tiny_k.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -2330,6 +2331,32 @@ const Hook kHooks[] = {
     {"ListDtor702d98_5e3cd0",     0x005e3cd0, (void *)&ListDtor702d98_5e3cd0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"ListDtor702f10_5e40a0",     0x005e40a0, (void *)&ListDtor702f10_5e40a0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"ListDtor703084_5f3900",     0x005f3900, (void *)&ListDtor703084_5f3900, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ScalarDeleteVia407c30_407c70", 0x00407c70, (void *)&ScalarDeleteVia407c30_407c70, {0x56, 0x8b, 0xf1, 0xe8, 0xb8}},
+    {"ScalarDeleteVia41c9a0_41c980", 0x0041c980, (void *)&ScalarDeleteVia41c9a0_41c980, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"ScalarDeleteVia41eb50_41eb30", 0x0041eb30, (void *)&ScalarDeleteVia41eb50_41eb30, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"ScalarDeleteVia421640_421620", 0x00421620, (void *)&ScalarDeleteVia421640_421620, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"ScalarDeleteVia492060_492040", 0x00492040, (void *)&ScalarDeleteVia492060_492040, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"ScalarDeleteVia4e5b90_4e5bc0", 0x004e5bc0, (void *)&ScalarDeleteVia4e5b90_4e5bc0, {0x56, 0x8b, 0xf1, 0xe8, 0xc8}},
+    {"ScalarDeleteVia5193d0_5193b0", 0x005193b0, (void *)&ScalarDeleteVia5193d0_5193b0, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"ScalarDeleteVia5ac550_5ac530", 0x005ac530, (void *)&ScalarDeleteVia5ac550_5ac530, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"ScalarDeleteVia5b58c0_5b5900", 0x005b5900, (void *)&ScalarDeleteVia5b58c0_5b5900, {0x56, 0x8b, 0xf1, 0xe8, 0xb8}},
+    {"ScalarDeleteVia5b9a80_5b9a40", 0x005b9a40, (void *)&ScalarDeleteVia5b9a80_5b9a40, {0x56, 0x8b, 0xf1, 0xe8, 0x38}},
+    {"ScalarDeleteVia5b9ac0_5b9a60", 0x005b9a60, (void *)&ScalarDeleteVia5b9ac0_5b9a60, {0x56, 0x8b, 0xf1, 0xe8, 0x58}},
+    {"ScalarDeleteVia5beae0_5bea80", 0x005bea80, (void *)&ScalarDeleteVia5beae0_5bea80, {0x56, 0x8b, 0xf1, 0xe8, 0x58}},
+    {"ScalarDeleteVia5beb20_5beaa0", 0x005beaa0, (void *)&ScalarDeleteVia5beb20_5beaa0, {0x56, 0x8b, 0xf1, 0xe8, 0x78}},
+    {"ScalarDeleteVia5beb60_5beac0", 0x005beac0, (void *)&ScalarDeleteVia5beb60_5beac0, {0x56, 0x8b, 0xf1, 0xe8, 0x98}},
+    {"ScalarDeleteVia5d5800_5d57e0", 0x005d57e0, (void *)&ScalarDeleteVia5d5800_5d57e0, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"ScalarDeleteVia5d8610_5d85d0", 0x005d85d0, (void *)&ScalarDeleteVia5d8610_5d85d0, {0x56, 0x8b, 0xf1, 0xe8, 0x38}},
+    {"ScalarDeleteVia5d8650_5d85f0", 0x005d85f0, (void *)&ScalarDeleteVia5d8650_5d85f0, {0x56, 0x8b, 0xf1, 0xe8, 0x58}},
+    {"ScalarDeleteVia5d9f10_5d9ef0", 0x005d9ef0, (void *)&ScalarDeleteVia5d9f10_5d9ef0, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"ScalarDeleteVia5da2b0_5da290", 0x005da290, (void *)&ScalarDeleteVia5da2b0_5da290, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"ScalarDeleteVia5dc6c0_5dc680", 0x005dc680, (void *)&ScalarDeleteVia5dc6c0_5dc680, {0x56, 0x8b, 0xf1, 0xe8, 0x38}},
+    {"ScalarDeleteVia5dc700_5dc6a0", 0x005dc6a0, (void *)&ScalarDeleteVia5dc700_5dc6a0, {0x56, 0x8b, 0xf1, 0xe8, 0x58}},
+    {"ScalarDeleteVia5e0370_5e0350", 0x005e0350, (void *)&ScalarDeleteVia5e0370_5e0350, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"ScalarDeleteVia5e3cd0_5e3cb0", 0x005e3cb0, (void *)&ScalarDeleteVia5e3cd0_5e3cb0, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"ScalarDeleteVia5e40a0_5e4080", 0x005e4080, (void *)&ScalarDeleteVia5e40a0_5e4080, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"ScalarDeleteVia5f3900_5f38e0", 0x005f38e0, (void *)&ScalarDeleteVia5f3900_5f38e0, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"ScalarDeleteVia47e390_6175f0", 0x006175f0, (void *)&ScalarDeleteVia47e390_6175f0, {0x56, 0x8b, 0xf1, 0xe8, 0x98}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

@@ -32,6 +32,28 @@ def ptype(param):
     return m.group(1).strip() if m else param.strip()
 
 
+def deleter(addr, texts, known, decls):
+    """A scalar deleting destructor over a ported destructor: PUSH ESI; MOV ESI,ECX; CALL dtor; TEST [ESP + 8],1; JZ over PUSH ESI; CALL
+    Mem_Free; ADD ESP,4; then MOV EAX,ESI; POP ESI; RET 4."""
+    m = re.match(r'^CALL 0x([0-9a-f]+)$', texts[2]) if len(texts) == 11 else None
+    if not m or texts[:2] != ['PUSH ESI', 'MOV ESI,ECX'] or not texts[4].startswith('JZ '):
+        return None
+    if texts[3] not in ('TEST b[ESP + 0x8],0x1', 'TEST byte ptr [ESP + 0x8],0x1'):
+        return None
+    if texts[5:] != ['PUSH ESI', 'CALL 0x0067acb0', 'ADD ESP,0x4', 'MOV EAX,ESI', 'POP ESI', 'RET 0x4']:
+        return None
+    target = int(m.group(1), 16)
+    name = known.get(target)
+    d = decls.get(name) if name else None
+    if not d or d['conv'] != 'fastcall' or len(d['params']) not in (1, 2):
+        return None
+    first = ptype(d['params'][0])
+    arg = 'reinterpret_cast<%s>(o)' % first if first.endswith('*') else '(%s)(uintptr_t)o' % first
+    call = '%s(%s%s)' % (name, arg, ', nullptr' if len(d['params']) == 2 else '')
+    return dict(name='ScalarDeleteVia%06x_%06x' % (target, addr), conv='t', nargs=1, ret='p', listy=name.startswith('ListDtor'), doc='calls %s, then frees the object when bit 0 of the flags is set' % name,
+                body='%s; if (v0 & 1) GameHeap_Free(o); return o;' % call, callee=target, includes=[d['header'], 'core/gameheap.h'], globals=[])
+
+
 def wrapper(addr, texts, known, decls):
     try:
         return _wrapper(addr, texts, known, decls)
