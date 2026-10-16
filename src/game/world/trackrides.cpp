@@ -9,6 +9,17 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 bool loaded() { return global<u32>(0x00877b58) == 0x4a454647; }
 
+// The ride a handle indexes, or 0; whether the handle also names it (its index and serial).
+u8 *RideOf(u32 handle) {
+    return loaded() ? reinterpret_cast<u8 *>(global<uintptr_t>(0x00877b60) + (handle & 0xff) * 0xd0) : nullptr;
+}
+
+u32 NameOf(const u8 *ride) {
+    if (!loaded())
+        return 0;
+    return (u32)((s32)((uintptr_t)ride - global<uintptr_t>(0x00877b60)) / 0xd0) | at<u32>(ride, 0) << 8;
+}
+
 }  // namespace
 
 extern "C" {
@@ -32,6 +43,24 @@ u8 *__cdecl TrakPool_FirstFree() {
         if (!(record[0] & 1)) return record;
     }
     return nullptr;
+}
+
+u32 __cdecl TrakRide_Field5c(u32 handle) {
+    const u8 *ride = RideOf(handle);
+    return handle == NameOf(ride) ? at<u32>(ride, 0x5c) : 0;
+}
+
+u32 __cdecl TrakRide_PopNode(u32 handle) {
+    u8 *ride = RideOf(handle);
+    if (!loaded() || handle != NameOf(ride))
+        return 0;
+    u8 *node = at<u8 *>(ride, 0xc8);
+    if (!node)
+        return 0;
+    at<u32>(ride, 0xc8) = at<u32>(node, 0x10);
+    at<u32>(node, 0x10) = global<u32>(0x00877b8c);
+    global<u32>(0x00877b8c) = (u32)(uintptr_t)node;
+    return at<u32>(node, 0);
 }
 
 u32 __cdecl TrakRide_LinkedValue(u32 handle) {

@@ -1,6 +1,6 @@
 // The track rides' module (TRAK, saved by 0x5428e0, loaded by 0x543560): reimplementation of
 // its chunk write 0x543490, its stream read 0x54bbb0, the free record scan 0x549b50 and the
-// handle lookup 0x549d30. The module is loaded while 0x877b58 holds 'GFEJ' (0x4a454647); its
+// handle lookup 0x549d30, and the lookups 0x5452a0 and 0x54ab40. The module is loaded while 0x877b58 holds 'GFEJ' (0x4a454647); its
 // rides are 0xd0-byte records from [0x877b60], named by the handle index | serial (+0) << 8.
 #pragma once
 
@@ -26,4 +26,13 @@ u8 *__cdecl TrakPool_FirstFree();
 // the ride and the link is set with flag 0x400000 in its +0; else 0. (Not loaded, a handle of
 // 0 reads the link from address 0x58 and faults.)
 u32 __cdecl TrakRide_LinkedValue(u32 handle);
+
+// 0x5452a0 (handle): the ride's dword at +0x5c when the handle names it, else 0 (not loaded, a
+// handle of 0 reads address 0x5c and faults).
+u32 __cdecl TrakRide_Field5c(u32 handle);
+
+// 0x54ab40 (handle): when the module is loaded and the handle names the ride, its first node
+// (the list head at +0xc8) goes back on the free list at 0x877b8c and the node's first dword
+// is returned; 0 for an empty list, a stale handle or no module.
+u32 __cdecl TrakRide_PopNode(u32 handle);
 }
