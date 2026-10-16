@@ -71,6 +71,20 @@ u32 __fastcall Ranges_LookupAdapter(const u8 *object, void *, u32 key);
 // +8 points to (*out = the byte at +5 of what +0x4c points to) or else with the word at +0x1c (the byte at +6).
 bool __fastcall Obj_ByteForMask(const u8 *object, void *, u32 mask, u32 *out);
 
+// 0x6c3d80 (thiscall; mask, out, pops 8): like Obj_ByteForMask, but the byte is that of the object the dword at +0x4c names
+// through its own dword at +0x1c and then +0x4c: *out = its byte at +5 / +6.
+bool __fastcall Obj_ByteForMaskIndirect(const u8 *object, void *, u32 mask, u32 *out);
+
+// 0x6d4890 (thiscall; status, out, index, pops 12): for an index up to the dword at +0xc (unsigned) the slot 4 * index - 4
+// into the array at +0x14, filled on first use with the dword at +8 plus the offset it holds at 4 * index, is read into
+// *out and *status = 0; else *status = -1. Returns status.
+u32 *__fastcall Slots_Resolve(const u8 *object, void *, u32 *status, u32 *out, u32 index);
+
+// 0x6b0580 (thiscall; out, index, pops 8): when the dword at +8 is not 0 and the low 16 bits of the index are within the
+// word at +6 of what +0xc points to: out[0] = the word at +0x16 + (the dword the table at +0x10 holds for the index) of
+// the dword at +8, out[1] = the byte at +5 of the +0xc record; else both 0. Returns out.
+u32 *__fastcall Entry_Lookup(const u8 *object, void *, u32 *out, u32 index);
+
 // 0x6d22d0 (thiscall; flags, pops 4): a bit set built from the flags: 0x1000, 0x100 unless the dword at +0xc is 11025, 1 for
 // bit 12 without bit 0, 2 for bit 2, 8 for bit 3, 4 for bit 4 and 0x10 for bit 6.
 u32 __fastcall Obj_RemapFlags(const u8 *object, void *, u32 flags);

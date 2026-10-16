@@ -163,6 +163,50 @@ bool __fastcall Obj_ByteForMask(const u8 *object, void *, u32 mask, u32 *out) {
     return false;
 }
 
+bool __fastcall Obj_ByteForMaskIndirect(const u8 *object, void *, u32 mask, u32 *out) {
+    const u8 *kind = at<const u8 *>(object, 8);
+    const u8 *other = at<const u8 *>(at<const u8 *>(at<const u8 *>(object, 0x4c), 0x1c), 0x4c);
+    if (mask & at<u16>(kind, 0x18)) {
+        *out = at<u8>(other, 5);
+        return true;
+    }
+    if (mask & at<u16>(kind, 0x1c)) {
+        *out = at<u8>(other, 6);
+        return true;
+    }
+    return false;
+}
+
+u32 *__fastcall Slots_Resolve(const u8 *object, void *, u32 *status, u32 *out, u32 index) {
+    if (index > at<u32>(object, 0xc)) {
+        *status = 0xffffffff;
+        return status;
+    }
+    const u32 byteOffset = 4 * index - 4;
+    u32 *slot = reinterpret_cast<u32 *>(at<u8 *>(object, 0x14) + byteOffset);
+    if (*slot == 0) {
+        const u8 *base = at<const u8 *>(object, 8);
+        *slot = at<u32>(base, 4 * index) + (u32)(uintptr_t)base;
+    }
+    *out = at<u32>(at<u8 *>(object, 0x14), byteOffset);
+    *status = 0;
+    return status;
+}
+
+u32 *__fastcall Entry_Lookup(const u8 *object, void *, u32 *out, u32 index) {
+    const u8 *base = at<const u8 *>(object, 8);
+    const u8 *record = at<const u8 *>(object, 0xc);
+    if (!base || (u16)index > at<u16>(record, 6)) {
+        out[0] = 0;
+        out[1] = 0;
+        return out;
+    }
+    const u32 entry = at<u32>(at<const u8 *>(object, 0x10), 4 * (index & 0xffff));
+    out[1] = at<u8>(record, 5);
+    out[0] = at<u16>(base, entry + 0x16);
+    return out;
+}
+
 u32 __fastcall Obj_RemapFlags(const u8 *object, void *, u32 flags) {
     u32 result = at<u32>(object, 0xc) == 11025 ? 0 : 0x100;
     if ((flags & 0x1000) && !(flags & 1))

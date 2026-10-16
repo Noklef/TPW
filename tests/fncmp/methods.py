@@ -15,7 +15,8 @@ CALLS = {
     'Pick': (0x6d6c70, 't', 'a', 0x30), 'SetRate': (0x6d6cb0, 't', 'a', 0x40), 'Get20': (0x6d6db0, 's', 'a', 0x20),
     'Copy16': (0x6af6f0, 'c', 'a', 0x40), 'Erase': (0x6af060, 't', 'a', 0x40), 'Kind': (0x6adf20, 't', 'a', 0x34),
     'Rec': (0x6ace60, 't', 'a', 0x40), 'Range': (0x6ad8f0, 't', 'a', 0x58), 'Mask': (0x6bc040, 't', 'b', 0x4a),
-    'Remap': (0x6d22d0, 't', 'a', 0x48), 'RangeW': (0x6ad900, 't', 'a', 0x48), 'Adv': (0x6b9b30, 't', 'v', 0x68)}
+    'Remap': (0x6d22d0, 't', 'a', 0x48), 'RangeW': (0x6ad900, 't', 'a', 0x48), 'Adv': (0x6b9b30, 't', 'v', 0x68),
+    'MaskI': (0x6c3d80, 't', 'b', 0x56), 'Slots': (0x6d4890, 't', 'a', 0x50), 'Entry': (0x6b0580, 't', 'a', 0x58)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()])
 VALUES = [0, 1, 2, 3, 0x10, 0x40, 0x4000, 0x4800, 0x800, 0xff, 0x100, 0x7fffffff, 0x80000000, 0xffffffff, 0xfffffffe]
 POOL = RAM + 0x3000
@@ -97,6 +98,30 @@ def case(r):
         struct.pack_into('<HH', pool, 0x18, r.choice([0, 1, 2, 0x80, 0xffff]), 0)
         struct.pack_into('<H', pool, 0x1c, r.choice([0, 1, 4, 0x8000, 0xffff]))
         args += [r.choice([0, 1, 2, 4, 0x80, 0x8000, 0x10000, 0xffff, 0xffffffff]), OUT]
+    elif name == 'MaskI':
+        struct.pack_into('<I', obj, 8, POOL)
+        struct.pack_into('<I', obj, 0x4c, POOL + 0x100)
+        struct.pack_into('<I', pool, 0x100 + 0x1c, POOL + 0x180)
+        struct.pack_into('<I', pool, 0x180 + 0x4c, POOL + 0x300)
+        struct.pack_into('<HH', pool, 0x18, r.choice([0, 1, 2, 0x80, 0xffff]), 0)
+        struct.pack_into('<H', pool, 0x1c, r.choice([0, 1, 4, 0x8000, 0xffff]))
+        args += [r.choice([0, 1, 2, 4, 0x80, 0x8000, 0x10000, 0xffff, 0xffffffff]), OUT]
+    elif name == 'Slots':
+        count = r.randrange(0, 6)
+        struct.pack_into('<III', obj, 8, POOL, count, 0)
+        struct.pack_into('<I', obj, 0x14, POOL + 0x100)
+        for i in range(8):
+            struct.pack_into('<I', pool, 0x100 - 4 + 4 * i, r.choice([0, 0, 0x1234, 0xffff0000]))
+            struct.pack_into('<I', pool, 4 * i, r.choice([0, 8, 0x40, 0xfffffff0]))
+        args += [OUT, RAM + 0x1100, r.randrange(0, 8)]
+        regions[RAM + 0x1100] = r.bytes(8)
+    elif name == 'Entry':
+        struct.pack_into('<III', obj, 8, r.choice([0, POOL, POOL]), POOL + 0x100, POOL + 0x180)
+        struct.pack_into('<HH', pool, 0x100 + 4, r.choice([0, 1, 3]), r.choice([0, 3, 5, 0xffff]))
+        pool[0x100 + 5] = r.choice([0, 7, 0xff])
+        for i in range(8):
+            struct.pack_into('<I', pool, 0x180 + 4 * i, 4 * r.randrange(0, 8))
+        args += [OUT, r.choice([0, 1, 2, 3, 4, 0x10000, 0x10002, r.randrange(0, 8)])]
     elif name == 'Remap':
         struct.pack_into('<I', obj, 0xc, r.choice([11025, 22050, 0, 11026]))
         args += [r.getrandbits(32) if r.random() < 0.3 else r.choice([0, 1, 4, 8, 0x10, 0x40, 0x1000, 0x1001, 0x105d, 0xffffffff])]
