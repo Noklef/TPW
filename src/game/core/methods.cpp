@@ -246,6 +246,39 @@ u32 *__fastcall Obj_SetKindA4(u8 *object, void *, u32 *status, s32 kind) {
 
 u32 __stdcall Record_Word4OrSix(const u8 *record) { return record ? at<u16>(record, 4) : 6; }
 
+u8 *__fastcall DequeIter_Inc(u8 *it) {
+    u8 *position = at<u8 *>(it, 8) + 4;
+    at<u8 *>(it, 8) = position;
+    if (position == at<u8 *>(it, 4)) {
+        u32 *slot = reinterpret_cast<u32 *>(at<u8 *>(it, 0xc) + 4);
+        at<u32 *>(it, 0xc) = slot;
+        const u32 first = *slot;
+        at<u32>(it, 0) = first;
+        at<u32>(it, 4) = first + 0x1000;
+        at<u32>(it, 8) = first;
+    }
+    return it;
+}
+
+u32 __fastcall Obj_CheckId(u8 *object, void *, const u32 *id) {
+    at<u8>(object, 0xcc) = id[4] == 0;
+    return id[0] == *reinterpret_cast<const u32 *>(0x0070a928) && id[1] == *reinterpret_cast<const u32 *>(0x0070a92c) &&
+           id[2] == *reinterpret_cast<const u32 *>(0x0070a930) && id[3] == *reinterpret_cast<const u32 *>(0x0070a934);
+}
+
+void __fastcall Obj_CacheStatics(const u8 *object) {
+    u8 *done = reinterpret_cast<u8 *>(0x00fb2024);
+    if (*done)
+        return;
+    *done = 1;
+    const u8 *source = at<const u8 *>(object, 4);
+    if (!source || !at<u32>(object, 0))
+        return;
+    *reinterpret_cast<u32 *>(0x00fb2020) = at<u32>(source, 0x40);
+    const u32 value = at<u32>(source, 0x34);
+    *reinterpret_cast<u32 *>(0x00fb201c) = value > 0x1e ? 0x1e : value;
+}
+
 u32 __fastcall Obj_RemapFlags(const u8 *object, void *, u32 flags) {
     u32 result = at<u32>(object, 0xc) == 11025 ? 0 : 0x100;
     if ((flags & 0x1000) && !(flags & 1))

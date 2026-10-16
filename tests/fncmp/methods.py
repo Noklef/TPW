@@ -7,6 +7,14 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM  # noqa: E402
+import x87emu  # noqa: E402
+
+
+def exe_bytes(va, n):
+    for base, data in x87emu.exe_sections():
+        if base <= va < base + len(data):
+            return bytes(data[va - base:va - base + n])
+    raise KeyError(va)
 
 # name: (address, convention, returns, size, popped bytes marker unused)
 CALLS = {
@@ -18,6 +26,7 @@ CALLS = {
     'Remap': (0x6d22d0, 't', 'a', 0x48), 'RangeW': (0x6ad900, 't', 'a', 0x48), 'Adv': (0x6b9b30, 't', 'v', 0x68),
     'Rst': (0x6ad730, 't', 'a', 0x30), 'On10': (0x6ad760, 't', 'a', 0x30), 'Off10': (0x6ad790, 't', 'a', 0x28),
     'KindA4': (0x6adf60, 't', 'a', 0x20), 'Word4': (0x6afc60, 's', 'a', 0x20),
+    'Inc': (0x6c31a0, 't', 'a', 0x38), 'Guid': (0x6c0310, 't', 'a', 0x58), 'Cache': (0x6c4120, 't', 'v', 0x52),
     'MaskI': (0x6c3d80, 't', 'b', 0x56), 'Slots': (0x6d4890, 't', 'a', 0x50), 'Entry': (0x6b0580, 't', 'a', 0x58)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()])
 VALUES = [0, 1, 2, 3, 0x10, 0x40, 0x4000, 0x4800, 0x800, 0xff, 0x100, 0x7fffffff, 0x80000000, 0xffffffff, 0xfffffffe]
@@ -107,6 +116,25 @@ def case(r):
         args += [OUT, r.choice([-1, 0, 1, 2, 3, 0x7fffffff, 0x80000000, 5]) & 0xffffffff]
     elif name == 'Word4':
         args = [r.choice([0, POOL, POOL + 0x10])]
+    elif name == 'Inc':
+        for i in range(16):
+            struct.pack_into('<I', pool, 0x100 + 4 * i, RAM + 0x10000 + 0x1000 * i)
+        slot = r.randrange(4, 9)
+        first = RAM + 0x10000 + 0x1000 * slot
+        cur = first + r.choice([0, 4, 0x800, 0xff8, 0xffc, 0x1000]) if r.random() < 0.6 else first + 4 * r.randrange(0, 0x401)
+        struct.pack_into('<IIII', obj, 0, first, first + 0x1000, cur, POOL + 0x100 + 4 * slot)
+    elif name == 'Guid':
+        want = exe_bytes(0x70a928, 16)
+        idb = bytearray(want if r.random() < 0.5 else r.bytes(16))
+        if r.random() < 0.3:
+            idb[r.randrange(16)] ^= 1 << r.randrange(8)
+        regions[RAM + 0x800] = bytes(idb) + struct.pack('<I', r.choice([0, 0, 1, 0x100]))
+        args += [RAM + 0x800]
+    elif name == 'Cache':
+        regions[0xfb2018] = r.bytes(0x10) + bytes([r.choice([0, 0, 1, 0xff])]) + r.bytes(3)
+        struct.pack_into('<II', obj, 0, r.choice([0, 1, 5]), r.choice([0, POOL, POOL]))
+        struct.pack_into('<I', pool, 0x34, r.choice([0, 1, 0x1d, 0x1e, 0x1f, 0xffffffff]))
+        struct.pack_into('<I', pool, 0x40, r.getrandbits(32))
     elif name == 'MaskI':
         struct.pack_into('<I', obj, 8, POOL)
         struct.pack_into('<I', obj, 0x4c, POOL + 0x100)

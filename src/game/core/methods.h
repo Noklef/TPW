@@ -97,6 +97,18 @@ u32 *__fastcall Obj_SetKindA4(u8 *object, void *, u32 *status, s32 kind);
 // 0x6afc60 (stdcall; record, pops 4): the word at +4 of the record, or 6 for none.
 u32 __stdcall Record_Word4OrSix(const u8 *record);
 
+// 0x6c31a0 (thiscall): a deque-of-dwords iterator (+0 the block's first byte, +4 its end, +8 the position, +0xc the block's slot
+// in the map) one dword on; at the end of the block it moves to the start of the next. Returns the iterator.
+u8 *__fastcall DequeIter_Inc(u8 *it);
+
+// 0x6c0310 (thiscall; id, pops 4): +0xcc = whether the id's dword at +0x10 is 0; returns whether the four dwords of the id equal
+// those at 0x70a928.
+u32 __fastcall Obj_CheckId(u8 *object, void *, const u32 *id);
+
+// 0x6c4120 (thiscall): once only (the byte at 0xfb2024 is set): when the dword at +4 and the dword at +0 are not 0, the dword
+// at 0xfb2020 = the dword at +0x40 of what +4 points to and 0xfb201c = its dword at +0x34, at most 0x1e. Undefined return.
+void __fastcall Obj_CacheStatics(const u8 *object);
+
 // 0x6d22d0 (thiscall; flags, pops 4): a bit set built from the flags: 0x1000, 0x100 unless the dword at +0xc is 11025, 1 for
 // bit 12 without bit 0, 2 for bit 2, 8 for bit 3, 4 for bit 4 and 0x10 for bit 6.
 u32 __fastcall Obj_RemapFlags(const u8 *object, void *, u32 flags);

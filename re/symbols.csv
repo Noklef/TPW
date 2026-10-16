@@ -2706,6 +2706,9 @@ address,name,kind,confidence,notes
 0x006ad790,Obj_SetOff10,function,high,"reimplemented (src/game/core/methods); sets +0x10 to 0, reporting a status"
 0x006adf60,Obj_SetKindA4,function,high,"reimplemented (src/game/core/methods); stores a kind of 0 to 2 at +0xa4, always reporting -1"
 0x006afc60,Record_Word4OrSix,function,high,reimplemented (src/game/core/methods); the word at +4 of a record or 6 for none
+0x006c31a0,DequeIter_Inc,function,high,reimplemented (src/game/core/methods); moves a deque iterator one dword on
+0x006c0310,Obj_CheckId,function,high,reimplemented (src/game/core/methods); sets a flag from an id and compares it with a known id
+0x006c4120,Obj_CacheStatics,function,high,reimplemented (src/game/core/methods); caches two values once
 0x0057ac90,Obj_GetBefore14c,function,high,reimplemented (src/game/core/small2); the dword 0x14c before the object
 0x0057aca0,Global8bb628_SetOne,function,high,reimplemented (src/game/core/small2); sets the float at 0x8bb628 to 1.0
 0x0057cb10,Obj_Set14_18_10,function,high,reimplemented (src/game/core/small2); sets three fields from three arguments
