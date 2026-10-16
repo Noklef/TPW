@@ -23,32 +23,60 @@ def setup_59c240(r, obj, regions):
     table = bytearray(r.bytes(0x5000))
     for i in range(0x15e):  # the table: most records hold their own index as the id
         put(table, 56 * i + 4, 'I', i if r.random() < 0.7 else r.choice([0, 1, 5, 0x10, 0x15d, 0x150, r.randrange(0, 0x15e)]))
+    x = r.choice([0, 1, 2, 5, 0x10, 0x14f, 0x150, 0x15d, 0x15e, 0x15f, 0x160, 0x161, r.randrange(0, 0x15e), r.randrange(0, 0x15e), 0x400])
+    if x in (0x15f, 0x160) and r.random() < 0.7:  # the special ids are never looked for, even when the table holds them
+        put(table, 56 * x + 4, 'I', x)
+        put(table, 56 * r.choice([0x15d, 0, 5]) + 4, 'I', x)
+    if r.random() < 0.5 and x < 0x15e:  # the record by index does not have the id; another one, perhaps the last, does
+        put(table, 56 * x + 4, 'I', (x + 1) & 0xffff)
+        put(table, 56 * r.choice([0x15d, 0x15c, 0, 1, r.randrange(0, 0x15e)]) + 4, 'I', x)
     regions[0x76e300] = table
-    return [r.choice([0, 1, 2, 5, 0x10, 0x14f, 0x150, 0x15d, 0x15e, 0x15f, 0x160, 0x161, r.randrange(0, 0x15e), r.randrange(0, 0x15e), 0x400])]
+    return [x]
 
 
 def setup_59c2b0(r, obj, regions):
     table = bytearray(r.bytes(0x5000))
     for i in range(0x15e):  # the table: most records hold their own index as the id
         put(table, 56 * i + 4, 'I', i if r.random() < 0.7 else r.choice([0, 1, 5, 0x10, 0x15d, 0x150, r.randrange(0, 0x15e)]))
+    x = r.choice([0, 1, 2, 5, 0x10, 0x14f, 0x150, 0x15d, 0x15e, 0x15f, 0x160, 0x161, r.randrange(0, 0x15e), r.randrange(0, 0x15e), 0x400])
+    if x in (0x15f, 0x160) and r.random() < 0.7:  # the special ids are never looked for, even when the table holds them
+        put(table, 56 * x + 4, 'I', x)
+        put(table, 56 * r.choice([0x15d, 0, 5]) + 4, 'I', x)
+    if r.random() < 0.5 and x < 0x15e:  # the record by index does not have the id; another one, perhaps the last, does
+        put(table, 56 * x + 4, 'I', (x + 1) & 0xffff)
+        put(table, 56 * r.choice([0x15d, 0x15c, 0, 1, r.randrange(0, 0x15e)]) + 4, 'I', x)
     regions[0x76e300] = table
-    return [r.choice([0, 1, 2, 5, 0x10, 0x14f, 0x150, 0x15d, 0x15e, 0x15f, 0x160, 0x161, r.randrange(0, 0x15e), r.randrange(0, 0x15e), 0x400])]
+    return [x]
 
 
 def setup_59c490(r, obj, regions):
     table = bytearray(r.bytes(0x5000))
     for i in range(0x15e):  # the table: most records hold their own index as the id
         put(table, 56 * i + 4, 'I', i if r.random() < 0.7 else r.choice([0, 1, 5, 0x10, 0x15d, 0x150, r.randrange(0, 0x15e)]))
+    x = r.choice([0, 1, 2, 5, 0x10, 0x14f, 0x150, 0x15d, 0x15e, 0x15f, 0x160, 0x161, r.randrange(0, 0x15e), r.randrange(0, 0x15e), 0x400])
+    if x in (0x15f, 0x160) and r.random() < 0.7:  # the special ids are never looked for, even when the table holds them
+        put(table, 56 * x + 4, 'I', x)
+        put(table, 56 * r.choice([0x15d, 0, 5]) + 4, 'I', x)
+    if r.random() < 0.5 and x < 0x15e:  # the record by index does not have the id; another one, perhaps the last, does
+        put(table, 56 * x + 4, 'I', (x + 1) & 0xffff)
+        put(table, 56 * r.choice([0x15d, 0x15c, 0, 1, r.randrange(0, 0x15e)]) + 4, 'I', x)
     regions[0x76e300] = table
-    return [r.choice([0, 1, 2, 5, 0x10, 0x14f, 0x150, 0x15d, 0x15e, 0x15f, 0x160, 0x161, r.randrange(0, 0x15e), r.randrange(0, 0x15e), 0x400])]
+    return [x]
 
 
 def setup_59c500(r, obj, regions):
     table = bytearray(r.bytes(0x5000))
     for i in range(0x15e):  # the table: most records hold their own index as the id
         put(table, 56 * i + 4, 'I', i if r.random() < 0.7 else r.choice([0, 1, 5, 0x10, 0x15d, 0x150, r.randrange(0, 0x15e)]))
+    x = r.choice([0, 1, 2, 5, 0x10, 0x14f, 0x150, 0x15d, 0x15e, 0x15f, 0x160, 0x161, r.randrange(0, 0x15e), r.randrange(0, 0x15e), 0x400])
+    if x in (0x15f, 0x160) and r.random() < 0.7:  # the special ids are never looked for, even when the table holds them
+        put(table, 56 * x + 4, 'I', x)
+        put(table, 56 * r.choice([0x15d, 0, 5]) + 4, 'I', x)
+    if r.random() < 0.5 and x < 0x15e:  # the record by index does not have the id; another one, perhaps the last, does
+        put(table, 56 * x + 4, 'I', (x + 1) & 0xffff)
+        put(table, 56 * r.choice([0x15d, 0x15c, 0, 1, r.randrange(0, 0x15e)]) + 4, 'I', x)
     regions[0x76e300] = table
-    return [r.choice([0, 1, 2, 5, 0x10, 0x14f, 0x150, 0x15d, 0x15e, 0x15f, 0x160, 0x161, r.randrange(0, 0x15e), r.randrange(0, 0x15e), 0x400])]
+    return [x]
 
 
 SETUP = {0x59c240: setup_59c240, 0x59c2b0: setup_59c2b0, 0x59c490: setup_59c490, 0x59c500: setup_59c500}

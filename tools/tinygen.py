@@ -429,8 +429,15 @@ def deftable(a, texts):
     setup = ('table = bytearray(r.bytes(0x5000))\n'
              'for i in range(0x15e):  # the table: most records hold their own index as the id\n'
              '    put(table, 56 * i + 4, \'I\', i if r.random() < 0.7 else r.choice([0, 1, 5, 0x10, 0x15d, 0x150, r.randrange(0, 0x15e)]))\n'
+             'x = r.choice([0, 1, 2, 5, 0x10, 0x14f, 0x150, 0x15d, 0x15e, 0x15f, 0x160, 0x161, r.randrange(0, 0x15e), r.randrange(0, 0x15e), 0x400])\n'
+             'if x in (0x15f, 0x160) and r.random() < 0.7:  # the special ids are never looked for, even when the table holds them\n'
+             '    put(table, 56 * x + 4, \'I\', x)\n'
+             '    put(table, 56 * r.choice([0x15d, 0, 5]) + 4, \'I\', x)\n'
+             'if r.random() < 0.5 and x < 0x15e:  # the record by index does not have the id; another one, perhaps the last, does\n'
+             '    put(table, 56 * x + 4, \'I\', (x + 1) & 0xffff)\n'
+             '    put(table, 56 * r.choice([0x15d, 0x15c, 0, 1, r.randrange(0, 0x15e)]) + 4, \'I\', x)\n'
              'regions[0x76e300] = table\n'
-             'return [r.choice([0, 1, 2, 5, 0x10, 0x14f, 0x150, 0x15d, 0x15e, 0x15f, 0x160, 0x161, r.randrange(0, 0x15e), r.randrange(0, 0x15e), 0x400])]\n')
+             'return [x]\n')
     return dict(name='DefField%x_%06x' % (off, a), conv='s', nargs=1, ret='a', globals=[], setup=setup, debug=True,
                 doc='the dword at +0x%x of the object definition with the id (0x%x when there is none)' % (off, default),
                 body='const u8 *record = ObjectDef_FindById(v0); return record ? at<u32>(record, 0x%x) : 0x%x;' % (off, default),
