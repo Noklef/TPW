@@ -2019,6 +2019,11 @@ address,name,kind,confidence,notes
 0x0051bbe0,Sound_Set803adc,function,high,"reimplemented (src/game/core/soundset); cdecl (value): [0x803adc] = value (set 1 / 0 around 0x51bb80), changed"
 0x0051bc00,Sound_Set803ad8,function,high,"reimplemented (src/game/core/soundset); cdecl (value): [0x803ad8] = value (set 1 / 0 around 0x51bba0), changed"
 0x0051bc20,Sound_Set803ae0,function,high,"reimplemented (src/game/core/soundset); cdecl (value): [0x803ae0] = value (set 1 / 0 around 0x51bbc0), changed"
+0x0051bb40,SoundCmd_Ctor,function,high,"reimplemented (src/game/core/soundset); thiscall (value): a sound command's abstract base (vtable 0x700b58, _purecall first), +4 value; returns it"
+0x0051c1c0,Sound_Set803ad2,function,high,reimplemented (src/game/core/soundset); cdecl (value): the u16 [0x803ad2] = value (set: 0x51c1d0 plays at the fixed volume [0x700b28]); no changed flag
+0x0051c6f0,Sound_IsOn,function,high,reimplemented (src/game/core/soundset); cdecl: the sound-on flag [0x802bc8] (set by 0x51b660)
+0x0051e6f0,Sound_Set803acc,function,high,"reimplemented (src/game/core/soundset); cdecl (value): [0x803acc] = value, changed"
+0x0051e710,Sound_Set803ad0,function,high,"reimplemented (src/game/core/soundset); cdecl (value): the u16 [0x803ad0] = value, changed"
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
