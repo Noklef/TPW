@@ -181,6 +181,7 @@
 #include "../game/world/collobj.h"
 #include "../game/world/dirstep.h"
 #include "../game/world/flyingrides.h"
+#include "../game/world/gamesystem.h"
 #include "../game/world/nav.h"
 #include "../game/world/mapcell.h"
 #include "../game/world/object.h"
@@ -712,6 +713,8 @@ const Hook kHooks[] = {
     {"CollNode_Alloc",            0x0054b210, (void *)&CollNode_Alloc, {0xa1, 0x70, 0x7b, 0x87, 0x00}},
     {"Money_Credit",              0x004d0190, (void *)&Money_Credit, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"Money_Debit",               0x004d01f0, (void *)&Money_Debit, {0x56, 0x8b, 0xf1, 0x8b, 0x86}},
+    {"GameSystem_Save",           0x00550520, (void *)&GameSystem_Save, {0x83, 0xec, 0x10, 0x8d, 0x44}},
+    {"GameSystem_Load",           0x005506e0, (void *)&GameSystem_Load, {0x83, 0xec, 0x10, 0x8d, 0x44}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},
