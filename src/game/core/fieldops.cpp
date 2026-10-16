@@ -1,6 +1,7 @@
 #include "fieldops.h"
 
 #include <cstdint>
+#include <initializer_list>
 
 namespace {
 
@@ -128,6 +129,91 @@ u32 __fastcall Obj_Set94_98_Flag40000(u8 *object, void *, u32 a, u32 b) {
     at<u32>(object, 0x98) = b;
     at<u32>(object, 0x94) = a;
     return a;
+}
+
+u8 *__fastcall Chain20_MoveTo24(u8 *object, void *, u8 *node) {
+    if (u8 *prev = at<u8 *>(node, 0x38))
+        at<u8 *>(prev, 0x34) = at<u8 *>(node, 0x34);
+    else
+        at<u8 *>(object, 0x20) = at<u8 *>(node, 0x34);
+    if (u8 *next = at<u8 *>(node, 0x34))
+        at<u8 *>(next, 0x38) = at<u8 *>(node, 0x38);
+    return Chain24_PushFront(object, nullptr, node);
+}
+
+u8 *__fastcall Chain24_MoveTo20(u8 *object, void *, u8 *node) {
+    if (u8 *prev = at<u8 *>(node, 0x38))
+        at<u8 *>(prev, 0x34) = at<u8 *>(node, 0x34);
+    else
+        at<u8 *>(object, 0x24) = at<u8 *>(node, 0x34);
+    if (u8 *next = at<u8 *>(node, 0x34))
+        at<u8 *>(next, 0x38) = at<u8 *>(node, 0x38);
+    return Chain20_PushFront(object, nullptr, node);
+}
+
+u8 *__fastcall Pages100_EntryAt(const u8 *object, void *, u32 index) {
+    index &= 0xffff;
+    u32 hops = index / 100;
+    const u32 rest = index % 100;
+    u8 *page = at<u8 *>(object, 0x1c);
+    if (!page)
+        return nullptr;
+    for (;;) {
+        if (hops-- == 0)
+            break;
+        page = at<u8 *>(page, 8);
+        if (!page)
+            break;
+    }
+    return page ? page + rest * 0x50 + 0xc : nullptr;
+}
+
+u32 __fastcall Top_Insert(u8 *object, void *, u8 *node) {
+    if (at<u32>(object, 0x48) >= at<u32>(node, 0x20))
+        return at<u32>(object, 0x48);
+    u32 i = 0;
+    if (at<u32>(object, 0x4c) != 0 && node) {
+        do {
+            u8 **slot = &at<u8 *>(at<u8 *>(object, 0x44), 4 * i);
+            u8 *entry = *slot;
+            if (!entry || at<u32>(entry, 0x20) < at<u32>(node, 0x20)) {
+                *slot = node;
+                node = entry;
+            }
+            ++i;
+        } while (i < at<u32>(object, 0x4c) && node);
+    }
+    const u8 *last = at<u8 *const *>(object, 0x44)[at<u32>(object, 0x4c) - 1];
+    const u32 key = last ? at<u32>(last, 0x20) : 0;
+    at<u32>(object, 0x48) = key;
+    return key;
+}
+
+u8 *__fastcall Class70a7e0_Ctor(u8 *object) {
+    for (u32 off : {4u, 8u, 0xcu, 0x10u, 0x14u, 0x18u, 0x1cu, 0x20u, 0x24u, 0x28u, 0x30u, 0x3cu, 0x40u})
+        at<u32>(object, off) = 0;
+    at<u8>(object, 0x45) = 0xff;
+    at<u8>(object, 0x46) = 0xff;
+    at<u32>(object, 0x4c) = 0;
+    at<u32>(object, 0) = 0x0070a7e0;
+    return object;
+}
+
+u32 *__fastcall Target24_SetBit400(const u8 *object, void *, u32 *status, u32 flag) {
+    u8 *target = at<u8 *>(object, 0x24);
+    if (!target) {
+        *status = 0xffffffff;
+        return status;
+    }
+    u32 bits = at<u32>(target, 0x28);
+    bits = flag ? bits | 0x400 : bits & 0xfffffbff;
+    at<u32>(target, 0x28) = bits;
+    if (!flag) {
+        if (const u8 *owner = at<const u8 *>(object, 0x20))
+            Chain24_Promote400To100(owner);
+    }
+    *status = 0;
+    return status;
 }
 
 u32 __fastcall Nibble_Select(const u8 *object) {

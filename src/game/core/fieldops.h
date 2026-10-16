@@ -61,6 +61,30 @@ u32 __fastcall Array_AtOrZero(const u8 *object, void *, u32 index);
 // 0x6c51f0 (thiscall; a, b, pops 8): bit 18 of the dword at +0x14 set, +0x94 = a and +0x98 = b. Returns a.
 u32 __fastcall Obj_Set94_98_Flag40000(u8 *object, void *, u32 a, u32 b);
 
+// 0x6b6930 / 0x6b6b00 (thiscall; node, pops 4): takes the node out of the doubly linked chain whose head is the dword at +0x20 /
+// +0x24 and pushes it on the front of the other (Chain24_PushFront / Chain20_PushFront). Returns the node.
+u8 *__fastcall Chain20_MoveTo24(u8 *object, void *, u8 *node);
+u8 *__fastcall Chain24_MoveTo20(u8 *object, void *, u8 *node);
+
+// 0x6b6b40 (thiscall; index, pops 4): the entry the low 16 bits of the index name in a list of pages (the first at the dword at
+// +0x1c, the next at +8 of each) of 100 entries of 0x50 bytes from +0xc: the address, or 0 when the list is too short.
+u8 *__fastcall Pages100_EntryAt(const u8 *object, void *, u32 index);
+
+// 0x6b6bc0 (thiscall; node, pops 4): the node is inserted into the array of pointers at +0x44 (count at +0x4c), sorted by their
+// dword at +0x20 descending: along the array whichever of the node and the entry has the greater key stays, the other carried on
+// (an empty slot takes the carried node). Then +0x48 = the last entry's key (0 for none). Does nothing when the node's key is
+// not above +0x48. Returns the new +0x48 (the old when nothing was done).
+u32 __fastcall Top_Insert(u8 *object, void *, u8 *node);
+
+// 0x6bb950 (thiscall): a constructor: vtable 0x70a7e0 and the fields +4-+0x28, +0x30, +0x3c, +0x40, +0x4c = 0, the bytes +0x45
+// and +0x46 = 0xff. Returns the object.
+u8 *__fastcall Class70a7e0_Ctor(u8 *object);
+
+// 0x6b85a0 (thiscall; status, flag, pops 8): with a target at +0x24: bit 10 of its dword at +0x28 is set (flag) or cleared and,
+// when cleared with a chain owner at +0x20, that owner's chain is promoted (Chain24_Promote400To100); *status = 0. Without a
+// target *status = -1. Returns status.
+u32 *__fastcall Target24_SetBit400(const u8 *object, void *, u32 *status, u32 flag);
+
 // 0x6b54a0 (thiscall): the low nibble of the byte the dword at +4 points to when the byte at +0 is not 0, else the high.
 u32 __fastcall Nibble_Select(const u8 *object);
 

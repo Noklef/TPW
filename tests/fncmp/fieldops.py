@@ -17,8 +17,10 @@ CALLS = {
     'Resolve': (0x6d48f0, 't', 1, 'a', 0x20), 'Set3': (0x5d0e30, 't', 3, 'a', 0x20), 'Set2': (0x5d0e50, 't', 2, 'a', 0x20),
     'Min1e': (0x6b6140, 't', 1, 'a', 0x28), 'Push20': (0x6b6a50, 't', 1, 'a', 0x28), 'Push24': (0x6b6a80, 't', 1, 'a', 0x28),
     'Bytes': (0x6b9900, 't', 3, 'a', 0x30), 'Past': (0x6bcb60, 't', 1, 'b', 0x28), 'AtOr': (0x6c0da0, 't', 1, 'a', 0x24),
-    'S94': (0x6c51f0, 't', 2, 'a', 0x28)}
-B = Bench([(a, a + n) for (a, _c, _s, _r, n) in CALLS.values()])
+    'S94': (0x6c51f0, 't', 2, 'a', 0x28),
+    'Mv20': (0x6b6930, 't', 1, 'a', 0x40), 'Mv24': (0x6b6b00, 't', 1, 'a', 0x40), 'Page': (0x6b6b40, 't', 1, 'a', 0x60),
+    'Top': (0x6b6bc0, 't', 1, 'a', 0x70), 'Ctor': (0x6bb950, 't', 0, 'a', 0x40), 'Bit400': (0x6b85a0, 't', 2, 'a', 0x58)}
+B = Bench([(a, a + n) for (a, _c, _s, _r, n) in CALLS.values()] + [(0x6b6240, 0x6b6260), (0x6b6a50, 0x6b6a70), (0x6b6a80, 0x6b6aa0)])
 VALUES = [0, 1, 2, 3, 0x7f, 0x80, 0xff, 0x100, 0x400, 0x500, 0x7fffffff, 0x80000000, 0xffffffff, 0xfffffbff]
 POOL = RAM + 0x3000
 
@@ -65,6 +67,32 @@ def case(r):
     elif name == 'AtOr':
         struct.pack_into('<II', obj, 4, r.randrange(0, 5), r.choice([0, POOL, POOL]))
     regions = {RAM: obj, POOL: pool}
+    if name in ('Mv20', 'Mv24'):
+        n = r.randrange(1, 5)
+        for i in range(n):  # a doubly linked chain at POOL + 0x40 * i (next +0x34, prev +0x38)
+            struct.pack_into('<II', pool, 0x40 * i + 0x34, POOL + 0x40 * (i + 1) if i + 1 < n else 0, POOL + 0x40 * (i - 1) if i else 0)
+        other = POOL + 0x300 if r.random() < 0.6 else 0
+        struct.pack_into('<II', pool, 0x334, 0, 0)
+        struct.pack_into('<II', obj, 0x20, POOL if name == 'Mv20' else other, other if name == 'Mv20' else POOL)
+        regions[RAM + 0x4000] = struct.pack('<I', POOL + 0x40 * r.randrange(0, n))
+    elif name == 'Page':
+        pages = r.randrange(0, 4)
+        for i in range(pages):
+            struct.pack_into('<I', pool, 0x100 * i + 8, POOL + 0x100 * (i + 1) if i + 1 < pages else 0)
+        struct.pack_into('<I', obj, 0x1c, POOL if pages else 0)
+    elif name == 'Top':
+        count = r.randrange(0, 5)
+        struct.pack_into('<III', obj, 0x44, POOL, r.choice([0, 3, 5, 100]), count)
+        for i in range(5):
+            struct.pack_into('<I', pool, 4 * i, r.choice([0, POOL + 0x100 + 0x40 * i, POOL + 0x100 + 0x40 * i]))
+            struct.pack_into('<I', pool, 0x100 + 0x40 * i + 0x20, r.choice([0, 1, 3, 5, 6, 100, 101]))
+        struct.pack_into('<I', pool, 0x300 + 0x20, r.choice([0, 3, 5, 6, 100, 101, 200]))
+    elif name == 'Bit400':
+        struct.pack_into('<II', obj, 0x20, r.choice([0, POOL + 0x100]), r.choice([0, POOL]))
+        struct.pack_into('<I', pool, 0x100 + 0x24, POOL + 0x200 if r.random() < 0.7 else 0)
+        for i in range(3):
+            struct.pack_into('<I', pool, 0x200 + 0x40 * i + 0x34, POOL + 0x200 + 0x40 * (i + 1) if i < 2 else 0)
+            struct.pack_into('<I', pool, 0x200 + 0x40 * i + 0x30, r.choice([0, 0x400, 0x500, r.getrandbits(32)]))
     args = [RAM]
     for _ in range(nargs):
         args.append(r.choice(VALUES))
@@ -79,6 +107,14 @@ def case(r):
         args[1] = r.choice([s, (s + 1) & 0xffffffff, (s - 1) & 0xffffffff, 0, 0xffffffff, r.getrandbits(32)])
     elif name == 'AtOr':
         args[1] = r.randrange(0, 7)
+    if name in ('Mv20', 'Mv24'):
+        args[1] = struct.unpack_from('<I', regions[RAM + 0x4000])[0]
+    elif name == 'Page':
+        args[1] = r.choice([0, 1, 99, 100, 101, 199, 200, 250, 299, 300, 399, 0xffff, 0x10064, r.randrange(0, 450)])
+    elif name == 'Top':
+        args[1] = r.choice([0, POOL + 0x300, POOL + 0x300, POOL + 0x300])
+    elif name == 'Bit400':
+        args = [RAM, OUTP, r.choice([0, 1, 0xff])]
     if name == 'Find' and nodes and r.random() < 0.7:
         args[1] = struct.unpack_from('<I', pool, 0x40 * r.randrange(nodes) + 0x2c)[0]
     if name == 'Resolve':

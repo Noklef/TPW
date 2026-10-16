@@ -2674,6 +2674,12 @@ address,name,kind,confidence,notes
 0x006bcb60,Obj_PastEnd,function,high,reimplemented (src/game/core/fieldops); whether a value is past the end when not locked
 0x006c0da0,Array_AtOrZero,function,high,reimplemented (src/game/core/fieldops); an element of an array or 0
 0x006c51f0,Obj_Set94_98_Flag40000,function,high,reimplemented (src/game/core/fieldops); sets two fields and bit 18 of the flags
+0x006b6930,Chain20_MoveTo24,function,high,reimplemented (src/game/core/fieldops); moves a node from the chain at +0x20 to the front of the chain at +0x24
+0x006b6b00,Chain24_MoveTo20,function,high,reimplemented (src/game/core/fieldops); moves a node from the chain at +0x24 to the front of the chain at +0x20
+0x006b6b40,Pages100_EntryAt,function,high,reimplemented (src/game/core/fieldops); the address of an entry in a list of pages of 100 entries
+0x006b6bc0,Top_Insert,function,high,reimplemented (src/game/core/fieldops); inserts a node into a descending top list
+0x006bb950,Class70a7e0_Ctor,function,high,reimplemented (src/game/core/fieldops); a constructor that clears its fields
+0x006b85a0,Target24_SetBit400,function,high,reimplemented (src/game/core/fieldops); sets or clears bit 10 of the target at +0x24 and promotes its chain
 0x006d4b00,Obj_Get18Of14,function,high,"reimplemented (src/game/core/methods); the dword at +0x18 of what +0x14 points to, or 0"
 0x006d4b10,Obj_MarkNodeIf14,function,high,reimplemented (src/game/core/methods); marks a node when +0x14 is set and reports a status
 0x006c5ce0,Obj_SetBit1At28,function,high,"reimplemented (src/game/core/methods); sets or clears bit 1 of +0x28 when bit 0 is set, reporting a status"
