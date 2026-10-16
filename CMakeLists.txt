@@ -91,6 +91,7 @@ add_library(tpw_game STATIC
     src/game/gfx/spriteframe.cpp
     src/game/gfx/animtex.cpp
     src/game/gfx/wavelet.cpp
+    src/game/gfx/texsurface.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp
