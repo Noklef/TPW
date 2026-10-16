@@ -40,6 +40,11 @@ u32 __cdecl FlyingRide_FirstSlotRide(s32 index) {
     return rec ? at<u32>(slot(rec, 0), 0xc0) : 0;
 }
 
+// The part a slot of the record at index (not checked: the table entry is used as it is) steps to.
+void __cdecl FlyingRide_ReleaseSlotPart(s32 index, s32 slotIndex, s32 step) {
+    release(slot(table()[index], (u32)slotIndex), step);
+}
+
 u32 __cdecl FlyingRide_StepInSlot(s32 index) {
     u8 *rec = record(index);
     if (!rec) return 0;

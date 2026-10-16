@@ -12,12 +12,12 @@ B = Bench([(0x55a570, 0x55a592), (0x55d610, 0x55d716), (0x55d720, 0x55d82f), (0x
            (0x55d9b0, 0x55d9e1), (0x55d9f0, 0x55da61), (0x55dcf0, 0x55dd20), (0x55dd20, 0x55dd3f),
            (0x55dd40, 0x55dd74), (0x55dd80, 0x55ddc3), (0x55ddd0, 0x55ddf0), (0x55ddf0, 0x55de10),
            (0x55de10, 0x55de30), (0x55de30, 0x55de65), (0x44b220, 0x44b267), (0x44b4c0, 0x44b505),
-           (0x475550, 0x47558b)])
+           (0x475550, 0x47558b), (0x55e330, 0x55e3a8)])
 TABLE, RIDES, SCRIPTS = 0x8791f8, 0x7a4610, 0x7b49f0
 HOLDER, H8, MODEL, PARTS, PS, PSE, REC = (RAM + o for o in (0, 0x40, 0x100, 0x200, 0x300, 0x400, 0x1000))
 CALLS = {'FirstRide': 0x55a570, 'In': 0x55d610, 'Out': 0x55d720, 'Cap': 0x55d950, 'Tenth': 0x55d9b0,
          'On': 0x55d9f0, 'Set4': 0x55dcf0, 'Get3c': 0x55dd20, 'Ready': 0x55dd40, 'Take3c': 0x55dd80,
-         'Set44': 0x55ddd0, 'Set20': 0x55ddf0, 'Set24': 0x55de10, 'Busy': 0x55de30}
+         'Set44': 0x55ddd0, 'Set20': 0x55ddf0, 'Set24': 0x55de10, 'Busy': 0x55de30, 'Part': 0x55e330}
 RETURNS = {'FirstRide', 'In', 'Out', 'Get3c', 'Ready', 'Take3c', 'Busy'}
 
 
@@ -76,6 +76,11 @@ def case(r):
     regions = {TABLE: table, RIDES: rides, SCRIPTS: scripts, HOLDER: holder, H8: h8, MODEL: model,
                PARTS: parts, PS: ps, PSE: r.bytes(0xa0), REC: record(r, op)}
     args = [index & 0xffffffff]
+    if op == 'Part':
+        args = [r.choice([1, 2, 99]) if False else (index if 0 < index < 100 else 1) & 0xffffffff, r.randrange(20), r.choice([0, 1, 9, 10, -1, -9, 64, r.getrandbits(32)]) & 0xffffffff]
+        regions[TABLE] = bytearray(regions[TABLE])
+        put(regions[TABLE], args[0] * 4, 'I', REC)
+        return Call(CALLS[op], args, regions, ret='v')
     if op not in RETURNS:
         args.append(r.choice([0, 1, 9, 10, 64, 63, -64, -65, -10, 0x12c * 64, r.getrandbits(32)]) & 0xffffffff)
     return Call(CALLS[op], args, regions, ret='a' if op in RETURNS else 'v')
