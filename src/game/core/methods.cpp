@@ -131,4 +131,65 @@ u8 *__fastcall Records_DataIfTerminated(const u8 *object, void *, u32 index) {
     return at<u32>(data, 4 * words) == 0 ? const_cast<u8 *>(data) : nullptr;
 }
 
+u32 __fastcall Ranges_Lookup(const u8 *object, void *, u32 key) {
+    const u8 *segment = at<const u8 *>(object, 8);
+    const u16 low = (u16)key;
+    for (;;) {
+        u16 next;
+        if (low < at<u16>(segment, 0))
+            next = at<u16>(segment, 2);
+        else if (low <= at<u16>(segment, 4))
+            return ((u32)(uintptr_t)segment & 0xffff0000) | at<u16>(segment, 8 + 2 * (u32)(low - at<u16>(segment, 0)));
+        else
+            next = at<u16>(segment, 6);
+        if (!next)
+            return (u32)(uintptr_t)segment & 0xffff0000;
+        segment += next;
+    }
+}
+
+bool __fastcall Obj_ByteForMask(const u8 *object, void *, u32 mask, u32 *out) {
+    const u8 *kind = at<const u8 *>(object, 8);
+    if (mask & at<u16>(kind, 0x18)) {
+        *out = at<u8>(at<const u8 *>(object, 0x4c), 5);
+        return true;
+    }
+    if (mask & at<u16>(kind, 0x1c)) {
+        *out = at<u8>(at<const u8 *>(object, 0x4c), 6);
+        return true;
+    }
+    return false;
+}
+
+u32 __fastcall Obj_RemapFlags(const u8 *object, void *, u32 flags) {
+    u32 result = at<u32>(object, 0xc) == 11025 ? 0 : 0x100;
+    if ((flags & 0x1000) && !(flags & 1))
+        result |= 1;
+    if (flags & 4)
+        result |= 2;
+    if (flags & 8)
+        result |= 8;
+    if (flags & 0x10)
+        result |= 4;
+    if (flags & 0x40)
+        result |= 0x10;
+    return result | 0x1000;
+}
+
+void __fastcall DequeIter_Advance(u8 *it, void *, s32 n) {
+    u8 *position = at<u8 *>(it, 8) + 4 * (u32)n;
+    const s32 offset = (s32)(position - at<u8 *>(it, 0)) >> 2;
+    const s32 blocks = offset >= 0 ? (s32)((u32)offset >> 10) : -(s32)((0x3ffu - (u32)offset) >> 10);
+    if (blocks == 0) {
+        at<u8 *>(it, 8) = position;
+        return;
+    }
+    u32 *slot = reinterpret_cast<u32 *>(at<u8 *>(it, 0xc) + 4 * (u32)blocks);
+    at<u32 *>(it, 0xc) = slot;
+    const u32 first = *slot;
+    at<u32>(it, 0) = first;
+    at<u32>(it, 4) = first + 0x1000;
+    at<u32>(it, 8) = first + 4 * (u32)(offset - (s32)((u32)blocks << 10));
+}
+
 }  // extern "C"

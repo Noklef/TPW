@@ -58,4 +58,22 @@ u32 *__fastcall Obj_SetKindA0(u8 *object, void *, u32 *out, s32 kind);
 // its low byte is 1 and the dword after its data (rounded up to dwords) is 0: the address of that data (record + 4); else 0.
 u8 *__fastcall Records_DataIfTerminated(const u8 *object, void *, u32 index);
 
+// 0x6ad900 (thiscall; key, pops 4): looks the low 16 bits of the key up in a chain of range segments at the dword at +8
+// (a segment: first +0, next if below +2, last +4, next if above +6, both as byte distances, 0 for none; the values from
+// +8, one word each): the word for the key, in the low 16 bits; 0 when it falls in no segment. The high 16 bits are
+// those of the segment's address (sic).
+u32 __fastcall Ranges_Lookup(const u8 *object, void *, u32 key);
+
+// 0x6bc040 (thiscall; mask, out, pops 8): whether the mask has a bit in common with the word at +0x18 of what the dword at
+// +8 points to (*out = the byte at +5 of what +0x4c points to) or else with the word at +0x1c (the byte at +6).
+bool __fastcall Obj_ByteForMask(const u8 *object, void *, u32 mask, u32 *out);
+
+// 0x6d22d0 (thiscall; flags, pops 4): a bit set built from the flags: 0x1000, 0x100 unless the dword at +0xc is 11025, 1 for
+// bit 12 without bit 0, 2 for bit 2, 8 for bit 3, 4 for bit 4 and 0x10 for bit 6.
+u32 __fastcall Obj_RemapFlags(const u8 *object, void *, u32 flags);
+
+// 0x6b9b30 (thiscall; n, pops 4): moves a deque-of-dwords iterator (+0 the block's first byte, +4 its end, +8 the
+// position, +0xc the block's slot in the map) on by n dwords, across blocks of 0x400 dwords. Undefined return.
+void __fastcall DequeIter_Advance(u8 *it, void *, s32 n);
+
 }  // extern "C"

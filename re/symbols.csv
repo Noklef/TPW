@@ -2678,6 +2678,10 @@ address,name,kind,confidence,notes
 0x006af060,Vector8_EraseTo,function,high,reimplemented (src/game/core/methods); moves the 8-byte blocks after a position down and shortens the vector
 0x006adf20,Obj_SetKindA0,function,high,"reimplemented (src/game/core/methods); stores a kind of 2, 4 or 5 at +0xa0, reporting a status"
 0x006ace60,Records_DataIfTerminated,function,high,reimplemented (src/game/core/methods); the data of a table record when a dword after it is 0
+0x006ad900,Ranges_Lookup,function,high,reimplemented (src/game/core/methods); looks a code up in a chain of range segments
+0x006bc040,Obj_ByteForMask,function,high,reimplemented (src/game/core/methods); a byte chosen by which of two masks a bit set matches
+0x006d22d0,Obj_RemapFlags,function,high,reimplemented (src/game/core/methods); builds a bit set from flags and a rate
+0x006b9b30,DequeIter_Advance,function,high,reimplemented (src/game/core/methods); moves a deque iterator on across blocks
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

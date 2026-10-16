@@ -14,7 +14,8 @@ CALLS = {
     'Rate': (0x6c6f90, 't', 'v', 0x40), 'Word': (0x6b00a0, 't', 'v', 0x40), 'Clear': (0x6bbe40, 't', 'a', 0x40),
     'Pick': (0x6d6c70, 't', 'a', 0x30), 'SetRate': (0x6d6cb0, 't', 'a', 0x40), 'Get20': (0x6d6db0, 's', 'a', 0x20),
     'Copy16': (0x6af6f0, 'c', 'a', 0x40), 'Erase': (0x6af060, 't', 'a', 0x40), 'Kind': (0x6adf20, 't', 'a', 0x34),
-    'Rec': (0x6ace60, 't', 'a', 0x40)}
+    'Rec': (0x6ace60, 't', 'a', 0x40), 'Range': (0x6ad900, 't', 'a', 0x48), 'Mask': (0x6bc040, 't', 'b', 0x4a),
+    'Remap': (0x6d22d0, 't', 'a', 0x48), 'Adv': (0x6b9b30, 't', 'v', 0x68)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()])
 VALUES = [0, 1, 2, 3, 0x10, 0x40, 0x4000, 0x4800, 0x800, 0xff, 0x100, 0x7fffffff, 0x80000000, 0xffffffff, 0xfffffffe]
 POOL = RAM + 0x3000
@@ -83,6 +84,30 @@ def case(r):
                 if r.random() < 0.6:
                     struct.pack_into('<I', pool, 0x40 + 0x30 * i + 4 * j, 0)
         args += [r.choice([0, 1, 2, 3, 4, 5, 6, 0xffffffff])]
+    elif name == 'Range':
+        for at_, lo in ((0, 10), (0x40, 3), (0x80, 20)):
+            hi = lo + r.randrange(0, 5)
+            struct.pack_into('<HHHH', pool, at_, lo, r.choice([0, 0x40, 0x80]) if at_ < 0x80 else 0,
+                             hi, r.choice([0, 0x40, 0x80]) if at_ < 0x80 else 0)
+        struct.pack_into('<I', obj, 8, POOL + r.choice([0, 0, 0x40]))
+        args += [r.choice([0, 3, 5, 9, 10, 11, 14, 15, 20, 22, 25, 26, 30, r.randrange(0, 40), 0x10000 + r.randrange(0, 30)])]
+    elif name == 'Mask':
+        struct.pack_into('<I', obj, 8, POOL)
+        struct.pack_into('<I', obj, 0x4c, POOL + 0x100)
+        struct.pack_into('<HH', pool, 0x18, r.choice([0, 1, 2, 0x80, 0xffff]), 0)
+        struct.pack_into('<H', pool, 0x1c, r.choice([0, 1, 4, 0x8000, 0xffff]))
+        args += [r.choice([0, 1, 2, 4, 0x80, 0x8000, 0x10000, 0xffff, 0xffffffff]), OUT]
+    elif name == 'Remap':
+        struct.pack_into('<I', obj, 0xc, r.choice([11025, 22050, 0, 11026]))
+        args += [r.getrandbits(32) if r.random() < 0.3 else r.choice([0, 1, 4, 8, 0x10, 0x40, 0x1000, 0x1001, 0x105d, 0xffffffff])]
+    elif name == 'Adv':
+        first = RAM + 0x10000 + 0x1000 * r.randrange(0, 4)
+        slot = r.randrange(4, 9)
+        for i in range(16):
+            struct.pack_into('<I', pool, 0x100 + 4 * i, RAM + 0x10000 + 0x1000 * i)
+        first = RAM + 0x10000 + 0x1000 * slot
+        struct.pack_into('<IIII', obj, 0, first, first + 0x1000, first + 4 * r.choice([0, 1, 5, 0x3ff, 0x400, r.randrange(0, 0x401)]), POOL + 0x100 + 4 * slot)
+        args += [r.choice([0, 1, -1, 5, -5, 0x3ff, 0x400, -0x400, 0x401, -0x401, 2000, -2000, 2500, -2500, r.randrange(-3000, 3000)]) & 0xffffffff]
     return Call(address, args, regions, conv=conv, ret=ret)
 
 
