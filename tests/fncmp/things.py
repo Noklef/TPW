@@ -14,8 +14,8 @@ from thingenv import POOL, SLOTS, THING, park  # noqa: E402
 # name: (address, size, convention, returns)
 CALLS = {'Rel518': (0x518ea0, 0xf0, 'c', 'v'), 'First': (0x516130, 0x30, 't', 'a'), 'Next': (0x516160, 0x50, 't', 'a'), 'Prev': (0x5161b0, 0x50, 't', 'a'),
          'SlotRel': (0x516200, 0x70, 't', 'v'), 'Add': (0x516270, 0xa0, 't', 'a'), 'QDel': (0x516310, 0x20, 't', 'v'), 'Push': (0x51ad40, 0x50, 't', 'v'),
-         'Pop': (0x51ad90, 0x50, 't', 'a'), 'Init': (0x515f30, 0x80, 'c', 'v')}
-B = Bench([(a, a + n) for (a, n, _c, _r) in CALLS.values()] + [(0x50b350, 0x50b360), (0x51ad40, 0x51ad90), (0x5da3c0, 0x5da3c1)])
+         'Pop': (0x51ad90, 0x50, 't', 'a'), 'Init': (0x515f30, 0x80, 'c', 'v'), 'World': (0x515660, 0x40, 't', 'a')}
+B = Bench([(a, a + n) for (a, n, _c, _r) in CALLS.values()] + [(0x515f30, 0x515fb0), (0x4d0a70, 0x4d0a90), (0x50b350, 0x50b360), (0x51ad40, 0x51ad90), (0x5da3c0, 0x5da3c1)])
 NODES, OUT = RAM + 0x3000, RAM + 0x300
 
 
@@ -35,6 +35,9 @@ def case(r):
     if name == 'Init':
         slots = bytearray(r.bytes(0x2800 * 20))
         return Call(address, [], {SLOTS: slots, 0x7cf56c: r.bytes(4), 0x801bbc: r.bytes(4)}, conv=conv, ret=ret)
+    if name == 'World':
+        slots = bytearray(r.bytes(0x2800 * 20))
+        return Call(address, [RAM], {SLOTS: slots, RAM: r.bytes(0x20), 0x7cf56c: r.bytes(4), 0x801bbc: r.bytes(4), 0x80239c: r.bytes(8), 0x7cdb30: r.bytes(0x20)}, conv=conv, ret=ret)
     regions, handles, addrs = park(r, count=r.choice([1, 2, 3, 4, 6]), defs=False)
     regions[HEAP] = heap()
     regions[OUT] = r.bytes(8)
@@ -67,7 +70,7 @@ def case(r):
     return Call(address, [RAM, OUT], regions, conv=conv, ret=ret)
 
 
-OPS = [k for k in os.environ.get('OPS', ','.join(c for c in CALLS if c != 'Init')).split(',') if k]
+OPS = [k for k in os.environ.get('OPS', ','.join(c for c in CALLS if c not in ('Init', 'World'))).split(',') if k]
 
 
 if __name__ == '__main__':

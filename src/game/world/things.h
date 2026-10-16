@@ -38,6 +38,10 @@ struct HandleQueue {
 extern "C" {
 // 0x515f30: every slot free (1 to 0x27ff stacked in order), none in use.
 void __cdecl Things_InitTable();
+
+// 0x515660 (thiscall on the world block): the block (0x80239c) and its cells at +0x2d8 (0x8023a0) are recorded, the thing table initialised and the memory range 0 of 0x7cdb30
+// set to {the block, 0x1da748} ("World Struture"). Returns 1.
+u32 __fastcall World_Attach(u8 *world);
 // 0x516130 (&handle): the newest thing (0: none). Returns the pointer.
 u16 *__fastcall World_FirstThing(void *world, void *edx, u16 *out);
 // 0x516160 / 0x5161b0 (&handle, thing): the thing after / before it in the list (0: none).

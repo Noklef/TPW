@@ -4,7 +4,10 @@
 // out.
 #include "things.h"
 
+#include <cstdint>
+
 #include "../core/gameheap.h"
+#include "mapcell.h"
 
 namespace {
 
@@ -55,6 +58,14 @@ extern "C" void __cdecl Things_InitTable() {
     s[kSlots - 1].id = kSlots - 1;
     used() = nullptr;
     freeSlots() = &s[1];
+}
+
+extern "C" u32 __fastcall World_Attach(u8 *world) {
+    *reinterpret_cast<u8 **>(0x0080239c) = world;
+    *reinterpret_cast<u8 **>(0x008023a0) = world + 0x2d8;
+    Things_InitTable();
+    MemRanges_Set(reinterpret_cast<u8 *>(0x007cdb30), nullptr, 0, (u32)(uintptr_t)world, 0x1da748, "World Struture");
+    return 1;
 }
 
 extern "C" u16 *__fastcall World_FirstThing(void *, void *, u16 *out) { return handle_of(used(), out); }
