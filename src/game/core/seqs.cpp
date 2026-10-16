@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "movs.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -49,6 +51,25 @@ s32 __fastcall Vector8_Count4(const u8 *object) {
 s32 __fastcall Vector8_Count88(const u8 *object) {
     const u8 *begin = at<const u8 *>(object, 0x88);
     return begin ? (s32)(at<const u8 *>(object, 0x8c) - begin) >> 3 : 0;
+}
+
+u32 __stdcall Path_AfterLastBackslash(const char **text, u32 length) {
+    u32 i = length - 1;
+    if (i == 0)
+        return 0;
+    const char *s = *text;
+    do {
+        if (s[i] == '\\') {
+            *text = s + i + 1;
+            return i;
+        }
+    } while (--i != 0);
+    return 0;
+}
+
+u32 __stdcall Mem_CopyForward(void *dest, const void *source, u32 count) {
+    Rep_Movs(dest, source, count);
+    return count;
 }
 
 u8 *__cdecl Blocks8_Copy(const u8 *first, const u8 *last, u8 *dest) {

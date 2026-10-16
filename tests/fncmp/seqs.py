@@ -10,7 +10,7 @@ from fncmp import Bench, Call, RAM  # noqa: E402
 # name: (address, convention, returns, size)
 CALLS = {'Words': (0x6a01a0, 's', 'a', 0x30), 'Sb': (0x6a7240, 's', 'a', 0x30), 'Br': (0x6ae2b0, 'c', 'a', 0x28),
          'Rng': (0x6ae410, 'c', 'b', 0x30), 'C4': (0x6aed80, 't', 'a', 0x20), 'C88': (0x6adf90, 't', 'a', 0x20),
-         'Cp8': (0x6af730, 'c', 'a', 0x30)}
+         'Cp8': (0x6af730, 'c', 'a', 0x30), 'Path': (0x6bfe10, 's', 'a', 0x38), 'Cpy': (0x6c4010, 's', 'a', 0x30)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()])
 POOL = RAM + 0x3000
 OUT = RAM + 0x1000
@@ -43,6 +43,14 @@ def case(r):
         struct.pack_into('<II', obj, 0x88, r.choice([0, POOL]), POOL + 8 * r.choice([0, 1, 5, 100]))
         if r.random() < 0.3:
             struct.pack_into('<II', obj, 0x88, POOL + 0x40, POOL)
+    elif name == 'Path':
+        text = bytearray(r.choice([b'abc\\def\\ghi', b'\\abc', b'abc', b'a\\', b'\\\\\\x', b'x' * 20 + b'\\' + b'y' * 5]) + bytes(8))
+        pool[0x80:0x80 + len(text)] = text
+        struct.pack_into('<I', pool, 0x20, POOL + 0x80)
+        args = [POOL + 0x20, r.choice([1, 2, 3, 4, 7, 8, 12, 26, 30, r.randrange(1, 30)])]
+    elif name == 'Cpy':
+        count = r.choice([0, 1, 2, 3, 4, 5, 7, 8, 9, 15, 16, 17, 30, 0x40])
+        args = [POOL + 0x100 + r.choice([0, 1, 2, 3, 4, 8]), POOL + 0x200 + r.choice([0, 1, 2, 3]) if r.random() < 0.7 else POOL + 0x100 + r.choice([0, 1, 4, 8]), count]
     elif name == 'Cp8':
         args = [POOL, POOL + 8 * n, OUT]
         if n == 0:

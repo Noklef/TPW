@@ -2744,6 +2744,8 @@ address,name,kind,confidence,notes
 0x006aed80,Vector8_Count4,function,high,reimplemented (src/game/core/seqs); the number of 8-byte elements between two pointers
 0x006adf90,Vector8_Count88,function,high,reimplemented (src/game/core/seqs); the number of 8-byte elements between two pointers at +0x88
 0x006af730,Blocks8_Copy,function,high,reimplemented (src/game/core/seqs); copies a range of 8-byte blocks
+0x006bfe10,Path_AfterLastBackslash,function,high,reimplemented (src/game/core/seqs); advances a text pointer past the last backslash
+0x006c4010,Mem_CopyForward,function,high,"reimplemented (src/game/core/seqs); copies bytes forward, dwords first"
 0x0041a960,Out_SetFromGame1da70c,function,high,reimplemented (src/game/core/indexed); stores a game field and returns the game pointer
 0x0041a970,Game1da70c_MinusAt0,function,high,reimplemented (src/game/core/indexed); a game field minus the dword at +0
 0x004145d0,Obj_GetIndexed4e0,function,high,reimplemented (src/game/core/indexed); the dword at 0x4e0 + 4 * index

@@ -28,4 +28,11 @@ s32 __fastcall Vector8_Count88(const u8 *object);
 // written (undefined when there was nothing).
 u8 *__cdecl Blocks8_Copy(const u8 *first, const u8 *last, u8 *dest);
 
+// 0x6bfe10 (stdcall; text, length, pops 8): the last backslash below the length (not the first character) of the string *text
+// points to: *text is advanced past it and its index is returned; else 0.
+u32 __stdcall Path_AfterLastBackslash(const char **text, u32 length);
+
+// 0x6c4010 (stdcall; dest, source, count, pops 12): count bytes copied forward (dwords, then the rest as bytes). Returns count.
+u32 __stdcall Mem_CopyForward(void *dest, const void *source, u32 count);
+
 }  // extern "C"
