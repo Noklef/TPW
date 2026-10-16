@@ -88,6 +88,7 @@
 #include "../game/core/language.h"
 #include "../game/core/liveobjects.h"
 #include "../game/core/misc.h"
+#include "../game/core/records16.h"
 #include "../game/core/small.h"
 #include "../game/core/options.h"
 #include "../game/core/soundset.h"
@@ -2249,6 +2250,11 @@ const Hook kHooks[] = {
     {"VirtualBase_SetVtbl7099dc", 0x004f0140, (void *)&VirtualBase_SetVtbl7099dc, {0x8b, 0x41, 0xf8, 0x8b, 0x50}},
     {"VirtualBase_SetVtbl70995c", 0x005cde30, (void *)&VirtualBase_SetVtbl70995c, {0x8b, 0x41, 0xfc, 0x8b, 0x50}},
     {"ListCursor_Next",           0x005ce910, (void *)&ListCursor_Next, {0x8b, 0x11, 0x8b, 0x02, 0x89}},
+    {"Char_IsSpaceOrComma",       0x006ae2e0, (void *)&Char_IsSpaceOrComma, {0x8b, 0x44, 0x24, 0x04, 0x66}},
+    {"Records16_SwapMatchingBracket", 0x006ae300, (void *)&Records16_SwapMatchingBracket, {0x83, 0xec, 0x10, 0x53, 0x55}},
+    {"Records16_FindSpace",       0x006ae390, (void *)&Records16_FindSpace, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Records16_FindNonSpace",    0x006ae3d0, (void *)&Records16_FindNonSpace, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Records16_Reverse",         0x006ae440, (void *)&Records16_Reverse, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

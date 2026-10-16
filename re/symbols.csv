@@ -2766,6 +2766,11 @@ address,name,kind,confidence,notes
 0x004f0140,VirtualBase_SetVtbl7099dc,function,high,reimplemented (src/game/core/small3); sets a virtual base's vtable pointer to 0x7099dc
 0x005cde30,VirtualBase_SetVtbl70995c,function,high,reimplemented (src/game/core/small3); sets a virtual base's vtable pointer to 0x70995c
 0x005ce910,ListCursor_Next,function,high,reimplemented (src/game/core/small3); moves a list cursor to the next node and returns the old one
+0x006ae2e0,Char_IsSpaceOrComma,function,high,reimplemented (src/game/core/records16); whether a 16-bit character is a space or a comma
+0x006ae300,Records16_SwapMatchingBracket,function,high,reimplemented (src/game/core/records16); swaps a bracket record with its matching one
+0x006ae390,Records16_FindSpace,function,high,reimplemented (src/game/core/records16); the first space or comma record
+0x006ae3d0,Records16_FindNonSpace,function,high,reimplemented (src/game/core/records16); the first record that is not a space or comma
+0x006ae440,Records16_Reverse,function,high,reimplemented (src/game/core/records16); reverses the order of 16-byte records
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
