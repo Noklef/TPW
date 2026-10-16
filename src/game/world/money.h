@@ -15,4 +15,14 @@ void __fastcall Money_Credit(u8 *money, void *, s32 amount);
 // while the dword there was not below 0 records the time (the dword at +0x1da70c of the object [0x80239c]) at +0x120; the dword at +0x1f5a0 of that thing gains amount and the total at +0x124 loses it.
 void __fastcall Money_Debit(u8 *money, void *, s32 amount);
 
+// 0x4d0750 (thiscall; index, pops 4): taking out the loan the 0x20-byte record `index` (from the money record) describes: 0 if it is taken already (+0x28 set); else its
+// amount (+0x18) is added to the balance at +0xc and to the dword at +0x1fc90 of the game object's thing (as Money_Credit), the total at +0x124 is left as it was, the loan
+// is marked taken (+0x28 = 1) and 1 is returned. (The debug messages are not reproduced.)
+u32 __fastcall Money_TakeLoan(u8 *money, void *, u32 index);
+
+// 0x4d0850 (thiscall; index, pops 4): paying a loan off: 0 if it was not taken or the balance (+0xc, unsigned) is below what is owed, (the first dword of the next record -
+// the months paid at +0x2c) * the rate at +0x24; else, when the dword at +0x114 is set, that is debited as Money_Debit; the loan is unmarked (+0x28 and +0x2c cleared) and
+// the total at +0x124 gains what is owed less ((term * rate - amount) / term, unsigned) * term, where term is the next record's first dword (none when it is 0). Returns 1.
+u32 __fastcall Money_PayOffLoan(u8 *money, void *, u32 index);
+
 }  // extern "C"

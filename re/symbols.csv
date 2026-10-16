@@ -908,6 +908,8 @@ address,name,kind,confidence,notes
 0x0054b210,CollNode_Alloc,function,high,reimplemented (src/game/world/trackpools); takes the first free collision node
 0x004d0190,Money_Credit,function,high,"reimplemented (src/game/world/money); adds an amount to the balance, the total and the game's thing"
 0x004d01f0,Money_Debit,function,high,"reimplemented (src/game/world/money); takes an amount from the balance, recording the first time it goes below 0"
+0x004d0750,Money_TakeLoan,function,high,reimplemented (src/game/world/money); takes out a loan
+0x004d0850,Money_PayOffLoan,function,high,reimplemented (src/game/world/money); pays a loan off
 0x004cc4b0,Rides_BestKind11Count,function,high,reimplemented (src/game/world/ridesearch); finds the track ride with the most kind 11 pieces
 0x004cc5d0,Rides_BestPiecesOfKinds,function,high,reimplemented (src/game/world/ridesearch); finds the track ride of kind 1 to 3 with the most pieces
 0x004cc6f0,Rides_BestPiecesOfKind,function,high,reimplemented (src/game/world/ridesearch); finds the track ride of a kind with the most pieces
