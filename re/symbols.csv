@@ -3093,6 +3093,15 @@ address,name,kind,confidence,notes
 0x005dd7f0,Obj_CallSlot20ThenSub1c,function,high,"reimplemented (src/game/core/vdtor); slot 0x20 of the object, then slot 0x1c of the global's sub-object"
 0x005ddaa0,Obj_CallSlot20ThenSub1cAnd48,function,high,"reimplemented (src/game/core/vdtor); slots 0x20, then 0x1c and 0x48 of the global's sub-object"
 0x00564a60,VBase_CallSlot8,function,high,reimplemented (src/game/core/vdtor); slot 8 of the virtual base
+0x005b5600,Class702880_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor with a shared array and a member list
+0x005b56c0,Class702890_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor with a shared array and a member list
+0x005bcef0,Class7028d0_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor with a shared array and a member list
+0x005bd330,Class7028f8_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor with a shared array and a member list
+0x005bd740,Class702920_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor with a shared array and a member list
+0x005b98a0,Class702880_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor
+0x005b9970,Class702890_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor
+0x005be810,Class7028d0_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor
+0x005be8e0,Class7028f8_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor
 0x005ed460,Range14_CallSlotC,function,high,reimplemented (src/game/core/vlist); calls slot 0xc of each element of a range
 0x005ed500,Range14_CallSlot18,function,high,reimplemented (src/game/core/vlist); calls slot 0x18 of each element of a range with a value
 0x005ed530,Range14_CopyBackward,function,high,reimplemented (src/game/core/vlist); copies a range backwards through its elements slot 0x18

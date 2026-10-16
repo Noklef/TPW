@@ -34,4 +34,20 @@ u32 __fastcall Obj_CallSlot20ThenSub1cAnd48(u8 *object);
 // the object, from that pointer) gets its slot 8 called with a. Returns what it returns.
 u32 __fastcall VBase_CallSlot8(u8 *object, void *, u32 a);
 
+// The destructors of the classes the constructors Class702880_Ctor, Class702890_Ctor (small9) and Class7028b8_Ctor, Class7028e0_Ctor, Class702908_Ctor (small10)
+// build (0x5b5600 / 0x5b56c0 / 0x5bcef0 / 0x5bd330 / 0x5bd740 for the vtable pointers 0x702880 / 0x702890 / 0x7028d0 / 0x7028f8 / 0x702920; thiscall): the vtable
+// pointer is set; the shared array record at +0x30 loses a use and at none is destroyed (its array of 0x30-byte elements by CRT_VectorDtorIterator with the
+// function the dword at 0x6fd500 holds, the array's block and the record freed) and the pointer cleared; the member list at +0x2c is emptied (each object popped from
+// its head is deleted through its slot 0 with 1); +0x24 and +0x28 are cleared and the list itself deleted (slot 0 with 1). The deleting versions (0x5b98a0 / 0x5b9970 /
+// 0x5be810 / 0x5be8e0 for 0x702880 / 0x702890 / 0x7028d0 / 0x7028f8; flags, pops 4: bit 0 also frees the object) return the object.
+void __fastcall Class702880_Dtor(u8 *object);
+void __fastcall Class702890_Dtor(u8 *object);
+void __fastcall Class7028d0_Dtor(u8 *object);
+void __fastcall Class7028f8_Dtor(u8 *object);
+void __fastcall Class702920_Dtor(u8 *object);
+u8 *__fastcall Class702880_DeletingDtor(u8 *object, void *, u32 flags);
+u8 *__fastcall Class702890_DeletingDtor(u8 *object, void *, u32 flags);
+u8 *__fastcall Class7028d0_DeletingDtor(u8 *object, void *, u32 flags);
+u8 *__fastcall Class7028f8_DeletingDtor(u8 *object, void *, u32 flags);
+
 }  // extern "C"
