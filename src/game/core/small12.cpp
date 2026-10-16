@@ -5,6 +5,7 @@
 #include "gameheap.h"
 #include "small6.h"
 #include "small9.h"
+#include "tiny_a.h"
 
 namespace {
 
@@ -61,6 +62,23 @@ u32 __fastcall Person_HasWordInState(const u8 *object, void *, u32 word) {
         return 1;
     return 0;
 }
+
+u8 *__fastcall Setting_ReadMode(u8 *object) {
+    u32 &flags = global<u32>(0x007a1a8c);
+    if (flags & 0x2000000) {
+        at<u32>(object, 0) = 2;
+        flags = (flags & 0xfe7fffff) | 0x2000000;
+    } else if (flags & 0x1000000) {
+        at<u32>(object, 0) = 1;
+        flags = (flags & 0xfd7fffff) | 0x1000000;
+    } else {
+        at<u32>(object, 0) = 0;
+        flags = (flags & 0xfcffffff) | 0x800000;
+    }
+    return object;
+}
+
+u8 __cdecl Game_Field1da710IsZero() { return Get1da710_51a280(global<u8 *>(0x0080239c)) == 0; }
 
 void __fastcall Setting_SetMode(u8 *object, void *, u32 mode) {
     at<u32>(object, 0) = mode;

@@ -57,6 +57,20 @@ void __fastcall ObjectControls_Init(u8 *table) {
     ObjectControls_Collect(table);
 }
 
+s32 __cdecl ObjectDefs_PercentWithControls() {
+    u8 *defs = reinterpret_cast<u8 *>(0x007890a0);
+    s32 counted = 0, withControls = 0;
+    for (u8 *def = ObjectDefs_First(defs); def; def = ObjectDefs_Next(defs)) {
+        if (at<s32>(def, 0xc4) <= 0)
+            continue;
+        ++counted;
+        u8 *game = *reinterpret_cast<u8 **>(0x0080239c);
+        if (at<s32>(ObjectControls_FindUncached(game + 0x1d943c, nullptr, at<u16>(def, 0), 0), 0x18) > 0)
+            ++withControls;
+    }
+    return counted == 0 ? 0 : withControls * 100 / counted;
+}
+
 u32 __stdcall ObjectControls_GetWord18(u32 id) {
     u8 *game = *reinterpret_cast<u8 **>(0x0080239c);
     return at<u32>(ObjectControls_FindUncached(game + 0x1d943c, nullptr, id, 0), 0x18);

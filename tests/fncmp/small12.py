@@ -9,9 +9,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
 CALLS = {'Node': (0x4f54e0, 't', 'a'), 'Has': (0x5065d0, 't', 'a'), 'Mode': (0x550d80, 't', 'v'), 'Quad': (0x5633e0, 's', 'a'),
-         'GetD': (0x59c390, 't', 'a'), 'Set': (0x59c410, 't', 'b'), 'Clear': (0x5b15a0, 't', 'v')}
+         'GetD': (0x59c390, 't', 'a'), 'Set': (0x59c410, 't', 'b'), 'Clear': (0x5b15a0, 't', 'v'), 'Read': (0x550ca0, 't', 'a'), 'Zero': (0x4c9050, 'c', 'b')}
 B = Bench([(0x4f54e0, 0x4f5560), (0x5065d0, 0x506650), (0x550d80, 0x550e00), (0x5633e0, 0x563460), (0x59c390, 0x59c410), (0x59c410, 0x59c490),
-           (0x5b15a0, 0x5b1620), (0x4f23f0, 0x4f2440), (0x5da3c0, 0x5da3c1)])
+           (0x5b15a0, 0x5b1620), (0x4f23f0, 0x4f2440), (0x550ca0, 0x550d80), (0x4c9050, 0x4c9070), (0x51a280, 0x51a290), (0x5da3c0, 0x5da3c1)])
 LIST, BUFS, TABLE = RAM + 0x1000, RAM + 0x2000, 0x76e300
 NREC = 342
 
@@ -55,6 +55,13 @@ def case(r):
         put(obj, 0x218, 'HH', w if r.random() < 0.6 else r.getrandbits(16), w if r.random() < 0.6 else r.getrandbits(16))
         put(obj, 0x19c, 'I', r.choice([0xb, 0xd, 0xb, 0xd, 0, 5]))
         return Call(address, [RAM, w | r.choice([0, 0x10000])], regions, conv='t', ret=ret)
+    if name == 'Read':
+        regions[0x7a1a8c] = struct.pack('<I', r.choice([0, 0x800000, 0x1000000, 0x2000000, 0x3800000, 0xffffffff, r.getrandbits(32)]))
+        return Call(address, [RAM], regions, conv='t', ret=ret)
+    if name == 'Zero':
+        game = RAM + 0x40000
+        regions.update({0x80239c: struct.pack('<I', game - 0x1da710), game: struct.pack('<I', r.choice([0, 0, 1, 0x100, 0xffffffff]))})
+        return Call(address, [], regions, conv='c', ret=ret)
     if name == 'Mode':
         regions[0x7a1a8c] = r.bytes(4)
         return Call(address, [RAM, r.choice([0, 1, 2, 3, 4, 0xffffffff, r.getrandbits(32)])], regions, conv='t', ret=ret)

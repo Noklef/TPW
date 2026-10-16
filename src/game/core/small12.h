@@ -17,6 +17,13 @@ u32 __fastcall Person_HasWordInState(const u8 *object, void *, u32 word);
 // of the dword at 0x7a1a8c are set to 1 / 2 / 4 (bit 23 / 24 / 25 alone: the other two cleared); other modes leave it.
 void __fastcall Setting_SetMode(u8 *object, void *, u32 mode);
 
+// 0x550ca0 (thiscall): the mode is read from the bits 23..25 of the dword at 0x7a1a8c (the highest set of 25 / 24 / 23 gives 2 / 1 / 0; none gives 0), stored
+// at +0 and the bits set to that single one (as Setting_SetMode does). Returns the object.
+u8 *__fastcall Setting_ReadMode(u8 *object);
+
+// 0x4c9050 (cdecl on the game object [0x80239c]): whether the dword at +0x1da710 of the game object is 0 (as AL).
+u8 __cdecl Game_Field1da710IsZero();
+
 // 0x5633e0 (stdcall; source, unused, unused, object, pops 16): when the count at +0x788 is below 4 the next 16-byte slot from +0x448 gets the four
 // dwords from source (zeros for 0) and the count rises. Returns 1.
 u32 __stdcall Quad_Push(const u32 *source, u32, u32, u8 *object);

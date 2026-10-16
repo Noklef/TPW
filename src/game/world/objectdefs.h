@@ -39,6 +39,11 @@ u8 *__fastcall ObjectControls_FindUncached(u8 *table, void *, u32 id, u32 quiet)
 // 0x4d3de0 (thiscall on the table): its 0x4b3 dwords cleared, then ObjectControls_Collect.
 void __fastcall ObjectControls_Init(u8 *table);
 
+// 0x4ca740 (cdecl): over the object definitions (First / Next) those whose dword at +0xc4 is above 0 are counted, and of those the ones whose control
+// record (ObjectControls_FindUncached, quiet, in the game's table) has its dword at +0x18 above 0; the percentage (second * 100 / first), 0 when the
+// first is 0.
+s32 __cdecl ObjectDefs_PercentWithControls();
+
 // 0x4ca8c0 (stdcall; id): the dword at +0x18 of the record ObjectControls_FindUncached finds for the id (quiet) in the game's table (at +0x1d943c of
 // the object [0x80239c] points to); the record must exist.
 u32 __stdcall ObjectControls_GetWord18(u32 id);
