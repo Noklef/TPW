@@ -219,6 +219,7 @@
 #include "../game/world/personscripts.h"
 #include "../game/world/ridelist.h"
 #include "../game/world/ridesearch.h"
+#include "../game/world/ridesweep.h"
 #include "../game/world/thingscan.h"
 #include "../game/world/trackpools.h"
 #include "../game/world/world.h"
@@ -759,6 +760,12 @@ const Hook kHooks[] = {
     {"Rides_BestKind11Count",     0x004cc4b0, (void *)&Rides_BestKind11Count, {0x83, 0xec, 0x10, 0x8d, 0x44}},
     {"Rides_BestPiecesOfKinds",   0x004cc5d0, (void *)&Rides_BestPiecesOfKinds, {0x83, 0xec, 0x0c, 0x8d, 0x44}},
     {"Rides_BestPiecesOfKind",    0x004cc6f0, (void *)&Rides_BestPiecesOfKind, {0x83, 0xec, 0x0c, 0x8d, 0x44}},
+    {"Objects_ForEachOfKind",     0x00482040, (void *)&Objects_ForEachOfKind, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
+    {"Objects_ForEachWordSet",    0x00482100, (void *)&Objects_ForEachWordSet, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
+    {"Objects_ForEachUpgrade2",   0x004821b0, (void *)&Objects_ForEachUpgrade2, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
+    {"Objects_ForEachKind3Flag1", 0x00482270, (void *)&Objects_ForEachKind3Flag1, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
+    {"Objects_ForEachKind3NoFlags", 0x00482340, (void *)&Objects_ForEachKind3NoFlags, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
+    {"Objects_ForEachKind3Flag2", 0x00482400, (void *)&Objects_ForEachKind3Flag2, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},

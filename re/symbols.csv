@@ -913,6 +913,12 @@ address,name,kind,confidence,notes
 0x004cc4b0,Rides_BestKind11Count,function,high,reimplemented (src/game/world/ridesearch); finds the track ride with the most kind 11 pieces
 0x004cc5d0,Rides_BestPiecesOfKinds,function,high,reimplemented (src/game/world/ridesearch); finds the track ride of kind 1 to 3 with the most pieces
 0x004cc6f0,Rides_BestPiecesOfKind,function,high,reimplemented (src/game/world/ridesearch); finds the track ride of a kind with the most pieces
+0x00482040,Objects_ForEachOfKind,function,high,reimplemented (src/game/world/ridesweep); calls a function for each object of a kind
+0x00482100,Objects_ForEachWordSet,function,high,reimplemented (src/game/world/ridesweep); calls a function for each object whose definition word is set
+0x004821b0,Objects_ForEachUpgrade2,function,high,reimplemented (src/game/world/ridesweep); calls a function for each object with upgrade type 2
+0x00482270,Objects_ForEachKind3Flag1,function,high,reimplemented (src/game/world/ridesweep); calls a function for each kind 3 object with flag 1
+0x00482340,Objects_ForEachKind3NoFlags,function,high,reimplemented (src/game/world/ridesweep); calls a function for each kind 3 object with neither flag
+0x00482400,Objects_ForEachKind3Flag2,function,high,reimplemented (src/game/world/ridesweep); calls a function for each kind 3 object with flag 2
 0x0050b780,Thing_Delete,function,medium,"thiscall on a thing; the base deletion, queues its handle (World_QueueDelete)"
 0x00801f38,gThingsToDelete,data,high,"HandleQueue: +4 head, +8 tail, +0xc count; handles whose slots DeleteAll releases"
 0x005f5fc0,String_Alloc,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +8: a new block for length units, terminated; the old block is not freed"
