@@ -61,6 +61,7 @@
 #include "../game/gfx/texcache.h"
 #include "../game/gfx/texman.h"
 #include "../game/gfx/texset.h"
+#include "../game/gfx/texture.h"
 #include "../game/gfx/tga.h"
 #include "../game/core/events.h"
 #include "../game/core/filetime.h"
@@ -1366,6 +1367,12 @@ const Hook kHooks[] = {
     {"TexSet_Texture",            0x00575f90, (void *)&TexSet_Texture, {0x8b, 0x41, 0x08, 0x8b, 0x4c}},
     {"TexSet_TextureSlot",        0x00575fa0, (void *)&TexSet_TextureSlot, {0x8b, 0x41, 0x08, 0x8b, 0x4c}},
     {"TexManager_SetLoadFlags",   0x00575b80, (void *)&TexManager_SetLoadFlags, {0x8b, 0x44, 0x24, 0x04, 0x89}},
+    {"Texture_UpdateWrapMask",    0x00590cb0, (void *)&Texture_UpdateWrapMask, {0x0f, 0xbf, 0x51, 0x14, 0x85}},
+    {"Texture_Level",             0x00590cf0, (void *)&Texture_Level, {0x8b, 0x41, 0x08, 0x8b, 0xd0}},
+    {"Texture_ClearCacheFlags",   0x00590f80, (void *)&Texture_ClearCacheFlags, {0x8b, 0x41, 0x08, 0x80, 0xe4}},
+    {"Texture_SetKeep",           0x00590f90, (void *)&Texture_SetKeep, {0x8b, 0x41, 0x08, 0x80, 0xcc}},
+    {"Texture_ClearKeep",         0x00590fa0, (void *)&Texture_ClearKeep, {0x8b, 0x41, 0x08, 0x80, 0xe4}},
+    {"Texture_UsesDriverFilter",  0x00590fb0, (void *)&Texture_UsesDriverFilter, {0xf7, 0x41, 0x08, 0x00, 0x00}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

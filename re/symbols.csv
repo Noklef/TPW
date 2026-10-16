@@ -2144,6 +2144,12 @@ address,name,kind,confidence,notes
 0x00575f90,TexSet_Texture,function,high,"reimplemented (src/game/gfx/texset); thiscall (i): texture i, [+8][i]"
 0x00575fa0,TexSet_TextureSlot,function,high,reimplemented (src/game/gfx/texset); thiscall (i): &[+8][i]
 0x00575b80,TexManager_SetLoadFlags,function,high,"reimplemented (src/game/gfx/texman); thiscall (the texture manager, [0x87a268]; flags): +0x10008 = flags for the next load (2: mip levels), replacing the old ones"
+0x00590cb0,Texture_UpdateWrapMask,function,high,"reimplemented (src/game/gfx/texture); thiscall (a texture): +0x44 = (height - 1) << 8 | (width - 1) when both (s16 +0x14 / +0x16) are powers of two, else -1"
+0x00590cf0,Texture_Level,function,high,"reimplemented (src/game/gfx/texture); thiscall: the flags' low 3 bits when 0x30 are set, else by the width (above 128 0 ... at most 8: 5)"
+0x00590f80,Texture_ClearCacheFlags,function,high,"reimplemented (src/game/gfx/texture); thiscall: flags (+8) 0x1000, 0x2000 and 0x4000 cleared"
+0x00590f90,Texture_SetKeep,function,high,"reimplemented (src/game/gfx/texture); thiscall: flag 0x4000 set (its cache item kept, 0x58f83d)"
+0x00590fa0,Texture_ClearKeep,function,high,reimplemented (src/game/gfx/texture); thiscall: flag 0x4000 cleared
+0x00590fb0,Texture_UsesDriverFilter,function,high,reimplemented (src/game/gfx/texture); thiscall: 1 when a flag of 0x30000 is set and the display driver kind (0x8bd524) is 1 (Direct3D)
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
