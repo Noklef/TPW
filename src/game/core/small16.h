@@ -10,4 +10,8 @@ extern "C" {
 // this object's own handle (the word at +0); otherwise +0x5e and +0x60 are cleared and 0 is stored. Returns out.
 u16 *__fastcall Obj_GetTrackedHandle(u8 *object, void *, u16 *out);
 
+// 0x5d46d0 (thiscall): for each of the seven 16-byte groups from +0 (last first): the dwords at +0, +4 and +8 = 0 and the block at +0xc, when there is
+// one, freed and cleared.
+void __fastcall Blocks7_Free(u8 *object);
+
 }  // extern "C"

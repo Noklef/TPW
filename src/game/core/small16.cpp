@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "gameheap.h"
 #include "small9.h"
 
 namespace {
@@ -30,6 +31,18 @@ u16 *__fastcall Obj_GetTrackedHandle(u8 *object, void *, u16 *out) {
     }
     *out = at<u16>(object, 0x5e);
     return out;
+}
+
+void __fastcall Blocks7_Free(u8 *object) {
+    for (s32 base = 0x60; base >= 0; base -= 0x10) {
+        at<u32>(object, base) = 0;
+        at<u32>(object, base + 4) = 0;
+        at<u32>(object, base + 8) = 0;
+        if (at<void *>(object, base + 0xc)) {
+            GameHeap_Free(at<void *>(object, base + 0xc));
+            at<u32>(object, base + 0xc) = 0;
+        }
+    }
 }
 
 }  // extern "C"

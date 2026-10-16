@@ -6,13 +6,18 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, put  # noqa: E402
+from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
-B = Bench([(0x4e0220, 0x4e02f0), (0x506580, 0x5065d0), (0x50b350, 0x50b360), (0x5da3c0, 0x5da3c1)])
+B = Bench([(0x5d46d0, 0x5d47a0), (0x4e0220, 0x4e02f0), (0x506580, 0x5065d0), (0x50b350, 0x50b360), (0x5da3c0, 0x5da3c1)])
 THINGS, CLOCK = RAM + 0x2000, RAM + 0x40000
 
 
 def case(r):
+    if r.random() < 0.3:  # Blocks7_Free: seven groups, each block pointer null or one the allocator handed out
+        obj = bytearray(r.bytes(0x100))
+        for k in range(7):
+            put(obj, 0x10 * k + 0xc, 'I', r.choice([0, 0, HEAP + 0x40 + 0x10 * k, RAM + 0x180]))
+        return Call(0x5d46d0, [RAM], {RAM: obj, HEAP: heap()}, conv='t', ret='v')
     obj = bytearray(r.bytes(0x100))
     handle = r.choice([0, 1, 2, 5, 11])
     mine = r.choice([0, 1, 0x1234, 0xffff])
