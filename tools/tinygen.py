@@ -20,6 +20,8 @@ import re
 import sys
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from tinysym import symbolic  # noqa: E402
 
 H = r'(-?0x[0-9a-f]+)'
 FIELD = r'\[ECX(?: \+ %s)?\]' % H
@@ -329,6 +331,10 @@ def match(a, ins):
             d.setdefault('globals', [])
             d['addr'] = a
             return d
+    d = symbolic(a, texts)
+    if d:
+        d['addr'] = a
+        return d
     return None
 
 
@@ -407,19 +413,23 @@ def main():
                 '# object bytes, any global values, any arguments.\n'
                 '# usage: tiny_%s.py [CASES [SEED]] [--wild|--both] [--show N]\n' % (tag, tag))
         f.write('import os\nimport sys\n\nsys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), \'..\', \'..\', \'tools\'))\n'
-                'from fncmp import Bench, Call, RAM  # noqa: E402\n\n')
-        f.write('# (address, end, convention, stack arguments, returns, globals touched, first argument a pointer)\nFUNCS = [\n')
+                'from fncmp import Bench, Call, RAM, put  # noqa: E402\n\n')
+        f.write('# (address, end, convention, stack arguments, returns, globals touched, arguments used as pointers)\nFUNCS = [\n')
         for d in found:
-            f.write('    (0x%06x, 0x%06x, %r, %d, %r, %r, %r),\n' % (d['addr'], d['end'], d['conv'], d['nargs'], 'a' if d['ret'] in 'ap' else d['ret'], d['globals'], '(void *)(uintptr_t)v0' in d['body']))
+            f.write('    (0x%06x, 0x%06x, %r, %d, %r, %r, %r),\n' % (d['addr'], d['end'], d['conv'], d['nargs'], 'a' if d['ret'] in 'ap' else d['ret'], d['globals'], tuple(sorted(set(int(x) for x in re.findall(r'\(uintptr_t\)v(\d)', d['body']))))))
         f.write(']\nB = Bench([(a, e) for a, e, *_ in FUNCS])\n\n\n'
                 'def case(r):\n'
                 '    address, _end, conv, n, ret, globs, ptr = r.choice(FUNCS)\n'
-                '    regions = {RAM: r.bytes(0x400)}\n'
+                '    obj = bytearray(r.bytes(0x400))\n'
+                '    for k in range(0, 0x400, 4):  # many dwords point into the object, so a chain of pointers can be followed\n'
+                '        if r.random() < 0.5:\n'
+                '            put(obj, k, \'I\', RAM + 0x100 + 4 * r.randrange(0x40))\n'
+                '    regions = {RAM: obj}\n'
                 '    for g in globs:\n'
                 '        regions[g & ~0xf] = r.bytes(0x20)\n'
                 '    args = [r.choice([0, 1, 0xff, 0x7fffffff, 0xffffffff, r.getrandbits(32)]) for _ in range(n)]\n'
-                '    if ptr:\n'
-                '        args[0] = RAM + 0x200 + r.choice([0, 4, 0x20])\n'
+                '    for i in ptr:\n'
+                '        args[i] = RAM + 0x200 + 0x40 * min(i, 3) + r.choice([0, 4, 0x20])\n'
                 '    if conv == \'t\':\n'
                 '        args = [RAM + 0x80] + args\n'
                 '    return Call(address, args, regions, conv=conv, ret=ret)\n\n\n'
