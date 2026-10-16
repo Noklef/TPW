@@ -2156,6 +2156,7 @@ address,name,kind,confidence,notes
 0x00590fd0,TexCacheEntry_Ctor,function,high,"reimplemented (src/game/gfx/texcache); the cache entry: four dwords zeroed, +0x14 = -1"
 0x0058d0f0,TexCache_InitDefaults,function,high,reimplemented (src/game/gfx/texcache); the cache default settings
 0x0058eae0,TexCache_MergeItems,function,high,reimplemented (src/game/gfx/texcache); merges two item lists into an array by position; returns the area sum
+0x0058b890,TexCache_Halve,function,high,reimplemented (src/game/gfx/texcache); 2x2 box filter to the next mip level (32-bit and 4444 pixels)
 0x00575bd0,TexSet_Ctor,function,high,"reimplemented (src/game/gfx/texset); thiscall (a texture set, 16 bytes): all zero; returns the set"
 0x00575f90,TexSet_Texture,function,high,"reimplemented (src/game/gfx/texset); thiscall (i): texture i, [+8][i]"
 0x00575fa0,TexSet_TextureSlot,function,high,reimplemented (src/game/gfx/texset); thiscall (i): &[+8][i]

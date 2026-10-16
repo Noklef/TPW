@@ -11,6 +11,15 @@
 
 extern "C" {
 
+// 0x58b890 (thiscall on the cache; dest, source): a 2 x 2 box filter, the next mip level. The
+// surfaces have height +8, width +0xc, pitch +0x10 and pixels +0x24; the dest's width and
+// height give the pixels written, the source being twice as big. The cache's +0x30 is the
+// pixel format: 3 = 32-bit (each channel the rounded average of four: (sum + 2) >> 2 for the
+// bytes 0 and 2, the same through a >> 2 for bytes 1 and 3, whose rounding is 0x80),
+// 2 = 16-bit 4-4-4-4 (the same on the nibbles, rounding 2 and 0x20); others do nothing.
+// Rows then count down from the height and pixels from the width, so zero does nothing here.
+void __fastcall TexCache_Halve(u8 *cache, void *, u8 *dest, const u8 *source);
+
 // 0x58eae0 (stdcall; out, listB, owner): merges two lists of cache items (next at +4, flags +8,
 // position s16 +0x10 (x) and +0x12 (y), size s16 +0x14 by +0x16) into the array out, zero-ended,
 // and returns the sum of width * height of what was put there. The owner's list (+4) is
