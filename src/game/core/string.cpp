@@ -2,6 +2,8 @@
 // 0x5f78e0-0x5f7e60.
 #include "string.h"
 
+#include "gameheap.h"
+
 #include <cstdint>
 #include <cstring>
 #include <type_traits>
@@ -13,9 +15,13 @@ const void *const kWStringVtable = reinterpret_cast<const void *>(0x007030c8);
 const void *const kViewVtable = reinterpret_cast<const void *>(0x007030c0);
 const void *const kWViewVtable = reinterpret_cast<const void *>(0x007030f8);
 
+// The game's operator new / delete (0x67acc0 / 0x67acb0), through core/gameheap.
+void *__cdecl game_alloc(u32 size) { return GameHeap_Alloc(size); }
+void __cdecl game_free(void *block) { GameHeap_Free(block); }
+
 const StringEnv kGameEnv = {
-    reinterpret_cast<void *(__cdecl *)(u32)>(0x0067acc0),
-    reinterpret_cast<void(__cdecl *)(void *)>(0x0067acb0),
+    &game_alloc,
+    &game_free,
     reinterpret_cast<s32(__cdecl *)(char *, const char *, va_list)>(0x0067c1e0),
     reinterpret_cast<s32(__cdecl *)(u16 *, const u16 *, va_list)>(0x0067f4d0),
 };

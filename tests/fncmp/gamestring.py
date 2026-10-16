@@ -1,0 +1,103 @@
+# The game's String and WString classes (src/game/core/string: 0x5f5fc0-0x5f6c50, 0x5f7120-0x5f7e60) against the originals: strings of up to 24 units
+# (a small alphabet, so equal, prefix and ordered cases come up), views of them, C strings and chars as arguments; the blocks come from the heap region.
+# Format is left out (the game's vsprintf).
+# usage: gamestring.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+import os
+import struct
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
+from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
+
+# name: (address, wide, extra arguments, returns). Extra arguments: t text pointer (or 0), c char pointer, v view of the other string, w the other
+# class's string, n a count / start, f flags, o an output view, l a length.
+OPS_TABLE = {
+    'Alloc': (0x5f5fc0, 0, 'l', 'v'), 'SetLen': (0x5f6000, 0, 'l', 'v'), 'CtorStr': (0x5f60b0, 0, 't', 'a'), 'CtorCopy': (0x5f6040, 0, 'v', 'a'),
+    'CtorChar': (0x5f6150, 0, 'c', 'a'), 'Ctor': (0x5f61a0, 0, '', 'a'), 'Dtor': (0x5f61e0, 0, '', 'v'), 'AssignChar': (0x5f6200, 0, 'c', 'a'),
+    'AssignStr': (0x5f6240, 0, 't', 'a'), 'AssignWide': (0x5f6290, 0, 'w', 'a'), 'Assign': (0x5f62d0, 0, 'v', 'a'), 'AppendStr': (0x5f6320, 0, 't', 'a'),
+    'AppendChar': (0x5f6360, 0, 'c', 'a'), 'Append': (0x5f6390, 0, 'v', 'a'), 'DelDtor': (0x5f7120, 0, 'f', 'a'), 'GetBuf': (0x5f78e0, 0, 'l', 'a'),
+    'RelBuf': (0x5f7900, 0, 'L', 'v'), 'Equals': (0x5f7950, 0, 'v', 'b'), 'EqStr': (0x5f7980, 0, 't', 'b'), 'NeStr': (0x5f79e0, 0, 't', 'b'),
+    'NeChar': (0x5f7a50, 0, 'c', 'b'), 'Less': (0x5f7a90, 0, 'v', 'b'), 'FindChar': (0x5f7ae0, 0, 'cn', 'a'), 'Find': (0x5f7b40, 0, 'tn', 'a'),
+    'RFindChar': (0x5f7b90, 0, 'cn', 'a'), 'RFind': (0x5f7be0, 0, 'tn', 'a'), 'FindOneOf': (0x5f7c70, 0, 'tn', 'a'), 'RFindOneOf': (0x5f7cf0, 0, 'tn', 'a'),
+    'Left': (0x5f7d60, 0, 'on', 'a'), 'Right': (0x5f7d90, 0, 'on', 'a'), 'From': (0x5f7dd0, 0, 'on', 'a'), 'Mid': (0x5f7e10, 0, 'onn', 'a'),
+    'WAlloc': (0x5f6870, 1, 'l', 'v'), 'WSetLen': (0x5f68b0, 1, 'l', 'v'), 'WCtorStr': (0x5f6980, 1, 't', 'a'), 'WCtorCopy': (0x5f6900, 1, 'v', 'a'),
+    'WCtor': (0x5f6a20, 1, '', 'a'), 'WDtor': (0x5f6a60, 1, '', 'v'), 'WAssignChar': (0x5f6a80, 1, 'c', 'a'), 'WAssignStr': (0x5f6ac0, 1, 't', 'a'),
+    'WAssignNarrow': (0x5f6b10, 1, 'w', 'a'), 'WAssign': (0x5f6b50, 1, 'v', 'a'), 'WAppendStr': (0x5f6ba0, 1, 't', 'a'), 'WAppendChar': (0x5f6be0, 1, 'c', 'a'),
+    'WAppend': (0x5f6c10, 1, 'v', 'a'), 'WDelDtor': (0x5f7150, 1, 'f', 'a'), 'WNeStr': (0x5f7e60, 1, 't', 'b'),
+}
+B = Bench([(0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000)])
+S1, S2, S3, TXT, CHR, OUT = RAM, RAM + 0x40, RAM + 0x80, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200
+D1, D2, D3 = RAM + 0x2000, RAM + 0x3000, RAM + 0x4000
+VT = {0: (0x703090, 0x7030c0), 1: (0x7030c8, 0x7030f8)}  # string and view vtables by width
+ALPHA = [b'a', b'b', b'A', b'a', b'z', b'\x80', b'\xff', b'b']
+
+
+def units(r, wide, n):
+    chars = [r.choice(ALPHA)[0] for _ in range(n)]
+    return struct.pack('<%d%s' % (n, 'H' if wide else 'B'), *chars)
+
+
+def string(r, wide, base, data, regions, text=None):
+    """A string object at base with its block at data; returns its length."""
+    n = r.choice([0, 1, 2, 3, 5, 7, 8, 9, 15, 16, 17, 24]) if text is None else len(text) // (2 if wide else 1)
+    raw = text if text is not None else units(r, wide, n)
+    cap = (n & ~7) + 8
+    w = 2 if wide else 1
+    block = bytearray(r.bytes(w * (cap + 1)))
+    block[:len(raw)] = raw
+    block[w * n:w * n + w] = bytes(w)
+    regions[data] = block
+    regions[base] = struct.pack('<5I', VT[wide][0], n, data, cap, 8) + bytes(0x20)
+    return n
+
+
+def case(r):
+    name = r.choice(OPS)
+    address, wide, kinds, ret = OPS_TABLE[name]
+    w = 2 if wide else 1
+    regions = {HEAP: heap(), OUT: r.bytes(0x20)}
+    s_text = None
+    construct = name.lstrip('W') in ('CtorStr', 'CtorCopy', 'CtorChar', 'Ctor')
+    if construct:
+        regions[S1] = r.bytes(0x20)  # not constructed yet
+    else:
+        string(r, wide, S1, D1, regions)
+    args = []
+    for k in kinds:
+        if k == 't':  # a C string of the class's width, sometimes null, sometimes a piece of s itself
+            n = r.choice([0, 1, 2, 3, 6, 9, 17])
+            t = units(r, wide, n) + bytes(w)
+            regions[TXT] = t + r.bytes(0x20)
+            args.append(0 if r.random() < 0.1 and name not in ('FindOneOf',) and kinds != 'tn' else TXT)
+        elif k == 'c':
+            regions[CHR] = struct.pack('<H' if wide else '<B', r.choice([0, 0x61, 0x62, 0x41, 0x80, 0xff, 0x100 if wide else 0x7a])) + bytes(2)
+            args.append(CHR)
+        elif k == 'v':  # a view or string of the same class: another string, or s itself
+            if r.random() < 0.15:
+                args.append(S1) if not construct else args.append(S2)
+                if construct:
+                    string(r, wide, S2, D2, regions)
+            else:
+                string(r, wide, S2, D2, regions)
+                args.append(S2)
+        elif k == 'w':  # the other class's string
+            string(r, 1 - wide, S3, D3, regions)
+            args.append(S3)
+        elif k == 'n':
+            args.append(r.choice([0, 1, 2, 3, 5, 8, 16, 30, 0xffffffff]))
+        elif k == 'f':
+            args.append(r.choice([0, 1, 1, 2, 3]))
+        elif k == 'l':
+            args.append(r.choice([0, 1, 5, 7, 8, 9, 16, 17, 40]))
+        elif k == 'L':
+            args.append(r.choice([0, 1, 5, 7, 8, 9, 16, 0x7fffffff]))
+        elif k == 'o':
+            args.append(OUT)
+    return Call(address, [S1] + args, regions, conv='t', ret=ret)
+
+
+OPS = [k for k in os.environ.get('OPS', ','.join(OPS_TABLE)).split(',') if k]
+
+
+if __name__ == '__main__':
+    B.main(case)
