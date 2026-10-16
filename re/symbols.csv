@@ -3239,6 +3239,17 @@ address,name,kind,confidence,notes
 0x005b2af0,StdTree_CtorG,function,high,reimplemented (src/game/core/stdtree); std::map constructor
 0x0047d140,StdTree_InsertA,function,high,reimplemented (src/game/core/stdtree); std::map insert of a node with a three-dword value
 0x005b2ba0,StdTree_InsertG,function,high,reimplemented (src/game/core/stdtree); std::map insert of a node with a word value
+0x0056a750,Table879ad0_Clear,function,high,reimplemented (src/game/core/small25); clears the 64 pairs of dwords and a counter
+0x004f0370,StdTreeC_PostInc,function,high,reimplemented (src/game/core/small25); post-increment of a std::map iterator
+0x004f0460,StdTreeE_PostInc,function,high,reimplemented (src/game/core/small25); post-increment of a std::map iterator
+0x004f0880,Obj_InitMinus1A,function,high,reimplemented (src/game/core/small25); initialises an object with -1 ignoring three arguments
+0x004f08a0,Obj_InitMinus1B,function,high,reimplemented (src/game/core/small25); initialises an object with -1 ignoring seven arguments
+0x00421680,Obj_SetAt8AndAdd,function,high,reimplemented (src/game/core/small25); records an item and adds it to the observer list
+0x005f9f80,Class7035d8_Ctor,function,high,reimplemented (src/game/core/small25); constructor of the class with vtable pointer 0x7035d8
+0x005f9f70,Class7035d8_InitGlobal,function,high,reimplemented (src/game/core/small25); constructs the global object at 0xfa78e8
+0x005ed490,Strings_CopyRange,function,high,reimplemented (src/game/core/small25); copy-constructs a range of strings
+0x005ed4d0,Strings_FillCopy,function,high,reimplemented (src/game/core/small25); copy-constructs one string into several
+0x005ed560,String_PlacementCopy,function,high,reimplemented (src/game/core/small25); copy-constructs a string in place
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

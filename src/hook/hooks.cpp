@@ -123,6 +123,7 @@
 #include "../game/core/small22.h"
 #include "../game/core/small23.h"
 #include "../game/core/small24.h"
+#include "../game/core/small25.h"
 #include "../game/core/small2.h"
 #include "../game/core/small3.h"
 #include "../game/core/small4.h"
@@ -2783,6 +2784,17 @@ const Hook kHooks[] = {
     {"StdTree_CtorG",             0x005b2af0, (void *)&StdTree_CtorG, {0x6a, 0xff, 0x68, 0x78, 0xfa}},
     {"StdTree_InsertA",           0x0047d140, (void *)&StdTree_InsertA, {0x6a, 0xff, 0x68, 0x28, 0x8f}},
     {"StdTree_InsertG",           0x005b2ba0, (void *)&StdTree_InsertG, {0x6a, 0xff, 0x68, 0x98, 0xfa}},
+    {"Table879ad0_Clear",         0x0056a750, (void *)&Table879ad0_Clear, {0xb8, 0xd0, 0x9a, 0x87, 0x00}},
+    {"StdTreeC_PostInc",          0x004f0370, (void *)&StdTreeC_PostInc, {0x56, 0x8b, 0x31, 0xe8, 0x58}},
+    {"StdTreeE_PostInc",          0x004f0460, (void *)&StdTreeE_PostInc, {0x56, 0x8b, 0x31, 0xe8, 0xc8}},
+    {"Obj_InitMinus1A",           0x004f0880, (void *)&Obj_InitMinus1A, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Obj_InitMinus1B",           0x004f08a0, (void *)&Obj_InitMinus1B, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Obj_SetAt8AndAdd",          0x00421680, (void *)&Obj_SetAt8AndAdd, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"Class7035d8_Ctor",          0x005f9f80, (void *)&Class7035d8_Ctor, {0x8b, 0xc1, 0x33, 0xc9, 0x88}},
+    {"Class7035d8_InitGlobal",    0x005f9f70, (void *)&Class7035d8_InitGlobal, {0xb9, 0xe8, 0x78, 0xfa, 0x00}},
+    {"Strings_CopyRange",         0x005ed490, (void *)&Strings_CopyRange, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"Strings_FillCopy",          0x005ed4d0, (void *)&Strings_FillCopy, {0x57, 0x8b, 0x7c, 0x24, 0x0c}},
+    {"String_PlacementCopy",      0x005ed560, (void *)&String_PlacementCopy, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
