@@ -80,6 +80,7 @@
 #include "../game/core/gameclock.h"
 #include "../game/core/globalmem.h"
 #include "../game/core/globalsave.h"
+#include "../game/core/idmaps.h"
 #include "../game/core/ime.h"
 #include "../game/core/idtable.h"
 #include "../game/core/indexed.h"
@@ -2742,6 +2743,13 @@ const Hook kHooks[] = {
     {"FlyingRides_Save",          0x0055de70, (void *)&FlyingRides_Save, {0x51, 0x56, 0x8b, 0x74, 0x24}},
     {"RSSE_Save",                 0x00559350, (void *)&RSSE_Save, {0x83, 0xec, 0x5c, 0x53, 0x55}},
     {"Particles_Load",            0x0051f7a0, (void *)&Particles_Load, {0xa1, 0x40, 0x6d, 0x81, 0x00}},
+    {"Kind_ToIdA",                0x004d3220, (void *)&Kind_ToIdA, {0x8b, 0x01, 0x83, 0xf8, 0x21}},
+    {"Kind_ToIdB",                0x004d3390, (void *)&Kind_ToIdB, {0x8b, 0x01, 0x83, 0xf8, 0x21}},
+    {"Kind_ToIdC",                0x004d3500, (void *)&Kind_ToIdC, {0x8b, 0x01, 0x83, 0xf8, 0x21}},
+    {"Kind_ToIdD",                0x004d3670, (void *)&Kind_ToIdD, {0x8b, 0x01, 0x83, 0xf8, 0x21}},
+    {"Index_ToCode485ec0",        0x00485ec0, (void *)&Index_ToCode485ec0, {0x8b, 0x4c, 0x24, 0x04, 0xb8}},
+    {"Byte2_ToIndex",             0x00506490, (void *)&Byte2_ToIndex, {0x33, 0xc0, 0x8a, 0x41, 0x02}},
+    {"Mode19c_ToIndex",           0x005064f0, (void *)&Mode19c_ToIndex, {0x8b, 0x81, 0x9c, 0x01, 0x00}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

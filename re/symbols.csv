@@ -3202,6 +3202,13 @@ address,name,kind,confidence,notes
 0x004925d0,Format_FillInfo,function,high,reimplemented (src/game/core/small24); fills a display format info from the current format record
 0x005d0510,List_SpliceOne,function,high,reimplemented (src/game/core/small24); moves one node of a circular list in front of another
 0x004b0aa0,Obj_ApplyToGlobalObject,function,high,reimplemented (src/game/core/small24); sets three values on the global game object
+0x004d3220,Kind_ToIdA,function,high,reimplemented (src/game/core/idmaps); maps a kind to an id (base 0xf7)
+0x004d3390,Kind_ToIdB,function,high,reimplemented (src/game/core/idmaps); maps a kind to an id (base 0x118)
+0x004d3500,Kind_ToIdC,function,high,reimplemented (src/game/core/idmaps); maps a kind to an id (base 0x139)
+0x004d3670,Kind_ToIdD,function,high,reimplemented (src/game/core/idmaps); maps a kind to an id (base 0x15a)
+0x00485ec0,Index_ToCode485ec0,function,high,reimplemented (src/game/core/idmaps); maps 0 to 4 to a code
+0x00506490,Byte2_ToIndex,function,high,reimplemented (src/game/core/idmaps); maps the byte at +2 to an index
+0x005064f0,Mode19c_ToIndex,function,high,reimplemented (src/game/core/idmaps); maps the dword at +0x19c to an index
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
