@@ -37,4 +37,11 @@ u32 __fastcall AnalyserCell_TypePlain(const u8 *record) {
                ? 1
                : 0;
 }
+
+u32 __fastcall AnalyserRecord_ChecksCell(const u8 *record) {
+    switch (at<u32>(record, 0x19c)) {
+    case 4: case 5: case 7: case 0xd: case 0x12: return 0;
+    default: return AnalyserCell_TypePlain(record) != 0 ? 1 : 0;
+    }
+}
 }

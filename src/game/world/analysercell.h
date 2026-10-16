@@ -18,4 +18,7 @@ void __fastcall Object_NeighbourCellId(const u8 *object, void *, u16 *out);
 // +8; MapCell_IsType1/3Or9/9/A/0) 0, 1, 3, 9 or 0xa, else 0. The index is the row * 128 + column,
 // taken to 16 bits.
 u32 __fastcall AnalyserCell_TypePlain(const u8 *record);
+
+// 0x505bd0 (thiscall on the record): 0 when the kind at +0x19c is 4, 5, 7, 0xd or 0x12, else whether AnalyserCell_TypePlain holds.
+u32 __fastcall AnalyserRecord_ChecksCell(const u8 *record);
 }
