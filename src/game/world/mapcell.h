@@ -59,4 +59,8 @@ u32 __fastcall RECell_Equals(const u8 *cell, void *, const u8 *other);
 // 0x50c1d0: a 0x28-byte track cell (serialized at 0x50c200), zeroed but for byte +2 = 2.
 // Returns it.
 u8 *__fastcall TrackCell_Ctor(u8 *cell);
+
+// 0x510870 (x, y): the map id of the cell, (y << 7) + x + 1 cut to 16 bits; -1 when Map_InBounds
+// says it is off the map.
+s32 __cdecl Map_IdAt(s32 x, s32 y);
 }

@@ -86,6 +86,11 @@ u8 *__fastcall RECell_Ctor(u8 *cell) {
     return cell;
 }
 
+s32 __cdecl Map_IdAt(s32 x, s32 y) {
+    if (!Map_InBounds(x, y)) return -1;
+    return (s32)(((u32)y << 7) + (u32)x + 1 & 0xffff);
+}
+
 u8 *__fastcall TrackCell_Ctor(u8 *cell) {
     for (u32 i = 0; i < 0x28; i += 4) at<u32>(cell, i) = 0;
     at<u8>(cell, 2) = 2;

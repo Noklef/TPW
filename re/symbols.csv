@@ -698,6 +698,7 @@ address,name,kind,confidence,notes
 0x00502460,RECell_Ctor,function,high,"reimplemented (src/game/world/mapcell); thiscall: the RE cell's 10 bytes zeroed (dword, dword, word); returns it"
 0x00502470,RECell_Equals,function,high,reimplemented (src/game/world/mapcell); thiscall (other): whether the two RE cells' 10 bytes match (repe cmpsb)
 0x0050c1d0,TrackCell_Ctor,function,high,"reimplemented (src/game/world/mapcell); thiscall: a 0x28-byte track cell zeroed (rep stosd), byte +2 = 2; returns it"
+0x00510870,Map_IdAt,function,high,"reimplemented (src/game/world/mapcell); cdecl (x, y): (y << 7) + x + 1 (16 bits) when Map_InBounds, else -1"
 0x004d1c80,Challenges_DropOrphans,function,high,reimplemented (src/game/world/challenges); thiscall: each challenge in use (+0) naming another (+0x18) is dropped (+0 = 0) unless another in use has that id (from Challenges_LoadSam)
 0x004d2840,Challenges_Current,function,high,"reimplemented (src/game/world/challenges); thiscall: &challenges[+0x3cc] (0x30 bytes from +0xc) for an index 0-19, else null"
 0x004d1e60,BalanceChallenges_GetSchema,function,high,"reimplemented (src/game/world/challenges); thiscall (index), vtable 0x700398 slot 0: 0x739b98 + index * 0x3c"
@@ -713,6 +714,8 @@ address,name,kind,confidence,notes
 0x00503b30,ResearchLab_CountNotDone,function,high,reimplemented (src/game/world/research); thiscall (cat): projects of the category (5: any) with !(mResearchDone >= mCost)
 0x00504040,ResearchLab_CurrentNotDone,function,high,reimplemented (src/game/world/research); thiscall (group): (u8) the group's current project exists and is not done
 0x00504750,ResearchGroup_Ctor,function,high,"reimplemented (src/game/world/research); thiscall: currentProject -1, highestGroupAvailable 1"
+0x005100e0,Nav_SetPosVel,function,high,"reimplemented (src/game/world/nav); thiscall (x, y, vx, vy): pos (+8) and vel (+0x10) set"
+0x00510160,Nav_GetPos,function,high,"reimplemented (src/game/world/nav); thiscall (&x, &y): pos (+8, +0xc) read"
 0x0050b780,Thing_Delete,function,medium,"thiscall on a thing; the base deletion, queues its handle (World_QueueDelete)"
 0x00801f38,gThingsToDelete,data,high,"HandleQueue: +4 head, +8 tail, +0xc count; handles whose slots DeleteAll releases"
 0x005f5fc0,String_Alloc,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +8: a new block for length units, terminated; the old block is not freed"

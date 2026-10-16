@@ -110,6 +110,7 @@
 #include "../game/world/thingmsg.h"
 #include "../game/world/analyser.h"
 #include "../game/world/challenges.h"
+#include "../game/world/nav.h"
 #include "../game/world/mapcell.h"
 #include "../game/world/object.h"
 #include "../game/world/person.h"
@@ -426,6 +427,7 @@ const Hook kHooks[] = {
     {"RECell_Ctor",               0x00502460, (void *)&RECell_Ctor, {0x8b, 0xc1, 0x8b, 0xd0, 0x33}},
     {"RECell_Equals",             0x00502470, (void *)&RECell_Equals, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
     {"TrackCell_Ctor",            0x0050c1d0, (void *)&TrackCell_Ctor, {0x8b, 0xd1, 0x57, 0xb9, 0x0a}},
+    {"Map_IdAt",                  0x00510870, (void *)&Map_IdAt, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
     {"Challenges_DropOrphans",    0x004d1c80, (void *)&Challenges_DropOrphans, {0x51, 0x53, 0x55, 0x33, 0xed}},
     {"Challenges_Current",        0x004d2840, (void *)&Challenges_Current, {0x8b, 0x81, 0xcc, 0x03, 0x00}},
     {"BalanceChallenges_GetSchema", 0x004d1e60, (void *)&BalanceChallenges_GetSchema, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
@@ -449,6 +451,8 @@ const Hook kHooks[] = {
     {"ResearchLab_CountNotDone",  0x00503b30, (void *)&ResearchLab_CountNotDone, {0x8b, 0x81, 0x5c, 0x14, 0x00}},
     {"ResearchLab_CurrentNotDone", 0x00504040, (void *)&ResearchLab_CurrentNotDone, {0x8b, 0x44, 0x24, 0x04, 0xc1}},
     {"ResearchGroup_Ctor",        0x00504750, (void *)&ResearchGroup_Ctor, {0x8b, 0xc1, 0xc6, 0x40, 0x0c}},
+    {"Nav_SetPosVel",             0x005100e0, (void *)&Nav_SetPosVel, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Nav_GetPos",                0x00510160, (void *)&Nav_GetPos, {0x8b, 0x54, 0x24, 0x04, 0x8b}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},
