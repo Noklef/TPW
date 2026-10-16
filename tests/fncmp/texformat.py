@@ -15,7 +15,7 @@ CALLS = {'FillTables': 0x5839f0, 'Classify': 0x583ba0, 'DriverFlags': 0x581790, 
 def case(r):
     op = r.choice(OPS)
     if op == 'FillTables':
-        s = bytearray(r.bytes(0x4090))
+        s = bytearray(r.bytes(0x40d0))
         menu = [0xff, 0xff00, 0xff0000, 0xff000000, 0xf800, 0x7e0, 0x1f, 0x8000, 0x7c00, 0x3e0, 0xf0, 0, 0xffffffff, 0x80000000]
         for k in range(4):
             put(s, 8 + 0x20 * k, 'I', r.choice([0x20, 0x20, 0x10, 0]))
