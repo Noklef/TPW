@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/globalmem.h"
+#include "../core/idtable.h"
 #include "../model/highlight.h"
 #include "../world/objectdefs.h"
 
@@ -215,6 +216,12 @@ void __cdecl Coasters_AllocTables(u32 nodes, u32 links) {
     *reinterpret_cast<u32 *>(0x00792400) = links;
     *reinterpret_cast<void **>(0x007925dc) = GlobalMem_Alloc(links * 0x1c, 1);
     *reinterpret_cast<void **>(0x00792408) = GlobalMem_Alloc(nodes * 0x10, 1);
+}
+
+void __cdecl Coasters_InitTables() {
+    Coasters_AllocTables(*reinterpret_cast<const u32 *>(0x00790fd0), *reinterpret_cast<const u32 *>(0x00791cfc));
+    IdTable_Init(reinterpret_cast<u32 *>(0x00790b04), reinterpret_cast<u32 *>(0x00790b00),
+                 reinterpret_cast<u32 *>(0x00791ce0));
 }
 
 void __cdecl Coaster_FlashCar(u8 *coaster, u32 which) {

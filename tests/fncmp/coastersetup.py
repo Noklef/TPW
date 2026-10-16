@@ -5,7 +5,7 @@
 # whole setup also runs the cross sections (xsection.py's coherent descriptions) and appends
 # the static track entries at 0x74cde0 (varied here). Also the other allocating helpers: a
 # car's coupling set up / freed (0x4344c0 / 0x433240), the queue rings' init / free (0x43b080 /
-# 0x43b0c0) and the coaster tables (0x43e980).
+# 0x43b0c0), the coaster tables (0x43e980) and their setup with the id table (0x435500).
 # usage: coastersetup.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import sys
@@ -17,7 +17,8 @@ import xsection  # noqa: E402
 
 B = Bench([(0x42d130, 0x42eb68), (0x42eb70, 0x42fad0), (0x45b9d0, 0x45ba15), (0x45ba00, 0x45ba30),
            (0x5da3c0, 0x5da3d0), (0x4344c0, 0x434566), (0x44b140, 0x44b2e0),
-           (0x43b080, 0x43b0d1), (0x433240, 0x433277), (0x43e980, 0x43e9bb)])
+           (0x43b080, 0x43b0d1), (0x433240, 0x433277), (0x43e980, 0x43e9bb), (0x435500, 0x43552d),
+           (0x468750, 0x46875b)])
 COASTER, NAMES, SOURCE, HOLDER = RAM, RAM + 0x1000, RAM + 0x10000, RAM + 0x20000
 ZEROS = [0, 0x80000000, 0x7fc00000, 0xffc00000, 0x7f800001]  # zero, -0 and NaNs: all count as zero
 
@@ -124,6 +125,12 @@ def case(r):
     if op == 'Tables':
         regions.update({0x792400: bytearray(4), 0x7925dc: bytearray(4), 0x792408: bytearray(4)})
         return Call(0x43e980, [r.choice([0, 1, r.randrange(300)]), r.choice([0, 1, r.randrange(300)])], regions)
+    if op == 'InitTables':  # 0x435500: the tables from the counts at 0x790fd0 / 0x791cfc, the id table
+        regions.update({0x792400: bytearray(4), 0x7925dc: bytearray(4), 0x792408: bytearray(4),
+                        0x790fd0: put(r.bytes(4), 0, 'I', r.choice([0, 1, r.randrange(300)])),
+                        0x791cfc: put(r.bytes(4), 0, 'I', r.choice([0, 1, r.randrange(300)])),
+                        0x790b00: r.bytes(8), 0x791ce0: r.bytes(4)})
+        return Call(0x435500, [], regions)
     if op == 'Type':
         src = xsection.source(r, 'Setup')
         setup(r, src, names, regions)
@@ -137,7 +144,7 @@ def case(r):
     return Call(at, args, regions, ret='a')
 
 
-OPS_ALL = ['Pylons', 'Trains', 'Type', 'Type', 'Coupling', 'RingInit', 'RingFree', 'CouplingFree', 'Tables']
+OPS_ALL = ['Pylons', 'Trains', 'Type', 'Type', 'Coupling', 'RingInit', 'RingFree', 'CouplingFree', 'Tables', 'InitTables']
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

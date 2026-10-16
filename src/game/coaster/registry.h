@@ -122,6 +122,10 @@ void __cdecl Coasters_InitEpsilon();
 // zeroed 0x10-byte blocks (callers pass 0x790fd0 and 0x791cfc).
 void __cdecl Coasters_AllocTables(u32 nodes, u32 links);
 
+// 0x435500: the tables for 0x790fd0 nodes and 0x791cfc links, and the id table (0x790b04 used,
+// 0x790b00 holes, 0x791ce0 next) started.
+void __cdecl Coasters_InitTables();
+
 // 0x441840: stops the coaster's flashing car (+0x144; its ride, 0x7a4610[car+0x70], is
 // unflashed when it has flag 0x4000000) and flashes another: which & 1 the car at +0x58
 // (+0x60 with the coaster's 2 at +0x3c), else which & 2 the one at +0x54 (+0x64), its ride
