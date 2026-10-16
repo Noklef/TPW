@@ -4,6 +4,7 @@
 
 #include "../motion/animator.h"
 #include "../render/particles.h"
+#include "trackpools.h"
 
 namespace {
 
@@ -92,6 +93,43 @@ u32 __cdecl TrakChunk_ReadDword(u8 *chunk) {
     at<u32>(chunk, 8) += done;
     return done == 4 ? value : 0;
 }
+
+namespace {
+
+s32 ShiftDown8(s32 v) { return (s32)((u32)v + ((u32)(v >> 31) & 0xffu)) >> 8; }
+
+// A piece (a buoy) put at the end of the ride's chain (+0xa8, counted at +0xac, the next at +0x14); its ride (+0x10) is set.
+void AppendPiece(u8 *ride, u8 *piece) {
+    at<u8 *>(piece, 0x10) = ride;
+    u8 *tail = at<u8 *>(ride, 0xa8);
+    at<s32>(ride, 0xac) += 1;
+    if (!tail) {
+        at<u8 *>(ride, 0xa8) = piece;
+    } else {
+        while (u8 *next = at<u8 *>(tail, 0x14))
+            tail = next;
+        at<u8 *>(tail, 0x14) = piece;
+    }
+}
+
+u32 NameOfRide(const u8 *ride) { return NameOf(ride); }
+
+// The end piece of the pieces along a line or of a single piece: flag orientation of the ride (+0xb0) turns the offset 0xc00 along x or y and mirrors it.
+void EndOffsets(const u8 *ride, s32 &dx, s32 &dy) {
+    if ((at<u8>(ride, 0xb0) & 1) == 0) {
+        dx = -0xc00;
+        dy = 0;
+    } else {
+        dx = 0;
+        dy = -0xc00;
+    }
+    if (at<u32>(ride, 0xb0) & 2u)
+        dx = -dx;
+    if (at<u32>(ride, 0xb0) & 4u)
+        dy = -dy;
+}
+
+}  // namespace
 
 void __cdecl TrakRide_Fixed(u32 handle) {
     u8 *ride = RideOf(handle);
@@ -193,6 +231,184 @@ u32 __cdecl TrakRide_AddNextCar(u32 handle, u32 value) {
     at<u32>(node, 4) = handle;
     at<u32>(node, 8) = 0xffffffffu;
     return 1;
+}
+
+void __cdecl TrakRide_Open(u32 handle) {
+    u8 *ride = RideOf(handle);
+    if (handle != NameOf(ride))
+        return;
+    const s32 kind = at<s32>(ride, 0);
+    u32 state = 1;
+    switch (kind) {
+    case -13: case -12: case -8: case -5:
+        state = 2;
+        [[fallthrough]];
+    case -10: case -9: case -7: case -4: {
+        if (at<u32>(ride, 0x50) != 0)
+            return;
+        u8 *head = at<u8 *>(ride, 0xa8);
+        u8 *piece = head;
+        while ((at<u8>(piece, 0) & 4) == 0)
+            piece = at<u8 *>(piece, 0x14);
+        do {
+            piece = at<u8 *>(piece, 0x14);
+            if (!piece)
+                piece = head;
+        } while (at<u8>(piece, 0) & 2);
+        at<u8 *>(ride, 0xa4) = piece;
+        break;
+    }
+    default:
+        break;
+    }
+    at<u32>(ride, 0x50) = state;
+    TrakRide_SetPerformance(NameOf(ride), at<u32>(ride, 0x1c));
+}
+
+u32 __cdecl TrakRide_Create(s32 kind, s32 x, s32 y, u32 orientation, u32 handle, u32 value) {
+    if (global<u32>(0x00877b58) != 0x4a454647)
+        return 0;
+    u8 *ride;
+    if (handle != 0) {
+        ride = global<u8 *>(0x00877b60) + (handle & 0xff) * 0xd0;
+        kind = (s32)handle >> 8;
+    } else {
+        ride = global<u8 *>(0x00877b60);
+        if (ride) {
+            s32 i = 0;
+            while (at<u32>(ride, 0) != 0) {
+                ++i;
+                ride += 0xd0;
+                if (i >= 0x40) {
+                    ride = nullptr;
+                    break;
+                }
+            }
+        }
+    }
+    if (!ride)
+        return NameOfRide(ride);  // (faults: the original reads the first dword of the missing ride)
+    const u32 *from = reinterpret_cast<const u32 *>((uintptr_t)(0x00764178 - (u32)(kind + 1) * 0xd0));
+    for (u32 i = 0; i < 0x34; ++i)
+        at<u32>(ride, 4 * i) = from[i];
+    global<u32>(0x00877b64) += 1;
+    at<u32>(ride, 0xb0) = orientation;
+    at<u32>(ride, 0x5c) = 0;
+    at<u32>(ride, 0x10) = value;
+    at<u32>(ride, 0xac) = 0;
+    at<u32>(ride, 0xa8) = 0;
+    at<u32>(ride, 0xc0) = 0;
+    at<u32>(ride, 0xbc) = 0;
+    at<s32>(ride, 0xb4) = x;
+    at<s32>(ride, 0xb8) = y;
+    at<u32>(ride, 0xcc) = 0;
+    at<u32>(ride, 0x58) = 0;
+    const s32 own = at<s32>(ride, 0);
+    switch (own) {
+    case -14: case -11: case -6: case -3: case -1: {
+        u8 *node;
+        s32 d;
+        if (own == -11) {
+            node = CollNode_Alloc(x + 0x600, y + 0x600, 0x1100);
+            d = 0xb00;
+        } else if (own == -3 || own != -1) {
+            node = CollNode_Alloc(x + 0x600, y + 0x600, 0x1600);
+            d = 0x1000;
+        } else {
+            node = CollNode_Alloc(x + 0x600, y + 0x600, 0x1200);
+            d = 0xc00;
+        }
+        at<u8 *>(node, 0x14) = at<u8 *>(ride, 0xc0);
+        at<u8 *>(ride, 0xc0) = node;
+        x += 0x600;
+        y += 0x600;
+        s32 px = 0;
+        at<s32>(ride, 0x90) = x;
+        at<s32>(ride, 0x74) = x;
+        at<s32>(ride, 0x94) = y;
+        at<s32>(ride, 0x78) = y;
+        for (int n = 8; n != 0; --n) {
+            if (u8 *piece = Buoy_Alloc(px + x, d + y))
+                AppendPiece(ride, piece);
+            const s32 cosine = global<s32>(0x00877458), sine = global<s32>(0x00877658);
+            const s32 oldx = px;
+            px = ShiftDown8((s32)((u32)sine * (u32)px + (u32)cosine * (u32)d));
+            d = ShiftDown8((s32)((u32)sine * (u32)d - (u32)oldx * (u32)cosine));
+        }
+        at<u32>(ride, 0x50) = 0;
+        break;
+    }
+    case -13: case -12: case -8: case -5: {
+        at<s32>(ride, 0x74) = x;
+        at<s32>(ride, 0x78) = y;
+        s32 dx, dy;
+        EndOffsets(ride, dx, dy);
+        u8 *piece = Buoy_Alloc(dx + x, dy + y);
+        if (piece)
+            AppendPiece(ride, piece);
+        at<u32>(piece, 0) |= 4;
+        at<u32>(ride, 0x50) = 0;
+        at<s32>(ride, 0x90) = dx / 3 + at<s32>(ride, 0x74);
+        at<s32>(ride, 0x94) = dy / 3 + at<s32>(ride, 0x78);
+        break;
+    }
+    case -10: case -9: case -7: case -4: {
+        at<s32>(ride, 0x90) = x;
+        at<s32>(ride, 0x74) = x;
+        at<s32>(ride, 0x94) = y;
+        at<s32>(ride, 0x78) = y;
+        for (s32 i = 0; i < at<s32>(ride, 0x64); ++i) {
+            s32 dx = ((at<s32>(ride, 0x64) - i) - 2) * 0x400;
+            const u32 flags = at<u32>(ride, 0xb0);
+            s32 across = (i & 1) * -0x800 + 0x400;
+            s32 dy = across;
+            if (flags & 1) {
+                dy = dx;
+                dx = across;
+            }
+            if (flags & 2)
+                dx = -dx;
+            if (flags & 4)
+                dy = -dy;
+            u8 *piece = Buoy_Alloc(dx + x, dy + y);
+            if (piece)
+                AppendPiece(ride, piece);
+            at<u32>(piece, 0) |= 2;
+        }
+        s32 dx, dy;
+        EndOffsets(ride, dx, dy);
+        u8 *piece = Buoy_Alloc(dx + x, dy + y);
+        if (piece)
+            AppendPiece(ride, piece);
+        at<u32>(piece, 0) |= 4;
+        at<u32>(ride, 0x50) = 0;
+        break;
+    }
+    case -2: {
+        CollNode_Alloc(0xb400, 0x9600, 0x1e00);
+        u8 *node = CollNode_Alloc(0xb400, 0x9600, 0x1400);
+        at<u32>(node, 0) |= 0x40;
+        CollNode_Alloc(0x9000, 0x7200, 0x2600);
+        const s32 starts[2][4] = {{0xb400, 0x9600, 0, -0x1800}, {0x9000, 0x7200, 0, 0x2000}};
+        for (int group = 0; group < 2; ++group) {
+            s32 px = starts[group][2], py = starts[group][3];
+            for (int n = 7; n != 0; --n) {
+                if (u8 *piece = Buoy_Alloc(px + starts[group][0], py + starts[group][1]))
+                    AppendPiece(ride, piece);
+                const s32 cosine = global<s32>(0x00877458), sine = global<s32>(0x00877a58);
+                const s32 oldx = px;
+                px = ShiftDown8((s32)((u32)sine * (u32)py + (u32)cosine * (u32)px));
+                py = ShiftDown8((s32)((u32)cosine * (u32)py - (u32)oldx * (u32)sine));
+            }
+        }
+        at<u32>(ride, 0x50) = 2;
+        return NameOfRide(ride);
+    }
+    default:
+        return NameOfRide(ride);
+    }
+    TrakRide_SetPerformance(NameOfRide(ride), at<u32>(ride, 0x1c));
+    return NameOfRide(ride);
 }
 
 void __cdecl TrakRide_Close(u32 handle) {

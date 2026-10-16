@@ -76,4 +76,18 @@ s32 __cdecl TrakRide_CountPieces(u32 handle, s32 *others, s32 *longestRun, s32 *
 // 0x54aa80 (handle, value): when the module is loaded, the handle names the ride, its dword at +0x50 is not 0 and the free node list at 0x877b8c has a node: the node is taken off
 // it, put at the head of the ride's list at +0xc4, given the value at +0, the handle at +4 and -1 at +8. Returns 1, otherwise 0.
 u32 __cdecl TrakRide_AddNextCar(u32 handle, u32 value);
+
+// 0x544840 (handle): opens the ride when the module is loaded and the handle names it. For the kinds -13, -12, -8, -5 (+0) with +0x50 clear: the first piece of the chain at
+// +0xa8 with flag 4 is found and the first piece after it without flag 2 (the chain read round) becomes the ride's current one (+0xa4), +0x50 = 2; for the kinds -10, -9, -7,
+// -4 the same with +0x50 = 1; the others only get +0x50 = 1. The performance is then set again from +0x1c (TrakRide_SetPerformance). (A chain without a piece with flag 4,
+// or with every piece flagged 2, never ends.)
+void __cdecl TrakRide_Open(u32 handle);
+
+// 0x545890 (kind, x, y, orientation, handle, value): when the module is loaded, makes a ride of the kind (-1 to -14; a handle names the record, else the first free one of the 0x40
+// at [0x877b60] is taken - none: faults) from the template record 0xd0 bytes apart from 0x764178, the ride count [0x877b64] raised, with the orientation at +0xb0, the position
+// at +0xb4 / +0xb8 and the value at +4, no chain; then by the template's kind: the five kinds with collision nodes (-14, -11, -6, -3, -1) get one collision node (sizes 0x1600,
+// 0x1100, 0x1600, 0x1600 and 0x1200, the node pushed on the list at +0xc0) and eight pieces round it; -13, -12, -8 and -5 one end piece (flag 4); -10, -9, -7 and -4 as many
+// pieces (flag 2) as +0x64 says along a line and an end piece; -2 three collision nodes and fourteen pieces. The performance is set from +0x1c (not for -2); returns the
+// ride's handle (index | kind << 8), 0 when the module is not loaded.
+u32 __cdecl TrakRide_Create(s32 kind, s32 x, s32 y, u32 orientation, u32 handle, u32 value);
 }

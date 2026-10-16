@@ -10,10 +10,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put, record_stream  # noqa: E402
 
 B = Bench([(0x5452a0, 0x545307), (0x54ab40, 0x54abc3), (0x543490, 0x5434d0), (0x54bbb0, 0x54bbd6), (0x549b50, 0x549b71), (0x549d30, 0x549da6),
-           (0x5f5e20, 0x5f5e50), (0x5f5e50, 0x5f5e80), (0x544a10, 0x544b50), (0x544e50, 0x544f90), (0x545180, 0x5452a0), (0x545310, 0x545450), (0x54aa80, 0x54ab40), (0x51feb0, 0x51ff10), (0x544160, 0x5441f0), (0x5441f0, 0x544290), (0x544c00, 0x544c80), (0x545100, 0x545180), (0x54abd0, 0x54ac70), (0x5da3c0, 0x5da3c1)])
+           (0x5f5e20, 0x5f5e50), (0x5f5e50, 0x5f5e80), (0x544a10, 0x544b50), (0x544840, 0x544a10), (0x545890, 0x546280), (0x54b130, 0x54b290), (0x544e50, 0x544f90), (0x545180, 0x5452a0), (0x545310, 0x545450), (0x54aa80, 0x54ab40), (0x51feb0, 0x51ff10), (0x544160, 0x5441f0), (0x5441f0, 0x544290), (0x544c00, 0x544c80), (0x545100, 0x545180), (0x54abd0, 0x54ac70), (0x5da3c0, 0x5da3c1)])
 STREAM, SINK, BUF, POOL, LINKS, GLOBALS = RAM + 0x100, RAM + 0x200, RAM + 0x400, RAM + 0x1000, RAM + 0x800, 0x877b58
 SETUPREG, SYSTEMS_AT = 0x816d40, 0x80cefc
-CALLS = ['Write', 'Read', 'Free', 'Linked', 'Field5c', 'PopNode', 'Worn', 'Dur', 'PushNode', 'ReadN', 'ReadD', 'Close', 'Fixed', 'Perf', 'Count', 'AddCar']
+CALLS = ['Write', 'Read', 'Free', 'Linked', 'Field5c', 'PopNode', 'Worn', 'Dur', 'PushNode', 'ReadN', 'ReadD', 'Close', 'Fixed', 'Perf', 'Count', 'AddCar', 'Open', 'Create']
 
 
 def case(r):
@@ -64,6 +64,55 @@ def case(r):
         put(globals_, 0x10, 'I', RAM + 0x30000 if r.random() < 0.9 else 0)
         put(globals_, 0x14, 'I', r.choice([0, 1, used, max(used - 1, 0), 2]))
         return Call(0x544e50, [handle], regions, ret='v')
+    if op == 'Open':  # a ride of a kind with a chain of 1 to 4 pieces (flag 4 on one, flag 2 off on the first, so the searches end)
+        rides = bytearray(r.bytes(0x100 * 0xd0))
+        index = r.choice([0, 1, 0xff, r.randrange(0x100)])
+        kind = r.choice([-13, -12, -8, -5, -10, -9, -7, -4, -14, -11, -6, -3, -2, -1, 0, 5])
+        put(rides, index * 0xd0, 'i', kind)
+        put(rides, index * 0xd0 + 0x50, 'I', r.choice([0, 0, 0, 1, 7]))
+        n = r.choice([1, 2, 3, 4])
+        pieces = bytearray(r.bytes(0x40 * 5))
+        for k in range(n):
+            pieces[0x40 * k] = r.getrandbits(8) & ~4 & 0xff
+            put(pieces, 0x40 * k + 0x14, 'I', RAM + 0x8000 + 0x40 * (k + 1) if k + 1 < n else 0)
+        pieces[0x40 * r.randrange(n)] |= 4
+        pieces[0] &= ~2 & 0xff
+        put(rides, index * 0xd0 + 0xa8, 'I', RAM + 0x8000)
+        put(globals_, 0, 'I', 0x4a454647 if r.random() < 0.9 else r.getrandbits(32))
+        put(globals_, 8, 'I', POOL)
+        handle = r.choice([index | (kind << 8) & 0xffffffff] * 5 + [index | (kind ^ 1) << 8 & 0xffffffff, r.getrandbits(32)]) & 0xffffffff
+        return Call(0x544840, [handle], {GLOBALS: globals_, POOL: rides, RAM + 0x8000: pieces}, ret='v')
+    if op == 'Create':  # the ride pool (a handle for a record, or the first free one), the collision node and buoy pools with the free ones anywhere
+        rides = bytearray(r.bytes(0x100 * 0xd0))
+        free = r.choice([0, 1, 5, 0x3f, 2, 3, 7, 0x20, -1])
+        for k in range(0x40):
+            if k != free:
+                rides[k * 0xd0] |= 1
+        kind = r.choice(range(-14, 0))
+        slot = r.randrange(0x40)
+        handle = r.choice([0, 0, slot | (kind << 8) & 0xffffffff])
+        colls = bytearray(r.bytes(0x800 * 0x20))
+        buoys = bytearray(r.bytes(0x400 * 0x1c))
+        for pool, stride, count in ((colls, 0x20, 0x800), (buoys, 0x1c, 0x400)):
+            first = r.choice([0, 1, 2, 5, 0x3f, count - 1, count - 20, count - 40, 10, 100, -1])
+            for k in range(count):
+                if k < first or first < 0:
+                    pool[k * stride] |= 1
+                elif k == first:
+                    pool[k * stride] &= 0xfe
+        put(globals_, 0, 'I', 0x4a454647 if r.random() < 0.93 else r.getrandbits(32))
+        put(globals_, 8, 'I', POOL)
+        put(globals_, 0xc, 'I', r.getrandbits(8))
+        put(globals_, 0x18, 'I', RAM + 0x40000)
+        put(globals_, 0x20, 'I', RAM + 0x60000)
+        put(globals_, 0x1c, 'I', r.getrandbits(8))
+        put(globals_, 0x24, 'I', r.getrandbits(8))
+        trig = {0x877458: bytearray(r.bytes(0x10)), 0x877658: bytearray(r.bytes(0x10)), 0x877a58: bytearray(r.bytes(0x10))}
+        for g in trig:
+            put(trig[g], 0, 'i', r.choice([0, 256, 181, -181, 255, -256, r.randrange(-300, 300), r.getrandbits(32) - 0x80000000]))
+        regions = {GLOBALS: globals_, POOL: rides, RAM + 0x40000: colls, RAM + 0x60000: buoys, **trig}
+        return Call(0x545890, [kind & 0xffffffff, r.randrange(-0x20000, 0x20000) & 0xffffffff, r.randrange(-0x20000, 0x20000) & 0xffffffff,
+                               r.getrandbits(3) | r.choice([0, 0, 0x10]), handle & 0xffffffff, r.getrandbits(32)], regions, ret='a')
     if op == 'Close':  # a ride of one of the kinds (the first dword, also the serial of its handle) with a list at +0xc8 / +0xc4 and pool records pointing at it
         rides = bytearray(r.bytes(0x100 * 0xd0))
         index = r.choice([0, 1, 0xff, r.randrange(0x100)])

@@ -839,6 +839,8 @@ address,name,kind,confidence,notes
 0x00545180,TrakRide_SetPerformance,function,high,reimplemented (src/game/world/trackrides); sets the ride performance and its interpolated values
 0x00545310,TrakRide_CountPieces,function,high,reimplemented (src/game/world/trackrides); counts the pieces of the ride chain
 0x0054aa80,TrakRide_AddNextCar,function,high,reimplemented (src/game/world/trackrides); puts a node on the next car list
+0x00544840,TrakRide_Open,function,high,reimplemented (src/game/world/trackrides); opens a ride and picks its current piece
+0x00545890,TrakRide_Create,function,high,reimplemented (src/game/world/trackrides); creates a ride of a kind with its collision nodes and pieces
 0x0055a570,FlyingRide_FirstSlotRide,function,high,"reimplemented (src/game/world/flyingrides); cdecl u32 (index): flying ride index's (1-99, 0x8791f8) first slot's ride (+0x11c), else 0"
 0x0055d610,FlyingRide_StepInSlot,function,high,"reimplemented (src/game/world/flyingrides); cdecl u32 (index): first slot in state 1 (slot +0x80) with a negative step (+0x8c): its ride part (key (base + -step) % count + 1, flag 0x80) released, step +1, +0x48 -1, the step's u32 (+0x90 + -step * 4); else 0"
 0x0055d720,FlyingRide_StepOutSlot,function,high,reimplemented (src/game/world/flyingrides); cdecl u32 (index): as 0x55d610 for the first slot with a positive step: step -1
