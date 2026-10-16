@@ -1,6 +1,7 @@
 // The map's cell tables (gMapCells, 0x8023a0: 0x44-byte cells from +0, 0x28-byte ones from
 // +0x110000, both named by a 1-based u16 handle) and the "World Struture" memory ranges at
-// 0x7cdb30: reimplementation of 0x4d0a70-0x4d0b10.
+// 0x7cdb30: reimplementation of 0x4d0a70-0x4d0b10; and the map's (gWorld + 0x2d8) bounds check,
+// RE cells and fixed positions, 0x4d8300-0x4d8710. A position is the u16 handle y * 128 + x + 1.
 #pragma once
 
 #include "../../../re/types.h"
@@ -21,4 +22,22 @@ void __fastcall MemRanges_Set(u8 *ranges, void *, u32 index, u32 a, u32 b, const
 // (base, base + stride * 0x4000), and the stride to 0x7cdb50 / 0x7cdb54.
 void __cdecl MemRanges_SetCells44(u32 base, u32 stride);
 void __cdecl MemRanges_SetCells28(u32 base, u32 stride);
+
+// 0x4d8300 (cdecl): whether x and y are both 0-127 (signed).
+u32 __cdecl Map_InBounds(s32 x, s32 y);
+
+// 0x4d8410 (thiscall on the map; pos, its low 16 bits): the RE cell (5 u16s) of pos - 1, from
+// map +0x1b1104.
+u8 *__fastcall Map_RECell(u8 *map, void *, u32 pos);
+
+// 0x4d8610, 0x4d8650, 0x4d8690, 0x4d86d0, 0x4d8710 (thiscall on the map, unused; &pos, b):
+// the position of the A (b 0) or B one of gBalanceLevel's ticket booths (+0x55c), bus stops
+// (+0x56c), entrances (+0x57c), park side crossings (+0x58c) and bus stop side crossings
+// (+0x59c), each an A x, y then a B x, y. The two crossings' B takes A's y (sic). Return the
+// pointer.
+u16 *__fastcall Map_TicketBoothPos(const u8 *map, void *, u16 *out, u32 b);
+u16 *__fastcall Map_BusStopPos(const u8 *map, void *, u16 *out, u32 b);
+u16 *__fastcall Map_EntrancePos(const u8 *map, void *, u16 *out, u32 b);
+u16 *__fastcall Map_CrossingParkSidePos(const u8 *map, void *, u16 *out, u32 b);
+u16 *__fastcall Map_CrossingBSSidePos(const u8 *map, void *, u16 *out, u32 b);
 }

@@ -668,6 +668,13 @@ address,name,kind,confidence,notes
 0x004d0a70,MemRanges_Set,function,high,"reimplemented (src/game/world/mapcell); thiscall on 0x7cdb30 (index, a, b, name): entry index = (a, b); name unused (""World Struture"")"
 0x004d0a90,MemRanges_SetCells44,function,high,"reimplemented (src/game/world/mapcell); cdecl (base, stride): 0x7cdb40 = base, 0x7cdb44 = base + stride * 0x4000, 0x7cdb50 = stride"
 0x004d0ac0,MemRanges_SetCells28,function,high,"reimplemented (src/game/world/mapcell); cdecl (base, stride): 0x7cdb48 = base, 0x7cdb4c = base + stride * 0x4000, 0x7cdb54 = stride"
+0x004d8300,Map_InBounds,function,high,"reimplemented (src/game/world/mapcell); cdecl (x, y): both 0-127, signed"
+0x004d8410,Map_RECell,function,high,reimplemented (src/game/world/mapcell); thiscall on the map (pos): the RE cell (5 x u16) of pos - 1 from map +0x1b1104
+0x004d8610,Map_TicketBoothPos,function,high,"reimplemented (src/game/world/mapcell); thiscall on the map, unused (&pos, b): gBalanceLevel TicketBoothA/BPosX/Y (+0x55c) as y * 128 + x + 1"
+0x004d8650,Map_BusStopPos,function,high,"reimplemented (src/game/world/mapcell); thiscall on the map, unused (&pos, b): gBalanceLevel BusStopA/BPosX/Y (+0x56c) as y * 128 + x + 1"
+0x004d8690,Map_EntrancePos,function,high,"reimplemented (src/game/world/mapcell); thiscall on the map, unused (&pos, b): gBalanceLevel EntranceA/BPosX/Y (+0x57c) as y * 128 + x + 1"
+0x004d86d0,Map_CrossingParkSidePos,function,high,"reimplemented (src/game/world/mapcell); thiscall on the map, unused (&pos, b): gBalanceLevel CrossingParkSideA/B (+0x58c); B takes A's y (sic)"
+0x004d8710,Map_CrossingBSSidePos,function,high,"reimplemented (src/game/world/mapcell); thiscall on the map, unused (&pos, b): gBalanceLevel CrossingBSSideA/B (+0x59c); B takes A's y (sic)"
 0x004d1c80,Challenges_DropOrphans,function,high,reimplemented (src/game/world/challenges); thiscall: each challenge in use (+0) naming another (+0x18) is dropped (+0 = 0) unless another in use has that id (from Challenges_LoadSam)
 0x004d2840,Challenges_Current,function,high,"reimplemented (src/game/world/challenges); thiscall: &challenges[+0x3cc] (0x30 bytes from +0xc) for an index 0-19, else null"
 0x004d1e60,BalanceChallenges_GetSchema,function,high,"reimplemented (src/game/world/challenges); thiscall (index), vtable 0x700398 slot 0: 0x739b98 + index * 0x3c"
