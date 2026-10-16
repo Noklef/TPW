@@ -20,6 +20,7 @@ add_library(tpw_game STATIC
     src/game/core/fpu.cpp
     src/game/core/libc.cpp
     src/game/core/list.cpp
+    src/game/core/defids.cpp
     src/game/core/gameheap.cpp
     src/game/core/ptrlist.cpp
     src/game/core/result.cpp
@@ -109,6 +110,7 @@ add_library(tpw_game STATIC
     src/game/core/tiny_k.cpp
     src/game/core/tiny_l.cpp
     src/game/core/tiny_m.cpp
+    src/game/core/tiny_n.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

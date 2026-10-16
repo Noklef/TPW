@@ -407,6 +407,36 @@ def fieldtable(a, texts):
                 body='return global<u32>(0x%08x + 20 * at<u16>(o, 0x%x));' % (table, off), setup=setup, debug=True)
 
 
+def deftable(a, texts):
+    """A getter of a field of an object definition found by id in the table of 0x38-byte records at 0x76e300 (the id at +4): the record at
+    id * 0x38 when it has the id, or (sic) when the id is found anywhere in the table; 0x15f and 0x160 are never found; a debug printf
+    (left out) reports a miss. Returns the field at +off of the record, or a default (0 or a constant) for none."""
+    if len(texts) not in (32, 33):
+        return None
+    d = 1 if len(texts) == 33 else 0  # a default constant is loaded
+    pats = [r'^MOV ECX,\[ESP \+ 0x4\]$', r'^CMP ECX,0x160$', r'^JZ 0x', r'^CMP ECX,0x15f$', r'^JZ 0x', r'^MOV EDX,ECX$', r'^SHL EDX,0x3$', r'^SUB EDX,ECX$',
+            r'^SHL EDX,0x3$', r'^CMP \[EDX \+ 0x76e304\],ECX$', r'^JNZ 0x', r'^LEA EAX,\[EDX \+ 0x76e300\]$', r'^JMP 0x', r'^MOV EAX,0x76e304$', r'^CMP \[EAX\],ECX$',
+            r'^JZ 0x', r'^ADD EAX,0x38$', r'^CMP EAX,0x772fcc$', r'^JL 0x', r'^PUSH ECX$', r'^PUSH 0x[0-9a-f]+$', r'^PUSH 0x3$', r'^CALL 0x005da3c0$', r'^ADD ESP,0xc$',
+            r'^XOR EAX,EAX$', r'^TEST EAX,EAX$', r'^JNZ 0x']
+    if d:
+        pats.append(r'^MOV EAX,(0x[0-9a-f]+)$')
+    pats += [r'^RET 0x4$', r'^MOV EAX,\[EAX \+ (0x[0-9a-f]+)\]$', r'^RET 0x4$', r'^LEA EAX,\[EDX \+ 0x76e300\]$', r'^JMP 0x']
+    ms = [re.match(p, t) for p, t in zip(pats, texts)]
+    if len(pats) != len(texts) or not all(ms):
+        return None
+    default = num(ms[27].group(1)) if d else 0
+    off = num(ms[-4].group(1))
+    setup = ('table = bytearray(r.bytes(0x5000))\n'
+             'for i in range(0x15e):  # the table: most records hold their own index as the id\n'
+             '    put(table, 56 * i + 4, \'I\', i if r.random() < 0.7 else r.choice([0, 1, 5, 0x10, 0x15d, 0x150, r.randrange(0, 0x15e)]))\n'
+             'regions[0x76e300] = table\n'
+             'return [r.choice([0, 1, 2, 5, 0x10, 0x14f, 0x150, 0x15d, 0x15e, 0x15f, 0x160, 0x161, r.randrange(0, 0x15e), r.randrange(0, 0x15e), 0x400])]\n')
+    return dict(name='DefField%x_%06x' % (off, a), conv='s', nargs=1, ret='a', globals=[], setup=setup, debug=True,
+                doc='the dword at +0x%x of the object definition with the id (0x%x when there is none)' % (off, default),
+                body='const u8 *record = ObjectDef_FindById(v0); return record ? at<u32>(record, 0x%x) : 0x%x;' % (off, default),
+                includes=['core/defids.h'])
+
+
 def frame(a, texts):
     """A function in the debug build's frame style: PUSH EBP; MOV EBP,ESP; [save ECX]; [a constant result]; POP EBP; RET [n]."""
     if len(texts) < 4 or texts[:2] != ['PUSH EBP', 'MOV EBP,ESP'] or texts[-2] != 'POP EBP' or not texts[-1].startswith('RET'):
@@ -441,7 +471,7 @@ def frame(a, texts):
 
 def match(a, ins):
     texts = [t for _, t in ins]
-    d = frame(a, texts) or ctor(a, texts) or deleter(a, texts) or listdtor(a, texts) or listdeldtor(a, texts) or freeglobal(a, texts) or fieldtable(a, texts)
+    d = frame(a, texts) or ctor(a, texts) or deleter(a, texts) or listdtor(a, texts) or listdeldtor(a, texts) or freeglobal(a, texts) or fieldtable(a, texts) or deftable(a, texts)
     if d:
         d.setdefault('globals', [])
         d['addr'] = a
@@ -591,13 +621,14 @@ def main():
                  '            put(chain, 0x20 * i + 4, \'I\', RAM + 0x1000 + 0x20 * (i + 1) if i + 1 < count else 0)\n'
                  '        put(obj, 0x84, \'I\', RAM + 0x1000 if count else 0)  # the object is at RAM + 0x80\n'
                  '        regions[RAM + 0x1000] = chain\n' if any(d.get('listy') for d in found) else '') +
-                '    if address in SETUP:\n'
-                '        SETUP[address](r, obj, regions)\n'
+                '    override = SETUP[address](r, obj, regions) if address in SETUP else None\n'
                 '    for g in globs:\n'
                 '        regions[g & ~0xf] = r.bytes(0x20)\n'
                 '    args = [r.choice([0, 1, 0xff, 0x7fffffff, 0xffffffff, r.getrandbits(32)]) for _ in range(n)]\n'
                 '    for i in ptr:\n'
                 '        args[i] = RAM + 0x200 + 0x40 * min(i, 3) + r.choice([0, 4, 0x20])\n'
+                '    if override is not None:\n'
+                '        args = list(override)\n'
                 '    if conv == \'t\':\n'
                 '        args = [RAM + 0x80] + args\n'
                 '    return Call(address, args, regions, conv=conv, ret=ret)\n\n\n'

@@ -2892,6 +2892,10 @@ address,name,kind,confidence,notes
 0x00519590,GameTable7cfb90_Get1da724_519590,function,high,reimplemented (src/game/core/tiny_m); the dword of the table at 0x7cfb90 for the 16-bit field at +0x1da724 of the game object (the debug printf in the original is not called)
 0x005195d0,GameTable7cfb90_Get1da726_5195d0,function,high,reimplemented (src/game/core/tiny_m); the dword of the table at 0x7cfb90 for the 16-bit field at +0x1da726 of the game object (the debug printf in the original is not called)
 0x00519610,GameTable7cfb90_Get1da736_519610,function,high,reimplemented (src/game/core/tiny_m); the dword of the table at 0x7cfb90 for the 16-bit field at +0x1da736 of the game object (the debug printf in the original is not called)
+0x0059c240,DefField24_59c240,function,high,reimplemented (src/game/core/tiny_n); the dword at +0x24 of the object definition with the id (0x266 when there is none)
+0x0059c2b0,DefField28_59c2b0,function,high,reimplemented (src/game/core/tiny_n); the dword at +0x28 of the object definition with the id (0x0 when there is none)
+0x0059c490,DefField2c_59c490,function,high,reimplemented (src/game/core/tiny_n); the dword at +0x2c of the object definition with the id (0x5 when there is none)
+0x0059c500,DefField8_59c500,function,high,reimplemented (src/game/core/tiny_n); the dword at +0x8 of the object definition with the id (0xa when there is none)
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
