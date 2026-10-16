@@ -2122,6 +2122,16 @@ address,name,kind,confidence,notes
 0x005b0cc0,GlobalSave_ClearByte4c,function,high,reimplemented (src/game/core/globalsave); thiscall: the global save info's byte +0x4c = 0
 0x005775d0,LiveObjects_Add,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): appended to the live objects list (0x87a6d8, count 0x87aed8, room for 0x200; the rest dropped); 1 either way"
 0x00577600,LiveObjects_Remove,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): the last match is replaced by the last entry and the count drops; 1, or 0 when not there"
+0x005b96a0,Obj_Get3e4,function,high,reimplemented (src/game/core/trivial); the dword at +0x3e4
+0x005b96b0,Obj_Get3a4,function,high,reimplemented (src/game/core/trivial); the dword at +0x3a4
+0x005c5520,Obj_Self,function,high,reimplemented (src/game/core/trivial); returns the object itself
+0x005c5550,Obj_Part14,function,high,reimplemented (src/game/core/trivial); the address of the part at +0x14
+0x005c55b0,Obj_Part3c,function,high,reimplemented (src/game/core/trivial); the address of the part at +0x3c
+0x005cec70,Stub_Ret4,function,high,reimplemented (src/game/core/trivial); a virtual that does nothing (pops 4)
+0x005d1410,Stub_One,function,high,reimplemented (src/game/core/trivial); returns 1
+0x005d1750,Stub_Ret,function,high,reimplemented (src/game/core/trivial); does nothing
+0x005da3d0,Stub_Ret12,function,high,reimplemented (src/game/core/trivial); a virtual that does nothing (pops 12)
+0x005e7310,Obj_CopyCToMark,function,high,reimplemented (src/game/core/trivial); +0x38 = +0xc; returns it with the low byte 1
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

@@ -83,6 +83,7 @@
 #include "../game/core/soundset.h"
 #include "../game/core/stdstring.h"
 #include "../game/core/textarg.h"
+#include "../game/core/trivial.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -1558,6 +1559,16 @@ const Hook kHooks[] = {
     {"GlobalSave_ClearByte4c",    0x005b0cc0, (void *)&GlobalSave_ClearByte4c, {0xc6, 0x41, 0x4c, 0x00, 0xc3}},
     {"LiveObjects_Add",           0x005775d0, (void *)&LiveObjects_Add, {0xa1, 0xd8, 0xae, 0x87, 0x00}},
     {"LiveObjects_Remove",        0x00577600, (void *)&LiveObjects_Remove, {0xa1, 0xd8, 0xae, 0x87, 0x00}},
+    {"Obj_Get3e4",                0x005b96a0, (void *)&Obj_Get3e4, {0x8b, 0x81, 0xe4, 0x03, 0x00}},
+    {"Obj_Get3a4",                0x005b96b0, (void *)&Obj_Get3a4, {0x8b, 0x81, 0xa4, 0x03, 0x00}},
+    {"Obj_Self",                  0x005c5520, (void *)&Obj_Self, {0x8b, 0xc1, 0xc3, 0x90, 0x90}},
+    {"Obj_Part14",                0x005c5550, (void *)&Obj_Part14, {0x8d, 0x41, 0x14, 0xc3, 0x90}},
+    {"Obj_Part3c",                0x005c55b0, (void *)&Obj_Part3c, {0x8d, 0x41, 0x3c, 0xc3, 0x90}},
+    {"Stub_Ret4",                 0x005cec70, (void *)&Stub_Ret4, {0xc2, 0x04, 0x00, 0x90, 0x90}},
+    {"Stub_One",                  0x005d1410, (void *)&Stub_One, {0xb8, 0x01, 0x00, 0x00, 0x00}},
+    {"Stub_Ret",                  0x005d1750, (void *)&Stub_Ret, {0xc3, 0x90, 0x90, 0x90, 0x90}},
+    {"Stub_Ret12",                0x005da3d0, (void *)&Stub_Ret12, {0xc2, 0x0c, 0x00, 0x90, 0x90}},
+    {"Obj_CopyCToMark",           0x005e7310, (void *)&Obj_CopyCToMark, {0x8b, 0x41, 0x0c, 0x89, 0x41}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
