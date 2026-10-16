@@ -111,7 +111,8 @@
 #include "../game/world/staff.h"
 #include "../game/world/thingmsg.h"
 #include "../game/world/analyser.h"
-#include "../game/world/challenges.h"
+#include "../game/world/challenges.h"
+#include "../game/world/collobj.h"
 #include "../game/world/nav.h"
 #include "../game/world/mapcell.h"
 #include "../game/world/object.h"
@@ -511,6 +512,9 @@ const Hook kHooks[] = {
     {"World_HasRides",            0x0051ab60, (void *)&World_HasRides, {0x56, 0x57, 0xb9, 0x08, 0x00}},
     {"Empty_Ctor",                0x0051ad30, (void *)&Empty_Ctor, {0x8b, 0xc1, 0xc3, 0x90, 0x90}},
     {"Record999_Ctor",            0x0051ae10, (void *)&Record999_Ctor, {0x8b, 0xc1, 0xc7, 0x00, 0x00}},
+    {"CollPool_Reset",            0x00544330, (void *)&CollPool_Reset, {0x8b, 0x0d, 0x88, 0x7b, 0x87}},
+    {"Collider_ReleaseC0",        0x005457e0, (void *)&Collider_ReleaseC0, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Collider_KeepA8",           0x00545810, (void *)&Collider_KeepA8, {0x57, 0x8b, 0x7c, 0x24, 0x08}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},
