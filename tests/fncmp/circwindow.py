@@ -20,13 +20,13 @@ def case(r):
     sample = lambda: r.choice([0, 0, 1, -1, 5, -5, 100, -100, 0x7fffffff, -0x80000000, r.randrange(-50, 50)])  # noqa: E731
     for i in range(0x90):
         put(buf, 4 + 4 * i, 'i', sample())
-    count = r.choice([0, 1, 2, 5, 12, 13, 36, 37, 144, r.randrange(0, 145)])
+    count = r.choice([0, 1, 2, 5, 12, 13, 36, 37, 38, 40, 100, 144, 144, r.randrange(0, 145)])
     head = r.choice([0, 1, count - 1, count, r.randrange(0, 144), 143]) if count else r.choice([0, 1, 5])
     put(buf, 0x244, 'i', max(0, min(143, head)))
     put(buf, 0x248, 'i', count)
     buf[0x24c] = r.choice([0, 1, 1, 0xff])
     out = r.choice([0, 1, -1, 5, -5, 100, -100, 0x7fffffff, -0x80000000, sample()])
-    kind = r.choice([0, 1, 2, 3, 4, r.getrandbits(32)])
+    kind = r.choice([0, 0, 1, 1, 1, 2, 3, r.getrandbits(32)])
     if r.random() < 0.5:  # a standout sample at, just inside or just past the window's end
         window = {0: 0xc, 1: 0x24, 2: 0x90}.get(kind, 0)
         back = window + r.choice([-1, 0, 1])
