@@ -2955,6 +2955,7 @@ address,name,kind,confidence,notes
 0x005d3830,Array3D_Init,function,high,reimplemented (src/game/core/small5); dimensions and a block of their product
 0x005d3860,Array3D_Free,function,high,reimplemented (src/game/core/small5); clears the dimensions and frees the block
 0x00569c80,Deleter_Minus2c_569c80,function,high,reimplemented (src/game/core/small5); deleting destructor of the object 0x2c bytes in
+0x004254e0,Obj_RemoveRectAndClear14,function,high,"reimplemented (src/game/core/small5); the part of the object at +0x24 removed from the grid, bit 14 cleared"
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
