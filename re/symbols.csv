@@ -3333,6 +3333,8 @@ address,name,kind,confidence,notes
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/small42); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/small42); scales a voice's levels by the factor over 1024
 0x00598630,IntArray_SetSize,function,high,"reimplemented (src/game/core/small44); resizes the dword array, growing by its step"
+0x005b2f40,StdTreeF_LowerBound,function,high,reimplemented (src/game/core/small45); lower bound of a string key in the string map
+0x005b0c40,StdTreeF_AllFlagged,function,high,reimplemented (src/game/core/small45); whether every mapped object has the byte at +0xb9 set
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
