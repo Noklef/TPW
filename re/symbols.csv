@@ -3136,6 +3136,13 @@ address,name,kind,confidence,notes
 0x0058c370,Class702198_DeletingDtor,function,high,reimplemented (src/game/core/vobj2); deleting destructor of a virtual base class
 0x005e1fa0,Obj_PickByName,function,high,reimplemented (src/game/core/vobj2); picks the listed object with the global name
 0x005e4020,Class702da0_Dtor,function,high,reimplemented (src/game/core/vobj2); destructor freeing a chain and telling a global object
+0x005644c0,Obj_StoreComSlot80,function,high,reimplemented (src/game/core/vobj3); stores the result of a COM call of the member
+0x004ef7b0,Counted_Release,function,high,reimplemented (src/game/core/vobj3); lowers the use count and returns the object when unused
+0x004ef790,CountedRef_Release,function,high,reimplemented (src/game/core/vobj3); releases a counted object and deletes it when unused
+0x005640a0,Obj_ReleaseSevenComMembers,function,high,reimplemented (src/game/core/vobj3); releases seven COM members
+0x0058d380,Object_FreeSixPointerArrays,function,high,reimplemented (src/game/core/vobj3); clears the animated textures and frees six arrays of records
+0x00421690,ListRef_Remove,function,high,reimplemented (src/game/core/vobj3); unlinks the node of an object and deletes the object
+0x00576270,Pool_AddSorted,function,high,reimplemented (src/game/core/vobj3); links a pooled node holding an object into a list
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

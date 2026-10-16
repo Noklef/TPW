@@ -136,6 +136,7 @@
 #include "../game/core/tiny_o.h"
 #include "../game/core/vdtor.h"
 #include "../game/core/vobj2.h"
+#include "../game/core/vobj3.h"
 #include "../game/core/vlist.h"
 #include "../game/core/vregs.h"
 #include "../game/core/vstream.h"
@@ -2662,6 +2663,13 @@ const Hook kHooks[] = {
     {"Class702198_DeletingDtor",  0x0058c370, (void *)&Class702198_DeletingDtor, {0x8b, 0x41, 0xc4, 0x56, 0x8d}},
     {"Obj_PickByName",            0x005e1fa0, (void *)&Obj_PickByName, {0x53, 0x8b, 0xd9, 0x56, 0x57}},
     {"Class702da0_Dtor",          0x005e4020, (void *)&Class702da0_Dtor, {0x56, 0x57, 0x8b, 0xf9, 0xc7}},
+    {"Obj_StoreComSlot80",        0x005644c0, (void *)&Obj_StoreComSlot80, {0x8b, 0x41, 0x14, 0x6a, 0x00}},
+    {"Counted_Release",           0x004ef7b0, (void *)&Counted_Release, {0x51, 0x56, 0x57, 0x8b, 0xf9}},
+    {"CountedRef_Release",        0x004ef790, (void *)&CountedRef_Release, {0x8b, 0x09, 0x85, 0xc9, 0x74}},
+    {"Obj_ReleaseSevenComMembers", 0x005640a0, (void *)&Obj_ReleaseSevenComMembers, {0x56, 0x8b, 0xf1, 0x57, 0x33}},
+    {"Object_FreeSixPointerArrays", 0x0058d380, (void *)&Object_FreeSixPointerArrays, {0x51, 0x53, 0x55, 0x56, 0x57}},
+    {"ListRef_Remove",            0x00421690, (void *)&ListRef_Remove, {0x8b, 0x11, 0x56, 0x85, 0xd2}},
+    {"Pool_AddSorted",            0x00576270, (void *)&Pool_AddSorted, {0x53, 0x8b, 0x59, 0x04, 0x55}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

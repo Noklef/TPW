@@ -134,6 +134,7 @@ add_library(tpw_game STATIC
     src/game/core/vstream.cpp
     src/game/core/vregs.cpp
     src/game/core/vobj2.cpp
+    src/game/core/vobj3.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
