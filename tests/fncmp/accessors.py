@@ -20,8 +20,13 @@ CALLS = {
     'G8186ac': (0x527930, 'c', 0, 'a', 0x8186ac), 'S816d48': (0x527940, 'c', 1, 'a', 0x816d48),
     'G816d48': (0x527950, 'c', 0, 'a', 0x816d48), 'G80239c': (0x4e1910, 'c', 0, 'a', 0x80239c),
     'M802ba8': (0x51b3c0, 'c', 1, 'a', 0x802ba8), 'S802bc0': (0x51b3d0, 'c', 0, 'v', 0x802bc0),
-    'C871ee0': (0x53c8c0, 'c', 0, 'v', 0x871ee0), 'B7c24d0': (0x486b80, 'c', 0, 'b', 0x7c24d0)}
-B = Bench([(a, a + 0x10) for (a, *_rest) in CALLS.values()])
+    'C871ee0': (0x53c8c0, 'c', 0, 'v', 0x871ee0), 'B7c24d0': (0x486b80, 'c', 0, 'b', 0x7c24d0),
+    'Table': (0x4861d0, 'c', 1, 'a', None), 'Inc': (0x4d8c50, 'c', 0, 'a', 0x7cdb98), 'Nibble': (0x4d8c00, 'c', 1, 'a', None),
+    'Log2': (0x4d8c20, 'c', 2, 'a', None), 'MeshReady': (0x42a010, 't', 0, 'a', 0x879dec),
+    'Kind2': (0x42a050, 't', 0, 'a', None), 'Load': (0x48c960, 'c', 0, 'a', 0x7c2650),
+    'C492d80': (0x492e40, 't', 0, 'a', None), 'Select': (0x4a0810, 'c', 2, 'a', 0x7cb290)}
+SIZES = {0x4d8c00: 0x20, 0x4d8c20: 0x30, 0x42a010: 0x20, 0x42a050: 0x20, 0x48c960: 0x20, 0x492e40: 0x20, 0x4a0810: 0x30}
+B = Bench([(a, a + SIZES.get(a, 0x10)) for (a, *_rest) in CALLS.values()])
 
 
 def case(r):
@@ -29,9 +34,19 @@ def case(r):
     regions = {RAM: r.bytes(0x400)}
     if glob:
         regions[glob & ~0xf] = r.bytes(0x20)
+    for extra in (0x7b05a8, 0x7c264c, 0x7cb28c, 0x7cb2a0):
+        regions.setdefault(extra & ~0xf, r.bytes(0x20))
     args = [r.choice([0, 1, 0x3ff, 0x400, 0x7fffffff, 0xffffffff, r.getrandbits(32)]) for _ in range(n)]
+    if address == 0x4861d0:
+        args = [r.randrange(0, 64)]
+    elif address == 0x4d8c00:
+        args = [r.choice([0, 1, 0xf, 0x10, 0x11, 0xff, 0x100, 0x1230, 0x12340, r.getrandbits(32)])]
+    elif address == 0x4d8c20:
+        args = [r.choice([0, 1, 2, 3, 4, 7, 8, 0x80, 0xff, 0x1ff, r.getrandbits(32)]), r.choice([0, 1, 0x80, 0xff, r.getrandbits(32)])]
+    elif address == 0x4a0810:
+        args = [r.choice([0, 1, 2, 3, 4, 0xffffffff, 100]), r.getrandbits(32)]
     if conv == 't':
-        args = [RAM + r.choice([0, 0x10])] + args
+        args = [RAM + 0x60 + r.choice([0, 0x10])] + args
     return Call(address, args, regions, conv=conv, ret=ret)
 
 

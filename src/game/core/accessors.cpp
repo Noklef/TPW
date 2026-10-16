@@ -90,4 +90,72 @@ void __cdecl Global802bc0_Set1() { global<u32>(0x00802bc0) = 1; }
 void __cdecl Global871ee0_Clear() { global<u32>(0x00871ee0) = 0; }
 
 u8 __cdecl Global7c24d0_GetByte() { return global<u8>(0x007c24d0); }
+
+u32 __cdecl Table74fb50_Get(u32 i) { return reinterpret_cast<u32 *>(0x0074fb50)[i]; }
+
+u32 __cdecl Counter7cdb98_Inc() { return ++global<u32>(0x007cdb98); }
+
+u32 __cdecl Nibble_Scale(u32 v) {
+    const u8 low = (u8)v;
+    if (low == 0)
+        return v;
+    return low < 0x10 ? (u32)low << 4 : (u32)low >> 4;
+}
+
+u32 __cdecl Byte_ShiftLog2(u32 a, u32 b) {
+    u8 reduced = (u8)a;
+    u32 shift = 0;
+    if (reduced > 1) {
+        do {
+            reduced >>= 1;
+            shift++;
+        } while (reduced > 1);
+    }
+    const u32 scaled = (b & 0xff) << shift;
+    return (s32)scaled > 0x80 ? scaled >> 8 : scaled;
+}
+
+u32 __fastcall MeshPlus60_Ready(u8 *sub) {
+    if (!(at<u32>(sub, (u32)-0x10) & 0x10000000)) {
+        at<u32>(sub, (u32)-8) = global<u32>(0x00879dec);
+        global<u32>(0x00879dec) = (u32)(uintptr_t)(sub - 0x60);
+    }
+    return 1;
+}
+
+u8 *__fastcall Plus28_IfKind2(u8 *sub) {
+    return (at<u32>(sub, (u32)-0x10) & 0xf) == 2 ? sub - 0x28 : nullptr;
+}
+
+u32 __cdecl Globals7c264c_Load() {
+    global<u32>(0x007c264c) = global<u32>(0x007b05a8);
+    global<u32>(0x007c2650) = global<u32>(0x007b05ac);
+    global<u32>(0x007c2654) = global<u32>(0x007b05b0);
+    return global<u32>(0x007b05b0);
+}
+
+u8 *__fastcall Class492d80_Ctor(u8 *object) {
+    at<u32>(object, 0x10) = 0;
+    at<u32>(object, 0) = 0x00492d80;
+    at<u32>(object, 4) = 0;
+    at<u32>(object, 8) = 0xffffffff;
+    at<u32>(object, 0xc) = 0;
+    return object;
+}
+
+s32 __cdecl Global7cb28c_Select(s32 which, u32 v) {
+    switch (which) {
+    case 1:
+        global<u32>(0x007cb28c) = v;
+        return 0;
+    case 2:
+        global<u32>(0x007cb2a0) = v;
+        return 0;
+    case 3:
+        global<u32>(0x007cb290) = v;
+        return (s32)v;
+    default:
+        return which - 3;
+    }
+}
 }

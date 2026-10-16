@@ -2181,6 +2181,15 @@ address,name,kind,confidence,notes
 0x0051b3d0,Global802bc0_Set1,function,high,reimplemented (src/game/core/accessors); 0x802bc0 = 1
 0x0053c8c0,Global871ee0_Clear,function,high,reimplemented (src/game/core/accessors); 0x871ee0 = 0
 0x00486b80,Global7c24d0_GetByte,function,high,reimplemented (src/game/core/accessors); the byte at 0x7c24d0
+0x004861d0,Table74fb50_Get,function,high,reimplemented (src/game/core/accessors); the dword i of the table at 0x74fb50
+0x004d8c50,Counter7cdb98_Inc,function,high,reimplemented (src/game/core/accessors); the counter at 0x7cdb98 incremented
+0x004d8c00,Nibble_Scale,function,high,"reimplemented (src/game/core/accessors); the low byte times 16 below 0x10, else over 16"
+0x004d8c20,Byte_ShiftLog2,function,high,reimplemented (src/game/core/accessors); b's low byte shifted by the log2 of a's low byte
+0x0042a010,MeshPlus60_Ready,function,high,reimplemented (src/game/core/accessors); a mesh joins the list at 0x879dec unless flagged 0x10000000
+0x0042a050,Plus28_IfKind2,function,high,reimplemented (src/game/core/accessors); the object when its kind nibble is 2
+0x0048c960,Globals7c264c_Load,function,high,reimplemented (src/game/core/accessors); three globals loaded from 0x7b05a8-0x7b05b0
+0x00492e40,Class492d80_Ctor,function,high,reimplemented (src/game/core/accessors); vtable 0x492d80 and its defaults
+0x004a0810,Global7cb28c_Select,function,high,reimplemented (src/game/core/accessors); stores a value in one of three globals by number
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
