@@ -28,6 +28,13 @@ u32 __fastcall Stub_One(void *) { return 1; }
 
 void __cdecl Stub_Ret() {}
 
+u8 *__fastcall Pair_Assign(u8 *pair, void *, const u32 *dword, const u8 *byte) {
+    const u32 value = *dword;
+    at<u32>(pair, 0) = value;
+    at<u8>(pair, 4) = *byte;
+    return pair;
+}
+
 u32 __fastcall Obj_CopyCToMark(u8 *object) {
     const u32 value = at<u32>(object, 0xc);
     at<u32>(object, 0x38) = value;

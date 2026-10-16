@@ -2132,6 +2132,7 @@ address,name,kind,confidence,notes
 0x005d1750,Stub_Ret,function,high,reimplemented (src/game/core/trivial); does nothing
 0x005da3d0,Stub_Ret12,function,high,reimplemented (src/game/core/trivial); a virtual that does nothing (pops 12)
 0x005e7310,Obj_CopyCToMark,function,high,reimplemented (src/game/core/trivial); +0x38 = +0xc; returns it with the low byte 1
+0x005e7720,Pair_Assign,function,high,reimplemented (src/game/core/trivial); a dword and a byte copied into a pair
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

@@ -1,6 +1,6 @@
 // Tiny functions reached through vtables and from many call sites: reimplementation of 0x5b96a0,
-// 0x5b96b0, 0x5c5520, 0x5c5550, 0x5c55b0, 0x5cec70, 0x5d1410, 0x5d1750, 0x5da3d0 and
-// 0x5e7310. Whose they are isn't known yet, so they take their names from what they do.
+// 0x5b96b0, 0x5c5520, 0x5c5550, 0x5c55b0, 0x5cec70, 0x5d1410, 0x5d1750, 0x5da3d0,
+// 0x5e7310 and 0x5e7720. Whose they are isn't known yet, so they take their names from what they do.
 #pragma once
 
 #include "../../../re/types.h"
@@ -27,6 +27,10 @@ u32 __fastcall Stub_One(void *object);
 
 // 0x5d1750 (cdecl): nothing.
 void __cdecl Stub_Ret();
+
+// 0x5e7720 (thiscall; dword, byte): a pair built from a dword at +0 and a byte at +4, copied from
+// the two pointers, the dword stored before the byte is read. Returns the pair.
+u8 *__fastcall Pair_Assign(u8 *pair, void *, const u32 *dword, const u8 *byte);
 
 // 0x5e7310 (thiscall): +0x38 = the dword at +0xc; returns that dword with its low byte set to 1 (sic).
 u32 __fastcall Obj_CopyCToMark(u8 *object);
