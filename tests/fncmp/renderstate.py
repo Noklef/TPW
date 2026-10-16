@@ -19,7 +19,10 @@ def case(r):
         fade = bytearray(r.bytes(0x60))
         for off in (0x44, 0x48, 0x4c, 0x50, 0x54, 0x58):
             put(fade, off, 'i', r.choice([0, 0x10000, -0x10000, 0xff0000, r.randrange(-2**31, 2**31), r.randrange(-0x2000000, 0x2000000)]))
-        if r.random() < 0.3:
+        if r.random() < 0.15:
+            put(fade, 0x54, 'i', struct.unpack_from('<i', fade, 0x48)[0])
+            put(fade, 0x58, 'i', struct.unpack_from('<i', fade, 0x4c)[0])
+        elif r.random() < 0.3:
             put(fade, 0x50, 'ii', *struct.unpack_from('<ii', fade, 0x44)[:2])
             put(fade, 0x58, 'i', struct.unpack_from('<i', fade, 0x4c)[0])
         regions.update({0x785880: bytes(8) + struct.pack('<i', r.choice([0, 1, 2, 5, -1])) + bytes(4),
