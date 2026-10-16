@@ -94,7 +94,7 @@ address,name,kind,confidence,notes
 0x00597100,WaveletCodec_DecodeV13Scaled,function,medium,resampling variant; calls DecodeV13 when sizes match
 0x00597090,Wavelet_ReadBits,function,high,"LSB-first bit reader over 16-bit LE words"
 0x00591a60,WaveletCodec_AddRef,function,high,
-0x00591a70,WaveletCodec_GetRefCount,function,high,
+0x00591a70,WaveletCodec_GetRefCount,function,high,reimplemented (src/game/core/tiny_a); the dword at -0x4c
 0x00591a80,WaveletCodec_Release,function,high,
 0x00598800,WaveletCodec_DeletingDtor,function,medium,
 0x007026d8,WaveletCodec_vtable,data,high,"slots: DecodeV12, DecodeV13Scaled, DecodeV13"
@@ -286,7 +286,7 @@ address,name,kind,confidence,notes
 0x00402bf0,BalanceGraphics_GetSchema,function,high,returns &key record i of the schema at 0x7442c0
 0x00402c60,BalanceResolution_GetSchema,function,high,returns &key record i of the schema at 0x744a40
 0x00402cd0,BalanceSound_GetSchema,function,high,returns &key record i of the schema at 0x746a20
-0x005b0d60,BalanceFile_GetValues,function,high,returns this+8 (vtable slot 1 of every balance class)
+0x005b0d60,BalanceFile_GetValues,function,high,reimplemented (src/game/core/tiny_a); the address of the part at 0x8
 0x00451640,HeightMap_LoadOrBuild,function,high,"loads <model>.hmp (magic 0xab1e0003, 0x00640005), rebuilds and rewrites it when missing or the footprint differs; result at model+0xcc"
 0x00451880,HeightMap_Build,function,high,"allocates header + w*h*0x1b bytes; 5x5 cells per tile, tile max heights, footprint flags"
 0x00451e20,HeightMap_Rasterize,function,medium,"rasterises model triangles into the cell grid; height byte = y*2.55, y clamped to [0,100)"
@@ -1200,7 +1200,7 @@ address,name,kind,confidence,notes
 0x0061add0,WadSource_Vfn9,function,high,"reimplemented (src/game/files/wadsource); thiscall (&result, a); -1 (vtable +0x24)"
 0x0061aeb0,StringList_Clear,function,high,reimplemented (src/game/files/wadsource); thiscall; the destructor without the vtable
 0x0061af00,StringListNode_DeletingDtor,function,high,reimplemented (src/game/files/wadsource); thiscall (flags)
-0x004217e0,StreamBase_GetSource,function,high,thiscall; returns +4 (the stream's source)
+0x004217e0,StreamBase_GetSource,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x4
 0x00703908,WadSource_vtable,data,high,src/game/files/wadsource
 0x00638ef0,BufferedSource_Ctor,function,high,"reimplemented (src/game/files/bufsource); thiscall; 0x28 bytes, vtable 0x703f78; the window end left unset"
 0x00638f20,BufferedSource_Open,function,high,"reimplemented (src/game/files/bufsource); thiscall (&result, capacity); allocates the buffer"
@@ -2205,6 +2205,112 @@ address,name,kind,confidence,notes
 0x004a0810,Global7cb28c_Select,function,high,reimplemented (src/game/core/accessors); stores a value in one of three globals by number
 0x00503870,Volumes_SetChannel,function,high,reimplemented (src/game/core/volumes); a channel's volume (at most 100) and every share again
 0x00503900,Volumes_SetMaster,function,high,reimplemented (src/game/core/volumes); the master volume (at most 100) and every share again
+0x00405520,Vtbl6fd6c8_Set_405520,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fd6c8
+0x00405560,GetBytea_405560,function,high,reimplemented (src/game/core/tiny_a); the byte at 0xa
+0x004056e0,Get0_4056e0,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x0
+0x004145e0,Get4f0_4145e0,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x4f0
+0x0041ce80,Get34_41ce80,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x34
+0x0041ce90,Get38_41ce90,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x38
+0x004217f0,Set4_4217f0,function,high,reimplemented (src/game/core/tiny_a); 0x4 = value; returns it
+0x00424ec0,Const1_424ec0,function,high,reimplemented (src/game/core/tiny_a); returns 0x1
+0x00429b50,Vtbl6fdce8_Set_429b50,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fdce8
+0x0047eaa0,Global7b4b88_Get_47eaa0,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x7b4b88
+0x0048f690,Set4c_48f690,function,high,reimplemented (src/game/core/tiny_a); 0x4c = value; returns it
+0x004a8bf0,Vtbl6fd810_Set_4a8bf0,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fd810
+0x004bc420,Vtbl6fefb8_Set_4bc420,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fefb8
+0x004c75f0,Vtbl6fd838_Set_4c75f0,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fd838
+0x004d19f0,Vtbl6fd830_Set_4d19f0,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fd830
+0x004d5260,Vtbl6fd7b0_Set_4d5260,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fd7b0
+0x004db7c0,Vtbl6fd7c0_Set_4db7c0,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fd7c0
+0x004dd310,Vtbl6fd7e0_Set_4dd310,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fd7e0
+0x004e03d0,Get64_4e03d0,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x64
+0x004e11f0,Vtbl6fd7c8_Set_4e11f0,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fd7c8
+0x004e1200,Vtbl6fd7d0_Set_4e1200,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fd7d0
+0x004e1210,Vtbl6fd7d8_Set_4e1210,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fd7d8
+0x004e21b0,GetByte190_4e21b0,function,high,reimplemented (src/game/core/tiny_a); the byte at 0x190
+0x004e21e0,Set198_4e21e0,function,high,reimplemented (src/game/core/tiny_a); 0x198 = value; returns it
+0x004e21f0,GetByte198_4e21f0,function,high,reimplemented (src/game/core/tiny_a); the byte at 0x198
+0x004e5b90,Vtbl700620_Set_4e5b90,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x700620
+0x004f6080,Const7ffffffd_4f6080,function,high,reimplemented (src/game/core/tiny_a); returns 0x7ffffffd
+0x004f8570,Vtbl6fd7e8_Set_4f8570,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fd7e8
+0x004f8580,Vtbl6fd7f0_Set_4f8580,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fd7f0
+0x004f8590,Vtbl6fd7f8_Set_4f8590,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fd7f8
+0x004fb320,Vtbl6fd840_Set_4fb320,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fd840
+0x004ff4e0,Vtbl7007a8_Set_4ff4e0,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x7007a8
+0x004ff4f0,Conste_4ff4f0,function,high,reimplemented (src/game/core/tiny_a); returns 0xe
+0x00503fe0,Vtbl6fd808_Set_503fe0,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fd808
+0x00506190,Vtbl700868_Set_506190,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x700868
+0x005061a0,Constf_5061a0,function,high,reimplemented (src/game/core/tiny_a); returns 0xf
+0x00509350,Vtbl6fd820_Set_509350,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fd820
+0x0050b970,Vtbl6fd848_Set_50b970,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fd848
+0x0050c1f0,Const1_50c1f0,function,high,reimplemented (src/game/core/tiny_a); returns 0x1
+0x00512c30,Vtbl6fd7a0_Set_512c30,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fd7a0
+0x00512c40,Vtbl6fd7a8_Set_512c40,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fd7a8
+0x00519410,Global785584_Get_519410,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x785584
+0x00519420,Global785588_Get_519420,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x785588
+0x00519430,Global78558c_Get_519430,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x78558c
+0x00519440,Global785590_Get_519440,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x785590
+0x0051a280,Get1da710_51a280,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x1da710
+0x0051c050,Get8_51c050,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x8
+0x0052f1f0,Global81d7a4_Get_52f1f0,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x81d7a4
+0x0052f840,Global81ae2c_Get_52f840,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x81ae2c
+0x0052f850,Global81af64_Get_52f850,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x81af64
+0x0052fb10,Global81b6dc_Set_52fb10,function,high,reimplemented (src/game/core/tiny_a); 0x81b6dc = value; returns it
+0x0052fb20,Global81b6dc_Get_52fb20,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x81b6dc
+0x0052fb30,Global81ea14_Set_52fb30,function,high,reimplemented (src/game/core/tiny_a); 0x81ea14 = value; returns it
+0x0052fb40,Global81ea14_Get_52fb40,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x81ea14
+0x0052fb50,Global81aebc_Set_52fb50,function,high,reimplemented (src/game/core/tiny_a); 0x81aebc = value; returns it
+0x0052fb60,Global81aebc_Get_52fb60,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x81aebc
+0x0052fb70,Global81b43c_Set_52fb70,function,high,reimplemented (src/game/core/tiny_a); 0x81b43c = value; returns it
+0x0052fb80,Global81b43c_Get_52fb80,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x81b43c
+0x0052fb90,Global81af4c_Set_52fb90,function,high,reimplemented (src/game/core/tiny_a); 0x81af4c = value; returns it
+0x0052fbc0,Global81af4c_Get_52fbc0,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x81af4c
+0x0052fbe0,Global820a8c_Get_52fbe0,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x820a8c
+0x005508b0,Global879088_Set_5508b0,function,high,reimplemented (src/game/core/tiny_a); 0x879088 = value; returns it
+0x00564ee0,Getm10_564ee0,function,high,reimplemented (src/game/core/tiny_a); the dword at -0x10
+0x00565230,Vtbl701260_Set_565230,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x701260
+0x00569d00,Const1_569d00,function,high,reimplemented (src/game/core/tiny_a); returns 0x1
+0x0056a430,Const1_56a430,function,high,reimplemented (src/game/core/tiny_a); returns 0x1
+0x0056a440,Const1_56a440,function,high,reimplemented (src/game/core/tiny_a); returns 0x1
+0x0056dd60,Partc4_56dd60,function,high,reimplemented (src/game/core/tiny_a); the address of the part at 0xc4
+0x00591970,Vtbl7026e8_Set_591970,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x7026e8
+0x0059b540,Getc_59b540,function,high,reimplemented (src/game/core/tiny_a); the dword at 0xc
+0x0059b860,Vtbl6fd828_Set_59b860,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x6fd828
+0x005cec60,Zero_5cec60,function,high,reimplemented (src/game/core/tiny_a); returns 0
+0x005d60c0,Zero_5d60c0,function,high,reimplemented (src/game/core/tiny_a); returns 0
+0x005dc650,Get4_5dc650,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x4
+0x005dc850,Set70_To0_5dc850,function,high,reimplemented (src/game/core/tiny_a); 0x70 = 0x0
+0x005e26f0,Set14_To1_5e26f0,function,high,reimplemented (src/game/core/tiny_a); 0x14 = 0x1
+0x005e3bb0,Set4_To1_5e3bb0,function,high,reimplemented (src/game/core/tiny_a); 0x4 = 0x1
+0x005e3bc0,Set4_To0_5e3bc0,function,high,reimplemented (src/game/core/tiny_a); 0x4 = 0x0
+0x0066f4d0,Zero_66f4d0,function,high,reimplemented (src/game/core/tiny_a); returns 0
+0x00691530,Global781fc8_Get_691530,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x781fc8
+0x00695af0,GetBytec_695af0,function,high,reimplemented (src/game/core/tiny_a); the byte at 0xc
+0x00695b00,GetByted_695b00,function,high,reimplemented (src/game/core/tiny_a); the byte at 0xd
+0x00699ca0,Stub_699ca0,function,high,reimplemented (src/game/core/tiny_a); does nothing
+0x0069c8e0,GetWordc_69c8e0,function,high,reimplemented (src/game/core/tiny_a); the word at 0xc
+0x0069c8f0,GetWorde_69c8f0,function,high,reimplemented (src/game/core/tiny_a); the word at 0xe
+0x006a8cc0,Get1c_6a8cc0,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x1c
+0x006a9180,Vtbl709b44_Set_6a9180,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x709b44
+0x006ad000,Vtbl70a0a8_Set_6ad000,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x70a0a8
+0x006add30,Vtbl70a078_Set_6add30,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x70a078
+0x006adf80,Get88_6adf80,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x88
+0x006b4a50,Vtbl70a078_Set_6b4a50,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x70a078
+0x006b4a90,Vtbl70a258_Set_6b4a90,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x70a258
+0x006b70d0,Stub_Ret8_6b70d0,function,high,reimplemented (src/game/core/tiny_a); does nothing (pops 8 bytes)
+0x006b71c0,Const3_6b71c0,function,high,reimplemented (src/game/core/tiny_a); returns 0x3
+0x006b9220,Set2c_6b9220,function,high,reimplemented (src/game/core/tiny_a); 0x2c = value; returns it
+0x006b9bd0,Const1_6b9bd0,function,high,reimplemented (src/game/core/tiny_a); returns 0x1
+0x006baa00,Setc_6baa00,function,high,reimplemented (src/game/core/tiny_a); 0xc = value; returns it
+0x006bb190,Set14_6bb190,function,high,reimplemented (src/game/core/tiny_a); 0x14 = value; returns it
+0x006bb1a0,Get14_6bb1a0,function,high,reimplemented (src/game/core/tiny_a); the dword at 0x14
+0x006bb1e0,Set14_To0_6bb1e0,function,high,reimplemented (src/game/core/tiny_a); 0x14 = 0x0
+0x006bd790,Const4_6bd790,function,high,reimplemented (src/game/core/tiny_a); returns 0x4
+0x006c54a0,Zero_6c54a0,function,high,reimplemented (src/game/core/tiny_a); returns 0
+0x006c54b0,Zero_6c54b0,function,high,reimplemented (src/game/core/tiny_a); returns 0
+0x006c5590,Part14_6c5590,function,high,reimplemented (src/game/core/tiny_a); the address of the part at 0x14
+0x006c7090,Vtbl70a778_Set_6c7090,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x70a778
+0x006d1bc0,Globalfb2708_Set_6d1bc0,function,high,reimplemented (src/game/core/tiny_a); 0xfb2708 = value; returns it
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
