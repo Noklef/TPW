@@ -117,6 +117,7 @@
 #include "../game/core/tiny_l.h"
 #include "../game/core/tiny_m.h"
 #include "../game/core/tiny_n.h"
+#include "../game/core/tiny_o.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -2419,6 +2420,12 @@ const Hook kHooks[] = {
     {"DefField28_59c2b0",         0x0059c2b0, (void *)&DefField28_59c2b0, {0x8b, 0x4c, 0x24, 0x04, 0x81}},
     {"DefField2c_59c490",         0x0059c490, (void *)&DefField2c_59c490, {0x8b, 0x4c, 0x24, 0x04, 0x81}},
     {"DefField8_59c500",          0x0059c500, (void *)&DefField8_59c500, {0x8b, 0x4c, 0x24, 0x04, 0x81}},
+    {"ListRemovec_5d8a80",        0x005d8a80, (void *)&ListRemovec_5d8a80, {0x8b, 0x49, 0x0c, 0x56, 0x8b}},
+    {"ListRemove58_5da180",       0x005da180, (void *)&ListRemove58_5da180, {0x8b, 0x49, 0x58, 0x56, 0x8b}},
+    {"ListRemove4_5da450",        0x005da450, (void *)&ListRemove4_5da450, {0x8b, 0x49, 0x04, 0x56, 0x8b}},
+    {"ListRemove6c_5dd4b0",       0x005dd4b0, (void *)&ListRemove6c_5dd4b0, {0x8b, 0x49, 0x6c, 0x56, 0x8b}},
+    {"ListRemove8_5e15c0",        0x005e15c0, (void *)&ListRemove8_5e15c0, {0x8b, 0x49, 0x08, 0x56, 0x8b}},
+    {"ListRemove18_5e4250",       0x005e4250, (void *)&ListRemove18_5e4250, {0x8b, 0x49, 0x18, 0x56, 0x8b}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

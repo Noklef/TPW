@@ -2925,6 +2925,12 @@ address,name,kind,confidence,notes
 0x0059c2b0,DefField28_59c2b0,function,high,reimplemented (src/game/core/tiny_n); the dword at +0x28 of the object definition with the id (0x0 when there is none)
 0x0059c490,DefField2c_59c490,function,high,reimplemented (src/game/core/tiny_n); the dword at +0x2c of the object definition with the id (0x5 when there is none)
 0x0059c500,DefField8_59c500,function,high,reimplemented (src/game/core/tiny_n); the dword at +0x8 of the object definition with the id (0xa when there is none)
+0x005d8a80,ListRemovec_5d8a80,function,high,"reimplemented (src/game/core/tiny_o); removes the first node with a value from the linked list at +0xc (unlinks it, counts it off, frees it)"
+0x005da180,ListRemove58_5da180,function,high,"reimplemented (src/game/core/tiny_o); removes the first node with a value from the linked list at +0x58 (unlinks it, counts it off, frees it)"
+0x005da450,ListRemove4_5da450,function,high,"reimplemented (src/game/core/tiny_o); removes the first node with a value from the linked list at +0x4 (unlinks it, counts it off, frees it)"
+0x005dd4b0,ListRemove6c_5dd4b0,function,high,"reimplemented (src/game/core/tiny_o); removes the first node with a value from the linked list at +0x6c (unlinks it, counts it off, frees it)"
+0x005e15c0,ListRemove8_5e15c0,function,high,"reimplemented (src/game/core/tiny_o); removes the first node with a value from the linked list at +0x8 (unlinks it, counts it off, frees it)"
+0x005e4250,ListRemove18_5e4250,function,high,"reimplemented (src/game/core/tiny_o); removes the first node with a value from the linked list at +0x18 (unlinks it, counts it off, frees it)"
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

@@ -444,6 +444,47 @@ def deftable(a, texts):
                 includes=['core/defids.h'])
 
 
+def listremove(a, texts):
+    """Removing a value from the doubly linked list the object holds a pointer to at +off (head +4, tail +8, count +0xc; nodes: the value +0,
+    next +4, previous +8): finds the first node with the value, unlinks it, counts it off and frees it (Mem_Free). RET 4."""
+    pats = [r'^MOV ECX,\[ECX \+ (0x[0-9a-f]+)\]$', r'^PUSH ESI$', r'^MOV EAX,\[ECX \+ 0x4\]$', r'^TEST EAX,EAX$', r'^JZ 0x', r'^MOV EDX,\[ESP \+ 0x8\]$',
+            r'^CMP \[EAX\],EDX$', r'^JZ 0x', r'^MOV EAX,\[EAX \+ 0x4\]$', r'^TEST EAX,EAX$', r'^JNZ 0x', r'^XOR EAX,EAX$', r'^TEST EAX,EAX$', r'^JZ 0x',
+            r'^CMP EAX,\[ECX \+ 0x4\]$', r'^JNZ 0x', r'^MOV EDX,\[EAX \+ 0x4\]$', r'^MOV \[ECX \+ 0x4\],EDX$', r'^JMP 0x', r'^MOV EDX,\[EAX \+ 0x8\]$',
+            r'^MOV ESI,\[EAX \+ 0x4\]$', r'^MOV \[EDX \+ 0x4\],ESI$', r'^CMP EAX,\[ECX \+ 0x8\]$', r'^JNZ 0x', r'^MOV EDX,\[EAX \+ 0x8\]$', r'^PUSH EAX$',
+            r'^MOV \[ECX \+ 0x8\],EDX$', r'^MOV EDX,\[ECX \+ 0xc\]$', r'^DEC EDX$', r'^MOV \[ECX \+ 0xc\],EDX$', r'^CALL 0x0067acb0$', r'^ADD ESP,0x4$', r'^POP ESI$',
+            r'^RET 0x4$', r'^MOV EDX,\[EAX \+ 0x4\]$', r'^MOV ESI,\[EAX \+ 0x8\]$', r'^PUSH EAX$', r'^MOV \[EDX \+ 0x8\],ESI$', r'^MOV EDX,\[ECX \+ 0xc\]$', r'^DEC EDX$',
+            r'^MOV \[ECX \+ 0xc\],EDX$', r'^CALL 0x0067acb0$', r'^ADD ESP,0x4$', r'^POP ESI$', r'^RET 0x4$']
+    if len(texts) != len(pats):
+        return None
+    ms = [re.match(p, t) for p, t in zip(pats, texts)]
+    if not all(ms):
+        return None
+    off = num(ms[0].group(1))
+    setup = ('LIST = RAM + 0x1000\n'
+             'count = r.choice([0, 1, 2, 3, 5])\n'
+             'nodes = bytearray(r.bytes(0x100))\n'
+             'values = [r.choice([1, 2, 3, 4, 5, 6, 7, 0x1000]) for _ in range(count)]\n'
+             'for i in range(count):  # nodes 0x10 apart: the value, the next, the previous\n'
+             '    put(nodes, 0x10 * i, \'III\', values[i], LIST + 0x100 + 0x10 * (i + 1) if i + 1 < count else 0, LIST + 0x100 + 0x10 * (i - 1) if i else 0)\n'
+             'head = LIST + 0x100 if count else 0\n'
+             'tail = LIST + 0x100 + 0x10 * (count - 1) if count else 0\n'
+             'lst = bytearray(r.bytes(0x20))\n'
+             'put(lst, 4, \'III\', head, tail, count)\n'
+             'regions[LIST] = lst\n'
+             'regions[LIST + 0x100] = nodes\n'
+             'put(obj, 0x80 + 0x%x, \'I\', LIST)  # the object is at RAM + 0x80\n'
+             'regions[HEAP] = heap(0x1000)\n'
+             'return [r.choice(values + [99, 0]) if values else r.choice([0, 1])]\n' % off)
+    return dict(name='ListRemove%x_%06x' % (off, a), conv='t', nargs=1, ret='v', globals=[], setup=setup, includes=['core/gameheap.h'],
+                doc='removes the first node with a value from the linked list at +0x%x (unlinks it, counts it off, frees it)' % off,
+                body='u8 *list = at<u8 *>(o, 0x%x); u8 *node = at<u8 *>(list, 4); '
+                     'while (node && at<u32>(node, 0) != v0) node = at<u8 *>(node, 4); '
+                     'if (!node) return; '
+                     'if (node == at<u8 *>(list, 4)) at<u8 *>(list, 4) = at<u8 *>(node, 4); else at<u8 *>(at<u8 *>(node, 8), 4) = at<u8 *>(node, 4); '
+                     'if (node == at<u8 *>(list, 8)) at<u8 *>(list, 8) = at<u8 *>(node, 8); else at<u8 *>(at<u8 *>(node, 4), 8) = at<u8 *>(node, 8); '
+                     'at<u32>(list, 0xc) -= 1; GameHeap_Free(node);' % off)
+
+
 def frame(a, texts):
     """A function in the debug build's frame style: PUSH EBP; MOV EBP,ESP; [save ECX]; [a constant result]; POP EBP; RET [n]."""
     if len(texts) < 4 or texts[:2] != ['PUSH EBP', 'MOV EBP,ESP'] or texts[-2] != 'POP EBP' or not texts[-1].startswith('RET'):
@@ -478,7 +519,7 @@ def frame(a, texts):
 
 def match(a, ins):
     texts = [t for _, t in ins]
-    d = frame(a, texts) or ctor(a, texts) or deleter(a, texts) or listdtor(a, texts) or listdeldtor(a, texts) or freeglobal(a, texts) or fieldtable(a, texts) or deftable(a, texts)
+    d = frame(a, texts) or ctor(a, texts) or deleter(a, texts) or listdtor(a, texts) or listdeldtor(a, texts) or freeglobal(a, texts) or fieldtable(a, texts) or deftable(a, texts) or listremove(a, texts)
     if d:
         d.setdefault('globals', [])
         d['addr'] = a
