@@ -694,6 +694,8 @@ address,name,kind,confidence,notes
 0x004f9460,Sprite_RecordMapId,function,high,"reimplemented (src/game/world/person); thiscall (&out): the old mLastRecordedMapId (+0xcc) out, the current map id recorded"
 0x004fd950,Visitor_TimeInPark,function,high,reimplemented (src/game/world/person); thiscall: (gWorld tick +0x1da70c - mArrivalDate +0x1d4) >> 2
 0x004fdc60,Visitor_PushPreviousRide,function,high,"reimplemented (src/game/world/person); thiscall (ride): mPreviousRides (u16[4] at +0x1e8) shifted down, ride first"
+0x00501290,Visitor_IsState11AtQueuePos0,function,high,reimplemented (src/game/world/person); thiscall: mState (+0x220) == 11 and mQueuePos (byte +0x1f1) == 0
+0x00502430,Visitor_IsState11To14,function,high,reimplemented (src/game/world/person); thiscall: mState (mSavedState +0x224 when it is 8) in 11..14
 0x00503850,ResearchLab_GroupEffort,function,high,reimplemented (src/game/world/research); thiscall (group): the group's effort (+0x140c + group * 16)
 0x005039f0,ResearchLab_CurrentObjId,function,high,"reimplemented (src/game/world/research); thiscall (&out, group): the group's current project's mObjId, 0 for none"
 0x00503b30,ResearchLab_CountNotDone,function,high,reimplemented (src/game/world/research); thiscall (cat): projects of the category (5: any) with !(mResearchDone >= mCost)

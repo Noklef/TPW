@@ -34,4 +34,14 @@ void __fastcall Visitor_PushPreviousRide(u8 *visitor, void *, u32 ride) {
     for (int i = 3; i != 0; --i) rides[i] = rides[i - 1];
     rides[0] = (u16)ride;
 }
+
+u32 __fastcall Visitor_IsState11AtQueuePos0(const u8 *visitor) {
+    return at<s32>(visitor, 0x220) == 11 && at<u8>(visitor, 0x1f1) == 0;
+}
+
+u32 __fastcall Visitor_IsState11To14(const u8 *visitor) {
+    s32 state = at<s32>(visitor, 0x220);
+    if (state == 8) state = at<s32>(visitor, 0x224);
+    return state >= 11 && state <= 14;
+}
 }
