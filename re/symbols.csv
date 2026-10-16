@@ -2301,6 +2301,8 @@ address,name,kind,confidence,notes
 0x00582780,DrawBuffer_End,function,high,"reimplemented (src/game/render/drawbuffer); thiscall (vertex end, index end): unless mode 4, the stream's used counts moved up and its next batch taken"
 0x005827d0,DrawBuffer_VertexLimit,function,high,reimplemented (src/game/render/drawbuffer); thiscall: the end of the current stream's vertex room
 0x005827f0,DrawBuffer_IndexLimit,function,high,reimplemented (src/game/render/drawbuffer); thiscall: the end of the current stream's index room
+0x005839a0,TexFormat_SetArgb32,function,high,"reimplemented (src/game/render/texformat); thiscall (the renderer settings, 0x8bd550): the DDPIXELFORMAT at +0x68 made 32-bit ARGB (software driver)"
+0x005839e0,TexFormat_Table,function,high,"reimplemented (src/game/render/texformat); thiscall: the current texture format's table, +0x88 + 0x1000 * (+4)"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"

@@ -157,7 +157,8 @@
 #include "../game/render/backdrop.h"
 #include "../game/render/meshqueue.h"
 #include "../game/render/spritequeue.h"
-#include "../game/render/drawbuffer.h"
+#include "../game/render/drawbuffer.h"
+#include "../game/render/texformat.h"
 #include "../game/render/weatherfx.h"
 #include "../game/online/servers.h"
 #include "../game/frontend/lobbymodel.h"
@@ -1576,6 +1577,8 @@ const Hook kHooks[] = {
     {"DrawBuffer_End",            0x00582780, (void *)&DrawBuffer_End, {0x8a, 0x01, 0x56, 0xa8, 0x04}},
     {"DrawBuffer_VertexLimit",    0x005827d0, (void *)&DrawBuffer_VertexLimit, {0x8b, 0x41, 0x04, 0x8d, 0x04}},
     {"DrawBuffer_IndexLimit",     0x005827f0, (void *)&DrawBuffer_IndexLimit, {0x8b, 0x41, 0x04, 0x8d, 0x04}},
+    {"TexFormat_SetArgb32",       0x005839a0, (void *)&TexFormat_SetArgb32, {0xb8, 0x20, 0x00, 0x00, 0x00}},
+    {"TexFormat_Table",           0x005839e0, (void *)&TexFormat_Table, {0x8b, 0x41, 0x04, 0xc1, 0xe0}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

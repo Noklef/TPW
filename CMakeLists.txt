@@ -175,6 +175,7 @@ add_library(tpw_game STATIC
     src/game/render/meshqueue.cpp
     src/game/render/spritequeue.cpp
     src/game/render/drawbuffer.cpp
+    src/game/render/texformat.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/frontend/lobbymodel.cpp
