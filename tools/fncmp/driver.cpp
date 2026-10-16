@@ -169,6 +169,46 @@ const MouseModeEnv kMouseModeEnv = {&heap_free};
 const PtrListEnv kPtrListEnv = {&heap_alloc};
 const GameHeapEnv kGameHeapEnv = {&heap_alloc, &heap_free};
 
+// The recorders (tools/fncmp.py recorder(k, n)): thunks at kStubs + 0x1000 + 0x400 * n + 0x20 * k, thiscall with n stack arguments (popped by the thunk), that
+// log (k, n, this, the arguments) at kLog and return a hash of them. The log is a count, then 12 dwords an entry; room for 80.
+const u32 kLog = kStubs + 0x100000;  // (the case maps it)
+
+u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
+    u32 *log = reinterpret_cast<u32 *>((uintptr_t)kLog);
+    const u32 *args = stack + 1;  // (stack[0] is the thunk's own return address)
+    if (log[0] < 80) {
+        u32 *entry = log + 1 + 12 * log[0];
+        entry[0] = k;
+        entry[1] = n;
+        entry[2] = self;
+        for (u32 i = 0; i < 7; ++i) entry[3 + i] = i < n ? args[i] : 0;
+        entry[10] = entry[11] = 0;
+        ++log[0];
+    }
+    u32 h = self * 0x9e3779b1u + (k + 1) * 0x10001u + n;
+    for (u32 i = 0; i < n; ++i) h = h * 33 ^ args[i];
+    return h;
+}
+
+void map_recorders(u8 *page) {
+    for (u32 n = 0; n < 8; ++n) {
+        for (u32 k = 0; k < 32; ++k) {
+            u8 *at = page + 0x1000 + 0x400 * n + 0x20 * k;
+            const u8 head[] = {0x89, 0xe0, 0x50, 0x51, 0x6a, (u8)n, 0x6a, (u8)k, 0xe8};  // mov eax,esp; push eax; push ecx; push n; push k; call rel32
+            std::memcpy(at, head, sizeof head);
+            const u32 rel = (u32)(uintptr_t)&record_call - ((u32)(uintptr_t)at + sizeof head + 4);
+            std::memcpy(at + sizeof head, &rel, 4);
+            u8 *tail = at + sizeof head + 4;
+            tail[0] = 0x83, tail[1] = 0xc4, tail[2] = 0x10;  // add esp,16
+            if (n) {
+                tail[3] = 0xc2, tail[4] = (u8)(4 * n), tail[5] = 0;  // ret 4n
+            } else {
+                tail[3] = 0xc3;
+            }
+        }
+    }
+}
+
 void map_stubs() {
     u8 *p = static_cast<u8 *>(VirtualAlloc((void *)(uintptr_t)kStubs, 0x10000, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE));
     if (!p) fail("cannot map the stubs at", kStubs);
@@ -180,6 +220,7 @@ void map_stubs() {
         const u32 rel = (u32)(uintptr_t)stubs[i] - ((u32)(uintptr_t)at + 5);
         std::memcpy(at + 1, &rel, 4);
     }
+    map_recorders(p);
 }
 
 void *find(u32 address) {

@@ -3056,6 +3056,16 @@ address,name,kind,confidence,notes
 0x00489350,Record_CopyWithText,function,high,reimplemented (src/game/core/small19); copies a record with its inline text
 0x0056ee90,Bands_AnyMatch,function,high,reimplemented (src/game/core/small19); whether a band table has a matching entry between two indexes
 0x0056f4f0,Bytes4_Permute,function,high,reimplemented (src/game/core/small19); swaps and rotates four bytes by flag bits
+0x005c5510,Obj_CallSlot18,function,high,reimplemented (src/game/core/vwrap); calls slot 0x18 of the object
+0x00617dd0,Obj_PassToSlot10,function,high,reimplemented (src/game/core/vwrap); calls slot 0x10 of a target with the object
+0x005d60d0,Obj_RaiseIfSlot24Zero,function,high,reimplemented (src/game/core/vwrap); calls slot 0x24 and raises a flag when it returned 0
+0x005d60f0,Obj_ClearIfSlot24Set,function,high,reimplemented (src/game/core/vwrap); calls slot 0x24 and clears a flag when it returned non-zero
+0x0046c330,Global7b05d8_CallSlot14,function,high,reimplemented (src/game/core/vwrap); calls slot 0x14 of a global object
+0x00498b90,Global7ca1e0_Release,function,high,reimplemented (src/game/core/vwrap); releases a global object
+0x004987d0,Global7ca1c8_Release,function,high,reimplemented (src/game/core/vwrap); releases a global object
+0x00578390,Global87b1d8_Delete,function,high,reimplemented (src/game/core/vwrap); deletes a global object
+0x005c5530,Obj_CallSub14Slot18,function,high,reimplemented (src/game/core/vwrap); calls slot 0x18 of the sub-object at +0x14
+0x005c5560,Obj_CallSub28Slot18,function,high,reimplemented (src/game/core/vwrap); calls slot 0x18 of the sub-object at +0x28
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

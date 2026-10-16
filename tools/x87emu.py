@@ -124,6 +124,7 @@ class Emu:
         self.ranges = None  # strict: [(lo, hi, writable)] plus 64 KB chunks (self.chunks) may be touched
         self.chunks = set()
         self.hooks = {}
+        self.tail = False  # a hook was reached by a jump (the return address is at [ESP]) rather than a call (the first argument is)
         self.heap = 0x20000000
         self.reset()
 
@@ -321,6 +322,7 @@ class Emu:
 
     def step(self, pc):
         if pc in self.hooks:  # a tail call (jmp), into the listing or not: the hook sees the return address at [ESP]
+            self.tail = True
             self.hooks[pc](self)
             return self.pop()
         if pc not in self.code:
@@ -561,6 +563,7 @@ class Emu:
         elif mn == 'CALL':
             target = self.get(o[0])
             if target in self.hooks:
+                self.tail = False
                 self.hooks[target](self)
                 return nxt
             self.push(nxt)

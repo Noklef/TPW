@@ -32,6 +32,10 @@ A case can hand the code a record stream (record_stream(at, cursor, left) is its
 reads and writes through its vtable copy from or to cursor, at most left bytes, in both (the
 driver's stubs at STUBS, the emulator's hooks).
 
+A case can hand the code objects whose vtables point at recorders (vtable({slot: stack arguments}) is the vtable's bytes; give the case a log_region()): a
+call through slot k with n stack arguments (thiscall, the callee pops them) appends (k, n, this, the arguments) to the log region at LOG and returns a hash of
+them, in both the driver and the emulator, so a function that calls virtual methods can be compared without the game's classes.
+
 A case can hand the code a heap (heap() is its region at HEAP): the same bump allocator in
 both for Mem_Alloc / Mem_Free (and memmove 0x67bb90 in the emulator); _Xlen / _Xran fail the
 case (the driver reports a crash, the emulator raises).
@@ -197,6 +201,51 @@ def _global_alloc(e):  # stdcall (flags, size)
     e.r['ESP'] = sp + 8
 
 
+VSTUBS = STUBS + 0x1000  # the recorders: slot k (0-31) with n (0-7) stack arguments at VSTUBS + 0x400 * n + 0x20 * k
+LOG = STUBS + 0x100000  # their log (the case maps it, see log_region()): a count, then 12 dwords an entry (k, n, this, up to 7 arguments), room for 80
+LOG_ENTRY = 12
+
+
+def recorder(k, n):
+    return VSTUBS + 0x400 * n + 0x20 * k
+
+
+def vtable(slots, size=32):
+    """A vtable's bytes: slot k calls a recorder taking slots[k] stack arguments (k not in slots: slot 0's pattern with no arguments)."""
+    return bytearray(struct.pack('<%dI' % size, *[recorder(k, slots.get(k, 0)) for k in range(size)]))
+
+
+def log_region():
+    return bytearray(0x1000)
+
+
+def vhash(k, n, this, args):
+    h = (this * 0x9e3779b1 + (k + 1) * 0x10001 + n) & 0xffffffff
+    for a in args:
+        h = (h * 33 ^ a) & 0xffffffff
+    return h
+
+
+def _recorder(k, n):
+    def hook(e):
+        sp = e.r['ESP'] + (4 if e.tail else 0)
+        args = [e.u32(sp + 4 * i) for i in range(n)]
+        this = e.r['ECX']
+        count = e.u32(LOG)
+        if count < 80:
+            entry = LOG + 4 + 4 * LOG_ENTRY * count
+            e.write(entry, struct.pack('<%dI' % LOG_ENTRY, k, n, this, *(args + [0] * 7)[:7], 0, 0))
+            e.write(LOG, struct.pack('<I', count + 1))
+        e.r['EAX'] = vhash(k, n, this, args)
+        if e.tail:  # the return address goes up over the arguments the callee would have popped
+            ret = e.u32(e.r['ESP'])
+            e.r['ESP'] += 4 * n
+            e.write(e.r['ESP'], struct.pack('<I', ret))
+        else:
+            e.r['ESP'] += 4 * n
+    return hook
+
+
 def _mark(e):  # thiscall, no other arguments (driver.cpp stub_mark)
     e.write(e.r['ECX'], struct.pack('<I', 0x6fd800))
 
@@ -252,6 +301,7 @@ class Bench:
                                STUBS + 0x20: _global_alloc, STUBS + 0x30: _global_free, STUBS + 0x40: _mark,
                                0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove,
                                0x6918f0: _throw('_Xlen'), 0x691ba0: _throw('_Xran')})
+        self.emu.hooks.update({recorder(k, n): _recorder(k, n) for k in range(32) for n in range(8)})
         self.emu.hooks.update(hooks or {})
         self.extra = {0x7b095c: sine_table(sines)} if sines else {}
         self.driver = DRIVER

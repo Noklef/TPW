@@ -134,6 +134,7 @@
 #include "../game/core/tiny_m.h"
 #include "../game/core/tiny_n.h"
 #include "../game/core/tiny_o.h"
+#include "../game/core/vwrap.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -2575,6 +2576,16 @@ const Hook kHooks[] = {
     {"Bytes4_Permute",            0x0056f4f0, (void *)&Bytes4_Permute, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
     {"CRT_VectorCtorIterator",    0x0067acf0, (void *)&CRT_VectorCtorIterator, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"CRT_VectorDtorIterator",    0x0067afa0, (void *)&CRT_VectorDtorIterator, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Obj_CallSlot18",            0x005c5510, (void *)&Obj_CallSlot18, {0x8b, 0x54, 0x24, 0x04, 0x8b}},
+    {"Obj_PassToSlot10",          0x00617dd0, (void *)&Obj_PassToSlot10, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
+    {"Obj_RaiseIfSlot24Zero",     0x005d60d0, (void *)&Obj_RaiseIfSlot24Zero, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"Obj_ClearIfSlot24Set",      0x005d60f0, (void *)&Obj_ClearIfSlot24Set, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"Global7b05d8_CallSlot14",   0x0046c330, (void *)&Global7b05d8_CallSlot14, {0x8b, 0x54, 0x24, 0x08, 0x8b}},
+    {"Global7ca1e0_Release",      0x00498b90, (void *)&Global7ca1e0_Release, {0x8b, 0x0d, 0xe0, 0xa1, 0x7c}},
+    {"Global7ca1c8_Release",      0x004987d0, (void *)&Global7ca1c8_Release, {0x8b, 0x0d, 0xc8, 0xa1, 0x7c}},
+    {"Global87b1d8_Delete",       0x00578390, (void *)&Global87b1d8_Delete, {0x8b, 0x0d, 0xd8, 0xb1, 0x87}},
+    {"Obj_CallSub14Slot18",       0x005c5530, (void *)&Obj_CallSub14Slot18, {0x8b, 0x54, 0x24, 0x04, 0x8b}},
+    {"Obj_CallSub28Slot18",       0x005c5560, (void *)&Obj_CallSub28Slot18, {0x8b, 0x54, 0x24, 0x04, 0x8b}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
