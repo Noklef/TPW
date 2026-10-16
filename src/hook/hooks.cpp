@@ -211,6 +211,7 @@
 #include "../game/world/money.h"
 #include "../game/world/personscripts.h"
 #include "../game/world/ridelist.h"
+#include "../game/world/ridesearch.h"
 #include "../game/world/thingscan.h"
 #include "../game/world/trackpools.h"
 #include "../game/world/world.h"
@@ -745,6 +746,9 @@ const Hook kHooks[] = {
     {"Money_Debit",               0x004d01f0, (void *)&Money_Debit, {0x56, 0x8b, 0xf1, 0x8b, 0x86}},
     {"GameSystem_Save",           0x00550520, (void *)&GameSystem_Save, {0x83, 0xec, 0x10, 0x8d, 0x44}},
     {"GameSystem_Load",           0x005506e0, (void *)&GameSystem_Load, {0x83, 0xec, 0x10, 0x8d, 0x44}},
+    {"Rides_BestKind11Count",     0x004cc4b0, (void *)&Rides_BestKind11Count, {0x83, 0xec, 0x10, 0x8d, 0x44}},
+    {"Rides_BestPiecesOfKinds",   0x004cc5d0, (void *)&Rides_BestPiecesOfKinds, {0x83, 0xec, 0x0c, 0x8d, 0x44}},
+    {"Rides_BestPiecesOfKind",    0x004cc6f0, (void *)&Rides_BestPiecesOfKind, {0x83, 0xec, 0x0c, 0x8d, 0x44}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},
