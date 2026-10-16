@@ -108,6 +108,7 @@ add_library(tpw_game STATIC
     src/game/world/mapcell.cpp
     src/game/world/challenges.cpp
     src/game/world/object.cpp
+    src/game/world/person.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
