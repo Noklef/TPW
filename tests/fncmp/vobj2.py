@@ -134,8 +134,10 @@ def case(r):
             regions[entry] = e
             regions[RAM + 0x2800 + 0x20 * k] = varied(r, wanted if r.random() < 0.5 else r.choice(NAMES)) + bytes(0x10)
         put(obj, 8, 'I', LST)
-        regions.update({LST: lst, NODES: nodes, 0xf85488: struct.pack('<I', RAM + 0x2c00), RAM + 0x2c00: wanted + bytes(0x10),
-                        0xf85480: struct.pack('<I', VT) + r.bytes(0x20), VT: vtable({5: 1})})
+        glob = bytearray(r.bytes(0x20))  # (the object at 0xf85480 and, in its tail, the name pointer at 0xf85488)
+        put(glob, 0, 'I', VT)
+        put(glob, 8, 'I', RAM + 0x2c00)
+        regions.update({LST: lst, NODES: nodes, RAM + 0x2c00: wanted + bytes(0x10), 0xf85480: glob, VT: vtable({5: 1})})
         return call(r.choice([0, 0, 0, 1, 2]))
     # D2da: a chain of nodes (next at +4), a global object told about the object
     n = r.choice([0, 1, 2, 3])
