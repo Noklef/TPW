@@ -2962,6 +2962,14 @@ address,name,kind,confidence,notes
 0x0047db20,CountedBuf_Deleter,function,high,"reimplemented (src/game/core/small6); releases the counted buffer, clears the fields, optionally frees the object"
 0x0056b5c0,PtrArray_RemoveAndFree,function,high,"reimplemented (src/game/core/small6); removes a pointer from the array by value, freeing it"
 0x005ce540,List_EraseRange,function,high,reimplemented (src/game/core/small6); erases a range of nodes from a circular list
+0x0042a090,Deleter_Minus60_42a090,function,high,reimplemented (src/game/core/small7); deleting destructor of the object 0x60 bytes in
+0x0056a660,Deleter_Minus8_56a660,function,high,reimplemented (src/game/core/small7); deleting destructor of the object 8 bytes in
+0x0055f1e0,BufferC_FreeAndClear,function,high,reimplemented (src/game/core/small7); frees the block at +0xc and clears the four fields
+0x005c8d80,Class702958_Ctor,function,high,reimplemented (src/game/core/small7); constructor with 256 cleared dwords
+0x005cde50,ListHead_CtorFrom,function,high,reimplemented (src/game/core/small7); a circular list head with the flag byte copied from a source
+0x005d0690,Node0c_New,function,high,reimplemented (src/game/core/small7); a new 12-byte node with two links
+0x005eb170,Array3Ds_Free4,function,high,reimplemented (src/game/core/small7); frees four array members
+0x004d05d0,Obj_Set118,function,high,reimplemented (src/game/core/small7); sets the dword at +0x118
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

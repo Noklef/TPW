@@ -111,6 +111,7 @@
 #include "../game/core/small4.h"
 #include "../game/core/small5.h"
 #include "../game/core/small6.h"
+#include "../game/core/small7.h"
 #include "../game/core/tiny_g.h"
 #include "../game/core/tiny_h.h"
 #include "../game/core/tiny_i.h"
@@ -2460,6 +2461,14 @@ const Hook kHooks[] = {
     {"CountedBuf_Deleter",        0x0047db20, (void *)&CountedBuf_Deleter, {0x56, 0x8b, 0xf1, 0x8b, 0x4e}},
     {"PtrArray_RemoveAndFree",    0x0056b5c0, (void *)&PtrArray_RemoveAndFree, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"List_EraseRange",           0x005ce540, (void *)&List_EraseRange, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
+    {"Deleter_Minus60_42a090",    0x0042a090, (void *)&Deleter_Minus60_42a090, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"Deleter_Minus8_56a660",     0x0056a660, (void *)&Deleter_Minus8_56a660, {0x56, 0x8b, 0xf1, 0xe8, 0xc8}},
+    {"BufferC_FreeAndClear",      0x0055f1e0, (void *)&BufferC_FreeAndClear, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"Class702958_Ctor",          0x005c8d80, (void *)&Class702958_Ctor, {0x56, 0x57, 0x8b, 0xf1, 0xe8}},
+    {"ListHead_CtorFrom",         0x005cde50, (void *)&ListHead_CtorFrom, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"Node0c_New",                0x005d0690, (void *)&Node0c_New, {0x6a, 0x0c, 0xe8, 0x29, 0xa6}},
+    {"Array3Ds_Free4",            0x005eb170, (void *)&Array3Ds_Free4, {0x56, 0x8b, 0xf1, 0x8d, 0x4e}},
+    {"Obj_Set118",                0x004d05d0, (void *)&Obj_Set118, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
