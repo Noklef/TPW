@@ -1,5 +1,5 @@
 // A few small functions that belong to no known unit yet: reimplementation of 0x424ed0, 0x4922d0,
-// 0x4e1c60, 0x4f00f0, 0x4f6820, 0x4f6850, 0x56a510, 0x56b630 and 0x56b830.
+// 0x4e1c60, 0x4f00f0, 0x4f6020, 0x4f6820, 0x4f6850, 0x56a510, 0x56b630 and 0x56b830.
 #pragma once
 
 #include "../../../re/types.h"
@@ -18,6 +18,11 @@ u32 __fastcall Obj_Diff180_184(const u8 *object);
 // 0x4f00f0 (thiscall on a sub-object; the vtable pointer at this - 4 reaches its virtual base): the
 // dword at base offset - 4 + this (base offset = the vtable's +4) = 0x7099ec.
 void __fastcall Vtbl7099ec_SetVirtual(u8 *sub);
+
+// 0x4f6020 (thiscall): the wide streambuf's pointer slots pointed at its own fields: +0xc -> +4, +0x10 ->
+// +8, +0x1c -> +0x14, +0x20 -> +0x18, +0x2c -> +0x24, +0x30 -> +0x28; the six fields they name are
+// zeroed. Returns the address of the last (+0x24).
+u32 __fastcall Wstreambuf_InitPointers(u8 *object);
 
 // 0x4f6820 / 0x4f6850 (thiscall; the std::basic_string streambuf's setg and setp over wide characters,
 // pops 12 / 8): the pointers behind +0xc, +0x1c, +0x2c (first, next, count) / +0x10, +0x20, +0x30

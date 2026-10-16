@@ -1,6 +1,7 @@
 #include "misc.h"
 
 #include <cstdint>
+#include <initializer_list>
 
 namespace {
 
@@ -27,6 +28,15 @@ u32 __fastcall Obj_Diff180_184(const u8 *object) { return at<u32>(object, 0x180)
 void __fastcall Vtbl7099ec_SetVirtual(u8 *sub) {
     const u32 base = at<u32>(at<u8 *>(sub, (u32)-4), 4);
     at<u32>(sub, base - 4) = 0x007099ec;
+}
+
+u32 __fastcall Wstreambuf_InitPointers(u8 *object) {
+    static const u32 kSlots[6][2] = {{0xc, 0x4}, {0x10, 0x8}, {0x1c, 0x14}, {0x20, 0x18}, {0x2c, 0x24}, {0x30, 0x28}};
+    for (const auto &slot : kSlots)
+        at<u32>(object, slot[0]) = (u32)(uintptr_t)object + slot[1];
+    for (u32 offset : {0x8u, 0x18u, 0x28u, 0x4u, 0x14u, 0x24u})
+        at<u32>(object, offset) = 0;
+    return (u32)(uintptr_t)object + 0x24;
 }
 
 u32 *__fastcall Wstreambuf_Setg(u8 *object, void *, u32 first, u32 next, u32 last) {
