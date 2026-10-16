@@ -143,6 +143,7 @@
 #include "../game/core/small4.h"
 #include "../game/core/small40.h"
 #include "../game/core/small41.h"
+#include "../game/core/small42.h"
 #include "../game/core/small5.h"
 #include "../game/core/small6.h"
 #include "../game/core/small7.h"
@@ -2891,6 +2892,7 @@ const Hook kHooks[] = {
     {"TextMetrics_FitIndex",      0x0047fa00, (void *)&TextMetrics_FitIndex, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"Matrix2_Transform",         0x0050f310, (void *)&Matrix2_Transform, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Table_ScaledBySum",         0x00503980, (void *)&Table_ScaledBySum, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"FreeList_Take",             0x00520d60, (void *)&FreeList_Take, {0x56, 0x66, 0x8b, 0x35, 0x24}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
