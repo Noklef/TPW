@@ -245,6 +245,7 @@ address,name,kind,confidence,notes
 0x00506ed0,Staff_InPatrolRegion,function,high,reimplemented (src/game/world/staff); thiscall (pos): whether the map id's column and row lie in the patrol region's
 0x00507bd0,StaffPool_ValidEntry,function,high,"reimplemented (src/game/world/staff); thiscall (index): the entry (20 bytes) when index < 0x20 and mValid (+0xa), else null"
 0x005087b0,StaffPool_FirstInvalid,function,high,"reimplemented (src/game/world/staff); thiscall: the first entry's index without mValid, 0x20 when all have it"
+0x0050c620,StaffTraining_Ctor,function,high,reimplemented (src/game/world/staff); thiscall: 5 x mBudget and mHaveEverTrained (+0x14) zeroed; returns it
 0x00506870,Staff_GetWage,function,medium,"per-type factor (DAT_00785380) * pay grade table (DAT_0078532c, stride 0x10)"
 0x004dd4e0,Object_GetDef,function,high,reimplemented (src/game/world/object); the object's definition
 0x004e1670,Object_AddWalkAway,function,high,reimplemented (src/game/world/object); a walk-away counted
@@ -696,6 +697,7 @@ address,name,kind,confidence,notes
 0x004d8da0,MapCell_Ctor,function,high,"reimplemented (src/game/world/mapcell); thiscall: a 0x44-byte map cell zeroed, u16 +0 = 0x423f, byte +2 = 1 (array ctor at 0x515582)"
 0x00502460,RECell_Ctor,function,high,"reimplemented (src/game/world/mapcell); thiscall: the RE cell's 10 bytes zeroed (dword, dword, word); returns it"
 0x00502470,RECell_Equals,function,high,reimplemented (src/game/world/mapcell); thiscall (other): whether the two RE cells' 10 bytes match (repe cmpsb)
+0x0050c1d0,TrackCell_Ctor,function,high,"reimplemented (src/game/world/mapcell); thiscall: a 0x28-byte track cell zeroed (rep stosd), byte +2 = 2; returns it"
 0x004d1c80,Challenges_DropOrphans,function,high,reimplemented (src/game/world/challenges); thiscall: each challenge in use (+0) naming another (+0x18) is dropped (+0 = 0) unless another in use has that id (from Challenges_LoadSam)
 0x004d2840,Challenges_Current,function,high,"reimplemented (src/game/world/challenges); thiscall: &challenges[+0x3cc] (0x30 bytes from +0xc) for an index 0-19, else null"
 0x004d1e60,BalanceChallenges_GetSchema,function,high,"reimplemented (src/game/world/challenges); thiscall (index), vtable 0x700398 slot 0: 0x739b98 + index * 0x3c"
@@ -705,6 +707,7 @@ address,name,kind,confidence,notes
 0x004fdc60,Visitor_PushPreviousRide,function,high,"reimplemented (src/game/world/person); thiscall (ride): mPreviousRides (u16[4] at +0x1e8) shifted down, ride first"
 0x00501290,Visitor_IsState11AtQueuePos0,function,high,reimplemented (src/game/world/person); thiscall: mState (+0x220) == 11 and mQueuePos (byte +0x1f1) == 0
 0x00502430,Visitor_IsState11To14,function,high,reimplemented (src/game/world/person); thiscall: mState (mSavedState +0x224 when it is 8) in 11..14
+0x0050ba80,Thoughts_Ctor,function,high,"reimplemented (src/game/world/person); thiscall: the thoughts zeroed (+0, the 32 u16 pairs at +4, +0x84, +0x88, +0x8c); returns them"
 0x00503850,ResearchLab_GroupEffort,function,high,reimplemented (src/game/world/research); thiscall (group): the group's effort (+0x140c + group * 16)
 0x005039f0,ResearchLab_CurrentObjId,function,high,"reimplemented (src/game/world/research); thiscall (&out, group): the group's current project's mObjId, 0 for none"
 0x00503b30,ResearchLab_CountNotDone,function,high,reimplemented (src/game/world/research); thiscall (cat): projects of the category (5: any) with !(mResearchDone >= mCost)

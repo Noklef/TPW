@@ -114,6 +114,12 @@ u8 *__fastcall StaffPool_ValidEntry(u8 *pool, void *, u32 index) {
     return at<u8>(entry, 0xa) ? entry : nullptr;
 }
 
+u8 *__fastcall StaffTraining_Ctor(u8 *training) {
+    for (u32 i = 0; i != 5; ++i) at<u32>(training, i * 4) = 0;
+    at<u8>(training, 0x14) = 0;
+    return training;
+}
+
 u32 __fastcall StaffPool_FirstInvalid(const u8 *pool) {
     for (u32 i = 0; i != 0x20; ++i) {
         if (at<u8>(pool + i * 20, 0xa) == 0) return i;

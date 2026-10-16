@@ -39,6 +39,18 @@ u32 __fastcall Visitor_IsState11AtQueuePos0(const u8 *visitor) {
     return at<s32>(visitor, 0x220) == 11 && at<u8>(visitor, 0x1f1) == 0;
 }
 
+u8 *__fastcall Thoughts_Ctor(u8 *thoughts) {
+    at<u32>(thoughts, 0) = 0;
+    at<u32>(thoughts, 0x84) = 0;
+    at<u32>(thoughts, 0x8c) = 0;
+    for (u32 i = 0; i != 32; ++i) {
+        at<u16>(thoughts, 4 + i * 4) = 0;
+        at<u16>(thoughts, 6 + i * 4) = 0;
+    }
+    at<u32>(thoughts, 0x88) = 0;
+    return thoughts;
+}
+
 u32 __fastcall Visitor_IsState11To14(const u8 *visitor) {
     s32 state = at<s32>(visitor, 0x220);
     if (state == 8) state = at<s32>(visitor, 0x224);

@@ -86,6 +86,12 @@ u8 *__fastcall RECell_Ctor(u8 *cell) {
     return cell;
 }
 
+u8 *__fastcall TrackCell_Ctor(u8 *cell) {
+    for (u32 i = 0; i < 0x28; i += 4) at<u32>(cell, i) = 0;
+    at<u8>(cell, 2) = 2;
+    return cell;
+}
+
 u32 __fastcall RECell_Equals(const u8 *cell, void *, const u8 *other) {
     for (u32 i = 0; i != 10; ++i) {
         if (cell[i] != other[i]) return 0;

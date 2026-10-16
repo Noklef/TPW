@@ -27,4 +27,9 @@ u32 __fastcall Visitor_IsState11AtQueuePos0(const u8 *visitor);
 
 // 0x502430: whether mState (mSavedState when it is 8) is 11 to 14.
 u32 __fastcall Visitor_IsState11To14(const u8 *visitor);
+
+// 0x50ba80: a person's thoughts (serialized at 0x50bad0) cleared: +0, the 32 u16 pairs of
+// the action history (+4), mThoughtScript (+0x84), mActionHistIndex (+0x88) and
+// mTimeBubbleShown (+0x8c). Returns them.
+u8 *__fastcall Thoughts_Ctor(u8 *thoughts);
 }

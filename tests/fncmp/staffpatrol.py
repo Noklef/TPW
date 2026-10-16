@@ -1,6 +1,6 @@
 # The staff's patrol region, rest area check and wage, and the staff pool's entry lookups
-# (src/game/world/staff: 0x506650, 0x5068f0, 0x506e50-0x506ed0, 0x507bd0, 0x5087b0) against the
-# originals: regions none, whole, inverted or wild, map ids 0 and about the edges, indices about
+# (src/game/world/staff: 0x506650, 0x5068f0, 0x506e50-0x506ed0, 0x507bd0, 0x5087b0) and the staff
+# training's constructor (0x50c620) against the originals: regions none, whole, inverted or wild, map ids 0 and about the edges, indices about
 # 0x20, pools full or with gaps.
 # usage: staffpatrol.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=State3,Wage,...)
 import os
@@ -10,10 +10,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x506650, 0x506674), (0x5068f0, 0x50690f), (0x506e50, 0x506f2e), (0x507bd0, 0x507beb),
-           (0x5087b0, 0x5087c9)])
+           (0x5087b0, 0x5087c9), (0x50c620, 0x50c638)])
 STAFF = RAM
 CALLS = {'State3': 0x506650, 'Wage': 0x5068f0, 'Set': 0x506e50, 'Get': 0x506e70, 'Clear': 0x506e90,
-         'Has': 0x506eb0, 'In': 0x506ed0, 'Entry': 0x507bd0, 'FirstInvalid': 0x5087b0}
+         'Has': 0x506eb0, 'In': 0x506ed0, 'Entry': 0x507bd0, 'FirstInvalid': 0x5087b0, 'Training': 0x50c620}
 
 
 def mapid(r):
@@ -34,6 +34,8 @@ def case(r):
     if op == 'State3':
         return Call(0x506650, [STAFF, r.choice([area, area | r.getrandbits(16) << 16, r.getrandbits(32)])], regions,
                     conv='t', ret='a')
+    if op == 'Training':
+        return Call(0x50c620, [STAFF + r.randrange(16)], regions, conv='t', ret='a')
     if op == 'Wage':
         regions = {0x785300: r.bytes(0x1100)}
         return Call(0x5068f0, [r.randrange(0x30), r.choice([r.randrange(8), r.getrandbits(32)])], regions, ret='a')

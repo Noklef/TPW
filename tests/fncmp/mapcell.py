@@ -1,6 +1,7 @@
 # The map cell handles' lookups and the memory ranges (src/game/world/mapcell: 0x4d0a70-0x4d0b10)
 # and the map's bounds check, RE cells, fixed positions, block values and cell constructor
 # (0x4d8300-0x4d8ca0, 0x4d8da0) and the RE cells' constructor and comparison (0x502460, 0x502470)
+# and the track cell's constructor (0x50c1d0)
 # against the
 # originals: handles 0, 1 and wild under any gMapCells, ranges set at any index, coordinates
 # about 0 and 128, positions of any value for A and B.
@@ -13,7 +14,7 @@ from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x4d0a70, 0x4d0a86), (0x4d0a90, 0x4d0ab1), (0x4d0ac0, 0x4d0ae1), (0x4d0af0, 0x4d0b06),
            (0x4d0b10, 0x4d0b27), (0x4d8300, 0x4d8328), (0x4d8410, 0x4d8434), (0x4d8610, 0x4d8750), (0x4d8c60, 0x4d8cc8),
-           (0x4d8da0, 0x4d8dc2), (0x502460, 0x502487)])
+           (0x4d8da0, 0x4d8dc2), (0x502460, 0x502487), (0x50c1d0, 0x50c1e6)])
 POS = [0x4d8610, 0x4d8650, 0x4d8690, 0x4d86d0, 0x4d8710]
 
 
@@ -23,7 +24,9 @@ def coord(r):
 
 def case(r):
     mem = r.bytes(0x200)
-    op = r.randrange(11)
+    op = r.randrange(12)
+    if op == 11:
+        return Call(0x50c1d0, [RAM + r.randrange(16)], {RAM: mem}, conv='t', ret='a')
     if op == 9:
         return Call(0x502460, [RAM + r.randrange(16)], {RAM: mem}, conv='t', ret='a')
     if op == 10:  # the same but for at most one byte, or anything

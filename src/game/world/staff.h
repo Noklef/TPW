@@ -71,4 +71,8 @@ u8 *__fastcall StaffPool_ValidEntry(u8 *pool, void *, u32 index);
 
 // 0x5087b0: the index of the pool's first entry not mValid, 0x20 when all are.
 u32 __fastcall StaffPool_FirstInvalid(const u8 *pool);
+
+// 0x50c620: the staff training (serialized at 0x50c640: 5 x u32 mBudget, u8 mHaveEverTrained)
+// zeroed. Returns it.
+u8 *__fastcall StaffTraining_Ctor(u8 *training);
 }

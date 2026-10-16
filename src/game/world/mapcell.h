@@ -55,4 +55,8 @@ u8 *__fastcall RECell_Ctor(u8 *cell);
 
 // 0x502470 (other): whether the two RE cells' 10 bytes are the same.
 u32 __fastcall RECell_Equals(const u8 *cell, void *, const u8 *other);
+
+// 0x50c1d0: a 0x28-byte track cell (serialized at 0x50c200), zeroed but for byte +2 = 2.
+// Returns it.
+u8 *__fastcall TrackCell_Ctor(u8 *cell);
 }
