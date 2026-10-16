@@ -180,6 +180,7 @@ add_library(tpw_game STATIC
     src/game/world/thingscan.cpp
     src/game/world/ridelist.cpp
     src/game/world/trackpools.cpp
+    src/game/world/money.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
