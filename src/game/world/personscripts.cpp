@@ -4,6 +4,7 @@
 
 #include "../sprite/script.h"
 #include "person.h"
+#include "../core/misc.h"
 
 namespace {
 
@@ -17,6 +18,21 @@ void __fastcall Visitor_PreviousRideTick(u8 *visitor) {
     const u8 *world = *reinterpret_cast<u8 *const *>(0x0080239c);
     if (at<u32>(world, 0x1da70c) % 20 == 0)
         Visitor_PushPreviousRide(visitor, nullptr, (u32)(uintptr_t)visitor & 0xffff0000);
+}
+
+void __fastcall Person_ReleaseScripts(u8 *person) {
+    Obj_KillSlot(person + 0xc);
+    Person_KillScript84(person + 0x30);
+    if (at<u8>(person, 2) == 1 && at<u32>(person, 0x210))
+        Person_JumpScript210(person);
+}
+
+void __fastcall Person_MoveScript(u8 *person, void *, u32 a, u32 b, u32 c, u32 d) {
+    if (!at<u32>(person, 0x210))
+        return;
+    SpriteScript_SetPosition((s32)at<u32>(person, 0x210), at<u32>(person, 0x218), b, at<u32>(person, 0x21c), d);
+    at<u32>(person, 0x218) = a;
+    at<u32>(person, 0x21c) = c;
 }
 
 void __fastcall Person_JumpScript210(u8 *person) {

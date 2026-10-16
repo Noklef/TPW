@@ -820,6 +820,8 @@ address,name,kind,confidence,notes
 0x004fdc90,Visitor_PreviousRideTick,function,high,reimplemented (src/game/world/personscripts); every 20th clock tick a visitor pushes a previous ride
 0x004fe950,Person_JumpScript210,function,high,reimplemented (src/game/world/personscripts); the script at +0x210 sent to entry point 0x74f4c0 and cleared
 0x0050c0d0,Person_KillScript84,function,high,reimplemented (src/game/world/personscripts); the script at +0x84 killed and cleared
+0x004f9ed0,Person_ReleaseScripts,function,high,"reimplemented (src/game/world/personscripts); a person's script slots killed, the +0x210 one jumped for kind 1"
+0x004fe900,Person_MoveScript,function,high,reimplemented (src/game/world/personscripts); the +0x210 script moved to a new position
 0x0050b780,Thing_Delete,function,medium,"thiscall on a thing; the base deletion, queues its handle (World_QueueDelete)"
 0x00801f38,gThingsToDelete,data,high,"HandleQueue: +4 head, +8 tail, +0xc count; handles whose slots DeleteAll releases"
 0x005f5fc0,String_Alloc,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +8: a new block for length units, terminated; the old block is not freed"
@@ -2447,6 +2449,8 @@ address,name,kind,confidence,notes
 0x0052fbf0,PairTable_Add,function,high,reimplemented (src/game/core/misc); a pair appended to the 8-byte entry table unless it is past 0x400
 0x004d09a0,Obj_SmallestEntry,function,high,"reimplemented (src/game/core/misc); the index of the smallest non-zero entry size of eight, or -1"
 0x00458310,Obj_CtorVirtual,function,high,reimplemented (src/game/core/misc); a class with a virtual base: vtables and the offset word
+0x004583d0,Obj_SetVectorAt2c,function,high,"reimplemented (src/game/core/misc); the scene flags touched, then three dwords at +0x2c"
+0x005651c0,Class701260_Ctor,function,high,"reimplemented (src/game/core/misc); vtable 0x701260 and its defaults, plus a driver quirk flag"
 0x0047f910,Fn_47f910,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = a value, +0x4 = 0x0, +0x8 = 0x0, +0xc = 0x0, +0x10 = 0x0, +0x14 = 0x0, +0x18 = 0x0, +0x1c = 0x0, +0x20 = 0x0, +0x24 = 0x0, +0x28 = 0x0, +0x2c = 0x0"
 0x0048c9e0,Fn_48c9e0,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = 0x6ff1f0, 0x7c2658 = 0x0, +0x10 = 0x0, +0x18 = 0x0, +0x14 = 0x0, +0x1c = 0x0"
 0x004e0210,Fn_4e0210,function,high,"reimplemented (src/game/core/tiny_d); stores +0x5e = 0x0, +0x60 = 0x0"

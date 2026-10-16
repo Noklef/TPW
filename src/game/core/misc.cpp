@@ -103,6 +103,28 @@ u8 *__fastcall Obj_CtorVirtual(u8 *object, void *, u32 mostDerived) {
     return object;
 }
 
+u32 __fastcall Obj_SetVectorAt2c(u8 *object, void *, u32 a, u32 b, u32 c) {
+    SceneFlags_Touch(reinterpret_cast<u32 *>(0x008bd508));
+    at<u32>(object, 0x2c) = a;
+    at<u32>(object, 0x30) = b;
+    at<u32>(object, 0x34) = c;
+    return a;
+}
+
+u8 *__fastcall Class701260_Ctor(u8 *object) {
+    at<u32>(object, 0) = 0x00701260;
+    at<u32>(object, 4) = 0;
+    at<u32>(object, 0x14) = 0xffffffff;
+    at<u32>(object, 0x18) = 0;
+    at<u32>(object, 0x1c) = 0;
+    at<u32>(object, 0x20) = 0;
+    at<u32>(object, 8) = 0;
+    at<u32>(object, 0x24) = 0;
+    if (at<u32>(global<u8 *>(0x00879a24), 0x428) == 0x10de && global<u32>(0x008bd524) == 1)
+        global<u32>(0x00879ab4) = 1;
+    return object;
+}
+
 u32 __cdecl PairTable_Add(u32 a, u32 b) {
     const s32 count = global<s32>(0x00820a8c);
     if (count > 0x400)
