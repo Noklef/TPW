@@ -77,7 +77,7 @@ def case(r):
                PARTS: parts, PS: ps, PSE: r.bytes(0xa0), REC: record(r, op)}
     args = [index & 0xffffffff]
     if op == 'Part':
-        args = [r.choice([1, 2, 99]) if False else (index if 0 < index < 100 else 1) & 0xffffffff, r.randrange(20), r.choice([0, 1, 9, 10, -1, -9, 64, r.getrandbits(32)]) & 0xffffffff]
+        args = [(index if 0 < index < 100 else 1) & 0xffffffff, r.randrange(20), r.choice([0, 1, 9, 10, -1, -9, 64, r.getrandbits(32)]) & 0xffffffff]
         regions[TABLE] = bytearray(regions[TABLE])
         put(regions[TABLE], args[0] * 4, 'I', REC)
         return Call(CALLS[op], args, regions, ret='v')
