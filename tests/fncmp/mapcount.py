@@ -15,11 +15,12 @@ def case(r):
     mem = bytearray(r.bytes(0x10ffd8 + 0x28 * 0x400))
     for h in range(0x400):
         put(mem, 0x10ffd8 + 0x28 * h + 8, 'I', r.choice(TYPES))
+        put(mem, 0x10ffd8 + 0x28 * h + 0x10, 'H', r.choice([0, 0, r.randrange(0x400)]))
     for c in range(0x4000):  # (the last cells' fields overlap the first entries: set after them)
         put(mem, 0x44 * c, 'H', r.randrange(0x400))
         put(mem, 0x44 * c + 8, 'I', r.choice(TYPES) if r.random() < 0.95 else r.getrandbits(32))
     world = RAM - 0x2d8
-    return Call(0x4cd7f0, [], {0x80239c: put(bytearray(8), 0, 'I', world), 0x8023a0: put(bytearray(4), 0, 'I', RAM), RAM: mem}, ret='a')
+    return Call(0x4cd7f0, [], {0x80239c: put(put(bytearray(8), 0, 'I', world), 4, 'I', RAM), 0x7cf83c: put(bytearray(4), 0, 'I', RAM + 0x10ffd8 - 0x1102b0), RAM: mem}, ret='a')
 
 
 if __name__ == '__main__':
