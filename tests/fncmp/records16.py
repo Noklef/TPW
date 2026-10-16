@@ -12,6 +12,7 @@ CALLS = {'Sp': (0x6ae2e0, 'b', 0x20), 'Swap': (0x6ae300, 'v', 0x90), 'FindS': (0
          'Rev': (0x6ae440, 'v', 0x70), 'Rtl': (0x6ae4b0, 'v', 0xa0)}
 B = Bench([(a, a + n) for (a, _r, n) in CALLS.values()] + [(0x6ae2b0, 0x6ae2d4), (0x6ae410, 0x6ae43d)])
 POOL = RAM + 0x1000
+LINE = [0x20, 0x20, 0x20, 0x5c0, 0x5c0, 0x5c0, 0x41, 0x41, 0x28, 0x29, 0x2c, 0x5b0]
 CHARS = [0x20, 0x2c, 0x28, 0x29, 0x41, 0, 0x28, 0x29, 0x120, 0xffff, 0x5c0, 0x5d0, 0x5b0, 0x5eb]
 
 
@@ -21,7 +22,9 @@ def case(r):
     n = r.choice([0, 1, 2, 3, 4, 6])
     data = bytearray(r.bytes(0x100))
     for i in range(8):
-        data[0x10 * i:0x10 * i + 2] = (r.choice(CHARS)).to_bytes(2, 'little')
+        data[0x10 * i:0x10 * i + 2] = (r.choice(LINE if name == 'Rtl' else CHARS)).to_bytes(2, 'little')
+        if name == 'Rtl':  # the trailing-records flag is common, so that runs of them reach the start
+            data[0x10 * i + 4] = (data[0x10 * i + 4] | 0x40) if r.random() < 0.5 else (data[0x10 * i + 4] & 0xbf)
     first = POOL + (0x10 * r.randrange(0, 2) if r.random() < 0.3 else 0)
     last = POOL + 0x10 * n + (0x10 * r.randrange(0, 2) if r.random() < 0.2 else 0)
     if name == 'Sp':
