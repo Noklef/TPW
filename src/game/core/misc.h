@@ -1,4 +1,4 @@
-// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x458310, 0x4583d0, 0x4bcec0, 0x54b290, 0x56b340, 0x56e780, 0x583360, 0x5646c0, 0x564ba0, 0x56b570, 0x5651c0, 0x4d09a0, 0x52fbf0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
+// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x458310, 0x4583d0, 0x4bcec0, 0x4f36c0, 0x52fc30, 0x5997b0, 0x54b290, 0x56b340, 0x56e780, 0x583360, 0x5646c0, 0x564ba0, 0x56b570, 0x5651c0, 0x4d09a0, 0x52fbf0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
 // 0x4e1c60, 0x4f00f0, 0x4f6020, 0x4f6820, 0x4f6850, 0x56a510, 0x56b630 and 0x56b830.
 #pragma once
 
@@ -81,6 +81,18 @@ u32 __fastcall Obj_ReleaseFromRenderer(u8 *object);
 // 0x583360 (thiscall): the highest set bit of the masks at +0x8fc, +0x904 and +0x90c (0 for a zero mask)
 // stored at +0x900, +0x908 and +0x910, and their union at +0x918, which is returned.
 u32 __fastcall Masks_TopBits(u8 *object);
+
+// 0x4f36c0 (thiscall): the number of 36-byte elements between the pointers at +4 and +8 (a signed
+// division); 0 when +4 is null.
+s32 __fastcall Vector36_Size(const u8 *vector);
+
+// 0x52fc30 (cdecl): the pair table at 0x81b740 (count 0x820a8c) copied to 0x818d98; then 0x820a90 = the
+// count and 0x820a94 = 0. Returns the count when above 0, else 0.
+s32 __cdecl PairTable_Commit();
+
+// 0x5997b0 (cdecl; id): the table of 0x20-byte entries at 0x768fb8, ended by an id of 0x270f, searched
+// for the id; the dword at +0x1c of the entry found, or 0x17f for none.
+u32 __cdecl Table768fb8_Lookup(u32 id);
 
 // 0x52fbf0 (cdecl; a, b): appends the pair to the table of 8-byte entries at 0x81b740 (count at
 // 0x820a8c), unless the count is above 0x400 (signed): 0 then, else 1.

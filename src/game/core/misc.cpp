@@ -230,6 +230,32 @@ u32 __fastcall Masks_TopBits(u8 *object) {
     return blue | green | red;
 }
 
+s32 __fastcall Vector36_Size(const u8 *vector) {
+    const u32 begin = at<u32>(vector, 4);
+    if (!begin)
+        return 0;
+    return (s32)(at<u32>(vector, 8) - begin) / 36;
+}
+
+s32 __cdecl PairTable_Commit() {
+    const s32 count = global<s32>(0x00820a8c);
+    for (s32 i = 0; i < count; i++) {
+        global<u32>(0x00818d98 + 8 * (u32)i) = global<u32>(0x0081b740 + 8 * (u32)i);
+        global<u32>(0x00818d9c + 8 * (u32)i) = global<u32>(0x0081b744 + 8 * (u32)i);
+    }
+    global<s32>(0x00820a90) = count;
+    global<u32>(0x00820a94) = 0;
+    return count > 0 ? count : 0;
+}
+
+u32 __cdecl Table768fb8_Lookup(u32 id) {
+    for (u32 entry = 0x00768fb8; global<u32>(entry) != 0x270f; entry += 0x20) {
+        if (global<u32>(entry) == id)
+            return global<u32>(entry + 0x1c);
+    }
+    return 0x17f;
+}
+
 u32 __cdecl PairTable_Add(u32 a, u32 b) {
     const s32 count = global<s32>(0x00820a8c);
     if (count > 0x400)
