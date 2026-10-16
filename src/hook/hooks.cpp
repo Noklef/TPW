@@ -127,6 +127,7 @@
 #include "../game/core/small26.h"
 #include "../game/core/small27.h"
 #include "../game/core/small28.h"
+#include "../game/core/small29.h"
 #include "../game/core/small2.h"
 #include "../game/core/small3.h"
 #include "../game/core/small4.h"
@@ -2811,6 +2812,11 @@ const Hook kHooks[] = {
     {"NamedList_Find",            0x00421770, (void *)&NamedList_Find, {0x53, 0x55, 0x8b, 0xe9, 0x56}},
     {"Obj_HasNamedObject",        0x0041ede0, (void *)&Obj_HasNamedObject, {0x8b, 0x41, 0x4c, 0x56, 0x85}},
     {"Strings5_Dtor",             0x005c4c60, (void *)&Strings5_Dtor, {0x6a, 0xff, 0x68, 0xf9, 0x02}},
+    {"Class702938_Dtor",          0x005bdc10, (void *)&Class702938_Dtor, {0x6a, 0xff, 0x68, 0x16, 0x00}},
+    {"Class702940_Dtor",          0x005be320, (void *)&Class702940_Dtor, {0x6a, 0xff, 0x68, 0x56, 0x01}},
+    {"Class702948_Dtor",          0x005be750, (void *)&Class702948_Dtor, {0x6a, 0xff, 0x68, 0x36, 0x02}},
+    {"Obj_ResetAndRelease26",     0x005b97a0, (void *)&Obj_ResetAndRelease26, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"Obj_ResetAndRelease34",     0x005b9820, (void *)&Obj_ResetAndRelease34, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
