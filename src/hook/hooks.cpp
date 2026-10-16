@@ -81,7 +81,8 @@
 #include "../game/core/globalmem.h"
 #include "../game/core/globalsave.h"
 #include "../game/core/ime.h"
-#include "../game/core/idtable.h"
+#include "../game/core/idtable.h"
+#include "../game/core/indexed.h"
 #include "../game/core/keymap.h"
 #include "../game/core/methods.h"
 #include "../game/core/language.h"
@@ -2208,6 +2209,13 @@ const Hook kHooks[] = {
     {"Vector8_Count4",            0x006aed80, (void *)&Vector8_Count4, {0x8b, 0x51, 0x04, 0x85, 0xd2}},
     {"Vector8_Count88",           0x006adf90, (void *)&Vector8_Count88, {0x8b, 0x91, 0x88, 0x00, 0x00}},
     {"Blocks8_Copy",              0x006af730, (void *)&Blocks8_Copy, {0x8b, 0x4c, 0x24, 0x04, 0x8b}},
+    {"Out_SetFromGame1da70c",     0x0041a960, (void *)&Out_SetFromGame1da70c, {0xa1, 0x9c, 0x23, 0x80, 0x00}},
+    {"Game1da70c_MinusAt0",       0x0041a970, (void *)&Game1da70c_MinusAt0, {0xa1, 0x9c, 0x23, 0x80, 0x00}},
+    {"Obj_GetIndexed4e0",         0x004145d0, (void *)&Obj_GetIndexed4e0, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Obj_Word6cEquals",          0x004e0aa0, (void *)&Obj_Word6cEquals, {0x66, 0x8b, 0x54, 0x24, 0x04}},
+    {"Obj_ClearIndexed28",        0x005099a0, (void *)&Obj_ClearIndexed28, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
+    {"Obj_GetIndexed28",          0x00509990, (void *)&Obj_GetIndexed28, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
+    {"Vector20_Count",            0x005ed430, (void *)&Vector20_Count, {0x8b, 0x41, 0x04, 0x85, 0xc0}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
