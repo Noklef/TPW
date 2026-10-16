@@ -56,7 +56,8 @@
 #include "../game/gfx/screensurfaces.h"
 #include "../game/gfx/tga.h"
 #include "../game/core/events.h"
-#include "../game/core/filetime.h"
+#include "../game/core/filetime.h"
+#include "../game/core/gameclock.h"
 #include "../game/core/globalmem.h"
 #include "../game/core/ime.h"
 #include "../game/core/idtable.h"
@@ -1241,6 +1242,10 @@ const Hook kHooks[] = {
     {"Options_Set4",              0x00423b60, (void *)&Options_Set4, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Options_SetC",              0x00423b80, (void *)&Options_SetC, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Options_Set8",              0x00423ba0, (void *)&Options_Set8, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"GameClock_Save24",          0x004030f0, (void *)&GameClock_Save24, {0x8b, 0x44, 0x24, 0x04, 0x6a}},
+    {"GameClock_Load24",          0x00403120, (void *)&GameClock_Load24, {0x8b, 0x44, 0x24, 0x04, 0x6a}},
+    {"GameClock_Save4c",          0x00403180, (void *)&GameClock_Save4c, {0x8b, 0x44, 0x24, 0x04, 0x6a}},
+    {"GameClock_Load4c",          0x004031b0, (void *)&GameClock_Load4c, {0x8b, 0x44, 0x24, 0x04, 0x6a}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

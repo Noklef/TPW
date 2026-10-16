@@ -1886,6 +1886,10 @@ address,name,kind,confidence,notes
 0x00423b60,Options_Set4,function,high,reimplemented (src/game/core/options); thiscall (value); +4 = value when it differs
 0x00423b80,Options_SetC,function,high,reimplemented (src/game/core/options); thiscall (value); +0xc = value when it differs
 0x00423ba0,Options_Set8,function,high,reimplemented (src/game/core/options); thiscall (value); +8 = value when it differs
+0x004030f0,GameClock_Save24,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); writes +0x24 (4 bytes); Stream_Write's result >= 0, always 1 (sic)"
+0x00403120,GameClock_Load24,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); reads +0x24 (4 bytes); Stream_Read's result >= 0, always 1 (sic)"
+0x00403180,GameClock_Save4c,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); writes +0x4c (4 bytes); Stream_Write's result >= 0, always 1 (sic)"
+0x004031b0,GameClock_Load4c,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); reads +0x4c (4 bytes); Stream_Read's result >= 0, always 1 (sic)"
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
