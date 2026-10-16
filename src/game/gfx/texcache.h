@@ -11,6 +11,12 @@
 
 extern "C" {
 
+// 0x58d0f0 (thiscall on the cache, 0x1930+ bytes): its default settings: five 0x80s at
+// +0x18b0-+0x18c0, a falling series of floats (0.5, 0.25, 0.17, 0.065, 0.012, 0.0030) at
+// +0x187c-+0x1890, +0x1878 = 4, +0x18ac = 0x100, +0x18e4 = 7, +0x1900 = 1.0f, the entry
+// pointers +0x1800-+0x1814 and +0x1830-+0x1844 empty, and a dozen more fields zeroed. Returns the cache.
+u8 *__fastcall TexCache_InitDefaults(u8 *cache);
+
 // 0x590fd0 (thiscall): the cache's 0x20-byte entry (made at 0x58d2b0): +0, +4, +8 and +0xc zeroed,
 // +0x14 = -1; the rest left as it was. Returns the entry.
 u8 *__fastcall TexCacheEntry_Ctor(u8 *entry);
