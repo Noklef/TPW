@@ -2704,6 +2704,10 @@ address,name,kind,confidence,notes
 0x006b2a50,Wrap_Vtbl70a258_Set_6b4a90_6b2a50,function,high,reimplemented (src/game/core/tiny_g); calls Vtbl70a258_Set_6b4a90
 0x006b3c00,Wrap_Init_6b4a60_6b3c00,function,high,reimplemented (src/game/core/tiny_g); calls Init_6b4a60
 0x006b3c40,Wrap_Vtbl70a258_Set_6b4a90_6b3c40,function,high,reimplemented (src/game/core/tiny_g); calls Vtbl70a258_Set_6b4a90
+0x006b0140,Wrap_Wrap_Init_6b4a60_6b0710_6b0140,function,high,reimplemented (src/game/core/tiny_h); calls Wrap_Init_6b4a60_6b0710
+0x006b0180,Wrap_Wrap_Init_6b4a60_6b1de0_6b0180,function,high,reimplemented (src/game/core/tiny_h); calls Wrap_Init_6b4a60_6b1de0
+0x006b01c0,Wrap_Wrap_Init_6b4a60_6b2a10_6b01c0,function,high,reimplemented (src/game/core/tiny_h); calls Wrap_Init_6b4a60_6b2a10
+0x006b0200,Wrap_Wrap_Init_6b4a60_6b3c00_6b0200,function,high,reimplemented (src/game/core/tiny_h); calls Wrap_Init_6b4a60_6b3c00
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

@@ -104,6 +104,7 @@
 #include "../game/core/selectors.h"
 #include "../game/core/small2.h"
 #include "../game/core/tiny_g.h"
+#include "../game/core/tiny_h.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -2181,6 +2182,10 @@ const Hook kHooks[] = {
     {"Wrap_Vtbl70a258_Set_6b4a90_6b2a50", 0x006b2a50, (void *)&Wrap_Vtbl70a258_Set_6b4a90_6b2a50, {0xc7, 0x01, 0xc8, 0xa1, 0x70}},
     {"Wrap_Init_6b4a60_6b3c00",   0x006b3c00, (void *)&Wrap_Init_6b4a60_6b3c00, {0x56, 0x8b, 0xf1, 0xe8, 0x58}},
     {"Wrap_Vtbl70a258_Set_6b4a90_6b3c40", 0x006b3c40, (void *)&Wrap_Vtbl70a258_Set_6b4a90_6b3c40, {0xc7, 0x01, 0xe8, 0xa1, 0x70}},
+    {"Wrap_Wrap_Init_6b4a60_6b0710_6b0140", 0x006b0140, (void *)&Wrap_Wrap_Init_6b4a60_6b0710_6b0140, {0xb9, 0xfc, 0x1e, 0xfb, 0x00}},
+    {"Wrap_Wrap_Init_6b4a60_6b1de0_6b0180", 0x006b0180, (void *)&Wrap_Wrap_Init_6b4a60_6b1de0_6b0180, {0xb9, 0xf0, 0x1e, 0xfb, 0x00}},
+    {"Wrap_Wrap_Init_6b4a60_6b2a10_6b01c0", 0x006b01c0, (void *)&Wrap_Wrap_Init_6b4a60_6b2a10_6b01c0, {0xb9, 0xf4, 0x1e, 0xfb, 0x00}},
+    {"Wrap_Wrap_Init_6b4a60_6b3c00_6b0200", 0x006b0200, (void *)&Wrap_Wrap_Init_6b4a60_6b3c00_6b0200, {0xb9, 0xf8, 0x1e, 0xfb, 0x00}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
