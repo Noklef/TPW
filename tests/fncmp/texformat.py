@@ -1,4 +1,4 @@
-# The texture format helpers (src/game/render/texformat: 0x581790, 0x5839a0, 0x5839e0) against the originals:
+# The texture format helpers (src/game/render/texformat: 0x581790, 0x583ba0, 0x5839a0, 0x5839e0) against the originals:
 # any settings bytes, any current format; the driver flags over any bits, with and without a request or texture.
 # usage: texformat.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetArgb32,Table)
 import os
@@ -8,12 +8,32 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x581790, 0x581880), (0x590c40, 0x590ca8), (0x590fb0, 0x590fcb), (0x5839a0, 0x5839ee)])
-CALLS = {'DriverFlags': 0x581790, 'SetArgb32': 0x5839a0, 'Table': 0x5839e0}
+B = Bench([(0x581790, 0x581880), (0x583ba0, 0x583cb2), (0x590c40, 0x590ca8), (0x590fb0, 0x590fcb), (0x5839a0, 0x5839ee)])
+CALLS = {'Classify': 0x583ba0, 'DriverFlags': 0x581790, 'SetArgb32': 0x5839a0, 'Table': 0x5839e0}
 
 
 def case(r):
     op = r.choice(OPS)
+    if op == 'Classify':
+        menu = [0, 0x8000, 0x80, 0x808080]
+        if r.random() < 0.4:
+            want = [1] + [3 if i % 2 else 2 for i in range(1, 59)] + [1]
+            if r.random() < 0.5:
+                want[r.randrange(60)] = r.randrange(4)
+        else:
+            want = [r.randrange(4) for _ in range(60)]
+        pixels = b''.join(struct.pack('<I', menu[k] | (r.getrandbits(32) & ~0x808080 & r.choice([0, 0xffffffff]))) for k in want)
+        if r.random() < 0.15:
+            pixels = r.bytes(240)
+        g = bytearray(r.bytes(0x40))
+        std = r.random() < 0.8
+        put(g, 0x20, 'I', 0x808080 if std else r.getrandbits(32))
+        put(g, 0x08, 'I', 0x800000 if std else r.getrandbits(32))
+        put(g, 0x10, 'I', 0x8000 if std else r.getrandbits(32))
+        put(g, 0x18, 'I', 0x80 if std else r.getrandbits(32))
+        regions = {RAM: pixels, 0x8bd4c0: g, 0x8bd520: r.bytes(4) + struct.pack('<I', r.choice([4, 4, 1, 0])),
+                   0x8c1640: r.bytes(8)}
+        return Call(0x583ba0, [RAM], regions, conv='s', ret='a')
     if op == 'DriverFlags':
         obj = bytearray(r.bytes(0x10))
         put(obj, 4, 'I', RAM + 0x100)

@@ -12,6 +12,39 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 extern "C" {
 
+s32 __stdcall TexFormat_Classify(const u32 *pixels) {
+    u32 mask, class0, class1, class2;
+    if (*reinterpret_cast<u32 *>(0x008bd524) == 4) {
+        mask = 0x808080;
+        class0 = 0x800000;
+        class1 = 0x8000;
+        class2 = 0x80;
+    } else {
+        mask = *reinterpret_cast<u32 *>(0x008bd4e0);
+        class0 = *reinterpret_cast<u32 *>(0x008bd4c8);
+        class1 = *reinterpret_cast<u32 *>(0x008bd4d0);
+        class2 = *reinterpret_cast<u32 *>(0x008bd4d8);
+    }
+    u8 kind[60];
+    for (u32 i = 0; i < 60; i++) {
+        const u32 pixel = pixels[i], masked = mask & pixel;
+        kind[i] = masked == (class0 & pixel) ? 0 : masked == (class1 & pixel) ? 1 : masked == (class2 & pixel) ? 2 : 3;
+    }
+    u32 fit = kind[0] == 1 ? 1 : 0;
+    if (kind[59] == 1)
+        fit++;
+    for (u32 i = 1; i < 59; i += 2) {
+        if (kind[i] == 3)
+            fit++;
+        if (kind[i + 1] == 2)
+            fit++;
+    }
+    *reinterpret_cast<u32 *>(0x008c1644) = fit;
+    if (fit == 60)
+        return 0;
+    return kind[0] != 0 && kind[59] != 2 ? -1 : 1;
+}
+
 u32 __fastcall TexLoad_DriverFlags(const u8 *object, void *, const u8 *request, const u8 *texture) {
     const u32 scene = *reinterpret_cast<u32 *>(0x008bcbc8);
     u32 bits = 0;

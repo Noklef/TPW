@@ -1,4 +1,4 @@
-// The renderer settings' texture format helpers: reimplementation of 0x581790, 0x5839a0 and 0x5839e0.
+// The renderer settings' texture format helpers: reimplementation of 0x581790, 0x583ba0, 0x5839a0 and 0x5839e0.
 //
 // The renderer settings are the object at 0x8bd550 (its +0 the renderer flags; +4 the current
 // texture format, read all over as 0x8bd554). 0x5839f0 fills its tables, 0x1000 bytes per format
@@ -9,6 +9,15 @@
 #include "../../../re/types.h"
 
 extern "C" {
+
+// 0x583ba0 (stdcall; pixels): classifies 60 test pixels (dwords) by the colour masks of the
+// current format (the software driver, 0x8bd524 == 4, uses 0x808080 and the values 0x800000,
+// 0x8000, 0x80; the others take them from 0x8bd4e0, 0x8bd4c8, 0x8bd4d0, 0x8bd4d8): class 0, 1
+// or 2 by which value the masked pixel equals, else 3. 0x8c1644 = the number of pixels that
+// fit the pattern 1, then (3, 2) in pairs across the middle, then 1: the first pixel's
+// class 1, the odd ones 3, the even ones 2, the last 1. Returns 0 when all 60 do, else -1 if
+// the first pixel isn't class 0 and the last isn't class 2, else 1.
+s32 __stdcall TexFormat_Classify(const u32 *pixels);
 
 // 0x581790 (thiscall on an object whose +4 points at a flags dword and +8 is a flags dword;
 // request, texture): the word for the driver to load a texture with. From the scene flags
