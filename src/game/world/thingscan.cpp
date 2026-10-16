@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "object.h"
 #include "things.h"
 
 namespace {
@@ -25,6 +26,29 @@ s32 CountKind3(u8 flag) {
     return count;
 }
 
+// The first thing after the previous one (the newest for none) that the test accepts, 0 for none.
+template <typename Test> u8 *FindFrom(const u8 *previous, Test test) {
+    u16 handle;
+    if (!previous)
+        World_FirstThing(world(), nullptr, &handle);
+    else
+        World_NextThing(world(), nullptr, &handle, previous);
+    const u8 *found = nullptr;
+    while (handle && !found) {
+        const u8 *thing = thing_of(handle);
+        if (test(thing))
+            found = thing;
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    return const_cast<u8 *>(found);
+}
+
+u16 DefWord(const u8 *thing) {
+    u16 word;
+    Object_DefWord284(thing, nullptr, &word);
+    return word;
+}
+
 }  // namespace
 
 extern "C" {
@@ -44,6 +68,42 @@ s32 __stdcall Things_MaxKind3Byte50(u32 value) {
         World_NextThing(world(), nullptr, &handle, thing);
     }
     return best;
+}
+
+u8 *__cdecl Things_FindNextByDef4ac(s32 value, const u8 *previous) {
+    return FindFrom(previous, [value](const u8 *t) { return at<u8>(t, 2) == 3 && DefWord(t) == 0 && (s32)at<u32>(Object_GetDef(t), 0x4ac) == value; });
+}
+
+u8 *__cdecl Things_FindNextWithDefWord(const u8 *previous) {
+    return FindFrom(previous, [](const u8 *t) { return at<u8>(t, 2) == 3 && DefWord(t) != 0; });
+}
+
+u8 *__cdecl Things_FindNextWithDefWordUpgrade2(const u8 *previous) {
+    return FindFrom(previous, [](const u8 *t) { return at<u8>(t, 2) == 3 && DefWord(t) != 0 && at<u32>(Object_GetDef(t), 0x288) == 2; });
+}
+
+u8 *__cdecl Things_FindNextShopFlag1(const u8 *previous) {
+    return FindFrom(previous, [](const u8 *t) { return at<u8>(t, 2) == 3 && DefWord(t) == 0 && at<u32>(Object_GetDef(t), 0x4ac) == 3 && (at<u8>(t, 0x32) & 1); });
+}
+
+u8 *__cdecl Things_FindNextShopNoFlags(const u8 *previous) {
+    return FindFrom(previous, [](const u8 *t) { return at<u8>(t, 2) == 3 && DefWord(t) == 0 && at<u32>(Object_GetDef(t), 0x4ac) == 3 && !(at<u8>(t, 0x32) & 3); });
+}
+
+u8 *__cdecl Things_FindNextKind3Flag2(const u8 *previous) {
+    return FindFrom(previous, [](const u8 *t) { return at<u8>(t, 2) == 3 && (at<u8>(t, 0x32) & 2); });
+}
+
+u16 *__cdecl Things_LastHandle(u16 *out) {
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    const u8 *last = nullptr;
+    while (handle) {
+        last = thing_of(handle);
+        World_NextThing(world(), nullptr, &handle, last);
+    }
+    Thing_GetHandle(last, nullptr, out);
+    return out;
 }
 
 }  // extern "C"

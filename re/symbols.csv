@@ -831,6 +831,13 @@ address,name,kind,confidence,notes
 0x004c9f90,Things_CountKind3Flag1,function,high,reimplemented (src/game/world/thingscan); counts the kind 3 things with flag bit 0 and nothing at +0x68
 0x004ca0c0,Things_CountKind3Flag2,function,high,reimplemented (src/game/world/thingscan); counts the kind 3 things with flag bit 1 and nothing at +0x68
 0x004ca820,Things_MaxKind3Byte50,function,high,reimplemented (src/game/world/thingscan); the greatest byte at +0x50 of the kind 3 things with a given word at +0xe
+0x004828f0,Things_FindNextByDef4ac,function,high,reimplemented (src/game/world/thingscan); the next object whose definition field 0x4ac equals a value and word 0x284 is 0
+0x004829c0,Things_FindNextWithDefWord,function,high,reimplemented (src/game/world/thingscan); the next object whose definition word at 0x284 is not 0
+0x00482a80,Things_FindNextWithDefWordUpgrade2,function,high,reimplemented (src/game/world/thingscan); the next object with that word set and the dword at 0x288 equal to 2
+0x00482b50,Things_FindNextShopFlag1,function,high,reimplemented (src/game/world/thingscan); the next object of definition kind 3 with flag bit 0
+0x00482c20,Things_FindNextShopNoFlags,function,high,reimplemented (src/game/world/thingscan); the next object of definition kind 3 with flag bits 0 and 1 clear
+0x00482cf0,Things_FindNextKind3Flag2,function,high,reimplemented (src/game/world/thingscan); the next object with flag bit 1
+0x004831f0,Things_LastHandle,function,high,reimplemented (src/game/world/thingscan); the handle of the oldest thing
 0x0050b780,Thing_Delete,function,medium,"thiscall on a thing; the base deletion, queues its handle (World_QueueDelete)"
 0x00801f38,gThingsToDelete,data,high,"HandleQueue: +4 head, +8 tail, +0xc count; handles whose slots DeleteAll releases"
 0x005f5fc0,String_Alloc,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +8: a new block for length units, terminated; the old block is not freed"
