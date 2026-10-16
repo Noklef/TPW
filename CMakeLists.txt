@@ -95,6 +95,7 @@ add_library(tpw_game STATIC
     src/game/math/intpair.cpp
     src/game/math/intsin.cpp
     src/game/math/mat4.cpp
+    src/game/math/bits.cpp
     src/game/motion/curve.cpp
     src/game/motion/keys.cpp
     src/game/motion/quat.cpp
