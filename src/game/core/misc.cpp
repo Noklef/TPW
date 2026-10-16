@@ -75,6 +75,16 @@ u32 __cdecl Global7cc698_Choose() {
     return 0;
 }
 
+u32 __cdecl PairTable_Add(u32 a, u32 b) {
+    const s32 count = global<s32>(0x00820a8c);
+    if (count > 0x400)
+        return 0;
+    global<u32>(0x0081b740 + 8 * count) = a;
+    global<u32>(0x0081b744 + 8 * count) = b;
+    global<s32>(0x00820a8c) = count + 1;
+    return 1;
+}
+
 u32 __fastcall Obj_AdvanceUnless30(u8 *object) {
     u32 result = Obj_Get30(object);
     if (!result) {
