@@ -218,7 +218,7 @@ address,name,kind,confidence,notes
 0x005127a0,Weather_HandleMessage,function,high,Thing_HandleMessage case 15
 0x004d02d0,BankAccount_HandleMessage,function,high,Thing_HandleMessage case 16
 0x0050ca50,UIMsgReceiver_HandleMessage,function,high,Thing_HandleMessage case 17
-0x004f7c50,Model18_HandleMessage,function,medium,"Thing_HandleMessage case 18 (model 18 is unidentified; its update, 0x4f7c60 + 0x4f7c90, only runs when DAT_00fb3b7c == 1)"
+0x004f7c50,Stub_Ret4b,function,high,reimplemented (src/game/core/accessors); a virtual that does nothing (pops 4)
 0x004d2860,Challenges_HandleMessage,function,high,Thing_HandleMessage case 19
 0x004d1e90,Challenges_Update,function,medium,Thing_Update case 19 (works on a global; skipped when DAT_00fb3b7c == 1)
 0x004fcc30,Visitor_ScoreOption,function,medium,"thiscall(visitor, object); 'Calculating option score': distance, queue, thirst/hunger/toilet/illness match"
@@ -588,7 +588,7 @@ address,name,kind,confidence,notes
 0x00542010,Sprite_DrawScript,function,high,"reimplemented (src/game/sprite/draw); (script): fills the draw record (+0xd0) and appends it to its map cell list (4x4) or the 0x40000 list"
 0x004527f0,Terrain_HeightAt,function,low,"(float x, float z): the ground height, in ST0 (Sprite_DrawScript)"
 0x00532bd0,Sprite_PickThing,function,medium,"the thing whose script draws the sprite under the cursor (0x8bd4fc), via SpriteScript_FindShown; 0 for none"
-0x00423b50,Value_Set,function,low,"thiscall (v): *this = v"
+0x00423b50,Obj_SetFirst,function,high,reimplemented (src/game/core/accessors); +0 = value
 0x00763f84,gSpriteDrawOn,data,medium,"u8: nothing is drawn while 0 (SpriteDraw_Enable/Disable; Sprites_Init sets it)"
 0x00875528,gSpriteDrawLists,data,high,"u32*[16]: per map cell (x * 4 + z), the draw records listed this frame"
 0x00876490,gSpriteDrawCounts,data,high,"s32[16]: the cell lists sizes (at most 0x800)"
@@ -2155,6 +2155,32 @@ address,name,kind,confidence,notes
 0x00632290,DequeIter_Diff,function,high,reimplemented (src/game/core/dequeiter); this - other in dwords through the blocks
 0x00632310,DequeIter_Prev,function,high,"reimplemented (src/game/core/dequeiter); one back, into the previous block from a block's start"
 0x00632380,Class703c14_Ctor,function,high,reimplemented (src/game/core/dequeiter); vtable 0x703c14 and its fields (two bytes of the address's top byte)
+0x00423720,Obj_Get24,function,high,reimplemented (src/game/core/accessors); the dword at +0x24
+0x00423730,Obj_Get2c,function,high,reimplemented (src/game/core/accessors); the dword at +0x2c
+0x004030c0,Obj_Get30,function,high,reimplemented (src/game/core/accessors); the dword at +0x30
+0x004e1a10,Obj_Get188,function,high,reimplemented (src/game/core/accessors); the dword at +0x188
+0x004e1a20,Obj_Set188,function,high,reimplemented (src/game/core/accessors); +0x188 = value
+0x004e1a00,Obj_Get194,function,high,reimplemented (src/game/core/accessors); the dword at +0x194
+0x004e2770,Obj_Set194,function,high,reimplemented (src/game/core/accessors); +0x194 = value
+0x004e2180,Obj_GetByte18c,function,high,reimplemented (src/game/core/accessors); the byte at +0x18c
+0x004e19f0,Obj_Inc2b8,function,high,reimplemented (src/game/core/accessors); +0x2b8 incremented
+0x004df280,Vtbl6fd818_Set,function,high,reimplemented (src/game/core/accessors); the vtable pointer +0 = 0x6fd818
+0x0047ebb0,Obj_SetByte7,function,high,reimplemented (src/game/core/accessors); the byte +7 = the second argument
+0x00477190,Stub_Ret16,function,high,reimplemented (src/game/core/accessors); a virtual that does nothing (pops 16)
+0x00498a70,Global7ca1cc_Get,function,high,reimplemented (src/game/core/accessors); the dword at 0x7ca1cc
+0x004a2a90,Global7cb2e8_Get,function,high,reimplemented (src/game/core/accessors); the dword at 0x7cb2e8
+0x0048c920,Global7c2650_Get,function,high,reimplemented (src/game/core/accessors); the dword at 0x7c2650
+0x0048c930,Global7c2654_Get,function,high,reimplemented (src/game/core/accessors); the dword at 0x7c2654
+0x0048c940,Global7c2654_Set,function,high,reimplemented (src/game/core/accessors); 0x7c2654 = value
+0x0048c950,Global7c2650_Set,function,high,reimplemented (src/game/core/accessors); 0x7c2650 = value
+0x00527930,Global8186ac_Get,function,high,reimplemented (src/game/core/accessors); the dword at 0x8186ac
+0x00527940,Global816d48_Set,function,high,reimplemented (src/game/core/accessors); 0x816d48 = value
+0x00527950,Global816d48_Get,function,high,reimplemented (src/game/core/accessors); the dword at 0x816d48
+0x004e1910,Global80239c_Get,function,high,reimplemented (src/game/core/accessors); the dword at 0x80239c
+0x0051b3c0,Global802ba8_SetMasked,function,high,reimplemented (src/game/core/accessors); 0x802ba8 = value and 0x3ff
+0x0051b3d0,Global802bc0_Set1,function,high,reimplemented (src/game/core/accessors); 0x802bc0 = 1
+0x0053c8c0,Global871ee0_Clear,function,high,reimplemented (src/game/core/accessors); 0x871ee0 = 0
+0x00486b80,Global7c24d0_GetByte,function,high,reimplemented (src/game/core/accessors); the byte at 0x7c24d0
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

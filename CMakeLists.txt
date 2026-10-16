@@ -79,6 +79,7 @@ add_library(tpw_game STATIC
     src/game/core/trivial.cpp
     src/game/core/small.cpp
     src/game/core/dequeiter.cpp
+    src/game/core/accessors.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
