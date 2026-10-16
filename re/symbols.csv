@@ -112,7 +112,13 @@ address,name,kind,confidence,notes
 0x005516b0,RSSE_Tick,function,high,"scheduler: runs each script every 8th tick ((id^tick)&7==0) or every tick if TURBO; budget = header[0x10]; CRIT_LOCK instructions are free"
 0x00557a70,RSSE_FetchWord,function,high,next code word; pc=-10000 on overrun
 0x005573a0,RSSE_OperandValue,function,high,"variable value, or immediate sign-extended from 16 bits"
-0x0055a070,RSSE_FindScriptById,function,high,walks the live-script list (DAT_008791b0)
+0x0055a070,Rides_FindById,function,high,reimplemented (src/game/world/ridelist); the ride record with an id
+0x0055a0b0,Rides_SetElement,function,high,reimplemented (src/game/world/ridelist); sets an element of a record's array
+0x0055a300,Rides_SetWordC0,function,high,reimplemented (src/game/world/ridelist); sets the word at +0xc0 of a record
+0x0055a330,Rides_GetWordC0,function,high,"reimplemented (src/game/world/ridelist); the word at +0xc0 of a record, sign extended"
+0x0055a360,Rides_Get9c,function,high,reimplemented (src/game/world/ridelist); the dword at +0x9c of a record
+0x0055a390,Rides_GetElement,function,high,reimplemented (src/game/world/ridelist); an element of a record's array
+0x0055a3e0,Rides_GetLinkedElement,function,high,reimplemented (src/game/world/ridelist); an element of the array of the record a record links to
 0x004031e0,GameClock_Now,function,high,"fastcall; base time + offset at +0x48; used for all RSSE waits"
 0x00516330,World_Rand,function,high,"reimplemented (src/game/world/random); thiscall; LCG x*0x19660d+0x3c6ef35f, rotr 13, abs; state at world+0x1da708. Must be bit-exact for determinism"
 0x008791b0,RSSE_ScriptList,data,high,head of doubly linked list of live script contexts (0xF4 bytes each)

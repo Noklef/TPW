@@ -174,7 +174,8 @@
 #include "../game/world/things.h"
 #include "../game/world/analysercell.h"
 #include "../game/world/linestep.h"
-#include "../game/world/personscripts.h"
+#include "../game/world/personscripts.h"
+#include "../game/world/ridelist.h"
 #include "../game/world/thingscan.h"
 #include "../game/world/world.h"
 #include "../game/model/holder.h"
@@ -648,6 +649,13 @@ const Hook kHooks[] = {
     {"Things_CountKind1OnPlainCell", 0x004c9130, (void *)&Things_CountKind1OnPlainCell, {0x8b, 0x0d, 0x9c, 0x23, 0x80}},
     {"Things_CountKind1OnPlainCellWith210", 0x004c9530, (void *)&Things_CountKind1OnPlainCellWith210, {0x8b, 0x0d, 0x9c, 0x23, 0x80}},
     {"Things_CountKind1OnPlainCellMode2", 0x004c95d0, (void *)&Things_CountKind1OnPlainCellMode2, {0x8b, 0x0d, 0x9c, 0x23, 0x80}},
+    {"Rides_FindById",            0x0055a070, (void *)&Rides_FindById, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
+    {"Rides_SetElement",          0x0055a0b0, (void *)&Rides_SetElement, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
+    {"Rides_SetWordC0",           0x0055a300, (void *)&Rides_SetWordC0, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
+    {"Rides_GetWordC0",           0x0055a330, (void *)&Rides_GetWordC0, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
+    {"Rides_Get9c",               0x0055a360, (void *)&Rides_Get9c, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
+    {"Rides_GetElement",          0x0055a390, (void *)&Rides_GetElement, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
+    {"Rides_GetLinkedElement",    0x0055a3e0, (void *)&Rides_GetLinkedElement, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},
