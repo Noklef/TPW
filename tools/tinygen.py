@@ -22,6 +22,25 @@ import sys
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from tinysym import symbolic  # noqa: E402
+from tinycall import parse_decls, wrapper  # noqa: E402
+
+_CALLS = {}
+
+
+def call_tables():
+    """(the names symbols.csv gives ported functions by address, the C++ declarations by name), read once."""
+    if not _CALLS:
+        known = {}
+        for line in open(os.path.join(ROOT, 're/symbols.csv'), encoding='utf-8', errors='replace'):
+            p = line.split(',')
+            if p[0].startswith('0x') and len(p) > 3 and p[2] == 'function' and 'reimplemented' in line:
+                known[int(p[0], 16)] = p[1]
+        heads = []
+        base = os.path.join(ROOT, 'src/game')
+        for path in glob.glob(os.path.join(base, '**', '*.h'), recursive=True):
+            heads.append((os.path.relpath(path, base).replace(os.sep, '/'), open(path, errors='replace').read()))
+        _CALLS['k'], _CALLS['d'] = known, parse_decls(heads)
+    return _CALLS['k'], _CALLS['d']
 
 H = r'(-?0x[0-9a-f]+)'
 FIELD = r'\[ECX(?: \+ %s)?\]' % H
@@ -173,6 +192,8 @@ def functions(lo, hi):
     ks = sorted(starts)
     end = {a: ks[i + 1] for i, a in enumerate(ks[:-1])}
     body = collections.defaultdict(list)
+    calls = collections.defaultdict(set)
+    indirect = set()
     cur, j = None, 0
     for line in open(os.path.join(ROOT, '_re/text.asm'), errors='replace'):
         try:
@@ -181,10 +202,16 @@ def functions(lo, hi):
             continue
         while j < len(ks) and va >= ks[j]:
             cur, j = ks[j], j + 1
+        if cur is not None and va < end.get(cur, cur):
+            m = re.match(r'^(?:CALL|JMP) 0x([0-9a-f]+)$', line[8:].strip())
+            if m:
+                calls[cur].add(int(m.group(1), 16))
+            elif re.match(r'^(?:CALL|JMP) ', line[8:].strip()):
+                indirect.add(cur)
         if cur is None or not lo <= cur < hi or cur in hooked or va >= end.get(cur, cur):
             continue
         body[cur].append((va, norm(line[8:])))
-    return body, end
+    return body, end, calls, indirect
 
 
 @shape(r'MOV EAX,\[ESP \+ 0x4\]', r'MOV \[EAX\],(-?0x[0-9a-f]+)', r'RET (0x[0-9a-f]+)')
@@ -335,6 +362,10 @@ def match(a, ins):
     if d:
         d['addr'] = a
         return d
+    d = wrapper(a, texts, *call_tables())
+    if d:
+        d['addr'] = a
+        return d
     return None
 
 
@@ -351,7 +382,7 @@ def decl(d):
     args += ['u32 v%d' % i for i in range(d['nargs'])]
     if d['conv'] == 't' and not d['nargs'] and d['ret'] in 'abw' and d['body'].startswith('return at<'):
         args[0] = 'const u8 *o'
-    return '%s %s %s(%s)' % (RET[d['ret']], CONV[d['conv']], d['name'], ', '.join(args))
+    return '%s %s %s(%s)' % (d.get('rettype') or RET[d['ret']], CONV[d['conv']], d['name'], ', '.join(args))
 
 
 def main():
@@ -359,13 +390,25 @@ def main():
     if len(a) < 2:
         sys.exit(__doc__)
     lo, hi = int(a[0], 16), int(a[1], 16)
-    body, end = functions(lo, hi)
+    body, end, calls, indirect = functions(lo, hi)
     found = []
     for addr in sorted(body):
         d = match(addr, body[addr])
         if d:
             d['end'] = end[addr]
             found.append(d)
+    def reach(start):
+        seen, todo = set(), [start]
+        while todo:
+            t = todo.pop()
+            if t in seen or t not in end:
+                continue
+            seen.add(t)
+            todo += list(calls.get(t, ()))
+        return seen
+
+    # a wrapper whose callees call through a register or a vtable can't run on random objects
+    found = [d for d in found if not d.get('callee') or not (reach(d['callee']) & indirect)]
     skip = set()
     if '--skip' in a:
         skip = set(int(x, 16) for x in a[a.index('--skip') + 1].split(','))
@@ -393,10 +436,12 @@ def main():
             f.write('// 0x%06x: %s.\n%s;\n' % (d['addr'], d['doc'], decl(d)))
         f.write('}\n')
     with open(out + '.cpp', 'w', newline='\n') as f:
-        f.write('#include "tiny_%s.h"\n\n#include <cstdint>\n\nnamespace {\n\n'
+        incs = sorted(set(h for d in found for h in d.get('includes', [])))
+        incs = ['"%s"' % (h[5:] if h.startswith('core/') else '../' + h) for h in incs]
+        f.write('#include "tiny_%s.h"\n\n#include <cstdint>\n\n' % tag + ''.join('#include %s\n' % i for i in incs) + '\nnamespace {\n\n'
                 'template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }\n'
                 'template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }\n\n'
-                '}  // namespace\n\nextern "C" {\n\n' % tag)
+                '}  // namespace\n\nextern "C" {\n\n')
         for d in found:
             sig = decl(d)
             # unused parameter names are fine for stubs; keep the names where the body uses them
@@ -417,7 +462,16 @@ def main():
         f.write('# (address, end, convention, stack arguments, returns, globals touched, arguments used as pointers)\nFUNCS = [\n')
         for d in found:
             f.write('    (0x%06x, 0x%06x, %r, %d, %r, %r, %r),\n' % (d['addr'], d['end'], d['conv'], d['nargs'], 'a' if d['ret'] in 'ap' else d['ret'], d['globals'], tuple(sorted(set(int(x) for x in re.findall(r'\(uintptr_t\)v(\d)', d['body']))))))
-        f.write(']\nB = Bench([(a, e) for a, e, *_ in FUNCS])\n\n\n'
+        # what the wrappers call, and what that calls: the originals run in the emulator
+        extra, todo = set(), [d['callee'] for d in found if d.get('callee')]
+        while todo:
+            t = todo.pop()
+            if t in extra or t not in end or t in (0x67acc0, 0x67acb0, 0x67bb90):
+                continue
+            extra.add(t)
+            todo += list(calls.get(t, ()))
+        extra_ranges = [(t, end[t]) for t in sorted(extra)]
+        f.write(']\nEXTRA = %r\nB = Bench([(a, e) for a, e, *_ in FUNCS] + EXTRA)\n\n\n' % (extra_ranges,) +
                 'def case(r):\n'
                 '    address, _end, conv, n, ret, globs, ptr = r.choice(FUNCS)\n'
                 '    obj = bytearray(r.bytes(0x400))\n'
