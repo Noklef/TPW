@@ -36,6 +36,16 @@ void __fastcall ObjectControls_Collect(u8 *table);
 u8 *__fastcall ObjectControls_Find(u8 *table, void *, u32 id, u32 quiet);
 u8 *__fastcall ObjectControls_FindUncached(u8 *table, void *, u32 id, u32 quiet);
 
+// 0x4d3de0 (thiscall on the table): its 0x4b3 dwords cleared, then ObjectControls_Collect.
+void __fastcall ObjectControls_Init(u8 *table);
+
+// 0x4ca8c0 (stdcall; id): the dword at +0x18 of the record ObjectControls_FindUncached finds for the id (quiet) in the game's table (at +0x1d943c of
+// the object [0x80239c] points to); the record must exist.
+u32 __stdcall ObjectControls_GetWord18(u32 id);
+
+// 0x4e2740 (thiscall on an object): ObjectControls_Find (quiet) of the word at +0xe of the object in the game's table.
+u8 *__fastcall Obj_FindControls(const u8 *object);
+
 // The schemas of the .sam files (vtable slots, this unused): record index of 0x3c bytes.
 // 0x412c90: an object definition's (0x744b30). 0x4143f0: a track type's (0x739ea8).
 const u8 *__fastcall ObjectDef_GetSchema(const void *, void *, u32 index);

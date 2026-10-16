@@ -8,8 +8,13 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x4d3e00, 0x4d3ec9), (0x412e60, 0x412e6d), (0x412e70, 0x412e8f), (0x4d3d10, 0x4d3d80), (0x4d3d80, 0x4d3df0), (0x5da3c0, 0x5da3c1)])
+B = Bench([(0x4d3e00, 0x4d3ec9), (0x412e60, 0x412e6d), (0x412e70, 0x412e8f), (0x4d3d10, 0x4d3d80), (0x4d3d80, 0x4d3df0), (0x5da3c0, 0x5da3c1), (0x4d3de0, 0x4d3e00), (0x4ca8c0, 0x4ca8e0), (0x4e2740, 0x4e2770)])
+GAME = 0x1d943c  # the table's offset in the game object [0x80239c] points to
 DEFS, ITEMS = 0x7890a0, RAM + 0x4000
+
+
+def call_count(table):
+    return max(1, int.from_bytes(table[0x12c0:0x12c4], 'little', signed=True))
 
 
 def find_case(r):
@@ -25,7 +30,17 @@ def find_case(r):
 
 
 def case(r):
-    if r.random() < 0.6:
+    x = r.random()
+    if x < 0.15:  # the getters over the game's table: the table at RAM, the game object right below it
+        call = find_case(r)
+        regions = dict(call.regions)
+        regions[0x80239c] = put(bytearray(4), 0, 'I', RAM - GAME)
+        if r.random() < 0.5:
+            put(regions[RAM], 0x12c8, 'I', RAM + 0x20 * r.randrange(max(1, min(6, call_count(regions[RAM])))))
+            return Call(0x4ca8c0, [r.choice([0, 1, 2, 3, 4, 5, 9, 0x10001, r.getrandbits(32)])], regions, conv='s', ret='a')
+        regions[RAM + 0x2000] = put(bytearray(r.bytes(0x20)), 0xe, 'H', r.choice([0, 1, 2, 3, 4, 5, 9, r.getrandbits(16)]))
+        return Call(0x4e2740, [RAM + 0x2000], regions, conv='t', ret='a')
+    if x < 0.6:
         return find_case(r)
     n = r.choice([0, 1, 2, 5, 12])
     defs = bytearray(r.bytes(0x740))
@@ -45,7 +60,7 @@ def case(r):
     cache = r.choice([0, 0, 1, 2, 3, 9, r.getrandbits(16)])
     put(table, 0x12c4, 'H', cache)
     put(table, 0x12c8, 'I', r.choice([0, RAM + 0x20 * r.randrange(8), RAM + 0x20 * r.randrange(8)]))
-    return Call(0x4d3e00, [RAM], {RAM: table, DEFS: defs, ITEMS: items}, conv='t')
+    return Call(r.choice([0x4d3e00, 0x4d3de0]), [RAM], {RAM: table, DEFS: defs, ITEMS: items}, conv='t')
 
 
 if __name__ == '__main__':

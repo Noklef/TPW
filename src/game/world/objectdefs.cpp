@@ -51,6 +51,22 @@ u8 *__fastcall ObjectControls_FindUncached(u8 *table, void *, u32 id, u32) {
     return nullptr;
 }
 
+void __fastcall ObjectControls_Init(u8 *table) {
+    for (u32 i = 0; i < 0x4b3; ++i)
+        at<u32>(table, 4 * i) = 0;
+    ObjectControls_Collect(table);
+}
+
+u32 __stdcall ObjectControls_GetWord18(u32 id) {
+    u8 *game = *reinterpret_cast<u8 **>(0x0080239c);
+    return at<u32>(ObjectControls_FindUncached(game + 0x1d943c, nullptr, id, 0), 0x18);
+}
+
+u8 *__fastcall Obj_FindControls(const u8 *object) {
+    u8 *game = *reinterpret_cast<u8 **>(0x0080239c);
+    return ObjectControls_Find(game + 0x1d943c, nullptr, at<u16>(object, 0xe), 0);
+}
+
 void __fastcall ObjectControls_Collect(u8 *table) {
     u8 *defs = reinterpret_cast<u8 *>(0x007890a0);
     for (u8 *def = ObjectDefs_First(defs); def; def = ObjectDefs_Next(defs)) {
