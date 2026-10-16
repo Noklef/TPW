@@ -857,6 +857,10 @@ address,name,kind,confidence,notes
 0x004c9130,Things_CountKind1OnPlainCell,function,high,reimplemented (src/game/world/thingscan); counts the kind 1 things on a plain analyser cell
 0x004c9530,Things_CountKind1OnPlainCellWith210,function,high,reimplemented (src/game/world/thingscan); counts those with a dword at +0x210
 0x004c95d0,Things_CountKind1OnPlainCellMode2,function,high,reimplemented (src/game/world/thingscan); counts those with mode 2 at +0x24
+0x0059edd0,Staff_SurplusKind5,function,high,reimplemented (src/game/world/thingscan); a value when the staff of kind 5 outnumber the objects and a limit
+0x0059ee20,Staff_SurplusKind6,function,high,reimplemented (src/game/world/thingscan); a value when the staff of kind 6 outnumber the objects and a limit
+0x0059ee70,Staff_SurplusKind4,function,high,reimplemented (src/game/world/thingscan); a value when the staff of kind 4 outnumber the objects and a limit
+0x0059eec0,Staff_SurplusKind7,function,high,reimplemented (src/game/world/thingscan); a value when the staff of kind 7 outnumber the objects and a limit
 0x0050b780,Thing_Delete,function,medium,"thiscall on a thing; the base deletion, queues its handle (World_QueueDelete)"
 0x00801f38,gThingsToDelete,data,high,"HandleQueue: +4 head, +8 tail, +0xc count; handles whose slots DeleteAll releases"
 0x005f5fc0,String_Alloc,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +8: a new block for length units, terminated; the old block is not freed"

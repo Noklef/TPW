@@ -68,4 +68,12 @@ s32 __cdecl Things_CountKind1OnPlainCell();
 s32 __cdecl Things_CountKind1OnPlainCellWith210();
 s32 __cdecl Things_CountKind1OnPlainCellMode2();
 
+// 0x59edd0 / 0x59ee20 / 0x59ee70 / 0x59eec0 (thiscall on an object with the limits at +0x360, +0x368, +0x370 and +0x378): the dword after the
+// limit (+0x364, +0x36c, +0x374, +0x37c) when the staff of kind 5 / 6 / 4 / 7 (Things_CountStaffOfKind) outnumber the objects counted for
+// definition field 0 (Things_CountByDef4ac(0, 0)) plus the limit (signed); else 0.
+u32 __fastcall Staff_SurplusKind5(const u8 *object);
+u32 __fastcall Staff_SurplusKind6(const u8 *object);
+u32 __fastcall Staff_SurplusKind4(const u8 *object);
+u32 __fastcall Staff_SurplusKind7(const u8 *object);
+
 }  // extern "C"

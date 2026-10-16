@@ -162,6 +162,23 @@ s32 __cdecl Things_CountKind1OnPlainCellMode2() {
     return CountKind1OnPlainCell([](const u8 *t) { return at<s32>(t, 0x24) == 2; });
 }
 
+namespace {
+
+u32 Surplus(const u8 *object, u32 limitAt, u32 kind) {
+    const s32 limit = Things_CountByDef4ac(0, 0) + at<s32>(object, limitAt);
+    return Things_CountStaffOfKind(kind) > limit ? at<u32>(object, limitAt + 4) : 0;
+}
+
+}  // namespace
+
+u32 __fastcall Staff_SurplusKind5(const u8 *object) { return Surplus(object, 0x360, 5); }
+
+u32 __fastcall Staff_SurplusKind6(const u8 *object) { return Surplus(object, 0x368, 6); }
+
+u32 __fastcall Staff_SurplusKind4(const u8 *object) { return Surplus(object, 0x370, 4); }
+
+u32 __fastcall Staff_SurplusKind7(const u8 *object) { return Surplus(object, 0x378, 7); }
+
 u16 *__cdecl Things_LastHandle(u16 *out) {
     u16 handle;
     World_FirstThing(world(), nullptr, &handle);
