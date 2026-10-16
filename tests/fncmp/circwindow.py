@@ -26,8 +26,16 @@ def case(r):
     put(buf, 0x248, 'i', count)
     buf[0x24c] = r.choice([0, 1, 1, 0xff])
     out = r.choice([0, 1, -1, 5, -5, 100, -100, 0x7fffffff, -0x80000000, sample()])
-    return Call(CALLS[op], [RAM, OUT, r.choice([0, 1, 2, 3, 4, r.getrandbits(32)])],
-                {RAM: buf, OUT: put(bytearray(8), 0, 'i', out)})
+    kind = r.choice([0, 1, 2, 3, 4, r.getrandbits(32)])
+    if r.random() < 0.5:  # a standout sample at, just inside or just past the window's end
+        window = {0: 0xc, 1: 0x24, 2: 0x90}.get(kind, 0)
+        back = window + r.choice([-1, 0, 1])
+        head = max(0, min(143, head))
+        if 0 <= back < count:
+            index = head - back if back <= head else head - back + count
+            if 0 <= index < 0x90:
+                put(buf, 4 + 4 * index, 'i', 1000 if op == 'Max' else -1000)
+    return Call(CALLS[op], [RAM, OUT, kind], {RAM: buf, OUT: put(bytearray(8), 0, 'i', out)})
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
