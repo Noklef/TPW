@@ -2772,6 +2772,19 @@ address,name,kind,confidence,notes
 0x006ae3d0,Records16_FindNonSpace,function,high,reimplemented (src/game/core/records16); the first record that is not a space or comma
 0x006ae440,Records16_Reverse,function,high,reimplemented (src/game/core/records16); reverses the order of 16-byte records
 0x006ae4b0,Records16_ReorderRtl,function,high,reimplemented (src/game/core/records16); reorders the records of a line for right to left reading
+0x004056f0,Obj_AddrOf4,function,high,reimplemented (src/game/core/small4); the address 4 bytes into the object
+0x00504740,Vtbl6fd800_Set,function,high,reimplemented (src/game/core/small4); sets the vtable pointer to 0x6fd800
+0x00429b80,Vtbl6fdce8_At60_Set,function,high,reimplemented (src/game/core/small4); sets the vtable pointer at +0x60 to 0x6fdce8
+0x0047a9a0,Obj_GetCOr6fd6c4,function,high,reimplemented (src/game/core/small4); the dword at +0xc or 0x6fd6c4 when it is 0
+0x005cea30,VirtualBase_SetVtbl70994c,function,high,reimplemented (src/game/core/small4); sets a virtual base's vtable pointer to 0x70994c
+0x004f04c0,Array36_At,function,high,reimplemented (src/game/core/small4); the address of an element of 36 bytes
+0x00564a50,Const_MinusOne_564a50,function,high,reimplemented (src/game/core/small4); returns -1
+0x005ceaa0,Const_MinusOne_5ceaa0,function,high,reimplemented (src/game/core/small4); returns -1
+0x005cea90,Const_MinusOne_5cea90,function,high,reimplemented (src/game/core/small4); returns -1 and pops one argument
+0x006bab20,Const_MinusOne_6bab20,function,high,reimplemented (src/game/core/small4); returns -1 and pops four arguments
+0x005d5db0,Global786b80_SetAndMode3,function,high,reimplemented (src/game/core/small4); sets a global and a mode field of the object it points to
+0x005077f0,Staff_WageForRecord,function,high,reimplemented (src/game/core/small4); the wage for a record's type and grade
+0x00486780,Text_NarrowToGlobalBuffer,function,high,reimplemented (src/game/core/small4); converts wide text to bytes in a global buffer
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

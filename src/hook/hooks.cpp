@@ -108,6 +108,7 @@
 #include "../game/core/seqs.h"
 #include "../game/core/small2.h"
 #include "../game/core/small3.h"
+#include "../game/core/small4.h"
 #include "../game/core/tiny_g.h"
 #include "../game/core/tiny_h.h"
 #include "../game/core/wtraits.h"
@@ -2256,6 +2257,19 @@ const Hook kHooks[] = {
     {"Records16_FindNonSpace",    0x006ae3d0, (void *)&Records16_FindNonSpace, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Records16_Reverse",         0x006ae440, (void *)&Records16_Reverse, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Records16_ReorderRtl",      0x006ae4b0, (void *)&Records16_ReorderRtl, {0x53, 0x56, 0x8b, 0x74, 0x24}},
+    {"Obj_AddrOf4",               0x004056f0, (void *)&Obj_AddrOf4, {0x8d, 0x41, 0x04, 0xc3, 0x90}},
+    {"Vtbl6fd800_Set",            0x00504740, (void *)&Vtbl6fd800_Set, {0xc7, 0x01, 0x00, 0xd8, 0x6f}},
+    {"Vtbl6fdce8_At60_Set",       0x00429b80, (void *)&Vtbl6fdce8_At60_Set, {0xc7, 0x41, 0x60, 0xe8, 0xdc}},
+    {"Obj_GetCOr6fd6c4",          0x0047a9a0, (void *)&Obj_GetCOr6fd6c4, {0x8b, 0x41, 0x0c, 0x85, 0xc0}},
+    {"VirtualBase_SetVtbl70994c", 0x005cea30, (void *)&VirtualBase_SetVtbl70994c, {0x8b, 0x41, 0xf8, 0x8b, 0x50}},
+    {"Array36_At",                0x004f04c0, (void *)&Array36_At, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Const_MinusOne_564a50",     0x00564a50, (void *)&Const_MinusOne_564a50, {0x83, 0xc8, 0xff, 0xc3, 0x90}},
+    {"Const_MinusOne_5ceaa0",     0x005ceaa0, (void *)&Const_MinusOne_5ceaa0, {0x83, 0xc8, 0xff, 0xc3, 0x90}},
+    {"Const_MinusOne_5cea90",     0x005cea90, (void *)&Const_MinusOne_5cea90, {0x83, 0xc8, 0xff, 0xc2, 0x04}},
+    {"Const_MinusOne_6bab20",     0x006bab20, (void *)&Const_MinusOne_6bab20, {0x83, 0xc8, 0xff, 0xc2, 0x10}},
+    {"Global786b80_SetAndMode3",  0x005d5db0, (void *)&Global786b80_SetAndMode3, {0xa1, 0x84, 0x28, 0xf8, 0x00}},
+    {"Staff_WageForRecord",       0x005077f0, (void *)&Staff_WageForRecord, {0x8a, 0x41, 0x08, 0x8b, 0x09}},
+    {"Text_NarrowToGlobalBuffer", 0x00486780, (void *)&Text_NarrowToGlobalBuffer, {0x8b, 0x0d, 0x80, 0xba, 0x78}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
