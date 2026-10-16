@@ -1,19 +1,21 @@
-# The matrix object methods (src/game/math/mat4: 0x578800, 0x578bc0) against the originals: any
+# The matrix object methods (src/game/math/mat4: 0x5780a0, 0x578800, 0x578bc0) against the originals: any
 # matrix bits, overlapping copies included.
-# usage: mat4.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Identity,Assign)
+# usage: mat4.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=InitGlobals,Identity,Assign)
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM  # noqa: E402
 
-B = Bench([(0x578800, 0x578820), (0x578bc0, 0x578bd4)])
-CALLS = {'Identity': 0x578800, 'Assign': 0x578bc0}
+B = Bench([(0x5780a0, 0x578190), (0x578800, 0x578820), (0x578bc0, 0x578bd4)])
+CALLS = {'InitGlobals': 0x5780a0, 'Identity': 0x578800, 'Assign': 0x578bc0}
 
 
 def case(r):
     op = r.choice(OPS)
     regions = {RAM: r.bytes(0x100)}
+    if op == 'InitGlobals':
+        return Call(0x5780a0, [], {0x87af00: r.bytes(0x300)})
     if op == 'Identity':
         return Call(0x578800, [RAM + r.choice([0, 0x40])], regions, conv='t')
     # copied upwards a dword at a time, so a source just below the matrix smears

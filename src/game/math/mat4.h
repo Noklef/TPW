@@ -9,6 +9,10 @@
 
 extern "C" {
 
+// 0x5780a0 (static initialiser): the eight identity matrices at 0x87af68, 0x87afa8, 0x87aff0,
+// 0x87b030, 0x87b090, 0x87b110, 0x87b158 and 0x87b198.
+void __cdecl Mat4_InitGlobals();
+
 // 0x578800 (thiscall): the identity (zeroed, then the diagonal 1.0f).
 void __fastcall Mat4_Identity(u32 *m);
 
