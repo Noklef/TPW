@@ -11,4 +11,8 @@ extern "C" {
 // with inserted 0. The iterator of the result is the new node or the old one.
 void __fastcall StdMapA_Insert(u8 *tree, void *, u8 **result, const u32 *value);
 
+
+// 0x5b1930: the same over the tree with the sentinel at 0xf7c970, whose keys are 16-bit (StdTree_DecG / StdTree_InsertG).
+void __fastcall StdMapG_Insert(u8 *tree, void *, u8 **result, const u16 *value);
+
 }  // extern "C"
