@@ -13,7 +13,7 @@ from thingenv import POOL, THING, park  # noqa: E402
 # name: (address, size, arguments: id, rec, rec+index, rec+index+value, recword, linked)
 CALLS = {'Find': (0x55a070, 0x40, 'id'), 'Set': (0x55a0b0, 0x50, 'rec2v'), 'Get': (0x55a390, 0x50, 'rec2'), 'SetW': (0x55a300, 0x30, 'recv'),
          'GetW': (0x55a330, 0x30, 'rec'), 'G9c': (0x55a360, 0x30, 'rec'), 'Link': (0x55a3e0, 0x90, 'id2'), 'Clr4': (0x4e03f0, 0x30, 'this'), 'E7': (0x4e0410, 0x30, 'this'), 'E0': (0x4e0a70, 0x40, 'this'),
-         'Spd': (0x4dd6e0, 0x40, 'thisv'), 'Dur': (0x4dd720, 0xd0, 'thisv'), 'GameE': (0x51a290, 0x60, 'this')}
+         'Spd': (0x4dd6e0, 0x40, 'thisv'), 'Dur': (0x4dd720, 0xd0, 'thisv'), 'GameE': (0x51a290, 0x60, 'this'), 'E41': (0x4e0db0, 0x30, 'this')}
 B = Bench([(a, a + n) for (a, n, _s) in CALLS.values()] + [(0x5da3c0, 0x5da3c1), (0x412e90, 0x412eea)])
 NODES, ARRAYS = RAM + 0x1000, RAM + 0x4000
 
@@ -56,7 +56,7 @@ def case(r):
         regions[game] = struct.pack('<H', r.choice(handles + [0, 0]) if handles else 0)
         return Call(address, [game - 0x1da732], regions, conv='t', ret='a')
     args = {'this': [RAM], 'id': [ident], 'rec2v': [rec, index, value], 'rec2': [rec, index], 'recv': [rec, value], 'rec': [rec], 'id2': [ident, index], 'thisv': [RAM, r.choice([0, 1, 5, 99, 0x100, 0x1ff, 0x80, 0xffffffff])]}[shape]
-    return Call(address, args, regions, conv='t' if shape.startswith('this') else 'c', ret='v' if name in ('Set', 'SetW', 'Clr4', 'Spd', 'Dur') else 'a')
+    return Call(address, args, regions, conv='t' if shape.startswith('this') else 'c', ret='v' if name in ('Set', 'SetW', 'Clr4', 'Spd', 'Dur', 'E41') else 'a')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]

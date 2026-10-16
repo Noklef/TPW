@@ -125,6 +125,7 @@ address,name,kind,confidence,notes
 0x004dd6e0,Obj_SetSpeed,function,high,reimplemented (src/game/world/ridelist); sets the speed of the object and its ride record
 0x004dd720,Obj_SetDuration,function,high,reimplemented (src/game/world/ridelist); sets the duration of the object limited to its definition's bounds
 0x0051a290,Game_GetRideElement1,function,high,reimplemented (src/game/world/ridelist); element 1 of the ride record of the thing the game's handle names
+0x004e0db0,Obj_SetRideElement4One,function,high,reimplemented (src/game/world/ridelist); element 4 of the object's ride record set to 1
 0x004031e0,GameClock_Now,function,high,"fastcall; base time + offset at +0x48; used for all RSSE waits"
 0x00516330,World_Rand,function,high,"reimplemented (src/game/world/random); thiscall; LCG x*0x19660d+0x3c6ef35f, rotr 13, abs; state at world+0x1da708. Must be bit-exact for determinism"
 0x008791b0,RSSE_ScriptList,data,high,head of doubly linked list of live script contexts (0xF4 bytes each)

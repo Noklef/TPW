@@ -99,6 +99,8 @@ void __fastcall Obj_SetDuration(u8 *object, void *, u32 duration) {
     at<u8>(object, 0x5c) = (u8)value;
 }
 
+void __fastcall Obj_SetRideElement4One(const u8 *object) { Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 4, 1); }
+
 s32 __fastcall Game_GetRideElement1(const u8 *game) {
     u32 handle = at<u16>(game, 0x1da732);
     if (handle == 0)
