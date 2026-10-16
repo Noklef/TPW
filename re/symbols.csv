@@ -471,7 +471,7 @@ address,name,kind,confidence,notes
 0x00641f10,RefPack_Decode,function,high,"reimplemented (src/game/files); (dst, src, unused) -> decoded size, ret 0xc; codec vtable 0x703f00 slot 2; no bounds checks, ignores the 0x80 4-byte-size flag"
 0x00642110,RefPack_DecodedSize,function,high,"reimplemented; (src) -> 3-byte BE size after the magic (0x10FB) or after 5 bytes, ret 4; vtable slot 5"
 0x006419b0,ReadBigEndian,function,high,"(p, n) -> n-byte big-endian integer"
-0x00642100,RefPack_WorkspaceSize,function,high,"vtable slot 3; returns 0xc0000 = encoder hash heads (0x10000 x 4) + links (0x20000 x 4)"
+0x00642100,Const_C0000,function,high,reimplemented (src/game/core/small); 0xc0000
 0x00638be0,BufferSource_AttachRefPack,function,high,reimplemented (src/game/files/wrapsources); thiscall (source); reads the whole entry and RefPack_Decodes it into the data
 0x00703f00,RefPackCodec_vtable,data,medium,"slots 0x638c70 (dtor), RefPack_Encode, RefPack_Decode, RefPack_WorkspaceSize, 0x5d60c0, RefPack_DecodedSize, 0x638860, 0x638b60"
 0x00641a50,RefPack_Encode,function,high,"reimplemented, not hooked (unreachable: the only codec object only decodes); thiscall (dst, src, len, workspace) ret 0x10, returns encoded size + 5; greedy LZ over a 128 KB window with CRC-16 hash chains; C++ port reproduces all 6804 shipped .wad blobs"
@@ -2133,6 +2133,19 @@ address,name,kind,confidence,notes
 0x005da3d0,Stub_Ret12,function,high,reimplemented (src/game/core/trivial); a virtual that does nothing (pops 12)
 0x005e7310,Obj_CopyCToMark,function,high,reimplemented (src/game/core/trivial); +0x38 = +0xc; returns it with the low byte 1
 0x005e7720,Pair_Assign,function,high,reimplemented (src/game/core/trivial); a dword and a byte copied into a pair
+0x005b3210,Word_CopyTo,function,high,reimplemented (src/game/core/small); a word copied unless the destination is 0
+0x00617920,Vtbl703748_Set,function,high,reimplemented (src/game/core/small); the vtable pointer +0 = 0x703748
+0x00617ad0,Vtbl703770_Set,function,high,reimplemented (src/game/core/small); the vtable pointer +0 = 0x703770
+0x006185f0,Obj_Get64Plus10,function,high,reimplemented (src/game/core/small); the dword at +0x64 plus 0x10
+0x00631270,Stub_Ret2,function,high,reimplemented (src/game/core/small); a virtual that does nothing
+0x00631970,Obj_Get3c,function,high,reimplemented (src/game/core/small); the dword at +0x3c
+0x006322e0,Dwords_Copy,function,high,reimplemented (src/game/core/small); dwords copied from first to last into dest; returns the end
+0x006338b0,Class703770_Ctor,function,high,"reimplemented (src/game/core/small); vtable 0x703770, +4 = 1"
+0x006339e0,Obj_Take,function,high,"reimplemented (src/game/core/small); takes a word, a dword and kind 3 from another object"
+0x00633a00,Class703c80_Ctor,function,high,reimplemented (src/game/core/small); vtable 0x703c80 and its defaults
+0x00633b60,Obj_Set10,function,high,reimplemented (src/game/core/small); +0x10 = value
+0x006428b0,DivCeil,function,high,"reimplemented (src/game/core/small); (a + b - 1) / b, signed"
+0x00642b20,Const_1000000,function,high,reimplemented (src/game/core/small); 1000000
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
