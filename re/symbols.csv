@@ -3254,6 +3254,9 @@ address,name,kind,confidence,notes
 0x0047c6a0,Tree32_Find,function,high,reimplemented (src/game/core/small26); std::map find with a dword key
 0x005e76c0,Tree16b_Find,function,high,reimplemented (src/game/core/small26); std::map find with a word key
 0x005af780,Obj_HasKey5af780,function,high,reimplemented (src/game/core/small26); whether the map at +0x28 has the word key
+0x004cd300,Thing_ByHandle,function,high,reimplemented (src/game/core/small27); the thing a handle names
+0x004cd4e0,Cell_MakeHandle,function,high,reimplemented (src/game/core/small27); makes a map cell handle from coordinates
+0x00413340,Obj_FreeFourBuffers,function,high,reimplemented (src/game/core/small27); frees four global memory buffers
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
