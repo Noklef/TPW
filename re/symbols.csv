@@ -2432,6 +2432,12 @@ address,name,kind,confidence,notes
 0x004d4170,Obj_KillSlot,function,high,reimplemented (src/game/core/misc); the script slot at +0 killed and cleared
 0x004d9600,Obj_StampAt30,function,high,reimplemented (src/game/core/misc); a word at +0x30 and the world's stamp at +0x34
 0x004e01f0,Obj_StampAt5e,function,high,reimplemented (src/game/core/misc); a word at +0x5e and the world's stamp at +0x60
+0x0040f300,Obj_CtorPart8,function,high,"reimplemented (src/game/core/misc); vtable 0x6fd7b8, a part built at +8, vtable 0x6fd7b0"
+0x00458910,MeshRef_ClearFlag10000000,function,high,reimplemented (src/game/core/misc); flag 0x10000000 of the referenced part cleared
+0x00458940,MeshRef_SetFlag10000000,function,high,reimplemented (src/game/core/misc); flag 0x10000000 of the referenced part set
+0x004a9350,Countdown7cc150_Step,function,high,reimplemented (src/game/core/misc); a counter stepped down; 1 at zero when another global is set
+0x004b4670,Obj_KillSlot24,function,high,reimplemented (src/game/core/misc); the script slot at +0x24 killed and the slot fields cleared
+0x004bcec0,Global7cc698_Choose,function,high,reimplemented (src/game/core/misc); a global set from the first of three sources that applies
 0x0047f910,Fn_47f910,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = a value, +0x4 = 0x0, +0x8 = 0x0, +0xc = 0x0, +0x10 = 0x0, +0x14 = 0x0, +0x18 = 0x0, +0x1c = 0x0, +0x20 = 0x0, +0x24 = 0x0, +0x28 = 0x0, +0x2c = 0x0"
 0x0048c9e0,Fn_48c9e0,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = 0x6ff1f0, 0x7c2658 = 0x0, +0x10 = 0x0, +0x18 = 0x0, +0x14 = 0x0, +0x1c = 0x0"
 0x004e0210,Fn_4e0210,function,high,"reimplemented (src/game/core/tiny_d); stores +0x5e = 0x0, +0x60 = 0x0"

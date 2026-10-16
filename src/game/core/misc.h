@@ -1,10 +1,31 @@
-// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
+// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x4bcec0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
 // 0x4e1c60, 0x4f00f0, 0x4f6020, 0x4f6820, 0x4f6850, 0x56a510, 0x56b630 and 0x56b830.
 #pragma once
 
 #include "../../../re/types.h"
 
 extern "C" {
+
+// 0x40f300 (thiscall; value, pops 4): +4 = 0, vtable 0x6fd7b8, Fn_59b550 on the part at +8 with the value,
+// then vtable 0x6fd7b0. Returns the object.
+u8 *__fastcall Obj_CtorPart8(u8 *object, void *, u32 value);
+
+// 0x458910 / 0x458940 (cdecl; pointer to the object): flag 0x10000000 of the part the object's vtable
+// (+8) reaches, at +0x50, cleared / set, the scene flags (0x8bd508) touched first.
+void __cdecl MeshRef_ClearFlag10000000(u8 *const *ref);
+void __cdecl MeshRef_SetFlag10000000(u8 *const *ref);
+
+// 0x4a9350 (cdecl): the counter at 0x7cc150 stepped down if above 0; 1 when it is 0 and 0x7cc190 is
+// set, else 0.
+u32 __cdecl Countdown7cc150_Step();
+
+// 0x4b4670 (thiscall): when the script slot at +0x24 is set it is killed (SpriteScript_Kill) and
+// +0x24 = 0, +0x28 = +0x2c = -1; returns -1 for that, else 0.
+u32 __fastcall Obj_KillSlot24(u8 *object);
+
+// 0x4bcec0 (cdecl): 0x7cc698 = 0x7cc8b8 if set, else 0x7cc8bc if the byte 0x7cc8b4 is set, else
+// 0x7cc8c0. Returns the value stored in the first two cases, else 0.
+u32 __cdecl Global7cc698_Choose();
 
 // 0x402ef0 (thiscall): when Obj_Get30 is 0, +0x3c += +0x40. Returns +0x30 if set, else +0x40.
 u32 __fastcall Obj_AdvanceUnless30(u8 *object);

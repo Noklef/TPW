@@ -3,10 +3,12 @@
 #include <cstdint>
 #include <initializer_list>
 
+#include "../render/state.h"
 #include "../sprite/script.h"
 #include "accessors.h"
 #include "tiny_c.h"
 #include "tiny_d.h"
+#include "tiny_e.h"
 
 namespace {
 
@@ -16,6 +18,62 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 }  // namespace
 
 extern "C" {
+
+u8 *__fastcall Obj_CtorPart8(u8 *object, void *, u32 value) {
+    at<u32>(object, 4) = 0;
+    at<u32>(object, 0) = 0x006fd7b8;
+    Fn_59b550(object + 8, nullptr, value);
+    at<u32>(object, 0) = 0x006fd7b0;
+    return object;
+}
+
+// The part a reference reaches: the object plus the offset at +8 of its vtable.
+static u8 *RefPart(u8 *const *ref) {
+    u8 *object = *ref;
+    return object + at<u32>(at<u8 *>(object, 0), 8);
+}
+
+void __cdecl MeshRef_ClearFlag10000000(u8 *const *ref) {
+    u8 *part = RefPart(ref);
+    SceneFlags_Touch(reinterpret_cast<u32 *>(0x008bd508));
+    at<u32>(part, 0x50) &= 0xefffffff;
+}
+
+void __cdecl MeshRef_SetFlag10000000(u8 *const *ref) {
+    u8 *part = RefPart(ref);
+    SceneFlags_Touch(reinterpret_cast<u32 *>(0x008bd508));
+    at<u32>(part, 0x50) |= 0x10000000;
+}
+
+u32 __cdecl Countdown7cc150_Step() {
+    s32 &counter = global<s32>(0x007cc150);
+    if (counter > 0)
+        counter--;
+    return counter == 0 && global<u32>(0x007cc190) != 0 ? 1 : 0;
+}
+
+u32 __fastcall Obj_KillSlot24(u8 *object) {
+    if (!at<u32>(object, 0x24))
+        return 0;
+    SpriteScript_Kill((s32)at<u32>(object, 0x24));
+    at<u32>(object, 0x24) = 0;
+    at<u32>(object, 0x28) = 0xffffffff;
+    at<u32>(object, 0x2c) = 0xffffffff;
+    return 0xffffffff;
+}
+
+u32 __cdecl Global7cc698_Choose() {
+    if (global<u32>(0x007cc8b8)) {
+        global<u32>(0x007cc698) = global<u32>(0x007cc8b8);
+        return global<u32>(0x007cc698);
+    }
+    if (global<u8>(0x007cc8b4)) {
+        global<u32>(0x007cc698) = global<u32>(0x007cc8bc);
+        return global<u32>(0x007cc698);
+    }
+    global<u32>(0x007cc698) = global<u32>(0x007cc8c0);
+    return 0;
+}
 
 u32 __fastcall Obj_AdvanceUnless30(u8 *object) {
     u32 result = Obj_Get30(object);
