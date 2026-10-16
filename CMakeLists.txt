@@ -91,6 +91,7 @@ add_library(tpw_game STATIC
     src/game/core/forwarders.cpp
     src/game/core/tiny_f.cpp
     src/game/core/base64.cpp
+    src/game/core/selectors.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

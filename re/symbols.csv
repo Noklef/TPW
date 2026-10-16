@@ -93,7 +93,7 @@ address,name,kind,confidence,notes
 0x00595920,WaveletCodec_DecodeV13,function,high,"one-level D4 wavelet, YUV 4:2:0 + optional alpha; ported in tools/wct2png.py"
 0x00597100,WaveletCodec_DecodeV13Scaled,function,medium,resampling variant; calls DecodeV13 when sizes match
 0x00597090,Wavelet_ReadBits,function,high,"LSB-first bit reader over 16-bit LE words"
-0x00591a60,WaveletCodec_AddRef,function,high,
+0x00591a60,Obj_IncBefore4c,function,high,reimplemented (src/game/core/selectors); increments the dword at -0x4c and returns it
 0x00591a70,WaveletCodec_GetRefCount,function,high,reimplemented (src/game/core/tiny_a); the dword at -0x4c
 0x00591a80,WaveletCodec_Release,function,high,
 0x00598800,WaveletCodec_DeletingDtor,function,medium,
@@ -2634,6 +2634,22 @@ address,name,kind,confidence,notes
 0x006baa10,Wrap_Globalfb2708_Set_6d1bc0_6baa10,function,high,reimplemented (src/game/core/tiny_f); calls Globalfb2708_Set_6d1bc0
 0x006c4900,Wrap_Init_6c4fb0_6c4900,function,high,reimplemented (src/game/core/tiny_f); calls Init_6c4fb0
 0x005c92f0,Base64_Encode,function,high,reimplemented (src/game/core/base64); base64 text with CR LF every 76 characters
+0x0041a980,Obj_Get0Shr2,function,high,reimplemented (src/game/core/selectors); the dword at +0 shifted right by 2
+0x0056dd50,Obj_Get0Bit24,function,high,reimplemented (src/game/core/selectors); the dword at +0 ANDed with 0x1000000
+0x00516c00,Word7cf4f4_NonZero,function,high,reimplemented (src/game/core/selectors); whether the word at 0x7cf4f4 is not 0
+0x006c6ff0,Obj_Bit1At20_16Or8,function,high,"reimplemented (src/game/core/selectors); 16 when bit 1 of the byte at +0x20 is set, else 8"
+0x006c7000,Obj_Bit6At20_2Or1,function,high,"reimplemented (src/game/core/selectors); 2 when bit 6 of the byte at +0x20 is set, else 1"
+0x006b0600,Obj_NonZeroAt8_4Or5,function,high,"reimplemented (src/game/core/selectors); 4 when the dword at +8 is not 0, else 5"
+0x006b0610,Obj_NonZeroAt8_14Or3,function,high,"reimplemented (src/game/core/selectors); 14 when the dword at +8 is not 0, else 3"
+0x004bae30,Global7cc53c_Pick7cc4f0,function,high,"reimplemented (src/game/core/selectors); 0x7cc4f0 when the byte at 0x7cc53c is not 0, else 0"
+0x006b9da0,Obj_Inc30,function,high,reimplemented (src/game/core/selectors); increments the dword at +0x30 and returns it
+0x004c9ed0,Global7852f8_Times78548c,function,high,reimplemented (src/game/core/selectors); the dword at 0x7852f8 times the one at 0x78548c
+0x006b9260,Obj_Flags28_Bit1IfBit0,function,high,"reimplemented (src/game/core/selectors); bit 1 of the dword at +0x28 when its bit 0 is set, else 0"
+0x00409ce0,Link_TakeNext,function,high,reimplemented (src/game/core/selectors); advances a node pointer and returns the value it left
+0x00633b70,Obj_Get14OrInstance,function,high,"reimplemented (src/game/core/selectors); the dword at +0x14, or the application instance when it is -1"
+0x00633b80,Obj_Get1cOrWindow,function,high,"reimplemented (src/game/core/selectors); the dword at +0x1c, or the application window when it is -1"
+0x004f0240,Obj_Get4Or6fd6c4,function,high,"reimplemented (src/game/core/selectors); the dword at +4, or 0x6fd6c4 when it is 0"
+0x0067d340,Obj_Get4Or7089cc,function,high,"reimplemented (src/game/core/selectors); the dword at +4, or 0x7089cc when it is 0"
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

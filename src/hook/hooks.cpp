@@ -98,7 +98,8 @@
 #include "../game/core/trivial.h"
 #include "../game/core/accessors.h"
 #include "../game/core/volumes.h"
-#include "../game/core/base64.h"
+#include "../game/core/base64.h"
+#include "../game/core/selectors.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -2105,6 +2106,23 @@ const Hook kHooks[] = {
     {"Wrap_Globalfb2708_Set_6d1bc0_6baa10", 0x006baa10, (void *)&Wrap_Globalfb2708_Set_6d1bc0_6baa10, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Wrap_Init_6c4fb0_6c4900",   0x006c4900, (void *)&Wrap_Init_6c4fb0_6c4900, {0xb9, 0x38, 0x20, 0xfb, 0x00}},
     {"Base64_Encode",             0x005c92f0, (void *)&Base64_Encode, {0x8b, 0x44, 0x24, 0x04, 0x55}},
+    {"Obj_Get0Shr2",              0x0041a980, (void *)&Obj_Get0Shr2, {0x8b, 0x01, 0xc1, 0xe8, 0x02}},
+    {"Obj_Get0Bit24",             0x0056dd50, (void *)&Obj_Get0Bit24, {0x8b, 0x01, 0x25, 0x00, 0x00}},
+    {"Word7cf4f4_NonZero",        0x00516c00, (void *)&Word7cf4f4_NonZero, {0x66, 0x83, 0x3d, 0xf4, 0xf4}},
+    {"Obj_Bit1At20_16Or8",        0x006c6ff0, (void *)&Obj_Bit1At20_16Or8, {0x8a, 0x41, 0x20, 0x24, 0x02}},
+    {"Obj_Bit6At20_2Or1",         0x006c7000, (void *)&Obj_Bit6At20_2Or1, {0x8a, 0x41, 0x20, 0x24, 0x40}},
+    {"Obj_NonZeroAt8_4Or5",       0x006b0600, (void *)&Obj_NonZeroAt8_4Or5, {0x8b, 0x41, 0x08, 0xf7, 0xd8}},
+    {"Obj_NonZeroAt8_14Or3",      0x006b0610, (void *)&Obj_NonZeroAt8_14Or3, {0x8b, 0x41, 0x08, 0xf7, 0xd8}},
+    {"Global7cc53c_Pick7cc4f0",   0x004bae30, (void *)&Global7cc53c_Pick7cc4f0, {0xa0, 0x3c, 0xc5, 0x7c, 0x00}},
+    {"Obj_Inc30",                 0x006b9da0, (void *)&Obj_Inc30, {0x8b, 0x41, 0x30, 0x40, 0x89}},
+    {"Obj_IncBefore4c",           0x00591a60, (void *)&Obj_IncBefore4c, {0x8b, 0x41, 0xb4, 0x40, 0x89}},
+    {"Global7852f8_Times78548c",  0x004c9ed0, (void *)&Global7852f8_Times78548c, {0xa1, 0xf8, 0x52, 0x78, 0x00}},
+    {"Obj_Flags28_Bit1IfBit0",    0x006b9260, (void *)&Obj_Flags28_Bit1IfBit0, {0x8b, 0x41, 0x28, 0xa8, 0x01}},
+    {"Link_TakeNext",             0x00409ce0, (void *)&Link_TakeNext, {0x8b, 0x4c, 0x24, 0x04, 0x8b}},
+    {"Obj_Get14OrInstance",       0x00633b70, (void *)&Obj_Get14OrInstance, {0x8b, 0x41, 0x14, 0x83, 0xf8}},
+    {"Obj_Get1cOrWindow",         0x00633b80, (void *)&Obj_Get1cOrWindow, {0x8b, 0x41, 0x1c, 0x83, 0xf8}},
+    {"Obj_Get4Or6fd6c4",          0x004f0240, (void *)&Obj_Get4Or6fd6c4, {0x8b, 0x41, 0x04, 0x85, 0xc0}},
+    {"Obj_Get4Or7089cc",          0x0067d340, (void *)&Obj_Get4Or7089cc, {0x8b, 0x41, 0x04, 0x85, 0xc0}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
