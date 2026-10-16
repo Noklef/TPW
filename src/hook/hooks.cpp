@@ -116,7 +116,8 @@
 #include "../game/world/object.h"
 #include "../game/world/person.h"
 #include "../game/world/research.h"
-#include "../game/world/things.h"
+#include "../game/world/things.h"
+#include "../game/world/world.h"
 #include "../game/model/holder.h"
 #include "../game/model/parts.h"
 #include "../game/model/highlight.h"
@@ -461,6 +462,12 @@ const Hook kHooks[] = {
     {"ResearchGroup_Ctor",        0x00504750, (void *)&ResearchGroup_Ctor, {0x8b, 0xc1, 0xc6, 0x40, 0x0c}},
     {"Nav_SetPosVel",             0x005100e0, (void *)&Nav_SetPosVel, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Nav_GetPos",                0x00510160, (void *)&Nav_GetPos, {0x8b, 0x54, 0x24, 0x04, 0x8b}},
+    {"World_ArrivalVehicleNotSize1", 0x0051aad0, (void *)&World_ArrivalVehicleNotSize1, {0x66, 0x8b, 0x81, 0x2a, 0xa7}},
+    {"World_AddVisitorToDate",    0x0051aaf0, (void *)&World_AddVisitorToDate, {0x56, 0x8b, 0xf1, 0x8b, 0x96}},
+    {"World_MarkRideBuilt",       0x0051ab20, (void *)&World_MarkRideBuilt, {0x8b, 0x44, 0x24, 0x04, 0xb9}},
+    {"World_HasRides",            0x0051ab60, (void *)&World_HasRides, {0x56, 0x57, 0xb9, 0x08, 0x00}},
+    {"Empty_Ctor",                0x0051ad30, (void *)&Empty_Ctor, {0x8b, 0xc1, 0xc3, 0x90, 0x90}},
+    {"Record999_Ctor",            0x0051ae10, (void *)&Record999_Ctor, {0x8b, 0xc1, 0xc7, 0x00, 0x00}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},

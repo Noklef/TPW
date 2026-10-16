@@ -113,6 +113,7 @@ add_library(tpw_game STATIC
     src/game/world/person.cpp
     src/game/world/research.cpp
     src/game/world/nav.cpp
+    src/game/world/world.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
