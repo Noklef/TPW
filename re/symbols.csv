@@ -883,6 +883,12 @@ address,name,kind,confidence,notes
 0x0059ee70,Staff_SurplusKind4,function,high,reimplemented (src/game/world/thingscan); a value when the staff of kind 4 outnumber the objects and a limit
 0x0059eec0,Staff_SurplusKind7,function,high,reimplemented (src/game/world/thingscan); a value when the staff of kind 7 outnumber the objects and a limit
 0x004c9e60,Things_SumChain,function,high,reimplemented (src/game/world/thingscan); the sum of table values along the chain of things from the game handle
+0x00519690,Things_Unlink1da73c,function,high,reimplemented (src/game/world/thingscan); takes a thing out of the list headed at +0x1da73c
+0x00519800,Things_Unlink1da73e,function,high,reimplemented (src/game/world/thingscan); takes a thing out of the list headed at +0x1da73e
+0x00519970,Things_Unlink1da740,function,high,reimplemented (src/game/world/thingscan); takes a thing out of the list headed at +0x1da740
+0x00519c50,Things_Unlink1da742,function,high,reimplemented (src/game/world/thingscan); takes a thing out of the list headed at +0x1da742
+0x00519ae0,Things_Unlink1da744,function,high,reimplemented (src/game/world/thingscan); takes a thing out of the list headed at +0x1da744
+0x00519dc0,Things_Unlink1da746,function,high,reimplemented (src/game/world/thingscan); takes a thing out of the list headed at +0x1da746 (links at +0xc)
 0x0054b130,Buoy_FindFree,function,high,"reimplemented (src/game/world/trackpools); the first free buoy record, its index stored in it"
 0x0054b170,Buoy_Alloc,function,high,reimplemented (src/game/world/trackpools); takes the first free buoy record
 0x0054b1e0,CollNode_FindFree,function,high,reimplemented (src/game/world/trackpools); the first free collision node

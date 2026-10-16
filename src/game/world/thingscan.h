@@ -9,6 +9,16 @@ extern "C" {
 
 // 0x4c9f90 / 0x4ca0c0 (cdecl): how many things of kind 3 have bit 0 / bit 1 of the byte at +0x32 set and a dword at +0x68 that is 0.
 s32 __cdecl Things_CountKind3Flag1();
+// 0x519690 / 0x519800 / 0x519970 / 0x519c50 / 0x519ae0 (thiscall on the game object; thing, pops 4): the thing is taken out of the singly linked list of
+// things whose head handle is the word at +0x1da73c / +0x1da73e / +0x1da740 / +0x1da742 / +0x1da744 and whose links are the words at +0x210 of each: when it is
+// the head the head becomes its link, otherwise the link of the thing before it becomes its link (found by walking from the head; a thing that is not in the
+// list runs the walk off its end). 0x519dc0 is the same for the head at +0x1da746 and the links at +0xc.
+void __fastcall Things_Unlink1da73c(u8 *game, void *, const u8 *thing);
+void __fastcall Things_Unlink1da73e(u8 *game, void *, const u8 *thing);
+void __fastcall Things_Unlink1da740(u8 *game, void *, const u8 *thing);
+void __fastcall Things_Unlink1da742(u8 *game, void *, const u8 *thing);
+void __fastcall Things_Unlink1da744(u8 *game, void *, const u8 *thing);
+void __fastcall Things_Unlink1da746(u8 *game, void *, const u8 *thing);
 // 0x4c9e60 (cdecl): from the thing the word at +0x1da742 of the game object [0x80239c] names, along the chain of the word at +0x210 of each, the sum of the
 // dwords of the table at 0x78545c (12 bytes each) indexed by the dword at +0x1e4 of each thing.
 u32 __cdecl Things_SumChain();

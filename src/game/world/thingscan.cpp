@@ -90,9 +90,33 @@ template <typename Extra> s32 CountKind1OnPlainCell(Extra extra) {
     return count;
 }
 
+// Takes a thing out of the list of things headed by the word at game + headOffset and linked by the word at +linkOffset of each.
+void UnlinkThing(u8 *game, const u8 *thing, u32 headOffset, u32 linkOffset) {
+    const u16 handle = at<u16>(thing, 0);
+    auto link = [&](u16 h) -> u16 & { return at<u16>(global<u8 *>(0x007cfb90 + 20 * (u32)h), linkOffset); };
+    if (at<u16>(game, headOffset) == handle) {
+        at<u16>(game, headOffset) = link(handle);
+        return;
+    }
+    u16 before = at<u16>(game, headOffset);
+    u16 next = link(before);
+    while (next != handle) {
+        before = next;
+        next = link(before);
+    }
+    link(before) = link(handle);
+}
+
 }  // namespace
 
 extern "C" {
+
+void __fastcall Things_Unlink1da73c(u8 *game, void *, const u8 *thing) { UnlinkThing(game, thing, 0x1da73c, 0x210); }
+void __fastcall Things_Unlink1da73e(u8 *game, void *, const u8 *thing) { UnlinkThing(game, thing, 0x1da73e, 0x210); }
+void __fastcall Things_Unlink1da740(u8 *game, void *, const u8 *thing) { UnlinkThing(game, thing, 0x1da740, 0x210); }
+void __fastcall Things_Unlink1da742(u8 *game, void *, const u8 *thing) { UnlinkThing(game, thing, 0x1da742, 0x210); }
+void __fastcall Things_Unlink1da744(u8 *game, void *, const u8 *thing) { UnlinkThing(game, thing, 0x1da744, 0x210); }
+void __fastcall Things_Unlink1da746(u8 *game, void *, const u8 *thing) { UnlinkThing(game, thing, 0x1da746, 0xc); }
 
 u32 __cdecl Things_SumChain() {
     u32 sum = 0;
