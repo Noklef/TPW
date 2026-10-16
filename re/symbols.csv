@@ -3066,6 +3066,18 @@ address,name,kind,confidence,notes
 0x00578390,Global87b1d8_Delete,function,high,reimplemented (src/game/core/vwrap); deletes a global object
 0x005c5530,Obj_CallSub14Slot18,function,high,reimplemented (src/game/core/vwrap); calls slot 0x18 of the sub-object at +0x14
 0x005c5560,Obj_CallSub28Slot18,function,high,reimplemented (src/game/core/vwrap); calls slot 0x18 of the sub-object at +0x28
+0x005e3b90,Class702d48_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor that registers the object with a global one
+0x005e3c00,Class702d48_Release,function,high,reimplemented (src/game/core/vdtor); releases the object from a global one
+0x005e3bd0,Class702d48_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor that releases the object from a global one
+0x005d5700,Class7029d0_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor that registers the object with a global one
+0x005d5750,Class7029d0_Release,function,high,reimplemented (src/game/core/vdtor); releases the object from a global one
+0x005d5720,Class7029d0_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor that releases the object from a global one
+0x005d9b20,Class702ae8_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor that hands the object to its member
+0x005dc3b0,Class702bb4_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor that hands the object to its member
+0x005dc550,Class702bb8_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor that hands the object to its member
+0x005dd7f0,Obj_CallSlot20ThenSub1c,function,high,"reimplemented (src/game/core/vdtor); slot 0x20 of the object, then slot 0x1c of the global's sub-object"
+0x005ddaa0,Obj_CallSlot20ThenSub1cAnd48,function,high,"reimplemented (src/game/core/vdtor); slots 0x20, then 0x1c and 0x48 of the global's sub-object"
+0x00564a60,VBase_CallSlot8,function,high,reimplemented (src/game/core/vdtor); slot 8 of the virtual base
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
