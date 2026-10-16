@@ -3250,6 +3250,10 @@ address,name,kind,confidence,notes
 0x005ed490,Strings_CopyRange,function,high,reimplemented (src/game/core/small25); copy-constructs a range of strings
 0x005ed4d0,Strings_FillCopy,function,high,reimplemented (src/game/core/small25); copy-constructs one string into several
 0x005ed560,String_PlacementCopy,function,high,reimplemented (src/game/core/small25); copy-constructs a string in place
+0x00410610,Tree16a_Find,function,high,reimplemented (src/game/core/small26); std::map find with a word key
+0x0047c6a0,Tree32_Find,function,high,reimplemented (src/game/core/small26); std::map find with a dword key
+0x005e76c0,Tree16b_Find,function,high,reimplemented (src/game/core/small26); std::map find with a word key
+0x005af780,Obj_HasKey5af780,function,high,reimplemented (src/game/core/small26); whether the map at +0x28 has the word key
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

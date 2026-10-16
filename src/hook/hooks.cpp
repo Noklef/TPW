@@ -124,6 +124,7 @@
 #include "../game/core/small23.h"
 #include "../game/core/small24.h"
 #include "../game/core/small25.h"
+#include "../game/core/small26.h"
 #include "../game/core/small2.h"
 #include "../game/core/small3.h"
 #include "../game/core/small4.h"
@@ -2795,6 +2796,10 @@ const Hook kHooks[] = {
     {"Strings_CopyRange",         0x005ed490, (void *)&Strings_CopyRange, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
     {"Strings_FillCopy",          0x005ed4d0, (void *)&Strings_FillCopy, {0x57, 0x8b, 0x7c, 0x24, 0x0c}},
     {"String_PlacementCopy",      0x005ed560, (void *)&String_PlacementCopy, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
+    {"Tree16a_Find",              0x00410610, (void *)&Tree16a_Find, {0x51, 0x56, 0x57, 0x8b, 0x7c}},
+    {"Tree32_Find",               0x0047c6a0, (void *)&Tree32_Find, {0x51, 0x56, 0x57, 0x8b, 0x7c}},
+    {"Tree16b_Find",              0x005e76c0, (void *)&Tree16b_Find, {0x51, 0x56, 0x57, 0x8b, 0x7c}},
+    {"Obj_HasKey5af780",          0x005af780, (void *)&Obj_HasKey5af780, {0x51, 0x56, 0x57, 0x8b, 0xf9}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

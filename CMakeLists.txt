@@ -145,6 +145,7 @@ add_library(tpw_game STATIC
     src/game/core/idmaps.cpp
     src/game/core/stdtree.cpp
     src/game/core/small25.cpp
+    src/game/core/small26.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
