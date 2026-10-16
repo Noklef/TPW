@@ -153,6 +153,28 @@ extern "C" u32 __cdecl Lnd_BuildWeightMap(const Array3D *control, s32 x, s32 y, 
     return 1;
 }
 
+// Sixteen texels of a blend of four colour rows: each pair (a, b) and (c, d) is mixed by a weight looked up in a table (wa * mul >> 8 into tabA, wc * mul >> 8 into tabC),
+// and the two results mixed by mix; the alpha byte of the output is cleared.
+extern "C" void __cdecl Lnd_BlendRow16(const u8 *a, const u8 *b, const u8 *wa, const u8 *tabA, const u8 *c, const u8 *d, const u8 *wc, const u8 *tabC, const u8 *mul, const u8 *mix, u8 *out) {
+    for (s32 i = 16; i != 0; --i) {
+        const s32 w1 = tabA[(s32)((u32)*wa * (u32)*mul) >> 8];
+        const u8 r1 = (u8)((s32)((s32)(a[1] - b[1]) * w1) >> 8) + b[1];
+        const u8 g1 = (u8)((s32)((s32)(a[2] - b[2]) * w1) >> 8) + b[2];
+        const u8 b1 = (u8)((s32)((s32)(a[3] - b[3]) * w1) >> 8) + b[3];
+        const s32 w2 = tabC[(s32)((u32)*wc * (u32)*mul) >> 8];
+        const u8 r2 = (u8)((s32)((s32)(c[1] - d[1]) * w2) >> 8) + d[1];
+        const u8 g2 = (u8)((s32)((s32)(c[2] - d[2]) * w2) >> 8) + d[2];
+        const u8 b2 = (u8)((s32)((s32)(c[3] - d[3]) * w2) >> 8) + d[3];
+        a += 4; b += 4; c += 4; d += 4;
+        out[0] = 0;
+        out[1] = (u8)((s32)((s32)(r1 - r2) * *mix) >> 8) + r2;
+        out[2] = (u8)((s32)((s32)(g1 - g2) * *mix) >> 8) + g2;
+        out[3] = (u8)((s32)((s32)(b1 - b2) * *mix) >> 8) + b2;
+        ++mul; ++wa; ++wc; ++mix;
+        out += 4;
+    }
+}
+
 extern "C" bool TerrainBlend_WeightMap(const Array3D *control, u32 x, u32 y, int channel, int size, u8 *out) {
     int n = size >> 2, shift = 0;
     while ((1 << shift) < n) ++shift;

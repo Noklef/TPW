@@ -349,7 +349,7 @@ address,name,kind,confidence,notes
 0x0055f780,TerrainBlend_Tile,function,high,"reimplemented (src/game/terrain); (out, x, y, overlay): grey unless the tile's control byte 0 is 255; mixes 3 colour groups by 2 selectors in 16-pixel MMX runs, rows bottom-up, then the path overlay"
 0x0055e780,Lnd_BuildWeightMap,function,high,reimplemented (src/game/terrain/terrain_blend); bilinear upsampling of a tile of the control map
 0x0055e710,Lnd_BuildRamp,function,high,"reimplemented (src/game/terrain/terrain_blend); (table, centre, width): 256-entry 0..255 ramp"
-0x0055ee10,TerrainBlend_TwoGroups,function,high,"per pixel lerp(group Y, group X, selector) for a 16-pixel run"
+0x0055ee10,Lnd_BlendRow16,function,high,reimplemented (src/game/terrain/terrain_blend); blend of 16 texels from two colour pairs
 0x0055eaa0,TerrainBlend_ThreeGroups,function,high,"per pixel lerp(lerp(A, B, sB), C, sC) for a 16-pixel run"
 0x008798c8,gTerrainBlendScratch,data,high,"tile-sized RGBA scratch the blend writes bottom-up"
 0x005e78b0,Array3D_Read,function,high,"u32 w, h, bpp + w*h*bpp bytes"
