@@ -39,4 +39,38 @@ void __fastcall ImeVector_Fill(void *, void *, u32 *dest, u32 n, const u32 *valu
     for (; n != 0; --n, ++dest)
         if (dest) *dest = *value;
 }
+
+u32 __fastcall ImeVector_Size(const u8 *vec) {
+    const u8 *first = at<const u8 *>(vec, 4);
+    return first ? (u32)((s32)(at<const u8 *>(vec, 8) - first) >> 2) : 0;
+}
+
+u32 __fastcall ImeVector_Capacity(const u8 *vec) {
+    const u8 *first = at<const u8 *>(vec, 4);
+    return first ? (u32)((s32)(at<const u8 *>(vec, 0xc) - first) >> 2) : 0;
+}
+
+u32 __fastcall ImeVector16_Size(const u8 *vec) {
+    const u8 *first = at<const u8 *>(vec, 4);
+    return first ? (u32)((s32)(at<const u8 *>(vec, 8) - first) >> 4) : 0;
+}
+
+u32 __fastcall ImeVector16_Capacity(const u8 *vec) {
+    const u8 *first = at<const u8 *>(vec, 4);
+    return first ? (u32)((s32)(at<const u8 *>(vec, 0xc) - first) >> 4) : 0;
+}
+
+void __cdecl ImeVector_Construct(u32 *slot, const u32 *value) {
+    if (slot) *slot = *value;
+}
+
+u8 *__fastcall Ime_Current(const u8 *ime) {
+    const s32 index = at<s32>(ime, 0x54);
+    return index == -1 ? nullptr : at<u8 *>(ime, 0x3c) + index * 0x24;
+}
+
+void __fastcall Ime_SetLimit(u8 *ime, void *, u32 limit) {
+    const u32 most = *reinterpret_cast<const u32 *>(0x006feee0);
+    at<u32>(ime, 0x58) = limit < most ? limit : most;
+}
 }

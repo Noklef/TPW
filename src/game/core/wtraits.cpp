@@ -25,4 +25,9 @@ u16 *__cdecl WTraits_Assign(u16 *dst, u32 ch, u32 n) {
     for (u32 i = 0; i != n; ++i) dst[i] = (u16)ch;
     return dst;
 }
+
+void __fastcall ImeWString_SetLength(u8 *string, void *, u32 length) {
+    *reinterpret_cast<u32 *>(string + 8) = length;
+    (*reinterpret_cast<u16 **>(string + 4))[length] = 0;
+}
 }

@@ -17,4 +17,17 @@ u8 *__fastcall Ime_Ctor(u8 *ime);
 u32 *__fastcall ImeVector_Copy(void *vec, void *, const u32 *first, const u32 *last, u32 *dest);
 // 0x47c940: n copies of *value at dest (*value read for each).
 void __fastcall ImeVector_Fill(void *vec, void *, u32 *dest, u32 n, const u32 *value);
+// 0x47db00 (cdecl): *slot = *value unless slot is null.
+void __cdecl ImeVector_Construct(u32 *slot, const u32 *value);
+// 0x47c720 / 0x47c700: a u32 vector's size (+8) / capacity (+0xc) from its first (+4); 0 when
+// that is null. 0x47ae40 / 0x47b300: the same for 16-byte entries.
+u32 __fastcall ImeVector_Size(const u8 *vec);
+u32 __fastcall ImeVector_Capacity(const u8 *vec);
+u32 __fastcall ImeVector16_Size(const u8 *vec);
+u32 __fastcall ImeVector16_Capacity(const u8 *vec);
+
+// 0x47a960: the current entry (+0x54) of the 0x24-byte list (first at +0x3c), or null for -1.
+u8 *__fastcall Ime_Current(const u8 *ime);
+// 0x47a980: +0x58 = limit, at most the constant at 0x6feee0 (12).
+void __fastcall Ime_SetLimit(u8 *ime, void *, u32 limit);
 }
