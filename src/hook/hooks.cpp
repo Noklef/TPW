@@ -135,7 +135,8 @@
 #include "../game/core/tiny_n.h"
 #include "../game/core/tiny_o.h"
 #include "../game/core/vdtor.h"
-#include "../game/core/vlist.h"
+#include "../game/core/vlist.h"
+#include "../game/core/vregs.h"
 #include "../game/core/vstream.h"
 #include "../game/core/vwrap.h"
 #include "../game/core/wtraits.h"
@@ -2643,6 +2644,12 @@ const Hook kHooks[] = {
     {"CType_MapWords",            0x004f1900, (void *)&CType_MapWords, {0x55, 0x8b, 0x6c, 0x24, 0x0c}},
     {"WBuf_PeekConverted",        0x004f0e30, (void *)&WBuf_PeekConverted, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
     {"Buf_PeekConverted",         0x005cf1c0, (void *)&Buf_PeekConverted, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
+    {"Shadow_SetByte",            0x005679b0, (void *)&Shadow_SetByte, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"Shadow_SetBits2",           0x00567a10, (void *)&Shadow_SetBits2, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"Shadow_SetBits3",           0x00567a70, (void *)&Shadow_SetBits3, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"Stream_SeekFailed",         0x005c4fa0, (void *)&Stream_SeekFailed, {0x8b, 0x44, 0x24, 0x0c, 0x83}},
+    {"Obj_DrainList0c",           0x005d8a10, (void *)&Obj_DrainList0c, {0x53, 0x8b, 0xd9, 0x57, 0x33}},
+    {"Obj_DrainList04",           0x005da3e0, (void *)&Obj_DrainList04, {0x53, 0x8b, 0xd9, 0x57, 0x33}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
