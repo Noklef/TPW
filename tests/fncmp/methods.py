@@ -131,7 +131,7 @@ def case(r):
         regions[RAM + 0x800] = bytes(idb) + struct.pack('<I', r.choice([0, 0, 1, 0x100]))
         args += [RAM + 0x800]
     elif name == 'Cache':
-        regions[0xfb2018] = r.bytes(0x10) + bytes([r.choice([0, 0, 1, 0xff])]) + r.bytes(3)
+        regions[0xfb2018] = r.bytes(0xc) + bytes([r.choice([0, 0, 1, 0xff])]) + r.bytes(3)
         struct.pack_into('<II', obj, 0, r.choice([0, 1, 5]), r.choice([0, POOL, POOL]))
         struct.pack_into('<I', pool, 0x34, r.choice([0, 1, 0x1d, 0x1e, 0x1f, 0xffffffff]))
         struct.pack_into('<I', pool, 0x40, r.getrandbits(32))
