@@ -147,6 +147,7 @@
 #include "../game/core/small43.h"
 #include "../game/core/small44.h"
 #include "../game/core/small45.h"
+#include "../game/core/small46.h"
 #include "../game/core/small5.h"
 #include "../game/core/small6.h"
 #include "../game/core/small7.h"
@@ -2908,6 +2909,8 @@ const Hook kHooks[] = {
     {"IntArray_SetSize",          0x00598630, (void *)&IntArray_SetSize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"StdTreeF_LowerBound",       0x005b2f40, (void *)&StdTreeF_LowerBound, {0x6a, 0xff, 0x68, 0xd8, 0xfa}},
     {"StdTreeF_AllFlagged",       0x005b0c40, (void *)&StdTreeF_AllFlagged, {0x51, 0x56, 0x8b, 0xf1, 0x33}},
+    {"StdListString_Unique",      0x005ce080, (void *)&StdListString_Unique, {0x83, 0xec, 0x0c, 0x8b, 0x41}},
+    {"StdListDword_Merge",        0x005d0590, (void *)&StdListDword_Merge, {0x51, 0x55, 0x8b, 0xe9, 0x8b}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
