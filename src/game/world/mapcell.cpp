@@ -156,6 +156,23 @@ u32 __fastcall Map_BlockValueAt(const u8 *map, void *, u32 bx, u32 by) {
     return at<u32>(map, 0x1b0000 + (by * 33 + bx) * 4);
 }
 
+s32 __cdecl Map_PercentWithRE() {
+    u8 *map = at<u8 *>(reinterpret_cast<const void *>(0x0080239c), 0) + 0x2d8;
+    s32 total = 0, counted = 0;
+    for (s32 x = 0x7f; x >= 0; x--) {
+        for (s32 y = 0x7f; y >= 0; y--) {
+            const u32 id = ((u32)y << 7) + (u32)x + 1;
+            const u8 *cell = map + (id & 0xffff) * 17 * 4 - 0x44;
+            if (MapCell_IsType2(cell) || MapCell_IsType7Or1e(cell))
+                continue;
+            total++;
+            if (at<s16>(Map_RECell(map, nullptr, id & 0xffff), 6) > 0)
+                counted++;
+        }
+    }
+    return total ? counted * 100 / total : 0;
+}
+
 u32 __fastcall MapCell_IsType0(const u8 *cell) { return at<u32>(cell, 8) == 0 ? 1 : 0; }
 u32 __fastcall MapCell_IsType1(const u8 *cell) { return at<u32>(cell, 8) == 1 ? 1 : 0; }
 u32 __fastcall MapCell_IsType2(const u8 *cell) { return at<u32>(cell, 8) == 2 ? 1 : 0; }

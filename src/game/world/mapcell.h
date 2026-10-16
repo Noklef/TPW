@@ -34,6 +34,11 @@ u32 __cdecl Map_InBounds(s32 x, s32 y);
 // map +0x1b1104.
 u8 *__fastcall Map_RECell(u8 *map, void *, u32 pos);
 
+// 0x4cd720 (cdecl): over all 128 x 128 cells of the world's map ([0x80239c] + 0x2d8), those not of type 2
+// or 7/0x1e count; of those, the ones whose RE cell has a signed word at +6 above 0 are counted too;
+// returns the second count times 100 over the first (a signed division), or 0 when the first is 0.
+s32 __cdecl Map_PercentWithRE();
+
 // 0x4d8610, 0x4d8650, 0x4d8690, 0x4d86d0, 0x4d8710 (thiscall on the map, unused; &pos, b):
 // the position of the A (b 0) or B one of gBalanceLevel's ticket booths (+0x55c), bus stops
 // (+0x56c), entrances (+0x57c), park side crossings (+0x58c) and bus stop side crossings
