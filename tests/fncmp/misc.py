@@ -9,10 +9,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x424ed0, 0x424ee9), (0x4922d0, 0x4922e0), (0x4e1c60, 0x4e1c70), (0x4f00f0, 0x4f0110), (0x4f6020, 0x4f6080), (0x40f300, 0x40f329), (0x59b550, 0x59b590), (0x458910, 0x458935), (0x458940, 0x458965),
-           (0x5836b0, 0x5836c2), (0x4a9350, 0x4a9375), (0x4b4670, 0x4b4695), (0x4bcec0, 0x4bcef0), (0x52fbf0, 0x52fc21), (0x4583d0, 0x4583f6), (0x5651c0, 0x56520b), (0x4d09a0, 0x4d09e6), (0x458310, 0x45834d), (0x402ef0, 0x402f10), (0x4032b0, 0x4032ca), (0x402f30, 0x402f50), (0x4030c0, 0x4030c4),
+           (0x5836b0, 0x5836c2), (0x4a9350, 0x4a9375), (0x4b4670, 0x4b4695), (0x4bcec0, 0x4bcef0), (0x52fbf0, 0x52fc21), (0x5646c0, 0x564708), (0x564ba0, 0x564bf0), (0x56b570, 0x56b5b2), (0x4583d0, 0x4583f6), (0x5651c0, 0x56520b), (0x4d09a0, 0x4d09e6), (0x458310, 0x45834d), (0x402ef0, 0x402f10), (0x4032b0, 0x4032ca), (0x402f30, 0x402f50), (0x4030c0, 0x4030c4),
            (0x47f940, 0x47f95a), (0x657d30, 0x657d6c), (0x4d4170, 0x4d4186), (0x475550, 0x47558b), (0x4d9600, 0x4d9619), (0x4e01f0, 0x4e0209), (0x4f6820, 0x4f6850),
            (0x4f6850, 0x4f6880), (0x56a510, 0x56a540), (0x56b630, 0x56b650), (0x56b830, 0x56b850)])
-CALLS = ['SetVec', 'Ctor1260', 'Smallest', 'CtorVirtual', 'PairAdd', 'CtorPart', 'MeshClear', 'MeshSet', 'Countdown', 'Kill24', 'Choose', 'Advance', 'CtorOne', 'CtorValue', 'KillSlot', 'Stamp30', 'Stamp5e', 'InitBuf', 'Clear0', 'Clear18', 'Diff', 'Virtual', 'Setg', 'Setp', 'Pixel', 'Fill', 'Set3034']
+CALLS = ['Virt5646', 'Virt564b', 'FindSet', 'SetVec', 'Ctor1260', 'Smallest', 'CtorVirtual', 'PairAdd', 'CtorPart', 'MeshClear', 'MeshSet', 'Countdown', 'Kill24', 'Choose', 'Advance', 'CtorOne', 'CtorValue', 'KillSlot', 'Stamp30', 'Stamp5e', 'InitBuf', 'Clear0', 'Clear18', 'Diff', 'Virtual', 'Setg', 'Setp', 'Pixel', 'Fill', 'Set3034']
 BUF = RAM + 0x1000
 
 
@@ -20,6 +20,22 @@ def case(r):
     op = r.choice(OPS)
     obj = bytearray(r.bytes(0x400))
     regions = {RAM: obj}
+    if op in ('Virt5646', 'Virt564b'):
+        off = r.choice([0x18, 0x18, 0x1c, 0x20] if op == 'Virt5646' else [0x2c, 0x2c, 0x30, 0x34])
+        put(obj, 0, 'I', RAM + 0x300)
+        put(obj, 0x304, 'I', off)
+        return Call(0x5646c0 if op == 'Virt5646' else 0x564ba0, [RAM, r.choice([0, 1, 1])], regions, conv='t', ret='a')
+    if op == 'FindSet':
+        n = r.choice([0, 1, 2, 3, 6])
+        keys = [RAM + 0x100 + 0x40 * i for i in range(6)]
+        put(obj, 0x1c, 'I', r.choice([n, n, 0xffffffff]))
+        put(obj, 8, 'I', RAM + 0x300)
+        for i in range(6):
+            put(obj, 0x300 + 4 * i, 'I', r.choice(keys[:4]))
+        key = r.choice(keys[:5] + [0x1234])
+        if key == 0x1234:
+            key = RAM + 0x3c0
+        return Call(0x56b570, [RAM, key, r.getrandbits(32), r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='a')
     if op == 'SetVec':
         regions.update({0x8bd500: r.bytes(0x20), 0x8bcc40: r.bytes(8)})
         return Call(0x4583d0, [RAM, r.getrandbits(32), r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='a')

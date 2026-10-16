@@ -1,4 +1,4 @@
-// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x458310, 0x4583d0, 0x4bcec0, 0x5651c0, 0x4d09a0, 0x52fbf0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
+// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x458310, 0x4583d0, 0x4bcec0, 0x5646c0, 0x564ba0, 0x56b570, 0x5651c0, 0x4d09a0, 0x52fbf0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
 // 0x4e1c60, 0x4f00f0, 0x4f6020, 0x4f6820, 0x4f6850, 0x56a510, 0x56b630 and 0x56b830.
 #pragma once
 
@@ -44,6 +44,22 @@ u32 __fastcall Obj_SetVectorAt2c(u8 *object, void *, u32 a, u32 b, u32 c);
 // 0x879ab4 = 1 when the display adapter record at [0x879a24] has vendor +0x428 = 0x10de and the driver
 // kind 0x8bd524 is 1. Returns the object.
 u8 *__fastcall Class701260_Ctor(u8 *object);
+
+// 0x5646c0 (thiscall; mostDerived, pops 4): a class with a virtual base like 0x458310. When most derived:
+// vtable 0x701188 and the part at +0x18 gets vtable 0x701178. Always: the virtual base (the vtable's
+// +4) gets vtable 0x701168, the dword before it = its offset - 0x18, and +4, +8, +0xc and +0x10 = 0.
+// Returns the object.
+u8 *__fastcall Obj_CtorVirtual5646c0(u8 *object, void *, u32 mostDerived);
+
+// 0x564ba0 (thiscall; mostDerived, pops 4): the same for vtable 0x7011d8 (part at +0x2c: 0x701178), the
+// base's vtable 0x7011c8, the dword before it = its offset - 0x2c, and +4 to +0x24 zeroed (+4-+0x1c,
+// then +0x24 and +0x20). Returns the object.
+u8 *__fastcall Obj_CtorVirtual564ba0(u8 *object, void *, u32 mostDerived);
+
+// 0x56b570 (thiscall; key, a, b, c, pops 16): the array of pointers at +8 (count +0x1c) searched
+// backwards for the key; when found the key's dwords at +0x14, +0x18, +0x1c = a, b, c and 1 is
+// returned, else 0.
+u32 __fastcall PtrArray_SetVectorOf(const u8 *list, void *, u8 *key, u32 a, u32 b, u32 c);
 
 // 0x52fbf0 (cdecl; a, b): appends the pair to the table of 8-byte entries at 0x81b740 (count at
 // 0x820a8c), unless the count is above 0x400 (signed): 0 then, else 1.

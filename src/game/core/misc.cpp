@@ -125,6 +125,52 @@ u8 *__fastcall Class701260_Ctor(u8 *object) {
     return object;
 }
 
+u8 *__fastcall Obj_CtorVirtual5646c0(u8 *object, void *, u32 mostDerived) {
+    if (mostDerived) {
+        at<u32>(object, 0) = 0x00701188;
+        at<u32>(object, 0x18) = 0x00701178;
+    }
+    at<u32>(object, at<u32>(at<u8 *>(object, 0), 4)) = 0x00701168;
+    const u32 base = at<u32>(at<u8 *>(object, 0), 4);
+    at<u32>(object, base - 4) = base - 0x18;
+    for (u32 offset : {0xcu, 0x10u, 0x8u, 0x4u})
+        at<u32>(object, offset) = 0;
+    return object;
+}
+
+u8 *__fastcall Obj_CtorVirtual564ba0(u8 *object, void *, u32 mostDerived) {
+    if (mostDerived) {
+        at<u32>(object, 0) = 0x007011d8;
+        at<u32>(object, 0x2c) = 0x00701178;
+    }
+    at<u32>(object, at<u32>(at<u8 *>(object, 0), 4)) = 0x007011c8;
+    const u32 base = at<u32>(at<u8 *>(object, 0), 4);
+    at<u32>(object, base - 4) = base - 0x2c;
+    for (u32 i = 0; i < 7; i++)
+        at<u32>(object, 4 + 4 * i) = 0;
+    at<u32>(object, 0x24) = 0;
+    at<u32>(object, 0x20) = 0;
+    return object;
+}
+
+u32 __fastcall PtrArray_SetVectorOf(const u8 *list, void *, u8 *key, u32 a, u32 b, u32 c) {
+    const u32 *items = at<const u32 *>(list, 8);
+    s32 index = (s32)at<u32>(list, 0x1c) - 1;
+    if (index >= 0) {
+        while (items[index] != (u32)(uintptr_t)key) {
+            index--;
+            if (index < 0)
+                break;
+        }
+    }
+    if (index < 0)
+        return 0;
+    at<u32>(key, 0x14) = a;
+    at<u32>(key, 0x18) = b;
+    at<u32>(key, 0x1c) = c;
+    return 1;
+}
+
 u32 __cdecl PairTable_Add(u32 a, u32 b) {
     const s32 count = global<s32>(0x00820a8c);
     if (count > 0x400)

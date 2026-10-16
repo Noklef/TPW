@@ -2451,6 +2451,9 @@ address,name,kind,confidence,notes
 0x00458310,Obj_CtorVirtual,function,high,reimplemented (src/game/core/misc); a class with a virtual base: vtables and the offset word
 0x004583d0,Obj_SetVectorAt2c,function,high,"reimplemented (src/game/core/misc); the scene flags touched, then three dwords at +0x2c"
 0x005651c0,Class701260_Ctor,function,high,"reimplemented (src/game/core/misc); vtable 0x701260 and its defaults, plus a driver quirk flag"
+0x005646c0,Obj_CtorVirtual5646c0,function,high,"reimplemented (src/game/core/misc); a class with a virtual base (vtables 0x701188, 0x701178, 0x701168)"
+0x00564ba0,Obj_CtorVirtual564ba0,function,high,"reimplemented (src/game/core/misc); a class with a virtual base (vtables 0x7011d8, 0x701178, 0x7011c8)"
+0x0056b570,PtrArray_SetVectorOf,function,high,reimplemented (src/game/core/misc); a pointer array searched for a key; its three dwords at +0x14 set
 0x0047f910,Fn_47f910,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = a value, +0x4 = 0x0, +0x8 = 0x0, +0xc = 0x0, +0x10 = 0x0, +0x14 = 0x0, +0x18 = 0x0, +0x1c = 0x0, +0x20 = 0x0, +0x24 = 0x0, +0x28 = 0x0, +0x2c = 0x0"
 0x0048c9e0,Fn_48c9e0,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = 0x6ff1f0, 0x7c2658 = 0x0, +0x10 = 0x0, +0x18 = 0x0, +0x14 = 0x0, +0x1c = 0x0"
 0x004e0210,Fn_4e0210,function,high,"reimplemented (src/game/core/tiny_d); stores +0x5e = 0x0, +0x60 = 0x0"
