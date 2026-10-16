@@ -102,6 +102,21 @@ u8 *__cdecl Codec631280_Init(u8 *object) {
     return object;
 }
 
+s32 __fastcall WString_Compare(const u8 *self, void *, const u8 *other) {
+    const u32 otherLength = at<u32>(other, 8), selfLength = at<u32>(self, 8);
+    const u16 *b = at<const u16 *>(other, 4);
+    if (!b)
+        b = reinterpret_cast<const u16 *>(0x006fd6c4);
+    const u16 *a = at<const u16 *>(self, 4);
+    for (u32 n = selfLength < otherLength ? selfLength : otherLength; n; n--, a++, b++) {
+        if (*a != *b)
+            return *a < *b ? -1 : 1;
+    }
+    if (selfLength < otherLength)
+        return -1;
+    return selfLength != otherLength ? 1 : 0;
+}
+
 u32 __fastcall Obj_Set10(u8 *object, void *, u32 value) {
     at<u32>(object, 0x10) = value;
     return value;

@@ -1,7 +1,7 @@
 // More tiny functions (vtable pointer setters and constructors, getters, a divide, a dword copy):
 // reimplementation of 0x5b3210, 0x617920, 0x617ad0, 0x6185f0, 0x631270, 0x631970, 0x6322e0, 0x6338b0,
 // 0x633a00, 0x6339a0, 0x6339e0, 0x633b60, 0x6344c0, 0x6404d0, 0x6428b0, 0x642100 and 0x642b20,
-// and the constructor 0x631280. Named by what they do until the
+// the constructor 0x631280 and the wide string compare 0x4f76b0. Named by what they do until the
 // classes are known.
 #pragma once
 
@@ -53,6 +53,11 @@ u32 __cdecl Bits_Reverse(u32 code, s32 length);
 // 0x631380, 0x631440 at +0 to +0x10) and fields (+0x14, +0x68, +0x6c, +0x78-+0x80 = 0, +0x70 =
 // 0x7039d0, +0x74 = 0x7b). Returns the object.
 u8 *__cdecl Codec631280_Init(u8 *object);
+
+// 0x4f76b0 (thiscall; other, pops 4): compares two wide strings (data at +4, length at +8; no data
+// is the empty string at 0x6fd6c4) the std::basic_string way: the first differing 16-bit unit
+// decides (-1 below, 1 above, unsigned), else the shorter is less. -1, 0 or 1.
+s32 __fastcall WString_Compare(const u8 *self, void *, const u8 *other);
 
 // 0x633b60 (thiscall; value): +0x10 = value; returns it.
 u32 __fastcall Obj_Set10(u8 *object, void *, u32 value);
