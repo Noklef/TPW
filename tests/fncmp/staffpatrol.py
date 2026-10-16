@@ -1,7 +1,7 @@
 # The staff's patrol region, rest area check and wage, and the staff pool's entry lookups
 # (src/game/world/staff: 0x506650, 0x5068f0, 0x506e50-0x506ed0, 0x507bd0, 0x5087b0) and the staff
-# training's constructor (0x50c620) against the originals: regions none, whole, inverted or wild, map ids 0 and about the edges, indices about
-# 0x20, pools full or with gaps.
+# training's constructor (0x50c620) against the originals: regions none, whole, inverted or wild,
+# map ids 0 and about the edges, indices about 0x20, pools full or with gaps.
 # usage: staffpatrol.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=State3,Wage,...)
 import os
 import sys
