@@ -63,11 +63,11 @@ u32 __fastcall Thing_IsStaff(const u8 *thing) {
     return type == 4 || type == 5 || type == 6 || type == 8 || type == 7;
 }
 
-u16 *__fastcall World_StaffList73c(const u8 *world, void *, u16 *out) { return *out = at<u16>(world, 0x1da73c), out; }
-u16 *__fastcall World_StaffList73e(const u8 *world, void *, u16 *out) { return *out = at<u16>(world, 0x1da73e), out; }
-u16 *__fastcall World_StaffList740(const u8 *world, void *, u16 *out) { return *out = at<u16>(world, 0x1da740), out; }
-u16 *__fastcall World_StaffList742(const u8 *world, void *, u16 *out) { return *out = at<u16>(world, 0x1da742), out; }
-u16 *__fastcall World_StaffList744(const u8 *world, void *, u16 *out) { return *out = at<u16>(world, 0x1da744), out; }
+u16 *__fastcall World_FirstHandyman(const u8 *world, void *, u16 *out) { return *out = at<u16>(world, 0x1da73c), out; }
+u16 *__fastcall World_FirstMechanic(const u8 *world, void *, u16 *out) { return *out = at<u16>(world, 0x1da73e), out; }
+u16 *__fastcall World_FirstEntertainer(const u8 *world, void *, u16 *out) { return *out = at<u16>(world, 0x1da740), out; }
+u16 *__fastcall World_FirstResearcher(const u8 *world, void *, u16 *out) { return *out = at<u16>(world, 0x1da742), out; }
+u16 *__fastcall World_FirstGuard(const u8 *world, void *, u16 *out) { return *out = at<u16>(world, 0x1da744), out; }
 
 namespace {
 
@@ -80,12 +80,12 @@ void push(u8 *world, u32 head, u8 *thing, u32 next) {
 
 }  // namespace
 
-void __fastcall World_PushStaff73c(u8 *world, void *, u8 *thing) { push(world, 0x1da73c, thing, 0x210); }
-void __fastcall World_PushStaff73e(u8 *world, void *, u8 *thing) { push(world, 0x1da73e, thing, 0x210); }
-void __fastcall World_PushStaff740(u8 *world, void *, u8 *thing) { push(world, 0x1da740, thing, 0x210); }
-void __fastcall World_PushStaff742(u8 *world, void *, u8 *thing) { push(world, 0x1da742, thing, 0x210); }
-void __fastcall World_PushStaff744(u8 *world, void *, u8 *thing) { push(world, 0x1da744, thing, 0x210); }
-void __fastcall World_PushList746(u8 *world, void *, u8 *thing) { push(world, 0x1da746, thing, 0xc); }
+void __fastcall World_AddHandyman(u8 *world, void *, u8 *thing) { push(world, 0x1da73c, thing, 0x210); }
+void __fastcall World_AddMechanic(u8 *world, void *, u8 *thing) { push(world, 0x1da73e, thing, 0x210); }
+void __fastcall World_AddEntertainer(u8 *world, void *, u8 *thing) { push(world, 0x1da740, thing, 0x210); }
+void __fastcall World_AddResearcher(u8 *world, void *, u8 *thing) { push(world, 0x1da742, thing, 0x210); }
+void __fastcall World_AddGuard(u8 *world, void *, u8 *thing) { push(world, 0x1da744, thing, 0x210); }
+void __fastcall World_AddObject(u8 *world, void *, u8 *thing) { push(world, 0x1da746, thing, 0xc); }
 
 u32 __fastcall Guard_IsFree(const u8 *guard) {
     const u32 state = at<u32>(guard, 0x19c);

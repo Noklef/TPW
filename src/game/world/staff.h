@@ -34,23 +34,25 @@ u16 *__fastcall Staff_GetName(u8 *staff);
 u32 __fastcall Thing_IsStaff(const u8 *thing);
 
 // 0x481fa0, 0x481fc0, 0x481fe0, 0x482000, 0x482020 (thiscall on the world; &handle): the
-// handle at the head of one of the staff lists (u16 world +0x1da73c, +0x1da73e, +0x1da740,
-// +0x1da742, +0x1da744; each thing's next at +0x210). Return the pointer.
-u16 *__fastcall World_StaffList73c(const u8 *world, void *, u16 *out);
-u16 *__fastcall World_StaffList73e(const u8 *world, void *, u16 *out);
-u16 *__fastcall World_StaffList740(const u8 *world, void *, u16 *out);
-u16 *__fastcall World_StaffList742(const u8 *world, void *, u16 *out);
-u16 *__fastcall World_StaffList744(const u8 *world, void *, u16 *out);
+// handle at the head of the handyman, mechanic, entertainer, researcher or guard list (u16
+// world +0x1da73c, +0x1da73e, +0x1da740, +0x1da742, +0x1da744; each thing's next at +0x210).
+// Return the pointer.
+u16 *__fastcall World_FirstHandyman(const u8 *world, void *, u16 *out);
+u16 *__fastcall World_FirstMechanic(const u8 *world, void *, u16 *out);
+u16 *__fastcall World_FirstEntertainer(const u8 *world, void *, u16 *out);
+u16 *__fastcall World_FirstResearcher(const u8 *world, void *, u16 *out);
+u16 *__fastcall World_FirstGuard(const u8 *world, void *, u16 *out);
 
 // 0x519650, 0x5197c0, 0x519930, 0x519c10, 0x519aa0 (thiscall on the world; thing): the thing
-// pushed on the head of the staff list at +0x1da73c, 73e, 740, 742, 744 (its +0x210 the old
-// head, unless that was 0). 0x519d80: the same for the list at +0x1da746, next at the thing's +0xc.
-void __fastcall World_PushStaff73c(u8 *world, void *, u8 *thing);
-void __fastcall World_PushStaff73e(u8 *world, void *, u8 *thing);
-void __fastcall World_PushStaff740(u8 *world, void *, u8 *thing);
-void __fastcall World_PushStaff742(u8 *world, void *, u8 *thing);
-void __fastcall World_PushStaff744(u8 *world, void *, u8 *thing);
-void __fastcall World_PushList746(u8 *world, void *, u8 *thing);
+// pushed on the head of the handyman, mechanic, entertainer, researcher or guard list (+0x1da73c,
+// 73e, 740, 742, 744; its +0x210 the old head, unless that was 0). 0x519d80: the same for the
+// object list at +0x1da746, next at the thing's +0xc.
+void __fastcall World_AddHandyman(u8 *world, void *, u8 *thing);
+void __fastcall World_AddMechanic(u8 *world, void *, u8 *thing);
+void __fastcall World_AddEntertainer(u8 *world, void *, u8 *thing);
+void __fastcall World_AddResearcher(u8 *world, void *, u8 *thing);
+void __fastcall World_AddGuard(u8 *world, void *, u8 *thing);
+void __fastcall World_AddObject(u8 *world, void *, u8 *thing);
 
 // 0x4d6330 / 0x4d6350 (thiscall on a guard): whether its state (+0x19c) is 0 or 1 (the
 // nearest guard search takes only those), and whether it is 0x12.
