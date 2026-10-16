@@ -1,6 +1,6 @@
 // The staff base class's small methods (the thing's pay grade +0x1e4, happiness +0x1f8,
 // energy +0x1fc, name +0x1a0): reimplementation of 0x506680-0x506860, and the staff check and
-// list heads 0x481f80-0x482020.
+// list heads 0x481f80-0x482020, and the guard's state checks 0x4d6330 / 0x4d6350.
 #pragma once
 
 #include "../../../re/types.h"
@@ -37,4 +37,9 @@ u16 *__fastcall World_StaffList73e(const u8 *world, void *, u16 *out);
 u16 *__fastcall World_StaffList740(const u8 *world, void *, u16 *out);
 u16 *__fastcall World_StaffList742(const u8 *world, void *, u16 *out);
 u16 *__fastcall World_StaffList744(const u8 *world, void *, u16 *out);
+
+// 0x4d6330 / 0x4d6350 (thiscall on a guard): whether its state (+0x19c) is 0 or 1 (the
+// nearest guard search takes only those), and whether it is 0x12.
+u32 __fastcall Guard_IsFree(const u8 *guard);
+u32 __fastcall Guard_IsState12(const u8 *guard);
 }

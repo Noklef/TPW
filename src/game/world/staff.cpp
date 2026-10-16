@@ -66,4 +66,11 @@ u16 *__fastcall World_StaffList73e(const u8 *world, void *, u16 *out) { return *
 u16 *__fastcall World_StaffList740(const u8 *world, void *, u16 *out) { return *out = at<u16>(world, 0x1da740), out; }
 u16 *__fastcall World_StaffList742(const u8 *world, void *, u16 *out) { return *out = at<u16>(world, 0x1da742), out; }
 u16 *__fastcall World_StaffList744(const u8 *world, void *, u16 *out) { return *out = at<u16>(world, 0x1da744), out; }
+
+u32 __fastcall Guard_IsFree(const u8 *guard) {
+    const u32 state = at<u32>(guard, 0x19c);
+    return state == 1 || state == 0;
+}
+
+u32 __fastcall Guard_IsState12(const u8 *guard) { return at<u32>(guard, 0x19c) == 0x12; }
 }

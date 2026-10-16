@@ -106,7 +106,8 @@
 #include "../game/world/objectdefs.h"
 #include "../game/world/staff.h"
 #include "../game/world/thingmsg.h"
-#include "../game/world/analyser.h"
+#include "../game/world/analyser.h"
+#include "../game/world/challenges.h"
 #include "../game/world/mapcell.h"
 #include "../game/world/things.h"
 #include "../game/model/holder.h"
@@ -383,6 +384,8 @@ const Hook kHooks[] = {
     {"World_StaffList740",        0x00481fe0, (void *)&World_StaffList740, {0x8b, 0x44, 0x24, 0x04, 0x66}},
     {"World_StaffList742",        0x00482000, (void *)&World_StaffList742, {0x8b, 0x44, 0x24, 0x04, 0x66}},
     {"World_StaffList744",        0x00482020, (void *)&World_StaffList744, {0x8b, 0x44, 0x24, 0x04, 0x66}},
+    {"Guard_IsFree",              0x004d6330, (void *)&Guard_IsFree, {0x8b, 0x81, 0x9c, 0x01, 0x00}},
+    {"Guard_IsState12",           0x004d6350, (void *)&Guard_IsState12, {0x8b, 0x91, 0x9c, 0x01, 0x00}},
     {"AnalyserCell_Ctor",         0x004c5d10, (void *)&AnalyserCell_Ctor, {0x8b, 0xc1, 0xba, 0x00, 0xc0}},
     {"ParkAnalyser_Record",       0x004c74b0, (void *)&ParkAnalyser_Record, {0x8b, 0x44, 0x24, 0x04, 0xc1}},
     {"ParkAnalyser_Tally",        0x004c74f0, (void *)&ParkAnalyser_Tally, {0x8b, 0x81, 0xfc, 0x1b, 0x02}},
@@ -395,6 +398,9 @@ const Hook kHooks[] = {
     {"MemRanges_Set",             0x004d0a70, (void *)&MemRanges_Set, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"MemRanges_SetCells44",      0x004d0a90, (void *)&MemRanges_SetCells44, {0x8b, 0x4c, 0x24, 0x08, 0x8b}},
     {"MemRanges_SetCells28",      0x004d0ac0, (void *)&MemRanges_SetCells28, {0x8b, 0x4c, 0x24, 0x08, 0x8b}},
+    {"Challenges_DropOrphans",    0x004d1c80, (void *)&Challenges_DropOrphans, {0x51, 0x53, 0x55, 0x33, 0xed}},
+    {"Challenges_Current",        0x004d2840, (void *)&Challenges_Current, {0x8b, 0x81, 0xcc, 0x03, 0x00}},
+    {"BalanceChallenges_GetSchema", 0x004d1e60, (void *)&BalanceChallenges_GetSchema, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},
