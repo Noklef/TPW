@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
 #include "../core/tiny_a.h"
 
 namespace {
@@ -27,6 +28,37 @@ void __fastcall Render_SetFog(void *, void *, u32 colour, u32 start, u32 end) {
     global<u32>(0x008bd47c) = colour;
     global<u32>(0x008bd490) = start;
     global<u32>(0x008bd494) = end;
+}
+
+u32 __cdecl Options_Apply() {
+    const u32 a = global<u32>(0x0079d86c);
+    u32 render = global<u32>(0x008bcbc8);
+    render = (a & 0x100) ? render | 0x10000 : render & 0xfffeffff;
+    const u32 b = global<u32>(0x007a1a8c);
+    global<u32>(0x008bcbc8) = render;
+    render = (b & 0x8000) ? render | 1 : render & 0xfffffffe;
+    global<u32>(0x008bcbc8) = render;
+    u32 settings = global<u32>(0x008bd550);
+    settings = (b & 0x80000) ? settings | 2 : settings & 0xfffffffd;
+    global<u32>(0x008bd550) = settings;
+    const u32 shifted = global<u32>(0x0079d9c8);
+    if (shifted)
+        global<u32>(0x008c1620) = shifted << 20;
+    u32 scene = global<u32>(0x008bd508);
+    scene = (b & 2) ? scene & 0xffffffbf : scene | 0x40;
+    global<u32>(0x008bd508) = scene;
+    if (a & 0x40) {
+        Obj_SetFirst(reinterpret_cast<u8 *>(0x0078d8d8), nullptr, 0);
+        const u32 options = global<u32>(0x0079d86c) & 0xfffff8ff;
+        const u32 flags = global<u32>(0x007a1a8c) & 0xffe50fff;
+        global<u32>(0x008bd524) = 4;
+        global<u32>(0x0079d86c) = options;
+        global<u32>(0x007a1a8c) = flags;
+        return flags;
+    }
+    Obj_SetFirst(reinterpret_cast<u8 *>(0x0078d8d8), nullptr, 1);
+    global<u32>(0x008bd524) = 1;
+    return 1;
 }
 
 u32 __cdecl Environment_Apply() {

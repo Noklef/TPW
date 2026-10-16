@@ -1,4 +1,4 @@
-// Small render state setters: reimplementation of 0x4080e0, 0x5836b0 and 0x5d9680-0x5d96c0.
+// Small render state setters: reimplementation of 0x4080e0, 0x44dd50, 0x5836b0 and 0x5d9680-0x5d96c0.
 //
 // 0x8bcc40 is the display device's generation, bumped each time the device is restored
 // (0x583730, 0x583790). 0x8bcbc8 is the engine's render flags (0x2000: fog), and the fog's
@@ -16,6 +16,14 @@ extern "C" {
 // before and at each 8 bytes) to 0xf797a4 and 0xf797b4, and four values to the setters
 // 0x52fb10-0x52fb70 (Global81b6dc_Set and its kind). Returns 1.
 u32 __cdecl Environment_Apply();
+
+// 0x44dd50 (cdecl): the video options (the words 0x79d86c = A and 0x7a1a8c = B) applied to the render
+// state: the render flags 0x8bcbc8 bit 0x10000 = A bit 0x100 and bit 1 = B bit 0x8000; the settings flags
+// 0x8bd550 bit 2 = B bit 0x80000; 0x8c1620 = 0x79d9c8 << 20 when that is set; the scene flags 0x8bd508 bit
+// 0x40 set unless B bit 2; and the driver kind: with A bit 0x40 the object at 0x78d8d8 first = 0, A loses
+// bits 0x700, B is masked with 0xffe50fff and 0x8bd524 = 4 (returns B); otherwise first = 1 and
+// 0x8bd524 = 1 (returns 1).
+u32 __cdecl Options_Apply();
 
 // 0x5836b0 (thiscall on a flags pair, the scene's at 0x8bd508): flag 0x40000000 set and +4 =
 // the device generation (0x8bcc40).

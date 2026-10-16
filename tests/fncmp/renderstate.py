@@ -8,13 +8,19 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x4080e0, 0x4081e0), (0x52fb10, 0x52fb20), (0x52fb30, 0x52fb40), (0x52fb50, 0x52fb60), (0x52fb70, 0x52fb80), (0x5836b0, 0x5836c2), (0x5d9680, 0x5d96c4), (0x5d96c0, 0x5d974f)])
-CALLS = ['Touch', 'FogOn', 'FogOff', 'SetFog', 'FadeFog', 'Apply']
+B = Bench([(0x44dd50, 0x44de16), (0x423b50, 0x423b58), (0x4080e0, 0x4081e0), (0x52fb10, 0x52fb20), (0x52fb30, 0x52fb40), (0x52fb50, 0x52fb60), (0x52fb70, 0x52fb80), (0x5836b0, 0x5836c2), (0x5d9680, 0x5d96c4), (0x5d96c0, 0x5d974f)])
+CALLS = ['Touch', 'FogOn', 'FogOff', 'SetFog', 'FadeFog', 'Apply', 'Options']
 
 
 def case(r):
     op = r.choice(OPS)
     regions = {RAM: r.bytes(0x10), 0x8bcbc0: r.bytes(0x10), 0x8bcc40: r.bytes(8), 0x8bd470: r.bytes(0x30)}
+    if op == 'Options':
+        flag = lambda: r.choice([0, 0xffffffff, r.getrandbits(32), r.getrandbits(32) & ~0x40, r.getrandbits(32) | 0x40])
+        regions = {0x79d860: put(bytearray(r.bytes(0x20)), 0xc, 'I', flag()), 0x7a1a80: put(bytearray(r.bytes(0x20)), 0xc, 'I', flag()),
+                   0x8bcbc0: r.bytes(0x20), 0x8bd500: r.bytes(0x60), 0x79d9c0: put(bytearray(r.bytes(0x20)), 8, 'I', r.choice([0, 0, 1, 7, 0xfff])),
+                   0x8c1620: r.bytes(8), 0x78d8d0: r.bytes(0x10)}
+        return Call(0x44dd50, [], regions, ret='a')
     if op == 'Apply':
         values = lambda n: b''.join(struct.pack('<I', r.choice([0, 1, 0xffffffff, 0x80000000, 5, r.getrandbits(32)])) for _ in range(n))
         regions = {0x7855f0: values(8), 0x7856d0: values(0x18), 0x8bd470: r.bytes(0x20), 0x7a0b30: r.bytes(0x20),
