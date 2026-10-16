@@ -26,6 +26,23 @@ u8 *__fastcall CircBufU8_50_Ctor(u8 *buf) {
     return buf;
 }
 
+namespace {
+
+u8 *u32_ctor(u8 *buf, u32 size) {
+    at<u32>(buf, 0) = 0;
+    at<u32>(buf, 4 + size * 4) = 0xffffffff;
+    at<u32>(buf, 8 + size * 4) = size;
+    at<u8>(buf, 0xc + size * 4) = 0;
+    return buf;
+}
+
+}  // namespace
+
+u8 *__fastcall CircBufU32_30_Ctor(u8 *buf) { return u32_ctor(buf, 30); }
+u8 *__fastcall CircBufU32_144_Ctor(u8 *buf) { return u32_ctor(buf, 144); }
+u8 *__fastcall CircBufU32_50_Ctor(u8 *buf) { return u32_ctor(buf, 50); }
+u8 *__fastcall CircBufU32_5_Ctor(u8 *buf) { return u32_ctor(buf, 5); }
+
 void __fastcall CircBufU32_144_Push(u8 *buf, void *, u32 value) {
     const s32 size = at<s32>(buf, 0x248);
     const s32 cursor = at<s32>(buf, 0x244) + 1;

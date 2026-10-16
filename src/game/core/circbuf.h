@@ -1,6 +1,6 @@
 // The game's circular buffers (CircBufU8 / U16 / U32, serialized at 0x4cea00, 0x4cdb80 and
 // 0x4cdf00 as mCurrentEntry, mNumEntries, mWrappedAround, mTemp, mData): reimplementation of
-// 0x4cdb60, 0x4ce9e0, 0x4ce290 and 0x495cf0, each for one size (thiscall). mTemp is the first
+// 0x4cdb60, 0x4ce9e0, 0x4ce290, 0x495cf0 and 0x51ade0-0x51ae90, each for one size (thiscall). mTemp is the first
 // value; the entries follow it, then the cursor (-1 when empty), the size and the wrapped flag.
 #pragma once
 
@@ -15,6 +15,13 @@ u8 *__fastcall CircBufU16_3_Ctor(u8 *buf);
 // 0x4ce9e0: a CircBufU8 of 50 (cursor +0x34, size +0x38, wrapped +0x3c): byte +0 = 0, cursor
 // -1, size 50, not wrapped.
 u8 *__fastcall CircBufU8_50_Ctor(u8 *buf);
+
+// 0x51ade0, 0x51ae30, 0x51ae60, 0x51ae90: CircBufU32s of 30, 144, 50 and 5 (the values from +4,
+// then the cursor, size and wrapped flag): mTemp 0, cursor -1, the size, not wrapped.
+u8 *__fastcall CircBufU32_30_Ctor(u8 *buf);
+u8 *__fastcall CircBufU32_144_Ctor(u8 *buf);
+u8 *__fastcall CircBufU32_50_Ctor(u8 *buf);
+u8 *__fastcall CircBufU32_5_Ctor(u8 *buf);
 
 // 0x4ce290 (value): a CircBufU32 of 144 (values from +4, cursor +0x244, size +0x248, wrapped
 // +0x24c): the cursor on (back to 0 at the size, signed, setting wrapped), the value there.
