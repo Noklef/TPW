@@ -2956,6 +2956,11 @@ address,name,kind,confidence,notes
 0x005d3860,Array3D_Free,function,high,reimplemented (src/game/core/small5); clears the dimensions and frees the block
 0x00569c80,Deleter_Minus2c_569c80,function,high,reimplemented (src/game/core/small5); deleting destructor of the object 0x2c bytes in
 0x004254e0,Obj_RemoveRectAndClear14,function,high,"reimplemented (src/game/core/small5); the part of the object at +0x24 removed from the grid, bit 14 cleared"
+0x0047b5b0,CountedEntries_Release,function,high,reimplemented (src/game/core/small6); releases the counted buffers of a range of 16-byte entries
+0x004f23f0,CountedBuf_Reset,function,high,reimplemented (src/game/core/small6); releases the counted buffer at +4 on request and clears the fields
+0x0047db20,CountedBuf_Deleter,function,high,"reimplemented (src/game/core/small6); releases the counted buffer, clears the fields, optionally frees the object"
+0x0056b5c0,PtrArray_RemoveAndFree,function,high,"reimplemented (src/game/core/small6); removes a pointer from the array by value, freeing it"
+0x005ce540,List_EraseRange,function,high,reimplemented (src/game/core/small6); erases a range of nodes from a circular list
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

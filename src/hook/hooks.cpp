@@ -110,6 +110,7 @@
 #include "../game/core/small3.h"
 #include "../game/core/small4.h"
 #include "../game/core/small5.h"
+#include "../game/core/small6.h"
 #include "../game/core/tiny_g.h"
 #include "../game/core/tiny_h.h"
 #include "../game/core/tiny_i.h"
@@ -2453,6 +2454,11 @@ const Hook kHooks[] = {
     {"Array3D_Free",              0x005d3860, (void *)&Array3D_Free, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"Deleter_Minus2c_569c80",    0x00569c80, (void *)&Deleter_Minus2c_569c80, {0x56, 0x8b, 0xf1, 0xe8, 0xa8}},
     {"Obj_RemoveRectAndClear14",  0x004254e0, (void *)&Obj_RemoveRectAndClear14, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"CountedEntries_Release",    0x0047b5b0, (void *)&CountedEntries_Release, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"CountedBuf_Reset",          0x004f23f0, (void *)&CountedBuf_Reset, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"CountedBuf_Deleter",        0x0047db20, (void *)&CountedBuf_Deleter, {0x56, 0x8b, 0xf1, 0x8b, 0x4e}},
+    {"PtrArray_RemoveAndFree",    0x0056b5c0, (void *)&PtrArray_RemoveAndFree, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"List_EraseRange",           0x005ce540, (void *)&List_EraseRange, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
