@@ -9,10 +9,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x424ed0, 0x424ee9), (0x4922d0, 0x4922e0), (0x4e1c60, 0x4e1c70), (0x4f00f0, 0x4f0110), (0x4f6020, 0x4f6080), (0x40f300, 0x40f329), (0x59b550, 0x59b590), (0x458910, 0x458935), (0x458940, 0x458965),
-           (0x5836b0, 0x5836c2), (0x4a9350, 0x4a9375), (0x4b4670, 0x4b4695), (0x4bcec0, 0x4bcef0), (0x52fbf0, 0x52fc21), (0x409260, 0x409296), (0x4f36c0, 0x4f36e1), (0x52fc30, 0x52fc79), (0x5997b0, 0x5997f8), (0x56e780, 0x56e7de), (0x54b290, 0x54b2f0), (0x56b340, 0x56b37d), (0x576540, 0x5765b8), (0x583360, 0x5833ba), (0x5646c0, 0x564708), (0x564ba0, 0x564bf0), (0x56b570, 0x56b5b2), (0x4583d0, 0x4583f6), (0x5651c0, 0x56520b), (0x4d09a0, 0x4d09e6), (0x458310, 0x45834d), (0x402ef0, 0x402f10), (0x4032b0, 0x4032ca), (0x402f30, 0x402f50), (0x4030c0, 0x4030c4),
+           (0x5836b0, 0x5836c2), (0x4a9350, 0x4a9375), (0x4b4670, 0x4b4695), (0x4bcec0, 0x4bcef0), (0x52fbf0, 0x52fc21), (0x45be80, 0x45becd), (0x5766e0, 0x57681a), (0x486610, 0x486630), (0x475e10, 0x475e80), (0x557110, 0x55715b), (0x409260, 0x409296), (0x4f36c0, 0x4f36e1), (0x52fc30, 0x52fc79), (0x5997b0, 0x5997f8), (0x56e780, 0x56e7de), (0x54b290, 0x54b2f0), (0x56b340, 0x56b37d), (0x576540, 0x5765b8), (0x583360, 0x5833ba), (0x5646c0, 0x564708), (0x564ba0, 0x564bf0), (0x56b570, 0x56b5b2), (0x4583d0, 0x4583f6), (0x5651c0, 0x56520b), (0x4d09a0, 0x4d09e6), (0x458310, 0x45834d), (0x402ef0, 0x402f10), (0x4032b0, 0x4032ca), (0x402f30, 0x402f50), (0x4030c0, 0x4030c4),
            (0x47f940, 0x47f95a), (0x657d30, 0x657d6c), (0x4d4170, 0x4d4186), (0x475550, 0x47558b), (0x4d9600, 0x4d9619), (0x4e01f0, 0x4e0209), (0x4f6820, 0x4f6850),
            (0x4f6850, 0x4f6880), (0x56a510, 0x56a540), (0x56b630, 0x56b650), (0x56b830, 0x56b850)])
-CALLS = ['Flags', 'Size36', 'Commit', 'Lookup', 'Extents', 'FreeAll', 'ReleaseR', 'TopBits', 'Virt5646', 'Virt564b', 'FindSet', 'SetVec', 'Ctor1260', 'Smallest', 'CtorVirtual', 'PairAdd', 'CtorPart', 'MeshClear', 'MeshSet', 'Countdown', 'Kill24', 'Choose', 'Advance', 'CtorOne', 'CtorValue', 'KillSlot', 'Stamp30', 'Stamp5e', 'InitBuf', 'Clear0', 'Clear18', 'Diff', 'Virtual', 'Setg', 'Setp', 'Pixel', 'Fill', 'Set3034']
+CALLS = ['RemRect', 'CopyScript', 'TakeDone', 'Flags', 'Size36', 'Commit', 'Lookup', 'Extents', 'FreeAll', 'ReleaseR', 'TopBits', 'Virt5646', 'Virt564b', 'FindSet', 'SetVec', 'Ctor1260', 'Smallest', 'CtorVirtual', 'PairAdd', 'CtorPart', 'MeshClear', 'MeshSet', 'Countdown', 'Kill24', 'Choose', 'Advance', 'CtorOne', 'CtorValue', 'KillSlot', 'Stamp30', 'Stamp5e', 'InitBuf', 'Clear0', 'Clear18', 'Diff', 'Virtual', 'Setg', 'Setp', 'Pixel', 'Fill', 'Set3034']
 BUF = RAM + 0x1000
 
 
@@ -20,6 +20,40 @@ def case(r):
     op = r.choice(OPS)
     obj = bytearray(r.bytes(0x400))
     regions = {RAM: obj}
+    if op == 'RemRect':
+        width, height = r.choice([(4, 3), (3, 3), (2, 5), (6, 2)])
+        off = r.choice([0, 0x10, 0x20])
+        put(obj, 0, 'I', r.choice([0, 1, 1, 0xffffffff, r.getrandbits(32)]))
+        put(obj, 0x1c, 'I', r.choice([0, RAM + 0x100, RAM + 0x100]))
+        put(obj, 0x100, 'I', RAM + 0x300)
+        put(obj, 0x304, 'I', off)
+        renderer = bytearray(r.bytes(0x100))
+        put(renderer, 0x38, 'ii', width, height)
+        put(renderer, 0x10, 'I', RAM + 0x1200)
+        put(renderer, 4, 'I', 0)
+        put(renderer, 0xc, 'I', 7)
+        grid, nodes = bytearray(4 * width * height + 16), bytearray(0x100)
+        part = RAM + 0x100 + off
+        for c in range(width * height):
+            if r.random() < 0.6:
+                put(nodes, 8 * c, 'II', part if r.random() < 0.7 else r.getrandbits(32), 0)
+                put(grid, 4 * c, 'I', RAM + 0x1400 + 8 * c)
+        regions.update({0x87a6d0: put(bytearray(r.bytes(0x10)), 0, 'I', RAM + 0x1000), RAM + 0x1000: renderer,
+                        RAM + 0x1200: grid, RAM + 0x1400: nodes, 0x8bd500: r.bytes(0x20)})
+        pos = lambda: (r.randrange(-1, 7) & 0xffff) << 16 | (r.randrange(-1, 6) & 0xffff)
+        return Call(0x45be80, [RAM, pos(), pos()], regions, ret='a')
+    if op == 'CopyScript':
+        put(obj, 0xc, 'I', r.choice([0, 0, 1, 2, 5]))
+        regions.update({0x7c24d0: put(bytearray(r.bytes(0x20)), 8, 'I', r.choice([0, RAM])), 0x7c24a0: r.bytes(8), 0x7b49f0: bytearray(16)})
+        return Call(0x486610, [], regions)
+    if op == 'TakeDone':
+        count = r.choice([0, 1, 3, 5, -1])
+        put(obj, 0x7c, 'i', count)
+        put(obj, 0x2c, 'I', RAM + 0x200)
+        for i in range(6):
+            put(obj, 0x200 + 0x20 * i + 0x18, 'H', r.choice([0, 4, 4, 1]))
+            put(obj, 0x200 + 0x20 * i + 0x10, 'I', r.getrandbits(32))
+        return Call(0x557110, [RAM], regions, ret='a')
     if op == 'Flags':
         put(obj, 0x18, 'I', r.choice([0, 0, 1, 5]))
         regions.update({0x7a1a10: r.bytes(8), 0x7477e0: r.bytes(8), 0x785970: r.bytes(0x60)})

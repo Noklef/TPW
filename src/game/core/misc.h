@@ -1,4 +1,4 @@
-// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x409260, 0x458310, 0x4583d0, 0x4bcec0, 0x4f36c0, 0x52fc30, 0x5997b0, 0x54b290, 0x56b340, 0x56e780, 0x583360, 0x5646c0, 0x564ba0, 0x56b570, 0x5651c0, 0x4d09a0, 0x52fbf0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
+// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x409260, 0x45be80, 0x458310, 0x4583d0, 0x4bcec0, 0x486610, 0x4f36c0, 0x52fc30, 0x557110, 0x5997b0, 0x54b290, 0x56b340, 0x56e780, 0x583360, 0x5646c0, 0x564ba0, 0x56b570, 0x5651c0, 0x4d09a0, 0x52fbf0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
 // 0x4e1c60, 0x4f00f0, 0x4f6020, 0x4f6820, 0x4f6850, 0x56a510, 0x56b630 and 0x56b830.
 #pragma once
 
@@ -97,6 +97,20 @@ u32 __cdecl Table768fb8_Lookup(u32 id);
 // 0x409260 (thiscall): Obj_AdvanceUnless30 on the object at 0x785970; 0x7477e4 = bit 3 of the flags
 // 0x7a1a14; and when the dword at +0x18 is set bit 1 of the flags is set. Returns the flags then, else 0.
 u32 __fastcall Flags7a1a14_Update(const u8 *object);
+
+// 0x45be80 (cdecl; object, from, to): the part at the object's +0x1c (a virtual base: the pointer plus the
+// offset at +4 of its vtable; 0 for none) is removed from the renderer's grid ([0x87a6d0]) over the
+// rectangle from.hi, from.lo to to.hi, to.lo (the positions' high and low words as x and y
+// of the corners: Renderer_RemoveInRect); then bit 0 of the object's first dword is cleared. Returns that dword.
+u32 __cdecl Obj_RemoveFromRect(u8 *object, u32 from, u32 to);
+
+// 0x486610 (cdecl): when the object at [0x7c24d8] has its +0xc set the sprite script slot [0x7c24a0] is
+// made a copy of that script slot (SpriteScript_CopyFrom).
+void __cdecl Global7c24d8_CopyScript();
+
+// 0x557110 (cdecl; vm): over the +0x7c entries of 0x20 bytes at +0x2c, the dword at +0x10 of the first whose
+// word at +0x18 is 4 is returned and the entry's word +0x18 and dword +0x10 are cleared; 0 for none.
+u32 __cdecl Rsse_TakeFinished(u8 *vm);
 
 // 0x52fbf0 (cdecl; a, b): appends the pair to the table of 8-byte entries at 0x81b740 (count at
 // 0x820a8c), unless the count is above 0x400 (signed): 0 then, else 1.

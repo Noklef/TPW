@@ -434,7 +434,7 @@ address,name,kind,confidence,notes
 0x0044ab30,PartStates_Update,function,high,"reimplemented (src/game/model/partstate); cdecl (instance): when the instance (flag 1) and its part states (+0x28, flag 1) are awake, walks the model's node tree (+0x78; 0x44ab90) from the identity matrix, filling the part entries' matrix slots"
 0x0045bdc0,Holder_IsAwake,function,high,reimplemented (src/game/model/holder); holder flag 1 (awake)
 0x0045bdd0,Holder_Sleep,function,low,"(holder): called when an animator flagged 8 ends its motion (animator flag 0x4000 uses Holder_SleepAt instead); counterpart of 0x45bd30"
-0x0045be80,Holder_SleepAt,function,low,"(holder, animator +0xc0, +0xc4): see Holder_Sleep"
+0x0045be80,Obj_RemoveFromRect,function,high,reimplemented (src/game/core/misc); an object's part removed from the renderer's grid over a rectangle
 0x008bd508,gSceneFlags,data,low,"u32; Animator_RefreshNodes sets 0x80000000 when nodes flagged 0x100 changed"
 0x00472f60,Layer_Play,function,high,"reimplemented (src/game/motion/animator); (animator, bank, entry, layer, mode, speed): switch a layer to a bank entry (0xd/0xe stop it, 0xc or unloaded empties it), resetting the channels the old block drove, carrying the overrun; returns the motion length in ms"
 0x00473270,Layer_ClearQueue,function,high,"reimplemented (src/game/motion/animator); (animator, layer index): queued bank (+0x24) = 0xc; 1 if one was queued"
@@ -2463,6 +2463,8 @@ address,name,kind,confidence,notes
 0x0052fc30,PairTable_Commit,function,high,reimplemented (src/game/core/misc); the pair table copied to its committed copy
 0x005997b0,Table768fb8_Lookup,function,high,reimplemented (src/game/core/misc); a value looked up by id in the 0x20-byte table at 0x768fb8
 0x00409260,Flags7a1a14_Update,function,high,reimplemented (src/game/core/misc); a flag word updated from another and an object's advance
+0x00486610,Global7c24d8_CopyScript,function,high,reimplemented (src/game/core/misc); a sprite script slot made a copy of another
+0x00557110,Rsse_TakeFinished,function,high,"reimplemented (src/game/core/misc); the value of the first finished entry, which is cleared"
 0x0047f910,Fn_47f910,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = a value, +0x4 = 0x0, +0x8 = 0x0, +0xc = 0x0, +0x10 = 0x0, +0x14 = 0x0, +0x18 = 0x0, +0x1c = 0x0, +0x20 = 0x0, +0x24 = 0x0, +0x28 = 0x0, +0x2c = 0x0"
 0x0048c9e0,Fn_48c9e0,function,high,"reimplemented (src/game/core/tiny_d); stores +0x0 = 0x6ff1f0, 0x7c2658 = 0x0, +0x10 = 0x0, +0x18 = 0x0, +0x14 = 0x0, +0x1c = 0x0"
 0x004e0210,Fn_4e0210,function,high,"reimplemented (src/game/core/tiny_d); stores +0x5e = 0x0, +0x60 = 0x0"
