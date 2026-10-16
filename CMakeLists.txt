@@ -146,6 +146,7 @@ add_library(tpw_game STATIC
     src/game/terrain/terrain_blend.cpp
     src/game/terrain/land.cpp
     src/game/terrain/procedural.cpp
+    src/game/terrain/landscape.cpp
     src/game/model/parts.cpp
     src/game/model/holder.cpp
     src/game/model/remap.cpp

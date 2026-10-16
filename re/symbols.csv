@@ -401,6 +401,10 @@ address,name,kind,confidence,notes
 0x00457e10,Terrain_RestoreCells,function,high,reimplemented (src/game/terrain/procedural); every terrain cell back as loaded (CopyAttrs from 0x79fc54)
 0x00457e30,Terrain_InitUnusedOne,function,high,reimplemented (src/game/terrain/procedural); unused static 0x7a0b28 = 1.0f
 0x00457e50,Terrain_InitUnusedEpsilon,function,high,reimplemented (src/game/terrain/procedural); unused static 0x7a0b48 = 1 / 2^23
+0x005856e0,Landscape_SetPoint,function,high,"reimplemented (src/game/terrain/landscape); thiscall (the landscape renderer, 0x8c1828; i, x, y, z floats): point i at +0x1f70 + 12 i (the weather sets four)"
+0x00585710,Landscape_SetDetail,function,high,"reimplemented (src/game/terrain/landscape); thiscall (level): +0x2ec8, the detail level (option 0x785888)"
+0x00585ef0,Landscape_List,function,high,reimplemented (src/game/terrain/landscape); thiscall: +0x1fd0
+0x00585f00,Landscape_Point,function,high,reimplemented (src/game/terrain/landscape); thiscall: the point at +0x1fa0
 0x00536490,MapCell_Reset,function,high,"default type/flags from the attribute byte: outside park 2/0x1e/7, inside 1 (path, bit 0x08) or 0; 0x10 -> flags 0x80, 0x04 -> flags 0x400"
 0x00527ee0,Path_CheckDeadEnds,function,low,"counts path neighbours; attribute bit 0x08 exempts a cell"
 0x0080239c,gWorld,data,medium,"world structure; map cells at +0x2d8 (0x44 each, 1-based ids), track cells at +0x1102d8"

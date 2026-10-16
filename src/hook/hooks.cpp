@@ -109,7 +109,8 @@
 #include "../game/coaster/spline.h"
 #include "../game/coaster/train.h"
 #include "../game/coaster/xsection.h"
-#include "../game/terrain/land.h"
+#include "../game/terrain/land.h"
+#include "../game/terrain/landscape.h"
 #include "../game/terrain/procedural.h"
 #include "../game/terrain/terrain_blend.h"
 #include "../game/world/random.h"
@@ -1645,6 +1646,10 @@ const Hook kHooks[] = {
     {"Terrain_RestoreCells",      0x00457e10, (void *)&Terrain_RestoreCells, {0xa1, 0x54, 0xfc, 0x79, 0x00}},
     {"Terrain_InitUnusedOne",     0x00457e30, (void *)&Terrain_InitUnusedOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"Terrain_InitUnusedEpsilon", 0x00457e50, (void *)&Terrain_InitUnusedEpsilon, {0xd9, 0x05, 0x38, 0xe5, 0x6f}},
+    {"Landscape_SetPoint",        0x005856e0, (void *)&Landscape_SetPoint, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Landscape_SetDetail",       0x00585710, (void *)&Landscape_SetDetail, {0x8b, 0x44, 0x24, 0x04, 0x89}},
+    {"Landscape_List",            0x00585ef0, (void *)&Landscape_List, {0x8b, 0x81, 0xd0, 0x1f, 0x00}},
+    {"Landscape_Point",           0x00585f00, (void *)&Landscape_Point, {0x8d, 0x81, 0xa0, 0x1f, 0x00}},
     {"Online_ApplyBalance",       0x0045aee0, (void *)&Online_ApplyBalance, {0x6a, 0xff, 0x68, 0x08, 0x89}},
     {"Online_LoggedIn",           0x005b6450, (void *)&Online_LoggedIn, {0x8b, 0x41, 0x60, 0xc3, 0x90}},
     {"Online_Restricted",         0x005b6460, (void *)&Online_Restricted, {0x8b, 0x51, 0x60, 0x33, 0xc0}},
