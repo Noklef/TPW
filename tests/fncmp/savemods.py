@@ -6,11 +6,11 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, put, record_stream  # noqa: E402
+from fncmp import Bench, Call, HEAP, RAM, global_heap, heap, put, record_stream  # noqa: E402
 
 # name: (address, returns, size)
-CALLS = {'Cam': (0x42cdc0, 'b', 0x100), 'Part': (0x51f680, 'a', 0x120), 'Fly': (0x55de70, 'a', 0x1b0), 'Rsse': (0x559350, 'a', 0x450)}
-B = Bench([(a, a + n) for (a, _r, n) in CALLS.values()] + [(0x5f5e20, 0x5f5e50), (0x5f5e50, 0x5f5e80)])
+CALLS = {'Cam': (0x42cdc0, 'b', 0x100), 'Part': (0x51f680, 'a', 0x120), 'Fly': (0x55de70, 'a', 0x1b0), 'Rsse': (0x559350, 'a', 0x450), 'PLoad': (0x51f7a0, 'a', 0x290)}
+B = Bench([(a, a + n) for (a, _r, n) in CALLS.values()] + [(0x5f5e20, 0x5f5e50), (0x5f5e50, 0x5f5e80), (0x5f5660, 0x5f5690), (0x5da3c0, 0x5da3c1)])
 STREAM, SINK, ARENA = RAM, RAM + 0x100, RAM + 0x300000
 
 
@@ -22,6 +22,25 @@ def room(r, need):
 def case(r):
     name = r.choice(OPS)
     address, ret, _n = CALLS[name]
+    if name == 'PLoad':  # the module as Particles_Save writes it, then spoiled here and there; a stream cut before the count (read into a stack slot) is the only short one
+        count = r.choice([0, 1, 2, 3, 4, 8])
+        block1 = bytearray(r.bytes(0x9e68))
+        put(block1, 0xc, 'I', count)
+        head = r.choice([-1, -1, 0, 1, 2, 3, 3])
+        put(block1, 0x9e4c, 'h', head)
+        for k in range(4):
+            put(block1, 0x2c + 0x140 * k + 0xd0, 'h', r.choice([-1, k + 1 if k < 3 else -1, 2]) if k != 2 else -1)
+        pool = r.choice([0, 0, count * 0x34, count * 0x34, r.randrange(count * 0x34 + 1)])
+        data = struct.pack('<III', r.choice([0x5054434c] * 9 + [0x1234]), r.choice([1, 1, 1, 1, 0, 7]), r.choice([0x9e68] * 9 + [0x9e69]))
+        data += bytes(block1) + struct.pack('<I', r.choice([0x8b60] * 9 + [0x8b61])) + r.bytes(0x8b60) + struct.pack('<I', pool) + r.bytes(pool)
+        cut = 12 + 0x9e68 + 4 - 1
+        left = len(data) + 0x10 if r.random() < 0.8 else r.randrange(cut + 1)
+        regions = {STREAM: record_stream(STREAM, SINK, left), SINK: data + bytes(0x10), HEAP: heap(), **global_heap(), 0x80ced0: r.bytes(0x9e68),
+                   0x804370: r.bytes(0x8b60), 0x816d40: struct.pack('<I', r.choice([1, 1, 1, 0])) + bytes(0xc)}
+        old = r.choice([0, 0, HEAP + 0x40])
+        regions[0x80ced0] = bytearray(regions[0x80ced0])
+        put(regions[0x80ced0], 0x28, 'I', old)
+        return Call(address, [STREAM], regions, ret=ret)
     if name == 'Cam':
         left = r.choice([0x100, 0x100, 0x100, 0, 4, 8, 12, 16, 20, 24, 28, 32, 36, r.randrange(0x40)])
         regions = {STREAM: record_stream(STREAM, SINK, left), SINK: r.bytes(0x100), 0x7908f0: r.bytes(0x200)}

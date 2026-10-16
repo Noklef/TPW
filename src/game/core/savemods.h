@@ -24,4 +24,11 @@ u32 __cdecl FlyingRides_Save(Stream *stream);
 // limbo, riders, walkers, its name) each after its size, then 'OBJ ' and its objects (0x1c bytes each) after their count and size. Returns 0.
 u32 __cdecl RSSE_Save(Stream *stream);
 
+// 0x51f7a0 (stream): the module Particles_Save wrote, when the particle flag at 0x816d40 is set: 'LCTP' and a non-zero flag, else nothing is read (returns 0); the system
+// pool at 0x80cef8 is freed and the two blocks read in over 0x80ced0 and 0x804370 (their sizes must be 0x9e68 and 0x8b60: otherwise returns 1); the pool is allocated
+// (the count at 0x80cedc times 0x34 bytes) and read in after its size, or, for size 0, cleared and linked into a free list (words at +0x30 / +0x32 of each 0x34-byte system:
+// next / previous), the systems of the live chain (head word at 0x816d1c, next word at +0xd0 of the 0x140-byte systems from 0x80cefc) reset. The dwords at 0x80ceec and
+// 0x80cef4 keep their values through the read. Returns 0.
+u32 __cdecl Particles_Load(Stream *stream);
+
 }  // extern "C"

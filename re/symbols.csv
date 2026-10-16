@@ -37,7 +37,7 @@ address,name,kind,confidence,notes
 0x00516c80,World_Save,function,high,module WRLD
 0x00475730,SpriteScripts_Load,function,high,"reimplemented (src/game/sprite/script); module SPSC; frees the list and reads one; 1 (and an empty 100-slot table) on a bad header"
 0x00475650,SpriteScripts_Save,function,high,"reimplemented (src/game/sprite/script); module SPSC; TPCS, 0x118, table size, table, the scripts"
-0x0051f7a0,Particles_Load,function,high,module PART
+0x0051f7a0,Particles_Load,function,high,reimplemented (src/game/core/savemods); reads the particle module from the save game
 0x0051f680,Particles_Save,function,high,reimplemented (src/game/core/savemods); writes the particle module to the save game
 0x0040fd60,MessageCentre_Load,function,high,module MESS
 0x0040fc80,MessageCentre_Save,function,high,module MESS

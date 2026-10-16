@@ -44,6 +44,66 @@ u32 __cdecl Particles_Save(Stream *stream, s32 full) {
     return 0;
 }
 
+u32 __cdecl Particles_Load(Stream *stream) {
+    if (global<u32>(0x00816d40) == 0)
+        return 0;
+    s32 result;
+    u32 slot = (u32)(uintptr_t)stream;  // (the read goes to the same slot every time: a short read leaves the old value)
+    Stream_Read(&result, stream, &slot, 4, nullptr);
+    const u32 savedF4 = global<u32>(0x0080cef4), savedEc = global<u32>(0x0080ceec);
+    if (slot != 0x5054434c)
+        return 0;
+    Stream_Read(&result, stream, &slot, 4, nullptr);
+    if (slot == 0)
+        return 0;
+    if (global<void *>(0x0080cef8))
+        Mem_GlobalFree(global<void *>(0x0080cef8));
+    Stream_Read(&result, stream, &slot, 4, nullptr);
+    if (slot != 0x9e68)
+        return 1;
+    Stream_Read(&result, stream, &global<u8>(0x0080ced0), 0x9e68, nullptr);
+    Stream_Read(&result, stream, &slot, 4, nullptr);
+    if (slot != 0x8b60)
+        return 1;
+    Stream_Read(&result, stream, &global<u8>(0x00804370), 0x8b60, nullptr);
+    const u32 bytes = global<u32>(0x0080cedc) * 0x34;
+    global<void *>(0x0080cef8) = bytes ? Mem_GlobalAlloc(bytes) : nullptr;
+    u32 count = 0;
+    Stream_Read(&result, stream, &count, 4, nullptr);
+    if (count != 0) {
+        Stream_Read(&result, stream, global<void *>(0x0080cef8), (s32)count, nullptr);
+    } else {
+        u8 *pool = global<u8 *>(0x0080cef8);
+        for (u32 i = 0; i < bytes; ++i)
+            pool[i] = 0;
+        global<u32>(0x0080ced0) = 0;
+        global<u16>(0x00816d24) = 0;
+        at<u16>(global<u8 *>(0x0080cef8), 0x32) = 0xffff;
+        at<u16>(global<u8 *>(0x0080cef8), 0x30) = 1;
+        at<u16>(global<u8 *>(0x0080cef8), global<u32>(0x0080cedc) * 0x34 - 4) = 0xffff;
+        at<u16>(global<u8 *>(0x0080cef8), global<u32>(0x0080cedc) * 0x34 - 2) = (u16)(global<u32>(0x0080cedc) - 2);
+        if ((s32)global<u32>(0x0080cedc) - 1 > 1) {
+            s32 i = 1;
+            u32 offset = 0x34;
+            do {
+                at<u16>(global<u8 *>(0x0080cef8), offset + 0x32) = (u16)(i - 1);
+                at<u16>(global<u8 *>(0x0080cef8), offset + 0x30) = (u16)(i + 1);
+                ++i;
+                offset += 0x34;
+            } while (i < (s32)global<u32>(0x0080cedc) - 1);
+        }
+        for (s32 system = global<s16>(0x00816d1c); system >= 0;) {
+            u8 *entry = reinterpret_cast<u8 *>((uintptr_t)(0x0080cefc + system * 0x140));
+            at<u16>(entry, 8) = 0;
+            at<u16>(entry, 6) = 0xffff;
+            system = at<s16>(entry, 0xd0);
+        }
+    }
+    global<u32>(0x0080ceec) = savedEc;
+    global<u32>(0x0080cef4) = savedF4;
+    return 0;
+}
+
 u32 __cdecl FlyingRides_Save(Stream *stream) {
     WriteValue(stream, 0x5f594c46);
     Write(stream, &global<u32>(0x008791ec), 4);
