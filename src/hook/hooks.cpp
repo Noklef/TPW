@@ -108,7 +108,8 @@
 #include "../game/rsse/rsse.h"
 #include "../game/sprite/draw.h"
 #include "../game/sprite/screenmatrix.h"
-#include "../game/sprite/script.h"
+#include "../game/sprite/script.h"
+#include "../game/sprite/scriptref.h"
 #include "../game/sprite/sprite.h"
 #include "../game/coaster/orient.h"
 #include "../game/coaster/rating.h"
@@ -341,6 +342,9 @@ const Hook kHooks[] = {
     {"Sprite_FrameEntry",        0x005423a0, (void *)&Sprite_FrameEntry, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Sprite_ScreenMatrix",       0x00476c50, (void *)&Sprite_ScreenMatrix, {0x55, 0x8b, 0xec, 0x81, 0xec}},
     {"Sprite_FlipY",              0x00476a70, (void *)&Sprite_FlipY, {0xdb, 0x44, 0x24, 0x04, 0xd8}},
+    {"ScriptRef_IsAt",            0x004d4100, (void *)&ScriptRef_IsAt, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
+    {"ScriptRef_Start",           0x004d4140, (void *)&ScriptRef_Start, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"ScriptRef_Apply",           0x004d4190, (void *)&ScriptRef_Apply, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"World_Rand",               0x00516330, (void *)&World_Rand, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"World_SetSeed",            0x00516370, (void *)&World_SetSeed, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Things_InitTable",         0x00515f30, (void *)&Things_InitTable, {0x33, 0xd2, 0x56, 0x89, 0x15}},

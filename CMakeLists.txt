@@ -125,6 +125,7 @@ add_library(tpw_game STATIC
     src/game/sprite/draw.cpp
     src/game/sprite/sprite.cpp
     src/game/sprite/screenmatrix.cpp
+    src/game/sprite/scriptref.cpp
     src/game/world/random.cpp
     src/game/world/things.cpp
     src/game/world/camera.cpp

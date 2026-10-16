@@ -610,6 +610,9 @@ address,name,kind,confidence,notes
 0x005423a0,Sprite_FrameEntry,function,high,"reimplemented (src/game/sprite/sprite); (anim, frame, dir) in folder 13: the frame table entry; no callers"
 0x00476c50,Sprite_ScreenMatrix,function,high,reimplemented (src/game/sprite/screenmatrix); the matrix that puts a sprite on the screen
 0x00476a70,Sprite_FlipY,function,high,reimplemented (src/game/sprite/screenmatrix); 1 - y / [0x74f898] in ST0
+0x004d4100,ScriptRef_IsAt,function,high,"reimplemented (src/game/sprite/scriptref); the referenced script is at an entry point, or last put there"
+0x004d4140,ScriptRef_Start,function,high,reimplemented (src/game/sprite/scriptref); a script started at an entry point with a folder and sprite
+0x004d4190,ScriptRef_Apply,function,high,reimplemented (src/game/sprite/scriptref); the pending jump and period sent to the script
 0x00541ed0,Sprites_FreeAll,function,medium,"frees every sprite and its image set (0x588230), then resets the 17 draw list objects (0x58a520)"
 0x00541210,SpriteFiles_Sort,function,low,"bubble-sorts the 12-byte entries at 0x875970 (count 0x875430) by the name at +0x20 of their first word (0x424cc0 on string copies)"
 0x008751f0,gSpriteDrawListObjs,data,medium,"16 x 0x24-byte render list objects (+4 count), one per map cell; the overlay one at 0x876420; created by Sprites_Init (0x58a4f0)"
