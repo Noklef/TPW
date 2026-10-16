@@ -26,6 +26,15 @@ void __cdecl TerrainTex_Enable() {
 
 void __cdecl TerrainTex_Disable() { render_flags() &= ~4u; }
 
+void __cdecl TerrainTex_SetRect(u32 x0, u32 y0, u32 x1, u32 y1) {
+    u8 *tex = *reinterpret_cast<u8 **>(0x00879d60);
+    if (!tex) return;
+    at<u32>(tex, 0x234) = x0;
+    at<u32>(tex, 0x238) = y0;
+    at<u32>(tex, 0x23c) = x1;
+    at<u32>(tex, 0x240) = y1;
+}
+
 void __cdecl Terrain_ProceduralEnter() {
     const u32 flags = terrain_flags();
     if (!(flags & 0x2000) || (flags & 0x4000)) return;

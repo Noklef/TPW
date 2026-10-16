@@ -401,6 +401,7 @@ address,name,kind,confidence,notes
 0x00457e10,Terrain_RestoreCells,function,high,reimplemented (src/game/terrain/procedural); every terrain cell back as loaded (CopyAttrs from 0x79fc54)
 0x00457e30,Terrain_InitUnusedOne,function,high,reimplemented (src/game/terrain/procedural); unused static 0x7a0b28 = 1.0f
 0x00457e50,Terrain_InitUnusedEpsilon,function,high,reimplemented (src/game/terrain/procedural); unused static 0x7a0b48 = 1 / 2^23
+0x0056df70,TerrainTex_SetRect,function,high,reimplemented (src/game/terrain/procedural); the procedural texture object +0x234..+0x240 = the view rect
 0x005856e0,Landscape_SetPoint,function,high,"reimplemented (src/game/terrain/landscape); thiscall (the landscape renderer, 0x8c1828; i, x, y, z floats): point i at +0x1f70 + 12 i (the weather sets four)"
 0x00585710,Landscape_SetDetail,function,high,"reimplemented (src/game/terrain/landscape); thiscall (level): +0x2ec8, the detail level (option 0x785888)"
 0x00585ef0,Landscape_List,function,high,reimplemented (src/game/terrain/landscape); thiscall: +0x1fd0

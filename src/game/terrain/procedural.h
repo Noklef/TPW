@@ -19,6 +19,10 @@ void __cdecl TerrainTex_Enable();
 // 0x56dfd0: renderer flags 0x8bd550 &= ~4.
 void __cdecl TerrainTex_Disable();
 
+// 0x56df70 (x0, y0, x1, y1): when the procedural texture object [0x879d60] exists, its +0x234 to
+// +0x240 = the four (0x457cf5: the terrain area in view).
+void __cdecl TerrainTex_SetRect(u32 x0, u32 y0, u32 x1, u32 y1);
+
 // 0x457a00: when available and not in use: the option 0x78d8d8 at 1 turns them on (flag, the
 // renderer, the cells); at 0 marks them unavailable (clears 0x6000); else nothing.
 void __cdecl Terrain_ProceduralEnter();
