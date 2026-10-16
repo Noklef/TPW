@@ -12,13 +12,25 @@ sys.path.insert(0, HERE)
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 from thingenv import CELLS, POOL, THING, park  # noqa: E402
 
-CALLS = {'Top': 0x4c8430, 'Area': 0x4c8d30}
-B = Bench([(0x4c8430, 0x4c85a8), (0x4c8d30, 0x4c8ea0), (0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x5da3c0, 0x5da3c1), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c)])
+CALLS = {'Top': 0x4c8430, 'Area': 0x4c8d30, 'Near': 0x4c8ed0}
+B = Bench([(0x4c8430, 0x4c85a8), (0x4c8d30, 0x4c8ea0), (0x4c8ed0, 0x4c9040), (0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x5da3c0, 0x5da3c1), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c)])
 OUT = RAM + 0x1000
 
 
 def case(r):
     name = r.choice(OPS)
+    if name == 'Near':
+        cells = bytearray(r.bytes(0x44 * 0x302))
+        for idx in range(0x301):
+            if r.random() < 0.5:
+                put(cells, idx * 0x44 + 0x2c, 'I', 0)
+            put(cells, idx * 0x44 + 0x30, 'H', r.choice([0, 0, 1, 2, 5, 0x8000, 0xffff]))
+        cell = r.choice([1, 2, 3, 0x80, 0x81, 0xfe, 0x100, 0x101, 0x14a, r.randrange(1, 0x100)])
+        radius = r.choice([0, 1, 2, 3, 3])
+        if (((cell - 1) >> 7) + radius) > 4:
+            cell = cell & 0x7f or 1
+        regions = {CELLS: cells, 0x8023a0: struct.pack('<I', CELLS), RAM + 0x20000 + 0x1f000: r.bytes(0x400), OUT: r.bytes(8)}
+        return Call(CALLS[name], [RAM + 0x20000, OUT, r.choice([0, 1, 2, 5, 0x8000, 0xffff, 0x10001]), cell, radius], regions, conv='t', ret='a')
     count = r.choice([0, 1, 2, 3, 4, 6])
     regions, handles, things = park(r, count=count, kinds=(1, 1, 1, 2, 3), defs=False, cells=True)
     pool = bytearray(regions[POOL])

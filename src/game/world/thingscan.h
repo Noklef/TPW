@@ -22,6 +22,11 @@ void __cdecl Things_TopThreeValues(u8 *first, u8 *second, u8 *third);
 // of the cell: the list head is the word at -0x20 of each 0x44-byte cell, the links the words at +0xa of each thing. Returns 1 at the first one when first only is set, else
 // the count.
 s32 __cdecl Things_CountOfKindAround(u32 kind, u32 cell, s32 radius, s32 firstOnly);
+
+// 0x4c8ed0 (thiscall on the world block; out word, type, cell id, radius, pops 16; the radius check is an assert left out): the ids of the cells within the radius
+// (clamped to the map, x outer, y inner) whose dword at +0x2c is not 0 and whose word at +0x30 is the low half of type or 0 are listed at world + 0x1f020; *out is the nearest
+// of them to the cell by x distance + y distance (the first of equals), 0 for none. Returns out.
+u16 *__fastcall World_NearestCellWithType(u8 *world, void *, u16 *out, u32 type, u32 cell, s32 radius);
 // 0x519690 / 0x519800 / 0x519970 / 0x519c50 / 0x519ae0 (thiscall on the game object; thing, pops 4): the thing is taken out of the singly linked list of
 // things whose head handle is the word at +0x1da73c / +0x1da73e / +0x1da740 / +0x1da742 / +0x1da744 and whose links are the words at +0x210 of each: when it is
 // the head the head becomes its link, otherwise the link of the thing before it becomes its link (found by walking from the head; a thing that is not in the

@@ -175,6 +175,41 @@ void __cdecl Things_TopThreeValues(u8 *first, u8 *second, u8 *third) {
     *third = counts[best[2]] == 0 ? 0x17 : best[2];
 }
 
+u16 *__fastcall World_NearestCellWithType(u8 *world, void *, u16 *out, u32 type, u32 cell, s32 radius) {
+    const u32 index = (cell & 0xffff) - 1;
+    const s32 x = (s32)(index & 0x7f), y = (s32)(index >> 7);
+    const s32 xmin = x - radius < 0 ? 0 : x - radius, ymin = y - radius < 0 ? 0 : y - radius;
+    const s32 xmax = x + radius > 0x7f ? 0x7f : x + radius, ymax = y + radius > 0x7f ? 0x7f : y + radius;
+    u16 *found = reinterpret_cast<u16 *>(world + 0x1f020);
+    s32 count = 0;
+    for (s32 cx = xmin; cx <= xmax; ++cx) {
+        for (s32 cy = ymin; cy <= ymax; ++cy) {
+            const u16 id = (u16)((cy << 7) + 1 + cx);
+            const u8 *entry = global<u8 *>(0x008023a0) + (u32)id * 0x44 - 0x44;
+            if (at<u32>(entry, 0x2c) != 0) {
+                const u16 word = at<u16>(entry, 0x30);
+                if (word == (u16)type || word == 0)
+                    found[count++] = id;
+            }
+        }
+    }
+    u32 best = 9999;
+    u16 result = 0;
+    for (s32 i = 0; i < count; ++i) {
+        const u32 id = found[i] - 1u;
+        s32 dx = (s32)(id & 0x7f) - x;
+        if (dx < 0) dx = -dx;
+        s32 dy = (s32)(id >> 7) - y;
+        if (dy < 0) dy = -dy;
+        if ((u32)(dx + dy) < best) {
+            best = (u32)(dx + dy);
+            result = found[i];
+        }
+    }
+    *out = result;
+    return out;
+}
+
 s32 __cdecl Things_CountOfKindAround(u32 kind, u32 cell, s32 radius, s32 firstOnly) {
     const u32 index = (cell & 0xffff) - 1;
     const s32 x = (s32)(index & 0x7f), y = (s32)(index >> 7);
