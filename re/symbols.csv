@@ -3143,6 +3143,17 @@ address,name,kind,confidence,notes
 0x0058d380,Object_FreeSixPointerArrays,function,high,reimplemented (src/game/core/vobj3); clears the animated textures and frees six arrays of records
 0x00421690,ListRef_Remove,function,high,reimplemented (src/game/core/vobj3); unlinks the node of an object and deletes the object
 0x00576270,Pool_AddSorted,function,high,reimplemented (src/game/core/vobj3); links a pooled node holding an object into a list
+0x005b55e0,Class702880_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor calling Class702880_Dtor
+0x005b58a0,Class702890_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor calling Class702890_Dtor
+0x005bced0,Class7028d0_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor calling Class7028d0_Dtor
+0x005bd310,Class7028f8_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor calling Class7028f8_Dtor
+0x005bd720,Class702920_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor calling Class702920_Dtor
+0x005e4000,Class702da0_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor calling Class702da0_Dtor
+0x004f1260,Class7099a4_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor calling Class7099a4_Dtor
+0x005ccd80,Counted2_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor calling Counted2_Clear
+0x005d8b00,Class702a90_Ctor,function,high,reimplemented (src/game/core/vdel); constructor on top of Class7029d0_Ctor
+0x005d8b40,Class702a90_Release,function,high,reimplemented (src/game/core/vdel); sets the vtable pointer and releases like Class7029d0
+0x005d8b20,Class702a90_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor calling the release
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
