@@ -210,6 +210,24 @@ u16 *__fastcall World_NearestCellWithType(u8 *world, void *, u16 *out, u32 type,
     return out;
 }
 
+void __fastcall Things_UnlinkFromChain(u8 *game, void *, u32 handle) {
+    u8 *const thing = global<u8 *>(0x007cfb90 + 20 * (handle & 0xffff));
+    const u16 previous = at<u16>(thing, 8);
+    if (previous == 0) {
+        const u16 next = at<u16>(thing, 10);
+        at<u16>(game, 0x24) = next;
+        if (next != 0)
+            at<u16>(global<u8 *>(0x007cfb90 + 20 * next), 8) = 0;
+    } else {
+        at<u16>(global<u8 *>(0x007cfb90 + 20 * previous), 10) = at<u16>(thing, 10);
+        const u16 next = at<u16>(thing, 10);
+        if (next != 0)
+            at<u16>(global<u8 *>(0x007cfb90 + 20 * next), 8) = at<u16>(thing, 8);
+    }
+    at<u16>(thing, 8) = 0;
+    at<u16>(thing, 10) = 0;
+}
+
 s32 __cdecl Things_CountOfKindAround(u32 kind, u32 cell, s32 radius, s32 firstOnly) {
     const u32 index = (cell & 0xffff) - 1;
     const s32 x = (s32)(index & 0x7f), y = (s32)(index >> 7);

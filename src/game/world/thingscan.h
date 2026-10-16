@@ -23,6 +23,11 @@ void __cdecl Things_TopThreeValues(u8 *first, u8 *second, u8 *third);
 // the count.
 s32 __cdecl Things_CountOfKindAround(u32 kind, u32 cell, s32 radius, s32 firstOnly);
 
+// 0x4d9280 (thiscall on the game object; thing handle, pops 4): takes the thing out of the doubly linked chain through its words at +8 (previous) and +0xa (next): the head
+// (the word at +0x24 of the game object) becomes its next when it has no previous, otherwise the previous's next is its next; the next's previous is its previous. Both of its
+// own links are cleared.
+void __fastcall Things_UnlinkFromChain(u8 *game, void *, u32 handle);
+
 // 0x4c8ed0 (thiscall on the world block; out word, type, cell id, radius, pops 16; the radius check is an assert left out): the ids of the cells within the radius
 // (clamped to the map, x outer, y inner) whose dword at +0x2c is not 0 and whose word at +0x30 is the low half of type or 0 are listed at world + 0x1f020; *out is the nearest
 // of them to the cell by x distance + y distance (the first of equals), 0 for none. Returns out.

@@ -911,6 +911,7 @@ address,name,kind,confidence,notes
 0x004c8430,Things_TopThreeValues,function,high,reimplemented (src/game/world/thingscan); the three commonest values among plain kind 1 things
 0x004c8d30,Things_CountOfKindAround,function,high,reimplemented (src/game/world/thingscan); counts things of a kind in the cells around one
 0x004c8ed0,World_NearestCellWithType,function,high,reimplemented (src/game/world/thingscan); nearest map cell with a matching type word
+0x004d9280,Things_UnlinkFromChain,function,high,reimplemented (src/game/world/thingscan); takes a thing out of a doubly linked chain
 0x0054b130,Buoy_FindFree,function,high,"reimplemented (src/game/world/trackpools); the first free buoy record, its index stored in it"
 0x0054b170,Buoy_Alloc,function,high,reimplemented (src/game/world/trackpools); takes the first free buoy record
 0x0054b1e0,CollNode_FindFree,function,high,reimplemented (src/game/world/trackpools); the first free collision node

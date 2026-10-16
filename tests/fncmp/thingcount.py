@@ -12,8 +12,8 @@ sys.path.insert(0, HERE)
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 from thingenv import CELLS, POOL, THING, park  # noqa: E402
 
-CALLS = {'Top': 0x4c8430, 'Area': 0x4c8d30, 'Near': 0x4c8ed0}
-B = Bench([(0x4c8430, 0x4c85a8), (0x4c8d30, 0x4c8ea0), (0x4c8ed0, 0x4c9040), (0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x5da3c0, 0x5da3c1), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c)])
+CALLS = {'Top': 0x4c8430, 'Area': 0x4c8d30, 'Near': 0x4c8ed0, 'Unlink': 0x4d9280}
+B = Bench([(0x4c8430, 0x4c85a8), (0x4c8d30, 0x4c8ea0), (0x4c8ed0, 0x4c9040), (0x4d9280, 0x4d93b0), (0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x5da3c0, 0x5da3c1), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c)])
 OUT = RAM + 0x1000
 
 
@@ -31,6 +31,22 @@ def case(r):
             cell = cell & 0x7f or 1
         regions = {CELLS: cells, 0x8023a0: struct.pack('<I', CELLS), RAM + 0x20000 + 0x1f000: r.bytes(0x400), OUT: r.bytes(8)}
         return Call(CALLS[name], [RAM + 0x20000, OUT, r.choice([0, 1, 2, 5, 0x8000, 0xffff, 0x10001]), cell, radius], regions, conv='t', ret='a')
+    if name == 'Unlink':
+        count = r.choice([1, 2, 3, 4, 6])
+        regions, handles, things = park(r, count=count, kinds=(1,), defs=False)
+        pool = bytearray(regions[POOL])
+        order = r.sample(range(count), r.randrange(1, count + 1))
+        for k, i in enumerate(order):
+            put(pool, THING * i + 8, 'HH', handles[order[k - 1]] if k else 0, handles[order[k + 1]] if k + 1 < len(order) else 0)
+        for i in range(count):
+            if i not in order:
+                put(pool, THING * i + 8, 'HH', r.choice([0, 0, 3]), r.choice([0, 0, 3]))
+        regions[POOL] = pool
+        game = bytearray(r.bytes(0x40))
+        put(game, 0x24, 'H', handles[order[0]] if r.random() < 0.9 else 0)
+        regions[RAM + 0x20000] = game
+        victim = handles[r.choice(order)] if r.random() < 0.85 else handles[r.randrange(count)]
+        return Call(CALLS[name], [RAM + 0x20000, victim], regions, conv='t', ret='v')
     count = r.choice([0, 1, 2, 3, 4, 6])
     regions, handles, things = park(r, count=count, kinds=(1, 1, 1, 2, 3), defs=False, cells=True)
     pool = bytearray(regions[POOL])
