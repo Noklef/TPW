@@ -246,6 +246,12 @@ address,name,kind,confidence,notes
 0x00507bd0,StaffPool_ValidEntry,function,high,"reimplemented (src/game/world/staff); thiscall (index): the entry (20 bytes) when index < 0x20 and mValid (+0xa), else null"
 0x005087b0,StaffPool_FirstInvalid,function,high,"reimplemented (src/game/world/staff); thiscall: the first entry's index without mValid, 0x20 when all have it"
 0x0050c620,StaffTraining_Ctor,function,high,reimplemented (src/game/world/staff); thiscall: 5 x mBudget and mHaveEverTrained (+0x14) zeroed; returns it
+0x00519650,World_PushStaff73c,function,high,"reimplemented (src/game/world/staff); thiscall on the world (thing): the thing's handle the head of the list at +0x1da73c, its +0x210 the old head (unless 0)"
+0x005197c0,World_PushStaff73e,function,high,reimplemented (src/game/world/staff); thiscall on the world (thing): as World_PushStaff73c for +0x1da73e
+0x00519930,World_PushStaff740,function,high,reimplemented (src/game/world/staff); thiscall on the world (thing): as World_PushStaff73c for +0x1da740
+0x00519aa0,World_PushStaff744,function,high,reimplemented (src/game/world/staff); thiscall on the world (thing): as World_PushStaff73c for +0x1da744
+0x00519c10,World_PushStaff742,function,high,reimplemented (src/game/world/staff); thiscall on the world (thing): as World_PushStaff73c for +0x1da742
+0x00519d80,World_PushList746,function,high,"reimplemented (src/game/world/staff); thiscall on the world (thing): the list at +0x1da746, next at the thing's +0xc"
 0x00506870,Staff_GetWage,function,medium,"per-type factor (DAT_00785380) * pay grade table (DAT_0078532c, stride 0x10)"
 0x004dd4e0,Object_GetDef,function,high,reimplemented (src/game/world/object); the object's definition
 0x004e1670,Object_AddWalkAway,function,high,reimplemented (src/game/world/object); a walk-away counted

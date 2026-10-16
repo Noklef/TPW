@@ -42,6 +42,16 @@ u16 *__fastcall World_StaffList740(const u8 *world, void *, u16 *out);
 u16 *__fastcall World_StaffList742(const u8 *world, void *, u16 *out);
 u16 *__fastcall World_StaffList744(const u8 *world, void *, u16 *out);
 
+// 0x519650, 0x5197c0, 0x519930, 0x519c10, 0x519aa0 (thiscall on the world; thing): the thing
+// pushed on the head of the staff list at +0x1da73c, 73e, 740, 742, 744 (its +0x210 the old
+// head, unless that was 0). 0x519d80: the same for the list at +0x1da746, next at the thing's +0xc.
+void __fastcall World_PushStaff73c(u8 *world, void *, u8 *thing);
+void __fastcall World_PushStaff73e(u8 *world, void *, u8 *thing);
+void __fastcall World_PushStaff740(u8 *world, void *, u8 *thing);
+void __fastcall World_PushStaff742(u8 *world, void *, u8 *thing);
+void __fastcall World_PushStaff744(u8 *world, void *, u8 *thing);
+void __fastcall World_PushList746(u8 *world, void *, u8 *thing);
+
 // 0x4d6330 / 0x4d6350 (thiscall on a guard): whether its state (+0x19c) is 0 or 1 (the
 // nearest guard search takes only those), and whether it is 0x12.
 u32 __fastcall Guard_IsFree(const u8 *guard);
