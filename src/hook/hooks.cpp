@@ -113,6 +113,7 @@
 #include "../game/world/analyser.h"
 #include "../game/world/challenges.h"
 #include "../game/world/collobj.h"
+#include "../game/world/flyingrides.h"
 #include "../game/world/nav.h"
 #include "../game/world/mapcell.h"
 #include "../game/world/object.h"
@@ -520,6 +521,20 @@ const Hook kHooks[] = {
     {"TrakStream_Read",           0x0054bbb0, (void *)&TrakStream_Read, {0x8b, 0x44, 0x24, 0x14, 0x8b}},
     {"TrakPool_FirstFree",        0x00549b50, (void *)&TrakPool_FirstFree, {0xa1, 0x68, 0x7b, 0x87, 0x00}},
     {"TrakRide_LinkedValue",      0x00549d30, (void *)&TrakRide_LinkedValue, {0x8b, 0x15, 0x58, 0x7b, 0x87}},
+    {"FlyingRide_FirstSlotRide",  0x0055a570, (void *)&FlyingRide_FirstSlotRide, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"FlyingRide_StepInSlot",     0x0055d610, (void *)&FlyingRide_StepInSlot, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"FlyingRide_StepOutSlot",    0x0055d720, (void *)&FlyingRide_StepOutSlot, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
+    {"FlyingRide_SetCap",         0x0055d950, (void *)&FlyingRide_SetCap, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"FlyingRide_SetTenth",       0x0055d9b0, (void *)&FlyingRide_SetTenth, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"FlyingRide_SetOn",          0x0055d9f0, (void *)&FlyingRide_SetOn, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"FlyingRide_Set4",           0x0055dcf0, (void *)&FlyingRide_Set4, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
+    {"FlyingRide_Get3c",          0x0055dd20, (void *)&FlyingRide_Get3c, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"FlyingRide_FirstSlotReady", 0x0055dd40, (void *)&FlyingRide_FirstSlotReady, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"FlyingRide_Take3c",         0x0055dd80, (void *)&FlyingRide_Take3c, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"FlyingRide_Set44",          0x0055ddd0, (void *)&FlyingRide_Set44, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"FlyingRide_Set20",          0x0055ddf0, (void *)&FlyingRide_Set20, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"FlyingRide_Set24",          0x0055de10, (void *)&FlyingRide_Set24, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"FlyingRide_Busy",           0x0055de30, (void *)&FlyingRide_Busy, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},
