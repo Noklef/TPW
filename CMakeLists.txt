@@ -89,6 +89,7 @@ add_library(tpw_game STATIC
     src/game/core/tiny_e.cpp
     src/game/core/cheatmodule.cpp
     src/game/core/forwarders.cpp
+    src/game/core/tiny_f.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

@@ -94,6 +94,7 @@
 #include "../game/core/tiny_c.h"
 #include "../game/core/tiny_d.h"
 #include "../game/core/tiny_e.h"
+#include "../game/core/tiny_f.h"
 #include "../game/core/trivial.h"
 #include "../game/core/accessors.h"
 #include "../game/core/volumes.h"
@@ -2075,6 +2076,22 @@ const Hook kHooks[] = {
     {"Owner8_Append",             0x005dd490, (void *)&Owner8_Append, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Owner6c_Append",            0x005dd4a0, (void *)&Owner6c_Append, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Owner64_Copy4At34",         0x00618600, (void *)&Owner64_Copy4At34, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Wrap_Obj_Get30_402df0",     0x00402df0, (void *)&Wrap_Obj_Get30_402df0, {0xe9, 0xcb, 0x02, 0x00, 0x00}},
+    {"Wrap_Flags7a1a14_Update_40f220", 0x0040f220, (void *)&Wrap_Flags7a1a14_Update_40f220, {0xb9, 0x68, 0x6b, 0x78, 0x00}},
+    {"Wrap_Dword_ClearBit0_454540", 0x00454540, (void *)&Wrap_Dword_ClearBit0_454540, {0x68, 0x08, 0xd0, 0x74, 0x00}},
+    {"Wrap_Global7c2650_Get_481590", 0x00481590, (void *)&Wrap_Global7c2650_Get_481590, {0xe9, 0x8b, 0xb3, 0x00, 0x00}},
+    {"Wrap_Global7c2654_Get_4815a0", 0x004815a0, (void *)&Wrap_Global7c2654_Get_4815a0, {0xe9, 0x8b, 0xb3, 0x00, 0x00}},
+    {"Wrap_Global7c2654_Set_4815b0", 0x004815b0, (void *)&Wrap_Global7c2654_Set_4815b0, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"Wrap_Obj_Get64Plus10_5f5640", 0x005f5640, (void *)&Wrap_Obj_Get64Plus10_5f5640, {0xb9, 0x40, 0x6e, 0xfa, 0x00}},
+    {"Wrap_Owner64_Copy4At34_5f5650", 0x005f5650, (void *)&Wrap_Owner64_Copy4At34_5f5650, {0x8b, 0x44, 0x24, 0x04, 0xb9}},
+    {"Wrap_Init_691ee0_691ed0",   0x00691ed0, (void *)&Wrap_Init_691ee0_691ed0, {0x6a, 0x00, 0xb9, 0xd0, 0x1a}},
+    {"Wrap_Init_691ee0_691f20",   0x00691f20, (void *)&Wrap_Init_691ee0_691f20, {0x6a, 0x00, 0xb9, 0xa8, 0x19}},
+    {"Wrap_Init_691ee0_692100",   0x00692100, (void *)&Wrap_Init_691ee0_692100, {0x6a, 0x00, 0xb9, 0x38, 0x1a}},
+    {"Wrap_Init_692970_692960",   0x00692960, (void *)&Wrap_Init_692970_692960, {0x6a, 0x00, 0xb9, 0x70, 0x1c}},
+    {"Wrap_Init_692970_6929b0",   0x006929b0, (void *)&Wrap_Init_692970_6929b0, {0x6a, 0x00, 0xb9, 0x18, 0x1c}},
+    {"Wrap_Init_692970_6929f0",   0x006929f0, (void *)&Wrap_Init_692970_6929f0, {0x6a, 0x00, 0xb9, 0x00, 0x1d}},
+    {"Wrap_Globalfb2708_Set_6d1bc0_6baa10", 0x006baa10, (void *)&Wrap_Globalfb2708_Set_6d1bc0_6baa10, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"Wrap_Init_6c4fb0_6c4900",   0x006c4900, (void *)&Wrap_Init_6c4fb0_6c4900, {0xb9, 0x38, 0x20, 0xfb, 0x00}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

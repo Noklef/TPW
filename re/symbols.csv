@@ -2609,6 +2609,22 @@ address,name,kind,confidence,notes
 0x005dd490,Owner8_Append,function,high,reimplemented (src/game/core/forwarders); PtrList_Append on the list at +8
 0x005dd4a0,Owner6c_Append,function,high,reimplemented (src/game/core/forwarders); PtrList_Append on the list at +0x6c
 0x00618600,Owner64_Copy4At34,function,high,reimplemented (src/game/core/forwarders); Obj_Copy4At34 on the object at +0x64
+0x00402df0,Wrap_Obj_Get30_402df0,function,high,reimplemented (src/game/core/tiny_f); calls Obj_Get30
+0x0040f220,Wrap_Flags7a1a14_Update_40f220,function,high,reimplemented (src/game/core/tiny_f); calls Flags7a1a14_Update
+0x00454540,Wrap_Dword_ClearBit0_454540,function,high,reimplemented (src/game/core/tiny_f); calls Dword_ClearBit0
+0x00481590,Wrap_Global7c2650_Get_481590,function,high,reimplemented (src/game/core/tiny_f); calls Global7c2650_Get
+0x004815a0,Wrap_Global7c2654_Get_4815a0,function,high,reimplemented (src/game/core/tiny_f); calls Global7c2654_Get
+0x004815b0,Wrap_Global7c2654_Set_4815b0,function,high,reimplemented (src/game/core/tiny_f); calls Global7c2654_Set
+0x005f5640,Wrap_Obj_Get64Plus10_5f5640,function,high,reimplemented (src/game/core/tiny_f); calls Obj_Get64Plus10
+0x005f5650,Wrap_Owner64_Copy4At34_5f5650,function,high,reimplemented (src/game/core/tiny_f); calls Owner64_Copy4At34
+0x00691ed0,Wrap_Init_691ee0_691ed0,function,high,reimplemented (src/game/core/tiny_f); calls Init_691ee0
+0x00691f20,Wrap_Init_691ee0_691f20,function,high,reimplemented (src/game/core/tiny_f); calls Init_691ee0
+0x00692100,Wrap_Init_691ee0_692100,function,high,reimplemented (src/game/core/tiny_f); calls Init_691ee0
+0x00692960,Wrap_Init_692970_692960,function,high,reimplemented (src/game/core/tiny_f); calls Init_692970
+0x006929b0,Wrap_Init_692970_6929b0,function,high,reimplemented (src/game/core/tiny_f); calls Init_692970
+0x006929f0,Wrap_Init_692970_6929f0,function,high,reimplemented (src/game/core/tiny_f); calls Init_692970
+0x006baa10,Wrap_Globalfb2708_Set_6d1bc0_6baa10,function,high,reimplemented (src/game/core/tiny_f); calls Globalfb2708_Set_6d1bc0
+0x006c4900,Wrap_Init_6c4fb0_6c4900,function,high,reimplemented (src/game/core/tiny_f); calls Init_6c4fb0
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
