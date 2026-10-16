@@ -135,6 +135,7 @@
 #include "../game/core/tiny_n.h"
 #include "../game/core/tiny_o.h"
 #include "../game/core/vdtor.h"
+#include "../game/core/vlist.h"
 #include "../game/core/vwrap.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
@@ -2615,6 +2616,12 @@ const Hook kHooks[] = {
     {"Obj_CallSlot20ThenSub1c",   0x005dd7f0, (void *)&Obj_CallSlot20ThenSub1c, {0x8b, 0x01, 0xff, 0x50, 0x20}},
     {"Obj_CallSlot20ThenSub1cAnd48", 0x005ddaa0, (void *)&Obj_CallSlot20ThenSub1cAnd48, {0x8b, 0x01, 0xff, 0x50, 0x20}},
     {"VBase_CallSlot8",           0x00564a60, (void *)&VBase_CallSlot8, {0x8b, 0x41, 0xe8, 0x8b, 0x50}},
+    {"Range14_CallSlotC",         0x005ed460, (void *)&Range14_CallSlotC, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Range14_CallSlot18",        0x005ed500, (void *)&Range14_CallSlot18, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Range14_CopyBackward",      0x005ed530, (void *)&Range14_CopyBackward, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"List18_ExpireSlot8",        0x005e40e0, (void *)&List18_ExpireSlot8, {0x8b, 0x41, 0x18, 0x56, 0x8b}},
+    {"List18_ExpireSlotC",        0x005e4110, (void *)&List18_ExpireSlotC, {0x8b, 0x41, 0x18, 0x56, 0x8b}},
+    {"List18_CallSlotC",          0x005d5cc0, (void *)&List18_CallSlotC, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

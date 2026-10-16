@@ -130,6 +130,7 @@ add_library(tpw_game STATIC
     src/game/core/small20.cpp
     src/game/core/vwrap.cpp
     src/game/core/vdtor.cpp
+    src/game/core/vlist.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
