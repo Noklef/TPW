@@ -99,4 +99,12 @@ void __fastcall Obj_SetDuration(u8 *object, void *, u32 duration) {
     at<u8>(object, 0x5c) = (u8)value;
 }
 
+s32 __fastcall Game_GetRideElement1(const u8 *game) {
+    u32 handle = at<u16>(game, 0x1da732);
+    if (handle == 0)
+        return -1;
+    u8 *thing = *reinterpret_cast<u8 **>(0x007cfb90 + 20 * handle);
+    return (s32)Rides_GetElement(Rides_FindById(at<s32>(thing, 0x24)), 1);
+}
+
 }  // extern "C"

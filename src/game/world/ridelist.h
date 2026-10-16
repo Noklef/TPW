@@ -40,4 +40,8 @@ void __fastcall Obj_SetSpeed(u8 *object, void *, u32 speed);
 // +0x12c and +0x130; ObjectDefs_Find of the id at +0xe, signed compares) is stored as element 3 of the ride record and at +0x5c (a byte).
 void __fastcall Obj_SetDuration(u8 *object, void *, u32 duration);
 
+// 0x51a290 (thiscall on the game object; the debug print is not reproduced): -1 when the word at +0x1da732 is 0, otherwise element 1 of the
+// ride record of the thing with that handle (Rides_GetElement of Rides_FindById of the dword at +0x24 of the thing in its slot).
+s32 __fastcall Game_GetRideElement1(const u8 *game);
+
 }  // extern "C"
