@@ -73,7 +73,8 @@
 #include "../game/gfx/array3d.h"
 #include "../game/gfx/wavelet.h"
 #include "../game/core/events.h"
-#include "../game/core/filetime.h"
+#include "../game/core/filetime.h"
+#include "../game/core/forwarders.h"
 #include "../game/core/gameclock.h"
 #include "../game/core/globalmem.h"
 #include "../game/core/globalsave.h"
@@ -2052,6 +2053,13 @@ const Hook kHooks[] = {
     {"CheatSystem_Save",          0x004055d0, (void *)&CheatSystem_Save, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"AdvisorScoring_Load",       0x0059c860, (void *)&AdvisorScoring_Load, {0x8b, 0x44, 0x24, 0x04, 0x6a}},
     {"AdvisorScoring_Save",       0x0059c890, (void *)&AdvisorScoring_Save, {0x8b, 0x44, 0x24, 0x04, 0x6a}},
+    {"Owner18_Append",            0x005d5da0, (void *)&Owner18_Append, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"OwnerC_Append",             0x005d8a70, (void *)&OwnerC_Append, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Owner58_Append",            0x005da170, (void *)&Owner58_Append, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Owner4_Append",             0x005da440, (void *)&Owner4_Append, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Owner8_Append",             0x005dd490, (void *)&Owner8_Append, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Owner6c_Append",            0x005dd4a0, (void *)&Owner6c_Append, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Owner64_Copy4At34",         0x00618600, (void *)&Owner64_Copy4At34, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

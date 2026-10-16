@@ -2587,6 +2587,13 @@ address,name,kind,confidence,notes
 0x0066c096,Fn_66c096,function,high,"reimplemented (src/game/core/tiny_e); stores +0x4 = argument, +0x6 = argument, +0x8 = argument"
 0x0066c1f3,Fn_66c1f3,function,high,"reimplemented (src/game/core/tiny_e); stores +0x4 = argument, +0x6 = argument, +0x8 = argument, +0xa = argument"
 0x006d2770,Fn_6d2770,function,high,reimplemented (src/game/core/tiny_e); stores +0x0 = 0x0
+0x005d5da0,Owner18_Append,function,high,reimplemented (src/game/core/forwarders); PtrList_Append on the list at +0x18
+0x005d8a70,OwnerC_Append,function,high,reimplemented (src/game/core/forwarders); PtrList_Append on the list at +0xc
+0x005da170,Owner58_Append,function,high,reimplemented (src/game/core/forwarders); PtrList_Append on the list at +0x58
+0x005da440,Owner4_Append,function,high,reimplemented (src/game/core/forwarders); PtrList_Append on the list at +4
+0x005dd490,Owner8_Append,function,high,reimplemented (src/game/core/forwarders); PtrList_Append on the list at +8
+0x005dd4a0,Owner6c_Append,function,high,reimplemented (src/game/core/forwarders); PtrList_Append on the list at +0x6c
+0x00618600,Owner64_Copy4At34,function,high,reimplemented (src/game/core/forwarders); Obj_Copy4At34 on the object at +0x64
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

@@ -26,6 +26,7 @@
 #include <string>
 #include <vector>
 
+#include "../../src/game/core/ptrlist.h"
 #include "../../src/game/core/stdstring.h"
 #include "../../src/game/world/mousemode.h"
 #include "crt.h"
@@ -160,6 +161,7 @@ void __cdecl heap_throw() { RaiseException(0xe0000001, 0, 0, nullptr); }
 
 const StdStringEnv kStdStringEnv = {&heap_alloc, &heap_free, &heap_throw, &heap_throw};
 const MouseModeEnv kMouseModeEnv = {&heap_free};
+const PtrListEnv kPtrListEnv = {&heap_alloc};
 
 void map_stubs() {
     u8 *p = static_cast<u8 *>(VirtualAlloc((void *)(uintptr_t)kStubs, 0x10000, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE));
@@ -242,6 +244,7 @@ int main(int argc, char **argv) {
     map_stubs();
     StdStrings_SetEnv(&kStdStringEnv);
     MouseModes_SetEnv(&kMouseModeEnv);
+    PtrList_SetEnv(&kPtrListEnv);
     Crt_SetEnv(&kDriverCrt);
     static char token[1 << 22];
     for (;;) {
