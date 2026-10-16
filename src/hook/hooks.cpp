@@ -150,7 +150,8 @@
 #include "../game/model/bounds.h"
 #include "../game/model/stripanim.h"
 #include "../game/model/worldverts.h"
-#include "../game/render/frame.h"
+#include "../game/render/frame.h"
+#include "../game/render/lightlist.h"
 #include "../game/render/screen.h"
 #include "../game/render/mode.h"
 #include "../game/render/particles.h"
@@ -1587,6 +1588,9 @@ const Hook kHooks[] = {
     {"DrawBuffer_IndexLimit",     0x005827f0, (void *)&DrawBuffer_IndexLimit, {0x8b, 0x41, 0x04, 0x8d, 0x04}},
     {"TexFormat_SetArgb32",       0x005839a0, (void *)&TexFormat_SetArgb32, {0xb8, 0x20, 0x00, 0x00, 0x00}},
     {"TexFormat_Table",           0x005839e0, (void *)&TexFormat_Table, {0x8b, 0x41, 0x04, 0xc1, 0xe0}},
+    {"LightList_Clear",           0x00584b10, (void *)&LightList_Clear, {0x33, 0xc0, 0x89, 0x81, 0xc4}},
+    {"LightList_First",           0x00584e30, (void *)&LightList_First, {0x8b, 0x91, 0xc0, 0x01, 0x00}},
+    {"LightList_Next",            0x00584e50, (void *)&LightList_Next, {0x8b, 0x81, 0xc4, 0x01, 0x00}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
