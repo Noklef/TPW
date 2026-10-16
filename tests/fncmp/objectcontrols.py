@@ -3,12 +3,13 @@
 # that start empty or with records, and a cache that names a record, names none, or is stale.
 # usage: objectcontrols.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
+import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x4d3e00, 0x4d3ec9), (0x412e60, 0x412e6d), (0x412e70, 0x412e8f), (0x4d3d10, 0x4d3d80), (0x4d3d80, 0x4d3df0), (0x5da3c0, 0x5da3c1), (0x4d3de0, 0x4d3e00), (0x4ca8c0, 0x4ca8e0), (0x4e2740, 0x4e2770)])
+B = Bench([(0x4d3e00, 0x4d3ec9), (0x412e60, 0x412e6d), (0x412e70, 0x412e8f), (0x4d3d10, 0x4d3d80), (0x4d3d80, 0x4d3df0), (0x5da3c0, 0x5da3c1), (0x4d3de0, 0x4d3e00), (0x4ca8c0, 0x4ca8e0), (0x4e2740, 0x4e2770), (0x4ca740, 0x4ca830)])
 GAME = 0x1d943c  # the table's offset in the game object [0x80239c] points to
 DEFS, ITEMS = 0x7890a0, RAM + 0x4000
 
@@ -31,6 +32,24 @@ def find_case(r):
 
 def case(r):
     x = r.random()
+    if x < 0.1:  # the percentage of definitions with controls: definitions with a count (+0xc4) and control records with their own (+0x18)
+        n = r.choice([0, 1, 2, 5, 12])
+        defs, items = bytearray(r.bytes(0x740)), bytearray(r.bytes(12 * 0x200))
+        put(defs, 0x528, 'i', n)
+        put(defs, 0x72c, 'i', -1)
+        for i in range(12):
+            put(defs, i * 4, 'I', ITEMS + 0x200 * i)
+            put(items, 0x200 * i, 'H', r.choice([1, 2, 3, 4, 5, 9]))
+            put(items, 0x200 * i + 0xc4, 'i', r.choice([-1, 0, 1, 5]))
+        table = bytearray(r.bytes(0x1400))
+        have = r.choice([0, 1, 3, 6])
+        put(table, 0x12c0, 'i', have)
+        for k in range(have):
+            put(table, 0x20 * k, 'H', r.choice([1, 2, 3, 4, 5, 9]))
+            put(table, 0x20 * k + 0x18, 'i', r.choice([-1, 0, 1, 7]))
+        put(table, 0x12c4, 'H', r.choice([0, 1, 2, 3, 9]))
+        put(table, 0x12c8, 'I', r.choice([0, RAM + 0x20 * r.randrange(6)]))
+        return Call(0x4ca740, [], {RAM: table, DEFS: defs, ITEMS: items, 0x80239c: struct.pack('<I', RAM - GAME)}, conv='c', ret='a')
     if x < 0.15:  # the getters over the game's table: the table at RAM, the game object right below it
         call = find_case(r)
         regions = dict(call.regions)
