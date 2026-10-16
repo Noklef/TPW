@@ -144,6 +144,7 @@
 #include "../game/core/small40.h"
 #include "../game/core/small41.h"
 #include "../game/core/small42.h"
+#include "../game/core/small43.h"
 #include "../game/core/small5.h"
 #include "../game/core/small6.h"
 #include "../game/core/small7.h"
@@ -2898,6 +2899,8 @@ const Hook kHooks[] = {
     {"FreeList_Return",           0x00521890, (void *)&FreeList_Return, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
     {"Voice_ScaleLevels",         0x00521d60, (void *)&Voice_ScaleLevels, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Voice_Start",               0x00522360, (void *)&Voice_Start, {0xa1, 0x40, 0x6d, 0x81, 0x00}},
+    {"Wavelet_ReadBits",          0x00597090, (void *)&Wavelet_ReadBits, {0x8b, 0x54, 0x24, 0x04, 0x56}},
+    {"Record_IsActive",           0x0059c610, (void *)&Record_IsActive, {0x8b, 0x4c, 0x24, 0x04, 0x81}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

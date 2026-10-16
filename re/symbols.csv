@@ -92,7 +92,8 @@ address,name,kind,confidence,notes
 0x00593ab0,WaveletCodec_DecodeV12,function,high,"one-level D4 like v0x13 but rows stored [all low, all high]; streams are BILZ (zlib); ported in tools/wct2png.py"
 0x00595920,WaveletCodec_DecodeV13,function,high,"one-level D4 wavelet, YUV 4:2:0 + optional alpha; ported in tools/wct2png.py"
 0x00597100,WaveletCodec_DecodeV13Scaled,function,medium,resampling variant; calls DecodeV13 when sizes match
-0x00597090,Wavelet_ReadBits,function,high,"LSB-first bit reader over 16-bit LE words"
+0x00597090,Wavelet_ReadBits,function,high,reimplemented (src/game/core/small43); reads bits least significant first from the 16 bit word stream
+0x0059c610,Record_IsActive,function,high,reimplemented (src/game/core/small43); whether the record with an id has the dword 1 at +8
 0x00591a60,Obj_IncBefore4c,function,high,reimplemented (src/game/core/selectors); increments the dword at -0x4c and returns it
 0x00591a70,WaveletCodec_GetRefCount,function,high,reimplemented (src/game/core/tiny_a); the dword at -0x4c
 0x00591a80,Refcounted_Release,function,high,reimplemented (src/game/core/vwrap); lowers a count and deletes the virtual base at zero

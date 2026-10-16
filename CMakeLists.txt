@@ -162,6 +162,7 @@ add_library(tpw_game STATIC
     src/game/core/small40.cpp
     src/game/core/small41.cpp
     src/game/core/small42.cpp
+    src/game/core/small43.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
