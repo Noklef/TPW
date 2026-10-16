@@ -338,7 +338,7 @@ address,name,kind,confidence,notes
 0x00560ff0,Lnd_Read,function,high,"base.lnd: version 3, 5 blend ramps, 384x344x4 control map, 3 detail levels of 13 textures"
 0x0055f470,Lnd_ReadLevel,function,high,"u32 tile size, u8 level, 13 x Array3D_Read"
 0x0055f630,Lnd_Clear,function,medium,"level i gets tile size 0x40 >> i"
-0x0055f720,Lnd_SetTileSize,function,medium,"0x40/0x20/0x10 -> detail level 0/1/2"
+0x0055f720,Lnd_SetTileSize,function,high,reimplemented (src/game/core/small9); 0x40/0x20/0x10 -> detail level 0/1/2
 0x0055f780,TerrainBlend_Tile,function,high,"reimplemented (src/game/terrain); (out, x, y, overlay): grey unless the tile's control byte 0 is 255; mixes 3 colour groups by 2 selectors in 16-pixel MMX runs, rows bottom-up, then the path overlay"
 0x0055e780,Lnd_BuildWeightMap,function,high,"bilinear 16.16 upsampling of a tile's 4x4 control texels (one channel) to tile size"
 0x0055e710,Lnd_BuildRamp,function,high,"(table, centre, width): 256-entry 0..255 ramp"
@@ -2983,6 +2983,15 @@ address,name,kind,confidence,notes
 0x005790c0,VBase_Deleter_701920,function,high,reimplemented (src/game/core/small8); deleting destructor of a virtual base (vtable 0x701920)
 0x00579150,VBase_Deleter_7018f8,function,high,reimplemented (src/game/core/small8); deleting destructor of a virtual base (vtable 0x7018f8)
 0x005d0a50,Ring_Splice,function,high,reimplemented (src/game/core/small8); moves a range of nodes of a doubly linked ring before a position
+0x00506580,Person_HasWord,function,high,reimplemented (src/game/core/small9); whether a word of the person at the kind's offset equals a value
+0x0050e260,TextExtent_Zero,function,high,reimplemented (src/game/core/small9); the text extent globals and the result set to 0
+0x005101f0,Block50_Ctor,function,high,"reimplemented (src/game/core/small9); a cleared block of 0x50 bytes with begin, end and capacity pointers"
+0x005e2a30,List_PushHead,function,high,reimplemented (src/game/core/small9); a new node made the head of a list
+0x005b96e0,Class702880_Ctor,function,high,reimplemented (src/game/core/small9); constructor with a 16-byte member
+0x005b9740,Class702890_Ctor,function,high,reimplemented (src/game/core/small9); constructor with a 16-byte member
+0x005d1330,ByteString_Compare,function,high,reimplemented (src/game/core/small9); the order of two byte strings
+0x004791c0,CountedVector14_Clear,function,high,reimplemented (src/game/core/small9); releases the counted entries and frees the vector at +0x14
+0x0047aba0,CountedVector4_Clear,function,high,reimplemented (src/game/core/small9); releases the counted entries and frees the vector at +4
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

@@ -113,6 +113,7 @@
 #include "../game/core/small6.h"
 #include "../game/core/small7.h"
 #include "../game/core/small8.h"
+#include "../game/core/small9.h"
 #include "../game/core/tiny_g.h"
 #include "../game/core/tiny_h.h"
 #include "../game/core/tiny_i.h"
@@ -2483,6 +2484,16 @@ const Hook kHooks[] = {
     {"VBase_Deleter_701920",      0x005790c0, (void *)&VBase_Deleter_701920, {0x8b, 0x41, 0xf8, 0x56, 0x8d}},
     {"VBase_Deleter_7018f8",      0x00579150, (void *)&VBase_Deleter_7018f8, {0x8b, 0x41, 0xf8, 0x56, 0x8d}},
     {"Ring_Splice",               0x005d0a50, (void *)&Ring_Splice, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
+    {"Person_HasWord",            0x00506580, (void *)&Person_HasWord, {0x8a, 0x41, 0x02, 0x3c, 0x04}},
+    {"TextExtent_Zero",           0x0050e260, (void *)&TextExtent_Zero, {0x51, 0x33, 0xc0, 0x68, 0x90}},
+    {"Block50_Ctor",              0x005101f0, (void *)&Block50_Ctor, {0x56, 0x57, 0x8b, 0xf9, 0x6a}},
+    {"List_PushHead",             0x005e2a30, (void *)&List_PushHead, {0x56, 0x8b, 0xf1, 0x6a, 0x0c}},
+    {"Lnd_SetTileSize",           0x0055f720, (void *)&Lnd_SetTileSize, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"Class702880_Ctor",          0x005b96e0, (void *)&Class702880_Ctor, {0x56, 0x57, 0x8b, 0xf1, 0x33}},
+    {"Class702890_Ctor",          0x005b9740, (void *)&Class702890_Ctor, {0x56, 0x57, 0x8b, 0xf1, 0x33}},
+    {"ByteString_Compare",        0x005d1330, (void *)&ByteString_Compare, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"CountedVector14_Clear",     0x004791c0, (void *)&CountedVector14_Clear, {0x53, 0x55, 0x8b, 0xe9, 0x56}},
+    {"CountedVector4_Clear",      0x0047aba0, (void *)&CountedVector4_Clear, {0x53, 0x55, 0x8b, 0xe9, 0x56}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
