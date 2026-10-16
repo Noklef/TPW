@@ -34,6 +34,11 @@ u8 *__fastcall ObjectDefs_FindAt410(u8 *defs, void *, u16 id) {
     return def ? def + 0x410 : nullptr;
 }
 
+u8 *__fastcall ObjectDefs_First(u8 *defs) {
+    at<s32>(defs, 0x72c) = 0;
+    return at<u8 *>(defs, 0);
+}
+
 u8 *__fastcall ObjectDefs_Next(u8 *defs) {
     s32 &cursor = at<s32>(defs, 0x72c);
     if (cursor >= at<s32>(defs, 0x528) - 1) return nullptr;

@@ -270,6 +270,7 @@ address,name,kind,confidence,notes
 0x004017a0,BalanceFile_Parse,function,medium,"parses Group.Key value lines; 'Balance file %s parse error', range checks per type"
 0x00412c90,ObjectDef_GetSchema,function,high,"reimplemented (src/game/world/objectdefs); thiscall (i), this unused: &key record i of the object .sam schema at 0x744b30 (0x3c bytes each)"
 0x004143f0,TrackType_GetSchema,function,high,"reimplemented (src/game/world/objectdefs); thiscall (i), this unused: &key record i of the track type .sam schema at 0x739ea8 (0x3c bytes each); BalanceTrack vtable 0x6fd8b0"
+0x00412e60,ObjectDefs_First,function,high,"reimplemented (src/game/world/objectdefs); thiscall: the first definition (+0, whatever the count); the walk cursor (+0x72c) set to 0"
 0x00412c20,ObjectDef_Ctor,function,medium,vtable at +4 (0x6fd8a8) then BalanceFile_Init; zeroes runtime fields 0x494..0x500
 0x00413c10,ObjectDefs_Load,function,medium,"allocates an ObjectDef (max 0x14a), copies the .sam path to +0x28c and parses it"
 0x00785040,gBalanceLevel,data,high,"BalanceLevel: Standard.sam values (static instance, ctor 0x402ae0)"
