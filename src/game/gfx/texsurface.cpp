@@ -2,14 +2,54 @@
 
 #include <cstdint>
 
+#include "texcache.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &back(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p - offset); }
 
+// The virtual base's offset, from the vtable pointer at the object's start.
+u32 BaseOffset(const u8 *surface) { return at<u32>(at<const u8 *>(surface, 0), 4); }
+
 }  // namespace
 
 extern "C" {
+
+u8 *__fastcall TexSurfaceA_Ctor(u8 *surface, void *, u32 mostDerived) {
+    if (mostDerived) {
+        at<u32>(surface, 0) = 0x00702218;
+        TexCacheItem_Ctor(surface + 0x3c);
+    }
+    at<u32>(surface, BaseOffset(surface)) = 0x007021f0;
+    const u32 offset = BaseOffset(surface);
+    at<u32>(surface, offset - 4) = offset - 0x3c;
+    for (u32 i = 0; i < 4; i++) {
+        at<u32>(surface, 4 + 4 * i) = 0;
+        at<u32>(surface, 0x14 + 4 * i) = 0;
+    }
+    at<u32>(surface, 0x24) = 0;
+    at<u32>(surface, BaseOffset(surface) + 8) = 0;
+    at<u32>(surface, BaseOffset(surface) + 0xc) = 0;
+    for (u32 i = 0; i < 4; i++)
+        at<u32>(surface, 0x28 + 4 * i) = 0;
+    return surface;
+}
+
+u8 *__fastcall TexSurfaceB_Ctor(u8 *surface, void *, u32 mostDerived) {
+    if (mostDerived) {
+        at<u32>(surface, 0) = 0x00702278;
+        TexCacheItem_Ctor(surface + 0x10);
+    }
+    at<u32>(surface, BaseOffset(surface)) = 0x00702250;
+    const u32 offset = BaseOffset(surface);
+    at<u32>(surface, offset - 4) = offset - 0x10;
+    at<u32>(surface, BaseOffset(surface) + 0xc) = 0;
+    at<u32>(surface, BaseOffset(surface) + 8) = 0;
+    at<u32>(surface, 8) = 0;
+    at<u32>(surface, 4) = 0;
+    return surface;
+}
 
 u32 __fastcall TexSurfaceA_Field38(const u8 *sub) { return back<u32>(sub, 0x38); }
 
