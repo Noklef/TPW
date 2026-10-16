@@ -88,6 +88,8 @@ def case(r):
         for k in range(0x40):
             if k != free:
                 rides[k * 0xd0] |= 1
+            else:
+                rides[k * 0xd0:k * 0xd0 + 4] = bytes(4)
         kind = r.choice(range(-14, 0))
         slot = r.randrange(0x40)
         handle = r.choice([0, 0, slot | (kind << 8) & 0xffffffff])
