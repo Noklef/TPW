@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../gfx/texture.h"
+#include "../math/bits.h"
 
 namespace {
 
@@ -11,6 +12,27 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 }  // namespace
 
 extern "C" {
+
+void __fastcall TexFormat_FillTables(u8 *settings) {
+    for (u32 k = 0; k < 4; k++) {
+        const u8 *format = settings + 0x20 * k;
+        const u32 masks[4] = {at<u32>(format, 0x24), at<u32>(format, 0x18), at<u32>(format, 0x1c), at<u32>(format, 0x20)};
+        u32 *scaled = reinterpret_cast<u32 *>(settings + 0x4088 + 0x10 * k);
+        for (u32 c = 0; c < 4; c++)
+            scaled[c] = (u32)(((unsigned long long)(masks[c] << 16) * 0x80808081u) >> 39);
+        if (at<u32>(format, 8) != 0x20)
+            continue;
+        u32 width[4], shift[4];
+        for (u32 c = 0; c < 4; c++) {
+            width[c] = Bits_Count(masks[c]);
+            shift[c] = Bits_Shift(masks[c]);
+        }
+        u32 *table = reinterpret_cast<u32 *>(settings + 0x88 + 0x1000 * k);
+        for (u32 i = 0; i < 0x100; i++)
+            for (u32 c = 0; c < 4; c++)
+                table[4 * i + c] = (i >> ((8 - width[c]) & 31)) << (shift[c] & 31);
+    }
+}
 
 s32 __stdcall TexFormat_Classify(const u32 *pixels) {
     u32 mask, class0, class1, class2;

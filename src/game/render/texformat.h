@@ -1,4 +1,4 @@
-// The renderer settings' texture format helpers: reimplementation of 0x581790, 0x583ba0, 0x5839a0 and 0x5839e0.
+// The renderer settings' texture format helpers: reimplementation of 0x581790, 0x583ba0, 0x5839a0, 0x5839e0 and 0x5839f0.
 //
 // The renderer settings are the object at 0x8bd550 (its +0 the renderer flags; +4 the current
 // texture format, read all over as 0x8bd554). 0x5839f0 fills its tables, 0x1000 bytes per format
@@ -9,6 +9,14 @@
 #include "../../../re/types.h"
 
 extern "C" {
+
+// 0x5839f0 (thiscall on the settings): for each of the 4 formats k (0x20 bytes apart from
+// +0x8; masks a, b, c, d at +0x24, +0x18, +0x1c, +0x20 + 0x20k): +0x4088 + 0x10k = the four
+// masks scaled, (mask << 16) * 0x80808081 >> 39; and when the format's +8 + 0x20k is 0x20 the
+// 256-entry table at +0x88 + 0x1000k (16 bytes an entry, from the entry at +4 behind): entry i =
+// (i >> (8 - width)) << shift for each mask's width and shift (Bits_Count, Bits_Shift), the
+// shifts counted mod 32 as on the x86.
+void __fastcall TexFormat_FillTables(u8 *settings);
 
 // 0x583ba0 (stdcall; pixels): classifies 60 test pixels (dwords) by the colour masks of the
 // current format (the software driver, 0x8bd524 == 4, uses 0x808080 and the values 0x800000,

@@ -1,4 +1,4 @@
-# The texture format helpers (src/game/render/texformat: 0x581790, 0x583ba0, 0x5839a0, 0x5839e0) against the originals:
+# The texture format helpers (src/game/render/texformat: 0x581790, 0x583ba0, 0x5839f0, 0x5839a0, 0x5839e0) against the originals:
 # any settings bytes, any current format; the driver flags over any bits, with and without a request or texture.
 # usage: texformat.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetArgb32,Table)
 import os
@@ -8,12 +8,20 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x581790, 0x581880), (0x583ba0, 0x583cb2), (0x590c40, 0x590ca8), (0x590fb0, 0x590fcb), (0x5839a0, 0x5839ee)])
-CALLS = {'Classify': 0x583ba0, 'DriverFlags': 0x581790, 'SetArgb32': 0x5839a0, 'Table': 0x5839e0}
+B = Bench([(0x5839f0, 0x583b97), (0x5911d0, 0x591210), (0x581790, 0x581880), (0x583ba0, 0x583cb2), (0x590c40, 0x590ca8), (0x590fb0, 0x590fcb), (0x5839a0, 0x5839ee)])
+CALLS = {'FillTables': 0x5839f0, 'Classify': 0x583ba0, 'DriverFlags': 0x581790, 'SetArgb32': 0x5839a0, 'Table': 0x5839e0}
 
 
 def case(r):
     op = r.choice(OPS)
+    if op == 'FillTables':
+        s = bytearray(r.bytes(0x4090))
+        menu = [0xff, 0xff00, 0xff0000, 0xff000000, 0xf800, 0x7e0, 0x1f, 0x8000, 0x7c00, 0x3e0, 0xf0, 0, 0xffffffff, 0x80000000]
+        for k in range(4):
+            put(s, 8 + 0x20 * k, 'I', r.choice([0x20, 0x20, 0x10, 0]))
+            for off in (0x24, 0x18, 0x1c, 0x20):
+                put(s, off + 0x20 * k, 'I', r.choice(menu + [r.getrandbits(32)]))
+        return Call(0x5839f0, [RAM], {RAM: s}, conv='t')
     if op == 'Classify':
         menu = [0, 0x8000, 0x80, 0x808080]
         if r.random() < 0.4:
