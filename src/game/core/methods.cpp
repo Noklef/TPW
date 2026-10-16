@@ -207,6 +207,45 @@ u32 *__fastcall Entry_Lookup(const u8 *object, void *, u32 *out, u32 index) {
     return out;
 }
 
+u32 *__fastcall Obj_ResetC(u8 *object, void *, u32 *status) {
+    if (at<u32>(object, 4) && (at<u8>(object, 8) & 1)) {
+        at<u32>(object, 0xc) = 0;
+        *status = 0;
+    } else {
+        *status = 0xffffffff;
+    }
+    return status;
+}
+
+u32 *__fastcall Obj_SetOn10(u8 *object, void *, u32 *status) {
+    if (at<u32>(object, 4) && (at<u8>(object, 8) & 8)) {
+        at<u32>(object, 0x10) = 1;
+        *status = 0;
+    } else {
+        *status = 0xffffffff;
+    }
+    return status;
+}
+
+u32 *__fastcall Obj_SetOff10(u8 *object, void *, u32 *status) {
+    if (at<u32>(object, 4)) {
+        at<u32>(object, 0x10) = 0;
+        *status = 0;
+    } else {
+        *status = 0xffffffff;
+    }
+    return status;
+}
+
+u32 *__fastcall Obj_SetKindA4(u8 *object, void *, u32 *status, s32 kind) {
+    if (kind >= 0 && kind <= 2)
+        at<s32>(object, 0xa4) = kind;
+    *status = 0xffffffff;
+    return status;
+}
+
+u32 __stdcall Record_Word4OrSix(const u8 *record) { return record ? at<u16>(record, 4) : 6; }
+
 u32 __fastcall Obj_RemapFlags(const u8 *object, void *, u32 flags) {
     u32 result = at<u32>(object, 0xc) == 11025 ? 0 : 0x100;
     if ((flags & 0x1000) && !(flags & 1))

@@ -85,6 +85,18 @@ u32 *__fastcall Slots_Resolve(const u8 *object, void *, u32 *status, u32 *out, u
 // the dword at +8, out[1] = the byte at +5 of the +0xc record; else both 0. Returns out.
 u32 *__fastcall Entry_Lookup(const u8 *object, void *, u32 *out, u32 index);
 
+// 0x6ad730 / 0x6ad760 / 0x6ad790 (thiscall; status, pops 4): when the dword at +4 is not 0 (and, for the first two, bit 0 / bit 3 of
+// the dword at +8 is set): +0xc = 0 / +0x10 = 1 / +0x10 = 0 and *status = 0; else *status = -1. Returns status.
+u32 *__fastcall Obj_ResetC(u8 *object, void *, u32 *status);
+u32 *__fastcall Obj_SetOn10(u8 *object, void *, u32 *status);
+u32 *__fastcall Obj_SetOff10(u8 *object, void *, u32 *status);
+
+// 0x6adf60 (thiscall; status, kind, pops 8): a kind from 0 to 2 is stored at +0xa4; *status = -1 whatever. Returns status.
+u32 *__fastcall Obj_SetKindA4(u8 *object, void *, u32 *status, s32 kind);
+
+// 0x6afc60 (stdcall; record, pops 4): the word at +4 of the record, or 6 for none.
+u32 __stdcall Record_Word4OrSix(const u8 *record);
+
 // 0x6d22d0 (thiscall; flags, pops 4): a bit set built from the flags: 0x1000, 0x100 unless the dword at +0xc is 11025, 1 for
 // bit 12 without bit 0, 2 for bit 2, 8 for bit 3, 4 for bit 4 and 0x10 for bit 6.
 u32 __fastcall Obj_RemapFlags(const u8 *object, void *, u32 flags);

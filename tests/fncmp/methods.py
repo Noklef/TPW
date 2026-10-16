@@ -16,6 +16,8 @@ CALLS = {
     'Copy16': (0x6af6f0, 'c', 'a', 0x40), 'Erase': (0x6af060, 't', 'a', 0x40), 'Kind': (0x6adf20, 't', 'a', 0x34),
     'Rec': (0x6ace60, 't', 'a', 0x40), 'Range': (0x6ad8f0, 't', 'a', 0x58), 'Mask': (0x6bc040, 't', 'b', 0x4a),
     'Remap': (0x6d22d0, 't', 'a', 0x48), 'RangeW': (0x6ad900, 't', 'a', 0x48), 'Adv': (0x6b9b30, 't', 'v', 0x68),
+    'Rst': (0x6ad730, 't', 'a', 0x30), 'On10': (0x6ad760, 't', 'a', 0x30), 'Off10': (0x6ad790, 't', 'a', 0x28),
+    'KindA4': (0x6adf60, 't', 'a', 0x20), 'Word4': (0x6afc60, 's', 'a', 0x20),
     'MaskI': (0x6c3d80, 't', 'b', 0x56), 'Slots': (0x6d4890, 't', 'a', 0x50), 'Entry': (0x6b0580, 't', 'a', 0x58)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()])
 VALUES = [0, 1, 2, 3, 0x10, 0x40, 0x4000, 0x4800, 0x800, 0xff, 0x100, 0x7fffffff, 0x80000000, 0xffffffff, 0xfffffffe]
@@ -98,6 +100,13 @@ def case(r):
         struct.pack_into('<HH', pool, 0x18, r.choice([0, 1, 2, 0x80, 0xffff]), 0)
         struct.pack_into('<H', pool, 0x1c, r.choice([0, 1, 4, 0x8000, 0xffff]))
         args += [r.choice([0, 1, 2, 4, 0x80, 0x8000, 0x10000, 0xffff, 0xffffffff]), OUT]
+    elif name in ('Rst', 'On10', 'Off10'):
+        struct.pack_into('<II', obj, 4, r.choice([0, 1, POOL]), r.choice([0, 1, 8, 9, 0xff, 0xfe, r.getrandbits(32)]))
+        args += [OUT]
+    elif name == 'KindA4':
+        args += [OUT, r.choice([-1, 0, 1, 2, 3, 0x7fffffff, 0x80000000, 5]) & 0xffffffff]
+    elif name == 'Word4':
+        args = [r.choice([0, POOL, POOL + 0x10])]
     elif name == 'MaskI':
         struct.pack_into('<I', obj, 8, POOL)
         struct.pack_into('<I', obj, 0x4c, POOL + 0x100)
