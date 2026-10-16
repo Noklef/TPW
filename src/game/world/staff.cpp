@@ -7,6 +7,7 @@
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 // The tail both drains share: fcom with 100.0f ([0x70082c]), then 0.0f ([0x700830]).
 void clamp_store(float &to, X87Reg v) {
@@ -73,4 +74,50 @@ u32 __fastcall Guard_IsFree(const u8 *guard) {
 }
 
 u32 __fastcall Guard_IsState12(const u8 *guard) { return at<u32>(guard, 0x19c) == 0x12; }
+
+u32 __fastcall Staff_IsState3At(const u8 *staff, void *, u32 area) {
+    return at<u32>(staff, 0x19c) == 3 && at<u16>(staff, 0x208) == (u16)area;
+}
+
+s32 __cdecl Staff_WageFor(u32 type, u32 grade) {
+    return (s32)(global<u32>(0x0078532c + (grade & 0xff) * 16) * global<u32>(0x00785380 + type * 4));
+}
+
+void __fastcall Staff_SetPatrolRegion(u8 *staff, void *, u32 bl, u32 tr) {
+    at<u16>(staff, 0x20a) = (u16)bl;
+    at<u16>(staff, 0x20c) = (u16)tr;
+}
+
+void __fastcall Staff_GetPatrolRegion(const u8 *staff, void *, u16 *bl, u16 *tr) {
+    *bl = at<u16>(staff, 0x20a);
+    *tr = at<u16>(staff, 0x20c);
+}
+
+void __fastcall Staff_ClearPatrolRegion(u8 *staff) {
+    at<u16>(staff, 0x20a) = 1;
+    at<u16>(staff, 0x20c) = 0x4000;
+}
+
+u32 __fastcall Staff_HasPatrolRegion(const u8 *staff) {
+    return !(at<u16>(staff, 0x20a) == 1 && at<u16>(staff, 0x20c) == 0x4000);
+}
+
+u32 __fastcall Staff_InPatrolRegion(const u8 *staff, void *, u32 pos) {
+    const u32 id = (pos & 0xffff) - 1, bl = (u32)at<u16>(staff, 0x20a) - 1, tr = (u32)at<u16>(staff, 0x20c) - 1;
+    // Each part is at most 0x1ffffff, so the original's signed comparisons are these.
+    return (id & 0x7f) >= (bl & 0x7f) && (id & 0x7f) <= (tr & 0x7f) && id >> 7 >= bl >> 7 && id >> 7 <= tr >> 7;
+}
+
+u8 *__fastcall StaffPool_ValidEntry(u8 *pool, void *, u32 index) {
+    if (index >= 0x20) return nullptr;
+    u8 *const entry = pool + index * 20;
+    return at<u8>(entry, 0xa) ? entry : nullptr;
+}
+
+u32 __fastcall StaffPool_FirstInvalid(const u8 *pool) {
+    for (u32 i = 0; i != 0x20; ++i) {
+        if (at<u8>(pool + i * 20, 0xa) == 0) return i;
+    }
+    return 0x20;
+}
 }

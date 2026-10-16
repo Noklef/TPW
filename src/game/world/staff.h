@@ -1,6 +1,10 @@
 // The staff base class's small methods (the thing's pay grade +0x1e4, happiness +0x1f8,
-// energy +0x1fc, name +0x1a0): reimplementation of 0x506680-0x506860, and the staff check and
-// list heads 0x481f80-0x482020, and the guard's state checks 0x4d6330 / 0x4d6350.
+// energy +0x1fc, name +0x1a0, mState +0x19c, mRestArea +0x208, mPatrolRegionBL +0x20a and TR
+// +0x20c, two map ids): reimplementation of 0x506650-0x5068f0 and 0x506e50-0x506ed0, the staff
+// pool's 0x507bd0 and 0x5087b0, the staff check and list heads 0x481f80-0x482020, and the
+// guard's state checks 0x4d6330 / 0x4d6350. The staff pool (0x507850) is 0x20 entries of 20
+// bytes (mType +0, mName +4, u8 mPayGrade +8, mSubType +9, mValid +0xa, mOnPointer +0xb).
+// A patrol region of (1, 0x4000), the whole map, is none.
 #pragma once
 
 #include "../../../re/types.h"
@@ -42,4 +46,29 @@ u16 *__fastcall World_StaffList744(const u8 *world, void *, u16 *out);
 // nearest guard search takes only those), and whether it is 0x12.
 u32 __fastcall Guard_IsFree(const u8 *guard);
 u32 __fastcall Guard_IsState12(const u8 *guard);
+
+// 0x506650 (thiscall; area): whether mState is 3 and mRestArea is the area (its low 16 bits).
+u32 __fastcall Staff_IsState3At(const u8 *staff, void *, u32 area);
+
+// 0x5068f0 (cdecl; type, grade): the pay grade's wage ([0x78532c + (grade & 0xff) * 16]) times
+// the type's factor ([0x785380 + type * 4]).
+s32 __cdecl Staff_WageFor(u32 type, u32 grade);
+
+// 0x506e50 (bl, tr) / 0x506e70 (&bl, &tr) / 0x506e90: the patrol region set, read (bl, then
+// tr), or set to none; 0x506eb0: whether it is not none.
+void __fastcall Staff_SetPatrolRegion(u8 *staff, void *, u32 bl, u32 tr);
+void __fastcall Staff_GetPatrolRegion(const u8 *staff, void *, u16 *bl, u16 *tr);
+void __fastcall Staff_ClearPatrolRegion(u8 *staff);
+u32 __fastcall Staff_HasPatrolRegion(const u8 *staff);
+
+// 0x506ed0 (pos, its low 16 bits): whether the map id's column and row are within the patrol
+// region's (a map id less 1: column & 0x7f, row >> 7; an id of 0 wraps to column 0x7f, a
+// row past the map).
+u32 __fastcall Staff_InPatrolRegion(const u8 *staff, void *, u32 pos);
+
+// 0x507bd0 (index): the pool's entry when index < 0x20 (unsigned) and it is mValid, else null.
+u8 *__fastcall StaffPool_ValidEntry(u8 *pool, void *, u32 index);
+
+// 0x5087b0: the index of the pool's first entry not mValid, 0x20 when all are.
+u32 __fastcall StaffPool_FirstInvalid(const u8 *pool);
 }

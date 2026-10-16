@@ -236,6 +236,15 @@ address,name,kind,confidence,notes
 0x00482020,World_StaffList744,function,high,reimplemented (src/game/world/staff); thiscall (&handle): the staff list head at world +0x1da744
 0x004d6330,Guard_IsFree,function,high,reimplemented (src/game/world/staff); thiscall: the guard's state (+0x19c) is 0 or 1 (the nearest guard search at 0x509a97 takes only those)
 0x004d6350,Guard_IsState12,function,high,reimplemented (src/game/world/staff); thiscall: the guard's state (+0x19c) is 0x12
+0x00506650,Staff_IsState3At,function,high,reimplemented (src/game/world/staff); thiscall (area): mState (+0x19c) == 3 and mRestArea (u16 +0x208) == area
+0x005068f0,Staff_WageFor,function,high,"reimplemented (src/game/world/staff); cdecl (type, grade): [0x78532c + (grade & 0xff) * 16] * [0x785380 + type * 4]"
+0x00506e50,Staff_SetPatrolRegion,function,high,"reimplemented (src/game/world/staff); thiscall (bl, tr): mPatrolRegionBL (+0x20a) and TR (+0x20c) set"
+0x00506e70,Staff_GetPatrolRegion,function,high,"reimplemented (src/game/world/staff); thiscall (&bl, &tr): the patrol region read"
+0x00506e90,Staff_ClearPatrolRegion,function,high,"reimplemented (src/game/world/staff); thiscall: the patrol region set to none (1, 0x4000)"
+0x00506eb0,Staff_HasPatrolRegion,function,high,"reimplemented (src/game/world/staff); thiscall: whether the patrol region is not (1, 0x4000)"
+0x00506ed0,Staff_InPatrolRegion,function,high,reimplemented (src/game/world/staff); thiscall (pos): whether the map id's column and row lie in the patrol region's
+0x00507bd0,StaffPool_ValidEntry,function,high,"reimplemented (src/game/world/staff); thiscall (index): the entry (20 bytes) when index < 0x20 and mValid (+0xa), else null"
+0x005087b0,StaffPool_FirstInvalid,function,high,"reimplemented (src/game/world/staff); thiscall: the first entry's index without mValid, 0x20 when all have it"
 0x00506870,Staff_GetWage,function,medium,"per-type factor (DAT_00785380) * pay grade table (DAT_0078532c, stride 0x10)"
 0x004dd4e0,Object_GetDef,function,high,reimplemented (src/game/world/object); the object's definition
 0x004e1670,Object_AddWalkAway,function,high,reimplemented (src/game/world/object); a walk-away counted
