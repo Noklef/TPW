@@ -2197,6 +2197,8 @@ address,name,kind,confidence,notes
 0x0048c960,Globals7c264c_Load,function,high,reimplemented (src/game/core/accessors); three globals loaded from 0x7b05a8-0x7b05b0
 0x00492e40,Class492d80_Ctor,function,high,reimplemented (src/game/core/accessors); vtable 0x492d80 and its defaults
 0x004a0810,Global7cb28c_Select,function,high,reimplemented (src/game/core/accessors); stores a value in one of three globals by number
+0x00503870,Volumes_SetChannel,function,high,reimplemented (src/game/core/volumes); a channel's volume (at most 100) and every share again
+0x00503900,Volumes_SetMaster,function,high,reimplemented (src/game/core/volumes); the master volume (at most 100) and every share again
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

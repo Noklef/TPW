@@ -87,7 +87,8 @@
 #include "../game/core/stdstring.h"
 #include "../game/core/textarg.h"
 #include "../game/core/trivial.h"
-#include "../game/core/accessors.h"
+#include "../game/core/accessors.h"
+#include "../game/core/volumes.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -1641,6 +1642,8 @@ const Hook kHooks[] = {
     {"Globals7c264c_Load",        0x0048c960, (void *)&Globals7c264c_Load, {0xa1, 0xa8, 0x05, 0x7b, 0x00}},
     {"Class492d80_Ctor",          0x00492e40, (void *)&Class492d80_Ctor, {0x8b, 0xc1, 0x33, 0xc9, 0x89}},
     {"Global7cb28c_Select",       0x004a0810, (void *)&Global7cb28c_Select, {0x8b, 0x44, 0x24, 0x04, 0x48}},
+    {"Volumes_SetChannel",        0x00503870, (void *)&Volumes_SetChannel, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"Volumes_SetMaster",         0x00503900, (void *)&Volumes_SetMaster, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
