@@ -37,6 +37,8 @@ call through slot k with n stack arguments (thiscall, the callee pops them) appe
 them, in both the driver and the emulator, so a function that calls virtual methods can be compared without the game's classes. A case can make slot k return a value
 of its own instead of the hash: set_return(log, k, value) on the log region.
 
+COM-style slots (stdcall, `this` the first stack argument, ECX undefined) are vtable(com={slot: stack arguments including this}): they log this as 0 and k | 0x100.
+
 A case can hand the code a heap (heap() is its region at HEAP): the same bump allocator in
 both for Mem_Alloc / Mem_Free (and memmove 0x67bb90 in the emulator); _Xlen / _Xran fail the
 case (the driver reports a crash, the emulator raises).
@@ -209,13 +211,16 @@ LOG_ENTRIES = 40  # (the room: 4 + 48 * 40 bytes)
 LOG_RETURNS = 0x800  # from here an override for each slot: a flag and a value
 
 
-def recorder(k, n):
+def recorder(k, n, com=False):
+    if com:  # (slots 0-63, 0x800 for each n)
+        return VSTUBS + 0x4000 + 0x800 * n + 0x20 * k
     return VSTUBS + 0x400 * n + 0x20 * k
 
 
-def vtable(slots, size=32):
-    """A vtable's bytes: slot k calls a recorder taking slots[k] stack arguments (k not in slots: slot 0's pattern with no arguments)."""
-    return bytearray(struct.pack('<%dI' % size, *[recorder(k, slots.get(k, 0)) for k in range(size)]))
+def vtable(slots, size=32, com=None):
+    """A vtable's bytes: slot k calls a recorder taking slots[k] stack arguments (k not in slots: no arguments); com[k] for a COM-style slot."""
+    com = com or {}
+    return bytearray(struct.pack('<%dI' % size, *[recorder(k, com[k], True) if k in com else recorder(k, slots.get(k, 0)) for k in range(size)]))
 
 
 def log_region():
@@ -234,17 +239,18 @@ def vhash(k, n, this, args):
     return h
 
 
-def _recorder(k, n):
+def _recorder(k, n, com=False):
     def hook(e):
         sp = e.r['ESP'] + (4 if e.tail else 0)
         args = [e.u32(sp + 4 * i) for i in range(n)]
-        this = e.r['ECX']
+        this = 0 if com else e.r['ECX']
+        kk = k | 0x100 if com else k
         count = e.u32(LOG)
         if count < LOG_ENTRIES:
             entry = LOG + 4 + 4 * LOG_ENTRY * count
-            e.write(entry, struct.pack('<%dI' % LOG_ENTRY, k, n, this, *(args + [0] * 7)[:7], 0, 0))
+            e.write(entry, struct.pack('<%dI' % LOG_ENTRY, kk, n, this, *(args + [0] * 7)[:7], 0, 0))
             e.write(LOG, struct.pack('<I', count + 1))
-        e.r['EAX'] = e.u32(LOG + LOG_RETURNS + 8 * k + 4) if e.u32(LOG + LOG_RETURNS + 8 * k) else vhash(k, n, this, args)
+        e.r['EAX'] = e.u32(LOG + LOG_RETURNS + 8 * k + 4) if e.u32(LOG + LOG_RETURNS + 8 * k) else vhash(kk, n, this, args)
         if e.tail:  # the return address goes up over the arguments the callee would have popped
             ret = e.u32(e.r['ESP'])
             e.r['ESP'] += 4 * n
@@ -310,6 +316,7 @@ class Bench:
                                0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove,
                                0x6918f0: _throw('_Xlen'), 0x691ba0: _throw('_Xran')})
         self.emu.hooks.update({recorder(k, n): _recorder(k, n) for k in range(32) for n in range(8)})
+        self.emu.hooks.update({recorder(k, n, True): _recorder(k, n, True) for k in range(64) for n in range(8)})
         self.emu.hooks.update(hooks or {})
         self.extra = {0x7b095c: sine_table(sines)} if sines else {}
         self.driver = DRIVER

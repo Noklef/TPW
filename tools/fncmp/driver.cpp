@@ -187,11 +187,31 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     }
     u32 h = self * 0x9e3779b1u + (k + 1) * 0x10001u + n;
     for (u32 i = 0; i < n; ++i) h = h * 33 ^ args[i];
-    const u32 *override = log + 0x200 + 2 * k;  // (LOG_RETURNS: a flag and a value for the slot)
+    const u32 *override = log + 0x200 + 2 * (k & 63);  // (LOG_RETURNS: a flag and a value for the slot)
     return override[0] ? override[1] : h;
 }
 
+void map_com_recorders(u8 *page) {  // the COM-style ones (this on the stack, ECX undefined): this is logged as 0 and k as k | 0x100
+    for (u32 n = 0; n < 8; ++n) {
+        for (u32 k = 0; k < 64; ++k) {
+            u8 *at = page + 0x5000 + 0x800 * n + 0x20 * k;
+            const u8 head[] = {0x89, 0xe0, 0x50, 0x6a, 0x00, 0x6a, (u8)n, 0x68, (u8)k, 0x01, 0x00, 0x00, 0xe8};  // mov eax,esp; push eax; push 0; push n; push k|0x100; call rel32
+            std::memcpy(at, head, sizeof head);
+            const u32 rel = (u32)(uintptr_t)&record_call - ((u32)(uintptr_t)at + sizeof head + 4);
+            std::memcpy(at + sizeof head, &rel, 4);
+            u8 *tail = at + sizeof head + 4;
+            tail[0] = 0x83, tail[1] = 0xc4, tail[2] = 0x10;  // add esp,16
+            if (n) {
+                tail[3] = 0xc2, tail[4] = (u8)(4 * n), tail[5] = 0;  // ret 4n
+            } else {
+                tail[3] = 0xc3;
+            }
+        }
+    }
+}
+
 void map_recorders(u8 *page) {
+    map_com_recorders(page);
     for (u32 n = 0; n < 8; ++n) {
         for (u32 k = 0; k < 32; ++k) {
             u8 *at = page + 0x1000 + 0x400 * n + 0x20 * k;
