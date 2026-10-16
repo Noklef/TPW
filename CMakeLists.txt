@@ -160,6 +160,7 @@ add_library(tpw_game STATIC
     src/game/world/analysercell.cpp
     src/game/world/linestep.cpp
     src/game/world/personscripts.cpp
+    src/game/world/dirstep.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp

@@ -154,7 +154,8 @@
 #include "../game/world/thingmsg.h"
 #include "../game/world/analyser.h"
 #include "../game/world/challenges.h"
-#include "../game/world/collobj.h"
+#include "../game/world/collobj.h"
+#include "../game/world/dirstep.h"
 #include "../game/world/flyingrides.h"
 #include "../game/world/nav.h"
 #include "../game/world/mapcell.h"
@@ -613,6 +614,8 @@ const Hook kHooks[] = {
     {"Person_ReleaseScripts",     0x004f9ed0, (void *)&Person_ReleaseScripts, {0x56, 0x8b, 0xf1, 0x8d, 0x4e}},
     {"Person_MoveScript",         0x004fe900, (void *)&Person_MoveScript, {0x56, 0x8b, 0xf1, 0x8b, 0x86}},
     {"Person_KillScript84After",  0x0050be40, (void *)&Person_KillScript84After, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
+    {"Position_StepA",            0x0052a3a0, (void *)&Position_StepA, {0x8b, 0x44, 0x24, 0x0c, 0x56}},
+    {"Position_StepB",            0x0052a420, (void *)&Position_StepB, {0x8b, 0x54, 0x24, 0x0c, 0x56}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},

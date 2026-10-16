@@ -826,6 +826,8 @@ address,name,kind,confidence,notes
 0x004f9ed0,Person_ReleaseScripts,function,high,"reimplemented (src/game/world/personscripts); a person's script slots killed, the +0x210 one jumped for kind 1"
 0x004fe900,Person_MoveScript,function,high,reimplemented (src/game/world/personscripts); the +0x210 script moved to a new position
 0x0050be40,Person_KillScript84After,function,high,reimplemented (src/game/world/personscripts); the +0x84 script killed once the clock is 12 ticks past +0x8c
+0x0052a3a0,Position_StepA,function,high,reimplemented (src/game/world/dirstep); steps a position by a direction in the first scheme
+0x0052a420,Position_StepB,function,high,reimplemented (src/game/world/dirstep); steps a position by a direction in the second scheme
 0x0050b780,Thing_Delete,function,medium,"thiscall on a thing; the base deletion, queues its handle (World_QueueDelete)"
 0x00801f38,gThingsToDelete,data,high,"HandleQueue: +4 head, +8 tail, +0xc count; handles whose slots DeleteAll releases"
 0x005f5fc0,String_Alloc,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +8: a new block for length units, terminated; the old block is not freed"
