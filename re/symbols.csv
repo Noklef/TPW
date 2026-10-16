@@ -3021,6 +3021,11 @@ address,name,kind,confidence,notes
 0x0059c570,Table76e300_LimitCheck,function,high,reimplemented (src/game/core/small13); whether a limit reaches a table record's indexed object dword
 0x005b6230,Obj_HasActivity,function,high,reimplemented (src/game/core/small13); whether any of an object's activity fields is set
 0x005cd660,List_EraseNthCounted,function,high,reimplemented (src/game/core/small13); erases the nth list node with a counted buffer
+0x0047db80,CountedVector14_Deleter,function,high,reimplemented (src/game/core/small14); clears the counted vector at +0x14 and optionally frees the object
+0x004d3850,List_PushHeadForward,function,high,reimplemented (src/game/core/small14); forwards a list push
+0x0047bfe0,CountedVector14_ClearRange,function,high,reimplemented (src/game/core/small14); clears a range of counted vectors
+0x004f04d0,CountedList_ClearRelease,function,high,reimplemented (src/game/core/small14); clears a list of counted buffers by release
+0x005c9970,Counted2_Clear,function,high,reimplemented (src/game/core/small14); frees a block and releases two counted buffers
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

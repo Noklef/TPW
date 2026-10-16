@@ -110,6 +110,7 @@
 #include "../game/core/small11.h"
 #include "../game/core/small12.h"
 #include "../game/core/small13.h"
+#include "../game/core/small14.h"
 #include "../game/core/small2.h"
 #include "../game/core/small3.h"
 #include "../game/core/small4.h"
@@ -2528,6 +2529,11 @@ const Hook kHooks[] = {
     {"Table76e300_LimitCheck",    0x0059c570, (void *)&Table76e300_LimitCheck, {0x56, 0x8b, 0xf1, 0x8b, 0x4c}},
     {"Obj_HasActivity",           0x005b6230, (void *)&Obj_HasActivity, {0x83, 0x39, 0x00, 0x0f, 0x85}},
     {"List_EraseNthCounted",      0x005cd660, (void *)&List_EraseNthCounted, {0x55, 0x8b, 0xe9, 0x56, 0x33}},
+    {"CountedVector14_Deleter",   0x0047db80, (void *)&CountedVector14_Deleter, {0x56, 0x8b, 0xf1, 0xe8, 0x38}},
+    {"List_PushHeadForward",      0x004d3850, (void *)&List_PushHeadForward, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"CountedVector14_ClearRange", 0x0047bfe0, (void *)&CountedVector14_ClearRange, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"CountedList_ClearRelease",  0x004f04d0, (void *)&CountedList_ClearRelease, {0x53, 0x8b, 0xd9, 0x55, 0x57}},
+    {"Counted2_Clear",            0x005c9970, (void *)&Counted2_Clear, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
