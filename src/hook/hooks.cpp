@@ -118,6 +118,7 @@
 #include "../game/world/object.h"
 #include "../game/world/person.h"
 #include "../game/world/research.h"
+#include "../game/world/trackrides.h"
 #include "../game/world/things.h"
 #include "../game/world/world.h"
 #include "../game/model/holder.h"
@@ -515,6 +516,10 @@ const Hook kHooks[] = {
     {"CollPool_Reset",            0x00544330, (void *)&CollPool_Reset, {0x8b, 0x0d, 0x88, 0x7b, 0x87}},
     {"Collider_ReleaseC0",        0x005457e0, (void *)&Collider_ReleaseC0, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Collider_KeepA8",           0x00545810, (void *)&Collider_KeepA8, {0x57, 0x8b, 0x7c, 0x24, 0x08}},
+    {"TrakChunk_Write",           0x00543490, (void *)&TrakChunk_Write, {0x8b, 0x4c, 0x24, 0x08, 0x56}},
+    {"TrakStream_Read",           0x0054bbb0, (void *)&TrakStream_Read, {0x8b, 0x44, 0x24, 0x14, 0x8b}},
+    {"TrakPool_FirstFree",        0x00549b50, (void *)&TrakPool_FirstFree, {0xa1, 0x68, 0x7b, 0x87, 0x00}},
+    {"TrakRide_LinkedValue",      0x00549d30, (void *)&TrakRide_LinkedValue, {0x8b, 0x15, 0x58, 0x7b, 0x87}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},

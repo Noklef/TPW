@@ -780,6 +780,10 @@ address,name,kind,confidence,notes
 0x00544330,CollPool_Reset,function,high,reimplemented (src/game/world/collobj); cdecl: the 0x400 0x14-byte collision objects of the pool [0x877b88] chained by +0x10 (the last 0); free head [0x877b8c] = the pool
 0x005457e0,Collider_ReleaseC0,function,high,reimplemented (src/game/world/collobj); cdecl (collider): each node of the list at +0xc0 (next +0x14) zeroed at +0 and taken off [0x877b74]; the list left as it is
 0x00545810,Collider_KeepA8,function,high,"reimplemented (src/game/world/collobj); cdecl (collider, mask): the list at +0xa8 cut to nodes with mask's bits in +0, in order; the rest off +0xac and [0x877b7c], bit 0 cleared"
+0x00543490,TrakChunk_Write,function,high,"reimplemented (src/game/world/trackrides); cdecl (chunk, buffer, count): Stream_Write to the chunk's stream (+4); unless its result < 0 (never), the count +0x10 += count and the bytes written returned"
+0x0054bbb0,TrakStream_Read,function,high,"reimplemented (src/game/world/trackrides); cdecl (&result, stream, buffer, count, &done): Stream_Read; returns &result"
+0x00549b50,TrakPool_FirstFree,function,high,"reimplemented (src/game/world/trackrides); cdecl: the first of the 0x100 0xac-byte records at [0x877b68] with bit 0 of +0 clear, or 0"
+0x00549d30,TrakRide_LinkedValue,function,high,"reimplemented (src/game/world/trackrides); cdecl (handle = index | serial << 8): when 'GFEJ' at 0x877b58 and the handle names the 0xd0-byte ride at [0x877b60], its link (+0x58) +8 if the link has flag 0x400000; else 0"
 0x0050b780,Thing_Delete,function,medium,"thiscall on a thing; the base deletion, queues its handle (World_QueueDelete)"
 0x00801f38,gThingsToDelete,data,high,"HandleQueue: +4 head, +8 tail, +0xc count; handles whose slots DeleteAll releases"
 0x005f5fc0,String_Alloc,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +8: a new block for length units, terminated; the old block is not freed"
