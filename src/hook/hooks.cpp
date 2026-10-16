@@ -65,7 +65,8 @@
 #include "../game/core/idtable.h"
 #include "../game/core/keymap.h"
 #include "../game/core/language.h"
-#include "../game/core/options.h"
+#include "../game/core/options.h"
+#include "../game/core/soundset.h"
 #include "../game/core/stdstring.h"
 #include "../game/core/textarg.h"
 #include "../game/core/wtraits.h"
@@ -1382,6 +1383,13 @@ const Hook kHooks[] = {
     {"TextArg_Ctor",              0x004a77a0, (void *)&TextArg_Ctor, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
     {"TextArgString_Ctor",        0x004ea220, (void *)&TextArgString_Ctor, {0x8b, 0x54, 0x24, 0x08, 0x8b}},
     {"TextArgInt_Ctor",           0x0050aef0, (void *)&TextArgInt_Ctor, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
+    {"Sound_Set803ab8",           0x0051bb60, (void *)&Sound_Set803ab8, {0x8b, 0x44, 0x24, 0x04, 0xc7}},
+    {"Sound_Set803ac0",           0x0051bb80, (void *)&Sound_Set803ac0, {0x8b, 0x44, 0x24, 0x04, 0xc7}},
+    {"Sound_Set803abc",           0x0051bba0, (void *)&Sound_Set803abc, {0x8b, 0x44, 0x24, 0x04, 0xc7}},
+    {"Sound_Set803ac4",           0x0051bbc0, (void *)&Sound_Set803ac4, {0x8b, 0x44, 0x24, 0x04, 0xc7}},
+    {"Sound_Set803adc",           0x0051bbe0, (void *)&Sound_Set803adc, {0x8b, 0x44, 0x24, 0x04, 0xc7}},
+    {"Sound_Set803ad8",           0x0051bc00, (void *)&Sound_Set803ad8, {0x8b, 0x44, 0x24, 0x04, 0xc7}},
+    {"Sound_Set803ae0",           0x0051bc20, (void *)&Sound_Set803ae0, {0x8b, 0x44, 0x24, 0x04, 0xc7}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
