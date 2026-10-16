@@ -2429,6 +2429,12 @@ address,name,kind,confidence,notes
 0x005b64a0,Online_UserName,function,high,"reimplemented (src/game/online/session); thiscall u16*: the online user's name (+0x44, wide)"
 0x005b64b0,Online_UserFlags,function,high,reimplemented (src/game/online/session); thiscall u32: the online user's flags (+0x58)
 0x005b64c0,Online_User5c,function,high,reimplemented (src/game/online/session); thiscall u32: the online user's +0x5c
+0x005bc9c0,Owner2c_FindByKey,function,high,reimplemented (src/game/online/itemlist); the last item of the owner's list whose +8 is the key
+0x005bcb60,Owner2c_At,function,high,reimplemented (src/game/online/itemlist); the index'th item of the owner's list
+0x005bd270,Owner2c_ValueByKey,function,high,reimplemented (src/game/online/itemlist); the +0x14 of the last item whose +8 is the key
+0x005bd670,Owner2c_FindKind1,function,high,reimplemented (src/game/online/itemlist); the last item whose +0xc is 1
+0x005bd690,Owner2c_FindKind100,function,high,reimplemented (src/game/online/itemlist); the last item whose +0xc is 0x64
+0x005bd9d0,Owner2c_FindByPair,function,high,reimplemented (src/game/online/itemlist); the last item whose +0x44 and +0x64 are a and b
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"

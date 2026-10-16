@@ -171,6 +171,7 @@
 #include "../game/render/weatherfx.h"
 #include "../game/online/servers.h"
 #include "../game/frontend/lobbymodel.h"
+#include "../game/online/itemlist.h"
 #include "../game/online/session.h"
 
 namespace tpw::hook {
@@ -1738,6 +1739,12 @@ const Hook kHooks[] = {
     {"Online_UserName",           0x005b64a0, (void *)&Online_UserName, {0x8b, 0x41, 0x44, 0xc3, 0x90}},
     {"Online_UserFlags",          0x005b64b0, (void *)&Online_UserFlags, {0x8b, 0x41, 0x58, 0xc3, 0x90}},
     {"Online_User5c",             0x005b64c0, (void *)&Online_User5c, {0x8b, 0x41, 0x5c, 0xc3, 0x90}},
+    {"Owner2c_FindByKey",         0x005bc9c0, (void *)&Owner2c_FindByKey, {0x8b, 0x49, 0x2c, 0x33, 0xc0}},
+    {"Owner2c_At",                0x005bcb60, (void *)&Owner2c_At, {0x8b, 0x49, 0x2c, 0x56, 0x33}},
+    {"Owner2c_ValueByKey",        0x005bd270, (void *)&Owner2c_ValueByKey, {0x8b, 0x49, 0x2c, 0x33, 0xc0}},
+    {"Owner2c_FindKind1",         0x005bd670, (void *)&Owner2c_FindKind1, {0x8b, 0x49, 0x2c, 0x33, 0xc0}},
+    {"Owner2c_FindKind100",       0x005bd690, (void *)&Owner2c_FindKind100, {0x8b, 0x49, 0x2c, 0x33, 0xc0}},
+    {"Owner2c_FindByPair",        0x005bd9d0, (void *)&Owner2c_FindByPair, {0x8b, 0x49, 0x2c, 0x33, 0xc0}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},

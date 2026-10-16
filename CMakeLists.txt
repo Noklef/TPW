@@ -186,6 +186,7 @@ add_library(tpw_game STATIC
     src/game/render/meshlist.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
+    src/game/online/itemlist.cpp
     src/game/frontend/lobbymodel.cpp
 )
 
