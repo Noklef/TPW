@@ -9,6 +9,9 @@ extern "C" {
 
 // 0x4c9f90 / 0x4ca0c0 (cdecl): how many things of kind 3 have bit 0 / bit 1 of the byte at +0x32 set and a dword at +0x68 that is 0.
 s32 __cdecl Things_CountKind3Flag1();
+// 0x4c9e60 (cdecl): from the thing the word at +0x1da742 of the game object [0x80239c] names, along the chain of the word at +0x210 of each, the sum of the
+// dwords of the table at 0x78545c (12 bytes each) indexed by the dword at +0x1e4 of each thing.
+u32 __cdecl Things_SumChain();
 s32 __cdecl Things_CountKind3Flag2();
 
 // 0x4ca820 (stdcall; value, pops 4): the greatest byte at +0x50 over the things of kind 3 whose word at +0xe equals the low 16 bits of the

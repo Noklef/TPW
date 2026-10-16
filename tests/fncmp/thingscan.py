@@ -10,7 +10,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 from fncmp import Bench, Call, RAM  # noqa: E402
-from thingenv import park  # noqa: E402
+from thingenv import POOL, THING, park  # noqa: E402
 
 # name: (address, convention, size, arguments: n none, p previous thing, vp value then previous thing, v value, o an output word)
 CALLS = {'C1': (0x4c9f90, 'c', 0xa0, 'n'), 'C2': (0x4ca0c0, 'c', 0xa0, 'n'), 'Max': (0x4ca820, 's', 0xa0, 'v'),
@@ -20,7 +20,7 @@ CALLS = {'C1': (0x4c9f90, 'c', 0xa0, 'n'), 'C2': (0x4ca0c0, 'c', 0xa0, 'n'), 'Ma
          'Re': (0x4c9ee0, 't', 0xb0, 'g'), 'D4': (0x4ca8e0, 's', 0xd0, 'vv'), 'D5': (0x4ca9b0, 's', 0xc0, 'v'),
          'B4ac': (0x483280, 'c', 0x140, 'vp'), 'Bw': (0x4833c0, 'c', 0x120, 'p'), 'Bu2': (0x4834e0, 'c', 0x140, 'p'), 'Bf2': (0x483620, 'c', 0x120, 'p'),
          'P1': (0x4c9130, 'c', 0xa0, 'n'), 'P2': (0x4c9530, 'c', 0xa0, 'n'), 'P3': (0x4c95d0, 'c', 0xa0, 'n'),
-         'S5': (0x59edd0, 't', 0x50, 's'), 'S6': (0x59ee20, 't', 0x50, 's'), 'S4': (0x59ee70, 't', 0x50, 's'), 'S7': (0x59eec0, 't', 0x50, 's')}
+         'Sum': (0x4c9e60, 'c', 0x70, 'n'), 'S5': (0x59edd0, 't', 0x50, 's'), 'S6': (0x59ee20, 't', 0x50, 's'), 'S4': (0x59ee70, 't', 0x50, 's'), 'S7': (0x59eec0, 't', 0x50, 's')}
 B = Bench([(a, a + n) for (a, _c, n, _s) in CALLS.values()] + [(0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x4e0440, 0x4e0450),
                                                               (0x4e2710, 0x4e2740), (0x4dd4e0, 0x4dd500), (0x412e90, 0x412eea), (0x5da3c0, 0x5da3c1), (0x41a960, 0x41a970), (0x5161b0, 0x516200), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c), (0x519510, 0x519550)])
 OUT = RAM + 0x1000
@@ -30,7 +30,7 @@ def case(r):
     name = r.choice(OPS)
     address, conv, _n, shape = CALLS[name]
     regions, handles, things = park(r, count=r.choice([1, 2, 3, 4, 6]) if shape == 'o' or name.startswith('B') else None,
-                                    defs=name not in ('C1', 'C2', 'Max', 'C3', 'Staff', 'Avg', 'Re', 'P1', 'P2', 'P3'),
+                                    defs=name not in ('C1', 'C2', 'Max', 'C3', 'Staff', 'Avg', 'Re', 'P1', 'P2', 'P3', 'Sum'),
                                     kinds=(4, 5, 6, 7, 8, 3, 1, 0) if name in ('Staff', 'S5', 'S6', 'S4', 'S7') else (1, 1, 1, 3, 0, 0xff) if name[0] == 'P' else (3, 3, 3, 1, 2, 0xff, 0),
                                     cells=name[0] == 'P')
     prev = r.choice([0, 0] + things) if things else 0
@@ -39,6 +39,14 @@ def case(r):
         regions[0x80239c] = struct.pack('<I', RAM + 0x20000 - 0x1da70c)
         regions[RAM + 0x20000] = r.bytes(0x20)
         regions[RAM + 0x4000 + 0x1f0d0] = r.bytes(0x20)
+    if name == 'Sum':  # the game object's handle, the things chained through the word at +0x210 (towards older ones), indexes into the 12-byte table
+        regions[0x80239c] = struct.pack('<I', RAM + 0x20000 - 0x1da742)
+        regions[RAM + 0x20000] = struct.pack('<H', r.choice(handles + [0]) if handles else 0)
+        pool = regions[POOL]
+        for i in range(len(handles)):
+            struct.pack_into('<I', pool, THING * i + 0x1e4, r.randrange(4))
+            struct.pack_into('<H', pool, THING * i + 0x210, handles[i + 1] if i + 1 < len(handles) and r.random() < 0.7 else 0)
+        regions[0x78545c] = r.bytes(12 * 4)
     if name == 'Staff':
         value = r.choice([4, 5, 6, 7, 8, 3, 0x104, 0xff])
     if name[0] == 'S' and name[1:].isdigit():  # the object with the limits, and the game table window the 0x519510 getter reads

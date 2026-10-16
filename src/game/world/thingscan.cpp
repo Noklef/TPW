@@ -11,6 +11,7 @@
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 void *world() { return *reinterpret_cast<void **>(0x0080239c); }
 const u8 *thing_of(u16 handle) { return static_cast<const u8 *>(reinterpret_cast<ThingSlot *>(0x007cfb90)[handle].thing); }
@@ -92,6 +93,17 @@ template <typename Extra> s32 CountKind1OnPlainCell(Extra extra) {
 }  // namespace
 
 extern "C" {
+
+u32 __cdecl Things_SumChain() {
+    u32 sum = 0;
+    u32 handle = at<u16>(global<u8 *>(0x0080239c), 0x1da742);
+    while (handle) {
+        const u8 *thing = global<u8 *>(0x007cfb90 + 20 * handle);
+        sum += global<u32>(0x0078545c + 12 * at<u32>(thing, 0x1e4));
+        handle = at<u16>(thing, 0x210);
+    }
+    return sum;
+}
 
 s32 __cdecl Things_CountKind3Flag1() { return CountKind3(1); }
 
