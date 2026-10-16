@@ -6,13 +6,16 @@ from fncmp import RAM, put
 
 SLOTS = 0x7cfb90
 USED = 0x7cf56c
-POOL = RAM + 0x2000       # the things, 0x100 apart
-THING = 0x100
+POOL = RAM + 0x2000       # the things, 0x400 apart
+THING = 0x400
 DEFS, ITEMS, NITEMS, ITEM = 0x7890a0, RAM + 0x8000, 16, 0x500
 WORLD_PTRS = (0x80239c, 0x7cf83c)   # the world pointers the callers load into ECX (the table code ignores them)
 
 
-def park(r, count=None, kinds=(3, 3, 3, 1, 2, 0xff, 0), defs=True):
+CELLS = RAM + 0x30000     # the map cells (0x44 bytes, 128 to a row) the analyser test looks the things' columns and rows up in
+
+
+def park(r, count=None, kinds=(3, 3, 3, 1, 2, 0xff, 0), defs=True, cells=False):
     """(regions, handles newest first, thing addresses newest first)."""
     count = r.choice([0, 1, 2, 3, 4, 6]) if count is None else count
     handles = r.sample(range(1, 12), count)
@@ -32,11 +35,22 @@ def park(r, count=None, kinds=(3, 3, 3, 1, 2, 0xff, 0), defs=True):
         things[t + 3] = r.choice([0, 0, 0, 1, 5])
         things[t + 0x32] = r.choice([0, 1, 2, 3, 4, 0xff, r.getrandbits(8)])
         put(things, t + 0x68, 'I', r.choice([0, 0, 0, 1, 5]))
+        put(things, t + 0x24, 'I', r.choice([2, 2, 0, 1, 3]))
+        put(things, t + 0x210, 'I', r.choice([0, 0, 1, 0x30002000]))
         put(things, t + 0xe, 'H', ids[r.randrange(n)])
         things[t + 0x50] = r.choice([0, 1, 5, 0x7f, 0x80, 0xff, r.getrandbits(8)])
+    if cells:
+        grid = bytearray(r.bytes(0x44 * (4 * 128 + 256)))
+        for i in range(count):
+            col, row = r.choice([0, 1, 127, 128, 255, r.randrange(256)]), r.randrange(4)
+            things[THING * i + 5], things[THING * i + 7] = col, row
+            put(grid, ((row << 7) + col) * 0x44 + 8, 'I', r.choice([0, 1, 2, 3, 4, 5, 8, 9, 0xa, 0xb, 0x109]))
     regions = {SLOTS: slots, POOL: things, USED: struct.pack('<I', SLOTS + 20 * handles[0] if count else 0)}
     for g in WORLD_PTRS:
         regions[g] = struct.pack('<I', RAM)
+    if cells:
+        regions[CELLS] = grid
+        regions[0x8023a0] = struct.pack('<II', CELLS, 0)
     if defs:
         dtab = bytearray(r.bytes(0x740))
         items = bytearray(r.bytes(NITEMS * ITEM))
