@@ -14,4 +14,39 @@ u32 *__fastcall IntPair_Scaled(const u32 *pair, void *, u32 *out, u32 scale) {
     out[1] = second;
     return out;
 }
+
+s32 *__fastcall IntPair_DivFixed(const s32 *pair, void *, s32 *out, s32 divisor) {
+    const s32 y = (s32)(((long long)pair[1] << 16) / divisor);
+    const s32 x = (s32)(((long long)pair[0] << 16) / divisor);
+    out[0] = x;
+    out[1] = y;
+    return out;
+}
+
+u32 *__fastcall IntPair_Add(const u32 *pair, void *, u32 *out, const u32 *other) {
+    const u32 y = other[1] + pair[1], x = other[0] + pair[0];
+    out[0] = x;
+    out[1] = y;
+    return out;
+}
+
+u32 *__fastcall IntPair_Neg(const u32 *pair, void *, u32 *out) {
+    const u32 y = 0u - pair[1], x = 0u - pair[0];
+    out[0] = x;
+    out[1] = y;
+    return out;
+}
+
+s32 __fastcall IntPair_ApproxLength(const s32 *pair) {
+    const u32 ax = pair[0] < 0 ? 0u - (u32)pair[0] : (u32)pair[0];
+    const u32 ay = pair[1] < 0 ? 0u - (u32)pair[1] : (u32)pair[1];
+    const s32 shorter = (s32)ax <= (s32)ay ? (s32)ax : (s32)ay;
+    return (s32)(ay - (u32)(shorter >> 1) + ax);
+}
+
+u32 *__fastcall IntPair_Ctor(u32 *pair) {
+    pair[0] = 0;
+    pair[1] = 0;
+    return pair;
+}
 }
