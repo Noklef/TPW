@@ -148,6 +148,56 @@ s32 __cdecl Things_CountKind3Flag1() { return CountKind3(1); }
 
 s32 __cdecl Things_CountStaff() { return CountKinds4To8(); }
 
+void __cdecl Things_TopThreeValues(u8 *first, u8 *second, u8 *third) {
+    s32 counts[23] = {};
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (at<u8>(thing, 2) == 1 && AnalyserCell_TypePlain(thing))
+            ++counts[at<s32>(thing, 0x30)];  // (sic: not checked against the 23)
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    counts[0] = 0;
+    u8 best[3] = {0, 1, 2};
+    for (s32 k = 3; k < 0x17; ++k) {
+        s32 gain = 0, at_index = -1;
+        for (s32 j = 0; j < 3; ++j) {
+            if (counts[k] - counts[best[j]] > gain) {
+                gain = counts[k] - counts[best[j]];
+                at_index = j;
+            }
+        }
+        if (at_index >= 0) best[at_index] = (u8)k;
+    }
+    *first = counts[best[0]] == 0 ? 0x17 : best[0];
+    *second = counts[best[1]] == 0 ? 0x17 : best[1];
+    *third = counts[best[2]] == 0 ? 0x17 : best[2];
+}
+
+s32 __cdecl Things_CountOfKindAround(u32 kind, u32 cell, s32 radius, s32 firstOnly) {
+    const u32 index = (cell & 0xffff) - 1;
+    const s32 x = (s32)(index & 0x7f), y = (s32)(index >> 7);
+    const u32 xmin = (u32)(x - radius < 0 ? 0 : x - radius), ymin = (u32)(y - radius < 0 ? 0 : y - radius);
+    const u32 xmax = (u32)(x + radius > 0x7f ? 0x7f : x + radius), ymax = (u32)(y + radius > 0x7f ? 0x7f : y + radius);
+    s32 count = 0;
+    for (u32 cx = xmin; cx <= xmax; ++cx) {
+        for (u32 cy = ymin; cy <= ymax; ++cy) {
+            const u32 id = ((cy << 7) + cx + 1) & 0xffff;
+            u32 handle = at<u16>(global<u8 *>(0x008023a0), id * 0x44 - 0x20);
+            while (handle) {
+                const u8 *thing = thing_of((u16)handle);
+                if (at<u8>(thing, 2) == kind) {
+                    if (firstOnly) return 1;
+                    ++count;
+                }
+                handle = at<u16>(thing, 10);
+            }
+        }
+    }
+    return count;
+}
+
 s32 __cdecl Things_CountKind3Flag2() { return CountKind3(2); }
 
 s32 __stdcall Things_MaxKind3Byte50(u32 value) {

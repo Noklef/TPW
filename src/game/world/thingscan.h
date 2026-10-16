@@ -12,6 +12,16 @@ s32 __cdecl Things_CountKind3Flag1();
 
 // 0x4c9a10 (cdecl): the things of kind 4 to 8 (the staff).
 s32 __cdecl Things_CountStaff();
+
+// 0x4c8430 (cdecl; three byte outputs, pops 12): over the things of kind 1 whose analyser cell is plain (AnalyserCell_TypePlain), the three values of the dword at +0x30
+// (0 to 22; not checked) that occur most, counting from value 3 up and starting from {0, 1, 2} (the count of 0 forced to 0): a later value replaces the entry it beats by the
+// most (a strictly larger gain). Each output is the entry, or 0x17 when its count is 0.
+void __cdecl Things_TopThreeValues(u8 *first, u8 *second, u8 *third);
+
+// 0x4c8d30 (cdecl; kind, cell id, radius, first only, pops 16): the things of the kind (the byte at +2) in the lists of the cells within the radius (clamped to 0 to 0x7f)
+// of the cell: the list head is the word at -0x20 of each 0x44-byte cell, the links the words at +0xa of each thing. Returns 1 at the first one when first only is set, else
+// the count.
+s32 __cdecl Things_CountOfKindAround(u32 kind, u32 cell, s32 radius, s32 firstOnly);
 // 0x519690 / 0x519800 / 0x519970 / 0x519c50 / 0x519ae0 (thiscall on the game object; thing, pops 4): the thing is taken out of the singly linked list of
 // things whose head handle is the word at +0x1da73c / +0x1da73e / +0x1da740 / +0x1da742 / +0x1da744 and whose links are the words at +0x210 of each: when it is
 // the head the head becomes its link, otherwise the link of the thing before it becomes its link (found by walking from the head; a thing that is not in the
