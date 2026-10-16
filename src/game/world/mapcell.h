@@ -140,6 +140,10 @@ u32 __fastcall MapCell_IsTypeDOr12ViaParent(const u8 *cell);
 u32 __fastcall MapHandle_IsTypeBDOr10Or12Or19(const u16 *handle);
 u32 __fastcall MapHandle_IsTypeCOr11(const u16 *handle);
 
+// 0x536450 (thiscall on a u16 handle): whether its 0x28-byte entry (MapHandle_Entry28) is of type 0x19; for an entry of type 0xc or 0x11, whether the world's cell of its parent
+// (the word at +0x10) is.
+u32 __fastcall MapHandle_ParentIsType19(const u16 *handle);
+
 // 0x539210 (u16 parent, passed as a dword): mParentID set.
 void __fastcall MapCell_SetParent(u8 *cell, void *, u32 parent);
 

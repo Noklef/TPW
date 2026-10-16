@@ -223,6 +223,12 @@ u32 __fastcall MapHandle_IsTypeBDOr10Or12Or19(const u16 *handle) {
 
 u32 __fastcall MapHandle_IsTypeCOr11(const u16 *handle) { return MapCell_IsTypeCOr11(MapHandle_Entry28(handle)); }
 
+u32 __fastcall MapHandle_ParentIsType19(const u16 *handle) {
+    const u8 *cell = MapHandle_Entry28(handle);
+    if (MapCell_IsTypeCOr11(cell)) cell = world_cell(at<u16>(cell, 0x10));
+    return MapCell_IsType19(cell);
+}
+
 void __fastcall MapCell_SetParent(u8 *cell, void *, u32 parent) { at<u16>(cell, 0x10) = (u16)parent; }
 
 void __fastcall MapCell_SetFlags(u8 *cell, void *, u32 value) { at<u16>(cell, 0xe) = (u16)value; }
