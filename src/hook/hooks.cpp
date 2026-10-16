@@ -65,7 +65,8 @@
 #include "../game/gfx/texset.h"
 #include "../game/gfx/texture.h"
 #include "../game/gfx/animtex.h"
-#include "../game/gfx/tga.h"
+#include "../game/gfx/tga.h"
+#include "../game/gfx/wavelet.h"
 #include "../game/core/events.h"
 #include "../game/core/filetime.h"
 #include "../game/core/gameclock.h"
@@ -1389,6 +1390,7 @@ const Hook kHooks[] = {
     {"SpriteImage_Init",          0x00588320, (void *)&SpriteImage_Init, {0x8b, 0xc1, 0x33, 0xc9, 0x66}},
     {"AnimTextures_Set",          0x005906e0, (void *)&AnimTextures_Set, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"AnimTextures_Clear",        0x00590730, (void *)&AnimTextures_Clear, {0x57, 0xb9, 0x06, 0x00, 0x00}},
+    {"WaveletCodec_PutCoefficient", 0x00591d30, (void *)&WaveletCodec_PutCoefficient, {0x66, 0x8b, 0x4c, 0x24, 0x04}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
