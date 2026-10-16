@@ -180,6 +180,7 @@ add_library(tpw_game STATIC
     src/game/render/texformat.cpp
     src/game/render/lightlist.cpp
     src/game/render/softrender.cpp
+    src/game/render/meshlist.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/frontend/lobbymodel.cpp
