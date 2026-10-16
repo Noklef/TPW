@@ -56,3 +56,25 @@ FpuControl *__fastcall FpuControl_BaseDeletingDtor(FpuControl *f, void *, u32 fl
 }
 
 }  // extern "C"
+
+extern "C" {
+
+u32 __cdecl Fpu_SinglePrecision() {
+    u16 cw;
+    __asm fnstcw cw
+    u16 old = cw;
+    cw &= 0xfcff;
+    __asm fldcw cw
+    return old;
+}
+
+void __cdecl Fpu_LoadControl(u32 cw) {
+    __asm fldcw word ptr cw
+}
+
+void __cdecl Fpu_LoadControlFullPrecision(u32 cw) {
+    cw |= 0x300;
+    __asm fldcw word ptr cw
+}
+
+}  // extern "C"

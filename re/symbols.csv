@@ -1643,6 +1643,9 @@ address,name,kind,confidence,notes
 0x005f9fd0,FpuControl_BaseDeletingDtor,function,high,"reimplemented (src/game/core/fpu); thiscall (flags); vtable 0x7035dc slot 0"
 0x0062f980,FpuControl_Merge,function,high,"reimplemented (src/game/core/fpu); thiscall (cw); (cw & ~(+6 | +8)) | +4, upper half stale"
 0x0062f9a0,FpuControl_Restore,function,high,"reimplemented (src/game/core/fpu); thiscall; FLDCW of the merged word when any bits changed, then zeroes +6 and +8 (never set in the game)"
+0x00591220,Fpu_SinglePrecision,function,high,"reimplemented (src/game/core/fpu); precision to single, returns the old control word"
+0x00591240,Fpu_LoadControl,function,high,reimplemented (src/game/core/fpu); loads a control word
+0x00591250,Fpu_LoadControlFullPrecision,function,high,reimplemented (src/game/core/fpu); loads a control word with 64-bit precision
 0x0062f9e0,List_Init,function,high,"reimplemented (src/game/core/list); cdecl (list); Exec-style: head = &tail, tail = 0, tailPred = list"
 0x0062fa00,List_InsertAfter,function,high,"reimplemented (src/game/core/list); cdecl (list unused, after, node)"
 0x0062fa20,List_First,function,high,"reimplemented (src/game/core/list); cdecl (list); head, 0 when empty"

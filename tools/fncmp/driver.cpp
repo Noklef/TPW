@@ -277,7 +277,18 @@ int main(int argc, char **argv) {
         u32 eax = 0, edxOut = 0;
         double st0 = 0;
         _control87(_PC_24 | _RC_NEAR, _MCW_PC | _MCW_RC);
+        if (std::strchr(ret, 'c')) {  // the case's control word (ret 'c:CW'), with nothing flagged it could unmask
+            u16 cw = (u16)std::strtoul(std::strchr(ret, ':') + 1, nullptr, 16);
+            __asm fnclex
+            __asm fldcw cw
+        }
         const int code = invoke(fn, ecx, edx, args.data() + skip, count - skip, ret[0] == 'd', &eax, &edxOut, &st0);
+        if (std::strchr(ret, 'c')) {  // the control word the call left, then the driver's back
+            u16 cw, ours = 0x7f;
+            __asm fnstcw cw
+            __asm fldcw ours
+            edxOut = cw;
+        }
         if (code) {
             std::printf("crash %08x\n", (u32)code);
             std::fflush(stdout);

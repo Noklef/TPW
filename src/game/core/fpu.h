@@ -34,3 +34,15 @@ struct FpuEnv {
 // The calls go through env (nullptr: the game's).
 void Fpu_SetEnv(const FpuEnv *env);
 const FpuEnv *Fpu_GetEnv();
+
+// The renderer's precision switches (cdecl), around its frame (0x576fa7, 0x577304 / 0x577310).
+extern "C" {
+// 0x591220: precision control to single (cw & 0xfcff); returns the control word it had (the
+// caller takes AX; the original's upper 16 bits are a stale stack slot's, these are zero).
+u32 __cdecl Fpu_SinglePrecision();
+// 0x591240: loads cw (its low 16 bits).
+void __cdecl Fpu_LoadControl(u32 cw);
+// 0x591250: loads cw with precision control to 64 bits (| 0x300). The original's EAX is left
+// holding that word; the caller drops it.
+void __cdecl Fpu_LoadControlFullPrecision(u32 cw);
+}

@@ -13,7 +13,7 @@ A test script defines a case generator and calls run():
     B.main(case)                                # cmd line: CASES SEED [--wild] [--show N]
 
 Call(address, args, regions, conv='c'|'s'|'t'|'f', ret='v'|'a'|'b'|'w'|'i'|'d'): ret 'a' compares
-EAX, 'b' AL (a flag returned over whatever EAX held), 'w' AX (likewise a u16), 'i' EAX and EDX, 'd' the double left in
+EAX, 'b' AL (a flag returned over whatever EAX held), 'w' AX (likewise a u16), 'c' the x87 control word left (Call(cw=) going in, 0x7f; 'wc' AX too), 'i' EAX and EDX, 'd' the double left in
 st0. Region addresses must be in the game's data (0x6e7000-0xfc5200) or at 0x10000000 and up (RAM, ALLOC.. are free slots); anything a case
 does not set reads as the exe image there, else zero, in both. The emulator is strict, like
 the driver: an access outside the regions' 64 KB chunks, the stack and the game's data (the
@@ -137,8 +137,9 @@ def put(buf, off, fmt, *values):
 
 
 class Call:
-    def __init__(self, address, args, regions, conv='c', ret='v'):
+    def __init__(self, address, args, regions, conv='c', ret='v', cw=0x7f):
         self.address, self.args, self.regions, self.conv, self.ret = address, list(args), dict(regions), conv, ret
+        self.cw = cw
 
 
 def sine_table(n):
@@ -266,6 +267,8 @@ class Bench:
             e.chunks = {0x0fff, 0x1000} | {p for k, v in c.regions.items() for p in range(k >> 16, ((k + max(len(v), 1) - 1) >> 16) + 1)}
             e.ranges = self.ranges
         e.reset()
+        if 'c' in c.ret:
+            e.cw = c.cw
         args = c.args
         if c.conv in 'tf' and args:
             e.r['ECX'] = args[0]
@@ -288,7 +291,7 @@ class Bench:
         except x87emu.MemFault as f:
             return '%s (emu: %s at %08x)' % (CRASH, f, at)
         st0 = struct.unpack('<Q', struct.pack('<d', e.st[0]))[0] if c.ret == 'd' and e.st else 0
-        head = ['%08x' % e.r['EAX'] if c.ret in 'ai' else '%02x' % (e.r['EAX'] & 0xff) if c.ret == 'b' else '%04x' % (e.r['EAX'] & 0xffff) if c.ret == 'w' else '-', '%08x' % e.r['EDX'] if c.ret == 'i' else '-',
+        head = ['%08x' % e.r['EAX'] if c.ret in 'ai' else '%02x' % (e.r['EAX'] & 0xff) if c.ret == 'b' else '%04x' % (e.r['EAX'] & 0xffff) if 'w' in c.ret else '-', '%08x' % e.r['EDX'] if c.ret == 'i' else '%04x' % e.cw if 'c' in c.ret else '-',
                 '%016x' % st0 if c.ret == 'd' else '-']
         return head + [e.read(k, len(v)).hex() for k, v in c.regions.items()]
 
@@ -304,7 +307,7 @@ class Bench:
 
     def native(self, cases):
         inp = ''.join('%x %s %s %x %s %x %s\n' % (
-            c.address, c.conv, c.ret, len(c.args), ' '.join('%x' % (a & 0xffffffff) for a in c.args), len(c.regions),
+            c.address, c.conv, c.ret + (':%x' % c.cw if 'c' in c.ret else ''), len(c.args), ' '.join('%x' % (a & 0xffffffff) for a in c.args), len(c.regions),
             ' '.join('%x %s' % (k, bytes(v).hex()) for k, v in c.regions.items())) for c in cases)
         try:  # a case that loops forever in the C++ would hang the bench
             p = subprocess.run([self.driver, EXE], input=inp, capture_output=True, text=True, timeout=600)
@@ -317,7 +320,7 @@ class Bench:
             if len(w) < 3 or w[0] in ('crash', 'nohook', 'fncmp:'):
                 out.append(line)
                 continue
-            out.append([w[0] if c.ret in 'ai' else w[0][-2:] if c.ret == 'b' else w[0][-4:] if c.ret == 'w' else '-', w[1] if c.ret == 'i' else '-', w[2] if c.ret == 'd' else '-'] + w[3:])
+            out.append([w[0] if c.ret in 'ai' else w[0][-2:] if c.ret == 'b' else w[0][-4:] if 'w' in c.ret else '-', w[1] if c.ret == 'i' else w[1][-4:] if 'c' in c.ret else '-', w[2] if c.ret == 'd' else '-'] + w[3:])
         if len(out) < len(cases):
             out += ['driver stopped (exit %x): %s' % (p.returncode & 0xffffffff, p.stderr.strip()[:200])] * (len(cases) - len(out))
         return out
