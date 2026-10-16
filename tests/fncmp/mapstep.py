@@ -8,13 +8,23 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM  # noqa: E402
 
-CALLS = {'Step': 0x4d96f0, 'Dir': 0x4d97e0}
-B = Bench([(0x4d96f0, 0x4d97b0), (0x4d97b0, 0x4d97e0), (0x4d97e0, 0x4d9920), (0x4d99c0, 0x4d99e0), (0x4d8300, 0x4d8328), (0x5da3c0, 0x5da3c1)])
+CALLS = {'Step': 0x4d96f0, 'Dir': 0x4d97e0, 'Spread': 0x4d8480}
+B = Bench([(0x4d96f0, 0x4d97b0), (0x4d97b0, 0x4d97e0), (0x4d97e0, 0x4d9920), (0x4d99c0, 0x4d99e0), (0x4d8300, 0x4d8328), (0x5da3c0, 0x5da3c1), (0x4d8480, 0x4d8620)])
 CELL = RAM
 
 
 def case(r):
     name = r.choice(OPS)
+    if name == 'Spread':
+        world = RAM + 0x10000
+        records = bytearray(r.bytes(12 * 4))
+        for k in range(4):
+            records[12 * k + 0xa] = r.choice([0, 1, 2, 3, 3])
+            struct.pack_into('<5h', records, 12 * k, *[r.choice([0, 1, -1, 100, -100, 0x7fff, -0x8000, r.randrange(-300, 300)]) for _ in range(5)])
+        re_cells = bytearray(r.bytes(10 * 0x302))
+        cell = r.choice([1, 2, 0x7f, 0x80, 0x81, 0x100, 0x14a, r.randrange(1, 0x100), 0xfe])
+        regions = {world + 0x1d9104: records, world + 0x1b1104: re_cells}
+        return Call(CALLS[name], [world, r.choice([0, 1, 2]), r.randrange(4), cell], regions, conv='t', ret='v')
     cell = r.choice([1, 2, 0x7f, 0x80, 0x81, 0x4000, 0x3f81, 0x2000, r.randrange(1, 0x4001), 0, 0x4001, r.getrandbits(16)])
     regions = {CELL: struct.pack('<I', cell), 0x80239c: struct.pack('<I', RAM + 0x1000 + 4 * r.randrange(0x100))}
     small = lambda: r.choice([0, 1, -1, 2, -2, 3, 127, -127, 128, r.randrange(-5, 6), r.getrandbits(32) - (1 << 31)]) & 0xffffffff  # noqa: E731

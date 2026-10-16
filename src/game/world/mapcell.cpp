@@ -173,6 +173,26 @@ s32 __cdecl Map_PercentWithRE() {
     return total ? counted * 100 / total : 0;
 }
 
+void __fastcall Map_SpreadValues(u8 *world, void *, u32 add, u32 index, u32 cell) {
+    const u8 *source = world + index * 12;
+    const s32 radius = (u16)source[0x1d910e];
+    const u32 at_cell = (cell & 0xffff) - 1;
+    const s32 cx = (s32)(at_cell & 0x7f), cy = (s32)(at_cell >> 7);
+    const s32 xmin = cx - radius < 0 ? 0 : cx - radius, ymin = cy - radius < 0 ? 0 : cy - radius;
+    const s32 xmax = cx + radius > 0x7f ? 0x7f : cx + radius, ymax = cy + radius > 0x7f ? 0x7f : cy + radius;
+    const s32 sign = add != 0 ? 1 : -1;
+    for (s32 x = xmin; x <= xmax; ++x) {
+        for (s32 y = ymin; y <= ymax; ++y) {
+            const u32 id = (u16)((y << 7) + 1 + x);
+            s16 *to = reinterpret_cast<s16 *>(world + 0x1b1104 + (id - 1) * 10);
+            const s16 *from = reinterpret_cast<const s16 *>(source + 0x1d9104);
+            const s32 dy = cy - y < 0 ? y - cy : cy - y, dx = cx - x < 0 ? x - cx : cx - x;
+            for (s32 i = 0; i < 5; ++i)
+                to[i] = (s16)(to[i] + (s16)((sign * (s32)from[i]) / (dx + dy + 1)));
+        }
+    }
+}
+
 u8 *__fastcall Map_StepCell(const u16 *cell, void *, s32 dx, s32 dy, s32 scale) {
     const u32 index = (u32)*cell - 1;
     const s32 x = (s32)(index & 0x7f) + dx * scale;

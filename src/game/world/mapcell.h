@@ -46,6 +46,11 @@ s32 __cdecl Map_CountSpecialCells();
 // world + 0x294 + 0x44 times (the id + dx + dy * 128, 16 bits) (the offset is not scaled there, sic); null when it falls outside.
 u8 *__fastcall Map_StepCell(const u16 *cell, void *, s32 dx, s32 dy, s32 scale);
 
+// 0x4d8480 (thiscall on the world block; add, index, cell id, pops 12): to the five words of every cell within the radius (the byte at +0x1d910e of the index's 12-byte
+// record, at world + index * 12, clamped to the map) of the cell (the words at world + 0x1b1104 + (id - 1) * 10), the five words of the record (at +0x1d9104) are added, each
+// multiplied by +1 (add set) or -1 and divided (truncating) by the cell's distance, x + y + 1.
+void __fastcall Map_SpreadValues(u8 *world, void *, u32 add, u32 index, u32 cell);
+
 // 0x4d97e0 (thiscall on a cell id word; direction bit, pops 4): Map_StepCell by the (dx, dy) pair of the direction (the pairs from 0x7cdba0, 0x7cdbd8, 0x7cdbc8, 0x7cdbb8,
 // 0x7cdba8, 0x7cdbb0, 0x7cdbd0, 0x7cdbc0 for the bits 1 to 0x80) with scale 1; null for anything else (an assert is left out).
 u8 *__fastcall Map_StepCellInDirection(const u16 *cell, void *, u32 direction);
