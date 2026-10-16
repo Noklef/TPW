@@ -111,6 +111,48 @@ extern "C" void __cdecl Lnd_BuildRamp(u8 *table, s16 centre, s16 width) {
         table[i] = i < lo ? 0 : i > hi ? 0xff : (u8)((i * 255 - lo * 255) / (width + 1));
 }
 
+extern "C" u32 __cdecl Lnd_BuildWeightMap(const Array3D *control, s32 x, s32 y, s32 channel, const Array3D *out) {
+    const s32 size = (s32)out->width;
+    const s32 n = size >> 2;
+    s32 shift = 0;
+    switch (n) {
+    case 2: shift = 1; break;
+    case 4: shift = 2; break;
+    case 8: shift = 3; break;
+    case 0x10: shift = 4; break;
+    case 0x20: shift = 5; break;
+    case 0x40: shift = 6; break;
+    case 0x80: shift = 7; break;
+    case 0x100: shift = 8; break;
+    default: shift = 0;
+    }
+    const s32 k = 16 - shift;
+    const s32 w = (s32)control->width;
+    for (s32 j = 0; j < 4; ++j) {
+        for (s32 i = 0; i < 4; ++i) {
+            const u8 *p = control->data + (((y << 4) + 4 * j) * w + channel + (x << 4) + 4 * i);
+            const s32 a = p[0], b = p[w * 4], c = p[4], d = p[w * 4 + 4];
+            s32 step = (s32)((u32)(c - a) << (k & 31));
+            s32 start = (s32)((u32)(b - a) << (k & 31));
+            s32 change = (s32)((u32)(d - b) << (k & 31)) - step;
+            change >>= shift;
+            s32 value0 = (s32)((u32)a << 16);
+            u8 *dst = out->data + ((j * size + i) * n);
+            for (s32 r = n - 1; r >= 0; --r) {
+                s32 v = value0;
+                for (s32 col = n - 1; col >= 0; --col) {
+                    *dst++ = (u8)((u32)v >> 16);
+                    v += step;
+                }
+                dst += size - n;
+                value0 += start;
+                step += change;
+            }
+        }
+    }
+    return 1;
+}
+
 extern "C" bool TerrainBlend_WeightMap(const Array3D *control, u32 x, u32 y, int channel, int size, u8 *out) {
     int n = size >> 2, shift = 0;
     while ((1 << shift) < n) ++shift;

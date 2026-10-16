@@ -8,6 +8,10 @@ extern "C" {
 // 0x55e710: 256-entry ramp, 0 below centre - (width+1)/2, 255 above centre + (width+1)/2.
 void __cdecl Lnd_BuildRamp(u8 *table, s16 centre, s16 width);
 
+// 0x55e780 (cdecl; control, x, y, channel, out): the original's own interface: bilinear upsampling of one channel of a control map over the tile (x, y) into the Array3D out (its
+// size at +0 is the tile size; a size that is not 4 * 2^n only gets cells of 1 x 1; the cells are 4 x 4, the control map's pitch at +0 and data at +0xc). Returns 1.
+u32 __cdecl Lnd_BuildWeightMap(const Array3D *control, s32 x, s32 y, s32 channel, const Array3D *out);
+
 // 0x55e780 (writes into a plain buffer instead of an Array3D): bilinear upsampling of one
 // control channel over tile (x, y) to size * size bytes. y counts from the top of the
 // control map. Returns false for a size the original cannot handle (not 4 * 2^n).
