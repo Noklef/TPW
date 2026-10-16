@@ -1,7 +1,8 @@
 // The object definitions (loaded by ObjectDefs_Load 0x413c10 from .sam files): reimplementation
-// of the lookups 0x412e90, 0x412ef0 and 0x412f50. The set holds up to 0x14a definition pointers
-// from +0, their count at +0x528 and a one-entry cache, +0x730 (u16) the id last found and
-// +0x734 its definition; a definition starts with its u16 id.
+// of the lookups 0x412e90, 0x412ef0 and 0x412f50, the walk 0x412e70 and the schema slots 0x412c90
+// and 0x4143f0. The set holds up to 0x14a definition pointers from +0, their count at +0x528, a
+// walk cursor at +0x72c and a one-entry cache, +0x730 (u16) the id last found and +0x734 its
+// definition; a definition starts with its u16 id.
 #pragma once
 
 #include "../../../re/types.h"
@@ -15,4 +16,12 @@ u8 *__fastcall ObjectDefs_Find(u8 *defs, void *, u16 id);
 // 0x412ef0 / 0x412f50: the found definition's +0x390 / +0x410 part, or 0.
 u8 *__fastcall ObjectDefs_FindAt390(u8 *defs, void *, u16 id);
 u8 *__fastcall ObjectDefs_FindAt410(u8 *defs, void *, u16 id);
+
+// 0x412e70: the definition after the walk's cursor (+0x72c), which moves on to it; 0 at the last.
+u8 *__fastcall ObjectDefs_Next(u8 *defs);
+
+// The schemas of the .sam files (vtable slots, this unused): record index of 0x3c bytes.
+// 0x412c90: an object definition's (0x744b30). 0x4143f0: a track type's (0x739ea8).
+const u8 *__fastcall ObjectDef_GetSchema(const void *, void *, u32 index);
+const u8 *__fastcall TrackType_GetSchema(const void *, void *, u32 index);
 }

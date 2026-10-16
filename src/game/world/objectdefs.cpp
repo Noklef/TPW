@@ -33,4 +33,18 @@ u8 *__fastcall ObjectDefs_FindAt410(u8 *defs, void *, u16 id) {
     u8 *def = ObjectDefs_Find(defs, nullptr, id);
     return def ? def + 0x410 : nullptr;
 }
+
+u8 *__fastcall ObjectDefs_Next(u8 *defs) {
+    s32 &cursor = at<s32>(defs, 0x72c);
+    if (cursor >= at<s32>(defs, 0x528) - 1) return nullptr;
+    return at<u8 *>(defs, ++cursor * 4);
+}
+
+const u8 *__fastcall ObjectDef_GetSchema(const void *, void *, u32 index) {
+    return reinterpret_cast<const u8 *>(0x00744b30) + index * 0x3c;
+}
+
+const u8 *__fastcall TrackType_GetSchema(const void *, void *, u32 index) {
+    return reinterpret_cast<const u8 *>(0x00739ea8) + index * 0x3c;
+}
 }

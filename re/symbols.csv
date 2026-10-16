@@ -233,10 +233,12 @@ address,name,kind,confidence,notes
 0x00412e90,ObjectDefs_Find,function,high,"reimplemented (src/game/world/objectdefs); thiscall(id): the definition with an id (one-entry cache), or 0"
 0x00412ef0,ObjectDefs_FindAt390,function,high,"reimplemented (src/game/world/objectdefs); the found definition's +0x390 part, or 0"
 0x00412f50,ObjectDefs_FindAt410,function,high,"reimplemented (src/game/world/objectdefs); the found definition's +0x410 part, or 0"
+0x00412e70,ObjectDefs_Next,function,high,"reimplemented (src/game/world/objectdefs); thiscall; the definition after the walk cursor (+0x72c), which moves to it; 0 when the cursor is at count - 1 (+0x528) or beyond (signed)"
 0x00401030,BalanceFile_Init,function,high,"thiscall; base of every .sam-backed class: walks the key schema (vtable slot 0) and assigns each value a 4-byte slot of the storage (slot 1); tables reserve rows*keys+1"
 0x004013e0,BalanceFile_SetDefaults,function,medium,"type 6 -> min, type 9 -> fmin, others 0; 'InitialiseBalanceValues internal' error"
 0x004017a0,BalanceFile_Parse,function,medium,"parses Group.Key value lines; 'Balance file %s parse error', range checks per type"
-0x00412c90,ObjectDef_GetSchema,function,high,"returns &key record i of the object .sam schema at 0x744b30 (0x3c bytes each)"
+0x00412c90,ObjectDef_GetSchema,function,high,"reimplemented (src/game/world/objectdefs); thiscall (i), this unused: &key record i of the object .sam schema at 0x744b30 (0x3c bytes each)"
+0x004143f0,TrackType_GetSchema,function,high,"reimplemented (src/game/world/objectdefs); thiscall (i), this unused: &key record i of the track type .sam schema at 0x739ea8 (0x3c bytes each); BalanceTrack vtable 0x6fd8b0"
 0x00412c20,ObjectDef_Ctor,function,medium,vtable at +4 (0x6fd8a8) then BalanceFile_Init; zeroes runtime fields 0x494..0x500
 0x00413c10,ObjectDefs_Load,function,medium,"allocates an ObjectDef (max 0x14a), copies the .sam path to +0x28c and parses it"
 0x00785040,gBalanceLevel,data,high,"BalanceLevel: Standard.sam values (static instance, ctor 0x402ae0)"
@@ -446,6 +448,8 @@ address,name,kind,confidence,notes
 0x007b4988,gRotationKeyCount,data,high,"u32; set by Track_Apply from the rotation track before Motion_RotationAt"
 0x007b4980,gMotionFlags,data,medium,"u32; set by Motion_SetFlags; bit 0x2 makes Motion_RotationAt lerp instead of slerp"
 0x004740d0,Motion_SetFlags,function,high,"reimplemented (src/game/motion/animator); (flags): gMotionFlags = flags"
+0x004709d0,Motion_SetTime,function,high,reimplemented (src/game/motion/animator); cdecl (time): gMotionTime (0x7b496c) = time
+0x004709e0,Motion_Time,function,high,"reimplemented (src/game/motion/animator); cdecl (real): gMotionRealTime (0x7b4974) when real, else gMotionTime (0x7b496c)"
 0x00449eb0,SinTable_Init,function,high,"SinTable_Build(4096); called once from the main loop before the Direct3D setup (0x44e080)"
 0x0046f150,Matrix_Identity,function,high,"reimplemented (src/game/math); (m): 4x4 identity"
 0x0046f180,Matrix_ResetRotation,function,high,"reimplemented (src/game/math); (m): identity axes and m[15]; the translation m[12..14] is kept"

@@ -631,3 +631,9 @@ extern "C" u32 __cdecl Animator_MotionEndMs(const u8 *animator, u32 bank, u32 en
 }
 
 extern "C" void __cdecl Motion_SetFlags(u32 flags) { *reinterpret_cast<u32 *>(0x007b4980) = flags; }
+
+extern "C" void __cdecl Motion_SetTime(u32 time) { *reinterpret_cast<u32 *>(0x007b496c) = time; }
+
+extern "C" u32 __cdecl Motion_Time(u32 real) {
+    return real ? *reinterpret_cast<const u32 *>(0x007b4974) : *reinterpret_cast<const u32 *>(0x007b496c);
+}

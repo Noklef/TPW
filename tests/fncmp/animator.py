@@ -225,6 +225,10 @@ def case(r):
         return Call(0x473c70, [ANIM, blk, mode], regs, ret='a')
     if op == 'Reset':
         return Call(0x473e30, [ANIM, r.choice([0, 1]), r.choice([0, 1]), r.choice([0, 1])], regs, ret='a')
+    if op == 'SetTime':
+        return Call(0x4709d0, [r.getrandbits(32)], regs)
+    if op == 'Time':
+        return Call(0x4709e0, [r.choice([0, 1, r.getrandbits(32)])], regs, ret='a')
     if op == 'ResetLayers':
         return Call(0x4726d0, [ANIM], regs)
     if op == 'QSpeed':
@@ -237,7 +241,7 @@ def case(r):
 
 
 OPS_ALL = ['Start', 'Advance', 'SetBlock', 'TimeLeft', 'Play', 'AnimPlay', 'IsIdle', 'Update', 'AnimUpdate', 'Reset',
-           'ResetLayers', 'QSpeed', 'SetSpeed', 'EndMs', 'Playback']
+           'ResetLayers', 'QSpeed', 'SetSpeed', 'EndMs', 'Playback', 'SetTime', 'Time']
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

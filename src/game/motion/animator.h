@@ -159,6 +159,12 @@ u32 __cdecl Animator_MotionEndMs(const u8 *animator, u32 bank, u32 entry);
 
 // 0x4740d0: gMotionFlags (0x7b4980) = flags.
 void __cdecl Motion_SetFlags(u32 flags);
+
+// 0x4709d0: gMotionTime (0x7b496c) = time.
+void __cdecl Motion_SetTime(u32 time);
+// 0x4709e0: gMotionRealTime (0x7b4974) when real, else gMotionTime.
+u32 __cdecl Motion_Time(u32 real);
+
 s32 __cdecl Animator_IsIdle(u8 *animator);
 void __cdecl Animator_RefreshNodes(u8 *animator);
 void __cdecl Layer_Update(u8 *animator, u8 *layer, const u8 *block);
