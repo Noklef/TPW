@@ -33,6 +33,9 @@ def case(r):
     elif name == 'Rng':
         for i in range(8):
             struct.pack_into('<H', pool, 0x10 * i, r.choice([0, 0x5b0, 0x5b1, 0x5ea, 0x5eb, 0x5ec, 0x100, 0xffff, 0x15b1, r.getrandbits(16)]))
+        for i in range(8):  # the half-way values are in range too, so that a wrong stride is seen
+            if r.random() < 0.5:
+                struct.pack_into('<H', pool, 0x10 * i + 8, 0x5c0)
         args = [POOL, POOL + 0x10 * r.randrange(0, 9)]
     elif name == 'C4':
         struct.pack_into('<II', obj, 4, r.choice([0, POOL]), POOL + 8 * r.choice([0, 1, 5, 100]))
