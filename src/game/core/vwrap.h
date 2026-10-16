@@ -31,4 +31,26 @@ void __cdecl Global87b1d8_Delete();
 u32 __fastcall Obj_CallSub14Slot18(u8 *object, void *, u32 a);
 u32 __fastcall Obj_CallSub28Slot18(u8 *object, void *, u32 a);
 
+// 0x617a30 / 0x617b00 / 0x617b30 (thiscall; a, pops 4): the member object at +8, when there is one, gets its slot 0x14 / 0x18 / 0x10 called with a (returns what it
+// returns); otherwise the dword at +8 of a is cleared and a returned.
+u32 __fastcall Obj_ForwardToMember14(u8 *object, void *, u8 *a);
+u32 __fastcall Obj_ForwardToMember18(u8 *object, void *, u8 *a);
+u32 __fastcall Obj_ForwardToMember10(u8 *object, void *, u8 *a);
+
+// 0x5c4f80 (cdecl; object): the object's slot 4, then its deleting destructor (slot 0 with 1). Returns 0.
+u32 __cdecl Object_FinishAndDelete(u8 *object);
+
+// 0x5c4f60 (cdecl; a, b, c, object): the object's slot 8 called with a and c * b.
+u32 __cdecl Object_CallSlot8Product(u32 a, u32 b, u32 c, u8 *object);
+
+// 0x565560 (thiscall; a, pops 4): 1 when the dwords at +0x20 or +0x24 of a are not above 0 (signed), otherwise the object's slot 0x10 called with a.
+u32 __fastcall Obj_CallSlot10IfSized(u8 *object, void *, u8 *a);
+
+// 0x565930 (thiscall; a, pops 4): when the dword at +0xc of the object and the dword at +4 of a share a bit the object's slot 0x10 is called with a: 0 if it
+// returned 0, otherwise the bit 4 of a's first dword is set; then 1.
+u32 __fastcall Obj_ApplyIfShared(u8 *object, void *, u8 *a);
+
+// 0x48ccd0 (thiscall; a, pops 4): the object's slot 0x2c when a is the dword at 0x7c2658, otherwise a.
+u32 __fastcall Obj_CallSlot2cIfGlobal(u8 *object, void *, u32 a);
+
 }  // extern "C"

@@ -3066,6 +3066,14 @@ address,name,kind,confidence,notes
 0x00578390,Global87b1d8_Delete,function,high,reimplemented (src/game/core/vwrap); deletes a global object
 0x005c5530,Obj_CallSub14Slot18,function,high,reimplemented (src/game/core/vwrap); calls slot 0x18 of the sub-object at +0x14
 0x005c5560,Obj_CallSub28Slot18,function,high,reimplemented (src/game/core/vwrap); calls slot 0x18 of the sub-object at +0x28
+0x00617a30,Obj_ForwardToMember14,function,high,reimplemented (src/game/core/vwrap); forwards to slot 0x14 of the member object
+0x00617b00,Obj_ForwardToMember18,function,high,reimplemented (src/game/core/vwrap); forwards to slot 0x18 of the member object
+0x00617b30,Obj_ForwardToMember10,function,high,reimplemented (src/game/core/vwrap); forwards to slot 0x10 of the member object
+0x005c4f80,Object_FinishAndDelete,function,high,reimplemented (src/game/core/vwrap); calls slot 4 and then deletes the object
+0x005c4f60,Object_CallSlot8Product,function,high,reimplemented (src/game/core/vwrap); calls slot 8 with a number and a product
+0x00565560,Obj_CallSlot10IfSized,function,high,reimplemented (src/game/core/vwrap); calls slot 0x10 when the argument has a size
+0x00565930,Obj_ApplyIfShared,function,high,reimplemented (src/game/core/vwrap); calls slot 0x10 when the flags share a bit and marks the argument
+0x0048ccd0,Obj_CallSlot2cIfGlobal,function,high,reimplemented (src/game/core/vwrap); calls slot 0x2c when the argument is the global one
 0x005e3b90,Class702d48_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor that registers the object with a global one
 0x005e3c00,Class702d48_Release,function,high,reimplemented (src/game/core/vdtor); releases the object from a global one
 0x005e3bd0,Class702d48_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor that releases the object from a global one

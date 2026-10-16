@@ -11,7 +11,9 @@ from fncmp import Bench, Call, LOG, RAM, log_region, put, vtable  # noqa: E402
 # name: (address, convention, returns, size)
 CALLS = {'S18': (0x5c5510, 't', 'a', 0x20), 'Pass': (0x617dd0, 't', 'a', 0x20), 'R24': (0x5d60d0, 't', 'a', 0x30), 'C24': (0x5d60f0, 't', 'a', 0x30),
          'G14': (0x46c330, 's', 'a', 0x30), 'G1e0': (0x498b90, 'c', 'v', 0x30), 'G1c8': (0x4987d0, 'c', 'v', 0x30), 'G1d8': (0x578390, 'c', 'v', 0x30),
-         'Sub14': (0x5c5530, 't', 'a', 0x30), 'Sub28': (0x5c5560, 't', 'a', 0x30)}
+         'Sub14': (0x5c5530, 't', 'a', 0x30), 'Sub28': (0x5c5560, 't', 'a', 0x30), 'M14': (0x617a30, 't', 'a', 0x30), 'M18': (0x617b00, 't', 'a', 0x30),
+         'M10': (0x617b30, 't', 'a', 0x30), 'Fin': (0x5c4f80, 'c', 'a', 0x30), 'Prod': (0x5c4f60, 'c', 'a', 0x30), 'Sized': (0x565560, 't', 'a', 0x30),
+         'Shared': (0x565930, 't', 'a', 0x50), 'G2c': (0x48ccd0, 't', 'a', 0x30)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()])
 OBJ, OBJ2, VT = RAM, RAM + 0x200, RAM + 0x1000
 
@@ -47,6 +49,35 @@ def case(r):
         put(obj, 0, 'I', VT)
         regions[VT] = vtable({slot: 1})
         return Call(address, [], regions, conv=conv, ret=ret)
+    if name in ('M14', 'M18', 'M10'):
+        slot = {'M14': 5, 'M18': 6, 'M10': 4}[name]
+        arg = bytearray(r.bytes(0x40))
+        put(obj, 8, 'I', OBJ2 if r.random() < 0.7 else 0)
+        regions.update({OBJ2: struct.pack('<I', VT) + r.bytes(0x20), VT: vtable({slot: 1}), RAM + 0x400: arg})
+        return Call(address, [OBJ, RAM + 0x400], regions, conv=conv, ret=ret)
+    if name == 'Fin':
+        put(obj, 0, 'I', VT)
+        regions[VT] = vtable({1: 0, 0: 1})
+        return Call(address, [OBJ], regions, conv=conv, ret=ret)
+    if name == 'Prod':
+        put(obj, 0, 'I', VT)
+        regions[VT] = vtable({2: 2})
+        return Call(address, [r.getrandbits(32), r.getrandbits(32), r.getrandbits(32), OBJ], regions, conv=conv, ret=ret)
+    if name in ('Sized', 'Shared'):
+        put(obj, 0, 'I', VT)
+        put(obj, 0xc, 'I', r.choice([0, 1, 4, 0x10, 0xff]))
+        regions[VT] = vtable({4: 1})
+        arg = bytearray(r.bytes(0x40))
+        put(arg, 0x20, 'ii', r.choice([-1, 0, 1, 5]), r.choice([-1, 0, 1, 5]))
+        put(arg, 4, 'I', r.choice([0, 1, 4, 0x10, 0xff]))
+        regions[RAM + 0x400] = arg
+        return Call(address, [OBJ, RAM + 0x400], regions, conv=conv, ret=ret)
+    if name == 'G2c':
+        put(obj, 0, 'I', VT)
+        regions[VT] = vtable({11: 0})
+        g = r.choice([0, 5, 0x1234, r.getrandbits(32)])
+        regions[0x7c2658] = struct.pack('<I', g)
+        return Call(address, [OBJ, g if r.random() < 0.6 else r.choice([0, 5, 0x1234])], regions, conv=conv, ret=ret)
     sub = 0x14 if name == 'Sub14' else 0x28
     put(obj, sub, 'I', VT)
     regions[VT] = vtable({6: 1})

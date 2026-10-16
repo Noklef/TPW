@@ -54,4 +54,55 @@ u32 __fastcall Obj_CallSub14Slot18(u8 *object, void *, u32 a) { return vcall<u32
 
 u32 __fastcall Obj_CallSub28Slot18(u8 *object, void *, u32 a) { return vcall<u32>(object + 0x28, 0x18, a); }
 
+u32 __fastcall Obj_ForwardToMember14(u8 *object, void *, u8 *a) {
+    if (u8 *member = at<u8 *>(object, 8))
+        return vcall<u32>(member, 0x14, a);
+    at<u32>(a, 8) = 0;
+    return (u32)(uintptr_t)a;
+}
+
+u32 __fastcall Obj_ForwardToMember18(u8 *object, void *, u8 *a) {
+    if (u8 *member = at<u8 *>(object, 8))
+        return vcall<u32>(member, 0x18, a);
+    at<u32>(a, 8) = 0;
+    return (u32)(uintptr_t)a;
+}
+
+u32 __fastcall Obj_ForwardToMember10(u8 *object, void *, u8 *a) {
+    if (u8 *member = at<u8 *>(object, 8))
+        return vcall<u32>(member, 0x10, a);
+    at<u32>(a, 8) = 0;
+    return (u32)(uintptr_t)a;
+}
+
+u32 __cdecl Object_FinishAndDelete(u8 *object) {
+    vcall<u32>(object, 4);
+    if (object)
+        vcall<u32>(object, 0, 1u);
+    return 0;
+}
+
+u32 __cdecl Object_CallSlot8Product(u32 a, u32 b, u32 c, u8 *object) { return vcall<u32>(object, 8, a, c * b); }
+
+u32 __fastcall Obj_CallSlot10IfSized(u8 *object, void *, u8 *a) {
+    if (at<s32>(a, 0x20) > 0 && at<s32>(a, 0x24) > 0)
+        return vcall<u32>(object, 0x10, a);
+    return 1;
+}
+
+u32 __fastcall Obj_ApplyIfShared(u8 *object, void *, u8 *a) {
+    if (at<u32>(object, 0xc) & at<u32>(a, 4)) {
+        if (!vcall<u32>(object, 0x10, a))
+            return 0;
+        at<u32>(a, 0) |= 0x10;
+    }
+    return 1;
+}
+
+u32 __fastcall Obj_CallSlot2cIfGlobal(u8 *object, void *, u32 a) {
+    if (a == global<u32>(0x007c2658))
+        return vcall<u32>(object, 0x2c);
+    return a;
+}
+
 }  // extern "C"
