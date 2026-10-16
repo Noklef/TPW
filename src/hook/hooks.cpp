@@ -111,6 +111,7 @@
 #include "../game/core/small4.h"
 #include "../game/core/tiny_g.h"
 #include "../game/core/tiny_h.h"
+#include "../game/core/tiny_i.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -2270,6 +2271,40 @@ const Hook kHooks[] = {
     {"Global786b80_SetAndMode3",  0x005d5db0, (void *)&Global786b80_SetAndMode3, {0xa1, 0x84, 0x28, 0xf8, 0x00}},
     {"Staff_WageForRecord",       0x005077f0, (void *)&Staff_WageForRecord, {0x8a, 0x41, 0x08, 0x8b, 0x09}},
     {"Text_NarrowToGlobalBuffer", 0x00486780, (void *)&Text_NarrowToGlobalBuffer, {0x8b, 0x0d, 0x80, 0xba, 0x78}},
+    {"ScalarDelete6fd7a0_40f270", 0x0040f270, (void *)&ScalarDelete6fd7a0_40f270, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fd7a8_40f2b0", 0x0040f2b0, (void *)&ScalarDelete6fd7a8_40f2b0, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fd7b0_40f2e0", 0x0040f2e0, (void *)&ScalarDelete6fd7b0_40f2e0, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fd7c0_40f360", 0x0040f360, (void *)&ScalarDelete6fd7c0_40f360, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fd7c8_40f3b0", 0x0040f3b0, (void *)&ScalarDelete6fd7c8_40f3b0, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fd7d0_40f400", 0x0040f400, (void *)&ScalarDelete6fd7d0_40f400, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fd7d8_40f450", 0x0040f450, (void *)&ScalarDelete6fd7d8_40f450, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fd7e0_40f4a0", 0x0040f4a0, (void *)&ScalarDelete6fd7e0_40f4a0, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fd7e8_40f4e0", 0x0040f4e0, (void *)&ScalarDelete6fd7e8_40f4e0, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fd7f0_40f520", 0x0040f520, (void *)&ScalarDelete6fd7f0_40f520, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fd7f8_40f560", 0x0040f560, (void *)&ScalarDelete6fd7f8_40f560, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fd800_40f5c0", 0x0040f5c0, (void *)&ScalarDelete6fd800_40f5c0, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fd808_40f610", 0x0040f610, (void *)&ScalarDelete6fd808_40f610, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fd810_40f660", 0x0040f660, (void *)&ScalarDelete6fd810_40f660, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fd818_40f6b0", 0x0040f6b0, (void *)&ScalarDelete6fd818_40f6b0, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fd820_40f720", 0x0040f720, (void *)&ScalarDelete6fd820_40f720, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fd828_40f780", 0x0040f780, (void *)&ScalarDelete6fd828_40f780, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fd830_40f820", 0x0040f820, (void *)&ScalarDelete6fd830_40f820, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fd838_40f890", 0x0040f890, (void *)&ScalarDelete6fd838_40f890, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fd840_40f8e0", 0x0040f8e0, (void *)&ScalarDelete6fd840_40f8e0, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fd848_40f930", 0x0040f930, (void *)&ScalarDelete6fd848_40f930, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fdce8_429b60", 0x00429b60, (void *)&ScalarDelete6fdce8_429b60, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fef90_47e3a0", 0x0047e3a0, (void *)&ScalarDelete6fef90_47e3a0, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete6fefb8_47e730", 0x0047e730, (void *)&ScalarDelete6fefb8_47e730, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete709b44_4f18b0", 0x004f18b0, (void *)&ScalarDelete709b44_4f18b0, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete7007a8_4ff500", 0x004ff500, (void *)&ScalarDelete7007a8_4ff500, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete700868_5061b0", 0x005061b0, (void *)&ScalarDelete700868_5061b0, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete701178_564710", 0x00564710, (void *)&ScalarDelete701178_564710, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete701260_565210", 0x00565210, (void *)&ScalarDelete701260_565210, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete702198_58b310", 0x0058b310, (void *)&ScalarDelete702198_58b310, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete7026e8_591980", 0x00591980, (void *)&ScalarDelete7026e8_591980, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete7029fc_5d5c30", 0x005d5c30, (void *)&ScalarDelete7029fc_5d5c30, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete703748_617930", 0x00617930, (void *)&ScalarDelete703748_617930, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"ScalarDelete703770_617ae0", 0x00617ae0, (void *)&ScalarDelete703770_617ae0, {0x8a, 0x44, 0x24, 0x04, 0x56}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
