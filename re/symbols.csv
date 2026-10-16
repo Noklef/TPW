@@ -2628,6 +2628,7 @@ address,name,kind,confidence,notes
 0x006929f0,Wrap_Init_692970_6929f0,function,high,reimplemented (src/game/core/tiny_f); calls Init_692970
 0x006baa10,Wrap_Globalfb2708_Set_6d1bc0_6baa10,function,high,reimplemented (src/game/core/tiny_f); calls Globalfb2708_Set_6d1bc0
 0x006c4900,Wrap_Init_6c4fb0_6c4900,function,high,reimplemented (src/game/core/tiny_f); calls Init_6c4fb0
+0x005c92f0,Base64_Encode,function,high,reimplemented (src/game/core/base64); base64 text with CR LF every 76 characters
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

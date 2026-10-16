@@ -98,6 +98,7 @@
 #include "../game/core/trivial.h"
 #include "../game/core/accessors.h"
 #include "../game/core/volumes.h"
+#include "../game/core/base64.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -2098,6 +2099,7 @@ const Hook kHooks[] = {
     {"Wrap_Init_692970_6929f0",   0x006929f0, (void *)&Wrap_Init_692970_6929f0, {0x6a, 0x00, 0xb9, 0x00, 0x1d}},
     {"Wrap_Globalfb2708_Set_6d1bc0_6baa10", 0x006baa10, (void *)&Wrap_Globalfb2708_Set_6d1bc0_6baa10, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Wrap_Init_6c4fb0_6c4900",   0x006c4900, (void *)&Wrap_Init_6c4fb0_6c4900, {0xb9, 0x38, 0x20, 0xfb, 0x00}},
+    {"Base64_Encode",             0x005c92f0, (void *)&Base64_Encode, {0x8b, 0x44, 0x24, 0x04, 0x55}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
