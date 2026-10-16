@@ -44,6 +44,25 @@ s32 __fastcall IntPair_ApproxLength(const s32 *pair) {
     return (s32)(ay - (u32)(shorter >> 1) + ax);
 }
 
+u32 *__cdecl IntPair_Perp(u32 *out, const u32 *pair) {
+    const u32 x = pair[0], y = pair[1];
+    out[0] = 0u - y;
+    out[1] = x;
+    return out;
+}
+
+u32 *__cdecl IntPair_FromFixed(u32 *out, u32 x, u32 y) {
+    out[0] = x >> 16;
+    out[1] = y >> 16;
+    return out;
+}
+
+u32 *__cdecl IntPair_ToFixed(u32 *out, u32 x, u32 y) {
+    out[0] = x << 16;
+    out[1] = y << 16;
+    return out;
+}
+
 u32 *__fastcall IntPair_Ctor(u32 *pair) {
     pair[0] = 0;
     pair[1] = 0;
