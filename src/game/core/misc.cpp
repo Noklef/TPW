@@ -320,6 +320,29 @@ u32 __stdcall Setting569f30_Set(u32, u32 value) {
     return 1;
 }
 
+u32 __fastcall Records24_Field14(const u8 *records, void *, u32 i) { return at<u32>(records, 24 * i + 0x14); }
+
+u8 *__fastcall Records24_IfUsed(u8 *records, void *, u32 i) {
+    u8 *record = records + 24 * i;
+    return at<u32>(record, 4) != 0 ? record : nullptr;
+}
+
+u32 __fastcall Records24_CountUsed(const u8 *records) {
+    u32 count = 0;
+    for (u32 i = 0; i < 4; i++)
+        count += at<u32>(records, 4 + 24 * i) != 0 ? 1 : 0;
+    return count;
+}
+
+u32 __stdcall Table73f8a8_At(u32 i) { return 0x0073f8a8 + 60 * i; }
+
+u32 __fastcall Obj_Flags1cAnd(const u8 *object, void *, u32 mask) { return at<u32>(object, 0x1c) & mask; }
+
+u32 __stdcall Span_Limited(u32, u32 from, u32 to, u32 limit) {
+    const u32 span = to - from;
+    return limit < span ? limit : span;
+}
+
 u32 __cdecl PairTable_Add(u32 a, u32 b) {
     const s32 count = global<s32>(0x00820a8c);
     if (count > 0x400)

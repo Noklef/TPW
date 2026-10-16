@@ -1,4 +1,4 @@
-// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x409260, 0x45be80, 0x458310, 0x4583d0, 0x4bcec0, 0x486610, 0x4f36c0, 0x54dcc0, 0x556a80, 0x569f30, 0x52fc30, 0x557110, 0x5997b0, 0x54b290, 0x56b340, 0x56e780, 0x583360, 0x5646c0, 0x564ba0, 0x56b570, 0x5651c0, 0x4d09a0, 0x52fbf0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
+// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x409260, 0x45be80, 0x458310, 0x4583d0, 0x4bcec0, 0x486610, 0x4f36c0, 0x5b0d40, 0x5c7bb0, 0x5c7d00, 0x5c7d20, 0x5d1440, 0x5d5ee0, 0x54dcc0, 0x556a80, 0x569f30, 0x52fc30, 0x557110, 0x5997b0, 0x54b290, 0x56b340, 0x56e780, 0x583360, 0x5646c0, 0x564ba0, 0x56b570, 0x5651c0, 0x4d09a0, 0x52fbf0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
 // 0x4e1c60, 0x4f00f0, 0x4f6020, 0x4f6820, 0x4f6850, 0x56a510, 0x56b630 and 0x56b830.
 #pragma once
 
@@ -122,6 +122,24 @@ u32 __cdecl Rsse_GetVector(const u8 *frame, u32 *x, u32 *y, u32 *z);
 // 0x569f30 (stdcall; _, value, pops 8): with a value, 0xfbe038 = value; else 0xfbe044 = the dword at 0x6f1a10;
 // returns 1.
 u32 __stdcall Setting569f30_Set(u32 unused, u32 value);
+
+// 0x5c7d20 (thiscall; i, pops 4): the dword at +0x14 of record i of 24 bytes.
+u32 __fastcall Records24_Field14(const u8 *records, void *, u32 i);
+
+// 0x5c7d00 (thiscall; i, pops 4): the address of record i of 24 bytes when its dword at +4 is not 0, else 0.
+u8 *__fastcall Records24_IfUsed(u8 *records, void *, u32 i);
+
+// 0x5c7bb0 (thiscall): how many of the four 24-byte records have a non-zero dword at +4.
+u32 __fastcall Records24_CountUsed(const u8 *records);
+
+// 0x5b0d40 (stdcall; i): the address of 60-byte record i of the table at 0x73f8a8.
+u32 __stdcall Table73f8a8_At(u32 i);
+
+// 0x5d5ee0 (thiscall; mask, pops 4): the dword at +0x1c masked.
+u32 __fastcall Obj_Flags1cAnd(const u8 *object, void *, u32 mask);
+
+// 0x5d1440 (stdcall; _, from, to, limit, pops 16): to - from, at most limit (unsigned).
+u32 __stdcall Span_Limited(u32 unused, u32 from, u32 to, u32 limit);
 
 // 0x52fbf0 (cdecl; a, b): appends the pair to the table of 8-byte entries at 0x81b740 (count at
 // 0x820a8c), unless the count is above 0x400 (signed): 0 then, else 1.
