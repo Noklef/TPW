@@ -116,6 +116,16 @@ void __cdecl Obj_FillLinkedElements(u8 *object) {
     }
 }
 
+void __cdecl Objects_SetRideId(u32 id, u32 value) {
+    u8 *object = *reinterpret_cast<u8 **>(0x00790fe0);
+    while (object && at<u32>(object, 0x10) != id)
+        object = at<u8 *>(object, 0x18);
+    if (!object)
+        return;
+    at<u32>(object, 0x24) = value;
+    Obj_FillLinkedElements(object);
+}
+
 u32 __fastcall Obj_RollChance(const u8 *object, void *, u32) {
     // The original finds the object's definition (which makes it the cache's) and reads a dword of it for its debug print.
     const volatile u32 forPrint = at<u32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(object, 0xe)), 0x4ac);

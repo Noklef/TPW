@@ -13,7 +13,7 @@ from thingenv import POOL, THING, park  # noqa: E402
 # name: (address, size, arguments: id, rec, rec+index, rec+index+value, recword, linked)
 CALLS = {'Find': (0x55a070, 0x40, 'id'), 'Set': (0x55a0b0, 0x50, 'rec2v'), 'Get': (0x55a390, 0x50, 'rec2'), 'SetW': (0x55a300, 0x30, 'recv'),
          'GetW': (0x55a330, 0x30, 'rec'), 'G9c': (0x55a360, 0x30, 'rec'), 'Link': (0x55a3e0, 0x90, 'id2'), 'Clr4': (0x4e03f0, 0x30, 'this'), 'E7': (0x4e0410, 0x30, 'this'), 'E0': (0x4e0a70, 0x40, 'this'),
-         'Spd': (0x4dd6e0, 0x40, 'thisv'), 'Dur': (0x4dd720, 0xd0, 'thisv'), 'GameE': (0x51a290, 0x60, 'this'), 'E41': (0x4e0db0, 0x30, 'this'), 'Fill': (0x4396e0, 0xa0, 'this'), 'Roll': (0x4e2670, 0xa0, 'thisv')}
+         'Spd': (0x4dd6e0, 0x40, 'thisv'), 'Dur': (0x4dd720, 0xd0, 'thisv'), 'GameE': (0x51a290, 0x60, 'this'), 'E41': (0x4e0db0, 0x30, 'this'), 'Fill': (0x4396e0, 0xa0, 'this'), 'Roll': (0x4e2670, 0xa0, 'thisv'), 'SetId': (0x436f60, 0x40, 'this')}
 B = Bench([(a, a + n) for (a, n, _s) in CALLS.values()] + [(0x5da3c0, 0x5da3c1), (0x412e90, 0x412eea), (0x516330, 0x516370)])
 NODES, ARRAYS = RAM + 0x1000, RAM + 0x4000
 
@@ -68,6 +68,19 @@ def case(r):
         regions[RAM + 0x800] = slots
         regions[RAM] = obj
         return Call(address, [RAM if r.random() < 0.9 else 0], regions, conv='c', ret='v')
+    if name == 'SetId':  # a list of up to three objects with ids, each with slots for the fill
+        n = r.choice([0, 1, 2, 3])
+        objs = bytearray(r.bytes(0x300 * 3))
+        slots = bytearray(r.bytes(0x400))
+        wanted = r.choice([1, 2, 3, 9])
+        for i in range(n):
+            o = 0x300 * i
+            put(objs, o + 0x10, 'I', r.choice([1, 2, 3]))
+            put(objs, o + 0x18, 'I', RAM + 0x1000 + 0x300 * (i + 1) if i + 1 < n else 0)
+            put(objs, o + 0xf4, 'I', r.choice([0, 1, 2]))
+            put(objs, o + 0x128, 'I', RAM + 0x800 + 0x100 * i)
+        regions.update({RAM + 0x1000: objs, RAM + 0x800: slots, 0x790fe0: struct.pack('<I', RAM + 0x1000 if n else 0)})
+        return Call(address, [wanted, r.choice([0, 1, 2, 3, 5, 99, ident])], regions, conv='c', ret='v')
     if name == 'Roll':  # the object whose ride record gets the roll, the world's random state
         obj.extend(bytes(0x400))
         put(obj, 0x190, 'B', r.choice([0, 1, 50, 99, 100, 101, 255]))

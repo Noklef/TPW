@@ -44,6 +44,10 @@ void __fastcall Obj_SetDuration(u8 *object, void *, u32 duration);
 // +0x5c and +0x60 are 0: Rides_GetLinkedElement of the object's ride id (+0x24) and element 5, 6, 7 and 8.
 void __cdecl Obj_FillLinkedElements(u8 *object);
 
+// 0x436f60 (cdecl; id, value): the object with the dword id at +0x10 in the list from [0x790fe0] (linked through +0x18) gets the dword at +0x24 = value
+// (a ride record id) and Obj_FillLinkedElements; nothing when no object has the id.
+void __cdecl Objects_SetRideId(u32 id, u32 value);
+
 // 0x4e2670 (thiscall; one argument that is not used, pops 4): the byte at +0x190 compared with the world's next random number modulo 100
 // (World_Rand of [0x7cf83c], after finding the definition by the id at +0xe, which becomes the definitions' cache); element 0xb of the object's ride record = (the byte >= that number). Returns that comparison too.
 u32 __fastcall Obj_RollChance(const u8 *object, void *, u32 unused);
