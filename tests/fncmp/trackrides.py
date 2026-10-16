@@ -10,9 +10,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put, record_stream  # noqa: E402
 
 B = Bench([(0x5452a0, 0x545307), (0x54ab40, 0x54abc3), (0x543490, 0x5434d0), (0x54bbb0, 0x54bbd6), (0x549b50, 0x549b71), (0x549d30, 0x549da6),
-           (0x5f5e20, 0x5f5e50), (0x5f5e50, 0x5f5e80)])
+           (0x5f5e20, 0x5f5e50), (0x5f5e50, 0x5f5e80), (0x544c00, 0x544c80), (0x545100, 0x545180), (0x54abd0, 0x54ac70), (0x5da3c0, 0x5da3c1)])
 STREAM, SINK, BUF, POOL, LINKS, GLOBALS = RAM + 0x100, RAM + 0x200, RAM + 0x400, RAM + 0x1000, RAM + 0x800, 0x877b58
-CALLS = ['Write', 'Read', 'Free', 'Linked', 'Field5c', 'PopNode']
+CALLS = ['Write', 'Read', 'Free', 'Linked', 'Field5c', 'PopNode', 'Worn', 'Dur', 'PushNode']
 
 
 def case(r):
@@ -37,6 +37,19 @@ def case(r):
         put(globals_, 0x10, 'I', r.choice([POOL, POOL, 0]))
         return Call(0x549b50, [], {GLOBALS: globals_, POOL: pool}, ret='a')
     rides = bytearray(r.bytes(0x100 * 0xd0))
+    if op in ('Worn', 'Dur', 'PushNode'):  # the handle of a ride (or a stale one, or 0 with the module loaded); the free node list at 0x877b8c
+        nodes = bytearray(r.bytes(0x40))
+        index = r.choice([0, 1, 0xff, r.randrange(0x100)])
+        serial = r.choice([0, 1, r.getrandbits(24)])
+        put(rides, index * 0xd0, 'I', serial)
+        put(rides, index * 0xd0 + 0xc8, 'I', r.choice([LINKS + 0x20, 0, r.getrandbits(32)]))
+        put(globals_, 0, 'I', 0x4a454647 if r.random() < 0.85 else r.getrandbits(32))
+        put(globals_, 8, 'I', POOL)
+        put(globals_, 0x34, 'I', r.choice([LINKS, LINKS, 0]))
+        handle = r.choice([index | (serial << 8) & 0xffffffff] * 4 + [index | (serial ^ 1) << 8 & 0xffffffff, r.getrandbits(32), 1])
+        if op == 'Worn':
+            return Call(0x544c00, [handle & 0xffffffff], {GLOBALS: globals_, POOL: rides}, ret='v')
+        return Call(0x545100 if op == 'Dur' else 0x54abd0, [handle & 0xffffffff, r.getrandbits(32)], {GLOBALS: globals_, POOL: rides, LINKS: nodes}, ret='v')
     if op == 'PopNode':
         put(globals_, 0x34, 'I', r.getrandbits(32))
         nodes = bytearray(r.bytes(0x40))

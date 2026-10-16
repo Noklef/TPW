@@ -63,6 +63,32 @@ u32 __cdecl TrakRide_PopNode(u32 handle) {
     return at<u32>(node, 0);
 }
 
+void __cdecl TrakRide_MarkWornOut(u32 handle) {
+    u8 *ride = RideOf(handle);
+    if (handle == NameOf(ride))
+        at<u32>(ride, 0x54) = 1;
+}
+
+void __cdecl TrakRide_SetField4(u32 handle, u32 value) {
+    u8 *ride = RideOf(handle);
+    if (handle == NameOf(ride))
+        at<u32>(ride, 4) = value;
+}
+
+void __cdecl TrakRide_PushNode(u32 handle, u32 value) {
+    u8 *ride = RideOf(handle);
+    if (handle != NameOf(ride))
+        return;
+    u8 *node = global<u8 *>(0x00877b8c);
+    if (!node)
+        return;
+    global<u32>(0x00877b8c) = at<u32>(node, 0x10);
+    at<u32>(node, 0x10) = at<u32>(ride, 0xc8);
+    at<u8 *>(ride, 0xc8) = node;
+    at<u32>(node, 4) = handle;
+    at<u32>(node, 0) = value;
+}
+
 u32 __cdecl TrakRide_LinkedValue(u32 handle) {
     const uintptr_t rides = global<uintptr_t>(0x00877b60);
     const uintptr_t ride = loaded() ? rides + (handle & 0xff) * 0xd0 : 0;
