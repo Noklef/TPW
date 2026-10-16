@@ -3105,6 +3105,11 @@ address,name,kind,confidence,notes
 0x005ceab0,Buf_Next,function,high,reimplemented (src/game/core/vstream); takes the next byte of a stream buffer
 0x004f18d0,CType_Is,function,high,reimplemented (src/game/core/vstream); whether a character has a class bit
 0x00497610,Obj_RefreshMember,function,high,reimplemented (src/game/core/vstream); refreshes a member object through virtual calls
+0x004f1950,CType_ScanIs,function,high,reimplemented (src/game/core/vstream); the first wide character that has a class bit
+0x004f1990,CType_ScanNot,function,high,reimplemented (src/game/core/vstream); the first wide character that has no class bit
+0x004f1900,CType_MapWords,function,high,reimplemented (src/game/core/vstream); maps wide characters through the class table
+0x004f0e30,WBuf_PeekConverted,function,high,reimplemented (src/game/core/vstream); the current wide unit or the converted refill
+0x005cf1c0,Buf_PeekConverted,function,high,reimplemented (src/game/core/vstream); the current byte or the converted refill
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
