@@ -31,7 +31,7 @@ def case(r):
         if r.random() < 0.5:
             struct.pack_into('<I', obj, off, r.choice(VALUES))
     pool = bytearray(r.bytes(0x400))
-    out = struct.pack('<I', r.choice(VALUES))
+    out = struct.pack('<II', r.choice(VALUES), r.choice(VALUES))
     regions = {RAM: obj, POOL: pool, OUT: out}
     args = [RAM]
     if name == 'Get18':
