@@ -2311,6 +2311,60 @@ address,name,kind,confidence,notes
 0x006c5590,Part14_6c5590,function,high,reimplemented (src/game/core/tiny_a); the address of the part at 0x14
 0x006c7090,Vtbl70a778_Set_6c7090,function,high,reimplemented (src/game/core/tiny_a); the vtable pointer +0 = 0x70a778
 0x006d1bc0,Globalfb2708_Set_6d1bc0,function,high,reimplemented (src/game/core/tiny_a); 0xfb2708 = value; returns it
+0x0064fe7d,FrameStub_64fe7d,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x006503c1,FrameConst989680_6503c1,function,high,reimplemented (src/game/core/tiny_b); returns 0x989680
+0x006503cb,FrameStub_6503cb,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x00654a1d,FrameStub_654a1d,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x00655e8d,FrameStub_655e8d,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x00657def,FrameWordZero_657def,function,high,reimplemented (src/game/core/tiny_b); returns the word 0
+0x00658490,FrameWordZero_658490,function,high,reimplemented (src/game/core/tiny_b); returns the word 0
+0x00658aab,FrameWord1_658aab,function,high,reimplemented (src/game/core/tiny_b); returns the word 0x1
+0x00658cc5,FrameZero_658cc5,function,high,reimplemented (src/game/core/tiny_b); returns 0
+0x006598dd,FrameStub_6598dd,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x006598ea,FrameStub_6598ea,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x00659985,FrameZero_659985,function,high,reimplemented (src/game/core/tiny_b); returns 0
+0x00659b49,FrameWordffff_659b49,function,high,reimplemented (src/game/core/tiny_b); returns the word 0xffff
+0x0065ad33,FrameConst4_65ad33,function,high,reimplemented (src/game/core/tiny_b); returns 0x4
+0x0065bc60,FrameZero_65bc60,function,high,reimplemented (src/game/core/tiny_b); returns 0
+0x0065c2c8,FrameConst1_65c2c8,function,high,reimplemented (src/game/core/tiny_b); returns 0x1
+0x0065dd5f,FrameStub_65dd5f,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x0065dd6c,FrameWord1_65dd6c,function,high,reimplemented (src/game/core/tiny_b); returns the word 0x1
+0x00661596,FrameZero_661596,function,high,reimplemented (src/game/core/tiny_b); returns 0
+0x006618ba,FrameStub_6618ba,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x0066191b,FrameStub_66191b,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x00661928,FrameStub_661928,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x00661b33,FrameWordffff_661b33,function,high,reimplemented (src/game/core/tiny_b); returns the word 0xffff
+0x00661c2b,FrameStub_661c2b,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x00661e60,FrameStub_661e60,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x006628e4,FrameConst7_6628e4,function,high,reimplemented (src/game/core/tiny_b); returns 0x7
+0x006662a7,FrameConst5_6662a7,function,high,reimplemented (src/game/core/tiny_b); returns 0x5
+0x0066825c,FrameStub_66825c,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x00668aad,FrameConst2_668aad,function,high,reimplemented (src/game/core/tiny_b); returns 0x2
+0x00668c89,FrameWordZero_668c89,function,high,reimplemented (src/game/core/tiny_b); returns the word 0
+0x0066a040,FrameStub_66a040,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x0066a04b,FrameStub_66a04b,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x0066a056,FrameStub_66a056,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x0066a127,FrameStub_66a127,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x0066a132,FrameStub_66a132,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x0066a13d,FrameStub_66a13d,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x0066a271,FrameConst8_66a271,function,high,reimplemented (src/game/core/tiny_b); returns 0x8
+0x0066a5b4,FrameConstc_66a5b4,function,high,reimplemented (src/game/core/tiny_b); returns 0xc
+0x0066ae73,FrameConst3_66ae73,function,high,reimplemented (src/game/core/tiny_b); returns 0x3
+0x0066bfc0,FrameWordZero_66bfc0,function,high,reimplemented (src/game/core/tiny_b); returns the word 0
+0x0066bfd0,FrameStub_66bfd0,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x0066bfdd,FrameStub_66bfdd,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x0066bfea,FrameStub_66bfea,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x0066c00b,FrameZero_66c00b,function,high,reimplemented (src/game/core/tiny_b); returns 0
+0x0066c156,FrameStub_66c156,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x0066c2d2,FrameStub_66c2d2,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x0066c744,FrameStub_66c744,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x0066c84a,FrameConstd_66c84a,function,high,reimplemented (src/game/core/tiny_b); returns 0xd
+0x0066cac3,FrameConstb_66cac3,function,high,reimplemented (src/game/core/tiny_b); returns 0xb
+0x0066d1e8,FrameConsta_66d1e8,function,high,reimplemented (src/game/core/tiny_b); returns 0xa
+0x0066d644,FrameStub_66d644,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x0066d6ea,FrameStub_66d6ea,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
+0x0066d875,FrameConst9_66d875,function,high,reimplemented (src/game/core/tiny_b); returns 0x9
+0x0066da3d,FrameConst6_66da3d,function,high,reimplemented (src/game/core/tiny_b); returns 0x6
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
