@@ -11,6 +11,10 @@
 
 extern "C" {
 
+// 0x590fd0 (thiscall): the cache's 0x20-byte entry (made at 0x58d2b0): +0, +4, +8 and +0xc zeroed,
+// +0x14 = -1; the rest left as it was. Returns the entry.
+u8 *__fastcall TexCacheEntry_Ctor(u8 *entry);
+
 // 0x58b300: vtable 0x702198, flags 0; returns item.
 u8 *__fastcall TexCacheItem_Ctor(u8 *item);
 

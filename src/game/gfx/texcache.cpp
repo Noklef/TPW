@@ -1,6 +1,7 @@
 #include "texcache.h"
 
 #include <cstdint>
+#include <initializer_list>
 
 namespace {
 
@@ -9,6 +10,13 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 }  // namespace
 
 extern "C" {
+
+u8 *__fastcall TexCacheEntry_Ctor(u8 *entry) {
+    for (u32 offset : {0u, 4u, 0xcu, 8u})
+        at<u32>(entry, offset) = 0;
+    at<u32>(entry, 0x14) = 0xffffffff;
+    return entry;
+}
 
 u8 *__fastcall TexCacheItem_Ctor(u8 *item) {
     at<u32>(item, 0) = 0x00702198;
