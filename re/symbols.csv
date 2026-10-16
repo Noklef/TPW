@@ -3283,6 +3283,11 @@ address,name,kind,confidence,notes
 0x00617a80,Class703780_DtorA,function,high,reimplemented (src/game/core/small31); destructor releasing a member
 0x00617b80,Class703780_DtorB,function,high,reimplemented (src/game/core/small31); destructor releasing a member
 0x006180c0,Class703780_DtorC,function,high,reimplemented (src/game/core/small31); destructor releasing a member
+0x005da200,Class702b08_Ctor,function,high,reimplemented (src/game/core/small32); constructor with a new list
+0x005e3c20,Class702d78_Ctor,function,high,reimplemented (src/game/core/small32); constructor with a new list at +0x18
+0x005da2f0,Class702b08_Dtor,function,high,reimplemented (src/game/core/small32); destructor deleting the listed objects
+0x005e03b0,Class702cb0_Dtor,function,high,reimplemented (src/game/core/small32); destructor deleting the listed objects
+0x005e3d10,Class702d78_Dtor,function,high,reimplemented (src/game/core/small32); destructor deleting the listed objects
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
