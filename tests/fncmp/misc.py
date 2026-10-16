@@ -9,10 +9,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x424ed0, 0x424ee9), (0x4922d0, 0x4922e0), (0x4e1c60, 0x4e1c70), (0x4f00f0, 0x4f0110), (0x4f6020, 0x4f6080), (0x40f300, 0x40f329), (0x59b550, 0x59b590), (0x458910, 0x458935), (0x458940, 0x458965),
-           (0x5836b0, 0x5836c2), (0x4a9350, 0x4a9375), (0x4b4670, 0x4b4695), (0x4bcec0, 0x4bcef0), (0x52fbf0, 0x52fc21), (0x402ef0, 0x402f10), (0x4032b0, 0x4032ca), (0x402f30, 0x402f50), (0x4030c0, 0x4030c4),
+           (0x5836b0, 0x5836c2), (0x4a9350, 0x4a9375), (0x4b4670, 0x4b4695), (0x4bcec0, 0x4bcef0), (0x52fbf0, 0x52fc21), (0x4d09a0, 0x4d09e6), (0x458310, 0x45834d), (0x402ef0, 0x402f10), (0x4032b0, 0x4032ca), (0x402f30, 0x402f50), (0x4030c0, 0x4030c4),
            (0x47f940, 0x47f95a), (0x657d30, 0x657d6c), (0x4d4170, 0x4d4186), (0x475550, 0x47558b), (0x4d9600, 0x4d9619), (0x4e01f0, 0x4e0209), (0x4f6820, 0x4f6850),
            (0x4f6850, 0x4f6880), (0x56a510, 0x56a540), (0x56b630, 0x56b650), (0x56b830, 0x56b850)])
-CALLS = ['PairAdd', 'CtorPart', 'MeshClear', 'MeshSet', 'Countdown', 'Kill24', 'Choose', 'Advance', 'CtorOne', 'CtorValue', 'KillSlot', 'Stamp30', 'Stamp5e', 'InitBuf', 'Clear0', 'Clear18', 'Diff', 'Virtual', 'Setg', 'Setp', 'Pixel', 'Fill', 'Set3034']
+CALLS = ['Smallest', 'CtorVirtual', 'PairAdd', 'CtorPart', 'MeshClear', 'MeshSet', 'Countdown', 'Kill24', 'Choose', 'Advance', 'CtorOne', 'CtorValue', 'KillSlot', 'Stamp30', 'Stamp5e', 'InitBuf', 'Clear0', 'Clear18', 'Diff', 'Virtual', 'Setg', 'Setp', 'Pixel', 'Fill', 'Set3034']
 BUF = RAM + 0x1000
 
 
@@ -20,6 +20,17 @@ def case(r):
     op = r.choice(OPS)
     obj = bytearray(r.bytes(0x400))
     regions = {RAM: obj}
+    if op == 'Smallest':
+        for i in range(8):
+            e = 0x20 + 0x20 * i
+            put(obj, e, 'IIII', r.choice([0, 3, 5, 10, 100, 0xffffffff]), r.choice([0, 1, 2, 5, 0x10000]),
+                r.choice([0, 0, 1, RAM]), r.choice([0, 1, 3, 5, 0xffffffff]))
+        return Call(0x4d09a0, [RAM], regions, conv='t', ret='a')
+    if op == 'CtorVirtual':
+        off = r.choice([0x60, 0x60, 0x64, 0x70, 0x80, 0x68])
+        put(obj, 0, 'I', RAM + 0x300)  # the vtable it starts with (when not most derived)
+        put(obj, 0x304, 'I', off)
+        return Call(0x458310, [RAM, r.choice([0, 1, 1])], regions, conv='t', ret='a')
     if op == 'PairAdd':
         count = r.choice([0, 1, 5, 0x3ff, 0x400, 0x401, 0x402, 0xffffffff, r.randrange(0x400)])
         regions = {0x81b740: r.bytes(0x2010), 0x820a80: put(bytearray(r.bytes(0x20)), 0xc, 'I', count)}

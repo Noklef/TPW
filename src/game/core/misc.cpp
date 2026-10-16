@@ -75,6 +75,34 @@ u32 __cdecl Global7cc698_Choose() {
     return 0;
 }
 
+s32 __fastcall Obj_SmallestEntry(const u8 *object) {
+    s32 best = -1;
+    u32 smallest = 0;
+    bool found = false;
+    for (u32 i = 0; i < 8; i++) {
+        const u8 *entry = object + 0x20 + 0x20 * i;
+        const u32 size = at<u32>(entry, 8) ? (at<u32>(entry, 0) - at<u32>(entry, 0xc)) * at<u32>(entry, 4) : 0;
+        if (size > 0 && (size < smallest || !found)) {
+            best = (s32)i;
+            smallest = size;
+            found = true;
+        }
+    }
+    return best;
+}
+
+u8 *__fastcall Obj_CtorVirtual(u8 *object, void *, u32 mostDerived) {
+    if (mostDerived) {
+        at<u32>(object, 0) = 0x006fe570;
+        at<u32>(object, 0x60) = 0x006fdce8;
+    }
+    at<u32>(object, at<u32>(at<u8 *>(object, 0), 4)) = 0x006fdcd8;
+    const u32 base = at<u32>(at<u8 *>(object, 0), 4);
+    at<u32>(object, base - 4) = base - 0x60;
+    at<u32>(object, 0x50) = 0;
+    return object;
+}
+
 u32 __cdecl PairTable_Add(u32 a, u32 b) {
     const s32 count = global<s32>(0x00820a8c);
     if (count > 0x400)

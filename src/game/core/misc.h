@@ -1,4 +1,4 @@
-// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x4bcec0, 0x52fbf0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
+// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x458310, 0x4bcec0, 0x4d09a0, 0x52fbf0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
 // 0x4e1c60, 0x4f00f0, 0x4f6020, 0x4f6820, 0x4f6850, 0x56a510, 0x56b630 and 0x56b830.
 #pragma once
 
@@ -26,6 +26,15 @@ u32 __fastcall Obj_KillSlot24(u8 *object);
 // 0x4bcec0 (cdecl): 0x7cc698 = 0x7cc8b8 if set, else 0x7cc8bc if the byte 0x7cc8b4 is set, else
 // 0x7cc8c0. Returns the value stored in the first two cases, else 0.
 u32 __cdecl Global7cc698_Choose();
+
+// 0x4d09a0 (thiscall): over the 8 entries of 0x20 bytes from +0x20 (size = (+0 - +0xc) * +4 when +8
+// is set, else 0), the index of the smallest non-zero size (the first of equals), or -1 for none.
+s32 __fastcall Obj_SmallestEntry(const u8 *object);
+
+// 0x458310 (thiscall; mostDerived, pops 4): a class with a virtual base. When most derived: vtable
+// 0x6fe570 and the part at +0x60 gets vtable 0x6fdce8. Always: the virtual base (at the vtable's +4)
+// gets vtable 0x6fdcd8, the dword before it = its offset - 0x60, and +0x50 = 0. Returns the object.
+u8 *__fastcall Obj_CtorVirtual(u8 *object, void *, u32 mostDerived);
 
 // 0x52fbf0 (cdecl; a, b): appends the pair to the table of 8-byte entries at 0x81b740 (count at
 // 0x820a8c), unless the count is above 0x400 (signed): 0 then, else 1.
