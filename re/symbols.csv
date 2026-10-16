@@ -3323,6 +3323,8 @@ address,name,kind,confidence,notes
 0x0047cf20,ImeVector_InsertN,function,high,reimplemented (src/game/core/small39); inserts count copies of a dword into the IME vector
 0x0047f9a0,TextMetrics_Width,function,high,reimplemented (src/game/core/small40); width of a run of characters by the glyph width slot
 0x0047fa00,TextMetrics_FitIndex,function,high,reimplemented (src/game/core/small40); index at which the width runs out
+0x0050f310,Matrix2_Transform,function,high,reimplemented (src/game/core/small41); fixed point 2 x 2 transform of a pair
+0x00503980,Table_ScaledBySum,function,high,reimplemented (src/game/core/small41); a table share scaled by the things' sum
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
