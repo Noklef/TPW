@@ -81,7 +81,8 @@
 #include "../game/core/globalsave.h"
 #include "../game/core/ime.h"
 #include "../game/core/idtable.h"
-#include "../game/core/keymap.h"
+#include "../game/core/keymap.h"
+#include "../game/core/methods.h"
 #include "../game/core/language.h"
 #include "../game/core/liveobjects.h"
 #include "../game/core/misc.h"
@@ -2139,6 +2140,19 @@ const Hook kHooks[] = {
     {"Offsets_Resolve",           0x006d48f0, (void *)&Offsets_Resolve, {0x8b, 0x54, 0x24, 0x04, 0x8b}},
     {"Targets3_Set",              0x005d0e30, (void *)&Targets3_Set, {0x8b, 0x41, 0x0c, 0x8b, 0x54}},
     {"Targets2_Set",              0x005d0e50, (void *)&Targets2_Set, {0x8b, 0x51, 0x10, 0x8b, 0x44}},
+    {"Obj_Get18Of14",             0x006d4b00, (void *)&Obj_Get18Of14, {0x8b, 0x41, 0x14, 0x85, 0xc0}},
+    {"Obj_MarkNodeIf14",          0x006d4b10, (void *)&Obj_MarkNodeIf14, {0x8b, 0x41, 0x14, 0x85, 0xc0}},
+    {"Obj_SetBit1At28",           0x006c5ce0, (void *)&Obj_SetBit1At28, {0x8b, 0x41, 0x28, 0xa8, 0x01}},
+    {"Obj_SetRateBits20",         0x006c6f90, (void *)&Obj_SetRateBits20, {0x8a, 0x41, 0x20, 0x66, 0x8b}},
+    {"Obj_PutWord",               0x006b00a0, (void *)&Obj_PutWord, {0x8a, 0x41, 0x10, 0x84, 0xc0}},
+    {"Obj_ClearBit0If2c",         0x006bbe40, (void *)&Obj_ClearBit0If2c, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"Obj_Pick40Or44",            0x006d6c70, (void *)&Obj_Pick40Or44, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"Obj_SetRateAtC",            0x006d6cb0, (void *)&Obj_SetRateAtC, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"Obj_Get20Or2400",           0x006d6db0, (void *)&Obj_Get20Or2400, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Blocks16_Copy",             0x006af6f0, (void *)&Blocks16_Copy, {0x8b, 0x4c, 0x24, 0x04, 0x8b}},
+    {"Vector8_EraseTo",           0x006af060, (void *)&Vector8_EraseTo, {0x8b, 0x54, 0x24, 0x08, 0x8b}},
+    {"Obj_SetKindA0",             0x006adf20, (void *)&Obj_SetKindA0, {0x8b, 0x44, 0x24, 0x08, 0x83}},
+    {"Records_DataIfTerminated",  0x006ace60, (void *)&Records_DataIfTerminated, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
