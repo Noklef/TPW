@@ -2161,6 +2161,8 @@ address,name,kind,confidence,notes
 0x006404d0,Bits_Reverse,function,high,reimplemented (src/game/core/small); the low bits of a code in reverse order (zlib's bi_reverse)
 0x00631280,Codec631280_Init,function,high,reimplemented (src/game/core/small); an object's function pointer table and fields
 0x004f76b0,WString_Compare,function,high,"reimplemented (src/game/core/small); compares two wide strings: first differing unit, else the shorter is less"
+0x0048f650,Obj_GetWordPair,function,high,"reimplemented (src/game/core/small); two words returned through pointers, and a dword"
+0x0050f240,EntryStack_Clear,function,high,reimplemented (src/game/core/small); the 8-byte entries between the base and top pointers zeroed
 0x00632200,DequeIter_Set,function,high,reimplemented (src/game/core/dequeiter); the iterator at a position in a block of the map
 0x00632230,DequeIter_Plus,function,high,"reimplemented (src/game/core/dequeiter); the iterator n dwords on, across blocks"
 0x00632290,DequeIter_Diff,function,high,reimplemented (src/game/core/dequeiter); this - other in dwords through the blocks

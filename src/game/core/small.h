@@ -1,7 +1,7 @@
 // More tiny functions (vtable pointer setters and constructors, getters, a divide, a dword copy):
 // reimplementation of 0x5b3210, 0x617920, 0x617ad0, 0x6185f0, 0x631270, 0x631970, 0x6322e0, 0x6338b0,
 // 0x633a00, 0x6339a0, 0x6339e0, 0x633b60, 0x6344c0, 0x6404d0, 0x6428b0, 0x642100 and 0x642b20,
-// the constructor 0x631280 and the wide string compare 0x4f76b0. Named by what they do until the
+// the constructor 0x631280 and the wide string compare 0x4f76b0, 0x48f650 and 0x50f240. Named by what they do until the
 // classes are known.
 #pragma once
 
@@ -58,6 +58,15 @@ u8 *__cdecl Codec631280_Init(u8 *object);
 // is the empty string at 0x6fd6c4) the std::basic_string way: the first differing 16-bit unit
 // decides (-1 below, 1 above, unsigned), else the shorter is less. -1, 0 or 1.
 s32 __fastcall WString_Compare(const u8 *self, void *, const u8 *other);
+
+// 0x48f650 (thiscall; a, b, pops 8): without its word +0x44 set, or a null a or b: 0. Else *a =
+// the word at +0xa8, *b = the word at +0xaa (zero-extended) and the dword at +0xa0 is returned.
+u32 __fastcall Obj_GetWordPair(const u8 *object, void *, u32 *a, u32 *b);
+
+// 0x50f240 (cdecl): the 8-byte entries from the top of the stack at 0x7cf07c (a pointer) down to
+// its base at 0x7cf078 zeroed, the top moving down as it goes; nothing when it is at or below
+// the base.
+void __cdecl EntryStack_Clear();
 
 // 0x633b60 (thiscall; value): +0x10 = value; returns it.
 u32 __fastcall Obj_Set10(u8 *object, void *, u32 value);

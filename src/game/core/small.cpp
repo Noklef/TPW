@@ -117,6 +117,26 @@ s32 __fastcall WString_Compare(const u8 *self, void *, const u8 *other) {
     return selfLength != otherLength ? 1 : 0;
 }
 
+u32 __fastcall Obj_GetWordPair(const u8 *object, void *, u32 *a, u32 *b) {
+    if (at<u16>(object, 0x44) == 0 || !a || !b)
+        return 0;
+    *a = at<u16>(object, 0xa8);
+    *b = at<u16>(object, 0xaa);
+    return at<u32>(object, 0xa0);
+}
+
+void __cdecl EntryStack_Clear() {
+    u32 &top = *reinterpret_cast<u32 *>(0x007cf07c);
+    const u32 &base = *reinterpret_cast<u32 *>(0x007cf078);
+    if (top <= base)
+        return;
+    do {
+        at<u32>(reinterpret_cast<void *>(top), 0) = 0;
+        at<u32>(reinterpret_cast<void *>(top), 4) = 0;
+        top -= 8;
+    } while (top > base);
+}
+
 u32 __fastcall Obj_Set10(u8 *object, void *, u32 value) {
     at<u32>(object, 0x10) = value;
     return value;
