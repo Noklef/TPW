@@ -2771,6 +2771,7 @@ address,name,kind,confidence,notes
 0x006ae390,Records16_FindSpace,function,high,reimplemented (src/game/core/records16); the first space or comma record
 0x006ae3d0,Records16_FindNonSpace,function,high,reimplemented (src/game/core/records16); the first record that is not a space or comma
 0x006ae440,Records16_Reverse,function,high,reimplemented (src/game/core/records16); reverses the order of 16-byte records
+0x006ae4b0,Records16_ReorderRtl,function,high,reimplemented (src/game/core/records16); reorders the records of a line for right to left reading
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

@@ -58,6 +58,28 @@ u8 *__cdecl Records16_FindNonSpace(u8 *first, u8 *last) {
     return nullptr;
 }
 
+void __cdecl Records16_ReorderRtl(u8 *first, u8 *last) {
+    if (!Records16_AnyInRange5b0(first, last) || last == first)
+        return;
+    while (at<u8>(last, (u32)-0xc) & 0x40) {
+        last -= 0x10;
+        if (last == first)
+            break;
+    }
+    if (last == first)
+        return;
+    Records16_Reverse(first, last);
+    u8 *run = Records16_FindNonSpace(first, last);
+    while (run) {
+        u8 *end = Records16_FindSpace(run, last);
+        if (!Records16_AnyInRange5b0(run, end))
+            Records16_Reverse(run, end);
+        else if ((s32)Char_BracketClass(reinterpret_cast<const u16 *>(run)) > 0)
+            Records16_SwapMatchingBracket(run, end);
+        run = Records16_FindNonSpace(end, last);
+    }
+}
+
 void __cdecl Records16_Reverse(u8 *first, u8 *last) {
     u8 *low = first;
     u8 *high = reinterpret_cast<u8 *>((uintptr_t)last - 0x10);
