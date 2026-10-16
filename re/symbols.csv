@@ -2251,6 +2251,10 @@ address,name,kind,confidence,notes
 0x0044e510,Frame_Begin,function,high,"reimplemented (src/game/render/frame); clears frame flags 0x79e884, ticks the animator at 0x79fcb4 (Animator_Update(a, 1, 4))"
 0x00449ec0,Screen_Init,function,high,"reimplemented (src/game/render/screen); cdecl (): the search path table (0x79cb4c: one copy of 0x79cb70), the screen size 0x7a1968 x 0x7a1930 (option flags 0x7a1a8c when 0x78d968 == 1, else Resolution.sam 1-7 or 0x78d8dc; above 7 kept, sic), its centre, 0x7a1a14 |= 8, Frame_ResetBounds, Quickload_Init"
 0x0044a1d0,Screen_Shutdown,function,high,"reimplemented (src/game/render/screen); cdecl (): SinTable_Build(4096) again, Quickload_Free, frees the search path text and table"
+0x005836b0,SceneFlags_Touch,function,high,"reimplemented (src/game/render/state); thiscall (the scene's flags pair, 0x8bd508): flag 0x40000000 set, +4 = the device generation (0x8bcc40)"
+0x005d9680,Render_FogOn,function,high,reimplemented (src/game/render/state); thiscall (object unused): fog on (0x8bcbc8 |= 0x2000)
+0x005d9690,Render_FogOff,function,high,reimplemented (src/game/render/state); thiscall (object unused): fog off (0x8bcbc8 &= ~0x2000)
+0x005d96a0,Render_SetFog,function,high,"reimplemented (src/game/render/state); thiscall (object unused; colour, start, end): the fog colour 0x8bd47c, start 0x8bd490 and end 0x8bd494 (floats)"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"

@@ -143,6 +143,7 @@
 #include "../game/render/screen.h"
 #include "../game/render/mode.h"
 #include "../game/render/particles.h"
+#include "../game/render/state.h"
 #include "../game/online/servers.h"
 #include "../game/frontend/lobbymodel.h"
 #include "../game/online/session.h"
@@ -1514,6 +1515,10 @@ const Hook kHooks[] = {
     {"ParticleSystem_Set2a",      0x0051ff10, (void *)&ParticleSystem_Set2a, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
     {"ParticleSystem_SetA2",      0x0051ffd0, (void *)&ParticleSystem_SetA2, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
     {"ParticleSystem_QuarterByte", 0x00520470, (void *)&ParticleSystem_QuarterByte, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"SceneFlags_Touch",          0x005836b0, (void *)&SceneFlags_Touch, {0xa1, 0x40, 0xcc, 0x8b, 0x00}},
+    {"Render_FogOn",              0x005d9680, (void *)&Render_FogOn, {0xa1, 0xc8, 0xcb, 0x8b, 0x00}},
+    {"Render_FogOff",             0x005d9690, (void *)&Render_FogOff, {0xa1, 0xc8, 0xcb, 0x8b, 0x00}},
+    {"Render_SetFog",             0x005d96a0, (void *)&Render_SetFog, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
