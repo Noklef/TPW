@@ -29,7 +29,8 @@ def park(r, count=None, kinds=(3, 3, 3, 1, 2, 0xff, 0), defs=True):
         t = THING * i
         put(things, t, 'H', h)
         things[t + 2] = r.choice(kinds)
-        things[t + 0x32] = r.choice([0, 1, 2, 3, 0xff, r.getrandbits(8)])
+        things[t + 3] = r.choice([0, 0, 0, 1, 5])
+        things[t + 0x32] = r.choice([0, 1, 2, 3, 4, 0xff, r.getrandbits(8)])
         put(things, t + 0x68, 'I', r.choice([0, 0, 0, 1, 5]))
         put(things, t + 0xe, 'H', ids[r.randrange(n)])
         things[t + 0x50] = r.choice([0, 1, 5, 0x7f, 0x80, 0xff, r.getrandbits(8)])
