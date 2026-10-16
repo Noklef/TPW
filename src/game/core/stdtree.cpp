@@ -84,6 +84,70 @@ template <u32 nilAt, u32 colourAt, Value value, u32 counterAt, u32 nodeSize> str
         R(head) = head;
     }
 
+    // Inserts a new node for `value` under y (the node made by NewNode, which copies the value and makes the node's links nil): x is not nil for an insertion to the left.
+    template <typename V, typename Less> static u8 **Insert(u8 *tree, u8 **out, u8 *x, u8 *y, const V *value, Less less) {
+        u8 *z = static_cast<u8 *>(GameHeap_Alloc(nodeSize));
+        P(z) = y;
+        C(z) = kRed;
+        L(z) = Nil();
+        R(z) = Nil();
+        *reinterpret_cast<V *>(z + 0xc) = *value;
+        at<u32>(tree, 0xc) += 1;
+        u8 *head = at<u8 *>(tree, 4);
+        if (y == head || x != Nil() || less(value, y)) {
+            L(y) = z;
+            if (y == head) {
+                P(head) = z;
+                R(head) = z;
+            } else if (y == L(head)) {
+                L(head) = z;
+            }
+        } else {
+            R(y) = z;
+            if (y == R(head))
+                R(head) = z;
+        }
+        for (x = z; x != P(head) && C(P(x)) == kRed;) {
+            u8 *parent = P(x);
+            if (parent == L(P(parent))) {
+                u8 *uncle = R(P(parent));
+                if (C(uncle) == kRed) {
+                    C(parent) = kBlack;
+                    C(uncle) = kBlack;
+                    C(P(P(x))) = kRed;
+                    x = P(P(x));
+                } else {
+                    if (x == R(parent)) {
+                        x = parent;
+                        Lrotate(head, x);
+                    }
+                    C(P(x)) = kBlack;
+                    C(P(P(x))) = kRed;
+                    Rrotate(head, P(P(x)));
+                }
+            } else {
+                u8 *uncle = L(P(parent));
+                if (C(uncle) == kRed) {
+                    C(parent) = kBlack;
+                    C(uncle) = kBlack;
+                    C(P(P(x))) = kRed;
+                    x = P(P(x));
+                } else {
+                    if (x == L(parent)) {
+                        x = parent;
+                        Rrotate(head, x);
+                    }
+                    C(P(x)) = kBlack;
+                    C(P(P(x))) = kRed;
+                    Lrotate(head, P(P(x)));
+                }
+            }
+        }
+        C(P(head)) = kBlack;
+        *out = z;
+        return out;
+    }
+
     static void Lrotate(u8 *head, u8 *x) {
         u8 *y = R(x);
         R(x) = L(y);
@@ -298,6 +362,15 @@ void __fastcall StdTree_CtorC(u8 *tree) { TreeC::Ctor(tree); }
 void __fastcall StdTree_CtorD(u8 *tree) { TreeD::Ctor(tree); }
 void __fastcall StdTree_CtorE(u8 *tree) { TreeE::Ctor(tree); }
 void __fastcall StdTree_CtorG(u8 *tree) { TreeG::Ctor(tree); }
+
+u8 **__fastcall StdTree_InsertA(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u32 *value) {
+    struct Node3 { u32 v[3]; };
+    return TreeA::Insert<Node3>(tree, out, x, y, reinterpret_cast<const Node3 *>(value), [](const Node3 *v, u8 *node) { return v->v[0] < at<u32>(node, 0xc); });
+}
+
+u8 **__fastcall StdTree_InsertG(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u16 *value) {
+    return TreeG::Insert<u16>(tree, out, x, y, value, [](const u16 *v, u8 *node) { return *v < at<u16>(node, 0xc); });
+}
 
 u8 **__fastcall StdTree_EraseA(u8 *tree, void *, u8 **out, u8 *node) { return TreeA::Erase(tree, out, node); }
 u8 **__fastcall StdTree_EraseB(u8 *tree, void *, u8 **out, u8 *node) { return TreeB::Erase(tree, out, node); }

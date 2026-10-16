@@ -15,9 +15,10 @@ from fncmp import Bench, Call, HEAP, RAM, heap  # noqa: E402
 TREES = {'A': (0x47d570, 0x47c010, 0x7b4a54, 0x18), 'B': (0x410670, 0x40ff80, 0x785de4, 0x10), 'C': (0x4f44d0, 0x4f3b10, 0x7ced2c, 0x20),
          'D': (0x4f4f20, 0x4f4580, 0x7ced24, 0x1c), 'E': (0x4f5430, 0x4f2d50, 0x7ced34, 0x1c), 'F': (0x5b2480, 0x5b1b80, 0xf7c968, 0x24),
          'G': (0x5b2e90, 0x5b2530, 0xf7c970, 0x10)}
+INSERT = {'A': 0x47d140, 'G': 0x5b2ba0}
 DEC = {'A': 0x47d4b0, 'C': 0x4f6340, 'D': 0x4f64f0, 'E': 0x4f6680, 'F': 0x5b2ff0, 'G': 0x5b3130}
 CTOR = {'A': (0x47ce70, 0x7b4a50), 'C': (0x4f4120, 0x7ced30), 'D': (0x4f4b70, 0x7ced28), 'E': (0x4f5080, 0x7ced38), 'G': (0x5b2af0, 0xf7c96c)}
-B = Bench([(a, a + 0xc0) for a in DEC.values()] + [(a, a + 0xb0) for (a, _c) in CTOR.values()] + [(a, a + 0xb0) for (a, _e, _n, _c) in TREES.values()] + [(e, e + 0x560) for (_a, e, _n, _c) in TREES.values()] + [(0x67acb0, 0x67acb1), (0x45b340, 0x45b9a0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000)],
+B = Bench([(a, a + 0x330) for a in INSERT.values()] + [(0x5b3210, 0x5b3230)] + [(a, a + 0xc0) for a in DEC.values()] + [(a, a + 0xb0) for (a, _c) in CTOR.values()] + [(a, a + 0xb0) for (a, _e, _n, _c) in TREES.values()] + [(e, e + 0x560) for (_a, e, _n, _c) in TREES.values()] + [(0x67acb0, 0x67acb1), (0x45b340, 0x45b9a0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000)],
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})
 TREE, HEAD, NIL, NODES = RAM, RAM + 0x200, RAM + 0x300, RAM + 0x10000
 RED, BLACK = 0, 1
@@ -94,8 +95,45 @@ def build(r, n):
     return nodes, root
 
 
+def case_insert(r, name):
+    """An insert under the node the new key belongs below (the head for an empty tree), with x nil (or a non-nil hint when the left child is free)."""
+    inc, erase, nil_at, colour = TREES[name]
+    n = r.choice([0, 1, 2, 3, 5, 8, 11])
+    nodes, root = build(r, n)
+    keys = sorted(nodes)
+    new = r.choice([k for k in range(100) if k not in nodes])
+    addr = {k: NODES + 0x40 * i for i, k in enumerate(keys)}
+    ptr = lambda k: NIL if k is None else addr[k]  # noqa: E731
+    parent, cur = None, root
+    while cur is not None:
+        parent = cur
+        cur = nodes[cur][0] if new < cur else nodes[cur][2]
+    left = parent is None or new < parent
+    y = HEAD if parent is None else addr[parent]
+    x = NIL
+    if left and (parent is None or nodes[parent][0] is None) and r.random() < 0.3:
+        x = NODES + 0x3f00  # a non-nil hint: the new node goes left whatever the keys
+    blob = bytearray(0x4000)
+    for k in keys:
+        base = addr[k] - NODES
+        struct.pack_into('<III', blob, base, ptr(nodes[k][0]), HEAD if nodes[k][1] is None else addr[nodes[k][1]], ptr(nodes[k][2]))
+        struct.pack_into('<I', blob, base + 0xc, k)
+        struct.pack_into('<I', blob, base + colour, nodes[k][3])
+    head = struct.pack('<III', addr[keys[0]] if keys else HEAD, addr[root] if keys else NIL, addr[keys[-1]] if keys else HEAD) + bytes(0x20)
+    nil = bytearray(0x40)
+    struct.pack_into('<I', nil, colour, BLACK)
+    tree = bytearray(0x20)
+    struct.pack_into('<II', tree, 4, HEAD, 0)
+    struct.pack_into('<I', tree, 0xc, n)
+    value = struct.pack('<III', new, r.getrandbits(32), r.getrandbits(32))
+    regions = {TREE: tree, HEAD: head, NIL: nil, NODES: blob, nil_at: struct.pack('<I', NIL), RAM + 0x800: bytes(0x10), RAM + 0x900: value, HEAP: heap()}
+    return Call(INSERT[name], [TREE, RAM + 0x800, x, y, RAM + 0x900], regions, conv='t', ret='a')
+
+
 def case(r):
     name = r.choice(OPS)
+    if name in INSERT and r.random() < 0.3:
+        return case_insert(r, name)
     inc, erase, nil_at, colour = TREES[name]
     n = r.choice([1, 2, 3, 4, 5, 6, 7, 8, 10, 12])
     nodes, root = build(r, n)

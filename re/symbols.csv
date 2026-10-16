@@ -3234,6 +3234,8 @@ address,name,kind,confidence,notes
 0x004f4b70,StdTree_CtorD,function,high,reimplemented (src/game/core/stdtree); std::map constructor
 0x004f5080,StdTree_CtorE,function,high,reimplemented (src/game/core/stdtree); std::map constructor
 0x005b2af0,StdTree_CtorG,function,high,reimplemented (src/game/core/stdtree); std::map constructor
+0x0047d140,StdTree_InsertA,function,high,reimplemented (src/game/core/stdtree); std::map insert of a node with a three-dword value
+0x005b2ba0,StdTree_InsertG,function,high,reimplemented (src/game/core/stdtree); std::map insert of a node with a word value
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

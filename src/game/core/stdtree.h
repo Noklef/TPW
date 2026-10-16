@@ -38,6 +38,12 @@ void __fastcall StdTree_CtorD(u8 *tree);
 void __fastcall StdTree_CtorE(u8 *tree);
 void __fastcall StdTree_CtorG(u8 *tree);
 
+// The insert of A 0x47d140 (values of three dwords whose first, unsigned, is the key) and G 0x5b2ba0 (values of one word, the key): thiscall on the tree; out, x, y, the value
+// (pops 16). A node holding a copy of the value (at +0xc; red, children nil, parent y) is made and linked: as y's left child when y is the head node, x is not nil or the key
+// is below y's, otherwise as its right child; the head's leftmost / rightmost / root follow; then the tree is rebalanced. *out = the new node; returns out.
+u8 **__fastcall StdTree_InsertA(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u32 *value);
+u8 **__fastcall StdTree_InsertG(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u16 *value);
+
 u8 **__fastcall StdTree_EraseA(u8 *tree, void *, u8 **out, u8 *node);
 u8 **__fastcall StdTree_EraseB(u8 *tree, void *, u8 **out, u8 *node);
 u8 **__fastcall StdTree_EraseC(u8 *tree, void *, u8 **out, u8 *node);
