@@ -43,4 +43,11 @@ void __cdecl StripAnim_Apply(const u8 *object, float t) {
         reinterpret_cast<float &>(coord(j + 1, 1)) = rest;
     }
 }
+
+void __cdecl StripAnim_StartShrink(u8 *object) {
+    if (!at<const u8 *>(object, 0xb0)) return;
+    u32 &flags = at<u32>(object, 4);
+    at<u32>(object, 0xbc) = 0xbe99999a;  // -0.3f
+    if (flags & 0x20) flags = (flags & ~0x40u) | 0x80;
+}
 }

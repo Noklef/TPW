@@ -1,4 +1,4 @@
-# The strip animation (src/game/model/stripanim: 0x4543c0) against the original: an object
+# The strip animation (src/game/model/stripanim: 0x4543c0, 0x4547c0) against the original: an object
 # (+4 flags, +0xb0 -> count, +0xb4 -> shape) with grouped vertices and texture coordinates, t
 # across the ramp (and wild), counts from none up.
 # usage: stripanim.py [CASES [SEED]] [--wild|--both] [--show N]
@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x4543c0, 0x45453b)])
+B = Bench([(0x4543c0, 0x45453b), (0x4547c0, 0x4547e7)])
 OBJECT, SHAPE, CHAIN, VERTS, COORDS = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x1000, RAM + 0x2000
 
 
@@ -26,6 +26,9 @@ def case(r):
     put(ram, 0x2a8, 'I', COORDS)         # root: +0x68 coordinates
     r.floats(ram, range(VERTS - RAM, VERTS - RAM + 0x30 * 40, 4), r.choice([1, 10, 100, None]))
     t = r.choice([r.f(2), r.f(), fb(r.uniform(0, 1.25)), fb(0.25), fb(1.0), fb(0.0), r.f()])
+    if r.random() < 0.25:  # StartShrink: strips or none, flags 0x20 / 0x40 / 0x80 either way
+        put(ram, 0xb0, 'I', r.choice([CHAIN + 0x80, 0]))
+        return Call(0x4547c0, [OBJECT], {RAM: ram})
     return Call(0x4543c0, [OBJECT, t], {RAM: ram})
 
 

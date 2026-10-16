@@ -2095,6 +2095,7 @@ address,name,kind,confidence,notes
 0x00461ed0,Ride_MarkModel,function,high,"reimplemented (src/game/model/ridemodel); flags a loading ride's model, its root and its instance"
 0x0046ed80,Model_TransformBounds,function,high,reimplemented (src/game/model/bounds); puts the model's bounds through its root's matrix
 0x004543c0,StripAnim_Apply,function,high,reimplemented (src/game/model/stripanim); the strip animation of a growing object
+0x004547c0,StripAnim_StartShrink,function,high,"reimplemented (src/game/model/stripanim); cdecl (object): when +0xb0 is set, +0xbc = -0.3f and, with flags (+4) 0x20, flag 0x40 traded for 0x80"
 0x00451390,Model_HeightAt,function,high,reimplemented (src/game/model/heightat); the height of a model's floor under a point
 0x00451290,Model_FloorHeight,function,high,reimplemented (src/game/model/heightat); the view's floor height under a point
 0x0045aee0,Online_ApplyBalance,function,high,reimplemented (src/game/online/servers); copies Online.sam (gBalanceOnline) into the servers object 0x7a14f0
