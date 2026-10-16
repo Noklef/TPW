@@ -16,6 +16,8 @@ import sys
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
 LINES = None
+ADDRS = None
+TEXTS = None
 
 
 def asm_lines():
@@ -33,6 +35,33 @@ def index():
         except ValueError:
             pass
     return idx
+
+
+def extent(start):
+    """The size of the function at start: to the first RET / JMP that is past every forward jump target (as tools/extent.py)."""
+    import bisect
+    global ADDRS, TEXTS
+    if ADDRS is None:
+        ADDRS, TEXTS = [], []
+        for line in asm_lines():
+            m = re.match(r'([0-9a-f]{8})  (.*)', line)
+            if m:
+                ADDRS.append(int(m.group(1), 16))
+                TEXTS.append(m.group(2))
+    j = bisect.bisect_left(ADDRS, start)
+    far = start
+    while j < len(ADDRS):
+        t = TEXTS[j]
+        m = re.search(r'J\w+ 0x([0-9a-f]{8})', t)
+        if m and not t.startswith('JMP dword'):
+            target = int(m.group(1), 16)
+            if far < target and target - start < 0x1000:
+                far = target
+        nxt = ADDRS[j + 1] if j + 1 < len(ADDRS) else ADDRS[j] + 1
+        if (t.startswith('RET') or t.startswith('JMP')) and nxt > far:
+            return (ADDRS[j] + (3 if t.startswith('RET') and len(t.split()) > 1 else 1) if t.startswith('RET') else min(nxt, ADDRS[j] + 6)) - start
+        j += 1
+    return 0x40
 
 
 def body(start, size, idx=None):
@@ -101,13 +130,17 @@ def cmd_list(lo, hi):
                 closure.add(a)
                 changed = True
     wave0 = sorted(a for a in closure if all(t in hooked for t in info[a]['callees']))
+    for a in info:
+        info[a]['size'] = extent(a)
     json.dump({'%x' % a: [info[a]['size'], 0] for a in sorted(closure)}, open(os.path.join(ROOT, '_re', 'r1.json'), 'w'))
     json.dump(['%x' % a for a in wave0], open(os.path.join(ROOT, '_re', 'wave0.json'), 'w'))
     idx = index()
     shown = 0
     for a in wave0:
         b = body(a, info[a]['size'], idx)
-        if b and (b[0].startswith('SUB ECX,dword ptr [ECX + -0x4]') or (len(b) <= 3 and b[-1].startswith('JMP'))):
+        text_of = ' '.join(b)
+        if b and (b[0].startswith('SUB ECX,dword ptr [ECX + -0x4]') or (len(b) <= 3 and b[-1].startswith('JMP')) or ('[EBP' in text_of and 'PUSH EBP' not in text_of)
+                  or text_of.startswith('INC EBP')):  # thunks, tail jumps and the pieces of exception handlers
             continue
         print('%x(%d)' % (a, info[a]['size']), end=' ')
         shown += 1
