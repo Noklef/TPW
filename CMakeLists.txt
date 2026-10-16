@@ -87,6 +87,7 @@ add_library(tpw_game STATIC
     src/game/core/misc.cpp
     src/game/core/tiny_d.cpp
     src/game/core/tiny_e.cpp
+    src/game/core/cheatmodule.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

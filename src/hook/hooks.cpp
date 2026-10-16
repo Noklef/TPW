@@ -2,7 +2,8 @@
 // Add a row here when a reimplementation is ready; mark it in re/symbols.csv too.
 #include "hooks.h"
 
-#include "../game/core/app.h"
+#include "../game/core/app.h"
+#include "../game/core/cheatmodule.h"
 #include "../game/core/circbuf.h"
 #include "../game/core/dequeiter.h"
 #include "../game/core/fpu.h"
@@ -2001,6 +2002,8 @@ const Hook kHooks[] = {
     {"Fn_66c096",                 0x0066c096, (void *)&Fn_66c096, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Fn_66c1f3",                 0x0066c1f3, (void *)&Fn_66c1f3, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Fn_6d2770",                 0x006d2770, (void *)&Fn_6d2770, {0x8b, 0x44, 0x24, 0x04, 0xc7}},
+    {"CheatSystem_Load",          0x00405570, (void *)&CheatSystem_Load, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
+    {"CheatSystem_Save",          0x004055d0, (void *)&CheatSystem_Save, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
