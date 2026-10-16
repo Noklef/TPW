@@ -67,6 +67,25 @@ void __cdecl ParticleSystem_SetScaled(u32 handle, s32 x, s32 y, s32 z) {
     }
 }
 
+// The next seed.
+static s32 NextSeed() {
+    u32 &seed = global<u32>(0x0080cee0);
+    seed = seed * 214013u + 2531011u;
+    return (s32)seed;
+}
+
+s32 __cdecl Particle_RandSigned(s32 n) {
+    if (n == 0)
+        return 0;
+    return (NextSeed() >> 16) % n;
+}
+
+s32 __cdecl Particle_Rand(s32 n) {
+    if (n == 0)
+        return 0;
+    return ((NextSeed() >> 16) & 0x7fff) % n;
+}
+
 void __cdecl ParticleSystem_Release(s32 slot) {
     if (slot < 0)
         return;
