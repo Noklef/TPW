@@ -31,4 +31,7 @@ void __fastcall Person_JumpScript210(u8 *person);
 // 0x50c0d0 (thiscall): when the script slot at +0x84 is set it is killed (SpriteScript_Kill) and +0x84
 // cleared.
 void __fastcall Person_KillScript84(u8 *person);
+
+// 0x50bab0 (thiscall): like Person_KillScript84 but +0x84 is left as it is.
+void __fastcall Person_KillScript84Keep(u8 *person);
 }

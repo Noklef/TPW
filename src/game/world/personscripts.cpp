@@ -56,4 +56,9 @@ void __fastcall Person_KillScript84(u8 *person) {
         at<u32>(person, 0x84) = 0;
     }
 }
+
+void __fastcall Person_KillScript84Keep(u8 *person) {
+    if (at<u32>(person, 0x84))
+        SpriteScript_Kill((s32)at<u32>(person, 0x84));
+}
 }

@@ -8,9 +8,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x50be40, 0x50be7c), (0x4f9ed0, 0x4f9efc), (0x4fe900, 0x4fe944), (0x4d4170, 0x4d4186), (0x475550, 0x47558b), (0x4fdc90, 0x4fdcb6), (0x4fdc60, 0x4fdc90), (0x4fe950, 0x4fe977), (0x50c0d0, 0x50c0f2), (0x475010, 0x476a30),
+B = Bench([(0x50be40, 0x50be7c), (0x4f9ed0, 0x4f9efc), (0x4fe900, 0x4fe944), (0x4d4170, 0x4d4186), (0x475550, 0x47558b), (0x4fdc90, 0x4fdcb6), (0x4fdc60, 0x4fdc90), (0x4fe950, 0x4fe977), (0x50c0d0, 0x50c0f2), (0x50bab0, 0x50bac4), (0x475010, 0x476a30),
            (0x540b90, 0x540d78), (0x541f60, 0x541f70), (0x5da3c0, 0x5da3c1)])
-CALLS = ['Tick', 'Jump', 'Kill', 'Release', 'Move', 'After']
+CALLS = ['Tick', 'Jump', 'Kill', 'Keep', 'Release', 'Move', 'After']
 CLOCK = RAM + 0x1000
 
 
@@ -42,7 +42,7 @@ def case(r):
         put(person, 0x210, 'I', r.choice([0, 0, 1, 2, 7, 0xffffffff]))
         return Call(0x4fe950, [RAM], regions, conv='t')
     put(person, 0x84, 'I', r.choice([0, 0, 1, 2, 7, 0xffffffff]))
-    return Call(0x50c0d0, [RAM], regions, conv='t')
+    return Call(0x50bab0 if op == 'Keep' else 0x50c0d0, [RAM], regions, conv='t')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
