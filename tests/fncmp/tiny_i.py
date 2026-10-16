@@ -5,7 +5,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, put  # noqa: E402
+from fncmp import HEAP, Bench, Call, RAM, heap, put  # noqa: E402
 
 # (address, end, convention, stack arguments, returns, globals touched, arguments used as pointers)
 FUNCS = [
@@ -55,6 +55,7 @@ def case(r):
         if r.random() < 0.5:
             put(obj, k, 'I', RAM + 0x100 + 4 * r.randrange(0x40))
     regions = {RAM: obj}
+    regions[HEAP] = heap(0x1000)  # the game heap the code frees into
     for g in globs:
         regions[g & ~0xf] = r.bytes(0x20)
     args = [r.choice([0, 1, 0xff, 0x7fffffff, 0xffffffff, r.getrandbits(32)]) for _ in range(n)]
