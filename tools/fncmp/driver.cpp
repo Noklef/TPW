@@ -176,7 +176,7 @@ const u32 kLog = kStubs + 0x100000;  // (the case maps it)
 u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     u32 *log = reinterpret_cast<u32 *>((uintptr_t)kLog);
     const u32 *args = stack + 1;  // (stack[0] is the thunk's own return address)
-    if (log[0] < 80) {
+    if (log[0] < 40) {
         u32 *entry = log + 1 + 12 * log[0];
         entry[0] = k;
         entry[1] = n;
@@ -187,7 +187,8 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     }
     u32 h = self * 0x9e3779b1u + (k + 1) * 0x10001u + n;
     for (u32 i = 0; i < n; ++i) h = h * 33 ^ args[i];
-    return h;
+    const u32 *override = log + 0x200 + 2 * k;  // (LOG_RETURNS: a flag and a value for the slot)
+    return override[0] ? override[1] : h;
 }
 
 void map_recorders(u8 *page) {

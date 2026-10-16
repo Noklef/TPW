@@ -34,7 +34,8 @@ driver's stubs at STUBS, the emulator's hooks).
 
 A case can hand the code objects whose vtables point at recorders (vtable({slot: stack arguments}) is the vtable's bytes; give the case a log_region()): a
 call through slot k with n stack arguments (thiscall, the callee pops them) appends (k, n, this, the arguments) to the log region at LOG and returns a hash of
-them, in both the driver and the emulator, so a function that calls virtual methods can be compared without the game's classes.
+them, in both the driver and the emulator, so a function that calls virtual methods can be compared without the game's classes. A case can make slot k return a value
+of its own instead of the hash: set_return(log, k, value) on the log region.
 
 A case can hand the code a heap (heap() is its region at HEAP): the same bump allocator in
 both for Mem_Alloc / Mem_Free (and memmove 0x67bb90 in the emulator); _Xlen / _Xran fail the
@@ -204,6 +205,8 @@ def _global_alloc(e):  # stdcall (flags, size)
 VSTUBS = STUBS + 0x1000  # the recorders: slot k (0-31) with n (0-7) stack arguments at VSTUBS + 0x400 * n + 0x20 * k
 LOG = STUBS + 0x100000  # their log (the case maps it, see log_region()): a count, then 12 dwords an entry (k, n, this, up to 7 arguments), room for 80
 LOG_ENTRY = 12
+LOG_ENTRIES = 40  # (the room: 4 + 48 * 40 bytes)
+LOG_RETURNS = 0x800  # from here an override for each slot: a flag and a value
 
 
 def recorder(k, n):
@@ -219,6 +222,11 @@ def log_region():
     return bytearray(0x1000)
 
 
+def set_return(log, k, value):
+    """Makes slot k's recorder return `value` (in the log region the case hands over)."""
+    struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 1, value & 0xffffffff)
+
+
 def vhash(k, n, this, args):
     h = (this * 0x9e3779b1 + (k + 1) * 0x10001 + n) & 0xffffffff
     for a in args:
@@ -232,11 +240,11 @@ def _recorder(k, n):
         args = [e.u32(sp + 4 * i) for i in range(n)]
         this = e.r['ECX']
         count = e.u32(LOG)
-        if count < 80:
+        if count < LOG_ENTRIES:
             entry = LOG + 4 + 4 * LOG_ENTRY * count
             e.write(entry, struct.pack('<%dI' % LOG_ENTRY, k, n, this, *(args + [0] * 7)[:7], 0, 0))
             e.write(LOG, struct.pack('<I', count + 1))
-        e.r['EAX'] = vhash(k, n, this, args)
+        e.r['EAX'] = e.u32(LOG + LOG_RETURNS + 8 * k + 4) if e.u32(LOG + LOG_RETURNS + 8 * k) else vhash(k, n, this, args)
         if e.tail:  # the return address goes up over the arguments the callee would have popped
             ret = e.u32(e.r['ESP'])
             e.r['ESP'] += 4 * n
