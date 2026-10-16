@@ -185,6 +185,7 @@
 #include "../game/render/spritequeue.h"
 #include "../game/render/drawbuffer.h"
 #include "../game/render/texformat.h"
+#include "../game/render/batch.h"
 #include "../game/render/weatherfx.h"
 #include "../game/online/servers.h"
 #include "../game/frontend/lobbymodel.h"
@@ -2169,6 +2170,7 @@ const Hook kHooks[] = {
     {"SoftRenderer_ClearBuffer",  0x00573ca0, (void *)&SoftRenderer_ClearBuffer, {0x8b, 0xd1, 0x57, 0x33, 0xc0}},
     {"SoftRenderer_TextureMemory", 0x00573e30, (void *)&SoftRenderer_TextureMemory, {0xa1, 0x20, 0x16, 0x8c, 0x00}},
     {"Meshes_Ready",              0x005744d0, (void *)&Meshes_Ready, {0x8b, 0x44, 0x24, 0x04, 0x83}},
+    {"Batch_Begin",               0x00565240, (void *)&Batch_Begin, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
