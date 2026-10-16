@@ -3303,6 +3303,7 @@ address,name,kind,confidence,notes
 0x0041c8b0,Class6fd9d8_Dtor,function,high,"reimplemented (src/game/core/small35); destructor: deletes its member and the held objects of its list, frees two strings"
 0x004f0700,Wstreambuf_Read,function,high,"reimplemented (src/game/core/small36); reads wide characters from the get area, else through the underflow slot"
 0x004f07c0,Wstreambuf_Write,function,high,"reimplemented (src/game/core/small36); writes wide characters to the put area, else through the overflow slot"
+0x004f6740,Streambuf_Regrow,function,high,reimplemented (src/game/core/small36); new block taking the buffer dwords
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

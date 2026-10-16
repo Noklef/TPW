@@ -14,4 +14,8 @@ u32 __fastcall Wstreambuf_Read(u8 *object, void *, u16 *destination, s32 count);
 // with the high half of the put pointer above it (sic), until that returns 0xffff. Returns the number written.
 u32 __fastcall Wstreambuf_Write(u8 *object, void *, const u16 *source, s32 count);
 
+// 0x4f6740 (thiscall; n, pops 4): a new block of n * 4 bytes (none below 0) that takes the dwords from the pointer at +0x10 up to (not including) the one past the pointer at
+// +0x20, at n rounded down to a multiple of 4 bytes into it; the old block at +0x24 is freed, +0x24 is the new block and +0x28 is n. Returns where the dwords were put.
+u32 *__fastcall Streambuf_Regrow(u8 *object, void *, u32 n);
+
 }  // extern "C"

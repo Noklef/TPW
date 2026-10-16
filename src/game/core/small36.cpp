@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "gameheap.h"
 #include "vcall.h"
 
 namespace {
@@ -64,6 +65,21 @@ u32 __fastcall Wstreambuf_Write(u8 *object, void *, const u16 *source, s32 count
         }
     }
     return (u32)total;
+}
+
+u32 *__fastcall Streambuf_Regrow(u8 *object, void *, u32 n) {
+    s32 size = (s32)(n * 4);
+    if (size < 0) size = 0;
+    u8 *block = static_cast<u8 *>(GameHeap_Alloc((u32)size));
+    u32 *out = reinterpret_cast<u32 *>(block + (n & 0xfffffffcu));
+    u32 *to = out;
+    const u32 *end = at<u32 *>(object, 0x20) + 1;
+    for (const u32 *from = at<u32 *>(object, 0x10); from != end; ++from)
+        *to++ = *from;
+    GameHeap_Free(at<void *>(object, 0x24));
+    at<u8 *>(object, 0x24) = block;
+    at<u32>(object, 0x28) = n;
+    return out;
 }
 
 }  // extern "C"

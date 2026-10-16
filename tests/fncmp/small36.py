@@ -5,10 +5,10 @@ import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, LOG, RAM, log_region, put, set_return, vtable  # noqa: E402
+from fncmp import Bench, Call, HEAP, LOG, RAM, heap, log_region, put, set_return, vtable  # noqa: E402
 
-CALLS = {'Read': 0x4f0700, 'Write': 0x4f07c0}
-B = Bench([(a, a + 0xc0) for a in CALLS.values()])
+CALLS = {'Read': 0x4f0700, 'Write': 0x4f07c0, 'Grow': 0x4f6740}
+B = Bench([(a, a + 0xc0) for a in CALLS.values()] + [(0x67acb0, 0x67acb1)])
 OBJ, VT, GP, CNT, PP, PC, GET, PUT, DST, SRC = RAM, RAM + 0x100, RAM + 0x400, RAM + 0x440, RAM + 0x480, RAM + 0x4c0, RAM + 0x1000, RAM + 0x2000, RAM + 0x3000, RAM + 0x4000
 
 
@@ -18,6 +18,14 @@ def room(r):
 
 def case(r):
     name = r.choice(OPS)
+    if name == 'Grow':
+        a = r.randrange(4)
+        b = a + r.choice([0, 1, 2, 3])
+        obj = bytearray(r.bytes(0x40))
+        put(obj, 0x10, 'I', GET + 4 * a)
+        put(obj, 0x20, 'I', GET + 4 * b - 4)
+        put(obj, 0x24, 'I', r.choice([0, HEAP + 0x40, HEAP + 0x100]))
+        return Call(CALLS[name], [OBJ, r.choice([4, 8, 0x10, 0x13, 0x40, 0x41])], {OBJ: obj, GET: r.bytes(0x40), HEAP: heap()}, conv='t', ret='a')
     obj = bytearray(r.bytes(0x40))
     put(obj, 0, 'I', VT)
     put(obj, 0x1c, 'I', GP)
