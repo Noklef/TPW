@@ -3027,6 +3027,11 @@ address,name,kind,confidence,notes
 0x0047bfe0,CountedVector14_ClearRange,function,high,reimplemented (src/game/core/small14); clears a range of counted vectors
 0x004f04d0,CountedList_ClearRelease,function,high,reimplemented (src/game/core/small14); clears a list of counted buffers by release
 0x005c9970,Counted2_Clear,function,high,reimplemented (src/game/core/small14); frees a block and releases two counted buffers
+0x0041eaa0,ObserverList4c_Add,function,high,reimplemented (src/game/core/small15); adds an item to the observer list at +0x4c
+0x00421590,ObserverList0_Add,function,high,reimplemented (src/game/core/small15); adds an item to the observer list at +0
+0x004d91f0,Obj_ReplaceHandle24,function,high,reimplemented (src/game/core/small15); swaps the handle at +0x24 with another thing's
+0x004e2b80,Obj_DefKind123,function,high,"reimplemented (src/game/core/small15); whether the object definition is of kind 1, 2 or 3"
+0x0050c100,Ring_PushUnique,function,high,reimplemented (src/game/core/small15); pushes an id and value unless they repeat the last pair
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

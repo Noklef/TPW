@@ -111,6 +111,7 @@
 #include "../game/core/small12.h"
 #include "../game/core/small13.h"
 #include "../game/core/small14.h"
+#include "../game/core/small15.h"
 #include "../game/core/small2.h"
 #include "../game/core/small3.h"
 #include "../game/core/small4.h"
@@ -2535,6 +2536,11 @@ const Hook kHooks[] = {
     {"CountedVector14_ClearRange", 0x0047bfe0, (void *)&CountedVector14_ClearRange, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"CountedList_ClearRelease",  0x004f04d0, (void *)&CountedList_ClearRelease, {0x53, 0x8b, 0xd9, 0x55, 0x57}},
     {"Counted2_Clear",            0x005c9970, (void *)&Counted2_Clear, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
+    {"ObserverList4c_Add",        0x0041eaa0, (void *)&ObserverList4c_Add, {0x53, 0x8b, 0xd9, 0x56, 0x57}},
+    {"ObserverList0_Add",         0x00421590, (void *)&ObserverList0_Add, {0x53, 0x8b, 0xd9, 0x56, 0x57}},
+    {"Obj_ReplaceHandle24",       0x004d91f0, (void *)&Obj_ReplaceHandle24, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
+    {"Obj_DefKind123",            0x004e2b80, (void *)&Obj_DefKind123, {0x51, 0x56, 0x8b, 0xf1, 0x66}},
+    {"Ring_PushUnique",           0x0050c100, (void *)&Ring_PushUnique, {0x53, 0x56, 0x57, 0x68, 0x14}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
