@@ -62,6 +62,7 @@
 #include "../game/core/idtable.h"
 #include "../game/core/keymap.h"
 #include "../game/core/language.h"
+#include "../game/core/options.h"
 #include "../game/core/stdstring.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
@@ -1234,6 +1235,12 @@ const Hook kHooks[] = {
     {"Language_Id",               0x0041a830, (void *)&Language_Id, {0x8b, 0x41, 0x08, 0xc3, 0x90}},
     {"Language_SetId",            0x0041a840, (void *)&Language_SetId, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Language_IsHebrew",         0x0041a850, (void *)&Language_IsHebrew, {0x8b, 0x51, 0x08, 0x33, 0xc0}},
+    {"Options_Revert",            0x00423ad0, (void *)&Options_Revert, {0x8b, 0xc1, 0x56, 0x57, 0xb9}},
+    {"Options_Keep",              0x00423b00, (void *)&Options_Keep, {0x8b, 0xc1, 0x56, 0x57, 0xb9}},
+    {"Options_Set30",             0x00423b40, (void *)&Options_Set30, {0x8b, 0x44, 0x24, 0x04, 0x89}},
+    {"Options_Set4",              0x00423b60, (void *)&Options_Set4, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Options_SetC",              0x00423b80, (void *)&Options_SetC, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Options_Set8",              0x00423ba0, (void *)&Options_Set8, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

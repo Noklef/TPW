@@ -1880,6 +1880,12 @@ address,name,kind,confidence,notes
 0x0041a830,Language_Id,function,high,reimplemented (src/game/core/language); thiscall; the Windows language id (+8)
 0x0041a840,Language_SetId,function,high,reimplemented (src/game/core/language); thiscall (id); +8 = id
 0x0041a850,Language_IsHebrew,function,high,reimplemented (src/game/core/language); thiscall; +8 == 0x40d
+0x00423ad0,Options_Revert,function,high,"reimplemented (src/game/core/options); thiscall; the copy +0x3c..+0x78 back over +0..+0x3c, +0x94 = 0, +0x98 &= ~7"
+0x00423b00,Options_Keep,function,high,"reimplemented (src/game/core/options); thiscall; +0..+0x3c over the copy at +0x3c, +0x94 raised to 0 when negative, +0x98 &= ~7"
+0x00423b40,Options_Set30,function,high,reimplemented (src/game/core/options); thiscall (value); +0x30 = value
+0x00423b60,Options_Set4,function,high,reimplemented (src/game/core/options); thiscall (value); +4 = value when it differs
+0x00423b80,Options_SetC,function,high,reimplemented (src/game/core/options); thiscall (value); +0xc = value when it differs
+0x00423ba0,Options_Set8,function,high,reimplemented (src/game/core/options); thiscall (value); +8 = value when it differs
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
