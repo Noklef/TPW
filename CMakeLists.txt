@@ -89,6 +89,7 @@ add_library(tpw_game STATIC
     src/game/gfx/texman.cpp
     src/game/gfx/texture.cpp
     src/game/gfx/spriteframe.cpp
+    src/game/gfx/animtex.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp

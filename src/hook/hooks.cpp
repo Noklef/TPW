@@ -64,6 +64,7 @@
 #include "../game/gfx/texman.h"
 #include "../game/gfx/texset.h"
 #include "../game/gfx/texture.h"
+#include "../game/gfx/animtex.h"
 #include "../game/gfx/tga.h"
 #include "../game/core/events.h"
 #include "../game/core/filetime.h"
@@ -1381,6 +1382,8 @@ const Hook kHooks[] = {
     {"Texture_UsesDriverFilter",  0x00590fb0, (void *)&Texture_UsesDriverFilter, {0xf7, 0x41, 0x08, 0x00, 0x00}},
     {"SpriteFrame_Init",          0x00588d70, (void *)&SpriteFrame_Init, {0x8b, 0xc1, 0x33, 0xc9, 0x89}},
     {"SpriteImage_Init",          0x00588320, (void *)&SpriteImage_Init, {0x8b, 0xc1, 0x33, 0xc9, 0x66}},
+    {"AnimTextures_Set",          0x005906e0, (void *)&AnimTextures_Set, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"AnimTextures_Clear",        0x00590730, (void *)&AnimTextures_Clear, {0x57, 0xb9, 0x06, 0x00, 0x00}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
