@@ -10,14 +10,37 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put, record_stream  # noqa: E402
 
 B = Bench([(0x5452a0, 0x545307), (0x54ab40, 0x54abc3), (0x543490, 0x5434d0), (0x54bbb0, 0x54bbd6), (0x549b50, 0x549b71), (0x549d30, 0x549da6),
-           (0x5f5e20, 0x5f5e50), (0x5f5e50, 0x5f5e80), (0x544160, 0x5441f0), (0x5441f0, 0x544290), (0x544c00, 0x544c80), (0x545100, 0x545180), (0x54abd0, 0x54ac70), (0x5da3c0, 0x5da3c1)])
+           (0x5f5e20, 0x5f5e50), (0x5f5e50, 0x5f5e80), (0x544a10, 0x544b50), (0x544160, 0x5441f0), (0x5441f0, 0x544290), (0x544c00, 0x544c80), (0x545100, 0x545180), (0x54abd0, 0x54ac70), (0x5da3c0, 0x5da3c1)])
 STREAM, SINK, BUF, POOL, LINKS, GLOBALS = RAM + 0x100, RAM + 0x200, RAM + 0x400, RAM + 0x1000, RAM + 0x800, 0x877b58
-CALLS = ['Write', 'Read', 'Free', 'Linked', 'Field5c', 'PopNode', 'Worn', 'Dur', 'PushNode', 'ReadN', 'ReadD']
+CALLS = ['Write', 'Read', 'Free', 'Linked', 'Field5c', 'PopNode', 'Worn', 'Dur', 'PushNode', 'ReadN', 'ReadD', 'Close']
 
 
 def case(r):
     op = r.choice(OPS)
     globals_ = bytearray(r.bytes(0x40))
+    if op == 'Close':  # a ride of one of the kinds (the first dword, also the serial of its handle) with a list at +0xc8 / +0xc4 and pool records pointing at it
+        rides = bytearray(r.bytes(0x100 * 0xd0))
+        index = r.choice([0, 1, 0xff, r.randrange(0x100)])
+        kind = r.choice([-14, -11, -6, -3, -1, 0, 1, 5, -2, -13, -15])
+        put(rides, index * 0xd0, 'i', kind)
+        put(rides, index * 0xd0 + 0x50, 'I', r.choice([0, 1, 5]))
+        nodes = bytearray(r.bytes(0x100))
+        n = r.choice([0, 1, 2, 3])
+        for k in range(n):
+            put(nodes, 0x20 * k + 0x10, 'I', LINKS + 0x20 * (k + 1) if k + 1 < n else 0)
+        put(rides, index * 0xd0 + 0xc8, 'I', LINKS if n else 0)
+        put(rides, index * 0xd0 + 0xc4, 'I', r.choice([0, LINKS + 0x80, LINKS + 0xa0]))
+        recs = bytearray(r.bytes(8 * 0xac))
+        used = 0
+        for k in range(8):
+            used += recs[k * 0xac] & 1
+            put(recs, k * 0xac + 0x9c, 'I', POOL + index * 0xd0 if r.random() < 0.6 else r.getrandbits(32))
+        put(globals_, 0, 'I', 0x4a454647 if r.random() < 0.9 else r.getrandbits(32))
+        put(globals_, 8, 'I', POOL)
+        put(globals_, 0x10, 'I', RAM + 0x30000 if r.random() < 0.9 else 0)
+        put(globals_, 0x14, 'I', r.choice([0, 1, used, max(used - 1, 0), 2]))
+        handle = r.choice([index | (kind << 8) & 0xffffffff] * 5 + [index | (kind ^ 1) << 8 & 0xffffffff, r.getrandbits(32), 1])
+        return Call(0x544a10, [handle & 0xffffffff], {GLOBALS: globals_, POOL: rides, LINKS: nodes, RAM + 0x30000: recs}, ret='v')
     if op in ('ReadN', 'ReadD'):  # a chunk: its stream (+4), the position (+8) and the end (+0x10); the stream holds `left` more bytes
         count = r.choice([0, 1, 3, 4, 5, 12, r.randrange(0x40)])
         left = r.choice([count, count, 0, 2, r.randrange(0x40), 0x100])

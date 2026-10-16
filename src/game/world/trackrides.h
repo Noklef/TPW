@@ -52,4 +52,9 @@ u32 __cdecl TrakChunk_Read(u8 *chunk, u8 *buffer, u32 count);
 
 // 0x5441f0 (chunk): the same for one dword: its value when all four bytes were read, otherwise 0.
 u32 __cdecl TrakChunk_ReadDword(u8 *chunk);
+
+// 0x544a10 (handle): closes the ride when the module is loaded, the handle names it and its dword at +0x50 is not 0: that is cleared; the list at +0xc8 gets the list at +0xc4
+// appended (or becomes it when empty) and +0xc4 is cleared; for the five ride kinds (the dword at +0 is -14, -11, -6, -3 or -1) the pool records at [0x877b68] (0xac bytes
+// each, as many used ones - bit 0 of +0 - as the dword at 0x877b6c counts) that belong to the ride (+0x9c) get +0x88 cleared and bits 0x10020 set, 0x405e cleared in +0.
+void __cdecl TrakRide_Close(u32 handle);
 }

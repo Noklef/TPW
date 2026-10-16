@@ -90,6 +90,39 @@ u32 __cdecl TrakChunk_ReadDword(u8 *chunk) {
     return done == 4 ? value : 0;
 }
 
+void __cdecl TrakRide_Close(u32 handle) {
+    u8 *ride = RideOf(handle);
+    if (handle != NameOf(ride) || at<u32>(ride, 0x50) == 0)
+        return;
+    at<u32>(ride, 0x50) = 0;
+    u8 *node = at<u8 *>(ride, 0xc8);
+    if (!node) {
+        at<u32>(ride, 0xc8) = at<u32>(ride, 0xc4);
+    } else {
+        while (u8 *next = at<u8 *>(node, 0x10))
+            node = next;
+        at<u32>(node, 0x10) = at<u32>(ride, 0xc4);
+    }
+    at<u32>(ride, 0xc4) = 0;
+    const s32 kind = at<s32>(ride, 0);
+    if (kind != -14 && kind != -11 && kind != -6 && kind != -3 && kind != -1)
+        return;
+    u8 *record = global<u8 *>(0x00877b68);
+    u32 left = global<u32>(0x00877b6c);
+    if (!record || !left)
+        return;
+    do {
+        if (at<u8>(record, 0) & 1) {
+            --left;
+            if (at<u8 *>(record, 0x9c) == ride) {
+                at<u32>(record, 0x88) = 0;
+                at<u32>(record, 0) = (at<u32>(record, 0) & 0xffffbfa1u) | 0x10020u;
+            }
+        }
+        record += 0xac;
+    } while (left != 0);
+}
+
 void __cdecl TrakRide_MarkWornOut(u32 handle) {
     u8 *ride = RideOf(handle);
     if (handle == NameOf(ride))
