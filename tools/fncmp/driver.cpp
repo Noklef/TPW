@@ -157,6 +157,10 @@ void *__stdcall stub_global_free(void *block) {
     return nullptr;
 }
 
+// A constructor / destructor for code that calls one through a pointer (kStubs + 0x40, tools/fncmp.py STUBS + 0x40): thiscall, no other arguments;
+// puts a vtable pointer (0x6fd800) in the first dword of the object.
+void __fastcall stub_mark(u32 *self) { *self = 0x006fd800; }
+
 // What throws in the game (std::_Xlen, _Xran): a case that gets there reports a crash.
 void __cdecl heap_throw() { RaiseException(0xe0000001, 0, 0, nullptr); }
 
@@ -169,8 +173,8 @@ void map_stubs() {
     u8 *p = static_cast<u8 *>(VirtualAlloc((void *)(uintptr_t)kStubs, 0x10000, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE));
     if (!p) fail("cannot map the stubs at", kStubs);
     const void *stubs[] = {(const void *)&stub_read, (const void *)&stub_write, (const void *)&stub_global_alloc,
-                           (const void *)&stub_global_free};
-    for (u32 i = 0; i < 4; ++i) {
+                           (const void *)&stub_global_free, (const void *)&stub_mark};
+    for (u32 i = 0; i < 5; ++i) {
         u8 *at = p + 0x10 * i;
         at[0] = 0xe9;  // jmp rel32
         const u32 rel = (u32)(uintptr_t)stubs[i] - ((u32)(uintptr_t)at + 5);

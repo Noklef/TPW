@@ -116,6 +116,7 @@
 #include "../game/core/small17.h"
 #include "../game/core/small18.h"
 #include "../game/core/small19.h"
+#include "../game/core/small20.h"
 #include "../game/core/small2.h"
 #include "../game/core/small3.h"
 #include "../game/core/small4.h"
@@ -2572,6 +2573,8 @@ const Hook kHooks[] = {
     {"Record_CopyWithText",       0x00489350, (void *)&Record_CopyWithText, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Bands_AnyMatch",            0x0056ee90, (void *)&Bands_AnyMatch, {0x8b, 0x81, 0x28, 0x01, 0x00}},
     {"Bytes4_Permute",            0x0056f4f0, (void *)&Bytes4_Permute, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
+    {"CRT_VectorCtorIterator",    0x0067acf0, (void *)&CRT_VectorCtorIterator, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"CRT_VectorDtorIterator",    0x0067afa0, (void *)&CRT_VectorDtorIterator, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
