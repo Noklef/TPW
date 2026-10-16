@@ -765,6 +765,7 @@ address,name,kind,confidence,notes
 0x0053ae90,MapCell_JunctionNeighbours,function,high,"reimplemented (src/game/world/mapcell); thiscall: the neighbour bits when more than 2 sides are set, else 0 (AL)"
 0x0053aec0,MapCell_Word24,function,high,"reimplemented (src/game/world/mapcell); thiscall: the u16 +0x24, or for a 0xc / 0x11 cell its parent's (AX)"
 0x0053aef0,MapCell_SetWord24,function,high,reimplemented (src/game/world/mapcell); thiscall (value): the u16 +0x24
+0x004d8cd0,Map_BlockValueAt,function,high,reimplemented (src/game/world/mapcell); the block value at block coordinates (by * 33 + bx)
 0x004d1c80,Challenges_DropOrphans,function,high,reimplemented (src/game/world/challenges); thiscall: each challenge in use (+0) naming another (+0x18) is dropped (+0 = 0) unless another in use has that id (from Challenges_LoadSam)
 0x004d2840,Challenges_Current,function,high,"reimplemented (src/game/world/challenges); thiscall: &challenges[+0x3cc] (0x30 bytes from +0xc) for an index 0-19, else null"
 0x004d1e60,BalanceChallenges_GetSchema,function,high,"reimplemented (src/game/world/challenges); thiscall (index), vtable 0x700398 slot 0: 0x739b98 + index * 0x3c"

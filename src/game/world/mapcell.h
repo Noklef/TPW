@@ -50,6 +50,10 @@ u16 *__fastcall Map_CrossingBSSidePos(const u8 *map, void *, u16 *out, u32 b);
 void __fastcall Map_SetBlockValue(u8 *map, void *, u32 value, u32 pos);
 u32 __fastcall Map_BlockValue(const u8 *map, void *, u32 pos);
 
+// 0x4d8cd0 (thiscall on the map; bx, by, pops 8): the same dword by block coordinates, by * 33 + bx
+// (neither is checked).
+u32 __fastcall Map_BlockValueAt(const u8 *map, void *, u32 bx, u32 by);
+
 // 0x4d8da0: a 0x44-byte map cell, zeroed but for u16 +0 = 0x423f and byte +2 = 1. Returns it.
 u8 *__fastcall MapCell_Ctor(u8 *cell);
 

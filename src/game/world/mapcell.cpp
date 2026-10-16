@@ -152,6 +152,10 @@ u32 __fastcall MapCell_HasFlags(const u8 *cell, void *, u32 flags) { return (at<
 
 u32 __fastcall MapCell_Flag400(const u8 *cell) { return at<u16>(cell, 0xe) >> 10 & 1; }
 
+u32 __fastcall Map_BlockValueAt(const u8 *map, void *, u32 bx, u32 by) {
+    return at<u32>(map, 0x1b0000 + (by * 33 + bx) * 4);
+}
+
 u32 __fastcall MapCell_IsType0(const u8 *cell) { return at<u32>(cell, 8) == 0 ? 1 : 0; }
 u32 __fastcall MapCell_IsType1(const u8 *cell) { return at<u32>(cell, 8) == 1 ? 1 : 0; }
 u32 __fastcall MapCell_IsType2(const u8 *cell) { return at<u32>(cell, 8) == 2 ? 1 : 0; }
