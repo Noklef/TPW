@@ -655,6 +655,7 @@ address,name,kind,confidence,notes
 0x00516310,World_QueueDelete,function,high,"reimplemented (src/game/world/things); thiscall (handle): pushes it on gThingsToDelete"
 0x0051ad40,HandleQueue_Push,function,high,"reimplemented (src/game/world/things); thiscall (handle): a new 12-byte node at the head"
 0x0051ad90,HandleQueue_Pop,function,high,"reimplemented (src/game/world/things); thiscall (&handle): the head's handle, its node deleted; empty: unchanged"
+0x00518ea0,Things_ReleaseDeleted,function,high,reimplemented (src/game/world/things); releases the slots of all queued deleted handles
 0x0042a0f0,Camera_InitUnusedOne,function,high,reimplemented (src/game/world/camera); static initialiser: 0x7909e8 = 1.0f (never read)
 0x0042a110,Camera_InitUnusedEpsilon,function,high,reimplemented (src/game/world/camera); static initialiser: 0x790a94 = 1/8388608 (never read)
 0x0042a130,Camera_Init7909ec,function,high,reimplemented (src/game/world/camera); static initialiser: 0x7909ec = 110.0f

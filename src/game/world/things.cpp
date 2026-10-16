@@ -4,6 +4,8 @@
 // out.
 #include "things.h"
 
+#include "../core/gameheap.h"
+
 namespace {
 
 constexpr u32 kSlots = 0x2800;
@@ -14,9 +16,11 @@ ThingSlot *&freeSlots() { return *reinterpret_cast<ThingSlot **>(0x00801bbc); }
 HandleQueue *deleteQueue() { return reinterpret_cast<HandleQueue *>(0x00801f38); }
 
 void __cdecl game_destroy(void *thing) { reinterpret_cast<void(__fastcall *)(void *)>(0x0050b780)(thing); }
+void __cdecl game_free(void *block) { GameHeap_Free(block); }  // the game's operator delete / new (0x67acb0 / 0x67acc0), through core/gameheap
+void *__cdecl game_alloc(u32 size) { return GameHeap_Alloc(size); }
 const ThingTableEnv kGameEnv = {
-    reinterpret_cast<void(__cdecl *)(void *)>(0x0067acb0),
-    reinterpret_cast<void *(__cdecl *)(u32)>(0x0067acc0),
+    &game_free,
+    &game_alloc,
     &game_destroy,
 };
 const ThingTableEnv *g_env = &kGameEnv;
@@ -129,6 +133,14 @@ extern "C" u16 *__fastcall HandleQueue_Pop(HandleQueue *q, void *, u16 *out) {
 
 extern "C" void __fastcall World_QueueDelete(void *, void *, u32 handle) {
     HandleQueue_Push(deleteQueue(), nullptr, handle);
+}
+
+extern "C" void __cdecl Things_ReleaseDeleted() {
+    u16 handle = 0;  // (the original keeps the caller's SI when the queue is inconsistent: a count with no head)
+    while (deleteQueue()->count) {
+        HandleQueue_Pop(deleteQueue(), nullptr, &handle);
+        ThingSlot_Release(&slots()[handle]);
+    }
 }
 
 extern "C" void __fastcall World_DeleteAllThings(u8 *world) {

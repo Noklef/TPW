@@ -57,6 +57,8 @@ void __fastcall World_QueueDelete(void *world, void *edx, u32 handle);
 // byte +3 says it is already deleted), then releases the slot of every handle on the
 // delete queue. World +0x1da738 is 2 meanwhile, then 1.
 void __fastcall World_DeleteAllThings(u8 *world);
+// 0x518ea0 (cdecl): while the delete queue has handles, the head's handle is popped (inlined) and its slot released (ThingSlot_Release).
+void __cdecl Things_ReleaseDeleted();
 // 0x51ad40 (__thiscall; handle): a new node (operator new, 0x67acc0) at the head; the
 // original writes through a null node when that fails.
 void __fastcall HandleQueue_Push(HandleQueue *queue, void *edx, u32 handle);
