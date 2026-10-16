@@ -140,7 +140,8 @@
 #include "../game/core/small37.h"
 #include "../game/core/small38.h"
 #include "../game/core/small39.h"
-#include "../game/core/small4.h"
+#include "../game/core/small4.h"
+#include "../game/core/small40.h"
 #include "../game/core/small5.h"
 #include "../game/core/small6.h"
 #include "../game/core/small7.h"
@@ -2870,6 +2871,8 @@ const Hook kHooks[] = {
     {"StdMapG_Insert",            0x005b1930, (void *)&StdMapG_Insert, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"ImeVector_InsertOne",       0x0047c740, (void *)&ImeVector_InsertOne, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"ImeVector_InsertN",         0x0047cf20, (void *)&ImeVector_InsertN, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"TextMetrics_Width",         0x0047f9a0, (void *)&TextMetrics_Width, {0x51, 0x0f, 0xbf, 0x44, 0x24}},
+    {"TextMetrics_FitIndex",      0x0047fa00, (void *)&TextMetrics_FitIndex, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

@@ -3310,6 +3310,8 @@ address,name,kind,confidence,notes
 0x005b1930,StdMapG_Insert,function,high,reimplemented (src/game/core/small38); map insert of a 16-bit key with the sentinel at 0xf7c970
 0x0047c740,ImeVector_InsertOne,function,high,reimplemented (src/game/core/small39); inserts one dword into the IME vector
 0x0047cf20,ImeVector_InsertN,function,high,reimplemented (src/game/core/small39); inserts count copies of a dword into the IME vector
+0x0047f9a0,TextMetrics_Width,function,high,reimplemented (src/game/core/small40); width of a run of characters by the glyph width slot
+0x0047fa00,TextMetrics_FitIndex,function,high,reimplemented (src/game/core/small40); index at which the width runs out
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
