@@ -2748,6 +2748,7 @@ address,name,kind,confidence,notes
 0x006c4010,Mem_CopyForward,function,high,"reimplemented (src/game/core/seqs); copies bytes forward, dwords first"
 0x006a7030,SignedBytes_Compare,function,high,reimplemented (src/game/core/seqs); a lexicographic comparison of two ranges of signed bytes
 0x006afc90,ByteBuf_Write,function,high,reimplemented (src/game/core/seqs); writes bytes into a fixed buffer until it is full
+0x006af960,Table12_Find,function,high,reimplemented (src/game/core/seqs); a binary search among 12-byte records by their first dword
 0x0041a960,Out_SetFromGame1da70c,function,high,reimplemented (src/game/core/indexed); stores a game field and returns the game pointer
 0x0041a970,Game1da70c_MinusAt0,function,high,reimplemented (src/game/core/indexed); a game field minus the dword at +0
 0x004145d0,Obj_GetIndexed4e0,function,high,reimplemented (src/game/core/indexed); the dword at 0x4e0 + 4 * index

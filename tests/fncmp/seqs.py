@@ -11,7 +11,7 @@ from fncmp import Bench, Call, RAM  # noqa: E402
 CALLS = {'Words': (0x6a01a0, 's', 'a', 0x30), 'Sb': (0x6a7240, 's', 'a', 0x30), 'Br': (0x6ae2b0, 'c', 'a', 0x28),
          'Rng': (0x6ae410, 'c', 'b', 0x30), 'C4': (0x6aed80, 't', 'a', 0x20), 'C88': (0x6adf90, 't', 'a', 0x20),
          'Cp8': (0x6af730, 'c', 'a', 0x30), 'Path': (0x6bfe10, 's', 'a', 0x38), 'Cpy': (0x6c4010, 's', 'a', 0x30),
-         'Cmp': (0x6a7030, 's', 'a', 0x50), 'Wr': (0x6afc90, 't', 'v', 0xb0)}
+         'Cmp': (0x6a7030, 's', 'a', 0x50), 'Tbl': (0x6af960, 't', 'a', 0x6c), 'Wr': (0x6afc90, 't', 'v', 0xb0)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()])
 POOL = RAM + 0x3000
 OUT = RAM + 0x1000
@@ -59,6 +59,14 @@ def case(r):
         if r.random() < 0.3:
             pool[0x100 + r.randrange(8)] = r.choice([0x41, 0x80, 0xff])
         args = [POOL, POOL + n1, POOL + 0x100, POOL + 0x100 + n2]
+    elif name == 'Tbl':
+        n = r.choice([0, 1, 2, 3, 4, 5, 7, 8, 9, 15, 16])
+        keys = sorted(r.sample(range(0, 40), n)) if r.random() < 0.7 else sorted(r.getrandbits(32) for _ in range(n))
+        for i, k in enumerate(keys):
+            struct.pack_into('<III', pool, 0x20 + 12 * i, k, r.getrandbits(32), r.getrandbits(32))
+        struct.pack_into('<II', obj, 8, POOL + 0x20, POOL + 0x20 + 12 * (n - 1))
+        pick = r.choice(keys + [0, 1, 39, 40, 0xffffffff, 7, 100]) if keys else r.choice([0, 1, 5])
+        args = [RAM, pick if r.random() < 0.7 else r.randrange(0, 45)]
     elif name == 'Wr':
         room = r.choice([0, 1, 2, 3, 5, 8])
         cursor = OUT + r.choice([0, 3, 0x10])

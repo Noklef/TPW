@@ -115,6 +115,22 @@ void __fastcall ByteBuf_Write(u8 *buffer, void *, const u8 *text, s32 count) {
     } while (--n);
 }
 
+u8 *__fastcall Table12_Find(const u8 *table, void *, u32 key) {
+    const u8 *low = at<const u8 *>(table, 8) - 12;
+    const u8 *high = at<const u8 *>(table, 0xc) + 12;
+    for (s32 count = (s32)(high - low) / 12; count > 1; count = (s32)(high - low) / 12) {
+        const u8 *middle = low + 12 * (u32)(count / 2);
+        const u32 found = at<u32>(middle, 0);
+        if (key == found)
+            return const_cast<u8 *>(middle);
+        if (key < found)
+            high = middle;
+        else
+            low = middle;
+    }
+    return nullptr;
+}
+
 u32 __stdcall Mem_CopyForward(void *dest, const void *source, u32 count) {
     Rep_Movs(dest, source, count);
     return count;

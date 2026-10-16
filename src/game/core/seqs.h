@@ -44,4 +44,8 @@ s32 __stdcall SignedBytes_Compare(const s8 *first1, const s8 *last1, const s8 *f
 // byte) are stored at the cursor, which moves on, until the cursor reaches the end, which sets the flag. Undefined return.
 void __fastcall ByteBuf_Write(u8 *buffer, void *, const u8 *text, s32 count);
 
+// 0x6af960 (thiscall; key, pops 4): a binary search for the key (unsigned) among the first dwords of records of 12 bytes from the
+// dword at +8 up to the one at +0xc (inclusive): the record, or 0.
+u8 *__fastcall Table12_Find(const u8 *table, void *, u32 key);
+
 }  // extern "C"
