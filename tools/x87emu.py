@@ -460,11 +460,12 @@ class Emu:
                 res = a << n if mn == 'SHL' else a >> n
                 cf = bool((a << n) >> bits & 1) if mn == 'SHL' else bool(a >> (n - 1) & 1)
                 self.put(o[0], self.flags(res, bits, cf))
-        elif mn in ('ROR', 'ROL'):  # 32-bit; CF = the last bit rotated round, SF/ZF kept
-            a, n = self.get(o[0]), self.get(o[1]) & 31
+        elif mn in ('ROR', 'ROL'):  # of the operand's size; CF = the last bit rotated round, SF/ZF kept
+            a, n, bits = self.get(o[0]), self.get(o[1]) & 31, 8 * self.size(o[0])
             if n:
-                res = ((a >> n) | (a << (32 - n)) if mn == 'ROR' else (a << n) | (a >> (32 - n))) & 0xffffffff
-                self.cf = bool(res >> 31) if mn == 'ROR' else bool(res & 1)
+                m, mask = n % bits, (1 << bits) - 1
+                res = a if not m else ((a >> m) | (a << (bits - m)) if mn == 'ROR' else (a << m) | (a >> (bits - m))) & mask
+                self.cf = bool(res >> (bits - 1)) if mn == 'ROR' else bool(res & 1)
                 self.put(o[0], res)
         elif mn == 'CDQ':
             self.r['EDX'] = 0xffffffff if self.r['EAX'] >> 31 else 0

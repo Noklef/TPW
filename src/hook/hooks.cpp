@@ -4,6 +4,7 @@
 
 #include "../game/core/app.h"
 #include "../game/core/cheatmodule.h"
+#include "../game/core/cursors.h"
 #include "../game/core/circbuf.h"
 #include "../game/core/dequeiter.h"
 #include "../game/core/fpu.h"
@@ -2186,6 +2187,12 @@ const Hook kHooks[] = {
     {"Wrap_Wrap_Init_6b4a60_6b1de0_6b0180", 0x006b0180, (void *)&Wrap_Wrap_Init_6b4a60_6b1de0_6b0180, {0xb9, 0xf0, 0x1e, 0xfb, 0x00}},
     {"Wrap_Wrap_Init_6b4a60_6b2a10_6b01c0", 0x006b01c0, (void *)&Wrap_Wrap_Init_6b4a60_6b2a10_6b01c0, {0xb9, 0xf4, 0x1e, 0xfb, 0x00}},
     {"Wrap_Wrap_Init_6b4a60_6b3c00_6b0200", 0x006b0200, (void *)&Wrap_Wrap_Init_6b4a60_6b3c00_6b0200, {0xb9, 0xf8, 0x1e, 0xfb, 0x00}},
+    {"Table_AddressPlus18",       0x006b0620, (void *)&Table_AddressPlus18, {0x8b, 0x51, 0x08, 0x56, 0x85}},
+    {"Table_Address",             0x006b0650, (void *)&Table_Address, {0x8b, 0x51, 0x08, 0x56, 0x85}},
+    {"Packed_Read",               0x006b0510, (void *)&Packed_Read, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Nibble_Write",              0x006b5450, (void *)&Nibble_Write, {0x8a, 0x41, 0x05, 0x53, 0x84}},
+    {"Nibble_Next",               0x006b54c0, (void *)&Nibble_Next, {0x8a, 0x11, 0x56, 0x8b, 0x71}},
+    {"Bit_Next",                  0x006b54f0, (void *)&Bit_Next, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
