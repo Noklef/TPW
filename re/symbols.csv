@@ -2975,6 +2975,14 @@ address,name,kind,confidence,notes
 0x005d0690,Node0c_New,function,high,reimplemented (src/game/core/small7); a new 12-byte node with two links
 0x005eb170,Array3Ds_Free4,function,high,reimplemented (src/game/core/small7); frees four array members
 0x004d05d0,Obj_Set118,function,high,reimplemented (src/game/core/small7); sets the dword at +0x118
+0x004f75e0,CountedBuf_ReleaseAndClear,function,high,reimplemented (src/game/core/small8); releases the counted buffer at +4 and clears the fields
+0x004fe980,Bytes785058_Get,function,high,reimplemented (src/game/core/small8); one of three global bytes by index
+0x005012b0,Visitor_Set1f8One,function,high,reimplemented (src/game/core/small8); sets the dword at +0x1f8 to 1
+0x0050c190,Ring_FromEnd,function,high,reimplemented (src/game/core/small8); the address of the element of a ring counted from its end
+0x00579020,VBase_Deleter_7018d0,function,high,reimplemented (src/game/core/small8); deleting destructor of a virtual base (vtable 0x7018d0)
+0x005790c0,VBase_Deleter_701920,function,high,reimplemented (src/game/core/small8); deleting destructor of a virtual base (vtable 0x701920)
+0x00579150,VBase_Deleter_7018f8,function,high,reimplemented (src/game/core/small8); deleting destructor of a virtual base (vtable 0x7018f8)
+0x005d0a50,Ring_Splice,function,high,reimplemented (src/game/core/small8); moves a range of nodes of a doubly linked ring before a position
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
