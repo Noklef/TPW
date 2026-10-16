@@ -83,6 +83,7 @@ add_library(tpw_game STATIC
     src/game/core/volumes.cpp
     src/game/core/tiny_a.cpp
     src/game/core/tiny_b.cpp
+    src/game/core/tiny_c.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

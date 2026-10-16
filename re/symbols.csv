@@ -65,7 +65,7 @@ address,name,kind,confidence,notes
 0x0051c350,Sound_Save,function,high,module SOUN
 0x00405570,CheatSystem_Load,function,high,module CHTS
 0x004055d0,CheatSystem_Save,function,high,module CHTS
-0x004053b0,CheatSystem_Construct,function,medium,function-static singleton constructor
+0x004053b0,CheatSystem_Construct,function,high,"reimplemented (src/game/core/tiny_c); sets +0xa, +0xb, +0x9; returns the object"
 0x0059c860,AdvisorScoring_Load,function,high,module ADSC
 0x0059c890,AdvisorScoring_Save,function,high,module ADSC
 0x0059bea0,AdvisorScoring_Construct,function,medium,function-static singleton constructor
@@ -2365,6 +2365,57 @@ address,name,kind,confidence,notes
 0x0066d6ea,FrameStub_66d6ea,function,high,reimplemented (src/game/core/tiny_b); does nothing (frame style)
 0x0066d875,FrameConst9_66d875,function,high,reimplemented (src/game/core/tiny_b); returns 0x9
 0x0066da3d,FrameConst6_66da3d,function,high,reimplemented (src/game/core/tiny_b); returns 0x6
+0x00402f30,Init_402f30,function,high,"reimplemented (src/game/core/tiny_c); sets +0x8, +0x0, +0xc; returns the object"
+0x00421510,Init_421510,function,high,"reimplemented (src/game/core/tiny_c); sets +0x0, +0x8, +0x4; returns the object"
+0x004cf030,Init_4cf030,function,high,"reimplemented (src/game/core/tiny_c); sets +0x4, +0x11, +0x0, +0x8, +0x10, +0xc; returns the object"
+0x004d0f70,Init_4d0f70,function,high,"reimplemented (src/game/core/tiny_c); sets +0x0, +0x20, +0x24, +0x28, +0x2c; returns the object"
+0x004d3ed0,Init_4d3ed0,function,high,"reimplemented (src/game/core/tiny_c); sets +0x0, +0x4, +0x8; returns the object"
+0x004e0370,Is19c_Eq1_4e0370,function,high,"reimplemented (src/game/core/tiny_c); 1 when the dword at 0x19c is 0x1, else 0"
+0x004e0380,Is19c_Eq4_4e0380,function,high,"reimplemented (src/game/core/tiny_c); 1 when the dword at 0x19c is 0x4, else 0"
+0x004e03e0,Is19c_Eq2_4e03e0,function,high,"reimplemented (src/game/core/tiny_c); 1 when the dword at 0x19c is 0x2, else 0"
+0x004e0440,Is68_Zero_4e0440,function,high,"reimplemented (src/game/core/tiny_c); 1 when the dword at 0x68 is 0, else 0"
+0x004ef830,Init_4ef830,function,high,"reimplemented (src/game/core/tiny_c); sets +0x24, +0x0; returns the object"
+0x004f06a0,WordConstffff_4f06a0,function,high,reimplemented (src/game/core/tiny_c); returns the word 0xffff
+0x004f06b0,WordConstffff_4f06b0,function,high,reimplemented (src/game/core/tiny_c); returns the word 0xffff
+0x004f1890,Init_4f1890,function,high,"reimplemented (src/game/core/tiny_c); sets +0x4, +0x0; returns the object"
+0x004f1bd0,Init_4f1bd0,function,high,"reimplemented (src/game/core/tiny_c); sets +0x24, +0x0; returns the object"
+0x00513290,Init_513290,function,high,"reimplemented (src/game/core/tiny_c); sets +0x0, +0x4, +0xc; returns the object"
+0x005ac510,Init_5ac510,function,high,"reimplemented (src/game/core/tiny_c); sets +0x4, +0x8, +0xc, +0x0; returns the object"
+0x005cfd80,Init_5cfd80,function,high,"reimplemented (src/game/core/tiny_c); sets +0x24, +0x0; returns the object"
+0x005d36c0,Init_5d36c0,function,high,"reimplemented (src/game/core/tiny_c); sets +0x4, +0x0; returns the object"
+0x005ec210,Init_5ec210,function,high,"reimplemented (src/game/core/tiny_c); sets +0x0, +0x4, +0x8, +0xc; returns the object"
+0x00691ee0,Init_691ee0,function,high,reimplemented (src/game/core/tiny_c); sets +0x0; returns the object
+0x00692970,Init_692970,function,high,reimplemented (src/game/core/tiny_c); sets +0x0; returns the object
+0x0069fef0,Init_69fef0,function,high,"reimplemented (src/game/core/tiny_c); sets +0x4, +0x0; returns the object"
+0x006a8cd0,CopyTo_20_6a8cd0,function,high,reimplemented (src/game/core/tiny_c); *argument = the dword at 0x20; returns the pointer
+0x006a8ce0,CopyTo_24_6a8ce0,function,high,reimplemented (src/game/core/tiny_c); *argument = the dword at 0x24; returns the pointer
+0x006b4a00,StoreThrough_ffffffff_6b4a00,function,high,reimplemented (src/game/core/tiny_c); *first argument = 0xffffffff; returns that pointer
+0x006b4a60,Init_6b4a60,function,high,reimplemented (src/game/core/tiny_c); sets +0x0; returns the object
+0x006b9c50,Init_6b9c50,function,high,"reimplemented (src/game/core/tiny_c); sets +0x0, +0x4, +0x40, +0x48, +0x4c, +0x68; returns the object"
+0x006b9c70,SetThenFlag50_4c_6b9c70,function,high,reimplemented (src/game/core/tiny_c); +0x50 = value; the flags at +0x4c |= 0x4; returns the flags
+0x006b9cb0,SetThenFlag60_4c_6b9cb0,function,high,reimplemented (src/game/core/tiny_c); +0x60 = value; the flags at +0x4c |= 0x20; returns the flags
+0x006b9cf0,SetThenFlag40_4c_6b9cf0,function,high,reimplemented (src/game/core/tiny_c); +0x40 = value; the flags at +0x4c |= 0x80; returns the flags
+0x006b9d10,SetThenFlag44_4c_6b9d10,function,high,reimplemented (src/game/core/tiny_c); +0x44 = value; the flags at +0x4c |= 0x100; returns the flags
+0x006b9d30,SetThenFlag68_4c_6b9d30,function,high,reimplemented (src/game/core/tiny_c); +0x68 = value; the flags at +0x4c |= 0x200; returns the flags
+0x006c47b0,Init_6c47b0,function,high,"reimplemented (src/game/core/tiny_c); sets +0x0, +0x4; returns the object"
+0x006c4fb0,Init_6c4fb0,function,high,"reimplemented (src/game/core/tiny_c); sets +0x4, +0x8, +0xc, +0x0, +0x14, +0x18; returns the object"
+0x006c4fd0,Init_6c4fd0,function,high,"reimplemented (src/game/core/tiny_c); sets +0x0, +0x4, +0x8; returns the object"
+0x006c5090,SetThenFlag48_14_6c5090,function,high,reimplemented (src/game/core/tiny_c); +0x48 = value; the flags at +0x14 |= 0x1000; returns the flags
+0x006c50b0,SetThenFlag8_14_6c50b0,function,high,reimplemented (src/game/core/tiny_c); +0x8 = value; the flags at +0x14 |= 0x4; returns the flags
+0x006c50d0,SetThenFlag9c_14_6c50d0,function,high,reimplemented (src/game/core/tiny_c); +0x9c = value; the flags at +0x14 |= 0x80000; returns the flags
+0x006c50f0,SetThenFlag4c_14_6c50f0,function,high,reimplemented (src/game/core/tiny_c); +0x4c = value; the flags at +0x14 |= 0x800; returns the flags
+0x006c5110,SetThenFlag44_14_6c5110,function,high,reimplemented (src/game/core/tiny_c); +0x44 = value; the flags at +0x14 |= 0x40; returns the flags
+0x006c5130,SetThenFlag28_14_6c5130,function,high,reimplemented (src/game/core/tiny_c); +0x28 = value; the flags at +0x14 |= 0x2; returns the flags
+0x006c5150,SetThenFlag2c_14_6c5150,function,high,reimplemented (src/game/core/tiny_c); +0x2c = value; the flags at +0x14 |= 0x400; returns the flags
+0x006c5170,SetThenFlag24_14_6c5170,function,high,reimplemented (src/game/core/tiny_c); +0x24 = value; the flags at +0x14 |= 0x20; returns the flags
+0x006c51d0,FlagThenSet14_5c_6c51d0,function,high,reimplemented (src/game/core/tiny_c); the flags at +0x14 |= 0x10000; +0x5c = value; returns it
+0x006c5220,FlagThenSet14_58_6c5220,function,high,reimplemented (src/game/core/tiny_c); the flags at +0x14 |= 0x200000; +0x58 = value; returns it
+0x006c6d30,Init_6c6d30,function,high,"reimplemented (src/game/core/tiny_c); sets +0x4, +0x8, +0xc, +0x0; returns the object"
+0x006c9260,Init_6c9260,function,high,"reimplemented (src/game/core/tiny_c); sets +0x243c, +0x0; returns the object"
+0x006d2790,StoreThrough_ffffffff_6d2790,function,high,reimplemented (src/game/core/tiny_c); *first argument = 0xffffffff; returns that pointer
+0x006d27a0,StoreThrough_ffffffff_6d27a0,function,high,reimplemented (src/game/core/tiny_c); *first argument = 0xffffffff; returns that pointer
+0x006d29e0,StoreThrough_ffffffff_6d29e0,function,high,reimplemented (src/game/core/tiny_c); *first argument = 0xffffffff; returns that pointer
+0x006d6c50,Init_6d6c50,function,high,"reimplemented (src/game/core/tiny_c); sets +0x4, +0x8, +0xc, +0x10, +0x0; returns the object"
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
