@@ -11,6 +11,16 @@
 
 extern "C" {
 
+// 0x58eae0 (stdcall; out, listB, owner): merges two lists of cache items (next at +4, flags +8,
+// position s16 +0x10 (x) and +0x12 (y), size s16 +0x14 by +0x16) into the array out, zero-ended,
+// and returns the sum of width * height of what was put there. The owner's list (+4) is
+// skipped past its first item if that uses the driver filter (0x590fb0), then only items with
+// flag 0x40000000 count; listB's items count unless they use the driver filter. While both have
+// items the one with the greater y goes first (then the greater x), listB's winning ties only
+// when strictly greater: equal positions take the owner's. What remains of listB goes next,
+// then what remains of the owner's. Maxima of width and height are tracked but never used.
+u32 __stdcall TexCache_MergeItems(u32 *out, const u8 *listB, const u8 *owner);
+
 // 0x58d0f0 (thiscall on the cache, 0x1930+ bytes): its default settings: five 0x80s at
 // +0x18b0-+0x18c0, a falling series of floats (0.5, 0.25, 0.17, 0.065, 0.012, 0.0030) at
 // +0x187c-+0x1890, +0x1878 = 4, +0x18ac = 0x100, +0x18e4 = 7, +0x1900 = 1.0f, the entry

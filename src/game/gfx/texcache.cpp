@@ -1,5 +1,7 @@
 #include "texcache.h"
 
+#include "texture.h"
+
 #include <cstdint>
 #include <initializer_list>
 
@@ -7,9 +9,58 @@ namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
+const u8 *Next(const u8 *item) { return at<const u8 *>(item, 4); }
+
+// Puts the item in the output and adds its area.
+void Put(u32 *&out, u32 &area, const u8 *item) {
+    *out++ = (u32)(uintptr_t)item;
+    area += (u32)((s32)at<s16>(item, 0x14) * (s32)at<s16>(item, 0x16));
+}
+
 }  // namespace
 
 extern "C" {
+
+u32 __stdcall TexCache_MergeItems(u32 *out, const u8 *listB, const u8 *owner) {
+    u32 area = 0;
+    const u8 *a = Next(owner);
+    const u8 *b = listB;
+    if (a && Texture_UsesDriverFilter(a))
+        a = Next(a);
+    while (a) {
+        if (!b)
+            break;
+        while (a && !(at<u32>(a, 8) & 0x40000000))
+            a = Next(a);
+        if (!a)
+            break;
+        while (Texture_UsesDriverFilter(b)) {
+            b = Next(b);
+            if (!b)
+                break;
+        }
+        if (!b)
+            continue;
+        const s16 by = at<s16>(b, 0x12), ay = at<s16>(a, 0x12);
+        if (by > ay || (by == ay && at<s16>(b, 0x10) > at<s16>(a, 0x10))) {
+            Put(out, area, b);
+            b = Next(b);
+        } else {
+            Put(out, area, a);
+            a = Next(a);
+        }
+    }
+    for (; b; b = Next(b)) {
+        if (!Texture_UsesDriverFilter(b))
+            Put(out, area, b);
+    }
+    for (; a; a = Next(a)) {
+        if (at<u32>(a, 8) & 0x40000000)
+            Put(out, area, a);
+    }
+    *out = 0;
+    return area;
+}
 
 u8 *__fastcall TexCache_InitDefaults(u8 *cache) {
     static const struct { u32 offset, value; } kDefaults[] = {
