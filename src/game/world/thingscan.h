@@ -53,4 +53,13 @@ s32 __stdcall Things_CountByDef4ac(s32 value, s32 least);
 // 0x4ca9b0 (stdcall; value): the same without the least, for the things whose dword at +0x68 is 0.
 s32 __stdcall Things_CountByDef4acIdle(s32 value);
 
+// The same finders going the other way: from the thing before the previous one, or from the oldest thing when the previous is 0 (which, with
+// no things at all, reads through a null pointer in the original): 0x483280 (value, previous) for the object whose definition's word at +0x284
+// is 0 and dword at +0x4ac the value; 0x4833c0 for a non-zero word; 0x4834e0 for that and the definition's dword at +0x288 equal to 2;
+// 0x483620 for an object with bit 1 of its byte at +0x32 set.
+u8 *__cdecl Things_FindPrevByDef4ac(s32 value, const u8 *previous);
+u8 *__cdecl Things_FindPrevWithDefWord(const u8 *previous);
+u8 *__cdecl Things_FindPrevWithDefWordUpgrade2(const u8 *previous);
+u8 *__cdecl Things_FindPrevKind3Flag2(const u8 *previous);
+
 }  // extern "C"
