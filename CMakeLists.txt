@@ -179,6 +179,7 @@ add_library(tpw_game STATIC
     src/game/render/drawbuffer.cpp
     src/game/render/texformat.cpp
     src/game/render/lightlist.cpp
+    src/game/render/softrender.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/frontend/lobbymodel.cpp

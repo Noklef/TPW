@@ -159,7 +159,8 @@
 #include "../game/render/renderer.h"
 #include "../game/render/state.h"
 #include "../game/render/backdrop.h"
-#include "../game/render/meshqueue.h"
+#include "../game/render/meshqueue.h"
+#include "../game/render/softrender.h"
 #include "../game/render/spritequeue.h"
 #include "../game/render/drawbuffer.h"
 #include "../game/render/texformat.h"
@@ -1593,6 +1594,7 @@ const Hook kHooks[] = {
     {"LightList_Clear",           0x00584b10, (void *)&LightList_Clear, {0x33, 0xc0, 0x89, 0x81, 0xc4}},
     {"LightList_First",           0x00584e30, (void *)&LightList_First, {0x8b, 0x91, 0xc0, 0x01, 0x00}},
     {"LightList_Next",            0x00584e50, (void *)&LightList_Next, {0x8b, 0x81, 0xc4, 0x01, 0x00}},
+    {"SoftRenderer_ClearBuffer",  0x00573ca0, (void *)&SoftRenderer_ClearBuffer, {0x8b, 0xd1, 0x57, 0x33, 0xc0}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
