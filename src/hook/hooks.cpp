@@ -142,6 +142,7 @@
 #include "../game/world/research.h"
 #include "../game/world/trackrides.h"
 #include "../game/world/things.h"
+#include "../game/world/analysercell.h"
 #include "../game/world/world.h"
 #include "../game/model/holder.h"
 #include "../game/model/parts.h"
@@ -572,6 +573,7 @@ const Hook kHooks[] = {
     {"FlyingRide_Set20",          0x0055ddf0, (void *)&FlyingRide_Set20, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"FlyingRide_Set24",          0x0055de10, (void *)&FlyingRide_Set24, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"FlyingRide_Busy",           0x0055de30, (void *)&FlyingRide_Busy, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"AnalyserCell_TypePlain",    0x004fa990, (void *)&AnalyserCell_TypePlain, {0x33, 0xc0, 0x33, 0xd2, 0x8a}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},

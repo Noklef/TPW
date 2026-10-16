@@ -136,6 +136,7 @@ add_library(tpw_game STATIC
     src/game/world/collobj.cpp
     src/game/world/trackrides.cpp
     src/game/world/flyingrides.cpp
+    src/game/world/analysercell.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
