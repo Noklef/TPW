@@ -22,7 +22,7 @@ import sys
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from tinysym import symbolic  # noqa: E402
-from tinycall import parse_decls, wrapper  # noqa: E402
+from tinycall import deleter as deleter_via, parse_decls, wrapper  # noqa: E402
 
 _CALLS = {}
 
@@ -404,7 +404,7 @@ def match(a, ins):
     if d:
         d['addr'] = a
         return d
-    d = wrapper(a, texts, *call_tables())
+    d = wrapper(a, texts, *call_tables()) or deleter_via(a, texts, *call_tables())
     if d:
         d['addr'] = a
         return d
@@ -443,7 +443,7 @@ def main():
         seen, todo = set(), [start]
         while todo:
             t = todo.pop()
-            if t in seen or t not in end:
+            if t in seen or t not in end or t in (0x5da3c0, 0x67acb0, 0x67acc0):  # these are stood in for (core/gameheap), not run
                 continue
             seen.add(t)
             todo += list(calls.get(t, ()))
