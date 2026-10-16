@@ -18,4 +18,10 @@ void __cdecl FreeList_Return(s32 record, s32 index);
 // when above 0) scaled by the factor at 0x80cef0 / 1024 (the bytes limited to 0x7f above; a result of 0 becomes 1). Returns the entry.
 u8 *__cdecl Voice_ScaleLevels(s32 index);
 
+// 0x522360 (cdecl; template voice, x, y, z): 0xffffffff without the sound system (0x816d40) or for a voice outside 0 to 0x13 or with no free instance (the signed word at
+// 0x816d22 negative); 0 when the flag 0x80ced8 is set and the template's byte at +0x44 is not. Otherwise the instance at the free head (0x68-byte records from 0x8164fc,
+// links as words at +0x60 next / +0x62 previous) moves to the head of the active list (0x816d1e), takes the template's 0x68 bytes (its links kept), a use flag of 1 at +0, the
+// position x, y, z >> 4 at +0xc, +0x10, +0x14 and the counter at 0x80ceea (then incremented) at +8, and 0 at +0xa. Returns the counter in the high half, the index in the low.
+u32 __cdecl Voice_Start(s32 voice, s32 x, s32 y, s32 z);
+
 }  // extern "C"

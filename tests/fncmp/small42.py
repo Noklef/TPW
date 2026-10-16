@@ -8,13 +8,25 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-CALLS = {'Take': 0x520d60, 'Return': 0x521890, 'Scale': 0x521d60}
-B = Bench([(0x520d60, 0x520e00), (0x521890, 0x521940), (0x521d60, 0x521e60)])
+CALLS = {'Take': 0x520d60, 'Return': 0x521890, 'Scale': 0x521d60, 'Start': 0x522360}
+B = Bench([(0x520d60, 0x520e00), (0x521890, 0x521940), (0x521d60, 0x521e60), (0x522360, 0x5224f0)])
 NODES = RAM + 0x1000
 
 
 def case(r):
     name = r.choice(OPS)
+    if name == 'Start':
+        link = lambda: r.choice([-1, 0, 1, 2, 5, 11, r.randrange(12)])  # noqa: E731
+        inst = bytearray(r.bytes(0x68 * 12))
+        for k in range(12):
+            put(inst, 0x68 * k + 0x60, 'hh', link(), link())
+        templates = bytearray(r.bytes(0x68 * 20))
+        for k in range(20):
+            templates[0x68 * k + 0x44] = r.choice([0, 0, 1, 7])
+        regions = {0x8164fc: inst, 0x80c6b0: templates, 0x816d40: struct.pack('<I', r.choice([1, 1, 1, 0, 5])), 0x80ced8: struct.pack('<I', r.choice([0, 0, 1])),
+                   0x816d1e: struct.pack('<hhhh', link(), link(), link(), link()), 0x80ceea: struct.pack('<H', r.choice([0, 1, 0xffff, r.getrandbits(16)]))}
+        voice = r.choice([0, 1, 5, 19, 20, -1, 0x14, r.randrange(20)])
+        return Call(CALLS[name], [voice & 0xffffffff] + [r.choice([0, 15, 16, -16 & 0xffffffff, 0x12345, r.getrandbits(32)]) for _ in range(3)], regions, ret='a')
     if name == 'Scale':
         index = r.randrange(4)
         records = bytearray(r.bytes(0x140 * 4))
