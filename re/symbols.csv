@@ -119,6 +119,9 @@ address,name,kind,confidence,notes
 0x0055a360,Rides_Get9c,function,high,reimplemented (src/game/world/ridelist); the dword at +0x9c of a record
 0x0055a390,Rides_GetElement,function,high,reimplemented (src/game/world/ridelist); an element of a record's array
 0x0055a3e0,Rides_GetLinkedElement,function,high,reimplemented (src/game/world/ridelist); an element of the array of the record a record links to
+0x004e03f0,Obj_ClearRideElement4,function,high,reimplemented (src/game/world/ridelist); clears element 4 of the object's ride record
+0x004e0410,Obj_RideElement7Positive,function,high,reimplemented (src/game/world/ridelist); whether element 7 of the object's ride record is positive
+0x004e0a70,Obj_RideElement0Differs,function,high,reimplemented (src/game/world/ridelist); whether element 0 of the object's ride record differs from a word
 0x004031e0,GameClock_Now,function,high,"fastcall; base time + offset at +0x48; used for all RSSE waits"
 0x00516330,World_Rand,function,high,"reimplemented (src/game/world/random); thiscall; LCG x*0x19660d+0x3c6ef35f, rotr 13, abs; state at world+0x1da708. Must be bit-exact for determinism"
 0x008791b0,RSSE_ScriptList,data,high,head of doubly linked list of live script contexts (0xF4 bytes each)

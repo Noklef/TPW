@@ -27,4 +27,10 @@ u32 __cdecl Rides_Get9c(const u8 *record);
 // record is missing or the index is outside.
 u32 __cdecl Rides_GetLinkedElement(s32 id, s32 index);
 
+// Objects that keep the id of their ride record at +0x24: 0x4e03f0 (thiscall) sets its element 4 to 0; 0x4e0410 whether its element 7 is above 0
+// (signed); 0x4e0a70 whether its element 0 differs from the word at +0x3c.
+void __fastcall Obj_ClearRideElement4(const u8 *object);
+u32 __fastcall Obj_RideElement7Positive(const u8 *object);
+u32 __fastcall Obj_RideElement0Differs(const u8 *object);
+
 }  // extern "C"

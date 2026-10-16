@@ -73,4 +73,12 @@ u32 __cdecl Rides_GetLinkedElement(s32 id, s32 index) {
     return 0;
 }
 
+void __fastcall Obj_ClearRideElement4(const u8 *object) { Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 4, 0); }
+
+u32 __fastcall Obj_RideElement7Positive(const u8 *object) { return (s32)Rides_GetElement(Rides_FindById(at<s32>(object, 0x24)), 7) > 0; }
+
+u32 __fastcall Obj_RideElement0Differs(const u8 *object) {
+    return Rides_GetElement(Rides_FindById(at<s32>(object, 0x24)), 0) != at<u16>(object, 0x3c);
+}
+
 }  // extern "C"
