@@ -223,11 +223,11 @@ address,name,kind,confidence,notes
 0x004d1e90,Challenges_Update,function,medium,Thing_Update case 19 (works on a global; skipped when DAT_00fb3b7c == 1)
 0x004fcc30,Visitor_ScoreOption,function,medium,"thiscall(visitor, object); 'Calculating option score': distance, queue, thirst/hunger/toilet/illness match"
 0x004fe1e0,Visitor_UseObject,function,medium,"thiscall(visitor, object); applies the object def effects (+0x144 thirst, +0x148 hunger, +0x14c illness, +0x150 happiness, +0x154 litter) to the needs, balloons, costumes, sideshow wins"
-0x00506680,Staff_IsTooTired,function,high,mEnergy below gBalanceLevel.mRestLevel
-0x005066a0,Staff_TireA,function,medium,"drains mEnergy and mHappiness by (6 - pay grade) * rate; one of two rates"
-0x00506760,Staff_TireB,function,medium,"as Staff_TireA with the other pair of rates"
-0x00506830,Staff_SetName,function,high,copies 32 chars to mName
-0x00506860,Staff_GetName,function,high,returns &mName
+0x00506680,Staff_IsTooTired,function,high,"reimplemented (src/game/world/staff); thiscall: mEnergy (+0x1fc) __ftol'd to its low byte below gBalanceLevel.mRestLevel ([0x785324], signed)"
+0x005066a0,Staff_TireA,function,high,"reimplemented (src/game/world/staff); thiscall: mEnergy less (6 - pay grade) * 0.012, mHappiness less * 0.005, each clamped to 0-100 (NaN to 0)"
+0x00506760,Staff_TireB,function,high,reimplemented (src/game/world/staff); thiscall: as Staff_TireA by 0.025f and 0.01
+0x00506830,Staff_SetName,function,high,"reimplemented (src/game/world/staff); thiscall (name): wcsncpy 32 units to mName (+0x1a0), +0x1e0 zeroed"
+0x00506860,Staff_GetName,function,high,reimplemented (src/game/world/staff); thiscall: returns &mName (+0x1a0)
 0x00506870,Staff_GetWage,function,medium,"per-type factor (DAT_00785380) * pay grade table (DAT_0078532c, stride 0x10)"
 0x004dd4e0,Object_GetDef,function,medium,"fastcall; ObjectDefs_Find(this->mId at +0xe); the def holds balance values (effects at +0x144..+0x15c)"
 0x00412e90,ObjectDefs_Find,function,high,"reimplemented (src/game/world/objectdefs); thiscall(id): the definition with an id (one-entry cache), or 0"

@@ -102,7 +102,8 @@
 #include "../game/world/random.h"
 #include "../game/world/camera.h"
 #include "../game/world/mousemode.h"
-#include "../game/world/objectdefs.h"
+#include "../game/world/objectdefs.h"
+#include "../game/world/staff.h"
 #include "../game/world/thingmsg.h"
 #include "../game/world/things.h"
 #include "../game/model/holder.h"
@@ -368,6 +369,11 @@ const Hook kHooks[] = {
     {"ThingMsg1a_Type",           0x0040f880, (void *)&ThingMsg1a_Type, {0xb8, 0x1a, 0x00, 0x00, 0x00}},
     {"ThingMsg1c_Type",           0x0040f8d0, (void *)&ThingMsg1c_Type, {0xb8, 0x1c, 0x00, 0x00, 0x00}},
     {"ThingMsg1b_Type",           0x0040f920, (void *)&ThingMsg1b_Type, {0xb8, 0x1b, 0x00, 0x00, 0x00}},
+    {"Staff_IsTooTired",          0x00506680, (void *)&Staff_IsTooTired, {0xd9, 0x81, 0xfc, 0x01, 0x00}},
+    {"Staff_TireA",               0x005066a0, (void *)&Staff_TireA, {0x51, 0x8b, 0x91, 0xe4, 0x01}},
+    {"Staff_TireB",               0x00506760, (void *)&Staff_TireB, {0x51, 0x8b, 0x91, 0xe4, 0x01}},
+    {"Staff_SetName",             0x00506830, (void *)&Staff_SetName, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"Staff_GetName",             0x00506860, (void *)&Staff_GetName, {0x8d, 0x81, 0xa0, 0x01, 0x00}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},
