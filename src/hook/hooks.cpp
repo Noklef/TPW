@@ -131,6 +131,7 @@
 #include "../game/core/small2.h"
 #include "../game/core/small3.h"
 #include "../game/core/small30.h"
+#include "../game/core/small31.h"
 #include "../game/core/small4.h"
 #include "../game/core/small5.h"
 #include "../game/core/small6.h"
@@ -2824,6 +2825,9 @@ const Hook kHooks[] = {
     {"Obj_ResetAndRelease34",     0x005b9820, (void *)&Obj_ResetAndRelease34, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"Model_FindSignEntries",     0x00468950, (void *)&Model_FindSignEntries, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"Code_Remap46b460",          0x0046b460, (void *)&Code_Remap46b460, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Class703780_DtorA",         0x00617a80, (void *)&Class703780_DtorA, {0x6a, 0xff, 0x68, 0x78, 0x24}},
+    {"Class703780_DtorB",         0x00617b80, (void *)&Class703780_DtorB, {0x6a, 0xff, 0x68, 0x98, 0x24}},
+    {"Class703780_DtorC",         0x006180c0, (void *)&Class703780_DtorC, {0x6a, 0xff, 0x68, 0x88, 0x25}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
