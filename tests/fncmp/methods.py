@@ -27,8 +27,8 @@ CALLS = {
     'Rst': (0x6ad730, 't', 'a', 0x30), 'On10': (0x6ad760, 't', 'a', 0x30), 'Off10': (0x6ad790, 't', 'a', 0x28),
     'KindA4': (0x6adf60, 't', 'a', 0x20), 'Word4': (0x6afc60, 's', 'a', 0x20),
     'Inc': (0x6c31a0, 't', 'a', 0x38), 'Guid': (0x6c0310, 't', 'a', 0x58), 'Cache': (0x6c4120, 't', 'v', 0x52),
-    'MaskI': (0x6c3d80, 't', 'b', 0x56), 'Slots': (0x6d4890, 't', 'a', 0x50), 'Entry': (0x6b0580, 't', 'a', 0x58)}
-B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()])
+    'Narrow': (0x6ada00, 't', 'a', 0x92), 'MaskI': (0x6c3d80, 't', 'b', 0x56), 'Slots': (0x6d4890, 't', 'a', 0x50), 'Entry': (0x6b0580, 't', 'a', 0x58)}
+B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()] + [(0x6ad8f0, 0x6ad900)])
 VALUES = [0, 1, 2, 3, 0x10, 0x40, 0x4000, 0x4800, 0x800, 0xff, 0x100, 0x7fffffff, 0x80000000, 0xffffffff, 0xfffffffe]
 POOL = RAM + 0x3000
 OUT = RAM + 0x1000
@@ -135,6 +135,19 @@ def case(r):
         struct.pack_into('<II', obj, 0, r.choice([0, 1, 5]), r.choice([0, POOL, POOL]))
         struct.pack_into('<I', pool, 0x34, r.choice([0, 1, 0x1d, 0x1e, 0x1f, 0xffffffff]))
         struct.pack_into('<I', pool, 0x40, r.getrandbits(32))
+    elif name == 'Narrow':
+        for at_, lo in ((0, 10), (0x40, 3), (0x80, 20)):
+            hi = lo + r.randrange(0, 5)
+            struct.pack_into('<HHHH', pool, at_, lo, r.choice([0, 0x40, 0x80]) if at_ < 0x80 else 0,
+                             hi, r.choice([0, 0x40, 0x80]) if at_ < 0x80 else 0)
+            for j in range(8):
+                struct.pack_into('<H', pool, at_ + 8 + 2 * j, r.choice([0x41, 0x4142, 0x7f, 0, 0x100, 0xff00, r.getrandbits(16)]))
+        struct.pack_into('<I', obj, 8, POOL + r.choice([0, 0, 0x40]))
+        n = r.choice([0, 1, 2, 3, 5, 8])
+        wide = [r.choice([3, 5, 10, 12, 14, 20, 22, 25, 9, 26, 0x10003]) & 0xffff for _ in range(n)] + [0, 7]
+        regions[RAM + 0x1800] = struct.pack('<%dH' % len(wide), *wide)
+        regions[RAM + 0x1900] = bytes([0x55]) * 0x30
+        args += [OUT, RAM + 0x1900, RAM + 0x1800, r.choice([0, 1, 2, 3, 4, 5, 6, 8, 12, 0x10003, r.randrange(0, 12)])]
     elif name == 'MaskI':
         struct.pack_into('<I', obj, 8, POOL)
         struct.pack_into('<I', obj, 0x4c, POOL + 0x100)

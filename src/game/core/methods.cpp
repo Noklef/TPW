@@ -150,6 +150,28 @@ u32 __fastcall Ranges_Lookup(const u8 *object, void *, u32 key) {
 
 u32 __fastcall Ranges_LookupAdapter(const u8 *object, void *, u32 key) { return Ranges_Lookup(object, nullptr, key); }
 
+u32 *__fastcall Narrow_FromWide(const u8 *object, void *, u32 *status, u8 *dest, const u16 *source, u32 room) {
+    u32 left = room + 0xfffe;
+    u16 ch = *source;
+    while (ch != 0) {
+        const u16 before = (u16)left;
+        left += 0xffff;
+        if (before == 0)
+            break;
+        ++source;
+        const u32 converted = Ranges_LookupAdapter(object, nullptr, ch);
+        *dest++ = (u8)converted;
+        if ((converted & 0xff00) && (u16)left != 0) {
+            *dest++ = (u8)(converted >> 8);
+            left += 0xffff;
+        }
+        ch = *source;
+    }
+    *dest = 0;
+    *status = ((u16)left == 0 && *source != 0) ? 0xffffffff : 0;
+    return status;
+}
+
 bool __fastcall Obj_ByteForMask(const u8 *object, void *, u32 mask, u32 *out) {
     const u8 *kind = at<const u8 *>(object, 8);
     if (mask & at<u16>(kind, 0x18)) {

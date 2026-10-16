@@ -2709,6 +2709,7 @@ address,name,kind,confidence,notes
 0x006c31a0,DequeIter_Inc,function,high,reimplemented (src/game/core/methods); moves a deque iterator one dword on
 0x006c0310,Obj_CheckId,function,high,reimplemented (src/game/core/methods); sets a flag from an id and compares it with a known id
 0x006c4120,Obj_CacheStatics,function,high,reimplemented (src/game/core/methods); caches two values once
+0x006ada00,Narrow_FromWide,function,high,reimplemented (src/game/core/methods); converts 16-bit characters to bytes through the range lookup
 0x0057ac90,Obj_GetBefore14c,function,high,reimplemented (src/game/core/small2); the dword 0x14c before the object
 0x0057aca0,Global8bb628_SetOne,function,high,reimplemented (src/game/core/small2); sets the float at 0x8bb628 to 1.0
 0x0057cb10,Obj_Set14_18_10,function,high,reimplemented (src/game/core/small2); sets three fields from three arguments

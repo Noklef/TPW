@@ -67,6 +67,12 @@ u32 __fastcall Ranges_Lookup(const u8 *object, void *, u32 key);
 // 0x6ad8f0 (thiscall; key, pops 4): Ranges_Lookup, for a caller that takes it as an adapter.
 u32 __fastcall Ranges_LookupAdapter(const u8 *object, void *, u32 key);
 
+// 0x6ada00 (thiscall; status, dest, source, room, pops 16): converts the 16-bit characters of the source (up to its zero) to bytes
+// at dest through Ranges_Lookup: the low byte of each result, and the high byte too when it is not 0 and there is room; at most
+// room - 2 characters (a 16-bit count). Ends with a zero byte. *status = -1 when the room ran out exactly at a character
+// that is left, else 0. Returns status.
+u32 *__fastcall Narrow_FromWide(const u8 *object, void *, u32 *status, u8 *dest, const u16 *source, u32 room);
+
 // 0x6bc040 (thiscall; mask, out, pops 8): whether the mask has a bit in common with the word at +0x18 of what the dword at
 // +8 points to (*out = the byte at +5 of what +0x4c points to) or else with the word at +0x1c (the byte at +6).
 bool __fastcall Obj_ByteForMask(const u8 *object, void *, u32 mask, u32 *out);
