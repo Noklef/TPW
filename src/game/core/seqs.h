@@ -35,4 +35,13 @@ u32 __stdcall Path_AfterLastBackslash(const char **text, u32 length);
 // 0x6c4010 (stdcall; dest, source, count, pops 12): count bytes copied forward (dwords, then the rest as bytes). Returns count.
 u32 __stdcall Mem_CopyForward(void *dest, const void *source, u32 count);
 
+// 0x6a7030 (stdcall; first1, last1, first2, last2, pops 16): a lexicographic comparison of two ranges of signed bytes: -1 when the
+// first is less, 1 when it is greater (a longer first range being greater), else 0.
+s32 __stdcall SignedBytes_Compare(const s8 *first1, const s8 *last1, const s8 *first2, const s8 *last2);
+
+// 0x6afc90 (thiscall; text, count, pops 8): writes into a fixed buffer (the cursor at +4 and its end at +8, the full flag at
+// +0x10): nothing when the cursor is already at or past the end; else count bytes of the text (a count of -1: up to the zero
+// byte) are stored at the cursor, which moves on, until the cursor reaches the end, which sets the flag. Undefined return.
+void __fastcall ByteBuf_Write(u8 *buffer, void *, const u8 *text, s32 count);
+
 }  // extern "C"

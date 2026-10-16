@@ -67,6 +67,54 @@ u32 __stdcall Path_AfterLastBackslash(const char **text, u32 length) {
     return 0;
 }
 
+s32 __stdcall SignedBytes_Compare(const s8 *first1, const s8 *last1, const s8 *first2, const s8 *last2) {
+    for (; first1 != last1; ++first1, ++first2) {
+        if (first2 == last2)
+            return 1;
+        if (*first2 > *first1)
+            return -1;
+        if (*first2 < *first1)
+            return 1;
+    }
+    return first2 == last2 ? 0 : -1;
+}
+
+namespace {
+
+// The step both loops of ByteBuf_Write share: sets the full flag when the cursor has reached the end; true when it is set.
+bool ByteBuf_Full(u8 *buffer) {
+    if (!at<u8>(buffer, 0x10) && at<u32>(buffer, 4) == at<u32>(buffer, 8))
+        at<u8>(buffer, 0x10) = 1;
+    return at<u8>(buffer, 0x10) != 0;
+}
+
+}  // namespace
+
+void __fastcall ByteBuf_Write(u8 *buffer, void *, const u8 *text, s32 count) {
+    if (at<u32>(buffer, 4) >= at<u32>(buffer, 8))
+        return;
+    if (count == -1) {
+        if (!*text)
+            return;
+        do {
+            if (ByteBuf_Full(buffer))
+                return;
+            *at<u8 *>(buffer, 4) = *text++;
+            at<u8 *>(buffer, 4) += 1;
+        } while (*text);
+        return;
+    }
+    u32 n = (u32)count;
+    if (!n)
+        return;
+    do {
+        if (ByteBuf_Full(buffer))
+            return;
+        *at<u8 *>(buffer, 4) = *text++;
+        at<u8 *>(buffer, 4) += 1;
+    } while (--n);
+}
+
 u32 __stdcall Mem_CopyForward(void *dest, const void *source, u32 count) {
     Rep_Movs(dest, source, count);
     return count;
