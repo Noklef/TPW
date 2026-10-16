@@ -3172,6 +3172,17 @@ address,name,kind,confidence,notes
 0x005b3110,Node14_New,function,high,reimplemented (src/game/core/small22); allocates a 0x14-byte node with two fields
 0x00618130,Sentinel_Ctor,function,high,reimplemented (src/game/core/small22); constructs a list head with a sentinel node
 0x005b9020,Obj_NameToWString,function,high,reimplemented (src/game/core/small22); constructs a wide string from the text at +0x54
+0x005f46a0,List_PopHeadObject,function,high,reimplemented (src/game/core/small23); pops the head node of a list and returns its object
+0x005bd230,Names_FindLastValue,function,high,reimplemented (src/game/core/small23); value of the last listed object with the given name
+0x005b9fd0,Shared_Release66,function,high,reimplemented (src/game/core/small23); releases a shared record with an array of 0x66-byte elements
+0x005ba290,Shared_Release10,function,high,reimplemented (src/game/core/small23); releases a shared record with an array of 0x10-byte elements
+0x00410ac0,Tree16a_LowerBound,function,high,reimplemented (src/game/core/small23); lower bound in a tree with word keys
+0x0047d460,Tree32_LowerBound,function,high,reimplemented (src/game/core/small23); lower bound in a tree with dword keys
+0x005b30b0,Tree16b_LowerBound,function,high,reimplemented (src/game/core/small23); lower bound in a tree with word keys
+0x005633a0,Global879a24_Free,function,high,reimplemented (src/game/core/small23); releases and frees the global object
+0x00564140,Obj_ReleaseSevenIfMode1,function,high,reimplemented (src/game/core/small23); releases the seven COM members in mode 1
+0x0051fd20,Globals816d40_Free,function,high,reimplemented (src/game/core/small23); frees two global blocks
+0x005c4ce0,Strings5_Ctor,function,high,reimplemented (src/game/core/small23); constructs five empty strings
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
