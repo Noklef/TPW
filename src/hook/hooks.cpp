@@ -102,7 +102,8 @@
 #include "../game/core/accessors.h"
 #include "../game/core/volumes.h"
 #include "../game/core/base64.h"
-#include "../game/core/selectors.h"
+#include "../game/core/selectors.h"
+#include "../game/core/seqs.h"
 #include "../game/core/small2.h"
 #include "../game/core/tiny_g.h"
 #include "../game/core/tiny_h.h"
@@ -2200,6 +2201,13 @@ const Hook kHooks[] = {
     {"Nibble_Write",              0x006b5450, (void *)&Nibble_Write, {0x8a, 0x41, 0x05, 0x53, 0x84}},
     {"Nibble_Next",               0x006b54c0, (void *)&Nibble_Next, {0x8a, 0x11, 0x56, 0x8b, 0x71}},
     {"Bit_Next",                  0x006b54f0, (void *)&Bit_Next, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Checksum_Words",            0x006a01a0, (void *)&Checksum_Words, {0x8b, 0x4c, 0x24, 0x04, 0x8b}},
+    {"Checksum_SignedBytes",      0x006a7240, (void *)&Checksum_SignedBytes, {0x8b, 0x4c, 0x24, 0x04, 0x8b}},
+    {"Char_BracketClass",         0x006ae2b0, (void *)&Char_BracketClass, {0x8b, 0x44, 0x24, 0x04, 0x66}},
+    {"Records16_AnyInRange5b0",   0x006ae410, (void *)&Records16_AnyInRange5b0, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Vector8_Count4",            0x006aed80, (void *)&Vector8_Count4, {0x8b, 0x51, 0x04, 0x85, 0xd2}},
+    {"Vector8_Count88",           0x006adf90, (void *)&Vector8_Count88, {0x8b, 0x91, 0x88, 0x00, 0x00}},
+    {"Blocks8_Copy",              0x006af730, (void *)&Blocks8_Copy, {0x8b, 0x4c, 0x24, 0x04, 0x8b}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

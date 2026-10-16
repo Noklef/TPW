@@ -2721,6 +2721,13 @@ address,name,kind,confidence,notes
 0x006b5450,Nibble_Write,function,high,reimplemented (src/game/core/cursors); writes a nibble to a packed stream
 0x006b54c0,Nibble_Next,function,high,reimplemented (src/game/core/cursors); steps a nibble cursor and returns the old state
 0x006b54f0,Bit_Next,function,high,reimplemented (src/game/core/cursors); steps a bit cursor and returns the old state
+0x006a01a0,Checksum_Words,function,high,reimplemented (src/game/core/seqs); a rolling checksum over 16-bit values
+0x006a7240,Checksum_SignedBytes,function,high,reimplemented (src/game/core/seqs); a rolling checksum over signed bytes
+0x006ae2b0,Char_BracketClass,function,high,reimplemented (src/game/core/seqs); 1 for an opening and 2 for a closing bracket
+0x006ae410,Records16_AnyInRange5b0,function,high,reimplemented (src/game/core/seqs); whether any 16-byte record starts with a value in 0x5b1-0x5ea
+0x006aed80,Vector8_Count4,function,high,reimplemented (src/game/core/seqs); the number of 8-byte elements between two pointers
+0x006adf90,Vector8_Count88,function,high,reimplemented (src/game/core/seqs); the number of 8-byte elements between two pointers at +0x88
+0x006af730,Blocks8_Copy,function,high,reimplemented (src/game/core/seqs); copies a range of 8-byte blocks
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
