@@ -2884,6 +2884,14 @@ address,name,kind,confidence,notes
 0x005ddaf0,ListScalarDelete702c0c_5ddaf0,function,high,"reimplemented (src/game/core/tiny_l); a linked list scalar deleting destructor: sets the vtable pointer 0x702c0c, frees every node and, when bit 0 of the flags is set, the list"
 0x005e4320,ListScalarDelete702f10_5e4320,function,high,"reimplemented (src/game/core/tiny_l); a linked list scalar deleting destructor: sets the vtable pointer 0x702f10, frees every node and, when bit 0 of the flags is set, the list"
 0x005f46e0,ListScalarDelete703084_5f46e0,function,high,"reimplemented (src/game/core/tiny_l); a linked list scalar deleting destructor: sets the vtable pointer 0x703084, frees every node and, when bit 0 of the flags is set, the list"
+0x00519450,GameTable7cfb90_Get1da718_519450,function,high,reimplemented (src/game/core/tiny_m); the dword of the table at 0x7cfb90 for the 16-bit field at +0x1da718 of the game object (the debug printf in the original is not called)
+0x00519490,GameTable7cfb90_Get1da71a_519490,function,high,reimplemented (src/game/core/tiny_m); the dword of the table at 0x7cfb90 for the 16-bit field at +0x1da71a of the game object (the debug printf in the original is not called)
+0x005194d0,GameTable7cfb90_Get1da71c_5194d0,function,high,reimplemented (src/game/core/tiny_m); the dword of the table at 0x7cfb90 for the 16-bit field at +0x1da71c of the game object (the debug printf in the original is not called)
+0x00519510,GameTable7cfb90_Get1da720_519510,function,high,reimplemented (src/game/core/tiny_m); the dword of the table at 0x7cfb90 for the 16-bit field at +0x1da720 of the game object (the debug printf in the original is not called)
+0x00519550,GameTable7cfb90_Get1da722_519550,function,high,reimplemented (src/game/core/tiny_m); the dword of the table at 0x7cfb90 for the 16-bit field at +0x1da722 of the game object (the debug printf in the original is not called)
+0x00519590,GameTable7cfb90_Get1da724_519590,function,high,reimplemented (src/game/core/tiny_m); the dword of the table at 0x7cfb90 for the 16-bit field at +0x1da724 of the game object (the debug printf in the original is not called)
+0x005195d0,GameTable7cfb90_Get1da726_5195d0,function,high,reimplemented (src/game/core/tiny_m); the dword of the table at 0x7cfb90 for the 16-bit field at +0x1da726 of the game object (the debug printf in the original is not called)
+0x00519610,GameTable7cfb90_Get1da736_519610,function,high,reimplemented (src/game/core/tiny_m); the dword of the table at 0x7cfb90 for the 16-bit field at +0x1da736 of the game object (the debug printf in the original is not called)
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

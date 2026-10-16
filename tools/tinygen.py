@@ -385,6 +385,28 @@ def freeglobal(a, texts):
                 body='const u32 p = global<u32>(0x%08x); if (!p) return 0; GameHeap_Free(reinterpret_cast<void *>(p)); global<u32>(0x%08x) = 0; return 1;' % (g, g))
 
 
+def fieldtable(a, texts):
+    """A getter that looks a 16-bit field of the (large) game object up in the table at 0x7cfb90, with a debug printf in the way (a call the C++
+    leaves out): PUSH ECX; MOV AX,[ECX + off]; ... CALL Debug_Printf; ...; MOV EAX,[EDX*4 + table]; POP ECX; RET."""
+    if len(texts) != 17:
+        return None
+    pats = [r'^PUSH ECX$', r'^MOV AX,w\[ECX \+ (0x[0-9a-f]+)\]$', r'^MOV EDX,\[(0x[0-9a-f]+)\]$', r'^XOR ECX,ECX$', r'^PUSH 0x[0-9a-f]+$', r'^TEST EDX,EDX$',
+            r'^SETZ CL$', r'^PUSH ECX$', r'^MOV w\[ESP \+ 0x8\],AX$', r'^CALL 0x005da3c0$', r'^MOV EAX,\[ESP \+ 0x8\]$', r'^ADD ESP,0x8$', r'^AND EAX,0xffff$',
+            r'^LEA EDX,\[EAX \+ EAX\*0x4\]$', r'^MOV EAX,\[EDX\*0x4 \+ (0x[0-9a-f]+)\]$', r'^POP ECX$', r'^RET$']
+    ms = [re.match(p, t) for p, t in zip(pats, texts)]
+    if not all(ms) or num(ms[2].group(1)) != num(ms[14].group(1)):
+        return None
+    off, table = num(ms[1].group(1)), num(ms[14].group(1))
+    setup = ('base = RAM + 0x80 + 0x%x  # the field is far out in the game object: give it a window\n'
+             'window = bytearray(r.bytes(0x20))\n'
+             'put(window, base & 0xf, \'H\', r.choice([0, 1, 2, 3, 5, 7, 8]))\n'
+             'regions[base & ~0xf] = window\n'
+             'regions[0x%x] = r.bytes(0xb0)  # the table, 20 bytes an entry\n' % (off, table))
+    return dict(name='GameTable%x_Get%x_%06x' % (table, off, a), conv='t', nargs=0, ret='a', globals=[],
+                doc='the dword of the table at 0x%x for the 16-bit field at +0x%x of the game object (the debug printf in the original is not called)' % (table, off),
+                body='return global<u32>(0x%08x + 20 * at<u16>(o, 0x%x));' % (table, off), setup=setup, debug=True)
+
+
 def frame(a, texts):
     """A function in the debug build's frame style: PUSH EBP; MOV EBP,ESP; [save ECX]; [a constant result]; POP EBP; RET [n]."""
     if len(texts) < 4 or texts[:2] != ['PUSH EBP', 'MOV EBP,ESP'] or texts[-2] != 'POP EBP' or not texts[-1].startswith('RET'):
@@ -419,7 +441,7 @@ def frame(a, texts):
 
 def match(a, ins):
     texts = [t for _, t in ins]
-    d = frame(a, texts) or ctor(a, texts) or deleter(a, texts) or listdtor(a, texts) or listdeldtor(a, texts) or freeglobal(a, texts)
+    d = frame(a, texts) or ctor(a, texts) or deleter(a, texts) or listdtor(a, texts) or listdeldtor(a, texts) or freeglobal(a, texts) or fieldtable(a, texts)
     if d:
         d.setdefault('globals', [])
         d['addr'] = a
@@ -548,8 +570,13 @@ def main():
             extra.add(t)
             todo += list(calls.get(t, ()))
         extra_ranges = [(t, end[t]) for t in sorted(extra)]
+        if any(d.get('debug') for d in found):  # the original calls the empty debug printf
+            extra_ranges.append((0x5da3c0, 0x5da3c1))
         listy = tuple(d['addr'] for d in found if d.get('listy'))
-        f.write(']\nEXTRA = %r\nLISTY = %r  # linked list destructors: a real chain (next at +4) is built for them\nB = Bench([(a, e) for a, e, *_ in FUNCS] + EXTRA)\n\n\n' % (extra_ranges, listy) +
+        setup_text = ''.join('def setup_%06x(r, obj, regions):\n%s\n\n' % (d['addr'], ''.join('    ' + ln + '\n' for ln in d['setup'].rstrip('\n').split('\n')))
+                             for d in found if d.get('setup'))
+        setup_text += 'SETUP = {%s}\n\n\n' % ', '.join('0x%06x: setup_%06x' % (d['addr'], d['addr']) for d in found if d.get('setup'))
+        f.write(']\nEXTRA = %r\nLISTY = %r  # linked list destructors: a real chain (next at +4) is built for them\nB = Bench([(a, e) for a, e, *_ in FUNCS] + EXTRA)\n\n\n' % (extra_ranges, listy) + setup_text +
                 'def case(r):\n'
                 '    address, _end, conv, n, ret, globs, ptr = r.choice(FUNCS)\n'
                 '    obj = bytearray(r.bytes(0x400))\n'
@@ -564,6 +591,8 @@ def main():
                  '            put(chain, 0x20 * i + 4, \'I\', RAM + 0x1000 + 0x20 * (i + 1) if i + 1 < count else 0)\n'
                  '        put(obj, 0x84, \'I\', RAM + 0x1000 if count else 0)  # the object is at RAM + 0x80\n'
                  '        regions[RAM + 0x1000] = chain\n' if any(d.get('listy') for d in found) else '') +
+                '    if address in SETUP:\n'
+                '        SETUP[address](r, obj, regions)\n'
                 '    for g in globs:\n'
                 '        regions[g & ~0xf] = r.bytes(0x20)\n'
                 '    args = [r.choice([0, 1, 0xff, 0x7fffffff, 0xffffffff, r.getrandbits(32)]) for _ in range(n)]\n'

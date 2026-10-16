@@ -115,6 +115,7 @@
 #include "../game/core/tiny_j.h"
 #include "../game/core/tiny_k.h"
 #include "../game/core/tiny_l.h"
+#include "../game/core/tiny_m.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -2373,6 +2374,14 @@ const Hook kHooks[] = {
     {"ListScalarDelete702c0c_5ddaf0", 0x005ddaf0, (void *)&ListScalarDelete702c0c_5ddaf0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"ListScalarDelete702f10_5e4320", 0x005e4320, (void *)&ListScalarDelete702f10_5e4320, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"ListScalarDelete703084_5f46e0", 0x005f46e0, (void *)&ListScalarDelete703084_5f46e0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"GameTable7cfb90_Get1da718_519450", 0x00519450, (void *)&GameTable7cfb90_Get1da718_519450, {0x51, 0x66, 0x8b, 0x81, 0x18}},
+    {"GameTable7cfb90_Get1da71a_519490", 0x00519490, (void *)&GameTable7cfb90_Get1da71a_519490, {0x51, 0x66, 0x8b, 0x81, 0x1a}},
+    {"GameTable7cfb90_Get1da71c_5194d0", 0x005194d0, (void *)&GameTable7cfb90_Get1da71c_5194d0, {0x51, 0x66, 0x8b, 0x81, 0x1c}},
+    {"GameTable7cfb90_Get1da720_519510", 0x00519510, (void *)&GameTable7cfb90_Get1da720_519510, {0x51, 0x66, 0x8b, 0x81, 0x20}},
+    {"GameTable7cfb90_Get1da722_519550", 0x00519550, (void *)&GameTable7cfb90_Get1da722_519550, {0x51, 0x66, 0x8b, 0x81, 0x22}},
+    {"GameTable7cfb90_Get1da724_519590", 0x00519590, (void *)&GameTable7cfb90_Get1da724_519590, {0x51, 0x66, 0x8b, 0x81, 0x24}},
+    {"GameTable7cfb90_Get1da726_5195d0", 0x005195d0, (void *)&GameTable7cfb90_Get1da726_5195d0, {0x51, 0x66, 0x8b, 0x81, 0x26}},
+    {"GameTable7cfb90_Get1da736_519610", 0x00519610, (void *)&GameTable7cfb90_Get1da736_519610, {0x51, 0x66, 0x8b, 0x81, 0x36}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
