@@ -443,9 +443,9 @@ class Emu:
                 res = ~a & ((1 << bits) - 1)  # NOT leaves the flags
             self.put(o[0], res)
         elif mn in ('INC', 'DEC'):
-            a, cf = self.get(o[0]), self.cf
-            res = self.flags(a + (1 if mn == 'INC' else -1), 32, cf,
-                             a == (0x7fffffff if mn == 'INC' else 0x80000000))
+            a, cf, bits = self.get(o[0]), self.cf, 8 * self.size(o[0])
+            res = self.flags(a + (1 if mn == 'INC' else -1), bits, cf,
+                             a == ((1 << (bits - 1)) - 1 if mn == 'INC' else 1 << (bits - 1)))
             self.put(o[0], res)
         elif mn in ('AND', 'OR', 'XOR', 'TEST'):
             a, b, bits = self.get(o[0]), self.get(o[1]), 8 * self.size(o[0])
