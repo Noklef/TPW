@@ -3,7 +3,8 @@
 #include "hooks.h"
 
 #include "../game/core/app.h"
-#include "../game/core/circbuf.h"
+#include "../game/core/circbuf.h"
+#include "../game/core/dequeiter.h"
 #include "../game/core/fpu.h"
 #include "../game/core/libc.h"
 #include "../game/core/list.h"
@@ -1591,6 +1592,11 @@ const Hook kHooks[] = {
     {"DivCeil",                   0x006428b0, (void *)&DivCeil, {0x8b, 0x4c, 0x24, 0x08, 0x8b}},
     {"Const_C0000",               0x00642100, (void *)&Const_C0000, {0xb8, 0x00, 0x00, 0x0c, 0x00}},
     {"Const_1000000",             0x00642b20, (void *)&Const_1000000, {0xb8, 0x40, 0x42, 0x0f, 0x00}},
+    {"DequeIter_Set",             0x00632200, (void *)&DequeIter_Set, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
+    {"DequeIter_Plus",            0x00632230, (void *)&DequeIter_Plus, {0x8b, 0x11, 0x8b, 0x41, 0x08}},
+    {"DequeIter_Diff",            0x00632290, (void *)&DequeIter_Diff, {0x8b, 0x51, 0x0c, 0x56, 0x8b}},
+    {"DequeIter_Prev",            0x00632310, (void *)&DequeIter_Prev, {0x8b, 0xc1, 0x56, 0xba, 0xfc}},
+    {"Class703c14_Ctor",          0x00632380, (void *)&Class703c14_Ctor, {0x51, 0x8a, 0x54, 0x24, 0x03}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

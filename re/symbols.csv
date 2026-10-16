@@ -2146,6 +2146,11 @@ address,name,kind,confidence,notes
 0x00633b60,Obj_Set10,function,high,reimplemented (src/game/core/small); +0x10 = value
 0x006428b0,DivCeil,function,high,"reimplemented (src/game/core/small); (a + b - 1) / b, signed"
 0x00642b20,Const_1000000,function,high,reimplemented (src/game/core/small); 1000000
+0x00632200,DequeIter_Set,function,high,reimplemented (src/game/core/dequeiter); the iterator at a position in a block of the map
+0x00632230,DequeIter_Plus,function,high,"reimplemented (src/game/core/dequeiter); the iterator n dwords on, across blocks"
+0x00632290,DequeIter_Diff,function,high,reimplemented (src/game/core/dequeiter); this - other in dwords through the blocks
+0x00632310,DequeIter_Prev,function,high,"reimplemented (src/game/core/dequeiter); one back, into the previous block from a block's start"
+0x00632380,Class703c14_Ctor,function,high,reimplemented (src/game/core/dequeiter); vtable 0x703c14 and its fields (two bytes of the address's top byte)
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
