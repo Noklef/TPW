@@ -6,11 +6,13 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x468950, 0x4689f0), (0x67df40, 0x67e040), (0x67faf0, 0x67fb20), (0x682720, 0x682780)])
+B = Bench([(0x468950, 0x4689f0), (0x46b460, 0x46b600), (0x67df40, 0x67e040), (0x67faf0, 0x67fb20), (0x682720, 0x682780)])
 NAMES = [b'sign1.tga', b'SIGN1.TGA', b'Sign2.Tga', b'sign2.tga', b'sign3.tga', b'sign1.tg', b'', b'x']
 
 
 def case(r):
+    if r.random() < 0.3:  # the remap: every code about the table, with garbage above
+        return Call(0x46b460, [r.choice([r.randrange(0x20, 0x90)] * 5 + [r.getrandbits(16), r.getrandbits(32)]) | (r.getrandbits(16) << 16 if r.random() < 0.4 else 0)], {}, ret='a')
     n = r.choice([0, 1, 2, 3, 5])
     model = bytearray(r.bytes(0x80))
     put(model, 0x36, 'H', n)

@@ -3273,6 +3273,7 @@ address,name,kind,confidence,notes
 0x005b97a0,Obj_ResetAndRelease26,function,high,reimplemented (src/game/core/small29); resets fields and releases the shared array of 0x26-byte elements
 0x005b9820,Obj_ResetAndRelease34,function,high,reimplemented (src/game/core/small29); resets fields and releases the shared array of 0x34-byte elements
 0x00468950,Model_FindSignEntries,function,high,reimplemented (src/game/core/small30); finds the sign1 and sign2 texture entries of a model
+0x0046b460,Code_Remap46b460,function,high,reimplemented (src/game/core/small30); remaps a code
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
