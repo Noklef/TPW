@@ -27,6 +27,9 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 EXE = os.path.join(ROOT, '.data', 'nocd', 'tp.exe')
 
 
+PROVIDED = {0x5da3c0, 0x67acb0, 0x67acc0}
+
+
 def opt(name, default):
     a = sys.argv
     return int(a[a.index(name) + 1]) if name in a else default
@@ -52,6 +55,9 @@ def main():
     maxcalls, ngroups, peek = opt('--calls', 0), opt('--groups', 25), opt('--peek', 90)
 
     hooked = set(int(x, 16) for x in re.findall(r'0x00([0-9a-f]{6})', open(os.path.join(ROOT, 'src', 'hook', 'hooks.cpp')).read()))
+    # Not hooked, but the ported code has a way through: the empty debug printf (the C++ simply does not call it) and the game's
+    # operator new / delete (core/gameheap calls them, or the tests' stand-in).
+    hooked_or_provided = hooked | PROVIDED
     names = {}
     for line in open(os.path.join(ROOT, 're', 'symbols.csv'), encoding='utf-8', errors='replace'):
         p = line.split(',')
@@ -93,7 +99,7 @@ def main():
         if ins.startswith('CALL') or tail:
             if not m:
                 rec[2] = True
-            elif int(m.group(2), 16) not in hooked:
+            elif int(m.group(2), 16) not in hooked_or_provided:
                 rec[1].add(int(m.group(2), 16))
         elif ins.startswith('JMP') and not m:
             rec[2] = True

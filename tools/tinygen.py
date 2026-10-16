@@ -308,6 +308,30 @@ def ctor(a, texts):
     return dict(name='Init_%06x' % a, conv='t', nargs=n, ret='p', doc='sets %s; returns the object' % fields, body=body)
 
 
+def deleter(a, texts):
+    """A scalar deleting destructor with nothing left in the destructor but the vtable store(s): [MOV AL,[ESP + 4]; PUSH ESI;
+    MOV ESI,ECX; TEST AL,1; MOV [ESI..],vtable] in any order, JZ over PUSH ESI; CALL Mem_Free; ADD ESP,4, then MOV EAX,ESI; POP ESI; RET 4."""
+    tail = ['PUSH ESI', 'CALL 0x0067acb0', 'ADD ESP,0x4', 'MOV EAX,ESI', 'POP ESI', 'RET 0x4']
+    if len(texts) < 9 or texts[-6:] != tail or not texts[-7].startswith('JZ '):
+        return None
+    pre = texts[:-7]
+    need = ['MOV AL,b[ESP + 0x4]', 'PUSH ESI', 'MOV ESI,ECX', 'TEST AL,0x1']
+    stores = []
+    for t in pre:
+        mm = re.match(r'^MOV \[ESI(?: \+ (0x[0-9a-f]+))?\],(0x[0-9a-f]+)$', t)
+        if mm:
+            stores.append('at<u32>(o, 0x%x) = 0x%08x;' % (num(mm.group(1)), num(mm.group(2))))
+        elif t in need:
+            need.remove(t)
+        else:
+            return None
+    if need or not stores:
+        return None
+    vt = re.search(r'0x([0-9a-f]+);', stores[0]).group(1).lstrip('0')
+    return dict(name='ScalarDelete%s_%06x' % (vt, a), conv='t', nargs=1, ret='p', doc='sets the vtable pointer(s), then frees the object when bit 0 of the flags is set',
+                body=' '.join(stores) + ' if (v0 & 1) GameHeap_Free(o); return o;', includes=['core/gameheap.h'])
+
+
 def frame(a, texts):
     """A function in the debug build's frame style: PUSH EBP; MOV EBP,ESP; [save ECX]; [a constant result]; POP EBP; RET [n]."""
     if len(texts) < 4 or texts[:2] != ['PUSH EBP', 'MOV EBP,ESP'] or texts[-2] != 'POP EBP' or not texts[-1].startswith('RET'):
@@ -342,7 +366,7 @@ def frame(a, texts):
 
 def match(a, ins):
     texts = [t for _, t in ins]
-    d = frame(a, texts) or ctor(a, texts)
+    d = frame(a, texts) or ctor(a, texts) or deleter(a, texts)
     if d:
         d.setdefault('globals', [])
         d['addr'] = a
@@ -458,7 +482,7 @@ def main():
                 '# object bytes, any global values, any arguments.\n'
                 '# usage: tiny_%s.py [CASES [SEED]] [--wild|--both] [--show N]\n' % (tag, tag))
         f.write('import os\nimport sys\n\nsys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), \'..\', \'..\', \'tools\'))\n'
-                'from fncmp import Bench, Call, RAM, put  # noqa: E402\n\n')
+                'from fncmp import HEAP, Bench, Call, RAM, heap, put  # noqa: E402\n\n')
         f.write('# (address, end, convention, stack arguments, returns, globals touched, arguments used as pointers)\nFUNCS = [\n')
         for d in found:
             f.write('    (0x%06x, 0x%06x, %r, %d, %r, %r, %r),\n' % (d['addr'], d['end'], d['conv'], d['nargs'], 'a' if d['ret'] in 'ap' else d['ret'], d['globals'], tuple(sorted(set(int(x) for x in re.findall(r'\(uintptr_t\)v(\d)', d['body']))))))
@@ -478,7 +502,7 @@ def main():
                 '    for k in range(0, 0x400, 4):  # many dwords point into the object, so a chain of pointers can be followed\n'
                 '        if r.random() < 0.5:\n'
                 '            put(obj, k, \'I\', RAM + 0x100 + 4 * r.randrange(0x40))\n'
-                '    regions = {RAM: obj}\n'
+                '    regions = {RAM: obj}\n' + ('    regions[HEAP] = heap(0x1000)  # the game heap the code frees into\n' if any('GameHeap_' in d['body'] for d in found) else '') +
                 '    for g in globs:\n'
                 '        regions[g & ~0xf] = r.bytes(0x20)\n'
                 '    args = [r.choice([0, 1, 0xff, 0x7fffffff, 0xffffffff, r.getrandbits(32)]) for _ in range(n)]\n'
