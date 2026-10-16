@@ -89,6 +89,7 @@
 #include "../game/core/liveobjects.h"
 #include "../game/core/misc.h"
 #include "../game/core/records16.h"
+#include "../game/core/savemods.h"
 #include "../game/core/small.h"
 #include "../game/core/options.h"
 #include "../game/core/soundset.h"
@@ -2736,6 +2737,10 @@ const Hook kHooks[] = {
     {"Format_FillInfo",           0x004925d0, (void *)&Format_FillInfo, {0x8b, 0x44, 0x24, 0x08, 0x83}},
     {"List_SpliceOne",            0x005d0510, (void *)&List_SpliceOne, {0x8b, 0x54, 0x24, 0x04, 0x56}},
     {"Obj_ApplyToGlobalObject",   0x004b0aa0, (void *)&Obj_ApplyToGlobalObject, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
+    {"Camera_Save",               0x0042cdc0, (void *)&Camera_Save, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Particles_Save",            0x0051f680, (void *)&Particles_Save, {0x51, 0x56, 0x8b, 0x74, 0x24}},
+    {"FlyingRides_Save",          0x0055de70, (void *)&FlyingRides_Save, {0x51, 0x56, 0x8b, 0x74, 0x24}},
+    {"RSSE_Save",                 0x00559350, (void *)&RSSE_Save, {0x83, 0xec, 0x5c, 0x53, 0x55}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
