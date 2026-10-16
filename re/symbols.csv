@@ -77,7 +77,7 @@ address,name,kind,confidence,notes
 0x005587f0,RSSE_LoadScriptFile,function,high,"'Not a RSSE script file', 'Zero length script', 'Cannot load Script file'"
 0x00551600,RSSE_Init,function,medium,'Tried to Initialise twice'
 0x00559060,RSSE_KillScript,function,medium,'Cant kill a script - system is not initialised'
-0x00556ab0,RSSE_Malloc,function,medium,"'RSSE Malloc %ld', 'Tried to MALLOC 0'"
+0x00556ab0,Mem_AllocLogged,function,high,reimplemented (src/game/core/small21); global allocation that refuses 0
 0x005584b0,RSSE_CheckLeaks,function,medium,'Something malloced but not freed'
 0x005573d0,RSSE_TriggerCustomEvent,function,medium,'Tried to trigger a custom event'
 0x00551130,RSSE_StartScream,function,medium,'Started screaming without ...'
@@ -3154,6 +3154,15 @@ address,name,kind,confidence,notes
 0x005d8b00,Class702a90_Ctor,function,high,reimplemented (src/game/core/vdel); constructor on top of Class7029d0_Ctor
 0x005d8b40,Class702a90_Release,function,high,reimplemented (src/game/core/vdel); sets the vtable pointer and releases like Class7029d0
 0x005d8b20,Class702a90_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor calling the release
+0x00598760,Ptr_FreeIfSet,function,high,reimplemented (src/game/core/small21); frees the block a pointer variable points to
+0x00598770,Dwords_Zero,function,high,reimplemented (src/game/core/small21); zeroes a run of dwords
+0x005f4ea0,ReturnOne,function,high,reimplemented (src/game/core/small21); returns 1
+0x00486b60,KeyMaps_EnableAllAndClearFlag,function,high,reimplemented (src/game/core/small21); enables all keyboard maps and clears a flag
+0x00486b70,KeyMaps_ResetAllAndSetFlag,function,high,reimplemented (src/game/core/small21); resets all keyboard maps and sets a flag
+0x0051b4a0,Sound_Alloc,function,high,reimplemented (src/game/core/small21); counted global allocation
+0x0051b4d0,Sound_Free,function,high,reimplemented (src/game/core/small21); counted global free
+0x0051f630,Mem_AllocChecked,function,high,reimplemented (src/game/core/small21); global allocation that refuses 0
+0x0051f660,Mem_FreeChecked,function,high,reimplemented (src/game/core/small21); global free that refuses 0
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

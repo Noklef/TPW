@@ -117,6 +117,7 @@
 #include "../game/core/small18.h"
 #include "../game/core/small19.h"
 #include "../game/core/small20.h"
+#include "../game/core/small21.h"
 #include "../game/core/small2.h"
 #include "../game/core/small3.h"
 #include "../game/core/small4.h"
@@ -2682,6 +2683,16 @@ const Hook kHooks[] = {
     {"Class702a90_Ctor",          0x005d8b00, (void *)&Class702a90_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0xf8}},
     {"Class702a90_Release",       0x005d8b40, (void *)&Class702a90_Release, {0xc7, 0x01, 0x90, 0x2a, 0x70}},
     {"Class702a90_ScalarDtor",    0x005d8b20, (void *)&Class702a90_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"Ptr_FreeIfSet",             0x00598760, (void *)&Ptr_FreeIfSet, {0x8b, 0x01, 0x85, 0xc0, 0x74}},
+    {"Dwords_Zero",               0x00598770, (void *)&Dwords_Zero, {0x8b, 0x4c, 0x24, 0x08, 0x57}},
+    {"ReturnOne",                 0x005f4ea0, (void *)&ReturnOne, {0x33, 0xc0, 0x0f, 0x28, 0xc0}},
+    {"KeyMaps_EnableAllAndClearFlag", 0x00486b60, (void *)&KeyMaps_EnableAllAndClearFlag, {0xe8, 0xfb, 0x63, 0xf8, 0xff}},
+    {"KeyMaps_ResetAllAndSetFlag", 0x00486b70, (void *)&KeyMaps_ResetAllAndSetFlag, {0xe8, 0x2b, 0x64, 0xf8, 0xff}},
+    {"Sound_Alloc",               0x0051b4a0, (void *)&Sound_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"Sound_Free",                0x0051b4d0, (void *)&Sound_Free, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"Mem_AllocChecked",          0x0051f630, (void *)&Mem_AllocChecked, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"Mem_AllocLogged",           0x00556ab0, (void *)&Mem_AllocLogged, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Mem_FreeChecked",           0x0051f660, (void *)&Mem_FreeChecked, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
