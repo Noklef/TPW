@@ -1,5 +1,5 @@
 # The particle systems' handle accessors (src/game/render/particles: 0x5222e0, 0x522320,
-# 0x51fd80, 0x51fa80, 0x51feb0, 0x51ff70, 0x51ff10, 0x51ffd0, 0x520470) against the originals:
+# 0x51fd80, 0x51fa80, 0x51feb0, 0x51ff70, 0x51ff10, 0x51ffd0, 0x520470, 0x51fe30, 0x520030, 0x51fd90, 0x5200b0) against the originals:
 # handles live, stale (serial off), past the slots or 0, before and after set-up; effect numbers
 # about 0x69; ages and lifetimes about the quarters, negative and zero.
 # usage: particles.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Alive,Effector,...)
@@ -11,10 +11,10 @@ from fncmp import Bench, Call, put  # noqa: E402
 
 B = Bench([(0x5222e0, 0x52231b), (0x522320, 0x522356), (0x51fd80, 0x51fd8a), (0x51fa80, 0x51faa0),
            (0x51feb0, 0x51ff06), (0x51ff10, 0x51ff68), (0x51ff70, 0x51ffc6), (0x51ffd0, 0x520028),
-           (0x520470, 0x5204ba)])
+           (0x520470, 0x5204ba), (0x51fe30, 0x51fea4), (0x520030, 0x5200a4), (0x51fd90, 0x51fe2d), (0x5200b0, 0x520123)])
 SYSTEMS, EFFECTS, EFFECTORS, SETUP = 0x80cefc, 0x804370, 0x816504, 0x816d40
 CALLS = {'Alive': 0x5222e0, 'Effector': 0x522320, 'Reduced': 0x51fd80, 'Clear': 0x51fa80, 'End': 0x51feb0,
-         'Age': 0x51ff70, 'Set2a': 0x51ff10, 'SetA2': 0x51ffd0, 'Quarter': 0x520470}
+         'Age': 0x51ff70, 'Set2a': 0x51ff10, 'SetA2': 0x51ffd0, 'Quarter': 0x520470, 'VecA': 0x51fe30, 'VecB': 0x520030, 'Scaled': 0x51fd90, 'EndAll': 0x5200b0}
 
 
 def case(r):
@@ -34,6 +34,21 @@ def case(r):
             put(effectors, slot * 0x68, 'H', r.choice([serial, serial, serial ^ 1]))
         return Call(0x522320, [serial << 16 | slot], {SETUP: setup, EFFECTORS - 0x10: bytes(0x10) + effectors}, ret='a')
     systems = bytearray(r.bytes(0x78 * 0x140))
+    if op == 'EndAll':
+        heads = bytearray(r.bytes(0x50))
+        put(heads, 0x40, 'I', r.choice([0, 1, 1, 1, r.getrandbits(32)]))
+        effectors = bytearray(r.bytes(0x14 * 0x68))
+
+        def chain(slots, count, buf, base, link, flag):
+            order = r.sample(range(slots), r.choice([0, 1, 2, 4]) if slots > 4 else 0)
+            for k, s in enumerate(order):
+                put(buf, s * base + link, 'h', order[k + 1] if k + 1 < len(order) else -1)
+                buf[s * base + flag] = r.choice([0, 1, 0xff])
+            return order[0] if order else -1
+
+        put(heads, 0x1c, 'hh', chain(0x78, 0, systems, 0x140, 0xd0, 5), chain(0x14, 0, effectors, 0x68, 0x60, 0x45))
+        regions = {0x816d00: heads, SYSTEMS: systems, 0x8164fc: effectors}
+        return Call(0x5200b0, [], regions)
     if op == 'Quarter':
         slot = r.randrange(0x78)
         life = r.choice([0, 1, 4, r.randrange(1, 200), -r.randrange(1, 200), r.getrandbits(32)])
@@ -51,6 +66,9 @@ def case(r):
     if handle == 0:  # slot 0 with serial 0 would pass but for the check of 0
         put(systems, 0xa, 'H', 0)
     args = [handle]
+    if op in ('VecA', 'VecB', 'Scaled'):
+        args += [r.choice([0, 16, -16, 0x7fffffff, -0x80000000, r.getrandbits(32)]) & 0xffffffff for _ in range(3)]
+        return Call(CALLS[op], args, {SETUP: setup, SYSTEMS: systems}, ret='v')
     if op != 'Alive' and op != 'End':
         args.append(r.choice([0, 0xffff, 0x10000, r.getrandbits(32)]))
     return Call(CALLS[op], args, {SETUP: setup, SYSTEMS: systems}, ret='a' if op == 'Alive' else 'v')

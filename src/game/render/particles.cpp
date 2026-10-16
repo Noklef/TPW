@@ -36,6 +36,56 @@ void __cdecl ParticleSystem_SetAge(u32 handle, u32 age) {
     if (Particle_IsAlive(handle)) *reinterpret_cast<u32 *>(system((u16)handle) + 0x20) = age;
 }
 
+void __cdecl ParticleSystem_SetVectorA(u32 handle, s32 x, s32 y, s32 z) {
+    if (!Particle_IsAlive(handle))
+        return;
+    s32 *v = reinterpret_cast<s32 *>(system((u16)handle) + 0x14);
+    v[0] = x >> 4;
+    v[1] = y >> 4;
+    v[2] = z >> 4;
+}
+
+void __cdecl ParticleSystem_SetVectorB(u32 handle, s32 x, s32 y, s32 z) {
+    if (!Particle_IsAlive(handle))
+        return;
+    s32 *v = reinterpret_cast<s32 *>(system((u16)handle) + 0x44);
+    v[0] = x >> 4;
+    v[1] = y >> 4;
+    v[2] = z >> 4;
+}
+
+void __cdecl ParticleSystem_SetScaled(u32 handle, s32 x, s32 y, s32 z) {
+    if (!Particle_IsAlive(handle))
+        return;
+    u8 *s = system((u16)handle);
+    const s32 scale = *reinterpret_cast<s32 *>(s + 0xb0);
+    s32 *v = reinterpret_cast<s32 *>(s + 0x38);
+    const s32 in[3] = {x, y, z};
+    for (u32 i = 0; i < 3; i++) {
+        const s32 product = (s32)((u32)in[i] * (u32)scale);
+        v[i] = (s32)((u32)product + ((u32)(product >> 31) & 0x3ff)) >> 10;
+    }
+}
+
+void __cdecl Particles_EndAll() {
+    if (global<u32>(0x00816d40) == 0)
+        return;
+    for (s32 slot = global<s16>(0x00816d1c); slot >= 0;) {
+        u8 *s = system((u32)slot);
+        if (s[5]) {
+            *reinterpret_cast<s32 *>(s + 0x20) = -2;
+            *reinterpret_cast<u16 *>(s + 0x2a) = 1;
+        }
+        slot = *reinterpret_cast<s16 *>(s + 0xd0);
+    }
+    for (s32 slot = global<s16>(0x00816d1e); slot >= 0;) {
+        u8 *e = reinterpret_cast<u8 *>(0x008164fc + (u32)slot * 0x68);
+        if (e[0x45])
+            *reinterpret_cast<s32 *>(e + 0x4c) = -2;
+        slot = *reinterpret_cast<s16 *>(e + 0x60);
+    }
+}
+
 void __cdecl ParticleSystem_Set2a(u32 handle, u32 value) {
     if (Particle_IsAlive(handle)) *reinterpret_cast<u16 *>(system((u16)handle) + 0x2a) = (u16)value;
 }

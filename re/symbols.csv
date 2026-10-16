@@ -372,6 +372,10 @@ address,name,kind,confidence,notes
 0x0051ff10,ParticleSystem_Set2a,function,high,"reimplemented (src/game/render/particles); cdecl (handle, value): a live system's u16 +0x2a"
 0x0051ffd0,ParticleSystem_SetA2,function,high,"reimplemented (src/game/render/particles); cdecl (handle, value): a live system's u16 +0xa2"
 0x00520470,ParticleSystem_QuarterByte,function,high,"reimplemented (src/game/render/particles); cdecl (slot): signed byte +0x6b/+0x6a/+0x69 for the quarter of life (age * 4 / lifetime) 0/1/2, else +0x68"
+0x0051fe30,ParticleSystem_SetVectorA,function,high,reimplemented (src/game/render/particles); a live system's vector at +0x14 from three values over 16
+0x00520030,ParticleSystem_SetVectorB,function,high,reimplemented (src/game/render/particles); a live system's vector at +0x44 from three values over 16
+0x0051fd90,ParticleSystem_SetScaled,function,high,reimplemented (src/game/render/particles); a live system's vector at +0x38 from three values times +0xb0 over 1024
+0x005200b0,Particles_EndAll,function,high,reimplemented (src/game/render/particles); every live system and effector is ended
 0x00804370,gParticleEffects,data,high,0x69 x 0x140-byte effect definitions from Tp2.plb
 0x0080c6b0,gParticleEffectors,data,high,20 x 0x68-byte effector definitions
 0x0080cefc,gParticleSystems,data,high,live systems: 0x140-byte copies of an effect definition
