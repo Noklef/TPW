@@ -15,7 +15,9 @@ from fncmp import Bench, Call, HEAP, RAM, heap  # noqa: E402
 TREES = {'A': (0x47d570, 0x47c010, 0x7b4a54, 0x18), 'B': (0x410670, 0x40ff80, 0x785de4, 0x10), 'C': (0x4f44d0, 0x4f3b10, 0x7ced2c, 0x20),
          'D': (0x4f4f20, 0x4f4580, 0x7ced24, 0x1c), 'E': (0x4f5430, 0x4f2d50, 0x7ced34, 0x1c), 'F': (0x5b2480, 0x5b1b80, 0xf7c968, 0x24),
          'G': (0x5b2e90, 0x5b2530, 0xf7c970, 0x10)}
-B = Bench([(a, a + 0xb0) for (a, _e, _n, _c) in TREES.values()] + [(e, e + 0x560) for (_a, e, _n, _c) in TREES.values()] + [(0x67acb0, 0x67acb1), (0x45b340, 0x45b9a0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000)],
+DEC = {'A': 0x47d4b0, 'C': 0x4f6340, 'D': 0x4f64f0, 'E': 0x4f6680, 'F': 0x5b2ff0, 'G': 0x5b3130}
+CTOR = {'A': (0x47ce70, 0x7b4a50), 'C': (0x4f4120, 0x7ced30), 'D': (0x4f4b70, 0x7ced28), 'E': (0x4f5080, 0x7ced38), 'G': (0x5b2af0, 0xf7c96c)}
+B = Bench([(a, a + 0xc0) for a in DEC.values()] + [(a, a + 0xb0) for (a, _c) in CTOR.values()] + [(a, a + 0xb0) for (a, _e, _n, _c) in TREES.values()] + [(e, e + 0x560) for (_a, e, _n, _c) in TREES.values()] + [(0x67acb0, 0x67acb1), (0x45b340, 0x45b9a0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000)],
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})
 TREE, HEAD, NIL, NODES = RAM, RAM + 0x200, RAM + 0x300, RAM + 0x10000
 RED, BLACK = 0, 1
@@ -130,6 +132,16 @@ def case(r):
     if name in 'CDE':
         regions[stdstring.BLOCKS] = blocks
     node = addr[r.choice(keys)]
+    if name in CTOR and r.random() < 0.2:  # the constructor: the nil node made already or not
+        address, counter = CTOR[name]
+        low = min(nil_at, counter) & ~0xf
+        glob = bytearray(r.bytes(0x20))
+        struct.pack_into('<I', glob, nil_at - low, r.choice([0, NIL]))
+        regions[low] = glob
+        return Call(address, [RAM + 0x400], {**regions, RAM + 0x400: r.bytes(0x20)}, conv='t', ret='v')
+    if name in DEC and r.random() < 0.3:  # the decrement from a node, or from the end (the head)
+        regions[RAM + 0x900] = struct.pack('<I', node if r.random() < 0.8 else HEAD)
+        return Call(DEC[name], [RAM + 0x900], regions, conv='t', ret='v')
     if r.random() < 0.5:  # the increment from a node, then the end (the head)
         holder = struct.pack('<I', node if r.random() < 0.92 else HEAD)
         regions[RAM + 0x900] = holder

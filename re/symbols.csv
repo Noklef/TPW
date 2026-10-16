@@ -3223,6 +3223,17 @@ address,name,kind,confidence,notes
 0x004f2d50,StdTree_EraseE,function,high,reimplemented (src/game/core/stdtree); std::map erase of one node with a std::string value
 0x005b1b80,StdTree_EraseF,function,high,reimplemented (src/game/core/stdtree); std::map erase of one node with a String value
 0x005b2530,StdTree_EraseG,function,high,reimplemented (src/game/core/stdtree); std::map erase of one node
+0x0047d4b0,StdTree_DecA,function,high,reimplemented (src/game/core/stdtree); std::map iterator decrement
+0x004f6340,StdTree_DecC,function,high,reimplemented (src/game/core/stdtree); std::map iterator decrement
+0x004f64f0,StdTree_DecD,function,high,reimplemented (src/game/core/stdtree); std::map iterator decrement
+0x004f6680,StdTree_DecE,function,high,reimplemented (src/game/core/stdtree); std::map iterator decrement
+0x005b2ff0,StdTree_DecF,function,high,reimplemented (src/game/core/stdtree); std::map iterator decrement
+0x005b3130,StdTree_DecG,function,high,reimplemented (src/game/core/stdtree); std::map iterator decrement
+0x0047ce70,StdTree_CtorA,function,high,reimplemented (src/game/core/stdtree); std::map constructor
+0x004f4120,StdTree_CtorC,function,high,reimplemented (src/game/core/stdtree); std::map constructor
+0x004f4b70,StdTree_CtorD,function,high,reimplemented (src/game/core/stdtree); std::map constructor
+0x004f5080,StdTree_CtorE,function,high,reimplemented (src/game/core/stdtree); std::map constructor
+0x005b2af0,StdTree_CtorG,function,high,reimplemented (src/game/core/stdtree); std::map constructor
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

@@ -13,7 +13,7 @@ constexpr u32 kRed = 0, kBlack = 1;
 enum Value { kPlain, kStdString, kString };
 
 // A tree whose nil node is the global pointer at `nilAt` and whose nodes keep their colour at +`colourAt`.
-template <u32 nilAt, u32 colourAt, Value value> struct Tree {
+template <u32 nilAt, u32 colourAt, Value value, u32 counterAt, u32 nodeSize> struct Tree {
     static u8 *Nil() { return at<u8 *>(reinterpret_cast<void *>((uintptr_t)nilAt), 0); }
     static u8 *&L(u8 *n) { return at<u8 *>(n, 0); }
     static u8 *&P(u8 *n) { return at<u8 *>(n, 4); }
@@ -38,6 +38,50 @@ template <u32 nilAt, u32 colourAt, Value value> struct Tree {
                 right = n;
             *it = right;
         }
+    }
+
+    // The previous node in order (--iterator); the end (the head node, which is red and its own grandparent) goes to the rightmost.
+    static void Dec(u8 **it) {
+        u8 *node = *it;
+        if (C(node) == kRed && P(P(node)) == node) {
+            *it = R(node);
+        } else if (L(node) == Nil()) {
+            u8 *parent = P(node);
+            if (*it == L(parent)) {
+                do {
+                    *it = parent;
+                    parent = P(parent);
+                } while (*it == L(parent));
+            }
+            *it = parent;
+        } else {
+            u8 *n = L(node);
+            for (u8 *m = R(n); m != Nil(); m = R(m))
+                n = m;
+            *it = n;
+        }
+    }
+
+    // The tree object's constructor: the nil node on first use, then the head node.
+    static void Ctor(u8 *tree) {
+        u8 *&nil = at<u8 *>(reinterpret_cast<void *>((uintptr_t)nilAt), 0);
+        if (!nil) {
+            u8 *node = static_cast<u8 *>(GameHeap_Alloc(nodeSize));
+            P(node) = nullptr;
+            C(node) = kBlack;
+            nil = node;
+            L(node) = nullptr;
+            R(node) = nullptr;
+        }
+        u8 *theNil = nil;
+        at<u32>(reinterpret_cast<void *>((uintptr_t)counterAt), 0) += 1;
+        u8 *head = static_cast<u8 *>(GameHeap_Alloc(nodeSize));
+        P(head) = theNil;
+        C(head) = kRed;
+        at<u8 *>(tree, 4) = head;
+        at<u32>(tree, 0xc) = 0;
+        L(head) = head;
+        R(head) = head;
     }
 
     static void Lrotate(u8 *head, u8 *x) {
@@ -222,13 +266,13 @@ template <u32 nilAt, u32 colourAt, Value value> struct Tree {
     }
 };
 
-using TreeA = Tree<0x007b4a54, 0x18, kPlain>;
-using TreeB = Tree<0x00785de4, 0x10, kPlain>;
-using TreeC = Tree<0x007ced2c, 0x20, kStdString>;
-using TreeD = Tree<0x007ced24, 0x1c, kStdString>;
-using TreeE = Tree<0x007ced34, 0x1c, kStdString>;
-using TreeF = Tree<0x00f7c968, 0x24, kString>;
-using TreeG = Tree<0x00f7c970, 0x10, kPlain>;
+using TreeA = Tree<0x007b4a54, 0x18, kPlain, 0x007b4a50, 0x1c>;
+using TreeB = Tree<0x00785de4, 0x10, kPlain, 0x00785de0, 0x14>;
+using TreeC = Tree<0x007ced2c, 0x20, kStdString, 0x007ced30, 0x24>;
+using TreeD = Tree<0x007ced24, 0x1c, kStdString, 0x007ced28, 0x20>;
+using TreeE = Tree<0x007ced34, 0x1c, kStdString, 0x007ced38, 0x20>;
+using TreeF = Tree<0x00f7c968, 0x24, kString, 0x00f7c96c, 0x28>;
+using TreeG = Tree<0x00f7c970, 0x10, kPlain, 0x00f7c96c, 0x14>;
 
 }  // namespace
 
@@ -241,6 +285,19 @@ void __fastcall StdTree_IncD(u8 **it) { TreeD::Inc(it); }
 void __fastcall StdTree_IncE(u8 **it) { TreeE::Inc(it); }
 void __fastcall StdTree_IncF(u8 **it) { TreeF::Inc(it); }
 void __fastcall StdTree_IncG(u8 **it) { TreeG::Inc(it); }
+
+void __fastcall StdTree_DecA(u8 **it) { TreeA::Dec(it); }
+void __fastcall StdTree_DecC(u8 **it) { TreeC::Dec(it); }
+void __fastcall StdTree_DecD(u8 **it) { TreeD::Dec(it); }
+void __fastcall StdTree_DecE(u8 **it) { TreeE::Dec(it); }
+void __fastcall StdTree_DecF(u8 **it) { TreeF::Dec(it); }
+void __fastcall StdTree_DecG(u8 **it) { TreeG::Dec(it); }
+
+void __fastcall StdTree_CtorA(u8 *tree) { TreeA::Ctor(tree); }
+void __fastcall StdTree_CtorC(u8 *tree) { TreeC::Ctor(tree); }
+void __fastcall StdTree_CtorD(u8 *tree) { TreeD::Ctor(tree); }
+void __fastcall StdTree_CtorE(u8 *tree) { TreeE::Ctor(tree); }
+void __fastcall StdTree_CtorG(u8 *tree) { TreeG::Ctor(tree); }
 
 u8 **__fastcall StdTree_EraseA(u8 *tree, void *, u8 **out, u8 *node) { return TreeA::Erase(tree, out, node); }
 u8 **__fastcall StdTree_EraseB(u8 *tree, void *, u8 **out, u8 *node) { return TreeB::Erase(tree, out, node); }

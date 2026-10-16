@@ -20,6 +20,24 @@ void __fastcall StdTree_IncE(u8 **it);
 void __fastcall StdTree_IncF(u8 **it);
 void __fastcall StdTree_IncG(u8 **it);
 
+// The decrement (--iterator: *it = the previous node in order; the end, the head node, goes to the rightmost) of A 0x47d4b0, C 0x4f6340, D 0x4f64f0, E 0x4f6680, F 0x5b2ff0
+// and G 0x5b3130.
+void __fastcall StdTree_DecA(u8 **it);
+void __fastcall StdTree_DecC(u8 **it);
+void __fastcall StdTree_DecD(u8 **it);
+void __fastcall StdTree_DecE(u8 **it);
+void __fastcall StdTree_DecF(u8 **it);
+void __fastcall StdTree_DecG(u8 **it);
+
+// The constructors (thiscall on the tree object) of A 0x47ce70, C 0x4f4120, D 0x4f4b70, E 0x4f5080 and G 0x5b2af0: the nil node (made on the first use: left and right 0,
+// parent 0, black) and the head node (red, parent the nil node, left and right itself) are allocated (node sizes 0x1c, 0x24, 0x20, 0x20, 0x14), the head is the object's +4 and
+// its size +0xc is 0; the dword counting the maps (0x7b4a50, 0x7ced30, 0x7ced28, 0x7ced38, 0xf7c96c) is raised.
+void __fastcall StdTree_CtorA(u8 *tree);
+void __fastcall StdTree_CtorC(u8 *tree);
+void __fastcall StdTree_CtorD(u8 *tree);
+void __fastcall StdTree_CtorE(u8 *tree);
+void __fastcall StdTree_CtorG(u8 *tree);
+
 u8 **__fastcall StdTree_EraseA(u8 *tree, void *, u8 **out, u8 *node);
 u8 **__fastcall StdTree_EraseB(u8 *tree, void *, u8 **out, u8 *node);
 u8 **__fastcall StdTree_EraseC(u8 *tree, void *, u8 **out, u8 *node);
