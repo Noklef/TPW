@@ -114,6 +114,7 @@
 #include "../game/core/tiny_i.h"
 #include "../game/core/tiny_j.h"
 #include "../game/core/tiny_k.h"
+#include "../game/core/tiny_l.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -2357,6 +2358,21 @@ const Hook kHooks[] = {
     {"ScalarDeleteVia5e40a0_5e4080", 0x005e4080, (void *)&ScalarDeleteVia5e40a0_5e4080, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"ScalarDeleteVia5f3900_5f38e0", 0x005f38e0, (void *)&ScalarDeleteVia5f3900_5f38e0, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"ScalarDeleteVia47e390_6175f0", 0x006175f0, (void *)&ScalarDeleteVia47e390_6175f0, {0x56, 0x8b, 0xf1, 0xe8, 0x98}},
+    {"ListScalarDelete6fd9e4_41f6a0", 0x0041f6a0, (void *)&ListScalarDelete6fd9e4_41f6a0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListScalarDelete700a9c_51aeb0", 0x0051aeb0, (void *)&ListScalarDelete700a9c_51aeb0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"FreeGlobal879a20_561a00",   0x00561a00, (void *)&FreeGlobal879a20_561a00, {0xa1, 0x20, 0x9a, 0x87, 0x00}},
+    {"FreeGlobal879d54_56b760",   0x0056b760, (void *)&FreeGlobal879d54_56b760, {0xa1, 0x54, 0x9d, 0x87, 0x00}},
+    {"FreeGlobal87a248_5740e0",   0x005740e0, (void *)&FreeGlobal87a248_5740e0, {0xa1, 0x48, 0xa2, 0x87, 0x00}},
+    {"FreeGlobal8bcbb8_580500",   0x00580500, (void *)&FreeGlobal8bcbb8_580500, {0xa1, 0xb8, 0xcb, 0x8b, 0x00}},
+    {"ListScalarDelete7028a0_5ba7c0", 0x005ba7c0, (void *)&ListScalarDelete7028a0_5ba7c0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListScalarDelete7028b4_5ba810", 0x005ba810, (void *)&ListScalarDelete7028b4_5ba810, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListScalarDelete70294c_5beba0", 0x005beba0, (void *)&ListScalarDelete70294c_5beba0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListScalarDelete702950_5bebf0", 0x005bebf0, (void *)&ListScalarDelete702950_5bebf0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListScalarDelete702a88_5d9750", 0x005d9750, (void *)&ListScalarDelete702a88_5d9750, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListScalarDelete702afc_5da4d0", 0x005da4d0, (void *)&ListScalarDelete702afc_5da4d0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListScalarDelete702c0c_5ddaf0", 0x005ddaf0, (void *)&ListScalarDelete702c0c_5ddaf0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListScalarDelete702f10_5e4320", 0x005e4320, (void *)&ListScalarDelete702f10_5e4320, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListScalarDelete703084_5f46e0", 0x005f46e0, (void *)&ListScalarDelete703084_5f46e0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

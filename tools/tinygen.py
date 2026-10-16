@@ -350,6 +350,41 @@ def listdtor(a, texts):
                      'at<u32>(o, 0xc) = 0;' % vt, includes=['core/gameheap.h'], listy=True)
 
 
+def listdeldtor(a, texts):
+    """A linked list's scalar deleting destructor: listdtor's body, then MOV AL,[ESP + 0xc]; the count cleared; TEST AL,1; JZ over PUSH EDI;
+    CALL Mem_Free; ADD ESP,4; then MOV EAX,EDI; POP EDI; POP ESI; RET 4."""
+    pats = [r'^PUSH ESI$', r'^PUSH EDI$', r'^MOV EDI,ECX$', r'^MOV ESI,\[EDI \+ 0x4\]$', r'^MOV \[EDI\],(0x[0-9a-f]+)$', r'^TEST ESI,ESI$',
+            r'^MOV \[EDI \+ 0x8\],0x0$', r'^MOV \[EDI \+ 0x4\],0x0$', r'^JZ 0x', r'^MOV EAX,ESI$', r'^MOV ESI,\[ESI \+ 0x4\]$', r'^PUSH EAX$',
+            r'^CALL 0x0067acb0$', r'^ADD ESP,0x4$', r'^TEST ESI,ESI$', r'^JNZ 0x', r'^MOV AL,b\[ESP \+ 0xc\]$', r'^MOV \[EDI \+ 0xc\],0x0$', r'^TEST AL,0x1$', r'^JZ 0x',
+            r'^PUSH EDI$', r'^CALL 0x0067acb0$', r'^ADD ESP,0x4$', r'^MOV EAX,EDI$', r'^POP EDI$', r'^POP ESI$', r'^RET 0x4$']
+    if len(texts) != len(pats):
+        return None
+    ms = [re.match(p, t) for p, t in zip(pats, texts)]
+    if not all(ms):
+        return None
+    vt = num(ms[4].group(1))
+    return dict(name='ListScalarDelete%x_%06x' % (vt, a), conv='t', nargs=1, ret='p', listy=True,
+                doc='a linked list scalar deleting destructor: sets the vtable pointer 0x%x, frees every node and, when bit 0 of the flags is set, the list' % vt,
+                body='const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x%08x; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; '
+                     'for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } '
+                     'at<u32>(o, 0xc) = 0; if (v0 & 1) GameHeap_Free(o); return o;' % vt, includes=['core/gameheap.h'])
+
+
+def freeglobal(a, texts):
+    """MOV EAX,[G]; TEST EAX,EAX; JZ over PUSH EAX; CALL Mem_Free; ADD ESP,4; MOV [G],0; MOV EAX,1; RET; then XOR EAX,EAX; RET."""
+    if len(texts) != 11:
+        return None
+    m = re.match(r'^MOV EAX,\[(0x[0-9a-f]+)\]$', texts[0])
+    if not m or texts[1] != 'TEST EAX,EAX' or not texts[2].startswith('JZ ') or texts[3:6] != ['PUSH EAX', 'CALL 0x0067acb0', 'ADD ESP,0x4']:
+        return None
+    if texts[6] != 'MOV [%s],0x0' % m.group(1) or texts[7:] != ['MOV EAX,0x1', 'RET', 'XOR EAX,EAX', 'RET']:
+        return None
+    g = num(m.group(1))
+    return dict(name='FreeGlobal%x_%06x' % (g, a), conv='c', nargs=0, ret='a', globals=[g], includes=['core/gameheap.h'],
+                doc='frees the block the dword at 0x%x points to (if any), clears it and returns 1 (0 when there was none)' % g,
+                body='const u32 p = global<u32>(0x%08x); if (!p) return 0; GameHeap_Free(reinterpret_cast<void *>(p)); global<u32>(0x%08x) = 0; return 1;' % (g, g))
+
+
 def frame(a, texts):
     """A function in the debug build's frame style: PUSH EBP; MOV EBP,ESP; [save ECX]; [a constant result]; POP EBP; RET [n]."""
     if len(texts) < 4 or texts[:2] != ['PUSH EBP', 'MOV EBP,ESP'] or texts[-2] != 'POP EBP' or not texts[-1].startswith('RET'):
@@ -384,7 +419,7 @@ def frame(a, texts):
 
 def match(a, ins):
     texts = [t for _, t in ins]
-    d = frame(a, texts) or ctor(a, texts) or deleter(a, texts) or listdtor(a, texts)
+    d = frame(a, texts) or ctor(a, texts) or deleter(a, texts) or listdtor(a, texts) or listdeldtor(a, texts) or freeglobal(a, texts)
     if d:
         d.setdefault('globals', [])
         d['addr'] = a
