@@ -2105,6 +2105,8 @@ address,name,kind,confidence,notes
 0x005b0ca0,GlobalSave_SetAllResearchCompleted,function,high,"reimplemented (src/game/core/globalsave); thiscall: the current theme record's (+0x48) mAllResearchCompleted (+0xb9) = 1, when there is one"
 0x005b0cb0,GlobalSave_Byte4c,function,high,reimplemented (src/game/core/globalsave); thiscall u8: the global save info's byte +0x4c
 0x005b0cc0,GlobalSave_ClearByte4c,function,high,reimplemented (src/game/core/globalsave); thiscall: the global save info's byte +0x4c = 0
+0x005775d0,LiveObjects_Add,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): appended to the live objects list (0x87a6d8, count 0x87aed8, room for 0x200; the rest dropped); 1 either way"
+0x00577600,LiveObjects_Remove,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): the last match is replaced by the last entry and the count drops; 1, or 0 when not there"
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

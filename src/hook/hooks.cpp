@@ -67,7 +67,8 @@
 #include "../game/core/ime.h"
 #include "../game/core/idtable.h"
 #include "../game/core/keymap.h"
-#include "../game/core/language.h"
+#include "../game/core/language.h"
+#include "../game/core/liveobjects.h"
 #include "../game/core/options.h"
 #include "../game/core/soundset.h"
 #include "../game/core/stdstring.h"
@@ -1495,6 +1496,8 @@ const Hook kHooks[] = {
     {"GlobalSave_SetAllResearchCompleted", 0x005b0ca0, (void *)&GlobalSave_SetAllResearchCompleted, {0x8b, 0x41, 0x48, 0x85, 0xc0}},
     {"GlobalSave_Byte4c",         0x005b0cb0, (void *)&GlobalSave_Byte4c, {0x8a, 0x41, 0x4c, 0xc3, 0x90}},
     {"GlobalSave_ClearByte4c",    0x005b0cc0, (void *)&GlobalSave_ClearByte4c, {0xc6, 0x41, 0x4c, 0x00, 0xc3}},
+    {"LiveObjects_Add",           0x005775d0, (void *)&LiveObjects_Add, {0xa1, 0xd8, 0xae, 0x87, 0x00}},
+    {"LiveObjects_Remove",        0x00577600, (void *)&LiveObjects_Remove, {0xa1, 0xd8, 0xae, 0x87, 0x00}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
