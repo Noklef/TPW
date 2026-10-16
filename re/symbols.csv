@@ -281,6 +281,8 @@ address,name,kind,confidence,notes
 0x004143f0,TrackType_GetSchema,function,high,"reimplemented (src/game/world/objectdefs); thiscall (i), this unused: &key record i of the track type .sam schema at 0x739ea8 (0x3c bytes each); BalanceTrack vtable 0x6fd8b0"
 0x00412e60,ObjectDefs_First,function,high,"reimplemented (src/game/world/objectdefs); thiscall: the first definition (+0, whatever the count); the walk cursor (+0x72c) set to 0"
 0x004d3e00,ObjectControls_Collect,function,high,reimplemented (src/game/world/objectdefs); a record added for each object definition id not yet in the table
+0x004d3d10,ObjectControls_Find,function,high,"reimplemented (src/game/world/objectdefs); the object control record with an id, caching it"
+0x004d3d80,ObjectControls_FindUncached,function,high,"reimplemented (src/game/world/objectdefs); the object control record with an id, without caching it"
 0x00412c20,ObjectDef_Ctor,function,medium,vtable at +4 (0x6fd8a8) then BalanceFile_Init; zeroes runtime fields 0x494..0x500
 0x00413c10,ObjectDefs_Load,function,medium,"allocates an ObjectDef (max 0x14a), copies the .sam path to +0x28c and parses it"
 0x00785040,gBalanceLevel,data,high,"BalanceLevel: Standard.sam values (static instance, ctor 0x402ae0)"

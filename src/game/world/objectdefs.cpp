@@ -24,6 +24,33 @@ u8 *__fastcall ObjectDefs_Find(u8 *defs, void *, u16 id) {
     return nullptr;
 }
 
+u8 *__fastcall ObjectControls_Find(u8 *table, void *, u32 id, u32) {
+    if ((u16)id == at<u16>(table, 0x12c4))
+        return at<u8 *>(table, 0x12c8);
+    const s32 count = at<s32>(table, 0x12c0);
+    for (s32 i = 0; i < count; ++i) {
+        u8 *record = table + 0x20 * (u32)i;
+        if ((u16)id == at<u16>(record, 0)) {
+            at<u16>(table, 0x12c4) = (u16)id;
+            at<u8 *>(table, 0x12c8) = record;
+            return record;
+        }
+    }
+    return nullptr;
+}
+
+u8 *__fastcall ObjectControls_FindUncached(u8 *table, void *, u32 id, u32) {
+    if ((u16)id == at<u16>(table, 0x12c4))
+        return at<u8 *>(table, 0x12c8);
+    const s32 count = at<s32>(table, 0x12c0);
+    for (s32 i = 0; i < count; ++i) {
+        u8 *record = table + 0x20 * (u32)i;
+        if ((u16)id == at<u16>(record, 0))
+            return record;
+    }
+    return nullptr;
+}
+
 void __fastcall ObjectControls_Collect(u8 *table) {
     u8 *defs = reinterpret_cast<u8 *>(0x007890a0);
     for (u8 *def = ObjectDefs_First(defs); def; def = ObjectDefs_Next(defs)) {

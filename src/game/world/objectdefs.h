@@ -30,6 +30,12 @@ u8 *__fastcall ObjectDefs_Next(u8 *defs);
 // matches the id with a null record adds one too.
 void __fastcall ObjectControls_Collect(u8 *table);
 
+// 0x4d3d10 / 0x4d3d80 (thiscall on the same table; id, quiet, pops 8): the record whose id word (+0) equals the low 16 bits of the id, the
+// cached one first when the cache id matches; 0 for none (the original reports that to its empty debug printf unless quiet is not 0).
+// The first also makes the record found the cache.
+u8 *__fastcall ObjectControls_Find(u8 *table, void *, u32 id, u32 quiet);
+u8 *__fastcall ObjectControls_FindUncached(u8 *table, void *, u32 id, u32 quiet);
+
 // The schemas of the .sam files (vtable slots, this unused): record index of 0x3c bytes.
 // 0x412c90: an object definition's (0x744b30). 0x4143f0: a track type's (0x739ea8).
 const u8 *__fastcall ObjectDef_GetSchema(const void *, void *, u32 index);
