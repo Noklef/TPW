@@ -1407,6 +1407,8 @@ address,name,kind,confidence,notes
 0x005104e0,IntPair_ToFixed,function,high,"reimplemented (src/game/math/intpair); cdecl (&out, x, y): out = (x << 16, y << 16); returns out"
 0x005428a0,IntSin,function,high,"reimplemented (src/game/math/intsin); cdecl (angle, 512 a turn): the integer sine table's (0x877358) entry angle & 0x1ff, shifted left 2"
 0x005428c0,IntCos,function,high,reimplemented (src/game/math/intsin); cdecl (angle): as IntSin for angle + 0x80
+0x00578800,Mat4_Identity,function,high,"reimplemented (src/game/math/mat4); thiscall (a matrix object, the 4x4 at +0): the identity"
+0x00578bc0,Mat4_Assign,function,high,"reimplemented (src/game/math/mat4); thiscall (from): the 16 dwords copied in, upwards (rep movsd)"
 0x005fb790,Cursor_ClearImage,function,high,reimplemented (src/game/gfx/cursor); thiscall (&out); size 0
 0x005fb7b0,Cursor_SetKey,function,high,"reimplemented (src/game/gfx/cursor); thiscall (&key): keyRgb and keyIndex, into the buffers too"
 0x005fb7f0,Cursor_Update,function,high,"reimplemented (src/game/gfx/cursor); thiscall (&pos, unused, target, park, also); parks the shown buffer when both are set; Draw"

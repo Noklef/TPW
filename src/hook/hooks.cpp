@@ -37,6 +37,7 @@
 #include "../game/math/vector.h"
 #include "../game/math/intpair.h"
 #include "../game/math/intsin.h"
+#include "../game/math/mat4.h"
 #include "../game/math/rect.h"
 #include "../game/gfx/palette.h"
 #include "../game/gfx/surface.h"
@@ -1274,6 +1275,8 @@ const Hook kHooks[] = {
     {"IntPair_ToFixed",           0x005104e0, (void *)&IntPair_ToFixed, {0x51, 0x8b, 0x4c, 0x24, 0x0c}},
     {"IntSin",                    0x005428a0, (void *)&IntSin, {0x8b, 0x44, 0x24, 0x04, 0x25}},
     {"IntCos",                    0x005428c0, (void *)&IntCos, {0x8b, 0x44, 0x24, 0x04, 0x05}},
+    {"Mat4_Identity",             0x00578800, (void *)&Mat4_Identity, {0x8b, 0xd1, 0x57, 0xb9, 0x10}},
+    {"Mat4_Assign",               0x00578bc0, (void *)&Mat4_Assign, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Draw_Box",                  0x0061bc90, (void *)&Draw_Box, {0xa0, 0xf4, 0x76, 0xfa, 0x00}},
     {"Draw_BoxOutline",           0x00628aa0, (void *)&Draw_BoxOutline, {0x51, 0x53, 0x55, 0x56, 0x8b}},
     {"Draw_Circle",               0x00629bf0, (void *)&Draw_Circle, {0xa0, 0xf4, 0x76, 0xfa, 0x00}},
