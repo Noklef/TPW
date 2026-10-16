@@ -148,7 +148,8 @@
 #include "../game/render/particles.h"
 #include "../game/render/renderer.h"
 #include "../game/render/state.h"
-#include "../game/render/backdrop.h"
+#include "../game/render/backdrop.h"
+#include "../game/render/meshqueue.h"
 #include "../game/render/weatherfx.h"
 #include "../game/online/servers.h"
 #include "../game/frontend/lobbymodel.h"
@@ -1541,6 +1542,9 @@ const Hook kHooks[] = {
     {"Backdrop_Clear5c",          0x005777a0, (void *)&Backdrop_Clear5c, {0xc7, 0x41, 0x5c, 0x00, 0x00}},
     {"Backdrop_SetRect",          0x00577940, (void *)&Backdrop_SetRect, {0x8b, 0x01, 0x8b, 0x54, 0x24}},
     {"Backdrop_SetSourceRect",    0x00577970, (void *)&Backdrop_SetSourceRect, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"MeshQueue_Clear",           0x00579c70, (void *)&MeshQueue_Clear, {0xc7, 0x81, 0x00, 0x04, 0x00}},
+    {"MeshQueue2_Init",           0x0057c260, (void *)&MeshQueue2_Init, {0xc7, 0x05, 0x38, 0xb6, 0x8b}},
+    {"MeshQueue2_Add",            0x0057c270, (void *)&MeshQueue2_Add, {0x8b, 0x01, 0x3d, 0x00, 0x01}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
