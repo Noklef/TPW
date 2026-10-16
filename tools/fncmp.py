@@ -260,6 +260,23 @@ def _recorder(k, n, com=False):
     return hook
 
 
+CDECL_LOG = STUBS + 0x50  # a callback of one cdecl argument that logs it (the entry k 0x13f, n 1, this 0)
+
+
+def _cdecl_log(e):  # (driver.cpp stub_cdecl_log)
+    sp = e.r['ESP'] + (4 if e.tail else 0)
+    arg = e.u32(sp)
+    count = e.u32(LOG)
+    if count < LOG_ENTRIES:
+        entry = LOG + 4 + 4 * LOG_ENTRY * count
+        e.write(entry, struct.pack('<%dI' % LOG_ENTRY, 0x13f, 1, 0, arg, *([0] * 8)))
+        e.write(LOG, struct.pack('<I', count + 1))
+    e.r['EAX'] = e.u32(LOG + LOG_RETURNS + 8 * 0x3f + 4) if e.u32(LOG + LOG_RETURNS + 8 * 0x3f) else vhash(0x13f, 1, 0, [arg])
+    if e.tail:
+        ret = e.u32(e.r['ESP'])
+        e.write(e.r['ESP'], struct.pack('<I', ret))
+
+
 def _mark(e):  # thiscall, no other arguments (driver.cpp stub_mark)
     e.write(e.r['ECX'], struct.pack('<I', 0x6fd800))
 
@@ -312,7 +329,7 @@ class Bench:
         self.emu = x87emu.Emu([slice_listing(ranges)])
         self.emu.hooks.update({0x67a830: _ftol, 0x67b280: _modf, 0x67b24a: _cifmod,
                                STUBS: _record(False), STUBS + 0x10: _record(True),
-                               STUBS + 0x20: _global_alloc, STUBS + 0x30: _global_free, STUBS + 0x40: _mark,
+                               STUBS + 0x20: _global_alloc, STUBS + 0x30: _global_free, STUBS + 0x40: _mark, CDECL_LOG: _cdecl_log,
                                0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove,
                                0x6918f0: _throw('_Xlen'), 0x691ba0: _throw('_Xran')})
         self.emu.hooks.update({recorder(k, n): _recorder(k, n) for k in range(32) for n in range(8)})

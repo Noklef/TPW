@@ -1,6 +1,6 @@
 """wave.py: find the next functions to port and read them.
 usage:
-  wave.py list [LO HI]     the unported functions of the range (default 401000 630000) whose callees are all hooked ("wave 0"), with their sizes; _re/wave0.json
+  wave.py list [LO HI]     (env VCALLS=1 also takes functions with virtual calls) the unported functions of the range (default 401000 630000) whose callees are all hooked ("wave 0"), with their sizes; _re/wave0.json
                            and _re/r1.json (the portable closure: no x87, no indirect calls) are written. The function starts are the 16-byte aligned addresses after
                            0xCC padding in the exe, and Ghidra's starts.
   wave.py body ADDR...     the instructions of each function on one line (sizes from _re/r1.json, else 0x40)
@@ -121,7 +121,7 @@ def cmd_list(lo, hi):
             rec['vcall'] += 1
         if re.match(r'F[A-Z]', ins):
             rec['fpu'] += 1
-    cand = {a for a, r in info.items() if r['fpu'] == 0 and r['vcall'] == 0}
+    cand = {a for a, r in info.items() if r['fpu'] == 0 and (r['vcall'] == 0 or os.environ.get('VCALLS'))}  # VCALLS=1: virtual and indirect calls allowed (recorder benches)
     closure, changed = set(), True
     while changed:
         changed = False
@@ -140,7 +140,7 @@ def cmd_list(lo, hi):
         b = body(a, info[a]['size'], idx)
         text_of = ' '.join(b)
         if b and (b[0].startswith('SUB ECX,dword ptr [ECX + -0x4]') or (len(b) <= 3 and b[-1].startswith('JMP')) or ('[EBP' in text_of and 'PUSH EBP' not in text_of)
-                  or text_of.startswith('INC EBP')):  # thunks, tail jumps and the pieces of exception handlers
+                  or text_of.startswith('INC EBP') or re.search(r'CALL dword ptr \[0x006f[de]', text_of)):  # (imports: Win32 calls the driver does not serve)  # thunks, tail jumps and the pieces of exception handlers
             continue
         print('%x(%d)' % (a, info[a]['size']), end=' ')
         shown += 1
