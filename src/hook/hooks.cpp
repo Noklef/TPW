@@ -132,6 +132,7 @@
 #include "../game/core/small8.h"
 #include "../game/core/small9.h"
 #include "../game/core/stdlist.h"
+#include "../game/core/stdtree.h"
 #include "../game/core/tiny_g.h"
 #include "../game/core/tiny_h.h"
 #include "../game/core/tiny_i.h"
@@ -2751,6 +2752,20 @@ const Hook kHooks[] = {
     {"Index_ToCode485ec0",        0x00485ec0, (void *)&Index_ToCode485ec0, {0x8b, 0x4c, 0x24, 0x04, 0xb8}},
     {"Byte2_ToIndex",             0x00506490, (void *)&Byte2_ToIndex, {0x33, 0xc0, 0x8a, 0x41, 0x02}},
     {"Mode19c_ToIndex",           0x005064f0, (void *)&Mode19c_ToIndex, {0x8b, 0x81, 0x9c, 0x01, 0x00}},
+    {"StdTree_IncA",              0x0047d570, (void *)&StdTree_IncA, {0x6a, 0xff, 0x68, 0x68, 0x8f}},
+    {"StdTree_IncB",              0x00410670, (void *)&StdTree_IncB, {0x6a, 0xff, 0x68, 0x88, 0x7d}},
+    {"StdTree_IncC",              0x004f44d0, (void *)&StdTree_IncC, {0x6a, 0xff, 0x68, 0x58, 0xda}},
+    {"StdTree_IncD",              0x004f4f20, (void *)&StdTree_IncD, {0x6a, 0xff, 0x68, 0xf8, 0xda}},
+    {"StdTree_IncE",              0x004f5430, (void *)&StdTree_IncE, {0x6a, 0xff, 0x68, 0x78, 0xdb}},
+    {"StdTree_IncF",              0x005b2480, (void *)&StdTree_IncF, {0x6a, 0xff, 0x68, 0x18, 0xfa}},
+    {"StdTree_IncG",              0x005b2e90, (void *)&StdTree_IncG, {0x6a, 0xff, 0x68, 0xb8, 0xfa}},
+    {"StdTree_EraseA",            0x0047c010, (void *)&StdTree_EraseA, {0x6a, 0xff, 0x68, 0xa8, 0x8e}},
+    {"StdTree_EraseB",            0x0040ff80, (void *)&StdTree_EraseB, {0x6a, 0xff, 0x68, 0x48, 0x7d}},
+    {"StdTree_EraseC",            0x004f3b10, (void *)&StdTree_EraseC, {0x6a, 0xff, 0x68, 0xd8, 0xd9}},
+    {"StdTree_EraseD",            0x004f4580, (void *)&StdTree_EraseD, {0x6a, 0xff, 0x68, 0x78, 0xda}},
+    {"StdTree_EraseE",            0x004f2d50, (void *)&StdTree_EraseE, {0x6a, 0xff, 0x68, 0x58, 0xd9}},
+    {"StdTree_EraseF",            0x005b1b80, (void *)&StdTree_EraseF, {0x6a, 0xff, 0x68, 0xb8, 0xf9}},
+    {"StdTree_EraseG",            0x005b2530, (void *)&StdTree_EraseG, {0x6a, 0xff, 0x68, 0x38, 0xfa}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
