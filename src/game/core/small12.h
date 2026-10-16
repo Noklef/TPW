@@ -32,4 +32,7 @@ u8 __fastcall Table76e300_ObjectDwordSet(const u8 *object, void *, u32 id);
 // and the node freed; then the sentinel is freed and the dwords at +4 and +8 = 0.
 void __fastcall CountedList_Clear(u8 *object);
 
+// The record of the table at 0x76e300 that the lookups above use (not a game function): see Table76e300_GetObjectDword.
+u32 Table76e300_FindRecord(u32 id);
+
 }  // extern "C"

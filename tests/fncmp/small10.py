@@ -46,7 +46,11 @@ def case(r):
     if name == 'Ramp':
         w = r.choice([0, 1, 5, 20, 100, 200, 254, 255, 300, 1000, -5, -100, 0x7fff, 0x12345])
         return Call(address, [RAM + 0x100, r.choice([0, 50, 128, 200, 255, 256, -3, 1000, 0x10010, r.getrandbits(32)]), w & 0xffffffff], regions, conv='c', ret=ret)
-    if name == 'T76':
+    if name == 'T76':  # the table of 56-byte records (ids at +4, mostly the slot's own number), which the game fills at run time
+        table = bytearray(r.bytes(56 * 342 + 0x40))
+        for i in range(342):
+            put(table, 56 * i + 4, 'I', i if r.random() < 0.7 else r.choice([0, 1, 5, 17, r.randrange(342)]))
+        regions[0x76e300] = table
         return Call(address, [r.choice([0, 1, 2, 5, 17, 100, 0x15e, 0x15f, 0x160, 0x161, 200, 300, 341])], regions, conv='s', ret=ret)
     if name == 'Kind':
         put(obj, 8, 'I', r.choice([0, 1, 3, 4, 0x15, 2]))

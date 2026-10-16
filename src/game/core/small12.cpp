@@ -11,9 +11,11 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
+}  // namespace
+
 // The record of the table at 0x76e300 (56 bytes each) the lookups use: the one at the id's own slot when the id is found there or
 // anywhere in the table (sic), otherwise 0; also 0 for the ids 0x15f and 0x160.
-u32 Table76e300_Find(u32 id) {
+extern "C" u32 Table76e300_FindRecord(u32 id) {
     if (id == 0x160 || id == 0x15f)
         return 0;
     const u32 slot = 0x0076e300 + 56 * id;
@@ -25,8 +27,6 @@ u32 Table76e300_Find(u32 id) {
     }
     return 0;
 }
-
-}  // namespace
 
 extern "C" {
 
@@ -94,14 +94,14 @@ u32 __stdcall Quad_Push(const u32 *source, u32, u32, u8 *object) {
 }
 
 u32 __fastcall Table76e300_GetObjectDword(const u8 *object, void *, u32 id) {
-    const u32 record = Table76e300_Find(id);
+    const u32 record = Table76e300_FindRecord(id);
     if (!record)
         return 0;
     return at<u32>(object, 0x24 + 12 * global<u32>(record + 8));
 }
 
 u8 __fastcall Table76e300_ObjectDwordSet(const u8 *object, void *, u32 id) {
-    const u32 record = Table76e300_Find(id);
+    const u32 record = Table76e300_FindRecord(id);
     if (!record)
         return 0;
     return at<u32>(object, 0x28 + 12 * global<u32>(record + 8)) != 0;
