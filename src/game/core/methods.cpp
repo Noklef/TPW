@@ -148,6 +148,8 @@ u32 __fastcall Ranges_Lookup(const u8 *object, void *, u32 key) {
     }
 }
 
+u32 __fastcall Ranges_LookupAdapter(const u8 *object, void *, u32 key) { return Ranges_Lookup(object, nullptr, key); }
+
 bool __fastcall Obj_ByteForMask(const u8 *object, void *, u32 mask, u32 *out) {
     const u8 *kind = at<const u8 *>(object, 8);
     if (mask & at<u16>(kind, 0x18)) {

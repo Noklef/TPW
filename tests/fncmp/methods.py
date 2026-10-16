@@ -14,8 +14,8 @@ CALLS = {
     'Rate': (0x6c6f90, 't', 'v', 0x40), 'Word': (0x6b00a0, 't', 'v', 0x40), 'Clear': (0x6bbe40, 't', 'a', 0x40),
     'Pick': (0x6d6c70, 't', 'a', 0x30), 'SetRate': (0x6d6cb0, 't', 'a', 0x40), 'Get20': (0x6d6db0, 's', 'a', 0x20),
     'Copy16': (0x6af6f0, 'c', 'a', 0x40), 'Erase': (0x6af060, 't', 'a', 0x40), 'Kind': (0x6adf20, 't', 'a', 0x34),
-    'Rec': (0x6ace60, 't', 'a', 0x40), 'Range': (0x6ad900, 't', 'a', 0x48), 'Mask': (0x6bc040, 't', 'b', 0x4a),
-    'Remap': (0x6d22d0, 't', 'a', 0x48), 'Adv': (0x6b9b30, 't', 'v', 0x68)}
+    'Rec': (0x6ace60, 't', 'a', 0x40), 'Range': (0x6ad8f0, 't', 'a', 0x58), 'Mask': (0x6bc040, 't', 'b', 0x4a),
+    'Remap': (0x6d22d0, 't', 'a', 0x48), 'RangeW': (0x6ad900, 't', 'a', 0x48), 'Adv': (0x6b9b30, 't', 'v', 0x68)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()])
 VALUES = [0, 1, 2, 3, 0x10, 0x40, 0x4000, 0x4800, 0x800, 0xff, 0x100, 0x7fffffff, 0x80000000, 0xffffffff, 0xfffffffe]
 POOL = RAM + 0x3000
@@ -84,7 +84,7 @@ def case(r):
                 if r.random() < 0.6:
                     struct.pack_into('<I', pool, 0x40 + 0x30 * i + 4 * j, 0)
         args += [r.choice([0, 1, 2, 3, 4, 5, 6, 0xffffffff])]
-    elif name == 'Range':
+    elif name in ('Range', 'RangeW'):
         for at_, lo in ((0, 10), (0x40, 3), (0x80, 20)):
             hi = lo + r.randrange(0, 5)
             struct.pack_into('<HHHH', pool, at_, lo, r.choice([0, 0x40, 0x80]) if at_ < 0x80 else 0,

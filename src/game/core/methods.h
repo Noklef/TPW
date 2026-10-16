@@ -64,6 +64,9 @@ u8 *__fastcall Records_DataIfTerminated(const u8 *object, void *, u32 index);
 // those of the segment's address (sic).
 u32 __fastcall Ranges_Lookup(const u8 *object, void *, u32 key);
 
+// 0x6ad8f0 (thiscall; key, pops 4): Ranges_Lookup, for a caller that takes it as an adapter.
+u32 __fastcall Ranges_LookupAdapter(const u8 *object, void *, u32 key);
+
 // 0x6bc040 (thiscall; mask, out, pops 8): whether the mask has a bit in common with the word at +0x18 of what the dword at
 // +8 points to (*out = the byte at +5 of what +0x4c points to) or else with the word at +0x1c (the byte at +6).
 bool __fastcall Obj_ByteForMask(const u8 *object, void *, u32 mask, u32 *out);
