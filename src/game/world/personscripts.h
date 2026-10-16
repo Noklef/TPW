@@ -1,4 +1,4 @@
-// A person's sprite script and ride timers: reimplementation of 0x4f9ed0, 0x4fdc90, 0x4fe900, 0x4fe950 and 0x50c0d0.
+// A person's sprite script and ride timers: reimplementation of 0x4f9ed0, 0x4fdc90, 0x4fe900, 0x4fe950, 0x50be40 and 0x50c0d0.
 #pragma once
 
 #include "../../../re/types.h"
@@ -14,6 +14,10 @@ void __fastcall Person_ReleaseScripts(u8 *person);
 // with the position +0x218, b and +0x21c and r15 = d; then +0x218 = a and +0x21c = c.
 // Nothing at all when the slot is 0.
 void __fastcall Person_MoveScript(u8 *person, void *, u32 a, u32 b, u32 c, u32 d);
+
+// 0x50be40 (thiscall): when the world's clock (the dword at +0x1da70c of the world that [0x7cf6ec] points
+// through) is above +0x8c + 12 (unsigned) and the script slot at +0x84 is set, it is killed and cleared.
+void __fastcall Person_KillScript84After(u8 *person);
 
 // 0x4fdc90 (thiscall on a visitor): every 20th tick of the world's clock (the dword at +0x1da70c of
 // [0x80239c], unsigned remainder 0) Visitor_PushPreviousRide with a ride whose low word is 0 and whose

@@ -35,6 +35,14 @@ void __fastcall Person_MoveScript(u8 *person, void *, u32 a, u32 b, u32 c, u32 d
     at<u32>(person, 0x21c) = c;
 }
 
+void __fastcall Person_KillScript84After(u8 *person) {
+    const u8 *world = **reinterpret_cast<u8 *const *const *>(0x007cf6ec);
+    if (at<u32>(world, 0x1da70c) > at<u32>(person, 0x8c) + 0xc && at<u32>(person, 0x84)) {
+        SpriteScript_Kill((s32)at<u32>(person, 0x84));
+        at<u32>(person, 0x84) = 0;
+    }
+}
+
 void __fastcall Person_JumpScript210(u8 *person) {
     if (at<u32>(person, 0x210)) {
         SpriteScript_Jump((s32)at<u32>(person, 0x210), 0x0074f4c0);

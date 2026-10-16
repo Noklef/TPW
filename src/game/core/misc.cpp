@@ -256,6 +256,16 @@ u32 __cdecl Table768fb8_Lookup(u32 id) {
     return 0x17f;
 }
 
+u32 __fastcall Flags7a1a14_Update(const u8 *object) {
+    const u32 bit = (global<u32>(0x007a1a14) >> 3) & 1;
+    Obj_AdvanceUnless30(reinterpret_cast<u8 *>(0x00785970));
+    global<u32>(0x007477e4) = bit;
+    if (!at<u32>(object, 0x18))
+        return 0;
+    global<u32>(0x007a1a14) |= 2;
+    return global<u32>(0x007a1a14);
+}
+
 u32 __cdecl PairTable_Add(u32 a, u32 b) {
     const s32 count = global<s32>(0x00820a8c);
     if (count > 0x400)
