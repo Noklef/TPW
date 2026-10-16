@@ -56,7 +56,8 @@
 #include "../game/gfx/texdirs.h"
 #include "../game/gfx/barmesh.h"
 #include "../game/gfx/overlay.h"
-#include "../game/gfx/screensurfaces.h"
+#include "../game/gfx/screensurfaces.h"
+#include "../game/gfx/texcache.h"
 #include "../game/gfx/tga.h"
 #include "../game/core/events.h"
 #include "../game/core/filetime.h"
@@ -1343,6 +1344,13 @@ const Hook kHooks[] = {
     {"ScreenSurfaces_Ctor",       0x0047e2f0, (void *)&ScreenSurfaces_Ctor, {0x6a, 0xff, 0x68, 0x88, 0x8f}},
     {"SurfaceSource_Dtor",        0x0047e390, (void *)&SurfaceSource_Dtor, {0xc7, 0x01, 0x90, 0xef, 0x6f}},
     {"ScreenSurfaces_Bounds",     0x0047e570, (void *)&ScreenSurfaces_Bounds, {0xa1, 0x68, 0x19, 0x7a, 0x00}},
+    {"TexCacheItem_Ctor",         0x0058b300, (void *)&TexCacheItem_Ctor, {0x8b, 0xc1, 0xc7, 0x00, 0x98}},
+    {"TexCacheItem_SetFlags",     0x0058b330, (void *)&TexCacheItem_SetFlags, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
+    {"TexCacheItem_Flag1",        0x0058b350, (void *)&TexCacheItem_Flag1, {0x8b, 0x41, 0x04, 0x83, 0xe0}},
+    {"TexCacheItem_Flag2",        0x0058b360, (void *)&TexCacheItem_Flag2, {0x8b, 0x41, 0x04, 0x83, 0xe0}},
+    {"TexCacheItem_Flag4",        0x0058b370, (void *)&TexCacheItem_Flag4, {0x8b, 0x41, 0x04, 0x83, 0xe0}},
+    {"TexCacheItem_SetFlag1",     0x0058b380, (void *)&TexCacheItem_SetFlag1, {0x8b, 0x41, 0x04, 0x0c, 0x01}},
+    {"TexCacheItem_ClearFlag1",   0x0058b390, (void *)&TexCacheItem_ClearFlag1, {0x8b, 0x41, 0x04, 0x24, 0xfe}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

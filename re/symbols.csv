@@ -2129,6 +2129,13 @@ address,name,kind,confidence,notes
 0x0047e2f0,ScreenSurfaces_Ctor,function,high,reimplemented (src/game/gfx/screensurfaces); the screen surfaces source: both Surfaces cleared and their infos constructed
 0x0047e390,SurfaceSource_Dtor,function,high,reimplemented (src/game/gfx/screensurfaces); the abstract surface source's destructor (vtable 0x6fef90 back)
 0x0047e570,ScreenSurfaces_Bounds,function,high,"reimplemented (src/game/gfx/screensurfaces); virtual: out = {0, 0, width - 1, height - 1}"
+0x0058b300,TexCacheItem_Ctor,function,high,"reimplemented (src/game/gfx/texcache); thiscall: the texture cache item base: vtable 0x702198 (abstract), flags (+4) 0; returns this"
+0x0058b330,TexCacheItem_SetFlags,function,high,reimplemented (src/game/gfx/texcache); thiscall (flags): the item's flag word (+4) = flags | its bit 0x10000000
+0x0058b350,TexCacheItem_Flag1,function,high,reimplemented (src/game/gfx/texcache); thiscall u32: the item's flag word & 1
+0x0058b360,TexCacheItem_Flag2,function,high,reimplemented (src/game/gfx/texcache); thiscall u32: the item's flag word & 2
+0x0058b370,TexCacheItem_Flag4,function,high,reimplemented (src/game/gfx/texcache); thiscall u32: the item's flag word & 4
+0x0058b380,TexCacheItem_SetFlag1,function,high,reimplemented (src/game/gfx/texcache); thiscall: the item's flag 1 set
+0x0058b390,TexCacheItem_ClearFlag1,function,high,reimplemented (src/game/gfx/texcache); thiscall: the item's flag 1 cleared
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
