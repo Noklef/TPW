@@ -112,6 +112,7 @@
 #include "../game/world/mapcell.h"
 #include "../game/world/object.h"
 #include "../game/world/person.h"
+#include "../game/world/research.h"
 #include "../game/world/things.h"
 #include "../game/model/holder.h"
 #include "../game/model/parts.h"
@@ -426,6 +427,11 @@ const Hook kHooks[] = {
     {"Sprite_RecordMapId",        0x004f9460, (void *)&Sprite_RecordMapId, {0x33, 0xc0, 0x33, 0xd2, 0x8a}},
     {"Visitor_TimeInPark",        0x004fd950, (void *)&Visitor_TimeInPark, {0xa1, 0x9c, 0x23, 0x80, 0x00}},
     {"Visitor_PushPreviousRide",  0x004fdc60, (void *)&Visitor_PushPreviousRide, {0x56, 0x8d, 0x81, 0xee, 0x01}},
+    {"ResearchLab_GroupEffort",   0x00503850, (void *)&ResearchLab_GroupEffort, {0x8b, 0x44, 0x24, 0x04, 0xc1}},
+    {"ResearchLab_CurrentObjId",  0x005039f0, (void *)&ResearchLab_CurrentObjId, {0x8b, 0x44, 0x24, 0x08, 0xc1}},
+    {"ResearchLab_CountNotDone",  0x00503b30, (void *)&ResearchLab_CountNotDone, {0x8b, 0x81, 0x5c, 0x14, 0x00}},
+    {"ResearchLab_CurrentNotDone", 0x00504040, (void *)&ResearchLab_CurrentNotDone, {0x8b, 0x44, 0x24, 0x04, 0xc1}},
+    {"ResearchGroup_Ctor",        0x00504750, (void *)&ResearchGroup_Ctor, {0x8b, 0xc1, 0xc6, 0x40, 0x0c}},
     {"Mem_GlobalAlloc",          0x005f5660, (void *)&Mem_GlobalAlloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Mem_GlobalFree",           0x005f5680, (void *)&Mem_GlobalFree, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dir_SetBase",              0x005f5690, (void *)&Dir_SetBase, {0x8b, 0x54, 0x24, 0x04, 0x57}},

@@ -692,6 +692,11 @@ address,name,kind,confidence,notes
 0x004f9460,Sprite_RecordMapId,function,high,"reimplemented (src/game/world/person); thiscall (&out): the old mLastRecordedMapId (+0xcc) out, the current map id recorded"
 0x004fd950,Visitor_TimeInPark,function,high,reimplemented (src/game/world/person); thiscall: (gWorld tick +0x1da70c - mArrivalDate +0x1d4) >> 2
 0x004fdc60,Visitor_PushPreviousRide,function,high,"reimplemented (src/game/world/person); thiscall (ride): mPreviousRides (u16[4] at +0x1e8) shifted down, ride first"
+0x00503850,ResearchLab_GroupEffort,function,high,reimplemented (src/game/world/research); thiscall (group): the group's effort (+0x140c + group * 16)
+0x005039f0,ResearchLab_CurrentObjId,function,high,"reimplemented (src/game/world/research); thiscall (&out, group): the group's current project's mObjId, 0 for none"
+0x00503b30,ResearchLab_CountNotDone,function,high,reimplemented (src/game/world/research); thiscall (cat): projects of the category (5: any) with !(mResearchDone >= mCost)
+0x00504040,ResearchLab_CurrentNotDone,function,high,reimplemented (src/game/world/research); thiscall (group): (u8) the group's current project exists and is not done
+0x00504750,ResearchGroup_Ctor,function,high,"reimplemented (src/game/world/research); thiscall: currentProject -1, highestGroupAvailable 1"
 0x0050b780,Thing_Delete,function,medium,"thiscall on a thing; the base deletion, queues its handle (World_QueueDelete)"
 0x00801f38,gThingsToDelete,data,high,"HandleQueue: +4 head, +8 tail, +0xc count; handles whose slots DeleteAll releases"
 0x005f5fc0,String_Alloc,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +8: a new block for length units, terminated; the old block is not freed"
