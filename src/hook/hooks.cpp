@@ -137,6 +137,7 @@
 #include "../game/core/small34.h"
 #include "../game/core/small35.h"
 #include "../game/core/small36.h"
+#include "../game/core/small37.h"
 #include "../game/core/small4.h"
 #include "../game/core/small5.h"
 #include "../game/core/small6.h"
@@ -2861,6 +2862,8 @@ const Hook kHooks[] = {
     {"Wstreambuf_Read",           0x004f0700, (void *)&Wstreambuf_Read, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
     {"Wstreambuf_Write",          0x004f07c0, (void *)&Wstreambuf_Write, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
     {"Streambuf_Regrow",          0x004f6740, (void *)&Streambuf_Regrow, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
+    {"WStringMap_LowerBound",     0x004f6400, (void *)&WStringMap_LowerBound, {0x6a, 0xff, 0x68, 0x58, 0xdc}},
+    {"WStringMap_UpperBound",     0x004f6940, (void *)&WStringMap_UpperBound, {0x6a, 0xff, 0x68, 0xf8, 0xdc}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
