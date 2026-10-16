@@ -10,6 +10,15 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
+// The squared distance between the map positions of two things (bytes +5 and +7 are the column and the row of a cell of 128 columns).
+u32 SquaredDistance(const u8 *a, const u8 *b) {
+    const u32 cellA = ((u32)at<u8>(a, 7) << 7) + at<u8>(a, 5) + 1;
+    const u32 cellB = ((u32)at<u8>(b, 7) << 7) + at<u8>(b, 5) + 1;
+    const s32 x = (s32)((cellA - 1) & 0x7f) - (s32)((cellB - 1) & 0x7f);
+    const s32 y = (s32)((cellA - 1) >> 7) - (s32)((cellB - 1) >> 7);
+    return (u32)(x * x + y * y);
+}
+
 // The tail both drains share: fcom with 100.0f ([0x70082c]), then 0.0f ([0x700830]).
 void clamp_store(float &to, X87Reg v) {
     if (v.v > 100.0) {
@@ -144,5 +153,39 @@ u32 __fastcall StaffPool_FirstInvalid(const u8 *pool) {
         if (at<u8>(pool + i * 20, 0xa) == 0) return i;
     }
     return 0x20;
+}
+
+u16 *__fastcall Staff_NearestInList1da740(const u8 *object, void *, u16 *out) {
+    u16 best = 0;
+    u32 bestDistance = 0xffffffff;
+    u16 handle = at<u16>(global<u8 *>(0x0080239c), 0x1da740);
+    while (handle) {
+        const u8 *thing = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
+        const u32 distance = SquaredDistance(thing, object);
+        if (distance < bestDistance) {
+            bestDistance = distance;
+            best = handle;
+        }
+        handle = at<u16>(thing, 0x210);
+    }
+    *out = best;
+    return out;
+}
+
+u16 *__fastcall Guard_NearestFree(const u8 *object, void *, u16 *out, u32) {
+    u16 best = 0;
+    u32 bestDistance = 0xffffffff;
+    u16 handle = at<u16>(global<u8 *>(0x0080239c), 0x1da744);
+    while (handle) {
+        const u8 *thing = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
+        const u32 distance = SquaredDistance(thing, object);
+        if (Guard_IsFree(thing) && distance < bestDistance) {
+            bestDistance = distance;
+            best = handle;
+        }
+        handle = at<u16>(thing, 0x210);
+    }
+    *out = best;
+    return out;
 }
 }

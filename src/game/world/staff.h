@@ -57,6 +57,12 @@ void __fastcall World_AddObject(u8 *world, void *, u8 *thing);
 // 0x4d6330 / 0x4d6350 (thiscall on a guard): whether its state (+0x19c) is 0 or 1 (the
 // nearest guard search takes only those), and whether it is 0x12.
 u32 __fastcall Guard_IsFree(const u8 *guard);
+// 0x500f00 (thiscall; out, pops 4): the thing of the list that starts at the handle the word at +0x1da740 of the game object [0x80239c] holds (chained through
+// the word at +0x210) that is nearest the object, by the squared distance between their map columns and rows (bytes +5 and +7; the first of equals wins);
+// its handle (0: none) is stored through out. Returns out.
+u16 *__fastcall Staff_NearestInList1da740(const u8 *object, void *, u16 *out);
+// 0x5099c0 (thiscall; out, unused, pops 8): the same over the list at +0x1da744 but only things Guard_IsFree holds for (the nearest guard search).
+u16 *__fastcall Guard_NearestFree(const u8 *object, void *, u16 *out, u32 unused);
 u32 __fastcall Guard_IsState12(const u8 *guard);
 
 // 0x506650 (thiscall; area): whether mState is 3 and mRestArea is the area (its low 16 bits).
