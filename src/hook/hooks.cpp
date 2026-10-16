@@ -113,6 +113,7 @@
 #include "../game/core/small14.h"
 #include "../game/core/small15.h"
 #include "../game/core/small16.h"
+#include "../game/core/small17.h"
 #include "../game/core/small2.h"
 #include "../game/core/small3.h"
 #include "../game/core/small4.h"
@@ -2545,6 +2546,9 @@ const Hook kHooks[] = {
     {"Ring_PushUnique",           0x0050c100, (void *)&Ring_PushUnique, {0x53, 0x56, 0x57, 0x68, 0x14}},
     {"Obj_GetTrackedHandle",      0x004e0220, (void *)&Obj_GetTrackedHandle, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"Blocks7_Free",              0x005d46d0, (void *)&Blocks7_Free, {0x56, 0x8b, 0xf1, 0x57, 0x33}},
+    {"Names_FirstAfter",          0x00424cc0, (void *)&Names_FirstAfter, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"Names_Equal",               0x00424cf0, (void *)&Names_Equal, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"Model_FindMouthPart",       0x0044b2e0, (void *)&Model_FindMouthPart, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

@@ -3035,6 +3035,9 @@ address,name,kind,confidence,notes
 0x0050c100,Ring_PushUnique,function,high,reimplemented (src/game/core/small15); pushes an id and value unless they repeat the last pair
 0x004e0220,Obj_GetTrackedHandle,function,high,"reimplemented (src/game/core/small16); the tracked handle, dropped when the thing no longer has the object's handle"
 0x005d46d0,Blocks7_Free,function,high,reimplemented (src/game/core/small16); frees the seven blocks of an object and clears its groups
+0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/small17); whether the first name is after the second, case blind"
+0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/small17); whether two names are equal, case blind"
+0x0044b2e0,Model_FindMouthPart,function,high,reimplemented (src/game/core/small17); the index of the model element named for a mouth part
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
