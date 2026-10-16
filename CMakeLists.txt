@@ -202,6 +202,7 @@ add_library(tpw_game STATIC
     src/game/render/softrender.cpp
     src/game/render/meshlist.cpp
     src/game/render/batch.cpp
+    src/game/render/rasteriser.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/online/itemlist.cpp
