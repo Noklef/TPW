@@ -61,6 +61,8 @@ def park(r, count=None, kinds=(3, 3, 3, 1, 2, 0xff, 0), defs=True, cells=False):
             put(items, i * ITEM + 0x284, 'H', r.choice([0, 0, 1, 5]))
             put(items, i * ITEM + 0x288, 'I', r.choice([0, 2, 2, 3]))
             put(items, i * ITEM + 0x4ac, 'I', r.choice([0, 3, 3, 5]))
+            put(items, i * ITEM + 0x12c, 'i', r.choice([0, 5, 100, 0x7f, 0xff, -1, 300]))
+            put(items, i * ITEM + 0x130, 'i', r.choice([0, 5, 100, 0x7f, 0xff, 0x100, 300, -1]))
         put(dtab, 0x528, 'i', n)
         k = r.randrange(n)
         put(dtab, 0x730, 'HxxI', ids[k] if r.random() < 0.3 else ids[k] ^ r.randrange(1, 0x10000), ITEMS + ITEM * r.randrange(NITEMS))
