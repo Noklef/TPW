@@ -21,3 +21,10 @@ SinTable SinTable_Game();
 
 // The entry for an angle already multiplied by scale (fistp, round to nearest even).
 float SinTable_At(const SinTable &sines, float scaled);
+
+// The renderer's own table: 256 floats at 0x8c63d8, values[i] = sin(i pi / 128), read by the
+// rotation at 0x591430 (cosine at 0x40 - i).
+extern "C" {
+// 0x5913f0 (Engine_Init): fills it, fild i; fmul pi (a float, 0x702588); fmul 1/128; fsin.
+void __cdecl SinTable256_Build();
+}

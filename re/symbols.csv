@@ -1415,6 +1415,7 @@ address,name,kind,confidence,notes
 0x00578bc0,Mat4_Assign,function,high,"reimplemented (src/game/math/mat4); thiscall (from): the 16 dwords copied in, upwards (rep movsd)"
 0x005911d0,Bits_Count,function,high,reimplemented (src/game/math/bits); cdecl (mask): how many bits are set (a colour mask's width)
 0x005911f0,Bits_Shift,function,high,"reimplemented (src/game/math/bits); cdecl (mask): the clear bits below the lowest set one, 0 for 0 (a colour mask's shift)"
+0x005913f0,SinTable256_Build,function,high,reimplemented (src/game/math/sintable); fills the renderer sine table at 0x8c63d8
 0x005fb790,Cursor_ClearImage,function,high,reimplemented (src/game/gfx/cursor); thiscall (&out); size 0
 0x005fb7b0,Cursor_SetKey,function,high,"reimplemented (src/game/gfx/cursor); thiscall (&key): keyRgb and keyIndex, into the buffers too"
 0x005fb7f0,Cursor_Update,function,high,"reimplemented (src/game/gfx/cursor); thiscall (&pos, unused, target, park, also); parks the shown buffer when both are set; Draw"

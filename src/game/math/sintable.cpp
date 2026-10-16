@@ -4,6 +4,8 @@
 #include <cmath>
 #include <xmmintrin.h>
 
+#include "x87.h"
+
 void SinTable_Build(float *values, u32 n, u32 *mask, float *scale) {
     const float nf = (float)n;
     *mask = n - 1;
@@ -20,4 +22,13 @@ SinTable SinTable_Game() {
 float SinTable_At(const SinTable &sines, float scaled) {
     // fistp rounds to nearest even; out of range gives 0x80000000, as cvtss2si does.
     return sines.values[(u32)_mm_cvtss_si32(_mm_set_ss(scaled)) & sines.mask];
+}
+
+extern "C" {
+
+void __cdecl SinTable256_Build() {
+    float *values = reinterpret_cast<float *>(0x008c63d8);
+    for (s32 i = 0; i < 0x100; ++i)
+        values[i] = (float)X87_Sin((X87Reg((double)i) * 3.14159274f * 0.0078125f).v);
+}
 }

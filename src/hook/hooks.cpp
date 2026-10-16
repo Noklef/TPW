@@ -39,7 +39,8 @@
 #include "../game/math/intsin.h"
 #include "../game/math/mat4.h"
 #include "../game/math/bits.h"
-#include "../game/math/rect.h"
+#include "../game/math/rect.h"
+#include "../game/math/sintable.h"
 #include "../game/gfx/palette.h"
 #include "../game/gfx/surface.h"
 #include "../game/gfx/pixconv.h"
@@ -1296,6 +1297,7 @@ const Hook kHooks[] = {
     {"Mat4_Assign",               0x00578bc0, (void *)&Mat4_Assign, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Bits_Count",                0x005911d0, (void *)&Bits_Count, {0x8b, 0x4c, 0x24, 0x04, 0x33}},
     {"Bits_Shift",                0x005911f0, (void *)&Bits_Shift, {0x8b, 0x4c, 0x24, 0x04, 0x33}},
+    {"SinTable256_Build",         0x005913f0, (void *)&SinTable256_Build, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"Draw_Box",                  0x0061bc90, (void *)&Draw_Box, {0xa0, 0xf4, 0x76, 0xfa, 0x00}},
     {"Draw_BoxOutline",           0x00628aa0, (void *)&Draw_BoxOutline, {0x51, 0x53, 0x55, 0x56, 0x8b}},
     {"Draw_Circle",               0x00629bf0, (void *)&Draw_Circle, {0xa0, 0xf4, 0x76, 0xfa, 0x00}},
