@@ -163,6 +163,7 @@ add_library(tpw_game STATIC
     src/game/render/particles.cpp
     src/game/render/state.cpp
     src/game/render/weatherfx.cpp
+    src/game/render/renderer.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/frontend/lobbymodel.cpp

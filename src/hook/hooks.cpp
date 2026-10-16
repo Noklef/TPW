@@ -144,7 +144,8 @@
 #include "../game/render/frame.h"
 #include "../game/render/screen.h"
 #include "../game/render/mode.h"
-#include "../game/render/particles.h"
+#include "../game/render/particles.h"
+#include "../game/render/renderer.h"
 #include "../game/render/state.h"
 #include "../game/render/weatherfx.h"
 #include "../game/online/servers.h"
@@ -1529,6 +1530,9 @@ const Hook kHooks[] = {
     {"WeatherFx_SetDropCount",    0x0057d910, (void *)&WeatherFx_SetDropCount, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"WeatherFx_SetFallSpeed",    0x0057dc40, (void *)&WeatherFx_SetFallSpeed, {0x8b, 0x01, 0xa8, 0x01, 0x74}},
     {"WeatherFx_RequestReload",   0x0057dc70, (void *)&WeatherFx_RequestReload, {0xc7, 0x41, 0x04, 0x01, 0x00}},
+    {"Renderer_SetRestoreCallback", 0x00576260, (void *)&Renderer_SetRestoreCallback, {0x8b, 0x44, 0x24, 0x04, 0x89}},
+    {"Renderer_SetStateFlags",    0x005763f0, (void *)&Renderer_SetStateFlags, {0x8b, 0x44, 0x24, 0x04, 0x89}},
+    {"Renderer_StateFlags",       0x00576400, (void *)&Renderer_StateFlags, {0x8b, 0x41, 0x48, 0xc3, 0x90}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
