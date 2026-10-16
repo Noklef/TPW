@@ -3,10 +3,14 @@
 #include <cstdint>
 
 #include "../core/vcall.h"
+#include "person.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+// The thing a handle names (the debug assert on the table is left out).
+u8 *ThingOf(u32 handle) { return *reinterpret_cast<u8 **>(0x007cfb90 + 20 * (handle & 0xffff)); }
 
 // One ring: the temp dword at base, the data after it, then the index, the length and the wrapped byte.
 void Advance(u8 *object, u32 base) {
@@ -40,6 +44,36 @@ u32 __fastcall Object_HandleDayMessage(u8 *object, void *, u8 *message) {
         return 0;
     }
     return type;
+}
+
+void __fastcall Object_QueueAddPerson(u8 *object, void *, u32 person) {
+    u16 tail = at<u16>(object, 0x3c);
+    if (tail == 0) {
+        at<u16>(object, 0x3c) = (u16)person;
+    } else {
+        u16 current = tail;
+        while (at<u16>(ThingOf(current), 0x228) != 0) {
+            tail = at<u16>(ThingOf(current), 0x228);
+            current = tail;
+        }
+        at<u16>(ThingOf(current), 0x228) = (u16)person;
+    }
+    at<u16>(ThingOf(person), 0x22a) = tail;
+    at<u16>(ThingOf(person), 0x228) = 0;
+}
+
+s32 __fastcall Object_QueuePosition(u8 *object, void *, u32 person) {
+    u16 current = at<u16>(object, 0x3c);
+    const u16 wanted = (u16)person;
+    s32 position = 0;
+    while (current != wanted) {
+        if (current == 0) return -1;  // (the original prints that the person could not be found)
+        ++position;
+        const u8 *thing = ThingOf(current);
+        if (thing)
+            current = Visitor_IsState11To14(thing) ? at<u16>(thing, 0x228) : (u16)0;
+    }
+    return position;
 }
 
 }  // extern "C"
