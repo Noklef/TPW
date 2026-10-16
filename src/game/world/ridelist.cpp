@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "objectdefs.h"
+#include "random.h"
 
 namespace {
 
@@ -97,6 +98,32 @@ void __fastcall Obj_SetDuration(u8 *object, void *, u32 duration) {
         value = (u8)at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x130);
     Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 3, (u8)value);
     at<u8>(object, 0x5c) = (u8)value;
+}
+
+void __cdecl Obj_FillLinkedElements(u8 *object) {
+    if (!object)
+        return;
+    u8 *slot = at<u8 *>(object, 0x128) + 0x58;
+    for (u32 i = 0; i < at<u32>(object, 0xf4); ++i, slot += 0x80) {
+        if (!at<u32>(slot, (u32)-4))
+            at<u32>(slot, (u32)-4) = Rides_GetLinkedElement(at<s32>(object, 0x24), 5);
+        if (!at<u32>(slot, 0))
+            at<u32>(slot, 0) = Rides_GetLinkedElement(at<s32>(object, 0x24), 6);
+        if (!at<u32>(slot, 4))
+            at<u32>(slot, 4) = Rides_GetLinkedElement(at<s32>(object, 0x24), 7);
+        if (!at<u32>(slot, 8))
+            at<u32>(slot, 8) = Rides_GetLinkedElement(at<s32>(object, 0x24), 8);
+    }
+}
+
+u32 __fastcall Obj_RollChance(const u8 *object, void *, u32) {
+    // The original finds the object's definition (which makes it the cache's) and reads a dword of it for its debug print.
+    const volatile u32 forPrint = at<u32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(object, 0xe)), 0x4ac);
+    (void)forPrint;
+    const u32 roll = (u32)World_Rand(*reinterpret_cast<u8 **>(0x007cf83c)) % 100;
+    const u32 hit = at<u8>(object, 0x190) >= roll ? 1 : 0;
+    Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 0xb, hit);
+    return hit;
 }
 
 void __fastcall Obj_SetRideElement4One(const u8 *object) { Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 4, 1); }

@@ -40,6 +40,14 @@ void __fastcall Obj_SetSpeed(u8 *object, void *, u32 speed);
 // +0x12c and +0x130; ObjectDefs_Find of the id at +0xe, signed compares) is stored as element 3 of the ride record and at +0x5c (a byte).
 void __fastcall Obj_SetDuration(u8 *object, void *, u32 duration);
 
+// 0x4396e0 (cdecl; object, may be 0): for each of the dword at +0xf4 slots of 0x80 bytes from the block at +0x128 whose dwords at +0x54, +0x58,
+// +0x5c and +0x60 are 0: Rides_GetLinkedElement of the object's ride id (+0x24) and element 5, 6, 7 and 8.
+void __cdecl Obj_FillLinkedElements(u8 *object);
+
+// 0x4e2670 (thiscall; one argument that is not used, pops 4): the byte at +0x190 compared with the world's next random number modulo 100
+// (World_Rand of [0x7cf83c], after finding the definition by the id at +0xe, which becomes the definitions' cache); element 0xb of the object's ride record = (the byte >= that number). Returns that comparison too.
+u32 __fastcall Obj_RollChance(const u8 *object, void *, u32 unused);
+
 // 0x4e0db0 (thiscall): element 4 of the object's ride record (Rides_FindById of the dword at +0x24) = 1 (the debug print is not reproduced).
 void __fastcall Obj_SetRideElement4One(const u8 *object);
 
