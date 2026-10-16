@@ -3306,6 +3306,7 @@ address,name,kind,confidence,notes
 0x004f6740,Streambuf_Regrow,function,high,reimplemented (src/game/core/small36); new block taking the buffer dwords
 0x004f6400,WStringMap_LowerBound,function,high,reimplemented (src/game/core/small37); lower bound of a wide string key
 0x004f6940,WStringMap_UpperBound,function,high,reimplemented (src/game/core/small37); upper bound of a wide string key
+0x0047cd00,StdMapA_Insert,function,high,reimplemented (src/game/core/small38); map insert of a key with the sentinel at 0x7b4a54
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
