@@ -2735,6 +2735,15 @@ address,name,kind,confidence,notes
 0x005099a0,Obj_ClearIndexed28,function,high,reimplemented (src/game/core/indexed); clears the dword at 0x28 + 12 * index
 0x00509990,Obj_GetIndexed28,function,high,reimplemented (src/game/core/indexed); the dword at 0x28 + 12 * index
 0x005ed430,Vector20_Count,function,high,reimplemented (src/game/core/indexed); the number of 20-byte elements between two pointers
+0x0052f860,Global81ae2c_Equals,function,high,reimplemented (src/game/core/small3); whether the dword at 0x81ae2c equals a value
+0x0052fab0,Global81b0cc_IfNoFlag,function,high,reimplemented (src/game/core/small3); the dword at 0x81b0cc when the flag at 0x8187f8 is 0
+0x0052faf0,Global81ecac_IfNoFlag,function,high,reimplemented (src/game/core/small3); the dword at 0x81ecac when the flag at 0x8187f8 is 0
+0x0052fba0,Global81af4c_Add,function,high,reimplemented (src/game/core/small3); adds an amount to the dword at 0x81af4c
+0x00557d60,Obj_Read30_34_38,function,high,reimplemented (src/game/core/small3); reads three dwords of an object into three outputs
+0x00573860,Global879a24_Get4c4,function,high,reimplemented (src/game/core/small3); the dword at 0x4c4 of what 0x879a24 points to
+0x004f0140,VirtualBase_SetVtbl7099dc,function,high,reimplemented (src/game/core/small3); sets a virtual base's vtable pointer to 0x7099dc
+0x005cde30,VirtualBase_SetVtbl70995c,function,high,reimplemented (src/game/core/small3); sets a virtual base's vtable pointer to 0x70995c
+0x005ce910,ListCursor_Next,function,high,reimplemented (src/game/core/small3); moves a list cursor to the next node and returns the old one
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

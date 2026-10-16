@@ -105,7 +105,8 @@
 #include "../game/core/base64.h"
 #include "../game/core/selectors.h"
 #include "../game/core/seqs.h"
-#include "../game/core/small2.h"
+#include "../game/core/small2.h"
+#include "../game/core/small3.h"
 #include "../game/core/tiny_g.h"
 #include "../game/core/tiny_h.h"
 #include "../game/core/wtraits.h"
@@ -2216,6 +2217,15 @@ const Hook kHooks[] = {
     {"Obj_ClearIndexed28",        0x005099a0, (void *)&Obj_ClearIndexed28, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
     {"Obj_GetIndexed28",          0x00509990, (void *)&Obj_GetIndexed28, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
     {"Vector20_Count",            0x005ed430, (void *)&Vector20_Count, {0x8b, 0x41, 0x04, 0x85, 0xc0}},
+    {"Global81ae2c_Equals",       0x0052f860, (void *)&Global81ae2c_Equals, {0x8b, 0x0d, 0x2c, 0xae, 0x81}},
+    {"Global81b0cc_IfNoFlag",     0x0052fab0, (void *)&Global81b0cc_IfNoFlag, {0xa1, 0xf8, 0x87, 0x81, 0x00}},
+    {"Global81ecac_IfNoFlag",     0x0052faf0, (void *)&Global81ecac_IfNoFlag, {0xa1, 0xf8, 0x87, 0x81, 0x00}},
+    {"Global81af4c_Add",          0x0052fba0, (void *)&Global81af4c_Add, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Obj_Read30_34_38",          0x00557d60, (void *)&Obj_Read30_34_38, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Global879a24_Get4c4",       0x00573860, (void *)&Global879a24_Get4c4, {0xa1, 0x24, 0x9a, 0x87, 0x00}},
+    {"VirtualBase_SetVtbl7099dc", 0x004f0140, (void *)&VirtualBase_SetVtbl7099dc, {0x8b, 0x41, 0xf8, 0x8b, 0x50}},
+    {"VirtualBase_SetVtbl70995c", 0x005cde30, (void *)&VirtualBase_SetVtbl70995c, {0x8b, 0x41, 0xfc, 0x8b, 0x50}},
+    {"ListCursor_Next",           0x005ce910, (void *)&ListCursor_Next, {0x8b, 0x11, 0x8b, 0x02, 0x89}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
