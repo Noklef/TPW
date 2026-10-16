@@ -59,6 +59,7 @@
 #include "../game/gfx/overlay.h"
 #include "../game/gfx/screensurfaces.h"
 #include "../game/gfx/texcache.h"
+#include "../game/gfx/texset.h"
 #include "../game/gfx/tga.h"
 #include "../game/core/events.h"
 #include "../game/core/filetime.h"
@@ -1359,6 +1360,9 @@ const Hook kHooks[] = {
     {"TexCacheItem_Flag4",        0x0058b370, (void *)&TexCacheItem_Flag4, {0x8b, 0x41, 0x04, 0x83, 0xe0}},
     {"TexCacheItem_SetFlag1",     0x0058b380, (void *)&TexCacheItem_SetFlag1, {0x8b, 0x41, 0x04, 0x0c, 0x01}},
     {"TexCacheItem_ClearFlag1",   0x0058b390, (void *)&TexCacheItem_ClearFlag1, {0x8b, 0x41, 0x04, 0x24, 0xfe}},
+    {"TexSet_Ctor",               0x00575bd0, (void *)&TexSet_Ctor, {0x8b, 0xc1, 0x33, 0xc9, 0x89}},
+    {"TexSet_Texture",            0x00575f90, (void *)&TexSet_Texture, {0x8b, 0x41, 0x08, 0x8b, 0x4c}},
+    {"TexSet_TextureSlot",        0x00575fa0, (void *)&TexSet_TextureSlot, {0x8b, 0x41, 0x08, 0x8b, 0x4c}},
     {"String_Alloc",             0x005f5fc0, (void *)&String_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_SetLength",         0x005f6000, (void *)&String_SetLength, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"String_CtorCopy",          0x005f6040, (void *)&String_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

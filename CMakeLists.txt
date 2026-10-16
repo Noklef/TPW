@@ -85,6 +85,7 @@ add_library(tpw_game STATIC
     src/game/gfx/overlay.cpp
     src/game/gfx/screensurfaces.cpp
     src/game/gfx/texcache.cpp
+    src/game/gfx/texset.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp
