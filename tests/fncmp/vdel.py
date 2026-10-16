@@ -13,7 +13,7 @@ import small31  # noqa: E402
 import small32  # noqa: E402
 import vdtor  # noqa: E402
 import vobj2  # noqa: E402
-from fncmp import Bench  # noqa: E402
+from fncmp import Bench, HEAP, heap  # noqa: E402
 
 # name: (module, the module's op, the wrapper's address, flags argument?)
 WRAP = {'W80': (vdtor, 'D80', 0x5b55e0, 1), 'W90': (vdtor, 'D90', 0x5b58a0, 1), 'Wd0': (vdtor, 'Dd0', 0x5bced0, 1), 'Wf8': (vdtor, 'Df8', 0x5bd310, 1),
@@ -39,6 +39,7 @@ def case(r):
     finally:
         mod.OPS = saved
     c.address, c.ret = address, 'a'  # (the wrapper returns the object)
+    c.regions.setdefault(HEAP, heap())  # (the free of the object is counted there)
     if flags:
         c.args.append(r.choice([0, 1, 2, 3, 0xffffff00, 0xffffffff]))
     return c
