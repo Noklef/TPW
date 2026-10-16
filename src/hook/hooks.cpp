@@ -142,7 +142,8 @@
 #include "../game/render/screen.h"
 #include "../game/render/mode.h"
 #include "../game/render/particles.h"
-#include "../game/online/servers.h"
+#include "../game/online/servers.h"
+#include "../game/frontend/lobbymodel.h"
 
 namespace tpw::hook {
 
@@ -1590,6 +1591,11 @@ const Hook kHooks[] = {
     {"Terrain_InitUnusedOne",     0x00457e30, (void *)&Terrain_InitUnusedOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"Terrain_InitUnusedEpsilon", 0x00457e50, (void *)&Terrain_InitUnusedEpsilon, {0xd9, 0x05, 0x38, 0xe5, 0x6f}},
     {"Online_ApplyBalance",       0x0045aee0, (void *)&Online_ApplyBalance, {0x6a, 0xff, 0x68, 0x08, 0x89}},
+    {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
+    {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
+    {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
+    {"LobbyModel_Play",           0x005d83f0, (void *)&LobbyModel_Play, {0x8b, 0x44, 0x24, 0x08, 0x85}},
+    {"LobbyModel_TimeLeft",       0x005d8440, (void *)&LobbyModel_TimeLeft, {0x8b, 0x41, 0x04, 0x85, 0xc0}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

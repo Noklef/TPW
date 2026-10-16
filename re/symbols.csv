@@ -2311,3 +2311,8 @@ address,name,kind,confidence,notes
 0x00451390,Model_HeightAt,function,high,reimplemented (src/game/model/heightat); the height of a model's floor under a point
 0x00451290,Model_FloorHeight,function,high,reimplemented (src/game/model/heightat); the view's floor height under a point
 0x0045aee0,Online_ApplyBalance,function,high,reimplemented (src/game/online/servers); copies Online.sam (gBalanceOnline) into the servers object 0x7a14f0
+0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
+0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
+0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"
+0x005d83f0,LobbyModel_Play,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall u32 (entry, now): when the lobby model is set, Animator_Play(entry, bank 5, entry, now ? 1 : 0, 1.0f, layer 0); else 0"
+0x005d8440,LobbyModel_TimeLeft,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall u32: when the lobby model is set, Layer_GetPlayback(entry, 0, 0, 0, layer 0) (ms left); else 0"

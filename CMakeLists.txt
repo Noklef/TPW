@@ -159,6 +159,7 @@ add_library(tpw_game STATIC
     src/game/render/screen.cpp
     src/game/render/particles.cpp
     src/game/online/servers.cpp
+    src/game/frontend/lobbymodel.cpp
 )
 
 # Proxy dinput.dll that loads into tp.exe and installs the hooks.
