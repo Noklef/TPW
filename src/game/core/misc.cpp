@@ -375,6 +375,36 @@ u32 __cdecl DirEntry_IsRealDir(const u8 *entry) {
     return 0;
 }
 
+u8 *__fastcall Class70295c_Ctor(u8 *object) {
+    Init_5d36c0(object);
+    at<u32>(object, 0) = 0x0070295c;
+    for (u32 offset : {0x8u, 0xcu, 0x10u, 0x14u})
+        at<u32>(object, offset) = 0;
+    return object;
+}
+
+void __fastcall Obj_SwapPair(u8 *object, void *, u8 *other) {
+    const u32 first = at<u32>(object, 4);
+    at<u32>(object, 4) = at<u32>(other, 4);
+    at<u32>(other, 4) = first;
+    const u32 second = at<u32>(other, 8);
+    const u32 own = at<u32>(object, 8);
+    at<u32>(object, 8) = second;
+    at<u32>(other, 8) = own;
+}
+
+void __fastcall Obj_ChooseVector(u8 *object) {
+    const u32 base = at<u32>(object, 0x58) ? 0x28 : 0x1c;
+    const u32 x = at<u32>(object, base), y = at<u32>(object, base + 4), z = at<u32>(object, base + 8);
+    at<u32>(object, 0x10) = x;
+    at<u32>(object, 0x14) = y;
+    at<u32>(object, 0x18) = z;
+}
+
+u32 __stdcall Obj_Pending(const u8 *object) {
+    return at<u32>(object, 0x60) == 0 && at<s32>(object, 0x40) < at<s32>(object, 0x64) ? 1 : 0;
+}
+
 u32 __cdecl PairTable_Add(u32 a, u32 b) {
     const s32 count = global<s32>(0x00820a8c);
     if (count > 0x400)
