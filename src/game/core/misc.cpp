@@ -3,6 +3,11 @@
 #include <cstdint>
 #include <initializer_list>
 
+#include "../sprite/script.h"
+#include "accessors.h"
+#include "tiny_c.h"
+#include "tiny_d.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -11,6 +16,48 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 }  // namespace
 
 extern "C" {
+
+u32 __fastcall Obj_AdvanceUnless30(u8 *object) {
+    u32 result = Obj_Get30(object);
+    if (!result) {
+        result = at<u32>(object, 0x40);
+        at<u32>(object, 0x3c) += result;
+    }
+    return result;
+}
+
+u8 *__fastcall Obj_CtorOne(u8 *object) {
+    Init_402f30(object);
+    at<u32>(object, 0x20) = 0;
+    at<u32>(object, 0x24) = 0x3ff00000;
+    return object;
+}
+
+u8 *__fastcall Obj_CtorValue(u8 *object, void *, u32 value) {
+    Fn_657d30(object);
+    at<u32>(object, 0) = 0x006ff058;
+    at<u32>(object, 0x14) = value;
+    return object;
+}
+
+void __fastcall Obj_KillSlot(u8 *object) {
+    SpriteScript_Kill((s32)at<u32>(object, 0));
+    at<u32>(object, 0) = 0;
+}
+
+u32 __fastcall Obj_StampAt30(u8 *object, void *, u32 word) {
+    at<u16>(object, 0x30) = (u16)word;
+    const u32 stamp = at<u32>(global<u8 *>(0x0080239c), 0x1da70c);
+    at<u32>(object, 0x34) = stamp;
+    return stamp;
+}
+
+u32 __fastcall Obj_StampAt5e(u8 *object, void *, u32 word) {
+    at<u16>(object, 0x5e) = (u16)word;
+    const u32 stamp = at<u32>(global<u8 *>(0x0080239c), 0x1da70c);
+    at<u32>(object, 0x60) = stamp;
+    return stamp;
+}
 
 u32 __cdecl Dword_ClearBit0(u32 *p) {
     *p &= 0xfffffffe;

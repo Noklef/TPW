@@ -1,10 +1,27 @@
-// A few small functions that belong to no known unit yet: reimplementation of 0x424ed0, 0x4922d0,
+// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
 // 0x4e1c60, 0x4f00f0, 0x4f6020, 0x4f6820, 0x4f6850, 0x56a510, 0x56b630 and 0x56b830.
 #pragma once
 
 #include "../../../re/types.h"
 
 extern "C" {
+
+// 0x402ef0 (thiscall): when Obj_Get30 is 0, +0x3c += +0x40. Returns +0x30 if set, else +0x40.
+u32 __fastcall Obj_AdvanceUnless30(u8 *object);
+
+// 0x4032b0 (thiscall): Init_402f30, then +0x20 = 0 and +0x24 = 0x3ff00000 (the double 1.0 at +0x20).
+u8 *__fastcall Obj_CtorOne(u8 *object);
+
+// 0x47f940 (thiscall; value, pops 4): Fn_657d30 on the object, then vtable +0 = 0x6ff058 and +0x14 = value.
+u8 *__fastcall Obj_CtorValue(u8 *object, void *, u32 value);
+
+// 0x4d4170 (thiscall): the script slot at +0 killed (SpriteScript_Kill) and +0 = 0.
+void __fastcall Obj_KillSlot(u8 *object);
+
+// 0x4d9600 / 0x4e01f0 (thiscall; word, pops 4): the word at +0x30 / +0x5e = word and the dword +0x34 /
+// +0x60 = the dword at +0x1da70c of the object at [0x80239c] (the world); returns that dword.
+u32 __fastcall Obj_StampAt30(u8 *object, void *, u32 word);
+u32 __fastcall Obj_StampAt5e(u8 *object, void *, u32 word);
 
 // 0x424ed0 (cdecl; pointer): bit 0 of the dword cleared; returns 1.
 u32 __cdecl Dword_ClearBit0(u32 *p);

@@ -8,9 +8,10 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x424ed0, 0x424ee9), (0x4922d0, 0x4922e0), (0x4e1c60, 0x4e1c70), (0x4f00f0, 0x4f0110), (0x4f6020, 0x4f6080), (0x4f6820, 0x4f6850),
+B = Bench([(0x424ed0, 0x424ee9), (0x4922d0, 0x4922e0), (0x4e1c60, 0x4e1c70), (0x4f00f0, 0x4f0110), (0x4f6020, 0x4f6080), (0x402ef0, 0x402f10), (0x4032b0, 0x4032ca), (0x402f30, 0x402f50), (0x4030c0, 0x4030c4),
+           (0x47f940, 0x47f95a), (0x657d30, 0x657d6c), (0x4d4170, 0x4d4186), (0x475550, 0x47558b), (0x4d9600, 0x4d9619), (0x4e01f0, 0x4e0209), (0x4f6820, 0x4f6850),
            (0x4f6850, 0x4f6880), (0x56a510, 0x56a540), (0x56b630, 0x56b650), (0x56b830, 0x56b850)])
-CALLS = ['InitBuf', 'Clear0', 'Clear18', 'Diff', 'Virtual', 'Setg', 'Setp', 'Pixel', 'Fill', 'Set3034']
+CALLS = ['Advance', 'CtorOne', 'CtorValue', 'KillSlot', 'Stamp30', 'Stamp5e', 'InitBuf', 'Clear0', 'Clear18', 'Diff', 'Virtual', 'Setg', 'Setp', 'Pixel', 'Fill', 'Set3034']
 BUF = RAM + 0x1000
 
 
@@ -18,6 +19,21 @@ def case(r):
     op = r.choice(OPS)
     obj = bytearray(r.bytes(0x400))
     regions = {RAM: obj}
+    if op == 'Advance':
+        put(obj, 0x30, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
+        return Call(0x402ef0, [RAM], regions, conv='t', ret='a')
+    if op == 'CtorOne':
+        return Call(0x4032b0, [RAM], regions, conv='t', ret='a')
+    if op == 'CtorValue':
+        return Call(0x47f940, [RAM, r.getrandbits(32)], regions, conv='t', ret='a')
+    if op == 'KillSlot':
+        put(obj, 0, 'I', r.choice([0, 1, 2, 3, 0xffffffff, r.randrange(8)]))
+        regions[0x7b49f0] = bytearray(16)  # sprite scripts not ready: kill is a no-op
+        return Call(0x4d4170, [RAM], regions, conv='t')
+    if op in ('Stamp30', 'Stamp5e'):
+        world = bytearray(r.bytes(0x10))
+        regions.update({0x802390: put(bytearray(r.bytes(0x20)), 0xc, 'I', RAM + 0x1000 - 0x1da70c), RAM + 0x1000: r.bytes(0x20)})
+        return Call(0x4d9600 if op == 'Stamp30' else 0x4e01f0, [RAM, r.getrandbits(32)], regions, conv='t', ret='a')
     if op == 'InitBuf':
         return Call(0x4f6020, [RAM + r.choice([0, 0x20])], regions, conv='t', ret='a')
     if op == 'Clear0':
