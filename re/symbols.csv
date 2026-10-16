@@ -3290,6 +3290,8 @@ address,name,kind,confidence,notes
 0x005da2f0,Class702b08_Dtor,function,high,reimplemented (src/game/core/small32); destructor deleting the listed objects
 0x005e03b0,Class702cb0_Dtor,function,high,reimplemented (src/game/core/small32); destructor deleting the listed objects
 0x005e3d10,Class702d78_Dtor,function,high,reimplemented (src/game/core/small32); destructor deleting the listed objects
+0x0040c900,Actions_FireDown,function,high,reimplemented (src/game/core/small33); fires the down handler of an action entry
+0x0040c990,Actions_FireUp,function,high,reimplemented (src/game/core/small33); fires the up handler of an action entry
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
