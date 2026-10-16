@@ -4,6 +4,7 @@
 
 #include "gameheap.h"
 #include "small14.h"
+#include "small29.h"
 #include "vdtor.h"
 #include "vobj2.h"
 
@@ -58,6 +59,26 @@ u8 *__fastcall Class7099a4_ScalarDtor(u8 *object, void *, u32 flags) {
 
 u8 *__fastcall Counted2_ScalarDtor(u8 *object, void *, u32 flags) {
     Counted2_Clear(object);
+    return Finish(object, flags);
+}
+
+u8 *__fastcall Class702938_ScalarDtor(u8 *object, void *, u32 flags) {
+    Class702938_Dtor(object);
+    return Finish(object, flags);
+}
+
+u8 *__fastcall Class702940_ScalarDtor(u8 *object, void *, u32 flags) {
+    Class702940_Dtor(object);
+    return Finish(object, flags);
+}
+
+u8 *__fastcall Class702948_ScalarDtor(u8 *object, void *, u32 flags) {
+    Class702948_Dtor(object);
+    return Finish(object, flags);
+}
+
+u8 *__fastcall Class709914_ScalarDtor(u8 *object, void *, u32 flags) {
+    Class709914_Dtor(object);
     return Finish(object, flags);
 }
 
