@@ -136,6 +136,7 @@
 #include "../game/core/tiny_o.h"
 #include "../game/core/vdtor.h"
 #include "../game/core/vlist.h"
+#include "../game/core/vstream.h"
 #include "../game/core/vwrap.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
@@ -2622,6 +2623,12 @@ const Hook kHooks[] = {
     {"List18_ExpireSlot8",        0x005e40e0, (void *)&List18_ExpireSlot8, {0x8b, 0x41, 0x18, 0x56, 0x8b}},
     {"List18_ExpireSlotC",        0x005e4110, (void *)&List18_ExpireSlotC, {0x8b, 0x41, 0x18, 0x56, 0x8b}},
     {"List18_CallSlotC",          0x005d5cc0, (void *)&List18_CallSlotC, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"WBuf_Peek",                 0x004f1eb0, (void *)&WBuf_Peek, {0x8b, 0x41, 0x1c, 0x8b, 0x00}},
+    {"Buf_Peek",                  0x005d0050, (void *)&Buf_Peek, {0x8b, 0x41, 0x1c, 0x8b, 0x00}},
+    {"WBuf_Next",                 0x004f06c0, (void *)&WBuf_Next, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"Buf_Next",                  0x005ceab0, (void *)&Buf_Next, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"CType_Is",                  0x004f18d0, (void *)&CType_Is, {0x56, 0x8b, 0xf1, 0x8b, 0x4c}},
+    {"Obj_RefreshMember",         0x00497610, (void *)&Obj_RefreshMember, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

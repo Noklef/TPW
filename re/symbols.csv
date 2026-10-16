@@ -3099,6 +3099,12 @@ address,name,kind,confidence,notes
 0x005e40e0,List18_ExpireSlot8,function,high,reimplemented (src/game/core/vlist); calls slot 0x24 of each object of the list and slot 8 when it says so
 0x005e4110,List18_ExpireSlotC,function,high,reimplemented (src/game/core/vlist); calls slot 0x24 of each object of the list and slot 0xc when it says so
 0x005d5cc0,List18_CallSlotC,function,high,reimplemented (src/game/core/vlist); calls slot 0xc of each object of the list
+0x004f1eb0,WBuf_Peek,function,high,reimplemented (src/game/core/vstream); the current wide unit of a stream buffer or the refill
+0x005d0050,Buf_Peek,function,high,reimplemented (src/game/core/vstream); the current byte of a stream buffer or the refill
+0x004f06c0,WBuf_Next,function,high,reimplemented (src/game/core/vstream); takes the next wide unit of a stream buffer
+0x005ceab0,Buf_Next,function,high,reimplemented (src/game/core/vstream); takes the next byte of a stream buffer
+0x004f18d0,CType_Is,function,high,reimplemented (src/game/core/vstream); whether a character has a class bit
+0x00497610,Obj_RefreshMember,function,high,reimplemented (src/game/core/vstream); refreshes a member object through virtual calls
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
