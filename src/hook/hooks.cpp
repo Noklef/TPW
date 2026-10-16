@@ -148,6 +148,7 @@
 #include "../game/core/small44.h"
 #include "../game/core/small45.h"
 #include "../game/core/small46.h"
+#include "../game/core/small47.h"
 #include "../game/core/small5.h"
 #include "../game/core/small6.h"
 #include "../game/core/small7.h"
@@ -2917,6 +2918,22 @@ const Hook kHooks[] = {
     {"StdTreeF_AllFlagged",       0x005b0c40, (void *)&StdTreeF_AllFlagged, {0x51, 0x56, 0x8b, 0xf1, 0x33}},
     {"StdListString_Unique",      0x005ce080, (void *)&StdListString_Unique, {0x83, 0xec, 0x0c, 0x8b, 0x41}},
     {"StdListDword_Merge",        0x005d0590, (void *)&StdListDword_Merge, {0x51, 0x55, 0x8b, 0xe9, 0x8b}},
+    {"Class6fda48_Dtor",          0x0041e2c0, (void *)&Class6fda48_Dtor, {0xc7, 0x01, 0x48, 0xda, 0x6f}},
+    {"Class6fda68_Dtor",          0x0041e320, (void *)&Class6fda68_Dtor, {0xc7, 0x01, 0x68, 0xda, 0x6f}},
+    {"Class6fdaa8_Dtor",          0x0041e4d0, (void *)&Class6fdaa8_Dtor, {0xc7, 0x01, 0xa8, 0xda, 0x6f}},
+    {"Class6fdab8_Dtor",          0x0041e4e0, (void *)&Class6fdab8_Dtor, {0xc7, 0x01, 0xb8, 0xda, 0x6f}},
+    {"Class6fdae8_Dtor",          0x0041e5b0, (void *)&Class6fdae8_Dtor, {0xc7, 0x01, 0xe8, 0xda, 0x6f}},
+    {"Class6fdaf8_Dtor",          0x0041e5c0, (void *)&Class6fdaf8_Dtor, {0xc7, 0x01, 0xf8, 0xda, 0x6f}},
+    {"Class702ec0_Dtor",          0x005e3f60, (void *)&Class702ec0_Dtor, {0xc7, 0x01, 0xc0, 0x2e, 0x70}},
+    {"Class702dd0_Dtor",          0x005e3f90, (void *)&Class702dd0_Dtor, {0xc7, 0x01, 0xd0, 0x2d, 0x70}},
+    {"Class6fda48_ScalarDtor",    0x0041d880, (void *)&Class6fda48_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x38}},
+    {"Class6fda68_ScalarDtor",    0x0041da50, (void *)&Class6fda68_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0xc8}},
+    {"Class6fdaa8_ScalarDtor",    0x0041ddc0, (void *)&Class6fdaa8_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x08}},
+    {"Class6fdab8_ScalarDtor",    0x0041dea0, (void *)&Class6fdab8_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x38}},
+    {"Class6fdae8_ScalarDtor",    0x0041e170, (void *)&Class6fdae8_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x38}},
+    {"Class6fdaf8_ScalarDtor",    0x0041e250, (void *)&Class6fdaf8_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x68}},
+    {"Class702ec0_ScalarDtor",    0x005e3f40, (void *)&Class702ec0_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"Class702dd0_ScalarDtor",    0x005e3f70, (void *)&Class702dd0_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
