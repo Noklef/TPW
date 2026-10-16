@@ -58,4 +58,24 @@ u16 *__fastcall Map_BusStopPos(const u8 *, void *, u16 *out, u32 b) { return bal
 u16 *__fastcall Map_EntrancePos(const u8 *, void *, u16 *out, u32 b) { return balance_pos(out, b, 0x007855bc); }
 u16 *__fastcall Map_CrossingParkSidePos(const u8 *, void *, u16 *out, u32 b) { return balance_pos_a_y(out, b, 0x007855cc); }
 u16 *__fastcall Map_CrossingBSSidePos(const u8 *, void *, u16 *out, u32 b) { return balance_pos_a_y(out, b, 0x007855dc); }
+
+// pos - 1 (y * 128 + x) to its block: (y / 16) * 33 + x / 16 (the column by an arithmetic shift).
+static u32 block_of(u32 pos) {
+    const u32 i = (pos & 0xffff) - 1;
+    return (i >> 11) * 33 + ((u32)((s32)i >> 4) & 7);
+}
+
+void __fastcall Map_SetBlockValue(u8 *map, void *, u32 value, u32 pos) {
+    if ((u16)pos == 0) return;
+    at<u32>(map, 0x1b0000 + block_of(pos) * 4) = value;
+}
+
+u32 __fastcall Map_BlockValue(const u8 *map, void *, u32 pos) { return at<u32>(map, 0x1b0000 + block_of(pos) * 4); }
+
+u8 *__fastcall MapCell_Ctor(u8 *cell) {
+    for (u32 i = 0; i < 0x44; i += 4) at<u32>(cell, i) = 0;
+    at<u8>(cell, 2) = 1;
+    at<u16>(cell, 0) = 0x423f;
+    return cell;
+}
 }

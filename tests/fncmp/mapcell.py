@@ -1,5 +1,6 @@
 # The map cell handles' lookups and the memory ranges (src/game/world/mapcell: 0x4d0a70-0x4d0b10)
-# and the map's bounds check, RE cells and fixed positions (0x4d8300-0x4d8710) against the
+# and the map's bounds check, RE cells, fixed positions, block values and cell constructor
+# (0x4d8300-0x4d8ca0, 0x4d8da0) against the
 # originals: handles 0, 1 and wild under any gMapCells, ranges set at any index, coordinates
 # about 0 and 128, positions of any value for A and B.
 # usage: mapcell.py [CASES [SEED]] [--wild|--both] [--show N]
@@ -10,7 +11,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x4d0a70, 0x4d0a86), (0x4d0a90, 0x4d0ab1), (0x4d0ac0, 0x4d0ae1), (0x4d0af0, 0x4d0b06),
-           (0x4d0b10, 0x4d0b27), (0x4d8300, 0x4d8328), (0x4d8410, 0x4d8434), (0x4d8610, 0x4d8750)])
+           (0x4d0b10, 0x4d0b27), (0x4d8300, 0x4d8328), (0x4d8410, 0x4d8434), (0x4d8610, 0x4d8750), (0x4d8c60, 0x4d8cc8),
+           (0x4d8da0, 0x4d8dc2)])
 POS = [0x4d8610, 0x4d8650, 0x4d8690, 0x4d86d0, 0x4d8710]
 
 
@@ -20,7 +22,19 @@ def coord(r):
 
 def case(r):
     mem = r.bytes(0x200)
-    op = r.randrange(7)
+    op = r.randrange(9)
+    if op == 7:  # the blocks at RAM + 0x1000
+        blocks = {RAM + 0x1000: r.bytes(0x1110)}
+        pos = r.choice([1, 2, 0x10, 0x11, 0x80, 0x81, 0x801, 0x4000, r.randrange(1, 0x4001), r.randrange(1, 0x10000)])
+        pos |= r.choice([0, r.getrandbits(16) << 16])
+        m = RAM + 0x1000 - 0x1b0000
+        if pos & 0xffff > 0x4000:
+            pos &= 0xffff3fff
+        if r.random() < 0.5:
+            return Call(0x4d8ca0, [m, pos], blocks, conv='t', ret='a')
+        return Call(0x4d8c60, [m, r.getrandbits(32), r.choice([pos, pos & 0xffff0000])], blocks, conv='t')
+    if op == 8:
+        return Call(0x4d8da0, [RAM + 4 * r.randrange(16)], {RAM: mem}, conv='t', ret='a')
     if op == 4:
         return Call(0x4d8300, [coord(r), coord(r)], {}, ret='a')
     if op == 5:

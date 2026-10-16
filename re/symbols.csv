@@ -675,6 +675,9 @@ address,name,kind,confidence,notes
 0x004d8690,Map_EntrancePos,function,high,"reimplemented (src/game/world/mapcell); thiscall on the map, unused (&pos, b): gBalanceLevel EntranceA/BPosX/Y (+0x57c) as y * 128 + x + 1"
 0x004d86d0,Map_CrossingParkSidePos,function,high,"reimplemented (src/game/world/mapcell); thiscall on the map, unused (&pos, b): gBalanceLevel CrossingParkSideA/B (+0x58c); B takes A's y (sic)"
 0x004d8710,Map_CrossingBSSidePos,function,high,"reimplemented (src/game/world/mapcell); thiscall on the map, unused (&pos, b): gBalanceLevel CrossingBSSideA/B (+0x59c); B takes A's y (sic)"
+0x004d8c60,Map_SetBlockValue,function,high,"reimplemented (src/game/world/mapcell); thiscall on the map (value, pos): the dword of pos's 16x16 block (33-wide grid at +0x1b0000) set; not for pos 0"
+0x004d8ca0,Map_BlockValue,function,high,reimplemented (src/game/world/mapcell); thiscall on the map (pos): the dword of pos's 16x16 block (33-wide grid at +0x1b0000)
+0x004d8da0,MapCell_Ctor,function,high,"reimplemented (src/game/world/mapcell); thiscall: a 0x44-byte map cell zeroed, u16 +0 = 0x423f, byte +2 = 1 (array ctor at 0x515582)"
 0x004d1c80,Challenges_DropOrphans,function,high,reimplemented (src/game/world/challenges); thiscall: each challenge in use (+0) naming another (+0x18) is dropped (+0 = 0) unless another in use has that id (from Challenges_LoadSam)
 0x004d2840,Challenges_Current,function,high,"reimplemented (src/game/world/challenges); thiscall: &challenges[+0x3cc] (0x30 bytes from +0xc) for an index 0-19, else null"
 0x004d1e60,BalanceChallenges_GetSchema,function,high,"reimplemented (src/game/world/challenges); thiscall (index), vtable 0x700398 slot 0: 0x739b98 + index * 0x3c"
@@ -1275,6 +1278,8 @@ address,name,kind,confidence,notes
 0x005fb4d0,Cursor_Paint,function,high,"reimplemented (src/game/gfx/cursor); thiscall; buffer 0 onto the target, colour keyed; bool"
 0x005fb520,Cursor_Move,function,high,reimplemented (src/game/gfx/cursor); thiscall (&pos); the clipped place and the overlap with the shown one
 0x005fb770,Rect_Set,function,high,"reimplemented (src/game/math/rect); thiscall (left, top, right, bottom); returns this"
+0x004d99c0,IntPair_Copy,function,high,"reimplemented (src/game/math/intpair); thiscall (from): an 8-byte pair of ints copied, first then second (151 callers)"
+0x004d97b0,IntPair_Scaled,function,high,"reimplemented (src/game/math/intpair); thiscall (&out, scale): out = both ints times scale"
 0x005fb790,Cursor_ClearImage,function,high,reimplemented (src/game/gfx/cursor); thiscall (&out); size 0
 0x005fb7b0,Cursor_SetKey,function,high,"reimplemented (src/game/gfx/cursor); thiscall (&key): keyRgb and keyIndex, into the buffers too"
 0x005fb7f0,Cursor_Update,function,high,"reimplemented (src/game/gfx/cursor); thiscall (&pos, unused, target, park, also); parks the shown buffer when both are set; Draw"

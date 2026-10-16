@@ -1,7 +1,8 @@
 // The map's cell tables (gMapCells, 0x8023a0: 0x44-byte cells from +0, 0x28-byte ones from
 // +0x110000, both named by a 1-based u16 handle) and the "World Struture" memory ranges at
 // 0x7cdb30: reimplementation of 0x4d0a70-0x4d0b10; and the map's (gWorld + 0x2d8) bounds check,
-// RE cells and fixed positions, 0x4d8300-0x4d8710. A position is the u16 handle y * 128 + x + 1.
+// RE cells, fixed positions and block values, 0x4d8300-0x4d8ca0, and the cell constructor
+// 0x4d8da0. A position is the u16 handle y * 128 + x + 1.
 #pragma once
 
 #include "../../../re/types.h"
@@ -40,4 +41,12 @@ u16 *__fastcall Map_BusStopPos(const u8 *map, void *, u16 *out, u32 b);
 u16 *__fastcall Map_EntrancePos(const u8 *map, void *, u16 *out, u32 b);
 u16 *__fastcall Map_CrossingParkSidePos(const u8 *map, void *, u16 *out, u32 b);
 u16 *__fastcall Map_CrossingBSSidePos(const u8 *map, void *, u16 *out, u32 b);
+
+// 0x4d8c60 (thiscall on the map; value, pos) / 0x4d8ca0 (pos): the dword of pos's 16x16 block
+// in a 33-wide grid from map +0x1b0000, (y / 16) * 33 + x / 16, set (not for pos 0) or read.
+void __fastcall Map_SetBlockValue(u8 *map, void *, u32 value, u32 pos);
+u32 __fastcall Map_BlockValue(const u8 *map, void *, u32 pos);
+
+// 0x4d8da0: a 0x44-byte map cell, zeroed but for u16 +0 = 0x423f and byte +2 = 1. Returns it.
+u8 *__fastcall MapCell_Ctor(u8 *cell);
 }

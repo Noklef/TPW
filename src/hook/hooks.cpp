@@ -35,6 +35,7 @@
 #include "../game/files/wtext.h"
 #include "../game/math/matrix.h"
 #include "../game/math/vector.h"
+#include "../game/math/intpair.h"
 #include "../game/math/rect.h"
 #include "../game/gfx/palette.h"
 #include "../game/gfx/surface.h"
@@ -405,6 +406,9 @@ const Hook kHooks[] = {
     {"Map_EntrancePos",           0x004d8690, (void *)&Map_EntrancePos, {0x8b, 0x44, 0x24, 0x08, 0x85}},
     {"Map_CrossingParkSidePos",   0x004d86d0, (void *)&Map_CrossingParkSidePos, {0x8b, 0x44, 0x24, 0x08, 0x85}},
     {"Map_CrossingBSSidePos",     0x004d8710, (void *)&Map_CrossingBSSidePos, {0x8b, 0x44, 0x24, 0x08, 0x85}},
+    {"Map_SetBlockValue",         0x004d8c60, (void *)&Map_SetBlockValue, {0x8b, 0x44, 0x24, 0x08, 0x66}},
+    {"Map_BlockValue",            0x004d8ca0, (void *)&Map_BlockValue, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"MapCell_Ctor",              0x004d8da0, (void *)&MapCell_Ctor, {0x8b, 0xd1, 0x57, 0xb9, 0x11}},
     {"Challenges_DropOrphans",    0x004d1c80, (void *)&Challenges_DropOrphans, {0x51, 0x53, 0x55, 0x33, 0xed}},
     {"Challenges_Current",        0x004d2840, (void *)&Challenges_Current, {0x8b, 0x81, 0xcc, 0x03, 0x00}},
     {"BalanceChallenges_GetSchema", 0x004d1e60, (void *)&BalanceChallenges_GetSchema, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
@@ -1128,6 +1132,8 @@ const Hook kHooks[] = {
     {"Rect_Overlaps",             0x0062f890, (void *)&Rect_Overlaps, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Rect_Union",                0x0062f8d0, (void *)&Rect_Union, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Rect_Order",                0x0062f940, (void *)&Rect_Order, {0x8b, 0x11, 0x8b, 0x41, 0x08}},
+    {"IntPair_Copy",              0x004d99c0, (void *)&IntPair_Copy, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
+    {"IntPair_Scaled",            0x004d97b0, (void *)&IntPair_Scaled, {0x51, 0x8b, 0x51, 0x04, 0x56}},
     {"Draw_Box",                  0x0061bc90, (void *)&Draw_Box, {0xa0, 0xf4, 0x76, 0xfa, 0x00}},
     {"Draw_BoxOutline",           0x00628aa0, (void *)&Draw_BoxOutline, {0x51, 0x53, 0x55, 0x56, 0x8b}},
     {"Draw_Circle",               0x00629bf0, (void *)&Draw_Circle, {0xa0, 0xf4, 0x76, 0xfa, 0x00}},
