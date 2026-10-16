@@ -1,4 +1,4 @@
-// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x409260, 0x45be80, 0x458310, 0x4583d0, 0x4bcec0, 0x486610, 0x4f36c0, 0x52fc30, 0x557110, 0x5997b0, 0x54b290, 0x56b340, 0x56e780, 0x583360, 0x5646c0, 0x564ba0, 0x56b570, 0x5651c0, 0x4d09a0, 0x52fbf0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
+// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x409260, 0x45be80, 0x458310, 0x4583d0, 0x4bcec0, 0x486610, 0x4f36c0, 0x54dcc0, 0x556a80, 0x569f30, 0x52fc30, 0x557110, 0x5997b0, 0x54b290, 0x56b340, 0x56e780, 0x583360, 0x5646c0, 0x564ba0, 0x56b570, 0x5651c0, 0x4d09a0, 0x52fbf0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
 // 0x4e1c60, 0x4f00f0, 0x4f6020, 0x4f6820, 0x4f6850, 0x56a510, 0x56b630 and 0x56b830.
 #pragma once
 
@@ -111,6 +111,17 @@ void __cdecl Global7c24d8_CopyScript();
 // 0x557110 (cdecl; vm): over the +0x7c entries of 0x20 bytes at +0x2c, the dword at +0x10 of the first whose
 // word at +0x18 is 4 is returned and the entry's word +0x18 and dword +0x10 are cleared; 0 for none.
 u32 __cdecl Rsse_TakeFinished(u8 *vm);
+
+// 0x54dcc0 (cdecl): AL only. With 0x78d968 set bit 11 of 0x79d86c; else 1 when 0x785874 is 0 or 1.
+u8 __cdecl Flag54dcc0_Test();
+
+// 0x556a80 (cdecl; frame, x, y, z): the three dwords at +0x30, +0x34 and +0x38 of the record that the
+// frame's +8 object's +4 object's +0x78 points to, plus 0x10, written through the pointers; returns the third.
+u32 __cdecl Rsse_GetVector(const u8 *frame, u32 *x, u32 *y, u32 *z);
+
+// 0x569f30 (stdcall; _, value, pops 8): with a value, 0xfbe038 = value; else 0xfbe044 = the dword at 0x6f1a10;
+// returns 1.
+u32 __stdcall Setting569f30_Set(u32 unused, u32 value);
 
 // 0x52fbf0 (cdecl; a, b): appends the pair to the table of 8-byte entries at 0x81b740 (count at
 // 0x820a8c), unless the count is above 0x400 (signed): 0 then, else 1.

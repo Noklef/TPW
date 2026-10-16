@@ -1,4 +1,5 @@
-// The cheat system's saved module (CHTS): reimplementation of 0x405570 and 0x4055d0.
+// The cheat system's and the advisor scoring's saved modules (CHTS, ADSC): reimplementation of 0x405570,
+// 0x4055d0, 0x59c860 and 0x59c890.
 //
 // Two bytes of the cheat system, at +0xa and +0xb, are read from / written to a chunk's stream (the
 // chunk's first dword).
@@ -14,4 +15,9 @@ u32 __fastcall CheatSystem_Load(u8 *cheats, void *, const u32 *chunk);
 
 // 0x4055d0 (thiscall; chunk, pops 4): the same, writing.
 u32 __fastcall CheatSystem_Save(u8 *cheats, void *, const u32 *chunk);
+
+// 0x59c860 / 0x59c890 (thiscall; chunk, pops 4): the advisor scoring's first dword read from / written to
+// the chunk's stream (the chunk's first dword). 1 unless the result is negative, then 0.
+u32 __fastcall AdvisorScoring_Load(u8 *scoring, void *, const u32 *chunk);
+u32 __fastcall AdvisorScoring_Save(u8 *scoring, void *, const u32 *chunk);
 }

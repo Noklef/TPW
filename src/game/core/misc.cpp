@@ -297,6 +297,29 @@ u32 __cdecl Rsse_TakeFinished(u8 *vm) {
     return 0;
 }
 
+u8 __cdecl Flag54dcc0_Test() {
+    if (global<u32>(0x0078d968))
+        return (u8)((global<u32>(0x0079d86c) >> 11) & 1);
+    const u32 mode = global<u32>(0x00785874);
+    return mode == 0 || mode == 1 ? 1 : 0;
+}
+
+u32 __cdecl Rsse_GetVector(const u8 *frame, u32 *x, u32 *y, u32 *z) {
+    const u8 *record = at<const u8 *>(at<const u8 *>(at<const u8 *>(frame, 8), 4), 0x78) + 0x10;
+    *x = at<u32>(record, 0x30);
+    *y = at<u32>(record, 0x34);
+    *z = at<u32>(record, 0x38);
+    return *z;
+}
+
+u32 __stdcall Setting569f30_Set(u32, u32 value) {
+    if (value)
+        global<u32>(0x00fbe038) = value;
+    else
+        global<u32>(0x00fbe044) = global<u32>(0x006f1a10);
+    return 1;
+}
+
 u32 __cdecl PairTable_Add(u32 a, u32 b) {
     const s32 count = global<s32>(0x00820a8c);
     if (count > 0x400)

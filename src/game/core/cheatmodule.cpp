@@ -14,6 +14,16 @@ u32 __fastcall CheatSystem_Load(u8 *cheats, void *, const u32 *chunk) {
     return *Stream_Read(&result, stream, cheats + 0xb, 1, nullptr) >= 0 ? 1 : 0;
 }
 
+u32 __fastcall AdvisorScoring_Load(u8 *scoring, void *, const u32 *chunk) {
+    s32 result;
+    return *Stream_Read(&result, reinterpret_cast<Stream *>(chunk[0]), scoring, 4, nullptr) >= 0 ? 1 : 0;
+}
+
+u32 __fastcall AdvisorScoring_Save(u8 *scoring, void *, const u32 *chunk) {
+    s32 result;
+    return *Stream_Write(&result, reinterpret_cast<Stream *>(chunk[0]), scoring, 4, nullptr) >= 0 ? 1 : 0;
+}
+
 u32 __fastcall CheatSystem_Save(u8 *cheats, void *, const u32 *chunk) {
     Stream *stream = reinterpret_cast<Stream *>(chunk[0]);
     s32 result;
