@@ -5,6 +5,7 @@
 #include "../math/matrix.h"
 #include "../render/renderer.h"
 #include "../core/vcall.h"
+#include "../core/misc.h"
 
 namespace {
 
@@ -81,4 +82,14 @@ void __cdecl Holder_Destroy(u8 *holder) {
     at<u32>(holder, 0x1c) = 0;
 }
 
+void __fastcall HolderUser_Release(u8 *user) {
+    if (at<u32>(user, 4) == 0)
+        return;
+    u8 *const target = global<u8 *>(0x0079fcb4);
+    if (at<u32>(target, 4) & 0x4000)
+        Obj_RemoveFromRect(at<u8 *>(target, 8), at<u32>(target, 0xc0), at<u32>(target, 0xc4));
+    else
+        Holder_Sleep(at<u8 *>(target, 8));
+    at<u32>(user, 4) = 0;
+}
 }

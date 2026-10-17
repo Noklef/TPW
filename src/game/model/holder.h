@@ -37,4 +37,7 @@ u32 __cdecl Animator_Sleep(u8 *animator);
 // (adjusted by the virtual base offset in the word at +4 of its vtable) is deleted through its slot 0 (with 1) and the pointer cleared.
 void __cdecl Holder_Destroy(u8 *holder);
 
+// 0x5d8820 (thiscall on a user of the holder of the object behind [0x79fcb4]): when the dword at +4 is set, the target's holder (its +8) is taken out of the renderer, by its rectangle
+// (Obj_RemoveFromRect with the words at +0xc0 and +0xc4) when bit 0x4000 of the target's flags (+4) is set and else by Holder_Sleep; then the dword at +4 is cleared.
+void __fastcall HolderUser_Release(u8 *user);
 }

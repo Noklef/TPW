@@ -3677,6 +3677,7 @@ address,name,kind,confidence,notes
 0x0045bf20,Holder_SetScale,function,high,reimplemented (src/game/model/holder); the model's matrix axes scaled by a vector
 0x0045bf50,Holder_InitUnusedOne,function,high,reimplemented (src/game/model/holder); unused static 0x7a1cac = 1.0f
 0x0045bf70,Holder_InitUnusedEpsilon,function,high,reimplemented (src/game/model/holder); unused static 0x7a1cdc = 1 / 2^23
+0x005d8820,HolderUser_Release,function,high,reimplemented (src/game/model/holder); a user takes the target's holder out of the renderer
 0x0046de00,Model_RemapTextures,function,high,"reimplemented (src/game/model/remap); (model, remap, textures, first): face texture pointers and grid cell textures renumbered"
 0x00469180,Highlight_Update,function,high,"reimplemented (src/game/model/highlight); releases the current holder (0x7a1ce0) for another target (0x7afda0), highlights the target: mesh vertex blocks copied into 0x7afd00"
 0x00469340,Highlight_SetTarget,function,high,reimplemented (src/game/model/highlight); 0x7afda0 = holder

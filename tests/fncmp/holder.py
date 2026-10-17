@@ -1,7 +1,7 @@
 # The holder functions of src/game/model/holder that go through the renderer (0x45bdd0 Holder_Sleep, 0x4254c0 Animator_Sleep, 0x45bc60 Holder_Destroy) against the originals: a
 # holder whose part sits in a renderer's slot lists (tags 0x10, 0x20, 0x70) or not; an animator holding such a holder; and a holder whose part has a vtable (a recorder) giving the
-# virtual base offset.
-# usage: holder.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Sleep,Animator,Destroy)
+# virtual base offset; a user of the holder behind [0x79fcb4] taking it out by its rectangle (misc.py's grid) or by sleeping.
+# usage: holder.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Sleep,Animator,Destroy,Release)
 import os
 import struct
 import sys
@@ -9,10 +9,11 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
+import misc  # noqa: E402
 from fncmp import Bench, Call, LOG, RAM, log_region, put, vtable  # noqa: E402
 
-B = Bench([(0x4254c0, 0x4254f0), (0x45bc60, 0x45bcb0), (0x45bdd0, 0x45be90), (0x576540, 0x5765d0), (0x5da3c0, 0x5da3c1)])
-ANIM, OWNER = RAM + 0x2000, RAM + 0x2500
+B = Bench([(0x4254c0, 0x4254f0), (0x45bc60, 0x45bcb0), (0x45bdd0, 0x45be90), (0x45be80, 0x45bed0), (0x576540, 0x5765d0), (0x5766e0, 0x57681a), (0x5d8820, 0x5d8870), (0x5da3c0, 0x5da3c1)])
+ANIM, OWNER, TARGET, USER = RAM + 0x2000, RAM + 0x2500, RAM + 0x3000, RAM + 0x3200
 
 
 def sleep(r):
@@ -54,7 +55,21 @@ def destroy(r):
     return Call(0x45bc60, [RAM], c.regions, conv='c', ret='v')
 
 
-CASES = {'Sleep': sleep, 'Animator': animator, 'Destroy': destroy}
+def release(r):
+    if r.random() < 0.5:   # the rectangle path: misc.py's renderer grid
+        misc.OPS = ['RemRect']
+        c = misc.case(r)
+        regions, lo, hi, flags = dict(c.regions), c.args[1], c.args[2], 0x4000 | r.getrandbits(32)
+    else:                  # the sleep path: a holder in the renderer's slot lists
+        c = sleep(r)
+        regions, lo, hi, flags = dict(c.regions), r.getrandbits(32), r.getrandbits(32), r.getrandbits(32) & ~0x4000
+    regions[TARGET] = put(put(put(put(bytearray(r.bytes(0x100)), 4, 'I', flags), 8, 'I', RAM), 0xc0, 'I', lo), 0xc4, 'I', hi)
+    regions[USER] = put(bytearray(r.bytes(0x20)), 4, 'I', r.choice([0, 1, 5, 0xffffffff]))
+    regions[0x79fcb4] = struct.pack('<I', TARGET)
+    return Call(0x5d8820, [USER], regions, conv='t', ret='v')
+
+
+CASES = {'Sleep': sleep, 'Animator': animator, 'Destroy': destroy, 'Release': release}
 
 
 def case(r):
