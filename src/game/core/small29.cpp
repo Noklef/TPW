@@ -67,6 +67,27 @@ void __fastcall Class702938_Dtor(u8 *object) {
     WString_Dtor((WString *)(object + 0xc));
 }
 
+void __fastcall Class70293c_Dtor(u8 *object) {
+    at<u32>(object, 0) = 0x0070293c;
+    if (at<u8 *>(object, 4))
+        TakeOffParentList(object);
+    WString_Dtor((WString *)(object + 0x94));
+    String_Dtor((String *)(object + 0x7c));
+    WString_Dtor((WString *)(object + 0x34));
+    WString_Dtor((WString *)(object + 0x20));
+    WString_Dtor((WString *)(object + 0xc));
+}
+
+void __fastcall Class702944_Dtor(u8 *object) {
+    at<u32>(object, 0) = 0x00702944;
+    TakeOffParentList(object);
+    WString_Dtor((WString *)(object + 0x6c));
+    WString_Dtor((WString *)(object + 0x54));
+    WString_Dtor((WString *)(object + 0x40));
+    WString_Dtor((WString *)(object + 0x24));
+    WString_Dtor((WString *)(object + 0x10));
+}
+
 void __fastcall Class702940_Dtor(u8 *object) {
     at<u32>(object, 0) = 0x00702940;
     TakeOffParentList(object);
