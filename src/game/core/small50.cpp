@@ -13,7 +13,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 extern "C" {
 
-u32 __fastcall Grid_AddObject(u8 *grid, void *, s32 x0, s32 y0, s32 x1, s32 y1, u8 *object) {
+u32 __fastcall Grid_AddObject(u8 *grid, void *, s32 x0, s32 y0, s32 x1, s32 y1, u8 *object, u32) {
     u32 result = 1;
     const s32 width = at<s32>(grid, 0x38);
     const s32 height = at<s32>(grid, 0x3c);

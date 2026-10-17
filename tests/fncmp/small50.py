@@ -66,7 +66,7 @@ def case(r):
         if r.random() < 0.7:
             set_return(log, k, v)
     rect = [r.choice([-2, -1, 0, 1, 2, 3, 5]) for _ in range(4)]
-    return Call(CALLS[name], [OBJ] + [x & 0xffffffff for x in rect] + [OBJS + 0x300 if r.random() < 0.9 else OBJS], regions, conv='t', ret='a')
+    return Call(CALLS[name], [OBJ] + [x & 0xffffffff for x in rect] + [OBJS + 0x300 if r.random() < 0.9 else OBJS, 0x70], regions, conv='t', ret='a')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]

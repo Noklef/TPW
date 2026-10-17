@@ -5,10 +5,10 @@
 
 extern "C" {
 
-// 0x576620 (thiscall on the grid pool {+4 free nodes, +0xc count, +0x10 the cells (heads, 4 bytes each), +0x38 width, +0x3c height}; x0, y0, x1, y1, object, pops 20): 0 when
+// 0x576620 (thiscall on the grid pool {+4 free nodes, +0xc count, +0x10 the cells (heads, 4 bytes each), +0x38 width, +0x3c height}; x0, y0, x1, y1, object, an unused word, pops 24): 0 when
 // the rectangle is entirely outside (past the width / height, or ending below 0); otherwise it is clamped to the grid and Pool_AddSorted is run for the object on every cell in
 // it (x outer, y inner); the result is the AND of 1 and their results.
-u32 __fastcall Grid_AddObject(u8 *grid, void *, s32 x0, s32 y0, s32 x1, s32 y1, u8 *object);
+u32 __fastcall Grid_AddObject(u8 *grid, void *, s32 x0, s32 y0, s32 x1, s32 y1, u8 *object, u32 unused);
 
 // 0x5830e0 (thiscall; twelve words, pops 48): the words go to +0x80 .. +0xac (three groups of three then another three); when the dword at +0x1c is 0x10 the two tables of 256
 // dwords at +0xb0 and +0x4b0 are made from them (shift counts of the low 5 bits).

@@ -44,7 +44,7 @@ def returns(start):
     return rets
 
 
-SIMPLE = re.compile(r'^(const\s+)?(u8|u16|u32|s8|s16|s32|int|unsigned|char|short|long|float|bool|void|size_t)|\*')
+SIMPLE = re.compile(r'^(const\s+)?(u8|u16|u32|s8|s16|s32|int|unsigned|char|short|long|float|bool|void|size_t)\b|\*')
 
 
 def stack_bytes(conv, params):
