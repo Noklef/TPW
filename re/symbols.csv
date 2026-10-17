@@ -39,7 +39,7 @@ address,name,kind,confidence,notes
 0x00475650,SpriteScripts_Save,function,high,"reimplemented (src/game/sprite/script); module SPSC; TPCS, 0x118, table size, table, the scripts"
 0x0051f7a0,Particles_Load,function,high,reimplemented (src/game/core/savemods); reads the particle module from the save game
 0x0051f680,Particles_Save,function,high,reimplemented (src/game/core/savemods); writes the particle module to the save game
-0x0040fd60,MessageCentre_Load,function,high,module MESS
+0x0040fd60,MessageCentre_Load,function,high,"reimplemented (src/game/world/messagecentre); Empties the 29 slot maps, then reads the counts and keys back from the chunk's stream"
 0x0040fc80,MessageCentre_Save,function,high,"reimplemented (src/game/world/messagecentre); thiscall (chunk, its stream at +0); writes 29, then each slot map's size and its keys in order (2 bytes each; Stream_Write, StdTree_IncB); returns 0"
 0x00402e30,Clock_Load,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); GameClock_Load4c, then when it worked GameClock_Load24 on the clock at +0x50; module CLOK"
 0x00402e00,Clock_Save,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); GameClock_Save4c, then when it worked GameClock_Save24 on the clock at +0x50; module CLOK"

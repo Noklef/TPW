@@ -57,4 +57,31 @@ u32 __fastcall MessageCentre_Save(u8 *centre, void *, const u8 *chunk) {
     }
     return 0;
 }
+
+s32 __fastcall MessageCentre_Load(u8 *centre, void *, const u8 *chunk) {
+    u8 *scratch;   // (the erase's out, then the key buffer: a short key read keeps its old bytes)
+    for (u32 k = 0; k < 0x1d; ++k) {
+        u8 *const map = centre + 0x14 * k + 4;
+        u8 *const head = *reinterpret_cast<u8 *const *>(map + 4);
+        StdTree_EraseRangeB(map, nullptr, &scratch, *reinterpret_cast<u8 *const *>(head), head);
+    }
+    s32 count;     // (the first read's result, then the count buffer)
+    s32 done;
+    s32 slots;
+    Stream_Read(&count, *reinterpret_cast<Stream *const *>(chunk), &slots, 4, &done);
+    for (u32 k = 0; k < 0x1d; ++k) {
+        u8 *const map = centre + 0x14 * k + 4;
+        s32 result;
+        s32 done_count;
+        Stream_Read(&result, *reinterpret_cast<Stream *const *>(chunk), &count, 4, &done_count);
+        for (s32 j = 0; j < count; ++j) {
+            s32 done_key;
+            Stream_Read(&result, *reinterpret_cast<Stream *const *>(chunk), &scratch, 2, &done_key);
+            u8 *inserted[2];
+            StdMapB_Insert(map, nullptr, inserted, reinterpret_cast<const u16 *>(&scratch));
+            if (!static_cast<u8>(reinterpret_cast<uintptr_t>(inserted[1]))) return -1;
+        }
+    }
+    return 0;
+}
 }  // extern "C"
