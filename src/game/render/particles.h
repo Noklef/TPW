@@ -1,5 +1,5 @@
 // The particle systems' handle accessors: reimplementation of 0x51fa80, 0x51fd80, 0x51fe30, 0x51fd90, 0x51feb0,
-// 0x520030, 0x5200b0, 0x5204c0, 0x521810, 0x521850, 0x51ff10, 0x51ff70, 0x51ffd0, 0x520470, 0x5222e0, 0x522320 and 0x520e00. Nothing works before the
+// 0x520030, 0x5200b0, 0x5204c0, 0x521810, 0x521850, 0x51ff10, 0x51ff70, 0x51ffd0, 0x520470, 0x5222e0, 0x522320, 0x520e00 and 0x520560. Nothing works before the
 // particles are set up (0x816d40 set). A system handle is serial << 16 | slot: slot (u16) below
 // 0x78 in gParticleSystems (0x80cefc, 0x140 bytes each, copies of an effect definition), its
 // serial the system's u16 +0xa; 0 is none. A system's +0x20 is its age (-2 ends it) and +0xd4 its
@@ -70,4 +70,15 @@ s32 __cdecl ParticleSystem_QuarterByte(u32 slot);
 // and y velocity (z stays) and keeps half its y velocity with x and z halved and reversed, else it is put on the
 // ground with its y velocity halved and reversed and x, z halved (all halving truncated toward 0).
 void __cdecl Particle_Move(u8 *p);
+
+// 0x520560 (cdecl; slot): emits a particle from system slot: a record taken off the free list (FreeList_Take; its index is returned, negative when none is free)
+// at [0x80cef8] + index * 0x34. The emit count 0x80ced0 and the system's word +8 count up; the record's words +0x24 = 2, +0x26 the slot, +0x28 the system's +0x74,
+// +0x2a its signed byte +4, +0x2c = 0, +0x2e a random 15 bits when the byte +0x6d is set (else 0); its lifetime +0x20 (+0x1c too, 1 for 0) +0x78 plus
+// RandSigned(+0x78 >> 2); its +0x18 one of the 16 dwords at +0xd8 (Rand(16)) when +0x58 is set, else +0x114. The position (+0, +4, +8): the system's (+0x14)
+// when its extents +0x44/+0x48/+0x4c are all 0; else a point in a box (byte +0xc2: RandSigned of each extent; y Rand when the word +0xa0 is set) or at a
+// random angle (12 bits) on an ellipse's edge (word +0xa8) or within it, x by the cosine and z by the negated sine (the sine table at [0x80ceec], angles in
+// eighths of an entry, products over 256), turned by the angle +0xac when set, plus the system's. A push (the s16 +0xc4) along the angle +0x54 adds to x and
+// z. The velocity (+0xc): with +0x5c set a random angle and Rand(+0x5c) (y RandSigned(+0x5c)), else +0x38 plus RandSigned of the s16 +0x50 for each; plus
+// the system's +0x2c when the byte +0x6c is set. The random numbers are Particle_Rand / Particle_RandSigned's, a step of the seed for each angle.
+s32 __cdecl Particle_Emit(u32 slot);
 }

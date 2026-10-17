@@ -392,7 +392,7 @@ address,name,kind,confidence,notes
 0x00764030,gAvatarSprites,data,high,"SPR_BI/KI/TA/SU.ESP"
 0x00790ab0,gCameraFlags,data,medium,"bits 2/4/0x10 = ground-level camera"
 0x0051f370,ParticleLib_Load,function,high,"reads Data/Particle/Tp2.plb: effects (0x140) into 0x804370, effectors (0x68) into 0x80c6b0, 2 settings"
-0x00520560,Particle_Emit,function,medium,"emits one particle from a live system (spawn volume, lifetime, colour)"
+0x00520560,Particle_Emit,function,high,"reimplemented (src/game/render/particles); cdecl (slot): emits a particle from the system: a free list record with its lifetime, sprite, position in the spawn box or ellipse (turned, pushed) and velocity; returns its index, negative when none is free"
 0x005214a0,Particles_Update,function,medium,"ages particles: ramp colour, sprite frame, size, random kick, drag; spawns the on-death effect"
 0x00521810,Particle_RandSigned,function,high,reimplemented (src/game/render/particles); the particles' random number (signed shift) modulo n
 0x00521850,Particle_Rand,function,high,reimplemented (src/game/render/particles); the particles' random number (15 bits) modulo n

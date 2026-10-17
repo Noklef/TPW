@@ -2,11 +2,29 @@
 
 #include <cstdint>
 
+#include "../core/voices.h"
+
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 u8 *system(u32 slot) { return reinterpret_cast<u8 *>(0x0080cefc + slot * 0x140); }
+
+template <typename T> T &field(u8 *base, u32 offset) { return *reinterpret_cast<T *>(base + offset); }
+
+// The sine table's (at [0x80ceec], 0x200 entries) entry for an angle in eighths of an entry (divided truncating toward 0); quarter 0x80: the cosine.
+s32 Sine(s32 angle, s32 quarter) { return global<s32 *>(0x0080ceec)[(u32)(angle / 8 + quarter) & 0x1ff]; }
+
+// v times a sine entry (wrapping) over 256 (arithmetic shift).
+s32 Scale(s32 sine, s32 v) { return (s32)((u32)sine * (u32)v << 2) >> 10; }
+
+// pos's x and z turned by angle (eighths of a sine entry): x cos - z sin and z cos + x sin, wrapping.
+void Rotate(s32 *pos, s32 angle) {
+    const u32 sine = (u32)Sine(angle, 0) << 2, cosine = (u32)Sine(angle, 0x80) << 2;
+    const u32 x = (u32)pos[0], z = (u32)pos[2];
+    pos[0] = (s32)(cosine * x - sine * z) >> 10;
+    pos[2] = (s32)(cosine * z + sine * x) >> 10;
+}
 
 }  // namespace
 
@@ -175,5 +193,80 @@ void __cdecl Particle_Move(u8 *p) {
         vel[0] = vel[0] / 2;
         vel[2] = vel[2] / 2;
     }
+}
+
+s32 __cdecl Particle_Emit(u32 slot) {
+    const s32 index = FreeList_Take((s32)slot);
+    if (index < 0)
+        return index;
+    u8 *const s = system(slot);
+    u8 *const p = global<u8 *>(0x0080cef8) + index * 0x34;
+    ++global<u32>(0x0080ced0);
+    ++field<u16>(s, 8);
+    field<u16>(p, 0x24) = 2;
+    field<u16>(p, 0x26) = (u16)slot;
+    field<u16>(p, 0x28) = field<u16>(s, 0x74);
+    field<s16>(p, 0x2a) = (s8)s[4];
+    const s32 spread = Particle_RandSigned(field<s32>(s, 0x78) >> 2);
+    field<u16>(p, 0x2c) = 0;
+    const s32 life = (s32)((u32)field<s32>(s, 0x78) + (u32)spread);
+    field<s32>(p, 0x20) = life;
+    field<s32>(p, 0x1c) = life != 0 ? life : 1;
+    field<u16>(p, 0x2e) = s[0x6d] != 0 ? (u16)Particle_Rand(0x8000) : 0;
+    field<u32>(p, 0x18) = field<u32>(s, 0x58) != 0 ? field<u32>(s, 0xd8 + Particle_Rand(16) * 4) : field<u32>(s, 0x114);
+
+    // The position: the system's own with no spawn volume, else a point of the volume about it
+    s32 *const pos = reinterpret_cast<s32 *>(p);
+    if (field<s32>(s, 0x44) == 0 && field<s32>(s, 0x48) == 0 && field<s32>(s, 0x4c) == 0) {
+        pos[0] = field<s32>(s, 0x14);
+        pos[1] = field<s32>(s, 0x18);
+        pos[2] = field<s32>(s, 0x1c);
+    } else {
+        const auto height = [s] { return field<u16>(s, 0xa0) != 0 ? Particle_Rand(field<s32>(s, 0x48)) : Particle_RandSigned(field<s32>(s, 0x48)); };
+        if (s[0xc2] != 0) {  // a box
+            pos[0] = Particle_RandSigned(field<s32>(s, 0x44));
+            pos[1] = height();
+            pos[2] = Particle_RandSigned(field<s32>(s, 0x4c));
+        } else {  // an ellipse at a random angle: its edge, or within it
+            const s32 angle = (NextSeed() >> 16) & 0xfff;
+            if (field<u16>(s, 0xa8) != 0) {
+                pos[0] = Scale(Sine(angle, 0x80), field<s32>(s, 0x44));
+                pos[1] = height();
+                pos[2] = -Scale(Sine(angle, 0), field<s32>(s, 0x4c));
+            } else {
+                const s32 x = Particle_Rand(field<s32>(s, 0x44));
+                pos[0] = Scale(Sine(angle, 0x80), x);
+                pos[1] = height();
+                pos[2] = -Scale(Sine(angle, 0), Particle_Rand(field<s32>(s, 0x4c)));
+            }
+        }
+        if (field<s32>(s, 0xac) != 0)
+            Rotate(pos, field<s32>(s, 0xac));
+        for (u32 k = 0; k < 3; ++k)
+            pos[k] = (s32)((u32)pos[k] + field<u32>(s, 0x14 + 4 * k));
+    }
+    const s16 push = field<s16>(s, 0xc4);
+    if (push != 0) {
+        pos[0] = (s32)((u32)pos[0] + (u32)Scale(Sine(field<s32>(s, 0x54), 0), push));
+        pos[2] = (s32)((u32)pos[2] + (u32)Scale(Sine(field<s32>(s, 0x54), 0x80), field<s16>(s, 0xc4)));
+    }
+
+    // The velocity: a random one in a cylinder, or the system's spread about its own
+    s32 *const vel = pos + 3;
+    if (field<s32>(s, 0x5c) != 0) {
+        const s32 angle = (NextSeed() >> 16) & 0xfff;
+        const s32 r = Particle_Rand(field<s32>(s, 0x5c));
+        vel[0] = Scale(Sine(angle, 0x80), r);
+        vel[1] = Particle_RandSigned(field<s32>(s, 0x5c));
+        vel[2] = Scale(Sine(angle, 0), r);
+    } else {
+        for (u32 k = 0; k < 3; ++k)
+            vel[k] = (s32)(field<u32>(s, 0x38 + 4 * k) + (u32)Particle_RandSigned(field<s16>(s, 0x50)));
+    }
+    if (s[0x6c] != 0) {
+        for (u32 k = 0; k < 3; ++k)
+            vel[k] = (s32)((u32)vel[k] + field<u32>(s, 0x2c + 4 * k));
+    }
+    return index;
 }
 }
