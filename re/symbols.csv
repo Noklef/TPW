@@ -3731,6 +3731,26 @@ address,name,kind,confidence,notes
 0x00447e80,FloatConsts_InitEpsilon_447e80,function,low,reimplemented (src/game/core/floatconsts); cdecl static initialiser: unused 0x79d58c = 1 / 2^23 (unit unknown)
 0x0044bae0,FloatConsts_InitOne_44bae0,function,low,reimplemented (src/game/core/floatconsts); cdecl static initialiser: unused 0x79df2c = 1.0f (unit unknown)
 0x0044bb00,FloatConsts_InitEpsilon_44bb00,function,low,reimplemented (src/game/core/floatconsts); cdecl static initialiser: unused 0x79e62c = 1 / 2^23 (unit unknown)
+0x0044e610,FloatConsts_InitOne_44e610,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1.0f
+0x0044e630,FloatConsts_InitEpsilon_44e630,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1 / 2^23
+0x00450e20,FloatConsts_InitOne_450e20,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1.0f
+0x00450e40,FloatConsts_InitEpsilon_450e40,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1 / 2^23
+0x004549d0,FloatConsts_InitOne_4549d0,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1.0f
+0x004549f0,FloatConsts_InitEpsilon_4549f0,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1 / 2^23
+0x00468910,FloatConsts_InitOne_468910,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1.0f
+0x00468930,FloatConsts_InitEpsilon_468930,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1 / 2^23
+0x00474fd0,FloatConsts_InitOne_474fd0,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1.0f
+0x00474ff0,FloatConsts_InitEpsilon_474ff0,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1 / 2^23
+0x0047dd80,FloatConsts_InitOne_47dd80,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1.0f
+0x0047dda0,FloatConsts_InitEpsilon_47dda0,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1 / 2^23
+0x00480190,FloatConsts_InitOne_480190,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1.0f
+0x004801b0,FloatConsts_InitEpsilon_4801b0,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1 / 2^23
+0x004808f0,FloatConsts_InitOne_4808f0,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1.0f
+0x00480910,FloatConsts_InitEpsilon_480910,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1 / 2^23
+0x0048d870,FloatConsts_InitOne_48d870,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1.0f
+0x0048d890,FloatConsts_InitEpsilon_48d890,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1 / 2^23
+0x004b4490,FloatConsts_InitOne_4b4490,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1.0f
+0x004b44b0,FloatConsts_InitEpsilon_4b44b0,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1 / 2^23
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

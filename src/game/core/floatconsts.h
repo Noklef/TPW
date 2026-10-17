@@ -58,4 +58,24 @@ void __cdecl FloatConsts_InitOne_48c9a0();      // 0x7c265c (after the 0x7c264c 
 void __cdecl FloatConsts_InitEpsilon_48c9c0();  // 0x7c2664
 void __cdecl FloatConsts_InitOne_491fa0();      // 0x7ca0b8 (after a constant-wrapping thunk)
 void __cdecl FloatConsts_InitEpsilon_491fc0();  // 0x7ca0dc
+void __cdecl FloatConsts_InitOne_44e610();      // 0x79ee24 (after render/frame, before terrain/land)
+void __cdecl FloatConsts_InitEpsilon_44e630();  // 0x79f514
+void __cdecl FloatConsts_InitOne_450e20();      // 0x79f7d8 (after terrain/land, before model/scratch)
+void __cdecl FloatConsts_InitEpsilon_450e40();  // 0x79fb14
+void __cdecl FloatConsts_InitOne_4549d0();      // 0x79fb30 (after model/stripanim, before model/clone)
+void __cdecl FloatConsts_InitEpsilon_4549f0();  // 0x79fb34
+void __cdecl FloatConsts_InitOne_468910();      // 0x7afd98 (after core/idtable, before model/parts)
+void __cdecl FloatConsts_InitEpsilon_468930();  // 0x7afda8
+void __cdecl FloatConsts_InitOne_474fd0();      // 0x7b4a04 (after motion/path, before sprite/script)
+void __cdecl FloatConsts_InitEpsilon_474ff0();  // 0x7b4a0c
+void __cdecl FloatConsts_InitOne_47dd80();      // 0x7b4a58 (after core/buffers, before gfx/palette)
+void __cdecl FloatConsts_InitEpsilon_47dda0();  // 0x7b4a5c
+void __cdecl FloatConsts_InitOne_480190();      // 0x7b4bf0 (after gfx/gauge's drawing, before core/circbuf)
+void __cdecl FloatConsts_InitEpsilon_4801b0();  // 0x7b4bf4
+void __cdecl FloatConsts_InitOne_4808f0();      // 0x7b51e4 (after the unported 0x480810-0x4808e0, before core/ime)
+void __cdecl FloatConsts_InitEpsilon_480910();  // 0x7b51e8
+void __cdecl FloatConsts_InitOne_48d870();      // 0x7c26a8 (after the vcall wrapper 0x48d860)
+void __cdecl FloatConsts_InitEpsilon_48d890();  // 0x7c26ac
+void __cdecl FloatConsts_InitOne_4b4490();      // 0x7cc31c (after the 0x7cc2f0 getter, before an unported constructor)
+void __cdecl FloatConsts_InitEpsilon_4b44b0();  // 0x7cc320
 }
