@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/gameheap.h"
+#include "../render/engineerrors.h"
 #include "../gfx/texture.h"
 
 namespace {
@@ -59,6 +60,25 @@ u32 __cdecl SpriteQueue_Free() {
     }
     GameHeap_Free(queue);
     *reinterpret_cast<u8 **>(0x008c47a0) = nullptr;
+    return 1;
+}
+
+u32 __cdecl SpriteQueue_Create() {
+    u8 *&slot = *reinterpret_cast<u8 **>(0x008c47a0);
+    if (slot)
+        return 0;
+    u8 *const queue = static_cast<u8 *>(GameHeap_Alloc(0x2410));
+    if (queue) {
+        at<u32>(queue, 0x2404) = 0;
+        at<u32>(queue, 0x2408) = 0;
+        at<u32>(queue, 0x2400) = 0;
+        at<u32>(queue, 0x240c) = 0;
+    }
+    slot = queue;
+    if (!queue) {
+        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+        return 0;
+    }
     return 1;
 }
 }

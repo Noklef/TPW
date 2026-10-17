@@ -1,11 +1,13 @@
 #include "renderer.h"
 
 #include <cstdint>
+#include <initializer_list>
 
 #include "../core/buffers.h"
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
 #include "../core/vobj3.h"
+#include "../render/engineerrors.h"
 #include "../gfx/array3d.h"
 
 namespace {
@@ -71,6 +73,36 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 }  // namespace
 
 extern "C" {
+
+u32 __cdecl Renderer_Create() {
+    if (global<u32>(0x0087a6d0))
+        return 0;
+    u8 *const renderer = static_cast<u8 *>(GameHeap_Alloc(0x7c));
+    if (renderer) {
+        for (const u32 offset : {0x0u, 0x4u, 0x8u, 0xcu, 0x3cu, 0x38u, 0x70u, 0x30u, 0x10u, 0x34u, 0x78u})
+            at<u32>(renderer, offset) = 0;
+        at<u32>(renderer, 0x40) = 0x30;
+        at<u32>(renderer, 0x74) = 0xffffffff;
+        for (u32 offset = 0x14; offset < 0x30; offset += 4)
+            at<u32>(renderer, offset) = 0;
+        at<u32>(renderer, 0) = TrackedGlobal_Alloc(0x24000);
+        if (at<u32>(renderer, 0)) {
+            for (u32 i = 0; i < 0x24000; i += 8) {
+                at<u32>(reinterpret_cast<u8 *>((uintptr_t)at<u32>(renderer, 0)), i + 4) = at<u32>(renderer, 4);
+                at<u32>(renderer, 4) = at<u32>(renderer, 0) + i;
+            }
+            at<u32>(renderer, 8) = 0x4800;
+            at<u32>(renderer, 0xc) = 0;
+        }
+        // (a renderer without its pool is kept and counts as made, sic)
+    }
+    global<u8 *>(0x0087a6d0) = renderer;
+    if (!renderer) {
+        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+        return 0;
+    }
+    return 1;
+}
 
 u32 __cdecl Renderer_Destroy() {
     u8 *renderer = global<u8 *>(0x0087a6d0);

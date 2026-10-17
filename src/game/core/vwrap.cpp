@@ -4,6 +4,7 @@
 
 #include "../render/engineerrors.h"
 #include "gameheap.h"
+#include "liveobjects.h"
 #include "misc.h"
 #include "vcall.h"
 
@@ -189,6 +190,34 @@ void __cdecl Table7c26b0_ReleaseIdle() {
             global<u32>(record) = 0;
         }
     }
+}
+
+u32 __cdecl Global8bba48_Create() {
+    if (global<u32>(0x008bba48)) return 0;
+    u8 *object = static_cast<u8 *>(GameHeap_Alloc(0xa8));
+    if (object) {
+        at<u32>(object, 0) = 0x00701b40;
+        at<u32>(object, 0xa4) = 0x006fdce8;
+        at<u32>(object, at<s32>(at<u8 *>(object, 0), 4)) = 0x00701b30;
+        const s32 offset = at<s32>(at<u8 *>(object, 0), 4);
+        at<s32>(object, offset - 4) = offset - 0xa4;
+        at<u32>(object, 4) = 0xffffffff;
+        at<u32>(object, 8) = 0xffffffff;
+        at<u32>(object, 0x88) = 0x0051faa0;
+        at<u32>(object, 0x8c) = 0x0051fd20;
+        at<u32>(object, 0x90) = 0x0051f370;
+        at<u32>(object, 0x94) = 0x0051ef30;
+        at<u32>(object, 0x98) = 0x0051f2f0;
+        at<u32>(object, 0x9c) = 0x0051f240;
+        at<u32>(object, 0x84) = 0x0051f280;
+        LiveObjects_Add(object + at<s32>(at<u8 *>(object, 0), 4));
+    }
+    global<u8 *>(0x008bba48) = object;
+    if (!object) {
+        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+        return 0;
+    }
+    return 1;
 }
 
 u32 __cdecl Global8bba48_DeleteVBase() {

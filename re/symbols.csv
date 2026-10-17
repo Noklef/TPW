@@ -3347,6 +3347,7 @@ address,name,kind,confidence,notes
 0x00569e10,Global879acc_Create,function,low,"reimplemented (src/game/core/vwrap); cdecl: when [0x879acc] is 0, a new 0x38-byte object (vbtable 0x701410, its virtual base Class701260 at +8 with the vtable 0x7013c8 and 0x1000 at +0xc) whose base part is stored there and has slot 1 called, 1; 0 when there was one or the allocation failed (the error (3, 0xb0754000) pushed)"
 0x005666f0,Global879ac0_Create,function,low,"reimplemented (src/game/core/vwrap); cdecl: when [0x879ac0] is 0, a new 0x5c-byte Class701378 (most derived) whose virtual base part is stored there and has slot 1 called, 1; 0 when there was one or the allocation failed (the error (3, 0xb0754000) pushed)"
 0x005c5000,Object_CallSlot14,function,low,reimplemented (src/game/core/vwrap); cdecl (object): a jump to the object's slot 0x14; returns what it returns (name unconfirmed)
+0x0057c360,Global8bba48_Create,function,low,"reimplemented (src/game/core/vwrap); cdecl: without an object at [0x8bba48] a new one (0xa8 bytes, vbtable 0x701b40, virtual base vtable 0x701b30, function pointers at +0x84..+0x9c) added to the live objects, 1; 0 when there was one or the allocation failed (error 3 pushed)"
 0x005e3b90,Class702d48_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor that registers the object with a global one
 0x005e3c00,Class702d48_Release,function,high,reimplemented (src/game/core/vdtor); releases the object from a global one
 0x005e3bd0,Class702d48_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor that releases the object from a global one
@@ -3516,6 +3517,8 @@ address,name,kind,confidence,notes
 0x004b4480,Global7cc2f0_Get_4b4480,function,low,reimplemented (src/game/core/globals); The dword at 0x7cc2f0
 0x0058b040,FreeGlobal8c47d4_58b040,function,high,"reimplemented (src/game/core/globals); cdecl: frees the block at [0x8c47d4] (if any), clears it, returns 1 (0 when there was none)"
 0x0056b6c0,CreateGlobal879d54_56b6c0,function,low,"reimplemented (src/game/core/globals); cdecl: when [0x879d54] is null, a new 0x2d8-byte block there with its fields from +0x30 cleared, 1; 0 when there was one or the allocation failed (the error (3, 0xb0754000) pushed)"
+0x005804b0,CreateGlobal8bcbb8_5804b0,function,low,"reimplemented (src/game/core/globals); cdecl: when the dword at 0x8bcbb8 is null a new block of 0x14004 bytes (first dword 0) there, 1; 0 when there was one or the allocation failed (error 3 pushed, EngineErrors_Push)"
+0x0058aff0,CreateGlobal8c47d4_58aff0,function,low,"reimplemented (src/game/core/globals); cdecl: when the dword at 0x8c47d4 is null a new block of 0xc bytes (first dword -1) there, 1; 0 when there was one or the allocation failed (error 3 pushed, EngineErrors_Push)"
 0x004f0370,StdTreeC_PostInc,function,high,reimplemented (src/game/core/stdtree); post-increment of a std::map iterator
 0x004f0460,StdTreeE_PostInc,function,high,reimplemented (src/game/core/stdtree); post-increment of a std::map iterator
 0x004f0880,Obj_InitMinus1A,function,high,reimplemented (src/game/core/accessors); initialises an object with -1 ignoring three arguments
@@ -4152,6 +4155,7 @@ address,name,kind,confidence,notes
 0x0056b2f0,Obj_AddToRenderer,function,high,reimplemented (src/game/render/renderer); Adds the object part to the renderer tag 0x60 list (name unconfirmed)
 0x0048f5c0,Obj_SetRendererPart30,function,high,reimplemented (src/game/render/renderer); Adds or removes the part at +0xb4 in the renderer tag 0x30 list (name unconfirmed)
 0x005761b0,Renderer_Destroy,function,low,"reimplemented (src/game/render/renderer); cdecl: the renderer at [0x87a6d0] (0 without one): frame buffer (+0x10) and pool (+0) freed (TrackedGlobal_Free; +0 kept, +8/+0xc cleared), the renderer freed and the global cleared; returns 1 (name unconfirmed)"
+0x005760a0,Renderer_Create,function,low,"reimplemented (src/game/render/renderer); cdecl: without a renderer at [0x87a6d0] a new one (0x7c bytes) with its pool of 0x4800 nodes on the free list, 1 (also without the pool, sic); 0 when there was one or its allocation failed (error 3 pushed)"
 0x005777a0,Backdrop_Clear5c,function,high,"reimplemented (src/game/render/backdrop); thiscall (the tiled backdrop, 0x87aee8): +0x5c = 0"
 0x00577940,Backdrop_SetRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the rectangle drawn into, +0x20..+0x2c, and flag 2 in +0"
 0x00577970,Backdrop_SetSourceRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the part of the image drawn, +0x30..+0x3c"
@@ -4164,6 +4168,7 @@ address,name,kind,confidence,notes
 0x0058a6e0,SpriteQueue_Add2,function,high,"reimplemented (src/game/render/spritequeue); thiscall (frame): appended to the list at +0x2000 (count +0x2408); limit 0x800 but room for 0x80, then it overruns the frame sets and counts (sic)"
 0x0058a550,SpriteQueue_Ready,function,high,reimplemented (src/game/render/spritequeue); a frame set is queued once per stamp (room for 0x80)
 0x0058a490,SpriteQueue_Free,function,low,reimplemented (src/game/render/spritequeue); cdecl: the sprite queue's texture array destroyed and the queue freed (name unconfirmed)
+0x0058a430,SpriteQueue_Create,function,low,"reimplemented (src/game/render/spritequeue); cdecl: without a sprite queue at [0x8c47a0] a new one (0x2410 bytes, counts and texture array cleared), 1; 0 when there was one or the allocation failed (error 3 pushed)"
 0x00582390,DrawBuffer_Reset,function,high,"reimplemented (src/game/render/drawbuffer); thiscall (the draw buffer, [0x8bcbc4]; streams byte 1/2): streams emptied, stream 1's batches from the top again (else the batches above +0x54 cleared), the scratch area emptied"
 0x00582640,DrawBuffer_Alloc,function,high,"reimplemented (src/game/render/drawbuffer); thiscall (n): n * 16 bytes from the scratch area (+0x5c up to +0x3c), or 0"
 0x00582670,DrawBuffer_Begin,function,high,"reimplemented (src/game/render/drawbuffer); thiscall (mode): the stream's next batch begun, cleared and pointed at the free vertices and indices; returns it"

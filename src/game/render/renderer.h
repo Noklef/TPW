@@ -1,4 +1,4 @@
-// The renderer object's accessors, its entry lists and its release: reimplementation of 0x5761b0, 0x576260, 0x5763f0,
+// The renderer object's creation, accessors, entry lists and release: reimplementation of 0x5760a0, 0x5761b0, 0x576260, 0x5763f0,
 // 0x576400, 0x576540, 0x5765c0, 0x5766e0 and 0x576820.
 //
 // The renderer is the object at [0x87a6d0] (built at 0x576162 with a pool of 0x4800 8-byte nodes
@@ -25,6 +25,12 @@ extern "C" {
 // cleared (+0 kept, sic), the frame buffer freed again when set, the renderer freed (GameHeap_Free) and [0x87a6d0] cleared.
 // Returns 1.
 u32 __cdecl Renderer_Destroy();
+
+// 0x5760a0 (cdecl; name unconfirmed): without a renderer at [0x87a6d0], a new one of 0x7c bytes (the game's heap) there: +0 to +0x3c,
+// +0x70 and +0x78 cleared, +0x40 = 0x30, +0x74 = -1; its pool of 0x24000 bytes (TrackedGlobal_Alloc, core/gameheap) at +0 and, when
+// got, all its 0x4800 nodes put on the free list (+4, the last node first) with +8 = 0x4800 and +0xc = 0. 1 (also when the pool was not
+// got, sic). 0 when there was one, or when the renderer's allocation failed (the error (3, 0xb0754000) pushed, EngineErrors_Push).
+u32 __cdecl Renderer_Create();
 
 // 0x576260 (thiscall; fn): +0x78 = fn, the device restore callback (0x54e2b0, or 0).
 void __fastcall Renderer_SetRestoreCallback(u8 *renderer, void *, u32 fn);

@@ -147,4 +147,10 @@ u32 __cdecl FreeGlobal8bcbb8_580500();
 
 // 0x58b040: frees the block the dword at 0x8c47d4 points to (if any), clears it and returns 1 (0 when there was none).
 u32 __cdecl FreeGlobal8c47d4_58b040();
+
+// 0x5804b0 / 0x58aff0 (names unconfirmed): when the dword at 0x8bcbb8 (0x8c47d4) is null, a new block of 0x14004 (0xc) bytes (the game's
+// heap) there, its first dword 0 (-1); 1 then. 0 when there was one, or when the allocation failed (left null, the error (3, 0xb0754000)
+// pushed onto the engine's list, EngineErrors_Push).
+u32 __cdecl CreateGlobal8bcbb8_5804b0();
+u32 __cdecl CreateGlobal8c47d4_58aff0();
 }  // extern "C"
