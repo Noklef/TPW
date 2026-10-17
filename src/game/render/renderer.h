@@ -32,6 +32,13 @@ u32 __cdecl Renderer_Destroy();
 // got, sic). 0 when there was one, or when the renderer's allocation failed (the error (3, 0xb0754000) pushed, EngineErrors_Push).
 u32 __cdecl Renderer_Create();
 
+// 0x576310 (thiscall; width, height; name unconfirmed): the frame buffer (+0x10), when set, freed (TrackedGlobal_Free) and cleared; +0x38 =
+// width, +0x3c = height; a new zeroed one of width * height * 4 bytes (TrackedGlobal_Alloc; 32-bit, wrapping) at +0x10. Got: the render state
+// at +0x48 reset (flags 0x1f31, -1.0 at +0x4c / +0x50, 2.0 at +0x54 / +0x58, +0x5c = [0x87afe8]) and, with fewer than 4 (signed) on the
+// state stack (+0x60, count +0x70), pushed there unless already on it; then the count set to 1 (sic). 1. Not got: the error (3, 0xb0754000)
+// pushed (EngineErrors_Push), 0.
+u32 __fastcall Renderer_MakeFrameBuffer(u8 *renderer, void *, s32 width, s32 height);
+
 // 0x576260 (thiscall; fn): +0x78 = fn, the device restore callback (0x54e2b0, or 0).
 void __fastcall Renderer_SetRestoreCallback(u8 *renderer, void *, u32 fn);
 

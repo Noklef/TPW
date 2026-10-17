@@ -129,6 +129,43 @@ u32 __cdecl Renderer_Destroy() {
     return 1;
 }
 
+u32 __fastcall Renderer_MakeFrameBuffer(u8 *renderer, void *, s32 width, s32 height) {
+    if (const u32 frame = at<u32>(renderer, 0x10)) {
+        TrackedGlobal_Free(frame);
+        at<u32>(renderer, 0x10) = 0;
+    }
+    at<s32>(renderer, 0x38) = width;
+    const u32 size = (u32)width * (u32)height << 2;
+    at<s32>(renderer, 0x3c) = height;
+    at<u32>(renderer, 0x10) = TrackedGlobal_Alloc(size);
+    u8 *const frame = reinterpret_cast<u8 *>((uintptr_t)at<u32>(renderer, 0x10));
+    if (!frame) {
+        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+        return 0;
+    }
+    for (u32 i = 0; i < size; ++i)
+        frame[i] = 0;
+    const u32 state = (u32)(uintptr_t)(renderer + 0x48);
+    at<u32>(renderer, 0x50) = 0xbf800000;   // -1.0f
+    at<u32>(renderer, 0x4c) = 0xbf800000;
+    at<u32>(renderer, 0x48) = 0x1f31;
+    at<u32>(renderer, 0x58) = 0x40000000;   // 2.0f
+    at<u32>(renderer, 0x54) = 0x40000000;
+    at<u32>(renderer, 0x5c) = global<u32>(0x0087afe8);
+    const s32 count = at<s32>(renderer, 0x70);
+    if (count < 4) {
+        s32 i = 0;
+        while (i < count && at<u32>(renderer, 0x60 + 4 * i) != state)
+            ++i;
+        if (i == count) {
+            at<u32>(renderer, 0x60 + 4 * count) = state;
+            at<s32>(renderer, 0x70) += 1;
+        }
+    }
+    at<u32>(renderer, 0x70) = 1;   // (whatever the stack held, sic)
+    return 1;
+}
+
 void __fastcall Renderer_SetRestoreCallback(u8 *renderer, void *, u32 fn) { at<u32>(renderer, 0x78) = fn; }
 
 void __fastcall Renderer_SetStateFlags(u8 *renderer, void *, u32 flags) { at<u32>(renderer, 0x48) = flags; }
