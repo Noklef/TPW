@@ -170,6 +170,7 @@
 #include "../game/core/small64.h"
 #include "../game/core/small65.h"
 #include "../game/core/small66.h"
+#include "../game/core/small67.h"
 #include "../game/core/small7.h"
 #include "../game/core/small8.h"
 #include "../game/core/small9.h"
@@ -3008,6 +3009,10 @@ const Hook kHooks[] = {
     {"Class7037c0_Create",        0x00617ff0, (void *)&Class7037c0_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Class50ffe0_Ctor",          0x0050ffe0, (void *)&Class50ffe0_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Cell_ExtendPath",           0x0052a050, (void *)&Cell_ExtendPath, {0x55, 0x56, 0x8b, 0x74, 0x24}},
+    {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
+    {"Class6fef78_Release",       0x0047e3e0, (void *)&Class6fef78_Release, {0x6a, 0xff, 0x68, 0xa8, 0x8f}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
