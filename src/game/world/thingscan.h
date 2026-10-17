@@ -115,4 +115,12 @@ u32 __fastcall Staff_SurplusKind6(const u8 *object);
 u32 __fastcall Staff_SurplusKind4(const u8 *object);
 u32 __fastcall Staff_SurplusKind7(const u8 *object);
 
+// 0x506910 (thiscall on a thing; out word, pops 4; the "Looking for rest area" print is left out): the handle of the thing in the game's list (the head word at +0x1da746 of
+// [0x80239c], each thing's next at +0xc) whose flags at +0x32 have bit 2 and whose cell is nearest to the thing's (squared distance of the column and row bytes at +5 and +7; the
+// first of equal ones wins); 0 when none.
+void __fastcall Things_NearestRestArea(const u8 *thing, void *, u16 *out);
+
+// 0x501020 (thiscall on a thing; out word, pops 4): the same for the things with bit 0x80 in the flags whose ride (Rides_FindById of the dword at +0x24) has no element 0
+// (Rides_GetElement), and only within a squared distance of 4.
+void __fastcall Things_NearestFlag80Close(const u8 *thing, void *, u16 *out);
 }  // extern "C"

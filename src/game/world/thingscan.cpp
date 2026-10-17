@@ -7,6 +7,7 @@
 #include "object.h"
 #include "objectdefs.h"
 #include "things.h"
+#include "ridelist.h"
 
 namespace {
 
@@ -120,6 +121,15 @@ void UnlinkThing(u8 *game, const u8 *thing, u32 headOffset, u32 linkOffset) {
         next = link(before);
     }
     link(before) = link(handle);
+}
+
+// The squared distance in cells between two things (their column and row bytes at +5 and +7).
+u32 CellDistanceSquared(const u8 *a, const u8 *b) {
+    const u32 idA = ((((u32)a[7] << 7) + a[5] + 1) & 0xffff) - 1, idB = ((((u32)b[7] << 7) + b[5] + 1) & 0xffff) - 1;
+    s32 dx = (s32)(idA & 0x7f) - (s32)(idB & 0x7f), dy = (s32)(idA >> 7) - (s32)(idB >> 7);
+    if (dx < 0) dx = -dx;
+    if (dy < 0) dy = -dy;
+    return (u32)(dx * dx + dy * dy);
 }
 
 }  // namespace
@@ -438,4 +448,37 @@ s32 __stdcall Things_CountByDef4acIdle(s32 value) {
     return count;
 }
 
+void __fastcall Things_NearestRestArea(const u8 *thing, void *, u16 *out) {
+    u16 best = 0;
+    u32 bestDistance = 0xffffffff;
+    for (u16 handle = at<u16>(global<u8 *>(0x0080239c), 0x1da746); handle != 0;) {
+        const u8 *other = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
+        if (other[0x32] & 2) {
+            const u32 distance = CellDistanceSquared(other, thing);
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                best = handle;
+            }
+        }
+        handle = at<u16>(other, 0xc);
+    }
+    *out = best;
+}
+
+void __fastcall Things_NearestFlag80Close(const u8 *thing, void *, u16 *out) {
+    u16 best = 0;
+    u32 bestDistance = 0xffffffff;
+    for (u16 handle = at<u16>(global<u8 *>(0x0080239c), 0x1da746); handle != 0;) {
+        const u8 *other = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
+        if ((other[0x32] & 0x80) && Rides_GetElement(Rides_FindById(at<s32>(other, 0x24)), 0) == 0) {
+            const u32 distance = CellDistanceSquared(other, thing);
+            if (distance <= 4 && distance < bestDistance) {
+                bestDistance = distance;
+                best = handle;
+            }
+        }
+        handle = at<u16>(other, 0xc);
+    }
+    *out = best;
+}
 }  // extern "C"
