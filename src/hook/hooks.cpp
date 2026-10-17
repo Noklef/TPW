@@ -120,6 +120,7 @@
 #include "../game/gfx/statsgraph.h"
 #include "../game/gfx/texsprite.h"
 #include "../game/gfx/texatlas.h"
+#include "../game/gfx/wctimage.h"
 #include "../game/core/crt.h"
 #include "../game/core/gameheap.h"
 #include "../game/core/ptrlist.h"
@@ -3205,6 +3206,7 @@ const Hook kHooks[] = {
     {"WaveletCodec_InverseD4Row", 0x00592c50, (void *)&WaveletCodec_InverseD4Row, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"WaveletCodec_InverseD4Columns", 0x005933a0, (void *)&WaveletCodec_InverseD4Columns, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"WaveletCodec_DecodeGrey",   0x00592e60, (void *)&WaveletCodec_DecodeGrey, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Wavelet_Shutdown",          0x00564b60, (void *)&Wavelet_Shutdown, {0xa1, 0x68, 0x9a, 0x87, 0x00}},
     {"Record_IsActive",           0x0059c610, (void *)&Record_IsActive, {0x8b, 0x4c, 0x24, 0x04, 0x81}},
     {"ObjectDef_FindMarkedCells", 0x00413410, (void *)&ObjectDef_FindMarkedCells, {0x6a, 0xff, 0x68, 0x58, 0x7e}},
     {"ObjectDef_Ctor",            0x00412c20, (void *)&ObjectDef_Ctor, {0x56, 0x8b, 0xf1, 0x8d, 0x4e}},
@@ -3575,6 +3577,7 @@ const Hook kHooks[] = {
     {"RleImage_DeletingDtor",     0x00564a90, (void *)&RleImage_DeletingDtor, {0x8b, 0x41, 0xe8, 0x56, 0x8d}},
     {"TexSprite_Ctor",            0x005f4370, (void *)&TexSprite_Ctor, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"TexAtlas_Alloc",            0x0058c3c0, (void *)&TexAtlas_Alloc, {0x53, 0x55, 0x56, 0x8b, 0x74}},
+    {"WctImage_DeletingDtor",     0x00565000, (void *)&WctImage_DeletingDtor, {0x8b, 0x41, 0xd4, 0x56, 0x8d}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

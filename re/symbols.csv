@@ -3988,6 +3988,7 @@ address,name,kind,confidence,notes
 0x00592b80,WaveletCodec_ReadCoefficients,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (cursor's address, dst, count, q): the decoders' coefficient reader, tables at 0xfb27e0 built once, 0x80 escapes an s16 (name unconfirmed)"
 0x00592c50,WaveletCodec_InverseD4Row,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (src, dst, n): one inverse D4 step along a row, pipelined for n >= 6 (name unconfirmed)"
 0x005933a0,WaveletCodec_InverseD4Columns,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (src plane, dst plane, width, n): the inverse D4 step down the columns, then the wrapped rows (name unconfirmed)"
+0x00564b60,Wavelet_Shutdown,function,low,"reimplemented (src/game/gfx/wavelet); cdecl: with the block at 0x879a68, frees it (TrackedGlobal_Free), clears it, calls the codec at 0x879a64's slot 6 when set and returns 1; else 0 (name unconfirmed)"
 0x0058c2c0,TexSurfaceA_Field38,function,high,reimplemented (src/game/gfx/texsurface); surface class A: the dword at ECX-0x38
 0x0058c2e0,TexSurfaceA_Area,function,high,reimplemented (src/game/gfx/texsurface); surface class A: its virtual base's two dwords multiplied
 0x0058c330,TexSurfaceA_Field10,function,high,reimplemented (src/game/gfx/texsurface); surface class A: the dword at ECX-0x10
@@ -4012,6 +4013,7 @@ address,name,kind,confidence,notes
 0x00564a90,RleImage_DeletingDtor,function,low,"reimplemented (src/game/gfx/rleimage); thiscall on the part at +0x18 (flags; pops 4): virtual base vtable 0x701168 back, the codes freed (TrackedGlobal_Free), +0x10/+0xc cleared, part vtable 0x701178, freed on bit 0 (name unconfirmed)"
 0x005f4370,TexSprite_Ctor,function,low,"reimplemented (src/game/gfx/texsprite); thiscall (image, a, b, c, d, pops 0x14): the decoded texture sprite 0x703088 built: a new frame for the image in the array 0x879ce0 (+0x28, its flags | 1 | 0x30000), +0x14/+0x1c/+0x20/+0x24 = a/b/c/d, +0x2c = 0, appended to the list at [0xfa6e38]; returns the object"
 0x0058c3c0,TexAtlas_Alloc,function,low,"reimplemented (src/game/gfx/texatlas); cdecl (out, size): a square cut from the 256 x 256 texture pages (the free rectangles at 0x8c4928), a new page made when none fits (name unconfirmed)"
+0x00565000,WctImage_DeletingDtor,function,low,"reimplemented (src/game/gfx/wctimage); thiscall on the part at +0x2c (flags; pops 4): virtual base vtable 0x7011c8 back, the tracked blocks at +0x20/+0x24 freed, +4..+0x1c cleared, part vtable 0x701178, freed on bit 0 (name unconfirmed)"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
