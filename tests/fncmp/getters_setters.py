@@ -20,6 +20,7 @@ FUNCS = [
     (0x424ec0, 0x424ed0, 'c', 0, 'a', []),
     (0x429b50, 0x429b60, 't', 0, 'v', []),
     (0x47eaa0, 0x47eab0, 'c', 0, 'a', [8080264]),
+    (0x4b4480, 0x4b4486, 'c', 0, 'a', [0x7cc2f0]),
     (0x48f690, 0x48f6a0, 't', 1, 'a', []),
     (0x4a8bf0, 0x4a8c00, 't', 0, 'v', []),
     (0x4bc420, 0x4bc430, 't', 0, 'v', []),
@@ -123,7 +124,7 @@ B = Bench([(a, e) for a, e, *_ in FUNCS])
 
 
 def case(r):
-    address, _end, conv, n, ret, globs = r.choice(FUNCS)
+    address, _end, conv, n, ret, globs = FUNCS[r.deal(range(len(FUNCS)))]
     regions = {RAM: r.bytes(0x400)}
     for g in globs:
         regions[g & ~0xf] = r.bytes(0x20)

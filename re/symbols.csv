@@ -3471,6 +3471,7 @@ address,name,kind,confidence,notes
 0x0047d140,StdTree_InsertA,function,high,reimplemented (src/game/core/stdtree); std::map insert of a node with a three-dword value
 0x005b2ba0,StdTree_InsertG,function,high,reimplemented (src/game/core/stdtree); std::map insert of a node with a word value
 0x0056a750,Table879ad0_Clear,function,high,reimplemented (src/game/core/globals); clears the 64 pairs of dwords and a counter
+0x004b4480,Global7cc2f0_Get_4b4480,function,low,reimplemented (src/game/core/globals); The dword at 0x7cc2f0
 0x004f0370,StdTreeC_PostInc,function,high,reimplemented (src/game/core/stdtree); post-increment of a std::map iterator
 0x004f0460,StdTreeE_PostInc,function,high,reimplemented (src/game/core/stdtree); post-increment of a std::map iterator
 0x004f0880,Obj_InitMinus1A,function,high,reimplemented (src/game/core/accessors); initialises an object with -1 ignoring three arguments

@@ -140,6 +140,8 @@ u32 __cdecl Global7b4b88_Get_47eaa0() {
     return global<u32>(0x007b4b88);
 }
 
+u32 __cdecl Global7cc2f0_Get_4b4480() { return global<u32>(0x007cc2f0); }
+
 u32 __cdecl Global785584_Get_519410() {
     return global<u32>(0x00785584);
 }
