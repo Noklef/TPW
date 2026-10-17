@@ -178,6 +178,14 @@ void __stdcall Strings_FillCopy(String *dest, u32 count, const String *from);
 
 void __cdecl String_PlacementCopy(String *dest, const String *from);
 
+// 0x5ed130 (thiscall on a vector of strings {?, first, last, end}; position, count, value, pops 12; name unconfirmed): count copies of the value
+// inserted at the position. Without room: a new block (the game's heap) of size + the larger of size and count strings, the strings before the
+// position, the copies and the rest built in it (String_CtorCopy), the old ones destroyed (slot 0xc with 0) and their block freed. With room, when
+// fewer than count strings follow the position: those are built count further up, the copies built past the old end and the followers assigned
+// the value (slot 0x18); otherwise the last count are built up past the end, the rest assigned backwards and the count at the position assigned
+// the value. Nothing for a count of 0 with room. (The counts are signed divisions by 0x14, compared unsigned, as in the original.)
+void __fastcall StringVector_InsertN(u8 *vec, void *, u8 *position, u32 count, const String *value);
+
 // 0x421770 (thiscall on {list, cached}; key, out, pops 8): the first object of the list (+4 head, nodes {object, next}) whose name (Names_Equal on object + 4) equals the key
 // (an object too) is stored to *out and to the cached pointer at +4, and 1 is returned; otherwise (or without a list) the cached pointer is cleared and 0 returned.
 u32 __fastcall NamedList_Find(u8 **ref, void *, const u8 *key, u8 **out);
