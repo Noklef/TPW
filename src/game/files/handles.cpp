@@ -258,6 +258,12 @@ Handle *__fastcall Handle_DeletingDtor(Handle *h, void *, u32 flags) {
     return h;
 }
 
+Handle *__fastcall FolderHandle_DeletingDtor(Handle *h, void *, u32 flags) {
+    Handle_Dtor(h);
+    if (flags & 1) g_env->free(h);
+    return h;
+}
+
 Handle *__fastcall Handle_Assign(Handle *h, void *, const Handle *other) {
     if (other != h) {
         vcall<void>(h, 0);

@@ -110,6 +110,9 @@ Handle *__fastcall Handle_Ctor(Handle *h);
 Handle *__fastcall Handle_CopyCtor(Handle *h, void *edx, const Handle *other);
 void __fastcall Handle_Dtor(Handle *h);
 Handle *__fastcall Handle_DeletingDtor(Handle *h, void *edx, u32 flags);
+// 0x41caf0 (thiscall (flags); the folder handle's vtable 0x6fd9e8 +0x2c; named for that vtable): the same as Handle_DeletingDtor, its own copy: Handle_Dtor (through the
+// stub 0x41cc10), then the handle freed when bit 0 of the flags is set; returns the handle.
+Handle *__fastcall FolderHandle_DeletingDtor(Handle *h, void *edx, u32 flags);
 // 0x5f82b0 (other): Reset (vtable +0), then the other's object; itself: nothing.
 Handle *__fastcall Handle_Assign(Handle *h, void *edx, const Handle *other);
 // 0x5f82e0 (vtable +0): releases the object.

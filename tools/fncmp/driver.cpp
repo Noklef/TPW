@@ -30,6 +30,7 @@
 #include "../../src/game/core/ptrlist.h"
 #include "../../src/game/core/stdstring.h"
 #include "../../src/game/files/drives.h"
+#include "../../src/game/files/handles.h"
 #include "../../src/game/files/wadsource.h"
 #include "../../src/game/gfx/canvas.h"
 #include "../../src/game/world/mousemode.h"
@@ -354,6 +355,17 @@ int main(int argc, char **argv) {
     static CanvasEnv canvas = *Canvas_GetEnv();
     canvas.infoCtor = reinterpret_cast<SurfaceInfo *(__fastcall *)(SurfaceInfo *)>(hooked(0x005fa680));
     Canvas_SetEnv(&canvas);
+    static HandlesEnv handles = *Handles_GetEnv();
+    handles.alloc = &heap_alloc;
+    handles.free = &heap_free;
+    handles.ctor28 = reinterpret_cast<RefObject2 *(__fastcall *)(void *)>(hooked(0x00619950));
+    handles.open28 = reinterpret_cast<s32 *(__fastcall *)(RefObject2 *, void *, s32 *, u32)>(hooked(0x00619d70));
+    handles.ctorE0 = reinterpret_cast<RefObject2 *(__fastcall *)(void *)>(hooked(0x0061a060));
+    handles.openE0 = reinterpret_cast<s32 *(__fastcall *)(RefObject2 *, void *, s32 *, u32, u32)>(hooked(0x0061a250));
+    handles.ctorMemory = reinterpret_cast<RefObject *(__fastcall *)(void *, void *, u32)>(hooked(0x00618df0));
+    handles.bufferCtor = reinterpret_cast<void *(__fastcall *)(void *, void *, char *, u32, u32)>(hooked(0x00636bc0));
+    handles.bufferDtor = reinterpret_cast<void(__fastcall *)(void *)>(hooked(0x00636c70));
+    Handles_SetEnv(&handles);
     Crt_SetEnv(&kDriverCrt);
     static char token[1 << 22];
     for (;;) {

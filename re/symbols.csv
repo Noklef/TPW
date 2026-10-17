@@ -1172,6 +1172,7 @@ address,name,kind,confidence,notes
 0x00619f10,DirSource_Remove,function,high,"reimplemented (src/game/files/dirsource); thiscall (&result, name; vtbl+0x24); Dir_Remove or File_Delete (folder + name)"
 0x00619fb0,DirSource_Rename,function,high,"reimplemented (src/game/files/dirsource); thiscall (&result, from, to; vtbl+0x28); File_Move(folder + from, folder + to)"
 0x00703898,RefObject2_vtable,data,medium,the RefObject2 base vtable (src/game/files/handles)
+0x0041caf0,FolderHandle_DeletingDtor,function,high,"reimplemented (src/game/files/handles); thiscall (flags); the folder handle vtable 0x6fd9e8 +0x2c: Handle_Dtor (via 0x41cc10), freed on bit 0"
 0x007038d0,DirSource_vtable,data,medium,"the directory source vtable: DeletingDtor, Open, FindFirst, FindNext, Vfn4, Vfn5, Path, SetAttributes, MakeDir, Remove, Rename, SetLink, teardown (Debug_Printf), Close"
 0x00636bc0,TextWriter_Ctor,function,high,"reimplemented (src/game/files/textwriter); thiscall (buffer, capacity, clear); 0x14 bytes {vtable 0x703e08, length, data, capacity, overflow}; clear on capacity 0 writes buffer[-1]"
 0x00636c70,TextWriter_Dtor,function,high,reimplemented (src/game/files/textwriter); thiscall; only the vtable
