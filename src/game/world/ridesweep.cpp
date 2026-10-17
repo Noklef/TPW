@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "object.h"
+#include "staff.h"
 #include "things.h"
 
 namespace {
@@ -16,19 +17,38 @@ u16 DefWord(const u8 *thing) {
     return word;
 }
 
-template <typename Test> s32 Sweep(ObjectCallback callback, Test test) {
+// The things of the table newest first (the world at [0x7cf83c]) that pass the test, the callback called for each; how many.
+template <typename Test> s32 Walk(ObjectCallback callback, Test test) {
     u8 *world = global<u8 *>(0x007cf83c);
     s32 count = 0;
     u16 handle;
     World_FirstThing(world, nullptr, &handle);
     while (handle != 0) {
         u8 *thing = reinterpret_cast<u8 **>(0x007cfb90)[handle * 5];
-        if (at<u8>(thing, 2) == 3 && test(thing)) {
+        if (test(thing)) {
             callback(thing);
             ++count;
         }
         u16 next;
         handle = *World_NextThing(world, nullptr, &next, thing);
+    }
+    return count;
+}
+
+template <typename Test> s32 Sweep(ObjectCallback callback, Test test) {
+    return Walk(callback, [&test](const u8 *thing) { return at<u8>(thing, 2) == 3 && test(thing); });
+}
+
+// A staff list: from the head First writes, the things chained through the word at +0x210; the callback called for each; how many.
+s32 StaffList(u16 *(__fastcall *first)(const u8 *, void *, u16 *), ObjectCallback callback) {
+    s32 count = 0;
+    u16 handle;
+    first(global<u8 *>(0x007cf83c), nullptr, &handle);
+    while (handle != 0) {
+        u8 *const thing = Thing_ByHandle(handle);
+        callback(thing);
+        ++count;
+        handle = at<u16>(thing, 0x210);
     }
     return count;
 }
@@ -61,6 +81,27 @@ s32 __cdecl Objects_ForEachKind3NoFlags(ObjectCallback callback) {
 
 s32 __cdecl Objects_ForEachKind3Flag2(ObjectCallback callback) {
     return Sweep(callback, [](const u8 *thing) { return Kind3(thing) && (at<u8>(thing, 0x32) & 2) != 0; });
+}
+
+s32 __cdecl Things_ForEachSelected(u32 mask, ObjectCallback callback) {
+    s32 count = 0;
+    if (mask & 1) count += Walk(callback, [](const u8 *thing) { return Thing_IsStaff(thing) != 0; });
+    if (mask & 2) count += StaffList(World_FirstHandyman, callback);
+    if (mask & 4) count += StaffList(World_FirstMechanic, callback);
+    if (mask & 8) count += StaffList(World_FirstGuard, callback);
+    if (mask & 0x10) count += StaffList(World_FirstEntertainer, callback);
+    if (mask & 0x20) count += StaffList(World_FirstResearcher, callback);
+    if (mask & 0x40) count += Walk(callback, [](const u8 *thing) { return at<u8>(thing, 2) == 1; });
+    if (mask & 0x80) count += Sweep(callback, [](const u8 *thing) { return DefWord(thing) == 0 && at<u32>(Object_GetDef(thing), 0x4ac) == 0; });
+    if (mask & 0x100) count += Objects_ForEachOfKind(2, callback);
+    if (mask & 0x200) count += Objects_ForEachOfKind(1, callback);
+    if (mask & 0x400) count += Objects_ForEachOfKind(3, callback);
+    if (mask & 0x800) count += Objects_ForEachKind3NoFlags(callback);
+    if (mask & 0x1000) count += Objects_ForEachKind3Flag1(callback);
+    if (mask & 0x2000) count += Objects_ForEachWordSet(callback);
+    if (mask & 0x4000) count += Objects_ForEachUpgrade2(callback);
+    if (mask & 0x8000) count += Objects_ForEachKind3Flag2(callback);
+    return count;
 }
 
 }  // extern "C"

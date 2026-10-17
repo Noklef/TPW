@@ -785,6 +785,7 @@ const Hook kHooks[] = {
     {"Objects_ForEachKind3Flag1", 0x00482270, (void *)&Objects_ForEachKind3Flag1, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
     {"Objects_ForEachKind3NoFlags", 0x00482340, (void *)&Objects_ForEachKind3NoFlags, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
     {"Objects_ForEachKind3Flag2", 0x00482400, (void *)&Objects_ForEachKind3Flag2, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
+    {"Things_ForEachSelected",    0x00481bc0, (void *)&Things_ForEachSelected, {0x83, 0xec, 0x0c, 0x53, 0x8a}},
     {"Object_HandleDayMessage",   0x004dd320, (void *)&Object_HandleDayMessage, {0x53, 0x56, 0x57, 0x8b, 0x7c}},
     {"Object_QueueAddPerson",     0x004ddb90, (void *)&Object_QueueAddPerson, {0x51, 0x53, 0x55, 0x56, 0x57}},
     {"Object_QueuePosition",      0x004ddf50, (void *)&Object_QueuePosition, {0x83, 0xec, 0x08, 0x53, 0x55}},

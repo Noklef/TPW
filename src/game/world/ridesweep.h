@@ -24,4 +24,12 @@ s32 __cdecl Objects_ForEachKind3Flag1(ObjectCallback callback);
 s32 __cdecl Objects_ForEachKind3NoFlags(ObjectCallback callback);
 s32 __cdecl Objects_ForEachKind3Flag2(ObjectCallback callback);
 
+// 0x481bc0 (mask, callback; name unconfirmed): the callback called for the things of every group whose bit is set in the mask, in this
+// order, and how many times it was called: 1 every staff thing of the table (Thing_IsStaff), 2 / 4 / 8 / 0x10 / 0x20 the handymen,
+// mechanics, guards, entertainers and researchers (the lists World_FirstHandyman and the like start, chained through the thing's word
+// at +0x210), 0x40 the things of model byte 1, 0x80 the objects (model byte 3) whose definition word +0x284 is 0 and definition +0x4ac is
+// 0; 0x100 / 0x200 / 0x400 the objects of kind 2 / 1 / 3 (Objects_ForEachOfKind), 0x800 Objects_ForEachKind3NoFlags, 0x1000
+// Objects_ForEachKind3Flag1, 0x2000 Objects_ForEachWordSet, 0x4000 Objects_ForEachUpgrade2 and 0x8000 Objects_ForEachKind3Flag2.
+s32 __cdecl Things_ForEachSelected(u32 mask, ObjectCallback callback);
+
 }  // extern "C"
