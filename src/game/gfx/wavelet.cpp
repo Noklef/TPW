@@ -1,8 +1,12 @@
 #include "wavelet.h"
 
 #include <cstdint>
+#include <cstring>
 #include "../core/vcall.h"
 #include "../core/gameheap.h"
+#include "../core/buffers.h"
+#include "../core/seqs.h"
+#include "../files/wrapsources.h"
 #include "../math/x87.h"
 
 namespace {
@@ -10,6 +14,25 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+// The encoders' square side for a width or height: the power of two above it less one (the shift count's low 5 bits), at least 8.
+u32 SideFor(u32 extent) {
+    u32 bits = 1;
+    for (u32 rest = (extent - 1) >> 1; rest != 0; rest >>= 1)
+        ++bits;
+    if (bits < 3)
+        bits = 3;
+    return 1u << (bits & 31);
+}
+
+// The planes' coefficients go to the stream buffer at 0xa067f8.
+u8 *const kStream = reinterpret_cast<u8 *>(0x00a067f8);
+
+// __ftol of a float, the low half.
+u32 FtolLow(float f) { return (u32)(long long)f; }
+
+// The dword count of a {data, size, ...} array zeroed as the original's REP STOSD / STOSB does (size * 4 bytes).
+void ZeroArray(const u8 *array) { std::memset(at<u8 *>(array, 0), 0, at<u32>(array, 4) << 2); }
 
 }  // namespace
 
@@ -140,5 +163,150 @@ void __fastcall WaveletCodec_HalvePlane(u8 *, void *, float *const *plane, u32 n
         bottom += n * 8;
         out += half * 4;
     }
+}
+
+void __fastcall WaveletCodec_ForwardD4(u8 *codec, void *, float *const *plane, u32 stride, u32 n) {
+    // The SEH frame is left out. Four {data, size, max, grow by} arrays on the stack: a row in and out, a column in and out.
+    struct Array {
+        u32 *data;
+        u32 size, max, growBy;
+    } rowIn = {}, rowOut = {}, colIn = {}, colOut = {};
+    if (n != 0) {
+        rowIn.data = static_cast<u32 *>(GameHeap_Alloc(n * 4));
+        Dwords_Zero(rowIn.data, n);
+        rowIn.max = n;
+        rowIn.size = n;
+    }
+    IntArray_SetSize(reinterpret_cast<u8 *>(&rowOut), nullptr, (s32)n, -1);
+    IntArray_SetSize(reinterpret_cast<u8 *>(&colIn), nullptr, (s32)n, -1);
+    IntArray_SetSize(reinterpret_cast<u8 *>(&colOut), nullptr, (s32)n, -1);
+    for (u32 col = 0; col < n; ++col) {
+        u8 *p = reinterpret_cast<u8 *>(*plane) + col * 4;
+        for (u32 i = 0; i < n; ++i, p += stride * 4)
+            colIn.data[i] = *reinterpret_cast<u32 *>(p);
+        // The column's D4 step, inline: as WaveletCodec_ForwardD4Row but the low-pass sum in filter order.
+        if ((s32)n > 0) {
+            const float *const src = reinterpret_cast<const float *>(colIn.data), *pair = src;
+            float *low = reinterpret_cast<float *>(colOut.data), *high = low + ((s32)n >> 1);
+            const u32 mask = n - 1;
+            s32 c = 3;
+            do {
+                const X87Reg h0s0 = X87Reg(global<float>(0x00c27208)) * pair[0];
+                const X87Reg h1s1 = X87Reg(global<float>(0x00c2720c)) * pair[1];
+                const X87Reg h2s2 = X87Reg(global<float>(0x00c27210)) * src[(u32)(c - 1) & mask];
+                const X87Reg h3s3 = X87Reg(global<float>(0x00c27214)) * src[(u32)c & mask];
+                *low++ = (float)(((h0s0 + h1s1) + h2s2) + h3s3);
+                const X87Reg h3s0 = X87Reg(global<float>(0x00c27214)) * pair[0];
+                const X87Reg h2s1 = X87Reg(global<float>(0x00c27210)) * pair[1];
+                const X87Reg h1s2 = X87Reg(global<float>(0x00c2720c)) * src[(u32)(c - 1) & mask];
+                const X87Reg h0s3 = X87Reg(global<float>(0x00c27208)) * src[(u32)c & mask];
+                *high++ = (float)(((h3s0 - h2s1) + h1s2) - h0s3);
+                pair += 2;
+                c += 2;
+            } while (c - 3 < (s32)n);
+        }
+        p = reinterpret_cast<u8 *>(*plane) + col * 4;
+        for (u32 i = 0; i < n; ++i, p += stride * 4)
+            *reinterpret_cast<u32 *>(p) = colOut.data[i];
+    }
+    if (n != 0) {
+        u32 *row = reinterpret_cast<u32 *>(*plane);
+        for (u32 left = n; left != 0; --left) {
+            for (u32 i = 0; i < n; ++i)
+                rowIn.data[i] = row[i];
+            WaveletCodec_ForwardD4Row(codec, nullptr, reinterpret_cast<const float *>(rowIn.data), reinterpret_cast<float *>(rowOut.data), (s32)n);
+            for (u32 i = 0; i < n; ++i)
+                row[i] = rowOut.data[i];
+            row = reinterpret_cast<u32 *>(reinterpret_cast<u8 *>(row) + stride * 4);
+        }
+    }
+    if (colOut.data)
+        GameHeap_Free(colOut.data);
+    if (rowOut.data)
+        GameHeap_Free(rowOut.data);
+    Ptr_FreeIfSet(reinterpret_cast<u8 **>(&colIn.data));
+    Ptr_FreeIfSet(reinterpret_cast<u8 **>(&rowIn.data));
+}
+
+u32 __fastcall WaveletCodec_EncodeGrey(u8 *codec, void *, u32 width, u32 height, const u8 *pixels, void *dst, u32 *outSize, float q) {
+    const u32 w = SideFor(width), h = SideFor(height);
+    const u32 size = w > h ? w : h, count = size * size;
+    u8 *const plane = codec + 0x2c;
+    IntArray_SetSize(plane, nullptr, (s32)count, -1);  // inline in the original, the same steps
+    ZeroArray(plane);
+    u32 k = 0;
+    u8 *row = at<u8 *>(plane, 0);
+    for (u32 y = height; y != 0; --y, row += size * 4) {
+        float *p = reinterpret_cast<float *>(row);
+        for (u32 x = width; x != 0; --x)
+            *p++ = (float)pixels[k++];
+    }
+    WaveletCodec_ForwardD4(codec, nullptr, reinterpret_cast<float *const *>(plane), size, size);
+    const float inverse = (float)(X87Reg(1.0f) / q);  // 0x702660
+    for (u32 i = 0; i < count; ++i) {
+        float *const v = at<float *>(plane, 0) + i;
+        *v = (float)(X87Reg(inverse) * *v);
+    }
+    u8 *out = kStream;
+    for (u32 i = 0; i < count; ++i) {
+        const s16 v = (s16)FtolLow(at<float *>(plane, 0)[i]);
+        if (v >= -0x7f && v <= 0x7f) {
+            *out++ = (u8)v;
+        } else {
+            *out++ = 0x80;
+            *reinterpret_cast<s16 *>(out) = v;
+            out += 2;
+        }
+    }
+    const u32 packed = Buffer_Compress(kStream, dst, (u32)(out - kStream), at<void *>(codec, 0x4c));
+    *outSize = packed;
+    return packed;
+}
+
+u32 __fastcall WaveletCodec_Encode(u8 *iface, void *, u32 width, u32 height, u32 colour, const u8 *pixels, void *dst, u32 *outSize, float qY, float qCb,
+                                   float qCr) {
+    u8 *const codec = iface - 0x54;
+    if ((u8)colour == 0)
+        return WaveletCodec_EncodeGrey(codec, nullptr, width, height, pixels, dst, outSize, qY);
+    u32 size = SideFor(width);
+    const u32 h = SideFor(height);
+    if (size <= h)
+        size = h;
+    const u32 count = size * size, quarter = count >> 2;
+    IntArray_SetSize(codec + 0xc, nullptr, (s32)(count + 1), -1);
+    IntArray_SetSize(codec + 0x1c, nullptr, (s32)(count + 1), -1);
+    IntArray_SetSize(codec + 0x2c, nullptr, (s32)(count + 1), -1);
+    ZeroArray(codec + 0xc);
+    ZeroArray(codec + 0x1c);
+    ZeroArray(codec + 0x2c);
+    WaveletCodec_UnpackBgr(codec, nullptr, width, height, size, pixels);
+    WaveletCodec_RgbToYuv(codec, nullptr, count);
+    WaveletCodec_HalvePlane(codec, nullptr, reinterpret_cast<float *const *>(codec + 0x1c), size);
+    WaveletCodec_HalvePlane(codec, nullptr, reinterpret_cast<float *const *>(codec + 0xc), size);
+    WaveletCodec_ForwardD4(codec, nullptr, reinterpret_cast<float *const *>(codec + 0x2c), size, size);
+    const u32 half = size >> 1;
+    WaveletCodec_ForwardD4(codec, nullptr, reinterpret_cast<float *const *>(codec + 0x1c), half, half);
+    WaveletCodec_ForwardD4(codec, nullptr, reinterpret_cast<float *const *>(codec + 0xc), half, half);
+    const float inverseY = (float)(X87Reg(1.0f) / qY), inverseCb = (float)(X87Reg(1.0f) / qCb), inverseCr = (float)(X87Reg(1.0f) / qCr);  // 0x702660
+    for (u32 i = 0; i < count; ++i) {
+        float *const v = at<float *>(codec, 0x2c) + i;
+        *v = (float)(X87Reg(inverseY) * *v);
+    }
+    for (u32 i = 0; i < quarter; ++i) {
+        float *const cb = at<float *>(codec, 0x1c) + i;
+        *cb = (float)(X87Reg(inverseCb) * *cb);
+        float *const cr = at<float *>(codec, 0xc) + i;
+        *cr = (float)(X87Reg(inverseCr) * *cr);
+    }
+    u8 *cursor = kStream;
+    for (u32 i = 0; i < count; ++i)
+        WaveletCodec_PutCoefficient(FtolLow(at<float *>(codec, 0x2c)[i]), &cursor);
+    for (u32 i = 0; i < quarter; ++i)
+        WaveletCodec_PutCoefficient(FtolLow(at<float *>(codec, 0x1c)[i]), &cursor);
+    for (u32 i = 0; i < quarter; ++i)
+        WaveletCodec_PutCoefficient(FtolLow(at<float *>(codec, 0xc)[i]), &cursor);
+    const u32 packed = Buffer_Compress(kStream, dst, (u32)(cursor - kStream), at<void *>(codec, 0x4c));
+    *outSize = packed;
+    return packed;
 }
 }

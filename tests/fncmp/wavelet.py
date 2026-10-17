@@ -2,20 +2,25 @@
 # - the coefficient writer (0x591d30): values at and around the byte range's edges, cursors into a buffer and over the cursor itself;
 # - the encoder's steps: pixels unpacked into float planes (0x5925e0; planes now and then the same buffer, strides below the width),
 #   RGB to YUV in place (0x592150; any floats, planes sharing a buffer), the forward D4 row step (0x5924f0; the game's filter or any
-#   floats, n a power of two or not, zero and negative) and the 2 x 2 halving (0x592670; odd sizes too).
-# usage: wavelet.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=PUT,UNPACK,YUV,D4ROW,HALVE)
+#   floats, n a power of two or not, zero and negative) and the 2 x 2 halving (0x592670; odd sizes too);
+# - the 2-D forward D4 (0x592220; strides above n, a failing allocation now and then) and the grey and colour encoders (0x591d70, 0x591ab0):
+#   any sizes up to 20 (sides 8 to 32), planes empty or with blocks to fit in or grow from, any quantisers; the compressor is a recorder,
+#   so its arguments (the stream's length) and the stream at 0xa067f8 are compared.
+# usage: wavelet.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE)
 import math
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
+from fncmp import HEAP, LOG, Bench, Call, RAM, fb, heap, log_region, put, vtable  # noqa: E402
 
-B = Bench([(0x591d30, 0x591d6c), (0x592150, 0x592211), (0x5924f0, 0x592726)])
-OPS = [k for k in os.environ.get('OPS', 'PUT,UNPACK,YUV,D4ROW,HALVE').split(',') if k]
+B = Bench([(0x591ab0, 0x592010), (0x592150, 0x592740), (0x598630, 0x598790), (0x5f8050, 0x5f80f0)])
+OPS = [k for k in os.environ.get('OPS', 'PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE').split(',') if k]
 CURSOR = RAM + 8
 CODEC, PLANES, SRC, DST, FILTER = RAM, RAM + 0x1000, RAM + 0x2000, RAM + 0x3000, 0xc27208
+OUT, SIZE, OLD, STREAM = RAM + 0x4000, RAM + 0x4100, RAM + 0x5000, 0xa067f8
+GUARD, COMPRESSOR_VTABLE = 0xfa75f8, RAM + 0x4200   # Buffer_Compress's codec (built: guard bit 0) and its vtable of recorders
 S3 = math.sqrt(3)
 D4 = struct.pack('<4f', (1 + S3) / (4 * math.sqrt(2)), (3 + S3) / (4 * math.sqrt(2)), (3 - S3) / (4 * math.sqrt(2)),
                  (1 - S3) / (4 * math.sqrt(2)))
@@ -61,10 +66,68 @@ def case(r):
         return Call(0x5924f0, [CODEC, SRC, DST, n & 0xffffffff],
                     {CODEC: r.bytes(0x10), SRC: r.floats(bytearray(size), range(0, size, 4)), DST: r.floats(bytearray(size), range(0, size, 4)),
                      FILTER: filt}, conv='t')
+    if op != 'HALVE':
+        return coder(r, op)
     n = r.choice([0, 1, 2, 3, 4, 5, 8, r.randrange(6, 16)])
     size = 4 * max(1, n * n)
     plane = r.floats(bytearray(size), range(0, size, 4), r.choice([1, 300, None]))
     return Call(0x592670, [CODEC, CODEC, n], {CODEC: struct.pack('<I', PLANES) + r.bytes(0xc), PLANES: plane}, conv='t')
+
+
+def side(extent):
+    bits, rest = 1, ((extent - 1) & 0xffffffff) >> 1
+    while rest:
+        bits, rest = bits + 1, rest >> 1
+    return 1 << (max(bits, 3) & 31)
+
+
+def extent(r):
+    if r.random() < 0.06:
+        return r.choice([0, 17, 20])
+    return r.choice([r.randrange(1, 9), r.randrange(1, 9), r.randrange(9, 17), r.randrange(1, 17)])
+
+
+def array(r, regions, at, count, k):
+    """a {data, size, max, grow by} array for count elements: empty, or a block (at OLD + 0x800 k) that count fits in or has to grow from."""
+    if count > 0x100 or r.random() < 0.5:
+        return struct.pack('<4I', 0, 0, 0, r.choice([0, 0, 4, 0x40]))
+    size = r.choice([0, 1, count // 2, count, r.randrange(0, 0x40)])
+    cap = max(size, r.choice([size, size + 1, count, count + 1, count + 4, r.randrange(1, 0x110)]))
+    regions[OLD + 0x800 * k] = r.floats(bytearray(4 * max(cap, 1)), range(0, 4 * max(cap, 1), 4))
+    return struct.pack('<4I', OLD + 0x800 * k, size, cap, r.choice([0, 0, 1, 4, 0x40]))
+
+
+def encoder(r, colour):
+    width, height = extent(r), extent(r)
+    n = max(side(width), side(height))
+    count = n * n + (1 if colour else 0)
+    obj = bytearray(r.bytes(0x58))
+    log = log_region()
+    regions = {CODEC: obj, SRC: r.bytes(max(1, width * height * (3 if colour else 1))), OUT: r.bytes(0x10), SIZE: r.bytes(4), LOG: log,
+               GUARD: struct.pack('<II', 1 | r.getrandbits(8) & 0xfe, COMPRESSOR_VTABLE), COMPRESSOR_VTABLE: vtable({1: 4}),
+               HEAP: heap(0x1000 + 16 * count + (12 * count if colour else 0)), FILTER: D4 if r.random() < 0.8 else r.floats(bytearray(0x10), range(0, 0x10, 4)),
+               STREAM: r.bytes(3 * count * (3 if colour else 2) // 2 + 0x10)}
+    for k, off in enumerate((0xc, 0x1c, 0x2c) if colour else (0x2c,)):
+        obj[off:off + 0x10] = array(r, regions, off, count, k)
+    quantisers = [r.choice([fb(r.uniform(0.5, 4)), fb(r.uniform(1, 64)), r.f(), fb(r.uniform(1e-3, 0.1))]) for _ in range(3)]
+    return width, height, regions, quantisers
+
+
+def coder(r, op):
+    if op == 'FWD':
+        n = r.choice([0, 1, 2, 4, 8, 8, 16, 3, 6])
+        stride = r.choice([n, n, n + r.randrange(1, 4)])
+        size = 4 * max(1, stride * n)
+        plane = r.floats(bytearray(size), range(0, size, 4), r.choice([1, 300, None]))
+        return Call(0x592220, [CODEC, CODEC + 0x2c, stride, n],
+                    {CODEC: put(bytearray(r.bytes(0x58)), 0x2c, 'I', PLANES), PLANES: plane, HEAP: heap(0x1000, r.randrange(1, 5) if r.random() < 0.05 else 0),
+                     FILTER: D4 if r.random() < 0.6 else r.floats(bytearray(0x10), range(0, 0x10, 4))}, conv='t')
+    if op == 'GREY':
+        width, height, regions, q = encoder(r, False)
+        return Call(0x591d70, [CODEC, width, height, SRC, OUT, SIZE, q[0]], regions, conv='t', ret='a')
+    width, height, regions, q = encoder(r, True)
+    colour = r.choice([1, 1, 1, 0xff, 0x100, 0x1ff, 0])
+    return Call(0x591ab0, [CODEC + 0x54, width, height, colour, SRC, OUT, SIZE] + q, regions, conv='t', ret='a')
 
 
 if __name__ == '__main__':
