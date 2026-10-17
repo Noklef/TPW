@@ -4129,6 +4129,7 @@ address,name,kind,confidence,notes
 0x005777a0,Backdrop_Clear5c,function,high,"reimplemented (src/game/render/backdrop); thiscall (the tiled backdrop, 0x87aee8): +0x5c = 0"
 0x00577940,Backdrop_SetRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the rectangle drawn into, +0x20..+0x2c, and flag 2 in +0"
 0x00577970,Backdrop_SetSourceRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the part of the image drawn, +0x30..+0x3c"
+0x00577990,Backdrop_UncacheRect,function,low,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1): the tiles of the pixel rectangle (divided by 64 toward 0, ends included) unlinked from the texture cache (name unconfirmed)"
 0x00579c70,MeshQueue_Clear,function,high,"reimplemented (src/game/render/meshqueue); thiscall (the first mesh queue, 0x8bb220): +0x400 = 0, emptied"
 0x0057c260,MeshQueue2_Init,function,high,reimplemented (src/game/render/meshqueue); static initialiser: the second mesh queue (0x8bb638) emptied
 0x0057c270,MeshQueue2_Add,function,high,"reimplemented (src/game/render/meshqueue); thiscall (the second mesh queue; mesh): appended when there is room (0x100); 1, or 0 when full"
