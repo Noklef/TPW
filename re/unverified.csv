@@ -296,14 +296,6 @@ address,name,module,reason
 6173e0,Canvas_Ctor,gfx/canvas,todo: indirect only
 617420,Canvas_SetSurface,gfx/canvas,todo
 6175b0,Canvas_Clip,gfx/canvas,todo
-619250,ZlibCodec_ArenaAlloc,files/zlibcodec,todo
-619280,ZlibCodec_Compress,files/zlibcodec,todo
-619380,ZlibCodec_Decompress,files/zlibcodec,todo
-619460,ZlibCodec_WorkSize,files/zlibcodec,todo
-619470,ZlibCodec_InflateWorkSize,files/zlibcodec,todo
-619480,ZlibCodec_UnpackedSize,files/zlibcodec,todo
-6194a0,ZlibCodec_CompressStream,files/zlibcodec,todo
-619600,ZlibCodec_DecompressStream,files/zlibcodec,todo
 619730,RefObject2_Ctor,files/handles,todo
 619790,RefObject2_DeletingDtor,files/handles,todo
 6197b0,RefObject2_Dtor,files/handles,todo
