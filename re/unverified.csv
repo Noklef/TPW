@@ -90,7 +90,6 @@ address,name,module,reason
 5f7890,Lib_WtoI,core/libc,todo
 5f78a0,Lib_IsDigitW,core/libc,todo
 5f78c0,Lib_VSWPrintf,core/libc,todo
-5f81d0,Buffer_DecompressStream,files/wrapsources,todo: hands the codec a stack CallbackStream; needs a recorder that logs the pointee rather than the stack address
 5f86a0,App_GetInstance,core/app,todo: indirect only
 5f86b0,App_SetInstance,core/app,todo
 5f86c0,App_GetWindow,core/app,todo: indirect only
@@ -378,8 +377,6 @@ address,name,module,reason
 630c50,PixelConverter_DeletingDtor,gfx/pixconv,todo
 630c70,PixelConverter_DeletingDtor2,gfx/pixconv,todo
 630c90,PixelConverter_Dtor,gfx/pixconv,todo
-638be0,BufferSource_AttachRefPack,files/wrapsources,todo: decodes what the source reads; needs a bench feeding real RefPack streams
-638d30,BufferSource_AttachZlib,files/wrapsources,todo: hands the codec a stack CallbackStream; needs a recorder that logs the pointee rather than the stack address
 63a7b0,IndexConverter_Ctor,gfx/pixconv,todo
 63a810,IndexConverter_DeletingDtor,gfx/pixconv,todo
 63a830,IndexConverter_Dtor,gfx/pixconv,todo

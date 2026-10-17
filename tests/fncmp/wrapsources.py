@@ -3,23 +3,27 @@
 # often the source's own, so that the shared source's sync both seeks and does not) and the lock a semaphore whose WaitForSingleObject / ReleaseSemaphore import
 # slots are recorders; the buffer's data a block it reads from and seeks in (cursor at, inside, past or before it; the -0x80000000 seek from the end); the
 # compressor singleton (0xfa75f8 guard, 0xfa75fc the codec) with its guard set and a recorder vtable for the forwarders, or Compressor_Get with the guard clear
-# (atexit 0x67a7d0 is fncmp's cdecl log on both sides, driver.cpp's WrapSources env); the callback stream's callbacks stdcall recorders.
-# Not here: BufferSource_AttachRefPack (it decodes what the source reads), Buffer_DecompressStream and BufferSource_AttachZlib (they hand the codec a stack
-# CallbackStream, whose address a recorder cannot compare).
+# (atexit 0x67a7d0 is fncmp's cdecl log on both sides, driver.cpp's WrapSources env); the callback stream's callbacks stdcall recorders. The stream
+# decompressors (Buffer_DecompressStream, BufferSource_AttachZlib) run the game's zlib codec (its real vtable) over the zlib stand-ins (fncmp.zlib_results(),
+# never Z_OK for inflate, whose loop would not end): their stack CallbackStream is only ever this to the reads, which reach a recorder (the read callback, or
+# the source's read) filling the buffer with a BILZ header (or not) and packed bytes; BufferSource_AttachRefPack decodes a RefPack stream the source's read
+# fills (the size it answers that stream's, or not).
 # usage: wrapsources.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Read,...)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, Bench, Call, HEAP, RAM, _cdecl_log, heap, log_region, put, recorder, set_return, vtable  # noqa: E402
+from fncmp import LOG, Bench, Call, HEAP, RAM, _cdecl_log, fill, heap, log_region, put, recorder, set_return, vtable, zlib_results  # noqa: E402
 
-B = Bench([(0x5f8050, 0x5f81d0), (0x5f8140, 0x5f81d0), (0x618cd0, 0x618da0), (0x638840, 0x638c60), (0x638c60, 0x638d30), (0x638d80, 0x638f00),
+B = Bench([(0x619460, 0x619470), (0x619600, 0x619730), (0x5f81d0, 0x5f8240), (0x638d30, 0x638d80), (0x641f10, 0x642100), (0x5f8050, 0x5f81d0), (0x5f8140, 0x5f81d0), (0x618cd0, 0x618da0), (0x638840, 0x638c60), (0x638c60, 0x638d30), (0x638d80, 0x638f00),
            (0x630810, 0x630880), (0x6418e0, 0x6419c0), (0x6ad810, 0x6ad820), (0x67acb0, 0x67acb1)],
           hooks={0x67a7d0: _cdecl_log})
 THIS, RESULT, SEM = RAM, RAM + 0x40, RAM + 0x60
 SOURCES, DATA, OUT = RAM + 0x1000, RAM + 0x2000, RAM + 0x3000
 SOURCE_VTABLE, CODEC_VTABLE = RAM + 0x4000, RAM + 0x4100
+STREAM, WORK = RAM + 0x5000, RAM + 0x6000   # the stream decompressor's buffer and work block
+ZLIB_CODEC_VTABLE, BILZ = 0x703128, 0x5a4c4942
 GUARD, CODEC = 0xfa75f8, 0xfa75fc
 WAIT, RELEASE = 0x6fd128, 0x6fd170   # the import table's WaitForSingleObject and ReleaseSemaphore
 CALLBACK = 3   # the callback stream's callbacks: stdcall recorders (buffer, count, context)
@@ -30,7 +34,8 @@ READ, WRITE, SEEK, SIZE, POSITION, MAP, LOCK = 1, 2, 3, 4, 5, 6, 11
 # The codec's: +4 Compress (dst, src, size, work), +8 Decompress (dst, src, work), +0x14 UnpackedSize (header).
 CODEC_SLOTS = {0: 1, 1: 4, 2: 3, 5: 1}
 # name: (address, this: t tracked, b buffer, l slice, c callback stream, - none; stack arguments: f flags, R the result, B a buffer, n a count, o an offset,
-# g an origin, S a source or none, d a dword, s a size, P a source (for the read callback); conv; returns)
+# g an origin, S a source or none, d a dword, s a size, P a source (for the read callback), K the stream buffer, c its capacity, X the read callback,
+# W the work block or none; conv; returns)
 OPS = {
     'Field0c': (0x6ad810, 't', '', 't', 'a'), 'TrackedCtor': (0x6418e0, 't', '', 't', 'a'), 'TrackedDtor': (0x641900, 't', '', 't', 'v'),
     'TrackedDeletingDtor': (0x638860, 't', 'f', 't', 'a'), 'TrackedClear': (0x641910, 't', '', 't', 'v'), 'TrackedRead': (0x641920, 't', 'Bn', 't', 'a'),
@@ -49,7 +54,22 @@ OPS = {
     'UnpackedSize': (0x5f8120, '-', 'B', 'c', 'a'),
     'CallbackWrite': (0x5f8140, 'c', 'Bn', 't', 'a'), 'CallbackRead': (0x5f8160, 'c', 'Bn', 't', 'a'), 'CallbackDtor': (0x5f81a0, 'c', '', 't', 'v'),
     'CallbackDeletingDtor': (0x5f8180, 'c', 'f', 't', 'a'), 'CallbackBaseDeletingDtor': (0x5f81b0, 'c', 'f', 't', 'a'),
+    'DecompressStream': (0x5f81d0, '-', 'BKcXdW', 'c', 'a'), 'AttachZlib': (0x638d30, 'b', 'P', 't', 'v'), 'AttachRefPack': (0x638be0, 'b', 'P', 't', 'v'),
 }
+
+
+def header(r):
+    """A BILZ header (or now and then not): magic, unpacked, packed, windowBits, memLevel, two zeroes."""
+    magic = BILZ if r.random() < 0.85 else r.choice([0, BILZ ^ 1, r.getrandbits(32)])
+    return struct.pack('<7I', magic, r.choice([0, 1, 0x10, 0x40, 0x100, r.randrange(0x100)]), r.getrandbits(32), 15, 9, 0, 0)
+
+
+def refpack(r):
+    """A RefPack stream: the header (0x10fb, the size big-endian), literal runs (0xe0 + n: 4n + 4 bytes), the stop (0xfc + 0-3 literals)."""
+    runs = [r.choice([0, 1, 3]) for _ in range(r.choice([0, 1, 2, 3]))]
+    body = b''.join(bytes([0xe0 + n]) + r.bytes(4 * n + 4) for n in runs)
+    tail = r.randrange(4)
+    return b'\x10\xfb' + struct.pack('>I', sum(4 * n + 4 for n in runs) + tail)[1:] + body + bytes([0xfc + tail]) + r.bytes(tail)
 
 
 def source(r):
@@ -89,18 +109,32 @@ def case(r):
             set_return(log, slot, r.choice(choices))
     if r.random() < 0.8:
         set_return(log, 40, r.choice([0, 0, 0x102]))   # WaitForSingleObject: signalled, or timed out
+    if address in (0x5f81d0, 0x638d30):   # the stream decompressors: what the reads fill, the zlib stand-ins' answers
+        fill(log, CALLBACK + 1 if address == 0x5f81d0 else READ, 0, header(r) + r.bytes(r.choice([0, 1, 0x10, 0x54])))
+        if r.random() < 0.3:
+            zlib_results(log, init=r.choice([0, 0, -2, -4, -6, 1]) if r.random() < 0.5 else None,
+                         inflate=r.choice([1, 2, -3, -5]) if r.random() < 0.6 else None)
+    elif address == 0x638be0:   # the packed entry: its size, then the bytes the read fills
+        packed = refpack(r)
+        fill(log, READ, 0, packed)
+        set_return(log, SIZE, r.choice([len(packed), len(packed), 0x40, 0, size]))
     codec = struct.pack('<II', r.choice([1, 1, 1, 0, 3, 0xfe]), CODEC_VTABLE)   # the guard (bit 0: built), the codec's vtable
     if address in (0x5f8050, 0x5f8100, 0x5f8120):   # the forwarders must find the codec built: the clear guard's constructor would set the game's zlib vtable
         codec = struct.pack('<II', 1 | r.getrandbits(8), CODEC_VTABLE)
+    elif address in (0x5f81d0, 0x638d30):   # the game's zlib codec, built or not (the clear guard builds it)
+        codec = struct.pack('<II', r.choice([1, 1, 1, 0, 0xfe]), ZLIB_CODEC_VTABLE)
     regions = {THIS: obj, RESULT: bytes(8), SEM: struct.pack('<I', r.getrandbits(32)), SOURCES: sources, DATA: r.bytes(0x100), OUT: r.bytes(0x100),
                SOURCE_VTABLE: vtable(SOURCE_SLOTS), CODEC_VTABLE: vtable(CODEC_SLOTS), GUARD: codec, LOG: log, HEAP: heap(),
-               WAIT: struct.pack('<I', recorder(40, 2, True)), RELEASE: struct.pack('<I', recorder(41, 3, True))}
+               WAIT: struct.pack('<I', recorder(40, 2, True)), RELEASE: struct.pack('<I', recorder(41, 3, True)), STREAM: header(r) + r.bytes(0x3e4),
+               WORK: r.bytes(0x40)}
     stack = []
     for a in args:   # a second buffer argument (the forwarders' source) is DATA, so that swapping it with the first shows
         stack.append({'f': lambda: r.choice([0, 1, 2, 3, r.getrandbits(32)]), 'R': lambda: RESULT, 'B': lambda: DATA if OUT in stack else OUT, 'n': lambda: count,
                       'o': lambda: r.choice([0, 1, 4, size, size + 1, -1, -size, -0x80000000, r.getrandbits(32)]), 'g': lambda: r.choice([0, 1, 2, 2, 3]),
                       'S': lambda: source(r), 'd': lambda: r.getrandbits(32), 's': lambda: r.choice([0, 1, 0x10, 0x40, r.randrange(0x400)]),
-                      'P': lambda: SOURCES + 0x40 * r.randrange(3)}[a]())
+                      'P': lambda: SOURCES + 0x40 * r.randrange(3), 'K': lambda: STREAM,
+                      'c': lambda: r.choice([0, 1, 0x1b, 0x1c, 0x1d, 0x1e, 0x20, 0x40, 0x100, 0x200, 0x3e0]), 'X': lambda: recorder(CALLBACK + 1, 3, True),
+                      'W': lambda: 0 if r.random() < 0.5 else WORK}[a]())
     return Call(address, ([THIS] if kind != '-' else []) + stack, regions, conv=conv, ret=ret)
 
 
