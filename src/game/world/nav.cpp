@@ -53,4 +53,6 @@ u8 *__fastcall Nav_Ctor(u8 *object) {
 }
 
 void __fastcall Nav_Dtor(u8 *object) { CRT_VectorDtorIterator(object + 0x64, 8, 5, reinterpret_cast<void(__fastcall *)(void *)>(&Stub_Ret)); }
+
+void __fastcall Nav_DtorAtD4(u8 *owner) { Nav_Dtor(owner + 0xd4); }
 }
