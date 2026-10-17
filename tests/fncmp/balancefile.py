@@ -79,18 +79,19 @@ def advisor(r):   # AdvisorScoring_Dtor (0x415e80, thiscall) or its static one (
     return Call(address, [base], regions, conv='t', ret='v')
 
 
-NAMES = [b'Speed', b'Cost', b'Speed2', b'Spee', b'', b'Ride Cost', b'cost']
+NAMES = [b'Speed', b'Cost', b'Speed2', b'Spee', b'', b'Ride Cost', b'Ride Time', b'cost']
 FIND_TYPES = [0, 1, 1, 2, 3, 3, 4, 6, 9, 10]
 
 
 def find(r):   # BalanceFile_FindKey: names from a few (near misses among them) on a made-up schema, the section and key asked for from them
     vt = r.choice(list(VTABLES))
+    pool = r.sample(NAMES, 3)   # (a few names a case, so sections and keys are found often)
     n, table = schema(r, counts=(0, 1, 2, 3, 5, -1), kinds=FIND_TYPES)
     for k in range(n + 2):
-        table[0x3c * k + 4:0x3c * k + 0x24] = (r.choice(NAMES) + bytes(0x20))[:0x20]
-    group, name = (r.choice(NAMES + [b'Other']) + bytes(0x10) for _ in range(2))
+        table[0x3c * k + 4:0x3c * k + 0x24] = (r.choice(pool) + bytes(0x20))[:0x20]
+    group, name = (r.choice(pool + [b'Other']) + bytes(0x10) for _ in range(2))
     regions = {RAM: put(bytearray(r.bytes(0x20)), 0, 'I', vt), VTABLES[vt]: table, RAM + 0x100: group, RAM + 0x140: name, RAM + 0x180: r.bytes(8)}
-    args = [RAM, RAM + 0x100, RAM + 0x140, RAM + 0x180, r.choice([0, 1, 1, r.getrandbits(32)]), r.choice([0, 0, 1, 2, 4, 0xffffffff, r.getrandbits(32)])]
+    args = [RAM, RAM + 0x100, RAM + 0x140, RAM + 0x180, r.choice([0, 1, 1, r.getrandbits(32)]), r.choice([0, 0, 1, 2, 3, 5, 0xffffffff, r.getrandbits(32)])]
     return Call(0x401280, args, regions, conv='t', ret='a')
 
 
