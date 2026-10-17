@@ -32,8 +32,14 @@ u8 *Finish(u8 *object, u32 flags) {
     return object;
 }
 
-// The destructor the 0x7028xx classes share, for the vtable pointer they set.
+// The destructor the 0x7028xx classes share, for the vtable pointer they set: their shared arrays hold the WEACITYR records of the online lists,
+// each class's own kind (its element size and its destructor's import slot).
 void Class7028_Dtor(u8 *object, u32 vtable) {
+    u32 size = 0x30, slot = 0x006fd500;  // ccCityInfo
+    if (vtable == 0x00702890) size = 0x66, slot = 0x006fd504;  // ccParkInfo
+    if (vtable == 0x007028d0) size = 0x10, slot = 0x006fd50c;  // ccThemeInfo
+    if (vtable == 0x007028f8) size = 0x26, slot = 0x006fd508;  // ccServerInfo
+    if (vtable == 0x00702920) size = 0x34, slot = 0x006fd510;  // the rides'
     u8 *shared = at<u8 *>(object, 0x30);
     at<u32>(object, 0) = vtable;
     if (shared) {
@@ -42,7 +48,7 @@ void Class7028_Dtor(u8 *object, u32 vtable) {
         if (uses == 0) {
             u8 *array = at<u8 *>(shared, 4);
             if (array) {
-                CRT_VectorDtorIterator(array, 0x30, at<s32>(array, (u32)-4), global<void(__fastcall *)(void *)>(0x006fd500));
+                CRT_VectorDtorIterator(array, size, at<s32>(array, (u32)-4), global<void(__fastcall *)(void *)>(slot));
                 GameHeap_Free(array - 4);
             }
             at<u32>(shared, 4) = 0;
@@ -292,6 +298,11 @@ u8 *__fastcall Class7028d0_DeletingDtor(u8 *object, void *, u32 flags) {
 
 u8 *__fastcall Class7028f8_DeletingDtor(u8 *object, void *, u32 flags) {
     Class7028_Dtor(object, 0x007028f8);
+    return Finish(object, flags);
+}
+
+u8 *__fastcall Class702920_DeletingDtor(u8 *object, void *, u32 flags) {
+    Class7028_Dtor(object, 0x00702920);
     return Finish(object, flags);
 }
 

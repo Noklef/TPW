@@ -1,13 +1,14 @@
 # The constructors, destructors and releases that call a virtual method of another object (src/game/core/vdtor) against the originals: the other objects
 # (a global one, a member, a virtual base) have vtables of recorders (see tools/fncmp.py recorder()), so the comparison covers the slot, the object it is called on,
-# the arguments (the log) and what is done with the result.
+# the arguments (the log) and what is done with the result. The 0x7028xx destructors' shared arrays hold 0-3 elements, each destroyed through its
+# class's WEACITYR import (0x6fd500-0x6fd510, a recorder of its own each).
 # usage: vdtor.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, HEAP, LOG, RAM, heap, log_region, put, vtable  # noqa: E402
+from fncmp import IMPORT_TABLE, Bench, Call, HEAP, LOG, RAM, heap, log_region, put, recorder, vtable  # noqa: E402
 
 # name: (address, convention, returns, size)
 CALLS = {'C48C': (0x5e3b90, 't', 'a', 0x20), 'C48R': (0x5e3c00, 't', 'a', 0x20), 'C48D': (0x5e3bd0, 't', 'a', 0x30), 'C9C': (0x5d5700, 't', 'a', 0x20),
@@ -15,13 +16,13 @@ CALLS = {'C48C': (0x5e3b90, 't', 'a', 0x20), 'C48R': (0x5e3c00, 't', 'a', 0x20),
          'Bb8': (0x5dc550, 't', 'a', 0x30), 'S20': (0x5dd7f0, 't', 'a', 0x20), 'S20b': (0x5ddaa0, 't', 'a', 0x20), 'VB': (0x564a60, 't', 'a', 0x20),
          'D80': (0x5b5600, 't', 'v', 0xc0), 'D90': (0x5b56c0, 't', 'v', 0xc0), 'Dd0': (0x5bcef0, 't', 'v', 0xc0), 'Df8': (0x5bd330, 't', 'v', 0xc0),
          'D20': (0x5bd740, 't', 'v', 0xc0), 'X80': (0x5b98a0, 't', 'a', 0xd0), 'X90': (0x5b9970, 't', 'a', 0xd0), 'Xd0': (0x5be810, 't', 'a', 0xd0),
-         'Xf8': (0x5be8e0, 't', 'a', 0xd0)}
+         'Xf8': (0x5be8e0, 't', 'a', 0xd0), 'X20': (0x5be9b0, 't', 'a', 0xd0)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()] + [(0x67acb0, 0x67acb1), (0x67afa0, 0x67b060)])
 OBJ, OTHER, SUB, VT, VT2, VT3 = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200
 
 
 def case(r):
-    name = r.choice(OPS)
+    name = r.deal(OPS)
     address, conv, ret, _n = CALLS[name]
     obj = bytearray(r.bytes(0x100))
     regions = {OBJ: obj, LOG: log_region(), HEAP: heap()}
@@ -54,13 +55,17 @@ def case(r):
             put(nodes, 0x10 * k, 'III', RAM + 0x700 + 0x40 * k if r.random() < 0.85 else 0, SUB + 0x10 * (k + 1) if k + 1 < n else 0, SUB + 0x10 * (k - 1) if k else 0)
             regions[RAM + 0x700 + 0x40 * k] = struct.pack('<I', VT) + r.bytes(0x20)
         regions.update({OTHER: lst, SUB: nodes, VT: vtable({0: 1}), VT3: vtable({0: 1})})
-        if r.random() < 0.7:  # the shared record: its use count, an array whose element count (in front of it) is 0 so that no element function is called
+        if r.random() < 0.7:  # the shared record: its use count, an array of 0-3 elements (the count in front of it), each destroyed through an import
             put(obj, 0x30, 'I', RAM + 0x800)
             rec = bytearray(r.bytes(0x20))
             put(rec, 4, 'I', RAM + 0x904 if r.random() < 0.7 else 0)
             put(rec, 0xc, 'i', r.choice([1, 1, 2, 0]))
             regions[RAM + 0x800] = rec
-            regions[RAM + 0x900] = struct.pack('<I', 0) + r.bytes(0x40)
+            regions[RAM + 0x900] = struct.pack('<I', r.choice([0, 1, 2, 3])) + r.bytes(0x140)
+            table = bytearray(0x520)
+            for k in range(5):
+                struct.pack_into('<I', table, 0x500 + 4 * k, recorder(9 + k, 0))
+            regions[IMPORT_TABLE] = table
         else:
             put(obj, 0x30, 'I', 0)
         return Call(address, [OBJ] + (flags if name[0] == 'X' else []), regions, conv=conv, ret=ret)
