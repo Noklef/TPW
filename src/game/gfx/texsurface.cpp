@@ -70,6 +70,8 @@ u32 __fastcall TexSurfaceB_Area(const u8 *sub) {
     return back<u32>(sub + off, 8) * back<u32>(sub + off, 4);
 }
 
+float __fastcall TexSurfaceB_Zero(const u8 *) { return *reinterpret_cast<const float *>((uintptr_t)0x00702248); }
+
 u8 *__fastcall Renderer_NewSurfaceA(void *) {
     u8 *surface = static_cast<u8 *>(GameHeap_Alloc(0x50));
     surface = surface ? TexSurfaceA_Ctor(surface, nullptr, 1) : nullptr;
