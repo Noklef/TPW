@@ -149,7 +149,8 @@
 #include "../game/motion/uvanim.h"
 #include "../game/motion/vertexanim.h"
 #include "../game/rsse/rsse.h"
-#include "../game/sprite/draw.h"
+#include "../game/sprite/draw.h"
+#include "../game/sprite/loading.h"
 #include "../game/sprite/screenmatrix.h"
 #include "../game/sprite/script.h"
 #include "../game/sprite/scriptref.h"
@@ -414,6 +415,7 @@ const Hook kHooks[] = {
     {"ScriptRef_IsAt",            0x004d4100, (void *)&ScriptRef_IsAt, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"ScriptRef_Start",           0x004d4140, (void *)&ScriptRef_Start, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"ScriptRef_Apply",           0x004d4190, (void *)&ScriptRef_Apply, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"SpriteFiles_Sort",          0x00541210, (void *)&SpriteFiles_Sort, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"World_Rand",               0x00516330, (void *)&World_Rand, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"World_SetSeed",            0x00516370, (void *)&World_SetSeed, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Things_InitTable",         0x00515f30, (void *)&Things_InitTable, {0x33, 0xd2, 0x56, 0x89, 0x15}},
