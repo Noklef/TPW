@@ -118,6 +118,7 @@ add_library(tpw_game STATIC
     src/game/core/voices.cpp
     src/game/core/vtables.cpp
     src/game/core/factories.cpp
+    src/game/core/vanillatime.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

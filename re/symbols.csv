@@ -43,8 +43,8 @@ address,name,kind,confidence,notes
 0x0040fc80,MessageCentre_Save,function,high,module MESS
 0x00402e30,Clock_Load,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); GameClock_Load4c, then when it worked GameClock_Load24 on the clock at +0x50; module CLOK"
 0x00402e00,Clock_Save,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); GameClock_Save4c, then when it worked GameClock_Save24 on the clock at +0x50; module CLOK"
-0x00403260,VanillaTime_Load,function,high,module VANT
-0x00403220,VanillaTime_Save,function,high,module VANT
+0x00403260,VanillaTime_Load,function,high,reimplemented (src/game/core/vanillatime); thiscall (stream): reads 4 bytes into the argument's slot (sic); +0 = them - Time_GetMs; 1
+0x00403220,VanillaTime_Save,function,high,"reimplemented (src/game/core/vanillatime); thiscall (stream): writes Time_GetMs (4 bytes); Stream_Write's result >= 0, always 1 (sic)"
 0x005506e0,GameSystem_Load,function,high,reimplemented (src/game/world/gamesystem); reads the game system globals
 0x00550520,GameSystem_Save,function,high,reimplemented (src/game/world/gamesystem); writes the game system globals
 0x004647a0,RideSystem_Load,function,high,module RSYS

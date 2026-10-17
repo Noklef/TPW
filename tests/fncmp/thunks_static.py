@@ -181,6 +181,24 @@ def ref_objects(r, regions):
     return OBJECTS if r.random() < 0.8 else 0
 
 
+def clock(r, regions, ms):
+    """The game's clock (enabled, ticks a ms, base ms, pad, start), timeGetTime a recorder, the performance counter COUNTER. ms: (now - start) / ticks kept within 31 bits
+    (past that the original's IDIV faults where the port does not, see Timer_GetMs)."""
+    log = regions[LOG] = log_region()
+    if r.random() < 0.7:
+        set_return(log, IMPORT, r.getrandbits(32))
+    regions[TIME_GET_TIME] = struct.pack('<I', recorder(IMPORT, 0, True))
+    regions[QUERY_FREQUENCY] = regions[QUERY_COUNTER] = struct.pack('<I', COUNTER)
+    ticks = r.choice([1, 0xa, 0x3e8, 0xda7, r.randrange(1, 2 ** 25), r.getrandbits(32) | 1])
+    start = r.getrandbits(64) >> r.choice([0, 1, 20, 40])
+    if ms:
+        now = start + r.randrange(-2 ** 30, 2 ** 30) * ticks + r.randrange(ticks)
+    else:
+        now = r.choice([0, 0x369e99, 0x1234de, 0x3e8, 0x7c, 0x1e848000, r.getrandbits(40), r.getrandbits(64)])
+    counter(log, now, r.getrandbits(r.choice([8, 32, 64])), r.getrandbits(2) if r.random() < 0.4 else 3)
+    regions[CLOCK] = struct.pack('<4IQ', r.choice([0, 1, 1, r.getrandbits(32)]), ticks, r.getrandbits(32), r.getrandbits(32), start % 2 ** 64)
+
+
 def case(r):
     address, form, imm, ret = r.choice(PICK)
     regions = {HEAP: heap(), POINTEE: r.bytes(0x400)}
@@ -206,20 +224,8 @@ def case(r):
         regions[COM_VTABLE] = vtable({}, com={2: 1})
         regions[LOG] = log_region()
         return Call(address, [], regions, conv='c', ret=ret)
-    if form == 'timer':   # the clock (enabled, ticks a ms, base ms, pad, start), timeGetTime a recorder, the performance counter COUNTER
-        log = regions[LOG] = log_region()
-        if r.random() < 0.7:
-            set_return(log, IMPORT, r.getrandbits(32))
-        regions[TIME_GET_TIME] = struct.pack('<I', recorder(IMPORT, 0, True))
-        regions[QUERY_FREQUENCY] = regions[QUERY_COUNTER] = struct.pack('<I', COUNTER)
-        ticks = r.choice([1, 0xa, 0x3e8, 0xda7, r.randrange(1, 2 ** 25), r.getrandbits(32) | 1])
-        start = r.getrandbits(64) >> r.choice([0, 1, 20, 40])
-        if imm == 'ms':   # (now - start) / ticks kept within 31 bits: past that the original's IDIV faults where the port does not (see Timer_GetMs)
-            now = start + r.randrange(-2 ** 30, 2 ** 30) * ticks + r.randrange(ticks)
-        else:
-            now = r.choice([0, 0x369e99, 0x1234de, 0x3e8, 0x7c, 0x1e848000, r.getrandbits(40), r.getrandbits(64)])
-        counter(log, now, r.getrandbits(r.choice([8, 32, 64])), r.getrandbits(2) if r.random() < 0.4 else 3)
-        regions[CLOCK] = struct.pack('<4IQ', r.choice([0, 1, 1, r.getrandbits(32)]), ticks, r.getrandbits(32), r.getrandbits(32), start % 2 ** 64)
+    if form == 'timer':
+        clock(r, regions, imm == 'ms')
         return Call(address, [], regions, conv='c', ret=ret)
     if form == 'list':
         regions[imm] = string_list(r, regions)

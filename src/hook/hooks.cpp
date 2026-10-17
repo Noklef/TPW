@@ -121,6 +121,7 @@
 #include "../game/world/litter.h"
 #include "../game/core/stdlist.h"
 #include "../game/core/stdtree.h"
+#include "../game/core/vanillatime.h"
 #include "../game/core/vdel.h"
 #include "../game/core/vdtor.h"
 #include "../game/core/vobj2.h"
@@ -3068,6 +3069,8 @@ const Hook kHooks[] = {
     {"Class702bc8_Ctor",          0x005dc580, (void *)&Class702bc8_Ctor, {0x6a, 0xff, 0x68, 0x58, 0x14}},
     {"Class7037c0_Create",        0x00617ff0, (void *)&Class7037c0_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Class703750_Create",        0x00617970, (void *)&Class703750_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"VanillaTime_Save",          0x00403220, (void *)&VanillaTime_Save, {0x51, 0xe8, 0x7a, 0x2d, 0x1f}},
+    {"VanillaTime_Load",          0x00403260, (void *)&VanillaTime_Load, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Cell_ExtendPath",           0x0052a050, (void *)&Cell_ExtendPath, {0x55, 0x56, 0x8b, 0x74, 0x24}},
