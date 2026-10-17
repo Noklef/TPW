@@ -139,4 +139,7 @@ u32 __cdecl FreeGlobal87a248_5740e0();
 
 // 0x580500: frees the block the dword at 0x8bcbb8 points to (if any), clears it and returns 1 (0 when there was none).
 u32 __cdecl FreeGlobal8bcbb8_580500();
+
+// 0x58b040: frees the block the dword at 0x8c47d4 points to (if any), clears it and returns 1 (0 when there was none).
+u32 __cdecl FreeGlobal8c47d4_58b040();
 }  // extern "C"

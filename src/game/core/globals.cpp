@@ -248,4 +248,8 @@ u32 __cdecl FreeGlobal87a248_5740e0() {
 u32 __cdecl FreeGlobal8bcbb8_580500() {
     const u32 p = global<u32>(0x008bcbb8); if (!p) return 0; GameHeap_Free(reinterpret_cast<void *>(p)); global<u32>(0x008bcbb8) = 0; return 1;
 }
+
+u32 __cdecl FreeGlobal8c47d4_58b040() {
+    const u32 p = global<u32>(0x008c47d4); if (!p) return 0; GameHeap_Free(reinterpret_cast<void *>(p)); global<u32>(0x008c47d4) = 0; return 1;
+}
 }  // extern "C"
