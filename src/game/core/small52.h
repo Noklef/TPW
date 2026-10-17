@@ -12,4 +12,9 @@ void __fastcall ArrayHolder_Clear(u8 *object);
 // 0x5eb1a0 (thiscall; stream, pops 4): the eleven dwords at +0 .. +0x28 read from the stream (Object_CallSlot8Product with 4, 1). Returns true.
 u8 __fastcall Eleven_Read(u8 *object, void *, u8 *stream);
 
+// 0x5ea3f0 (cdecl; destination image, source image, x, y; images {width, height, bytes per pixel, data}): the destination is made over (Array3D_Realloc: the source's width
+// and height, one byte per pixel, cleared) and the part of the source that is left once it is moved by (x, y) (its rows and columns clamped to the source) is copied into it, the
+// first byte of each pixel, at (max(x, 0), max(y, 0)). Returns true.
+u8 __cdecl Image_CropInto(u8 *destination, u8 *source, s32 x, s32 y);
+
 }  // extern "C"

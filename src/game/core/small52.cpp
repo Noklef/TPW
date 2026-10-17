@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "gameheap.h"
+#include "small10.h"
 #include "small5.h"
 #include "vwrap.h"
 
@@ -27,6 +28,30 @@ void __fastcall ArrayHolder_Clear(u8 *object) {
         at<u32>(array, 8) = 0;
         at<u32>(array, 0xc) = 0;
     }
+}
+
+u8 Image_CropInto(u8 *destination, u8 *source, s32 x, s32 y) {
+    const s32 height = at<s32>(source, 4), width = at<s32>(source, 0);
+    const s32 lastRow = height - 1, lastColumn = width - 1;
+    auto start = [](s32 offset, s32 last) { return -offset <= last ? (-offset < 0 ? 0 : -offset) : last; };
+    auto end = [](s32 size, s32 offset, s32 last) { const s32 e = size - offset - 1; return e > last ? last : (e < 0 ? 0 : e); };
+    const s32 firstRow = start(y, lastRow), endRow = end(height, y, lastRow);
+    const s32 firstColumn = start(x, lastColumn), endColumn = end(width, x, lastColumn);
+    Array3D_Realloc(destination, nullptr, (u32)width, (u32)height, 1);
+    const s32 stride = at<s32>(destination, 0) * at<s32>(destination, 8);
+    u8 *row = at<u8 *>(destination, 0xc) + stride * (y < 0 ? 0 : y) + (x < 0 ? 0 : x);
+    for (s32 line = firstRow; line <= endRow; ++line) {
+        const u8 *from = at<u8 *>(source, 0xc) + (at<s32>(source, 0) * line + firstColumn) * at<s32>(source, 8);
+        u8 *to = row;
+        if (firstColumn <= endColumn) {
+            for (s32 n = endColumn - firstColumn + 1; n != 0; --n) {
+                *to++ = *from;
+                from += at<s32>(source, 8);
+            }
+        }
+        row += stride;
+    }
+    return 1;
 }
 
 u8 __fastcall Eleven_Read(u8 *object, void *, u8 *stream) {
