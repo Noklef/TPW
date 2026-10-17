@@ -164,4 +164,52 @@ void __fastcall RideUser_Acquire(u8 *user) {
         Holder_Wake(at<u8 *>(target, 8));
     at<u32>(user, 8) = 1;
 }
+
+u32 __cdecl Animator_Dispose(u8 *animator) {
+    if (at<u32>(animator, 0) & 0x4000)
+        Holder_Sleep(at<u8 *>(animator, 0x24));
+    Holder_Destroy(at<u8 *>(animator, 0x24));
+    at<s32>(at<u8 *>(animator, 0x3c), 0x1c) = at<s32>(at<u8 *>(animator, 0x3c), 0x1c) - 1;
+    if (at<s32>(at<u8 *>(animator, 0x3c), 0x1c) == 0) {
+        for (u32 i = 0; i < at<u16>(at<u8 *>(at<u8 *>(animator, 0x24), 4), 0x36); ++i) {
+            GlobalMem_Free(at<void *>(at<u8 *>(at<u8 *>(at<u8 *>(animator, 0x24), 4), 0x54), i * 0x10 + 0xc));
+            at<u32>(at<u8 *>(at<u8 *>(at<u8 *>(animator, 0x24), 4), 0x54), i * 0x10 + 0xc) = 0;
+        }
+    }
+    GlobalMem_Free(at<void *>(animator, 0x20));
+    at<u32>(animator, 0x20) = 0;
+    at<u32>(animator, 0) = at<u32>(animator, 0) & 0xffffdfff;
+    return 1;
+}
+
+u32 __cdecl Instance_Dispose(u8 *instance) {
+    if (u8 *const animator = at<u8 *>(instance, 0xb4)) {
+        if (at<u32>(animator, 0) & 0x4000)
+            Obj_RemoveRectAndClear14(animator, at<u32>(instance, 0xc0), at<u32>(instance, 0xc4));
+        HolderOwner_Dispose(at<u8 *>(instance, 0xb4));
+        at<u32>(instance, 0xb4) = 0;
+    }
+    for (u32 i = 0; i < at<u32>(instance, 0xa8); ++i) {
+        if (u8 *const part = at<u8 *const *>(instance, 0xac)[i])
+            GlobalMem_Free(at<void *>(part, 0x44));
+    }
+    u8 *const holder = at<u8 *>(instance, 8);
+    if (at<u32>(holder, 0) & 1) {
+        if (at<u32>(instance, 4) & 0x4000)
+            Obj_RemoveFromRect(holder, at<u32>(instance, 0xc0), at<u32>(instance, 0xc4));
+        else
+            Holder_Sleep(holder);
+    }
+    Holder_Dispose(at<u8 *>(instance, 8));
+    GlobalMem_Free(at<void *>(instance, 0xe0));
+    return 1;
+}
+
+void __cdecl Animator_InitUnusedOne() { *reinterpret_cast<float *>(0x0078ed8c) = 1.0f; }
+
+void __cdecl Animator_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x0078f47c) = 1.0f / 8388608.0f; }
+
+void __cdecl Instance_InitUnusedOne() { *reinterpret_cast<float *>(0x007a0174) = 1.0f; }
+
+void __cdecl Instance_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x007a086c) = 1.0f / 8388608.0f; }
 }

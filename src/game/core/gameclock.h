@@ -69,4 +69,9 @@ void __fastcall Clocks_Resume(u8 *clock);
 void __fastcall Clocks_TogglePause(u8 *clock);
 void __fastcall Clocks_SaveNow(u8 *clock);
 void __fastcall Clocks_RestoreNow(u8 *clock);
+
+// 0x4033e0 / 0x403400 (cdecl; names unconfirmed): static initialisers of two floats nothing reads: 0x785a04 = 1 and 0x785ddc = 1 / 2^23 (as
+// camera's).
+void __cdecl GameClock_InitUnusedOne();
+void __cdecl GameClock_InitUnusedEpsilon();
 }

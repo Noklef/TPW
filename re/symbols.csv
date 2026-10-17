@@ -143,6 +143,8 @@ address,name,kind,confidence,notes
 0x00879190,RSSE_ScriptVersion,data,medium,expected .RSE version (0x10F51)
 0x0046d6d0,MD2_Load,function,high,"loads a .md2 mesh: magic 0x1CD15D46, version <=0xDE; relocates ~18 header offsets and nested table pointers"
 0x00416e10,Save_FieldName,function,high,"reimplemented (src/game/core/savegame); stdcall (size, name, isLoad) debug stub: returns 0"
+0x00416e20,Save_InitUnusedOne,function,low,reimplemented (src/game/core/savegame); cdecl static initialiser: unused 0x78aa2c = 1.0f
+0x00416e40,Save_InitUnusedEpsilon,function,low,reimplemented (src/game/core/savegame); cdecl static initialiser: unused 0x78b11c = 1 / 2^23
 0x0041a860,TimeSig_Serialize,function,high,u32 mTimeSig
 0x00415f50,SaveGame_WriteHeader,function,high,"u8 language, 0x500 UTF-16 legal text, 0x100 block, u32 BE magic 0x01221985, u32 has-preview"
 0x00416240,SaveGame_ReadHeader,function,high,mirror of SaveGame_WriteHeader; rejects edited legal text
@@ -289,8 +291,9 @@ address,name,kind,confidence,notes
 0x00412ef0,ObjectDefs_FindAt390,function,high,"reimplemented (src/game/world/objectdefs); the found definition's +0x390 part, or 0"
 0x00412f50,ObjectDefs_FindAt410,function,high,"reimplemented (src/game/world/objectdefs); the found definition's +0x410 part, or 0"
 0x00412e70,ObjectDefs_Next,function,high,"reimplemented (src/game/world/objectdefs); thiscall; the definition after the walk cursor (+0x72c), which moves to it; 0 when the cursor is at count - 1 (+0x528) or beyond (signed)"
-0x00401030,BalanceFile_Init,function,high,"thiscall; base of every .sam-backed class: walks the key schema (vtable slot 0) and assigns each value a 4-byte slot of the storage (slot 1); tables reserve rows*keys+1"
-0x004013e0,BalanceFile_SetDefaults,function,medium,"type 6 -> min, type 9 -> fmin, others 0; 'InitialiseBalanceValues internal' error"
+0x00401030,BalanceFile_Init,function,high,"reimplemented (src/game/core/balancefile); thiscall: the values entries laid out from the schema (groups, strides, running index into the values at +8), then SetDefaults(1)"
+0x004013e0,BalanceFile_SetDefaults,function,high,reimplemented (src/game/core/balancefile); thiscall (keep): the values set to their schema defaults group by group; strings freed unless keep is 1
+0x00401250,BalanceFile_Release,function,low,"reimplemented (src/game/core/balancefile); thiscall: SetDefaults(0) when there are values, then the values block freed and cleared"
 0x004017a0,BalanceFile_Parse,function,medium,"parses Group.Key value lines; 'Balance file %s parse error', range checks per type"
 0x00412c90,ObjectDef_GetSchema,function,high,"reimplemented (src/game/world/objectdefs); thiscall (i), this unused: &key record i of the object .sam schema at 0x744b30 (0x3c bytes each)"
 0x004143f0,TrackType_GetSchema,function,high,"reimplemented (src/game/world/objectdefs); thiscall (i), this unused: &key record i of the track type .sam schema at 0x739ea8 (0x3c bytes each); BalanceTrack vtable 0x6fd8b0"
@@ -302,7 +305,7 @@ address,name,kind,confidence,notes
 0x004ca8c0,ObjectControls_GetWord18,function,high,reimplemented (src/game/world/objectdefs); the dword at +0x18 of an object control record of the game's table
 0x004e2740,Obj_FindControls,function,high,reimplemented (src/game/world/objectdefs); the object control record of an object in the game's table
 0x004ca740,ObjectDefs_PercentWithControls,function,high,reimplemented (src/game/world/objectdefs); the percentage of counted object definitions with controls
-0x00412c20,ObjectDef_Ctor,function,medium,vtable at +4 (0x6fd8a8) then BalanceFile_Init; zeroes runtime fields 0x494..0x500
+0x00412c20,ObjectDef_Ctor,function,high,reimplemented (src/game/world/objectdefs); thiscall: balance file at +4 (vtable 0x6fd8a8) laid out by BalanceFile_Init; runtime fields 0x494..0x500 zeroed; returns this
 0x00413c10,ObjectDefs_Load,function,medium,"allocates an ObjectDef (max 0x14a), copies the .sam path to +0x28c and parses it"
 0x00785040,gBalanceLevel,data,high,"BalanceLevel: Standard.sam values (static instance, ctor 0x402ae0)"
 0x00785828,gBalanceOnline,data,high,"BalanceOnline: Online.sam (ctor 0x402b50)"
@@ -311,12 +314,20 @@ address,name,kind,confidence,notes
 0x007858f0,gBalanceSound,data,high,"BalanceSound (ctor 0x402ca0)"
 0x00784e30,gBalanceHoardingsA,data,medium,"BalanceHoardings: Hoardings.sam or EndHoardings.sam (ctor 0x402a20)"
 0x00784c20,gBalanceHoardingsB,data,medium,"BalanceHoardings: the other of Hoardings.sam / EndHoardings.sam (ctor 0x402a90)"
-0x00402a50,BalanceHoardings_GetSchema,function,high,returns &key record i of the schema at 0x73fb40
-0x00402b10,BalanceLevel_GetSchema,function,high,returns &key record i of the schema at 0x73fc70
-0x00402b80,BalanceOnline_GetSchema,function,high,returns &key record i of the schema at 0x743f00
-0x00402bf0,BalanceGraphics_GetSchema,function,high,returns &key record i of the schema at 0x7442c0
-0x00402c60,BalanceResolution_GetSchema,function,high,returns &key record i of the schema at 0x744a40
-0x00402cd0,BalanceSound_GetSchema,function,high,returns &key record i of the schema at 0x746a20
+0x00402a50,BalanceHoardings_GetSchema,function,high,"reimplemented (src/game/core/balancefile); thiscall (i), this unused: &key record i of the schema at 0x73fb40"
+0x00402b10,BalanceLevel_GetSchema,function,high,"reimplemented (src/game/core/balancefile); thiscall (i), this unused: &key record i of the schema at 0x73fc70"
+0x00402b80,BalanceOnline_GetSchema,function,high,"reimplemented (src/game/core/balancefile); thiscall (i), this unused: &key record i of the schema at 0x743f00"
+0x00402bf0,BalanceGraphics_GetSchema,function,high,"reimplemented (src/game/core/balancefile); thiscall (i), this unused: &key record i of the schema at 0x7442c0"
+0x00402c60,BalanceResolution_GetSchema,function,high,"reimplemented (src/game/core/balancefile); thiscall (i), this unused: &key record i of the schema at 0x744a40"
+0x00402cd0,BalanceSound_GetSchema,function,high,"reimplemented (src/game/core/balancefile); thiscall (i), this unused: &key record i of the schema at 0x746a20"
+0x00402a70,BalanceHoardingsA_StaticDtor,function,low,"reimplemented (src/game/core/balancefile); cdecl, at exit: gBalanceHoardingsA (0x784e30) gets vtable 0x6fd618 back and is released"
+0x00402ac0,BalanceHoardingsB_StaticDtor,function,low,"reimplemented (src/game/core/balancefile); cdecl, at exit: gBalanceHoardingsB (0x784c20) gets vtable 0x6fd618 back and is released"
+0x00402b30,BalanceLevel_StaticDtor,function,low,"reimplemented (src/game/core/balancefile); cdecl, at exit: gBalanceLevel (0x785040) gets vtable 0x6fd620 back and is released"
+0x00402ba0,BalanceOnline_StaticDtor,function,low,"reimplemented (src/game/core/balancefile); cdecl, at exit: gBalanceOnline (0x785828) gets vtable 0x6fd628 back and is released"
+0x00402c10,BalanceGraphics_StaticDtor,function,low,"reimplemented (src/game/core/balancefile); cdecl, at exit: gBalanceGraphics (0x785868) gets vtable 0x6fd630 back and is released"
+0x00402c80,BalanceResolution_StaticDtor,function,low,"reimplemented (src/game/core/balancefile); cdecl, at exit: gBalanceResolution (0x7858e0) gets vtable 0x6fd638 back and is released"
+0x00402cf0,BalanceSound_StaticDtor,function,low,"reimplemented (src/game/core/balancefile); cdecl, at exit: gBalanceSound (0x7858f0) gets vtable 0x6fd640 back and is released"
+0x00412d40,ObjectDefBalance_Dtor,function,low,"reimplemented (src/game/core/balancefile); thiscall: vtable 0x6fd8a8 back, then BalanceFile_Release"
 0x005b0d60,BalanceFile_GetValues,function,high,reimplemented (src/game/core/accessors); the address of the part at 0x8
 0x00451640,HeightMap_LoadOrBuild,function,high,"loads <model>.hmp (magic 0xab1e0003, 0x00640005), rebuilds and rewrites it when missing or the footprint differs; result at model+0xcc"
 0x00451880,HeightMap_Build,function,high,"allocates header + w*h*0x1b bytes; 5x5 cells per tile, tile max heights, footprint flags"
@@ -499,7 +510,11 @@ address,name,kind,confidence,notes
 0x004745c0,Motion_ApplyUVs,function,high,"reimplemented (src/game/motion/uvanim); (state, track, add): per-UV keys around the whole frame lerped, set or added into the node's {u[4], v[4]} blocks (node +0x68)"
 0x00fb3540,gAdvisorScoring,data,high,"AdvisorScoring: advisor.sam values (mMinScoreForConsideration at 0xfb3560); guard bit 0xfb2766 & 1"
 0x004d1ce0,Challenges_LoadSam,function,medium,"reads data/challenges.sam into a stack BalanceChallenges (vtable 0x700398) and copies the challenges out"
-0x00414410,TrackType_LoadSam,function,low,"reads a track type .sam into a stack BalanceTrack (vtable 0x6fd8b0)"
+0x00414410,TrackTypeBalance_Dtor,function,low,"reimplemented (src/game/core/balancefile); thiscall: vtable 0x6fd8b0 back, then BalanceFile_Release"
+0x00423dc0,BalanceGraphics_Dtor,function,low,"reimplemented (src/game/core/balancefile); thiscall: vtable 0x6fd630 back, then BalanceFile_Release"
+0x00415e90,AdvisorScoring_GetSchema,function,low,"reimplemented (src/game/core/balancefile); thiscall (i), this unused: &key record i of the advisor scoring schema (0x72e120)"
+0x00415e80,AdvisorScoring_Dtor,function,low,reimplemented (src/game/core/balancefile); thiscall: the balance file at +0xc gets vtable 0x6fd958 back and is released
+0x00415e70,AdvisorScoring_StaticDtor,function,low,"reimplemented (src/game/core/balancefile); cdecl, at exit: AdvisorScoring_Dtor of gAdvisorScoring (0xfb3540)"
 0x00470c90,Motion_ApplyMaterial,function,high,"reimplemented (src/game/motion/keys); (model, table, state): last (frame, value) key at or before the frame set into the material record (+2), flagged +1 |= 4 on change"
 0x00470d10,Matrix_PreMul33,function,high,"reimplemented (src/game/math/matrix); m = r * m on the rotation part, r a packed row-major 3x3"
 0x00470e90,Motion_LerpPackedVertices,function,high,"reimplemented (src/game/motion/vertexanim); (block, positions, group, t, add): 10:10:10 keys * scale (+0x20) + offset (+0x14), lerped key -> key+1 into slot (12 * (slot >> 2) + (slot & 3)), axes 4 floats apart"
@@ -619,6 +634,8 @@ address,name,kind,confidence,notes
 0x007b4a14,gSpriteScriptsReady,data,high,"s32"
 0x007b4a18,gSpriteScriptCurrent,data,high,"the script the opcodes work on"
 0x00541f60,SpriteFolder_Count,function,high,"reimplemented (src/game/sprite/script); (folder): gSpriteFolders[folder].count"
+0x00475fa0,SpriteScripts_InitUnusedOne,function,low,reimplemented (src/game/sprite/script); cdecl static initialiser: unused 0x7b4a1c = 1.0f
+0x00475fc0,SpriteScripts_InitUnusedEpsilon,function,low,reimplemented (src/game/sprite/script); cdecl static initialiser: unused 0x7b4a20 = 1 / 2^23
 0x00876b48,gSprites,data,medium,"sprite*[]: the loaded sprites, gSpriteFolders[folder].first + index"
 0x00540ab0,SpriteDraw_Begin,function,high,"reimplemented (src/game/sprite/draw); empties the draw lists; camera heading 0x876b24 = Matrix_Heading of the camera (flags 0x16) or the camera angle wrapped to 0..2pi"
 0x00540b30,SpriteDraw_End,function,high,"reimplemented (src/game/sprite/draw); copies the list counts for the renderer; picks (0x532bd0) and hands the last pick to 0x7b05a8"
@@ -2264,6 +2281,8 @@ address,name,kind,confidence,notes
 0x00402dd0,Clocks_TogglePause,function,low,reimplemented (src/game/core/gameclock); thiscall; the game clock and the real-time clock at +0x50 toggled
 0x00402e60,Clocks_SaveNow,function,low,"reimplemented (src/game/core/gameclock); thiscall; both clocks' times kept to be put back to (+0x4c, +0x74)"
 0x00402e80,Clocks_RestoreNow,function,low,reimplemented (src/game/core/gameclock); thiscall; both clocks' times put back
+0x004033e0,GameClock_InitUnusedOne,function,low,reimplemented (src/game/core/gameclock); cdecl static initialiser: unused 0x785a04 = 1.0f
+0x00403400,GameClock_InitUnusedEpsilon,function,low,reimplemented (src/game/core/gameclock); cdecl static initialiser: unused 0x785ddc = 1 / 2^23
 0x004cdb60,CircBufU16_3_Ctor,function,high,"reimplemented (src/game/core/circbuf); thiscall: a CircBufU16 of 3 (four at park analyser +0x1f068): u16 +0 = 0, cursor +8 = -1, size +0xc = 3, wrapped +0x10 = 0"
 0x004ce9e0,CircBufU8_50_Ctor,function,high,"reimplemented (src/game/core/circbuf); thiscall: a CircBufU8 of 50: byte +0 = 0, cursor +0x34 = -1, size +0x38 = 50, wrapped +0x3c = 0"
 0x004ce290,CircBufU32_144_Push,function,high,"reimplemented (src/game/core/circbuf); thiscall (value): CircBufU32 of 144: cursor +0x244 on (0 at size +0x248, sets wrapped +0x24c), value at +4 + cursor * 4"
@@ -3527,6 +3546,8 @@ address,name,kind,confidence,notes
 0x00410b20,StdTree_DecB,function,high,reimplemented (src/game/core/stdtree); std::map iterator decrement (tree B)
 0x004107b0,StdTree_InsertB,function,high,"reimplemented (src/game/core/stdtree); std::map insert of a node with a word value (tree B, StdTreeB_KeyLess)"
 0x0040fe60,StdMapB_Insert,function,high,"reimplemented (src/game/core/stdtree); map insert of a 16-bit key with the sentinel 0x785de4 (tree B); the {iterator, inserted} result by Pair_Assign; returns it"
+0x00410be0,StdTree_InitUnusedOne,function,low,reimplemented (src/game/core/stdtree); cdecl static initialiser: unused 0x7899b4 = 1.0f
+0x00410c00,StdTree_InitUnusedEpsilon,function,low,reimplemented (src/game/core/stdtree); cdecl static initialiser: unused 0x78a0bc = 1 / 2^23
 0x00617f40,Class7037b8_Dtor,function,high,reimplemented (src/game/core/vdtor); frees the list of blocks
 0x005d48d0,Panel_Reset,function,high,reimplemented (src/game/gfx/imageops); fills the panel image and blends the six parts onto it
 0x00576620,Grid_AddObject,function,high,reimplemented (src/game/render/renderer); adds an object to every list in a rectangle of the grid
@@ -3922,6 +3943,12 @@ address,name,kind,confidence,notes
 0x0045bd00,Holder_Wake,function,high,reimplemented (src/game/model/holder); Puts the holder part back into the renderer slot list
 0x005d87d0,HolderUser_Acquire,function,high,reimplemented (src/game/model/holder); Puts the target holder back into the grid or the slot list
 0x005d8130,RideUser_Acquire,function,high,reimplemented (src/game/model/holder); The same for the target in the ride table
+0x00425510,Animator_Dispose,function,low,"reimplemented (src/game/model/holder); cdecl (animator): holder at +0x24 slept (flag 0x4000) and destroyed; counter +0x3c lowered, at 0 the model record blocks freed; +0x20 freed, flag 0x2000 cleared"
+0x00455ad0,Instance_Dispose,function,low,reimplemented (src/game/model/holder); cdecl (instance): owner +0xb4 out of the grid and disposed; parts +0xac blocks freed; holder +8 out of the renderer and disposed; +0xe0 freed
+0x004255b0,Animator_InitUnusedOne,function,low,reimplemented (src/game/model/holder); cdecl static initialiser: unused 0x78ed8c = 1.0f
+0x004255d0,Animator_InitUnusedEpsilon,function,low,reimplemented (src/game/model/holder); cdecl static initialiser: unused 0x78f47c = 1 / 2^23
+0x00455bf0,Instance_InitUnusedOne,function,low,reimplemented (src/game/model/holder); cdecl static initialiser: unused 0x7a0174 = 1.0f
+0x00455c10,Instance_InitUnusedEpsilon,function,low,reimplemented (src/game/model/holder); cdecl static initialiser: unused 0x7a086c = 1 / 2^23
 0x0046de00,Model_RemapTextures,function,high,"reimplemented (src/game/model/remap); (model, remap, textures, first): face texture pointers and grid cell textures renumbered"
 0x00469180,Highlight_Update,function,high,"reimplemented (src/game/model/highlight); releases the current holder (0x7a1ce0) for another target (0x7afda0), highlights the target: mesh vertex blocks copied into 0x7afd00"
 0x00469340,Highlight_SetTarget,function,high,reimplemented (src/game/model/highlight); 0x7afda0 = holder
@@ -3936,6 +3963,8 @@ address,name,kind,confidence,notes
 0x00469650,Highlight_Unflash,function,high,"reimplemented (src/game/model/highlight); stops a holder flashing, restoring its meshes"
 0x00469840,Highlight_PulseFlashing,function,high,reimplemented (src/game/model/highlight); pulses the flashing holders' colours (phase 0x7afd04)
 0x0045d610,Highlight_Point,function,high,reimplemented (src/game/model/highlight); the point at 0x7a1c90
+0x004698f0,Highlight_InitUnusedOne,function,low,reimplemented (src/game/model/highlight); cdecl static initialiser: unused 0x7afe1c = 1.0f
+0x00469910,Highlight_InitUnusedEpsilon,function,low,reimplemented (src/game/model/highlight); cdecl static initialiser: unused 0x7b0464 = 1 / 2^23
 0x0044a870,PartStates_Create,function,high,"reimplemented (src/game/model/partstate); (instance): the part states +0x28 for the model +4: animated parts (0x10/0x20) flagged, slots of 0x40 per animated face"
 0x0044aa10,PartStates_MarkNodes,function,high,"reimplemented (src/game/model/partstate); (instance, node, model): recursive; 0x20 on animated leaf entries, 0x40000000 on nodes without animated parts below; 1 if none"
 0x0044aae0,PartStates_Free,function,high,reimplemented (src/game/model/partstate); (instance): frees the part states +0x28

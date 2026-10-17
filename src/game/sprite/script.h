@@ -127,6 +127,11 @@ void __fastcall Sprite_GetAction(const u8 *sprite, void *edx, u32 action, u32 *i
 // 0x541f60 (folder): the folder's sprite count (gSpriteFolders, 0x763f88: 12-byte
 // entries, name, first index in gSprites (0x876b48), count).
 s32 __cdecl SpriteFolder_Count(u32 folder);
+
+// 0x475fa0 / 0x475fc0 (cdecl; names unconfirmed): static initialisers of two floats nothing reads: 0x7b4a1c = 1 and 0x7b4a20 = 1 / 2^23 (as
+// camera's).
+void __cdecl SpriteScripts_InitUnusedOne();
+void __cdecl SpriteScripts_InitUnusedEpsilon();
 }
 
 // SpriteScript_Run with the opcode call given (the game: call the address).

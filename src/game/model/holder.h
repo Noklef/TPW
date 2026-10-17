@@ -67,4 +67,25 @@ void __fastcall HolderUser_Acquire(u8 *user);
 
 // 0x5d8130 (thiscall; name unconfirmed): the same for a user whose target is the object in table 0x7a4610 at index [user+4], with the done flag at +8.
 void __fastcall RideUser_Acquire(u8 *user);
+
+// 0x425510 (cdecl; the animator; name unconfirmed): the holder at +0x24 sleeps when the animator has flag 0x4000 and is destroyed (Holder_Destroy); the count at +0x1c of the
+// object at +0x3c is lowered, and when it reaches 0 the +0xc blocks of the holder's model's (+4) +0x36 (u16) 16-byte records at +0x54 are freed and cleared; then the
+// block at +0x20 is freed and cleared and flag 0x2000 cleared. Returns 1.
+u32 __cdecl Animator_Dispose(u8 *animator);
+
+// 0x455ad0 (cdecl; the instance; name unconfirmed): the instance's owner at +0xb4 (when set) leaves the grid rectangle (+0xc0, +0xc4) when it has flag 0x4000
+// (Obj_RemoveRectAndClear14), is disposed of (HolderOwner_Dispose) and cleared; the +0x44 blocks of the +0xa8 parts at +0xac are freed; the holder at +8, when awake, is
+// taken out of the renderer (by the rectangle when the instance's flags at +4 have 0x4000, else Holder_Sleep) and disposed of (Holder_Dispose); the block at +0xe0 is freed.
+// Returns 1.
+u32 __cdecl Instance_Dispose(u8 *instance);
+
+// 0x4255b0 / 0x4255d0 (cdecl; names unconfirmed): static initialisers of two floats nothing reads: 0x78ed8c = 1 and 0x78f47c = 1 / 2^23 (as
+// camera's).
+void __cdecl Animator_InitUnusedOne();
+void __cdecl Animator_InitUnusedEpsilon();
+
+// 0x455bf0 / 0x455c10 (cdecl; names unconfirmed): static initialisers of two floats nothing reads: 0x7a0174 = 1 and 0x7a086c = 1 / 2^23 (as
+// camera's).
+void __cdecl Instance_InitUnusedOne();
+void __cdecl Instance_InitUnusedEpsilon();
 }

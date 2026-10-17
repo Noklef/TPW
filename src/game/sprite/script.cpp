@@ -616,3 +616,7 @@ extern "C" void __cdecl SpriteScripts_WrapSprites() {
         }
     }
 }
+
+extern "C" void __cdecl SpriteScripts_InitUnusedOne() { *reinterpret_cast<float *>(0x007b4a1c) = 1.0f; }
+
+extern "C" void __cdecl SpriteScripts_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x007b4a20) = 1.0f / 8388608.0f; }

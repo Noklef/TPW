@@ -100,4 +100,8 @@ u32 __stdcall DefField8_59c500(u32 v0);
 // and the byte +0x49c (its byte), and the first of kind 0xa +0x4a0 / +0x4a4 and +0x4a8 the same way (the kind 9 cell's when there is none); with no kind 9
 // cell those are 0, 0, 1, 0, 0 and 0x10. Then +0x4b0 / +0x4b4 = +0x30 / +0x34, the u16 +0 = +0x10 and +0x4ac = +0x4c.
 void __fastcall ObjectDef_FindMarkedCells(void *, void *, u8 **def);
+
+// 0x412c20 (thiscall; returns the definition): the balance file at +4 gets vtable 0x6fd8a8 and is laid out (BalanceFile_Init); the runtime
+// fields +0x494, +0x498, +0x4a0, +0x4a4, +0x4b0, +0x4b4, +0x4e0-+0x4f0 and +0x4f4-+0x500 are cleared.
+u8 *__fastcall ObjectDef_Ctor(u8 *def);
 }

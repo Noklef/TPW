@@ -165,4 +165,8 @@ void __fastcall Clocks_RestoreNow(u8 *clock) {
     GameClock_RestoreNow(clock);
     RealClock_RestoreNow(clock + 0x50);
 }
+
+void __cdecl GameClock_InitUnusedOne() { *reinterpret_cast<float *>(0x00785a04) = 1.0f; }
+
+void __cdecl GameClock_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x00785ddc) = 1.0f / 8388608.0f; }
 }
