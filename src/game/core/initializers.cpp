@@ -628,4 +628,16 @@ u8 *__fastcall Class6fefc8_Ctor(u8 *object) {
     at<u32>(object, 0x64) = 0;
     return object;
 }
+
+u8 *__fastcall Class703710_Ctor(u8 *object) {
+    Class7037e8_Ctor(object);
+    at<u32>(object, 0x6c) = 0;
+    at<u32>(object, 0x70) = 0;
+    at<u32>(object, 0x74) = 0;
+    at<u32>(object, 0x78) = 0;
+    at<u32>(object, 0x80) = 0;
+    at<u32>(object, 0x84) = 0x703730;
+    at<u32>(object, 0x0) = 0x703710;
+    return object;
+}
 }  // extern "C"
