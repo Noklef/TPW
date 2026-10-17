@@ -135,6 +135,9 @@ def case(r):
         put(navmem, base + 0x54, n)
         put(navmem, base + 0x5c, r.choice([(n - 1) & 0xffffffff, (n - 1) & 0xffffffff, 0, 1, 2, 4]) if n and n <= 5 else r.randrange(5))
         navmem[base + 0x60] = r.choice([0, 0, 1, r.getrandbits(8)])
+        point = struct.unpack_from('<I', navmem, base + 0x5c)[0]
+        if point < 5 and r.random() < 0.3:  # the point at the edge: an octagonal distance of radius + 1.0 (and 1 either side)
+            put(navmem, base + 0x64 + 8 * point, pos[0] + r.choice([-1, 1]) * (radius + 0x10000 + r.choice([-1, 0, 0, 1])), pos[1])
         return Call(0x50e0e0, [RAM, r.choice([OUT, OUT, nav + 8]), nav], regions, conv='t', ret='a')
     if op == 'Hit':
         if r.random() < 0.2:  # a zero discriminant: x 0, y under 2^18, a radius whose square is 0
