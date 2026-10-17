@@ -8,6 +8,7 @@
 #include "objectdefs.h"
 #include "things.h"
 #include "ridelist.h"
+#include "staff.h"
 
 namespace {
 
@@ -482,5 +483,134 @@ void __fastcall Things_NearestFlag80Close(const u8 *thing, void *, u16 *out) {
         handle = at<u16>(other, 0xc);
     }
     *out = best;
+}
+}  // extern "C"
+
+namespace {
+// The thing in slot (handle & 0xffff) of the thing table (as the finders read it inline, without Thing_ByHandle).
+u8 *slotThing(u16 handle) { return *reinterpret_cast<u8 *const *>(0x007cfb90 + 20 * static_cast<u32>(handle)); }
+
+u8 *categoryWorld() { return *reinterpret_cast<u8 *const *>(0x007cf83c); }
+
+// A staff list's next handle: the list head (first) when there is no previous thing, else the previous thing's link word at +0x210.
+u16 staffNext(const u8 *previous, u16 *(__fastcall *first)(const u8 *, void *, u16 *)) {
+    u16 out;
+    return previous ? *reinterpret_cast<const u16 *>(previous + 0x210) : *first(categoryWorld(), nullptr, &out);
+}
+
+}  // namespace
+
+extern "C" {
+
+u8 *__cdecl Things_FindNextOfCategory(s32 category, const u8 *previous) {
+    u8 *const world = categoryWorld();
+    u16 out;
+    switch (category) {
+    case 1: {   // the next staff member (kind 4-8) in the in-use list
+        u8 *found = nullptr;
+        u16 handle = *(previous ? World_NextThing(world, nullptr, &out, previous) : World_FirstThing(world, nullptr, &out));
+        while (handle && !found) {
+            u8 *const thing = slotThing(handle);
+            if (Thing_IsStaff(thing)) found = thing;
+            handle = *World_NextThing(world, nullptr, &out, thing);
+        }
+        return found;
+    }
+    case 2: {   // (the handymen's list: its head read inline)
+        const u16 handle = previous ? *reinterpret_cast<const u16 *>(previous + 0x210) : *reinterpret_cast<const u16 *>(world + 0x1da73c);
+        return handle ? Thing_ByHandle(handle) : nullptr;
+    }
+    case 4: {   // (the mechanics' list, its thing read from the table inline)
+        const u16 handle = staffNext(previous, &World_FirstMechanic);
+        return handle ? slotThing(handle) : nullptr;
+    }
+    case 8:
+    case 0x10:
+    case 0x20: {
+        const u16 handle = staffNext(previous, category == 8 ? &World_FirstGuard : category == 0x10 ? &World_FirstEntertainer : &World_FirstResearcher);
+        return handle ? Thing_ByHandle(handle) : nullptr;
+    }
+    case 0x40: {   // the next thing of kind 1
+        u8 *found = nullptr;
+        u16 handle = *(previous ? World_NextThing(world, nullptr, &out, previous) : World_FirstThing(world, nullptr, &out));
+        while (handle && !found) {
+            u8 *const thing = Thing_ByHandle(handle);
+            if (thing[2] == 1) found = thing;
+            handle = *World_NextThing(world, nullptr, &out, thing);
+        }
+        return found;
+    }
+    case 0x80: return Things_FindNextByDef4ac(0, previous);
+    case 0x100: return Things_FindNextByDef4ac(2, previous);
+    case 0x200: return Things_FindNextByDef4ac(1, previous);
+    case 0x400: return Things_FindNextByDef4ac(3, previous);
+    case 0x800: return Things_FindNextShopNoFlags(previous);
+    case 0x1000: return Things_FindNextShopFlag1(previous);
+    case 0x2000: return Things_FindNextWithDefWord(previous);
+    case 0x4000: return Things_FindNextWithDefWordUpgrade2(previous);
+    case 0x8000: return Things_FindNextKind3Flag2(previous);
+    default: return nullptr;
+    }
+}
+
+u8 *__cdecl Things_FindPrevOfCategory(s32 category, const u8 *previous) {
+    u8 *const world = categoryWorld();
+    u16 out;
+    switch (category) {
+    case 1: {   // the previous staff member; with no previous thing, from the oldest thing (found by walking the whole list: sic, a null thing
+                // when there are none)
+        u16 handle;
+        if (previous) {
+            handle = *World_PrevThing(world, nullptr, &out, previous);
+        } else {
+            u8 *last = nullptr;
+            for (u16 h = *World_FirstThing(world, nullptr, &out); h; h = *World_NextThing(world, nullptr, &out, last)) last = Thing_ByHandle(h);
+            Thing_GetHandle(last, nullptr, &handle);
+        }
+        u8 *found = nullptr;
+        while (handle && !found) {
+            u8 *const thing = Thing_ByHandle(handle);
+            if (Thing_IsStaff(thing)) found = thing;
+            handle = *World_PrevThing(world, nullptr, &out, thing);
+        }
+        return found;
+    }
+    case 2:
+    case 4:
+    case 8:
+    case 0x10:
+    case 0x20:
+    case 0x40: {   // (all of these: the previous thing of kind 1)
+        u8 *found = nullptr;
+        u16 handle = *(previous ? World_PrevThing(world, nullptr, &out, previous) : Things_LastHandle(&out));
+        while (handle && !found) {
+            u8 *const thing = slotThing(handle);
+            if (thing[2] == 1) found = thing;
+            handle = *World_PrevThing(world, nullptr, &out, thing);
+        }
+        return found;
+    }
+    case 0x80: return Things_FindPrevByDef4ac(0, previous);
+    case 0x100: return Things_FindPrevByDef4ac(2, previous);
+    case 0x200: return Things_FindPrevByDef4ac(1, previous);
+    case 0x400: return Things_FindPrevByDef4ac(3, previous);
+    case 0x800:
+    case 0x1000: {   // the previous shop (kind 3 object, definition word +0x284 0 and dword +0x4ac 3) with neither flag of +0x32 (0x800) / with flag 1 (0x1000)
+        u8 *found = nullptr;
+        u16 handle = *(previous ? World_PrevThing(world, nullptr, &out, previous) : Things_LastHandle(&out));
+        while (handle && !found) {
+            u8 *const thing = category == 0x800 ? slotThing(handle) : Thing_ByHandle(handle);
+            if (thing[2] == 3 && *Object_DefWord284(thing, nullptr, &out) == 0 && *reinterpret_cast<const s32 *>(Object_GetDef(thing) + 0x4ac) == 3 &&
+                (category == 0x800 ? (thing[0x32] & 3) == 0 : (thing[0x32] & 1) != 0))
+                found = thing;
+            handle = *World_PrevThing(world, nullptr, &out, thing);
+        }
+        return found;
+    }
+    case 0x2000: return Things_FindPrevWithDefWord(previous);
+    case 0x4000: return Things_FindPrevWithDefWordUpgrade2(previous);
+    case 0x8000: return Things_FindPrevKind3Flag2(previous);
+    default: return nullptr;
+    }
 }
 }  // extern "C"

@@ -125,4 +125,21 @@ void __fastcall Things_NearestRestArea(const u8 *thing, void *, u16 *out);
 // 0x501020 (thiscall on a thing; out word, pops 4): the same for the things with bit 0x80 in the flags whose ride (Rides_FindById of the dword at +0x24) has no element 0
 // (Rides_GetElement), and only within a squared distance of 4.
 void __fastcall Things_NearestFlag80Close(const u8 *thing, void *, u16 *out);
+
+// 0x4824d0 (cdecl; category, previous; name unconfirmed): the next thing of a category (one bit) after the previous one (from the first when 0), each by
+// its own finder: 1 a staff member (Thing_IsStaff) in the in-use list (World_FirstThing / World_NextThing); 2, 4, 8, 0x10, 0x20 the next in a staff
+// list: the head (the handymen's word world +0x1da73c read inline, World_FirstMechanic, World_FirstGuard, World_FirstEntertainer,
+// World_FirstResearcher on the world 0x7cf83c) or the previous one's link word at +0x210, its thing by Thing_ByHandle (4: read from the thing table
+// inline); 0x40 a thing of kind 1 in the in-use list (Thing_ByHandle); 0x80, 0x100, 0x200, 0x400 Things_FindNextByDef4ac with 0, 2, 1, 3; 0x800
+// Things_FindNextShopNoFlags; 0x1000 Things_FindNextShopFlag1; 0x2000 Things_FindNextWithDefWord; 0x4000 Things_FindNextWithDefWordUpgrade2; 0x8000
+// Things_FindNextKind3Flag2. Anything else: 0.
+u8 *__cdecl Things_FindNextOfCategory(s32 category, const u8 *previous);
+
+// 0x482da0 (cdecl; category, previous; name unconfirmed): the same backwards (World_PrevThing; from the oldest thing when previous is 0): 1 a staff
+// member, from the oldest found by walking the whole list forwards (Thing_ByHandle, Thing_GetHandle of the last: sic, of a null thing when there are
+// none); 2, 4, 8, 0x10, 0x20 and 0x40 all a thing of kind 1 (from Things_LastHandle, the thing table read inline); 0x80-0x400 Things_FindPrevByDef4ac
+// with 0, 2, 1, 3; 0x800 / 0x1000 inline: an object (kind 3) whose definition word +0x284 is 0 (Object_DefWord284) and dword +0x4ac 3
+// (Object_GetDef) and whose byte +0x32 has neither bit 0 nor 1 (0x800, the thing table read inline) / bit 0 (0x1000, Thing_ByHandle); 0x2000
+// Things_FindPrevWithDefWord; 0x4000 Things_FindPrevWithDefWordUpgrade2; 0x8000 Things_FindPrevKind3Flag2. Anything else: 0.
+u8 *__cdecl Things_FindPrevOfCategory(s32 category, const u8 *previous);
 }  // extern "C"
