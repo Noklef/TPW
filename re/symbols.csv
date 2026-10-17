@@ -465,6 +465,8 @@ address,name,kind,confidence,notes
 0x00585710,Landscape_SetDetail,function,high,"reimplemented (src/game/terrain/landscape); thiscall (level): +0x2ec8, the detail level (option 0x785888)"
 0x00585ef0,Landscape_List,function,high,reimplemented (src/game/terrain/landscape); thiscall: +0x1fd0
 0x00585f00,Landscape_Point,function,high,reimplemented (src/game/terrain/landscape); thiscall: the point at +0x1fa0
+0x00585e20,Landscape_FreeTextures,function,low,"reimplemented (src/game/terrain/landscape); thiscall: the three texture arrays at +0x1fd0..+0x1fd8 released, destroyed and cleared; returns 1 (name unconfirmed)"
+0x005851d0,Landscape_RemoveTexture,function,low,"reimplemented (src/game/terrain/landscape); thiscall (textures): the entry holding the array found (from one past the last), the array released and destroyed, the last entry swapped in (name unconfirmed)"
 0x005720d0,TerrainTexCache_Ctor,function,high,"reimplemented (src/game/terrain/texcache); the tile cache cleared, 0x40 tiles"
 0x00572350,TerrainTexCache_Dtor,function,low,"reimplemented (src/game/terrain/texcache); thiscall: the tiles' texture arrays, the tiles and the landscape freed (name unconfirmed)"
 0x00536490,MapCell_Reset,function,high,"default type/flags from the attribute byte: outside park 2/0x1e/7, inside 1 (path, bit 0x08) or 0; 0x10 -> flags 0x80, 0x04 -> flags 0x400"
@@ -1645,6 +1647,8 @@ address,name,kind,confidence,notes
 0x00468250,GamePaths_FontsFolder,function,low,"reimplemented (src/game/files/gamepaths); cdecl (out); the root folder's string (0xf816c0) with ""Data\Fonts"" by sprintf (""%s%s"" after a trailing ""\"", else ""%s\%s""): 1; no text: 0"
 0x004688b0,GamePaths_SetTextureFolders,function,low,reimplemented (src/game/files/gamepaths); The texture and shared texture folder names printed by detail
 0x005c7bd0,GamePaths_SaveFolder,function,low,"reimplemented (src/game/files/gamepaths); stdcall (out); out = the root folder (wide) + the global wide ""save"" (0xf818d8); returns out"
+0x005c7c70,GamePaths_UsersFolder,function,low,"reimplemented (src/game/files/gamepaths); stdcall (out): the save folder with ""\"" and ""users"" appended, copied into out; returns out (name unconfirmed)"
+0x005c8980,GamePaths_OnlineFolder,function,low,"reimplemented (src/game/files/gamepaths); stdcall (out): the save folder with ""\"" and ""online"" appended, copied into out; returns out (name unconfirmed)"
 0x005c53c0,DirEntry_IsWad,function,low,"reimplemented (src/game/files/direntry); cdecl (entry); whether the entry's name ends in the global "".wad"" String (0xf80808, Names_Equal)"
 0x0055e470,CpuInfo_Ctor,function,high,"reimplemented (src/game/core/cpuinfo); thiscall; CPUID probe (EFLAGS.ID test, then the vendor string and features); SystemInfo's base"
 0x0067df40,CRT_stricmp,function,high,"MSVC CRT _stricmp: A-Z folded, or the locale's tolower when one is set"
@@ -3342,6 +3346,7 @@ address,name,kind,confidence,notes
 0x005e2310,Obj_KeyMessageToSlots,function,low,"reimplemented (src/game/core/vwrap); slot 5 (+0x14) of the vtables 0x702cb0, 0x702dd0 and 0x702ec0: messages 0x10005 (key 0) and 0x1000b (keys 0xd, 0x2500, 0x2700) call the object's slots 0x40 / 0x3c / 0x38"
 0x00569e10,Global879acc_Create,function,low,"reimplemented (src/game/core/vwrap); cdecl: when [0x879acc] is 0, a new 0x38-byte object (vbtable 0x701410, its virtual base Class701260 at +8 with the vtable 0x7013c8 and 0x1000 at +0xc) whose base part is stored there and has slot 1 called, 1; 0 when there was one or the allocation failed (the error (3, 0xb0754000) pushed)"
 0x005666f0,Global879ac0_Create,function,low,"reimplemented (src/game/core/vwrap); cdecl: when [0x879ac0] is 0, a new 0x5c-byte Class701378 (most derived) whose virtual base part is stored there and has slot 1 called, 1; 0 when there was one or the allocation failed (the error (3, 0xb0754000) pushed)"
+0x005c5000,Object_CallSlot14,function,low,reimplemented (src/game/core/vwrap); cdecl (object): a jump to the object's slot 0x14; returns what it returns (name unconfirmed)
 0x005e3b90,Class702d48_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor that registers the object with a global one
 0x005e3c00,Class702d48_Release,function,high,reimplemented (src/game/core/vdtor); releases the object from a global one
 0x005e3bd0,Class702d48_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor that releases the object from a global one
@@ -3941,8 +3946,10 @@ address,name,kind,confidence,notes
 0x00575bd0,TexSet_Ctor,function,high,"reimplemented (src/game/gfx/texset); thiscall (a texture set, 16 bytes): all zero; returns the set"
 0x00575f90,TexSet_Texture,function,high,"reimplemented (src/game/gfx/texset); thiscall (i): texture i, [+8][i]"
 0x00575fa0,TexSet_TextureSlot,function,high,reimplemented (src/game/gfx/texset); thiscall (i): &[+8][i]
+0x00575f00,TexSet_Release,function,low,"reimplemented (src/game/gfx/texset); thiscall: one user less; the last frees the textures (a shared array released and destroyed, else each released from the texture manager) and the list; returns 1 then, else 0 (name unconfirmed)"
 0x00575b80,TexManager_SetLoadFlags,function,high,"reimplemented (src/game/gfx/texman); thiscall (the texture manager, [0x87a268]; flags): +0x10008 = flags for the next load (2: mip levels), replacing the old ones"
 0x00574b10,TexManager_Destroy,function,low,"reimplemented (src/game/gfx/texman); cdecl: the texture manager at [0x87a268] (0 without one): each slot's texture array released then destroyed (released twice, sic), the manager freed and the global cleared; returns 1 (name unconfirmed)"
+0x00575ad0,TexManager_ReleaseTexture,function,low,"reimplemented (src/game/gfx/texman); thiscall (textures): the slot holding the array found from the last, its users decremented; at 0 the array released and the last slot moved over it, 1; else 0 (name unconfirmed)"
 0x00590cb0,Texture_UpdateWrapMask,function,high,"reimplemented (src/game/gfx/texture); thiscall (a texture): +0x44 = (height - 1) << 8 | (width - 1) when both (s16 +0x14 / +0x16) are powers of two, else -1"
 0x00590cf0,Texture_Level,function,high,"reimplemented (src/game/gfx/texture); thiscall: the flags' low 3 bits when 0x30 are set, else by the width (above 128 0 ... at most 8: 5)"
 0x00590f80,Texture_ClearCacheFlags,function,high,"reimplemented (src/game/gfx/texture); thiscall: flags (+8) 0x1000, 0x2000 and 0x4000 cleared"
@@ -3961,6 +3968,8 @@ address,name,kind,confidence,notes
 0x00588ca0,SpriteImage_Release,function,low,reimplemented (src/game/gfx/spriteframe); thiscall: the image's pixels and textures released (name unconfirmed)
 0x00588d90,SpriteFrame_SetSize,function,low,"reimplemented (src/game/gfx/spriteframe); thiscall (width, height): the image's textures freed when the size at +0x34 changes (name unconfirmed)"
 0x00588e40,SpriteFrame_SetSize30,function,low,"reimplemented (src/game/gfx/spriteframe); thiscall (width, height): the same for the size at +0x30 (name unconfirmed)"
+0x00588350,SpriteImage_Dtor,function,low,reimplemented (src/game/gfx/spriteframe); thiscall: as SpriteImage_Release (0x588ca0) without the return value; the image array's destructor (name unconfirmed)
+0x00588230,SpriteFrames_Free,function,low,"reimplemented (src/game/gfx/spriteframe); thiscall: a frame set's texture array, images (each +0 cleared first) and tracked block freed, its count cleared; returns 1 (name unconfirmed)"
 0x005906e0,AnimTextures_Set,function,high,"reimplemented (src/game/gfx/animtex); cdecl (frames 6 x 256, counts 6): the six animated textures' frames (0x8c4b98) and frame counts (0x8c4b80) copied in"
 0x00590730,AnimTextures_Clear,function,high,reimplemented (src/game/gfx/animtex); the six animated textures' frame counts (0x8c4b80) cleared
 0x00591d30,WaveletCodec_PutCoefficient,function,high,reimplemented (src/game/gfx/wavelet); writes a coefficient as a byte or 0x80 and a word
@@ -3986,6 +3995,7 @@ address,name,kind,confidence,notes
 0x0058b790,TexSurfaceA_ReleaseSurfaces,function,low,"reimplemented (src/game/gfx/texsurface); thiscall on class A's sub-object; the COM surfaces of its two arrays released (slot 2) and cleared, last index first; ECX - 0x18 cleared; 1"
 0x0058c8d0,TexSurfaceB_Zero,function,low,"reimplemented (src/game/gfx/texsurface); thiscall, this unused: 0.0f from 0x702248 on ST0 (name unconfirmed)"
 0x0058c710,TexSurfaceB_FreePixels,function,low,"reimplemented (src/game/gfx/texsurface); thiscall on class B's sub-object: the pixels at ECX - 0xc freed (TrackedGlobal_Free) unless the base's flags have 0x10000000, and cleared (name unconfirmed)"
+0x0058c670,TexSurfaceB_AllocPixels,function,low,"reimplemented (src/game/gfx/texsurface); thiscall (width, height, -, -; pops 0x10): without pixels, a square from the texture pages (flag 0x10000000 when cut from an old one) and the base's size set; 1 when got (name unconfirmed)"
 0x005e7740,Array3D_Fill,function,high,"reimplemented (src/game/gfx/array3d); fills the pixels with a colour (4 bytes: d, a, b, c; 1 byte: d)"
 0x005e77c0,Array3D_CopyTo,function,high,reimplemented (src/game/gfx/array3d); copies the pixel bytes to another buffer
 0x005e77f0,Array3D_ReverseBytes,function,high,reimplemented (src/game/gfx/array3d); reverses the bytes of each 4-byte pixel
@@ -3994,6 +4004,7 @@ address,name,kind,confidence,notes
 0x0049a8f0,StatsGraph_ShownMin,function,low,"reimplemented (src/game/gfx/statsgraph); the least sample of the shown lines of the park statistics graph within its window, from 0"
 0x00564790,RleImage_DrawScaled,function,low,"reimplemented (src/game/gfx/rleimage); thiscall (adjusted image: codes -0x14, palette -0x10, width -0xc, height -8; dest {pixels, width, height, pitch}), pops 4: run-length rows through the palette, scaled by x / y steps into dest; returns 1"
 0x005f4370,TexSprite_Ctor,function,low,"reimplemented (src/game/gfx/texsprite); thiscall (image, a, b, c, d, pops 0x14): the decoded texture sprite 0x703088 built: a new frame for the image in the array 0x879ce0 (+0x28, its flags | 1 | 0x30000), +0x14/+0x1c/+0x20/+0x24 = a/b/c/d, +0x2c = 0, appended to the list at [0xfa6e38]; returns the object"
+0x0058c3c0,TexAtlas_Alloc,function,low,"reimplemented (src/game/gfx/texatlas); cdecl (out, size): a square cut from the 256 x 256 texture pages (the free rectangles at 0x8c4928), a new page made when none fits (name unconfirmed)"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
@@ -4124,6 +4135,7 @@ address,name,kind,confidence,notes
 0x0057d910,WeatherFx_SetDropCount,function,high,"reimplemented (src/game/render/weatherfx); thiscall (the weather renderer, [0x8bcbac]; count): +0x3318 = how many drops fall"
 0x0057dc40,WeatherFx_SetFallSpeed,function,high,"reimplemented (src/game/render/weatherfx); thiscall (speed): the fall speed of each kind showing (+0x3338 when bit 1 of +0, +0x333c when bit 2)"
 0x0057dc70,WeatherFx_RequestReload,function,high,"reimplemented (src/game/render/weatherfx); thiscall: +4 = 1, the textures to be reloaded (0x57d850 clears it)"
+0x0057d720,WeatherFx_FreeTextures,function,low,"reimplemented (src/game/render/weatherfx); thiscall: the three texture arrays at +0x3348..+0x3350 released, destroyed and cleared; returns 1 (name unconfirmed)"
 0x00576260,Renderer_SetRestoreCallback,function,high,"reimplemented (src/game/render/renderer); thiscall (the renderer, [0x87a6d0]; fn): +0x78 = fn, called when the display device generation moves on (0x576c26)"
 0x005763f0,Renderer_SetStateFlags,function,high,"reimplemented (src/game/render/renderer); thiscall (flags): +0x48, the render state flags (0x1f31 by default)"
 0x00576400,Renderer_StateFlags,function,high,"reimplemented (src/game/render/renderer); thiscall: +0x48, the render state flags"
@@ -4138,6 +4150,7 @@ address,name,kind,confidence,notes
 0x005777a0,Backdrop_Clear5c,function,high,"reimplemented (src/game/render/backdrop); thiscall (the tiled backdrop, 0x87aee8): +0x5c = 0"
 0x00577940,Backdrop_SetRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the rectangle drawn into, +0x20..+0x2c, and flag 2 in +0"
 0x00577970,Backdrop_SetSourceRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the part of the image drawn, +0x30..+0x3c"
+0x00577990,Backdrop_UncacheRect,function,low,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1): the tiles of the pixel rectangle (divided by 64 toward 0, ends included) unlinked from the texture cache (name unconfirmed)"
 0x00579c70,MeshQueue_Clear,function,high,"reimplemented (src/game/render/meshqueue); thiscall (the first mesh queue, 0x8bb220): +0x400 = 0, emptied"
 0x0057c260,MeshQueue2_Init,function,high,reimplemented (src/game/render/meshqueue); static initialiser: the second mesh queue (0x8bb638) emptied
 0x0057c270,MeshQueue2_Add,function,high,"reimplemented (src/game/render/meshqueue); thiscall (the second mesh queue; mesh): appended when there is room (0x100); 1, or 0 when full"
@@ -4293,6 +4306,14 @@ address,name,kind,confidence,notes
 0x005b64a0,Online_UserName,function,high,"reimplemented (src/game/online/session); thiscall u16*: the online user's name (+0x44, wide)"
 0x005b64b0,Online_UserFlags,function,high,reimplemented (src/game/online/session); thiscall u32: the online user's flags (+0x58)
 0x005b64c0,Online_User5c,function,high,reimplemented (src/game/online/session); thiscall u32: the online user's +0x5c
+0x005b64d0,Online_ReleaseLogin,function,low,"reimplemented (src/game/online/session); thiscall: the Auth connection (+0) released, destroyed and freed, +0 cleared (name unconfirmed)"
+0x005b6b20,Online_ReleaseNews,function,low,"reimplemented (src/game/online/session); thiscall: the News connection (+0x6c) released, destroyed and freed, +0x6c cleared (name unconfirmed)"
+0x005b6980,Online_ResetNews,function,low,"reimplemented (src/game/online/session); thiscall: the News connection released, the news fields reset and its strings emptied (name unconfirmed)"
+0x005b83e0,Online_ReleaseUpload,function,low,reimplemented (src/game/online/session); thiscall: the Upload connection (+0x104) released and cleared (name unconfirmed)
+0x005b8400,Online_ResetUpload,function,low,"reimplemented (src/game/online/session); thiscall: the Upload connection released, the upload fields reset and its strings emptied (name unconfirmed)"
+0x005b9040,Online_ResetDownload,function,low,"reimplemented (src/game/online/session); thiscall: the download's object deleted, its block freed, its fields reset and string emptied (name unconfirmed)"
+0x005b7b80,Auth_DeletingDtor,function,low,"reimplemented (src/game/online/session); thiscall (flags): ~Auth (import), freed with flag 1; returns the Auth (name unconfirmed)"
+0x005b62e0,Online_LoginResult,function,low,"reimplemented (src/game/online/session); thiscall (status, -, -, record): on 60 the user's record copied in and logged in, else the error code set (name unconfirmed)"
 0x005bc9c0,Owner2c_FindByKey,function,high,reimplemented (src/game/online/itemlist); the last item of the owner's list whose +8 is the key
 0x005bcb60,Owner2c_At,function,high,reimplemented (src/game/online/itemlist); the index'th item of the owner's list
 0x005bd270,Owner2c_ValueByKey,function,high,reimplemented (src/game/online/itemlist); the +0x14 of the last item whose +8 is the key

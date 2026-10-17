@@ -78,6 +78,8 @@ u32 __fastcall Obj_ForwardToMember10(u8 *object, void *, u8 *a) {
     return (u32)(uintptr_t)a;
 }
 
+u32 __cdecl Object_CallSlot14(u8 *object) { return vcall<u32>(object, 0x14); }
+
 u32 __cdecl Object_FinishAndDelete(u8 *object) {
     vcall<u32>(object, 4);
     if (object)

@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <initializer_list>
 
+#include "texatlas.h"
 #include "texcache.h"
 #include "../core/vcall.h"
 #include "../core/gameheap.h"
@@ -14,6 +15,9 @@ template <typename T> T &back(const void *p, u32 offset) { return *reinterpret_c
 
 // The virtual base's offset, from the vtable pointer at the object's start.
 u32 BaseOffset(const u8 *surface) { return at<u32>(at<const u8 *>(surface, 0), 4); }
+
+// Class B's virtual base offset from its sub-object (the vbtable pointer at ECX - 0x10).
+u32 SubBaseOffset(const u8 *sub) { return at<u32>(back<const u8 *>(sub, 0x10), 4); }
 
 }  // namespace
 
@@ -79,6 +83,22 @@ u32 __fastcall TexSurfaceB_FreePixels(u8 *sub) {
             TrackedGlobal_Free(pixels);
         back<u32>(sub, 0xc) = 0;
     }
+    return 1;
+}
+
+u32 __fastcall TexSurfaceB_AllocPixels(u8 *sub, void *, u32 width, u32 height, u32, u32) {
+    if (back<u32>(sub, 0xc))
+        return 0;
+    const u32 fresh = TexAtlas_Alloc(&back<u32>(sub, 0xc), static_cast<s32>(width));
+    *reinterpret_cast<u32 *>((uintptr_t)0x008c4898) = height * width * 4;
+    if (!back<u32>(sub, 0xc))
+        return 0;
+    if (!fresh)
+        back<u32>(sub + SubBaseOffset(sub), 0xc) |= 0x10000000;
+    back<u32>(sub + SubBaseOffset(sub), 8) = width;
+    back<u32>(sub + SubBaseOffset(sub), 4) = height;
+    at<u32>(sub + SubBaseOffset(sub), 0) = 0x100;
+    back<u32>(sub, 8) = reinterpret_cast<const u32 *>((uintptr_t)0x00702220)[*reinterpret_cast<const u32 *>((uintptr_t)0x008bd554)];
     return 1;
 }
 

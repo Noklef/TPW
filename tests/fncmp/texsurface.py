@@ -12,8 +12,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put, vtable  # noqa: E402
 
 B = Bench([(0x58b300, 0x58b330), (0x58b3e0, 0x58b464), (0x58c610, 0x58c66a), (0x58c2c0, 0x58c2c4), (0x58b790, 0x58b805), (0x58c2a0, 0x58c2a8), (0x58c2e0, 0x58c2f2), (0x58c330, 0x58c334), (0x58c8a0, 0x58c8a4), (0x58c8b0, 0x58c8c2), (0x58c8d0, 0x58c8d7), (0x5738d0, 0x57393c), (0x573e70, 0x573edc), (0x67acc0, 0x67acc1),
-           (0x58c710, 0x58c741), (0x579b40, 0x579c13)])
-CALLS = {'CtorA': 0x58b3e0, 'CtorB': 0x58c610, 'A38': 0x58c2c0, 'AArea': 0x58c2e0, 'A10': 0x58c330, 'BC': 0x58c8a0, 'BArea': 0x58c8b0, 'BZero': 0x58c8d0, 'NewA': 0x5738d0, 'NewB': 0x573e70, 'ARelease': 0x58b790, 'WRelease': 0x58c2a0, 'BFree': 0x58c710}
+           (0x58c710, 0x58c741), (0x579b40, 0x579c13), (0x58c670, 0x58c703), (0x58c3c0, 0x58c605)])
+CALLS = {'CtorA': 0x58b3e0, 'CtorB': 0x58c610, 'A38': 0x58c2c0, 'AArea': 0x58c2e0, 'A10': 0x58c330, 'BC': 0x58c8a0, 'BArea': 0x58c8b0, 'BZero': 0x58c8d0, 'NewA': 0x5738d0, 'NewB': 0x573e70, 'ARelease': 0x58b790, 'WRelease': 0x58c2a0, 'BFree': 0x58c710,
+         'BAlloc': 0x58c670}
 SUB = RAM + 0x100
 VB = RAM + 0x1000
 COM, VTC = RAM + 0x400, RAM + 0x800
@@ -60,6 +61,20 @@ def case(r):
         regions = {RAM: obj, VB: struct.pack('<ii', 0, off), HEAP: heap(), **global_heap(), 0x8bb214: struct.pack('<I', r.choice([0, 1, 2, 4])),
                    0x87b1f8: pairs}
         return Call(0x58c710, [SUB], regions, conv='t', ret='a')
+    if op == 'BAlloc':   # the pixels (ECX - 0xc) none or some; a square from the free rectangles (texatlas.py's) or a new page (failing now and then)
+        put(obj, 0x100 - 0xc, 'I', 0 if r.random() < 0.85 else r.getrandbits(32))
+        off = r.choice([0x10, 0x10, 0x14, 0x20, 0, -0x10])
+        size = r.choice([1, 4, 16, 64, 128, 0xff, 0x100, 0x200, r.randrange(1, 0x100)])
+        free = bytearray(0x210)
+        for k in range(32):
+            side = lambda: r.choice([size, size, size + 1, size - 1, 0x100, r.randrange(0, 0x101)]) & 0xffffffff
+            struct.pack_into('<4I', free, 16 * k, r.randrange(0, 0x100), r.randrange(0, 0x100), side(), side())
+        struct.pack_into('<3I', free, 0x200, r.choice([HEAP + 0x1000, 0x10000000]), r.getrandbits(8), r.choice([0, 1, 2, 3, 5]))
+        fail = r.random() < 0.4
+        regions = {RAM: obj, VB: struct.pack('<ii', 0, off), HEAP: heap(0x100 if fail else 0x40100, 1 if fail else 0), **global_heap(),
+                   0x8bb214: struct.pack('<I', r.choice([0, 1, 2])), 0x87b1f8: r.bytes(0x20), 0x8c4928: free, 0x8c4898: r.bytes(4),
+                   0x8bd554: struct.pack('<I', r.randrange(4)), 0x702220: r.bytes(0x10)}
+        return Call(0x58c670, [SUB, size, r.choice([1, 2, 16, 64, size]), r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='a')
     if op == 'BZero':
         return Call(0x58c8d0, [SUB], {RAM: obj, 0x702240: put(bytearray(r.bytes(0x10)), 8, 'I', r.f())}, conv='t', ret='d')
     return Call(CALLS[op], [SUB], {RAM: obj, VB: vb}, conv='t', ret='a')

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "texcache.h"
 #include "texture.h"
@@ -27,6 +28,14 @@ void FreeTextures(u8 *image) {
     DestroyArray(at<u8 *>(image, 0));
     at<u32>(image, 0) = 0;
     at<u16>(image, 0x16) = 0;
+}
+
+void __fastcall DestroyImage(void *image) { SpriteImage_Dtor(static_cast<u8 *>(image)); }
+
+// A count-prefixed array of 0x18-byte images destroyed (0x588350 on each, the last first) and freed.
+void ImageArray_Destroy(u8 *images) {
+    CRT_VectorDtorIterator(images, 0x18, at<s32>(images, (u32)-4), DestroyImage);
+    GameHeap_Free(images - 4);
 }
 
 }  // namespace
@@ -83,6 +92,28 @@ u32 __fastcall SpriteImage_Release(u8 *image) {
         DestroyArray(at<u8 *>(image, 0));
         at<u32>(image, 0) = 0;
     }
+    return 1;
+}
+
+void __fastcall SpriteImage_Dtor(u8 *image) { SpriteImage_Release(image); }
+
+u32 __fastcall SpriteFrames_Free(u8 *set) {
+    if (u8 *const textures = at<u8 *>(set, 8)) {
+        Texture_DestroyArray(textures);
+        at<u32>(set, 8) = 0;
+    }
+    if (at<u8 *>(set, 4)) {
+        for (s32 i = 0; i < at<s32>(set, 0); ++i)
+            at<u32>(at<u8 *>(set, 4), i * 0x18) = 0;
+        if (u8 *const images = at<u8 *>(set, 4))
+            ImageArray_Destroy(images);
+        at<u32>(set, 4) = 0;
+    }
+    if (at<u32>(set, 0xc)) {
+        TrackedGlobal_Free(at<u32>(set, 0xc));
+        at<u32>(set, 0xc) = 0;
+    }
+    at<u32>(set, 0) = 0;
     return 1;
 }
 

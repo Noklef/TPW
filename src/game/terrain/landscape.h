@@ -1,5 +1,5 @@
-// The landscape renderer's accessors: reimplementation of 0x5856e0, 0x585710, 0x585ef0 and
-// 0x585f00.
+// The landscape renderer's accessors and texture releases: reimplementation of 0x5856e0, 0x585710, 0x585ef0, 0x585f00, 0x585e20
+// and 0x5851d0.
 //
 // The landscape renderer is the object at 0x8c1828 (its grids from +0x360 and +0x1760, the size
 // at +0x21e0 / +0x21e4; 0x5856c0 sets its +0x1f68 to 300.0 and rebuilds it). +0x1f70 holds four
@@ -23,4 +23,14 @@ u32 __fastcall Landscape_List(const u8 *landscape);
 
 // 0x585f00 (thiscall): the point at +0x1fa0.
 u8 *__fastcall Landscape_Point(u8 *landscape);
+
+// 0x585e20 (thiscall; name unconfirmed): the three texture arrays at +0x1fd0, +0x1fd4 and +0x1fd8, each when set: its first texture
+// released (Texture_Release), the array destroyed when still set (Texture_DestroyArray), the field cleared. Returns 1.
+u32 __fastcall Landscape_FreeTextures(u8 *landscape);
+
+// 0x5851d0 (thiscall; textures; name unconfirmed): the 0x20-byte entries from +0x1fdc (their texture array first), the count at
+// +0x21dc. The entry holding textures is looked for from entry[count] (one past the last, sic) down to the first: none (or a
+// negative count) 0. Found, its array is cleared, released and destroyed when set, the count lowered and, unless that leaves 0,
+// the entry swapped with entry[count] (the new last; entry[-1] when the count was 0, sic). Returns 1.
+u32 __fastcall Landscape_RemoveTexture(u8 *landscape, void *, u8 *textures);
 }

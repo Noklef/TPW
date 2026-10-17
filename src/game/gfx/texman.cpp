@@ -39,5 +39,23 @@ u32 __cdecl TexManager_Destroy() {
     return 1;
 }
 
+u32 __fastcall TexManager_ReleaseTexture(u8 *manager, void *, u8 *textures) {
+    s32 i = at<s32>(manager, 0x10000) - 1;
+    while (i >= 0 && at<u8 *>(manager, 0x10 * i + 8) != textures)
+        --i;
+    if (i < 0)
+        return 0;
+    u8 *const slot = manager + 0x10 * i;
+    if (--at<s32>(slot, 0xc) != 0)
+        return 0;
+    Texture_Release(at<u8 *>(slot, 8));
+    if (u8 *const array = at<u8 *>(slot, 8))
+        Texture_DestroyArray(array);
+    const s32 last = --at<s32>(manager, 0x10000);
+    for (u32 offset = 0; offset < 0x10; offset += 4)
+        at<u32>(slot, offset) = at<u32>(manager, 0x10 * last + offset);
+    return 1;
+}
+
 void __fastcall TexManager_SetLoadFlags(u8 *manager, void *, u32 flags) { at<u32>(manager, 0x10008) = flags; }
 }

@@ -1,5 +1,5 @@
 // The sprite frames' and images' constructors, their textures' release and a frame set's texture flags: reimplementation
-// of 0x588d70, 0x588320, 0x5882e0, 0x588ba0, 0x588c20, 0x588ca0, 0x588d90 and 0x588e40.
+// of 0x588d70, 0x588320, 0x5882e0, 0x588ba0, 0x588c20, 0x588ca0, 0x588350, 0x588230, 0x588d90 and 0x588e40.
 //
 // A sprite frame (0x48 bytes; a font's at +0x54, 0x48f18b; the decoded textures', 0x56b4f5) is
 // readied for drawing by 0x588ef0, which queues it in the sprite queue (spritequeue.h): +0x10 its
@@ -38,6 +38,16 @@ u32 __fastcall SpriteImage_FreeTexturesIfSet(u8 *image);
 // (TrackedGlobal_Free, core/gameheap) and +4 cleared. Without: when the array is set, Texture_Release on its first texture, then the array
 // destroyed and freed (when still set) and +0 cleared (+0x16 kept). Returns 1.
 u32 __fastcall SpriteImage_Release(u8 *image);
+
+// 0x588350 (thiscall; name unconfirmed): the same as SpriteImage_Release, returning nothing (an image array's destructor).
+void __fastcall SpriteImage_Dtor(u8 *image);
+
+// 0x588230 (thiscall; name unconfirmed): a frame set's (+0 count, +4 its images, +8 its texture array, +0xc a tracked block) parts
+// freed: the textures (when set) destroyed as one array (Texture_DestroyArray) and +8 cleared; with images, the first count images'
+// +0 cleared (the count signed, re-read each time; sic: past the images' own count it writes on) and the images (when still set)
+// destroyed with 0x588350 and freed, +4 cleared; the tracked block (when set) freed (TrackedGlobal_Free) and +0xc cleared; the count
+// cleared. Returns 1.
+u32 __fastcall SpriteFrames_Free(u8 *set);
 
 // 0x588d90 (thiscall; width, height, pops 8; name unconfirmed): unless the s16 sizes at +0x34 / +0x36 are already these, the image's
 // (+0x28, when set, its array set and count not 0) textures freed; then +0x34 / +0x36 take the low words.
