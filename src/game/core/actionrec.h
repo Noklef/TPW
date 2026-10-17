@@ -19,6 +19,18 @@ struct ActionRec {
 static_assert(sizeof(ActionRec) == 0x28, "the writers' fields end at +0x28");
 
 extern "C" {
+// 0x403480 (thiscall): the constructor. The streams constructed with the vtable 0x6fd6a0, playback 0, a table of
+// settings from +0x34 to +0x148 and +0x3d0, then started as Start(0) would (mode 0, all three streams opened);
+// +8 is cleared last. Returns the recorder.
+ActionRec *__fastcall ActionRec_Ctor(ActionRec *r);
+// 0x4036e0 (thiscall): the destructor: each stream closed (vtable +4; only the first in a mode other than 0), then
+// destroyed, the last first.
+void __fastcall ActionRec_Dtor(ActionRec *r);
+// 0x403a40 (thiscall; mode, pops 4): recording in this mode: the first stream opened as a memory stream of 0x200
+// (the others too in mode 0), then the start record, the code 0xe7 and 0x80 zero bytes.
+void __fastcall ActionRec_Start(ActionRec *r, void *, u32 mode);
+// 0x403b00 (thiscall): recording stopped, its streams closed as the destructor does, then started again in its mode.
+void __fastcall ActionRec_Restart(ActionRec *r);
 // 0x403be0 (thiscall; code, pops 4): the code byte.
 void __fastcall ActionRec_Write(ActionRec *r, void *, u32 code);
 // 0x403c20 (thiscall; code, a, b; pops 0xc): three bytes.

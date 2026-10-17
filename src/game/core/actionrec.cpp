@@ -1,5 +1,6 @@
 #include "actionrec.h"
 
+#include "../files/handles.h"
 #include "vcall.h"
 
 namespace {
@@ -18,9 +19,82 @@ void put16(ActionRec *r, u32 v) {
     put(r, &w, 2);
 }
 
+StreamBase *stream(ActionRec *r, u32 i) { return reinterpret_cast<StreamBase *>(&r->stream[i]); }
+
+void close(ActionRec *r, u32 i) { vcall<void>(stream(r, i), 4); }
+
+// The streams opened (the first, the others in mode 0), then the start record.
+void begin(ActionRec *r, u32 mode) {
+    s32 result;
+    StreamBase_OpenMemory(stream(r, 0), nullptr, &result, 0x200);
+    if (mode == 0) {
+        StreamBase_OpenMemory(stream(r, 1), nullptr, &result, 0x200);
+        StreamBase_OpenMemory(stream(r, 2), nullptr, &result, 0x200);
+    }
+    u8 zeros[0x80] = {};
+    if (writing(r)) {
+        put8(r, 0xe7);
+        put(r, zeros, 0x80);
+    }
+}
+
+void set(ActionRec *r, u32 offset, u32 value) { *reinterpret_cast<u32 *>(reinterpret_cast<u8 *>(r) + offset) = value; }
+
+void *const *const kStreamVtable = reinterpret_cast<void *const *>(0x6fd6a0);
+
 }  // namespace
 
 extern "C" {
+
+ActionRec *__fastcall ActionRec_Ctor(ActionRec *r) {
+    for (u32 i = 0; i < 3; ++i) {
+        StreamBase_Ctor(stream(r, i));
+        stream(r, i)->vtable = kStreamVtable;
+    }
+    r->playback = 0;
+    static const u32 kSettings[][2] = {
+        {0xd4, 2},  {0xe8, 2},  {0x110, 8},  {0x114, 8},  {0x134, 8}, {0x138, 8}, {0x14c, 9}, {0x160, 9}, {0x34, 1},  {0x174, 0xa},
+        {0x188, 0xa}, {0x118, 4}, {0x11c, 4}, {0x98, 1},  {0x70, 0},  {0x84, 0},  {0x48, 3},  {0xac, 1},  {0xc0, 1},  {0x5c, 1},
+        {0xfc, 1},  {0x120, 5}, {0x124, 7},  {0x128, 1},  {0x12c, 1}, {0x130, 6}, {0x13c, 1}, {0x140, 1}, {0x144, 1}, {0x148, 6},
+        {0x3d0, 0xb}};
+    for (const auto &s : kSettings) set(r, s[0], s[1]);
+    r->mode = 0;
+    r->recording = 1;
+    begin(r, 0);
+    r->unknown8 = 0;
+    return r;
+}
+
+void __fastcall ActionRec_Dtor(ActionRec *r) {
+    if (r->mode == 0) {
+        close(r, 0);
+        close(r, 1);
+        close(r, 2);
+    } else {
+        close(r, 0);
+    }
+    StreamBase_Dtor(stream(r, 2));
+    StreamBase_Dtor(stream(r, 1));
+    StreamBase_Dtor(stream(r, 0));
+}
+
+void __fastcall ActionRec_Start(ActionRec *r, void *, u32 mode) {
+    r->mode = mode;
+    r->recording = 1;
+    begin(r, mode);
+}
+
+void __fastcall ActionRec_Restart(ActionRec *r) {
+    r->recording = 0;
+    close(r, 0);
+    if (r->mode == 0) {
+        close(r, 1);
+        close(r, 2);
+    }
+    const u32 mode = r->mode;
+    r->recording = 1;
+    begin(r, mode);
+}
 
 void __fastcall ActionRec_Write(ActionRec *r, void *, u32 code) {
     if (!writing(r)) return;

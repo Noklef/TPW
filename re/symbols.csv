@@ -3534,6 +3534,10 @@ address,name,kind,confidence,notes
 0x00403d60,ActionRec_WriteWW,function,high,"reimplemented (src/game/core/actionrec); thiscall (code, a, b): the code byte, the words a and b"
 0x00403dd0,ActionRec_WriteWWW,function,high,"reimplemented (src/game/core/actionrec); thiscall (code, a, b, c): the code byte, three words"
 0x00403e60,ActionRec_WriteWB,function,high,"reimplemented (src/game/core/actionrec); thiscall (code, a, b): the code byte, the word a, the byte b"
+0x00403480,ActionRec_Ctor,function,high,"reimplemented (src/game/core/actionrec); thiscall: the action recorder's constructor (streams 0x6fd6a0, settings, started in mode 0)"
+0x004036e0,ActionRec_Dtor,function,high,"reimplemented (src/game/core/actionrec); thiscall: the streams closed (all in mode 0, else the first), then destroyed"
+0x00403a40,ActionRec_Start,function,high,"reimplemented (src/game/core/actionrec); thiscall (mode): recording; memory streams opened, the start record 0xe7 and 0x80 zeros"
+0x00403b00,ActionRec_Restart,function,high,"reimplemented (src/game/core/actionrec); thiscall: recording stopped, streams closed, started again in its mode"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x0052a050,Cell_ExtendPath,function,high,reimplemented (src/game/world/mapcell); one step of a path across the map's cells
