@@ -25,4 +25,7 @@ u32 __fastcall Money_TakeLoan(u8 *money, void *, u32 index);
 // the total at +0x124 gains what is owed less ((term * rate - amount) / term, unsigned) * term, where term is the next record's first dword (none when it is 0). Returns 1.
 u32 __fastcall Money_PayOffLoan(u8 *money, void *, u32 index);
 
+// 0x4d09f0 (thiscall): the total at +0x124.
+u32 __fastcall Money_Total(const u8 *money);
+
 }  // extern "C"
