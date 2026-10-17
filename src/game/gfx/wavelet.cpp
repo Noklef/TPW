@@ -78,6 +78,19 @@ void InverseD4Pairs(const u8 *p, u32 next, u32 high, u32 step, u8 *out, u32 outN
     at<float>(out, outNext) = (float)(e + (f - (g + h)));
 }
 
+// The inverse D4 down the columns of n x n planes (rows width floats apart), all but the wrapped first two rows: n / 2 - 1 row pairs
+// (a do-while: 0 runs 2^32 times, sic) from src into dst's rows 2.., each over n columns with InverseD4Pairs.
+void InverseD4RowPairs(const u8 *src, u8 *dst, u32 width, u32 n) {
+    const u32 half = n >> 1, row = width * 4, high = width * half * 4;
+    u8 *d = dst + 2 * row;
+    u32 rows = half - 1;
+    do {
+        InverseD4Pairs(src, row, high, 4, d, row, 4, n - 1);
+        src += row;
+        d += 2 * row;
+    } while (--rows != 0);
+}
+
 }  // namespace
 
 extern "C" {
@@ -398,14 +411,7 @@ void __fastcall WaveletCodec_InverseD4Columns(u8 *, void *, float *const *srcPla
     const u8 *src = reinterpret_cast<const u8 *>(*srcPlane);
     u8 *dst = reinterpret_cast<u8 *>(*dstPlane);
     const u32 half = n >> 1, m = half - 1, row = width * 4, high = width * half * 4;
-    const u8 *s = src;
-    u8 *d = dst + 2 * row;
-    u32 rows = m;  // a do-while: 0 runs 2^32 times (sic)
-    do {
-        InverseD4Pairs(s, row, high, 4, d, row, 4, n - 1);
-        s += row;
-        d += 2 * row;
-    } while (--rows != 0);
+    InverseD4RowPairs(src, dst, width, n);
     // The first two rows wrap around; each value is read when its expression needs it.
     const u32 lastLow = m * width * 4, lastHigh = (m * width + width * half) * 4;
     for (u32 c = n; c != 0; --c) {
@@ -416,5 +422,60 @@ void __fastcall WaveletCodec_InverseD4Columns(u8 *, void *, float *const *srcPla
         src += 4;
         dst += 4;
     }
+}
+
+void __fastcall WaveletCodec_DecodeGrey(u8 *codec, void *, u32 width, u32 height, const void *src, u8 *pixels, float q) {
+    // The SEH frame is left out.
+    const u32 w = SideFor(width), h = SideFor(height);
+    const u32 side = w > h ? w : h, count = side * side;
+    Buffer_Decompress(src, kStream, at<void *>(codec, 0x4c));
+    IntArray_SetSize(codec + 0x2c, nullptr, (s32)count, -1);  // inline in the original, the same steps
+    struct {
+        u32 *data;
+        u32 size, max, growBy;
+    } row = {};
+    IntArray_SetSize(reinterpret_cast<u8 *>(&row), nullptr, (s32)side, -1);
+    // Each row: its coefficients (WaveletCodec_ReadCoefficients, inline there) and the inverse step along it into the plane at +0x3c.
+    float *out = at<float *>(codec, 0x3c);
+    const u8 *cursor = kStream;
+    for (u32 y = side; y != 0; --y) {
+        WaveletCodec_ReadCoefficients(codec, nullptr, &cursor, reinterpret_cast<float *>(row.data), side, q);
+        WaveletCodec_InverseD4Row(codec, nullptr, reinterpret_cast<float *>(row.data), out, (s32)side);
+        out += side;
+    }
+    // Then down the columns into the plane at +0x2c (WaveletCodec_InverseD4Columns inline, its first wrapped row summed in another order).
+    const u8 *const from = at<const u8 *>(codec, 0x3c);
+    u8 *const to = at<u8 *>(codec, 0x2c);
+    InverseD4RowPairs(from, to, side, side);
+    const u32 half = side >> 1, m = half - 1, stride = side * 4, high = side * half * 4;
+    const u32 lastLow = m * side * 4, lastHigh = (m * side + side * half) * 4;
+    const u8 *a = from;
+    u8 *d = to;
+    for (u32 c = side; c != 0; --c) {
+        at<float>(d, 0) = (float)(((X87Reg(H1()) * at<float>(a, lastHigh) + X87Reg(H2()) * at<float>(a, lastLow)) + X87Reg(H3()) * at<float>(a, high)) +
+                                  X87Reg(at<float>(a, 0)) * H0());
+        at<float>(d, stride) = (float)(((X87Reg(H3()) * at<float>(a, lastLow) + X87Reg(at<float>(a, 0)) * H1()) - X87Reg(H0()) * at<float>(a, lastHigh)) -
+                                       X87Reg(H2()) * at<float>(a, high));
+        a += 4;
+        d += 4;
+    }
+    // The pixels: each value below 0 (or a NaN) 0, above 255 0xff, else __ftol's low byte (0x70268c, 0x702690).
+    const float *plane = at<const float *>(codec, 0x2c);
+    u32 k = 0;
+    for (u32 y = height; y != 0; --y) {
+        const float *p = plane;
+        for (u32 x = width; x != 0; --x, ++p) {
+            u8 b;
+            if (!(*p >= 0.0f))
+                b = 0;
+            else if (*p <= 255.0f)
+                b = (u8)FtolLow(*p);
+            else
+                b = 0xff;
+            pixels[k++] = b;
+        }
+        plane += side;
+    }
+    Ptr_FreeIfSet(reinterpret_cast<u8 **>(&row.data));
 }
 }

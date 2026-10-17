@@ -382,7 +382,7 @@ address,name,kind,confidence,notes
 0x005e7990,Array3D_ReadCompressed,function,high,"u32 w, h, bpp + float quantisers + BILZ wavelet streams, decoded via IWaveletCodec slot 3"
 0x005987b0,WaveletCodec_DecodePlanes,function,high,"vtable slot 3: colour -> 0x592730, grey -> 0x592e60; takes float quantiser steps"
 0x00592730,WaveletCodec_DecodeColourStream,function,high,"Buffer_Decompress, then Y (q1), Cb (q2), Cr (q3) planes, inverse D4, YUV->RGB"
-0x00592e60,WaveletCodec_DecodeGreyStream,function,medium,
+0x00592e60,WaveletCodec_DecodeGrey,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (width, height, packed source, pixels, q): the grey decoder, rows through the coefficient reader and inverse D4, then the columns, then clamped bytes (name unconfirmed)"
 0x005935a0,WaveletCodec_YuvToRgb,function,high,"1.402 / 0.344136 / 0.714136 / 1.772"
 0x00599050,Advisor_Say,function,high,"'Advisor says ResponseID %d': looks up gAdvisorResponses, loads Speech/lips/sp_%03d.lip, starts gesture and animation"
 0x00599880,Advisor_UpdateSpeech,function,medium,"plays the sample 200 ms after the animation starts; toggles the mouth at each .lip time"

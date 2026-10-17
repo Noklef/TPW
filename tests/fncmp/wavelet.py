@@ -9,8 +9,10 @@
 #   quantiser that puts a coefficient just inside or outside the byte range;
 # - the decoder's steps: the coefficient reader (0x592b80; its tables built or not, true or any floats, escapes often, the destination
 #   now and then over the stream, a count of 0 now and then), the inverse D4 along a row (0x592c50; n below and above 6, odd, zero and
-#   negative, the destination now and then over the source) and down the columns (0x5933a0; widths above n, in place now and then).
-# usage: wavelet.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS)
+#   negative, the destination now and then over the source) and down the columns (0x5933a0; widths above n, in place now and then);
+# - the grey decoder (0x592e60): sizes as the encoders', the plane at +0x2c empty or a block to fit in or grow from, the one at +0x3c any
+#   floats, a stream of any bytes (escapes often) as the decompressor recorder leaves it, the coefficient tables built or not, any quantisers.
+# usage: wavelet.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS,DGREY)
 import math
 import os
 import struct
@@ -19,12 +21,13 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, LOG, Bench, Call, RAM, fb, heap, log_region, put, vtable  # noqa: E402
 
-B = Bench([(0x591ab0, 0x592010), (0x592150, 0x592e6d), (0x5933a0, 0x5935b0), (0x598630, 0x598790), (0x5f8050, 0x5f80f0)])
-OPS = [k for k in os.environ.get('OPS', 'PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS').split(',') if k]
+B = Bench([(0x591ab0, 0x592010), (0x592150, 0x5935b0), (0x598630, 0x598790), (0x5f8050, 0x5f8120)])
+OPS = [k for k in os.environ.get('OPS', 'PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS,DGREY').split(',') if k]
 CURSOR = RAM + 8
 CODEC, PLANES, SRC, DST, FILTER = RAM, RAM + 0x1000, RAM + 0x2000, RAM + 0x3000, 0xc27208
 OUT, SIZE, OLD, STREAM = RAM + 0x4000, RAM + 0x4100, RAM + 0x5000, 0xa067f8
 GUARD, COMPRESSOR_VTABLE = 0xfa75f8, RAM + 0x4200   # Buffer_Compress's codec (built: guard bit 0) and its vtable of recorders
+DPLANE = RAM + 0x8000   # the decoders' row plane (+0x3c)
 BUILT, TABLES = 0xf75ad4, 0xfb27e0   # the coefficient reader's tables: built flag; s8 * 256, s8, u8 (0x100 floats each)
 S3 = math.sqrt(3)
 D4 = struct.pack('<4f', (1 + S3) / (4 * math.sqrt(2)), (3 + S3) / (4 * math.sqrt(2)), (3 - S3) / (4 * math.sqrt(2)),
@@ -71,7 +74,7 @@ def case(r):
         return Call(0x5924f0, [CODEC, SRC, DST, n & 0xffffffff],
                     {CODEC: r.bytes(0x10), SRC: r.floats(bytearray(size), range(0, size, 4)), DST: r.floats(bytearray(size), range(0, size, 4)),
                      FILTER: filt}, conv='t')
-    if op in ('READ', 'IROW', 'ICOLS'):
+    if op in ('READ', 'IROW', 'ICOLS', 'DGREY'):
         return decoder(r, op)
     if op != 'HALVE':
         return coder(r, op)
@@ -153,7 +156,29 @@ def tables(r):
     return {BUILT: struct.pack('<I', 1), TABLES: r.floats(bytearray(0xc00), range(0, 0xc00, 4))}
 
 
+def decode_grey(r):
+    width, height = extent(r), extent(r)
+    n = max(side(width), side(height))
+    count = n * n
+    obj = bytearray(r.bytes(0x58))
+    regions = {CODEC: obj, SRC: r.bytes(0x20), DST: r.bytes(max(1, width * height) + 0x10), LOG: log_region(),
+               GUARD: struct.pack('<II', 1 | r.getrandbits(8) & 0xfe, COMPRESSOR_VTABLE), COMPRESSOR_VTABLE: vtable({1: 4, 2: 3}),
+               HEAP: heap(0x1000 + 8 * count + 8 * n), FILTER: D4 if r.random() < 0.8 else r.floats(bytearray(0x10), range(0, 0x10, 4)),
+               DPLANE: r.floats(bytearray(4 * count), range(0, 4 * count, 4)), **tables(r)}
+    stream = bytearray(r.bytes(3 * count + 0x10))
+    for k in range(len(stream)):
+        if r.random() < 0.15:
+            stream[k] = 0x80
+    regions[STREAM] = stream
+    obj[0x2c:0x3c] = array(r, regions, 0x2c, count, 0)
+    put(obj, 0x3c, 'I', DPLANE)
+    q = r.choice([fb(1.0), fb(r.uniform(0.5, 4)), fb(r.uniform(1, 64)), r.f()])
+    return Call(0x592e60, [CODEC, width, height, SRC, DST, q], regions, conv='t')
+
+
 def decoder(r, op):
+    if op == 'DGREY':
+        return decode_grey(r)
     if op == 'READ':
         count = r.choice([1, 2, r.randrange(1, 8), r.randrange(8, 41)]) if r.random() < 0.97 else 0
         mem = bytearray(r.bytes(0x200))

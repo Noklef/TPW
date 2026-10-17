@@ -86,4 +86,13 @@ void __fastcall WaveletCodec_InverseD4Row(u8 *codec, void *, const float *src, f
 // inverse D4 step down the columns of n x n planes (rows width floats apart): n / 2 - 1 row pairs (a do-while: 0 runs 2^32 times, sic),
 // each over n columns with InverseD4Row's pipelined loop, then the wrapped first two rows.
 void __fastcall WaveletCodec_InverseD4Columns(u8 *codec, void *, float *const *srcPlane, float *const *dstPlane, u32 width, u32 n);
+
+// 0x592e60 (thiscall on the codec; width, height, packed source, pixels, quantiser; pops 0x14; the SEH frame left out; name unconfirmed):
+// the grey decoder. The side as in WaveletCodec_EncodeGrey; Buffer_Decompress (source, the stream at 0xa067f8, +0x4c); the plane at
+// +0x2c sized side x side (IntArray_SetSize's steps, inline there); a stack array of side floats (IntArray_SetSize) takes each row's
+// coefficients (WaveletCodec_ReadCoefficients, inline there) and WaveletCodec_InverseD4Row puts the row into the plane at +0x3c (its
+// data pointer read once); then WaveletCodec_InverseD4Columns's steps (inline, its first wrapped row summed in another order) from +0x3c
+// into +0x2c; then width x height bytes to pixels, rows side floats apart: below 0.0 or a NaN 0, above 255.0 0xff, else __ftol's low
+// byte. The stack array is freed (Ptr_FreeIfSet).
+void __fastcall WaveletCodec_DecodeGrey(u8 *codec, void *, u32 width, u32 height, const void *src, u8 *pixels, float q);
 }
