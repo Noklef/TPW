@@ -349,7 +349,6 @@ address,name,module,reason
 61adb0,WadSource_Vfn7,files/wadsource,todo
 61adc0,WadSource_Vfn8,files/wadsource,todo
 61add0,WadSource_Vfn9,files/wadsource,todo
-61ade0,WadFinder_Dtor,files/waddir,todo
 61aeb0,StringList_Clear,files/wadsource,todo
 61af00,StringListNode_DeletingDtor,files/wadsource,todo
 61b030,Draw_Sprite,gfx/text,todo
@@ -456,36 +455,14 @@ address,name,module,reason
 636d80,TextWriter_AppendChar,files/textwriter,todo
 636dc0,TextWriter_Append,files/textwriter,todo
 636e00,TextWriter_Format,files/textwriter,todo
-637460,WadDir_Ctor,files/waddir,todo
-637550,WadDir_Dtor,files/waddir,todo
-637630,WadDir_Clear,files/waddir,todo
-637690,WadDir_Load,files/waddir,todo
-637a10,WadDir_Normalize,files/waddir,todo
 637a50,WadDir_FindFirst,files/wadfind,todo
 637aa0,WadDir_FindNext,files/wadfind,todo
-637ae0,WadFolder_Dtor,files/waddir,todo
-637b50,WadFolder_AddFile,files/waddir,todo
-637be0,WadFolder_AddPath,files/waddir,todo
 637e10,WadFolder_Find,files/wadfind,todo
-637f30,WadFile_Ctor,files/waddir,todo
-637f40,WadFile_Dtor,files/waddir,todo
-637f60,WadFolder_Ctor,files/waddir,todo
-637f90,WadFolderList_DeletingDtor,files/waddir,todo
-637fb0,WadFolderList_Dtor,files/waddir,todo
-637ff0,WadFileList_DeletingDtor,files/waddir,todo
-638010,WadFileList_Dtor,files/waddir,todo
 638050,WadFinder_Ctor,files/wadfind,todo
-6380d0,StringList_Ctor2,files/waddir,todo
 6380f0,WadFinder_Start,files/wadfind,todo
 638430,WadFinder_Next,files/wadfind,todo
 638550,WadFinder_Done,files/wadfind,todo
 638570,WadFinder_Fill,files/wadfind,todo
-638640,StringList_Ctor,files/waddir,todo
-638660,WadFolderPool_Free,files/waddir,todo
-6386b0,WadFilePool_Free,files/waddir,todo
-638700,WadFilePool_Alloc,files/waddir,todo
-6387a0,WadFolderListBase_DeletingDtor,files/waddir,todo
-6387f0,WadFileListBase_DeletingDtor,files/waddir,todo
 638be0,BufferSource_AttachRefPack,files/wrapsources,todo: decodes what the source reads; needs a bench feeding real RefPack streams
 638d30,BufferSource_AttachZlib,files/wrapsources,todo: hands the codec a stack CallbackStream; needs a recorder that logs the pointee rather than the stack address
 638ef0,BufferedSource_Ctor,files/bufsource,todo
