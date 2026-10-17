@@ -89,4 +89,9 @@ u32 __fastcall Obj_CallMember20Slot14(u8 *object, void *, u32 a);
 // slot (its low word; 0x7cfb90) is there and is the one the dword at 0x7c2658 points to. (Its debug check of the thing table left out.)
 void __fastcall Obj_CallSlot14IfGlobalThing(u8 *object, void *, u32 handle);
 
+// 0x5e2310 (thiscall; message, key, unused, pops 12; slot 5 of the vtables 0x702cb0, 0x702dd0 and 0x702ec0; name unconfirmed): message 0x10005 with key 0,
+// or 0x1000b with key 0xd, calls the object's slot 0x40; 0x1000b with key 0x2500 calls slot 0x3c, with key 0x2700 slot 0x38 (returning what the slot
+// returns). Otherwise returns what EAX held: the key (messages 0x10005 and 0x1000b), or the message less 0x1000b.
+u32 __fastcall Obj_KeyMessageToSlots(u8 *object, void *, u32 message, u32 key, u32 unused);
+
 }  // extern "C"
