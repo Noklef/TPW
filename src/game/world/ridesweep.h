@@ -32,4 +32,13 @@ s32 __cdecl Objects_ForEachKind3Flag2(ObjectCallback callback);
 // Objects_ForEachKind3Flag1, 0x2000 Objects_ForEachWordSet, 0x4000 Objects_ForEachUpgrade2 and 0x8000 Objects_ForEachKind3Flag2.
 s32 __cdecl Things_ForEachSelected(u32 mask, ObjectCallback callback);
 
+// 0x48ca00 (thiscall; value, pops 4; name unconfirmed): the count 0x7c2660 zeroed, then raised (Things_CountOne) for each thing of the
+// group the owner's +4 picks: -2 the model 1 things (mask 0x40), -1 the staff (1), 0 the kind 0 objects (0x80), 1 / 2 / 3 the kind 1 /
+// 2 / 3 objects (0x200 / 0x100 / 0x800 (sic: the kind 3 objects with neither flag)), 0x3ea those with flag 1 (0x1000), 0x3eb with flag
+// 2 (0x8000), 0x3ec the upgrade 2 ones (0x4000), any other none (Things_ForEachSelected); then 0x7c2658 = value. Returns the count.
+s32 __fastcall Things_CountGroup(const u8 *owner, void *, u32 value);
+
+// 0x48cad0 (cdecl; thing, unused; name unconfirmed): the count 0x7c2660 raised; returns 1.
+s32 __cdecl Things_CountOne(u8 *thing);
+
 }  // extern "C"

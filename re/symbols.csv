@@ -969,6 +969,8 @@ address,name,kind,confidence,notes
 0x00482340,Objects_ForEachKind3NoFlags,function,high,reimplemented (src/game/world/ridesweep); calls a function for each kind 3 object with neither flag
 0x00482400,Objects_ForEachKind3Flag2,function,high,reimplemented (src/game/world/ridesweep); calls a function for each kind 3 object with flag 2
 0x00481bc0,Things_ForEachSelected,function,low,"reimplemented (src/game/world/ridesweep); cdecl (mask, callback): the callback called for each thing of the groups the mask selects (staff, the five staff lists, model 1 things, kind 0 objects, the object sweeps); the count"
+0x0048ca00,Things_CountGroup,function,low,"reimplemented (src/game/world/ridesweep); thiscall (value): the things of the group the owner +4 picks counted into 0x7c2660 (Things_ForEachSelected), 0x7c2658 = value; the count"
+0x0048cad0,Things_CountOne,function,low,"reimplemented (src/game/world/ridesweep); cdecl (thing, unused): the count 0x7c2660 raised; 1"
 0x0050b780,Thing_Delete,function,medium,"thiscall on a thing; the base deletion, queues its handle (World_QueueDelete)"
 0x00801f38,gThingsToDelete,data,high,"HandleQueue: +4 head, +8 tail, +0xc count; handles whose slots DeleteAll releases"
 0x005f5fc0,String_Alloc,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +8: a new block for length units, terminated; the old block is not freed"

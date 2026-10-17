@@ -53,6 +53,9 @@ s32 StaffList(u16 *(__fastcall *first)(const u8 *, void *, u16 *), ObjectCallbac
     return count;
 }
 
+// Things_CountOne as a callback.
+void countOne(u8 *thing) { Things_CountOne(thing); }
+
 bool Kind3(const u8 *thing) { return DefWord(thing) == 0 && at<u32>(Object_GetDef(thing), 0x4ac) == 3; }
 
 }  // namespace
@@ -102,6 +105,31 @@ s32 __cdecl Things_ForEachSelected(u32 mask, ObjectCallback callback) {
     if (mask & 0x4000) count += Objects_ForEachUpgrade2(callback);
     if (mask & 0x8000) count += Objects_ForEachKind3Flag2(callback);
     return count;
+}
+
+s32 __fastcall Things_CountGroup(const u8 *owner, void *, u32 value) {
+    global<s32>(0x007c2660) = 0;
+    u32 mask = 0;
+    switch (at<s32>(owner, 4)) {
+    case -2: mask = 0x40; break;
+    case -1: mask = 1; break;
+    case 0: mask = 0x80; break;
+    case 1: mask = 0x200; break;
+    case 2: mask = 0x100; break;
+    case 3: mask = 0x800; break;
+    case 0x3ea: mask = 0x1000; break;
+    case 0x3eb: mask = 0x8000; break;
+    case 0x3ec: mask = 0x4000; break;
+    default: break;
+    }
+    if (mask) Things_ForEachSelected(mask, countOne);
+    global<u32>(0x007c2658) = value;
+    return global<s32>(0x007c2660);
+}
+
+s32 __cdecl Things_CountOne(u8 *) {
+    ++global<s32>(0x007c2660);
+    return 1;
 }
 
 }  // extern "C"
