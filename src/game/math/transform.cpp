@@ -9,6 +9,10 @@ namespace {
 float *Step(float *p, s32 bytes) { return reinterpret_cast<float *>((uintptr_t)p + (u32)bytes); }
 const float *Step(const float *p, s32 bytes) { return reinterpret_cast<const float *>((uintptr_t)p + (u32)bytes); }
 
+template <typename T> T &At(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+const u32 kView = 0x8bcbc8;  // the render view (src/game/render/viewport)
+
 }  // namespace
 
 extern "C" {
@@ -60,6 +64,40 @@ void __cdecl Transform_Vertices(void *, const float *m, float *out, const u8 *in
         out[1] = (float)(y_ + m[13]);
         out[2] = (float)(z_ + m[14]);
         if (mode != 2) out[3] = (float)(((X87Reg(z) * m[11] + X87Reg(y) * m[7]) + X87Reg(x) * m[3]) + m[15]);
+    }
+}
+
+double __cdecl Transform_ProjectToScreen(void *, float *v, s32 stride, u32 count, s32 mode) {
+    X87Reg sum = 0.0f;  // 0x701978
+    for (; count != 0; --count, v = Step(v, stride)) {
+        const u32 z_bits = At<u32>((uintptr_t)&v[2]);
+        const X87Reg r = X87Reg(1.0f) / v[3];  // 0x701974
+        v[3] = (float)r;
+        v[0] = (float)((r * At<float>(kView + 0x38)) * v[0] + At<float>(kView + 0x28));
+        v[1] = (float)((r * At<float>(kView + 0x3c)) * v[1] + At<float>(kView + 0x2c));
+        if (mode == 1) {
+            v[2] = X87_Through(At<float>(kView + 0x74));
+        } else if (mode == 2) {
+            v[2] = (float)(X87Reg(At<float>(kView + 0x58)) * v[2]);
+        } else if (z_bits < At<u32>(kView + 0x60)) {
+            v[2] = (float)(X87Reg(At<float>(kView + 0x6c)) * v[2] + At<float>(kView + 0x70));
+        } else {
+            v[2] = (float)((r * At<float>(kView + 0x64)) * v[2] + At<float>(kView + 0x68));
+        }
+        sum = sum + v[2];
+    }
+    return sum.v;
+}
+
+void __cdecl Transform_Concatenate(void *, const float *a, const float *b, float *out) {
+    for (int r = 0; r < 16; r += 4) {
+        X87Reg c[4] = {0.0, 0.0, 0.0, 0.0};
+        for (int k = 0; k < 4; ++k)
+            c[k] = ((X87Reg(a[r]) * b[k] + X87Reg(a[r + 1]) * b[4 + k]) + X87Reg(a[r + 2]) * b[8 + k]) + X87Reg(a[r + 3]) * b[12 + k];
+        out[r] = (float)c[0];
+        out[r + 2] = (float)c[2];
+        out[r + 1] = (float)c[1];
+        out[r + 3] = (float)c[3];
     }
 }
 }

@@ -1,17 +1,21 @@
-# The vertex array transforms (src/game/math/transform: 0x579250, 0x579330) against the originals: any matrices and vertices (special
-# values now and then, and NaNs tying on significand), 0-8 vertices, strides forwards, backwards, zero and overlapping, the output
-# sometimes the input itself or just past it, every mode (and others), and a first vertex past the second block for the blocked one.
-# usage: transform.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Blocked,Vertices)
+# The vertex array transforms (src/game/math/transform: 0x579250, 0x579330, 0x579690, 0x579800) against the originals: any matrices
+# and vertices (special values now and then, and NaNs tying on significand), 0-8 vertices, strides forwards, backwards, zero and
+# overlapping, the output sometimes the input itself or just past it, every mode (and others), a first vertex past the second block
+# for the blocked one, any render view (its depth threshold's bits sometimes one of the z's) for the projection, and products into
+# either factor or across them.
+# usage: transform.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Blocked,Vertices,Project,Concat)
 import os
+import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, Bench, Call, put  # noqa: E402
 
-B = Bench([(0x579250, 0x5796a0)])
-OPS = [k for k in os.environ.get('OPS', 'Blocked,Vertices').split(',') if k]
+B = Bench([(0x579250, 0x579a50)])
+OPS = [k for k in os.environ.get('OPS', 'Blocked,Vertices,Project,Concat').split(',') if k]
 MATRIX, BUF, SIZE = RAM, RAM + 0x100, 0x600
 MID = BUF + 0x300
+VIEW = 0x8bcbc8
 NANS = [0x7fc00000, 0xffc00000, 0x7fc00001, 0xffc00001, 0x7f800001, 0xff800001]
 
 
@@ -25,6 +29,17 @@ def case(r):
                 put(buf, off, 'I', r.choice(NANS))
     count = r.choice([0, 1, 1, 2, 3, 4, 5, 8])
     out_stride = r.choice([16, 16, 12, 20, 32, 0, -16, 4])
+    if op == 'Concat':
+        a, b = MID, MID + 0x40
+        out = r.choice([MID + 0x100, a, b, b, MID + 0x20, MID - 0x20])
+        return Call(0x579800, [r.getrandbits(32), a, b, out], regions)
+    if op == 'Project':
+        view = r.floats(bytearray(0x78), range(0, 0x78, 4), r.choice([1, 300, None]))
+        if r.random() < 0.3:
+            put(view, 0x60, 'I', struct.unpack_from('<I', regions[BUF], MID + 8 - BUF)[0])
+        regions[VIEW] = view
+        mode = r.choice([0, 1, 2, 0, 1, 2, 3, -1, r.getrandbits(32)])
+        return Call(0x579690, [r.getrandbits(32), MID, out_stride, count, mode], regions, ret='d')
     if op == 'Blocked':
         src = MID - 0x80 + 4 * r.randrange(4)
         dst = r.choice([MID + 0x40, src, src + 4, MID - 0x100])
