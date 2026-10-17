@@ -181,4 +181,21 @@ void __fastcall Lnd_SetTileSize(u8 *object, void *, u32 size) {
     const u32 side = at<u8>(object, 0);
     global<u32>(0x008798c8) = (u32)(uintptr_t)GameHeap_Alloc(side * side * 4);
 }
+
+void __fastcall Lnd_Clear(u8 *object) {
+    for (u32 offset = 2; offset <= 0xb; offset++)
+        at<u8>(object, offset) = 0;
+    at<u32>(object, 0xc) = 0;
+    at<u32>(object, 0x10) = 0;
+    Array3D_Free(object + 0x14);
+    for (u32 level = 0; level < 3; level++) {
+        u8 *const tiles = object + 0x2c + 0xd8 * level;
+        at<u8>(tiles, -4) = 0;
+        at<u32>(tiles, -8) = 0;
+        for (u32 offset = 0; offset <= 0xc0; offset += 0x10)
+            Array3D_Free(tiles + offset);
+        at<u32>(tiles, -8) = 0x40 >> level;
+        at<u8>(tiles, -4) = static_cast<u8>(level);
+    }
+}
 }

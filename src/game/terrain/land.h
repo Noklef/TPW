@@ -55,4 +55,8 @@ void __fastcall TileSet_Clear(u8 *object);
 // 0x55f720 (thiscall; size, pops 4): the byte at +0 = size, the byte at +1 = 0 for 0x40, 2 for 0x10, 1 for 0x20 and any other size (sic: which
 // also becomes 0x20); the buffer at 0x8798c8 is freed (when there is one) and a new one of byte(+0)^2 * 4 bytes is made.
 void __fastcall Lnd_SetTileSize(u8 *object, void *, u32 size);
+
+// 0x55f630 (thiscall): the bytes +2 .. +0xb and the dwords +0xc and +0x10 cleared, Array3D_Free on +0x14 and, for the three levels (0xd8 bytes each from +0x2c), the thirteen arrays at +0 .. +0xc0
+// of the level (Array3D_Free), its tile size (the dword at -8: 0x40, 0x20, 0x10) and its number (the byte at -4).
+void __fastcall Lnd_Clear(u8 *object);
 }
