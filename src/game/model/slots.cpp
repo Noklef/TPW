@@ -2,8 +2,10 @@
 
 #include <cstdint>
 
+#include "../core/misc.h"
 #include "../motion/animator.h"
 #include "../render/state.h"
+#include "holder.h"
 #include "parts.h"
 
 namespace {
@@ -32,6 +34,23 @@ extern "C" {
 
 void __cdecl ModelSlot_Animate(u32 slot) {
     if (u8 *const holder = holder_of(slot)) Animator_Update(holder, reinterpret_cast<const u8 *>(1), 0);
+}
+
+void __cdecl ModelSlot_KillAdvisor(u32 slot) {
+    if (!holder_of(slot) || !Holder_IsAwake(at<u8 *>(holder_of(slot), 8))) return;
+    // (the original logs "Kill advisor" here: Debug_Printf, left out)
+    Animator_Play(holder_of(slot), 0xc, 0, 2, 1.0f, 0);
+    u8 *const animator = holder_of(slot);
+    if (at<u32>(animator, 4) & 0x4000)
+        Obj_RemoveFromRect(at<u8 *>(animator, 8), at<u32>(animator, 0xc0), at<u32>(animator, 0xc4));
+    else
+        Holder_Sleep(at<u8 *>(animator, 8));
+}
+
+u32 __cdecl ModelSlot_CallAdvisor(u32 entry, u32 slot) {
+    // (the original logs "Initial advisor call" first: Debug_Printf, left out)
+    if (u8 *const animator = holder_of(slot)) return Animator_Play(animator, 5, entry - 1, 0x10, 1.0f, 0);
+    return 1000;
 }
 
 void __cdecl ModelSlot_ClearPartFlag(u32 key, u32 slot) {
