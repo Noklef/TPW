@@ -204,6 +204,7 @@ add_library(tpw_game STATIC
     src/game/world/ridestate.cpp
     src/game/world/forecast.cpp
     src/game/world/headquarters.cpp
+    src/game/world/wallfollow.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp

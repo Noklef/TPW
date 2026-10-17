@@ -212,6 +212,7 @@
 #include "../game/world/tagsystem.h"
 #include "../game/world/thingscan.h"
 #include "../game/world/trackpools.h"
+#include "../game/world/wallfollow.h"
 #include "../game/world/world.h"
 #include "../game/model/holder.h"
 #include "../game/coaster/tracktypes.h"
@@ -3326,6 +3327,7 @@ const Hook kHooks[] = {
     {"Forecast_Serialize",        0x005132a0, (void *)&Forecast_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"MechanicHQ_Serialize",      0x004da960, (void *)&MechanicHQ_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x53}},
     {"StaffHQ_Serialize",         0x00508bb0, (void *)&StaffHQ_Serialize, {0x83, 0xec, 0x08, 0x8b, 0x44}},
+    {"WallFollower_Step",         0x00511c90, (void *)&WallFollower_Step, {0x53, 0x56, 0x8b, 0x74, 0x24}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
