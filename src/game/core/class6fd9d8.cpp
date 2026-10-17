@@ -146,4 +146,28 @@ void __fastcall Class6fdaa4_Dtor(u8 *object) {
     String_Dtor(reinterpret_cast<String *>(object + 4));
 }
 
+u8 *__fastcall Class6fda58_ScalarDtorB(u8 *object, void *, u32 flags) {
+    Class6fda58_DtorB(object);
+    return Finish(object, flags);
+}
+
+u8 *__fastcall Class6fda88_FullScalarDtor(u8 *object, void *, u32 flags) {
+    Class6fda88_FullDtor(object);
+    return Finish(object, flags);
+}
+
+u8 *__fastcall Class6fdaa4_ScalarDtor(u8 *object, void *, u32 flags) {
+    Class6fdaa4_Dtor(object);
+    return Finish(object, flags);
+}
+
+u8 *__fastcall Class6fdac8_FullScalarDtor(u8 *object, void *, u32 flags) {
+    Class6fdac8_FullDtor(object);
+    return Finish(object, flags);
+}
+
+u8 *__fastcall Class6fda58_ScalarDtorC(u8 *object, void *, u32 flags) {
+    Class6fda58_DtorC(object);
+    return Finish(object, flags);
+}
 }  // extern "C"

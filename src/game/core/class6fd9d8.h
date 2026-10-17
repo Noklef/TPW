@@ -40,4 +40,18 @@ void __fastcall Class6fdac8_FullDtor(u8 *object);
 // 0x41e470 (thiscall): the vtable 0x6fdaa4 is set, the handle at +0x2c destroyed, then the strings at +0x18 and +4 (String_Dtor).
 void __fastcall Class6fdaa4_Dtor(u8 *object);
 
+// 0x41d970 (thiscall; flags, pops 4): Class6fda58_DtorB, then the object freed when bit 0 of the flags is set. Returns the object.
+u8 *__fastcall Class6fda58_ScalarDtorB(u8 *object, void *, u32 flags);
+
+// 0x41db50 (thiscall; flags, pops 4): Class6fda88_FullDtor, then the object freed when bit 0 of the flags is set. Returns the object.
+u8 *__fastcall Class6fda88_FullScalarDtor(u8 *object, void *, u32 flags);
+
+// 0x41dc60 (thiscall; flags, pops 4): Class6fdaa4_Dtor, then the object freed when bit 0 of the flags is set. Returns the object.
+u8 *__fastcall Class6fdaa4_ScalarDtor(u8 *object, void *, u32 flags);
+
+// 0x41dfa0 (thiscall; flags, pops 4): Class6fdac8_FullDtor, then the object freed when bit 0 of the flags is set. Returns the object.
+u8 *__fastcall Class6fdac8_FullScalarDtor(u8 *object, void *, u32 flags);
+
+// 0x41e090 (thiscall; flags, pops 4): Class6fda58_DtorC, then the object freed when bit 0 of the flags is set. Returns the object.
+u8 *__fastcall Class6fda58_ScalarDtorC(u8 *object, void *, u32 flags);
 }  // extern "C"

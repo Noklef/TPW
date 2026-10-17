@@ -3403,6 +3403,11 @@ address,name,kind,confidence,notes
 0x0041e330,Class6fda88_FullDtor,function,high,"reimplemented (src/game/core/class6fd9d8); complete destructor, handles at +0x48 and +0x40"
 0x0041e4f0,Class6fdac8_FullDtor,function,high,"reimplemented (src/game/core/class6fd9d8); complete destructor, handles at +0x48 and +0x40"
 0x0041e470,Class6fdaa4_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); handle and two strings
+0x0041d970,Class6fda58_ScalarDtorB,function,high,reimplemented (src/game/core/class6fd9d8); scalar deleting destructor of the 0x6fda58 complete destructor B
+0x0041db50,Class6fda88_FullScalarDtor,function,high,reimplemented (src/game/core/class6fd9d8); scalar deleting destructor of the 0x6fda88 complete destructor
+0x0041dc60,Class6fdaa4_ScalarDtor,function,high,reimplemented (src/game/core/class6fd9d8); scalar deleting destructor of the 0x6fdaa4 destructor
+0x0041dfa0,Class6fdac8_FullScalarDtor,function,high,reimplemented (src/game/core/class6fd9d8); scalar deleting destructor of the 0x6fdac8 complete destructor
+0x0041e090,Class6fda58_ScalarDtorC,function,high,reimplemented (src/game/core/class6fd9d8); scalar deleting destructor of the 0x6fda58 complete destructor C
 0x004254c0,Animator_Sleep,function,high,reimplemented (src/game/model/holder); the holder sleeps and flag 0x4000 clears
 0x004de110,Object_BackOfQueueTo,function,high,reimplemented (src/game/world/objectmsg); Object_BackOfQueue returning out
 0x004ddf40,Object_QueuePositionOfNone,function,high,reimplemented (src/game/world/objectmsg); the position of the person with no handle

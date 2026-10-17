@@ -16,7 +16,8 @@ from fncmp import Bench, Call, HEAP, LOG, RAM, heap, log_region, put, vtable  # 
 # name: (address, flags argument?, kind: s a stub or wrapper, h a complete destructor with the handle at +0x40 / +0x48, g with the handle at +0x2c)
 CALLS = {'Base': (0x41c8b0, 0, 'b'), 'S48': (0x41e2c0, 0, 's'), 'S68': (0x41e320, 0, 's'), 'Sa8': (0x41e4d0, 0, 's'), 'Sb8': (0x41e4e0, 0, 's'), 'Se8': (0x41e5b0, 0, 's'), 'Sf8': (0x41e5c0, 0, 's'),
          'W48': (0x41d880, 1, 's'), 'W68': (0x41da50, 1, 's'), 'Wa8': (0x41ddc0, 1, 's'), 'Wb8': (0x41dea0, 1, 's'), 'We8': (0x41e170, 1, 's'), 'Wf8': (0x41e250, 1, 's'),
-         'A': (0x41e270, 0, 'h'), 'B': (0x41e2d0, 0, 'h'), 'C': (0x41e560, 0, 'h'), 'D88': (0x41e330, 0, 'h'), 'Dc8': (0x41e4f0, 0, 'h'), 'Str': (0x41e470, 0, 'g')}
+         'A': (0x41e270, 0, 'h'), 'B': (0x41e2d0, 0, 'h'), 'C': (0x41e560, 0, 'h'), 'D88': (0x41e330, 0, 'h'), 'Dc8': (0x41e4f0, 0, 'h'), 'Str': (0x41e470, 0, 'g'),
+         'WB': (0x41d970, 1, 'h'), 'WD88': (0x41db50, 1, 'h'), 'WStr': (0x41dc60, 1, 'g'), 'WDc8': (0x41dfa0, 1, 'h'), 'WC': (0x41e090, 1, 'h')}
 RANGES = [(0x41c8b0, 0x41c990), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000), (0x5f61e0, 0x5f6210), (0x5f82a0, 0x5f8310), (0x5f8420, 0x5f8460), (0x619800, 0x619870)]
 RANGES += [(a, a + 0x80) for (a, _f, _k) in CALLS.values()]
 B = Bench(RANGES)
