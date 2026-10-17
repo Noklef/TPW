@@ -3579,6 +3579,8 @@ address,name,kind,confidence,notes
 0x0047e390,SurfaceSource_Dtor,function,high,reimplemented (src/game/gfx/screensurfaces); the abstract surface source's destructor (vtable 0x6fef90 back)
 0x0047e570,ScreenSurfaces_Bounds,function,high,"reimplemented (src/game/gfx/screensurfaces); virtual: out = {0, 0, width - 1, height - 1}"
 0x0047e3c0,ScreenSurfaces_ScalarDtor,function,high,reimplemented (src/game/gfx/screensurfaces); the scalar deleting destructor
+0x0047e4b0,ScreenSurfaces_Surface10,function,high,"reimplemented (src/game/gfx/screensurfaces); thiscall (virtual): the Surface at +0x54, wrapping the display's +0x10 surface on first use (flag +0xa8, interface +0xac)"
+0x0047e510,ScreenSurfaces_Surface14,function,high,"reimplemented (src/game/gfx/screensurfaces); thiscall (virtual): the Surface at +4, wrapping the display's +0x14 surface on first use (flag +0xa4, interface +0xb0)"
 0x0058b300,TexCacheItem_Ctor,function,high,"reimplemented (src/game/gfx/texcache); thiscall: the texture cache item base: vtable 0x702198 (abstract), flags (+4) 0; returns this"
 0x0058b330,TexCacheItem_SetFlags,function,high,reimplemented (src/game/gfx/texcache); thiscall (flags): the item's flag word (+4) = flags | its bit 0x10000000
 0x0058b350,TexCacheItem_Flag1,function,high,reimplemented (src/game/gfx/texcache); thiscall u32: the item's flag word & 1

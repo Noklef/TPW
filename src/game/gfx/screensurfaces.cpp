@@ -40,6 +40,33 @@ u8 *__fastcall ScreenSurfaces_Ctor(u8 *source) {
 
 void __fastcall SurfaceSource_Dtor(u8 *source) { at<u32>(source, 0) = kBaseVtable; }
 
+}
+
+namespace {
+
+// The display's surface at `member` queried for the interface 0x707210 into `iface`, then wrapped by the Surface at `surface`;
+// once (done).
+u8 *wrapOnce(u8 *source, u32 done, u32 member, u32 iface, u32 surface) {
+    if (!at<u32>(source, done)) {
+        void *const display = at<void *>(global<void *>(0x00879a24), member);
+        comcall<s32>(display, 0, reinterpret_cast<const void *>(0x00707210), &at<void *>(source, iface));
+        if (void *const s = at<void *>(source, iface)) {
+            s32 result;
+            Surface_Attach(&result, s, reinterpret_cast<Surface *>(source + surface));
+        }
+        at<u32>(source, done) = 1;
+    }
+    return source + surface;
+}
+
+}  // namespace
+
+extern "C" {
+
+u8 *__fastcall ScreenSurfaces_Surface10(u8 *source) { return wrapOnce(source, 0xa8, 0x10, 0xac, 0x54); }
+
+u8 *__fastcall ScreenSurfaces_Surface14(u8 *source) { return wrapOnce(source, 0xa4, 0x14, 0xb0, 0x4); }
+
 s32 *__fastcall ScreenSurfaces_Bounds(const u8 *, void *, s32 *out) {
     const s32 right = (s32)(global<u32>(0x007a1968) - 1);
     const s32 bottom = (s32)(global<u32>(0x007a1930) - 1);

@@ -19,6 +19,11 @@ void __fastcall SurfaceSource_Dtor(u8 *source);
 // 0x47e570 (virtual): out = {0, 0, screen width - 1, screen height - 1} (0x7a1968, 0x7a1930);
 // returns out.
 s32 *__fastcall ScreenSurfaces_Bounds(const u8 *source, void *, s32 *out);
+// 0x47e4b0 / 0x47e510 (virtual): the Surface at +0x54 / +4, on the first call (done flag +0xa8 / +0xa4) wrapping the
+// display's +0x10 / +0x14 DirectDraw surface: queried (QueryInterface, IID 0x707210) into +0xac / +0xb0 and, when that
+// left an interface, Surface_Attach; the flag is set either way.
+u8 *__fastcall ScreenSurfaces_Surface10(u8 *source);
+u8 *__fastcall ScreenSurfaces_Surface14(u8 *source);
 // 0x47e3e0 (thiscall): the vtable 0x6fef78, the words at +0xa8 and +0xa4 cleared, the COM objects at +0xb0 and +0xac released (slot 2 at +8) and cleared, the vtable 0x6fef90.
 void __fastcall ScreenSurfaces_Dtor(u8 *object);
 
