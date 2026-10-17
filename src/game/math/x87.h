@@ -75,6 +75,19 @@ inline double X87_MulIntDouble(s32 n, double d) {
     return (n < 0) != (d < 0) ? -r : r;
 }
 
+// fild qword (n, 0), n an unsigned dword; fmul d (a double): as X87_MulIntDouble.
+inline double X87_MulUIntDouble(u32 n, double d) {
+    if (n == 0 || d == 0 || !std::isfinite(d)) return (double)n * d;
+    int e;
+    const double frac = std::frexp(std::fabs(d), &e);
+    const unsigned long long m = (unsigned long long)std::ldexp(frac, 53);
+    const unsigned long long k = n;
+    const unsigned long long lo = k * (m & 0xffffffffull);
+    const unsigned long long top = k * (m >> 32) + (lo >> 32), rest = lo & 0xffffffffull;
+    const double r = top < (1ull << 32) ? X87_Round24((top << 32) | rest, e - 53) : X87_Round24(top | (rest != 0 ? 1 : 0), e - 53 + 32);
+    return d < 0 ? -r : r;
+}
+
 // a + b (doubles, e.g. a fild'd int and a float) rounded once to a 24-bit significand, as
 // fild n; fadd f does. The double sum can round onto a 24-bit midpoint and then tie the
 // wrong way; its exact error (TwoSum) says which side of the midpoint the true sum is on.

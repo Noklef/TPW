@@ -240,6 +240,9 @@ u8 *__fastcall Class6fefc8_Ctor(u8 *object);
 // (Surface_Release, its result written over a local), then Fn_6618a6. Returns what Fn_6618a6 does (the object).
 u32 __fastcall Class6fefc8_Dtor(u8 *object);
 
+// 0x47eb20 (thiscall, the deleting destructor): Class6fefc8_Dtor, then the object freed (0x67acb0) when the flags' bit 0 is set. Returns the object.
+u8 *__fastcall Class6fefc8_DeletingDtor(u8 *object, void *, u32 flags);
+
 // 0x6175c0 (thiscall): Class7037e8_Ctor, then +0x6c, +0x70, +0x74, +0x78 and +0x80 cleared, +0x84 = 0x703730 and the vtable +0 = 0x703710. Returns the object.
 u8 *__fastcall Class703710_Ctor(u8 *object);
 }  // extern "C"

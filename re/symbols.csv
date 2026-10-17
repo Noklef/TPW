@@ -133,7 +133,7 @@ address,name,kind,confidence,notes
 0x00436f60,Objects_SetRideId,function,high,reimplemented (src/game/world/ridelist); gives the object with an id a new ride record id and fills its linked elements
 0x0051a690,Game_TakeRideElement1,function,high,"reimplemented (src/game/world/ridelist); element 1 of the named ride record, reset when it is 6"
 0x004685c0,Ride_SetRecordId,function,high,reimplemented (src/game/world/ridelist); Sets the ride record id of a ride and hands it to the objects (name unconfirmed)
-0x004031e0,GameClock_Now,function,high,"fastcall; base time + offset at +0x48; used for all RSSE waits"
+0x004031e0,GameClock_Now,function,high,reimplemented (src/game/core/gameclock); thiscall; GameClock_Time plus the base +0x48; used for all RSSE waits
 0x00516330,World_Rand,function,high,"reimplemented (src/game/world/random); thiscall; LCG x*0x19660d+0x3c6ef35f, rotr 13, abs; state at world+0x1da708. Must be bit-exact for determinism"
 0x008791b0,RSSE_ScriptList,data,high,head of doubly linked list of live script contexts (0xF4 bytes each)
 0x008791ac,RSSE_ScriptCount,data,high,
@@ -142,7 +142,7 @@ address,name,kind,confidence,notes
 0x0087919c,RSSE_CritLock,data,high,set by CRIT_LOCK
 0x00879190,RSSE_ScriptVersion,data,medium,expected .RSE version (0x10F51)
 0x0046d6d0,MD2_Load,function,high,"loads a .md2 mesh: magic 0x1CD15D46, version <=0xDE; relocates ~18 header offsets and nested table pointers"
-0x00416e10,Save_FieldName,function,high,"(size, name, isLoad) debug stub, compiled to 'return 0'; every serializer announces each field through it, which names the save format"
+0x00416e10,Save_FieldName,function,high,"reimplemented (src/game/core/savegame); stdcall (size, name, isLoad) debug stub: returns 0"
 0x0041a860,TimeSig_Serialize,function,high,u32 mTimeSig
 0x00415f50,SaveGame_WriteHeader,function,high,"u8 language, 0x500 UTF-16 legal text, 0x100 block, u32 BE magic 0x01221985, u32 has-preview"
 0x00416240,SaveGame_ReadHeader,function,high,mirror of SaveGame_WriteHeader; rejects edited legal text
@@ -2241,6 +2241,29 @@ address,name,kind,confidence,notes
 0x00403180,GameClock_Save4c,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); writes +0x4c (4 bytes); Stream_Write's result >= 0, always 1 (sic)"
 0x004031b0,GameClock_Load4c,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); reads +0x4c (4 bytes); Stream_Read's result >= 0, always 1 (sic)"
 0x00403390,GameClock_Double20,function,low,reimplemented (src/game/core/gameclock); thiscall: the double at +0x20 (1.0 from Obj_CtorOne) in st0
+0x00402f40,RealClock_Read,function,low,reimplemented (src/game/core/gameclock); thiscall; the ms since the last Time_GetMs added to the double +8 (x87); returns it __ftol'd
+0x00402f80,RealClock_Pause,function,low,"reimplemented (src/game/core/gameclock); thiscall; unless paused (+0x18), paused at the read time (+0x10)"
+0x00402fa0,RealClock_Resume,function,low,"reimplemented (src/game/core/gameclock); thiscall; when paused, resumed: the time since the pause added to +0x14"
+0x00402fd0,RealClock_TogglePause,function,low,"reimplemented (src/game/core/gameclock); thiscall; paused or resumed, whichever it is not"
+0x00403010,RealClock_Elapsed,function,low,reimplemented (src/game/core/gameclock); thiscall; the read time (or the pause time) less +0x14
+0x00403150,RealClock_Now,function,low,reimplemented (src/game/core/gameclock); thiscall; the elapsed time plus the base +0x20
+0x00403160,RealClock_RestoreNow,function,low,reimplemented (src/game/core/gameclock); thiscall; the base +0x20 set so that the time is +0x24
+0x004033a0,GameClock_Read,function,low,reimplemented (src/game/core/gameclock); thiscall; the ms since the last Time_GetMs times the rate +0x20 added to the double +0x18 (x87); returns it __ftol'd
+0x00403030,GameClock_Pause,function,low,"reimplemented (src/game/core/gameclock); thiscall; unless paused (+0x30), paused at the read time (+0x28)"
+0x00403050,GameClock_Resume,function,low,"reimplemented (src/game/core/gameclock); thiscall; when paused, resumed: the time since the pause added to +0x2c"
+0x00403080,GameClock_TogglePause,function,low,"reimplemented (src/game/core/gameclock); thiscall; paused or resumed, whichever it is not"
+0x004030d0,GameClock_Elapsed,function,low,reimplemented (src/game/core/gameclock); thiscall; the read time (or the pause time) less +0x2c
+0x00402ea0,GameClock_Freeze,function,low,"reimplemented (src/game/core/gameclock); thiscall (fps); unless frozen (+0x38), frozen at the elapsed time plus +0x44, step 1000 / fps"
+0x00402ed0,GameClock_Unfreeze,function,low,"reimplemented (src/game/core/gameclock); thiscall; when frozen, thawed with +0x44 set to go on from the frozen time"
+0x00402f10,GameClock_Time,function,low,"reimplemented (src/game/core/gameclock); thiscall; the frozen time, or the elapsed time plus +0x44"
+0x004031f0,GameClock_RestoreNow,function,low,reimplemented (src/game/core/gameclock); thiscall; the base +0x48 set so that the time is +0x4c
+0x00402d70,Clocks_Now,function,low,reimplemented (src/game/core/gameclock); thiscall on the game clock; GameClock_Now (a JMP)
+0x00402d80,Clocks_RealNow,function,low,reimplemented (src/game/core/gameclock); thiscall on the game clock; RealClock_Now of the clock at +0x50
+0x00402d90,Clocks_Pause,function,low,reimplemented (src/game/core/gameclock); thiscall; the game clock and the real-time clock at +0x50 paused
+0x00402db0,Clocks_Resume,function,low,reimplemented (src/game/core/gameclock); thiscall; the game clock and the real-time clock at +0x50 resumed
+0x00402dd0,Clocks_TogglePause,function,low,reimplemented (src/game/core/gameclock); thiscall; the game clock and the real-time clock at +0x50 toggled
+0x00402e60,Clocks_SaveNow,function,low,"reimplemented (src/game/core/gameclock); thiscall; both clocks' times kept to be put back to (+0x4c, +0x74)"
+0x00402e80,Clocks_RestoreNow,function,low,reimplemented (src/game/core/gameclock); thiscall; both clocks' times put back
 0x004cdb60,CircBufU16_3_Ctor,function,high,"reimplemented (src/game/core/circbuf); thiscall: a CircBufU16 of 3 (four at park analyser +0x1f068): u16 +0 = 0, cursor +8 = -1, size +0xc = 3, wrapped +0x10 = 0"
 0x004ce9e0,CircBufU8_50_Ctor,function,high,"reimplemented (src/game/core/circbuf); thiscall: a CircBufU8 of 50: byte +0 = 0, cursor +0x34 = -1, size +0x38 = 50, wrapped +0x3c = 0"
 0x004ce290,CircBufU32_144_Push,function,high,"reimplemented (src/game/core/circbuf); thiscall (value): CircBufU32 of 144: cursor +0x244 on (0 at size +0x248, sets wrapped +0x24c), value at +4 + cursor * 4"
@@ -2750,6 +2773,7 @@ address,name,kind,confidence,notes
 0x0047eab0,Class6fefc8_Ctor,function,high,reimplemented (src/game/core/initializers); Constructs the 0x6fefc8 class
 0x006175c0,Class703710_Ctor,function,high,reimplemented (src/game/core/initializers); Constructs the 0x703710 class on top of the 0x7037e8 one
 0x0047eb40,Class6fefc8_Dtor,function,low,"reimplemented (src/game/core/initializers); thiscall destructor; vtable 0x6fefc8, the surface at +0x14 released (Surface_Release) when byte +7 and +0x64 are set, then Fn_6618a6"
+0x0047eb20,Class6fefc8_DeletingDtor,function,low,"reimplemented (src/game/core/initializers); thiscall (flags): the 0x6fefc8 destructor, then the object freed when bit 0 is set"
 0x006d2770,Fn_6d2770,function,high,reimplemented (src/game/core/accessors); stores +0x0 = 0x0
 0x005d5da0,Owner18_Append,function,high,reimplemented (src/game/core/forwarders); PtrList_Append on the list at +0x18
 0x005d8a70,OwnerC_Append,function,high,reimplemented (src/game/core/forwarders); PtrList_Append on the list at +0xc
@@ -3604,6 +3628,7 @@ address,name,kind,confidence,notes
 0x0040f970,MessageSlot_Dtor,function,high,"reimplemented (src/game/world/messagecentre); thiscall on a slot: a dword, then a std::map of tree B at +4, destroyed (StdTree_DtorB); name unconfirmed"
 0x00409250,MessageCentre_DtorSlots,function,high,"reimplemented (src/game/world/messagecentre); thiscall: the 29 slots of 0x14 bytes from +0 destroyed, the last first (CRT_VectorDtorIterator, MessageSlot_Dtor); name unconfirmed"
 0x0040fa40,MessageCentre_RemoveThing,function,low,"reimplemented (src/game/world/messagecentre); thiscall (thing); the thing's handle erased from each of the 29 slots' maps (lower bound, key check, StdTree_EraseB); returns the count erased"
+0x0040f9e0,MessageCentre_AddThing,function,low,"reimplemented (src/game/world/messagecentre); thiscall (thing, slot): the handle inserted into the slot map when slot < 29; whether inserted"
 0x0050ce50,SteerSeek_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009b8, name ""seek"" copied to +4; returns this"
 0x0050ced0,SteerArrival_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009c0, name ""arrival"" copied to +4; returns this"
 0x0050cf40,SteerSeparation_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009c4, name ""separation"" copied to +4; returns this"
@@ -3627,6 +3652,8 @@ address,name,kind,confidence,notes
 0x0050e350,SteerAvoidObstacle_Steer,function,low,"reimplemented (src/game/world/steering); avoid_obstacle's slot 0, thiscall (&out, nav): reach from Nav_PredictPos(10.0); (0, 0) with no hit (the obstacle visit is compiled out), else the force through Matrix2_Transform; returns out"
 0x0050cc20,Steer_RayCircleHit,function,low,"reimplemented (src/game/world/steering); cdecl (&from, &dir, &centre, radius): where the ray first meets the circle (16.16 quadratic, the smaller root halved); 0x80000000 when it misses"
 0x0050af40,TagTable_Find,function,low,"reimplemented (src/game/world/tagsystem); the CTagTable lookup: 0 for ids 0x17e/0x17f, the record at 0x75eca8 + id * 0x20 when its id matches, else the first record with the id, else 0"
+0x0042a440,Ride_IsBusy,function,low,"reimplemented (src/game/world/ridestate); cdecl (object, index): the track ride link, flying ride slot, coaster link or a key-1 0x1000 model part says the ride is busy"
+0x0043bd20,Ride_Sleep,function,low,"reimplemented (src/game/world/ridestate); cdecl (index): the ride holder's awake instance out of the renderer (rectangle or sleep), the active part states of its flag-0x80 parts released"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
@@ -3916,6 +3943,7 @@ address,name,kind,confidence,notes
 0x0044b040,Face_AttachPoint,function,high,"reimplemented (src/game/model/partstate); cdecl (a, b, c, normal, attach, onFace, out): the point of face (a, b, c) at the attachment's t (+4), s (+8): lerp(lerp(a, b, t), c, s), copied to onFace, then lifted by +0xc along normal"
 0x0044a640,Matrix_AttachAim,function,high,"reimplemented (src/game/model/partstate); cdecl (from, to, up, attach, m): m's rotation rows = up x n, up, n for n = normalize(to - from) (NaN: up rotated, sic), turned by the attachment's angles (attach - u16 attach+2: z, y, x via the sine table)"
 0x0044ab90,PartStates_UpdateNode,function,high,"reimplemented (src/game/model/partstate); cdecl (node, model, Matrix44 m by value, parent, entries): accumulates node matrices (+0x10) down the tree; parts with 0x40040 on a 0x200000 host (+4) are placed on the host's face (0x44b040, aimed with 0x40000 by 0x44a640) in parent's space; the part entry's slot (+4) gets the matrix; normals refreshed (0x473a40) for 0x10000000|0x10000; skips children with 0x40000000"
+0x0044b410,PartStates_Activate,function,low,"reimplemented (src/game/model/partstate); cdecl (instance, part, handle): active count up, entry flag 2, a sprite script from the thing's sprite choice at +0xc"
 0x00450e60,Model_AllocVertexScratch,function,high,"reimplemented (src/game/model/scratch); 0x79f7e0 = GlobalMem_Alloc(12 * vertex high-water count 0x79f7d0, zeroed)"
 0x00450e80,Model_FreeVertexScratch,function,high,reimplemented (src/game/model/scratch); frees and clears the vertex scratch buffer 0x79f7e0
 0x00450f20,Model_FillVertexScratch,function,high,reimplemented (src/game/model/scratch); the view's node vertices put in the world
@@ -3930,6 +3958,8 @@ address,name,kind,confidence,notes
 0x00429f60,ModelSlot_SetPartFlag,function,high,reimplemented (src/game/model/slots); sets flag 0x10 of the face of the slot holder's part with key and flag 0x400
 0x00429fe0,ModelSlot_Holder,function,high,reimplemented (src/game/model/slots); the holder of slot (0x790398 + 0xb0 slot + 4)
 0x00429a60,ModelSlot_Ctor,function,low,"reimplemented (src/game/model/slots); the model slot table element constructor: its part at +0x48 with virtual bases built, the scene flags touched twice"
+0x00429d60,ModelSlot_KillAdvisor,function,low,"reimplemented (src/game/model/slots); cdecl (slot): ""Kill advisor"": an awake holder plays bank 0xc and leaves the renderer (rectangle with flag 0x4000, else Holder_Sleep)"
+0x00429e90,ModelSlot_CallAdvisor,function,low,"reimplemented (src/game/model/slots); cdecl (entry, slot): ""Initial advisor call"": Animator_Play(holder, 5, entry - 1, 0x10, 1.0f, 0), or 1000 without a holder"
 0x00462870,WorldVerts_Alloc,function,high,reimplemented (src/game/model/worldverts); 0x7aecd4 = a zeroed block of 12 bytes for each of 0x400 entries (large) or [0x7a42ac]
 0x004628a0,WorldVerts_Free,function,high,reimplemented (src/game/model/worldverts); frees the block at 0x7aecd4 (pointer left)
 0x004628b0,WorldVerts_TransformFrame,function,high,reimplemented (src/game/model/worldverts); the frame's vertices in world space (its matrix times its parents') into the 0x7aecd4 block

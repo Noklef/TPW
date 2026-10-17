@@ -11,6 +11,10 @@ void __fastcall MessageSlot_Dtor(u8 *slot);
 // 0x409250 (thiscall on the message centre; name unconfirmed): its 29 slots of 0x14 bytes from +0 destroyed, the last first (CRT_VectorDtorIterator with MessageSlot_Dtor).
 void __fastcall MessageCentre_DtorSlots(u8 *centre);
 
+// 0x40f9e0 (thiscall on the message centre; thing, slot, pops 8; name unconfirmed): 0 for a slot of 29 or more (signed); else the thing's handle
+// (Thing_GetHandle) inserted into that slot's map (StdMapB_Insert). Returns whether it was inserted (in AL only).
+u8 __fastcall MessageCentre_AddThing(u8 *centre, void *, const u8 *thing, s32 slot);
+
 // 0x40fa40 (thiscall on the message centre; thing, pops 4; name unconfirmed): for each of the 29 slots the thing's handle (Thing_GetHandle) is looked up
 // in the slot's map (Tree16a_LowerBound; found when that is not the head and the handle is not below its key, StdTreeB_KeyLess) and that node erased
 // (StdTree_EraseB). Returns the number erased.

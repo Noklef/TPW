@@ -13,6 +13,15 @@ void __fastcall MessageSlot_Dtor(u8 *slot) { StdTree_DtorB(slot + 4); }
 
 void __fastcall MessageCentre_DtorSlots(u8 *centre) { CRT_VectorDtorIterator(centre, 0x14, 0x1d, reinterpret_cast<void(__fastcall *)(void *)>(&MessageSlot_Dtor)); }
 
+u8 __fastcall MessageCentre_AddThing(u8 *centre, void *, const u8 *thing, s32 slot) {
+    if (slot >= 0x1d) return 0;
+    u16 handle;
+    const u16 key = *Thing_GetHandle(thing, nullptr, &handle);
+    u8 *result[2];
+    StdMapB_Insert(centre + 0x14 * slot + 4, nullptr, result, &key);
+    return static_cast<u8>(reinterpret_cast<uintptr_t>(result[1]));
+}
+
 u32 __fastcall MessageCentre_RemoveThing(u8 *centre, void *, const u8 *thing) {
     u32 removed = 0;
     for (u32 k = 0; k < 0x1d; ++k) {

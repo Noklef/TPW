@@ -3,6 +3,7 @@
 #include <cstdint>
 #include "crt.h"
 #include "dequeiter.h"
+#include "gameheap.h"
 #include "../gfx/surface.h"
 
 namespace {
@@ -636,6 +637,12 @@ u32 __fastcall Class6fefc8_Dtor(u8 *object) {
         Surface_Release(&result, reinterpret_cast<Surface *>(object + 0x14));
     }
     return Fn_6618a6(object);
+}
+
+u8 *__fastcall Class6fefc8_DeletingDtor(u8 *object, void *, u32 flags) {
+    Class6fefc8_Dtor(object);
+    if (flags & 1) GameHeap_Free(object);
+    return object;
 }
 
 u8 *__fastcall Class703710_Ctor(u8 *object) {

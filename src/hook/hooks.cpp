@@ -134,6 +134,7 @@
 #include "../game/core/vwrap.h"
 #include "../game/core/actionrec.h"
 #include "../game/core/namedobjects.h"
+#include "../game/core/savegame.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -198,7 +199,8 @@
 #include "../game/input/mouse.h"
 #include "../game/world/personscripts.h"
 #include "../game/world/ridelist.h"
-#include "../game/world/ridesearch.h"
+#include "../game/world/ridesearch.h"
+#include "../game/world/ridestate.h"
 #include "../game/world/ridesweep.h"
 #include "../game/world/steering.h"
 #include "../game/world/tagsystem.h"
@@ -1754,6 +1756,30 @@ const Hook kHooks[] = {
     {"Clock_Save",                0x00402e00, (void *)&Clock_Save, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"Clock_Load",                0x00402e30, (void *)&Clock_Load, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"GameClock_Double20",        0x00403390, (void *)&GameClock_Double20, {0xdd, 0x41, 0x20, 0xc3, 0x90}},
+    {"RealClock_Read",            0x00402f40, (void *)&RealClock_Read, {0x83, 0xec, 0x08, 0x56, 0x8b}},
+    {"RealClock_Pause",           0x00402f80, (void *)&RealClock_Pause, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"RealClock_Resume",          0x00402fa0, (void *)&RealClock_Resume, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"RealClock_TogglePause",     0x00402fd0, (void *)&RealClock_TogglePause, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"RealClock_Elapsed",         0x00403010, (void *)&RealClock_Elapsed, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"RealClock_Now",             0x00403150, (void *)&RealClock_Now, {0x56, 0x8b, 0xf1, 0xe8, 0xb8}},
+    {"RealClock_RestoreNow",      0x00403160, (void *)&RealClock_RestoreNow, {0x56, 0x8b, 0xf1, 0xe8, 0xa8}},
+    {"GameClock_Read",            0x004033a0, (void *)&GameClock_Read, {0x83, 0xec, 0x08, 0x56, 0x8b}},
+    {"GameClock_Pause",           0x00403030, (void *)&GameClock_Pause, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"GameClock_Resume",          0x00403050, (void *)&GameClock_Resume, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"GameClock_TogglePause",     0x00403080, (void *)&GameClock_TogglePause, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"GameClock_Elapsed",         0x004030d0, (void *)&GameClock_Elapsed, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"GameClock_Freeze",          0x00402ea0, (void *)&GameClock_Freeze, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"GameClock_Unfreeze",        0x00402ed0, (void *)&GameClock_Unfreeze, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"GameClock_Time",            0x00402f10, (void *)&GameClock_Time, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"GameClock_Now",             0x004031e0, (void *)&GameClock_Now, {0x56, 0x8b, 0xf1, 0xe8, 0x28}},
+    {"GameClock_RestoreNow",      0x004031f0, (void *)&GameClock_RestoreNow, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"Clocks_Now",                0x00402d70, (void *)&Clocks_Now, {0xe9, 0x6b, 0x04, 0x00, 0x00}},
+    {"Clocks_RealNow",            0x00402d80, (void *)&Clocks_RealNow, {0x83, 0xc1, 0x50, 0xe9, 0xc8}},
+    {"Clocks_Pause",              0x00402d90, (void *)&Clocks_Pause, {0x56, 0x8b, 0xf1, 0xe8, 0x98}},
+    {"Clocks_Resume",             0x00402db0, (void *)&Clocks_Resume, {0x56, 0x8b, 0xf1, 0xe8, 0x98}},
+    {"Clocks_TogglePause",        0x00402dd0, (void *)&Clocks_TogglePause, {0x56, 0x8b, 0xf1, 0xe8, 0xa8}},
+    {"Clocks_SaveNow",            0x00402e60, (void *)&Clocks_SaveNow, {0x56, 0x8b, 0xf1, 0xe8, 0x78}},
+    {"Clocks_RestoreNow",         0x00402e80, (void *)&Clocks_RestoreNow, {0x56, 0x8b, 0xf1, 0xe8, 0x68}},
     {"CircBufU16_3_Ctor",         0x004cdb60, (void *)&CircBufU16_3_Ctor, {0x8b, 0xc1, 0x66, 0xc7, 0x00}},
     {"CircBufU8_50_Ctor",         0x004ce9e0, (void *)&CircBufU8_50_Ctor, {0x8b, 0xc1, 0xc6, 0x00, 0x00}},
     {"CircBufU32_144_Push",       0x004ce290, (void *)&CircBufU32_144_Push, {0x8b, 0x81, 0x44, 0x02, 0x00}},
@@ -2271,6 +2297,7 @@ const Hook kHooks[] = {
     {"Class6fefc8_Ctor",          0x0047eab0, (void *)&Class6fefc8_Ctor, {0x6a, 0xff, 0x68, 0x08, 0x90}},
     {"Class703710_Ctor",          0x006175c0, (void *)&Class703710_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0xf8}},
     {"Class6fefc8_Dtor",          0x0047eb40, (void *)&Class6fefc8_Dtor, {0x6a, 0xff, 0x68, 0x28, 0x90}},
+    {"Class6fefc8_DeletingDtor",  0x0047eb20, (void *)&Class6fefc8_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"Fn_6d2770",                 0x006d2770, (void *)&Fn_6d2770, {0x8b, 0x44, 0x24, 0x04, 0xc7}},
     {"CheatSystem_Load",          0x00405570, (void *)&CheatSystem_Load, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"CheatSystem_Save",          0x004055d0, (void *)&CheatSystem_Save, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
@@ -3139,6 +3166,7 @@ const Hook kHooks[] = {
     {"Global81d7a4_SetRecorded",  0x0052f1b0, (void *)&Global81d7a4_SetRecorded, {0xa1, 0x34, 0xb1, 0x81, 0x00}},
     {"Global8186e0_SetRecorded",  0x0052f880, (void *)&Global8186e0_SetRecorded, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"NamedObjects_RemoveGlobals", 0x00408f00, (void *)&NamedObjects_RemoveGlobals, {0x51, 0x8b, 0x0d, 0x9c, 0x6b}},
+    {"Save_FieldName",            0x00416e10, (void *)&Save_FieldName, {0x33, 0xc0, 0xc2, 0x0c, 0x00}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -3154,6 +3182,7 @@ const Hook kHooks[] = {
     {"MessageCentre_DtorSlots",   0x00409250, (void *)&MessageCentre_DtorSlots, {0x68, 0x70, 0xf9, 0x40, 0x00}},
     {"MessageCentre_RemoveThing", 0x0040fa40, (void *)&MessageCentre_RemoveThing, {0x83, 0xec, 0x18, 0x53, 0x55}},
     {"MessageCentre_Save",        0x0040fc80, (void *)&MessageCentre_Save, {0x83, 0xec, 0x1c, 0x53, 0x55}},
+    {"MessageCentre_AddThing",    0x0040f9e0, (void *)&MessageCentre_AddThing, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"SteerSeek_Ctor",            0x0050ce50, (void *)&SteerSeek_Ctor, {0x53, 0x56, 0x8b, 0xd1, 0x57}},
     {"SteerArrival_Ctor",         0x0050ced0, (void *)&SteerArrival_Ctor, {0x53, 0x56, 0x8b, 0xd1, 0x57}},
     {"SteerSeparation_Ctor",      0x0050cf40, (void *)&SteerSeparation_Ctor, {0x53, 0x56, 0x8b, 0xd1, 0x57}},
@@ -3177,6 +3206,8 @@ const Hook kHooks[] = {
     {"SteerAvoidObstacle_Steer",  0x0050e350, (void *)&SteerAvoidObstacle_Steer, {0x6a, 0xff, 0x68, 0x90, 0xe3}},
     {"Steer_RayCircleHit",        0x0050cc20, (void *)&Steer_RayCircleHit, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"TagTable_Find",             0x0050af40, (void *)&TagTable_Find, {0x8b, 0x54, 0x24, 0x04, 0x81}},
+    {"Ride_IsBusy",               0x0042a440, (void *)&Ride_IsBusy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Ride_Sleep",                0x0043bd20, (void *)&Ride_Sleep, {0x8b, 0x44, 0x24, 0x04, 0x57}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
@@ -3314,6 +3345,7 @@ const Hook kHooks[] = {
     {"Matrix_AttachAim",          0x0044a640, (void *)&Matrix_AttachAim, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"PartStates_UpdateNode",     0x0044ab90, (void *)&PartStates_UpdateNode, {0x83, 0xec, 0x58, 0x53, 0x55}},
     {"PartStates_Update",         0x0044ab30, (void *)&PartStates_Update, {0x83, 0xec, 0x40, 0x56, 0x8b}},
+    {"PartStates_Activate",       0x0044b410, (void *)&PartStates_Activate, {0x8b, 0x54, 0x24, 0x04, 0x8b}},
     {"Model_AllocVertexScratch",  0x00450e60, (void *)&Model_AllocVertexScratch, {0xa1, 0xd0, 0xf7, 0x79, 0x00}},
     {"Model_FreeVertexScratch",   0x00450e80, (void *)&Model_FreeVertexScratch, {0xa1, 0xe0, 0xf7, 0x79, 0x00}},
     {"Model_FillVertexScratch",   0x00450f20, (void *)&Model_FillVertexScratch, {0x83, 0xec, 0x24, 0x53, 0x55}},
@@ -3328,6 +3360,8 @@ const Hook kHooks[] = {
     {"ModelSlot_SetPartFlag",     0x00429f60, (void *)&ModelSlot_SetPartFlag, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"ModelSlot_Holder",          0x00429fe0, (void *)&ModelSlot_Holder, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
     {"ModelSlot_Ctor",            0x00429a60, (void *)&ModelSlot_Ctor, {0x6a, 0xff, 0x68, 0x34, 0x87}},
+    {"ModelSlot_KillAdvisor",     0x00429d60, (void *)&ModelSlot_KillAdvisor, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"ModelSlot_CallAdvisor",     0x00429e90, (void *)&ModelSlot_CallAdvisor, {0x68, 0x64, 0xc9, 0x74, 0x00}},
     {"WorldVerts_Alloc",          0x00462870, (void *)&WorldVerts_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"WorldVerts_Free",           0x004628a0, (void *)&WorldVerts_Free, {0xa1, 0xd4, 0xec, 0x7a, 0x00}},
     {"WorldVerts_TransformFrame", 0x004628b0, (void *)&WorldVerts_TransformFrame, {0x83, 0xec, 0x4c, 0xb9, 0x10}},
