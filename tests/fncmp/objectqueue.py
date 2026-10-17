@@ -1,0 +1,56 @@
+# The object's queue walks of src/game/world/objectmsg (0x4de130 Object_BackOfQueue, 0x4de110 Object_BackOfQueueTo, 0x4ddf40 Object_QueuePositionOfNone) against the originals:
+# an object with a set or unset queue back and a world where the neighbour walk ends or runs on (Back, BackTo); objectmsg.py's queue of persons (None: the position of the
+# person with no handle).
+# usage: objectqueue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Back,BackTo,None)
+import os
+import struct
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
+sys.path.insert(0, HERE)
+import objectmsg  # noqa: E402
+from fncmp import Bench, Call, RAM, put  # noqa: E402
+
+B = Bench([(0x4d8300, 0x4d8340), (0x4d96f0, 0x4d97f0), (0x4d99c0, 0x4d99f0), (0x4ddf40, 0x4de200), (0x4de040, 0x4de100), (0x4de670, 0x4de7f0), (0x502430, 0x502470), (0x50b350, 0x50b370),
+           (0x522770, 0x5227a0), (0x522850, 0x522870), (0x536300, 0x53644c), (0x5da3c0, 0x5da3c1)])
+OUT = RAM + 0x7000
+
+
+def back(r):
+    obj = bytearray(r.bytes(0x60))
+    put(obj, 0x3a, 'H', r.choice([0, 0, 0, 5, 0x81]))
+    put(obj, 0x36, 'H', r.choice([1, 2, 3, 0x81, r.randrange(1, 0x100)]))
+    cells = bytearray(r.bytes(0x44 * 0x1c0))
+    for idx in range(0x1c0):
+        put(cells, 0x44 * idx, 'H', min(idx + 1, 0x17f) if r.random() < 0.9 else r.randrange(1, 0x17f))
+        put(cells, 0x44 * idx + 8, 'I', r.choice([3, 3, 9, 0, 1, 3, 4, 0xa]))
+        cells[0x44 * idx + 0xd] = r.choice([0x10, 1, 0x40, 4, 0x10, 1, 0x40, 4, 0x80, 2])
+    world = RAM + 0x10000
+    regions = {RAM: obj, world + 0x294: cells, 0x8023a0: struct.pack('<I', world + 0x294), 0x7cf83c: struct.pack('<I', world), 0x80239c: struct.pack('<I', world), OUT: r.bytes(4)}
+    return Call(0x4de130, [RAM, OUT], regions, conv='t', ret='a')
+
+
+def back_to(r):
+    c = back(r)
+    c.address = 0x4de110
+    return c
+
+
+def none(r):
+    c = objectmsg.queue(r, 'Pos')
+    c.address, c.args, c.ret = 0x4ddf40, c.args[:1], 'a'
+    return c
+
+
+CASES = {'Back': back, 'BackTo': back_to, 'None': none}
+
+
+def case(r):
+    return CASES[r.choice(OPS)](r)
+
+
+OPS = [k for k in os.environ.get('OPS', ','.join(CASES)).split(',') if k]
+
+if __name__ == '__main__':
+    B.main(case)

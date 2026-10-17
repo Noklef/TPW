@@ -1,6 +1,6 @@
-# The wide string map bounds of src/game/core/small37 (0x4f6400, 0x4f6940) against the originals: valid red-black trees (stdtree.py's) of 0 to 12 nodes whose strings are
+# The wide string map of src/game/core/wstringmap (0x4f6400, 0x4f6940, 0x4f2b40) against the originals: valid red-black trees (stdtree.py's) of 0 to 12 nodes whose strings are
 # wide characters from a small alphabet in ascending order (some empty, some with a null character pointer), searched with keys equal to a node's or not.
-# usage: small37.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Lower,Upper)
+# usage: wstringmap.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Lower,Upper,Find)
 import os
 import struct
 import sys
@@ -10,9 +10,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import stdtree  # noqa: E402
 from fncmp import Bench, Call, RAM  # noqa: E402
 
-CALLS = {'Lower': 0x4f6400, 'Upper': 0x4f6940}
+CALLS = {'Lower': 0x4f6400, 'Upper': 0x4f6940, 'Find': 0x4f2b40}
 B = Bench([(a, a + 0x100) for a in CALLS.values()], hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})
-CHARS, KEY = RAM + 0x4000, RAM + 0x900
+CHARS, KEY, OUT = RAM + 0x4000, RAM + 0x900, RAM + 0x7000
 ALPHA = [0x41, 0x42, 0x61, 0x100, 0x8000, 0xffff]
 
 
@@ -50,6 +50,9 @@ def case(r):
     struct.pack_into('<II', kb, 4, CHARS + 0x300 if s or r.random() < 0.5 else 0, len(s))
     struct.pack_into('<%dH' % len(s), pool, 0x300, *s)
     regions = {stdtree.TREE: tree, stdtree.HEAD: head, stdtree.NIL: nil, stdtree.NODES: blob, 0x7ced24: struct.pack('<I', stdtree.NIL), KEY: kb, CHARS: pool}
+    if name == 'Find':  # the output word is given too
+        regions[OUT] = r.bytes(4)
+        return Call(CALLS[name], [stdtree.TREE, OUT, KEY], regions, conv='t', ret='a')
     return Call(CALLS[name], [stdtree.TREE, KEY], regions, conv='t', ret='a')
 
 
