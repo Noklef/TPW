@@ -44,6 +44,11 @@ void __fastcall Obj_SetDuration(u8 *object, void *, u32 duration);
 // when it is not 6 that is returned; when it is 6 the element is set to 0, the word cleared and -1 returned.
 s32 __fastcall Game_TakeRideElement1(u8 *game);
 
+// 0x51a760 (thiscall on the game object; name unconfirmed): 1 when the word at +0x1da72a is 0 or differs from the one at +0x1da72c. Otherwise 0 when
+// Game_TakeRideElement1 gives 3; else 1 when the dword at +0x2d0 is at least 10 (signed); else 0 when a second take gives 1, or a third (the same, the
+// thing found by Thing_ByHandle to clear the element) gives 2; 1 otherwise.
+s32 __fastcall Game_PollRideElement1(u8 *game);
+
 // 0x4396e0 (cdecl; object, may be 0): for each of the dword at +0xf4 slots of 0x80 bytes from the block at +0x128 whose dwords at +0x54, +0x58,
 // +0x5c and +0x60 are 0: Rides_GetLinkedElement of the object's ride id (+0x24) and element 5, 6, 7 and 8.
 void __cdecl Obj_FillLinkedElements(u8 *object);

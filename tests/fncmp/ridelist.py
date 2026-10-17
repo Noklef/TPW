@@ -14,8 +14,9 @@ from thingenv import POOL, THING, park  # noqa: E402
 CALLS = {'Find': (0x55a070, 0x40, 'id'), 'Set': (0x55a0b0, 0x50, 'rec2v'), 'Get': (0x55a390, 0x50, 'rec2'), 'SetW': (0x55a300, 0x30, 'recv'),
          'GetW': (0x55a330, 0x30, 'rec'), 'G9c': (0x55a360, 0x30, 'rec'), 'Link': (0x55a3e0, 0x90, 'id2'), 'Clr4': (0x4e03f0, 0x30, 'this'), 'E7': (0x4e0410, 0x30, 'this'), 'E0': (0x4e0a70, 0x40, 'this'),
          'Spd': (0x4dd6e0, 0x40, 'thisv'), 'Dur': (0x4dd720, 0xd0, 'thisv'), 'GameE': (0x51a290, 0x60, 'this'), 'E41': (0x4e0db0, 0x30, 'this'), 'Fill': (0x4396e0, 0xa0, 'this'), 'Roll': (0x4e2670, 0xa0, 'thisv'), 'SetId': (0x436f60, 0x40, 'this'), 'RideId': (0x4685c0, 0x40, 'this'), 'Take': (0x51a690, 0xd0, 'this'),
-         'Clr0': (0x4e0ac0, 0xd0, 'thisv'), 'Claim': (0x4e0900, 0x170, 'thisv')}
-B = Bench([(a, a + n) for (a, n, _s) in CALLS.values()] + [(0x5da3c0, 0x5da3c1), (0x412e90, 0x412eea), (0x516330, 0x516370), (0x50b350, 0x50b360)])
+         'Clr0': (0x4e0ac0, 0xd0, 'thisv'), 'Claim': (0x4e0900, 0x170, 'thisv'),
+         'Poll': (0x51a760, 0x263, 'this')}
+B = Bench([(a, a + n) for (a, n, _s) in CALLS.values()] + [(0x5da3c0, 0x5da3c1), (0x412e90, 0x412eea), (0x516330, 0x516370), (0x50b350, 0x50b360), (0x4cd300, 0x4cd331)])
 NODES, ARRAYS = RAM + 0x1000, RAM + 0x4000
 
 
@@ -57,6 +58,18 @@ def case(r):
         regions.update(things)
         game = RAM + 0x40000
         regions[game] = struct.pack('<H', r.choice(handles + [0, 0]) if handles else 0)
+        return Call(address, [game - 0x1da72a], regions, conv='t', ret='a')
+    if name == 'Poll':  # the game object: the handles at +0x1da72a and +0x1da72c (equal or not), the count at +0x2d0 about 10, element 1 of the records 6, 3, 1, 2 or others
+        for i in range(count):
+            put(arrays, 0x40 * i + 4, 'I', r.choice([6, 3, 1, 2, 6, 3, 1, 2, 0, 0xffffffff]))
+        things, handles, _a = park(r, defs=False)
+        for i in range(len(handles)):
+            put(things[POOL], THING * i + 0x24, 'I', r.choice(ids + [0, 99]))
+        regions.update(things)
+        game = RAM + 0x40000
+        h = r.choice(handles + [0]) if handles else 0
+        regions[game] = struct.pack('<HH', h, r.choice([h, h, h, h ^ 1, 0]))
+        regions[game - 0x1da72a + 0x2d0] = struct.pack('<i', r.choice([0, 9, 10, 11, -1, 0x7fffffff, 5]))
         return Call(address, [game - 0x1da72a], regions, conv='t', ret='a')
     if name == 'GameE':  # the game object: the handle at +0x1da732, a thing table where the things name ride ids
         things, handles, _a = park(r, defs=False)
