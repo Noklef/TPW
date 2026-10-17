@@ -16,6 +16,15 @@ void __fastcall Pixels_BlendOnto(const u8 *source, void *, u8 *dest, u32 x, u32 
 // (0x1dd, 6), (0x141, 0xda), (4, 0x9f) and (0xb6, 0).
 void __fastcall Panel_Reset(u8 *panel);
 
+// 0x5d4260 (thiscall on the source image {width +0, height +4, ?, pixels of four bytes +0xc}; dest, width, height, format, pops 16; name unconfirmed): the
+// source shrunk to width x height by box averages. The steps are (source size << 16 | 0x8000) / new size (unsigned); each new column and row covers the
+// source columns / rows its step's top half moves on by (counts kept as bytes). Each row band is averaged across (each byte's sum, low 16 bits, over the
+// count) into a scratch block of (row step + 1) x width pixels, reading the source straight on (by the counts, not by its width, sic), then down: bytes
+// 1-3 of each column's average go to dest as format 1: bytes 3, 2, 1 and 0xff (4 bytes) or format 2: the u16 0xf000 | 1's top nibble << 8 | 2's << 4 |
+// 3's (2 bytes); other formats write nothing. A count of 0 (a size grown) divides by 0, sic. Three scratch blocks (Mem_Alloc; any failing returns 0,
+// those taken kept, sic), freed at the end; returns 1.
+u8 __fastcall Image_ShrinkInto(const u8 *image, void *, u8 *dest, s32 width, s32 height, u32 format);
+
 // 0x5ea3f0 (cdecl; destination image, source image, x, y; images {width, height, bytes per pixel, data}): the destination is made over (Array3D_Realloc: the source's width
 // and height, one byte per pixel, cleared) and the part of the source that is left once it is moved by (x, y) (its rows and columns clamped to the source) is copied into it, the
 // first byte of each pixel, at (max(x, 0), max(y, 0)). Returns true.

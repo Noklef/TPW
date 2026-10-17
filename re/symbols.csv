@@ -3622,6 +3622,7 @@ address,name,kind,confidence,notes
 0x005ea1f0,Image_MinMark,function,high,"reimplemented (src/game/gfx/imageops); 3 x 3 minimum of a two byte per pixel image, marking the changed pixels"
 0x005e7d70,Pixels_Stamp,function,high,reimplemented (src/game/gfx/imageops); draws an image onto a four byte per pixel image
 0x005e7f60,Mask_Tint,function,high,reimplemented (src/game/gfx/imageops); tints a four byte per pixel image through a mask
+0x005d4260,Image_ShrinkInto,function,low,"reimplemented (src/game/gfx/imageops); thiscall (image; dest, width, height, format), pops 16: box-average shrink through three scratch blocks; format 1 writes bytes 3,2,1,0xff, format 2 a u16 0xf000 | nibbles; returns 1 (0 when a block fails)"
 0x005f09a0,Colour_Blend3,function,high,reimplemented (src/game/gfx/color); blends between three colour records by a position of 0 to 100
 0x00591270,Format_BuildChannelTable,function,high,reimplemented (src/game/gfx/color); Builds the 256 level table of four channel masks (name unconfirmed)
 0x00598ca0,ModelSlot_ApplySelection,function,high,reimplemented (src/game/model/slots); sets or clears the part flags of the selection kind
