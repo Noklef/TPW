@@ -25,4 +25,12 @@ void __fastcall Gauge_SetColour0(u8 *gauge, void *, DrawColour c);
 void __fastcall Gauge_SetColour1(u8 *gauge, void *, DrawColour c);
 void __fastcall Gauge_SetColour2(u8 *gauge, void *, DrawColour c);
 void __fastcall Gauge_SetColour3(u8 *gauge, void *, DrawColour c);
+
+// 0x47fc00 (thiscall; name unconfirmed): the frame (+8 to +0x14) filled in colour 3 (Display_BoxFill).
+void __fastcall Gauge_DrawBack(const u8 *gauge);
+
+// 0x47fc50 (thiscall; name unconfirmed): the axes: a horizontal line in colour 0 from left - 1, right + 1 long (sic: not the width), at
+// bottom + 1, or when the first mark's y (+0x1c) is negative and the second's (+0x24) is above it, at bottom + height * y0 / (y1 - y0)
+// (32-bit, truncated); then a vertical one in colour 1 from (left - 1, top - 1), bottom + 1 long (Display_HLine, Display_VLine).
+void __fastcall Gauge_DrawAxes(const u8 *gauge);
 }

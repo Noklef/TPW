@@ -3731,6 +3731,8 @@ address,name,kind,confidence,notes
 0x0047fba0,Gauge_SetColour1,function,high,reimplemented (src/game/gfx/gauge); the gauge's colour 1
 0x0047fbc0,Gauge_SetColour2,function,high,reimplemented (src/game/gfx/gauge); the gauge's colour 2
 0x0047fbe0,Gauge_SetColour3,function,high,reimplemented (src/game/gfx/gauge); the gauge's colour 3
+0x0047fc00,Gauge_DrawBack,function,low,reimplemented (src/game/gfx/gauge); thiscall: the frame filled in colour 3 (Display_BoxFill)
+0x0047fc50,Gauge_DrawAxes,function,low,"reimplemented (src/game/gfx/gauge); thiscall: the horizontal axis (colour 0) at bottom + 1 or scaled by the first mark, then the vertical one (colour 1)"
 0x00477c00,BarMesh_SetVertex,function,high,reimplemented (src/game/gfx/barmesh); vertex i of a 4-lane x/y/z block array
 0x00477cc0,BarMesh_SetTopVertices,function,high,reimplemented (src/game/gfx/barmesh); virtual: the bar's top edge vertices at its level (+0x120)
 0x00477d20,BarMesh_SetTopTexCoords,function,high,reimplemented (src/game/gfx/barmesh); virtual: the bar's top edge texture v = level * 0.01
