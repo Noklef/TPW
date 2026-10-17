@@ -16,6 +16,11 @@ u8 __fastcall Eleven_Read(u8 *object, void *, u8 *stream);
 // to +0x28 freed and their four dwords cleared; then BufferC_FreeAndClear on +0x18 and +8.
 void __fastcall TileSet_Clear(u8 *object);
 
+// 0x5ec220 (thiscall destructor-like): slot 6 (offset 0x18) of the object at +0x14 is called; then for the groups at +0x3c4 and +0x358 the four arrays at +0x2c, +0x3c, +0x4c and
+// +0x5c are Array3D_Free'd, the last one's block is freed and cleared and BufferC_FreeAndClear runs on +0x4c, +0x3c and +0x2c; then the blocks at +0x28 and +0x18 are freed
+// when set and their four dwords cleared.
+void __fastcall Renderer_Teardown(u8 *object);
+
 // 0x5ea3f0 (cdecl; destination image, source image, x, y; images {width, height, bytes per pixel, data}): the destination is made over (Array3D_Realloc: the source's width
 // and height, one byte per pixel, cleared) and the part of the source that is left once it is moved by (x, y) (its rows and columns clamped to the source) is copied into it, the
 // first byte of each pixel, at (max(x, 0), max(y, 0)). Returns true.

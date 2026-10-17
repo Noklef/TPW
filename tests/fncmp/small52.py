@@ -7,8 +7,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, HEAP, LOG, RAM, heap, log_region, put, vtable  # noqa: E402
 
-CALLS = {'Clear': 0x5eb090, 'Read': 0x5eb1a0, 'Crop': 0x5ea3f0, 'Tiles': 0x55f210}
-B = Bench([(0x5eb090, 0x5eb180), (0x5eb1a0, 0x5eb280), (0x5d3860, 0x5d38b0), (0x67acb0, 0x67acb1), (0x5c4f60, 0x5c4f90), (0x5ea3f0, 0x5ea520), (0x5e7840, 0x5e78b0), (0x55f210, 0x55f4b0), (0x55f1e0, 0x55f210)])
+CALLS = {'Clear': 0x5eb090, 'Read': 0x5eb1a0, 'Crop': 0x5ea3f0, 'Tiles': 0x55f210, 'Tear': 0x5ec220}
+B = Bench([(0x5eb090, 0x5eb180), (0x5eb1a0, 0x5eb280), (0x5d3860, 0x5d38b0), (0x67acb0, 0x67acb1), (0x5c4f60, 0x5c4f90), (0x5ea3f0, 0x5ea520), (0x5e7840, 0x5e78b0), (0x55f210, 0x55f4b0), (0x55f1e0, 0x55f210), (0x5ec220, 0x5ec3a0)])
 VT = RAM + 0x1000
 
 
@@ -20,6 +20,18 @@ def case(r):
             put(obj, off, 'III', r.choice([0, 4, 8]), r.choice([0, 3]), r.choice([0, 4]))
             put(obj, off + 0xc, 'I', r.choice([0, HEAP + 0x100 + off, HEAP + 0x200]))
         return Call(CALLS[name], [RAM], {RAM: obj, HEAP: heap()}, conv='t', ret='v')
+    if name == 'Tear':
+        big = bytearray(r.bytes(0x500))
+        put(big, 0x14, 'I', RAM + 0x600)
+        for group in (0x3c4, 0x358):
+            for off in (0x2c, 0x3c, 0x4c, 0x5c):
+                put(big, group + off, 'III', r.choice([0, 4, 8]), r.choice([0, 3]), r.choice([0, 4]))
+                put(big, group + off + 0xc, 'I', r.choice([0, HEAP + 0x100 + group + off, HEAP + 0x2000 + off]))
+        for off in (0x18, 0x28):
+            put(big, off + 0xc, 'I', r.choice([0, HEAP + 0x300 + off, HEAP + 0x3000 + off]))
+        sub = bytearray(r.bytes(0x20))
+        put(sub, 0, 'I', VT)
+        return Call(CALLS[name], [RAM], {RAM: big, RAM + 0x600: sub, VT: vtable({6: 0}), LOG: log_region(), HEAP: heap()}, conv='t', ret='v')
     if name == 'Tiles':
         big = bytearray(r.bytes(0x100))
         for off in range(8, 0xd8, 0x10):

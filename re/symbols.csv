@@ -358,7 +358,7 @@ address,name,kind,confidence,notes
 0x005e78b0,Array3D_Read,function,high,"u32 w, h, bpp + w*h*bpp bytes"
 0x00467a80,Sign_Apply,function,high,"splits a name into two lines, loads <theme>/<style>.sgn, renders it onto the model's sign1/sign2.tga with GDI"
 0x005ebfc0,SignStyle_Ctor,function,high,"two line styles, default LOGFONT Arial Black, weight 400"
-0x005ec220,SignStyle_Dtor,function,medium,
+0x005ec220,Renderer_Teardown,function,high,reimplemented (src/game/core/small52); releases the two array groups and two blocks after calling the sub object
 0x005ec3a0,SignStyle_Load,function,high,".sgn: version >= 100, 2 line styles (font, ttf, x, y, LOGFONTA, layout), effects, 2 fill strips, background"
 0x005eb1a0,Eleven_Read,function,high,reimplemented (src/game/core/small52); reads eleven dwords from a stream
 0x005ecb40,SignStyle_Render,function,medium,"(HDC, text lines + target textures)"
