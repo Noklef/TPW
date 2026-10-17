@@ -3,7 +3,7 @@
 // 0x7cdb30: reimplementation of 0x4d0a70-0x4d0b10; and the map's (gWorld + 0x2d8) bounds check,
 // RE cells, fixed positions and block values, 0x4d8300-0x4d8ca0, and the cell constructor
 // 0x4d8da0; the 0x28-byte cells' accessors 0x522700-0x5228a0, 0x535db0, 0x536300-0x536440,
-// 0x539210, 0x53a510-0x53a530 and 0x53ad20-0x53aef0.
+// 0x539210, 0x539670, 0x53a510-0x53a530 and 0x53ad20-0x53aef0.
 // A position is the u16 handle
 // y * 128 + x + 1.
 #pragma once
@@ -195,6 +195,13 @@ u32 __fastcall MapCell_HasLowFlags(const u8 *cell);
 u8 __fastcall MapCell_CornerNeighbours(const u8 *cell);
 u8 __fastcall MapCell_StraightNeighbours(const u8 *cell);
 u8 __fastcall MapCell_JunctionNeighbours(const u8 *cell);
+
+// 0x539670 (dx, dy; name unconfirmed): mDirection from a step of 2: dx -2 / 2 gives 0x40 / 4, dy
+// -2 / 2 gives 1 / 0x10. On a junction (more than 2 sides) the bit is added to mDirection, else
+// it replaces it; with both steps only dy's bit is kept (each set starts from the old value).
+// Nothing is done while 0x81b4cc is set for cells of type 0xb, 0xc, 0x10 or 0x11, or when the
+// 0x44-byte cell named by the cell's first word is of type 0x15.
+void __fastcall MapCell_SetStepDirection(u8 *cell, void *, s32 dx, s32 dy);
 
 // 0x53aec0: the u16 +0x24, or for a 0xc / 0x11 cell its parent's (in AX only). 0x53aef0
 // (value): the u16 +0x24 set.

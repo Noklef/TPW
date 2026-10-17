@@ -399,6 +399,21 @@ u8 __fastcall MapCell_JunctionNeighbours(const u8 *cell) {
     return MapCell_SideNeighbourCount(cell) <= 2 ? 0 : bits;
 }
 
+void __fastcall MapCell_SetStepDirection(u8 *cell, void *, s32 dx, s32 dy) {
+    if (global<u8>(0x0081b4cc)) {
+        const u32 type = at<u32>(cell, 8);
+        if (type == 0xb || type == 0xc || type == 0x10 || type == 0x11) return;
+        if (at<u32>(MapHandle_Cell44(reinterpret_cast<const u16 *>(cell)), 8) == 0x15) return;  // the cell's own first word as a handle
+    }
+    // A junction keeps its direction and gains the step's bit; anything else is set to it. Each
+    // set is from the direction as it was, so only the last bit applies (sic).
+    const u8 base = MapCell_SideNeighbourCount(cell) > 2 ? MapCell_Direction(cell) : 0;
+    if (dx == -2) MapCell_SetDirection(cell, nullptr, base | 0x40);
+    if (dx == 2) MapCell_SetDirection(cell, nullptr, base | 4);
+    if (dy == -2) MapCell_SetDirection(cell, nullptr, base | 1);
+    if (dy == 2) MapCell_SetDirection(cell, nullptr, base | 0x10);
+}
+
 u16 __fastcall MapCell_Word24(const u8 *cell) {
     if (!MapCell_IsTypeCOr11(cell)) return at<u16>(cell, 0x24);
     return at<u16>(world_cell(at<u16>(cell, 0x10)), 0x24);
