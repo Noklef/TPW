@@ -110,7 +110,6 @@ address,name,module,reason
 5f8940,SystemInfo_FindVolume,files/drives,todo
 5f89d0,SystemInfo_DriveLetter,files/drives,todo
 5f89f0,SystemInfo_VolumeLabel,files/drives,todo
-5f8a50,StringListNode_Ctor,files/wadfind,todo
 5f8ae0,RegKey_Open,core/regkey,todo
 5f8b70,RegKey_Dtor,core/regkey,todo
 5f8b80,RegKey_Close,core/regkey,todo
@@ -455,14 +454,6 @@ address,name,module,reason
 636d80,TextWriter_AppendChar,files/textwriter,todo
 636dc0,TextWriter_Append,files/textwriter,todo
 636e00,TextWriter_Format,files/textwriter,todo
-637a50,WadDir_FindFirst,files/wadfind,todo
-637aa0,WadDir_FindNext,files/wadfind,todo
-637e10,WadFolder_Find,files/wadfind,todo
-638050,WadFinder_Ctor,files/wadfind,todo
-6380f0,WadFinder_Start,files/wadfind,todo
-638430,WadFinder_Next,files/wadfind,todo
-638550,WadFinder_Done,files/wadfind,todo
-638570,WadFinder_Fill,files/wadfind,todo
 638be0,BufferSource_AttachRefPack,files/wrapsources,todo: decodes what the source reads; needs a bench feeding real RefPack streams
 638d30,BufferSource_AttachZlib,files/wrapsources,todo: hands the codec a stack CallbackStream; needs a recorder that logs the pointee rather than the stack address
 638ef0,BufferedSource_Ctor,files/bufsource,todo
@@ -487,10 +478,6 @@ address,name,module,reason
 63ad80,IndexConverter_Nearest,gfx/pixconv,todo
 63ae60,Rgb16Converter_DeletingDtor,gfx/pixconv,todo
 63ae80,Rgb16Converter_Dtor,gfx/pixconv,todo
-641500,Wildcard_Compile,files/wadfind,todo
-641760,Wildcard_Match,files/wadfind,todo
-641780,Wildcard_MatchFrom,files/wadfind,todo
-641820,StringList_PopHead,files/wadfind,todo
 641f10,RefPack_Decode,files,todo
 642110,RefPack_DecodedSize,?,todo
 642150,InverseMap_Ctor,gfx/invmap,todo

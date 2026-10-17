@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+#include "../core/vcall.h"
+
 namespace {
 
 template <typename T>
@@ -238,7 +240,7 @@ void __fastcall WadFinder_Start(WadFinder *f, void *, WadFolder **root, const St
     f->current = nullptr;
     f->folders = 0;
     if (!f->folder) return;
-    String_AssignStr(&f->path, nullptr, "");
+    vcall<String *>(&f->path, 0x14, "");  // (through the vtable, as the original: String_AssignStr)
     u32 count = pattern->length, start = 0;
     if (ends_with(pattern, "\\", 1) || ends_with(pattern, "/", 1)) --count;
     if (starts_with(pattern, "\\") || starts_with(pattern, "/")) {
@@ -265,7 +267,7 @@ void __fastcall WadFinder_Start(WadFinder *f, void *, WadFolder **root, const St
         String_Dtor(&folder);
     }
     if (f->folder) {
-        String_Assign(&f->pattern, nullptr, String_From(&s, nullptr, &v, static_cast<u32>(cut + 1)));
+        vcall<String *>(&f->pattern, 0x1c, String_From(&s, nullptr, &v, static_cast<u32>(cut + 1)));  // (String_Assign)
         s32 r;
         if (*Wildcard_Compile(&f->a, nullptr, &r, f->pattern.data) >= 0) {
             f->dotStar = 0;
