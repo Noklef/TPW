@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <initializer_list>
+#include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
 #include "../math/x87.h"
@@ -11,6 +12,8 @@ namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+void __fastcall ReleaseElement(void *texture) { Texture_Release(static_cast<u8 *>(texture)); }
 
 }  // namespace
 
@@ -117,4 +120,9 @@ u32 __fastcall Texture_Release(u8 *texture) {
     at<u32>(texture, 0x38) = ((u32)(long long)lod.v & 0xfff) << 16;
     return 1;
 }
+}
+
+void Texture_DestroyArray(u8 *array) {
+    CRT_VectorDtorIterator(array, 0x60, at<s32>(array, (u32)-4), ReleaseElement);
+    GameHeap_Free(array - 4);
 }

@@ -2,7 +2,6 @@
 
 #include <cstdint>
 
-#include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "texcache.h"
 #include "texture.h"
@@ -11,15 +10,10 @@ namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-// The texture arrays' destructor (the original passes its jump at 0x590a70).
-void __fastcall ReleaseTexture(void *texture) { Texture_Release(static_cast<u8 *>(texture)); }
-
-// A count-prefixed array of textures destroyed (Texture_Release on each, the last first) and freed 4 bytes below; nothing for 0.
+// Texture_DestroyArray (gfx/texture) when set.
 void DestroyArray(u8 *array) {
-    if (!array)
-        return;
-    CRT_VectorDtorIterator(array, 0x60, at<s32>(array, (u32)-4), ReleaseTexture);
-    GameHeap_Free(array - 4);
+    if (array)
+        Texture_DestroyArray(array);
 }
 
 // The textures' cache items unlinked (the first texture's +0x40 cleared after each, sic), the array destroyed, +0 and +0x16 cleared.

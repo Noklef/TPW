@@ -52,3 +52,7 @@ u32 __fastcall Texture_Reload(u8 *texture);
 // level part alone (<< 16). Returns 1.
 u32 __fastcall Texture_Release(u8 *texture);
 }
+
+// A count-prefixed array of textures (the count in the dword before it; not 0) destroyed, Texture_Release on each from the last
+// (CRT_VectorDtorIterator: the originals pass Texture_Release's jump at 0x590a70), then freed 4 bytes below (GameHeap_Free).
+void Texture_DestroyArray(u8 *array);

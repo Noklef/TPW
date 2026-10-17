@@ -2,6 +2,9 @@
 
 #include <cstdint>
 
+#include "../core/gameheap.h"
+#include "../gfx/texture.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -43,6 +46,19 @@ u32 __fastcall SpriteQueue_Add2(u8 *queue, void *, u32 frame) {
     reinterpret_cast<u32 *>(queue + 0x2000)[n] = frame;
     // re-read: the entry may have been the count itself
     at<s32>(queue, 0x2408) = at<s32>(queue, 0x2408) + 1;
+    return 1;
+}
+
+u32 __cdecl SpriteQueue_Free() {
+    u8 *const queue = *reinterpret_cast<u8 **>(0x008c47a0);
+    if (!queue)
+        return 0;
+    if (u8 *const textures = at<u8 *>(queue, 0x2400)) {
+        Texture_DestroyArray(textures);
+        at<u32>(queue, 0x2400) = 0;
+    }
+    GameHeap_Free(queue);
+    *reinterpret_cast<u8 **>(0x008c47a0) = nullptr;
     return 1;
 }
 }
