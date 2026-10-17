@@ -1,6 +1,6 @@
 # The small functions of src/game/core/small against the originals: any object bytes and
 # arguments (no division by zero), dword ranges empty or not.
-# usage: small.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Word,Div,...)
+# usage: accessors_trivial.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Word,Div,...)
 import os
 import sys
 

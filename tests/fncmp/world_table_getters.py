@@ -1,6 +1,6 @@
-# The tiny functions of src/game/core/tiny_m (written by tools/tinygen.py) against the originals: any
+# The tiny functions of src/game/core/world_table_getters (written by tools/tinygen.py) against the originals: any
 # object bytes, any global values, any arguments.
-# usage: tiny_m.py [CASES [SEED]] [--wild|--both] [--show N]
+# usage: world_table_getters.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import sys
 

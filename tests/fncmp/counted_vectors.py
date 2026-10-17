@@ -1,6 +1,6 @@
-# The tiny constructors, containers and comparisons of src/game/core/small9 against the originals: any object bytes, arguments and
+# The tiny constructors, containers and comparisons of src/game/core/counted_vectors against the originals: any object bytes, arguments and
 # texts (the allocator is the heap region).
-# usage: small9.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# usage: counted_vectors.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import sys
 

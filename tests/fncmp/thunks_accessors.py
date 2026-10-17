@@ -1,6 +1,6 @@
-# The tiny functions of src/game/core/tiny_f (written by tools/tinygen.py) against the originals: any
+# The tiny functions of src/game/core/thunks_accessors (written by tools/tinygen.py) against the originals: any
 # object bytes, any global values, any arguments.
-# usage: tiny_f.py [CASES [SEED]] [--wild|--both] [--show N]
+# usage: thunks_accessors.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import sys
 

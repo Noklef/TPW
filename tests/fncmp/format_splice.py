@@ -1,6 +1,6 @@
-# The format record filler, list node splice and global object setter of src/game/core/small24 against the originals: format records by index, circular lists of one to
+# The format record filler, list node splice and global object setter of src/game/core/format_splice against the originals: format records by index, circular lists of one to
 # three nodes with the splice point and the moved node anywhere (same list or not), bytes at +0x24 around the signed range.
-# usage: small24.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# usage: format_splice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import sys
 

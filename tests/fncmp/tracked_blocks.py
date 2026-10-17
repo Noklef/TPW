@@ -1,6 +1,6 @@
-# The tracked handle of src/game/core/small16 against the original: handles in and out of the thing table, stamps around the expiry, things of
+# The tracked handle of src/game/core/tracked_blocks against the original: handles in and out of the thing table, stamps around the expiry, things of
 # any kind with the object's handle among their words.
-# usage: small16.py [CASES [SEED]] [--wild|--both] [--show N]
+# usage: tracked_blocks.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
 import sys

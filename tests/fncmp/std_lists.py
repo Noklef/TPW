@@ -1,6 +1,6 @@
-# The list members of src/game/core/small46 against the originals: lists of 0 to 6 counted strings with runs of equal ones (the count bytes at the edges, null
+# The list members of src/game/core/std_lists against the originals: lists of 0 to 6 counted strings with runs of equal ones (the count bytes at the edges, null
 # characters for empty strings, lengths that differ); sorted lists of dwords of 0 to 6 elements merged (and a list merged with itself).
-# usage: small46.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Unique,Merge)
+# usage: std_lists.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Unique,Merge)
 import os
 import struct
 import sys

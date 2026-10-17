@@ -1,6 +1,6 @@
-# The counted list range erase and nth erase, the table lookup with a limit and the activity check of src/game/core/small13 against the
+# The counted list range erase and nth erase, the table lookup with a limit and the activity check of src/game/core/list_erase_counted against the
 # originals: any object bytes and arguments, the table of records at 0x76e300 filled at run time by the game.
-# usage: small13.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# usage: list_erase_counted.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import sys
 

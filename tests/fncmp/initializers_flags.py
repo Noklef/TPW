@@ -1,6 +1,6 @@
-# The tiny functions of src/game/core/tiny_c (written by tools/tinygen.py) against the originals: any
+# The tiny functions of src/game/core/initializers_flags (written by tools/tinygen.py) against the originals: any
 # object bytes, any global values, any arguments.
-# usage: tiny_c.py [CASES [SEED]] [--wild|--both] [--show N]
+# usage: initializers_flags.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import sys
 

@@ -1,6 +1,6 @@
-# The wide streambuf block read and write of src/game/core/small36 (0x4f0700, 0x4f07c0) against the originals: get and put areas (pointer null or not, the room word with
+# The wide streambuf block read and write of src/game/core/streambufs (0x4f0700, 0x4f07c0) against the originals: get and put areas (pointer null or not, the room word with
 # its two top bits set or clear, smaller or larger than the request), and an underflow / overflow slot that is a recorder returning anything, sometimes 0xffff.
-# usage: small36.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Read,Write)
+# usage: streambufs.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Read,Write)
 import os
 import sys
 

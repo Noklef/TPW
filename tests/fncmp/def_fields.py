@@ -1,6 +1,6 @@
-# The tiny functions of src/game/core/tiny_n (written by tools/tinygen.py) against the originals: any
+# The tiny functions of src/game/core/def_fields (written by tools/tinygen.py) against the originals: any
 # object bytes, any global values, any arguments.
-# usage: tiny_n.py [CASES [SEED]] [--wild|--both] [--show N]
+# usage: def_fields.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import sys
 

@@ -1,6 +1,6 @@
-# The map insert users and the list freeing destructor of src/game/core/small48 (0x5b1650, 0x5af740, 0x617f40) against the originals: small38.py's trees of the 16-bit key
+# The map insert users and the list freeing destructor of src/game/core/map_insert_copy (0x5b1650, 0x5af740, 0x617f40) against the originals: map_inserts.py's trees of the 16-bit key
 # map (the object keeps its tree at +0x28 for 0x5af740); lists of 0 to 5 nodes whose blocks are freed.
-# usage: small48.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Copy,Add,Dtor)
+# usage: map_insert_copy.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Copy,Add,Dtor)
 import os
 import struct
 import sys
@@ -8,7 +8,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-import small38  # noqa: E402
+import map_inserts  # noqa: E402
 import stdtree  # noqa: E402
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
@@ -32,12 +32,12 @@ def case(r):
             put(buf, off + 8, 'I', r.choice([HEAP + 0x100, HEAP + 0x200, 0, nodes + 0x10]))
         put(obj, 8, 'II', head, n)
         return Call(CALLS[name], [RAM], {RAM: obj, HEAP: heap(), **mem}, conv='t', ret='v')
-    saved = small38.OPS
-    small38.OPS = ['G']
+    saved = map_inserts.OPS
+    map_inserts.OPS = ['G']
     try:
-        c = small38.case(r)
+        c = map_inserts.case(r)
     finally:
-        small38.OPS = saved
+        map_inserts.OPS = saved
     if name == 'Copy':
         c.address, c.ret = CALLS[name], 'a'
         return c

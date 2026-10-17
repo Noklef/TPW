@@ -1,5 +1,5 @@
-# The 0x703780 class destructors of src/game/core/small31 against the originals: a member object whose slot 0 is a recorder, or none.
-# usage: small31.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=A,B,C)
+# The 0x703780 class destructors of src/game/core/class703780_dtors against the originals: a member object whose slot 0 is a recorder, or none.
+# usage: class703780_dtors.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=A,B,C)
 import os
 import struct
 import sys

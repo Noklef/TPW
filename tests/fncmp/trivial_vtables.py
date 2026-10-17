@@ -1,6 +1,6 @@
-# The tiny functions and wrappers of src/game/core/small4 against the originals: any object bytes, globals and arguments; the
+# The tiny functions and wrappers of src/game/core/trivial_vtables against the originals: any object bytes, globals and arguments; the
 # wage table, the global pointers, wide text for the narrow conversion through a range table.
-# usage: small4.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Addr,...)
+# usage: trivial_vtables.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Addr,...)
 import os
 import struct
 import sys

@@ -1,6 +1,6 @@
-# The tiny functions of src/game/core/tiny_a (written by tools/tinygen.py) against the originals: any
+# The tiny functions of src/game/core/getters_setters (written by tools/tinygen.py) against the originals: any
 # object bytes, any global values, any arguments.
-# usage: tiny_a.py [CASES [SEED]] [--wild|--both] [--show N]
+# usage: getters_setters.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import sys
 

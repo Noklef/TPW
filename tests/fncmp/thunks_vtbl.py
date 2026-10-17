@@ -1,6 +1,6 @@
-# The tiny functions of src/game/core/tiny_g (written by tools/tinygen.py) against the originals: any
+# The tiny functions of src/game/core/thunks_vtbl (written by tools/tinygen.py) against the originals: any
 # object bytes, any global values, any arguments.
-# usage: tiny_g.py [CASES [SEED]] [--wild|--both] [--show N]
+# usage: thunks_vtbl.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import sys
 

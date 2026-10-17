@@ -1,7 +1,7 @@
-# The grid add and the colour mask tables of src/game/core/small50 (0x576620, 0x5830e0) against the originals: a pool with up to 6 free nodes and a grid of up to 3 x 3 list
+# The grid add and the colour mask tables of src/game/core/grid_masks (0x576620, 0x5830e0) against the originals: a pool with up to 6 free nodes and a grid of up to 3 x 3 list
 # heads (vobj3.py's Add environment: objects of two classes whose slots 2 and 3 are recorders), rectangles inside, partly outside and outside the grid; masks of every
 # size for the 16-bit mode (or another depth, when only the words are stored).
-# usage: small50.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Grid,Masks)
+# usage: grid_masks.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Grid,Masks)
 import os
 import struct
 import sys

@@ -1,6 +1,6 @@
-# The two blends of src/game/core/small54 (0x5e7d70, 0x5e7f60) against the originals: sources of 0 to 4 x 0 to 3 pixels of 1, 2, 3 or 4 bytes, masks, destinations of 8 x 8 pixels
+# The two blends of src/game/core/pixel_stamps (0x5e7d70, 0x5e7f60) against the originals: sources of 0 to 4 x 0 to 3 pixels of 1, 2, 3 or 4 bytes, masks, destinations of 8 x 8 pixels
 # of 4 bytes (or other sizes for the row step) with random bytes, positions inside.
-# usage: small54.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Stamp,Tint)
+# usage: pixel_stamps.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Stamp,Tint)
 import os
 import sys
 

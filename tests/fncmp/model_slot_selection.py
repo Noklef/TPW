@@ -1,6 +1,6 @@
-# The highlight update of src/game/core/small56 (0x598ca0) against the original: scene.py's slot environment (a holder with parts, the slot table) with the highlight
+# The highlight update of src/game/core/model_slot_selection (0x598ca0) against the original: scene.py's slot environment (a holder with parts, the slot table) with the highlight
 # globals random: kinds -1 to 14 and others, the flag bit 0x10000 either way, key lists at 0xf797a4 / 0xf797b4 that name parts of the holder or not.
-# usage: small56.py [CASES [SEED]] [--wild|--both] [--show N]
+# usage: model_slot_selection.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
 import sys

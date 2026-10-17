@@ -1,6 +1,6 @@
-# The tiny functions of src/game/core/tiny_o (written by tools/tinygen.py) against the originals: any
+# The tiny functions of src/game/core/list_removes (written by tools/tinygen.py) against the originals: any
 # object bytes, any global values, any arguments.
-# usage: tiny_o.py [CASES [SEED]] [--wild|--both] [--show N]
+# usage: list_removes.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import sys
 

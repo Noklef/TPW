@@ -1,6 +1,6 @@
-# The map finds of src/game/core/small26 against the originals: valid red-black trees of stdtree.py (keys 0 to 99; the searched key present, between or outside), the map of
+# The map finds of src/game/core/tree_finds against the originals: valid red-black trees of stdtree.py (keys 0 to 99; the searched key present, between or outside), the map of
 # 0x5af780 inside an object.
-# usage: small26.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# usage: tree_finds.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
 import sys

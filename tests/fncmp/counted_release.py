@@ -1,6 +1,6 @@
-# The counted buffer releases, the pointer array removal and the list range erase of src/game/core/small6 against the originals:
+# The counted buffer releases, the pointer array removal and the list range erase of src/game/core/counted_release against the originals:
 # buffers with use counts around the "last user" values, entries and nodes of any shape (the allocator is the heap region).
-# usage: small6.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# usage: counted_release.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
 import sys

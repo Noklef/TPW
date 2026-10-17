@@ -1,6 +1,6 @@
-# The tiny functions of src/game/core/small3 against the originals: any global values, any argument, objects whose neighbours
+# The tiny functions of src/game/core/globals_vtables against the originals: any global values, any argument, objects whose neighbours
 # before the start hold vtable pointers with small offsets, list cursors.
-# usage: small3.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Eq,...)
+# usage: globals_vtables.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Eq,...)
 import os
 import struct
 import sys

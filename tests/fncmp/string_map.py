@@ -1,6 +1,6 @@
-# The string map walks of src/game/core/small45 (0x5b2f40, 0x5b0c40) against the originals: valid red-black trees (stdtree.py's) of 0 to 12 nodes whose keys are game strings
+# The string map walks of src/game/core/string_map (0x5b2f40, 0x5b0c40) against the originals: valid red-black trees (stdtree.py's) of 0 to 12 nodes whose keys are game strings
 # (gamestring.py's: a small alphabet so that equal, prefix and ordered keys come up) and whose mapped pointers lead to objects with the byte at +0xb9 set or clear.
-# usage: small45.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Lower,All)
+# usage: string_map.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Lower,All)
 import os
 import struct
 import sys

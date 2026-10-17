@@ -1,6 +1,6 @@
-# The graphics level and the car count of src/game/core/small34 against the originals: the render mode words (the size and depth tests), the quality level, coasters of up
+# The graphics level and the car count of src/game/core/graphics_level_trains against the originals: the render mode words (the size and depth tests), the quality level, coasters of up
 # to 4 trains (coaster.py's unload environment: the trains have cars, riders and seat parts) with the flags and counts either side.
-# usage: small34.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Level,Count)
+# usage: graphics_level_trains.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Level,Count)
 import os
 import sys
 

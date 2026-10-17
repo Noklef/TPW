@@ -1,6 +1,6 @@
-# The tiny allocating and clearing functions of src/game/core/small5 against the originals: any object bytes and arguments
+# The tiny allocating and clearing functions of src/game/core/buffers_nodes against the originals: any object bytes and arguments
 # (the allocator is the heap region), objects at addresses with different top bytes.
-# usage: small5.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# usage: buffers_nodes.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
 import sys

@@ -1,6 +1,6 @@
-# The u32 vector inserts of src/game/core/small39 (0x47c740, 0x47cf20) against the originals: vectors of 0 to 6 elements with 0 to 6 spare (a null block when empty), positions
+# The u32 vector inserts of src/game/core/ime_vector (0x47c740, 0x47cf20) against the originals: vectors of 0 to 6 elements with 0 to 6 spare (a null block when empty), positions
 # over the elements, the end, or anywhere in the block, counts 0 to 8, and values that may point into the vector itself.
-# usage: small39.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=One,Many)
+# usage: ime_vector.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=One,Many)
 import os
 import sys
 

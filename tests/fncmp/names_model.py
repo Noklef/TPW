@@ -1,6 +1,6 @@
-# The name comparisons of src/game/core/small17 against the originals (the CRT's _stricmp runs under the emulator, the port reaches the driver's
+# The name comparisons of src/game/core/names_model against the originals (the CRT's _stricmp runs under the emulator, the port reaches the driver's
 # stand-in): names that differ in case only, in the last letter or in length; models with mouth part names among their elements.
-# usage: small17.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# usage: names_model.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
 import sys

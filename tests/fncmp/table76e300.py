@@ -1,6 +1,6 @@
-# The counted list erase, person match, setting switch, slot push, table lookups and list clear of src/game/core/small12 against the
+# The counted list erase, person match, setting switch, slot push, table lookups and list clear of src/game/core/table76e300 against the
 # originals: any object bytes and arguments, the table of 56-byte records at 0x76e300 filled with ids at their own slot and elsewhere.
-# usage: small12.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# usage: table76e300.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
 import sys

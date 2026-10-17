@@ -1,4 +1,4 @@
-# The scalar deleting destructors over the destructors of src/game/core (vdtor, vobj2, small14) against the originals: each is a wrapper that calls the destructor on the
+# The scalar deleting destructors over the destructors of src/game/core (vdtor, vobj2, counted_vectors_clear) against the originals: each is a wrapper that calls the destructor on the
 # object and frees it when bit 0 of its flags is set. The objects are the ones the benches of the destructors build (so the comparison covers what the destructor does),
 # the flags are 0, 1 and others; the class 0x702a90 constructor and release are the same objects as those of 0x7029d0.
 # usage: vdel.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
@@ -7,21 +7,21 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import small14  # noqa: E402
-import small29  # noqa: E402
-import small31  # noqa: E402
-import small32  # noqa: E402
+import counted_vectors_clear  # noqa: E402
+import list_member_dtors  # noqa: E402
+import class703780_dtors  # noqa: E402
+import list_class_dtors  # noqa: E402
 import vdtor  # noqa: E402
 import vobj2  # noqa: E402
 from fncmp import Bench, HEAP, heap  # noqa: E402
 
 # name: (module, the module's op, the wrapper's address, flags argument?)
 WRAP = {'W80': (vdtor, 'D80', 0x5b55e0, 1), 'W90': (vdtor, 'D90', 0x5b58a0, 1), 'Wd0': (vdtor, 'Dd0', 0x5bced0, 1), 'Wf8': (vdtor, 'Df8', 0x5bd310, 1),
-        'W20': (vdtor, 'D20', 0x5bd720, 1), 'Wda0': (vobj2, 'D2da', 0x5e4000, 1), 'W4f': (vobj2, 'D4f', 0x4f1260, 1), 'Wc2': (small14, 'C2', 0x5ccd80, 1),
+        'W20': (vdtor, 'D20', 0x5bd720, 1), 'Wda0': (vobj2, 'D2da', 0x5e4000, 1), 'W4f': (vobj2, 'D4f', 0x4f1260, 1), 'Wc2': (counted_vectors_clear, 'C2', 0x5ccd80, 1),
         'K2C': (vdtor, 'C9C', 0x5d8b00, 0), 'K2R': (vdtor, 'C9R', 0x5d8b40, 0), 'K2D': (vdtor, 'C9D', 0x5d8b20, 0),
-        'Wa': (small29, 'A', 0x5bdbf0, 1), 'Wb': (small29, 'B', 0x5be300, 1), 'Wc': (small29, 'C', 0x5be730, 1), 'W14': (vobj2, 'D14', 0x5cf7c0, 1),
-        'Wb08': (small32, 'DtorA', 0x5da270, 1), 'Wcb0': (small32, 'DtorB', 0x5e0330, 1), 'Wd78': (small32, 'DtorC', 0x5e3c90, 1),
-        'Wd': (small29, 'D', 0x5bde10, 1), 'We': (small29, 'E', 0x5be510, 1), 'W37a': (small31, 'A', 0x617a60, 1), 'W37b': (small31, 'B', 0x617b60, 1), 'W37c': (small31, 'C', 0x6180a0, 1)}
+        'Wa': (list_member_dtors, 'A', 0x5bdbf0, 1), 'Wb': (list_member_dtors, 'B', 0x5be300, 1), 'Wc': (list_member_dtors, 'C', 0x5be730, 1), 'W14': (vobj2, 'D14', 0x5cf7c0, 1),
+        'Wb08': (list_class_dtors, 'DtorA', 0x5da270, 1), 'Wcb0': (list_class_dtors, 'DtorB', 0x5e0330, 1), 'Wd78': (list_class_dtors, 'DtorC', 0x5e3c90, 1),
+        'Wd': (list_member_dtors, 'D', 0x5bde10, 1), 'We': (list_member_dtors, 'E', 0x5be510, 1), 'W37a': (class703780_dtors, 'A', 0x617a60, 1), 'W37b': (class703780_dtors, 'B', 0x617b60, 1), 'W37c': (class703780_dtors, 'C', 0x6180a0, 1)}
 RANGES = [(a, a + n) for (a, _c, _r, n) in vdtor.CALLS.values()] + [(0x67acb0, 0x67acb1), (0x67afa0, 0x67b060), (0x4f0650, 0x4f06a0), (0x5e4020, 0x5e4080),
                                                                        (0x5c9970, 0x5c99f0), (0x5da3c0, 0x5da3c1)]
 RANGES += [(a, a + 0x20) for (_m, _o, a, _f) in WRAP.values()] + [(0x5bdc10, 0x5bdcd0), (0x5be320, 0x5be3e0), (0x5be750, 0x5be810), (0x5cea40, 0x5cea90), (0x5f5fc0, 0x5f7f00), (0x5d5700, 0x5d5720), (0x5d5750, 0x5d5770), (0x5e3c00, 0x5e3c20), (0x5da2f0, 0x5da3a0), (0x5be0e0, 0x5be1c0), (0x5be530, 0x5be610), (0x617a80, 0x617ad0), (0x617b80, 0x617bd0), (0x6180c0, 0x618110), (0x5e03b0, 0x5e0460), (0x5e3d10, 0x5e3dc0),

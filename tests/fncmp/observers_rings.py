@@ -1,6 +1,6 @@
-# The observer lists, handle swap, definition kind check and ring push of src/game/core/small15 against the originals: objects with and without
+# The observer lists, handle swap, definition kind check and ring push of src/game/core/observers_rings against the originals: objects with and without
 # their list (the allocator is the heap region), handles in and out of the thing table, definitions of any kind.
-# usage: small15.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# usage: observers_rings.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
 import sys

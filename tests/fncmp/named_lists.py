@@ -1,6 +1,6 @@
-# The list searches and string destructor of src/game/core/small28 against the originals: lists of 0 to 4 objects whose names (case varied) are the key's or not, and five
+# The list searches and string destructor of src/game/core/named_lists against the originals: lists of 0 to 4 objects whose names (case varied) are the key's or not, and five
 # game strings (gamestring.py's).
-# usage: small28.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# usage: named_lists.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import sys
 

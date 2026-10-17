@@ -1,6 +1,6 @@
-# The fixed-point transform and the scaled share of src/game/core/small41 (0x50f310, 0x503980) against the originals: matrices and points of every sign and size; the share
+# The fixed-point transform and the scaled share of src/game/core/matrix2_scaled (0x50f310, 0x503980) against the originals: matrices and points of every sign and size; the share
 # over thingscan.py's chain of things (the game object's handle, the 12-byte table the sums are taken from) with the two global factors and the table entries random.
-# usage: small41.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Matrix,Scaled)
+# usage: matrix2_scaled.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Matrix,Scaled)
 import os
 import struct
 import sys

@@ -1,6 +1,6 @@
-# The counted buffer release, byte switch, ring lookup, virtual base deleting destructors and list splice of src/game/core/small8 against
+# The counted buffer release, byte switch, ring lookup, virtual base deleting destructors and list splice of src/game/core/counted_rings against
 # the originals: any object bytes, indexes and flags, nodes of any shape (the allocator is the heap region).
-# usage: small8.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# usage: counted_rings.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import sys
 

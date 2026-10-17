@@ -1,6 +1,6 @@
-# The tiny functions of src/game/core/tiny_e (written by tools/tinygen.py) against the originals: any
+# The tiny functions of src/game/core/field_store_shapes (written by tools/tinygen.py) against the originals: any
 # object bytes, any global values, any arguments.
-# usage: tiny_e.py [CASES [SEED]] [--wild|--both] [--show N]
+# usage: field_store_shapes.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import sys
 

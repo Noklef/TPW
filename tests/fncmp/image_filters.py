@@ -1,6 +1,6 @@
-# The image grow and shrink filters of src/game/core/small53 (0x5ea510, 0x5ea6d0) against the originals: images of 0 to 7 x 0 to 6 pixels of 1 to 3 bytes (the filters pack the
+# The image grow and shrink filters of src/game/core/image_filters (0x5ea510, 0x5ea6d0) against the originals: images of 0 to 7 x 0 to 6 pixels of 1 to 3 bytes (the filters pack the
 # bytes of a row, sic), radii 0 to 4, data of random bytes with many extremes.
-# usage: small53.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Dilate,Erode)
+# usage: image_filters.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Dilate,Erode)
 import os
 import sys
 

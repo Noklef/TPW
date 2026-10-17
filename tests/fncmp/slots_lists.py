@@ -1,6 +1,6 @@
-# The slot table functions and the counted list erase of src/game/core/small11 against the originals: slot selections around the limits,
+# The slot table functions and the counted list erase of src/game/core/slots_lists against the originals: slot selections around the limits,
 # matching and mismatching ids, entries naming object definitions or control records, nodes with counted buffers.
-# usage: small11.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Add,Get,Erase)
+# usage: slots_lists.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Add,Get,Erase)
 import os
 import struct
 import sys

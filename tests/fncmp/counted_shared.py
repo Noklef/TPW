@@ -1,6 +1,6 @@
-# The counted-object helpers and constructors of src/game/core/small22 against the originals: use counts at the edges (0, 1, -2, -1), ids set or not, any object
+# The counted-object helpers and constructors of src/game/core/counted_shared against the originals: use counts at the edges (0, 1, -2, -1), ids set or not, any object
 # bytes (the allocator is the heap region; the STL lock is left out of both).
-# usage: small22.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# usage: counted_shared.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
 import sys

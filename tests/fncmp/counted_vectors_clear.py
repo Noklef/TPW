@@ -1,6 +1,6 @@
-# The wrappers and clears over counted buffers and vectors of src/game/core/small14 against the originals: vectors of counted entries,
+# The wrappers and clears over counted buffers and vectors of src/game/core/counted_vectors_clear against the originals: vectors of counted entries,
 # lists of counted nodes, any object bytes (the allocator is the heap region).
-# usage: small14.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# usage: counted_vectors_clear.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import sys
 

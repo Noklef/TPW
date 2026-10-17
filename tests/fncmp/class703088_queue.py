@@ -1,6 +1,6 @@
-# The list leaving destructor and the queue room test of src/game/core/small51 (0x5f4400, 0x4dda20) against the originals: the global list of 0 to 4 nodes (the object in
+# The list leaving destructor and the queue room test of src/game/core/class703088_queue (0x5f4400, 0x4dda20) against the originals: the global list of 0 to 4 nodes (the object in
 # it or not, first / middle / last), the pointer array at 0x879ce0 holding the object's pointer or not; objects.py's person queues for the room test.
-# usage: small51.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Dtor,Room)
+# usage: class703088_queue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Dtor,Room)
 import os
 import sys
 

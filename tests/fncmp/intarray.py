@@ -1,6 +1,6 @@
-# The dword array SetSize of src/game/core/small44 (0x598630) against the original: arrays without data, with data of every size / max combination, new sizes 0 to 40
+# The dword array SetSize of src/game/core/intarray (0x598630) against the original: arrays without data, with data of every size / max combination, new sizes 0 to 40
 # (below, inside and past the max), grow steps of 0, -1, small and large.
-# usage: small44.py [CASES [SEED]] [--wild|--both] [--show N]
+# usage: intarray.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import sys
 

@@ -1,6 +1,6 @@
-# The tiny functions of src/game/core/tiny_d (written by tools/tinygen.py) against the originals: any
+# The tiny functions of src/game/core/store_and_return_shapes (written by tools/tinygen.py) against the originals: any
 # object bytes, any global values, any arguments.
-# usage: tiny_d.py [CASES [SEED]] [--wild|--both] [--show N]
+# usage: store_and_return_shapes.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import sys
 

@@ -1,6 +1,6 @@
-# The tiny deleting destructors, constructors and clears of src/game/core/small7 against the originals: any object bytes, flags and
+# The tiny deleting destructors, constructors and clears of src/game/core/deleters_nodes against the originals: any object bytes, flags and
 # arguments (the allocator is the heap region).
-# usage: small7.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# usage: deleters_nodes.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import sys
 

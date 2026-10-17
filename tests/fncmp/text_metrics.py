@@ -1,7 +1,7 @@
-# The text measuring of src/game/core/small40 (0x47f9a0, 0x47fa00) against the originals: wide text (some NULs inside), start and end words either side of the text and of
+# The text measuring of src/game/core/text_metrics (0x47f9a0, 0x47fa00) against the originals: wide text (some NULs inside), start and end words either side of the text and of
 # each other, widths and glyph widths including negative ones; the glyph width slot is a recorder returning a value of the case (the argument it was given is logged: its
 # high half is what the originals left in EAX).
-# usage: small40.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Width,Fit)
+# usage: text_metrics.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Width,Fit)
 import os
 import sys
 

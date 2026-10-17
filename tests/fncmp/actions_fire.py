@@ -1,6 +1,6 @@
-# The action table firing of src/game/core/small33 against the originals: tables of 0 to 4 entries (enabled or not), searched for words of their entries or others, handlers
+# The action table firing of src/game/core/actions_fire against the originals: tables of 0 to 4 entries (enabled or not), searched for words of their entries or others, handlers
 # that are recorders (or none); the log records each call and the ECX it was made with.
-# usage: small33.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Down,Up)
+# usage: actions_fire.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Down,Up)
 import os
 import struct
 import sys

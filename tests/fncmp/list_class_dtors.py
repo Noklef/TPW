@@ -1,6 +1,6 @@
-# The constructors and destructors of src/game/core/small32 against the originals: the global objects they register with (recorder vtables), lists of 0 to 3 objects with
+# The constructors and destructors of src/game/core/list_class_dtors against the originals: the global objects they register with (recorder vtables), lists of 0 to 3 objects with
 # deleting-destructor recorders, the allocator the heap region.
-# usage: small32.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# usage: list_class_dtors.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
 import sys

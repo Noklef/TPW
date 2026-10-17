@@ -1,5 +1,5 @@
-# The sign texture search of src/game/core/small30 against the originals: models of 0 to 5 entries with flags 2, 8 and 0x10 and names that are the sign textures (any case) or not.
-# usage: small30.py [CASES [SEED]] [--wild|--both] [--show N]
+# The sign texture search of src/game/core/model_signs against the originals: models of 0 to 5 entries with flags 2, 8 and 0x10 and names that are the sign textures (any case) or not.
+# usage: model_signs.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import sys
 

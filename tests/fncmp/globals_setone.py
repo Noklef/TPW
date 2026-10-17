@@ -1,6 +1,6 @@
-# The tiny functions of src/game/core/small2 against the originals: any object bytes, any globals, any arguments
+# The tiny functions of src/game/core/globals_setone against the originals: any object bytes, any globals, any arguments
 # (the colour with each byte anywhere in 0-255).
-# usage: small2.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Get,...)
+# usage: globals_setone.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Get,...)
 import os
 import struct
 import sys

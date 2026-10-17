@@ -1,5 +1,5 @@
-# The three colour blend of src/game/core/small55 (0x5f09a0) against the original: positions below 0 and above 100 and every value between, records of random bytes.
-# usage: small55.py [CASES [SEED]] [--wild|--both] [--show N]
+# The three colour blend of src/game/core/colour_blend (0x5f09a0) against the original: positions below 0 and above 100 and every value between, records of random bytes.
+# usage: colour_blend.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import sys
 

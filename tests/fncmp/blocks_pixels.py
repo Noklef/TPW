@@ -1,6 +1,6 @@
-# The seven-array constructor and the image blend of src/game/core/small18 against the originals: images of a few pixels blended into a larger one at any
+# The seven-array constructor and the image blend of src/game/core/blocks_pixels against the originals: images of a few pixels blended into a larger one at any
 # position inside it, with any alpha, channels and bytes per pixel.
-# usage: small18.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,Blend)
+# usage: blocks_pixels.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,Blend)
 import os
 import sys
 

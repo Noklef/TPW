@@ -1,7 +1,7 @@
-# The list pop, name lookup, shared-array releases, tree lower bounds and global releases of src/game/core/small23 against the originals: lists of 0 to 3 nodes, small
+# The list pop, name lookup, shared-array releases, tree lower bounds and global releases of src/game/core/trees_shared against the originals: lists of 0 to 3 nodes, small
 # trees with keys around the searched one, shared records with use counts at the edge (the arrays have no elements to destroy), the COM members of vobj3.py, the strings
 # of the game (the allocator is the heap region; the STL lock is left out).
-# usage: small23.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# usage: trees_shared.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
 import sys

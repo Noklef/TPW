@@ -1,6 +1,6 @@
-# The tiny functions of src/game/core/tiny_i (written by tools/tinygen.py) against the originals: any
+# The tiny functions of src/game/core/scalar_deleters (written by tools/tinygen.py) against the originals: any
 # object bytes, any global values, any arguments.
-# usage: tiny_i.py [CASES [SEED]] [--wild|--both] [--show N]
+# usage: scalar_deleters.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import sys
 

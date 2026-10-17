@@ -1,6 +1,6 @@
-# The array holder clear and the eleven dword read of src/game/core/small52 (0x5eb090, 0x5eb1a0) against the originals: four array headers with or without blocks
+# The array holder clear and the eleven dword read of src/game/core/teardown_images (0x5eb090, 0x5eb1a0) against the originals: four array headers with or without blocks
 # (Array3D_Free frees them first, so the second free is normally a no-op), and a stream whose slot 2 is a recorder.
-# usage: small52.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Clear,Read)
+# usage: teardown_images.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Clear,Read)
 import os
 import sys
 

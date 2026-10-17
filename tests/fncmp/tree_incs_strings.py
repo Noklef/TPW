@@ -1,7 +1,7 @@
-# The small functions of src/game/core/small25 against the originals: the table clear, the map iterator post-increments (valid red-black trees of stdtree.py), the
-# constructor wrappers, the list add that records the item (small15.py's list), the class constructor and its static initialiser, and the string copies (gamestring.py's
+# The small functions of src/game/core/tree_incs_strings against the originals: the table clear, the map iterator post-increments (valid red-black trees of stdtree.py), the
+# constructor wrappers, the list add that records the item (observers_rings.py's list), the class constructor and its static initialiser, and the string copies (gamestring.py's
 # strings: arrays of up to four, the copy destination arrays, null destinations).
-# usage: small25.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# usage: tree_incs_strings.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
 import sys

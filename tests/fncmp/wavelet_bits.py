@@ -1,6 +1,6 @@
-# The bit reader and the record lookup of src/game/core/small43 (0x597090, 0x59c610) against the originals: counts 0 to 32 (and more) with the accumulator and held bit
+# The bit reader and the record lookup of src/game/core/wavelet_bits (0x597090, 0x59c610) against the originals: counts 0 to 32 (and more) with the accumulator and held bit
 # counts random, the stream of random words; records whose ids are right, wrong or found only elsewhere in the table.
-# usage: small43.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Bits,Active)
+# usage: wavelet_bits.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Bits,Active)
 import os
 import struct
 import sys

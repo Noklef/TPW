@@ -1,6 +1,6 @@
-# The map insert of src/game/core/small38 (0x47cd00) against the original: valid red-black trees (stdtree.py's) of 0 to 11 nodes with three-dword values, keys that are new or
+# The map insert of src/game/core/map_inserts (0x47cd00) against the original: valid red-black trees (stdtree.py's) of 0 to 11 nodes with three-dword values, keys that are new or
 # already there, with the multi flag set or clear.
-# usage: small38.py [CASES [SEED]] [--wild|--both] [--show N]
+# usage: map_inserts.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
 import sys

@@ -1,6 +1,6 @@
-# The class destructors and shared-array resets of src/game/core/small29 against the originals: objects on their parent's list (first, middle, last, only or not listed), three
+# The class destructors and shared-array resets of src/game/core/list_member_dtors against the originals: objects on their parent's list (first, middle, last, only or not listed), three
 # game strings (narrow or wide; gamestring.py's), shared records with use counts at the edge (arrays without elements to destroy).
-# usage: small29.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# usage: list_member_dtors.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
 import sys

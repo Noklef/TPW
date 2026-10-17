@@ -1,6 +1,6 @@
-# The litter removal of src/game/core/small57 (0x4d9620) against the original: litter of kind 7, 8 and others on cells near the start of the map, with the spread records
+# The litter removal of src/game/core/litter (0x4d9620) against the original: litter of kind 7, 8 and others on cells near the start of the map, with the spread records
 # (mapstep.py's world), a particle system handle that is live or stale (particles.py's systems), and the sprite scripts not ready (the kill is then a no-op).
-# usage: small57.py [CASES [SEED]] [--wild|--both] [--show N]
+# usage: litter.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
 import sys

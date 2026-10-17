@@ -1,6 +1,6 @@
-# The small helpers of src/game/core/small21 against the originals: a pointer variable freed when set, a dword fill, the two keyboard-map wrappers (the five maps of
+# The small helpers of src/game/core/alloc_keymaps against the originals: a pointer variable freed when set, a dword fill, the two keyboard-map wrappers (the five maps of
 # keymap.py) and the global-memory wrappers (the heap region serves GlobalAlloc / GlobalFree).
-# usage: small21.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# usage: alloc_keymaps.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import sys
 

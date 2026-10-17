@@ -1,6 +1,6 @@
-# The small helpers of src/game/core/small27 against the originals: the thing table slots (any handle with garbage above the low word), cell coordinates, four buffers
+# The small helpers of src/game/core/thing_handles against the originals: the thing table slots (any handle with garbage above the low word), cell coordinates, four buffers
 # (some null, some the shared one).
-# usage: small27.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# usage: thing_handles.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import sys
 

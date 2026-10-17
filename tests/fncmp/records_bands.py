@@ -1,6 +1,6 @@
-# The record copy with text, band match and byte permutation of src/game/core/small19 against the originals: records with short texts, band tables of signed
+# The record copy with text, band match and byte permutation of src/game/core/records_bands against the originals: records with short texts, band tables of signed
 # bytes around the limits, flag words with every combination of the permutation bits.
-# usage: small19.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Copy,Bands,Perm)
+# usage: records_bands.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Copy,Bands,Perm)
 import os
 import sys
 

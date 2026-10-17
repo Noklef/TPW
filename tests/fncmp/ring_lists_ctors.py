@@ -1,6 +1,6 @@
-# The ring of words, ramp table, lookup table, kind check, 7028xx constructors, list erases and table writers of src/game/core/small10 against
+# The ring of words, ramp table, lookup table, kind check, 7028xx constructors, list erases and table writers of src/game/core/ring_lists_ctors against
 # the originals: any object bytes and arguments (the allocator is the heap region).
-# usage: small10.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# usage: ring_lists_ctors.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
 import sys

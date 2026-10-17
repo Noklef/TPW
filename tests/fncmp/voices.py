@@ -1,6 +1,6 @@
-# The free list take of src/game/core/small42 (0x520d60) against the original: a table of up to 12 records with random links (negative ones too) and a head word either
+# The free list take of src/game/core/voices (0x520d60) against the original: a table of up to 12 records with random links (negative ones too) and a head word either
 # side of zero, the 0x140-byte records for the index.
-# usage: small42.py [CASES [SEED]] [--wild|--both] [--show N]
+# usage: voices.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
 import sys

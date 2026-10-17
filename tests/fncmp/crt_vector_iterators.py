@@ -1,6 +1,6 @@
-# The compiler runtime's array constructor and destructor iterators (src/game/core/small20: 0x67acf0, 0x67afa0) against the originals, calling the driver's stand-in
+# The compiler runtime's array constructor and destructor iterators (src/game/core/crt_vector_iterators: 0x67acf0, 0x67afa0) against the originals, calling the driver's stand-in
 # (STUBS + 0x40) that stores a vtable pointer at the element over arrays of different element sizes and counts (zero, negative).
-# usage: small20.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,Dtor)
+# usage: crt_vector_iterators.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,Dtor)
 import os
 import sys
 

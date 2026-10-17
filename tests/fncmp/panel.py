@@ -1,6 +1,6 @@
-# The panel reset of src/game/core/small49 (0x5d48d0) against the original: a panel of seven images (small sources of up to 4 x 3 pixels with alphas around the ends, and the
+# The panel reset of src/game/core/panel (0x5d48d0) against the original: a panel of seven images (small sources of up to 4 x 3 pixels with alphas around the ends, and the
 # target image large enough for the positions the blends use, so the case is heavy: use few cases).
-# usage: small49.py [CASES [SEED]] [--wild|--both] [--show N]
+# usage: panel.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import sys
 
