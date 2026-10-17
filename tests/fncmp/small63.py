@@ -22,7 +22,9 @@ def case(r):
     cells = bytearray(r.bytes(0x44 * 0x41))
     for k in range(0x41):
         put(cells, 0x44 * k + 0x24, 'H', 0)
-    regions[0x801bbc] = struct.pack('<I', things.SLOTS + 20 * r.choice([3, 7]))  # a free slot, else the handle is 0 and the cell chain write faults in both
+    k = r.choice([3, 7])  # the free slot (id k), else the handle is a random word and the cell chain write faults in both
+    regions[0x801bbc] = struct.pack('<I', things.SLOTS + 20 * k)
+    regions[things.SLOTS + 20 * k] = struct.pack('<IIIII', 0, k, 0, 0, 0)
     regions.update({CELLS: cells, 0x8023a0: struct.pack('<I', CELLS), 0x80239c: struct.pack('<I', RAM), THING: r.bytes(0x20)})
     cell = r.choice([1, 2, 3, 0x40, 0x41, 0x20, r.randrange(1, 0x41)]) | r.choice([0, 0, 0x10000])
     return Call(0x50afe0, [THING, cell, r.getrandbits(32)], regions, conv='t', ret='a')

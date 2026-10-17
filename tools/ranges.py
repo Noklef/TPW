@@ -28,9 +28,10 @@ def load():
 
 
 def extent(addrs, lines, start):
-    """(end, direct call targets, indirect call count) of the function at start: its first RET or JMP past every forward jump target."""
+    """(end, direct call targets, indirect call count, code addresses pushed as immediates) of the function at start: its first RET or JMP past every forward
+    jump target."""
     j = bisect.bisect_left(addrs, start)
-    far, calls, indirect = start, [], 0
+    far, calls, indirect, pushed = start, [], 0, []
     while j < len(addrs):
         t = lines[j]
         m = re.search(r'J\w+ 0x([0-9a-f]{8})', t)
@@ -43,11 +44,16 @@ def extent(addrs, lines, start):
             calls.append(int(m.group(1), 16))
         elif t.startswith('CALL'):
             indirect += 1
+        m = re.match(r'PUSH 0x([0-9a-f]+)$', t)
+        if m and 0x401000 <= int(m.group(1), 16) < 0x6a0000:
+            k = bisect.bisect_left(addrs, int(m.group(1), 16))
+            if k < len(addrs) and addrs[k] == int(m.group(1), 16):  # a code address: probably a callback
+                pushed.append(int(m.group(1), 16))
         nxt = addrs[j + 1] if j + 1 < len(addrs) else addrs[j] + 1
         if (t.startswith('RET') or t.startswith('JMP')) and nxt > far:
-            return nxt, calls, indirect
+            return nxt, calls, indirect, pushed
         j += 1
-    return addrs[-1] + 1, calls, indirect
+    return addrs[-1] + 1, calls, indirect, pushed
 
 
 def main(argv):
@@ -77,8 +83,8 @@ def main(argv):
             print('%x: not an instruction start in the listing (an import, or data); skipped' % a)
             seen[a] = None
             continue
-        end, calls, indirect = extent(addrs, lines, a)
-        seen[a] = (end, calls, indirect, d)
+        end, calls, indirect, pushed = extent(addrs, lines, a)
+        seen[a] = (end, calls, indirect, d, pushed)
         order.append(a)
         indirect_total += indirect
         if d < depth:
@@ -91,12 +97,14 @@ def main(argv):
         else:
             ranges.append([a, end])
     for a in order:
-        end, calls, indirect, d = seen[a]
+        end, calls, indirect, d, pushed = seen[a]
         flags = []
         if indirect:
             flags.append('%d indirect call%s' % (indirect, '' if indirect == 1 else 's'))
         if end - a > 0x400:
             flags.append('big')
+        if pushed:
+            flags.append('code addresses pushed (callbacks?): ' + ' '.join('%x' % p for p in pushed))
         print('  %x size %#x depth %d%s' % (a, end - a, d, ('  [' + ', '.join(flags) + ']') if flags else ''))
     used = sorted({c for a in order for c in seen[a][1] if c in HARNESS})
     if used:
