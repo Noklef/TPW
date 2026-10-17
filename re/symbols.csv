@@ -4092,6 +4092,7 @@ address,name,kind,confidence,notes
 0x00583080,View_ResetWindow,function,low,reimplemented (src/game/render/viewport); thiscall: the window set to the whole screen
 0x00583220,View_SetProjection,function,low,"reimplemented (src/game/render/viewport); thiscall (unused, a, b): the projection's terms at +0x60-+0x70 from +0x40-+0x54"
 0x00583280,View_SetDepthRange,function,low,"reimplemented (src/game/render/viewport); thiscall (near, far): the depth range, its reciprocal span and their squares at +0x8c8"
+0x0057c190,HeightGrid_HeightAt,function,low,"reimplemented (src/game/render/heightgrid); thiscall (x, z): the height of the plane through the cell corner and its two neighbours, in st0"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
