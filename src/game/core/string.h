@@ -228,4 +228,9 @@ s32 __cdecl WString_AssignFromAnsi(WString *wide, const String *s);
 // included) into buffer (size units), or with no buffer into the static one at 0x7ba058 (0x3fff units). Returns the buffer written.
 u16 *__cdecl String_AnsiToWide(const char *text, u16 *buffer, s32 size);
 
+// 0x5e3170 (cdecl; out, cursor, delimiter; name unconfirmed): the chars from *cursor up to the delimiter (its low byte) appended one at a time (the String
+// vtable's +0x24, String_AppendChar) to a new string; *cursor is left past the delimiter and out is constructed as a copy of the string (String_CtorCopy)
+// and returned.
+String *__cdecl String_ReadToken(String *out, const char **cursor, u32 delimiter);
+
 }  // extern "C"
