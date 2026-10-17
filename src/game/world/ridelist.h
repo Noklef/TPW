@@ -59,6 +59,10 @@ u32 __fastcall Obj_RollChance(const u8 *object, void *, u32 unused);
 // 0x4e0db0 (thiscall): element 4 of the object's ride record (Rides_FindById of the dword at +0x24) = 1 (the debug print is not reproduced).
 void __fastcall Obj_SetRideElement4One(const u8 *object);
 
+// 0x4e0ac0 (thiscall; handle, pops 4; name unconfirmed): the word at +0x6c = 0; element 0 of the object's ride record (Rides_FindById of the
+// dword at +0x24) = 0 when it equals the handle's low word (the debug prints are not reproduced).
+void __fastcall Obj_ReleaseRideElement0(u8 *object, void *, u32 handle);
+
 // 0x51a290 (thiscall on the game object; the debug print is not reproduced): -1 when the word at +0x1da732 is 0, otherwise element 1 of the
 // ride record of the thing with that handle (Rides_GetElement of Rides_FindById of the dword at +0x24 of the thing in its slot).
 s32 __fastcall Game_GetRideElement1(const u8 *game);
