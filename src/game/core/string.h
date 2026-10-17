@@ -197,4 +197,13 @@ u32 __cdecl Text_NarrowToGlobalBuffer(const u16 *text);
 // (-1 shorter, 1 longer, 0 equal).
 s32 __fastcall ByteString_Compare(const u8 *object, void *, const u8 *other);
 
+// 0x424d30 (cdecl; suffix, s): a copy of the last suffix->length chars of s (String_Right, String_CtorCopy) is compared with the suffix's text case blind
+// (_stricmp); when equal, s = its first s->length - suffix->length chars (String_Left, then the vtable's +0x1c Assign). Returns s.
+String *__cdecl String_StripSuffix(const String *suffix, String *s);
+
+// 0x41cea0 (cdecl; s): when s's first chars (as many as the global "." string at 0x78c648 has; String_Left, String_CtorCopy) equal "." (Names_Equal, any non-zero),
+// the chars from 1 on are stepped over one at a time while a copy of those at that position (String_Mid, as many as the global has) equals the global "\" (0x78bee0)
+// or "." (Names_Equal == 1); then s = its chars from there on (String_From, the vtable's +0x1c Assign). Returns s.
+String *__cdecl String_SkipDotPrefix(String *s);
+
 }  // extern "C"

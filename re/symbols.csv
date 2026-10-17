@@ -40,7 +40,7 @@ address,name,kind,confidence,notes
 0x0051f7a0,Particles_Load,function,high,reimplemented (src/game/core/savemods); reads the particle module from the save game
 0x0051f680,Particles_Save,function,high,reimplemented (src/game/core/savemods); writes the particle module to the save game
 0x0040fd60,MessageCentre_Load,function,high,module MESS
-0x0040fc80,MessageCentre_Save,function,high,module MESS
+0x0040fc80,MessageCentre_Save,function,high,"reimplemented (src/game/world/messagecentre); thiscall (chunk, its stream at +0); writes 29, then each slot map's size and its keys in order (2 bytes each; Stream_Write, StdTree_IncB); returns 0"
 0x00402e30,Clock_Load,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); GameClock_Load4c, then when it worked GameClock_Load24 on the clock at +0x50; module CLOK"
 0x00402e00,Clock_Save,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); GameClock_Save4c, then when it worked GameClock_Save24 on the clock at +0x50; module CLOK"
 0x00403260,VanillaTime_Load,function,high,reimplemented (src/game/core/vanillatime); thiscall (stream): reads 4 bytes into the argument's slot (sic); +0 = them - Time_GetMs; 1
@@ -1592,6 +1592,7 @@ address,name,kind,confidence,notes
 0x004273e0,TextScan_SkipBlanks,function,high,reimplemented (src/game/files/textscan); steps the scanner past blank characters
 0x00413380,WText_WordEquals,function,high,reimplemented (src/game/files/wtext); 1 when two UTF-16 strings hold the same word up to a separator
 0x004138b0,WText_NextLine,function,high,reimplemented (src/game/files/wtext); the next non-blank UTF-16 line after p's
+0x00468250,GamePaths_FontsFolder,function,low,"reimplemented (src/game/files/gamepaths); cdecl (out); the root folder's string (0xf816c0) with ""Data\Fonts"" by sprintf (""%s%s"" after a trailing ""\"", else ""%s\%s""): 1; no text: 0"
 0x0055e470,CpuInfo_Ctor,function,medium,"thiscall; CPUID probe (EFLAGS.ID test, then the vendor string and features); SystemInfo's base"
 0x0067df40,CRT_stricmp,function,high,"MSVC CRT _stricmp: A-Z folded, or the locale's tolower when one is set"
 0x00f7a7d0,gCdVolumeLabel,data,medium,"const char *: the CD's volume label, looked for on the CD-ROM drives by the CD check (0x5aa585)"
@@ -2744,6 +2745,7 @@ address,name,kind,confidence,notes
 0x006181c0,Class7037e8_Ctor,function,high,reimplemented (src/game/core/initializers); Constructs the 0x7037e8 class
 0x0047eab0,Class6fefc8_Ctor,function,high,reimplemented (src/game/core/initializers); Constructs the 0x6fefc8 class
 0x006175c0,Class703710_Ctor,function,high,reimplemented (src/game/core/initializers); Constructs the 0x703710 class on top of the 0x7037e8 one
+0x0047eb40,Class6fefc8_Dtor,function,low,"reimplemented (src/game/core/initializers); thiscall destructor; vtable 0x6fefc8, the surface at +0x14 released (Surface_Release) when byte +7 and +0x64 are set, then Fn_6618a6"
 0x006d2770,Fn_6d2770,function,high,reimplemented (src/game/core/accessors); stores +0x0 = 0x0
 0x005d5da0,Owner18_Append,function,high,reimplemented (src/game/core/forwarders); PtrList_Append on the list at +0x18
 0x005d8a70,OwnerC_Append,function,high,reimplemented (src/game/core/forwarders); PtrList_Append on the list at +0xc
@@ -3200,6 +3202,7 @@ address,name,kind,confidence,notes
 0x00421590,ObserverList0_Add,function,high,reimplemented (src/game/core/observers); adds an item to the observer list at +0
 0x004d91f0,Obj_ReplaceHandle24,function,high,reimplemented (src/game/world/things); swaps the handle at +0x24 with another thing's
 0x004e2b80,Obj_DefKind123,function,high,"reimplemented (src/game/world/objectdefs); whether the object definition is of kind 1, 2 or 3"
+0x00413410,ObjectDef_FindMarkedCells,function,low,"reimplemented (src/game/world/objectdefs); the cells of kinds 9 and 0xa of a definition grid noted at +0x494..+0x4a8, then +0x4ac..+0x4b4 and the id from their fields"
 0x0050c100,Ring_PushUnique,function,high,reimplemented (src/game/core/rings); pushes an id and value unless they repeat the last pair
 0x004e0220,Obj_GetTrackedHandle,function,high,"reimplemented (src/game/world/object); the tracked handle, dropped when the thing no longer has the object's handle"
 0x004dd7f0,Object_SetCapacity,function,high,reimplemented (src/game/world/object); the capacity clamped to the definition's limits and stored
@@ -3417,6 +3420,8 @@ address,name,kind,confidence,notes
 0x00421770,NamedList_Find,function,high,reimplemented (src/game/core/string); finds the object with the key's name
 0x0041ede0,Obj_HasNamedObject,function,high,reimplemented (src/game/core/string); whether a listed object has the key's name
 0x005c4c60,Strings5_Dtor,function,high,reimplemented (src/game/core/string); destroys five strings
+0x00424d30,String_StripSuffix,function,low,"reimplemented (src/game/core/string); cdecl (suffix, s); s loses its last suffix->length chars when they equal the suffix case blind; returns s"
+0x0041cea0,String_SkipDotPrefix,function,low,"reimplemented (src/game/core/string); cdecl (s); when s starts with the global ""."" (0x78c648), the following ""\"" (0x78bee0) / ""."" chars are stepped over one at a time and s = the rest"
 0x005bdc10,Class702938_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings
 0x005be320,Class702940_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three strings
 0x005be750,Class702948_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings
@@ -3440,6 +3445,7 @@ address,name,kind,confidence,notes
 0x00486aa0,KeyMap_AsyncModifiers,function,low,reimplemented (src/game/core/keymap); cdecl: the same from GetAsyncKeyState
 0x0041a9d0,Graphics_Level,function,high,reimplemented (src/game/core/options); level 2 to 8 from the render mode or the graphics balance
 0x00423dd0,Options_ApplySound,function,low,"reimplemented (src/game/core/options); cdecl: the options sound switches and volumes applied (Sound_Set803adc/ac0, ae0/ac4, ad8/abc; Global802ba8_SetMasked(+0x2c * 1023 / 100))"
+0x00423690,Options_Defaults,function,low,"reimplemented (src/game/core/options); thiscall; the option defaults (+0..+0x3a, volumes from 0x785928-34, switches when 0x785924), the copy at +0x3c, then Options_ApplySound"
 0x0043ba20,Coaster_SetTrainCount,function,high,"reimplemented (src/game/coaster/setup); sets the car count, unloading the cars cut off"
 0x0041c8b0,Class6fd9d8_Dtor,function,high,"reimplemented (src/game/core/class6fd9d8); destructor: deletes its member and the held objects of its list, frees two strings"
 0x004f0700,Wstreambuf_Read,function,high,"reimplemented (src/game/core/streambuf); reads wide characters from the get area, else through the underflow slot"
@@ -3490,6 +3496,9 @@ address,name,kind,confidence,notes
 0x0040f950,StdTreeB_KeyLess,function,low,"reimplemented (src/game/core/stdtree); thiscall (&other): tree B key compare, the word key below the other (unsigned)"
 0x0047b060,StdMapA_Ctor,function,low,"reimplemented (src/game/core/stdtree); thiscall (&comp, &alloc): +0 alloc byte, +1 comp byte, +8 = 0, then the tree A constructor; returns the map"
 0x0047b130,StdMapA_Index,function,low,"reimplemented (src/game/core/stdtree); thiscall (&key): operator[]: StdMapA_Insert of {key, 0, 0}, returns the node value (+0x10)"
+0x00410b20,StdTree_DecB,function,high,reimplemented (src/game/core/stdtree); std::map iterator decrement (tree B)
+0x004107b0,StdTree_InsertB,function,high,"reimplemented (src/game/core/stdtree); std::map insert of a node with a word value (tree B, StdTreeB_KeyLess)"
+0x0040fe60,StdMapB_Insert,function,high,"reimplemented (src/game/core/stdtree); map insert of a 16-bit key with the sentinel 0x785de4 (tree B); the {iterator, inserted} result by Pair_Assign; returns it"
 0x00617f40,Class7037b8_Dtor,function,high,reimplemented (src/game/core/vdtor); frees the list of blocks
 0x005d48d0,Panel_Reset,function,high,reimplemented (src/game/gfx/imageops); fills the panel image and blends the six parts onto it
 0x00576620,Grid_AddObject,function,high,reimplemented (src/game/render/renderer); adds an object to every list in a rectangle of the grid
@@ -3527,6 +3536,23 @@ address,name,kind,confidence,notes
 0x0041dc60,Class6fdaa4_ScalarDtor,function,high,reimplemented (src/game/core/class6fd9d8); scalar deleting destructor of the 0x6fdaa4 destructor
 0x0041dfa0,Class6fdac8_FullScalarDtor,function,high,reimplemented (src/game/core/class6fd9d8); scalar deleting destructor of the 0x6fdac8 complete destructor
 0x0041e090,Class6fda58_ScalarDtorC,function,high,reimplemented (src/game/core/class6fd9d8); scalar deleting destructor of the 0x6fda58 complete destructor C
+0x0041c9e0,Class6fd9d8_AddFolder,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (path String); a new folder handle (vtable 0x6fd9e8) opened by Handle_Open28 and appended to the list at +0x2c, else deleted"
+0x0041cb10,Class6fd9d8_AddWad,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (path String); a new WAD handle (vtable 0x6fda18) opened by Handle_OpenE0 and appended to the list at +0x2c, else deleted"
+0x0041e5d0,Class6fdaa4_OpenSamAt,function,low,"reimplemented (src/game/core/class6fd9d8); stdcall (base, opener, stream); base + "".sam"" opened through the opener's slot 3; whether the result is >= 0"
+0x0041e660,Class6fdaa4_OpenSamWith,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (opener, stream); Class6fdaa4_OpenSamAt with the object's name (+4)"
+0x0041e680,Class6fdaa4_OpenOnlineSamAt,function,low,"reimplemented (src/game/core/class6fd9d8); stdcall (base, opener, stream); ""Online_"" + base + "".sam"" opened through the opener's slot 3; whether the result is >= 0"
+0x0041e720,Class6fdaa4_OpenOnlineSamWith,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (opener, stream); Class6fdaa4_OpenOnlineSamAt with the object's name (+4)"
+0x0041f0d0,Class6fdaa4_OpenSam,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (name, stream); name + "".sam"" opened through the handle at +0x2c; whether the result is >= 0"
+0x0041f170,Class6fdaa4_OpenOwnSam,function,low,reimplemented (src/game/core/class6fd9d8); thiscall (stream); Class6fdaa4_OpenSam with the object's name (+4)
+0x0041f330,Class6fdaa4_OpenCoasterSam,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (stream); Class6fdaa4_OpenSam with ""coaster"" (0x78c708)"
+0x0041f190,Class6fdaa4_OpenEasySam,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (stream); ""Easy_"" + the object's name + "".sam"" opened through the handle at +0x2c"
+0x0041f260,Class6fdaa4_OpenOnlineSam,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (stream); ""Online_"" + the object's name + "".sam"" opened through the handle at +0x2c"
+0x0041f350,Class6fdaa4_OpenLanguageTxt,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (stream); the language buffer's text + "".txt"" opened through the handle at +0x2c"
+0x0041e3a0,Class6fda98_Dtor,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall destructor; vtable 0x6fda98, the list at +0x4c emptied (objects deleted through slot 0) and deleted, then the 0x6fda58 base (handle at +0x40, Class6fd9d8_Dtor)"
+0x0041dc40,Class6fda98_ScalarDtor,function,low,reimplemented (src/game/core/class6fd9d8); scalar deleting destructor of Class6fda98_Dtor
+0x0041d710,Class6fd9d8_Find,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (key); the current object's (+0x34) slot 2, else the later list objects' slot 1 with the member's +8; found: +0x34/+0x38, 1; none: the member deleted, 0"
+0x0041cc40,Class6fd9d8_AddFolderAndWad,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (path); a copy of the path added as a folder (Class6fd9d8_AddFolder), then with "".wad"" (0x78bb08) appended as a WAD"
+0x0041eb90,Class6fdaa4_TrimName,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (s), the object unused; with exactly two ""_"" (0x74c77c) s = the chars before the last, then a leading ""p"" (0x74c778) dropped"
 0x004254c0,Animator_Sleep,function,high,reimplemented (src/game/model/holder); the holder sleeps and flag 0x4000 clears
 0x004de110,Object_BackOfQueueTo,function,high,reimplemented (src/game/world/objectmsg); Object_BackOfQueue returning out
 0x004ddf40,Object_QueuePositionOfNone,function,high,reimplemented (src/game/world/objectmsg); the position of the person with no handle
@@ -3558,6 +3584,7 @@ address,name,kind,confidence,notes
 0x0052fad0,Global81ecac_SetRecorded,function,low,"reimplemented (src/game/core/actionrec); cdecl (value): the record 0x1e (the word value), then 0x81ecac = value"
 0x0052f1b0,Global81d7a4_SetRecorded,function,low,"reimplemented (src/game/core/actionrec); cdecl (value, force byte): the record 0xa unless value is 0x81b134 and not forced; 0x81b134 = old 0x81d7a4, 0x81d7a4 = value"
 0x0052f880,Global8186e0_SetRecorded,function,low,"reimplemented (src/game/core/actionrec); cdecl (&id, flag): the record 5 (word id, byte flag), World_MarkRideBuilt; 0x8186ec = old 0x8186e0, 0x8187f8 = flag, 0x8186e0 = id"
+0x00408f00,NamedObjects_RemoveGlobals,function,low,reimplemented (src/game/core/namedobjects); the 14 named globals removed from the named objects registry at [0x786b9c] and deleted
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
@@ -3567,6 +3594,7 @@ address,name,kind,confidence,notes
 0x0042a340,Cell_FindRideableObject,function,high,reimplemented (src/game/world/mapcell); the first rideable object on a type 9 cell's parent
 0x0040f970,MessageSlot_Dtor,function,high,"reimplemented (src/game/world/messagecentre); thiscall on a slot: a dword, then a std::map of tree B at +4, destroyed (StdTree_DtorB); name unconfirmed"
 0x00409250,MessageCentre_DtorSlots,function,high,"reimplemented (src/game/world/messagecentre); thiscall: the 29 slots of 0x14 bytes from +0 destroyed, the last first (CRT_VectorDtorIterator, MessageSlot_Dtor); name unconfirmed"
+0x0040fa40,MessageCentre_RemoveThing,function,low,"reimplemented (src/game/world/messagecentre); thiscall (thing); the thing's handle erased from each of the 29 slots' maps (lower bound, key check, StdTree_EraseB); returns the count erased"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
@@ -3642,6 +3670,8 @@ address,name,kind,confidence,notes
 0x005e77c0,Array3D_CopyTo,function,high,reimplemented (src/game/gfx/array3d); copies the pixel bytes to another buffer
 0x005e77f0,Array3D_ReverseBytes,function,high,reimplemented (src/game/gfx/array3d); reverses the bytes of each 4-byte pixel
 0x005e7ef0,Array3D_MaxInto,function,high,reimplemented (src/game/gfx/array3d); the larger bytes of this buffer and another into the other
+0x0049a7b0,StatsGraph_ShownMax,function,low,"reimplemented (src/game/gfx/statsgraph); the greatest sample of the shown lines of the park statistics graph within its window, from 0"
+0x0049a8f0,StatsGraph_ShownMin,function,low,"reimplemented (src/game/gfx/statsgraph); the least sample of the shown lines of the park statistics graph within its window, from 0"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
@@ -3867,6 +3897,7 @@ address,name,kind,confidence,notes
 0x00429ee0,ModelSlot_ClearPartFlag,function,high,reimplemented (src/game/model/slots); clears flag 0x10 of the face of the slot holder's part with key and flag 0x400
 0x00429f60,ModelSlot_SetPartFlag,function,high,reimplemented (src/game/model/slots); sets flag 0x10 of the face of the slot holder's part with key and flag 0x400
 0x00429fe0,ModelSlot_Holder,function,high,reimplemented (src/game/model/slots); the holder of slot (0x790398 + 0xb0 slot + 4)
+0x00429a60,ModelSlot_Ctor,function,low,"reimplemented (src/game/model/slots); the model slot table element constructor: its part at +0x48 with virtual bases built, the scene flags touched twice"
 0x00462870,WorldVerts_Alloc,function,high,reimplemented (src/game/model/worldverts); 0x7aecd4 = a zeroed block of 12 bytes for each of 0x400 entries (large) or [0x7a42ac]
 0x004628a0,WorldVerts_Free,function,high,reimplemented (src/game/model/worldverts); frees the block at 0x7aecd4 (pointer left)
 0x004628b0,WorldVerts_TransformFrame,function,high,reimplemented (src/game/model/worldverts); the frame's vertices in world space (its matrix times its parents') into the 0x7aecd4 block

@@ -20,9 +20,10 @@ void __fastcall StdTree_IncE(u8 **it);
 void __fastcall StdTree_IncF(u8 **it);
 void __fastcall StdTree_IncG(u8 **it);
 
-// The decrement (--iterator: *it = the previous node in order; the end, the head node, goes to the rightmost) of A 0x47d4b0, C 0x4f6340, D 0x4f64f0, E 0x4f6680, F 0x5b2ff0
-// and G 0x5b3130.
+// The decrement (--iterator: *it = the previous node in order; the end, the head node, goes to the rightmost) of A 0x47d4b0, B 0x410b20, C 0x4f6340, D 0x4f64f0, E 0x4f6680,
+// F 0x5b2ff0 and G 0x5b3130.
 void __fastcall StdTree_DecA(u8 **it);
+void __fastcall StdTree_DecB(u8 **it);
 void __fastcall StdTree_DecC(u8 **it);
 void __fastcall StdTree_DecD(u8 **it);
 void __fastcall StdTree_DecE(u8 **it);
@@ -38,10 +39,11 @@ void __fastcall StdTree_CtorD(u8 *tree);
 void __fastcall StdTree_CtorE(u8 *tree);
 void __fastcall StdTree_CtorG(u8 *tree);
 
-// The insert of A 0x47d140 (values of three dwords whose first, unsigned, is the key) and G 0x5b2ba0 (values of one word, the key): thiscall on the tree; out, x, y, the value
+// The insert of A 0x47d140 (values of three dwords whose first, unsigned, is the key), B 0x4107b0 and G 0x5b2ba0 (values of one word, the key; B compares through StdTreeB_KeyLess): thiscall on the tree; out, x, y, the value
 // (pops 16). A node holding a copy of the value (at +0xc; red, children nil, parent y) is made and linked: as y's left child when y is the head node, x is not nil or the key
 // is below y's, otherwise as its right child; the head's leftmost / rightmost / root follow; then the tree is rebalanced. *out = the new node; returns out.
 u8 **__fastcall StdTree_InsertA(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u32 *value);
+u8 **__fastcall StdTree_InsertB(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u16 *value);
 u8 **__fastcall StdTree_InsertG(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u16 *value);
 
 u8 **__fastcall StdTree_EraseA(u8 *tree, void *, u8 **out, u8 *node);
@@ -91,6 +93,9 @@ void __fastcall StdMapA_Insert(u8 *tree, void *, u8 **result, const u32 *value);
 
 // 0x5b1930: the same over the tree with the sentinel at 0xf7c970, whose keys are 16-bit (StdTree_DecG / StdTree_InsertG).
 void __fastcall StdMapG_Insert(u8 *tree, void *, u8 **result, const u16 *value);
+
+// 0x40fe60: the same over tree B (the message centre's; sentinel 0x785de4, 16-bit keys; StdTree_DecB / StdTree_InsertB), the result made by Pair_Assign; returns it.
+u8 **__fastcall StdMapB_Insert(u8 *tree, void *, u8 **result, const u16 *value);
 
 // 0x5b2f40 (thiscall on the tree {allocator, head}; the key (a string), pops 4): the lower bound: the last node passed whose string (at +0xc) is not below the key
 // (String_Less), the head for none.

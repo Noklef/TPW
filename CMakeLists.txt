@@ -63,6 +63,7 @@ add_library(tpw_game STATIC
     src/game/files/quickload.cpp
     src/game/files/textscan.cpp
     src/game/files/wtext.cpp
+    src/game/files/gamepaths.cpp
     src/game/core/regkey.cpp
     src/game/core/stdstring.cpp
     src/game/core/globalmem.cpp
@@ -120,6 +121,7 @@ add_library(tpw_game STATIC
     src/game/core/factories.cpp
     src/game/core/vanillatime.cpp
     src/game/core/actionrec.cpp
+    src/game/core/namedobjects.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -138,6 +140,7 @@ add_library(tpw_game STATIC
     src/game/gfx/texsurface.cpp
     src/game/gfx/array3d.cpp
     src/game/gfx/imageops.cpp
+    src/game/gfx/statsgraph.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp

@@ -1,5 +1,5 @@
 # The map insert of src/game/core/map_inserts (0x47cd00) against the original: valid red-black trees (stdtree.py's) of 0 to 11 nodes with three-dword values, keys that are new or
-# already there, with the multi flag set or clear; A's operator[] (0x47b130: the key's value, inserted as zeros when new).
+# already there, with the multi flag set or clear; A's operator[] (0x47b130: the key's value, inserted as zeros when new). B (0x40fe60) is the message centre's tree's, with u16 keys.
 # usage: map_inserts.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -10,10 +10,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import stdtree  # noqa: E402
 from fncmp import Bench, Call, HEAP, RAM, heap  # noqa: E402
 
-B = Bench([(0x47b130, 0x47b167), (0x47cd00, 0x47cde0), (0x5b1930, 0x5b1a20), (0x5b2ba0, 0x5b2ed0), (0x5b3130, 0x5b31f0), (0x5b3210, 0x5b3230), (0x47d140, 0x47d470), (0x47d4b0, 0x47d570), (0x67acb0, 0x67acb1), (0x45b340, 0x45b9a0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000)],
+B = Bench([(0x47b130, 0x47b167), (0x47cd00, 0x47cde0), (0x5b1930, 0x5b1a20), (0x5b2ba0, 0x5b2ed0), (0x5b3130, 0x5b31f0), (0x5b3210, 0x5b3230), (0x47d140, 0x47d470), (0x47d4b0, 0x47d570), (0x40fe60, 0x40ff7b), (0x4107b0, 0x410abe), (0x410b20, 0x410bd5), (0x40f950, 0x40f961), (0x5e7720, 0x5e7736), (0x67acb0, 0x67acb1), (0x45b340, 0x45b9a0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000)],
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})
 TREE, HEAD, NIL, NODES = stdtree.TREE, stdtree.HEAD, stdtree.NIL, stdtree.NODES
-KINDS = {'A': (0x47cd00, 0x7b4a54, 0x18), 'G': (0x5b1930, 0xf7c970, 0x10), 'IndexA': (0x47b130, 0x7b4a54, 0x18)}
+KINDS = {'A': (0x47cd00, 0x7b4a54, 0x18), 'G': (0x5b1930, 0xf7c970, 0x10), 'IndexA': (0x47b130, 0x7b4a54, 0x18), 'B': (0x40fe60, 0x785de4, 0x10)}
 
 
 def case(r):
@@ -42,7 +42,7 @@ def case(r):
     regions = {TREE: tree, HEAD: head, NIL: nil, NODES: blob, nil_at: struct.pack('<I', NIL), RAM + 0x800: bytes(0x10), RAM + 0x900: value, HEAP: heap()}
     if name == 'IndexA':
         return Call(address, [TREE, RAM + 0x900], regions, conv='t', ret='a')
-    return Call(address, [TREE, RAM + 0x800, RAM + 0x900], regions, conv='t', ret='v')
+    return Call(address, [TREE, RAM + 0x800, RAM + 0x900], regions, conv='t', ret='a' if name == 'B' else 'v')   # (B's returns the result)
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]

@@ -32,7 +32,8 @@
 #include "../game/files/wrapsources.h"
 #include "../game/files/wadsource.h"
 #include "../game/files/bufsource.h"
-#include "../game/files/filestream.h"
+#include "../game/files/filestream.h"
+#include "../game/files/gamepaths.h"
 #include "../game/files/quickload.h"
 #include "../game/files/textscan.h"
 #include "../game/files/wtext.h"
@@ -109,7 +110,8 @@
 #include "../game/core/rings.h"
 #include "../game/core/buffers.h"
 #include "../game/core/observers.h"
-#include "../game/gfx/imageops.h"
+#include "../game/gfx/imageops.h"
+#include "../game/gfx/statsgraph.h"
 #include "../game/core/crt.h"
 #include "../game/core/gameheap.h"
 #include "../game/core/ptrlist.h"
@@ -130,7 +132,8 @@
 #include "../game/core/vregs.h"
 #include "../game/core/vstream.h"
 #include "../game/core/vwrap.h"
-#include "../game/core/actionrec.h"
+#include "../game/core/actionrec.h"
+#include "../game/core/namedobjects.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -1194,6 +1197,7 @@ const Hook kHooks[] = {
     {"TextScan_SkipBlanks",       0x004273e0, (void *)&TextScan_SkipBlanks, {0x8b, 0x4c, 0x24, 0x04, 0x56}},
     {"WText_WordEquals",          0x00413380, (void *)&WText_WordEquals, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"WText_NextLine",            0x004138b0, (void *)&WText_NextLine, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"GamePaths_FontsFolder",     0x00468250, (void *)&GamePaths_FontsFolder, {0xb9, 0xc0, 0x16, 0xf8, 0x00}},
     {"RegKey_Open",               0x005f8ae0, (void *)&RegKey_Open, {0x51, 0x56, 0x57, 0x8b, 0xf9}},
     {"RegKey_Dtor",               0x005f8b70, (void *)&RegKey_Dtor, {0x51, 0x8d, 0x44, 0x24, 0x00}},
     {"RegKey_Close",              0x005f8b80, (void *)&RegKey_Close, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
@@ -2260,6 +2264,7 @@ const Hook kHooks[] = {
     {"Class7037e8_Ctor",          0x006181c0, (void *)&Class7037e8_Ctor, {0x6a, 0xff, 0x68, 0xb3, 0x25}},
     {"Class6fefc8_Ctor",          0x0047eab0, (void *)&Class6fefc8_Ctor, {0x6a, 0xff, 0x68, 0x08, 0x90}},
     {"Class703710_Ctor",          0x006175c0, (void *)&Class703710_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0xf8}},
+    {"Class6fefc8_Dtor",          0x0047eb40, (void *)&Class6fefc8_Dtor, {0x6a, 0xff, 0x68, 0x28, 0x90}},
     {"Fn_6d2770",                 0x006d2770, (void *)&Fn_6d2770, {0x8b, 0x44, 0x24, 0x04, 0xc7}},
     {"CheatSystem_Load",          0x00405570, (void *)&CheatSystem_Load, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"CheatSystem_Save",          0x004055d0, (void *)&CheatSystem_Save, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
@@ -2951,6 +2956,8 @@ const Hook kHooks[] = {
     {"NamedList_Find",            0x00421770, (void *)&NamedList_Find, {0x53, 0x55, 0x8b, 0xe9, 0x56}},
     {"Obj_HasNamedObject",        0x0041ede0, (void *)&Obj_HasNamedObject, {0x8b, 0x41, 0x4c, 0x56, 0x85}},
     {"Strings5_Dtor",             0x005c4c60, (void *)&Strings5_Dtor, {0x6a, 0xff, 0x68, 0xf9, 0x02}},
+    {"String_StripSuffix",        0x00424d30, (void *)&String_StripSuffix, {0x83, 0xec, 0x24, 0x8d, 0x4c}},
+    {"String_SkipDotPrefix",      0x0041cea0, (void *)&String_SkipDotPrefix, {0x6a, 0xff, 0x68, 0xf8, 0x80}},
     {"Class702938_Dtor",          0x005bdc10, (void *)&Class702938_Dtor, {0x6a, 0xff, 0x68, 0x16, 0x00}},
     {"Class702940_Dtor",          0x005be320, (void *)&Class702940_Dtor, {0x6a, 0xff, 0x68, 0x56, 0x01}},
     {"Class702948_Dtor",          0x005be750, (void *)&Class702948_Dtor, {0x6a, 0xff, 0x68, 0x36, 0x02}},
@@ -2974,6 +2981,7 @@ const Hook kHooks[] = {
     {"KeyMap_AsyncModifiers",     0x00486aa0, (void *)&KeyMap_AsyncModifiers, {0x56, 0x57, 0x8b, 0x3d, 0x20}},
     {"Graphics_Level",            0x0041a9d0, (void *)&Graphics_Level, {0xe8, 0xbb, 0xfb, 0x02, 0x00}},
     {"Options_ApplySound",        0x00423dd0, (void *)&Options_ApplySound, {0xa0, 0xf0, 0xd8, 0x78, 0x00}},
+    {"Options_Defaults",          0x00423690, (void *)&Options_Defaults, {0x8b, 0xc1, 0x33, 0xd2, 0xb9}},
     {"Coaster_SetTrainCount",     0x0043ba20, (void *)&Coaster_SetTrainCount, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
     {"Class6fd9d8_Dtor",          0x0041c8b0, (void *)&Class6fd9d8_Dtor, {0x6a, 0xff, 0x68, 0x56, 0x80}},
     {"Wstreambuf_Read",           0x004f0700, (void *)&Wstreambuf_Read, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
@@ -3001,6 +3009,7 @@ const Hook kHooks[] = {
     {"WaveletCodec_DecodeScaled", 0x005920f0, (void *)&WaveletCodec_DecodeScaled, {0x83, 0x7c, 0x24, 0x04, 0x12}},
     {"WaveletCodec_VBaseDtor",    0x005919a0, (void *)&WaveletCodec_VBaseDtor, {0x6a, 0xff, 0x68, 0x5c, 0xf5}},
     {"Record_IsActive",           0x0059c610, (void *)&Record_IsActive, {0x8b, 0x4c, 0x24, 0x04, 0x81}},
+    {"ObjectDef_FindMarkedCells", 0x00413410, (void *)&ObjectDef_FindMarkedCells, {0x6a, 0xff, 0x68, 0x58, 0x7e}},
     {"IntArray_SetSize",          0x00598630, (void *)&IntArray_SetSize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"StdTreeF_LowerBound",       0x005b2f40, (void *)&StdTreeF_LowerBound, {0x6a, 0xff, 0x68, 0xd8, 0xfa}},
     {"StdTreeF_AllFlagged",       0x005b0c40, (void *)&StdTreeF_AllFlagged, {0x51, 0x56, 0x8b, 0xf1, 0x33}},
@@ -3030,6 +3039,9 @@ const Hook kHooks[] = {
     {"StdTreeB_KeyLess",          0x0040f950, (void *)&StdTreeB_KeyLess, {0x66, 0x8b, 0x01, 0x8b, 0x4c}},
     {"StdMapA_Ctor",              0x0047b060, (void *)&StdMapA_Ctor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"StdMapA_Index",             0x0047b130, (void *)&StdMapA_Index, {0x83, 0xec, 0x14, 0x33, 0xc0}},
+    {"StdTree_DecB",              0x00410b20, (void *)&StdTree_DecB, {0x6a, 0xff, 0x68, 0xe8, 0x7d}},
+    {"StdTree_InsertB",           0x004107b0, (void *)&StdTree_InsertB, {0x6a, 0xff, 0x68, 0xc8, 0x7d}},
+    {"StdMapB_Insert",            0x0040fe60, (void *)&StdMapB_Insert, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"Class7037b8_Dtor",          0x00617f40, (void *)&Class7037b8_Dtor, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
     {"Panel_Reset",               0x005d48d0, (void *)&Panel_Reset, {0x56, 0x57, 0x8b, 0xf9, 0x33}},
     {"Grid_AddObject",            0x00576620, (void *)&Grid_AddObject, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
@@ -3069,6 +3081,23 @@ const Hook kHooks[] = {
     {"Class6fdaa4_ScalarDtor",    0x0041dc60, (void *)&Class6fdaa4_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x08}},
     {"Class6fdac8_FullScalarDtor", 0x0041dfa0, (void *)&Class6fdac8_FullScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x48}},
     {"Class6fda58_ScalarDtorC",   0x0041e090, (void *)&Class6fda58_ScalarDtorC, {0x56, 0x8b, 0xf1, 0xe8, 0xc8}},
+    {"Class6fd9d8_AddFolder",     0x0041c9e0, (void *)&Class6fd9d8_AddFolder, {0x6a, 0xff, 0x68, 0x73, 0x80}},
+    {"Class6fd9d8_AddWad",        0x0041cb10, (void *)&Class6fd9d8_AddWad, {0x6a, 0xff, 0x68, 0x8b, 0x80}},
+    {"Class6fdaa4_OpenSamAt",     0x0041e5d0, (void *)&Class6fdaa4_OpenSamAt, {0x6a, 0xff, 0x68, 0xa8, 0x84}},
+    {"Class6fdaa4_OpenSamWith",   0x0041e660, (void *)&Class6fdaa4_OpenSamWith, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"Class6fdaa4_OpenOnlineSamAt", 0x0041e680, (void *)&Class6fdaa4_OpenOnlineSamAt, {0x6a, 0xff, 0x68, 0xc8, 0x84}},
+    {"Class6fdaa4_OpenOnlineSamWith", 0x0041e720, (void *)&Class6fdaa4_OpenOnlineSamWith, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"Class6fdaa4_OpenSam",       0x0041f0d0, (void *)&Class6fdaa4_OpenSam, {0x6a, 0xff, 0x68, 0xe8, 0x85}},
+    {"Class6fdaa4_OpenOwnSam",    0x0041f170, (void *)&Class6fdaa4_OpenOwnSam, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
+    {"Class6fdaa4_OpenCoasterSam", 0x0041f330, (void *)&Class6fdaa4_OpenCoasterSam, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"Class6fdaa4_OpenEasySam",   0x0041f190, (void *)&Class6fdaa4_OpenEasySam, {0x6a, 0xff, 0x68, 0x10, 0x86}},
+    {"Class6fdaa4_OpenOnlineSam", 0x0041f260, (void *)&Class6fdaa4_OpenOnlineSam, {0x6a, 0xff, 0x68, 0x30, 0x86}},
+    {"Class6fdaa4_OpenLanguageTxt", 0x0041f350, (void *)&Class6fdaa4_OpenLanguageTxt, {0x6a, 0xff, 0x68, 0x50, 0x86}},
+    {"Class6fda98_Dtor",          0x0041e3a0, (void *)&Class6fda98_Dtor, {0x6a, 0xff, 0x68, 0x30, 0x84}},
+    {"Class6fda98_ScalarDtor",    0x0041dc40, (void *)&Class6fda98_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x58}},
+    {"Class6fd9d8_Find",          0x0041d710, (void *)&Class6fd9d8_Find, {0x53, 0x8b, 0xd9, 0x55, 0x56}},
+    {"Class6fd9d8_AddFolderAndWad", 0x0041cc40, (void *)&Class6fd9d8_AddFolderAndWad, {0x6a, 0xff, 0x68, 0xb3, 0x80}},
+    {"Class6fdaa4_TrimName",      0x0041eb90, (void *)&Class6fdaa4_TrimName, {0x83, 0xec, 0x10, 0x53, 0x56}},
     {"Animator_Sleep",            0x004254c0, (void *)&Animator_Sleep, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Object_BackOfQueueTo",      0x004de110, (void *)&Object_BackOfQueueTo, {0x8a, 0x41, 0x32, 0x56, 0x8b}},
     {"Object_QueuePositionOfNone", 0x004ddf40, (void *)&Object_QueuePositionOfNone, {0x51, 0x8b, 0xc4, 0x66, 0xc7}},
@@ -3102,6 +3131,7 @@ const Hook kHooks[] = {
     {"Global81ecac_SetRecorded",  0x0052fad0, (void *)&Global81ecac_SetRecorded, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Global81d7a4_SetRecorded",  0x0052f1b0, (void *)&Global81d7a4_SetRecorded, {0xa1, 0x34, 0xb1, 0x81, 0x00}},
     {"Global8186e0_SetRecorded",  0x0052f880, (void *)&Global8186e0_SetRecorded, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"NamedObjects_RemoveGlobals", 0x00408f00, (void *)&NamedObjects_RemoveGlobals, {0x51, 0x8b, 0x0d, 0x9c, 0x6b}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -3111,6 +3141,8 @@ const Hook kHooks[] = {
     {"Cell_FindRideableObject",   0x0042a340, (void *)&Cell_FindRideableObject, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"MessageSlot_Dtor",          0x0040f970, (void *)&MessageSlot_Dtor, {0x51, 0x8b, 0x41, 0x08, 0x56}},
     {"MessageCentre_DtorSlots",   0x00409250, (void *)&MessageCentre_DtorSlots, {0x68, 0x70, 0xf9, 0x40, 0x00}},
+    {"MessageCentre_RemoveThing", 0x0040fa40, (void *)&MessageCentre_RemoveThing, {0x83, 0xec, 0x18, 0x53, 0x55}},
+    {"MessageCentre_Save",        0x0040fc80, (void *)&MessageCentre_Save, {0x83, 0xec, 0x1c, 0x53, 0x55}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
@@ -3118,6 +3150,8 @@ const Hook kHooks[] = {
     {"ScreenSurfaces_ScalarDtor", 0x0047e3c0, (void *)&ScreenSurfaces_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"ScreenSurfaces_Surface10",  0x0047e4b0, (void *)&ScreenSurfaces_Surface10, {0x51, 0x57, 0x8b, 0xf9, 0x8b}},
     {"ScreenSurfaces_Surface14",  0x0047e510, (void *)&ScreenSurfaces_Surface14, {0x51, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"StatsGraph_ShownMax",       0x0049a7b0, (void *)&StatsGraph_ShownMax, {0x51, 0x8b, 0x0d, 0x3c, 0xf8}},
+    {"StatsGraph_ShownMin",       0x0049a8f0, (void *)&StatsGraph_ShownMin, {0x51, 0x8b, 0x0d, 0x3c, 0xf8}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
@@ -3259,6 +3293,7 @@ const Hook kHooks[] = {
     {"ModelSlot_ClearPartFlag",   0x00429ee0, (void *)&ModelSlot_ClearPartFlag, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"ModelSlot_SetPartFlag",     0x00429f60, (void *)&ModelSlot_SetPartFlag, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"ModelSlot_Holder",          0x00429fe0, (void *)&ModelSlot_Holder, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
+    {"ModelSlot_Ctor",            0x00429a60, (void *)&ModelSlot_Ctor, {0x6a, 0xff, 0x68, 0x34, 0x87}},
     {"WorldVerts_Alloc",          0x00462870, (void *)&WorldVerts_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"WorldVerts_Free",           0x004628a0, (void *)&WorldVerts_Free, {0xa1, 0xd4, 0xec, 0x7a, 0x00}},
     {"WorldVerts_TransformFrame", 0x004628b0, (void *)&WorldVerts_TransformFrame, {0x83, 0xec, 0x4c, 0xb9, 0x10}},
