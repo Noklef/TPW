@@ -34,6 +34,50 @@ u32 FtolLow(float f) { return (u32)(long long)f; }
 // The dword count of a {data, size, ...} array zeroed as the original's REP STOSD / STOSB does (size * 4 bytes).
 void ZeroArray(const u8 *array) { std::memset(at<u8 *>(array, 0), 0, at<u32>(array, 4) << 2); }
 
+// The D4 filter, read from 0xc27208..0xc27214 for each product.
+float H0() { return global<float>(0x00c27208); }
+float H1() { return global<float>(0x00c2720c); }
+float H2() { return global<float>(0x00c27210); }
+float H3() { return global<float>(0x00c27214); }
+
+// The inverse D4's software-pipelined pair loop (0x592c50's for n >= 6, 0x5933a0's along a row): the low values at p and p + next (bytes),
+// the high ones at p + high and p + high + next; the even value goes to out, the odd one to out + outNext; then p moves by step and out by
+// outStep, `loops` times (a do-while: 0 runs 2^32 times), and a last pair whose odd value is summed in another order. Each load is placed
+// where the original makes it relative to the two stores (the next pair's four before the odd store).
+void InverseD4Pairs(const u8 *p, u32 next, u32 high, u32 step, u8 *out, u32 outNext, u32 outStep, u32 loops) {
+    X87Reg a = X87Reg(at<float>(p, 0)) * H2();
+    X87Reg b = X87Reg(at<float>(p, next)) * H0();
+    X87Reg c = X87Reg(at<float>(p, high)) * H1();
+    X87Reg d = X87Reg(at<float>(p, high + next)) * H3();
+    do {
+        const X87Reg ca = c + a, bd = b + d;
+        const X87Reg e = X87Reg(at<float>(p, 0)) * H3();
+        const X87Reg even = bd + ca;
+        const X87Reg f = X87Reg(at<float>(p, next)) * H1();
+        const X87Reg g = X87Reg(at<float>(p, high)) * H0();
+        at<float>(out, 0) = (float)even;
+        const X87Reg h = X87Reg(at<float>(p, high + next)) * H2();
+        a = X87Reg(at<float>(p, step)) * H2();
+        const X87Reg fe = f + e;
+        b = X87Reg(at<float>(p, step + next)) * H0();
+        const X87Reg gh = g + h;
+        c = X87Reg(at<float>(p, step + high)) * H1();
+        const X87Reg odd = fe - gh;
+        d = X87Reg(at<float>(p, step + high + next)) * H3();
+        at<float>(out, outNext) = (float)odd;
+        p += step;
+        out += outStep;
+    } while (--loops != 0);
+    const X87Reg ca = c + a, bd = b + d;
+    const X87Reg e = X87Reg(at<float>(p, 0)) * H3();
+    const X87Reg even = bd + ca;
+    const X87Reg f = X87Reg(at<float>(p, next)) * H1();
+    at<float>(out, 0) = (float)even;
+    const X87Reg g = X87Reg(at<float>(p, high)) * H0();
+    const X87Reg h = X87Reg(at<float>(p, high + next)) * H2();
+    at<float>(out, outNext) = (float)(e + (f - (g + h)));
+}
+
 }  // namespace
 
 extern "C" {
@@ -308,5 +352,69 @@ u32 __fastcall WaveletCodec_Encode(u8 *iface, void *, u32 width, u32 height, u32
     const u32 packed = Buffer_Compress(kStream, dst, (u32)(cursor - kStream), at<void *>(codec, 0x4c));
     *outSize = packed;
     return packed;
+}
+
+void __fastcall WaveletCodec_ReadCoefficients(u8 *, void *, const u8 **cursor, float *dst, u32 count, float q) {
+    if (global<u32>(0x00f75ad4) == 0) {
+        for (u32 i = 0; i < 0x100; ++i) {
+            const float s = (float)(s8)i;
+            global<float>(0x00fb2be0 + 4 * i) = s;
+            global<float>(0x00fb2fe0 + 4 * i) = (float)i;
+            global<float>(0x00fb27e0 + 4 * i) = (float)(X87Reg(s) * 256.0f);  // 0x702688
+        }
+        global<u32>(0x00f75ad4) = 1;
+    }
+    const u8 *p = *cursor;
+    do {
+        const u8 b = *p++;
+        if (b != 0x80) {
+            *dst++ = (float)(X87Reg(global<float>(0x00fb2be0 + 4 * b)) * q);
+        } else {
+            const u8 low = p[0], high = p[1];
+            p += 2;
+            *dst++ = (float)((X87Reg(global<float>(0x00fb2fe0 + 4 * low)) + global<float>(0x00fb27e0 + 4 * high)) * q);
+        }
+    } while (--count != 0);
+    *cursor = p;
+}
+
+void __fastcall WaveletCodec_InverseD4Row(u8 *, void *, const float *src, float *dst, s32 n) {
+    const s32 half = n >> 1, m = half - 1;
+    const float *const low = src, *const high = src + half;
+    if (n >= 6) {
+        InverseD4Pairs(reinterpret_cast<const u8 *>(src), 4, (u32)half * 4, 4, reinterpret_cast<u8 *>(dst + 2), 4, 8, (u32)(m - 1));
+    } else {
+        for (s32 k = 0; k < m; ++k) {
+            dst[2 * k + 2] = (float)(((X87Reg(H3()) * high[k + 1] + X87Reg(H2()) * low[k]) + X87Reg(H0()) * low[k + 1]) + X87Reg(H1()) * high[k]);
+            dst[2 * k + 3] = (float)(((X87Reg(H3()) * low[k] + X87Reg(H1()) * low[k + 1]) - X87Reg(H0()) * high[k]) - X87Reg(H2()) * high[k + 1]);
+        }
+    }
+    // The first pair wraps around.
+    dst[0] = (float)(((X87Reg(H2()) * low[m] + X87Reg(H1()) * high[m]) + X87Reg(H3()) * high[0]) + X87Reg(low[0]) * H0());
+    dst[1] = (float)(((X87Reg(H3()) * low[m] + X87Reg(low[0]) * H1()) - X87Reg(H0()) * high[m]) - X87Reg(H2()) * high[0]);
+}
+
+void __fastcall WaveletCodec_InverseD4Columns(u8 *, void *, float *const *srcPlane, float *const *dstPlane, u32 width, u32 n) {
+    const u8 *src = reinterpret_cast<const u8 *>(*srcPlane);
+    u8 *dst = reinterpret_cast<u8 *>(*dstPlane);
+    const u32 half = n >> 1, m = half - 1, row = width * 4, high = width * half * 4;
+    const u8 *s = src;
+    u8 *d = dst + 2 * row;
+    u32 rows = m;  // a do-while: 0 runs 2^32 times (sic)
+    do {
+        InverseD4Pairs(s, row, high, 4, d, row, 4, n - 1);
+        s += row;
+        d += 2 * row;
+    } while (--rows != 0);
+    // The first two rows wrap around; each value is read when its expression needs it.
+    const u32 lastLow = m * width * 4, lastHigh = (m * width + width * half) * 4;
+    for (u32 c = n; c != 0; --c) {
+        at<float>(dst, 0) = (float)(((X87Reg(H3()) * at<float>(src, high) + X87Reg(H1()) * at<float>(src, lastHigh)) + X87Reg(H2()) * at<float>(src, lastLow)) +
+                                    X87Reg(at<float>(src, 0)) * H0());
+        at<float>(dst, row) = (float)(((X87Reg(H3()) * at<float>(src, lastLow) + X87Reg(at<float>(src, 0)) * H1()) - X87Reg(H0()) * at<float>(src, lastHigh)) -
+                                      X87Reg(H2()) * at<float>(src, high));
+        src += 4;
+        dst += 4;
+    }
 }
 }

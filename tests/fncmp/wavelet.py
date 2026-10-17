@@ -5,8 +5,12 @@
 #   floats, n a power of two or not, zero and negative) and the 2 x 2 halving (0x592670; odd sizes too);
 # - the 2-D forward D4 (0x592220; strides above n, a failing allocation now and then) and the grey and colour encoders (0x591d70, 0x591ab0):
 #   any sizes up to 20 (sides 8 to 32), planes empty or with blocks to fit in or grow from, any quantisers; the compressor is a recorder,
-#   so its arguments (the stream's length) and the stream at 0xa067f8 are compared.
-# usage: wavelet.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE)
+#   so its arguments (the stream's length) and the stream at 0xa067f8 are compared. Now and then the grey one gets one pixel and a
+#   quantiser that puts a coefficient just inside or outside the byte range;
+# - the decoder's steps: the coefficient reader (0x592b80; its tables built or not, true or any floats, escapes often, the destination
+#   now and then over the stream, a count of 0 now and then), the inverse D4 along a row (0x592c50; n below and above 6, odd, zero and
+#   negative, the destination now and then over the source) and down the columns (0x5933a0; widths above n, in place now and then).
+# usage: wavelet.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS)
 import math
 import os
 import struct
@@ -15,12 +19,13 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, LOG, Bench, Call, RAM, fb, heap, log_region, put, vtable  # noqa: E402
 
-B = Bench([(0x591ab0, 0x592010), (0x592150, 0x592740), (0x598630, 0x598790), (0x5f8050, 0x5f80f0)])
-OPS = [k for k in os.environ.get('OPS', 'PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE').split(',') if k]
+B = Bench([(0x591ab0, 0x592010), (0x592150, 0x592e6d), (0x5933a0, 0x5935b0), (0x598630, 0x598790), (0x5f8050, 0x5f80f0)])
+OPS = [k for k in os.environ.get('OPS', 'PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS').split(',') if k]
 CURSOR = RAM + 8
 CODEC, PLANES, SRC, DST, FILTER = RAM, RAM + 0x1000, RAM + 0x2000, RAM + 0x3000, 0xc27208
 OUT, SIZE, OLD, STREAM = RAM + 0x4000, RAM + 0x4100, RAM + 0x5000, 0xa067f8
 GUARD, COMPRESSOR_VTABLE = 0xfa75f8, RAM + 0x4200   # Buffer_Compress's codec (built: guard bit 0) and its vtable of recorders
+BUILT, TABLES = 0xf75ad4, 0xfb27e0   # the coefficient reader's tables: built flag; s8 * 256, s8, u8 (0x100 floats each)
 S3 = math.sqrt(3)
 D4 = struct.pack('<4f', (1 + S3) / (4 * math.sqrt(2)), (3 + S3) / (4 * math.sqrt(2)), (3 - S3) / (4 * math.sqrt(2)),
                  (1 - S3) / (4 * math.sqrt(2)))
@@ -66,6 +71,8 @@ def case(r):
         return Call(0x5924f0, [CODEC, SRC, DST, n & 0xffffffff],
                     {CODEC: r.bytes(0x10), SRC: r.floats(bytearray(size), range(0, size, 4)), DST: r.floats(bytearray(size), range(0, size, 4)),
                      FILTER: filt}, conv='t')
+    if op in ('READ', 'IROW', 'ICOLS'):
+        return decoder(r, op)
     if op != 'HALVE':
         return coder(r, op)
     n = r.choice([0, 1, 2, 3, 4, 5, 8, r.randrange(6, 16)])
@@ -124,10 +131,56 @@ def coder(r, op):
                      FILTER: D4 if r.random() < 0.6 else r.floats(bytearray(0x10), range(0, 0x10, 4))}, conv='t')
     if op == 'GREY':
         width, height, regions, q = encoder(r, False)
+        if r.random() < 0.2:   # one pixel p: the coefficient h0 h3 p / q lands at -128.5, -127.5, 127.5 or 128.5
+            width = height = 1
+            p = r.randrange(1, 0x100)
+            regions[SRC], regions[FILTER] = bytes([p]), D4
+            h = struct.unpack('<4f', D4)
+            q[0] = fb(h[0] * h[3] * p / r.choice([-128.5, -127.5, 127.5, 128.5]))
         return Call(0x591d70, [CODEC, width, height, SRC, OUT, SIZE, q[0]], regions, conv='t', ret='a')
     width, height, regions, q = encoder(r, True)
     colour = r.choice([1, 1, 1, 0xff, 0x100, 0x1ff, 0])
     return Call(0x591ab0, [CODEC + 0x54, width, height, colour, SRC, OUT, SIZE] + q, regions, conv='t', ret='a')
+
+
+def tables(r):
+    """the coefficient reader's flag and tables: not built (any bytes, overwritten), or built, the true tables or any floats."""
+    if r.random() < 0.4:
+        return {BUILT: struct.pack('<I', 0), TABLES: r.bytes(0xc00)}
+    if r.random() < 0.5:
+        values = [float((i ^ 0x80) - 0x80) * 256 for i in range(0x100)] + [float((i ^ 0x80) - 0x80) for i in range(0x100)] + [float(i) for i in range(0x100)]
+        return {BUILT: struct.pack('<I', r.choice([1, 1, 0x100])), TABLES: struct.pack('<768f', *values)}
+    return {BUILT: struct.pack('<I', 1), TABLES: r.floats(bytearray(0xc00), range(0, 0xc00, 4))}
+
+
+def decoder(r, op):
+    if op == 'READ':
+        count = r.choice([1, 2, r.randrange(1, 8), r.randrange(8, 41)]) if r.random() < 0.97 else 0
+        mem = bytearray(r.bytes(0x200))
+        start = 0x100 + r.randrange(0, 4)
+        for k in range(start, 0x200):
+            if r.random() < 0.3:
+                mem[k] = 0x80
+        put(mem, CURSOR - RAM, 'I', RAM + start)
+        dst = DST if r.random() < 0.9 else RAM + start + r.randrange(0, 0x10)   # now and then over the stream
+        q = r.choice([fb(1.0), fb(r.uniform(0.5, 64)), r.f()])
+        return Call(0x592b80, [CODEC, CURSOR, dst, count, q], {**tables(r), RAM: mem, DST: r.bytes(4 * 0x30)}, conv='t')
+    if op == 'IROW':
+        n = r.choice([2, 4, 6, 8, 16, 32, 3, 5, 7, 10, 12, 0, 1, -2])
+        size = 0x40 + 4 * max(abs(n), 2) + 0x10   # 0x40 before the row, for n <= 1's wrapped reads
+        src = SRC + 0x40
+        dst = DST + 0x40 if r.random() < 0.85 else src + 4 * r.randrange(-2, 4)   # now and then over the source
+        return Call(0x592c50, [CODEC, src, dst, n & 0xffffffff],
+                    {CODEC: r.bytes(0x10), SRC: r.floats(bytearray(size), range(0, size, 4)), DST: r.floats(bytearray(size), range(0, size, 4)),
+                     FILTER: D4 if r.random() < 0.6 else r.floats(bytearray(0x10), range(0, 0x10, 4))}, conv='t')
+    n = r.choice([4, 4, 8, 8, 16, 6, 10, 5]) if r.random() < 0.95 else r.choice([2, 3])   # 2 and 3: no row pairs, 2^32 of them (sic)
+    width = n + r.choice([0, 0, 1, 3])
+    size = 4 * width * n
+    dst = DST if r.random() < 0.85 else PLANES   # now and then in place
+    return Call(0x5933a0, [CODEC, CODEC, CODEC + 4, width, n],
+                {CODEC: struct.pack('<II', PLANES, dst) + r.bytes(8), PLANES: r.floats(bytearray(size), range(0, size, 4)),
+                 DST: r.floats(bytearray(size), range(0, size, 4)), FILTER: D4 if r.random() < 0.6 else r.floats(bytearray(0x10), range(0, 0x10, 4))},
+                conv='t')
 
 
 if __name__ == '__main__':

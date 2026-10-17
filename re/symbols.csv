@@ -3935,6 +3935,9 @@ address,name,kind,confidence,notes
 0x00592670,WaveletCodec_HalvePlane,function,low,"reimplemented (src/game/gfx/wavelet); thiscall, this unused (plane pointer's address, n): the n x n plane halved in place by 2 x 2 averages (name unconfirmed)"
 0x00592220,WaveletCodec_ForwardD4,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (plane pointer's address, stride, n): the 2-D forward D4 step, columns (inline) then rows, through four stack arrays (name unconfirmed)"
 0x00591d70,WaveletCodec_EncodeGrey,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (width, height, pixels, dst, size out, q): the grey encoder, plane +0x2c, forward D4, 1/q, coefficients to 0xa067f8, Buffer_Compress (name unconfirmed)"
+0x00592b80,WaveletCodec_ReadCoefficients,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (cursor's address, dst, count, q): the decoders' coefficient reader, tables at 0xfb27e0 built once, 0x80 escapes an s16 (name unconfirmed)"
+0x00592c50,WaveletCodec_InverseD4Row,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (src, dst, n): one inverse D4 step along a row, pipelined for n >= 6 (name unconfirmed)"
+0x005933a0,WaveletCodec_InverseD4Columns,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (src plane, dst plane, width, n): the inverse D4 step down the columns, then the wrapped rows (name unconfirmed)"
 0x0058c2c0,TexSurfaceA_Field38,function,high,reimplemented (src/game/gfx/texsurface); surface class A: the dword at ECX-0x38
 0x0058c2e0,TexSurfaceA_Area,function,high,reimplemented (src/game/gfx/texsurface); surface class A: its virtual base's two dwords multiplied
 0x0058c330,TexSurfaceA_Field10,function,high,reimplemented (src/game/gfx/texsurface); surface class A: the dword at ECX-0x10

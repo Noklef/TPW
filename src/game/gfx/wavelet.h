@@ -69,4 +69,21 @@ u32 __fastcall WaveletCodec_EncodeGrey(u8 *codec, void *, u32 width, u32 height,
 // written with WaveletCodec_PutCoefficient before Buffer_Compress, as in the grey one.
 u32 __fastcall WaveletCodec_Encode(u8 *iface, void *, u32 width, u32 height, u32 colour, const u8 *pixels, void *dst, u32 *outSize, float qY, float qCb,
                                    float qCr);
+
+// 0x592b80 (thiscall, this unused; the cursor's address, destination, count, quantiser; pops 0x10; name unconfirmed): the decoders'
+// coefficient reader. Once (flag 0xf75ad4) the tables at 0xfb2be0 (each byte as s8), 0xfb2fe0 (as u8) and 0xfb27e0 (s8 times 256.0) are
+// built; then count coefficients (a do-while: 0 runs 2^32 times, sic) go to dst times q: a byte other than 0x80 as its s8, 0x80 then a
+// little-endian s16 (low byte unsigned plus the high byte's s8 times 256). The cursor moves past them.
+void __fastcall WaveletCodec_ReadCoefficients(u8 *codec, void *, const u8 **cursor, float *dst, u32 count, float q);
+
+// 0x592c50 (thiscall, this unused; source, destination, n; pops 0xc; name unconfirmed): one inverse D4 step along a row: the n / 2 low
+// values at src[0..] and the high ones at src[n / 2..] interleave into dst[2..] pair by pair, then the wrapped pair into dst[0], dst[1].
+// For n >= 6 the original's software-pipelined loop (loads placed as there; its last odd value summed in another order, sic), below
+// that a plain loop with another summing order.
+void __fastcall WaveletCodec_InverseD4Row(u8 *codec, void *, const float *src, float *dst, s32 n);
+
+// 0x5933a0 (thiscall, this unused; the source and destination plane pointers' addresses, width, n; pops 0x10; name unconfirmed): the
+// inverse D4 step down the columns of n x n planes (rows width floats apart): n / 2 - 1 row pairs (a do-while: 0 runs 2^32 times, sic),
+// each over n columns with InverseD4Row's pipelined loop, then the wrapped first two rows.
+void __fastcall WaveletCodec_InverseD4Columns(u8 *codec, void *, float *const *srcPlane, float *const *dstPlane, u32 width, u32 n);
 }
