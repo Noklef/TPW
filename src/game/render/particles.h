@@ -1,5 +1,5 @@
 // The particle systems' handle accessors: reimplementation of 0x51fa80, 0x51fd80, 0x51fe30, 0x51fd90, 0x51feb0,
-// 0x520030, 0x5200b0, 0x5204c0, 0x521810, 0x521850, 0x51ff10, 0x51ff70, 0x51ffd0, 0x520470, 0x5222e0, 0x522320, 0x520e00, 0x520560, 0x521e60, 0x5214a0 and 0x521930. Nothing works before the
+// 0x520030, 0x5200b0, 0x5204c0, 0x521810, 0x521850, 0x51ff10, 0x51ff70, 0x51ffd0, 0x520470, 0x5222e0, 0x522320, 0x520e00, 0x520560, 0x521e60, 0x5214a0, 0x521930 and 0x520f10. Nothing works before the
 // particles are set up (0x816d40 set). A system handle is serial << 16 | slot: slot (u16) below
 // 0x78 in gParticleSystems (0x80cefc, 0x140 bytes each, copies of an effect definition), its
 // serial the system's u16 +0xa; 0 is none. A system's +0x20 is its age (-2 ends it) and +0xd4 its
@@ -108,4 +108,13 @@ s32 __cdecl Particle_SpawnWithVelocity(s32 effect, s32 x, s32 y, s32 z, s32 vx, 
 // of 2) becomes 1 and stays, others move by the velocity. Unless the system's byte +5 is set its bounds (+0x128 least, +0x134 most) take the particle's
 // position less / plus its size / 1024. (The original's print of a frame past the count is left out.)
 void __cdecl Particles_Update();
+
+// 0x520f10 (name unconfirmed): one step of each active effector (from 0x816d1e, next in the word +0x60). Its timer +0x4c counts down unless the word +0x4a
+// is set; a radius +0x2c of 0 becomes 1. Unless the byte +0xa is set it moves (+0xc..: velocity +0x18.. less v * drag +0x24 / 1024, gravity +0x28 off y),
+// bouncing on the ground callback 0x80cef4 (at x, z times 16; height over 16) with the byte +0xb. A timer below 0 ends it: its end effect, the s16 +0x46,
+// starts at its position times 16 (Voice_Start with the byte +0x49, else Particle_Spawn), +0x49 becomes 0xff and it goes back on the free list 0x816d22.
+// Otherwise it pulls the particles of the live systems whose word +2 is 0 and whose byte +4 is its filter +4 (-1: any), those whose +0x2a is the filter (a
+// negative one: of systems whose +0x9c is 0): strength +0x40 times the distance in quarters over (its square / 256 + 10) onto their velocity, from its
+// position plus RandSigned of +0x34/+0x38/+0x3c; in mode 2 (+0x30) a particle within the radius (squared / 256) gets age 0.
+void __cdecl ParticleEffectors_Update();
 }

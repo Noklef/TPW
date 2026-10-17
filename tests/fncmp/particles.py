@@ -14,10 +14,10 @@ B = Bench([(0x5222e0, 0x52231b), (0x522320, 0x522356), (0x51fd80, 0x51fd8a), (0x
            (0x51feb0, 0x51ff06), (0x51ff10, 0x51ff68), (0x51ff70, 0x51ffc6), (0x51ffd0, 0x520028),
            (0x520470, 0x5204ba), (0x51fe30, 0x51fea4), (0x520030, 0x5200a4), (0x51fd90, 0x51fe2d), (0x5200b0, 0x520123), (0x5204c0, 0x52055f), (0x521810, 0x521845), (0x521850, 0x52188a), (0x520e00, 0x520f0c),
            (0x520560, 0x520d60), (0x520d60, 0x520e00), (0x521e60, 0x5222e0), (0x521d60, 0x521e60), (0x522360, 0x5224f0),
-           (0x5214a0, 0x521807), (0x521890, 0x521930), (0x5da3c0, 0x5da3c1), (0x521930, 0x521d54)])
+           (0x5214a0, 0x521807), (0x521890, 0x521930), (0x5da3c0, 0x5da3c1), (0x521930, 0x521d54), (0x520f10, 0x5214a0)])
 SYSTEMS, EFFECTS, EFFECTORS, SETUP = 0x80cefc, 0x804370, 0x816504, 0x816d40
 CALLS = {'Alive': 0x5222e0, 'Effector': 0x522320, 'Reduced': 0x51fd80, 'Clear': 0x51fa80, 'End': 0x51feb0,
-         'Age': 0x51ff70, 'Set2a': 0x51ff10, 'SetA2': 0x51ffd0, 'Quarter': 0x520470, 'VecA': 0x51fe30, 'VecB': 0x520030, 'Scaled': 0x51fd90, 'EndAll': 0x5200b0, 'Release': 0x5204c0, 'RandS': 0x521810, 'Rand': 0x521850, 'Move': 0x520e00, 'Emit': 0x520560, 'Spawn': 0x521e60, 'Update': 0x5214a0, 'SpawnVel': 0x521930}
+         'Age': 0x51ff70, 'Set2a': 0x51ff10, 'SetA2': 0x51ffd0, 'Quarter': 0x520470, 'VecA': 0x51fe30, 'VecB': 0x520030, 'Scaled': 0x51fd90, 'EndAll': 0x5200b0, 'Release': 0x5204c0, 'RandS': 0x521810, 'Rand': 0x521850, 'Move': 0x520e00, 'Emit': 0x520560, 'Spawn': 0x521e60, 'Update': 0x5214a0, 'SpawnVel': 0x521930, 'Effectors': 0x520f10}
 NODES, SINES = RAM + 0x1000, RAM + 0x2000
 
 
@@ -45,6 +45,8 @@ def case(r):
         return spawn(r)
     if op == 'Update':
         return update(r)
+    if op == 'Effectors':
+        return pull(r)
     if op == 'SpawnVel':  # 0x521930: Spawn's cases with a velocity, the systems' scales about 1024
         c = spawn(r)
         defs = c.regions[0x804370]
@@ -276,6 +278,55 @@ def update(r):
     put(heads, 0x24, 'I', 1)
     regions.update({0x80cefc: systems, NODES: nodes, 0x816d1c: heads})
     return Call(0x5214a0, [], regions, ret='v')
+
+
+def pull(r):
+    """0x520f10: Update's systems and records (positions near the effectors, so the squared distances stay in range), up to four active effectors of 12
+    (the rest at times free, for the end voices), each field about its branches; the ground callback the logger, its height about the effectors'."""
+    regions = update(r).regions
+    systems, nodes, heads, state = regions[0x80cefc], regions[NODES], regions[0x816d1c], regions[0x80ced0]
+    for a in range(6):
+        systems[0x140 * a + 4] = r.choice([0, 1, 2, 0xff, r.getrandbits(8)])
+        put(systems, 0x140 * a + 0x9c, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
+    for k in range(16):
+        put(nodes, 0x34 * k, 'iii', *[r.randrange(-0x2000, 0x2000) for _ in range(3)])
+        put(nodes, 0x34 * k + 0x2a, 'h', r.choice([0, 1, 2, -1, -2, r.randrange(-0x8000, 0x8000)]))
+    instances = bytearray(r.bytes(0x68 * 12))
+    order = r.sample(range(12), 12)
+    nactive = r.choice([0, 1, 2, 3, 4, 4])
+    nfree = r.choice([0, 1, 2, 8])
+    active, free = order[:nactive], order[nactive:nactive + nfree]
+    for chain in (active, free):
+        for i, a in enumerate(chain):
+            put(instances, 0x68 * a + 0x60, 'hh', chain[i + 1] if i + 1 < len(chain) else -1, chain[i - 1] if i else -1)
+    small = lambda: r.choice([0, 0, 1, -1, 7, 0x100, -0x100, r.randrange(-0x1000, 0x1000)])
+    for a in active:
+        e = 0x68 * a
+        put(instances, e + 4, 'i', r.choice([-1, -1, 0, 1, 2, -2, r.getrandbits(32) - (1 << 31)]))
+        instances[e + 0xa] = r.choice([0, 0, 0, 1])
+        instances[e + 0xb] = r.choice([0, 1, 1])
+        put(instances, e + 0xc, 'iii', *[r.randrange(-0x1000, 0x1000) for _ in range(3)])
+        put(instances, e + 0x18, 'iii', *[small() for _ in range(3)])
+        if r.random() < 0.2:
+            put(instances, e + 0x18, 'iii', 0, 0, 0)
+        put(instances, e + 0x24, 'i', r.choice([0, 0, 100, 1024, -100, r.randrange(-0x8000, 0x8000)]))
+        put(instances, e + 0x28, 'i', r.choice([0, 0, 1, 10, -10, r.randrange(-0x100, 0x100)]))
+        put(instances, e + 0x2c, 'i', r.choice([0, 0, 1, 0x100, 0x1000, r.randrange(0, 0x10000)]))
+        put(instances, e + 0x30, 'i', r.choice([0, 1, 2, 2, 3, -1]))
+        put(instances, e + 0x34, 'iiii', *[r.choice([0, 0, 1, 7, 0x100, -0x100]) for _ in range(3)], r.choice([0, 1, -1, 100, 0x1000, r.randrange(-0x10000, 0x10000)]))
+        voice = r.choice([0, 0, 1, 0xff])
+        instances[e + 0x49] = voice
+        put(instances, e + 0x46, 'h', r.choice([-1, 0, 19, 20, r.randrange(20)]) if voice else r.choice([-1, 0x69, r.randrange(0x69), r.randrange(0x69)]))
+        put(instances, e + 0x4a, 'H', r.choice([0, 0, 0, 1, 0x100]))
+        put(instances, e + 0x4c, 'i', r.choice([0, 0, 1, 2, 100, -1, -5]))
+    put(heads, 2, 'h', active[0] if active else -1)
+    put(heads, 6, 'h', free[0] if free else -1)
+    log = log_region()
+    if r.random() < 0.9:  # the ground height about the effectors' (x16), else what the logger makes of its arguments
+        set_return(log, 0x3e, r.randrange(-0x2000, 0x2000) * 16 + r.randrange(16))
+    put(state, 0x24, 'I', CDECL_LOG2)
+    regions.update({0x8164fc: instances, LOG: log})
+    return Call(0x520f10, [], regions, ret='v')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]

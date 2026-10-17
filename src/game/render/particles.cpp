@@ -12,6 +12,8 @@ u8 *system(u32 slot) { return reinterpret_cast<u8 *>(0x0080cefc + slot * 0x140);
 
 template <typename T> T &field(u8 *base, u32 offset) { return *reinterpret_cast<T *>(base + offset); }
 
+u8 *effector(s32 index) { return reinterpret_cast<u8 *>(0x008164fc + index * 0x68); }
+
 // The sine table's (at [0x80ceec], 0x200 entries) entry for an angle in eighths of an entry (divided truncating toward 0); quarter 0x80: the cosine.
 s32 Sine(s32 angle, s32 quarter) { return global<s32 *>(0x0080ceec)[(u32)(angle / 8 + quarter) & 0x1ff]; }
 
@@ -377,6 +379,103 @@ s32 __cdecl Particle_Spawn(s32 effect, s32 x, s32 y, s32 z) { return StartSystem
 s32 __cdecl Particle_SpawnWithVelocity(s32 effect, s32 x, s32 y, s32 z, s32 vx, s32 vy, s32 vz) {
     const s32 velocity[3] = {vx, vy, vz};
     return StartSystem(effect, x, y, z, velocity);
+}
+
+void __cdecl ParticleEffectors_Update() {
+    u8 *const records = global<u8 *>(0x0080cef8);  // (read once)
+    for (s32 index = global<s16>(0x00816d1e), next; index >= 0; index = next) {
+        u8 *const e = effector(index);
+        next = field<s16>(e, 0x60);
+        if (field<u16>(e, 0x4a) == 0)
+            --field<s32>(e, 0x4c);
+        if (field<s32>(e, 0x2c) == 0)
+            field<s32>(e, 0x2c) = 1;
+
+        // Its own motion: drag (+0x24 over 1024), gravity (+0x28); with the byte +0xb it bounces on the ground (the callback at 0x80cef4)
+        if (e[0xa] == 0 && (field<s32>(e, 0x18) != 0 || field<s32>(e, 0x1c) != 0 || field<s32>(e, 0x20) != 0 || field<s32>(e, 0x28) != 0)) {
+            const s32 drag = field<s32>(e, 0x24);
+            const auto damp = [drag](s32 v) { return (s32)((u32)v - (u32)((s32)((u32)drag * (u32)v) / 1024)); };
+            const s32 vx = damp(field<s32>(e, 0x18));
+            field<s32>(e, 0x18) = vx;
+            const s32 vy = (s32)((u32)damp(field<s32>(e, 0x1c)) - field<u32>(e, 0x28));
+            const s32 vz = damp(field<s32>(e, 0x20));
+            const s32 x = (s32)(field<u32>(e, 0xc) + (u32)vx), y = (s32)(field<u32>(e, 0x10) + (u32)vy), z = (s32)(field<u32>(e, 0x14) + (u32)vz);
+            field<s32>(e, 0x1c) = vy;
+            field<s32>(e, 0x20) = vz;
+            field<s32>(e, 0xc) = x;
+            field<s32>(e, 0x10) = y;
+            field<s32>(e, 0x14) = z;
+            if (e[0xb] != 0) {
+                const auto ground = global<s32(__cdecl *)(s32, s32)>(0x0080cef4);
+                const s32 h = ground((s32)((u32)x << 4), (s32)((u32)z << 4)) >> 4;
+                const s32 at = field<s32>(e, 0x10);
+                if (at < h) {
+                    const s32 v = field<s32>(e, 0x1c);
+                    if ((s32)((u32)at - (u32)h) < v) {  // (falling faster than it is below the ground: stepped back)
+                        field<s32>(e, 0xc) = (s32)(field<u32>(e, 0xc) - field<u32>(e, 0x18));
+                        field<s32>(e, 0x10) = (s32)((u32)at - (u32)v);
+                        field<s32>(e, 0x18) = -(field<s32>(e, 0x18) / 4);
+                        field<s32>(e, 0x1c) = v / 4;
+                        field<s32>(e, 0x20) = -(field<s32>(e, 0x20) / 4);
+                    } else {
+                        field<s32>(e, 0x10) = h;
+                        field<s32>(e, 0x1c) = -(v / 2);
+                        field<s32>(e, 0x18) = field<s32>(e, 0x18) / 2;
+                        field<s32>(e, 0x20) = field<s32>(e, 0x20) / 2;
+                    }
+                }
+            }
+        }
+
+        if (field<s32>(e, 0x4c) < 0) {  // its end: its end effect (a voice with the byte +0x49, else particles), then it goes back on the free list
+            const s32 x = (s32)(field<u32>(e, 0xc) << 4), y = (s32)(field<u32>(e, 0x10) << 4), z = (s32)(field<u32>(e, 0x14) << 4);
+            if (e[0x49] != 0)
+                Voice_Start(field<s16>(e, 0x46), x, y, z);
+            else
+                Particle_Spawn(field<s16>(e, 0x46), x, y, z);
+            e[0x49] = 0xff;
+            const s16 after = field<s16>(e, 0x60), before = field<s16>(e, 0x62);
+            if (global<s16>(0x00816d1e) == index)
+                global<s16>(0x00816d1e) = after;
+            if (before >= 0)
+                field<u16>(effector(before), 0x60) = field<u16>(e, 0x60);
+            if (after >= 0)
+                field<u16>(effector(after), 0x62) = field<u16>(e, 0x62);
+            field<u32>(e, 0) = 0;
+            field<u16>(e, 0x60) = global<u16>(0x00816d22);
+            field<u16>(e, 0x62) = 0xffff;
+            global<u16>(0x00816d22) = (u16)index;
+            continue;
+        }
+
+        // Its pull on the particles: from a point (+0xc plus RandSigned of +0x34/+0x38/+0x3c), strength +0x40 over the squared distance (in quarters, over
+        // 256, plus 10), on the particles of the systems whose byte +4 is the filter +4 (-1: any) and whose +0x2a is it (negative: of systems whose +0x9c
+        // is 0); in mode 2 (+0x30) a particle nearer than the radius +0x2c (squared over 256) dies.
+        const s32 px = (s32)(field<u32>(e, 0xc) + (u32)Particle_RandSigned(field<s32>(e, 0x34)));
+        const s32 py = (s32)(field<u32>(e, 0x10) + (u32)Particle_RandSigned(field<s32>(e, 0x38)));
+        const s32 pz = (s32)(field<u32>(e, 0x14) + (u32)Particle_RandSigned(field<s32>(e, 0x3c)));
+        const s32 strength = field<s32>(e, 0x40), filter = field<s32>(e, 4);
+        for (s32 slot = global<s16>(0x00816d1c); slot >= 0; slot = field<s16>(system((u32)slot), 0xd0)) {
+            u8 *const s = system((u32)slot);
+            if (field<u16>(s, 2) != 0 || (filter != -1 && filter != (s8)s[4]))
+                continue;
+            for (s32 record = field<s16>(s, 6); record >= 0; record = field<s16>(global<u8 *>(0x0080cef8) + record * 0x34, 0x30)) {
+                u8 *const p = records + record * 0x34;
+                if (filter >= 0 ? field<s16>(p, 0x2a) != filter : field<s32>(system((u32)(s32)field<s16>(p, 0x26)), 0x9c) != 0)
+                    continue;
+                const s32 dx = (s32)((u32)px - field<u32>(p, 0)) / 4, dy = (s32)((u32)py - field<u32>(p, 4)) / 4, dz = (s32)((u32)pz - field<u32>(p, 8)) / 4;
+                const s32 d = ((s32)((u32)dx * (u32)dx + (u32)dy * (u32)dy + (u32)dz * (u32)dz) >> 8) + 10;
+                field<s32>(p, 0xc) = (s32)(field<u32>(p, 0xc) + (u32)((s32)((u32)strength * (u32)dx) / d));
+                field<s32>(p, 0x10) = (s32)(field<u32>(p, 0x10) + (u32)((s32)((u32)strength * (u32)dy) / d));
+                field<s32>(p, 0x14) = (s32)(field<u32>(p, 0x14) + (u32)((s32)((u32)strength * (u32)dz) / d));
+                if (field<s32>(e, 0x30) == 2) {
+                    const s32 radius = field<s32>(e, 0x2c);
+                    if (d < (s32)((u32)radius * (u32)radius) >> 8)
+                        field<s32>(p, 0x20) = 0;
+                }
+            }
+        }
+    }
 }
 
 void __cdecl Particles_Update() {
