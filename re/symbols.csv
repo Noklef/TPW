@@ -3678,6 +3678,12 @@ address,name,kind,confidence,notes
 0x0057b070,Object_ReleaseSavedPairs,function,high,reimplemented (src/game/core/vobj2); saved pairs written back and their arrays freed
 0x005dc580,Class702bc8_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor with two helper objects and tuning floats
 0x005be9b0,Class702920_DeletingDtor,function,high,"reimplemented (src/game/core/vdtor); thiscall (flags); the 0x702920 destructor (Class7028_Dtor), then the object freed when bit 0 of the flags is set; returns the object"
+0x005d9f50,Class702af0_Dtor,function,low,reimplemented (src/game/core/vdtor); thiscall: vtable pointer 0x702af0; [0xf83784] told (slot 0x1c); the member list at +0x58 drained and deleted; the strings at +0x24 and +0x10 destroyed
+0x005d9ed0,Class702af0_DeletingDtor,function,low,"reimplemented (src/game/core/vdtor); thiscall (flags): Class702af0_Dtor, the object freed when bit 0 is set; returns it"
+0x005dc740,Class702bc8_Dtor,function,low,reimplemented (src/game/core/vdtor); thiscall: vtable pointer 0x702bc8; the member lists at +8 and +0x6c drained and deleted; then Class702d48_Release
+0x005dc660,Class702bc8_DeletingDtor,function,low,"reimplemented (src/game/core/vdtor); thiscall (flags): Class702bc8_Dtor, the object freed when bit 0 is set; returns it"
+0x005dfc30,Class702ca8_Dtor,function,low,reimplemented (src/game/core/vdtor); thiscall: vtable pointer 0x702ca8; the member at +0xc told (slot 0x34); the WString at +0x48 and the String at +0x28 destroyed
+0x005dfc10,Class702ca8_DeletingDtor,function,low,"reimplemented (src/game/core/vdtor); thiscall (flags): Class702ca8_Dtor, the object freed when bit 0 is set; returns it"
 0x00617ff0,Class7037c0_Create,function,high,reimplemented (src/game/core/factories); object factory with a result code
 0x00617970,Class703750_Create,function,high,reimplemented (src/game/core/factories); Allocates and constructs the 0x703750 class object
 0x00403be0,ActionRec_Write,function,low,"reimplemented (src/game/core/actionrec); thiscall (code): the action recorder's code byte, while recording and not playing back"

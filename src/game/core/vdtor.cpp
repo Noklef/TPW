@@ -555,3 +555,74 @@ void __fastcall ListDtor703084_5f3900(u8 *o) {
     const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x00703084; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 }  // extern "C"
+
+namespace {
+
+// The member list at offset drained (see vdtor.h); a list whose count is set but whose head is none loops for ever, as the original does.
+void DrainMemberList(u8 *object, u32 offset) {
+    for (u8 *list = at<u8 *>(object, offset); at<u32>(list, 0xc) != 0; list = at<u8 *>(object, offset)) {
+        u8 *node = at<u8 *>(list, 4);
+        u8 *popped = nullptr;
+        if (node) {
+            u8 *next = at<u8 *>(node, 4);
+            at<u8 *>(list, 4) = next;
+            if (next)
+                at<u32>(next, 8) = 0;
+            else
+                at<u32>(list, 8) = 0;  // (the tail)
+            const u32 left = at<u32>(list, 0xc) - 1;
+            popped = at<u8 *>(node, 0);
+            at<u32>(list, 0xc) = left;
+            GameHeap_Free(node);
+        }
+        if (popped)
+            vcall<u32>(popped, 0, 1u);
+    }
+    u8 *list = at<u8 *>(object, offset);
+    if (list)
+        vcall<u32>(list, 0, 1u);
+    at<u32>(object, offset) = 0;
+}
+
+}  // namespace
+
+extern "C" {
+
+void __fastcall Class702af0_Dtor(u8 *object) {
+    at<u32>(object, 0) = 0x00702af0;
+    vcall<u32>(global<u8 *>(0x00f83784), 0x1c, object);
+    DrainMemberList(object, 0x58);
+    String_Dtor(reinterpret_cast<String *>(object + 0x24));
+    String_Dtor(reinterpret_cast<String *>(object + 0x10));
+}
+
+u8 *__fastcall Class702af0_DeletingDtor(u8 *object, void *, u32 flags) {
+    Class702af0_Dtor(object);
+    return Finish(object, flags);
+}
+
+void __fastcall Class702bc8_Dtor(u8 *object) {
+    at<u32>(object, 0) = 0x00702bc8;
+    DrainMemberList(object, 8);
+    DrainMemberList(object, 0x6c);
+    Class702d48_Release(object);
+}
+
+u8 *__fastcall Class702bc8_DeletingDtor(u8 *object, void *, u32 flags) {
+    Class702bc8_Dtor(object);
+    return Finish(object, flags);
+}
+
+void __fastcall Class702ca8_Dtor(u8 *object) {
+    at<u32>(object, 0) = 0x00702ca8;
+    vcall<u32>(at<u8 *>(object, 0xc), 0x34, object);
+    WString_Dtor(reinterpret_cast<WString *>(object + 0x48));
+    String_Dtor(reinterpret_cast<String *>(object + 0x28));
+}
+
+u8 *__fastcall Class702ca8_DeletingDtor(u8 *object, void *, u32 flags) {
+    Class702ca8_Dtor(object);
+    return Finish(object, flags);
+}
+
+}  // extern "C"

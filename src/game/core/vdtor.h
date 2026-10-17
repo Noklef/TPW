@@ -187,4 +187,18 @@ void __fastcall ListDtor702f10_5e40a0(u8 *o);
 
 // 0x5f3900: a linked list destructor: sets the vtable pointer 0x703084 and frees every node.
 void __fastcall ListDtor703084_5f3900(u8 *o);
+
+// Three front-end destructors that drain member lists (count +0xc, head +4, tail +8; nodes {item, next, prev}): front first, each node freed and its item
+// (when there is one) deleted through its slot 0 with flags 1, then the list deleted the same way and the member cleared. Each has a scalar deleting
+// destructor (flags, pops 4: bit 0 also frees the object; returns it).
+// 0x5d9f50 / 0x5d9ed0: vtable pointer 0x702af0; the object [0xf83784] points to is told (slot 0x1c); the list at +0x58; the strings at +0x24 and +0x10
+// destroyed.
+void __fastcall Class702af0_Dtor(u8 *object);
+u8 *__fastcall Class702af0_DeletingDtor(u8 *object, void *, u32 flags);
+// 0x5dc740 / 0x5dc660: vtable pointer 0x702bc8; the lists at +8 and +0x6c; then the 0x702d48 base's release (Class702d48_Release).
+void __fastcall Class702bc8_Dtor(u8 *object);
+u8 *__fastcall Class702bc8_DeletingDtor(u8 *object, void *, u32 flags);
+// 0x5dfc30 / 0x5dfc10: vtable pointer 0x702ca8; the member at +0xc is told (slot 0x34); the WString at +0x48 and the String at +0x28 destroyed.
+void __fastcall Class702ca8_Dtor(u8 *object);
+u8 *__fastcall Class702ca8_DeletingDtor(u8 *object, void *, u32 flags);
 }  // extern "C"
