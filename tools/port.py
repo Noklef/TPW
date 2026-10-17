@@ -16,8 +16,10 @@ Prints one line per stage; exits 1 if anything failed or a mutant survived.
 """
 import importlib.util
 import os
+import re
 import subprocess
 import sys
+import time
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 AUTHOR = ['-c', 'user.name=Noklef', '-c', 'user.email=281545466+Noklef@users.noreply.github.com']
@@ -50,6 +52,7 @@ def main():
     spec = a[0]
     bench = a[a.index('--bench') + 1:]
 
+    started = time.time()
     p = subprocess.run([sys.executable, '-I', os.path.join(ROOT, 'tools', 'integrate.py')] + a,
                        capture_output=True, text=True, stdin=subprocess.DEVNULL, cwd=ROOT)
     out = (p.stdout + p.stderr).strip()
@@ -57,7 +60,12 @@ def main():
         print(out[-2500:])
         sys.exit('port: integrate FAILED')
     keep = [l for l in out.splitlines() if l.startswith(('tests:', 'retcheck:')) or 'differ' in l or 'hook rows' in l]
-    print(' | '.join(keep))
+    print(' | '.join(keep) + ' | %d s' % (time.time() - started))
+    # A bench whose cases mostly fault in the original too tests little: say so (the commit still goes ahead, the decision is the porter's).
+    for l in keep:
+        m = re.match(r'(\d+) cases.*\((\d+) crash in both\)', l)
+        if m and int(m.group(2)) * 10 > int(m.group(1)):
+            print('WARNING: %s of %s cases crash in both: the bench barely exercises the port' % (m.group(2), m.group(1)))
 
     if msg:
         units = set()
