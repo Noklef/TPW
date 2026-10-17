@@ -276,7 +276,7 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
 }
 
 void map_com_recorders(u8 *page) {  // the COM-style ones (this on the stack, ECX undefined): this is logged as 0 and k as k | 0x100
-    for (u32 n = 0; n < 8; ++n) {
+    for (u32 n = 0; n < 12; ++n) {  // (up to 11 stack arguments: to + 0xb000)
         for (u32 k = 0; k < 64; ++k) {
             u8 *at = page + 0x5000 + 0x800 * n + 0x20 * k;
             const u8 head[] = {0x89, 0xe0, 0x50, 0x6a, 0x00, 0x6a, (u8)n, 0x68, (u8)k, 0x01, 0x00, 0x00, 0xe8};  // mov eax,esp; push eax; push 0; push n; push k|0x100; call rel32
@@ -389,7 +389,8 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x00703100, 9},   // StreamBase_vtable
                                    {0x00703838, 12},  // RefObject_vtable
                                    {0x00703f78, 12},  // BufferedSource_vtable
-                                   {0x00703868, 12}}; // MemorySource_vtable
+                                   {0x00703868, 12},  // MemorySource_vtable
+                                   {0x00703160, 3}};  // CallbackStream_vtable
 
 void __cdecl debug_printf(const char *, ...) {}  // Debug_Printf 0x5da3c0 (RefObject's teardown slot among others)
 
@@ -527,6 +528,12 @@ int main(int argc, char **argv) {
     // replacement, as the hooked game resolves it; the CPU information constructor (CPUID, the host's) is stub_mark, as tools/fncmp.py's emulator has it.
     static DrivesEnv drives = *Drives_GetEnv();
     drives.cpuCtor = reinterpret_cast<void(__fastcall *)(SystemInfo *)>(&stub_mark);
+    drives.stringCtor = reinterpret_cast<String *(__fastcall *)(String *, void *, const char *)>(hooked(0x005f60b0));
+    drives.stringCopy = reinterpret_cast<String *(__fastcall *)(String *, void *, const StringView *)>(hooked(0x005f6040));
+    drives.stringDtor = reinterpret_cast<void(__fastcall *)(String *)>(hooked(0x005f61e0));
+    drives.alloc = &heap_alloc;
+    drives.nodeCtor = reinterpret_cast<StringListNode *(__fastcall *)(StringListNode *, void *, String)>(hooked(0x005f8a50));
+    drives.stricmp = reinterpret_cast<s32(__cdecl *)(const char *, const char *)>(hooked(0x0067df40));
     Drives_SetEnv(&drives);
     static CanvasEnv canvas = *Canvas_GetEnv();
     canvas.infoCtor = reinterpret_cast<SurfaceInfo *(__fastcall *)(SurfaceInfo *)>(hooked(0x005fa680));

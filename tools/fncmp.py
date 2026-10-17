@@ -521,7 +521,7 @@ class Bench:
                                0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove,
                                0x6918f0: _throw('_Xlen'), 0x691ba0: _throw('_Xran')})
         self.emu.hooks.update({recorder(k, n): _recorder(k, n) for k in range(32) for n in range(16)})  # (n up to 15 fits below the COM recorders at +0x4000)
-        self.emu.hooks.update({recorder(k, n, True): _recorder(k, n, True) for k in range(64) for n in range(8)})
+        self.emu.hooks.update({recorder(k, n, True): _recorder(k, n, True) for k in range(64) for n in range(12)})
         self.emu.hooks.update(hooks or {})
         self.extra = {0x7b095c: sine_table(sines)} if sines else {}
         self.driver = DRIVER
