@@ -597,4 +597,12 @@ u8 __fastcall Object_AddKeyed(u8 *object, void *, u32 key, s32 amount) {
 }
 
 u32 __fastcall StdTreeB_KeyLess(const u16 *key, void *, const u16 *other) { return *key < *other ? 1 : 0; }
+
+u8 *__fastcall StdMapA_Ctor(u8 *map, void *, const u8 *comp, const u8 *alloc) {
+    map[0] = *alloc;
+    map[1] = *comp;
+    map[8] = 0;
+    StdTree_CtorA(map);
+    return map;
+}
 }  // extern "C"
