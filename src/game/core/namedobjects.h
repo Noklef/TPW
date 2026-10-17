@@ -26,4 +26,12 @@ void __fastcall NamedObjects_Dtor(u8 *self);
 
 // 0x407b80 (cdecl, at exit; name unconfirmed): NamedObjects_Dtor of the global 0x786b68.
 void __cdecl NamedObjects_StaticDtor();
+
+// 0x409620 (thiscall; name, a String; pops 4; name unconfirmed): a new String (Mem_Alloc 0x14, String_Ctor; none when the allocation
+// fails) assigned the name (the String vtable's +0x18) goes into the owned list (+0x24), sorted case blind: in an empty one (count 0) as
+// its head; nowhere if the list already holds that String (the new one left allocated); else before the first whose name the new one
+// is not after (Names_FirstAfter): at the head through List_PushHead, in the middle linked before it, or at the tail when there is none.
+// sic: the head's object is read before the head is tested, so a count with no head faults.
+struct String;
+void __fastcall NamedObjects_AddName(u8 *self, void *, const String *name);
 }
