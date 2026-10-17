@@ -40,4 +40,8 @@ void __cdecl Holder_Destroy(u8 *holder);
 // 0x5d8820 (thiscall on a user of the holder of the object behind [0x79fcb4]): when the dword at +4 is set, the target's holder (its +8) is taken out of the renderer, by its rectangle
 // (Obj_RemoveFromRect with the words at +0xc0 and +0xc4) when bit 0x4000 of the target's flags (+4) is set and else by Holder_Sleep; then the dword at +4 is cleared.
 void __fastcall HolderUser_Release(u8 *user);
+
+// 0x45bcb0 (cdecl; holder, from, to): the part at +0x1c (null, or adjusted by the virtual base offset in the word at +4 of its vtable) is added to the renderer's grid
+// ([0x87a6d0]; Grid_AddObject) over the rectangle whose corners are the high and low words of from and to, with the word 0x70; the holder's flag 1 is set.
+void __cdecl Holder_AddToGrid(u8 *holder, u32 from, u32 to);
 }

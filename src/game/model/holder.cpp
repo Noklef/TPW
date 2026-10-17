@@ -92,4 +92,12 @@ void __fastcall HolderUser_Release(u8 *user) {
         Holder_Sleep(at<u8 *>(target, 8));
     at<u32>(user, 4) = 0;
 }
+
+void __cdecl Holder_AddToGrid(u8 *holder, u32 from, u32 to) {
+    u8 *part = nullptr;
+    if (u8 *const sub = at<u8 *>(holder, 0x1c))
+        part = sub + at<s32>(at<u8 *>(sub, 0), 4);
+    Grid_AddObject(global<u8 *>(0x0087a6d0), nullptr, (s32)(from >> 16), (s32)(from & 0xffff), (s32)(to >> 16), (s32)(to & 0xffff), part, 0x70);
+    at<u32>(holder, 0) = at<u32>(holder, 0) | 1;
+}
 }
