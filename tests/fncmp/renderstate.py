@@ -1,15 +1,15 @@
 # The render state setters (src/game/render/state: 0x4080e0, 0x5836b0, 0x5d9680-0x5d96c0) against the
-# originals: flags words in any state, fog settings of any bits.
+# originals: flags words in any state, fog settings of any bits; and 0x583720's call through the object at 0x8bd52c (a recorder vtable, any result).
 # usage: renderstate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Touch,FogOn,...)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, put  # noqa: E402
+from fncmp import LOG, Bench, Call, RAM, log_region, put, set_return, vtable  # noqa: E402
 
-B = Bench([(0x44dd50, 0x44de16), (0x423b50, 0x423b58), (0x4080e0, 0x4081e0), (0x52fb10, 0x52fb20), (0x52fb30, 0x52fb40), (0x52fb50, 0x52fb60), (0x52fb70, 0x52fb80), (0x5836b0, 0x5836c2), (0x5d9680, 0x5d96c4), (0x5d96c0, 0x5d974f)])
-CALLS = ['Touch', 'FogOn', 'FogOff', 'SetFog', 'FadeFog', 'Apply', 'Options']
+B = Bench([(0x44dd50, 0x44de16), (0x423b50, 0x423b58), (0x4080e0, 0x4081e0), (0x52fb10, 0x52fb20), (0x52fb30, 0x52fb40), (0x52fb50, 0x52fb60), (0x52fb70, 0x52fb80), (0x5836b0, 0x5836c2), (0x583720, 0x58372a), (0x5d9680, 0x5d96c4), (0x5d96c0, 0x5d974f)])
+CALLS = ['Device0', 'Touch', 'FogOn', 'FogOff', 'SetFog', 'FadeFog', 'Apply', 'Options']
 
 
 def case(r):
@@ -41,6 +41,12 @@ def case(r):
                         0x78d8d0: bytes(8) + struct.pack('<I', r.choice([1, 1, 0, 2])) + bytes(4), 0x8c2780: r.bytes(0x410)})
         regions[RAM] = fade
         return Call(0x5d96c0, [RAM], regions, conv='t', ret='a')
+    if op == 'Device0':
+        log = log_region()
+        set_return(log, 0, r.getrandbits(32))
+        regions = {0x8bd520: put(bytearray(r.bytes(0x10)), 0xc, 'I', RAM + 0x100), RAM + 0x100: struct.pack('<I', RAM + 0x200) + r.bytes(0xc),
+                   RAM + 0x200: vtable({}), LOG: log}
+        return Call(0x583720, [], regions, ret='a')
     if op == 'Touch':
         return Call(0x5836b0, [RAM], regions, conv='t')
     if op == 'SetFog':
