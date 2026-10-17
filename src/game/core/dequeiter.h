@@ -28,4 +28,9 @@ u32 *__fastcall DequeIter_Prev(u32 *it);
 // +0x38-+0x40 = 0 and the bytes +0x24 and +0x34 = an uninitialised local, which is the top byte of
 // the object's own address (sic). Returns the object.
 u8 *__fastcall Class703c14_Ctor(u8 *object);
+
+// 0x47f340 (thiscall; name unconfirmed): empties a deque of 8-byte elements in blocks of 0x1000 bytes (the begin iterator at +4 {first, end, cursor, map slot}, the end iterator at +0x14, the
+// map at +0x24, the count at +0x2c): while the count is not 0 the cursor (+0xc) moves on by 8 and the count falls; at the end of a block, or the last element, the block (the map slot's, which moves
+// on) is freed and, with the count at 0, both iterators are cleared and the map freed, else the begin iterator is set to the next block.
+void __fastcall Deque8_Clear(u8 *deque);
 }

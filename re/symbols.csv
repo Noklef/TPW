@@ -2304,6 +2304,7 @@ address,name,kind,confidence,notes
 0x00632290,DequeIter_Diff,function,high,reimplemented (src/game/core/dequeiter); this - other in dwords through the blocks
 0x00632310,DequeIter_Prev,function,high,"reimplemented (src/game/core/dequeiter); one back, into the previous block from a block's start"
 0x00632380,Class703c14_Ctor,function,high,reimplemented (src/game/core/dequeiter); vtable 0x703c14 and its fields (two bytes of the address's top byte)
+0x0047f340,Deque8_Clear,function,high,reimplemented (src/game/core/dequeiter); Empties a deque of 8-byte elements and frees its blocks (name unconfirmed)
 0x00423720,Obj_Get24,function,high,reimplemented (src/game/core/accessors); the dword at +0x24
 0x00423730,Obj_Get2c,function,high,reimplemented (src/game/core/accessors); the dword at +0x2c
 0x004030c0,Obj_Get30,function,high,reimplemented (src/game/core/accessors); the dword at +0x30

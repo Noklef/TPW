@@ -1,5 +1,5 @@
 # The deque-of-dwords iterator (src/game/core/dequeiter: 0x632200, 0x632230, 0x632290, 0x632310)
-# and the object constructor 0x632380 against the originals: five blocks of 0x1000 bytes behind a
+# and the object constructor 0x632380 (and the deque of 8-byte elements emptied by 0x47f340) against the originals: five blocks of 0x1000 bytes behind a
 # map, iterators anywhere in them, steps that stay inside, cross one block or several, either way.
 # usage: dequeiter.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
@@ -7,10 +7,10 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM  # noqa: E402
+from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
-B = Bench([(0x632200, 0x632222), (0x632230, 0x632290), (0x632290, 0x6322dc), (0x632310, 0x632343), (0x632380, 0x6323bd)])
-CALLS = ['Set', 'Plus', 'Diff', 'Prev', 'Ctor']
+B = Bench([(0x632200, 0x632222), (0x632230, 0x632290), (0x632290, 0x6322dc), (0x632310, 0x632343), (0x632380, 0x6323bd), (0x47f340, 0x47f420), (0x67acb0, 0x67acb1)])
+CALLS = ['Set', 'Plus', 'Diff', 'Prev', 'Ctor', 'Clear']
 IT, IT2, OUT, MAP, BLOCKS = RAM, RAM + 0x20, RAM + 0x40, RAM + 0x100, RAM + 0x2000
 
 
@@ -25,6 +25,15 @@ def case(r):
     regions = {RAM: bytearray(r.bytes(0x90)), MAP: struct.pack('<5I', *[BLOCKS + 0x1000 * i for i in range(5)]),
                BLOCKS: r.bytes(0x5000), OUT: r.bytes(0x10)}
     regions[RAM][0:16] = iterator(kb, off)
+    if op == 'Clear':   # +4 the begin iterator, +0x14 the end one, +0x24 the map, +0x2c the count
+        first = BLOCKS + 0x1000 * kb
+        cursor = first + 0x1000 - 8 * r.choice([1, 2, 3, 5, 600, 513])
+        obj = bytearray(r.bytes(0x40))
+        put(obj, 4, 'IIII', first, first + 0x1000, cursor, MAP + 4 * kb)
+        put(obj, 0x2c, 'I', r.choice([0, 1, 2, 3, 4, 6, 8, 600]))
+        regions[RAM] = obj
+        regions[HEAP] = heap()
+        return Call(0x47f340, [RAM], regions, conv='t', ret='v')
     if op == 'Set':
         return Call(0x632200, [IT, BLOCKS + 0x1000 * kb + 4 * off, MAP + 4 * r.randrange(5)], regions, conv='t', ret='a')
     if op == 'Plus':

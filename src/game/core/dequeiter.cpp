@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <initializer_list>
+#include "gameheap.h"
 
 namespace {
 
@@ -64,5 +65,32 @@ u8 *__fastcall Class703c14_Ctor(u8 *object) {
     at<u8>(object, 0x34) = top;
     at<u32>(object, 0) = 0x00703c14;
     return object;
+}
+
+void __fastcall Deque8_Clear(u8 *deque) {
+    while (at<u32>(deque, 0x2c)) {
+        const u32 cursor = at<u32>(deque, 0xc) + 8;
+        const u32 count = at<u32>(deque, 0x2c) - 1;
+        at<u32>(deque, 0xc) = cursor;
+        at<u32>(deque, 0x2c) = count;
+        if (count != 0 && cursor != at<u32>(deque, 8))
+            continue;
+        // The block just finished is freed and the map moves on.
+        u32 *const slot = at<u32 *>(deque, 0x10);
+        at<u32 *>(deque, 0x10) = slot + 1;
+        GameHeap_Free(reinterpret_cast<void *>(*slot));
+        if (at<u32>(deque, 0x2c) == 0) {
+            for (u32 offset = 0x4; offset <= 0x10; offset += 4)
+                at<u32>(deque, offset) = 0;
+            for (u32 offset = 0x14; offset <= 0x20; offset += 4)
+                at<u32>(deque, offset) = 0;
+            GameHeap_Free(at<void *>(deque, 0x24));
+        } else {
+            const u32 first = *at<u32 *>(deque, 0x10);
+            at<u32>(deque, 0x4) = first;
+            at<u32>(deque, 0x8) = first + 0x1000;
+            at<u32>(deque, 0xc) = first;
+        }
+    }
 }
 }
