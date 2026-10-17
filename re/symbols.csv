@@ -3844,6 +3844,8 @@ address,name,kind,confidence,notes
 0x0053aac0,Map_ApplyLine,function,low,"reimplemented (src/game/world/mapline); cdecl (arg, x, y, &xEnd, &yEnd): the cell operation 0x5370e0 on every second map cell from (x, y) along the longer axis to the end (pulled in to an even distance); 0 when one answers 0"
 0x00531040,CellRun_Mark,function,low,"reimplemented (src/game/world/cellrun); cdecl (set): flag 0x20 set or cleared on a run of type 0x19 map cells from the cell at 0x7639f0, two cells a step, turning at corners"
 0x00530e80,CellRun_Corners,function,low,"reimplemented (src/game/world/cellrun); cdecl: the run of CellRun_Mark listing its start, each corner it turns at and its end in the point list at 0x81b740 (count 0x820a8c, at most 0x401), the end also at 0x81ede4"
+0x00530830,TrackRun_TraceA,function,low,"reimplemented (src/game/world/cellrun); cdecl (thing): from the thing's cell stepped by Position_StepA, a run over track cells (0xb / 0x10) two a step, setting their overlap counters and listing corners in the point list at 0x81b740, to an end of the same +0x10 or a dead end"
+0x00530b70,TrackRun_TraceB,function,low,"reimplemented (src/game/world/cellrun); cdecl (thing): TraceA's run from the cell stepped by Position_StepB, not moving onto the end, the cell at 0x7639e0 reset to overlap 0, stopping at once on a start of no track type"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved

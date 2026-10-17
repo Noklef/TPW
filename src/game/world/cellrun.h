@@ -9,6 +9,16 @@
 // The same run (0x530e80) can list its corners instead: the point list at 0x81b740 ((x, y) pairs of dwords, the count at 0x820a8c, at most 0x401
 // points: one is added only while the count is at most 0x400) starts with the start cell; each turn adds the cell it turns at, the end adds the
 // cell the run stops at, which also goes to 0x81ede4 / 0x81ede8.
+//
+// A track run from a thing (0x530830 TraceA, 0x530b70 TraceB; names unconfirmed): the thing's cell (+5 column, +7 row, as a cell id: the column's
+// low 7 bits, the row plus its top bit) stepped by its direction (+0x10) with Position_StepA (A) or Position_StepB (B), whose code is the run's
+// direction (and 0x818c50). The point list is cleared and gets the start when it is a track cell (MapCell_IsTypeBOr10). Then on each cell, two
+// cells a step: a track cell at a corner turns (as above), is listed and gets the overlap counter 1 (MapCell_SetOverlap); else 1 at a junction, 0
+// otherwise; B then sets it to 0 on the cell whose id is the one at 0x7639e0 / 0x7639e4 (when that is in the map, else id 0). A track cell not at a
+// corner whose neighbour bits lack the direction stops the run; so does a next cell (two on, Map_StepCell28InDirection) that is an end
+// (MapCell_IsTypeDOr12ViaParent) of the same +0x10 word with the reverse side among its neighbour bits, A moving on to it first. The run moves on
+// (as above) unless stopped; other cells only move. B stops after the first cell when the start is not of type 0xb, 0xd, 0x10, 0x12 or 0x19. The
+// end is listed and goes to 0x81ede4 / 0x81ede8.
 #pragma once
 
 #include "../../../re/types.h"
@@ -18,4 +28,7 @@ extern "C" {
 void __cdecl CellRun_Mark(u32 set);
 // 0x530e80 (cdecl).
 void __cdecl CellRun_Corners();
+// 0x530830 / 0x530b70 (cdecl; thing).
+void __cdecl TrackRun_TraceA(const u8 *thing);
+void __cdecl TrackRun_TraceB(const u8 *thing);
 }
