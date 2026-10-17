@@ -32,8 +32,11 @@ def run_double(r):
 
 
 def rate_double(r):
-    if r.wild and r.random() < 0.3:
-        return r.bytes(8)
+    if r.wild and r.random() < 0.3:   # (any sign and significand, the infinities and NaNs, exponents up to 2^990: x87emu's double registers overflow on a
+        b = bytearray(r.bytes(8))     # product past the double range, which the game's FPU keeps (and stores as the infinity all the same))
+        if 990 + 1023 < (b[7] & 0x7f) << 4 | b[6] >> 4 < 0x7ff:
+            b[7] = b[7] & 0x80 | 0x7d
+        return bytes(b)
     return struct.pack('<d', r.choice([1.0, 1.0, 0.5, 2.0, 0.0, 0.1, -1.0, r.uniform(0, 4), r.uniform(-1e3, 1e3)]))
 
 

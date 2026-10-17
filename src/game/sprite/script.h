@@ -136,7 +136,7 @@ u32 SpriteScript_RunWith(void(__cdecl *op)(u32 address), u8 *script);
 struct SpriteScriptEnv {
     void *(__cdecl *alloc)(u32 size);  // 0x5f5660
     void(__cdecl *free)(void *block);  // 0x5f5680
-    s32(__cdecl *now)();               // GameClock_Now (0x402d70) on the game clock (0x785970)
+    s32(__cdecl *now)();               // Clocks_Now (0x402d70) on the game clock (0x785970)
     u32(__cdecl *run)(u8 *script);     // SpriteScript_Run (0x475010)
     void(__cdecl *drawBegin)();        // 0x540ab0
     void(__cdecl *draw)(u8 *script);   // 0x542010
