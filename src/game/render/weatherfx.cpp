@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "../gfx/texture.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -21,4 +23,16 @@ void __fastcall WeatherFx_SetFallSpeed(u8 *fx, void *, u32 speed) {
 }
 
 void __fastcall WeatherFx_RequestReload(u8 *fx) { at<u32>(fx, 4) = 1; }
+
+u32 __fastcall WeatherFx_FreeTextures(u8 *fx) {
+    for (u32 offset = 0x3348; offset <= 0x3350; offset += 4) {
+        if (!at<u8 *>(fx, offset))
+            continue;
+        Texture_Release(at<u8 *>(fx, offset));
+        if (u8 *const array = at<u8 *>(fx, offset))
+            Texture_DestroyArray(array);
+        at<u32>(fx, offset) = 0;
+    }
+    return 1;
+}
 }

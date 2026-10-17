@@ -3572,6 +3572,7 @@ const Hook kHooks[] = {
     {"WeatherFx_SetDropCount",    0x0057d910, (void *)&WeatherFx_SetDropCount, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"WeatherFx_SetFallSpeed",    0x0057dc40, (void *)&WeatherFx_SetFallSpeed, {0x8b, 0x01, 0xa8, 0x01, 0x74}},
     {"WeatherFx_RequestReload",   0x0057dc70, (void *)&WeatherFx_RequestReload, {0xc7, 0x41, 0x04, 0x01, 0x00}},
+    {"WeatherFx_FreeTextures",    0x0057d720, (void *)&WeatherFx_FreeTextures, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
     {"Renderer_SetRestoreCallback", 0x00576260, (void *)&Renderer_SetRestoreCallback, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Renderer_SetStateFlags",    0x005763f0, (void *)&Renderer_SetStateFlags, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Renderer_StateFlags",       0x00576400, (void *)&Renderer_StateFlags, {0x8b, 0x41, 0x48, 0xc3, 0x90}},

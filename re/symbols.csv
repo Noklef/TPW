@@ -4112,6 +4112,7 @@ address,name,kind,confidence,notes
 0x0057d910,WeatherFx_SetDropCount,function,high,"reimplemented (src/game/render/weatherfx); thiscall (the weather renderer, [0x8bcbac]; count): +0x3318 = how many drops fall"
 0x0057dc40,WeatherFx_SetFallSpeed,function,high,"reimplemented (src/game/render/weatherfx); thiscall (speed): the fall speed of each kind showing (+0x3338 when bit 1 of +0, +0x333c when bit 2)"
 0x0057dc70,WeatherFx_RequestReload,function,high,"reimplemented (src/game/render/weatherfx); thiscall: +4 = 1, the textures to be reloaded (0x57d850 clears it)"
+0x0057d720,WeatherFx_FreeTextures,function,low,"reimplemented (src/game/render/weatherfx); thiscall: the three texture arrays at +0x3348..+0x3350 released, destroyed and cleared; returns 1 (name unconfirmed)"
 0x00576260,Renderer_SetRestoreCallback,function,high,"reimplemented (src/game/render/renderer); thiscall (the renderer, [0x87a6d0]; fn): +0x78 = fn, called when the display device generation moves on (0x576c26)"
 0x005763f0,Renderer_SetStateFlags,function,high,"reimplemented (src/game/render/renderer); thiscall (flags): +0x48, the render state flags (0x1f31 by default)"
 0x00576400,Renderer_StateFlags,function,high,"reimplemented (src/game/render/renderer); thiscall: +0x48, the render state flags"
