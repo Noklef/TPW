@@ -481,4 +481,26 @@ u32 *__cdecl MapGrid_ClassifyTypes(const u8 *object) {
     }
     return table;
 }
+
+u8 *__cdecl Cell_FindRideableObject(s32 x, s32 y) {
+    u8 *const world = global<u8 *>(global<u32>(0x007cf6ec));
+    const u32 id = (u32)(((y << 7) + x + 1) & 0xffff);
+    const u8 *const cell = world + 0x294 + id * 0x44;
+    if (!MapCell_IsType9(cell))
+        return nullptr;
+    const u8 *const parent = world + 0x294 + (u32)at<u16>(cell, 0x10) * 0x44;
+    if (!parent)
+        return nullptr;
+    u16 handle = at<u16>(parent, 0x24);
+    if (handle == 0)
+        return nullptr;
+    for (;;) {  // (the debug assert on the thing table is left out)
+        u8 *const thing = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
+        if (thing[2] == 3 && at<u32>(Object_GetDef(thing), 0x118) == 0)
+            return thing;
+        handle = at<u16>(thing, 0xa);
+        if (handle == 0)
+            return nullptr;
+    }
+}
 }

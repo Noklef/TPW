@@ -217,4 +217,8 @@ u8 *__cdecl MapGrid_MarkEdges(const u8 *grid);
 // 0x52c5b0 (cdecl; the object whose grid is the pointer at +0x18): the dword table at 0x818800 (16 x 16, +y + 16 * x) is cleared, the width and height kept at 0x818c00 / 0x818c04, and the
 // cells get 4 for type 1, 1 for type 4 or 0x17, 2 for type 9 and 3 for type 0xa. Returns the table.
 u32 *__cdecl MapGrid_ClassifyTypes(const u8 *object);
+
+// 0x42a340 (cdecl; x, y): the cell at (x, y) of the world behind the pointer at [0x7cf6ec] must be of type 9 (MapCell_IsType9); its parent cell (the word at +0x10 indexes the cells)
+// has a child chain (the first handle at +0x24, each thing's next at +0xa) and the first thing of model 3 whose object definition has the dword at +0x118 clear is returned; 0 for none.
+u8 *__cdecl Cell_FindRideableObject(s32 x, s32 y);
 }
