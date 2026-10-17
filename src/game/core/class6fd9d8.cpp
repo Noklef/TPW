@@ -394,4 +394,19 @@ u32 __fastcall Class6fdaa4_OpenLanguageTxt(u8 *object, void *, u32 stream) {
     String_Dtor(&language);
     return opened;
 }
+
+void __fastcall Class6fdaa4_TrimName(u8 *, void *, String *s) {
+    const char *const underscore = reinterpret_cast<const char *>((uintptr_t)0x0074c77c);
+    const s32 first = String_Find(s, nullptr, underscore, 0);
+    const s32 last = String_ReverseFind(s, nullptr, underscore, 0xffffffffu);
+    if (first == last)
+        return;
+    if (String_Find(s, nullptr, underscore, static_cast<u32>(first + 1)) != last)
+        return;
+    StringView view;
+    String_Assign(s, nullptr, String_Left(s, nullptr, &view, static_cast<u32>(last)));
+    if (String_EqualsStr(reinterpret_cast<const String *>(String_Left(s, nullptr, &view, 1)), nullptr,
+                         reinterpret_cast<const char *>((uintptr_t)0x0074c778)))
+        String_Assign(s, nullptr, String_Right(s, nullptr, &view, s->length - 1));
+}
 }  // extern "C"

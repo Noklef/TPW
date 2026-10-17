@@ -1,6 +1,6 @@
 // The class with the vtable 0x6fd9d8 (it owns a list of objects and one more object) and its derived classes: reimplementation of its destructor 0x41c8b0, of the derived destructors
 // 0x41e2c0 .. 0x41e5c0 (some run the base destructor alone, some also destroy handles of their own), and of their scalar deleting destructors 0x41d880 .. 0x41e250; its folder / WAD handles added to the list (0x41c9e0, 0x41cb10, 0x41cc40) and its Find (0x41d710);
-// the 0x6fda98 destructors (0x41e3a0, 0x41dc40); the 0x6fdaa4 class's .sam / .txt opens (0x41e5d0-0x41e720, 0x41f0d0-0x41f350). Named by its vtable until the class is known.
+// the 0x6fda98 destructors (0x41e3a0, 0x41dc40); the 0x6fdaa4 class's .sam / .txt opens (0x41e5d0-0x41e720, 0x41f0d0-0x41f350) and its name trim (0x41eb90). Named by its vtable until the class is known.
 #pragma once
 
 #include "../../../re/types.h"
@@ -102,4 +102,9 @@ u32 __fastcall Class6fdaa4_OpenEasySam(u8 *object, void *, u32 stream);
 u32 __fastcall Class6fdaa4_OpenOnlineSam(u8 *object, void *, u32 stream);
 // 0x41f350 (thiscall; stream, pops 4): the language buffer's text (Language_Buffer of 0x78b530) assigned to an empty string + ".txt", opened through the handle at +0x2c.
 u32 __fastcall Class6fdaa4_OpenLanguageTxt(u8 *object, void *, u32 stream);
+
+// 0x41eb90 (thiscall, the object unused; s, pops 4): when s has exactly two "_" (0x74c77c; the first found (String_Find from 0) is not the last
+// (String_ReverseFind from -1) and the next after it is the last), s = its chars before the last (String_Left, the vtable's +0x1c Assign); then when
+// its first char is "p" (0x74c778, String_EqualsStr) it is dropped (String_Right of length - 1). Otherwise s is left as it is.
+void __fastcall Class6fdaa4_TrimName(u8 *object, void *, String *s);
 }  // extern "C"

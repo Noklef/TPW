@@ -2,7 +2,7 @@
 # from the object's name (+4), a given String or the language buffer, with the prefixes / suffixes of the game's global strings ("Easy_", "Online_", "coaster", ".sam",
 # ".txt"), and opened through an object's slot 3 (the handle at +0x2c, or one given): a recorder that logs the name's text (the result pointer, a stack address, as 0),
 # writes a result (0, 1 or negative) through its first argument and returns that argument. The strings are of the small alphabet of gamestring.py; the heap region gives
-# their blocks.
+# their blocks. TrimName (0x41eb90) cuts a name with exactly two underscores at the last and drops a leading "p".
 # usage: class6fdaa4.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
@@ -17,8 +17,9 @@ from fncmp import Bench, Call, HEAP, LOG, RAM, echo, fill, heap, log_region, put
 # name: (address, convention, arguments: o the object, b its name (+4) as a base, h an opener object, n a name String, s the stream argument; pops)
 CALLS = {'SamAt': (0x41e5d0, 's', 'bhs'), 'Sam': (0x41e660, 't', 'ohs'), 'OnlineSamAt': (0x41e680, 's', 'bhs'), 'OnlineSam': (0x41e720, 't', 'ohs'),
          'OpenSam': (0x41f0d0, 't', 'ons'), 'OpenOwnSam': (0x41f170, 't', 'os'), 'OpenCoasterSam': (0x41f330, 't', 'os'),
-         'OpenEasySam': (0x41f190, 't', 'os'), 'OpenOnlineSam': (0x41f260, 't', 'os'), 'OpenLanguageTxt': (0x41f350, 't', 'os')}
-B = Bench([(0x41e5d0, 0x41e7c0), (0x41f0d0, 0x41f420), (0x41a820, 0x41a830), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000)])
+         'OpenEasySam': (0x41f190, 't', 'os'), 'OpenOnlineSam': (0x41f260, 't', 'os'), 'OpenLanguageTxt': (0x41f350, 't', 'os'),
+         'TrimName': (0x41eb90, 't', '')}   # (its own case: the object unused, a String)
+B = Bench([(0x41e5d0, 0x41e7c0), (0x41eb90, 0x41ec25), (0x41f0d0, 0x41f420), (0x41a820, 0x41a830), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000)])
 OBJ, OPENER, NAME, VT, TEXTS = RAM, RAM + 0x40, RAM + 0x80, RAM + 0xc0, RAM + 0x1000
 # The game's global strings (String objects in .bss), their texts: ".sam" twice (the second another text here, so that the two are told apart), "Easy_", "Online_", "coaster", ".txt".
 GLOBALS = {0x78c780: b'.sam', 0x78c738: b'.SaM2', 0x78bb98: b'Easy_', 0x78c990: b'Online_', 0x78c708: b'coaster', 0x78bec8: b'.txt'}
@@ -26,8 +27,30 @@ LANGUAGE = 0xf7f230   # Language_Buffer's (0x41a820) text
 K_OPEN = 3
 
 
+def trim_name(r):
+    """0x41eb90 (thiscall, the object unused; s): s of underscores, p / P and letters (none, one, two or more underscores), now and then
+    from the gamestring alphabet."""
+    regions = {HEAP: heap(0x2000)}
+    n = r.choice([0, 1, 2, 3, 4, 5, 7, 9, 12, 17])
+    text = bytes(r.choice(b'__pPaAb') for _ in range(n))
+    if r.random() < 0.5:   # exactly two underscores
+        text = bytes(c if c != 0x5f else 0x61 for c in text)
+        while len(text) < 2:
+            text += b'a'
+        i, j = sorted(r.sample(range(len(text) + 1), 2))
+        text = text[:i] + b'_' + text[i:j] + b'_' + text[j:]
+        if r.random() < 0.5:
+            text = r.choice([b'p', b'P']) + text
+    elif r.random() < 0.2:
+        text = gamestring.units(r, 0, n)
+    gamestring.string(r, 0, NAME, TEXTS, regions, text)
+    return Call(0x41eb90, [r.getrandbits(32), NAME], regions, conv='t', ret='v')
+
+
 def case(r):
     name = r.choice(OPS)
+    if name == 'TrimName':
+        return trim_name(r)
     address, conv, kinds = CALLS[name]
     log = log_region()
     strings(log, K_OPEN, 1 << 2, 1 << 0)   # (the name's text; the result pointer as 0)
