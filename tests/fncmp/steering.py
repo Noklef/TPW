@@ -1,9 +1,9 @@
 # The steering behaviours (src/game/world/steering) against the originals: the constructors, base destructor and exit
 # thunks (0x50ce50-0x50d140) on any bytes; seek, arrival and avoid_obstacle's steering (0x50dd80,
-# 0x50ddf0, 0x50e350), their per-neighbour / per-obstacle callbacks (0x50e190, 0x50e2b0) and the circle hit
-# (0x50cba0) on navs with 16.16 values near each other (so that every branch is taken), at times of any size; the
+# 0x50ddf0, 0x50e350), their per-neighbour / per-obstacle callbacks (0x50e190, 0x50e2b0) and the circle hits
+# (0x50cba0, 0x50cc20) on navs with 16.16 values near each other (so that every branch is taken), at times of any size; the
 # globals (0x7cf048, 0x7cf100, 0x7cf32c) over any bytes.
-# usage: steering.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,Dtor,Destroy,Seek,Arrival,Neighbour,Hit,Obstacle,Avoid)
+# usage: steering.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,Dtor,Destroy,Seek,Arrival,Neighbour,Hit,Ray,Obstacle,Avoid)
 import os
 import struct
 import sys
@@ -11,12 +11,12 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM  # noqa: E402
 
-B = Bench([(0x50ce50, 0x50d14a), (0x4d49a0, 0x4d49e0), (0x50cba0, 0x50cc30), (0x50cd80, 0x50cdc0), (0x50dd80, 0x50dfd0), (0x50e190, 0x50e4b0),
+B = Bench([(0x50ce50, 0x50d14a), (0x4d49a0, 0x4d49e0), (0x50cba0, 0x50cdc0), (0x50dd80, 0x50dfd0), (0x50e190, 0x50e4b0),
            (0x50ece0, 0x50ed20), (0x50f280, 0x50f3c0), (0x50f870, 0x50f8f0), (0x5da3c0, 0x5da3c1)])
 CTORS = [0x50ce50, 0x50ced0, 0x50cf40, 0x50cfb0, 0x50d020, 0x50d090, 0x50d100]
 DESTROYS = [0x50ce90, 0x50cf10, 0x50cf80, 0x50cff0, 0x50d060, 0x50d0d0, 0x50d140]
 GLOBALS = 0x7cf040  # the seven objects, 0x7cf050-0x7cf370, and the force, reach and nearest hit
-OPS = os.environ.get('OPS', 'Ctor,Dtor,Destroy,Seek,Arrival,Neighbour,Hit,Obstacle,Avoid').split(',')
+OPS = os.environ.get('OPS', 'Ctor,Dtor,Destroy,Seek,Arrival,Neighbour,Hit,Ray,Obstacle,Avoid').split(',')
 NAV, OTHER, OUT = RAM + 0x100, RAM + 0x20, RAM + 0x40
 
 
@@ -48,7 +48,8 @@ def case(r):
     put(mem, 0x130, r.choice([OTHER, NAV + 8, NAV + 0x10]))  # the target
     pos = struct.unpack_from('<ii', mem, 0x108)
     if r.random() < 0.8:  # the other / the target near the nav
-        put(mem, 0x20, pos[0] + near(r, 0x40000), pos[1] + near(r, 0x40000))
+        scale = r.choice([0x40000, 0x40000, 0x2000, 0x400000])  # (the length's tiers: under 0x1000, 0x400000 and beyond)
+        put(mem, 0x20, pos[0] + near(r, scale), pos[1] + near(r, scale))
     else:
         put(mem, 0x20, near(r), near(r))
     put(mem, 0x28, r.randrange(0, 0x40000) if r.random() < 0.9 else near(r))  # the other's radius
@@ -61,7 +62,15 @@ def case(r):
     if op == 'Neighbour':
         return Call(0x50e190, [NAV, OTHER], {RAM: mem, GLOBALS: glob})
     if op == 'Hit':
+        if r.random() < 0.2:  # a zero discriminant: x 0, y under 2^18, a radius whose square is 0
+            put(mem, 0x20, 0, r.randrange(0, 0x40000))
+            return Call(0x50cba0, [OTHER, r.randrange(0, 0x100)], {RAM: mem}, ret='a')
         return Call(0x50cba0, [OTHER, r.choice([r.randrange(0, 0x40000), near(r)]) & 0xffffffff], {RAM: mem}, ret='a')
+    if op == 'Ray':  # from (the other), a direction and a centre
+        scale = r.choice([0x10000, 0x40000, 0x400000])
+        put(mem, 0x30, near(r, 0x10000), near(r, 0x10000), near(r, scale), near(r, scale))
+        return Call(0x50cc20, [OTHER, RAM + 0x30, r.choice([RAM + 0x38, OTHER]), r.choice([r.randrange(0, 0x40000), r.randrange(0x100), near(r)]) & 0xffffffff],
+                    {RAM: mem}, ret='a')
     # Obstacle: the reach and the nearest hit so far
     put(glob, 0x8, r.choice([r.randrange(0, 0x100000), near(r)]))
     put(glob, 0x2ec, r.choice([0x7fffffff, r.randrange(0, 0x100000), near(r)]))

@@ -124,6 +124,19 @@ s32 __cdecl Steer_CircleHit(const s32 *local, s32 radius) {
     return (s32)((0u - (Math_ISqrt((u32)disc) + (u32)twiceX)) >> 1);
 }
 
+s32 __cdecl Steer_RayCircleHit(const s32 *from, const s32 *dir, const s32 *centre, s32 radius) {
+    s32 d[2];
+    IntPair_Sub(reinterpret_cast<const u32 *>(from), nullptr, U(d), reinterpret_cast<const u32 *>(centre));
+    const s32 a = (s32)((u32)MulFixed(dir[1], dir[1]) + (u32)MulFixed(dir[0], dir[0]));
+    const s32 b = (s32)(((u32)MulFixed(dir[0], d[0]) + (u32)MulFixed(dir[1], d[1])) << 1);
+    const s32 c = (s32)((u32)MulFixed(d[1], d[1]) + (u32)MulFixed(d[0], d[0]) - (u32)MulFixed(radius, radius));
+    const s32 disc = (s32)((u32)MulFixed(b, b) - ((u32)MulFixed(a, c) << 2));
+    if (disc <= 0) return (s32)0x80000000;
+    const u32 root = Math_ISqrt((u32)disc);
+    const s32 nearer = (s32)(0u - (root + (u32)b)), farther = (s32)(root - (u32)b);
+    return (nearer <= farther ? nearer : farther) >> 1;
+}
+
 void __cdecl SteerAvoidObstacle_Obstacle(const u8 *nav, const s32 *obstacle) {
     s32 local[2];
     Nav_WorldToLocal(nav, nullptr, local, obstacle);

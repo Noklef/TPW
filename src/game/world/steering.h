@@ -57,6 +57,11 @@ void __cdecl SteerRepel_Neighbour(const u8 *nav, const u8 *other);
 // original takes them), or 0x80000000 when disc <= 0.
 s32 __cdecl Steer_CircleHit(const s32 *local, s32 radius);
 
+// 0x50cc20 (cdecl (&from, &dir, &centre, radius)): where the ray from + t dir first meets the circle, all 16.16: with
+// d = from - centre, a = dir.dir, b = 2 dir.d, c = d.d - r*r, disc = b*b - 4 a c (16.16 products); 0x80000000 when
+// disc <= 0, else the smaller of -(sqrt(disc) + b) and sqrt(disc) - b, halved (arithmetically).
+s32 __cdecl Steer_RayCircleHit(const s32 *from, const s32 *dir, const s32 *centre, s32 radius);
+
 // 0x50e2b0 (cdecl (nav, obstacle); avoid_obstacle's per-obstacle callback; obstacle: a pair, then +8 its radius): the
 // obstacle in the nav's frame; when ahead (x > 0), within reach (x - radius <= 0x7cf048) and across the path
 // (|y| < nav radius + radius), and its hit (Steer_CircleHit) is >= 0 and nearer than 0x7cf32c: that becomes the
