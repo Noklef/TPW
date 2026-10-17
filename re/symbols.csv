@@ -152,11 +152,11 @@ address,name,kind,confidence,notes
 0x00415f50,SaveGame_WriteHeader,function,high,"u8 language, 0x500 UTF-16 legal text, 0x100 block, u32 BE magic 0x01221985, u32 has-preview"
 0x00416240,SaveGame_ReadHeader,function,high,mirror of SaveGame_WriteHeader; rejects edited legal text
 0x00749870,SaveGame_Magic,data,high,0x01221985 (written big-endian via htonl)
-0x004fae10,Save_ReadU32,function,high,"(stream, dst, name, quiet)"
-0x004d37e0,Save_ReadU16,function,high,
+0x004fae10,Save_ReadU32,function,high,"reimplemented (src/game/core/savegame); cdecl (stream, destination, name, quiet): reads a 4-byte field, announced unless quiet; 0 when it all came, else 1"
+0x004d37e0,Save_ReadU16,function,high,"reimplemented (src/game/core/savegame); cdecl (stream, destination, name, quiet): reads a 2-byte field, announced unless quiet; 0 when it all came, else 1"
 0x00424c20,Save_ReadU8,function,high,
-0x00510240,Save_Read8Bytes,function,high,"u64 times / 2D float vectors"
-0x005134d0,Save_Read12Bytes,function,high,3D float vectors
+0x00510240,Save_Read8Bytes,function,high,"reimplemented (src/game/core/savegame); cdecl (stream, destination, name, quiet): reads an 8-byte field, announced unless quiet; 0 when it all came, else 1"
+0x005134d0,Save_Read12Bytes,function,high,"reimplemented (src/game/core/savegame); cdecl (stream, destination, name, quiet): reads a 12-byte field, announced unless quiet; 0 when it all came, else 1"
 0x004ced70,Save_WriteU32,function,high,
 0x004cee50,Save_WriteU8,function,high,
 0x004ceec0,Save_WriteU16,function,high,
