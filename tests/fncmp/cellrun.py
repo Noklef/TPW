@@ -1,6 +1,6 @@
 # Runs of type 0x19 map cells (src/game/world/cellrun: Mark 0x531040, Corners 0x530e80, its point list at 0x81b740 random before) against the original:
 # a start cell (0x7639f0 / 0x7639f4) anywhere on the map, mostly
-# away from the edges, and the cells around it two apart (the only ones a run can reach; each row laid out as one region, the cells between random too) of
+# away from the edges, and the cells around it two apart (the only ones a run can reach; each row laid out as one region, the rows and cells between random too) of
 # type 0x19 mostly, with neighbour bits often one or two of the four sides, now and then random, the hoarding neighbours (0x81b4cc, a cell's +2 of 2) and
 # a cell's own id (+0) now and then off. Both world pointers (0x7cf83c, and 0x80239c that Map_StepCell28 reads) are the same; the direction pairs (0x7cdba0, set at run time) are laid out. A run that would not stop
 # (a cycle, or a direction that does not move) is skipped by a model of the walk, so a case is redrawn, as is one leaving the laid out cells (the memory past them is
@@ -85,8 +85,8 @@ def draw(r):
     hoarding = r.choice([0, 0, 1])
     p19 = r.choice([0.5, 0.8, 0.95])
     rows, cells = {}, {}
-    for j in range(-REACH, REACH + 1):
-        y = y0 + 2 * j
+    for j in range(-2 * REACH, 2 * REACH + 1):   # (the rows between too: a run that moves by 1 lands on them)
+        y = y0 + j
         lo = ident(x0 - 2 * REACH, y)
         row = bytearray(r.bytes((4 * REACH + 1) * 0x28))
         for i in range(4 * REACH + 1):
