@@ -156,7 +156,8 @@ def main():
         env = {}
         exec(open(mut[0], encoding='utf-8').read(), env)
         if 'OPS' in env:
-            os.environ['OPS'] = env['OPS']
+            ops = env['OPS']   # (a string 'A,B' or a list of names)
+            os.environ['OPS'] = ops if isinstance(ops, str) else ','.join(ops)
         suite = os.path.abspath(os.path.join(ROOT, bench[0]))
         sys.path.insert(0, os.path.dirname(suite))
         sys.argv = [os.path.basename(suite)]
