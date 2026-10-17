@@ -188,7 +188,8 @@
 #include "../game/world/collobj.h"
 #include "../game/world/dirstep.h"
 #include "../game/world/flyingrides.h"
-#include "../game/world/gamesystem.h"
+#include "../game/world/gamesystem.h"
+#include "../game/world/hoardinggrid.h"
 #include "../game/world/messagecentre.h"
 #include "../game/world/nav.h"
 #include "../game/world/mapcell.h"
@@ -3399,6 +3400,7 @@ const Hook kHooks[] = {
     {"TagTable_Find",             0x0050af40, (void *)&TagTable_Find, {0x8b, 0x54, 0x24, 0x04, 0x81}},
     {"Ride_IsBusy",               0x0042a440, (void *)&Ride_IsBusy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Ride_Sleep",                0x0043bd20, (void *)&Ride_Sleep, {0x8b, 0x44, 0x24, 0x04, 0x57}},
+    {"HoardingGrid_Fill",         0x00532960, (void *)&HoardingGrid_Fill, {0xa1, 0xb0, 0xb1, 0x81, 0x00}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
