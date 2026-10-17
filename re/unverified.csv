@@ -9,7 +9,6 @@ address,name,module,reason
 447830,Car_TravelCost,coaster/train,todo
 44a1d0,Screen_Shutdown,render/screen,todo
 44ab90,PartStates_UpdateNode,model/partstate,todo: indirect only
-45d820,StringList_Dtor,files/wadsource,todo: indirect only
 46c580,MouseModeTile_Ctor,world/mousemode,todo
 470a00,Block_BindNodes,motion/track,todo: indirect only
 4721f0,Motion_Apply,motion/track,todo
@@ -322,22 +321,6 @@ address,name,module,reason
 619e90,DirSource_MakeDir,files/dirsource,todo
 619f10,DirSource_Remove,files/dirsource,todo
 619fb0,DirSource_Rename,files/dirsource,todo
-61a060,WadSource_Ctor,files/wadsource,todo
-61a110,WadSource_DeletingDtor,files/wadsource,todo
-61a130,WadSource_Dtor,files/wadsource,todo
-61a200,WadSource_Close,files/wadsource,todo
-61a250,WadSource_Open,files/wadsource,todo
-61a550,WadSource_FindFirst,files/wadsource,todo
-61a6c0,WadSource_FillEntry,files/wadsource,todo
-61a700,WadSource_FindNext,files/wadsource,todo
-61a760,WadSource_OpenEntry,files/wadsource,todo
-61a7e0,StringList_DeletingDtor,files/wadsource,todo
-61a800,WadSource_OpenEntryStream,files/wadsource,todo
-61adb0,WadSource_Vfn7,files/wadsource,todo
-61adc0,WadSource_Vfn8,files/wadsource,todo
-61add0,WadSource_Vfn9,files/wadsource,todo
-61aeb0,StringList_Clear,files/wadsource,todo
-61af00,StringListNode_DeletingDtor,files/wadsource,todo
 61b030,Draw_Sprite,gfx/text,todo
 61b050,Draw_SpriteShape,gfx/text,todo
 61b090,PixelChannel_Set,gfx/surface,todo
