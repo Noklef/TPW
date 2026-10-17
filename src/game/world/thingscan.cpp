@@ -228,6 +228,8 @@ void __fastcall Things_UnlinkFromChain(u8 *game, void *, u32 handle) {
     at<u16>(thing, 10) = 0;
 }
 
+s32 __stdcall Things_AnyOfKindAround(u32 kind, u32 cell, s32 radius) { return Things_CountOfKindAround(kind, cell, radius, 1); }
+
 s32 __stdcall Things_CountOfKindAround(u32 kind, u32 cell, s32 radius, s32 firstOnly) {
     const u32 index = (cell & 0xffff) - 1;
     const s32 x = (s32)(index & 0x7f), y = (s32)(index >> 7);

@@ -23,6 +23,9 @@ void __stdcall Things_TopThreeValues(u8 *first, u8 *second, u8 *third);
 // the count.
 s32 __stdcall Things_CountOfKindAround(u32 kind, u32 cell, s32 radius, s32 firstOnly);
 
+// 0x4c8eb0 (stdcall; kind, cell id, radius): Things_CountOfKindAround with first only set (1 when there is one, else 0).
+s32 __stdcall Things_AnyOfKindAround(u32 kind, u32 cell, s32 radius);
+
 // 0x4d9280 (thiscall on the game object; thing handle, pops 4): takes the thing out of the doubly linked chain through its words at +8 (previous) and +0xa (next): the head
 // (the word at +0x24 of the game object) becomes its next when it has no previous, otherwise the previous's next is its next; the next's previous is its previous. Both of its
 // own links are cleared.

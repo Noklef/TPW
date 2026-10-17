@@ -12,8 +12,8 @@ sys.path.insert(0, HERE)
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 from thingenv import CELLS, POOL, THING, park  # noqa: E402
 
-CALLS = {'Top': 0x4c8430, 'Area': 0x4c8d30, 'Near': 0x4c8ed0, 'Unlink': 0x4d9280}
-B = Bench([(0x4c8430, 0x4c85a8), (0x4c8d30, 0x4c8ea0), (0x4c8ed0, 0x4c9040), (0x4d9280, 0x4d93b0), (0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x5da3c0, 0x5da3c1), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c)])
+CALLS = {'Top': 0x4c8430, 'Area': 0x4c8d30, 'Near': 0x4c8ed0, 'Unlink': 0x4d9280, 'Any': 0x4c8eb0}
+B = Bench([(0x4c8430, 0x4c85a8), (0x4c8d30, 0x4c8ea0), (0x4c8ed0, 0x4c9040), (0x4d9280, 0x4d93b0), (0x4c8eb0, 0x4c8ed0), (0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x5da3c0, 0x5da3c1), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c)])
 OUT = RAM + 0x1000
 
 
@@ -57,6 +57,7 @@ def case(r):
         regions[POOL] = pool
         regions[OUT] = r.bytes(0x10)
         return Call(CALLS[name], [OUT, OUT + 4, OUT + 8], regions, conv='s', ret='v')
+    # (Any is Area with first only set)
     # a chain per cell around the id: every thing goes in the list of some cell near it
     cell = r.choice([1, 2, 3, 0x80, 0x81, 0x82, 0xfe, 0x100, 0x101, 0x14a, r.randrange(1, 0x100)])
     radius = r.choice([0, 0, 1, 2, 3, 3])
@@ -75,7 +76,7 @@ def case(r):
             put(grid, idx * 0x44 - 0x20, 'H', 0)
     regions[POOL] = pool
     regions[CELLS] = grid
-    return Call(CALLS[name], [r.choice([1, 1, 2, 3, 0, 0xff]), cell if (((cell - 1) >> 7) + radius + 3) < 5 else cell & 0x7f or 1, radius, r.choice([0, 0, 1])], regions, conv='s', ret='a')
+    return Call(CALLS[name], [r.choice([1, 1, 2, 3, 0, 0xff]), cell if (((cell - 1) >> 7) + radius + 3) < 5 else cell & 0x7f or 1, radius] + ([] if name == 'Any' else [r.choice([0, 0, 1])]), regions, conv='s', ret='a')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
