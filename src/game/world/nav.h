@@ -1,5 +1,5 @@
 // A moving person's steering and pathing state (Nav, the sprite's +0xd4, serialized at 0x50d150):
-// reimplementation of 0x5100e0 and 0x510160 (thiscall). +4 radius, +8 pos and +0x10 vel (each an
+// reimplementation of 0x5100e0, 0x510160, its constructor 0x50ffe0 and destructor 0x50f200 (thiscall). +4 radius, +8 pos and +0x10 vel (each an
 // x, y pair, 16.16 fixed point), +0x18 max_force, +0x1c max_speed.
 #pragma once
 
@@ -16,4 +16,7 @@ void __fastcall Nav_GetPos(const u8 *nav, void *, u32 *x, u32 *y);
 // alone), and the five 8-byte elements at +0x64 constructed (IntPair_Ctor, through CRT_VectorCtorIterator). Returns the object.
 u8 *__fastcall Nav_Ctor(u8 *object);
 
+// 0x50f200 (thiscall; also reached by the jumps 0x4f7c30, with this + 0xd4, and 0x4f8ad0): the five integer pairs at +0x64 destroyed, the last first, with the
+// destructor that does nothing (CRT_VectorDtorIterator, Stub_Ret); nothing else.
+void __fastcall Nav_Dtor(u8 *object);
 }

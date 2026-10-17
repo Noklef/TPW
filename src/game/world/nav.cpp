@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/crt.h"
+#include "../core/trivial.h"
 #include "../math/intpair.h"
 
 namespace {
@@ -51,4 +52,5 @@ u8 *__fastcall Nav_Ctor(u8 *object) {
     return object;
 }
 
+void __fastcall Nav_Dtor(u8 *object) { CRT_VectorDtorIterator(object + 0x64, 8, 5, reinterpret_cast<void(__fastcall *)(void *)>(&Stub_Ret)); }
 }
