@@ -1,12 +1,19 @@
 #include "geometry.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "x87.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+float AsFloat(u32 bits) {
+    float f;
+    std::memcpy(&f, &bits, 4);
+    return f;
+}
 
 }  // namespace
 
@@ -33,5 +40,13 @@ u32 __cdecl Tri_WindingTest(const float *a, const float *b, const float *c) {
     const X87Reg f = (X87Reg(wa) * yb - X87Reg(wb) * ya) * xc - X87Reg(wc) * yb * xa;
     const X87Reg e = (X87Reg(wa) * yc - X87Reg(wc) * ya) * xb - X87Reg(wb) * yc * xa;
     return f.v < e.v || f.v != f.v || e.v != e.v ? 1 : 0;
+}
+
+void __fastcall Box_Extend(u32 *box, void *, u32 x, u32 y, u32 z) {
+    const u32 point[3] = {x, y, z};
+    for (int i = 0; i < 3; ++i)
+        if (!(AsFloat(point[i]) >= AsFloat(box[i]))) box[i] = point[i];
+    for (int i = 0; i < 3; ++i)
+        if (AsFloat(point[i]) > AsFloat(box[3 + i])) box[3 + i] = point[i];
 }
 }

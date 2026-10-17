@@ -6,10 +6,10 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import RAM, Bench, Call  # noqa: E402
+from fncmp import RAM, Bench, Call, bf  # noqa: E402
 
-B = Bench([(0x5812f0, 0x581315), (0x581320, 0x581403)])
-OPS = [k for k in os.environ.get('OPS', 'Dot,Winding').split(',') if k]
+B = Bench([(0x5812f0, 0x581315), (0x581320, 0x581403), (0x57b410, 0x57b48f)])
+OPS = [k for k in os.environ.get('OPS', 'Dot,Winding,BoxExtend').split(',') if k]
 
 
 def point(r, shared):
@@ -21,8 +21,17 @@ def point(r, shared):
 
 
 def case(r):
-    if r.deal(OPS) == 'Dot':
+    op = r.deal(OPS)
+    if op == 'Dot':
         return Call(0x5812f0, [r.f() for _ in range(6)], {}, ret='d')
+    if op == 'BoxExtend':
+        box = [r.f() for _ in range(6)]
+        p = [r.choice(box) if r.random() < 0.2 else r.f() for _ in range(3)]
+        if r.random() < 0.3:  # a sorted box
+            for i in range(3):
+                lo, hi = sorted((box[i], box[3 + i]), key=bf)
+                box[i], box[3 + i] = lo, hi
+        return Call(0x57b410, [RAM] + p, {RAM: struct.pack('<6I', *box)}, conv='t')
     shared = [r.f(), r.f(), 0] if r.random() < 0.5 else []
     a, b, c = RAM, RAM + 0x10, RAM + r.choice([0x20, 0x20, 0])
     regions = {RAM: point(r, shared) + point(r, shared) + point(r, shared), 0x8c63b0: r.bytes(0x24)}
