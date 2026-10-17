@@ -137,6 +137,7 @@
 #include "../game/core/actionrec.h"
 #include "../game/core/namedobjects.h"
 #include "../game/core/savegame.h"
+#include "../game/core/sync.h"
 #include "../game/core/balancefile.h"
 #include "../game/core/timesig.h"
 #include "../game/core/wtraits.h"
@@ -3348,6 +3349,13 @@ const Hook kHooks[] = {
     {"FloatConsts_InitEpsilon_48d890", 0x0048d890, (void *)&FloatConsts_InitEpsilon_48d890, {0xd9, 0x05, 0x60, 0xf2, 0x6f}},
     {"FloatConsts_InitOne_4b4490", 0x004b4490, (void *)&FloatConsts_InitOne_4b4490, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"FloatConsts_InitEpsilon_4b44b0", 0x004b44b0, (void *)&FloatConsts_InitEpsilon_4b44b0, {0xd9, 0x05, 0xc8, 0xfd, 0x6f}},
+    {"CritSec_Ctor",              0x005c8b90, (void *)&CritSec_Ctor, {0x56, 0x8b, 0xf1, 0x56, 0xff}},
+    {"CritSec_Dtor",              0x005c8ba0, (void *)&CritSec_Dtor, {0x51, 0xff, 0x15, 0xd0, 0xd0}},
+    {"CritSec_Enter",             0x005c8bb0, (void *)&CritSec_Enter, {0x51, 0xff, 0x15, 0x40, 0xd1}},
+    {"CritSec_Leave",             0x005c8bc0, (void *)&CritSec_Leave, {0x51, 0xff, 0x15, 0x30, 0xd1}},
+    {"SyncEvent_Ctor",            0x005c8bd0, (void *)&SyncEvent_Ctor, {0x56, 0x6a, 0x00, 0x6a, 0x00}},
+    {"SyncEvent_Wait",            0x005c8bf0, (void *)&SyncEvent_Wait, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"SyncEvent_Set",             0x005c8c20, (void *)&SyncEvent_Set, {0x8b, 0x01, 0x50, 0xff, 0x15}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
