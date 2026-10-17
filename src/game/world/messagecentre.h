@@ -1,0 +1,13 @@
+// The message centre (module MESS: MessageCentre_Save 0x40fc80, MessageCentre_Load 0x40fd60): 29 slots of 0x14 bytes from +0, each a dword and a std::map (tree B, core/stdtree) at +4.
+#pragma once
+
+#include "../../../re/types.h"
+
+extern "C" {
+
+// 0x40f970 (thiscall on a slot; name unconfirmed): the destructor of one of the message centre's slots, a dword and then a std::map of tree B at +4 (StdTree_DtorB).
+void __fastcall MessageSlot_Dtor(u8 *slot);
+
+// 0x409250 (thiscall on the message centre; name unconfirmed): its 29 slots of 0x14 bytes from +0 destroyed, the last first (CRT_VectorDtorIterator with MessageSlot_Dtor).
+void __fastcall MessageCentre_DtorSlots(u8 *centre);
+}  // extern "C"

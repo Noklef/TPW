@@ -178,6 +178,7 @@
 #include "../game/world/dirstep.h"
 #include "../game/world/flyingrides.h"
 #include "../game/world/gamesystem.h"
+#include "../game/world/messagecentre.h"
 #include "../game/world/nav.h"
 #include "../game/world/mapcell.h"
 #include "../game/world/object.h"
@@ -3071,6 +3072,8 @@ const Hook kHooks[] = {
     {"MapGrid_MarkEdges",         0x0052c420, (void *)&MapGrid_MarkEdges, {0x51, 0x53, 0x55, 0x56, 0x8b}},
     {"MapGrid_ClassifyTypes",     0x0052c5b0, (void *)&MapGrid_ClassifyTypes, {0x51, 0x8b, 0x44, 0x24, 0x08}},
     {"Cell_FindRideableObject",   0x0042a340, (void *)&Cell_FindRideableObject, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"MessageSlot_Dtor",          0x0040f970, (void *)&MessageSlot_Dtor, {0x51, 0x8b, 0x41, 0x08, 0x56}},
+    {"MessageCentre_DtorSlots",   0x00409250, (void *)&MessageCentre_DtorSlots, {0x68, 0x70, 0xf9, 0x40, 0x00}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

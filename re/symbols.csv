@@ -3531,6 +3531,8 @@ address,name,kind,confidence,notes
 0x0052c420,MapGrid_MarkEdges,function,high,"reimplemented (src/game/world/mapcell); edge cells of a map grid of types 4, 9, 0x17 and 0xa"
 0x0052c5b0,MapGrid_ClassifyTypes,function,high,reimplemented (src/game/world/mapcell); a map grid's cell types as codes 1 to 4
 0x0042a340,Cell_FindRideableObject,function,high,reimplemented (src/game/world/mapcell); the first rideable object on a type 9 cell's parent
+0x0040f970,MessageSlot_Dtor,function,high,"reimplemented (src/game/world/messagecentre); thiscall on a slot: a dword, then a std::map of tree B at +4, destroyed (StdTree_DtorB); name unconfirmed"
+0x00409250,MessageCentre_DtorSlots,function,high,"reimplemented (src/game/world/messagecentre); thiscall: the 29 slots of 0x14 bytes from +0 destroyed, the last first (CRT_VectorDtorIterator, MessageSlot_Dtor); name unconfirmed"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
