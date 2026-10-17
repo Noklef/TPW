@@ -216,6 +216,7 @@
 #include "../game/world/thingscan.h"
 #include "../game/world/trackpools.h"
 #include "../game/world/wallfollow.h"
+#include "../game/world/weather.h"
 #include "../game/world/world.h"
 #include "../game/model/holder.h"
 #include "../game/coaster/tracktypes.h"
@@ -659,6 +660,7 @@ const Hook kHooks[] = {
     {"ResearchLab_CountNotDone",  0x00503b30, (void *)&ResearchLab_CountNotDone, {0x8b, 0x81, 0x5c, 0x14, 0x00}},
     {"ResearchLab_CurrentNotDone", 0x00504040, (void *)&ResearchLab_CurrentNotDone, {0x8b, 0x44, 0x24, 0x04, 0xc1}},
     {"ResearchGroup_Ctor",        0x00504750, (void *)&ResearchGroup_Ctor, {0x8b, 0xc1, 0xc6, 0x40, 0x0c}},
+    {"ResearchProject_Serialize", 0x00504210, (void *)&ResearchProject_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"Nav_SetPosVel",             0x005100e0, (void *)&Nav_SetPosVel, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Nav_GetPos",                0x00510160, (void *)&Nav_GetPos, {0x8b, 0x54, 0x24, 0x04, 0x8b}},
     {"World_ArrivalVehicleNotSize1", 0x0051aad0, (void *)&World_ArrivalVehicleNotSize1, {0x66, 0x8b, 0x81, 0x2a, 0xa7}},
@@ -3099,6 +3101,7 @@ const Hook kHooks[] = {
     {"Staff_CountTypes",          0x00508000, (void *)&Staff_CountTypes, {0x83, 0xec, 0x0c, 0x33, 0xc0}},
     {"Staff_TrainAll",            0x0050c800, (void *)&Staff_TrainAll, {0x83, 0xec, 0x20, 0x53, 0x55}},
     {"StaffTraining_Serialize",   0x0050c640, (void *)&StaffTraining_Serialize, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
+    {"StaffPoolEntry_Serialize",  0x005070a0, (void *)&StaffPoolEntry_Serialize, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
     {"FreeList_Take",             0x00520d60, (void *)&FreeList_Take, {0x56, 0x66, 0x8b, 0x35, 0x24}},
     {"FreeList_Return",           0x00521890, (void *)&FreeList_Return, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
     {"Voice_ScaleLevels",         0x00521d60, (void *)&Voice_ScaleLevels, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
@@ -3377,6 +3380,7 @@ const Hook kHooks[] = {
     {"Nav_PathProgress",          0x0050fd40, (void *)&Nav_PathProgress, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Nav_VisitNeighbours",       0x005102f0, (void *)&Nav_VisitNeighbours, {0x83, 0xec, 0x24, 0x8b, 0x4c}},
     {"Nav_Update",                0x0050f3b0, (void *)&Nav_Update, {0x6a, 0xff, 0x68, 0x58, 0xe5}},
+    {"Nav_Serialize",             0x0050d150, (void *)&Nav_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x83}},
     {"Cell_ExtendPath",           0x0052a050, (void *)&Cell_ExtendPath, {0x55, 0x56, 0x8b, 0x74, 0x24}},
     {"MapGrid_MarkEdges",         0x0052c420, (void *)&MapGrid_MarkEdges, {0x51, 0x53, 0x55, 0x56, 0x8b}},
     {"MapGrid_ClassifyTypes",     0x0052c5b0, (void *)&MapGrid_ClassifyTypes, {0x51, 0x8b, 0x44, 0x24, 0x08}},
@@ -3430,6 +3434,7 @@ const Hook kHooks[] = {
     {"WallFollower_Step",         0x00511c90, (void *)&WallFollower_Step, {0x53, 0x56, 0x8b, 0x74, 0x24}},
     {"Route_Straighten",          0x005110d0, (void *)&Route_Straighten, {0x83, 0xec, 0x34, 0x53, 0x55}},
     {"FocusCell_Update",          0x005276d0, (void *)&FocusCell_Update, {0x66, 0xa1, 0x98, 0x86, 0x81}},
+    {"Weather_Serialize",         0x00512010, (void *)&Weather_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x53}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/savegame.h"
+#include "../core/timesig.h"
 #include "../core/selectors.h"
 #include "../math/x87.h"
 #include "money.h"
@@ -312,5 +313,15 @@ u32 __fastcall Table_ScaledBySum(u8 *table, void *, s32 index) {
     if (total == 0) return 0;
     const u32 share = (Things_SumChain() * 100u) / total;
     return (at<u32>(table, ((u32)index + 0x141) * 16) * share) / 100u;
+}
+
+u32 __fastcall StaffPoolEntry_Serialize(u8 *entry, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    static const SaveSpec kFields[] = {{0x0, 4, 0x0075a034}, {0x4, 4, 0x0075e6d8}, {0x8, 1, 0x0075e6cc},
+                                       {0x9, 1, 0x0075e6c0}, {0xa, 1, 0x0075e6b8}, {0xb, 1, 0x0075e6ac}};
+    if (version < 0 || version > 1)
+        return 0;
+    if (!Save_Fields(stream, save, entry, kFields, 6) || TimeSig_Serialize(entry + 0xc, nullptr, stream, save, version, unused))
+        return 1;
+    return Save_Field(stream, save, entry + 0x10, 4, 0x0075e69c) ? 0 : 1;
 }
 }

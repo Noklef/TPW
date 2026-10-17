@@ -165,7 +165,7 @@ address,name,kind,confidence,notes
 0x00509bc0,ThingBasic_Serialize,function,high,"reimplemented (src/game/world/things); thiscall (stream, save, version, unused): Thing_Serialize, its result as 0 or 1"
 0x004d7a70,WorldGlobals_Serialize,function,high,"staff pool, game clock, park gates"
 0x00507850,StaffPool_Serialize,function,high,0x20 x StaffPoolEntry + 5 categories
-0x005070a0,StaffPoolEntry_Serialize,function,high,
+0x005070a0,StaffPoolEntry_Serialize,function,high,"reimplemented (src/game/world/staff); reimplemented (src/game/world/staff); 6 fields, a time stamp at +0xc (TimeSig_Serialize), the dword at +0x10"
 0x004f7f30,GameClock_Serialize,function,high,"reimplemented (src/game/core/funnytime); thiscall (stream, save, version, unused): the calendar clock's five fields"
 0x004cf050,ParkGates_Serialize,function,high,"arrival rate, bus capacity, gates open"
 0x004d3aa0,ObjectControls_Serialize,function,high,"reimplemented (src/game/world/objectdefs); thiscall (stream, save, version, unused): the 0x96 object control records, their count and the search key saved or loaded; a full load clears the key and +0x12c8"
@@ -176,7 +176,7 @@ address,name,kind,confidence,notes
 0x00502490,RECell_Serialize,function,high,"reimplemented (src/game/world/mapcell); thiscall (stream, save, version, unused): the RE cell's five words saved or loaded"
 0x004f8b10,Sprite_Serialize,function,high,"moving-person base (anim, speeds, nav, thoughts)"
 0x004d3ee0,SpriteAnim_Serialize,function,high,"reimplemented (src/game/sprite/scriptref); thiscall (stream, save, version, unused): the script reference's three dwords saved or loaded"
-0x0050d150,Nav_Serialize,function,high,steering/pathing state (float vectors)
+0x0050d150,Nav_Serialize,function,high,reimplemented (src/game/world/nav); reimplemented (src/game/world/nav); steering/pathing state (float vectors); loading clears +0x34 and +0x30
 0x0050bad0,Thoughts_Serialize,function,high,"reimplemented (src/game/world/person); thiscall (stream, save, version, unused): a person's thoughts (history index, 32 history pairs, +0, script, bubble time) saved or loaded"
 0x004fb530,Visitor_Serialize,function,high,thing model 1
 0x00504de0,Staff_Serialize,function,high,"staff base: pay grade, UTF-16 name[0x21], patrol region, time hired"
@@ -198,9 +198,9 @@ address,name,kind,confidence,notes
 0x004cdf00,CircBufU32_Serialize,function,high,
 0x004cea00,CircBufU8_Serialize,function,high,
 0x00502dc0,ResearchLab_Serialize,function,high,"thing model 14: 0x100 projects, 5 groups"
-0x00504210,ResearchProject_Serialize,function,high,
+0x00504210,ResearchProject_Serialize,function,high,reimplemented (src/game/world/research); reimplemented (src/game/world/research); a project's 6 fields
 0x00504760,ResearchGroup_Serialize,function,high,
-0x00512010,Weather_Serialize,function,high,thing model 15
+0x00512010,Weather_Serialize,function,high,"reimplemented (src/game/world/weather); reimplemented (src/game/world/weather); thing model 15: thing, fields, forecast at +0x20, fields"
 0x005132a0,Forecast_Serialize,function,high,"reimplemented (src/game/world/forecast); thiscall (stream, save, version, unused): the forecast's time (8 bytes), quality and valid byte saved or loaded"
 0x004cf920,BankAccount_Serialize,function,high,"thing model 16: balance, admission fee, 8 loans"
 0x004d2320,Challenges_Serialize,function,high,"reimplemented (src/game/world/challenges); reimplemented (src/game/world/challenges); thing model 19: thing, 0x14 challenges, then 7 fields"

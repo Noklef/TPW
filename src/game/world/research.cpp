@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "../core/savegame.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -41,5 +43,13 @@ u8 *__fastcall ResearchGroup_Ctor(u8 *group) {
     at<u8>(group, 0xc) = 1;
     at<s32>(group, 8) = -1;
     return group;
+}
+
+u32 __fastcall ResearchProject_Serialize(u8 *project, void *, Stream *stream, u32 save, s32 version, u32) {
+    static const SaveSpec kFields[] = {{0x0, 2, 0x0075e21c}, {0x4, 4, 0x0075e214}, {0x8, 1, 0x0075e204},
+                                       {0x9, 1, 0x0075b3d0}, {0xc, 4, 0x0075e1fc}, {0x10, 4, 0x0075e1ec}};
+    if (version < 0 || version > 1)
+        return 0;
+    return Save_Fields(stream, save, project, kFields, 6) ? 0 : 1;
 }
 }

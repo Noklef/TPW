@@ -208,6 +208,7 @@ add_library(tpw_game STATIC
     src/game/world/wallfollow.cpp
     src/game/world/route.cpp
     src/game/world/focuscell.cpp
+    src/game/world/weather.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp

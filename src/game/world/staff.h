@@ -127,4 +127,9 @@ void __fastcall Staff_CountTypes(u8 *counts);
 // [0x7cf83c]), then each staff member trained (Staff_Train) with its type's amount divided by the type's count (signed): a mechanic (type 5) the dword at
 // +0, a handyman (4) +4, an entertainer (6) +8, a researcher (7) +0xc, a guard (8) +0x10.
 void __fastcall Staff_TrainAll(const s32 *amounts);
+
+// 0x5070a0 (thiscall; stream, save, version, unused): a staff pool entry saved or loaded as a serializer does (Save_Field; the load path
+// partly through the readers): mType (+0), the dword at +4, the bytes at +8, +9, +0xa and +0xb, the time stamp at +0xc (TimeSig_Serialize;
+// 1 if it fails) and the dword at +0x10.
+u32 __fastcall StaffPoolEntry_Serialize(u8 *entry, void *, Stream *stream, u32 save, s32 version, u32 unused);
 }
