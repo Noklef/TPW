@@ -3489,6 +3489,9 @@ address,name,kind,confidence,notes
 0x005c4c60,Strings5_Dtor,function,high,reimplemented (src/game/core/string); destroys five strings
 0x00424d30,String_StripSuffix,function,low,"reimplemented (src/game/core/string); cdecl (suffix, s); s loses its last suffix->length chars when they equal the suffix case blind; returns s"
 0x0041cea0,String_SkipDotPrefix,function,low,"reimplemented (src/game/core/string); cdecl (s); when s starts with the global ""."" (0x78c648), the following ""\"" (0x78bee0) / ""."" chars are stepped over one at a time and s = the rest"
+0x00424db0,String_AssignFromWide,function,low,reimplemented (src/game/core/string); A string assigned the ANSI conversion of a wide string's text
+0x00424e10,WString_AssignFromAnsi,function,low,reimplemented (src/game/core/string); A wide string assigned the UTF-16 conversion of a string's text
+0x004bbb80,String_AnsiToWide,function,low,reimplemented (src/game/core/string); ANSI text converted to UTF-16 into a buffer or the static one
 0x005bdc10,Class702938_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings
 0x005be320,Class702940_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three strings
 0x005be750,Class702948_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings

@@ -206,4 +206,17 @@ String *__cdecl String_StripSuffix(const String *suffix, String *s);
 // or "." (Names_Equal == 1); then s = its chars from there on (String_From, the vtable's +0x1c Assign). Returns s.
 String *__cdecl String_SkipDotPrefix(String *s);
 
+// 0x424db0 (cdecl; s, wide; name unconfirmed): the wide text (wide->data) converted to the ANSI code page by WideCharToMultiByte (the import 0x6fd1dc;
+// the size asked for first, NUL included), into a block of Mem_GlobalAlloc (none for a size of 0 or less, or a failed allocation), which goes to the
+// vtable's +0x14 of s (AssignStr) and is freed (Mem_GlobalFree). Returns the second conversion's count, else 0.
+s32 __cdecl String_AssignFromWide(String *s, const WString *wide);
+
+// 0x424e10 (cdecl; wide, s; name unconfirmed): the mirror of String_AssignFromWide: the ANSI text (s->data) converted by MultiByteToWideChar (the
+// import 0x6fd174; the units asked for first) into a block of twice that many bytes, which goes to the vtable's +0x14 of wide and is freed.
+s32 __cdecl WString_AssignFromAnsi(WString *wide, const String *s);
+
+// 0x4bbb80 (cdecl; text, buffer, size; name unconfirmed): text converted to UTF-16 by MultiByteToWideChar (the import 0x6fd174; code page 0, NUL
+// included) into buffer (size units), or with no buffer into the static one at 0x7ba058 (0x3fff units). Returns the buffer written.
+u16 *__cdecl String_AnsiToWide(const char *text, u16 *buffer, s32 size);
+
 }  // extern "C"
