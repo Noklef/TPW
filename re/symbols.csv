@@ -3604,6 +3604,7 @@ address,name,kind,confidence,notes
 0x0040f970,MessageSlot_Dtor,function,high,"reimplemented (src/game/world/messagecentre); thiscall on a slot: a dword, then a std::map of tree B at +4, destroyed (StdTree_DtorB); name unconfirmed"
 0x00409250,MessageCentre_DtorSlots,function,high,"reimplemented (src/game/world/messagecentre); thiscall: the 29 slots of 0x14 bytes from +0 destroyed, the last first (CRT_VectorDtorIterator, MessageSlot_Dtor); name unconfirmed"
 0x0040fa40,MessageCentre_RemoveThing,function,low,"reimplemented (src/game/world/messagecentre); thiscall (thing); the thing's handle erased from each of the 29 slots' maps (lower bound, key check, StdTree_EraseB); returns the count erased"
+0x0040f9e0,MessageCentre_AddThing,function,low,"reimplemented (src/game/world/messagecentre); thiscall (thing, slot): the handle inserted into the slot map when slot < 29; whether inserted"
 0x0050ce50,SteerSeek_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009b8, name ""seek"" copied to +4; returns this"
 0x0050ced0,SteerArrival_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009c0, name ""arrival"" copied to +4; returns this"
 0x0050cf40,SteerSeparation_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009c4, name ""separation"" copied to +4; returns this"
