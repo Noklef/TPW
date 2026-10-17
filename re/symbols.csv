@@ -4115,6 +4115,7 @@ address,name,kind,confidence,notes
 0x00576410,Renderer_Add,function,high,reimplemented (src/game/render/renderer); Adds an object to a renderer slot list or to the grid cells of its packed rectangle
 0x0056b2f0,Obj_AddToRenderer,function,high,reimplemented (src/game/render/renderer); Adds the object part to the renderer tag 0x60 list (name unconfirmed)
 0x0048f5c0,Obj_SetRendererPart30,function,high,reimplemented (src/game/render/renderer); Adds or removes the part at +0xb4 in the renderer tag 0x30 list (name unconfirmed)
+0x005761b0,Renderer_Destroy,function,low,"reimplemented (src/game/render/renderer); cdecl: the renderer at [0x87a6d0] (0 without one): frame buffer (+0x10) and pool (+0) freed (TrackedGlobal_Free; +0 kept, +8/+0xc cleared), the renderer freed and the global cleared; returns 1 (name unconfirmed)"
 0x005777a0,Backdrop_Clear5c,function,high,"reimplemented (src/game/render/backdrop); thiscall (the tiled backdrop, 0x87aee8): +0x5c = 0"
 0x00577940,Backdrop_SetRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the rectangle drawn into, +0x20..+0x2c, and flag 2 in +0"
 0x00577970,Backdrop_SetSourceRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the part of the image drawn, +0x30..+0x3c"
