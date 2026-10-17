@@ -53,6 +53,7 @@ def release(r):
             put(slots, 0x10 * k + 8, 'I', r.choice([0, r.getrandbits(32)]))
         put(slots, 0x10 * k + 0xc, 'I', r.choice([1, 1, 1, 2, 3, 0, 0xffffffff]))
     regions[MANAGER] = slots
+    regions[MANAGER - 0x10] = r.bytes(12) + struct.pack('<I', r.choice([1, 1, 2]))   # (a slot before the first: the search must stop at 0)
     regions[MANAGER + 0x10000] = struct.pack('<III', r.choice([n, n, n, max(n - 1, 0), 0, 0xffffffff]), r.getrandbits(32), r.getrandbits(32))
     arg = r.choice(arrays) if arrays and r.random() < 0.8 else r.choice([ARRAYS + 0x2004, r.getrandbits(32)])
     return Call(0x575ad0, [MANAGER, arg], regions, conv='t', ret='a')
