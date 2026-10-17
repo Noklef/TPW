@@ -36,6 +36,8 @@ bool wanted(u32 types, u32 type) {
 
 void Drives_SetEnv(const DrivesEnv *e) { g_env = e ? e : &kGameEnv; }
 
+const DrivesEnv *Drives_GetEnv() { return g_env; }
+
 extern "C" {
 
 SystemInfo *__fastcall SystemInfo_Ctor(SystemInfo *s) {

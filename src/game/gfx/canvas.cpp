@@ -28,6 +28,8 @@ bool sameFormat(const SurfaceInfo &a, const SurfaceInfo &b) {
 
 void Canvas_SetEnv(const CanvasEnv *e) { g_env = e ? e : &kGameEnv; }
 
+const CanvasEnv *Canvas_GetEnv() { return g_env; }
+
 extern "C" {
 
 Canvas *__fastcall Canvas_Ctor(Canvas *c) {

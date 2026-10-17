@@ -37,6 +37,8 @@ struct DrivesEnv {
 };
 // nullptr restores the game's.
 void Drives_SetEnv(const DrivesEnv *e);
+// The env in use (for tools/fncmp's driver, which resolves the game code it calls).
+const DrivesEnv *Drives_GetEnv();
 
 extern "C" {
 SystemInfo *__fastcall SystemInfo_Ctor(SystemInfo *s);

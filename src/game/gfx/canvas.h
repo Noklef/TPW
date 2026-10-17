@@ -37,6 +37,8 @@ struct CanvasEnv {
 };
 // nullptr restores the game's.
 void Canvas_SetEnv(const CanvasEnv *e);
+// The env in use (for tools/fncmp's driver, which resolves the game code it calls).
+const CanvasEnv *Canvas_GetEnv();
 
 extern "C" {
 Canvas *__fastcall Canvas_Ctor(Canvas *c);

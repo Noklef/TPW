@@ -277,6 +277,31 @@ def _cdecl_log(e):  # (driver.cpp stub_cdecl_log)
         e.write(e.r['ESP'], struct.pack('<I', ret))
 
 
+
+COUNTER = STUBS + 0x60  # QueryPerformanceFrequency / QueryPerformanceCounter for an import slot (driver.cpp stub_counter); counter(log, ...) sets it up
+
+
+def counter(log, value, step, results):
+    """Sets COUNTER up in the log region: each call writes the 64-bit `value` through its argument, then steps it by `step`, and returns bit 0 of `results`, which then shifts right."""
+    struct.pack_into('<IIQQ', log, 0x7e8, results & 0xffffffff, 0, value & (2 ** 64 - 1), step & (2 ** 64 - 1))
+
+
+def _counter(e):  # stdcall (the 64-bit out)
+    sp = e.r['ESP'] + (4 if e.tail else 0)
+    now, step = struct.unpack('<QQ', e.read(LOG + 0x7f0, 16))
+    e.write(e.u32(sp), struct.pack('<Q', now))
+    e.write(LOG + 0x7f0, struct.pack('<Q', (now + step) & (2 ** 64 - 1)))
+    results = e.u32(LOG + 0x7e8)
+    e.write(LOG + 0x7e8, struct.pack('<I', results >> 1))
+    e.r['EAX'] = results & 1
+    if e.tail:
+        ret = e.u32(e.r['ESP'])
+        e.r['ESP'] += 4
+        e.write(e.r['ESP'], struct.pack('<I', ret))
+    else:
+        e.r['ESP'] += 4
+
+
 def _mark(e):  # thiscall, no other arguments (driver.cpp stub_mark)
     e.write(e.r['ECX'], struct.pack('<I', 0x6fd800))
 
@@ -329,7 +354,7 @@ class Bench:
         self.emu = x87emu.Emu([slice_listing(ranges)])
         self.emu.hooks.update({0x67a830: _ftol, 0x67b280: _modf, 0x67b24a: _cifmod,
                                STUBS: _record(False), STUBS + 0x10: _record(True),
-                               STUBS + 0x20: _global_alloc, STUBS + 0x30: _global_free, STUBS + 0x40: _mark, CDECL_LOG: _cdecl_log,
+                               STUBS + 0x20: _global_alloc, STUBS + 0x30: _global_free, STUBS + 0x40: _mark, CDECL_LOG: _cdecl_log, COUNTER: _counter,
                                0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove,
                                0x6918f0: _throw('_Xlen'), 0x691ba0: _throw('_Xran')})
         self.emu.hooks.update({recorder(k, n): _recorder(k, n) for k in range(32) for n in range(16)})  # (n up to 15 fits below the COM recorders at +0x4000)

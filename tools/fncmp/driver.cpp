@@ -29,6 +29,9 @@
 #include "../../src/game/core/gameheap.h"
 #include "../../src/game/core/ptrlist.h"
 #include "../../src/game/core/stdstring.h"
+#include "../../src/game/files/drives.h"
+#include "../../src/game/files/wadsource.h"
+#include "../../src/game/gfx/canvas.h"
 #include "../../src/game/world/mousemode.h"
 #include "crt.h"
 #include "../../src/hook/hooks.h"
@@ -169,6 +172,19 @@ u32 __cdecl stub_cdecl_log(u32 arg) {
     return record_call(0x13f, 1, 0, stack);
 }
 
+// QueryPerformanceFrequency / QueryPerformanceCounter (stdcall) for code that calls through the game's import slots (kStubs + 0x60, tools/fncmp.py COUNTER;
+// the case maps the log): writes the 64-bit value at log + 0x7f0, then steps it by the one at log + 0x7f8; returns bit 0 of the dword at log + 0x7e8, which then shifts right.
+s32 __stdcall stub_counter(unsigned long long *value) {
+    u8 *const log = reinterpret_cast<u8 *>((uintptr_t)(kStubs + 0x100000));
+    unsigned long long *const now = reinterpret_cast<unsigned long long *>(log + 0x7f0);
+    *value = *now;
+    *now += *reinterpret_cast<unsigned long long *>(log + 0x7f8);
+    u32 *const results = reinterpret_cast<u32 *>(log + 0x7e8);
+    const s32 ok = (s32)(*results & 1);
+    *results >>= 1;
+    return ok;
+}
+
 // What throws in the game (std::_Xlen, _Xran): a case that gets there reports a crash.
 void __cdecl heap_throw() { RaiseException(0xe0000001, 0, 0, nullptr); }
 
@@ -176,6 +192,7 @@ const StdStringEnv kStdStringEnv = {&heap_alloc, &heap_free, &heap_throw, &heap_
 const MouseModeEnv kMouseModeEnv = {&heap_free};
 const PtrListEnv kPtrListEnv = {&heap_alloc};
 const GameHeapEnv kGameHeapEnv = {&heap_alloc, &heap_free};
+const WadSourceEnv kWadSourceEnv = {&heap_alloc, &heap_free};
 
 // The recorders (tools/fncmp.py recorder(k, n)): thunks at kStubs + 0x1000 + 0x400 * n + 0x20 * k, thiscall with n stack arguments (popped by the thunk), that
 // log (k, n, this, the arguments) at kLog and return a hash of them. The log is a count, then 12 dwords an entry; room for 80.
@@ -242,8 +259,8 @@ void map_stubs() {
     u8 *p = static_cast<u8 *>(VirtualAlloc((void *)(uintptr_t)kStubs, 0x10000, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE));
     if (!p) fail("cannot map the stubs at", kStubs);
     const void *stubs[] = {(const void *)&stub_read, (const void *)&stub_write, (const void *)&stub_global_alloc,
-                           (const void *)&stub_global_free, (const void *)&stub_mark, (const void *)&stub_cdecl_log};
-    for (u32 i = 0; i < 6; ++i) {
+                           (const void *)&stub_global_free, (const void *)&stub_mark, (const void *)&stub_cdecl_log, (const void *)&stub_counter};
+    for (u32 i = 0; i < 7; ++i) {
         u8 *at = p + 0x10 * i;
         at[0] = 0xe9;  // jmp rel32
         const u32 rel = (u32)(uintptr_t)stubs[i] - ((u32)(uintptr_t)at + 5);
@@ -299,6 +316,12 @@ int invoke(void *fn, u32 ecxIn, u32 edxIn, const u32 *stack, u32 count, int want
     return 0;
 }
 
+void *hooked(u32 address) {
+    void *const fn = find(address);
+    if (!fn) fail("not hooked", address);
+    return fn;
+}
+
 std::vector<u8> unhex(const char *s) {
     std::vector<u8> out(std::strlen(s) / 2);
     for (std::size_t i = 0; i < out.size(); ++i) {
@@ -322,6 +345,15 @@ int main(int argc, char **argv) {
     MouseModes_SetEnv(&kMouseModeEnv);
     PtrList_SetEnv(&kPtrListEnv);
     GameHeap_SetEnv(&kGameHeapEnv);
+    WadSource_SetEnv(&kWadSourceEnv);
+    // Envs whose game defaults call game code by its address, which the driver cannot (its own code covers the game's .text): that code resolved to its hooked
+    // replacement, as the hooked game resolves it; the CPU information constructor (CPUID, the host's) is stub_mark, as tools/fncmp.py's emulator has it.
+    static DrivesEnv drives = *Drives_GetEnv();
+    drives.cpuCtor = reinterpret_cast<void(__fastcall *)(SystemInfo *)>(&stub_mark);
+    Drives_SetEnv(&drives);
+    static CanvasEnv canvas = *Canvas_GetEnv();
+    canvas.infoCtor = reinterpret_cast<SurfaceInfo *(__fastcall *)(SurfaceInfo *)>(hooked(0x005fa680));
+    Canvas_SetEnv(&canvas);
     Crt_SetEnv(&kDriverCrt);
     static char token[1 << 22];
     for (;;) {
