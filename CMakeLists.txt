@@ -121,6 +121,7 @@ add_library(tpw_game STATIC
     src/game/core/factories.cpp
     src/game/core/vanillatime.cpp
     src/game/core/actionrec.cpp
+    src/game/core/namedobjects.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
