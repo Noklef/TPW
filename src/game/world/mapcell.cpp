@@ -505,4 +505,27 @@ u8 *__cdecl Cell_FindRideableObject(s32 x, s32 y) {
             return nullptr;
     }
 }
+
+void __cdecl MapCell_PathNudge(s32 *x, s32 *y) {
+    const u32 id = ((u32)*y * 0x80 + (u32)*x + 1) & 0xffff;
+    const u8 *cell = global<u8 *>(0x007cf83c) + id * 0x44 + 0x294;
+    const u8 *entry = MapHandle_Entry28(reinterpret_cast<const u16 *>(cell));
+    if (MapCell_IsTypeCOr11(entry)) {
+        entry = global<u8 *>(0x007cf83c) + ((u32)at<u16>(entry, 0x10) + 0x6cde) * 0x28;
+        cell = MapHandle_Cell44(reinterpret_cast<const u16 *>(entry));
+    }
+    if (!MapCell_HasFlags(entry, nullptr, 0x10)) return;
+    const u16 group = at<u16>(cell, 0x10);
+    const u32 pairs[4] = {0x007cdba0, 0x007cdbc8, 0x007cdba8, 0x007cdbd0};
+    s32 *const coords[4] = {y, x, y, x};
+    const s32 steps[4] = {-2, 2, 2, -2};
+    for (u32 k = 0; k < 4; ++k) {
+        const s32 *pair = reinterpret_cast<const s32 *>(pairs[k]);
+        const u8 *next = Map_StepCell28(reinterpret_cast<const u16 *>(entry), nullptr, pair[0], pair[1], 2);
+        if (!next) continue;
+        const u8 *nextCell = MapHandle_Cell44(reinterpret_cast<const u16 *>(next));
+        if (MapCell_HasFlags(next, nullptr, 0x10) && at<u16>(nextCell, 0x10) == group && MapCell_IsTypeBDOr10Or12Or19(next))
+            *coords[k] = (s32)((u32)*coords[k] + (u32)steps[k]);
+    }
+}
 }
