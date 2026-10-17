@@ -363,4 +363,105 @@ s32 __cdecl Particle_Spawn(s32 effect, s32 x, s32 y, s32 z) {
     }
     return (s32)((u32)field<u16>(s, 0xa) << 16 | (u32)slot);
 }
+
+void __cdecl Particles_Update() {
+    for (s32 slot = global<s16>(0x00816d1c); slot >= 0; slot = field<s16>(system((u32)slot), 0xd0)) {
+        u8 *const s = system((u32)slot);
+        if (field<u16>(s, 2) != 0)
+            continue;
+        for (s32 record = field<s16>(s, 6); record >= 0;) {
+            u8 *const p = global<u8 *>(0x0080cef8) + record * 0x34;
+            const s16 next = field<s16>(p, 0x30);
+            u8 *const o = system((u32)(s32)field<s16>(p, 0x26));  // (the particle's own system)
+            s32 *const pos = reinterpret_cast<s32 *>(p);
+            const s32 age = (s32)((u32)field<s32>(p, 0x20) - 1);
+            field<s32>(p, 0x20) = age;
+            if (age < 0) {  // its end: its death effect at its position, the record back on the free list
+                --global<u32>(0x0080ced0);
+                --field<u16>(o, 8);
+                const s32 death = field<s32>(o, 0x98);
+                if (death >= 0)
+                    Particle_Spawn(death, (s32)((u32)pos[0] << 4), (s32)((u32)pos[1] << 4), (s32)((u32)pos[2] << 4));
+                FreeList_Return(record, field<s16>(p, 0x26));
+                record = next;
+                continue;
+            }
+            if (field<s32>(o, 0x20) < 0 && o[0xaa] != 0)
+                field<s32>(p, 0x20) = -1;
+
+            // The sprite: a random one of the 16 each odd frame count, else by the age
+            const u32 sprites = field<u32>(o, 0x58);
+            if (sprites != 0) {
+                if (sprites & 1)
+                    field<u32>(p, 0x18) = field<u32>(o, 0xd8 + Particle_Rand(16) * 4);
+            } else {
+                const s32 k = field<s32>(o, 0x78) > 0 ? (s32)((u32)field<s32>(p, 0x20) * 15) / field<s32>(p, 0x1c) : 0;
+                field<u32>(p, 0x18) = field<u32>(o, 0xd8 + k * 4);
+            }
+
+            // The animation frame, counting down over the life (0 once past the frames)
+            const u16 frames = field<u16>(o, 0x96);
+            if (frames != 0) {
+                u16 frame = frames;
+                const s32 left = field<s32>(p, 0x20);
+                if (left >= 0)
+                    frame = (u16)(frame - (u16)((s32)((u32)((s32)(s16)frames - 1) * (u32)left) / field<s32>(p, 0x1c)));
+                frame = (u16)(frame - 1);
+                field<u16>(p, 0x2c) = frame;
+                if ((s32)frame >= (s32)field<s16>(o, 0x96))
+                    field<u16>(p, 0x2c) = 0;
+            } else {
+                field<u16>(p, 0x2c) = 0;
+            }
+
+            // The size, from +0xa6 at the end to +0x74 at the start; the colour drifts by +0xbe up to +0xc6
+            if (field<s32>(o, 0x78) > 0) {
+                const s32 span = (s32)((u32)((s32)field<s16>(o, 0x74) - (s32)field<s16>(o, 0xa6)) * (u32)field<s32>(p, 0x20));
+                field<u16>(p, 0x28) = (u16)(span / field<s32>(p, 0x1c) + field<u16>(o, 0xa6));
+            } else {
+                field<u16>(p, 0x28) = field<u16>(o, 0x74);
+            }
+            const u16 low = field<u16>(o, 0xbe), high = field<u16>(o, 0xc6);
+            const u16 drift = low == high ? low : (u16)(Particle_Rand((s32)(s16)high - (s32)(s16)low) + field<u16>(o, 0xbe));
+            field<u16>(p, 0x2e) = (u16)(field<u16>(p, 0x2e) + drift);
+
+            // The motion: a random kick, drag (+0x7c over 1024), gravity (+0x80); a new particle (+0x24 of 2) stays put once
+            s32 *const vel = pos + 3;
+            if (o[0x6f] != 0) {
+                for (u32 k = 0; k < 3; ++k) {
+                    const s32 kick = Particle_RandSigned(field<s32>(o, 0x84 + 4 * k));
+                    vel[k] = (s32)((u32)vel[k] + (u32)kick);
+                }
+            }
+            const s32 drag = field<s32>(o, 0x7c);
+            if (drag != 0) {
+                for (u32 k = 0; k < 3; ++k)
+                    vel[k] = (s32)((u32)vel[k] - (u32)((s32)((u32)drag * (u32)vel[k]) / 1024));
+            }
+            vel[1] = (s32)((u32)vel[1] - field<u32>(o, 0x80));
+            if (field<u16>(p, 0x24) == 2) {
+                field<u16>(p, 0x24) = 1;
+            } else {
+                for (u32 k = 0; k < 3; ++k)
+                    pos[k] = (s32)((u32)pos[k] + (u32)vel[k]);
+            }
+
+            // The system's bounds grow by the particle (half its size over 1024 about it), unless the byte +5 is set
+            if (o[5] == 0) {
+                const s32 half = field<s16>(p, 0x28) / 1024;
+                for (u32 k = 0; k < 3; ++k) {
+                    const s32 least = (s32)((u32)pos[k] - (u32)half);
+                    if (field<s32>(o, 0x128 + 4 * k) >= least)
+                        field<s32>(o, 0x128 + 4 * k) = least;
+                }
+                for (u32 k = 0; k < 3; ++k) {
+                    const s32 most = (s32)((u32)pos[k] + (u32)half);
+                    if (field<s32>(o, 0x134 + 4 * k) <= most)
+                        field<s32>(o, 0x134 + 4 * k) = most;
+                }
+            }
+            record = next;
+        }
+    }
+}
 }

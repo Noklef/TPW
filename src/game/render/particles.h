@@ -1,5 +1,5 @@
 // The particle systems' handle accessors: reimplementation of 0x51fa80, 0x51fd80, 0x51fe30, 0x51fd90, 0x51feb0,
-// 0x520030, 0x5200b0, 0x5204c0, 0x521810, 0x521850, 0x51ff10, 0x51ff70, 0x51ffd0, 0x520470, 0x5222e0, 0x522320, 0x520e00, 0x520560 and 0x521e60. Nothing works before the
+// 0x520030, 0x5200b0, 0x5204c0, 0x521810, 0x521850, 0x51ff10, 0x51ff70, 0x51ffd0, 0x520470, 0x5222e0, 0x522320, 0x520e00, 0x520560, 0x521e60 and 0x5214a0. Nothing works before the
 // particles are set up (0x816d40 set). A system handle is serial << 16 | slot: slot (u16) below
 // 0x78 in gParticleSystems (0x80cefc, 0x140 bytes each, copies of an effect definition), its
 // serial the system's u16 +0xa; 0 is none. A system's +0x20 is its age (-2 ends it) and +0xd4 its
@@ -93,4 +93,15 @@ s32 __cdecl Particle_Emit(u32 slot);
 // or the linked effect (Particle_Spawn, at its definition's +0x2c offset with +0xb8, -1 when the definition links itself; then the new system's +0xab is
 // set), the result kept in +0xb4. Returns the handle (serial << 16 | slot).
 s32 __cdecl Particle_Spawn(s32 effect, s32 x, s32 y, s32 z);
+
+// 0x5214a0: one step of every particle of each live system (from 0x816d1c, next in the word +0xd0) whose word +2 is 0, along its record list (the word +6,
+// next in the record's +0x30). Each record's age +0x20 counts down; below 0 it ends: the emit count 0x80ced0 and its system's (the record's +0x26) word +8
+// count down, its system's death effect +0x98 (not negative) is spawned at its position (times 16) and it goes back on the free list (FreeList_Return).
+// Otherwise (age -1 when the system is ending, +0x20 negative, and its byte +0xaa set): the sprite +0x18 (one of +0xd8's 16 at random for an odd +0x58,
+// else by age * 15 / life +0x1c when +0x78 is above 0, else the first), the frame +0x2c counting down from the word +0x96 over the life (0 past it), the
+// size +0x28 from +0x74 at the start to +0xa6 at the end (+0x74 without +0x78), the colour +0x2e plus +0xbe (plus Rand(+0xc6 - +0xbe) when they differ),
+// a random kick (byte +0x6f: RandSigned of +0x84/+0x88/+0x8c), drag (v * +0x7c / 1024 off each component), gravity (+0x80 off y); a fresh particle (+0x24
+// of 2) becomes 1 and stays, others move by the velocity. Unless the system's byte +5 is set its bounds (+0x128 least, +0x134 most) take the particle's
+// position less / plus its size / 1024. (The original's print of a frame past the count is left out.)
+void __cdecl Particles_Update();
 }
