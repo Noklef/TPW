@@ -47,6 +47,9 @@ def parse_spec(path):
         if not line.strip() or line.lstrip().startswith('#'):
             continue
         name, addr, unit, desc = (x.strip() for x in line.split('|', 3))
+        base = unit.replace('\\', '/').rsplit('/', 1)[-1].removesuffix('.cpp')
+        if re.match(r'^(small|tiny_?|misc)\d*[a-z]?\d*$', base):  # the repo names a module for its subject, not a bucket
+            sys.exit('%s: unit %r is a bucket name; put %s in a module named for what it belongs to' % (path, unit, name))
         out.append((name, int(addr, 16), unit.replace('\\', '/').removesuffix('.cpp'), desc))
     return out
 
