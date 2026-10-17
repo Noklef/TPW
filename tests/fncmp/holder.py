@@ -181,8 +181,6 @@ def add_obj(r):   # an object {flags, part} (render/renderer Obj_AddToRenderer) 
 def set_part(r):   # an object whose part at +0xb4 is the grid environment's part (offset 0x100 behind its vtable), the words at +8 and +0x44
     c = clean_slots(r, add_to_grid(r))
     regions = dict(c.regions)
-    obj = c.args[5] if False else None
-    part = [k for k, v in regions.items() if len(v) == 4 and struct.unpack('<I', v)[0] == RAM + 0x6000 + 0 and False]
     holder = c.args[0]
     part = struct.unpack_from('<I', regions[holder], 0x1c)[0]    # the part pointer the holder keeps (a vtable pointer behind it, offset 0x100)
     me = part - 0xb4
