@@ -433,18 +433,6 @@ address,name,module,reason
 630c90,PixelConverter_Dtor,gfx/pixconv,todo
 638be0,BufferSource_AttachRefPack,files/wrapsources,todo: decodes what the source reads; needs a bench feeding real RefPack streams
 638d30,BufferSource_AttachZlib,files/wrapsources,todo: hands the codec a stack CallbackStream; needs a recorder that logs the pointee rather than the stack address
-638ef0,BufferedSource_Ctor,files/bufsource,todo
-638f20,BufferedSource_Open,files/bufsource,todo
-638f70,BufferedSource_Free,files/bufsource,todo
-638f80,BufferedSource_Read,files/bufsource,todo
-639000,BufferedSource_Seek,files/bufsource,todo
-639050,BufferedSource_Write,files/bufsource,todo
-6390f0,BufferedSource_Tell,files/bufsource,todo
-639110,BufferedSource_Attach,files/bufsource,todo
-639130,BufferedSource_ReadDirect,files/bufsource,todo
-639150,BufferedSource_CopyWindow,files/bufsource,todo
-6391b0,BufferedSource_Fill,files/bufsource,todo
-6391e0,BufferedSource_ReadRaw,files/bufsource,todo
 63a7b0,IndexConverter_Ctor,gfx/pixconv,todo
 63a810,IndexConverter_DeletingDtor,gfx/pixconv,todo
 63a830,IndexConverter_Dtor,gfx/pixconv,todo
