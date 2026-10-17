@@ -94,6 +94,9 @@ void __fastcall StringList_Dtor(StringList *l);
 void __fastcall StringList_Clear(StringList *l);
 StringList *__fastcall StringList_DeletingDtor(StringList *l, void *edx, u32 flags);
 StringListNode *__fastcall StringListNode_DeletingDtor(StringListNode *n, void *edx, u32 flags);
+// 0x45f8e0 (thiscall; flags): the deleting destructor of vtable 0x6fe680 (its one slot), the same as 0x61a7e0 with the
+// destructor inline.
+StringList *__fastcall StringListBase_DeletingDtor(StringList *l, void *edx, u32 flags);
 }
 
 struct WadSourceEnv {

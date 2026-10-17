@@ -1337,6 +1337,7 @@ address,name,kind,confidence,notes
 0x0061add0,WadSource_Vfn9,function,high,"reimplemented (src/game/files/wadsource); thiscall (&result, a); -1 (vtable +0x24)"
 0x0061aeb0,StringList_Clear,function,high,reimplemented (src/game/files/wadsource); thiscall; the destructor without the vtable
 0x0061af00,StringListNode_DeletingDtor,function,high,reimplemented (src/game/files/wadsource); thiscall (flags)
+0x0045f8e0,StringListBase_DeletingDtor,function,high,"reimplemented (src/game/files/wadsource); thiscall (flags): the deleting destructor of vtable 0x6fe680 (StringList_Dtor inline, then freed when flags & 1)"
 0x004217e0,StreamBase_GetSource,function,high,reimplemented (src/game/core/accessors); the dword at 0x4
 0x00703908,WadSource_vtable,data,high,src/game/files/wadsource
 0x00638ef0,BufferedSource_Ctor,function,high,"reimplemented (src/game/files/bufsource); thiscall; 0x28 bytes, vtable 0x703f78; the window end left unset"

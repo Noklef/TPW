@@ -309,6 +309,12 @@ StringList *__fastcall StringList_DeletingDtor(StringList *l, void *, u32 flags)
     return l;
 }
 
+StringList *__fastcall StringListBase_DeletingDtor(StringList *l, void *, u32 flags) {
+    StringList_Dtor(l);
+    if (flags & 1) g_env->free(l);
+    return l;
+}
+
 StringListNode *__fastcall StringListNode_DeletingDtor(StringListNode *n, void *, u32 flags) {
     String_Dtor(&n->text);
     if (flags & 1) g_env->free(n);
