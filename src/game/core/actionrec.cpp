@@ -2,8 +2,11 @@
 
 #include <cstdint>
 
+#include "../files/file.h"
 #include "../files/handles.h"
 #include "../world/world.h"
+#include "gameheap.h"
+#include "savegame.h"
 #include "vcall.h"
 
 namespace {
@@ -101,6 +104,52 @@ void __fastcall ActionRec_Restart(ActionRec *r) {
     const u32 mode = r->mode;
     r->recording = 1;
     begin(r, mode);
+}
+
+u32 __fastcall ActionRec_Serialize(ActionRec *r, void *, Stream *s, u32 save, s32 version, u32) {
+    if (version < 0 || version > 1) return 0;
+    const char *const value = reinterpret_cast<const char *>((uintptr_t)0x00747144);
+    const char *const sized = reinterpret_cast<const char *>((uintptr_t)0x00747134);
+    StreamBase *const first = stream(r, 0);
+    s32 result, done = 0, size;
+    if (save) {
+        Save_FieldName(4, value, 0);
+        if (*Stream_Write(&result, s, &r->unknown8, 4, &done) < 0 || done != 4) return 1;
+        size = vcall<s32>(first, 0x14);
+        Save_FieldName(4, sized, 0);
+        done = 0;
+        if (*Stream_Write(&result, s, &size, 4, &done) < 0 || done != 4) return 1;
+        void *const bytes = GameHeap_Alloc((u32)size);
+        done = 0;
+        vcall<s32>(first, 0x10, 0, 0);
+        vcall<s32>(first, 8, bytes, size);
+        vcall<s32>(first, 0x10, 0, 2);
+        const bool failed = *Stream_Write(&result, s, bytes, size, &done) < 0;
+        GameHeap_Free(bytes);
+        return failed ? 1 : 0;
+    }
+    r->recording = 0;
+    close(r, 0);
+    if (r->mode == 0) {
+        close(r, 1);
+        close(r, 2);
+    }
+    ActionRec_Start(r, nullptr, r->mode);
+    Save_FieldName(4, value, 1);
+    if (*Stream_Read(&result, s, &r->unknown8, 4, &done) < 0 || done != 4) return 1;
+    Save_FieldName(4, sized, 1);
+    done = 0;
+    if (*Stream_Read(&result, s, &size, 4, &done) < 0 || done != 4) return 1;
+    void *const bytes = GameHeap_Alloc((u32)size);
+    done = 0;
+    if (*Stream_Read(&result, s, bytes, size, &done) < 0) {
+        GameHeap_Free(bytes);
+        return 1;
+    }
+    vcall<s32>(first, 0xc, bytes, size);
+    vcall<s32>(first, 0x10, 0, 2);
+    GameHeap_Free(bytes);
+    return 0;
 }
 
 void __fastcall ActionRec_Write(ActionRec *r, void *, u32 code) {

@@ -11,18 +11,21 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, STUBS, Bench, Call, heap, import_table, log_region, set_return, strings, vtable  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, STUBS, Bench, Call, fill, heap, import_table, log_region, record_stream, set_return, strings, vtable  # noqa: E402
 
 B = Bench([(0x403400, 0x403f00), (0x5f7000, 0x5f7400), (0x5f8000, 0x5f9000), (0x5fa900, 0x5fa9a0), (0x618c00, 0x619260), (0x6307c0, 0x630800),
-           (0x5da3c0, 0x5da3d0), (0x405000, 0x406000), (0x67a400, 0x690000)])
+           (0x5da3c0, 0x5da3d0), (0x405000, 0x406000), (0x67a400, 0x690000), (0x416e10, 0x416e15), (0x5f5e20, 0x5f5e80),
+           (0x639100, 0x639110)])
 THIS, VT, BUF, SRC, VT_SRC = RAM, RAM + 0x400, RAM + 0x500, RAM + 0x600, RAM + 0x680
+EXT, SINK = RAM + 0x800, RAM + 0x900   # the serializer's save game stream (a record stream) and its bytes
 GAME_STREAM = 0x6fd6a0
 IMPORTS = {'CreateSemaphoreA': (40, 0x6fd16c, 4, 8, 0), 'CloseHandle': (41, 0x6fd13c, 1, 0, 0), 'InterlockedIncrement': (42, 0x6fd0c0, 1, 0, 0),
            'InterlockedDecrement': (43, 0x6fd12c, 1, 0, 0)}
 # name: (address, operands: n random dwords, 'm' the mode, '' none; this: w a writer's, s streams to start / stop, c room for the constructor)
 OPS = {'Write': (0x403be0, 1, 'w'), 'WriteBB': (0x403c20, 3, 'w'), 'WriteBBW': (0x403c80, 4, 'w'), 'WriteW': (0x403d00, 2, 'w'),
        'WriteWW': (0x403d60, 3, 'w'), 'WriteWWW': (0x403dd0, 4, 'w'), 'WriteWB': (0x403e60, 3, 'w'),
-       'Ctor': (0x403480, 0, 'c'), 'Dtor': (0x4036e0, 0, 's'), 'Start': (0x403a40, 'm', 's'), 'Restart': (0x403b00, 0, 's')}
+       'Ctor': (0x403480, 0, 'c'), 'Dtor': (0x4036e0, 0, 's'), 'Start': (0x403a40, 'm', 's'), 'Restart': (0x403b00, 0, 's'),
+       'Serialize': (0x403780, 0, 'z')}
 
 
 def flags(r, o):
@@ -50,7 +53,7 @@ def streams(r, regions, dtor):
         if kind == 'game':
             struct.pack_into('<2I', o, 0xc + 8 * i, GAME_STREAM, SRC + 0x10 * i if dtor and r.random() < 0.5 else 0)
         else:
-            vt = vtable({0: 1, 3: 2}, 8)   # (+0xc the write: its buffer, on the stack, logged as 0)
+            vt = vtable({0: 1, 2: 2, 3: 2, 4: 2}, 8)   # (+8 the read, +0xc the write: its buffer, on the stack, logged as 0; +0x10 the seek)
             if kind == 'stub':
                 struct.pack_into('<I', vt, 0xc, STUBS + 0x10)
             vts[0x20 * i:0x20 * i + 0x20] = vt
@@ -59,6 +62,26 @@ def streams(r, regions, dtor):
     regions[BUF] = r.bytes(0x100)
     regions[SRC] = b''.join(struct.pack('<3I', VT_SRC, 0, r.choice([1, 2, 3])) + r.bytes(4) for _ in range(3))
     regions[VT_SRC] = vtable({0: 1}, 12)
+
+
+SIZES = [0, 1, 4, 7, 0x10, 0x40, 0x41, 0x100]
+
+
+def serialize(r, regions):
+    """ActionRec_Serialize: the streams as above; saving, the first one's size (a recorder's +0x14) and the bytes its read fills; loading, the
+    save game's +8, size and bytes; the save game stream with room for all, a field's worth or less; versions in and out of 0..1."""
+    streams(r, regions, False)
+    log = regions[LOG]
+    size = r.choice(SIZES)
+    set_return(log, 5, size)
+    fill(log, 2, 0, r.bytes(min(size, 0x70)))
+    sink = bytearray(r.bytes(0x100))
+    struct.pack_into('<I', sink, 4, r.choice(SIZES + [size, r.getrandbits(8)]))
+    regions[SINK] = sink
+    regions[EXT] = record_stream(EXT, SINK, r.choice([0x100, 0x100, 0x100, 0x100, 4, 8, 0, 3, 7, 9, 0x20]))
+    save = r.choice([0, 1, 0, 1, r.getrandbits(32)])
+    version = r.choice([0, 1, 0, 1, 0, 1, -1, 2, r.getrandbits(32)])
+    return Call(0x403780, [THIS, EXT, save, version, r.getrandbits(32)], regions, conv='t', ret='a')
 
 
 def case(r):
@@ -70,6 +93,8 @@ def case(r):
     set_return(log, 43, r.choice([0, 1, 1, 2]))
     strings(log, 3, 0, 1)
     regions = {LOG: log, IMPORT_TABLE: import_table(log, IMPORTS), HEAP: heap(0x800, fail=r.choice([1, 2, 3, 4]) if r.random() < 0.1 else 0)}
+    if kind == 'z':
+        return serialize(r, regions)
     if kind == 'c':
         regions[THIS] = r.bytes(0x3e0)
         return Call(address, [THIS], regions, conv='t', ret='a')

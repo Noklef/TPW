@@ -19,6 +19,8 @@ struct ActionRec {
 };
 static_assert(sizeof(ActionRec) == 0x28, "the writers' fields end at +0x28");
 
+struct Stream;
+
 extern "C" {
 // 0x403480 (thiscall): the constructor. The streams constructed with the vtable 0x6fd6a0, playback 0, a table of
 // settings from +0x34 to +0x148 and +0x3d0, then started as Start(0) would (mode 0, all three streams opened);
@@ -32,6 +34,14 @@ void __fastcall ActionRec_Dtor(ActionRec *r);
 void __fastcall ActionRec_Start(ActionRec *r, void *, u32 mode);
 // 0x403b00 (thiscall): recording stopped, its streams closed as the destructor does, then started again in its mode.
 void __fastcall ActionRec_Restart(ActionRec *r);
+// 0x403780 (thiscall (stream, save, version, unused), pops 0x10): the save game serializer. A version other than 0 or 1 returns 0.
+// Saving: +8 (the field 0x747144) and the first stream's size (vtable +0x14; the field 0x747134) written, 4 bytes each, then that
+// many bytes: a block (Mem_Alloc) read from the first stream after a seek to its start (+0x10 (0, 0), +8 (block, size)), the stream
+// sought back to its end (+0x10 (0, 2)), the block written and freed. Loading: recording stopped and the streams closed (as Restart),
+// started again in its mode, then +8 and the size read the same way and that many bytes read into a block, written to the first
+// stream (+0xc), the stream sought to its end, the block freed. Returns 1 when a field's transfer reports an error or moves fewer
+// than 4 bytes (after a debug print, compiled out) or the bytes' transfer reports an error (freeing the block), else 0.
+u32 __fastcall ActionRec_Serialize(ActionRec *r, void *, Stream *stream, u32 save, s32 version, u32);
 // 0x403be0 (thiscall; code, pops 4): the code byte.
 void __fastcall ActionRec_Write(ActionRec *r, void *, u32 code);
 // 0x403c20 (thiscall; code, a, b; pops 0xc): three bytes.
