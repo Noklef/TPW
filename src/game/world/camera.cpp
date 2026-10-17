@@ -67,6 +67,22 @@ void __cdecl Camera_SetView(const u32 *x, const u32 *z, const u32 *zoom, const u
     if (other) global(0x0074c9bc) = *other;
 }
 
+void __cdecl Camera_CentreOnCell(const u16 *cell) {
+    const u32 v = static_cast<u32>(*cell) - 1;
+    const float x = static_cast<float>(static_cast<s32>((v & 0x7f) * 10));
+    const float z = static_cast<float>(static_cast<s32>((v >> 7) * 10));
+    Camera_SetView(reinterpret_cast<const u32 *>(&x), reinterpret_cast<const u32 *>(&z), nullptr, nullptr, nullptr);
+}
+
+void __cdecl Camera_CentreOnThing(u32 handle) {
+    const u16 h = static_cast<u16>(handle);
+    if (!h) return;
+    const u8 *const thing = *reinterpret_cast<const u8 *const *>(0x007cfb90 + 20 * static_cast<u32>(h));
+    if (!thing) return;
+    const u16 cell = static_cast<u16>(thing[7] * 128 + thing[5] + 1);
+    Camera_CentreOnCell(&cell);
+}
+
 void __cdecl Camera_SetFlag80(u32 on) {
     if (on)
         global(0x00790ab0) |= 0x80;

@@ -701,6 +701,8 @@ address,name,kind,confidence,notes
 0x0042aab0,Camera_SetView,function,high,"reimplemented (src/game/world/camera); clears 0x790a88-0x790a90; sets x/z (z read whenever x given), 0x7909ec, yaw 0x790a38, 0x74c9bc from non-null pointers"
 0x0042afd0,Camera_SetFlag80,function,high,reimplemented (src/game/world/camera); sets or clears gCameraFlags (0x790ab0) bit 0x80
 0x0042cd40,Camera_ClampCell,function,high,"reimplemented (src/game/world/camera); clamps a cell to [0, 0x7a0314 - 1] x [0, 0x7a0374 - 1], signed"
+0x004868d0,Camera_CentreOnCell,function,low,reimplemented (src/game/world/camera); The view's point set to a cell's centre from its id
+0x004867b0,Camera_CentreOnThing,function,low,reimplemented (src/game/world/camera); The view's point set to a thing's cell
 0x0046c450,MouseMode_Nop4,function,high,reimplemented (src/game/world/mousemode); an empty mouse-mode method (4 arguments)
 0x0046c460,MouseMode_DeletingDtor,function,high,reimplemented (src/game/world/mousemode); the base mouse mode's deleting destructor
 0x0046c580,MouseModeTile_Ctor,function,high,reimplemented (src/game/world/mousemode); the 0x6fe9e0 tile mode's constructor

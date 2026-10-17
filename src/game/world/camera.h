@@ -42,6 +42,15 @@ u8 *__cdecl Camera_PartFace(u8 *const *instance, const u32 *part);
 // 0x74c9bc.
 void __cdecl Camera_SetView(const u32 *x, const u32 *z, const u32 *zoom, const u32 *yaw, const u32 *other);
 
+// 0x4868d0 (cdecl; &cell; name unconfirmed): Camera_SetView of the point only: the cell id less 1 (a u16 widened, so 0 is 0xffffffff) split
+// into x (its low 7 bits) and z (the rest), each times 10 (wrapping) as a float.
+void __cdecl Camera_CentreOnCell(const u16 *cell);
+
+// 0x4867b0 (cdecl; handle; name unconfirmed): for a thing's handle (its low word; 0 nothing) whose slot (0x7cfb90) holds a thing, the camera
+// centred (as Camera_CentreOnCell) on the cell id of its cell bytes +5 (x) and +7 (z): z * 128 + x + 1 as a word. (Its debug check of the
+// thing table left out.)
+void __cdecl Camera_CentreOnThing(u32 handle);
+
 // 0x42afd0: sets (on) or clears gCameraFlags bit 0x80.
 void __cdecl Camera_SetFlag80(u32 on);
 
