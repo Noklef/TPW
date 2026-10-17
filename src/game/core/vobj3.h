@@ -9,6 +9,10 @@ extern "C" {
 // 0x5644c0 (thiscall; returns 1): the dword at 0x879cd4 = the COM call (slot 0x80) of the object at +0x14 with 0.
 u32 __fastcall Obj_StoreComSlot80(u8 *object);
 
+// 0x5645a0 (thiscall): the free video memory the DirectDraw object at +8 gives (GetAvailableVidMem, COM slot 0x5c, for zeroed DDSCAPS2); what the call
+// leaves in it when it fails (sic: not set before).
+u32 __fastcall Obj_FreeVideoMemory(u8 *object);
+
 // 0x4ef7b0 (thiscall on a counted object): the count at +4 is lowered unless it is 0 or -1; returns the object when the count is then 0, otherwise 0.
 // 0x4ef790 (thiscall on a pointer to one): the object that returns (when there is one) is deleted (slot 0 with 1).
 u8 *__fastcall Counted_Release(u8 *counted);

@@ -6,10 +6,10 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, HEAP, LOG, RAM, heap, log_region, put, recorder, set_return, vtable  # noqa: E402
+from fncmp import Bench, Call, HEAP, LOG, RAM, fill, heap, log_region, put, recorder, set_return, strings, vtable  # noqa: E402
 
 # name: (address, convention, returns, size)
-CALLS = {'Slot80': (0x5644c0, 't', 'a', 0x20), 'Crel': (0x4ef7b0, 't', 'a', 0x40), 'Cref': (0x4ef790, 't', 'v', 0x20), 'Seven': (0x5640a0, 't', 'a', 0xa0),
+CALLS = {'Slot80': (0x5644c0, 't', 'a', 0x20), 'VidMem': (0x5645a0, 't', 'a', 0x40), 'Crel': (0x4ef7b0, 't', 'a', 0x40), 'Cref': (0x4ef790, 't', 'v', 0x20), 'Seven': (0x5640a0, 't', 'a', 0xa0),
          'Six': (0x58d380, 't', 'a', 0x80), 'Rem': (0x421690, 't', 'a', 0x90), 'Add': (0x576270, 't', 'a', 0xa0)}
 
 
@@ -22,7 +22,7 @@ OBJ, LST, NODES, OBJS, VT, VTA, VTM = RAM, RAM + 0x1000, RAM + 0x1100, RAM + 0x2
 
 
 def case(r):
-    name = r.choice(OPS)
+    name = r.deal(OPS)
     address, conv, ret, _n = CALLS[name]
     obj = bytearray(r.bytes(0x500))
     log = log_region()
@@ -37,6 +37,15 @@ def case(r):
         regions[VTM] = vtable({}, size=48, com={32: 2})
         regions[0x879cd4] = r.bytes(4)
         set_return(log, 32, r.getrandbits(32))
+        return call()
+    if name == 'VidMem':   # GetAvailableVidMem (COM slot 23: this, caps, &total, &free): the stack pointers logged as 0, the outs filled
+        put(obj, 8, 'I', RAM + 0x300)
+        regions[RAM + 0x300] = struct.pack('<I', VTM) + r.bytes(0x20)
+        regions[VTM] = vtable({}, size=48, com={23: 4})
+        strings(log, 23, 0, out=0b1110)
+        fill(log, 23, 3, r.bytes(4))
+        fill(log, 23, 2, r.bytes(4), which=1)
+        set_return(log, 23, r.choice([0, 0x887600e1]))
         return call()
     if name in ('Crel', 'Cref'):
         counted = RAM + 0x200

@@ -3387,6 +3387,7 @@ address,name,kind,confidence,notes
 0x0058d380,Object_FreeSixPointerArrays,function,high,reimplemented (src/game/core/vobj3); clears the animated textures and frees six arrays of records
 0x00421690,ListRef_Remove,function,high,reimplemented (src/game/core/vobj3); unlinks the node of an object and deletes the object
 0x00576270,Pool_AddSorted,function,high,reimplemented (src/game/core/vobj3); links a pooled node holding an object into a list
+0x005645a0,Obj_FreeVideoMemory,function,low,"reimplemented (src/game/core/vobj3); thiscall: the free video memory of the DirectDraw object at +8 (GetAvailableVidMem, COM slot 0x5c, zeroed DDSCAPS2)"
 0x005b55e0,Class702880_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor calling Class702880_Dtor
 0x005b58a0,Class702890_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor calling Class702890_Dtor
 0x005bced0,Class7028d0_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor calling Class7028d0_Dtor
