@@ -115,6 +115,7 @@
 #include "../game/core/observers.h"
 #include "../game/gfx/imageops.h"
 #include "../game/gfx/statsgraph.h"
+#include "../game/gfx/texsprite.h"
 #include "../game/core/crt.h"
 #include "../game/core/gameheap.h"
 #include "../game/core/ptrlist.h"
@@ -3475,6 +3476,7 @@ const Hook kHooks[] = {
     {"StatsGraph_ShownMax",       0x0049a7b0, (void *)&StatsGraph_ShownMax, {0x51, 0x8b, 0x0d, 0x3c, 0xf8}},
     {"StatsGraph_ShownMin",       0x0049a8f0, (void *)&StatsGraph_ShownMin, {0x51, 0x8b, 0x0d, 0x3c, 0xf8}},
     {"RleImage_DrawScaled",       0x00564790, (void *)&RleImage_DrawScaled, {0x81, 0xec, 0x2c, 0x02, 0x00}},
+    {"TexSprite_Ctor",            0x005f4370, (void *)&TexSprite_Ctor, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
