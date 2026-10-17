@@ -168,6 +168,7 @@
 #include "../game/core/small62.h"
 #include "../game/core/small63.h"
 #include "../game/core/small64.h"
+#include "../game/core/small65.h"
 #include "../game/core/small7.h"
 #include "../game/core/small8.h"
 #include "../game/core/small9.h"
@@ -3002,6 +3003,9 @@ const Hook kHooks[] = {
     {"Thing_Construct",           0x0050afe0, (void *)&Thing_Construct, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"DrawBatch_Open",            0x00565310, (void *)&DrawBatch_Open, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Object_ReleaseSavedPairs",  0x0057b070, (void *)&Object_ReleaseSavedPairs, {0x56, 0x8b, 0xf1, 0xf7, 0x46}},
+    {"Class702bc8_Ctor",          0x005dc580, (void *)&Class702bc8_Ctor, {0x6a, 0xff, 0x68, 0x58, 0x14}},
+    {"Class7037c0_Create",        0x00617ff0, (void *)&Class7037c0_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Class50ffe0_Ctor",          0x0050ffe0, (void *)&Class50ffe0_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

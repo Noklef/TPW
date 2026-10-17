@@ -3408,6 +3408,9 @@ address,name,kind,confidence,notes
 0x0050afe0,Thing_Construct,function,high,"reimplemented (src/game/core/small63); a thing's constructor: slot, handle, cell and chain"
 0x00565310,DrawBatch_Open,function,high,reimplemented (src/game/core/small64); a draw batch resumed and tagged
 0x0057b070,Object_ReleaseSavedPairs,function,high,reimplemented (src/game/core/small64); saved pairs written back and their arrays freed
+0x005dc580,Class702bc8_Ctor,function,high,reimplemented (src/game/core/small65); constructor with two helper objects and tuning floats
+0x00617ff0,Class7037c0_Create,function,high,reimplemented (src/game/core/small65); object factory with a result code
+0x0050ffe0,Class50ffe0_Ctor,function,high,reimplemented (src/game/core/small65); constants constructor with five integer pairs
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
