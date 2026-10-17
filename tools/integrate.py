@@ -64,6 +64,16 @@ def anchors(unit):
     return ['(src/game/%s)' % unit, '(src/game/%s/' % unit.rsplit('/', 1)[0]]
 
 
+def header_of(unit):
+    """The unit's header without its extension (relative to src/game): its own, or the one its .cpp includes first (rsse_vm.cpp includes rsse.h)."""
+    cpp = os.path.join(ROOT, 'src', 'game', unit + '.cpp')
+    if not os.path.exists(os.path.join(ROOT, 'src', 'game', unit + '.h')) and os.path.exists(cpp):
+        m = re.search(r'#include "([^"]+)\.h"', read(cpp))
+        if m:
+            return os.path.normpath(os.path.join(os.path.dirname(unit), m.group(1))).replace(os.sep, '/')
+    return unit
+
+
 def check_names(spec, symbols_text):
     """Exits, before any edit, on a name that is already something else."""
     hooks = read(HOOKS)
@@ -75,7 +85,7 @@ def check_names(spec, symbols_text):
         for row in csv.reader(io.StringIO(symbols_text)):
             if len(row) > 1 and row[1] == name and int(row[0], 16) != addr:
                 bad.append('%s is %s in re/symbols.csv' % (name, row[0]))
-        own = os.path.normpath(os.path.join(ROOT, 'src', 'game', unit + '.h'))
+        own = os.path.normpath(os.path.join(ROOT, 'src', 'game', header_of(unit) + '.h'))
         decl = re.compile(r'\b%s\s*\(' % re.escape(name))
         for d, _, files in os.walk(os.path.join(ROOT, 'src', 'game')):
             for f in files:
@@ -116,15 +126,16 @@ def add_hooks(spec, names_by_unit):
         added += 1
     text = nl.join(lines)
     for unit in sorted({s[2] for s in spec}):
-        inc = '#include "../game/%s.h"' % unit
+        header = header_of(unit)
+        inc = '#include "../game/%s.h"' % header
         if inc not in text:
             incs = [m for m in re.finditer(r'^#include "\.\./game/([^"]+)\.h"\r?$', text, re.M)]
-            after = [m for m in incs if m.group(1).split('/')[0] == unit.split('/')[0] and m.group(1) < unit]
-            same = [m for m in incs if m.group(1).split('/')[0] == unit.split('/')[0]]
+            after = [m for m in incs if m.group(1).split('/')[0] == header.split('/')[0] and m.group(1) < header]
+            same = [m for m in incs if m.group(1).split('/')[0] == header.split('/')[0]]
             anchor = (after or same or incs)[-1]
             pos = anchor.end() if after or not same else anchor.start()
             text = text[:pos] + (nl + inc if after or not same else inc + nl) + text[pos:]
-            print('  hooks.cpp: included %s.h' % unit)
+            print('  hooks.cpp: included %s.h' % header)
     write(HOOKS, text)
     return added
 
