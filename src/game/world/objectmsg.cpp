@@ -2,11 +2,14 @@
 
 #include <cstdint>
 
+#include "../coaster/registry.h"
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
 #include "analysercell.h"
 #include "mapcell.h"
+#include "objectdefs.h"
 #include "person.h"
+#include "ridelist.h"
 
 namespace {
 
@@ -65,6 +68,22 @@ void __fastcall Object_QueueAddPerson(u8 *object, void *, u32 person) {
     at<u16>(ThingOf(person), 0x228) = 0;
 }
 
+void __fastcall Object_QueueRemovePerson(u8 *object, void *, u32 person) {
+    const u32 handle = person & 0xffff;
+    if (Rides_GetElement(Rides_FindById(at<s32>(object, 0x24)), 0) == handle)
+        Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 0, 0);
+    const u16 ahead = at<u16>(ThingOf(handle), 0x22a);
+    const u16 behind = at<u16>(ThingOf(handle), 0x228);
+    if (ahead == 0)
+        at<u16>(object, 0x3c) = behind;
+    else
+        at<u16>(ThingOf(ahead), 0x228) = behind;
+    if (behind != 0)
+        at<u16>(ThingOf(behind), 0x22a) = ahead;
+    at<u16>(ThingOf(handle), 0x22a) = 0;
+    at<u16>(ThingOf(handle), 0x228) = 0;
+}
+
 s32 __fastcall Object_QueuePosition(u8 *object, void *, u32 person) {
     u16 current = at<u16>(object, 0x3c);
     const u16 wanted = (u16)person;
@@ -121,5 +140,21 @@ s32 __fastcall Object_QueuePositionOfNone(u8 *object) {
 u32 __fastcall Object_QueueHasRoom(u8 *object) {
     const u32 position = (u32)Object_QueuePosition(object, nullptr, 0);
     return position < (at<u32>(object, 0x40) << 2) ? 1 : 0;
+}
+
+u32 __fastcall Object_QueueOpen(u8 *object) {
+    if (!(at<u8>(object, 0x32) & 4)) return 0;
+    const s32 state = at<s32>(object, 0x19c);
+    if (state == 1 || at<u32>(object, 0x68) == 0 || state == 4) return 0;
+    u16 back;
+    Object_BackOfQueue(object, nullptr, &back);
+    if (back == 0) return 0;
+    const u32 position = (u32)Object_QueuePosition(object, nullptr, 0);
+    if (!(position < (at<u32>(object, 0x40) << 2))) return 0;
+    u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
+    if (at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x9c) == 3 && !Object_LinkOtherOpen(object)) return 0;
+    if (at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x9c) == 1 && at<u32>(object, 0x2c) == 0) return 0;
+    if (at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x9c) == 2 && at<u32>(object, 0x2c) == 0) return 0;
+    return 1;
 }
 }  // extern "C"

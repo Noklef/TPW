@@ -1,5 +1,5 @@
 // The particle systems' handle accessors: reimplementation of 0x51fa80, 0x51fd80, 0x51fe30, 0x51fd90, 0x51feb0,
-// 0x520030, 0x5200b0, 0x5204c0, 0x521810, 0x521850, 0x51ff10, 0x51ff70, 0x51ffd0, 0x520470, 0x5222e0, 0x522320 and 0x520e00. Nothing works before the
+// 0x520030, 0x5200b0, 0x5204c0, 0x521810, 0x521850, 0x51ff10, 0x51ff70, 0x51ffd0, 0x520470, 0x5222e0, 0x522320, 0x520e00, 0x520560, 0x521e60, 0x5214a0, 0x521930 and 0x520f10. Nothing works before the
 // particles are set up (0x816d40 set). A system handle is serial << 16 | slot: slot (u16) below
 // 0x78 in gParticleSystems (0x80cefc, 0x140 bytes each, copies of an effect definition), its
 // serial the system's u16 +0xa; 0 is none. A system's +0x20 is its age (-2 ends it) and +0xd4 its
@@ -70,4 +70,51 @@ s32 __cdecl ParticleSystem_QuarterByte(u32 slot);
 // and y velocity (z stays) and keeps half its y velocity with x and z halved and reversed, else it is put on the
 // ground with its y velocity halved and reversed and x, z halved (all halving truncated toward 0).
 void __cdecl Particle_Move(u8 *p);
+
+// 0x520560 (cdecl; slot): emits a particle from system slot: a record taken off the free list (FreeList_Take; its index is returned, negative when none is free)
+// at [0x80cef8] + index * 0x34. The emit count 0x80ced0 and the system's word +8 count up; the record's words +0x24 = 2, +0x26 the slot, +0x28 the system's +0x74,
+// +0x2a its signed byte +4, +0x2c = 0, +0x2e a random 15 bits when the byte +0x6d is set (else 0); its lifetime +0x20 (+0x1c too, 1 for 0) +0x78 plus
+// RandSigned(+0x78 >> 2); its +0x18 one of the 16 dwords at +0xd8 (Rand(16)) when +0x58 is set, else +0x114. The position (+0, +4, +8): the system's (+0x14)
+// when its extents +0x44/+0x48/+0x4c are all 0; else a point in a box (byte +0xc2: RandSigned of each extent; y Rand when the word +0xa0 is set) or at a
+// random angle (12 bits) on an ellipse's edge (word +0xa8) or within it, x by the cosine and z by the negated sine (the sine table at [0x80ceec], angles in
+// eighths of an entry, products over 256), turned by the angle +0xac when set, plus the system's. A push (the s16 +0xc4) along the angle +0x54 adds to x and
+// z. The velocity (+0xc): with +0x5c set a random angle and Rand(+0x5c) (y RandSigned(+0x5c)), else +0x38 plus RandSigned of the s16 +0x50 for each; plus
+// the system's +0x2c when the byte +0x6c is set. The random numbers are Particle_Rand / Particle_RandSigned's, a step of the seed for each angle.
+s32 __cdecl Particle_Emit(u32 slot);
+
+// 0x521e60 (cdecl; effect, x, y, z): starts a particle system of effect definition `effect` (0x804370 + effect * 0x140) at x, y, z (over 16). -1 before the set-up,
+// for an effect outside 0 to 0x68 or with no free system; 0 for an optional effect (byte +0xc1) while the effects are reduced (0x80ced8). The system at the free
+// head (0x816d20; links: words +0xd0 next, +0xd2 previous) moves to the head of the live list (0x816d1c) and takes the definition's 0x140 bytes (its links
+// kept); Voice_ScaleLevels unless its byte +0xc0 is set; its lifetime +0xd4 = +0x20; the bounds +0x128 to +0x13c empty (0x7fffffff three times, 0x80000000
+// three times; zeros with the byte +5); words +8 = 0, +0xc = the effect, +0 = 1; the velocity +0x2c gets RandSigned of the s16 +0x12 in each component; the
+// serial +0xa from the u16 0x80cee8 (then incremented); +6 = -1, byte +0xab = 0, byte +0x6f whether any of +0x84/+0x88/+0x8c is set. With the word +0xe of
+// 1 its +0 = 1 and +0xcc = 0; with +0xe 0 and +0 above 0 it emits +0x60 particles (Particle_Emit). A link +0xb4 (not negative) starts a voice (byte +0xba:
+// Voice_Start, at the offset of the voice template's +0x18 with the word +0xb8; then the byte +0xa of the instance the whole handle indexes is set, sic)
+// or the linked effect (Particle_Spawn, at its definition's +0x2c offset with +0xb8, -1 when the definition links itself; then the new system's +0xab is
+// set), the result kept in +0xb4. Returns the handle (serial << 16 | slot).
+s32 __cdecl Particle_Spawn(s32 effect, s32 x, s32 y, s32 z);
+
+// 0x521930 (cdecl; effect, x, y, z, vx, vy, vz; name unconfirmed): Particle_Spawn with a velocity: the system's +0x38/+0x3c/+0x40 = vx, vy, vz times its
+// +0xb0 over 1024 (truncated toward 0) in place of the jitter of +0x2c. (Its linked effect is started by Particle_Spawn.)
+s32 __cdecl Particle_SpawnWithVelocity(s32 effect, s32 x, s32 y, s32 z, s32 vx, s32 vy, s32 vz);
+
+// 0x5214a0: one step of every particle of each live system (from 0x816d1c, next in the word +0xd0) whose word +2 is 0, along its record list (the word +6,
+// next in the record's +0x30). Each record's age +0x20 counts down; below 0 it ends: the emit count 0x80ced0 and its system's (the record's +0x26) word +8
+// count down, its system's death effect +0x98 (not negative) is spawned at its position (times 16) and it goes back on the free list (FreeList_Return).
+// Otherwise (age -1 when the system is ending, +0x20 negative, and its byte +0xaa set): the sprite +0x18 (one of +0xd8's 16 at random for an odd +0x58,
+// else by age * 15 / life +0x1c when +0x78 is above 0, else the first), the frame +0x2c counting down from the word +0x96 over the life (0 past it), the
+// size +0x28 from +0x74 at the start to +0xa6 at the end (+0x74 without +0x78), the colour +0x2e plus +0xbe (plus Rand(+0xc6 - +0xbe) when they differ),
+// a random kick (byte +0x6f: RandSigned of +0x84/+0x88/+0x8c), drag (v * +0x7c / 1024 off each component), gravity (+0x80 off y); a fresh particle (+0x24
+// of 2) becomes 1 and stays, others move by the velocity. Unless the system's byte +5 is set its bounds (+0x128 least, +0x134 most) take the particle's
+// position less / plus its size / 1024. (The original's print of a frame past the count is left out.)
+void __cdecl Particles_Update();
+
+// 0x520f10 (name unconfirmed): one step of each active effector (from 0x816d1e, next in the word +0x60). Its timer +0x4c counts down unless the word +0x4a
+// is set; a radius +0x2c of 0 becomes 1. Unless the byte +0xa is set it moves (+0xc..: velocity +0x18.. less v * drag +0x24 / 1024, gravity +0x28 off y),
+// bouncing on the ground callback 0x80cef4 (at x, z times 16; height over 16) with the byte +0xb. A timer below 0 ends it: its end effect, the s16 +0x46,
+// starts at its position times 16 (Voice_Start with the byte +0x49, else Particle_Spawn), +0x49 becomes 0xff and it goes back on the free list 0x816d22.
+// Otherwise it pulls the particles of the live systems whose word +2 is 0 and whose byte +4 is its filter +4 (-1: any), those whose +0x2a is the filter (a
+// negative one: of systems whose +0x9c is 0): strength +0x40 times the distance in quarters over (its square / 256 + 10) onto their velocity, from its
+// position plus RandSigned of +0x34/+0x38/+0x3c; in mode 2 (+0x30) a particle within the radius (squared / 256) gets age 0.
+void __cdecl ParticleEffectors_Update();
 }

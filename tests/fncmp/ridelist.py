@@ -13,8 +13,10 @@ from thingenv import POOL, THING, park  # noqa: E402
 # name: (address, size, arguments: id, rec, rec+index, rec+index+value, recword, linked)
 CALLS = {'Find': (0x55a070, 0x40, 'id'), 'Set': (0x55a0b0, 0x50, 'rec2v'), 'Get': (0x55a390, 0x50, 'rec2'), 'SetW': (0x55a300, 0x30, 'recv'),
          'GetW': (0x55a330, 0x30, 'rec'), 'G9c': (0x55a360, 0x30, 'rec'), 'Link': (0x55a3e0, 0x90, 'id2'), 'Clr4': (0x4e03f0, 0x30, 'this'), 'E7': (0x4e0410, 0x30, 'this'), 'E0': (0x4e0a70, 0x40, 'this'),
-         'Spd': (0x4dd6e0, 0x40, 'thisv'), 'Dur': (0x4dd720, 0xd0, 'thisv'), 'GameE': (0x51a290, 0x60, 'this'), 'E41': (0x4e0db0, 0x30, 'this'), 'Fill': (0x4396e0, 0xa0, 'this'), 'Roll': (0x4e2670, 0xa0, 'thisv'), 'SetId': (0x436f60, 0x40, 'this'), 'RideId': (0x4685c0, 0x40, 'this'), 'Take': (0x51a690, 0xd0, 'this')}
-B = Bench([(a, a + n) for (a, n, _s) in CALLS.values()] + [(0x5da3c0, 0x5da3c1), (0x412e90, 0x412eea), (0x516330, 0x516370)])
+         'Spd': (0x4dd6e0, 0x40, 'thisv'), 'Dur': (0x4dd720, 0xd0, 'thisv'), 'GameE': (0x51a290, 0x60, 'this'), 'E41': (0x4e0db0, 0x30, 'this'), 'Fill': (0x4396e0, 0xa0, 'this'), 'Roll': (0x4e2670, 0xa0, 'thisv'), 'SetId': (0x436f60, 0x40, 'this'), 'RideId': (0x4685c0, 0x40, 'this'), 'Take': (0x51a690, 0xd0, 'this'),
+         'Clr0': (0x4e0ac0, 0xd0, 'thisv'), 'Claim': (0x4e0900, 0x170, 'thisv'),
+         'Poll': (0x51a760, 0x263, 'this')}
+B = Bench([(a, a + n) for (a, n, _s) in CALLS.values()] + [(0x5da3c0, 0x5da3c1), (0x412e90, 0x412eea), (0x516330, 0x516370), (0x50b350, 0x50b360), (0x4cd300, 0x4cd331)])
 NODES, ARRAYS = RAM + 0x1000, RAM + 0x4000
 
 
@@ -57,6 +59,19 @@ def case(r):
         game = RAM + 0x40000
         regions[game] = struct.pack('<H', r.choice(handles + [0, 0]) if handles else 0)
         return Call(address, [game - 0x1da72a], regions, conv='t', ret='a')
+    if name == 'Poll':  # the game object: the handles at +0x1da72a and +0x1da72c (equal or not), the count at +0x2d0 about 10, element 1 of the records 6, 3, 1, 2 or others
+        for i in range(count):  # element 1 there to read (the element count at +0x8c above 1) most of the time
+            put(arrays, 0x40 * i + 4, 'I', r.choice([6, 3, 1, 2, 6, 3, 1, 2, 0, 0xffffffff]))
+            put(nodes, 0x100 * i + 0x8c, 'i', r.choice([2, 4, 4, 4, 1]))
+        things, handles, _a = park(r, count=r.choice([0, 1, 2, 3, 4, 6]) if r.random() < 0.2 else r.choice([1, 2, 3, 4, 6]), defs=False)
+        for i in range(len(handles)):
+            put(things[POOL], THING * i + 0x24, 'I', r.choice(ids * 3 + [0, 99]))
+        regions.update(things)
+        game = RAM + 0x40000
+        h = r.choice(handles) if handles and r.random() < 0.9 else 0
+        regions[game] = struct.pack('<HH', h, h if r.random() < 0.85 else r.choice([h ^ 1, 0]))
+        regions[game - 0x1da72a + 0x2d0] = struct.pack('<i', r.choice([0, 9, 10, 11, -1, 0x7fffffff, 5]))
+        return Call(address, [game - 0x1da72a], regions, conv='t', ret='a')
     if name == 'GameE':  # the game object: the handle at +0x1da732, a thing table where the things name ride ids
         things, handles, _a = park(r, defs=False)
         for i in range(len(handles)):
@@ -98,6 +113,28 @@ def case(r):
             regions[0x7a4610] = b''.join(struct.pack('<I', RAM + 0x2000 + 0x100 * k) for k in range(4))
             return Call(address, [r.choice([0, 1, 2, 3, 3]) if r.random() < 0.9 else wanted, r.choice([0, 1, 2, 3, 5, 99, ident])], regions, conv='c', ret='v')
         return Call(address, [wanted, r.choice([0, 1, 2, 3, 5, 99, ident])], regions, conv='c', ret='v')
+    if name == 'Clr0':  # the handle element 0 of the record holds (or another), the word at +0x6c to clear
+        obj.extend(r.bytes(0x20))
+        held = r.getrandbits(32)
+        if ident in ids:  # element 0 of the object's record: often a small value
+            at = 0x40 * ids.index(ident)
+            if r.random() < 0.5:
+                put(arrays, at, 'I', r.choice([0, 1, 0xffff, 0x10000, r.getrandbits(16)]))
+            held = struct.unpack_from('<I', arrays, at)[0]
+        value = r.choice([held, held, held & 0xffff, held | 0x10000, held ^ 1, r.getrandbits(32)])
+        put(obj, 0x6c, 'H', r.choice([value & 0xffff, r.getrandbits(16)]))
+        regions[RAM] = obj
+        return Call(address, [RAM, value], regions, conv='t', ret='v')
+    if name == 'Claim':  # the state (+0x19c) and +0x68 tests, element 0 of the record 0 (or not), the word at +0x6c the handle (or not); the prints read the world's time
+        obj.extend(r.bytes(0x160))
+        put(obj, 0x19c, 'I', r.choice([0, 1, 2, 3, 4, 5, 0xb, 2, 3]))
+        put(obj, 0x68, 'I', r.choice([0, 1, 1, r.getrandbits(32)]))
+        if ident in ids and r.random() < 0.6:
+            put(arrays, 0x40 * ids.index(ident), 'I', r.choice([0, 0, 1, 0x10000, r.getrandbits(32)]))
+        value = r.choice([0, 1, 5, 0xffff, 0x12345, r.getrandbits(32)])
+        put(obj, 0x6c, 'H', r.choice([value & 0xffff, r.getrandbits(16)]))
+        regions.update({RAM: obj, 0x80239c: struct.pack('<I', RAM + 0x40000 - 0x1da70c), RAM + 0x40000: r.bytes(4)})
+        return Call(address, [RAM, value], regions, conv='t', ret='a')
     if name == 'Roll':  # the object whose ride record gets the roll, the world's random state
         obj.extend(bytes(0x400))
         put(obj, 0x190, 'B', r.choice([0, 1, 50, 99, 100, 101, 255]))

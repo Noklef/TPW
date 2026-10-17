@@ -222,4 +222,11 @@ u32 *__cdecl MapGrid_ClassifyTypes(const u8 *object);
 // 0x42a340 (cdecl; x, y): the cell at (x, y) of the world behind the pointer at [0x7cf6ec] must be of type 9 (MapCell_IsType9); its parent cell (the word at +0x10 indexes the cells)
 // has a child chain (the first handle at +0x24, each thing's next at +0xa) and the first thing of model 3 whose object definition has the dword at +0x118 clear is returned; 0 for none.
 u8 *__cdecl Cell_FindRideableObject(s32 x, s32 y);
+
+// 0x523070 (cdecl (&x, &y)): the cell at (x, y) (the 0x44-byte cell [0x7cf83c] + 0x294 + id * 0x44, id = (y << 7) + x + 1 cut to 16 bits) and its
+// entry (MapHandle_Entry28); for an entry of type 0xc or 0x11 the parent's instead (the entry [0x7cf83c] + (its u16 +0x10 + 0x6cde) * 0x28, and its
+// cell MapHandle_Cell44). Nothing unless the entry has flag 0x10 (MapCell_HasFlags). Then for the pairs at 0x7cdba0, 0x7cdbc8, 0x7cdba8 and 0x7cdbd0 in
+// turn, the entry Map_StepCell28 reaches with the pair and a scale of 2, when there is one, has flag 0x10, its cell (MapHandle_Cell44) the same u16
+// at +0x10 and a type of 0xb, 0xd, 0x10, 0x12 or 0x19 (MapCell_IsTypeBDOr10Or12Or19): y -= 2, x += 2, y += 2, x -= 2 respectively.
+void __cdecl MapCell_PathNudge(s32 *x, s32 *y);
 }

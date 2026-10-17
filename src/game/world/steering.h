@@ -3,7 +3,8 @@
 // built by a static initializer and destroyed at exit by the base destructor; slot 0 of each vtable steers (thiscall
 // (&out, nav), out a 16.16 force). Reimplementation of the constructors 0x50ce50-0x50d100, the base destructor 0x50cea0,
 // the exit thunks that call it, seek's, arrival's and avoid_obstacle's steering (0x50dd80, 0x50ddf0, 0x50e350), the
-// per-neighbour and per-obstacle callbacks (0x50e190, 0x50e2b0) and the circle hit (0x50cba0).
+// per-neighbour and per-obstacle callbacks (0x50e190, 0x50e2b0), the circle hit (0x50cba0) and the path behaviours'
+// setup (0x50fdf0).
 #pragma once
 
 #include "../../../re/types.h"
@@ -72,4 +73,20 @@ void __cdecl SteerAvoidObstacle_Obstacle(const u8 *nav, const s32 *obstacle);
 // (0x7cf048) = radius + the length of Nav_PredictPos(10.0) - pos; (the obstacles' visit is compiled out); then out = (0, 0)
 // while no hit was found, else the force through Matrix2_Transform on the nav. Returns out.
 s32 *__fastcall SteerAvoidObstacle_Steer(void *self, void *, s32 *out, const u8 *nav);
+
+// 0x50dfc0 (cdecl (nav, other); separation's per-neighbour callback, other another nav): nothing when other is nav; else
+// away = pos - other's pos; when its octagonal length is not 0 and under other's radius + nav radius + 1.0, the force
+// (0x7cf100) += away / that length (IntPair_DivFixed: it faults, sic, on a quotient past 31 bits).
+void __cdecl SteerSeparation_Neighbour(const u8 *nav, const u8 *other);
+
+// 0x50e0e0 (separation's slot 0; thiscall (&out, nav), this unused): when the nav is at its last path point (+0x5c is
+// +0x54 - 1) or its path is done (byte +0x60 not 0) and the octagonal distance from pos to that point (of those at +0x64)
+// is at most radius + 1.0: out = (0, 0). Else the force is cleared, Nav_VisitNeighbours with radius * 2
+// and SteerSeparation_Neighbour adds to it and out = the force. Returns out.
+s32 *__fastcall SteerSeparation_Steer(void *self, void *, s32 *out, const u8 *nav);
+
+// 0x50fdf0 (cdecl; name unconfirmed): the behaviour list (0x7cf078-0x7cf080, {weight, behaviour} entries) emptied as EntryStack_Clear (core/seqs) does,
+// then avoid_walls with 0.9, follow_path with 0.5 and separation with 0.1 (16.16) pushed, each found by its name in the table at 0x761ec0 (eight
+// pointers, the last 0: read, sic, when no other matches) and only while the list's end is not at its capacity.
+void __cdecl Steering_SetPathBehaviours();
 }

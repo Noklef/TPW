@@ -23,6 +23,23 @@ void __fastcall CountedList_ClearRelease(u8 *object);
 // block's first byte: freed 1 byte below the pointer) are released and their three-dword fields cleared.
 void __fastcall Counted2_Clear(u8 *object);
 
+// 0x4e51a0 (thiscall; the destructor of a 0x24-byte element: a wide string at +0x10, then a narrow one at +0): the counted buffer at +0x14 (its block
+// starts 2 bytes below the pointer) is released, the dwords at +0x14, +0x18 and +0x1c = 0; then the one at +4 (block 1 byte below), +4, +8 and +0xc = 0.
+void __fastcall CountedPair_Clear(u8 *object);
+
+// 0x4f36f0 (stdcall; first, last, pops 8): CountedPair_Clear of each 0x24-byte element from first up to (not including) last.
+void __stdcall CountedPair_ClearRange(u8 *first, u8 *last);
+
+// 0x4f0480 (thiscall): CountedPair_Clear of each 0x24-byte element from [+4] up to [+8]; then the block at +4 freed and the dwords at +4, +8 and
+// +0xc = 0. Returns 0.
+u32 __fastcall CountedPairVector_Clear(u8 *object);
+
+// 0x4f7430 (thiscall; flags, pops 4): CountedPairVector_Clear; when bit 0 of the flags is set the object is freed. Returns the object.
+u8 *__fastcall CountedPairVector_Deleter(u8 *object, void *, u32 flags);
+
+// 0x4f7480 (thiscall; flags, pops 4): CountedPair_Clear; when bit 0 of the flags is set the object is freed. Returns the object.
+u8 *__fastcall CountedPair_Deleter(u8 *object, void *, u32 flags);
+
 // 0x5d46d0 (thiscall): for each of the seven 16-byte groups from +0 (last first): the dwords at +0, +4 and +8 = 0 and the block at +0xc, when there is
 // one, freed and cleared.
 void __fastcall Blocks7_Free(u8 *object);

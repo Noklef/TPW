@@ -1,7 +1,9 @@
 # The object's day message of src/game/world/objectmsg (0x4dd320) against the original: six history rings (lengths from none to 30, indexes at or past them, temp values),
-# and messages of number 0xb, 0x1b (the staff member word equal to the object's or not) and others (the number comes from the message's slot 0, a recorder).
+# and messages of number 0xb, 0x1b (the staff member word equal to the object's or not) and others (the number comes from the message's slot 0, a recorder); the queue's
+# add (0x4ddb90), position (0x4ddf50) and remove (0x4ddd20, with a ride record whose element 0 is the person or not).
 # usage: objectmsg.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
+import struct
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -11,7 +13,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from thingenv import POOL, THING, park  # noqa: E402
 from fncmp import Bench, Call, LOG, RAM, log_region, put, set_return, vtable  # noqa: E402
 
-B = Bench([(0x4dd320, 0x4dd4e0), (0x4ddb90, 0x4ddd20), (0x4ddf50, 0x4de040), (0x502430, 0x502460), (0x50b350, 0x50b360), (0x5da3c0, 0x5da3c1)])
+B = Bench([(0x4dd320, 0x4dd4e0), (0x4ddb90, 0x4ddd20), (0x4ddf50, 0x4de040), (0x502430, 0x502460), (0x50b350, 0x50b360), (0x5da3c0, 0x5da3c1),
+           (0x4ddd20, 0x4ddf31), (0x55a070, 0x55a0fc), (0x55a390, 0x55a3dc)])
 OBJ, MSG, VT = RAM, RAM + 0x1000, RAM + 0x1100
 BASES = (0x1a8, 0x230, 0x2b8, 0x70, 0xf8, 0x340)
 
@@ -34,6 +37,23 @@ def queue(r, op):
         rest = [i for i in range(count) if i not in order] or [r.randrange(count)]
         person = handles[r.choice(rest)]
         return Call(0x4ddb90, [OBJ, person | r.choice([0, 0, 0x10000])], regions, conv='t', ret='v')
+    if op == 'Remove':  # a person in the queue (or one outside it with clear words); a ride record whose element 0 is the person or not
+        rest = [i for i in range(count) if i not in order]
+        for i in rest:
+            if r.random() < 0.9:
+                put(regions[POOL], THING * i + 0x228, 'HH', 0, 0)
+        person = handles[r.choice(order if order and (not rest or r.random() < 0.8) else rest)]
+        rides = RAM + 0x20000
+        node = bytearray(r.bytes(0x100))
+        rid = r.choice([1, 2, 7])
+        put(node, 0, 'I', 0)
+        put(node, 8, 'I', rid)
+        put(node, 0x1c, 'I', rides + 0x100)
+        put(node, 0x8c, 'i', r.choice([0, 1, 1, 2, -1]))
+        put(obj, 0x24, 'I', r.choice([rid, rid, rid, 3]))
+        regions.update({rides: node, rides + 0x100: put(bytearray(r.bytes(0x10)), 0, 'I', r.choice([person, person, person | 0x10000, 0, r.getrandbits(16)])),
+                        0x8791a0: struct.pack('<I', r.choice([0, 1, 1, 1])), 0x8791b0: struct.pack('<I', rides)})
+        return Call(0x4ddd20, [OBJ, person | r.choice([0, 0, 0x10000])], regions, conv='t', ret='v')
     if order:
         person = handles[r.choice(order)]
         # every link must stay valid for the walk: the state predicate may end it early (then the person is not found: avoided)
@@ -46,7 +66,7 @@ def queue(r, op):
 
 def case(r):
     if r.random() < 0.7:
-        return queue(r, r.choice(['Add', 'Pos']))
+        return queue(r, r.choice(['Add', 'Pos', 'Remove']))
     obj = bytearray(r.bytes(0x400))
     for base in BASES:
         n = r.choice([0, 1, 2, 3, 5, 0x1e, -1 & 0xffffffff])

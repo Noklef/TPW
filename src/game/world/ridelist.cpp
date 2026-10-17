@@ -4,6 +4,7 @@
 
 #include "objectdefs.h"
 #include "random.h"
+#include "things.h"
 
 namespace {
 
@@ -115,6 +116,30 @@ s32 __fastcall Game_TakeRideElement1(u8 *game) {
     return -1;
 }
 
+s32 __fastcall Game_PollRideElement1(u8 *game) {
+    const u16 handle = at<u16>(game, 0x1da72a);
+    if (handle == 0 || handle != at<u16>(game, 0x1da72c))
+        return 1;
+    if (Game_TakeRideElement1(game) == 3)  // (each take inlined in the original)
+        return 0;
+    if (at<s32>(game, 0x2d0) >= 10)
+        return 1;
+    if (Game_TakeRideElement1(game) == 1)
+        return 0;
+    s32 element = -1;  // the third take finds the thing with Thing_ByHandle when it clears the element
+    if (at<u16>(game, 0x1da72a) != 0) {
+        element = (s32)Rides_GetElement(Rides_FindById(at<s32>(*reinterpret_cast<u8 **>(0x007cfb90 + 20 * (u32)at<u16>(game, 0x1da72a)), 0x24)), 1);
+        if (element == 6) {
+            element = -1;
+            if (at<u16>(game, 0x1da72a) != 0) {
+                Rides_SetElement(Rides_FindById(at<s32>(Thing_ByHandle(at<u16>(game, 0x1da72a)), 0x24)), 1, 0);
+                at<u16>(game, 0x1da72a) = 0;
+            }
+        }
+    }
+    return element == 2 ? 0 : 1;
+}
+
 void __cdecl Obj_FillLinkedElements(u8 *object) {
     if (!object)
         return;
@@ -152,6 +177,24 @@ u32 __fastcall Obj_RollChance(const u8 *object, void *, u32) {
 }
 
 void __fastcall Obj_SetRideElement4One(const u8 *object) { Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 4, 1); }
+
+void __fastcall Obj_ReleaseRideElement0(u8 *object, void *, u32 handle) {
+    at<u16>(object, 0x6c) = 0;
+    if (Rides_GetElement(Rides_FindById(at<s32>(object, 0x24)), 0) == (handle & 0xffff))
+        Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 0, 0);
+}
+
+u32 __fastcall Obj_ClaimRideElement0(u8 *object, void *, u32 handle) {
+    const u32 state = at<u32>(object, 0x19c);
+    if (state == 1 || at<u32>(object, 0x68) == 0 || state == 4)
+        return 0;
+    at<u16>(object, 0x6c) = 0;  // sic
+    u8 *const ride = Rides_FindById(at<s32>(object, 0x24));
+    if (Rides_GetElement(ride, 0) != 0)
+        return 0;
+    Rides_SetElement(ride, 0, handle & 0xffff);
+    return 1;
+}
 
 s32 __fastcall Game_GetRideElement1(const u8 *game) {
     u32 handle = at<u16>(game, 0x1da732);

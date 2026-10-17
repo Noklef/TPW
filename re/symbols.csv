@@ -134,6 +134,9 @@ address,name,kind,confidence,notes
 0x0051a690,Game_TakeRideElement1,function,high,"reimplemented (src/game/world/ridelist); element 1 of the named ride record, reset when it is 6"
 0x004685c0,Ride_SetRecordId,function,high,reimplemented (src/game/world/ridelist); Sets the ride record id of a ride and hands it to the objects (name unconfirmed)
 0x004031e0,GameClock_Now,function,high,reimplemented (src/game/core/gameclock); thiscall; GameClock_Time plus the base +0x48; used for all RSSE waits
+0x004e0ac0,Obj_ReleaseRideElement0,function,low,reimplemented (src/game/world/ridelist); thiscall (handle): clear the word at +0x6c; element 0 of the ride record = 0 when it holds the handle
+0x004e0900,Obj_ClaimRideElement0,function,low,reimplemented (src/game/world/ridelist); thiscall (handle): claim element 0 of the ride record for the handle when the object is open and the element is free
+0x0051a760,Game_PollRideElement1,function,low,"reimplemented (src/game/world/ridelist); thiscall on the game object: 0 when the taken ride element 1 is 3, then (count at +0x2d0 under 10) 1, then 2; else 1"
 0x00516330,World_Rand,function,high,"reimplemented (src/game/world/random); thiscall; LCG x*0x19660d+0x3c6ef35f, rotr 13, abs; state at world+0x1da708. Must be bit-exact for determinism"
 0x008791b0,RSSE_ScriptList,data,high,head of doubly linked list of live script contexts (0xF4 bytes each)
 0x008791ac,RSSE_ScriptCount,data,high,
@@ -336,7 +339,7 @@ address,name,kind,confidence,notes
 0x0051bfc0,Sound_PlayAt,function,medium,"(owner, category, sound, x, y, z): posts a positional play command via the sound manager vtable +8"
 0x0051c130,Sound_PlayAtRange,function,medium,"Sound_PlayAt with an extra range float"
 0x0051c5d0,Sound_SetArea,function,medium,"(sound, x, z, w, d): spreads an emitter over the rect (x, z)..(x+w, z+d)"
-0x00521e60,Particle_Spawn,function,medium,"(effect 0..0x68, x, y, z in 1/1024 units); pool of 0x140-byte systems"
+0x00521e60,Particle_Spawn,function,high,"reimplemented (src/game/render/particles); cdecl (effect, x, y, z): starts a particle system from the effect definition: a free system to the live list, the definition copied, its first burst emitted, its linked voice or effect started; returns its handle, 0 for an optional effect while reduced, -1 when none"
 0x0051b530,SoundCategory_Register,function,medium,"loads a cat_<name> sound category (bank + map)"
 0x0051b620,SoundCategory_Release,function,medium,
 0x0051eae0,Sound_RegisterGlobalCategories,function,high,"cat_ambient, cat_rides, cat_ui, cat_kids, cat_staff, cat_speech"
@@ -400,8 +403,8 @@ address,name,kind,confidence,notes
 0x00764030,gAvatarSprites,data,high,"SPR_BI/KI/TA/SU.ESP"
 0x00790ab0,gCameraFlags,data,medium,"bits 2/4/0x10 = ground-level camera"
 0x0051f370,ParticleLib_Load,function,high,"reads Data/Particle/Tp2.plb: effects (0x140) into 0x804370, effectors (0x68) into 0x80c6b0, 2 settings"
-0x00520560,Particle_Emit,function,medium,"emits one particle from a live system (spawn volume, lifetime, colour)"
-0x005214a0,Particles_Update,function,medium,"ages particles: ramp colour, sprite frame, size, random kick, drag; spawns the on-death effect"
+0x00520560,Particle_Emit,function,high,"reimplemented (src/game/render/particles); cdecl (slot): emits a particle from the system: a free list record with its lifetime, sprite, position in the spawn box or ellipse (turned, pushed) and velocity; returns its index, negative when none is free"
+0x005214a0,Particles_Update,function,high,"reimplemented (src/game/render/particles); cdecl: one step of every live system's particles: age (the end spawns the death effect and frees the record), sprite, frame, size, colour, kick, drag, gravity, motion and the system's bounds"
 0x00521810,Particle_RandSigned,function,high,reimplemented (src/game/render/particles); the particles' random number (signed shift) modulo n
 0x00521850,Particle_Rand,function,high,reimplemented (src/game/render/particles); the particles' random number (15 bits) modulo n
 0x0051fd80,Particles_SetReduced,function,high,reimplemented (src/game/render/particles); cdecl: sets 0x80ced8; optional effects (record byte 0xc1) are not spawned
@@ -420,6 +423,8 @@ address,name,kind,confidence,notes
 0x005200b0,Particles_EndAll,function,high,reimplemented (src/game/render/particles); every live system and effector is ended
 0x005204c0,ParticleSystem_Release,function,high,reimplemented (src/game/render/particles); a system leaves the live list and joins the free list
 0x00520e00,Particle_Move,function,low,"reimplemented (src/game/render/particles); one step of a particle: drag, gravity, ground bounce"
+0x00521930,Particle_SpawnWithVelocity,function,low,"reimplemented (src/game/render/particles); cdecl (effect, x, y, z, vx, vy, vz): Particle_Spawn with the system's velocity +0x38 set to (vx, vy, vz) times its +0xb0 over 1024 in place of the jitter"
+0x00520f10,ParticleEffectors_Update,function,low,"reimplemented (src/game/render/particles); cdecl: one step of each active effector: timer, motion with drag, gravity and a ground bounce, the end effect (voice or particles) and the free list, else its pull on the live systems' particles (mode 2 kills those within its radius)"
 0x00804370,gParticleEffects,data,high,0x69 x 0x140-byte effect definitions from Tp2.plb
 0x0080c6b0,gParticleEffectors,data,high,20 x 0x68-byte effector definitions
 0x0080cefc,gParticleSystems,data,high,live systems: 0x140-byte copies of an effect definition
@@ -1581,6 +1586,8 @@ address,name,kind,confidence,notes
 0x0050cd80,IntPair_Sub,function,low,"reimplemented (src/game/math/intpair); thiscall (&out, other): out = pair - other; returns out"
 0x0050df70,IntPair_MulFixed,function,low,"reimplemented (src/game/math/intpair); thiscall (&out, scale): out = each * scale >> 16 (64-bit products), y first; returns out"
 0x004d49a0,Math_ISqrt,function,low,"reimplemented (src/game/math/intpair); cdecl (n): fild (n as unsigned) fsqrt __ftol, at the game's 24-bit precision"
+0x0050f600,IntPair_Truncate,function,low,"reimplemented (src/game/math/intpair); cdecl (&out, &pair, limit): the pair cut to the limit's length (octagonal-free ISqrt length in three tiers; one IDIV that faults on 0 or overflow)"
+0x0050f700,IntPair_Normalize,function,low,"reimplemented (src/game/math/intpair); cdecl (&out, &pair): the pair made 1.0 long (ISqrt length in three tiers; 0 for a zero root)"
 0x005428a0,IntSin,function,high,"reimplemented (src/game/math/intsin); cdecl (angle, 512 a turn): the integer sine table's (0x877358) entry angle & 0x1ff, shifted left 2"
 0x005428c0,IntCos,function,high,reimplemented (src/game/math/intsin); cdecl (angle): as IntSin for angle + 0x80
 0x00578800,Mat4_Identity,function,high,"reimplemented (src/game/math/mat4); thiscall (a matrix object, the 4x4 at +0): the identity"
@@ -3255,6 +3262,10 @@ address,name,kind,confidence,notes
 0x004e0220,Obj_GetTrackedHandle,function,high,"reimplemented (src/game/world/object); the tracked handle, dropped when the thing no longer has the object's handle"
 0x004dd7f0,Object_SetCapacity,function,high,reimplemented (src/game/world/object); the capacity clamped to the definition's limits and stored
 0x0052c2b0,Object_TrackNeighboursOk,function,high,reimplemented (src/game/world/object); the two cells ahead of a track piece have one neighbour bit each
+0x004e02f0,Obj_TrackedPersonInState,function,low,"reimplemented (src/game/world/object); thiscall: 0 without a tracked handle (Obj_GetTrackedHandle), else Person_HasWordInState of the tracked thing with the object's own handle"
+0x004dad20,Objects_ReleaseTracked,function,low,"reimplemented (src/game/world/object); thiscall (this and two stack arguments unused, pops 8): the objects of the world's list at +0x1da746 in state 1 or 2 or with +0x64 set release their tracked handle (Fn_4e0210) when it still holds"
+0x004fa770,Obj_BlockValuesBelowLimit,function,low,reimplemented (src/game/world/object); thiscall: whether the block values at nine offsets from the object's cell (or the end of its facing chain) stay below +0x198
+0x004daa90,Objects_NearestFreeFor,function,low,"reimplemented (src/game/world/object); thiscall (out, person handle): one round of the world's object list from the cursor for the nearest free object the person may take"
 0x005d46d0,Blocks7_Free,function,high,reimplemented (src/game/core/buffers); frees the seven blocks of an object and clears its groups
 0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/string); whether the first name is after the second, case blind"
 0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/string); whether two names are equal, case blind"
@@ -3513,10 +3524,20 @@ address,name,kind,confidence,notes
 0x0047f990,TextMetrics_ForwardSlot8,function,high,reimplemented (src/game/gfx/text); Forwards to virtual call 8 of the inner object (name unconfirmed)
 0x0050f310,Matrix2_Transform,function,high,reimplemented (src/game/math/matrix); fixed point 2 x 2 transform of a pair
 0x00503980,Table_ScaledBySum,function,high,reimplemented (src/game/world/staff); a table share scaled by the things' sum
+0x00505a10,Staff_Train,function,low,"reimplemented (src/game/world/staff); thiscall (amount): pay for training: debit the money, add to the park's spend, add amount / cost points of progress, raise the grade at 100"
+0x00508000,Staff_CountTypes,function,low,"reimplemented (src/game/world/staff); thiscall: count the world's staff by type, flagging the types that reached their limits"
+0x0050c800,Staff_TrainAll,function,low,"reimplemented (src/game/world/staff); thiscall (amounts[5]): count the staff by type, then train each with its type's amount divided by the count"
 0x00520d60,FreeList_Take,function,high,reimplemented (src/game/core/voices); takes a record off the free list into a table entry
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/voices); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/voices); scales a voice's levels by the factor over 1024
+0x005224f0,Emitter_Spawn,function,low,"reimplemented (src/game/core/voices); cdecl (index, reset): reset an entry or grow its spread and take records for it, each placed at a random angle"
+0x0051fb70,Emitters_Reset,function,low,"reimplemented (src/game/core/voices); cdecl: with the sound system, clear the counters, records, entries and instances and chain their lists afresh"
 0x00598630,IntArray_SetSize,function,high,"reimplemented (src/game/core/buffers); resizes the dword array, growing by its step"
+0x004e51a0,CountedPair_Clear,function,low,"reimplemented (src/game/core/buffers); thiscall: releases the wide counted buffer at +0x14 (block 2 bytes below) and the narrow one at +4 (1 byte below), clearing both three-dword fields"
+0x004f36f0,CountedPair_ClearRange,function,low,reimplemented (src/game/core/buffers); stdcall: clear each 0x24-byte element (a pair of counted buffers) from first up to last
+0x004f0480,CountedPairVector_Clear,function,low,"reimplemented (src/game/core/buffers); thiscall: clear the elements from [+4] to [+8], free the block and clear the fields"
+0x004f7430,CountedPairVector_Deleter,function,low,"reimplemented (src/game/core/buffers); thiscall: clear the vector, free the object when flags bit 0 is set"
+0x004f7480,CountedPair_Deleter,function,low,"reimplemented (src/game/core/buffers); thiscall: clear the pair, free the object when flags bit 0 is set"
 0x005b2f40,StdTreeF_LowerBound,function,high,reimplemented (src/game/core/stdtree); lower bound of a string key in the string map
 0x005b0c40,StdTreeF_AllFlagged,function,high,reimplemented (src/game/core/stdtree); whether every mapped object has the byte at +0xb9 set
 0x005b20c0,StdTreeF_FindLower,function,high,reimplemented (src/game/core/stdtree); stores the lower bound of a string key
@@ -3608,6 +3629,8 @@ address,name,kind,confidence,notes
 0x004254c0,Animator_Sleep,function,high,reimplemented (src/game/model/holder); the holder sleeps and flag 0x4000 clears
 0x004de110,Object_BackOfQueueTo,function,high,reimplemented (src/game/world/objectmsg); Object_BackOfQueue returning out
 0x004ddf40,Object_QueuePositionOfNone,function,high,reimplemented (src/game/world/objectmsg); the position of the person with no handle
+0x004ddd20,Object_QueueRemovePerson,function,low,"reimplemented (src/game/world/objectmsg); thiscall (person handle): clear element 0 of the ride record when it is the person, unlink the person from the queue"
+0x004dd920,Object_QueueOpen,function,low,"reimplemented (src/game/world/objectmsg); thiscall: whether the object takes people into its queue (flags, state, back of the queue, room, definition kind tests)"
 0x004fa930,Thing_PlaceAt,function,high,reimplemented (src/game/world/things); a thing placed on the navigation block and moved
 0x0051fa20,TrackTypeSlot_ReadIntoFree,function,high,reimplemented (src/game/coaster/tracktypes); a stream read into the first free 0x140-byte slot
 0x004fcac0,Thing_SpriteChoice,function,high,"reimplemented (src/game/world/things); the flags of a sprite, or a random sprite of folder 1"
@@ -3674,11 +3697,14 @@ address,name,kind,confidence,notes
 0x0050f280,Nav_WorldToLocal,function,low,"reimplemented (src/game/world/nav); thiscall (&out, &point): point - pos in the local frame (local_xaxis +0x20, local_yaxis +0x28, 16.16); returns out"
 0x0050f870,Nav_PredictPos,function,low,"reimplemented (src/game/world/nav); thiscall (&out, time): out = pos + vel * time (16.16); returns out"
 0x0050fd40,Nav_PathProgress,function,low,"reimplemented (src/game/world/nav); thiscall: 1.0 - (path_subpath_dist + path_tail_dist + octagonal distance to the current path point) / path_total_dist, 16.16; 1.0 when finished or the total is 0; IDIV faults like the original's"
+0x005102f0,Nav_VisitNeighbours,function,low,"reimplemented (src/game/world/nav); cdecl (nav, radius, visit): visits the people in the map cells within radius whose kind counts and whose distance (pos >> 8, squared) is under (radius >> 8) squared, at most five"
+0x0050f3b0,Nav_Update,function,low,"reimplemented (src/game/world/nav); thiscall: one step of the nav: the weighted behaviour forces, vel and pos (when the move test passes), the local axes and the path progress history"
 0x0052a050,Cell_ExtendPath,function,high,reimplemented (src/game/world/mapcell); one step of a path across the map's cells
 0x0052c420,MapGrid_MarkEdges,function,high,"reimplemented (src/game/world/mapcell); edge cells of a map grid of types 4, 9, 0x17 and 0xa"
 0x0052c5b0,MapGrid_ClassifyTypes,function,high,reimplemented (src/game/world/mapcell); a map grid's cell types as codes 1 to 4
 0x0042a340,Cell_FindRideableObject,function,high,reimplemented (src/game/world/mapcell); the first rideable object on a type 9 cell's parent
 0x005228b0,MapCell_Overlap,function,low,"reimplemented (src/game/world/mapcell); a map cell's mOverlapCounter (u16 at +0x20), sign-extended"
+0x00523070,MapCell_PathNudge,function,low,"reimplemented (src/game/world/mapcell); cdecl (&x, &y): the point moved two cells along each axis whose cell two away has flag 0x10, the same group and a path type (the cell's parent stands in for types 0xc/0x11)"
 0x0040f970,MessageSlot_Dtor,function,high,"reimplemented (src/game/world/messagecentre); thiscall on a slot: a dword, then a std::map of tree B at +4, destroyed (StdTree_DtorB); name unconfirmed"
 0x00409250,MessageCentre_DtorSlots,function,high,"reimplemented (src/game/world/messagecentre); thiscall: the 29 slots of 0x14 bytes from +0 destroyed, the last first (CRT_VectorDtorIterator, MessageSlot_Dtor); name unconfirmed"
 0x0040fa40,MessageCentre_RemoveThing,function,low,"reimplemented (src/game/world/messagecentre); thiscall (thing); the thing's handle erased from each of the 29 slots' maps (lower bound, key check, StdTree_EraseB); returns the count erased"
@@ -3705,6 +3731,9 @@ address,name,kind,confidence,notes
 0x0050e2b0,SteerAvoidObstacle_Obstacle,function,low,"reimplemented (src/game/world/steering); cdecl (nav, obstacle): avoid_obstacle's per-obstacle callback, records the nearest hit (0x7cf32c) and the force's y"
 0x0050e350,SteerAvoidObstacle_Steer,function,low,"reimplemented (src/game/world/steering); avoid_obstacle's slot 0, thiscall (&out, nav): reach from Nav_PredictPos(10.0); (0, 0) with no hit (the obstacle visit is compiled out), else the force through Matrix2_Transform; returns out"
 0x0050cc20,Steer_RayCircleHit,function,low,"reimplemented (src/game/world/steering); cdecl (&from, &dir, &centre, radius): where the ray first meets the circle (16.16 quadratic, the smaller root halved); 0x80000000 when it misses"
+0x0050dfc0,SteerSeparation_Neighbour,function,low,"reimplemented (src/game/world/steering); cdecl (nav, other): separation's per-neighbour callback, adds away / octagonal length to the force (0x7cf100) when the other nav is within both radii + 1.0"
+0x0050e0e0,SteerSeparation_Steer,function,low,"reimplemented (src/game/world/steering); separation's slot 0, thiscall (&out, nav): (0, 0) near the last path point, else the force summed by Nav_VisitNeighbours (radius * 2, SteerSeparation_Neighbour)"
+0x0050fdf0,Steering_SetPathBehaviours,function,low,"reimplemented (src/game/world/steering); cdecl: empty the behaviour list, then push avoid_walls (0.9), follow_path (0.5) and separation (0.1) found by name"
 0x0050af40,TagTable_Find,function,low,"reimplemented (src/game/world/tagsystem); the CTagTable lookup: 0 for ids 0x17e/0x17f, the record at 0x75eca8 + id * 0x20 when its id matches, else the first record with the id, else 0"
 0x0042a440,Ride_IsBusy,function,low,"reimplemented (src/game/world/ridestate); cdecl (object, index): the track ride link, flying ride slot, coaster link or a key-1 0x1000 model part says the ride is busy"
 0x0043bd20,Ride_Sleep,function,low,"reimplemented (src/game/world/ridestate); cdecl (index): the ride holder's awake instance out of the renderer (rectangle or sleep), the active part states of its flag-0x80 parts released"

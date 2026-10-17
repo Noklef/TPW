@@ -44,6 +44,11 @@ void __fastcall Obj_SetDuration(u8 *object, void *, u32 duration);
 // when it is not 6 that is returned; when it is 6 the element is set to 0, the word cleared and -1 returned.
 s32 __fastcall Game_TakeRideElement1(u8 *game);
 
+// 0x51a760 (thiscall on the game object; name unconfirmed): 1 when the word at +0x1da72a is 0 or differs from the one at +0x1da72c. Otherwise 0 when
+// Game_TakeRideElement1 gives 3; else 1 when the dword at +0x2d0 is at least 10 (signed); else 0 when a second take gives 1, or a third (the same, the
+// thing found by Thing_ByHandle to clear the element) gives 2; 1 otherwise.
+s32 __fastcall Game_PollRideElement1(u8 *game);
+
 // 0x4396e0 (cdecl; object, may be 0): for each of the dword at +0xf4 slots of 0x80 bytes from the block at +0x128 whose dwords at +0x54, +0x58,
 // +0x5c and +0x60 are 0: Rides_GetLinkedElement of the object's ride id (+0x24) and element 5, 6, 7 and 8.
 void __cdecl Obj_FillLinkedElements(u8 *object);
@@ -58,6 +63,15 @@ u32 __fastcall Obj_RollChance(const u8 *object, void *, u32 unused);
 
 // 0x4e0db0 (thiscall): element 4 of the object's ride record (Rides_FindById of the dword at +0x24) = 1 (the debug print is not reproduced).
 void __fastcall Obj_SetRideElement4One(const u8 *object);
+
+// 0x4e0ac0 (thiscall; handle, pops 4; name unconfirmed): the word at +0x6c = 0; element 0 of the object's ride record (Rides_FindById of the
+// dword at +0x24) = 0 when it equals the handle's low word (the debug prints are not reproduced).
+void __fastcall Obj_ReleaseRideElement0(u8 *object, void *, u32 handle);
+
+// 0x4e0900 (thiscall; handle, pops 4; name unconfirmed): 0 when the state at +0x19c is 1 or 4 or the dword at +0x68 is 0. Otherwise the word at +0x6c = 0
+// (sic: not the handle) and, when element 0 of the object's ride record (Rides_FindById of the dword at +0x24) is 0, it becomes the handle's low word and
+// the result is 1; 0 when it was taken (the debug prints are not reproduced).
+u32 __fastcall Obj_ClaimRideElement0(u8 *object, void *, u32 handle);
 
 // 0x51a290 (thiscall on the game object; the debug print is not reproduced): -1 when the word at +0x1da732 is 0, otherwise element 1 of the
 // ride record of the thing with that handle (Rides_GetElement of Rides_FindById of the dword at +0x24 of the thing in its slot).

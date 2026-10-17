@@ -17,6 +17,11 @@ u32 __fastcall Object_HandleDayMessage(u8 *object, void *, u8 *message);
 // its next 0.
 void __fastcall Object_QueueAddPerson(u8 *object, void *, u32 person);
 
+// 0x4ddd20 (thiscall on the object; person handle, pops 4; name unconfirmed): element 0 of the object's ride record (Rides_FindById of the dword at +0x24) = 0 when it
+// is the person; then the person leaves the queue: the one ahead (+0x22a) gets its next, the one behind (+0x228) its previous (the head at +0x3c when none is ahead),
+// and both its words are cleared. The debug checks are not reproduced.
+void __fastcall Object_QueueRemovePerson(u8 *object, void *, u32 person);
+
 // 0x4ddf50 (thiscall; person handle, pops 4): the person's place in the queue, 0 for the head; -1 (after a printed message) when it is not found (the chain ends at a
 // person whose Visitor_IsState11To14 is false: the walk goes on from 0). A handle whose thing slot is empty is stepped over forever.
 s32 __fastcall Object_QueuePosition(u8 *object, void *, u32 person);
@@ -33,4 +38,9 @@ s32 __fastcall Object_QueuePositionOfNone(u8 *object);
 
 // 0x4dda20 (thiscall): whether the queue of persons (Object_QueuePosition for the person 0, i.e. its length) is shorter than the dword at +0x40 times 4 (unsigned).
 u32 __fastcall Object_QueueHasRoom(u8 *object);
+
+// 0x4dd920 (thiscall; name unconfirmed): whether the object takes people into its queue: flag 4 of +0x32, the dword at +0x19c neither 1 nor 4, the dword at +0x68 set,
+// a back of the queue (Object_BackOfQueue, not 0) and room (Object_QueuePosition of the person 0 below the dword at +0x40 times 4, unsigned); and by the definition's
+// kind (+0x9c of ObjectDefs_Find of the id at +0xe, found anew for each test): for 3 Object_LinkOtherOpen, for 1 and 2 the dword at +0x2c set.
+u32 __fastcall Object_QueueOpen(u8 *object);
 }  // extern "C"

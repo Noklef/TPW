@@ -3,7 +3,9 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../core/accessors.h"
 #include "../core/gameheap.h"
+#include "../core/initializers.h"
 #include "objectdefs.h"
 #include "person.h"
 #include "mapcell.h"
@@ -193,5 +195,96 @@ u32 __cdecl Object_TrackNeighboursOk(const u8 *object) {
     default: dx = 0; dy = 0; break;
     }
     return MapCell_NeighbourCount(cellAt(x + dx, y + dy)) == 1 ? 1 : 0;
+}
+
+u32 __fastcall Obj_BlockValuesBelowLimit(const u8 *object) {
+    const u32 id = ((u32)at<u8>(object, 7) * 0x80 + at<u8>(object, 5) + 1) & 0xffff;
+    u16 back = (u16)id;
+    if (MapCell_IsType3Or9(global<u8 *>(0x008023a0) + id * 0x44 - 0x44)) {
+        u16 cell = (u16)(((u32)at<u8>(object, 7) << 7) + at<u8>(object, 5) + 1);
+        back = cell;
+        while (cell != 0) {
+            back = cell;
+            u16 next;
+            cell = *Map_FindFacingNeighbour(&next, cell);
+        }
+    }
+    u32 best = 0;
+    for (u32 k = 0; k < 9; ++k) {
+        if (best > at<u32>(object, 0x198)) break;
+        const u8 *const pair = reinterpret_cast<const u8 *>(0x007ced88 + k * 8);
+        const u16 pos = (u16)((u16)(at<u16>(pair, 4) << 7) + back + at<u16>(pair, 0));
+        const u32 value = Map_BlockValue(global<u8 *>(0x0080239c) + 0x2d8, nullptr, pos);
+        if (!(best > value)) best = value;
+    }
+    return best < at<u32>(object, 0x198) ? 1 : 0;
+}
+
+u32 __fastcall Obj_TrackedPersonInState(u8 *object) {
+    u16 tracked;
+    if (*Obj_GetTrackedHandle(object, nullptr, &tracked) == 0) return 0;
+    const u8 *person = global<u8 *>(0x007cfb90 + 20 * (u32)at<u16>(object, 0x5e));
+    return Person_HasWordInState(person, nullptr, at<u16>(object, 0));
+}
+
+void __fastcall Objects_ReleaseTracked(void *, void *, u32, u32) {
+    u16 handle = global<u16>(global<u32>(0x0080239c) + 0x1da746);
+    while (handle) {
+        u8 *object = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
+        if (Is19c_Eq1_4e0370(object) || Get64_4e03d0(object) || Is19c_Eq2_4e03e0(object)) {
+            u16 tracked;
+            if (*Obj_GetTrackedHandle(object, nullptr, &tracked)) Fn_4e0210(object);
+        }
+        handle = at<u16>(object, 0xc);
+    }
+}
+
+u16 *__fastcall Objects_NearestFreeFor(u8 *self, void *, u16 *out, u32 person) {
+    u16 here = 0;
+    if (at<u16>(self, 0xc) != 0) {
+        here = global<u16>(global<u32>(0x0080239c) + 0x1da746);
+        while (here != 0 && here != at<u16>(self, 0xc)) here = at<u16>(global<u8 *>(0x007cfb90 + 20 * (u32)here), 0xc);
+    }
+    if (here != 0)  // the cursor is in the list: on to the one after it
+        at<u16>(self, 0xc) = at<u16>(global<u8 *>(0x007cfb90 + 20 * (u32)at<u16>(self, 0xc)), 0xc);
+    else
+        at<u16>(self, 0xc) = global<u16>(global<u32>(0x0080239c) + 0x1da746);
+    const u16 start = at<u16>(self, 0xc);
+    const u8 *const who = global<u8 *>(0x007cfb90 + 20 * (person & 0xffff));
+    u32 best = 0xffffffff;
+    u16 nearest = 0;
+    if (at<u16>(self, 0xc) == 0) {
+        *out = 0;
+        return out;
+    }
+    do {
+        u8 *const object = global<u8 *>(0x007cfb90 + 20 * (u32)at<u16>(self, 0xc));
+        const u16 next = at<u16>(object, 0xc);
+        at<u16>(self, 0xc) = next;
+        if (next == 0) at<u16>(self, 0xc) = global<u16>(global<u32>(0x0080239c) + 0x1da746);
+        if (Is19c_Eq1_4e0370(object) || (Get64_4e03d0(object) && !(at<u8>(object, 0x32) & 1)) || Is19c_Eq2_4e03e0(object)) {
+            u16 tracked;
+            bool free = *Obj_GetTrackedHandle(object, nullptr, &tracked) == 0;
+            if (!free) {
+                u16 again;
+                free = *Obj_GetTrackedHandle(object, nullptr, &again) == (u16)person;
+            }
+            if (free) {
+                const u32 from = ((((u32)at<u8>(who, 7) << 7) + at<u8>(who, 5) + 1) & 0xffff) - 1;
+                const u32 to = ((((u32)at<u8>(object, 7) << 7) + at<u8>(object, 5) + 1) & 0xffff) - 1;
+                s32 dx = (s32)(from & 0x7f) - (s32)(to & 0x7f);
+                s32 dy = (s32)(from >> 7) - (s32)(to >> 7);
+                if (dx < 0) dx = -dx;
+                if (dy < 0) dy = -dy;
+                const u32 distance = (u32)(dx * dx) + (u32)(dy * dy);
+                if (distance < best) {
+                    best = distance;
+                    nearest = at<u16>(object, 0);
+                }
+            }
+        }
+    } while (at<u16>(self, 0xc) != start);
+    *out = nearest;
+    return out;
 }
 }

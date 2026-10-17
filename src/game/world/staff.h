@@ -2,7 +2,7 @@
 // energy +0x1fc, name +0x1a0, mState +0x19c, mRestArea +0x208, mPatrolRegionBL +0x20a and TR
 // +0x20c, two map ids): reimplementation of 0x506650-0x5068f0 and 0x506e50-0x506ed0, the staff
 // pool's 0x507bd0 and 0x5087b0, the staff check and list heads 0x481f80-0x482020, and the
-// guard's state checks 0x4d6330 / 0x4d6350. The staff pool (0x507850) is 0x20 entries of 20
+// guard's state checks 0x4d6330 / 0x4d6350, the training 0x505a10 (progress byte +0x1e8) and the count by type 0x508000. The staff pool (0x507850) is 0x20 entries of 20
 // bytes (mType +0, mName +4, u8 mPayGrade +8, mSubType +9, mValid +0xa, mOnPointer +0xb).
 // A patrol region of (1, 0x4000), the whole map, is none.
 #pragma once
@@ -104,4 +104,22 @@ s32 __fastcall Staff_WageForRecord(const u8 *record);
 // 0x503980 (thiscall on the table; index, pops 4): 0 when Global7852f8_Times78548c is 0, else the dword at table + (index + 0x141) * 16 times (Things_SumChain * 100 / that
 // total, unsigned), divided by 100 (unsigned).
 u32 __fastcall Table_ScaledBySum(u8 *table, void *, s32 index);
+
+// 0x505a10 (thiscall; amount, pops 4; name unconfirmed): training paid for. Nothing at grade 4 (a message is printed, left out). Otherwise the money record (the
+// thing of the world's handle at +0x1da726) is debited the amount (Money_Debit), the park's (handle +0x1da720) dword at +0x1fa40 gains it, and the amount divided by
+// the cost of a point for the type (byte +2) and grade (+0x1e4): handyman 0x785430 + grade * 8, mechanic 0x7853f4 + grade * 12, entertainer 0x7853a4 + grade * 16,
+// researcher 0x78549c + grade * 8, guard 0x785460 + grade * 12; another type divides by the amount itself (after a message). That, at most 100, is added to the
+// progress byte at +0x1e8; reaching 100 raises the grade, keeps the progress over 100 and sets the happiness (+0x1f8) to 100.
+void __fastcall Staff_Train(u8 *staff, void *, s32 amount);
+
+// 0x508000 (thiscall; name unconfirmed): the staff of each type counted over the world's things (World_FirstThing / World_NextThing on [0x80239c]): the dwords
+// at +0x280 to +0x290 and the flag bytes +0x299 to +0x29d are zeroed first; a mechanic (type 5, byte +2) counts at +0x280, a handyman (4) at +0x284, an
+// entertainer (6) at +0x288, a researcher (7) at +0x28c and a guard (8) at +0x290, and a count reaching its limit (0x7852e8, 0x7852ec, 0x7852f0, 0x7852f4,
+// 0x7852f8 in the same order, signed) sets the flag (+0x299, +0x29a, +0x29b, +0x29c, +0x29d).
+void __fastcall Staff_CountTypes(u8 *counts);
+
+// 0x50c800 (thiscall on five amounts; name unconfirmed): the staff of each type counted over the world's things (World_FirstThing / World_NextThing on
+// [0x7cf83c]), then each staff member trained (Staff_Train) with its type's amount divided by the type's count (signed): a mechanic (type 5) the dword at
+// +0, a handyman (4) +4, an entertainer (6) +8, a researcher (7) +0xc, a guard (8) +0x10.
+void __fastcall Staff_TrainAll(const s32 *amounts);
 }

@@ -5,6 +5,7 @@
 
 #include "../math/intpair.h"
 #include "../math/matrix.h"
+#include "../core/seqs.h"
 #include "nav.h"
 
 namespace {
@@ -22,6 +23,28 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 s32 &g_force(u32 i) { return reinterpret_cast<s32 *>(0x7cf100)[i]; }  // the summed force, x and y
 s32 &g_nearestHit() { return *reinterpret_cast<s32 *>(0x7cf32c); }     // avoid_obstacle's nearest hit so far
 s32 &g_lookAhead() { return *reinterpret_cast<s32 *>(0x7cf048); }      // avoid_obstacle's reach
+
+// The behaviour named name (strcmp of the name at +4 of each object in the table at 0x761ec0: eight pointers, the last 0, sic: read
+// as well when none before it matches) pushed with its weight onto the nav's behaviour list (0x7cf078 begin, 0x7cf07c end, 0x7cf080
+// capacity; 8-byte entries {weight, object}) unless the end is at the capacity (it does not grow).
+void PushBehaviour(u32 name, u32 weight) {
+    const u8 *found = nullptr;
+    for (u32 slot = 0x761ec0; slot < 0x761ee0; slot += 4) {
+        const u8 *const object = *reinterpret_cast<const u8 *const *>(slot);
+        if (std::strcmp(reinterpret_cast<const char *>(object + 4), reinterpret_cast<const char *>(name)) == 0) {
+            found = object;
+            break;
+        }
+    }
+    if (found == nullptr)
+        return;
+    u32 &end = *Global(0x7cf07c);
+    if (end == *Global(0x7cf080))
+        return;
+    at<u32>(reinterpret_cast<void *>(end), 0) = weight;
+    at<u32>(reinterpret_cast<void *>(end), 4) = (u32)(uintptr_t)found;
+    end += 8;
+}
 
 // EDX:EAX / divisor in one IDIV, as the originals: it faults (sic) on 0 or a quotient past 31 bits.
 s32 Idiv(u32 dividendLow, u32 dividendHigh, s32 divisor) {
@@ -54,6 +77,13 @@ u32 Length(const s32 *d) {
 }
 
 u32 *U(s32 *p) { return reinterpret_cast<u32 *>(p); }
+
+// The octagonal length the callbacks inline: |x| + |y| - min(|x|, |y|) / 2 (arithmetic shift, 32-bit sums).
+s32 Octagonal(const s32 *d) {
+    const s32 ax = Abs(d[0]), ay = Abs(d[1]);
+    const s32 shorter = ax > ay ? ay : ax;
+    return (s32)((u32)ay - (u32)(shorter >> 1) + (u32)ax);
+}
 
 }  // namespace
 
@@ -166,5 +196,43 @@ s32 *__fastcall SteerAvoidObstacle_Steer(void *, void *, s32 *out, const u8 *nav
     }
     Matrix2_Transform(const_cast<u8 *>(nav), nullptr, out, &g_force(0));
     return out;
+}
+
+void __cdecl SteerSeparation_Neighbour(const u8 *nav, const u8 *other) {
+    if (other == nav) return;
+    s32 away[2];
+    IntPair_Sub(&at<u32>(nav, 8), nullptr, U(away), &at<u32>(other, 8));
+    const s32 distance = Octagonal(away);
+    if (distance >= (s32)(at<u32>(other, 4) + at<u32>(nav, 4) + 0x10000) || distance == 0) return;
+    s32 push[2];
+    IntPair_DivFixed(away, nullptr, push, distance);
+    g_force(0) = (s32)((u32)g_force(0) + (u32)push[0]);
+    g_force(1) = (s32)((u32)g_force(1) + (u32)push[1]);
+}
+
+s32 *__fastcall SteerSeparation_Steer(void *, void *, s32 *out, const u8 *nav) {
+    const u32 point = at<u32>(nav, 0x5c);
+    if (point == at<u32>(nav, 0x54) - 1 || at<u8>(nav, 0x60) != 0) {
+        s32 d[2];
+        IntPair_Sub(&at<u32>(nav, 8), nullptr, U(d), &at<u32>(nav, 0x64 + point * 8));
+        if (Octagonal(d) <= (s32)(at<u32>(nav, 4) + 0x10000)) {
+            out[0] = 0;
+            out[1] = 0;
+            return out;
+        }
+    }
+    g_force(0) = 0;
+    g_force(1) = 0;
+    Nav_VisitNeighbours(nav, (s32)(at<u32>(nav, 4) << 1), &SteerSeparation_Neighbour);
+    out[0] = g_force(0);
+    out[1] = g_force(1);
+    return out;
+}
+
+void __cdecl Steering_SetPathBehaviours() {
+    EntryStack_Clear();  // inlined in the original
+    PushBehaviour(0x761f1c, 0xe666);  // avoid_walls, 0.9
+    PushBehaviour(0x761f28, 0x8000);  // follow_path, 0.5
+    PushBehaviour(0x761ef0, 0x1999);  // separation, 0.1
 }
 }

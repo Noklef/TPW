@@ -50,4 +50,15 @@ u32 *__cdecl IntPair_Perp(u32 *out, const u32 *pair);
 // y << 16). Return out.
 u32 *__cdecl IntPair_FromFixed(u32 *out, u32 x, u32 y);
 u32 *__cdecl IntPair_ToFixed(u32 *out, u32 x, u32 y);
+
+// 0x50f600 (&out, &pair, limit): the pair cut to the limit's length (16.16). Its length is the one the steering inlines: Math_ISqrt of x * x + y * y
+// (32-bit products) while both magnitudes are under 0x1000, else of the magnitudes shifted right (logically) by 8 (under 0x400000) or 18, shifted back.
+// Below the limit (signed): out = pair; else out = pair * (limit << 16 / length) (16.16 products; one IDIV that faults, sic, on a length of 0 or a
+// quotient past 31 bits). Returns out.
+s32 *__cdecl IntPair_Truncate(s32 *out, const s32 *pair, s32 limit);
+
+// 0x50f700 (&out, &pair): the pair made 1.0 long. While both magnitudes are under 0x1000: root = Math_ISqrt((x * x + y * y) << 6), s = 0x80000 /
+// root (0 for a root of 0) and out = (x * s, y * s) (32-bit products); else root = Math_ISqrt of the magnitudes shifted right (arithmetically) by 8
+// (under 0x400000) or 18, squared and summed, s = 0x1000000 / root or 0x4000 / root (0 for 0) and out = pair * s (16.16 products, y first). Returns out.
+s32 *__cdecl IntPair_Normalize(s32 *out, const s32 *pair);
 }

@@ -73,4 +73,25 @@ void __fastcall Object_SetCapacity(u8 *object, void *, u32 capacity);
 // (-5, -2), 0x10e (-2, +4) from the cell of columns/rows at +5 and +7; any other angle stays) and the one beside it (the second offsets: 0 is (-2, +1), 0x5a (+1, +1), 0xb4 (+1, -2), 0x10e (-2, -2)) each have exactly one neighbour
 // bit (MapCell_NeighbourCount, on the 0x28-byte cells of the world at [0x7cf83c]).
 u32 __cdecl Object_TrackNeighboursOk(const u8 *object);
+
+// 0x4e02f0 (thiscall): 0 when Obj_GetTrackedHandle gives 0; else Person_HasWordInState (world/person) of the thing the handle at +0x5e names (the table
+// at 0x7cfb90) with this object's own handle (the word at +0).
+u32 __fastcall Obj_TrackedPersonInState(u8 *object);
+
+// 0x4dad20 (thiscall, this unused; two stack arguments, unused, pops 8): for each thing of the list from the u16 at +0x1da746 of the object [0x80239c]
+// (the table at 0x7cfb90; the next at +0xc) that is in state 1 or 2 (+0x19c) or has the dword at +0x64 set: when Obj_GetTrackedHandle gives a handle,
+// Fn_4e0210 (core/initializers: +0x5e and +0x60 = 0) lets it go.
+void __fastcall Objects_ReleaseTracked(void *self, void *, u32 unused1, u32 unused2);
+
+// 0x4fa770 (thiscall; name unconfirmed): whether the largest block value (Map_BlockValue of the map at [0x80239c] + 0x2d8) at the nine offsets of 0x7ced88 (dword pairs
+// x, y: id + y * 0x80 + x as a word) from a cell is below the dword at +0x198 (unsigned; the search stops early once the largest is above it). The cell is the object's
+// ((byte +7) * 0x80 + byte +5 + 1); when that is a type 3 or 9 cell, the last one of the chain Map_FindFacingNeighbour follows from it (forever round a loop).
+u32 __fastcall Obj_BlockValuesBelowLimit(const u8 *object);
+
+// 0x4daa90 (thiscall; out, person handle, pops 8; name unconfirmed): one round of the world's object list (head at +0x1da746 of [0x80239c], next at +0xc of each
+// thing) from the cursor at +0xc: the cursor first moves past itself when it is in the list (else to the head); then each object in state 1 or 2 (+0x19c), or with the
+// dword at +0x64 set and flag 1 of +0x32 clear, that tracks nobody or the person (Obj_GetTrackedHandle, asked twice) is measured from the person's cell (squared
+// cell distance, from bytes +5 / +7 of both); the nearest one's own handle (+0) goes to out (0 when none or the list is empty). The cursor wraps to the head and ends
+// where it started. Returns out.
+u16 *__fastcall Objects_NearestFreeFor(u8 *self, void *, u16 *out, u32 person);
 }
