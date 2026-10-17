@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <initializer_list>
 
+#include "../math/x87.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -138,4 +140,43 @@ u32 __fastcall TexCacheItem_Flag4(const u8 *item) { return at<u32>(item, 4) & 4;
 void __fastcall TexCacheItem_SetFlag1(u8 *item) { at<u32>(item, 4) |= 1; }
 
 void __fastcall TexCacheItem_ClearFlag1(u8 *item) { at<u32>(item, 4) &= ~1u; }
+
+u32 __fastcall TexCache_UnlinkItem(u8 *cache, void *, u8 *item) {
+    if (!(at<u32>(cache, 0x18cc) & 0x20000000))
+        return 1;
+    if (!item)
+        return 0;
+    if (!(at<u32>(item, 8) & 0x1000))
+        return 1;
+    u8 *const owner = at<u8 *>(item, 0x18);
+    u8 *prev = nullptr;
+    u8 *node = at<u8 *>(owner, 4);
+    for (;;) {
+        if (!node)
+            return 0;
+        if (node == item)
+            break;
+        prev = node;
+        node = at<u8 *>(node, 4);
+    }
+    if (prev)
+        at<u8 *>(prev, 4) = at<u8 *>(item, 4);
+    else
+        at<u8 *>(owner, 4) = at<u8 *>(item, 4);
+    const u32 masked = at<u32>(item, 8) & 0xffff0fcf;
+    const u16 width = (u16)((at<u16>(item, 0x10) + 7) & 0xfff8);
+    const X87Reg lod = (X87Reg(1.5f) - at<float>(item, 0x30)) * 2047.0f;  // 0x70232c, 0x702330
+    const u16 height = (u16)((at<u16>(item, 0x12) + 7) & 0xfff8);
+    const u32 flags = ((u32)((s32)masked >> 2) & 0x30) | masked;
+    at<u32>(item, 8) = flags;
+    at<u16>(item, 0x14) = width;
+    at<u16>(item, 0x16) = height;
+    const u32 key = ((((u32)(long long)lod.v & 0xfff) << 8) + (u32)(s32)(s16)width << 8) + (u32)(s32)(s16)height;
+    at<u32>(item, 0x38) = key;
+    if (flags & 0x4000)
+        at<u32>(item, 0x38) = key | 0x20000000;  // never: the mask above clears 0x4000 (sic)
+    if (flags & 0x80000)
+        at<u32>(item, 0x38) |= 0x40000000;
+    return 1;
+}
 }
