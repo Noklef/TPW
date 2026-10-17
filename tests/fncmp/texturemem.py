@@ -31,12 +31,12 @@ def texture(r, buf, off, last):
     put(buf, off + 0x40, 'I', OBJ if flags & 0x10000000 and r.random() < 0.8 else r.choice([0, HEAP + 0x1200, HEAP + 0x1300, r.getrandbits(32)]))
 
 
-def textures(r, regions):
-    """Four textures at TEX, the tracked table holding some of their blocks, the cache at 0x8c4b44 with some of them in its list; returns them."""
-    tex = bytearray(r.bytes(0x60 * 4))
-    for k in range(4):
-        texture(r, tex, 0x60 * k, k == 3)
-    blocks = [struct.unpack_from('<I', tex, 0x60 * k + o)[0] for k in range(4) for o in (0x3c, 0x40)]
+def textures(r, regions, base=TEX, n=4):
+    """n textures at base, the tracked table holding some of their blocks, the cache at 0x8c4b44 with some of them in its list; returns them."""
+    tex = bytearray(r.bytes(0x60 * n))
+    for k in range(n):
+        texture(r, tex, 0x60 * k, k == n - 1)
+    blocks = [struct.unpack_from('<I', tex, 0x60 * k + o)[0] for k in range(n) for o in (0x3c, 0x40)]
     table = bytearray(8 * 8)
     for k in range(8):
         b = r.choice(blocks + [r.getrandbits(32)])
@@ -46,10 +46,10 @@ def textures(r, regions):
     cache = put(bytearray(r.bytes(0x1900)), 0x18cc, 'I', r.getrandbits(32) | 0x20000000 if r.random() < 0.85 else r.getrandbits(32) & ~0x20000000)
     regions[CACHE] = cache
     regions[0x8c4b44] = struct.pack('<I', CACHE)
-    nodes = [TEX + 0x60 * k for k in range(4) if r.random() < 0.6]
+    nodes = [base + 0x60 * k for k in range(n) if r.random() < 0.6]
     r.shuffle(nodes)
     for node, link in zip(nodes, nodes[1:] + [0]):
-        put(tex, node - TEX + 4, 'I', link)
+        put(tex, node - base + 4, 'I', link)
     regions[OWNER] = put(bytearray(r.bytes(0x10)), 4, 'I', nodes[0] if nodes else 0)
     regions[OBJ] = struct.pack('<I', VT) + r.bytes(12)
     regions[VT] = vtable({0: 1})
