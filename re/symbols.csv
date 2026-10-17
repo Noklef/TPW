@@ -4083,6 +4083,7 @@ address,name,kind,confidence,notes
 0x00573ca0,SoftRenderer_ClearBuffer,function,high,reimplemented (src/game/render/softrender); the w*h*4-byte buffer zeroed; returns 1
 0x00573e30,SoftRenderer_TextureMemory,function,high,"reimplemented (src/game/render/softrender); the texture memory: the option, else a quarter of RAM within 8-24 MB"
 0x005744d0,Meshes_Ready,function,high,reimplemented (src/game/render/meshlist); a zero-ended array of meshes readied (flag 0x20: object +0x30; no 0x10000000: pushed on 0x879dec)
+0x00574110,Meshes_SetDirection,function,low,"reimplemented (src/game/render/meshlist); thiscall on [0x87a248] (x, y, z): +0x34-+0x3c = the vector made unit length, or as it is when its length is 0 or NaN"
 0x00565240,Batch_Begin,function,high,"reimplemented (src/game/render/batch); a draw batch begun for a primitive kind, its fields filled"
 0x00569f60,Rasteriser_ChooseSpan,function,high,reimplemented (src/game/render/rasteriser); the span routine chosen by the render flags
 0x00569f20,Rasteriser_ClearMmx,function,high,"reimplemented (src/game/render/rasteriser); EMMS, returns 1 (name unconfirmed)"
