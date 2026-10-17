@@ -1,4 +1,5 @@
-// The live objects list: reimplementation of 0x5775d0 and 0x577600.
+// The live objects list: reimplementation of 0x5775d0 and 0x577600, and of a constructor (0x579cd0) and a deleting destructor
+// (0x57ca00) of two of the classes that register with it.
 //
 // Classes sharing the abstract virtual base with vtable 0x6fdce8 (the fonts, 0x48f1ff; the
 // decoded textures, 0x56b168; some engine parts) add that base to a global list of 0x200 when
@@ -16,4 +17,16 @@ u32 __cdecl LiveObjects_Add(void *object);
 // 0x577600 (cdecl; object): the last match, searching from the end, is replaced by the last entry
 // and the count drops; 1, or 0 when it is not there.
 u32 __cdecl LiveObjects_Remove(void *object);
+
+// 0x579cd0 (thiscall; most derived: pops 4; name unconfirmed): when most derived, +0 = the virtual base table 0x701a08 (the base at
+// +0x154) and the base's vtable +0x154 = 0x6fdce8. Two identity matrices at +0x10 and +0x50; the base's vtable (at the offset the
+// table gives) = 0x7019f8 and the dword before it = that offset - 0x154; +0x90 = +0x94 = -1; +4, +8, +0x11c, +0x124-+0x140 and the
+// 0x21 dwords from +0x98 = 0; then the base (this plus the offset; 0 for no object) added to the live objects. Returns this.
+u8 *__fastcall LiveObject7019f8_Construct(u8 *object, void *, u32 most_derived);
+
+// 0x57ca00 (thiscall on the virtual base, 0xa4 into the object; flags: pops 4; name unconfirmed): the base's vtable (at the offset
+// the object's table gives) = 0x701b30 and the dword before it = the offset - 0xa4 (the offset read again after each store), the
+// base (the object plus the offset, read again; 0 when the object is) taken out of the live objects, +0xa4 = 0x6fdce8, and with flag
+// 1 the object freed (0x67acb0). Returns the object.
+u8 *__fastcall LiveObject701b30_DeletingDtor(u8 *base, void *, u32 flags);
 }
