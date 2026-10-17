@@ -41,7 +41,8 @@ def case(r):
             put(row, at + 8, 'I', r.choice(TYPES * 3 + [0x19] * 4 + [0xc, 0x11, 0, 0x1a, 0x10b]))
             row[at + 2] = r.choice([2, 2, 0, 1])
             for k in (0xc, 0x22):
-                row[at + k] = r.choice([r.getrandbits(8) & r.getrandbits(8), r.getrandbits(8) & r.getrandbits(8) & r.getrandbits(8), r.getrandbits(8), 0, 0xff, 0x55])
+                row[at + k] = r.choice([r.getrandbits(8) & r.getrandbits(8), r.getrandbits(8) & r.getrandbits(8) & r.getrandbits(8), 1 << r.randrange(8), 0, 0,
+                                        r.getrandbits(8), 0xff, 0x55])
             put(row, at + 0x10, 'H', r.choice([0, 0, focus, focus, r.getrandbits(16)]))
         if j == 0:   # (the cell's own id: the steps start from it)
             put(row, 2 * 0x28, 'H', ident(x0, y0))
@@ -54,8 +55,11 @@ def case(r):
     regions[0x81b4cc] = struct.pack('<I', r.choice([0, 0, 1, 0x100]))
     regions[0x818698] = struct.pack('<I', focus | r.getrandbits(16) << 16)
     regions[0x820ac8] = struct.pack('<I', r.choice([0, 0, 1, 0x100]))
-    regions[0x763b00] = struct.pack('<ii', step(r), step(r))
-    kind = r.choice(TYPES * 3 + [0xc, 0xe, 0x11, 0x18, 0x1a, 0, 0xa, r.getrandbits(32)])
+    last = [step(r), step(r)]
+    if r.random() < 0.25:   # (one of them 0x80, the other a step)
+        last = r.choice([[0x80, r.choice([2, -2])], [r.choice([2, -2]), 0x80]])
+    regions[0x763b00] = struct.pack('<ii', *last)
+    kind = r.choice(TYPES * 3 + [0x19] * 3 + [0xc, 0xe, 0x11, 0x18, 0x1a, 0, 0xa, r.getrandbits(32)])
     return Call(0x539220, [CELLS + ident(x0, y0) * 0x28, kind, step(r) & 0xffffffff, step(r) & 0xffffffff], regions, conv='t', ret='v')
 
 
