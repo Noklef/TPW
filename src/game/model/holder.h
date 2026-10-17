@@ -50,4 +50,10 @@ u32 __cdecl Holder_Dispose(u8 *holder);
 
 // 0x455a80 (cdecl; the owner): the same for the holder at +0x24 of the owner, then the dword at +0x1c of the object at +0x3c is lowered and the block at +0x34 freed. Returns 1.
 u32 __cdecl HolderOwner_Dispose(u8 *owner);
+
+// 0x425490 (cdecl; animator, from, to): Holder_AddToGrid of the holder at +0x24 over the rectangle, then flag 0x4000 of the animator is set. Returns 1.
+u32 __cdecl Animator_AddToGrid(u8 *animator, u32 from, u32 to);
+
+// 0x43eac0 (cdecl; owner): while the owner has a first child (+0x38) it is unlinked (the owner's pointer takes the child's own link at +0x38) and disposed of (HolderOwner_Dispose).
+void __cdecl Owner_DisposeChildren(u8 *owner);
 }

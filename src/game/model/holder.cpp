@@ -121,4 +121,17 @@ u32 __cdecl HolderOwner_Dispose(u8 *owner) {
     GlobalMem_Free(at<void *>(owner, 0x34));
     return 1;
 }
+
+u32 __cdecl Animator_AddToGrid(u8 *animator, u32 from, u32 to) {
+    Holder_AddToGrid(at<u8 *>(animator, 0x24), from, to);
+    at<u32>(animator, 0) = at<u32>(animator, 0) | 0x4000;
+    return 1;
+}
+
+void __cdecl Owner_DisposeChildren(u8 *owner) {
+    while (u8 *const child = at<u8 *>(owner, 0x38)) {
+        at<u8 *>(owner, 0x38) = at<u8 *>(child, 0x38);
+        HolderOwner_Dispose(child);
+    }
+}
 }
