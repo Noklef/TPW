@@ -160,12 +160,12 @@ void __cdecl heap_free(void *block) {
 
 // GlobalAlloc / GlobalFree (stdcall) for code that calls through the game's import slots
 // (tools/fncmp.py global_heap() points them here, at kStubs + 0x20 and + 0x30): the same heap;
-// GlobalAlloc also hashes the flags in and zeroes the block for GMEM_ZEROINIT (0x40).
+// GlobalAlloc also hashes the flags in and zeroes the block got for GMEM_ZEROINIT (0x40).
 void *__stdcall stub_global_alloc(u32 flags, u32 size) {
     u8 *p = static_cast<u8 *>(heap_alloc(size));
     u32 *h = reinterpret_cast<u32 *>((uintptr_t)kHeap);
     h[1] = h[1] * 33 ^ flags;
-    if (flags & 0x40) std::memset(p, 0, size);
+    if (flags & 0x40 && p) std::memset(p, 0, size);  // (not for a failed allocation)
     return p;
 }
 
