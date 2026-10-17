@@ -142,7 +142,7 @@ address,name,kind,confidence,notes
 0x0087919c,RSSE_CritLock,data,high,set by CRIT_LOCK
 0x00879190,RSSE_ScriptVersion,data,medium,expected .RSE version (0x10F51)
 0x0046d6d0,MD2_Load,function,high,"loads a .md2 mesh: magic 0x1CD15D46, version <=0xDE; relocates ~18 header offsets and nested table pointers"
-0x00416e10,Save_FieldName,function,high,"(size, name, isLoad) debug stub, compiled to 'return 0'; every serializer announces each field through it, which names the save format"
+0x00416e10,Save_FieldName,function,high,"reimplemented (src/game/core/savegame); stdcall (size, name, isLoad) debug stub: returns 0"
 0x0041a860,TimeSig_Serialize,function,high,u32 mTimeSig
 0x00415f50,SaveGame_WriteHeader,function,high,"u8 language, 0x500 UTF-16 legal text, 0x100 block, u32 BE magic 0x01221985, u32 has-preview"
 0x00416240,SaveGame_ReadHeader,function,high,mirror of SaveGame_WriteHeader; rejects edited legal text

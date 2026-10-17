@@ -134,6 +134,7 @@
 #include "../game/core/vwrap.h"
 #include "../game/core/actionrec.h"
 #include "../game/core/namedobjects.h"
+#include "../game/core/savegame.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -3140,6 +3141,7 @@ const Hook kHooks[] = {
     {"Global81d7a4_SetRecorded",  0x0052f1b0, (void *)&Global81d7a4_SetRecorded, {0xa1, 0x34, 0xb1, 0x81, 0x00}},
     {"Global8186e0_SetRecorded",  0x0052f880, (void *)&Global8186e0_SetRecorded, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"NamedObjects_RemoveGlobals", 0x00408f00, (void *)&NamedObjects_RemoveGlobals, {0x51, 0x8b, 0x0d, 0x9c, 0x6b}},
+    {"Save_FieldName",            0x00416e10, (void *)&Save_FieldName, {0x33, 0xc0, 0xc2, 0x0c, 0x00}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
