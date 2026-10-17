@@ -3544,6 +3544,11 @@ address,name,kind,confidence,notes
 0x004036e0,ActionRec_Dtor,function,high,"reimplemented (src/game/core/actionrec); thiscall: the streams closed (all in mode 0, else the first), then destroyed"
 0x00403a40,ActionRec_Start,function,high,"reimplemented (src/game/core/actionrec); thiscall (mode): recording; memory streams opened, the start record 0xe7 and 0x80 zeros"
 0x00403b00,ActionRec_Restart,function,high,"reimplemented (src/game/core/actionrec); thiscall: recording stopped, streams closed, started again in its mode"
+0x00447e10,ActionRec_RecordCoaster45,function,high,"reimplemented (src/game/core/actionrec); cdecl (coaster, value): the record 0x45 (the coaster's word +0x14, the word value)"
+0x0052fa90,Global81b0cc_SetRecorded,function,high,"reimplemented (src/game/core/actionrec); cdecl (value): the record 0x23 (the word value), then 0x81b0cc = value"
+0x0052fad0,Global81ecac_SetRecorded,function,high,"reimplemented (src/game/core/actionrec); cdecl (value): the record 0x1e (the word value), then 0x81ecac = value"
+0x0052f1b0,Global81d7a4_SetRecorded,function,high,"reimplemented (src/game/core/actionrec); cdecl (value, force byte): the record 0xa unless value is 0x81b134 and not forced; 0x81b134 = old 0x81d7a4, 0x81d7a4 = value"
+0x0052f880,Global8186e0_SetRecorded,function,high,"reimplemented (src/game/core/actionrec); cdecl (&id, flag): the record 5 (word id, byte flag), World_MarkRideBuilt; 0x8186ec = old 0x8186e0, 0x8187f8 = flag, 0x8186e0 = id"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x0052a050,Cell_ExtendPath,function,high,reimplemented (src/game/world/mapcell); one step of a path across the map's cells

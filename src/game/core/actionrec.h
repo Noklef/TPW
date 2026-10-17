@@ -1,5 +1,6 @@
 // The action recorder (the global at 0x785a08, "AR - %d ..." in its debug prints): reimplementation of its
-// record writers 0x403be0-0x403e60.
+// constructor, destructor, Start, Restart (0x403480-0x403b00), record writers 0x403be0-0x403e60 and the recorded actions 0x447e10,
+// 0x52f1b0, 0x52f880, 0x52fa90 and 0x52fad0.
 //
 // +0 recording (writers do nothing while 0), +4 the mode, +0xc / +0x14 / +0x1c three streams (StreamBase, vtable
 // 0x6fd6a0), +0x24 playing back (writers do nothing while set). A writer appends one record to the first stream
@@ -45,4 +46,17 @@ void __fastcall ActionRec_WriteWW(ActionRec *r, void *, u32 code, u32 a, u32 b);
 void __fastcall ActionRec_WriteWWW(ActionRec *r, void *, u32 code, u32 a, u32 b, u32 c);
 // 0x403e60 (thiscall; code, a, b; pops 0xc): the code byte, the word a, the byte b.
 void __fastcall ActionRec_WriteWB(ActionRec *r, void *, u32 code, u32 a, u32 b);
+
+// Recorded actions: each writes its record to the global recorder 0x785a08, then (most) applies it.
+// 0x447e10 (cdecl; coaster, value): the record 0x45 (the coaster's word +0x14, the word value); nothing else.
+void __cdecl ActionRec_RecordCoaster45(const u8 *coaster, u32 value);
+// 0x52fa90 / 0x52fad0 (cdecl; value): the record 0x23 / 0x1e (the word value), then the dword 0x81b0cc / 0x81ecac = value.
+void __cdecl Global81b0cc_SetRecorded(u32 value);
+void __cdecl Global81ecac_SetRecorded(u32 value);
+// 0x52f1b0 (cdecl; value, force byte): the record 0xa (the word value) unless the value is the dword 0x81b134 and force
+// is 0; then 0x81b134 = the old 0x81d7a4 and 0x81d7a4 = value.
+void __cdecl Global81d7a4_SetRecorded(u32 value, u32 force);
+// 0x52f880 (cdecl; &id, flag): the record 5 (the word id, the byte flag), the ride marked built in the world (0x7cf83c,
+// World_MarkRideBuilt); then the word 0x8186ec = the word 0x8186e0, the dword 0x8187f8 = flag and 0x8186e0 = id.
+void __cdecl Global8186e0_SetRecorded(const u16 *id, u32 flag);
 }

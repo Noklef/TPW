@@ -1,9 +1,16 @@
 #include "actionrec.h"
 
+#include <cstdint>
+
 #include "../files/handles.h"
+#include "../world/world.h"
 #include "vcall.h"
 
 namespace {
+
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+ActionRec *gActionRec() { return reinterpret_cast<ActionRec *>((uintptr_t)0x00785a08); }
 
 bool writing(const ActionRec *r) { return r->playback == 0 && r->recording != 0; }
 
@@ -140,5 +147,33 @@ void __fastcall ActionRec_WriteWB(ActionRec *r, void *, u32 code, u32 a, u32 b) 
     put8(r, code);
     put16(r, a);
     put8(r, b);
+}
+
+void __cdecl ActionRec_RecordCoaster45(const u8 *coaster, u32 value) {
+    ActionRec_WriteWW(gActionRec(), nullptr, 0x45, *reinterpret_cast<const u16 *>(coaster + 0x14), value);
+}
+
+void __cdecl Global81b0cc_SetRecorded(u32 value) {
+    ActionRec_WriteW(gActionRec(), nullptr, 0x23, value);
+    global<u32>(0x0081b0cc) = value;
+}
+
+void __cdecl Global81ecac_SetRecorded(u32 value) {
+    ActionRec_WriteW(gActionRec(), nullptr, 0x1e, value);
+    global<u32>(0x0081ecac) = value;
+}
+
+void __cdecl Global81d7a4_SetRecorded(u32 value, u32 force) {
+    if (value != global<u32>(0x0081b134) || (u8)force != 0) ActionRec_WriteW(gActionRec(), nullptr, 0xa, value);
+    global<u32>(0x0081b134) = global<u32>(0x0081d7a4);
+    global<u32>(0x0081d7a4) = value;
+}
+
+void __cdecl Global8186e0_SetRecorded(const u16 *id, u32 flag) {
+    ActionRec_WriteWB(gActionRec(), nullptr, 5, *id, flag);
+    World_MarkRideBuilt(global<u8 *>(0x007cf83c), nullptr, *id);
+    global<u16>(0x008186ec) = global<u16>(0x008186e0);
+    global<u32>(0x008187f8) = flag;
+    global<u16>(0x008186e0) = *id;
 }
 }
