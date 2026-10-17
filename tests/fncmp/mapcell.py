@@ -6,7 +6,7 @@
 # cells or not, 0x81b4cc set or not, parents 0 and a few in a table of the world's) against the
 # originals: handles 0, 1 and wild under any gMapCells, ranges set at any index, coordinates
 # about 0 and 128, positions of any value for A and B.
-# usage: mapcell.py [CASES [SEED]] [--wild|--both] [--show N]
+# usage: mapcell.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=5228b0,...: only those cell accessors)
 import os
 import sys
 
@@ -26,6 +26,7 @@ CELL = {0x522700: 'v', 0x522730: 'v', 0x522770: 'b', 0x522790: 'a', 0x5227e0: 'v
         0x53aec0: 'w', 0x53aef0: 'v', 0x5363f0: 'a', 0x536440: 'a', 0x536450: 'a'}
 TYPES = [0, 1, 2, 3, 4, 5, 7, 9, 0xa, 0xb, 0xc, 0xd, 0x10, 0x11, 0x12, 0x15, 0x19, 0x1e, 0x115, 0x111]
 TABLE = RAM + 0x400  # the world's cells for handles 0-5: gWorld and gMapCells placed to reach it
+OPS = [int(a, 16) for a in os.environ.get('OPS', '').split(',') if a]
 POS = [0x4d8610, 0x4d8650, 0x4d8690, 0x4d86d0, 0x4d8710]
 
 
@@ -35,7 +36,7 @@ def coord(r):
 
 def case(r):
     mem = r.bytes(0x200)
-    if r.random() < 0.02:  # the whole-map percentage: 128 x 128 cells
+    if not OPS and r.random() < 0.02:  # the whole-map percentage: 128 x 128 cells
         types = [2, 7, 0x1e, 0, 1, 3, 9, 0xa, 0x12]
         cells = bytearray(r.bytes(0x44 * 0x4000))
         for c in range(0x4000):
@@ -43,9 +44,9 @@ def case(r):
         re_cells = bytearray(r.bytes(0x29000))
         world = RAM - 0x2d8  # so that the map (world + 0x2d8) is the cells region
         return Call(0x4cd720, [], {0x802390: put(bytearray(r.bytes(0x20)), 0xc, 'I', world), RAM: cells, RAM + 0x1b1000: re_cells}, ret='a')
-    op = 13 if r.random() < 0.5 else r.randrange(13)  # half on the many cell accessors
+    op = 13 if OPS or r.random() < 0.5 else r.randrange(13)  # half on the many cell accessors
     if op == 13:
-        fn = r.choice(list(CELL))
+        fn = r.choice(OPS or list(CELL))
         cell = bytearray(r.bytes(0x28))
         cell[2] = r.choice([2, 2, 0, 1, 3, r.getrandbits(8)])
         mode = bytearray(r.bytes(4))
