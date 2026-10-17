@@ -32,6 +32,7 @@
 #include "../../src/game/files/drives.h"
 #include "../../src/game/files/handles.h"
 #include "../../src/game/files/wadsource.h"
+#include "../../src/game/files/wrapsources.h"
 #include "../../src/game/gfx/canvas.h"
 #include "../../src/game/world/mousemode.h"
 #include "crt.h"
@@ -194,6 +195,11 @@ const MouseModeEnv kMouseModeEnv = {&heap_free};
 const PtrListEnv kPtrListEnv = {&heap_alloc};
 const GameHeapEnv kGameHeapEnv = {&heap_alloc, &heap_free};
 const WadSourceEnv kWadSourceEnv = {&heap_alloc, &heap_free};
+// atexit is stub_cdecl_log (kStubs + 0x50; the benches hook 0x67a7d0 with fncmp._cdecl_log); the compressor's destructor stays the game's address, which is only
+// handed to atexit, never called here.
+const WrapSourcesEnv kWrapSourcesEnv = {&heap_alloc, &heap_free, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)),
+                                        reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005f80c0), reinterpret_cast<u8 *>((uintptr_t)0x00fa75f8),
+                                        reinterpret_cast<ZlibCodec *>((uintptr_t)0x00fa75fc)};
 
 // The recorders (tools/fncmp.py recorder(k, n)): thunks at kStubs + 0x1000 + 0x400 * n + 0x20 * k, thiscall with n stack arguments (popped by the thunk), that
 // log (k, n, this, the arguments) at kLog and return a hash of them. The log is a count, then 12 dwords an entry; room for 80.
@@ -347,6 +353,7 @@ int main(int argc, char **argv) {
     PtrList_SetEnv(&kPtrListEnv);
     GameHeap_SetEnv(&kGameHeapEnv);
     WadSource_SetEnv(&kWadSourceEnv);
+    WrapSources_SetEnv(&kWrapSourcesEnv);
     // Envs whose game defaults call game code by its address, which the driver cannot (its own code covers the game's .text): that code resolved to its hooked
     // replacement, as the hooked game resolves it; the CPU information constructor (CPUID, the host's) is stub_mark, as tools/fncmp.py's emulator has it.
     static DrivesEnv drives = *Drives_GetEnv();

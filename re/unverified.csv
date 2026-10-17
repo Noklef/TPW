@@ -122,19 +122,7 @@ address,name,module,reason
 5f78a0,Lib_IsDigitW,core/libc,todo
 5f78c0,Lib_VSWPrintf,core/libc,todo
 5f7ed0,FileStream_OpenPath,files/filestream,todo
-5f8050,Buffer_Compress,files/wrapsources,todo
-5f8080,Compressor_Get,files/wrapsources,todo
-5f80c0,Compressor_AtExit,files/wrapsources,todo
-5f80d0,ZlibCodec_Ctor,files/wrapsources,todo
-5f80e0,CodecBase_DeletingDtor,files/wrapsources,todo
-5f8100,Buffer_Decompress,files/wrapsources,todo
-5f8120,Buffer_UnpackedSize,files/wrapsources,todo
-5f8140,CallbackStream_Write,files/wrapsources,todo
-5f8160,CallbackStream_Read,files/wrapsources,todo
-5f8180,CallbackStream_DeletingDtor,files/wrapsources,todo
-5f81a0,CallbackStream_Dtor,files/wrapsources,todo
-5f81b0,CallbackStreamBase_DeletingDtor,files/wrapsources,todo
-5f81d0,Buffer_DecompressStream,files/wrapsources,todo
+5f81d0,Buffer_DecompressStream,files/wrapsources,todo: hands the codec a stack CallbackStream; needs a recorder that logs the pointee rather than the stack address
 5f8510,Handle_Open28,files/handles,todo
 5f85d0,Handle_OpenE0,files/handles,todo
 5f86a0,App_GetInstance,core/app,todo: indirect only
@@ -553,33 +541,8 @@ address,name,module,reason
 638700,WadFilePool_Alloc,files/waddir,todo
 6387a0,WadFolderListBase_DeletingDtor,files/waddir,todo
 6387f0,WadFileListBase_DeletingDtor,files/waddir,todo
-638840,SharedSource_Ctor,files/wrapsources,todo
-638860,TrackedSource_DeletingDtor,files/wrapsources,todo
-638880,SharedSource_Read,files/wrapsources,todo
-638910,SharedSource_Write,files/wrapsources,todo
-6389a0,SharedSource_Seek,files/wrapsources,todo
-638a30,SharedSource_Size,files/wrapsources,todo
-638ab0,SharedSource_Sync,files/wrapsources,todo
-638ae0,SharedSource_Attach,files/wrapsources,todo
-638b00,BufferSource_Ctor,files/wrapsources,todo
-638b20,BufferSource_Open,files/wrapsources,todo
-638b50,BufferSource_Write,files/wrapsources,todo
-638b60,BufferSource_Read,files/wrapsources,todo
-638bb0,BufferSource_Tell,files/wrapsources,todo
-638bc0,BufferSource_Clear,files/wrapsources,todo
-638be0,BufferSource_AttachRefPack,files/wrapsources,todo
-638c60,Codec_Dtor,files/wrapsources,todo
-638c70,Codec_DeletingDtor,files/wrapsources,todo
-638c90,ZlibBufferSource_Ctor,files/wrapsources,todo
-638cb0,BufferSource_Seek,files/wrapsources,todo
-638d30,BufferSource_AttachZlib,files/wrapsources,todo
-638d80,BufferSource_ReadCallback,files/wrapsources,todo
-638da0,SliceSource_Ctor,files/wrapsources,todo
-638dc0,SliceSource_Open,files/wrapsources,todo
-638de0,SliceSource_Clear,files/wrapsources,todo
-638df0,SliceSource_Read,files/wrapsources,todo
-638e40,SliceSource_Seek,files/wrapsources,todo
-638ec0,SliceSource_Map,files/wrapsources,todo
+638be0,BufferSource_AttachRefPack,files/wrapsources,todo: decodes what the source reads; needs a bench feeding real RefPack streams
+638d30,BufferSource_AttachZlib,files/wrapsources,todo: hands the codec a stack CallbackStream; needs a recorder that logs the pointee rather than the stack address
 638ef0,BufferedSource_Ctor,files/bufsource,todo
 638f20,BufferedSource_Open,files/bufsource,todo
 638f70,BufferedSource_Free,files/bufsource,todo
@@ -606,13 +569,6 @@ address,name,module,reason
 641760,Wildcard_Match,files/wadfind,todo
 641780,Wildcard_MatchFrom,files/wadfind,todo
 641820,StringList_PopHead,files/wadfind,todo
-6418e0,TrackedSource_Ctor,files/wrapsources,todo
-641900,TrackedSource_Dtor,files/wrapsources,todo
-641910,TrackedSource_Clear,files/wrapsources,todo
-641920,TrackedSource_Read,files/wrapsources,todo
-641950,TrackedSource_Write,files/wrapsources,todo
-641980,TrackedSource_Seek,files/wrapsources,todo
-6419a0,TrackedSource_Size,files/wrapsources,todo
 641f10,RefPack_Decode,files,todo
 642110,RefPack_DecodedSize,?,todo
 642150,InverseMap_Ctor,gfx/invmap,todo
@@ -624,5 +580,4 @@ address,name,module,reason
 6426b0,InverseMap_BlueLoop,gfx/invmap,todo
 642840,InverseMap_MaxFill,gfx/invmap,todo
 661830,Fn_661830,core/accessors,todo
-6ad810,Source_Field0c,files/wrapsources,todo
 6d1bc0,Globalfb2708_Set_6d1bc0,core/globals,todo: indirect only
