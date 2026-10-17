@@ -20,6 +20,18 @@
 #include "vdtor.h"
 #include "vobj2.h"
 #include "vwrap.h"
+#include "../files/drives.h"
+#include "../files/file.h"
+#include "../files/handles.h"
+#include "../files/wadsource.h"
+#include "../gfx/canvas.h"
+#include "../gfx/color.h"
+#include "../gfx/gauge.h"
+#include "../gfx/pixconv.h"
+#include "../gfx/screensurfaces.h"
+#include "../gfx/surface.h"
+#include "semaphore.h"
+#include "string.h"
 
 namespace {
 
@@ -317,5 +329,193 @@ u32 __fastcall Wrap_WaveletCodec_Decode_5987a0(u8 *self, void *, s32 a2, u32 a3,
 
 s32 __fastcall Wrap_Refcounted_Release_5987e0(u8 *self) {
     return Refcounted_Release(Adjust(self));
+}
+
+void __fastcall Wrap_Class507800_Dtor_409240(u8 *self) {
+    Class507800_Dtor(self);
+}
+
+void __fastcall Wrap_Handle_Dtor_41cc10(u8 *self) {
+    Handle_Dtor(reinterpret_cast<Handle *>(self));
+}
+
+u32 __fastcall Wrap_MeshPlus60_Ready_42a000(u8 *self) {
+    return MeshPlus60_Ready(reinterpret_cast<u8 *>(reinterpret_cast<uintptr_t>(Adjust(self)) + 0x64));
+}
+
+u32 __fastcall Wrap_Stub_One_42a030(void *self) {
+    return Stub_One(reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(Adjust(self)) + 0x64));
+}
+
+u8 *__fastcall Wrap_Plus28_IfKind2_42a040(u8 *self) {
+    return Plus28_IfKind2(reinterpret_cast<u8 *>(reinterpret_cast<uintptr_t>(Adjust(self)) + 0x64));
+}
+
+void __cdecl Wrap_StringList_Dtor_45d810() {
+    StringList_Dtor(reinterpret_cast<StringList *>(0xfb34e0));
+}
+
+void __fastcall Wrap_String_Dtor_45f940(u8 *self) {
+    String_Dtor(reinterpret_cast<String *>(self));
+}
+
+void __cdecl Wrap_ScreenSurfaces_Dtor_47e790() {
+    ScreenSurfaces_Dtor(reinterpret_cast<u8 *>(0x7b4ac0));
+}
+
+u32 __cdecl Wrap_Time_GetMs_489c80() {
+    return Time_GetMs();
+}
+
+u32 __cdecl Wrap_Wrap_Fn_669fee_492060_492460() {
+    return Wrap_Fn_669fee_492060(reinterpret_cast<u8 *>(0x7ca0c0));
+}
+
+u8 *__cdecl Wrap_SurfaceInfo_Ctor_492740() {
+    return reinterpret_cast<u8 *>(SurfaceInfo_Ctor(reinterpret_cast<SurfaceInfo *>(0x7ca0e8)));
+}
+
+u8 *__cdecl Wrap_Gauge_Init_49a0a0() {
+    return Gauge_Init(reinterpret_cast<u8 *>(0x7ca250));
+}
+
+u8 *__cdecl Wrap_Gauge_Init_4a46f0() {
+    return Gauge_Init(reinterpret_cast<u8 *>(0x7cb318));
+}
+
+void __cdecl Wrap_Class70293c_Dtor_4c07c0() {
+    Class70293c_Dtor(reinterpret_cast<u8 *>(0x7cc988));
+}
+
+u8 *__cdecl Wrap_SurfaceInfo_Ctor_51af80() {
+    return reinterpret_cast<u8 *>(SurfaceInfo_Ctor(reinterpret_cast<SurfaceInfo *>(0x8023a8)));
+}
+
+void __cdecl Wrap_FileStream_Dtor_532660() {
+    FileStream_Dtor(reinterpret_cast<StreamBase *>(0x81b0e8));
+}
+
+void __cdecl Wrap_ListDtor7027fc_5ac590_5ac500() {
+    ListDtor7027fc_5ac590(reinterpret_cast<u8 *>(0xf7b560));
+}
+
+void __cdecl Wrap_Strings5_Dtor_5c4c50() {
+    Strings5_Dtor(reinterpret_cast<u8 *>(0xf816c0));
+}
+
+void __fastcall Wrap_WString_Dtor_5c74a0(u8 *self) {
+    WString_Dtor(reinterpret_cast<WString *>(self));
+}
+
+u8 *__cdecl Wrap_Class703710_Ctor_5f5560() {
+    return Class703710_Ctor(reinterpret_cast<u8 *>(0xfa6e40));
+}
+
+void __cdecl Wrap_Time_Init_5f5f80() {
+    Time_Init();
+}
+
+u8 *__cdecl Wrap_SystemInfo_Ctor_5f8a40() {
+    return reinterpret_cast<u8 *>(SystemInfo_Ctor(reinterpret_cast<SystemInfo *>(0xfa7620)));
+}
+
+void __cdecl Wrap_PixelFormat_InitArgb8888Unused_5fcce0() {
+    PixelFormat_InitArgb8888Unused();
+}
+
+void __cdecl Wrap_PixelFormat_InitArgb1555_5fcd30() {
+    PixelFormat_InitArgb1555();
+}
+
+void __cdecl Wrap_PixelFormat_InitRgb555_5fcd80() {
+    PixelFormat_InitRgb555();
+}
+
+void __cdecl Wrap_PixelFormat_InitRgb565_5fcdd0() {
+    PixelFormat_InitRgb565();
+}
+
+void __cdecl Wrap_PixelFormat_InitArgb4444_5fce20() {
+    PixelFormat_InitArgb4444();
+}
+
+void __cdecl Wrap_PixelFormat_InitRgb888_5fce70() {
+    PixelFormat_InitRgb888();
+}
+
+void __cdecl Wrap_PixelFormat_InitBgr888_5fcec0() {
+    PixelFormat_InitBgr888();
+}
+
+void __cdecl Wrap_PixelFormat_InitArgb8888_5fcf10() {
+    PixelFormat_InitArgb8888();
+}
+
+void __cdecl Wrap_PixelFormat_InitAbgr8888_5fcf60() {
+    PixelFormat_InitAbgr8888();
+}
+
+void __cdecl Wrap_PixelFormat_InitXrgb8888_5fcfb0() {
+    PixelFormat_InitXrgb8888();
+}
+
+void __cdecl Wrap_PixelFormat_InitXbgr8888_5fd000() {
+    PixelFormat_InitXbgr8888();
+}
+
+void __cdecl Wrap_CanvasDriver8_Init_617360() {
+    CanvasDriver8_Init();
+}
+
+void __cdecl Wrap_CanvasDriver16_Init_617380() {
+    CanvasDriver16_Init();
+}
+
+void __cdecl Wrap_CanvasDriver24_Init_6173a0() {
+    CanvasDriver24_Init();
+}
+
+void __cdecl Wrap_CanvasDriver32_Init_6173c0() {
+    CanvasDriver32_Init();
+}
+
+u8 *__cdecl Wrap_Canvas_Ctor_618ca0() {
+    return reinterpret_cast<u8 *>(Canvas_Ctor(reinterpret_cast<Canvas *>(0xfa8258)));
+}
+
+void __fastcall Wrap_PixelConversion_Dtor_6300b0(u8 *self) {
+    PixelConversion_Dtor(reinterpret_cast<PixelConversion *>(self));
+}
+
+void __cdecl Wrap_Wrap_Vtbl70a258_Set_6b4a90_6b0750_6b0160() {
+    Wrap_Vtbl70a258_Set_6b4a90_6b0750(reinterpret_cast<u8 *>(0xfb1efc));
+}
+
+void __cdecl Wrap_Wrap_Vtbl70a258_Set_6b4a90_6b1e20_6b01a0() {
+    Wrap_Vtbl70a258_Set_6b4a90_6b1e20(reinterpret_cast<u8 *>(0xfb1ef0));
+}
+
+void __cdecl Wrap_Wrap_Vtbl70a258_Set_6b4a90_6b2a50_6b01e0() {
+    Wrap_Vtbl70a258_Set_6b4a90_6b2a50(reinterpret_cast<u8 *>(0xfb1ef4));
+}
+
+void __cdecl Wrap_Wrap_Vtbl70a258_Set_6b4a90_6b3c40_6b0220() {
+    Wrap_Vtbl70a258_Set_6b4a90_6b3c40(reinterpret_cast<u8 *>(0xfb1ef8));
+}
+
+void __fastcall Wrap_Handle_Dtor_6bf320(u8 *self) {
+    Handle_Dtor(reinterpret_cast<Handle *>(reinterpret_cast<u8 *>(reinterpret_cast<uintptr_t>(self) + 0x4)));
+}
+
+void __fastcall Wrap_String_Dtor_6c1230(u8 *self) {
+    String_Dtor(reinterpret_cast<String *>(reinterpret_cast<u8 *>(reinterpret_cast<uintptr_t>(self) + 0x4)));
+}
+
+u8 *__cdecl Wrap_Semaphore_Ctor_6c5ae0() {
+    return reinterpret_cast<u8 *>(Semaphore_Ctor(reinterpret_cast<Semaphore *>(0xfb205c)));
+}
+
+void __cdecl Wrap_StringList_Dtor_6d8990() {
+    StringList_Dtor(reinterpret_cast<StringList *>(0xfb34e0));
 }
 }  // extern "C"

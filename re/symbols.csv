@@ -1039,7 +1039,7 @@ address,name,kind,confidence,notes
 0x005f5df0,File_Copy,function,high,"reimplemented (src/game/files/file); CopyFileA (overwrite), paths not resolved; 0 / -1"
 0x005f5e80,Timer_Init,function,high,"reimplemented (src/game/files/file); thiscall; QueryPerformanceFrequency / 1000 (both halved to 32 bits) as ticks per ms, used when 10..32000000"
 0x005f5f10,Timer_GetMs,function,high,"reimplemented (src/game/files/file); thiscall; (QPC - start) / ticksPerMs + the timeGetTime at init (one IDIV), else timeGetTime"
-0x005f5f80,Time_InitThunk,function,high,jmp Time_Init
+0x005f5f80,Wrap_Time_Init_5f5f80,function,high,reimplemented (src/game/core/thunks); calls Time_Init
 0x005f5f90,Time_Init,function,high,reimplemented (src/game/files/file); Timer_Init(gClock)
 0x005f5fa0,Time_GetMs,function,high,reimplemented (src/game/files/file); Timer_GetMs(gClock)
 0x005f5fb0,Sys_Sleep,function,high,reimplemented (src/game/files/file); Sleep
@@ -2898,6 +2898,52 @@ address,name,kind,confidence,notes
 0x00598790,Wrap_WaveletCodec_DecodeScaled_598790,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls WaveletCodec_DecodeScaled
 0x005987a0,Wrap_WaveletCodec_Decode_5987a0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls WaveletCodec_Decode
 0x005987e0,Wrap_Refcounted_Release_5987e0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Refcounted_Release
+0x00409240,Wrap_Class507800_Dtor_409240,function,high,reimplemented (src/game/core/thunks); calls Class507800_Dtor
+0x0041cc10,Wrap_Handle_Dtor_41cc10,function,high,reimplemented (src/game/core/thunks); calls Handle_Dtor
+0x0042a000,Wrap_MeshPlus60_Ready_42a000,function,high,"reimplemented (src/game/core/thunks); lowers this by the dword before it, then raises it by 0x64 and calls MeshPlus60_Ready"
+0x0042a030,Wrap_Stub_One_42a030,function,high,"reimplemented (src/game/core/thunks); lowers this by the dword before it, then raises it by 0x64 and calls Stub_One"
+0x0042a040,Wrap_Plus28_IfKind2_42a040,function,high,"reimplemented (src/game/core/thunks); lowers this by the dword before it, then raises it by 0x64 and calls Plus28_IfKind2"
+0x0045d810,Wrap_StringList_Dtor_45d810,function,high,reimplemented (src/game/core/thunks); calls StringList_Dtor on the object at 0xfb34e0
+0x0045f940,Wrap_String_Dtor_45f940,function,high,reimplemented (src/game/core/thunks); calls String_Dtor
+0x0047e790,Wrap_ScreenSurfaces_Dtor_47e790,function,high,reimplemented (src/game/core/thunks); calls ScreenSurfaces_Dtor on the object at 0x7b4ac0
+0x00489c80,Wrap_Time_GetMs_489c80,function,high,reimplemented (src/game/core/thunks); calls Time_GetMs
+0x00492460,Wrap_Wrap_Fn_669fee_492060_492460,function,high,reimplemented (src/game/core/thunks); calls Wrap_Fn_669fee_492060 on the object at 0x7ca0c0
+0x00492740,Wrap_SurfaceInfo_Ctor_492740,function,high,reimplemented (src/game/core/thunks); calls SurfaceInfo_Ctor on the object at 0x7ca0e8
+0x0049a0a0,Wrap_Gauge_Init_49a0a0,function,high,reimplemented (src/game/core/thunks); calls Gauge_Init on the object at 0x7ca250
+0x004a46f0,Wrap_Gauge_Init_4a46f0,function,high,reimplemented (src/game/core/thunks); calls Gauge_Init on the object at 0x7cb318
+0x004c07c0,Wrap_Class70293c_Dtor_4c07c0,function,high,reimplemented (src/game/core/thunks); calls Class70293c_Dtor on the object at 0x7cc988
+0x0051af80,Wrap_SurfaceInfo_Ctor_51af80,function,high,reimplemented (src/game/core/thunks); calls SurfaceInfo_Ctor on the object at 0x8023a8
+0x00532660,Wrap_FileStream_Dtor_532660,function,high,reimplemented (src/game/core/thunks); calls FileStream_Dtor on the object at 0x81b0e8
+0x005ac500,Wrap_ListDtor7027fc_5ac590_5ac500,function,high,reimplemented (src/game/core/thunks); calls ListDtor7027fc_5ac590 on the object at 0xf7b560
+0x005c4c50,Wrap_Strings5_Dtor_5c4c50,function,high,reimplemented (src/game/core/thunks); calls Strings5_Dtor on the object at 0xf816c0
+0x005c74a0,Wrap_WString_Dtor_5c74a0,function,high,reimplemented (src/game/core/thunks); calls WString_Dtor
+0x005f5560,Wrap_Class703710_Ctor_5f5560,function,high,reimplemented (src/game/core/thunks); calls Class703710_Ctor on the object at 0xfa6e40
+0x005f8a40,Wrap_SystemInfo_Ctor_5f8a40,function,high,reimplemented (src/game/core/thunks); calls SystemInfo_Ctor on the object at 0xfa7620
+0x005fcce0,Wrap_PixelFormat_InitArgb8888Unused_5fcce0,function,high,reimplemented (src/game/core/thunks); calls PixelFormat_InitArgb8888Unused
+0x005fcd30,Wrap_PixelFormat_InitArgb1555_5fcd30,function,high,reimplemented (src/game/core/thunks); calls PixelFormat_InitArgb1555
+0x005fcd80,Wrap_PixelFormat_InitRgb555_5fcd80,function,high,reimplemented (src/game/core/thunks); calls PixelFormat_InitRgb555
+0x005fcdd0,Wrap_PixelFormat_InitRgb565_5fcdd0,function,high,reimplemented (src/game/core/thunks); calls PixelFormat_InitRgb565
+0x005fce20,Wrap_PixelFormat_InitArgb4444_5fce20,function,high,reimplemented (src/game/core/thunks); calls PixelFormat_InitArgb4444
+0x005fce70,Wrap_PixelFormat_InitRgb888_5fce70,function,high,reimplemented (src/game/core/thunks); calls PixelFormat_InitRgb888
+0x005fcec0,Wrap_PixelFormat_InitBgr888_5fcec0,function,high,reimplemented (src/game/core/thunks); calls PixelFormat_InitBgr888
+0x005fcf10,Wrap_PixelFormat_InitArgb8888_5fcf10,function,high,reimplemented (src/game/core/thunks); calls PixelFormat_InitArgb8888
+0x005fcf60,Wrap_PixelFormat_InitAbgr8888_5fcf60,function,high,reimplemented (src/game/core/thunks); calls PixelFormat_InitAbgr8888
+0x005fcfb0,Wrap_PixelFormat_InitXrgb8888_5fcfb0,function,high,reimplemented (src/game/core/thunks); calls PixelFormat_InitXrgb8888
+0x005fd000,Wrap_PixelFormat_InitXbgr8888_5fd000,function,high,reimplemented (src/game/core/thunks); calls PixelFormat_InitXbgr8888
+0x00617360,Wrap_CanvasDriver8_Init_617360,function,high,reimplemented (src/game/core/thunks); calls CanvasDriver8_Init
+0x00617380,Wrap_CanvasDriver16_Init_617380,function,high,reimplemented (src/game/core/thunks); calls CanvasDriver16_Init
+0x006173a0,Wrap_CanvasDriver24_Init_6173a0,function,high,reimplemented (src/game/core/thunks); calls CanvasDriver24_Init
+0x006173c0,Wrap_CanvasDriver32_Init_6173c0,function,high,reimplemented (src/game/core/thunks); calls CanvasDriver32_Init
+0x00618ca0,Wrap_Canvas_Ctor_618ca0,function,high,reimplemented (src/game/core/thunks); calls Canvas_Ctor on the object at 0xfa8258
+0x006300b0,Wrap_PixelConversion_Dtor_6300b0,function,high,reimplemented (src/game/core/thunks); calls PixelConversion_Dtor
+0x006b0160,Wrap_Wrap_Vtbl70a258_Set_6b4a90_6b0750_6b0160,function,high,reimplemented (src/game/core/thunks); calls Wrap_Vtbl70a258_Set_6b4a90_6b0750 on the object at 0xfb1efc
+0x006b01a0,Wrap_Wrap_Vtbl70a258_Set_6b4a90_6b1e20_6b01a0,function,high,reimplemented (src/game/core/thunks); calls Wrap_Vtbl70a258_Set_6b4a90_6b1e20 on the object at 0xfb1ef0
+0x006b01e0,Wrap_Wrap_Vtbl70a258_Set_6b4a90_6b2a50_6b01e0,function,high,reimplemented (src/game/core/thunks); calls Wrap_Vtbl70a258_Set_6b4a90_6b2a50 on the object at 0xfb1ef4
+0x006b0220,Wrap_Wrap_Vtbl70a258_Set_6b4a90_6b3c40_6b0220,function,high,reimplemented (src/game/core/thunks); calls Wrap_Vtbl70a258_Set_6b4a90_6b3c40 on the object at 0xfb1ef8
+0x006bf320,Wrap_Handle_Dtor_6bf320,function,high,reimplemented (src/game/core/thunks); calls Handle_Dtor with this raised by 0x4
+0x006c1230,Wrap_String_Dtor_6c1230,function,high,reimplemented (src/game/core/thunks); calls String_Dtor with this raised by 0x4
+0x006c5ae0,Wrap_Semaphore_Ctor_6c5ae0,function,high,reimplemented (src/game/core/thunks); calls Semaphore_Ctor on the object at 0xfb205c
+0x006d8990,Wrap_StringList_Dtor_6d8990,function,high,reimplemented (src/game/core/thunks); calls StringList_Dtor on the object at 0xfb34e0
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value

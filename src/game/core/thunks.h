@@ -220,4 +220,145 @@ u32 __fastcall Wrap_WaveletCodec_Decode_5987a0(u8 *self, void *, s32 a2, u32 a3,
 
 // 0x5987e0 (thiscall): this lowered by the dword before it (a virtual base offset), then Refcounted_Release.
 s32 __fastcall Wrap_Refcounted_Release_5987e0(u8 *self);
+
+// 0x409240: calls Class507800_Dtor.
+void __fastcall Wrap_Class507800_Dtor_409240(u8 *self);
+
+// 0x41cc10: calls Handle_Dtor.
+void __fastcall Wrap_Handle_Dtor_41cc10(u8 *self);
+
+// 0x42a000: lowers this by the dword before it, then raises it by 0x64 and calls MeshPlus60_Ready.
+u32 __fastcall Wrap_MeshPlus60_Ready_42a000(u8 *self);
+
+// 0x42a030: lowers this by the dword before it, then raises it by 0x64 and calls Stub_One.
+u32 __fastcall Wrap_Stub_One_42a030(void *self);
+
+// 0x42a040: lowers this by the dword before it, then raises it by 0x64 and calls Plus28_IfKind2.
+u8 *__fastcall Wrap_Plus28_IfKind2_42a040(u8 *self);
+
+// 0x45d810: calls StringList_Dtor on the object at 0xfb34e0.
+void __cdecl Wrap_StringList_Dtor_45d810();
+
+// 0x45f940: calls String_Dtor.
+void __fastcall Wrap_String_Dtor_45f940(u8 *self);
+
+// 0x47e790: calls ScreenSurfaces_Dtor on the object at 0x7b4ac0.
+void __cdecl Wrap_ScreenSurfaces_Dtor_47e790();
+
+// 0x489c80: calls Time_GetMs.
+u32 __cdecl Wrap_Time_GetMs_489c80();
+
+// 0x492460: calls Wrap_Fn_669fee_492060 on the object at 0x7ca0c0.
+u32 __cdecl Wrap_Wrap_Fn_669fee_492060_492460();
+
+// 0x492740: calls SurfaceInfo_Ctor on the object at 0x7ca0e8.
+u8 *__cdecl Wrap_SurfaceInfo_Ctor_492740();
+
+// 0x49a0a0: calls Gauge_Init on the object at 0x7ca250.
+u8 *__cdecl Wrap_Gauge_Init_49a0a0();
+
+// 0x4a46f0: calls Gauge_Init on the object at 0x7cb318.
+u8 *__cdecl Wrap_Gauge_Init_4a46f0();
+
+// 0x4c07c0: calls Class70293c_Dtor on the object at 0x7cc988.
+void __cdecl Wrap_Class70293c_Dtor_4c07c0();
+
+// 0x51af80: calls SurfaceInfo_Ctor on the object at 0x8023a8.
+u8 *__cdecl Wrap_SurfaceInfo_Ctor_51af80();
+
+// 0x532660: calls FileStream_Dtor on the object at 0x81b0e8.
+void __cdecl Wrap_FileStream_Dtor_532660();
+
+// 0x5ac500: calls ListDtor7027fc_5ac590 on the object at 0xf7b560.
+void __cdecl Wrap_ListDtor7027fc_5ac590_5ac500();
+
+// 0x5c4c50: calls Strings5_Dtor on the object at 0xf816c0.
+void __cdecl Wrap_Strings5_Dtor_5c4c50();
+
+// 0x5c74a0: calls WString_Dtor.
+void __fastcall Wrap_WString_Dtor_5c74a0(u8 *self);
+
+// 0x5f5560: calls Class703710_Ctor on the object at 0xfa6e40.
+u8 *__cdecl Wrap_Class703710_Ctor_5f5560();
+
+// 0x5f5f80: calls Time_Init.
+void __cdecl Wrap_Time_Init_5f5f80();
+
+// 0x5f8a40: calls SystemInfo_Ctor on the object at 0xfa7620.
+u8 *__cdecl Wrap_SystemInfo_Ctor_5f8a40();
+
+// 0x5fcce0: calls PixelFormat_InitArgb8888Unused.
+void __cdecl Wrap_PixelFormat_InitArgb8888Unused_5fcce0();
+
+// 0x5fcd30: calls PixelFormat_InitArgb1555.
+void __cdecl Wrap_PixelFormat_InitArgb1555_5fcd30();
+
+// 0x5fcd80: calls PixelFormat_InitRgb555.
+void __cdecl Wrap_PixelFormat_InitRgb555_5fcd80();
+
+// 0x5fcdd0: calls PixelFormat_InitRgb565.
+void __cdecl Wrap_PixelFormat_InitRgb565_5fcdd0();
+
+// 0x5fce20: calls PixelFormat_InitArgb4444.
+void __cdecl Wrap_PixelFormat_InitArgb4444_5fce20();
+
+// 0x5fce70: calls PixelFormat_InitRgb888.
+void __cdecl Wrap_PixelFormat_InitRgb888_5fce70();
+
+// 0x5fcec0: calls PixelFormat_InitBgr888.
+void __cdecl Wrap_PixelFormat_InitBgr888_5fcec0();
+
+// 0x5fcf10: calls PixelFormat_InitArgb8888.
+void __cdecl Wrap_PixelFormat_InitArgb8888_5fcf10();
+
+// 0x5fcf60: calls PixelFormat_InitAbgr8888.
+void __cdecl Wrap_PixelFormat_InitAbgr8888_5fcf60();
+
+// 0x5fcfb0: calls PixelFormat_InitXrgb8888.
+void __cdecl Wrap_PixelFormat_InitXrgb8888_5fcfb0();
+
+// 0x5fd000: calls PixelFormat_InitXbgr8888.
+void __cdecl Wrap_PixelFormat_InitXbgr8888_5fd000();
+
+// 0x617360: calls CanvasDriver8_Init.
+void __cdecl Wrap_CanvasDriver8_Init_617360();
+
+// 0x617380: calls CanvasDriver16_Init.
+void __cdecl Wrap_CanvasDriver16_Init_617380();
+
+// 0x6173a0: calls CanvasDriver24_Init.
+void __cdecl Wrap_CanvasDriver24_Init_6173a0();
+
+// 0x6173c0: calls CanvasDriver32_Init.
+void __cdecl Wrap_CanvasDriver32_Init_6173c0();
+
+// 0x618ca0: calls Canvas_Ctor on the object at 0xfa8258.
+u8 *__cdecl Wrap_Canvas_Ctor_618ca0();
+
+// 0x6300b0: calls PixelConversion_Dtor.
+void __fastcall Wrap_PixelConversion_Dtor_6300b0(u8 *self);
+
+// 0x6b0160: calls Wrap_Vtbl70a258_Set_6b4a90_6b0750 on the object at 0xfb1efc.
+void __cdecl Wrap_Wrap_Vtbl70a258_Set_6b4a90_6b0750_6b0160();
+
+// 0x6b01a0: calls Wrap_Vtbl70a258_Set_6b4a90_6b1e20 on the object at 0xfb1ef0.
+void __cdecl Wrap_Wrap_Vtbl70a258_Set_6b4a90_6b1e20_6b01a0();
+
+// 0x6b01e0: calls Wrap_Vtbl70a258_Set_6b4a90_6b2a50 on the object at 0xfb1ef4.
+void __cdecl Wrap_Wrap_Vtbl70a258_Set_6b4a90_6b2a50_6b01e0();
+
+// 0x6b0220: calls Wrap_Vtbl70a258_Set_6b4a90_6b3c40 on the object at 0xfb1ef8.
+void __cdecl Wrap_Wrap_Vtbl70a258_Set_6b4a90_6b3c40_6b0220();
+
+// 0x6bf320: calls Handle_Dtor with this raised by 0x4.
+void __fastcall Wrap_Handle_Dtor_6bf320(u8 *self);
+
+// 0x6c1230: calls String_Dtor with this raised by 0x4.
+void __fastcall Wrap_String_Dtor_6c1230(u8 *self);
+
+// 0x6c5ae0: calls Semaphore_Ctor on the object at 0xfb205c.
+u8 *__cdecl Wrap_Semaphore_Ctor_6c5ae0();
+
+// 0x6d8990: calls StringList_Dtor on the object at 0xfb34e0.
+void __cdecl Wrap_StringList_Dtor_6d8990();
 }  // extern "C"
