@@ -329,6 +329,55 @@ template <u32 nilAt, u32 colourAt, Value value, u32 counterAt, u32 nodeSize> str
         *out = next;
         return out;
     }
+
+    // _Erase: the nodes under n freed, the right subtrees by recursion and down the left by the loop (plain values only).
+    static void EraseSubtree(u8 *n) {
+        for (u8 *x = n; x != Nil();) {
+            EraseSubtree(R(x));
+            u8 *const left = L(x);
+            GameHeap_Free(x);
+            x = left;
+        }
+    }
+
+    // erase(first, last): a range that is the whole of a tree with nodes (first the leftmost, last the head) is cleared at once (EraseSubtree from the root, then the head made
+    // empty again); any other range is erased node by node. *out = last.
+    static u8 **EraseRange(u8 *tree, u8 **out, u8 *first, u8 *last) {
+        u8 *const head = at<u8 *>(tree, 4);
+        if (at<u32>(tree, 0xc) != 0 && first == L(head) && last == head) {
+            EraseSubtree(P(head));
+            P(head) = Nil();
+            at<u32>(tree, 0xc) = 0;
+            L(head) = head;
+            R(head) = head;
+            *out = L(head);
+            return out;
+        }
+        while (first != last) {
+            u8 *const node = first;
+            Inc(&first);
+            u8 *next;
+            Erase(tree, &next, node);
+        }
+        *out = first;
+        return out;
+    }
+
+    // The tree object's destructor: every node erased, the head node freed and the head and size zeroed; the last tree out (the counter down to 0) frees the nil node.
+    static void Dtor(u8 *tree) {
+        u8 *const head = at<u8 *>(tree, 4);
+        u8 *out;
+        EraseRange(tree, &out, L(head), head);
+        GameHeap_Free(at<u8 *>(tree, 4));
+        at<u32>(tree, 4) = 0;
+        at<u32>(tree, 0xc) = 0;
+        u32 &count = at<u32>(reinterpret_cast<void *>((uintptr_t)counterAt), 0);
+        if (--count == 0) {
+            u8 *&nil = at<u8 *>(reinterpret_cast<void *>((uintptr_t)nilAt), 0);
+            GameHeap_Free(nil);
+            nil = nullptr;
+        }
+    }
 };
 
 using TreeA = Tree<0x007b4a54, 0x18, kPlain, 0x007b4a50, 0x1c>;
@@ -436,6 +485,10 @@ u8 **__fastcall StdTree_EraseD(u8 *tree, void *, u8 **out, u8 *node) { return Tr
 u8 **__fastcall StdTree_EraseE(u8 *tree, void *, u8 **out, u8 *node) { return TreeE::Erase(tree, out, node); }
 u8 **__fastcall StdTree_EraseF(u8 *tree, void *, u8 **out, u8 *node) { return TreeF::Erase(tree, out, node); }
 u8 **__fastcall StdTree_EraseG(u8 *tree, void *, u8 **out, u8 *node) { return TreeG::Erase(tree, out, node); }
+
+void __fastcall StdTree_EraseSubtreeB(u8 *, void *, u8 *node) { TreeB::EraseSubtree(node); }
+u8 **__fastcall StdTree_EraseRangeB(u8 *tree, void *, u8 **out, u8 *first, u8 *last) { return TreeB::EraseRange(tree, out, first, last); }
+void StdTree_DtorB(u8 *tree) { TreeB::Dtor(tree); }
 
 u8 *__fastcall Tree16a_LowerBound(u8 *tree, void *, const u16 *key) { return LowerBound<u16>(tree, *key, 0x00785de4); }
 
