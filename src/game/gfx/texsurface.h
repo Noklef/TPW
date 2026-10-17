@@ -48,6 +48,13 @@ float __fastcall TexSurfaceB_Zero(const u8 *sub);
 // 0x10000000, and cleared. Returns 1.
 u32 __fastcall TexSurfaceB_FreePixels(u8 *sub);
 
+// 0x58c670 (thiscall on class B's sub-object; width, height, two unused; pops 0x10; name unconfirmed): with pixels already (ECX - 0xc)
+// 0. Else a square of width a side from the texture pages (TexAtlas_Alloc into ECX - 0xc; gfx/texatlas) and 0x8c4898 = height * width
+// * 4; none got: 0. Got: the virtual base's flags (ECX + off - 0xc) get 0x10000000 when it was cut from a page already there (so
+// FreePixels leaves it), its +off - 8 = width, - 4 = height and +off = 0x100 (the offset re-read for each), ECX - 8 = the dword at
+// 0x702220 for the display kind (0x8bd554). Returns 1.
+u32 __fastcall TexSurfaceB_AllocPixels(u8 *sub, void *, u32 width, u32 height, u32, u32);
+
 // 0x5738d0 (thiscall, this unused; name unconfirmed; behind the thunk 0x5738c0, slot 4 of the vtable 0x701630): a new class A surface (0x50 bytes,
 // TexSurfaceA_Ctor most derived); its virtual base (the object + its vbtable's second dword), or null when the allocation fails.
 u8 *__fastcall Renderer_NewSurfaceA(void *self);
