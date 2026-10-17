@@ -4,6 +4,7 @@
 
 #include "../gfx/texture.h"
 #include "../math/bits.h"
+#include "engineerrors.h"
 
 namespace {
 
@@ -119,4 +120,34 @@ void __fastcall TexFormat_SetArgb32(u8 *settings) {
 }
 
 u8 *__fastcall TexFormat_Table(u8 *settings) { return settings + 0x88 + (at<u32>(settings, 4) << 12); }
+
+void __cdecl TexFormat_ConvertSquare(u16 *to, const u32 *from, u32 side) {
+    const u32 n = side * side;
+    switch (*reinterpret_cast<const u32 *>((uintptr_t)0x008bd554)) {
+    case 0:
+        for (u32 i = 0; i < n; ++i) {
+            const u32 c = from[i];
+            to[i] = (u16)(((c >> 8) & 0xf800) + ((c >> 4) & 0xfc0) + ((c >> 3) & 0x1f));
+        }
+        return;
+    case 1:
+        for (u32 i = 0; i < n; ++i) {
+            const u32 c = from[i];
+            to[i] = (u16)(((c >> 16) & 0x8000) + ((c >> 9) & 0x7c00) + ((c >> 6) & 0x3e0) + ((c >> 3) & 0x1f));
+        }
+        return;
+    case 2:
+        for (u32 i = 0; i < n; ++i) {
+            const u32 c = from[i];
+            to[i] = (u16)(((c >> 4) & 0xf00) + ((c >> 16) & 0xf0) + ((c >> 28) & 0xf));
+        }
+        return;
+    case 3: {
+        u32 *const out = reinterpret_cast<u32 *>(to);
+        for (u32 i = 0; i < side; ++i) out[i] = from[i];  // side dwords, not side * side (sic)
+        return;
+    }
+    default: EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754003);
+    }
+}
 }
