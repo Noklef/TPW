@@ -1242,6 +1242,7 @@ address,name,kind,confidence,notes
 0x006387f0,WadFileListBase_DeletingDtor,function,high,reimplemented (src/game/files/waddir); thiscall (flags); vtable 0x703e9c
 0x0067acf0,CRT_VectorCtorIterator,function,high,reimplemented (src/game/core/crt); constructs the elements of an array in turn
 0x0067afa0,CRT_VectorDtorIterator,function,high,"reimplemented (src/game/core/crt); destroys the elements of an array, the last first"
+0x00401000,CRT_VectorCtorIteratorNoEh,function,high,"reimplemented (src/game/core/crt); stdcall (array, size, count, ctor): the vector constructor iterator without unwinding; count - 1 tested for a sign (0x80000000 runs, sic)"
 0x0067f1a0,CRT_toupper,function,medium,"cdecl; the CRT toupper (locale-aware, ASCII in the C locale)"
 0x0067fa60,CRT_tolower,function,medium,"cdecl; the CRT tolower (locale-aware, ASCII in the C locale)"
 0x006fe67c,StringList2_vtable,data,high,one entry (0x61a7e0); src/game/files/waddir

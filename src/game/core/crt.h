@@ -32,6 +32,10 @@ extern "C" {
 // size bytes in turn; the dtor is only for the unwinding.
 void __stdcall CRT_VectorCtorIterator(u8 *array, u32 size, s32 count, void(__fastcall *ctor)(void *), void *dtor);
 
+// 0x401000 (stdcall; array, size, count, ctor, pops 16): the iterator without unwinding: ctor for each element, count - 1
+// tested for a sign, so 0 and below do nothing but 0x80000000 runs 0x80000000 times (sic).
+void __stdcall CRT_VectorCtorIteratorNoEh(u8 *array, u32 size, s32 count, void(__fastcall *ctor)(void *));
+
 // 0x67afa0 (stdcall; array, size, count, dtor, pops 16): dtor (thiscall) for each of the count elements, the last first.
 void __stdcall CRT_VectorDtorIterator(u8 *array, u32 size, s32 count, void(__fastcall *dtor)(void *));
 
