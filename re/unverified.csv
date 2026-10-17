@@ -47,7 +47,6 @@ address,name,module,reason
 516370,World_SetSeed,world/random,todo: indirect only
 51a280,Get1da710_51a280,core/accessors,todo: indirect only
 52c2a0,Fn_52c2a0,core/accessors,todo
-52f850,Global81af64_Get_52f850,core/globals,todo
 540b30,SpriteDraw_End,sprite/draw,todo
 540bd0,Sprite_Ctor,sprite/sprite,todo
 541f70,SpriteFolder_RandomSprite,sprite/sprite,todo: indirect only
@@ -65,7 +64,6 @@ address,name,module,reason
 58b380,TexCacheItem_SetFlag1,gfx/texcache,todo
 58b390,TexCacheItem_ClearFlag1,gfx/texcache,todo
 5c7490,WString_CtorReturning,core/misc,todo
-5cec60,Zero_5cec60,core/trivial,todo: indirect only
 5e42d0,PtrList_Append,core/ptrlist,todo: indirect only
 5f5650,Wrap_Owner64_Copy4At34_5f5650,core/thunks,todo
 5f63d0,String_Format,core/string,todo
@@ -397,4 +395,3 @@ address,name,module,reason
 6426b0,InverseMap_BlueLoop,gfx/invmap,todo
 642840,InverseMap_MaxFill,gfx/invmap,todo
 661830,Fn_661830,core/accessors,todo
-6d1bc0,Globalfb2708_Set_6d1bc0,core/globals,todo: indirect only
