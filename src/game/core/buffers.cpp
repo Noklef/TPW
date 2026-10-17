@@ -181,6 +181,34 @@ void __fastcall CountedPair_Clear(u8 *object) {
     at<u32>(object, 0xc) = 0;
 }
 
+void __stdcall CountedPair_ClearRange(u8 *first, u8 *last) {
+    for (u8 *element = first; element != last; element += 0x24)
+        CountedPair_Clear(element);
+}
+
+u32 __fastcall CountedPairVector_Clear(u8 *object) {
+    CountedPair_ClearRange(at<u8 *>(object, 4), at<u8 *>(object, 8));
+    GameHeap_Free(at<void *>(object, 4));
+    at<u32>(object, 4) = 0;
+    at<u32>(object, 8) = 0;
+    at<u32>(object, 0xc) = 0;
+    return 0;
+}
+
+u8 *__fastcall CountedPairVector_Deleter(u8 *object, void *, u32 flags) {
+    CountedPairVector_Clear(object);
+    if (flags & 1)
+        GameHeap_Free(object);
+    return object;
+}
+
+u8 *__fastcall CountedPair_Deleter(u8 *object, void *, u32 flags) {
+    CountedPair_Clear(object);
+    if (flags & 1)
+        GameHeap_Free(object);
+    return object;
+}
+
 void __fastcall Blocks7_Free(u8 *object) {
     for (s32 base = 0x60; base >= 0; base -= 0x10) {
         at<u32>(object, base) = 0;

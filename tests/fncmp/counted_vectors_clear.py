@@ -8,9 +8,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
 CALLS = {'Del': (0x47db80, 't', 'a'), 'Push': (0x4d3850, 't', 'a'), 'Range': (0x47bfe0, 's', 'v'), 'Clear': (0x4f04d0, 't', 'v'),
-         'C2': (0x5c9970, 't', 'v'), 'Pair': (0x4e51a0, 't', 'v')}
+         'C2': (0x5c9970, 't', 'v'), 'Pair': (0x4e51a0, 't', 'v'), 'PRange': (0x4f36f0, 's', 'v'), 'PVec': (0x4f0480, 't', 'a'),
+         'PVecDel': (0x4f7430, 't', 'a'), 'PDel': (0x4f7480, 't', 'a')}
 B = Bench([(0x47db80, 0x47dba0), (0x4791c0, 0x479230), (0x4d3850, 0x4d3860), (0x5e2a30, 0x5e2a80), (0x47bfe0, 0x47c010), (0x4f04d0, 0x4f0540),
-           (0x4f75e0, 0x4f7620), (0x5c9970, 0x5c99f0), (0x5da3c0, 0x5da3c1), (0x4e51a0, 0x4e520e)])
+           (0x4f75e0, 0x4f7620), (0x5c9970, 0x5c99f0), (0x5da3c0, 0x5da3c1), (0x4e51a0, 0x4e520e),
+           (0x4f36f0, 0x4f3711), (0x4f0480, 0x4f04d0), (0x4f7430, 0x4f747d), (0x4f7480, 0x4f749e)])
 LIST, BUFS, ARR = RAM + 0x1000, RAM + 0x2000, RAM + 0x3000
 COUNTS = [0, 1, 2, 5, 0x7f, 0xfe, 0xff]
 
@@ -21,6 +23,14 @@ def vector(r, obj, base, arr, bufs, n, off):
         put(arr, 0x10 * i + 4, 'I', r.choice([0, BUFS + 0x20 * i + 3, BUFS + 0x20 * i + 3]))
         bufs[0x20 * i + 2] = r.choice(COUNTS)
     put(obj, base + off, 'II', ARR if n or r.random() < 0.5 else 0, ARR + 0x10 * n if n else (ARR if r.random() < 0.5 else 0))
+
+
+def pair(r, data, base, bufs, slot):
+    """A 0x24-byte element at data + base: the wide string's counted buffer at +0x14 (block 2 bytes below the pointer), the narrow one's at +4 (1 below)."""
+    for off, k in ((0x14, 0), (4, 1)):
+        at = 0x20 * (2 * slot + k)
+        bufs[at + 1] = r.choice(COUNTS)
+        put(data, base + off, 'I', r.choice([0, BUFS + at + 2, BUFS + at + 2]))
 
 
 def case(r):
@@ -60,6 +70,22 @@ def case(r):
         put(obj, 0x80 + 8, 'I', r.choice([n, n + 1, 0, 100]))
         regions.update({LIST: data, BUFS: bufs})
         return Call(address, [RAM + 0x80], regions, conv='t', ret=ret)
+    if name in ('PRange', 'PVec', 'PVecDel'):  # up to four 0x24-byte elements (each a pair of counted buffers) at ARR
+        n = r.choice([0, 1, 2, 3, 4])
+        bufs, elements = bytearray(r.bytes(0x400)), bytearray(r.bytes(0x24 * 4))
+        for i in range(n):
+            pair(r, elements, 0x24 * i, bufs, i)
+        regions.update({ARR: elements, BUFS: bufs})
+        if name == 'PRange':
+            return Call(address, [ARR, ARR + 0x24 * n], regions, conv='s', ret=ret)
+        put(obj, 0x80 + 4, 'II', ARR if n or r.random() < 0.5 else 0, ARR + 0x24 * n if n else (ARR if r.random() < 0.5 else 0))
+        args = [RAM + 0x80] + ([r.choice([0, 1, 2, 3, 0xffffffff])] if name == 'PVecDel' else [])
+        return Call(address, args, regions, conv='t', ret=ret)
+    if name == 'PDel':
+        bufs = bytearray(r.bytes(0x100))
+        pair(r, obj, 0x80, bufs, 0)
+        regions[BUFS] = bufs
+        return Call(address, [RAM + 0x80, r.choice([0, 1, 2, 3, 0xffffffff])], regions, conv='t', ret=ret)
     if name == 'Pair':  # the wide string's buffer at +0x14 (block 2 bytes below the pointer), the narrow one's at +4 (1 byte below)
         for off, k, below in ((0x14, 0, 2), (4, 1, 1)):
             bufs[0x20 * k + 2 - 1] = r.choice(COUNTS)
