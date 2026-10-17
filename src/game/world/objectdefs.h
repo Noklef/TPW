@@ -1,5 +1,5 @@
 // The object definitions (loaded by ObjectDefs_Load 0x413c10 from .sam files): reimplementation
-// of the lookups 0x412e90, 0x412ef0 and 0x412f50, the walk 0x412e60 / 0x412e70 and the schema slots 0x412c90
+// of the lookups 0x412e90, 0x412ef0 and 0x412f50, the walk 0x412e60 / 0x412e70, the marked cells 0x413410 and the schema slots 0x412c90
 // and 0x4143f0. The set holds up to 0x14a definition pointers from +0, their count at +0x528, a
 // walk cursor at +0x72c and a one-entry cache, +0x730 (u16) the id last found and +0x734 its
 // definition; a definition starts with its u16 id.
@@ -95,4 +95,9 @@ u32 __stdcall DefField2c_59c490(u32 v0);
 
 // 0x59c500: the dword at +0x8 of the object definition with the id (0xa when there is none).
 u32 __stdcall DefField8_59c500(u32 v0);
+// 0x413410 (thiscall, this unused; a definition variable, pops 4; name unconfirmed): in the definition's cell grid (+0x18: columns, rows, cells of 8 bytes
+// 20 to a row, a kind and a byte; scanned column by column with the row count read once) the first cell of kind 9 gives +0x494 / +0x498 (its column / row)
+// and the byte +0x49c (its byte), and the first of kind 0xa +0x4a0 / +0x4a4 and +0x4a8 the same way (the kind 9 cell's when there is none); with no kind 9
+// cell those are 0, 0, 1, 0, 0 and 0x10. Then +0x4b0 / +0x4b4 = +0x30 / +0x34, the u16 +0 = +0x10 and +0x4ac = +0x4c.
+void __fastcall ObjectDef_FindMarkedCells(void *, void *, u8 **def);
 }

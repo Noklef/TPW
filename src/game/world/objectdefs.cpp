@@ -12,6 +12,24 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
+// A definition's cell grid (+0x18): the column count, the row count, then cells of 8 bytes (a kind and a byte), 20 to a row.
+u8 *grid_cell(u8 *grid, s32 column, s32 row) { return grid + 8 + 8 * column + 0xa0 * row; }
+
+// The first cell with the kind, column by column (the row count read once, before the scan).
+bool find_cell(u8 *grid, u32 kind, s32 *column, s32 *row) {
+    const s32 columns = at<s32>(grid, 0);
+    if (columns <= 0) return false;
+    const s32 rows = at<s32>(grid, 4);
+    for (s32 i = 0; i < columns; ++i)
+        for (s32 j = 0; j < rows; ++j)
+            if (at<u32>(grid_cell(grid, i, j), 0) == kind) {
+                *column = i;
+                *row = j;
+                return true;
+            }
+    return false;
+}
+
 }  // namespace
 
 extern "C" {
@@ -237,5 +255,40 @@ u32 __stdcall DefField2c_59c490(u32 v0) {
 
 u32 __stdcall DefField8_59c500(u32 v0) {
     const u8 *record = ObjectDef_FindById(v0); return record ? at<u32>(record, 0x8) : 0xa;
+}
+void __fastcall ObjectDef_FindMarkedCells(void *, void *, u8 **def) {
+    u8 *object = *def;
+    s32 column, row;
+    if (find_cell(at<u8 *>(object, 0x18), 9, &column, &row)) {
+        const u8 mark = at<u8>(grid_cell(at<u8 *>(object, 0x18), column, row), 4);
+        at<s32>(object, 0x494) = column;
+        at<s32>(object, 0x498) = row;
+        at<u8>(*def, 0x49c) = mark;
+        object = *def;
+        u8 *const grid = at<u8 *>(object, 0x18);
+        s32 column2, row2;
+        if (find_cell(grid, 0xa, &column2, &row2)) {
+            const u8 mark2 = at<u8>(grid_cell(grid, column2, row2), 4);
+            at<s32>(*def, 0x4a0) = column2;
+            at<s32>(*def, 0x4a4) = row2;
+            at<u8>(*def, 0x4a8) = mark2;
+        } else {
+            at<s32>(object, 0x4a0) = column;
+            at<s32>(object, 0x4a4) = row;
+            at<u8>(*def, 0x4a8) = mark;
+        }
+    } else {
+        at<s32>(object, 0x494) = 0;
+        at<s32>(object, 0x498) = 0;
+        at<u8>(*def, 0x49c) = 1;
+        at<s32>(*def, 0x4a0) = 0;
+        at<s32>(*def, 0x4a4) = 0;
+        at<u8>(*def, 0x4a8) = 0x10;
+    }
+    object = *def;
+    at<u32>(object, 0x4b0) = at<u32>(object, 0x30);
+    at<u32>(object, 0x4b4) = at<u32>(object, 0x34);
+    at<u16>(*def, 0) = at<u16>(*def, 0x10);
+    at<u32>(*def, 0x4ac) = at<u32>(*def, 0x4c);
 }
 }
