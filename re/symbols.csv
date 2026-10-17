@@ -3531,6 +3531,16 @@ address,name,kind,confidence,notes
 0x0041e090,Class6fda58_ScalarDtorC,function,high,reimplemented (src/game/core/class6fd9d8); scalar deleting destructor of the 0x6fda58 complete destructor C
 0x0041c9e0,Class6fd9d8_AddFolder,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (path String); a new folder handle (vtable 0x6fd9e8) opened by Handle_Open28 and appended to the list at +0x2c, else deleted"
 0x0041cb10,Class6fd9d8_AddWad,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (path String); a new WAD handle (vtable 0x6fda18) opened by Handle_OpenE0 and appended to the list at +0x2c, else deleted"
+0x0041e5d0,Class6fdaa4_OpenSamAt,function,low,"reimplemented (src/game/core/class6fd9d8); stdcall (base, opener, stream); base + "".sam"" opened through the opener's slot 3; whether the result is >= 0"
+0x0041e660,Class6fdaa4_OpenSamWith,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (opener, stream); Class6fdaa4_OpenSamAt with the object's name (+4)"
+0x0041e680,Class6fdaa4_OpenOnlineSamAt,function,low,"reimplemented (src/game/core/class6fd9d8); stdcall (base, opener, stream); ""Online_"" + base + "".sam"" opened through the opener's slot 3; whether the result is >= 0"
+0x0041e720,Class6fdaa4_OpenOnlineSamWith,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (opener, stream); Class6fdaa4_OpenOnlineSamAt with the object's name (+4)"
+0x0041f0d0,Class6fdaa4_OpenSam,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (name, stream); name + "".sam"" opened through the handle at +0x2c; whether the result is >= 0"
+0x0041f170,Class6fdaa4_OpenOwnSam,function,low,reimplemented (src/game/core/class6fd9d8); thiscall (stream); Class6fdaa4_OpenSam with the object's name (+4)
+0x0041f330,Class6fdaa4_OpenCoasterSam,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (stream); Class6fdaa4_OpenSam with ""coaster"" (0x78c708)"
+0x0041f190,Class6fdaa4_OpenEasySam,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (stream); ""Easy_"" + the object's name + "".sam"" opened through the handle at +0x2c"
+0x0041f260,Class6fdaa4_OpenOnlineSam,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (stream); ""Online_"" + the object's name + "".sam"" opened through the handle at +0x2c"
+0x0041f350,Class6fdaa4_OpenLanguageTxt,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (stream); the language buffer's text + "".txt"" opened through the handle at +0x2c"
 0x004254c0,Animator_Sleep,function,high,reimplemented (src/game/model/holder); the holder sleeps and flag 0x4000 clears
 0x004de110,Object_BackOfQueueTo,function,high,reimplemented (src/game/world/objectmsg); Object_BackOfQueue returning out
 0x004ddf40,Object_QueuePositionOfNone,function,high,reimplemented (src/game/world/objectmsg); the position of the person with no handle
