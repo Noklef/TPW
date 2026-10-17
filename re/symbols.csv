@@ -162,7 +162,7 @@ address,name,kind,confidence,notes
 0x004ceec0,Save_WriteU16,function,high,
 0x004cede0,Save_Write8Bytes,function,high,
 0x0050b090,Thing_Serialize,function,high,"reimplemented (src/game/world/things); thiscall (stream, save, version, unused): the thing's words +4, +6, +0xa, +8 saved or loaded; a full load clears the byte +3"
-0x00509bc0,ThingBasic_Serialize,function,high,thing models 12 (TagSystem) and 17 (UIMsgReceiver): base only
+0x00509bc0,ThingBasic_Serialize,function,high,"reimplemented (src/game/world/things); thiscall (stream, save, version, unused): Thing_Serialize, its result as 0 or 1"
 0x004d7a70,WorldGlobals_Serialize,function,high,"staff pool, game clock, park gates"
 0x00507850,StaffPool_Serialize,function,high,0x20 x StaffPoolEntry + 5 categories
 0x005070a0,StaffPoolEntry_Serialize,function,high,
@@ -177,7 +177,7 @@ address,name,kind,confidence,notes
 0x004f8b10,Sprite_Serialize,function,high,"moving-person base (anim, speeds, nav, thoughts)"
 0x004d3ee0,SpriteAnim_Serialize,function,high,"reimplemented (src/game/sprite/scriptref); thiscall (stream, save, version, unused): the script reference's three dwords saved or loaded"
 0x0050d150,Nav_Serialize,function,high,steering/pathing state (float vectors)
-0x0050bad0,Thoughts_Serialize,function,high,event history + thought bubble
+0x0050bad0,Thoughts_Serialize,function,high,"reimplemented (src/game/world/person); thiscall (stream, save, version, unused): a person's thoughts (history index, 32 history pairs, +0, script, bubble time) saved or loaded"
 0x004fb530,Visitor_Serialize,function,high,thing model 1
 0x00504de0,Staff_Serialize,function,high,"staff base: pay grade, UTF-16 name[0x21], patrol region, time hired"
 0x004da110,Mechanic_Serialize,function,high,thing model 4

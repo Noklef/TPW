@@ -1,4 +1,4 @@
-// The park's thing table: reimplementation of 0x515f30-0x516310, 0x50b350, 0x50b090 and the handle
+// The park's thing table: reimplementation of 0x515f30-0x516310, 0x50b350, 0x50b090, 0x509bc0 and the handle
 // queue 0x51ad40/0x51ad90.
 //
 // Every thing in the park (rides, shops, people, scenery, ...) has a slot in one table of
@@ -60,6 +60,8 @@ u16 *__fastcall Thing_GetHandle(const u8 *thing, void *edx, u16 *out);
 // 0x50b090 (thiscall on a thing; stream, save, version, unused): the thing's words +4, +6, +0xa and +8 (mX, mY, mMapChild, mMapParent) saved
 // or loaded as a serializer does (Save_Field); a load that gets them all clears the byte at +3.
 u32 __fastcall Thing_Serialize(u8 *thing, void *, Stream *stream, u32 save, s32 version, u32 unused);
+// 0x509bc0 (thiscall; the same arguments): Thing_Serialize, its result as 0 or 1 (the base serializer of the tag system and message receiver models).
+u32 __fastcall ThingBasic_Serialize(u8 *thing, void *, Stream *stream, u32 save, s32 version, u32 unused);
 // 0x516310 (__thiscall on the world; handle): pushes it on the delete queue.
 void __fastcall World_QueueDelete(void *world, void *edx, u32 handle);
 // 0x515fb0 (__thiscall on the world): deletes every thing in use (Thing_Delete, unless

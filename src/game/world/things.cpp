@@ -282,4 +282,8 @@ u32 __fastcall Thing_Serialize(u8 *thing, void *, Stream *stream, u32 save, s32 
         thing[3] = 0;
     return 0;
 }
+
+u32 __fastcall ThingBasic_Serialize(u8 *thing, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    return Thing_Serialize(thing, nullptr, stream, save, version, unused) != 0 ? 1 : 0;
+}
 }  // extern "C"

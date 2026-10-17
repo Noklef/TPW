@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/gameheap.h"
+#include "../core/savegame.h"
 #include "nav.h"
 
 namespace {
@@ -96,5 +97,19 @@ u8 *__fastcall Person_PartsCtor(u8 *object, void *, u32) {
     Thoughts_Ctor(object + 0x30);
     Nav_Ctor(object + 0xd4);
     return object;
+}
+
+u32 __fastcall Thoughts_Serialize(u8 *thoughts, void *, Stream *stream, u32 save, s32 version, u32) {
+    if (version < 0 || version > 1)
+        return 0;
+    if (!Save_Field(stream, save, thoughts + 0x88, 4, 0x00761de8))
+        return 1;
+    for (u32 i = 0; i < 0x20; ++i)
+        if (!Save_Field(stream, save, thoughts + 4 + i * 4, 4, 0x00761dd4))
+            return 1;
+    if (!Save_Field(stream, save, thoughts, 4, 0x00761dc4) || !Save_Field(stream, save, thoughts + 0x84, 4, 0x00761db4) ||
+        !Save_Field(stream, save, thoughts + 0x8c, 4, 0x00761da0))
+        return 1;
+    return 0;
 }
 }
