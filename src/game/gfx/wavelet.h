@@ -24,4 +24,9 @@ u32 __fastcall WaveletCodec_Decode(u8 *codec, void *, s32 version, u32 a, u32 b,
 
 // 0x5920f0 (thiscall; the version and thirteen arguments, pops 0x38): for a version above 0x12 the full codec's slot 1 (+4) is called with the thirteen arguments and its result returned (EAX is not set otherwise).
 u32 __fastcall WaveletCodec_DecodeScaled(u8 *codec, void *, s32 version, u32 a, u32 b, u32 c, u32 d, u32 e, u32 f, u32 g, u32 h, u32 i, u32 j, u32 k, u32 l, u32 m);
+
+// 0x5919a0 (thiscall on the virtual base, 0x54 into the object; the SEH frame left out; name unconfirmed): the vtables go back to the codec's (+ -0x54 = 0x7026d8, the base's own at the
+// virtual base offset in the word at +4 of what +-0x50 points at: 0x7026b8, and the word before it holds that offset - 0x50); then the blocks at +-8, +-0x18, +-0x28, +-0x38 and +-0x48 are
+// freed when set (GameHeap_Free).
+void __fastcall WaveletCodec_VBaseDtor(u8 *base);
 }
