@@ -50,4 +50,24 @@ WString *__stdcall GamePaths_SaveFolder(WString *out) {
     WString_Dtor(&path);
     return out;
 }
+
+WString *__stdcall GamePaths_UsersFolder(WString *out) {
+    WString path;
+    GamePaths_SaveFolder(&path);
+    vcall<void>(&path, 0x28, at<const WString *>(0x00f82508));
+    vcall<void>(&path, 0x28, at<const WString *>(0x00f81ff8));
+    WString_CtorCopy(out, nullptr, &path);
+    WString_Dtor(&path);
+    return out;
+}
+
+WString *__stdcall GamePaths_OnlineFolder(WString *out) {
+    WString path;
+    GamePaths_SaveFolder(&path);
+    vcall<void>(&path, 0x28, at<const WString *>(0x00f82508));
+    vcall<void>(&path, 0x28, at<const WString *>(0x00f820e8));
+    WString_CtorCopy(out, nullptr, &path);
+    WString_Dtor(&path);
+    return out;
+}
 }  // extern "C"

@@ -1644,6 +1644,8 @@ address,name,kind,confidence,notes
 0x00468250,GamePaths_FontsFolder,function,low,"reimplemented (src/game/files/gamepaths); cdecl (out); the root folder's string (0xf816c0) with ""Data\Fonts"" by sprintf (""%s%s"" after a trailing ""\"", else ""%s\%s""): 1; no text: 0"
 0x004688b0,GamePaths_SetTextureFolders,function,low,reimplemented (src/game/files/gamepaths); The texture and shared texture folder names printed by detail
 0x005c7bd0,GamePaths_SaveFolder,function,low,"reimplemented (src/game/files/gamepaths); stdcall (out); out = the root folder (wide) + the global wide ""save"" (0xf818d8); returns out"
+0x005c7c70,GamePaths_UsersFolder,function,low,"reimplemented (src/game/files/gamepaths); stdcall (out): the save folder with ""\"" and ""users"" appended, copied into out; returns out (name unconfirmed)"
+0x005c8980,GamePaths_OnlineFolder,function,low,"reimplemented (src/game/files/gamepaths); stdcall (out): the save folder with ""\"" and ""online"" appended, copied into out; returns out (name unconfirmed)"
 0x005c53c0,DirEntry_IsWad,function,low,"reimplemented (src/game/files/direntry); cdecl (entry); whether the entry's name ends in the global "".wad"" String (0xf80808, Names_Equal)"
 0x0055e470,CpuInfo_Ctor,function,medium,"thiscall; CPUID probe (EFLAGS.ID test, then the vendor string and features); SystemInfo's base"
 0x0067df40,CRT_stricmp,function,high,"MSVC CRT _stricmp: A-Z folded, or the locale's tolower when one is set"

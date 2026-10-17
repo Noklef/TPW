@@ -1,5 +1,5 @@
 // The game's folder paths, built from the five path strings of the object at 0xf816c0 (Strings5; the first is the game's root folder):
-// reimplementation of the fonts folder's path (0x468250) and the save folder's (0x5c7bd0).
+// reimplementation of the fonts folder's path (0x468250), the save folder's (0x5c7bd0) and its users and online folders' (0x5c7c70, 0x5c8980).
 #pragma once
 
 #include "../../../re/types.h"
@@ -21,4 +21,11 @@ s32 __cdecl GamePaths_SetTextureFolders(u32 low);
 // Obj_Self of 0xf816c0) and the global wide "save" (0xf818d8) appended through its vtable's +0x28 (WString_Append); out is constructed as a copy of it
 // (WString_CtorCopy) and it is destroyed. Returns out.
 WString *__stdcall GamePaths_SaveFolder(WString *out);
+
+// 0x5c7c70 (stdcall; out; name unconfirmed): the save folder (GamePaths_SaveFolder into a local) with the global wide "\" (0xf82508) and "users"
+// (0xf81ff8) appended through the vtable's +0x28; out constructed as a copy, the local destroyed. Returns out.
+WString *__stdcall GamePaths_UsersFolder(WString *out);
+
+// 0x5c8980 (stdcall; out; name unconfirmed): the same with "online" (0xf820e8) for "users".
+WString *__stdcall GamePaths_OnlineFolder(WString *out);
 }  // extern "C"
