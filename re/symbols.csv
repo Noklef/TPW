@@ -3258,6 +3258,7 @@ address,name,kind,confidence,notes
 0x005d0330,StdListString_Insert,function,high,reimplemented (src/game/core/stdlist); inserts a copy of a string before a node
 0x00618160,StdListDword_PushBack,function,high,reimplemented (src/game/core/stdlist); appends a dword to a list of dwords
 0x004925d0,Format_FillInfo,function,high,reimplemented (src/game/gfx/display); fills a display format info from the current format record
+0x00492650,Format_FillInfoByKind,function,high,reimplemented (src/game/gfx/display); Fills the format info of a 24 or 32 bit surface by its kind
 0x005d0510,List_SpliceOne,function,high,reimplemented (src/game/core/stdlist); moves one node of a circular list in front of another
 0x004b0aa0,Obj_ApplyToGlobalObject,function,high,reimplemented (src/game/core/globals); sets three values on the global game object
 0x004d3220,Kind_ToIdA,function,high,reimplemented (src/game/core/idmaps); maps a kind to an id (base 0xf7)

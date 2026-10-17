@@ -1,4 +1,4 @@
-# The format record filler, list node splice and global object setter of src/game/core/format_splice against the originals: format records by index, circular lists of one to
+# The format record fillers (0x4925d0, 0x492650), list node splice and global object setter of src/game/core/format_splice against the originals: format records by index, circular lists of one to
 # three nodes with the splice point and the moved node anywhere (same list or not), bytes at +0x24 around the signed range.
 # usage: format_splice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 # name: (address, convention, returns, size)
-CALLS = {'Fmt': (0x4925d0, 'c', 'v', 0x80), 'Splice': (0x5d0510, 't', 'v', 0x80), 'Apply': (0x4b0aa0, 't', 'v', 0x40)}
+CALLS = {'Fmt': (0x4925d0, 'c', 'v', 0x80), 'Splice': (0x5d0510, 't', 'v', 0x80), 'Apply': (0x4b0aa0, 't', 'v', 0x40), 'Kind': (0x492650, 'c', 'v', 0xc0)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()] + [(0x4e21e0, 0x4e21f0), (0x4e2190, 0x4e21b0), (0x4e2770, 0x4e2780)])
 
 
@@ -32,6 +32,9 @@ def case(r):
         regions[0x8bd554] = table
         regions[RAM] = r.bytes(0x30)
         return Call(address, [r.getrandbits(32), RAM if r.random() < 0.9 else 0, r.choice([0, 1, 3, 640, r.getrandbits(32)]), r.getrandbits(32)], regions, conv=conv, ret=ret)
+    if name == 'Kind':
+        regions[RAM] = r.bytes(0x30)
+        return Call(address, [r.getrandbits(32), r.choice([0, 1, 3, 640, r.getrandbits(32)]), r.getrandbits(32), r.choice([0, 1, 2, 3, 4, r.getrandbits(32)]), RAM if r.random() < 0.9 else 0], regions, conv=conv, ret=ret)
     if name == 'Splice':
         regions[RAM] = r.bytes(0x20)
         regions[RAM + 0x40] = r.bytes(0x20)

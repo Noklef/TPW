@@ -141,4 +141,41 @@ void __cdecl Format_FillInfo(u32 a, u32 *out, u32 c, u32 d) {
     out[3] = local[7];
     out[5] = local[1] & 0x20;
 }
+
+void __cdecl Format_FillInfoByKind(u32 a, u32 c, u32 d, u32 kind, u32 *out) {
+    if (!out)
+        return;
+    out[8] = d;
+    out[6] = a;
+    out[7] = c;
+    switch (kind) {
+    case 0:
+        out[0] = 0xff0000;
+        out[9] = c * 3;
+        out[1] = 0xff00;
+        out[2] = 0xff;
+        out[3] = 0;
+        out[4] = 0x18;
+        out[5] = 0;
+        break;
+    case 2:
+        out[0] = 0xff0000;
+        out[9] = c * 4;
+        out[1] = 0xff00;
+        out[2] = 0xff;
+        out[3] = 0xff000000;
+        out[4] = 0x20;
+        out[5] = 0;
+        break;
+    case 3:
+        out[9] = c << 2;
+        out[0] = 0xff00;
+        out[1] = 0xff0000;
+        out[2] = 0xff000000;
+        out[3] = 0xff;
+        out[4] = 0x20;
+        out[5] = 0;
+        break;
+    }
+}
 }  // extern "C"

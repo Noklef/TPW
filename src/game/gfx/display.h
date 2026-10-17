@@ -53,4 +53,8 @@ extern "C" {
 // +0x20 = d, +0x10 = the record's dword 3, +0 / +4 / +8 / +0xc = its dwords 4 / 5 / 6 / 7, +0x24 = (dword 3 >> 3) * c, +0x14 = its dword 1 & 0x20.
 void __cdecl Format_FillInfo(u32 a, u32 *out, u32 c, u32 d);
 
+// 0x492650 (cdecl; a, c, d, kind, out; name unconfirmed): when out is not 0, +0x18 = a, +0x1c = c, +0x20 = d and, for kind 0 (24 bits: masks 0xff0000, 0xff00, 0xff, 0; +0x24 = c * 3),
+// 2 (32 bits, the same masks and alpha 0xff000000; c * 4) or 3 (32 bits: 0xff00, 0xff0000, 0xff000000, alpha 0xff; c * 4), the four masks at +0 .. +0xc, the depth at +0x10 and +0x14 = 0.
+// Any other kind (1, ...) leaves the rest alone.
+void __cdecl Format_FillInfoByKind(u32 a, u32 c, u32 d, u32 kind, u32 *out);
 }  // extern "C"
