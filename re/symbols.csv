@@ -132,6 +132,7 @@ address,name,kind,confidence,notes
 0x004e2670,Obj_RollChance,function,high,reimplemented (src/game/world/ridelist); rolls a chance of the object against the world's random numbers
 0x00436f60,Objects_SetRideId,function,high,reimplemented (src/game/world/ridelist); gives the object with an id a new ride record id and fills its linked elements
 0x0051a690,Game_TakeRideElement1,function,high,"reimplemented (src/game/world/ridelist); element 1 of the named ride record, reset when it is 6"
+0x004685c0,Ride_SetRecordId,function,high,reimplemented (src/game/world/ridelist); Sets the ride record id of a ride and hands it to the objects (name unconfirmed)
 0x004031e0,GameClock_Now,function,high,"fastcall; base time + offset at +0x48; used for all RSSE waits"
 0x00516330,World_Rand,function,high,"reimplemented (src/game/world/random); thiscall; LCG x*0x19660d+0x3c6ef35f, rotr 13, abs; state at world+0x1da708. Must be bit-exact for determinism"
 0x008791b0,RSSE_ScriptList,data,high,head of doubly linked list of live script contexts (0xF4 bytes each)

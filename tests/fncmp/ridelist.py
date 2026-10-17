@@ -13,7 +13,7 @@ from thingenv import POOL, THING, park  # noqa: E402
 # name: (address, size, arguments: id, rec, rec+index, rec+index+value, recword, linked)
 CALLS = {'Find': (0x55a070, 0x40, 'id'), 'Set': (0x55a0b0, 0x50, 'rec2v'), 'Get': (0x55a390, 0x50, 'rec2'), 'SetW': (0x55a300, 0x30, 'recv'),
          'GetW': (0x55a330, 0x30, 'rec'), 'G9c': (0x55a360, 0x30, 'rec'), 'Link': (0x55a3e0, 0x90, 'id2'), 'Clr4': (0x4e03f0, 0x30, 'this'), 'E7': (0x4e0410, 0x30, 'this'), 'E0': (0x4e0a70, 0x40, 'this'),
-         'Spd': (0x4dd6e0, 0x40, 'thisv'), 'Dur': (0x4dd720, 0xd0, 'thisv'), 'GameE': (0x51a290, 0x60, 'this'), 'E41': (0x4e0db0, 0x30, 'this'), 'Fill': (0x4396e0, 0xa0, 'this'), 'Roll': (0x4e2670, 0xa0, 'thisv'), 'SetId': (0x436f60, 0x40, 'this'), 'Take': (0x51a690, 0xd0, 'this')}
+         'Spd': (0x4dd6e0, 0x40, 'thisv'), 'Dur': (0x4dd720, 0xd0, 'thisv'), 'GameE': (0x51a290, 0x60, 'this'), 'E41': (0x4e0db0, 0x30, 'this'), 'Fill': (0x4396e0, 0xa0, 'this'), 'Roll': (0x4e2670, 0xa0, 'thisv'), 'SetId': (0x436f60, 0x40, 'this'), 'RideId': (0x4685c0, 0x40, 'this'), 'Take': (0x51a690, 0xd0, 'this')}
 B = Bench([(a, a + n) for (a, n, _s) in CALLS.values()] + [(0x5da3c0, 0x5da3c1), (0x412e90, 0x412eea), (0x516330, 0x516370)])
 NODES, ARRAYS = RAM + 0x1000, RAM + 0x4000
 
@@ -78,7 +78,7 @@ def case(r):
         regions[RAM + 0x800] = slots
         regions[RAM] = obj
         return Call(address, [RAM if r.random() < 0.9 else 0], regions, conv='c', ret='v')
-    if name == 'SetId':  # a list of up to three objects with ids, each with slots for the fill
+    if name in ('SetId', 'RideId'):  # a list of up to three objects with ids, each with slots for the fill
         n = r.choice([0, 1, 2, 3])
         objs = bytearray(r.bytes(0x300 * 3))
         slots = bytearray(r.bytes(0x400))
@@ -90,6 +90,13 @@ def case(r):
             put(objs, o + 0xf4, 'I', r.choice([0, 1, 2]))
             put(objs, o + 0x128, 'I', RAM + 0x800 + 0x100 * i)
         regions.update({RAM + 0x1000: objs, RAM + 0x800: slots, 0x790fe0: struct.pack('<I', RAM + 0x1000 if n else 0)})
+        if name == 'RideId':   # the ride table: records with the flag 0x40000 set or clear
+            rides = bytearray(r.bytes(0x100 * 4))
+            for i in range(4):
+                put(rides, 0x100 * i + 4, 'I', (r.getrandbits(32) & ~0x40000) | (0x40000 if r.random() < 0.6 else 0))
+            regions[RAM + 0x2000] = rides
+            regions[0x7a4610] = b''.join(struct.pack('<I', RAM + 0x2000 + 0x100 * k) for k in range(4))
+            return Call(address, [r.choice([0, 1, 2, 3, 3]) if r.random() < 0.9 else wanted, r.choice([0, 1, 2, 3, 5, 99, ident])], regions, conv='c', ret='v')
         return Call(address, [wanted, r.choice([0, 1, 2, 3, 5, 99, ident])], regions, conv='c', ret='v')
     if name == 'Roll':  # the object whose ride record gets the roll, the world's random state
         obj.extend(bytes(0x400))

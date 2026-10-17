@@ -63,4 +63,7 @@ void __fastcall Obj_SetRideElement4One(const u8 *object);
 // ride record of the thing with that handle (Rides_GetElement of Rides_FindById of the dword at +0x24 of the thing in its slot).
 s32 __fastcall Game_GetRideElement1(const u8 *game);
 
+// 0x4685c0 (cdecl; index, value; name unconfirmed): for a non-zero index, the ride in table 0x7a4610 gets the dword at +0xd4 = value and, when bit 0x40000 of its flags (+4) is set,
+// Objects_SetRideId(index, value) hands the value to the objects.
+void __cdecl Ride_SetRecordId(u32 index, u32 value);
 }  // extern "C"

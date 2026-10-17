@@ -161,4 +161,12 @@ s32 __fastcall Game_GetRideElement1(const u8 *game) {
     return (s32)Rides_GetElement(Rides_FindById(at<s32>(thing, 0x24)), 1);
 }
 
+void __cdecl Ride_SetRecordId(u32 index, u32 value) {
+    if (!index)
+        return;
+    u8 *const ride = reinterpret_cast<u8 *const *>(0x007a4610)[index];
+    at<u32>(ride, 0xd4) = value;
+    if (at<u32>(ride, 4) & 0x40000)
+        Objects_SetRideId(index, value);
+}
 }  // extern "C"
