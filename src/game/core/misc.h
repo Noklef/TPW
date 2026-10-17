@@ -72,11 +72,6 @@ void __fastcall Extents_Include(u8 *extents, void *, s32 low, s32 first, s32 hig
 // then the owner's head = chunk +0x24, bit 0 of the chunk's first dword cleared and 0x877b84 stepped down.
 void __cdecl Pool_FreeAll(u8 *owner);
 
-// 0x56b340 (thiscall): 1 when bit 0 of the first dword is already clear. Else it is cleared and the part
-// at +4 (a virtual base: the pointer plus the offset at +4 of its vtable; 0 for none) removed from the
-// renderer's tag 0x60 list (Renderer_RemoveFromSlot): 1 if that succeeded, 0 if it failed or there is
-// no renderer ([0x87a6d0]).
-u32 __fastcall Obj_ReleaseFromRenderer(u8 *object);
 
 // 0x583360 (thiscall): the highest set bit of the masks at +0x8fc, +0x904 and +0x90c (0 for a zero mask)
 // stored at +0x900, +0x908 and +0x910, and their union at +0x918, which is returned.

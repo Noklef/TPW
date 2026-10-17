@@ -61,4 +61,14 @@ void __fastcall Renderer_Teardown(u8 *object);
 // Otherwise, for a tag with bit 1 and an object whose virtual call 2 returns 2 and call 3 a record, the rectangle packed in the record's word at +0xa8 (x0, x1, y0, y1 from the high byte
 // down to the low byte, the y0 byte at bit 8) is clamped to the grid and the object added to every cell in it (x outer, y inner): the AND of 1 and their results. 0 in every other case.
 u32 __fastcall Renderer_Add(u8 *renderer, void *, u8 *object, u32 tag);
+
+// 0x56b340 (thiscall): 1 when bit 0 of the first dword is already clear. Else it is cleared and the part
+// at +4 (a virtual base: the pointer plus the offset at +4 of its vtable; 0 for none) removed from the
+// renderer's tag 0x60 list (Renderer_RemoveFromSlot): 1 if that succeeded, 0 if it failed or there is
+// no renderer ([0x87a6d0]).
+u32 __fastcall Obj_ReleaseFromRenderer(u8 *object);
+
+// 0x56b2f0 (thiscall; name unconfirmed): 1 when bit 0 of the first dword is already set. Else the part at +4 (a virtual base: the pointer plus the offset at +4 of its vtable; 0 for none)
+// is added to the renderer's tag 0x60 list (Renderer_Add): when that succeeds bit 0 is set and 1 returned, else 0, as when there is no renderer ([0x87a6d0]). The inverse of Obj_ReleaseFromRenderer.
+u32 __fastcall Obj_AddToRenderer(u8 *object);
 }

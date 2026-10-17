@@ -66,6 +66,8 @@ void ClearGroup(u8 *base) {
     BufferC_FreeAndClear(base + 0x2c);
 }
 
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
 }  // namespace
 
 extern "C" {
@@ -188,5 +190,33 @@ u32 __fastcall Renderer_Add(u8 *renderer, void *, u8 *object, u32 tag) {
         for (s32 y = y0; y <= y1; y++)
             all &= Pool_AddSorted(renderer, nullptr, reinterpret_cast<u8 **>(at<uintptr_t>(renderer, 0x10) + (y * at<s32>(renderer, 0x38) + x) * 4), object);
     return all;
+}
+
+u32 __fastcall Obj_ReleaseFromRenderer(u8 *object) {
+    if (!(at<u32>(object, 0) & 1))
+        return 1;
+    at<u32>(object, 0) &= 0xfffffffe;
+    u8 *renderer = global<u8 *>(0x0087a6d0);
+    if (!renderer)
+        return 0;
+    u8 *part = at<u8 *>(object, 4);
+    if (part)
+        part += at<u32>(at<u8 *>(part, 0), 4);
+    return Renderer_RemoveFromSlot(renderer, nullptr, (u32)(uintptr_t)part, 0x60) ? 1 : 0;
+}
+
+u32 __fastcall Obj_AddToRenderer(u8 *object) {
+    if (at<u32>(object, 0) & 1)
+        return 1;
+    u8 *const renderer = global<u8 *>(0x0087a6d0);
+    if (!renderer)
+        return 0;
+    u8 *part = nullptr;
+    if (u8 *const sub = at<u8 *>(object, 4))
+        part = sub + at<u32>(at<u8 *>(sub, 0), 4);
+    if (!Renderer_Add(renderer, nullptr, part, 0x60))
+        return 0;
+    at<u32>(object, 0) |= 1;
+    return 1;
 }
 }

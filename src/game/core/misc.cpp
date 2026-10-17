@@ -203,18 +203,6 @@ void __cdecl Pool_FreeAll(u8 *owner) {
     }
 }
 
-u32 __fastcall Obj_ReleaseFromRenderer(u8 *object) {
-    if (!(at<u32>(object, 0) & 1))
-        return 1;
-    at<u32>(object, 0) &= 0xfffffffe;
-    u8 *renderer = global<u8 *>(0x0087a6d0);
-    if (!renderer)
-        return 0;
-    u8 *part = at<u8 *>(object, 4);
-    if (part)
-        part += at<u32>(at<u8 *>(part, 0), 4);
-    return Renderer_RemoveFromSlot(renderer, nullptr, (u32)(uintptr_t)part, 0x60) ? 1 : 0;
-}
 
 u32 __fastcall Masks_TopBits(u8 *object) {
     auto top = [](u32 mask) {
