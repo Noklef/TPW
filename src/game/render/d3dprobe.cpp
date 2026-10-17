@@ -177,7 +177,7 @@ u32 __fastcall D3dProbe_SetFlags(u8 *self, void *, u32 flags) {
     Shadow_SetBits3(probe, nullptr, flags, 0, 0x10000, 1, 5, 4);
     Shadow_SetBits3(probe, nullptr, flags, 0, 0x400000, 0xc, 1, 3);
     Shadow_SetBits3(probe, nullptr, flags, 1, 0x4000, 1, at<u32>(probe, 0x18), 1);
-    Shadow_SetBits3(probe, nullptr, flags, 1, 0x4000, 4, 3, 1);
+    Shadow_SetBits3(probe, nullptr, flags, 1, 0x4000, 4, 3, 1);  // never sets anything: the call above already brought the shadow's 0x4000 into line (sic)
     stageState(probe, 0, 0x11, flags & 0x400000 ? 2 : 1);
     if (renderCaps() & 0x80000000) {
         Shadow_SetBits2(probe, nullptr, 0xffffffff, 0x100, 0x1b, 1, 0);
