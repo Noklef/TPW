@@ -220,4 +220,11 @@ u16 __fastcall Fn_66c096(u8 *o, void *, u32 v0, u32 v1, u32 v2);
 
 // 0x66c1f3: stores +0x4 = argument, +0x6 = argument, +0x8 = argument, +0xa = argument.
 u32 __fastcall Fn_66c1f3(u8 *o, void *, u32 v0, u32 v1, u32 v2, u32 v3);
+
+// 0x507800 (thiscall): the 0x20 elements of 0x14 bytes from the start are constructed (CRT_VectorCtorIterator with 0x507080, which clears +0, +0xc and the bytes +9 .. +0xb) and the dword
+// at +0x294, the byte at +0x298, the dword at +0x299 and the byte at +0x29d cleared. Returns the object.
+u8 *__fastcall Class507800_Ctor(u8 *object);
+
+// 0x507840 (thiscall): the 0x20 elements of 0x14 bytes are destroyed (CRT_VectorDtorIterator; the element destructor the original passes is the empty debug print).
+void __fastcall Class507800_Dtor(u8 *object);
 }  // extern "C"

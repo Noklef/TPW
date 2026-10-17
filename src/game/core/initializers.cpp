@@ -1,12 +1,25 @@
 #include "initializers.h"
 
 #include <cstdint>
+#include "crt.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+// The element constructor 0x507080 the array constructors pass (it clears +0, +0xc and the bytes +9 .. +0xb) and the element destructor, which is a call of the empty debug print.
+void __fastcall Element507080Ctor(void *element) {
+    u8 *const e = static_cast<u8 *>(element);
+    at<u32>(e, 0xc) = 0;
+    at<u32>(e, 0) = 0;
+    e[9] = 0;
+    e[0xa] = 0;
+    e[0xb] = 0;
+}
+
+void __fastcall ElementNoDtor(void *) {}
 
 }  // namespace
 
@@ -568,5 +581,18 @@ u32 __fastcall Fn_66c1f3(u8 *o, void *, u32 v0, u32 v1, u32 v2, u32 v3) {
     at<u16>(o, 0x8) = (u16)v2;
     at<u16>(o, 0xa) = (u16)v3;
     return (u32)(uintptr_t)o;
+}
+
+u8 *__fastcall Class507800_Ctor(u8 *object) {
+    CRT_VectorCtorIterator(object, 0x14, 0x20, Element507080Ctor, reinterpret_cast<void *>(ElementNoDtor));
+    at<u32>(object, 0x294) = 0;
+    at<u8>(object, 0x298) = 0;
+    at<u32>(object, 0x299) = 0;
+    at<u8>(object, 0x29d) = 0;
+    return object;
+}
+
+void __fastcall Class507800_Dtor(u8 *object) {
+    CRT_VectorDtorIterator(object, 0x14, 0x20, ElementNoDtor);
 }
 }  // extern "C"
