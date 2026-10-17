@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "../core/vcall.h"
+#include "../core/vregs.h"
 
 namespace {
 
@@ -28,6 +29,16 @@ void draw(u8 *probe, u32 colour, u32 specular) { vcall<u32>(base(probe), 0x44, k
 u32 readPixel(u8 *probe, u32 *pixel) { return vcall<u32>(base(probe), 0x40, 0u, 0u, pixel); }
 void renderState(u8 *probe, u32 state, u32 value) { comcall<u32>(device(probe), 0x58, state, value); }
 void stageState(u8 *probe, u32 stage, u32 type, u32 value) { comcall<u32>(device(probe), 0xa0, stage, type, value); }
+
+u32 &shadow(u8 *probe) { return at<u32>(base(probe), 0x14); }
+
+// A flag that differs from the flags set last sets its render state (on: the flag's bit, or its complement for `inverted`), then that bit of the shadow.
+void applyFlag(u8 *probe, u32 flags, u32 bit, u32 state, bool inverted) {
+    if (!((shadow(probe) ^ flags) & bit)) return;
+    renderState(probe, state, ((inverted ? ~flags : flags) & bit) != 0 ? 1 : 0);
+    u32 &s = shadow(probe);
+    s = ((flags ^ s) & bit) ^ s;
+}
 
 }  // namespace
 
@@ -91,6 +102,44 @@ u32 __fastcall D3dProbe_FogTest(u8 *probe) {
         }
     }
     if (!(renderCaps() & 0xc000)) renderCaps() |= 0x800000;
+    return 1;
+}
+
+u32 __fastcall D3dProbe_SetFlags(u8 *self, void *, u32 flags) {
+    u8 *const probe = self - 0x2c;
+    applyFlag(probe, flags, 0x400, 0xf, false);  // ALPHATESTENABLE
+    {
+        const u32 index = at<u32>(probe, 8) * 4;
+        const u32 off = global<u32>(0x007012d8 + index), on = global<u32>(0x007012dc + index);  // (both read first)
+        if ((shadow(probe) ^ flags) & 0x200) {
+            renderState(probe, 0x18, flags & 0x200 ? on : off);  // ALPHAREF
+            u32 &s = shadow(probe);
+            s = ((flags ^ s) & 0x200) ^ s;
+        }
+    }
+    applyFlag(probe, flags, 0x8000, 7, true);      // ZENABLE
+    applyFlag(probe, flags, 0x800, 0xe, true);     // ZWRITEENABLE
+    applyFlag(probe, flags, 0x80000, 0x1d, false);  // SPECULARENABLE
+    applyFlag(probe, flags, 0x100000, 0x1c, false);  // FOGENABLE
+    applyFlag(probe, flags, 0x1000000, 0x1a, true);  // DITHERENABLE
+    applyFlag(probe, flags, 0x2000000, 0x1f, true);
+    applyFlag(probe, flags, 0x4000000, 4, true);   // TEXTUREPERSPECTIVE
+    Shadow_SetBits3(probe, nullptr, flags, 0, 0x20000, 0x10, 1, 2);
+    Shadow_SetBits3(probe, nullptr, flags, 0, 0x40000, 0x12, 1, at<u32>(probe, 0xc));
+    Shadow_SetBits3(probe, nullptr, flags, 0, 0x10000, 1, 5, 4);
+    Shadow_SetBits3(probe, nullptr, flags, 0, 0x400000, 0xc, 1, 3);
+    Shadow_SetBits3(probe, nullptr, flags, 1, 0x4000, 1, at<u32>(probe, 0x18), 1);
+    Shadow_SetBits3(probe, nullptr, flags, 1, 0x4000, 4, 3, 1);
+    stageState(probe, 0, 0x11, flags & 0x400000 ? 2 : 1);
+    if (renderCaps() & 0x80000000) {
+        Shadow_SetBits2(probe, nullptr, 0xffffffff, 0x100, 0x1b, 1, 0);
+        Shadow_SetByte(probe, nullptr, (flags & 0xff) == 0x52 ? 0x52 : 0x22);
+        return 1;
+    }
+    if (shadow(probe) != flags) {
+        Shadow_SetByte(probe, nullptr, static_cast<s32>(flags));
+        Shadow_SetBits2(probe, nullptr, flags, 0x100, 0x1b, 1, 0);
+    }
     return 1;
 }
 
