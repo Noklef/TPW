@@ -59,4 +59,58 @@ void __cdecl DynFaces_AddPoly(const u32 *corners, u32 tag, const u32 *uvs, const
     Finish((u32)n, tag);
 }
 
+void __cdecl DynFaces_SortTags(u32 *tags, u32 count) {
+    u32 stack[50];  // the original's 50 dwords; slot 0 is never used (pushes go to sp + 1, sp + 2)
+    u32 sp = 0, depth = 0;
+    u32 ir = count, l = 1;
+    for (;;) {
+        if (ir - l < 7) {  // unsigned, as the original (a count of 0 goes to the partition)
+            for (u32 j = l + 1; j <= ir; j++) {
+                const u32 a = tags[j];
+                u32 i = j - 1;
+                while (i >= 1) {  // sic: down to 1, not l
+                    if ((tags[i] & 0x1f) <= (a & 0x1f)) break;
+                    tags[i + 1] = tags[i];
+                    i--;
+                }
+                tags[i + 1] = a;
+            }
+            if (depth == 0) return;
+            ir = stack[sp];
+            l = stack[sp - 1];
+            sp -= 2;
+            depth -= 2;
+            continue;
+        }
+        const u32 k = (l + ir) >> 1;
+        u32 t = tags[k];
+        tags[k] = tags[l + 1];
+        tags[l + 1] = t;
+        if ((tags[l] & 0x1f) > (tags[ir] & 0x1f)) { t = tags[l]; tags[l] = tags[ir]; tags[ir] = t; }
+        if ((tags[l + 1] & 0x1f) > (tags[ir] & 0x1f)) { t = tags[l + 1]; tags[l + 1] = tags[ir]; tags[ir] = t; }
+        if ((tags[l] & 0x1f) > (tags[l + 1] & 0x1f)) { t = tags[l]; tags[l] = tags[l + 1]; tags[l + 1] = t; }
+        u32 i = l + 1, j = ir;
+        const u32 a = tags[l + 1], key = a & 0x1f;
+        for (;;) {
+            do i++; while ((tags[i] & 0x1f) < key);
+            do j--; while ((tags[j] & 0x1f) > key);
+            if (j < i) break;
+            t = tags[i]; tags[i] = tags[j]; tags[j] = t;
+        }
+        tags[l + 1] = tags[j];
+        tags[j] = a;
+        depth += 2;
+        sp += 2;
+        if (ir - i + 1 >= j - l) {
+            stack[sp] = ir;
+            stack[sp - 1] = i;
+            ir = j - 1;
+        } else {
+            stack[sp] = j - 1;
+            stack[sp - 1] = l;
+            l = i;
+        }
+    }
+}
+
 }  // extern "C"

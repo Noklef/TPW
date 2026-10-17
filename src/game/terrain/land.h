@@ -59,4 +59,20 @@ void __fastcall Lnd_SetTileSize(u8 *object, void *, u32 size);
 // 0x55f630 (thiscall): the bytes +2 .. +0xb and the dwords +0xc and +0x10 cleared, Array3D_Free on +0x14 and, for the three levels (0xd8 bytes each from +0x2c), the thirteen arrays at +0 .. +0xc0
 // of the level (Array3D_Free), its tile size (the dword at -8: 0x40, 0x20, 0x10) and its number (the byte at -4).
 void __fastcall Lnd_Clear(u8 *object);
+
+// 0x55f040 (thiscall; name unconfirmed): a level's constructor: the bytes +8 .. +0xd7 cleared, the byte at +4 and the dword at +0 too (+5 .. +7 kept), then
+// Array3D_Free on the thirteen arrays at +8 .. +0xc8. Returns the object.
+u8 *__fastcall TileSet_Ctor(u8 *object);
+
+// 0x55f470 (thiscall; stream, pops 4): a level read: a u32 into +0, a byte into +4 (stream slot 8), then Array3D_Read of the arrays at +8, +0x18, +0x38,
+// +0x48, +0x88, +0x98, +0x28, +0x58, +0xa8, +0x68, +0x78, +0xb8 and +0xc8 in that order. Returns 1 in AL over the upper bytes of the last read's return.
+u32 __fastcall Lnd_ReadLevel(u8 *object, void *, u8 *stream);
+
+// 0x55f530 (thiscall; name unconfirmed): the dwords +0x14 .. +0x20 cleared, the three levels at +0x24 (0xd8 bytes each) made with TileSet_Ctor, then
+// Lnd_Clear. Returns the object.
+u8 *__fastcall Lnd_Ctor(u8 *object);
+
+// 0x55f5a0 (thiscall; name unconfirmed): Lnd_Clear; the buffer at 0x8798c8 freed (when there is one) and cleared; the three levels' TileSet_Clear, the last
+// first; the block at +0x20 freed when still set and the dwords +0x14 .. +0x20 cleared.
+void __fastcall Lnd_Dtor(u8 *object);
 }

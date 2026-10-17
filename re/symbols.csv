@@ -348,16 +348,16 @@ address,name,kind,confidence,notes
 0x005723f0,TerrainTexCache_ReadLnd,function,medium,
 0x00572440,TerrainTexCache_Update,function,low,"LRU tile cache keyed by (x, y); blends missing tiles"
 0x00560ff0,Lnd_Read,function,high,"base.lnd: version 3, 5 blend ramps, 384x344x4 control map, 3 detail levels of 13 textures"
-0x0055f470,Lnd_ReadLevel,function,high,"u32 tile size, u8 level, 13 x Array3D_Read"
+0x0055f470,Lnd_ReadLevel,function,high,"reimplemented (src/game/terrain/land); Reads a level's tile size, number and thirteen arrays from a stream"
 0x0055f630,Lnd_Clear,function,high,reimplemented (src/game/terrain/land); Clears the land object and gives its three tile levels their sizes
 0x0055f720,Lnd_SetTileSize,function,high,reimplemented (src/game/terrain/land); 0x40/0x20/0x10 -> detail level 0/1/2
 0x0055f780,TerrainBlend_Tile,function,high,"reimplemented (src/game/terrain); (out, x, y, overlay): grey unless the tile's control byte 0 is 255; mixes 3 colour groups by 2 selectors in 16-pixel MMX runs, rows bottom-up, then the path overlay"
 0x0055e780,Lnd_BuildWeightMap,function,high,reimplemented (src/game/terrain/terrain_blend); bilinear upsampling of a tile of the control map
 0x0055e710,Lnd_BuildRamp,function,high,"reimplemented (src/game/terrain/terrain_blend); (table, centre, width): 256-entry 0..255 ramp"
 0x0055ee10,Lnd_BlendRow16,function,high,reimplemented (src/game/terrain/terrain_blend); blend of 16 texels from two colour pairs
-0x0055eaa0,TerrainBlend_ThreeGroups,function,high,"per pixel lerp(lerp(A, B, sB), C, sC) for a 16-pixel run"
+0x0055eaa0,Lnd_BlendRow16x3,function,high,reimplemented (src/game/terrain/terrain_blend); Sixteen texels blended from three weighted colour-row pairs (name unconfirmed)
 0x008798c8,gTerrainBlendScratch,data,high,"tile-sized RGBA scratch the blend writes bottom-up"
-0x005e78b0,Array3D_Read,function,high,"u32 w, h, bpp + w*h*bpp bytes"
+0x005e78b0,Array3D_Read,function,high,"reimplemented (src/game/gfx/array3d); Reads width, height, depth and the pixel bytes from a stream into a new block"
 0x00467a80,Sign_Apply,function,high,"splits a name into two lines, loads <theme>/<style>.sgn, renders it onto the model's sign1/sign2.tga with GDI"
 0x005ebfc0,SignStyle_Ctor,function,high,"two line styles, default LOGFONT Arial Black, weight 400"
 0x005ec220,Renderer_Teardown,function,high,reimplemented (src/game/render/renderer); releases the two array groups and two blocks after calling the sub object
@@ -3496,6 +3496,9 @@ address,name,kind,confidence,notes
 0x005eb090,ArrayHolder_Clear,function,high,reimplemented (src/game/gfx/array3d); frees the four arrays of the holder
 0x005ea3f0,Image_CropInto,function,high,reimplemented (src/game/gfx/imageops); copies the part of an image that is left once moved into a fresh destination
 0x0055f210,TileSet_Clear,function,high,reimplemented (src/game/terrain/land); frees the thirteen arrays of the tile set
+0x0055f040,TileSet_Ctor,function,high,reimplemented (src/game/terrain/land); A landscape level's constructor: clears it and its thirteen arrays (name unconfirmed)
+0x0055f530,Lnd_Ctor,function,high,"reimplemented (src/game/terrain/land); The landscape's constructor: three levels made, then Lnd_Clear (name unconfirmed)"
+0x0055f5a0,Lnd_Dtor,function,high,"reimplemented (src/game/terrain/land); The landscape's destructor: Lnd_Clear, the tile buffer freed, the levels cleared (name unconfirmed)"
 0x005ea510,Image_Dilate,function,high,reimplemented (src/game/gfx/imageops); separable maximum filter of an image
 0x005ea6d0,Image_Erode,function,high,reimplemented (src/game/gfx/imageops); separable minimum filter of an image
 0x005ea1f0,Image_MinMark,function,high,"reimplemented (src/game/gfx/imageops); 3 x 3 minimum of a two byte per pixel image, marking the changed pixels"
@@ -3626,6 +3629,8 @@ address,name,kind,confidence,notes
 0x0058c8b0,TexSurfaceB_Area,function,high,reimplemented (src/game/gfx/texsurface); surface class B: its virtual base's two dwords multiplied
 0x0058b3e0,TexSurfaceA_Ctor,function,high,reimplemented (src/game/gfx/texsurface); surface class A constructor (virtual base at +0x3c)
 0x0058c610,TexSurfaceB_Ctor,function,high,reimplemented (src/game/gfx/texsurface); surface class B constructor (virtual base at +0x10)
+0x005738d0,Renderer_NewSurfaceA,function,high,"reimplemented (src/game/gfx/texsurface); A new class A surface, its virtual base returned (name unconfirmed)"
+0x00573e70,SoftRenderer_NewSurfaceB,function,high,"reimplemented (src/game/gfx/texsurface); A new class B surface, its virtual base returned (name unconfirmed)"
 0x005e7740,Array3D_Fill,function,high,"reimplemented (src/game/gfx/array3d); fills the pixels with a colour (4 bytes: d, a, b, c; 1 byte: d)"
 0x005e77c0,Array3D_CopyTo,function,high,reimplemented (src/game/gfx/array3d); copies the pixel bytes to another buffer
 0x005e77f0,Array3D_ReverseBytes,function,high,reimplemented (src/game/gfx/array3d); reverses the bytes of each 4-byte pixel
@@ -3799,6 +3804,7 @@ address,name,kind,confidence,notes
 0x00569f20,Rasteriser_ClearMmx,function,high,"reimplemented (src/game/render/rasteriser); EMMS, returns 1 (name unconfirmed)"
 0x0053c8d0,DynFaces_AddSquare,function,high,reimplemented (src/game/render/dynfaces); queues a square dynamic face
 0x0053c9c0,DynFaces_AddPoly,function,high,reimplemented (src/game/render/dynfaces); queues a four corner polygon dynamic face
+0x0053c1f0,DynFaces_SortTags,function,high,reimplemented (src/game/render/dynfaces); Sorts the dynamic faces' tag words by tag: quicksort with insertion runs under 7 (name unconfirmed)
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"

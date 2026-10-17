@@ -4,6 +4,8 @@
 #include <cstring>
 
 #include "../core/buffers.h"
+#include "../core/crt.h"
+#include "../core/vwrap.h"
 #include "../core/gameheap.h"
 #include "../core/globalmem.h"
 #include "../gfx/array3d.h"
@@ -197,5 +199,49 @@ void __fastcall Lnd_Clear(u8 *object) {
         at<u32>(tiles, -8) = 0x40 >> level;
         at<u8>(tiles, -4) = static_cast<u8>(level);
     }
+}
+
+u8 *__fastcall TileSet_Ctor(u8 *object) {
+    std::memset(object + 8, 0, 0xd0);
+    at<u8>(object, 4) = 0;
+    at<u32>(object, 0) = 0;
+    for (u32 offset = 8; offset <= 0xc8; offset += 0x10)
+        Array3D_Free(object + offset);
+    return object;
+}
+
+u32 __fastcall Lnd_ReadLevel(u8 *object, void *, u8 *stream) {
+    static const u16 kOrder[13] = {0x8, 0x18, 0x38, 0x48, 0x88, 0x98, 0x28, 0x58, 0xa8, 0x68, 0x78, 0xb8, 0xc8};
+    Object_CallSlot8Product((u32)(uintptr_t)object, 4, 1, stream);
+    Object_CallSlot8Product((u32)(uintptr_t)(object + 4), 1, 1, stream);
+    u32 result = 0;
+    for (u32 i = 0; i < 13; i++)
+        result = Array3D_Read(object + kOrder[i], nullptr, stream);
+    return (result & ~0xffu) | 1;
+}
+
+u8 *__fastcall Lnd_Ctor(u8 *object) {
+    at<u32>(object, 0x14) = 0;
+    at<u32>(object, 0x18) = 0;
+    at<u32>(object, 0x1c) = 0;
+    at<u32>(object, 0x20) = 0;
+    CRT_VectorCtorIterator(object + 0x24, 0xd8, 3, reinterpret_cast<void(__fastcall *)(void *)>(TileSet_Ctor), reinterpret_cast<void *>(TileSet_Clear));
+    Lnd_Clear(object);
+    return object;
+}
+
+void __fastcall Lnd_Dtor(u8 *object) {
+    Lnd_Clear(object);
+    if (global<u32>(0x008798c8)) {
+        GameHeap_Free(reinterpret_cast<void *>(global<u32>(0x008798c8)));
+        global<u32>(0x008798c8) = 0;
+    }
+    CRT_VectorDtorIterator(object + 0x24, 0xd8, 3, reinterpret_cast<void(__fastcall *)(void *)>(TileSet_Clear));
+    if (at<void *>(object, 0x20))
+        GameHeap_Free(at<void *>(object, 0x20));
+    at<u32>(object, 0x14) = 0;
+    at<u32>(object, 0x18) = 0;
+    at<u32>(object, 0x1c) = 0;
+    at<u32>(object, 0x20) = 0;
 }
 }
