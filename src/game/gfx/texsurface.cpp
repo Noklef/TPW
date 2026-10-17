@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "texcache.h"
+#include "../core/gameheap.h"
 
 namespace {
 
@@ -65,5 +66,19 @@ u32 __fastcall TexSurfaceB_FieldC(const u8 *sub) { return back<u32>(sub, 0xc); }
 u32 __fastcall TexSurfaceB_Area(const u8 *sub) {
     const u32 off = at<u32>(back<const u8 *>(sub, 0x10), 4);
     return back<u32>(sub + off, 8) * back<u32>(sub + off, 4);
+}
+
+u8 *__fastcall Renderer_NewSurfaceA(void *) {
+    u8 *surface = static_cast<u8 *>(GameHeap_Alloc(0x50));
+    surface = surface ? TexSurfaceA_Ctor(surface, nullptr, 1) : nullptr;
+    if (!surface) return nullptr;
+    return surface + BaseOffset(surface);
+}
+
+u8 *__fastcall SoftRenderer_NewSurfaceB(void *) {
+    u8 *surface = static_cast<u8 *>(GameHeap_Alloc(0x24));
+    surface = surface ? TexSurfaceB_Ctor(surface, nullptr, 1) : nullptr;
+    if (!surface) return nullptr;
+    return surface + BaseOffset(surface);
 }
 }

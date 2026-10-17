@@ -38,4 +38,11 @@ u32 __fastcall TexSurfaceB_FieldC(const u8 *sub);
 
 // 0x58c8b0: the same area from ECX + off - 8 and - 4, off = vbtable[1] of the vbtable at ECX - 0x10.
 u32 __fastcall TexSurfaceB_Area(const u8 *sub);
+
+// 0x5738d0 (thiscall, this unused; name unconfirmed; behind the thunk 0x5738c0, slot 4 of the vtable 0x701630): a new class A surface (0x50 bytes,
+// TexSurfaceA_Ctor most derived); its virtual base (the object + its vbtable's second dword), or null when the allocation fails.
+u8 *__fastcall Renderer_NewSurfaceA(void *self);
+
+// 0x573e70 (thiscall, this unused; name unconfirmed; behind the thunk 0x573f00): the same for class B (0x24 bytes, TexSurfaceB_Ctor).
+u8 *__fastcall SoftRenderer_NewSurfaceB(void *self);
 }
