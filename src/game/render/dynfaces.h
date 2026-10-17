@@ -14,4 +14,9 @@ void __cdecl DynFaces_AddSquare(u32 a, u32 b, u32 c, u8 d, u32 tag, u32 e, u32 f
 // uvs at +0x30 (stride 12), the colours at +0x60 (stride 12), user at +0x90, 0 at +0x94 and +0x98 and the tag byte at +0x9c.
 void __cdecl DynFaces_AddPoly(const u32 *corners, u32 tag, const u32 *uvs, const u32 *colours, u32 user);
 
+// 0x53c1f0 (cdecl; tags, count; name unconfirmed): the count tag words at tags[1..count] (the caller hands 0x872168 - 4) sorted by their tag (the low five
+// bits): a quicksort with a stack of 50 dwords and insertion sorts of runs under 7, unsigned throughout (a count of 0 goes to the partition). Sic: the
+// insertion sort steps down to tags[1], not to the run's start.
+void __cdecl DynFaces_SortTags(u32 *tags, u32 count);
+
 }  // extern "C"

@@ -3778,6 +3778,7 @@ address,name,kind,confidence,notes
 0x00569f20,Rasteriser_ClearMmx,function,high,"reimplemented (src/game/render/rasteriser); EMMS, returns 1 (name unconfirmed)"
 0x0053c8d0,DynFaces_AddSquare,function,high,reimplemented (src/game/render/dynfaces); queues a square dynamic face
 0x0053c9c0,DynFaces_AddPoly,function,high,reimplemented (src/game/render/dynfaces); queues a four corner polygon dynamic face
+0x0053c1f0,DynFaces_SortTags,function,high,reimplemented (src/game/render/dynfaces); Sorts the dynamic faces' tag words by tag: quicksort with insertion runs under 7 (name unconfirmed)
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
