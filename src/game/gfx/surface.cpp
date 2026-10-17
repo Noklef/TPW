@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../core/gameheap.h"
 #include "../core/vcall.h"
 #include "../files/file.h"
 
@@ -42,6 +43,8 @@ void setSourceKey(Surface *s, u32 key) {
     u32 ck[2] = {key, key};                           // DDCOLORKEY: low, high
     comcall<s32>(s->surface, 0x74, 8u, ck);           // SetColorKey(DDCKEY_SRCBLT)
 }
+
+template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
 }  // namespace
 
@@ -292,4 +295,26 @@ void *__cdecl Surface_GetSurface(Surface *s, s32 addRef) {
     return s->surface;
 }
 
+void __fastcall Surface_SetMasks(u8 *surface, void *, u32 a, u32 b, u32 c, u32 d, u32 e, u32 f, u32 g, u32 h, u32 i, u32 j, u32 k, u32 l) {
+    at<u32>(surface, 0x80) = a;
+    at<u32>(surface, 0x84) = b;
+    at<u32>(surface, 0x88) = c;
+    at<u32>(surface, 0x8c) = d;
+    at<u32>(surface, 0x90) = e;
+    at<u32>(surface, 0x94) = f;
+    at<u32>(surface, 0x98) = g;
+    at<u32>(surface, 0x9c) = h;
+    at<u32>(surface, 0xa0) = i;
+    at<u32>(surface, 0xa4) = j;
+    at<u32>(surface, 0xa8) = k;
+    at<u32>(surface, 0xac) = l;
+    if (at<s32>(surface, 0x1c) != 0x10) return;
+    const u8 low = (u8)f;      // (the third word of the second group)
+    const u8 high = (u8)l;     // (the last word)
+    for (u32 n = 0; n < 0x100; ++n) {
+        at<u32>(surface, 0xb0 + 4 * n) = ((n >> ((8 - low) & 31)) << ((0x18 - low) & 31)) | ((n >> (low & 31)) << ((low + 8) & 31));
+        const u32 mask = (1u << (high & 31)) - 1u;
+        at<u32>(surface, 0x4b0 + 4 * n) = ((n & mask) << ((8 - high) & 31)) | ((n >> (high & 31)) << ((0x10 - (s8)i) & 31));
+    }
+}
 }  // extern "C"

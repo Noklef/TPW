@@ -1,6 +1,9 @@
 #include "array3d.h"
 
 #include <cstdint>
+#include <cstring>
+
+#include "../core/gameheap.h"
 
 namespace {
 
@@ -94,5 +97,61 @@ u8 *__fastcall Array3D_MaxInto(u8 *buffer, void *, u8 *other) {
         y++;
     } while (y < at<s32>(buffer, 4));
     return to;
+}
+
+u8 __fastcall Array3D_Realloc(u8 *object, void *, u32 a, u32 b, u32 c) {
+    if (at<void *>(object, 0xc))
+        GameHeap_Free(at<void *>(object, 0xc));
+    const u32 size = c * b * a;
+    u8 *block = static_cast<u8 *>(GameHeap_Alloc(size));
+    at<u8 *>(object, 0xc) = block;
+    if (!block)
+        return 0;
+    std::memset(block, 0, size);
+    at<u32>(object, 8) = c;
+    at<u32>(object, 0) = a;
+    at<u32>(object, 4) = b;
+    return 1;
+}
+
+u8 *__fastcall Array3D_Init(u8 *object, void *, u32 a, u32 b, u32 c) {
+    at<u32>(object, 8) = c;
+    at<u32>(object, 0) = a;
+    at<u32>(object, 4) = b;
+    at<void *>(object, 0xc) = GameHeap_Alloc(c * b * a);
+    return object;
+}
+
+void __fastcall Array3D_Free(u8 *object) {
+    void *block = at<void *>(object, 0xc);
+    at<u32>(object, 0) = 0;
+    at<u32>(object, 4) = 0;
+    at<u32>(object, 8) = 0;
+    if (block) {
+        GameHeap_Free(block);
+        at<u32>(object, 0xc) = 0;
+    }
+}
+
+void __fastcall ArrayHolder_Clear(u8 *object) {
+    Array3D_Free(object + 0x2c);
+    Array3D_Free(object + 0x3c);
+    Array3D_Free(object + 0x4c);
+    Array3D_Free(object + 0x5c);
+    for (u32 offset = 0x5c; offset >= 0x2c; offset -= 0x10) {
+        u8 *const array = object + offset;
+        if (at<void *>(array, 0xc)) GameHeap_Free(at<void *>(array, 0xc));
+        at<u32>(array, 0) = 0;
+        at<u32>(array, 4) = 0;
+        at<u32>(array, 8) = 0;
+        at<u32>(array, 0xc) = 0;
+    }
+}
+
+void __fastcall Array3Ds_Free4(u8 *object) {
+    Array3D_Free(object + 0x2c);
+    Array3D_Free(object + 0x3c);
+    Array3D_Free(object + 0x4c);
+    Array3D_Free(object + 0x5c);
 }
 }

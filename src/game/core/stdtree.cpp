@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "crt.h"
 #include "gameheap.h"
 #include "string.h"
 
@@ -338,6 +339,62 @@ using TreeE = Tree<0x007ced34, 0x1c, kStdString, 0x007ced38, 0x20>;
 using TreeF = Tree<0x00f7c968, 0x24, kString, 0x00f7c96c, 0x28>;
 using TreeG = Tree<0x00f7c970, 0x10, kPlain, 0x00f7c96c, 0x14>;
 
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+// The lower bound in a tree whose nodes {left, parent, right, key} end at the sentinel: the last node passed on the way down whose key is not below the key.
+template <typename K> u8 *LowerBound(u8 *tree, K key, u32 sentinelAt) {
+    u8 *head = at<u8 *>(tree, 4);
+    u8 *result = head;
+    u8 *sentinel = global<u8 *>(sentinelAt);
+    u8 *node = at<u8 *>(head, 4);
+    while (node != sentinel) {
+        if (at<K>(node, 0xc) < key) {
+            node = at<u8 *>(node, 8);
+        } else {
+            result = node;
+            node = at<u8 *>(node, 0);
+        }
+    }
+    return result;
+}
+
+// The insert over a tree whose keys are Key (the first member of the value, at +0xc of a node): Dec is the instantiation's iterator decrement and Insert its node insert.
+template <typename Key, typename Value, u32 SentinelAt, void(__fastcall *Dec)(u8 **), u8 **(__fastcall *Insert)(u8 *, void *, u8 **, u8 *, u8 *, const Value *)>
+void MapInsert(u8 *tree, u8 **result, const Value *value) {
+    u8 *const head = at<u8 *>(tree, 4);
+    u8 *const nil = global<u8 *>(SentinelAt);
+    const Key key = *reinterpret_cast<const Key *>(value);
+    u8 *y = head;
+    u8 *x = at<u8 *>(head, 4);
+    bool below = true;
+    while (x != nil) {
+        y = x;
+        below = key < at<Key>(x, 0xc);
+        x = at<u8 *>(x, below ? 0 : 8);
+    }
+    bool insert = at<u8>(tree, 8) != 0;
+    u8 *found = y;
+    if (!insert) {
+        if (below) {
+            if (y == at<u8 *>(at<u8 *>(tree, 4), 0))
+                insert = true;
+            else
+                Dec(&found);
+        }
+        if (!insert && at<Key>(found, 0xc) < key)
+            insert = true;
+    }
+    if (insert) {
+        u8 *iterator = nullptr;
+        u8 **made = Insert(tree, nullptr, &iterator, x, y, value);
+        at<u8 *>(result, 0) = *made;
+        at<u8>(result, 4) = 1;
+        return;
+    }
+    at<u8 *>(result, 0) = found;
+    at<u8>(result, 4) = 0;
+}
+
 }  // namespace
 
 extern "C" {
@@ -380,4 +437,109 @@ u8 **__fastcall StdTree_EraseE(u8 *tree, void *, u8 **out, u8 *node) { return Tr
 u8 **__fastcall StdTree_EraseF(u8 *tree, void *, u8 **out, u8 *node) { return TreeF::Erase(tree, out, node); }
 u8 **__fastcall StdTree_EraseG(u8 *tree, void *, u8 **out, u8 *node) { return TreeG::Erase(tree, out, node); }
 
+u8 *__fastcall Tree16a_LowerBound(u8 *tree, void *, const u16 *key) { return LowerBound<u16>(tree, *key, 0x00785de4); }
+
+u8 *__fastcall Tree32_LowerBound(u8 *tree, void *, const u32 *key) { return LowerBound<u32>(tree, *key, 0x007b4a54); }
+
+u8 *__fastcall Tree16b_LowerBound(u8 *tree, void *, const u16 *key) { return LowerBound<u16>(tree, *key, 0x00f7c970); }
+
+u8 **__fastcall StdTreeC_PostInc(u8 **it, void *, u8 **out, s32) {
+    u8 *old = *it;
+    StdTree_IncC(it);
+    *out = old;
+    return out;
+}
+
+u8 **__fastcall StdTreeE_PostInc(u8 **it, void *, u8 **out, s32) {
+    u8 *old = *it;
+    StdTree_IncE(it);
+    *out = old;
+    return out;
+}
+
+u8 **__fastcall Tree16a_Find(u8 *tree, void *, u8 **out, const u16 *key) {
+    u8 *found = Tree16a_LowerBound(tree, nullptr, key);
+    u8 *end = at<u8 *>(tree, 4);
+    *out = (found == end || *key < at<u16>(found, 0xc)) ? end : found;
+    return out;
+}
+
+u8 **__fastcall Tree32_Find(u8 *tree, void *, u8 **out, const u32 *key) {
+    u8 *found = Tree32_LowerBound(tree, nullptr, key);
+    u8 *end = at<u8 *>(tree, 4);
+    *out = (found == end || *key < at<u32>(found, 0xc)) ? end : found;
+    return out;
+}
+
+u8 **__fastcall Tree16b_Find(u8 *tree, void *, u8 **out, const u16 *key) {
+    u8 *found = Tree16b_LowerBound(tree, nullptr, key);
+    u8 *end = at<u8 *>(tree, 4);
+    *out = (found == end || *key < at<u16>(found, 0xc)) ? end : found;
+    return out;
+}
+
+u32 __fastcall Obj_HasKey5af780(u8 *object, void *, u32 key) {
+    u16 word = (u16)key;
+    u8 *tree = object + 0x28;
+    u8 *found = Tree16b_LowerBound(tree, nullptr, &word);
+    u8 *end = at<u8 *>(tree, 4);
+    u8 *it = (found == end || word < at<u16>(found, 0xc)) ? end : found;
+    return it != at<u8 *>(object, 0x2c);
+}
+
+void __fastcall StdMapA_Insert(u8 *tree, void *, u8 **result, const u32 *value) {
+    MapInsert<u32, u32, 0x007b4a54, StdTree_DecA, StdTree_InsertA>(tree, result, value);
+}
+
+void __fastcall StdMapG_Insert(u8 *tree, void *, u8 **result, const u16 *value) {
+    MapInsert<u16, u16, 0x00f7c970, StdTree_DecG, StdTree_InsertG>(tree, result, value);
+}
+
+u8 *__fastcall StdTreeF_LowerBound(u8 *tree, void *, const u8 *key) {
+    u8 *result = at<u8 *>(tree, 4);
+    u8 *const nil = global<u8 *>(0x00f7c968);
+    u8 *node = at<u8 *>(result, 4);
+    while (node != nil) {
+        if (String_Less(reinterpret_cast<const String *>(node + 0xc), nullptr, reinterpret_cast<const StringView *>(key))) {
+            node = at<u8 *>(node, 8);
+        } else {
+            result = node;
+            node = at<u8 *>(node, 0);
+        }
+    }
+    return result;
+}
+
+u8 __fastcall StdTreeF_AllFlagged(u8 *object) {
+    u8 *const head = at<u8 *>(object, 0x3c);
+    u8 *node = at<u8 *>(head, 0);
+    if (node == head) return 1;
+    do {
+        if (at<u8>(at<u8 *>(node, 0x20), 0xb9) == 0) return 0;
+        StdTree_IncF(&node);
+    } while (node != at<u8 *>(object, 0x3c));
+    return 1;
+}
+
+u8 **__fastcall StdTreeF_FindLower(u8 *tree, void *, u8 **out, const u8 *key) {
+    *out = StdTreeF_LowerBound(tree, nullptr, key);
+    return out;
+}
+
+u32 *__fastcall StdMapG_InsertCopy(u8 *tree, void *, u32 *out, const u16 *value) {
+    u32 result[2];
+    StdMapG_Insert(tree, nullptr, reinterpret_cast<u8 **>(result), value);
+    at<u32>(out, 0) = result[0];
+    at<u8>(out, 4) = (u8)result[1];
+    return out;
+}
+
+u8 __fastcall Object_AddKeyed(u8 *object, void *, u32 key, s32 amount) {
+    u32 result[2];
+    u16 value = (u16)key;
+    StdMapG_Insert(object + 0x28, nullptr, reinterpret_cast<u8 **>(result), &value);
+    if ((u8)result[1] == 0) return 0;
+    at<s32>(object, 0x1c) += amount;
+    return 1;
+}
 }  // extern "C"

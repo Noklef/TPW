@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "../core/gameheap.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -55,5 +57,27 @@ u32 __fastcall Visitor_IsState11To14(const u8 *visitor) {
     s32 state = at<s32>(visitor, 0x220);
     if (state == 8) state = at<s32>(visitor, 0x224);
     return state >= 11 && state <= 14;
+}
+
+u32 __fastcall Person_HasWordInState(const u8 *object, void *, u32 word) {
+    if (!Person_HasWord(object, nullptr, word))
+        return 0;
+    const u8 kind = at<u8>(object, 2);
+    if (kind == 5 && at<u32>(object, 0x19c) == 0xb)
+        return 1;
+    if (kind == 4 && at<u32>(object, 0x19c) == 0xd)
+        return 1;
+    return 0;
+}
+
+void __fastcall Visitor_Set1f8One(u8 *object) { at<u32>(object, 0x1f8) = 1; }
+
+u32 __fastcall Person_HasWord(const u8 *object, void *, u32 word) {
+    const u8 kind = at<u8>(object, 2);
+    if (kind == 4)
+        return at<u16>(object, 0x218) == (u16)word;
+    if (kind == 5)
+        return at<u16>(object, 0x21a) == (u16)word;
+    return 0;
 }
 }

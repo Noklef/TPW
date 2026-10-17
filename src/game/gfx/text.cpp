@@ -3,6 +3,9 @@
 
 #include <cstdint>
 
+#include "../core/gameheap.h"
+#include "../core/vcall.h"
+
 namespace {
 
 template <typename T>
@@ -21,6 +24,8 @@ const u32 kSpriteSlot = 14, kSpriteShapeSlot = 15;
 const RleSprite *glyph(const RleSprite *font, u32 ch) {
     return at<const RleSprite *>(static_cast<u32>(reinterpret_cast<std::uintptr_t>(font)) + ch * 8 - 0x100);
 }
+
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 }  // namespace
 
@@ -104,4 +109,50 @@ void __cdecl Draw_SpriteShape(s32 x, s32 y, const RleSprite *sprite, DrawColour 
         d->table[kSpriteShapeSlot])(d, nullptr, x, y, sprite, c);
 }
 
+u32 __fastcall TextMetrics_Width(u8 *object, void *, const u16 *text, u32 start, u32 end) {
+    u32 eax = (u32)(s32)(s16)start;
+    s32 remaining = (s32)(s16)end - (s32)(s16)start;
+    const u16 *p = text + (s32)(s16)start;
+    s32 sum = 0;
+    s32 i = 0;
+    if (remaining > 0) {
+        do {
+            const u16 c = *p;
+            eax = (eax & 0xffff0000u) | c;
+            if (c == 0) break;
+            const u32 result = vcall<u32>(object, 0xc, eax);
+            ++p;
+            eax = (u32)(s32)(s16)result;
+            sum += (s32)eax;
+            ++i;
+        } while (i < remaining);
+    }
+    return (eax & 0xffff0000u) | (u16)sum;
+}
+
+s32 __fastcall TextMetrics_FitIndex(u8 *object, void *, const u16 *text, u32 start, u32 width) {
+    u32 eax = (u32)(uintptr_t)text;
+    s32 index = (s32)(s16)start;
+    const u16 *p = text + index;
+    u32 left = width;
+    if ((s16)left > 0) {
+        do {
+            const u16 c = *p;
+            eax = (eax & 0xffff0000u) | c;
+            if (c == 0) break;
+            eax = vcall<u32>(object, 0xc, eax);
+            left -= eax;
+            ++index;
+            ++p;
+        } while ((s16)left > 0);
+    }
+    return index - 1;
+}
+
+void __stdcall TextExtent_Zero(u32 *out, const u8 *) {
+    global<u32>(0x007cf100) = 0;
+    global<u32>(0x007cf104) = 0;
+    out[0] = global<u32>(0x007cf100);
+    out[1] = global<u32>(0x007cf104);
+}
 }  // extern "C"

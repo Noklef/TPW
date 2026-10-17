@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "../files/file.h"
+#include "gameheap.h"
 #include "movs.h"
 
 namespace {
@@ -144,4 +146,97 @@ u8 *__cdecl Blocks8_Copy(const u8 *first, const u8 *last, u8 *dest) {
     return dest;
 }
 
+void __cdecl Word_CopyTo(u16 *dest, const u16 *src) {
+    if (dest)
+        *dest = *src;
+}
+
+u32 *__cdecl Dwords_Copy(const u32 *first, const u32 *last, u32 *dest) {
+    for (; first != last; first++, dest++)
+        *dest = *first;
+    return dest;
+}
+
+void __cdecl EntryStack_Clear() {
+    u32 &top = *reinterpret_cast<u32 *>(0x007cf07c);
+    const u32 &base = *reinterpret_cast<u32 *>(0x007cf078);
+    if (top <= base)
+        return;
+    do {
+        at<u32>(reinterpret_cast<void *>(top), 0) = 0;
+        at<u32>(reinterpret_cast<void *>(top), 4) = 0;
+        top -= 8;
+    } while (top > base);
+}
+
+u32 __stdcall Quad_Push(const u32 *source, u32, u32, u8 *object) {
+    const s32 count = at<s32>(object, 0x788);
+    if (count < 4) {
+        u8 *slot = object + 0x448 + 16 * (u32)count;
+        at<s32>(object, 0x788) = count + 1;
+        if (!source) {
+            at<u32>(slot, 0) = 0;
+            at<u32>(slot, 4) = 0;
+            at<u32>(slot, 8) = 0;
+            at<u32>(slot, 0xc) = 0;
+        } else {
+            at<u32>(slot, 0) = source[0];
+            at<u32>(slot, 4) = source[1];
+            at<u32>(slot, 8) = source[2];
+            at<u32>(slot, 0xc) = source[3];
+        }
+    }
+    return 1;
+}
+
+u32 __fastcall Bands_AnyMatch(const u8 *object, void *, u32 packed) {
+    const s32 b0 = packed & 0xff, b1 = (packed >> 8) & 0xff, b2 = (packed >> 16) & 0xff, b3 = (packed >> 24) & 0xff;
+    if (at<s32>(object, 0x128) > b0)
+        return 0;
+    if (at<s32>(object, 0x12c) < b1)
+        return 0;
+    if (b1 > b0)
+        return 0;
+    for (s32 i = b1; i <= b0; ++i) {
+        if (at<s8>(object, 0x130 + i) <= b2 && at<s8>(object, 0x1b0 + i) >= b3)
+            return 1;
+    }
+    return 0;
+}
+
+void __stdcall Bytes4_Permute(u8 *p, const u16 *flags) {
+    if (!(*flags & 0x78))
+        return;
+    if (*flags & 0x40) {
+        const u8 a = p[1], b = p[3];
+        p[1] = b;
+        p[3] = a;
+    }
+    const u16 f = *flags;
+    if (f & 8) {
+        const u8 p0 = p[0], p1 = p[1], p2 = p[2], p3 = p[3];
+        p[3] = p2;
+        p[2] = p1;
+        p[1] = p0;
+        p[0] = p3;
+    } else if (f & 0x10) {
+        const u8 p0 = p[0], p1 = p[1], p2 = p[2], p3 = p[3];
+        p[0] = p2;
+        p[2] = p0;
+        p[1] = p3;
+        p[3] = p1;
+    } else if (f & 0x20) {
+        const u8 p0 = p[0], p1 = p[1], p2 = p[2], p3 = p[3];
+        p[0] = p1;
+        p[1] = p2;
+        p[2] = p3;
+        p[3] = p0;
+    }
+}
+
+u32 __cdecl Dwords_Zero(u32 *to, u32 count) {
+    for (u32 i = 0; i < count; ++i)
+        to[i] = 0;
+    return 0;
+}
 }  // extern "C"

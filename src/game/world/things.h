@@ -102,3 +102,14 @@ struct ThingTableEnv {
 };
 // The table's calls go to env (nullptr: the game's).
 void Things_SetEnv(const ThingTableEnv *env);
+
+extern "C" {
+
+// 0x4d91f0 (thiscall; handle, pops 4): when the word at +0x24 is not 0 the thing it names (in the table at 0x7cfb90) gets the word at +8 = handle; the
+// thing the handle names gets the words at +8 = 0 and +0xa = the old word at +0x24, and the word at +0x24 = handle.
+void __fastcall Obj_ReplaceHandle24(u8 *object, void *, u32 handle);
+
+// 0x4cd300 (stdcall; handle, pops 4): the thing the slot (handle & 0xffff) of the thing table at 0x7cfb90 holds (20-byte slots; the debug message of the original is gone).
+u8 *__stdcall Thing_ByHandle(u32 handle);
+
+}  // extern "C"

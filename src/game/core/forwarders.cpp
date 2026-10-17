@@ -2,8 +2,9 @@
 
 #include <cstdint>
 
-#include "small.h"
+#include "accessors.h"
 #include "ptrlist.h"
+#include "string.h"
 
 namespace {
 

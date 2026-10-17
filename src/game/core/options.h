@@ -19,4 +19,16 @@ void __fastcall Options_Set30(u8 *options, void *, u32 value);
 void __fastcall Options_Set4(u8 *options, void *, u32 value);
 void __fastcall Options_Set8(u8 *options, void *, u32 value);
 void __fastcall Options_SetC(u8 *options, void *, u32 value);
+
+// 0x550d80 (thiscall; mode, pops 4): the dword at +0 = mode (the original reports mode >= 3 to its empty debug printf); for 0 / 1 / 2 the bits 23..25
+// of the dword at 0x7a1a8c are set to 1 / 2 / 4 (bit 23 / 24 / 25 alone: the other two cleared); other modes leave it.
+void __fastcall Setting_SetMode(u8 *object, void *, u32 mode);
+
+// 0x550ca0 (thiscall): the mode is read from the bits 23..25 of the dword at 0x7a1a8c (the highest set of 25 / 24 / 23 gives 2 / 1 / 0; none gives 0), stored
+// at +0 and the bits set to that single one (as Setting_SetMode does). Returns the object.
+u8 *__fastcall Setting_ReadMode(u8 *object);
+
+// 0x41a9d0 (no arguments): in the 0x4000 render size, 8 / 6 for a 8 / 16 bit depth, 4 for 32 and else 0; otherwise the level 0 to 3 of gBalanceGraphics (0x7858d0) as 2, 4, 6,
+// 8, and 8 for any larger.
+u32 __cdecl Graphics_Level();
 }

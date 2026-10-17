@@ -37,4 +37,5 @@ s32 __fastcall Vector20_Count(const u8 *object) {
     return begin ? (s32)(at<const u8 *>(object, 8) - begin) / 20 : 0;
 }
 
+u8 *__fastcall Array36_At(const u8 *object, void *, u32 index) { return at<u8 *>(object, 4) + 36 * index; }
 }  // extern "C"

@@ -120,3 +120,11 @@ struct SurfaceEnv {
 };
 // Surface_* go through env (nullptr: the game's).
 void Surface_SetEnv(const SurfaceEnv *env);
+
+extern "C" {
+
+// 0x5830e0 (thiscall; twelve words, pops 48): the words go to +0x80 .. +0xac (three groups of three then another three); when the dword at +0x1c is 0x10 the two tables of 256
+// dwords at +0xb0 and +0x4b0 are made from them (shift counts of the low 5 bits).
+void __fastcall Surface_SetMasks(u8 *surface, void *, u32 a, u32 b, u32 c, u32 d, u32 e, u32 f, u32 g, u32 h, u32 i, u32 j, u32 k, u32 l);
+
+}  // extern "C"

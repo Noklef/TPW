@@ -4,8 +4,9 @@
 
 #include "crt.h"
 #include "gameheap.h"
+#include "string.h"
 #include "vcall.h"
-#include "small20.h"
+#include "vobj3.h"
 
 namespace {
 
@@ -200,4 +201,9 @@ u32 __fastcall Object_ReleaseSavedPairs(u8 *object) {
     return 1;
 }
 
+u32 __fastcall Obj_ReleaseSevenIfMode1(u8 *object) {
+    if (global<u32>(0x008bd524) == 1)
+        return Obj_ReleaseSevenComMembers(object);
+    return 1;
+}
 }  // extern "C"

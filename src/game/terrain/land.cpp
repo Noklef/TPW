@@ -3,7 +3,10 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../core/buffers.h"
+#include "../core/gameheap.h"
 #include "../core/globalmem.h"
+#include "../gfx/array3d.h"
 #include "../math/x87.h"
 #include "../render/frame.h"
 
@@ -14,6 +17,8 @@ template <typename T> T &at(const void *p, u32 offset) {
 }
 
 const u8 *map() { return *reinterpret_cast<const u8 *const *>(0x007a0854); }
+
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 }  // namespace
 
@@ -140,5 +145,40 @@ void __cdecl Terrain_PaintAt(s32 x, s32 y, const s32 *paint) {
     if (!map || !(at<u8>(map, 0x30) & 2)) return;
     Terrain_PaintCell(map, reinterpret_cast<const u8 *>(0x0074c8a8), x, y, paint[0], paint[1], (u32)paint[2]);
     Frame_AddFlags(1);
+}
+
+void __fastcall TileSet_Clear(u8 *object) {
+    at<u8>(object, 4) = 0;
+    at<u32>(object, 0) = 0;
+    for (u32 offset = 8; offset <= 0xc8; offset += 0x10)
+        Array3D_Free(object + offset);
+    for (u32 offset = 0xc8; offset >= 0x28; offset -= 0x10) {
+        u8 *const array = object + offset;
+        if (at<void *>(array, 0xc)) GameHeap_Free(at<void *>(array, 0xc));
+        at<u32>(array, 0) = 0;
+        at<u32>(array, 4) = 0;
+        at<u32>(array, 8) = 0;
+        at<u32>(array, 0xc) = 0;
+    }
+    BufferC_FreeAndClear(object + 0x18);
+    BufferC_FreeAndClear(object + 8);
+}
+
+void __fastcall Lnd_SetTileSize(u8 *object, void *, u32 size) {
+    at<u8>(object, 0) = (u8)size;
+    if (size == 0x40) {
+        at<u8>(object, 1) = 0;
+    } else if (size == 0x20) {
+        at<u8>(object, 1) = 1;
+    } else if (size == 0x10) {
+        at<u8>(object, 1) = 2;
+    } else {
+        at<u8>(object, 0) = 0x20;
+        at<u8>(object, 1) = 1;
+    }
+    if (global<u32>(0x008798c8))
+        GameHeap_Free(reinterpret_cast<void *>(global<u32>(0x008798c8)));
+    const u32 side = at<u8>(object, 0);
+    global<u32>(0x008798c8) = (u32)(uintptr_t)GameHeap_Alloc(side * side * 4);
 }
 }

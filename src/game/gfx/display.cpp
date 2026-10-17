@@ -23,6 +23,8 @@ void selectDriver(DrawContext *s) {
     PixelShifts_Set(&s->shifts, nullptr, &s->surface->redMask);
 }
 
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
 }  // namespace
 
 void Display_SetEnv(DrawContext *state) { g_state = state ? state : kGameState; }
@@ -121,4 +123,22 @@ void __cdecl Display_SetSurface(Surface *surface) {
     selectDriver(s);
 }
 
+void __cdecl Format_FillInfo(u32 a, u32 *out, u32 c, u32 d) {
+    if (!out)
+        return;
+    const u32 *record = reinterpret_cast<const u32 *>((uintptr_t)(0x008bd558 + global<u32>(0x008bd554) * 32));
+    u32 local[8];
+    for (u32 i = 0; i < 8; ++i)
+        local[i] = record[i];
+    out[6] = a;
+    out[7] = c;
+    out[4] = local[3];
+    out[8] = d;
+    out[0] = local[4];
+    out[9] = (local[3] >> 3) * c;
+    out[1] = local[5];
+    out[2] = local[6];
+    out[3] = local[7];
+    out[5] = local[1] & 0x20;
+}
 }  // extern "C"

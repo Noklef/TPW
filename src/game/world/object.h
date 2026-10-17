@@ -28,4 +28,40 @@ u16 *__fastcall Object_DefWord284(const u8 *object, void *, u16 *out);
 
 // 0x4e2b50: whether the definition's +0x9c is 3.
 u32 __fastcall Object_DefIsKind3(const u8 *object);
+
+// 0x535600 (thiscall; kind, pops 4): whether the kind is allowed beside the kind in the dword at +8 (see the code: 0 always, 4 only
+// against anything but 4, 0x15 and 1 with their partners, equal kinds, 0 as the object's kind, 4 against 1, and 3 against 1 only while the
+// dword at 0x820ab8 is 0).
+u32 __fastcall Kinds_Compatible(const u8 *object, void *, u32 kind);
+
+// 0x4d27a0 (thiscall; id, amount, kind, extra, pops 16): the selected slot (the index at +0x3cc, within 0..19, of the 48-byte slots from +0xc)
+// is checked: when the byte at +0x3d9 is not 0, the slot's dword at +0 equals id, its word at +0xc equals the low 16 bits of kind, and the word at
+// +0x3e0 is 0 or equal to the low 16 bits of extra, the dword at +0x3dc gains amount. Undefined return.
+void __fastcall Slots_AddIfMatch(u8 *object, void *, u32 id, u32 amount, u32 kind, u32 extra);
+
+// 0x503a20 (thiscall; slot, pops 4): the entries (20 bytes from +0xc) are chosen by the dwords at +0x1414 + 16 * slot (0 when below 0): for slot 4
+// the dword at +0x1ac of the object definition (word +0xc of the entry; ObjectDefs_Find) at 0x40 * (the byte at +0x15) + 0x1b8; for the others
+// the dword at +4 of the object control record (the entry's word at +0xc; the game's table, ObjectControls_FindUncached quiet).
+u32 __fastcall Slots_GetValue(const u8 *object, void *, u32 slot);
+
+// 0x5b6230 (thiscall): 1 when any of the dwords at +0 and +0x6c, the dword at +0xc of each of the nine blocks pointed to from +0xe0..+0x100, or the
+// dwords at +0x324 and +0x38c is not 0 (in that order), otherwise 0.
+u32 __fastcall Obj_HasActivity(const u8 *object);
+
+// 0x4e0220 (thiscall; out, pops 4): the word through out = the handle at +0x5e (0 for none). While the game's clock (the dword at +0x1da70c of the object
+// [0x80239c]) is past the stamp at +0x60 plus 100 the handle is kept only if the thing it names (the table at 0x7cfb90) passes Person_HasWord (world/person) with
+// this object's own handle (the word at +0); otherwise +0x5e and +0x60 are cleared and 0 is stored. Returns out.
+u16 *__fastcall Obj_GetTrackedHandle(u8 *object, void *, u16 *out);
+
+// 0x4e0370: 1 when the dword at 0x19c is 0x1, else 0.
+u32 __fastcall Is19c_Eq1_4e0370(const u8 *o);
+
+// 0x4e0380: 1 when the dword at 0x19c is 0x4, else 0.
+u32 __fastcall Is19c_Eq4_4e0380(const u8 *o);
+
+// 0x4e03e0: 1 when the dword at 0x19c is 0x2, else 0.
+u32 __fastcall Is19c_Eq2_4e03e0(const u8 *o);
+
+// 0x4e0440: 1 when the dword at 0x68 is 0, else 0.
+u32 __fastcall Is68_Zero_4e0440(const u8 *o);
 }

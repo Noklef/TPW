@@ -79,55 +79,20 @@ add_library(tpw_game STATIC
     src/game/core/globalsave.cpp
     src/game/core/liveobjects.cpp
     src/game/core/trivial.cpp
-    src/game/core/small.cpp
     src/game/core/dequeiter.cpp
     src/game/core/accessors.cpp
     src/game/core/volumes.cpp
-    src/game/core/tiny_a.cpp
-    src/game/core/tiny_b.cpp
-    src/game/core/tiny_c.cpp
     src/game/core/misc.cpp
-    src/game/core/tiny_d.cpp
-    src/game/core/tiny_e.cpp
     src/game/core/cheatmodule.cpp
     src/game/core/forwarders.cpp
-    src/game/core/tiny_f.cpp
     src/game/core/base64.cpp
     src/game/core/selectors.cpp
     src/game/core/fieldops.cpp
     src/game/core/methods.cpp
-    src/game/core/small2.cpp
-    src/game/core/tiny_g.cpp
-    src/game/core/tiny_h.cpp
     src/game/core/cursors.cpp
     src/game/core/seqs.cpp
     src/game/core/indexed.cpp
-    src/game/core/small3.cpp
     src/game/core/records16.cpp
-    src/game/core/small4.cpp
-    src/game/core/tiny_i.cpp
-    src/game/core/tiny_j.cpp
-    src/game/core/tiny_k.cpp
-    src/game/core/tiny_l.cpp
-    src/game/core/tiny_m.cpp
-    src/game/core/tiny_n.cpp
-    src/game/core/tiny_o.cpp
-    src/game/core/small5.cpp
-    src/game/core/small6.cpp
-    src/game/core/small7.cpp
-    src/game/core/small8.cpp
-    src/game/core/small9.cpp
-    src/game/core/small10.cpp
-    src/game/core/small11.cpp
-    src/game/core/small12.cpp
-    src/game/core/small13.cpp
-    src/game/core/small14.cpp
-    src/game/core/small15.cpp
-    src/game/core/small16.cpp
-    src/game/core/small17.cpp
-    src/game/core/small18.cpp
-    src/game/core/small19.cpp
-    src/game/core/small20.cpp
     src/game/core/vwrap.cpp
     src/game/core/vdtor.cpp
     src/game/core/vlist.cpp
@@ -136,47 +101,22 @@ add_library(tpw_game STATIC
     src/game/core/vobj2.cpp
     src/game/core/vobj3.cpp
     src/game/core/vdel.cpp
-    src/game/core/small21.cpp
-    src/game/core/small22.cpp
-    src/game/core/small23.cpp
     src/game/core/stdlist.cpp
-    src/game/core/small24.cpp
     src/game/core/savemods.cpp
     src/game/core/idmaps.cpp
     src/game/core/stdtree.cpp
-    src/game/core/small25.cpp
-    src/game/core/small26.cpp
-    src/game/core/small27.cpp
-    src/game/core/small28.cpp
-    src/game/core/small29.cpp
-    src/game/core/small30.cpp
-    src/game/core/small31.cpp
-    src/game/core/small32.cpp
-    src/game/core/small33.cpp
-    src/game/core/small34.cpp
     src/game/core/class6fd9d8.cpp
-    src/game/core/small36.cpp
-    src/game/core/small38.cpp
-    src/game/core/small39.cpp
-    src/game/core/small40.cpp
-    src/game/core/small41.cpp
-    src/game/core/small42.cpp
-    src/game/core/small43.cpp
-    src/game/core/small44.cpp
-    src/game/core/small45.cpp
-    src/game/core/small46.cpp
-    src/game/core/small47.cpp
-    src/game/core/small48.cpp
-    src/game/core/small49.cpp
-    src/game/core/small50.cpp
-    src/game/core/small51.cpp
-    src/game/core/small52.cpp
-    src/game/core/small53.cpp
-    src/game/core/small54.cpp
-    src/game/core/small55.cpp
-    src/game/core/small56.cpp
-    src/game/core/small57.cpp
     src/game/core/wstringmap.cpp
+    src/game/core/buffers.cpp
+    src/game/core/framestubs.cpp
+    src/game/core/globals.cpp
+    src/game/core/initializers.cpp
+    src/game/core/observers.cpp
+    src/game/core/rings.cpp
+    src/game/core/streambuf.cpp
+    src/game/core/thunks.cpp
+    src/game/core/voices.cpp
+    src/game/core/vtables.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -194,6 +134,7 @@ add_library(tpw_game STATIC
     src/game/gfx/wavelet.cpp
     src/game/gfx/texsurface.cpp
     src/game/gfx/array3d.cpp
+    src/game/gfx/imageops.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp
@@ -245,6 +186,7 @@ add_library(tpw_game STATIC
     src/game/world/ridesearch.cpp
     src/game/world/ridesweep.cpp
     src/game/world/objectmsg.cpp
+    src/game/world/litter.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp

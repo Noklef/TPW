@@ -1,10 +1,16 @@
 #include "objectdefs.h"
 
 #include <cstdint>
+#include <cstring>
+
+#include "../core/defids.h"
+#include "../core/gameheap.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 }  // namespace
 
@@ -142,5 +148,94 @@ const u8 *__fastcall ObjectDef_GetSchema(const void *, void *, u32 index) {
 
 const u8 *__fastcall TrackType_GetSchema(const void *, void *, u32 index) {
     return reinterpret_cast<const u8 *>(0x00739ea8) + index * 0x3c;
+}
+
+u8 __stdcall Table76e300_GetByte(u32 id) {
+    if (id == 0x160 || id == 0x15f)
+        return 0;
+    const u32 slot = 0x0076e300 + 56 * id;
+    if (global<u32>(slot + 4) == id)
+        return global<u8>(slot + 0x20);
+    for (u32 p = 0x0076e304; (s32)p < 0x00772fcc; p += 0x38) {
+        if (global<u32>(p) == id)
+            return global<u8>(slot + 0x20);
+    }
+    return 0;
+}
+
+u32 __fastcall Table76e300_GetObjectDword(const u8 *object, void *, u32 id) {
+    const u32 record = Table76e300_FindRecord(id);
+    if (!record)
+        return 0;
+    return at<u32>(object, 0x24 + 12 * global<u32>(record + 8));
+}
+
+u8 __fastcall Table76e300_ObjectDwordSet(const u8 *object, void *, u32 id) {
+    const u32 record = Table76e300_FindRecord(id);
+    if (!record)
+        return 0;
+    return at<u32>(object, 0x28 + 12 * global<u32>(record + 8)) != 0;
+}
+
+extern "C" u32 Table76e300_FindRecord(u32 id) {
+    if (id == 0x160 || id == 0x15f)
+        return 0;
+    const u32 slot = 0x0076e300 + 56 * id;
+    if (global<u32>(slot + 4) == id)
+        return slot;
+    for (u32 p = 0x0076e304; (s32)p < 0x00772fcc; p += 0x38) {
+        if (global<u32>(p) == id)
+            return slot;
+    }
+    return 0;
+}
+
+u8 __fastcall Table76e300_LimitCheck(const u8 *object, void *, u32 id, s32 limit) {
+    const u32 record = Table76e300_FindRecord(id);
+    const u32 index = record ? global<u32>(record + 8) : 10;
+    if (index == 10)
+        return 0;
+    const s32 value = at<s32>(object, 0x2c + 12 * index);
+    if (value == 0)
+        return 0;
+    return limit >= value;
+}
+
+u32 __fastcall Obj_DefKind123(const u8 *object) {
+    u8 *defs = reinterpret_cast<u8 *>(0x007890a0);
+    if (at<u32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x9c) == 1)
+        return 1;
+    if (at<u32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x9c) == 2)
+        return 1;
+    return at<u32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x9c) == 3 ? 1 : 0;
+}
+
+u8 __stdcall Record_IsActive(u32 id) {
+    if (id == 0x160 || id == 0x15f) return 0;
+    const u8 *const record = reinterpret_cast<const u8 *>(0x0076e300 + id * 0x38);
+    if (at<u32>(record, 4) != id) {
+        bool found = false;
+        for (u32 scan = 0x0076e304; (s32)scan < 0x00772fcc; scan += 0x38) {
+            if (global<u32>(scan) == id) { found = true; break; }
+        }
+        if (!found) return 0;  // (the original prints that it was not found)
+    }
+    return at<u32>(record, 8) == 1 ? 1 : 0;
+}
+
+u32 __stdcall DefField24_59c240(u32 v0) {
+    const u8 *record = ObjectDef_FindById(v0); return record ? at<u32>(record, 0x24) : 0x266;
+}
+
+u32 __stdcall DefField28_59c2b0(u32 v0) {
+    const u8 *record = ObjectDef_FindById(v0); return record ? at<u32>(record, 0x28) : 0x0;
+}
+
+u32 __stdcall DefField2c_59c490(u32 v0) {
+    const u8 *record = ObjectDef_FindById(v0); return record ? at<u32>(record, 0x2c) : 0x5;
+}
+
+u32 __stdcall DefField8_59c500(u32 v0) {
+    const u8 *record = ObjectDef_FindById(v0); return record ? at<u32>(record, 0x8) : 0xa;
 }
 }

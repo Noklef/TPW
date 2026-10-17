@@ -7,11 +7,11 @@
 #include <cstdint>
 
 #include "../core/gameheap.h"
-#include "mapcell.h"
 #include "../core/methods.h"
-#include "../core/small15.h"
+#include "../files/file.h"
 #include "../sprite/script.h"
 #include "../sprite/sprite.h"
+#include "mapcell.h"
 #include "nav.h"
 #include "objectdefs.h"
 #include "random.h"
@@ -250,4 +250,15 @@ u8 *__fastcall Thing_IngredientRecord(u8 *thing) {
     return Records_DataIfTerminated(global<const u8 *>(0x0078ba8c), nullptr, kind - 1);
 }
 
+void __fastcall Obj_ReplaceHandle24(u8 *object, void *, u32 handle) {
+    u8 *replacement = global<u8 *>(0x007cfb90 + 20 * (handle & 0xffff));
+    const u16 old = at<u16>(object, 0x24);
+    if (old != 0)
+        at<u16>(global<u8 *>(0x007cfb90 + 20 * (u32)old), 8) = (u16)handle;
+    at<u16>(replacement, 8) = 0;
+    at<u16>(replacement, 0xa) = at<u16>(object, 0x24);
+    at<u16>(object, 0x24) = (u16)handle;
+}
+
+u8 *__stdcall Thing_ByHandle(u32 handle) { return reinterpret_cast<u8 *const *>(0x007cfb90)[(handle & 0xffff) * 5]; }
 }  // extern "C"

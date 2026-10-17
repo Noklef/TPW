@@ -2,10 +2,11 @@
 
 #include <cstdint>
 
+#include "../core/gameheap.h"
 #include "../core/vcall.h"
-#include "person.h"
 #include "analysercell.h"
 #include "mapcell.h"
+#include "person.h"
 
 namespace {
 
@@ -117,4 +118,8 @@ s32 __fastcall Object_QueuePositionOfNone(u8 *object) {
     return Object_QueuePosition(object, nullptr, (u32)(uintptr_t)object & 0xffff0000u);
 }
 
+u32 __fastcall Object_QueueHasRoom(u8 *object) {
+    const u32 position = (u32)Object_QueuePosition(object, nullptr, 0);
+    return position < (at<u32>(object, 0x40) << 2) ? 1 : 0;
+}
 }  // extern "C"

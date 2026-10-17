@@ -1,7 +1,8 @@
 #include "nav.h"
 
 #include <cstdint>
-#include "../core/small20.h"
+
+#include "../core/crt.h"
 #include "../math/intpair.h"
 
 namespace {

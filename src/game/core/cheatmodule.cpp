@@ -4,6 +4,12 @@
 
 #include "../files/file.h"
 
+namespace {
+
+template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+}  // namespace
+
 extern "C" {
 
 u32 __fastcall CheatSystem_Load(u8 *cheats, void *, const u32 *chunk) {
@@ -47,5 +53,12 @@ u32 __fastcall CheatSystem_Save(u8 *cheats, void *, const u32 *chunk) {
     if (*Stream_Write(&result, stream, cheats + 0xa, 1, nullptr) < 0)
         return 0;
     return *Stream_Write(&result, stream, cheats + 0xb, 1, nullptr) >= 0 ? 1 : 0;
+}
+
+u8 * __fastcall CheatSystem_Construct(u8 *o) {
+    at<u8>(o, 0xa) = 0;
+    at<u8>(o, 0xb) = 0;
+    at<u8>(o, 0x9) = 0;
+    return o;
 }
 }

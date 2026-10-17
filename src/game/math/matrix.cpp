@@ -2,6 +2,7 @@
 #include "matrix.h"
 
 #include <cmath>
+#include <cstdint>
 #include <cstring>
 
 #include "x87.h"
@@ -41,6 +42,11 @@ void rotate_euler(float *m, s32 order, const float *angles, CosSin cos_sin) {
 
 // fsqrt: a NaN comes through.
 X87Reg sqrt87(X87Reg x) { return x.v != x.v ? x : X87Reg(X87_Round(std::sqrt(x.v))); }
+
+template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+// Bits 16 to 47 of the 64-bit product.
+s32 Shifted(s32 a, s32 b) { return (s32)(u32)((uint64_t)((int64_t)a * (int64_t)b) >> 16); }
 
 }  // namespace
 
@@ -372,3 +378,16 @@ extern "C" double __cdecl Vec3_Distance(const float *a, const float *b) {
     const X87Reg sum = (dx * dx + dy * (float)dy) + X87Reg(dz) * dz;
     return sum.v != sum.v ? sum.v : X87_Round(std::sqrt(sum.v));  // fsqrt keeps a NaN
 }
+
+extern "C" {
+
+void __fastcall Matrix2_Transform(u8 *matrix, void *, s32 *out, const s32 *in) {
+    const s32 first = Shifted(in[0], at<s32>(matrix, 0x24));
+    const s32 second = Shifted(in[1], at<s32>(matrix, 0x2c));
+    const s32 third = Shifted(in[0], at<s32>(matrix, 0x20));
+    const s32 fourth = Shifted(in[1], at<s32>(matrix, 0x28));
+    out[1] = second + first;
+    out[0] = fourth + third;
+}
+
+}  // extern "C"

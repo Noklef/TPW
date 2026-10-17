@@ -46,3 +46,11 @@ void __cdecl Display_SetSurface(Surface *s);
 
 // The context goes through state (nullptr: the game's, 0xfa76b8).
 void Display_SetEnv(DrawContext *state);
+
+extern "C" {
+
+// 0x4925d0 (cdecl; a, out, c, d): when out is not 0 it is filled from the format record the dword at 0x8bd554 indexes (32 bytes each from 0x8bd558): +0x18 = a, +0x1c = c,
+// +0x20 = d, +0x10 = the record's dword 3, +0 / +4 / +8 / +0xc = its dwords 4 / 5 / 6 / 7, +0x24 = (dword 3 >> 3) * c, +0x14 = its dword 1 & 0x20.
+void __cdecl Format_FillInfo(u32 a, u32 *out, u32 c, u32 d);
+
+}  // extern "C"

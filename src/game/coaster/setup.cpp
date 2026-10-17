@@ -1,7 +1,10 @@
 #include "setup.h"
 
+#include <cstdint>
+
 #include "../core/globalmem.h"
 #include "../math/x87.h"
+#include "queue.h"
 #include "xsection.h"
 
 namespace {
@@ -176,5 +179,17 @@ u32 __cdecl CoasterTrains_Setup(u8 *coaster, const u8 *source) {
     if (at<u32>(source, 0x3a7c)) at<u32>(coaster, 0x2f4) = at<u32>(source, 0x3a7c);
     for (u32 k = 0; k < 0xc; k += 4) at<u32>(coaster, 0x30c + k) = at<u32>(source, 0x3a8c + k);
     return 1;
+}
+
+void __cdecl Coaster_SetTrainCount(u8 *coaster, u32 count) {
+    if (count == 0) return;
+    if ((at<u8>(coaster, 8) & 0xc) != 0) {
+        for (u32 i = count; i < at<u32>(coaster, 0xf4); ++i) {
+            u8 *const train = at<u8 *>(coaster, 0x128) + (i << 7);
+            CoasterTrain_Unload(coaster, train, 0);
+            CoasterTrain_Unload(coaster, train, 1);
+        }
+    }
+    at<u32>(coaster, 0xf4) = count;
 }
 }

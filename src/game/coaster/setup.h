@@ -45,4 +45,8 @@ u32 __cdecl CoasterPylons_Setup(u8 *coaster, const u8 *source);
 // +0x2f0: 1 when the first differs from the second, 2 when the third does), source + 0x3a7c
 // when non-zero, else 3 (+0x2f4), and source + 0x3a8c..+0x3a94 (+0x30c..+0x314). Then 1.
 u32 __cdecl CoasterTrains_Setup(u8 *coaster, const u8 *source);
+
+// 0x43ba20 (coaster, count): nothing when count is 0. Otherwise, with a bit of 0xc in the flags at +8, the cars from count up to the current count (+0xf4) are unloaded on both
+// sides (CoasterTrain_Unload, the trains of 0x80 bytes from the pointer at +0x128); then +0xf4 is count.
+void __cdecl Coaster_SetTrainCount(u8 *coaster, u32 count);
 }

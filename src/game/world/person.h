@@ -32,4 +32,15 @@ u32 __fastcall Visitor_IsState11To14(const u8 *visitor);
 // the action history (+4), mThoughtScript (+0x84), mActionHistIndex (+0x88) and
 // mTimeBubbleShown (+0x8c). Returns them.
 u8 *__fastcall Thoughts_Ctor(u8 *thoughts);
+
+// 0x5065d0 (thiscall; word, pops 4): Person_HasWord (world/person); when it holds: 1 for kind 5 with the dword at +0x19c equal to 0xb and for kind 4 with
+// it equal to 0xd, otherwise 0.
+u32 __fastcall Person_HasWordInState(const u8 *object, void *, u32 word);
+
+// 0x5012b0 (thiscall): the dword at +0x1f8 = 1 (the original also reads the handle at +0x1dc into its debug print).
+void __fastcall Visitor_Set1f8One(u8 *object);
+
+// 0x506580 (thiscall; word, pops 4): for the kind byte at +2 being 4 the word at +0x218, for 5 the word at +0x21a, is equal to the low 16 bits of
+// word (1 or 0); any other kind gives 0 (the original reports it to its empty debug printf).
+u32 __fastcall Person_HasWord(const u8 *object, void *, u32 word);
 }

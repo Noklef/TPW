@@ -2,7 +2,6 @@
 
 #include <cstdint>
 
-#include "../core/small15.h"
 #include "object.h"
 #include "objectdefs.h"
 #include "things.h"

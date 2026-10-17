@@ -34,4 +34,81 @@ u8 *__fastcall Pair_Assign(u8 *pair, void *, const u32 *dword, const u8 *byte);
 
 // 0x5e7310 (thiscall): +0x38 = the dword at +0xc; returns that dword with its low byte set to 1 (sic).
 u32 __fastcall Obj_CopyCToMark(u8 *object);
+
+// 0x642100 / 0x642b20: the constants 0xc0000 and 1000000.
+u32 __cdecl Const_C0000();
+
+// 0x631270 (a virtual that does nothing); 0x631970 (thiscall): the dword at +0x3c.
+void __cdecl Stub_Ret2();
+
+u32 __cdecl Const_1000000();
+
+// 0x5f4ea0: returns 1.
+u32 __fastcall ReturnOne();
+
+// 0x564a50 / 0x5ceaa0 (cdecl), 0x5cea90 (stdcall; one argument), 0x6bab20 (stdcall; four arguments): -1.
+s32 __cdecl Const_MinusOne_564a50();
+
+s32 __cdecl Const_MinusOne_5ceaa0();
+
+s32 __stdcall Const_MinusOne_5cea90(u32);
+
+s32 __stdcall Const_MinusOne_6bab20(u32, u32, u32, u32);
+
+// 0x46cfb0 (cdecl): only a debug print in the original (not reproduced).
+void __cdecl Debug_Nop_46cfb0();
+
+// 0x424ec0: returns 0x1.
+u32 __cdecl Const1_424ec0();
+
+// 0x4f6080: returns 0x7ffffffd.
+u32 __cdecl Const7ffffffd_4f6080();
+
+// 0x4ff4f0: returns 0xe.
+u32 __cdecl Conste_4ff4f0();
+
+// 0x5061a0: returns 0xf.
+u32 __cdecl Constf_5061a0();
+
+// 0x50c1f0: returns 0x1.
+u32 __stdcall Const1_50c1f0(u32 v0);
+
+// 0x569d00: returns 0x1.
+u32 __stdcall Const1_569d00(u32 v0);
+
+// 0x56a430: returns 0x1.
+u32 __stdcall Const1_56a430(u32 v0, u32 v1, u32 v2);
+
+// 0x56a440: returns 0x1.
+u32 __stdcall Const1_56a440(u32 v0, u32 v1, u32 v2, u32 v3);
+
+// 0x5cec60: returns 0.
+u32 __cdecl Zero_5cec60();
+
+// 0x5d60c0: returns 0.
+u32 __cdecl Zero_5d60c0();
+
+// 0x66f4d0: returns 0.
+u32 __cdecl Zero_66f4d0();
+
+// 0x699ca0: does nothing.
+void __cdecl Stub_699ca0();
+
+// 0x6b70d0: does nothing (pops 8 bytes).
+void __stdcall Stub_Ret8_6b70d0(u32 v0, u32 v1);
+
+// 0x6b71c0: returns 0x3.
+u32 __cdecl Const3_6b71c0();
+
+// 0x6b9bd0: returns 0x1.
+u32 __stdcall Const1_6b9bd0(u32 v0, u32 v1);
+
+// 0x6bd790: returns 0x4.
+u32 __cdecl Const4_6bd790();
+
+// 0x6c54a0: returns 0.
+u32 __stdcall Zero_6c54a0(u32 v0);
+
+// 0x6c54b0: returns 0.
+u32 __stdcall Zero_6c54b0(u32 v0, u32 v1, u32 v2, u32 v3);
 }

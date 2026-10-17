@@ -31,4 +31,6 @@ u16 *__fastcall Object_BackOfQueueTo(u8 *object, void *, u16 *out);
 // 0x4ddf40 (thiscall on the object): Object_QueuePosition of the person whose handle word is 0 (the stack word it passes is the object's pointer with its low word cleared (sic)).
 s32 __fastcall Object_QueuePositionOfNone(u8 *object);
 
+// 0x4dda20 (thiscall): whether the queue of persons (Object_QueuePosition for the person 0, i.e. its length) is shorter than the dword at +0x40 times 4 (unsigned).
+u32 __fastcall Object_QueueHasRoom(u8 *object);
 }  // extern "C"

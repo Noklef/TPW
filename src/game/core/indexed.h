@@ -25,4 +25,6 @@ u32 __fastcall Obj_GetIndexed28(const u8 *object, void *, u32 index);
 // 0x5ed430 (thiscall): the number of 20-byte elements between the pointers at +4 and +8; 0 when the first is 0.
 s32 __fastcall Vector20_Count(const u8 *object);
 
+// 0x4f04c0 (thiscall; index, pops 4): the address of the index-th element of 36 bytes of the array at +4.
+u8 *__fastcall Array36_At(const u8 *object, void *, u32 index);
 }  // extern "C"

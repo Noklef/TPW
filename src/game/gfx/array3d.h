@@ -27,4 +27,21 @@ u8 *__fastcall Array3D_ReverseBytes(u8 *buffer);
 // bytes-per-pixel apart. Returns the other's pixel pointer after the last byte (its start without
 // pixels or rows).
 u8 *__fastcall Array3D_MaxInto(u8 *buffer, void *, u8 *other);
+
+// 0x5e7840 (thiscall; a, b, c, pops 12): the block at +0xc is freed (when there is one), a new one of a * b * c bytes cleared; a, b, c at
+// +0, +4, +8 (not when the block could not be made). Returns 1, or 0 when there is no block.
+u8 __fastcall Array3D_Realloc(u8 *object, void *, u32 a, u32 b, u32 c);
+
+// 0x5d3830 (thiscall; a, b, c, pops 12): a at +0, b at +4, c at +8, a new block of a * b * c bytes at +0xc. Returns the object.
+u8 *__fastcall Array3D_Init(u8 *object, void *, u32 a, u32 b, u32 c);
+
+// 0x5d3860 (thiscall): the dwords at +0, +4 and +8 = 0; the block at +0xc, when there is one, is freed and the pointer cleared.
+void __fastcall Array3D_Free(u8 *object);
+
+// 0x5eb090 (thiscall destructor-like): Array3D_Free on the arrays at +0x2c, +0x3c, +0x4c and +0x5c, then for +0x5c, +0x4c, +0x3c and +0x2c in that order the block at +0xc of
+// each freed when still set and its four dwords cleared.
+void __fastcall ArrayHolder_Clear(u8 *object);
+
+// 0x5eb170 (thiscall): Array3D_Free of the members at +0x2c, +0x3c, +0x4c and +0x5c.
+void __fastcall Array3Ds_Free4(u8 *object);
 }

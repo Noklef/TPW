@@ -2,11 +2,14 @@
 // 0x5f78e0-0x5f7e60.
 #include "string.h"
 
-#include "gameheap.h"
-
 #include <cstdint>
 #include <cstring>
 #include <type_traits>
+
+#include "crt.h"
+#include "gameheap.h"
+#include "methods.h"
+#include "vcall.h"
 
 namespace {
 
@@ -199,6 +202,10 @@ template <typename T, bool Wide> u32 format_estimate(const T *p, const u32 *arg)
     }
     return total;
 }
+
+template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 }  // namespace
 
@@ -594,3 +601,150 @@ extern "C" bool __fastcall WString_NotEqualsStr(const WString *s, void *, const 
     if (!text) return s->length != 0;
     return str_len(text) != s->length || str_ncmp(s->data, text, s->length) != 0;
 }
+
+extern "C" {
+
+s32 __fastcall WString_Compare(const u8 *self, void *, const u8 *other) {
+    const u32 otherLength = at<u32>(other, 8), selfLength = at<u32>(self, 8);
+    const u16 *b = at<const u16 *>(other, 4);
+    if (!b)
+        b = reinterpret_cast<const u16 *>(0x006fd6c4);
+    const u16 *a = at<const u16 *>(self, 4);
+    for (u32 n = selfLength < otherLength ? selfLength : otherLength; n; n--, a++, b++) {
+        if (*a != *b)
+            return *a < *b ? -1 : 1;
+    }
+    if (selfLength < otherLength)
+        return -1;
+    return selfLength != otherLength ? 1 : 0;
+}
+
+u32 __cdecl Names_FirstAfter(const u8 *a, const u8 *b) {
+    return Crt().stricmp(at<const char *>(a, 8), at<const char *>(b, 8)) > 0 ? 1 : 0;
+}
+
+u32 __cdecl Names_Equal(const u8 *a, const u8 *b) {
+    return Crt().stricmp(at<const char *>(a, 8), at<const char *>(b, 8)) == 0 ? 1 : 0;
+}
+
+u8 *__fastcall Record_CopyWithText(u8 *dest, void *, const u8 *source) {
+    for (u32 offset = 0; offset < 0x20; offset += 4)
+        at<u32>(dest, offset) = at<u32>(source, offset);
+    const u8 *from = source + 0x24;
+    u8 *to = dest + 0x24;
+    u32 length = 0;
+    while (from[length])
+        ++length;
+    for (u32 i = 0; i <= length; ++i)
+        to[i] = from[i];
+    at<u32>(dest, 0x20) = at<u32>(source, 0x20) - (u32)(uintptr_t)source + (u32)(uintptr_t)dest;
+    return dest;
+}
+
+u8 *__fastcall Obj_NameToWString(u8 *object, void *, u8 *out) {
+    WString_CtorStr((WString *)out, nullptr, at<const u16 *>(object, 0x54));
+    return out;
+}
+
+u32 __fastcall Names_FindLastValue(u8 *object, void *, const char *name) {
+    u32 value = 1;
+    u8 *node = at<u8 *>(at<u8 *>(object, 0x2c), 4);
+    while (node) {
+        u8 *next = at<u8 *>(node, 4);
+        u8 *entry = at<u8 *>(node, 0);
+        if (Crt().stricmp(at<const char *>(entry, 0x14), name) == 0)
+            value = at<u32>(entry, 8);
+        node = next;
+    }
+    return value;
+}
+
+u8 *__fastcall Strings5_Ctor(u8 *object) {
+    for (u32 offset = 0; offset <= 0x50; offset += 0x14)
+        String_Ctor((String *)(object + offset));
+    return object;
+}
+
+String *__stdcall Strings_CopyRange(const String *first, const String *last, String *dest) {
+    while (first != last) {
+        if (dest)
+            String_CtorCopy(dest, nullptr, reinterpret_cast<const StringView *>(first));
+        first = reinterpret_cast<const String *>((uintptr_t)first + 0x14);
+        dest = reinterpret_cast<String *>((uintptr_t)dest + 0x14);
+    }
+    return dest;
+}
+
+void __stdcall Strings_FillCopy(String *dest, u32 count, const String *from) {
+    for (; count != 0; --count) {
+        if (dest)
+            String_CtorCopy(dest, nullptr, reinterpret_cast<const StringView *>(from));
+        dest = reinterpret_cast<String *>((uintptr_t)dest + 0x14);
+    }
+}
+
+void __cdecl String_PlacementCopy(String *dest, const String *from) {
+    if (dest)
+        String_CtorCopy(dest, nullptr, reinterpret_cast<const StringView *>(from));
+}
+
+u32 __fastcall NamedList_Find(u8 **ref, void *, const u8 *key, u8 **out) {
+    if (u8 *list = ref[0]) {
+        for (u8 *node = at<u8 *>(list, 4); node;) {
+            u8 *next = at<u8 *>(node, 4);
+            u8 *object = at<u8 *>(node, 0);
+            if (Names_Equal(object + 4, key) == 1) {
+                *out = object;
+                ref[1] = object;
+                return 1;
+            }
+            node = next;
+        }
+    }
+    ref[1] = nullptr;
+    return 0;
+}
+
+u32 __fastcall Obj_HasNamedObject(u8 *object, void *, const u8 *key) {
+    if (u8 *list = at<u8 *>(object, 0x4c)) {
+        for (u8 *node = at<u8 *>(list, 4); node;) {
+            u8 *next = at<u8 *>(node, 4);
+            if (Names_Equal(at<u8 *>(node, 0) + 4, key) != 0)
+                return 1;
+            node = next;
+        }
+    }
+    return 0;
+}
+
+void __fastcall Strings5_Dtor(u8 *object) {
+    for (int offset = 0x50; offset >= 0; offset -= 0x14)
+        String_Dtor((String *)(object + offset));
+}
+
+u32 __cdecl Text_NarrowToGlobalBuffer(const u16 *text) {
+    if (const u32 table = global<u32>(0x0078ba80)) {
+        u32 status;
+        Narrow_FromWide(reinterpret_cast<const u8 *>(table), nullptr, &status, reinterpret_cast<u8 *>(0x007b5378), text, 0x3fff);
+    }
+    return 0x007b5378;
+}
+
+s32 __fastcall ByteString_Compare(const u8 *object, void *, const u8 *other) {
+    const u32 otherLength = at<u32>(other, 8);
+    const u8 *otherText = at<const u8 *>(other, 4);
+    if (!otherText)
+        otherText = reinterpret_cast<const u8 *>(0x006fe5b0);
+    const u32 length = at<u32>(object, 8);
+    const u8 *text = at<const u8 *>(object, 4);
+    const u32 common = length < otherLength ? length : otherLength;
+    for (u32 i = 0; i < common; ++i) {
+        if (text[i] != otherText[i])
+            return text[i] < otherText[i] ? -1 : 1;
+    }
+    if (length >= otherLength)
+        return length != otherLength ? 1 : 0;
+    return -1;
+}
+
+}  // extern "C"

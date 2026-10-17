@@ -24,4 +24,14 @@ u32 __cdecl Model_NthPart(const u8 *holder, u32 mask, u32 nth);
 
 // 0x44b2b0: how many parts' flags have any of mask's bits.
 u32 __cdecl Model_CountParts(const u8 *holder, u32 mask);
+
+// 0x44b2e0 (cdecl; model, unused, part): the first of the word at +0x42 elements of 0xa0 bytes (from the block at +0x70 of the structure that +4 of the
+// dword at +8 of the model points to; the name pointer at +0x54 of each) whose name equals, case blind, the text for part (1 "mouth - normal",
+// 2 "mouth - aah", 3 "mouth - eee", 4 "mouth - ooh", 5 "mouth - sss", -1 "bug head") gives its index; 0 for no match, no elements or any other part.
+u32 __cdecl Model_FindMouthPart(const u8 *model, u32 unused, s32 part);
+
+// 0x468950 (cdecl; model, out1, out2): over the model's entries (the word at +0x36 of them, 16 bytes each from the pointer at +0x54): the entry that has flags 2 and 8, or is
+// named "sign1.tga" (the pointer at +0xc of the entry, compared case blind), sets *out1 = the dword at +0x50 of the model + (the entry's index * 8); flags 2 and 0x10, or the
+// name "sign2.tga", the same for *out2. Later entries override earlier ones.
+void __cdecl Model_FindSignEntries(u8 *model, u32 *out1, u32 *out2);
 }

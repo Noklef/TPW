@@ -206,4 +206,6 @@ void __fastcall MapCell_SetWord24(u8 *cell, void *, u32 value);
 // returned, and gets the direction (MapCell_SetDirection) when Kinds_Compatible(cell, 3) holds.
 u8 *__cdecl Cell_ExtendPath(const s32 *point, s32 *nextX, s32 *nextY);
 
+// 0x4cd4e0 (cdecl; out, x, z): the word *out = (z << 7) + x + 1. Returns out.
+u16 *__cdecl Cell_MakeHandle(u16 *out, u32 x, u32 z);
 }

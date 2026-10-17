@@ -28,4 +28,24 @@ void __fastcall KeyMap_Reset(u8 *map);
 // 0x40cf60 / 0x40cfa0: Enable / Reset on all five maps.
 void __cdecl KeyMaps_EnableAll();
 void __cdecl KeyMaps_ResetAll();
+
+// 0x5ed700 (cdecl; index, shift, a, b, c): the 68-byte record at 0xf86918 + 68 * index: with shift set the dwords at +4 and +8 = a, b;
+// otherwise they get those at +0xc and +0x10; then +0xc = a, +0x10 = b and +0 = c.
+void __cdecl KeyRecord_Push(u32 index, u32 shift, u32 a, u32 b, u32 c);
+
+// 0x486b60 / 0x486b70 (cdecl): KeyMaps_EnableAll / KeyMaps_ResetAll, then the byte at 0x7c24d0 = 0 / 1.
+void __cdecl KeyMaps_EnableAllAndClearFlag();
+
+void __cdecl KeyMaps_ResetAllAndSetFlag();
+
+// 0x46b460 (cdecl; code): the low word of code remapped when it is 0x27, 0x2c, 0x2e, 0x2f, 0x3b or 0x60 to 0x7a (0x27 -> 0x2c, 0x2c -> 0x5ea, 0x2e -> 0x5e5, 0x2f -> 0x2e,
+// 0x3b -> 0x5e3, 0x60 -> 0x3b, 0x71 -> 0x2f, 0x77 -> 0x27, the others of 0x61 to 0x7a to 0x5d0 to 0x5e9); the upper word and any other code are returned as they are.
+u32 __cdecl Code_Remap46b460(u32 code);
+
+// 0x40c900 / 0x40c990 (thiscall on {entries, count (word at +4), enabled (word at +6)}; a, b, pops 8): 0 unless enabled. Otherwise the first of the 0x14-byte entries (count
+// of them, signed) whose words at +2 and +4 are the low words of a and b has its handler (a pointer at +0x10 / +0xc; called with ECX = the pointer, no arguments) called when
+// there is one, and its word at +6 set to 1 / 0. Returns what the handler returned (0 for none, or no entry).
+u32 __fastcall Actions_FireDown(u8 *table, void *, u32 a, u32 b);
+
+u32 __fastcall Actions_FireUp(u8 *table, void *, u32 a, u32 b);
 }

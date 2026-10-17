@@ -26,4 +26,7 @@ void __cdecl Advisor_Save(Stream *stream);
 // the chunk's stream (the chunk's first dword). 1 unless the result is negative, then 0.
 u32 __fastcall AdvisorScoring_Load(u8 *scoring, void *, const u32 *chunk);
 u32 __fastcall AdvisorScoring_Save(u8 *scoring, void *, const u32 *chunk);
+
+// 0x4053b0: sets +0xa, +0xb, +0x9; returns the object.
+u8 * __fastcall CheatSystem_Construct(u8 *o);
 }

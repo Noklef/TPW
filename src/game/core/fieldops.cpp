@@ -252,4 +252,131 @@ u32 *__fastcall Targets2_Set(u8 *object, void *, u32 a, u32 b) {
     return last;
 }
 
+u16 __stdcall WordConstffff_4f06a0(u32 v0) {
+    return 0xffff;
+}
+
+u16 __cdecl WordConstffff_4f06b0() {
+    return 0xffff;
+}
+
+u32 __fastcall CopyTo_20_6a8cd0(u8 *o, void *, u32 v0) {
+    at<u32>((void *)(uintptr_t)v0, 0) = at<u32>(o, 0x20);
+    return v0;
+}
+
+u32 __fastcall CopyTo_24_6a8ce0(u8 *o, void *, u32 v0) {
+    at<u32>((void *)(uintptr_t)v0, 0) = at<u32>(o, 0x24);
+    return v0;
+}
+
+u32 __stdcall StoreThrough_ffffffff_6b4a00(u32 v0, u32 v1, u32 v2) {
+    at<u32>((void *)(uintptr_t)v0, 0) = 0xffffffff;
+    return v0;
+}
+
+u32 __fastcall SetThenFlag50_4c_6b9c70(u8 *o, void *, u32 v0) {
+    at<u32>(o, 0x50) = v0;
+    at<u32>(o, 0x4c) |= 0x4;
+    return at<u32>(o, 0x4c);
+}
+
+u32 __fastcall SetThenFlag60_4c_6b9cb0(u8 *o, void *, u32 v0) {
+    at<u32>(o, 0x60) = v0;
+    at<u32>(o, 0x4c) |= 0x20;
+    return at<u32>(o, 0x4c);
+}
+
+u32 __fastcall SetThenFlag40_4c_6b9cf0(u8 *o, void *, u32 v0) {
+    at<u32>(o, 0x40) = v0;
+    at<u32>(o, 0x4c) |= 0x80;
+    return at<u32>(o, 0x4c);
+}
+
+u32 __fastcall SetThenFlag44_4c_6b9d10(u8 *o, void *, u32 v0) {
+    at<u32>(o, 0x44) = v0;
+    at<u32>(o, 0x4c) |= 0x100;
+    return at<u32>(o, 0x4c);
+}
+
+u32 __fastcall SetThenFlag68_4c_6b9d30(u8 *o, void *, u32 v0) {
+    at<u32>(o, 0x68) = v0;
+    at<u32>(o, 0x4c) |= 0x200;
+    return at<u32>(o, 0x4c);
+}
+
+u32 __fastcall SetThenFlag48_14_6c5090(u8 *o, void *, u32 v0) {
+    at<u32>(o, 0x48) = v0;
+    at<u32>(o, 0x14) |= 0x1000;
+    return at<u32>(o, 0x14);
+}
+
+u32 __fastcall SetThenFlag8_14_6c50b0(u8 *o, void *, u32 v0) {
+    at<u32>(o, 0x8) = v0;
+    at<u32>(o, 0x14) |= 0x4;
+    return at<u32>(o, 0x14);
+}
+
+u32 __fastcall SetThenFlag9c_14_6c50d0(u8 *o, void *, u32 v0) {
+    at<u32>(o, 0x9c) = v0;
+    at<u32>(o, 0x14) |= 0x80000;
+    return at<u32>(o, 0x14);
+}
+
+u32 __fastcall SetThenFlag4c_14_6c50f0(u8 *o, void *, u32 v0) {
+    at<u32>(o, 0x4c) = v0;
+    at<u32>(o, 0x14) |= 0x800;
+    return at<u32>(o, 0x14);
+}
+
+u32 __fastcall SetThenFlag44_14_6c5110(u8 *o, void *, u32 v0) {
+    at<u32>(o, 0x44) = v0;
+    at<u32>(o, 0x14) |= 0x40;
+    return at<u32>(o, 0x14);
+}
+
+u32 __fastcall SetThenFlag28_14_6c5130(u8 *o, void *, u32 v0) {
+    at<u32>(o, 0x28) = v0;
+    at<u32>(o, 0x14) |= 0x2;
+    return at<u32>(o, 0x14);
+}
+
+u32 __fastcall SetThenFlag2c_14_6c5150(u8 *o, void *, u32 v0) {
+    at<u32>(o, 0x2c) = v0;
+    at<u32>(o, 0x14) |= 0x400;
+    return at<u32>(o, 0x14);
+}
+
+u32 __fastcall SetThenFlag24_14_6c5170(u8 *o, void *, u32 v0) {
+    at<u32>(o, 0x24) = v0;
+    at<u32>(o, 0x14) |= 0x20;
+    return at<u32>(o, 0x14);
+}
+
+u32 __fastcall FlagThenSet14_5c_6c51d0(u8 *o, void *, u32 v0) {
+    at<u32>(o, 0x14) |= 0x10000;
+    at<u32>(o, 0x5c) = v0;
+    return v0;
+}
+
+u32 __fastcall FlagThenSet14_58_6c5220(u8 *o, void *, u32 v0) {
+    at<u32>(o, 0x14) |= 0x200000;
+    at<u32>(o, 0x58) = v0;
+    return v0;
+}
+
+u32 __stdcall StoreThrough_ffffffff_6d2790(u32 v0, u32 v1, u32 v2, u32 v3, u32 v4) {
+    at<u32>((void *)(uintptr_t)v0, 0) = 0xffffffff;
+    return v0;
+}
+
+u32 __stdcall StoreThrough_ffffffff_6d27a0(u32 v0) {
+    at<u32>((void *)(uintptr_t)v0, 0) = 0xffffffff;
+    return v0;
+}
+
+u32 __stdcall StoreThrough_ffffffff_6d29e0(u32 v0, u32 v1, u32 v2, u32 v3) {
+    at<u32>((void *)(uintptr_t)v0, 0) = 0xffffffff;
+    return v0;
+}
 }  // extern "C"

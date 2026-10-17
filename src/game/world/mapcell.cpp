@@ -1,8 +1,10 @@
 #include "mapcell.h"
 
 #include <cstdint>
+
 #include "../core/accessors.h"
-#include "../core/small10.h"
+#include "../files/file.h"
+#include "object.h"
 
 namespace {
 
@@ -421,4 +423,8 @@ u8 *__cdecl Cell_ExtendPath(const s32 *point, s32 *nextX, s32 *nextY) {
     return cell;
 }
 
+u16 *__cdecl Cell_MakeHandle(u16 *out, u32 x, u32 z) {
+    *out = (u16)((z << 7) + x + 1);
+    return out;
+}
 }

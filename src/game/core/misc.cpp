@@ -8,12 +8,8 @@
 #include "../sprite/script.h"
 #include "accessors.h"
 #include "gameheap.h"
-#include "tiny_c.h"
-#include "tiny_d.h"
-#include "small.h"
+#include "initializers.h"
 #include "string.h"
-#include "tiny_d.h"
-#include "tiny_e.h"
 
 namespace {
 
@@ -597,4 +593,55 @@ u8 *__fastcall Class701378_Ctor(u8 *object, void *, u32 mostDerived) {
     return object;
 }
 
+u8 *__fastcall Class703770_Ctor(u8 *object) {
+    at<u32>(object, 0) = 0x00703770;
+    at<u32>(object, 4) = 1;
+    return object;
+}
+
+u8 *__fastcall Class703c80_Ctor(u8 *object) {
+    at<u32>(object, 4) = 5;
+    at<u32>(object, 8) = 5;
+    at<u32>(object, 0xc) = 0;
+    at<u32>(object, 0x10) = 1;
+    at<u32>(object, 0x14) = 0xffffffff;
+    at<u32>(object, 0x18) = 0xffffffff;
+    at<u32>(object, 0x1c) = 0xffffffff;
+    at<u32>(object, 0) = 0x00703c80;
+    return object;
+}
+
+u8 *__cdecl Codec631280_Init(u8 *object) {
+    at<u32>(object, 0) = 0x6312d0;
+    at<u32>(object, 4) = 0x631340;
+    at<u32>(object, 8) = 0x631300;
+    at<u32>(object, 0xc) = 0x631380;
+    at<u32>(object, 0x10) = 0x631440;
+    at<u32>(object, 0x68) = 0;
+    at<u32>(object, 0x6c) = 0;
+    at<u32>(object, 0x14) = 0;
+    at<u32>(object, 0x70) = 0x7039d0;
+    at<u32>(object, 0x74) = 0x7b;
+    at<u32>(object, 0x78) = 0;
+    at<u32>(object, 0x7c) = 0;
+    at<u32>(object, 0x80) = 0;
+    return object;
+}
+
+u8 *__fastcall Class7035d8_Ctor(u8 *object) {
+    at<u32>(object, 4) = 0x007035d8;
+    at<u8>(object, 0) = 0;
+    at<u16>(object, 8) = 0;
+    at<u16>(object, 0xa) = 0;
+    at<u16>(object, 0xc) = 0;
+    return object;
+}
+
+u8 *__cdecl Class7035d8_InitGlobal() { return Class7035d8_Ctor(reinterpret_cast<u8 *>(0x00fa78e8)); }
+
+u32 __cdecl Obj_RemoveRectAndClear14(u8 *object, u32 from, u32 to) {
+    Obj_RemoveFromRect(at<u8 *>(object, 0x24), from, to);
+    at<u32>(object, 0) &= ~0x4000u;
+    return 1;
+}
 }

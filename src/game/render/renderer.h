@@ -46,4 +46,14 @@ u32 __fastcall Renderer_RemoveInRect(u8 *renderer, void *, s32 x0, s32 y0, s32 x
 // 0x576820 (thiscall): empties every grid cell (the scene flag set for each) and the seven slot
 // lists, returning their nodes to the free list; always 1. The grid pointer is not checked (sic).
 u32 __fastcall Renderer_ClearAll(u8 *renderer);
+
+// 0x576620 (thiscall on the grid pool {+4 free nodes, +0xc count, +0x10 the cells (heads, 4 bytes each), +0x38 width, +0x3c height}; x0, y0, x1, y1, object, an unused word, pops 24): 0 when
+// the rectangle is entirely outside (past the width / height, or ending below 0); otherwise it is clamped to the grid and Pool_AddSorted is run for the object on every cell in
+// it (x outer, y inner); the result is the AND of 1 and their results.
+u32 __fastcall Grid_AddObject(u8 *grid, void *, s32 x0, s32 y0, s32 x1, s32 y1, u8 *object, u32 unused);
+
+// 0x5ec220 (thiscall destructor-like): slot 6 (offset 0x18) of the object at +0x14 is called; then for the groups at +0x3c4 and +0x358 the four arrays at +0x2c, +0x3c, +0x4c and
+// +0x5c are Array3D_Free'd, the last one's block is freed and cleared and BufferC_FreeAndClear runs on +0x4c, +0x3c and +0x2c; then the blocks at +0x28 and +0x18 are freed
+// when set and their four dwords cleared.
+void __fastcall Renderer_Teardown(u8 *object);
 }

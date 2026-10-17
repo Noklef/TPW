@@ -55,4 +55,44 @@ u8 *__fastcall Obj_FindControls(const u8 *object);
 // 0x412c90: an object definition's (0x744b30). 0x4143f0: a track type's (0x739ea8).
 const u8 *__fastcall ObjectDef_GetSchema(const void *, void *, u32 index);
 const u8 *__fastcall TrackType_GetSchema(const void *, void *, u32 index);
+
+// 0x59c320 (stdcall; id): the byte at +0x20 of the 56-byte record at 0x76e300 + 56 * id when its id (+4) matches; 0 for 0x15f and 0x160 and for
+// ids that match no record (searched from 0x76e304 on, but a match found by the search gives the byte of the record at id's own slot: sic).
+u8 __stdcall Table76e300_GetByte(u32 id);
+
+// 0x59c390 (thiscall; id, pops 4): the record of the table at 0x76e300 for id (see Table76e300_GetByte: sic, the record at the id's own slot even
+// when the search found the id elsewhere): the dword at 0x24 + 12 * (the record's dword at +8) of the object; 0 for no record.
+u32 __fastcall Table76e300_GetObjectDword(const u8 *object, void *, u32 id);
+
+// 0x59c410 (thiscall; id, pops 4): the same with the dword at 0x28 + 12 * (...) being not 0 (as AL; 0 for no record).
+u8 __fastcall Table76e300_ObjectDwordSet(const u8 *object, void *, u32 id);
+
+// The record of the table at 0x76e300 that the lookups above use (not a game function): see Table76e300_GetObjectDword.
+u32 Table76e300_FindRecord(u32 id);
+
+// 0x59c570 (thiscall; id, limit, pops 8): the record of the table at 0x76e300 for id (see Table76e300_FindRecord) gives an index (its dword at +8; 10 for
+// no record); for 10 the result is 0, otherwise the dword at 0x2c + 12 * index of the object must not be 0 and the signed limit must be at least that
+// (1 or 0, as AL).
+u8 __fastcall Table76e300_LimitCheck(const u8 *object, void *, u32 id, s32 limit);
+
+// 0x4e2b80 (thiscall): whether the dword at +0x9c of the object definition for the id at +0xe (ObjectDefs_Find, looked up again for each test) is 1, 2
+// or 3.
+u32 __fastcall Obj_DefKind123(const u8 *object);
+
+// 0x59c610 (stdcall; id): the 0x38-byte records from 0x76e300 hold their id at +4; false for the ids 0x15f and 0x160 and for an id found nowhere (the table is searched up to
+// 0x772fcc; a printed message is left out); otherwise whether the dword at +8 of the record at id * 0x38 is 1 (the record is that one even when the search found the id
+// elsewhere, sic).
+u8 __stdcall Record_IsActive(u32 id);
+
+// 0x59c240: the dword at +0x24 of the object definition with the id (0x266 when there is none).
+u32 __stdcall DefField24_59c240(u32 v0);
+
+// 0x59c2b0: the dword at +0x28 of the object definition with the id (0x0 when there is none).
+u32 __stdcall DefField28_59c2b0(u32 v0);
+
+// 0x59c490: the dword at +0x2c of the object definition with the id (0x5 when there is none).
+u32 __stdcall DefField2c_59c490(u32 v0);
+
+// 0x59c500: the dword at +0x8 of the object definition with the id (0xa when there is none).
+u32 __stdcall DefField8_59c500(u32 v0);
 }

@@ -1,6 +1,11 @@
 #include "keymap.h"
 
 #include <cstdint>
+#include <cstring>
+
+#include "../files/file.h"
+#include "crt.h"
+#include "gameheap.h"
 
 namespace {
 
@@ -9,6 +14,28 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 u8 *map(u32 address) { return *reinterpret_cast<u8 **>(address); }
 
 constexpr u32 kMaps[5] = {0x0078718c, 0x00787a60, 0x00787c14, 0x0078733c, 0x0078721c};
+
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+u32 Fire(u8 *table, u32 a, u32 b, u32 handlerAt, u16 flag) {
+    if (at<u16>(table, 6) == 0)
+        return 0;
+    s32 found = -1;
+    const s32 count = at<s16>(table, 4);
+    for (s32 i = 0; i < count && found < 0; ++i) {
+        const u8 *entry = at<u8 *>(table, 0) + 0x14 * i;
+        if (at<u16>(entry, 2) == (u16)a && at<u16>(entry, 4) == (u16)b)
+            found = i;
+    }
+    if (found < 0)
+        return 0;
+    u8 *entry = at<u8 *>(table, 0) + 0x14 * found;
+    u32 result = 0;
+    if (void *handler = at<void *>(entry, handlerAt))
+        result = reinterpret_cast<u32(__fastcall *)(void *)>(handler)(handler);
+    at<u16>(at<u8 *>(table, 0) + 0x14 * found, 6) = flag;
+    return result;
+}
 
 }  // namespace
 
@@ -58,4 +85,51 @@ void __cdecl KeyMaps_EnableAll() {
 void __cdecl KeyMaps_ResetAll() {
     for (u32 address : kMaps) KeyMap_Reset(map(address));
 }
+
+void __cdecl KeyRecord_Push(u32 index, u32 shift, u32 a, u32 b, u32 c) {
+    const u32 record = 0x00f86918 + 68 * index;
+    u32 second;
+    if (shift) {
+        global<u32>(record + 4) = a;
+        second = b;
+    } else {
+        global<u32>(record + 4) = global<u32>(record + 0xc);
+        second = global<u32>(record + 0x10);
+    }
+    global<u32>(record + 8) = second;
+    global<u32>(record + 0xc) = a;
+    global<u32>(record + 0x10) = b;
+    global<u32>(record + 0) = c;
+}
+
+void __cdecl KeyMaps_EnableAllAndClearFlag() {
+    KeyMaps_EnableAll();
+    global<u8>(0x007c24d0) = 0;
+}
+
+void __cdecl KeyMaps_ResetAllAndSetFlag() {
+    KeyMaps_ResetAll();
+    global<u8>(0x007c24d0) = 1;
+}
+
+u32 __cdecl Code_Remap46b460(u32 code) {
+    static const u16 kLetters[0x1b] = {0x3b,  0x5e9, 0x5e0, 0x5d1, 0x5d2, 0x5e7, 0x5db, 0x5e2, 0x5d9, 0x5df, 0x5d7, 0x5dc, 0x5da, 0x5e6,
+                                       0x5de, 0x5dd, 0x5e4, 0x2f,  0x5e8, 0x5d3, 0x5d0, 0x5d5, 0x5d4, 0x27,  0x5e1, 0x5d8, 0x5d6};
+    u32 mapped = code & 0xffff;
+    switch (mapped) {
+    case 0x27: mapped = 0x2c; break;
+    case 0x2c: mapped = 0x5ea; break;
+    case 0x2e: mapped = 0x5e5; break;
+    case 0x2f: mapped = 0x2e; break;
+    case 0x3b: mapped = 0x5e3; break;
+    default:
+        if (mapped >= 0x60 && mapped <= 0x7a)
+            mapped = kLetters[mapped - 0x60];
+    }
+    return (code & 0xffff0000u) | mapped;
+}
+
+u32 __fastcall Actions_FireDown(u8 *table, void *, u32 a, u32 b) { return Fire(table, a, b, 0x10, 1); }
+
+u32 __fastcall Actions_FireUp(u8 *table, void *, u32 a, u32 b) { return Fire(table, a, b, 0xc, 0); }
 }

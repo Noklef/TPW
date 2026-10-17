@@ -2,8 +2,10 @@
 
 #include <cstdint>
 
+#include "../core/selectors.h"
 #include "../math/x87.h"
 #include "things.h"
+#include "thingscan.h"
 
 namespace {
 
@@ -200,5 +202,14 @@ u16 *__fastcall Guard_NearestFree(const u8 *object, void *, u16 *out, u32) {
     }
     *out = best;
     return out;
+}
+
+s32 __fastcall Staff_WageForRecord(const u8 *record) { return Staff_WageFor(at<u32>(record, 0), at<u8>(record, 8)); }
+
+u32 __fastcall Table_ScaledBySum(u8 *table, void *, s32 index) {
+    const u32 total = (u32)Global7852f8_Times78548c();
+    if (total == 0) return 0;
+    const u32 share = (Things_SumChain() * 100u) / total;
+    return (at<u32>(table, ((u32)index + 0x141) * 16) * share) / 100u;
 }
 }

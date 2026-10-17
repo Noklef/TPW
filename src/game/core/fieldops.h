@@ -101,4 +101,72 @@ u32 __fastcall Offsets_Resolve(const u8 *object, void *, u32 index);
 u32 *__fastcall Targets3_Set(u8 *object, void *, u32 a, u32 b, u32 c);
 u32 *__fastcall Targets2_Set(u8 *object, void *, u32 a, u32 b);
 
+// 0x4f06a0: returns the word 0xffff.
+u16 __stdcall WordConstffff_4f06a0(u32 v0);
+
+// 0x4f06b0: returns the word 0xffff.
+u16 __cdecl WordConstffff_4f06b0();
+
+// 0x6a8cd0: *argument = the dword at 0x20; returns the pointer.
+u32 __fastcall CopyTo_20_6a8cd0(u8 *o, void *, u32 v0);
+
+// 0x6a8ce0: *argument = the dword at 0x24; returns the pointer.
+u32 __fastcall CopyTo_24_6a8ce0(u8 *o, void *, u32 v0);
+
+// 0x6b4a00: *first argument = 0xffffffff; returns that pointer.
+u32 __stdcall StoreThrough_ffffffff_6b4a00(u32 v0, u32 v1, u32 v2);
+
+// 0x6b9c70: +0x50 = value; the flags at +0x4c |= 0x4; returns the flags.
+u32 __fastcall SetThenFlag50_4c_6b9c70(u8 *o, void *, u32 v0);
+
+// 0x6b9cb0: +0x60 = value; the flags at +0x4c |= 0x20; returns the flags.
+u32 __fastcall SetThenFlag60_4c_6b9cb0(u8 *o, void *, u32 v0);
+
+// 0x6b9cf0: +0x40 = value; the flags at +0x4c |= 0x80; returns the flags.
+u32 __fastcall SetThenFlag40_4c_6b9cf0(u8 *o, void *, u32 v0);
+
+// 0x6b9d10: +0x44 = value; the flags at +0x4c |= 0x100; returns the flags.
+u32 __fastcall SetThenFlag44_4c_6b9d10(u8 *o, void *, u32 v0);
+
+// 0x6b9d30: +0x68 = value; the flags at +0x4c |= 0x200; returns the flags.
+u32 __fastcall SetThenFlag68_4c_6b9d30(u8 *o, void *, u32 v0);
+
+// 0x6c5090: +0x48 = value; the flags at +0x14 |= 0x1000; returns the flags.
+u32 __fastcall SetThenFlag48_14_6c5090(u8 *o, void *, u32 v0);
+
+// 0x6c50b0: +0x8 = value; the flags at +0x14 |= 0x4; returns the flags.
+u32 __fastcall SetThenFlag8_14_6c50b0(u8 *o, void *, u32 v0);
+
+// 0x6c50d0: +0x9c = value; the flags at +0x14 |= 0x80000; returns the flags.
+u32 __fastcall SetThenFlag9c_14_6c50d0(u8 *o, void *, u32 v0);
+
+// 0x6c50f0: +0x4c = value; the flags at +0x14 |= 0x800; returns the flags.
+u32 __fastcall SetThenFlag4c_14_6c50f0(u8 *o, void *, u32 v0);
+
+// 0x6c5110: +0x44 = value; the flags at +0x14 |= 0x40; returns the flags.
+u32 __fastcall SetThenFlag44_14_6c5110(u8 *o, void *, u32 v0);
+
+// 0x6c5130: +0x28 = value; the flags at +0x14 |= 0x2; returns the flags.
+u32 __fastcall SetThenFlag28_14_6c5130(u8 *o, void *, u32 v0);
+
+// 0x6c5150: +0x2c = value; the flags at +0x14 |= 0x400; returns the flags.
+u32 __fastcall SetThenFlag2c_14_6c5150(u8 *o, void *, u32 v0);
+
+// 0x6c5170: +0x24 = value; the flags at +0x14 |= 0x20; returns the flags.
+u32 __fastcall SetThenFlag24_14_6c5170(u8 *o, void *, u32 v0);
+
+// 0x6c51d0: the flags at +0x14 |= 0x10000; +0x5c = value; returns it.
+u32 __fastcall FlagThenSet14_5c_6c51d0(u8 *o, void *, u32 v0);
+
+// 0x6c5220: the flags at +0x14 |= 0x200000; +0x58 = value; returns it.
+u32 __fastcall FlagThenSet14_58_6c5220(u8 *o, void *, u32 v0);
+
+// 0x6d2790: *first argument = 0xffffffff; returns that pointer.
+u32 __stdcall StoreThrough_ffffffff_6d2790(u32 v0, u32 v1, u32 v2, u32 v3, u32 v4);
+
+// 0x6d27a0: *first argument = 0xffffffff; returns that pointer.
+u32 __stdcall StoreThrough_ffffffff_6d27a0(u32 v0);
+
+// 0x6d29e0: *first argument = 0xffffffff; returns that pointer.
+u32 __stdcall StoreThrough_ffffffff_6d29e0(u32 v0, u32 v1, u32 v2, u32 v3);
 }  // extern "C"

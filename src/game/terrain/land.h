@@ -47,4 +47,12 @@ void __cdecl Terrain_RotateFootprint(s32 *x, s32 *y, s32 angle, s32 *outX, s32 *
 // 0x450470: when there is a map (0x7a0854) with flag 2 (+0x30), Terrain_PaintCell(map, the
 // sets 0x74c8a8, x, y, paint[0] set, paint[1] tile, paint[2] rotation) and Frame_AddFlags(1).
 void __cdecl Terrain_PaintAt(s32 x, s32 y, const s32 *paint);
+
+// 0x55f210 (thiscall destructor-like): the byte at +4 and the dword at +0 cleared; Array3D_Free on the thirteen arrays at +8, +0x18, ..., +0xc8; the blocks of those from +0xc8 down
+// to +0x28 freed and their four dwords cleared; then BufferC_FreeAndClear on +0x18 and +8.
+void __fastcall TileSet_Clear(u8 *object);
+
+// 0x55f720 (thiscall; size, pops 4): the byte at +0 = size, the byte at +1 = 0 for 0x40, 2 for 0x10, 1 for 0x20 and any other size (sic: which
+// also becomes 0x20); the buffer at 0x8798c8 is freed (when there is one) and a new one of byte(+0)^2 * 4 bytes is made.
+void __fastcall Lnd_SetTileSize(u8 *object, void *, u32 size);
 }

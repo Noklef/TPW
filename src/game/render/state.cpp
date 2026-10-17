@@ -3,7 +3,7 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
-#include "../core/tiny_a.h"
+#include "../core/globals.h"
 
 namespace {
 

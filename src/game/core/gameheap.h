@@ -16,3 +16,21 @@ void GameHeap_SetEnv(const GameHeapEnv *env);
 
 void *GameHeap_Alloc(u32 size);
 void GameHeap_Free(void *block);
+
+extern "C" {
+
+u32 __cdecl Mem_AllocLogged(u32 size);
+
+// 0x51b4a0 / 0x51b4d0 (cdecl; size / block): 0 when the argument is 0; otherwise the dword at 0x802bd8 is raised / lowered and the global memory of the file layer is
+// allocated (Mem_GlobalAlloc) / freed (Mem_GlobalFree); returns what that returns.
+u32 __cdecl Sound_Alloc(u32 size);
+
+u32 __cdecl Sound_Free(void *block);
+
+// 0x51f630 / 0x556ab0 / 0x51f660 (cdecl; size / size / block): Mem_GlobalAlloc / Mem_GlobalAlloc / Mem_GlobalFree when the argument is not 0 (the debug output of the
+// others is gone), otherwise 0.
+u32 __cdecl Mem_AllocChecked(u32 size);
+
+u32 __cdecl Mem_FreeChecked(void *block);
+
+}  // extern "C"

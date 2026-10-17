@@ -48,4 +48,30 @@ void __fastcall ByteBuf_Write(u8 *buffer, void *, const u8 *text, s32 count);
 // dword at +8 up to the one at +0xc (inclusive): the record, or 0.
 u8 *__fastcall Table12_Find(const u8 *table, void *, u32 key);
 
+// 0x5b3210 (cdecl; dest, src): *(u16 *)dest = *(u16 *)src, unless dest is 0.
+void __cdecl Word_CopyTo(u16 *dest, const u16 *src);
+
+// 0x6322e0 (cdecl; first, last, dest): the dwords from first up to last copied to dest, forwards;
+// returns the end of what was written (dest when none).
+u32 *__cdecl Dwords_Copy(const u32 *first, const u32 *last, u32 *dest);
+
+// 0x50f240 (cdecl): the 8-byte entries from the top of the stack at 0x7cf07c (a pointer) down to
+// its base at 0x7cf078 zeroed, the top moving down as it goes; nothing when it is at or below
+// the base.
+void __cdecl EntryStack_Clear();
+
+// 0x5633e0 (stdcall; source, unused, unused, object, pops 16): when the count at +0x788 is below 4 the next 16-byte slot from +0x448 gets the four
+// dwords from source (zeros for 0) and the count rises. Returns 1.
+u32 __stdcall Quad_Push(const u32 *source, u32, u32, u8 *object);
+
+// 0x56ee90 (thiscall; four bytes b0..b3 as one dword, pops 4): 0 unless the signed dword at +0x128 <= b0, the signed dword at +0x12c >= b1 and b1 <= b0;
+// then 1 when for some i from b1 to b0 the signed byte at +0x130 + i is at most b2 and the signed byte at +0x1b0 + i is at least b3 (b2 and b3 as bytes).
+u32 __fastcall Bands_AnyMatch(const u8 *object, void *, u32 packed);
+
+// 0x56f4f0 (stdcall; four bytes, flags word, pops 8): nothing unless the word has a bit of 0x78; bit 0x40 swaps bytes 1 and 3; then bit 8 rotates the bytes
+// one place to the right (the last comes first), otherwise bit 0x10 swaps the halves, otherwise bit 0x20 rotates one place to the left.
+void __stdcall Bytes4_Permute(u8 *bytes, const u16 *flags);
+
+// 0x598770 (cdecl; pointer, count): count dwords from the pointer are set to 0. Returns 0.
+u32 __cdecl Dwords_Zero(u32 *to, u32 count);
 }  // extern "C"

@@ -246,4 +246,23 @@ u32 *__cdecl Class7037c0_Create(u32 *result, u8 **object);
 // cleared, +0x10 is 2, +0x14 is 1, +0x20 is -1 and the word at the virtual base + 0xc is 0x3000. Returns the object.
 u8 *__fastcall Class701378_Ctor(u8 *object, void *, u32 mostDerived);
 
+u8 *__fastcall Class703770_Ctor(u8 *object);
+
+// 0x633a00 (thiscall): vtable 0x703c80, +4 = +8 = 5, +0xc = 0, +0x10 = 1, +0x14 = +0x18 = +0x1c = -1.
+u8 *__fastcall Class703c80_Ctor(u8 *object);
+
+// 0x631280 (cdecl; object): the object's function pointer table (0x6312d0, 0x631340, 0x631300,
+// 0x631380, 0x631440 at +0 to +0x10) and fields (+0x14, +0x68, +0x6c, +0x78-+0x80 = 0, +0x70 =
+// 0x7039d0, +0x74 = 0x7b). Returns the object.
+u8 *__cdecl Codec631280_Init(u8 *object);
+
+// 0x5f9f80 (thiscall): the vtable pointer 0x7035d8 at +4, the byte at +0 and the words at +8, +0xa, +0xc cleared. Returns the object. 0x5f9f70 (cdecl): that for the global
+// object at 0xfa78e8 (its static initialiser).
+u8 *__fastcall Class7035d8_Ctor(u8 *object);
+
+u8 *__cdecl Class7035d8_InitGlobal();
+
+// 0x4254e0 (cdecl; object, from, to): Obj_RemoveFromRect of the object at +0x24 (from, to); then bit 14 of the dword at +0 is cleared.
+// Returns 1.
+u32 __cdecl Obj_RemoveRectAndClear14(u8 *object, u32 from, u32 to);
 }

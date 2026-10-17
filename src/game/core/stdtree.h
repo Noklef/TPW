@@ -52,4 +52,52 @@ u8 **__fastcall StdTree_EraseE(u8 *tree, void *, u8 **out, u8 *node);
 u8 **__fastcall StdTree_EraseF(u8 *tree, void *, u8 **out, u8 *node);
 u8 **__fastcall StdTree_EraseG(u8 *tree, void *, u8 **out, u8 *node);
 
+// 0x410ac0 / 0x47d460 / 0x5b30b0 (thiscall on a tree object whose +4 is the head node; key pointer, pops 4): the lower bound of the key (a word / dword / word, unsigned; at
+// +0xc of the nodes, left child at +0, right child at +8, the sentinel the dword at 0x785de4 / 0x7b4a54 / 0xf7c970 holds): the first node not below the key, the head node
+// when there is none.
+u8 *__fastcall Tree16a_LowerBound(u8 *tree, void *, const u16 *key);
+
+u8 *__fastcall Tree32_LowerBound(u8 *tree, void *, const u32 *key);
+
+u8 *__fastcall Tree16b_LowerBound(u8 *tree, void *, const u16 *key);
+
+// 0x4f0370 / 0x4f0460 (thiscall on an iterator; out, int, pops 8): *out = the old node, the iterator moved on (StdTree_IncC / StdTree_IncE). Returns out.
+u8 **__fastcall StdTreeC_PostInc(u8 **it, void *, u8 **out, s32 unused);
+
+u8 **__fastcall StdTreeE_PostInc(u8 **it, void *, u8 **out, s32 unused);
+
+u8 **__fastcall Tree16a_Find(u8 *tree, void *, u8 **out, const u16 *key);
+
+u8 **__fastcall Tree32_Find(u8 *tree, void *, u8 **out, const u32 *key);
+
+u8 **__fastcall Tree16b_Find(u8 *tree, void *, u8 **out, const u16 *key);
+
+u32 __fastcall Obj_HasKey5af780(u8 *object, void *, u32 key);
+
+// 0x47cd00 (thiscall on the tree {allocator, head, multi flag byte at +8}; result {iterator, inserted byte}, key (a pointer to the three-dword value whose first dword is the
+// key), pops 8): finds where the key goes (down from the head's parent to the sentinel, to the left when the key is below the node's at +0xc). With the flag set the value is
+// always inserted (StdTree_InsertA); otherwise it is only when no node has the key (the position or its predecessor, StdTree_DecA, is compared), and the result is that node
+// with inserted 0. The iterator of the result is the new node or the old one.
+void __fastcall StdMapA_Insert(u8 *tree, void *, u8 **result, const u32 *value);
+
+// 0x5b1930: the same over the tree with the sentinel at 0xf7c970, whose keys are 16-bit (StdTree_DecG / StdTree_InsertG).
+void __fastcall StdMapG_Insert(u8 *tree, void *, u8 **result, const u16 *value);
+
+// 0x5b2f40 (thiscall on the tree {allocator, head}; the key (a string), pops 4): the lower bound: the last node passed whose string (at +0xc) is not below the key
+// (String_Less), the head for none.
+u8 *__fastcall StdTreeF_LowerBound(u8 *tree, void *, const u8 *key);
+
+// 0x5b0c40 (thiscall on an object whose tree head is at +0x3c): true when every node's mapped object (the pointer at +0x20) has a non-zero byte at +0xb9, else false at the
+// first that has not (in order from the leftmost).
+u8 __fastcall StdTreeF_AllFlagged(u8 *object);
+
+// 0x5b20c0 (thiscall; out, key, pops 8): *out = the lower bound; returns out.
+u8 **__fastcall StdTreeF_FindLower(u8 *tree, void *, u8 **out, const u8 *key);
+
+// 0x5b1650 (thiscall on the tree; out, value, pops 8): StdMapG_Insert's result {iterator, inserted byte} copied to out. Returns out.
+u32 *__fastcall StdMapG_InsertCopy(u8 *tree, void *, u32 *out, const u16 *value);
+
+// 0x5af740 (thiscall on an object whose tree is at +0x28; key (a 16-bit value passed on the stack), amount, pops 8): inserts the key; true (and +0x1c grows by the amount)
+// when it was new, else false.
+u8 __fastcall Object_AddKeyed(u8 *object, void *, u32 key, s32 amount);
 }  // extern "C"

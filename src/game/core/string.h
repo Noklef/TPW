@@ -141,3 +141,60 @@ struct StringEnv {
 };
 // The strings' calls go to env (nullptr: the game's).
 void Strings_SetEnv(const StringEnv *env);
+
+extern "C" {
+
+// 0x4f76b0 (thiscall; other, pops 4): compares two wide strings (data at +4, length at +8; no data
+// is the empty string at 0x6fd6c4) the std::basic_string way: the first differing 16-bit unit
+// decides (-1 below, 1 above, unsigned), else the shorter is less. -1, 0 or 1.
+s32 __fastcall WString_Compare(const u8 *self, void *, const u8 *other);
+
+// 0x424cc0 / 0x424cf0 (cdecl; a, b): the texts the dwords at +8 of a and b point to compare, case blind: 1 when the first is after the second / when
+// they are equal, otherwise 0.
+u32 __cdecl Names_FirstAfter(const u8 *a, const u8 *b);
+
+u32 __cdecl Names_Equal(const u8 *a, const u8 *b);
+
+// 0x489350 (thiscall on the destination; source, pops 4): the eight dwords at +0..+0x1c and the text at +0x24 (up to and including its NUL) of the source
+// are copied; the dword at +0x20 (a pointer into the record) = the source's moved by the distance between the two. Returns the destination.
+u8 *__fastcall Record_CopyWithText(u8 *dest, void *, const u8 *source);
+
+// 0x5b9020 (thiscall; out, pops 4): out is constructed as a wide string from the text pointer at +0x54 (WString_CtorStr). Returns out.
+u8 *__fastcall Obj_NameToWString(u8 *object, void *, u8 *out);
+
+// 0x5bd230 (thiscall; name, pops 4): over the nodes of the list at +0x2c -> +4 whose object has a name at +0x14: the dword at +8 of the last object whose name equals the
+// given one (case-insensitively) - 1 when none does.
+u32 __fastcall Names_FindLastValue(u8 *object, void *, const char *name);
+
+// 0x5c4ce0 (thiscall): the five strings at +0, +0x14, +0x28, +0x3c and +0x50 are constructed empty. Returns the object.
+u8 *__fastcall Strings5_Ctor(u8 *object);
+
+// 0x5ed490 (stdcall; first, last, dest, pops 12): a copy (String_CtorCopy) of each string of the array from first up to last (0x14 bytes each) is built in the array at dest
+// (a null dest only counts). Returns the end of dest. 0x5ed4d0 (stdcall; dest, count, from): the same string copied into count strings from dest. 0x5ed560 (cdecl;
+// dest, from): one copy built at dest when it is not null.
+String *__stdcall Strings_CopyRange(const String *first, const String *last, String *dest);
+
+void __stdcall Strings_FillCopy(String *dest, u32 count, const String *from);
+
+void __cdecl String_PlacementCopy(String *dest, const String *from);
+
+// 0x421770 (thiscall on {list, cached}; key, out, pops 8): the first object of the list (+4 head, nodes {object, next}) whose name (Names_Equal on object + 4) equals the key
+// (an object too) is stored to *out and to the cached pointer at +4, and 1 is returned; otherwise (or without a list) the cached pointer is cleared and 0 returned.
+u32 __fastcall NamedList_Find(u8 **ref, void *, const u8 *key, u8 **out);
+
+// 0x41ede0 (thiscall; key, pops 4): whether an object of the list the dword at +0x4c points to has a name equal to the key's (any non-zero result of Names_Equal).
+u32 __fastcall Obj_HasNamedObject(u8 *object, void *, const u8 *key);
+
+// 0x5c4c60 (thiscall): the five strings at +0x50, +0x3c, +0x28, +0x14 and +0 are destroyed in that order (String_Dtor).
+void __fastcall Strings5_Dtor(u8 *object);
+
+// 0x486780 (cdecl; wide text): when the dword at 0x78ba80 is set, the text is converted to bytes (Narrow_FromWide, room 0x3fff) at
+// 0x7b5378. Returns 0x7b5378.
+u32 __cdecl Text_NarrowToGlobalBuffer(const u16 *text);
+
+// 0x5d1330 (thiscall; other, pops 4): the order of the byte strings (pointer +4, length +8; a null pointer is the empty text at 0x6fe5b0) of
+// the object and other: the bytes of the common length are compared as unsigned (-1 or 1 at the first difference), then the lengths
+// (-1 shorter, 1 longer, 0 equal).
+s32 __fastcall ByteString_Compare(const u8 *object, void *, const u8 *other);
+
+}  // extern "C"

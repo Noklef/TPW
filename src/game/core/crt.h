@@ -25,3 +25,14 @@ const CrtEnv &Crt();
 
 // Swaps it (nullptr: the game's again).
 void Crt_SetEnv(const CrtEnv *env);
+
+extern "C" {
+
+// 0x67acf0 (stdcall; array, size, count, ctor, dtor, pops 20): ctor (thiscall on the element, no other arguments) for each of the count (signed) elements of
+// size bytes in turn; the dtor is only for the unwinding.
+void __stdcall CRT_VectorCtorIterator(u8 *array, u32 size, s32 count, void(__fastcall *ctor)(void *), void *dtor);
+
+// 0x67afa0 (stdcall; array, size, count, dtor, pops 16): dtor (thiscall) for each of the count elements, the last first.
+void __stdcall CRT_VectorDtorIterator(u8 *array, u32 size, s32 count, void(__fastcall *dtor)(void *));
+
+}  // extern "C"

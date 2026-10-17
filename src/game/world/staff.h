@@ -97,4 +97,11 @@ u32 __fastcall StaffPool_FirstInvalid(const u8 *pool);
 // 0x50c620: the staff training (serialized at 0x50c640: 5 x u32 mBudget, u8 mHaveEverTrained)
 // zeroed. Returns it.
 u8 *__fastcall StaffTraining_Ctor(u8 *training);
+
+// 0x5077f0 (thiscall): Staff_WageFor of the dword at +0 and the byte at +8.
+s32 __fastcall Staff_WageForRecord(const u8 *record);
+
+// 0x503980 (thiscall on the table; index, pops 4): 0 when Global7852f8_Times78548c is 0, else the dword at table + (index + 0x141) * 16 times (Things_SumChain * 100 / that
+// total, unsigned), divided by 100 (unsigned).
+u32 __fastcall Table_ScaledBySum(u8 *table, void *, s32 index);
 }

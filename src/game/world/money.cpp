@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "../core/tiny_m.h"
+#include "world.h"
 
 namespace {
 

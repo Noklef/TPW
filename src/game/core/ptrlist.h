@@ -31,3 +31,38 @@ struct PtrListEnv {
 };
 // The list's allocation goes through env (nullptr: the game's).
 void PtrList_SetEnv(const PtrListEnv *env);
+
+extern "C" {
+
+// 0x5ce910 (thiscall; out, unused, pops 8): a list cursor (a node pointer at +0) moves to the node's next (its first dword); the
+// node it left is stored at *out. Returns out.
+u32 *__fastcall ListCursor_Next(u32 *cursor, void *, u32 *out, u32 unused);
+
+// 0x5e2a80 (thiscall on the list {+4 first, +8 last, +0xc count} of {value, next at +4, previous at +8} nodes; value, pointer to the iterator, pops 8): a new node (zeroed,
+// 12 bytes) holding the value goes before the node the iterator is (at the end for none; at the front for the first node) and the count grows.
+void __fastcall PtrList_Insert(u8 *list, void *, u32 value, u8 **position);
+
+// 0x56b5c0 (thiscall; item, pops 4): the item is looked for in the array of pointers at +8 (count at +0x1c) from the back; when found it is
+// freed, the count is one less, the slot gets the last element and the dword at +4 of what +4 points to = the new count. Returns 1 when
+// found, otherwise 0.
+u32 __fastcall PtrArray_RemoveAndFree(u8 *object, void *, u32 item);
+
+// 0x5d8a80: removes the first node with a value from the linked list at +0xc (unlinks it, counts it off, frees it).
+void __fastcall ListRemovec_5d8a80(u8 *o, void *, u32 v0);
+
+// 0x5da180: removes the first node with a value from the linked list at +0x58 (unlinks it, counts it off, frees it).
+void __fastcall ListRemove58_5da180(u8 *o, void *, u32 v0);
+
+// 0x5da450: removes the first node with a value from the linked list at +0x4 (unlinks it, counts it off, frees it).
+void __fastcall ListRemove4_5da450(u8 *o, void *, u32 v0);
+
+// 0x5dd4b0: removes the first node with a value from the linked list at +0x6c (unlinks it, counts it off, frees it).
+void __fastcall ListRemove6c_5dd4b0(u8 *o, void *, u32 v0);
+
+// 0x5e15c0: removes the first node with a value from the linked list at +0x8 (unlinks it, counts it off, frees it).
+void __fastcall ListRemove8_5e15c0(u8 *o, void *, u32 v0);
+
+// 0x5e4250: removes the first node with a value from the linked list at +0x18 (unlinks it, counts it off, frees it).
+void __fastcall ListRemove18_5e4250(u8 *o, void *, u32 v0);
+
+}  // extern "C"
