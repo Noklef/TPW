@@ -40,6 +40,10 @@ u32 __fastcall Obj_ForwardToMember10(u8 *object, void *, u8 *a);
 // 0x5c4f80 (cdecl; object): the object's slot 4, then its deleting destructor (slot 0 with 1). Returns 0.
 u32 __cdecl Object_FinishAndDelete(u8 *object);
 
+// 0x5c5000 (cdecl; object; name unconfirmed): a jump to the object's slot 0x14 (no arguments: the object stays on the stack for
+// the caller to pop). Returns what it returns.
+u32 __cdecl Object_CallSlot14(u8 *object);
+
 // 0x5c4f60 (cdecl; a, b, c, object): the object's slot 8 called with a and c * b.
 u32 __cdecl Object_CallSlot8Product(u32 a, u32 b, u32 c, u8 *object);
 

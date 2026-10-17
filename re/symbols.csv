@@ -3343,6 +3343,7 @@ address,name,kind,confidence,notes
 0x0048d860,Obj_CallMember20Slot14,function,low,reimplemented (src/game/core/vwrap); The slot 0x14 of the object at +0x20 called with an argument
 0x004af9f0,Obj_CallSlot14IfGlobalThing,function,low,reimplemented (src/game/core/vwrap); The object's slot 0x14 called when a handle's thing is the global one
 0x005e2310,Obj_KeyMessageToSlots,function,low,"reimplemented (src/game/core/vwrap); slot 5 (+0x14) of the vtables 0x702cb0, 0x702dd0 and 0x702ec0: messages 0x10005 (key 0) and 0x1000b (keys 0xd, 0x2500, 0x2700) call the object's slots 0x40 / 0x3c / 0x38"
+0x005c5000,Object_CallSlot14,function,low,reimplemented (src/game/core/vwrap); cdecl (object): a jump to the object's slot 0x14; returns what it returns (name unconfirmed)
 0x005e3b90,Class702d48_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor that registers the object with a global one
 0x005e3c00,Class702d48_Release,function,high,reimplemented (src/game/core/vdtor); releases the object from a global one
 0x005e3bd0,Class702d48_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor that releases the object from a global one
