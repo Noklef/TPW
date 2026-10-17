@@ -10,6 +10,8 @@
 
 #include "../../../re/types.h"
 
+struct Stream;
+
 extern "C" {
 
 // 0x4d0af0 (thiscall on a u16 handle): its 0x28-byte entry, gMapCells + 0x10ffd8 + handle * 0x28.
@@ -102,6 +104,8 @@ u8 *__fastcall RECell_Ctor(u8 *cell);
 
 // 0x502470 (other): whether the two RE cells' 10 bytes are the same.
 u32 __fastcall RECell_Equals(const u8 *cell, void *, const u8 *other);
+// 0x502490 (thiscall; stream, save, version, unused): the RE cell's five words (mpEffect) saved or loaded as a serializer does (Save_Field).
+u32 __fastcall RECell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused);
 
 // 0x50c1d0: a 0x28-byte track cell (serialized at 0x50c200), zeroed but for byte +2 = 2.
 // Returns it.
@@ -236,4 +240,20 @@ u8 *__cdecl Cell_FindRideableObject(s32 x, s32 y);
 // turn, the entry Map_StepCell28 reaches with the pair and a scale of 2, when there is one, has flag 0x10, its cell (MapHandle_Cell44) the same u16
 // at +0x10 and a type of 0xb, 0xd, 0x10, 0x12 or 0x19 (MapCell_IsTypeBDOr10Or12Or19): y -= 2, x += 2, y += 2, x -= 2 respectively.
 void __cdecl MapCell_PathNudge(s32 *x, s32 *y);
+
+// 0x4d8750 (cdecl; x, y, direction, mode; name unconfirmed): 1 when a step from the cell (x, y) (bytes; the cell row * 128 + column + 1 of the world
+// behind [0x7cf6ec]) in the direction (byte: 0 y - 1, 1 x + 1, 2 y + 1, 3 x - 1; past 3, sic, the cell of the x argument's low word) is blocked, else
+// 0. Off the map: blocked. Into type 1 from a cell not of type 3 or 9: open; type 4 to type 4: open; into type 4: blocked; into 0x1e: open but in mode
+// 2. In mode 2 a cell of flag 0x400 is open, and a ride cell (type 9) whose parent (+0x10) has an object (kind 3) among its things (+0x24, next +0xa,
+// handles into 0x7cfb90) is blocked unless that ride is busy (Ride_IsBusy with its +0x20) and its definition's +0x118 is 0. Types 5, 7 and 2:
+// blocked. Into type 3 or 9 (from 1, 3 or 9) or into 1 from 3 or 9: open when the target's neighbour bit for the way back (0x10, 0x40, 1, 4) is set.
+// Otherwise: a target of type 0xb, 0xd, 0x10, 0x12 or 0x19 whose entry (its parent's for 0xc / 0x11) has none of the low flags is blocked; from
+// other than 1, 3 or 9: open; mode 1 from 1 into other than 1, 3, 9 or 4: open; mode 2 from 1 into 0: open; from 0xa or 9 into 0 facing the way
+// (+0xd: 4, 0x40, 0x10, 1 for directions 3, 1, 0, 2): open; else blocked.
+u32 __cdecl MapCell_StepBlocked(u32 x, u32 y, u32 dir, s32 mode);
+// 0x510510 (cdecl; two cell handles, mode; name unconfirmed): 1 when the step from the first cell (row * 128 + column + 1, the low word) to the
+// second, a neighbour, is open (MapCell_StepBlocked in that mode), else 0. Not neighbours (sets the print-once flag 0x7cf38c) or the second argument
+// -1 (sic, its whole dword): 0. Straight: the one step. Diagonal: round one corner (down-right: right then down; the others: up or down then across)
+// or, failing that, the other.
+u32 __cdecl MapCell_StepOpen(u32 from, u32 to, s32 mode);
 }

@@ -14,10 +14,10 @@ B = Bench([(0x5222e0, 0x52231b), (0x522320, 0x522356), (0x51fd80, 0x51fd8a), (0x
            (0x51feb0, 0x51ff06), (0x51ff10, 0x51ff68), (0x51ff70, 0x51ffc6), (0x51ffd0, 0x520028),
            (0x520470, 0x5204ba), (0x51fe30, 0x51fea4), (0x520030, 0x5200a4), (0x51fd90, 0x51fe2d), (0x5200b0, 0x520123), (0x5204c0, 0x52055f), (0x521810, 0x521845), (0x521850, 0x52188a), (0x520e00, 0x520f0c),
            (0x520560, 0x520d60), (0x520d60, 0x520e00), (0x521e60, 0x5222e0), (0x521d60, 0x521e60), (0x522360, 0x5224f0),
-           (0x5214a0, 0x521807), (0x521890, 0x521930), (0x5da3c0, 0x5da3c1), (0x521930, 0x521d54), (0x520f10, 0x5214a0)])
+           (0x5214a0, 0x521807), (0x521890, 0x521930), (0x5da3c0, 0x5da3c1), (0x521930, 0x521d54), (0x520f10, 0x5214a0), (0x520130, 0x520469), (0x5224f0, 0x5226fa)])
 SYSTEMS, EFFECTS, EFFECTORS, SETUP = 0x80cefc, 0x804370, 0x816504, 0x816d40
 CALLS = {'Alive': 0x5222e0, 'Effector': 0x522320, 'Reduced': 0x51fd80, 'Clear': 0x51fa80, 'End': 0x51feb0,
-         'Age': 0x51ff70, 'Set2a': 0x51ff10, 'SetA2': 0x51ffd0, 'Quarter': 0x520470, 'VecA': 0x51fe30, 'VecB': 0x520030, 'Scaled': 0x51fd90, 'EndAll': 0x5200b0, 'Release': 0x5204c0, 'RandS': 0x521810, 'Rand': 0x521850, 'Move': 0x520e00, 'Emit': 0x520560, 'Spawn': 0x521e60, 'Update': 0x5214a0, 'SpawnVel': 0x521930, 'Effectors': 0x520f10}
+         'Age': 0x51ff70, 'Set2a': 0x51ff10, 'SetA2': 0x51ffd0, 'Quarter': 0x520470, 'VecA': 0x51fe30, 'VecB': 0x520030, 'Scaled': 0x51fd90, 'EndAll': 0x5200b0, 'Release': 0x5204c0, 'RandS': 0x521810, 'Rand': 0x521850, 'Move': 0x520e00, 'Emit': 0x520560, 'Spawn': 0x521e60, 'Update': 0x5214a0, 'SpawnVel': 0x521930, 'Effectors': 0x520f10, 'Tick': 0x520130}
 NODES, SINES = RAM + 0x1000, RAM + 0x2000
 
 
@@ -47,6 +47,8 @@ def case(r):
         return update(r)
     if op == 'Effectors':
         return pull(r)
+    if op == 'Tick':
+        return tick(r)
     if op == 'SpawnVel':  # 0x521930: Spawn's cases with a velocity, the systems' scales about 1024
         c = spawn(r)
         defs = c.regions[0x804370]
@@ -358,6 +360,49 @@ def pull(r):
     put(state, 0x24, 'I', CDECL_LOG2)
     regions.update({0x8164fc: instances, LOG: log})
     return Call(0x520f10, [], regions, ret='v')
+
+
+def tick(r):
+    """0x520130: the effectors' cases (so Update's and the effectors' set-up), the frame counter about 1, each live system's fields about the
+    branches: ages about the end, links to live or stale systems and effectors of the regions, emitters with small spreads, emit counts small."""
+    regions = pull(r).regions
+    systems, heads, state, instances = regions[0x80cefc], regions[0x816d1c], regions[0x80ced0], regions[0x8164fc]
+    put(heads, 0x24, 'I', 0 if r.random() < 0.05 else 1)
+    put(state, 4, 'i', r.choice([0, 1, 1, 2, 5, -1, r.randrange(-0x100, 0x100)]))
+    for a in range(6):
+        e = 0x140 * a
+        put(systems, e + 0x26, 'H', r.choice([0, 0, 0, 1]))
+        put(systems, e + 0x20, 'i', r.choice([0, 1, 2, -1, -1, -2, 5, 100]))
+        put(systems, e + 0xd4, 'i', r.choice([0, 1, 4, 8, 100, -1]))
+        put(systems, e + 0x10, 'h', r.choice([-1, -1, 0, r.randrange(20), r.randrange(0x69), 0x69]))
+        for off in (0xbb, 0xba, 0xab):
+            systems[e + off] = r.choice([0, 0, 1])
+        put(systems, e + 0xbc, 'H', r.choice([0, 0, 1]))
+        put(systems, e + 0xb8, 'H', r.choice([0, 0, 1]))
+        if systems[e + 0xba]:
+            k = r.randrange(12)
+            serial = struct.unpack_from('<H', instances, 0x68 * k + 8)[0]
+        else:
+            k = r.randrange(6)
+            serial = struct.unpack_from('<H', systems, 0x140 * k + 0xa)[0]
+        put(systems, e + 0xb4, 'I', r.choice([-1, -1, serial << 16 | k, serial << 16 | k, (serial ^ 1) << 16 | k, 0]) & 0xffffffff)
+        if systems[e + 0xba] and struct.unpack_from('<I', systems, e + 0xb4)[0] == 0 and r.random() < 0.7:
+            put(instances, 8, 'H', 0)  # (handle 0 names effector 0 when its serial is 0)
+        put(systems, e + 0xc8, 'i', r.choice([0, 0, 1, 0x800, -1, r.randrange(-0x2000, 0x2000)]))
+        put(systems, e + 0x54, 'I', r.getrandbits(32))
+        put(systems, e + 0x2c, 'iii', *[r.choice([0, 0, 0, 1, -1, r.randrange(-0x100, 0x100)]) for _ in range(3)])
+        put(systems, e + 0x28, 'H', r.choice([0, 0, 1]))
+        put(systems, e + 0xe, 'H', r.choice([0, 0, 0, 1, 2]))
+        put(systems, e, 'h', r.choice([0, 1, 2, -1]))
+        put(systems, e + 0xcc, 'i', r.choice([0, 1, -1, 0x80, r.randrange(-0x400, 0x400)]))
+        put(systems, e + 0x50, 'h', r.choice([0, 1, -1, 0x80, r.randrange(-0x400, 0x400)]))
+        for off in range(0x68, 0x6c):
+            systems[e + off] = r.choice([0, 0, 1, 2, 3, 0xff, 0xfd, 0xf8])
+        put(systems, e + 8, 'H', r.choice([0, 0, 1, 2, 5, 0x100]))
+        put(systems, e + 0x64, 'h', r.choice([0, 1, 3, 10, 0x100, -1]))
+        put(systems, e + 0x66, 'h', r.choice([0, 1, 2, -1, 5]))
+    regions[0x80436c] = r.bytes(4)
+    return Call(0x520130, [], regions, ret='a')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]

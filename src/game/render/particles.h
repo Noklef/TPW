@@ -1,5 +1,5 @@
 // The particle systems' handle accessors: reimplementation of 0x51fa80, 0x51fd80, 0x51fe30, 0x51fd90, 0x51feb0,
-// 0x520030, 0x5200b0, 0x5204c0, 0x521810, 0x521850, 0x51ff10, 0x51ff70, 0x51ffd0, 0x520470, 0x5222e0, 0x522320, 0x520e00, 0x520560, 0x521e60, 0x5214a0, 0x521930 and 0x520f10. Nothing works before the
+// 0x520030, 0x5200b0, 0x5204c0, 0x521810, 0x521850, 0x51ff10, 0x51ff70, 0x51ffd0, 0x520470, 0x5222e0, 0x522320, 0x520e00, 0x520560, 0x521e60, 0x5214a0, 0x521930, 0x520f10 and 0x520130. Nothing works before the
 // particles are set up (0x816d40 set). A system handle is serial << 16 | slot: slot (u16) below
 // 0x78 in gParticleSystems (0x80cefc, 0x140 bytes each, copies of an effect definition), its
 // serial the system's u16 +0xa; 0 is none. A system's +0x20 is its age (-2 ends it) and +0xd4 its
@@ -117,4 +117,13 @@ void __cdecl Particles_Update();
 // negative one: of systems whose +0x9c is 0): strength +0x40 times the distance in quarters over (its square / 256 + 10) onto their velocity, from its
 // position plus RandSigned of +0x34/+0x38/+0x3c; in mode 2 (+0x30) a particle within the radius (squared / 256) gets age 0.
 void __cdecl ParticleEffectors_Update();
+
+// 0x520130 (name unconfirmed): the particles' frame, returning the dword 0x80436c (also before set-up, 0x816d40, and on the first frame: the counter
+// 0x80ced4 must pass 1). For each live system (next read first) whose word +2 is 0: its age +0x20 counts down unless the word +0x26 is set; its bounds
+// reset (unless the byte +5). Below age 0 it ends: at -1 its end effect, the s16 +0x10 (Voice_Start with the byte +0xbb, else Particle_Spawn, at its
+// position +0x14 times 16), once (+0x10 = -1); its live link +0xb4 (with the word +0xbc) ends too (an effector's timer +0x4c, a system's age, -1); with
+// no particles (word +8) it is released. Otherwise its live link (with the word +0xb8) takes its position, +0x54 turns by +0xc8 (& 0xfff), it moves
+// (Particle_Move, unless the byte +0xab or it is still), an emitter (word +0xe) spawns when that is 1, and below its cap +0x64 it emits the quarter's
+// count (a negative count: once every -count frames, +0x66). Then ParticleEffectors_Update and Particles_Update.
+u32 __cdecl Particles_Tick();
 }

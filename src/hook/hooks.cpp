@@ -119,6 +119,7 @@
 #include "../game/core/class6fd9d8.h"
 #include "../game/core/factories.h"
 #include "../game/core/floatconsts.h"
+#include "../game/core/funnytime.h"
 #include "../game/core/wstringmap.h"
 #include "../game/core/streambuf.h"
 #include "../game/core/voices.h"
@@ -186,8 +187,11 @@
 #include "../game/world/challenges.h"
 #include "../game/world/collobj.h"
 #include "../game/world/dirstep.h"
-#include "../game/world/flyingrides.h"
-#include "../game/world/gamesystem.h"
+#include "../game/world/focuscell.h"
+#include "../game/world/flyingrides.h"
+#include "../game/world/forecast.h"
+#include "../game/world/gamesystem.h"
+#include "../game/world/headquarters.h"
 #include "../game/world/messagecentre.h"
 #include "../game/world/nav.h"
 #include "../game/world/mapcell.h"
@@ -205,11 +209,13 @@
 #include "../game/world/ridelist.h"
 #include "../game/world/ridesearch.h"
 #include "../game/world/ridestate.h"
-#include "../game/world/ridesweep.h"
+#include "../game/world/ridesweep.h"
+#include "../game/world/route.h"
 #include "../game/world/steering.h"
 #include "../game/world/tagsystem.h"
 #include "../game/world/thingscan.h"
 #include "../game/world/trackpools.h"
+#include "../game/world/wallfollow.h"
 #include "../game/world/world.h"
 #include "../game/model/holder.h"
 #include "../game/coaster/tracktypes.h"
@@ -414,6 +420,7 @@ const Hook kHooks[] = {
     {"ScriptRef_IsAt",            0x004d4100, (void *)&ScriptRef_IsAt, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"ScriptRef_Start",           0x004d4140, (void *)&ScriptRef_Start, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"ScriptRef_Apply",           0x004d4190, (void *)&ScriptRef_Apply, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"SpriteAnim_Serialize",      0x004d3ee0, (void *)&SpriteAnim_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"World_Rand",               0x00516330, (void *)&World_Rand, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"World_SetSeed",            0x00516370, (void *)&World_SetSeed, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Things_InitTable",         0x00515f30, (void *)&Things_InitTable, {0x33, 0xd2, 0x56, 0x89, 0x15}},
@@ -2777,6 +2784,7 @@ const Hook kHooks[] = {
     {"Person_HasWordInState",     0x005065d0, (void *)&Person_HasWordInState, {0x56, 0x8b, 0xf1, 0x8a, 0x46}},
     {"Person_BaseCtor",           0x00518e20, (void *)&Person_BaseCtor, {0x56, 0x8b, 0xf1, 0x8d, 0x4e}},
     {"Person_PartsCtor",          0x00518e00, (void *)&Person_PartsCtor, {0x56, 0x8b, 0xf1, 0x8d, 0x4e}},
+    {"Thoughts_Serialize",        0x0050bad0, (void *)&Thoughts_Serialize, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
     {"Setting_SetMode",           0x00550d80, (void *)&Setting_SetMode, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Quad_Push",                 0x005633e0, (void *)&Quad_Push, {0x56, 0x8b, 0x74, 0x24, 0x14}},
     {"Table76e300_GetObjectDword", 0x0059c390, (void *)&Table76e300_GetObjectDword, {0x56, 0x8b, 0xf1, 0x8b, 0x4c}},
@@ -2806,6 +2814,7 @@ const Hook kHooks[] = {
     {"Objects_ReleaseTracked",    0x004dad20, (void *)&Objects_ReleaseTracked, {0x83, 0xec, 0x08, 0xa1, 0x9c}},
     {"Obj_BlockValuesBelowLimit", 0x004fa770, (void *)&Obj_BlockValuesBelowLimit, {0x83, 0xec, 0x08, 0x33, 0xc0}},
     {"Objects_NearestFreeFor",    0x004daa90, (void *)&Objects_NearestFreeFor, {0x83, 0xec, 0x24, 0x53, 0x55}},
+    {"Object_ExitOpen",           0x004de5a0, (void *)&Object_ExitOpen, {0x66, 0x8b, 0x51, 0x38, 0x83}},
     {"Blocks7_Free",              0x005d46d0, (void *)&Blocks7_Free, {0x56, 0x8b, 0xf1, 0x57, 0x33}},
     {"Names_FirstAfter",          0x00424cc0, (void *)&Names_FirstAfter, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Names_Equal",               0x00424cf0, (void *)&Names_Equal, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
@@ -3087,6 +3096,7 @@ const Hook kHooks[] = {
     {"Staff_Train",               0x00505a10, (void *)&Staff_Train, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
     {"Staff_CountTypes",          0x00508000, (void *)&Staff_CountTypes, {0x83, 0xec, 0x0c, 0x33, 0xc0}},
     {"Staff_TrainAll",            0x0050c800, (void *)&Staff_TrainAll, {0x83, 0xec, 0x20, 0x53, 0x55}},
+    {"StaffTraining_Serialize",   0x0050c640, (void *)&StaffTraining_Serialize, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
     {"FreeList_Take",             0x00520d60, (void *)&FreeList_Take, {0x56, 0x66, 0x8b, 0x35, 0x24}},
     {"FreeList_Return",           0x00521890, (void *)&FreeList_Return, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
     {"Voice_ScaleLevels",         0x00521d60, (void *)&Voice_ScaleLevels, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
@@ -3101,6 +3111,7 @@ const Hook kHooks[] = {
     {"ObjectDef_FindMarkedCells", 0x00413410, (void *)&ObjectDef_FindMarkedCells, {0x6a, 0xff, 0x68, 0x58, 0x7e}},
     {"ObjectDef_Ctor",            0x00412c20, (void *)&ObjectDef_Ctor, {0x56, 0x8b, 0xf1, 0x8d, 0x4e}},
     {"ObjectDef_LoadText",        0x00413600, (void *)&ObjectDef_LoadText, {0x51, 0x89, 0x4c, 0x24, 0x00}},
+    {"ObjectControls_Serialize",  0x004d3aa0, (void *)&ObjectControls_Serialize, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
     {"IntArray_SetSize",          0x00598630, (void *)&IntArray_SetSize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"CountedPair_Clear",         0x004e51a0, (void *)&CountedPair_Clear, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"CountedPair_ClearRange",    0x004f36f0, (void *)&CountedPair_ClearRange, {0x56, 0x8b, 0x74, 0x24, 0x08}},
@@ -3221,6 +3232,8 @@ const Hook kHooks[] = {
     {"Class701378_Ctor",          0x005667d0, (void *)&Class701378_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},
     {"Thing_Construct",           0x0050afe0, (void *)&Thing_Construct, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"ThingKindE_Ctor",           0x00502d20, (void *)&ThingKindE_Ctor, {0x51, 0x53, 0xbb, 0x01, 0x00}},
+    {"Thing_Serialize",           0x0050b090, (void *)&Thing_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"ThingBasic_Serialize",      0x00509bc0, (void *)&ThingBasic_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
     {"DrawBatch_Open",            0x00565310, (void *)&DrawBatch_Open, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Object_ReleaseSavedPairs",  0x0057b070, (void *)&Object_ReleaseSavedPairs, {0x56, 0x8b, 0xf1, 0xf7, 0x46}},
     {"Class702bc8_Ctor",          0x005dc580, (void *)&Class702bc8_Ctor, {0x6a, 0xff, 0x68, 0x58, 0x14}},
@@ -3256,6 +3269,10 @@ const Hook kHooks[] = {
     {"Save_FieldName",            0x00416e10, (void *)&Save_FieldName, {0x33, 0xc0, 0xc2, 0x0c, 0x00}},
     {"Save_InitUnusedOne",        0x00416e20, (void *)&Save_InitUnusedOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"Save_InitUnusedEpsilon",    0x00416e40, (void *)&Save_InitUnusedEpsilon, {0xd9, 0x05, 0x8c, 0xd9, 0x6f}},
+    {"Save_ReadU16",              0x004d37e0, (void *)&Save_ReadU16, {0x8b, 0x44, 0x24, 0x10, 0x85}},
+    {"Save_ReadU32",              0x004fae10, (void *)&Save_ReadU32, {0x8b, 0x44, 0x24, 0x10, 0x85}},
+    {"Save_Read8Bytes",           0x00510240, (void *)&Save_Read8Bytes, {0x8b, 0x44, 0x24, 0x10, 0x85}},
+    {"Save_Read12Bytes",          0x005134d0, (void *)&Save_Read12Bytes, {0x8b, 0x44, 0x24, 0x10, 0x85}},
     {"BalanceFile_SetDefaults",   0x004013e0, (void *)&BalanceFile_SetDefaults, {0x83, 0xec, 0x10, 0x53, 0x55}},
     {"BalanceFile_Release",       0x00401250, (void *)&BalanceFile_Release, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"BalanceHoardings_GetSchema", 0x00402a50, (void *)&BalanceHoardings_GetSchema, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
@@ -3348,6 +3365,7 @@ const Hook kHooks[] = {
     {"FloatConsts_InitEpsilon_48d890", 0x0048d890, (void *)&FloatConsts_InitEpsilon_48d890, {0xd9, 0x05, 0x60, 0xf2, 0x6f}},
     {"FloatConsts_InitOne_4b4490", 0x004b4490, (void *)&FloatConsts_InitOne_4b4490, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"FloatConsts_InitEpsilon_4b44b0", 0x004b44b0, (void *)&FloatConsts_InitEpsilon_4b44b0, {0xd9, 0x05, 0xc8, 0xfd, 0x6f}},
+    {"GameClock_Serialize",       0x004f7f30, (void *)&GameClock_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -3363,6 +3381,9 @@ const Hook kHooks[] = {
     {"MapCell_Overlap",           0x005228b0, (void *)&MapCell_Overlap, {0x0f, 0xbf, 0x41, 0x20, 0xc3}},
     {"MapCell_PathNudge",         0x00523070, (void *)&MapCell_PathNudge, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
     {"MapCell_SetStepDirection",  0x00539670, (void *)&MapCell_SetStepDirection, {0xa0, 0xcc, 0xb4, 0x81, 0x00}},
+    {"MapCell_StepBlocked",       0x004d8750, (void *)&MapCell_StepBlocked, {0x8a, 0x4c, 0x24, 0x04, 0x53}},
+    {"MapCell_StepOpen",          0x00510510, (void *)&MapCell_StepOpen, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"RECell_Serialize",          0x00502490, (void *)&RECell_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"MessageSlot_Dtor",          0x0040f970, (void *)&MessageSlot_Dtor, {0x51, 0x8b, 0x41, 0x08, 0x56}},
     {"MessageCentre_DtorSlots",   0x00409250, (void *)&MessageCentre_DtorSlots, {0x68, 0x70, 0xf9, 0x40, 0x00}},
     {"MessageCentre_RemoveThing", 0x0040fa40, (void *)&MessageCentre_RemoveThing, {0x83, 0xec, 0x18, 0x53, 0x55}},
@@ -3397,6 +3418,12 @@ const Hook kHooks[] = {
     {"TagTable_Find",             0x0050af40, (void *)&TagTable_Find, {0x8b, 0x54, 0x24, 0x04, 0x81}},
     {"Ride_IsBusy",               0x0042a440, (void *)&Ride_IsBusy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Ride_Sleep",                0x0043bd20, (void *)&Ride_Sleep, {0x8b, 0x44, 0x24, 0x04, 0x57}},
+    {"Forecast_Serialize",        0x005132a0, (void *)&Forecast_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"MechanicHQ_Serialize",      0x004da960, (void *)&MechanicHQ_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x53}},
+    {"StaffHQ_Serialize",         0x00508bb0, (void *)&StaffHQ_Serialize, {0x83, 0xec, 0x08, 0x8b, 0x44}},
+    {"WallFollower_Step",         0x00511c90, (void *)&WallFollower_Step, {0x53, 0x56, 0x8b, 0x74, 0x24}},
+    {"Route_Straighten",          0x005110d0, (void *)&Route_Straighten, {0x83, 0xec, 0x34, 0x53, 0x55}},
+    {"FocusCell_Update",          0x005276d0, (void *)&FocusCell_Update, {0x66, 0xa1, 0x98, 0x86, 0x81}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
@@ -3440,6 +3467,7 @@ const Hook kHooks[] = {
     {"Particles_Update",          0x005214a0, (void *)&Particles_Update, {0x0f, 0xbf, 0x05, 0x1c, 0x6d}},
     {"Particle_SpawnWithVelocity", 0x00521930, (void *)&Particle_SpawnWithVelocity, {0xa1, 0x40, 0x6d, 0x81, 0x00}},
     {"ParticleEffectors_Update",  0x00520f10, (void *)&ParticleEffectors_Update, {0x83, 0xec, 0x24, 0x53, 0x8b}},
+    {"Particles_Tick",            0x00520130, (void *)&Particles_Tick, {0xa1, 0x40, 0x6d, 0x81, 0x00}},
     {"SceneFlags_Touch",          0x005836b0, (void *)&SceneFlags_Touch, {0xa1, 0x40, 0xcc, 0x8b, 0x00}},
     {"Render_FogOn",              0x005d9680, (void *)&Render_FogOn, {0xa1, 0xc8, 0xcb, 0x8b, 0x00}},
     {"Render_FogOff",             0x005d9690, (void *)&Render_FogOff, {0xa1, 0xc8, 0xcb, 0x8b, 0x00}},

@@ -9,6 +9,7 @@
 #include "../core/vcall.h"
 #include "../files/file.h"
 #include "../files/wtext.h"
+#include "../core/savegame.h"
 
 namespace {
 
@@ -97,6 +98,21 @@ void __fastcall ObjectControls_Init(u8 *table) {
     for (u32 i = 0; i < 0x4b3; ++i)
         at<u32>(table, 4 * i) = 0;
     ObjectControls_Collect(table);
+}
+
+u32 __fastcall ObjectControls_Serialize(u8 *table, void *, Stream *stream, u32 save, s32 version, u32) {
+    if (version < 0 || version > 1)
+        return 0;
+    for (u32 i = 0; i < 0x96; ++i)
+        if (!Save_Field(stream, save, table + i * 0x20, 0x20, 0x0075a3c8))
+            return 1;
+    if (!Save_Field(stream, save, table + 0x12c0, 4, 0x0075a3b4) || !Save_Field(stream, save, table + 0x12c4, 2, 0x0075a3a0))
+        return 1;
+    if (save == 0) {
+        at<u32>(table, 0x12c8) = 0;
+        at<u16>(table, 0x12c4) = 0;  // sic: the search key just loaded
+    }
+    return 0;
 }
 
 s32 __cdecl ObjectDefs_PercentWithControls() {

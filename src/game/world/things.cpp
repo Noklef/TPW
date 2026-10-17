@@ -8,6 +8,7 @@
 
 #include "../core/gameheap.h"
 #include "../core/methods.h"
+#include "../core/savegame.h"
 #include "../files/file.h"
 #include "../sprite/script.h"
 #include "../sprite/sprite.h"
@@ -269,5 +270,20 @@ u8 *__fastcall ThingKindE_Ctor(u8 *object) {
         at<u32>(object, offset) = 0xffffffff;
     }
     return object;
+}
+
+u32 __fastcall Thing_Serialize(u8 *thing, void *, Stream *stream, u32 save, s32 version, u32) {
+    if (version < 0 || version > 1)
+        return 0;
+    if (!Save_Field(stream, save, thing + 4, 2, 0x00761cbc) || !Save_Field(stream, save, thing + 6, 2, 0x00761cb8) ||
+        !Save_Field(stream, save, thing + 0xa, 2, 0x00761cac) || !Save_Field(stream, save, thing + 8, 2, 0x00761ca0))
+        return 1;
+    if (save == 0)
+        thing[3] = 0;
+    return 0;
+}
+
+u32 __fastcall ThingBasic_Serialize(u8 *thing, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    return Thing_Serialize(thing, nullptr, stream, save, version, unused) != 0 ? 1 : 0;
 }
 }  // extern "C"

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/savegame.h"
 #include "../core/selectors.h"
 #include "../math/x87.h"
 #include "money.h"
@@ -163,6 +164,15 @@ u8 *__fastcall StaffTraining_Ctor(u8 *training) {
     for (u32 i = 0; i != 5; ++i) at<u32>(training, i * 4) = 0;
     at<u8>(training, 0x14) = 0;
     return training;
+}
+
+u32 __fastcall StaffTraining_Serialize(u8 *training, void *, Stream *stream, u32 save, s32 version, u32) {
+    if (version < 0 || version > 1)
+        return 0;
+    for (u32 i = 0; i < 5; ++i)
+        if (!Save_Field(stream, save, training + i * 4, 4, 0x00761eb0))
+            return 1;
+    return Save_Field(stream, save, training + 0x14, 1, 0x00761e9c) ? 0 : 1;
 }
 
 u32 __fastcall StaffPool_FirstInvalid(const u8 *pool) {

@@ -9,6 +9,8 @@
 
 #include "../../../re/types.h"
 
+struct Stream;
+
 extern "C" {
 
 // 0x506680 (thiscall): whether the energy (+0x1fc), __ftol'd and cut to its low byte, is
@@ -97,6 +99,9 @@ u32 __fastcall StaffPool_FirstInvalid(const u8 *pool);
 // 0x50c620: the staff training (serialized at 0x50c640: 5 x u32 mBudget, u8 mHaveEverTrained)
 // zeroed. Returns it.
 u8 *__fastcall StaffTraining_Ctor(u8 *training);
+// 0x50c640 (thiscall; stream, save, version, unused): the five budgets (dwords +0-+0x10, mBudget[i]) and the byte +0x14 (mHaveEverTrained)
+// saved or loaded as a serializer does (Save_Field).
+u32 __fastcall StaffTraining_Serialize(u8 *training, void *, Stream *stream, u32 save, s32 version, u32 unused);
 
 // 0x5077f0 (thiscall): Staff_WageFor of the dword at +0 and the byte at +8.
 s32 __fastcall Staff_WageForRecord(const u8 *record);

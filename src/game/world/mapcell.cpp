@@ -3,8 +3,10 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/savegame.h"
 #include "../files/file.h"
 #include "object.h"
+#include "ridestate.h"
 
 namespace {
 
@@ -142,6 +144,15 @@ u32 __fastcall RECell_Equals(const u8 *cell, void *, const u8 *other) {
         if (cell[i] != other[i]) return 0;
     }
     return 1;
+}
+
+u32 __fastcall RECell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32) {
+    if (version < 0 || version > 1)
+        return 0;
+    for (u32 i = 0; i < 5; ++i)
+        if (!Save_Field(stream, save, cell + i * 2, 2, 0x0075e120))
+            return 1;
+    return 0;
 }
 
 void __fastcall MapCell_AddNeighbours(u8 *cell, void *, u32 bits) { neighbours(cell) |= (u8)bits; }
@@ -542,5 +553,121 @@ void __cdecl MapCell_PathNudge(s32 *x, s32 *y) {
         if (MapCell_HasFlags(next, nullptr, 0x10) && at<u16>(nextCell, 0x10) == group && MapCell_IsTypeBDOr10Or12Or19(next))
             *coords[k] = (s32)((u32)*coords[k] + (u32)steps[k]);
     }
+}
+
+u32 __cdecl MapCell_StepBlocked(u32 x, u32 y, u32 dir, s32 mode) {
+    const u8 cx = (u8)x, cy = (u8)y, d = (u8)dir;
+    if ((cx == 0 && d == 3) || (cy == 0 && d == 0) || (cx == 0x7f && d == 1) || (cy == 0x7f && d == 2))
+        return 1;
+    const u32 base = (u32)cx + ((u32)cy << 7);
+    u16 target = (u16)x;  // sic: past direction 3 the cell is the x argument's whole low word
+    switch (d) {
+    case 0: target = (u16)(base - 0x7f); break;
+    case 1: target = (u16)(base + 2); break;
+    case 2: target = (u16)(base + 0x81); break;
+    case 3: target = (u16)base; break;
+    default: break;
+    }
+    u8 *const world = global<u8 *>(global<u32>(0x007cf6ec));
+    const u8 *const from = world + 0x294 + (u32)(u16)(base + 1) * 0x44;
+    const u8 *const to = world + 0x294 + (u32)target * 0x44;
+    if (MapCell_IsType1(to) && !MapCell_IsType3Or9(from))
+        return 0;
+    if (MapCell_IsType4(from) && MapCell_IsType4(to))
+        return 0;
+    if (MapCell_IsType4(to))
+        return 1;
+    if (MapCell_IsType1e(to) && mode != 2)
+        return 0;
+    if (mode == 2) {
+        if (MapCell_Flag400(to))
+            return 0;
+        if (MapCell_IsType9(to)) {  // a ride's cell: blocked by the first object (kind 3) of its parent's things unless that ride is busy and riding is allowed
+            const u8 *const parent = world + 0x294 + (u32)at<u16>(to, 0x10) * 0x44;
+            if (parent) {
+                for (u16 handle = at<u16>(parent, 0x24); handle != 0;) {  // (the debug assert on the thing table is left out)
+                    u8 *const thing = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
+                    if (thing[2] == 3) {
+                        if (!Ride_IsBusy(thing, at<u32>(thing, 0x20)))
+                            return 1;
+                        return at<u32>(Object_GetDef(thing), 0x118) != 0 ? 1 : 0;
+                    }
+                    handle = at<u16>(thing, 0xa);
+                }
+            }
+        }
+    }
+    if (MapCell_IsType5Or7Or2(to) || MapCell_IsType2(to))
+        return 1;
+    u8 bits;
+    if (MapCell_IsType3Or9(to)) {
+        if (!MapCell_IsType1(from) && !MapCell_IsType3Or9(from))
+            return 1;
+        bits = MapCell_Neighbours(to);
+    } else if (MapCell_IsType3Or9(from) && MapCell_IsType1(to)) {
+        bits = MapCell_Neighbours(to);
+    } else {
+        const u16 *const handle = reinterpret_cast<const u16 *>(to);
+        if (MapHandle_IsTypeBDOr10Or12Or19(handle)) {
+            const u16 owner = MapHandle_IsTypeCOr11(handle) ? at<u16>(MapHandle_Entry28(handle), 0x10) : *handle;
+            if (!MapCell_HasLowFlags(world + ((u32)owner + 0x6cde) * 0x28))
+                return 1;
+        }
+        if (!MapCell_IsType1(from) && !MapCell_IsType3Or9(from))
+            return 0;
+        if (mode == 1 && MapCell_IsType1(from) && !MapCell_IsType1(to) && !MapCell_IsType3Or9(to) && !MapCell_IsType4(to))
+            return 0;
+        if (mode == 2 && MapCell_IsType1(from) && MapCell_IsType0(to))
+            return 0;
+        if (!MapCell_IsTypeA(from) && !MapCell_IsType9(from))
+            return 1;
+        if (!MapCell_IsType0(to))
+            return 1;
+        if ((d == 3 && MapCell_Direction(from) == 4) || (d == 1 && MapCell_Direction(from) == 0x40) || (d == 0 && MapCell_Direction(from) == 0x10) ||
+            (d == 2 && MapCell_Direction(from) == 1))
+            return 0;
+        return 1;
+    }
+    const u8 mask = d == 0 ? 0x10 : d == 2 ? 1 : d == 1 ? 0x40 : 4;
+    return (bits & mask) == 0 ? 1 : 0;
+}
+
+u32 __cdecl MapCell_StepOpen(u32 from, u32 to, s32 mode) {
+    const u32 a = (from & 0xffff) - 1, b = (to & 0xffff) - 1;
+    const u32 ax = a & 0x7f, ay = a >> 7, bx = b & 0x7f, by = b >> 7;
+    if (ay == 0 && by == 0x3ff) {  // (unreachable: by is at most 0x1ff, or 0x1ffffff for cell 0; the print is left out, its once-flag kept)
+        if (global<u32>(0x007cf38c) == 0)
+            global<u32>(0x007cf38c) = 1;
+        return 0;
+    }
+    const s32 dx = (s32)(ax - bx), dy = (s32)(ay - by);
+    if ((dx < 0 ? -dx : dx) > 1 || (dy < 0 ? -dy : dy) > 1) {  // not neighbours (the print is left out, its once-flag kept)
+        if (global<u32>(0x007cf38c) == 0)
+            global<u32>(0x007cf38c) = 1;
+        return 0;
+    }
+    if (to == 0xffffffff)  // sic: the whole argument, after its low word was taken as a cell
+        return 0;
+    const u32 up = dy == 1, right = bx - ax == 1, down = by - ay == 1, left = dx == 1;
+    const auto blocked = [mode](u32 x, u32 y, u32 dir) { return MapCell_StepBlocked(x, y, dir, mode) != 0; };
+    if (up + right + down + left == 2) {  // a diagonal: round its corner one way (down-right horizontal first, the others vertical first), else the other
+        const u32 first = right && down ? 1 : up ? 0 : 2, second = right && down ? 2 : right ? 1 : 3;
+        const auto nx = [ax](u32 dir) { return dir == 1 ? (u8)(ax + 1) : dir == 3 ? (u8)(ax - 1) : ax; };  // (the callee reads bytes only)
+        const auto ny = [ay](u32 dir) { return dir == 0 ? (u8)(ay - 1) : dir == 2 ? (u8)(ay + 1) : ay; };
+        if (!blocked(ax, ay, first) && !blocked(nx(first), ny(first), second))
+            return 1;
+        if (blocked(ax, ay, second))
+            return 0;
+        return blocked(nx(second), ny(second), first) ? 0 : 1;
+    }
+    if (up && blocked(ax, ay, 0))
+        return 0;
+    if (right && blocked(ax, ay, 1))
+        return 0;
+    if (down && blocked(ax, ay, 2))
+        return 0;
+    if (left && blocked(ax, ay, 3))
+        return 0;
+    return 1;
 }
 }

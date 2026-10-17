@@ -127,6 +127,7 @@ add_library(tpw_game STATIC
     src/game/core/balancefile.cpp
     src/game/core/timesig.cpp
     src/game/core/floatconsts.cpp
+    src/game/core/funnytime.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -202,6 +203,11 @@ add_library(tpw_game STATIC
     src/game/world/steering.cpp
     src/game/world/tagsystem.cpp
     src/game/world/ridestate.cpp
+    src/game/world/forecast.cpp
+    src/game/world/headquarters.cpp
+    src/game/world/wallfollow.cpp
+    src/game/world/route.cpp
+    src/game/world/focuscell.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp

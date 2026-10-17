@@ -152,32 +152,32 @@ address,name,kind,confidence,notes
 0x00415f50,SaveGame_WriteHeader,function,high,"u8 language, 0x500 UTF-16 legal text, 0x100 block, u32 BE magic 0x01221985, u32 has-preview"
 0x00416240,SaveGame_ReadHeader,function,high,mirror of SaveGame_WriteHeader; rejects edited legal text
 0x00749870,SaveGame_Magic,data,high,0x01221985 (written big-endian via htonl)
-0x004fae10,Save_ReadU32,function,high,"(stream, dst, name, quiet)"
-0x004d37e0,Save_ReadU16,function,high,
+0x004fae10,Save_ReadU32,function,high,"reimplemented (src/game/core/savegame); cdecl (stream, destination, name, quiet): reads a 4-byte field, announced unless quiet; 0 when it all came, else 1"
+0x004d37e0,Save_ReadU16,function,high,"reimplemented (src/game/core/savegame); cdecl (stream, destination, name, quiet): reads a 2-byte field, announced unless quiet; 0 when it all came, else 1"
 0x00424c20,Save_ReadU8,function,high,
-0x00510240,Save_Read8Bytes,function,high,"u64 times / 2D float vectors"
-0x005134d0,Save_Read12Bytes,function,high,3D float vectors
+0x00510240,Save_Read8Bytes,function,high,"reimplemented (src/game/core/savegame); cdecl (stream, destination, name, quiet): reads an 8-byte field, announced unless quiet; 0 when it all came, else 1"
+0x005134d0,Save_Read12Bytes,function,high,"reimplemented (src/game/core/savegame); cdecl (stream, destination, name, quiet): reads a 12-byte field, announced unless quiet; 0 when it all came, else 1"
 0x004ced70,Save_WriteU32,function,high,
 0x004cee50,Save_WriteU8,function,high,
 0x004ceec0,Save_WriteU16,function,high,
 0x004cede0,Save_Write8Bytes,function,high,
-0x0050b090,Thing_Serialize,function,high,"CThing base: u16 mX, mY (8.8 fixed-point cell coords), mMapChild, mMapParent"
-0x00509bc0,ThingBasic_Serialize,function,high,thing models 12 (TagSystem) and 17 (UIMsgReceiver): base only
+0x0050b090,Thing_Serialize,function,high,"reimplemented (src/game/world/things); thiscall (stream, save, version, unused): the thing's words +4, +6, +0xa, +8 saved or loaded; a full load clears the byte +3"
+0x00509bc0,ThingBasic_Serialize,function,high,"reimplemented (src/game/world/things); thiscall (stream, save, version, unused): Thing_Serialize, its result as 0 or 1"
 0x004d7a70,WorldGlobals_Serialize,function,high,"staff pool, game clock, park gates"
 0x00507850,StaffPool_Serialize,function,high,0x20 x StaffPoolEntry + 5 categories
 0x005070a0,StaffPoolEntry_Serialize,function,high,
-0x004f7f30,GameClock_Serialize,function,high,"mFunnyTimeStart (FILETIME, 2000-01-01), mSessionStart, mFunnySecsPerRealSec"
+0x004f7f30,GameClock_Serialize,function,high,"reimplemented (src/game/core/funnytime); thiscall (stream, save, version, unused): the calendar clock's five fields"
 0x004cf050,ParkGates_Serialize,function,high,"arrival rate, bus capacity, gates open"
-0x004d3aa0,ObjectControls_Serialize,function,high,0x96 x 32-byte mObjectControls
+0x004d3aa0,ObjectControls_Serialize,function,high,"reimplemented (src/game/world/objectdefs); thiscall (stream, save, version, unused): the 0x96 object control records, their count and the search key saved or loaded; a full load clears the key and +0x12c8"
 0x004d7ea0,Map_Serialize,function,high,"128x128 cells; per-cell status byte: bit0 map cell, bit1 track cell, bit2 RE cell"
 0x004d0b30,MapCellBase_Serialize,function,high,"29 bytes: direction, flags, mesh instance, neighbours, overlap, parent, tile data, type, hoarding"
 0x004d8dd0,MapCell_Serialize,function,high,base + litter fields
 0x0050c200,TrackCell_Serialize,function,high,base + mSegmentNumber
-0x00502490,RECell_Serialize,function,high,5 x u16 mpEffect
+0x00502490,RECell_Serialize,function,high,"reimplemented (src/game/world/mapcell); thiscall (stream, save, version, unused): the RE cell's five words saved or loaded"
 0x004f8b10,Sprite_Serialize,function,high,"moving-person base (anim, speeds, nav, thoughts)"
-0x004d3ee0,SpriteAnim_Serialize,function,high,"mSpriteScript, mNextAnim, mNextServiceInterval"
+0x004d3ee0,SpriteAnim_Serialize,function,high,"reimplemented (src/game/sprite/scriptref); thiscall (stream, save, version, unused): the script reference's three dwords saved or loaded"
 0x0050d150,Nav_Serialize,function,high,steering/pathing state (float vectors)
-0x0050bad0,Thoughts_Serialize,function,high,event history + thought bubble
+0x0050bad0,Thoughts_Serialize,function,high,"reimplemented (src/game/world/person); thiscall (stream, save, version, unused): a person's thoughts (history index, 32 history pairs, +0, script, bubble time) saved or loaded"
 0x004fb530,Visitor_Serialize,function,high,thing model 1
 0x00504de0,Staff_Serialize,function,high,"staff base: pay grade, UTF-16 name[0x21], patrol region, time hired"
 0x004da110,Mechanic_Serialize,function,high,thing model 4
@@ -186,9 +186,9 @@ address,name,kind,confidence,notes
 0x004d6000,Guard_Serialize,function,high,thing model 7
 0x00502760,Researcher_Serialize,function,high,thing model 8
 0x004db7d0,Object_Serialize,function,high,"thing model 3: rides, shops, facilities"
-0x00508bb0,StaffHQ_Serialize,function,high,thing model 9
-0x0050c640,StaffTraining_Serialize,function,high,5 x u32 mBudget + mHaveEverTrained
-0x004da960,MechanicHQ_Serialize,function,high,thing model 10
+0x00508bb0,StaffHQ_Serialize,function,high,"reimplemented (src/game/world/headquarters); thiscall (stream, save, version, unused): the thing's fields, mForceStrike, mStaffMemberPickedUp, mStrikeLevel[5], then the training record"
+0x0050c640,StaffTraining_Serialize,function,high,"reimplemented (src/game/world/staff); thiscall (stream, save, version, unused): the five training budgets and the ever-trained byte saved or loaded"
+0x004da960,MechanicHQ_Serialize,function,high,"reimplemented (src/game/world/headquarters); thiscall (stream, save, version, unused): the thing's fields, then mNextObject"
 0x00599f60,Advisor_Serialize,function,high,thing model 11: message queue + history
 0x0059ba30,AdvisorMsg_Serialize,function,high,
 0x004c5d70,ParkAnalyser_Serialize,function,high,"thing model 13: 32x32 analysis grid + circular-buffer statistics"
@@ -201,7 +201,7 @@ address,name,kind,confidence,notes
 0x00504210,ResearchProject_Serialize,function,high,
 0x00504760,ResearchGroup_Serialize,function,high,
 0x00512010,Weather_Serialize,function,high,thing model 15
-0x005132a0,Forecast_Serialize,function,high,
+0x005132a0,Forecast_Serialize,function,high,"reimplemented (src/game/world/forecast); thiscall (stream, save, version, unused): the forecast's time (8 bytes), quality and valid byte saved or loaded"
 0x004cf920,BankAccount_Serialize,function,high,"thing model 16: balance, admission fee, 8 loans"
 0x004d2320,Challenges_Serialize,function,high,thing model 19: 0x14 challenges
 0x004d0f90,Challenge_Serialize,function,high,
@@ -425,6 +425,7 @@ address,name,kind,confidence,notes
 0x00520e00,Particle_Move,function,low,"reimplemented (src/game/render/particles); one step of a particle: drag, gravity, ground bounce"
 0x00521930,Particle_SpawnWithVelocity,function,low,"reimplemented (src/game/render/particles); cdecl (effect, x, y, z, vx, vy, vz): Particle_Spawn with the system's velocity +0x38 set to (vx, vy, vz) times its +0xb0 over 1024 in place of the jitter"
 0x00520f10,ParticleEffectors_Update,function,low,"reimplemented (src/game/render/particles); cdecl: one step of each active effector: timer, motion with drag, gravity and a ground bounce, the end effect (voice or particles) and the free list, else its pull on the live systems' particles (mode 2 kills those within its radius)"
+0x00520130,Particles_Tick,function,low,"reimplemented (src/game/render/particles); cdecl: the particles' frame (after the first): each live system's age, bounds reset, end (end effect, linked end, release) or follow, turn, move, emitter spawn and emits by the quarter's count; then the effectors' and the particles' updates; returns the dword 0x80436c"
 0x00804370,gParticleEffects,data,high,0x69 x 0x140-byte effect definitions from Tp2.plb
 0x0080c6b0,gParticleEffectors,data,high,20 x 0x68-byte effector definitions
 0x0080cefc,gParticleSystems,data,high,live systems: 0x140-byte copies of an effect definition
@@ -3279,6 +3280,7 @@ address,name,kind,confidence,notes
 0x004dad20,Objects_ReleaseTracked,function,low,"reimplemented (src/game/world/object); thiscall (this and two stack arguments unused, pops 8): the objects of the world's list at +0x1da746 in state 1 or 2 or with +0x64 set release their tracked handle (Fn_4e0210) when it still holds"
 0x004fa770,Obj_BlockValuesBelowLimit,function,low,reimplemented (src/game/world/object); thiscall: whether the block values at nine offsets from the object's cell (or the end of its facing chain) stay below +0x198
 0x004daa90,Objects_NearestFreeFor,function,low,"reimplemented (src/game/world/object); thiscall (out, person handle): one round of the world's object list from the cursor for the nearest free object the person may take"
+0x004de5a0,Object_ExitOpen,function,low,reimplemented (src/game/world/object); thiscall: whether any step but the one back is open from the cell beyond the exit (turned round when the exit is the entrance)
 0x005d46d0,Blocks7_Free,function,high,reimplemented (src/game/core/buffers); frees the seven blocks of an object and clears its groups
 0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/string); whether the first name is after the second, case blind"
 0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/string); whether two names are equal, case blind"
@@ -3784,6 +3786,8 @@ address,name,kind,confidence,notes
 0x005228b0,MapCell_Overlap,function,low,"reimplemented (src/game/world/mapcell); a map cell's mOverlapCounter (u16 at +0x20), sign-extended"
 0x00523070,MapCell_PathNudge,function,low,"reimplemented (src/game/world/mapcell); cdecl (&x, &y): the point moved two cells along each axis whose cell two away has flag 0x10, the same group and a path type (the cell's parent stands in for types 0xc/0x11)"
 0x00539670,MapCell_SetStepDirection,function,low,"reimplemented (src/game/world/mapcell); mDirection from a step of 2, added on junctions, set otherwise (name unconfirmed)"
+0x004d8750,MapCell_StepBlocked,function,low,"reimplemented (src/game/world/mapcell); cdecl (x, y, direction, mode): 1 when a step from the cell in the direction is blocked (off the map, the cell types' rules, a ride cell's ride in mode 2, the entries' low flags, the neighbour bits and directions), else 0"
+0x00510510,MapCell_StepOpen,function,low,"reimplemented (src/game/world/mapcell); cdecl (two cell handles, mode): 1 when the step between the two neighbouring cells is open (straight: MapCell_StepBlocked's one step; diagonal: round one corner or the other), 0 when blocked, not neighbours (print-once flag 0x7cf38c) or the second argument -1 (its whole dword)"
 0x0040f970,MessageSlot_Dtor,function,high,"reimplemented (src/game/world/messagecentre); thiscall on a slot: a dword, then a std::map of tree B at +4, destroyed (StdTree_DtorB); name unconfirmed"
 0x00409250,MessageCentre_DtorSlots,function,high,"reimplemented (src/game/world/messagecentre); thiscall: the 29 slots of 0x14 bytes from +0 destroyed, the last first (CRT_VectorDtorIterator, MessageSlot_Dtor); name unconfirmed"
 0x0040fa40,MessageCentre_RemoveThing,function,low,"reimplemented (src/game/world/messagecentre); thiscall (thing); the thing's handle erased from each of the 29 slots' maps (lower bound, key check, StdTree_EraseB); returns the count erased"
@@ -3816,6 +3820,9 @@ address,name,kind,confidence,notes
 0x0050af40,TagTable_Find,function,low,"reimplemented (src/game/world/tagsystem); the CTagTable lookup: 0 for ids 0x17e/0x17f, the record at 0x75eca8 + id * 0x20 when its id matches, else the first record with the id, else 0"
 0x0042a440,Ride_IsBusy,function,low,"reimplemented (src/game/world/ridestate); cdecl (object, index): the track ride link, flying ride slot, coaster link or a key-1 0x1000 model part says the ride is busy"
 0x0043bd20,Ride_Sleep,function,low,"reimplemented (src/game/world/ridestate); cdecl (index): the ride holder's awake instance out of the renderer (rectangle or sleep), the active part states of its flag-0x80 parts released"
+0x00511c90,WallFollower_Step,function,low,"reimplemented (src/game/world/wallfollow); cdecl (walker): one step along the edge of what blocks the walk, turning towards it when open; 0x32 back on the line, 0x33 past 0xfb cells"
+0x005110d0,Route_Straighten,function,low,"reimplemented (src/game/world/route); cdecl (route, first): drops the cells a straight walk can skip (up to four ahead), repeated while any are dropped; 1 when any were"
+0x005276d0,FocusCell_Update,function,low,"reimplemented (src/game/world/focuscell); cdecl (record): the focus cell from the set cell (game modes 0x19 / 0x1a) or the selected object (or the thing its handle names), stepped both ways; the move recorded (action 0x32)"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved

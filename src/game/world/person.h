@@ -8,6 +8,8 @@
 
 #include "../../../re/types.h"
 
+struct Stream;
+
 extern "C" {
 
 // 0x4e2650 (&out): the thing's map id to *out. Returns out.
@@ -32,6 +34,9 @@ u32 __fastcall Visitor_IsState11To14(const u8 *visitor);
 // the action history (+4), mThoughtScript (+0x84), mActionHistIndex (+0x88) and
 // mTimeBubbleShown (+0x8c). Returns them.
 u8 *__fastcall Thoughts_Ctor(u8 *thoughts);
+// 0x50bad0 (thiscall; stream, save, version, unused): mActionHistIndex (+0x88), the 32 action history pairs (dwords +4..), +0, mThoughtScript
+// (+0x84) and mTimeBubbleShown (+0x8c) saved or loaded as a serializer does (Save_Field; the load reads the last through Save_ReadU32, the same).
+u32 __fastcall Thoughts_Serialize(u8 *thoughts, void *, Stream *stream, u32 save, s32 version, u32 unused);
 
 // 0x5065d0 (thiscall; word, pops 4): Person_HasWord (world/person); when it holds: 1 for kind 5 with the dword at +0x19c equal to 0xb and for kind 4 with
 // it equal to 0xd, otherwise 0.
