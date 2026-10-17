@@ -1,22 +1,44 @@
 # The draw buffer's methods (src/game/render/drawbuffer: 0x582390, 0x582640-0x5827f0) against the
 # originals: streams 0 to 3, batch slots in and around the table, modes with and without 4,
-# scratch areas full and not.
+# scratch areas full and not. The releases (0x582340 a stream's, 0x582280 the buffer's at 0x8bcbc4): blocks set or 0,
+# tracked (as they are or 4 below) or not, no buffer.
 # usage: drawbuffer.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Reset,Alloc,...)
 import os
+import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, put  # noqa: E402
+from fncmp import Bench, Call, HEAP, RAM, global_heap, heap, put  # noqa: E402
 
-B = Bench([(0x582390, 0x5823ed), (0x582640, 0x582804)])
+B = Bench([(0x582390, 0x5823ed), (0x582640, 0x582804), (0x582280, 0x582384), (0x579b40, 0x579c13), (0x67acb0, 0x67acb1)])
 CALLS = {'Reset': 0x582390, 'Alloc': 0x582640, 'Begin': 0x582670, 'Vertices': 0x5826f0, 'Resume': 0x582710,
-         'End': 0x582780, 'VertexLimit': 0x5827d0, 'IndexLimit': 0x5827f0}
+         'End': 0x582780, 'VertexLimit': 0x5827d0, 'IndexLimit': 0x5827f0, 'StreamFree': 0x582340, 'Destroy': 0x582280}
 BUF = RAM + 0x20          # stream 0's record would be at BUF - 0x10
 BATCHES = RAM + 0x100     # 16 batches of 0x38
+COUNT, PAIRS = 0x8bb214, 0x87b1f8
+BLOCKS = [HEAP + 0x40, HEAP + 0x80, HEAP + 0xc0, HEAP + 0x100, HEAP + 0x140, HEAP + 0x180]
+
+
+def free_case(op, r):
+    mem = bytearray(r.bytes(0x100))
+    blocks = r.sample(BLOCKS, 6)
+    for off, block in zip((0x8, 0x14, 0x20, 0x2c, 0x44, 0x60), blocks):
+        put(mem, 0x20 + off, 'I', r.choice([block, block, block, 0, r.getrandbits(32)]))
+    table = bytearray(0x40)
+    for k in range(8):
+        b = r.choice(blocks + [r.getrandbits(32)])
+        put(table, 8 * k, 'II', r.getrandbits(32), r.choice([b, b, (b + 4) & 0xffffffff]))  # (looked up as it is, then 4 above)
+    regions = {RAM: mem, HEAP: heap(), **global_heap(), COUNT: struct.pack('<I', r.choice([0, 1, 3, 6, 8])), PAIRS: table}
+    if op == 'StreamFree':
+        return Call(0x582340, [r.choice([BUF + 8, BUF + 0x20])], regions, conv='t', ret='a')
+    regions[0x8bcbc4] = struct.pack('<I', r.choice([BUF, BUF, BUF, 0]))
+    return Call(0x582280, [], regions, conv='c', ret='a')
 
 
 def case(r):
     op = r.choice(OPS)
+    if op in ('StreamFree', 'Destroy'):
+        return free_case(op, r)
     mem = bytearray(r.bytes(0x100 + 16 * 0x38))
     b = 0x20
     put(mem, b + 0, 'I', r.choice([0, 1, 2, 3, 4, 5, 6, 7, r.getrandbits(32)]))

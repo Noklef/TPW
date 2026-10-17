@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "../core/gameheap.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -14,6 +16,40 @@ u32 *current(const u8 *buffer) { return stream(buffer, at<u32>(buffer, 4)); }
 }  // namespace
 
 extern "C" {
+
+u32 __fastcall DrawStream_Free(u8 *stream) {
+    if (const u32 indices = at<u32>(stream, 0xc)) {
+        TrackedGlobal_Free(indices);
+        at<u32>(stream, 0xc) = 0;
+    }
+    if (const u32 vertices = at<u32>(stream, 0)) {
+        TrackedGlobal_Free(vertices);
+        at<u32>(stream, 0) = 0;
+    }
+    at<u32>(stream, 8) = 0;
+    at<u32>(stream, 0x14) = 0;
+    return 1;
+}
+
+u32 __cdecl DrawBuffer_Destroy() {
+    u8 *const buffer = global<u8 *>(0x008bcbc4);
+    if (!buffer)
+        return 0;
+    DrawStream_Free(buffer + 0x20);
+    DrawStream_Free(buffer + 8);
+    if (const u32 batches = at<u32>(buffer, 0x44)) {
+        TrackedGlobal_Free(batches);
+        at<u32>(buffer, 0x44) = 0;
+    }
+    if (const u32 scratch = at<u32>(buffer, 0x60)) {
+        TrackedGlobal_Free(scratch);
+        at<u32>(buffer, 0x60) = 0;
+        at<u32>(buffer, 0x58) = 0;
+    }
+    GameHeap_Free(global<u8 *>(0x008bcbc4));
+    global<u32>(0x008bcbc4) = 0;
+    return 1;
+}
 
 void __fastcall DrawBuffer_Reset(u8 *buffer, void *, u32 streams) {
     u8 which = (u8)streams;
