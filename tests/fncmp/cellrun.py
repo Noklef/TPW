@@ -1,0 +1,118 @@
+# A run of type 0x19 map cells marked (src/game/world/cellrun: 0x531040) against the original: a start cell (0x7639f0 / 0x7639f4) anywhere on the map, mostly
+# away from the edges, and the cells around it two apart (the only ones a run can reach; each row laid out as one region, the cells between random too) of
+# type 0x19 mostly, with neighbour bits often one or two of the four sides, now and then random, the hoarding neighbours (0x81b4cc, a cell's +2 of 2) and
+# a cell's own id (+0) now and then off. Both world pointers (0x7cf83c, and 0x80239c that Map_StepCell28 reads) are the same; the direction pairs (0x7cdba0, set at run time) are laid out. A run that would not stop
+# (a cycle, or a direction that does not move) is skipped by a model of the walk, so a case is redrawn, as is one leaving the laid out cells (the memory past them is
+# not the same on both sides: a run over it may never stop). So a run moved off the map (a next cell off it does not stop it) is seldom kept.
+# usage: cellrun.py [CASES [SEED]] [--wild|--both] [--show N]
+import os
+import struct
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
+from fncmp import Bench, Call, RAM, put  # noqa: E402
+
+B = Bench([(0x531040, 0x531167), (0x4d8c00, 0x4d8c30), (0x4d8300, 0x4d8328), (0x522700, 0x5228b5), (0x53a510, 0x53a53d), (0x53ad20, 0x53aefc),
+           (0x50c320, 0x50c3e0), (0x50c3e0, 0x50c540), (0x536300, 0x53644c), (0x522850, 0x522860), (0x4d99c0, 0x4d99e0), (0x4d97b0, 0x4d97e0), (0x5da3c0, 0x5da3c1)])
+CELLS = RAM + 0x10000
+WORLD = (CELLS - 0x6cde * 0x28) & 0xffffffff
+REACH = 4  # cells two apart either side of the start
+STEPS = {1: (0, -1), 2: (1, -1), 4: (1, 0), 8: (1, 1), 0x10: (0, 1), 0x20: (-1, 1), 0x40: (-1, 0), 0x80: (-1, -1)}
+TABLE = {1: 0, 0x10: 8, 0x20: 0x10, 8: 0x18, 0x80: 0x20, 4: 0x28, 0x40: 0x30, 2: 0x38}  # each direction's (dx, dy) at 0x7cdba0 + (set up at run time)
+PAIRS = bytearray(0x40)
+for _d, _at in TABLE.items():
+    struct.pack_into('<ii', PAIRS, _at, *STEPS[_d])
+MOVES = {1: (0, -2), 4: (2, 0), 0x10: (0, 2), 0x40: (-2, 0)}
+
+
+def ident(x, y):
+    return ((y << 7) + x + 1) & 0xffff
+
+
+def neighbours(cell, hoarding):
+    return cell[0x22] if hoarding and cell[2] == 2 else cell[0xc]
+
+
+def bits(v, mask):
+    return bin(v & mask).count('1')
+
+
+def stops(cells, x, y, hoarding):
+    """The walk modelled: True when it stops within the laid out cells."""
+    d, count = 4, 0
+    for _ in range(200):
+        cell = cells.get(ident(x, y))
+        if cell is None:
+            return False
+        nb = neighbours(cell, hoarding)
+        if struct.unpack_from('<I', cell, 8)[0] == 0x19 and bits(nb, 0x55) == 2 and nb & 0x11 and nb & 0x44:
+            low = d & 0xff
+            d = (low and (low << 4 if low < 0x10 else low >> 4)) & 0xff ^ nb
+        done = False
+        if d in STEPS:
+            own = struct.unpack_from('<H', cell, 0)[0]
+            index = (own - 1) & 0xffffffff
+            dx, dy = STEPS[d]
+            nx, ny = (index & 0x7f) + dx * 2, (index >> 7) + dy * 2
+            if 0 <= nx < 0x80 and 0 <= ny < 0x80:
+                nxt = cells.get((((dy * 2) << 7) + own + dx * 2) & 0xffff)
+                if nxt is None:
+                    return False
+                if struct.unpack_from('<I', nxt, 8)[0] != 0x19:
+                    done = True
+        if bits(nb, 0xff) == 1 and count:
+            done = True
+        if done:
+            return True
+        mx, my = MOVES.get(d, (0, 0))
+        x, y = x + mx, y + my
+        count += 1
+    return False
+
+
+def side_bits(r):
+    sides = [1, 4, 0x10, 0x40]
+    return r.choice([r.choice(sides), r.choice(sides) | r.choice(sides), r.choice(sides) | r.choice(sides), r.getrandbits(8), 0])
+
+
+def draw(r):
+    x0 = r.choice([r.randrange(0, 128), r.randrange(8, 120), r.randrange(8, 120), r.choice([0, 1, 126, 127])])
+    y0 = r.choice([r.randrange(0, 128), r.randrange(8, 120), r.randrange(8, 120), r.choice([0, 1, 126, 127])])
+    hoarding = r.choice([0, 0, 1])
+    p19 = r.choice([0.5, 0.8, 0.95])
+    rows, cells = {}, {}
+    for j in range(-REACH, REACH + 1):
+        y = y0 + 2 * j
+        lo = ident(x0 - 2 * REACH, y)
+        row = bytearray(r.bytes((4 * REACH + 1) * 0x28))
+        for i in range(4 * REACH + 1):
+            cell = memoryview(row)[i * 0x28:(i + 1) * 0x28]
+            own = (lo + i) & 0xffff
+            put(row, i * 0x28, 'H', own if r.random() < 0.95 else (own + r.choice([2, -2, 0x100, 1])) & 0xffff)
+            put(row, i * 0x28 + 8, 'I', 0x19 if r.random() < p19 else r.choice([0, 1, 0xb, 0x12, 0x1a, 0x119]))
+            row[i * 0x28 + 2] = r.choice([2, 2, 0, 1, 3])
+            row[i * 0x28 + 0xc] = side_bits(r)
+            row[i * 0x28 + 0x22] = side_bits(r)
+            if lo + i < 0x10000:
+                cells[own] = cell
+        rows[CELLS + lo * 0x28] = row
+    return x0, y0, hoarding, rows, cells
+
+
+def case(r):
+    while True:
+        x0, y0, hoarding, rows, cells = draw(r)
+        if stops(cells, x0, y0, hoarding):
+            break
+    regions = dict(rows)
+    regions[0x7639f0] = struct.pack('<ii', x0, y0)
+    regions[0x818c50] = r.bytes(4)
+    regions[0x81b4cc] = struct.pack('<I', r.choice([1, 0xff, 0x101]) if hoarding else r.choice([0, 0x100]))
+    regions[0x7cf83c] = struct.pack('<I', WORLD)
+    regions[0x80239c] = struct.pack('<I', WORLD)
+    regions[0x7cdba0] = PAIRS
+    return Call(0x531040, [r.choice([0, 1, 0x100, 0xffffff01, r.getrandbits(32)])], regions, conv='c', ret='v')
+
+
+if __name__ == '__main__':
+    B.main(case)

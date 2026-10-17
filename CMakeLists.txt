@@ -213,6 +213,7 @@ add_library(tpw_game STATIC
     src/game/world/focuscell.cpp
     src/game/world/hoardinggrid.cpp
     src/game/world/mapline.cpp
+    src/game/world/cellrun.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp

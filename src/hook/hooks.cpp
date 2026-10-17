@@ -181,7 +181,8 @@
 #include "../game/terrain/terrain_blend.h"
 #include "../game/terrain/texcache.h"
 #include "../game/world/random.h"
-#include "../game/world/camera.h"
+#include "../game/world/camera.h"
+#include "../game/world/cellrun.h"
 #include "../game/world/mousemode.h"
 #include "../game/world/objectdefs.h"
 #include "../game/world/staff.h"
@@ -3450,6 +3451,7 @@ const Hook kHooks[] = {
     {"FocusCell_Update",          0x005276d0, (void *)&FocusCell_Update, {0x66, 0xa1, 0x98, 0x86, 0x81}},
     {"HoardingGrid_Fill",         0x00532960, (void *)&HoardingGrid_Fill, {0xa1, 0xb0, 0xb1, 0x81, 0x00}},
     {"Map_ApplyLine",             0x0053aac0, (void *)&Map_ApplyLine, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
+    {"CellRun_Mark",              0x00531040, (void *)&CellRun_Mark, {0x83, 0xec, 0x0c, 0xa1, 0xf0}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

@@ -3842,6 +3842,7 @@ address,name,kind,confidence,notes
 0x005276d0,FocusCell_Update,function,low,"reimplemented (src/game/world/focuscell); cdecl (record): the focus cell from the set cell (game modes 0x19 / 0x1a) or the selected object (or the thing its handle names), stepped both ways; the move recorded (action 0x32)"
 0x00532960,HoardingGrid_Fill,function,low,"reimplemented (src/game/world/hoardinggrid); cdecl: the coarse char grid at 0x81eeb0 (rows of 0x43, one char per 2 x 2 cells) of the width x depth area (0x81d740 / 0x81b1b0): space, @ for a type 0x19 cell, # for a cell whose 0x44-byte cell lacks flag 0x40"
 0x0053aac0,Map_ApplyLine,function,low,"reimplemented (src/game/world/mapline); cdecl (arg, x, y, &xEnd, &yEnd): the cell operation 0x5370e0 on every second map cell from (x, y) along the longer axis to the end (pulled in to an even distance); 0 when one answers 0"
+0x00531040,CellRun_Mark,function,low,"reimplemented (src/game/world/cellrun); cdecl (set): flag 0x20 set or cleared on a run of type 0x19 map cells from the cell at 0x7639f0, two cells a step, turning at corners"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
