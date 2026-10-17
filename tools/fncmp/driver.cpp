@@ -390,7 +390,8 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x00703838, 12},  // RefObject_vtable
                                    {0x00703f78, 12},  // BufferedSource_vtable
                                    {0x00703868, 12},  // MemorySource_vtable
-                                   {0x00703160, 3}};  // CallbackStream_vtable
+                                   {0x00703160, 3},   // CallbackStream_vtable
+                                   {0x006fd6a0, 9}};  // the action recorder's streams (FileStream's deleting destructor, StreamBase's)
 
 void __cdecl debug_printf(const char *, ...) {}  // Debug_Printf 0x5da3c0 (RefObject's teardown slot among others)
 
