@@ -46,7 +46,8 @@ def case(r):
     # The wrapped seek hits (the position it is asked for: where the copy ends, or the position) or misses.
     set_return(log, K_SEEK, r.choice([position, position, end, (position + count) & 0xffffffff, (position + 1) & 0xffffffff, 0, 0xffffffff]))
     set_return(log, K_READ, r.choice([0, 1, capacity, capacity, min(count, 0x200), r.randrange(capacity + 1), min(count, 0x40)]))
-    set_return(log, K_WRITE, r.choice([0, 1, count, count, length, r.randrange(0x100)]))
+    # (end - position: a write that ends on the window's end)
+    set_return(log, K_WRITE, r.choice([0, 1, count, count, length, (end - position) & 0xffffffff, r.randrange(0x100)]))
     size = r.choice([0, position, end, (position + 1) & 0xffffffff, 0x100, 0x1000, 0x7fffffff, 0xffffffff])
     set_return(log, K_SIZE, size)
     set_return(log, K_OWN_SIZE, size if r.random() < 0.8 else r.choice([0, 0x100, 0xffffffff]))
