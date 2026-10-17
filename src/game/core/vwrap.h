@@ -58,6 +58,13 @@ u32 __fastcall Obj_CallSlot2cIfGlobal(u8 *object, void *, u32 a);
 u32 __cdecl Global879acc_Delete();
 u32 __cdecl Global879ac0_Delete();
 
+// 0x569e10 / 0x5666f0 (cdecl; names unconfirmed): their creators. When the dword is 0: a new object (the game's heap) of 0x38 bytes, its virtual base
+// (Class701260_Ctor at +8) given the vtable 0x7013c8 and +0xc of it 0x1000 / of 0x5c bytes (Class701378_Ctor, most derived); the dword = the virtual base
+// part, whose slot 1 is called, 1. 0 when there was one, or when the allocation failed (the dword 0, the error (3, 0xb0754000) pushed).
+// (The original's exception frame only frees the block when a constructor throws, which these do not.)
+u32 __cdecl Global879acc_Create();
+u32 __cdecl Global879ac0_Create();
+
 // 0x47e990 (cdecl): when the dword at 0x7b4b84 is not 0 the object it points to is deleted (slot 0 with 1); the dword is left.
 void __cdecl Global7b4b84_Delete();
 

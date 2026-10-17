@@ -133,6 +133,10 @@ class Emu:
         self.hooks = {}
         self.tail = False  # a hook was reached by a jump (the return address is at [ESP]) rather than a call (the first argument is)
         self.heap = 0x20000000
+        # CPUID and EFLAGS.ID (PUSHFD / POPFD) have no host value here: cpuid(emu, leaf) -> (EAX, EBX, ECX, EDX) and id_writable(emu) -> bool
+        # give a fake CPU (tools/fncmp.py's, the same as its driver's); unset, CPUID and a POPFD that sets ID raise.
+        self.cpuid = None
+        self.id_writable = None
         self.reset()
 
     def reset(self):
@@ -143,6 +147,7 @@ class Emu:
         self.cw = 0x007f  # the game's (single precision); FLDCW keeps it, arithmetic stays at 24 bits
         self.zf = self.sf = self.cf = self.of = self.pf = False
         self.df = False  # the direction flag (STD / CLD): string instructions step down when set
+        self.idf = False  # EFLAGS.ID (bit 21), as POPFD left it
 
     # memory: written bytes first, then the exe image, else zero
     def dstep(self, n):
@@ -509,6 +514,32 @@ class Emu:
             self.push(self.get(o[0]))
         elif mn == 'POP':
             self.put(o[0], self.pop())
+        elif mn == 'PUSHFD':  # CF PF ZF SF IF DF OF and ID (bit 1 always set; AF is not kept)
+            self.push(0x202 | self.cf | self.pf << 2 | self.zf << 6 | self.sf << 7 | self.df << 10 | self.of << 11 | self.idf << 21)
+        elif mn == 'POPFD':
+            v = self.pop()
+            self.cf, self.pf, self.zf, self.sf, self.df, self.of = (bool(v >> b & 1) for b in (0, 2, 6, 7, 10, 11))
+            if bool(v >> 21 & 1) != self.idf:
+                if self.id_writable is None:
+                    raise RuntimeError('POPFD toggles EFLAGS.ID: no fake CPU (id_writable)')
+                if self.id_writable(self):
+                    self.idf = not self.idf
+        elif mn == 'PUSHAD':
+            sp = self.r['ESP']
+            for k in ('EAX', 'ECX', 'EDX', 'EBX'):
+                self.push(self.r[k])
+            self.push(sp)
+            for k in ('EBP', 'ESI', 'EDI'):
+                self.push(self.r[k])
+        elif mn == 'POPAD':  # (the saved ESP is skipped)
+            for k in ('EDI', 'ESI', 'EBP', None, 'EBX', 'EDX', 'ECX', 'EAX'):
+                v = self.pop()
+                if k:
+                    self.r[k] = v
+        elif mn == 'CPUID':
+            if self.cpuid is None:
+                raise RuntimeError('CPUID: no fake CPU (cpuid)')
+            self.r['EAX'], self.r['EBX'], self.r['ECX'], self.r['EDX'] = (x & 0xffffffff for x in self.cpuid(self, self.r['EAX']))
         elif mn == 'STOSB.REP':
             while self.r['ECX']:
                 self.write(self.r['EDI'], bytes([self.r['EAX'] & 0xff]))

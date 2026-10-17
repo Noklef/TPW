@@ -2,6 +2,9 @@
 
 #include <cstdint>
 
+#include "../render/engineerrors.h"
+#include "gameheap.h"
+#include "misc.h"
 #include "vcall.h"
 
 namespace {
@@ -112,6 +115,46 @@ u32 __cdecl Global879acc_Delete() {
         return 1;
     }
     return 0;
+}
+
+u32 __cdecl Global879acc_Create() {
+    if (global<u32>(0x00879acc)) return 0;
+    u8 *object = static_cast<u8 *>(GameHeap_Alloc(0x38));
+    u8 *base = nullptr;
+    if (object) {
+        at<u32>(object, 0) = 0x00701410;
+        Class701260_Ctor(object + 8);
+        const s32 offset = at<s32>(at<u8 *>(object, 0), 4);
+        at<u32>(object, offset) = 0x007013c8;
+        const s32 again = at<s32>(at<u8 *>(object, 0), 4);
+        at<s32>(object, again - 4) = again - 8;
+        at<u32>(object, at<s32>(at<u8 *>(object, 0), 4) + 0xc) = 0x1000;
+        base = object + at<s32>(at<u8 *>(object, 0), 4);
+    }
+    global<u8 *>(0x00879acc) = base;
+    if (!base) {
+        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+        return 0;
+    }
+    vcall<u32>(base, 4);
+    return 1;
+}
+
+u32 __cdecl Global879ac0_Create() {
+    if (global<u32>(0x00879ac0)) return 0;
+    u8 *object = static_cast<u8 *>(GameHeap_Alloc(0x5c));
+    u8 *base = nullptr;
+    if (object) {
+        Class701378_Ctor(object, nullptr, 1);
+        base = object + at<s32>(at<u8 *>(object, 0), 4);
+    }
+    global<u8 *>(0x00879ac0) = base;
+    if (!base) {
+        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+        return 0;
+    }
+    vcall<u32>(base, 4);
+    return 1;
 }
 
 u32 __cdecl Global879ac0_Delete() {

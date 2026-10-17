@@ -29,6 +29,13 @@ u32 __fastcall Obj_StoreComSlot80(u8 *object) {
     return 1;
 }
 
+u32 __fastcall Obj_FreeVideoMemory(u8 *object) {
+    u32 caps[4] = {0, 0, 0, 0};  // DDSCAPS2
+    u32 total, free;  // (sic: left as they were when the call does not set them)
+    comcall<u32>(at<u8 *>(object, 8), 0x5c, caps, &total, &free);
+    return free;
+}
+
 u8 *__fastcall Counted_Release(u8 *counted) {
     const u32 count = at<u32>(counted, 4);  // (the STL lock around it is left out)
     if (count != 0 && count != 0xffffffffu)

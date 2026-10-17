@@ -25,6 +25,10 @@ void __fastcall Panel_Reset(u8 *panel);
 // those taken kept, sic), freed at the end; returns 1.
 u8 __fastcall Image_ShrinkInto(const u8 *image, void *, u8 *dest, s32 width, s32 height, u32 format);
 
+// 0x5d4970 (thiscall on a panel; dest, width, height, format, pops 16): the panel's image (+0x50) shrunk into dest (Image_ShrinkInto), after a
+// Panel_Reset (inline) when the image's pixels (+0x5c) are null (sic: the reset then fills through the null pointer unless the image is empty).
+u8 __fastcall Panel_ShrinkInto(u8 *panel, void *, u8 *dest, s32 width, s32 height, u32 format);
+
 // 0x5ea3f0 (cdecl; destination image, source image, x, y; images {width, height, bytes per pixel, data}): the destination is made over (Array3D_Realloc: the source's width
 // and height, one byte per pixel, cleared) and the part of the source that is left once it is moved by (x, y) (its rows and columns clamped to the source) is copied into it, the
 // first byte of each pixel, at (max(x, 0), max(y, 0)). Returns true.

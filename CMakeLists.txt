@@ -129,6 +129,7 @@ add_library(tpw_game STATIC
     src/game/core/floatconsts.cpp
     src/game/core/funnytime.cpp
     src/game/core/sync.cpp
+    src/game/core/cpuinfo.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -149,6 +150,7 @@ add_library(tpw_game STATIC
     src/game/gfx/imageops.cpp
     src/game/gfx/statsgraph.cpp
     src/game/gfx/rleimage.cpp
+    src/game/gfx/texsprite.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp
@@ -215,6 +217,10 @@ add_library(tpw_game STATIC
     src/game/world/route.cpp
     src/game/world/focuscell.cpp
     src/game/world/hoardinggrid.cpp
+    src/game/world/mapline.cpp
+    src/game/world/cellrun.cpp
+    src/game/world/parkmap.cpp
+    src/game/world/cellmodel.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
@@ -279,6 +285,8 @@ add_library(tpw_game STATIC
     src/game/render/heightgrid.cpp
     src/game/render/vertexfog.cpp
     src/game/render/quad.cpp
+    src/game/render/d3dprobe.cpp
+    src/game/render/engineerrors.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/online/itemlist.cpp

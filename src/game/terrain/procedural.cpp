@@ -1,7 +1,10 @@
 #include "procedural.h"
 
 #include <cstdint>
+#include <initializer_list>
 
+#include "../core/gameheap.h"
+#include "../render/engineerrors.h"
 #include "land.h"
 
 namespace {
@@ -33,6 +36,23 @@ void __cdecl TerrainTex_SetRect(u32 x0, u32 y0, u32 x1, u32 y1) {
     at<u32>(tex, 0x238) = y0;
     at<u32>(tex, 0x23c) = x1;
     at<u32>(tex, 0x240) = y1;
+}
+
+u32 __cdecl TerrainTex_Create() {
+    u8 *&tex = *reinterpret_cast<u8 **>(0x00879d60);
+    if (tex) return 0;
+    u8 *const p = static_cast<u8 *>(GameHeap_Alloc(0x12974));
+    if (p) {
+        for (const u32 offset : {0x0u, 0x4u, 0x20u, 0x24u, 0x128u, 0x12cu, 0x230u, 0x234u, 0x238u, 0x2958u, 0x12968u, 0x12970u}) at<u32>(p, offset) = 0;
+        at<u32>(p, 0x23c) = 0x7f;
+        at<u32>(p, 0x240) = 0x7f;
+    }
+    tex = p;
+    if (!p) {
+        EngineErrors_Push(reinterpret_cast<u8 *>(0x00879ad0), nullptr, 3, 0xb0754000);
+        return 0;
+    }
+    return 1;
 }
 
 void __cdecl Terrain_ProceduralEnter() {

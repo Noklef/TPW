@@ -43,6 +43,9 @@ A case can hand the code a heap (heap() is its region at HEAP): the same bump al
 both for Mem_Alloc / Mem_Free (and memmove 0x67bb90 in the emulator); _Xlen / _Xran fail the
 case (the driver reports a crash, the emulator raises).
 
+A case can hand the code a fake CPU (cpu_region() is its region at CPU): CPUID's answers and whether EFLAGS.ID toggles, in both (the
+emulator's CPUID / PUSHFD / POPFD, the driver's CpuInfo env).
+
 The emulator gets __ftol, modf and _CIfmod stubs; Bench(..., sines=N) also gives both sides
 an N-entry sine table at 0x7b095c (see sintable.h).
 """
@@ -437,6 +440,13 @@ CDECL_LOG = STUBS + 0x50  # a callback of one cdecl argument that logs it (the e
 def _cdecl_log(e):  # (driver.cpp stub_cdecl_log)
     sp = e.r['ESP'] + (4 if e.tail else 0)
     arg = e.u32(sp)
+    mask = e.u32(LOG + LOG_STRINGS + 4 * 0x3f)   # (strings(log, 0x3f, ...), as driver.cpp's record_call applies it)
+    if mask & 1:
+        arg = string_hash(e.read, arg)
+    if mask >> 16 & 1:
+        arg = 0
+    if e.u32(LOG + LOG_BYTES + 4 * 0x3f) & 1:
+        arg &= 0xff
     count = e.u32(LOG)
     if count < LOG_ENTRIES:
         entry = LOG + 4 + 4 * LOG_ENTRY * count
@@ -460,6 +470,28 @@ def _cdecl_log2(e):  # (driver.cpp stub_cdecl_log2)
         e.write(LOG, struct.pack('<I', count + 1))
     e.r['EAX'] = e.u32(LOG + LOG_RETURNS + 8 * 0x3e + 4) if e.u32(LOG + LOG_RETURNS + 8 * 0x3e) else vhash(0x13e, 2, 0, args)
 
+
+
+CPU = 0x2d000000  # the fake CPU a case maps (cpu_region()): CPUID and EFLAGS.ID in the emulator, driver.cpp's stub_cpuid / stub_has_cpuid natively
+
+
+def cpu_region(id_writable, leaves):
+    """The fake CPU's region (at CPU): +0 1 when EFLAGS.ID can be toggled, then from +0x10 the (EAX, EBX, ECX, EDX) CPUID answers for leaf 0, 1,
+    0x80000001 and any other leaf, 16 bytes each (leaves: up to four tuples, the rest zero)."""
+    b = bytearray(0x50)
+    struct.pack_into('<I', b, 0, 1 if id_writable else 0)
+    for i, regs in enumerate(leaves[:4]):
+        struct.pack_into('<4I', b, 0x10 + 0x10 * i, *(x & 0xffffffff for x in regs))
+    return b
+
+
+def _cpuid(e, leaf):
+    i = {0: 0, 1: 1, 0x80000001: 2}.get(leaf, 3)
+    return struct.unpack('<4I', e.read(CPU + 0x10 + 0x10 * i, 16))
+
+
+def _id_writable(e):
+    return e.u32(CPU) != 0
 
 
 COUNTER = STUBS + 0x60  # QueryPerformanceFrequency / QueryPerformanceCounter for an import slot (driver.cpp stub_counter); counter(log, ...) sets it up
@@ -546,6 +578,7 @@ class Bench:
         self.emu.hooks.update({recorder(k, n): _recorder(k, n) for k in range(32) for n in range(16)})  # (n up to 15 fits below the COM recorders at +0x4000)
         self.emu.hooks.update({recorder(k, n, True): _recorder(k, n, True) for k in range(64) for n in range(12)})
         self.emu.hooks.update(hooks or {})
+        self.emu.cpuid, self.emu.id_writable = _cpuid, _id_writable
         self.extra = {0x7b095c: sine_table(sines)} if sines else {}
         self.driver = DRIVER
         # strict: the original faults, as the driver would, outside the case's regions, the

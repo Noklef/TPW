@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+#include "../gfx/spriteframe.h"
+#include "../render/engineerrors.h"
 #include "gameheap.h"
 #include "stdlist.h"
 
@@ -92,6 +94,25 @@ u32 __fastcall PtrArray_RemoveAndFree(u8 *object, void *, u32 item) {
     items[index] = items[count];
     at<s32>(at<u8 *>(object, 4), 4) = at<s32>(object, 0x1c);
     return 1;
+}
+
+u8 *__fastcall PtrArray_AddSpriteFrame(u8 *object, void *, u32 image) {
+    u8 *frame = static_cast<u8 *>(GameHeap_Alloc(0x44));
+    if (frame) frame = SpriteFrame_Init(frame);
+    if (!frame) {
+        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
+        return nullptr;
+    }
+    at<u32>(frame, 0x24) = 0xffffffff;
+    at<u32>(frame, 0x10) = 0x58000;
+    at<u32>(frame, 0x2c) = 0x41200000;  // 10.0f
+    at<u32>(frame, 0x28) = image;
+    at<u8 *>(at<u8 *>(object, 8), 4 * at<u32>(object, 0x1c)) = frame;
+    const u32 count = at<u32>(object, 0x1c) + 1;
+    u8 *const header = at<u8 *>(object, 4);
+    at<u32>(object, 0x1c) = count;
+    at<u32>(header, 4) = count;
+    return frame;
 }
 
 void __fastcall ListRemovec_5d8a80(u8 *o, void *, u32 v0) {

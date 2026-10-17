@@ -1,7 +1,9 @@
 #include "globals.h"
 
 #include <cstdint>
+#include <initializer_list>
 
+#include "../render/engineerrors.h"
 #include "../world/object.h"
 #include "accessors.h"
 #include "crt.h"
@@ -235,6 +237,23 @@ u32 __cdecl Globalfb2708_Set_6d1bc0(u32 v0) {
 
 u32 __cdecl FreeGlobal879a20_561a00() {
     const u32 p = global<u32>(0x00879a20); if (!p) return 0; GameHeap_Free(reinterpret_cast<void *>(p)); global<u32>(0x00879a20) = 0; return 1;
+}
+
+u32 __cdecl CreateGlobal879d54_56b6c0() {
+    u8 *&block = *reinterpret_cast<u8 **>((uintptr_t)0x00879d54);
+    if (block) return 0;
+    u8 *const p = static_cast<u8 *>(GameHeap_Alloc(0x2d8));
+    if (p) {
+        for (const u32 offset : {0x30u, 0x34u, 0x3cu, 0x40u, 0x44u, 0x48u, 0x4cu, 0x50u, 0x54u, 0x58u, 0x5cu, 0x60u, 0x6cu, 0xc0u, 0xc4u, 0xc8u, 0x1ccu,
+                                 0x1d0u})
+            *reinterpret_cast<u32 *>(p + offset) = 0;
+    }
+    block = p;
+    if (!p) {
+        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+        return 0;
+    }
+    return 1;
 }
 
 u32 __cdecl FreeGlobal879d54_56b760() {

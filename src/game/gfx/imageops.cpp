@@ -147,6 +147,11 @@ u8 __fastcall Image_ShrinkInto(const u8 *image, void *, u8 *dest, s32 width, s32
     return 1;
 }
 
+u8 __fastcall Panel_ShrinkInto(u8 *panel, void *, u8 *dest, s32 width, s32 height, u32 format) {
+    if (at<u8 *>(panel, 0x5c) == nullptr) Panel_Reset(panel);  // (sic: fills through the null pixels; Panel_Reset inline)
+    return Image_ShrinkInto(panel + 0x50, nullptr, dest, width, height, format);
+}
+
 void __fastcall Panel_Reset(u8 *panel) {
     u8 *const target = panel + 0x50;
     u8 *pixel = at<u8 *>(target, 0xc);

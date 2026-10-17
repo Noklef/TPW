@@ -23,6 +23,11 @@ void __cdecl TerrainTex_Disable();
 // +0x240 = the four (0x457cf5: the terrain area in view).
 void __cdecl TerrainTex_SetRect(u32 x0, u32 y0, u32 x1, u32 y1);
 
+// 0x56ddf0 (name unconfirmed): when there is no procedural texture object yet, a new one of 0x12974 bytes (the game's heap) at [0x879d60], its
+// +0, +4, +0x20, +0x24, +0x128, +0x12c, +0x230 to +0x238, +0x2958, +0x12968 and +0x12970 cleared and the rectangle's right / bottom (+0x23c /
+// +0x240) 0x7f; 1 then. 0 when there was one, or when the allocation failed (left null, the error (3, 0xb0754000) pushed onto the engine's list).
+u32 __cdecl TerrainTex_Create();
+
 // 0x457a00: when available and not in use: the option 0x78d8d8 at 1 turns them on (flag, the
 // renderer, the cells); at 0 marks them unavailable (clears 0x6000); else nothing.
 void __cdecl Terrain_ProceduralEnter();

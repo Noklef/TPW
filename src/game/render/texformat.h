@@ -43,4 +43,10 @@ void __fastcall TexFormat_SetArgb32(u8 *settings);
 
 // 0x5839e0 (thiscall): the current format's table, +0x88 + 0x1000 * (+4).
 u8 *__fastcall TexFormat_Table(u8 *settings);
+
+// 0x562f70 (cdecl; to, from, side; name unconfirmed): side * side 32-bit ARGB pixels put into the current texture format (0x8bd554) at to: 0 RGB565,
+// 1 ARGB1555, 2 ARGB4444 (each field the channel's top bits, the fields added together), 3 a copy, of only `side` dwords (sic). Any other format pushes
+// the error (2, 0xb0754003). The 565's green is the top six bits at bit 6 (sic, its top bit added onto the red's lowest) and the 4444's fields are
+// green at bit 8, red at bit 4 and alpha at 0 (as the original lays them out).
+void __cdecl TexFormat_ConvertSquare(u16 *to, const u32 *from, u32 side);
 }

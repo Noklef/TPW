@@ -689,6 +689,50 @@ void __cdecl String_PlacementCopy(String *dest, const String *from) {
         String_CtorCopy(dest, nullptr, reinterpret_cast<const StringView *>(from));
 }
 
+void __fastcall StringVector_InsertN(u8 *vec, void *, u8 *position, u32 count, const String *value) {
+    const auto strings = [](const u8 *to, const u8 *from) { return (s32)(to - from) / 0x14; };
+    const auto str = [](u8 *p) { return reinterpret_cast<String *>(p); };
+    u8 *const last = at<u8 *>(vec, 8);
+    if ((u32)strings(at<u8 *>(vec, 0xc), last) < count) {
+        u8 *first = at<u8 *>(vec, 4);
+        const u32 size = first ? (u32)strings(last, first) : 0;
+        const u32 grow = count < size ? size : count;
+        const s32 capacity = (s32)(size + grow);
+        u8 *const block = static_cast<u8 *>(GameHeap_Alloc((u32)(capacity < 0 ? 0 : capacity) * 0x14));
+        u8 *const at_position = reinterpret_cast<u8 *>(Strings_CopyRange(str(at<u8 *>(vec, 4)), str(position), str(block)));
+        Strings_FillCopy(str(at_position), count, value);
+        Strings_CopyRange(str(position), str(at<u8 *>(vec, 8)), str(at_position + count * 0x14));
+        for (u8 *p = at<u8 *>(vec, 4), *end = at<u8 *>(vec, 8); p != end; p += 0x14)
+            vcall<u32>(p, 0xc, 0u);
+        GameHeap_Free(at<u8 *>(vec, 4));
+        at<u8 *>(vec, 0xc) = block + capacity * 0x14;
+        first = at<u8 *>(vec, 4);
+        const u32 old = first ? (u32)strings(at<u8 *>(vec, 8), first) : 0;
+        at<u8 *>(vec, 4) = block;
+        at<u8 *>(vec, 8) = block + (count + old) * 0x14;
+    } else if ((u32)strings(last, position) < count) {
+        const u32 bytes = count * 0x14;
+        Strings_CopyRange(str(position), str(last), str(position + bytes));
+        u8 *const end = at<u8 *>(vec, 8);
+        Strings_FillCopy(str(end), count - (u32)strings(end, position), value);
+        for (u8 *p = position, *stop = at<u8 *>(vec, 8); p != stop; p += 0x14)
+            vcall<u32>(p, 0x18, value);
+        at<u8 *>(vec, 8) += bytes;
+    } else if (count != 0) {
+        const u32 bytes = count * 0x14;
+        Strings_CopyRange(str(last - bytes), str(last), str(last));
+        u8 *to = at<u8 *>(vec, 8);
+        for (u8 *from = to - bytes; from != position;) {
+            to -= 0x14;
+            from -= 0x14;
+            vcall<u32>(to, 0x18, from);
+        }
+        for (u8 *p = position, *stop = position + bytes; p != stop; p += 0x14)
+            vcall<u32>(p, 0x18, value);
+        at<u8 *>(vec, 8) += bytes;
+    }
+}
+
 u32 __fastcall NamedList_Find(u8 **ref, void *, const u8 *key, u8 **out) {
     if (u8 *list = ref[0]) {
         for (u8 *node = at<u8 *>(list, 4); node;) {

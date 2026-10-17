@@ -113,10 +113,12 @@
 #include "../game/core/selectors.h"
 #include "../game/core/seqs.h"
 #include "../game/core/rings.h"
-#include "../game/core/buffers.h"
+#include "../game/core/buffers.h"
+#include "../game/core/cpuinfo.h"
 #include "../game/core/observers.h"
 #include "../game/gfx/imageops.h"
 #include "../game/gfx/statsgraph.h"
+#include "../game/gfx/texsprite.h"
 #include "../game/core/crt.h"
 #include "../game/core/gameheap.h"
 #include "../game/core/ptrlist.h"
@@ -184,7 +186,8 @@
 #include "../game/terrain/terrain_blend.h"
 #include "../game/terrain/texcache.h"
 #include "../game/world/random.h"
-#include "../game/world/camera.h"
+#include "../game/world/camera.h"
+#include "../game/world/cellrun.h"
 #include "../game/world/mousemode.h"
 #include "../game/world/objectdefs.h"
 #include "../game/world/staff.h"
@@ -199,6 +202,7 @@
 #include "../game/world/gamesystem.h"
 #include "../game/world/headquarters.h"
 #include "../game/world/hoardinggrid.h"
+#include "../game/world/mapline.h"
 #include "../game/world/messagecentre.h"
 #include "../game/world/nav.h"
 #include "../game/world/mapcell.h"
@@ -210,7 +214,8 @@
 #include "../game/world/analysercell.h"
 #include "../game/world/linestep.h"
 #include "../game/world/money.h"
-#include "../game/world/objectmsg.h"
+#include "../game/world/objectmsg.h"
+#include "../game/world/parkmap.h"
 #include "../game/input/mouse.h"
 #include "../game/world/personscripts.h"
 #include "../game/world/ridelist.h"
@@ -223,6 +228,7 @@
 #include "../game/world/thingscan.h"
 #include "../game/world/trackpools.h"
 #include "../game/world/wallfollow.h"
+#include "../game/world/cellmodel.h"
 #include "../game/world/world.h"
 #include "../game/model/holder.h"
 #include "../game/coaster/tracktypes.h"
@@ -265,6 +271,8 @@
 #include "../game/render/viewport.h"
 #include "../game/render/heightgrid.h"
 #include "../game/render/vertexfog.h"
+#include "../game/render/d3dprobe.h"
+#include "../game/render/engineerrors.h"
 #include "../game/render/weatherfx.h"
 #include "../game/online/servers.h"
 #include "../game/frontend/helpbg.h"
@@ -2896,6 +2904,8 @@ const Hook kHooks[] = {
     {"Obj_CallMember20Slot14",    0x0048d860, (void *)&Obj_CallMember20Slot14, {0x8b, 0x49, 0x20, 0x8b, 0x54}},
     {"Obj_CallSlot14IfGlobalThing", 0x004af9f0, (void *)&Obj_CallSlot14IfGlobalThing, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"Obj_KeyMessageToSlots",     0x005e2310, (void *)&Obj_KeyMessageToSlots, {0x8b, 0x44, 0x24, 0x04, 0x2d}},
+    {"Global879acc_Create",       0x00569e10, (void *)&Global879acc_Create, {0x6a, 0xff, 0x68, 0xeb, 0xf0}},
+    {"Global879ac0_Create",       0x005666f0, (void *)&Global879ac0_Create, {0x6a, 0xff, 0x68, 0xcb, 0xf0}},
     {"Class702d48_Ctor",          0x005e3b90, (void *)&Class702d48_Ctor, {0x56, 0x8b, 0xf1, 0x56, 0xc7}},
     {"Class702d48_Release",       0x005e3c00, (void *)&Class702d48_Release, {0x8b, 0xc1, 0x50, 0xc7, 0x00}},
     {"Class702d48_DeletingDtor",  0x005e3bd0, (void *)&Class702d48_DeletingDtor, {0x56, 0x8b, 0xf1, 0x56, 0xc7}},
@@ -2958,6 +2968,7 @@ const Hook kHooks[] = {
     {"Object_FreeSixPointerArrays", 0x0058d380, (void *)&Object_FreeSixPointerArrays, {0x51, 0x53, 0x55, 0x56, 0x57}},
     {"ListRef_Remove",            0x00421690, (void *)&ListRef_Remove, {0x8b, 0x11, 0x56, 0x85, 0xd2}},
     {"Pool_AddSorted",            0x00576270, (void *)&Pool_AddSorted, {0x53, 0x8b, 0x59, 0x04, 0x55}},
+    {"Obj_FreeVideoMemory",       0x005645a0, (void *)&Obj_FreeVideoMemory, {0x83, 0xec, 0x18, 0x33, 0xc0}},
     {"Class702880_ScalarDtor",    0x005b55e0, (void *)&Class702880_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"Class702890_ScalarDtor",    0x005b58a0, (void *)&Class702890_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"Class7028d0_ScalarDtor",    0x005bced0, (void *)&Class7028d0_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
@@ -3069,6 +3080,7 @@ const Hook kHooks[] = {
     {"Table879ad0_Clear",         0x0056a750, (void *)&Table879ad0_Clear, {0xb8, 0xd0, 0x9a, 0x87, 0x00}},
     {"Global7cc2f0_Get_4b4480",   0x004b4480, (void *)&Global7cc2f0_Get_4b4480, {0xa1, 0xf0, 0xc2, 0x7c, 0x00}},
     {"FreeGlobal8c47d4_58b040",   0x0058b040, (void *)&FreeGlobal8c47d4_58b040, {0xa1, 0xd4, 0x47, 0x8c, 0x00}},
+    {"CreateGlobal879d54_56b6c0", 0x0056b6c0, (void *)&CreateGlobal879d54_56b6c0, {0xa1, 0x54, 0x9d, 0x87, 0x00}},
     {"StdTreeC_PostInc",          0x004f0370, (void *)&StdTreeC_PostInc, {0x56, 0x8b, 0x31, 0xe8, 0x58}},
     {"StdTreeE_PostInc",          0x004f0460, (void *)&StdTreeE_PostInc, {0x56, 0x8b, 0x31, 0xe8, 0xc8}},
     {"Obj_InitMinus1A",           0x004f0880, (void *)&Obj_InitMinus1A, {0x56, 0x8b, 0x74, 0x24, 0x08}},
@@ -3098,6 +3110,7 @@ const Hook kHooks[] = {
     {"String_EnsureTrailingBackslash", 0x005c5480, (void *)&String_EnsureTrailingBackslash, {0x6a, 0xff, 0x68, 0x28, 0x04}},
     {"Strings5_JoinPath",         0x005c5580, (void *)&Strings5_JoinPath, {0x8b, 0x41, 0x3c, 0x56, 0x8d}},
     {"String_ReadToken",          0x005e3170, (void *)&String_ReadToken, {0x6a, 0xff, 0x68, 0xbf, 0x16}},
+    {"StringVector_InsertN",      0x005ed130, (void *)&StringVector_InsertN, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"Class702938_Dtor",          0x005bdc10, (void *)&Class702938_Dtor, {0x6a, 0xff, 0x68, 0x16, 0x00}},
     {"Class702940_Dtor",          0x005be320, (void *)&Class702940_Dtor, {0x6a, 0xff, 0x68, 0x56, 0x01}},
     {"Class702948_Dtor",          0x005be750, (void *)&Class702948_Dtor, {0x6a, 0xff, 0x68, 0x36, 0x02}},
@@ -3224,6 +3237,7 @@ const Hook kHooks[] = {
     {"Surface_SetMasks",          0x005830e0, (void *)&Surface_SetMasks, {0x83, 0xec, 0x0c, 0x8b, 0x54}},
     {"PtrList_Insert",            0x005e2a80, (void *)&PtrList_Insert, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"SortedPtrList_Add",         0x005e1540, (void *)&SortedPtrList_Add, {0x51, 0x53, 0x8b, 0xd9, 0x56}},
+    {"PtrArray_AddSpriteFrame",   0x0056b4c0, (void *)&PtrArray_AddSpriteFrame, {0x6a, 0xff, 0x68, 0x5b, 0xf1}},
     {"Class703088_ScalarDtor",    0x005f4400, (void *)&Class703088_ScalarDtor, {0x56, 0x8b, 0xf1, 0x57, 0xc7}},
     {"Class7037b8_ScalarDtor",    0x00618110, (void *)&Class7037b8_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x28}},
     {"ListScalarDelete700aa0_51af00", 0x0051af00, (void *)&ListScalarDelete700aa0_51af00, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
@@ -3240,6 +3254,7 @@ const Hook kHooks[] = {
     {"Pixels_Stamp",              0x005e7d70, (void *)&Pixels_Stamp, {0x51, 0x53, 0x55, 0x8b, 0xe9}},
     {"Mask_Tint",                 0x005e7f60, (void *)&Mask_Tint, {0x83, 0xec, 0x18, 0x8b, 0x41}},
     {"Image_ShrinkInto",          0x005d4260, (void *)&Image_ShrinkInto, {0x83, 0xec, 0x28, 0x8b, 0x44}},
+    {"Panel_ShrinkInto",          0x005d4970, (void *)&Panel_ShrinkInto, {0x57, 0x8b, 0xf9, 0x8b, 0x47}},
     {"Colour_Blend3",             0x005f09a0, (void *)&Colour_Blend3, {0x8b, 0x44, 0x24, 0x08, 0x83}},
     {"Format_BuildChannelTable",  0x00591270, (void *)&Format_BuildChannelTable, {0x83, 0xec, 0x18, 0x8b, 0x54}},
     {"ModelSlot_ApplySelection",  0x00598ca0, (void *)&ModelSlot_ApplySelection, {0x53, 0x56, 0x57, 0x8b, 0x7c}},
@@ -3449,6 +3464,7 @@ const Hook kHooks[] = {
     {"SyncEvent_Ctor",            0x005c8bd0, (void *)&SyncEvent_Ctor, {0x56, 0x6a, 0x00, 0x6a, 0x00}},
     {"SyncEvent_Wait",            0x005c8bf0, (void *)&SyncEvent_Wait, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"SyncEvent_Set",             0x005c8c20, (void *)&SyncEvent_Set, {0x8b, 0x01, 0x50, 0xff, 0x15}},
+    {"CpuInfo_Ctor",              0x0055e470, (void *)&CpuInfo_Ctor, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -3508,6 +3524,14 @@ const Hook kHooks[] = {
     {"Route_Straighten",          0x005110d0, (void *)&Route_Straighten, {0x83, 0xec, 0x34, 0x53, 0x55}},
     {"FocusCell_Update",          0x005276d0, (void *)&FocusCell_Update, {0x66, 0xa1, 0x98, 0x86, 0x81}},
     {"HoardingGrid_Fill",         0x00532960, (void *)&HoardingGrid_Fill, {0xa1, 0xb0, 0xb1, 0x81, 0x00}},
+    {"Map_ApplyLine",             0x0053aac0, (void *)&Map_ApplyLine, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
+    {"MapLine_LinkCell",          0x00539220, (void *)&MapLine_LinkCell, {0xa1, 0xc8, 0x0a, 0x82, 0x00}},
+    {"CellRun_Mark",              0x00531040, (void *)&CellRun_Mark, {0x83, 0xec, 0x0c, 0xa1, 0xf0}},
+    {"CellRun_Corners",           0x00530e80, (void *)&CellRun_Corners, {0x83, 0xec, 0x0c, 0xa1, 0xf0}},
+    {"TrackRun_TraceA",           0x00530830, (void *)&TrackRun_TraceA, {0x83, 0xec, 0x18, 0x8b, 0x4c}},
+    {"TrackRun_TraceB",           0x00530b70, (void *)&TrackRun_TraceB, {0x83, 0xec, 0x1c, 0x8b, 0x4c}},
+    {"ParkMap_Classify",          0x005f2050, (void *)&ParkMap_Classify, {0x83, 0xec, 0x28, 0xa1, 0x3c}},
+    {"MapCell_PickModel",         0x0053a540, (void *)&MapCell_PickModel, {0x83, 0xec, 0x1c, 0x53, 0x55}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
@@ -3518,6 +3542,7 @@ const Hook kHooks[] = {
     {"StatsGraph_ShownMax",       0x0049a7b0, (void *)&StatsGraph_ShownMax, {0x51, 0x8b, 0x0d, 0x3c, 0xf8}},
     {"StatsGraph_ShownMin",       0x0049a8f0, (void *)&StatsGraph_ShownMin, {0x51, 0x8b, 0x0d, 0x3c, 0xf8}},
     {"RleImage_DrawScaled",       0x00564790, (void *)&RleImage_DrawScaled, {0x81, 0xec, 0x2c, 0x02, 0x00}},
+    {"TexSprite_Ctor",            0x005f4370, (void *)&TexSprite_Ctor, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
@@ -3604,6 +3629,7 @@ const Hook kHooks[] = {
     {"TexLoad_DriverFlags",       0x00581790, (void *)&TexLoad_DriverFlags, {0x8b, 0x54, 0x24, 0x04, 0xa1}},
     {"TexFormat_Classify",        0x00583ba0, (void *)&TexFormat_Classify, {0x83, 0xec, 0x48, 0xa1, 0x24}},
     {"TexFormat_FillTables",      0x005839f0, (void *)&TexFormat_FillTables, {0x83, 0xec, 0x24, 0x53, 0x55}},
+    {"TexFormat_ConvertSquare",   0x00562f70, (void *)&TexFormat_ConvertSquare, {0x8b, 0x4c, 0x24, 0x0c, 0x8b}},
     {"LightList_Clear",           0x00584b10, (void *)&LightList_Clear, {0x33, 0xc0, 0x89, 0x81, 0xc4}},
     {"LightList_First",           0x00584e30, (void *)&LightList_First, {0x8b, 0x91, 0xc0, 0x01, 0x00}},
     {"LightList_Next",            0x00584e50, (void *)&LightList_Next, {0x8b, 0x81, 0xc4, 0x01, 0x00}},
@@ -3633,6 +3659,11 @@ const Hook kHooks[] = {
     {"VertexFog_Alpha",           0x00574960, (void *)&VertexFog_Alpha, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
     {"Quad_TurnXY",               0x00591430, (void *)&Quad_TurnXY, {0x8b, 0x44, 0x24, 0x0c, 0x56}},
     {"Quad_TurnXZ",               0x00591510, (void *)&Quad_TurnXZ, {0xd9, 0x44, 0x24, 0x08, 0xd9}},
+    {"D3dProbe_AlphaTest",        0x00567270, (void *)&D3dProbe_AlphaTest, {0x51, 0xa1, 0xa8, 0x9d, 0x87}},
+    {"D3dProbe_FogTest",          0x005673d0, (void *)&D3dProbe_FogTest, {0x8b, 0x15, 0xc8, 0xcb, 0x8b}},
+    {"D3dProbe_SetFlags",         0x00567620, (void *)&D3dProbe_SetFlags, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
+    {"D3dProbe_SetTextureStages", 0x005686d0, (void *)&D3dProbe_SetTextureStages, {0x56, 0x8b, 0xf1, 0x57, 0x83}},
+    {"EngineErrors_Push",         0x0056af20, (void *)&EngineErrors_Push, {0x83, 0xec, 0x64, 0x56, 0x8b}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
@@ -3747,6 +3778,7 @@ const Hook kHooks[] = {
     {"Terrain_InitUnusedOne",     0x00457e30, (void *)&Terrain_InitUnusedOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"Terrain_InitUnusedEpsilon", 0x00457e50, (void *)&Terrain_InitUnusedEpsilon, {0xd9, 0x05, 0x38, 0xe5, 0x6f}},
     {"TerrainTex_SetRect",        0x0056df70, (void *)&TerrainTex_SetRect, {0xa1, 0x60, 0x9d, 0x87, 0x00}},
+    {"TerrainTex_Create",         0x0056ddf0, (void *)&TerrainTex_Create, {0xa1, 0x60, 0x9d, 0x87, 0x00}},
     {"Landscape_SetPoint",        0x005856e0, (void *)&Landscape_SetPoint, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Landscape_SetDetail",       0x00585710, (void *)&Landscape_SetDetail, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Landscape_List",            0x00585ef0, (void *)&Landscape_List, {0x8b, 0x81, 0xd0, 0x1f, 0x00}},
