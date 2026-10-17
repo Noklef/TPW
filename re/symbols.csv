@@ -3632,6 +3632,7 @@ address,name,kind,confidence,notes
 0x005765c0,Renderer_ClearSlot,function,high,reimplemented (src/game/render/renderer); every node leaves a slot list; the scene flag is set
 0x005766e0,Renderer_RemoveInRect,function,high,reimplemented (src/game/render/renderer); a key leaves each grid cell of a rectangle (clamped)
 0x00576820,Renderer_ClearAll,function,high,reimplemented (src/game/render/renderer); every grid cell and slot list is emptied; the scene flag is set for each
+0x00576410,Renderer_Add,function,high,reimplemented (src/game/render/renderer); Adds an object to a renderer slot list or to the grid cells of its packed rectangle
 0x005777a0,Backdrop_Clear5c,function,high,"reimplemented (src/game/render/backdrop); thiscall (the tiled backdrop, 0x87aee8): +0x5c = 0"
 0x00577940,Backdrop_SetRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the rectangle drawn into, +0x20..+0x2c, and flag 2 in +0"
 0x00577970,Backdrop_SetSourceRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the part of the image drawn, +0x30..+0x3c"

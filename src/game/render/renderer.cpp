@@ -163,4 +163,30 @@ void __fastcall Renderer_Teardown(u8 *object) {
         at<u32>(block, 0xc) = 0;
     }
 }
+
+u32 __fastcall Renderer_Add(u8 *renderer, void *, u8 *object, u32 tag) {
+    if (tag & 0x70)
+        return Pool_AddSorted(renderer, nullptr, reinterpret_cast<u8 **>(renderer + 0x10 + ((s32)tag >> 4) * 4), object);
+    if (!(tag & 1) || vcall<s32>(object, 8) != 2)
+        return 0;
+    const u8 *const record = vcall<u8 *>(object, 0xc);
+    if (!record)
+        return 0;
+    // The rectangle is packed in the record's word at +0xa8, a byte each: x0 high, then x1, y0, y1.
+    const u32 packed = at<u32>(record, 0xa8);
+    const s32 width = at<s32>(renderer, 0x38), height = at<s32>(renderer, 0x3c);
+    const s32 x0 = (s32)(packed >> 24), y0 = (s32)((packed >> 8) & 0xff);
+    s32 x1 = (s32)((packed >> 16) & 0xff), y1 = (s32)(packed & 0xff);
+    if (x0 >= width || y0 >= height)
+        return 0;
+    if (x1 >= width)
+        x1 = width - 1;
+    if (y1 >= height)
+        y1 = height - 1;
+    u32 all = 1;
+    for (s32 x = x0; x <= x1; x++)
+        for (s32 y = y0; y <= y1; y++)
+            all &= Pool_AddSorted(renderer, nullptr, reinterpret_cast<u8 **>(at<uintptr_t>(renderer, 0x10) + (y * at<s32>(renderer, 0x38) + x) * 4), object);
+    return all;
+}
 }

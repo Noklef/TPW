@@ -56,4 +56,9 @@ u32 __fastcall Grid_AddObject(u8 *grid, void *, s32 x0, s32 y0, s32 x1, s32 y1, 
 // +0x5c are Array3D_Free'd, the last one's block is freed and cleared and BufferC_FreeAndClear runs on +0x4c, +0x3c and +0x2c; then the blocks at +0x28 and +0x18 are freed
 // when set and their four dwords cleared.
 void __fastcall Renderer_Teardown(u8 *object);
+
+// 0x576410 (thiscall; object, tag; pops 8; name unconfirmed): with a bit of 0x70 in the tag the object goes into the seven slot lists, slot (tag >> 4), by Pool_AddSorted (its result).
+// Otherwise, for a tag with bit 1 and an object whose virtual call 2 returns 2 and call 3 a record, the rectangle packed in the record's word at +0xa8 (x0, x1, y0, y1 from the high byte
+// down to the low byte, the y0 byte at bit 8) is clamped to the grid and the object added to every cell in it (x outer, y inner): the AND of 1 and their results. 0 in every other case.
+u32 __fastcall Renderer_Add(u8 *renderer, void *, u8 *object, u32 tag);
 }
