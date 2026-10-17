@@ -9,8 +9,8 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from fncmp import RAM, Bench, CDECL_LOG, Call, LOG, log_region  # noqa: E402
-from thingenv import POOL, THING, park  # noqa: E402
+from fncmp import RAM, Bench, CDECL_LOG, Call, LOG, log_region, put  # noqa: E402
+from thingenv import ITEM, ITEMS, NITEMS, POOL, THING, park  # noqa: E402
 
 # name: (address, with a kind argument)
 CALLS = {'Kind': (0x482040, True), 'Word': (0x482100, False), 'Up': (0x4821b0, False), 'F1': (0x482270, False), 'F0': (0x482340, False), 'F2': (0x482400, False), 'Select': (0x481bc0, False)}
@@ -19,8 +19,17 @@ B = Bench([(a, a + 0xd0) for (a, _k) in CALLS.values()] + [(0x516130, 0x516160),
 HEADS = RAM + 0x20000
 
 
+def kinds(r, env):
+    """The park's definitions given kinds (+0x4ac) 1 and 2 as well (thingenv's are 0, 3 and 5), their words +0x284 more often 0."""
+    items = env[0][ITEMS]
+    for i in range(NITEMS):
+        put(items, i * ITEM + 0x4ac, 'I', r.choice([0, 1, 2, 3, 3, 5]))
+        put(items, i * ITEM + 0x284, 'H', r.choice([0, 0, 0, 1, 5]))
+    return env
+
+
 def select(r):
-    regions, handles, addrs = park(r, count=r.choice([0, 1, 2, 3, 4, 6]), kinds=(3, 3, 3, 1, 4, 5, 6, 7, 8, 0xff, 0), defs=True)
+    regions, handles, addrs = kinds(r, park(r, count=r.choice([0, 2, 3, 4, 6, 6]), kinds=(3, 3, 3, 3, 3, 1, 4, 5, 6, 7, 8, 0xff, 0), defs=True))
     regions[LOG] = log_region()
     lists = [[] for _ in range(5)]
     for i in range(len(handles)):
@@ -45,7 +54,7 @@ def case(r):
     if name == 'Select':
         return select(r)
     address, with_kind = CALLS[name]
-    regions, handles, addrs = park(r, count=r.choice([0, 1, 2, 3, 4, 6]), defs=True)
+    regions, handles, addrs = kinds(r, park(r, count=r.choice([0, 1, 2, 3, 4, 6]), defs=True))
     regions[LOG] = log_region()
     args = ([r.choice([0, 1, 3, 3, 5, 0x7fffffff])] if with_kind else []) + [CDECL_LOG]
     return Call(address, args, regions, ret='a')
