@@ -1,8 +1,10 @@
 // The class with the vtable 0x6fd9d8 (it owns a list of objects and one more object) and its derived classes: reimplementation of its destructor 0x41c8b0, of the derived destructors
-// 0x41e2c0 .. 0x41e5c0 (some run the base destructor alone, some also destroy handles of their own), and of their scalar deleting destructors 0x41d880 .. 0x41e250. Named by its vtable until the class is known.
+// 0x41e2c0 .. 0x41e5c0 (some run the base destructor alone, some also destroy handles of their own), and of their scalar deleting destructors 0x41d880 .. 0x41e250; its folder / WAD handles added to the list (0x41c9e0, 0x41cb10). Named by its vtable until the class is known.
 #pragma once
 
 #include "../../../re/types.h"
+
+struct String;
 
 extern "C" {
 
@@ -54,4 +56,11 @@ u8 *__fastcall Class6fdac8_FullScalarDtor(u8 *object, void *, u32 flags);
 
 // 0x41e090 (thiscall; flags, pops 4): Class6fda58_DtorC, then the object freed when bit 0 of the flags is set. Returns the object.
 u8 *__fastcall Class6fda58_ScalarDtorC(u8 *object, void *, u32 flags);
+
+// 0x41c9e0 / 0x41cb10 (thiscall; path, a String, pops 4): a new handle (Mem_Alloc 8, Handle_Ctor) with the vtable 0x6fd9e8 / 0x6fda18 opened on the path's text as a folder /
+// a WAD (Handle_Open28 / Handle_OpenE0 with flags 0); on failure it is deleted through its slot 0x2c (FolderHandle_DeletingDtor, 1), else appended to the list at +0x2c
+// (a node {handle, next, prev} of 0xc bytes; when that allocation fails the null node is written through). The folder form also constructs and destroys a StreamBase on the
+// stack around the append. Nothing happens when the handle's allocation fails.
+void __fastcall Class6fd9d8_AddFolder(u8 *object, void *, const String *path);
+void __fastcall Class6fd9d8_AddWad(u8 *object, void *, const String *path);
 }  // extern "C"

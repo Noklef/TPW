@@ -171,3 +171,65 @@ u8 *__fastcall Class6fda58_ScalarDtorC(u8 *object, void *, u32 flags) {
     return Finish(object, flags);
 }
 }  // extern "C"
+
+namespace {
+
+// A new handle (Handle_Ctor) with the vtable given, or nullptr when the allocation fails.
+Handle *NewHandle(u32 vtable) {
+    Handle *const h = static_cast<Handle *>(GameHeap_Alloc(8));
+    if (!h)
+        return nullptr;
+    Handle_Ctor(h);
+    at<u32>(h, 0) = vtable;
+    return h;
+}
+
+// The handle appended to the list at +0x2c (nodes {object, next, prev}); a failed node allocation is written through (sic).
+void Hold(u8 *object, Handle *h) {
+    u8 *const list = at<u8 *>(object, 0x2c);
+    u8 *const node = static_cast<u8 *>(GameHeap_Alloc(0xc));
+    if (node) {
+        at<Handle *>(node, 0) = h;
+        at<u32>(node, 4) = 0;
+        at<u32>(node, 8) = 0;
+    }
+    *reinterpret_cast<volatile u32 *>((uintptr_t)node + 8) = at<u32>(list, 8);
+    if (u8 *const tail = at<u8 *>(list, 8))
+        at<u8 *>(tail, 4) = node;
+    else
+        at<u8 *>(list, 4) = node;
+    at<u8 *>(list, 8) = node;
+    at<u32>(list, 0xc) = at<u32>(list, 0xc) + 1;
+}
+
+}  // namespace
+
+extern "C" {
+
+void __fastcall Class6fd9d8_AddFolder(u8 *object, void *, const String *path) {
+    Handle *const h = NewHandle(0x006fd9e8);
+    if (!h)
+        return;
+    s32 result;
+    if (*Handle_Open28(h, nullptr, &result, (u32)(uintptr_t)path->data) < 0) {
+        FolderHandle_DeletingDtor(h, nullptr, 1);  // (the vtable's +0x2c)
+        return;
+    }
+    StreamBase stream;
+    StreamBase_Ctor(&stream);
+    Hold(object, h);
+    StreamBase_Dtor(&stream);
+}
+
+void __fastcall Class6fd9d8_AddWad(u8 *object, void *, const String *path) {
+    Handle *const h = NewHandle(0x006fda18);
+    if (!h)
+        return;
+    s32 result;
+    if (*Handle_OpenE0(h, nullptr, &result, (u32)(uintptr_t)path->data, 0) < 0) {
+        FolderHandle_DeletingDtor(h, nullptr, 1);  // (the vtable's +0x2c)
+        return;
+    }
+    Hold(object, h);
+}
+}  // extern "C"
