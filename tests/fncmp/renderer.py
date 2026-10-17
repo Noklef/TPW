@@ -3,7 +3,8 @@
 # accessors; for the lists a pool of nodes dealt over the grid cells, the slots and the free list
 # (keys from a few values so that removals both find and miss), grids from empty to 6 by 5, tags
 # with and without 0x70, rectangles from beyond the grid on every side; for the add (0x576410) grid_masks.py's environment, the object's virtual calls 2 and 3 answering with 2 and a record
-# whose packed rectangle bytes run from inside the grid to far outside it.
+# whose packed rectangle bytes run from inside the grid to far outside it. The release (0x5761b0): the renderer at 0x87a6d0 or none, its
+# pool and frame buffer set or 0, tracked (as they are or 4 below) or not.
 # usage: renderer.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetRestoreCallback,...)
 import os
 import struct
@@ -13,15 +14,16 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import grid_masks  # noqa: E402
+import texturemem  # noqa: E402
 import vobj3  # noqa: E402
-from fncmp import Bench, Call, RAM, put, set_return  # noqa: E402
+from fncmp import Bench, Call, HEAP, RAM, global_heap, heap, put, set_return  # noqa: E402
 
 B = Bench([(0x576260, 0x57626a), (0x5763f0, 0x5763fa), (0x576400, 0x576404), (0x576540, 0x5765b8),
            (0x5765c0, 0x576616), (0x5766e0, 0x57681a), (0x576820, 0x57690c),
-           (0x576410, 0x576550), (0x576270, 0x576320), (0x590730, 0x590750), (0x67acb0, 0x67acb1)],
+           (0x576410, 0x576550), (0x576270, 0x576320), (0x590730, 0x590750), (0x67acb0, 0x67acb1), (0x5761b0, 0x576223), (0x579b40, 0x579c13)],
           hooks={0x691de0: vobj3.lock, 0x691ea0: lambda e: None})
 CALLS = {'SetRestoreCallback': 0x576260, 'SetStateFlags': 0x5763f0, 'StateFlags': 0x576400,
-         'RemoveFromSlot': 0x576540, 'ClearSlot': 0x5765c0, 'RemoveInRect': 0x5766e0, 'ClearAll': 0x576820, 'Add': 0x576410}
+         'RemoveFromSlot': 0x576540, 'ClearSlot': 0x5765c0, 'RemoveInRect': 0x5766e0, 'ClearAll': 0x576820, 'Add': 0x576410, 'Destroy': 0x5761b0}
 LISTS = ('RemoveFromSlot', 'ClearSlot', 'RemoveInRect', 'ClearAll')
 GRID, POOL = RAM + 0x1000, RAM + 0x2000
 
@@ -91,8 +93,24 @@ def add_case(r):
     return Call(0x576410, [RAM, c.args[5], tag], regions, conv='t', ret='a')
 
 
+def destroy_case(r):
+    obj = bytearray(r.bytes(0x80))
+    pool, frame = r.sample([HEAP + 0x40, HEAP + 0x80, HEAP + 0xc0], 2)
+    put(obj, 0, 'I', r.choice([pool, pool, 0, r.getrandbits(32)]))
+    put(obj, 0x10, 'I', r.choice([frame, frame, 0, r.getrandbits(32)]))
+    table = bytearray(0x40)
+    for k in range(8):
+        b = r.choice([pool, frame, r.getrandbits(32)])
+        put(table, 8 * k, 'II', r.getrandbits(32), r.choice([b, b, (b + 4) & 0xffffffff]))  # (looked up as it is, then 4 above)
+    regions = {RAM: obj, HEAP: heap(), **global_heap(), texturemem.COUNT: struct.pack('<I', r.choice([0, 1, 3, 6, 8])), texturemem.PAIRS: table,
+               0x87a6d0: struct.pack('<I', r.choice([RAM, RAM, RAM, 0]))}
+    return Call(0x5761b0, [], regions, conv='c', ret='a')
+
+
 def case(r):
     op = r.choice(OPS)
+    if op == 'Destroy':
+        return destroy_case(r)
     if op == 'Add':
         return add_case(r)
     if op in LISTS:

@@ -1,4 +1,4 @@
-// The renderer object's accessors and its entry lists: reimplementation of 0x576260, 0x5763f0,
+// The renderer object's accessors, its entry lists and its release: reimplementation of 0x5761b0, 0x576260, 0x5763f0,
 // 0x576400, 0x576540, 0x5765c0, 0x5766e0 and 0x576820.
 //
 // The renderer is the object at [0x87a6d0] (built at 0x576162 with a pool of 0x4800 8-byte nodes
@@ -19,6 +19,12 @@
 #include "../../../re/types.h"
 
 extern "C" {
+
+// 0x5761b0 (cdecl; name unconfirmed): 0 without a renderer ([0x87a6d0]). Else its frame buffer (+0x10), when set, freed
+// (TrackedGlobal_Free, core/gameheap) and cleared; then, [0x87a6d0] read again, its pool (+0), when set, freed with +8 and +0xc
+// cleared (+0 kept, sic), the frame buffer freed again when set, the renderer freed (GameHeap_Free) and [0x87a6d0] cleared.
+// Returns 1.
+u32 __cdecl Renderer_Destroy();
 
 // 0x576260 (thiscall; fn): +0x78 = fn, the device restore callback (0x54e2b0, or 0).
 void __fastcall Renderer_SetRestoreCallback(u8 *renderer, void *, u32 fn);

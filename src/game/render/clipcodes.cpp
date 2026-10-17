@@ -33,4 +33,9 @@ u8 *__fastcall ClipCodes_Compute(u32 ecx, u32, u8 *out, u8 *codes, const u8 *poi
     *reinterpret_cast<u32 *>(out) = (ecx & 0xffff0000u) | (u32)any << 8 | all;  // sic: the top half is the caller's ECX
     return out;
 }
+
+u8 *__fastcall ClipCodes_Run(u32 ecx, u32, u8 *out, u8 *codes, const u8 *points, u32 count, u32 stride, u32 mask) {
+    ClipCodes_Compute(ecx, (u32)(uintptr_t)points, out, codes, points, count, stride, mask);
+    return out;
+}
 }

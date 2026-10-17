@@ -4,6 +4,7 @@
 
 #include "../core/accessors.h"
 #include "../core/globals.h"
+#include "../core/vcall.h"
 
 namespace {
 
@@ -18,6 +19,8 @@ void __fastcall SceneFlags_Touch(u32 *flags) {
     flags[1] = global<u32>(0x008bcc40);
     flags[0] |= 0x40000000;
 }
+
+u32 __cdecl RenderDevice_Call0() { return vcall<u32>(global<u8 *>(0x008bd52c), 0); }
 
 void __fastcall Render_FogOn(void *) { global<u32>(0x008bcbc8) |= 0x2000; }
 

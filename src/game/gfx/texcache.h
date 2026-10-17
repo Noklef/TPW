@@ -54,4 +54,12 @@ u32 __fastcall TexCacheItem_Flag4(const u8 *item);
 // 0x58b380 / 0x58b390: flag 1 set / cleared.
 void __fastcall TexCacheItem_SetFlag1(u8 *item);
 void __fastcall TexCacheItem_ClearFlag1(u8 *item);
+
+// 0x58dc50 (thiscall on the cache; item; pops 4; name unconfirmed): without the cache's flag 0x20000000 (+0x18cc) 1. A null item 0, one
+// without flag 0x1000 (+8) 1. Otherwise the item is looked for in its owner's (+0x18) list (+4, next at +4): not there 0; found, it is
+// unlinked, its flags lose 0xf030 and get their bits 0x40 and 0x80 (shifted right by 2, arithmetically) as 0x10 and 0x20, +0x14 and
+// +0x16 become the words at +0x10 and +0x12 rounded up to multiples of 8, and +0x38 a key: ((__ftol((1.5 - the float at +0x30) * 2047)
+// & 0xfff) << 8 plus the s16 width, << 8, plus the s16 height, with 0x20000000 for flag 0x4000 (never: just cleared, sic) and
+// 0x40000000 (set in memory) for flag 0x80000. Returns 1.
+u32 __fastcall TexCache_UnlinkItem(u8 *cache, void *, u8 *item);
 }

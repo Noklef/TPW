@@ -63,6 +63,10 @@ const u8 *__fastcall AdvisorScoring_GetSchema(const void *, void *, u32 index);
 // 0x415e80 (thiscall; name unconfirmed): the balance file at +0xc gets vtable 0x6fd958 back and is released (BalanceFile_Release).
 void __fastcall AdvisorScoring_Dtor(u8 *self);
 
+// 0x59bf10 (thiscall; name unconfirmed): the advisor scoring balance file itself (the one at +0xc, an unwind action of
+// AdvisorScoring_Construct) gets its vtable 0x6fd958 back and is released.
+void __fastcall AdvisorScoringFile_Dtor(u8 *self);
+
 // 0x415e70 (cdecl, at exit; name unconfirmed): AdvisorScoring_Dtor of gAdvisorScoring (0xfb3540).
 void __cdecl AdvisorScoring_StaticDtor();
 }

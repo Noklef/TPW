@@ -286,7 +286,7 @@ def _free(e):  # cdecl (block)
 def global_heap():
     """Regions pointing the game's GlobalAlloc / GlobalFree import slots (0x6fd1cc, 0x6fd26c) at
     the stubs that serve them from heap() (which the case must also have): GlobalAlloc hashes
-    the size, then the flags, and zeroes the block for GMEM_ZEROINIT; GlobalFree returns 0."""
+    the size, then the flags, and zeroes the block got for GMEM_ZEROINIT; GlobalFree returns 0."""
     return {0x6fd1cc: struct.pack('<I', STUBS + 0x20), 0x6fd26c: struct.pack('<I', STUBS + 0x30)}
 
 
@@ -296,7 +296,7 @@ def _global_alloc(e):  # stdcall (flags, size)
     e.write(sp, struct.pack('<I', size))
     _alloc(e)
     e.write(HEAP + 4, struct.pack('<I', (e.u32(HEAP + 4) * 33 ^ flags) & 0xffffffff))
-    if flags & 0x40 and size:
+    if flags & 0x40 and size and e.r['EAX']:   # (not for a failed allocation)
         e.write(e.r['EAX'], bytes(size))
     e.r['ESP'] = sp + 8
 

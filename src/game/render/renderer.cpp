@@ -72,6 +72,31 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 extern "C" {
 
+u32 __cdecl Renderer_Destroy() {
+    u8 *renderer = global<u8 *>(0x0087a6d0);
+    if (!renderer)
+        return 0;
+    if (const u32 frame = at<u32>(renderer, 0x10)) {
+        TrackedGlobal_Free(frame);
+        at<u32>(renderer, 0x10) = 0;
+        renderer = global<u8 *>(0x0087a6d0);
+    }
+    if (renderer) {
+        if (const u32 pool = at<u32>(renderer, 0)) {
+            TrackedGlobal_Free(pool);
+            at<u32>(renderer, 8) = 0;
+            at<u32>(renderer, 0xc) = 0;
+        }
+        if (const u32 frame = at<u32>(renderer, 0x10)) {
+            TrackedGlobal_Free(frame);
+            at<u32>(renderer, 0x10) = 0;
+        }
+        GameHeap_Free(renderer);
+    }
+    global<u32>(0x0087a6d0) = 0;
+    return 1;
+}
+
 void __fastcall Renderer_SetRestoreCallback(u8 *renderer, void *, u32 fn) { at<u32>(renderer, 0x78) = fn; }
 
 void __fastcall Renderer_SetStateFlags(u8 *renderer, void *, u32 flags) { at<u32>(renderer, 0x48) = flags; }

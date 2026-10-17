@@ -1,4 +1,4 @@
-// The draw buffer's methods: reimplementation of 0x582390 and 0x582640-0x5827f0.
+// The draw buffer's methods: reimplementation of 0x582280, 0x582340, 0x582390 and 0x582640-0x5827f0.
 //
 // The draw buffer is the object at [0x8bcbc4] (set up by 0x5823f0). It has two streams, 1 at +8
 // and 2 at +0x20, each {vertices, vertex bytes used, vertex room (1 MB), indices, index bytes
@@ -13,6 +13,15 @@
 #include "../../../re/types.h"
 
 extern "C" {
+
+// 0x582340 (thiscall on a stream's record; name unconfirmed): its indices (+0xc) and vertices (+0), when set, freed
+// (TrackedGlobal_Free, core/gameheap) and cleared; both rooms (+8, +0x14) = 0. Returns 1.
+u32 __fastcall DrawStream_Free(u8 *stream);
+
+// 0x582280 (cdecl; name unconfirmed): 0 without a draw buffer ([0x8bcbc4]). Else stream 2's, then stream 1's blocks freed as
+// 0x582340 does (inlined), the batches (+0x44) and, when set, the scratch block (+0x60; +0x58 cleared with it) freed and cleared
+// (TrackedGlobal_Free), the buffer freed (GameHeap_Free) and [0x8bcbc4] cleared. Returns 1.
+u32 __cdecl DrawBuffer_Destroy();
 
 // 0x582390 (thiscall; streams, a byte: 1, 2 or both): stream 1 emptied (+0xc, +0x18) with its
 // batches starting at the top again (+0x54 = count - 1), else the first dword of each batch above

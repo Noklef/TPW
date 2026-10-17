@@ -1,4 +1,4 @@
-// The sprite queue's appends: reimplementation of 0x58a550, 0x58a6b0 and 0x58a6e0.
+// The sprite queue's appends and its release: reimplementation of 0x58a550, 0x58a6b0, 0x58a6e0 and 0x58a490.
 //
 // The sprite queue is the object at [0x8c47a0]: the sprite frames readied this frame (0x588ef0)
 // waiting to be drawn (0x58a770). It has a list of 0x800 at +0 (count +0x2404), a second list at
@@ -22,4 +22,8 @@ u32 __fastcall SpriteQueue_Add(u8 *queue, void *, u32 frame);
 // room for 0x80 (sic): past that it runs over the frame sets, and its 0x102nd entry lands on its
 // own count.
 u32 __fastcall SpriteQueue_Add2(u8 *queue, void *, u32 frame);
+
+// 0x58a490 (cdecl; name unconfirmed): with a queue, its texture array at +0x2400 (when set) destroyed (Texture_DestroyArray, gfx/texture)
+// and cleared, the queue freed (GameHeap_Free) and [0x8c47a0] cleared: 1. Without one 0.
+u32 __cdecl SpriteQueue_Free();
 }
