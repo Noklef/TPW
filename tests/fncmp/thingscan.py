@@ -11,7 +11,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 from fncmp import Bench, Call, RAM  # noqa: E402
-from thingenv import POOL, THING, park  # noqa: E402
+from thingenv import ITEM, ITEMS, NITEMS, POOL, THING, park  # noqa: E402
 
 # name: (address, convention, size, arguments: n none, p previous thing, vp value then previous thing, v value, o an output word)
 CALLS = {'C1': (0x4c9f90, 'c', 0xa0, 'n'), 'C2': (0x4ca0c0, 'c', 0xa0, 'n'), 'Max': (0x4ca820, 's', 0xa0, 'v'),
@@ -97,6 +97,9 @@ def category(r, address):
     for i in range(len(handles)):
         struct.pack_into('<H', pool, THING * i + 0x210, r.choice(handles + [0]) if r.random() < 0.9 else r.getrandbits(16))
     regions[RAM + 0x1da73c] = struct.pack('<6H', *[r.choice(links) for _ in range(6)]) + r.bytes(4)
+    items = regions[ITEMS]
+    for i in range(NITEMS):   # (the definitions' +0x4ac any of the values the categories 0x80-0x400 ask for)
+        struct.pack_into('<I', items, ITEM * i + 0x4ac, r.choice([0, 1, 2, 3, 3, 5]))
     cat = r.choice(CATEGORIES) if r.random() < 0.9 else r.choice([0, 3, 5, 9, 0x18, 0x10000, -1, 0x80000000])
     prev = r.choice([0, 0] + things) if things else 0
     return Call(address, [cat & 0xffffffff, prev], regions, conv='c', ret='a')
