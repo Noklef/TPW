@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/gameheap.h"
 #include "../gfx/texture.h"
 
 namespace {
@@ -23,6 +24,16 @@ void __fastcall WeatherFx_SetFallSpeed(u8 *fx, void *, u32 speed) {
 }
 
 void __fastcall WeatherFx_RequestReload(u8 *fx) { at<u32>(fx, 4) = 1; }
+
+u32 __cdecl WeatherFx_Delete() {
+    u8 *&slot = *reinterpret_cast<u8 **>((uintptr_t)0x008bcbac);
+    if (!slot)
+        return 0;
+    WeatherFx_FreeTextures(slot);
+    GameHeap_Free(slot);
+    slot = nullptr;
+    return 1;
+}
 
 u32 __fastcall WeatherFx_FreeTextures(u8 *fx) {
     for (u32 offset = 0x3348; offset <= 0x3350; offset += 4) {

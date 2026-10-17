@@ -1,4 +1,5 @@
-// The weather renderer's small setters and texture release: reimplementation of 0x57d910, 0x57dc40, 0x57dc70 and 0x57d720.
+// The weather renderer's small setters, texture release and deletion: reimplementation of 0x57d910, 0x57dc40, 0x57dc70, 0x57d720 and
+// 0x57d1a0.
 //
 // The renderer is the object at [0x8bcbac] (allocated at 0x57d120, built by 0x57d1d0). Its +0 is
 // the kinds of weather showing (bit 1 and bit 2; the constructor sets 1), +4 asks for its
@@ -24,4 +25,8 @@ void __fastcall WeatherFx_RequestReload(u8 *fx);
 // 0x57d720 (thiscall; name unconfirmed): the three texture arrays at +0x3348, +0x334c and +0x3350, each when set: its first texture
 // released (Texture_Release), the array destroyed when still set (Texture_DestroyArray), the field cleared. Returns 1.
 u32 __fastcall WeatherFx_FreeTextures(u8 *fx);
+
+// 0x57d1a0 (cdecl; name unconfirmed): with a renderer at [0x8bcbac], its textures freed (WeatherFx_FreeTextures), it freed (GameHeap_Free)
+// and [0x8bcbac] cleared: 1. Without one 0.
+u32 __cdecl WeatherFx_Delete();
 }
