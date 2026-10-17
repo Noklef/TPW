@@ -28,6 +28,10 @@ u8 *__fastcall Class709914_ScalarDtor(u8 *object, void *, u32 flags);
 // 0x5da270 / 0x5e0330 / 0x5e3c90 (thiscall; flags, pops 4): the same over Class702b08_Dtor / Class702cb0_Dtor / Class702d78_Dtor (small32).
 u8 *__fastcall Class702b08_ScalarDtor(u8 *object, void *, u32 flags);
 
+// 0x5bde10 / 0x5be510 (thiscall; flags, pops 4): the same over the small29 destructors of the 0x70293c and 0x702944 classes.
+u8 *__fastcall Class70293c_ScalarDtor(u8 *object, void *, u32 flags);
+u8 *__fastcall Class702944_ScalarDtor(u8 *object, void *, u32 flags);
+
 // 0x617a60 / 0x617b60 / 0x6180a0 (thiscall; flags, pops 4): the same over Class703780_DtorA / B / C (small31).
 u8 *__fastcall Class703780_ScalarDtorA(u8 *object, void *, u32 flags);
 u8 *__fastcall Class703780_ScalarDtorB(u8 *object, void *, u32 flags);

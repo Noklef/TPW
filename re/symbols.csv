@@ -3212,6 +3212,8 @@ address,name,kind,confidence,notes
 0x00617a60,Class703780_ScalarDtorA,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor of the 0x703780 class (A)
 0x00617b60,Class703780_ScalarDtorB,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor of the 0x703780 class (B)
 0x006180a0,Class703780_ScalarDtorC,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor of the 0x703780 class (C)
+0x005bde10,Class70293c_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor of the 0x70293c class
+0x005be510,Class702944_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor of the 0x702944 class
 0x00598760,Ptr_FreeIfSet,function,high,reimplemented (src/game/core/small21); frees the block a pointer variable points to
 0x00598770,Dwords_Zero,function,high,reimplemented (src/game/core/small21); zeroes a run of dwords
 0x005f4ea0,ReturnOne,function,high,reimplemented (src/game/core/small21); returns 1
