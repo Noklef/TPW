@@ -3037,6 +3037,7 @@ address,name,kind,confidence,notes
 0x00579070,Wrap_Transform_BlockedPoints_579070,function,low,"reimplemented (src/game/core/thunks); cdecl: the first stack argument lowered by the dword before it, then Transform_BlockedPoints"
 0x00579080,Wrap_Transform_ProjectToScreen_579080,function,low,"reimplemented (src/game/core/thunks); cdecl: the first stack argument lowered by the dword before it, then Transform_ProjectToScreen"
 0x005790a0,Wrap_Transform_Concatenate_5790a0,function,low,"reimplemented (src/game/core/thunks); cdecl: the first stack argument lowered by the dword before it, then Transform_Concatenate"
+0x0058c940,Wrap_TexSurfaceB_Zero_58c940,function,high,"reimplemented (src/game/core/thunks); thiscall: this lowered by the dword before it, then TexSurfaceB_Zero"
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value

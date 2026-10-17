@@ -2582,6 +2582,7 @@ const Hook kHooks[] = {
     {"Wrap_Transform_BlockedPoints_579070", 0x00579070, (void *)&Wrap_Transform_BlockedPoints_579070, {0x8b, 0x4c, 0x24, 0x04, 0x2b}},
     {"Wrap_Transform_ProjectToScreen_579080", 0x00579080, (void *)&Wrap_Transform_ProjectToScreen_579080, {0x8b, 0x4c, 0x24, 0x04, 0x2b}},
     {"Wrap_Transform_Concatenate_5790a0", 0x005790a0, (void *)&Wrap_Transform_Concatenate_5790a0, {0x8b, 0x4c, 0x24, 0x04, 0x2b}},
+    {"Wrap_TexSurfaceB_Zero_58c940", 0x0058c940, (void *)&Wrap_TexSurfaceB_Zero_58c940, {0x2b, 0x49, 0xfc, 0xe9, 0x88}},
     {"Table_AddressPlus18",       0x006b0620, (void *)&Table_AddressPlus18, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Table_Address",             0x006b0650, (void *)&Table_Address, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Packed_Read",               0x006b0510, (void *)&Packed_Read, {0x56, 0x8b, 0x74, 0x24, 0x08}},
