@@ -629,6 +629,15 @@ u8 *__fastcall Class6fefc8_Ctor(u8 *object) {
     return object;
 }
 
+u32 __fastcall Class6fefc8_Dtor(u8 *object) {
+    at<u32>(object, 0x0) = 0x6fefc8;
+    if (at<u8>(object, 0x7) != 0 && at<u32>(object, 0x64) != 0) {
+        s32 result;
+        Surface_Release(&result, reinterpret_cast<Surface *>(object + 0x14));
+    }
+    return Fn_6618a6(object);
+}
+
 u8 *__fastcall Class703710_Ctor(u8 *object) {
     Class7037e8_Ctor(object);
     at<u32>(object, 0x6c) = 0;

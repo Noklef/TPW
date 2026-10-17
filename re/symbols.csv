@@ -2745,6 +2745,7 @@ address,name,kind,confidence,notes
 0x006181c0,Class7037e8_Ctor,function,high,reimplemented (src/game/core/initializers); Constructs the 0x7037e8 class
 0x0047eab0,Class6fefc8_Ctor,function,high,reimplemented (src/game/core/initializers); Constructs the 0x6fefc8 class
 0x006175c0,Class703710_Ctor,function,high,reimplemented (src/game/core/initializers); Constructs the 0x703710 class on top of the 0x7037e8 one
+0x0047eb40,Class6fefc8_Dtor,function,low,"reimplemented (src/game/core/initializers); thiscall destructor; vtable 0x6fefc8, the surface at +0x14 released (Surface_Release) when byte +7 and +0x64 are set, then Fn_6618a6"
 0x006d2770,Fn_6d2770,function,high,reimplemented (src/game/core/accessors); stores +0x0 = 0x0
 0x005d5da0,Owner18_Append,function,high,reimplemented (src/game/core/forwarders); PtrList_Append on the list at +0x18
 0x005d8a70,OwnerC_Append,function,high,reimplemented (src/game/core/forwarders); PtrList_Append on the list at +0xc
