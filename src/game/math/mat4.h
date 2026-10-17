@@ -18,4 +18,18 @@ void __fastcall Mat4_Identity(u32 *m);
 
 // 0x578bc0 (thiscall; from): the 16 dwords copied in.
 void __fastcall Mat4_Assign(u32 *m, void *, const u32 *from);
+
+// 0x577460 (thiscall; distance; pops 4; x87): the translation row moved along the first row, m[12 + i] += distance * m[i]
+// (the name is unconfirmed).
+void __fastcall Mat4_MoveAlongX(float *m, void *, float distance);
+
+// 0x578820 (cdecl; lu, index, b; x87): Numerical Recipes' lubksb for n = 4: b solved in place against the LU decomposition lu
+// (row-major) with its row permutation index; the forward pass starts at the first nonzero b (a NaN counts as zero), and the back
+// pass divides by the diagonal unchecked. The index is not range-checked (the name is unconfirmed).
+void __cdecl Mat4_LuBackSubstitute(const float *lu, const s32 *index, float *b);
+
+// 0x578be0 (thiscall; near, far, field of view in degrees; pops 0xc; x87): the perspective matrix scaled by the sine of half the
+// angle: zeroed, then m[0] = m[5] = cos, m[10] = q = sin / (1 - near / far), m[14] = -q * near and m[11] = sin, or m[15] = 1 with the
+// render flag 0x200 (0x8bcbc8) set. The three arguments are kept at 0x87b1dc, 0x768acc and 0x87af58 (the name is unconfirmed).
+void __fastcall Mat4_Perspective(float *m, void *, float near_, float far_, float fov);
 }
