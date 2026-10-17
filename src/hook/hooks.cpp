@@ -155,6 +155,7 @@
 #include "../game/core/small50.h"
 #include "../game/core/small51.h"
 #include "../game/core/small52.h"
+#include "../game/core/small53.h"
 #include "../game/core/small6.h"
 #include "../game/core/small7.h"
 #include "../game/core/small8.h"
@@ -2959,6 +2960,8 @@ const Hook kHooks[] = {
     {"ArrayHolder_Clear",         0x005eb090, (void *)&ArrayHolder_Clear, {0x6a, 0xff, 0x68, 0xcc, 0x1d}},
     {"Eleven_Read",               0x005eb1a0, (void *)&Eleven_Read, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"Image_CropInto",            0x005ea3f0, (void *)&Image_CropInto, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"Image_Dilate",              0x005ea510, (void *)&Image_Dilate, {0x83, 0xec, 0x14, 0x53, 0x8b}},
+    {"Image_Erode",               0x005ea6d0, (void *)&Image_Erode, {0x83, 0xec, 0x10, 0x53, 0x55}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
