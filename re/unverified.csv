@@ -443,17 +443,6 @@ address,name,module,reason
 630c50,PixelConverter_DeletingDtor,gfx/pixconv,todo
 630c70,PixelConverter_DeletingDtor2,gfx/pixconv,todo
 630c90,PixelConverter_Dtor,gfx/pixconv,todo
-636b60,TextWriter_DeletingDtor,files/textwriter,todo
-636b80,TextWriter_SetLength,files/textwriter,todo
-636bc0,TextWriter_Ctor,files/textwriter,todo
-636c70,TextWriter_Dtor,files/textwriter,todo
-636c80,TextWriter_AssignChar,files/textwriter,todo
-636cc0,TextWriter_AssignStr,files/textwriter,todo
-636d10,TextWriter_Assign,files/textwriter,todo
-636d40,TextWriter_AppendStr,files/textwriter,todo
-636d80,TextWriter_AppendChar,files/textwriter,todo
-636dc0,TextWriter_Append,files/textwriter,todo
-636e00,TextWriter_Format,files/textwriter,todo
 638be0,BufferSource_AttachRefPack,files/wrapsources,todo: decodes what the source reads; needs a bench feeding real RefPack streams
 638d30,BufferSource_AttachZlib,files/wrapsources,todo: hands the codec a stack CallbackStream; needs a recorder that logs the pointee rather than the stack address
 638ef0,BufferedSource_Ctor,files/bufsource,todo
