@@ -33,4 +33,14 @@ u32 __cdecl Mem_AllocChecked(u32 size);
 
 u32 __cdecl Mem_FreeChecked(void *block);
 
+// 0x579b40 (cdecl; size; name unconfirmed): 0 when the table of tracked global blocks (the count at 0x8bb214, pairs of dwords from 0x87b1f8)
+// holds 0x8000; otherwise GlobalAlloc(GMEM_ZEROINIT, size) through its import slot, and a block got goes into both dwords of the next pair, the
+// count raised (re-read). Returns the block (0 when that failed).
+u32 __cdecl TrackedGlobal_Alloc(u32 size);
+
+// 0x579b80 (cdecl; block; name unconfirmed): the pairs are searched from the last (count - 1, signed) down for one whose second dword is the
+// block, then (none: the index -1) for one whose second dword is block + 4; none again: 0. Else the pair's first dword is freed (GlobalFree),
+// the last pair (by the count re-read) moved into its place when it comes after it, and the count lowered. Returns 1.
+u32 __cdecl TrackedGlobal_Free(u32 block);
+
 }  // extern "C"
