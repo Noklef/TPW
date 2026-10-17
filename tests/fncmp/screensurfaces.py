@@ -20,7 +20,7 @@ DISPLAY, SURF, VT = RAM + 0x100, RAM + 0x140, RAM + 0x180
 def wrap(r, regs, op):
     done, iface = (0xa8, 0xac) if op == 'Surface10' else (0xa4, 0xb0)
     o = regs[RAM] = bytearray(regs[RAM])
-    struct.pack_into('<I', o, done, r.choice([0, 0, 0, 1, r.getrandbits(32)]))
+    struct.pack_into('<I', o, done, r.choice([0, 0, 0, 1, 0x100, 0x10000, r.getrandbits(32)]))
     struct.pack_into('<I', o, iface, r.choice([0, SURF]))
     log = log_region()
     strings(log, 22, 0, 2)
