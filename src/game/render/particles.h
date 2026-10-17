@@ -1,5 +1,5 @@
 // The particle systems' handle accessors: reimplementation of 0x51fa80, 0x51fd80, 0x51fe30, 0x51fd90, 0x51feb0,
-// 0x520030, 0x5200b0, 0x5204c0, 0x521810, 0x521850, 0x51ff10, 0x51ff70, 0x51ffd0, 0x520470, 0x5222e0, 0x522320, 0x520e00 and 0x520560. Nothing works before the
+// 0x520030, 0x5200b0, 0x5204c0, 0x521810, 0x521850, 0x51ff10, 0x51ff70, 0x51ffd0, 0x520470, 0x5222e0, 0x522320, 0x520e00, 0x520560 and 0x521e60. Nothing works before the
 // particles are set up (0x816d40 set). A system handle is serial << 16 | slot: slot (u16) below
 // 0x78 in gParticleSystems (0x80cefc, 0x140 bytes each, copies of an effect definition), its
 // serial the system's u16 +0xa; 0 is none. A system's +0x20 is its age (-2 ends it) and +0xd4 its
@@ -81,4 +81,16 @@ void __cdecl Particle_Move(u8 *p);
 // z. The velocity (+0xc): with +0x5c set a random angle and Rand(+0x5c) (y RandSigned(+0x5c)), else +0x38 plus RandSigned of the s16 +0x50 for each; plus
 // the system's +0x2c when the byte +0x6c is set. The random numbers are Particle_Rand / Particle_RandSigned's, a step of the seed for each angle.
 s32 __cdecl Particle_Emit(u32 slot);
+
+// 0x521e60 (cdecl; effect, x, y, z): starts a particle system of effect definition `effect` (0x804370 + effect * 0x140) at x, y, z (over 16). -1 before the set-up,
+// for an effect outside 0 to 0x68 or with no free system; 0 for an optional effect (byte +0xc1) while the effects are reduced (0x80ced8). The system at the free
+// head (0x816d20; links: words +0xd0 next, +0xd2 previous) moves to the head of the live list (0x816d1c) and takes the definition's 0x140 bytes (its links
+// kept); Voice_ScaleLevels unless its byte +0xc0 is set; its lifetime +0xd4 = +0x20; the bounds +0x128 to +0x13c empty (0x7fffffff three times, 0x80000000
+// three times; zeros with the byte +5); words +8 = 0, +0xc = the effect, +0 = 1; the velocity +0x2c gets RandSigned of the s16 +0x12 in each component; the
+// serial +0xa from the u16 0x80cee8 (then incremented); +6 = -1, byte +0xab = 0, byte +0x6f whether any of +0x84/+0x88/+0x8c is set. With the word +0xe of
+// 1 its +0 = 1 and +0xcc = 0; with +0xe 0 and +0 above 0 it emits +0x60 particles (Particle_Emit). A link +0xb4 (not negative) starts a voice (byte +0xba:
+// Voice_Start, at the offset of the voice template's +0x18 with the word +0xb8; then the byte +0xa of the instance the whole handle indexes is set, sic)
+// or the linked effect (Particle_Spawn, at its definition's +0x2c offset with +0xb8, -1 when the definition links itself; then the new system's +0xab is
+// set), the result kept in +0xb4. Returns the handle (serial << 16 | slot).
+s32 __cdecl Particle_Spawn(s32 effect, s32 x, s32 y, s32 z);
 }

@@ -269,4 +269,98 @@ s32 __cdecl Particle_Emit(u32 slot) {
     }
     return index;
 }
+
+s32 __cdecl Particle_Spawn(s32 effect, s32 x, s32 y, s32 z) {
+    if (global<u32>(0x00816d40) == 0 || effect < 0 || effect >= 0x69)
+        return -1;
+    u8 *const def = reinterpret_cast<u8 *>(0x00804370 + effect * 0x140);
+    if (global<u32>(0x0080ced8) != 0 && def[0xc1] != 0)
+        return 0;
+
+    // A system off the free list (head 0x816d20) to the head of the live list (0x816d1c)
+    s32 slot = -1;
+    const s16 free = global<s16>(0x00816d20);
+    if (free >= 0) {
+        const u16 live = global<u16>(0x00816d1c);
+        global<s16>(0x00816d1c) = free;
+        const s16 next = field<s16>(system((u32)(s32)free), 0xd0);
+        global<s16>(0x00816d20) = next;
+        if (next >= 0)
+            field<u16>(system((u32)(s32)next), 0xd2) = 0xffff;
+        field<u16>(system((u32)(s32)global<s16>(0x00816d1c)), 0xd0) = live;
+        if ((s16)live >= 0)
+            field<u16>(system((u32)(s32)(s16)live), 0xd2) = global<u16>(0x00816d1c);
+        slot = global<s16>(0x00816d1c);
+    }
+    if (slot < 0)
+        return -1;
+
+    // The system: a copy of the effect's definition (its links kept), placed at the position over 16
+    u8 *const s = system((u32)slot);
+    const u16 next = field<u16>(s, 0xd0), prev = field<u16>(s, 0xd2);
+    for (u32 k = 0; k < 0x140; k += 4)
+        field<u32>(s, k) = field<u32>(def, k);
+    field<u16>(s, 0xd0) = next;
+    field<u16>(s, 0xd2) = prev;
+    if (s[0xc0] == 0)
+        Voice_ScaleLevels(slot);
+    field<s32>(s, 0xd4) = field<s32>(s, 0x20);
+    field<s32>(s, 0x1c) = z >> 4;
+    field<s32>(s, 0x14) = x >> 4;
+    field<s32>(s, 0x18) = y >> 4;
+    for (u32 k = 0; k < 3; ++k) {  // the bounds: empty, or none with the byte +5
+        field<u32>(s, 0x128 + 4 * k) = s[5] != 0 ? 0 : 0x7fffffff;
+        field<u32>(s, 0x134 + 4 * k) = s[5] != 0 ? 0 : 0x80000000;
+    }
+    field<u16>(s, 8) = 0;
+    field<u16>(s, 0xc) = (u16)effect;
+    field<u16>(s, 0) = 1;
+    for (u32 k = 0; k < 3; ++k) {
+        const s32 jitter = Particle_RandSigned(field<s16>(s, 0x12));
+        field<u32>(s, 0x2c + 4 * k) += (u32)jitter;
+    }
+    field<u16>(s, 0xa) = global<u16>(0x0080cee8);  // the serial
+    ++global<u16>(0x0080cee8);
+    field<u16>(s, 6) = 0xffff;
+    s[0xab] = 0;
+    s[0x6f] = field<u32>(s, 0x84) != 0 || field<u32>(s, 0x88) != 0 || field<u32>(s, 0x8c) != 0 ? 1 : 0;
+    if (field<u16>(s, 0xe) != 0) {
+        if (field<s16>(s, 0xe) == 1) {
+            field<u16>(s, 0) = 1;
+            field<u32>(s, 0xcc) = 0;
+        }
+    } else if (field<s16>(s, 0) > 0 && field<u32>(s, 0x60) != 0) {  // the first burst
+        for (u32 n = field<u32>(s, 0x60); n != 0; --n)
+            Particle_Emit((u32)slot);
+    }
+
+    // The linked effect (+0xb4): a voice (byte +0xba) or another particle effect, at an offset when the word +0xb8 is set (which also marks it)
+    const s32 linked = field<s32>(s, 0xb4);
+    if (linked >= 0) {
+        if (s[0xba] != 0) {
+            if (field<u16>(s, 0xb8) != 0) {
+                u8 *const voice = reinterpret_cast<u8 *>(0x0080c6b0 + linked * 0x68);  // (its template's position)
+                x = (s32)((u32)x + (field<u32>(voice, 0x18) << 4));
+                y = (s32)((u32)y + (field<u32>(voice, 0x1c) << 4));
+                z = (s32)((u32)z + (field<u32>(voice, 0x20) << 4));
+            }
+            const s32 started = (s32)Voice_Start(linked, x, y, z);
+            field<s32>(s, 0xb4) = started;
+            if (started >= 0 && field<u16>(s, 0xb8) != 0)
+                global<u8>(0x00816506 + (u32)started * 0x68) = 1;  // sic: the whole handle as the index
+        } else {
+            if (field<u16>(s, 0xb8) != 0) {
+                u8 *const other = reinterpret_cast<u8 *>(0x00804370 + linked * 0x140);
+                x = (s32)((u32)x + (field<u32>(other, 0x2c) << 4));
+                y = (s32)((u32)y + (field<u32>(other, 0x30) << 4));
+                z = (s32)((u32)z + (field<u32>(other, 0x34) << 4));
+            }
+            field<s32>(s, 0xb4) = field<s32>(def, 0xb4) == effect ? -1 : Particle_Spawn(linked, x, y, z);
+            const s32 spawned = field<s32>(s, 0xb4);
+            if (spawned >= 0 && field<u16>(s, 0xb8) != 0)
+                system((u32)spawned & 0xffff)[0xab] = 1;
+        }
+    }
+    return (s32)((u32)field<u16>(s, 0xa) << 16 | (u32)slot);
+}
 }

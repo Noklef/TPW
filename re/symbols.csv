@@ -328,7 +328,7 @@ address,name,kind,confidence,notes
 0x0051bfc0,Sound_PlayAt,function,medium,"(owner, category, sound, x, y, z): posts a positional play command via the sound manager vtable +8"
 0x0051c130,Sound_PlayAtRange,function,medium,"Sound_PlayAt with an extra range float"
 0x0051c5d0,Sound_SetArea,function,medium,"(sound, x, z, w, d): spreads an emitter over the rect (x, z)..(x+w, z+d)"
-0x00521e60,Particle_Spawn,function,medium,"(effect 0..0x68, x, y, z in 1/1024 units); pool of 0x140-byte systems"
+0x00521e60,Particle_Spawn,function,high,"reimplemented (src/game/render/particles); cdecl (effect, x, y, z): starts a particle system from the effect definition: a free system to the live list, the definition copied, its first burst emitted, its linked voice or effect started; returns its handle, 0 for an optional effect while reduced, -1 when none"
 0x0051b530,SoundCategory_Register,function,medium,"loads a cat_<name> sound category (bank + map)"
 0x0051b620,SoundCategory_Release,function,medium,
 0x0051eae0,Sound_RegisterGlobalCategories,function,high,"cat_ambient, cat_rides, cat_ui, cat_kids, cat_staff, cat_speech"

@@ -13,10 +13,10 @@ from fncmp import CDECL_LOG2, LOG, RAM, Bench, Call, log_region, put, set_return
 B = Bench([(0x5222e0, 0x52231b), (0x522320, 0x522356), (0x51fd80, 0x51fd8a), (0x51fa80, 0x51faa0),
            (0x51feb0, 0x51ff06), (0x51ff10, 0x51ff68), (0x51ff70, 0x51ffc6), (0x51ffd0, 0x520028),
            (0x520470, 0x5204ba), (0x51fe30, 0x51fea4), (0x520030, 0x5200a4), (0x51fd90, 0x51fe2d), (0x5200b0, 0x520123), (0x5204c0, 0x52055f), (0x521810, 0x521845), (0x521850, 0x52188a), (0x520e00, 0x520f0c),
-           (0x520560, 0x520d60), (0x520d60, 0x520e00)])
+           (0x520560, 0x520d60), (0x520d60, 0x520e00), (0x521e60, 0x5222e0), (0x521d60, 0x521e60), (0x522360, 0x5224f0)])
 SYSTEMS, EFFECTS, EFFECTORS, SETUP = 0x80cefc, 0x804370, 0x816504, 0x816d40
 CALLS = {'Alive': 0x5222e0, 'Effector': 0x522320, 'Reduced': 0x51fd80, 'Clear': 0x51fa80, 'End': 0x51feb0,
-         'Age': 0x51ff70, 'Set2a': 0x51ff10, 'SetA2': 0x51ffd0, 'Quarter': 0x520470, 'VecA': 0x51fe30, 'VecB': 0x520030, 'Scaled': 0x51fd90, 'EndAll': 0x5200b0, 'Release': 0x5204c0, 'RandS': 0x521810, 'Rand': 0x521850, 'Move': 0x520e00, 'Emit': 0x520560}
+         'Age': 0x51ff70, 'Set2a': 0x51ff10, 'SetA2': 0x51ffd0, 'Quarter': 0x520470, 'VecA': 0x51fe30, 'VecB': 0x520030, 'Scaled': 0x51fd90, 'EndAll': 0x5200b0, 'Release': 0x5204c0, 'RandS': 0x521810, 'Rand': 0x521850, 'Move': 0x520e00, 'Emit': 0x520560, 'Spawn': 0x521e60}
 NODES, SINES = RAM + 0x1000, RAM + 0x2000
 
 
@@ -40,6 +40,8 @@ def case(r):
         return move(r)
     if op == 'Emit':
         return emit(r)
+    if op == 'Spawn':
+        return spawn(r)
     systems = bytearray(r.bytes(0x78 * 0x140))
     if op in ('RandS', 'Rand'):
         n = r.choice([0, 1, 2, 3, 7, 100, -1, -7, 0x7fffffff, -0x80000000, r.randrange(-1000, 1000)])
@@ -154,6 +156,58 @@ def emit(r):
     regions = {0x80cefc: systems, 0x80cef8: struct.pack('<I', NODES), NODES: nodes, 0x816d24: struct.pack('<h', free[0] if free else -1),
                0x80ceec: struct.pack('<I', SINES), SINES: sines, 0x80cee0: r.bytes(4), 0x80ced0: r.bytes(4)}
     return Call(0x520560, [slot], regions, ret='a')
+
+
+def spawn(r):
+    """0x521e60: the effect definitions (each one's burst small, its link none, itself, a later effect or a voice, so that the chain ends), six systems with a
+    free list and a live list, the voices' templates and instances (the counter mostly 0: the voice mark indexes by the whole handle), and Emit's set-up."""
+    defs = bytearray(r.bytes(0x69 * 0x140))
+    for k in range(0x69):
+        d = 0x140 * k
+        put(defs, d, 'h', r.choice([1, 1, 0, -1, 2]))
+        put(defs, d + 0xe, 'h', r.choice([0, 0, 1, 2, -1]))
+        put(defs, d + 0x12, 'h', r.choice([0, 1, -1, 0x10, r.randrange(-0x8000, 0x8000)]))
+        put(defs, d + 0x60, 'I', r.choice([0, 0, 1, 2, 3]))
+        for off in (5, 0xc0, 0xc1, 0xba):
+            defs[d + off] = r.choice([0, 0, 1, 0x80])
+        put(defs, d + 0xb8, 'H', r.choice([0, 0, 1, r.getrandbits(16)]))
+        for off in (0x84, 0x88, 0x8c):
+            put(defs, d + off, 'I', r.choice([0, 0, 0, 1, r.getrandbits(32)]))
+        if defs[d + 0xba]:
+            link = r.choice([-1, 0, 5, 19, 20, r.randrange(20)])
+        else:
+            link = r.choice([-1, -1, k, 0x69, r.randrange(k + 1, 0x6a)])
+        put(defs, d + 0xb4, 'i', link)
+    systems = bytearray(r.bytes(0x140 * 6))
+    order = r.sample(range(6), 6)
+    nfree = r.choice([0, 1, 2, 3, 6]) if r.random() < 0.15 else r.choice([3, 4, 6])
+    free, live = order[:nfree], order[nfree:]
+    for chain in (free, live):
+        for i, a in enumerate(chain):
+            put(systems, 0x140 * a + 0xd0, 'hh', chain[i + 1] if i + 1 < len(chain) else -1, chain[i - 1] if i else -1)
+    nodes = bytearray(r.bytes(0x34 * 12))
+    records = r.sample(range(12), r.choice([0, 1, 3, 12]))
+    for a, b in zip(records, records[1:] + [-1]):
+        put(nodes, 0x34 * a + 0x30, 'h', b)
+    instances = bytearray(r.bytes(0x68 * 12))
+    vfree = r.sample(range(12), r.choice([0, 2, 12]))
+    for i, a in enumerate(vfree):
+        put(instances, 0x68 * a + 0x60, 'hh', vfree[i + 1] if i + 1 < len(vfree) else -1, -1)
+    heads = bytearray(r.bytes(0x28))  # 0x816d1c: the live systems, the voices' active and free lists, the systems' and the records' free lists; 0x816d40 the set-up
+    put(heads, 0, 'hhhhh', live[0] if live else -1, -1, free[0] if free else -1, vfree[0] if vfree else -1, records[0] if records else -1)
+    put(heads, 0x24, 'I', 0 if r.random() < 0.06 else 1)
+    state = bytearray(r.bytes(0x2c))  # 0x80ced0: the emit count, reduced, the seed, the serials, the sines, the scale factor, the records
+    put(state, 8, 'I', r.choice([0, 0, 0, 1]))
+    put(state, 0x18, 'HH', r.getrandbits(16), r.choice([0, 0, 0, 0, 0, 0, 0, 0, 0, 1]))
+    put(state, 0x1c, 'I', SINES)
+    put(state, 0x20, 'I', r.choice([0, 1024, 512, 2000, r.getrandbits(12)]))
+    put(state, 0x28, 'I', NODES)
+    sines = b''.join(struct.pack('<i', r.randrange(-0x10000, 0x10001)) for _ in range(0x200))
+    effect = r.choice([0x69, -1]) if r.random() < 0.08 else r.choice([0, 1, 0x68, r.randrange(0x69), r.randrange(0x69)])
+    pos = [r.choice([0, 15, 16, -16, 0x12345, r.randrange(-0x100000, 0x100000), r.getrandbits(32)]) & 0xffffffff for _ in range(3)]
+    regions = {0x804370: defs, 0x80cefc: systems, 0x80ced0: state, 0x816d1c: heads, NODES: nodes, SINES: sines, 0x8164fc: instances,
+               0x80c6b0: r.bytes(0x68 * 20)}
+    return Call(0x521e60, [effect & 0xffffffff] + pos, regions, ret='a')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
