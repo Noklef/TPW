@@ -30,12 +30,14 @@ def case(r):
         x, y = (r.choice([1, -1]) * r.choice([0, 1, r.randrange(0x1000), r.randrange(0x400000), r.randrange(0x80000000), 0xfff, 0x1000, 0x3fffff, 0x400000])
                 for _ in range(2))
         if r.random() < 0.1:
-            x, y = r.choice([(-0x80000000, r.randrange(-5, 5)), (r.randrange(-0x1000, 0x1000), -0x80000000)])
+            x, y = r.choice([(-0x80000000, r.randrange(-5, 5)), (r.randrange(-0x1000, 0x1000), -0x80000000), (0, 0)])
         struct.pack_into('<ii', mem, 0x100, x, y)
         if op == 13:
             return Call(0x50f700, [other, pair], {RAM: mem}, ret='a')
         length = int(math.hypot(x, y))
         limit = r.choice([length, length + 1, length - 1, length // 2, length * 2, 0, 1, -1, r.randrange(1, 0x100000), r.getrandbits(31), -r.getrandbits(31)])
+        if x == y == 0:  # a length of 0 at a limit of 0: the division by 0 (it faults, sic)
+            limit = r.choice([0, 0, 1, -1])
         return Call(0x50f600, [other, pair, limit & 0xffffffff], {RAM: mem}, ret='a')
     if op == 9:
         return Call(0x50cd80, [pair, other, r.choice([RAM + 0x200, pair, pair + 4, other])], {RAM: mem}, conv='t', ret='a')
