@@ -77,4 +77,9 @@ void __cdecl Coaster_SetupCars(u8 *coaster, u32 riders, u32 segments, u32 flags)
 // +0x318 and to its first car's type +8 (signed), through Coaster_SetupCars(coaster, n, 0,
 // 1) when that changes +0xf0.
 void __cdecl Coaster_SetRiders(u32 index, s32 n);
+
+// 0x43bbe0 / 0x43bc00 (cdecl; names unconfirmed): this unit's static initialisers of the shared header's two floats
+// nothing reads (core/floatconsts): 0x7923a0 = 1 and 0x7923a4 = 1 / 2^23.
+void __cdecl CoasterCars_InitUnusedOne();
+void __cdecl CoasterCars_InitUnusedEpsilon();
 }

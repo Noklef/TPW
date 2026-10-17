@@ -183,4 +183,8 @@ void __cdecl Coaster_SetRiders(u32 index, s32 n) {
     if (seats < n) n = seats;
     if ((u32)n != at<u32>(coaster, 0xf0)) Coaster_SetupCars(coaster, (u32)n, 0, 1);
 }
+
+void __cdecl CoasterCars_InitUnusedOne() { *reinterpret_cast<float *>(0x007923a0) = 1.0f; }
+
+void __cdecl CoasterCars_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x007923a4) = 1.0f / 8388608.0f; }
 }

@@ -125,6 +125,7 @@ add_library(tpw_game STATIC
     src/game/core/savegame.cpp
     src/game/core/balancefile.cpp
     src/game/core/timesig.cpp
+    src/game/core/floatconsts.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

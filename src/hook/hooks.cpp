@@ -117,6 +117,7 @@
 #include "../game/core/ptrlist.h"
 #include "../game/core/class6fd9d8.h"
 #include "../game/core/factories.h"
+#include "../game/core/floatconsts.h"
 #include "../game/core/wstringmap.h"
 #include "../game/core/streambuf.h"
 #include "../game/core/voices.h"
@@ -1303,6 +1304,8 @@ const Hook kHooks[] = {
     {"Coaster_SpeedAfterDrop",    0x0043bfb0, (void *)&Coaster_SpeedAfterDrop, {0xd9, 0x44, 0x24, 0x14, 0xd8}},
     {"Coaster_SetupCars",         0x0043ba90, (void *)&Coaster_SetupCars, {0x83, 0xec, 0x10, 0x56, 0x57}},
     {"Coaster_SetRiders",         0x0043b330, (void *)&Coaster_SetRiders, {0x8b, 0x44, 0x24, 0x04, 0x33}},
+    {"CoasterCars_InitUnusedOne", 0x0043bbe0, (void *)&CoasterCars_InitUnusedOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"CoasterCars_InitUnusedEpsilon", 0x0043bc00, (void *)&CoasterCars_InitUnusedEpsilon, {0xd9, 0x05, 0x20, 0xe0, 0x6f}},
     {"CoasterNode_Lerp",          0x0043c000, (void *)&CoasterNode_Lerp, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Coaster_IsPastEnd",         0x0043c080, (void *)&Coaster_IsPastEnd, {0x8b, 0x44, 0x24, 0x04, 0xd9}},
     {"Coaster_FindZone",          0x0043e9c0, (void *)&Coaster_FindZone, {0x51, 0x8b, 0x44, 0x24, 0x08}},
@@ -3207,6 +3210,34 @@ const Hook kHooks[] = {
     {"AdvisorScoring_StaticDtor", 0x00415e70, (void *)&AdvisorScoring_StaticDtor, {0xb9, 0x40, 0x35, 0xfb, 0x00}},
     {"BalanceFile_FindKey",       0x00401280, (void *)&BalanceFile_FindKey, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"TimeSig_Serialize",         0x0041a860, (void *)&TimeSig_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x56}},
+    {"FloatConsts_InitOne_407b20", 0x00407b20, (void *)&FloatConsts_InitOne_407b20, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_407b40", 0x00407b40, (void *)&FloatConsts_InitEpsilon_407b40, {0xd9, 0x05, 0x00, 0xd7, 0x6f}},
+    {"FloatConsts_InitOne_409f60", 0x00409f60, (void *)&FloatConsts_InitOne_409f60, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_409f80", 0x00409f80, (void *)&FloatConsts_InitEpsilon_409f80, {0xd9, 0x05, 0x60, 0xd7, 0x6f}},
+    {"FloatConsts_InitOne_40d110", 0x0040d110, (void *)&FloatConsts_InitOne_40d110, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_40d130", 0x0040d130, (void *)&FloatConsts_InitEpsilon_40d130, {0xd9, 0x05, 0x98, 0xd7, 0x6f}},
+    {"FloatConsts_InitOne_4148d0", 0x004148d0, (void *)&FloatConsts_InitOne_4148d0, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_4148f0", 0x004148f0, (void *)&FloatConsts_InitEpsilon_4148f0, {0xd9, 0x05, 0x2c, 0xd9, 0x6f}},
+    {"FloatConsts_InitOne_438760", 0x00438760, (void *)&FloatConsts_InitOne_438760, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_438780", 0x00438780, (void *)&FloatConsts_InitEpsilon_438780, {0xd9, 0x05, 0x28, 0xdf, 0x6f}},
+    {"FloatConsts_InitOne_43afd0", 0x0043afd0, (void *)&FloatConsts_InitOne_43afd0, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_43aff0", 0x0043aff0, (void *)&FloatConsts_InitEpsilon_43aff0, {0xd9, 0x05, 0xb0, 0xdf, 0x6f}},
+    {"FloatConsts_InitOne_43dbb0", 0x0043dbb0, (void *)&FloatConsts_InitOne_43dbb0, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_43dbd0", 0x0043dbd0, (void *)&FloatConsts_InitEpsilon_43dbd0, {0xd9, 0x05, 0xb0, 0xe0, 0x6f}},
+    {"FloatConsts_InitOne_45f950", 0x0045f950, (void *)&FloatConsts_InitOne_45f950, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_45f970", 0x0045f970, (void *)&FloatConsts_InitEpsilon_45f970, {0xd9, 0x05, 0x18, 0xe7, 0x6f}},
+    {"FloatConsts_InitOne_470990", 0x00470990, (void *)&FloatConsts_InitOne_470990, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_4709b0", 0x004709b0, (void *)&FloatConsts_InitEpsilon_4709b0, {0xd9, 0x05, 0xd8, 0xeb, 0x6f}},
+    {"FloatConsts_InitOne_4740e0", 0x004740e0, (void *)&FloatConsts_InitOne_4740e0, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_474100", 0x00474100, (void *)&FloatConsts_InitEpsilon_474100, {0xd9, 0x05, 0x50, 0xec, 0x6f}},
+    {"FloatConsts_InitOne_475fe0", 0x00475fe0, (void *)&FloatConsts_InitOne_475fe0, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_476000", 0x00476000, (void *)&FloatConsts_InitEpsilon_476000, {0xd9, 0x05, 0x98, 0xed, 0x6f}},
+    {"FloatConsts_InitOne_476a30", 0x00476a30, (void *)&FloatConsts_InitOne_476a30, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_476a50", 0x00476a50, (void *)&FloatConsts_InitEpsilon_476a50, {0xd9, 0x05, 0xd8, 0xed, 0x6f}},
+    {"FloatConsts_InitOne_48c9a0", 0x0048c9a0, (void *)&FloatConsts_InitOne_48c9a0, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_48c9c0", 0x0048c9c0, (void *)&FloatConsts_InitEpsilon_48c9c0, {0xd9, 0x05, 0xe8, 0xf1, 0x6f}},
+    {"FloatConsts_InitOne_491fa0", 0x00491fa0, (void *)&FloatConsts_InitOne_491fa0, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_491fc0", 0x00491fc0, (void *)&FloatConsts_InitEpsilon_491fc0, {0xd9, 0x05, 0x90, 0xf5, 0x6f}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
