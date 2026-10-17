@@ -5,6 +5,7 @@
 #include "../core/initializers.h"
 #include "../model/parts.h"
 #include "../model/partstate.h"
+#include "../motion/animator.h"
 
 namespace {
 
@@ -39,6 +40,18 @@ extern "C" {
 u32 __cdecl FlyingRide_FirstSlotRide(s32 index) {
     u8 *const rec = record(index);
     return rec ? at<u32>(slot(rec, 0), 0xc0) : 0;
+}
+
+void __cdecl FlyingRide_PlaySlotMotion(s32 index, u32 slotIndex, u32 bank, u32 entry, u32 loop) {
+    u8 *const s = slot(table()[index], slotIndex);
+    const u32 ride = at<u32>(s, 0xc0);
+    if (ride == 0) return;
+    if (at<u32>(s, 0xcc) == bank && at<u32>(s, 0xd0) == entry && at<u32>(s, 0xd4) == loop) return;
+    u8 *const *rides = reinterpret_cast<u8 *const *>(0x007a4610);
+    Animator_Play(rides[ride], bank, entry, loop != 0 ? 1 : 0, 1.0f, 0);
+    at<u32>(s, 0xcc) = bank;
+    at<u32>(s, 0xd0) = entry;
+    at<u32>(s, 0xd4) = loop;
 }
 
 // The four fly-by bounds (0x7660bc, 0x7660c4, 0x7660b8, 0x7660c0): the globals Fn_52c6c0 copies, scaled by 3000 and offset by 0x2904 (the last two negatively).

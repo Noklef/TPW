@@ -18,6 +18,11 @@ extern "C" {
 // for all of these).
 u32 __cdecl FlyingRide_FirstSlotRide(s32 index);
 
+// 0x55aa80 (index, slot, bank, entry, loop; name unconfirmed; the index and slot not checked): when the slot has a ride and its last motion
+// (+0xcc bank, +0xd0 entry, +0xd4 loop) differs, the ride's animator (0x7a4610) plays it (Animator_Play, mode 1 when looping else 0, speed 1,
+// layer 0) and the three are kept.
+void __cdecl FlyingRide_PlaySlotMotion(s32 index, u32 slotIndex, u32 bank, u32 entry, u32 loop);
+
 // 0x55d610 (index): the first slot in state 1, if its step is negative: the ride part the step
 // names released (key (base + -step) % count + 1, when count and the ride are set and the ride
 // has that part), the step brought one nearer 0, +0x48 decremented, and the u32 for the new
