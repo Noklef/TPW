@@ -145,7 +145,7 @@ address,name,kind,confidence,notes
 0x00416e10,Save_FieldName,function,high,"reimplemented (src/game/core/savegame); stdcall (size, name, isLoad) debug stub: returns 0"
 0x00416e20,Save_InitUnusedOne,function,low,reimplemented (src/game/core/savegame); cdecl static initialiser: unused 0x78aa2c = 1.0f
 0x00416e40,Save_InitUnusedEpsilon,function,low,reimplemented (src/game/core/savegame); cdecl static initialiser: unused 0x78b11c = 1 / 2^23
-0x0041a860,TimeSig_Serialize,function,high,u32 mTimeSig
+0x0041a860,TimeSig_Serialize,function,high,"reimplemented (src/game/core/timesig); thiscall (stream, save, version, unused): version 0..1 only; the stamp's 4 bytes written or read; 0 when all went, else 1"
 0x00415f50,SaveGame_WriteHeader,function,high,"u8 language, 0x500 UTF-16 legal text, 0x100 block, u32 BE magic 0x01221985, u32 has-preview"
 0x00416240,SaveGame_ReadHeader,function,high,mirror of SaveGame_WriteHeader; rejects edited legal text
 0x00749870,SaveGame_Magic,data,high,0x01221985 (written big-endian via htonl)

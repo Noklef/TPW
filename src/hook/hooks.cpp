@@ -135,7 +135,8 @@
 #include "../game/core/actionrec.h"
 #include "../game/core/namedobjects.h"
 #include "../game/core/savegame.h"
-#include "../game/core/balancefile.h"
+#include "../game/core/balancefile.h"
+#include "../game/core/timesig.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -3199,6 +3200,7 @@ const Hook kHooks[] = {
     {"AdvisorScoring_GetSchema",  0x00415e90, (void *)&AdvisorScoring_GetSchema, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
     {"AdvisorScoring_Dtor",       0x00415e80, (void *)&AdvisorScoring_Dtor, {0x83, 0xc1, 0x0c, 0xc7, 0x01}},
     {"AdvisorScoring_StaticDtor", 0x00415e70, (void *)&AdvisorScoring_StaticDtor, {0xb9, 0x40, 0x35, 0xfb, 0x00}},
+    {"TimeSig_Serialize",         0x0041a860, (void *)&TimeSig_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x56}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
