@@ -747,4 +747,15 @@ s32 __fastcall ByteString_Compare(const u8 *object, void *, const u8 *other) {
     return -1;
 }
 
+String *__cdecl String_StripSuffix(const String *suffix, String *s) {
+    StringView view;
+    String tail;
+    String_CtorCopy(&tail, nullptr, String_Right(s, nullptr, &view, suffix->length));
+    const bool equal = Crt().stricmp(tail.data, suffix->data) == 0;
+    String_Dtor(&tail);
+    if (equal)
+        String_Assign(s, nullptr, String_Left(s, nullptr, &view, s->length - suffix->length));
+    return s;
+}
+
 }  // extern "C"
