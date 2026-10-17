@@ -130,6 +130,7 @@
 #include "../game/core/vregs.h"
 #include "../game/core/vstream.h"
 #include "../game/core/vwrap.h"
+#include "../game/core/actionrec.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -3071,6 +3072,13 @@ const Hook kHooks[] = {
     {"Class703750_Create",        0x00617970, (void *)&Class703750_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"VanillaTime_Save",          0x00403220, (void *)&VanillaTime_Save, {0x51, 0xe8, 0x7a, 0x2d, 0x1f}},
     {"VanillaTime_Load",          0x00403260, (void *)&VanillaTime_Load, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
+    {"ActionRec_Write",           0x00403be0, (void *)&ActionRec_Write, {0x8b, 0x41, 0x24, 0x85, 0xc0}},
+    {"ActionRec_WriteBB",         0x00403c20, (void *)&ActionRec_WriteBB, {0x51, 0x8b, 0x41, 0x24, 0x85}},
+    {"ActionRec_WriteBBW",        0x00403c80, (void *)&ActionRec_WriteBBW, {0x51, 0x8b, 0x41, 0x24, 0x85}},
+    {"ActionRec_WriteW",          0x00403d00, (void *)&ActionRec_WriteW, {0x8b, 0x41, 0x24, 0x85, 0xc0}},
+    {"ActionRec_WriteWW",         0x00403d60, (void *)&ActionRec_WriteWW, {0x8b, 0x41, 0x24, 0x85, 0xc0}},
+    {"ActionRec_WriteWWW",        0x00403dd0, (void *)&ActionRec_WriteWWW, {0x8b, 0x41, 0x24, 0x85, 0xc0}},
+    {"ActionRec_WriteWB",         0x00403e60, (void *)&ActionRec_WriteWB, {0x8b, 0x41, 0x24, 0x85, 0xc0}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Cell_ExtendPath",           0x0052a050, (void *)&Cell_ExtendPath, {0x55, 0x56, 0x8b, 0x74, 0x24}},

@@ -3527,6 +3527,13 @@ address,name,kind,confidence,notes
 0x005dc580,Class702bc8_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor with two helper objects and tuning floats
 0x00617ff0,Class7037c0_Create,function,high,reimplemented (src/game/core/factories); object factory with a result code
 0x00617970,Class703750_Create,function,high,reimplemented (src/game/core/factories); Allocates and constructs the 0x703750 class object
+0x00403be0,ActionRec_Write,function,high,"reimplemented (src/game/core/actionrec); thiscall (code): the action recorder's code byte, while recording and not playing back"
+0x00403c20,ActionRec_WriteBB,function,high,"reimplemented (src/game/core/actionrec); thiscall (code, a, b): three bytes in one write"
+0x00403c80,ActionRec_WriteBBW,function,high,"reimplemented (src/game/core/actionrec); thiscall (code, a, b, c): three bytes, then the word c"
+0x00403d00,ActionRec_WriteW,function,high,"reimplemented (src/game/core/actionrec); thiscall (code, a): the code byte, the word a"
+0x00403d60,ActionRec_WriteWW,function,high,"reimplemented (src/game/core/actionrec); thiscall (code, a, b): the code byte, the words a and b"
+0x00403dd0,ActionRec_WriteWWW,function,high,"reimplemented (src/game/core/actionrec); thiscall (code, a, b, c): the code byte, three words"
+0x00403e60,ActionRec_WriteWB,function,high,"reimplemented (src/game/core/actionrec); thiscall (code, a, b): the code byte, the word a, the byte b"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x0052a050,Cell_ExtendPath,function,high,reimplemented (src/game/world/mapcell); one step of a path across the map's cells
