@@ -5,6 +5,7 @@
 #include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "objectdefs.h"
+#include "mapcell.h"
 
 namespace {
 
@@ -91,5 +92,24 @@ u32 __fastcall GameTable7cfb90_Get1da726_5195d0(u8 *o) {
 
 u32 __fastcall GameTable7cfb90_Get1da736_519610(u8 *o) {
     return global<u32>(0x007cfb90 + 20 * at<u16>(o, 0x1da736));
+}
+
+u32 __fastcall World_BusStopBlocked(u8 *world) {
+    // The debug print of the original is left out. The four cells are the bus stop position, the next one and the two on the row above (sic: the positions are cell numbers, 128 to a row).
+    u16 cells[4];
+    Map_BusStopPos(world + 0x2d8, nullptr, &cells[0], 0);
+    u16 scratch[2] = {0, 0};
+    cells[1] = *Map_BusStopPos(world + 0x2d8, nullptr, &scratch[0], 0) + 1;
+    cells[2] = *Map_BusStopPos(world + 0x2d8, nullptr, &scratch[0], 0) - 0x100;
+    cells[3] = *Map_BusStopPos(world + 0x2d8, nullptr, &scratch[0], 0) - 0xff;
+    for (u32 i = 0; i < 4; i++) {
+        const u16 handle = at<u16>(world, 0x2b8 + cells[i] * 0x44);
+        if (handle == 0)
+            continue;
+        const u8 *const thing = reinterpret_cast<u8 *const *>(0x007cfb90)[handle * 5];
+        if (at<u8>(thing, 2) == 1 && at<u32>(thing, 0x220) == 0x15)
+            return 1;
+    }
+    return 0;
 }
 }

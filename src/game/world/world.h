@@ -60,4 +60,8 @@ u32 __fastcall GameTable7cfb90_Get1da726_5195d0(u8 *o);
 
 // 0x519610: the dword of the table at 0x7cfb90 for the 16-bit field at +0x1da736 of the game object (the debug printf in the original is not called).
 u32 __fastcall GameTable7cfb90_Get1da736_519610(u8 *o);
+
+// 0x51a9d0 (thiscall on the game object; name unconfirmed; the debug print is not reproduced): the bus stop position (Map_BusStopPos with 0) gives four cells: it, it + 1, it - 0x100 and
+// it - 0xff; the handles at +0x2b8 + cell * 0x44 that are not 0 name things (table 0x7cfb90, 20 bytes each) and 1 is returned for the first whose byte +2 is 1 and dword +0x220 is 0x15, else 0.
+u32 __fastcall World_BusStopBlocked(u8 *world);
 }
