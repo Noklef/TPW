@@ -102,6 +102,31 @@ u32 __cdecl FlyingRide_StepOutSlot(s32 index) {
     return at<u32>(slot(rec, i), 0x90 + (u32)magnitude(at<s32>(slot(rec, i), 0x8c)) * 4);
 }
 
+u32 __cdecl FlyingRide_AddToSlot(s32 index, u32 value) {
+    u8 *const rec = record(index);
+    if (!rec) return 0;
+    u32 i = 0;
+    while (at<s32>(slot(rec, i), 0x80) != 1) {
+        if (++i >= 20) return 0;
+    }
+    const s32 count = at<s32>(slot(rec, i), 0x8c);
+    if (count < 0) return 0;
+    at<u32>(slot(rec, i), 0x90 + (u32)count * 4) = value;
+    ++at<s32>(slot(table()[index], i), 0x8c);
+    u8 *const s = slot(table()[index], i);
+    const s32 parts = at<s32>(s, 0xdc);
+    if (parts != 0) {
+        const s32 key = (s32)((u32)at<s32>(s, 0xd8) + (u32)at<s32>(s, 0x8c)) % parts + 1;
+        if (at<u32>(s, 0xc0) != 0) {
+            u8 *const *rides = reinterpret_cast<u8 *const *>(0x007a4610);
+            const u32 part = Model_FindPartByKey4(rides[at<u32>(s, 0xc0)], 0x80, (u32)key);
+            if (part != 0xffffffff) PartStates_Activate(at<u8 *>(rides[at<u32>(s, 0xc0)], 8), part, value);
+        }
+    }
+    ++at<s32>(table()[index], 0x48);
+    return 1;
+}
+
 void __cdecl FlyingRide_SetCap(s32 index, s32 value) {
     u8 *const rec = record(index);
     if (!rec) return;

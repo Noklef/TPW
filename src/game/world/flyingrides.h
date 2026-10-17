@@ -27,6 +27,11 @@ u32 __cdecl FlyingRide_StepInSlot(s32 index);
 // 0x55d720 (index): the same for the first slot with a positive step (in any state).
 u32 __cdecl FlyingRide_StepOutSlot(s32 index);
 
+// 0x55d830 (index, value; name unconfirmed): the first slot in state 1, if its step is not negative: value stored as the u32 for that
+// step, the step counted up (through the table entry again), the ride part the new step names activated for value (key (base + step) %
+// count + 1, when count and the ride are set and the ride has that part; PartStates_Activate), +0x48 incremented and 1 returned; else 0.
+u32 __cdecl FlyingRide_AddToSlot(s32 index, u32 value);
+
 // 0x55d950 (index, value): +0x10 = value / 64, and each slot's +0x84 capped at it.
 void __cdecl FlyingRide_SetCap(s32 index, s32 value);
 

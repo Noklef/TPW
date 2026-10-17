@@ -700,6 +700,7 @@ const Hook kHooks[] = {
     {"FlyingRide_ReleaseSlotPart", 0x0055e330, (void *)&FlyingRide_ReleaseSlotPart, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"FlyingRide_SetBounds",      0x0055ab50, (void *)&FlyingRide_SetBounds, {0x68, 0xc0, 0x60, 0x76, 0x00}},
     {"FlyingRide_NextCameraCorner", 0x0055c270, (void *)&FlyingRide_NextCameraCorner, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"FlyingRide_AddToSlot",      0x0055d830, (void *)&FlyingRide_AddToSlot, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
     {"AnalyserCell_TypePlain",    0x004fa990, (void *)&AnalyserCell_TypePlain, {0x33, 0xc0, 0x33, 0xd2, 0x8a}},
     {"Object_NeighbourCellId",    0x004de040, (void *)&Object_NeighbourCellId, {0x56, 0x8b, 0xf1, 0x33, 0xc0}},
     {"AnalyserRecord_ChecksCell", 0x00505bd0, (void *)&AnalyserRecord_ChecksCell, {0x8b, 0x81, 0x9c, 0x01, 0x00}},
