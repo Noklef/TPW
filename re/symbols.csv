@@ -408,7 +408,7 @@ address,name,kind,confidence,notes
 0x0051fd90,ParticleSystem_SetScaled,function,high,reimplemented (src/game/render/particles); a live system's vector at +0x38 from three values times +0xb0 over 1024
 0x005200b0,Particles_EndAll,function,high,reimplemented (src/game/render/particles); every live system and effector is ended
 0x005204c0,ParticleSystem_Release,function,high,reimplemented (src/game/render/particles); a system leaves the live list and joins the free list
-0x00520e00,Particle_Move,function,high,"reimplemented (src/game/render/particles); one step of a particle: drag, gravity, ground bounce"
+0x00520e00,Particle_Move,function,low,"reimplemented (src/game/render/particles); one step of a particle: drag, gravity, ground bounce"
 0x00804370,gParticleEffects,data,high,0x69 x 0x140-byte effect definitions from Tp2.plb
 0x0080c6b0,gParticleEffectors,data,high,20 x 0x68-byte effector definitions
 0x0080cefc,gParticleSystems,data,high,live systems: 0x140-byte copies of an effect definition
@@ -1243,7 +1243,7 @@ address,name,kind,confidence,notes
 0x006387f0,WadFileListBase_DeletingDtor,function,high,reimplemented (src/game/files/waddir); thiscall (flags); vtable 0x703e9c
 0x0067acf0,CRT_VectorCtorIterator,function,high,reimplemented (src/game/core/crt); constructs the elements of an array in turn
 0x0067afa0,CRT_VectorDtorIterator,function,high,"reimplemented (src/game/core/crt); destroys the elements of an array, the last first"
-0x00401000,CRT_VectorCtorIteratorNoEh,function,high,"reimplemented (src/game/core/crt); stdcall (array, size, count, ctor): the vector constructor iterator without unwinding; count - 1 tested for a sign (0x80000000 runs, sic)"
+0x00401000,CRT_VectorCtorIteratorNoEh,function,low,"reimplemented (src/game/core/crt); stdcall (array, size, count, ctor): the vector constructor iterator without unwinding; count - 1 tested for a sign (0x80000000 runs, sic)"
 0x0067f1a0,CRT_toupper,function,medium,"cdecl; the CRT toupper (locale-aware, ASCII in the C locale)"
 0x0067fa60,CRT_tolower,function,medium,"cdecl; the CRT tolower (locale-aware, ASCII in the C locale)"
 0x006fe67c,StringList2_vtable,data,high,one entry (0x61a7e0); src/game/files/waddir
@@ -1337,6 +1337,7 @@ address,name,kind,confidence,notes
 0x0061add0,WadSource_Vfn9,function,high,"reimplemented (src/game/files/wadsource); thiscall (&result, a); -1 (vtable +0x24)"
 0x0061aeb0,StringList_Clear,function,high,reimplemented (src/game/files/wadsource); thiscall; the destructor without the vtable
 0x0061af00,StringListNode_DeletingDtor,function,high,reimplemented (src/game/files/wadsource); thiscall (flags)
+0x0045f8e0,StringListBase_DeletingDtor,function,low,"reimplemented (src/game/files/wadsource); thiscall (flags): the deleting destructor of vtable 0x6fe680 (StringList_Dtor inline, then freed when flags & 1)"
 0x004217e0,StreamBase_GetSource,function,high,reimplemented (src/game/core/accessors); the dword at 0x4
 0x00703908,WadSource_vtable,data,high,src/game/files/wadsource
 0x00638ef0,BufferedSource_Ctor,function,high,"reimplemented (src/game/files/bufsource); thiscall; 0x28 bytes, vtable 0x703f78; the window end left unset"
@@ -2234,6 +2235,7 @@ address,name,kind,confidence,notes
 0x00403120,GameClock_Load24,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); reads +0x24 (4 bytes); Stream_Read's result >= 0, always 1 (sic)"
 0x00403180,GameClock_Save4c,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); writes +0x4c (4 bytes); Stream_Write's result >= 0, always 1 (sic)"
 0x004031b0,GameClock_Load4c,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); reads +0x4c (4 bytes); Stream_Read's result >= 0, always 1 (sic)"
+0x00403390,GameClock_Double20,function,low,reimplemented (src/game/core/gameclock); thiscall: the double at +0x20 (1.0 from Obj_CtorOne) in st0
 0x004cdb60,CircBufU16_3_Ctor,function,high,"reimplemented (src/game/core/circbuf); thiscall: a CircBufU16 of 3 (four at park analyser +0x1f068): u16 +0 = 0, cursor +8 = -1, size +0xc = 3, wrapped +0x10 = 0"
 0x004ce9e0,CircBufU8_50_Ctor,function,high,"reimplemented (src/game/core/circbuf); thiscall: a CircBufU8 of 50: byte +0 = 0, cursor +0x34 = -1, size +0x38 = 50, wrapped +0x3c = 0"
 0x004ce290,CircBufU32_144_Push,function,high,"reimplemented (src/game/core/circbuf); thiscall (value): CircBufU32 of 144: cursor +0x244 on (0 at size +0x248, sets wrapped +0x24c), value at +4 + cursor * 4"
@@ -2259,8 +2261,8 @@ address,name,kind,confidence,notes
 0x0051c6f0,Sound_IsOn,function,high,reimplemented (src/game/core/soundset); cdecl: the sound-on flag [0x802bc8] (set by 0x51b660)
 0x0051e6f0,Sound_Set803acc,function,high,"reimplemented (src/game/core/soundset); cdecl (value): [0x803acc] = value, changed"
 0x0051e710,Sound_Set803ad0,function,high,"reimplemented (src/game/core/soundset); cdecl (value): the u16 [0x803ad0] = value, changed"
-0x0051b4f0,Sound_Query,function,high,"reimplemented (src/game/core/soundset); cdecl (a, b): when sound is on and started, the manager's vtable +4 (&a, a, b, &b); b as left, else 0"
-0x0051b7c0,Sound_Shutdown,function,high,"reimplemented (src/game/core/soundset); cdecl: when on and started, the manager's vtable +0 (&result); then not started"
+0x0051b4f0,Sound_Query,function,low,"reimplemented (src/game/core/soundset); cdecl (a, b): when sound is on and started, the manager's vtable +4 (&a, a, b, &b); b as left, else 0"
+0x0051b7c0,Sound_Shutdown,function,low,"reimplemented (src/game/core/soundset); cdecl: when on and started, the manager's vtable +0 (&result); then not started"
 0x005af7f0,GlobalSave_ThemeByte,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte i of the global save info's (0xf7c58c) current theme record (+0x48)
 0x005af800,GlobalSave_Byte26,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte +0x26 + i of the global save info
 0x005afc30,GlobalSave_Inc20,function,high,reimplemented (src/game/core/globalsave); thiscall: the global save info's counter +0x20 incremented
@@ -3434,9 +3436,10 @@ address,name,kind,confidence,notes
 0x005e3d10,Class702d78_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor deleting the listed objects
 0x0040c900,Actions_FireDown,function,high,reimplemented (src/game/core/keymap); fires the down handler of an action entry
 0x0040c990,Actions_FireUp,function,high,reimplemented (src/game/core/keymap); fires the up handler of an action entry
-0x0046b420,KeyMap_Modifiers,function,high,"reimplemented (src/game/core/keymap); cdecl: the modifier keys held from GetKeyState: 3 shift, 0xc control, 0x30 alt"
-0x00486aa0,KeyMap_AsyncModifiers,function,high,reimplemented (src/game/core/keymap); cdecl: the same from GetAsyncKeyState
+0x0046b420,KeyMap_Modifiers,function,low,"reimplemented (src/game/core/keymap); cdecl: the modifier keys held from GetKeyState: 3 shift, 0xc control, 0x30 alt"
+0x00486aa0,KeyMap_AsyncModifiers,function,low,reimplemented (src/game/core/keymap); cdecl: the same from GetAsyncKeyState
 0x0041a9d0,Graphics_Level,function,high,reimplemented (src/game/core/options); level 2 to 8 from the render mode or the graphics balance
+0x00423dd0,Options_ApplySound,function,low,"reimplemented (src/game/core/options); cdecl: the options sound switches and volumes applied (Sound_Set803adc/ac0, ae0/ac4, ad8/abc; Global802ba8_SetMasked(+0x2c * 1023 / 100))"
 0x0043ba20,Coaster_SetTrainCount,function,high,"reimplemented (src/game/coaster/setup); sets the car count, unloading the cars cut off"
 0x0041c8b0,Class6fd9d8_Dtor,function,high,"reimplemented (src/game/core/class6fd9d8); destructor: deletes its member and the held objects of its list, frees two strings"
 0x004f0700,Wstreambuf_Read,function,high,"reimplemented (src/game/core/streambuf); reads wide characters from the get area, else through the underflow slot"
@@ -3484,6 +3487,9 @@ address,name,kind,confidence,notes
 0x005af740,Object_AddKeyed,function,high,reimplemented (src/game/core/stdtree); inserts a key and adds an amount when it was new
 0x00410720,StdTree_EraseSubtreeB,function,high,"reimplemented (src/game/core/stdtree); thiscall on tree B, the tree unused; a node, pops 4: _Erase, the nodes under it freed (right subtrees by recursion, down the left by a loop)"
 0x004104b0,StdTree_EraseRangeB,function,high,"reimplemented (src/game/core/stdtree); thiscall on tree B; out, first, last, pops 12: erase(first, last), the whole tree at once by _Erase when first is the leftmost and last the head, else node by node; *out = last"
+0x0040f950,StdTreeB_KeyLess,function,low,"reimplemented (src/game/core/stdtree); thiscall (&other): tree B key compare, the word key below the other (unsigned)"
+0x0047b060,StdMapA_Ctor,function,low,"reimplemented (src/game/core/stdtree); thiscall (&comp, &alloc): +0 alloc byte, +1 comp byte, +8 = 0, then the tree A constructor; returns the map"
+0x0047b130,StdMapA_Index,function,low,"reimplemented (src/game/core/stdtree); thiscall (&key): operator[]: StdMapA_Insert of {key, 0, 0}, returns the node value (+0x10)"
 0x00617f40,Class7037b8_Dtor,function,high,reimplemented (src/game/core/vdtor); frees the list of blocks
 0x005d48d0,Panel_Reset,function,high,reimplemented (src/game/gfx/imageops); fills the panel image and blends the six parts onto it
 0x00576620,Grid_AddObject,function,high,reimplemented (src/game/render/renderer); adds an object to every list in a rectangle of the grid
@@ -3536,24 +3542,25 @@ address,name,kind,confidence,notes
 0x005dc580,Class702bc8_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor with two helper objects and tuning floats
 0x00617ff0,Class7037c0_Create,function,high,reimplemented (src/game/core/factories); object factory with a result code
 0x00617970,Class703750_Create,function,high,reimplemented (src/game/core/factories); Allocates and constructs the 0x703750 class object
-0x00403be0,ActionRec_Write,function,high,"reimplemented (src/game/core/actionrec); thiscall (code): the action recorder's code byte, while recording and not playing back"
-0x00403c20,ActionRec_WriteBB,function,high,"reimplemented (src/game/core/actionrec); thiscall (code, a, b): three bytes in one write"
-0x00403c80,ActionRec_WriteBBW,function,high,"reimplemented (src/game/core/actionrec); thiscall (code, a, b, c): three bytes, then the word c"
-0x00403d00,ActionRec_WriteW,function,high,"reimplemented (src/game/core/actionrec); thiscall (code, a): the code byte, the word a"
-0x00403d60,ActionRec_WriteWW,function,high,"reimplemented (src/game/core/actionrec); thiscall (code, a, b): the code byte, the words a and b"
-0x00403dd0,ActionRec_WriteWWW,function,high,"reimplemented (src/game/core/actionrec); thiscall (code, a, b, c): the code byte, three words"
-0x00403e60,ActionRec_WriteWB,function,high,"reimplemented (src/game/core/actionrec); thiscall (code, a, b): the code byte, the word a, the byte b"
-0x00403480,ActionRec_Ctor,function,high,"reimplemented (src/game/core/actionrec); thiscall: the action recorder's constructor (streams 0x6fd6a0, settings, started in mode 0)"
-0x004036e0,ActionRec_Dtor,function,high,"reimplemented (src/game/core/actionrec); thiscall: the streams closed (all in mode 0, else the first), then destroyed"
-0x00403a40,ActionRec_Start,function,high,"reimplemented (src/game/core/actionrec); thiscall (mode): recording; memory streams opened, the start record 0xe7 and 0x80 zeros"
-0x00403b00,ActionRec_Restart,function,high,"reimplemented (src/game/core/actionrec); thiscall: recording stopped, streams closed, started again in its mode"
-0x00447e10,ActionRec_RecordCoaster45,function,high,"reimplemented (src/game/core/actionrec); cdecl (coaster, value): the record 0x45 (the coaster's word +0x14, the word value)"
-0x0052fa90,Global81b0cc_SetRecorded,function,high,"reimplemented (src/game/core/actionrec); cdecl (value): the record 0x23 (the word value), then 0x81b0cc = value"
-0x0052fad0,Global81ecac_SetRecorded,function,high,"reimplemented (src/game/core/actionrec); cdecl (value): the record 0x1e (the word value), then 0x81ecac = value"
-0x0052f1b0,Global81d7a4_SetRecorded,function,high,"reimplemented (src/game/core/actionrec); cdecl (value, force byte): the record 0xa unless value is 0x81b134 and not forced; 0x81b134 = old 0x81d7a4, 0x81d7a4 = value"
-0x0052f880,Global8186e0_SetRecorded,function,high,"reimplemented (src/game/core/actionrec); cdecl (&id, flag): the record 5 (word id, byte flag), World_MarkRideBuilt; 0x8186ec = old 0x8186e0, 0x8187f8 = flag, 0x8186e0 = id"
+0x00403be0,ActionRec_Write,function,low,"reimplemented (src/game/core/actionrec); thiscall (code): the action recorder's code byte, while recording and not playing back"
+0x00403c20,ActionRec_WriteBB,function,low,"reimplemented (src/game/core/actionrec); thiscall (code, a, b): three bytes in one write"
+0x00403c80,ActionRec_WriteBBW,function,low,"reimplemented (src/game/core/actionrec); thiscall (code, a, b, c): three bytes, then the word c"
+0x00403d00,ActionRec_WriteW,function,low,"reimplemented (src/game/core/actionrec); thiscall (code, a): the code byte, the word a"
+0x00403d60,ActionRec_WriteWW,function,low,"reimplemented (src/game/core/actionrec); thiscall (code, a, b): the code byte, the words a and b"
+0x00403dd0,ActionRec_WriteWWW,function,low,"reimplemented (src/game/core/actionrec); thiscall (code, a, b, c): the code byte, three words"
+0x00403e60,ActionRec_WriteWB,function,low,"reimplemented (src/game/core/actionrec); thiscall (code, a, b): the code byte, the word a, the byte b"
+0x00403480,ActionRec_Ctor,function,low,"reimplemented (src/game/core/actionrec); thiscall: the action recorder's constructor (streams 0x6fd6a0, settings, started in mode 0)"
+0x004036e0,ActionRec_Dtor,function,low,"reimplemented (src/game/core/actionrec); thiscall: the streams closed (all in mode 0, else the first), then destroyed"
+0x00403a40,ActionRec_Start,function,low,"reimplemented (src/game/core/actionrec); thiscall (mode): recording; memory streams opened, the start record 0xe7 and 0x80 zeros"
+0x00403b00,ActionRec_Restart,function,low,"reimplemented (src/game/core/actionrec); thiscall: recording stopped, streams closed, started again in its mode"
+0x00447e10,ActionRec_RecordCoaster45,function,low,"reimplemented (src/game/core/actionrec); cdecl (coaster, value): the record 0x45 (the coaster's word +0x14, the word value)"
+0x0052fa90,Global81b0cc_SetRecorded,function,low,"reimplemented (src/game/core/actionrec); cdecl (value): the record 0x23 (the word value), then 0x81b0cc = value"
+0x0052fad0,Global81ecac_SetRecorded,function,low,"reimplemented (src/game/core/actionrec); cdecl (value): the record 0x1e (the word value), then 0x81ecac = value"
+0x0052f1b0,Global81d7a4_SetRecorded,function,low,"reimplemented (src/game/core/actionrec); cdecl (value, force byte): the record 0xa unless value is 0x81b134 and not forced; 0x81b134 = old 0x81d7a4, 0x81d7a4 = value"
+0x0052f880,Global8186e0_SetRecorded,function,low,"reimplemented (src/game/core/actionrec); cdecl (&id, flag): the record 5 (word id, byte flag), World_MarkRideBuilt; 0x8186ec = old 0x8186e0, 0x8187f8 = flag, 0x8186e0 = id"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
+0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
 0x0052a050,Cell_ExtendPath,function,high,reimplemented (src/game/world/mapcell); one step of a path across the map's cells
 0x0052c420,MapGrid_MarkEdges,function,high,"reimplemented (src/game/world/mapcell); edge cells of a map grid of types 4, 9, 0x17 and 0xa"
 0x0052c5b0,MapGrid_ClassifyTypes,function,high,reimplemented (src/game/world/mapcell); a map grid's cell types as codes 1 to 4
@@ -3589,8 +3596,8 @@ address,name,kind,confidence,notes
 0x0047e390,SurfaceSource_Dtor,function,high,reimplemented (src/game/gfx/screensurfaces); the abstract surface source's destructor (vtable 0x6fef90 back)
 0x0047e570,ScreenSurfaces_Bounds,function,high,"reimplemented (src/game/gfx/screensurfaces); virtual: out = {0, 0, width - 1, height - 1}"
 0x0047e3c0,ScreenSurfaces_ScalarDtor,function,high,reimplemented (src/game/gfx/screensurfaces); the scalar deleting destructor
-0x0047e4b0,ScreenSurfaces_Surface10,function,high,"reimplemented (src/game/gfx/screensurfaces); thiscall (virtual): the Surface at +0x54, wrapping the display's +0x10 surface on first use (flag +0xa8, interface +0xac)"
-0x0047e510,ScreenSurfaces_Surface14,function,high,"reimplemented (src/game/gfx/screensurfaces); thiscall (virtual): the Surface at +4, wrapping the display's +0x14 surface on first use (flag +0xa4, interface +0xb0)"
+0x0047e4b0,ScreenSurfaces_Surface10,function,low,"reimplemented (src/game/gfx/screensurfaces); thiscall (virtual): the Surface at +0x54, wrapping the display's +0x10 surface on first use (flag +0xa8, interface +0xac)"
+0x0047e510,ScreenSurfaces_Surface14,function,low,"reimplemented (src/game/gfx/screensurfaces); thiscall (virtual): the Surface at +4, wrapping the display's +0x14 surface on first use (flag +0xa4, interface +0xb0)"
 0x0058b300,TexCacheItem_Ctor,function,high,"reimplemented (src/game/gfx/texcache); thiscall: the texture cache item base: vtable 0x702198 (abstract), flags (+4) 0; returns this"
 0x0058b330,TexCacheItem_SetFlags,function,high,reimplemented (src/game/gfx/texcache); thiscall (flags): the item's flag word (+4) = flags | its bit 0x10000000
 0x0058b350,TexCacheItem_Flag1,function,high,reimplemented (src/game/gfx/texcache); thiscall u32: the item's flag word & 1

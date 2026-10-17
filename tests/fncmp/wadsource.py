@@ -18,7 +18,7 @@ from fncmp import IMPORT_TABLE, LOG, Bench, Call, HEAP, RAM, echo, fill, heap, i
 from waddir import ARENA, LOCALE, Arena, pool, strings as string_list  # noqa: E402
 from wadfind import STRING_VTABLE, finder, name_hash, normalized, part, string, tree  # noqa: E402
 
-B = Bench([(0x45f940, 0x45fa40), (0x61a060, 0x61af40), (0x45d820, 0x45d880), (0x4217e0, 0x421800), (0x637460, 0x638f00), (0x641500, 0x641900), (0x5f5690, 0x5f5a20), (0x5f5f00, 0x5f9000),
+B = Bench([(0x45f8e0, 0x45fa40), (0x61a060, 0x61af40), (0x45d820, 0x45d880), (0x4217e0, 0x421800), (0x637460, 0x638f00), (0x641500, 0x641900), (0x5f5690, 0x5f5a20), (0x5f5f00, 0x5f9000),
            (0x618000, 0x61a060), (0x6307c0, 0x630900), (0x6ad800, 0x6ad820), (0x641900, 0x642400), (0x67a400, 0x690000), (0x405000, 0x406000),
            (0x5e4000, 0x5e5000), (0x636b00, 0x636d00)])
 THIS, RESULT, ENTRY = RAM, RAM + 0x100, RAM + 0x200
@@ -45,7 +45,7 @@ OPS = {
     'FindNext': (0x61a700, 'w', 'RE', 'a'), 'OpenEntry': (0x61a760, 'w', 'RSNgd', 'a'), 'OpenEntryStream': (0x61a800, 'w', 'RSN', 'a'),
     'Vfn7': (0x61adb0, 'w', 'Rdd', 'a'), 'Vfn8': (0x61adc0, 'w', 'Rd', 'a'), 'Vfn9': (0x61add0, 'w', 'Rd', 'a'),
     'ListDtor': (0x45d820, 'l', '', 'v'), 'ListClear': (0x61aeb0, 'l', '', 'v'), 'ListDeletingDtor': (0x61a7e0, 'l', 'F', 'a'),
-    'NodeDeletingDtor': (0x61af00, 'n', 'F', 'a'),
+    'NodeDeletingDtor': (0x61af00, 'n', 'F', 'a'), 'ListBaseDeletingDtor': (0x45f8e0, 'l', 'F', 'a'),
 }
 
 

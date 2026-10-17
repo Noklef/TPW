@@ -1,4 +1,4 @@
-// The game options (0x78d8d8, the options screen's): reimplementation of 0x423ad0-0x423ba0
+// The game options (0x78d8d8, the options screen's): reimplementation of 0x423ad0-0x423ba0 and 0x423dd0
 // (thiscall). +0..+0x3c are the options in force (+0 procedural terrain, +4 the resolution when
 // the balance file gives none), +0x3c..+0x78 a copy to go back to; +0x94 a level of change (2 when
 // the display must be reset) and +0x98 flags whose low three bits mark changes.
@@ -31,4 +31,10 @@ u8 *__fastcall Setting_ReadMode(u8 *object);
 // 0x41a9d0 (no arguments): in the 0x4000 render size, 8 / 6 for a 8 / 16 bit depth, 4 for 32 and else 0; otherwise the level 0 to 3 of gBalanceGraphics (0x7858d0) as 2, 4, 6,
 // 8, and 8 for any larger.
 u32 __cdecl Graphics_Level();
+
+// 0x423dd0 (cdecl): the game options' (0x78d8d8) sound settings applied: for each switch (the bytes +0x18, +0x20, +0x10)
+// its sound flag (Sound_Set803adc / ae0 / ad8) set 1 and its volume (+0x1c / +0x24 / +0x14: Sound_Set803ac0 / ac4 /
+// abc) passed on, or the flag set 0; then Global802ba8_SetMasked(the dword +0x2c * 1023 / 100, truncated) when the
+// byte +0x28 is set, else 0.
+void __cdecl Options_ApplySound();
 }

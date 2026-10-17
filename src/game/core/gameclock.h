@@ -21,4 +21,7 @@ u32 __fastcall GameClock_Load4c(u8 *clock, void *, Stream *stream);
 // the clock at +0x50.
 u32 __fastcall Clock_Save(u8 *clock, void *, Stream *stream);
 u32 __fastcall Clock_Load(u8 *clock, void *, Stream *stream);
+
+// 0x403390 (thiscall): the double at +0x20 (1.0 from Obj_CtorOne), in st0. The game's movers scale their steps by it.
+double __fastcall GameClock_Double20(const u8 *clock);
 }

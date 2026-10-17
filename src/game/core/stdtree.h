@@ -109,4 +109,15 @@ u32 *__fastcall StdMapG_InsertCopy(u8 *tree, void *, u32 *out, const u16 *value)
 // 0x5af740 (thiscall on an object whose tree is at +0x28; key (a 16-bit value passed on the stack), amount, pops 8): inserts the key; true (and +0x1c grows by the amount)
 // when it was new, else false.
 u8 __fastcall Object_AddKeyed(u8 *object, void *, u32 key, s32 amount);
+
+// 0x40f950 (thiscall; &other, pops 4): tree B's key compare: 1 when the word key is below other's (unsigned), else 0.
+u32 __fastcall StdTreeB_KeyLess(const u16 *key, void *, const u16 *other);
+
+// 0x47b060 (thiscall; &comp, &alloc, pops 8): A's map constructor: +0 = the alloc byte, +1 = the comp byte, +8 = 0 (no
+// multi-insert), then the tree as StdTree_CtorA makes it. Returns the map.
+u8 *__fastcall StdMapA_Ctor(u8 *map, void *, const u8 *comp, const u8 *alloc);
+
+// 0x47b130 (thiscall; &key, pops 4): A's operator[]: StdMapA_Insert of {key, 0, 0}, then the found or new node's value
+// (+0x10).
+u32 *__fastcall StdMapA_Index(u8 *map, void *, const u32 *key);
 }  // extern "C"

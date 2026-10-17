@@ -19,4 +19,7 @@ u8 *__fastcall Nav_Ctor(u8 *object);
 // 0x50f200 (thiscall; also reached by the jumps 0x4f7c30, with this + 0xd4, and 0x4f8ad0): the five integer pairs at +0x64 destroyed, the last first, with the
 // destructor that does nothing (CRT_VectorDtorIterator, Stub_Ret); nothing else.
 void __fastcall Nav_Dtor(u8 *object);
+
+// 0x4f7c30 (thiscall; an adjustor): Nav_Dtor on the block at this + 0xd4.
+void __fastcall Nav_DtorAtD4(u8 *owner);
 }

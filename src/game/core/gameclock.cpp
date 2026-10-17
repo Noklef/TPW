@@ -33,4 +33,6 @@ u32 __fastcall Clock_Load(u8 *clock, void *, Stream *stream) {
     const u32 ok = GameClock_Load4c(clock, nullptr, stream);
     return ok ? GameClock_Load24(clock + 0x50, nullptr, stream) : ok;
 }
+
+double __fastcall GameClock_Double20(const u8 *clock) { return *reinterpret_cast<const double *>(clock + 0x20); }
 }

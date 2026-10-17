@@ -3,7 +3,9 @@
 #include <cstdint>
 
 #include "../render/mode.h"
+#include "accessors.h"
 #include "gameheap.h"
+#include "soundset.h"
 
 namespace {
 
@@ -79,5 +81,28 @@ u32 __cdecl Graphics_Level() {
     case 2: return 6;
     default: return 8;
     }
+}
+
+void __cdecl Options_ApplySound() {
+    const u8 *const o = reinterpret_cast<const u8 *>((uintptr_t)0x0078d8d8);
+    if (o[0x18]) {
+        Sound_Set803adc(1);
+        Sound_Set803ac0(at<u32>(o, 0x1c));
+    } else {
+        Sound_Set803adc(0);
+    }
+    if (o[0x20]) {
+        Sound_Set803ae0(1);
+        Sound_Set803ac4(at<u32>(o, 0x24));
+    } else {
+        Sound_Set803ae0(0);
+    }
+    if (o[0x10]) {
+        Sound_Set803ad8(1);
+        Sound_Set803abc(at<u32>(o, 0x14));
+    } else {
+        Sound_Set803ad8(0);
+    }
+    Global802ba8_SetMasked(o[0x28] ? (u32)((s32)(at<u32>(o, 0x2c) * 1023u) / 100) : 0);
 }
 }
