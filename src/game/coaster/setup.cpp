@@ -3,7 +3,9 @@
 #include <cstdint>
 
 #include "../core/globalmem.h"
+#include "../core/misc.h"
 #include "../math/x87.h"
+#include "../model/holder.h"
 #include "queue.h"
 #include "xsection.h"
 
@@ -14,6 +16,12 @@ template <typename T> T &at(const void *p, u32 off) {
 }
 
 template <typename T = u32> T &global(u32 address) { return *reinterpret_cast<T *>(address); }
+
+// A GlobalMem block at p + off freed and its pointer cleared.
+void releaseBlock(u8 *p, u32 off) {
+    GlobalMem_Free(at<void *>(p, off));
+    at<u32>(p, off) = 0;
+}
 
 bool zero(float x) { return !(x < 0.0f) && !(x > 0.0f); }  // fcomp against 0: NaN is equal
 
@@ -191,5 +199,37 @@ void __cdecl Coaster_SetTrainCount(u8 *coaster, u32 count) {
         }
     }
     at<u32>(coaster, 0xf4) = count;
+}
+
+void __cdecl CoasterTypes_FreeAll() {
+    for (u32 i = 0; i < global(0x00790fe8); ++i) {
+        u8 *&slot = global<u8 *>(0x00790b08 + 4 * i);
+        u8 *const t = slot;
+        u8 *const first = at<u8 *>(t, 0x300), *const last = at<u8 *>(t, 0x304), *const other = at<u8 *>(t, 0x2fc);
+        releaseBlock(first, 0x2c);
+        if (other != first) releaseBlock(other, 0x2c);
+        if (last != first) releaseBlock(last, 0x2c);
+        releaseBlock(t, 0x308);
+        const u8 *const c = at<u8 *>(t, 0x1c);
+        u32 n = at<u16>(c, 4) - global(0x0074ce10);
+        for (u8 *e = at<u8 *>(c, 0x10) + 4; n; --n, e += 0x10) releaseBlock(e, 0);
+        Dword_ClearBit0(at<u32 *>(t, 0x1c));
+        Animator_Dispose(at<u8 *>(t, 0x18));
+        releaseBlock(at<u8 *>(t, 0x1c), 0x10);
+        releaseBlock(t, 0x1c);
+        releaseBlock(t, 0x18);
+        releaseBlock(t, 0x14);
+        GlobalMem_Free(at<void *>(at<u8 *>(t, 0x88), 0x18 * at<u32>(t, 0x8c) + 0xc));
+        GlobalMem_Free(at<void *>(t, 0x90));
+        GlobalMem_Free(at<void *>(t, 0x94));
+        GlobalMem_Free(at<void *>(t, 0x98));
+        at<u32>(t, 0x90) = 0;
+        at<u32>(t, 0x94) = 0;
+        at<u32>(t, 0x98) = 0;
+        releaseBlock(t, 0x88);
+        releaseBlock(t, 0x78);
+        slot = nullptr;
+    }
+    global(0x00790fe8) = 0;
 }
 }

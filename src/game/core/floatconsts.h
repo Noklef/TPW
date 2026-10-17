@@ -18,12 +18,32 @@ void __cdecl FloatConsts_InitOne_40d110();      // 0x788394 (after the unported 
 void __cdecl FloatConsts_InitEpsilon_40d130();  // 0x788a84
 void __cdecl FloatConsts_InitOne_4148d0();      // 0x78a3e0 (after the unported 0x4145f0-0x4148c1)
 void __cdecl FloatConsts_InitEpsilon_4148f0();  // 0x78a458
+void __cdecl FloatConsts_InitOne_41c870();      // 0x78c02c (after Graphics_Level (core/options), before core/class6fd9d8)
+void __cdecl FloatConsts_InitEpsilon_41c890();  // 0x78c71c
+void __cdecl FloatConsts_InitOne_423620();      // 0x78de9c (after Set4_4217f0 (core/accessors), before unported code)
+void __cdecl FloatConsts_InitEpsilon_423640();  // 0x78e58c
+void __cdecl FloatConsts_InitOne_424e80();      // 0x78e848 (after String_StripSuffix (core/string), before core/trivial)
+void __cdecl FloatConsts_InitEpsilon_424ea0();  // 0x78e84c
+void __cdecl FloatConsts_InitOne_427c00();      // 0x78fc74 (after TextScan_Read (files/textscan), before unported code)
+void __cdecl FloatConsts_InitEpsilon_427c20();  // 0x790364
+void __cdecl FloatConsts_InitOne_42d0f0();      // 0x790fdc (after Camera_Save (core/savemods), before coaster/xsection)
+void __cdecl FloatConsts_InitEpsilon_42d110();  // 0x791cdc
 void __cdecl FloatConsts_InitOne_438760();      // 0x792224 (after CoasterLink_Nodes, before coaster/helpers)
 void __cdecl FloatConsts_InitEpsilon_438780();  // 0x792228
+void __cdecl FloatConsts_InitOne_4398e0();      // 0x792234 (after Obj_FillLinkedElements (world/ridelist), before coaster/contacts)
+void __cdecl FloatConsts_InitEpsilon_439900();  // 0x7922e0
 void __cdecl FloatConsts_InitOne_43afd0();      // 0x792390 (after Contacts_ClearAll, before another pair)
 void __cdecl FloatConsts_InitEpsilon_43aff0();  // 0x792394
+void __cdecl FloatConsts_InitOne_43b010();      // 0x792398 (after Contacts_ClearAll (coaster/contacts), before coaster/registry)
+void __cdecl FloatConsts_InitEpsilon_43b030();  // 0x79239c
 void __cdecl FloatConsts_InitOne_43dbb0();      // 0x7923b8 (after RideObject_Orient, before coaster/rating)
 void __cdecl FloatConsts_InitEpsilon_43dbd0();  // 0x7923d4
+void __cdecl FloatConsts_InitOne_441800();      // 0x79c63c (after TrackCursor_Point (coaster/cursor), before coaster/registry)
+void __cdecl FloatConsts_InitEpsilon_441820();  // 0x79c6cc
+void __cdecl FloatConsts_InitOne_447e60();      // 0x79ce9c (after ActionRec_RecordCoaster45 (core/actionrec), before unported code)
+void __cdecl FloatConsts_InitEpsilon_447e80();  // 0x79d58c
+void __cdecl FloatConsts_InitOne_44bae0();      // 0x79df2c (after PartStates_Release (model/partstate), before unported code)
+void __cdecl FloatConsts_InitEpsilon_44bb00();  // 0x79e62c
 void __cdecl FloatConsts_InitOne_45f950();      // 0x7a3f1c (after a String destructor thunk)
 void __cdecl FloatConsts_InitEpsilon_45f970();  // 0x7ae610
 void __cdecl FloatConsts_InitOne_470990();      // 0x7b4970 (after Vec3_Distance, before motion/animator)

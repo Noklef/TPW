@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "gameheap.h"
+#include "stdlist.h"
 #include "initializers.h"
 #include "string.h"
 #include "vcall.h"
@@ -17,6 +18,16 @@ constexpr u32 kNames[] = {0x00786b68, 0x00785e78, 0x00785f98, 0x007862c8, 0x0078
                           0x007866e8, 0x007862e0, 0x00785ed8, 0x00785f80, 0x00786aa8, 0x00786040, 0x007867d8};
 
 u8 **registry() { return *reinterpret_cast<u8 ***>((uintptr_t)0x00786b9c); }
+
+// A list node {object, next, prev} for the object, unlinked (none when the allocation fails).
+u8 *node(String *object) {
+    u8 *const n = static_cast<u8 *>(GameHeap_Alloc(0xc));
+    if (!n) return nullptr;
+    at<String *>(n, 0) = object;
+    at<u8 *>(n, 4) = nullptr;
+    at<u8 *>(n, 8) = nullptr;
+    return n;
+}
 
 }  // namespace
 
@@ -83,6 +94,55 @@ void __fastcall NamedObjects_Dtor(u8 *self) {
     }
     at<u32>(self, 0x30) = 0;
     String_Dtor(reinterpret_cast<String *>(self));
+}
+
+void __fastcall NamedObjects_AddName(u8 *self, void *, const String *name) {
+    void *const block = GameHeap_Alloc(0x14);
+    String *const s = block ? String_Ctor(static_cast<String *>(block)) : nullptr;
+    vcall<u32>(s, 0x18, name);
+    u8 *const head = at<u8 *>(self, 0x28);
+    if (at<u32>(self, 0x30) == 0) {
+        u8 *const n = node(s);
+        at<u8 *>(n, 4) = head;
+        if (head)
+            at<u8 *>(head, 8) = n;
+        else
+            at<u8 *>(self, 0x2c) = n;
+        at<u8 *>(self, 0x28) = n;
+        ++at<u32>(self, 0x30);
+        return;
+    }
+    for (u8 *e = head; e; e = at<u8 *>(e, 4))
+        if (at<String *>(e, 0) == s) return;
+    u8 *before = head;
+    const u8 *object = *reinterpret_cast<const u8 *const volatile *>(before);  // (sic: before the head is tested; kept)
+    if (before) {
+        while (Names_FirstAfter(reinterpret_cast<const u8 *>(s), object) > 0) {
+            before = at<u8 *>(before, 4);
+            if (!before) break;
+            object = at<const u8 *>(before, 0);
+        }
+    }
+    if (!before) {
+        u8 *const n = node(s);
+        u8 *const tail = at<u8 *>(self, 0x2c);
+        at<u8 *>(n, 8) = tail;
+        if (tail)
+            at<u8 *>(tail, 4) = n;
+        else
+            at<u8 *>(self, 0x28) = n;
+        at<u8 *>(self, 0x2c) = n;
+        ++at<u32>(self, 0x30);
+    } else if (before == at<u8 *>(self, 0x28)) {
+        List_PushHead(self + 0x24, nullptr, (u32)(uintptr_t)s);
+    } else {
+        u8 *const n = node(s);
+        at<u8 *>(n, 4) = before;
+        at<u8 *>(n, 8) = at<u8 *>(before, 8);
+        at<u8 *>(at<u8 *>(before, 8), 4) = n;
+        at<u8 *>(before, 8) = n;
+        ++at<u32>(self, 0x30);
+    }
 }
 
 void __cdecl NamedObjects_StaticDtor() { NamedObjects_Dtor(reinterpret_cast<u8 *>(0x00786b68)); }

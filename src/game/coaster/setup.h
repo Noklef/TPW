@@ -8,6 +8,14 @@
 
 extern "C" {
 
+// 0x430ad0 (cdecl; name unconfirmed): every coaster type of the table 0x790b08 (the count 0x790fe8) freed, then the count 0. For each:
+// the GlobalMem blocks +0x2c of its three pieces +0x300, +0x2fc and +0x304 (the latter two only when not the first), +0x308, the
+// names (+4) of its entries (c +0x1c: u16 +4 of them less the static count 0x74ce10, 0x10 bytes each from +0x10), then c's bit 0
+// cleared (Dword_ClearBit0), b (+0x18) disposed of as an animator (Animator_Dispose), c's entries, c, b, a (+0x14), the block +0xc
+// of the +0x8c-th 0x18-byte record of +0x88, +0x90, +0x94, +0x98, +0x88 and +0x78; each pointer cleared (but the record's), and the
+// table's slot.
+void __cdecl CoasterTypes_FreeAll();
+
 // 0x42f390: +0x3b08 (when non-zero) to +0x40 first; 0 when the description has no track
 // entries (+0xfc). Else four GlobalMem blocks: a (0x30; +0 = 3), b (0x40; +0 = 3, u16 +4 = 1,
 // +8 = a), c (0x20; +0 = 0, u16 +4 = the entry count, +8 = id, +0x10 = the entries) and the

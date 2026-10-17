@@ -5,6 +5,7 @@
 
 #include "../math/matrix.h"
 #include "../math/x87.h"
+#include "../model/partstate.h"
 
 namespace {
 
@@ -182,6 +183,35 @@ void __cdecl Coaster_SetRiders(u32 index, s32 n) {
     const s32 seats = at<s32>(at<const u8 *>(at<const u8 *>(coaster, 0x128), 4), 8);
     if (seats < n) n = seats;
     if ((u32)n != at<u32>(coaster, 0xf0)) Coaster_SetupCars(coaster, (u32)n, 0, 1);
+}
+
+void __cdecl Coaster_BoardRiders(u8 *queue, u8 *coaster, u32 first, u32 count) {
+    while (at<u32>(coaster, 0x14) && count) {
+        if (!at<u32>(queue, 0xbc)) return;
+        const uintptr_t read = at<uintptr_t>(queue, 0xc4), slots = at<uintptr_t>(queue, 0xb4);
+        const u32 rider = *reinterpret_cast<const u32 *>(read);
+        at<uintptr_t>(queue, 0xc4) = slots + 4 * ((u32)((s32)(read - slots + 4) >> 2) % at<u32>(queue, 0xb0));
+        --at<u32>(queue, 0xbc);
+        if (!rider) return;
+        u32 &seed = *reinterpret_cast<u32 *>((uintptr_t)0x007b0958);
+        seed = seed * 214013 + 2531011;
+        const uintptr_t cars = at<uintptr_t>(coaster, 0x28);
+        uintptr_t car = cars + (u32)(((seed >> 16) % count + first) * 0x60);
+        for (u32 k = 0; k < count; ++k) {
+            if (at<u32>((void *)car, 0x34) < at<u32>((void *)car, 0x44)) {
+                u8 *const c = reinterpret_cast<u8 *>(car);
+                const u8 *const kind = *reinterpret_cast<u8 *const *>((uintptr_t)(0x007a4610 + 4 * at<u32>(c, 0xc)));
+                PartStates_Activate(at<u8 *>(kind, 8), at<const u32 *>(at<const u8 *>(c, 4), 0x2c)[at<u32>(c, 0x34)], rider);
+                ++at<u32>(coaster, 0x10);
+                at<u32 *>(c, 0x2c)[at<u32>(c, 0x34)] = rider;
+                ++at<u32>(c, 0x34);
+                break;
+            }
+            car += 0x60;
+            if (car >= cars + (u32)((first + count) * 0x60)) car = cars + (u32)(first * 0x60);
+        }
+        --at<u32>(coaster, 0x14);
+    }
 }
 
 void __cdecl CoasterCars_InitUnusedOne() { *reinterpret_cast<float *>(0x007923a0) = 1.0f; }

@@ -28,6 +28,16 @@ PAIRS = {'GameClock': (0x4033e0, 0x785a04, 0x785ddc), 'StdTree': (0x410be0, 0x78
          'FloatConsts476a30': (0x476a30, 0x7b4a2c, 0x7b4a30),
          'FloatConsts48c9a0': (0x48c9a0, 0x7c265c, 0x7c2664),
          'FloatConsts491fa0': (0x491fa0, 0x7ca0b8, 0x7ca0dc),
+         'FloatConsts41c870': (0x41c870, 0x78c02c, 0x78c71c),
+         'FloatConsts423620': (0x423620, 0x78de9c, 0x78e58c),
+         'FloatConsts424e80': (0x424e80, 0x78e848, 0x78e84c),
+         'FloatConsts427c00': (0x427c00, 0x78fc74, 0x790364),
+         'FloatConsts42d0f0': (0x42d0f0, 0x790fdc, 0x791cdc),
+         'FloatConsts4398e0': (0x4398e0, 0x792234, 0x7922e0),
+         'FloatConsts43b010': (0x43b010, 0x792398, 0x79239c),
+         'FloatConsts441800': (0x441800, 0x79c63c, 0x79c6cc),
+         'FloatConsts447e60': (0x447e60, 0x79ce9c, 0x79d58c),
+         'FloatConsts44bae0': (0x44bae0, 0x79df2c, 0x79e62c),
          }
 B = Bench([r for one, _, _ in PAIRS.values() for r in ((one, one + 0x14), (one + 0x20, one + 0x33))])
 OPS_ALL = [p + k for p in PAIRS for k in ('One', 'Epsilon')]

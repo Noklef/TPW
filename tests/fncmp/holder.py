@@ -14,9 +14,10 @@ import misc  # noqa: E402
 import vobj3  # noqa: E402
 from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put, vtable  # noqa: E402
 
-B = Bench([(0x425490, 0x4254c0), (0x43eac0, 0x43eb00), (0x455a50, 0x455ae0), (0x45ba00, 0x45ba30), (0x4254c0, 0x4254f0), (0x45bc60, 0x45bcb0), (0x45bdd0, 0x45be90), (0x45be80, 0x45bed0), (0x576540, 0x5765d0), (0x5766e0, 0x57681a), (0x5d8820, 0x5d8870), (0x45bcb0, 0x45bd10), (0x576620, 0x5766f0), (0x576270, 0x576320), (0x5e2a80, 0x5e2b80), (0x67acb0, 0x67acb1), (0x590730, 0x590750), (0x5da3c0, 0x5da3c1), (0x45bd00, 0x45bd30), (0x576410, 0x576550), (0x5d8130, 0x5d8190), (0x5d87d0, 0x5d8820), (0x56b2f0, 0x56b340), (0x48f5c0, 0x48f650),
-           (0x43bd20, 0x43bdc0), (0x44b270, 0x44b2c0), (0x44b4c0, 0x44b520), (0x475550, 0x4755a0), (0x5f5680, 0x5f56a0), (0x4254f0, 0x4255c0), (0x455ae0, 0x455c00)],
-          hooks={0x691de0: vobj3.lock, 0x691ea0: lambda e: None})
+RANGES = [(0x425490, 0x4254c0), (0x43eac0, 0x43eb00), (0x455a50, 0x455ae0), (0x45ba00, 0x45ba30), (0x4254c0, 0x4254f0), (0x45bc60, 0x45bcb0), (0x45bdd0, 0x45be90), (0x45be80, 0x45bed0), (0x576540, 0x5765d0), (0x5766e0, 0x57681a), (0x5d8820, 0x5d8870), (0x45bcb0, 0x45bd10), (0x576620, 0x5766f0), (0x576270, 0x576320), (0x5e2a80, 0x5e2b80), (0x67acb0, 0x67acb1), (0x590730, 0x590750), (0x5da3c0, 0x5da3c1), (0x45bd00, 0x45bd30), (0x576410, 0x576550), (0x5d8130, 0x5d8190), (0x5d87d0, 0x5d8820), (0x56b2f0, 0x56b340), (0x48f5c0, 0x48f650),
+           (0x43bd20, 0x43bdc0), (0x44b270, 0x44b2c0), (0x44b4c0, 0x44b520), (0x475550, 0x4755a0), (0x5f5680, 0x5f56a0), (0x4254f0, 0x4255c0), (0x455ae0, 0x455c00)]
+HOOKS = {0x691de0: vobj3.lock, 0x691ea0: lambda e: None}
+B = Bench(RANGES, hooks=HOOKS)
 ANIM, OWNER, TARGET, USER = RAM + 0x2000, RAM + 0x2500, RAM + 0x3000, RAM + 0x3200
 UMODEL, UPARTS, UPS, UENTRIES, USCRIPTS = RAM + 0x3400, RAM + 0x3500, RAM + 0x3700, RAM + 0x3740, RAM + 0x3800   # (Unlink's)
 ACQ_TARGET, ACQ_USER = RAM + 0x7400, RAM + 0x7600   # clear of the grid environment (grid_masks.py's vtables sit at RAM + 0x3000)
@@ -270,13 +271,17 @@ def animator_at(r):   # an animator (flags +0, its holder IHOLD at +0x24, blocks
 
 
 def animator_dispose(r):   # 0x425510: the animator's holder (sleeping when flag 0x4000) destroyed; at a zero count its model's record blocks freed
+    return Call(0x425510, [IANIM], animator_env(r), conv='c', ret='a')
+
+
+def animator_env(r):   # the regions of an animator at IANIM for its disposal (animator_dispose's)
     hold, part = holder_at(r, IHOLD, OWNER)
     regions = renderer_env(r, [part])
     model = put(put(bytearray(r.bytes(0x60)), 0x36, 'H', r.choice([0, 1, 3, 5])), 0x54, 'I', IRECS)
     put(hold, 4, 'I', IMODEL)
     regions.update({IHOLD: hold, OWNER: r.bytes(0x40), IANIM: animator_at(r), ICOUNT: put(bytearray(r.bytes(0x20)), 0x1c, 'i', r.choice([1, 1, 2, 0, -1])),
                     IMODEL: model, IRECS: r.bytes(0x50)})
-    return Call(0x425510, [IANIM], regions, conv='c', ret='a')
+    return regions
 
 
 def instance_dispose(r):   # 0x455ad0: an instance with an animator (or none) at +0xb4, parts at +0xac and its holder at +8 (RAM), both holders' parts in the renderer

@@ -102,6 +102,10 @@ u32 __fastcall Class6fdaa4_OpenEasySam(u8 *object, void *, u32 stream);
 u32 __fastcall Class6fdaa4_OpenOnlineSam(u8 *object, void *, u32 stream);
 // 0x41f350 (thiscall; stream, pops 4): the language buffer's text (Language_Buffer of 0x78b530) assigned to an empty string + ".txt", opened through the handle at +0x2c.
 u32 __fastcall Class6fdaa4_OpenLanguageTxt(u8 *object, void *, u32 stream);
+// 0x41f630 (thiscall; name unconfirmed): whether the handle at +0x2c finds a file of the pattern the global String 0x78bce8 holds
+// ("*.emt"): its slot 1 (&result, the pattern's text, &found: 0x20 bytes, then a pointer to the 260-byte name after it, that name
+// empty); 1 when the result is not negative.
+u32 __fastcall Class6fdaa4_HasEmt(u8 *object);
 
 // 0x41eb90 (thiscall, the object unused; s, pops 4): when s has exactly two "_" (0x74c77c; the first found (String_Find from 0) is not the last
 // (String_ReverseFind from -1) and the next after it is the last), s = its chars before the last (String_Left, the vtable's +0x1c Assign); then when

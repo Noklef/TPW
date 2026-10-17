@@ -409,4 +409,17 @@ void __fastcall Class6fdaa4_TrimName(u8 *, void *, String *s) {
                          reinterpret_cast<const char *>((uintptr_t)0x0074c778)))
         String_Assign(s, nullptr, String_Right(s, nullptr, &view, s->length - 1));
 }
+
+u32 __fastcall Class6fdaa4_HasEmt(u8 *object) {
+    struct Found {
+        u8 head[0x20];
+        char *name;
+        char text[260];
+    } found;
+    found.text[0] = 0;
+    found.name = found.text;
+    s32 result;
+    const char *const pattern = *reinterpret_cast<const char *const *>((uintptr_t)0x0078bcf0);   // the String 0x78bce8's text
+    return *vcall<s32 *>(object + 0x2c, 4, &result, pattern, &found) >= 0 ? 1 : 0;
+}
 }  // extern "C"

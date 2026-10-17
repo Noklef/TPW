@@ -78,6 +78,15 @@ void __cdecl Coaster_SetupCars(u8 *coaster, u32 riders, u32 segments, u32 flags)
 // 1) when that changes +0xf0.
 void __cdecl Coaster_SetRiders(u32 index, s32 n);
 
+// 0x43b600 (cdecl; queue, coaster, first, count; name unconfirmed): boards riders while the coaster has some to take (+0x14) and count
+// is not 0: one is taken from the queue's ring (+0xb4 the slots, +0xb0 their number, +0xbc the count, +0xc4 the read position, moved
+// on round the ring; none when the count is 0, and then nothing more), a car of the count from first picked at random (the rand()
+// seed 0x7b0958: seed * 214013 + 2531011, its high 16 bits modulo count), and from it on (round to first) the first car of the
+// cars +0x28 (0x60 bytes each) with a seat free (+0x34 below +0x44) takes it: its part (the seats' parts +4->+0x2c) activated for the
+// rider (PartStates_Activate with the instance +8 of the car kind's entry in 0x7a4610), the coaster's +0x10 raised, the rider
+// seated (+0x2c) and +0x34 raised. sic: a rider no car has room for is dropped. Each rider lowers +0x14.
+void __cdecl Coaster_BoardRiders(u8 *queue, u8 *coaster, u32 first, u32 count);
+
 // 0x43bbe0 / 0x43bc00 (cdecl; names unconfirmed): this unit's static initialisers of the shared header's two floats
 // nothing reads (core/floatconsts): 0x7923a0 = 1 and 0x7923a4 = 1 / 2^23.
 void __cdecl CoasterCars_InitUnusedOne();

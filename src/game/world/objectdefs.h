@@ -7,7 +7,18 @@
 
 #include "../../../re/types.h"
 
+struct Stream;
+
 extern "C" {
+
+// 0x413600 (thiscall; stream, pops 4; name unconfirmed): a definition's text file (UTF-16, a BOM skipped): its four text fields +0x4f4
+// first point at L"MISSING" (0x6fd880). The stream's size (vtable +0x14) must be even (else nothing more, after a debug print, compiled
+// out); that many bytes are read (+8) into a block (Mem_GlobalAlloc, 2 more for the terminator). Nothing (sic: the block kept) when
+// none came; else, from the start, while there is a line: its key must be one of the null-ended table 0x7487f8 (NAME, SIGNA, SIGNB;
+// WText_WordEquals) or the reading stops; the line after it (past a line break of one or two characters, CR LF or LF CR, and past
+// blank lines of spaces and tabs through WText_NextLine) is copied (Mem_GlobalAlloc) into the field the key's index picks, and the
+// line after that is the next key's. The block is freed at the end.
+void __fastcall ObjectDef_LoadText(u8 *def, void *, Stream *stream);
 
 // 0x412e90: the definition with id (the cached one when id is the cached id, whatever it
 // holds; else the first in the list, which is then cached), or 0.

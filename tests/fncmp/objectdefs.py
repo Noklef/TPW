@@ -9,13 +9,18 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, put  # noqa: E402
+from fncmp import HEAP, LOG, Bench, Call, RAM, global_heap, heap, log_region, memory_stream, put, recorder, set_return  # noqa: E402
 
 B = Bench([(0x412e90, 0x412eea), (0x412ef0, 0x412f4c), (0x412f50, 0x412fac), (0x412e60, 0x412e6d), (0x412e70, 0x412e8f),
-           (0x412c90, 0x412ca4), (0x4143f0, 0x414404), (0x413410, 0x4135ee), (0x4d99c0, 0x4d99d3)])
+           (0x412c90, 0x412ca4), (0x4143f0, 0x414404), (0x413410, 0x4135ee), (0x4d99c0, 0x4d99d3),
+           (0x413600, 0x4138b0), (0x4138b0, 0x413930), (0x413380, 0x413410), (0x5f5660, 0x5f5690), (0x5da3c0, 0x5da3c1)])
 DEFS, ITEMS, DEF, GRID, REF = RAM, RAM + 0x1000, RAM + 0x3000, RAM + 0x3800, RAM + 0x3c00
 CALLS = {'Find': 0x412e90, 'At390': 0x412ef0, 'At410': 0x412f50, 'First': 0x412e60, 'Next': 0x412e70, 'Schema': 0x412c90,
-         'TrackSchema': 0x4143f0, 'Cells': 0x413410}
+         'TrackSchema': 0x4143f0, 'Cells': 0x413410, 'LoadText': 0x413600}
+TEXT, STRM = RAM + 0x4000, RAM + 0x5000
+KEYS = ['NAME', 'SIGNA', 'SIGNB']
+BREAKS = ['\r\n', '\r\n', '\n', '\r', '\n\r']
+BLANKS = ['', ' ', '\t', '  \t ', ' x']
 
 
 def cells(r):  # a definition (through a variable) and its cell grid (+0x18): the column and row counts, then cells of 8 bytes, 20 to a row
@@ -28,8 +33,35 @@ def cells(r):  # a definition (through a variable) and its cell grid (+0x18): th
     return Call(0x413410, [r.getrandbits(32), REF], {DEF: obj, GRID: grid, REF: struct.pack('<I', DEF)}, conv='t', ret='v')
 
 
+def load_text(r):
+    """ObjectDef_LoadText: a text of key and value lines (keys known, near misses and unknown, values blank or not, blank lines
+    between, the four line breaks, a BOM or not) from a memory stream whose size (a recorder's +0x14) is the text's, short of it, odd, 0
+    or -2; GlobalAlloc failing now and then."""
+    lines = []
+    for _ in range(r.choice([0, 1, 2, 3, 3, 4, 6])):
+        key = r.choice(KEYS * 4 + ['NAMES', 'SIGN', 'name', 'Signb', 'OTHER', ''])
+        lines.append(key + (r.choice([' x', '\tx', ':x', '=x']) if r.random() < 0.15 else ''))
+        lines += [r.choice(BLANKS) for _ in range(r.choice([0, 0, 0, 1, 2]))]
+        lines.append(r.choice(['Big Wheel', 'A', '', ' ', 'Ghost Train', ' lead', 'NAME']))
+        lines += [r.choice(BLANKS) for _ in range(r.choice([0, 0, 0, 1]))]
+    text = ''.join(line + r.choice(BREAKS) for line in lines)
+    if r.random() < 0.3:
+        text = text.rstrip('\r\n')
+    data = (b'\xff\xfe' if r.random() < 0.5 else b'') + text.encode('utf-16-le')
+    size = r.choice([len(data)] * 6 + [len(data) - 2, len(data) - 1, len(data) + 1, 0, -2, len(data) + 2])
+    log = log_region()
+    set_return(log, 5, size)
+    stream = memory_stream(STRM, TEXT, len(data))
+    put(stream, 0x20 + 0x14, 'I', recorder(5, 0))
+    regions = {LOG: log, STRM: stream, TEXT: data + r.bytes(8), DEF: r.bytes(0x510),
+               HEAP: heap(0x4000, fail=r.choice([0] * 10 + [1, 2, 3])), **global_heap()}
+    return Call(0x413600, [DEF, STRM], regions, conv='t', ret='v')
+
+
 def case(r):
     op = r.choice(OPS)
+    if op == 'LoadText':
+        return load_text(r)
     if op == 'Cells':
         return cells(r)
     n = r.choice([0, 1, r.randrange(2, 20), r.randrange(20, 0x14b), r.randrange(-2, 0)])
