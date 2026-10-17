@@ -79,4 +79,14 @@ void __fastcall ListNodes_Drain(u8 *node);
 // at its +4; the offset in dword +4 of its vtable, from 4 past the object) gets its slot 0x1c called with 1. Returns the count.
 s32 __fastcall Refcounted_Release(u8 *field);
 
+// 0x497b60 (cdecl): when the dword at 0x7ca1bc is not 0 the object it points to is released (slot 8 with 1); the dword is left.
+void __cdecl Global7ca1bc_Release();
+
+// 0x48d860 (thiscall; a, pops 4): the slot 0x14 of the object the dword at +0x20 points to, called with a. Returns what it returns.
+u32 __fastcall Obj_CallMember20Slot14(u8 *object, void *, u32 a);
+
+// 0x4af9f0 (thiscall; handle, pops 4; name unconfirmed): with the dword at +0x10 set, the object's slot 0x14 called when the thing in the handle's
+// slot (its low word; 0x7cfb90) is there and is the one the dword at 0x7c2658 points to. (Its debug check of the thing table left out.)
+void __fastcall Obj_CallSlot14IfGlobalThing(u8 *object, void *, u32 handle);
+
 }  // extern "C"

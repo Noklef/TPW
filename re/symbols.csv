@@ -3309,6 +3309,9 @@ address,name,kind,confidence,notes
 0x0048eaf0,Table7c26b0_ReleaseIdle,function,high,reimplemented (src/game/core/vwrap); releases the idle objects of a table
 0x0057c4a0,Global8bba48_DeleteVBase,function,high,reimplemented (src/game/core/vwrap); deletes the virtual base of a global object
 0x00576230,ListNodes_Drain,function,high,reimplemented (src/game/core/vwrap); drains the objects of a list while they report 1
+0x00497b60,Global7ca1bc_Release,function,low,reimplemented (src/game/core/vwrap); The object at 0x7ca1bc released (slot 8 with 1)
+0x0048d860,Obj_CallMember20Slot14,function,low,reimplemented (src/game/core/vwrap); The slot 0x14 of the object at +0x20 called with an argument
+0x004af9f0,Obj_CallSlot14IfGlobalThing,function,low,reimplemented (src/game/core/vwrap); The object's slot 0x14 called when a handle's thing is the global one
 0x005e3b90,Class702d48_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor that registers the object with a global one
 0x005e3c00,Class702d48_Release,function,high,reimplemented (src/game/core/vdtor); releases the object from a global one
 0x005e3bd0,Class702d48_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor that releases the object from a global one

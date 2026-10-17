@@ -15,13 +15,14 @@ CALLS = {'S18': (0x5c5510, 't', 'a', 0x20), 'Pass': (0x617dd0, 't', 'a', 0x20), 
          'M10': (0x617b30, 't', 'a', 0x30), 'Fin': (0x5c4f80, 'c', 'a', 0x30), 'Prod': (0x5c4f60, 'c', 'a', 0x30), 'Sized': (0x565560, 't', 'a', 0x30),
          'Shared': (0x565930, 't', 'a', 0x50), 'G2c': (0x48ccd0, 't', 'a', 0x30), 'D9acc': (0x569ef0, 'c', 'a', 0x30), 'D9ac0': (0x5667a0, 'c', 'a', 0x30),
          'D4b84': (0x47e990, 'c', 'v', 0x20), 'R2fc': (0x4b3f20, 'c', 'v', 0x40), 'T26b0': (0x48eaf0, 'c', 'v', 0x30), 'VB48': (0x57c4a0, 'c', 'a', 0x30),
-         'Drain': (0x576230, 't', 'v', 0x30), 'Rel': (0x591a80, 't', 'a', 0x30)}
-B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()])
+         'Drain': (0x576230, 't', 'v', 0x30), 'Rel': (0x591a80, 't', 'a', 0x30), 'R1bc': (0x497b60, 'c', 'v', 0x12), 'M20': (0x48d860, 't', 'a', 0x10),
+         'GThing': (0x4af9f0, 't', 'v', 0x4f)}
+B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()] + [(0x5da3c0, 0x5da3c1)])
 OBJ, OBJ2, VT, VT2 = RAM, RAM + 0x200, RAM + 0x1000, RAM + 0x1100
 
 
 def case(r):
-    name = r.choice(OPS)
+    name = r.deal(OPS)
     address, conv, ret, _n = CALLS[name]
     obj = bytearray(r.bytes(0x100))
     regions = {OBJ: obj, LOG: log_region()}
@@ -124,6 +125,23 @@ def case(r):
         regions.update({RAM + 0x3000: own, RAM + 0x600: held, VT: bytearray(vtable({})), VT2: vtable({7: 1})})
         struct.pack_into('<I', regions[VT], 4, off)
         return Call(address, [RAM + 0x3000 + 0x54], regions, conv=conv, ret=ret)
+    if name == 'R1bc':
+        regions[0x7ca1bc] = struct.pack('<I', OBJ if r.random() < 0.7 else 0)
+        put(obj, 0, 'I', VT)
+        regions[VT] = vtable({2: 1})
+        return Call(address, [], regions, conv=conv, ret=ret)
+    if name == 'M20':
+        put(obj, 0x20, 'I', OBJ2)
+        regions.update({OBJ2: struct.pack('<I', VT) + r.bytes(0x20), VT: vtable({5: 1})})
+        return Call(address, [OBJ, r.getrandbits(32)], regions, conv=conv, ret=ret)
+    if name == 'GThing':   # (things in the slots 0-3 or none; the global one of them or another; +0x10 set or not)
+        put(obj, 0, 'I', VT)
+        put(obj, 0x10, 'I', r.choice([0, 1, r.getrandbits(32)]))
+        regions[VT] = vtable({5: 0})
+        things = [RAM + 0x400 + 0x20 * k if r.random() < 0.8 else 0 for k in range(4)]
+        regions[0x7cfb90] = b''.join(struct.pack('<I', t) + r.bytes(16) for t in things)
+        regions[0x7c2658] = struct.pack('<I', r.choice(things + [things[1], RAM + 0x400, r.getrandbits(32)]))
+        return Call(address, [OBJ, r.choice([0, 1, 2, 3, 3]) | r.choice([0, 0, r.getrandbits(16)]) << 16], regions, conv=conv, ret=ret)
     if name == 'G2c':
         put(obj, 0, 'I', VT)
         regions[VT] = vtable({11: 0})
