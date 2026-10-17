@@ -1,12 +1,13 @@
 # The live objects list (src/game/core/liveobjects: 0x5775d0, 0x577600, and the constructor 0x579cd0 and deleting destructor 0x57ca00
 # that use it) against the originals: lists from empty to full (and beyond), objects present once, twice or not at all; objects most
-# derived or not, their virtual base tables the exe's or made up (other offsets, one inside the object), any flags.
+# derived or not, their virtual base tables the exe's or made up (other offsets, inside the object, one rewriting the table), any
+# flags (the heap region given, whose free logs the pointer).
 # usage: liveobjects.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Add,Remove,Construct,Delete)
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, put  # noqa: E402
+from fncmp import HEAP, Bench, Call, heap, put  # noqa: E402
 
 B = Bench([(0x5775d0, 0x5775f3), (0x577600, 0x57764b), (0x579cd0, 0x579df1), (0x57ca00, 0x57ca5a)])
 CALLS = {'Add': 0x5775d0, 'Remove': 0x577600, 'Construct': 0x579cd0, 'Delete': 0x57ca00}
@@ -25,10 +26,13 @@ def case(r):
     if op in ('Construct', 'Delete'):
         base_offset = 0x154 if op == 'Construct' else 0xa4
         offset = r.choice([base_offset, base_offset, 0x100, 0x40, 0x8])
-        regions = {LIST: mem, OBJECT: r.bytes(0x200), TABLE: put(bytearray(r.bytes(8)), 4, 'I', offset)}
+        regions = {LIST: mem, OBJECT: r.bytes(0x200), TABLE: put(bytearray(r.bytes(8)), 4, 'I', offset), HEAP: heap()}
         table = TABLE
         if op == 'Construct' and r.random() < 0.3:
             table = 0x701a08
+        elif r.random() < 0.2:  # the table inside the object, its offset where the dword before the base goes (so it is read again)
+            table, offset = OBJECT + 0x100, 0x108
+            put(regions[OBJECT], 0x104, 'I', offset)
         put(regions[OBJECT], 0, 'I', table)
         if r.random() < 0.3:  # the base already listed (a destructor finds it)
             put(mem, 4 * r.randrange(0x200), 'I', OBJECT + offset)
