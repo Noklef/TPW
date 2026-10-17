@@ -33,19 +33,50 @@ def view(r):
     return v
 
 
+def tie_quotient(r):
+    """height, width (dwords) whose quotient's bits below the 24 kept are exactly a half with more beyond: the sticky bit decides."""
+    while True:
+        h, w = r.getrandbits(32), r.getrandbits(32) | 0x80000000
+        a, b = abs(h - (h >> 31 << 32)), abs(w - (w >> 31 << 32))
+        if not a:
+            continue
+        shift = 63 - a.bit_length()
+        q, rem = divmod(a << shift, b)
+        cut = q.bit_length() - 24
+        if rem and q & ((1 << cut) - 1) == 1 << (cut - 1):
+            return h, w
+
+
+def tie_product(r):
+    """a width (dword) and a fraction (float bits) whose exact product is just above a 24-bit midpoint and rounds onto it in a double."""
+    while True:
+        m = r.randrange(1 << 23, 1 << 24) | 1
+        w = ((1 << 30) + 1) * pow(m, -1, 1 << 31) % (1 << 31)
+        if (w * m).bit_length() == 55 and not (w * m >> 31) & 1:
+            return w, fb(m / float(1 << 24))
+
+
+SNAN = [0x7f800001, 0xff812345, 0x7fbfffff]
+
+
 def case(r):
     op = r.deal(OPS)
     regions = {VIEW: view(r), 0x8bd524: struct.pack('<I', r.choice([4, 4, 1, 0, r.getrandbits(32)]))}
     if op == 'SetScreen':
-        return Call(0x582eb0, [VIEW, size(r), size(r), r.getrandbits(32)], regions, conv='t')
+        height, width = tie_quotient(r) if r.random() < 0.2 else (size(r), size(r))
+        return Call(0x582eb0, [VIEW, width, height, r.getrandbits(32)], regions, conv='t')
     if op == 'SetWindow':
-        return Call(0x582f70, [VIEW, fraction(r), fraction(r), fraction(r), fraction(r)], regions, conv='t')
+        args = [fraction(r), fraction(r), fraction(r), fraction(r)]
+        if r.random() < 0.2:
+            width, args[2] = tie_product(r)
+            struct.pack_into('<I', regions[VIEW], 8, width)
+        return Call(0x582f70, [VIEW] + args, regions, conv='t')
     if op == 'ResetWindow':
         return Call(0x583080, [VIEW], regions, conv='t')
     if op == 'SetProjection':
         return Call(0x583220, [VIEW, r.getrandbits(32), r.f(), r.f()], regions, conv='t')
-    near = r.f()
-    far = r.choice([r.f(), near, near ^ 0x80000000])
+    near = r.choice(SNAN) if r.random() < 0.1 else r.f()
+    far = r.choice(SNAN) if r.random() < 0.1 else r.choice([r.f(), near, near ^ 0x80000000])
     return Call(0x583280, [FAR, near, far], {FAR + 0x8c8: r.bytes(0x18)}, conv='t')
 
 
