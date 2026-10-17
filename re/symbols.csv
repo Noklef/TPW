@@ -4180,6 +4180,11 @@ address,name,kind,confidence,notes
 0x005bdfd0,Class70293c_Assign,function,high,reimplemented (src/game/online/items); thiscall (other); the 0x70293c online item's assignment (all but the owner); returns this
 0x005be1c0,Class702940_Ctor,function,high,"reimplemented (src/game/online/items); thiscall (record, owner); the 0x702940 online item from a record (three narrow strings from wide texts), appended to the owner's list"
 0x005be3e0,Class702944_Ctor,function,high,"reimplemented (src/game/online/items); thiscall (record, owner); the 0x702944 online item from a record (five wide strings), appended to the owner's list"
+0x005be610,Class702948_Ctor,function,high,"reimplemented (src/game/online/items); thiscall (record, owner); the 0x702948 online item from a record (three wide strings), appended to the owner's list"
+0x005bc940,Owner2c_Add702938s,function,low,"reimplemented (src/game/online/items); thiscall (array {count, records}); a 0x702938 item (Mem_Alloc 0x68) made for each 0x30-byte record"
+0x005bd1b0,Owner2c_Add702940s,function,low,"reimplemented (src/game/online/items); thiscall (array {count, records}); a 0x702940 item (Mem_Alloc 0x48) made for each 0x10-byte record"
+0x005bd5f0,Owner2c_Add702944s,function,low,"reimplemented (src/game/online/items); thiscall (array {count, records}); a 0x702944 item (Mem_Alloc 0x80) made for each 0x26-byte record"
+0x005bda40,Owner2c_Add702948s,function,low,"reimplemented (src/game/online/items); thiscall (array {count, records}); a 0x702948 item (Mem_Alloc 0x6c) made for each 0x34-byte record"
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"

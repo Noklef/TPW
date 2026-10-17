@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <initializer_list>
 
+#include "../core/gameheap.h"
 #include "../core/ptrlist.h"
 #include "../core/string.h"
 #include "../core/vcall.h"
@@ -24,6 +25,13 @@ void List(u8 *item) { PtrList_Append(at<PtrList *>(at<u8 *>(item, 4), 0x2c), nul
 // fld float; fmul double [0x702930] (1.01); fstp float.
 float Scaled(const u8 *record, u32 offset) {
     return static_cast<float>(X87_MulFloatDouble(at<float>(record, offset), *reinterpret_cast<const double *>((uintptr_t)0x00702930)));
+}
+
+template <u8 *(__fastcall *Ctor)(u8 *, void *, const u8 *, u8 *)> void AddAll(u8 *owner, const u32 *array, u32 size, u32 stride) {
+    const u8 *record = reinterpret_cast<const u8 *>(array[1]);
+    for (s32 i = 0; i < static_cast<s32>(array[0]); ++i, record += stride)
+        if (u8 *const item = static_cast<u8 *>(GameHeap_Alloc(size)))
+            Ctor(item, nullptr, record, owner);
 }
 
 }  // namespace
@@ -162,4 +170,28 @@ u8 *__fastcall Class702944_Ctor(u8 *item, void *, const u8 *record, u8 *owner) {
     return item;
 }
 
+u8 *__fastcall Class702948_Ctor(u8 *item, void *, const u8 *record, u8 *owner) {
+    WString_Ctor(Wide(item, 0xc));
+    WString_Ctor(Wide(item, 0x20));
+    WString_Ctor(Wide(item, 0x4c));
+    at<u32>(item, 0) = 0x00702948;
+    at<u8 *>(item, 4) = owner;
+    at<u32>(item, 8) = at<u32>(record, 0);
+    AssignText(Wide(item, 0xc), record, 4);
+    AssignText(Wide(item, 0x20), record, 8);
+    for (u32 k = 0; k < 0x10; k += 4)
+        at<u32>(item, 0x34 + k) = at<u32>(record, 0xc + k);
+    at<u32>(item, 0x44) = at<u32>(record, 0x1c);
+    at<u32>(item, 0x48) = at<u32>(record, 0x20);
+    AssignText(Wide(item, 0x4c), record, 0x24);
+    for (u32 k = 0; k < 0xc; k += 4)
+        at<u32>(item, 0x60 + k) = at<u32>(record, 0x28 + k);
+    List(item);
+    return item;
+}
+
+void __fastcall Owner2c_Add702938s(u8 *owner, void *, const u32 *array) { AddAll<Class702938_Ctor>(owner, array, 0x68, 0x30); }
+void __fastcall Owner2c_Add702940s(u8 *owner, void *, const u32 *array) { AddAll<Class702940_Ctor>(owner, array, 0x48, 0x10); }
+void __fastcall Owner2c_Add702944s(u8 *owner, void *, const u32 *array) { AddAll<Class702944_Ctor>(owner, array, 0x80, 0x26); }
+void __fastcall Owner2c_Add702948s(u8 *owner, void *, const u32 *array) { AddAll<Class702948_Ctor>(owner, array, 0x6c, 0x34); }
 }  // extern "C"
