@@ -24,13 +24,14 @@ CALLS = {
     'Table': (0x4861d0, 'c', 1, 'a', None), 'Inc': (0x4d8c50, 'c', 0, 'a', 0x7cdb98), 'Nibble': (0x4d8c00, 'c', 1, 'a', None),
     'Log2': (0x4d8c20, 'c', 2, 'a', None), 'MeshReady': (0x42a010, 't', 0, 'a', 0x879dec),
     'Kind2': (0x42a050, 't', 0, 'a', None), 'Load': (0x48c960, 'c', 0, 'a', 0x7c2650),
+    'Clear': (0x48c980, 'c', 0, 'a', 0x7c2650),
     'C492d80': (0x492e40, 't', 0, 'a', None), 'Select': (0x4a0810, 'c', 2, 'a', 0x7cb290)}
-SIZES = {0x4d8c00: 0x20, 0x4d8c20: 0x30, 0x42a010: 0x20, 0x42a050: 0x20, 0x48c960: 0x20, 0x492e40: 0x20, 0x4a0810: 0x30}
+SIZES = {0x48c980: 0x20, 0x4d8c00: 0x20, 0x4d8c20: 0x30, 0x42a010: 0x20, 0x42a050: 0x20, 0x48c960: 0x20, 0x492e40: 0x20, 0x4a0810: 0x30}
 B = Bench([(a, a + SIZES.get(a, 0x10)) for (a, *_rest) in CALLS.values()])
 
 
 def case(r):
-    address, conv, n, ret, glob = CALLS[r.choice(OPS)]
+    address, conv, n, ret, glob = CALLS[r.deal(OPS)]   # (a deck: each of the many functions gets its share of a short run)
     regions = {RAM: r.bytes(0x400)}
     if glob:
         regions[glob & ~0xf] = r.bytes(0x20)
