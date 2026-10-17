@@ -58,6 +58,8 @@ def nudge(r):
         regions[w1 + (p + 0x6cde) * 0x28] = pentry
         pcell = bytearray(r.bytes(0x44))
         struct.pack_into('<H', pcell, 0x10, group)
+        if r.random() < 0.5:  # the group is the parent's, not the cell's
+            struct.pack_into('<H', cell, 0x10, group ^ 1)
         regions[g - 0x44 + sid * 0x44] = pcell
     handles = bytearray(r.bytes(0x44 * 9))
     for h in range(9):
