@@ -30,6 +30,7 @@
 #include "../gfx/pixconv.h"
 #include "../gfx/screensurfaces.h"
 #include "../gfx/surface.h"
+#include "../math/transform.h"
 #include "semaphore.h"
 #include "string.h"
 
@@ -317,6 +318,24 @@ u8 *__fastcall Wrap_VBase_Deleter_701920_5790b0(u8 *self, void *, u32 a2) {
 
 u8 *__fastcall Wrap_VBase_Deleter_7018f8_579140(u8 *self, void *, u32 a2) {
     return VBase_Deleter_7018f8(Adjust(self), nullptr, a2);
+}
+
+void __cdecl Wrap_Transform_Vertices_579060(u8 *self, const float *matrix, float *out, const u8 *in, s32 out_stride, s32 in_stride,
+                                            u32 count, s32 mode) {
+    Transform_Vertices(Adjust(self), matrix, out, in, out_stride, in_stride, count, mode);
+}
+
+void __cdecl Wrap_Transform_BlockedPoints_579070(u8 *self, const float *matrix, float *out, const u8 *in, s32 out_stride, u32 first,
+                                                 u32 count) {
+    Transform_BlockedPoints(Adjust(self), matrix, out, in, out_stride, first, count);
+}
+
+double __cdecl Wrap_Transform_ProjectToScreen_579080(u8 *self, float *vertices, s32 stride, u32 count, s32 mode) {
+    return Transform_ProjectToScreen(Adjust(self), vertices, stride, count, mode);
+}
+
+void __cdecl Wrap_Transform_Concatenate_5790a0(u8 *self, const float *a, const float *b, float *out) {
+    Transform_Concatenate(Adjust(self), a, b, out);
 }
 
 u8 *__fastcall Wrap_Class702198_DeletingDtor_58c360(u8 *self, void *, u32 a2) {

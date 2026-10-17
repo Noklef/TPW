@@ -128,6 +128,7 @@ add_library(tpw_game STATIC
     src/game/core/timesig.cpp
     src/game/core/floatconsts.cpp
     src/game/core/funnytime.cpp
+    src/game/core/sync.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -156,6 +157,9 @@ add_library(tpw_game STATIC
     src/game/math/intsin.cpp
     src/game/math/mat4.cpp
     src/game/math/bits.cpp
+    src/game/math/vec2.cpp
+    src/game/math/geometry.cpp
+    src/game/math/transform.cpp
     src/game/motion/curve.cpp
     src/game/motion/keys.cpp
     src/game/motion/quat.cpp
@@ -271,6 +275,10 @@ add_library(tpw_game STATIC
     src/game/render/lightsource.cpp
     src/game/render/clipcodes.cpp
     src/game/render/dxerrors.cpp
+    src/game/render/viewport.cpp
+    src/game/render/heightgrid.cpp
+    src/game/render/vertexfog.cpp
+    src/game/render/quad.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/online/itemlist.cpp

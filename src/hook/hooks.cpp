@@ -43,9 +43,12 @@
 #include "../game/math/intpair.h"
 #include "../game/math/intsin.h"
 #include "../game/math/mat4.h"
-#include "../game/math/bits.h"
+#include "../game/math/bits.h"
+#include "../game/math/geometry.h"
 #include "../game/math/rect.h"
-#include "../game/math/sintable.h"
+#include "../game/math/sintable.h"
+#include "../game/math/transform.h"
+#include "../game/math/vec2.h"
 #include "../game/gfx/palette.h"
 #include "../game/gfx/surface.h"
 #include "../game/gfx/pixconv.h"
@@ -139,6 +142,7 @@
 #include "../game/core/actionrec.h"
 #include "../game/core/namedobjects.h"
 #include "../game/core/savegame.h"
+#include "../game/core/sync.h"
 #include "../game/core/balancefile.h"
 #include "../game/core/timesig.h"
 #include "../game/core/wtraits.h"
@@ -257,6 +261,10 @@
 #include "../game/render/lightsource.h"
 #include "../game/render/clipcodes.h"
 #include "../game/render/dxerrors.h"
+#include "../game/render/quad.h"
+#include "../game/render/viewport.h"
+#include "../game/render/heightgrid.h"
+#include "../game/render/vertexfog.h"
 #include "../game/render/weatherfx.h"
 #include "../game/online/servers.h"
 #include "../game/frontend/helpbg.h"
@@ -1571,6 +1579,10 @@ const Hook kHooks[] = {
     {"Mat4_Identity",             0x00578800, (void *)&Mat4_Identity, {0x8b, 0xd1, 0x57, 0xb9, 0x10}},
     {"Mat4_Assign",               0x00578bc0, (void *)&Mat4_Assign, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mat4_InitGlobals",          0x005780a0, (void *)&Mat4_InitGlobals, {0x53, 0x55, 0x56, 0x57, 0xb9}},
+    {"Mat4_MoveAlongX",           0x00577460, (void *)&Mat4_MoveAlongX, {0xd9, 0x44, 0x24, 0x04, 0xd9}},
+    {"Mat4_LuBackSubstitute",     0x00578820, (void *)&Mat4_LuBackSubstitute, {0x53, 0x55, 0x56, 0x8b, 0x74}},
+    {"Mat4_Perspective",          0x00578be0, (void *)&Mat4_Perspective, {0x83, 0xec, 0x08, 0xd9, 0x44}},
+    {"Mat4_SetFar",               0x00578ca0, (void *)&Mat4_SetFar, {0xa1, 0x58, 0xaf, 0x87, 0x00}},
     {"Bits_Count",                0x005911d0, (void *)&Bits_Count, {0x8b, 0x4c, 0x24, 0x04, 0x33}},
     {"Bits_Shift",                0x005911f0, (void *)&Bits_Shift, {0x8b, 0x4c, 0x24, 0x04, 0x33}},
     {"SinTable256_Build",         0x005913f0, (void *)&SinTable256_Build, {0x51, 0xc7, 0x44, 0x24, 0x00}},
@@ -1870,6 +1882,8 @@ const Hook kHooks[] = {
     {"GlobalSave_ClearByte4c",    0x005b0cc0, (void *)&GlobalSave_ClearByte4c, {0xc6, 0x41, 0x4c, 0x00, 0xc3}},
     {"LiveObjects_Add",           0x005775d0, (void *)&LiveObjects_Add, {0xa1, 0xd8, 0xae, 0x87, 0x00}},
     {"LiveObjects_Remove",        0x00577600, (void *)&LiveObjects_Remove, {0xa1, 0xd8, 0xae, 0x87, 0x00}},
+    {"LiveObject7019f8_Construct", 0x00579cd0, (void *)&LiveObject7019f8_Construct, {0x6a, 0xff, 0x68, 0xad, 0xf2}},
+    {"LiveObject701b30_DeletingDtor", 0x0057ca00, (void *)&LiveObject701b30_DeletingDtor, {0x56, 0x8d, 0xb1, 0x5c, 0xff}},
     {"Obj_Get3e4",                0x005b96a0, (void *)&Obj_Get3e4, {0x8b, 0x81, 0xe4, 0x03, 0x00}},
     {"Obj_Get3a4",                0x005b96b0, (void *)&Obj_Get3a4, {0x8b, 0x81, 0xa4, 0x03, 0x00}},
     {"Obj_Self",                  0x005c5520, (void *)&Obj_Self, {0x8b, 0xc1, 0xc3, 0x90, 0x90}},
@@ -2564,6 +2578,10 @@ const Hook kHooks[] = {
     {"Wrap_Semaphore_Ctor_6c5ae0", 0x006c5ae0, (void *)&Wrap_Semaphore_Ctor_6c5ae0, {0xb9, 0x5c, 0x20, 0xfb, 0x00}},
     {"Wrap_StringList_Dtor_6d8990", 0x006d8990, (void *)&Wrap_StringList_Dtor_6d8990, {0xb9, 0xe0, 0x34, 0xfb, 0x00}},
     {"Wrap_TexSurfaceA_ReleaseSurfaces_58c2a0", 0x0058c2a0, (void *)&Wrap_TexSurfaceA_ReleaseSurfaces_58c2a0, {0x2b, 0x49, 0xfc, 0xe9, 0xe8}},
+    {"Wrap_Transform_Vertices_579060", 0x00579060, (void *)&Wrap_Transform_Vertices_579060, {0x8b, 0x4c, 0x24, 0x04, 0x2b}},
+    {"Wrap_Transform_BlockedPoints_579070", 0x00579070, (void *)&Wrap_Transform_BlockedPoints_579070, {0x8b, 0x4c, 0x24, 0x04, 0x2b}},
+    {"Wrap_Transform_ProjectToScreen_579080", 0x00579080, (void *)&Wrap_Transform_ProjectToScreen_579080, {0x8b, 0x4c, 0x24, 0x04, 0x2b}},
+    {"Wrap_Transform_Concatenate_5790a0", 0x005790a0, (void *)&Wrap_Transform_Concatenate_5790a0, {0x8b, 0x4c, 0x24, 0x04, 0x2b}},
     {"Table_AddressPlus18",       0x006b0620, (void *)&Table_AddressPlus18, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Table_Address",             0x006b0650, (void *)&Table_Address, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Packed_Read",               0x006b0510, (void *)&Packed_Read, {0x56, 0x8b, 0x74, 0x24, 0x08}},
@@ -3103,6 +3121,14 @@ const Hook kHooks[] = {
     {"TextMetrics_FitIndex",      0x0047fa00, (void *)&TextMetrics_FitIndex, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"TextMetrics_ForwardSlot8",  0x0047f990, (void *)&TextMetrics_ForwardSlot8, {0x8b, 0x49, 0x14, 0x85, 0xc9}},
     {"Matrix2_Transform",         0x0050f310, (void *)&Matrix2_Transform, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Vec2_Normalize",            0x005787b0, (void *)&Vec2_Normalize, {0x51, 0x8b, 0x01, 0xd9, 0x41}},
+    {"Vec3_DotByValue",           0x005812f0, (void *)&Vec3_DotByValue, {0xd9, 0x44, 0x24, 0x14, 0xd9}},
+    {"Tri_WindingTest",           0x00581320, (void *)&Tri_WindingTest, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Box_Extend",                0x0057b410, (void *)&Box_Extend, {0xd9, 0x44, 0x24, 0x04, 0xd8}},
+    {"Transform_BlockedPoints",   0x00579250, (void *)&Transform_BlockedPoints, {0x55, 0x8b, 0xec, 0x53, 0x56}},
+    {"Transform_Vertices",        0x00579330, (void *)&Transform_Vertices, {0x8b, 0x44, 0x24, 0x20, 0x53}},
+    {"Transform_ProjectToScreen", 0x00579690, (void *)&Transform_ProjectToScreen, {0x8b, 0x44, 0x24, 0x14, 0x56}},
+    {"Transform_Concatenate",     0x00579800, (void *)&Transform_Concatenate, {0x55, 0x8b, 0xec, 0x8b, 0x4d}},
     {"Table_ScaledBySum",         0x00503980, (void *)&Table_ScaledBySum, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"Staff_Train",               0x00505a10, (void *)&Staff_Train, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
     {"Staff_CountTypes",          0x00508000, (void *)&Staff_CountTypes, {0x83, 0xec, 0x0c, 0x33, 0xc0}},
@@ -3384,6 +3410,13 @@ const Hook kHooks[] = {
     {"FloatConsts_InitOne_4b4490", 0x004b4490, (void *)&FloatConsts_InitOne_4b4490, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"FloatConsts_InitEpsilon_4b44b0", 0x004b44b0, (void *)&FloatConsts_InitEpsilon_4b44b0, {0xd9, 0x05, 0xc8, 0xfd, 0x6f}},
     {"GameClock_Serialize",       0x004f7f30, (void *)&GameClock_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"CritSec_Ctor",              0x005c8b90, (void *)&CritSec_Ctor, {0x56, 0x8b, 0xf1, 0x56, 0xff}},
+    {"CritSec_Dtor",              0x005c8ba0, (void *)&CritSec_Dtor, {0x51, 0xff, 0x15, 0xd0, 0xd0}},
+    {"CritSec_Enter",             0x005c8bb0, (void *)&CritSec_Enter, {0x51, 0xff, 0x15, 0x40, 0xd1}},
+    {"CritSec_Leave",             0x005c8bc0, (void *)&CritSec_Leave, {0x51, 0xff, 0x15, 0x30, 0xd1}},
+    {"SyncEvent_Ctor",            0x005c8bd0, (void *)&SyncEvent_Ctor, {0x56, 0x6a, 0x00, 0x6a, 0x00}},
+    {"SyncEvent_Wait",            0x005c8bf0, (void *)&SyncEvent_Wait, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"SyncEvent_Set",             0x005c8c20, (void *)&SyncEvent_Set, {0x8b, 0x01, 0x50, 0xff, 0x15}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -3540,6 +3573,7 @@ const Hook kHooks[] = {
     {"SoftRenderer_ClearBuffer",  0x00573ca0, (void *)&SoftRenderer_ClearBuffer, {0x8b, 0xd1, 0x57, 0x33, 0xc0}},
     {"SoftRenderer_TextureMemory", 0x00573e30, (void *)&SoftRenderer_TextureMemory, {0xa1, 0x20, 0x16, 0x8c, 0x00}},
     {"Meshes_Ready",              0x005744d0, (void *)&Meshes_Ready, {0x8b, 0x44, 0x24, 0x04, 0x83}},
+    {"Meshes_SetDirection",       0x00574110, (void *)&Meshes_SetDirection, {0x83, 0xec, 0x0c, 0xd9, 0x44}},
     {"Batch_Begin",               0x00565240, (void *)&Batch_Begin, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Rasteriser_ChooseSpan",     0x00569f60, (void *)&Rasteriser_ChooseSpan, {0x8b, 0x44, 0x24, 0x04, 0xf6}},
     {"Rasteriser_ClearMmx",       0x00569f20, (void *)&Rasteriser_ClearMmx, {0x0f, 0x77, 0xb8, 0x01, 0x00}},
@@ -3551,6 +3585,16 @@ const Hook kHooks[] = {
     {"LightSource_DestroyMain",   0x00458580, (void *)&LightSource_DestroyMain, {0xa1, 0x40, 0x0b, 0x7a, 0x00}},
     {"ClipCodes_Compute",         0x00561bc0, (void *)&ClipCodes_Compute, {0x55, 0x8b, 0xec, 0x51, 0x53}},
     {"DxResult_Message",          0x0056a770, (void *)&DxResult_Message, {0x8b, 0x44, 0x24, 0x04, 0x3d}},
+    {"View_SetScreen",            0x00582eb0, (void *)&View_SetScreen, {0x51, 0xdb, 0x44, 0x24, 0x08}},
+    {"View_SetWindow",            0x00582f70, (void *)&View_SetWindow, {0x51, 0x56, 0x8b, 0xf1, 0x57}},
+    {"View_ResetWindow",          0x00583080, (void *)&View_ResetWindow, {0x51, 0xd9, 0x41, 0x10, 0x8b}},
+    {"View_SetProjection",        0x00583220, (void *)&View_SetProjection, {0xd9, 0x44, 0x24, 0x08, 0xd8}},
+    {"View_SetDepthRange",        0x00583280, (void *)&View_SetDepthRange, {0xd9, 0x44, 0x24, 0x08, 0xd8}},
+    {"HeightGrid_HeightAt",       0x0057c190, (void *)&HeightGrid_HeightAt, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"VertexFog_Colour",          0x005747d0, (void *)&VertexFog_Colour, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"VertexFog_Alpha",           0x00574960, (void *)&VertexFog_Alpha, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"Quad_TurnXY",               0x00591430, (void *)&Quad_TurnXY, {0x8b, 0x44, 0x24, 0x0c, 0x56}},
+    {"Quad_TurnXZ",               0x00591510, (void *)&Quad_TurnXZ, {0xd9, 0x44, 0x24, 0x08, 0xd9}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
