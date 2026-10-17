@@ -20,12 +20,13 @@ B = Bench([(0x401250, 0x40127a), (0x4013e0, 0x40161d), (0x5f5680, 0x5f5690), (0x
           + [(a, a + 0x12) for a in GETTERS] + [(a, a + 0x10) for a in DTORS] + [(0x401030, 0x401212), (0x5f5660, 0x5f5680), (0x5b0d60, 0x5b0d64)])
 VALS, FLAGS, DATA = RAM + 0x800, RAM + 0x900, RAM + 0x1000
 INIT = RAM + 0x4000
+GROUPED = [0, 1, 2, 2, 2, 3, 3, 4, 6, 9, 10, 0xd]   # (Init: groups nested, cut short and empty more often)
 TYPES = [0, 1, 2, 3, 3, 4, 5, 6, 6, 7, 8, 9, 9, 10, 11, 10, 11, 0xd, 0xffffffff]
 
 
-def schema(r, counts=(0, 1, 2, 3, 5, -1)):
+def schema(r, counts=(0, 1, 2, 3, 5, -1), kinds=None):
     n = r.choice([0, 1, 2, 4, 6, 8, 10, 12])
-    types = [r.choice(TYPES) for _ in range(n)]
+    types = [r.choice(kinds or TYPES) for _ in range(n)]
     if 2 in types and (3 not in types or max(k for k, t in enumerate(types) if t == 2) > max(k for k, t in enumerate(types) if t == 3)):
         if types[-1] == 2:
             types.append(3)
@@ -58,7 +59,7 @@ def defaults(r, address, at=RAM, vt=None):
 
 def init(r):   # BalanceFile_Init: a file at INIT (its values from +8, room on both sides for the index running off), the made-up schema
     vt = r.choice(list(VTABLES))
-    n, table = schema(r, [0, 1, 1, 2, 3, 3, -1])
+    n, table = schema(r, [0, 1, 1, 2, 3, 3, -1], r.choice([None, GROUPED]))
     obj = bytearray(r.bytes(0x2800))
     put(obj, 0x800, 'II', vt, r.getrandbits(32))
     return Call(0x401030, [INIT], {INIT - 0x800: obj, VTABLES[vt]: table, HEAP: heap(), **global_heap()}, conv='t', ret='v')
