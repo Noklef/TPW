@@ -198,4 +198,8 @@ u32 __fastcall Nav_Serialize(u8 *nav, void *, Stream *stream, u32 save, s32 vers
         at<u32>(nav, 0x30) = 0;
     return Save_Field(stream, save, nav + 0x10, 8, 0x00761f34) ? 0 : 1;
 }
+
+u32 __fastcall Nav_SerializeFwd(u8 *nav, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    return Nav_Serialize(nav, nullptr, stream, save, version, unused);
+}
 }

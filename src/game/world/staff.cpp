@@ -324,4 +324,18 @@ u32 __fastcall StaffPoolEntry_Serialize(u8 *entry, void *, Stream *stream, u32 s
         return 1;
     return Save_Field(stream, save, entry + 0x10, 4, 0x0075e69c) ? 0 : 1;
 }
+
+u32 __fastcall StaffPool_Serialize(u8 *pool, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    if (version < 0 || version > 1)
+        return 0;
+    for (u32 i = 0; i < 0x20; ++i)
+        if (StaffPoolEntry_Serialize(pool + i * 0x14, nullptr, stream, save, version, unused))
+            return 1;
+    for (u32 i = 0; i < 5; ++i)
+        if (!Save_Field(stream, save, pool + 0x280 + i * 4, 4, 0x0075e7b8) || !Save_Field(stream, save, pool + 0x299 + i, 1, 0x0075e7a4))
+            return 1;
+    if (TimeSig_Serialize(pool + 0x294, nullptr, stream, save, version, unused))
+        return 1;
+    return Save_Field(stream, save, pool + 0x298, 1, 0x0075e788) ? 0 : 1;
+}
 }

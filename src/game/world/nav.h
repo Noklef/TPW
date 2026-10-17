@@ -58,4 +58,7 @@ void __fastcall Nav_Update(u8 *nav);
 // +0x48, +0x54 and +0xa0, pos and radius; then the 5 subpath points (pairs from +0x64) each with its distance (dwords from +0x8c), and
 // vel. Loading clears the dword at +0x34 before local_xaxis and the one at +0x30 before vel.
 u32 __fastcall Nav_Serialize(u8 *nav, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x4f9440 (thiscall; the same arguments; the sprite's call on its nav at +0xd4): Nav_Serialize, its result returned.
+u32 __fastcall Nav_SerializeFwd(u8 *nav, void *, Stream *stream, u32 save, s32 version, u32 unused);
 }

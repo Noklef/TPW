@@ -132,4 +132,9 @@ void __fastcall Staff_TrainAll(const s32 *amounts);
 // partly through the readers): mType (+0), the dword at +4, the bytes at +8, +9, +0xa and +0xb, the time stamp at +0xc (TimeSig_Serialize;
 // 1 if it fails) and the dword at +0x10.
 u32 __fastcall StaffPoolEntry_Serialize(u8 *entry, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x507850 (thiscall; the same arguments): the staff pool: its 0x20 entries (StaffPoolEntry_Serialize, 0x14 bytes from +0), 1 at the first
+// that fails; then for each of the 5 categories mPeopleInCat[i] (dwords from +0x280) and mStopProducing[i] (bytes from +0x299), the time
+// stamp at +0x294 (TimeSig_Serialize) and the byte at +0x298, as a serializer does (Save_Field).
+u32 __fastcall StaffPool_Serialize(u8 *pool, void *, Stream *stream, u32 save, s32 version, u32 unused);
 }

@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/savegame.h"
+#include "things.h"
 
 namespace {
 
@@ -51,5 +52,27 @@ u32 __fastcall ResearchProject_Serialize(u8 *project, void *, Stream *stream, u3
     if (version < 0 || version > 1)
         return 0;
     return Save_Fields(stream, save, project, kFields, 6) ? 0 : 1;
+}
+
+u32 __fastcall ResearchGroup_Serialize(u8 *group, void *, Stream *stream, u32 save, s32 version, u32) {
+    static const SaveSpec kFields[] = {{0x0, 4, 0x0075e254}, {0x4, 4, 0x0075e24c}, {0x8, 4, 0x0075e23c}, {0xc, 1, 0x0075e224}};
+    if (version < 0 || version > 1)
+        return 0;
+    return Save_Fields(stream, save, group, kFields, 4) ? 0 : 1;
+}
+
+u32 __fastcall ResearchLab_Serialize(u8 *lab, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    static const SaveSpec kFields[] = {{0x145c, 4, 0x0075e1dc}, {0x1460, 4, 0x0075e1d0}, {0x1464, 4, 0x0075e1b8}, {0x1468, 1, 0x0075e1ac}};
+    if (Thing_Serialize(lab, nullptr, stream, save, version, unused))
+        return 1;
+    if (version < 0 || version > 1)
+        return 0;
+    for (u32 i = 0; i < 0x100; ++i)
+        if (ResearchProject_Serialize(lab + 0xc + i * 0x14, nullptr, stream, save, version, unused))
+            return 1;
+    for (u32 i = 0; i < 5; ++i)
+        if (ResearchGroup_Serialize(lab + 0x140c + i * 0x10, nullptr, stream, save, version, unused))
+            return 1;
+    return Save_Fields(stream, save, lab, kFields, 4) ? 0 : 1;
 }
 }

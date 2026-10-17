@@ -164,7 +164,7 @@ address,name,kind,confidence,notes
 0x0050b090,Thing_Serialize,function,high,"reimplemented (src/game/world/things); thiscall (stream, save, version, unused): the thing's words +4, +6, +0xa, +8 saved or loaded; a full load clears the byte +3"
 0x00509bc0,ThingBasic_Serialize,function,high,"reimplemented (src/game/world/things); thiscall (stream, save, version, unused): Thing_Serialize, its result as 0 or 1"
 0x004d7a70,WorldGlobals_Serialize,function,high,"staff pool, game clock, park gates"
-0x00507850,StaffPool_Serialize,function,high,0x20 x StaffPoolEntry + 5 categories
+0x00507850,StaffPool_Serialize,function,high,"reimplemented (src/game/world/staff); reimplemented (src/game/world/staff); 0x20 x StaffPoolEntry + 5 categories, a time stamp, a byte"
 0x005070a0,StaffPoolEntry_Serialize,function,high,"reimplemented (src/game/world/staff); reimplemented (src/game/world/staff); 6 fields, a time stamp at +0xc (TimeSig_Serialize), the dword at +0x10"
 0x004f7f30,GameClock_Serialize,function,high,"reimplemented (src/game/core/funnytime); thiscall (stream, save, version, unused): the calendar clock's five fields"
 0x004cf050,ParkGates_Serialize,function,high,"arrival rate, bus capacity, gates open"
@@ -197,9 +197,9 @@ address,name,kind,confidence,notes
 0x004cdb80,CircBufU16_Serialize,function,high,"mCurrentEntry, mNumEntries, mWrappedAround, mTemp, mData[mNumEntries]"
 0x004cdf00,CircBufU32_Serialize,function,high,
 0x004cea00,CircBufU8_Serialize,function,high,
-0x00502dc0,ResearchLab_Serialize,function,high,"thing model 14: 0x100 projects, 5 groups"
+0x00502dc0,ResearchLab_Serialize,function,high,"reimplemented (src/game/world/research); reimplemented (src/game/world/research); thing model 14: thing, 0x100 projects, 5 groups, 4 fields"
 0x00504210,ResearchProject_Serialize,function,high,reimplemented (src/game/world/research); reimplemented (src/game/world/research); a project's 6 fields
-0x00504760,ResearchGroup_Serialize,function,high,
+0x00504760,ResearchGroup_Serialize,function,high,reimplemented (src/game/world/research); reimplemented (src/game/world/research); a group's 4 fields
 0x00512010,Weather_Serialize,function,high,"reimplemented (src/game/world/weather); reimplemented (src/game/world/weather); thing model 15: thing, fields, forecast at +0x20, fields"
 0x005132a0,Forecast_Serialize,function,high,"reimplemented (src/game/world/forecast); thiscall (stream, save, version, unused): the forecast's time (8 bytes), quality and valid byte saved or loaded"
 0x004cf920,BankAccount_Serialize,function,high,"thing model 16: balance, admission fee, 8 loans"
@@ -208,7 +208,7 @@ address,name,kind,confidence,notes
 0x006c58f0,SoundBank_OpenSdt,function,medium,"appends HD.sdt or HW.sdt to the bank path and opens it, falling back to the other; arg3 == 0 tries HW first"
 0x006c5a00,SoundBank_Open,function,low,calls SoundBank_OpenSdt and returns 0 / -1
 0x006d62c0,LbMpeg_MmxTransform,function,low,"MMX int16 transform over 8 qwords using the Q14 cosine table in section lbmpeg_d (0xfc0000); likely MPEG decoder matrixing"
-0x004e2c10,CircBufU32_30_Serialize,function,high,"ring buffer of 30 u32 (mTemp, mData[30], mCurrentEntry, mNumEntries, mWrappedAround); 6 per Object"
+0x004e2c10,CircBufU32_30_Serialize,function,high,"reimplemented (src/game/core/circbuf); reimplemented (src/game/core/circbuf); ring buffer of 30 u32 (mTemp, mData[30], mCurrentEntry, mNumEntries, mWrappedAround); 6 per Object; the entries while i < mNumEntries (unbounded, sic)"
 0x00516380,World_Tick,function,medium,"increments the tick counter at +0x1da70c and calls Thing_Update for every live thing (skips things whose byte +3 is set)"
 0x0050b360,Thing_Update,function,high,per-tick dispatch on Thing.model (byte +2); most models call an Update and a PostUpdate method
 0x0050b550,Thing_HandleMessage,function,high,"dispatch on Thing.model to the model's message handler; called from the message centre (0x40fb10)"
@@ -3779,6 +3779,7 @@ address,name,kind,confidence,notes
 0x0050fd40,Nav_PathProgress,function,low,"reimplemented (src/game/world/nav); thiscall: 1.0 - (path_subpath_dist + path_tail_dist + octagonal distance to the current path point) / path_total_dist, 16.16; 1.0 when finished or the total is 0; IDIV faults like the original's"
 0x005102f0,Nav_VisitNeighbours,function,low,"reimplemented (src/game/world/nav); cdecl (nav, radius, visit): visits the people in the map cells within radius whose kind counts and whose distance (pos >> 8, squared) is under (radius >> 8) squared, at most five"
 0x0050f3b0,Nav_Update,function,low,"reimplemented (src/game/world/nav); thiscall: one step of the nav: the weighted behaviour forces, vel and pos (when the move test passes), the local axes and the path progress history"
+0x004f9440,Nav_SerializeFwd,function,low,reimplemented (src/game/world/nav); reimplemented (src/game/world/nav); thiscall: Nav_Serialize with the same arguments (the sprite's call on its nav)
 0x0052a050,Cell_ExtendPath,function,high,reimplemented (src/game/world/mapcell); one step of a path across the map's cells
 0x0052c420,MapGrid_MarkEdges,function,high,"reimplemented (src/game/world/mapcell); edge cells of a map grid of types 4, 9, 0x17 and 0xa"
 0x0052c5b0,MapGrid_ClassifyTypes,function,high,reimplemented (src/game/world/mapcell); a map grid's cell types as codes 1 to 4

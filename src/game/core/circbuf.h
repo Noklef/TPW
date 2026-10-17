@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../files/file.h"
 
 extern "C" {
 
@@ -41,4 +42,9 @@ void __fastcall CircBufU32_144_Push(u8 *buf, void *, u32 value);
 // wrapped +0x84): the value back entries before the cursor (signed compares; past the start
 // only once wrapped) to *out, and 1; 0 (out untouched) when there is none. Returns in AL only.
 u8 __fastcall CircBufU32_30_Get(const u8 *buf, void *, u32 *out, s32 back);
+
+// 0x4e2c10 (thiscall; stream, save, version, unused): a CircBufU32 of 30 saved or loaded as a serializer does (Save_Field; the entries'
+// load through Save_ReadU32): mCurrentEntry (+0x7c), mNumEntries (+0x80), mWrappedAround (+0x84), mTemp (+0); then mData[i] (from +4)
+// while i < mNumEntries (signed, read again each time: a loaded count over 30 runs past the buffer, sic).
+u32 __fastcall CircBufU32_30_Serialize(u8 *buf, void *, Stream *stream, u32 save, s32 version, u32 unused);
 }
