@@ -80,13 +80,13 @@ def advisor(r):   # AdvisorScoring_Dtor (0x415e80, thiscall) or its static one (
 
 
 def case(r):
-    op = r.choice(OPS)
+    op = r.deal(OPS + [k for k in ('Dtor', 'Schema') if k in OPS])   # (a deck, those two twice: they share out many functions)
     if op == 'Defaults':
         return defaults(r, 0x4013e0)
     if op == 'Release':
         return defaults(r, 0x401250)
     if op == 'Dtor':
-        address = r.choice(list(DTORS))
+        address = r.deal(list(DTORS))
         at, vt = DTORS[address]
         return defaults(r, address, at or RAM, vt)
     if op == 'Init':
@@ -95,7 +95,7 @@ def case(r):
         return init(r, True)
     if op == 'Advisor':
         return advisor(r)
-    return Call(r.choice(list(GETTERS)), [r.getrandbits(32), r.choice([0, 1, r.randrange(64), r.getrandbits(32)])], {}, conv='t', ret='a')
+    return Call(r.deal(list(GETTERS)), [r.getrandbits(32), r.choice([0, 1, r.randrange(64), r.getrandbits(32)])], {}, conv='t', ret='a')
 
 
 OPS = [k for k in os.environ.get('OPS', 'Defaults,Release,Schema,Dtor,Init,ObjCtor,Advisor').split(',') if k]
