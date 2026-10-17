@@ -251,7 +251,8 @@
 #include "../game/render/weatherfx.h"
 #include "../game/online/servers.h"
 #include "../game/frontend/helpbg.h"
-#include "../game/frontend/lobbymodel.h"
+#include "../game/frontend/lobbymodel.h"
+#include "../game/frontend/lobbyscene.h"
 #include "../game/online/itemlist.h"
 #include "../game/online/items.h"
 #include "../game/online/onlinelist.h"
@@ -3671,6 +3672,9 @@ const Hook kHooks[] = {
     {"LobbyModel_Play",           0x005d83f0, (void *)&LobbyModel_Play, {0x8b, 0x44, 0x24, 0x08, 0x85}},
     {"LobbyModel_TimeLeft",       0x005d8440, (void *)&LobbyModel_TimeLeft, {0x8b, 0x41, 0x04, 0x85, 0xc0}},
     {"HelpBg_Refresh",            0x00492320, (void *)&HelpBg_Refresh, {0x66, 0x83, 0x79, 0x04, 0x00}},
+    {"Class702af0_AcquireModels", 0x005da120, (void *)&Class702af0_AcquireModels, {0x53, 0x8b, 0xd9, 0x8b, 0x43}},
+    {"Class702ca8_AcquireModels", 0x005dfca0, (void *)&Class702ca8_AcquireModels, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"Class702cb0_StartPendingPlay", 0x005e1350, (void *)&Class702cb0_StartPendingPlay, {0x56, 0x8b, 0xf1, 0x33, 0xc0}},
     {"RSSE_Init",                 0x00551600, (void *)&RSSE_Init, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"RsseScript_EventName",      0x00468600, (void *)&RsseScript_EventName, {0x53, 0x55, 0x56, 0x8b, 0x74}},
 };

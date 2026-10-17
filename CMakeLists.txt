@@ -269,6 +269,7 @@ add_library(tpw_game STATIC
     src/game/online/onlinelist.cpp
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
+    src/game/frontend/lobbyscene.cpp
     src/game/input/mouse.cpp
 )
 
