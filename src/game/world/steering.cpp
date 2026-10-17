@@ -229,6 +229,14 @@ s32 *__fastcall SteerSeparation_Steer(void *, void *, s32 *out, const u8 *nav) {
     return out;
 }
 
+s32 *__fastcall SteerRepelObstacle_Steer(void *, void *, s32 *out, const u8 *) {
+    g_force(0) = 0;
+    g_force(1) = 0;
+    out[0] = g_force(0);
+    out[1] = g_force(1);
+    return out;
+}
+
 void __cdecl Steering_SetPathBehaviours() {
     EntryStack_Clear();  // inlined in the original
     PushBehaviour(0x761f1c, 0xe666);  // avoid_walls, 0.9

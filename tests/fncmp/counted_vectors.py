@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
 # name: (address, convention, returns, size)
-CALLS = {'Has': (0x506580, 't', 'a', 0x50), 'Ext': (0x50e260, 's', 'v', 0x50), 'B50': (0x5101f0, 't', 'a', 0x50), 'Push': (0x5e2a30, 't', 'a', 0x50),
+CALLS = {'Has': (0x506580, 't', 'a', 0x50), 'Ext': (0x50e260, 's', 'a', 0x50), 'B50': (0x5101f0, 't', 'a', 0x50), 'Push': (0x5e2a30, 't', 'a', 0x50),
          'Tex': (0x55f720, 't', 'v', 0x60), 'C80': (0x5b96e0, 't', 'a', 0x60), 'C90': (0x5b9740, 't', 'a', 0x60), 'Cmp': (0x5d1330, 't', 'a', 0x60),
          'V14': (0x4791c0, 't', 'v', 0x70), 'V4': (0x47aba0, 't', 'v', 0x70)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()] + [(0x5da3c0, 0x5da3c1)])

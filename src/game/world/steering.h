@@ -47,8 +47,8 @@ s32 *__fastcall SteerSeek_Steer(void *self, void *, s32 *out, const u8 *nav);
 // length / 2.0; out = d * (speed / length) - vel. Returns out.
 s32 *__fastcall SteerArrival_Steer(void *self, void *, s32 *out, const u8 *nav);
 
-// 0x50e190 (cdecl (nav, other); the per-neighbour callback of repel_obstacle's slot 0, 0x50e260, which is hooked as
-// TextExtent_Zero (gfx/text): it clears this force and copies it out, the visit being compiled out): away = pos - *other (a pair at other + 0); when
+// 0x50e190 (cdecl (nav, other); the per-neighbour callback of repel_obstacle's slot 0, SteerRepelObstacle_Steer 0x50e260,
+// whose visit is compiled out): away = pos - *other (a pair at other + 0); when
 // its octagonal length is under nav radius + other's (+8) + 1.0, the force (0x7cf100) += away * (2^32 / Math_ISqrt(that
 // length)).
 void __cdecl SteerRepel_Neighbour(const u8 *nav, const u8 *other);
@@ -84,6 +84,10 @@ void __cdecl SteerSeparation_Neighbour(const u8 *nav, const u8 *other);
 // is at most radius + 1.0: out = (0, 0). Else the force is cleared, Nav_VisitNeighbours with radius * 2
 // and SteerSeparation_Neighbour adds to it and out = the force. Returns out.
 s32 *__fastcall SteerSeparation_Steer(void *self, void *, s32 *out, const u8 *nav);
+
+// 0x50e260 (thiscall (out, nav); repel_obstacle's slot 0): the force (0x7cf100) cleared and copied out; returns out. The neighbour visit
+// with SteerRepel_Neighbour (radius * 2) calls the shared empty function 0x5da3c0 in this build, so the force stays 0.
+s32 *__fastcall SteerRepelObstacle_Steer(void *self, void *, s32 *out, const u8 *nav);
 
 // 0x50fdf0 (cdecl; name unconfirmed): the behaviour list (0x7cf078-0x7cf080, {weight, behaviour} entries) emptied as EntryStack_Clear (core/seqs) does,
 // then avoid_walls with 0.9, follow_path with 0.5 and separation with 0.1 (16.16) pushed, each found by its name in the table at 0x761ec0 (eight

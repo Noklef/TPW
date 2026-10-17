@@ -23,6 +23,7 @@ GLOBALS = 0x7cf040  # the seven objects, 0x7cf050-0x7cf370, and the force, reach
 BEHAVIOURS = [0x7cf050, 0x7cf0b0, 0x7cf0d8, 0x7cf360, 0x7cf338, 0x7cf088, 0x7cf308]  # the table at 0x761ec0's order
 STACK = RAM + 0x1020  # the behaviour list's entries
 OPS = os.environ.get('OPS', 'Ctor,Dtor,Destroy,Paths,Seek,Arrival,Neighbour,Hit,Ray,Obstacle,Avoid,SepNeighbour,Separation,Visit').split(',')
+DECK = [op for op in OPS for _ in range(len(CTORS) if op == 'Ctor' else len(DESTROYS) if op == 'Destroy' else 1)]   # (dealt: one card per function)
 THINGS = RAM + 0x4000  # the people: 0x200 bytes each, their nav at +0xd4
 CELLS = 0x31000000  # the map's cells ([[0x7cf6ec]]): only the rows a case reads are laid out
 NAV, OTHER, OUT = RAM + 0x100, RAM + 0x20, RAM + 0x40
@@ -89,14 +90,14 @@ def neighbours(r, mem, regions):
 
 
 def case(r):
-    op = r.choice(OPS)
+    op = r.deal(DECK)
     if op == 'Ctor':
-        return Call(r.choice(CTORS), [RAM + r.choice([0x10, 0x11, 0x13])], {RAM: r.bytes(0x40)}, conv='t', ret='a')
+        return Call(r.deal(CTORS), [RAM + r.choice([0x10, 0x11, 0x13])], {RAM: r.bytes(0x40)}, conv='t', ret='a')
     if op == 'Dtor':
         return Call(0x50cea0, [RAM + r.choice([0x10, 0x12])], {RAM: r.bytes(0x40)}, conv='t')
     glob = bytearray(r.bytes(0x340))
     if op == 'Destroy':
-        return Call(r.choice(DESTROYS), [], {GLOBALS: glob})
+        return Call(r.deal(DESTROYS), [], {GLOBALS: glob})
     if op == 'Paths':  # 0x50fdf0: the seven objects' names (+4) shuffled, at times one not wanted a near miss of a wanted one; the behaviour list
         names = [b'seek', b'arrival', b'separation', b'avoid_obstacle', b'repel_obstacle', b'avoid_walls', b'follow_path']
         r.shuffle(names)

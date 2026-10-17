@@ -3210,7 +3210,7 @@ address,name,kind,confidence,notes
 0x00579150,VBase_Deleter_7018f8,function,high,reimplemented (src/game/core/vdel); deleting destructor of a virtual base (vtable 0x7018f8)
 0x005d0a50,Ring_Splice,function,high,reimplemented (src/game/core/rings); moves a range of nodes of a doubly linked ring before a position
 0x00506580,Person_HasWord,function,high,reimplemented (src/game/world/person); whether a word of the person at the kind's offset equals a value
-0x0050e260,TextExtent_Zero,function,high,reimplemented (src/game/gfx/text); the text extent globals and the result set to 0
+0x0050e260,SteerRepelObstacle_Steer,function,low,reimplemented (src/game/world/steering); thiscall (out, nav): repel_obstacle slot 0; the force (0x7cf100) cleared and copied out (its neighbour visit is the empty 0x5da3c0); returns out
 0x005101f0,Block50_Ctor,function,high,"reimplemented (src/game/core/buffers); a cleared block of 0x50 bytes with begin, end and capacity pointers"
 0x005e2a30,List_PushHead,function,high,reimplemented (src/game/core/stdlist); a new node made the head of a list
 0x005b96e0,Class702880_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor with a 16-byte member

@@ -151,13 +151,6 @@ s32 __fastcall TextMetrics_FitIndex(u8 *object, void *, const u16 *text, u32 sta
     return index - 1;
 }
 
-void __stdcall TextExtent_Zero(u32 *out, const u8 *) {
-    global<u32>(0x007cf100) = 0;
-    global<u32>(0x007cf104) = 0;
-    out[0] = global<u32>(0x007cf100);
-    out[1] = global<u32>(0x007cf104);
-}
-
 u32 __fastcall TextMetrics_ForwardSlot8(u8 *object) {
     u8 *const inner = at<u8 *>(object, 0x14);
     if (!inner)
