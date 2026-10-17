@@ -47,6 +47,11 @@ void __fastcall PtrList_Insert(u8 *list, void *, u32 value, u8 **position);
 // found, otherwise 0.
 u32 __fastcall PtrArray_RemoveAndFree(u8 *object, void *, u32 item);
 
+// 0x56b4c0 (thiscall; image, pops 4; name unconfirmed): a new sprite frame (0x44 bytes, the game's heap, SpriteFrame_Init) with +0x24 -1, flags
+// (+0x10) 0x58000, +0x2c 10.0f and the image (+0x28) appended to the same array (the decoded textures' 0x879ce0, 0x5f3f4c); the count is stored at
+// +0x1c and at +4 of what +4 points to. Returns the frame; 0 when the allocation failed (the error (2, 0xb0754000) pushed).
+u8 *__fastcall PtrArray_AddSpriteFrame(u8 *object, void *, u32 image);
+
 // 0x5d8a80: removes the first node with a value from the linked list at +0xc (unlinks it, counts it off, frees it).
 void __fastcall ListRemovec_5d8a80(u8 *o, void *, u32 v0);
 

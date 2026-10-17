@@ -3614,6 +3614,7 @@ address,name,kind,confidence,notes
 0x005830e0,Surface_SetMasks,function,high,reimplemented (src/game/gfx/surface); stores the colour masks and makes the 16-bit tables
 0x005e2a80,PtrList_Insert,function,high,reimplemented (src/game/core/ptrlist); inserts a value before an iterator in a pointer list
 0x005e1540,SortedPtrList_Add,function,high,reimplemented (src/game/core/ptrlist); an item added to a pointer list in order of its key
+0x0056b4c0,PtrArray_AddSpriteFrame,function,low,"reimplemented (src/game/core/ptrlist); thiscall (image, pops 4): a new 0x44-byte sprite frame (flags 0x58000, +0x24 -1, +0x2c 10.0f, the image at +0x28) appended to the pointer array (items +8, count +0x1c mirrored at +4 of what +4 points to); returns it, or 0 when the allocation failed (the error (2, 0xb0754000) pushed)"
 0x005f4400,Class703088_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor leaving the global list of its kind
 0x00618110,Class7037b8_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor of the 0x7037b8 class
 0x0051af00,ListScalarDelete700aa0_51af00,function,low,"reimplemented (src/game/core/vdel); a linked list scalar deleting destructor: sets the vtable pointer 0x700aa0, frees every node and, when bit 0 of the flags is set, the list"
