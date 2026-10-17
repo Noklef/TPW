@@ -94,6 +94,9 @@ void __fastcall StdMapA_Insert(u8 *tree, void *, u8 **result, const u32 *value);
 // 0x5b1930: the same over the tree with the sentinel at 0xf7c970, whose keys are 16-bit (StdTree_DecG / StdTree_InsertG).
 void __fastcall StdMapG_Insert(u8 *tree, void *, u8 **result, const u16 *value);
 
+// 0x40fe60: the same over tree B (the message centre's; sentinel 0x785de4, 16-bit keys; StdTree_DecB / StdTree_InsertB), the result made by Pair_Assign; returns it.
+u8 **__fastcall StdMapB_Insert(u8 *tree, void *, u8 **result, const u16 *value);
+
 // 0x5b2f40 (thiscall on the tree {allocator, head}; the key (a string), pops 4): the lower bound: the last node passed whose string (at +0xc) is not below the key
 // (String_Less), the head for none.
 u8 *__fastcall StdTreeF_LowerBound(u8 *tree, void *, const u8 *key);

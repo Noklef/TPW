@@ -553,6 +553,11 @@ void __fastcall StdMapG_Insert(u8 *tree, void *, u8 **result, const u16 *value) 
     MapInsert<u16, u16, 0x00f7c970, StdTree_DecG, StdTree_InsertG>(tree, result, value);
 }
 
+u8 **__fastcall StdMapB_Insert(u8 *tree, void *, u8 **result, const u16 *value) {
+    MapInsert<u16, u16, 0x00785de4, StdTree_DecB, StdTree_InsertB>(tree, result, value);
+    return result;
+}
+
 u8 *__fastcall StdTreeF_LowerBound(u8 *tree, void *, const u8 *key) {
     u8 *result = at<u8 *>(tree, 4);
     u8 *const nil = global<u8 *>(0x00f7c968);
