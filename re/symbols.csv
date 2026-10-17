@@ -360,7 +360,7 @@ address,name,kind,confidence,notes
 0x005ebfc0,SignStyle_Ctor,function,high,"two line styles, default LOGFONT Arial Black, weight 400"
 0x005ec220,SignStyle_Dtor,function,medium,
 0x005ec3a0,SignStyle_Load,function,high,".sgn: version >= 100, 2 line styles (font, ttf, x, y, LOGFONTA, layout), effects, 2 fill strips, background"
-0x005eb1a0,SignStyle_ReadLayout,function,high,"11 dwords after each LOGFONT"
+0x005eb1a0,Eleven_Read,function,high,reimplemented (src/game/core/small52); reads eleven dwords from a stream
 0x005ecb40,SignStyle_Render,function,medium,"(HDC, text lines + target textures)"
 0x005e7990,Array3D_ReadCompressed,function,high,"u32 w, h, bpp + float quantisers + BILZ wavelet streams, decoded via IWaveletCodec slot 3"
 0x005987b0,WaveletCodec_DecodePlanes,function,high,"vtable slot 3: colour -> 0x592730, grey -> 0x592e60; takes float quantiser steps"
@@ -3378,6 +3378,7 @@ address,name,kind,confidence,notes
 0x005e2a80,PtrList_Insert,function,high,reimplemented (src/game/core/small50); inserts a value before an iterator in a pointer list
 0x005f4400,Class703088_ScalarDtor,function,high,reimplemented (src/game/core/small51); scalar deleting destructor leaving the global list of its kind
 0x004dda20,Object_QueueHasRoom,function,high,reimplemented (src/game/core/small51); whether the person queue is shorter than four times the limit
+0x005eb090,ArrayHolder_Clear,function,high,reimplemented (src/game/core/small52); frees the four arrays of the holder
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
