@@ -37,6 +37,12 @@ def case(r):
         view = r.floats(bytearray(0x78), range(0, 0x78, 4), r.choice([1, 300, None]))
         if r.random() < 0.3:
             put(view, 0x60, 'I', struct.unpack_from('<I', regions[BUF], MID + 8 - BUF)[0])
+        if r.random() < 0.1:
+            put(view, 0x74, 'I', r.choice(NANS))
+        if r.random() < 0.25:  # NaN z's, some tying on significand, so the order of the sum's operands shows
+            for k in range(count):
+                if r.random() < 0.5:
+                    put(regions[BUF], MID - BUF + 8 + k * out_stride, 'I', r.choice(NANS))
         regions[VIEW] = view
         mode = r.choice([0, 1, 2, 0, 1, 2, 3, -1, r.getrandbits(32)])
         return Call(0x579690, [r.getrandbits(32), MID, out_stride, count, mode], regions, ret='d')
