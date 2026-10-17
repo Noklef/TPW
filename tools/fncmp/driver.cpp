@@ -29,9 +29,12 @@
 #include "../../src/game/core/gameheap.h"
 #include "../../src/game/core/ptrlist.h"
 #include "../../src/game/core/stdstring.h"
+#include "../../src/game/files/bufsource.h"
 #include "../../src/game/files/drives.h"
 #include "../../src/game/files/file.h"
 #include "../../src/game/files/handles.h"
+#include "../../src/game/files/waddir.h"
+#include "../../src/game/files/wadfind.h"
 #include "../../src/game/files/wadsource.h"
 #include "../../src/game/files/wrapsources.h"
 #include "../../src/game/gfx/canvas.h"
@@ -188,6 +191,17 @@ s32 __stdcall stub_counter(unsigned long long *value) {
     return ok;
 }
 
+// A memory stream's seek (kStubs + 0x70, tools/fncmp.py SEEK; memory_stream()), thiscall (offset, origin) over +4 cursor, +8 bytes left, +0xc start,
+// +0x10 size: the new position from the start (origin 0), the cursor (1) or the end (else), or -1 past the end, nothing moved.
+s32 __fastcall stub_seek(u8 *self, void *, u32 offset, u32 origin) {
+    u32 *const s = reinterpret_cast<u32 *>(self + 4);
+    const u32 to = (origin == 0 ? 0 : origin == 1 ? s[0] - s[2] : s[3]) + offset;
+    if (to > s[3]) return -1;
+    s[0] = s[2] + to;
+    s[1] = s[3] - to;
+    return (s32)to;
+}
+
 // What throws in the game (std::_Xlen, _Xran): a case that gets there reports a crash.
 void __cdecl heap_throw() { RaiseException(0xe0000001, 0, 0, nullptr); }
 
@@ -196,6 +210,7 @@ const MouseModeEnv kMouseModeEnv = {&heap_free};
 const PtrListEnv kPtrListEnv = {&heap_alloc};
 const GameHeapEnv kGameHeapEnv = {&heap_alloc, &heap_free};
 const WadSourceEnv kWadSourceEnv = {&heap_alloc, &heap_free};
+const BufferedSourceEnv kBufferedSourceEnv = {&heap_alloc, &heap_free};
 // atexit is stub_cdecl_log (kStubs + 0x50; the benches hook 0x67a7d0 with fncmp._cdecl_log); the compressor's destructor stays the game's address, which is only
 // handed to atexit, never called here.
 const WrapSourcesEnv kWrapSourcesEnv = {&heap_alloc, &heap_free, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)),
@@ -285,17 +300,37 @@ void map_recorders(u8 *page) {
     }
 }
 
+void *find(u32 address);
+
+void jump(u8 *at, const void *to) {
+    at[0] = 0xe9;  // jmp rel32
+    const u32 rel = (u32)(uintptr_t)to - ((u32)(uintptr_t)at + 5);
+    std::memcpy(at + 1, &rel, 4);
+}
+
+// Game vtables whose slots point at the replacements in the driver's copy of the game's data, as the hooked game resolves them (its originals jump to the
+// replacements): code that constructs one of these objects itself then calls through the real vtable. (address, slots; a slot not hooked is left as it is,
+// and a case that calls it crashes natively)
+const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
+                                   {0x00703e08, 9}};  // TextWriter_vtable
+
+void resolve_vtables() {
+    for (const auto &v : kResolvedVtables)
+        for (Section &s : g_sections)
+            if (v[0] >= s.address && v[0] + 4 * v[1] <= s.address + s.raw.size())
+                for (u32 i = 0; i < v[1]; ++i) {
+                    u32 *const slot = reinterpret_cast<u32 *>(s.raw.data() + (v[0] - s.address) + 4 * i);
+                    if (void *const fn = find(*slot)) *slot = (u32)(uintptr_t)fn;  // (a slot not hooked stays the game's)
+                }
+}
+
 void map_stubs() {
     u8 *p = static_cast<u8 *>(VirtualAlloc((void *)(uintptr_t)kStubs, 0x10000, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE));
     if (!p) fail("cannot map the stubs at", kStubs);
     const void *stubs[] = {(const void *)&stub_read, (const void *)&stub_write, (const void *)&stub_global_alloc,
-                           (const void *)&stub_global_free, (const void *)&stub_mark, (const void *)&stub_cdecl_log, (const void *)&stub_counter};
-    for (u32 i = 0; i < 7; ++i) {
-        u8 *at = p + 0x10 * i;
-        at[0] = 0xe9;  // jmp rel32
-        const u32 rel = (u32)(uintptr_t)stubs[i] - ((u32)(uintptr_t)at + 5);
-        std::memcpy(at + 1, &rel, 4);
-    }
+                           (const void *)&stub_global_free, (const void *)&stub_mark, (const void *)&stub_cdecl_log, (const void *)&stub_counter,
+                           (const void *)&stub_seek};
+    for (u32 i = 0; i < sizeof stubs / sizeof stubs[0]; ++i) jump(p + 0x10 * i, stubs[i]);
     map_recorders(p);
 }
 
@@ -371,15 +406,22 @@ int main(int argc, char **argv) {
     }
     load_exe(argv[1]);
     map_stubs();
+    resolve_vtables();
     StdStrings_SetEnv(&kStdStringEnv);
     MouseModes_SetEnv(&kMouseModeEnv);
     PtrList_SetEnv(&kPtrListEnv);
     GameHeap_SetEnv(&kGameHeapEnv);
     WadSource_SetEnv(&kWadSourceEnv);
+    BufferedSource_SetEnv(&kBufferedSourceEnv);
     WrapSources_SetEnv(&kWrapSourcesEnv);
     static FileEnv files = *Files_GetEnv();  // (the import slots the case maps; Mem_Alloc is game code)
     files.alloc = &heap_alloc;
     Files_SetEnv(&files);
+    // The WAD tree's and finder's tolower / toupper: the CRT stand-ins (crt.cpp; the C locale's, as the cases map it).
+    static const WadDirEnv wadDir = {&heap_alloc, &heap_free, reinterpret_cast<s32(__cdecl *)(s32)>(hooked(0x0067fa60))};
+    WadDir_SetEnv(&wadDir);
+    static const WadFindEnv wadFind = {&heap_alloc, &heap_free, reinterpret_cast<s32(__cdecl *)(s32)>(hooked(0x0067f1a0))};
+    WadFind_SetEnv(&wadFind);
     // Envs whose game defaults call game code by its address, which the driver cannot (its own code covers the game's .text): that code resolved to its hooked
     // replacement, as the hooked game resolves it; the CPU information constructor (CPUID, the host's) is stub_mark, as tools/fncmp.py's emulator has it.
     static DrivesEnv drives = *Drives_GetEnv();
@@ -400,6 +442,7 @@ int main(int argc, char **argv) {
     handles.bufferDtor = reinterpret_cast<void(__fastcall *)(void *)>(hooked(0x00636c70));
     Handles_SetEnv(&handles);
     Crt_SetEnv(&kDriverCrt);
+    Libc_SetEnv(&kDriverLibc);
     static char token[1 << 22];
     for (;;) {
         u32 address, count;

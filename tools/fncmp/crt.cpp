@@ -8,6 +8,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
+#include <cwctype>
 
 namespace msvc6 {
 
@@ -82,10 +83,79 @@ u32 __cdecl wcslen(const u16 *s) {
     return n;
 }
 
+char *__cdecl strncpy(char *to, const char *from, u32 n) {
+    char *p = to;
+    for (; n && *from; --n) *p++ = *from++;
+    for (; n; --n) *p++ = 0;
+    return to;
+}
+
+char *__cdecl strncat(char *to, const char *from, u32 n) {
+    char *p = to;
+    while (*p) ++p;
+    for (; n && *from; --n) *p++ = *from++;
+    *p = 0;
+    return to;
+}
+
+// The host's (its classification of the C locale; MSVC6 asks the same tables for c < 0x100 and Windows for the rest).
+u32 __cdecl iswctype(u32 c, u32 mask) { return (u32)::iswctype((wint_t)c, (wctype_t)mask); }
+
+// The host's: the legacy _vsnprintf returns -1 and leaves the buffer unterminated when it does not fit, as MSVC6's does.
+s32 __cdecl vsprintf(char *to, const char *format, void *args) { return std::vsprintf(to, format, (va_list)args); }
+s32 __cdecl vsnprintf(char *to, u32 size, const char *format, void *args) { return _vsnprintf(to, size, format, (va_list)args); }
+s32 __cdecl vswprintf(u16 *to, const u16 *format, void *args) {
+    return _vsnwprintf((wchar_t *)to, 0x7fffffff, (const wchar_t *)format, (va_list)args);
+}
+
+u16 *__cdecl wcscpy(u16 *to, const u16 *from) {
+    u16 *p = to;
+    while ((*p++ = *from++) != 0) {
+    }
+    return to;
+}
+
+u16 *__cdecl wcsncpy(u16 *to, const u16 *from, u32 n) {
+    u16 *p = to;
+    for (; n && *from; --n) *p++ = *from++;
+    for (; n; --n) *p++ = 0;
+    return to;
+}
+
+u16 *__cdecl wcscat(u16 *to, const u16 *from) {
+    u16 *p = to;
+    while (*p) ++p;
+    while ((*p++ = *from++) != 0) {
+    }
+    return to;
+}
+
+u16 *__cdecl wcsncat(u16 *to, const u16 *from, u32 n) {
+    u16 *p = to;
+    while (*p) ++p;
+    for (; n && *from; --n) *p++ = *from++;
+    *p = 0;
+    return to;
+}
+
+// ASCII digits only (unconfirmed: MSVC6's _wtol also takes other scripts' digits; a bench of Lib_WtoI with such text would show it).
+s32 __cdecl wtoi(const u16 *s) {
+    while (*s < 0x100 && space((u8)*s)) ++s;
+    const u16 sign = *s;
+    if (sign == '-' || sign == '+') ++s;
+    u32 total = 0;
+    for (; *s >= '0' && *s <= '9'; ++s) total = total * 10 + (*s - '0');
+    return (s32)(sign == '-' ? 0 - total : total);
+}
+
 }  // namespace msvc6
 
 const CrtEnv kDriverCrt = {&msvc6::stricmp, &msvc6::strrchr, &msvc6::strchr, &msvc6::strncmp, &msvc6::strstr,
                            &msvc6::toupper, &msvc6::tolower, &msvc6::atoi,   &msvc6::sprintf, &msvc6::wcslen};
+
+const LibcEnv kDriverLibc = {&msvc6::strncpy, &msvc6::strncat, &msvc6::atoi,    &msvc6::iswctype, &msvc6::vsprintf,
+                             &msvc6::vsnprintf, &msvc6::wcslen,  &msvc6::wcscpy,  &msvc6::wcsncpy,  &msvc6::wcscat,
+                             &msvc6::wcsncat, &msvc6::wtoi,     &msvc6::vswprintf};
 
 const CrtStandIn kCrtStandIns[] = {
     {0x0067df40, (void *)&msvc6::stricmp}, {0x0067b5f0, (void *)&msvc6::strrchr}, {0x0067bfc0, (void *)&msvc6::strchr},

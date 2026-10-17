@@ -85,6 +85,28 @@ def record_stream(at, cursor, left):
     return bytearray(struct.pack('<4I4I', at + 0x10, cursor, left, 0, 0, 0, STUBS, STUBS + 0x10))
 
 
+SEEK = STUBS + 0x70  # a memory stream's seek (driver.cpp stub_seek)
+
+
+def memory_stream(at, start, size):
+    """A seekable stream over size bytes at start (a region the case maps), at `at`: vtable (at + 0x20), cursor, bytes left, start, size; then the vtable:
+    +8 read and +0xc write (the record stream's), +0x10 seek (offset, origin 0 / 1 / 2): the new position, or -1 past the end (nothing moved)."""
+    return bytearray(struct.pack('<8I8I', at + 0x20, start, size, start, size, 0, 0, 0, 0, 0, STUBS, STUBS + 0x10, SEEK, 0, 0, 0))
+
+
+def _seek(e):  # thiscall (offset, origin): pops its two arguments (driver.cpp stub_seek)
+    sp, s = e.r['ESP'], e.r['ECX']
+    offset, origin = e.u32(sp), e.u32(sp + 4)
+    cursor, left, start, size = struct.unpack('<4I', e.read(s + 4, 16))
+    to = ({0: 0, 1: cursor - start}.get(origin, size) + offset) & 0xffffffff
+    if to > size:
+        e.r['EAX'] = 0xffffffff
+    else:
+        e.write(s + 4, struct.pack('<2I', (start + to) & 0xffffffff, size - to))
+        e.r['EAX'] = to
+    e.r['ESP'] = sp + 8
+
+
 def _record(write):
     def hook(e):  # thiscall (buffer, count): pops its two arguments
         sp, s = e.r['ESP'], e.r['ECX']
@@ -415,7 +437,7 @@ class Bench:
         self.emu = x87emu.Emu([slice_listing(ranges)])
         self.emu.hooks.update({0x67a830: _ftol, 0x67b280: _modf, 0x67b24a: _cifmod,
                                STUBS: _record(False), STUBS + 0x10: _record(True),
-                               STUBS + 0x20: _global_alloc, STUBS + 0x30: _global_free, STUBS + 0x40: _mark, CDECL_LOG: _cdecl_log, COUNTER: _counter,
+                               STUBS + 0x20: _global_alloc, STUBS + 0x30: _global_free, STUBS + 0x40: _mark, CDECL_LOG: _cdecl_log, COUNTER: _counter, SEEK: _seek,
                                0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove,
                                0x6918f0: _throw('_Xlen'), 0x691ba0: _throw('_Xran')})
         self.emu.hooks.update({recorder(k, n): _recorder(k, n) for k in range(32) for n in range(16)})  # (n up to 15 fits below the COM recorders at +0x4000)
