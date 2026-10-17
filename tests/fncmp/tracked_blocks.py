@@ -1,7 +1,8 @@
 # The tracked handle of src/game/core/tracked_blocks against the original: handles in and out of the thing table, stamps around the expiry, things of
 # any kind with the object's handle among their words; the tracked person's state (0x4e02f0) and the release of the tracked people of the world's
-# object list (0x4dad20) on lists of things in any state.
-# usage: tracked_blocks.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Blocks,Tracked,InState,Release)
+# object list (0x4dad20) on lists of things in any state; the nearest free object for a person (0x4daa90): the cursor in the list, not in it or 0, objects in any state
+# tracking nobody, the person or another, at cells about the person's.
+# usage: tracked_blocks.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Blocks,Tracked,InState,Release,Nearest)
 import os
 import struct
 import sys
@@ -10,9 +11,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
 B = Bench([(0x5d46d0, 0x5d47a0), (0x4e0220, 0x4e02f0), (0x506580, 0x5065d0), (0x50b350, 0x50b360), (0x5da3c0, 0x5da3c1),
-           (0x4e02f0, 0x4e0362), (0x5065d0, 0x506650), (0x4dad20, 0x4dadb7), (0x4e0210, 0x4e0220), (0x4e0370, 0x4e03f0)])
+           (0x4e02f0, 0x4e0362), (0x5065d0, 0x506650), (0x4dad20, 0x4dadb7), (0x4e0210, 0x4e0220), (0x4e0370, 0x4e03f0),
+           (0x4daa90, 0x4dad17)])
 THINGS, CLOCK = RAM + 0x2000, RAM + 0x40000
-OPS = [k for k in os.environ.get('OPS', 'Blocks,Tracked,InState,Release').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Blocks,Tracked,InState,Release,Nearest').split(',') if k]
 
 
 def tracker(r, obj, at, mine):
@@ -59,6 +61,18 @@ def case(r):
         put(things, at + 0x64, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
         put(things, at + 0x19c, 'I', r.choice([1, 2, 0, 4, 0xb, 0xd, r.getrandbits(32)]))
     put(world, 0x3a, 'H', chain[0] if chain else 0)
+    if op == 'Nearest':  # the cursor at +0xc of the object at RAM; the person one of the things (maybe one of the list); cells near each other
+        person = r.choice([1, 2, 5, 11, r.randrange(1, 12)])
+        px, py = r.randrange(128), r.randrange(128)
+        for h in range(12):
+            things[0x300 * h + 5] = (px + r.randrange(-3, 4)) & 0xff if r.random() < 0.8 else r.getrandbits(8)
+            things[0x300 * h + 7] = (py + r.randrange(-3, 4)) & 0xff if r.random() < 0.8 else r.getrandbits(8)
+            things[0x300 * h + 0x32] = r.choice([0, 1, 2, 3])
+        for a in chain:
+            if r.random() < 0.4:
+                put(things, 0x300 * a + 0x5e, 'H', r.choice([0, person, person]))
+        put(obj, 0xc, 'H', r.choice(chain + chain + [0, 3, 0x10]) if chain else r.choice([0, 3]))
+        return Call(0x4daa90, [RAM, RAM + 0x300, person | r.choice([0, 0, 0x10000])], regions, conv='t', ret='a')
     return Call(0x4dad20, [RAM + r.choice([0, 0x80]), r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='v')
 
 

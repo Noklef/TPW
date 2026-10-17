@@ -238,4 +238,53 @@ void __fastcall Objects_ReleaseTracked(void *, void *, u32, u32) {
         handle = at<u16>(object, 0xc);
     }
 }
+
+u16 *__fastcall Objects_NearestFreeFor(u8 *self, void *, u16 *out, u32 person) {
+    u16 here = 0;
+    if (at<u16>(self, 0xc) != 0) {
+        here = global<u16>(global<u32>(0x0080239c) + 0x1da746);
+        while (here != 0 && here != at<u16>(self, 0xc)) here = at<u16>(global<u8 *>(0x007cfb90 + 20 * (u32)here), 0xc);
+    }
+    if (here != 0)  // the cursor is in the list: on to the one after it
+        at<u16>(self, 0xc) = at<u16>(global<u8 *>(0x007cfb90 + 20 * (u32)at<u16>(self, 0xc)), 0xc);
+    else
+        at<u16>(self, 0xc) = global<u16>(global<u32>(0x0080239c) + 0x1da746);
+    const u16 start = at<u16>(self, 0xc);
+    const u8 *const who = global<u8 *>(0x007cfb90 + 20 * (person & 0xffff));
+    u32 best = 0xffffffff;
+    u16 nearest = 0;
+    if (at<u16>(self, 0xc) == 0) {
+        *out = 0;
+        return out;
+    }
+    do {
+        u8 *const object = global<u8 *>(0x007cfb90 + 20 * (u32)at<u16>(self, 0xc));
+        const u16 next = at<u16>(object, 0xc);
+        at<u16>(self, 0xc) = next;
+        if (next == 0) at<u16>(self, 0xc) = global<u16>(global<u32>(0x0080239c) + 0x1da746);
+        if (Is19c_Eq1_4e0370(object) || (Get64_4e03d0(object) && !(at<u8>(object, 0x32) & 1)) || Is19c_Eq2_4e03e0(object)) {
+            u16 tracked;
+            bool free = *Obj_GetTrackedHandle(object, nullptr, &tracked) == 0;
+            if (!free) {
+                u16 again;
+                free = *Obj_GetTrackedHandle(object, nullptr, &again) == (u16)person;
+            }
+            if (free) {
+                const u32 from = ((((u32)at<u8>(who, 7) << 7) + at<u8>(who, 5) + 1) & 0xffff) - 1;
+                const u32 to = ((((u32)at<u8>(object, 7) << 7) + at<u8>(object, 5) + 1) & 0xffff) - 1;
+                s32 dx = (s32)(from & 0x7f) - (s32)(to & 0x7f);
+                s32 dy = (s32)(from >> 7) - (s32)(to >> 7);
+                if (dx < 0) dx = -dx;
+                if (dy < 0) dy = -dy;
+                const u32 distance = (u32)(dx * dx) + (u32)(dy * dy);
+                if (distance < best) {
+                    best = distance;
+                    nearest = at<u16>(object, 0);
+                }
+            }
+        }
+    } while (at<u16>(self, 0xc) != start);
+    *out = nearest;
+    return out;
+}
 }

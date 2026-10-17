@@ -87,4 +87,11 @@ void __fastcall Objects_ReleaseTracked(void *self, void *, u32 unused1, u32 unus
 // x, y: id + y * 0x80 + x as a word) from a cell is below the dword at +0x198 (unsigned; the search stops early once the largest is above it). The cell is the object's
 // ((byte +7) * 0x80 + byte +5 + 1); when that is a type 3 or 9 cell, the last one of the chain Map_FindFacingNeighbour follows from it (forever round a loop).
 u32 __fastcall Obj_BlockValuesBelowLimit(const u8 *object);
+
+// 0x4daa90 (thiscall; out, person handle, pops 8; name unconfirmed): one round of the world's object list (head at +0x1da746 of [0x80239c], next at +0xc of each
+// thing) from the cursor at +0xc: the cursor first moves past itself when it is in the list (else to the head); then each object in state 1 or 2 (+0x19c), or with the
+// dword at +0x64 set and flag 1 of +0x32 clear, that tracks nobody or the person (Obj_GetTrackedHandle, asked twice) is measured from the person's cell (squared
+// cell distance, from bytes +5 / +7 of both); the nearest one's own handle (+0) goes to out (0 when none or the list is empty). The cursor wraps to the head and ends
+// where it started. Returns out.
+u16 *__fastcall Objects_NearestFreeFor(u8 *self, void *, u16 *out, u32 person);
 }
