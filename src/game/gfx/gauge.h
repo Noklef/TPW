@@ -33,4 +33,10 @@ void __fastcall Gauge_DrawBack(const u8 *gauge);
 // bottom + 1, or when the first mark's y (+0x1c) is negative and the second's (+0x24) is above it, at bottom + height * y0 / (y1 - y0)
 // (32-bit, truncated); then a vertical one in colour 1 from (left - 1, top - 1), bottom + 1 long (Display_HLine, Display_VLine).
 void __fastcall Gauge_DrawAxes(const u8 *gauge);
+
+// 0x4806a0 (cdecl; name unconfirmed): sets a gauge up for a window whose s16 left, top, right, bottom are at +4..+0xa of `window`: the frame
+// (4, 4) to ((right - left) * s16 [0xfaa5c4] / 2048 - 20, (bottom - top) * s16 [0xfaa5c0] / 1536 - 20) (32-bit products, divisions truncated);
+// colours 0 and 1 green (0, 200, 0), 3 black, 2 dark green (0, 100, 0), each with its nearest entry of the game's palette 0xfa71f8 (Palette_Nearest),
+// set in the order 0, 1, 3, 2; then the marks' y (y0..y2) and x (x0..x2).
+void __cdecl Gauge_Setup(u8 *gauge, const u8 *window, u32 y0, u32 y1, u32 y2, u32 x0, u32 x1, u32 x2);
 }

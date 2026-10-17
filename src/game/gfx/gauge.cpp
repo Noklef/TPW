@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "display.h"
+#include "palette.h"
 
 namespace {
 
@@ -74,5 +75,26 @@ void __fastcall Gauge_DrawAxes(const u8 *gauge) {
     const s32 left = at<s32>(gauge, 8);
     Display_HLine(left - 1, y, at<s32>(gauge, 0x10) + 1, colourAt(gauge, 0x30));
     Display_VLine(left - 1, at<s32>(gauge, 0xc) - 1, bottom + 1, colourAt(gauge, 0x35));
+}
+
+void __cdecl Gauge_Setup(u8 *gauge, const u8 *window, u32 y0, u32 y1, u32 y2, u32 x0, u32 x1, u32 x2) {
+    const s32 high = static_cast<s32>(static_cast<u32>(at<s16>(window, 0xa) - at<s16>(window, 6)) * static_cast<u32>(*reinterpret_cast<const s16 *>(0x00faa5c0)));
+    const s32 wide = static_cast<s32>(static_cast<u32>(at<s16>(window, 8) - at<s16>(window, 4)) * static_cast<u32>(*reinterpret_cast<const s16 *>(0x00faa5c4)));
+    Gauge_SetRect(gauge, nullptr, 4, 4, wide / 2048 - 20, high / 1536 - 20);
+    const u8 *const palette = reinterpret_cast<const u8 *>(0x00fa71f8);
+    DrawColour c = {};
+    c.rgb = 0xff00c800;   // (blue, green, red, 0xff)
+    c.index = Palette_Nearest(palette, 0, 0xc8, 0);
+    Gauge_SetColour0(gauge, nullptr, c);
+    c.index = Palette_Nearest(palette, 0, 0xc8, 0);
+    Gauge_SetColour1(gauge, nullptr, c);
+    c.rgb = 0xff000000;
+    c.index = Palette_Nearest(palette, 0, 0, 0);
+    Gauge_SetColour3(gauge, nullptr, c);
+    c.rgb = 0xff006400;
+    c.index = Palette_Nearest(palette, 0, 0x64, 0);
+    Gauge_SetColour2(gauge, nullptr, c);
+    Gauge_SetMarksY(gauge, nullptr, y0, y1, y2);
+    Gauge_SetMarksX(gauge, nullptr, x0, x1, x2);
 }
 }
