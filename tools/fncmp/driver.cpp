@@ -26,6 +26,7 @@
 #include <string>
 #include <vector>
 
+#include "../../src/game/core/cpuinfo.h"
 #include "../../src/game/core/gameheap.h"
 #include "../../src/game/core/ptrlist.h"
 #include "../../src/game/core/stdstring.h"
@@ -172,6 +173,17 @@ void *__stdcall stub_global_alloc(u32 flags, u32 size) {
 void *__stdcall stub_global_free(void *block) {
     heap_free(block);
     return nullptr;
+}
+
+// The fake CPU a case maps at kCpu (tools/fncmp.py CPU, cpu_region(); its emulator answers CPUID and EFLAGS.ID from the same bytes): +0 1 when
+// EFLAGS.ID can be toggled, then from +0x10 the (EAX, EBX, ECX, EDX) answers for leaf 0, 1, 0x80000001 and any other leaf.
+const u32 kCpu = 0x2d000000;
+
+u32 __cdecl stub_has_cpuid() { return *reinterpret_cast<const u32 *>((uintptr_t)kCpu) != 0; }
+
+void __cdecl stub_cpuid(u32 leaf, u32 *regs) {
+    const u32 i = leaf == 0 ? 0 : leaf == 1 ? 1 : leaf == 0x80000001 ? 2 : 3;
+    std::memcpy(regs, reinterpret_cast<const void *>((uintptr_t)(kCpu + 0x10 + 0x10 * i)), 16);
 }
 
 // A constructor / destructor for code that calls one through a pointer (kStubs + 0x40, tools/fncmp.py STUBS + 0x40): thiscall, no other arguments;
@@ -573,6 +585,8 @@ int main(int argc, char **argv) {
     drives.nodeCtor = reinterpret_cast<StringListNode *(__fastcall *)(StringListNode *, void *, String)>(hooked(0x005f8a50));
     drives.stricmp = reinterpret_cast<s32(__cdecl *)(const char *, const char *)>(hooked(0x0067df40));
     Drives_SetEnv(&drives);
+    static const CpuInfoEnv cpu = {&stub_has_cpuid, &stub_cpuid};  // the case's fake CPU, as the emulator's
+    CpuInfo_SetEnv(&cpu);
     static CanvasEnv canvas = *Canvas_GetEnv();
     canvas.infoCtor = reinterpret_cast<SurfaceInfo *(__fastcall *)(SurfaceInfo *)>(hooked(0x005fa680));
     Canvas_SetEnv(&canvas);
