@@ -3549,6 +3549,8 @@ address,name,kind,confidence,notes
 0x0047f990,TextMetrics_ForwardSlot8,function,high,reimplemented (src/game/gfx/text); Forwards to virtual call 8 of the inner object (name unconfirmed)
 0x0050f310,Matrix2_Transform,function,high,reimplemented (src/game/math/matrix); fixed point 2 x 2 transform of a pair
 0x005787b0,Vec2_Normalize,function,low,reimplemented (src/game/math/vec2); thiscall (x87): the float pair over its length; a zero or NaN length squared taken as 1
+0x005812f0,Vec3_DotByValue,function,low,"reimplemented (src/game/math/geometry); cdecl (ax, ay, az, bx, by, bz by value): the dot product in st0"
+0x00581320,Tri_WindingTest,function,low,"reimplemented (src/game/math/geometry); cdecl (a, b, c): x, y, w copied to 0x8c63b0-0x8c63d0; 1 when the homogeneous winding compare is below or unordered"
 0x00503980,Table_ScaledBySum,function,high,reimplemented (src/game/world/staff); a table share scaled by the things' sum
 0x00505a10,Staff_Train,function,low,"reimplemented (src/game/world/staff); thiscall (amount): pay for training: debit the money, add to the park's spend, add amount / cost points of progress, raise the grade at 100"
 0x00508000,Staff_CountTypes,function,low,"reimplemented (src/game/world/staff); thiscall: count the world's staff by type, flagging the types that reached their limits"
