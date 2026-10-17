@@ -3966,6 +3966,7 @@ address,name,kind,confidence,notes
 0x00573e70,SoftRenderer_NewSurfaceB,function,high,"reimplemented (src/game/gfx/texsurface); A new class B surface, its virtual base returned (name unconfirmed)"
 0x0058b790,TexSurfaceA_ReleaseSurfaces,function,low,"reimplemented (src/game/gfx/texsurface); thiscall on class A's sub-object; the COM surfaces of its two arrays released (slot 2) and cleared, last index first; ECX - 0x18 cleared; 1"
 0x0058c8d0,TexSurfaceB_Zero,function,low,"reimplemented (src/game/gfx/texsurface); thiscall, this unused: 0.0f from 0x702248 on ST0 (name unconfirmed)"
+0x0058c710,TexSurfaceB_FreePixels,function,low,"reimplemented (src/game/gfx/texsurface); thiscall on class B's sub-object: the pixels at ECX - 0xc freed (TrackedGlobal_Free) unless the base's flags have 0x10000000, and cleared (name unconfirmed)"
 0x005e7740,Array3D_Fill,function,high,"reimplemented (src/game/gfx/array3d); fills the pixels with a colour (4 bytes: d, a, b, c; 1 byte: d)"
 0x005e77c0,Array3D_CopyTo,function,high,reimplemented (src/game/gfx/array3d); copies the pixel bytes to another buffer
 0x005e77f0,Array3D_ReverseBytes,function,high,reimplemented (src/game/gfx/array3d); reverses the bytes of each 4-byte pixel

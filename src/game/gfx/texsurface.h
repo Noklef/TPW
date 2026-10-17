@@ -1,5 +1,6 @@
 // The texture cache's surface classes: the virtual methods behind the adjustor thunks at 0x58c2b0
-// and 0x58c900-0x58c910, reimplementation of 0x58b3e0, 0x58b790, 0x58c2c0, 0x58c2e0, 0x58c330, 0x58c610, 0x58c8a0 and 0x58c8b0.
+// and 0x58c900-0x58c910, reimplementation of 0x58b3e0, 0x58b790, 0x58c2c0, 0x58c2e0, 0x58c330, 0x58c610, 0x58c710, 0x58c8a0 and
+// 0x58c8b0.
 //
 // Each thunk subtracts [ECX - 4] and jumps here, so ECX is a sub-object of the surface (the
 // cache's surfaces derive virtually from the base at 0x702198, see texcache.h). The class at
@@ -41,6 +42,11 @@ u32 __fastcall TexSurfaceB_Area(const u8 *sub);
 
 // 0x58c8d0 (thiscall, this unused; name unconfirmed; behind the thunk 0x58c940): the float at 0x702248 (0.0) on ST0.
 float __fastcall TexSurfaceB_Zero(const u8 *sub);
+
+// 0x58c710 (thiscall on class B's sub-object; name unconfirmed; nothing refers to it): the pixels at ECX - 0xc, when set, are freed
+// (TrackedGlobal_Free, core/gameheap) unless the virtual base's flags (ECX + off - 0xc, off = vbtable[1] of the vbtable at ECX - 0x10) have
+// 0x10000000, and cleared. Returns 1.
+u32 __fastcall TexSurfaceB_FreePixels(u8 *sub);
 
 // 0x5738d0 (thiscall, this unused; name unconfirmed; behind the thunk 0x5738c0, slot 4 of the vtable 0x701630): a new class A surface (0x50 bytes,
 // TexSurfaceA_Ctor most derived); its virtual base (the object + its vbtable's second dword), or null when the allocation fails.
