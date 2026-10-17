@@ -134,14 +134,19 @@ def case(r):
         put(obj, 0x20, 'I', OBJ2)
         regions.update({OBJ2: struct.pack('<I', VT) + r.bytes(0x20), VT: vtable({5: 1})})
         return Call(address, [OBJ, r.getrandbits(32)], regions, conv=conv, ret=ret)
-    if name == 'GThing':   # (things in the slots 0-3 or none; the global one of them or another; +0x10 set or not)
+    if name == 'GThing':   # (things in the slots 0-3 and 0x100-0x103 or none; the global one of them or another; +0x10 set or not, its low byte too)
         put(obj, 0, 'I', VT)
-        put(obj, 0x10, 'I', r.choice([0, 1, r.getrandbits(32)]))
+        put(obj, 0x10, 'I', r.choice([0, 1, 0x100, 0x10000, r.getrandbits(32)]))
         regions[VT] = vtable({5: 0})
-        things = [RAM + 0x400 + 0x20 * k if r.random() < 0.8 else 0 for k in range(4)]
-        regions[0x7cfb90] = b''.join(struct.pack('<I', t) + r.bytes(16) for t in things)
-        regions[0x7c2658] = struct.pack('<I', r.choice(things + [things[1], RAM + 0x400, r.getrandbits(32)]))
-        return Call(address, [OBJ, r.choice([0, 1, 2, 3, 3]) | r.choice([0, 0, r.getrandbits(16)]) << 16], regions, conv=conv, ret=ret)
+        slots = list(range(4)) + list(range(0x100, 0x104))
+        things = {k: RAM + 0x400 + 0x20 * i if r.random() < 0.8 else 0 for i, k in enumerate(slots)}
+        table = bytearray(20 * 0x104)
+        for k, t in things.items():
+            table[20 * k:20 * k + 20] = struct.pack('<I', t) + r.bytes(16)
+        regions[0x7cfb90] = table
+        regions[0x7c2658] = struct.pack('<I', r.choice(list(things.values()) + [things[1], things[0x101], RAM + 0x400, r.getrandbits(32)]))
+        handle = r.choice(slots + [1, 0x101]) | r.choice([0, 0, r.getrandbits(16)]) << 16
+        return Call(address, [OBJ, handle], regions, conv=conv, ret=ret)
     if name == 'G2c':
         put(obj, 0, 'I', VT)
         regions[VT] = vtable({11: 0})
