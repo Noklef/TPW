@@ -238,6 +238,7 @@ add_library(tpw_game STATIC
     src/game/model/bounds.cpp
     src/game/model/stripanim.cpp
     src/game/model/heightat.cpp
+    src/game/model/m3d2.cpp
     src/game/render/mode.cpp
     src/game/render/frame.cpp
     src/game/render/screen.cpp
