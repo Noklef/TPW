@@ -4,6 +4,7 @@
 # about 0x69; ages and lifetimes about the quarters, negative and zero.
 # usage: particles.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Alive,Effector,...)
 import os
+import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
@@ -103,6 +104,13 @@ def move(r):
     log = log_region()
     if r.random() < 0.9:  # the ground height about the particle (x16), else what the logger makes of its arguments
         set_return(log, 0x3e, (y + r.randrange(-6000, 6000)) * 16 + r.randrange(16))
+    if r.random() < 0.3:  # the ground at the moved particle, or as far below it as its new y velocity (the boundaries)
+        s32 = lambda v: (v & 0xffffffff) - ((v & 0x80000000) << 1)
+        drag, gravity, vy, y0 = struct.unpack_from('<h2xh2x', p, 0x24) + struct.unpack_from('<i', p, 0x30) + struct.unpack_from('<i', p, 0x18)
+        product = s32(vy * drag)
+        vy = s32(vy - (abs(product) // 1024) * (1 if product >= 0 else -1) - gravity)  # (the division truncates toward 0)
+        y1 = s32(y0 + vy)
+        set_return(log, 0x3e, (s32(y1 - r.choice([0, 0, vy, vy, 1, -1, vy + 1, vy - 1])) << 4) + r.randrange(16))
     return Call(0x520e00, [RAM], {RAM: p, LOG: log, 0x80cef0: put(bytearray(r.bytes(0x10)), 4, 'I', CDECL_LOG2)}, ret='v')
 
 
