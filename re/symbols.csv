@@ -3945,6 +3945,8 @@ address,name,kind,confidence,notes
 0x00588ca0,SpriteImage_Release,function,low,reimplemented (src/game/gfx/spriteframe); thiscall: the image's pixels and textures released (name unconfirmed)
 0x00588d90,SpriteFrame_SetSize,function,low,"reimplemented (src/game/gfx/spriteframe); thiscall (width, height): the image's textures freed when the size at +0x34 changes (name unconfirmed)"
 0x00588e40,SpriteFrame_SetSize30,function,low,"reimplemented (src/game/gfx/spriteframe); thiscall (width, height): the same for the size at +0x30 (name unconfirmed)"
+0x00588350,SpriteImage_Dtor,function,low,reimplemented (src/game/gfx/spriteframe); thiscall: as SpriteImage_Release (0x588ca0) without the return value; the image array's destructor (name unconfirmed)
+0x00588230,SpriteFrames_Free,function,low,"reimplemented (src/game/gfx/spriteframe); thiscall: a frame set's texture array, images (each +0 cleared first) and tracked block freed, its count cleared; returns 1 (name unconfirmed)"
 0x005906e0,AnimTextures_Set,function,high,"reimplemented (src/game/gfx/animtex); cdecl (frames 6 x 256, counts 6): the six animated textures' frames (0x8c4b98) and frame counts (0x8c4b80) copied in"
 0x00590730,AnimTextures_Clear,function,high,reimplemented (src/game/gfx/animtex); the six animated textures' frame counts (0x8c4b80) cleared
 0x00591d30,WaveletCodec_PutCoefficient,function,high,reimplemented (src/game/gfx/wavelet); writes a coefficient as a byte or 0x80 and a word
