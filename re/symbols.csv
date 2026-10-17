@@ -2858,6 +2858,35 @@ address,name,kind,confidence,notes
 0x006b0180,Wrap_Wrap_Init_6b4a60_6b1de0_6b0180,function,high,reimplemented (src/game/core/thunks); calls Wrap_Init_6b4a60_6b1de0
 0x006b01c0,Wrap_Wrap_Init_6b4a60_6b2a10_6b01c0,function,high,reimplemented (src/game/core/thunks); calls Wrap_Init_6b4a60_6b2a10
 0x006b0200,Wrap_Wrap_Init_6b4a60_6b3c00_6b0200,function,high,reimplemented (src/game/core/thunks); calls Wrap_Init_6b4a60_6b3c00
+0x0042a0c0,Wrap_MeshPlus60_Ready_42a0c0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls MeshPlus60_Ready
+0x0042a0d0,Wrap_Stub_One_42a0d0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Stub_One
+0x0042a0e0,Wrap_Plus28_IfKind2_42a0e0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Plus28_IfKind2
+0x00491f80,Wrap_SpriteQueue_Ready_491f80,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls SpriteQueue_Ready
+0x00491f90,Wrap_Const3_6b71c0_491f90,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Const3_6b71c0
+0x00564b10,Wrap_Const_MinusOne_564a50_564b10,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Const_MinusOne_564a50
+0x005650a0,Wrap_Getm10_564ee0_5650a0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Getm10_564ee0
+0x00569cf0,Wrap_Const1_569d00_569cf0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Const1_569d00
+0x00569d80,Wrap_Const1_424ec0_569d80,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Const1_424ec0
+0x0056a690,Wrap_Rasteriser_ChooseSpan_56a690,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Rasteriser_ChooseSpan
+0x0056a6a0,Wrap_Setting569f30_Set_56a6a0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Setting569f30_Set
+0x0056a6d0,Wrap_Const1_56a430_56a6d0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Const1_56a430
+0x0056a6e0,Wrap_Rasteriser_ClearMmx_56a6e0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Rasteriser_ClearMmx
+0x0056a710,Wrap_Const1_56a440_56a710,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Const1_56a440
+0x0056a730,Wrap_SoftRenderer_PixelAt_56a730,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls SoftRenderer_PixelAt
+0x005738a0,Wrap_Zero_5cec60_5738a0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Zero_5cec60
+0x005738b0,Wrap_Global879a24_Get4c4_5738b0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Global879a24_Get4c4
+0x00573ef0,Wrap_SoftRenderer_TextureMemory_573ef0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls SoftRenderer_TextureMemory
+0x0057ac70,Wrap_ThingMsg02_Type_57ac70,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls ThingMsg02_Type
+0x0057ac80,Wrap_Obj_GetBefore14c_57ac80,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Obj_GetBefore14c
+0x0057ca70,Wrap_Const4_6bd790_57ca70,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Const4_6bd790
+0x0058c2b0,Wrap_TexSurfaceA_Field38_58c2b0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls TexSurfaceA_Field38
+0x0058c2d0,Wrap_TexSurfaceA_Area_58c2d0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls TexSurfaceA_Area
+0x0058c320,Wrap_TexSurfaceA_Field10_58c320,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls TexSurfaceA_Field10
+0x0058c900,Wrap_TexSurfaceB_FieldC_58c900,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls TexSurfaceB_FieldC
+0x0058c910,Wrap_TexSurfaceB_Area_58c910,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls TexSurfaceB_Area
+0x0058c920,Wrap_Zero_5d60c0_58c920,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Zero_5d60c0
+0x005987c0,Wrap_Obj_IncBefore4c_5987c0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Obj_IncBefore4c
+0x005987d0,Wrap_WaveletCodec_GetRefCount_5987d0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls WaveletCodec_GetRefCount
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value
