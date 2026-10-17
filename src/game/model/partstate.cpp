@@ -11,6 +11,7 @@
 #include "../math/x87.h"
 #include "../motion/normals.h"
 #include "../sprite/script.h"
+#include "../world/things.h"
 
 namespace {
 
@@ -212,6 +213,21 @@ void __cdecl PartStates_Update(u8 *instance) {
     Matrix44 m;
     Matrix_Identity(m.m);
     PartStates_UpdateNode(at<u8 *>(model(instance), 0x78), model(instance), m, m.m, states(instance)->entries);
+}
+
+s32 __cdecl PartStates_Activate(u8 *instance, u32 part, u32 handle) {
+    PartStates *ps = states(instance);
+    u8 *const entries = ps->entries;
+    ps->flags |= 4;
+    ++states(instance)->active;
+    u8 *entry = entries + part * 0x14;
+    at<u32>(entry, 0) |= 2;
+    // (the original asserts that the thing table exists: Debug_Printf, left out)
+    const u32 choice = handle ? Thing_SpriteChoice(*reinterpret_cast<u8 **>(0x007cfb90 + 20 * (handle & 0xffff))) : 0;
+    const s32 slot = choice & 0x80000000 ? SpriteScript_Start(0x0074f558, 3, choice & 0x7fffffff, 0, 0, 0, 0)
+                                         : SpriteScript_Start(0x0074f558, 1, choice, 0, 0, 0, 0);
+    at<s32>(entry, 0xc) = slot;
+    return slot;
 }
 
 void __cdecl PartStates_Release(u8 *instance, u32 part) {

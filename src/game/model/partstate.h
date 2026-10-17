@@ -39,6 +39,11 @@ void __cdecl PartStates_Update(u8 *instance);
 // 0x44aae0: frees them.
 void __cdecl PartStates_Free(u8 *instance);
 
+// 0x44b410 (instance, part, thing handle; name unconfirmed): one active part more (flag 4 set); the part's entry gets flag 2 and at +0xc a
+// sprite script (SpriteScript_Start of the code 0x74f558) for the sprite choice of the handle's thing (Thing_SpriteChoice of the slot table
+// 0x7cfb90's thing for the low 16 bits; 0 for handle 0): folder 3 and the choice less its top bit when that is set, else folder 1. Returns the slot.
+s32 __cdecl PartStates_Activate(u8 *instance, u32 part, u32 handle);
+
 // 0x44b4c0: one active part fewer (none left: flag 4 cleared); the part's entry loses flag 2
 // and its script (SpriteScript_Kill).
 void __cdecl PartStates_Release(u8 *instance, u32 part);
