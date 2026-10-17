@@ -425,6 +425,7 @@ address,name,kind,confidence,notes
 0x00520e00,Particle_Move,function,low,"reimplemented (src/game/render/particles); one step of a particle: drag, gravity, ground bounce"
 0x00521930,Particle_SpawnWithVelocity,function,low,"reimplemented (src/game/render/particles); cdecl (effect, x, y, z, vx, vy, vz): Particle_Spawn with the system's velocity +0x38 set to (vx, vy, vz) times its +0xb0 over 1024 in place of the jitter"
 0x00520f10,ParticleEffectors_Update,function,low,"reimplemented (src/game/render/particles); cdecl: one step of each active effector: timer, motion with drag, gravity and a ground bounce, the end effect (voice or particles) and the free list, else its pull on the live systems' particles (mode 2 kills those within its radius)"
+0x00520130,Particles_Tick,function,low,"reimplemented (src/game/render/particles); cdecl: the particles' frame (after the first): each live system's age, bounds reset, end (end effect, linked end, release) or follow, turn, move, emitter spawn and emits by the quarter's count; then the effectors' and the particles' updates; returns the dword 0x80436c"
 0x00804370,gParticleEffects,data,high,0x69 x 0x140-byte effect definitions from Tp2.plb
 0x0080c6b0,gParticleEffectors,data,high,20 x 0x68-byte effector definitions
 0x0080cefc,gParticleSystems,data,high,live systems: 0x140-byte copies of an effect definition

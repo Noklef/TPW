@@ -578,4 +578,79 @@ void __cdecl Particles_Update() {
         }
     }
 }
+
+u32 __cdecl Particles_Tick() {
+    if (global<u32>(0x00816d40) == 0)
+        return global<u32>(0x0080436c);
+    if (++global<s32>(0x0080ced4) <= 1)
+        return global<u32>(0x0080436c);
+    for (s32 slot = global<s16>(0x00816d1c), next; slot >= 0; slot = next) {
+        u8 *const s = system((u32)slot);
+        next = field<s16>(s, 0xd0);
+        if (field<u16>(s, 2) != 0)
+            continue;
+        if (field<u16>(s, 0x26) == 0)
+            --field<s32>(s, 0x20);
+        if (s[5] == 0) {
+            for (u32 k = 0; k < 3; ++k)
+                field<s32>(s, 0x128 + 4 * k) = 0x7fffffff;
+            for (u32 k = 0; k < 3; ++k)
+                field<u32>(s, 0x134 + 4 * k) = 0x80000000u;
+        }
+        if (field<s32>(s, 0x20) < 0) {  // ending: the end effect +0x10 once (at age -1), the linked one's end with the word +0xbc, the release once empty
+            const s16 end = field<s16>(s, 0x10);
+            if (end >= 0 && field<s32>(s, 0x20) == -1) {
+                const s32 x = (s32)(field<u32>(s, 0x14) << 4), y = (s32)(field<u32>(s, 0x18) << 4), z = (s32)(field<u32>(s, 0x1c) << 4);
+                if (s[0xbb] != 0)
+                    Voice_Start(end, x, y, z);
+                else
+                    Particle_Spawn(end, x, y, z);
+                field<s16>(s, 0x10) = -1;
+            }
+            if (field<u16>(s, 0xbc) != 0 && field<s32>(s, 0xb4) >= 0) {
+                if (s[0xba] != 0) {
+                    if (ParticleEffector_IsAlive(field<u32>(s, 0xb4)) != 0)
+                        field<s32>(effector((s32)(field<u32>(s, 0xb4) & 0xffff)), 0x4c) = -1;
+                } else if (Particle_IsAlive(field<u32>(s, 0xb4)) != 0) {
+                    field<s32>(system(field<u32>(s, 0xb4) & 0xffff), 0x20) = -1;
+                }
+            }
+            if (field<u16>(s, 8) == 0)
+                ParticleSystem_Release(slot);
+            continue;
+        }
+        if (field<u16>(s, 0xb8) != 0 && field<s32>(s, 0xb4) >= 0) {  // the linked effector or system follows it
+            if (s[0xba] != 0) {
+                if (ParticleEffector_IsAlive(field<u32>(s, 0xb4)) != 0)
+                    for (u32 k = 0; k < 3; ++k)
+                        field<s32>(effector((s32)(field<u32>(s, 0xb4) & 0xffff)), 0xc + 4 * k) = field<s32>(s, 0x14 + 4 * k);
+            } else if (Particle_IsAlive(field<u32>(s, 0xb4)) != 0) {
+                for (u32 k = 0; k < 3; ++k)
+                    field<s32>(system(field<u32>(s, 0xb4) & 0xffff), 0x14 + 4 * k) = field<s32>(s, 0x14 + 4 * k);
+            }
+        }
+        if (field<s32>(s, 0xc8) != 0)
+            field<u32>(s, 0x54) = (field<u32>(s, 0xc8) + field<u32>(s, 0x54)) & 0xfff;
+        if (s[0xab] == 0 && (field<s32>(s, 0x2c) != 0 || field<s32>(s, 0x30) != 0 || field<s32>(s, 0x34) != 0 || field<u16>(s, 0x28) != 0))
+            Particle_Move(s);
+        if (field<u16>(s, 0xe) != 0) {  // an emitter: spawned while the word +0xe is 1
+            if (field<s16>(s, 0xe) == 1)
+                Emitter_Spawn(slot, 0);
+            continue;
+        }
+        const s32 count = ParticleSystem_QuarterByte((u32)slot);  // below the cap +0x64: that many emits, or a negative one: one every -count steps (+0x66)
+        if (field<s16>(s, 0x64) > (s32)field<u16>(s, 8)) {
+            if (count >= 0) {
+                for (s32 n = count; n != 0; --n)
+                    Particle_Emit((u32)slot);
+            } else if (--field<s16>(s, 0x66) <= 0) {
+                Particle_Emit((u32)slot);
+                field<s16>(s, 0x66) = (s16)-count;
+            }
+        }
+    }
+    ParticleEffectors_Update();
+    Particles_Update();
+    return global<u32>(0x0080436c);
+}
 }
