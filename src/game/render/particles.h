@@ -94,6 +94,12 @@ s32 __cdecl Particle_Emit(u32 slot);
 // set), the result kept in +0xb4. Returns the handle (serial << 16 | slot).
 s32 __cdecl Particle_Spawn(s32 effect, s32 x, s32 y, s32 z);
 
+// 0x5ed5a0 (cdecl; pool, count, effect; name unconfirmed): the pools at 0xf8692c (0x44 bytes each: a count, then 16 handles). Growing, the handles
+// from the old count up to count are started (Particle_Spawn(effect, 0, 0, 0)); shrinking, those from count up to the old count are ended
+// (ParticleSystem_End) and cleared, none skipped. The count is then set (no bound on it, sic). Returns the change: the number started, or minus the
+// number ended.
+s32 __cdecl ParticlePool_Resize(s32 pool, s32 count, s32 effect);
+
 // 0x521930 (cdecl; effect, x, y, z, vx, vy, vz; name unconfirmed): Particle_Spawn with a velocity: the system's +0x38/+0x3c/+0x40 = vx, vy, vz times its
 // +0xb0 over 1024 (truncated toward 0) in place of the jitter of +0x2c. (Its linked effect is started by Particle_Spawn.)
 s32 __cdecl Particle_SpawnWithVelocity(s32 effect, s32 x, s32 y, s32 z, s32 vx, s32 vy, s32 vz);
