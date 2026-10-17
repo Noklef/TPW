@@ -1,5 +1,5 @@
 // The class with the vtable 0x6fd9d8 (it owns a list of objects and one more object) and its derived classes: reimplementation of its destructor 0x41c8b0, of the derived destructors
-// 0x41e2c0 .. 0x41e5c0 (some run the base destructor alone, some also destroy handles of their own), and of their scalar deleting destructors 0x41d880 .. 0x41e250; its folder / WAD handles added to the list (0x41c9e0, 0x41cb10, 0x41cc40) and its Find (0x41d710);
+// 0x41e2c0 .. 0x41e5c0 (some run the base destructor alone, some also destroy handles of their own), and of their scalar deleting destructors 0x41d880 .. 0x41e250 and constructors 0x41d7c0 .. 0x41e190; its folder / WAD handles added to the list (0x41c9e0, 0x41cb10, 0x41cc40) and its Find (0x41d710);
 // the 0x6fda98 destructors (0x41e3a0, 0x41dc40); the 0x6fdaa4 class's .sam / .txt opens (0x41e5d0-0x41e720, 0x41f0d0-0x41f350) and its name trim (0x41eb90). Named by its vtable until the class is known.
 #pragma once
 
@@ -7,6 +7,7 @@
 
 struct String;
 struct StringView;
+struct WString;
 
 extern "C" {
 
@@ -111,4 +112,24 @@ u32 __fastcall Class6fdaa4_HasEmt(u8 *object);
 // (String_ReverseFind from -1) and the next after it is the last), s = its chars before the last (String_Left, the vtable's +0x1c Assign); then when
 // its first char is "p" (0x74c778, String_EqualsStr) it is dropped (String_Right of length - 1). Otherwise s is left as it is.
 void __fastcall Class6fdaa4_TrimName(u8 *object, void *, String *s);
+
+// The constructors (thiscall; name, folder: wide strings, pops 8; return the object). The base part: empty strings at +4 and +0x18 (String_Ctor),
+// the vtable 0x6fd9d8, +4 given the name and +0x18 the folder through their vtable's +0x18 (String_AssignWide), the folder ending in "\"
+// (String_EnsureTrailingBackslash), +0x30, +0x34, +0x38, +0x3c and +0x2c cleared, then a new list (Mem_Alloc 0x10: the vtable 0x6fd9d4 and three
+// zero dwords; null when the allocation fails) at +0x2c. Then each its own:
+// 0x41d7c0 / 0x41d990 / 0x41dd00 / 0x41dde0 / 0x41e0b0 / 0x41e190: the vtable 0x6fda48 / 0x6fda68 / 0x6fdaa8 / 0x6fdab8 / 0x6fdae8 / 0x6fdaf8.
+// 0x41d8a0 / 0x41dfc0: a handle at +0x40 (Handle_Ctor), the vtable 0x6fda58 / 0x6fdad8.
+// 0x41da70 / 0x41dec0: a handle at +0x40, the vtable 0x6fda78 / 0x6fda58, a handle at +0x48, the vtable 0x6fda88 / 0x6fdac8.
+// 0x41db70: a handle at +0x40, the vtable 0x6fda98, +0x4c and +0x48 cleared.
+u8 *__fastcall Class6fda48_Ctor(u8 *object, void *, const WString *name, const WString *folder);
+u8 *__fastcall Class6fda58_Ctor(u8 *object, void *, const WString *name, const WString *folder);
+u8 *__fastcall Class6fda68_Ctor(u8 *object, void *, const WString *name, const WString *folder);
+u8 *__fastcall Class6fda88_Ctor(u8 *object, void *, const WString *name, const WString *folder);
+u8 *__fastcall Class6fda98_Ctor(u8 *object, void *, const WString *name, const WString *folder);
+u8 *__fastcall Class6fdaa8_Ctor(u8 *object, void *, const WString *name, const WString *folder);
+u8 *__fastcall Class6fdab8_Ctor(u8 *object, void *, const WString *name, const WString *folder);
+u8 *__fastcall Class6fdac8_Ctor(u8 *object, void *, const WString *name, const WString *folder);
+u8 *__fastcall Class6fdad8_Ctor(u8 *object, void *, const WString *name, const WString *folder);
+u8 *__fastcall Class6fdae8_Ctor(u8 *object, void *, const WString *name, const WString *folder);
+u8 *__fastcall Class6fdaf8_Ctor(u8 *object, void *, const WString *name, const WString *folder);
 }  // extern "C"

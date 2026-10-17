@@ -4,7 +4,9 @@
 #include <cstdint>
 
 #include "../core/crt.h"
+#include "../core/string.h"
 #include "../core/trivial.h"
+#include "../core/vcall.h"
 
 namespace {
 
@@ -37,5 +39,15 @@ s32 __cdecl GamePaths_SetTextureFolders(u32 low) {
     }
     Crt().sprintf(textures, reinterpret_cast<const char *>(0x0074d6e8));
     return Crt().sprintf(shared, reinterpret_cast<const char *>(0x0074d6dc));
+}
+
+WString *__stdcall GamePaths_SaveFolder(WString *out) {
+    WString path;
+    WString_Ctor(&path);
+    WString_AssignFromAnsi(&path, reinterpret_cast<const String *>(Obj_Self(at<u8 *>(0x00f816c0))));
+    vcall<void>(&path, 0x28, at<const WString *>(0x00f818d8));
+    WString_CtorCopy(out, nullptr, &path);
+    WString_Dtor(&path);
+    return out;
 }
 }  // extern "C"

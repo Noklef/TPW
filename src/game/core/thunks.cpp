@@ -255,6 +255,10 @@ u32 __fastcall Wrap_Const4_6bd790_57ca70(u8 *) {
     return Const4_6bd790();
 }
 
+u32 __fastcall Wrap_TexSurfaceA_ReleaseSurfaces_58c2a0(u8 *self) {
+    return TexSurfaceA_ReleaseSurfaces(Adjust(self));
+}
+
 u32 __fastcall Wrap_TexSurfaceA_Field38_58c2b0(const u8 *self) {
     return TexSurfaceA_Field38(Adjust(self));
 }

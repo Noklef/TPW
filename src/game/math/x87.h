@@ -88,6 +88,21 @@ inline double X87_MulUIntDouble(u32 n, double d) {
     return d < 0 ? -r : r;
 }
 
+// fld f (a float); fmul d (a double): the exact product of up to 24 and 53 bits rounded once, as X87_MulIntDouble. A NaN, an infinity or a
+// zero comes out as the double product has it.
+inline double X87_MulFloatDouble(float f, double d) {
+    const double x = f;
+    if (x == 0 || d == 0 || !std::isfinite(x) || !std::isfinite(d)) return x * d;
+    int ex, ed;
+    const unsigned long long k = (unsigned long long)std::ldexp(std::frexp(std::fabs(x), &ex), 24);
+    const unsigned long long m = (unsigned long long)std::ldexp(std::frexp(std::fabs(d), &ed), 53);
+    const unsigned long long lo = k * (m & 0xffffffffull);
+    const unsigned long long top = k * (m >> 32) + (lo >> 32), rest = lo & 0xffffffffull;
+    const int e = ex - 24 + ed - 53;
+    const double r = top < (1ull << 32) ? X87_Round24((top << 32) | rest, e) : X87_Round24(top | (rest != 0 ? 1 : 0), e + 32);
+    return (x < 0) != (d < 0) ? -r : r;
+}
+
 // a + b (doubles, e.g. a fild'd int and a float) rounded once to a 24-bit significand, as
 // fild n; fadd f does. The double sum can round onto a 24-bit midpoint and then tie the
 // wrong way; its exact error (TwoSum) says which side of the midpoint the true sum is on.

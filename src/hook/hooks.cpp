@@ -31,7 +31,8 @@
 #include "../game/files/wadfind.h"
 #include "../game/files/wrapsources.h"
 #include "../game/files/wadsource.h"
-#include "../game/files/bufsource.h"
+#include "../game/files/bufsource.h"
+#include "../game/files/direntry.h"
 #include "../game/files/filestream.h"
 #include "../game/files/gamepaths.h"
 #include "../game/files/quickload.h"
@@ -249,7 +250,9 @@
 #include "../game/online/servers.h"
 #include "../game/frontend/helpbg.h"
 #include "../game/frontend/lobbymodel.h"
-#include "../game/online/itemlist.h"
+#include "../game/online/itemlist.h"
+#include "../game/online/items.h"
+#include "../game/online/onlinelist.h"
 #include "../game/online/session.h"
 
 namespace tpw::hook {
@@ -1221,6 +1224,8 @@ const Hook kHooks[] = {
     {"WText_NextLine",            0x004138b0, (void *)&WText_NextLine, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"GamePaths_FontsFolder",     0x00468250, (void *)&GamePaths_FontsFolder, {0xb9, 0xc0, 0x16, 0xf8, 0x00}},
     {"GamePaths_SetTextureFolders", 0x004688b0, (void *)&GamePaths_SetTextureFolders, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"GamePaths_SaveFolder",      0x005c7bd0, (void *)&GamePaths_SaveFolder, {0x6a, 0xff, 0x68, 0x8f, 0x05}},
+    {"DirEntry_IsWad",            0x005c53c0, (void *)&DirEntry_IsWad, {0x6a, 0xff, 0x68, 0x10, 0x04}},
     {"RegKey_Open",               0x005f8ae0, (void *)&RegKey_Open, {0x51, 0x56, 0x57, 0x8b, 0xf9}},
     {"RegKey_Dtor",               0x005f8b70, (void *)&RegKey_Dtor, {0x51, 0x8d, 0x44, 0x24, 0x00}},
     {"RegKey_Close",              0x005f8b80, (void *)&RegKey_Close, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
@@ -1668,6 +1673,7 @@ const Hook kHooks[] = {
     {"TexSurfaceB_Ctor",          0x0058c610, (void *)&TexSurfaceB_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},
     {"Renderer_NewSurfaceA",      0x005738d0, (void *)&Renderer_NewSurfaceA, {0x6a, 0xff, 0x68, 0xbb, 0xf1}},
     {"SoftRenderer_NewSurfaceB",  0x00573e70, (void *)&SoftRenderer_NewSurfaceB, {0x6a, 0xff, 0x68, 0xdb, 0xf1}},
+    {"TexSurfaceA_ReleaseSurfaces", 0x0058b790, (void *)&TexSurfaceA_ReleaseSurfaces, {0x51, 0x53, 0x55, 0x56, 0x57}},
     {"Array3D_Fill",              0x005e7740, (void *)&Array3D_Fill, {0x8b, 0x41, 0x0c, 0x53, 0x56}},
     {"Array3D_CopyTo",            0x005e77c0, (void *)&Array3D_CopyTo, {0x8b, 0xc1, 0x56, 0x8b, 0x70}},
     {"Array3D_ReverseBytes",      0x005e77f0, (void *)&Array3D_ReverseBytes, {0x51, 0x8b, 0x11, 0x8b, 0x41}},
@@ -1808,6 +1814,7 @@ const Hook kHooks[] = {
     {"Clocks_RestoreNow",         0x00402e80, (void *)&Clocks_RestoreNow, {0x56, 0x8b, 0xf1, 0xe8, 0x68}},
     {"GameClock_InitUnusedOne",   0x004033e0, (void *)&GameClock_InitUnusedOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"GameClock_InitUnusedEpsilon", 0x00403400, (void *)&GameClock_InitUnusedEpsilon, {0xd9, 0x05, 0x98, 0xd6, 0x6f}},
+    {"Clocks_RealNowLessPauses",  0x005988e0, (void *)&Clocks_RealNowLessPauses, {0x56, 0xb9, 0x70, 0x59, 0x78}},
     {"CircBufU16_3_Ctor",         0x004cdb60, (void *)&CircBufU16_3_Ctor, {0x8b, 0xc1, 0x66, 0xc7, 0x00}},
     {"CircBufU8_50_Ctor",         0x004ce9e0, (void *)&CircBufU8_50_Ctor, {0x8b, 0xc1, 0xc6, 0x00, 0x00}},
     {"CircBufU32_144_Push",       0x004ce290, (void *)&CircBufU32_144_Push, {0x8b, 0x81, 0x44, 0x02, 0x00}},
@@ -2540,6 +2547,7 @@ const Hook kHooks[] = {
     {"Wrap_String_Dtor_6c1230",   0x006c1230, (void *)&Wrap_String_Dtor_6c1230, {0x83, 0xc1, 0x04, 0xe9, 0xa8}},
     {"Wrap_Semaphore_Ctor_6c5ae0", 0x006c5ae0, (void *)&Wrap_Semaphore_Ctor_6c5ae0, {0xb9, 0x5c, 0x20, 0xfb, 0x00}},
     {"Wrap_StringList_Dtor_6d8990", 0x006d8990, (void *)&Wrap_StringList_Dtor_6d8990, {0xb9, 0xe0, 0x34, 0xfb, 0x00}},
+    {"Wrap_TexSurfaceA_ReleaseSurfaces_58c2a0", 0x0058c2a0, (void *)&Wrap_TexSurfaceA_ReleaseSurfaces_58c2a0, {0x2b, 0x49, 0xfc, 0xe9, 0xe8}},
     {"Table_AddressPlus18",       0x006b0620, (void *)&Table_AddressPlus18, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Table_Address",             0x006b0650, (void *)&Table_Address, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Packed_Read",               0x006b0510, (void *)&Packed_Read, {0x56, 0x8b, 0x74, 0x24, 0x08}},
@@ -3031,6 +3039,8 @@ const Hook kHooks[] = {
     {"String_AssignFromWide",     0x00424db0, (void *)&String_AssignFromWide, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
     {"WString_AssignFromAnsi",    0x00424e10, (void *)&WString_AssignFromAnsi, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
     {"String_AnsiToWide",         0x004bbb80, (void *)&String_AnsiToWide, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
+    {"String_EnsureTrailingBackslash", 0x005c5480, (void *)&String_EnsureTrailingBackslash, {0x6a, 0xff, 0x68, 0x28, 0x04}},
+    {"Strings5_JoinPath",         0x005c5580, (void *)&Strings5_JoinPath, {0x8b, 0x41, 0x3c, 0x56, 0x8d}},
     {"Class702938_Dtor",          0x005bdc10, (void *)&Class702938_Dtor, {0x6a, 0xff, 0x68, 0x16, 0x00}},
     {"Class702940_Dtor",          0x005be320, (void *)&Class702940_Dtor, {0x6a, 0xff, 0x68, 0x56, 0x01}},
     {"Class702948_Dtor",          0x005be750, (void *)&Class702948_Dtor, {0x6a, 0xff, 0x68, 0x36, 0x02}},
@@ -3188,6 +3198,17 @@ const Hook kHooks[] = {
     {"Class6fd9d8_AddFolderAndWad", 0x0041cc40, (void *)&Class6fd9d8_AddFolderAndWad, {0x6a, 0xff, 0x68, 0xb3, 0x80}},
     {"Class6fdaa4_TrimName",      0x0041eb90, (void *)&Class6fdaa4_TrimName, {0x83, 0xec, 0x10, 0x53, 0x56}},
     {"Class6fdaa4_HasEmt",        0x0041f630, (void *)&Class6fdaa4_HasEmt, {0x6a, 0xff, 0x68, 0x8b, 0x86}},
+    {"Class6fda48_Ctor",          0x0041d7c0, (void *)&Class6fda48_Ctor, {0x6a, 0xff, 0x68, 0xf6, 0x81}},
+    {"Class6fda58_Ctor",          0x0041d8a0, (void *)&Class6fda58_Ctor, {0x6a, 0xff, 0x68, 0x1e, 0x82}},
+    {"Class6fda68_Ctor",          0x0041d990, (void *)&Class6fda68_Ctor, {0x6a, 0xff, 0x68, 0x46, 0x82}},
+    {"Class6fda88_Ctor",          0x0041da70, (void *)&Class6fda88_Ctor, {0x6a, 0xff, 0x68, 0x76, 0x82}},
+    {"Class6fda98_Ctor",          0x0041db70, (void *)&Class6fda98_Ctor, {0x6a, 0xff, 0x68, 0x9e, 0x82}},
+    {"Class6fdaa8_Ctor",          0x0041dd00, (void *)&Class6fdaa8_Ctor, {0x6a, 0xff, 0x68, 0xf6, 0x82}},
+    {"Class6fdab8_Ctor",          0x0041dde0, (void *)&Class6fdab8_Ctor, {0x6a, 0xff, 0x68, 0x16, 0x83}},
+    {"Class6fdac8_Ctor",          0x0041dec0, (void *)&Class6fdac8_Ctor, {0x6a, 0xff, 0x68, 0x46, 0x83}},
+    {"Class6fdad8_Ctor",          0x0041dfc0, (void *)&Class6fdad8_Ctor, {0x6a, 0xff, 0x68, 0x6e, 0x83}},
+    {"Class6fdae8_Ctor",          0x0041e0b0, (void *)&Class6fdae8_Ctor, {0x6a, 0xff, 0x68, 0x96, 0x83}},
+    {"Class6fdaf8_Ctor",          0x0041e190, (void *)&Class6fdaf8_Ctor, {0x6a, 0xff, 0x68, 0xb6, 0x83}},
     {"Animator_Sleep",            0x004254c0, (void *)&Animator_Sleep, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Object_BackOfQueueTo",      0x004de110, (void *)&Object_BackOfQueueTo, {0x8a, 0x41, 0x32, 0x56, 0x8b}},
     {"Object_QueuePositionOfNone", 0x004ddf40, (void *)&Object_QueuePositionOfNone, {0x51, 0x8b, 0xc4, 0x66, 0xc7}},
@@ -3203,6 +3224,7 @@ const Hook kHooks[] = {
     {"DrawBatch_Open",            0x00565310, (void *)&DrawBatch_Open, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Object_ReleaseSavedPairs",  0x0057b070, (void *)&Object_ReleaseSavedPairs, {0x56, 0x8b, 0xf1, 0xf7, 0x46}},
     {"Class702bc8_Ctor",          0x005dc580, (void *)&Class702bc8_Ctor, {0x6a, 0xff, 0x68, 0x58, 0x14}},
+    {"Class702920_DeletingDtor",  0x005be9b0, (void *)&Class702920_DeletingDtor, {0x53, 0x55, 0x8b, 0xe9, 0x56}},
     {"Class7037c0_Create",        0x00617ff0, (void *)&Class7037c0_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Class703750_Create",        0x00617970, (void *)&Class703750_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"VanillaTime_Save",          0x00403220, (void *)&VanillaTime_Save, {0x51, 0xe8, 0x7a, 0x2d, 0x1f}},
@@ -3612,6 +3634,25 @@ const Hook kHooks[] = {
     {"Owner2c_FindKind1",         0x005bd670, (void *)&Owner2c_FindKind1, {0x8b, 0x49, 0x2c, 0x33, 0xc0}},
     {"Owner2c_FindKind100",       0x005bd690, (void *)&Owner2c_FindKind100, {0x8b, 0x49, 0x2c, 0x33, 0xc0}},
     {"Owner2c_FindByPair",        0x005bd9d0, (void *)&Owner2c_FindByPair, {0x8b, 0x49, 0x2c, 0x33, 0xc0}},
+    {"Class702938_Ctor",          0x005bdac0, (void *)&Class702938_Ctor, {0x6a, 0xff, 0x68, 0xf1, 0xff}},
+    {"Class70293c_Ctor",          0x005bdcd0, (void *)&Class70293c_Ctor, {0x6a, 0xff, 0x68, 0x5a, 0x00}},
+    {"Class70293c_CtorFrom",      0x005bde30, (void *)&Class70293c_CtorFrom, {0x6a, 0xff, 0x68, 0xaa, 0x00}},
+    {"Class70293c_Assign",        0x005bdfd0, (void *)&Class70293c_Assign, {0x55, 0x56, 0x57, 0x8b, 0x7c}},
+    {"Class702940_Ctor",          0x005be1c0, (void *)&Class702940_Ctor, {0x6a, 0xff, 0x68, 0x29, 0x01}},
+    {"Class702944_Ctor",          0x005be3e0, (void *)&Class702944_Ctor, {0x6a, 0xff, 0x68, 0x97, 0x01}},
+    {"Class702948_Ctor",          0x005be610, (void *)&Class702948_Ctor, {0x6a, 0xff, 0x68, 0x11, 0x02}},
+    {"Owner2c_Add702938s",        0x005bc940, (void *)&Owner2c_Add702938s, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Owner2c_Add702940s",        0x005bd1b0, (void *)&Owner2c_Add702940s, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Owner2c_Add702944s",        0x005bd5f0, (void *)&Owner2c_Add702944s, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Owner2c_Add702948s",        0x005bda40, (void *)&Owner2c_Add702948s, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"OnlineList_GetCities",      0x005bc910, (void *)&OnlineList_GetCities, {0x68, 0x90, 0x3b, 0x77, 0x00}},
+    {"OnlineList_GetThemes",      0x005bd180, (void *)&OnlineList_GetThemes, {0x68, 0x6c, 0x3c, 0x77, 0x00}},
+    {"OnlineList_GetRides",       0x005bda10, (void *)&OnlineList_GetRides, {0x68, 0xb0, 0x3c, 0x77, 0x00}},
+    {"OnlineList_GetServers",     0x005bd5c0, (void *)&OnlineList_GetServers, {0x68, 0x8c, 0x3c, 0x77, 0x00}},
+    {"OnlineList_GetParksInCity", 0x005bcb30, (void *)&OnlineList_GetParksInCity, {0x56, 0x8b, 0xf1, 0x68, 0xb0}},
+    {"OnlineList_GetTop10Parks",  0x005bcb90, (void *)&OnlineList_GetTop10Parks, {0x56, 0x8b, 0xf1, 0x68, 0xd8}},
+    {"OnlineList_GetParkByName",  0x005bcce0, (void *)&OnlineList_GetParkByName, {0x56, 0x8b, 0xf1, 0x68, 0x08}},
+    {"OnlineList_GetParkById",    0x005bce30, (void *)&OnlineList_GetParkById, {0x56, 0x8b, 0xf1, 0x68, 0x3c}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},

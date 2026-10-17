@@ -1630,6 +1630,8 @@ address,name,kind,confidence,notes
 0x004138b0,WText_NextLine,function,high,reimplemented (src/game/files/wtext); the next non-blank UTF-16 line after p's
 0x00468250,GamePaths_FontsFolder,function,low,"reimplemented (src/game/files/gamepaths); cdecl (out); the root folder's string (0xf816c0) with ""Data\Fonts"" by sprintf (""%s%s"" after a trailing ""\"", else ""%s\%s""): 1; no text: 0"
 0x004688b0,GamePaths_SetTextureFolders,function,low,reimplemented (src/game/files/gamepaths); The texture and shared texture folder names printed by detail
+0x005c7bd0,GamePaths_SaveFolder,function,low,"reimplemented (src/game/files/gamepaths); stdcall (out); out = the root folder (wide) + the global wide ""save"" (0xf818d8); returns out"
+0x005c53c0,DirEntry_IsWad,function,low,"reimplemented (src/game/files/direntry); cdecl (entry); whether the entry's name ends in the global "".wad"" String (0xf80808, Names_Equal)"
 0x0055e470,CpuInfo_Ctor,function,medium,"thiscall; CPUID probe (EFLAGS.ID test, then the vendor string and features); SystemInfo's base"
 0x0067df40,CRT_stricmp,function,high,"MSVC CRT _stricmp: A-Z folded, or the locale's tolower when one is set"
 0x00f7a7d0,gCdVolumeLabel,data,medium,"const char *: the CD's volume label, looked for on the CD-ROM drives by the CD check (0x5aa585)"
@@ -2299,6 +2301,7 @@ address,name,kind,confidence,notes
 0x00402e80,Clocks_RestoreNow,function,low,reimplemented (src/game/core/gameclock); thiscall; both clocks' times put back
 0x004033e0,GameClock_InitUnusedOne,function,low,reimplemented (src/game/core/gameclock); cdecl static initialiser: unused 0x785a04 = 1.0f
 0x00403400,GameClock_InitUnusedEpsilon,function,low,reimplemented (src/game/core/gameclock); cdecl static initialiser: unused 0x785ddc = 1 / 2^23
+0x005988e0,Clocks_RealNowLessPauses,function,low,reimplemented (src/game/core/gameclock); cdecl; the game clock's real time less the time it spent paused (statics 0xf7977c-0xf79784)
 0x004cdb60,CircBufU16_3_Ctor,function,high,"reimplemented (src/game/core/circbuf); thiscall: a CircBufU16 of 3 (four at park analyser +0x1f068): u16 +0 = 0, cursor +8 = -1, size +0xc = 3, wrapped +0x10 = 0"
 0x004ce9e0,CircBufU8_50_Ctor,function,high,"reimplemented (src/game/core/circbuf); thiscall: a CircBufU8 of 50: byte +0 = 0, cursor +0x34 = -1, size +0x38 = 50, wrapped +0x3c = 0"
 0x004ce290,CircBufU32_144_Push,function,high,"reimplemented (src/game/core/circbuf); thiscall (value): CircBufU32 of 144: cursor +0x244 on (0 at size +0x248, sets wrapped +0x24c), value at +4 + cursor * 4"
@@ -3016,6 +3019,7 @@ address,name,kind,confidence,notes
 0x006c1230,Wrap_String_Dtor_6c1230,function,high,reimplemented (src/game/core/thunks); calls String_Dtor with this raised by 0x4
 0x006c5ae0,Wrap_Semaphore_Ctor_6c5ae0,function,high,reimplemented (src/game/core/thunks); calls Semaphore_Ctor on the object at 0xfb205c
 0x006d8990,Wrap_StringList_Dtor_6d8990,function,high,reimplemented (src/game/core/thunks); calls StringList_Dtor on the object at 0xfb34e0
+0x0058c2a0,Wrap_TexSurfaceA_ReleaseSurfaces_58c2a0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls TexSurfaceA_ReleaseSurfaces
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value
@@ -3498,6 +3502,8 @@ address,name,kind,confidence,notes
 0x00424db0,String_AssignFromWide,function,low,reimplemented (src/game/core/string); A string assigned the ANSI conversion of a wide string's text
 0x00424e10,WString_AssignFromAnsi,function,low,reimplemented (src/game/core/string); A wide string assigned the UTF-16 conversion of a string's text
 0x004bbb80,String_AnsiToWide,function,low,reimplemented (src/game/core/string); ANSI text converted to UTF-16 into a buffer or the static one
+0x005c5480,String_EnsureTrailingBackslash,function,low,reimplemented (src/game/core/string); cdecl (s); the global backslash String (0xf80be0) appended through vtable +0x28 unless s ends in it
+0x005c5580,Strings5_JoinPath,function,low,"reimplemented (src/game/core/string); thiscall (name); +0x3c = +0x28 (vtable +0x18), a trailing backslash ensured, then name appended (vtable +0x28)"
 0x005bdc10,Class702938_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings
 0x005be320,Class702940_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three strings
 0x005be750,Class702948_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings
@@ -3643,6 +3649,17 @@ address,name,kind,confidence,notes
 0x0041cc40,Class6fd9d8_AddFolderAndWad,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (path); a copy of the path added as a folder (Class6fd9d8_AddFolder), then with "".wad"" (0x78bb08) appended as a WAD"
 0x0041eb90,Class6fdaa4_TrimName,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (s), the object unused; with exactly two ""_"" (0x74c77c) s = the chars before the last, then a leading ""p"" (0x74c778) dropped"
 0x0041f630,Class6fdaa4_HasEmt,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall: whether the handle at +0x2c finds a ""*.emt"" file (slot 1: &result, the pattern of the String 0x78bce8, &found); 1 when the result is not negative"
+0x0041d7c0,Class6fda48_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder: wide strings); the base constructor part, then the vtable 0x6fda48"
+0x0041d8a0,Class6fda58_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder); the base part, a handle at +0x40, the vtable 0x6fda58"
+0x0041d990,Class6fda68_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder); the base part, then the vtable 0x6fda68"
+0x0041da70,Class6fda88_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder); the base part, handles at +0x40 and +0x48, the vtable 0x6fda88"
+0x0041db70,Class6fda98_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder); the base part, a handle at +0x40, the vtable 0x6fda98, +0x4c and +0x48 cleared"
+0x0041dd00,Class6fdaa8_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder); the base part, then the vtable 0x6fdaa8"
+0x0041dde0,Class6fdab8_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder); the base part, then the vtable 0x6fdab8"
+0x0041dec0,Class6fdac8_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder); the base part, handles at +0x40 and +0x48, the vtable 0x6fdac8"
+0x0041dfc0,Class6fdad8_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder); the base part, a handle at +0x40, the vtable 0x6fdad8"
+0x0041e0b0,Class6fdae8_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder); the base part, then the vtable 0x6fdae8"
+0x0041e190,Class6fdaf8_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder); the base part, then the vtable 0x6fdaf8"
 0x004254c0,Animator_Sleep,function,high,reimplemented (src/game/model/holder); the holder sleeps and flag 0x4000 clears
 0x004de110,Object_BackOfQueueTo,function,high,reimplemented (src/game/world/objectmsg); Object_BackOfQueue returning out
 0x004ddf40,Object_QueuePositionOfNone,function,high,reimplemented (src/game/world/objectmsg); the position of the person with no handle
@@ -3658,6 +3675,7 @@ address,name,kind,confidence,notes
 0x00565310,DrawBatch_Open,function,high,reimplemented (src/game/render/drawbuffer); a draw batch resumed and tagged
 0x0057b070,Object_ReleaseSavedPairs,function,high,reimplemented (src/game/core/vobj2); saved pairs written back and their arrays freed
 0x005dc580,Class702bc8_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor with two helper objects and tuning floats
+0x005be9b0,Class702920_DeletingDtor,function,high,"reimplemented (src/game/core/vdtor); thiscall (flags); the 0x702920 destructor (Class7028_Dtor), then the object freed when bit 0 of the flags is set; returns the object"
 0x00617ff0,Class7037c0_Create,function,high,reimplemented (src/game/core/factories); object factory with a result code
 0x00617970,Class703750_Create,function,high,reimplemented (src/game/core/factories); Allocates and constructs the 0x703750 class object
 0x00403be0,ActionRec_Write,function,low,"reimplemented (src/game/core/actionrec); thiscall (code): the action recorder's code byte, while recording and not playing back"
@@ -3872,6 +3890,7 @@ address,name,kind,confidence,notes
 0x0058c610,TexSurfaceB_Ctor,function,high,reimplemented (src/game/gfx/texsurface); surface class B constructor (virtual base at +0x10)
 0x005738d0,Renderer_NewSurfaceA,function,high,"reimplemented (src/game/gfx/texsurface); A new class A surface, its virtual base returned (name unconfirmed)"
 0x00573e70,SoftRenderer_NewSurfaceB,function,high,"reimplemented (src/game/gfx/texsurface); A new class B surface, its virtual base returned (name unconfirmed)"
+0x0058b790,TexSurfaceA_ReleaseSurfaces,function,low,"reimplemented (src/game/gfx/texsurface); thiscall on class A's sub-object; the COM surfaces of its two arrays released (slot 2) and cleared, last index first; ECX - 0x18 cleared; 1"
 0x005e7740,Array3D_Fill,function,high,"reimplemented (src/game/gfx/array3d); fills the pixels with a colour (4 bytes: d, a, b, c; 1 byte: d)"
 0x005e77c0,Array3D_CopyTo,function,high,reimplemented (src/game/gfx/array3d); copies the pixel bytes to another buffer
 0x005e77f0,Array3D_ReverseBytes,function,high,reimplemented (src/game/gfx/array3d); reverses the bytes of each 4-byte pixel
@@ -4157,6 +4176,25 @@ address,name,kind,confidence,notes
 0x005bd670,Owner2c_FindKind1,function,high,reimplemented (src/game/online/itemlist); the last item whose +0xc is 1
 0x005bd690,Owner2c_FindKind100,function,high,reimplemented (src/game/online/itemlist); the last item whose +0xc is 0x64
 0x005bd9d0,Owner2c_FindByPair,function,high,reimplemented (src/game/online/itemlist); the last item whose +0x44 and +0x64 are a and b
+0x005bdac0,Class702938_Ctor,function,high,"reimplemented (src/game/online/items); thiscall (record, owner); the 0x702938 online item from a record (three wide strings, three floats times 1.01), appended to the owner's list"
+0x005bdcd0,Class70293c_Ctor,function,high,"reimplemented (src/game/online/items); thiscall; the 0x70293c online item empty (empty strings, fields -1)"
+0x005bde30,Class70293c_CtorFrom,function,high,"reimplemented (src/game/online/items); thiscall (record, owner); the 0x70293c online item from a record, appended to the owner's list"
+0x005bdfd0,Class70293c_Assign,function,high,reimplemented (src/game/online/items); thiscall (other); the 0x70293c online item's assignment (all but the owner); returns this
+0x005be1c0,Class702940_Ctor,function,high,"reimplemented (src/game/online/items); thiscall (record, owner); the 0x702940 online item from a record (three narrow strings from wide texts), appended to the owner's list"
+0x005be3e0,Class702944_Ctor,function,high,"reimplemented (src/game/online/items); thiscall (record, owner); the 0x702944 online item from a record (five wide strings), appended to the owner's list"
+0x005be610,Class702948_Ctor,function,high,"reimplemented (src/game/online/items); thiscall (record, owner); the 0x702948 online item from a record (three wide strings), appended to the owner's list"
+0x005bc940,Owner2c_Add702938s,function,low,"reimplemented (src/game/online/items); thiscall (array {count, records}); a 0x702938 item (Mem_Alloc 0x68) made for each 0x30-byte record"
+0x005bd1b0,Owner2c_Add702940s,function,low,"reimplemented (src/game/online/items); thiscall (array {count, records}); a 0x702940 item (Mem_Alloc 0x48) made for each 0x10-byte record"
+0x005bd5f0,Owner2c_Add702944s,function,low,"reimplemented (src/game/online/items); thiscall (array {count, records}); a 0x702944 item (Mem_Alloc 0x80) made for each 0x26-byte record"
+0x005bda40,Owner2c_Add702948s,function,low,"reimplemented (src/game/online/items); thiscall (array {count, records}); a 0x702948 item (Mem_Alloc 0x6c) made for each 0x34-byte record"
+0x005bc910,OnlineList_GetCities,function,low,"reimplemented (src/game/online/onlinelist); stdcall (city, request); debug text ""ONLINELIST: Getting city list""; City::GetCityList(0, request, 0)"
+0x005bd180,OnlineList_GetThemes,function,low,"reimplemented (src/game/online/onlinelist); stdcall (city, request); debug text ""ONLINELIST: Getting theme list""; City::GetThemeList(0, request, 0)"
+0x005bda10,OnlineList_GetRides,function,low,"reimplemented (src/game/online/onlinelist); stdcall (city, request); debug text ""ONLINELIST: Getting ride list""; City::GetRideList(0, request, 0)"
+0x005bd5c0,OnlineList_GetServers,function,low,"reimplemented (src/game/online/onlinelist); stdcall (city, request); debug text ""ONLINELIST: Getting server list""; City::GetLogicalServerList(0, 1, request, 0)"
+0x005bcb30,OnlineList_GetParksInCity,function,low,"reimplemented (src/game/online/onlinelist); thiscall (city, request); debug text ""ONLINELIST: Getting park in city list""; City::GetParkInCityList(0, this +0x34, request, 0)"
+0x005bcb90,OnlineList_GetTop10Parks,function,low,"reimplemented (src/game/online/onlinelist); thiscall (city, request); debug text ""ONLINELIST: Getting top 10 park in city list""; City::GetParkInCityListTop10(0, this +0x34, request, 0)"
+0x005bcce0,OnlineList_GetParkByName,function,low,"reimplemented (src/game/online/onlinelist); thiscall (city, request); debug text ""ONLINELIST: Getting park in world by player name""; City::GetParkInWorldByName(0, this +0x3c, request, 0)"
+0x005bce30,OnlineList_GetParkById,function,low,"reimplemented (src/game/online/onlinelist); thiscall (city, request); debug text ""ONLINELIST: Getting park in world by park id""; City::GetParkByID(0, this +0x34, request, 0)"
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"

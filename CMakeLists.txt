@@ -64,6 +64,7 @@ add_library(tpw_game STATIC
     src/game/files/textscan.cpp
     src/game/files/wtext.cpp
     src/game/files/gamepaths.cpp
+    src/game/files/direntry.cpp
     src/game/core/regkey.cpp
     src/game/core/stdstring.cpp
     src/game/core/globalmem.cpp
@@ -262,6 +263,8 @@ add_library(tpw_game STATIC
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/online/itemlist.cpp
+    src/game/online/items.cpp
+    src/game/online/onlinelist.cpp
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
     src/game/input/mouse.cpp

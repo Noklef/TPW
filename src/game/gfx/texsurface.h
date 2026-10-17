@@ -1,5 +1,5 @@
 // The texture cache's surface classes: the virtual methods behind the adjustor thunks at 0x58c2b0
-// and 0x58c900-0x58c910, reimplementation of 0x58b3e0, 0x58c2c0, 0x58c2e0, 0x58c330, 0x58c610, 0x58c8a0 and 0x58c8b0.
+// and 0x58c900-0x58c910, reimplementation of 0x58b3e0, 0x58b790, 0x58c2c0, 0x58c2e0, 0x58c330, 0x58c610, 0x58c8a0 and 0x58c8b0.
 //
 // Each thunk subtracts [ECX - 4] and jumps here, so ECX is a sub-object of the surface (the
 // cache's surfaces derive virtually from the base at 0x702198, see texcache.h). The class at
@@ -45,4 +45,9 @@ u8 *__fastcall Renderer_NewSurfaceA(void *self);
 
 // 0x573e70 (thiscall, this unused; name unconfirmed; behind the thunk 0x573f00): the same for class B (0x24 bytes, TexSurfaceB_Ctor).
 u8 *__fastcall SoftRenderer_NewSurfaceB(void *self);
+
+// 0x58b790 (thiscall on class A's sub-object; name unconfirmed; behind the thunk 0x58c2a0): for each index from count - 1 down to 0 (count the
+// dword at ECX - 0x10, at least 1), the COM objects of the two arrays at ECX - 0x38 and ECX - 0x28 (that order) that are set are released
+// (slot 2) and cleared; then the dword at ECX - 0x18 is cleared. Returns 1.
+u32 __fastcall TexSurfaceA_ReleaseSurfaces(u8 *sub);
 }

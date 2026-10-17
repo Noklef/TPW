@@ -378,6 +378,7 @@ void jump(u8 *at, const void *to) {
 // replacements): code that constructs one of these objects itself then calls through the real vtable. (address, slots; a slot not hooked is left as it is,
 // and a case that calls it crashes natively)
 const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
+                                   {0x007030c8, 11},  // WString_vtable
                                    {0x00703e08, 9},   // TextWriter_vtable
                                    {0x00703908, 13},  // WadSource_vtable
                                    {0x006fd930, 12},  // FileStream_vtable
