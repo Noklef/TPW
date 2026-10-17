@@ -18,6 +18,12 @@ void __fastcall BalanceFile_SetDefaults(u8 *self, void *, u32 keep);
 // 0x401250 (thiscall; name unconfirmed): with values, BalanceFile_SetDefaults(0); the values block is freed (Mem_GlobalFree) and cleared.
 void __fastcall BalanceFile_Release(u8 *self);
 
+// 0x401280 (thiscall (group, name, &index, grouped, row), pops 20; name unconfirmed): finds a key by its section and name. Counting the key
+// records up to type 0xc, the last record from there back of type 1 or 3 whose name (+4) is group is the section (none: 0); it must be of
+// type 3 when grouped (with row below its +0x34 count, else 0 after an assert, left out) and of type 1 when not. From the record before it
+// back to the first, stopping (0) at one of type 0 or 2, the first named name: index = its number, returns 1; none: 0.
+u32 __fastcall BalanceFile_FindKey(u8 *self, void *, const char *group, const char *name, s32 *index, u32 grouped, s32 row);
+
 // 0x402a50, 0x402b10, 0x402b80, 0x402bf0, 0x402c60, 0x402cd0 (thiscall (i), this unused): &key record i of the class's schema.
 const u8 *__fastcall BalanceHoardings_GetSchema(const void *, void *, u32 index);
 const u8 *__fastcall BalanceLevel_GetSchema(const void *, void *, u32 index);

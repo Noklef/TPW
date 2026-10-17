@@ -124,6 +124,8 @@ add_library(tpw_game STATIC
     src/game/core/namedobjects.cpp
     src/game/core/savegame.cpp
     src/game/core/balancefile.cpp
+    src/game/core/timesig.cpp
+    src/game/core/floatconsts.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -237,6 +239,7 @@ add_library(tpw_game STATIC
     src/game/model/bounds.cpp
     src/game/model/stripanim.cpp
     src/game/model/heightat.cpp
+    src/game/model/m3d2.cpp
     src/game/render/mode.cpp
     src/game/render/frame.cpp
     src/game/render/screen.cpp

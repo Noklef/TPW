@@ -137,6 +137,13 @@ u32 __cdecl Globals7c264c_Load() {
     return global<u32>(0x007b05b0);
 }
 
+u32 __cdecl Globals7c264c_Clear() {
+    global<u32>(0x007c264c) = 0;
+    global<u32>(0x007c2650) = 0;
+    global<u32>(0x007c2654) = 0;
+    return 0;
+}
+
 u8 *__fastcall Class492d80_Ctor(u8 *object) {
     at<u32>(object, 0x10) = 0;
     at<u32>(object, 0) = 0x00492d80;

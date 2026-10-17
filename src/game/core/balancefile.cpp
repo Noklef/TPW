@@ -11,6 +11,16 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 const u8 *key(u8 *self, s32 i) { return vcall<const u8 *>(self, 0, i); }
 
+u32 type(u8 *self, s32 i) { return at<u32>(key(self, i), 0); }
+
+// A key record's name (+4) against a string, as the original's inline strcmp: true when equal.
+bool named(const u8 *record, const char *text) {
+    for (const u8 *a = record + 4;; ++a, ++text) {
+        if (*a != static_cast<u8>(*text)) return false;
+        if (!*a) return true;
+    }
+}
+
 // The entry of key record i (the values at +4 of the file, re-read each time as the original does).
 u8 *entry(const u8 *self, s32 i) { return at<u8 *>(self, 4) + i * 0xc; }
 
@@ -30,6 +40,28 @@ void destroy(u32 address, u32 vtable) {
 }  // namespace
 
 extern "C" {
+
+u32 __fastcall BalanceFile_FindKey(u8 *self, void *, const char *group, const char *name, s32 *index, u32 grouped, s32 row) {
+    s32 i = 0;
+    while (type(self, i) != 0xc) ++i;
+    for (; i >= 0; --i)
+        if ((type(self, i) == 1 || type(self, i) == 3) && named(key(self, i), group)) break;
+    if (i < 0) return 0;
+    if (grouped) {
+        if (type(self, i) == 1) return 0;
+        if (row >= at<s32>(key(self, i), 0x34)) return 0;  // (an assert, left out)
+    } else if (type(self, i) == 3) {
+        return 0;
+    }
+    while (--i >= 0) {
+        if (type(self, i) == 0 || type(self, i) == 2) return 0;
+        if (named(key(self, i), name)) {
+            *index = i;
+            return 1;
+        }
+    }
+    return 0;
+}
 
 void __fastcall BalanceFile_SetDefaults(u8 *self, void *, u32 keep) {
     s32 n = 0;

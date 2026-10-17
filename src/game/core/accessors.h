@@ -71,6 +71,9 @@ u8 *__fastcall Plus28_IfKind2(u8 *sub);
 // returns the last.
 u32 __cdecl Globals7c264c_Load();
 
+// 0x48c980 (cdecl, a static initialiser; name unconfirmed): the same three globals = 0; returns 0.
+u32 __cdecl Globals7c264c_Clear();
+
 // 0x492e40 (thiscall): vtable 0x492d80, +4 = +0xc = +0x10 = 0, +8 = -1. Returns the object.
 u8 *__fastcall Class492d80_Ctor(u8 *object);
 

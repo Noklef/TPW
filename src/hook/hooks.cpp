@@ -117,6 +117,7 @@
 #include "../game/core/ptrlist.h"
 #include "../game/core/class6fd9d8.h"
 #include "../game/core/factories.h"
+#include "../game/core/floatconsts.h"
 #include "../game/core/wstringmap.h"
 #include "../game/core/streambuf.h"
 #include "../game/core/voices.h"
@@ -135,7 +136,8 @@
 #include "../game/core/actionrec.h"
 #include "../game/core/namedobjects.h"
 #include "../game/core/savegame.h"
-#include "../game/core/balancefile.h"
+#include "../game/core/balancefile.h"
+#include "../game/core/timesig.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -221,7 +223,8 @@
 #include "../game/model/ridemodel.h"
 #include "../game/model/scratch.h"
 #include "../game/model/slots.h"
-#include "../game/model/bounds.h"
+#include "../game/model/bounds.h"
+#include "../game/model/m3d2.h"
 #include "../game/model/stripanim.h"
 #include "../game/model/worldverts.h"
 #include "../game/render/frame.h"
@@ -1301,6 +1304,8 @@ const Hook kHooks[] = {
     {"Coaster_SpeedAfterDrop",    0x0043bfb0, (void *)&Coaster_SpeedAfterDrop, {0xd9, 0x44, 0x24, 0x14, 0xd8}},
     {"Coaster_SetupCars",         0x0043ba90, (void *)&Coaster_SetupCars, {0x83, 0xec, 0x10, 0x56, 0x57}},
     {"Coaster_SetRiders",         0x0043b330, (void *)&Coaster_SetRiders, {0x8b, 0x44, 0x24, 0x04, 0x33}},
+    {"CoasterCars_InitUnusedOne", 0x0043bbe0, (void *)&CoasterCars_InitUnusedOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"CoasterCars_InitUnusedEpsilon", 0x0043bc00, (void *)&CoasterCars_InitUnusedEpsilon, {0xd9, 0x05, 0x20, 0xe0, 0x6f}},
     {"CoasterNode_Lerp",          0x0043c000, (void *)&CoasterNode_Lerp, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Coaster_IsPastEnd",         0x0043c080, (void *)&Coaster_IsPastEnd, {0x8b, 0x44, 0x24, 0x04, 0xd9}},
     {"Coaster_FindZone",          0x0043e9c0, (void *)&Coaster_FindZone, {0x51, 0x8b, 0x44, 0x24, 0x08}},
@@ -2978,6 +2983,7 @@ const Hook kHooks[] = {
     {"StdTreeE_PostInc",          0x004f0460, (void *)&StdTreeE_PostInc, {0x56, 0x8b, 0x31, 0xe8, 0xc8}},
     {"Obj_InitMinus1A",           0x004f0880, (void *)&Obj_InitMinus1A, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Obj_InitMinus1B",           0x004f08a0, (void *)&Obj_InitMinus1B, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Globals7c264c_Clear",       0x0048c980, (void *)&Globals7c264c_Clear, {0x33, 0xc0, 0xa3, 0x4c, 0x26}},
     {"Obj_SetAt8AndAdd",          0x00421680, (void *)&Obj_SetAt8AndAdd, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Class7035d8_Ctor",          0x005f9f80, (void *)&Class7035d8_Ctor, {0x8b, 0xc1, 0x33, 0xc9, 0x88}},
     {"Class7035d8_InitGlobal",    0x005f9f70, (void *)&Class7035d8_InitGlobal, {0xb9, 0xe8, 0x78, 0xfa, 0x00}},
@@ -3174,6 +3180,9 @@ const Hook kHooks[] = {
     {"Global81d7a4_SetRecorded",  0x0052f1b0, (void *)&Global81d7a4_SetRecorded, {0xa1, 0x34, 0xb1, 0x81, 0x00}},
     {"Global8186e0_SetRecorded",  0x0052f880, (void *)&Global8186e0_SetRecorded, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"NamedObjects_RemoveGlobals", 0x00408f00, (void *)&NamedObjects_RemoveGlobals, {0x51, 0x8b, 0x0d, 0x9c, 0x6b}},
+    {"NamedObjects_Ctor",         0x00407b90, (void *)&NamedObjects_Ctor, {0x6a, 0xff, 0x68, 0x5e, 0x79}},
+    {"NamedObjects_Dtor",         0x00407c90, (void *)&NamedObjects_Dtor, {0x6a, 0xff, 0x68, 0x83, 0x79}},
+    {"NamedObjects_StaticDtor",   0x00407b80, (void *)&NamedObjects_StaticDtor, {0xb9, 0x68, 0x6b, 0x78, 0x00}},
     {"Save_FieldName",            0x00416e10, (void *)&Save_FieldName, {0x33, 0xc0, 0xc2, 0x0c, 0x00}},
     {"Save_InitUnusedOne",        0x00416e20, (void *)&Save_InitUnusedOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"Save_InitUnusedEpsilon",    0x00416e40, (void *)&Save_InitUnusedEpsilon, {0xd9, 0x05, 0x8c, 0xd9, 0x6f}},
@@ -3199,6 +3208,36 @@ const Hook kHooks[] = {
     {"AdvisorScoring_GetSchema",  0x00415e90, (void *)&AdvisorScoring_GetSchema, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
     {"AdvisorScoring_Dtor",       0x00415e80, (void *)&AdvisorScoring_Dtor, {0x83, 0xc1, 0x0c, 0xc7, 0x01}},
     {"AdvisorScoring_StaticDtor", 0x00415e70, (void *)&AdvisorScoring_StaticDtor, {0xb9, 0x40, 0x35, 0xfb, 0x00}},
+    {"BalanceFile_FindKey",       0x00401280, (void *)&BalanceFile_FindKey, {0x53, 0x55, 0x56, 0x57, 0x8b}},
+    {"TimeSig_Serialize",         0x0041a860, (void *)&TimeSig_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x56}},
+    {"FloatConsts_InitOne_407b20", 0x00407b20, (void *)&FloatConsts_InitOne_407b20, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_407b40", 0x00407b40, (void *)&FloatConsts_InitEpsilon_407b40, {0xd9, 0x05, 0x00, 0xd7, 0x6f}},
+    {"FloatConsts_InitOne_409f60", 0x00409f60, (void *)&FloatConsts_InitOne_409f60, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_409f80", 0x00409f80, (void *)&FloatConsts_InitEpsilon_409f80, {0xd9, 0x05, 0x60, 0xd7, 0x6f}},
+    {"FloatConsts_InitOne_40d110", 0x0040d110, (void *)&FloatConsts_InitOne_40d110, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_40d130", 0x0040d130, (void *)&FloatConsts_InitEpsilon_40d130, {0xd9, 0x05, 0x98, 0xd7, 0x6f}},
+    {"FloatConsts_InitOne_4148d0", 0x004148d0, (void *)&FloatConsts_InitOne_4148d0, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_4148f0", 0x004148f0, (void *)&FloatConsts_InitEpsilon_4148f0, {0xd9, 0x05, 0x2c, 0xd9, 0x6f}},
+    {"FloatConsts_InitOne_438760", 0x00438760, (void *)&FloatConsts_InitOne_438760, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_438780", 0x00438780, (void *)&FloatConsts_InitEpsilon_438780, {0xd9, 0x05, 0x28, 0xdf, 0x6f}},
+    {"FloatConsts_InitOne_43afd0", 0x0043afd0, (void *)&FloatConsts_InitOne_43afd0, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_43aff0", 0x0043aff0, (void *)&FloatConsts_InitEpsilon_43aff0, {0xd9, 0x05, 0xb0, 0xdf, 0x6f}},
+    {"FloatConsts_InitOne_43dbb0", 0x0043dbb0, (void *)&FloatConsts_InitOne_43dbb0, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_43dbd0", 0x0043dbd0, (void *)&FloatConsts_InitEpsilon_43dbd0, {0xd9, 0x05, 0xb0, 0xe0, 0x6f}},
+    {"FloatConsts_InitOne_45f950", 0x0045f950, (void *)&FloatConsts_InitOne_45f950, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_45f970", 0x0045f970, (void *)&FloatConsts_InitEpsilon_45f970, {0xd9, 0x05, 0x18, 0xe7, 0x6f}},
+    {"FloatConsts_InitOne_470990", 0x00470990, (void *)&FloatConsts_InitOne_470990, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_4709b0", 0x004709b0, (void *)&FloatConsts_InitEpsilon_4709b0, {0xd9, 0x05, 0xd8, 0xeb, 0x6f}},
+    {"FloatConsts_InitOne_4740e0", 0x004740e0, (void *)&FloatConsts_InitOne_4740e0, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_474100", 0x00474100, (void *)&FloatConsts_InitEpsilon_474100, {0xd9, 0x05, 0x50, 0xec, 0x6f}},
+    {"FloatConsts_InitOne_475fe0", 0x00475fe0, (void *)&FloatConsts_InitOne_475fe0, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_476000", 0x00476000, (void *)&FloatConsts_InitEpsilon_476000, {0xd9, 0x05, 0x98, 0xed, 0x6f}},
+    {"FloatConsts_InitOne_476a30", 0x00476a30, (void *)&FloatConsts_InitOne_476a30, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_476a50", 0x00476a50, (void *)&FloatConsts_InitEpsilon_476a50, {0xd9, 0x05, 0xd8, 0xed, 0x6f}},
+    {"FloatConsts_InitOne_48c9a0", 0x0048c9a0, (void *)&FloatConsts_InitOne_48c9a0, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_48c9c0", 0x0048c9c0, (void *)&FloatConsts_InitEpsilon_48c9c0, {0xd9, 0x05, 0xe8, 0xf1, 0x6f}},
+    {"FloatConsts_InitOne_491fa0", 0x00491fa0, (void *)&FloatConsts_InitOne_491fa0, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"FloatConsts_InitEpsilon_491fc0", 0x00491fc0, (void *)&FloatConsts_InitEpsilon_491fc0, {0xd9, 0x05, 0x90, 0xf5, 0x6f}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -3422,6 +3461,7 @@ const Hook kHooks[] = {
     {"StripAnim_StartShrink",     0x004547c0, (void *)&StripAnim_StartShrink, {0x8b, 0x4c, 0x24, 0x04, 0x8b}},
     {"Model_HeightAt",            0x00451390, (void *)&Model_HeightAt, {0x83, 0xec, 0x50, 0x8b, 0x4c}},
     {"Model_FloorHeight",         0x00451290, (void *)&Model_FloorHeight, {0x51, 0x8b, 0x0d, 0x18, 0xfb}},
+    {"M3D2_DataErrorBox",         0x0046f100, (void *)&M3D2_DataErrorBox, {0x8b, 0x44, 0x24, 0x04, 0x6a}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
