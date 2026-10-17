@@ -204,7 +204,7 @@ def _global_alloc(e):  # stdcall (flags, size)
     e.r['ESP'] = sp + 8
 
 
-VSTUBS = STUBS + 0x1000  # the recorders: slot k (0-31) with n (0-7) stack arguments at VSTUBS + 0x400 * n + 0x20 * k
+VSTUBS = STUBS + 0x1000  # the recorders: slot k (0-31) with n (0-15) stack arguments at VSTUBS + 0x400 * n + 0x20 * k
 LOG = STUBS + 0x100000  # their log (the case maps it, see log_region()): a count, then 12 dwords an entry (k, n, this, up to 7 arguments), room for 80
 LOG_ENTRY = 12
 LOG_ENTRIES = 40  # (the room: 4 + 48 * 40 bytes)
@@ -332,7 +332,7 @@ class Bench:
                                STUBS + 0x20: _global_alloc, STUBS + 0x30: _global_free, STUBS + 0x40: _mark, CDECL_LOG: _cdecl_log,
                                0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove,
                                0x6918f0: _throw('_Xlen'), 0x691ba0: _throw('_Xran')})
-        self.emu.hooks.update({recorder(k, n): _recorder(k, n) for k in range(32) for n in range(8)})
+        self.emu.hooks.update({recorder(k, n): _recorder(k, n) for k in range(32) for n in range(16)})  # (n up to 15 fits below the COM recorders at +0x4000)
         self.emu.hooks.update({recorder(k, n, True): _recorder(k, n, True) for k in range(64) for n in range(8)})
         self.emu.hooks.update(hooks or {})
         self.extra = {0x7b095c: sine_table(sines)} if sines else {}

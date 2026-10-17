@@ -22,4 +22,6 @@ s32 *__fastcall ScreenSurfaces_Bounds(const u8 *source, void *, s32 *out);
 // 0x47e3e0 (thiscall): the vtable 0x6fef78, the words at +0xa8 and +0xa4 cleared, the COM objects at +0xb0 and +0xac released (slot 2 at +8) and cleared, the vtable 0x6fef90.
 void __fastcall ScreenSurfaces_Dtor(u8 *object);
 
+// 0x47e3c0 (thiscall; flags, pops 4): ScreenSurfaces_Dtor, then the object freed when bit 0 of the flags is set. Returns the object.
+u8 *__fastcall ScreenSurfaces_ScalarDtor(u8 *object, void *, u32 flags);
 }

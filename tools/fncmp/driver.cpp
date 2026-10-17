@@ -220,7 +220,7 @@ void map_com_recorders(u8 *page) {  // the COM-style ones (this on the stack, EC
 
 void map_recorders(u8 *page) {
     map_com_recorders(page);
-    for (u32 n = 0; n < 8; ++n) {
+    for (u32 n = 0; n < 16; ++n) {  // (up to 15 arguments: the layout ends where the COM recorders begin)
         for (u32 k = 0; k < 32; ++k) {
             u8 *at = page + 0x1000 + 0x400 * n + 0x20 * k;
             const u8 head[] = {0x89, 0xe0, 0x50, 0x51, 0x6a, (u8)n, 0x6a, (u8)k, 0xe8};  // mov eax,esp; push eax; push ecx; push n; push k; call rel32

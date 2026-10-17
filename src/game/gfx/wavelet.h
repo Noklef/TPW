@@ -17,4 +17,11 @@ void __stdcall WaveletCodec_PutCoefficient(u32 value, u8 **cursor);
 // ([0xaa67f8]) the next word (the position at [0xbe6800] advanced by 2) goes above them in the accumulator at [0xf74a48] and the held count grows by 16. Shift counts use
 // their low 5 bits.
 u32 __cdecl Wavelet_ReadBits(u32 count);
+
+// 0x592060 (thiscall on the codec interface, the full codec 0x54 bytes below it; the version and ten arguments, pops 0x2c): version 0x12 calls the full codec's slot 0 and 0x13 its slot 2
+// (+8) with the ten arguments and the callee's result is returned; any other version does nothing (EAX is the version less 0x13).
+u32 __fastcall WaveletCodec_Decode(u8 *codec, void *, s32 version, u32 a, u32 b, u32 c, u32 d, u32 e, u32 f, u32 g, u32 h, u32 i, u32 j);
+
+// 0x5920f0 (thiscall; the version and thirteen arguments, pops 0x38): for a version above 0x12 the full codec's slot 1 (+4) is called with the thirteen arguments and its result returned (EAX is not set otherwise).
+u32 __fastcall WaveletCodec_DecodeScaled(u8 *codec, void *, s32 version, u32 a, u32 b, u32 c, u32 d, u32 e, u32 f, u32 g, u32 h, u32 i, u32 j, u32 k, u32 l, u32 m);
 }

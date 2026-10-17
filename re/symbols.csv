@@ -87,8 +87,8 @@ address,name,kind,confidence,notes
 0x005985c0,WaveletCodec_Create,function,medium,allocates 0x58 bytes and constructs; returns the IWaveletCodec interface pointer
 0x005916c0,WaveletCodec_Construct,function,high,"builds clamp table (0xc27008) and 16-bit pixel tables, allocates work buffers"
 0x00591ab0,WaveletCodec_Encode,function,high,RGB -> YUV float planes -> forward D4 -> quantise (1/q) -> Buffer_Compress
-0x00592060,WaveletCodec_Decode,function,high,"dispatch on format version: 0x12 -> vtable slot 0 (DecodeV12), 0x13 -> slot 2 (DecodeV13)"
-0x005920f0,WaveletCodec_DecodeScaled,function,medium,dispatch for version > 0x12 to DecodeV13Scaled
+0x00592060,WaveletCodec_Decode,function,high,reimplemented (src/game/gfx/wavelet); the decode dispatch on the format version 0x12 or 0x13
+0x005920f0,WaveletCodec_DecodeScaled,function,high,reimplemented (src/game/gfx/wavelet); the scaled decode dispatch for versions above 0x12
 0x00593ab0,WaveletCodec_DecodeV12,function,high,"one-level D4 like v0x13 but rows stored [all low, all high]; streams are BILZ (zlib); ported in tools/wct2png.py"
 0x00595920,WaveletCodec_DecodeV13,function,high,"one-level D4 wavelet, YUV 4:2:0 + optional alpha; ported in tools/wct2png.py"
 0x00597100,WaveletCodec_DecodeV13Scaled,function,medium,resampling variant; calls DecodeV13 when sizes match
@@ -3450,6 +3450,7 @@ address,name,kind,confidence,notes
 0x0047e2f0,ScreenSurfaces_Ctor,function,high,reimplemented (src/game/gfx/screensurfaces); the screen surfaces source: both Surfaces cleared and their infos constructed
 0x0047e390,SurfaceSource_Dtor,function,high,reimplemented (src/game/gfx/screensurfaces); the abstract surface source's destructor (vtable 0x6fef90 back)
 0x0047e570,ScreenSurfaces_Bounds,function,high,"reimplemented (src/game/gfx/screensurfaces); virtual: out = {0, 0, width - 1, height - 1}"
+0x0047e3c0,ScreenSurfaces_ScalarDtor,function,high,reimplemented (src/game/gfx/screensurfaces); the scalar deleting destructor
 0x0058b300,TexCacheItem_Ctor,function,high,"reimplemented (src/game/gfx/texcache); thiscall: the texture cache item base: vtable 0x702198 (abstract), flags (+4) 0; returns this"
 0x0058b330,TexCacheItem_SetFlags,function,high,reimplemented (src/game/gfx/texcache); thiscall (flags): the item's flag word (+4) = flags | its bit 0x10000000
 0x0058b350,TexCacheItem_Flag1,function,high,reimplemented (src/game/gfx/texcache); thiscall u32: the item's flag word & 1

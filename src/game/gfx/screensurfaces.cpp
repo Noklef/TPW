@@ -4,6 +4,7 @@
 
 #include "surface.h"
 #include "../core/vcall.h"
+#include "../core/gameheap.h"
 
 namespace {
 
@@ -62,4 +63,10 @@ void __fastcall ScreenSurfaces_Dtor(u8 *object) {
     at<u32>(object, 0) = 0x006fef90;
 }
 
+u8 *__fastcall ScreenSurfaces_ScalarDtor(u8 *object, void *, u32 flags) {
+    ScreenSurfaces_Dtor(object);
+    if (flags & 1)
+        GameHeap_Free(object);
+    return object;
+}
 }
