@@ -3743,6 +3743,7 @@ address,name,kind,confidence,notes
 0x0043bd20,Ride_Sleep,function,low,"reimplemented (src/game/world/ridestate); cdecl (index): the ride holder's awake instance out of the renderer (rectangle or sleep), the active part states of its flag-0x80 parts released"
 0x00511c90,WallFollower_Step,function,low,"reimplemented (src/game/world/wallfollow); cdecl (walker): one step along the edge of what blocks the walk, turning towards it when open; 0x32 back on the line, 0x33 past 0xfb cells"
 0x005110d0,Route_Straighten,function,low,"reimplemented (src/game/world/route); cdecl (route, first): drops the cells a straight walk can skip (up to four ahead), repeated while any are dropped; 1 when any were"
+0x005276d0,FocusCell_Update,function,low,"reimplemented (src/game/world/focuscell); cdecl (record): the focus cell from the set cell (game modes 0x19 / 0x1a) or the selected object (or the thing its handle names), stepped both ways; the move recorded (action 0x32)"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved

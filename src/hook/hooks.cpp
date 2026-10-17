@@ -186,6 +186,7 @@
 #include "../game/world/challenges.h"
 #include "../game/world/collobj.h"
 #include "../game/world/dirstep.h"
+#include "../game/world/focuscell.h"
 #include "../game/world/flyingrides.h"
 #include "../game/world/forecast.h"
 #include "../game/world/gamesystem.h"
@@ -3331,6 +3332,7 @@ const Hook kHooks[] = {
     {"StaffHQ_Serialize",         0x00508bb0, (void *)&StaffHQ_Serialize, {0x83, 0xec, 0x08, 0x8b, 0x44}},
     {"WallFollower_Step",         0x00511c90, (void *)&WallFollower_Step, {0x53, 0x56, 0x8b, 0x74, 0x24}},
     {"Route_Straighten",          0x005110d0, (void *)&Route_Straighten, {0x83, 0xec, 0x34, 0x53, 0x55}},
+    {"FocusCell_Update",          0x005276d0, (void *)&FocusCell_Update, {0x66, 0xa1, 0x98, 0x86, 0x81}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
