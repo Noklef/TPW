@@ -100,11 +100,6 @@ address,name,module,reason
 5f8760,App_GetWndProc,core/app,todo
 5f8770,App_GetIconId,core/app,todo
 5f8780,App_GetName,core/app,todo
-5f8790,SystemInfo_Ctor,files/drives,todo: indirect only
-5f87b0,SystemInfo_ListDrives,files/drives,todo
-5f8940,SystemInfo_FindVolume,files/drives,todo
-5f89d0,SystemInfo_DriveLetter,files/drives,todo
-5f89f0,SystemInfo_VolumeLabel,files/drives,todo
 5f8ae0,RegKey_Open,core/regkey,todo
 5f8b70,RegKey_Dtor,core/regkey,todo
 5f8b80,RegKey_Close,core/regkey,todo
