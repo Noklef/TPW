@@ -11,6 +11,7 @@ from fncmp import HEAP, Bench, Call, RAM, heap, put  # noqa: E402
 FUNCS = [
     (0x41f6a0, 0x41f6f0, 't', 1, 'a', [], ()),
     (0x51aeb0, 0x51af00, 't', 1, 'a', [], ()),
+    (0x51af00, 0x51af50, 't', 1, 'a', [], ()),
     (0x561a00, 0x561a30, 'c', 0, 'a', [8886816], ()),
     (0x56b760, 0x56b790, 'c', 0, 'a', [8887636], ()),
     (0x5740e0, 0x574110, 'c', 0, 'a', [8888904], ()),
@@ -26,7 +27,7 @@ FUNCS = [
     (0x5f46e0, 0x5f4730, 't', 1, 'a', [], ()),
 ]
 EXTRA = []
-LISTY = (4322976, 5353136, 6006720, 6006800, 6024096, 6024176, 6133584, 6137040, 6150896, 6177568, 6244064)  # linked list destructors: a real chain (next at +4) is built for them
+LISTY = (4322976, 5353136, 5353216,6006720, 6006800, 6024096, 6024176, 6133584, 6137040, 6150896, 6177568, 6244064)  # linked list destructors: a real chain (next at +4) is built for them
 B = Bench([(a, e) for a, e, *_ in FUNCS] + EXTRA)
 
 
