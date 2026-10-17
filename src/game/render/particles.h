@@ -1,5 +1,5 @@
 // The particle systems' handle accessors: reimplementation of 0x51fa80, 0x51fd80, 0x51fe30, 0x51fd90, 0x51feb0,
-// 0x520030, 0x5200b0, 0x5204c0, 0x521810, 0x521850, 0x51ff10, 0x51ff70, 0x51ffd0, 0x520470, 0x5222e0 and 0x522320. Nothing works before the
+// 0x520030, 0x5200b0, 0x5204c0, 0x521810, 0x521850, 0x51ff10, 0x51ff70, 0x51ffd0, 0x520470, 0x5222e0, 0x522320 and 0x520e00. Nothing works before the
 // particles are set up (0x816d40 set). A system handle is serial << 16 | slot: slot (u16) below
 // 0x78 in gParticleSystems (0x80cefc, 0x140 bytes each, copies of an effect definition), its
 // serial the system's u16 +0xa; 0 is none. A system's +0x20 is its age (-2 ends it) and +0xd4 its
@@ -62,4 +62,12 @@ void __cdecl ParticleSystem_SetA2(u32 handle, u32 value);
 // signed): +0x6b in the first, +0x6a, +0x69, else +0x68 (also with no lifetime). The original
 // faults dividing INT_MIN by -1.
 s32 __cdecl ParticleSystem_QuarterByte(u32 slot);
+
+// 0x520e00 (cdecl; particle): one step of a particle's motion. Each velocity component (+0x2c, +0x30, +0x34) loses
+// v * drag / 1024 (drag the s16 +0x24, truncated toward 0), the y one also the s16 gravity +0x28; the position (+0x14,
+// +0x18, +0x1c) moves by it. When the s16 +0x76 is set, the ground height under (x, z) is the callback 0x80cef4
+// (x << 4, z << 4) >> 4; a particle below it bounces: when y - ground is below the y velocity it steps back by its x
+// and y velocity (z stays) and keeps half its y velocity with x and z halved and reversed, else it is put on the
+// ground with its y velocity halved and reversed and x, z halved (all halving truncated toward 0).
+void __cdecl Particle_Move(u8 *p);
 }

@@ -1,5 +1,5 @@
 # The particle systems' handle accessors (src/game/render/particles: 0x5222e0, 0x522320,
-# 0x51fd80, 0x51fa80, 0x51feb0, 0x51ff70, 0x51ff10, 0x51ffd0, 0x520470, 0x51fe30, 0x520030, 0x51fd90, 0x5200b0, 0x5204c0, 0x521810, 0x521850) against the originals:
+# 0x51fd80, 0x51fa80, 0x51feb0, 0x51ff70, 0x51ff10, 0x51ffd0, 0x520470, 0x51fe30, 0x520030, 0x51fd90, 0x5200b0, 0x5204c0, 0x521810, 0x521850, 0x520e00) against the originals:
 # handles live, stale (serial off), past the slots or 0, before and after set-up; effect numbers
 # about 0x69; ages and lifetimes about the quarters, negative and zero.
 # usage: particles.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Alive,Effector,...)
@@ -7,14 +7,14 @@ import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, put  # noqa: E402
+from fncmp import CDECL_LOG2, LOG, RAM, Bench, Call, log_region, put, set_return  # noqa: E402
 
 B = Bench([(0x5222e0, 0x52231b), (0x522320, 0x522356), (0x51fd80, 0x51fd8a), (0x51fa80, 0x51faa0),
            (0x51feb0, 0x51ff06), (0x51ff10, 0x51ff68), (0x51ff70, 0x51ffc6), (0x51ffd0, 0x520028),
-           (0x520470, 0x5204ba), (0x51fe30, 0x51fea4), (0x520030, 0x5200a4), (0x51fd90, 0x51fe2d), (0x5200b0, 0x520123), (0x5204c0, 0x52055f), (0x521810, 0x521845), (0x521850, 0x52188a)])
+           (0x520470, 0x5204ba), (0x51fe30, 0x51fea4), (0x520030, 0x5200a4), (0x51fd90, 0x51fe2d), (0x5200b0, 0x520123), (0x5204c0, 0x52055f), (0x521810, 0x521845), (0x521850, 0x52188a), (0x520e00, 0x520f0c)])
 SYSTEMS, EFFECTS, EFFECTORS, SETUP = 0x80cefc, 0x804370, 0x816504, 0x816d40
 CALLS = {'Alive': 0x5222e0, 'Effector': 0x522320, 'Reduced': 0x51fd80, 'Clear': 0x51fa80, 'End': 0x51feb0,
-         'Age': 0x51ff70, 'Set2a': 0x51ff10, 'SetA2': 0x51ffd0, 'Quarter': 0x520470, 'VecA': 0x51fe30, 'VecB': 0x520030, 'Scaled': 0x51fd90, 'EndAll': 0x5200b0, 'Release': 0x5204c0, 'RandS': 0x521810, 'Rand': 0x521850}
+         'Age': 0x51ff70, 'Set2a': 0x51ff10, 'SetA2': 0x51ffd0, 'Quarter': 0x520470, 'VecA': 0x51fe30, 'VecB': 0x520030, 'Scaled': 0x51fd90, 'EndAll': 0x5200b0, 'Release': 0x5204c0, 'RandS': 0x521810, 'Rand': 0x521850, 'Move': 0x520e00}
 
 
 def case(r):
@@ -33,6 +33,8 @@ def case(r):
         if slot <= 0x14:
             put(effectors, slot * 0x68, 'H', r.choice([serial, serial, serial ^ 1]))
         return Call(0x522320, [serial << 16 | slot], {SETUP: setup, EFFECTORS - 0x10: bytes(0x10) + effectors}, ret='a')
+    if op == 'Move':
+        return move(r)
     systems = bytearray(r.bytes(0x78 * 0x140))
     if op in ('RandS', 'Rand'):
         n = r.choice([0, 1, 2, 3, 7, 100, -1, -7, 0x7fffffff, -0x80000000, r.randrange(-1000, 1000)])
@@ -85,6 +87,23 @@ def case(r):
     if op != 'Alive' and op != 'End':
         args.append(r.choice([0, 0xffff, 0x10000, r.getrandbits(32)]))
     return Call(CALLS[op], args, {SETUP: setup, SYSTEMS: systems}, ret='a' if op == 'Alive' else 'v')
+
+
+def move(r):
+    small = lambda: r.choice([0, 1, -1, 2, -2, 3, -3, r.randrange(-5000, 5000), r.randrange(-5000, 5000), r.getrandbits(32)])
+    p = bytearray(r.bytes(0x80))
+    y = r.randrange(-0x8000, 0x8000)
+    put(p, 0x14, 'iii', r.randrange(-0x8000, 0x8000), y, r.randrange(-0x8000, 0x8000))
+    put(p, 0x24, 'h', r.choice([0, 1, 512, 1024, -1024, 100, r.randrange(-0x8000, 0x8000)]))
+    put(p, 0x28, 'h', r.choice([0, 1, 10, -10, r.randrange(-0x8000, 0x8000)]))
+    put(p, 0x2c, 'III', *[small() & 0xffffffff for _ in range(3)])
+    put(p, 0x76, 'H', r.choice([0, 1, 1, 1, 0x100, r.getrandbits(16)]))
+    if r.random() < 0.1:
+        put(p, 0x14, 'III', *[r.getrandbits(32) for _ in range(3)])
+    log = log_region()
+    if r.random() < 0.9:  # the ground height about the particle (x16), else what the logger makes of its arguments
+        set_return(log, 0x3e, (y + r.randrange(-6000, 6000)) * 16 + r.randrange(16))
+    return Call(0x520e00, [RAM], {RAM: p, LOG: log, 0x80cef0: put(bytearray(r.bytes(0x10)), 4, 'I', CDECL_LOG2)}, ret='v')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]

@@ -142,4 +142,38 @@ s32 __cdecl ParticleSystem_QuarterByte(u32 slot) {
     }
     return (s8)s[0x68];
 }
+
+void __cdecl Particle_Move(u8 *p) {
+    s32 *const pos = reinterpret_cast<s32 *>(p + 0x14);
+    s32 *const vel = reinterpret_cast<s32 *>(p + 0x2c);
+    const s32 drag = *reinterpret_cast<const s16 *>(p + 0x24);
+    const auto damp = [drag](s32 v) { return (s32)((u32)v - (u32)((s32)((u32)v * (u32)drag) / 1024)); };
+    const s32 vx = damp(vel[0]);
+    vel[0] = vx;
+    const s32 vy = (s32)((u32)damp(vel[1]) - (u32)(s32)*reinterpret_cast<const s16 *>(p + 0x28));
+    vel[1] = vy;
+    const s32 vz = damp(vel[2]);
+    vel[2] = vz;
+    pos[0] = (s32)((u32)pos[0] + (u32)vx);
+    pos[1] = (s32)((u32)pos[1] + (u32)vy);
+    pos[2] = (s32)((u32)pos[2] + (u32)vz);
+    if (*reinterpret_cast<const s16 *>(p + 0x76) == 0) return;
+    const auto ground = global<s32(__cdecl *)(s32, s32)>(0x0080cef4);
+    const s32 h = ground((s32)((u32)pos[0] << 4), (s32)((u32)pos[2] << 4)) >> 4;
+    const s32 y = pos[1];
+    if (y >= h) return;
+    const s32 v = vel[1];
+    if ((s32)((u32)y - (u32)h) < v) {  // (falling faster than it is below the ground: stepped back)
+        pos[0] = (s32)((u32)pos[0] - (u32)vel[0]);
+        pos[1] = (s32)((u32)y - (u32)v);
+        vel[0] = -(vel[0] / 2);
+        vel[1] = v / 2;
+        vel[2] = -(vel[2] / 2);
+    } else {
+        pos[1] = h;
+        vel[1] = -(v / 2);
+        vel[0] = vel[0] / 2;
+        vel[2] = vel[2] / 2;
+    }
+}
 }
