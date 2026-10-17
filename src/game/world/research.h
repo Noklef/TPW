@@ -7,6 +7,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../files/file.h"
 
 extern "C" {
 
@@ -25,4 +26,17 @@ u8 __fastcall ResearchLab_CurrentNotDone(const u8 *lab, void *, u32 group);
 
 // 0x504750: no current project (-1), highestGroupAvailable 1. Returns the group.
 u8 *__fastcall ResearchGroup_Ctor(u8 *group);
+
+// 0x504210 (thiscall; stream, save, version, unused): a project's mObjId, mCat, mResearchGroup, mUpgradeLevel, mCost and mResearchDone saved
+// or loaded as a serializer does (Save_Field; the load path partly through the readers).
+u32 __fastcall ResearchProject_Serialize(u8 *project, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x504760 (thiscall; stream, save, version, unused): a group's effort, output, currentProject and highestGroupAvailable saved or loaded as
+// a serializer does (Save_Field).
+u32 __fastcall ResearchGroup_Serialize(u8 *group, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x502dc0 (thiscall; the same arguments): the lab (thing model 14): the thing (Thing_Serialize), its 0x100 projects
+// (ResearchProject_Serialize) and 5 groups (ResearchGroup_Serialize), 1 at the first that fails; then mNumProjects (+0x145c), mWorkLoad,
+// mMostExpensiveProject (dwords) and mLabActive (the byte at +0x1468) as a serializer does (Save_Field).
+u32 __fastcall ResearchLab_Serialize(u8 *lab, void *, Stream *stream, u32 save, s32 version, u32 unused);
 }

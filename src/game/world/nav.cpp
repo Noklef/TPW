@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/crt.h"
+#include "../core/savegame.h"
 #include "../core/trivial.h"
 #include "../math/intpair.h"
 #include "mapcell.h"
@@ -174,5 +175,31 @@ void __fastcall Nav_Update(u8 *nav) {
     if (progress <= at<s32>(nav, 0xac))
         at<u32>(nav, 0xb0) = history | 1;
     at<s32>(nav, 0xac) = progress;
+}
+
+u32 __fastcall Nav_Serialize(u8 *nav, void *, Stream *stream, u32 save, s32 version, u32) {
+    static const SaveSpec kFields[] = {{0x40, 8, 0x0076208c}, {0x38, 8, 0x0076207c}, {0x20, 8, 0x00762070}, {0x28, 8, 0x00762064}, {0x0, 4, 0x0076205c},
+                                       {0x18, 4, 0x00762050}, {0x1c, 4, 0x00762044}, {0xb8, 4, 0x00762034}, {0xb4, 4, 0x00762028}, {0x58, 4, 0x00762014},
+                                       {0x5c, 4, 0x00762008}, {0x60, 1, 0x00761ff8}, {0xac, 4, 0x00761fe4}, {0xb0, 4, 0x00761fd0}, {0xa4, 4, 0x00761fbc},
+                                       {0xa8, 4, 0x00761fac}, {0x4c, 8, 0x00761f9c}, {0x48, 4, 0x00761f8c}, {0x54, 4, 0x00761f78}, {0xa0, 4, 0x00761f68},
+                                       {0x8, 8, 0x00761f64},  {0x4, 4, 0x00761f5c}};
+    if (version < 0 || version > 1)
+        return 0;
+    if (!Save_Fields(stream, save, nav, kFields, 2))
+        return 1;
+    if (save == 0)
+        at<u32>(nav, 0x34) = 0;
+    if (!Save_Fields(stream, save, nav, kFields + 2, 20))
+        return 1;
+    for (u32 i = 0; i < 5; ++i)
+        if (!Save_Field(stream, save, nav + 0x64 + i * 8, 8, 0x00761f48) || !Save_Field(stream, save, nav + 0x8c + i * 4, 4, 0x00761f38))
+            return 1;
+    if (save == 0)
+        at<u32>(nav, 0x30) = 0;
+    return Save_Field(stream, save, nav + 0x10, 8, 0x00761f34) ? 0 : 1;
+}
+
+u32 __fastcall Nav_SerializeFwd(u8 *nav, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    return Nav_Serialize(nav, nullptr, stream, save, version, unused);
 }
 }

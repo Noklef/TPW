@@ -4,6 +4,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../files/file.h"
 
 extern "C" {
 
@@ -50,4 +51,14 @@ void __cdecl Nav_VisitNeighbours(const u8 *nav, s32 radius, void(__cdecl *visit)
 // y axis (+0x28) its perpendicular; the history bits shift once more, with a 1 when the path progress (Nav_PathProgress) is not above the last (+0xac),
 // which it replaces.
 void __fastcall Nav_Update(u8 *nav);
+
+// 0x50d150 (thiscall; stream, save, version, unused): the nav saved or loaded as a serializer does (Save_Field; the load path through the
+// readers): force (+0x40), formation_pos (+0x38), local_xaxis (+0x20), local_yaxis (+0x28), the dword at +0, max_force, max_speed, the
+// dwords at +0xb8 and +0xb4, +0x58, +0x5c, the byte at +0x60, the dwords at +0xac, +0xb0, +0xa4, +0xa8, the pair at +0x4c, the dwords at
+// +0x48, +0x54 and +0xa0, pos and radius; then the 5 subpath points (pairs from +0x64) each with its distance (dwords from +0x8c), and
+// vel. Loading clears the dword at +0x34 before local_xaxis and the one at +0x30 before vel.
+u32 __fastcall Nav_Serialize(u8 *nav, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x4f9440 (thiscall; the same arguments; the sprite's call on its nav at +0xd4): Nav_Serialize, its result returned.
+u32 __fastcall Nav_SerializeFwd(u8 *nav, void *, Stream *stream, u32 save, s32 version, u32 unused);
 }

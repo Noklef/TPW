@@ -4,6 +4,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../files/file.h"
 
 extern "C" {
 
@@ -17,4 +18,15 @@ u8 *__fastcall Challenges_Current(u8 *challenges);
 // 0x4d1e60 (the vtable's first slot; index): the schema of a field, 0x739b98 + index * 0x3c;
 // this is unused.
 const u8 *__fastcall BalanceChallenges_GetSchema(const u8 *file, void *, u32 index);
+
+// 0x4d0f90 (thiscall; stream, save, version, unused): a challenge's 0x30 bytes saved or loaded as a serializer does (Save_Field; the load
+// path through the readers): mType, mTargetTime, mTargetVal, mTargetObj, mTargetObj2, mTargetStaffType, mPrize, mDoubleOrNothingFollowup,
+// mCheckAtEndOnly (+0x1c), mChallengeOffered, mChallengeLost, mChallengeDeclined, mHaveWon (+0x2c), mIndependent (+0x1d),
+// mThingIdForFollowup (+0x2e).
+u32 __fastcall Challenge_Serialize(u8 *challenge, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x4d2320 (thiscall; the same arguments): the thing (Thing_Serialize), its 0x14 challenges (Challenge_Serialize), both results ignored
+// (sic), then mCurrentChallenge (+0x3cc), mNextChallengeEventTime (8 bytes), mSystemSwitchedOn, mChallengeOn, mWaitingForReply, mValue
+// (+0x3dc) and mActualThing (+0x3e0).
+u32 __fastcall Challenges_Serialize(u8 *challenges, void *, Stream *stream, u32 save, s32 version, u32 unused);
 }

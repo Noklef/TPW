@@ -155,6 +155,30 @@ u32 __fastcall RECell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 
     return 0;
 }
 
+u32 __fastcall MapCellBase_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32) {
+    static const SaveSpec kFields[] = {{0xd, 1, 0x0075a088}, {0xe, 2, 0x0075a080},  {0x4, 4, 0x0075a070}, {0xc, 1, 0x0075a064}, {0x20, 2, 0x0075a054},
+                                       {0x10, 2, 0x0075a048}, {0x14, 12, 0x0075a03c}, {0x8, 4, 0x0075a034}, {0x22, 1, 0x0075a020}};
+    if (version < 0 || version > 1)
+        return 0;
+    return Save_Fields(stream, save, cell, kFields, 9) ? 0 : 1;
+}
+
+u32 __fastcall MapCell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    static const SaveSpec kFields[] = {{0x2c, 4, 0x0075af74}, {0x30, 2, 0x0075af60}, {0x28, 4, 0x0075af50}, {0x38, 4, 0x0075af50},
+                                       {0x40, 2, 0x0075af44}, {0x26, 1, 0x0075af34}, {0x34, 4, 0x0075af14}, {0x24, 2, 0x0075af0c}};
+    MapCellBase_Serialize(cell, nullptr, stream, save, version, unused);  // sic: its result is ignored
+    if (version < 0 || version > 1)
+        return 0;
+    return Save_Fields(stream, save, cell, kFields, 8) ? 0 : 1;
+}
+
+u32 __fastcall TrackCell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    MapCellBase_Serialize(cell, nullptr, stream, save, version, unused);  // sic: its result is ignored
+    if (version < 0 || version > 1)
+        return 0;
+    return Save_Field(stream, save, cell + 0x24, 2, 0x00761e3c) ? 0 : 1;
+}
+
 void __fastcall MapCell_AddNeighbours(u8 *cell, void *, u32 bits) { neighbours(cell) |= (u8)bits; }
 
 void __fastcall MapCell_RemoveNeighbours(u8 *cell, void *, u32 bits) { neighbours(cell) &= (u8)~bits; }

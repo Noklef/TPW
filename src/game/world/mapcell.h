@@ -107,6 +107,17 @@ u32 __fastcall RECell_Equals(const u8 *cell, void *, const u8 *other);
 // 0x502490 (thiscall; stream, save, version, unused): the RE cell's five words (mpEffect) saved or loaded as a serializer does (Save_Field).
 u32 __fastcall RECell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused);
 
+// 0x4d0b30 (thiscall; stream, save, version, unused): the base of a map / track cell saved or loaded as a serializer does (Save_Field; the
+// load path through the readers, 0x424c20 ...): mDirection, mFlags, mMeshInstance, mNeighbours, mOverlapCounter, mParentID, mTileData
+// (12 bytes at +0x14), mType, mHoardingNeighbours.
+u32 __fastcall MapCellBase_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x4d8dd0 / 0x50c200 (thiscall; stream, save, version, unused): a map cell (the base, then its litter fields: mLitter, mLitterCollector,
+// mLitterScript twice (+0x28, +0x38), mPylonIndex, mStatusFlags, mTimeMarkedForLitterCollection, mWho) / a track cell (the base, then
+// mSegmentNumber at +0x24). The base's result is ignored (sic).
+u32 __fastcall MapCell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused);
+u32 __fastcall TrackCell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
 // 0x50c1d0: a 0x28-byte track cell (serialized at 0x50c200), zeroed but for byte +2 = 2.
 // Returns it.
 u8 *__fastcall TrackCell_Ctor(u8 *cell);

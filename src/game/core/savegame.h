@@ -10,8 +10,9 @@ extern "C" {
 // 0x416e10 (stdcall; size, name, isLoad): 0, nothing else.
 u32 __stdcall Save_FieldName(u32 size, const char *name, u32 isLoad);
 
-// 0x4d37e0 / 0x4fae10 / 0x510240 / 0x5134d0 (cdecl; stream, destination, name, quiet): read a field of 2, 4, 8 or 12 bytes from the stream
-// (Stream_Read), announced (Save_FieldName, loading) unless quiet; 0 when the whole field came, else 1.
+// 0x424c20 / 0x4d37e0 / 0x4fae10 / 0x510240 / 0x5134d0 (cdecl; stream, destination, name, quiet): read a field of 1, 2, 4, 8 or 12 bytes
+// from the stream (Stream_Read), announced (Save_FieldName, loading) unless quiet; 0 when the whole field came, else 1.
+u32 __cdecl Save_ReadU8(Stream *stream, void *dst, const char *name, u32 quiet);
 u32 __cdecl Save_ReadU16(Stream *stream, void *dst, const char *name, u32 quiet);
 u32 __cdecl Save_ReadU32(Stream *stream, void *dst, const char *name, u32 quiet);
 u32 __cdecl Save_Read8Bytes(Stream *stream, void *dst, const char *name, u32 quiet);
@@ -28,3 +29,11 @@ void __cdecl Save_InitUnusedEpsilon();
 // (thiscall; stream, save, version, unused) do nothing for versions other than 0 and 1 and return 0; else their fields in turn, 1 at the first that
 // fails (the print is left out), else 0.
 bool Save_Field(Stream *stream, u32 save, void *at, s32 size, u32 name);
+
+// A serializer's run of fields (a helper): each field of the table (offset in the object, size, name's address) in turn through Save_Field;
+// false at the first that fails. The serializers whose load path calls the readers (0x424c20 ...) announce and read the same way.
+struct SaveSpec {
+    u16 at, size;
+    u32 name;
+};
+bool Save_Fields(Stream *stream, u32 save, u8 *object, const SaveSpec *spec, u32 count);

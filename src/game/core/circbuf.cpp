@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "savegame.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -127,5 +129,17 @@ u8 __fastcall CircBufU32_30_Get(const u8 *buf, void *, u32 *out, s32 back) {
     if (!at<u8>(buf, 0x84)) return 0;
     *out = at<u32>(buf, 4 + ((u32)cursor - (u32)back + (u32)size) * 4);
     return 1;
+}
+
+u32 __fastcall CircBufU32_30_Serialize(u8 *buf, void *, Stream *stream, u32 save, s32 version, u32) {
+    static const SaveSpec kFields[] = {{0x7c, 4, 0x00759a80}, {0x80, 4, 0x00759a74}, {0x84, 1, 0x00759a64}, {0x0, 4, 0x00759a5c}};
+    if (version < 0 || version > 1)
+        return 0;
+    if (!Save_Fields(stream, save, buf, kFields, 4))
+        return 1;
+    for (s32 i = 0; i < at<s32>(buf, 0x80); ++i)  // sic: not bounded by the 30 entries
+        if (!Save_Field(stream, save, buf + 4 + i * 4, 4, 0x00759a50))
+            return 1;
+    return 0;
 }
 }
