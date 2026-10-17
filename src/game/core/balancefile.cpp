@@ -224,5 +224,10 @@ void __fastcall AdvisorScoring_Dtor(u8 *self) {
     BalanceFile_Release(self + 0xc);
 }
 
+void __fastcall AdvisorScoringFile_Dtor(u8 *self) {
+    at<u32>(self, 0) = 0x006fd958;
+    BalanceFile_Release(self);
+}
+
 void __cdecl AdvisorScoring_StaticDtor() { AdvisorScoring_Dtor(reinterpret_cast<u8 *>(0x00fb3540)); }
 }

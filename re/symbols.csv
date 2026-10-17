@@ -526,6 +526,7 @@ address,name,kind,confidence,notes
 0x00415e80,AdvisorScoring_Dtor,function,low,reimplemented (src/game/core/balancefile); thiscall: the balance file at +0xc gets vtable 0x6fd958 back and is released
 0x00415e70,AdvisorScoring_StaticDtor,function,low,"reimplemented (src/game/core/balancefile); cdecl, at exit: AdvisorScoring_Dtor of gAdvisorScoring (0xfb3540)"
 0x00401280,BalanceFile_FindKey,function,low,"reimplemented (src/game/core/balancefile); thiscall (group, name, &index, grouped, row): the section (type 1, or 3 when grouped, row below its count) named group, then the key named name before it"
+0x0059bf10,AdvisorScoringFile_Dtor,function,low,"reimplemented (src/game/core/balancefile); thiscall: vtable 0x6fd958 back, BalanceFile_Release (name unconfirmed)"
 0x00470c90,Motion_ApplyMaterial,function,high,"reimplemented (src/game/motion/keys); (model, table, state): last (frame, value) key at or before the frame set into the material record (+2), flagged +1 |= 4 on change"
 0x00470d10,Matrix_PreMul33,function,high,"reimplemented (src/game/math/matrix); m = r * m on the rotation part, r a packed row-major 3x3"
 0x00470e90,Motion_LerpPackedVertices,function,high,"reimplemented (src/game/motion/vertexanim); (block, positions, group, t, add): 10:10:10 keys * scale (+0x20) + offset (+0x14), lerped key -> key+1 into slot (12 * (slot >> 2) + (slot & 3)), axes 4 floats apart"
