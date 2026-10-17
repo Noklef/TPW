@@ -166,6 +166,8 @@ void __fastcall MapCell_DecOverlap(u8 *cell) { --at<u16>(cell, 0x20); }
 
 void __fastcall MapCell_SetOverlap(u8 *cell, void *, u32 value) { at<u16>(cell, 0x20) = (u16)value; }
 
+s32 __fastcall MapCell_Overlap(const u8 *cell) { return at<s16>(cell, 0x20); }
+
 u32 __fastcall MapCell_HasFlags(const u8 *cell, void *, u32 flags) { return (at<u16>(cell, 0xe) & (u16)flags) != 0 ? 1 : 0; }
 
 u32 __fastcall MapCell_Flag400(const u8 *cell) { return at<u16>(cell, 0xe) >> 10 & 1; }

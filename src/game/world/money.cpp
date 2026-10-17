@@ -75,4 +75,6 @@ u32 __fastcall Money_PayOffLoan(u8 *money, void *, u32 index) {
     return 1;
 }
 
+u32 __fastcall Money_Total(const u8 *money) { return at<u32>(money, 0x124); }
+
 }  // extern "C"

@@ -1,6 +1,8 @@
 """One porting cycle: integrate a spec, bench it, commit it, then run its mutants.
 
-  python -I tools/port.py SPEC --bench SUITE.py [suite args...] [--msg FILE] [--mut FILE] [--also PATH...] [--unverified REASON]
+  python -I tools/port.py SPEC --bench SUITE.py [suite args...] [--msg FILE] [--mut FILE] [--also PATH...] [--unverified REASON] [--low NAME...]
+
+--low NAME...: the spec's names that were invented get "low" confidence in re/symbols.csv (integrate.py writes "high"), in the same commit.
 
 Runs tools/integrate.py SPEC --bench SUITE.py ARGS (hook rows, symbols, CMake, build, hook tests,
 retcheck, bench). If all of that passes and --msg is given, commits by explicit path: each unit's
@@ -32,7 +34,7 @@ import time
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 AUTHOR = ['-c', 'user.name=Noklef', '-c', 'user.email=281545466+Noklef@users.noreply.github.com']
 TRAILER = 'Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>'
-FLAGS = ('--msg', '--mut', '--also', '--unverified')
+FLAGS = ('--msg', '--mut', '--also', '--unverified', '--low')
 MIN_CASES = 10
 
 
@@ -58,6 +60,7 @@ def main():
     if len(a) < 3 or '--bench' not in a:
         sys.exit(__doc__)
     msg, mut, also, unverified = take(a, '--msg'), take(a, '--mut'), take(a, '--also'), ' '.join(take(a, '--unverified'))
+    low = set(take(a, '--low'))
     spec = a[0]
     bench = a[a.index('--bench') + 1:]
     rows = []  # the spec's (name, address, unit)
@@ -110,6 +113,23 @@ def main():
                 w.writerow(listed[k])
         print('re/unverified.csv: %s listed as "%s"' % (', '.join(weak) or 'nothing', unverified))
         also = also + ['re/unverified.csv']
+
+    if low:
+        unknown = low - set(name for name, _, _ in rows)
+        if unknown:
+            sys.exit('port: --low names not in the spec: %s' % ', '.join(sorted(unknown)))
+        path = os.path.join(ROOT, 're', 'symbols.csv')
+        with open(path, newline='') as f:
+            text = f.read()
+        for name, addr, _ in rows:
+            if name in low:
+                key = '0x%08x,%s,function,high,' % (addr, name)
+                if key not in text:
+                    sys.exit('port: no symbols.csv row %s' % key)
+                text = text.replace(key, '0x%08x,%s,function,low,' % (addr, name), 1)
+        with open(path, 'w', newline='') as f:
+            f.write(text)
+        print('symbols.csv: low confidence for %s' % ', '.join(sorted(low)))
 
     if msg:
         units = set(unit for _, _, unit in rows)

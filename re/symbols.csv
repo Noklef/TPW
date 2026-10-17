@@ -940,6 +940,7 @@ address,name,kind,confidence,notes
 0x004d01f0,Money_Debit,function,high,"reimplemented (src/game/world/money); takes an amount from the balance, recording the first time it goes below 0"
 0x004d0750,Money_TakeLoan,function,high,reimplemented (src/game/world/money); takes out a loan
 0x004d0850,Money_PayOffLoan,function,high,reimplemented (src/game/world/money); pays a loan off
+0x004d09f0,Money_Total,function,low,reimplemented (src/game/world/money); the money record's total: the dword at +0x124
 0x004cc4b0,Rides_BestKind11Count,function,high,reimplemented (src/game/world/ridesearch); finds the track ride with the most kind 11 pieces
 0x004cc5d0,Rides_BestPiecesOfKinds,function,high,reimplemented (src/game/world/ridesearch); finds the track ride of kind 1 to 3 with the most pieces
 0x004cc6f0,Rides_BestPiecesOfKind,function,high,reimplemented (src/game/world/ridesearch); finds the track ride of a kind with the most pieces
@@ -1559,6 +1560,9 @@ address,name,kind,confidence,notes
 0x0050f850,IntPair_Perp,function,high,"reimplemented (src/game/math/intpair); cdecl (&out, &pair): out = (-y, x); returns out"
 0x005104b0,IntPair_FromFixed,function,high,"reimplemented (src/game/math/intpair); cdecl (&out, x, y): out = (x >> 16, y >> 16), logical; returns out"
 0x005104e0,IntPair_ToFixed,function,high,"reimplemented (src/game/math/intpair); cdecl (&out, x, y): out = (x << 16, y << 16); returns out"
+0x0050cd80,IntPair_Sub,function,low,"reimplemented (src/game/math/intpair); thiscall (&out, other): out = pair - other; returns out"
+0x0050df70,IntPair_MulFixed,function,low,"reimplemented (src/game/math/intpair); thiscall (&out, scale): out = each * scale >> 16 (64-bit products), y first; returns out"
+0x004d49a0,Math_ISqrt,function,low,"reimplemented (src/game/math/intpair); cdecl (n): fild (n as unsigned) fsqrt __ftol, at the game's 24-bit precision"
 0x005428a0,IntSin,function,high,"reimplemented (src/game/math/intsin); cdecl (angle, 512 a turn): the integer sine table's (0x877358) entry angle & 0x1ff, shifted left 2"
 0x005428c0,IntCos,function,high,reimplemented (src/game/math/intsin); cdecl (angle): as IntSin for angle + 0x80
 0x00578800,Mat4_Identity,function,high,"reimplemented (src/game/math/mat4); thiscall (a matrix object, the 4x4 at +0): the identity"
@@ -3507,6 +3511,7 @@ address,name,kind,confidence,notes
 0x005e1540,SortedPtrList_Add,function,high,reimplemented (src/game/core/ptrlist); an item added to a pointer list in order of its key
 0x005f4400,Class703088_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor leaving the global list of its kind
 0x00618110,Class7037b8_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor of the 0x7037b8 class
+0x0051af00,ListScalarDelete700aa0_51af00,function,low,"reimplemented (src/game/core/vdel); a linked list scalar deleting destructor: sets the vtable pointer 0x700aa0, frees every node and, when bit 0 of the flags is set, the list"
 0x004dda20,Object_QueueHasRoom,function,high,reimplemented (src/game/world/objectmsg); whether the person queue is shorter than four times the limit
 0x005eb090,ArrayHolder_Clear,function,high,reimplemented (src/game/gfx/array3d); frees the four arrays of the holder
 0x005ea3f0,Image_CropInto,function,high,reimplemented (src/game/gfx/imageops); copies the part of an image that is left once moved into a fresh destination
@@ -3588,13 +3593,40 @@ address,name,kind,confidence,notes
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
+0x0050f280,Nav_WorldToLocal,function,low,"reimplemented (src/game/world/nav); thiscall (&out, &point): point - pos in the local frame (local_xaxis +0x20, local_yaxis +0x28, 16.16); returns out"
+0x0050f870,Nav_PredictPos,function,low,"reimplemented (src/game/world/nav); thiscall (&out, time): out = pos + vel * time (16.16); returns out"
+0x0050fd40,Nav_PathProgress,function,low,"reimplemented (src/game/world/nav); thiscall: 1.0 - (path_subpath_dist + path_tail_dist + octagonal distance to the current path point) / path_total_dist, 16.16; 1.0 when finished or the total is 0; IDIV faults like the original's"
 0x0052a050,Cell_ExtendPath,function,high,reimplemented (src/game/world/mapcell); one step of a path across the map's cells
 0x0052c420,MapGrid_MarkEdges,function,high,"reimplemented (src/game/world/mapcell); edge cells of a map grid of types 4, 9, 0x17 and 0xa"
 0x0052c5b0,MapGrid_ClassifyTypes,function,high,reimplemented (src/game/world/mapcell); a map grid's cell types as codes 1 to 4
 0x0042a340,Cell_FindRideableObject,function,high,reimplemented (src/game/world/mapcell); the first rideable object on a type 9 cell's parent
+0x005228b0,MapCell_Overlap,function,low,"reimplemented (src/game/world/mapcell); a map cell's mOverlapCounter (u16 at +0x20), sign-extended"
 0x0040f970,MessageSlot_Dtor,function,high,"reimplemented (src/game/world/messagecentre); thiscall on a slot: a dword, then a std::map of tree B at +4, destroyed (StdTree_DtorB); name unconfirmed"
 0x00409250,MessageCentre_DtorSlots,function,high,"reimplemented (src/game/world/messagecentre); thiscall: the 29 slots of 0x14 bytes from +0 destroyed, the last first (CRT_VectorDtorIterator, MessageSlot_Dtor); name unconfirmed"
 0x0040fa40,MessageCentre_RemoveThing,function,low,"reimplemented (src/game/world/messagecentre); thiscall (thing); the thing's handle erased from each of the 29 slots' maps (lower bound, key check, StdTree_EraseB); returns the count erased"
+0x0050ce50,SteerSeek_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009b8, name ""seek"" copied to +4; returns this"
+0x0050ced0,SteerArrival_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009c0, name ""arrival"" copied to +4; returns this"
+0x0050cf40,SteerSeparation_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009c4, name ""separation"" copied to +4; returns this"
+0x0050cfb0,SteerAvoidObstacle_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009c8, name ""avoid_obstacle"" copied to +4; returns this"
+0x0050d020,SteerRepelObstacle_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009cc, name ""repel_obstacle"" copied to +4; returns this"
+0x0050d090,SteerAvoidWalls_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009d0, name ""avoid_walls"" copied to +4; returns this"
+0x0050d100,SteerFollowPath_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009d4, name ""follow_path"" copied to +4; returns this"
+0x0050cea0,Steer_Dtor,function,low,reimplemented (src/game/world/steering); thiscall: the base vtable 0x7009bc back at +0
+0x0050ce90,SteerSeek_Destroy,function,low,reimplemented (src/game/world/steering); atexit entry: Steer_Dtor on the global seek behaviour 0x7cf050
+0x0050cf10,SteerArrival_Destroy,function,low,reimplemented (src/game/world/steering); atexit entry: Steer_Dtor on the global arrival behaviour 0x7cf0b0
+0x0050cf80,SteerSeparation_Destroy,function,low,reimplemented (src/game/world/steering); atexit entry: Steer_Dtor on the global separation behaviour 0x7cf0d8
+0x0050cff0,SteerAvoidObstacle_Destroy,function,low,reimplemented (src/game/world/steering); atexit entry: Steer_Dtor on the global avoid_obstacle behaviour 0x7cf360
+0x0050d060,SteerRepelObstacle_Destroy,function,low,reimplemented (src/game/world/steering); atexit entry: Steer_Dtor on the global repel_obstacle behaviour 0x7cf338
+0x0050d0d0,SteerAvoidWalls_Destroy,function,low,reimplemented (src/game/world/steering); atexit entry: Steer_Dtor on the global avoid_walls behaviour 0x7cf088
+0x0050d140,SteerFollowPath_Destroy,function,low,reimplemented (src/game/world/steering); atexit entry: Steer_Dtor on the global follow_path behaviour 0x7cf308
+0x0050dd80,SteerSeek_Steer,function,low,"reimplemented (src/game/world/steering); seek's slot 0, thiscall (&out, nav): out = (*target - pos) - vel; returns out"
+0x0050ddf0,SteerArrival_Steer,function,low,"reimplemented (src/game/world/steering); arrival's slot 0, thiscall (&out, nav): toward the target at max_speed, slowing within 2.0, minus vel; (0, 0) at it; returns out"
+0x0050e190,SteerRepel_Neighbour,function,low,"reimplemented (src/game/world/steering); cdecl (nav, other): repel_obstacle's per-neighbour callback, adds away * 2^32 / isqrt(distance) to the force at 0x7cf100 when within the radii + 1.0"
+0x0050cba0,Steer_CircleHit,function,low,"reimplemented (src/game/world/steering); cdecl (&local, radius): where a ray along local x meets the circle about the point, 0x80000000 when it misses"
+0x0050e2b0,SteerAvoidObstacle_Obstacle,function,low,"reimplemented (src/game/world/steering); cdecl (nav, obstacle): avoid_obstacle's per-obstacle callback, records the nearest hit (0x7cf32c) and the force's y"
+0x0050e350,SteerAvoidObstacle_Steer,function,low,"reimplemented (src/game/world/steering); avoid_obstacle's slot 0, thiscall (&out, nav): reach from Nav_PredictPos(10.0); (0, 0) with no hit (the obstacle visit is compiled out), else the force through Matrix2_Transform; returns out"
+0x0050cc20,Steer_RayCircleHit,function,low,"reimplemented (src/game/world/steering); cdecl (&from, &dir, &centre, radius): where the ray first meets the circle (16.16 quadratic, the smaller root halved); 0x80000000 when it misses"
+0x0050af40,TagTable_Find,function,low,"reimplemented (src/game/world/tagsystem); the CTagTable lookup: 0 for ids 0x17e/0x17f, the record at 0x75eca8 + id * 0x20 when its id matches, else the first record with the id, else 0"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved

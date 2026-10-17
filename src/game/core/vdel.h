@@ -264,6 +264,9 @@ u8 * __fastcall ListScalarDelete6fd9e4_41f6a0(u8 *o, void *, u32 v0);
 // 0x51aeb0: a linked list scalar deleting destructor: sets the vtable pointer 0x700a9c, frees every node and, when bit 0 of the flags is set, the list.
 u8 * __fastcall ListScalarDelete700a9c_51aeb0(u8 *o, void *, u32 v0);
 
+// 0x51af00: the same with the vtable pointer 0x700aa0.
+u8 * __fastcall ListScalarDelete700aa0_51af00(u8 *o, void *, u32 v0);
+
 // 0x5ba7c0: a linked list scalar deleting destructor: sets the vtable pointer 0x7028a0, frees every node and, when bit 0 of the flags is set, the list.
 u8 * __fastcall ListScalarDelete7028a0_5ba7c0(u8 *o, void *, u32 v0);
 

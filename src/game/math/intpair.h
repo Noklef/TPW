@@ -22,6 +22,17 @@ s32 *__fastcall IntPair_DivFixed(const s32 *pair, void *, s32 *out, s32 divisor)
 // 0x50ece0 (&out, other): out = pair + other (both read before out is written). Returns out.
 u32 *__fastcall IntPair_Add(const u32 *pair, void *, u32 *out, const u32 *other);
 
+// 0x50cd80 (&out, other): out = pair - other (both read before out is written). Returns out.
+u32 *__fastcall IntPair_Sub(const u32 *pair, void *, u32 *out, const u32 *other);
+
+// 0x50df70 (&out, scale): out = each times scale in 16.16 fixed point (the 64-bit product's
+// bits 16-47), y first (both read before out is written). Returns out.
+s32 *__fastcall IntPair_MulFixed(const s32 *pair, void *, s32 *out, s32 scale);
+
+// 0x4d49a0 (cdecl): the square root of n (an unsigned 32-bit value) on the x87 at the game's
+// precision, truncated (__ftol); the pair lengths take it of x * x + y * y.
+u32 __cdecl Math_ISqrt(u32 n);
+
 // 0x50f1a0 (&out): out = -pair. Returns out.
 u32 *__fastcall IntPair_Neg(const u32 *pair, void *, u32 *out);
 

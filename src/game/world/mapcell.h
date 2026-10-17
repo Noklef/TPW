@@ -137,9 +137,10 @@ void __fastcall MapCell_ClearDirection(u8 *cell, void *, u32 bits);
 u8 __fastcall MapCell_Direction(const u8 *cell);
 u32 __fastcall MapCell_SideDirectionCount(const u8 *cell);
 
-// 0x522890: mOverlapCounter decremented. 0x5228a0 (value): mOverlapCounter set.
+// 0x522890: mOverlapCounter decremented. 0x5228a0 (value): mOverlapCounter set. 0x5228b0: mOverlapCounter, sign-extended.
 void __fastcall MapCell_DecOverlap(u8 *cell);
 void __fastcall MapCell_SetOverlap(u8 *cell, void *, u32 value);
+s32 __fastcall MapCell_Overlap(const u8 *cell);
 
 // 0x535db0 (flags): 1 when any of mFlags' bits in flags (the low 16) is set. 0x5363b0: mFlags'
 // bit 10.
