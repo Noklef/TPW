@@ -3397,6 +3397,9 @@ address,name,kind,confidence,notes
 0x0041e330,Class6fda88_FullDtor,function,high,"reimplemented (src/game/core/small59); complete destructor, handles at +0x48 and +0x40"
 0x0041e4f0,Class6fdac8_FullDtor,function,high,"reimplemented (src/game/core/small59); complete destructor, handles at +0x48 and +0x40"
 0x0041e470,Class6fdaa4_Dtor,function,high,reimplemented (src/game/core/small59); handle and two strings
+0x004254c0,Animator_Sleep,function,high,reimplemented (src/game/core/small60); the holder sleeps and flag 0x4000 clears
+0x004de110,Object_BackOfQueueTo,function,high,reimplemented (src/game/core/small60); Object_BackOfQueue returning out
+0x004ddf40,Object_QueuePositionOfNone,function,high,reimplemented (src/game/core/small60); the position of the person with no handle
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
