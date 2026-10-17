@@ -109,4 +109,7 @@ u32 *__fastcall StdMapG_InsertCopy(u8 *tree, void *, u32 *out, const u16 *value)
 // 0x5af740 (thiscall on an object whose tree is at +0x28; key (a 16-bit value passed on the stack), amount, pops 8): inserts the key; true (and +0x1c grows by the amount)
 // when it was new, else false.
 u8 __fastcall Object_AddKeyed(u8 *object, void *, u32 key, s32 amount);
+
+// 0x40f950 (thiscall; &other, pops 4): tree B's key compare: 1 when the word key is below other's (unsigned), else 0.
+u32 __fastcall StdTreeB_KeyLess(const u16 *key, void *, const u16 *other);
 }  // extern "C"

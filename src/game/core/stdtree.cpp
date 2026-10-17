@@ -595,4 +595,6 @@ u8 __fastcall Object_AddKeyed(u8 *object, void *, u32 key, s32 amount) {
     at<s32>(object, 0x1c) += amount;
     return 1;
 }
+
+u32 __fastcall StdTreeB_KeyLess(const u16 *key, void *, const u16 *other) { return *key < *other ? 1 : 0; }
 }  // extern "C"

@@ -1,6 +1,6 @@
 # The red-black tree members of src/game/core/stdtree (iterator increment and erase for seven instantiations of the game's std::map / std::set) against the originals:
 # valid red-black trees of 1 to 12 nodes (built with the usual insertion), every node erased in turn across the cases, the iterator increment from every node; for B the
-# range erase (0x4104b0: the whole tree, a tail, a stretch or nothing, the size now and then 0) and _Erase (0x410720) from the root, a node or nil.
+# range erase (0x4104b0: the whole tree, a tail, a stretch or nothing, the size now and then 0) and _Erase (0x410720) from the root, a node or nil; B's key compare (0x40f950).
 # usage: stdtree.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
@@ -20,7 +20,7 @@ INSERT = {'A': 0x47d140, 'G': 0x5b2ba0}
 DEC = {'A': 0x47d4b0, 'C': 0x4f6340, 'D': 0x4f64f0, 'E': 0x4f6680, 'F': 0x5b2ff0, 'G': 0x5b3130}
 RANGE = {'B': (0x4104b0, 0x410720)}   # erase(first, last), _Erase
 CTOR = {'A': (0x47ce70, 0x7b4a50), 'C': (0x4f4120, 0x7ced30), 'D': (0x4f4b70, 0x7ced28), 'E': (0x4f5080, 0x7ced38), 'G': (0x5b2af0, 0xf7c96c)}
-B = Bench([(a, a + 0x330) for a in INSERT.values()] + [(0x5b3210, 0x5b3230)] + [(a, a + 0xc0) for a in DEC.values()] + [(a, a + 0xb0) for (a, _c) in CTOR.values()] + [(a, a + 0xb0) for (a, _e, _n, _c) in TREES.values()] + [(e, e + 0x560) for (_a, e, _n, _c) in TREES.values()] + [(0x4104b0, 0x410610), (0x410720, 0x4107a0), (0x67acb0, 0x67acb1), (0x45b340, 0x45b9a0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000)],
+B = Bench([(a, a + 0x330) for a in INSERT.values()] + [(0x5b3210, 0x5b3230)] + [(a, a + 0xc0) for a in DEC.values()] + [(a, a + 0xb0) for (a, _c) in CTOR.values()] + [(a, a + 0xb0) for (a, _e, _n, _c) in TREES.values()] + [(e, e + 0x560) for (_a, e, _n, _c) in TREES.values()] + [(0x40f950, 0x40f961), (0x4104b0, 0x410610), (0x410720, 0x4107a0), (0x67acb0, 0x67acb1), (0x45b340, 0x45b9a0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000)],
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})
 TREE, HEAD, NIL, NODES = RAM, RAM + 0x200, RAM + 0x300, RAM + 0x10000
 RED, BLACK = 0, 1
@@ -134,6 +134,11 @@ def case_insert(r, name):
 
 def case(r):
     name = r.choice(OPS)
+    if name == 'KeyLessB':  # B's key compare (0x40f950): two words, equal, one apart, at the ends, random above them
+        a = r.choice([0, 1, 0x7fff, 0x8000, 0xffff, r.getrandbits(16)])
+        b = r.choice([a, a + 1, a - 1, 0, 0xffff, 0x8000, r.getrandbits(16)]) & 0xffff
+        regions = {RAM: struct.pack('<HH', a, r.getrandbits(16)), RAM + 0x10: struct.pack('<HH', b, r.getrandbits(16))}
+        return Call(0x40f950, [RAM, RAM + 0x10], regions, conv='t', ret='a')
     if name in INSERT and r.random() < 0.3:
         return case_insert(r, name)
     inc, erase, nil_at, colour = TREES[name]
@@ -200,7 +205,7 @@ def case(r):
     return Call(erase, [TREE, RAM + 0x800, node], regions, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', ','.join(TREES)).split(',') if k]
+OPS = [k for k in os.environ.get('OPS', ','.join(list(TREES) + ['KeyLessB'])).split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
