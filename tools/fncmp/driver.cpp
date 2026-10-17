@@ -30,6 +30,7 @@
 #include "../../src/game/core/ptrlist.h"
 #include "../../src/game/core/stdstring.h"
 #include "../../src/game/files/bufsource.h"
+#include "../../src/game/files/dirsource.h"
 #include "../../src/game/files/drives.h"
 #include "../../src/game/files/file.h"
 #include "../../src/game/files/handles.h"
@@ -37,6 +38,7 @@
 #include "../../src/game/files/wadfind.h"
 #include "../../src/game/files/wadsource.h"
 #include "../../src/game/files/wrapsources.h"
+#include "../../src/game/files/zlibcodec.h"
 #include "../../src/game/gfx/canvas.h"
 #include "../../src/game/world/mousemode.h"
 #include "crt.h"
@@ -257,8 +259,8 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     }
     u32 h = self * 0x9e3779b1u + (k + 1) * 0x10001u + n;
     for (u32 i = 0; i < n; ++i) h = h * 33 ^ args[i];
-    const u32 *override = log + 0x200 + 2 * (k & 63);  // (LOG_RETURNS: a flag and a value for the slot)
-    return override[0] ? override[1] : h;
+    const u32 *override = log + 0x200 + 2 * (k & 63);  // (LOG_RETURNS: a flag and a value for the slot; flag 2: argument value, as passed)
+    return override[0] == 2 && override[1] < n ? stack[1 + override[1]] : override[0] ? override[1] : h;
 }
 
 void map_com_recorders(u8 *page) {  // the COM-style ones (this on the stack, ECX undefined): this is logged as 0 and k as k | 0x100
@@ -300,6 +302,51 @@ void map_recorders(u8 *page) {
     }
 }
 
+// The zlib stand-ins for the codec's env (tools/fncmp.py hooks the game's zlib with the same): no compression, a copy of what fits from the input to the
+// output, answering 1 (Z_STREAM_END) when the input is used up, 0 (Z_OK) when it moved some, -5 (Z_BUF_ERROR) when it could not; the inits 0. A case can
+// override the inits', deflate's and inflate's answers at kLog + 0xf00 (fncmp.zlib_results(): a flag and a value each). Each call is logged as the entry k
+// 0x140 + its index in deflateInit2, deflate, deflateEnd, inflateInit2, inflate, inflateEnd with its scalar arguments (the stream is a stack address; deflate / inflate: the flush, then avail_in and avail_out).
+s32 zlib_result(u32 which, s32 natural) {
+    const u32 *const config = reinterpret_cast<const u32 *>((uintptr_t)(kLog + 0xf00)) + 2 * which;
+    return config[0] ? (s32)config[1] : natural;
+}
+
+void zlib_log(u32 k, u32 n, u32 a = 0, u32 b = 0, u32 c = 0, u32 d = 0, u32 e = 0, u32 f = 0, u32 g = 0) {
+    u32 *const log = reinterpret_cast<u32 *>((uintptr_t)kLog);
+    if (log[0] >= 40) return;
+    u32 *const entry = log + 1 + 12 * log[0]++;
+    const u32 values[12] = {k, n, 0, a, b, c, d, e, f, g, 0, 0};
+    std::memcpy(entry, values, sizeof values);
+}
+
+s32 zlib_copy(ZStream *z, u32 which, s32 flush) {
+    zlib_log(0x140 + 3 * which - 2, 3, (u32)flush, z->availIn, z->availOut);
+    const u32 n = z->availIn < z->availOut ? z->availIn : z->availOut;
+    std::memmove(z->nextOut, z->nextIn, n);
+    z->nextIn += n, z->availIn -= n, z->totalIn += n;
+    z->nextOut += n, z->availOut -= n, z->totalOut += n;
+    return zlib_result(which, !z->availIn ? 1 : n ? 0 : -5);
+}
+
+s32 __cdecl zlib_deflate_init(ZStream *, s32 level, s32 method, s32 windowBits, s32 memLevel, s32 strategy, const char *version, s32 size) {
+    zlib_log(0x140, 7, (u32)level, (u32)method, (u32)windowBits, (u32)memLevel, (u32)strategy, (u32)(uintptr_t)version, (u32)size);
+    return zlib_result(0, 0);
+}
+s32 __cdecl zlib_inflate_init(ZStream *, s32 windowBits, const char *version, s32 size) {
+    zlib_log(0x143, 3, (u32)windowBits, (u32)(uintptr_t)version, (u32)size);
+    return zlib_result(0, 0);
+}
+s32 __cdecl zlib_deflate(ZStream *z, s32 flush) { return zlib_copy(z, 1, flush); }
+s32 __cdecl zlib_inflate(ZStream *z, s32 flush) { return zlib_copy(z, 2, flush); }
+s32 __cdecl zlib_deflate_end(ZStream *) {
+    zlib_log(0x142, 0);
+    return 0;
+}
+s32 __cdecl zlib_inflate_end(ZStream *) {
+    zlib_log(0x145, 0);
+    return 0;
+}
+
 void *find(u32 address);
 
 void jump(u8 *at, const void *to) {
@@ -312,7 +359,17 @@ void jump(u8 *at, const void *to) {
 // replacements): code that constructs one of these objects itself then calls through the real vtable. (address, slots; a slot not hooked is left as it is,
 // and a case that calls it crashes natively)
 const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
-                                   {0x00703e08, 9}};  // TextWriter_vtable
+                                   {0x00703e08, 9},   // TextWriter_vtable
+                                   {0x00703908, 13},  // WadSource_vtable
+                                   {0x006fd930, 12},  // FileStream_vtable
+                                   {0x00703ea0, 12},  // SharedSource_vtable
+                                   {0x00703ed0, 12},  // BufferSource_vtable (RefPack)
+                                   {0x00703f18, 12},  // ZlibBufferSource_vtable
+                                   {0x00703f48, 12},  // SliceSource_vtable
+                                   {0x007038d0, 14},  // DirSource_vtable
+                                   {0x00703e30, 12},  // FileSource_vtable
+                                   {0x00703e60, 12},  // MmioSource_vtable
+                                   {0x00703128, 8}};  // ZlibCodec_vtable
 
 void resolve_vtables() {
     for (const auto &v : kResolvedVtables)
@@ -422,6 +479,16 @@ int main(int argc, char **argv) {
     WadDir_SetEnv(&wadDir);
     static const WadFindEnv wadFind = {&heap_alloc, &heap_free, reinterpret_cast<s32(__cdecl *)(s32)>(hooked(0x0067f1a0))};
     WadFind_SetEnv(&wadFind);
+    static const DirSourceEnv dirSource = {reinterpret_cast<RefObject *(__fastcall *)(void *)>(hooked(0x00636e40)),
+                                           reinterpret_cast<s32 *(__fastcall *)(RefObject *, void *, s32 *, const char *, u32)>(hooked(0x00636f10)),
+                                           reinterpret_cast<RefObject *(__fastcall *)(void *)>(hooked(0x006371e0)),
+                                           reinterpret_cast<s32 *(__fastcall *)(RefObject *, void *, s32 *, const char *, u32)>(hooked(0x006372b0))};
+    DirSource_SetEnv(&dirSource);
+    static const ZlibEnv zlib = {&zlib_deflate_init, &zlib_deflate, &zlib_deflate_end, &zlib_inflate_init, &zlib_inflate, &zlib_inflate_end,
+                                 reinterpret_cast<void *(__cdecl *)(void *, u32, u32)>(hooked(0x00619250)),
+                                 reinterpret_cast<void(__cdecl *)(void *, void *)>((uintptr_t)0x005da3c0),  // (Debug_Printf: the stand-ins never free)
+                                 reinterpret_cast<const char *>((uintptr_t)0x007780f0), reinterpret_cast<const u32 *>((uintptr_t)0x007780ec)};
+    ZlibCodec_SetEnv(&zlib);
     // Envs whose game defaults call game code by its address, which the driver cannot (its own code covers the game's .text): that code resolved to its hooked
     // replacement, as the hooked game resolves it; the CPU information constructor (CPUID, the host's) is stub_mark, as tools/fncmp.py's emulator has it.
     static DrivesEnv drives = *Drives_GetEnv();

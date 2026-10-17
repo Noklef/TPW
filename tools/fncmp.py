@@ -107,6 +107,56 @@ def _seek(e):  # thiscall (offset, origin): pops its two arguments (driver.cpp s
     e.r['ESP'] = sp + 8
 
 
+def zlib_results(log, init=None, deflate=None, inflate=None):
+    """The game's zlib is not compared: both sides run stand-ins (driver.cpp zlib_copy) that copy what fits from the input to the output, answering 1
+    (Z_STREAM_END) when the input is used up, 0 (Z_OK) when they moved some, -5 (Z_BUF_ERROR) when they could not, and 0 from the inits; each call is
+    logged as the entry k 0x140 + its index in deflateInit2, deflate, deflateEnd, inflateInit2, inflate, inflateEnd with its scalar arguments (deflate /
+    inflate: the flush, avail_in, avail_out). This overrides the inits', deflate's or inflate's answer (None: their own) in the log region the case hands
+    over."""
+    for i, v in enumerate((init, deflate, inflate)):
+        if v is not None:
+            struct.pack_into('<II', log, LOG_ZLIB + 8 * i, 1, v & 0xffffffff)
+
+
+def _zlib_result(e, which, natural):
+    flag, value = struct.unpack('<2I', e.read(LOG + LOG_ZLIB + 8 * which, 8))
+    return value if flag else natural & 0xffffffff
+
+
+def _zlib_log(e, k, args):  # (driver.cpp zlib_log)
+    count = e.u32(LOG)
+    if count < LOG_ENTRIES:
+        e.write(LOG + 4 + 4 * LOG_ENTRY * count, struct.pack('<%dI' % LOG_ENTRY, k, len(args), 0, *(list(args) + [0] * (LOG_ENTRY - 3 - len(args)))))
+        e.write(LOG, struct.pack('<I', count + 1))
+
+
+def _zlib_copy(which):
+    def hook(e):  # cdecl (z, flush)
+        z, flush = e.u32(e.r['ESP']), e.u32(e.r['ESP'] + 4)
+        nin, ain, tin, nout, aout, tout = struct.unpack('<6I', e.read(z, 24))
+        _zlib_log(e, 0x140 + 3 * which - 2, (flush, ain, aout))
+        n = min(ain, aout)
+        if n:
+            e.write(nout, e.read(nin, n))
+        e.write(z, struct.pack('<6I', (nin + n) & 0xffffffff, ain - n, (tin + n) & 0xffffffff, (nout + n) & 0xffffffff, aout - n, (tout + n) & 0xffffffff))
+        e.r['EAX'] = _zlib_result(e, which, 1 if ain == n else 0 if n else -5)
+    return hook
+
+
+def _zlib_init(k, n):
+    def hook(e):  # cdecl (z, the scalar arguments)
+        _zlib_log(e, k, struct.unpack('<%dI' % n, e.read(e.r['ESP'] + 4, 4 * n)))
+        e.r['EAX'] = _zlib_result(e, 0, 0)
+    return hook
+
+
+def _zlib_end(k):
+    def hook(e):  # cdecl (z)
+        _zlib_log(e, k, ())
+        e.r['EAX'] = 0
+    return hook
+
+
 def _record(write):
     def hook(e):  # thiscall (buffer, count): pops its two arguments
         sp, s = e.r['ESP'], e.r['ECX']
@@ -239,7 +289,7 @@ VSTUBS = STUBS + 0x1000  # the recorders: slot k (0-31) with n (0-15) stack argu
 LOG = STUBS + 0x100000  # their log (the case maps it, see log_region()): a count, then 12 dwords an entry (k, n, this, up to 7 arguments), room for 80
 LOG_ENTRY = 12
 LOG_ENTRIES = 40  # (the room: 4 + 48 * 40 bytes)
-LOG_RETURNS = 0x800  # from here an override for each slot: a flag and a value
+LOG_RETURNS = 0x800  # from here an override for each slot: a flag and a value (flag 2: the value is an argument's index, see echo())
 
 
 def recorder(k, n, com=False):
@@ -263,8 +313,14 @@ def set_return(log, k, value):
     struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 1, value & 0xffffffff)
 
 
+def echo(log, k, arg):
+    """Makes slot k's recorder return its argument `arg` as passed (a read that reads all it is asked for, a seek that gets where it is sent)."""
+    struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 2, arg)
+
+
 LOG_STRINGS = 0xa00  # from here a mask for each slot: the arguments that are C strings, and out arguments (see strings())
 LOG_FILL = 0xb00  # two fills (+ 0x80 the second): (k | 0x80000000, argument, length), the bytes from + 0x10 (see fill())
+LOG_ZLIB = 0xf00  # the zlib stand-ins' overrides: the inits', deflate's, inflate's (a flag and a value each, see zlib_results())
 
 
 def strings(log, k, mask, out=0):
@@ -316,6 +372,7 @@ def _recorder(k, n, com=False):
     def hook(e):
         sp = e.r['ESP'] + (4 if e.tail else 0)
         args = [e.u32(sp + 4 * i) for i in range(n)]
+        raw = list(args)
         this = 0 if com else e.r['ECX']
         kk = k | 0x100 if com else k
         mask = e.u32(LOG + LOG_STRINGS + 4 * (k & 63))
@@ -333,7 +390,8 @@ def _recorder(k, n, com=False):
             entry = LOG + 4 + 4 * LOG_ENTRY * count
             e.write(entry, struct.pack('<%dI' % LOG_ENTRY, kk, n, this, *(args + [0] * 7)[:7], 0, 0))
             e.write(LOG, struct.pack('<I', count + 1))
-        e.r['EAX'] = e.u32(LOG + LOG_RETURNS + 8 * k + 4) if e.u32(LOG + LOG_RETURNS + 8 * k) else vhash(kk, n, this, args)
+        flag, value = struct.unpack('<2I', e.read(LOG + LOG_RETURNS + 8 * k, 8))
+        e.r['EAX'] = raw[value] if flag == 2 and value < n else value if flag else vhash(kk, n, this, args)
         if e.tail:  # the return address goes up over the arguments the callee would have popped
             ret = e.u32(e.r['ESP'])
             e.r['ESP'] += 4 * n
@@ -438,6 +496,8 @@ class Bench:
         self.emu.hooks.update({0x67a830: _ftol, 0x67b280: _modf, 0x67b24a: _cifmod,
                                STUBS: _record(False), STUBS + 0x10: _record(True),
                                STUBS + 0x20: _global_alloc, STUBS + 0x30: _global_free, STUBS + 0x40: _mark, CDECL_LOG: _cdecl_log, COUNTER: _counter, SEEK: _seek,
+                               0x6351a0: _zlib_init(0x140, 7), 0x635450: _zlib_copy(1), 0x6357c0: _zlib_end(0x142), 0x636600: _zlib_init(0x143, 3),
+                               0x636710: _zlib_copy(2), 0x6365b0: _zlib_end(0x145),
                                0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove,
                                0x6918f0: _throw('_Xlen'), 0x691ba0: _throw('_Xran')})
         self.emu.hooks.update({recorder(k, n): _recorder(k, n) for k in range(32) for n in range(16)})  # (n up to 15 fits below the COM recorders at +0x4000)
