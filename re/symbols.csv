@@ -3679,6 +3679,8 @@ address,name,kind,confidence,notes
 0x0045bf70,Holder_InitUnusedEpsilon,function,high,reimplemented (src/game/model/holder); unused static 0x7a1cdc = 1 / 2^23
 0x005d8820,HolderUser_Release,function,high,reimplemented (src/game/model/holder); a user takes the target's holder out of the renderer
 0x0045bcb0,Holder_AddToGrid,function,high,reimplemented (src/game/model/holder); a holder's part added to the renderer's grid over a rectangle
+0x00455a50,Holder_Dispose,function,high,"reimplemented (src/game/model/holder); a holder slept, destroyed and its block freed"
+0x00455a80,HolderOwner_Dispose,function,high,reimplemented (src/game/model/holder); an owner's holder disposed of and its counter and block released
 0x0046de00,Model_RemapTextures,function,high,"reimplemented (src/game/model/remap); (model, remap, textures, first): face texture pointers and grid cell textures renumbered"
 0x00469180,Highlight_Update,function,high,"reimplemented (src/game/model/highlight); releases the current holder (0x7a1ce0) for another target (0x7afda0), highlights the target: mesh vertex blocks copied into 0x7afd00"
 0x00469340,Highlight_SetTarget,function,high,reimplemented (src/game/model/highlight); 0x7afda0 = holder

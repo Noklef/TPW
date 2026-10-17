@@ -44,4 +44,10 @@ void __fastcall HolderUser_Release(u8 *user);
 // 0x45bcb0 (cdecl; holder, from, to): the part at +0x1c (null, or adjusted by the virtual base offset in the word at +4 of its vtable) is added to the renderer's grid
 // ([0x87a6d0]; Grid_AddObject) over the rectangle whose corners are the high and low words of from and to, with the word 0x70; the holder's flag 1 is set.
 void __cdecl Holder_AddToGrid(u8 *holder, u32 from, u32 to);
+
+// 0x455a50 (cdecl; the holder): Holder_Sleep when flag 1 is set, Holder_Destroy, then the block at +0x24 is freed (GlobalMem_Free). Returns 1.
+u32 __cdecl Holder_Dispose(u8 *holder);
+
+// 0x455a80 (cdecl; the owner): the same for the holder at +0x24 of the owner, then the dword at +0x1c of the object at +0x3c is lowered and the block at +0x34 freed. Returns 1.
+u32 __cdecl HolderOwner_Dispose(u8 *owner);
 }

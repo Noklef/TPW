@@ -6,6 +6,7 @@
 #include "../render/renderer.h"
 #include "../core/vcall.h"
 #include "../core/misc.h"
+#include "../core/globalmem.h"
 
 namespace {
 
@@ -99,5 +100,25 @@ void __cdecl Holder_AddToGrid(u8 *holder, u32 from, u32 to) {
         part = sub + at<s32>(at<u8 *>(sub, 0), 4);
     Grid_AddObject(global<u8 *>(0x0087a6d0), nullptr, (s32)(from >> 16), (s32)(from & 0xffff), (s32)(to >> 16), (s32)(to & 0xffff), part, 0x70);
     at<u32>(holder, 0) = at<u32>(holder, 0) | 1;
+}
+
+u32 __cdecl Holder_Dispose(u8 *holder) {
+    if (at<u32>(holder, 0) & 1)
+        Holder_Sleep(holder);
+    Holder_Destroy(holder);
+    GlobalMem_Free(at<void *>(holder, 0x24));
+    return 1;
+}
+
+u32 __cdecl HolderOwner_Dispose(u8 *owner) {
+    u8 *const holder = at<u8 *>(owner, 0x24);
+    if (at<u32>(holder, 0) & 1)
+        Holder_Sleep(holder);
+    Holder_Destroy(holder);
+    GlobalMem_Free(at<void *>(holder, 0x24));
+    u8 *const counter = at<u8 *>(owner, 0x3c);
+    at<s32>(counter, 0x1c) = at<s32>(counter, 0x1c) - 1;
+    GlobalMem_Free(at<void *>(owner, 0x34));
+    return 1;
 }
 }
