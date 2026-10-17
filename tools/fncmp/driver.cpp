@@ -43,6 +43,7 @@
 #include "../../src/game/files/zlibcodec.h"
 #include "../../src/game/gfx/canvas.h"
 #include "../../src/game/sprite/script.h"
+#include "../../src/game/world/mapline.h"
 #include "../../src/game/world/mousemode.h"
 #include "crt.h"
 #include "../../src/hook/hooks.h"
@@ -246,6 +247,7 @@ const WrapSourcesEnv kWrapSourcesEnv = {&heap_alloc, &heap_free, reinterpret_cas
 // The recorders (tools/fncmp.py recorder(k, n)): thunks at kStubs + 0x1000 + 0x400 * n + 0x20 * k, thiscall with n stack arguments (popped by the thunk), that
 // log (k, n, this, the arguments) at kLog and return a hash of them. The log is a count, then 12 dwords an entry; room for 80.
 const u32 kLog = kStubs + 0x100000;  // (the case maps it)
+constexpr u32 recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x400 * n + 0x20 * k; }
 
 // Optional settings in the log region: at + 0xa00 a mask per slot (k & 63): bits 0-15 the arguments that are C strings, logged and hashed as a hash of the string
 // (so that a path in a stack buffer, whose address differs between the sides, compares by its text), bits 16-31 out arguments, logged as 0 (a stack address;
@@ -587,6 +589,9 @@ int main(int argc, char **argv) {
     Drives_SetEnv(&drives);
     static const CpuInfoEnv cpu = {&stub_has_cpuid, &stub_cpuid};  // the case's fake CPU, as the emulator's
     CpuInfo_SetEnv(&cpu);
+    // Game code a port calls directly that is not hooked (yet): a recorder, as the bench's hooks= has it in the emulator.
+    static const MapLineEnv mapLine = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32, s32, s32)>((uintptr_t)recorder(20, 3))};  // 0x5370e0: tests/fncmp/mapline.py
+    MapLine_SetEnv(&mapLine);
     static CanvasEnv canvas = *Canvas_GetEnv();
     canvas.infoCtor = reinterpret_cast<SurfaceInfo *(__fastcall *)(SurfaceInfo *)>(hooked(0x005fa680));
     Canvas_SetEnv(&canvas);
