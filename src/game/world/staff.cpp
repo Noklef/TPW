@@ -4,8 +4,10 @@
 
 #include "../core/selectors.h"
 #include "../math/x87.h"
+#include "money.h"
 #include "things.h"
 #include "thingscan.h"
+#include "world.h"
 
 namespace {
 
@@ -205,6 +207,32 @@ u16 *__fastcall Guard_NearestFree(const u8 *object, void *, u16 *out, u32) {
 }
 
 s32 __fastcall Staff_WageForRecord(const u8 *record) { return Staff_WageFor(at<u32>(record, 0), at<u8>(record, 8)); }
+
+void __fastcall Staff_Train(u8 *staff, void *, s32 amount) {
+    if (at<s32>(staff, 0x1e4) == 4) return;
+    Money_Debit(reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(global<u8 *>(0x0080239c))), nullptr, amount);
+    u8 *const park = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(global<u8 *>(0x0080239c)));
+    at<s32>(park, 0x1fa40) = at<s32>(park, 0x1fa40) + amount;
+    const s32 grade = at<s32>(staff, 0x1e4);
+    s32 cost;
+    switch (at<u8>(staff, 2)) {
+    case 4: cost = global<s32>(0x00785430 + grade * 8); break;
+    case 5: cost = global<s32>(0x007853f4 + grade * 12); break;
+    case 6: cost = global<s32>(0x007853a4 + grade * 16); break;
+    case 7: cost = global<s32>(0x0078549c + grade * 8); break;
+    case 8: cost = global<s32>(0x00785460 + grade * 12); break;
+    default: cost = amount; break;
+    }
+    s32 points = amount / cost;  // sic: faults for a cost of 0 (and -0x80000000 / -1)
+    if (points > 100) points = 100;
+    if (points + at<u8>(staff, 0x1e8) > 0x63) {
+        at<s32>(staff, 0x1e4) = at<s32>(staff, 0x1e4) + 1;
+        at<u8>(staff, 0x1e8) = (u8)(at<u8>(staff, 0x1e8) + (u8)(points - 100));
+        at<u32>(staff, 0x1f8) = 0x42c80000;  // 100.0f
+    } else {
+        at<u8>(staff, 0x1e8) = (u8)(at<u8>(staff, 0x1e8) + points);
+    }
+}
 
 u32 __fastcall Table_ScaledBySum(u8 *table, void *, s32 index) {
     const u32 total = (u32)Global7852f8_Times78548c();
