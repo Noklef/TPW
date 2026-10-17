@@ -606,4 +606,43 @@ u32 __cdecl MapCell_StepBlocked(u32 x, u32 y, u32 dir, s32 mode) {
     const u8 mask = d == 0 ? 0x10 : d == 2 ? 1 : d == 1 ? 0x40 : 4;
     return (bits & mask) == 0 ? 1 : 0;
 }
+
+u32 __cdecl MapCell_StepOpen(u32 from, u32 to, s32 mode) {
+    const u32 a = (from & 0xffff) - 1, b = (to & 0xffff) - 1;
+    const u32 ax = a & 0x7f, ay = a >> 7, bx = b & 0x7f, by = b >> 7;
+    if (ay == 0 && by == 0x3ff) {  // (unreachable: by is at most 0x1ff, or 0x1ffffff for cell 0; the print is left out, its once-flag kept)
+        if (global<u32>(0x007cf38c) == 0)
+            global<u32>(0x007cf38c) = 1;
+        return 0;
+    }
+    const s32 dx = (s32)(ax - bx), dy = (s32)(ay - by);
+    if ((dx < 0 ? -dx : dx) > 1 || (dy < 0 ? -dy : dy) > 1) {  // not neighbours (the print is left out, its once-flag kept)
+        if (global<u32>(0x007cf38c) == 0)
+            global<u32>(0x007cf38c) = 1;
+        return 0;
+    }
+    if (to == 0xffffffff)  // sic: the whole argument, after its low word was taken as a cell
+        return 0;
+    const u32 up = dy == 1, right = bx - ax == 1, down = by - ay == 1, left = dx == 1;
+    const auto blocked = [mode](u32 x, u32 y, u32 dir) { return MapCell_StepBlocked(x, y, dir, mode) != 0; };
+    if (up + right + down + left == 2) {  // a diagonal: round its corner one way (down-right horizontal first, the others vertical first), else the other
+        const u32 first = right && down ? 1 : up ? 0 : 2, second = right && down ? 2 : right ? 1 : 3;
+        const auto nx = [ax](u32 dir) { return dir == 1 ? (u8)(ax + 1) : dir == 3 ? (u8)(ax - 1) : ax; };  // (the callee reads bytes only)
+        const auto ny = [ay](u32 dir) { return dir == 0 ? (u8)(ay - 1) : dir == 2 ? (u8)(ay + 1) : ay; };
+        if (!blocked(ax, ay, first) && !blocked(nx(first), ny(first), second))
+            return 1;
+        if (blocked(ax, ay, second))
+            return 0;
+        return blocked(nx(second), ny(second), first) ? 0 : 1;
+    }
+    if (up && blocked(ax, ay, 0))
+        return 0;
+    if (right && blocked(ax, ay, 1))
+        return 0;
+    if (down && blocked(ax, ay, 2))
+        return 0;
+    if (left && blocked(ax, ay, 3))
+        return 0;
+    return 1;
+}
 }

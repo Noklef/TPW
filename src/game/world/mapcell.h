@@ -240,4 +240,9 @@ void __cdecl MapCell_PathNudge(s32 *x, s32 *y);
 // other than 1, 3 or 9: open; mode 1 from 1 into other than 1, 3, 9 or 4: open; mode 2 from 1 into 0: open; from 0xa or 9 into 0 facing the way
 // (+0xd: 4, 0x40, 0x10, 1 for directions 3, 1, 0, 2): open; else blocked.
 u32 __cdecl MapCell_StepBlocked(u32 x, u32 y, u32 dir, s32 mode);
+// 0x510510 (cdecl; two cell handles, mode; name unconfirmed): 1 when the step from the first cell (row * 128 + column + 1, the low word) to the
+// second, a neighbour, is open (MapCell_StepBlocked in that mode), else 0. Not neighbours (sets the print-once flag 0x7cf38c) or the second argument
+// -1 (sic, its whole dword): 0. Straight: the one step. Diagonal: round one corner (down-right: right then down; the others: up or down then across)
+// or, failing that, the other.
+u32 __cdecl MapCell_StepOpen(u32 from, u32 to, s32 mode);
 }
