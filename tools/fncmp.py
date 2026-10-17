@@ -438,6 +438,19 @@ def _cdecl_log(e):  # (driver.cpp stub_cdecl_log)
         e.write(e.r['ESP'], struct.pack('<I', ret))
 
 
+CDECL_LOG2 = STUBS + 0x80  # a callback of two cdecl arguments that logs them (the entry k 0x13e, n 2, this 0; set_return(log, 0x3e, v) overrides)
+
+
+def _cdecl_log2(e):  # (driver.cpp stub_cdecl_log2)
+    sp = e.r['ESP'] + (4 if e.tail else 0)
+    args = [e.u32(sp), e.u32(sp + 4)]
+    count = e.u32(LOG)
+    if count < LOG_ENTRIES:
+        e.write(LOG + 4 + 4 * LOG_ENTRY * count, struct.pack('<%dI' % LOG_ENTRY, 0x13e, 2, 0, *args, *([0] * 7)))
+        e.write(LOG, struct.pack('<I', count + 1))
+    e.r['EAX'] = e.u32(LOG + LOG_RETURNS + 8 * 0x3e + 4) if e.u32(LOG + LOG_RETURNS + 8 * 0x3e) else vhash(0x13e, 2, 0, args)
+
+
 
 COUNTER = STUBS + 0x60  # QueryPerformanceFrequency / QueryPerformanceCounter for an import slot (driver.cpp stub_counter); counter(log, ...) sets it up
 
@@ -515,7 +528,7 @@ class Bench:
         self.emu = x87emu.Emu([slice_listing(ranges)])
         self.emu.hooks.update({0x67a830: _ftol, 0x67b280: _modf, 0x67b24a: _cifmod,
                                STUBS: _record(False), STUBS + 0x10: _record(True),
-                               STUBS + 0x20: _global_alloc, STUBS + 0x30: _global_free, STUBS + 0x40: _mark, CDECL_LOG: _cdecl_log, COUNTER: _counter, SEEK: _seek,
+                               STUBS + 0x20: _global_alloc, STUBS + 0x30: _global_free, STUBS + 0x40: _mark, CDECL_LOG: _cdecl_log, COUNTER: _counter, SEEK: _seek, CDECL_LOG2: _cdecl_log2,
                                0x6351a0: _zlib_init(0x140, 7), 0x635450: _zlib_copy(1), 0x6357c0: _zlib_end(0x142), 0x636600: _zlib_init(0x143, 3),
                                0x636710: _zlib_copy(2), 0x6365b0: _zlib_end(0x145),
                                0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove,
