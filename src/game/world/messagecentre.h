@@ -10,4 +10,9 @@ void __fastcall MessageSlot_Dtor(u8 *slot);
 
 // 0x409250 (thiscall on the message centre; name unconfirmed): its 29 slots of 0x14 bytes from +0 destroyed, the last first (CRT_VectorDtorIterator with MessageSlot_Dtor).
 void __fastcall MessageCentre_DtorSlots(u8 *centre);
+
+// 0x40fa40 (thiscall on the message centre; thing, pops 4; name unconfirmed): for each of the 29 slots the thing's handle (Thing_GetHandle) is looked up
+// in the slot's map (Tree16a_LowerBound; found when that is not the head and the handle is not below its key, StdTreeB_KeyLess) and that node erased
+// (StdTree_EraseB). Returns the number erased.
+u32 __fastcall MessageCentre_RemoveThing(u8 *centre, void *, const u8 *thing);
 }  // extern "C"
