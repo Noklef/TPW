@@ -2,7 +2,7 @@
 # and the map's bounds check, RE cells, fixed positions, block values and cell constructor
 # (0x4d8300-0x4d8ca0, 0x4d8da0) and the RE cells' constructor and comparison (0x502460, 0x502470)
 # the track cell's constructor (0x50c1d0), the map id of a cell (0x510870) and the 0x28-byte
-# cells' accessors (0x522700-0x5228b0, 0x535db0-0x536440, 0x539210, 0x53a510-0x53aef0: track
+# cells' accessors (0x522700-0x5228b0, 0x535db0-0x536440, 0x539210, 0x539670, 0x53a510-0x53aef0: track
 # cells or not, 0x81b4cc set or not, parents 0 and a few in a table of the world's) against the
 # originals: handles 0, 1 and wild under any gMapCells, ranges set at any index, coordinates
 # about 0 and 128, positions of any value for A and B.
@@ -16,7 +16,7 @@ from fncmp import Bench, Call, RAM, put  # noqa: E402
 B = Bench([(0x4d0a70, 0x4d0a86), (0x4d0a90, 0x4d0ab1), (0x4d0ac0, 0x4d0ae1), (0x4d0af0, 0x4d0b06),
            (0x4d0b10, 0x4d0b27), (0x4d8300, 0x4d8328), (0x4d8410, 0x4d8434), (0x4d8610, 0x4d8750), (0x4d8c60, 0x4d8cc8), (0x4d8cd0, 0x4d8ceb), (0x4cd720, 0x4cd7e6), (0x5d60c0, 0x5d60d0),
            (0x4d8da0, 0x4d8dc2), (0x502460, 0x502487), (0x50c1d0, 0x50c1e6), (0x510870, 0x51089d), (0x522700, 0x5228b5), (0x535db0, 0x535dc3), (0x536300, 0x536484),
-           (0x539210, 0x53921c), (0x53a510, 0x53a53d), (0x53ad20, 0x53aefc)])
+           (0x539210, 0x53921c), (0x539670, 0x53975e), (0x53a510, 0x53a53d), (0x53ad20, 0x53aefc)])
 CELL = {0x522700: 'v', 0x522730: 'v', 0x522770: 'b', 0x522790: 'a', 0x5227e0: 'v', 0x5227f0: 'v', 0x522810: 'a',
         0x522850: 'b', 0x522860: 'a', 0x522890: 'v', 0x5228a0: 'v', 0x5228b0: 'a', 0x535db0: 'a', 0x5363b0: 'a',
         **{a: 'a' for a in (0x536300, 0x536310, 0x536320, 0x536340, 0x536350, 0x536360, 0x536380, 0x536390,
@@ -29,7 +29,8 @@ TABLE = RAM + 0x400  # the world's cells for handles 0-5: gWorld and gMapCells p
 OPS = [int(a, 16) for a in os.environ.get('OPS', '').split(',') if a]
 POS = [0x4d8610, 0x4d8650, 0x4d8690, 0x4d86d0, 0x4d8710]
 OTHER = {0x4cd720: 'map', 0x4d0af0: 0, 0x4d0b10: 0, 0x4d0a70: 1, 0x4d0a90: 2, 0x4d0ac0: 2, 0x4d8300: 4, 0x4d8410: 5, **{a: 6 for a in POS},
-         0x4d8cd0: 7, 0x4d8ca0: 7, 0x4d8c60: 7, 0x4d8da0: 8, 0x502460: 9, 0x502470: 10, 0x50c1d0: 11, 0x510870: 12}   # the function -> its case kind
+         0x4d8cd0: 7, 0x4d8ca0: 7, 0x4d8c60: 7, 0x4d8da0: 8, 0x502460: 9, 0x502470: 10, 0x50c1d0: 11, 0x510870: 12,
+         0x539670: 'step'}   # the function -> its case kind
 
 
 def coord(r):
@@ -48,6 +49,22 @@ def case(r):
         re_cells = bytearray(r.bytes(0x29000))
         world = RAM - 0x2d8  # so that the map (world + 0x2d8) is the cells region
         return Call(0x4cd720, [], {0x802390: put(bytearray(r.bytes(0x20)), 0xc, 'I', world), RAM: cells, RAM + 0x1b1000: re_cells}, ret='a')
+    if op == 'step':  # the step direction: cells named 1-4 among 0x44-byte cells at RAM + 0x1000
+        cell = bytearray(r.bytes(0x28))
+        put(cell, 0, 'H', r.randrange(1, 5))
+        cell[2] = r.choice([2, 2, 0, r.getrandbits(8)])
+        put(cell, 8, 'I', r.choice(TYPES + [0xb, 0xc, 0x10, 0x11, r.randrange(0x20)]))  # (the parented types twice)
+        for f in (0xc, 0x22):
+            cell[f] = r.choice([0x11, 0x14, 0x15, 0x55, 0x45, 0x50, r.getrandbits(8)])
+        cells = bytearray(r.bytes(4 * 0x44))
+        for k in range(4):
+            put(cells, k * 0x44 + 8, 'I', r.choice([0x15, 0x15, 0x14, 0x115, r.randrange(0x20)]))
+        mode = bytearray(r.bytes(4))
+        mode[0] = r.choice([0, 1, r.getrandbits(8)])
+        step = [-2, 2, -2, 2, 0, 1, -1, r.getrandbits(32) - (1 << 31)]
+        args = [RAM + 0x40, r.choice(step) & 0xffffffff, r.choice(step) & 0xffffffff]
+        regions = {RAM + 0x40: cell, RAM + 0x1000: cells, 0x81b4cc: mode, 0x8023a0: put(bytearray(4), 0, 'I', RAM + 0x1000)}
+        return Call(0x539670, args, regions, conv='t')
     if op == 13:
         cell = bytearray(r.bytes(0x28))
         cell[2] = r.choice([2, 2, 0, 1, 3, r.getrandbits(8)])
