@@ -249,7 +249,8 @@
 #include "../game/render/batch.h"
 #include "../game/render/rasteriser.h"
 #include "../game/render/dynfaces.h"
-#include "../game/render/lightsource.h"
+#include "../game/render/lightsource.h"
+#include "../game/render/quad.h"
 #include "../game/render/viewport.h"
 #include "../game/render/heightgrid.h"
 #include "../game/render/vertexfog.h"
@@ -3531,6 +3532,8 @@ const Hook kHooks[] = {
     {"HeightGrid_HeightAt",       0x0057c190, (void *)&HeightGrid_HeightAt, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"VertexFog_Colour",          0x005747d0, (void *)&VertexFog_Colour, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"VertexFog_Alpha",           0x00574960, (void *)&VertexFog_Alpha, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"Quad_TurnXY",               0x00591430, (void *)&Quad_TurnXY, {0x8b, 0x44, 0x24, 0x0c, 0x56}},
+    {"Quad_TurnXZ",               0x00591510, (void *)&Quad_TurnXZ, {0xd9, 0x44, 0x24, 0x08, 0xd9}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

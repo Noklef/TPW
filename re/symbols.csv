@@ -4100,6 +4100,8 @@ address,name,kind,confidence,notes
 0x0057c190,HeightGrid_HeightAt,function,low,"reimplemented (src/game/render/heightgrid); thiscall (x, z): the height of the plane through the cell corner and its two neighbours, in st0"
 0x005747d0,VertexFog_Colour,function,low,"reimplemented (src/game/render/vertexfog); stdcall (vertices, count, stride): the fog blended into each vertex's diffuse and specular colours by its depth"
 0x00574960,VertexFog_Alpha,function,low,"reimplemented (src/game/render/vertexfog); stdcall (vertices, count, stride): the fog by depth into each vertex's specular alpha"
+0x00591430,Quad_TurnXY,function,low,"reimplemented (src/game/render/quad); cdecl (quad, angle in turns, centre or 0): the four vertices' x and y turned about the centre with the 256-entry sine table"
+0x00591510,Quad_TurnXZ,function,low,"reimplemented (src/game/render/quad); cdecl (quad, angle in radians): the four vertices' x and z turned about the quad's centre with fsin / fcos"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
