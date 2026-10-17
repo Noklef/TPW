@@ -47,7 +47,7 @@ def case(r):
         cell = bytearray(r.bytes(0x28))
         put(cell, 0, 'H', r.randrange(1, 5))
         cell[2] = r.choice([2, 2, 0, r.getrandbits(8)])
-        put(cell, 8, 'I', r.choice(TYPES + [r.randrange(0x20)]))
+        put(cell, 8, 'I', r.choice(TYPES + [0xb, 0xc, 0x10, 0x11, r.randrange(0x20)]))  # (the parented types twice)
         for f in (0xc, 0x22):
             cell[f] = r.choice([0x11, 0x14, 0x15, 0x55, 0x45, 0x50, r.getrandbits(8)])
         cells = bytearray(r.bytes(4 * 0x44))
