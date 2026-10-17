@@ -114,6 +114,8 @@ u32 __fastcall Staff_SurplusKind5(const u8 *object);
 u32 __fastcall Staff_SurplusKind6(const u8 *object);
 u32 __fastcall Staff_SurplusKind4(const u8 *object);
 u32 __fastcall Staff_SurplusKind7(const u8 *object);
+// 0x59ef10: the same for the staff of kind 8 with the limit at +0x380 and the dword after it at +0x384.
+u32 __fastcall Staff_SurplusKind8(const u8 *object);
 
 // 0x506910 (thiscall on a thing; out word, pops 4; the "Looking for rest area" print is left out): the handle of the thing in the game's list (the head word at +0x1da746 of
 // [0x80239c], each thing's next at +0xc) whose flags at +0x32 have bit 2 and whose cell is nearest to the thing's (squared distance of the column and row bytes at +5 and +7; the

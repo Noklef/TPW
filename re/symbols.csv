@@ -928,6 +928,7 @@ address,name,kind,confidence,notes
 0x004c8eb0,Things_AnyOfKindAround,function,high,reimplemented (src/game/world/thingscan); whether there is a thing of a kind in the cells around one
 0x00506910,Things_NearestRestArea,function,high,reimplemented (src/game/world/thingscan); the nearest thing flagged as a rest area
 0x00501020,Things_NearestFlag80Close,function,high,reimplemented (src/game/world/thingscan); the nearest flag 0x80 thing within distance 2 whose ride has no element 0
+0x0059ef10,Staff_SurplusKind8,function,high,reimplemented (src/game/world/thingscan); a value when the staff of kind 8 outnumber the objects and a limit
 0x0054b130,Buoy_FindFree,function,high,"reimplemented (src/game/world/trackpools); the first free buoy record, its index stored in it"
 0x0054b170,Buoy_Alloc,function,high,reimplemented (src/game/world/trackpools); takes the first free buoy record
 0x0054b1e0,CollNode_FindFree,function,high,reimplemented (src/game/world/trackpools); the first free collision node

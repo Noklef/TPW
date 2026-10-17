@@ -347,6 +347,8 @@ u32 __fastcall Staff_SurplusKind4(const u8 *object) { return Surplus(object, 0x3
 
 u32 __fastcall Staff_SurplusKind7(const u8 *object) { return Surplus(object, 0x378, 7); }
 
+u32 __fastcall Staff_SurplusKind8(const u8 *object) { return Surplus(object, 0x380, 8); }
+
 u16 *__cdecl Things_LastHandle(u16 *out) {
     u16 handle;
     World_FirstThing(world(), nullptr, &handle);
