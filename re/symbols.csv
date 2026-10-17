@@ -173,7 +173,7 @@ address,name,kind,confidence,notes
 0x004d0b30,MapCellBase_Serialize,function,high,"29 bytes: direction, flags, mesh instance, neighbours, overlap, parent, tile data, type, hoarding"
 0x004d8dd0,MapCell_Serialize,function,high,base + litter fields
 0x0050c200,TrackCell_Serialize,function,high,base + mSegmentNumber
-0x00502490,RECell_Serialize,function,high,5 x u16 mpEffect
+0x00502490,RECell_Serialize,function,high,"reimplemented (src/game/world/mapcell); thiscall (stream, save, version, unused): the RE cell's five words saved or loaded"
 0x004f8b10,Sprite_Serialize,function,high,"moving-person base (anim, speeds, nav, thoughts)"
 0x004d3ee0,SpriteAnim_Serialize,function,high,"reimplemented (src/game/sprite/scriptref); thiscall (stream, save, version, unused): the script reference's three dwords saved or loaded"
 0x0050d150,Nav_Serialize,function,high,steering/pathing state (float vectors)

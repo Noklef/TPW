@@ -10,6 +10,8 @@
 
 #include "../../../re/types.h"
 
+struct Stream;
+
 extern "C" {
 
 // 0x4d0af0 (thiscall on a u16 handle): its 0x28-byte entry, gMapCells + 0x10ffd8 + handle * 0x28.
@@ -102,6 +104,8 @@ u8 *__fastcall RECell_Ctor(u8 *cell);
 
 // 0x502470 (other): whether the two RE cells' 10 bytes are the same.
 u32 __fastcall RECell_Equals(const u8 *cell, void *, const u8 *other);
+// 0x502490 (thiscall; stream, save, version, unused): the RE cell's five words (mpEffect) saved or loaded as a serializer does (Save_Field).
+u32 __fastcall RECell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused);
 
 // 0x50c1d0: a 0x28-byte track cell (serialized at 0x50c200), zeroed but for byte +2 = 2.
 // Returns it.

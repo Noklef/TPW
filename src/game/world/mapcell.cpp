@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/savegame.h"
 #include "../files/file.h"
 #include "object.h"
 #include "ridestate.h"
@@ -143,6 +144,15 @@ u32 __fastcall RECell_Equals(const u8 *cell, void *, const u8 *other) {
         if (cell[i] != other[i]) return 0;
     }
     return 1;
+}
+
+u32 __fastcall RECell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32) {
+    if (version < 0 || version > 1)
+        return 0;
+    for (u32 i = 0; i < 5; ++i)
+        if (!Save_Field(stream, save, cell + i * 2, 2, 0x0075e120))
+            return 1;
+    return 0;
 }
 
 void __fastcall MapCell_AddNeighbours(u8 *cell, void *, u32 bits) { neighbours(cell) |= (u8)bits; }
