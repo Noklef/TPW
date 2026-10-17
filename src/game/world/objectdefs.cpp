@@ -6,8 +6,25 @@
 #include "../core/balancefile.h"
 #include "../core/defids.h"
 #include "../core/gameheap.h"
+#include "../core/vcall.h"
+#include "../files/file.h"
+#include "../files/wtext.h"
 
 namespace {
+
+// From a line's start: past its end and its line break (CR LF and LF CR as one); there when that line has more than spaces and tabs,
+// else on to the next non-blank line (WText_NextLine).
+const u16 *nextLine(const u16 *q) {
+    while (*q && *q != 0xa && *q != 0xd) ++q;
+    if (!*q) return q;
+    if ((q[0] == 0xa && q[1] == 0xd) || (q[0] == 0xd && q[1] == 0xa))
+        q += 2;
+    else
+        ++q;
+    for (const u16 *r = q; *r && *r != 0xa && *r != 0xd; ++r)
+        if (*r != 0x20 && *r != 9) return q;
+    return WText_NextLine(q);
+}
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
@@ -300,5 +317,36 @@ u8 *__fastcall ObjectDef_Ctor(u8 *def) {
     for (const u32 offset : kCleared)
         at<u32>(def, offset) = 0;
     return def;
+}
+
+void __fastcall ObjectDef_LoadText(u8 *def, void *, Stream *stream) {
+    u16 **const fields = reinterpret_cast<u16 **>(def + 0x4f4);
+    for (u32 i = 0; i < 4; ++i) fields[i] = reinterpret_cast<u16 *>((uintptr_t)0x006fd880);
+    const s32 size = vcall<s32>(stream, 0x14);
+    if (size % 2 != 0) return;
+    u16 *const text = static_cast<u16 *>(Mem_GlobalAlloc((u32)(size + 2)));
+    const s32 got = vcall<s32>(stream, 8, text, size);
+    if (!text || !got) return;
+    text[size / 2] = 0;
+    const u16 *const *const keys = reinterpret_cast<const u16 *const *>((uintptr_t)0x007487f8);
+    const u16 *p = text[0] == 0xfeff ? text + 1 : text;
+    while (*p) {
+        s32 index = -1;
+        for (s32 i = 0; keys[i]; ++i)
+            if (WText_WordEquals(p, keys[i])) {
+                index = i;
+                break;
+            }
+        if (index == -1) break;
+        const u16 *const value = nextLine(p);
+        u32 n = 0;
+        while (value[n] && value[n] != 0xa && value[n] != 0xd) ++n;
+        u16 *const copy = static_cast<u16 *>(Mem_GlobalAlloc(2 * n + 2));
+        fields[index] = copy;
+        for (u32 k = 0; k < n; ++k) copy[k] = value[k];
+        copy[n] = 0;
+        p = nextLine(value);
+    }
+    Mem_GlobalFree(text);
 }
 }
