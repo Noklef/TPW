@@ -44,4 +44,9 @@ void __fastcall ArrayHolder_Clear(u8 *object);
 
 // 0x5eb170 (thiscall): Array3D_Free of the members at +0x2c, +0x3c, +0x4c and +0x5c.
 void __fastcall Array3Ds_Free4(u8 *object);
+
+// 0x5e78b0 (thiscall; stream, pops 4): three u32s read from the stream (slot 8, one at a time: a, b, c), the old block freed (when there is one), a new one of
+// a * b * c bytes; when that was made it is cleared and a, b, c go to +0, +4, +8. Then a * b * c bytes are read into the block (sic: also when it is null).
+// Returns 1 in AL over the upper bytes of the last read's return.
+u32 __fastcall Array3D_Read(u8 *object, void *, u8 *stream);
 }

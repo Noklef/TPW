@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "../core/gameheap.h"
+#include "../core/vwrap.h"
 
 namespace {
 
@@ -153,5 +154,25 @@ void __fastcall Array3Ds_Free4(u8 *object) {
     Array3D_Free(object + 0x3c);
     Array3D_Free(object + 0x4c);
     Array3D_Free(object + 0x5c);
+}
+
+u32 __fastcall Array3D_Read(u8 *object, void *, u8 *stream) {
+    u32 a, b, c;
+    Object_CallSlot8Product((u32)(uintptr_t)&a, 4, 1, stream);
+    Object_CallSlot8Product((u32)(uintptr_t)&b, 4, 1, stream);
+    Object_CallSlot8Product((u32)(uintptr_t)&c, 4, 1, stream);
+    if (at<void *>(object, 0xc))
+        GameHeap_Free(at<void *>(object, 0xc));
+    const u32 size = c * b * a;
+    u8 *block = static_cast<u8 *>(GameHeap_Alloc(size));
+    at<u8 *>(object, 0xc) = block;
+    if (block) {
+        std::memset(block, 0, size);
+        at<u32>(object, 0) = a;
+        at<u32>(object, 4) = b;
+        at<u32>(object, 8) = c;
+    }
+    const u32 read = Object_CallSlot8Product((u32)(uintptr_t)at<u8 *>(object, 0xc), c * b * a, 1, stream);  // sic: into a null block too
+    return (read & ~0xffu) | 1;
 }
 }
