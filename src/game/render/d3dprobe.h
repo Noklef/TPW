@@ -3,7 +3,7 @@
 // honours a feature. The probe object (+0 its virtual base table: the base at the offset in its
 // second dword) draws through its base: slot 2 sets the state flags (D3dProbe_SetFlags; the flags
 // set last are at base +0x14, and the probes store their complement there first so that every
-// state is set again), slot 3 (0, 0) clears, slot 0x11 (20.0f, colour, specular, 0, 0, 0, 0) draws, slot
+// state is set again), slot 3 (stage, texture) sets a texture (the probes: none), slot 0x11 (20.0f, colour, specular, 0, 0, 0, 0) draws, slot
 // 0x10 (0, 0, &pixel) reads the pixel back (0 on failure). The device is the IDirect3DDevice3 at
 // +0x24 (SetRenderState, COM slot 0x58; SetTextureStageState, 0xa0).
 //
@@ -31,6 +31,13 @@
 // -1) and the low byte to 0x52 when the flags' is 0x52, else 0x22; otherwise, unless the flags
 // set last are now the flags, the low byte to the flags' and state 0x1b by flag 0x100. Answers 1.
 //
+// The texture stages of a pass (0x5686d0, only when the probe's +0x18 is 4): mode 0 sets stage 0
+// (modulate the texture by the diffuse colour) and stage 1 (select the texture's colour); mode 1
+// turns state 0x1b off (the flags set last too), stage 0 to the texture set +8 holds and stage 1
+// to blend in +0xc's; mode 2 turns state 0x1b on and the low byte to 0x93 (states 0x13 = 9,
+// 0x14 = 3), stage 0 to +0xc's texture and stage 1 to modulate +8's; modes 1 and 2 then disable
+// stage 2. Other modes do nothing. The textures go through the base's slot 3 (stage, texture).
+//
 // The originals' quirks are kept: the pixel a read writes is not set before (the alpha test's
 // starts as the probe's own address, the fog test's as whatever the stack held); it is read only
 // when the read succeeds.
@@ -43,6 +50,8 @@ extern "C" {
 u32 __fastcall D3dProbe_AlphaTest(u8 *probe);
 // 0x5673d0 (thiscall): 1, or 0 when the first read back fails.
 u32 __fastcall D3dProbe_FogTest(u8 *probe);
+// 0x5686d0 (thiscall; mode, the textures, pops 8): nothing unless the probe's +0x18 is 4.
+void __fastcall D3dProbe_SetTextureStages(u8 *probe, void *, u32 mode, const u8 *textures);
 // 0x567620 (thiscall on the probe + 0x2c; flags, pops 4): 1.
 u32 __fastcall D3dProbe_SetFlags(u8 *self, void *, u32 flags);
 }

@@ -105,6 +105,54 @@ u32 __fastcall D3dProbe_FogTest(u8 *probe) {
     return 1;
 }
 
+void __fastcall D3dProbe_SetTextureStages(u8 *probe, void *, u32 mode, const u8 *textures) {
+    if (at<u32>(probe, 0x18) != 4) return;
+    struct Stage {
+        u32 stage, type, value;
+    };
+    const Stage *first, *second = nullptr;
+    u32 firstCount, secondCount = 0, firstTexture = 0, secondTexture = 0;
+    static const Stage kOne[] = {{0, 1, 2}, {0, 4, 2}, {0, 2, 0x22}, {0, 0xb, 1}};
+    static const Stage kOneB[] = {{1, 1, 8}, {1, 4, 8}, {1, 2, 0x32}, {1, 3, 1}, {1, 5, 0x12}, {1, 6, 1}, {1, 0xb, 0}};
+    static const Stage kTwo[] = {{0, 1, 3}, {0, 4, 3}, {0, 2, 2}, {0, 3, 0}, {0, 5, 2}, {0, 6, 0}, {0, 0xb, 0}};
+    static const Stage kTwoB[] = {{1, 1, 4}, {1, 4, 4}, {1, 2, 2}, {1, 3, 1}, {1, 5, 2}, {1, 6, 1}, {1, 0xb, 0}};
+    static const Stage kZero[] = {{0, 1, 4}, {0, 4, 4}, {0, 2, 2}, {0, 3, 0}, {0, 5, 2}, {0, 6, 0}, {1, 0xb, 1},
+                                  {1, 1, 1}, {1, 4, 1}, {1, 2, 2}, {1, 3, 0}, {1, 6, 2}, {1, 6, 0}};
+    switch (mode) {
+    case 0:
+        for (const Stage &s : kZero) stageState(probe, s.stage, s.type, s.value);
+        return;
+    case 1:
+        if (shadow(probe) & 0x100) {
+            renderState(probe, 0x1b, 0);
+            shadow(probe) &= ~0x100u;
+        }
+        first = kOne, firstCount = 4, second = kOneB, secondCount = 7;
+        firstTexture = 8, secondTexture = 0xc;
+        break;
+    case 2:
+        if (~shadow(probe) & 0x100) {
+            renderState(probe, 0x1b, 1);
+            shadow(probe) |= 0x100;
+        }
+        if ((shadow(probe) ^ 0xffffff93) & 0xff) {
+            renderState(probe, 0x13, 9);
+            renderState(probe, 0x14, 3);
+            shadow(probe) = (shadow(probe) & 0xffffff93) | 0x93;
+        }
+        first = kTwo, firstCount = 7, second = kTwoB, secondCount = 7;
+        firstTexture = 0xc, secondTexture = 8;
+        break;
+    default:
+        return;
+    }
+    for (u32 i = 0; i < firstCount; ++i) stageState(probe, first[i].stage, first[i].type, first[i].value);
+    vcall<u32>(base(probe), 0xc, 0u, at<u32>(textures, firstTexture));
+    for (u32 i = 0; i < secondCount; ++i) stageState(probe, second[i].stage, second[i].type, second[i].value);
+    vcall<u32>(base(probe), 0xc, 1u, at<u32>(textures, secondTexture));
+    stageState(probe, 2, 1, 1);  // stage 2 COLOROP: DISABLE
+}
+
 u32 __fastcall D3dProbe_SetFlags(u8 *self, void *, u32 flags) {
     u8 *const probe = self - 0x2c;
     applyFlag(probe, flags, 0x400, 0xf, false);  // ALPHATESTENABLE
