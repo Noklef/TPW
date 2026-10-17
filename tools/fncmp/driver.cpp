@@ -408,6 +408,7 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006fd8a8, 2},   // ObjectDef,
                                    {0x006fd8b0, 2},   // TrackType,
                                    {0x00700398, 2},   // Challenges,
+                                   {0x007034d8, 16},  // the 8-bit draw primitives (DrawDriver table; 14, the sprite blitter, is not hooked)
                                    {0x006fd958, 2}};  // AdvisorScoring
 
 void __cdecl debug_printf(const char *, ...) {}  // Debug_Printf 0x5da3c0 (RefObject's teardown slot among others)
