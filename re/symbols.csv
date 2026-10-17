@@ -3073,6 +3073,7 @@ address,name,kind,confidence,notes
 0x004f3400,List_EraseRangeCounted,function,high,reimplemented (src/game/core/stdlist); erases a range of list nodes with counted buffers
 0x004f54e0,List_EraseNodeCounted2,function,high,reimplemented (src/game/core/stdlist); erases a list node with a counted buffer
 0x005065d0,Person_HasWordInState,function,high,reimplemented (src/game/world/person); whether a person has a word and is in the matching state
+0x00518e20,Person_BaseCtor,function,high,"reimplemented (src/game/world/person); thoughts, the navigation block and four cleared dwords"
 0x00550d80,Setting_SetMode,function,high,reimplemented (src/game/core/options); stores a mode and sets its flag bits
 0x005633e0,Quad_Push,function,high,reimplemented (src/game/core/seqs); pushes four dwords into the next of four slots
 0x0059c390,Table76e300_GetObjectDword,function,high,reimplemented (src/game/world/objectdefs); a dword of the object indexed through a record of the table
@@ -3406,6 +3407,7 @@ address,name,kind,confidence,notes
 0x004e2200,Thing_IngredientRecord,function,high,reimplemented (src/game/world/things); the record of the definition's special ingredient
 0x005667d0,Class701378_Ctor,function,high,reimplemented (src/game/core/misc); stream class constructor with a virtual base
 0x0050afe0,Thing_Construct,function,high,"reimplemented (src/game/world/things); a thing's constructor: slot, handle, cell and chain"
+0x00502d20,ThingKindE_Ctor,function,high,reimplemented (src/game/world/things); a thing of kind 0xe with five records
 0x00565310,DrawBatch_Open,function,high,reimplemented (src/game/render/drawbuffer); a draw batch resumed and tagged
 0x0057b070,Object_ReleaseSavedPairs,function,high,reimplemented (src/game/core/vobj2); saved pairs written back and their arrays freed
 0x005dc580,Class702bc8_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor with two helper objects and tuning floats

@@ -112,4 +112,7 @@ void __fastcall Obj_ReplaceHandle24(u8 *object, void *, u32 handle);
 // 0x4cd300 (stdcall; handle, pops 4): the thing the slot (handle & 0xffff) of the thing table at 0x7cfb90 holds (20-byte slots; the debug message of the original is gone).
 u8 *__stdcall Thing_ByHandle(u32 handle);
 
+// 0x502d20 (thiscall): the thing constructor (Thing_Construct) with cell 1 and kind 0xe, then the five 0x10-byte records at +0x1414 get -1 in their first dword and 1 in the byte at
+// +4. Returns the object. (The cell argument the original pushes has the object's high address bits above the 1: Thing_Construct takes 16 bits of it.)
+u8 *__fastcall ThingKindE_Ctor(u8 *object);
 }  // extern "C"

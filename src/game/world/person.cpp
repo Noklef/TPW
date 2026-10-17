@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/gameheap.h"
+#include "nav.h"
 
 namespace {
 
@@ -79,5 +80,15 @@ u32 __fastcall Person_HasWord(const u8 *object, void *, u32 word) {
     if (kind == 5)
         return at<u16>(object, 0x21a) == (u16)word;
     return 0;
+}
+
+u8 *__fastcall Person_BaseCtor(u8 *object, void *, u32) {
+    Thoughts_Ctor(object + 0x30);
+    Nav_Ctor(object + 0xd4);
+    at<u32>(object, 0x1f0) = 0;
+    at<u32>(object, 0x1f4) = 0;
+    at<u32>(object, 0x1f8) = 0;
+    at<u32>(object, 0x1fc) = 0;
+    return object;
 }
 }

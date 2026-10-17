@@ -43,4 +43,8 @@ void __fastcall Visitor_Set1f8One(u8 *object);
 // 0x506580 (thiscall; word, pops 4): for the kind byte at +2 being 4 the word at +0x218, for 5 the word at +0x21a, is equal to the low 16 bits of
 // word (1 or 0); any other kind gives 0 (the original reports it to its empty debug printf).
 u32 __fastcall Person_HasWord(const u8 *object, void *, u32 word);
+
+// 0x518e20 (thiscall; one unused stack word, pops 4): the thoughts at +0x30 (Thoughts_Ctor), the navigation block at +0xd4 (Nav_Ctor) and the dwords at +0x1f0 .. +0x1fc cleared.
+// Returns the object.
+u8 *__fastcall Person_BaseCtor(u8 *object, void *, u32 unused);
 }

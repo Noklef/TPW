@@ -261,4 +261,13 @@ void __fastcall Obj_ReplaceHandle24(u8 *object, void *, u32 handle) {
 }
 
 u8 *__stdcall Thing_ByHandle(u32 handle) { return reinterpret_cast<u8 *const *>(0x007cfb90)[(handle & 0xffff) * 5]; }
+
+u8 *__fastcall ThingKindE_Ctor(u8 *object) {
+    Thing_Construct(object, nullptr, 1, 0xe);
+    for (u32 offset = 0x1414; offset < 0x1414 + 5 * 0x10; offset += 0x10) {
+        at<u8>(object, offset + 4) = 1;
+        at<u32>(object, offset) = 0xffffffff;
+    }
+    return object;
+}
 }  // extern "C"
