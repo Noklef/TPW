@@ -105,4 +105,31 @@ void __cdecl Options_ApplySound() {
     }
     Global802ba8_SetMasked(o[0x28] ? (u32)((s32)(at<u32>(o, 0x2c) * 1023u) / 100) : 0);
 }
+
+void __fastcall Options_Defaults(u8 *options) {
+    at<u32>(options, 0) = 1;
+    at<u32>(options, 4) = 1;
+    at<u32>(options, 8) = 1;
+    at<u32>(options, 0xc) = 0;
+    at<u32>(options, 0x14) = global<u32>(0x00785928);
+    at<u32>(options, 0x1c) = global<u32>(0x0078592c);
+    at<u32>(options, 0x24) = global<u32>(0x00785930);
+    at<u32>(options, 0x2c) = global<u32>(0x00785934);
+    if (global<u32>(0x00785924) != 0) {
+        options[0x10] = 1;
+        options[0x18] = 1;
+        options[0x20] = 1;
+        options[0x28] = 1;
+    }
+    options[0x34] = 1;
+    at<u32>(options, 0x30) = global<u32>(0x0078591c);
+    options[0x35] = 1;
+    options[0x36] = 1;
+    options[0x37] = 1;
+    options[0x39] = 1;
+    options[0x3a] = 1;
+    options[0x38] = 0;
+    copy(options + 0x3c, options);
+    Options_ApplySound();
+}
 }

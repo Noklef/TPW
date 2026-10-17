@@ -1,4 +1,4 @@
-// The game options (0x78d8d8, the options screen's): reimplementation of 0x423ad0-0x423ba0 and 0x423dd0
+// The game options (0x78d8d8, the options screen's): reimplementation of 0x423690, 0x423ad0-0x423ba0 and 0x423dd0
 // (thiscall). +0..+0x3c are the options in force (+0 procedural terrain, +4 the resolution when
 // the balance file gives none), +0x3c..+0x78 a copy to go back to; +0x94 a level of change (2 when
 // the display must be reset) and +0x98 flags whose low three bits mark changes.
@@ -37,4 +37,10 @@ u32 __cdecl Graphics_Level();
 // abc) passed on, or the flag set 0; then Global802ba8_SetMasked(the dword +0x2c * 1023 / 100, truncated) when the
 // byte +0x28 is set, else 0.
 void __cdecl Options_ApplySound();
+
+// 0x423690 (thiscall): the defaults: +0, +4, +8 = 1, +0xc = 0; the volumes +0x14 / +0x1c / +0x24 / +0x2c from the dwords at 0x785928 / 2c / 30 / 34
+// and, when the dword at 0x785924 is set, the switches +0x10 / +0x18 / +0x20 / +0x28 (bytes) = 1 (left as they were otherwise); +0x30 = the dword at
+// 0x78591c, the bytes +0x34..+0x37, +0x39, +0x3a = 1 and +0x38 = 0; then the copy at +0x3c = the options and Options_ApplySound (which reads the
+// game's options at 0x78d8d8, whatever this is).
+void __fastcall Options_Defaults(u8 *options);
 }
