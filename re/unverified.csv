@@ -70,35 +70,6 @@ address,name,module,reason
 5cec60,Zero_5cec60,core/trivial,todo: indirect only
 5e42d0,PtrList_Append,core/ptrlist,todo: indirect only
 5f5650,Wrap_Owner64_Copy4At34_5f5650,core/thunks,todo
-5f5660,Mem_GlobalAlloc,files/file,todo: indirect only
-5f5680,Mem_GlobalFree,files/file,todo: indirect only
-5f5690,Dir_SetBase,files/file,todo
-5f56f0,Dir_GetBase,files/file,todo
-5f5710,Path_Resolve,files/file,todo
-5f5830,File_Load,files/file,todo
-5f5950,Dir_InitBase,files/file,todo
-5f5a20,File_Open,files/file,todo
-5f5a50,Dir_Create,files/file,todo
-5f5a90,Dir_Remove,files/file,todo
-5f5ad0,FileStream_Open,files/file,todo
-5f5b80,Stream_Close,files/file,todo
-5f5bb0,Stream_Tell,files/file,todo
-5f5bc0,FileTime_Compare,files/file,todo
-5f5bf0,Stream_Seek,files/file,todo
-5f5c10,File_SetAttributes,files/file,todo
-5f5c70,File_GetSize,files/file,todo
-5f5cd0,File_Exists,files/file,todo
-5f5d10,File_IsDirectory,files/file,todo
-5f5d60,File_Delete,files/file,todo
-5f5dc0,File_Move,files/file,todo
-5f5df0,File_Copy,files/file,todo
-5f5e20,Stream_Read,files/file,todo: indirect only
-5f5e50,Stream_Write,files/file,todo: indirect only
-5f5e80,Timer_Init,files/file,todo: indirect only
-5f5f10,Timer_GetMs,files/file,todo: indirect only
-5f5f90,Time_Init,files/file,todo: indirect only
-5f5fa0,Time_GetMs,files/file,todo: indirect only
-5f5fb0,Sys_Sleep,files/file,todo
 5f63d0,String_Format,core/string,todo
 5f6c50,WString_Format,core/string,todo
 5f72c0,StreamBase_OpenMemory,files/handles,todo
