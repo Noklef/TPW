@@ -1,6 +1,6 @@
 # Readying meshes (src/game/render/meshlist: 0x5744d0, 0x574110) against the originals: zero-ended arrays of
 # up to 5 meshes, with and without flags 0x20 and 0x10000000, one mesh listed twice, empty arrays; and any
-# directions (zero, tiny, huge and NaN ones now and then) made unit length.
+# directions (zero, tiny, huge and NaN (signalling ones too) now and then) made unit length.
 # usage: meshlist.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ready,Direction)
 import os
 import struct
@@ -16,7 +16,7 @@ MESHES, LIST = RAM + 0x1000, RAM + 0x2000
 
 def case(r):
     if r.deal(OPS) == 'Direction':
-        v = [r.choice([r.f(), r.f(), 0, 0x80000000, r.f(1e-20), r.f(1e19)]) for _ in range(3)]
+        v = [r.f() if r.random() < 0.7 else r.choice([0, 0x80000000, r.f(1e-20), r.f(1e19), 0x7f800001, 0xff812345]) for _ in range(3)]
         if r.random() < 0.15:
             v = [r.choice([0, 0x80000000]) for _ in range(3)]
         return Call(0x574110, [RAM] + v, {RAM: r.bytes(0x40)}, conv='t')
