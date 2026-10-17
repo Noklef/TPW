@@ -161,21 +161,21 @@ address,name,kind,confidence,notes
 0x004cee50,Save_WriteU8,function,high,
 0x004ceec0,Save_WriteU16,function,high,
 0x004cede0,Save_Write8Bytes,function,high,
-0x0050b090,Thing_Serialize,function,high,"CThing base: u16 mX, mY (8.8 fixed-point cell coords), mMapChild, mMapParent"
+0x0050b090,Thing_Serialize,function,high,"reimplemented (src/game/world/things); thiscall (stream, save, version, unused): the thing's words +4, +6, +0xa, +8 saved or loaded; a full load clears the byte +3"
 0x00509bc0,ThingBasic_Serialize,function,high,thing models 12 (TagSystem) and 17 (UIMsgReceiver): base only
 0x004d7a70,WorldGlobals_Serialize,function,high,"staff pool, game clock, park gates"
 0x00507850,StaffPool_Serialize,function,high,0x20 x StaffPoolEntry + 5 categories
 0x005070a0,StaffPoolEntry_Serialize,function,high,
 0x004f7f30,GameClock_Serialize,function,high,"mFunnyTimeStart (FILETIME, 2000-01-01), mSessionStart, mFunnySecsPerRealSec"
 0x004cf050,ParkGates_Serialize,function,high,"arrival rate, bus capacity, gates open"
-0x004d3aa0,ObjectControls_Serialize,function,high,0x96 x 32-byte mObjectControls
+0x004d3aa0,ObjectControls_Serialize,function,high,"reimplemented (src/game/world/objectdefs); thiscall (stream, save, version, unused): the 0x96 object control records, their count and the search key saved or loaded; a full load clears the key and +0x12c8"
 0x004d7ea0,Map_Serialize,function,high,"128x128 cells; per-cell status byte: bit0 map cell, bit1 track cell, bit2 RE cell"
 0x004d0b30,MapCellBase_Serialize,function,high,"29 bytes: direction, flags, mesh instance, neighbours, overlap, parent, tile data, type, hoarding"
 0x004d8dd0,MapCell_Serialize,function,high,base + litter fields
 0x0050c200,TrackCell_Serialize,function,high,base + mSegmentNumber
 0x00502490,RECell_Serialize,function,high,5 x u16 mpEffect
 0x004f8b10,Sprite_Serialize,function,high,"moving-person base (anim, speeds, nav, thoughts)"
-0x004d3ee0,SpriteAnim_Serialize,function,high,"mSpriteScript, mNextAnim, mNextServiceInterval"
+0x004d3ee0,SpriteAnim_Serialize,function,high,"reimplemented (src/game/sprite/scriptref); thiscall (stream, save, version, unused): the script reference's three dwords saved or loaded"
 0x0050d150,Nav_Serialize,function,high,steering/pathing state (float vectors)
 0x0050bad0,Thoughts_Serialize,function,high,event history + thought bubble
 0x004fb530,Visitor_Serialize,function,high,thing model 1
@@ -187,7 +187,7 @@ address,name,kind,confidence,notes
 0x00502760,Researcher_Serialize,function,high,thing model 8
 0x004db7d0,Object_Serialize,function,high,"thing model 3: rides, shops, facilities"
 0x00508bb0,StaffHQ_Serialize,function,high,thing model 9
-0x0050c640,StaffTraining_Serialize,function,high,5 x u32 mBudget + mHaveEverTrained
+0x0050c640,StaffTraining_Serialize,function,high,"reimplemented (src/game/world/staff); thiscall (stream, save, version, unused): the five training budgets and the ever-trained byte saved or loaded"
 0x004da960,MechanicHQ_Serialize,function,high,thing model 10
 0x00599f60,Advisor_Serialize,function,high,thing model 11: message queue + history
 0x0059ba30,AdvisorMsg_Serialize,function,high,
@@ -201,7 +201,7 @@ address,name,kind,confidence,notes
 0x00504210,ResearchProject_Serialize,function,high,
 0x00504760,ResearchGroup_Serialize,function,high,
 0x00512010,Weather_Serialize,function,high,thing model 15
-0x005132a0,Forecast_Serialize,function,high,
+0x005132a0,Forecast_Serialize,function,high,"reimplemented (src/game/world/forecast); thiscall (stream, save, version, unused): the forecast's time (8 bytes), quality and valid byte saved or loaded"
 0x004cf920,BankAccount_Serialize,function,high,"thing model 16: balance, admission fee, 8 loans"
 0x004d2320,Challenges_Serialize,function,high,thing model 19: 0x14 challenges
 0x004d0f90,Challenge_Serialize,function,high,

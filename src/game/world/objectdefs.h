@@ -7,6 +7,8 @@
 
 #include "../../../re/types.h"
 
+struct Stream;
+
 extern "C" {
 
 // 0x412e90: the definition with id (the cached one when id is the cached id, whatever it
@@ -38,6 +40,11 @@ u8 *__fastcall ObjectControls_FindUncached(u8 *table, void *, u32 id, u32 quiet)
 
 // 0x4d3de0 (thiscall on the table): its 0x4b3 dwords cleared, then ObjectControls_Collect.
 void __fastcall ObjectControls_Init(u8 *table);
+
+// 0x4d3aa0 (thiscall on the table; stream, save, version, unused): its 0x96 records of 0x20 bytes (mObjectControls[i]), the count at +0x12c0
+// and the word at +0x12c4 (mPreviousSearchKey) saved or loaded as a serializer does (Save_Field); a load that gets them all clears the word just
+// loaded (sic) and the dword at +0x12c8.
+u32 __fastcall ObjectControls_Serialize(u8 *table, void *, Stream *stream, u32 save, s32 version, u32 unused);
 
 // 0x4ca740 (cdecl): over the object definitions (First / Next) those whose dword at +0xc4 is above 0 are counted, and of those the ones whose control
 // record (ObjectControls_FindUncached, quiet, in the game's table) has its dword at +0x18 above 0; the percentage (second * 100 / first), 0 when the

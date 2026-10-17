@@ -26,3 +26,9 @@ void __cdecl Save_InitUnusedOne() { *reinterpret_cast<float *>(0x0078aa2c) = 1.0
 
 void __cdecl Save_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x0078b11c) = 1.0f / 8388608.0f; }
 }
+
+bool Save_Field(Stream *stream, u32 save, void *at, s32 size, u32 name) {
+    Save_FieldName((u32)size, reinterpret_cast<const char *>(name), save != 0 ? 0 : 1);
+    s32 result, done = 0;
+    return *(save != 0 ? Stream_Write(&result, stream, at, size, &done) : Stream_Read(&result, stream, at, size, &done)) >= 0 && done == size;
+}

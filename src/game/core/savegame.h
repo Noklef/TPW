@@ -22,3 +22,9 @@ u32 __cdecl Save_Read12Bytes(Stream *stream, void *dst, const char *name, u32 qu
 void __cdecl Save_InitUnusedOne();
 void __cdecl Save_InitUnusedEpsilon();
 }
+
+// A serializer's field (a helper, not a function of the game): announced (Save_FieldName; loading unless save) with the name's address, then
+// written (Stream_Write) or read (Stream_Read) whole; true when the stream's result is not negative and it moved size bytes. The serializers
+// (thiscall; stream, save, version, unused) do nothing for versions other than 0 and 1 and return 0; else their fields in turn, 1 at the first that
+// fails (the print is left out), else 0.
+bool Save_Field(Stream *stream, u32 save, void *at, s32 size, u32 name);

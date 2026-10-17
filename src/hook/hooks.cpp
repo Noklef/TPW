@@ -185,7 +185,8 @@
 #include "../game/world/challenges.h"
 #include "../game/world/collobj.h"
 #include "../game/world/dirstep.h"
-#include "../game/world/flyingrides.h"
+#include "../game/world/flyingrides.h"
+#include "../game/world/forecast.h"
 #include "../game/world/gamesystem.h"
 #include "../game/world/messagecentre.h"
 #include "../game/world/nav.h"
@@ -410,6 +411,7 @@ const Hook kHooks[] = {
     {"ScriptRef_IsAt",            0x004d4100, (void *)&ScriptRef_IsAt, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"ScriptRef_Start",           0x004d4140, (void *)&ScriptRef_Start, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"ScriptRef_Apply",           0x004d4190, (void *)&ScriptRef_Apply, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"SpriteAnim_Serialize",      0x004d3ee0, (void *)&SpriteAnim_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"World_Rand",               0x00516330, (void *)&World_Rand, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"World_SetSeed",            0x00516370, (void *)&World_SetSeed, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Things_InitTable",         0x00515f30, (void *)&Things_InitTable, {0x33, 0xd2, 0x56, 0x89, 0x15}},
@@ -3056,6 +3058,7 @@ const Hook kHooks[] = {
     {"Staff_Train",               0x00505a10, (void *)&Staff_Train, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
     {"Staff_CountTypes",          0x00508000, (void *)&Staff_CountTypes, {0x83, 0xec, 0x0c, 0x33, 0xc0}},
     {"Staff_TrainAll",            0x0050c800, (void *)&Staff_TrainAll, {0x83, 0xec, 0x20, 0x53, 0x55}},
+    {"StaffTraining_Serialize",   0x0050c640, (void *)&StaffTraining_Serialize, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
     {"FreeList_Take",             0x00520d60, (void *)&FreeList_Take, {0x56, 0x66, 0x8b, 0x35, 0x24}},
     {"FreeList_Return",           0x00521890, (void *)&FreeList_Return, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
     {"Voice_ScaleLevels",         0x00521d60, (void *)&Voice_ScaleLevels, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
@@ -3069,6 +3072,7 @@ const Hook kHooks[] = {
     {"Record_IsActive",           0x0059c610, (void *)&Record_IsActive, {0x8b, 0x4c, 0x24, 0x04, 0x81}},
     {"ObjectDef_FindMarkedCells", 0x00413410, (void *)&ObjectDef_FindMarkedCells, {0x6a, 0xff, 0x68, 0x58, 0x7e}},
     {"ObjectDef_Ctor",            0x00412c20, (void *)&ObjectDef_Ctor, {0x56, 0x8b, 0xf1, 0x8d, 0x4e}},
+    {"ObjectControls_Serialize",  0x004d3aa0, (void *)&ObjectControls_Serialize, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
     {"IntArray_SetSize",          0x00598630, (void *)&IntArray_SetSize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"CountedPair_Clear",         0x004e51a0, (void *)&CountedPair_Clear, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"CountedPair_ClearRange",    0x004f36f0, (void *)&CountedPair_ClearRange, {0x56, 0x8b, 0x74, 0x24, 0x08}},
@@ -3177,6 +3181,7 @@ const Hook kHooks[] = {
     {"Class701378_Ctor",          0x005667d0, (void *)&Class701378_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},
     {"Thing_Construct",           0x0050afe0, (void *)&Thing_Construct, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"ThingKindE_Ctor",           0x00502d20, (void *)&ThingKindE_Ctor, {0x51, 0x53, 0xbb, 0x01, 0x00}},
+    {"Thing_Serialize",           0x0050b090, (void *)&Thing_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"DrawBatch_Open",            0x00565310, (void *)&DrawBatch_Open, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Object_ReleaseSavedPairs",  0x0057b070, (void *)&Object_ReleaseSavedPairs, {0x56, 0x8b, 0xf1, 0xf7, 0x46}},
     {"Class702bc8_Ctor",          0x005dc580, (void *)&Class702bc8_Ctor, {0x6a, 0xff, 0x68, 0x58, 0x14}},
@@ -3312,6 +3317,7 @@ const Hook kHooks[] = {
     {"TagTable_Find",             0x0050af40, (void *)&TagTable_Find, {0x8b, 0x54, 0x24, 0x04, 0x81}},
     {"Ride_IsBusy",               0x0042a440, (void *)&Ride_IsBusy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Ride_Sleep",                0x0043bd20, (void *)&Ride_Sleep, {0x8b, 0x44, 0x24, 0x04, 0x57}},
+    {"Forecast_Serialize",        0x005132a0, (void *)&Forecast_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

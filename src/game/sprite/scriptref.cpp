@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/savegame.h"
 #include "script.h"
 
 namespace {
@@ -34,5 +35,14 @@ void __fastcall ScriptRef_Apply(u8 *ref) {
         SpriteScript_SetPeriod(at<s32>(ref, 0), at<u32>(ref, 8));
         at<u32>(ref, 8) = 0;
     }
+}
+
+u32 __fastcall SpriteAnim_Serialize(u8 *ref, void *, Stream *stream, u32 save, s32 version, u32) {
+    if (version < 0 || version > 1)
+        return 0;
+    if (!Save_Field(stream, save, ref, 4, 0x0075a4c0) || !Save_Field(stream, save, ref + 4, 4, 0x0075a4b4) ||
+        !Save_Field(stream, save, ref + 8, 4, 0x0075a49c))
+        return 1;
+    return 0;
 }
 }
