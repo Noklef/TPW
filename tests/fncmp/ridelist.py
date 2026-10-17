@@ -60,15 +60,16 @@ def case(r):
         regions[game] = struct.pack('<H', r.choice(handles + [0, 0]) if handles else 0)
         return Call(address, [game - 0x1da72a], regions, conv='t', ret='a')
     if name == 'Poll':  # the game object: the handles at +0x1da72a and +0x1da72c (equal or not), the count at +0x2d0 about 10, element 1 of the records 6, 3, 1, 2 or others
-        for i in range(count):
+        for i in range(count):  # element 1 there to read (the element count at +0x8c above 1) most of the time
             put(arrays, 0x40 * i + 4, 'I', r.choice([6, 3, 1, 2, 6, 3, 1, 2, 0, 0xffffffff]))
-        things, handles, _a = park(r, defs=False)
+            put(nodes, 0x100 * i + 0x8c, 'i', r.choice([2, 4, 4, 4, 1]))
+        things, handles, _a = park(r, count=r.choice([0, 1, 2, 3, 4, 6]) if r.random() < 0.2 else r.choice([1, 2, 3, 4, 6]), defs=False)
         for i in range(len(handles)):
-            put(things[POOL], THING * i + 0x24, 'I', r.choice(ids + [0, 99]))
+            put(things[POOL], THING * i + 0x24, 'I', r.choice(ids * 3 + [0, 99]))
         regions.update(things)
         game = RAM + 0x40000
-        h = r.choice(handles + [0]) if handles else 0
-        regions[game] = struct.pack('<HH', h, r.choice([h, h, h, h ^ 1, 0]))
+        h = r.choice(handles) if handles and r.random() < 0.9 else 0
+        regions[game] = struct.pack('<HH', h, h if r.random() < 0.85 else r.choice([h ^ 1, 0]))
         regions[game - 0x1da72a + 0x2d0] = struct.pack('<i', r.choice([0, 9, 10, 11, -1, 0x7fffffff, 5]))
         return Call(address, [game - 0x1da72a], regions, conv='t', ret='a')
     if name == 'GameE':  # the game object: the handle at +0x1da732, a thing table where the things name ride ids
