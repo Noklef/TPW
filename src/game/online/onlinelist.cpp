@@ -4,6 +4,8 @@
 
 namespace {
 
+template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
 // OutputDebugStringA (0x6fd1e0) with the game's text at address text.
 void Say(u32 text) {
     using Output = void(__stdcall *)(const char *);
@@ -42,5 +44,25 @@ u32 __stdcall OnlineList_GetRides(void *city, u32 request) {
 u32 __stdcall OnlineList_GetServers(void *city, u32 request) {
     Say(0x00773c8c);
     return CallCity(0x006fd530, city, 0, 1, request, 0);
+}
+
+u32 __fastcall OnlineList_GetParksInCity(const u8 *list, void *, void *city, u32 request) {
+    Say(0x00773bb0);
+    return CallCity(0x006fd558, city, 0, at<u32>(list, 0x34), request, 0);
+}
+
+u32 __fastcall OnlineList_GetTop10Parks(const u8 *list, void *, void *city, u32 request) {
+    Say(0x00773bd8);
+    return CallCity(0x006fd554, city, 0, at<u32>(list, 0x34), request, 0);
+}
+
+u32 __fastcall OnlineList_GetParkByName(const u8 *list, void *, void *city, u32 request) {
+    Say(0x00773c08);
+    return CallCity(0x006fd550, city, 0, at<u32>(list, 0x3c), request, 0);
+}
+
+u32 __fastcall OnlineList_GetParkById(const u8 *list, void *, void *city, u32 request) {
+    Say(0x00773c3c);
+    return CallCity(0x006fd54c, city, 0, at<u32>(list, 0x34), request, 0);
 }
 }  // extern "C"
