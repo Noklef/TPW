@@ -1,6 +1,8 @@
 #include "rsse.h"
 #include <cstring>
 
+#include "../core/gameclock.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -70,6 +72,14 @@ const char *__cdecl RsseScript_EventName(const u8 *script, u32 index, u32 *group
         }
     }
     return reinterpret_cast<const char *>(0x74d6d4);
+}
+
+u32 __cdecl RSSE_StartTimer(RsseContext *ctx, u32 ms, u32 a, u32 b) {
+    at<u32>(ctx, 0x80) = Clocks_Now(reinterpret_cast<u8 *>(0x00785970));
+    at<u32>(ctx, 0x84) = ms;
+    at<u16>(ctx, 0x88) = (u16)a;
+    at<u16>(ctx, 0x8a) = (u16)b;
+    return (ms & 0xffff0000u) | (u16)b;  // sic: EAX as the original leaves it (the opcode handler returns it)
 }
 
 }  // extern "C"

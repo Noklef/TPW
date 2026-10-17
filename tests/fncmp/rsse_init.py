@@ -1,15 +1,15 @@
 # RSSE_Init (0x551600) and the script event name lookup (0x468600) of src/game/rsse/rsse_vm against the originals: the opcode name table (0x765280) pointing at strings
 # of every length and sign (and empty strings ending it), the initialised flag set or clear, globals of random content; scripts with twelve event tables of up to three
-# entries, keys that match (or not) and outputs given or null.
-# usage: rsse_init.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Init,Event)
+# entries, keys that match (or not) and outputs given or null; and a timer's start (0x557160) on a vm of random content, the game clock paused.
+# usage: rsse_init.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Init,Event,Timer)
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-CALLS = {'Init': 0x551600, 'Event': 0x468600}
-B = Bench([(0x551600, 0x5516a3), (0x468600, 0x468708), (0x5da3c0, 0x5da3c1)])
+CALLS = {'Init': 0x551600, 'Event': 0x468600, 'Timer': 0x557160}
+B = Bench([(0x551600, 0x5516a3), (0x468600, 0x468708), (0x557160, 0x557197), (0x402d70, 0x402d75), (0x402f10, 0x402f2d), (0x4031e0, 0x4031ef), (0x5da3c0, 0x5da3c1)])
 STRINGS, SCRIPT, KEYS, TABLES, OUT = RAM + 0x100, RAM + 0x1000, RAM + 0x1400, RAM + 0x1500, RAM + 0x1800
 
 
@@ -48,8 +48,17 @@ def event_case(r):
     return Call(CALLS['Event'], [SCRIPT, r.randrange(4)] + outs, regions, conv='c', ret='a')
 
 
+def timer_case(r):
+    # the game clock (0x785970) paused, so its time is its +0x3c plus +0x48
+    clock = bytearray(r.bytes(0x80))
+    put(clock, 0x38, 'I', r.choice([1, 2, 0x80000000]))
+    vm = RAM + 0x2000
+    args = [r.choice([0, 1000, 5000, r.getrandbits(32)]), r.getrandbits(32), r.getrandbits(32)]
+    return Call(CALLS['Timer'], [vm] + args, {0x785970: clock, vm: r.bytes(0x100)}, conv='c', ret='a')
+
+
 def case(r):
-    return init_case(r) if r.choice(OPS) == 'Init' else event_case(r)
+    return {'Init': init_case, 'Event': event_case, 'Timer': timer_case}[r.deal(OPS)](r)
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
