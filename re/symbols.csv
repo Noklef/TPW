@@ -3475,6 +3475,7 @@ address,name,kind,confidence,notes
 0x0050f310,Matrix2_Transform,function,high,reimplemented (src/game/math/matrix); fixed point 2 x 2 transform of a pair
 0x00503980,Table_ScaledBySum,function,high,reimplemented (src/game/world/staff); a table share scaled by the things' sum
 0x00505a10,Staff_Train,function,low,"reimplemented (src/game/world/staff); thiscall (amount): pay for training: debit the money, add to the park's spend, add amount / cost points of progress, raise the grade at 100"
+0x00508000,Staff_CountTypes,function,low,"reimplemented (src/game/world/staff); thiscall: count the world's staff by type, flagging the types that reached their limits"
 0x00520d60,FreeList_Take,function,high,reimplemented (src/game/core/voices); takes a record off the free list into a table entry
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/voices); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/voices); scales a voice's levels by the factor over 1024
