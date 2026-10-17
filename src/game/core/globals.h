@@ -131,6 +131,11 @@ u32 __cdecl Globalfb2708_Set_6d1bc0(u32 v0);
 // 0x561a00: frees the block the dword at 0x879a20 points to (if any), clears it and returns 1 (0 when there was none).
 u32 __cdecl FreeGlobal879a20_561a00();
 
+// 0x56b6c0 (name unconfirmed): when the dword at 0x879d54 is null, a new block of 0x2d8 bytes (the game's heap) there, its dwords +0x30 to +0x60
+// (but +0x38), +0x6c, +0xc0 to +0xc8 and +0x1cc / +0x1d0 cleared; 1 then. 0 when there was one, or when the allocation failed (left null, the
+// error (3, 0xb0754000) pushed onto the engine's list, EngineErrors_Push).
+u32 __cdecl CreateGlobal879d54_56b6c0();
+
 // 0x56b760: frees the block the dword at 0x879d54 points to (if any), clears it and returns 1 (0 when there was none).
 u32 __cdecl FreeGlobal879d54_56b760();
 

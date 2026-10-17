@@ -460,6 +460,7 @@ address,name,kind,confidence,notes
 0x00457e30,Terrain_InitUnusedOne,function,high,reimplemented (src/game/terrain/procedural); unused static 0x7a0b28 = 1.0f
 0x00457e50,Terrain_InitUnusedEpsilon,function,high,reimplemented (src/game/terrain/procedural); unused static 0x7a0b48 = 1 / 2^23
 0x0056df70,TerrainTex_SetRect,function,high,reimplemented (src/game/terrain/procedural); the procedural texture object +0x234..+0x240 = the view rect
+0x0056ddf0,TerrainTex_Create,function,low,"reimplemented (src/game/terrain/procedural); cdecl: when [0x879d60] is null, a new 0x12974-byte procedural texture object there with its fields cleared and the rectangle's right / bottom 0x7f, 1; 0 when there was one or the allocation failed (the error (3, 0xb0754000) pushed)"
 0x005856e0,Landscape_SetPoint,function,high,"reimplemented (src/game/terrain/landscape); thiscall (the landscape renderer, 0x8c1828; i, x, y, z floats): point i at +0x1f70 + 12 i (the weather sets four)"
 0x00585710,Landscape_SetDetail,function,high,"reimplemented (src/game/terrain/landscape); thiscall (level): +0x2ec8, the detail level (option 0x785888)"
 0x00585ef0,Landscape_List,function,high,reimplemented (src/game/terrain/landscape); thiscall: +0x1fd0
@@ -3486,6 +3487,7 @@ address,name,kind,confidence,notes
 0x005b2ba0,StdTree_InsertG,function,high,reimplemented (src/game/core/stdtree); std::map insert of a node with a word value
 0x0056a750,Table879ad0_Clear,function,high,reimplemented (src/game/core/globals); clears the 64 pairs of dwords and a counter
 0x004b4480,Global7cc2f0_Get_4b4480,function,low,reimplemented (src/game/core/globals); The dword at 0x7cc2f0
+0x0056b6c0,CreateGlobal879d54_56b6c0,function,low,"reimplemented (src/game/core/globals); cdecl: when [0x879d54] is null, a new 0x2d8-byte block there with its fields from +0x30 cleared, 1; 0 when there was one or the allocation failed (the error (3, 0xb0754000) pushed)"
 0x004f0370,StdTreeC_PostInc,function,high,reimplemented (src/game/core/stdtree); post-increment of a std::map iterator
 0x004f0460,StdTreeE_PostInc,function,high,reimplemented (src/game/core/stdtree); post-increment of a std::map iterator
 0x004f0880,Obj_InitMinus1A,function,high,reimplemented (src/game/core/accessors); initialises an object with -1 ignoring three arguments
