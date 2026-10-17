@@ -3380,6 +3380,7 @@ address,name,kind,confidence,notes
 0x004dda20,Object_QueueHasRoom,function,high,reimplemented (src/game/core/small51); whether the person queue is shorter than four times the limit
 0x005eb090,ArrayHolder_Clear,function,high,reimplemented (src/game/core/small52); frees the four arrays of the holder
 0x005ea3f0,Image_CropInto,function,high,reimplemented (src/game/core/small52); copies the part of an image that is left once moved into a fresh destination
+0x0055f210,TileSet_Clear,function,high,reimplemented (src/game/core/small52); frees the thirteen arrays of the tile set
 0x005ea510,Image_Dilate,function,high,reimplemented (src/game/core/small53); separable maximum filter of an image
 0x005ea6d0,Image_Erode,function,high,reimplemented (src/game/core/small53); separable minimum filter of an image
 0x005ea1f0,Image_MinMark,function,high,"reimplemented (src/game/core/small53); 3 x 3 minimum of a two byte per pixel image, marking the changed pixels"

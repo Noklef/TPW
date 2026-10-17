@@ -12,6 +12,10 @@ void __fastcall ArrayHolder_Clear(u8 *object);
 // 0x5eb1a0 (thiscall; stream, pops 4): the eleven dwords at +0 .. +0x28 read from the stream (Object_CallSlot8Product with 4, 1). Returns true.
 u8 __fastcall Eleven_Read(u8 *object, void *, u8 *stream);
 
+// 0x55f210 (thiscall destructor-like): the byte at +4 and the dword at +0 cleared; Array3D_Free on the thirteen arrays at +8, +0x18, ..., +0xc8; the blocks of those from +0xc8 down
+// to +0x28 freed and their four dwords cleared; then BufferC_FreeAndClear on +0x18 and +8.
+void __fastcall TileSet_Clear(u8 *object);
+
 // 0x5ea3f0 (cdecl; destination image, source image, x, y; images {width, height, bytes per pixel, data}): the destination is made over (Array3D_Realloc: the source's width
 // and height, one byte per pixel, cleared) and the part of the source that is left once it is moved by (x, y) (its rows and columns clamped to the source) is copied into it, the
 // first byte of each pixel, at (max(x, 0), max(y, 0)). Returns true.

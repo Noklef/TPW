@@ -5,6 +5,7 @@
 #include "gameheap.h"
 #include "small10.h"
 #include "small5.h"
+#include "small7.h"
 #include "vwrap.h"
 
 namespace {
@@ -52,6 +53,23 @@ u8 Image_CropInto(u8 *destination, u8 *source, s32 x, s32 y) {
         row += stride;
     }
     return 1;
+}
+
+void __fastcall TileSet_Clear(u8 *object) {
+    at<u8>(object, 4) = 0;
+    at<u32>(object, 0) = 0;
+    for (u32 offset = 8; offset <= 0xc8; offset += 0x10)
+        Array3D_Free(object + offset);
+    for (u32 offset = 0xc8; offset >= 0x28; offset -= 0x10) {
+        u8 *const array = object + offset;
+        if (at<void *>(array, 0xc)) GameHeap_Free(at<void *>(array, 0xc));
+        at<u32>(array, 0) = 0;
+        at<u32>(array, 4) = 0;
+        at<u32>(array, 8) = 0;
+        at<u32>(array, 0xc) = 0;
+    }
+    BufferC_FreeAndClear(object + 0x18);
+    BufferC_FreeAndClear(object + 8);
 }
 
 u8 __fastcall Eleven_Read(u8 *object, void *, u8 *stream) {
