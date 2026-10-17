@@ -3706,6 +3706,7 @@ address,name,kind,confidence,notes
 0x0042a340,Cell_FindRideableObject,function,high,reimplemented (src/game/world/mapcell); the first rideable object on a type 9 cell's parent
 0x005228b0,MapCell_Overlap,function,low,"reimplemented (src/game/world/mapcell); a map cell's mOverlapCounter (u16 at +0x20), sign-extended"
 0x00523070,MapCell_PathNudge,function,low,"reimplemented (src/game/world/mapcell); cdecl (&x, &y): the point moved two cells along each axis whose cell two away has flag 0x10, the same group and a path type (the cell's parent stands in for types 0xc/0x11)"
+0x004d8750,MapCell_StepBlocked,function,low,"reimplemented (src/game/world/mapcell); cdecl (x, y, direction, mode): 1 when a step from the cell in the direction is blocked (off the map, the cell types' rules, a ride cell's ride in mode 2, the entries' low flags, the neighbour bits and directions), else 0"
 0x0040f970,MessageSlot_Dtor,function,high,"reimplemented (src/game/world/messagecentre); thiscall on a slot: a dword, then a std::map of tree B at +4, destroyed (StdTree_DtorB); name unconfirmed"
 0x00409250,MessageCentre_DtorSlots,function,high,"reimplemented (src/game/world/messagecentre); thiscall: the 29 slots of 0x14 bytes from +0 destroyed, the last first (CRT_VectorDtorIterator, MessageSlot_Dtor); name unconfirmed"
 0x0040fa40,MessageCentre_RemoveThing,function,low,"reimplemented (src/game/world/messagecentre); thiscall (thing); the thing's handle erased from each of the 29 slots' maps (lower bound, key check, StdTree_EraseB); returns the count erased"
