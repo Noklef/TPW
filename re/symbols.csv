@@ -2887,6 +2887,17 @@ address,name,kind,confidence,notes
 0x0058c920,Wrap_Zero_5d60c0_58c920,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Zero_5d60c0
 0x005987c0,Wrap_Obj_IncBefore4c_5987c0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Obj_IncBefore4c
 0x005987d0,Wrap_WaveletCodec_GetRefCount_5987d0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls WaveletCodec_GetRefCount
+0x0042a080,Wrap_Deleter_Minus60_42a090_42a080,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Deleter_Minus60_42a090
+0x00564af0,Wrap_VBase_CallSlot8_564af0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls VBase_CallSlot8
+0x00569c70,Wrap_Deleter_Minus2c_569c80_569c70,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Deleter_Minus2c_569c80
+0x0056a650,Wrap_Deleter_Minus8_56a660_56a650,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Deleter_Minus8_56a660
+0x00579010,Wrap_VBase_Deleter_7018d0_579010,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls VBase_Deleter_7018d0
+0x005790b0,Wrap_VBase_Deleter_701920_5790b0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls VBase_Deleter_701920
+0x00579140,Wrap_VBase_Deleter_7018f8_579140,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls VBase_Deleter_7018f8
+0x0058c360,Wrap_Class702198_DeletingDtor_58c360,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Class702198_DeletingDtor
+0x00598790,Wrap_WaveletCodec_DecodeScaled_598790,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls WaveletCodec_DecodeScaled
+0x005987a0,Wrap_WaveletCodec_Decode_5987a0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls WaveletCodec_Decode
+0x005987e0,Wrap_Refcounted_Release_5987e0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls Refcounted_Release
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value

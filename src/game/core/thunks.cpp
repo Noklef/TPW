@@ -15,6 +15,11 @@
 #include "../world/thingmsg.h"
 #include "selectors.h"
 #include "trivial.h"
+#include "../gfx/wavelet.h"
+#include "vdel.h"
+#include "vdtor.h"
+#include "vobj2.h"
+#include "vwrap.h"
 
 namespace {
 
@@ -270,4 +275,47 @@ u32 __fastcall Wrap_WaveletCodec_GetRefCount_5987d0(const u8 *self) {
     return WaveletCodec_GetRefCount(Adjust(self));
 }
 
+u8 *__fastcall Wrap_Deleter_Minus60_42a090_42a080(u8 *self, void *, u32 a2) {
+    return Deleter_Minus60_42a090(Adjust(self), nullptr, a2);
+}
+
+u32 __fastcall Wrap_VBase_CallSlot8_564af0(u8 *self, void *, u32 a2, u32 a3) {
+    return VBase_CallSlot8(Adjust(self), nullptr, a2, a3);
+}
+
+u8 *__fastcall Wrap_Deleter_Minus2c_569c80_569c70(u8 *self, void *, u32 a2) {
+    return Deleter_Minus2c_569c80(Adjust(self), nullptr, a2);
+}
+
+u8 *__fastcall Wrap_Deleter_Minus8_56a660_56a650(u8 *self, void *, u32 a2) {
+    return Deleter_Minus8_56a660(Adjust(self), nullptr, a2);
+}
+
+u8 *__fastcall Wrap_VBase_Deleter_7018d0_579010(u8 *self, void *, u32 a2) {
+    return VBase_Deleter_7018d0(Adjust(self), nullptr, a2);
+}
+
+u8 *__fastcall Wrap_VBase_Deleter_701920_5790b0(u8 *self, void *, u32 a2) {
+    return VBase_Deleter_701920(Adjust(self), nullptr, a2);
+}
+
+u8 *__fastcall Wrap_VBase_Deleter_7018f8_579140(u8 *self, void *, u32 a2) {
+    return VBase_Deleter_7018f8(Adjust(self), nullptr, a2);
+}
+
+u8 *__fastcall Wrap_Class702198_DeletingDtor_58c360(u8 *self, void *, u32 a2) {
+    return Class702198_DeletingDtor(Adjust(self), nullptr, a2);
+}
+
+u32 __fastcall Wrap_WaveletCodec_DecodeScaled_598790(u8 *self, void *, s32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7, u32 a8, u32 a9, u32 a10, u32 a11, u32 a12, u32 a13, u32 a14, u32 a15) {
+    return WaveletCodec_DecodeScaled(Adjust(self), nullptr, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15);
+}
+
+u32 __fastcall Wrap_WaveletCodec_Decode_5987a0(u8 *self, void *, s32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7, u32 a8, u32 a9, u32 a10, u32 a11, u32 a12) {
+    return WaveletCodec_Decode(Adjust(self), nullptr, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+}
+
+s32 __fastcall Wrap_Refcounted_Release_5987e0(u8 *self) {
+    return Refcounted_Release(Adjust(self));
+}
 }  // extern "C"

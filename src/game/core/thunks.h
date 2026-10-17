@@ -188,4 +188,36 @@ u32 __fastcall Wrap_Obj_IncBefore4c_5987c0(u8 *self);
 // 0x5987d0 (thiscall): this lowered by the dword before it (a virtual base offset), then WaveletCodec_GetRefCount.
 u32 __fastcall Wrap_WaveletCodec_GetRefCount_5987d0(const u8 *self);
 
+// 0x42a080 (thiscall; 1 stack arguments): this lowered by the dword before it (a virtual base offset), then Deleter_Minus60_42a090.
+u8 *__fastcall Wrap_Deleter_Minus60_42a090_42a080(u8 *self, void *, u32 a2);
+
+// 0x564af0 (thiscall; 2 stack arguments): this lowered by the dword before it (a virtual base offset), then VBase_CallSlot8.
+u32 __fastcall Wrap_VBase_CallSlot8_564af0(u8 *self, void *, u32 a2, u32 a3);
+
+// 0x569c70 (thiscall; 1 stack arguments): this lowered by the dword before it (a virtual base offset), then Deleter_Minus2c_569c80.
+u8 *__fastcall Wrap_Deleter_Minus2c_569c80_569c70(u8 *self, void *, u32 a2);
+
+// 0x56a650 (thiscall; 1 stack arguments): this lowered by the dword before it (a virtual base offset), then Deleter_Minus8_56a660.
+u8 *__fastcall Wrap_Deleter_Minus8_56a660_56a650(u8 *self, void *, u32 a2);
+
+// 0x579010 (thiscall; 1 stack arguments): this lowered by the dword before it (a virtual base offset), then VBase_Deleter_7018d0.
+u8 *__fastcall Wrap_VBase_Deleter_7018d0_579010(u8 *self, void *, u32 a2);
+
+// 0x5790b0 (thiscall; 1 stack arguments): this lowered by the dword before it (a virtual base offset), then VBase_Deleter_701920.
+u8 *__fastcall Wrap_VBase_Deleter_701920_5790b0(u8 *self, void *, u32 a2);
+
+// 0x579140 (thiscall; 1 stack arguments): this lowered by the dword before it (a virtual base offset), then VBase_Deleter_7018f8.
+u8 *__fastcall Wrap_VBase_Deleter_7018f8_579140(u8 *self, void *, u32 a2);
+
+// 0x58c360 (thiscall; 1 stack arguments): this lowered by the dword before it (a virtual base offset), then Class702198_DeletingDtor.
+u8 *__fastcall Wrap_Class702198_DeletingDtor_58c360(u8 *self, void *, u32 a2);
+
+// 0x598790 (thiscall; 14 stack arguments): this lowered by the dword before it (a virtual base offset), then WaveletCodec_DecodeScaled.
+u32 __fastcall Wrap_WaveletCodec_DecodeScaled_598790(u8 *self, void *, s32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7, u32 a8, u32 a9, u32 a10, u32 a11, u32 a12, u32 a13, u32 a14, u32 a15);
+
+// 0x5987a0 (thiscall; 11 stack arguments): this lowered by the dword before it (a virtual base offset), then WaveletCodec_Decode.
+u32 __fastcall Wrap_WaveletCodec_Decode_5987a0(u8 *self, void *, s32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7, u32 a8, u32 a9, u32 a10, u32 a11, u32 a12);
+
+// 0x5987e0 (thiscall): this lowered by the dword before it (a virtual base offset), then Refcounted_Release.
+s32 __fastcall Wrap_Refcounted_Release_5987e0(u8 *self);
 }  // extern "C"
