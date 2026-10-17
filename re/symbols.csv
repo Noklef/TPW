@@ -3618,6 +3618,7 @@ address,name,kind,confidence,notes
 0x0050f870,Nav_PredictPos,function,low,"reimplemented (src/game/world/nav); thiscall (&out, time): out = pos + vel * time (16.16); returns out"
 0x0050fd40,Nav_PathProgress,function,low,"reimplemented (src/game/world/nav); thiscall: 1.0 - (path_subpath_dist + path_tail_dist + octagonal distance to the current path point) / path_total_dist, 16.16; 1.0 when finished or the total is 0; IDIV faults like the original's"
 0x005102f0,Nav_VisitNeighbours,function,low,"reimplemented (src/game/world/nav); cdecl (nav, radius, visit): visits the people in the map cells within radius whose kind counts and whose distance (pos >> 8, squared) is under (radius >> 8) squared, at most five"
+0x0050f3b0,Nav_Update,function,low,"reimplemented (src/game/world/nav); thiscall: one step of the nav: the weighted behaviour forces, vel and pos (when the move test passes), the local axes and the path progress history"
 0x0052a050,Cell_ExtendPath,function,high,reimplemented (src/game/world/mapcell); one step of a path across the map's cells
 0x0052c420,MapGrid_MarkEdges,function,high,"reimplemented (src/game/world/mapcell); edge cells of a map grid of types 4, 9, 0x17 and 0xa"
 0x0052c5b0,MapGrid_ClassifyTypes,function,high,reimplemented (src/game/world/mapcell); a map grid's cell types as codes 1 to 4

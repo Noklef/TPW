@@ -134,4 +134,45 @@ void __cdecl Nav_VisitNeighbours(const u8 *nav, s32 radius, void(__cdecl *visit)
         }
     }
 }
+void __fastcall Nav_Update(u8 *nav) {
+    typedef s32 *(__fastcall *Steer)(void *behaviour, void *, s32 *out, const u8 *nav);  // a behaviour's slot 0 (thiscall)
+    typedef s32(__cdecl *Passable)(s32 from, s32 to, u32 flags);
+    s32 sum[2] = {0, 0};
+    for (u32 entry = *reinterpret_cast<u32 *>(0x007cf078); entry != *reinterpret_cast<u32 *>(0x007cf07c); entry += 8) {
+        u8 *const behaviour = at<u8 *>(reinterpret_cast<void *>(entry), 4);
+        s32 force[2], limited[2], weighted[2];
+        (*reinterpret_cast<Steer *>(at<u32>(behaviour, 0)))(behaviour, nullptr, force, nav);
+        IntPair_MulFixed(IntPair_Truncate(limited, force, at<s32>(nav, 0x18)), nullptr, weighted, at<s32>(reinterpret_cast<void *>(entry), 0));
+        sum[0] += weighted[0];
+        sum[1] += weighted[1];
+    }
+    s32 limited[2], accel[2], capped[2];
+    u32 vel[2];
+    IntPair_DivFixed(IntPair_Truncate(limited, sum, at<s32>(nav, 0x18)), nullptr, accel, 0x10000);
+    IntPair_Truncate(capped, reinterpret_cast<s32 *>(IntPair_Add(&at<u32>(nav, 0x10), nullptr, vel, reinterpret_cast<u32 *>(accel))), at<s32>(nav, 0x1c));
+    at<s32>(nav, 0x10) = capped[0];
+    at<s32>(nav, 0x14) = capped[1];
+    u32 next[2], from[2], to[2];
+    IntPair_Add(&at<u32>(nav, 8), nullptr, next, &at<u32>(nav, 0x10));
+    IntPair_FromFixed(from, at<u32>(nav, 8), at<u32>(nav, 0xc));
+    IntPair_FromFixed(to, next[0], next[1]);
+    const s32 toId = Map_IdAt((s32)to[0], (s32)to[1]);
+    const s32 fromId = Map_IdAt((s32)from[0], (s32)from[1]);
+    if ((*reinterpret_cast<Passable *>(0x00762190))(fromId, toId, at<u32>(nav, 0xb4)) == 0) {
+        at<u32>(nav, 0xb0) = (at<u32>(nav, 0xb0) << 1) | 1;  // blocked: the position is kept
+    } else {
+        at<u32>(nav, 8) = next[0];
+        at<u32>(nav, 0xc) = next[1];
+    }
+    s32 heading[2];
+    u32 side[2];
+    IntPair_Copy(&at<u32>(nav, 0x20), nullptr, reinterpret_cast<u32 *>(IntPair_Normalize(heading, &at<s32>(nav, 0x10))));
+    IntPair_Copy(&at<u32>(nav, 0x28), nullptr, IntPair_Perp(side, &at<u32>(nav, 0x20)));
+    const s32 progress = Nav_PathProgress(nav);
+    u32 history = at<u32>(nav, 0xb0) << 1;
+    at<u32>(nav, 0xb0) = history;
+    if (progress <= at<s32>(nav, 0xac))
+        at<u32>(nav, 0xb0) = history | 1;
+    at<s32>(nav, 0xac) = progress;
+}
 }

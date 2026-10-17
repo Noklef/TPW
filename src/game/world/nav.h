@@ -42,4 +42,12 @@ s32 __fastcall Nav_PathProgress(const u8 *nav);
 // nav (+0xd4) is not this one get visit(nav, their nav) when d = dx * dx + dy * dy (the thing's s16 +4 / +6 less
 // pos >> 8, 32-bit products) is not 0 and below (radius >> 8) squared (signed). It stops after the fifth visit.
 void __cdecl Nav_VisitNeighbours(const u8 *nav, s32 radius, void(__cdecl *visit)(const u8 *nav, const u8 *other));
+// 0x50f3b0 (thiscall; name unconfirmed): one step of the nav. The force is the sum over the behaviour list (0x7cf078 to 0x7cf07c, {weight, behaviour}
+// entries) of each behaviour's slot 0 (thiscall (&out, nav)) cut to max_force (+0x18, IntPair_Truncate) times its weight (IntPair_MulFixed); the force
+// cut to max_force again, IntPair_DivFixed by 1.0 (the mass), is added to vel (+0x10), which is cut to max_speed (+0x1c). The function the pointer at
+// 0x762190 holds is asked (cdecl (from, to, the dword at +0xb4)) whether the map id of pos (+8, the 16.16 parts) can lead to that of pos + vel: when it says 0
+// the pos is kept and the history bits (+0xb0) take a 1, else pos = pos + vel. The local x axis (+0x20) is vel normalized (IntPair_Normalize) and the
+// y axis (+0x28) its perpendicular; the history bits shift once more, with a 1 when the path progress (Nav_PathProgress) is not above the last (+0xac),
+// which it replaces.
+void __fastcall Nav_Update(u8 *nav);
 }
