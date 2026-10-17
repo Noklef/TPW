@@ -324,6 +324,37 @@ def pull(r):
     log = log_region()
     if r.random() < 0.9:  # the ground height about the effectors' (x16), else what the logger makes of its arguments
         set_return(log, 0x3e, r.randrange(-0x2000, 0x2000) * 16 + r.randrange(16))
+    s32 = lambda v: (v & 0xffffffff) - ((v & 0x80000000) << 1)
+    trunc = lambda a, b: abs(a) // b * (1 if a >= 0 else -1)
+    boundary = r.random() if active else 1
+    if boundary < 0.3:  # the first effector moving, the ground at its new y or as far below it as its new y velocity (the bounce's boundaries)
+        e = 0x68 * active[0]
+        instances[e + 0xa], instances[e + 0xb] = 0, 1
+        put(instances, e + 0x4c, 'i', 100)
+        y0, vy, drag, gravity = struct.unpack_from('<i', instances, e + 0x10) + struct.unpack_from('<i', instances, e + 0x1c) + struct.unpack_from('<ii', instances, e + 0x24)
+        vy = s32(vy - trunc(s32(drag * vy), 1024) - gravity)
+        y1 = s32(y0 + vy)
+        set_return(log, 0x3e, (s32(y1 - r.choice([0, 0, vy, vy, 1, -1, vy + 1, vy - 1])) << 4) + r.randrange(16))
+    elif boundary < 0.55:  # the first effector still, unjittered, in mode 2, its radius about the distance of a particle it pulls
+        e = 0x68 * active[0]
+        instances[e + 0xa] = 1
+        put(instances, e + 0x4c, 'i', 100)
+        put(instances, e + 4, 'i', -1)
+        put(instances, e + 0x30, 'i', 2)
+        put(instances, e + 0x34, 'iii', 0, 0, 0)
+        found, a = [], struct.unpack_from('<h', heads, 0)[0]
+        while a >= 0:  # (the first record of the first live system with the word +2 clear: pulled once its owner's +0x9c is 0; its age not 0)
+            if struct.unpack_from('<Hh', systems, 0x140 * a + 2)[0] == 0 and struct.unpack_from('<h', systems, 0x140 * a + 6)[0] >= 0:
+                found.append(struct.unpack_from('<h', systems, 0x140 * a + 6)[0])
+            a = struct.unpack_from('<h', systems, 0x140 * a + 0xd0)[0]
+        if found:
+            p = 0x34 * found[0]
+            put(systems, 0x140 * struct.unpack_from('<h', nodes, p + 0x26)[0] + 0x9c, 'I', 0)
+            put(nodes, p + 0x20, 'i', r.choice([1, 5, 100]))
+            d = sum(trunc(c - q, 4) ** 2 for c, q in zip(struct.unpack_from('<iii', instances, e + 0xc), struct.unpack_from('<iii', nodes, p))) // 256 + 10
+            target = d + r.choice([0, 0, 1, -1])
+            radius = next((v for v in range(max(0, int((256 * d) ** 0.5) - 2), int((256 * d) ** 0.5) + 40) if v * v // 256 == target), 0)
+            put(instances, e + 0x2c, 'i', radius)
     put(state, 0x24, 'I', CDECL_LOG2)
     regions.update({0x8164fc: instances, LOG: log})
     return Call(0x520f10, [], regions, ret='v')
