@@ -1,10 +1,37 @@
 #include "session.h"
 
 #include <cstdint>
+#include <initializer_list>
+
+#include "../core/gameheap.h"
+#include "../core/vcall.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+// OutputDebugStringA (0x6fd1e0) with the game's text at address text.
+void Say(u32 text) {
+    using Output = void(__stdcall *)(const char *);
+    (*reinterpret_cast<const Output *>((uintptr_t)0x006fd1e0))(reinterpret_cast<const char *>((uintptr_t)text));
+}
+
+// A WEA*R import with no arguments (__thiscall: the object in ECX) through its slot.
+void CallImport(u32 slot, void *object) {
+    using Method = u32(__fastcall *)(void *, void *);
+    (*reinterpret_cast<const Method *>((uintptr_t)slot))(object, nullptr);
+}
+
+// The News connection (+0x6c, set) released (News::Release), destroyed (News::~News) and freed when still set, +0x6c cleared.
+void FreeNews(u8 *session) {
+    CallImport(0x006fd58c, at<u8 *>(session, 0x6c));
+    if (u8 *const news = at<u8 *>(session, 0x6c)) {
+        CallImport(0x006fd588, news);
+        GameHeap_Free(news);
+    }
+    at<u32>(session, 0x6c) = 0;
+    Say(0x007733f0);
+}
 
 }  // namespace
 
@@ -25,4 +52,116 @@ const u16 *__fastcall Online_UserName(const u8 *session) { return at<const u16 *
 u32 __fastcall Online_UserFlags(const u8 *session) { return at<u32>(session, 0x58); }
 
 u32 __fastcall Online_User5c(const u8 *session) { return at<u32>(session, 0x5c); }
+
+void __fastcall Online_ReleaseLogin(u8 *session) {
+    if (!at<u8 *>(session, 0))
+        return;
+    CallImport(0x006fd45c, at<u8 *>(session, 0));   // Auth::Release
+    if (u8 *const auth = at<u8 *>(session, 0)) {
+        CallImport(0x006fd460, auth);   // Auth::~Auth
+        GameHeap_Free(auth);
+    }
+    at<u32>(session, 0) = 0;
+    Say(0x0077345c);
+}
+
+void __fastcall Online_ReleaseNews(u8 *session) {
+    if (!at<u8 *>(session, 0x6c))
+        return;
+    FreeNews(session);
+}
+
+void __fastcall Online_ResetNews(u8 *session) {
+    if (at<u8 *>(session, 0x6c))
+        FreeNews(session);
+    at<u32>(session, 0x74) = 0xffffffff;
+    at<u32>(session, 0xc8) = 0;
+    at<u32>(session, 0xcc) = 0;
+    at<u32>(session, 0x78) = 0;
+    vcall<void>(session + 0x7c, 0x14, 0x00786de4u);
+    at<u32>(session, 0x90) = 0xffffffff;
+    at<u32>(session, 0x94) = 0;
+    vcall<void>(session + 0x98, 0x14, 0x0078a374u);
+    at<u32>(session, 0xac) = 0xffffffff;
+    at<u32>(session, 0xb0) = 0;
+    vcall<void>(session + 0xb4, 0x14, 0x0078a374u);
+    at<u32>(session, 0xd0) = 0;
+}
+
+u8 *__fastcall Auth_DeletingDtor(u8 *auth, void *, u32 flags) {
+    CallImport(0x006fd460, auth);   // Auth::~Auth
+    if (flags & 1)
+        GameHeap_Free(auth);
+    return auth;
+}
+
+void __fastcall Online_ReleaseUpload(u8 *session) {
+    if (u8 *const upload = at<u8 *>(session, 0x104)) {
+        CallImport(0x006fd5ec, upload);   // Upload::Release
+        at<u32>(session, 0x104) = 0;
+    }
+}
+
+void __fastcall Online_ResetUpload(u8 *session) {
+    Online_ReleaseUpload(session);
+    for (u32 offset : {0x328u, 0x320u, 0x324u, 0x32cu, 0x344u})
+        at<u32>(session, offset) = 0;
+    vcall<void>(session + 0x348, 0x14, 0x0078a374u);
+    vcall<void>(session + 0x35c, 0x14, 0x0078a374u);
+    for (u32 offset = 0x370; offset <= 0x380; offset += 4)
+        at<u32>(session, offset) = 0;
+}
+
+void __fastcall Online_ResetDownload(u8 *session) {
+    Say(0x007733d0);
+    if (u8 *const object = at<u8 *>(session, 0x3a0)) {
+        at<u32>(session, 0x3a0) = 0;
+        vcall<void>(object, 0, 1u);
+    }
+    if (u8 *const block = at<u8 *>(session, 0x39c)) {
+        GameHeap_Free(block);
+        at<u32>(session, 0x39c) = 0;
+    }
+    for (u32 offset : {0x390u, 0x394u, 0x384u, 0x388u, 0x38cu, 0x398u, 0x3a8u, 0x3c0u, 0x3c4u})
+        at<u32>(session, offset) = 0;
+    vcall<void>(session + 0x3dc, 0x14, 0x00786de4u);
+    at<u32>(session, 0x3f0) = 0;
+}
+
+void __fastcall Online_LoginResult(u8 *session, void *, s32 status, u32, u32, u8 *record) {
+    u32 error;
+    switch (status) {
+    case 60:
+        Say(0x00773480);
+        at<u32>(session, 0x34) = at<u32>(record, 0);
+        at<u32>(session, 0x38) = at<u32>(record, 4);
+        vcall<void>(session + 0x3c, 0x14, record + 0x30);
+        for (u32 offset = 0; offset < 0x10; offset += 4)
+            at<u32>(session, 0x50 + offset) = at<u32>(record, 0x58 + offset);
+        if (--at<s32>(record, 0x68) == 0 && record)
+            GameHeap_Free(record);
+        at<u32>(session, 0x68) = 0;
+        at<u32>(session, 0x60) = 1;
+        at<u32>(session, 0x64) = 1;
+        return;
+    case -6:
+        error = 0x4e;
+        break;
+    case -5:
+        error = 0x4d;
+        break;
+    case -4:
+        error = 0x4c;
+        break;
+    case -2:
+        error = 0x4b;
+        break;
+    default:
+        error = 0x37;
+        break;
+    }
+    at<u32>(session, 0x68) = error;
+    at<u32>(session, 0x60) = 0;
+    at<u32>(session, 0x64) = 1;
+}
 }
