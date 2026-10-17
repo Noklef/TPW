@@ -196,6 +196,7 @@ add_library(tpw_game STATIC
     src/game/world/messagecentre.cpp
     src/game/world/steering.cpp
     src/game/world/tagsystem.cpp
+    src/game/world/ridestate.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp

@@ -3627,6 +3627,7 @@ address,name,kind,confidence,notes
 0x0050e350,SteerAvoidObstacle_Steer,function,low,"reimplemented (src/game/world/steering); avoid_obstacle's slot 0, thiscall (&out, nav): reach from Nav_PredictPos(10.0); (0, 0) with no hit (the obstacle visit is compiled out), else the force through Matrix2_Transform; returns out"
 0x0050cc20,Steer_RayCircleHit,function,low,"reimplemented (src/game/world/steering); cdecl (&from, &dir, &centre, radius): where the ray first meets the circle (16.16 quadratic, the smaller root halved); 0x80000000 when it misses"
 0x0050af40,TagTable_Find,function,low,"reimplemented (src/game/world/tagsystem); the CTagTable lookup: 0 for ids 0x17e/0x17f, the record at 0x75eca8 + id * 0x20 when its id matches, else the first record with the id, else 0"
+0x0042a440,Ride_IsBusy,function,low,"reimplemented (src/game/world/ridestate); cdecl (object, index): the track ride link, flying ride slot, coaster link or a key-1 0x1000 model part says the ride is busy"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved

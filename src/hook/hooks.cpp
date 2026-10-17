@@ -198,7 +198,8 @@
 #include "../game/input/mouse.h"
 #include "../game/world/personscripts.h"
 #include "../game/world/ridelist.h"
-#include "../game/world/ridesearch.h"
+#include "../game/world/ridesearch.h"
+#include "../game/world/ridestate.h"
 #include "../game/world/ridesweep.h"
 #include "../game/world/steering.h"
 #include "../game/world/tagsystem.h"
@@ -3177,6 +3178,7 @@ const Hook kHooks[] = {
     {"SteerAvoidObstacle_Steer",  0x0050e350, (void *)&SteerAvoidObstacle_Steer, {0x6a, 0xff, 0x68, 0x90, 0xe3}},
     {"Steer_RayCircleHit",        0x0050cc20, (void *)&Steer_RayCircleHit, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"TagTable_Find",             0x0050af40, (void *)&TagTable_Find, {0x8b, 0x54, 0x24, 0x04, 0x81}},
+    {"Ride_IsBusy",               0x0042a440, (void *)&Ride_IsBusy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
