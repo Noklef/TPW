@@ -46,7 +46,8 @@
 #include "../game/math/bits.h"
 #include "../game/math/geometry.h"
 #include "../game/math/rect.h"
-#include "../game/math/sintable.h"
+#include "../game/math/sintable.h"
+#include "../game/math/transform.h"
 #include "../game/math/vec2.h"
 #include "../game/gfx/palette.h"
 #include "../game/gfx/surface.h"
@@ -3095,6 +3096,8 @@ const Hook kHooks[] = {
     {"Vec3_DotByValue",           0x005812f0, (void *)&Vec3_DotByValue, {0xd9, 0x44, 0x24, 0x14, 0xd9}},
     {"Tri_WindingTest",           0x00581320, (void *)&Tri_WindingTest, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Box_Extend",                0x0057b410, (void *)&Box_Extend, {0xd9, 0x44, 0x24, 0x04, 0xd8}},
+    {"Transform_BlockedPoints",   0x00579250, (void *)&Transform_BlockedPoints, {0x55, 0x8b, 0xec, 0x53, 0x56}},
+    {"Transform_Vertices",        0x00579330, (void *)&Transform_Vertices, {0x8b, 0x44, 0x24, 0x20, 0x53}},
     {"Table_ScaledBySum",         0x00503980, (void *)&Table_ScaledBySum, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"Staff_Train",               0x00505a10, (void *)&Staff_Train, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
     {"Staff_CountTypes",          0x00508000, (void *)&Staff_CountTypes, {0x83, 0xec, 0x0c, 0x33, 0xc0}},

@@ -157,6 +157,7 @@ add_library(tpw_game STATIC
     src/game/math/bits.cpp
     src/game/math/vec2.cpp
     src/game/math/geometry.cpp
+    src/game/math/transform.cpp
     src/game/motion/curve.cpp
     src/game/motion/keys.cpp
     src/game/motion/quat.cpp

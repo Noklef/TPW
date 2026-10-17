@@ -3552,6 +3552,8 @@ address,name,kind,confidence,notes
 0x005812f0,Vec3_DotByValue,function,low,"reimplemented (src/game/math/geometry); cdecl (ax, ay, az, bx, by, bz by value): the dot product in st0"
 0x00581320,Tri_WindingTest,function,low,"reimplemented (src/game/math/geometry); cdecl (a, b, c): x, y, w copied to 0x8c63b0-0x8c63d0; 1 when the homogeneous winding compare is below or unordered"
 0x0057b410,Box_Extend,function,low,"reimplemented (src/game/math/geometry); thiscall (x, y, z): the box (min +0, max +0xc) grown to take the point; a NaN goes into the minimum"
+0x00579250,Transform_BlockedPoints,function,low,"reimplemented (src/game/math/transform); cdecl: points in blocks of four (x[4], y[4], z[4]) transformed to x, y, z, w by a 4x4 matrix"
+0x00579330,Transform_Vertices,function,low,"reimplemented (src/game/math/transform); cdecl: vertices transformed by a 4x4 matrix, by mode (4 in 4 out, point to 3, direction to 3, point to 4)"
 0x00503980,Table_ScaledBySum,function,high,reimplemented (src/game/world/staff); a table share scaled by the things' sum
 0x00505a10,Staff_Train,function,low,"reimplemented (src/game/world/staff); thiscall (amount): pay for training: debit the money, add to the park's spend, add amount / cost points of progress, raise the grade at 100"
 0x00508000,Staff_CountTypes,function,low,"reimplemented (src/game/world/staff); thiscall: count the world's staff by type, flagging the types that reached their limits"
