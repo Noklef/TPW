@@ -264,6 +264,7 @@ add_library(tpw_game STATIC
     src/game/render/dynfaces.cpp
     src/game/render/lightsource.cpp
     src/game/render/clipcodes.cpp
+    src/game/render/dxerrors.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/online/itemlist.cpp
