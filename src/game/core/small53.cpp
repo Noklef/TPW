@@ -50,6 +50,43 @@ template <bool Max> u32 Filter(u32 *image, s32 radius) {
 
 extern "C" {
 
+void __cdecl Image_MinMark(u32 *image, const u32 *, u8 mark, const u32 *maskImage) {
+    const s32 width = (s32)image[0];
+    u8 *current = reinterpret_cast<u8 *>(image[3]);
+    u8 *mask = reinterpret_cast<u8 *>(maskImage[3]);
+    for (s32 y = 0; y < (s32)image[1]; ++y) {
+        for (s32 x = 0; x < width && x < (s32)image[0]; ++x) {  // (the width is read again for each pixel)
+            const u8 original = *current;
+            u8 least = original;
+            const u8 *above = current - 2 * width;
+            const u8 *below = current + 2 * width;
+            auto take = [&least](u8 value) { if (value < least) least = value; };
+            const bool left = x > 0, right = x < (s32)image[0] - 2;
+            if (y > 0) {
+                if (left) take(above[-2]);
+                take(above[0]);
+                if (right) take(above[2]);
+            }
+            if (left) take(current[-2]);
+            if (right) take(current[2]);
+            if (y < (s32)image[1] - 2) {
+                if (left) take(below[-2]);
+                take(below[0]);
+                if (right) take(below[2]);
+            }
+            current[1] = least;
+            if (least != original) *mask = mark;
+            current += 2;
+            ++mask;
+        }
+    }
+    u8 *to = reinterpret_cast<u8 *>(image[3]);
+    for (s32 i = 0; i < (s32)image[0] * (s32)image[1]; ++i) {
+        to[0] = to[1];
+        to += 2;
+    }
+}
+
 u32 __cdecl Image_Dilate(u32 *image, s32 radius) { return Filter<true>(image, radius); }
 
 u32 __cdecl Image_Erode(u32 *image, s32 radius) { return Filter<false>(image, radius); }

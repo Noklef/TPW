@@ -7,14 +7,27 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
-CALLS = {'Dilate': 0x5ea510, 'Erode': 0x5ea6d0}
-B = Bench([(0x5ea510, 0x5ea6e0), (0x5ea6d0, 0x5ea8b0), (0x67acb0, 0x67acb1)])
+CALLS = {'Dilate': 0x5ea510, 'Erode': 0x5ea6d0, 'Mark': 0x5ea1f0}
+B = Bench([(0x5ea510, 0x5ea6e0), (0x5ea6d0, 0x5ea8b0), (0x5ea1f0, 0x5ea400), (0x67acb0, 0x67acb1)])
 DATA = RAM + 0x1000
 
 
 def case(r):
     name = r.choice(OPS)
     w, h, bpp = r.randrange(0, 8), r.randrange(0, 7), r.choice([1, 1, 2, 3])
+    if name == 'Mark':
+        w, h = r.randrange(0, 7), r.randrange(0, 6)
+        img = bytearray(r.bytes(0x10))
+        put(img, 0, 'IIII', w, h, 2, DATA + 0x100)
+        mask = bytearray(r.bytes(0x10))
+        put(mask, 0, 'IIII', w, h, 1, DATA + 0x400)
+        other = bytearray(r.bytes(0x10))
+        data = bytearray(r.bytes(2 * w * h + 0x40))
+        for i in range(len(data)):
+            if r.random() < 0.4:
+                data[i] = r.choice([0, 1, 2, 0x80, 0xff])
+        pad = bytearray(r.bytes(2 * 12 + 0x10))  # (the rows above the first and below the last are read when the guards allow)
+        return Call(CALLS[name], [RAM, RAM + 0x40, r.choice([0, 1, 0x7f, 0xff]), RAM + 0x80], {RAM: img, RAM + 0x40: other, RAM + 0x80: mask, DATA: pad, DATA + 0x100: data, DATA + 0x400: r.bytes(w * h + 0x20)}, ret='v')
     img = bytearray(r.bytes(0x10))
     put(img, 0, 'IIII', w, h, bpp, DATA)
     data = bytearray(r.bytes(w * h * bpp + 0x40))

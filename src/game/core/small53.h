@@ -11,4 +11,9 @@ extern "C" {
 u32 __cdecl Image_Dilate(u32 *image, s32 radius);
 u32 __cdecl Image_Erode(u32 *image, s32 radius);
 
+// 0x5ea1f0 (cdecl; image, an unused second pointer, mark, mask image): the image's pixels are two bytes each (value, then room for a result): the result of each is the smallest of
+// the value and its 3 x 3 neighbours that exist (the right ones only up to the column width - 3, below only for the rows up to height - 3, sic), and the mask image's byte of the
+// pixel (in order, continuing across rows) is set to the mark where it is below the value; at the end each pixel's value becomes its result.
+void __cdecl Image_MinMark(u32 *image, const u32 *unused, u8 mark, const u32 *maskImage);
+
 }  // extern "C"
