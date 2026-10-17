@@ -12,4 +12,8 @@ extern "C" {
 // OR (byte 1) and the caller's ECX's high half (bytes 2-3: the local the function's PUSH ECX makes, sic), so it is taken here as a fastcall's
 // first argument (the second, EDX, is shifted out). Returns out (EAX); pops 24 bytes.
 u8 *__fastcall ClipCodes_Compute(u32 ecx, u32 edx, u8 *out, u8 *codes, const u8 *points, u32 count, u32 stride, u32 mask);
+
+// 0x570d60 (stdcall-like, the caller's ECX passed on: the object at 0x879a20 in its callers; the same six arguments; name unconfirmed):
+// ClipCodes_Compute with that ECX (and EDX the points, left from copying the arguments); returns out.
+u8 *__fastcall ClipCodes_Run(u32 ecx, u32 edx, u8 *out, u8 *codes, const u8 *points, u32 count, u32 stride, u32 mask);
 }
