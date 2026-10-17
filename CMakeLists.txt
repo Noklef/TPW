@@ -180,6 +180,7 @@ add_library(tpw_game STATIC
     src/game/core/small58.cpp
     src/game/core/small59.cpp
     src/game/core/small60.cpp
+    src/game/core/small61.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

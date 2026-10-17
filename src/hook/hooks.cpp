@@ -164,6 +164,7 @@
 #include "../game/core/small59.h"
 #include "../game/core/small6.h"
 #include "../game/core/small60.h"
+#include "../game/core/small61.h"
 #include "../game/core/small7.h"
 #include "../game/core/small8.h"
 #include "../game/core/small9.h"
@@ -2990,6 +2991,9 @@ const Hook kHooks[] = {
     {"Animator_Sleep",            0x004254c0, (void *)&Animator_Sleep, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Object_BackOfQueueTo",      0x004de110, (void *)&Object_BackOfQueueTo, {0x8a, 0x41, 0x32, 0x56, 0x8b}},
     {"Object_QueuePositionOfNone", 0x004ddf40, (void *)&Object_QueuePositionOfNone, {0x51, 0x8b, 0xc4, 0x66, 0xc7}},
+    {"Thing_PlaceAt",             0x004fa930, (void *)&Thing_PlaceAt, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"Slot_ReadIntoFree",         0x0051fa20, (void *)&Slot_ReadIntoFree, {0xa1, 0x40, 0x6d, 0x81, 0x00}},
+    {"Thing_SpriteChoice",        0x004fcac0, (void *)&Thing_SpriteChoice, {0x51, 0x56, 0x8b, 0xf1, 0x6a}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

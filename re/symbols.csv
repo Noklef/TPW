@@ -3400,6 +3400,9 @@ address,name,kind,confidence,notes
 0x004254c0,Animator_Sleep,function,high,reimplemented (src/game/core/small60); the holder sleeps and flag 0x4000 clears
 0x004de110,Object_BackOfQueueTo,function,high,reimplemented (src/game/core/small60); Object_BackOfQueue returning out
 0x004ddf40,Object_QueuePositionOfNone,function,high,reimplemented (src/game/core/small60); the position of the person with no handle
+0x004fa930,Thing_PlaceAt,function,high,reimplemented (src/game/core/small61); a thing placed on the navigation block and moved
+0x0051fa20,Slot_ReadIntoFree,function,high,reimplemented (src/game/core/small61); a stream read into the first free 0x140-byte slot
+0x004fcac0,Thing_SpriteChoice,function,high,"reimplemented (src/game/core/small61); the flags of a sprite, or a random sprite of folder 1"
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
