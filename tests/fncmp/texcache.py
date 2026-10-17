@@ -1,18 +1,61 @@
-# The terrain texture tile cache's constructor (src/game/terrain/texcache: 0x5720d0) against the
-# original: any bytes before.
-# usage: texcache.py [CASES [SEED]] [--wild|--both] [--show N]
+# The terrain texture tile cache's constructor and destructor (src/game/terrain/texcache: 0x5720d0, 0x572350) against the originals: any
+# bytes before; for the destructor 0-3 tiles in use (or a negative count) whose texture arrays (as texturemem.py) are set or not, the
+# landscape at +0 set (as land_levels.py's destructor) or not.
+# usage: texcache.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,Dtor)
 import os
+import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import texturemem  # noqa: E402
+from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put  # noqa: E402
 
-B = Bench([(0x5720d0, 0x572100)])
+CALLS = {'Ctor': 0x5720d0, 'Dtor': 0x572350}
+B = Bench([(0x5720d0, 0x572100), (0x572350, 0x5723ef), (0x55f1e0, 0x55f730), (0x5c4f60, 0x5c4f90), (0x5d3860, 0x5d38a0), (0x590a70, 0x590a75),
+           (0x590b90, 0x590c39), (0x579b40, 0x579c13), (0x58dc50, 0x58dd5e), (0x67afa0, 0x67b0d0), (0x67acb0, 0x67acb1)])
+CACHE, LND, TILES, ARRAYS = RAM + 0x10000, RAM + 0x4000, RAM + 0x4400, RAM + 0x5000   # (texturemem.py's regions below RAM + 0x4000)
+
+
+def dtor(r):
+    regions = {HEAP: heap(), **global_heap(), LOG: log_region()}
+    cache = bytearray(r.bytes(0x10018))
+    n = r.choice([0, 1, 2, 3])
+    count = r.choice([n, n, n, 0, 0xffffffff]) if n else r.choice([0, 0, 0xffffffff])
+    put(cache, 0x10010, 'I', count)
+    put(cache, 0x10008, 'I', TILES)
+    tiles = bytearray(r.bytes(0x40))
+    for k in range(n):
+        if r.random() < 0.8:
+            m = r.choice([0, 1, 2, 3])
+            base = ARRAYS + 0x400 * k
+            tex = texturemem.textures(r, regions, base + 4, m + 1)
+            regions[base] = struct.pack('<I', m) + tex
+            put(tiles, 0x10 * k + 0xc, 'I', base + 4)
+        else:
+            put(tiles, 0x10 * k + 0xc, 'I', 0)
+    regions[TILES] = tiles
+    if r.random() < 0.5:   # a landscape (land_levels.py's destructor case)
+        lnd = bytearray(r.bytes(0x300))
+        for off in [0x14] + [0x24 + 0xd8 * k + off for k in range(3) for off in range(8, 0xd8, 0x10)]:
+            put(lnd, off + 0xc, 'I', r.choice([0, 0, HEAP + 0x2000 + off]))
+        regions[LND] = lnd
+        regions[0x8798c8] = struct.pack('<I', r.choice([0, HEAP + 0x1f00]))
+        put(cache, 0, 'I', LND)
+    else:
+        put(cache, 0, 'I', 0)
+    regions[CACHE] = cache
+    regions[0x8bd550] = r.bytes(4)
+    return Call(0x572350, [CACHE], regions, conv='t', ret='a')
 
 
 def case(r):
+    if r.choice(OPS) == 'Dtor':
+        return dtor(r)
     return Call(0x5720d0, [RAM], {RAM: r.bytes(0x10018)}, conv='t', ret='a')
 
+
+OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
