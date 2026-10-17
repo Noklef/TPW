@@ -22,4 +22,16 @@ void __fastcall Nav_Dtor(u8 *object);
 
 // 0x4f7c30 (thiscall; an adjustor): Nav_Dtor on the block at this + 0xd4.
 void __fastcall Nav_DtorAtD4(u8 *owner);
+
+// 0x50f280 (&out, &point): point - pos in the nav's local frame (16.16 products, local_xaxis at +0x20, local_yaxis at
+// +0x28): out = (d . xaxis, d . yaxis), y written first. Returns out.
+s32 *__fastcall Nav_WorldToLocal(const u8 *nav, void *, s32 *out, const s32 *point);
+
+// 0x50f870 (&out, time): out = pos + vel * time (IntPair_MulFixed, IntPair_Add, through temporaries). Returns out.
+s32 *__fastcall Nav_PredictPos(const u8 *nav, void *, s32 *out, s32 time);
+
+// 0x50fd40: how far along its path the nav is, 16.16: 1.0 when the path is finished (byte +0x60 is 1) or its total
+// (path_total_dist, +0xa0) is 0, else 1.0 - (+0xa4 + +0xa8 + the octagonal distance to the path point +0x5c of the
+// five at +0x64) << 16 / total, one IDIV (it faults, sic, when the quotient passes 31 bits).
+s32 __fastcall Nav_PathProgress(const u8 *nav);
 }

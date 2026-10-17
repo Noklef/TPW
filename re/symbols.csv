@@ -3564,6 +3564,9 @@ address,name,kind,confidence,notes
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
+0x0050f280,Nav_WorldToLocal,function,low,"reimplemented (src/game/world/nav); thiscall (&out, &point): point - pos in the local frame (local_xaxis +0x20, local_yaxis +0x28, 16.16); returns out"
+0x0050f870,Nav_PredictPos,function,low,"reimplemented (src/game/world/nav); thiscall (&out, time): out = pos + vel * time (16.16); returns out"
+0x0050fd40,Nav_PathProgress,function,low,"reimplemented (src/game/world/nav); thiscall: 1.0 - (path_subpath_dist + path_tail_dist + octagonal distance to the current path point) / path_total_dist, 16.16; 1.0 when finished or the total is 0; IDIV faults like the original's"
 0x0052a050,Cell_ExtendPath,function,high,reimplemented (src/game/world/mapcell); one step of a path across the map's cells
 0x0052c420,MapGrid_MarkEdges,function,high,"reimplemented (src/game/world/mapcell); edge cells of a map grid of types 4, 9, 0x17 and 0xa"
 0x0052c5b0,MapGrid_ClassifyTypes,function,high,reimplemented (src/game/world/mapcell); a map grid's cell types as codes 1 to 4

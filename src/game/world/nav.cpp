@@ -10,6 +10,9 @@ namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
+// a * b in 16.16 fixed point: the 64-bit product's bits 16-47 (imul; shl edx, 16; shr eax, 16; or).
+s32 MulFixed(s32 a, s32 b) { return (s32)(((long long)a * b) >> 16); }
+
 }  // namespace
 
 namespace {
@@ -55,4 +58,45 @@ u8 *__fastcall Nav_Ctor(u8 *object) {
 void __fastcall Nav_Dtor(u8 *object) { CRT_VectorDtorIterator(object + 0x64, 8, 5, reinterpret_cast<void(__fastcall *)(void *)>(&Stub_Ret)); }
 
 void __fastcall Nav_DtorAtD4(u8 *owner) { Nav_Dtor(owner + 0xd4); }
+
+s32 *__fastcall Nav_WorldToLocal(const u8 *nav, void *, s32 *out, const s32 *point) {
+    s32 d[2];
+    IntPair_Sub(reinterpret_cast<const u32 *>(point), nullptr, reinterpret_cast<u32 *>(d), &at<u32>(nav, 8));
+    const s32 yx = MulFixed(d[0], at<s32>(nav, 0x28)), yy = MulFixed(d[1], at<s32>(nav, 0x2c));
+    const s32 xx = MulFixed(d[0], at<s32>(nav, 0x20)), xy = MulFixed(d[1], at<s32>(nav, 0x24));
+    out[1] = (s32)((u32)yy + (u32)yx);
+    out[0] = (s32)((u32)xy + (u32)xx);
+    return out;
+}
+
+s32 *__fastcall Nav_PredictPos(const u8 *nav, void *, s32 *out, s32 time) {
+    s32 step[2], ahead[2];
+    IntPair_MulFixed(&at<s32>(nav, 0x10), nullptr, step, time);
+    IntPair_Add(&at<u32>(nav, 8), nullptr, reinterpret_cast<u32 *>(ahead), reinterpret_cast<const u32 *>(step));
+    out[0] = ahead[0];
+    out[1] = ahead[1];
+    return out;
+}
+
+s32 __fastcall Nav_PathProgress(const u8 *nav) {
+    if (at<u8>(nav, 0x60) == 1) return 0x10000;
+    s32 d[2];
+    IntPair_Sub(&at<u32>(nav, 0x64 + at<u32>(nav, 0x5c) * 8), nullptr, reinterpret_cast<u32 *>(d), &at<u32>(nav, 8));
+    const s32 ax = d[0] < 0 ? (s32)(0u - (u32)d[0]) : d[0];  // sic: INT_MIN stays negative
+    const s32 ay = d[1] < 0 ? (s32)(0u - (u32)d[1]) : d[1];
+    const s32 shorter = ax > ay ? ay : ax;
+    const u32 left = at<u32>(nav, 0xa8) + at<u32>(nav, 0xa4) - (u32)(shorter >> 1) + (u32)ay + (u32)ax;
+    const s32 total = at<s32>(nav, 0xa0);
+    if (total == 0) return 0x10000;
+    // left << 16 (as 64 bits) / total in one IDIV, as the original's: it faults (sic) when the quotient passes 31 bits.
+    const u32 dividendLow = left << 16, dividendHigh = (u32)((s32)left >> 16);
+    s32 q;
+    __asm {
+        mov eax, dividendLow
+        mov edx, dividendHigh
+        idiv total
+        mov q, eax
+    }
+    return 0x10000 - q;
+}
 }
