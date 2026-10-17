@@ -35,6 +35,7 @@
 #include "../../src/game/files/file.h"
 #include "../../src/game/files/handles.h"
 #include "../../src/game/files/waddir.h"
+#include "../../src/game/files/streamopen.h"
 #include "../../src/game/files/wadfind.h"
 #include "../../src/game/files/wadsource.h"
 #include "../../src/game/files/wrapsources.h"
@@ -140,9 +141,13 @@ const u32 kHeap = 0x2e000000;
 
 void *__cdecl heap_alloc(u32 size) {
     u32 *h = reinterpret_cast<u32 *>((uintptr_t)kHeap);
-    const u32 p = h[0];
-    h[0] = p + ((size + 15) & ~15u);
+    const u32 countdown = h[0] & 15, p = h[0] & ~15u;  // (fncmp.heap(fail=): the allocation that answers 0)
     h[1] = h[1] * 33 ^ size;
+    if (countdown == 1) {
+        h[0] = p;
+        return nullptr;
+    }
+    h[0] = p + ((size + 15) & ~15u) + (countdown ? countdown - 1 : 0);
     return reinterpret_cast<void *>((uintptr_t)p);
 }
 
@@ -226,7 +231,8 @@ const u32 kLog = kStubs + 0x100000;  // (the case maps it)
 // Optional settings in the log region: at + 0xa00 a mask per slot (k & 63): bits 0-15 the arguments that are C strings, logged and hashed as a hash of the string
 // (so that a path in a stack buffer, whose address differs between the sides, compares by its text), bits 16-31 out arguments, logged as 0 (a stack address;
 // what is written through them is a fill's, and shows in what the code does with it); at + 0xb00 and + 0xb80 two fills (k | 0x80000000, the argument, the
-// length; the bytes from + 0x10, at most 0x70) written through that argument before the recorder returns (an out structure, FindFirstFile's).
+// length; the bytes from + 0x10, at most 0x70; length bit 31: argument length & 0xff's value, fncmp.fill_arg()) written through that argument before the
+// recorder returns (an out structure, FindFirstFile's); at + 0xc00 a mask per slot of BYTE arguments, logged as their low byte (fncmp.LOG_BYTES).
 u32 string_hash(const u8 *s) {
     if (!s) return 0;
     u32 h = 0x811c9dc5u;
@@ -242,11 +248,17 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
         args[i] = stack[1 + i];
         for (u32 f = 0; f < 2; ++f) {
             const u32 *fill = log + 0x2c0 + 0x20 * f;
-            if (fill[0] == ((k & 63) | 0x80000000u) && fill[1] == i && args[i])
+            if (fill[0] != ((k & 63) | 0x80000000u) || fill[1] != i || !args[i]) continue;
+            if (fill[2] & 0x80000000u) {  // (fncmp.fill_arg(): an argument's value, as passed)
+                const u32 value = (fill[2] & 0xff) < n ? stack[1 + (fill[2] & 0xff)] : 0;
+                std::memcpy(reinterpret_cast<void *>((uintptr_t)args[i]), &value, 4);
+            } else {
                 std::memcpy(reinterpret_cast<void *>((uintptr_t)args[i]), fill + 4, fill[2] < 0x70 ? fill[2] : 0x70);
+            }
         }
         if (mask >> i & 1) args[i] = string_hash(reinterpret_cast<const u8 *>((uintptr_t)args[i]));
         if (mask >> (16 + i) & 1) args[i] = 0;
+        if (log[0x300 + (k & 63)] >> i & 1) args[i] &= 0xff;
     }
     if (log[0] < 40) {
         u32 *entry = log + 1 + 12 * log[0];
@@ -369,7 +381,17 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x007038d0, 14},  // DirSource_vtable
                                    {0x00703e30, 12},  // FileSource_vtable
                                    {0x00703e60, 12},  // MmioSource_vtable
-                                   {0x00703128, 8}};  // ZlibCodec_vtable
+                                   {0x00703128, 8},   // ZlibCodec_vtable
+                                   {0x00703180, 12},  // Handle_vtable
+                                   {0x006fd9e8, 12},  // FolderHandle_vtable
+                                   {0x006fda18, 12},  // WadHandle_vtable
+                                   {0x00703898, 13},  // RefObject2_vtable
+                                   {0x00703100, 9},   // StreamBase_vtable
+                                   {0x00703838, 12},  // RefObject_vtable
+                                   {0x00703f78, 12},  // BufferedSource_vtable
+                                   {0x00703868, 12}}; // MemorySource_vtable
+
+void __cdecl debug_printf(const char *, ...) {}  // Debug_Printf 0x5da3c0 (RefObject's teardown slot among others)
 
 void resolve_vtables() {
     for (const auto &v : kResolvedVtables)
@@ -377,7 +399,8 @@ void resolve_vtables() {
             if (v[0] >= s.address && v[0] + 4 * v[1] <= s.address + s.raw.size())
                 for (u32 i = 0; i < v[1]; ++i) {
                     u32 *const slot = reinterpret_cast<u32 *>(s.raw.data() + (v[0] - s.address) + 4 * i);
-                    if (void *const fn = find(*slot)) *slot = (u32)(uintptr_t)fn;  // (a slot not hooked stays the game's)
+                    if (*slot == 0x005da3c0) *slot = (u32)(uintptr_t)&debug_printf;  // (empty in the retail build)
+                    else if (void *const fn = find(*slot)) *slot = (u32)(uintptr_t)fn;  // (a slot not hooked stays the game's)
                 }
 }
 
@@ -397,6 +420,17 @@ void *find(u32 address) {
     for (u32 i = 0; i < kCrtStandInCount; ++i)
         if (kCrtStandIns[i].address == address) return kCrtStandIns[i].fn;
     return nullptr;
+}
+
+// With FNCMP_CRASHAT set (debugging a bench), where a case faults goes to stderr: the instruction and the address it touched.
+int crash_filter(EXCEPTION_POINTERS *x) {
+    static const bool report = std::getenv("FNCMP_CRASHAT") != nullptr;
+    if (report) {
+        const EXCEPTION_RECORD *const r = x->ExceptionRecord;
+        std::fprintf(stderr, "crash %08x at %08x touching %08x (esp %08x)\n", (u32)r->ExceptionCode, (u32)(uintptr_t)r->ExceptionAddress,
+                     r->NumberParameters > 1 ? (u32)r->ExceptionInformation[1] : 0, (u32)x->ContextRecord->Esp);
+    }
+    return EXCEPTION_EXECUTE_HANDLER;
 }
 
 // Pushes the stack arguments right to left, sets ECX/EDX, calls, and restores ESP whatever
@@ -428,7 +462,7 @@ int invoke(void *fn, u32 ecxIn, u32 edxIn, const u32 *stack, u32 count, int want
             fstp f
         done:
         }
-    } __except (EXCEPTION_EXECUTE_HANDLER) {
+    } __except (crash_filter(GetExceptionInformation())) {
         __asm fninit
         return (int)GetExceptionCode();
     }
@@ -508,6 +542,28 @@ int main(int argc, char **argv) {
     handles.bufferCtor = reinterpret_cast<void *(__fastcall *)(void *, void *, char *, u32, u32)>(hooked(0x00636bc0));
     handles.bufferDtor = reinterpret_cast<void(__fastcall *)(void *)>(hooked(0x00636c70));
     Handles_SetEnv(&handles);
+    static const StreamOpenEnv streamOpen = {
+        reinterpret_cast<s32 *(__cdecl *)(s32 *, char *, u32, const char *)>(hooked(0x005f5710)),
+        reinterpret_cast<u32(__stdcall *const *)(const char *)>((uintptr_t)0x006fd10c),
+        reinterpret_cast<Handle *(__fastcall *)(Handle *)>(hooked(0x005f8240)),
+        reinterpret_cast<void(__fastcall *)(Handle *)>(hooked(0x005f82a0)),
+        reinterpret_cast<s32 *(__fastcall *)(Handle *, void *, s32 *, u32, u32)>(hooked(0x005f85d0)),
+        reinterpret_cast<s32 *(__fastcall *)(Handle *, void *, s32 *, u32)>(hooked(0x005f8510)),
+        reinterpret_cast<s32 *(__fastcall *)(Handle *, void *, s32 *, u32, u32, u32, u32)>(hooked(0x005f83d0)),
+        reinterpret_cast<String *(__fastcall *)(String *, void *, const char *)>(hooked(0x005f60b0)),
+        reinterpret_cast<String *(__fastcall *)(String *, void *, const StringView *)>(hooked(0x005f6040)),
+        reinterpret_cast<void(__fastcall *)(String *)>(hooked(0x005f61e0)),
+        reinterpret_cast<s32(__fastcall *)(const String *, void *, const char *, u32)>(hooked(0x005f7b90)),
+        reinterpret_cast<StringView *(__fastcall *)(const String *, void *, StringView *, u32)>(hooked(0x005f7d60)),
+        reinterpret_cast<StringView *(__fastcall *)(const String *, void *, StringView *, u32)>(hooked(0x005f7dd0)),
+        reinterpret_cast<void *const *>((uintptr_t)0x006fda18),
+        reinterpret_cast<void *const *>((uintptr_t)0x006fd9e8),
+        reinterpret_cast<RefObject *(__fastcall *)(StreamBase *)>(hooked(0x004217e0)),
+        &heap_alloc,
+        reinterpret_cast<BufferedSource *(__fastcall *)(BufferedSource *)>(hooked(0x00638ef0)),
+        reinterpret_cast<s32 *(__fastcall *)(BufferedSource *, void *, s32 *, u32)>(hooked(0x00638f20)),
+        reinterpret_cast<void(__fastcall *)(StreamBase *, void *, RefObject *)>(hooked(0x005f7240))};
+    StreamOpen_SetEnv(&streamOpen);
     Crt_SetEnv(&kDriverCrt);
     Libc_SetEnv(&kDriverLibc);
     static char token[1 << 22];

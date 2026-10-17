@@ -305,4 +305,4 @@ add_executable(tpw_fncmp
     src/hook/patch.cpp
 )
 target_link_libraries(tpw_fncmp PRIVATE tpw_game)
-target_link_options(tpw_fncmp PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x400000)
+target_link_options(tpw_fncmp PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x400000 /MAP)  # (the map names where FNCMP_CRASHAT's crashes are)

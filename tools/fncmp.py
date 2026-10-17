@@ -248,18 +248,24 @@ def slice_listing(ranges):
     return path
 
 
-def heap(size=0x4000):
+def heap(size=0x4000, fail=0):
     """The heap region: +0 next block, +4 hash of the sizes asked for, +8 frees, +0xc hash of the
     freed pointers; blocks from +0x10 (16-byte aligned, never reused, filled with 0xcd so code
     must set what it reads). Code that allocates (Mem_Alloc 0x67acc0, Mem_Free 0x67acb0) gets
-    these in both; give the case this region at HEAP."""
-    return bytearray(struct.pack('<4I', HEAP + 0x10, 0, 0, 0)) + bytearray([0xcd]) * (size - 0x10)
+    these in both; give the case this region at HEAP. fail (1-15): that allocation answers 0 (its
+    countdown in the next block's low bits; a next block of 0 fails the first)."""
+    return bytearray(struct.pack('<4I', HEAP + 0x10 + fail, 0, 0, 0)) + bytearray([0xcd]) * (size - 0x10)
 
 
-def _alloc(e):  # cdecl (size)
+def _alloc(e):  # cdecl (size) (driver.cpp heap_alloc)
     nxt, h, size = e.u32(HEAP), e.u32(HEAP + 4), e.u32(e.r['ESP'])
-    e.write(HEAP, struct.pack('<2I', (nxt + ((size + 15) & ~15)) & 0xffffffff, (h * 33 ^ size) & 0xffffffff))
-    e.r['EAX'] = nxt
+    countdown, p = nxt & 15, nxt & ~15
+    if countdown == 1:
+        e.write(HEAP, struct.pack('<2I', p, (h * 33 ^ size) & 0xffffffff))
+        e.r['EAX'] = 0
+        return
+    e.write(HEAP, struct.pack('<2I', (p + ((size + 15) & ~15) + (countdown - 1 if countdown else 0)) & 0xffffffff, (h * 33 ^ size) & 0xffffffff))
+    e.r['EAX'] = p
 
 
 def _free(e):  # cdecl (block)
@@ -320,6 +326,7 @@ def echo(log, k, arg):
 
 LOG_STRINGS = 0xa00  # from here a mask for each slot: the arguments that are C strings, and out arguments (see strings())
 LOG_FILL = 0xb00  # two fills (+ 0x80 the second): (k | 0x80000000, argument, length), the bytes from + 0x10 (see fill())
+LOG_BYTES = 0xc00  # from here a mask for each slot: BYTE arguments, logged as their low byte (the rest of the pushed register is not the callee's)
 LOG_ZLIB = 0xf00  # the zlib stand-ins' overrides: the inits', deflate's, inflate's (a flag and a value each, see zlib_results())
 
 
@@ -336,6 +343,11 @@ def fill(log, k, arg, data, which=0):
     log[at + 0x10:at + 0x10 + len(data)] = data
 
 
+def fill_arg(log, k, arg, source, which=0):
+    """Makes slot k's recorder write its argument `source` (a dword, as passed) through its argument `arg`: ReadFile's bytes read, all it was asked for."""
+    struct.pack_into('<3I', log, LOG_FILL + 0x80 * which, (k & 63) | 0x80000000, arg, 0x80000000 | source)
+
+
 IMPORT_TABLE = 0x6fd000  # the game's import address table (0x400 bytes covers the slots the benches use)
 
 
@@ -343,9 +355,11 @@ def import_table(log, imports):
     """The import table's bytes (map them at IMPORT_TABLE) with each import a COM-style recorder (stdcall): imports {name: (slot k, slot address, stack
     arguments, string arguments mask, out arguments mask)}; sets the masks in log (strings())."""
     table = bytearray(0x400)
-    for k, at, n, mask, out in imports.values():
+    for k, at, n, mask, out, *low in imports.values():   # (a sixth: the BYTE arguments, see LOG_BYTES)
         struct.pack_into('<I', table, at - IMPORT_TABLE, recorder(k, n, True))
         strings(log, k, mask, out)
+        if low:
+            struct.pack_into('<I', log, LOG_BYTES + 4 * (k & 63), low[0])
     return table
 
 
@@ -376,15 +390,21 @@ def _recorder(k, n, com=False):
         this = 0 if com else e.r['ECX']
         kk = k | 0x100 if com else k
         mask = e.u32(LOG + LOG_STRINGS + 4 * (k & 63))
+        low = e.u32(LOG + LOG_BYTES + 4 * (k & 63))
         fills = [(LOG + LOG_FILL + 0x80 * f,) + struct.unpack('<3I', e.read(LOG + LOG_FILL + 0x80 * f, 12)) for f in range(2)]
         for i in range(n):
             for at, fk, fa, fn in fills:
                 if fk == (k & 63) | 0x80000000 and fa == i and args[i]:
-                    e.write(args[i], e.read(at + 0x10, min(fn, 0x70)))
+                    if fn & 0x80000000:   # (fill_arg())
+                        e.write(args[i], struct.pack('<I', raw[fn & 0xff] if (fn & 0xff) < n else 0))
+                    else:
+                        e.write(args[i], e.read(at + 0x10, min(fn, 0x70)))
             if mask >> i & 1:
                 args[i] = string_hash(e.read, args[i])
             if mask >> (16 + i) & 1:
                 args[i] = 0
+            if low >> i & 1:
+                args[i] &= 0xff
         count = e.u32(LOG)
         if count < LOG_ENTRIES:
             entry = LOG + 4 + 4 * LOG_ENTRY * count
@@ -573,6 +593,8 @@ class Bench:
             ' '.join('%x %s' % (k, bytes(v).hex()) for k, v in c.regions.items())) for c in cases)
         try:  # a case that loops forever in the C++ would hang the bench
             p = subprocess.run([self.driver, EXE], input=inp, capture_output=True, text=True, timeout=600)
+            if os.environ.get('FNCMP_CRASHAT'):   # (driver.cpp crash_filter)
+                sys.stderr.write(p.stderr)
         except subprocess.TimeoutExpired as t:
             p = subprocess.CompletedProcess(t.cmd, 0x102, t.stdout or '', 'timed out')
             p.stdout = p.stdout.decode() if isinstance(p.stdout, bytes) else p.stdout
