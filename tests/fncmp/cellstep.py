@@ -32,12 +32,15 @@ class Pages:
         data = struct.pack('<' + fmt, *values)
         for i, b in enumerate(data):
             a = address + i
-            page = self.pages.setdefault(a & ~0xfff, bytearray(self.r.bytes(0x1000)))
+            page = self.pages.get(a & ~0xfff)
+            if page is None:  # (a new page's random bytes drawn only for it)
+                page = self.pages[a & ~0xfff] = bytearray(self.r.bytes(0x1000))
             page[a & 0xfff] = b
 
     def touch(self, address, size):
         for a in range(address & ~0xfff, address + size, 0x1000):
-            self.pages.setdefault(a, bytearray(self.r.bytes(0x1000)))
+            if a not in self.pages:
+                self.pages[a] = bytearray(self.r.bytes(0x1000))
 
 
 def cell_type(r, mode):
