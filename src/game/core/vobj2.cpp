@@ -7,6 +7,7 @@
 #include "string.h"
 #include "vcall.h"
 #include "vobj3.h"
+#include "../gfx/texture.h"
 
 namespace {
 
@@ -179,6 +180,21 @@ void __fastcall Class702da0_Dtor(u8 *object) {
     at<u32>(object, 0x14) = 0;
     at<u32>(object, 0) = 0x00702d48;
     vcall<u32>(global<u8 *>(0x00f85614), 0x1c, object);
+}
+
+u32 __fastcall Object_FreeBlock13c(u8 *object) {
+    if (!at<u32>(object, 0x13c))
+        return 1;
+    if (u8 *const texture = at<u8 *>(at<u8 *>(object, 0x13c), 0x18)) {
+        Texture_Release(texture);
+        if (u8 *const again = at<u8 *>(at<u8 *>(object, 0x13c), 0x18)) {
+            Texture_Release(again);  // (through its jump 0x590a70: a second time, sic)
+            GameHeap_Free(again);
+        }
+    }
+    TrackedGlobal_Free(at<u32>(object, 0x13c));
+    at<u32>(object, 0x13c) = 0;
+    return 1;
 }
 
 u32 __fastcall Object_ReleaseSavedPairs(u8 *object) {

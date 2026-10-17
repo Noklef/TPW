@@ -52,6 +52,11 @@ void __fastcall Class702da0_Dtor(u8 *object);
 // 0x575bf0) and their block freed from 4 bytes before; the flag is cleared. In every case the count is cleared. Returns 1.
 u32 __fastcall Object_ReleaseSavedPairs(u8 *object);
 
+// 0x57b5b0 (thiscall on the object; name unconfirmed): with a tracked block at +0x13c: its texture at +0x18 (when set) is released
+// (Texture_Release, gfx/texture), then, still set, released again through the jump 0x590a70 (sic) and freed (GameHeap_Free); the block
+// is freed (TrackedGlobal_Free, core/gameheap) and cleared. Returns 1.
+u32 __fastcall Object_FreeBlock13c(u8 *object);
+
 // 0x564140 (thiscall; returns 1): Obj_ReleaseSevenComMembers on the object when the dword at 0x8bd524 is 1.
 u32 __fastcall Obj_ReleaseSevenIfMode1(u8 *object);
 }  // extern "C"
