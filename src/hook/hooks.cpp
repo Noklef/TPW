@@ -46,6 +46,7 @@
 #include "../game/math/bits.h"
 #include "../game/math/rect.h"
 #include "../game/math/sintable.h"
+#include "../game/math/vec2.h"
 #include "../game/gfx/palette.h"
 #include "../game/gfx/surface.h"
 #include "../game/gfx/pixconv.h"
@@ -3088,6 +3089,7 @@ const Hook kHooks[] = {
     {"TextMetrics_FitIndex",      0x0047fa00, (void *)&TextMetrics_FitIndex, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"TextMetrics_ForwardSlot8",  0x0047f990, (void *)&TextMetrics_ForwardSlot8, {0x8b, 0x49, 0x14, 0x85, 0xc9}},
     {"Matrix2_Transform",         0x0050f310, (void *)&Matrix2_Transform, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Vec2_Normalize",            0x005787b0, (void *)&Vec2_Normalize, {0x51, 0x8b, 0x01, 0xd9, 0x41}},
     {"Table_ScaledBySum",         0x00503980, (void *)&Table_ScaledBySum, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"Staff_Train",               0x00505a10, (void *)&Staff_Train, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
     {"Staff_CountTypes",          0x00508000, (void *)&Staff_CountTypes, {0x83, 0xec, 0x0c, 0x33, 0xc0}},
