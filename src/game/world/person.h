@@ -47,4 +47,8 @@ u32 __fastcall Person_HasWord(const u8 *object, void *, u32 word);
 // 0x518e20 (thiscall; one unused stack word, pops 4): the thoughts at +0x30 (Thoughts_Ctor), the navigation block at +0xd4 (Nav_Ctor) and the dwords at +0x1f0 .. +0x1fc cleared.
 // Returns the object.
 u8 *__fastcall Person_BaseCtor(u8 *object, void *, u32 unused);
+
+// 0x518e00 (thiscall; one stack argument, unused; name unconfirmed): Person_BaseCtor without its four cleared dwords: the thoughts (+0x30) and the navigation block (+0xd4)
+// constructed; returns the object. Its one caller builds a 0x22c-byte object with it.
+u8 *__fastcall Person_PartsCtor(u8 *object, void *, u32);
 }

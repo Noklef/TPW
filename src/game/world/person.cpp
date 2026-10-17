@@ -91,4 +91,10 @@ u8 *__fastcall Person_BaseCtor(u8 *object, void *, u32) {
     at<u32>(object, 0x1fc) = 0;
     return object;
 }
+
+u8 *__fastcall Person_PartsCtor(u8 *object, void *, u32) {
+    Thoughts_Ctor(object + 0x30);
+    Nav_Ctor(object + 0xd4);
+    return object;
+}
 }

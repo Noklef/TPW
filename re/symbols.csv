@@ -3171,6 +3171,7 @@ address,name,kind,confidence,notes
 0x004f54e0,List_EraseNodeCounted2,function,high,reimplemented (src/game/core/stdlist); erases a list node with a counted buffer
 0x005065d0,Person_HasWordInState,function,high,reimplemented (src/game/world/person); whether a person has a word and is in the matching state
 0x00518e20,Person_BaseCtor,function,high,"reimplemented (src/game/world/person); thoughts, the navigation block and four cleared dwords"
+0x00518e00,Person_PartsCtor,function,high,"reimplemented (src/game/world/person); thiscall; one stack argument, unused; the thoughts (+0x30) and the navigation block (+0xd4) constructed (Person_BaseCtor without the four cleared dwords); name unconfirmed"
 0x00550d80,Setting_SetMode,function,high,reimplemented (src/game/core/options); stores a mode and sets its flag bits
 0x005633e0,Quad_Push,function,high,reimplemented (src/game/core/seqs); pushes four dwords into the next of four slots
 0x0059c390,Table76e300_GetObjectDword,function,high,reimplemented (src/game/world/objectdefs); a dword of the object indexed through a record of the table
