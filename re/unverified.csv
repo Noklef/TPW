@@ -297,18 +297,6 @@ address,name,module,reason
 6173e0,Canvas_Ctor,gfx/canvas,todo: indirect only
 617420,Canvas_SetSurface,gfx/canvas,todo
 6175b0,Canvas_Clip,gfx/canvas,todo
-618df0,MemorySource_Ctor,files/memsource,todo
-618e60,MemorySource_DeletingDtor,files/memsource,todo
-618e80,MemorySource_Dtor,files/memsource,todo
-618ed0,MemorySource_Teardown,files/memsource,todo
-618ee0,MemorySource_Read,files/memsource,todo
-618fc0,MemorySource_Write,files/memsource,todo
-6190d0,MemorySource_Seek,files/memsource,todo
-619150,MemorySource_Size,files/memsource,todo
-619160,MemorySource_Tell,files/memsource,todo
-619170,MemorySource_AddChunk,files/memsource,todo
-619200,MemorySource_Clear,files/memsource,todo
-619240,MemorySource_GetLock,files/memsource,todo
 619250,ZlibCodec_ArenaAlloc,files/zlibcodec,todo
 619280,ZlibCodec_Compress,files/zlibcodec,todo
 619380,ZlibCodec_Decompress,files/zlibcodec,todo
