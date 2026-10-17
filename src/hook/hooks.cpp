@@ -251,7 +251,8 @@
 #include "../game/render/dynfaces.h"
 #include "../game/render/lightsource.h"
 #include "../game/render/viewport.h"
-#include "../game/render/heightgrid.h"
+#include "../game/render/heightgrid.h"
+#include "../game/render/vertexfog.h"
 #include "../game/render/weatherfx.h"
 #include "../game/online/servers.h"
 #include "../game/frontend/helpbg.h"
@@ -3527,6 +3528,8 @@ const Hook kHooks[] = {
     {"View_SetProjection",        0x00583220, (void *)&View_SetProjection, {0xd9, 0x44, 0x24, 0x08, 0xd8}},
     {"View_SetDepthRange",        0x00583280, (void *)&View_SetDepthRange, {0xd9, 0x44, 0x24, 0x08, 0xd8}},
     {"HeightGrid_HeightAt",       0x0057c190, (void *)&HeightGrid_HeightAt, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"VertexFog_Colour",          0x005747d0, (void *)&VertexFog_Colour, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"VertexFog_Alpha",           0x00574960, (void *)&VertexFog_Alpha, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

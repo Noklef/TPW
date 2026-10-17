@@ -266,6 +266,7 @@ add_library(tpw_game STATIC
     src/game/render/lightsource.cpp
     src/game/render/viewport.cpp
     src/game/render/heightgrid.cpp
+    src/game/render/vertexfog.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/online/itemlist.cpp
