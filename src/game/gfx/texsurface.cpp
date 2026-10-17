@@ -1,8 +1,10 @@
 #include "texsurface.h"
 
 #include <cstdint>
+#include <initializer_list>
 
 #include "texcache.h"
+#include "../core/vcall.h"
 #include "../core/gameheap.h"
 
 namespace {
@@ -80,5 +82,22 @@ u8 *__fastcall SoftRenderer_NewSurfaceB(void *) {
     surface = surface ? TexSurfaceB_Ctor(surface, nullptr, 1) : nullptr;
     if (!surface) return nullptr;
     return surface + BaseOffset(surface);
+}
+
+u32 __fastcall TexSurfaceA_ReleaseSurfaces(u8 *sub) {
+    u32 count = *reinterpret_cast<const u32 *>(sub - 0x10);
+    if (count == 0)
+        count = 1;
+    for (u32 i = count; i-- > 0;) {
+        for (u32 array : {0x38u, 0x28u}) {
+            u8 *&surface = *reinterpret_cast<u8 **>(sub - array + 4 * i);
+            if (surface != nullptr) {
+                comcall<u32>(surface, 8);
+                surface = nullptr;
+            }
+        }
+    }
+    *reinterpret_cast<u32 *>(sub - 0x18) = 0;
+    return 1;
 }
 }

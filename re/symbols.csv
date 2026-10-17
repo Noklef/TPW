@@ -3018,6 +3018,7 @@ address,name,kind,confidence,notes
 0x006c1230,Wrap_String_Dtor_6c1230,function,high,reimplemented (src/game/core/thunks); calls String_Dtor with this raised by 0x4
 0x006c5ae0,Wrap_Semaphore_Ctor_6c5ae0,function,high,reimplemented (src/game/core/thunks); calls Semaphore_Ctor on the object at 0xfb205c
 0x006d8990,Wrap_StringList_Dtor_6d8990,function,high,reimplemented (src/game/core/thunks); calls StringList_Dtor on the object at 0xfb34e0
+0x0058c2a0,Wrap_TexSurfaceA_ReleaseSurfaces_58c2a0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls TexSurfaceA_ReleaseSurfaces
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value
@@ -3886,6 +3887,7 @@ address,name,kind,confidence,notes
 0x0058c610,TexSurfaceB_Ctor,function,high,reimplemented (src/game/gfx/texsurface); surface class B constructor (virtual base at +0x10)
 0x005738d0,Renderer_NewSurfaceA,function,high,"reimplemented (src/game/gfx/texsurface); A new class A surface, its virtual base returned (name unconfirmed)"
 0x00573e70,SoftRenderer_NewSurfaceB,function,high,"reimplemented (src/game/gfx/texsurface); A new class B surface, its virtual base returned (name unconfirmed)"
+0x0058b790,TexSurfaceA_ReleaseSurfaces,function,low,"reimplemented (src/game/gfx/texsurface); thiscall on class A's sub-object; the COM surfaces of its two arrays released (slot 2) and cleared, last index first; ECX - 0x18 cleared; 1"
 0x005e7740,Array3D_Fill,function,high,"reimplemented (src/game/gfx/array3d); fills the pixels with a colour (4 bytes: d, a, b, c; 1 byte: d)"
 0x005e77c0,Array3D_CopyTo,function,high,reimplemented (src/game/gfx/array3d); copies the pixel bytes to another buffer
 0x005e77f0,Array3D_ReverseBytes,function,high,reimplemented (src/game/gfx/array3d); reverses the bytes of each 4-byte pixel

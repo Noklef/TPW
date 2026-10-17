@@ -164,6 +164,8 @@ u32 __fastcall Wrap_Obj_GetBefore14c_57ac80(const u8 *self);
 // 0x57ca70 (this is not used): calls Const4_6bd790.
 u32 __fastcall Wrap_Const4_6bd790_57ca70(u8 *);
 
+// 0x58c2a0 (thiscall): this lowered by the dword before it (a virtual base offset), then TexSurfaceA_ReleaseSurfaces.
+u32 __fastcall Wrap_TexSurfaceA_ReleaseSurfaces_58c2a0(u8 *self);
 // 0x58c2b0 (thiscall): this lowered by the dword before it (a virtual base offset), then TexSurfaceA_Field38.
 u32 __fastcall Wrap_TexSurfaceA_Field38_58c2b0(const u8 *self);
 
