@@ -250,7 +250,8 @@
 #include "../game/online/servers.h"
 #include "../game/frontend/helpbg.h"
 #include "../game/frontend/lobbymodel.h"
-#include "../game/online/itemlist.h"
+#include "../game/online/itemlist.h"
+#include "../game/online/items.h"
 #include "../game/online/session.h"
 
 namespace tpw::hook {
@@ -3630,6 +3631,12 @@ const Hook kHooks[] = {
     {"Owner2c_FindKind1",         0x005bd670, (void *)&Owner2c_FindKind1, {0x8b, 0x49, 0x2c, 0x33, 0xc0}},
     {"Owner2c_FindKind100",       0x005bd690, (void *)&Owner2c_FindKind100, {0x8b, 0x49, 0x2c, 0x33, 0xc0}},
     {"Owner2c_FindByPair",        0x005bd9d0, (void *)&Owner2c_FindByPair, {0x8b, 0x49, 0x2c, 0x33, 0xc0}},
+    {"Class702938_Ctor",          0x005bdac0, (void *)&Class702938_Ctor, {0x6a, 0xff, 0x68, 0xf1, 0xff}},
+    {"Class70293c_Ctor",          0x005bdcd0, (void *)&Class70293c_Ctor, {0x6a, 0xff, 0x68, 0x5a, 0x00}},
+    {"Class70293c_CtorFrom",      0x005bde30, (void *)&Class70293c_CtorFrom, {0x6a, 0xff, 0x68, 0xaa, 0x00}},
+    {"Class70293c_Assign",        0x005bdfd0, (void *)&Class70293c_Assign, {0x55, 0x56, 0x57, 0x8b, 0x7c}},
+    {"Class702940_Ctor",          0x005be1c0, (void *)&Class702940_Ctor, {0x6a, 0xff, 0x68, 0x29, 0x01}},
+    {"Class702944_Ctor",          0x005be3e0, (void *)&Class702944_Ctor, {0x6a, 0xff, 0x68, 0x97, 0x01}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},

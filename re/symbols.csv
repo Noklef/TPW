@@ -4174,6 +4174,12 @@ address,name,kind,confidence,notes
 0x005bd670,Owner2c_FindKind1,function,high,reimplemented (src/game/online/itemlist); the last item whose +0xc is 1
 0x005bd690,Owner2c_FindKind100,function,high,reimplemented (src/game/online/itemlist); the last item whose +0xc is 0x64
 0x005bd9d0,Owner2c_FindByPair,function,high,reimplemented (src/game/online/itemlist); the last item whose +0x44 and +0x64 are a and b
+0x005bdac0,Class702938_Ctor,function,high,"reimplemented (src/game/online/items); thiscall (record, owner); the 0x702938 online item from a record (three wide strings, three floats times 1.01), appended to the owner's list"
+0x005bdcd0,Class70293c_Ctor,function,high,"reimplemented (src/game/online/items); thiscall; the 0x70293c online item empty (empty strings, fields -1)"
+0x005bde30,Class70293c_CtorFrom,function,high,"reimplemented (src/game/online/items); thiscall (record, owner); the 0x70293c online item from a record, appended to the owner's list"
+0x005bdfd0,Class70293c_Assign,function,high,reimplemented (src/game/online/items); thiscall (other); the 0x70293c online item's assignment (all but the owner); returns this
+0x005be1c0,Class702940_Ctor,function,high,"reimplemented (src/game/online/items); thiscall (record, owner); the 0x702940 online item from a record (three narrow strings from wide texts), appended to the owner's list"
+0x005be3e0,Class702944_Ctor,function,high,"reimplemented (src/game/online/items); thiscall (record, owner); the 0x702944 online item from a record (five wide strings), appended to the owner's list"
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"

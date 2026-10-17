@@ -263,6 +263,7 @@ add_library(tpw_game STATIC
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/online/itemlist.cpp
+    src/game/online/items.cpp
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
     src/game/input/mouse.cpp
