@@ -1,10 +1,13 @@
-# A run of type 0x19 map cells marked (src/game/world/cellrun: 0x531040) against the original: a start cell (0x7639f0 / 0x7639f4) anywhere on the map, mostly
+# Runs of type 0x19 map cells (src/game/world/cellrun: Mark 0x531040, Corners 0x530e80, its point list at 0x81b740 random before) against the original:
+# a start cell (0x7639f0 / 0x7639f4) anywhere on the map, mostly
 # away from the edges, and the cells around it two apart (the only ones a run can reach; each row laid out as one region, the cells between random too) of
 # type 0x19 mostly, with neighbour bits often one or two of the four sides, now and then random, the hoarding neighbours (0x81b4cc, a cell's +2 of 2) and
 # a cell's own id (+0) now and then off. Both world pointers (0x7cf83c, and 0x80239c that Map_StepCell28 reads) are the same; the direction pairs (0x7cdba0, set at run time) are laid out. A run that would not stop
 # (a cycle, or a direction that does not move) is skipped by a model of the walk, so a case is redrawn, as is one leaving the laid out cells (the memory past them is
 # not the same on both sides: a run over it may never stop). So a run moved off the map (a next cell off it does not stop it) is seldom kept.
-# usage: cellrun.py [CASES [SEED]] [--wild|--both] [--show N]
+# Most cases (lay_path) lay a track of 0x19 cells with matching neighbour bits over the random ones, so that runs turn and go on. The point list's
+# cap (0x401 points) needs a run with over 0x400 corners: not reached.
+# usage: cellrun.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Mark,Corners)
 import os
 import struct
 import sys
@@ -12,7 +15,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x531040, 0x531167), (0x4d8c00, 0x4d8c30), (0x4d8300, 0x4d8328), (0x522700, 0x5228b5), (0x53a510, 0x53a53d), (0x53ad20, 0x53aefc),
+B = Bench([(0x531040, 0x531167), (0x530e80, 0x530fe7),(0x4d8c00, 0x4d8c30), (0x4d8300, 0x4d8328), (0x522700, 0x5228b5), (0x53a510, 0x53a53d), (0x53ad20, 0x53aefc),
            (0x50c320, 0x50c3e0), (0x50c3e0, 0x50c540), (0x536300, 0x53644c), (0x522850, 0x522860), (0x4d99c0, 0x4d99e0), (0x4d97b0, 0x4d97e0), (0x5da3c0, 0x5da3c1)])
 CELLS = RAM + 0x10000
 WORLD = (CELLS - 0x6cde * 0x28) & 0xffffffff
@@ -23,6 +26,7 @@ PAIRS = bytearray(0x40)
 for _d, _at in TABLE.items():
     struct.pack_into('<ii', PAIRS, _at, *STEPS[_d])
 MOVES = {1: (0, -2), 4: (2, 0), 0x10: (0, 2), 0x40: (-2, 0)}
+OPS = [k for k in os.environ.get('OPS', 'Mark,Corners').split(',') if k]
 
 
 def ident(x, y):
@@ -96,21 +100,68 @@ def draw(r):
             if lo + i < 0x10000:
                 cells[own] = cell
         rows[CELLS + lo * 0x28] = row
+    if r.random() < 0.6:
+        lay_path(r, cells, x0, y0)
     return x0, y0, hoarding, rows, cells
 
 
+REVERSE = {1: 0x10, 0x10: 1, 4: 0x40, 0x40: 4}
+
+
+def lay_path(r, cells, x0, y0):
+    """A track over the laid out cells: from the start (east, or a corner from the west to north or south) a few steps two apart that turn now and
+    then without crossing, each cell of type 0x19 with its two sides as neighbour bits (both kinds), the end cell's next one not of type 0x19 (or the
+    end with one neighbour); now and then a bit flipped."""
+    i, j = 0, 0
+    first = r.choice([4, 4, 1, 0x10])
+    seen, path = {(0, 0)}, [(0, 0, 0x40 if first != 4 else r.choice([0, 0x40]), first)]
+    d = first
+    for _ in range(r.randrange(1, 14)):
+        mx, my = MOVES[d]
+        i, j = i + mx // 2, j + my // 2
+        if abs(i) > REACH - 1 or abs(j) > REACH - 1 or (i, j) in seen:
+            break
+        seen.add((i, j))
+        nd = d if r.random() < 0.6 else r.choice([k for k in MOVES if k not in (d, REVERSE[d])])
+        path.append((i, j, REVERSE[d], nd))
+        d = nd
+    last = len(path) - 1
+    for k, (i, j, back, fwd) in enumerate(path):
+        cell = cells.get(ident(x0 + 2 * i, y0 + 2 * j))
+        if cell is None:
+            return
+        nb = back | fwd if k < last or r.random() < 0.5 else back
+        if r.random() < 0.05:
+            nb ^= 1 << r.randrange(8)
+        cell[0xc] = cell[0x22] = nb
+        struct.pack_into('<I', cell, 8, 0x19)
+        struct.pack_into('<H', cell, 0, ident(x0 + 2 * i, y0 + 2 * j))
+    i, j, _, fwd = path[last]
+    mx, my = MOVES[fwd]
+    end = cells.get(ident(x0 + 2 * i + mx, y0 + 2 * j + my))
+    if end is not None:
+        struct.pack_into('<I', end, 8, r.choice([0, 1, 0xb, 0x12, 0x1a, 0x119]))
+
+
 def case(r):
+    op = r.deal(OPS)
     while True:
         x0, y0, hoarding, rows, cells = draw(r)
         if stops(cells, x0, y0, hoarding):
             break
     regions = dict(rows)
+    if op == 'Corners':
+        regions[0x81b740] = r.bytes(0x800)
+        regions[0x820a8c] = r.bytes(4)
+        regions[0x81ede4] = r.bytes(8)
     regions[0x7639f0] = struct.pack('<ii', x0, y0)
     regions[0x818c50] = r.bytes(4)
     regions[0x81b4cc] = struct.pack('<I', r.choice([1, 0xff, 0x101]) if hoarding else r.choice([0, 0x100]))
     regions[0x7cf83c] = struct.pack('<I', WORLD)
     regions[0x80239c] = struct.pack('<I', WORLD)
     regions[0x7cdba0] = PAIRS
+    if op == 'Corners':
+        return Call(0x530e80, [], regions, conv='c', ret='v')
     return Call(0x531040, [r.choice([0, 1, 0x100, 0xffffff01, r.getrandbits(32)])], regions, conv='c', ret='v')
 
 
