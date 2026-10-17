@@ -197,6 +197,29 @@ u32 __cdecl Object_TrackNeighboursOk(const u8 *object) {
     return MapCell_NeighbourCount(cellAt(x + dx, y + dy)) == 1 ? 1 : 0;
 }
 
+u32 __fastcall Obj_BlockValuesBelowLimit(const u8 *object) {
+    const u32 id = ((u32)at<u8>(object, 7) * 0x80 + at<u8>(object, 5) + 1) & 0xffff;
+    u16 back = (u16)id;
+    if (MapCell_IsType3Or9(global<u8 *>(0x008023a0) + id * 0x44 - 0x44)) {
+        u16 cell = (u16)(((u32)at<u8>(object, 7) << 7) + at<u8>(object, 5) + 1);
+        back = cell;
+        while (cell != 0) {
+            back = cell;
+            u16 next;
+            cell = *Map_FindFacingNeighbour(&next, cell);
+        }
+    }
+    u32 best = 0;
+    for (u32 k = 0; k < 9; ++k) {
+        if (best > at<u32>(object, 0x198)) break;
+        const u8 *const pair = reinterpret_cast<const u8 *>(0x007ced88 + k * 8);
+        const u16 pos = (u16)((u16)(at<u16>(pair, 4) << 7) + back + at<u16>(pair, 0));
+        const u32 value = Map_BlockValue(global<u8 *>(0x0080239c) + 0x2d8, nullptr, pos);
+        if (!(best > value)) best = value;
+    }
+    return best < at<u32>(object, 0x198) ? 1 : 0;
+}
+
 u32 __fastcall Obj_TrackedPersonInState(u8 *object) {
     u16 tracked;
     if (*Obj_GetTrackedHandle(object, nullptr, &tracked) == 0) return 0;

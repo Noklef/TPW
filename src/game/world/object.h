@@ -82,4 +82,9 @@ u32 __fastcall Obj_TrackedPersonInState(u8 *object);
 // (the table at 0x7cfb90; the next at +0xc) that is in state 1 or 2 (+0x19c) or has the dword at +0x64 set: when Obj_GetTrackedHandle gives a handle,
 // Fn_4e0210 (core/initializers: +0x5e and +0x60 = 0) lets it go.
 void __fastcall Objects_ReleaseTracked(void *self, void *, u32 unused1, u32 unused2);
+
+// 0x4fa770 (thiscall; name unconfirmed): whether the largest block value (Map_BlockValue of the map at [0x80239c] + 0x2d8) at the nine offsets of 0x7ced88 (dword pairs
+// x, y: id + y * 0x80 + x as a word) from a cell is below the dword at +0x198 (unsigned; the search stops early once the largest is above it). The cell is the object's
+// ((byte +7) * 0x80 + byte +5 + 1); when that is a type 3 or 9 cell, the last one of the chain Map_FindFacingNeighbour follows from it (forever round a loop).
+u32 __fastcall Obj_BlockValuesBelowLimit(const u8 *object);
 }

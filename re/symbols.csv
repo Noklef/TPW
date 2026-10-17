@@ -3216,6 +3216,7 @@ address,name,kind,confidence,notes
 0x0052c2b0,Object_TrackNeighboursOk,function,high,reimplemented (src/game/world/object); the two cells ahead of a track piece have one neighbour bit each
 0x004e02f0,Obj_TrackedPersonInState,function,low,"reimplemented (src/game/world/object); thiscall: 0 without a tracked handle (Obj_GetTrackedHandle), else Person_HasWordInState of the tracked thing with the object's own handle"
 0x004dad20,Objects_ReleaseTracked,function,low,"reimplemented (src/game/world/object); thiscall (this and two stack arguments unused, pops 8): the objects of the world's list at +0x1da746 in state 1 or 2 or with +0x64 set release their tracked handle (Fn_4e0210) when it still holds"
+0x004fa770,Obj_BlockValuesBelowLimit,function,low,reimplemented (src/game/world/object); thiscall: whether the block values at nine offsets from the object's cell (or the end of its facing chain) stay below +0x198
 0x005d46d0,Blocks7_Free,function,high,reimplemented (src/game/core/buffers); frees the seven blocks of an object and clears its groups
 0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/string); whether the first name is after the second, case blind"
 0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/string); whether two names are equal, case blind"
