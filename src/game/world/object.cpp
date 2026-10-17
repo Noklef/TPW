@@ -3,7 +3,9 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../core/accessors.h"
 #include "../core/gameheap.h"
+#include "../core/initializers.h"
 #include "objectdefs.h"
 #include "person.h"
 #include "mapcell.h"
@@ -193,5 +195,24 @@ u32 __cdecl Object_TrackNeighboursOk(const u8 *object) {
     default: dx = 0; dy = 0; break;
     }
     return MapCell_NeighbourCount(cellAt(x + dx, y + dy)) == 1 ? 1 : 0;
+}
+
+u32 __fastcall Obj_TrackedPersonInState(u8 *object) {
+    u16 tracked;
+    if (*Obj_GetTrackedHandle(object, nullptr, &tracked) == 0) return 0;
+    const u8 *person = global<u8 *>(0x007cfb90 + 20 * (u32)at<u16>(object, 0x5e));
+    return Person_HasWordInState(person, nullptr, at<u16>(object, 0));
+}
+
+void __fastcall Objects_ReleaseTracked(void *, void *, u32, u32) {
+    u16 handle = global<u16>(global<u32>(0x0080239c) + 0x1da746);
+    while (handle) {
+        u8 *object = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
+        if (Is19c_Eq1_4e0370(object) || Get64_4e03d0(object) || Is19c_Eq2_4e03e0(object)) {
+            u16 tracked;
+            if (*Obj_GetTrackedHandle(object, nullptr, &tracked)) Fn_4e0210(object);
+        }
+        handle = at<u16>(object, 0xc);
+    }
 }
 }

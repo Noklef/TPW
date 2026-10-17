@@ -73,4 +73,13 @@ void __fastcall Object_SetCapacity(u8 *object, void *, u32 capacity);
 // (-5, -2), 0x10e (-2, +4) from the cell of columns/rows at +5 and +7; any other angle stays) and the one beside it (the second offsets: 0 is (-2, +1), 0x5a (+1, +1), 0xb4 (+1, -2), 0x10e (-2, -2)) each have exactly one neighbour
 // bit (MapCell_NeighbourCount, on the 0x28-byte cells of the world at [0x7cf83c]).
 u32 __cdecl Object_TrackNeighboursOk(const u8 *object);
+
+// 0x4e02f0 (thiscall): 0 when Obj_GetTrackedHandle gives 0; else Person_HasWordInState (world/person) of the thing the handle at +0x5e names (the table
+// at 0x7cfb90) with this object's own handle (the word at +0).
+u32 __fastcall Obj_TrackedPersonInState(u8 *object);
+
+// 0x4dad20 (thiscall, this unused; two stack arguments, unused, pops 8): for each thing of the list from the u16 at +0x1da746 of the object [0x80239c]
+// (the table at 0x7cfb90; the next at +0xc) that is in state 1 or 2 (+0x19c) or has the dword at +0x64 set: when Obj_GetTrackedHandle gives a handle,
+// Fn_4e0210 (core/initializers: +0x5e and +0x60 = 0) lets it go.
+void __fastcall Objects_ReleaseTracked(void *self, void *, u32 unused1, u32 unused2);
 }
