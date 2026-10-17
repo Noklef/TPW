@@ -1,6 +1,7 @@
 # The game's String and WString classes (src/game/core/string: 0x5f5fc0-0x5f6c50, 0x5f7120-0x5f7e60) against the originals: strings of up to 24 units
 # (a small alphabet, so equal, prefix and ordered cases come up), views of them, C strings and chars as arguments; the blocks come from the heap region.
-# Format is left out (the game's vsprintf). StripSuffix (0x424d30) cuts a case-blind suffix off a string.
+# Format is left out (the game's vsprintf). StripSuffix (0x424d30) cuts a case-blind suffix off a string; SkipDot (0x41cea0) steps over a leading "." and the
+# "\" / "." chars after it.
 # usage: gamestring.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
@@ -24,9 +25,10 @@ OPS_TABLE = {
     'WCtor': (0x5f6a20, 1, '', 'a'), 'WDtor': (0x5f6a60, 1, '', 'v'), 'WAssignChar': (0x5f6a80, 1, 'c', 'a'), 'WAssignStr': (0x5f6ac0, 1, 't', 'a'),
     'WAssignNarrow': (0x5f6b10, 1, 'w', 'a'), 'WAssign': (0x5f6b50, 1, 'v', 'a'), 'WAppendStr': (0x5f6ba0, 1, 't', 'a'), 'WAppendChar': (0x5f6be0, 1, 'c', 'a'),
     'WAppend': (0x5f6c10, 1, 'v', 'a'), 'WDelDtor': (0x5f7150, 1, 'f', 'a'), 'WNeStr': (0x5f7e60, 1, 't', 'b'),
-    'StripSuffix': (0x424d30, 0, '', 'a'),
+    'StripSuffix': (0x424d30, 0, '', 'a'), 'SkipDot': (0x41cea0, 0, '', 'a'),
 }
-B = Bench([(0x424d30, 0x424dc0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000)])
+B = Bench([(0x41cea0, 0x41cfe4), (0x424cf0, 0x424dc0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000)])
+DOT, BACKSLASH = 0x78c648, 0x78bee0   # the game's global strings "." and "\" (String objects in .bss)
 LOCALE = 0xfb1440   # the CRT's LC_CTYPE handle: 0, the C locale (_stricmp's)
 S1, S2, S3, TXT, CHR, OUT = RAM, RAM + 0x40, RAM + 0x80, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200
 D1, D2, D3 = RAM + 0x2000, RAM + 0x3000, RAM + 0x4000
@@ -70,10 +72,27 @@ def strip_suffix(r):
     return Call(0x424d30, [S2, S1], regions, ret='a')
 
 
+def skip_dot(r):
+    """0x41cea0 (cdecl; s): s of dots, backslashes and letters (mostly starting with a dot); the globals "." and "\\", now and then
+    of other texts or lengths (two chars, empty)."""
+    regions = {HEAP: heap(), LOCALE: bytes(4)}
+    n = r.choice([0, 1, 2, 3, 4, 6, 9, 17])
+    text = bytes(r.choice(b'..\\\\aA/') for _ in range(n))
+    if n and r.random() < 0.8:
+        text = b'.' + text[1:]
+    string(r, 0, S1, D1, regions, text)
+    for base, data, usual in ((DOT, D2, b'.'), (BACKSLASH, D3, b'\\')):
+        own = usual if r.random() < 0.85 else r.choice([b'', b'.\\', b'..', b'\\\\', b'a'])
+        string(r, 0, base, data, regions, own)
+    return Call(0x41cea0, [S1], regions, ret='a')
+
+
 def case(r):
     name = r.choice(OPS)
     if name == 'StripSuffix':
         return strip_suffix(r)
+    if name == 'SkipDot':
+        return skip_dot(r)
     address, wide, kinds, ret = OPS_TABLE[name]
     w = 2 if wide else 1
     regions = {HEAP: heap(), OUT: r.bytes(0x20)}

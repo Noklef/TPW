@@ -758,4 +758,33 @@ String *__cdecl String_StripSuffix(const String *suffix, String *s) {
     return s;
 }
 
+String *__cdecl String_SkipDotPrefix(String *s) {
+    const String *const dot = reinterpret_cast<const String *>((uintptr_t)0x0078c648);
+    const String *const backslash = reinterpret_cast<const String *>((uintptr_t)0x0078bee0);
+    StringView view;
+    String part;
+    String_CtorCopy(&part, nullptr, String_Left(s, nullptr, &view, dot->length));
+    const u32 starts = Names_Equal(reinterpret_cast<const u8 *>(&part), reinterpret_cast<const u8 *>(dot));
+    String_Dtor(&part);
+    if (starts == 0)
+        return s;
+    u32 i = 1;
+    for (;;) {
+        String_CtorCopy(&part, nullptr, String_Mid(s, nullptr, &view, i, backslash->length));
+        bool skip = Names_Equal(reinterpret_cast<const u8 *>(&part), reinterpret_cast<const u8 *>(backslash)) == 1;
+        if (!skip) {
+            String other;
+            String_CtorCopy(&other, nullptr, String_Mid(s, nullptr, &view, i, dot->length));
+            skip = Names_Equal(reinterpret_cast<const u8 *>(&other), reinterpret_cast<const u8 *>(dot)) == 1;
+            String_Dtor(&other);
+        }
+        String_Dtor(&part);
+        if (!skip)
+            break;
+        ++i;   // (one char on, whatever the globals' lengths: sic)
+    }
+    String_Assign(s, nullptr, String_From(s, nullptr, &view, i));
+    return s;
+}
+
 }  // extern "C"
