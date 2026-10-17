@@ -118,6 +118,7 @@
 #include "../game/core/class6fd9d8.h"
 #include "../game/core/factories.h"
 #include "../game/core/floatconsts.h"
+#include "../game/core/funnytime.h"
 #include "../game/core/wstringmap.h"
 #include "../game/core/streambuf.h"
 #include "../game/core/voices.h"
@@ -187,7 +188,8 @@
 #include "../game/world/dirstep.h"
 #include "../game/world/flyingrides.h"
 #include "../game/world/forecast.h"
-#include "../game/world/gamesystem.h"
+#include "../game/world/gamesystem.h"
+#include "../game/world/headquarters.h"
 #include "../game/world/messagecentre.h"
 #include "../game/world/nav.h"
 #include "../game/world/mapcell.h"
@@ -3270,6 +3272,7 @@ const Hook kHooks[] = {
     {"FloatConsts_InitEpsilon_48c9c0", 0x0048c9c0, (void *)&FloatConsts_InitEpsilon_48c9c0, {0xd9, 0x05, 0xe8, 0xf1, 0x6f}},
     {"FloatConsts_InitOne_491fa0", 0x00491fa0, (void *)&FloatConsts_InitOne_491fa0, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"FloatConsts_InitEpsilon_491fc0", 0x00491fc0, (void *)&FloatConsts_InitEpsilon_491fc0, {0xd9, 0x05, 0x90, 0xf5, 0x6f}},
+    {"GameClock_Serialize",       0x004f7f30, (void *)&GameClock_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -3321,6 +3324,8 @@ const Hook kHooks[] = {
     {"Ride_IsBusy",               0x0042a440, (void *)&Ride_IsBusy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Ride_Sleep",                0x0043bd20, (void *)&Ride_Sleep, {0x8b, 0x44, 0x24, 0x04, 0x57}},
     {"Forecast_Serialize",        0x005132a0, (void *)&Forecast_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"MechanicHQ_Serialize",      0x004da960, (void *)&MechanicHQ_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x53}},
+    {"StaffHQ_Serialize",         0x00508bb0, (void *)&StaffHQ_Serialize, {0x83, 0xec, 0x08, 0x8b, 0x44}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

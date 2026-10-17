@@ -166,7 +166,7 @@ address,name,kind,confidence,notes
 0x004d7a70,WorldGlobals_Serialize,function,high,"staff pool, game clock, park gates"
 0x00507850,StaffPool_Serialize,function,high,0x20 x StaffPoolEntry + 5 categories
 0x005070a0,StaffPoolEntry_Serialize,function,high,
-0x004f7f30,GameClock_Serialize,function,high,"mFunnyTimeStart (FILETIME, 2000-01-01), mSessionStart, mFunnySecsPerRealSec"
+0x004f7f30,GameClock_Serialize,function,high,"reimplemented (src/game/core/funnytime); thiscall (stream, save, version, unused): the calendar clock's five fields"
 0x004cf050,ParkGates_Serialize,function,high,"arrival rate, bus capacity, gates open"
 0x004d3aa0,ObjectControls_Serialize,function,high,"reimplemented (src/game/world/objectdefs); thiscall (stream, save, version, unused): the 0x96 object control records, their count and the search key saved or loaded; a full load clears the key and +0x12c8"
 0x004d7ea0,Map_Serialize,function,high,"128x128 cells; per-cell status byte: bit0 map cell, bit1 track cell, bit2 RE cell"
@@ -186,9 +186,9 @@ address,name,kind,confidence,notes
 0x004d6000,Guard_Serialize,function,high,thing model 7
 0x00502760,Researcher_Serialize,function,high,thing model 8
 0x004db7d0,Object_Serialize,function,high,"thing model 3: rides, shops, facilities"
-0x00508bb0,StaffHQ_Serialize,function,high,thing model 9
+0x00508bb0,StaffHQ_Serialize,function,high,"reimplemented (src/game/world/headquarters); thiscall (stream, save, version, unused): the thing's fields, mForceStrike, mStaffMemberPickedUp, mStrikeLevel[5], then the training record"
 0x0050c640,StaffTraining_Serialize,function,high,"reimplemented (src/game/world/staff); thiscall (stream, save, version, unused): the five training budgets and the ever-trained byte saved or loaded"
-0x004da960,MechanicHQ_Serialize,function,high,thing model 10
+0x004da960,MechanicHQ_Serialize,function,high,"reimplemented (src/game/world/headquarters); thiscall (stream, save, version, unused): the thing's fields, then mNextObject"
 0x00599f60,Advisor_Serialize,function,high,thing model 11: message queue + history
 0x0059ba30,AdvisorMsg_Serialize,function,high,
 0x004c5d70,ParkAnalyser_Serialize,function,high,"thing model 13: 32x32 analysis grid + circular-buffer statistics"
