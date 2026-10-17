@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "vcall.h"
+
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -37,5 +39,21 @@ u8 *__fastcall SoundCmd_Ctor(u8 *cmd, void *, u32 value) {
     *reinterpret_cast<u32 *>(cmd + 4) = value;
     *reinterpret_cast<u32 *>(cmd) = 0x00700b58;
     return cmd;
+}
+
+u32 __cdecl Sound_Query(u32 a, u32 b) {
+    if (!global<u32>(0x00802bc8) || !global<u32>(0x00802bd4)) return 0;
+    void *const manager = global<void *>(0x00802bcc);
+    u32 first = a, out = b;
+    vcall<void>(manager, 4, &first, a, b, &out);
+    return out;
+}
+
+void __cdecl Sound_Shutdown() {
+    if (global<u32>(0x00802bc8) && global<u32>(0x00802bd4)) {
+        u32 result;
+        vcall<void>(global<void *>(0x00802bcc), 0, &result);
+    }
+    global<u32>(0x00802bd4) = 0;
 }
 }

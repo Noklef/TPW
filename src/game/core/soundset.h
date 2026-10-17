@@ -30,4 +30,13 @@ u32 __cdecl Sound_IsOn();
 // 0x51bb40 (thiscall; value): a sound command's base, abstract (vtable 0x700b58, _purecall
 // first), +4 value; returns it. Its callers then set their own vtable and post it to 0x802bcc.
 u8 *__fastcall SoundCmd_Ctor(u8 *cmd, void *, u32 value);
+
+// 0x51b4f0 (cdecl; a, b): 0 unless sound is on (0x802bc8) and started (0x802bd4); else the sound manager (0x802bcc) is
+// asked through its vtable +4 (&a, a, b, &b) and b as it left it is returned. Its caller asks with a category's name
+// ("cat_ride") and keeps the answer.
+u32 __cdecl Sound_Query(u32 a, u32 b);
+
+// 0x51b7c0 (cdecl): when on and started, the sound manager's vtable +0 (&result, not read after); then not started. The
+// warning when the allocation count 0x802bd8 is not back to 0 is compiled out.
+void __cdecl Sound_Shutdown();
 }

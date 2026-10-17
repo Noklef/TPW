@@ -2257,6 +2257,8 @@ address,name,kind,confidence,notes
 0x0051c6f0,Sound_IsOn,function,high,reimplemented (src/game/core/soundset); cdecl: the sound-on flag [0x802bc8] (set by 0x51b660)
 0x0051e6f0,Sound_Set803acc,function,high,"reimplemented (src/game/core/soundset); cdecl (value): [0x803acc] = value, changed"
 0x0051e710,Sound_Set803ad0,function,high,"reimplemented (src/game/core/soundset); cdecl (value): the u16 [0x803ad0] = value, changed"
+0x0051b4f0,Sound_Query,function,high,"reimplemented (src/game/core/soundset); cdecl (a, b): when sound is on and started, the manager's vtable +4 (&a, a, b, &b); b as left, else 0"
+0x0051b7c0,Sound_Shutdown,function,high,"reimplemented (src/game/core/soundset); cdecl: when on and started, the manager's vtable +0 (&result); then not started"
 0x005af7f0,GlobalSave_ThemeByte,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte i of the global save info's (0xf7c58c) current theme record (+0x48)
 0x005af800,GlobalSave_Byte26,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte +0x26 + i of the global save info
 0x005afc30,GlobalSave_Inc20,function,high,reimplemented (src/game/core/globalsave); thiscall: the global save info's counter +0x20 incremented
