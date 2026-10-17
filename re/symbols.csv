@@ -303,7 +303,7 @@ address,name,kind,confidence,notes
 0x004ca8c0,ObjectControls_GetWord18,function,high,reimplemented (src/game/world/objectdefs); the dword at +0x18 of an object control record of the game's table
 0x004e2740,Obj_FindControls,function,high,reimplemented (src/game/world/objectdefs); the object control record of an object in the game's table
 0x004ca740,ObjectDefs_PercentWithControls,function,high,reimplemented (src/game/world/objectdefs); the percentage of counted object definitions with controls
-0x00412c20,ObjectDef_Ctor,function,medium,vtable at +4 (0x6fd8a8) then BalanceFile_Init; zeroes runtime fields 0x494..0x500
+0x00412c20,ObjectDef_Ctor,function,high,reimplemented (src/game/world/objectdefs); thiscall: balance file at +4 (vtable 0x6fd8a8) laid out by BalanceFile_Init; runtime fields 0x494..0x500 zeroed; returns this
 0x00413c10,ObjectDefs_Load,function,medium,"allocates an ObjectDef (max 0x14a), copies the .sam path to +0x28c and parses it"
 0x00785040,gBalanceLevel,data,high,"BalanceLevel: Standard.sam values (static instance, ctor 0x402ae0)"
 0x00785828,gBalanceOnline,data,high,"BalanceOnline: Online.sam (ctor 0x402b50)"
@@ -510,6 +510,9 @@ address,name,kind,confidence,notes
 0x004d1ce0,Challenges_LoadSam,function,medium,"reads data/challenges.sam into a stack BalanceChallenges (vtable 0x700398) and copies the challenges out"
 0x00414410,TrackTypeBalance_Dtor,function,low,"reimplemented (src/game/core/balancefile); thiscall: vtable 0x6fd8b0 back, then BalanceFile_Release"
 0x00423dc0,BalanceGraphics_Dtor,function,low,"reimplemented (src/game/core/balancefile); thiscall: vtable 0x6fd630 back, then BalanceFile_Release"
+0x00415e90,AdvisorScoring_GetSchema,function,low,"reimplemented (src/game/core/balancefile); thiscall (i), this unused: &key record i of the advisor scoring schema (0x72e120)"
+0x00415e80,AdvisorScoring_Dtor,function,low,reimplemented (src/game/core/balancefile); thiscall: the balance file at +0xc gets vtable 0x6fd958 back and is released
+0x00415e70,AdvisorScoring_StaticDtor,function,low,"reimplemented (src/game/core/balancefile); cdecl, at exit: AdvisorScoring_Dtor of gAdvisorScoring (0xfb3540)"
 0x00470c90,Motion_ApplyMaterial,function,high,"reimplemented (src/game/motion/keys); (model, table, state): last (frame, value) key at or before the frame set into the material record (+2), flagged +1 |= 4 on change"
 0x00470d10,Matrix_PreMul33,function,high,"reimplemented (src/game/math/matrix); m = r * m on the rotation part, r a packed row-major 3x3"
 0x00470e90,Motion_LerpPackedVertices,function,high,"reimplemented (src/game/motion/vertexanim); (block, positions, group, t, add): 10:10:10 keys * scale (+0x20) + offset (+0x14), lerped key -> key+1 into slot (12 * (slot >> 2) + (slot & 3)), axes 4 floats apart"

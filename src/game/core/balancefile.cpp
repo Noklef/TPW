@@ -184,4 +184,13 @@ void __fastcall BalanceGraphics_Dtor(u8 *self) {
     at<u32>(self, 0) = 0x006fd630;
     BalanceFile_Release(self);
 }
+
+const u8 *__fastcall AdvisorScoring_GetSchema(const void *, void *, u32 index) { return reinterpret_cast<const u8 *>(0x0072e120) + index * 0x3c; }
+
+void __fastcall AdvisorScoring_Dtor(u8 *self) {
+    at<u32>(self, 0xc) = 0x006fd958;
+    BalanceFile_Release(self + 0xc);
+}
+
+void __cdecl AdvisorScoring_StaticDtor() { AdvisorScoring_Dtor(reinterpret_cast<u8 *>(0x00fb3540)); }
 }

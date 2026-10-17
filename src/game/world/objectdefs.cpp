@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../core/balancefile.h"
 #include "../core/defids.h"
 #include "../core/gameheap.h"
 
@@ -290,5 +291,14 @@ void __fastcall ObjectDef_FindMarkedCells(void *, void *, u8 **def) {
     at<u32>(object, 0x4b4) = at<u32>(object, 0x34);
     at<u16>(*def, 0) = at<u16>(*def, 0x10);
     at<u32>(*def, 0x4ac) = at<u32>(*def, 0x4c);
+}
+
+u8 *__fastcall ObjectDef_Ctor(u8 *def) {
+    at<u32>(def, 4) = 0x006fd8a8;
+    BalanceFile_Init(def + 4);
+    static const u32 kCleared[] = {0x494u, 0x498u, 0x4a0u, 0x4a4u, 0x4b0u, 0x4b4u, 0x4f4u, 0x4f8u, 0x4fcu, 0x500u, 0x4e0u, 0x4e4u, 0x4e8u, 0x4ecu, 0x4f0u};
+    for (const u32 offset : kCleared)
+        at<u32>(def, offset) = 0;
+    return def;
 }
 }

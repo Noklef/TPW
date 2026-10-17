@@ -50,4 +50,13 @@ void __cdecl BalanceSound_StaticDtor();
 void __fastcall ObjectDefBalance_Dtor(u8 *self);
 void __fastcall TrackTypeBalance_Dtor(u8 *self);
 void __fastcall BalanceGraphics_Dtor(u8 *self);
+
+// 0x415e90 (thiscall (i), this unused): &key record i of the advisor scoring schema at 0x72e120.
+const u8 *__fastcall AdvisorScoring_GetSchema(const void *, void *, u32 index);
+
+// 0x415e80 (thiscall; name unconfirmed): the balance file at +0xc gets vtable 0x6fd958 back and is released (BalanceFile_Release).
+void __fastcall AdvisorScoring_Dtor(u8 *self);
+
+// 0x415e70 (cdecl, at exit; name unconfirmed): AdvisorScoring_Dtor of gAdvisorScoring (0xfb3540).
+void __cdecl AdvisorScoring_StaticDtor();
 }
