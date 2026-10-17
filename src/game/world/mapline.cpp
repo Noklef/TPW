@@ -36,6 +36,20 @@ s32 pull_end(s32 from, s32 *end) {
     return from > e ? -2 : from == e ? 0 : 2;
 }
 
+// LinkCell's link of the cell to the one two away by the direction pair at `pair`: both of a linking type (only 0x19 when `only19`), each with
+// fewer than 4 neighbour bits, the other's owner (+0x10) the focus cell's id or 0.
+void link(u8 *cell, u32 pair, u32 selfBit, u32 otherBit, bool only19) {
+    u8 *const next = Map_StepCell28(reinterpret_cast<const u16 *>(cell), nullptr, global<s32>(pair), global<s32>(pair + 4), 2);
+    if (!next) return;
+    const u32 type = *reinterpret_cast<const u32 *>(next + 8);
+    if (only19 ? type != 0x19 : type != 0xb && type != 0xd && type != 0x10 && type != 0x12 && type != 0x19) return;
+    if (static_cast<s32>(MapCell_NeighbourCount(cell)) >= 4 || static_cast<s32>(MapCell_NeighbourCount(next)) >= 4) return;
+    const u16 owner = *reinterpret_cast<const u16 *>(next + 0x10);
+    if (owner != global<u16>(0x00818698) && owner != 0) return;
+    MapCell_AddNeighbours(cell, nullptr, selfBit);
+    MapCell_AddNeighbours(next, nullptr, otherBit);
+}
+
 }  // namespace
 
 void MapLine_SetEnv(const MapLineEnv *e) { g_env = e ? e : &kGameEnv; }
@@ -76,6 +90,24 @@ u32 __cdecl Map_ApplyLine(u32 arg, s32 x, s32 y, s32 *xEnd, s32 *yEnd) {
     gLineFirst() = 0;
     gLineLast() = 0;
     return r != 0 ? 1 : 0;
+}
+
+void __fastcall MapLine_LinkCell(u8 *cell, void *, u32 kind, s32 stepX, s32 stepY) {
+    s32 sx = stepX, sy = stepY;
+    if (gLineFirst()) {
+        sx = global<s32>(0x00763b00);
+        sy = global<s32>(0x00763b04);
+        if (sx == 0x80 || sy == 0x80) sx = sy = 0;
+    }
+    if (kind == 0xb || kind == 0xd || kind == 0x10 || kind == 0x12 || kind == 0x19) {
+        const bool only19 = kind == 0x19;
+        if (sy == 2) link(cell, 0x007cdba0, 0x01, 0x10, only19);
+        if (sx == -2) link(cell, 0x007cdbc8, 0x04, 0x40, only19);
+        if (sy == -2) link(cell, 0x007cdba8, 0x10, 0x01, only19);
+        if (sx == 2) link(cell, 0x007cdbd0, 0x40, 0x04, only19);
+    }
+    global<s32>(0x00763b00) = stepX;
+    global<s32>(0x00763b04) = stepY;
 }
 
 }  // extern "C"
