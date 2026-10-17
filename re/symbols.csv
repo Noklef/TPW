@@ -3588,6 +3588,12 @@ address,name,kind,confidence,notes
 0x0050d060,SteerRepelObstacle_Destroy,function,low,reimplemented (src/game/world/steering); atexit entry: Steer_Dtor on the global repel_obstacle behaviour 0x7cf338
 0x0050d0d0,SteerAvoidWalls_Destroy,function,low,reimplemented (src/game/world/steering); atexit entry: Steer_Dtor on the global avoid_walls behaviour 0x7cf088
 0x0050d140,SteerFollowPath_Destroy,function,low,reimplemented (src/game/world/steering); atexit entry: Steer_Dtor on the global follow_path behaviour 0x7cf308
+0x0050dd80,SteerSeek_Steer,function,low,"reimplemented (src/game/world/steering); seek's slot 0, thiscall (&out, nav): out = (*target - pos) - vel; returns out"
+0x0050ddf0,SteerArrival_Steer,function,low,"reimplemented (src/game/world/steering); arrival's slot 0, thiscall (&out, nav): toward the target at max_speed, slowing within 2.0, minus vel; (0, 0) at it; returns out"
+0x0050e190,SteerRepel_Neighbour,function,low,"reimplemented (src/game/world/steering); cdecl (nav, other): repel_obstacle's per-neighbour callback, adds away * 2^32 / isqrt(distance) to the force at 0x7cf100 when within the radii + 1.0"
+0x0050cba0,Steer_CircleHit,function,low,"reimplemented (src/game/world/steering); cdecl (&local, radius): where a ray along local x meets the circle about the point, 0x80000000 when it misses"
+0x0050e2b0,SteerAvoidObstacle_Obstacle,function,low,"reimplemented (src/game/world/steering); cdecl (nav, obstacle): avoid_obstacle's per-obstacle callback, records the nearest hit (0x7cf32c) and the force's y"
+0x0050e350,SteerAvoidObstacle_Steer,function,low,"reimplemented (src/game/world/steering); avoid_obstacle's slot 0, thiscall (&out, nav): reach from Nav_PredictPos(10.0); (0, 0) with no hit (the obstacle visit is compiled out), else the force through Matrix2_Transform; returns out"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
