@@ -236,7 +236,7 @@ def update(r):
             put(nodes, 0x34 * a + 0x30, 'hh', chain[i + 1] if i + 1 < len(chain) else -1, chain[i - 1] if i else -1)
     for a in range(6):
         e = 0x140 * a
-        put(systems, e + 2, 'h', r.choice([0, 0, 0, 0, 1]))
+        put(systems, e + 2, 'H', r.choice([0, 0, 0, 0, 0, 0, 1, 2, 0x8000]))
         chain = [records.pop() for _ in range(min(len(records), r.choice([0, 1, 2, 3])))]
         link(chain)
         put(systems, e + 6, 'h', chain[0] if chain else -1)
@@ -245,7 +245,7 @@ def update(r):
             put(nodes, n + 0x1c, 'ii', r.choice([1, 2, 15, 16, 100, r.randrange(1, 0x10000)]), r.choice([0, 0, 1, 2, 5, 100, -1, r.randrange(-0x100, 0x10000)]))
             put(nodes, n + 0x24, 'Hh', r.choice([1, 2, 0]), a if r.random() < 0.9 else r.randrange(6))
             put(nodes, n, 'iiiiii', *[r.randrange(-0x40000, 0x40000) for _ in range(6)])
-        put(systems, e + 0x98, 'i', r.choice([-1, -1, -1, 0x69, r.randrange(0x69)]))
+        put(systems, e + 0x98, 'i', r.choice([-1, -1, -1, 0, 0x69, r.randrange(0x69)]))
         put(systems, e + 0x20, 'i', r.choice([0, 1, -1, -2, 100]))
         put(systems, e + 0x58, 'I', r.choice([0, 0, 1, 2, 3]))
         put(systems, e + 0x78, 'i', r.choice([0, 1, -1, 100]))
