@@ -71,7 +71,6 @@ address,name,module,reason
 5f5650,Wrap_Owner64_Copy4At34_5f5650,core/thunks,todo
 5f63d0,String_Format,core/string,todo
 5f6c50,WString_Format,core/string,todo
-5f72c0,StreamBase_OpenMemory,files/handles,todo
 5f7360,Palette_ExpandRgb,gfx/palette,todo
 5f73a0,Palette_Nearest,gfx/palette,todo: indirect only
 5f76c0,Lib_StrLen,core/libc,todo: indirect only
@@ -91,10 +90,7 @@ address,name,module,reason
 5f7890,Lib_WtoI,core/libc,todo
 5f78a0,Lib_IsDigitW,core/libc,todo
 5f78c0,Lib_VSWPrintf,core/libc,todo
-5f7ed0,FileStream_OpenPath,files/filestream,todo
 5f81d0,Buffer_DecompressStream,files/wrapsources,todo: hands the codec a stack CallbackStream; needs a recorder that logs the pointee rather than the stack address
-5f8510,Handle_Open28,files/handles,todo
-5f85d0,Handle_OpenE0,files/handles,todo
 5f86a0,App_GetInstance,core/app,todo: indirect only
 5f86b0,App_SetInstance,core/app,todo
 5f86c0,App_GetWindow,core/app,todo: indirect only
@@ -296,10 +292,6 @@ address,name,module,reason
 6173e0,Canvas_Ctor,gfx/canvas,todo: indirect only
 617420,Canvas_SetSurface,gfx/canvas,todo
 6175b0,Canvas_Clip,gfx/canvas,todo
-619730,RefObject2_Ctor,files/handles,todo
-619790,RefObject2_DeletingDtor,files/handles,todo
-6197b0,RefObject2_Dtor,files/handles,todo
-6198b0,RefObject2_Vfn5,files/handles,todo
 61b030,Draw_Sprite,gfx/text,todo
 61b050,Draw_SpriteShape,gfx/text,todo
 61b090,PixelChannel_Set,gfx/surface,todo
@@ -363,8 +355,6 @@ address,name,module,reason
 62f9e0,List_Init,core/list,todo
 62fa00,List_InsertAfter,core/list,todo
 62fa20,List_First,core/list,todo
-62fa40,StreamBase_OpenIn,files/streamopen,todo
-62fd30,StreamBase_OpenBuffered,files/streamopen,todo
 62fe00,RowReader_Decode,gfx/tga,todo
 6300c0,RowReader_CopyRow,gfx/tga,todo
 6300f0,TgaReader_Load,gfx/tga,todo
