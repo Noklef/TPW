@@ -234,32 +234,69 @@ void __fastcall Staff_Train(u8 *staff, void *, s32 amount) {
     }
 }
 
-void __fastcall Staff_CountTypes(u8 *counts) {
-    for (u32 k = 0; k < 5; ++k) at<u32>(counts, 0x280 + k * 4) = 0;
-    at<u32>(counts, 0x299) = 0;
-    at<u8>(counts, 0x29d) = 0;
-    u16 handle;
-    World_FirstThing(global<void *>(0x0080239c), nullptr, &handle);
-    while (handle != 0) {
-        const u8 *const thing = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
-        u32 count = 0, limit = 0, flag = 0;
-        switch (at<u8>(thing, 2)) {
-        case 4: count = 0x284; limit = 0x007852ec; flag = 0x29a; break;
-        case 5: count = 0x280; limit = 0x007852e8; flag = 0x299; break;
-        case 6: count = 0x288; limit = 0x007852f0; flag = 0x29b; break;
-        case 7: count = 0x28c; limit = 0x007852f4; flag = 0x29c; break;
-        case 8: count = 0x290; limit = 0x007852f8; flag = 0x29d; break;
-        }
-        if (count != 0) {
-            const s32 now = at<s32>(counts, count) + 1;
-            at<s32>(counts, count) = now;
-            if (now >= global<s32>(limit)) at<u8>(counts, flag) = 1;
-        }
-        u16 next;
-        handle = *World_NextThing(global<void *>(0x0080239c), nullptr, &next, thing);
-    }
-}
-
+void __fastcall Staff_CountTypes(u8 *counts) {
+    for (u32 k = 0; k < 5; ++k) at<u32>(counts, 0x280 + k * 4) = 0;
+    at<u32>(counts, 0x299) = 0;
+    at<u8>(counts, 0x29d) = 0;
+    u16 handle;
+    World_FirstThing(global<void *>(0x0080239c), nullptr, &handle);
+    while (handle != 0) {
+        const u8 *const thing = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
+        u32 count = 0, limit = 0, flag = 0;
+        switch (at<u8>(thing, 2)) {
+        case 4: count = 0x284; limit = 0x007852ec; flag = 0x29a; break;
+        case 5: count = 0x280; limit = 0x007852e8; flag = 0x299; break;
+        case 6: count = 0x288; limit = 0x007852f0; flag = 0x29b; break;
+        case 7: count = 0x28c; limit = 0x007852f4; flag = 0x29c; break;
+        case 8: count = 0x290; limit = 0x007852f8; flag = 0x29d; break;
+        }
+        if (count != 0) {
+            const s32 now = at<s32>(counts, count) + 1;
+            at<s32>(counts, count) = now;
+            if (now >= global<s32>(limit)) at<u8>(counts, flag) = 1;
+        }
+        u16 next;
+        handle = *World_NextThing(global<void *>(0x0080239c), nullptr, &next, thing);
+    }
+}
+
+namespace {
+
+// The index of a staff type (byte +2) in Staff_TrainAll's amounts and counts: mechanic, handyman, entertainer, researcher, guard; -1 for another.
+s32 TrainSlot(u8 type) {
+    switch (type) {
+    case 5: return 0;
+    case 4: return 1;
+    case 6: return 2;
+    case 7: return 3;
+    case 8: return 4;
+    }
+    return -1;
+}
+
+}  // namespace
+
+void __fastcall Staff_TrainAll(const s32 *amounts) {
+    s32 count[5] = {0, 0, 0, 0, 0};
+    u16 handle;
+    World_FirstThing(global<void *>(0x007cf83c), nullptr, &handle);
+    while (handle != 0) {
+        const u8 *const thing = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
+        const s32 slot = TrainSlot(at<u8>(thing, 2));
+        if (slot >= 0) ++count[slot];
+        u16 next;
+        handle = *World_NextThing(global<void *>(0x007cf83c), nullptr, &next, thing);
+    }
+    World_FirstThing(global<void *>(0x007cf83c), nullptr, &handle);
+    while (handle != 0) {
+        u8 *const thing = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
+        const s32 slot = TrainSlot(at<u8>(thing, 2));
+        if (slot >= 0) Staff_Train(thing, nullptr, amounts[slot] / count[slot]);
+        u16 next;
+        handle = *World_NextThing(global<void *>(0x007cf83c), nullptr, &next, thing);
+    }
+}
+
 u32 __fastcall Table_ScaledBySum(u8 *table, void *, s32 index) {
     const u32 total = (u32)Global7852f8_Times78548c();
     if (total == 0) return 0;

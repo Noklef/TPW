@@ -117,4 +117,9 @@ void __fastcall Staff_Train(u8 *staff, void *, s32 amount);
 // entertainer (6) at +0x288, a researcher (7) at +0x28c and a guard (8) at +0x290, and a count reaching its limit (0x7852e8, 0x7852ec, 0x7852f0, 0x7852f4,
 // 0x7852f8 in the same order, signed) sets the flag (+0x299, +0x29a, +0x29b, +0x29c, +0x29d).
 void __fastcall Staff_CountTypes(u8 *counts);
+
+// 0x50c800 (thiscall on five amounts; name unconfirmed): the staff of each type counted over the world's things (World_FirstThing / World_NextThing on
+// [0x7cf83c]), then each staff member trained (Staff_Train) with its type's amount divided by the type's count (signed): a mechanic (type 5) the dword at
+// +0, a handyman (4) +4, an entertainer (6) +8, a researcher (7) +0xc, a guard (8) +0x10.
+void __fastcall Staff_TrainAll(const s32 *amounts);
 }
