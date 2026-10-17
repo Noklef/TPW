@@ -1,7 +1,8 @@
-# The matrix object methods (src/game/math/mat4: 0x5780a0, 0x578800, 0x578bc0, 0x577460, 0x578820, 0x578be0) against the originals:
-# any matrix bits, overlapping copies included; the LU back substitution with any row indices 0-3 and right-hand sides with leading
-# zeros (and NaNs); the perspective with camera-like and any floats, the render flag 0x200 either way.
-# usage: mat4.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=InitGlobals,Identity,Assign,MoveAlongX,LuBackSubstitute,Perspective)
+# The matrix object methods (src/game/math/mat4: 0x5780a0, 0x578800, 0x578bc0, 0x577460, 0x578820, 0x578be0, 0x578ca0) against the
+# originals: any matrix bits, overlapping copies included; the LU back substitution with any row indices 0-3 and right-hand sides
+# with leading zeros (and NaNs); the perspective with camera-like and any floats, the render flag 0x200 either way; the far set
+# beyond, at or before the kept near (a signalling NaN one too) with any render view.
+# usage: mat4.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=InitGlobals,Identity,Assign,MoveAlongX,LuBackSubstitute,Perspective,SetFar)
 import os
 import struct
 import sys
@@ -10,9 +11,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, bf, fb  # noqa: E402
 
 B = Bench([(0x5780a0, 0x578190), (0x578800, 0x578820), (0x578bc0, 0x578bd4), (0x577460, 0x5774d0), (0x578820, 0x578910),
-           (0x578be0, 0x578cb0)])
+           (0x578be0, 0x578d20), (0x583220, 0x583280)])
 CALLS = {'InitGlobals': 0x5780a0, 'Identity': 0x578800, 'Assign': 0x578bc0, 'MoveAlongX': 0x577460, 'LuBackSubstitute': 0x578820,
-         'Perspective': 0x578be0}
+         'Perspective': 0x578be0, 'SetFar': 0x578ca0}
 
 
 def matrix(r):
@@ -48,6 +49,17 @@ def case(r):
                 args[1] = args[0]
         return Call(0x578be0, [RAM] + args, {RAM: r.bytes(0x40), 0x8bcbc8: struct.pack('<I', r.getrandbits(32)), 0x87b1dc: r.bytes(4),
                                              0x768acc: r.bytes(4), 0x87af58: r.bytes(4)}, conv='t')
+    if op == 'SetFar':  # the kept near and field of view, a far (beyond, at or before the near), any render view
+        near, fov = fb(r.uniform(0.01, 50)), fb(r.uniform(1, 179))
+        if r.random() < 0.2:
+            near, fov = r.choice([(r.f(), fov), (near, fb(r.uniform(-1e6, 1e6))), (r.choice([0x7f800001, 0xffc00000, 0]), fov)])
+        far = r.choice([fb(r.uniform(50, 20000)), fb(r.uniform(50, 20000)), near, fb(bf(near) * 0.5), r.f()])
+        view = bytearray(r.floats(bytearray(0x78), range(0, 0x78, 4), r.choice([1, 300, None])))
+        struct.pack_into('<I', view, 0, r.getrandbits(32))
+        if r.random() < 0.7:
+            struct.pack_into('<f', view, 0x44, r.uniform(0.5, 2))
+        return Call(0x578ca0, [RAM, far], {RAM: r.bytes(0x40), 0x8bcbc8: view, 0x87b1dc: struct.pack('<I', near), 0x768acc: r.bytes(4),
+                                           0x87af58: struct.pack('<I', fov)}, conv='t')
     # copied upwards a dword at a time, so a source just below the matrix smears
     m = RAM + r.choice([0, 0x40, 0x80])
     return Call(0x578bc0, [m, RAM + r.choice([0, 0x40, 0x80, 0x44, 0x7c, 0x84])], regions, conv='t')

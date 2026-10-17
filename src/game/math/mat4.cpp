@@ -6,6 +6,7 @@
 #include <initializer_list>
 
 #include "x87.h"
+#include "../render/viewport.h"
 
 namespace {
 
@@ -104,5 +105,19 @@ void __fastcall Mat4_Perspective(float *m, void *, float near_, float far_, floa
     std::memcpy(&global<u32>(0x0087b1dc), &near_, 4);
     std::memcpy(&global<u32>(0x00768acc), &far_, 4);
     std::memcpy(&global<u32>(0x0087af58), &fov, 4);
+}
+
+void __fastcall Mat4_SetFar(float *m, void *, u32 far_) {
+    // The kept values go on as they are (as dwords, a signalling NaN too).
+    using PerspectiveBits = void(__fastcall *)(float *, void *, u32, u32, u32);
+    reinterpret_cast<PerspectiveBits>(&Mat4_Perspective)(m, nullptr, global<u32>(0x0087b1dc), far_, global<u32>(0x0087af58));
+    float far_value;
+    std::memcpy(&far_value, &far_, 4);
+    const float near_ = global<float>(0x0087b1dc);
+    X87Reg d = ((X87Reg(far_value) - m[14]) / m[10]) * global<float>(0x008bcc0c);
+    if (!(d.v >= near_)) d = near_;
+    const X87Reg b = X87Reg(m[11]) * d + m[15];
+    const X87Reg a = d * m[10] + m[14];
+    View_SetProjection(reinterpret_cast<u8 *>(0x008bcbc8), nullptr, far_, (float)a, (float)b);
 }
 }

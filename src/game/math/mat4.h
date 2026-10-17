@@ -32,4 +32,9 @@ void __cdecl Mat4_LuBackSubstitute(const float *lu, const s32 *index, float *b);
 // angle: zeroed, then m[0] = m[5] = cos, m[10] = q = sin / (1 - near / far), m[14] = -q * near and m[11] = sin, or m[15] = 1 with the
 // render flag 0x200 (0x8bcbc8) set. The three arguments are kept at 0x87b1dc, 0x768acc and 0x87af58 (the name is unconfirmed).
 void __fastcall Mat4_Perspective(float *m, void *, float near_, float far_, float fov);
+
+// 0x578ca0 (thiscall; far: pops 4; x87): Mat4_Perspective with the kept near (0x87b1dc) and field of view (0x87af58) and this far;
+// then the depth d = ((far - m[14]) / m[10]) * the render view's +0x44, raised to the near when below it (or a NaN), handed to
+// View_SetProjection (0x583220) as (far's bits, d * m[10] + m[14], m[11] * d + m[15]) (the name is unconfirmed).
+void __fastcall Mat4_SetFar(float *m, void *, u32 far_);
 }
