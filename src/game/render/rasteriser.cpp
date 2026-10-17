@@ -1,6 +1,7 @@
 #include "rasteriser.h"
 
 #include <cstdint>
+#include <mmintrin.h>
 
 namespace {
 
@@ -30,6 +31,11 @@ u32 __stdcall Rasteriser_ChooseSpan(u32 flags) {
         routine = global<u32>(0x006f19f0);
     }
     global<u32>(0x00fbe044) = routine;
+    return 1;
+}
+
+u32 __cdecl Rasteriser_ClearMmx() {
+    _mm_empty();
     return 1;
 }
 }

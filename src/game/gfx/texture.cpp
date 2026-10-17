@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <initializer_list>
+#include "../core/vcall.h"
 
 namespace {
 
@@ -80,5 +81,11 @@ u32 __fastcall Texture_UsesDriverFilter(const u8 *texture) {
     if ((at<u32>(texture, 8) & 0x30000) == 0)
         return 0;
     return global<u32>(0x008bd524) == 1 ? 1 : 0;
+}
+
+u32 __fastcall Texture_Reload(u8 *texture) {
+    global<u32>(0x008c4b60)++;
+    at<u32>(texture, 0x14) = global<u32>(0x008bcc40);
+    return vcall<u32>(at<u8 *>(texture, 0), 0x14);
 }
 }

@@ -63,4 +63,7 @@ s32 __fastcall TextMetrics_FitIndex(u8 *object, void *, const u16 *text, u32 sta
 // 0x50e260 (stdcall; out, text): the globals 0x7cf100 and 0x7cf104 = 0 and the two dwords at out = those (the original's debug printf is
 // where a measurement would be made).
 void __stdcall TextExtent_Zero(u32 *out, const u8 *text);
+
+// 0x47f990 (thiscall; name unconfirmed): the object at +0x14, when set, answers with its virtual call 8 (a 16-bit value); 0 (AX only) when it is not set.
+u32 __fastcall TextMetrics_ForwardSlot8(u8 *object);
 }

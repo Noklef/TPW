@@ -40,4 +40,8 @@ void __fastcall Texture_ClearKeep(u8 *texture);
 // 0x590fb0 (thiscall): 1 when a flag of 0x30000 is set and the display driver kind (0x8bd524,
 // 1 for Direct3D, 0x44de0b) is 1, else 0.
 u32 __fastcall Texture_UsesDriverFilter(const u8 *texture);
+
+// 0x590ff0 (thiscall; name unconfirmed): the counter at 0x8c4b60 is raised, the dword at +0x14 takes the device generation (0x8bcc40) and the object at +0 answers with its virtual call 5,
+// whose result is returned.
+u32 __fastcall Texture_Reload(u8 *texture);
 }

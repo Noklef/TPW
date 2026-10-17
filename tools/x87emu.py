@@ -570,6 +570,8 @@ class Emu:
                 return nxt
             self.push(nxt)
             return target
+        elif mn == 'EMMS':   # marks every x87 register empty
+            self.st = []
         elif mn == 'RET':
             ret = self.pop()
             self.r['ESP'] = (self.r['ESP'] + (int(o[0], 16) if o else 0)) & 0xffffffff

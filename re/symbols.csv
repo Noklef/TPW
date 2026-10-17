@@ -3352,6 +3352,7 @@ address,name,kind,confidence,notes
 0x0047cf20,ImeVector_InsertN,function,high,reimplemented (src/game/core/ime); inserts count copies of a dword into the IME vector
 0x0047f9a0,TextMetrics_Width,function,high,reimplemented (src/game/gfx/text); width of a run of characters by the glyph width slot
 0x0047fa00,TextMetrics_FitIndex,function,high,reimplemented (src/game/gfx/text); index at which the width runs out
+0x0047f990,TextMetrics_ForwardSlot8,function,high,reimplemented (src/game/gfx/text); Forwards to virtual call 8 of the inner object (name unconfirmed)
 0x0050f310,Matrix2_Transform,function,high,reimplemented (src/game/math/matrix); fixed point 2 x 2 transform of a pair
 0x00503980,Table_ScaledBySum,function,high,reimplemented (src/game/world/staff); a table share scaled by the things' sum
 0x00520d60,FreeList_Take,function,high,reimplemented (src/game/core/voices); takes a record off the free list into a table entry
@@ -3485,6 +3486,7 @@ address,name,kind,confidence,notes
 0x00590fb0,Texture_UsesDriverFilter,function,high,reimplemented (src/game/gfx/texture); thiscall: 1 when a flag of 0x30000 is set and the display driver kind (0x8bd524) is 1 (Direct3D)
 0x00590a00,Texture_Ctor,function,high,"reimplemented (src/game/gfx/texture); the texture constructor (most-derived flag: vbtable 0x702538, virtual base at +0x48)"
 0x00590c40,Texture_FormatBits,function,high,"reimplemented (src/game/gfx/texture); the format word for the driver from the flags (0x300, 0x4000000, driver filter)"
+0x00590ff0,Texture_Reload,function,high,"reimplemented (src/game/gfx/texture); Raises the counter, stores the device generation and forwards to call 5 (name unconfirmed)"
 0x00588d70,SpriteFrame_Init,function,high,"reimplemented (src/game/gfx/spriteframe); thiscall (a sprite frame, 0x48 bytes): +0x10/+0x28/+0x30/+0x34 = 0, +0x24 = -1, +0x2c = 1.0f; returns the frame"
 0x00588320,SpriteImage_Init,function,high,"reimplemented (src/game/gfx/spriteframe); thiscall (a sprite image, 0x18 bytes): +0, +4 and the u16 sizes +0xc..+0x16 cleared; returns the image"
 0x005882e0,SpriteFrames_MarkTextures,function,high,"reimplemented (src/game/gfx/spriteframe); each image texture: flag 0x200 set, 0x100 cleared"
@@ -3666,6 +3668,7 @@ address,name,kind,confidence,notes
 0x005744d0,Meshes_Ready,function,high,reimplemented (src/game/render/meshlist); a zero-ended array of meshes readied (flag 0x20: object +0x30; no 0x10000000: pushed on 0x879dec)
 0x00565240,Batch_Begin,function,high,"reimplemented (src/game/render/batch); a draw batch begun for a primitive kind, its fields filled"
 0x00569f60,Rasteriser_ChooseSpan,function,high,reimplemented (src/game/render/rasteriser); the span routine chosen by the render flags
+0x00569f20,Rasteriser_ClearMmx,function,high,"reimplemented (src/game/render/rasteriser); EMMS, returns 1 (name unconfirmed)"
 0x0053c8d0,DynFaces_AddSquare,function,high,reimplemented (src/game/render/dynfaces); queues a square dynamic face
 0x0053c9c0,DynFaces_AddPoly,function,high,reimplemented (src/game/render/dynfaces); queues a four corner polygon dynamic face
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"

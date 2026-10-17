@@ -27,6 +27,8 @@ const RleSprite *glyph(const RleSprite *font, u32 ch) {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
+template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
 }  // namespace
 
 void Text_SetEnv(const TextEnv *e) { g_env = e ? e : &kGameEnv; }
@@ -154,5 +156,12 @@ void __stdcall TextExtent_Zero(u32 *out, const u8 *) {
     global<u32>(0x007cf104) = 0;
     out[0] = global<u32>(0x007cf100);
     out[1] = global<u32>(0x007cf104);
+}
+
+u32 __fastcall TextMetrics_ForwardSlot8(u8 *object) {
+    u8 *const inner = at<u8 *>(object, 0x14);
+    if (!inner)
+        return 0;
+    return vcall<u16>(inner, 0x20);
 }
 }  // extern "C"
