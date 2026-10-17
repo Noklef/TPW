@@ -3929,6 +3929,10 @@ address,name,kind,confidence,notes
 0x00590730,AnimTextures_Clear,function,high,reimplemented (src/game/gfx/animtex); the six animated textures' frame counts (0x8c4b80) cleared
 0x00591d30,WaveletCodec_PutCoefficient,function,high,reimplemented (src/game/gfx/wavelet); writes a coefficient as a byte or 0x80 and a word
 0x005919a0,WaveletCodec_VBaseDtor,function,high,reimplemented (src/game/gfx/wavelet); Destructor body at the codec virtual base (name unconfirmed)
+0x005925e0,WaveletCodec_UnpackBgr,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (width, height, stride, pixels): 3-byte pixels into the float planes at +0x2c, +0x1c, +0xc (name unconfirmed)"
+0x00592150,WaveletCodec_RgbToYuv,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (count): the planes' b, g, r become Y, Cb, Cr in place, x87 single precision (name unconfirmed)"
+0x005924f0,WaveletCodec_ForwardD4Row,function,low,"reimplemented (src/game/gfx/wavelet); thiscall, this unused (src, dst, n): one forward D4 step along a row, low then high halves; filter at 0xc27208 (name unconfirmed)"
+0x00592670,WaveletCodec_HalvePlane,function,low,"reimplemented (src/game/gfx/wavelet); thiscall, this unused (plane pointer's address, n): the n x n plane halved in place by 2 x 2 averages (name unconfirmed)"
 0x0058c2c0,TexSurfaceA_Field38,function,high,reimplemented (src/game/gfx/texsurface); surface class A: the dword at ECX-0x38
 0x0058c2e0,TexSurfaceA_Area,function,high,reimplemented (src/game/gfx/texsurface); surface class A: its virtual base's two dwords multiplied
 0x0058c330,TexSurfaceA_Field10,function,high,reimplemented (src/game/gfx/texsurface); surface class A: the dword at ECX-0x10

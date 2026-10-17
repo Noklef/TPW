@@ -29,4 +29,23 @@ u32 __fastcall WaveletCodec_DecodeScaled(u8 *codec, void *, s32 version, u32 a, 
 // virtual base offset in the word at +4 of what +-0x50 points at: 0x7026b8, and the word before it holds that offset - 0x50); then the blocks at +-8, +-0x18, +-0x28, +-0x38 and +-0x48 are
 // freed when set (GameHeap_Free).
 void __fastcall WaveletCodec_VBaseDtor(u8 *base);
+
+// 0x5925e0 (thiscall; width, height, stride, pixels; pops 0x10; name unconfirmed): WaveletCodec_Encode's first step. height rows of width
+// 3-byte pixels, packed one after another, go as floats into the planes at +0x2c (byte 0), +0x1c (byte 1) and +0xc (byte 2), each row
+// stride floats below the last. The plane pointers are re-read for each store.
+void __fastcall WaveletCodec_UnpackBgr(u8 *codec, void *, u32 width, u32 height, u32 stride, const u8 *src);
+
+// 0x592150 (thiscall; count; pops 4; name unconfirmed): the first count values of the planes at +0x2c (b), +0x1c (g) and +0xc (r) become
+// Y, Cb and Cr in place (x87, single precision; the constants at 0x702664..0x702680, written as subtractions of negated ones as there).
+void __fastcall WaveletCodec_RgbToYuv(u8 *codec, void *, u32 count);
+
+// 0x5924f0 (thiscall, this unused; source, destination, n; pops 0xc; name unconfirmed): one forward D4 step along a row of n floats
+// (n a power of two: indices wrap with n - 1), the filter h0..h3 read from 0xc27208..0xc27214 for each product; the n / 2 low-pass
+// values go to dst[0..], the high-pass ones to dst[n / 2..]. Nothing for n <= 0.
+void __fastcall WaveletCodec_ForwardD4Row(u8 *codec, void *, const float *src, float *dst, s32 n);
+
+// 0x592670 (thiscall, this unused; the plane pointer's address, n; pops 8; name unconfirmed): the n x n plane is halved in place, each
+// 2 x 2 block's average (summed bottom row first) going to the (n / 2) x (n / 2) plane at its start. The plane pointer is re-read for
+// each value.
+void __fastcall WaveletCodec_HalvePlane(u8 *codec, void *, float *const *plane, u32 n);
 }
