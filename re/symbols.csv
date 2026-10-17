@@ -3670,6 +3670,8 @@ address,name,kind,confidence,notes
 0x0052fad0,Global81ecac_SetRecorded,function,low,"reimplemented (src/game/core/actionrec); cdecl (value): the record 0x1e (the word value), then 0x81ecac = value"
 0x0052f1b0,Global81d7a4_SetRecorded,function,low,"reimplemented (src/game/core/actionrec); cdecl (value, force byte): the record 0xa unless value is 0x81b134 and not forced; 0x81b134 = old 0x81d7a4, 0x81d7a4 = value"
 0x0052f880,Global8186e0_SetRecorded,function,low,"reimplemented (src/game/core/actionrec); cdecl (&id, flag): the record 5 (word id, byte flag), World_MarkRideBuilt; 0x8186ec = old 0x8186e0, 0x8187f8 = flag, 0x8186e0 = id"
+0x00403ed0,ActionRec_WriteFW,function,low,"reimplemented (src/game/core/actionrec); The action record of a code byte, a float and a word"
+0x00403f40,ActionRec_WriteFFW,function,low,"reimplemented (src/game/core/actionrec); The action record of a code byte, two floats and a word"
 0x00408f00,NamedObjects_RemoveGlobals,function,low,reimplemented (src/game/core/namedobjects); the 14 named globals removed from the named objects registry at [0x786b9c] and deleted
 0x00407b90,NamedObjects_Ctor,function,low,"reimplemented (src/game/core/namedobjects); thiscall: the registry owner built: String name from the WString 0x7861c0, empty owned list (vtable 0x6fd704), a new registry at +0x34"
 0x00407c90,NamedObjects_Dtor,function,low,"reimplemented (src/game/core/namedobjects); thiscall: owned objects deleted (slot 3), registry drained and freed, +0x38 freed, list vtable 0x6fd708 and nodes freed, String_Dtor"
