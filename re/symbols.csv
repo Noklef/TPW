@@ -3400,6 +3400,7 @@ address,name,kind,confidence,notes
 0x005e7d70,Pixels_Stamp,function,high,reimplemented (src/game/gfx/imageops); draws an image onto a four byte per pixel image
 0x005e7f60,Mask_Tint,function,high,reimplemented (src/game/gfx/imageops); tints a four byte per pixel image through a mask
 0x005f09a0,Colour_Blend3,function,high,reimplemented (src/game/gfx/color); blends between three colour records by a position of 0 to 100
+0x00591270,Format_BuildChannelTable,function,high,reimplemented (src/game/gfx/color); Builds the 256 level table of four channel masks (name unconfirmed)
 0x00598ca0,ModelSlot_ApplySelection,function,high,reimplemented (src/game/model/slots); sets or clears the part flags of the selection kind
 0x004d9620,Litter_Remove,function,high,reimplemented (src/game/world/litter); takes a piece of litter off its cell
 0x004f2b40,WStringMap_Find,function,high,reimplemented (src/game/core/wstringmap); a wide string map lookup

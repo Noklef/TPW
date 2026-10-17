@@ -140,4 +140,23 @@ u32 *__cdecl Colour_Blend3(u32 *out, s32 position, const u32 *a, const u32 *b, c
         out[i] = reinterpret_cast<u32 *>(record)[i];
     return out;
 }
+
+void __cdecl Format_BuildChannelTable(u32 *table, u32, u32, u32, u32, u32 red, u32 green, u32 blue, u32 alpha) {
+    const u32 masks[4] = {alpha, red, green, blue};
+    u32 width[4], shift[4];
+    for (int k = 0; k < 4; k++) {
+        width[k] = 0;
+        for (u32 m = masks[k]; m; m >>= 1)
+            width[k] += m & 1;
+        shift[k] = 0;
+        if (masks[k]) {
+            for (u32 m = masks[k]; !(m & 1); m >>= 1)
+                shift[k]++;
+        }
+    }
+    for (s32 i = 0; i < 0x100; i++) {
+        for (int k = 0; k < 4; k++)
+            table[i * 4 + k] = static_cast<u32>(i >> ((8 - width[k]) & 0x1f)) << (shift[k] & 0x1f);
+    }
+}
 }  // extern "C"

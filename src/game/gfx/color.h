@@ -80,4 +80,9 @@ u32 __fastcall Color_Shift(const Color *c, void *edx, const ColorShifts *s);
 // moved towards c by (position - 50) / 50. The result is the first record with its bytes 0 to 2 moved (each by the difference of the bytes times the fraction in 16.16 fixed
 // point, arithmetic shift, added to the first byte) and its byte 3 set to 0xff. Returns out.
 u32 *__cdecl Colour_Blend3(u32 *out, s32 position, const u32 *a, const u32 *b, const u32 *c);
+
+// 0x591270 (cdecl; the table, then a DDPIXELFORMAT passed by value: size, flags, FourCC, bit count, red, green, blue and alpha masks; name unconfirmed): fills 256 records of four dwords
+// (alpha, red, green, blue): for each level i and mask, i lowered to the mask's width (the shift is 8 - the count of its set bits, taken modulo 32) and moved up to the mask's lowest set bit
+// (0 for an empty mask).
+void __cdecl Format_BuildChannelTable(u32 *table, u32 size, u32 flags, u32 fourcc, u32 bits, u32 red, u32 green, u32 blue, u32 alpha);
 }
