@@ -110,7 +110,8 @@
 #include "../game/core/selectors.h"
 #include "../game/core/seqs.h"
 #include "../game/core/rings.h"
-#include "../game/core/buffers.h"
+#include "../game/core/buffers.h"
+#include "../game/core/cpuinfo.h"
 #include "../game/core/observers.h"
 #include "../game/gfx/imageops.h"
 #include "../game/gfx/statsgraph.h"
@@ -3384,6 +3385,7 @@ const Hook kHooks[] = {
     {"FloatConsts_InitOne_4b4490", 0x004b4490, (void *)&FloatConsts_InitOne_4b4490, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"FloatConsts_InitEpsilon_4b44b0", 0x004b44b0, (void *)&FloatConsts_InitEpsilon_4b44b0, {0xd9, 0x05, 0xc8, 0xfd, 0x6f}},
     {"GameClock_Serialize",       0x004f7f30, (void *)&GameClock_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"CpuInfo_Ctor",              0x0055e470, (void *)&CpuInfo_Ctor, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
