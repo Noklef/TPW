@@ -166,6 +166,7 @@
 #include "../game/core/small60.h"
 #include "../game/core/small61.h"
 #include "../game/core/small62.h"
+#include "../game/core/small63.h"
 #include "../game/core/small7.h"
 #include "../game/core/small8.h"
 #include "../game/core/small9.h"
@@ -2997,6 +2998,7 @@ const Hook kHooks[] = {
     {"Thing_SpriteChoice",        0x004fcac0, (void *)&Thing_SpriteChoice, {0x51, 0x56, 0x8b, 0xf1, 0x6a}},
     {"Thing_IngredientRecord",    0x004e2200, (void *)&Thing_IngredientRecord, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
     {"Class701378_Ctor",          0x005667d0, (void *)&Class701378_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},
+    {"Thing_Construct",           0x0050afe0, (void *)&Thing_Construct, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
