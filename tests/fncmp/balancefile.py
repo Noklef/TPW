@@ -2,7 +2,7 @@
 # on a file whose vtable is one of the game's balance vtables (the driver points their slot 0 at the ported schema getters), with a made-up schema
 # laid over that getter's table (types 0-11 and others, groups of type 2 closed by a type-3 record's count, a type-3 record after the 0xc end so
 # a group's search always stops) and values entries of a few strides; and the six schema getters themselves.
-# usage: balancefile.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Defaults,Release,Schema,Dtor,Init,ObjCtor,Advisor)
+# usage: balancefile.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Defaults,Release,Schema,Dtor,Init,ObjCtor,Advisor,Find)
 import os
 import struct
 import sys
@@ -17,7 +17,7 @@ DTORS = {0x402a70: (0x784e30, 0x6fd618), 0x402ac0: (0x784c20, 0x6fd618), 0x402b3
          0x402c10: (0x785868, 0x6fd630), 0x402c80: (0x7858e0, 0x6fd638), 0x402cf0: (0x7858f0, 0x6fd640),
          0x412d40: (0, 0x6fd8a8), 0x414410: (0, 0x6fd8b0), 0x423dc0: (0, 0x6fd630)}   # the static (global, vtable) and thiscall (0, vtable) destructors
 B = Bench([(0x401250, 0x40127a), (0x4013e0, 0x40161d), (0x5f5680, 0x5f5690), (0x412c90, 0x412ca2), (0x4143f0, 0x414402), (0x4d1e60, 0x4d1e72), (0x5da3c0, 0x5da3c1)]
-          + [(a, a + 0x12) for a in GETTERS] + [(a, a + 0x10) for a in DTORS] + [(0x401030, 0x401212), (0x5f5660, 0x5f5680), (0x5b0d60, 0x5b0d64), (0x412c20, 0x412c89), (0x415e70, 0x415e8e)])
+          + [(a, a + 0x12) for a in GETTERS] + [(a, a + 0x10) for a in DTORS] + [(0x401030, 0x401212), (0x5f5660, 0x5f5680), (0x5b0d60, 0x5b0d64), (0x412c20, 0x412c89), (0x415e70, 0x415e8e), (0x401280, 0x4013dc)])
 VALS, FLAGS, DATA = RAM + 0x800, RAM + 0x900, RAM + 0x1000
 INIT = RAM + 0x4000
 GROUPED = [0, 1, 2, 2, 2, 3, 3, 4, 6, 9, 10, 0xd]   # (Init: groups nested, cut short and empty more often)
@@ -79,6 +79,21 @@ def advisor(r):   # AdvisorScoring_Dtor (0x415e80, thiscall) or its static one (
     return Call(address, [base], regions, conv='t', ret='v')
 
 
+NAMES = [b'Speed', b'Cost', b'Speed2', b'Spee', b'', b'Ride Cost', b'cost']
+FIND_TYPES = [0, 1, 1, 2, 3, 3, 4, 6, 9, 10]
+
+
+def find(r):   # BalanceFile_FindKey: names from a few (near misses among them) on a made-up schema, the section and key asked for from them
+    vt = r.choice(list(VTABLES))
+    n, table = schema(r, counts=(0, 1, 2, 3, 5, -1), kinds=FIND_TYPES)
+    for k in range(n + 2):
+        table[0x3c * k + 4:0x3c * k + 0x24] = (r.choice(NAMES) + bytes(0x20))[:0x20]
+    group, name = (r.choice(NAMES + [b'Other']) + bytes(0x10) for _ in range(2))
+    regions = {RAM: put(bytearray(r.bytes(0x20)), 0, 'I', vt), VTABLES[vt]: table, RAM + 0x100: group, RAM + 0x140: name, RAM + 0x180: r.bytes(8)}
+    args = [RAM, RAM + 0x100, RAM + 0x140, RAM + 0x180, r.choice([0, 1, 1, r.getrandbits(32)]), r.choice([0, 0, 1, 2, 4, 0xffffffff, r.getrandbits(32)])]
+    return Call(0x401280, args, regions, conv='t', ret='a')
+
+
 def case(r):
     op = r.deal(OPS + [k for k in ('Dtor', 'Schema') if k in OPS])   # (a deck, those two twice: they share out many functions)
     if op == 'Defaults':
@@ -95,10 +110,12 @@ def case(r):
         return init(r, True)
     if op == 'Advisor':
         return advisor(r)
+    if op == 'Find':
+        return find(r)
     return Call(r.deal(list(GETTERS)), [r.getrandbits(32), r.choice([0, 1, r.randrange(64), r.getrandbits(32)])], {}, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Defaults,Release,Schema,Dtor,Init,ObjCtor,Advisor').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Defaults,Release,Schema,Dtor,Init,ObjCtor,Advisor,Find').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
