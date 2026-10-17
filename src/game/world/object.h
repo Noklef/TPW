@@ -94,4 +94,10 @@ u32 __fastcall Obj_BlockValuesBelowLimit(const u8 *object);
 // cell distance, from bytes +5 / +7 of both); the nearest one's own handle (+0) goes to out (0 when none or the list is empty). The cursor wraps to the head and ends
 // where it started. Returns out.
 u16 *__fastcall Objects_NearestFreeFor(u8 *self, void *, u16 *out, u32 person);
+
+// 0x4de5a0 (thiscall; name unconfirmed): whether the way on from the object's exit is open. The exit cell (the id at +0x38, among [0x8023a0]'s cells)
+// faces its direction (MapCell_Direction), turned round (Nibble_Scale) when the exit is the entrance (+0x36); the cell beyond it that way
+// (Map_StepCellInDirection; the original reads through a null one) names a cell (its id word) from which any step but the one back (MapCell_StepBlocked
+// in mode 0, directions 0-3 for 1, 4, 0x10, 0x40) open gives 1 (a debug print is left out), else 0.
+u32 __fastcall Object_ExitOpen(const u8 *object);
 }

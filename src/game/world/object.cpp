@@ -287,4 +287,19 @@ u16 *__fastcall Objects_NearestFreeFor(u8 *self, void *, u16 *out, u32 person) {
     *out = nearest;
     return out;
 }
+
+u32 __fastcall Object_ExitOpen(const u8 *object) {
+    const u16 exit = at<u16>(object, 0x38);
+    const u8 *cell = global<u8 *>(0x008023a0) + (u32)exit * 0x44 - 0x44;
+    const u8 way = exit == at<u16>(object, 0x36) ? (u8)Nibble_Scale(MapCell_Direction(cell)) : MapCell_Direction(cell);
+    const u16 beyond = *reinterpret_cast<const u16 *>(Map_StepCellInDirection(reinterpret_cast<const u16 *>(cell), nullptr, way));
+    static const u8 codes[4] = {1, 4, 0x10, 0x40};
+    for (u32 d = 0; d < 4; ++d) {
+        if (codes[d] == (u8)Nibble_Scale(way))  // (not back the way it came)
+            continue;
+        if (!MapCell_StepBlocked((u8)((u8)beyond - 1) & 0x7f, (u16)(beyond - 1) >> 7, d, 0))
+            return 1;  // (the debug print is left out)
+    }
+    return 0;
+}
 }
