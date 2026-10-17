@@ -143,7 +143,8 @@ def emit(r):
     put(systems, e + 0x5c, 'I', r.choice([0, 0, small()]) & 0xffffffff)
     put(systems, e + 0x50, 'h', r.choice([0, 0, 1, -1, 0x100, r.randrange(-0x8000, 0x8000)]))
     nodes = bytearray(r.bytes(0x34 * 12))
-    free = r.sample(range(12), r.choice([0, 1, 3, 12]) if r.random() < 0.2 else r.choice([1, 3, 12]))
+    free = r.sample(range(12), r.choice([0, 1, 3, 12]) if r.random() < 0.2 else r.choice([1, 3, 11]))
+    put(systems, e + 6, 'h', r.choice([-1] + [k for k in range(12) if k not in free]))  # the system's own list (Take links the record in front)
     for a, b in zip(free, free[1:] + [-1]):
         put(nodes, 0x34 * a + 0x30, 'h', b)
     if r.wild or r.random() < 0.1:
