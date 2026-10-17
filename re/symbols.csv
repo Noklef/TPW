@@ -4102,6 +4102,8 @@ address,name,kind,confidence,notes
 0x00458580,LightSource_DestroyMain,function,low,reimplemented (src/game/render/lightsource); The main light (0x7a0b40) destroyed
 0x00561bc0,ClipCodes_Compute,function,low,"reimplemented (src/game/render/clipcodes); fastcall-shaped (caller's ECX, EDX; out, codes, points, count, stride, mask), pops 24: each point's 7-bit sign/magnitude index into the table at 0x879970, masked, stored; out = AND | OR << 8 | ECX's high half"
 0x0056a770,DxResult_Message,function,low,"reimplemented (src/game/render/dxerrors); cdecl (HRESULT): the exe's message string for a DirectDraw / Direct3D / renderer result (142 codes), else 0x7663a8"
+0x00567270,D3dProbe_AlphaTest,function,low,"reimplemented (src/game/render/d3dprobe); thiscall: the driver probe of alpha testing (draws, reads the pixel back; +8 = 2 when it reads 0)"
+0x005673d0,D3dProbe_FogTest,function,low,reimplemented (src/game/render/d3dprobe); thiscall: the driver probe of table fog (render caps 0x8bcbc8 bits 0x4000 / 0x8000 / 0x800000)
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"

@@ -259,6 +259,7 @@
 #include "../game/render/lightsource.h"
 #include "../game/render/clipcodes.h"
 #include "../game/render/dxerrors.h"
+#include "../game/render/d3dprobe.h"
 #include "../game/render/weatherfx.h"
 #include "../game/online/servers.h"
 #include "../game/frontend/helpbg.h"
@@ -3556,6 +3557,8 @@ const Hook kHooks[] = {
     {"LightSource_DestroyMain",   0x00458580, (void *)&LightSource_DestroyMain, {0xa1, 0x40, 0x0b, 0x7a, 0x00}},
     {"ClipCodes_Compute",         0x00561bc0, (void *)&ClipCodes_Compute, {0x55, 0x8b, 0xec, 0x51, 0x53}},
     {"DxResult_Message",          0x0056a770, (void *)&DxResult_Message, {0x8b, 0x44, 0x24, 0x04, 0x3d}},
+    {"D3dProbe_AlphaTest",        0x00567270, (void *)&D3dProbe_AlphaTest, {0x51, 0xa1, 0xa8, 0x9d, 0x87}},
+    {"D3dProbe_FogTest",          0x005673d0, (void *)&D3dProbe_FogTest, {0x8b, 0x15, 0xc8, 0xcb, 0x8b}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
