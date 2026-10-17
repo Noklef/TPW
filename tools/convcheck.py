@@ -76,6 +76,8 @@ for name, addr in hooks:
     else:
         declared = stack_bytes(conv, params)
     if declared is None or len(rets) != 1:  # (an unknown parameter size, or the extent ran into a neighbour with other RETs)
+        if os.environ.get('CONVALL') and declared is not None and declared not in rets:
+            print('%s %s: declared %d, original RETs %s (several: check by hand)' % (addr, name, declared, sorted(rets)))
         continue
     if rets != {declared}:
         bad += 1
