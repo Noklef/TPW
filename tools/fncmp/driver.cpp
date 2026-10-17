@@ -398,7 +398,16 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x00703f78, 12},  // BufferedSource_vtable
                                    {0x00703868, 12},  // MemorySource_vtable
                                    {0x00703160, 3},   // CallbackStream_vtable
-                                   {0x006fd6a0, 9}};  // the action recorder's streams (FileStream's deleting destructor, StreamBase's)
+                                   {0x006fd6a0, 9},   // the action recorder's streams (FileStream's deleting destructor, StreamBase's)
+                                   {0x006fd618, 2},   // the balance files (slot 0 the schema getter, 1 BalanceFile_GetValues): Hoardings,
+                                   {0x006fd620, 2},   // Level,
+                                   {0x006fd628, 2},   // Online,
+                                   {0x006fd630, 2},   // Graphics,
+                                   {0x006fd638, 2},   // Resolution,
+                                   {0x006fd640, 2},   // Sound,
+                                   {0x006fd8a8, 2},   // ObjectDef,
+                                   {0x006fd8b0, 2},   // TrackType,
+                                   {0x00700398, 2}};  // Challenges
 
 void __cdecl debug_printf(const char *, ...) {}  // Debug_Printf 0x5da3c0 (RefObject's teardown slot among others)
 
