@@ -223,6 +223,7 @@
 #include "../game/world/thingscan.h"
 #include "../game/world/trackpools.h"
 #include "../game/world/wallfollow.h"
+#include "../game/world/cellmodel.h"
 #include "../game/world/world.h"
 #include "../game/model/holder.h"
 #include "../game/coaster/tracktypes.h"
@@ -3458,6 +3459,7 @@ const Hook kHooks[] = {
     {"TrackRun_TraceA",           0x00530830, (void *)&TrackRun_TraceA, {0x83, 0xec, 0x18, 0x8b, 0x4c}},
     {"TrackRun_TraceB",           0x00530b70, (void *)&TrackRun_TraceB, {0x83, 0xec, 0x1c, 0x8b, 0x4c}},
     {"ParkMap_Classify",          0x005f2050, (void *)&ParkMap_Classify, {0x83, 0xec, 0x28, 0xa1, 0x3c}},
+    {"MapCell_PickModel",         0x0053a540, (void *)&MapCell_PickModel, {0x83, 0xec, 0x1c, 0x53, 0x55}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
