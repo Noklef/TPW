@@ -14,10 +14,10 @@ B = Bench([(0x5222e0, 0x52231b), (0x522320, 0x522356), (0x51fd80, 0x51fd8a), (0x
            (0x51feb0, 0x51ff06), (0x51ff10, 0x51ff68), (0x51ff70, 0x51ffc6), (0x51ffd0, 0x520028),
            (0x520470, 0x5204ba), (0x51fe30, 0x51fea4), (0x520030, 0x5200a4), (0x51fd90, 0x51fe2d), (0x5200b0, 0x520123), (0x5204c0, 0x52055f), (0x521810, 0x521845), (0x521850, 0x52188a), (0x520e00, 0x520f0c),
            (0x520560, 0x520d60), (0x520d60, 0x520e00), (0x521e60, 0x5222e0), (0x521d60, 0x521e60), (0x522360, 0x5224f0),
-           (0x5214a0, 0x521807), (0x521890, 0x521930), (0x5da3c0, 0x5da3c1)])
+           (0x5214a0, 0x521807), (0x521890, 0x521930), (0x5da3c0, 0x5da3c1), (0x521930, 0x521d54)])
 SYSTEMS, EFFECTS, EFFECTORS, SETUP = 0x80cefc, 0x804370, 0x816504, 0x816d40
 CALLS = {'Alive': 0x5222e0, 'Effector': 0x522320, 'Reduced': 0x51fd80, 'Clear': 0x51fa80, 'End': 0x51feb0,
-         'Age': 0x51ff70, 'Set2a': 0x51ff10, 'SetA2': 0x51ffd0, 'Quarter': 0x520470, 'VecA': 0x51fe30, 'VecB': 0x520030, 'Scaled': 0x51fd90, 'EndAll': 0x5200b0, 'Release': 0x5204c0, 'RandS': 0x521810, 'Rand': 0x521850, 'Move': 0x520e00, 'Emit': 0x520560, 'Spawn': 0x521e60, 'Update': 0x5214a0}
+         'Age': 0x51ff70, 'Set2a': 0x51ff10, 'SetA2': 0x51ffd0, 'Quarter': 0x520470, 'VecA': 0x51fe30, 'VecB': 0x520030, 'Scaled': 0x51fd90, 'EndAll': 0x5200b0, 'Release': 0x5204c0, 'RandS': 0x521810, 'Rand': 0x521850, 'Move': 0x520e00, 'Emit': 0x520560, 'Spawn': 0x521e60, 'Update': 0x5214a0, 'SpawnVel': 0x521930}
 NODES, SINES = RAM + 0x1000, RAM + 0x2000
 
 
@@ -45,6 +45,13 @@ def case(r):
         return spawn(r)
     if op == 'Update':
         return update(r)
+    if op == 'SpawnVel':  # 0x521930: Spawn's cases with a velocity, the systems' scales about 1024
+        c = spawn(r)
+        defs = c.regions[0x804370]
+        for k in range(0x69):
+            put(defs, 0x140 * k + 0xb0, 'i', r.choice([0, 1024, 512, 2048, -1024, r.randrange(-0x10000, 0x10000), r.getrandbits(32) - (1 << 31)]))
+        velocity = [r.choice([0, 1, -1, 1023, -1025, r.randrange(-0x100000, 0x100000), r.getrandbits(32)]) & 0xffffffff for _ in range(3)]
+        return Call(0x521930, c.args + velocity, c.regions, ret='a')
     systems = bytearray(r.bytes(0x78 * 0x140))
     if op in ('RandS', 'Rand'):
         n = r.choice([0, 1, 2, 3, 7, 100, -1, -7, 0x7fffffff, -0x80000000, r.randrange(-1000, 1000)])

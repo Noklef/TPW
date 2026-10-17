@@ -270,7 +270,9 @@ s32 __cdecl Particle_Emit(u32 slot) {
     return index;
 }
 
-s32 __cdecl Particle_Spawn(s32 effect, s32 x, s32 y, s32 z) {
+// Particle_Spawn and Particle_SpawnWithVelocity: the same but for the velocity, the definition's plus jitter (null) or the one given (times the system's
+// scale +0xb0 over 1024).
+static s32 StartSystem(s32 effect, s32 x, s32 y, s32 z, const s32 *velocity) {
     if (global<u32>(0x00816d40) == 0 || effect < 0 || effect >= 0x69)
         return -1;
     u8 *const def = reinterpret_cast<u8 *>(0x00804370 + effect * 0x140);
@@ -315,9 +317,15 @@ s32 __cdecl Particle_Spawn(s32 effect, s32 x, s32 y, s32 z) {
     field<u16>(s, 8) = 0;
     field<u16>(s, 0xc) = (u16)effect;
     field<u16>(s, 0) = 1;
-    for (u32 k = 0; k < 3; ++k) {
-        const s32 jitter = Particle_RandSigned(field<s16>(s, 0x12));
-        field<u32>(s, 0x2c + 4 * k) += (u32)jitter;
+    if (velocity == nullptr) {
+        for (u32 k = 0; k < 3; ++k) {
+            const s32 jitter = Particle_RandSigned(field<s16>(s, 0x12));
+            field<u32>(s, 0x2c + 4 * k) += (u32)jitter;
+        }
+    } else {
+        const u32 scale = field<u32>(s, 0xb0);
+        for (u32 k = 0; k < 3; ++k)
+            field<s32>(s, 0x38 + 4 * k) = (s32)((u32)velocity[k] * scale) / 1024;
     }
     field<u16>(s, 0xa) = global<u16>(0x0080cee8);  // the serial
     ++global<u16>(0x0080cee8);
@@ -362,6 +370,13 @@ s32 __cdecl Particle_Spawn(s32 effect, s32 x, s32 y, s32 z) {
         }
     }
     return (s32)((u32)field<u16>(s, 0xa) << 16 | (u32)slot);
+}
+
+s32 __cdecl Particle_Spawn(s32 effect, s32 x, s32 y, s32 z) { return StartSystem(effect, x, y, z, nullptr); }
+
+s32 __cdecl Particle_SpawnWithVelocity(s32 effect, s32 x, s32 y, s32 z, s32 vx, s32 vy, s32 vz) {
+    const s32 velocity[3] = {vx, vy, vz};
+    return StartSystem(effect, x, y, z, velocity);
 }
 
 void __cdecl Particles_Update() {
