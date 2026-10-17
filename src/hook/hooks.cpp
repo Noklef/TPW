@@ -160,6 +160,7 @@
 #include "../game/core/small55.h"
 #include "../game/core/small56.h"
 #include "../game/core/small57.h"
+#include "../game/core/small58.h"
 #include "../game/core/small6.h"
 #include "../game/core/small7.h"
 #include "../game/core/small8.h"
@@ -2974,6 +2975,10 @@ const Hook kHooks[] = {
     {"Colour_Blend3",             0x005f09a0, (void *)&Colour_Blend3, {0x8b, 0x44, 0x24, 0x08, 0x83}},
     {"ModelSlot_ApplySelection",  0x00598ca0, (void *)&ModelSlot_ApplySelection, {0x53, 0x56, 0x57, 0x8b, 0x7c}},
     {"Litter_Remove",             0x004d9620, (void *)&Litter_Remove, {0x51, 0x56, 0x8b, 0xf1, 0x66}},
+    {"WStringMap_Find",           0x004f2b40, (void *)&WStringMap_Find, {0x51, 0x53, 0x55, 0x56, 0x57}},
+    {"Thing_SetPos",              0x0050b6a0, (void *)&Thing_SetPos, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
+    {"Object_BackOfQueue",        0x004de130, (void *)&Object_BackOfQueue, {0x83, 0xec, 0x08, 0x56, 0x8b}},
+    {"Holder_Sleep",              0x0045bdd0, (void *)&Holder_Sleep, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

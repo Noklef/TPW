@@ -205,7 +205,7 @@ address,name,kind,confidence,notes
 0x00516380,World_Tick,function,medium,"increments the tick counter at +0x1da70c and calls Thing_Update for every live thing (skips things whose byte +3 is set)"
 0x0050b360,Thing_Update,function,high,per-tick dispatch on Thing.model (byte +2); most models call an Update and a PostUpdate method
 0x0050b550,Thing_HandleMessage,function,high,"dispatch on Thing.model to the model's message handler; called from the message centre (0x40fb10)"
-0x0050b6a0,Thing_SetPos,function,high,"sets mX/mY; asserts ""Attempt to move thing to invalid..."" when the cell id is >= 0x4001"
+0x0050b6a0,Thing_SetPos,function,high,reimplemented (src/game/core/small58); a thing's move between cells
 0x00501650,Visitor_Update,function,medium,Thing_Update case 1 (first call)
 0x005019f0,Visitor_PostUpdate,function,medium,Thing_Update case 1 (second call)
 0x004fb360,Visitor_HandleMessage,function,high,Thing_HandleMessage case 1
@@ -462,7 +462,7 @@ address,name,kind,confidence,notes
 0x00474070,Animator_MotionEndMs,function,high,"reimplemented (src/game/motion/animator); (animator, bank, entry): end frame (block +8) * 1000 / 30, 0 without the entry"
 0x0044ab30,PartStates_Update,function,high,"reimplemented (src/game/model/partstate); cdecl (instance): when the instance (flag 1) and its part states (+0x28, flag 1) are awake, walks the model's node tree (+0x78; 0x44ab90) from the identity matrix, filling the part entries' matrix slots"
 0x0045bdc0,Holder_IsAwake,function,high,reimplemented (src/game/model/holder); holder flag 1 (awake)
-0x0045bdd0,Holder_Sleep,function,low,"(holder): called when an animator flagged 8 ends its motion (animator flag 0x4000 uses Holder_SleepAt instead); counterpart of 0x45bd30"
+0x0045bdd0,Holder_Sleep,function,high,reimplemented (src/game/core/small58); a holder's part leaves the renderer's slot
 0x0045be80,Obj_RemoveFromRect,function,high,reimplemented (src/game/core/misc); an object's part removed from the renderer's grid over a rectangle
 0x008bd508,gSceneFlags,data,low,"u32; Animator_RefreshNodes sets 0x80000000 when nodes flagged 0x100 changed"
 0x00472f60,Layer_Play,function,high,"reimplemented (src/game/motion/animator); (animator, bank, entry, layer, mode, speed): switch a layer to a bank entry (0xd/0xe stop it, 0xc or unloaded empties it), resetting the channels the old block drove, carrying the overrun; returns the motion length in ms"
@@ -3389,6 +3389,8 @@ address,name,kind,confidence,notes
 0x005f09a0,Colour_Blend3,function,high,reimplemented (src/game/core/small55); blends between three colour records by a position of 0 to 100
 0x00598ca0,ModelSlot_ApplySelection,function,high,reimplemented (src/game/core/small56); sets or clears the part flags of the selection kind
 0x004d9620,Litter_Remove,function,high,reimplemented (src/game/core/small57); takes a piece of litter off its cell
+0x004f2b40,WStringMap_Find,function,high,reimplemented (src/game/core/small58); a wide string map lookup
+0x004de130,Object_BackOfQueue,function,high,reimplemented (src/game/core/small58); the back of a queue found by walking neighbours
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
