@@ -1,4 +1,4 @@
-// Sound voices and their free list: starting a voice from a template, scaling its levels, taking and returning records. Reimplementation of 0x520d60, 0x521890, 0x521d60, 0x522360. Named by what they do until the classes are known.
+// Sound voices and their free list: starting a voice from a template, scaling its levels, taking and returning records. Reimplementation of 0x520d60, 0x521890, 0x521d60, 0x522360, 0x5224f0. Named by what they do until the classes are known.
 #pragma once
 
 #include "../../../re/types.h"
@@ -23,4 +23,12 @@ void __cdecl FreeList_Return(s32 record, s32 index);
 // 0x521d60 (cdecl; index): the 0x140-byte entry at 0x80cefc + index * 0x140 has its four signed bytes at +0x68, its word at +0x64 and its dword at +0x60 (the last two only
 // when above 0) scaled by the factor at 0x80cef0 / 1024 (the bytes limited to 0x7f above; a result of 0 becomes 1). Returns the entry.
 u8 *__cdecl Voice_ScaleLevels(s32 index);
+
+// 0x5224f0 (cdecl; index, reset; name unconfirmed): the entry at 0x80cefc + index * 0x140. A reset sets its word at +0 to 1 and the spread (+0xcc) to 0. Otherwise the
+// spread grows by the signed word at +0x50 and, while the word at +0 is above 0, records are taken (FreeList_Take) for as long as the loop count stays below the signed byte
+// count (+0x6b, +0x6a, +0x69 for the dword at +0x20 * 4 / the dword at +0xd4 of 0, 1, 2; else and for a divisor of 0 +0x68) times (spread >> 7) + 0x20 (a failed take
+// still counts). Each one bumps 0x80ced0 and the word at +8 and gets the index, kind 2, the words at +0x74 and +4 (signed byte), the dword at +0x114, a life (+0x20 and
+// +0x1c, the latter at least 1) of the dword at +0x78 plus a random remainder by half of it, and a position and velocity from a random angle of the sines at [0x80ceec]
+// (both random numbers from the generator at 0x80cee0). The spread is stored back.
+void __cdecl Emitter_Spawn(s32 index, u32 reset);
 }  // extern "C"

@@ -10,6 +10,12 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 u8 *Record(s32 index) { return global<u8 *>(0x0080cef8) + index * 0x34; }
 
+// The generator at 0x80cee0 stepped (seed * 0x343fd + 0x269ec3); its high half, signed.
+s32 NextRandom() {
+    global<u32>(0x0080cee0) = global<u32>(0x0080cee0) * 0x343fd + 0x269ec3;
+    return (s32)global<u32>(0x0080cee0) >> 16;
+}
+
 }  // namespace
 
 extern "C" {
@@ -96,5 +102,58 @@ u8 *__cdecl Voice_ScaleLevels(s32 index) {
         at<s32>(voice, 0x60) = scaled == 0 ? 1 : scaled;
     }
     return voice;
+}
+
+void __cdecl Emitter_Spawn(s32 index, u32 reset) {
+    u8 *const entry = reinterpret_cast<u8 *>(0x0080cefc + index * 0x140);
+    s32 spread = at<s32>(entry, 0xcc);
+    if (reset) {
+        at<u16>(entry, 0) = 1;
+        at<s32>(entry, 0xcc) = 0;
+        return;
+    }
+    spread += at<s16>(entry, 0x50);
+    if (at<s16>(entry, 0) > 0) {
+        const s32 scale = (spread >> 7) + 0x20;
+        for (s32 i = 0;; ++i) {
+            const s32 divisor = at<s32>(entry, 0xd4);
+            s32 count = at<s8>(entry, 0x68);
+            if (divisor != 0) {
+                const s32 quarter = (s32)((u32)at<s32>(entry, 0x20) << 2) / divisor;  // sic: faults for a divisor of -1 at 0x80000000
+                if (quarter == 0) count = at<s8>(entry, 0x6b);
+                else if (quarter == 1) count = at<s8>(entry, 0x6a);
+                else if (quarter == 2) count = at<s8>(entry, 0x69);
+            }
+            if (!(i < (s32)((u32)count * (u32)scale))) break;
+            const s32 taken = FreeList_Take(index);
+            if (taken < 0) continue;
+            global<s32>(0x0080ced0) = global<s32>(0x0080ced0) + 1;
+            at<u16>(entry, 8) = (u16)(at<u16>(entry, 8) + 1);
+            u8 *const record = Record(taken);
+            at<u16>(record, 0x26) = (u16)index;
+            at<u16>(record, 0x24) = 2;
+            at<u16>(record, 0x28) = at<u16>(entry, 0x74);
+            at<s16>(record, 0x2a) = at<s8>(entry, 4);
+            at<u32>(record, 0x18) = at<u32>(entry, 0x114);
+            const s32 half = at<s32>(entry, 0x78) >> 1;
+            s32 jitter = 0;
+            if (half != 0) jitter = NextRandom() % half;
+            const s32 life = at<s32>(entry, 0x78) + jitter;
+            at<s32>(record, 0x20) = life;
+            at<s32>(record, 0x1c) = life;
+            if (life == 0) at<s32>(record, 0x1c) = 1;
+            const s32 angle = (NextRandom() & 0xfff) >> 3;
+            const s32 *const sines = global<const s32 *>(0x0080ceec);
+            const u32 cosine = (u32)(angle + 0x80) & 0x1ff, sine = (u32)angle & 0x1ff;
+            at<s32>(record, 0) = ((s32)(((u32)sines[cosine] * (u32)spread) << 2) >> 10) + at<s32>(entry, 0x14);
+            at<s32>(record, 4) = at<s32>(entry, 0x18);
+            at<s32>(record, 8) = at<s32>(entry, 0x1c) - ((s32)(((u32)sines[sine] * (u32)spread) << 2) >> 10);
+            at<s32>(record, 0xc) = (s32)(((u32)sines[cosine] * (u32)(s32)at<s16>(entry, 0x50)) << 2) >> 10;
+            at<s32>(record, 0x10) = at<s32>(entry, 0x3c) + 0x14;
+            at<s32>(record, 0x14) = -((s32)(((u32)sines[sine] * (u32)(s32)at<s16>(entry, 0x50)) << 2) >> 10);
+            at<u32>(record, 0x18) = at<u32>(entry, 0x114);
+        }
+    }
+    at<s32>(entry, 0xcc) = spread;
 }
 }  // extern "C"
