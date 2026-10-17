@@ -4,6 +4,7 @@
 
 #include "../core/crt.h"
 #include "../core/stdtree.h"
+#include "../files/file.h"
 #include "things.h"
 
 extern "C" {
@@ -28,5 +29,23 @@ u32 __fastcall MessageCentre_RemoveThing(u8 *centre, void *, const u8 *thing) {
         }
     }
     return removed;
+}
+
+u32 __fastcall MessageCentre_Save(u8 *centre, void *, const u8 *chunk) {
+    s32 result;
+    s32 done;
+    s32 count = 0x1d;
+    Stream_Write(&result, *reinterpret_cast<Stream *const *>(chunk), &count, 4, &done);
+    for (u32 k = 0; k < 0x1d; ++k) {
+        const u8 *const map = centre + 0x14 * k + 4;
+        s32 size = *reinterpret_cast<const s32 *>(map + 0xc);
+        Stream_Write(&result, *reinterpret_cast<Stream *const *>(chunk), &size, 4, &done);
+        u8 *node = **reinterpret_cast<u8 *const *const *>(map + 4);   // (the head's left: the first node)
+        while (node != *reinterpret_cast<u8 *const *>(map + 4)) {
+            Stream_Write(&result, *reinterpret_cast<Stream *const *>(chunk), node + 0xc, 2, &done);
+            StdTree_IncB(&node);
+        }
+    }
+    return 0;
 }
 }  // extern "C"
