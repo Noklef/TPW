@@ -4068,6 +4068,7 @@ address,name,kind,confidence,notes
 0x0045d610,Highlight_Point,function,high,reimplemented (src/game/model/highlight); the point at 0x7a1c90
 0x004698f0,Highlight_InitUnusedOne,function,low,reimplemented (src/game/model/highlight); cdecl static initialiser: unused 0x7afe1c = 1.0f
 0x00469910,Highlight_InitUnusedEpsilon,function,low,reimplemented (src/game/model/highlight); cdecl static initialiser: unused 0x7b0464 = 1 / 2^23
+0x00469410,Highlight_WhitenCurrent,function,low,reimplemented (src/game/model/highlight); The current holder's meshes without flag 0x4000 whitened
 0x0044a870,PartStates_Create,function,high,"reimplemented (src/game/model/partstate); (instance): the part states +0x28 for the model +4: animated parts (0x10/0x20) flagged, slots of 0x40 per animated face"
 0x0044aa10,PartStates_MarkNodes,function,high,"reimplemented (src/game/model/partstate); (instance, node, model): recursive; 0x20 on animated leaf entries, 0x40000000 on nodes without animated parts below; 1 if none"
 0x0044aae0,PartStates_Free,function,high,reimplemented (src/game/model/partstate); (instance): frees the part states +0x28

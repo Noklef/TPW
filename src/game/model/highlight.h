@@ -34,6 +34,10 @@ void __cdecl Highlight_ResetTints();
 // 0x469470: releases the current holder, if highlighted.
 void __cdecl Highlight_Clear();
 
+// 0x469410 (cdecl; name unconfirmed): with a current holder (0x7a1ce0), the first +0x5e dwords of the +0x64 block of each of its model's meshes without
+// flag 0x4000 set to 0xffffffff (white); GetTickCount is called first (the import 0x6fd1d0) and its result dropped.
+void __cdecl Highlight_WhitenCurrent();
+
 // 0x45d620: the current holder.
 u8 *__cdecl Highlight_Current();
 
