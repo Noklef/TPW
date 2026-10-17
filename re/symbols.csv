@@ -4080,6 +4080,11 @@ address,name,kind,confidence,notes
 0x0053c1f0,DynFaces_SortTags,function,high,reimplemented (src/game/render/dynfaces); Sorts the dynamic faces' tag words by tag: quicksort with insertion runs under 7 (name unconfirmed)
 0x00458400,LightSource_Destroy,function,low,"reimplemented (src/game/render/lightsource); cdecl (light): by kind: 0 the data error box; 1 the ambient colour reset, then 2: the part +4 out of the renderer tag 0x70 list and deleted, then 3: the same for +0xc"
 0x00458580,LightSource_DestroyMain,function,low,reimplemented (src/game/render/lightsource); The main light (0x7a0b40) destroyed
+0x00582eb0,View_SetScreen,function,low,"reimplemented (src/game/render/viewport); thiscall (width, height, depth): the screen's sizes, aspect and half sizes; the window made the whole screen"
+0x00582f70,View_SetWindow,function,low,"reimplemented (src/game/render/viewport); thiscall (x, y, width, height as fractions): the window's sizes and centre from the screen's"
+0x00583080,View_ResetWindow,function,low,reimplemented (src/game/render/viewport); thiscall: the window set to the whole screen
+0x00583220,View_SetProjection,function,low,"reimplemented (src/game/render/viewport); thiscall (unused, a, b): the projection's terms at +0x60-+0x70 from +0x40-+0x54"
+0x00583280,View_SetDepthRange,function,low,"reimplemented (src/game/render/viewport); thiscall (near, far): the depth range, its reciprocal span and their squares at +0x8c8"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
