@@ -56,4 +56,15 @@ u32 __cdecl Animator_AddToGrid(u8 *animator, u32 from, u32 to);
 
 // 0x43eac0 (cdecl; owner): while the owner has a first child (+0x38) it is unlinked (the owner's pointer takes the child's own link at +0x38) and disposed of (HolderOwner_Dispose).
 void __cdecl Owner_DisposeChildren(u8 *owner);
+
+// 0x45bd00 (cdecl; the holder; name unconfirmed): the inverse of Holder_Sleep: the part at +0x1c (null, or adjusted by the virtual base offset in the word at +4 of its vtable) is added to
+// the renderer's slot list of [0x87a6d0] with the word 0x70 (Renderer_Add); the holder's flag 1 is set.
+void __cdecl Holder_Wake(u8 *holder);
+
+// 0x5d87d0 (thiscall on a user of the holder of the object behind [0x79fcb4]; name unconfirmed): the inverse of HolderUser_Release: when the dword at +4 is clear, the target's holder (its +8)
+// is put back, into the grid rectangle (Holder_AddToGrid with the words at +0xc0 and +0xc4) when bit 0x4000 of the target's flags (+4) is set and else by Holder_Wake; the dword at +4 is set.
+void __fastcall HolderUser_Acquire(u8 *user);
+
+// 0x5d8130 (thiscall; name unconfirmed): the same for a user whose target is the object in table 0x7a4610 at index [user+4], with the done flag at +8.
+void __fastcall RideUser_Acquire(u8 *user);
 }

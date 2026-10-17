@@ -134,4 +134,34 @@ void __cdecl Owner_DisposeChildren(u8 *owner) {
         HolderOwner_Dispose(child);
     }
 }
+
+void __cdecl Holder_Wake(u8 *holder) {
+    u8 *part = nullptr;
+    if (u8 *const sub = at<u8 *>(holder, 0x1c))
+        part = sub + at<s32>(at<u8 *>(sub, 0), 4);
+    Renderer_Add(global<u8 *>(0x0087a6d0), nullptr, part, 0x70);
+    at<u32>(holder, 0) = at<u32>(holder, 0) | 1;
+}
+
+void __fastcall HolderUser_Acquire(u8 *user) {
+    if (at<u32>(user, 4) != 0)
+        return;
+    u8 *const target = global<u8 *>(0x0079fcb4);
+    if (at<u32>(target, 4) & 0x4000)
+        Holder_AddToGrid(at<u8 *>(target, 8), at<u32>(target, 0xc0), at<u32>(target, 0xc4));
+    else
+        Holder_Wake(at<u8 *>(target, 8));
+    at<u32>(user, 4) = 1;
+}
+
+void __fastcall RideUser_Acquire(u8 *user) {
+    if (at<u32>(user, 8) != 0)
+        return;
+    u8 *const target = reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(user, 4)];
+    if (at<u32>(target, 4) & 0x4000)
+        Holder_AddToGrid(at<u8 *>(target, 8), at<u32>(target, 0xc0), at<u32>(target, 0xc4));
+    else
+        Holder_Wake(at<u8 *>(target, 8));
+    at<u32>(user, 8) = 1;
+}
 }

@@ -1,7 +1,7 @@
 # The holder functions of src/game/model/holder that go through the renderer (0x45bdd0 Holder_Sleep, 0x4254c0 Animator_Sleep, 0x45bc60 Holder_Destroy) against the originals: a
 # holder whose part sits in a renderer's slot lists (tags 0x10, 0x20, 0x70) or not; an animator holding such a holder; and a holder whose part has a vtable (a recorder) giving the
-# virtual base offset; a holder disposed of (and the owner that holds it); a holder added to the renderer's grid (grid_masks.py's environment, the part reached through its virtual base offset); a user of the holder behind [0x79fcb4] taking it out by its rectangle (misc.py's grid) or by sleeping.
-# usage: holder.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Sleep,Animator,Destroy,Release,Grid,Dispose,Owner,AnimGrid,Children)
+# virtual base offset; a holder disposed of (and the owner that holds it); a holder added to the renderer's grid (grid_masks.py's environment, the part reached through its virtual base offset); a user of the holder behind [0x79fcb4] taking it out by its rectangle (misc.py's grid) or by sleeping, and putting it back (Wake: the slot list; Acquire / RideAcquire: the grid rectangle or Wake).
+# usage: holder.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Sleep,Animator,Destroy,Release,Grid,Dispose,Owner,AnimGrid,Children,Wake,Acquire,RideAcquire)
 import os
 import struct
 import sys
@@ -14,9 +14,10 @@ import misc  # noqa: E402
 import vobj3  # noqa: E402
 from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put, vtable  # noqa: E402
 
-B = Bench([(0x425490, 0x4254c0), (0x43eac0, 0x43eb00), (0x455a50, 0x455ae0), (0x45ba00, 0x45ba30), (0x4254c0, 0x4254f0), (0x45bc60, 0x45bcb0), (0x45bdd0, 0x45be90), (0x45be80, 0x45bed0), (0x576540, 0x5765d0), (0x5766e0, 0x57681a), (0x5d8820, 0x5d8870), (0x45bcb0, 0x45bd10), (0x576620, 0x5766f0), (0x576270, 0x576320), (0x5e2a80, 0x5e2b80), (0x67acb0, 0x67acb1), (0x590730, 0x590750), (0x5da3c0, 0x5da3c1)],
+B = Bench([(0x425490, 0x4254c0), (0x43eac0, 0x43eb00), (0x455a50, 0x455ae0), (0x45ba00, 0x45ba30), (0x4254c0, 0x4254f0), (0x45bc60, 0x45bcb0), (0x45bdd0, 0x45be90), (0x45be80, 0x45bed0), (0x576540, 0x5765d0), (0x5766e0, 0x57681a), (0x5d8820, 0x5d8870), (0x45bcb0, 0x45bd10), (0x576620, 0x5766f0), (0x576270, 0x576320), (0x5e2a80, 0x5e2b80), (0x67acb0, 0x67acb1), (0x590730, 0x590750), (0x5da3c0, 0x5da3c1), (0x45bd00, 0x45bd30), (0x576410, 0x576550), (0x5d8130, 0x5d8190), (0x5d87d0, 0x5d8820)],
           hooks={0x691de0: vobj3.lock, 0x691ea0: lambda e: None})
 ANIM, OWNER, TARGET, USER = RAM + 0x2000, RAM + 0x2500, RAM + 0x3000, RAM + 0x3200
+ACQ_TARGET, ACQ_USER = RAM + 0x7400, RAM + 0x7600   # clear of the grid environment (grid_masks.py's vtables sit at RAM + 0x3000)
 
 
 def sleep(r):
@@ -127,7 +128,41 @@ def add_to_grid(r):
     return Call(0x45bcb0, [holder, (xs[0] << 16) | xs[1], (xs[2] << 16) | xs[3]], regions, conv='c', ret='v')
 
 
-CASES = {'Sleep': sleep, 'Animator': animator, 'Destroy': destroy, 'Release': release, 'Grid': add_to_grid, 'Dispose': dispose, 'Owner': dispose_owner, 'AnimGrid': animator_grid, 'Children': children}
+def clean_slots(r, c):
+    """The grid environment with the renderer's slot heads (+0x14..+0x2f) empty, or the last one the grid's first node."""
+    regions = dict(c.regions)
+    renderer_at = struct.unpack('<I', regions[0x87a6d0])[0]
+    renderer = bytearray(regions[renderer_at])
+    renderer[0x14:0x30] = bytes(0x1c)
+    if r.random() < 0.5 and struct.unpack_from('<I', regions[grid_masks.NODES])[0]:
+        put(renderer, 0x2c, 'I', grid_masks.NODES)
+    regions[renderer_at] = renderer
+    return Call(c.address, c.args, regions, conv=c.conv, ret=c.ret)
+
+
+def wake(r):
+    c = clean_slots(r, add_to_grid(r))
+    return Call(0x45bd00, c.args[:1], c.regions, conv='c', ret='v')
+
+
+def acquire(r, ride):
+    c = clean_slots(r, add_to_grid(r))
+    regions = dict(c.regions)
+    lo, hi = c.args[1], c.args[2]
+    flags = r.getrandbits(32) | 0x4000 if r.random() < 0.5 else r.getrandbits(32) & ~0x4000
+    regions[ACQ_TARGET] = put(put(put(put(bytearray(r.bytes(0x100)), 4, 'I', flags), 8, 'I', c.args[0]), 0xc0, 'I', lo), 0xc4, 'I', hi)
+    done = r.choice([0, 0, 1, 5, 0xffffffff])
+    if ride:
+        index = r.choice([0, 1, 2])
+        regions[0x7a4610] = b''.join(struct.pack('<I', ACQ_TARGET if k == index else r.getrandbits(32)) for k in range(3))
+        regions[ACQ_USER] = put(put(bytearray(r.bytes(0x20)), 4, 'I', index), 8, 'I', done)
+        return Call(0x5d8130, [ACQ_USER], regions, conv='t', ret='v')
+    regions[0x79fcb4] = struct.pack('<I', ACQ_TARGET)
+    regions[ACQ_USER] = put(bytearray(r.bytes(0x20)), 4, 'I', done)
+    return Call(0x5d87d0, [ACQ_USER], regions, conv='t', ret='v')
+
+
+CASES = {'Sleep': sleep, 'Animator': animator, 'Destroy': destroy, 'Release': release, 'Grid': add_to_grid, 'Dispose': dispose, 'Owner': dispose_owner, 'AnimGrid': animator_grid, 'Children': children, 'Wake': wake, 'Acquire': lambda r: acquire(r, False), 'RideAcquire': lambda r: acquire(r, True)}
 
 
 def case(r):
