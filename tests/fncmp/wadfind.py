@@ -1,5 +1,5 @@
 # The WAD directory's finder (src/game/files/wadfind) against the originals: trees of folders and files named as WadDir_Load leaves them (lower case, '\'
-# separated; now and then an upper-case or empty name), patterns over them ('\' or '/', a leading or trailing separator, upper case, the folder part missing
+# separated; now and then an upper-case, empty or high-byte name), patterns over them ('\' or '/', a leading or trailing separator, upper case, the folder part missing
 # or wrong, the last part exact, empty or with '*' / '?' anywhere, ".*" endings), the files' name hashes now and then the pattern's, so that an exact pattern
 # finds them; token lists for the matcher built by hand too (tokens the compiler never makes among them), finders mid-walk for Next / Done / Fill. toupper is
 # the CRT's in the C locale (0xfb1440 0; driver.cpp's WadFind env has an ASCII stand-in). The arena and list builders are waddir.py's.
@@ -18,8 +18,8 @@ B = Bench([(0x637460, 0x638840), (0x641500, 0x641900), (0x67a400, 0x690000), (0x
 THIS, RESULT, ENTRY = RAM, RAM + 0x100, RAM + 0x200
 STRING_VTABLE = 0x703090   # (the driver points its slots at the replacements)
 PARTS = [b'data', b'rides', b'coaster', b'x.wad', b'car.bin', b'track.bin', b'a', b'ab', b'readme.txt', b'abc.d', b'sfx', b'q', b'', b'Rides',
-         b'c.bin.bin', b'aa.a']
-WILD = [b'*', b'*.*', b'*.bin', b'c?r.bin', b'r*', b'*?x', b'**', b'?', b'', b'a*b*c', b'*a', b'?*.d', b'*.', b'.*', b'x*.*', b'a?', b'*??', b'track*']
+         b'c.bin.bin', b'aa.a', b'caf\xe9', b'\xe9t\xe9', b'n\xffa.b']
+WILD = [b'*', b'*.*', b'*.bin', b'c?r.bin', b'r*', b'*?x', b'**', b'?', b'', b'a*b*c', b'*a', b'?*.d', b'*.', b'.*', b'x*.*', b'a?', b'*??', b'track*', b'?*?', b'a*b*?c', b'?*?.bin', b'*a*?*b']
 # name: (address, this: d a WadDir, f a folder, n a finder, s a token list, x space for one, - none; stack arguments; conv; returns)
 OPS = {
     'NodeCtor': (0x5f8a50, 'x', 'V', 't', 'a'), 'PopHead': (0x641820, 's', 'O', 't', 'a'), 'Compile': (0x641500, 's', 'RP', 't', 'a'),
@@ -196,7 +196,7 @@ def case(r):
         elif x == 'P':
             stack.append(a.text(pat if r.random() < 0.5 else r.choice(WILD)))
         elif x == 'T':   # a text to match
-            stack.append(a.text(text(r) + r.choice([b'', b'.bin', b'x', b'a'])))
+            stack.append(a.text(text(r) + r.choice([b'', b'.bin', b'x', b'a']) + r.choice([b'', b'\0'])))   # (\0: the byte past the end 0 too)
         elif x == 'L':   # a token list's first node
             stack.append(tokens(a, r, a.alloc(0x10), some_tokens(r)))
         elif x == 'Q':   # a folder path: parts of the tree's names
