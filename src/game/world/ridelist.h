@@ -63,6 +63,11 @@ void __fastcall Obj_SetRideElement4One(const u8 *object);
 // dword at +0x24) = 0 when it equals the handle's low word (the debug prints are not reproduced).
 void __fastcall Obj_ReleaseRideElement0(u8 *object, void *, u32 handle);
 
+// 0x4e0900 (thiscall; handle, pops 4; name unconfirmed): 0 when the state at +0x19c is 1 or 4 or the dword at +0x68 is 0. Otherwise the word at +0x6c = 0
+// (sic: not the handle) and, when element 0 of the object's ride record (Rides_FindById of the dword at +0x24) is 0, it becomes the handle's low word and
+// the result is 1; 0 when it was taken (the debug prints are not reproduced).
+u32 __fastcall Obj_ClaimRideElement0(u8 *object, void *, u32 handle);
+
 // 0x51a290 (thiscall on the game object; the debug print is not reproduced): -1 when the word at +0x1da732 is 0, otherwise element 1 of the
 // ride record of the thing with that handle (Rides_GetElement of Rides_FindById of the dword at +0x24 of the thing in its slot).
 s32 __fastcall Game_GetRideElement1(const u8 *game);

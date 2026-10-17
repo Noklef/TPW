@@ -159,6 +159,18 @@ void __fastcall Obj_ReleaseRideElement0(u8 *object, void *, u32 handle) {
         Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 0, 0);
 }
 
+u32 __fastcall Obj_ClaimRideElement0(u8 *object, void *, u32 handle) {
+    const u32 state = at<u32>(object, 0x19c);
+    if (state == 1 || at<u32>(object, 0x68) == 0 || state == 4)
+        return 0;
+    at<u16>(object, 0x6c) = 0;  // sic
+    u8 *const ride = Rides_FindById(at<s32>(object, 0x24));
+    if (Rides_GetElement(ride, 0) != 0)
+        return 0;
+    Rides_SetElement(ride, 0, handle & 0xffff);
+    return 1;
+}
+
 s32 __fastcall Game_GetRideElement1(const u8 *game) {
     u32 handle = at<u16>(game, 0x1da732);
     if (handle == 0)

@@ -78,7 +78,8 @@ def case(r):
         regions.update({ARR: elements, BUFS: bufs})
         if name == 'PRange':
             return Call(address, [ARR, ARR + 0x24 * n], regions, conv='s', ret=ret)
-        put(obj, 0x80 + 4, 'II', ARR if n or r.random() < 0.5 else 0, ARR + 0x24 * n if n else (ARR if r.random() < 0.5 else 0))
+        begin = ARR if n or r.random() < 0.5 else 0  # an empty vector: begin == end, 0 or not
+        put(obj, 0x80 + 4, 'II', begin, begin + 0x24 * n)
         args = [RAM + 0x80] + ([r.choice([0, 1, 2, 3, 0xffffffff])] if name == 'PVecDel' else [])
         return Call(address, args, regions, conv='t', ret=ret)
     if name == 'PDel':
