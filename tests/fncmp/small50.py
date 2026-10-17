@@ -12,8 +12,8 @@ sys.path.insert(0, HERE)
 import vobj3  # noqa: E402
 from fncmp import Bench, Call, HEAP, LOG, RAM, heap, log_region, put, recorder, set_return, vtable  # noqa: E402
 
-CALLS = {'Grid': 0x576620, 'Masks': 0x5830e0}
-B = Bench([(0x576620, 0x5766f0), (0x5830e0, 0x583230), (0x576270, 0x576320), (0x590730, 0x590750)], hooks={0x691de0: vobj3.lock, 0x691ea0: lambda e: None})
+CALLS = {'Grid': 0x576620, 'Masks': 0x5830e0, 'Insert': 0x5e2a80}
+B = Bench([(0x576620, 0x5766f0), (0x5830e0, 0x583230), (0x576270, 0x576320), (0x5e2a80, 0x5e2b80), (0x67acb0, 0x67acb1), (0x590730, 0x590750)], hooks={0x691de0: vobj3.lock, 0x691ea0: lambda e: None})
 OBJ, VT, VTA, OBJS, NODES, CELLS, FREE = RAM, vobj3.VT, vobj3.VTA, vobj3.OBJS, vobj3.NODES, RAM + 0x600, RAM + 0x5000
 
 
@@ -24,6 +24,16 @@ def case(r):
         put(surf, 0x1c, 'I', r.choice([0x10, 0x10, 0x10, 0x20, 0x18, 0]))
         words = [r.choice([0, 1, 5, 8, 10, 11, 16, 0x18, 0x1f, 0x20, 0xff, r.getrandbits(32)]) for _ in range(12)]
         return Call(CALLS[name], [OBJ] + words, {OBJ: surf}, conv='t', ret='v')
+    if name == 'Insert':
+        n = r.choice([0, 1, 2, 3, 4])
+        nodes = bytearray(0x20 * 5)
+        for k in range(n):
+            put(nodes, 0x20 * k, 'III', r.getrandbits(32), NODES + 0x20 * (k + 1) if k + 1 < n else 0, NODES + 0x20 * (k - 1) if k else 0)
+        lst = bytearray(r.bytes(0x20))
+        put(lst, 4, 'III', NODES if n else 0, NODES + 0x20 * (n - 1) if n else 0, n)
+        where = r.choice([0] + [NODES + 0x20 * k for k in range(n)]) if n else 0
+        regions = {OBJ: lst, NODES: nodes, RAM + 0x400: put(bytearray(8), 0, 'I', where), HEAP: heap()}
+        return Call(CALLS[name], [OBJ, r.getrandbits(32), RAM + 0x400], regions, conv='t', ret='v')
     w, h = r.choice([0, 1, 2, 3]), r.choice([0, 1, 2, 3])
     obj = bytearray(r.bytes(0x500))
     put(obj, 0x38, 'ii', w, h)

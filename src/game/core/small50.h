@@ -14,4 +14,8 @@ u32 __fastcall Grid_AddObject(u8 *grid, void *, s32 x0, s32 y0, s32 x1, s32 y1, 
 // dwords at +0xb0 and +0x4b0 are made from them (shift counts of the low 5 bits).
 void __fastcall Surface_SetMasks(u8 *surface, void *, u32 a, u32 b, u32 c, u32 d, u32 e, u32 f, u32 g, u32 h, u32 i, u32 j, u32 k, u32 l);
 
+// 0x5e2a80 (thiscall on the list {+4 first, +8 last, +0xc count} of {value, next at +4, previous at +8} nodes; value, pointer to the iterator, pops 8): a new node (zeroed,
+// 12 bytes) holding the value goes before the node the iterator is (at the end for none; at the front for the first node) and the count grows.
+void __fastcall PtrList_Insert(u8 *list, void *, u32 value, u8 **position);
+
 }  // extern "C"

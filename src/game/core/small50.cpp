@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "gameheap.h"
 #include "vobj3.h"
 
 namespace {
@@ -49,6 +50,37 @@ void __fastcall Surface_SetMasks(u8 *surface, void *, u32 a, u32 b, u32 c, u32 d
         const u32 mask = (1u << (high & 31)) - 1u;
         at<u32>(surface, 0x4b0 + 4 * n) = ((n & mask) << ((8 - high) & 31)) | ((n >> (high & 31)) << ((0x10 - (s8)i) & 31));
     }
+}
+
+void __fastcall PtrList_Insert(u8 *list, void *, u32 value, u8 **position) {
+    u8 *const at_position = *position;
+    u8 *const node = static_cast<u8 *>(GameHeap_Alloc(0xc));
+    at<u32>(node, 4) = 0;
+    at<u32>(node, 0) = value;
+    at<u32>(node, 8) = 0;
+    if (at_position == nullptr) {
+        at<u8 *>(node, 8) = at<u8 *>(list, 8);
+        if (at<u8 *>(list, 8) == nullptr) {
+            at<u8 *>(list, 4) = node;
+        } else {
+            at<u8 *>(at<u8 *>(list, 8), 4) = node;
+        }
+        at<u8 *>(list, 8) = node;
+    } else if (at_position == at<u8 *>(list, 4)) {
+        at<u8 *>(node, 4) = at<u8 *>(list, 4);
+        if (at<u8 *>(list, 4) == nullptr) {
+            at<u8 *>(list, 8) = node;
+        } else {
+            at<u8 *>(at<u8 *>(list, 4), 8) = node;
+        }
+        at<u8 *>(list, 4) = node;
+    } else {
+        at<u8 *>(node, 4) = at_position;
+        at<u8 *>(node, 8) = at<u8 *>(at_position, 8);
+        at<u8 *>(at<u8 *>(at_position, 8), 4) = node;
+        at<u8 *>(at_position, 8) = node;
+    }
+    at<u32>(list, 0xc) = at<u32>(list, 0xc) + 1;
 }
 
 }  // extern "C"
