@@ -252,6 +252,7 @@
 #include "../game/frontend/lobbymodel.h"
 #include "../game/online/itemlist.h"
 #include "../game/online/items.h"
+#include "../game/online/onlinelist.h"
 #include "../game/online/session.h"
 
 namespace tpw::hook {
@@ -3642,6 +3643,10 @@ const Hook kHooks[] = {
     {"Owner2c_Add702940s",        0x005bd1b0, (void *)&Owner2c_Add702940s, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Owner2c_Add702944s",        0x005bd5f0, (void *)&Owner2c_Add702944s, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Owner2c_Add702948s",        0x005bda40, (void *)&Owner2c_Add702948s, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"OnlineList_GetCities",      0x005bc910, (void *)&OnlineList_GetCities, {0x68, 0x90, 0x3b, 0x77, 0x00}},
+    {"OnlineList_GetThemes",      0x005bd180, (void *)&OnlineList_GetThemes, {0x68, 0x6c, 0x3c, 0x77, 0x00}},
+    {"OnlineList_GetRides",       0x005bda10, (void *)&OnlineList_GetRides, {0x68, 0xb0, 0x3c, 0x77, 0x00}},
+    {"OnlineList_GetServers",     0x005bd5c0, (void *)&OnlineList_GetServers, {0x68, 0x8c, 0x3c, 0x77, 0x00}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
