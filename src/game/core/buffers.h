@@ -23,6 +23,10 @@ void __fastcall CountedList_ClearRelease(u8 *object);
 // block's first byte: freed 1 byte below the pointer) are released and their three-dword fields cleared.
 void __fastcall Counted2_Clear(u8 *object);
 
+// 0x4e51a0 (thiscall; the destructor of a 0x24-byte element: a wide string at +0x10, then a narrow one at +0): the counted buffer at +0x14 (its block
+// starts 2 bytes below the pointer) is released, the dwords at +0x14, +0x18 and +0x1c = 0; then the one at +4 (block 1 byte below), +4, +8 and +0xc = 0.
+void __fastcall CountedPair_Clear(u8 *object);
+
 // 0x5d46d0 (thiscall): for each of the seven 16-byte groups from +0 (last first): the dwords at +0, +4 and +8 = 0 and the block at +0xc, when there is
 // one, freed and cleared.
 void __fastcall Blocks7_Free(u8 *object);

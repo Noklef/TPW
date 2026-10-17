@@ -168,6 +168,19 @@ void __fastcall Counted2_Clear(u8 *object) {
     at<u32>(object, 0xc) = 0;
 }
 
+void __fastcall CountedPair_Clear(u8 *object) {
+    if (at<u8 *>(object, 0x14))
+        ReleaseCounted(at<u8 *>(object, 0x14));
+    at<u32>(object, 0x14) = 0;
+    at<u32>(object, 0x18) = 0;
+    at<u32>(object, 0x1c) = 0;
+    if (at<u8 *>(object, 4))
+        ReleaseCounted1(at<u8 *>(object, 4));
+    at<u32>(object, 4) = 0;
+    at<u32>(object, 8) = 0;
+    at<u32>(object, 0xc) = 0;
+}
+
 void __fastcall Blocks7_Free(u8 *object) {
     for (s32 base = 0x60; base >= 0; base -= 0x10) {
         at<u32>(object, base) = 0;
