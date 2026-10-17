@@ -1,6 +1,6 @@
 # The engine's error list (src/game/render/engineerrors: 0x56af20) against the original: a list with a count of 0 to 0x40 mostly (now and then past
-# it; a negative one writes before the list), kind 3 often with the debug flag (0x1000000 at 0x8bd508) set half the time, codes the result messages
-# know mostly (as dxerrors.py's) or random. The debug log 0x564650 is fncmp's one-argument cdecl logger (hooked in the emulator, the driver's EngineErrors env natively), its text
+# it), kind 3 often with the debug flag (0x1000000 at 0x8bd508) set half the time, codes the result messages know mostly (as dxerrors.py's) or
+# random. The debug log 0x564650 is fncmp's one-argument cdecl logger (hooked in the emulator, the driver's EngineErrors env natively), its text
 # hashed; the message goes through the CRT's sprintf in the original (the codes whose message overruns its buffer are not logged).
 # usage: engineerrors.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
@@ -13,10 +13,11 @@ from fncmp import LOG, RAM, Bench, Call, _cdecl_log, log_region, strings  # noqa
 
 B = Bench([(0x56af20, 0x56af9c), (0x56a770, 0x56ae60), (0x67a400, 0x690000)], hooks={0x564650: _cdecl_log})
 LIST = RAM
-CODES = [0x88760000 + k for k in range(0x300)] + [(0xb0754000 + k) & 0xffffffff for k in range(-2, 0x1c)] * 8 + [0, 0x80004005, 0x8007000e, 0x80070057]
+CODES = ([0x88760000 + k for k in range(0x300)] + [(0xb0754000 + k) & 0xffffffff for k in range(-2, 0x1c)] * 8
+         + [0, 0x80004005, 0x8007000e, 0x80070057])
 # The codes whose message is 100 characters or more (the longest 165): never logged here.
-LONG = {0x887600b4, 0x887600d2, 0x887600dc, 0x887600e1, 0x88760118, 0x8876013c, 0x8876013d, 0x8876014a, 0x8876014f, 0x8876015e, 0x887601c2, 0x8876021c,
-        0x88760233, 0x88760239, 0x8876023a, 0x8876023b, 0x88760242, 0x88760243, 0x88760248}
+LONG = {0x887600b4, 0x887600d2, 0x887600dc, 0x887600e1, 0x88760118, 0x8876013c, 0x8876013d, 0x8876014a, 0x8876014f, 0x8876015e, 0x887601c2,
+        0x8876021c, 0x88760233, 0x88760239, 0x8876023a, 0x8876023b, 0x88760242, 0x88760243, 0x88760248}
 
 
 def case(r):
