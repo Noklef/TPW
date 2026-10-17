@@ -60,7 +60,7 @@ def clocks(r, name):
 
 
 def case(r):
-    name = r.choice(OPS)
+    name = 'Records' if 'Records' in OPS and r.random() < 0.3 else r.choice(OPS)   # (the six records share one op: weighted so each still gets its cases)
     if name != 'Records':
         return clocks(r, name)
     if r.random() < 0.15:  # the double at +0x20: 1.0, 0, small, negative, junk

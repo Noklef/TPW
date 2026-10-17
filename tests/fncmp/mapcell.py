@@ -28,6 +28,8 @@ TYPES = [0, 1, 2, 3, 4, 5, 7, 9, 0xa, 0xb, 0xc, 0xd, 0x10, 0x11, 0x12, 0x15, 0x1
 TABLE = RAM + 0x400  # the world's cells for handles 0-5: gWorld and gMapCells placed to reach it
 OPS = [int(a, 16) for a in os.environ.get('OPS', '').split(',') if a]
 POS = [0x4d8610, 0x4d8650, 0x4d8690, 0x4d86d0, 0x4d8710]
+OTHER = {0x4cd720: 'map', 0x4d0af0: 0, 0x4d0b10: 0, 0x4d0a70: 1, 0x4d0a90: 2, 0x4d0ac0: 2, 0x4d8300: 4, 0x4d8410: 5, **{a: 6 for a in POS},
+         0x4d8cd0: 7, 0x4d8ca0: 7, 0x4d8c60: 7, 0x4d8da0: 8, 0x502460: 9, 0x502470: 10, 0x50c1d0: 11, 0x510870: 12}   # the function -> its case kind
 
 
 def coord(r):
@@ -36,7 +38,9 @@ def coord(r):
 
 def case(r):
     mem = r.bytes(0x200)
-    if not OPS and r.random() < 0.02:  # the whole-map percentage: 128 x 128 cells
+    fn = r.deal(OPS or list(CELL) + list(OTHER))   # (dealt, not chosen: every function gets its cases in a short run)
+    op = 13 if fn in CELL else OTHER[fn]
+    if op == 'map':  # the whole-map percentage: 128 x 128 cells
         types = [2, 7, 0x1e, 0, 1, 3, 9, 0xa, 0x12]
         cells = bytearray(r.bytes(0x44 * 0x4000))
         for c in range(0x4000):
@@ -44,9 +48,7 @@ def case(r):
         re_cells = bytearray(r.bytes(0x29000))
         world = RAM - 0x2d8  # so that the map (world + 0x2d8) is the cells region
         return Call(0x4cd720, [], {0x802390: put(bytearray(r.bytes(0x20)), 0xc, 'I', world), RAM: cells, RAM + 0x1b1000: re_cells}, ret='a')
-    op = 13 if OPS or r.random() < 0.5 else r.randrange(13)  # half on the many cell accessors
     if op == 13:
-        fn = r.choice(OPS or list(CELL))
         cell = bytearray(r.bytes(0x28))
         cell[2] = r.choice([2, 2, 0, 1, 3, r.getrandbits(8)])
         mode = bytearray(r.bytes(4))
@@ -89,11 +91,11 @@ def case(r):
         pos = r.choice([1, 2, 0x10, 0x11, 0x80, 0x81, 0x801, 0x4000, r.randrange(1, 0x4001), r.randrange(1, 0x10000)])
         pos |= r.choice([0, r.getrandbits(16) << 16])
         m = RAM + 0x1000 - 0x1b0000
-        if r.random() < 0.3:
+        if fn == 0x4d8cd0:
             return Call(0x4d8cd0, [m, r.randrange(33), r.randrange(33)], blocks, conv='t', ret='a')
         if pos & 0xffff > 0x4000:
             pos &= 0xffff3fff
-        if r.random() < 0.5:
+        if fn == 0x4d8ca0:
             return Call(0x4d8ca0, [m, pos], blocks, conv='t', ret='a')
         return Call(0x4d8c60, [m, r.getrandbits(32), r.choice([pos, pos & 0xffff0000])], blocks, conv='t')
     if op == 8:
@@ -107,16 +109,16 @@ def case(r):
         for k in range(0, 0x60, 4):
             if r.random() < 0.7:
                 put(level, k, 'I', coord(r))
-        return Call(r.choice(POS), [r.getrandbits(32), RAM + 0x100, r.choice([0, 1, 2, r.getrandbits(32)])],
+        return Call(fn, [r.getrandbits(32), RAM + 0x100, r.choice([0, 1, 2, r.getrandbits(32)])],
                     {RAM: mem, 0x785590: level}, conv='t', ret='a')
     if op == 0:
         put(mem, 0x100, 'H', r.choice([0, 1, 2, 0x4000, 0xffff, r.getrandbits(16)]))
         cells = put(bytearray(4), 0, 'I', r.getrandbits(32))
-        return Call(r.choice([0x4d0af0, 0x4d0b10]), [RAM + 0x100], {RAM: mem, 0x8023a0: cells}, conv='t', ret='a')
+        return Call(fn, [RAM + 0x100], {RAM: mem, 0x8023a0: cells}, conv='t', ret='a')
     if op == 1:
         return Call(0x4d0a70, [RAM + 0x40, r.randrange(-8, 0x18) & 0xffffffff, r.getrandbits(32), r.getrandbits(32),
                                r.getrandbits(32)], {RAM: mem}, conv='t')
-    return Call(r.choice([0x4d0a90, 0x4d0ac0]), [r.getrandbits(32), r.choice([0x44, 0x28, r.getrandbits(32)])],
+    return Call(fn, [r.getrandbits(32), r.choice([0x44, 0x28, r.getrandbits(32)])],
                 {0x7cdb30: r.bytes(0x30)})
 
 

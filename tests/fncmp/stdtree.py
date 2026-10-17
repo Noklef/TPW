@@ -133,7 +133,7 @@ def case_insert(r, name):
 
 
 def case(r):
-    name = r.choice(OPS)
+    name = 'B' if 'B' in OPS and r.random() < 0.15 else r.choice(OPS)   # (B also carries the range erase and _Erase: weighted up)
     if name == 'KeyLessB':  # B's key compare (0x40f950): two words, equal, one apart, at the ends, random above them
         a = r.choice([0, 1, 0x7fff, 0x8000, 0xffff, r.getrandbits(16)])
         b = r.choice([a, a + 1, a - 1, 0, 0xffff, 0x8000, r.getrandbits(16)]) & 0xffff
@@ -189,7 +189,7 @@ def case(r):
         return Call(0x47b060, [RAM + 0x400, RAM + 0x480, RAM + 0x488], {**regions, RAM + 0x400: r.bytes(0x20)}, conv='t', ret='a')
     if name in RANGE and r.random() < 0.35:
         erase_range, erase_subtree = RANGE[name]
-        if r.random() < 0.25:
+        if r.random() < 0.4:
             return Call(erase_subtree, [TREE, r.choice([addr[root], node, node, NIL])], regions, conv='t', ret='v')
         order = [addr[k] for k in keys] + [HEAD]
         i = r.randrange(n + 1)

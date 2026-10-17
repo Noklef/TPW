@@ -48,7 +48,6 @@ address,name,module,reason
 51a280,Get1da710_51a280,core/accessors,todo: indirect only
 52c2a0,Fn_52c2a0,core/accessors,todo
 52f850,Global81af64_Get_52f850,core/globals,todo
-5363c0,MapCell_IsType5Or7Or2,world/mapcell,todo
 540b30,SpriteDraw_End,sprite/draw,todo
 540bd0,Sprite_Ctor,sprite/sprite,todo
 541f70,SpriteFolder_RandomSprite,sprite/sprite,todo: indirect only

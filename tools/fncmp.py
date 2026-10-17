@@ -196,6 +196,16 @@ class Rand(random.Random):
     def __init__(self, seed, wild=False):
         super().__init__(seed)
         self.wild = wild
+        self.decks = {}
+
+    def deal(self, items):
+        """the next of items from a shuffled deck, dealt out before it is reshuffled: n cases give each item n // len(items) or more of them,
+        where choice() leaves a bench of many functions some with none in a short run (the coverage gate's 400 cases)."""
+        deck = self.decks.setdefault(tuple(items), [])
+        if not deck:
+            deck.extend(items)
+            self.shuffle(deck)
+        return deck.pop()
 
     def f(self, scale=None, special=0.06):
         """the bits of a float in -scale..scale (scale picked if None), sometimes special."""
