@@ -5,6 +5,7 @@
 #include "../core/crt.h"
 #include "../core/trivial.h"
 #include "../math/intpair.h"
+#include "mapcell.h"
 
 namespace {
 
@@ -98,5 +99,39 @@ s32 __fastcall Nav_PathProgress(const u8 *nav) {
         mov q, eax
     }
     return 0x10000 - q;
+}
+
+void __cdecl Nav_VisitNeighbours(const u8 *nav, s32 radius, void(__cdecl *visit)(const u8 *nav, const u8 *other)) {
+    const s32 r8 = radius >> 8;
+    const s32 reach2 = (s32)((u32)r8 * (u32)r8);
+    const s32 cells = (s32)((u32)radius + 0xffff) >> 16;
+    const s32 x = at<s32>(nav, 8), y = at<s32>(nav, 0xc);
+    const s32 x8 = x >> 8, y8 = y >> 8;
+    const s32 cx = x >> 16, cy = y >> 16;
+    u32 visits = 0;
+    for (s32 cellY = cy - cells; cellY <= cy + cells; ++cellY) {
+        for (s32 cellX = cx - cells; cellX <= cx + cells; ++cellX) {
+            if (!Map_InBounds(cellX, cellY)) continue;
+            const u32 id = ((u32)cellY * 0x80 + (u32)cellX + 1) & 0xffff;
+            const u8 *map = **reinterpret_cast<u8 ***>(0x7cf6ec);
+            u16 handle = at<u16>(map, id * 0x44 + 0x2b8);
+            while (handle) {
+                const u8 *thing = *reinterpret_cast<u8 **>(0x7cfb90 + (u32)handle * 20);
+                const u8 kind = thing[2];
+                if (kind == 1 || kind == 4 || kind == 5 || kind == 6 || kind == 8 || kind == 7 || kind == 0x12) {
+                    const u8 *other = thing + 0xd4;
+                    if (nav != other) {
+                        const u32 dx = (u32)(s32)at<s16>(thing, 4) - (u32)x8, dy = (u32)(s32)at<s16>(thing, 6) - (u32)y8;
+                        const s32 d = (s32)(dx * dx + dy * dy);
+                        if (d != 0 && d < reach2) {
+                            visit(nav, other);
+                            if (++visits >= 5) return;
+                        }
+                    }
+                }
+                handle = at<u16>(thing, 0xa);
+            }
+        }
+    }
 }
 }

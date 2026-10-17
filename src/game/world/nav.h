@@ -34,4 +34,12 @@ s32 *__fastcall Nav_PredictPos(const u8 *nav, void *, s32 *out, s32 time);
 // (path_total_dist, +0xa0) is 0, else 1.0 - (+0xa4 + +0xa8 + the octagonal distance to the path point +0x5c of the
 // five at +0x64) << 16 / total, one IDIV (it faults, sic, when the quotient passes 31 bits).
 s32 __fastcall Nav_PathProgress(const u8 *nav);
+
+// 0x5102f0 (cdecl (nav, radius, visit)): the people near the nav. For each map cell from (pos >> 16) - c to + c in y,
+// then x, with c = (radius + 0xffff) >> 16 (arithmetic), that is on the map (Map_InBounds): the things listed in the
+// cell (the u16 at +0x2b8 of the 0x44-byte cell [[0x7cf6ec]] + id * 0x44, id = (y << 7) + x + 1 cut to 16 bits; the
+// next at the thing's +0xa; the thing at [0x7cfb90 + id * 20]) whose kind (+2) is 1, 4, 5, 6, 7, 8 or 0x12 and whose
+// nav (+0xd4) is not this one get visit(nav, their nav) when d = dx * dx + dy * dy (the thing's s16 +4 / +6 less
+// pos >> 8, 32-bit products) is not 0 and below (radius >> 8) squared (signed). It stops after the fifth visit.
+void __cdecl Nav_VisitNeighbours(const u8 *nav, s32 radius, void(__cdecl *visit)(const u8 *nav, const u8 *other));
 }

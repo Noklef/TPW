@@ -55,6 +55,13 @@ u32 Length(const s32 *d) {
 
 u32 *U(s32 *p) { return reinterpret_cast<u32 *>(p); }
 
+// The octagonal length the callbacks inline: |x| + |y| - min(|x|, |y|) / 2 (arithmetic shift, 32-bit sums).
+s32 Octagonal(const s32 *d) {
+    const s32 ax = Abs(d[0]), ay = Abs(d[1]);
+    const s32 shorter = ax > ay ? ay : ax;
+    return (s32)((u32)ay - (u32)(shorter >> 1) + (u32)ax);
+}
+
 }  // namespace
 
 extern "C" {
@@ -165,6 +172,37 @@ s32 *__fastcall SteerAvoidObstacle_Steer(void *, void *, s32 *out, const u8 *nav
         return out;
     }
     Matrix2_Transform(const_cast<u8 *>(nav), nullptr, out, &g_force(0));
+    return out;
+}
+
+void __cdecl SteerSeparation_Neighbour(const u8 *nav, const u8 *other) {
+    if (other == nav) return;
+    s32 away[2];
+    IntPair_Sub(&at<u32>(nav, 8), nullptr, U(away), &at<u32>(other, 8));
+    const s32 distance = Octagonal(away);
+    if (distance >= (s32)(at<u32>(other, 4) + at<u32>(nav, 4) + 0x10000) || distance == 0) return;
+    s32 push[2];
+    IntPair_DivFixed(away, nullptr, push, distance);
+    g_force(0) = (s32)((u32)g_force(0) + (u32)push[0]);
+    g_force(1) = (s32)((u32)g_force(1) + (u32)push[1]);
+}
+
+s32 *__fastcall SteerSeparation_Steer(void *, void *, s32 *out, const u8 *nav) {
+    const u32 point = at<u32>(nav, 0x5c);
+    if (point == at<u32>(nav, 0x54) - 1 || at<u8>(nav, 0x60) != 0) {
+        s32 d[2];
+        IntPair_Sub(&at<u32>(nav, 8), nullptr, U(d), &at<u32>(nav, 0x64 + point * 8));
+        if (Octagonal(d) <= (s32)(at<u32>(nav, 4) + 0x10000)) {
+            out[0] = 0;
+            out[1] = 0;
+            return out;
+        }
+    }
+    g_force(0) = 0;
+    g_force(1) = 0;
+    Nav_VisitNeighbours(nav, (s32)(at<u32>(nav, 4) << 1), &SteerSeparation_Neighbour);
+    out[0] = g_force(0);
+    out[1] = g_force(1);
     return out;
 }
 }
