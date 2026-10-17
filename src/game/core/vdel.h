@@ -290,4 +290,7 @@ u8 * __fastcall ListScalarDelete702f10_5e4320(u8 *o, void *, u32 v0);
 
 // 0x5f46e0: a linked list scalar deleting destructor: sets the vtable pointer 0x703084, frees every node and, when bit 0 of the flags is set, the list.
 u8 * __fastcall ListScalarDelete703084_5f46e0(u8 *o, void *, u32 v0);
+
+// 0x618110 (thiscall; flags, pops 4): Class7037b8_Dtor, then the object freed when bit 0 of the flags is set. Returns the object.
+u8 *__fastcall Class7037b8_ScalarDtor(u8 *object, void *, u32 flags);
 }  // extern "C"

@@ -1,6 +1,6 @@
 # The map insert users and the list freeing destructor of src/game/core/map_insert_copy (0x5b1650, 0x5af740, 0x617f40) against the originals: map_inserts.py's trees of the 16-bit key
 # map (the object keeps its tree at +0x28 for 0x5af740); lists of 0 to 5 nodes whose blocks are freed.
-# usage: map_insert_copy.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Copy,Add,Dtor)
+# usage: map_insert_copy.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Copy,Add,Dtor,Scalar)
 import os
 import struct
 import sys
@@ -12,15 +12,15 @@ import map_inserts  # noqa: E402
 import stdtree  # noqa: E402
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
-CALLS = {'Copy': 0x5b1650, 'Add': 0x5af740, 'Dtor': 0x617f40}
-B = Bench([(0x5b1650, 0x5b1690), (0x5af740, 0x5af7a0), (0x617f40, 0x617ff0), (0x5b1930, 0x5b1a20), (0x5b2ba0, 0x5b2ed0), (0x5b3130, 0x5b31f0), (0x5b3210, 0x5b3230),
+CALLS = {'Copy': 0x5b1650, 'Add': 0x5af740, 'Dtor': 0x617f40, 'Scalar': 0x618110}
+B = Bench([(0x5b1650, 0x5b1690), (0x5af740, 0x5af7a0), (0x617f40, 0x617ff0), (0x618110, 0x618130), (0x5b1930, 0x5b1a20), (0x5b2ba0, 0x5b2ed0), (0x5b3130, 0x5b31f0), (0x5b3210, 0x5b3230),
            (0x67acb0, 0x67acb1), (0x45b340, 0x45b9a0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000)], hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})
 OBJ = RAM + 0x20000
 
 
 def case(r):
     name = r.choice(OPS)
-    if name == 'Dtor':
+    if name in ('Dtor', 'Scalar'):
         n = r.choice([0, 1, 2, 5])
         obj = bytearray(r.bytes(0x20))
         head, nodes = RAM + 0x100, RAM + 0x200
@@ -31,6 +31,8 @@ def case(r):
             put(buf, off, 'II', ring[(i + 1) % len(ring)], ring[i - 1])
             put(buf, off + 8, 'I', r.choice([HEAP + 0x100, HEAP + 0x200, 0, nodes + 0x10]))
         put(obj, 8, 'II', head, n)
+        if name == 'Scalar':
+            return Call(CALLS[name], [RAM, r.choice([0, 1, 2, 3, 0xffffff00])], {RAM: obj, HEAP: heap(), **mem}, conv='t', ret='a')
         return Call(CALLS[name], [RAM], {RAM: obj, HEAP: heap(), **mem}, conv='t', ret='v')
     saved = map_inserts.OPS
     map_inserts.OPS = ['G']
