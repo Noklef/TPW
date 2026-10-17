@@ -41,6 +41,7 @@
 #include "../../src/game/files/wrapsources.h"
 #include "../../src/game/files/zlibcodec.h"
 #include "../../src/game/gfx/canvas.h"
+#include "../../src/game/sprite/script.h"
 #include "../../src/game/world/mousemode.h"
 #include "crt.h"
 #include "../../src/hook/hooks.h"
@@ -486,6 +487,12 @@ void *hooked(u32 address) {
     return fn;
 }
 
+// The sprite script list's clock (its env's now): the hooked 0x402d70 on the game clock (0x785970).
+s32 __cdecl script_now() {
+    static const auto now = reinterpret_cast<s32(__fastcall *)(void *, void *)>(hooked(0x00402d70));
+    return now(reinterpret_cast<void *>(0x00785970), nullptr);
+}
+
 u8 nibble(char c) { return (u8)(c <= '9' ? c - '0' : (c | 0x20) - 'a' + 10); }
 
 // (by hand: sscanf("%2x") per byte measures the rest of the string each call, which made a 1 MB region cost seconds)
@@ -592,6 +599,14 @@ int main(int argc, char **argv) {
     StreamOpen_SetEnv(&streamOpen);
     Crt_SetEnv(&kDriverCrt);
     Libc_SetEnv(&kDriverLibc);
+    // The sprite script list's calls: the hooked originals (Mem_GlobalAlloc / Free through the GlobalAlloc import slots the case maps, global_heap()).
+    static const SpriteScriptEnv sprites = {reinterpret_cast<void *(__cdecl *)(u32)>(hooked(0x005f5660)), reinterpret_cast<void(__cdecl *)(void *)>(hooked(0x005f5680)),
+                                            &script_now, reinterpret_cast<u32(__cdecl *)(u8 *)>(hooked(0x00475010)),
+                                            reinterpret_cast<void(__cdecl *)()>(hooked(0x00540ab0)), reinterpret_cast<void(__cdecl *)(u8 *)>(hooked(0x00542010)),
+                                            reinterpret_cast<void(__cdecl *)()>(hooked(0x00540b30)),
+                                            reinterpret_cast<void(__cdecl *)(u32 *, void *, const void *, u32, u32)>(hooked(0x005f5e50)),
+                                            reinterpret_cast<void(__cdecl *)(u32 *, void *, void *, u32, u32)>(hooked(0x005f5e20))};
+    SpriteScripts_SetEnv(&sprites);
     static char token[1 << 22];
     for (;;) {
         u32 address, count;
