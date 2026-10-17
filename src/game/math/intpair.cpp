@@ -89,4 +89,63 @@ u32 *__fastcall IntPair_Ctor(u32 *pair) {
     pair[1] = 0;
     return pair;
 }
+
+s32 *__cdecl IntPair_Truncate(s32 *out, const s32 *pair, s32 limit) {
+    const u32 ax = pair[0] < 0 ? 0u - (u32)pair[0] : (u32)pair[0], ay = pair[1] < 0 ? 0u - (u32)pair[1] : (u32)pair[1];  // (INT_MIN stays)
+    const u32 both = ay | ax;
+    s32 measured;
+    if (!(both & 0xfffff000))
+        measured = (s32)Math_ISqrt(ax * ax + ay * ay);
+    else if (!(both & 0xffc00000))
+        measured = (s32)(Math_ISqrt((ax >> 8) * (ax >> 8) + (ay >> 8) * (ay >> 8)) << 8);
+    else
+        measured = (s32)(Math_ISqrt((ax >> 18) * (ax >> 18) + (ay >> 18) * (ay >> 18)) << 18);
+    if (measured < limit) {
+        out[0] = pair[0];
+        out[1] = pair[1];
+        return out;
+    }
+    // limit << 16 (as 64 bits) / measured in one IDIV, as the original's: it faults (sic) on 0 or a quotient past 31 bits.
+    const u32 dividendLow = (u32)limit << 16, dividendHigh = (u32)(limit >> 16);
+    s32 scale;
+    __asm {
+        mov eax, dividendLow
+        mov edx, dividendHigh
+        idiv measured
+        mov scale, eax
+    }
+    const s32 y = (s32)(((long long)pair[1] * scale) >> 16);
+    const s32 x = (s32)(((long long)pair[0] * scale) >> 16);
+    out[0] = x;
+    out[1] = y;
+    return out;
+}
+
+s32 *__cdecl IntPair_Normalize(s32 *out, const s32 *pair) {
+    const s32 ax = pair[0] < 0 ? (s32)(0u - (u32)pair[0]) : pair[0], ay = pair[1] < 0 ? (s32)(0u - (u32)pair[1]) : pair[1];  // (INT_MIN stays)
+    const u32 both = (u32)ay | (u32)ax;
+    if (!(both & 0xfffff000)) {
+        const s32 root = (s32)Math_ISqrt(((u32)ax * (u32)ax + (u32)ay * (u32)ay) << 6);
+        const s32 scale = root ? 0x80000 / root : 0;
+        const u32 y = (u32)scale * (u32)pair[1], x = (u32)pair[0] * (u32)scale;
+        out[0] = (s32)x;
+        out[1] = (s32)y;
+        return out;
+    }
+    s32 scale = 0;
+    if (!(both & 0xffc00000)) {
+        const s32 x8 = ax >> 8, y8 = ay >> 8;
+        const s32 root = (s32)Math_ISqrt((u32)x8 * (u32)x8 + (u32)y8 * (u32)y8);
+        if (root) scale = 0x1000000 / root;
+    } else {
+        const s32 x18 = ax >> 18, y18 = ay >> 18;
+        const s32 root = (s32)Math_ISqrt((u32)x18 * (u32)x18 + (u32)y18 * (u32)y18);
+        if (root) scale = 0x4000 / root;
+    }
+    const s32 y = (s32)(((long long)pair[1] * scale) >> 16);
+    const s32 x = (s32)(((long long)pair[0] * scale) >> 16);
+    out[0] = x;
+    out[1] = y;
+    return out;
+}
 }
