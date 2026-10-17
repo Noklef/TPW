@@ -2733,6 +2733,8 @@ address,name,kind,confidence,notes
 0x0066c1f3,Fn_66c1f3,function,high,"reimplemented (src/game/core/initializers); stores +0x4 = argument, +0x6 = argument, +0x8 = argument, +0xa = argument"
 0x00507800,Class507800_Ctor,function,high,reimplemented (src/game/core/initializers); an array of 0x20 small records and four cleared fields
 0x00507840,Class507800_Dtor,function,high,reimplemented (src/game/core/initializers); the array's destructor
+0x006181c0,Class7037e8_Ctor,function,high,reimplemented (src/game/core/initializers); Constructs the 0x7037e8 class
+0x0047eab0,Class6fefc8_Ctor,function,high,reimplemented (src/game/core/initializers); Constructs the 0x6fefc8 class
 0x006d2770,Fn_6d2770,function,high,reimplemented (src/game/core/accessors); stores +0x0 = 0x0
 0x005d5da0,Owner18_Append,function,high,reimplemented (src/game/core/forwarders); PtrList_Append on the list at +0x18
 0x005d8a70,OwnerC_Append,function,high,reimplemented (src/game/core/forwarders); PtrList_Append on the list at +0xc

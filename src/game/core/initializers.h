@@ -227,4 +227,12 @@ u8 *__fastcall Class507800_Ctor(u8 *object);
 
 // 0x507840 (thiscall): the 0x20 elements of 0x14 bytes are destroyed (CRT_VectorDtorIterator; the element destructor the original passes is the empty debug print).
 void __fastcall Class507800_Dtor(u8 *object);
+
+// 0x6181c0 (thiscall; the SEH frame left out): the vtable +0 = 0x703748 (the base's), +4 = 0x703744, +8 and +0xc cleared, Class703c14_Ctor on +0x10, +0x54 = 1, +0x58 .. +0x68 cleared and the
+// final vtable +0 = 0x7037e8. Returns the object.
+u8 *__fastcall Class7037e8_Ctor(u8 *object);
+
+// 0x47eab0 (thiscall; the SEH frame left out): Fn_661870 on the object, the bytes +0x24 .. +0x28 and the dwords +0x34, +0x38 cleared, SurfaceInfo_Ctor on +0x3c, then +0 = 0x6fefc8,
+// the byte +4 and the dwords +8, +0xc, +0x64 cleared. Returns the object.
+u8 *__fastcall Class6fefc8_Ctor(u8 *object);
 }  // extern "C"

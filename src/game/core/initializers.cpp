@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include "crt.h"
+#include "dequeiter.h"
+#include "../gfx/surface.h"
 
 namespace {
 
@@ -594,5 +596,36 @@ u8 *__fastcall Class507800_Ctor(u8 *object) {
 
 void __fastcall Class507800_Dtor(u8 *object) {
     CRT_VectorDtorIterator(object, 0x14, 0x20, ElementNoDtor);
+}
+
+u8 *__fastcall Class7037e8_Ctor(u8 *object) {
+    at<u32>(object, 0x0) = 0x703748;
+    at<u32>(object, 0x4) = 0x703744;
+    at<u32>(object, 0x8) = 0;
+    at<u32>(object, 0xc) = 0;
+    Class703c14_Ctor(object + 0x10);
+    at<u32>(object, 0x54) = 1;
+    at<u32>(object, 0x58) = 0;
+    at<u32>(object, 0x5c) = 0;
+    at<u32>(object, 0x60) = 0;
+    at<u32>(object, 0x64) = 0;
+    at<u32>(object, 0x68) = 0;
+    at<u32>(object, 0x0) = 0x7037e8;
+    return object;
+}
+
+u8 *__fastcall Class6fefc8_Ctor(u8 *object) {
+    Fn_661870(object);
+    for (u32 offset = 0x24; offset <= 0x28; offset++)
+        at<u8>(object, offset) = 0;
+    at<u32>(object, 0x34) = 0;
+    at<u32>(object, 0x38) = 0;
+    SurfaceInfo_Ctor(reinterpret_cast<SurfaceInfo *>(object + 0x3c));
+    at<u32>(object, 0x0) = 0x6fefc8;
+    at<u8>(object, 0x4) = 0;
+    at<u32>(object, 0x8) = 0;
+    at<u32>(object, 0xc) = 0;
+    at<u32>(object, 0x64) = 0;
+    return object;
 }
 }  // extern "C"
