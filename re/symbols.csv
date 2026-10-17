@@ -3646,6 +3646,17 @@ address,name,kind,confidence,notes
 0x0041cc40,Class6fd9d8_AddFolderAndWad,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (path); a copy of the path added as a folder (Class6fd9d8_AddFolder), then with "".wad"" (0x78bb08) appended as a WAD"
 0x0041eb90,Class6fdaa4_TrimName,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (s), the object unused; with exactly two ""_"" (0x74c77c) s = the chars before the last, then a leading ""p"" (0x74c778) dropped"
 0x0041f630,Class6fdaa4_HasEmt,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall: whether the handle at +0x2c finds a ""*.emt"" file (slot 1: &result, the pattern of the String 0x78bce8, &found); 1 when the result is not negative"
+0x0041d7c0,Class6fda48_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder: wide strings); the base constructor part, then the vtable 0x6fda48"
+0x0041d8a0,Class6fda58_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder); the base part, a handle at +0x40, the vtable 0x6fda58"
+0x0041d990,Class6fda68_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder); the base part, then the vtable 0x6fda68"
+0x0041da70,Class6fda88_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder); the base part, handles at +0x40 and +0x48, the vtable 0x6fda88"
+0x0041db70,Class6fda98_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder); the base part, a handle at +0x40, the vtable 0x6fda98, +0x4c and +0x48 cleared"
+0x0041dd00,Class6fdaa8_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder); the base part, then the vtable 0x6fdaa8"
+0x0041dde0,Class6fdab8_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder); the base part, then the vtable 0x6fdab8"
+0x0041dec0,Class6fdac8_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder); the base part, handles at +0x40 and +0x48, the vtable 0x6fdac8"
+0x0041dfc0,Class6fdad8_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder); the base part, a handle at +0x40, the vtable 0x6fdad8"
+0x0041e0b0,Class6fdae8_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder); the base part, then the vtable 0x6fdae8"
+0x0041e190,Class6fdaf8_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder); the base part, then the vtable 0x6fdaf8"
 0x004254c0,Animator_Sleep,function,high,reimplemented (src/game/model/holder); the holder sleeps and flag 0x4000 clears
 0x004de110,Object_BackOfQueueTo,function,high,reimplemented (src/game/world/objectmsg); Object_BackOfQueue returning out
 0x004ddf40,Object_QueuePositionOfNone,function,high,reimplemented (src/game/world/objectmsg); the position of the person with no handle

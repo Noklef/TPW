@@ -1,6 +1,7 @@
 #include "class6fd9d8.h"
 
 #include <cstdint>
+#include <initializer_list>
 
 #include "gameheap.h"
 #include "language.h"
@@ -25,6 +26,45 @@ void BaseFinish(u8 *object) {
     at<u32>(object, 0) = 0x006fda58;
     Handle_Dtor(reinterpret_cast<Handle *>(object + 0x40));
     Class6fd9d8_Dtor(object);
+}
+
+void BaseCtor(u8 *object, const WString *name, const WString *folder) {
+    String *const first = reinterpret_cast<String *>(object + 4);
+    String *const path = reinterpret_cast<String *>(object + 0x18);
+    String_Ctor(first);
+    String_Ctor(path);
+    at<u32>(object, 0) = 0x006fd9d8;
+    vcall<void>(first, 0x18, name);
+    vcall<void>(path, 0x18, folder);
+    String_EnsureTrailingBackslash(path);
+    for (u32 offset : {0x30u, 0x34u, 0x38u, 0x3cu, 0x2cu})
+        at<u32>(object, offset) = 0;
+    u32 *const list = static_cast<u32 *>(GameHeap_Alloc(0x10));
+    if (list != nullptr) {
+        list[1] = list[2] = list[3] = 0;
+        list[0] = 0x006fd9d4;
+    }
+    at<u32 *>(object, 0x2c) = list;
+}
+
+u8 *Plain(u8 *object, const WString *name, const WString *folder, u32 vtable) {
+    BaseCtor(object, name, folder);
+    at<u32>(object, 0) = vtable;
+    return object;
+}
+
+u8 *WithHandle(u8 *object, const WString *name, const WString *folder, u32 vtable) {
+    BaseCtor(object, name, folder);
+    Handle_Ctor(reinterpret_cast<Handle *>(object + 0x40));
+    at<u32>(object, 0) = vtable;
+    return object;
+}
+
+u8 *WithTwoHandles(u8 *object, const WString *name, const WString *folder, u32 middle, u32 vtable) {
+    WithHandle(object, name, folder, middle);
+    Handle_Ctor(reinterpret_cast<Handle *>(object + 0x48));
+    at<u32>(object, 0) = vtable;
+    return object;
 }
 
 void Derived(u8 *object, u32 vtable) {
@@ -421,5 +461,29 @@ u32 __fastcall Class6fdaa4_HasEmt(u8 *object) {
     s32 result;
     const char *const pattern = *reinterpret_cast<const char *const *>((uintptr_t)0x0078bcf0);   // the String 0x78bce8's text
     return *vcall<s32 *>(object + 0x2c, 4, &result, pattern, &found) >= 0 ? 1 : 0;
+}
+
+u8 *__fastcall Class6fda48_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return Plain(object, name, folder, 0x006fda48); }
+u8 *__fastcall Class6fda68_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return Plain(object, name, folder, 0x006fda68); }
+u8 *__fastcall Class6fdaa8_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return Plain(object, name, folder, 0x006fdaa8); }
+u8 *__fastcall Class6fdab8_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return Plain(object, name, folder, 0x006fdab8); }
+u8 *__fastcall Class6fdae8_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return Plain(object, name, folder, 0x006fdae8); }
+u8 *__fastcall Class6fdaf8_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return Plain(object, name, folder, 0x006fdaf8); }
+u8 *__fastcall Class6fda58_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return WithHandle(object, name, folder, 0x006fda58); }
+u8 *__fastcall Class6fdad8_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return WithHandle(object, name, folder, 0x006fdad8); }
+
+u8 *__fastcall Class6fda88_Ctor(u8 *object, void *, const WString *name, const WString *folder) {
+    return WithTwoHandles(object, name, folder, 0x006fda78, 0x006fda88);
+}
+
+u8 *__fastcall Class6fdac8_Ctor(u8 *object, void *, const WString *name, const WString *folder) {
+    return WithTwoHandles(object, name, folder, 0x006fda58, 0x006fdac8);
+}
+
+u8 *__fastcall Class6fda98_Ctor(u8 *object, void *, const WString *name, const WString *folder) {
+    WithHandle(object, name, folder, 0x006fda98);
+    at<u32>(object, 0x4c) = 0;
+    at<u32>(object, 0x48) = 0;
+    return object;
 }
 }  // extern "C"
