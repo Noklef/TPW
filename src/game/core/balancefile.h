@@ -25,4 +25,29 @@ const u8 *__fastcall BalanceOnline_GetSchema(const void *, void *, u32 index);
 const u8 *__fastcall BalanceGraphics_GetSchema(const void *, void *, u32 index);
 const u8 *__fastcall BalanceResolution_GetSchema(const void *, void *, u32 index);
 const u8 *__fastcall BalanceSound_GetSchema(const void *, void *, u32 index);
+
+// 0x401030 (thiscall): the values entries laid out. Counting the key records up to type 0xc, a block of 0xc bytes for each is allocated
+// (Mem_GlobalAlloc; none: nothing more) into +4. Walking the records with a running dword index from 1 into the values (vtable slot 1,
+// BalanceFile_GetValues): a value record (types 4-11) takes the next dword, with the stride of its group and the group's pointer; a group start
+// (type 2) counts its members up to the next record of type 0-3 (the count at that record's +0x34 sizes the group: its pointer is the values
+// at index + count * members) and a group end (type 3) moves the index past the group's other rows; types 0-3 leave an empty entry and other
+// types none. Then BalanceFile_SetDefaults(1).
+void __fastcall BalanceFile_Init(u8 *self);
+
+// 0x402a70, 0x402ac0, 0x402b30, 0x402ba0, 0x402c10, 0x402c80, 0x402cf0 (cdecl, at exit; names unconfirmed): the static balance files
+// (gBalanceHoardingsA / B, gBalanceLevel, gBalanceOnline, gBalanceGraphics, gBalanceResolution, gBalanceSound) get their vtable back and are
+// released (BalanceFile_Release).
+void __cdecl BalanceHoardingsA_StaticDtor();
+void __cdecl BalanceHoardingsB_StaticDtor();
+void __cdecl BalanceLevel_StaticDtor();
+void __cdecl BalanceOnline_StaticDtor();
+void __cdecl BalanceGraphics_StaticDtor();
+void __cdecl BalanceResolution_StaticDtor();
+void __cdecl BalanceSound_StaticDtor();
+
+// 0x412d40, 0x414410, 0x423dc0 (thiscall; names unconfirmed): the same for a balance file of the object definitions (vtable 0x6fd8a8), the
+// track types (0x6fd8b0) and the graphics settings (0x6fd630).
+void __fastcall ObjectDefBalance_Dtor(u8 *self);
+void __fastcall TrackTypeBalance_Dtor(u8 *self);
+void __fastcall BalanceGraphics_Dtor(u8 *self);
 }

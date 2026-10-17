@@ -21,6 +21,12 @@ void clear_flag(const u8 *self, s32 i) {
     if (u32 *const p = at<u32 *>(entry(self, i), 8)) *p = 0;
 }
 
+// A static balance file torn down at exit: its vtable restored, then released.
+void destroy(u32 address, u32 vtable) {
+    at<u32>(reinterpret_cast<void *>((uintptr_t)address), 0) = vtable;
+    BalanceFile_Release(reinterpret_cast<u8 *>((uintptr_t)address));
+}
+
 }  // namespace
 
 extern "C" {
@@ -99,4 +105,83 @@ const u8 *__fastcall BalanceOnline_GetSchema(const void *, void *, u32 index) { 
 const u8 *__fastcall BalanceGraphics_GetSchema(const void *, void *, u32 index) { return reinterpret_cast<const u8 *>(0x007442c0) + index * 0x3c; }
 const u8 *__fastcall BalanceResolution_GetSchema(const void *, void *, u32 index) { return reinterpret_cast<const u8 *>(0x00744a40) + index * 0x3c; }
 const u8 *__fastcall BalanceSound_GetSchema(const void *, void *, u32 index) { return reinterpret_cast<const u8 *>(0x00746a20) + index * 0x3c; }
+
+void __fastcall BalanceFile_Init(u8 *self) {
+    s32 n = 0;
+    while (at<u32>(key(self, n), 0) != 0xc) ++n;
+    at<void *>(self, 4) = nullptr;
+    void *const values = Mem_GlobalAlloc((u32)n * 0xc);
+    at<void *>(self, 4) = values;
+    if (!values) return;
+    s32 next = 1, count = 0, members = 0;
+    u32 group = 0;
+    for (s32 i = 0; i < n; ++i) {
+        switch (at<u32>(key(self, i), 0)) {
+        case 0:
+        case 1:
+            break;
+        case 2: {
+            s32 j = i + 1;
+            for (; j < n; ++j) {
+                const u32 type = at<u32>(key(self, j), 0);
+                if (type == 3 || type == 0 || type == 1 || type == 2) break;
+            }
+            // (no type-3 record: the original's "Group start without group end" assert)
+            members = j - i - 1;
+            count = at<s32>(key(self, j), 0x34);
+            const u32 base = (u32)(uintptr_t)vcall<u8 *>(self, 4);
+            group = base + ((u32)count * (u32)members + (u32)next) * 4;
+            break;
+        }
+        case 3:
+            next = (s32)((u32)next + ((u32)count - 1) * (u32)members + 1);
+            group = 0;
+            count = 0;
+            members = 0;
+            break;
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+        case 9:
+        case 10:
+        case 11: {
+            const u32 base = (u32)(uintptr_t)vcall<u8 *>(self, 4);
+            at<u32>(entry(self, i), 0) = base + (u32)next * 4;
+            ++next;
+            at<s32>(entry(self, i), 4) = members;
+            at<u32>(entry(self, i), 8) = group;
+            continue;
+        }
+        default:
+            continue;
+        }
+        at<u32>(entry(self, i), 0) = 0;  // (types 0-3: an entry without values)
+        at<u32>(entry(self, i), 4) = 0;
+        at<u32>(entry(self, i), 8) = 0;
+    }
+    BalanceFile_SetDefaults(self, nullptr, 1);
+}
+
+void __cdecl BalanceHoardingsA_StaticDtor() { destroy(0x00784e30, 0x006fd618); }
+void __cdecl BalanceHoardingsB_StaticDtor() { destroy(0x00784c20, 0x006fd618); }
+void __cdecl BalanceLevel_StaticDtor() { destroy(0x00785040, 0x006fd620); }
+void __cdecl BalanceOnline_StaticDtor() { destroy(0x00785828, 0x006fd628); }
+void __cdecl BalanceGraphics_StaticDtor() { destroy(0x00785868, 0x006fd630); }
+void __cdecl BalanceResolution_StaticDtor() { destroy(0x007858e0, 0x006fd638); }
+void __cdecl BalanceSound_StaticDtor() { destroy(0x007858f0, 0x006fd640); }
+
+void __fastcall ObjectDefBalance_Dtor(u8 *self) {
+    at<u32>(self, 0) = 0x006fd8a8;
+    BalanceFile_Release(self);
+}
+void __fastcall TrackTypeBalance_Dtor(u8 *self) {
+    at<u32>(self, 0) = 0x006fd8b0;
+    BalanceFile_Release(self);
+}
+void __fastcall BalanceGraphics_Dtor(u8 *self) {
+    at<u32>(self, 0) = 0x006fd630;
+    BalanceFile_Release(self);
+}
 }
