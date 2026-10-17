@@ -211,6 +211,16 @@ u8 *__fastcall Wrap_VBase_Deleter_701920_5790b0(u8 *self, void *, u32 a2);
 // 0x579140 (thiscall; 1 stack arguments): this lowered by the dword before it (a virtual base offset), then VBase_Deleter_7018f8.
 u8 *__fastcall Wrap_VBase_Deleter_7018f8_579140(u8 *self, void *, u32 a2);
 
+// 0x579060, 0x579070, 0x579080, 0x5790a0 (cdecl; this the first stack argument): this lowered by the dword before it (a virtual
+// base offset; the argument rewritten in place), then Transform_Vertices, Transform_BlockedPoints, Transform_ProjectToScreen and
+// Transform_Concatenate (src/game/math/transform), which take it unused.
+void __cdecl Wrap_Transform_Vertices_579060(u8 *self, const float *matrix, float *out, const u8 *in, s32 out_stride, s32 in_stride,
+                                            u32 count, s32 mode);
+void __cdecl Wrap_Transform_BlockedPoints_579070(u8 *self, const float *matrix, float *out, const u8 *in, s32 out_stride, u32 first,
+                                                 u32 count);
+double __cdecl Wrap_Transform_ProjectToScreen_579080(u8 *self, float *vertices, s32 stride, u32 count, s32 mode);
+void __cdecl Wrap_Transform_Concatenate_5790a0(u8 *self, const float *a, const float *b, float *out);
+
 // 0x58c360 (thiscall; 1 stack arguments): this lowered by the dword before it (a virtual base offset), then Class702198_DeletingDtor.
 u8 *__fastcall Wrap_Class702198_DeletingDtor_58c360(u8 *self, void *, u32 a2);
 
