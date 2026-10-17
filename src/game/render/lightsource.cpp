@@ -45,4 +45,6 @@ void __cdecl LightSource_Destroy(u8 *light) {
         return;
     }
 }
+
+void __cdecl LightSource_DestroyMain() { LightSource_Destroy(global<u8 *>(0x007a0b40)); }
 }

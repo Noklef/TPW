@@ -11,4 +11,7 @@ extern "C" {
 // plus the offset at +4 of its vtable; 0 for none) taken out of the renderer's (0x87a6d0) tag 0x70 list (Renderer_RemoveFromSlot)
 // and, when there is one, deleted (its slot 0 with 1), then as 3; 3 the same for the part at +0xc. Other kinds: nothing.
 void __cdecl LightSource_Destroy(u8 *light);
+
+// 0x458580 (cdecl; name unconfirmed): LightSource_Destroy of the light 0x7a0b40 points at (the one 0x4584d0 creates from the normalised direction at 0x7a0b30).
+void __cdecl LightSource_DestroyMain();
 }
