@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../motion/animator.h"
+#include "../render/state.h"
 #include "parts.h"
 
 namespace {
@@ -42,6 +43,34 @@ void __cdecl ModelSlot_SetPartFlag(u32 key, u32 slot) {
 }
 
 u8 *__cdecl ModelSlot_Holder(u32 slot) { return holder_of(slot); }
+
+u8 *__fastcall ModelSlot_Ctor(u8 *slot) {
+    u8 *const part = slot + 0x48;
+    at<u32>(part, 0) = 0x006fdd00;
+    at<u32>(part, 0xc) = 0x006fdcf8;
+    at<u32>(part, 8) = 0x006fdce8;
+    // The offsets come through the vbtable pointers just stored, read again for each store as the original does.
+    at<u32>(part, at<u32>(at<u8 *>(part, 0xc), 4) + 0xc) = 0x006fdcd8;
+    const u32 inner = at<u32>(at<u8 *>(part, 0xc), 4);
+    at<u32>(part, inner + 8) = inner - 0x60;
+    at<u32>(part, 0x5c) = 0;
+    at<u32>(part, at<u32>(at<u8 *>(part, 0), 4)) = 0x006fdcc8;
+    const u32 outer = at<u32>(at<u8 *>(part, 0), 4);
+    at<u32>(part, outer - 4) = outer - 8;
+    at<u32>(part, at<u32>(at<u8 *>(part, 0), 8) + 0x50) = 2;
+    u32 *const sceneFlags = reinterpret_cast<u32 *>((uintptr_t)0x008bd508);
+    u8 *base = part + at<u32>(at<u8 *>(part, 0), 8);
+    SceneFlags_Touch(sceneFlags);
+    at<u32>(base, 0x2c) = 0;
+    at<u32>(base, 0x30) = 0;
+    at<u32>(base, 0x34) = 0x3f800000;   // 1.0f
+    base = part + at<u32>(at<u8 *>(part, 0), 8);
+    SceneFlags_Touch(sceneFlags);
+    for (u32 offset = 4; offset <= 0x10; offset += 4)
+        at<u32>(base, offset) = 0x3f800000;
+    at<u32>(base, 0x54) = 0xffffffff;
+    return slot;
+}
 
 void __cdecl ModelSlot_ApplySelection(s32 kind) {
     const u32 slot = global<u32>(0x00f79674);
