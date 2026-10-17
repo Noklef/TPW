@@ -1,12 +1,12 @@
 # The steering behaviours (src/game/world/steering) against the originals: the constructors, base destructor and exit
 # thunks (0x50ce50-0x50d140) on any bytes; seek, arrival and avoid_obstacle's steering (0x50dd80,
 # 0x50ddf0, 0x50e350), their per-neighbour / per-obstacle callbacks (0x50e190, 0x50e2b0) and the circle hits
-# (0x50cba0, 0x50cc20) on navs with 16.16 values near each other (so that every branch is taken), at times of any size; the
+# (0x50cba0, 0x50cc20) and the path behaviours' setup (0x50fdf0: names and the list) on navs with 16.16 values near each other (so that every branch is taken), at times of any size; the
 # globals (0x7cf048, 0x7cf100, 0x7cf32c) over any bytes; separation's steering and callback (0x50e0e0, 0x50dfc0) and the
 # neighbour visit (0x5102f0, with a logging callback) on navs about the map's cells (edges included), with people listed in
 # the cells around them (kinds that count or not, the nav itself among them, more than five near).
 # usage: steering.py [CASES [SEED]] [--wild|--both] [--show N]
-#   (env OPS=Ctor,Dtor,Destroy,Seek,Arrival,Neighbour,Hit,Ray,Obstacle,Avoid,SepNeighbour,Separation,Visit)
+#   (env OPS=Ctor,Dtor,Destroy,Paths,Seek,Arrival,Neighbour,Hit,Ray,Obstacle,Avoid,SepNeighbour,Separation,Visit)
 import os
 import struct
 import sys
@@ -16,11 +16,13 @@ from fncmp import CDECL_LOG2, LOG, Bench, Call, RAM, log_region  # noqa: E402
 
 B = Bench([(0x50ce50, 0x50d14a), (0x4d49a0, 0x4d49e0), (0x50cba0, 0x50cdc0), (0x50dd80, 0x50dfd0), (0x50dfd0, 0x50e190), (0x50e190, 0x50e4b0),
            (0x50ece0, 0x50ed20), (0x50f280, 0x50f3c0), (0x50f870, 0x50f8f0), (0x5da3c0, 0x5da3c1),
-           (0x5102f0, 0x5104b0), (0x4d8300, 0x4d8330), (0x50b350, 0x50b360)])
+           (0x5102f0, 0x5104b0), (0x4d8300, 0x4d8330), (0x50b350, 0x50b360), (0x50fdf0, 0x50ffd2)])
 CTORS = [0x50ce50, 0x50ced0, 0x50cf40, 0x50cfb0, 0x50d020, 0x50d090, 0x50d100]
 DESTROYS = [0x50ce90, 0x50cf10, 0x50cf80, 0x50cff0, 0x50d060, 0x50d0d0, 0x50d140]
 GLOBALS = 0x7cf040  # the seven objects, 0x7cf050-0x7cf370, and the force, reach and nearest hit
-OPS = os.environ.get('OPS', 'Ctor,Dtor,Destroy,Seek,Arrival,Neighbour,Hit,Ray,Obstacle,Avoid,SepNeighbour,Separation,Visit').split(',')
+BEHAVIOURS = [0x7cf050, 0x7cf0b0, 0x7cf0d8, 0x7cf360, 0x7cf338, 0x7cf088, 0x7cf308]  # the table at 0x761ec0's order
+STACK = RAM + 0x1020  # the behaviour list's entries
+OPS = os.environ.get('OPS', 'Ctor,Dtor,Destroy,Paths,Seek,Arrival,Neighbour,Hit,Ray,Obstacle,Avoid,SepNeighbour,Separation,Visit').split(',')
 THINGS = RAM + 0x4000  # the people: 0x200 bytes each, their nav at +0xd4
 CELLS = 0x31000000  # the map's cells ([[0x7cf6ec]]): only the rows a case reads are laid out
 NAV, OTHER, OUT = RAM + 0x100, RAM + 0x20, RAM + 0x40
@@ -95,6 +97,22 @@ def case(r):
     glob = bytearray(r.bytes(0x340))
     if op == 'Destroy':
         return Call(r.choice(DESTROYS), [], {GLOBALS: glob})
+    if op == 'Paths':  # 0x50fdf0: the seven objects' names (+4) shuffled, at times one not wanted a near miss of a wanted one; the behaviour list
+        names = [b'seek', b'arrival', b'separation', b'avoid_obstacle', b'repel_obstacle', b'avoid_walls', b'follow_path']
+        r.shuffle(names)
+        if r.random() < 0.5:
+            spare = [i for i, n in enumerate(names) if n not in (b'separation', b'avoid_walls', b'follow_path')]
+            names[r.choice(spare)] = r.choice([b'avoid_wall', b'avoid_walls_', b'avoid_wallS', b'follow_pat', b'follow_paths', b'separatio', b'separation2', b'', b'Separation'])
+        if r.random() < 0.03:  # a wanted name missing: the table's last pointer (0) is read (crash in both)
+            names[r.randrange(7)] = b'x'
+        for at, name in zip(BEHAVIOURS, names):
+            glob[at - GLOBALS + 4:at - GLOBALS + 5 + len(name)] = name + bytes(1)
+        begin = STACK + r.choice([0, 0, 0, 8])
+        end = begin + r.choice([0, 8, 16, 24, 32, 0, -8, 4, -0x10])
+        left = end if end <= begin else end - 8 * ((end - begin + 7) // 8)  # where the clear leaves it
+        cap = r.choice([left, left + 8, left + 16, left + 24, left + 32, left + 0x40, begin, end, left - 8])
+        put(glob, 0x38, begin, end, cap)
+        return Call(0x50fdf0, [], {GLOBALS: glob, STACK - 0x20: r.bytes(0x100)})
     mem = bytearray(r.bytes(0x200))
     put(mem, 0x100, *(near(r) for _ in range(0x30 // 4)))  # mass, radius, pos, vel, max_force/speed, the axes
     put(mem, 0x104, r.randrange(0, 0x40000))  # radius

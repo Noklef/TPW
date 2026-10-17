@@ -3649,6 +3649,7 @@ address,name,kind,confidence,notes
 0x0050cc20,Steer_RayCircleHit,function,low,"reimplemented (src/game/world/steering); cdecl (&from, &dir, &centre, radius): where the ray first meets the circle (16.16 quadratic, the smaller root halved); 0x80000000 when it misses"
 0x0050dfc0,SteerSeparation_Neighbour,function,low,"reimplemented (src/game/world/steering); cdecl (nav, other): separation's per-neighbour callback, adds away / octagonal length to the force (0x7cf100) when the other nav is within both radii + 1.0"
 0x0050e0e0,SteerSeparation_Steer,function,low,"reimplemented (src/game/world/steering); separation's slot 0, thiscall (&out, nav): (0, 0) near the last path point, else the force summed by Nav_VisitNeighbours (radius * 2, SteerSeparation_Neighbour)"
+0x0050fdf0,Steering_SetPathBehaviours,function,low,"reimplemented (src/game/world/steering); cdecl: empty the behaviour list, then push avoid_walls (0.9), follow_path (0.5) and separation (0.1) found by name"
 0x0050af40,TagTable_Find,function,low,"reimplemented (src/game/world/tagsystem); the CTagTable lookup: 0 for ids 0x17e/0x17f, the record at 0x75eca8 + id * 0x20 when its id matches, else the first record with the id, else 0"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
