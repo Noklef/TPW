@@ -100,6 +100,11 @@ s32 __cdecl Particle_Spawn(s32 effect, s32 x, s32 y, s32 z);
 // number ended.
 s32 __cdecl ParticlePool_Resize(s32 pool, s32 count, s32 effect);
 
+// 0x5eda70 / 0x5edac0 (names unconfirmed): pool 2 (0xf869b4) emptied, ParticlePool_Resize(2, 0, 0), whose result they return; 0x5eda70 first
+// sets the word +0x2a of each of its systems with a handle (ParticleSystem_Set2a(handle, 1)) up to its count.
+s32 __cdecl ParticlePool2_Finish();
+s32 __cdecl ParticlePool2_Empty();
+
 // 0x521930 (cdecl; effect, x, y, z, vx, vy, vz; name unconfirmed): Particle_Spawn with a velocity: the system's +0x38/+0x3c/+0x40 = vx, vy, vz times its
 // +0xb0 over 1024 (truncated toward 0) in place of the jitter of +0x2c. (Its linked effect is started by Particle_Spawn.)
 s32 __cdecl Particle_SpawnWithVelocity(s32 effect, s32 x, s32 y, s32 z, s32 vx, s32 vy, s32 vz);

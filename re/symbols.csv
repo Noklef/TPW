@@ -426,6 +426,8 @@ address,name,kind,confidence,notes
 0x00521930,Particle_SpawnWithVelocity,function,low,"reimplemented (src/game/render/particles); cdecl (effect, x, y, z, vx, vy, vz): Particle_Spawn with the system's velocity +0x38 set to (vx, vy, vz) times its +0xb0 over 1024 in place of the jitter"
 0x00520f10,ParticleEffectors_Update,function,low,"reimplemented (src/game/render/particles); cdecl: one step of each active effector: timer, motion with drag, gravity and a ground bounce, the end effect (voice or particles) and the free list, else its pull on the live systems' particles (mode 2 kills those within its radius)"
 0x005ed5a0,ParticlePool_Resize,function,low,"reimplemented (src/game/render/particles); cdecl (pool, count, effect): a 16-handle pool at 0xf8692c + pool * 0x44 grown with Particle_Spawn(effect) or shrunk with ParticleSystem_End; returns the change"
+0x005eda70,ParticlePool2_Finish,function,low,"reimplemented (src/game/render/particles); cdecl (): each of pool 2's systems with a handle, up to its count, gets ParticleSystem_Set2a(handle, 1); then ParticlePool_Resize(2, 0, 0)"
+0x005edac0,ParticlePool2_Empty,function,low,"reimplemented (src/game/render/particles); cdecl (): ParticlePool_Resize(2, 0, 0)"
 0x00804370,gParticleEffects,data,high,0x69 x 0x140-byte effect definitions from Tp2.plb
 0x0080c6b0,gParticleEffectors,data,high,20 x 0x68-byte effector definitions
 0x0080cefc,gParticleSystems,data,high,live systems: 0x140-byte copies of an effect definition

@@ -403,6 +403,19 @@ s32 __cdecl ParticlePool_Resize(s32 pool, s32 count, s32 effect) {
     return change;
 }
 
+s32 __cdecl ParticlePool2_Finish() {
+    const s32 *const header = reinterpret_cast<const s32 *>((uintptr_t)0x00f869b4);
+    const u32 *const handles = reinterpret_cast<const u32 *>((uintptr_t)0x00f869b8);
+    if (*header != 0) {
+        for (s32 i = 0; i < *header; i++) {
+            if (handles[i] != 0) ParticleSystem_Set2a(handles[i], 1);
+        }
+    }
+    return ParticlePool_Resize(2, 0, 0);
+}
+
+s32 __cdecl ParticlePool2_Empty() { return ParticlePool_Resize(2, 0, 0); }
+
 void __cdecl ParticleEffectors_Update() {
     u8 *const records = global<u8 *>(0x0080cef8);  // (read once)
     for (s32 index = global<s16>(0x00816d1e), next; index >= 0; index = next) {
