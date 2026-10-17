@@ -486,14 +486,26 @@ void *hooked(u32 address) {
     return fn;
 }
 
+u8 nibble(char c) { return (u8)(c <= '9' ? c - '0' : (c | 0x20) - 'a' + 10); }
+
+// (by hand: sscanf("%2x") per byte measures the rest of the string each call, which made a 1 MB region cost seconds)
 std::vector<u8> unhex(const char *s) {
     std::vector<u8> out(std::strlen(s) / 2);
-    for (std::size_t i = 0; i < out.size(); ++i) {
-        unsigned v;
-        std::sscanf(s + 2 * i, "%2x", &v);
-        out[i] = (u8)v;
-    }
+    for (std::size_t i = 0; i < out.size(); ++i) out[i] = (u8)(nibble(s[2 * i]) << 4 | nibble(s[2 * i + 1]));
     return out;
+}
+
+void put_hex(const u8 *p, u32 n) {
+    static const char digits[] = "0123456789abcdef";
+    char buf[4096];
+    for (u32 i = 0; i < n;) {
+        u32 k = 0;
+        for (; i < n && k < sizeof buf; ++i) {
+            buf[k++] = digits[p[i] >> 4];
+            buf[k++] = digits[p[i] & 15];
+        }
+        std::fwrite(buf, 1, k, stdout);
+    }
 }
 
 }  // namespace
@@ -637,7 +649,7 @@ int main(int argc, char **argv) {
         for (auto &s : spans) {
             std::putchar(' ');
             const u8 *p = reinterpret_cast<const u8 *>((uintptr_t)s.first);
-            for (u32 i = 0; i < s.second; ++i) std::printf("%02x", p[i]);
+            put_hex(p, s.second);
         }
         std::putchar('\n');
         std::fflush(stdout);
