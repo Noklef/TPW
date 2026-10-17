@@ -1,7 +1,8 @@
 # The game's String and WString classes (src/game/core/string: 0x5f5fc0-0x5f6c50, 0x5f7120-0x5f7e60) against the originals: strings of up to 24 units
 # (a small alphabet, so equal, prefix and ordered cases come up), views of them, C strings and chars as arguments; the blocks come from the heap region.
 # Format is left out (the game's vsprintf). StripSuffix (0x424d30) cuts a case-blind suffix off a string; SkipDot (0x41cea0) steps over a leading "." and the
-# "\" / "." chars after it.
+# "\" / "." chars after it. EnsureSlash (0x5c5480) appends the global "\" unless s ends in it, IsWad (0x5c53c0) tests a directory entry's name for the
+# global ".wad" at its end and JoinPath (0x5c5580) builds +0x3c of five strings from +0x28, "\" and a name.
 # usage: gamestring.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
@@ -25,10 +26,12 @@ OPS_TABLE = {
     'WCtor': (0x5f6a20, 1, '', 'a'), 'WDtor': (0x5f6a60, 1, '', 'v'), 'WAssignChar': (0x5f6a80, 1, 'c', 'a'), 'WAssignStr': (0x5f6ac0, 1, 't', 'a'),
     'WAssignNarrow': (0x5f6b10, 1, 'w', 'a'), 'WAssign': (0x5f6b50, 1, 'v', 'a'), 'WAppendStr': (0x5f6ba0, 1, 't', 'a'), 'WAppendChar': (0x5f6be0, 1, 'c', 'a'),
     'WAppend': (0x5f6c10, 1, 'v', 'a'), 'WDelDtor': (0x5f7150, 1, 'f', 'a'), 'WNeStr': (0x5f7e60, 1, 't', 'b'),
-    'StripSuffix': (0x424d30, 0, '', 'a'), 'SkipDot': (0x41cea0, 0, '', 'a'),
+    'StripSuffix': (0x424d30, 0, '', 'a'), 'SkipDot': (0x41cea0, 0, '', 'a'), 'EnsureSlash': (0x5c5480, 0, '', 'v'), 'IsWad': (0x5c53c0, 0, '', 'a'),
+    'JoinPath': (0x5c5580, 0, '', 'v'),
 }
-B = Bench([(0x41cea0, 0x41cfe4), (0x424cf0, 0x424dc0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000)])
+B = Bench([(0x41cea0, 0x41cfe4), (0x424cf0, 0x424dc0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000), (0x5c53c0, 0x5c5510), (0x5c5580, 0x5c55a9)])
 DOT, BACKSLASH = 0x78c648, 0x78bee0   # the game's global strings "." and "\" (String objects in .bss)
+SLASH2, WAD = 0xf80be0, 0xf80808      # and "\" and ".wad" of the folder code
 LOCALE = 0xfb1440   # the CRT's LC_CTYPE handle: 0, the C locale (_stricmp's)
 S1, S2, S3, TXT, CHR, OUT = RAM, RAM + 0x40, RAM + 0x80, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200
 D1, D2, D3 = RAM + 0x2000, RAM + 0x3000, RAM + 0x4000
@@ -87,12 +90,63 @@ def skip_dot(r):
     return Call(0x41cea0, [S1], regions, ret='a')
 
 
+def ensure_slash(r):
+    """0x5c5480 (cdecl; s): s of letters, "\\" and "/", mostly ending in "\\" or not; the global "\\", now and then another text or length."""
+    regions = {HEAP: heap(), LOCALE: bytes(4)}
+    n = r.choice([0, 1, 2, 3, 5, 8, 9, 16])
+    text = bytes(r.choice(b'aAb\\/') for _ in range(n))
+    if n and r.random() < 0.4:
+        text = text[:-1] + b'\\'
+    string(r, 0, S1, D1, regions, text)
+    string(r, 0, SLASH2, D2, regions, b'\\' if r.random() < 0.8 else r.choice([b'', b'/', b'\\\\', b'a\\', b'A']))
+    return Call(0x5c5480, [S1], regions, ret='v')
+
+
+def is_wad(r):
+    """0x5c53c0 (cdecl; entry): names ending in ".wad" (case varied), near misses, short ones, a null name now and then; the global ".wad",
+    now and then another text."""
+    regions = {HEAP: heap(), LOCALE: bytes(4)}
+    stem = r.choice([b'', b'a', b'data', b'x.wad', b'.'])
+    end = r.choice([b'.wad', b'.WAD', b'.Wad', b'.wa', b'wad', b'.wadx', b'', b'.bad', b'd'])
+    name = stem + end
+    regions[TXT] = name + bytes(1) + r.bytes(8)
+    regions[S3] = r.bytes(0x20) + struct.pack('<I', 0 if r.random() < 0.05 else TXT) + r.bytes(0x10)
+    string(r, 0, WAD, D2, regions, b'.wad' if r.random() < 0.8 else r.choice([b'', b'.WAD', b'd', b'.wadx']))
+    return Call(0x5c53c0, [S3], regions, ret='a')
+
+
+def join_path(r):
+    """0x5c5580 (thiscall; name): five strings, of which +0x28 (read as the other class's string, as the game's does: a wide one or a
+    narrow one with room past its block) and +0x3c are filled; a name string, now and then +0x28 or +0x3c itself; the global "\\"."""
+    regions = {HEAP: heap(), LOCALE: bytes(4)}
+    obj = bytearray(r.bytes(0x64))
+    for i, (base, data) in enumerate(((S1 + 0x28, D1), (S1 + 0x3c, D2))):
+        wide = i == 0 and r.random() < 0.6
+        part = {}
+        string(r, wide, base, data, part, units(r, wide, r.choice([0, 1, 2, 4, 7, 9])) if r.random() < 0.8 else None)
+        obj[base - S1:base - S1 + 0x14] = part.pop(base)[:0x14]
+        block = part[data]
+        regions[data] = block + (r.bytes(len(block) + 2) if i == 0 and not wide else b'')
+    regions[S1] = bytes(obj)
+    k = r.random()
+    if k < 0.1:
+        name = S1 + 0x28
+    elif k < 0.2:
+        name = S1 + 0x3c
+    else:
+        string(r, 0, S2 + 0x40, D3, regions)
+        name = S2 + 0x40
+    string(r, 0, SLASH2, RAM + 0x5000, regions, b'\\' if r.random() < 0.85 else r.choice([b'', b'/', b'a\\']))
+    return Call(0x5c5580, [S1, name], regions, conv='t', ret='v')
+
+
+SPECIAL = {'StripSuffix': strip_suffix, 'SkipDot': skip_dot, 'EnsureSlash': ensure_slash, 'IsWad': is_wad, 'JoinPath': join_path}
+
+
 def case(r):
-    name = r.choice(OPS)
-    if name == 'StripSuffix':
-        return strip_suffix(r)
-    if name == 'SkipDot':
-        return skip_dot(r)
+    name = OPS[r.deal(range(len(OPS)))]
+    if name in SPECIAL:
+        return SPECIAL[name](r)
     address, wide, kinds, ret = OPS_TABLE[name]
     w = 2 if wide else 1
     regions = {HEAP: heap(), OUT: r.bytes(0x20)}

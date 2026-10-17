@@ -31,7 +31,8 @@
 #include "../game/files/wadfind.h"
 #include "../game/files/wrapsources.h"
 #include "../game/files/wadsource.h"
-#include "../game/files/bufsource.h"
+#include "../game/files/bufsource.h"
+#include "../game/files/direntry.h"
 #include "../game/files/filestream.h"
 #include "../game/files/gamepaths.h"
 #include "../game/files/quickload.h"
@@ -1221,6 +1222,7 @@ const Hook kHooks[] = {
     {"WText_NextLine",            0x004138b0, (void *)&WText_NextLine, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"GamePaths_FontsFolder",     0x00468250, (void *)&GamePaths_FontsFolder, {0xb9, 0xc0, 0x16, 0xf8, 0x00}},
     {"GamePaths_SetTextureFolders", 0x004688b0, (void *)&GamePaths_SetTextureFolders, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"DirEntry_IsWad",            0x005c53c0, (void *)&DirEntry_IsWad, {0x6a, 0xff, 0x68, 0x10, 0x04}},
     {"RegKey_Open",               0x005f8ae0, (void *)&RegKey_Open, {0x51, 0x56, 0x57, 0x8b, 0xf9}},
     {"RegKey_Dtor",               0x005f8b70, (void *)&RegKey_Dtor, {0x51, 0x8d, 0x44, 0x24, 0x00}},
     {"RegKey_Close",              0x005f8b80, (void *)&RegKey_Close, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
@@ -3031,6 +3033,8 @@ const Hook kHooks[] = {
     {"String_AssignFromWide",     0x00424db0, (void *)&String_AssignFromWide, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
     {"WString_AssignFromAnsi",    0x00424e10, (void *)&WString_AssignFromAnsi, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
     {"String_AnsiToWide",         0x004bbb80, (void *)&String_AnsiToWide, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
+    {"String_EnsureTrailingBackslash", 0x005c5480, (void *)&String_EnsureTrailingBackslash, {0x6a, 0xff, 0x68, 0x28, 0x04}},
+    {"Strings5_JoinPath",         0x005c5580, (void *)&Strings5_JoinPath, {0x8b, 0x41, 0x3c, 0x56, 0x8d}},
     {"Class702938_Dtor",          0x005bdc10, (void *)&Class702938_Dtor, {0x6a, 0xff, 0x68, 0x16, 0x00}},
     {"Class702940_Dtor",          0x005be320, (void *)&Class702940_Dtor, {0x6a, 0xff, 0x68, 0x56, 0x01}},
     {"Class702948_Dtor",          0x005be750, (void *)&Class702948_Dtor, {0x6a, 0xff, 0x68, 0x36, 0x02}},

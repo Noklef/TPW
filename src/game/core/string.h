@@ -206,6 +206,15 @@ String *__cdecl String_StripSuffix(const String *suffix, String *s);
 // or "." (Names_Equal == 1); then s = its chars from there on (String_From, the vtable's +0x1c Assign). Returns s.
 String *__cdecl String_SkipDotPrefix(String *s);
 
+// 0x5c5480 (cdecl; s; name unconfirmed): a copy of s's last chars, as many as the global "\" String at 0xf80be0 has (String_Right,
+// String_CtorCopy), is compared with that global (Names_Equal); when they differ (a zero result) the global is appended through
+// s's vtable +0x28 (Append).
+void __cdecl String_EnsureTrailingBackslash(String *s);
+
+// 0x5c5580 (thiscall on the five strings; name, pops 4; name unconfirmed): the string at +0x3c is given the one at +0x28 through
+// its vtable +0x18 (String's AssignWide), ends in "\" (String_EnsureTrailingBackslash), and gets name appended (vtable +0x28).
+void __fastcall Strings5_JoinPath(u8 *object, void *, const StringView *name);
+
 // 0x424db0 (cdecl; s, wide; name unconfirmed): the wide text (wide->data) converted to the ANSI code page by WideCharToMultiByte (the import 0x6fd1dc;
 // the size asked for first, NUL included), into a block of Mem_GlobalAlloc (none for a size of 0 or less, or a failed allocation), which goes to the
 // vtable's +0x14 of s (AssignStr) and is freed (Mem_GlobalFree). Returns the second conversion's count, else 0.

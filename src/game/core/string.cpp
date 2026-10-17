@@ -830,4 +830,22 @@ String *__cdecl String_SkipDotPrefix(String *s) {
     return s;
 }
 
+void __cdecl String_EnsureTrailingBackslash(String *s) {
+    const String *const backslash = reinterpret_cast<const String *>((uintptr_t)0x00f80be0);
+    StringView view;
+    String tail;
+    String_CtorCopy(&tail, nullptr, String_Right(s, nullptr, &view, backslash->length));
+    const u32 ends = Names_Equal(reinterpret_cast<const u8 *>(&tail), reinterpret_cast<const u8 *>(backslash));
+    String_Dtor(&tail);
+    if (ends == 0)
+        vcall<void>(s, 0x28, backslash);
+}
+
+void __fastcall Strings5_JoinPath(u8 *object, void *, const StringView *name) {
+    String *const path = reinterpret_cast<String *>(object + 0x3c);
+    vcall<void>(path, 0x18, object + 0x28);
+    String_EnsureTrailingBackslash(path);
+    vcall<void>(path, 0x28, name);
+}
+
 }  // extern "C"

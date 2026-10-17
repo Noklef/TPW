@@ -64,6 +64,7 @@ add_library(tpw_game STATIC
     src/game/files/textscan.cpp
     src/game/files/wtext.cpp
     src/game/files/gamepaths.cpp
+    src/game/files/direntry.cpp
     src/game/core/regkey.cpp
     src/game/core/stdstring.cpp
     src/game/core/globalmem.cpp
