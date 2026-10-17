@@ -237,9 +237,6 @@ u32 __cdecl Table879d08_Fill();
 
 // 0x56b830 (thiscall; a, b, pops 8): +0x30 = a and +0x34 = b; returns a.
 u32 __fastcall Obj_Set30_34(u8 *object, void *, u32 a, u32 b);
-// 0x617ff0 (cdecl; result code out, object out): a null object pointer gives 0x80004003; otherwise a 0x18-byte object is allocated and constructed (Class703770_Ctor, then +8 cleared
-// and the vtable 0x7037c0) and stored, with result 0, or the result is 0xcffe0100 when the allocation fails. Returns the result pointer.
-u32 *__cdecl Class7037c0_Create(u32 *result, u8 **object);
 
 // 0x5667d0 (thiscall; most derived flag, pops 4): with the flag set the vtable 0x701378 is stored and the base class constructor (Class701260_Ctor) runs on the part at +0x2c;
 // then the virtual base (offset from the word at +4 of the vtable) gets the vtable 0x701330, the word before it the distance to that base less 0x2c, and the fields +8, +0x18, +4 are

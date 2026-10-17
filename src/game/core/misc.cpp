@@ -554,25 +554,6 @@ u32 __fastcall Obj_Set30_34(u8 *object, void *, u32 a, u32 b) {
     at<u32>(object, 0x34) = b;
     return a;
 }
-u32 *__cdecl Class7037c0_Create(u32 *result, u8 **object) {
-    if (!object) {
-        *result = 0x80004003;
-        return result;
-    }
-    u8 *block = static_cast<u8 *>(GameHeap_Alloc(0x18));
-    if (block) {
-        Class703770_Ctor(block);
-        at<u32>(block, 8) = 0;
-        at<u32>(block, 0) = 0x007037c0;
-    }
-    if (!block) {
-        *result = 0xcffe0100;
-        return result;
-    }
-    *object = block;
-    *result = 0;
-    return result;
-}
 
 u8 *__fastcall Class701378_Ctor(u8 *object, void *, u32 mostDerived) {
     if (mostDerived != 0) {

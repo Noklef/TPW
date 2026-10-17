@@ -113,7 +113,8 @@
 #include "../game/core/crt.h"
 #include "../game/core/gameheap.h"
 #include "../game/core/ptrlist.h"
-#include "../game/core/class6fd9d8.h"
+#include "../game/core/class6fd9d8.h"
+#include "../game/core/factories.h"
 #include "../game/core/wstringmap.h"
 #include "../game/core/streambuf.h"
 #include "../game/core/voices.h"
@@ -2971,6 +2972,7 @@ const Hook kHooks[] = {
     {"Object_ReleaseSavedPairs",  0x0057b070, (void *)&Object_ReleaseSavedPairs, {0x56, 0x8b, 0xf1, 0xf7, 0x46}},
     {"Class702bc8_Ctor",          0x005dc580, (void *)&Class702bc8_Ctor, {0x6a, 0xff, 0x68, 0x58, 0x14}},
     {"Class7037c0_Create",        0x00617ff0, (void *)&Class7037c0_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Class703750_Create",        0x00617970, (void *)&Class703750_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Cell_ExtendPath",           0x0052a050, (void *)&Cell_ExtendPath, {0x55, 0x56, 0x8b, 0x74, 0x24}},
     {"MapGrid_MarkEdges",         0x0052c420, (void *)&MapGrid_MarkEdges, {0x51, 0x53, 0x55, 0x56, 0x8b}},
