@@ -43,4 +43,16 @@ u32 __cdecl TrackedGlobal_Alloc(u32 size);
 // the last pair (by the count re-read) moved into its place when it comes after it, and the count lowered. Returns 1.
 u32 __cdecl TrackedGlobal_Free(u32 block);
 
+// 0x58a4f0 (thiscall; count, pops 4; name unconfirmed): count dwords from TrackedGlobal_Alloc into +0x14; got, +8 = count and the block is
+// returned, else 0.
+u32 __fastcall TrackedArray_Alloc(u8 *array, void *, u32 count);
+
+// 0x58a520 (thiscall; name unconfirmed): the block at +0x14 (when set) freed (TrackedGlobal_Free) and cleared, +8 = 0. Returns 1.
+u32 __fastcall TrackedArray_Free(u8 *array);
+
+// 0x586e20 / 0x587110 (thiscall; names unconfirmed): the tracked block at +0 (when set) freed (TrackedGlobal_Free) and cleared; the second
+// returns 1 (the first is a destructor of the unwinding code's).
+void __fastcall TrackedBlock_Dtor(u8 *holder);
+u32 __fastcall TrackedBlock_Free(u8 *holder);
+
 }  // extern "C"
