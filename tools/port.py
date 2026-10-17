@@ -13,7 +13,8 @@ staged, so .data/, _re/ and build/ can't slip in.
 Every function of the spec must be verified directly by the bench: MIN_CASES or more of its cases call the function's address and match
 the C++ without a crash in either (fncmp's FNCMP_COVER records them), or nothing is committed. A function that cannot be compared
 (imports, hardware, ...) is ported with --unverified "REASON" instead: it goes on re/unverified.csv with that reason, the commit
-includes the list, and tools/coverage.py --check accepts it.
+includes the list, and tools/coverage.py --check accepts it. The bench is also run as the coverage gate runs it (10 cases seed 5, 400
+seed 6): a function the bench compares that gets no case there fails the port (deal the bench's ops: Rand.deal in tools/fncmp.py).
 
 Mutants come after the commit (a surviving equivalent mutant shouldn't hold up a verified port).
 The --mut file is Python defining MUTANTS = [(path, old, new), ...] and optionally OPS (the suite's
@@ -53,6 +54,22 @@ def take(a, flag):
 
 def git(*args):
     return subprocess.run(['git'] + list(args), capture_output=True, text=True, stdin=subprocess.DEVNULL, cwd=ROOT)
+
+
+def gate_cover(suite):
+    """address -> direct, matching cases of the suite run as tools/coverage.py runs it (10 cases seed 5, then 400 seed 6)."""
+    fd, cover = tempfile.mkstemp(suffix='.jsonl')
+    os.close(fd)
+    for n, seed in [(10, 5), (400, 6)]:
+        subprocess.run([sys.executable, '-I', os.path.join(ROOT, suite) if not os.path.isabs(suite) else suite, str(n), str(seed)], capture_output=True,
+                       stdin=subprocess.DEVNULL, cwd=ROOT, env=dict(os.environ, FNCMP_COVER=cover))
+    out = {}
+    for line in open(cover):
+        if line.strip():
+            for k, v in json.loads(line)['direct'].items():
+                out[int(k, 16)] = out.get(int(k, 16), 0) + v
+    os.remove(cover)
+    return out
 
 
 def main():
@@ -99,6 +116,14 @@ def main():
     if weak and not unverified:
         sys.exit('port: NOT VERIFIED, fewer than %d matching cases without a crash call: %s (bench them, or --unverified "REASON")'
                  % (MIN_CASES, ', '.join(weak)))
+    # tools/coverage.py runs each bench at 10 cases (seed 5) and 400 (seed 6): every function this bench compares must get a case there too,
+    # or ops added to a bench of many functions leave older ones without one and the gate fails after the merge (deal them: Rand.deal).
+    gate = gate_cover(bench[0])
+    starved = ['%x' % k for k in sorted(seen) if seen[k] >= MIN_CASES and not gate.get(k)]
+    if starved:
+        sys.exit('port: the coverage gate\'s cases (%s 10 5 + 400 6) call none of %s: deal or weight the bench\'s ops (r.deal in tools/fncmp.py)'
+                 % (os.path.basename(bench[0]), ', '.join(starved)))
+
     if unverified:
         path = os.path.join(ROOT, 're', 'unverified.csv')
         with open(path, newline='') as f:
