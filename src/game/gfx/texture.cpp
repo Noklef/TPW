@@ -2,7 +2,10 @@
 
 #include <cstdint>
 #include <initializer_list>
+#include "../core/gameheap.h"
 #include "../core/vcall.h"
+#include "../math/x87.h"
+#include "texcache.h"
 
 namespace {
 
@@ -87,5 +90,31 @@ u32 __fastcall Texture_Reload(u8 *texture) {
     global<u32>(0x008c4b60)++;
     at<u32>(texture, 0x14) = global<u32>(0x008bcc40);
     return vcall<u32>(at<u8 *>(texture, 0), 0x14);
+}
+
+u32 __fastcall Texture_Release(u8 *texture) {
+    if (at<u32>(texture, 8) & 0x800000)
+        Texture_Release(texture + 0x60);
+    if (at<u32>(texture, 8) & 0x1000)
+        TexCache_UnlinkItem(global<u8 *>(0x008c4b44), nullptr, texture);
+    if (at<u32>(texture, 8) & 0x10000000) {
+        if (u8 *const object = at<u8 *>(texture, 0x40))
+            vcall<void>(object, 0, 1u);
+    } else if (at<u32>(texture, 0x40)) {
+        TrackedGlobal_Free(at<u32>(texture, 0x40));
+        at<u32>(texture, 0x40) = 0;
+    }
+    if (at<u32>(texture, 0x3c)) {
+        TrackedGlobal_Free(at<u32>(texture, 0x3c));
+        at<u32>(texture, 0x3c) = 0;
+    }
+    const X87Reg lod = (X87Reg(1.5f) - at<float>(texture, 0x30)) * 2047.0f;  // 0x702530, 0x702534
+    at<u16>(texture, 0x14) = 0;
+    at<u16>(texture, 0x10) = 0;
+    at<u16>(texture, 0x16) = 0;
+    at<u16>(texture, 0x12) = 0;
+    at<u32>(texture, 8) = 5;
+    at<u32>(texture, 0x38) = ((u32)(long long)lod.v & 0xfff) << 16;
+    return 1;
 }
 }

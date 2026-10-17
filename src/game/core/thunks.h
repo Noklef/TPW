@@ -187,6 +187,9 @@ u32 __fastcall Wrap_Zero_5d60c0_58c920(u8 *);
 // 0x58c940 (thiscall): this lowered by the dword before it (a virtual base offset), then TexSurfaceB_Zero, its float on ST0.
 float __fastcall Wrap_TexSurfaceB_Zero_58c940(const u8 *self);
 
+// 0x590a70 (thiscall): jumps to Texture_Release, the destructor the texture arrays are given.
+u32 __fastcall Wrap_Texture_Release_590a70(u8 *self);
+
 // 0x5987c0 (thiscall): this lowered by the dword before it (a virtual base offset), then Obj_IncBefore4c.
 u32 __fastcall Wrap_Obj_IncBefore4c_5987c0(u8 *self);
 

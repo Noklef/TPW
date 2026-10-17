@@ -3039,6 +3039,7 @@ address,name,kind,confidence,notes
 0x00579080,Wrap_Transform_ProjectToScreen_579080,function,low,"reimplemented (src/game/core/thunks); cdecl: the first stack argument lowered by the dword before it, then Transform_ProjectToScreen"
 0x005790a0,Wrap_Transform_Concatenate_5790a0,function,low,"reimplemented (src/game/core/thunks); cdecl: the first stack argument lowered by the dword before it, then Transform_Concatenate"
 0x0058c940,Wrap_TexSurfaceB_Zero_58c940,function,high,"reimplemented (src/game/core/thunks); thiscall: this lowered by the dword before it, then TexSurfaceB_Zero"
+0x00590a70,Wrap_Texture_Release_590a70,function,high,reimplemented (src/game/core/thunks); thiscall: jumps to Texture_Release
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value
@@ -3927,6 +3928,7 @@ address,name,kind,confidence,notes
 0x00590a00,Texture_Ctor,function,high,"reimplemented (src/game/gfx/texture); the texture constructor (most-derived flag: vbtable 0x702538, virtual base at +0x48)"
 0x00590c40,Texture_FormatBits,function,high,"reimplemented (src/game/gfx/texture); the format word for the driver from the flags (0x300, 0x4000000, driver filter)"
 0x00590ff0,Texture_Reload,function,high,"reimplemented (src/game/gfx/texture); Raises the counter, stores the device generation and forwards to call 5 (name unconfirmed)"
+0x00590b90,Texture_Release,function,low,"reimplemented (src/game/gfx/texture); thiscall: the pixels / owned object freed, the cache item unlinked, the texture reset (name unconfirmed)"
 0x00588d70,SpriteFrame_Init,function,high,"reimplemented (src/game/gfx/spriteframe); thiscall (a sprite frame, 0x48 bytes): +0x10/+0x28/+0x30/+0x34 = 0, +0x24 = -1, +0x2c = 1.0f; returns the frame"
 0x00588320,SpriteImage_Init,function,high,"reimplemented (src/game/gfx/spriteframe); thiscall (a sprite image, 0x18 bytes): +0, +4 and the u16 sizes +0xc..+0x16 cleared; returns the image"
 0x005882e0,SpriteFrames_MarkTextures,function,high,"reimplemented (src/game/gfx/spriteframe); each image texture: flag 0x200 set, 0x100 cleared"

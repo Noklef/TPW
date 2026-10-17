@@ -1,5 +1,5 @@
-// The engine textures' small methods: reimplementation of 0x590a00, 0x590c40, 0x590cb0, 0x590cf0 and
-// 0x590f80-0x590fb0.
+// The engine textures' small methods: reimplementation of 0x590a00, 0x590b90, 0x590c40, 0x590cb0, 0x590cf0
+// and 0x590f80-0x590fb0.
 //
 // A texture keeps its flags at +8 (0x30: the level given in the low 3 bits; 0x1000-0x4000 cache
 // state, 0x4000 marking its cache item to be kept, 0x58f83d; 0x30000 bits only the Direct3D
@@ -44,4 +44,11 @@ u32 __fastcall Texture_UsesDriverFilter(const u8 *texture);
 // 0x590ff0 (thiscall; name unconfirmed): the counter at 0x8c4b60 is raised, the dword at +0x14 takes the device generation (0x8bcc40) and the object at +0 answers with its virtual call 5,
 // whose result is returned.
 u32 __fastcall Texture_Reload(u8 *texture);
+
+// 0x590b90 (thiscall; name unconfirmed): the release (the texture arrays' destructor, through 0x590a70). With flag 0x800000 the texture
+// after it (+0x60) first; with flag 0x1000 its cache item is unlinked (TexCache_UnlinkItem on the cache at 0x8c4b44); with flag 0x10000000
+// the object at +0x40 (when set) is deleted (its virtual call 0 with 1; +0x40 left as it is), else the pixels at +0x40 are freed
+// (TrackedGlobal_Free) and cleared; so is the block at +0x3c. Then the sizes at +0x10-+0x16 are zeroed, the flags 5 and +0x38 the cache key's
+// level part alone (<< 16). Returns 1.
+u32 __fastcall Texture_Release(u8 *texture);
 }

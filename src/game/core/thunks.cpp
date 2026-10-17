@@ -9,6 +9,7 @@
 #include "misc.h"
 #include "vtables.h"
 #include "../gfx/texsurface.h"
+#include "../gfx/texture.h"
 #include "../render/rasteriser.h"
 #include "../render/softrender.h"
 #include "../render/spritequeue.h"
@@ -287,6 +288,8 @@ u32 __fastcall Wrap_Zero_5d60c0_58c920(u8 *) {
 float __fastcall Wrap_TexSurfaceB_Zero_58c940(const u8 *self) {
     return TexSurfaceB_Zero(Adjust(self));
 }
+
+u32 __fastcall Wrap_Texture_Release_590a70(u8 *self) { return Texture_Release(self); }
 
 u32 __fastcall Wrap_Obj_IncBefore4c_5987c0(u8 *self) {
     return Obj_IncBefore4c(Adjust(self));
