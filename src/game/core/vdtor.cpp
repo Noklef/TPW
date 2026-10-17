@@ -11,6 +11,18 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
+// A 0x10-byte helper object {vtable, three zero dwords} (0 when the allocation fails).
+u8 *Helper(u32 vtable) {
+    u8 *block = static_cast<u8 *>(GameHeap_Alloc(0x10));
+    if (!block)
+        return nullptr;
+    at<u32>(block, 4) = 0;
+    at<u32>(block, 8) = 0;
+    at<u32>(block, 0xc) = 0;
+    at<u32>(block, 0) = vtable;
+    return block;
+}
+
 u8 *Finish(u8 *object, u32 flags) {
     if (flags & 1)
         GameHeap_Free(object);
@@ -161,6 +173,25 @@ u8 *__fastcall Class7028d0_DeletingDtor(u8 *object, void *, u32 flags) {
 u8 *__fastcall Class7028f8_DeletingDtor(u8 *object, void *, u32 flags) {
     Class7028_Dtor(object, 0x007028f8);
     return Finish(object, flags);
+}
+
+u8 *__fastcall Class702bc8_Ctor(u8 *object) {
+    Class702d48_Ctor(object);
+    at<u32>(object, 0) = 0x00702bc8;
+    at<u8 *>(object, 8) = Helper(0x00702bc0);
+    at<u8 *>(object, 0x6c) = Helper(0x00702bbc);
+    at<u32>(object, 0x78) = 0;
+    at<u32>(object, 0x74) = 0;
+    at<u32>(object, 0x1c) = 0x3ecccccd;
+    at<u32>(object, 0x20) = 0x3e19999a;
+    at<u32>(object, 0x24) = 0x3f000000;
+    at<u32>(object, 0x38) = 0x43960000;
+    at<u32>(object, 0x28) = 0x3e4ccccd;
+    at<u32>(object, 0x2c) = 0x3d99999a;
+    at<u32>(object, 0x30) = 0x3e800000;
+    at<u32>(object, 0x3c) = 0x43160000;
+    at<u32>(object, 0x40) = 0x3fc00000;
+    return object;
 }
 
 }  // extern "C"

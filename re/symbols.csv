@@ -205,7 +205,7 @@ address,name,kind,confidence,notes
 0x00516380,World_Tick,function,medium,"increments the tick counter at +0x1da70c and calls Thing_Update for every live thing (skips things whose byte +3 is set)"
 0x0050b360,Thing_Update,function,high,per-tick dispatch on Thing.model (byte +2); most models call an Update and a PostUpdate method
 0x0050b550,Thing_HandleMessage,function,high,"dispatch on Thing.model to the model's message handler; called from the message centre (0x40fb10)"
-0x0050b6a0,Thing_SetPos,function,high,reimplemented (src/game/core/small58); a thing's move between cells
+0x0050b6a0,Thing_SetPos,function,high,reimplemented (src/game/world/things); a thing's move between cells
 0x00501650,Visitor_Update,function,medium,Thing_Update case 1 (first call)
 0x005019f0,Visitor_PostUpdate,function,medium,Thing_Update case 1 (second call)
 0x004fb360,Visitor_HandleMessage,function,high,Thing_HandleMessage case 1
@@ -462,7 +462,7 @@ address,name,kind,confidence,notes
 0x00474070,Animator_MotionEndMs,function,high,"reimplemented (src/game/motion/animator); (animator, bank, entry): end frame (block +8) * 1000 / 30, 0 without the entry"
 0x0044ab30,PartStates_Update,function,high,"reimplemented (src/game/model/partstate); cdecl (instance): when the instance (flag 1) and its part states (+0x28, flag 1) are awake, walks the model's node tree (+0x78; 0x44ab90) from the identity matrix, filling the part entries' matrix slots"
 0x0045bdc0,Holder_IsAwake,function,high,reimplemented (src/game/model/holder); holder flag 1 (awake)
-0x0045bdd0,Holder_Sleep,function,high,reimplemented (src/game/core/small58); a holder's part leaves the renderer's slot
+0x0045bdd0,Holder_Sleep,function,high,reimplemented (src/game/model/holder); a holder's part leaves the renderer's slot
 0x0045be80,Obj_RemoveFromRect,function,high,reimplemented (src/game/core/misc); an object's part removed from the renderer's grid over a rectangle
 0x008bd508,gSceneFlags,data,low,"u32; Animator_RefreshNodes sets 0x80000000 when nodes flagged 0x100 changed"
 0x00472f60,Layer_Play,function,high,"reimplemented (src/game/motion/animator); (animator, bank, entry, layer, mode, speed): switch a layer to a bank entry (0xd/0xe stop it, 0xc or unloaded empties it), resetting the channels the old block drove, carrying the overrun; returns the motion length in ms"
@@ -3328,14 +3328,14 @@ address,name,kind,confidence,notes
 0x0040c990,Actions_FireUp,function,high,reimplemented (src/game/core/small33); fires the up handler of an action entry
 0x0041a9d0,Graphics_Level,function,high,reimplemented (src/game/core/small34); level 2 to 8 from the render mode or the graphics balance
 0x0043ba20,Coaster_SetTrainCount,function,high,"reimplemented (src/game/core/small34); sets the car count, unloading the cars cut off"
-0x0041c8b0,Class6fd9d8_Dtor,function,high,"reimplemented (src/game/core/small35); destructor: deletes its member and the held objects of its list, frees two strings"
+0x0041c8b0,Class6fd9d8_Dtor,function,high,"reimplemented (src/game/core/class6fd9d8); destructor: deletes its member and the held objects of its list, frees two strings"
 0x004f0700,Wstreambuf_Read,function,high,"reimplemented (src/game/core/small36); reads wide characters from the get area, else through the underflow slot"
 0x004f07c0,Wstreambuf_Write,function,high,"reimplemented (src/game/core/small36); writes wide characters to the put area, else through the overflow slot"
 0x004f6740,Streambuf_Regrow,function,high,reimplemented (src/game/core/small36); new block taking the buffer dwords
 0x005ceaf0,Streambuf_Read,function,high,"reimplemented (src/game/core/small36); reads bytes from the get area, else through the underflow slot"
 0x005ceba0,Streambuf_Write,function,high,"reimplemented (src/game/core/small36); writes bytes to the put area, else through the overflow slot"
-0x004f6400,WStringMap_LowerBound,function,high,reimplemented (src/game/core/small37); lower bound of a wide string key
-0x004f6940,WStringMap_UpperBound,function,high,reimplemented (src/game/core/small37); upper bound of a wide string key
+0x004f6400,WStringMap_LowerBound,function,high,reimplemented (src/game/core/wstringmap); lower bound of a wide string key
+0x004f6940,WStringMap_UpperBound,function,high,reimplemented (src/game/core/wstringmap); upper bound of a wide string key
 0x0047cd00,StdMapA_Insert,function,high,reimplemented (src/game/core/small38); map insert of a key with the sentinel at 0x7b4a54
 0x005b1930,StdMapG_Insert,function,high,reimplemented (src/game/core/small38); map insert of a 16-bit key with the sentinel at 0xf7c970
 0x0047c740,ImeVector_InsertOne,function,high,reimplemented (src/game/core/small39); inserts one dword into the IME vector
@@ -3353,20 +3353,20 @@ address,name,kind,confidence,notes
 0x005b20c0,StdTreeF_FindLower,function,high,reimplemented (src/game/core/small45); stores the lower bound of a string key
 0x005ce080,StdListString_Unique,function,high,reimplemented (src/game/core/small46); removes elements equal to the one before from a list of counted strings
 0x005d0590,StdListDword_Merge,function,high,reimplemented (src/game/core/small46); merges a sorted list of dwords into another
-0x0041e2c0,Class6fda48_Dtor,function,high,reimplemented (src/game/core/small47); derived destructor: vtable then the 0x6fd9d8 base destructor
-0x0041e320,Class6fda68_Dtor,function,high,reimplemented (src/game/core/small47); derived destructor: vtable then the 0x6fd9d8 base destructor
-0x0041e4d0,Class6fdaa8_Dtor,function,high,reimplemented (src/game/core/small47); derived destructor: vtable then the 0x6fd9d8 base destructor
-0x0041e4e0,Class6fdab8_Dtor,function,high,reimplemented (src/game/core/small47); derived destructor: vtable then the 0x6fd9d8 base destructor
-0x0041e5b0,Class6fdae8_Dtor,function,high,reimplemented (src/game/core/small47); derived destructor: vtable then the 0x6fd9d8 base destructor
-0x0041e5c0,Class6fdaf8_Dtor,function,high,reimplemented (src/game/core/small47); derived destructor: vtable then the 0x6fd9d8 base destructor
+0x0041e2c0,Class6fda48_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
+0x0041e320,Class6fda68_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
+0x0041e4d0,Class6fdaa8_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
+0x0041e4e0,Class6fdab8_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
+0x0041e5b0,Class6fdae8_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
+0x0041e5c0,Class6fdaf8_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
 0x005e3f60,Class702ec0_Dtor,function,high,reimplemented (src/game/core/small47); derived destructor: vtable then the 0x702cb0 base destructor
 0x005e3f90,Class702dd0_Dtor,function,high,reimplemented (src/game/core/small47); derived destructor: vtable then the 0x702cb0 base destructor
-0x0041d880,Class6fda48_ScalarDtor,function,high,reimplemented (src/game/core/small47); scalar deleting destructor
-0x0041da50,Class6fda68_ScalarDtor,function,high,reimplemented (src/game/core/small47); scalar deleting destructor
-0x0041ddc0,Class6fdaa8_ScalarDtor,function,high,reimplemented (src/game/core/small47); scalar deleting destructor
-0x0041dea0,Class6fdab8_ScalarDtor,function,high,reimplemented (src/game/core/small47); scalar deleting destructor
-0x0041e170,Class6fdae8_ScalarDtor,function,high,reimplemented (src/game/core/small47); scalar deleting destructor
-0x0041e250,Class6fdaf8_ScalarDtor,function,high,reimplemented (src/game/core/small47); scalar deleting destructor
+0x0041d880,Class6fda48_ScalarDtor,function,high,reimplemented (src/game/core/class6fd9d8); scalar deleting destructor
+0x0041da50,Class6fda68_ScalarDtor,function,high,reimplemented (src/game/core/class6fd9d8); scalar deleting destructor
+0x0041ddc0,Class6fdaa8_ScalarDtor,function,high,reimplemented (src/game/core/class6fd9d8); scalar deleting destructor
+0x0041dea0,Class6fdab8_ScalarDtor,function,high,reimplemented (src/game/core/class6fd9d8); scalar deleting destructor
+0x0041e170,Class6fdae8_ScalarDtor,function,high,reimplemented (src/game/core/class6fd9d8); scalar deleting destructor
+0x0041e250,Class6fdaf8_ScalarDtor,function,high,reimplemented (src/game/core/class6fd9d8); scalar deleting destructor
 0x005e3f40,Class702ec0_ScalarDtor,function,high,reimplemented (src/game/core/small47); scalar deleting destructor
 0x005e3f70,Class702dd0_ScalarDtor,function,high,reimplemented (src/game/core/small47); scalar deleting destructor
 0x005b1650,StdMapG_InsertCopy,function,high,"reimplemented (src/game/core/small48); the 16-bit key map insert, result copied to out"
@@ -3389,33 +3389,33 @@ address,name,kind,confidence,notes
 0x005f09a0,Colour_Blend3,function,high,reimplemented (src/game/core/small55); blends between three colour records by a position of 0 to 100
 0x00598ca0,ModelSlot_ApplySelection,function,high,reimplemented (src/game/core/small56); sets or clears the part flags of the selection kind
 0x004d9620,Litter_Remove,function,high,reimplemented (src/game/core/small57); takes a piece of litter off its cell
-0x004f2b40,WStringMap_Find,function,high,reimplemented (src/game/core/small58); a wide string map lookup
-0x004de130,Object_BackOfQueue,function,high,reimplemented (src/game/core/small58); the back of a queue found by walking neighbours
-0x0041e270,Class6fda58_DtorA,function,high,"reimplemented (src/game/core/small59); complete destructor, handle at +0x40"
-0x0041e2d0,Class6fda58_DtorB,function,high,"reimplemented (src/game/core/small59); complete destructor, handle at +0x40"
-0x0041e560,Class6fda58_DtorC,function,high,"reimplemented (src/game/core/small59); complete destructor, handle at +0x40"
-0x0041e330,Class6fda88_FullDtor,function,high,"reimplemented (src/game/core/small59); complete destructor, handles at +0x48 and +0x40"
-0x0041e4f0,Class6fdac8_FullDtor,function,high,"reimplemented (src/game/core/small59); complete destructor, handles at +0x48 and +0x40"
-0x0041e470,Class6fdaa4_Dtor,function,high,reimplemented (src/game/core/small59); handle and two strings
-0x004254c0,Animator_Sleep,function,high,reimplemented (src/game/core/small60); the holder sleeps and flag 0x4000 clears
-0x004de110,Object_BackOfQueueTo,function,high,reimplemented (src/game/core/small60); Object_BackOfQueue returning out
-0x004ddf40,Object_QueuePositionOfNone,function,high,reimplemented (src/game/core/small60); the position of the person with no handle
-0x004fa930,Thing_PlaceAt,function,high,reimplemented (src/game/core/small61); a thing placed on the navigation block and moved
-0x0051fa20,Slot_ReadIntoFree,function,high,reimplemented (src/game/core/small61); a stream read into the first free 0x140-byte slot
-0x004fcac0,Thing_SpriteChoice,function,high,"reimplemented (src/game/core/small61); the flags of a sprite, or a random sprite of folder 1"
-0x004e2200,Thing_IngredientRecord,function,high,reimplemented (src/game/core/small62); the record of the definition's special ingredient
-0x005667d0,Class701378_Ctor,function,high,reimplemented (src/game/core/small62); stream class constructor with a virtual base
-0x0050afe0,Thing_Construct,function,high,"reimplemented (src/game/core/small63); a thing's constructor: slot, handle, cell and chain"
-0x00565310,DrawBatch_Open,function,high,reimplemented (src/game/core/small64); a draw batch resumed and tagged
-0x0057b070,Object_ReleaseSavedPairs,function,high,reimplemented (src/game/core/small64); saved pairs written back and their arrays freed
-0x005dc580,Class702bc8_Ctor,function,high,reimplemented (src/game/core/small65); constructor with two helper objects and tuning floats
-0x00617ff0,Class7037c0_Create,function,high,reimplemented (src/game/core/small65); object factory with a result code
-0x0050ffe0,Class50ffe0_Ctor,function,high,reimplemented (src/game/core/small65); constants constructor with five integer pairs
-0x0052a050,Cell_ExtendPath,function,high,reimplemented (src/game/core/small66); one step of a path across the map's cells
-0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/core/small67); a holder's part sleeps, its owner's count drops and the part is deleted"
-0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/core/small67); the left and right mouse buttons go down or up
-0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/core/small67); the mouse moved
-0x0047e3e0,Class6fef78_Release,function,high,reimplemented (src/game/core/small67); an object releases its two COM objects
+0x004f2b40,WStringMap_Find,function,high,reimplemented (src/game/core/wstringmap); a wide string map lookup
+0x004de130,Object_BackOfQueue,function,high,reimplemented (src/game/world/objectmsg); the back of a queue found by walking neighbours
+0x0041e270,Class6fda58_DtorA,function,high,"reimplemented (src/game/core/class6fd9d8); complete destructor, handle at +0x40"
+0x0041e2d0,Class6fda58_DtorB,function,high,"reimplemented (src/game/core/class6fd9d8); complete destructor, handle at +0x40"
+0x0041e560,Class6fda58_DtorC,function,high,"reimplemented (src/game/core/class6fd9d8); complete destructor, handle at +0x40"
+0x0041e330,Class6fda88_FullDtor,function,high,"reimplemented (src/game/core/class6fd9d8); complete destructor, handles at +0x48 and +0x40"
+0x0041e4f0,Class6fdac8_FullDtor,function,high,"reimplemented (src/game/core/class6fd9d8); complete destructor, handles at +0x48 and +0x40"
+0x0041e470,Class6fdaa4_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); handle and two strings
+0x004254c0,Animator_Sleep,function,high,reimplemented (src/game/model/holder); the holder sleeps and flag 0x4000 clears
+0x004de110,Object_BackOfQueueTo,function,high,reimplemented (src/game/world/objectmsg); Object_BackOfQueue returning out
+0x004ddf40,Object_QueuePositionOfNone,function,high,reimplemented (src/game/world/objectmsg); the position of the person with no handle
+0x004fa930,Thing_PlaceAt,function,high,reimplemented (src/game/world/things); a thing placed on the navigation block and moved
+0x0051fa20,TrackTypeSlot_ReadIntoFree,function,high,reimplemented (src/game/coaster/tracktypes); a stream read into the first free 0x140-byte slot
+0x004fcac0,Thing_SpriteChoice,function,high,"reimplemented (src/game/world/things); the flags of a sprite, or a random sprite of folder 1"
+0x004e2200,Thing_IngredientRecord,function,high,reimplemented (src/game/world/things); the record of the definition's special ingredient
+0x005667d0,Class701378_Ctor,function,high,reimplemented (src/game/core/misc); stream class constructor with a virtual base
+0x0050afe0,Thing_Construct,function,high,"reimplemented (src/game/world/things); a thing's constructor: slot, handle, cell and chain"
+0x00565310,DrawBatch_Open,function,high,reimplemented (src/game/render/drawbuffer); a draw batch resumed and tagged
+0x0057b070,Object_ReleaseSavedPairs,function,high,reimplemented (src/game/core/vobj2); saved pairs written back and their arrays freed
+0x005dc580,Class702bc8_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor with two helper objects and tuning floats
+0x00617ff0,Class7037c0_Create,function,high,reimplemented (src/game/core/misc); object factory with a result code
+0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
+0x0052a050,Cell_ExtendPath,function,high,reimplemented (src/game/world/mapcell); one step of a path across the map's cells
+0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
+0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
+0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
+0x0047e3e0,ScreenSurfaces_Dtor,function,high,reimplemented (src/game/gfx/screensurfaces); an object releases its two COM objects
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

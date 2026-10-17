@@ -1,4 +1,4 @@
-#include "small37.h"
+#include "wstringmap.h"
 
 #include <cstdint>
 
@@ -62,6 +62,23 @@ u8 *__fastcall WStringMap_UpperBound(u8 *tree, void *, const u8 *key) {
         }
     } while (node != sentinel);
     return result;
+}
+
+u32 *__fastcall WStringMap_Find(u8 *map, void *, u32 *out, const u8 *key) {
+    u8 *const found = WStringMap_LowerBound(map, nullptr, key);
+    u8 *const head = at<u8 *>(map, 4);
+    if (found != head) {
+        const u16 *chars = at<const u16 *>(found, 0x10);
+        if (!chars)
+            chars = reinterpret_cast<const u16 *>(0x006fd6c4);
+        // the key against the node's string
+        if (Compare(at<const u16 *>(key, 4), at<u32>(key, 8), chars, at<u32>(found, 0x14)) >= 0) {
+            *out = (u32)(uintptr_t)found;
+            return out;
+        }
+    }
+    *out = (u32)(uintptr_t)head;
+    return out;
 }
 
 }  // extern "C"

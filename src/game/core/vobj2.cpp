@@ -5,6 +5,7 @@
 #include "crt.h"
 #include "gameheap.h"
 #include "vcall.h"
+#include "small20.h"
 
 namespace {
 
@@ -177,6 +178,26 @@ void __fastcall Class702da0_Dtor(u8 *object) {
     at<u32>(object, 0x14) = 0;
     at<u32>(object, 0) = 0x00702d48;
     vcall<u32>(global<u8 *>(0x00f85614), 0x1c, object);
+}
+
+u32 __fastcall Object_ReleaseSavedPairs(u8 *object) {
+    if ((at<u32>(object, 4) & 0x20000000) != 0 && at<s32>(object, 0x12c) > 0) {
+        u8 *pairs = at<u8 *>(object, 0x124);
+        for (s32 i = at<s32>(object, 0x12c) - 1; i >= 0; i--)
+            *at<u32 *>(pairs, 4 + i * 8) = at<u32>(pairs, i * 8);
+        if (at<u8 *>(object, 0x124)) {
+            GameHeap_Free(at<u8 *>(object, 0x124));
+            at<u32>(object, 0x124) = 0;
+        }
+        if (u8 *elements = at<u8 *>(object, 0x128)) {
+            CRT_VectorDtorIterator(elements, 0x10, at<s32>(elements - 4, 0), reinterpret_cast<void(__fastcall *)(void *)>(0x00575bf0));
+            GameHeap_Free(elements - 4);
+            at<u32>(object, 0x128) = 0;
+        }
+        at<u32>(object, 4) = at<u32>(object, 4) & 0xdfffffff;
+    }
+    at<u32>(object, 0x12c) = 0;
+    return 1;
 }
 
 }  // extern "C"

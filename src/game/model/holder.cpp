@@ -3,12 +3,15 @@
 #include <cstdint>
 
 #include "../math/matrix.h"
+#include "../render/renderer.h"
+#include "../core/vcall.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) {
     return *reinterpret_cast<T *>((uintptr_t)p + offset);
 }
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 }  // namespace
 
@@ -41,4 +44,41 @@ u32 __cdecl Ride_SlotKey(u32 ride, u32 i) {
     const uintptr_t slot = (uintptr_t)at<const u8 *>(at<const u8 *>(holder, 0x28), 4) + i * 0x14;
     return slot ? at<u32>(reinterpret_cast<const void *>(slot), 8) : 0;
 }
+void __cdecl Holder_Sleep(u8 *holder) {
+    u8 *const part = at<u8 *>(holder, 0x1c);
+    const u32 flags = at<u32>(holder, 0);
+    u8 *key = nullptr;
+    if (part)
+        key = part + at<s32>(at<u8 *>(part, 0), 4);
+    u32 tag;
+    if (flags & 0x10)
+        tag = 0x10;
+    else if (flags & 8)
+        tag = 0x20;
+    else
+        tag = 0x70;
+    Renderer_RemoveFromSlot(global<u8 *>(0x0087a6d0), nullptr, (u32)(uintptr_t)key, tag);
+    at<u32>(holder, 0) = at<u32>(holder, 0) & 0xffffffe6;
+}
+
+u32 __cdecl Animator_Sleep(u8 *animator) {
+    Holder_Sleep(at<u8 *>(animator, 0x24));
+    at<u32>(animator, 0) = at<u32>(animator, 0) & 0xffffbfff;
+    return 1;
+}
+
+void __cdecl Holder_Destroy(u8 *holder) {
+    if (at<u32>(holder, 0) & 1)
+        Holder_Sleep(holder);
+    u8 *owner = at<u8 *>(holder, 8);
+    if (!owner)
+        owner = holder;
+    at<s32>(owner, 0x34) = at<s32>(owner, 0x34) - 1;
+    if (u8 *part = at<u8 *>(holder, 0x1c)) {
+        u8 *adjusted = part + at<s32>(at<u8 *>(part, 0), 4);
+        vcall<u32>(adjusted, 0, 1u);
+    }
+    at<u32>(holder, 0x1c) = 0;
+}
+
 }

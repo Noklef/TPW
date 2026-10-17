@@ -47,4 +47,9 @@ void __fastcall Obj_PickByName(u8 *object, void *, u32 flag);
 // cleared and the vtable pointer 0x702d48 set; the object the dword at 0xf85614 points to gets its slot 0x1c called with the object.
 void __fastcall Class702da0_Dtor(u8 *object);
 
+// 0x57b070 (thiscall on the object): with flag 0x20000000 of the flags (+4) and a positive count (+0x12c) the saved pairs {value, pointer} at +0x124 are written back (the value to the
+// word the pointer names, the last pair first) and the array freed (Mem_Free); the 0x10-byte elements at +0x128 (their count the dword before them) are destroyed (the dtor at
+// 0x575bf0) and their block freed from 4 bytes before; the flag is cleared. In every case the count is cleared. Returns 1.
+u32 __fastcall Object_ReleaseSavedPairs(u8 *object);
+
 }  // extern "C"

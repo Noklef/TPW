@@ -7,6 +7,7 @@
 #include "../render/state.h"
 #include "../sprite/script.h"
 #include "accessors.h"
+#include "gameheap.h"
 #include "tiny_c.h"
 #include "tiny_d.h"
 #include "small.h"
@@ -15,6 +16,9 @@
 #include "tiny_e.h"
 
 namespace {
+
+// The virtual base offset: the word at +4 of the object's vtable.
+s32 BaseOffset(const u8 *object) { return *reinterpret_cast<const s32 *>(*reinterpret_cast<const uintptr_t *>(object) + 4); }
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -554,4 +558,43 @@ u32 __fastcall Obj_Set30_34(u8 *object, void *, u32 a, u32 b) {
     at<u32>(object, 0x34) = b;
     return a;
 }
+u32 *__cdecl Class7037c0_Create(u32 *result, u8 **object) {
+    if (!object) {
+        *result = 0x80004003;
+        return result;
+    }
+    u8 *block = static_cast<u8 *>(GameHeap_Alloc(0x18));
+    if (block) {
+        Class703770_Ctor(block);
+        at<u32>(block, 8) = 0;
+        at<u32>(block, 0) = 0x007037c0;
+    }
+    if (!block) {
+        *result = 0xcffe0100;
+        return result;
+    }
+    *object = block;
+    *result = 0;
+    return result;
+}
+
+u8 *__fastcall Class701378_Ctor(u8 *object, void *, u32 mostDerived) {
+    if (mostDerived != 0) {
+        at<u32>(object, 0) = 0x00701378;
+        Class701260_Ctor(object + 0x2c);
+    }
+    at<u32>(object, BaseOffset(object)) = 0x00701330;
+    const s32 offset = BaseOffset(object);
+    at<s32>(object, offset - 4) = offset - 0x2c;
+    const u8 *vtable = at<const u8 *>(object, 0);
+    at<u32>(object, 8) = 0;
+    at<u32>(object, 0x10) = 2;
+    at<u32>(object, 0x14) = 1;
+    at<u32>(object, 0x18) = 0;
+    at<u32>(object, 4) = 0;
+    at<u32>(object, 0x20) = 0xffffffff;
+    at<u32>(object, at<s32>(vtable, 4) + 0xc) = 0x3000;
+    return object;
+}
+
 }

@@ -1,6 +1,8 @@
 #include "mapcell.h"
 
 #include <cstdint>
+#include "../core/accessors.h"
+#include "../core/small10.h"
 
 namespace {
 
@@ -42,6 +44,15 @@ u16 *balance_pos(u16 *out, u32 b, u32 a) {
 // As balance_pos, but B with A's y (sic).
 u16 *balance_pos_a_y(u16 *out, u32 b, u32 a) {
     return store_pos(out, global<u32>(b == 0 ? a : a + 8), global<u32>(a + 4));
+}
+
+}  // namespace
+
+namespace {
+
+u8 *CellAt(s32 x, s32 y) {
+    const u32 id = (((u32)y << 7) + (u32)x + 1) & 0xffff;
+    return *reinterpret_cast<u8 **>(0x007cf83c) + 0x294 + id * 0x44;
 }
 
 }  // namespace
@@ -387,4 +398,27 @@ u16 __fastcall MapCell_Word24(const u8 *cell) {
 }
 
 void __fastcall MapCell_SetWord24(u8 *cell, void *, u32 value) { at<u16>(cell, 0x24) = (u16)value; }
+u8 *__cdecl Cell_ExtendPath(const s32 *point, s32 *nextX, s32 *nextY) {
+    if (!Map_InBounds(point[0], point[1]))
+        return nullptr;
+    const u8 direction = at<u8>(point, 0x10);
+    MapCell_AddNeighbours(CellAt(point[0], point[1]), nullptr, Nibble_Scale(direction));
+    *nextX = point[0];
+    const s32 y = point[1];
+    *nextY = y;
+    switch (direction) {
+    case 1: *nextY = y + 1; break;
+    case 0x10: *nextY = y - 1; break;
+    case 4: *nextX = *nextX - 1; break;
+    case 0x40: *nextX = *nextX + 1; break;
+    default: break;
+    }
+    if (!Map_InBounds(*nextX, *nextY))
+        return nullptr;
+    u8 *cell = CellAt(*nextX, *nextY);
+    if (Kinds_Compatible(cell, nullptr, 3))
+        MapCell_SetDirection(cell, nullptr, direction);
+    return cell;
+}
+
 }

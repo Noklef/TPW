@@ -200,4 +200,10 @@ u8 __fastcall MapCell_JunctionNeighbours(const u8 *cell);
 // (value): the u16 +0x24 set.
 u16 __fastcall MapCell_Word24(const u8 *cell);
 void __fastcall MapCell_SetWord24(u8 *cell, void *, u32 value);
+// 0x52a050 (cdecl; the path point {x, y, +0x10 direction byte}, the next x out, the next y out): 0 when the point is outside the map (Map_InBounds); otherwise the cell at the point
+// (in the map at [0x7cf83c] + 0x294, 0x44 bytes each, the id (y << 7) + x + 1 cut to 16 bits) gets the neighbour bits of the direction (MapCell_AddNeighbours with Nibble_Scale),
+// the next point is the point moved by the direction (1: y + 1, 0x10: y - 1, 4: x - 1, 0x40: x + 1, any other: not moved), 0 again when that is outside; else the cell there is
+// returned, and gets the direction (MapCell_SetDirection) when Kinds_Compatible(cell, 3) holds.
+u8 *__cdecl Cell_ExtendPath(const s32 *point, s32 *nextX, s32 *nextY);
+
 }

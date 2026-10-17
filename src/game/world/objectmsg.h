@@ -21,4 +21,14 @@ void __fastcall Object_QueueAddPerson(u8 *object, void *, u32 person);
 // person whose Visitor_IsState11To14 is false: the walk goes on from 0). A handle whose thing slot is empty is stepped over forever.
 s32 __fastcall Object_QueuePosition(u8 *object, void *, u32 person);
 
+// 0x4de130 (thiscall on the object; out word, pops 4): the id at +0x3a when it is set; else the cell Object_NeighbourCellId gives is followed through Map_FindFacingNeighbour
+// (up to 1000 steps, counted at +0x40, the last cell found kept at +0x3a). Not reaching the end of the chain in time gives 0 (a message is printed, left out).
+void __fastcall Object_BackOfQueue(u8 *object, void *, u16 *out);
+
+// 0x4de110 (thiscall on the object; out word, pops 4): Object_BackOfQueue; returns out.
+u16 *__fastcall Object_BackOfQueueTo(u8 *object, void *, u16 *out);
+
+// 0x4ddf40 (thiscall on the object): Object_QueuePosition of the person whose handle word is 0 (the stack word it passes is the object's pointer with its low word cleared (sic)).
+s32 __fastcall Object_QueuePositionOfNone(u8 *object);
+
 }  // extern "C"

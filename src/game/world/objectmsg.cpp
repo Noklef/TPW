@@ -4,6 +4,8 @@
 
 #include "../core/vcall.h"
 #include "person.h"
+#include "analysercell.h"
+#include "mapcell.h"
 
 namespace {
 
@@ -74,6 +76,45 @@ s32 __fastcall Object_QueuePosition(u8 *object, void *, u32 person) {
             current = Visitor_IsState11To14(thing) ? at<u16>(thing, 0x228) : (u16)0;
     }
     return position;
+}
+
+void __fastcall Object_BackOfQueue(u8 *object, void *, u16 *out) {
+    if (at<u16>(object, 0x3a) != 0) {
+        *out = at<u16>(object, 0x3a);
+        return;
+    }
+    u16 cell = 0;
+    Object_NeighbourCellId(object, nullptr, &cell);
+    at<u32>(object, 0x40) = 0;
+    at<u16>(object, 0x3a) = cell;
+    s32 budget = 1000, left;
+    for (;;) {
+        left = budget;
+        if (cell == 0)
+            break;
+        left = budget - 1;
+        if (!(0 < budget))
+            break;
+        at<u16>(object, 0x3a) = cell;
+        u16 next;
+        cell = *Map_FindFacingNeighbour(&next, cell);
+        at<u32>(object, 0x40) = at<u32>(object, 0x40) + 1;
+        budget = left;
+    }
+    if (0 < left) {
+        *out = at<u16>(object, 0x3a);
+        return;
+    }
+    *out = 0;  // (the message "GetBackOfQueue crashed" is left out)
+}
+
+u16 *__fastcall Object_BackOfQueueTo(u8 *object, void *, u16 *out) {
+    Object_BackOfQueue(object, nullptr, out);
+    return out;
+}
+
+s32 __fastcall Object_QueuePositionOfNone(u8 *object) {
+    return Object_QueuePosition(object, nullptr, (u32)(uintptr_t)object & 0xffff0000u);
 }
 
 }  // extern "C"

@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "surface.h"
+#include "../core/vcall.h"
 
 namespace {
 
@@ -47,4 +48,18 @@ s32 *__fastcall ScreenSurfaces_Bounds(const u8 *, void *, s32 *out) {
     out[3] = bottom;
     return out;
 }
+void __fastcall ScreenSurfaces_Dtor(u8 *object) {
+    at<u32>(object, 0) = 0x006fef78;
+    u8 *second = at<u8 *>(object, 0xb0);
+    at<u32>(object, 0xa8) = 0;
+    at<u32>(object, 0xa4) = 0;
+    if (second)
+        comcall<u32>(second, 8);
+    if (u8 *first = at<u8 *>(object, 0xac))
+        comcall<u32>(first, 8);
+    at<u32>(object, 0xac) = 0;
+    at<u32>(object, 0xb0) = 0;
+    at<u32>(object, 0) = 0x006fef90;
+}
+
 }

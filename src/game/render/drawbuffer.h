@@ -40,4 +40,9 @@ void __fastcall DrawBuffer_End(u8 *buffer, void *, u32 vertexEnd, u32 indexEnd);
 // 0x5827d0 / 0x5827f0 (thiscall): the end of the current stream's vertex / index room.
 u32 __fastcall DrawBuffer_VertexLimit(const u8 *buffer);
 u32 __fastcall DrawBuffer_IndexLimit(const u8 *buffer);
+// 0x565310 (thiscall; mode, a, kind, b, c, pops 20): the draw buffer at [0x8bcbc4] resumes a batch for the mode (DrawBuffer_Resume) and the object keeps it at +0x20; none gives 0.
+// The batch gets b at +4, a at +0x18, the kind at +0x1c, c at +8 and -1 at +0x34; the object's size at +0x1c is 0x18 for kind 0xc4, 0x20 for 0x1c4, 0x28 for 0x2c4, 0x30 for
+// 0x3c4 and 0 for anything else. Returns the batch.
+u8 *__fastcall DrawBatch_Open(u8 *object, void *, u32 mode, u32 a, u32 kind, u32 b, u32 c);
+
 }

@@ -69,6 +69,29 @@ void __fastcall HandleQueue_Push(HandleQueue *queue, void *edx, u32 handle);
 // 0x51ad90 (__thiscall; &handle): the head's handle, its node deleted; an empty queue
 // leaves the handle as it is. Returns the pointer.
 u16 *__fastcall HandleQueue_Pop(HandleQueue *queue, void *edx, u16 *out);
+
+// 0x50afe0 (thiscall on the thing; cell id, kind, pops 8; the print of the creation is left out): the handle word at +0 is cleared, the kind byte stored at +2, the byte at +3
+// and the words at +8 and +0xa cleared; the thing takes a slot in the world's table (World_AddThing on [0x80239c]) and its handle; +4 and +6 are 0x80, the column byte at +5 is the cell
+// id less 1 (to 7 bits) and the row byte at +7 that id less 1 shifted down 7; the thing goes at the head of the cell's chain (Obj_ReplaceHandle24 on the cell at [0x8023a0] +
+// id * 0x44 - 0x44). Returns the thing.
+u8 *__fastcall Thing_Construct(u8 *thing, void *, u32 cell, u32 kind);
+
+// 0x50b6a0 (thiscall on the thing; x, y, pops 8): mX and mY (the words at +4 and +6) are set; when the cell (the high bytes of the new x and y, taken as column and row against
+// the bytes at +5 and +7) changes the thing is first unlinked from the old cell's chain (Things_UnlinkFromChain on the cell id (row << 7) + column + 1 of [0x8023a0]) and
+// afterwards put at the head of the new one's (Obj_ReplaceHandle24). The assert on the new cell is left out.
+void __fastcall Thing_SetPos(u8 *thing, void *, u32 x, u32 y);
+
+// 0x4fa930 (thiscall on the thing; x, y, pops 8): the navigation block at +0xd4 gets the position (x, y as 16-bit values shifted left 8) and no speed (Nav_SetPosVel), the
+// position is read back to the words at +0x190 and +0x194 (Nav_GetPos), then the thing moves (Thing_SetPos with the same x and y).
+void __fastcall Thing_PlaceAt(u8 *thing, void *, u32 x, u32 y);
+
+// 0x4fcac0 (thiscall on the object): with sprites in folder 3, the dword at +0x20 (with the top bit set when the dword at +0x24 is 2). Without, the world's random seed is set to
+// the thing's handle (World_SetSeed on [0x80239c]) and a random sprite of folder 1 returned.
+u32 __fastcall Thing_SpriteChoice(u8 *thing);
+
+// 0x4e2200 (thiscall on the thing; the object definition by the id word at +0xe, ObjectDefs_Find on 0x7890a0): the definition's dword at +0x158 (1 to 4) picks the record 0 to
+// 3 of the table at [0x78ba8c] (Records_DataIfTerminated); any other value gives 0.
+u8 *__fastcall Thing_IngredientRecord(u8 *thing);
 }
 
 // What the table calls in the game, so that it can run outside it.

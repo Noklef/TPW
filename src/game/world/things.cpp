@@ -8,6 +8,14 @@
 
 #include "../core/gameheap.h"
 #include "mapcell.h"
+#include "../core/methods.h"
+#include "../core/small15.h"
+#include "../sprite/script.h"
+#include "../sprite/sprite.h"
+#include "nav.h"
+#include "objectdefs.h"
+#include "random.h"
+#include "thingscan.h"
 
 namespace {
 
@@ -17,6 +25,15 @@ ThingSlot *&used() { return *reinterpret_cast<ThingSlot **>(0x007cf56c); }
 ThingSlot *&freeSlots() { return *reinterpret_cast<ThingSlot **>(0x00801bbc); }
 
 HandleQueue *deleteQueue() { return reinterpret_cast<HandleQueue *>(0x00801f38); }
+
+template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+// The map cell at a column and row (0x44 bytes each, from [0x8023a0]).
+u8 *CellOf(u32 column, u32 row) {
+    const u32 id = ((row << 7) + column + 1) & 0xffff;
+    return global<u8 *>(0x008023a0) + id * 0x44 - 0x44;
+}
 
 void __cdecl game_destroy(void *thing) { reinterpret_cast<void(__fastcall *)(void *)>(0x0050b780)(thing); }
 void __cdecl game_free(void *block) { GameHeap_Free(block); }  // the game's operator delete / new (0x67acb0 / 0x67acc0), through core/gameheap
@@ -171,3 +188,66 @@ extern "C" void __fastcall World_DeleteAllThings(u8 *world) {
     }
     *reinterpret_cast<u32 *>(world + 0x1da738) = 1;
 }
+
+// The thing's own methods: the constructor 0x50afe0, the move between cells 0x50b6a0 and the small ones that follow.
+extern "C" {
+
+u8 *__fastcall Thing_Construct(u8 *thing, void *, u32 cell, u32 kind) {
+    at<u16>(thing, 0) = 0;
+    at<u8>(thing, 2) = (u8)kind;
+    at<u8>(thing, 3) = 0;
+    at<u16>(thing, 8) = 0;
+    at<u16>(thing, 0xa) = 0;
+    u16 handle;
+    at<u16>(thing, 0) = *World_AddThing(global<void *>(0x0080239c), nullptr, &handle, thing);
+    at<u8>(thing, 4) = 0x80;
+    at<u8>(thing, 6) = 0x80;
+    const u32 id = cell & 0xffff;
+    const u32 index = id - 1;
+    at<u8>(thing, 5) = (u8)((u8)cell - 1) & 0x7f;
+    at<u8>(thing, 7) = (u8)(index >> 7);
+    Obj_ReplaceHandle24(global<u8 *>(0x008023a0) + id * 0x44 - 0x44, nullptr, at<u16>(thing, 0));
+    // (the print "Creating thing at ..." is left out)
+    return thing;
+}
+
+void __fastcall Thing_SetPos(u8 *thing, void *, u32 x, u32 y) {
+    const u32 column = (x >> 8) & 0xff, row = (y >> 8) & 0xff;
+    if (column == thing[5] && row == thing[7]) {
+        at<u16>(thing, 4) = (u16)x;
+        at<u16>(thing, 6) = (u16)y;
+        return;
+    }
+    // (the assert on the new cell is left out)
+    const u32 handle = at<u16>(thing, 0);
+    Things_UnlinkFromChain(CellOf(thing[5], thing[7]), nullptr, handle);
+    at<u16>(thing, 4) = (u16)x;
+    at<u16>(thing, 6) = (u16)y;
+    Obj_ReplaceHandle24(CellOf(thing[5], thing[7]), nullptr, handle);
+}
+
+void __fastcall Thing_PlaceAt(u8 *thing, void *, u32 x, u32 y) {
+    Nav_SetPosVel(thing + 0xd4, nullptr, (u32)((s32)(s16)x << 8), (u32)((s32)(s16)y << 8), 0, 0);
+    Nav_GetPos(thing + 0xd4, nullptr, &at<u32>(thing, 0x190), &at<u32>(thing, 0x194));
+    Thing_SetPos(thing, nullptr, x, y);
+}
+
+u32 __fastcall Thing_SpriteChoice(u8 *thing) {
+    if (SpriteFolder_Count(3) != 0) {
+        const u32 flags = at<u32>(thing, 0x20);
+        return at<u32>(thing, 0x24) == 2 ? flags | 0x80000000u : flags;
+    }
+    u16 handle;
+    World_SetSeed(global<u8 *>(0x0080239c), nullptr, *Thing_GetHandle(thing, nullptr, &handle));
+    return SpriteFolder_RandomSprite(1);
+}
+
+u8 *__fastcall Thing_IngredientRecord(u8 *thing) {
+    const u8 *definition = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(thing, 0xe));
+    const u32 kind = at<u32>(definition, 0x158);
+    if (kind - 1 > 3)
+        return nullptr;
+    return Records_DataIfTerminated(global<const u8 *>(0x0078ba8c), nullptr, kind - 1);
+}
+
+}  // extern "C"

@@ -5,6 +5,7 @@
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 // Stream n's record: {vertices, used, room, indices, used, room}.
 u32 *stream(const u8 *buffer, u32 n) { return reinterpret_cast<u32 *>((uintptr_t)buffer + n * 24 - 0x10); }
@@ -102,4 +103,24 @@ u32 __fastcall DrawBuffer_IndexLimit(const u8 *buffer) {
     const u32 *s = current(buffer);
     return s[3] + s[5];
 }
+u8 *__fastcall DrawBatch_Open(u8 *object, void *, u32 mode, u32 a, u32 kind, u32 b, u32 c) {
+    u8 *batch = DrawBuffer_Resume(global<u8 *>(0x008bcbc4), nullptr, mode);
+    at<u8 *>(object, 0x20) = batch;
+    if (!batch)
+        return nullptr;
+    at<u32>(batch, 4) = b;
+    at<u32>(batch, 0x18) = a;
+    at<u32>(batch, 0x1c) = kind;
+    at<u32>(batch, 8) = c;
+    at<u32>(batch, 0x34) = 0xffffffff;
+    switch (kind) {
+    case 0x1c4: at<u32>(object, 0x1c) = 0x20; break;
+    case 0xc4: at<u32>(object, 0x1c) = 0x18; break;
+    case 0x2c4: at<u32>(object, 0x1c) = 0x28; break;
+    case 0x3c4: at<u32>(object, 0x1c) = 0x30; break;
+    default: at<u32>(object, 0x1c) = 0; break;
+    }
+    return at<u8 *>(object, 0x20);
+}
+
 }

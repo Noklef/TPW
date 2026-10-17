@@ -154,9 +154,8 @@ add_library(tpw_game STATIC
     src/game/core/small32.cpp
     src/game/core/small33.cpp
     src/game/core/small34.cpp
-    src/game/core/small35.cpp
+    src/game/core/class6fd9d8.cpp
     src/game/core/small36.cpp
-    src/game/core/small37.cpp
     src/game/core/small38.cpp
     src/game/core/small39.cpp
     src/game/core/small40.cpp
@@ -177,16 +176,7 @@ add_library(tpw_game STATIC
     src/game/core/small55.cpp
     src/game/core/small56.cpp
     src/game/core/small57.cpp
-    src/game/core/small58.cpp
-    src/game/core/small59.cpp
-    src/game/core/small60.cpp
-    src/game/core/small61.cpp
-    src/game/core/small62.cpp
-    src/game/core/small63.cpp
-    src/game/core/small64.cpp
-    src/game/core/small65.cpp
-    src/game/core/small66.cpp
-    src/game/core/small67.cpp
+    src/game/core/wstringmap.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -272,6 +262,7 @@ add_library(tpw_game STATIC
     src/game/coaster/xsection.cpp
     src/game/coaster/setup.cpp
     src/game/coaster/ridebounds.cpp
+    src/game/coaster/tracktypes.cpp
     src/game/terrain/terrain_blend.cpp
     src/game/terrain/land.cpp
     src/game/terrain/procedural.cpp
@@ -314,6 +305,7 @@ add_library(tpw_game STATIC
     src/game/online/session.cpp
     src/game/online/itemlist.cpp
     src/game/frontend/lobbymodel.cpp
+    src/game/input/mouse.cpp
 )
 
 # Proxy dinput.dll that loads into tp.exe and installs the hooks.

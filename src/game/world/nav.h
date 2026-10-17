@@ -12,4 +12,8 @@ void __fastcall Nav_SetPosVel(u8 *nav, void *, u32 x, u32 y, u32 vx, u32 vy);
 
 // 0x510160 (&x, &y): pos read (x then y).
 void __fastcall Nav_GetPos(const u8 *nav, void *, u32 *x, u32 *y);
+// 0x50ffe0 (thiscall): constants and zeroes into the first 0xbc bytes (the final values: +0 0x10000, +4 and +0x1c 0x3333, +0x18 0x6666, the byte at +0x60 1; +0x48 is left
+// alone), and the five 8-byte elements at +0x64 constructed (IntPair_Ctor, through CRT_VectorCtorIterator). Returns the object.
+u8 *__fastcall Nav_Ctor(u8 *object);
+
 }

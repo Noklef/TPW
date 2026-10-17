@@ -50,4 +50,9 @@ u8 *__fastcall Class702890_DeletingDtor(u8 *object, void *, u32 flags);
 u8 *__fastcall Class7028d0_DeletingDtor(u8 *object, void *, u32 flags);
 u8 *__fastcall Class7028f8_DeletingDtor(u8 *object, void *, u32 flags);
 
+// 0x5dc580 (thiscall): the 0x702d48 base constructor (Class702d48_Ctor), the vtable 0x702bc8, a 0x10-byte object {vtable 0x702bc0, three zero dwords} at +8 and another {vtable
+// 0x702bbc, three zero dwords} at +0x6c (each 0 when the allocation fails), +0x78 and +0x74 cleared and the floats 0.4, 0.15, 0.5, 300 at +0x1c, +0x20, +0x24, +0x38 and 0.2,
+// 0.075, 0.25, 150, 1.5 at +0x28, +0x2c, +0x30, +0x3c, +0x40. Returns the object.
+u8 *__fastcall Class702bc8_Ctor(u8 *object);
+
 }  // extern "C"

@@ -135,9 +135,9 @@
 #include "../game/core/small32.h"
 #include "../game/core/small33.h"
 #include "../game/core/small34.h"
-#include "../game/core/small35.h"
+#include "../game/core/class6fd9d8.h"
+#include "../game/core/wstringmap.h"
 #include "../game/core/small36.h"
-#include "../game/core/small37.h"
 #include "../game/core/small38.h"
 #include "../game/core/small39.h"
 #include "../game/core/small4.h"
@@ -160,17 +160,7 @@
 #include "../game/core/small55.h"
 #include "../game/core/small56.h"
 #include "../game/core/small57.h"
-#include "../game/core/small58.h"
-#include "../game/core/small59.h"
-#include "../game/core/small6.h"
-#include "../game/core/small60.h"
-#include "../game/core/small61.h"
-#include "../game/core/small62.h"
-#include "../game/core/small63.h"
-#include "../game/core/small64.h"
-#include "../game/core/small65.h"
-#include "../game/core/small66.h"
-#include "../game/core/small67.h"
+#include "../game/core/small6.h"
 #include "../game/core/small7.h"
 #include "../game/core/small8.h"
 #include "../game/core/small9.h"
@@ -253,6 +243,7 @@
 #include "../game/world/linestep.h"
 #include "../game/world/money.h"
 #include "../game/world/objectmsg.h"
+#include "../game/input/mouse.h"
 #include "../game/world/personscripts.h"
 #include "../game/world/ridelist.h"
 #include "../game/world/ridesearch.h"
@@ -261,6 +252,7 @@
 #include "../game/world/trackpools.h"
 #include "../game/world/world.h"
 #include "../game/model/holder.h"
+#include "../game/coaster/tracktypes.h"
 #include "../game/model/parts.h"
 #include "../game/model/highlight.h"
 #include "../game/model/partstate.h"
@@ -2998,7 +2990,7 @@ const Hook kHooks[] = {
     {"Object_BackOfQueueTo",      0x004de110, (void *)&Object_BackOfQueueTo, {0x8a, 0x41, 0x32, 0x56, 0x8b}},
     {"Object_QueuePositionOfNone", 0x004ddf40, (void *)&Object_QueuePositionOfNone, {0x51, 0x8b, 0xc4, 0x66, 0xc7}},
     {"Thing_PlaceAt",             0x004fa930, (void *)&Thing_PlaceAt, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
-    {"Slot_ReadIntoFree",         0x0051fa20, (void *)&Slot_ReadIntoFree, {0xa1, 0x40, 0x6d, 0x81, 0x00}},
+    {"TrackTypeSlot_ReadIntoFree",         0x0051fa20, (void *)&TrackTypeSlot_ReadIntoFree, {0xa1, 0x40, 0x6d, 0x81, 0x00}},
     {"Thing_SpriteChoice",        0x004fcac0, (void *)&Thing_SpriteChoice, {0x51, 0x56, 0x8b, 0xf1, 0x6a}},
     {"Thing_IngredientRecord",    0x004e2200, (void *)&Thing_IngredientRecord, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
     {"Class701378_Ctor",          0x005667d0, (void *)&Class701378_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},
@@ -3007,12 +2999,12 @@ const Hook kHooks[] = {
     {"Object_ReleaseSavedPairs",  0x0057b070, (void *)&Object_ReleaseSavedPairs, {0x56, 0x8b, 0xf1, 0xf7, 0x46}},
     {"Class702bc8_Ctor",          0x005dc580, (void *)&Class702bc8_Ctor, {0x6a, 0xff, 0x68, 0x58, 0x14}},
     {"Class7037c0_Create",        0x00617ff0, (void *)&Class7037c0_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
-    {"Class50ffe0_Ctor",          0x0050ffe0, (void *)&Class50ffe0_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
+    {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Cell_ExtendPath",           0x0052a050, (void *)&Cell_ExtendPath, {0x55, 0x56, 0x8b, 0x74, 0x24}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
-    {"Class6fef78_Release",       0x0047e3e0, (void *)&Class6fef78_Release, {0x6a, 0xff, 0x68, 0xa8, 0x8f}},
+    {"ScreenSurfaces_Dtor",       0x0047e3e0, (void *)&ScreenSurfaces_Dtor, {0x6a, 0xff, 0x68, 0xa8, 0x8f}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
