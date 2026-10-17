@@ -7,6 +7,7 @@
 #include "analysercell.h"
 #include "mapcell.h"
 #include "person.h"
+#include "ridelist.h"
 
 namespace {
 
@@ -63,6 +64,22 @@ void __fastcall Object_QueueAddPerson(u8 *object, void *, u32 person) {
     }
     at<u16>(ThingOf(person), 0x22a) = tail;
     at<u16>(ThingOf(person), 0x228) = 0;
+}
+
+void __fastcall Object_QueueRemovePerson(u8 *object, void *, u32 person) {
+    const u32 handle = person & 0xffff;
+    if (Rides_GetElement(Rides_FindById(at<s32>(object, 0x24)), 0) == handle)
+        Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 0, 0);
+    const u16 ahead = at<u16>(ThingOf(handle), 0x22a);
+    const u16 behind = at<u16>(ThingOf(handle), 0x228);
+    if (ahead == 0)
+        at<u16>(object, 0x3c) = behind;
+    else
+        at<u16>(ThingOf(ahead), 0x228) = behind;
+    if (behind != 0)
+        at<u16>(ThingOf(behind), 0x22a) = ahead;
+    at<u16>(ThingOf(handle), 0x22a) = 0;
+    at<u16>(ThingOf(handle), 0x228) = 0;
 }
 
 s32 __fastcall Object_QueuePosition(u8 *object, void *, u32 person) {

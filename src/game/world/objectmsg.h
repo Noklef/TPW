@@ -17,6 +17,11 @@ u32 __fastcall Object_HandleDayMessage(u8 *object, void *, u8 *message);
 // its next 0.
 void __fastcall Object_QueueAddPerson(u8 *object, void *, u32 person);
 
+// 0x4ddd20 (thiscall on the object; person handle, pops 4; name unconfirmed): element 0 of the object's ride record (Rides_FindById of the dword at +0x24) = 0 when it
+// is the person; then the person leaves the queue: the one ahead (+0x22a) gets its next, the one behind (+0x228) its previous (the head at +0x3c when none is ahead),
+// and both its words are cleared. The debug checks are not reproduced.
+void __fastcall Object_QueueRemovePerson(u8 *object, void *, u32 person);
+
 // 0x4ddf50 (thiscall; person handle, pops 4): the person's place in the queue, 0 for the head; -1 (after a printed message) when it is not found (the chain ends at a
 // person whose Visitor_IsState11To14 is false: the walk goes on from 0). A handle whose thing slot is empty is stepped over forever.
 s32 __fastcall Object_QueuePosition(u8 *object, void *, u32 person);
