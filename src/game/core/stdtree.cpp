@@ -605,4 +605,11 @@ u8 *__fastcall StdMapA_Ctor(u8 *map, void *, const u8 *comp, const u8 *alloc) {
     StdTree_CtorA(map);
     return map;
 }
+
+u32 *__fastcall StdMapA_Index(u8 *map, void *, const u32 *key) {
+    const u32 value[3] = {*key, 0, 0};
+    u8 *result[2];
+    StdMapA_Insert(map, nullptr, result, value);
+    return reinterpret_cast<u32 *>(result[0] + 0x10);
+}
 }  // extern "C"

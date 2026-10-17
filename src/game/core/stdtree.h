@@ -116,4 +116,8 @@ u32 __fastcall StdTreeB_KeyLess(const u16 *key, void *, const u16 *other);
 // 0x47b060 (thiscall; &comp, &alloc, pops 8): A's map constructor: +0 = the alloc byte, +1 = the comp byte, +8 = 0 (no
 // multi-insert), then the tree as StdTree_CtorA makes it. Returns the map.
 u8 *__fastcall StdMapA_Ctor(u8 *map, void *, const u8 *comp, const u8 *alloc);
+
+// 0x47b130 (thiscall; &key, pops 4): A's operator[]: StdMapA_Insert of {key, 0, 0}, then the found or new node's value
+// (+0x10).
+u32 *__fastcall StdMapA_Index(u8 *map, void *, const u32 *key);
 }  // extern "C"
