@@ -1,5 +1,7 @@
 #include "intpair.h"
 
+#include "x87.h"
+
 extern "C" {
 
 u32 *__fastcall IntPair_Copy(u32 *pair, void *, const u32 *from) {
@@ -28,6 +30,25 @@ u32 *__fastcall IntPair_Add(const u32 *pair, void *, u32 *out, const u32 *other)
     out[0] = x;
     out[1] = y;
     return out;
+}
+
+u32 *__fastcall IntPair_Sub(const u32 *pair, void *, u32 *out, const u32 *other) {
+    const u32 y = pair[1] - other[1], x = pair[0] - other[0];
+    out[0] = x;
+    out[1] = y;
+    return out;
+}
+
+s32 *__fastcall IntPair_MulFixed(const s32 *pair, void *, s32 *out, s32 scale) {
+    const s32 y = (s32)(((long long)pair[1] * scale) >> 16);
+    const s32 x = (s32)(((long long)pair[0] * scale) >> 16);
+    out[1] = y;
+    out[0] = x;
+    return out;
+}
+
+u32 __cdecl Math_ISqrt(u32 n) {
+    return (u32)(long long)X87_Sqrt(X87Reg((double)n)).v;  // fild qword (n, 0); fsqrt; __ftol
 }
 
 u32 *__fastcall IntPair_Neg(const u32 *pair, void *, u32 *out) {

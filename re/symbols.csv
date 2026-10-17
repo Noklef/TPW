@@ -1559,6 +1559,9 @@ address,name,kind,confidence,notes
 0x0050f850,IntPair_Perp,function,high,"reimplemented (src/game/math/intpair); cdecl (&out, &pair): out = (-y, x); returns out"
 0x005104b0,IntPair_FromFixed,function,high,"reimplemented (src/game/math/intpair); cdecl (&out, x, y): out = (x >> 16, y >> 16), logical; returns out"
 0x005104e0,IntPair_ToFixed,function,high,"reimplemented (src/game/math/intpair); cdecl (&out, x, y): out = (x << 16, y << 16); returns out"
+0x0050cd80,IntPair_Sub,function,low,"reimplemented (src/game/math/intpair); thiscall (&out, other): out = pair - other; returns out"
+0x0050df70,IntPair_MulFixed,function,low,"reimplemented (src/game/math/intpair); thiscall (&out, scale): out = each * scale >> 16 (64-bit products), y first; returns out"
+0x004d49a0,Math_ISqrt,function,low,"reimplemented (src/game/math/intpair); cdecl (n): fild (n as unsigned) fsqrt __ftol, at the game's 24-bit precision"
 0x005428a0,IntSin,function,high,"reimplemented (src/game/math/intsin); cdecl (angle, 512 a turn): the integer sine table's (0x877358) entry angle & 0x1ff, shifted left 2"
 0x005428c0,IntCos,function,high,reimplemented (src/game/math/intsin); cdecl (angle): as IntSin for angle + 0x80
 0x00578800,Mat4_Identity,function,high,"reimplemented (src/game/math/mat4); thiscall (a matrix object, the 4x4 at +0): the identity"
