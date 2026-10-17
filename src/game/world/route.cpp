@@ -1,6 +1,7 @@
 #include "route.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "linestep.h"
 #include "mapcell.h"
@@ -224,5 +225,86 @@ u32 __cdecl Route_SearchFrom(u8 *route, u32 mode) {
     if (global<u32>(0x007cf3c8) != 0)
         global<u8>(0x007cf3a0) = 0xff;
     return Route_Search(route, at<u16>(route, 2), 60000);
+}
+
+u32 __cdecl Route_Refine(u8 *route, u32 result) {
+    Route_Straighten(route, 0);
+    for (u32 rounds = 9;;) {  // each cell, from the first: the route round it searched again from the cell before to the cell after
+        u32 i = 0;
+        for (;; ++i) {
+            if (i + 1 >= route[0])
+                goto corners;
+            u8 local[0x206];
+            local[0] = 0;
+            at<u16>(local, 2) = i == 0 ? at<u16>(route, 2) : at<u16>(route, 4 + i * 2);
+            at<u16>(local, 4) = at<u16>(route, 8 + i * 2);
+            global<u32>(0x007cf3a4) = 0;
+            if (global<u32>(0x007cf3c8) != 0)
+                global<u8>(0x007cf3a0) = 0xff;
+            if (Route_Search(local, at<u16>(local, 2) | (u32)at<u16>(local, 4) << 16, 60000) == 0x70000000)
+                continue;
+            const u32 n = local[0];
+            bool through = false;  // the new way passes the cell (its last cell, the one after, not looked at)
+            for (u32 k = 1; k < n && !through; ++k)
+                through = local[6 + (k - 1) * 2] == route[6 + i * 2] && local[7 + (k - 1) * 2] == route[7 + i * 2];
+            if (through || (s32)(route[0] + n - 2) > 0xfc)
+                continue;
+            // the cell and the one after replaced by the new way's cells (it ends at the one after)
+            memmove(route + 6 + (i + n) * 2, route + 10 + i * 2, (route[0] - i) * 2 - 4);
+            memcpy(route + 6 + i * 2, local + 6, n * 2);
+            route[0] = (u8)(route[0] + n - 2);
+            Route_Straighten(route, i < 4 ? 0 : i - 4);
+            if (--rounds == 0)
+                return result;
+            break;
+        }
+    }
+corners:
+    // Each diagonal step of one cell: the corner cell put in before it when one step round the corner is blocked and the other open (looked at
+    // from the cell stepped to, then from the cell stepped from). (The original first tests that the distances over their greatest common divisor
+    // are both odd, as they always are for these; and looks at the corner for those further apart too, keeping nothing.)
+    for (u32 j = 0; (s32)j < (s32)route[0]; ++j) {
+        const u16 from = j == 0 ? at<u16>(route, 2) : at<u16>(route, 4 + j * 2);
+        const u8 fx = (u8)from, fy = (u8)(from >> 8);
+        const s32 dx = (s32)route[6 + j * 2] - fx, dy = (s32)route[7 + j * 2] - fy;
+        if ((dx != 1 && dx != -1) || (dy != 1 && dy != -1))
+            continue;
+        const u8 ax = (u8)(fx + dx), ay = (u8)(fy + dy);
+        const u32 up = dy > 0 ? 0 : 2, back = dx > 0 ? 3 : 1;  // from the cell stepped to: towards the other's row, towards its column
+        const u32 down = dy > 0 ? 2 : 0, across = dx > 0 ? 1 : 3;  // from the cell stepped from: towards the other's row, its column
+        s8 ox, oy;
+        if (Blocked(ax, ay, up) && !Blocked(ax, ay, back)) {
+            ox = (s8)-dx;
+            oy = 0;
+        } else if (Blocked(ax, ay, back) && !Blocked(ax, ay, up)) {
+            ox = 0;
+            oy = (s8)-dy;
+        } else if (Blocked(fx, fy, down) && !Blocked(fx, fy, across)) {
+            ox = 0;
+            oy = (s8)-dy;
+        } else if (Blocked(fx, fy, across) && !Blocked(fx, fy, down)) {
+            ox = (s8)-dx;
+            oy = 0;
+        } else {
+            continue;
+        }
+        if (route[0] + 1 >= 0xfc)
+            continue;
+        memmove(route + 8 + j * 2, route + 6 + j * 2, (route[0] - j) * 2);
+        route[6 + j * 2] = (u8)(route[6 + j * 2] + ox);
+        route[7 + j * 2] = (u8)(route[7 + j * 2] + oy);
+        ++route[0];
+        ++j;
+    }
+    return result;
+}
+
+u32 __cdecl Route_Find(u8 *route, u32 mode) {
+    global<u32>(0x007cf3c0) = mode;
+    route[0] = 0;
+    global<u32>(0x007cf3a4) = 0;
+    if (global<u32>(0x007cf3c8) != 0)
+        global<u8>(0x007cf3a0) = 0xff;
+    return Route_Refine(route, Route_Search(route, at<u16>(route, 2), 60000));
 }
 }
