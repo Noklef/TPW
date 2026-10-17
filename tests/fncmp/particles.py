@@ -386,6 +386,8 @@ def tick(r):
             k = r.randrange(6)
             serial = struct.unpack_from('<H', systems, 0x140 * k + 0xa)[0]
         put(systems, e + 0xb4, 'I', r.choice([-1, -1, serial << 16 | k, serial << 16 | k, (serial ^ 1) << 16 | k, 0]) & 0xffffffff)
+        if systems[e + 0xba] and struct.unpack_from('<I', systems, e + 0xb4)[0] == 0 and r.random() < 0.7:
+            put(instances, 8, 'H', 0)  # (handle 0 names effector 0 when its serial is 0)
         put(systems, e + 0xc8, 'i', r.choice([0, 0, 1, 0x800, -1, r.randrange(-0x2000, 0x2000)]))
         put(systems, e + 0x54, 'I', r.getrandbits(32))
         put(systems, e + 0x2c, 'iii', *[r.choice([0, 0, 0, 1, -1, r.randrange(-0x100, 0x100)]) for _ in range(3)])
