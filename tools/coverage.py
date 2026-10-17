@@ -95,7 +95,7 @@ def write_baseline(rows):
 
 def main():
     a = sys.argv[1:]
-    cases, budget, jobs = int(arg(a, '--cases', 400)), float(arg(a, '--budget', 90)), int(arg(a, '--jobs', max(1, (os.cpu_count() or 4) // 2)))
+    cases, budget, jobs = int(arg(a, '--cases', 400)), float(arg(a, '--budget', 90)), int(arg(a, '--jobs', 2))   # (each job is a driver process: kept low by default, see --jobs)
     only = [x for x in arg(a, '--only', '').split(',') if x]
     hooks, names = hooked_addresses(), modules()
     direct, indirect, by_suite, failed = {}, set(), {}, []

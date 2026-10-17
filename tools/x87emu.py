@@ -109,6 +109,13 @@ class MemFault(Exception):
     """An access outside what a strict emulator allows (see Emu.ranges)."""
 
 
+class DivFault(Exception):
+    """A DIV / IDIV that faults (#DE): code is the Windows exception, 0xc0000094 a zero divisor, 0xc0000095 a quotient that does not fit."""
+    def __init__(self, code, message):
+        super().__init__(message)
+        self.code = code
+
+
 class Emu:
     def __init__(self, listings):
         self.code = {}
@@ -326,7 +333,9 @@ class Emu:
             self.hooks[pc](self)
             return self.pop()
         if pc not in self.code:
-            raise KeyError('no listing for %08x' % pc)
+            if not 0x401000 <= pc < 0x6e7000:   # a jump out of the exe's code (to 0, a wild pointer, a case's data): faults natively too (DEP)
+                raise MemFault('execute of %08x' % pc)
+            raise KeyError('no listing for %08x' % pc)   # (code the bench's ranges leave out)
         mn, ops = self.code[pc]
         o = [x.strip() for x in re.split(r',(?![^\[]*\])', ops)] if ops else []
         if len(o) == 2 and mn not in ('MOVZX', 'MOVSX'):  # Ghidra leaves the size off [m] when a register implies it
@@ -485,8 +494,10 @@ class Emu:
                 if mn == 'IDIV':
                     n, v = signed(n, 64), signed(v, 32)
                 if v == 0:
-                    raise ZeroDivisionError('%08x: divide by zero' % pc)
+                    raise DivFault(0xc0000094, 'divide by zero')
                 q = abs(n) // abs(v) * (1 if (n < 0) == (v < 0) else -1)
+                if not (-2 ** 31 <= q < 2 ** 31 if mn == 'IDIV' else q < 2 ** 32):
+                    raise DivFault(0xc0000095, 'quotient overflow')
                 self.r['EAX'], self.r['EDX'] = q & 0xffffffff, (n - q * v) & 0xffffffff
         elif mn == 'IMUL' and len(o) >= 2:  # IMUL r, r/m (, imm): low 32 bits, CF = OF = overflow
             signed = lambda x: x - (1 << 32) if x >> 31 else x

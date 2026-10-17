@@ -326,9 +326,18 @@ void __fastcall Timer_Init(Timer *timer) {
 u32 __fastcall Timer_GetMs(Timer *timer) {
     std::int64_t now;
     if (!timer->enabled || !(*g_env->queryPerformanceCounter)(&now)) return (*g_env->timeGetTime)();
-    // The original divides with one IDIV, which faults when the quotient passes 31 bits
-    // (after 24 days).
-    const s32 ms = static_cast<s32>((now - timer->start) / static_cast<s32>(timer->ticksPerMs));
+    // One 32-bit IDIV, as the original's: it faults (sic, integer overflow) once the quotient passes
+    // 31 bits, about 24 days after Timer_Init.
+    const std::uint64_t elapsed = static_cast<std::uint64_t>(now - timer->start);
+    const u32 elapsedLow = static_cast<u32>(elapsed), elapsedHigh = static_cast<u32>(elapsed >> 32);
+    const u32 ticks = timer->ticksPerMs;
+    s32 ms;
+    __asm {
+        mov eax, elapsedLow
+        mov edx, elapsedHigh
+        idiv ticks
+        mov ms, eax
+    }
     return static_cast<u32>(ms) + timer->baseMs;
 }
 

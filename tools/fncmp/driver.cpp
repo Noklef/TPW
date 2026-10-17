@@ -30,6 +30,7 @@
 #include "../../src/game/core/ptrlist.h"
 #include "../../src/game/core/stdstring.h"
 #include "../../src/game/files/drives.h"
+#include "../../src/game/files/file.h"
 #include "../../src/game/files/handles.h"
 #include "../../src/game/files/wadsource.h"
 #include "../../src/game/files/wrapsources.h"
@@ -205,9 +206,31 @@ const WrapSourcesEnv kWrapSourcesEnv = {&heap_alloc, &heap_free, reinterpret_cas
 // log (k, n, this, the arguments) at kLog and return a hash of them. The log is a count, then 12 dwords an entry; room for 80.
 const u32 kLog = kStubs + 0x100000;  // (the case maps it)
 
+// Optional settings in the log region: at + 0xa00 a mask per slot (k & 63): bits 0-15 the arguments that are C strings, logged and hashed as a hash of the string
+// (so that a path in a stack buffer, whose address differs between the sides, compares by its text), bits 16-31 out arguments, logged as 0 (a stack address;
+// what is written through them is a fill's, and shows in what the code does with it); at + 0xb00 and + 0xb80 two fills (k | 0x80000000, the argument, the
+// length; the bytes from + 0x10, at most 0x70) written through that argument before the recorder returns (an out structure, FindFirstFile's).
+u32 string_hash(const u8 *s) {
+    if (!s) return 0;
+    u32 h = 0x811c9dc5u;
+    for (u32 i = 0; i < 0x400 && s[i]; ++i) h = (h ^ s[i]) * 0x01000193u;
+    return h;
+}
+
 u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     u32 *log = reinterpret_cast<u32 *>((uintptr_t)kLog);
-    const u32 *args = stack + 1;  // (stack[0] is the thunk's own return address)
+    u32 args[16];
+    const u32 mask = log[0x280 + (k & 63)];
+    for (u32 i = 0; i < n; ++i) {  // (stack[0] is the thunk's own return address)
+        args[i] = stack[1 + i];
+        for (u32 f = 0; f < 2; ++f) {
+            const u32 *fill = log + 0x2c0 + 0x20 * f;
+            if (fill[0] == ((k & 63) | 0x80000000u) && fill[1] == i && args[i])
+                std::memcpy(reinterpret_cast<void *>((uintptr_t)args[i]), fill + 4, fill[2] < 0x70 ? fill[2] : 0x70);
+        }
+        if (mask >> i & 1) args[i] = string_hash(reinterpret_cast<const u8 *>((uintptr_t)args[i]));
+        if (mask >> (16 + i) & 1) args[i] = 0;
+    }
     if (log[0] < 40) {
         u32 *entry = log + 1 + 12 * log[0];
         entry[0] = k;
@@ -354,6 +377,9 @@ int main(int argc, char **argv) {
     GameHeap_SetEnv(&kGameHeapEnv);
     WadSource_SetEnv(&kWadSourceEnv);
     WrapSources_SetEnv(&kWrapSourcesEnv);
+    static FileEnv files = *Files_GetEnv();  // (the import slots the case maps; Mem_Alloc is game code)
+    files.alloc = &heap_alloc;
+    Files_SetEnv(&files);
     // Envs whose game defaults call game code by its address, which the driver cannot (its own code covers the game's .text): that code resolved to its hooked
     // replacement, as the hooked game resolves it; the CPU information constructor (CPUID, the host's) is stub_mark, as tools/fncmp.py's emulator has it.
     static DrivesEnv drives = *Drives_GetEnv();

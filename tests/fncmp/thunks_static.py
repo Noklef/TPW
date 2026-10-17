@@ -182,8 +182,8 @@ def ref_objects(r, regions):
 
 
 def clock(r, regions, ms):
-    """The game's clock (enabled, ticks a ms, base ms, pad, start), timeGetTime a recorder, the performance counter COUNTER. ms: (now - start) / ticks kept within 31 bits
-    (past that the original's IDIV faults where the port does not, see Timer_GetMs)."""
+    """The game's clock (enabled, ticks a ms, base ms, pad, start), timeGetTime a recorder, the performance counter COUNTER. ms: (now - start) / ticks mostly within
+    31 bits, sometimes at or past them (where Timer_GetMs's IDIV faults, sic, in both)."""
     log = regions[LOG] = log_region()
     if r.random() < 0.7:
         set_return(log, IMPORT, r.getrandbits(32))
@@ -192,7 +192,8 @@ def clock(r, regions, ms):
     ticks = r.choice([1, 0xa, 0x3e8, 0xda7, r.randrange(1, 2 ** 25), r.getrandbits(32) | 1])
     start = r.getrandbits(64) >> r.choice([0, 1, 20, 40])
     if ms:
-        now = start + r.randrange(-2 ** 30, 2 ** 30) * ticks + r.randrange(ticks)
+        q = r.choice([r.randrange(-2 ** 30, 2 ** 30)] * 20 + [2 ** 31 - 1, -2 ** 31, 2 ** 31, -2 ** 31 - 1, r.randrange(-2 ** 40, 2 ** 40)])
+        now = start + q * ticks + r.randrange(ticks)
     else:
         now = r.choice([0, 0x369e99, 0x1234de, 0x3e8, 0x7c, 0x1e848000, r.getrandbits(40), r.getrandbits(64)])
     counter(log, now, r.getrandbits(r.choice([8, 32, 64])), r.getrandbits(2) if r.random() < 0.4 else 3)
@@ -201,7 +202,9 @@ def clock(r, regions, ms):
 
 def case(r):
     address, form, imm, ret = r.choice(PICK)
-    regions = {HEAP: heap(), POINTEE: r.bytes(0x400)}
+    # POINTEE's words are 0 or have the top bit set: a pointer read through it faults in both (a raw random word can land on memory the driver has mapped,
+    # and words pointing back into it make cycles a native list walk never leaves)
+    regions = {HEAP: heap(), POINTEE: b''.join((0 if r.random() < 0.33 else r.getrandbits(32) | 0x80000000).to_bytes(4, 'little') for _ in range(0x100))}
     if form == 'handle':   # a Handle (vtable, object) at this (+ the stub's adjustment)
         obj = bytearray(r.bytes(0x400))
         put(obj, 0x300 + imm + 4, 'I', ref_objects(r, regions))

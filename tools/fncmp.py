@@ -241,6 +241,48 @@ def set_return(log, k, value):
     struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 1, value & 0xffffffff)
 
 
+LOG_STRINGS = 0xa00  # from here a mask for each slot: the arguments that are C strings, and out arguments (see strings())
+LOG_FILL = 0xb00  # two fills (+ 0x80 the second): (k | 0x80000000, argument, length), the bytes from + 0x10 (see fill())
+
+
+def strings(log, k, mask, out=0):
+    """Makes slot k's recorder log and hash each argument in `mask` (bit i: argument i) as a hash of the C string it points to, not its address, and each
+    in `out` as 0 (a stack address that differs between the sides; a fill writes through it)."""
+    struct.pack_into('<I', log, LOG_STRINGS + 4 * (k & 63), mask | out << 16)
+
+
+def fill(log, k, arg, data, which=0):
+    """Makes slot k's recorder write `data` (at most 0x70 bytes) through its argument `arg` (unless null), as an import fills an out structure; which: 0 or 1."""
+    at = LOG_FILL + 0x80 * which
+    struct.pack_into('<3I', log, at, (k & 63) | 0x80000000, arg, len(data))
+    log[at + 0x10:at + 0x10 + len(data)] = data
+
+
+IMPORT_TABLE = 0x6fd000  # the game's import address table (0x400 bytes covers the slots the benches use)
+
+
+def import_table(log, imports):
+    """The import table's bytes (map them at IMPORT_TABLE) with each import a COM-style recorder (stdcall): imports {name: (slot k, slot address, stack
+    arguments, string arguments mask, out arguments mask)}; sets the masks in log (strings())."""
+    table = bytearray(0x400)
+    for k, at, n, mask, out in imports.values():
+        struct.pack_into('<I', table, at - IMPORT_TABLE, recorder(k, n, True))
+        strings(log, k, mask, out)
+    return table
+
+
+def string_hash(read, p):
+    if not p:
+        return 0
+    h = 0x811c9dc5
+    for i in range(0x400):
+        c = read(p + i, 1)[0]
+        if not c:
+            break
+        h = ((h ^ c) * 0x01000193) & 0xffffffff
+    return h
+
+
 def vhash(k, n, this, args):
     h = (this * 0x9e3779b1 + (k + 1) * 0x10001 + n) & 0xffffffff
     for a in args:
@@ -254,6 +296,16 @@ def _recorder(k, n, com=False):
         args = [e.u32(sp + 4 * i) for i in range(n)]
         this = 0 if com else e.r['ECX']
         kk = k | 0x100 if com else k
+        mask = e.u32(LOG + LOG_STRINGS + 4 * (k & 63))
+        fills = [(LOG + LOG_FILL + 0x80 * f,) + struct.unpack('<3I', e.read(LOG + LOG_FILL + 0x80 * f, 12)) for f in range(2)]
+        for i in range(n):
+            for at, fk, fa, fn in fills:
+                if fk == (k & 63) | 0x80000000 and fa == i and args[i]:
+                    e.write(args[i], e.read(at + 0x10, min(fn, 0x70)))
+            if mask >> i & 1:
+                args[i] = string_hash(e.read, args[i])
+            if mask >> (16 + i) & 1:
+                args[i] = 0
         count = e.u32(LOG)
         if count < LOG_ENTRIES:
             entry = LOG + 4 + 4 * LOG_ENTRY * count
@@ -416,6 +468,8 @@ class Bench:
                 return 'step limit'
         except x87emu.MemFault as f:
             return '%s (emu: %s at %08x)' % (CRASH, f, at)
+        except x87emu.DivFault as f:
+            return 'crash %08x (emu: %s at %08x)' % (f.code, f, at)
         st0 = struct.unpack('<Q', struct.pack('<d', e.st[0]))[0] if c.ret == 'd' and e.st else 0
         head = ['%08x' % e.r['EAX'] if c.ret in 'ai' else '%02x' % (e.r['EAX'] & 0xff) if c.ret == 'b' else '%04x' % (e.r['EAX'] & 0xffff) if 'w' in c.ret else '-', '%08x' % e.r['EDX'] if c.ret == 'i' else '%04x' % e.cw if 'c' in c.ret else '-',
                 '%016x' % st0 if c.ret == 'd' else '-']
@@ -464,8 +518,8 @@ class Bench:
                     direct[c.address] = direct.get(c.address, 0) + 1
                     indirect |= self.entered
                 continue
-            if isinstance(emu, str) and isinstance(cpp, str) and emu.startswith(CRASH) and cpp == CRASH:
-                crashed += 1  # the original faults too: the same
+            if isinstance(emu, str) and isinstance(cpp, str) and cpp.startswith('crash ') and emu.split(' (emu:')[0] == cpp:
+                crashed += 1  # the original faults too, with the same exception: the same
                 continue
             bad += 1
             if bad > show:
