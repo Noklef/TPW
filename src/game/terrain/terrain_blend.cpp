@@ -175,6 +175,36 @@ extern "C" void __cdecl Lnd_BlendRow16(const u8 *a, const u8 *b, const u8 *wa, c
     }
 }
 
+extern "C" void __cdecl Lnd_BlendRow16x3(const u8 *a, const u8 *b, const u8 *wa, const u8 *tabA, const u8 *c, const u8 *d, const u8 *wc, const u8 *tabC,
+                                         const u8 *e, const u8 *f, const u8 *we, const u8 *tabE, const u8 *mul, const u8 *mixOuter, const u8 *mixInner,
+                                         u8 *out) {
+    for (s32 i = 16; i != 0; --i) {
+        const s32 m = *mul;  // sic: never stepped
+        const s32 w1 = tabA[(s32)((u32)*wa * (u32)m) >> 8];
+        const u8 r1 = (u8)((s32)((s32)(a[1] - b[1]) * w1) >> 8) + b[1];
+        const u8 g1 = (u8)((s32)((s32)(a[2] - b[2]) * w1) >> 8) + b[2];
+        const u8 b1 = (u8)((s32)((s32)(a[3] - b[3]) * w1) >> 8) + b[3];
+        const s32 w2 = tabC[(s32)((u32)*wc * (u32)m) >> 8];
+        const u8 r2 = (u8)((s32)((s32)(c[1] - d[1]) * w2) >> 8) + d[1];
+        const u8 g2 = (u8)((s32)((s32)(c[2] - d[2]) * w2) >> 8) + d[2];
+        const u8 b2 = (u8)((s32)((s32)(c[3] - d[3]) * w2) >> 8) + d[3];
+        const s32 w3 = tabE[(s32)((u32)*we * (u32)m) >> 8];
+        const u8 r3 = (u8)((s32)((s32)(e[1] - f[1]) * w3) >> 8) + f[1];
+        const u8 g3 = (u8)((s32)((s32)(e[2] - f[2]) * w3) >> 8) + f[2];
+        const u8 b3 = (u8)((s32)((s32)(e[3] - f[3]) * w3) >> 8) + f[3];
+        a += 4; b += 4; c += 4; d += 4; e += 4; f += 4;
+        const u8 r23 = (u8)((s32)((s32)(r2 - r3) * *mixInner) >> 8) + r3;
+        const u8 g23 = (u8)((s32)((s32)(g2 - g3) * *mixInner) >> 8) + g3;
+        const u8 b23 = (u8)((s32)((s32)(b2 - b3) * *mixInner) >> 8) + b3;
+        out[0] = 0;
+        out[1] = (u8)((s32)((s32)(r1 - r23) * *mixOuter) >> 8) + r23;
+        out[2] = (u8)((s32)((s32)(g1 - g23) * *mixOuter) >> 8) + g23;
+        out[3] = (u8)((s32)((s32)(b1 - b23) * *mixOuter) >> 8) + b23;
+        ++wa; ++wc; ++we; ++mixOuter; ++mixInner;
+        out += 4;
+    }
+}
+
 extern "C" bool TerrainBlend_WeightMap(const Array3D *control, u32 x, u32 y, int channel, int size, u8 *out) {
     int n = size >> 2, shift = 0;
     while ((1 << shift) < n) ++shift;

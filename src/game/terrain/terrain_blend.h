@@ -13,6 +13,12 @@ void __cdecl Lnd_BuildRamp(u8 *table, s16 centre, s16 width);
 u32 __cdecl Lnd_BuildWeightMap(const Array3D *control, s32 x, s32 y, s32 channel, const Array3D *out);
 void __cdecl Lnd_BlendRow16(const u8 *a, const u8 *b, const u8 *wa, const u8 *tabA, const u8 *c, const u8 *d, const u8 *wc, const u8 *tabC, const u8 *mul, const u8 *mix, u8 *out);
 
+// 0x55eaa0 (cdecl; name unconfirmed): Lnd_BlendRow16 with three pairs: (a, b), (c, d), (e, f) each mixed by tab[w * mul >> 8] of its own weight row and table,
+// then (c, d)'s result over (e, f)'s by mixInner, then (a, b)'s over that by mixOuter; the alpha byte cleared. Sic: mul is not stepped (the first byte serves
+// all sixteen texels).
+void __cdecl Lnd_BlendRow16x3(const u8 *a, const u8 *b, const u8 *wa, const u8 *tabA, const u8 *c, const u8 *d, const u8 *wc, const u8 *tabC, const u8 *e,
+                              const u8 *f, const u8 *we, const u8 *tabE, const u8 *mul, const u8 *mixOuter, const u8 *mixInner, u8 *out);
+
 // 0x55e780 (writes into a plain buffer instead of an Array3D): bilinear upsampling of one
 // control channel over tile (x, y) to size * size bytes. y counts from the top of the
 // control map. Returns false for a size the original cannot handle (not 4 * 2^n).

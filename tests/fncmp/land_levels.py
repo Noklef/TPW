@@ -23,6 +23,8 @@ def array(r, last):
         w, h, d = r.choice([0xffffffff, 0x10000, 0x80000001]), r.randrange(1, 3), r.randrange(1, 3)
         return struct.pack('<3I', w, h, d), 0
     w, h, d = r.randrange(0, 4), r.randrange(0, 4), r.randrange(1, 5)
+    if last and r.random() < 0.2:  # a read of 256 bytes or more (its count shows in the upper bytes of the return)
+        w, h, d = r.randrange(8, 17), r.randrange(4, 9), 4
     return struct.pack('<3I', w, h, d) + r.bytes(w * h * d), w * h * d
 
 
