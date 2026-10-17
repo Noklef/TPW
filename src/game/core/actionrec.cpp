@@ -198,6 +198,21 @@ void __fastcall ActionRec_WriteWB(ActionRec *r, void *, u32 code, u32 a, u32 b) 
     put8(r, b);
 }
 
+void __fastcall ActionRec_WriteFW(ActionRec *r, void *, u32 code, u32 a, u32 b) {
+    if (!writing(r)) return;
+    put8(r, code);
+    put(r, &a, 4);
+    put16(r, b);
+}
+
+void __fastcall ActionRec_WriteFFW(ActionRec *r, void *, u32 code, u32 a, u32 b, u32 c) {
+    if (!writing(r)) return;
+    put8(r, code);
+    put(r, &a, 4);
+    put(r, &b, 4);
+    put16(r, c);
+}
+
 void __cdecl ActionRec_RecordCoaster45(const u8 *coaster, u32 value) {
     ActionRec_WriteWW(gActionRec(), nullptr, 0x45, *reinterpret_cast<const u16 *>(coaster + 0x14), value);
 }

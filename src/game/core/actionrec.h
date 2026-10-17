@@ -56,6 +56,10 @@ void __fastcall ActionRec_WriteWW(ActionRec *r, void *, u32 code, u32 a, u32 b);
 void __fastcall ActionRec_WriteWWW(ActionRec *r, void *, u32 code, u32 a, u32 b, u32 c);
 // 0x403e60 (thiscall; code, a, b; pops 0xc): the code byte, the word a, the byte b.
 void __fastcall ActionRec_WriteWB(ActionRec *r, void *, u32 code, u32 a, u32 b);
+// 0x403ed0 (thiscall; code, a, b; pops 0xc): the code byte, the float a (its bits), the word b. (The debug output after it is left out.)
+void __fastcall ActionRec_WriteFW(ActionRec *r, void *, u32 code, u32 a, u32 b);
+// 0x403f40 (thiscall; code, a, b, c; pops 0x10): the code byte, the floats a and b (their bits), the word c. (The debug output left out.)
+void __fastcall ActionRec_WriteFFW(ActionRec *r, void *, u32 code, u32 a, u32 b, u32 c);
 
 // Recorded actions: each writes its record to the global recorder 0x785a08, then (most) applies it.
 // 0x447e10 (cdecl; coaster, value): the record 0x45 (the coaster's word +0x14, the word value); nothing else.

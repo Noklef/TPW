@@ -13,7 +13,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, STUBS, Bench, Call, fill, heap, import_table, log_region, record_stream, set_return, strings, vtable  # noqa: E402
 
-B = Bench([(0x403400, 0x403f00), (0x5f7000, 0x5f7400), (0x5f8000, 0x5f9000), (0x5fa900, 0x5fa9a0), (0x618c00, 0x619260), (0x6307c0, 0x630800),
+B = Bench([(0x403400, 0x403fc6), (0x5f7000, 0x5f7400), (0x5f8000, 0x5f9000), (0x5fa900, 0x5fa9a0), (0x618c00, 0x619260), (0x6307c0, 0x630800),
            (0x5da3c0, 0x5da3d0), (0x405000, 0x406000), (0x67a400, 0x690000), (0x416e10, 0x416e15), (0x5f5e20, 0x5f5e80),
            (0x639100, 0x639110)])
 THIS, VT, BUF, SRC, VT_SRC = RAM, RAM + 0x400, RAM + 0x500, RAM + 0x600, RAM + 0x680
@@ -23,7 +23,7 @@ IMPORTS = {'CreateSemaphoreA': (40, 0x6fd16c, 4, 8, 0), 'CloseHandle': (41, 0x6f
            'InterlockedDecrement': (43, 0x6fd12c, 1, 0, 0)}
 # name: (address, operands: n random dwords, 'm' the mode, '' none; this: w a writer's, s streams to start / stop, c room for the constructor)
 OPS = {'Write': (0x403be0, 1, 'w'), 'WriteBB': (0x403c20, 3, 'w'), 'WriteBBW': (0x403c80, 4, 'w'), 'WriteW': (0x403d00, 2, 'w'),
-       'WriteWW': (0x403d60, 3, 'w'), 'WriteWWW': (0x403dd0, 4, 'w'), 'WriteWB': (0x403e60, 3, 'w'),
+       'WriteWW': (0x403d60, 3, 'w'), 'WriteWWW': (0x403dd0, 4, 'w'), 'WriteWB': (0x403e60, 3, 'w'), 'WriteFW': (0x403ed0, 3, 'w'), 'WriteFFW': (0x403f40, 4, 'w'),
        'Ctor': (0x403480, 0, 'c'), 'Dtor': (0x4036e0, 0, 's'), 'Start': (0x403a40, 'm', 's'), 'Restart': (0x403b00, 0, 's'),
        'Serialize': (0x403780, 0, 'z')}
 
@@ -85,7 +85,7 @@ def serialize(r, regions):
 
 
 def case(r):
-    address, n, kind = OPS[r.choice(PICK)]
+    address, n, kind = OPS[r.deal(PICK)]
     if kind == 'w':
         return Call(address, [THIS] + [r.getrandbits(32) for _ in range(n)], writer(r), conv='t', ret='v')
     log = log_region()

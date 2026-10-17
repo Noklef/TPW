@@ -24,4 +24,11 @@ u32 __fastcall MessageCentre_RemoveThing(u8 *centre, void *, const u8 *thing);
 // (4 bytes) and the keys of its nodes in order (2 bytes each, from the first node through StdTree_IncB to the head) with Stream_Write; a short key write
 // is only asserted (left out). Returns 0.
 u32 __fastcall MessageCentre_Save(u8 *centre, void *, const u8 *chunk);
+
+// 0x40fd60 (thiscall on the message centre; a load chunk whose dword +0 is the stream, pops 4): every slot map emptied (StdTree_EraseRangeB from the
+// first node to the head); then Stream_Read of the slot count (4 bytes, ignored: the result of that read is the buffer the counts are read into), and
+// for each of the 29 slots a count (4 bytes) and that many 2-byte keys inserted into the slot's map (StdMapB_Insert). A short read leaves the
+// buffer's old bytes: the count buffer starts as the first read's result, the key buffer as the erase's out (the last slot's head); the short-key
+// assert is left out. Returns -1 at the first key already in its map, else 0.
+s32 __fastcall MessageCentre_Load(u8 *centre, void *, const u8 *chunk);
 }  // extern "C"

@@ -62,6 +62,9 @@ u8 __stdcall Bytes785058_Get(u32 index);
 // 0x47eaa0: the dword at 0x7b4b88.
 u32 __cdecl Global7b4b88_Get_47eaa0();
 
+// 0x4b4480 (cdecl): the dword at 0x7cc2f0 (0, 1 or 2: set by the window messages of 0x4b37xx-0x4b3fxx).
+u32 __cdecl Global7cc2f0_Get_4b4480();
+
 // 0x519410: the dword at 0x785584.
 u32 __cdecl Global785584_Get_519410();
 

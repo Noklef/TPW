@@ -9,12 +9,12 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, Bench, Call, RAM, fb, global_heap, heap, put  # noqa: E402
+from fncmp import HEAP, LOG, Bench, Call, RAM, fb, global_heap, heap, log_region, put, recorder, set_return  # noqa: E402
 
 B = Bench([(0x44a590, 0x44b140), (0x44b140, 0x44b2e0), (0x44b3c0, 0x44b410), (0x44e570, 0x44e5fc),
            (0x4587b0, 0x4587d9), (0x45bed0, 0x45bf13), (0x450420, 0x45046d), (0x4508b0, 0x4508f1), (0x450950, 0x450a24), (0x450a30, 0x450a78), (0x466f90, 0x46702f),
            (0x450b00, 0x450b24), (0x457a00, 0x457a88), (0x46de00, 0x46e125), (0x56dfb0, 0x56dfdd),
-           (0x45d620, 0x45d68c), (0x441840, 0x4418cb), (0x469180, 0x469405), (0x469470, 0x4698ef),
+           (0x45d620, 0x45d68c), (0x441840, 0x4418cb), (0x469180, 0x469405), (0x469470, 0x4698ef), (0x469410, 0x46946a),
            (0x45b9d0, 0x45ba15), (0x468760, 0x4688a7), (0x44b4c0, 0x44b505),
            (0x475550, 0x47558b), (0x46f150, 0x46f180), (0x46f240, 0x46f350), (0x46f420, 0x46f5c0),
            (0x4702d0, 0x470630), (0x473a40, 0x473c30), (0x67b410, 0x67b440), (0x450e60, 0x450e99),
@@ -452,7 +452,8 @@ def highlight(r, op):
     -> VERTS + 0x100 * k. Globals: current 0x7a1ce0, target 0x7afda0, suspended 0x7afda4, buffer
     0x7afd00 -> HLBUF, saved pointers 0x7afd94 -> SAVED. Flashing: +0xd0 links from 0x7afe14; a
     model's base +0x9c is HL + 0x800 (+0x5c, meshes at +0x70 -> HL + 0xa00), itself or the other
-    model; +0x5c is the base's or not; +0x4a / +0x58 counts; heap() for the GlobalAlloc slots."""
+    model; +0x5c is the base's or not; +0x4a / +0x58 counts; heap() for the GlobalAlloc slots;
+    GetTickCount (0x6fd1d0, HlWhite's) a recorder answering any count."""
     op = op.rstrip('2')  # weighted twice
     hl = bytearray(r.bytes(0x1000))
     a, b = HL, HL + 0x40
@@ -499,6 +500,10 @@ def highlight(r, op):
             0x7afd04: struct.pack('<f', r.choice([0, 1, 2, r.uniform(0, 2), r.uniform(-3, 5)])) if r.random() < 0.9 else r.bytes(4),
             0x7b497c: put(bytearray(4), 0, 'I', r.choice([fb(r.uniform(0, 0.1)), fb(r.uniform(-2, 2)), r.getrandbits(32)]))}
     regs[HL] = hl
+    if op == 'HlWhite':
+        log = log_region()
+        set_return(log, 40, r.getrandbits(32))
+        regs.update({LOG: log, 0x6fd1d0: struct.pack('<I', recorder(40, 0, True))})
     if op == 'HlUnflash' and r.random() < 0.5:  # a highlighted holder: released and highlighted again
         h = who[0] - HL
         put(hl, h + 4, 'I', struct.unpack_from('<I', hl, h + 4)[0] | 0x20000)
@@ -527,7 +532,7 @@ def highlight(r, op):
              'HlClear': (0x469470, []), 'HlCurrent': (0x45d620, []), 'HlShown': (0x45d630, [flag]),
              'HlSuspend': (0x45d660, [flag]), 'HlAlloc': (0x469510, []), 'HlFree': (0x469550, []),
              'HlFlash': (0x469580, [r.choice([a, b])]), 'HlUnflash': (0x469650, [r.choice(who)]),
-             'HlPulse': (0x469840, [])}
+             'HlPulse': (0x469840, []), 'HlWhite': (0x469410, [])}
     address, args = calls[op]
     return Call(address, args, regs, ret='a' if op == 'HlCurrent' else 'v')
 
@@ -543,7 +548,7 @@ KINDS = {'Size': mode, 'Depth': mode, 'ResetScale': mode, 'Epsilon': mode, 'Mark
          'HlTarget': highlight, 'HlCar': highlight, 'HlTints': highlight, 'HlClear': highlight, 'HlCurrent': highlight,
          'HlShown': highlight, 'HlSuspend': highlight, 'HlAlloc': highlight, 'HlFree': highlight,
          'HlFlash': highlight, 'HlFlash2': highlight, 'HlUnflash': highlight, 'HlUnflash2': highlight,
-         'HlPulse': highlight, 'GAlloc': globalmem, 'GFree': globalmem, 'GCounted': globalmem, 'VScratch': leaves,
+         'HlPulse': highlight, 'HlWhite': highlight, 'GAlloc': globalmem, 'GFree': globalmem, 'GCounted': globalmem, 'VScratch': leaves,
          'VScratchFree': leaves, 'Awake': leaves, 'FrameBegin': leaves, 'IdAdd': ids, 'IdRemove': ids,
          'PsCreate': partstates, 'PsMark': partstates, 'PsFree': partstates, 'PsRelease': partstates,
          'PsUpdate': partmatrices, 'PsPoint': partmatrices, 'PsAim': partmatrices, 'MxPreMul': partmatrices,
@@ -552,7 +557,7 @@ OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 
 def case(r):
-    op = r.choice(OPS)
+    op = r.deal(OPS)
     return KINDS[op](r, op)
 
 

@@ -7,6 +7,7 @@
 #include <type_traits>
 
 #include "crt.h"
+#include "../files/file.h"
 #include "gameheap.h"
 #include "methods.h"
 #include "vcall.h"
@@ -745,6 +746,48 @@ s32 __fastcall ByteString_Compare(const u8 *object, void *, const u8 *other) {
     if (length >= otherLength)
         return length != otherLength ? 1 : 0;
     return -1;
+}
+
+s32 __cdecl String_AssignFromWide(String *s, const WString *wide) {
+    using WideToMulti = s32(__stdcall *)(u32, u32, const u16 *, s32, char *, s32, const char *, s32 *);
+    const WideToMulti convert = *reinterpret_cast<const WideToMulti *>(0x006fd1dc);
+    s32 result = 0;
+    const s32 size = convert(0, 0, wide->data, -1, nullptr, 0, nullptr, nullptr);
+    if (size > 0) {
+        if (char *const block = static_cast<char *>(Mem_GlobalAlloc(static_cast<u32>(size)))) {
+            result = convert(0, 0, wide->data, -1, block, size, nullptr, nullptr);
+            vcall<void>(s, 0x14, static_cast<const char *>(block));
+            Mem_GlobalFree(block);
+        }
+    }
+    return result;
+}
+
+s32 __cdecl WString_AssignFromAnsi(WString *wide, const String *s) {
+    using MultiToWide = s32(__stdcall *)(u32, u32, const char *, s32, u16 *, s32);
+    const MultiToWide convert = *reinterpret_cast<const MultiToWide *>(0x006fd174);
+    s32 result = 0;
+    const s32 units = convert(0, 0, s->data, -1, nullptr, 0);
+    if (units > 0) {
+        if (u16 *const block = static_cast<u16 *>(Mem_GlobalAlloc(static_cast<u32>(units) * 2))) {
+            result = convert(0, 0, s->data, -1, block, units);
+            vcall<void>(wide, 0x14, static_cast<const u16 *>(block));
+            Mem_GlobalFree(block);
+        }
+    }
+    return result;
+}
+
+u16 *__cdecl String_AnsiToWide(const char *text, u16 *buffer, s32 size) {
+    using MultiToWide = s32(__stdcall *)(u32, u32, const char *, s32, u16 *, s32);
+    const MultiToWide convert = *reinterpret_cast<const MultiToWide *>(0x006fd174);
+    if (!buffer) {
+        u16 *const fixed = reinterpret_cast<u16 *>(0x007ba058);
+        convert(0, 0, text, -1, fixed, 0x3fff);
+        return fixed;
+    }
+    convert(0, 0, text, -1, buffer, size);
+    return buffer;
 }
 
 String *__cdecl String_StripSuffix(const String *suffix, String *s) {

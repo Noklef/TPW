@@ -182,6 +182,19 @@ void __cdecl Highlight_PulseFlashing() {
     }
 }
 
+void __cdecl Highlight_WhitenCurrent() {
+    const u8 *const h = current();
+    if (!h) return;
+    const u8 *const m = model(h);
+    const u8 *mesh = at<const u8 *>(m, 0x70);
+    (*reinterpret_cast<u32(__stdcall *const *)()>(0x006fd1d0))();   // GetTickCount (its result dropped)
+    for (u32 i = 0; i < at<u16>(m, 0x44); ++i, mesh += 0xa0) {
+        for (u32 j = 0; j < at<u16>(mesh, 0x5e); ++j) {
+            if (!(at<u32>(mesh, 0) & 0x4000)) at<u32 *>(mesh, 0x64)[j] = 0xffffffff;
+        }
+    }
+}
+
 void __cdecl Highlight_InitUnusedOne() { *reinterpret_cast<float *>(0x007afe1c) = 1.0f; }
 
 void __cdecl Highlight_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x007b0464) = 1.0f / 8388608.0f; }

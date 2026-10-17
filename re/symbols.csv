@@ -39,7 +39,7 @@ address,name,kind,confidence,notes
 0x00475650,SpriteScripts_Save,function,high,"reimplemented (src/game/sprite/script); module SPSC; TPCS, 0x118, table size, table, the scripts"
 0x0051f7a0,Particles_Load,function,high,reimplemented (src/game/core/savemods); reads the particle module from the save game
 0x0051f680,Particles_Save,function,high,reimplemented (src/game/core/savemods); writes the particle module to the save game
-0x0040fd60,MessageCentre_Load,function,high,module MESS
+0x0040fd60,MessageCentre_Load,function,high,"reimplemented (src/game/world/messagecentre); Empties the 29 slot maps, then reads the counts and keys back from the chunk's stream"
 0x0040fc80,MessageCentre_Save,function,high,"reimplemented (src/game/world/messagecentre); thiscall (chunk, its stream at +0); writes 29, then each slot map's size and its keys in order (2 bytes each; Stream_Write, StdTree_IncB); returns 0"
 0x00402e30,Clock_Load,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); GameClock_Load4c, then when it worked GameClock_Load24 on the clock at +0x50; module CLOK"
 0x00402e00,Clock_Save,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); GameClock_Save4c, then when it worked GameClock_Save24 on the clock at +0x50; module CLOK"
@@ -701,6 +701,8 @@ address,name,kind,confidence,notes
 0x0042aab0,Camera_SetView,function,high,"reimplemented (src/game/world/camera); clears 0x790a88-0x790a90; sets x/z (z read whenever x given), 0x7909ec, yaw 0x790a38, 0x74c9bc from non-null pointers"
 0x0042afd0,Camera_SetFlag80,function,high,reimplemented (src/game/world/camera); sets or clears gCameraFlags (0x790ab0) bit 0x80
 0x0042cd40,Camera_ClampCell,function,high,"reimplemented (src/game/world/camera); clamps a cell to [0, 0x7a0314 - 1] x [0, 0x7a0374 - 1], signed"
+0x004868d0,Camera_CentreOnCell,function,low,reimplemented (src/game/world/camera); The view's point set to a cell's centre from its id
+0x004867b0,Camera_CentreOnThing,function,low,reimplemented (src/game/world/camera); The view's point set to a thing's cell
 0x0046c450,MouseMode_Nop4,function,high,reimplemented (src/game/world/mousemode); an empty mouse-mode method (4 arguments)
 0x0046c460,MouseMode_DeletingDtor,function,high,reimplemented (src/game/world/mousemode); the base mouse mode's deleting destructor
 0x0046c580,MouseModeTile_Ctor,function,high,reimplemented (src/game/world/mousemode); the 0x6fe9e0 tile mode's constructor
@@ -955,6 +957,8 @@ address,name,kind,confidence,notes
 0x00506910,Things_NearestRestArea,function,high,reimplemented (src/game/world/thingscan); the nearest thing flagged as a rest area
 0x00501020,Things_NearestFlag80Close,function,high,reimplemented (src/game/world/thingscan); the nearest flag 0x80 thing within distance 2 whose ride has no element 0
 0x0059ef10,Staff_SurplusKind8,function,high,reimplemented (src/game/world/thingscan); a value when the staff of kind 8 outnumber the objects and a limit
+0x004824d0,Things_FindNextOfCategory,function,low,"reimplemented (src/game/world/thingscan); The next thing of a category bit after a thing: staff, a staff list, kind 1 or one of the object finders"
+0x00482da0,Things_FindPrevOfCategory,function,low,"reimplemented (src/game/world/thingscan); The previous thing of a category bit before a thing: staff, kind 1, shops or one of the object finders"
 0x0054b130,Buoy_FindFree,function,high,"reimplemented (src/game/world/trackpools); the first free buoy record, its index stored in it"
 0x0054b170,Buoy_Alloc,function,high,reimplemented (src/game/world/trackpools); takes the first free buoy record
 0x0054b1e0,CollNode_FindFree,function,high,reimplemented (src/game/world/trackpools); the first free collision node
@@ -1625,6 +1629,7 @@ address,name,kind,confidence,notes
 0x00413380,WText_WordEquals,function,high,reimplemented (src/game/files/wtext); 1 when two UTF-16 strings hold the same word up to a separator
 0x004138b0,WText_NextLine,function,high,reimplemented (src/game/files/wtext); the next non-blank UTF-16 line after p's
 0x00468250,GamePaths_FontsFolder,function,low,"reimplemented (src/game/files/gamepaths); cdecl (out); the root folder's string (0xf816c0) with ""Data\Fonts"" by sprintf (""%s%s"" after a trailing ""\"", else ""%s\%s""): 1; no text: 0"
+0x004688b0,GamePaths_SetTextureFolders,function,low,reimplemented (src/game/files/gamepaths); The texture and shared texture folder names printed by detail
 0x0055e470,CpuInfo_Ctor,function,medium,"thiscall; CPUID probe (EFLAGS.ID test, then the vendor string and features); SystemInfo's base"
 0x0067df40,CRT_stricmp,function,high,"MSVC CRT _stricmp: A-Z folded, or the locale's tolower when one is set"
 0x00f7a7d0,gCdVolumeLabel,data,medium,"const char *: the CD's volume label, looked for on the CD-ROM drives by the CD check (0x5aa585)"
@@ -3304,6 +3309,9 @@ address,name,kind,confidence,notes
 0x0048eaf0,Table7c26b0_ReleaseIdle,function,high,reimplemented (src/game/core/vwrap); releases the idle objects of a table
 0x0057c4a0,Global8bba48_DeleteVBase,function,high,reimplemented (src/game/core/vwrap); deletes the virtual base of a global object
 0x00576230,ListNodes_Drain,function,high,reimplemented (src/game/core/vwrap); drains the objects of a list while they report 1
+0x00497b60,Global7ca1bc_Release,function,low,reimplemented (src/game/core/vwrap); The object at 0x7ca1bc released (slot 8 with 1)
+0x0048d860,Obj_CallMember20Slot14,function,low,reimplemented (src/game/core/vwrap); The slot 0x14 of the object at +0x20 called with an argument
+0x004af9f0,Obj_CallSlot14IfGlobalThing,function,low,reimplemented (src/game/core/vwrap); The object's slot 0x14 called when a handle's thing is the global one
 0x005e3b90,Class702d48_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor that registers the object with a global one
 0x005e3c00,Class702d48_Release,function,high,reimplemented (src/game/core/vdtor); releases the object from a global one
 0x005e3bd0,Class702d48_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor that releases the object from a global one
@@ -3463,6 +3471,7 @@ address,name,kind,confidence,notes
 0x0047d140,StdTree_InsertA,function,high,reimplemented (src/game/core/stdtree); std::map insert of a node with a three-dword value
 0x005b2ba0,StdTree_InsertG,function,high,reimplemented (src/game/core/stdtree); std::map insert of a node with a word value
 0x0056a750,Table879ad0_Clear,function,high,reimplemented (src/game/core/globals); clears the 64 pairs of dwords and a counter
+0x004b4480,Global7cc2f0_Get_4b4480,function,low,reimplemented (src/game/core/globals); The dword at 0x7cc2f0
 0x004f0370,StdTreeC_PostInc,function,high,reimplemented (src/game/core/stdtree); post-increment of a std::map iterator
 0x004f0460,StdTreeE_PostInc,function,high,reimplemented (src/game/core/stdtree); post-increment of a std::map iterator
 0x004f0880,Obj_InitMinus1A,function,high,reimplemented (src/game/core/accessors); initialises an object with -1 ignoring three arguments
@@ -3486,6 +3495,9 @@ address,name,kind,confidence,notes
 0x005c4c60,Strings5_Dtor,function,high,reimplemented (src/game/core/string); destroys five strings
 0x00424d30,String_StripSuffix,function,low,"reimplemented (src/game/core/string); cdecl (suffix, s); s loses its last suffix->length chars when they equal the suffix case blind; returns s"
 0x0041cea0,String_SkipDotPrefix,function,low,"reimplemented (src/game/core/string); cdecl (s); when s starts with the global ""."" (0x78c648), the following ""\"" (0x78bee0) / ""."" chars are stepped over one at a time and s = the rest"
+0x00424db0,String_AssignFromWide,function,low,reimplemented (src/game/core/string); A string assigned the ANSI conversion of a wide string's text
+0x00424e10,WString_AssignFromAnsi,function,low,reimplemented (src/game/core/string); A wide string assigned the UTF-16 conversion of a string's text
+0x004bbb80,String_AnsiToWide,function,low,reimplemented (src/game/core/string); ANSI text converted to UTF-16 into a buffer or the static one
 0x005bdc10,Class702938_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings
 0x005be320,Class702940_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three strings
 0x005be750,Class702948_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings
@@ -3664,6 +3676,8 @@ address,name,kind,confidence,notes
 0x0052fad0,Global81ecac_SetRecorded,function,low,"reimplemented (src/game/core/actionrec); cdecl (value): the record 0x1e (the word value), then 0x81ecac = value"
 0x0052f1b0,Global81d7a4_SetRecorded,function,low,"reimplemented (src/game/core/actionrec); cdecl (value, force byte): the record 0xa unless value is 0x81b134 and not forced; 0x81b134 = old 0x81d7a4, 0x81d7a4 = value"
 0x0052f880,Global8186e0_SetRecorded,function,low,"reimplemented (src/game/core/actionrec); cdecl (&id, flag): the record 5 (word id, byte flag), World_MarkRideBuilt; 0x8186ec = old 0x8186e0, 0x8187f8 = flag, 0x8186e0 = id"
+0x00403ed0,ActionRec_WriteFW,function,low,"reimplemented (src/game/core/actionrec); The action record of a code byte, a float and a word"
+0x00403f40,ActionRec_WriteFFW,function,low,"reimplemented (src/game/core/actionrec); The action record of a code byte, two floats and a word"
 0x00408f00,NamedObjects_RemoveGlobals,function,low,reimplemented (src/game/core/namedobjects); the 14 named globals removed from the named objects registry at [0x786b9c] and deleted
 0x00407b90,NamedObjects_Ctor,function,low,"reimplemented (src/game/core/namedobjects); thiscall: the registry owner built: String name from the WString 0x7861c0, empty owned list (vtable 0x6fd704), a new registry at +0x34"
 0x00407c90,NamedObjects_Dtor,function,low,"reimplemented (src/game/core/namedobjects); thiscall: owned objects deleted (slot 3), registry drained and freed, +0x38 freed, list vtable 0x6fd708 and nodes freed, String_Dtor"
@@ -3717,6 +3731,26 @@ address,name,kind,confidence,notes
 0x00447e80,FloatConsts_InitEpsilon_447e80,function,low,reimplemented (src/game/core/floatconsts); cdecl static initialiser: unused 0x79d58c = 1 / 2^23 (unit unknown)
 0x0044bae0,FloatConsts_InitOne_44bae0,function,low,reimplemented (src/game/core/floatconsts); cdecl static initialiser: unused 0x79df2c = 1.0f (unit unknown)
 0x0044bb00,FloatConsts_InitEpsilon_44bb00,function,low,reimplemented (src/game/core/floatconsts); cdecl static initialiser: unused 0x79e62c = 1 / 2^23 (unit unknown)
+0x0044e610,FloatConsts_InitOne_44e610,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1.0f
+0x0044e630,FloatConsts_InitEpsilon_44e630,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1 / 2^23
+0x00450e20,FloatConsts_InitOne_450e20,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1.0f
+0x00450e40,FloatConsts_InitEpsilon_450e40,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1 / 2^23
+0x004549d0,FloatConsts_InitOne_4549d0,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1.0f
+0x004549f0,FloatConsts_InitEpsilon_4549f0,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1 / 2^23
+0x00468910,FloatConsts_InitOne_468910,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1.0f
+0x00468930,FloatConsts_InitEpsilon_468930,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1 / 2^23
+0x00474fd0,FloatConsts_InitOne_474fd0,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1.0f
+0x00474ff0,FloatConsts_InitEpsilon_474ff0,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1 / 2^23
+0x0047dd80,FloatConsts_InitOne_47dd80,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1.0f
+0x0047dda0,FloatConsts_InitEpsilon_47dda0,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1 / 2^23
+0x00480190,FloatConsts_InitOne_480190,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1.0f
+0x004801b0,FloatConsts_InitEpsilon_4801b0,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1 / 2^23
+0x004808f0,FloatConsts_InitOne_4808f0,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1.0f
+0x00480910,FloatConsts_InitEpsilon_480910,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1 / 2^23
+0x0048d870,FloatConsts_InitOne_48d870,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1.0f
+0x0048d890,FloatConsts_InitEpsilon_48d890,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1 / 2^23
+0x004b4490,FloatConsts_InitOne_4b4490,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1.0f
+0x004b44b0,FloatConsts_InitEpsilon_4b44b0,function,low,reimplemented (src/game/core/floatconsts); Static initialiser: an unknown unit's unused 1 / 2^23
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
@@ -3785,6 +3819,7 @@ address,name,kind,confidence,notes
 0x0047fbe0,Gauge_SetColour3,function,high,reimplemented (src/game/gfx/gauge); the gauge's colour 3
 0x0047fc00,Gauge_DrawBack,function,low,reimplemented (src/game/gfx/gauge); thiscall: the frame filled in colour 3 (Display_BoxFill)
 0x0047fc50,Gauge_DrawAxes,function,low,"reimplemented (src/game/gfx/gauge); thiscall: the horizontal axis (colour 0) at bottom + 1 or scaled by the first mark, then the vertical one (colour 1)"
+0x004806a0,Gauge_Setup,function,low,"reimplemented (src/game/gfx/gauge); A gauge set up for a window: its rect from the window's size, green, black and dark green colours, then the marks"
 0x00477c00,BarMesh_SetVertex,function,high,reimplemented (src/game/gfx/barmesh); vertex i of a 4-lane x/y/z block array
 0x00477cc0,BarMesh_SetTopVertices,function,high,reimplemented (src/game/gfx/barmesh); virtual: the bar's top edge vertices at its level (+0x120)
 0x00477d20,BarMesh_SetTopTexCoords,function,high,reimplemented (src/game/gfx/barmesh); virtual: the bar's top edge texture v = level * 0.01
@@ -4017,6 +4052,7 @@ address,name,kind,confidence,notes
 0x0053c9c0,DynFaces_AddPoly,function,high,reimplemented (src/game/render/dynfaces); queues a four corner polygon dynamic face
 0x0053c1f0,DynFaces_SortTags,function,high,reimplemented (src/game/render/dynfaces); Sorts the dynamic faces' tag words by tag: quicksort with insertion runs under 7 (name unconfirmed)
 0x00458400,LightSource_Destroy,function,low,"reimplemented (src/game/render/lightsource); cdecl (light): by kind: 0 the data error box; 1 the ambient colour reset, then 2: the part +4 out of the renderer tag 0x70 list and deleted, then 3: the same for +0xc"
+0x00458580,LightSource_DestroyMain,function,low,reimplemented (src/game/render/lightsource); The main light (0x7a0b40) destroyed
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
@@ -4060,6 +4096,7 @@ address,name,kind,confidence,notes
 0x0045d610,Highlight_Point,function,high,reimplemented (src/game/model/highlight); the point at 0x7a1c90
 0x004698f0,Highlight_InitUnusedOne,function,low,reimplemented (src/game/model/highlight); cdecl static initialiser: unused 0x7afe1c = 1.0f
 0x00469910,Highlight_InitUnusedEpsilon,function,low,reimplemented (src/game/model/highlight); cdecl static initialiser: unused 0x7b0464 = 1 / 2^23
+0x00469410,Highlight_WhitenCurrent,function,low,reimplemented (src/game/model/highlight); The current holder's meshes without flag 0x4000 whitened
 0x0044a870,PartStates_Create,function,high,"reimplemented (src/game/model/partstate); (instance): the part states +0x28 for the model +4: animated parts (0x10/0x20) flagged, slots of 0x40 per animated face"
 0x0044aa10,PartStates_MarkNodes,function,high,"reimplemented (src/game/model/partstate); (instance, node, model): recursive; 0x20 on animated leaf entries, 0x40000000 on nodes without animated parts below; 1 if none"
 0x0044aae0,PartStates_Free,function,high,reimplemented (src/game/model/partstate); (instance): frees the part states +0x28

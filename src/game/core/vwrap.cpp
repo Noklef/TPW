@@ -180,4 +180,18 @@ s32 __fastcall Refcounted_Release(u8 *field) {
     return count;
 }
 
+void __cdecl Global7ca1bc_Release() {
+    if (u8 *object = global<u8 *>(0x007ca1bc))
+        vcall<u32>(object, 8, 1u);
+}
+
+u32 __fastcall Obj_CallMember20Slot14(u8 *object, void *, u32 a) { return vcall<u32>(at<u8 *>(object, 0x20), 0x14, a); }
+
+void __fastcall Obj_CallSlot14IfGlobalThing(u8 *object, void *, u32 handle) {
+    if (!at<u32>(object, 0x10)) return;
+    const u8 *const thing = global<const u8 *>(0x007cfb90 + 20 * (handle & 0xffff));
+    if (thing && thing == global<const u8 *>(0x007c2658))
+        vcall<u32>(object, 0x14);
+}
+
 }  // extern "C"

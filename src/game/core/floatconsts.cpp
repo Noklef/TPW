@@ -97,4 +97,44 @@ void __cdecl FloatConsts_InitEpsilon_48c9c0() { *reinterpret_cast<float *>(0x007
 void __cdecl FloatConsts_InitOne_491fa0() { *reinterpret_cast<float *>(0x007ca0b8) = 1.0f; }
 
 void __cdecl FloatConsts_InitEpsilon_491fc0() { *reinterpret_cast<float *>(0x007ca0dc) = 1.0f / 8388608.0f; }
+
+void __cdecl FloatConsts_InitOne_44e610() { *reinterpret_cast<float *>(0x0079ee24) = 1.0f; }
+
+void __cdecl FloatConsts_InitEpsilon_44e630() { *reinterpret_cast<float *>(0x0079f514) = 1.0f / 8388608.0f; }
+
+void __cdecl FloatConsts_InitOne_450e20() { *reinterpret_cast<float *>(0x0079f7d8) = 1.0f; }
+
+void __cdecl FloatConsts_InitEpsilon_450e40() { *reinterpret_cast<float *>(0x0079fb14) = 1.0f / 8388608.0f; }
+
+void __cdecl FloatConsts_InitOne_4549d0() { *reinterpret_cast<float *>(0x0079fb30) = 1.0f; }
+
+void __cdecl FloatConsts_InitEpsilon_4549f0() { *reinterpret_cast<float *>(0x0079fb34) = 1.0f / 8388608.0f; }
+
+void __cdecl FloatConsts_InitOne_468910() { *reinterpret_cast<float *>(0x007afd98) = 1.0f; }
+
+void __cdecl FloatConsts_InitEpsilon_468930() { *reinterpret_cast<float *>(0x007afda8) = 1.0f / 8388608.0f; }
+
+void __cdecl FloatConsts_InitOne_474fd0() { *reinterpret_cast<float *>(0x007b4a04) = 1.0f; }
+
+void __cdecl FloatConsts_InitEpsilon_474ff0() { *reinterpret_cast<float *>(0x007b4a0c) = 1.0f / 8388608.0f; }
+
+void __cdecl FloatConsts_InitOne_47dd80() { *reinterpret_cast<float *>(0x007b4a58) = 1.0f; }
+
+void __cdecl FloatConsts_InitEpsilon_47dda0() { *reinterpret_cast<float *>(0x007b4a5c) = 1.0f / 8388608.0f; }
+
+void __cdecl FloatConsts_InitOne_480190() { *reinterpret_cast<float *>(0x007b4bf0) = 1.0f; }
+
+void __cdecl FloatConsts_InitEpsilon_4801b0() { *reinterpret_cast<float *>(0x007b4bf4) = 1.0f / 8388608.0f; }
+
+void __cdecl FloatConsts_InitOne_4808f0() { *reinterpret_cast<float *>(0x007b51e4) = 1.0f; }
+
+void __cdecl FloatConsts_InitEpsilon_480910() { *reinterpret_cast<float *>(0x007b51e8) = 1.0f / 8388608.0f; }
+
+void __cdecl FloatConsts_InitOne_48d870() { *reinterpret_cast<float *>(0x007c26a8) = 1.0f; }
+
+void __cdecl FloatConsts_InitEpsilon_48d890() { *reinterpret_cast<float *>(0x007c26ac) = 1.0f / 8388608.0f; }
+
+void __cdecl FloatConsts_InitOne_4b4490() { *reinterpret_cast<float *>(0x007cc31c) = 1.0f; }
+
+void __cdecl FloatConsts_InitEpsilon_4b44b0() { *reinterpret_cast<float *>(0x007cc320) = 1.0f / 8388608.0f; }
 }

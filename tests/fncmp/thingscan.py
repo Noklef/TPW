@@ -1,6 +1,7 @@
 # The walks over the park's things (src/game/world/thingscan) against the originals: a consistent thing table (slots in use linked newest first,
 # the things behind them with a kind, flags and the fields the scans read) and the object definitions they are found through, between none and
-# six things; the finders start from the newest or after a thing.
+# six things; the finders start from the newest or after a thing. Cat / CatB (0x4824d0 / 0x482da0) pick a finder by a category bit: the things
+# are staff, kind 1 and objects, the staff lists' heads (world +0x1da73c..) and links (+0x210) name handles of the park or 0.
 # usage: thingscan.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=C1,C2,Max,...)
 import os
 import struct
@@ -10,7 +11,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 from fncmp import Bench, Call, RAM  # noqa: E402
-from thingenv import POOL, THING, park  # noqa: E402
+from thingenv import ITEM, ITEMS, NITEMS, POOL, THING, park  # noqa: E402
 
 # name: (address, convention, size, arguments: n none, p previous thing, vp value then previous thing, v value, o an output word)
 CALLS = {'C1': (0x4c9f90, 'c', 0xa0, 'n'), 'C2': (0x4ca0c0, 'c', 0xa0, 'n'), 'Max': (0x4ca820, 's', 0xa0, 'v'),
@@ -21,15 +22,19 @@ CALLS = {'C1': (0x4c9f90, 'c', 0xa0, 'n'), 'C2': (0x4ca0c0, 'c', 0xa0, 'n'), 'Ma
          'B4ac': (0x483280, 'c', 0x140, 'vp'), 'Bw': (0x4833c0, 'c', 0x120, 'p'), 'Bu2': (0x4834e0, 'c', 0x140, 'p'), 'Bf2': (0x483620, 'c', 0x120, 'p'),
          'P1': (0x4c9130, 'c', 0xa0, 'n'), 'P2': (0x4c9530, 'c', 0xa0, 'n'), 'P3': (0x4c95d0, 'c', 0xa0, 'n'),
          'Sum': (0x4c9e60, 'c', 0x70, 'n'), 'Cs': (0x4c9a10, 'c', 0xa0, 'n'), 'U3c': (0x519690, 't', 0x130, 'u'), 'U3e': (0x519800, 't', 0x130, 'u'), 'U40': (0x519970, 't', 0x130, 'u'),
-         'U42': (0x519c50, 't', 0x130, 'u'), 'U44': (0x519ae0, 't', 0x130, 'u'), 'U46': (0x519dc0, 't', 0x130, 'u'), 'S5': (0x59edd0, 't', 0x50, 's'), 'S6': (0x59ee20, 't', 0x50, 's'), 'S4': (0x59ee70, 't', 0x50, 's'), 'S7': (0x59eec0, 't', 0x50, 's'), 'S8': (0x59ef10, 't', 0x50, 's')}
+         'U42': (0x519c50, 't', 0x130, 'u'), 'U44': (0x519ae0, 't', 0x130, 'u'), 'U46': (0x519dc0, 't', 0x130, 'u'), 'S5': (0x59edd0, 't', 0x50, 's'), 'S6': (0x59ee20, 't', 0x50, 's'), 'S4': (0x59ee70, 't', 0x50, 's'), 'S7': (0x59eec0, 't', 0x50, 's'), 'S8': (0x59ef10, 't', 0x50, 's'),
+         'Cat': (0x4824d0, 'c', 0x40c, 'kp'), 'CatB': (0x482da0, 'c', 0x430, 'kp')}
 B = Bench([(a, a + n) for (a, _c, n, _s) in CALLS.values()] + [(0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x4e0440, 0x4e0450),
-                                                              (0x4e2710, 0x4e2740), (0x4dd4e0, 0x4dd500), (0x412e90, 0x412eea), (0x5da3c0, 0x5da3c1), (0x41a960, 0x41a970), (0x5161b0, 0x516200), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c), (0x519510, 0x519550)])
+                                                              (0x4e2710, 0x4e2740), (0x4dd4e0, 0x4dd500), (0x412e90, 0x412eea), (0x5da3c0, 0x5da3c1), (0x41a960, 0x41a970), (0x5161b0, 0x516200), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c), (0x519510, 0x519550),
+                                                              (0x481f80, 0x481fa0), (0x481fc0, 0x482030), (0x4cd300, 0x4cd331)])
 OUT = RAM + 0x1000
 
 
 def case(r):
-    name = r.choice(OPS)
+    name = r.deal(OPS)
     address, conv, _n, shape = CALLS[name]
+    if shape == 'kp':
+        return category(r, address)
     regions, handles, things = park(r, count=r.choice([1, 2, 3, 4, 6]) if shape in ('o', 'u') or name.startswith('B') else None,
                                     defs=name not in ('C1', 'C2', 'Max', 'C3', 'Staff', 'Avg', 'Re', 'P1', 'P2', 'P3', 'Sum', 'Cs') and shape != 'u',
                                     kinds=(4, 5, 6, 7, 8, 3, 1, 0) if name in ('Staff', 'S5', 'S6', 'S4', 'S7', 'S8', 'Cs') else (1, 1, 1, 3, 0, 0xff) if name[0] == 'P' else (3, 3, 3, 1, 2, 0xff, 0),
@@ -78,6 +83,26 @@ def case(r):
             'vv': [value, r.choice([0, 1, 5, 0x7f, 0x80, 0xff, 0xffffffff, 0x80000000])]}[shape]
     regions[OUT] = r.bytes(4)
     return Call(address, args, regions, conv=conv, ret='a')
+
+
+CATEGORIES = [1 << k for k in range(16)]
+
+
+def category(r, address):
+    """The finder by category (a bit, mostly): the park's things of the staff kinds, kind 1 and objects; the staff list heads and links handles."""
+    regions, handles, things = park(r, count=r.choice([0, 1, 2, 3, 4, 6, 6]) if address == 0x4824d0 or r.random() < 0.05 else r.choice([1, 2, 3, 4, 6, 6]),
+                                    kinds=(4, 5, 6, 7, 8, 1, 1, 1, 3, 3, 3, 3, 3, 2, 0))
+    pool = regions[POOL]
+    links = handles + [0, 0, r.getrandbits(16)]
+    for i in range(len(handles)):
+        struct.pack_into('<H', pool, THING * i + 0x210, r.choice(handles + [0]) if r.random() < 0.9 else r.getrandbits(16))
+    regions[RAM + 0x1da73c] = struct.pack('<6H', *[r.choice(links) for _ in range(6)]) + r.bytes(4)
+    items = regions[ITEMS]
+    for i in range(NITEMS):   # (the definitions' +0x4ac any of the values the categories 0x80-0x400 ask for)
+        struct.pack_into('<I', items, ITEM * i + 0x4ac, r.choice([0, 1, 2, 3, 3, 5]))
+    cat = r.choice(CATEGORIES) if r.random() < 0.9 else r.choice([0, 3, 5, 9, 0x18, 0x10000, -1, 0x80000000])
+    prev = r.choice([0, 0] + things) if things else 0
+    return Call(address, [cat & 0xffffffff, prev], regions, conv='c', ret='a')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]

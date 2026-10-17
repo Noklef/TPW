@@ -27,4 +27,15 @@ u32 __cdecl GamePaths_FontsFolder(char *out) {
     Crt().sprintf(out, format, root, at<const char *>(0x0074d6c0));
     return 1;
 }
+
+s32 __cdecl GamePaths_SetTextureFolders(u32 low) {
+    char *const textures = reinterpret_cast<char *>(0x007af650);
+    char *const shared = reinterpret_cast<char *>(0x007af720);
+    if (low) {
+        Crt().sprintf(textures, reinterpret_cast<const char *>(0x0074d6f4));
+        return Crt().sprintf(shared, reinterpret_cast<const char *>(0x00747e88));
+    }
+    Crt().sprintf(textures, reinterpret_cast<const char *>(0x0074d6e8));
+    return Crt().sprintf(shared, reinterpret_cast<const char *>(0x0074d6dc));
+}
 }  // extern "C"

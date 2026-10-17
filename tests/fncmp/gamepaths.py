@@ -1,20 +1,24 @@
 # The game's folder paths of src/game/files/gamepaths against the originals: the fonts folder's path (0x468250) from the root folder's string (the first of
 # the Strings5 object at 0xf816c0; only its data pointer at +8 is read): no text, an empty one (the byte before it read: "\" or not), roots with and
-# without a trailing "\", up to 0x100 chars; the output buffer's bytes past the path compared too.
-# usage: gamepaths.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
+# without a trailing "\", up to 0x100 chars; the output buffer's bytes past the path compared too. TexFolders (0x4688b0) prints the two texture
+# folder names into 0x7af650 / 0x7af720 by its flag (0, 1 or any), over random bytes.
+# usage: gamepaths.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FontsFolder,TexFolders)
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x468250, 0x4682b0), (0x5c5520, 0x5c5530), (0x67a400, 0x690000)])
+B = Bench([(0x468250, 0x4682b0), (0x5c5520, 0x5c5530), (0x67a400, 0x690000), (0x4688b0, 0x468902)])
 PATHS = 0xf816c0
 ROOT, OUT = RAM + 0x100, RAM + 0x1000
 CHARS = b'abcXYZ09:\\/. _%'
 
 
 def case(r):
+    if r.deal(OPS) == 'TexFolders':
+        regions = {0x7af650: r.bytes(0xd0), 0x7af720: r.bytes(0x40)}
+        return Call(0x4688b0, [r.choice([0, 1, 1, 2, 0x100, 0x80000000, r.getrandbits(32)])], regions, ret='a')
     regions = {}
     paths = bytearray(r.bytes(0x14))
     if r.random() < 0.1:
@@ -32,7 +36,7 @@ def case(r):
     return Call(0x468250, [OUT], regions, ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'FontsFolder').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'FontsFolder,TexFolders').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
