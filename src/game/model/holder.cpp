@@ -204,4 +204,12 @@ u32 __cdecl Instance_Dispose(u8 *instance) {
     GlobalMem_Free(at<void *>(instance, 0xe0));
     return 1;
 }
+
+void __cdecl Animator_InitUnusedOne() { *reinterpret_cast<float *>(0x0078ed8c) = 1.0f; }
+
+void __cdecl Animator_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x0078f47c) = 1.0f / 8388608.0f; }
+
+void __cdecl Instance_InitUnusedOne() { *reinterpret_cast<float *>(0x007a0174) = 1.0f; }
+
+void __cdecl Instance_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x007a086c) = 1.0f / 8388608.0f; }
 }

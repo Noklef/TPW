@@ -125,4 +125,9 @@ u8 *__fastcall StdMapA_Ctor(u8 *map, void *, const u8 *comp, const u8 *alloc);
 // 0x47b130 (thiscall; &key, pops 4): A's operator[]: StdMapA_Insert of {key, 0, 0}, then the found or new node's value
 // (+0x10).
 u32 *__fastcall StdMapA_Index(u8 *map, void *, const u32 *key);
+
+// 0x410be0 / 0x410c00 (cdecl; names unconfirmed): static initialisers of two floats nothing reads: 0x7899b4 = 1 and 0x78a0bc = 1 / 2^23 (as
+// camera's).
+void __cdecl StdTree_InitUnusedOne();
+void __cdecl StdTree_InitUnusedEpsilon();
 }  // extern "C"

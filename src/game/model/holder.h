@@ -78,4 +78,14 @@ u32 __cdecl Animator_Dispose(u8 *animator);
 // taken out of the renderer (by the rectangle when the instance's flags at +4 have 0x4000, else Holder_Sleep) and disposed of (Holder_Dispose); the block at +0xe0 is freed.
 // Returns 1.
 u32 __cdecl Instance_Dispose(u8 *instance);
+
+// 0x4255b0 / 0x4255d0 (cdecl; names unconfirmed): static initialisers of two floats nothing reads: 0x78ed8c = 1 and 0x78f47c = 1 / 2^23 (as
+// camera's).
+void __cdecl Animator_InitUnusedOne();
+void __cdecl Animator_InitUnusedEpsilon();
+
+// 0x455bf0 / 0x455c10 (cdecl; names unconfirmed): static initialisers of two floats nothing reads: 0x7a0174 = 1 and 0x7a086c = 1 / 2^23 (as
+// camera's).
+void __cdecl Instance_InitUnusedOne();
+void __cdecl Instance_InitUnusedEpsilon();
 }

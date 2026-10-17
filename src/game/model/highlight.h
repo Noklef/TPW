@@ -63,4 +63,9 @@ void __cdecl Highlight_Unflash(u8 *holder);
 
 // 0x469840: the pulse, for each flashing holder.
 void __cdecl Highlight_PulseFlashing();
+
+// 0x4698f0 / 0x469910 (cdecl; names unconfirmed): static initialisers of two floats nothing reads: 0x7afe1c = 1 and 0x7b0464 = 1 / 2^23 (as
+// camera's).
+void __cdecl Highlight_InitUnusedOne();
+void __cdecl Highlight_InitUnusedEpsilon();
 }

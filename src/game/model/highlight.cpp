@@ -181,4 +181,8 @@ void __cdecl Highlight_PulseFlashing() {
         }
     }
 }
+
+void __cdecl Highlight_InitUnusedOne() { *reinterpret_cast<float *>(0x007afe1c) = 1.0f; }
+
+void __cdecl Highlight_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x007b0464) = 1.0f / 8388608.0f; }
 }

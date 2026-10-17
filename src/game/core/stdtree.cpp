@@ -622,4 +622,8 @@ u32 *__fastcall StdMapA_Index(u8 *map, void *, const u32 *key) {
     StdMapA_Insert(map, nullptr, result, value);
     return reinterpret_cast<u32 *>(result[0] + 0x10);
 }
+
+void __cdecl StdTree_InitUnusedOne() { *reinterpret_cast<float *>(0x007899b4) = 1.0f; }
+
+void __cdecl StdTree_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x0078a0bc) = 1.0f / 8388608.0f; }
 }  // extern "C"
