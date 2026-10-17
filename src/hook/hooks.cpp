@@ -161,6 +161,7 @@
 #include "../game/core/small56.h"
 #include "../game/core/small57.h"
 #include "../game/core/small58.h"
+#include "../game/core/small59.h"
 #include "../game/core/small6.h"
 #include "../game/core/small7.h"
 #include "../game/core/small8.h"
@@ -2979,6 +2980,12 @@ const Hook kHooks[] = {
     {"Thing_SetPos",              0x0050b6a0, (void *)&Thing_SetPos, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
     {"Object_BackOfQueue",        0x004de130, (void *)&Object_BackOfQueue, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"Holder_Sleep",              0x0045bdd0, (void *)&Holder_Sleep, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Class6fda58_DtorA",         0x0041e270, (void *)&Class6fda58_DtorA, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Class6fda58_DtorB",         0x0041e2d0, (void *)&Class6fda58_DtorB, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Class6fda58_DtorC",         0x0041e560, (void *)&Class6fda58_DtorC, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Class6fda88_FullDtor",      0x0041e330, (void *)&Class6fda88_FullDtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Class6fdac8_FullDtor",      0x0041e4f0, (void *)&Class6fdac8_FullDtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Class6fdaa4_Dtor",          0x0041e470, (void *)&Class6fdaa4_Dtor, {0x6a, 0xff, 0x68, 0x56, 0x84}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

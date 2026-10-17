@@ -3391,6 +3391,12 @@ address,name,kind,confidence,notes
 0x004d9620,Litter_Remove,function,high,reimplemented (src/game/core/small57); takes a piece of litter off its cell
 0x004f2b40,WStringMap_Find,function,high,reimplemented (src/game/core/small58); a wide string map lookup
 0x004de130,Object_BackOfQueue,function,high,reimplemented (src/game/core/small58); the back of a queue found by walking neighbours
+0x0041e270,Class6fda58_DtorA,function,high,"reimplemented (src/game/core/small59); complete destructor, handle at +0x40"
+0x0041e2d0,Class6fda58_DtorB,function,high,"reimplemented (src/game/core/small59); complete destructor, handle at +0x40"
+0x0041e560,Class6fda58_DtorC,function,high,"reimplemented (src/game/core/small59); complete destructor, handle at +0x40"
+0x0041e330,Class6fda88_FullDtor,function,high,"reimplemented (src/game/core/small59); complete destructor, handles at +0x48 and +0x40"
+0x0041e4f0,Class6fdac8_FullDtor,function,high,"reimplemented (src/game/core/small59); complete destructor, handles at +0x48 and +0x40"
+0x0041e470,Class6fdaa4_Dtor,function,high,reimplemented (src/game/core/small59); handle and two strings
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
