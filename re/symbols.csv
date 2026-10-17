@@ -2241,6 +2241,13 @@ address,name,kind,confidence,notes
 0x00403180,GameClock_Save4c,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); writes +0x4c (4 bytes); Stream_Write's result >= 0, always 1 (sic)"
 0x004031b0,GameClock_Load4c,function,high,"reimplemented (src/game/core/gameclock); thiscall (stream); reads +0x4c (4 bytes); Stream_Read's result >= 0, always 1 (sic)"
 0x00403390,GameClock_Double20,function,low,reimplemented (src/game/core/gameclock); thiscall: the double at +0x20 (1.0 from Obj_CtorOne) in st0
+0x00402f40,RealClock_Read,function,low,reimplemented (src/game/core/gameclock); thiscall; the ms since the last Time_GetMs added to the double +8 (x87); returns it __ftol'd
+0x00402f80,RealClock_Pause,function,low,"reimplemented (src/game/core/gameclock); thiscall; unless paused (+0x18), paused at the read time (+0x10)"
+0x00402fa0,RealClock_Resume,function,low,"reimplemented (src/game/core/gameclock); thiscall; when paused, resumed: the time since the pause added to +0x14"
+0x00402fd0,RealClock_TogglePause,function,low,"reimplemented (src/game/core/gameclock); thiscall; paused or resumed, whichever it is not"
+0x00403010,RealClock_Elapsed,function,low,reimplemented (src/game/core/gameclock); thiscall; the read time (or the pause time) less +0x14
+0x00403150,RealClock_Now,function,low,reimplemented (src/game/core/gameclock); thiscall; the elapsed time plus the base +0x20
+0x00403160,RealClock_RestoreNow,function,low,reimplemented (src/game/core/gameclock); thiscall; the base +0x20 set so that the time is +0x24
 0x004cdb60,CircBufU16_3_Ctor,function,high,"reimplemented (src/game/core/circbuf); thiscall: a CircBufU16 of 3 (four at park analyser +0x1f068): u16 +0 = 0, cursor +8 = -1, size +0xc = 3, wrapped +0x10 = 0"
 0x004ce9e0,CircBufU8_50_Ctor,function,high,"reimplemented (src/game/core/circbuf); thiscall: a CircBufU8 of 50: byte +0 = 0, cursor +0x34 = -1, size +0x38 = 50, wrapped +0x3c = 0"
 0x004ce290,CircBufU32_144_Push,function,high,"reimplemented (src/game/core/circbuf); thiscall (value): CircBufU32 of 144: cursor +0x244 on (0 at size +0x248, sets wrapped +0x24c), value at +4 + cursor * 4"
