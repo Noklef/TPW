@@ -1,18 +1,21 @@
 # The keyboard maps (src/game/core/keymap: 0x40c870-0x40cfa0) against the original: lookups by
 # key and by action over entries mostly at their own index (some moved, repeated or missing),
 # counts negative, zero or up to 0x40, and the enable / reset of one map or all five (entries
-# apart from the map or over it).
+# apart from the map or over it); the modifier keys held (0x46b420 / 0x486aa0), GetKeyState / GetAsyncKeyState
+# import-slot recorders answering one value for a case (its sign in AX or only in the upper word) or a hash of the key.
 # usage: keymap.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, put  # noqa: E402
+from fncmp import IMPORT_TABLE, LOG, Bench, Call, RAM, import_table, log_region, put, set_return  # noqa: E402
 
 B = Bench([(0x40c870, 0x40c8b3), (0x40c8c0, 0x40c8f7), (0x40ca20, 0x40ca93), (0x40cb40, 0x40cb47),
-           (0x40cb50, 0x40cb78), (0x40cf60, 0x40cf98), (0x40cfa0, 0x40d06a)])
+           (0x40cb50, 0x40cb78), (0x40cf60, 0x40cf98), (0x40cfa0, 0x40d06a),
+           (0x46b420, 0x46b460), (0x486aa0, 0x486ae0)])
 GLOBALS = (0x78718c, 0x787a60, 0x787c14, 0x78733c, 0x78721c)
-CALLS = ('Key', 'Action', 'Held', 'Enable', 'Reset', 'EnableAll', 'ResetAll')
+CALLS = ('Key', 'Action', 'Held', 'Enable', 'Reset', 'EnableAll', 'ResetAll', 'Modifiers', 'AsyncModifiers')
+IMPORTS = {'GetKeyState': (40, 0x6fd324, 1, 0, 0), 'GetAsyncKeyState': (41, 0x6fd320, 1, 0, 0)}
 
 
 def keymap(r, at, regs):
@@ -36,6 +39,12 @@ def keymap(r, at, regs):
 def case(r):
     op = r.choice(OPS)
     regs = {}
+    if op.endswith('Modifiers'):
+        log = log_region()
+        for k in (40, 41):
+            if r.random() < 0.7:
+                set_return(log, k, r.choice([0, 1, 0x7fff, 0x8000, 0xffff, 0xffff8000, 0xffff0001, 0x80000000, r.getrandbits(32)]))
+        return Call(0x46b420 if op == 'Modifiers' else 0x486aa0, [], {LOG: log, IMPORT_TABLE: import_table(log, IMPORTS)}, ret='a')
     if op.endswith('All'):
         for k, g in enumerate(GLOBALS):
             keymap(r, RAM + k * 0x2000 + 0x40, regs)

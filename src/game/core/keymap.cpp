@@ -133,3 +133,21 @@ u32 __fastcall Actions_FireDown(u8 *table, void *, u32 a, u32 b) { return Fire(t
 
 u32 __fastcall Actions_FireUp(u8 *table, void *, u32 a, u32 b) { return Fire(table, a, b, 0xc, 0); }
 }
+
+namespace {
+using KeyStateFn = s16(__stdcall *)(s32);
+u32 Modifiers(u32 slot) {
+    const KeyStateFn state = *reinterpret_cast<const KeyStateFn *>((uintptr_t)slot);
+    u32 held = 0;
+    if (state(0x10) < 0) held = 3;
+    if (state(0x11) < 0) held |= 0xc;
+    if (state(0x12) < 0) held |= 0x30;
+    return held;
+}
+}  // namespace
+
+extern "C" {
+u32 __cdecl KeyMap_Modifiers() { return Modifiers(0x006fd324); }
+
+u32 __cdecl KeyMap_AsyncModifiers() { return Modifiers(0x006fd320); }
+}

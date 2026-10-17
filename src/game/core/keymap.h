@@ -48,4 +48,8 @@ u32 __cdecl Code_Remap46b460(u32 code);
 u32 __fastcall Actions_FireDown(u8 *table, void *, u32 a, u32 b);
 
 u32 __fastcall Actions_FireUp(u8 *table, void *, u32 a, u32 b);
+// 0x46b420 / 0x486aa0 (cdecl): the modifier keys held, from GetKeyState / GetAsyncKeyState (import slots 0x6fd324 / 0x6fd320; held when the
+// SHORT answer is negative): 3 for shift (VK_SHIFT), 0xc for control (VK_CONTROL), 0x30 for alt (VK_MENU), or'd.
+u32 __cdecl KeyMap_Modifiers();
+u32 __cdecl KeyMap_AsyncModifiers();
 }
