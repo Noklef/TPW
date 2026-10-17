@@ -54,6 +54,11 @@ def open_(r):
     for at, size in ((0x36, 2), (0x3a, 2)):
         obj[at:at + size] = walk.regions[RAM][at:at + size]
     c.regions.update({k: v for k, v in walk.regions.items() if k != RAM})
+    if r.random() < 0.3:  # rows facing each other in turn: the walk goes round two cells until its budget runs out (the back is then 0)
+        cells = next(v for k, v in walk.regions.items() if len(v) == 0x44 * 0x1c0)
+        for idx in range(0x1c0):
+            put(cells, 0x44 * idx + 8, 'I', 3)
+            cells[0x44 * idx + 0xd] = (0x10, 1)[idx // 128 & 1]
     put(obj, 0x32, 'H', r.choice([4, 0xc, 0xfffc, 0, 8, 0xfffb]))
     put(obj, 0x19c, 'I', r.choice([0, 2, 3, 3, 3, 1, 4, 5]))
     put(obj, 0x68, 'I', r.choice([1, 1, 1, 0, 0x80000000]))
