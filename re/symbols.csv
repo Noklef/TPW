@@ -3573,6 +3573,21 @@ address,name,kind,confidence,notes
 0x0042a340,Cell_FindRideableObject,function,high,reimplemented (src/game/world/mapcell); the first rideable object on a type 9 cell's parent
 0x0040f970,MessageSlot_Dtor,function,high,"reimplemented (src/game/world/messagecentre); thiscall on a slot: a dword, then a std::map of tree B at +4, destroyed (StdTree_DtorB); name unconfirmed"
 0x00409250,MessageCentre_DtorSlots,function,high,"reimplemented (src/game/world/messagecentre); thiscall: the 29 slots of 0x14 bytes from +0 destroyed, the last first (CRT_VectorDtorIterator, MessageSlot_Dtor); name unconfirmed"
+0x0050ce50,SteerSeek_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009b8, name ""seek"" copied to +4; returns this"
+0x0050ced0,SteerArrival_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009c0, name ""arrival"" copied to +4; returns this"
+0x0050cf40,SteerSeparation_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009c4, name ""separation"" copied to +4; returns this"
+0x0050cfb0,SteerAvoidObstacle_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009c8, name ""avoid_obstacle"" copied to +4; returns this"
+0x0050d020,SteerRepelObstacle_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009cc, name ""repel_obstacle"" copied to +4; returns this"
+0x0050d090,SteerAvoidWalls_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009d0, name ""avoid_walls"" copied to +4; returns this"
+0x0050d100,SteerFollowPath_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009d4, name ""follow_path"" copied to +4; returns this"
+0x0050cea0,Steer_Dtor,function,low,reimplemented (src/game/world/steering); thiscall: the base vtable 0x7009bc back at +0
+0x0050ce90,SteerSeek_Destroy,function,low,reimplemented (src/game/world/steering); atexit entry: Steer_Dtor on the global seek behaviour 0x7cf050
+0x0050cf10,SteerArrival_Destroy,function,low,reimplemented (src/game/world/steering); atexit entry: Steer_Dtor on the global arrival behaviour 0x7cf0b0
+0x0050cf80,SteerSeparation_Destroy,function,low,reimplemented (src/game/world/steering); atexit entry: Steer_Dtor on the global separation behaviour 0x7cf0d8
+0x0050cff0,SteerAvoidObstacle_Destroy,function,low,reimplemented (src/game/world/steering); atexit entry: Steer_Dtor on the global avoid_obstacle behaviour 0x7cf360
+0x0050d060,SteerRepelObstacle_Destroy,function,low,reimplemented (src/game/world/steering); atexit entry: Steer_Dtor on the global repel_obstacle behaviour 0x7cf338
+0x0050d0d0,SteerAvoidWalls_Destroy,function,low,reimplemented (src/game/world/steering); atexit entry: Steer_Dtor on the global avoid_walls behaviour 0x7cf088
+0x0050d140,SteerFollowPath_Destroy,function,low,reimplemented (src/game/world/steering); atexit entry: Steer_Dtor on the global follow_path behaviour 0x7cf308
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved

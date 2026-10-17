@@ -197,6 +197,7 @@
 #include "../game/world/ridelist.h"
 #include "../game/world/ridesearch.h"
 #include "../game/world/ridesweep.h"
+#include "../game/world/steering.h"
 #include "../game/world/thingscan.h"
 #include "../game/world/trackpools.h"
 #include "../game/world/world.h"
@@ -3117,6 +3118,21 @@ const Hook kHooks[] = {
     {"Cell_FindRideableObject",   0x0042a340, (void *)&Cell_FindRideableObject, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"MessageSlot_Dtor",          0x0040f970, (void *)&MessageSlot_Dtor, {0x51, 0x8b, 0x41, 0x08, 0x56}},
     {"MessageCentre_DtorSlots",   0x00409250, (void *)&MessageCentre_DtorSlots, {0x68, 0x70, 0xf9, 0x40, 0x00}},
+    {"SteerSeek_Ctor",            0x0050ce50, (void *)&SteerSeek_Ctor, {0x53, 0x56, 0x8b, 0xd1, 0x57}},
+    {"SteerArrival_Ctor",         0x0050ced0, (void *)&SteerArrival_Ctor, {0x53, 0x56, 0x8b, 0xd1, 0x57}},
+    {"SteerSeparation_Ctor",      0x0050cf40, (void *)&SteerSeparation_Ctor, {0x53, 0x56, 0x8b, 0xd1, 0x57}},
+    {"SteerAvoidObstacle_Ctor",   0x0050cfb0, (void *)&SteerAvoidObstacle_Ctor, {0x53, 0x56, 0x8b, 0xd1, 0x57}},
+    {"SteerRepelObstacle_Ctor",   0x0050d020, (void *)&SteerRepelObstacle_Ctor, {0x53, 0x56, 0x8b, 0xd1, 0x57}},
+    {"SteerAvoidWalls_Ctor",      0x0050d090, (void *)&SteerAvoidWalls_Ctor, {0x53, 0x56, 0x8b, 0xd1, 0x57}},
+    {"SteerFollowPath_Ctor",      0x0050d100, (void *)&SteerFollowPath_Ctor, {0x53, 0x56, 0x8b, 0xd1, 0x57}},
+    {"Steer_Dtor",                0x0050cea0, (void *)&Steer_Dtor, {0xc7, 0x01, 0xbc, 0x09, 0x70}},
+    {"SteerSeek_Destroy",         0x0050ce90, (void *)&SteerSeek_Destroy, {0xb9, 0x50, 0xf0, 0x7c, 0x00}},
+    {"SteerArrival_Destroy",      0x0050cf10, (void *)&SteerArrival_Destroy, {0xb9, 0xb0, 0xf0, 0x7c, 0x00}},
+    {"SteerSeparation_Destroy",   0x0050cf80, (void *)&SteerSeparation_Destroy, {0xb9, 0xd8, 0xf0, 0x7c, 0x00}},
+    {"SteerAvoidObstacle_Destroy", 0x0050cff0, (void *)&SteerAvoidObstacle_Destroy, {0xb9, 0x60, 0xf3, 0x7c, 0x00}},
+    {"SteerRepelObstacle_Destroy", 0x0050d060, (void *)&SteerRepelObstacle_Destroy, {0xb9, 0x38, 0xf3, 0x7c, 0x00}},
+    {"SteerAvoidWalls_Destroy",   0x0050d0d0, (void *)&SteerAvoidWalls_Destroy, {0xb9, 0x88, 0xf0, 0x7c, 0x00}},
+    {"SteerFollowPath_Destroy",   0x0050d140, (void *)&SteerFollowPath_Destroy, {0xb9, 0x08, 0xf3, 0x7c, 0x00}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
