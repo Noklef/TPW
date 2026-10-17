@@ -440,6 +440,13 @@ CDECL_LOG = STUBS + 0x50  # a callback of one cdecl argument that logs it (the e
 def _cdecl_log(e):  # (driver.cpp stub_cdecl_log)
     sp = e.r['ESP'] + (4 if e.tail else 0)
     arg = e.u32(sp)
+    mask = e.u32(LOG + LOG_STRINGS + 4 * 0x3f)   # (strings(log, 0x3f, ...), as driver.cpp's record_call applies it)
+    if mask & 1:
+        arg = string_hash(e.read, arg)
+    if mask >> 16 & 1:
+        arg = 0
+    if e.u32(LOG + LOG_BYTES + 4 * 0x3f) & 1:
+        arg &= 0xff
     count = e.u32(LOG)
     if count < LOG_ENTRIES:
         entry = LOG + 4 + 4 * LOG_ENTRY * count
