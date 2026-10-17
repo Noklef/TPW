@@ -457,6 +457,7 @@ void __fastcall StdTree_IncF(u8 **it) { TreeF::Inc(it); }
 void __fastcall StdTree_IncG(u8 **it) { TreeG::Inc(it); }
 
 void __fastcall StdTree_DecA(u8 **it) { TreeA::Dec(it); }
+void __fastcall StdTree_DecB(u8 **it) { TreeB::Dec(it); }
 void __fastcall StdTree_DecC(u8 **it) { TreeC::Dec(it); }
 void __fastcall StdTree_DecD(u8 **it) { TreeD::Dec(it); }
 void __fastcall StdTree_DecE(u8 **it) { TreeE::Dec(it); }
@@ -472,6 +473,10 @@ void __fastcall StdTree_CtorG(u8 *tree) { TreeG::Ctor(tree); }
 u8 **__fastcall StdTree_InsertA(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u32 *value) {
     struct Node3 { u32 v[3]; };
     return TreeA::Insert<Node3>(tree, out, x, y, reinterpret_cast<const Node3 *>(value), [](const Node3 *v, u8 *node) { return v->v[0] < at<u32>(node, 0xc); });
+}
+
+u8 **__fastcall StdTree_InsertB(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u16 *value) {
+    return TreeB::Insert<u16>(tree, out, x, y, value, [](const u16 *v, u8 *node) { return StdTreeB_KeyLess(v, nullptr, reinterpret_cast<const u16 *>(node + 0xc)) != 0; });
 }
 
 u8 **__fastcall StdTree_InsertG(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u16 *value) {
