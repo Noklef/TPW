@@ -3403,6 +3403,8 @@ address,name,kind,confidence,notes
 0x004fa930,Thing_PlaceAt,function,high,reimplemented (src/game/core/small61); a thing placed on the navigation block and moved
 0x0051fa20,Slot_ReadIntoFree,function,high,reimplemented (src/game/core/small61); a stream read into the first free 0x140-byte slot
 0x004fcac0,Thing_SpriteChoice,function,high,"reimplemented (src/game/core/small61); the flags of a sprite, or a random sprite of folder 1"
+0x004e2200,Thing_IngredientRecord,function,high,reimplemented (src/game/core/small62); the record of the definition's special ingredient
+0x005667d0,Class701378_Ctor,function,high,reimplemented (src/game/core/small62); stream class constructor with a virtual base
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
