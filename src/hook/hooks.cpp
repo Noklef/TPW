@@ -157,6 +157,7 @@
 #include "../game/core/small52.h"
 #include "../game/core/small53.h"
 #include "../game/core/small54.h"
+#include "../game/core/small55.h"
 #include "../game/core/small6.h"
 #include "../game/core/small7.h"
 #include "../game/core/small8.h"
@@ -2966,6 +2967,7 @@ const Hook kHooks[] = {
     {"Image_MinMark",             0x005ea1f0, (void *)&Image_MinMark, {0x83, 0xec, 0x3c, 0x8b, 0x4c}},
     {"Pixels_Stamp",              0x005e7d70, (void *)&Pixels_Stamp, {0x51, 0x53, 0x55, 0x8b, 0xe9}},
     {"Mask_Tint",                 0x005e7f60, (void *)&Mask_Tint, {0x83, 0xec, 0x18, 0x8b, 0x41}},
+    {"Colour_Blend3",             0x005f09a0, (void *)&Colour_Blend3, {0x8b, 0x44, 0x24, 0x08, 0x83}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

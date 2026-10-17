@@ -3385,6 +3385,7 @@ address,name,kind,confidence,notes
 0x005ea1f0,Image_MinMark,function,high,"reimplemented (src/game/core/small53); 3 x 3 minimum of a two byte per pixel image, marking the changed pixels"
 0x005e7d70,Pixels_Stamp,function,high,reimplemented (src/game/core/small54); draws an image onto a four byte per pixel image
 0x005e7f60,Mask_Tint,function,high,reimplemented (src/game/core/small54); tints a four byte per pixel image through a mask
+0x005f09a0,Colour_Blend3,function,high,reimplemented (src/game/core/small55); blends between three colour records by a position of 0 to 100
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"
