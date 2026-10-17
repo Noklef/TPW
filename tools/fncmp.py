@@ -54,6 +54,7 @@ import struct
 import subprocess
 import sys
 import tempfile
+import json
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
@@ -61,6 +62,14 @@ import x87emu  # noqa: E402
 
 EXE = os.path.join(ROOT, '.data', 'nocd', 'tp.exe')
 DRIVER = os.path.join(ROOT, 'build', 'tpw_fncmp.exe')
+# FNCMP_COVER=file (tools/coverage.py): each run appends what it verified to the file, one JSON line: the addresses its cases called whose
+# cases matched without a crash ("direct", with their counts) and the hooked originals entered inside those cases ("indirect").
+COVER = os.environ.get('FNCMP_COVER')
+
+
+def hooked_addresses():
+    """The addresses src/hook/hooks.cpp hooks."""
+    return set(int(x, 16) for x in re.findall(r'0x00([0-9a-fA-F]{6}), \(void', open(os.path.join(ROOT, 'src', 'hook', 'hooks.cpp')).read()))
 MUT = os.path.join(ROOT, 'build', 'mut')  # mutants: a copy of the sources (tree) and its build (out)
 MIRRORED = ('CMakeLists.txt', 'src', 're', 'tests', os.path.join('tools', 'fncmp'))
 LISTING = os.path.join(ROOT, '_re', 'text.asm')
@@ -367,6 +376,8 @@ class Bench:
         # environment turns it off.
         self.strict = strict and os.environ.get('STRICT', '1') != '0'
         self.ranges = [(GAME_LOW, GAME_HIGH, True)] + [(va, va + len(d), False) for va, d in x87emu.exe_sections()]
+        self.hooked = hooked_addresses() if COVER else None
+        self.entered = set()  # (with COVER) the hooked originals the last case entered
 
     def original(self, c):
         e = self.emu
@@ -391,10 +402,14 @@ class Bench:
             e.push(a & 0xffffffff)
         e.push(x87emu.SENTINEL)
         pc = c.address
+        entered, hooked, stand_ins = self.entered, self.hooked, e.hooks
+        entered.clear()
         try:
             for _ in range(5_000_000):
                 if pc == x87emu.SENTINEL:
                     break
+                if hooked is not None and pc in hooked and pc not in stand_ins:
+                    entered.add(pc)
                 at = pc
                 pc = e.step(pc)
             else:
@@ -441,9 +456,13 @@ class Bench:
         cases = self.cases(gen, n, seed, wild)
         nat = self.native(cases)
         bad = crashed = 0
+        direct, indirect = {}, set()
         for i, (c, cpp) in enumerate(zip(cases, nat)):
             emu = self.original(c)
             if emu == cpp:
+                if COVER and not isinstance(emu, str):
+                    direct[c.address] = direct.get(c.address, 0) + 1
+                    indirect |= self.entered
                 continue
             if isinstance(emu, str) and isinstance(cpp, str) and emu.startswith(CRASH) and cpp == CRASH:
                 crashed += 1  # the original faults too: the same
@@ -460,6 +479,10 @@ class Bench:
                 if x != y:
                     d = next((j for j in range(0, min(len(x), len(y)), 8) if x[j:j + 8] != y[j:j + 8]), 0)
                     print('  %s +%x: cpp %s emu %s' % (name, d // 2, x[d:d + 16], y[d:d + 16]))
+        if COVER:
+            with open(COVER, 'a') as f:
+                f.write(json.dumps({'bench': os.path.basename(sys.argv[0]), 'cases': n, 'differ': bad, 'direct': {'%x' % k: v for k, v in sorted(direct.items())},
+                                    'indirect': ['%x' % k for k in sorted(indirect)]}) + '\n')
         if not quiet:
             print('%d cases%s, seed %d: %d differ%s' % (n, ' (wild)' if wild else '', seed, bad,
                                                        ' (%d crash in both)' % crashed if crashed else ''))
