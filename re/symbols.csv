@@ -2257,6 +2257,13 @@ address,name,kind,confidence,notes
 0x00402ed0,GameClock_Unfreeze,function,low,"reimplemented (src/game/core/gameclock); thiscall; when frozen, thawed with +0x44 set to go on from the frozen time"
 0x00402f10,GameClock_Time,function,low,"reimplemented (src/game/core/gameclock); thiscall; the frozen time, or the elapsed time plus +0x44"
 0x004031f0,GameClock_RestoreNow,function,low,reimplemented (src/game/core/gameclock); thiscall; the base +0x48 set so that the time is +0x4c
+0x00402d70,Clocks_Now,function,low,reimplemented (src/game/core/gameclock); thiscall on the game clock; GameClock_Now (a JMP)
+0x00402d80,Clocks_RealNow,function,low,reimplemented (src/game/core/gameclock); thiscall on the game clock; RealClock_Now of the clock at +0x50
+0x00402d90,Clocks_Pause,function,low,reimplemented (src/game/core/gameclock); thiscall; the game clock and the real-time clock at +0x50 paused
+0x00402db0,Clocks_Resume,function,low,reimplemented (src/game/core/gameclock); thiscall; the game clock and the real-time clock at +0x50 resumed
+0x00402dd0,Clocks_TogglePause,function,low,reimplemented (src/game/core/gameclock); thiscall; the game clock and the real-time clock at +0x50 toggled
+0x00402e60,Clocks_SaveNow,function,low,"reimplemented (src/game/core/gameclock); thiscall; both clocks' times kept to be put back to (+0x4c, +0x74)"
+0x00402e80,Clocks_RestoreNow,function,low,reimplemented (src/game/core/gameclock); thiscall; both clocks' times put back
 0x004cdb60,CircBufU16_3_Ctor,function,high,"reimplemented (src/game/core/circbuf); thiscall: a CircBufU16 of 3 (four at park analyser +0x1f068): u16 +0 = 0, cursor +8 = -1, size +0xc = 3, wrapped +0x10 = 0"
 0x004ce9e0,CircBufU8_50_Ctor,function,high,"reimplemented (src/game/core/circbuf); thiscall: a CircBufU8 of 50: byte +0 = 0, cursor +0x34 = -1, size +0x38 = 50, wrapped +0x3c = 0"
 0x004ce290,CircBufU32_144_Push,function,high,"reimplemented (src/game/core/circbuf); thiscall (value): CircBufU32 of 144: cursor +0x244 on (0 at size +0x248, sets wrapped +0x24c), value at +4 + cursor * 4"
