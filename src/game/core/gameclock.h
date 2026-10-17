@@ -74,4 +74,9 @@ void __fastcall Clocks_RestoreNow(u8 *clock);
 // camera's).
 void __cdecl GameClock_InitUnusedOne();
 void __cdecl GameClock_InitUnusedEpsilon();
+
+// 0x5988e0 (cdecl; name unconfirmed): the game clock's real time (Clocks_RealNow of 0x785970) less the time it spent paused, kept in statics:
+// while the clock is paused (Wrap_Obj_Get30_402df0, its +0x30) the first call marks a pause (0xf7977c = 1, its start 0xf79780 = now) and the
+// pause's start is the time; the first call after one ends it (0xf7977c = 0, the total 0xf79784 += now - start). Returns that time less the total.
+u32 __cdecl Clocks_RealNowLessPauses();
 }

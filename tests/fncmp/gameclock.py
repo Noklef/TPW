@@ -2,6 +2,7 @@
 # 0x402e30) against the originals, through a record stream with room for the bytes or not; the double at +0x20 (0x403390). The clocks' reads
 # and the functions on them (0x402d70-0x402f10, 0x402f40-0x4030d0, 0x403150-0x4031f0, 0x4033a0): the game's Timer and its imports as
 # thunks_static.clock() sets them up, a clock object of random times, paused, frozen or not, run doubles and rates from 0 and 1 to junk.
+# The real time less the pauses (0x5988e0): the clock object at 0x785970, its statics (in a pause or not, the pause's start, the total) of random times.
 # usage: gameclock.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Records,Now,... to pick)
 import os
 import struct
@@ -14,7 +15,7 @@ from thunks_static import clock as timer  # noqa: E402
 
 B = Bench([(0x402e00, 0x402e25), (0x402e30, 0x402e55), (0x4030f0, 0x403116), (0x403120, 0x403146), (0x403180, 0x4031a6), (0x4031b0, 0x4031d6),
            (0x5f5e20, 0x5f5e50), (0x5f5e50, 0x5f5e80), (0x403390, 0x403394), (0x402d70, 0x402e00), (0x402e60, 0x4030f0), (0x403150, 0x403172),
-           (0x4031e0, 0x403202), (0x4033a0, 0x4033f0), (0x5f5f10, 0x5f5fc0)])
+           (0x4031e0, 0x403202), (0x4033a0, 0x4033f0), (0x5f5f10, 0x5f5fc0), (0x5988e0, 0x598955)])
 CLOCK, OUT, SINK = RAM, RAM + 0x1000, RAM + 0x2000
 # name: (address, arguments past this, returns)
 FUNCS = {'Now': (0x402d70, 0, 1), 'RealNow': (0x402d80, 0, 1), 'Pause': (0x402d90, 0, 0), 'Resume': (0x402db0, 0, 0), 'Toggle': (0x402dd0, 0, 0),
@@ -59,8 +60,19 @@ def clocks(r, name):
     return Call(address, args, regions, conv='t', ret='a' if returns else 'v')
 
 
+def less_pauses(r):
+    """0x5988e0 (cdecl): a clocks object as clocks() makes, at 0x785970; the statics in a pause or not, with times near the clock's or random."""
+    c = clocks(r, 'RealNow')
+    c.regions[0x785970] = c.regions.pop(CLOCK)
+    times = [r.getrandbits(32), r.getrandbits(8), 0]
+    c.regions[0xf7977c] = struct.pack('<3I', r.choice([0, 0, 1, r.getrandbits(32)]), r.choice(times), r.choice(times))
+    return Call(0x5988e0, [], c.regions, ret='a')
+
+
 def case(r):
-    name = 'Records' if 'Records' in OPS and r.random() < 0.3 else r.choice(OPS)   # (the six records share one op: weighted so each still gets its cases)
+    name = 'Records' if 'Records' in OPS and r.random() < 0.3 else OPS[r.deal(range(len(OPS)))]   # (the six records share one op: weighted so each still gets its cases)
+    if name == 'LessPauses':
+        return less_pauses(r)
     if name != 'Records':
         return clocks(r, name)
     if r.random() < 0.15:  # the double at +0x20: 1.0, 0, small, negative, junk
@@ -75,7 +87,7 @@ def case(r):
                 conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', ','.join(['Records'] + list(FUNCS))).split(',') if k]
+OPS = [k for k in os.environ.get('OPS', ','.join(['Records'] + list(FUNCS) + ['LessPauses'])).split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
