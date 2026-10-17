@@ -14,6 +14,8 @@ static u32 read_field(Stream *stream, void *dst, const char *name, u32 quiet, s3
     return 0;
 }
 
+u32 __cdecl Save_ReadU8(Stream *stream, void *dst, const char *name, u32 quiet) { return read_field(stream, dst, name, quiet, 1); }
+
 u32 __cdecl Save_ReadU16(Stream *stream, void *dst, const char *name, u32 quiet) { return read_field(stream, dst, name, quiet, 2); }
 
 u32 __cdecl Save_ReadU32(Stream *stream, void *dst, const char *name, u32 quiet) { return read_field(stream, dst, name, quiet, 4); }
@@ -31,4 +33,11 @@ bool Save_Field(Stream *stream, u32 save, void *at, s32 size, u32 name) {
     Save_FieldName((u32)size, reinterpret_cast<const char *>(name), save != 0 ? 0 : 1);
     s32 result, done = 0;
     return *(save != 0 ? Stream_Write(&result, stream, at, size, &done) : Stream_Read(&result, stream, at, size, &done)) >= 0 && done == size;
+}
+
+bool Save_Fields(Stream *stream, u32 save, u8 *object, const SaveSpec *spec, u32 count) {
+    for (u32 i = 0; i < count; ++i)
+        if (!Save_Field(stream, save, object + spec[i].at, spec[i].size, spec[i].name))
+            return false;
+    return true;
 }
