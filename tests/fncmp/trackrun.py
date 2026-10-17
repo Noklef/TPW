@@ -138,7 +138,7 @@ def lay_track(r, cells, x0, y0, d, parent):
             nb ^= 1 << r.randrange(8)
         cell[0xc] = cell[0x22] = nb
         struct.pack_into('<I', cell, 8, r.choice(TRACK))
-        struct.pack_into('<H', cell, 0, ident(x0 + 2 * i, y0 + 2 * j))
+        struct.pack_into('<H', cell, 0, ident(x0 + 2 * i, y0 + 2 * j) if r.random() < 0.97 else 0)   # (id 0: B's reset id when off the map)
         struct.pack_into('<H', cell, 0x10, parent)
     i, j, _, fwd = path[last]
     mx, my = MOVES[fwd]
@@ -172,7 +172,7 @@ def draw(r, b):
         rows[CELLS + lo * 0x28] = row
     parent = r.choice(ids)
     for own, cell in cells.items():
-        struct.pack_into('<H', cell, 0, own if r.random() < 0.95 else (own + r.choice([2, -2, 0x100, 1])) & 0xffff)
+        struct.pack_into('<H', cell, 0, own if r.random() < 0.95 else (own + r.choice([2, -2, 0x100, 1])) & 0xffff if r.random() < 0.6 else 0)
         struct.pack_into('<I', cell, 8, r.choice(TRACK * 6 + ENDS * 2 + PARENTS * 2 + (0, 1, 0x19, 0x1b, 0x10b)))
         cell[2] = r.choice([2, 2, 0, 1, 3])
         cell[0xc] = side_bits(r)
