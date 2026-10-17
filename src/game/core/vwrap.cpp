@@ -194,4 +194,21 @@ void __fastcall Obj_CallSlot14IfGlobalThing(u8 *object, void *, u32 handle) {
         vcall<u32>(object, 0x14);
 }
 
+u32 __fastcall Obj_KeyMessageToSlots(u8 *object, void *, u32 message, u32 key, u32) {
+    if (message == 0x10005) {
+        if (key == 0)
+            return vcall<u32>(object, 0x40);
+        return key;  // (what EAX held)
+    }
+    if (message != 0x1000b)
+        return message - 0x1000b;  // (what EAX held)
+    if (key == 0xd)
+        return vcall<u32>(object, 0x40);
+    if (key == 0x2500)
+        return vcall<u32>(object, 0x3c);
+    if (key == 0x2700)
+        return vcall<u32>(object, 0x38);
+    return key;  // (what EAX held)
+}
+
 }  // extern "C"

@@ -381,6 +381,41 @@ s32 __cdecl Particle_SpawnWithVelocity(s32 effect, s32 x, s32 y, s32 z, s32 vx, 
     return StartSystem(effect, x, y, z, velocity);
 }
 
+s32 __cdecl ParticlePool_Resize(s32 pool, s32 count, s32 effect) {
+    s32 *const header = reinterpret_cast<s32 *>((uintptr_t)(0x00f8692c + (u32)pool * 0x44));
+    u32 *const handles = reinterpret_cast<u32 *>(header + 1);
+    const s32 old = *header;
+    s32 change = 0;
+    if (count > old) {
+        for (s32 i = old; i < count; i++)
+            handles[i] = (u32)Particle_Spawn(effect, 0, 0, 0);
+        change = count - old;
+    } else if (count < old) {
+        for (s32 i = count; i < *header; i++) {
+            if (handles[i] != 0) {
+                ParticleSystem_End(handles[i]);
+                handles[i] = 0;
+                change--;
+            }
+        }
+    }
+    *header = count;
+    return change;
+}
+
+s32 __cdecl ParticlePool2_Finish() {
+    const s32 *const header = reinterpret_cast<const s32 *>((uintptr_t)0x00f869b4);
+    const u32 *const handles = reinterpret_cast<const u32 *>((uintptr_t)0x00f869b8);
+    if (*header != 0) {
+        for (s32 i = 0; i < *header; i++) {
+            if (handles[i] != 0) ParticleSystem_Set2a(handles[i], 1);
+        }
+    }
+    return ParticlePool_Resize(2, 0, 0);
+}
+
+s32 __cdecl ParticlePool2_Empty() { return ParticlePool_Resize(2, 0, 0); }
+
 void __cdecl ParticleEffectors_Update() {
     u8 *const records = global<u8 *>(0x0080cef8);  // (read once)
     for (s32 index = global<s16>(0x00816d1e), next; index >= 0; index = next) {

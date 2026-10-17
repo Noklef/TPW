@@ -30,4 +30,9 @@ void __cdecl RSSE_Init();
 // entries with a key at +4) and the pointer at +0xac to the keys. The first table (and entry in it) whose key equals keys[index] is stored through the outputs (the table number, the entry, the
 // count), and the name of that table's event ("Create", "Destroy", ... "Other", "Other" are strings at 0x74d148-0x74d19c; the thirteenth, "None", is never reached) is returned. None found: "Failure" (0x74d6d4).
 const char *__cdecl RsseScript_EventName(const u8 *script, u32 index, u32 *group_out, u32 *entry_out, u32 *count_out);
+
+// 0x557160 (cdecl; context, ms, two words; name unconfirmed): a timer started: +0x80 = the game clock's time (Clocks_Now of 0x785970), +0x84 = ms, the
+// words +0x88 and +0x8a the low halves of the other two. Its one caller (0x555bc5, an opcode taking seconds) passes seconds * 1000. Returns EAX as the
+// original leaves it: ms's high half with the last word.
+u32 __cdecl RSSE_StartTimer(RsseContext *ctx, u32 ms, u32 a, u32 b);
 }

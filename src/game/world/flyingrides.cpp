@@ -5,6 +5,7 @@
 #include "../core/initializers.h"
 #include "../model/parts.h"
 #include "../model/partstate.h"
+#include "../motion/animator.h"
 
 namespace {
 
@@ -39,6 +40,18 @@ extern "C" {
 u32 __cdecl FlyingRide_FirstSlotRide(s32 index) {
     u8 *const rec = record(index);
     return rec ? at<u32>(slot(rec, 0), 0xc0) : 0;
+}
+
+void __cdecl FlyingRide_PlaySlotMotion(s32 index, u32 slotIndex, u32 bank, u32 entry, u32 loop) {
+    u8 *const s = slot(table()[index], slotIndex);
+    const u32 ride = at<u32>(s, 0xc0);
+    if (ride == 0) return;
+    if (at<u32>(s, 0xcc) == bank && at<u32>(s, 0xd0) == entry && at<u32>(s, 0xd4) == loop) return;
+    u8 *const *rides = reinterpret_cast<u8 *const *>(0x007a4610);
+    Animator_Play(rides[ride], bank, entry, loop != 0 ? 1 : 0, 1.0f, 0);
+    at<u32>(s, 0xcc) = bank;
+    at<u32>(s, 0xd0) = entry;
+    at<u32>(s, 0xd4) = loop;
 }
 
 // The four fly-by bounds (0x7660bc, 0x7660c4, 0x7660b8, 0x7660c0): the globals Fn_52c6c0 copies, scaled by 3000 and offset by 0x2904 (the last two negatively).
@@ -100,6 +113,31 @@ u32 __cdecl FlyingRide_StepOutSlot(s32 index) {
     --at<s32>(table()[index], 0x48);
     rec = table()[index];
     return at<u32>(slot(rec, i), 0x90 + (u32)magnitude(at<s32>(slot(rec, i), 0x8c)) * 4);
+}
+
+u32 __cdecl FlyingRide_AddToSlot(s32 index, u32 value) {
+    u8 *const rec = record(index);
+    if (!rec) return 0;
+    u32 i = 0;
+    while (at<s32>(slot(rec, i), 0x80) != 1) {
+        if (++i >= 20) return 0;
+    }
+    const s32 count = at<s32>(slot(rec, i), 0x8c);
+    if (count < 0) return 0;
+    at<u32>(slot(rec, i), 0x90 + (u32)count * 4) = value;
+    ++at<s32>(slot(table()[index], i), 0x8c);
+    u8 *const s = slot(table()[index], i);
+    const s32 parts = at<s32>(s, 0xdc);
+    if (parts != 0) {
+        const s32 key = (s32)((u32)at<s32>(s, 0xd8) + (u32)at<s32>(s, 0x8c)) % parts + 1;
+        if (at<u32>(s, 0xc0) != 0) {
+            u8 *const *rides = reinterpret_cast<u8 *const *>(0x007a4610);
+            const u32 part = Model_FindPartByKey4(rides[at<u32>(s, 0xc0)], 0x80, (u32)key);
+            if (part != 0xffffffff) PartStates_Activate(at<u8 *>(rides[at<u32>(s, 0xc0)], 8), part, value);
+        }
+    }
+    ++at<s32>(table()[index], 0x48);
+    return 1;
 }
 
 void __cdecl FlyingRide_SetCap(s32 index, s32 value) {

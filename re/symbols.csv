@@ -77,6 +77,7 @@ address,name,kind,confidence,notes
 0x005587f0,RSSE_LoadScriptFile,function,high,"'Not a RSSE script file', 'Zero length script', 'Cannot load Script file'"
 0x00551600,RSSE_Init,function,high,reimplemented (src/game/rsse/rsse_vm); Initialises the script system and sums the opcode names into the version
 0x00468600,RsseScript_EventName,function,high,reimplemented (src/game/rsse/rsse_vm); Finds the event table holding a key and names it (name unconfirmed)
+0x00557160,RSSE_StartTimer,function,low,"reimplemented (src/game/rsse/rsse_vm); cdecl (context, ms, a, b): +0x80 = Clocks_Now(0x785970), +0x84 = ms, words +0x88 = a and +0x8a = b; EAX left as ms's high half with b"
 0x00559060,RSSE_KillScript,function,medium,'Cant kill a script - system is not initialised'
 0x00556ab0,Mem_AllocLogged,function,high,reimplemented (src/game/core/gameheap); global allocation that refuses 0
 0x005584b0,RSSE_CheckLeaks,function,medium,'Something malloced but not freed'
@@ -426,6 +427,9 @@ address,name,kind,confidence,notes
 0x00521930,Particle_SpawnWithVelocity,function,low,"reimplemented (src/game/render/particles); cdecl (effect, x, y, z, vx, vy, vz): Particle_Spawn with the system's velocity +0x38 set to (vx, vy, vz) times its +0xb0 over 1024 in place of the jitter"
 0x00520f10,ParticleEffectors_Update,function,low,"reimplemented (src/game/render/particles); cdecl: one step of each active effector: timer, motion with drag, gravity and a ground bounce, the end effect (voice or particles) and the free list, else its pull on the live systems' particles (mode 2 kills those within its radius)"
 0x00520130,Particles_Tick,function,low,"reimplemented (src/game/render/particles); cdecl: the particles' frame (after the first): each live system's age, bounds reset, end (end effect, linked end, release) or follow, turn, move, emitter spawn and emits by the quarter's count; then the effectors' and the particles' updates; returns the dword 0x80436c"
+0x005ed5a0,ParticlePool_Resize,function,low,"reimplemented (src/game/render/particles); cdecl (pool, count, effect): a 16-handle pool at 0xf8692c + pool * 0x44 grown with Particle_Spawn(effect) or shrunk with ParticleSystem_End; returns the change"
+0x005eda70,ParticlePool2_Finish,function,low,"reimplemented (src/game/render/particles); cdecl (): each of pool 2's systems with a handle, up to its count, gets ParticleSystem_Set2a(handle, 1); then ParticlePool_Resize(2, 0, 0)"
+0x005edac0,ParticlePool2_Empty,function,low,"reimplemented (src/game/render/particles); cdecl (): ParticlePool_Resize(2, 0, 0)"
 0x00804370,gParticleEffects,data,high,0x69 x 0x140-byte effect definitions from Tp2.plb
 0x0080c6b0,gParticleEffectors,data,high,20 x 0x68-byte effector definitions
 0x0080cefc,gParticleSystems,data,high,live systems: 0x140-byte copies of an effect definition
@@ -670,7 +674,7 @@ address,name,kind,confidence,notes
 0x004d4140,ScriptRef_Start,function,high,reimplemented (src/game/sprite/scriptref); a script started at an entry point with a folder and sprite
 0x004d4190,ScriptRef_Apply,function,high,reimplemented (src/game/sprite/scriptref); the pending jump and period sent to the script
 0x00541ed0,Sprites_FreeAll,function,medium,"frees every sprite and its image set (0x588230), then resets the 17 draw list objects (0x58a520)"
-0x00541210,SpriteFiles_Sort,function,low,"bubble-sorts the 12-byte entries at 0x875970 (count 0x875430) by the name at +0x20 of their first word (0x424cc0 on string copies)"
+0x00541210,SpriteFiles_Sort,function,low,reimplemented (src/game/sprite/loading); bubble-sorts the 12-byte sprite file entries at 0x875970 (count 0x875430) by their names (Names_FirstAfter on String copies)
 0x008751f0,gSpriteDrawListObjs,data,medium,"16 x 0x24-byte render list objects (+4 count), one per map cell; the overlay one at 0x876420; created by Sprites_Init (0x58a4f0)"
 0x00515f30,Things_InitTable,function,high,"reimplemented (src/game/world/things); every slot of gThingSlots free (1..0x27ff stacked in order), none in use"
 0x00516130,World_FirstThing,function,high,"reimplemented (src/game/world/things); thiscall (&handle): the newest thing in use"
@@ -902,6 +906,8 @@ address,name,kind,confidence,notes
 0x0055e330,FlyingRide_ReleaseSlotPart,function,high,reimplemented (src/game/world/flyingrides); releases the ride part a slot steps to (record unchecked)
 0x0055ab50,FlyingRide_SetBounds,function,high,reimplemented (src/game/world/flyingrides); scales the four fly-by bounds
 0x0055c270,FlyingRide_NextCameraCorner,function,high,reimplemented (src/game/world/flyingrides); moves the camera target to the next corner of the ride
+0x0055d830,FlyingRide_AddToSlot,function,low,"reimplemented (src/game/world/flyingrides); cdecl (index, value): the first state-1 slot with a step not negative takes value for its step, counts up, activates the ride part the step names; +0x48 counted up"
+0x0055aa80,FlyingRide_PlaySlotMotion,function,low,"reimplemented (src/game/world/flyingrides); cdecl (index, slot, bank, entry, loop): a slot with a ride whose last motion differs has the ride's animator play it (Animator_Play mode loop != 0, speed 1, layer 0) and keeps the three"
 0x004fa990,AnalyserCell_TypePlain,function,high,"reimplemented (src/game/world/analysercell); 1 when the cell under the record is type 0, 1, 3, 9 or 0xa"
 0x004de040,Object_NeighbourCellId,function,high,reimplemented (src/game/world/analysercell); the id of the cell a neighbour bit points to
 0x00505bd0,AnalyserRecord_ChecksCell,function,high,reimplemented (src/game/world/analysercell); 0 for kinds 4 5 7 d 12 else the cell type test
@@ -3318,6 +3324,7 @@ address,name,kind,confidence,notes
 0x00497b60,Global7ca1bc_Release,function,low,reimplemented (src/game/core/vwrap); The object at 0x7ca1bc released (slot 8 with 1)
 0x0048d860,Obj_CallMember20Slot14,function,low,reimplemented (src/game/core/vwrap); The slot 0x14 of the object at +0x20 called with an argument
 0x004af9f0,Obj_CallSlot14IfGlobalThing,function,low,reimplemented (src/game/core/vwrap); The object's slot 0x14 called when a handle's thing is the global one
+0x005e2310,Obj_KeyMessageToSlots,function,low,"reimplemented (src/game/core/vwrap); slot 5 (+0x14) of the vtables 0x702cb0, 0x702dd0 and 0x702ec0: messages 0x10005 (key 0) and 0x1000b (keys 0xd, 0x2500, 0x2700) call the object's slots 0x40 / 0x3c / 0x38"
 0x005e3b90,Class702d48_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor that registers the object with a global one
 0x005e3c00,Class702d48_Release,function,high,reimplemented (src/game/core/vdtor); releases the object from a global one
 0x005e3bd0,Class702d48_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor that releases the object from a global one
@@ -3506,6 +3513,7 @@ address,name,kind,confidence,notes
 0x004bbb80,String_AnsiToWide,function,low,reimplemented (src/game/core/string); ANSI text converted to UTF-16 into a buffer or the static one
 0x005c5480,String_EnsureTrailingBackslash,function,low,reimplemented (src/game/core/string); cdecl (s); the global backslash String (0xf80be0) appended through vtable +0x28 unless s ends in it
 0x005c5580,Strings5_JoinPath,function,low,"reimplemented (src/game/core/string); thiscall (name); +0x3c = +0x28 (vtable +0x18), a trailing backslash ensured, then name appended (vtable +0x28)"
+0x005e3170,String_ReadToken,function,low,"reimplemented (src/game/core/string); cdecl (out, cursor, delimiter): the chars from *cursor up to the delimiter appended (String vtable +0x24) to a string copied into out; the cursor left past the delimiter"
 0x005bdc10,Class702938_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings
 0x005be320,Class702940_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three strings
 0x005be750,Class702948_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings
@@ -3616,6 +3624,7 @@ address,name,kind,confidence,notes
 0x005ea1f0,Image_MinMark,function,high,"reimplemented (src/game/gfx/imageops); 3 x 3 minimum of a two byte per pixel image, marking the changed pixels"
 0x005e7d70,Pixels_Stamp,function,high,reimplemented (src/game/gfx/imageops); draws an image onto a four byte per pixel image
 0x005e7f60,Mask_Tint,function,high,reimplemented (src/game/gfx/imageops); tints a four byte per pixel image through a mask
+0x005d4260,Image_ShrinkInto,function,low,"reimplemented (src/game/gfx/imageops); thiscall (image; dest, width, height, format), pops 16: box-average shrink through three scratch blocks; format 1 writes bytes 3,2,1,0xff, format 2 a u16 0xf000 | nibbles; returns 1 (0 when a block fails)"
 0x005f09a0,Colour_Blend3,function,high,reimplemented (src/game/gfx/color); blends between three colour records by a position of 0 to 100
 0x00591270,Format_BuildChannelTable,function,high,reimplemented (src/game/gfx/color); Builds the 256 level table of four channel masks (name unconfirmed)
 0x00598ca0,ModelSlot_ApplySelection,function,high,reimplemented (src/game/model/slots); sets or clears the part flags of the selection kind
@@ -3678,6 +3687,12 @@ address,name,kind,confidence,notes
 0x0057b070,Object_ReleaseSavedPairs,function,high,reimplemented (src/game/core/vobj2); saved pairs written back and their arrays freed
 0x005dc580,Class702bc8_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor with two helper objects and tuning floats
 0x005be9b0,Class702920_DeletingDtor,function,high,"reimplemented (src/game/core/vdtor); thiscall (flags); the 0x702920 destructor (Class7028_Dtor), then the object freed when bit 0 of the flags is set; returns the object"
+0x005d9f50,Class702af0_Dtor,function,low,reimplemented (src/game/core/vdtor); thiscall: vtable pointer 0x702af0; [0xf83784] told (slot 0x1c); the member list at +0x58 drained and deleted; the strings at +0x24 and +0x10 destroyed
+0x005d9ed0,Class702af0_DeletingDtor,function,low,"reimplemented (src/game/core/vdtor); thiscall (flags): Class702af0_Dtor, the object freed when bit 0 is set; returns it"
+0x005dc740,Class702bc8_Dtor,function,low,reimplemented (src/game/core/vdtor); thiscall: vtable pointer 0x702bc8; the member lists at +8 and +0x6c drained and deleted; then Class702d48_Release
+0x005dc660,Class702bc8_DeletingDtor,function,low,"reimplemented (src/game/core/vdtor); thiscall (flags): Class702bc8_Dtor, the object freed when bit 0 is set; returns it"
+0x005dfc30,Class702ca8_Dtor,function,low,reimplemented (src/game/core/vdtor); thiscall: vtable pointer 0x702ca8; the member at +0xc told (slot 0x34); the WString at +0x48 and the String at +0x28 destroyed
+0x005dfc10,Class702ca8_DeletingDtor,function,low,"reimplemented (src/game/core/vdtor); thiscall (flags): Class702ca8_Dtor, the object freed when bit 0 is set; returns it"
 0x00617ff0,Class7037c0_Create,function,high,reimplemented (src/game/core/factories); object factory with a result code
 0x00617970,Class703750_Create,function,high,reimplemented (src/game/core/factories); Allocates and constructs the 0x703750 class object
 0x00403be0,ActionRec_Write,function,low,"reimplemented (src/game/core/actionrec); thiscall (code): the action recorder's code byte, while recording and not playing back"
@@ -3823,6 +3838,7 @@ address,name,kind,confidence,notes
 0x00511c90,WallFollower_Step,function,low,"reimplemented (src/game/world/wallfollow); cdecl (walker): one step along the edge of what blocks the walk, turning towards it when open; 0x32 back on the line, 0x33 past 0xfb cells"
 0x005110d0,Route_Straighten,function,low,"reimplemented (src/game/world/route); cdecl (route, first): drops the cells a straight walk can skip (up to four ahead), repeated while any are dropped; 1 when any were"
 0x005276d0,FocusCell_Update,function,low,"reimplemented (src/game/world/focuscell); cdecl (record): the focus cell from the set cell (game modes 0x19 / 0x1a) or the selected object (or the thing its handle names), stepped both ways; the move recorded (action 0x32)"
+0x00532960,HoardingGrid_Fill,function,low,"reimplemented (src/game/world/hoardinggrid); cdecl: the coarse char grid at 0x81eeb0 (rows of 0x43, one char per 2 x 2 cells) of the width x depth area (0x81d740 / 0x81b1b0): space, @ for a type 0x19 cell, # for a cell whose 0x44-byte cell lacks flag 0x40"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
@@ -3904,6 +3920,7 @@ address,name,kind,confidence,notes
 0x005e7ef0,Array3D_MaxInto,function,high,reimplemented (src/game/gfx/array3d); the larger bytes of this buffer and another into the other
 0x0049a7b0,StatsGraph_ShownMax,function,low,"reimplemented (src/game/gfx/statsgraph); the greatest sample of the shown lines of the park statistics graph within its window, from 0"
 0x0049a8f0,StatsGraph_ShownMin,function,low,"reimplemented (src/game/gfx/statsgraph); the least sample of the shown lines of the park statistics graph within its window, from 0"
+0x00564790,RleImage_DrawScaled,function,low,"reimplemented (src/game/gfx/rleimage); thiscall (adjusted image: codes -0x14, palette -0x10, width -0xc, height -8; dest {pixels, width, height, pitch}), pops 4: run-length rows through the palette, scaled by x / y steps into dest; returns 1"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
@@ -4078,8 +4095,11 @@ address,name,kind,confidence,notes
 0x0053c8d0,DynFaces_AddSquare,function,high,reimplemented (src/game/render/dynfaces); queues a square dynamic face
 0x0053c9c0,DynFaces_AddPoly,function,high,reimplemented (src/game/render/dynfaces); queues a four corner polygon dynamic face
 0x0053c1f0,DynFaces_SortTags,function,high,reimplemented (src/game/render/dynfaces); Sorts the dynamic faces' tag words by tag: quicksort with insertion runs under 7 (name unconfirmed)
+0x0053c810,DynFaces_ReleaseModels,function,low,"reimplemented (src/game/render/dynfaces); cdecl (): with 0x874fcc set, each of the three model objects (0x871f64, 0x871ee4, 0x871ed8) has its animator +0x54 slept and disposed and is freed; Dword_ClearBit0(0x763c78); the flag cleared"
 0x00458400,LightSource_Destroy,function,low,"reimplemented (src/game/render/lightsource); cdecl (light): by kind: 0 the data error box; 1 the ambient colour reset, then 2: the part +4 out of the renderer tag 0x70 list and deleted, then 3: the same for +0xc"
 0x00458580,LightSource_DestroyMain,function,low,reimplemented (src/game/render/lightsource); The main light (0x7a0b40) destroyed
+0x00561bc0,ClipCodes_Compute,function,low,"reimplemented (src/game/render/clipcodes); fastcall-shaped (caller's ECX, EDX; out, codes, points, count, stride, mask), pops 24: each point's 7-bit sign/magnitude index into the table at 0x879970, masked, stored; out = AND | OR << 8 | ECX's high half"
+0x0056a770,DxResult_Message,function,low,"reimplemented (src/game/render/dxerrors); cdecl (HRESULT): the exe's message string for a DirectDraw / Direct3D / renderer result (142 codes), else 0x7663a8"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
@@ -4208,3 +4228,6 @@ address,name,kind,confidence,notes
 0x005d83f0,LobbyModel_Play,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall u32 (entry, now): when the lobby model is set, Animator_Play(entry, bank 5, entry, now ? 1 : 0, 1.0f, layer 0); else 0"
 0x005d8440,LobbyModel_TimeLeft,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall u32: when the lobby model is set, Layer_GetPlayback(entry, 0, 0, 0, layer 0) (ms left); else 0"
 0x00492320,HelpBg_Refresh,function,high,"reimplemented (src/game/frontend/helpbg); thiscall; slot 7 of the help background vtable 0x6ff598: when the word at +4 is set, the object virtual method 0 (a tail call); name unconfirmed"
+0x005da120,Class702af0_AcquireModels,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall: once (+4), each list item (+0x58) not yet set up (+0xc) has its lobby model (+8) set up by RideUser_Acquire"
+0x005dfca0,Class702ca8_AcquireModels,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall: once (+0x10), the lobby models at +4 and +8 set up by RideUser_Acquire"
+0x005e1350,Class702cb0_StartPendingPlay,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall, vtable 0x702cb0 slot 6: a pending play (state +0x14 == 2) started with LobbyModel_Play(entry 1); 0 when the state is 0, else 1 and the state cleared"

@@ -848,4 +848,17 @@ void __fastcall Strings5_JoinPath(u8 *object, void *, const StringView *name) {
     vcall<void>(path, 0x28, name);
 }
 
+String *__cdecl String_ReadToken(String *out, const char **cursor, u32 delimiter) {
+    String token;
+    String_Ctor(&token);
+    while (**cursor != static_cast<char>(delimiter)) {
+        vcall<void>(&token, 0x24, *cursor);
+        ++*cursor;
+    }
+    ++*cursor;
+    String_CtorCopy(out, nullptr, reinterpret_cast<const StringView *>(&token));
+    String_Dtor(&token);
+    return out;
+}
+
 }  // extern "C"

@@ -73,6 +73,80 @@ void __fastcall Pixels_BlendOnto(const u8 *source, void *, u8 *dest, u32 x, u32 
     }
 }
 
+u8 __fastcall Image_ShrinkInto(const u8 *image, void *, u8 *dest, s32 width, s32 height, u32 format) {
+    const u32 xstep = ((at<u32>(image, 0) << 16) + 0x8000) / (u32)width;
+    const u32 ystep = ((at<u32>(image, 4) << 16) + 0x8000) / (u32)height;
+    const u8 *source = at<const u8 *>(image, 0xc);
+    u8 *const rows = static_cast<u8 *>(GameHeap_Alloc(((ystep >> 16) + 1) * (u32)width * 4));
+    if (rows == nullptr) return 0;
+    u8 *const xcounts = static_cast<u8 *>(GameHeap_Alloc((u32)width));
+    u8 *const ycounts = static_cast<u8 *>(GameHeap_Alloc((u32)height));
+    if (xcounts == nullptr || ycounts == nullptr) return 0;  // sic: the other blocks are kept
+    u32 position = 0;
+    for (s32 i = 0; i < width; i++) {
+        const u32 before = position;
+        position += xstep;
+        xcounts[i] = (u8)((position >> 16) - (before >> 16));
+    }
+    position = 0;
+    for (s32 j = 0; j < height; j++) {
+        const u32 before = position;
+        position += ystep;
+        ycounts[j] = (u8)((position >> 16) - (before >> 16));
+    }
+    for (s32 j = 0; j < height; j++) {
+        const u32 yc = ycounts[j];
+        if (yc != 0) {
+            u8 *out = rows;
+            for (u32 band = yc; band != 0; band--) {
+                for (s32 i = 0; i < width; i++) {
+                    const u32 xc = xcounts[i];
+                    u32 sum0 = 0, sum1 = 0, sum2 = 0, sum3 = 0;
+                    for (u32 k = xc; k != 0; k--) {
+                        sum0 += source[0];
+                        sum1 += source[1];
+                        sum2 += source[2];
+                        sum3 += source[3];
+                        source += 4;
+                    }
+                    out[0] = (u8)((sum0 & 0xffff) / xc);  // (a count of 0 divides by 0, sic)
+                    out[1] = (u8)((sum1 & 0xffff) / xc);
+                    out[2] = (u8)((sum2 & 0xffff) / xc);
+                    out[3] = (u8)((sum3 & 0xffff) / xc);
+                    out += 4;
+                }
+            }
+        }
+        for (s32 i = 0; i < width; i++) {
+            const u8 *column = rows + i * 4;
+            u32 sum1 = 0, sum2 = 0, sum3 = 0;  // (the first byte's sum is not used)
+            for (u32 k = yc; k != 0; k--) {
+                sum1 += column[1];
+                sum2 += column[2];
+                sum3 += column[3];
+                column += (u32)width * 4;
+            }
+            const u32 c1 = (sum1 & 0xffff) / yc, c2 = (sum2 & 0xffff) / yc, c3 = (sum3 & 0xffff) / yc;
+            if (format == 1) {
+                dest[0] = (u8)c3;
+                dest[1] = (u8)c2;
+                dest[2] = (u8)c1;
+                dest[3] = 0xff;
+                dest += 4;
+            } else if (format == 2) {
+                const u32 packed = ((c1 & 0xfff0) | 0xff00) << 4 | (c2 & 0xf0) | ((u8)c3 >> 4);
+                dest[0] = (u8)packed;
+                dest[1] = (u8)(packed >> 8);
+                dest += 2;
+            }
+        }
+    }
+    GameHeap_Free(ycounts);
+    GameHeap_Free(xcounts);
+    GameHeap_Free(rows);
+    return 1;
+}
+
 void __fastcall Panel_Reset(u8 *panel) {
     u8 *const target = panel + 0x50;
     u8 *pixel = at<u8 *>(target, 0xc);

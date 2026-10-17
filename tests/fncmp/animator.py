@@ -142,8 +142,8 @@ def model(r, nodes_at, nodes):
     return m, n
 
 
-def case(r):
-    op = r.choice(OPS)
+def world(r):
+    """the animator ANIM (its layers, banks of motion blocks, holder, model and rest pose) and the motion clocks: (regions, layer count, blocks)."""
     nodes = [NODES + 0xa0 * k for k in range(NPRIMARY)] + [NODES + 0xa0 * NPRIMARY + 0x58 * k for k in range(NSECOND)]
     rnodes = [RNODES + a - NODES for a in nodes]
     mdl, nds = model(r, NODES, nodes)
@@ -199,6 +199,12 @@ def case(r):
     regs = {ANIM: anim, LAYERS: layers, HOLDER: holder, MODEL: mdl, NODES: nds, REST: rest, RNODES: rnds,
             DATA: h.buf, TFLAGS: tf, OUT: bytearray(r.bytes(0x10)), CLOCKS: clocks,
             TRACKFLAGS: bytearray(struct.pack('<II', 0, TFLAGS)), SCENE: bytearray(r.bytes(0x10))}
+    return regs, nlayers, blocks
+
+
+def case(r):
+    op = r.choice(OPS)
+    regs, nlayers, blocks = world(r)
     layer = LAYERS + 0x38 * r.randrange(nlayers)
     blk = r.choice(blocks + [0])
     speed = speed_bits(r)

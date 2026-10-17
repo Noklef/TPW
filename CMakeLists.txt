@@ -147,6 +147,7 @@ add_library(tpw_game STATIC
     src/game/gfx/array3d.cpp
     src/game/gfx/imageops.cpp
     src/game/gfx/statsgraph.cpp
+    src/game/gfx/rleimage.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp
@@ -168,6 +169,7 @@ add_library(tpw_game STATIC
     src/game/sprite/sprite.cpp
     src/game/sprite/screenmatrix.cpp
     src/game/sprite/scriptref.cpp
+    src/game/sprite/loading.cpp
     src/game/world/random.cpp
     src/game/world/things.cpp
     src/game/world/camera.cpp
@@ -208,6 +210,7 @@ add_library(tpw_game STATIC
     src/game/world/wallfollow.cpp
     src/game/world/route.cpp
     src/game/world/focuscell.cpp
+    src/game/world/hoardinggrid.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
@@ -266,6 +269,8 @@ add_library(tpw_game STATIC
     src/game/render/rasteriser.cpp
     src/game/render/dynfaces.cpp
     src/game/render/lightsource.cpp
+    src/game/render/clipcodes.cpp
+    src/game/render/dxerrors.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/online/itemlist.cpp
@@ -273,6 +278,7 @@ add_library(tpw_game STATIC
     src/game/online/onlinelist.cpp
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
+    src/game/frontend/lobbyscene.cpp
     src/game/input/mouse.cpp
 )
 
