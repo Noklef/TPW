@@ -208,4 +208,13 @@ u8 *__cdecl Cell_ExtendPath(const s32 *point, s32 *nextX, s32 *nextY);
 
 // 0x4cd4e0 (cdecl; out, x, z): the word *out = (z << 7) + x + 1. Returns out.
 u16 *__cdecl Cell_MakeHandle(u16 *out, u32 x, u32 z);
+
+// 0x52c420 (cdecl; the grid {width, height, then 8-byte cells in rows of 20 from +8, the type first}): the byte table at 0x8186f0 (16 x 16, +y + 16 * x) is cleared and the width and height
+// kept at 0x8187f0 / 0x8187f4; a cell of type 4, 9, 0x17 or 0xa gets 1 unless all four of its neighbours (left and up only inside the grid; right and below up to one past the size)
+// are of those types too. Returns the table.
+u8 *__cdecl MapGrid_MarkEdges(const u8 *grid);
+
+// 0x52c5b0 (cdecl; the object whose grid is the pointer at +0x18): the dword table at 0x818800 (16 x 16, +y + 16 * x) is cleared, the width and height kept at 0x818c00 / 0x818c04, and the
+// cells get 4 for type 1, 1 for type 4 or 0x17, 2 for type 9 and 3 for type 0xa. Returns the table.
+u32 *__cdecl MapGrid_ClassifyTypes(const u8 *object);
 }

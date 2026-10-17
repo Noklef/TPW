@@ -48,6 +48,11 @@ u16 *balance_pos_a_y(u16 *out, u32 b, u32 a) {
     return store_pos(out, global<u32>(b == 0 ? a : a + 8), global<u32>(a + 4));
 }
 
+// The type of the cell at (x, y) of a map grid {width, height, cells of 8 bytes in rows of 20 from +8}.
+s32 GridType(const u8 *grid, s32 x, s32 y) { return at<s32>(grid, 8 + 8 * (x + y * 20)); }
+
+bool IsEdgeType(s32 type) { return type == 4 || type == 9 || type == 0x17 || type == 10; }
+
 }  // namespace
 
 namespace {
@@ -426,5 +431,54 @@ u8 *__cdecl Cell_ExtendPath(const s32 *point, s32 *nextX, s32 *nextY) {
 u16 *__cdecl Cell_MakeHandle(u16 *out, u32 x, u32 z) {
     *out = (u16)((z << 7) + x + 1);
     return out;
+}
+
+u8 *__cdecl MapGrid_MarkEdges(const u8 *grid) {
+    u8 *const table = reinterpret_cast<u8 *>(0x008186f0);
+    const s32 width = at<s32>(grid, 0), height = at<s32>(grid, 4);
+    global<s32>(0x008187f0) = width;
+    global<s32>(0x008187f4) = height;
+    for (u32 i = 0; i < 0x100; i++)
+        table[i] = 0;
+    for (s32 y = 0; y < at<s32>(grid, 4); y++) {
+        for (s32 x = 0; x < at<s32>(grid, 0); x++) {
+            if (!IsEdgeType(GridType(grid, x, y)))
+                continue;
+            s32 around = 0;
+            if (y - 1 >= 0 && y - 1 <= at<s32>(grid, 4) && IsEdgeType(GridType(grid, x, y - 1)))
+                around = 1;
+            if (x - 1 >= 0 && x - 1 <= at<s32>(grid, 0) && IsEdgeType(GridType(grid, x - 1, y)))
+                around++;
+            if (x + 1 >= 0 && x + 1 <= at<s32>(grid, 0) && IsEdgeType(GridType(grid, x + 1, y)))
+                around++;
+            if (y + 1 >= 0 && y + 1 <= at<s32>(grid, 4) && IsEdgeType(GridType(grid, x, y + 1)))
+                around++;
+            if (around != 4)
+                table[y + 16 * x] = 1;
+        }
+    }
+    return table;
+}
+
+u32 *__cdecl MapGrid_ClassifyTypes(const u8 *object) {
+    u32 *const table = reinterpret_cast<u32 *>(0x00818800);
+    const u8 *const grid = at<const u8 *>(object, 0x18);
+    global<s32>(0x00818c00) = at<s32>(grid, 0);
+    global<s32>(0x00818c04) = at<s32>(grid, 4);
+    for (u32 i = 0; i < 0x100; i++)
+        table[i] = 0;
+    for (s32 y = 0; y < at<s32>(grid, 4); y++) {
+        for (s32 x = 0; x < at<s32>(grid, 0); x++) {
+            switch (GridType(grid, x, y)) {
+            case 1: table[y + 16 * x] = 4; break;
+            case 4:
+            case 0x17: table[y + 16 * x] = 1; break;
+            case 9: table[y + 16 * x] = 2; break;
+            case 10: table[y + 16 * x] = 3; break;
+            default: break;
+            }
+        }
+    }
+    return table;
 }
 }
