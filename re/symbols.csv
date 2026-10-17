@@ -3568,6 +3568,7 @@ address,name,kind,confidence,notes
 0x004de110,Object_BackOfQueueTo,function,high,reimplemented (src/game/world/objectmsg); Object_BackOfQueue returning out
 0x004ddf40,Object_QueuePositionOfNone,function,high,reimplemented (src/game/world/objectmsg); the position of the person with no handle
 0x004ddd20,Object_QueueRemovePerson,function,low,"reimplemented (src/game/world/objectmsg); thiscall (person handle): clear element 0 of the ride record when it is the person, unlink the person from the queue"
+0x004dd920,Object_QueueOpen,function,low,"reimplemented (src/game/world/objectmsg); thiscall: whether the object takes people into its queue (flags, state, back of the queue, room, definition kind tests)"
 0x004fa930,Thing_PlaceAt,function,high,reimplemented (src/game/world/things); a thing placed on the navigation block and moved
 0x0051fa20,TrackTypeSlot_ReadIntoFree,function,high,reimplemented (src/game/coaster/tracktypes); a stream read into the first free 0x140-byte slot
 0x004fcac0,Thing_SpriteChoice,function,high,"reimplemented (src/game/world/things); the flags of a sprite, or a random sprite of folder 1"

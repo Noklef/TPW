@@ -2,10 +2,12 @@
 
 #include <cstdint>
 
+#include "../coaster/registry.h"
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
 #include "analysercell.h"
 #include "mapcell.h"
+#include "objectdefs.h"
 #include "person.h"
 #include "ridelist.h"
 
@@ -138,5 +140,21 @@ s32 __fastcall Object_QueuePositionOfNone(u8 *object) {
 u32 __fastcall Object_QueueHasRoom(u8 *object) {
     const u32 position = (u32)Object_QueuePosition(object, nullptr, 0);
     return position < (at<u32>(object, 0x40) << 2) ? 1 : 0;
+}
+
+u32 __fastcall Object_QueueOpen(u8 *object) {
+    if (!(at<u8>(object, 0x32) & 4)) return 0;
+    const s32 state = at<s32>(object, 0x19c);
+    if (state == 1 || at<u32>(object, 0x68) == 0 || state == 4) return 0;
+    u16 back;
+    Object_BackOfQueue(object, nullptr, &back);
+    if (back == 0) return 0;
+    const u32 position = (u32)Object_QueuePosition(object, nullptr, 0);
+    if (!(position < (at<u32>(object, 0x40) << 2))) return 0;
+    u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
+    if (at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x9c) == 3 && !Object_LinkOtherOpen(object)) return 0;
+    if (at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x9c) == 1 && at<u32>(object, 0x2c) == 0) return 0;
+    if (at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x9c) == 2 && at<u32>(object, 0x2c) == 0) return 0;
+    return 1;
 }
 }  // extern "C"
