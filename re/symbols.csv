@@ -3365,6 +3365,9 @@ address,name,kind,confidence,notes
 0x0041e250,Class6fdaf8_ScalarDtor,function,high,reimplemented (src/game/core/small47); scalar deleting destructor
 0x005e3f40,Class702ec0_ScalarDtor,function,high,reimplemented (src/game/core/small47); scalar deleting destructor
 0x005e3f70,Class702dd0_ScalarDtor,function,high,reimplemented (src/game/core/small47); scalar deleting destructor
+0x005b1650,StdMapG_InsertCopy,function,high,"reimplemented (src/game/core/small48); the 16-bit key map insert, result copied to out"
+0x005af740,Object_AddKeyed,function,high,reimplemented (src/game/core/small48); inserts a key and adds an amount when it was new
+0x00617f40,Class7037b8_Dtor,function,high,reimplemented (src/game/core/small48); frees the list of blocks
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

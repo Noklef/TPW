@@ -149,6 +149,7 @@
 #include "../game/core/small45.h"
 #include "../game/core/small46.h"
 #include "../game/core/small47.h"
+#include "../game/core/small48.h"
 #include "../game/core/small5.h"
 #include "../game/core/small6.h"
 #include "../game/core/small7.h"
@@ -2938,6 +2939,9 @@ const Hook kHooks[] = {
     {"Class6fdaf8_ScalarDtor",    0x0041e250, (void *)&Class6fdaf8_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x68}},
     {"Class702ec0_ScalarDtor",    0x005e3f40, (void *)&Class702ec0_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"Class702dd0_ScalarDtor",    0x005e3f70, (void *)&Class702dd0_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"StdMapG_InsertCopy",        0x005b1650, (void *)&StdMapG_InsertCopy, {0x8b, 0x44, 0x24, 0x08, 0x83}},
+    {"Object_AddKeyed",           0x005af740, (void *)&Object_AddKeyed, {0x83, 0xec, 0x08, 0x8d, 0x44}},
+    {"Class7037b8_Dtor",          0x00617f40, (void *)&Class7037b8_Dtor, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
