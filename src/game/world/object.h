@@ -64,4 +64,13 @@ u32 __fastcall Is19c_Eq2_4e03e0(const u8 *o);
 
 // 0x4e0440: 1 when the dword at 0x68 is 0, else 0.
 u32 __fastcall Is68_Zero_4e0440(const u8 *o);
+
+// 0x4dd7f0 (thiscall on the object; capacity, pops 4; the debug print is left out): the low byte of the capacity is held to the object definition's limits (the dwords at +0x124
+// and +0x128 when their sum is above 0; the minimum first), set as element 2 of the object's ride record (Rides_SetElement of Rides_FindById of the dword at +0x24) and kept at +0x5d.
+void __fastcall Object_SetCapacity(u8 *object, void *, u32 capacity);
+
+// 0x52c2b0 (cdecl; the object): 1 unless the object definition's track type (+0x9c) is 1 or 2 and the cell a few steps ahead (by the angle at +0x10: 0 is (+4, +1), 0x5a (+1, -5), 0xb4
+// (-5, -2), 0x10e (-2, +4) from the cell of columns/rows at +5 and +7; any other angle stays) and the one beside it (the second offsets: 0 is (-2, +1), 0x5a (+1, +1), 0xb4 (+1, -2), 0x10e (-2, -2)) each have exactly one neighbour
+// bit (MapCell_NeighbourCount, on the 0x28-byte cells of the world at [0x7cf83c]).
+u32 __cdecl Object_TrackNeighboursOk(const u8 *object);
 }

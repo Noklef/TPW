@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "gameheap.h"
+#include "stdlist.h"
 
 namespace {
 
@@ -115,5 +116,22 @@ void __fastcall ListRemove8_5e15c0(u8 *o, void *, u32 v0) {
 
 void __fastcall ListRemove18_5e4250(u8 *o, void *, u32 v0) {
     u8 *list = at<u8 *>(o, 0x18); u8 *node = at<u8 *>(list, 4); while (node && at<u32>(node, 0) != v0) node = at<u8 *>(node, 4); if (!node) return; if (node == at<u8 *>(list, 4)) at<u8 *>(list, 4) = at<u8 *>(node, 4); else at<u8 *>(at<u8 *>(node, 8), 4) = at<u8 *>(node, 4); if (node == at<u8 *>(list, 8)) at<u8 *>(list, 8) = at<u8 *>(node, 8); else at<u8 *>(at<u8 *>(node, 4), 8) = at<u8 *>(node, 8); at<u32>(list, 0xc) -= 1; GameHeap_Free(node);
+}
+
+void __fastcall SortedPtrList_Add(u8 *holder, void *, u8 *item) {
+    u8 *const list = at<u8 *>(holder, 8);
+    if (at<u32>(list, 0xc) == 0) {
+        List_PushHead(list, nullptr, (u32)(uintptr_t)item);
+        at<u8 *>(holder, 0x10) = item;
+        return;
+    }
+    u8 *node = at<u8 *>(list, 4);
+    while (node && at<s32>(at<u8 *>(node, 0), 0x24) < at<s32>(item, 0x24))
+        node = at<u8 *>(node, 4);
+    if (node)
+        PtrList_Insert(list, nullptr, (u32)(uintptr_t)item, &node);
+    else
+        PtrList_Append(reinterpret_cast<PtrList *>(list), nullptr, item);
+    at<u8 *>(holder, 0x10) = item;
 }
 }  // extern "C"

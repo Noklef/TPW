@@ -65,4 +65,8 @@ void __fastcall ListRemove8_5e15c0(u8 *o, void *, u32 v0);
 // 0x5e4250: removes the first node with a value from the linked list at +0x18 (unlinks it, counts it off, frees it).
 void __fastcall ListRemove18_5e4250(u8 *o, void *, u32 v0);
 
+// 0x5e1540 (thiscall on the holder; item, pops 4): the pointer list at +8 (head at +4, tail at +8, count at +0xc) gets the item in order of the signed dword at +0x24 of the items:
+// first (List_PushHead) when the list is empty, otherwise before the first item whose key is not below the new one's (PtrList_Insert), else at the end (PtrList_Append). The holder keeps
+// the item at +0x10.
+void __fastcall SortedPtrList_Add(u8 *holder, void *, u8 *item);
 }  // extern "C"

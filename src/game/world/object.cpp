@@ -6,6 +6,8 @@
 #include "../core/gameheap.h"
 #include "objectdefs.h"
 #include "person.h"
+#include "mapcell.h"
+#include "ridelist.h"
 
 namespace {
 
@@ -143,5 +145,53 @@ u32 __fastcall Is19c_Eq2_4e03e0(const u8 *o) {
 
 u32 __fastcall Is68_Zero_4e0440(const u8 *o) {
     return at<u32>(o, 0x68) == 0 ? 1 : 0;
+}
+
+void __fastcall Object_SetCapacity(u8 *object, void *, u32 capacity) {
+    u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
+    const u16 id = at<u16>(object, 0xe);
+    const u8 *first = ObjectDefs_Find(defs, nullptr, id);
+    const u8 *second = ObjectDefs_Find(defs, nullptr, id);
+    u8 value = (u8)capacity;
+    if (at<s32>(second, 0x128) + at<s32>(first, 0x124) > 0) {
+        if ((s32)value < at<s32>(ObjectDefs_Find(defs, nullptr, id), 0x124)) {
+            value = at<u8>(ObjectDefs_Find(defs, nullptr, id), 0x124);
+        } else if ((s32)value > at<s32>(ObjectDefs_Find(defs, nullptr, id), 0x128)) {
+            value = at<u8>(ObjectDefs_Find(defs, nullptr, id), 0x128);
+        }
+    }
+    Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 2, value);  // (the debug print of the capacity is left out)
+    at<u8>(object, 0x5d) = value;
+}
+
+u32 __cdecl Object_TrackNeighboursOk(const u8 *object) {
+    const s32 track = at<s32>(Object_GetDef(object), 0x9c);
+    if (track <= 0 || track > 2)
+        return 1;
+    s32 x = object[5] & 0x7f, y = object[7] + (object[5] >> 7);
+    const s32 angle = at<s32>(object, 0x10);
+    // the cell two or so ahead along the track's direction, then the one beside it (Nibble_Scale of the direction in between has no effect)
+    auto cellAt = [](s32 column, s32 row) {
+        const u32 id = (u32)(((row << 7) + column + 1) & 0xffff);
+        return global<u8 *>(0x007cf83c) + (id + 0x6cde) * 0x28;
+    };
+    s32 dx = 0, dy = 0;
+    switch (angle) {
+    case 0: dx = 4; dy = 1; break;
+    case 0x5a: dx = 1; dy = -5; break;
+    case 0xb4: dx = -5; dy = -2; break;
+    case 0x10e: dx = -2; dy = 4; break;
+    default: break;
+    }
+    if (MapCell_NeighbourCount(cellAt(x + dx, y + dy)) != 1)
+        return 0;
+    switch (angle) {
+    case 0: dx = -2; dy = 1; break;
+    case 0x5a: dx = 1; dy = 1; break;
+    case 0xb4: dx = 1; dy = -2; break;
+    case 0x10e: dx = -2; dy = -2; break;
+    default: dx = 0; dy = 0; break;
+    }
+    return MapCell_NeighbourCount(cellAt(x + dx, y + dy)) == 1 ? 1 : 0;
 }
 }
