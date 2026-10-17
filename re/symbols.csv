@@ -3438,6 +3438,7 @@ address,name,kind,confidence,notes
 0x0046b420,KeyMap_Modifiers,function,high,"reimplemented (src/game/core/keymap); cdecl: the modifier keys held from GetKeyState: 3 shift, 0xc control, 0x30 alt"
 0x00486aa0,KeyMap_AsyncModifiers,function,high,reimplemented (src/game/core/keymap); cdecl: the same from GetAsyncKeyState
 0x0041a9d0,Graphics_Level,function,high,reimplemented (src/game/core/options); level 2 to 8 from the render mode or the graphics balance
+0x00423dd0,Options_ApplySound,function,high,"reimplemented (src/game/core/options); cdecl: the options sound switches and volumes applied (Sound_Set803adc/ac0, ae0/ac4, ad8/abc; Global802ba8_SetMasked(+0x2c * 1023 / 100))"
 0x0043ba20,Coaster_SetTrainCount,function,high,"reimplemented (src/game/coaster/setup); sets the car count, unloading the cars cut off"
 0x0041c8b0,Class6fd9d8_Dtor,function,high,"reimplemented (src/game/core/class6fd9d8); destructor: deletes its member and the held objects of its list, frees two strings"
 0x004f0700,Wstreambuf_Read,function,high,"reimplemented (src/game/core/streambuf); reads wide characters from the get area, else through the underflow slot"
