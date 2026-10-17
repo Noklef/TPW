@@ -146,6 +146,7 @@ add_library(tpw_game STATIC
     src/game/gfx/array3d.cpp
     src/game/gfx/imageops.cpp
     src/game/gfx/statsgraph.cpp
+    src/game/gfx/rleimage.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp

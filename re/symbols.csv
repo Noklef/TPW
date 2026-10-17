@@ -3913,6 +3913,7 @@ address,name,kind,confidence,notes
 0x005e7ef0,Array3D_MaxInto,function,high,reimplemented (src/game/gfx/array3d); the larger bytes of this buffer and another into the other
 0x0049a7b0,StatsGraph_ShownMax,function,low,"reimplemented (src/game/gfx/statsgraph); the greatest sample of the shown lines of the park statistics graph within its window, from 0"
 0x0049a8f0,StatsGraph_ShownMin,function,low,"reimplemented (src/game/gfx/statsgraph); the least sample of the shown lines of the park statistics graph within its window, from 0"
+0x00564790,RleImage_DrawScaled,function,low,"reimplemented (src/game/gfx/rleimage); thiscall (adjusted image: codes -0x14, palette -0x10, width -0xc, height -8; dest {pixels, width, height, pitch}), pops 4: run-length rows through the palette, scaled by x / y steps into dest; returns 1"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
