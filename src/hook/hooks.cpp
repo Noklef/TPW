@@ -248,6 +248,7 @@
 #include "../game/render/rasteriser.h"
 #include "../game/render/dynfaces.h"
 #include "../game/render/lightsource.h"
+#include "../game/render/clipcodes.h"
 #include "../game/render/weatherfx.h"
 #include "../game/online/servers.h"
 #include "../game/frontend/helpbg.h"
@@ -3514,6 +3515,7 @@ const Hook kHooks[] = {
     {"DynFaces_SortTags",         0x0053c1f0, (void *)&DynFaces_SortTags, {0x81, 0xec, 0xdc, 0x00, 0x00}},
     {"LightSource_Destroy",       0x00458400, (void *)&LightSource_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"LightSource_DestroyMain",   0x00458580, (void *)&LightSource_DestroyMain, {0xa1, 0x40, 0x0b, 0x7a, 0x00}},
+    {"ClipCodes_Compute",         0x00561bc0, (void *)&ClipCodes_Compute, {0x55, 0x8b, 0xec, 0x51, 0x53}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
