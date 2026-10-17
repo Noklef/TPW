@@ -3372,6 +3372,8 @@ address,name,kind,confidence,notes
 0x00576620,Grid_AddObject,function,high,reimplemented (src/game/core/small50); adds an object to every list in a rectangle of the grid
 0x005830e0,Surface_SetMasks,function,high,reimplemented (src/game/core/small50); stores the colour masks and makes the 16-bit tables
 0x005e2a80,PtrList_Insert,function,high,reimplemented (src/game/core/small50); inserts a value before an iterator in a pointer list
+0x005f4400,Class703088_ScalarDtor,function,high,reimplemented (src/game/core/small51); scalar deleting destructor leaving the global list of its kind
+0x004dda20,Object_QueueHasRoom,function,high,reimplemented (src/game/core/small51); whether the person queue is shorter than four times the limit
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
 0x00fa7948,gScreen,data,high,"ScreenState (src/game/gfx/screen): exclusive window, own window, IDirectDraw, active, guid, class registered"

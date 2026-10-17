@@ -153,6 +153,7 @@
 #include "../game/core/small49.h"
 #include "../game/core/small5.h"
 #include "../game/core/small50.h"
+#include "../game/core/small51.h"
 #include "../game/core/small6.h"
 #include "../game/core/small7.h"
 #include "../game/core/small8.h"
@@ -2948,6 +2949,8 @@ const Hook kHooks[] = {
     {"Grid_AddObject",            0x00576620, (void *)&Grid_AddObject, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
     {"Surface_SetMasks",          0x005830e0, (void *)&Surface_SetMasks, {0x83, 0xec, 0x0c, 0x8b, 0x54}},
     {"PtrList_Insert",            0x005e2a80, (void *)&PtrList_Insert, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"Class703088_ScalarDtor",    0x005f4400, (void *)&Class703088_ScalarDtor, {0x56, 0x8b, 0xf1, 0x57, 0xc7}},
+    {"Object_QueueHasRoom",       0x004dda20, (void *)&Object_QueueHasRoom, {0x56, 0x8b, 0xf1, 0x51, 0x8b}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
