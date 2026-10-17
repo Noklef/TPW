@@ -1,6 +1,6 @@
 // A table of model slots (0xb0 bytes each at 0x790398; +4 a holder that is also its
 // animator), used by the 0x54e000 and 0x598000 front-end code: reimplementations of
-// 0x429df0, 0x429ee0, 0x429f60 and 0x429fe0.
+// 0x429a60, 0x429df0, 0x429ee0, 0x429f60 and 0x429fe0.
 #pragma once
 
 #include "../../../re/types.h"
