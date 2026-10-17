@@ -1,4 +1,4 @@
-// Sound voices and their free list: starting a voice from a template, scaling its levels, taking and returning records. Reimplementation of 0x520d60, 0x521890, 0x521d60, 0x522360, 0x5224f0. Named by what they do until the classes are known.
+// Sound voices and their free list: starting a voice from a template, scaling its levels, taking and returning records. Reimplementation of 0x520d60, 0x521890, 0x521d60, 0x522360, 0x5224f0, 0x51fb70. Named by what they do until the classes are known.
 #pragma once
 
 #include "../../../re/types.h"
@@ -31,4 +31,11 @@ u8 *__cdecl Voice_ScaleLevels(s32 index);
 // +0x1c, the latter at least 1) of the dword at +0x78 plus a random remainder by half of it, and a position and velocity from a random angle of the sines at [0x80ceec]
 // (both random numbers from the generator at 0x80cee0). The spread is stored back.
 void __cdecl Emitter_Spawn(s32 index, u32 reset);
+
+// 0x51fb70 (cdecl; name unconfirmed): nothing without the sound system (0x816d40). Otherwise the counters 0x80ced0 / 0x80ced4 = 0, the generators 0x80cee0 / 0x80cee4 = 1
+// and the words 0x80cee8 / 0x80ceea = 1; the [0x80cedc] records of 0x34 bytes at [0x80cef8], the 0x78 entries at 0x80cefc and the 0x14 instances at 0x8164fc are zeroed.
+// Then three lists are chained in order (each element's previous is the one before, its next the one after; the ends -1): the entries (words at +0xd2 previous / +0xd0 next,
+// heads 0x816d1c = -1 and 0x816d20 = 0), the instances (+0x62 / +0x60, heads 0x816d1e = -1 and 0x816d22 = 0) and the records (+0x32 / +0x30, free head 0x816d24 = 0; the
+// first and last are set before the middle, which [0x80cedc] bounds again each step). 0x816d3c = 0.
+void __cdecl Emitters_Reset();
 }  // extern "C"

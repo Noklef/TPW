@@ -3477,6 +3477,7 @@ address,name,kind,confidence,notes
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/voices); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/voices); scales a voice's levels by the factor over 1024
 0x005224f0,Emitter_Spawn,function,low,"reimplemented (src/game/core/voices); cdecl (index, reset): reset an entry or grow its spread and take records for it, each placed at a random angle"
+0x0051fb70,Emitters_Reset,function,low,"reimplemented (src/game/core/voices); cdecl: with the sound system, clear the counters, records, entries and instances and chain their lists afresh"
 0x00598630,IntArray_SetSize,function,high,"reimplemented (src/game/core/buffers); resizes the dword array, growing by its step"
 0x004e51a0,CountedPair_Clear,function,low,"reimplemented (src/game/core/buffers); thiscall: releases the wide counted buffer at +0x14 (block 2 bytes below) and the narrow one at +4 (1 byte below), clearing both three-dword fields"
 0x005b2f40,StdTreeF_LowerBound,function,high,reimplemented (src/game/core/stdtree); lower bound of a string key in the string map

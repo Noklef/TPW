@@ -156,4 +156,50 @@ void __cdecl Emitter_Spawn(s32 index, u32 reset) {
     }
     at<s32>(entry, 0xcc) = spread;
 }
+
+void __cdecl Emitters_Reset() {
+    if (global<u32>(0x00816d40) == 0) return;
+    const u32 bytes = global<u32>(0x0080cedc) * 0x34;
+    u8 *const records = global<u8 *>(0x0080cef8);
+    global<u32>(0x0080ced0) = 0;
+    global<u32>(0x0080ced4) = 0;
+    global<u32>(0x0080cee0) = 1;
+    global<u32>(0x0080cee4) = 1;
+    global<u16>(0x0080cee8) = 1;
+    global<u16>(0x0080ceea) = 1;
+    for (u32 i = 0; i < bytes; ++i) records[i] = 0;
+    for (u32 i = 0; i < 0x9600; ++i) global<u8>(0x0080cefc + i) = 0;
+    for (u32 i = 0; i < 0x820; ++i) global<u8>(0x008164fc + i) = 0;
+    global<s16>(0x00816d1c) = -1;
+    global<s16>(0x00816d20) = 0;
+    global<s16>(0x0080cfce) = -1;
+    global<s16>(0x0080cfcc) = 1;
+    global<s16>(0x0081648c) = -1;
+    global<s16>(0x0081648e) = 0x76;
+    for (s32 i = 1; i < 0x77; ++i) {
+        global<s16>(0x0080cfce + i * 0x140) = (s16)(i - 1);
+        global<s16>(0x0080cfcc + i * 0x140) = (s16)(i + 1);
+    }
+    global<s16>(0x00816d1e) = -1;
+    global<s16>(0x00816d22) = 0;
+    global<s16>(0x0081655e) = -1;
+    global<s16>(0x0081655c) = 1;
+    global<s16>(0x00816d14) = -1;
+    global<s16>(0x00816d16) = 0x12;
+    for (s32 i = 1; i < 0x13; ++i) {
+        global<s16>(0x0081655e + i * 0x68) = (s16)(i - 1);
+        global<s16>(0x0081655c + i * 0x68) = (s16)(i + 1);
+    }
+    global<s16>(0x00816d24) = 0;
+    at<s16>(global<u8 *>(0x0080cef8), 0x32) = -1;
+    at<s16>(global<u8 *>(0x0080cef8), 0x30) = 1;
+    const s32 count = global<s32>(0x0080cedc);
+    at<s16>(Record(count - 1), 0x30) = -1;
+    at<s16>(Record(global<s32>(0x0080cedc) - 1), 0x32) = (s16)(global<s32>(0x0080cedc) - 2);
+    for (s32 i = 1; i < global<s32>(0x0080cedc) - 1; ++i) {
+        at<s16>(Record(i), 0x32) = (s16)(i - 1);
+        at<s16>(Record(i), 0x30) = (s16)(i + 1);
+    }
+    global<u32>(0x00816d3c) = 0;
+}
 }  // extern "C"
