@@ -11,16 +11,17 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, Bench, Call, RAM, global_heap, heap, put  # noqa: E402
 
-B = Bench([(0x402d70, 0x403220), (0x4033a0, 0x4033f0), (0x44b410, 0x44b4d0), (0x4758f0, 0x475b90), (0x4fcac0, 0x4fcb20), (0x50b350, 0x50b370), (0x516330, 0x516390),
-           (0x540c60, 0x540da0), (0x541f60, 0x541fb0), (0x5f5660, 0x5f56a0), (0x5f5e20, 0x5f5e90), (0x5f5fa0, 0x5f5fc0), (0x5da3c0, 0x5da3c1)])
+RANGES = [(0x402d70, 0x403220), (0x4033a0, 0x4033f0), (0x44b410, 0x44b4d0), (0x4758f0, 0x475b90), (0x4fcac0, 0x4fcb20), (0x50b350, 0x50b370), (0x516330, 0x516390),
+          (0x540c60, 0x540da0), (0x541f60, 0x541fb0), (0x5f5660, 0x5f56a0), (0x5f5e20, 0x5f5e90), (0x5f5fa0, 0x5f5fc0), (0x5da3c0, 0x5da3c1)]
+B = Bench(RANGES)
 INSTANCE, PS, ENTRIES, THINGS, TABLE, SPRITES, WORLD = (RAM + o for o in (0, 0x100, 0x200, 0x400, 0x800, 0x1000, 0x10000))
 SCRIPTS = 0x7b49f0   # the list: slot table, slots, ..., ready (+0x24)
 FOLDERS, GSPRITES, SLOTS, CLOCK = 0x763f88, 0x876b48, 0x7cfb90, 0x785970
 NSPRITES = 16
 
 
-def case(r):
-    regions = {HEAP: heap()}
+def activation(r, regions):
+    """The part states of the instance INSTANCE, the things, sprite folders, world and script list an activation reads (in regions)."""
     regions.update(global_heap())
     # the part states
     instance = bytearray(r.bytes(0x40))
@@ -56,6 +57,11 @@ def case(r):
     clock = bytearray(r.bytes(0x80))
     put(clock, 0x38, 'I', 1)
     regions[CLOCK] = clock
+
+
+def case(r):
+    regions = {HEAP: heap()}
+    activation(r, regions)
     handle = r.choice([0, 1, 2, 3, 3]) | (r.getrandbits(16) << 16 if r.random() < 0.3 else 0)
     return Call(0x44b410, [INSTANCE, r.randrange(4), handle], regions, ret='a')
 
