@@ -71,4 +71,8 @@ u32 __fastcall Obj_ReleaseFromRenderer(u8 *object);
 // 0x56b2f0 (thiscall; name unconfirmed): 1 when bit 0 of the first dword is already set. Else the part at +4 (a virtual base: the pointer plus the offset at +4 of its vtable; 0 for none)
 // is added to the renderer's tag 0x60 list (Renderer_Add): when that succeeds bit 0 is set and 1 returned, else 0, as when there is no renderer ([0x87a6d0]). The inverse of Obj_ReleaseFromRenderer.
 u32 __fastcall Obj_AddToRenderer(u8 *object);
+
+// 0x48f5c0 (thiscall; id, pops 4; name unconfirmed): nothing when the word at +0x44 is 0 or the word at +8 already equals the low word of id. Else the part at +0xb4 (a virtual base: its address plus
+// the offset at +4 of its vtable) is added to the renderer's tag 0x30 list (Renderer_Add) for an id that is not 0 and removed from it (Renderer_RemoveFromSlot) for 0; the word at +8 becomes the id.
+void __fastcall Obj_SetRendererPart30(u8 *object, void *, u32 value);
 }

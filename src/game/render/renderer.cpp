@@ -219,4 +219,22 @@ u32 __fastcall Obj_AddToRenderer(u8 *object) {
     at<u32>(object, 0) |= 1;
     return 1;
 }
+
+void __fastcall Obj_SetRendererPart30(u8 *object, void *, u32 value) {
+    if (at<u16>(object, 0x44) == 0)
+        return;
+    const u16 id = static_cast<u16>(value);
+    if (at<u16>(object, 8) == id)
+        return;
+    u8 *part = object + 0xb4;
+    if (id != 0) {
+        // (the original has a branch for a null part pointer here, which cannot happen)
+        part += at<u32>(at<u8 *>(part, 0), 4);
+        Renderer_Add(global<u8 *>(0x0087a6d0), nullptr, part, 0x30);
+    } else {
+        part += at<u32>(at<u8 *>(part, 0), 4);
+        Renderer_RemoveFromSlot(global<u8 *>(0x0087a6d0), nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(part)), 0x30);
+    }
+    at<u16>(object, 8) = id;
+}
 }

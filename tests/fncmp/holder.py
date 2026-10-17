@@ -1,7 +1,7 @@
 # The holder functions of src/game/model/holder that go through the renderer (0x45bdd0 Holder_Sleep, 0x4254c0 Animator_Sleep, 0x45bc60 Holder_Destroy) against the originals: a
 # holder whose part sits in a renderer's slot lists (tags 0x10, 0x20, 0x70) or not; an animator holding such a holder; and a holder whose part has a vtable (a recorder) giving the
 # virtual base offset; a holder disposed of (and the owner that holds it); a holder added to the renderer's grid (grid_masks.py's environment, the part reached through its virtual base offset); a user of the holder behind [0x79fcb4] taking it out by its rectangle (misc.py's grid) or by sleeping, and putting it back (Wake: the slot list; Acquire / RideAcquire: the grid rectangle or Wake).
-# usage: holder.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Sleep,Animator,Destroy,Release,Grid,Dispose,Owner,AnimGrid,Children,Wake,Acquire,RideAcquire,AddObj)
+# usage: holder.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Sleep,Animator,Destroy,Release,Grid,Dispose,Owner,AnimGrid,Children,Wake,Acquire,RideAcquire,AddObj,SetPart)
 import os
 import struct
 import sys
@@ -14,7 +14,7 @@ import misc  # noqa: E402
 import vobj3  # noqa: E402
 from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put, vtable  # noqa: E402
 
-B = Bench([(0x425490, 0x4254c0), (0x43eac0, 0x43eb00), (0x455a50, 0x455ae0), (0x45ba00, 0x45ba30), (0x4254c0, 0x4254f0), (0x45bc60, 0x45bcb0), (0x45bdd0, 0x45be90), (0x45be80, 0x45bed0), (0x576540, 0x5765d0), (0x5766e0, 0x57681a), (0x5d8820, 0x5d8870), (0x45bcb0, 0x45bd10), (0x576620, 0x5766f0), (0x576270, 0x576320), (0x5e2a80, 0x5e2b80), (0x67acb0, 0x67acb1), (0x590730, 0x590750), (0x5da3c0, 0x5da3c1), (0x45bd00, 0x45bd30), (0x576410, 0x576550), (0x5d8130, 0x5d8190), (0x5d87d0, 0x5d8820), (0x56b2f0, 0x56b340)],
+B = Bench([(0x425490, 0x4254c0), (0x43eac0, 0x43eb00), (0x455a50, 0x455ae0), (0x45ba00, 0x45ba30), (0x4254c0, 0x4254f0), (0x45bc60, 0x45bcb0), (0x45bdd0, 0x45be90), (0x45be80, 0x45bed0), (0x576540, 0x5765d0), (0x5766e0, 0x57681a), (0x5d8820, 0x5d8870), (0x45bcb0, 0x45bd10), (0x576620, 0x5766f0), (0x576270, 0x576320), (0x5e2a80, 0x5e2b80), (0x67acb0, 0x67acb1), (0x590730, 0x590750), (0x5da3c0, 0x5da3c1), (0x45bd00, 0x45bd30), (0x576410, 0x576550), (0x5d8130, 0x5d8190), (0x5d87d0, 0x5d8820), (0x56b2f0, 0x56b340), (0x48f5c0, 0x48f650)],
           hooks={0x691de0: vobj3.lock, 0x691ea0: lambda e: None})
 ANIM, OWNER, TARGET, USER = RAM + 0x2000, RAM + 0x2500, RAM + 0x3000, RAM + 0x3200
 ACQ_TARGET, ACQ_USER = RAM + 0x7400, RAM + 0x7600   # clear of the grid environment (grid_masks.py's vtables sit at RAM + 0x3000)
@@ -178,7 +178,25 @@ def add_obj(r):   # an object {flags, part} (render/renderer Obj_AddToRenderer) 
     return Call(0x56b2f0, [holder], regions, conv='t', ret='a')
 
 
-CASES = {'Sleep': sleep, 'Animator': animator, 'Destroy': destroy, 'Release': release, 'Grid': add_to_grid, 'Dispose': dispose, 'Owner': dispose_owner, 'AnimGrid': animator_grid, 'Children': children, 'Wake': wake, 'Acquire': lambda r: acquire(r, False), 'RideAcquire': lambda r: acquire(r, True), 'AddObj': add_obj}
+def set_part(r):   # an object whose part at +0xb4 is the grid environment's part (offset 0x100 behind its vtable), the words at +8 and +0x44
+    c = clean_slots(r, add_to_grid(r))
+    regions = dict(c.regions)
+    obj = c.args[5] if False else None
+    part = [k for k, v in regions.items() if len(v) == 4 and struct.unpack('<I', v)[0] == RAM + 0x6000 + 0 and False]
+    holder = c.args[0]
+    part = struct.unpack_from('<I', regions[holder], 0x1c)[0]    # the part pointer the holder keeps (a vtable pointer behind it, offset 0x100)
+    me = part - 0xb4
+    cur = r.choice([0, 5, 9])
+    value = r.choice([0, 0, 5, 9, 0x10005, r.getrandbits(16)])
+    for k, v in regions.items():
+        for a, n in ((me + 8, 2), (me + 0x44, 2)):
+            assert a + n <= k or k + len(v) <= a, 'overlap'
+    regions[me + 8] = struct.pack('<H', cur)
+    regions[me + 0x44] = struct.pack('<H', r.choice([0, 1, 0xffff]))
+    return Call(0x48f5c0, [me, value], regions, conv='t', ret='v')
+
+
+CASES = {'Sleep': sleep, 'Animator': animator, 'Destroy': destroy, 'Release': release, 'Grid': add_to_grid, 'Dispose': dispose, 'Owner': dispose_owner, 'AnimGrid': animator_grid, 'Children': children, 'Wake': wake, 'Acquire': lambda r: acquire(r, False), 'RideAcquire': lambda r: acquire(r, True), 'AddObj': add_obj, 'SetPart': set_part}
 
 
 def case(r):
