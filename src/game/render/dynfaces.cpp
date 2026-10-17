@@ -2,6 +2,10 @@
 
 #include <cstdint>
 
+#include "../core/gameheap.h"
+#include "../core/misc.h"
+#include "../model/holder.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -111,6 +115,22 @@ void __cdecl DynFaces_SortTags(u32 *tags, u32 count) {
             l = i;
         }
     }
+}
+
+void __cdecl DynFaces_ReleaseModels() {
+    u32 &flag = *reinterpret_cast<u32 *>((uintptr_t)0x00874fcc);
+    if (flag != 0) {
+        static const u32 kModels[3] = {0x00871f64, 0x00871ee4, 0x00871ed8};
+        for (u32 address : kModels) {
+            u8 *const object = *reinterpret_cast<u8 *const *>((uintptr_t)address);
+            if (object == nullptr) continue;
+            Animator_Sleep(object + 0x54);
+            Animator_Dispose(object + 0x54);
+            GameHeap_Free(object);
+        }
+        Dword_ClearBit0(reinterpret_cast<u32 *>((uintptr_t)0x00763c78));
+    }
+    flag = 0;
 }
 
 }  // extern "C"

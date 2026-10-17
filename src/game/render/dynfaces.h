@@ -19,4 +19,9 @@ void __cdecl DynFaces_AddPoly(const u32 *corners, u32 tag, const u32 *uvs, const
 // insertion sort steps down to tags[1], not to the run's start.
 void __cdecl DynFaces_SortTags(u32 *tags, u32 count);
 
+// 0x53c810 (cdecl; name unconfirmed): with the flag at 0x874fcc set, each of the three objects the set-up at 0x53bfe0 makes (the pointers at 0x871f64,
+// 0x871ee4, 0x871ed8, in that order; null ones skipped, none cleared, sic) has its animator at +0x54 put to sleep (Animator_Sleep) and disposed of
+// (Animator_Dispose) and is freed (Mem_Free); then bit 0 of the dword at 0x763c78 is cleared (Dword_ClearBit0). The flag is cleared either way.
+void __cdecl DynFaces_ReleaseModels();
+
 }  // extern "C"
