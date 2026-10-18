@@ -43,6 +43,9 @@ void __fastcall CircBufU32_144_Push(u8 *buf, void *, u32 value);
 // only once wrapped) to *out, and 1; 0 (out untouched) when there is none. Returns in AL only.
 u8 __fastcall CircBufU32_30_Get(const u8 *buf, void *, u32 *out, s32 back);
 
+// 0x495d40 (thiscall; name unconfirmed): the entries it holds: the size (+0x80) once wrapped (the byte +0x84), else the cursor (+0x7c) + 1.
+u32 __fastcall CircBufU32_30_Count(const u8 *buf);
+
 // 0x495c20 (&sum, count; pops 8; name unconfirmed): the CHistory sum: *sum (a double) = 0, then each of the newest count entries (at most the
 // size once wrapped, else the cursor + 1; signed) that CircBufU32_30_Get finds (inlined) added to it on the x87 (fild of the unsigned value,
 // fadd of the sum: rounded to 24 bits). (The debug print of whether count is within the size is left out.)

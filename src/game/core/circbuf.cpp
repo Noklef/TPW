@@ -119,6 +119,10 @@ void __fastcall CircBufU32_144_Push(u8 *buf, void *, u32 value) {
     at<u32>(buf, 4 + (u32)at<s32>(buf, 0x244) * 4) = value;
 }
 
+u32 __fastcall CircBufU32_30_Count(const u8 *buf) {
+    return at<u8>(buf, 0x84) ? at<u32>(buf, 0x80) : at<u32>(buf, 0x7c) + 1;
+}
+
 u8 __fastcall CircBufU32_30_Get(const u8 *buf, void *, u32 *out, s32 back) {
     const s32 size = at<s32>(buf, 0x80);
     if (back >= size) return 0;
