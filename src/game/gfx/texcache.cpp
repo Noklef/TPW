@@ -285,4 +285,17 @@ u32 __fastcall TexCache_AddSurfaces(u8 *cache, void *, s32 side, s32 *made, u32 
     AnimTextures_Set(reinterpret_cast<const u32 *>(cache), reinterpret_cast<const u32 *>(cache + 0x1800));
     return count > 0;
 }
+
+s32 __fastcall TexCache_ChooseSize(u8 *cache, void *, s32 a, s32 b, s32 limit) {
+    const s32 freeA = (s32)(at<u32>(cache, 0x1818 + 4 * a) - at<u32>(cache, 0x1830 + 4 * a));
+    const float shareA = (float)(X87Reg((double)freeA) / X87Reg((double)at<s32>(cache, 0x1800 + 4 * a)));
+    const s32 freeB = (s32)(at<u32>(cache, 0x1818 + 4 * b) - at<u32>(cache, 0x1830 + 4 * b));
+    const float shareB = (float)(X87Reg((double)freeB) / X87Reg((double)at<s32>(cache, 0x1800 + 4 * b)));
+    u8 *const surface = at<u8 *>(at<u8 *>(cache, (u32)a << 10), 0);
+    const s32 used = reinterpret_cast<s32(__fastcall *)(u8 *)>(at<void **>(surface, 0)[3])(surface);
+    if (!((X87Reg(shareB) + X87Reg(shareB)).v >= shareA) && at<s32>(cache, 0x1818 + 4 * b) + 10 < at<s32>(cache, 0x1818 + 4 * a) &&
+        (s32)((u32)used * 3) < (s32)((u32)limit * 4))
+        return b;
+    return a;
+}
 }

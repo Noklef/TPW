@@ -87,4 +87,10 @@ void __fastcall TexCache_Evict(u8 *cache);
 // that is 0) and the turns go on while it is at least [0x8c4898]. *made = the entries made; AnimTextures_Set(cache, cache +
 // 0x1800); returns made > 0.
 u32 __fastcall TexCache_AddSurfaces(u8 *cache, void *, s32 side, s32 *made, u32 format, s32 levels);
+
+// 0x58ea20 (thiscall on the cache; a, b, limit: two size indices; pops 0xc; name unconfirmed; 0x58f6ca asks it): each size's share
+// (+0x1818 - +0x1830, 32-bit, over its count +0x1800; fild / fidiv at 24 bits, stored as floats); slot 3 of a's first entry's
+// surface (+0x400 * a, its +0) answers a count. b when twice b's share is below a's (or unordered), b's +0x1818 + 10 is below a's
+// and count * 3 is below limit * 4 (signed, 32-bit); else a.
+s32 __fastcall TexCache_ChooseSize(u8 *cache, void *, s32 a, s32 b, s32 limit);
 }
