@@ -2,6 +2,7 @@
 # lists of counted nodes, any object bytes (the allocator is the heap region).
 # usage: counted_vectors_clear.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
+import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
@@ -9,11 +10,12 @@ from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
 CALLS = {'Del': (0x47db80, 't', 'a'), 'Push': (0x4d3850, 't', 'a'), 'Range': (0x47bfe0, 's', 'v'), 'Clear': (0x4f04d0, 't', 'v'),
          'C2': (0x5c9970, 't', 'v'), 'Pair': (0x4e51a0, 't', 'v'), 'PRange': (0x4f36f0, 's', 'v'), 'PVec': (0x4f0480, 't', 'a'),
-         'PVecDel': (0x4f7430, 't', 'a'), 'PDel': (0x4f7480, 't', 'a')}
+         'PVecDel': (0x4f7430, 't', 'a'), 'PDel': (0x4f7480, 't', 'a'), 'PDestroy': (0x4f7170, 'c', 'v'), 'PDeque': (0x4e5700, 't', 'v')}
 B = Bench([(0x47db80, 0x47dba0), (0x4791c0, 0x479230), (0x4d3850, 0x4d3860), (0x5e2a30, 0x5e2a80), (0x47bfe0, 0x47c010), (0x4f04d0, 0x4f0540),
            (0x4f75e0, 0x4f7620), (0x5c9970, 0x5c99f0), (0x5da3c0, 0x5da3c1), (0x4e51a0, 0x4e520e),
-           (0x4f36f0, 0x4f3711), (0x4f0480, 0x4f04d0), (0x4f7430, 0x4f747d), (0x4f7480, 0x4f749e)])
-LIST, BUFS, ARR = RAM + 0x1000, RAM + 0x2000, RAM + 0x3000
+           (0x4f36f0, 0x4f3711), (0x4f0480, 0x4f04d0), (0x4f7430, 0x4f747d), (0x4f7480, 0x4f749e),
+           (0x4f7170, 0x4f717a), (0x4e5700, 0x4e57f9)])
+LIST, BUFS, ARR, MAP, BLOCKS = RAM + 0x1000, RAM + 0x2000, RAM + 0x3000, RAM + 0x4000, RAM + 0x10000
 COUNTS = [0, 1, 2, 5, 0x7f, 0xfe, 0xff]
 
 
@@ -34,7 +36,7 @@ def pair(r, data, base, bufs, slot):
 
 
 def case(r):
-    name = r.choice(OPS)
+    name = r.deal(OPS)
     address, conv, ret = CALLS[name]
     obj = bytearray(r.bytes(0x400))
     regions = {RAM: obj, HEAP: heap()}
@@ -82,10 +84,14 @@ def case(r):
         put(obj, 0x80 + 4, 'II', begin, begin + 0x24 * n)
         args = [RAM + 0x80] + ([r.choice([0, 1, 2, 3, 0xffffffff])] if name == 'PVecDel' else [])
         return Call(address, args, regions, conv='t', ret=ret)
-    if name == 'PDel':
+    if name == 'PDeque':
+        return deque_case(r, obj, regions, address, ret)
+    if name in ('PDel', 'PDestroy'):
         bufs = bytearray(r.bytes(0x100))
         pair(r, obj, 0x80, bufs, 0)
         regions[BUFS] = bufs
+        if name == 'PDestroy':
+            return Call(address, [RAM + 0x80], regions, conv='c', ret=ret)
         return Call(address, [RAM + 0x80, r.choice([0, 1, 2, 3, 0xffffffff])], regions, conv='t', ret=ret)
     if name == 'Pair':  # the wide string's buffer at +0x14 (block 2 bytes below the pointer), the narrow one's at +4 (1 byte below)
         for off, k, below in ((0x14, 0, 2), (4, 1, 1)):
@@ -99,6 +105,34 @@ def case(r):
         bufs[0x20 * k] = r.choice(COUNTS)
         put(obj, 0x80 + off, 'I', r.choice([0, BUFS + 0x20 * k + 1, BUFS + 0x20 * k + 1]))
     regions[BUFS] = bufs
+    return Call(address, [RAM + 0x80], regions, conv='t', ret=ret)
+
+
+def deque_case(r, obj, regions, address, ret):
+    """A deque of 16-byte CountedPair vectors (+4 begin, +8 end) in blocks of 0x1000 bytes: the begin iterator at +4 {first, end, cursor, map slot}
+    a few elements before the end of block k, the map at +0x24, the count at +0x2c; only the visited elements (the block's tail, the next one's
+    head) are laid out, each an empty vector (begin == end, 0 or not) or up to two pairs at ARR. Now and then the next block is walked whole (its
+    elements empty) into the head of the one after."""
+    k, left = r.choice([0, 1]), r.choice([1, 2, 3, 4])
+    count = r.choice([0, 1, 2, left, left, left + 1, left + 2, left + 4])
+    whole = r.random() < 0.15
+    if whole:
+        count = left + 0x100 + r.choice([0, 1, 4])
+    first = BLOCKS + 0x1000 * k
+    tail, head = bytearray(r.bytes(0x40)), bytearray(r.bytes(0x1040 if whole else 0x40))
+    elements, bufs = bytearray(r.bytes(0x48 * 8)), bytearray(r.bytes(0x400))
+    for i in range(min(count, left + (0x104 if whole else 4))):
+        data, at = (tail, 0x40 - 0x10 * (left - i)) if i < left else (head, 0x10 * (i - left))
+        n = r.choice([0, 0, 1, 2]) if i < 8 else 0
+        begin = ARR + 0x48 * i if n or r.random() < 0.5 else 0
+        for j in range(n):
+            pair(r, elements, 0x48 * i + 0x24 * j, bufs, 2 * i + j)
+        put(data, at + 4, 'II', begin, begin + 0x24 * n)
+    put(obj, 0x80 + 4, 'IIII', first, first + 0x1000, first + 0x1000 - 0x10 * left, MAP + 4 * k)
+    put(obj, 0x80 + 0x24, 'I', MAP)
+    put(obj, 0x80 + 0x2c, 'I', count)
+    regions.update({MAP: struct.pack('<4I', BLOCKS, BLOCKS + 0x1000, BLOCKS + 0x2000, BLOCKS + 0x3000), first + 0x1000 - 0x40: tail,
+                    first + 0x1000: head, ARR: elements, BUFS: bufs})
     return Call(address, [RAM + 0x80], regions, conv='t', ret=ret)
 
 

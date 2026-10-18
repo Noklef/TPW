@@ -330,11 +330,23 @@ template <u32 nilAt, u32 colourAt, Value value, u32 counterAt, u32 nodeSize> str
         return out;
     }
 
-    // _Erase: the nodes under n freed, the right subtrees by recursion and down the left by the loop (plain values only).
+    // _Erase: the nodes under n freed, the right subtrees by recursion and down the left by the loop (plain values, or a std::string released as erase does).
     static void EraseSubtree(u8 *n) {
         for (u8 *x = n; x != Nil();) {
             EraseSubtree(R(x));
             u8 *const left = L(x);
+            if (value == kStdString) {  // (freed 2 bytes before the characters, sic, as in Erase)
+                if (u8 *chars = at<u8 *>(x, 0x10)) {
+                    const u8 count = chars[-1];
+                    if (count == 0 || count == 0xff)
+                        GameHeap_Free(chars - 2);
+                    else
+                        chars[-1] = count - 1;
+                }
+                at<u32>(x, 0x10) = 0;
+                at<u32>(x, 0x14) = 0;
+                at<u32>(x, 0x18) = 0;
+            }
             GameHeap_Free(x);
             x = left;
         }
@@ -492,8 +504,17 @@ u8 **__fastcall StdTree_EraseF(u8 *tree, void *, u8 **out, u8 *node) { return Tr
 u8 **__fastcall StdTree_EraseG(u8 *tree, void *, u8 **out, u8 *node) { return TreeG::Erase(tree, out, node); }
 
 void __fastcall StdTree_EraseSubtreeB(u8 *, void *, u8 *node) { TreeB::EraseSubtree(node); }
+void __fastcall StdTree_EraseSubtreeC(u8 *, void *, u8 *node) { TreeC::EraseSubtree(node); }
+void __fastcall StdTree_EraseSubtreeD(u8 *, void *, u8 *node) { TreeD::EraseSubtree(node); }
+void __fastcall StdTree_EraseSubtreeE(u8 *, void *, u8 *node) { TreeE::EraseSubtree(node); }
 u8 **__fastcall StdTree_EraseRangeB(u8 *tree, void *, u8 **out, u8 *first, u8 *last) { return TreeB::EraseRange(tree, out, first, last); }
+u8 **__fastcall StdTree_EraseRangeC(u8 *tree, void *, u8 **out, u8 *first, u8 *last) { return TreeC::EraseRange(tree, out, first, last); }
+u8 **__fastcall StdTree_EraseRangeD(u8 *tree, void *, u8 **out, u8 *first, u8 *last) { return TreeD::EraseRange(tree, out, first, last); }
+u8 **__fastcall StdTree_EraseRangeE(u8 *tree, void *, u8 **out, u8 *first, u8 *last) { return TreeE::EraseRange(tree, out, first, last); }
 void StdTree_DtorB(u8 *tree) { TreeB::Dtor(tree); }
+void __fastcall StdTree_DtorC(u8 *tree) { TreeC::Dtor(tree); }
+void __fastcall StdTree_DtorD(u8 *tree) { TreeD::Dtor(tree); }
+void __fastcall StdTree_DtorE(u8 *tree) { TreeE::Dtor(tree); }
 
 u8 *__fastcall Tree16a_LowerBound(u8 *tree, void *, const u16 *key) { return LowerBound<u16>(tree, *key, 0x00785de4); }
 

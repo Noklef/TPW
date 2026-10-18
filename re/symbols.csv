@@ -3676,6 +3676,8 @@ address,name,kind,confidence,notes
 0x004f0480,CountedPairVector_Clear,function,low,"reimplemented (src/game/core/buffers); thiscall: clear the elements from [+4] to [+8], free the block and clear the fields"
 0x004f7430,CountedPairVector_Deleter,function,low,"reimplemented (src/game/core/buffers); thiscall: clear the vector, free the object when flags bit 0 is set"
 0x004f7480,CountedPair_Deleter,function,low,"reimplemented (src/game/core/buffers); thiscall: clear the pair, free the object when flags bit 0 is set"
+0x004f7170,CountedPair_Destroy,function,low,reimplemented (src/game/core/buffers); cdecl (element): CountedPair_Clear of the element (std::_Destroy)
+0x004e5700,CountedPairVectorDeque_Clear,function,low,"reimplemented (src/game/core/buffers); thiscall: empties a deque of CountedPair vectors (0x10-byte elements, 0x1000-byte blocks): each vector's pairs destroyed and its block freed, finished blocks and at the end the map freed"
 0x005b2f40,StdTreeF_LowerBound,function,high,reimplemented (src/game/core/stdtree); lower bound of a string key in the string map
 0x005b0c40,StdTreeF_AllFlagged,function,high,reimplemented (src/game/core/stdtree); whether every mapped object has the byte at +0xb9 set
 0x005b20c0,StdTreeF_FindLower,function,high,reimplemented (src/game/core/stdtree); stores the lower bound of a string key
@@ -3711,6 +3713,15 @@ address,name,kind,confidence,notes
 0x0040fe60,StdMapB_Insert,function,high,"reimplemented (src/game/core/stdtree); map insert of a 16-bit key with the sentinel 0x785de4 (tree B); the {iterator, inserted} result by Pair_Assign; returns it"
 0x00410be0,StdTree_InitUnusedOne,function,low,reimplemented (src/game/core/stdtree); cdecl static initialiser: unused 0x7899b4 = 1.0f
 0x00410c00,StdTree_InitUnusedEpsilon,function,low,reimplemented (src/game/core/stdtree); cdecl static initialiser: unused 0x78a0bc = 1 / 2^23
+0x004f4070,StdTree_EraseSubtreeC,function,high,"reimplemented (src/game/core/stdtree); thiscall (node, pops 4): tree C's _Erase: the nodes under node freed (right subtrees by recursion, down the left by a loop), each one's std::string released first"
+0x004f4ac0,StdTree_EraseSubtreeD,function,high,"reimplemented (src/game/core/stdtree); thiscall (node, pops 4): tree D's _Erase, as tree C's"
+0x004f4fd0,StdTree_EraseSubtreeE,function,high,"reimplemented (src/game/core/stdtree); thiscall (node, pops 4): tree E's _Erase, as tree C's"
+0x004f2590,StdTree_EraseRangeC,function,high,"reimplemented (src/game/core/stdtree); thiscall (out, first, last, pops 12): tree C's erase(first, last): the whole tree at once by _Erase from the root, else node by node; *out = last"
+0x004f2960,StdTree_EraseRangeD,function,high,"reimplemented (src/game/core/stdtree); thiscall (out, first, last, pops 12): tree D's erase(first, last), as tree C's"
+0x004f3290,StdTree_EraseRangeE,function,high,"reimplemented (src/game/core/stdtree); thiscall (out, first, last, pops 12): tree E's erase(first, last), as tree C's"
+0x004e5870,StdTree_DtorC,function,high,"reimplemented (src/game/core/stdtree); thiscall: tree C's destructor: every node erased, the head freed, the map counter 0x7ced30 lowered and at 0 the nil node 0x7ced2c freed"
+0x004e5800,StdTree_DtorD,function,high,"reimplemented (src/game/core/stdtree); thiscall: tree D's destructor (counter 0x7ced28, nil 0x7ced24), as tree C's"
+0x004e58e0,StdTree_DtorE,function,high,"reimplemented (src/game/core/stdtree); thiscall: tree E's destructor (counter 0x7ced38, nil 0x7ced34), as tree C's"
 0x00617f40,Class7037b8_Dtor,function,high,reimplemented (src/game/core/vdtor); frees the list of blocks
 0x005d48d0,Panel_Reset,function,high,reimplemented (src/game/gfx/imageops); fills the panel image and blends the six parts onto it
 0x00576620,Grid_AddObject,function,high,reimplemented (src/game/render/renderer); adds an object to every list in a rectangle of the grid
@@ -3749,6 +3760,7 @@ address,name,kind,confidence,notes
 0x00598ca0,ModelSlot_ApplySelection,function,high,reimplemented (src/game/model/slots); sets or clears the part flags of the selection kind
 0x004d9620,Litter_Remove,function,high,reimplemented (src/game/world/litter); takes a piece of litter off its cell
 0x004f2b40,WStringMap_Find,function,high,reimplemented (src/game/core/wstringmap); a wide string map lookup
+0x004f2ad0,WStringMap_EraseKey,function,high,"reimplemented (src/game/core/wstringmap); thiscall (key, pops 4): erase(key): the nodes from the lower to the upper bound counted and erased (tree D's range erase); returns the count"
 0x004de130,Object_BackOfQueue,function,high,reimplemented (src/game/world/objectmsg); the back of a queue found by walking neighbours
 0x0041e270,Class6fda58_DtorA,function,high,"reimplemented (src/game/core/class6fd9d8); complete destructor, handle at +0x40"
 0x0041e2d0,Class6fda58_DtorB,function,high,"reimplemented (src/game/core/class6fd9d8); complete destructor, handle at +0x40"
@@ -3804,6 +3816,7 @@ address,name,kind,confidence,notes
 0x005667d0,Class701378_Ctor,function,high,reimplemented (src/game/core/misc); stream class constructor with a virtual base
 0x0050afe0,Thing_Construct,function,high,"reimplemented (src/game/world/things); a thing's constructor: slot, handle, cell and chain"
 0x00502d20,ThingKindE_Ctor,function,high,reimplemented (src/game/world/things); a thing of kind 0xe with five records
+0x004f7e20,Thing_ResetPlaceAt,function,high,"reimplemented (src/game/world/things); thiscall (x, y, pops 8): +0x39c = 0, +0x10 = 3 (Set4_4217f0 on +0xc), then Thing_PlaceAt(x, y)"
 0x00565310,DrawBatch_Open,function,high,reimplemented (src/game/render/drawbuffer); a draw batch resumed and tagged
 0x0057b070,Object_ReleaseSavedPairs,function,high,reimplemented (src/game/core/vobj2); saved pairs written back and their arrays freed
 0x0057b5b0,Object_FreeBlock13c,function,low,reimplemented (src/game/core/vobj2); thiscall: the tracked block at +0x13c freed after its texture at +0x18 is released twice (sic) and freed (name unconfirmed)
@@ -3930,6 +3943,15 @@ address,name,kind,confidence,notes
 0x0047bad0,StdWString_Grow,function,low,"reimplemented (src/game/core/stdwstring); thiscall (n, trim; pops 8): std::wstring::_Grow(n, trim): AL = characters to write (name unconfirmed)"
 0x0047bc00,StdWString_Split,function,low,reimplemented (src/game/core/stdwstring); thiscall: std::wstring::_Split(): a shared string's own copy (wcslen of the shared characters) (name unconfirmed)
 0x00405b90,GameError_IndexOfCode,function,low,reimplemented (src/game/core/gameerror); the error index of a library code
+0x004ea740,CountedPair_CtorWide,function,low,"reimplemented (src/game/core/countedpair); thiscall (std::wstring by value, pops 16): the 0x24-byte pair of a narrow and a wide string and a dword: the narrow one empty, the wide one assigned the string, the dword 0; the string destroyed"
+0x004e6410,CountedPair_CopyCtor,function,low,"reimplemented (src/game/core/countedpair); thiscall (x, pops 4): the copy constructor: both strings empty (allocator byte = the low byte of x's address, sic), assigned x's characters as C strings; value = x's"
+0x004f5860,CountedPair_Assign,function,low,"reimplemented (src/game/core/countedpair); thiscall (x, pops 4): the assignment: each string assigned x's characters as a C string (the wide _Grow inlined); value = x's"
+0x004f5560,CountedPairVector_InsertN,function,low,"reimplemented (src/game/core/countedpair); thiscall (where, n, x, pops 12): vector<CountedPair>::insert(where, n, x) (MSVC6): a new block of size + max(n, size) when there is no room, else the tail moved up and the slots filled"
+0x004f67b0,CountedPair_UninitCopy,function,high,"reimplemented (src/game/core/countedpair); stdcall (first, last, to, pops 12): _Ucopy for pairs: [first, last) copy-constructed from to on, null slots skipped; returns the end"
+0x004f67f0,CountedPair_UninitFill,function,high,"reimplemented (src/game/core/countedpair); stdcall (to, n, x, pops 12): _Ufill for pairs: n copies of x constructed from to on, null slots skipped"
+0x004f7410,CountedPair_Construct,function,high,"reimplemented (src/game/core/countedpair); cdecl (p, x): construct(p, x): x copy-constructed at p unless p is null"
+0x004f6e70,CountedPairVector_Construct,function,high,"reimplemented (src/game/core/countedpair); cdecl (v, x): construct(v, x) for a vector of pairs: the allocator byte, a block of x's size, x's pairs copy-constructed, last = end past them"
+0x004e54c0,StringMapsRecord_Dtor,function,high,"reimplemented (src/game/core/stringmapsrecord); thiscall: the string maps record's destructor: the list at +0x54 erased and its sentinel freed, the maps at +0x40 / +0x30 / +0x20 (kinds E, C, D) destroyed, the wide strings at +0x10 and +0 tidied"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
@@ -4482,6 +4504,15 @@ address,name,kind,confidence,notes
 0x005bcb90,OnlineList_GetTop10Parks,function,low,"reimplemented (src/game/online/onlinelist); thiscall (city, request); debug text ""ONLINELIST: Getting top 10 park in city list""; City::GetParkInCityListTop10(0, this +0x34, request, 0)"
 0x005bcce0,OnlineList_GetParkByName,function,low,"reimplemented (src/game/online/onlinelist); thiscall (city, request); debug text ""ONLINELIST: Getting park in world by player name""; City::GetParkInWorldByName(0, this +0x3c, request, 0)"
 0x005bce30,OnlineList_GetParkById,function,low,"reimplemented (src/game/online/onlinelist); thiscall (city, request); debug text ""ONLINELIST: Getting park in world by park id""; City::GetParkByID(0, this +0x34, request, 0)"
+0x004ea370,ChatAvatar_MoveTo,function,high,"reimplemented (src/game/online/chatavatar); thiscall (x, y, pops 8): Chat::MovePlayer(x, y, mode 0, the avatar), then the slot thing of the avatar thing's handle placed at (x, y) when of kind 0x12"
+0x004ea410,ChatAvatar_MoveTo3,function,high,"reimplemented (src/game/online/chatavatar); thiscall (x, y, pops 8): ChatAvatar_MoveTo's moves with mode 3"
+0x004ebfb0,ChatAvatar_PlaceAtCell,function,high,"reimplemented (src/game/online/chatavatar); thiscall (handle, cell, pops 8): the handle's slot thing, when of kind 0x12, placed at the centre of the 1-based map cell; returns whether (AL)"
+0x004ea3f0,ChatAvatar_SayPosition,function,high,"reimplemented (src/game/online/chatavatar); thiscall: Chat::MovePlayer(the avatar thing's words +4 and +6, mode 2, the avatar); returns its result"
+0x004eab40,ChatAvatar_MoveToCell,function,high,"reimplemented (src/game/online/chatavatar); thiscall (cell, pops 4): the avatar thing's slot thing, when of kind 0x12, placed at the cell's centre, then Chat::MovePlayer(mode 1), +0xeb1 cleared and Chat::NotAFK; returns whether (AL)"
+0x004eac30,ChatAvatar_GoToCell,function,high,"reimplemented (src/game/online/chatavatar); thiscall (cell, pops 4): +0xeb1 cleared and Chat::NotAFK; the avatar thing's slot thing, of kind 0x12 and sent to the cell (Sprite_SetDestinationCellMarked), tells Chat::MovePlayer the cell's corner (mode 0); returns whether (AL)"
+0x004ea240,ChatAvatar_Arrive,function,high,"reimplemented (src/game/online/chatavatar); thiscall (x, y, pops 8): the avatar thing's scripts released, its handle's slot thing placed at (x, y) when of kind 0x12, then Chat::MovePlayer(x, y, mode 1)"
+0x004f7d70,ChatPlayer_NameIs,function,high,"reimplemented (src/game/online/chatavatar); thiscall (name, pops 4): whether the std::wstring's characters (null: the empty string) equal the wide name at +0x19c (wcscmp == 0); AL"
+0x004ebf00,ChatPlayers_FindByName,function,high,"reimplemented (src/game/online/chatavatar); stdcall (name, pops 4): the first thing of the park (newest first) that is a chat player (kind 0x12) of that name, or 0"
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"

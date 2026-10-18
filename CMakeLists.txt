@@ -132,6 +132,8 @@ add_library(tpw_game STATIC
     src/game/core/cpuinfo.cpp
     src/game/core/stdwstring.cpp
     src/game/core/gameerror.cpp
+    src/game/core/countedpair.cpp
+    src/game/core/stringmapsrecord.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -301,6 +303,7 @@ add_library(tpw_game STATIC
     src/game/online/itemlist.cpp
     src/game/online/items.cpp
     src/game/online/onlinelist.cpp
+    src/game/online/chatavatar.cpp
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
     src/game/frontend/lobbyscene.cpp

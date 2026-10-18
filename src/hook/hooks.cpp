@@ -153,6 +153,8 @@
 #include "../game/core/balancefile.h"
 #include "../game/core/gameerror.h"
 #include "../game/core/timesig.h"
+#include "../game/core/countedpair.h"
+#include "../game/core/stringmapsrecord.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -290,6 +292,7 @@
 #include "../game/online/itemlist.h"
 #include "../game/online/items.h"
 #include "../game/online/onlinelist.h"
+#include "../game/online/chatavatar.h"
 #include "../game/online/session.h"
 
 namespace tpw::hook {
@@ -3293,6 +3296,8 @@ const Hook kHooks[] = {
     {"CountedPairVector_Clear",   0x004f0480, (void *)&CountedPairVector_Clear, {0x53, 0x8b, 0xd9, 0x56, 0x57}},
     {"CountedPairVector_Deleter", 0x004f7430, (void *)&CountedPairVector_Deleter, {0x53, 0x8b, 0xd9, 0x56, 0x57}},
     {"CountedPair_Deleter",       0x004f7480, (void *)&CountedPair_Deleter, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"CountedPair_Destroy",       0x004f7170, (void *)&CountedPair_Destroy, {0x8b, 0x4c, 0x24, 0x04, 0xe9}},
+    {"CountedPairVectorDeque_Clear", 0x004e5700, (void *)&CountedPairVectorDeque_Clear, {0x56, 0x8b, 0xf1, 0x33, 0xc0}},
     {"StdTreeF_LowerBound",       0x005b2f40, (void *)&StdTreeF_LowerBound, {0x6a, 0xff, 0x68, 0xd8, 0xfa}},
     {"StdTreeF_AllFlagged",       0x005b0c40, (void *)&StdTreeF_AllFlagged, {0x51, 0x56, 0x8b, 0xf1, 0x33}},
     {"StdTreeF_FindLower",        0x005b20c0, (void *)&StdTreeF_FindLower, {0x8b, 0x44, 0x24, 0x08, 0x50}},
@@ -3328,6 +3333,15 @@ const Hook kHooks[] = {
     {"StdMapB_Insert",            0x0040fe60, (void *)&StdMapB_Insert, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"StdTree_InitUnusedOne",     0x00410be0, (void *)&StdTree_InitUnusedOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"StdTree_InitUnusedEpsilon", 0x00410c00, (void *)&StdTree_InitUnusedEpsilon, {0xd9, 0x05, 0xa0, 0xd8, 0x6f}},
+    {"StdTree_EraseSubtreeC",     0x004f4070, (void *)&StdTree_EraseSubtreeC, {0x6a, 0xff, 0x68, 0xf8, 0xd9}},
+    {"StdTree_EraseSubtreeD",     0x004f4ac0, (void *)&StdTree_EraseSubtreeD, {0x6a, 0xff, 0x68, 0x98, 0xda}},
+    {"StdTree_EraseSubtreeE",     0x004f4fd0, (void *)&StdTree_EraseSubtreeE, {0x6a, 0xff, 0x68, 0x18, 0xdb}},
+    {"StdTree_EraseRangeC",       0x004f2590, (void *)&StdTree_EraseRangeC, {0x6a, 0xff, 0x68, 0xe0, 0xd8}},
+    {"StdTree_EraseRangeD",       0x004f2960, (void *)&StdTree_EraseRangeD, {0x6a, 0xff, 0x68, 0x20, 0xd9}},
+    {"StdTree_EraseRangeE",       0x004f3290, (void *)&StdTree_EraseRangeE, {0x6a, 0xff, 0x68, 0x80, 0xd9}},
+    {"StdTree_DtorC",             0x004e5870, (void *)&StdTree_DtorC, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
+    {"StdTree_DtorD",             0x004e5800, (void *)&StdTree_DtorD, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
+    {"StdTree_DtorE",             0x004e58e0, (void *)&StdTree_DtorE, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
     {"Class7037b8_Dtor",          0x00617f40, (void *)&Class7037b8_Dtor, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
     {"Panel_Reset",               0x005d48d0, (void *)&Panel_Reset, {0x56, 0x57, 0x8b, 0xf9, 0x33}},
     {"Grid_AddObject",            0x00576620, (void *)&Grid_AddObject, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
@@ -3365,6 +3379,7 @@ const Hook kHooks[] = {
     {"ModelSlot_ApplySelection",  0x00598ca0, (void *)&ModelSlot_ApplySelection, {0x53, 0x56, 0x57, 0x8b, 0x7c}},
     {"Litter_Remove",             0x004d9620, (void *)&Litter_Remove, {0x51, 0x56, 0x8b, 0xf1, 0x66}},
     {"WStringMap_Find",           0x004f2b40, (void *)&WStringMap_Find, {0x51, 0x53, 0x55, 0x56, 0x57}},
+    {"WStringMap_EraseKey",       0x004f2ad0, (void *)&WStringMap_EraseKey, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"Thing_SetPos",              0x0050b6a0, (void *)&Thing_SetPos, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
     {"Object_BackOfQueue",        0x004de130, (void *)&Object_BackOfQueue, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"Holder_Sleep",              0x0045bdd0, (void *)&Holder_Sleep, {0x56, 0x8b, 0x74, 0x24, 0x08}},
@@ -3428,6 +3443,7 @@ const Hook kHooks[] = {
     {"ThingKindE_Ctor",           0x00502d20, (void *)&ThingKindE_Ctor, {0x51, 0x53, 0xbb, 0x01, 0x00}},
     {"Thing_Serialize",           0x0050b090, (void *)&Thing_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"ThingBasic_Serialize",      0x00509bc0, (void *)&ThingBasic_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
+    {"Thing_ResetPlaceAt",        0x004f7e20, (void *)&Thing_ResetPlaceAt, {0x56, 0x8b, 0xf1, 0x6a, 0x03}},
     {"DrawBatch_Open",            0x00565310, (void *)&DrawBatch_Open, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Object_ReleaseSavedPairs",  0x0057b070, (void *)&Object_ReleaseSavedPairs, {0x56, 0x8b, 0xf1, 0xf7, 0x46}},
     {"Object_FreeBlock13c",       0x0057b5b0, (void *)&Object_FreeBlock13c, {0x56, 0x8b, 0xf1, 0x8b, 0x86}},
@@ -3598,6 +3614,15 @@ const Hook kHooks[] = {
     {"StdWString_Grow",           0x0047bad0, (void *)&StdWString_Grow, {0x53, 0x56, 0x57, 0x8b, 0x7c}},
     {"StdWString_Split",          0x0047bc00, (void *)&StdWString_Split, {0x55, 0x56, 0x8b, 0xf1, 0x57}},
     {"GameError_IndexOfCode",     0x00405b90, (void *)&GameError_IndexOfCode, {0x8b, 0x44, 0x24, 0x04, 0x3d}},
+    {"CountedPair_CtorWide",      0x004ea740, (void *)&CountedPair_CtorWide,{0x6a, 0xff, 0x68, 0x40, 0xcd}},
+    {"CountedPair_CopyCtor",      0x004e6410, (void *)&CountedPair_CopyCtor, {0x6a, 0xff, 0x68, 0xc8, 0xc6}},
+    {"CountedPair_Assign",        0x004f5860, (void *)&CountedPair_Assign, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"CountedPairVector_InsertN", 0x004f5560, (void *)&CountedPairVector_InsertN, {0x83, 0xec, 0x0c, 0x53, 0x55}},
+    {"CountedPair_UninitCopy",    0x004f67b0, (void *)&CountedPair_UninitCopy, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"CountedPair_UninitFill",    0x004f67f0, (void *)&CountedPair_UninitFill, {0x57, 0x8b, 0x7c, 0x24, 0x0c}},
+    {"CountedPair_Construct",     0x004f7410, (void *)&CountedPair_Construct, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
+    {"CountedPairVector_Construct", 0x004f6e70, (void *)&CountedPairVector_Construct, {0x55, 0x8b, 0x6c, 0x24, 0x08}},
+    {"StringMapsRecord_Dtor",     0x004e54c0, (void *)&StringMapsRecord_Dtor, {0x6a, 0xff, 0x68, 0x64, 0xc5}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -4013,6 +4038,15 @@ const Hook kHooks[] = {
     {"OnlineList_GetTop10Parks",  0x005bcb90, (void *)&OnlineList_GetTop10Parks, {0x56, 0x8b, 0xf1, 0x68, 0xd8}},
     {"OnlineList_GetParkByName",  0x005bcce0, (void *)&OnlineList_GetParkByName, {0x56, 0x8b, 0xf1, 0x68, 0x08}},
     {"OnlineList_GetParkById",    0x005bce30, (void *)&OnlineList_GetParkById, {0x56, 0x8b, 0xf1, 0x68, 0x3c}},
+    {"ChatAvatar_MoveTo",         0x004ea370, (void *)&ChatAvatar_MoveTo, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"ChatAvatar_MoveTo3",        0x004ea410, (void *)&ChatAvatar_MoveTo3, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"ChatAvatar_PlaceAtCell",    0x004ebfb0, (void *)&ChatAvatar_PlaceAtCell, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
+    {"ChatAvatar_SayPosition",    0x004ea3f0, (void *)&ChatAvatar_SayPosition, {0x8b, 0x41, 0x04, 0x51, 0x8b}},
+    {"ChatAvatar_MoveToCell",     0x004eab40, (void *)&ChatAvatar_MoveToCell, {0x83, 0xec, 0x10, 0x53, 0x56}},
+    {"ChatAvatar_GoToCell",       0x004eac30, (void *)&ChatAvatar_GoToCell, {0x83, 0xec, 0x08, 0x56, 0x8b}},
+    {"ChatAvatar_Arrive",         0x004ea240, (void *)&ChatAvatar_Arrive, {0x83, 0xec, 0x08, 0x53, 0x56}},
+    {"ChatPlayer_NameIs",         0x004f7d70, (void *)&ChatPlayer_NameIs, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"ChatPlayers_FindByName",    0x004ebf00, (void *)&ChatPlayers_FindByName, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},

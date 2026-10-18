@@ -50,13 +50,27 @@ u8 **__fastcall StdTree_EraseA(u8 *tree, void *, u8 **out, u8 *node);
 u8 **__fastcall StdTree_EraseB(u8 *tree, void *, u8 **out, u8 *node);
 // 0x410720 (thiscall on tree B, the tree unused; a node, pops 4): _Erase: the nodes under it freed, the right subtrees by recursion, down the left by a loop.
 void __fastcall StdTree_EraseSubtreeB(u8 *tree, void *, u8 *node);
+// 0x4f4070 / 0x4f4ac0 / 0x4f4fd0: the same _Erase for trees C, D and E, each node's std::string (+0xc) released as erase does before the node is freed.
+void __fastcall StdTree_EraseSubtreeC(u8 *tree, void *, u8 *node);
+void __fastcall StdTree_EraseSubtreeD(u8 *tree, void *, u8 *node);
+void __fastcall StdTree_EraseSubtreeE(u8 *tree, void *, u8 *node);
 // 0x4104b0 (thiscall on tree B; out, first, last, pops 12): erase(first, last). When the tree has nodes, first is the leftmost and last the head, all of it is freed at once
 // (_Erase from the root; the head's parent the nil node, its left and right itself, the size 0); otherwise the range is erased node by node (StdTree_IncB, StdTree_EraseB).
 // *out = last; returns out.
 u8 **__fastcall StdTree_EraseRangeB(u8 *tree, void *, u8 **out, u8 *first, u8 *last);
+// 0x4f2590 / 0x4f2960 / 0x4f3290: the same erase(first, last) for trees C, D and E (the whole tree cleared by their _Erase, whose root loop releases each string with
+// CountedBuf_Reset; node by node with their increment and erase).
+u8 **__fastcall StdTree_EraseRangeC(u8 *tree, void *, u8 **out, u8 *first, u8 *last);
+u8 **__fastcall StdTree_EraseRangeD(u8 *tree, void *, u8 **out, u8 *first, u8 *last);
+u8 **__fastcall StdTree_EraseRangeE(u8 *tree, void *, u8 **out, u8 *first, u8 *last);
 // Tree B's destructor (no address of its own; inlined in 0x40f970): every node erased (StdTree_EraseRangeB), the head node freed, the head and the size zeroed, the map
 // counter 0x785de0 lowered and at 0 the nil node 0x785de4 freed and cleared.
 void StdTree_DtorB(u8 *tree);
+// 0x4e5870 / 0x4e5800 / 0x4e58e0 (thiscall): the same destructor for trees C, D and E (StdTree_EraseRangeC / D / E; the map counters 0x7ced30 / 0x7ced28 /
+// 0x7ced38, the nil nodes 0x7ced2c / 0x7ced24 / 0x7ced34).
+void __fastcall StdTree_DtorC(u8 *tree);
+void __fastcall StdTree_DtorD(u8 *tree);
+void __fastcall StdTree_DtorE(u8 *tree);
 u8 **__fastcall StdTree_EraseC(u8 *tree, void *, u8 **out, u8 *node);
 u8 **__fastcall StdTree_EraseD(u8 *tree, void *, u8 **out, u8 *node);
 u8 **__fastcall StdTree_EraseE(u8 *tree, void *, u8 **out, u8 *node);

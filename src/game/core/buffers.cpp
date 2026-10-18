@@ -209,6 +209,42 @@ u8 *__fastcall CountedPair_Deleter(u8 *object, void *, u32 flags) {
     return object;
 }
 
+void __cdecl CountedPair_Destroy(u8 *element) { CountedPair_Clear(element); }
+
+void __fastcall CountedPairVectorDeque_Clear(u8 *deque) {
+    while (at<u32>(deque, 0x2c)) {
+        u8 *const vector = at<u8 *>(deque, 0xc);
+        at<u8 *>(deque, 0xc) = vector + 0x10;
+        u8 *const end = at<u8 *>(vector, 8);
+        for (u8 *entry = at<u8 *>(vector, 4); entry != end; entry += 0x24)
+            CountedPair_Destroy(entry);
+        GameHeap_Free(at<void *>(vector, 4));
+        at<u32>(vector, 4) = 0;
+        at<u32>(vector, 8) = 0;
+        at<u32>(vector, 0xc) = 0;
+        const u32 count = at<u32>(deque, 0x2c) - 1;
+        at<u32>(deque, 0x2c) = count;
+        if (count != 0 && at<u32>(deque, 0xc) != at<u32>(deque, 8))
+            continue;
+        // The block just finished is freed and the map moves on.
+        u32 *const slot = at<u32 *>(deque, 0x10);
+        at<u32 *>(deque, 0x10) = slot + 1;
+        GameHeap_Free(reinterpret_cast<void *>(*slot));
+        if (at<u32>(deque, 0x2c) == 0) {
+            for (u32 offset = 0x4; offset <= 0x10; offset += 4)
+                at<u32>(deque, offset) = 0;
+            for (u32 offset = 0x14; offset <= 0x20; offset += 4)
+                at<u32>(deque, offset) = 0;
+            GameHeap_Free(at<void *>(deque, 0x24));
+        } else {
+            const u32 first = *at<u32 *>(deque, 0x10);
+            at<u32>(deque, 0x4) = first;
+            at<u32>(deque, 0x8) = first + 0x1000;
+            at<u32>(deque, 0xc) = first;
+        }
+    }
+}
+
 void __fastcall Blocks7_Free(u8 *object) {
     for (s32 base = 0x60; base >= 0; base -= 0x10) {
         at<u32>(object, base) = 0;

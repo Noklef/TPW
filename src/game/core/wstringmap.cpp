@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "stdtree.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -79,6 +81,17 @@ u32 *__fastcall WStringMap_Find(u8 *map, void *, u32 *out, const u8 *key) {
     }
     *out = (u32)(uintptr_t)head;
     return out;
+}
+
+u32 __fastcall WStringMap_EraseKey(u8 *map, void *, const u8 *key) {
+    u8 *const last = WStringMap_UpperBound(map, nullptr, key);
+    u8 *const first = WStringMap_LowerBound(map, nullptr, key);
+    u32 n = 0;
+    for (u8 *it = first; it != last; StdTree_IncD(&it))
+        ++n;
+    u8 *out;
+    StdTree_EraseRangeD(map, nullptr, &out, first, last);
+    return n;
 }
 
 }  // extern "C"

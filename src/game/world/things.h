@@ -92,6 +92,10 @@ void __fastcall Thing_SetPos(u8 *thing, void *, u32 x, u32 y);
 // position is read back to the words at +0x190 and +0x194 (Nav_GetPos), then the thing moves (Thing_SetPos with the same x and y).
 void __fastcall Thing_PlaceAt(u8 *thing, void *, u32 x, u32 y);
 
+// 0x4f7e20 (thiscall on the thing; x, y, pops 8; name unconfirmed): the dword at +0x39c = 0 and the one at +0x10 = 3 (Set4_4217f0 on +0xc), then
+// Thing_PlaceAt(x, y). Its callers (0x4ea240-0x4ebfb0) place things they look up through 0x5da3c0.
+void __fastcall Thing_ResetPlaceAt(u8 *thing, void *, u32 x, u32 y);
+
 // 0x4fcac0 (thiscall on the object): with sprites in folder 3, the dword at +0x20 (with the top bit set when the dword at +0x24 is 2). Without, the world's random seed is set to
 // the thing's handle (World_SetSeed on [0x80239c]) and a random sprite of folder 1 returned.
 u32 __fastcall Thing_SpriteChoice(u8 *thing);

@@ -8,7 +8,7 @@ from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
 # (with the wide string's helpers: the traits' move, the counted buffer reset, max_size and wcslen)
 B = Bench([(0x405280, 0x405390), (0x479150, 0x4791b0), (0x47b750, 0x47bcf0), (0x4f23f0, 0x4f2450), (0x4f6080, 0x4f60a0),
-           (0x67acd0, 0x67ad00)])
+           (0x67acd0, 0x67ad00), (0x4ea740, 0x4ea7e0)])
 STRS, BLOCKS = RAM, RAM + 0x1000
 S, X = STRS, STRS + 0x10  # the string under test and a second one
 SLOT = 0x100  # a block per string in BLOCKS: a pad byte, the count byte, then up to 0x7e characters + NUL
@@ -39,7 +39,7 @@ def string(r, blocks, k):
 def case(r):
     op = r.choice(OPS)
     blocks = bytearray(r.bytes(4 * SLOT))
-    strs = bytearray(r.bytes(0x20))
+    strs = bytearray(r.bytes(0x50))
     s = string(r, blocks, 0)
     together = s[0] and r.random() < 0.2  # x shares s's block
     x = s if together else string(r, blocks, 1)
@@ -54,6 +54,8 @@ def case(r):
     if op == 'Copy':
         huge = r.choice([0x7ffffffe, 0x7fffffe0, 0xfffffff0, 0xffffffe1, 0x3ffffff0])  # the block size wraps
         return Call(0x405280, [S, r.choice([small] * 3 + [huge])], regions, conv='t')
+    if op == 'Entry':  # 0x4ea740: an entry at +0x20 built from s passed by value (its allocator dword random)
+        return Call(0x4ea740, [STRS + 0x20, r.getrandbits(32), *s], regions, conv='t', ret='a')
     if op == 'Split':
         return Call(0x47bc00, [S], regions, conv='t')
     if op == 'Freeze':
@@ -68,7 +70,7 @@ def case(r):
     return Call(0x47b750, [S, src, pos, count], regions, conv='t', ret='a')
 
 
-KINDS = ['Grow', 'Copy', 'Split', 'Freeze', 'Fill', 'AssignSub', 'AssignSub', 'AssignSub']
+KINDS = ['Grow', 'Copy', 'Split', 'Freeze', 'Fill', 'AssignSub', 'AssignSub', 'AssignSub', 'Entry']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':

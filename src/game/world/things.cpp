@@ -6,6 +6,7 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "../core/methods.h"
 #include "../core/savegame.h"
@@ -231,6 +232,12 @@ void __fastcall Thing_PlaceAt(u8 *thing, void *, u32 x, u32 y) {
     Nav_SetPosVel(thing + 0xd4, nullptr, (u32)((s32)(s16)x << 8), (u32)((s32)(s16)y << 8), 0, 0);
     Nav_GetPos(thing + 0xd4, nullptr, &at<u32>(thing, 0x190), &at<u32>(thing, 0x194));
     Thing_SetPos(thing, nullptr, x, y);
+}
+
+void __fastcall Thing_ResetPlaceAt(u8 *thing, void *, u32 x, u32 y) {
+    at<u32>(thing, 0x39c) = 0;
+    Set4_4217f0(thing + 0xc, nullptr, 3);
+    Thing_PlaceAt(thing, nullptr, x, y);
 }
 
 u32 __fastcall Thing_SpriteChoice(u8 *thing) {
