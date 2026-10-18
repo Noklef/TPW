@@ -18,6 +18,8 @@ void __fastcall StdListString_PushBack(u8 *list, void *, const StdString *x);
 // made of the characters (_Grow(strlen, true); its allocator byte the low byte of the chars pointer, sic) is copied (StdString_CopyCtor) into a node linked in
 // front of the sentinel, the count raised; then released.
 void __fastcall TokenList_PushChars(u8 *owner, void *, const char *chars);
+// 0x5ca220 (thiscall; chars, pops 4; name unconfirmed): the same for an owner's list of std::string at +0x30 (sentinel +0x34, count +0x38).
+void __fastcall StringList34_PushChars(u8 *owner, void *, const char *chars);
 
 // 0x5d0330 (thiscall; out, before, x, pops 12): the same in front of the node before; *out = the new node.
 void __fastcall StdListString_Insert(u8 *list, void *, u8 **out, u8 *before, const StdString *x);
