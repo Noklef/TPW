@@ -98,6 +98,22 @@ void __cdecl Camera_ClampCell(s32 *x, s32 *z) {
     if (*z >= global<s32>(0x007a0374)) *z = global<s32>(0x007a0374) - 1;
 }
 
+void __cdecl Camera_CellOf(const float *position, s32 *x, s32 *z) {
+    if (x) *x = (s32)(long long)(X87Reg(position[0]) * 0.100000001f).v;  // 0x6fdd58, __ftol
+    if (z) *z = (s32)(long long)(X87Reg(position[2]) * 0.100000001f).v;
+}
+
+void __cdecl Camera_PackCellFractions(u32 x, u32 z, u8 *outX, u8 *outZ) {
+    const auto pack = [](u32 bits, u8 *out) {
+        const X87Reg tenths = X87Reg(reinterpret_cast<const float &>(bits)) * 0.100000001f;  // 0x700184
+        const s32 whole = (s32)(long long)tenths.v;  // __ftol
+        out[1] = (u8)whole;
+        out[0] = (u8)(s32)(long long)((tenths - X87Reg((double)(whole & 0xff))) * 256.0f).v;  // 0x700188
+    };
+    pack(x, outX);
+    pack(z, outZ);
+}
+
 void __cdecl Camera_CentreOnGlobalThing() {
     const u8 *const thing = global<const u8 *>(0x007c2658);
     u16 handle;

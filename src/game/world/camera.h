@@ -58,6 +58,14 @@ void __cdecl Camera_SetFlag80(u32 on);
 // first).
 void __cdecl Camera_ClampCell(s32 *x, s32 *z);
 
+// 0x42cd80 (cdecl; position, x, z; name unconfirmed): the cell of a position: *x = __ftol(position[0] 0.1) and *z = __ftol(position[2] 0.1),
+// each when given.
+void __cdecl Camera_CellOf(const float *position, s32 *x, s32 *z);
+
+// 0x4bd020 (cdecl; x, z as float bits, outX, outZ; name unconfirmed): each coordinate in tenths (c 0.1) as two bytes: [1] = its __ftol,
+// [0] = __ftol((c 0.1 - that low byte) 256); x's bytes stored before z's.
+void __cdecl Camera_PackCellFractions(u32 x, u32 z, u8 *outX, u8 *outZ);
+
 // 0x48ce80 (cdecl; name unconfirmed): the camera centred on the thing [0x7c2658] points to (Camera_CentreOnThing with its handle).
 void __cdecl Camera_CentreOnGlobalThing();
 }
