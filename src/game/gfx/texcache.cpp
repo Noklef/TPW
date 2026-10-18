@@ -190,4 +190,58 @@ void __fastcall TexCacheItem_SetKey(u8 *item) {
     if (flags & 0x80000)
         at<u32>(item, 0x38) |= 0x40000000;   // (in memory)
 }
+
+void __fastcall TexCache_Evict(u8 *cache) {
+    s32 limit = at<s32>(cache, 0x1878);
+    if (limit > 0x10)
+        limit = 0x10;
+    for (u32 size = 0; size < 6; ++size) {
+        const s32 side = at<s32>(reinterpret_cast<const void *>((uintptr_t)0x00702420), 4 * size);
+        const s32 area = side * side;
+        s32 keys[0x11];   // (one past for the full insertions)
+        u8 *entries[0x11];
+        s32 kept = 0;
+        const s32 count = at<s32>(cache, 0x1800 + 4 * size);
+        for (s32 i = 0; i < count; ++i) {
+            u8 *const entry = at<u8 *>(cache, 0x400 * size + 4 * i);
+            if (!at<u32>(entry, 4))
+                continue;
+            const s32 used = at<s32>(entry, 0x1c);
+            const s32 key = at<s32>(entry, 0xc);
+            if (used <= 0 || (s32)((u32)used << 2) >= area || (s32)((u32)key * 2) >= area)
+                continue;
+            s32 place = kept;
+            while (place && key < keys[place - 1])
+                --place;
+            for (s32 j = place; j < kept; ++j)   // forward over the overlap (sic)
+                entries[j + 1] = entries[j];
+            for (s32 j = place; j < kept; ++j)
+                keys[j + 1] = keys[j];
+            if (kept < limit)
+                ++kept;
+            entries[place] = entry;
+            keys[place] = key;
+        }
+        for (s32 i = kept - 1; i >= 0; --i) {
+            u8 *const entry = entries[i];
+            u8 *const owner = at<u8 *>(entry, 0);
+            u8 *item = at<u8 *>(entry, 4);
+            at<u8 *>(entry, 4) = nullptr;
+            while (item) {
+                const u32 had = at<u32>(item, 8) & 0x4000;
+                u8 *const next = at<u8 *>(item, 4);
+                Texture_ClearCacheFlags(item);
+                at<u32>(item, 0x1c) = 0;
+                const u32 flags = at<u32>(item, 8);
+                if (flags & 0x40000000) {
+                    at<u32>(item, 8) = flags | (had ? 0x6000 : 0x2000);
+                    at<u8 *>(item, 4) = at<u8 *>(cache, 0x18c4);
+                    at<u8 *>(cache, 0x18c4) = item;
+                }
+                item = next;
+            }
+            TexCacheItem_SetFlags(owner, nullptr, 0);
+        }
+    }
+}
 }

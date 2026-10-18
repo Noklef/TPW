@@ -67,4 +67,14 @@ u32 __fastcall TexCache_UnlinkItem(u8 *cache, void *, u8 *item);
 // are: ((__ftol((1.5 - the float at +0x30) * 2047) & 0xfff) << 8 plus the s16 at +0x14, << 8, plus the s16 at +0x16, with 0x20000000
 // for flag 0x4000 (+8) and 0x40000000 (set in memory) for flag 0x80000.
 void __fastcall TexCacheItem_SetKey(u8 *item);
+
+// 0x58faf0 (thiscall on the cache; name unconfirmed): for each of the six entry sizes (the sides at 0x702420: 0x100 down to 8, the
+// area the side squared), the entries at +0x400 * size (the signed count at +0x1800 + 4 * size) with items (+4) whose s32 +0x1c is
+// over 0 and its << 2 (s32) under the area and whose key (s32 +0xc) * 2 under it too are sorted by key, ascending, keeping
+// min(s32 +0x1878, 16) of them: each is inserted after the keys not above its own, those past it moved up one by a forward copy, so
+// what was at its place fills the rest (sic), and the last falls off when full. (A 17th with 16 kept writes over the return address.)
+// From the last kept down: the entry's items (+4, next at +4) are taken off it (+4 = 0), each with its cache flags cleared
+// (Texture_ClearCacheFlags) and +0x1c = 0, and one with flag 0x40000000 (+8) gets 0x2000 (and 0x4000 when it had that) and goes onto
+// the cache's list at +0x18c4; then the entry's +0 has its flags set to 0 (TexCacheItem_SetFlags).
+void __fastcall TexCache_Evict(u8 *cache);
 }
