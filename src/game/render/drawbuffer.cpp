@@ -109,6 +109,40 @@ u32 __fastcall DrawBuffer_Create(u8 *buffer) {
     return FreeBlocks(buffer);
 }
 
+u32 __cdecl DrawBuffer_Init() {
+    if (global<u8 *>(0x008bcbc4))
+        return 0;   // (one already: 0, sic)
+    u8 *buffer = static_cast<u8 *>(GameHeap_Alloc(0x64));
+    if (buffer) {
+        for (u8 *s = buffer + 8; s != buffer + 0x38; s += 0x18) {
+            at<u32>(s, 0) = 0;
+            at<u32>(s, 0xc) = 0;
+            at<u32>(s, 8) = 0;
+            at<u32>(s, 4) = 0;
+            at<u32>(s, 0x14) = 0;
+            at<u32>(s, 0x10) = 0;
+        }
+        at<u32>(buffer, 0) = 0;
+        at<u32>(buffer, 0x44) = 0;
+        at<u32>(buffer, 0x48) = 0;
+        at<u32>(buffer, 0x4c) = 0;
+        at<u32>(buffer, 0x60) = 0;
+        at<u32>(buffer, 0x5c) = 0;
+        at<u32>(buffer, 0x58) = 0;
+        at<u32>(buffer, 0x50) = 0;
+        at<u32>(buffer, 0x54) = 0;
+    }
+    global<u8 *>(0x008bcbc4) = buffer;
+    if (!buffer)
+        return 0;
+    if (DrawBuffer_Create(buffer))
+        return 1;
+    GameHeap_Free(global<u8 *>(0x008bcbc4));   // (the new one)
+    global<u8 *>(0x008bcbc4) = nullptr;
+    PushError();   // (the creation's own pushed too)
+    return 0;
+}
+
 u32 __cdecl DrawBuffer_Destroy() {
     u8 *const buffer = global<u8 *>(0x008bcbc4);
     if (!buffer)

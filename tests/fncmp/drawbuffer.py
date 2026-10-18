@@ -4,6 +4,7 @@
 # tracked (as they are or 4 below) or not, no buffer. The creation (0x5823f0): each of its six tracked allocations failing in turn (the
 # heap region only as large as what comes before it) or none, the tracked table's count 0-3 or full (0x8000), the batches and scratch
 # block fields set, 0 or any (freed on a failure), now and then GlobalAlloc a recorder answering one block of any alignment; the errors go onto the engine's list at 0x879ad0 (its count 0 to 0x40).
+# The global creation (0x5821e0): one there already or not, the buffer's allocation or the creation's failing.
 # usage: drawbuffer.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Reset,Alloc,...)
 import os
 import struct
@@ -13,9 +14,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import IMPORT_TABLE, LOG, Bench, Call, HEAP, RAM, global_heap, heap, import_table, log_region, put, set_return  # noqa: E402
 
 B = Bench([(0x582390, 0x5823ed), (0x582640, 0x582804), (0x582280, 0x582384), (0x579b40, 0x579c13), (0x67acb0, 0x67acb1), (0x5823f0, 0x582638),
-           (0x56af20, 0x56af9c)])
+           (0x56af20, 0x56af9c), (0x5821e0, 0x58227f)])
 CALLS = {'Reset': 0x582390, 'Alloc': 0x582640, 'Begin': 0x582670, 'Vertices': 0x5826f0, 'Resume': 0x582710,
-         'End': 0x582780, 'VertexLimit': 0x5827d0, 'IndexLimit': 0x5827f0, 'StreamFree': 0x582340, 'Destroy': 0x582280, 'Create': 0x5823f0}
+         'End': 0x582780, 'VertexLimit': 0x5827d0, 'IndexLimit': 0x5827f0, 'StreamFree': 0x582340, 'Destroy': 0x582280, 'Create': 0x5823f0,
+         'Init': 0x5821e0}
 BUF = RAM + 0x20          # stream 0's record would be at BUF - 0x10
 BATCHES = RAM + 0x100     # 16 batches of 0x38
 COUNT, PAIRS = 0x8bb214, 0x87b1f8
@@ -65,10 +67,28 @@ def create_case(r):
     return Call(0x5823f0, [RAM], regions, conv='t', ret='a')
 
 
+def init_case(r):
+    """the draw buffer's global creation (0x5821e0): one already at 0x8bcbc4 now and then, else the buffer's allocation or one of the
+    creation's failing (the heap only as large as what comes before it) or none."""
+    fail = r.choice([1, 2, 3, 4, 5, 6, 7, 0, 0])
+    got = ([0x64] + SIZES)[:fail - 1] if fail else [0x64] + SIZES
+    regions = {HEAP: heap(sum((s + 15) & ~15 for s in got) + 0x100, fail), **global_heap()}
+    regions[0x8bcbc0] = struct.pack('<II', r.getrandbits(32), 0 if r.random() < 0.85 else r.choice([RAM, r.getrandbits(32) | 1]))
+    regions[COUNT] = struct.pack('<I', r.choice([0, 1, 2, 3, 0x8000] if fail != 2 else [0, 3]))
+    regions[PAIRS] = r.bytes(0x50)
+    errors = bytearray(r.bytes(0x204))
+    put(errors, 0x200, 'i', r.choice([r.randrange(0x40), 0, 0x3e, 0x3f, 0x40]))
+    regions[0x879ad0] = errors
+    regions[0x8bd508] = struct.pack('<I', r.getrandbits(32) & ~0x1000000)
+    return Call(0x5821e0, [], regions, conv='c', ret='a')
+
+
 def case(r):
     op = r.deal(OPS)
     if op == 'Create':
         return create_case(r)
+    if op == 'Init':
+        return init_case(r)
     if op in ('StreamFree', 'Destroy'):
         return free_case(op, r)
     mem = bytearray(r.bytes(0x100 + 16 * 0x38))

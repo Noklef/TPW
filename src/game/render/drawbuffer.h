@@ -1,4 +1,4 @@
-// The draw buffer's methods: reimplementation of 0x582280, 0x582340, 0x582390 and 0x582640-0x5827f0.
+// The draw buffer's methods: reimplementation of 0x5821e0, 0x582280, 0x582340, 0x582390, 0x5823f0 and 0x582640-0x5827f0.
 //
 // The draw buffer is the object at [0x8bcbc4] (set up by 0x5823f0). It has two streams, 1 at +8
 // and 2 at +0x20, each {vertices, vertex bytes used, vertex room (1 MB), indices, index bytes
@@ -25,6 +25,11 @@ u32 __fastcall DrawBuffer_Create(u8 *buffer);
 // 0x582340 (thiscall on a stream's record; name unconfirmed): its indices (+0xc) and vertices (+0), when set, freed
 // (TrackedGlobal_Free, core/gameheap) and cleared; both rooms (+8, +0x14) = 0. Returns 1.
 u32 __fastcall DrawStream_Free(u8 *stream);
+
+// 0x5821e0 (cdecl; name unconfirmed): with a draw buffer at [0x8bcbc4] already, 0. Else a new one (0x64 bytes, GameHeap_Alloc; its streams'
+// records, +0 and +0x44-+0x60 cleared, the rest as it comes) goes there; none got: 0. DrawBuffer_Create on it: 1, or on a failure the
+// buffer freed, [0x8bcbc4] cleared, the error (3, 0xb0754000) pushed (EngineErrors_Push) once more and 0.
+u32 __cdecl DrawBuffer_Init();
 
 // 0x582280 (cdecl; name unconfirmed): 0 without a draw buffer ([0x8bcbc4]). Else stream 2's, then stream 1's blocks freed as
 // 0x582340 does (inlined), the batches (+0x44) and, when set, the scratch block (+0x60; +0x58 cleared with it) freed and cleared
