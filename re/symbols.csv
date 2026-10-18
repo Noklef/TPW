@@ -3483,6 +3483,8 @@ address,name,kind,confidence,notes
 0x00598760,Ptr_FreeIfSet,function,high,reimplemented (src/game/core/buffers); frees the block a pointer variable points to
 0x00598770,Dwords_Zero,function,high,reimplemented (src/game/core/seqs); zeroes a run of dwords
 0x005f4ea0,ReturnOne,function,high,reimplemented (src/game/core/trivial); returns 1
+0x00414670,Low16_414670,function,low,reimplemented (src/game/core/trivial); the low word of a value
+0x0044e600,OutOne_44e600,function,low,"reimplemented (src/game/core/trivial); an init step's answer: *out = 1, returns 1"
 0x00486b60,KeyMaps_EnableAllAndClearFlag,function,high,reimplemented (src/game/core/keymap); enables all keyboard maps and clears a flag
 0x00486b70,KeyMaps_ResetAllAndSetFlag,function,high,reimplemented (src/game/core/keymap); resets all keyboard maps and sets a flag
 0x0051b4a0,Sound_Alloc,function,high,reimplemented (src/game/core/gameheap); counted global allocation

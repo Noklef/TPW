@@ -15,6 +15,13 @@ extern "C" {
 
 u32 __fastcall Obj_Get3e4(const u8 *object) { return at<u32>(object, 0x3e4); }
 
+u32 __cdecl Low16_414670(u32 value) { return value & 0xffff; }
+
+u32 __cdecl OutOne_44e600(u32, u32, u32, u32 *out) {
+    *out = 1;
+    return 1;
+}
+
 u32 __fastcall Obj_Get3a4(const u8 *object) { return at<u32>(object, 0x3a4); }
 
 u8 *__fastcall Obj_Self(u8 *object) { return object; }

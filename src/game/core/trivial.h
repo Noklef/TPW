@@ -111,4 +111,10 @@ u32 __stdcall Zero_6c54a0(u32 v0);
 
 // 0x6c54b0: returns 0.
 u32 __stdcall Zero_6c54b0(u32 v0, u32 v1, u32 v2, u32 v3);
+
+// 0x414670 (cdecl): the low word of the value.
+u32 __cdecl Low16_414670(u32 value);
+
+// 0x44e600 (cdecl; a, b, c, out): *out = 1; returns 1 (an init step's answer, its other arguments unused).
+u32 __cdecl OutOne_44e600(u32 a, u32 b, u32 c, u32 *out);
 }
