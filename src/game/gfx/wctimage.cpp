@@ -3,6 +3,8 @@
 #include <cstdint>
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
+#include "../core/vwrap.h"
+#include "../math/x87.h"
 
 namespace {
 
@@ -23,6 +25,33 @@ constexpr u32 kKind = (u32)-0x28, kWidth = (u32)-0x24, kHeight = (u32)-0x22, kSt
 }  // namespace
 
 extern "C" {
+
+u32 __fastcall WctImage_Read(u8 *image, void *, u8 *stream) {
+    u8 *const header = reinterpret_cast<u8 *>((uintptr_t)0x00879a38);
+    Object_CallSlot8Product((u32)(uintptr_t)header, 0x2c, 1, stream);
+    at<u8>(image, 6) = 0x20;
+    at<u16>(image, 8) = at<u16>(header, 4);
+    at<u16>(image, 0xa) = at<u16>(header, 6);
+    const float a = at<float>(header, 0x14), b = at<float>(header, 0x18), c = at<float>(header, 0x1c), d = at<float>(header, 0x20);
+    at<u16>(image, 0xc) = (u16)(long long)((X87Reg(a) + a) - 2.0f).v;   // 0x7011b0
+    at<u16>(image, 0x10) = (u16)(long long)((X87Reg(b) * 4.0f) - 4.0f).v;   // 0x7011b4
+    at<u16>(image, 0xe) = (u16)(long long)((X87Reg(c) * 4.0f) - 4.0f).v;
+    at<u16>(image, 0x12) = (u16)(long long)(X87Reg(d) - 1.0f).v;   // 0x7011b8
+    at<u32>(image, 0x14) = at<u32>(header, 0x24);
+    at<u32>(image, 0x18) = at<u32>(header, 0x28);
+    at<u32>(image, 0x24) = TrackedGlobal_Alloc(at<u32>(image, 0x14));
+    if (!at<u32>(image, 0x24))
+        return 0;
+    Object_CallSlot8Product(at<u32>(image, 0x24), 1, at<u32>(image, 0x14), stream);
+    at<u32>(image, 0x20) = TrackedGlobal_Alloc(at<u32>(image, 0x18));
+    if (!at<u32>(image, 0x20)) {
+        TrackedGlobal_Free(at<u32>(image, 0x24));
+        at<u32>(image, 0x24) = 0;
+        return 0;
+    }
+    Object_CallSlot8Product(at<u32>(image, 0x20), 1, at<u32>(image, 0x18), stream);
+    return 1;
+}
 
 u32 __fastcall Texture_DecodeWct(const u8 *part, void *, u8 *const *pixels) {
     u8 *const codec = global<u8 *>(0x00879a64);
