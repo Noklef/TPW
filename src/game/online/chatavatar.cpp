@@ -50,4 +50,19 @@ u8 __fastcall ChatAvatar_PlaceAtCell(u8 *self, void *, u32 handle, u32 cell) {
     const u32 y = (cell & 0xffff0000) | (((cell - 1) >> 7) & 0xff) << 8 | 0x80;
     return placeThing(slotThing(handle), x, y) ? 1 : 0;
 }
+
+u8 __fastcall ChatAvatar_MoveToCell(u8 *avatar, void *, u32 cell) {
+    u16 handle;
+    const u16 got = *Thing_GetHandle(at<u8 *>(avatar, 4), nullptr, &handle);
+    const u32 column = (cell - 1) & 0x7f;
+    const u32 row = (((cell & 0xffff) - 1) >> 7) & 0xff;
+    // (x's high word is uninitialised stack in the original: only its low word is used)
+    if (!placeThing(slotThing(got), column << 8 | 0x80, (cell & 0xffff0000) | row << 8 | 0x80))
+        return 0;
+    movePlayer(avatar, (s16)(u16)(column << 8 | 0x80), (s16)(u16)(row << 8 | 0x80), 1);
+    at<u8>(avatar, 0xeb1) = 0;
+    using Method = u32(__fastcall *)(void *, void *, void *);
+    (*reinterpret_cast<const Method *>((uintptr_t)0x006fd4bc))(at<void *>(avatar, 0), nullptr, avatar);   // Chat::NotAFK
+    return 1;
+}
 }

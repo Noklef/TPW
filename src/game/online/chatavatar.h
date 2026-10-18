@@ -1,7 +1,7 @@
 // The player's avatar in an online chat room (the WEACHATR library's Chat): an object { +0 the Chat, +4 the park thing standing for the player,
 // +0xeb1 a byte cleared when the player acts }. Reimplementation of the moves that tell the room (Chat::MovePlayer, import 0x6fd4cc, with a
 // mode and the avatar as its context) and place the thing (Thing_ResetPlaceAt, only for a thing of kind 0x12): 0x4ea370, 0x4ea3f0,
-// 0x4ea410 and 0x4ebfb0. Names unconfirmed (the modes' meanings are not known).
+// 0x4ea410, 0x4ebfb0 and 0x4eab40. Names unconfirmed (the modes' meanings are not known).
 #pragma once
 
 #include "../../../re/types.h"
@@ -22,4 +22,9 @@ void __fastcall ChatAvatar_MoveTo3(u8 *avatar, void *, u32 x, u32 y);
 // the handle's low word, when of kind 0x12, placed at the centre of the map cell (1-based: column (cell - 1) & 0x7f, row (cell - 1) >> 7; x
 // and y the column / row in the high byte and 0x80 in the low one, their high words ECX's and the cell's). Returns 1 when placed, else 0 (AL).
 u8 __fastcall ChatAvatar_PlaceAtCell(u8 *self, void *, u32 handle, u32 cell);
+
+// 0x4eab40 (thiscall; cell, pops 4): the slot thing of the avatar thing's handle, when of kind 0x12, placed at the centre of the 1-based map cell
+// (as ChatAvatar_PlaceAtCell, the row from the cell's low word); then Chat::MovePlayer(that centre, mode 1, the avatar), the byte +0xeb1
+// cleared and Chat::NotAFK(the avatar) (import 0x6fd4bc). Returns 1 when placed, else 0 (AL).
+u8 __fastcall ChatAvatar_MoveToCell(u8 *avatar, void *, u32 cell);
 }
