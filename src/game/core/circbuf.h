@@ -19,6 +19,11 @@ extern "C" {
 void __cdecl CircBufU32_144_MaxInWindow(const u8 *buffer, s32 *out, u32 kind);
 void __cdecl CircBufU32_144_MinInWindow(const u8 *buffer, s32 *out, u32 kind);
 
+// 0x4802a0 (cdecl; buffer, out, kind; name unconfirmed): CircBufU32_144_MaxInWindow for a buffer of 144 floats: the greatest sample
+// above 0.0 (not a NaN) is read again as there, or when it cannot be (none chosen past the count, or not there) the greatest
+// itself (0.0 for none); *out is raised to its __ftol.
+void __cdecl CircBufF32_144_MaxInWindow(const u8 *buffer, s32 *out, u32 kind);
+
 // 0x4cdb60: a CircBufU16 of 3 (cursor +8, size +0xc, wrapped +0x10): u16 +0 = 0, cursor -1,
 // size 3, not wrapped.
 u8 *__fastcall CircBufU16_3_Ctor(u8 *buf);
