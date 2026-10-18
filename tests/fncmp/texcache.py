@@ -63,12 +63,12 @@ def case(r):
         w, h = r.choice([0, 1, 2, 3, 6]), r.choice([0, 1, 2, 4, 6])
         put(hdr, 0x18, 'I', r.choice([w, w, w, 0xffffffff]))
         put(hdr, 0x1c, 'I', r.choice([h, h, h, 0x7fffffff]))
-        grid = bytearray(r.bytes(4 * 0x80))
-        for k in range(0x80):
+        grid = bytearray(r.bytes(4 * 0x84))   # (from 0x10 bytes before the grid: a column -1 written there shows)
+        for k in range(0x84):
             if r.random() < 0.8:
                 put(grid, 4 * k, 'I', r.f())
         put(tex, 0, 'I', RAM + 0x100)
-        regions = {RAM: tex, RAM + 0x100: hdr, RAM + 0x200: grid, RAM + 0x12970: struct.pack('<I', RAM + 0x200)}
+        regions = {RAM: tex, RAM + 0x100: hdr, RAM + 0x1f0: grid, RAM + 0x12970: struct.pack('<I', RAM + 0x200)}
         if r.random() < 0.05:
             put(tex, 0, 'I', 0x80000000 | r.getrandbits(31))   # (a bad header: a fault in both for rows in range)
         x0, y0 = r.choice([-2, -1, 0, 0, 1, 2, 3]), r.choice([-2, -1, 0, 0, 1, 2])
