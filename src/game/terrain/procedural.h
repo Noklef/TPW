@@ -28,6 +28,12 @@ void __cdecl TerrainTex_SetRect(u32 x0, u32 y0, u32 x1, u32 y1);
 // +0x240) 0x7f; 1 then. 0 when there was one, or when the allocation failed (left null, the error (3, 0xb0754000) pushed onto the engine's list).
 u32 __cdecl TerrainTex_Create();
 
+// 0x56e4e0 (thiscall; name unconfirmed): the procedural texture object's tile cache (+0x230, when set) destroyed (TerrainTexCache_Dtor,
+// terrain/texcache), then, re-read, destroyed again through its jump 0x572100 and freed (the game's heap), and cleared; the tracked block
+// at +0x12970 (when set) freed (TrackedGlobal_Free) and cleared; +0 and +4 = 0. Returns 1. The terrain's unload (0x57a23b) calls it on
+// [0x879d60], which is kept.
+u32 __fastcall TerrainTex_Unload(u8 *tex);
+
 // 0x457a00: when available and not in use: the option 0x78d8d8 at 1 turns them on (flag, the
 // renderer, the cells); at 0 marks them unavailable (clears 0x6000); else nothing.
 void __cdecl Terrain_ProceduralEnter();

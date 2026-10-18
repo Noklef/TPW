@@ -4,8 +4,10 @@
 #include <initializer_list>
 
 #include "../core/gameheap.h"
+#include "../core/thunks.h"
 #include "../render/engineerrors.h"
 #include "land.h"
+#include "texcache.h"
 
 namespace {
 
@@ -52,6 +54,24 @@ u32 __cdecl TerrainTex_Create() {
         EngineErrors_Push(reinterpret_cast<u8 *>(0x00879ad0), nullptr, 3, 0xb0754000);
         return 0;
     }
+    return 1;
+}
+
+u32 __fastcall TerrainTex_Unload(u8 *tex) {
+    if (at<u32>(tex, 0x230)) {
+        TerrainTexCache_Dtor(reinterpret_cast<u8 *>((uintptr_t)at<u32>(tex, 0x230)));
+        if (u8 *const cache = reinterpret_cast<u8 *>((uintptr_t)at<u32>(tex, 0x230))) {
+            Wrap_TerrainTexCache_Dtor_572100(cache);
+            GameHeap_Free(cache);
+        }
+        at<u32>(tex, 0x230) = 0;
+    }
+    if (const u32 block = at<u32>(tex, 0x12970)) {
+        TrackedGlobal_Free(block);
+        at<u32>(tex, 0x12970) = 0;
+    }
+    at<u32>(tex, 0) = 0;
+    at<u32>(tex, 4) = 0;
     return 1;
 }
 

@@ -466,6 +466,7 @@ address,name,kind,confidence,notes
 0x00457e50,Terrain_InitUnusedEpsilon,function,high,reimplemented (src/game/terrain/procedural); unused static 0x7a0b48 = 1 / 2^23
 0x0056df70,TerrainTex_SetRect,function,high,reimplemented (src/game/terrain/procedural); the procedural texture object +0x234..+0x240 = the view rect
 0x0056ddf0,TerrainTex_Create,function,low,"reimplemented (src/game/terrain/procedural); cdecl: when [0x879d60] is null, a new 0x12974-byte procedural texture object there with its fields cleared and the rectangle's right / bottom 0x7f, 1; 0 when there was one or the allocation failed (the error (3, 0xb0754000) pushed)"
+0x0056e4e0,TerrainTex_Unload,function,high,"reimplemented (src/game/terrain/procedural); thiscall: the procedural texture object's tile cache destroyed twice and freed, its tracked block freed, +0 / +4 cleared; returns 1"
 0x005856e0,Landscape_SetPoint,function,high,"reimplemented (src/game/terrain/landscape); thiscall (the landscape renderer, 0x8c1828; i, x, y, z floats): point i at +0x1f70 + 12 i (the weather sets four)"
 0x00585710,Landscape_SetDetail,function,high,"reimplemented (src/game/terrain/landscape); thiscall (level): +0x2ec8, the detail level (option 0x785888)"
 0x00585ef0,Landscape_List,function,high,reimplemented (src/game/terrain/landscape); thiscall: +0x1fd0
