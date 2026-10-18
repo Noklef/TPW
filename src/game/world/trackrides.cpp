@@ -2,6 +2,9 @@
 
 #include <cstdint>
 
+#include "../core/misc.h"
+#include "../model/holder.h"
+#include "../model/partstate.h"
 #include "../motion/animator.h"
 #include "../render/particles.h"
 #include "trackpools.h"
@@ -518,5 +521,44 @@ u32 __cdecl TrakRide_LinkedValue(u32 handle) {
     const u8 *link = at<const u8 *>((const void *)ride, 0x58);
     if (!link || !(at<u32>(link, 0) & 0x400000)) return 0;
     return at<u32>(link, 8);
+}
+
+void __cdecl TrakRide_SetAsleep(u8 *ride, s32 asleep) {
+    u8 *const *const instances = reinterpret_cast<u8 *const *>(0x007a4610);
+    if (asleep && !(at<u32>(ride, 0) & 0x200)) {
+        at<u32>(ride, 0) |= 0x200;
+        u8 *inst = instances[at<u32>(ride, 8)];
+        if (at<u32>(inst, 4) & 0x4000)
+            Obj_RemoveFromRect(at<u8 *>(inst, 8), at<u32>(inst, 0xc0), at<u32>(inst, 0xc4));
+        else
+            Holder_Sleep(at<u8 *>(inst, 8));
+        if ((at<u32>(ride, 0) & 0x2002000) && at<u32>(ride, 0xc)) {
+            inst = instances[at<u32>(ride, 0xc)];
+            if (at<u32>(inst, 4) & 0x4000)
+                Obj_RemoveFromRect(at<u8 *>(inst, 8), at<u32>(inst, 0xc0), at<u32>(inst, 0xc4));
+            else
+                Holder_Sleep(at<u8 *>(inst, 8));
+        }
+        for (u8 *node = at<u8 *>(ride, 0x30); node; node = at<u8 *>(node, 0x10))
+            if (at<s32>(node, 8) != -1) PartStates_Release(at<u8 *>(instances[at<u32>(ride, 8)], 8), at<u32>(node, 8));
+        return;
+    }
+    if (asleep || !(at<u32>(ride, 0) & 0x200))
+        return;
+    at<u32>(ride, 0) &= ~0x200u;
+    u8 *inst = instances[at<u32>(ride, 8)];
+    if (at<u32>(inst, 4) & 0x4000)
+        Holder_AddToGrid(at<u8 *>(inst, 8), at<u32>(inst, 0xc0), at<u32>(inst, 0xc4));
+    else
+        Holder_Wake(at<u8 *>(inst, 8));
+    if ((at<u32>(ride, 0) & 0x2002000) && at<u32>(ride, 0xc)) {
+        inst = instances[at<u32>(ride, 0xc)];
+        if (at<u32>(inst, 4) & 0x4000)
+            Holder_AddToGrid(at<u8 *>(inst, 8), at<u32>(inst, 0xc0), at<u32>(inst, 0xc4));
+        else
+            Holder_Wake(at<u8 *>(inst, 8));
+    }
+    for (u8 *node = at<u8 *>(ride, 0x30); node; node = at<u8 *>(node, 0x10))
+        if (at<s32>(node, 8) != -1) PartStates_Activate(at<u8 *>(instances[at<u32>(ride, 8)], 8), at<u32>(node, 8), 0);
 }
 }

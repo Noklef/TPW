@@ -109,4 +109,11 @@ void __cdecl TrakRide_Open(u32 handle);
 // pieces (flag 2) as +0x64 says along a line and an end piece; -2 three collision nodes and fourteen pieces. The performance is set from +0x1c (not for -2); returns the
 // ride's handle (index | kind << 8), 0 when the module is not loaded.
 u32 __cdecl TrakRide_Create(s32 kind, s32 x, s32 y, u32 orientation, u32 handle, u32 value);
+
+// 0x548e80 (cdecl; ride, asleep; name unconfirmed): asleep and the ride's flag 0x200 (+0) clear: the flag is set and the instance [0x7a4610 + 4 * (+8)] leaves the
+// renderer (its holder at +8 by Obj_RemoveFromRect over the words at +0xc0 / +0xc4 when the instance's flags (+4) have 0x4000, else Holder_Sleep), so does the instance
+// of +0xc when the flags have 0x2002000 and +0xc is not 0, and the parts of the node list at +0x30 (next at +0x10, part at +8; -1 none) are released
+// (PartStates_Release on the first instance's holder). Not asleep with the flag set: the flag is cleared and the same in reverse (Holder_AddToGrid / Holder_Wake,
+// PartStates_Activate with handle 0). Otherwise nothing.
+void __cdecl TrakRide_SetAsleep(u8 *ride, s32 asleep);
 }
