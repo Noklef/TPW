@@ -244,6 +244,7 @@ add_library(tpw_game STATIC
     src/game/coaster/setup.cpp
     src/game/coaster/ridebounds.cpp
     src/game/coaster/tracktypes.cpp
+    src/game/coaster/edittools.cpp
     src/game/terrain/terrain_blend.cpp
     src/game/terrain/land.cpp
     src/game/terrain/procedural.cpp

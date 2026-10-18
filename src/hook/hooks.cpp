@@ -177,7 +177,8 @@
 #include "../game/coaster/queue.h"
 #include "../game/coaster/cursor.h"
 #include "../game/coaster/registry.h"
-#include "../game/coaster/contacts.h"
+#include "../game/coaster/contacts.h"
+#include "../game/coaster/edittools.h"
 #include "../game/coaster/ridebounds.h"
 #include "../game/coaster/setup.h"
 #include "../game/coaster/save.h"
@@ -3346,6 +3347,9 @@ const Hook kHooks[] = {
     {"Object_QueueOpen",          0x004dd920, (void *)&Object_QueueOpen, {0x51, 0x56, 0x8b, 0xf1, 0x66}},
     {"Thing_PlaceAt",             0x004fa930, (void *)&Thing_PlaceAt, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
     {"TrackTypeSlot_ReadIntoFree",         0x0051fa20, (void *)&TrackTypeSlot_ReadIntoFree, {0xa1, 0x40, 0x6d, 0x81, 0x00}},
+    {"CoasterEdit_ToggleAdjustF8", 0x00441cd0, (void *)&CoasterEdit_ToggleAdjustF8, {0x8b, 0x15, 0x58, 0xc6, 0x79}},
+    {"CoasterEdit_ToggleAdjustE0", 0x00441e80, (void *)&CoasterEdit_ToggleAdjustE0, {0xa1, 0xec, 0x0f, 0x79, 0x00}},
+    {"CoasterEdit_ToggleAdjustAngles", 0x00442010, (void *)&CoasterEdit_ToggleAdjustAngles, {0x8b, 0x15, 0x58, 0xc6, 0x79}},
     {"Thing_SpriteChoice",        0x004fcac0, (void *)&Thing_SpriteChoice, {0x51, 0x56, 0x8b, 0xf1, 0x6a}},
     {"Thing_IngredientRecord",    0x004e2200, (void *)&Thing_IngredientRecord, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
     {"Class701378_Ctor",          0x005667d0, (void *)&Class701378_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},
