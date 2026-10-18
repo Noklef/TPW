@@ -481,12 +481,6 @@ u32 __cdecl Dword_ClearBit0(u32 *p) {
     return 1;
 }
 
-u32 __fastcall Obj_Clear18_0c(u8 *object) {
-    at<u32>(object, 0x18) = 0;
-    at<u16>(object, 0xc) = 0;
-    return 0;
-}
-
 u32 __fastcall Obj_Diff180_184(const u8 *object) { return at<u32>(object, 0x180) - at<u32>(object, 0x184); }
 
 void __fastcall Vtbl7099ec_SetVirtual(u8 *sub) {
