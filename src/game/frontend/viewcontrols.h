@@ -13,4 +13,9 @@ void __fastcall ViewCtl_Lower48(u8 *self);
 void __fastcall ViewCtl_Raise48(u8 *self);
 void __fastcall ViewCtl_Raise50(u8 *self);
 void __fastcall ViewCtl_Lower50(u8 *self);
+
+// 0x5dd350 / 0x5dd390 (thiscall; names unconfirmed): the mode +0x58 set to 1 / 0, the dialog [0x7cdb0c]'s child 0x16007 sent message 6 with 0 / 1
+// (Dialog7cdb0c_Child16007Message6Off / On), then the vector at +0x10 taken from +0x28 / +0x1c by the mode as it then is (Obj_ChooseVector).
+void __fastcall ViewCtl_UseSecondVector(u8 *self);
+void __fastcall ViewCtl_UseFirstVector(u8 *self);
 }  // extern "C"

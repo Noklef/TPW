@@ -4557,6 +4557,8 @@ address,name,kind,confidence,notes
 0x005dd320,ViewCtl_Raise48,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x48 raised by the float +0x14
 0x005dd330,ViewCtl_Raise50,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x50 raised by the float +0x14
 0x005dd340,ViewCtl_Lower50,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x50 lowered by the float +0x14
+0x005dd350,ViewCtl_UseSecondVector,function,low,"reimplemented (src/game/frontend/viewcontrols); thiscall: mode +0x58 = 1, the 0x7cdb0c dialog's child 0x16007 sent message 6 off, then Obj_ChooseVector"
+0x005dd390,ViewCtl_UseFirstVector,function,low,"reimplemented (src/game/frontend/viewcontrols); thiscall: mode +0x58 = 0, the 0x7cdb0c dialog's child 0x16007 sent message 6 on, then Obj_ChooseVector"
 0x0065d7d0,Window_FindChild,function,low,"reimplemented (src/game/ui/window); thiscall (id), pops 4: the first child of the window (list +0x5c, next +0x54) whose id (+0x8c) is id, or 0"
 0x0065f697,Window_CallHandler,function,low,"reimplemented (src/game/ui/window); thiscall (message, a, b), pops 12: the cdecl handler at +0x114 called with (window, message, a, b), its result; -1 when none"
 0x00658d9f,Window_SendMessage,function,low,"reimplemented (src/game/ui/window); cdecl (window, message, a, b): -1 for no window or byte +4 set; else the hook [0xfaa5fc] (if set) then Window_CallHandler"
