@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/voices.h"
+#include "../math/intsin.h"
 
 namespace {
 
@@ -415,6 +416,13 @@ s32 __cdecl ParticlePool2_Finish() {
 }
 
 s32 __cdecl ParticlePool2_Empty() { return ParticlePool_Resize(2, 0, 0); }
+
+void __cdecl ParticlePools_Reset() {
+    u32 *const block = reinterpret_cast<u32 *>(0x00f86900);
+    for (u32 i = 0; i < 0x33; ++i)  // rep stosd
+        block[i] = 0;
+    IntSin_BuildTable();
+}
 
 void __cdecl ParticleEffectors_Update() {
     u8 *const records = global<u8 *>(0x0080cef8);  // (read once)

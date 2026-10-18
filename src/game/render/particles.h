@@ -105,6 +105,10 @@ s32 __cdecl ParticlePool_Resize(s32 pool, s32 count, s32 effect);
 s32 __cdecl ParticlePool2_Finish();
 s32 __cdecl ParticlePool2_Empty();
 
+// 0x5ed580 (cdecl; name unconfirmed; 0x598ab7 asks it): the 0x33 dwords from 0xf86900 (the pools' block, pool 2 only up to its fifth handle)
+// zeroed, then the integer sine table built (IntSin_BuildTable).
+void __cdecl ParticlePools_Reset();
+
 // 0x521930 (cdecl; effect, x, y, z, vx, vy, vz; name unconfirmed): Particle_Spawn with a velocity: the system's +0x38/+0x3c/+0x40 = vx, vy, vz times its
 // +0xb0 over 1024 (truncated toward 0) in place of the jitter of +0x2c. (Its linked effect is started by Particle_Spawn.)
 s32 __cdecl Particle_SpawnWithVelocity(s32 effect, s32 x, s32 y, s32 z, s32 vx, s32 vy, s32 vz);

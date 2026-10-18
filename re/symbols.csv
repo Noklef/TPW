@@ -436,6 +436,7 @@ address,name,kind,confidence,notes
 0x005ed5a0,ParticlePool_Resize,function,low,"reimplemented (src/game/render/particles); cdecl (pool, count, effect): a 16-handle pool at 0xf8692c + pool * 0x44 grown with Particle_Spawn(effect) or shrunk with ParticleSystem_End; returns the change"
 0x005eda70,ParticlePool2_Finish,function,low,"reimplemented (src/game/render/particles); cdecl (): each of pool 2's systems with a handle, up to its count, gets ParticleSystem_Set2a(handle, 1); then ParticlePool_Resize(2, 0, 0)"
 0x005edac0,ParticlePool2_Empty,function,low,"reimplemented (src/game/render/particles); cdecl (): ParticlePool_Resize(2, 0, 0)"
+0x005ed580,ParticlePools_Reset,function,low,"reimplemented (src/game/render/particles); cdecl: the 0x33 dwords from 0xf86900 (the particle pools' block) zeroed, then IntSin_BuildTable"
 0x00804370,gParticleEffects,data,high,0x69 x 0x140-byte effect definitions from Tp2.plb
 0x0080c6b0,gParticleEffectors,data,high,20 x 0x68-byte effector definitions
 0x0080cefc,gParticleSystems,data,high,live systems: 0x140-byte copies of an effect definition
@@ -1644,6 +1645,7 @@ address,name,kind,confidence,notes
 0x0050f700,IntPair_Normalize,function,low,"reimplemented (src/game/math/intpair); cdecl (&out, &pair): the pair made 1.0 long (ISqrt length in three tiers; 0 for a zero root)"
 0x005428a0,IntSin,function,high,"reimplemented (src/game/math/intsin); cdecl (angle, 512 a turn): the integer sine table's (0x877358) entry angle & 0x1ff, shifted left 2"
 0x005428c0,IntCos,function,high,reimplemented (src/game/math/intsin); cdecl (angle): as IntSin for angle + 0x80
+0x005442e0,IntSin_BuildTable,function,low,"reimplemented (src/game/math/intsin); cdecl: the 512 entries at 0x877358 = __ftol(fsin(2i * 0.00613591796875) * 256.0) (x87, 24-bit)"
 0x00578800,Mat4_Identity,function,high,"reimplemented (src/game/math/mat4); thiscall (a matrix object, the 4x4 at +0): the identity"
 0x00578bc0,Mat4_Assign,function,high,"reimplemented (src/game/math/mat4); thiscall (from): the 16 dwords copied in, upwards (rep movsd)"
 0x005780a0,Mat4_InitGlobals,function,high,reimplemented (src/game/math/mat4); static init: eight global 4x4 identity matrices
