@@ -103,4 +103,16 @@ u32 __cdecl BalanceFile_ParseMap(const char **text, u8 **map, const char **error
 // map or string frees the block it replaces (Mem_GlobalFree). The next line starts past the next '\n' (after a map, the one
 // after its closing marker's line, sic).
 u32 __fastcall BalanceFile_Parse(u8 *self, void *, const char *name, char *text, u32 keep);
+
+// 0x401650 (thiscall (path, keep), pops 8; name unconfirmed): the balance file at path parsed (BalanceFile_Parse, keep passed on)
+// from a Mem_GlobalAlloc block of its size (File_GetSize) + 1, loaded (File_Load) and freed after. No file: 0, with
+// GameError_Set(0x785de8, 3, 0, path) unless keep; an empty one: 1; no block or a failed load: that error (keep or not) and 0
+// (a loaded block not freed, sic).
+u32 __fastcall BalanceFile_Load(u8 *self, void *, const char *path, u32 keep);
+
+// 0x401700 (thiscall (name, stream, keep), pops 12; name unconfirmed): the same from a stream: its size (vtable +0x14) above 0,
+// a block of it + 1 read (vtable +8 (block, size)) whole (unsigned), else GameError_Set(0x785de8, 3, 0, name) (8 when the
+// allocation fails) and 0, the read block not freed (sic).
+struct Stream;
+u32 __fastcall BalanceFile_LoadStream(u8 *self, void *, const char *name, Stream *stream, u32 keep);
 }

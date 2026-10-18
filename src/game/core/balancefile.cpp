@@ -335,11 +335,13 @@ bool digit(char c) { return Crt().isdigit((s32)c) != 0; }
 bool alpha(char c) { return Crt().isalpha((s32)c) != 0; }
 bool alnum(char c) { return Crt().isalnum((s32)c) != 0; }
 
-// A line's names, adjacent as on the original's stack: a group name of all 64 chars runs on into the first field (and the 16th
-// field into the original's return address, which no key record's name can match).
+// A line's names, adjacent as on the original's stack: a group name of all 64 chars runs on into the first field, and the 16th
+// field into the original's return address (0x4016e4 or 0x40178a: a byte that is not 0 first, so a key record's name of 64
+// chars does not match it; the tail stands in for it).
 struct LineNames {
     char group[0x40];
     char fields[0x10][0x40];
+    u8 tail[4] = {0xe4, 0x16, 0x40, 0x00};
 };
 
 // Where key record index's value goes: row of it when grouped (the entry's row count at +8 raised to row + 1 first), else
@@ -505,5 +507,51 @@ u32 __fastcall BalanceFile_Parse(u8 *self, void *, const char *, char *text, u32
         if (*line == '\n') ++line;
     }
     return 1;
+}
+
+u32 __fastcall BalanceFile_Load(u8 *self, void *, const char *path, u32 keep) {
+    u8 *const report = reinterpret_cast<u8 *>(0x00785de8);
+    const u32 size = File_GetSize(path);
+    if (size == 0xffffffff) {
+        if (!keep) GameError_Set(report, nullptr, 3, 0, path);
+        return 0;
+    }
+    if (size == 0) return 1;
+    char *const text = static_cast<char *>(Mem_GlobalAlloc(size + 1));
+    if (!text) {
+        GameError_Set(report, nullptr, 3, 0, path);
+        return 0;
+    }
+    s32 result, loaded;
+    if (*File_Load(&result, path, text, (s32)size, &loaded) < 0) {
+        GameError_Set(report, nullptr, 3, 0, path);  // (the text is not freed, sic)
+        return 0;
+    }
+    text[size] = 0;
+    const u32 ok = BalanceFile_Parse(self, nullptr, path, text, keep);
+    Mem_GlobalFree(text);
+    return ok;
+}
+
+u32 __fastcall BalanceFile_LoadStream(u8 *self, void *, const char *name, Stream *stream, u32 keep) {
+    u8 *const report = reinterpret_cast<u8 *>(0x00785de8);
+    const s32 size = vcall<s32>(stream, 0x14);
+    if (size <= 0) {
+        GameError_Set(report, nullptr, 3, 0, name);
+        return 0;
+    }
+    char *const text = static_cast<char *>(Mem_GlobalAlloc((u32)size + 1));
+    if (!text) {
+        GameError_Set(report, nullptr, 8, 0, name);
+        return 0;
+    }
+    if (vcall<u32>(stream, 8, static_cast<void *>(text), size) < (u32)size) {
+        GameError_Set(report, nullptr, 3, 0, name);  // (the text is not freed, sic)
+        return 0;
+    }
+    text[size] = 0;
+    const u32 ok = BalanceFile_Parse(self, nullptr, name, text, keep);
+    Mem_GlobalFree(text);
+    return ok;
 }
 }

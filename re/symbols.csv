@@ -542,6 +542,8 @@ address,name,kind,confidence,notes
 0x0059bf10,AdvisorScoringFile_Dtor,function,low,"reimplemented (src/game/core/balancefile); thiscall: vtable 0x6fd958 back, BalanceFile_Release (name unconfirmed)"
 0x005b0cd0,ThemeRecord_Dtor,function,low,"reimplemented (src/game/core/balancefile); thiscall: a theme's record destroyed: its theme balance file (+0x1c, vtable 0x702800) when there is one released and freed, then its name (String at +0x20)"
 0x00402720,BalanceFile_ParseMap,function,low,"reimplemented (src/game/core/balancefile); cdecl (&text, &map, &error, symbols, count): a map description of up to 20 x 20 symbol cells, flipped, into a GlobalAlloc block; 0 with an error text"
+0x00401650,BalanceFile_Load,function,low,"reimplemented (src/game/core/balancefile); thiscall (path, keep), pops 8: a balance file read from its path and parsed"
+0x00401700,BalanceFile_LoadStream,function,low,"reimplemented (src/game/core/balancefile); thiscall (name, stream, keep), pops 12: a balance file read from a stream and parsed"
 0x00470c90,Motion_ApplyMaterial,function,high,"reimplemented (src/game/motion/keys); (model, table, state): last (frame, value) key at or before the frame set into the material record (+2), flagged +1 |= 4 on change"
 0x00470d10,Matrix_PreMul33,function,high,"reimplemented (src/game/math/matrix); m = r * m on the rotation part, r a packed row-major 3x3"
 0x00470e90,Motion_LerpPackedVertices,function,high,"reimplemented (src/game/motion/vertexanim); (block, positions, group, t, add): 10:10:10 keys * scale (+0x20) + offset (+0x14), lerped key -> key+1 into slot (12 * (slot >> 2) + (slot & 3)), axes 4 floats apart"
