@@ -155,7 +155,7 @@ s32 __cdecl wtoi(const u16 *s) {
 
 const CrtEnv kDriverCrt = {&msvc6::stricmp, &msvc6::strrchr, &msvc6::strchr, &msvc6::strncmp, &msvc6::strstr,
                            &msvc6::toupper, &msvc6::tolower, &msvc6::atoi,   &msvc6::sprintf, &msvc6::wcslen,
-                           &msvc6::strncpy, &msvc6::iswspace};
+                           &msvc6::strncpy, &msvc6::iswspace, &msvc6::wcscpy};
 
 const LibcEnv kDriverLibc = {&msvc6::strncpy, &msvc6::strncat, &msvc6::atoi,    &msvc6::iswctype, &msvc6::vsprintf,
                              &msvc6::vsnprintf, &msvc6::wcslen,  &msvc6::wcscpy,  &msvc6::wcsncpy,  &msvc6::wcscat,
@@ -166,5 +166,6 @@ const CrtStandIn kCrtStandIns[] = {
     {0x0067c250, (void *)&msvc6::strncmp}, {0x0067c080, (void *)&msvc6::strstr},  {0x0067f1a0, (void *)&msvc6::toupper},
     {0x0067fa60, (void *)&msvc6::tolower}, {0x0067a520, (void *)&msvc6::atoi},    {0x0067a650, (void *)&msvc6::sprintf},
     {0x0067acd0, (void *)&msvc6::wcslen},  {0x0067ae00, (void *)&msvc6::strncpy}, {0x0067a730, (void *)&msvc6::iswspace},
+    {0x0067bf10, (void *)&msvc6::wcscpy},
 };
 const u32 kCrtStandInCount = sizeof kCrtStandIns / sizeof kCrtStandIns[0];

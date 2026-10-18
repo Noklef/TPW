@@ -25,7 +25,8 @@ EXE = os.path.join(ROOT, '.data', 'nocd', 'tp.exe')
 HOOKS = 'src/hook/hooks.cpp'
 ROW = r'^\s+\{"\w+",\s+(0x[0-9a-f]+)'
 TABLES = [(HOOKS, [ROW, r'^#include "(.*)"']), ('re/symbols.csv', [r'^(0x[0-9a-fA-F]+),']), ('CMakeLists.txt', [r'^\s+(src/game/\S+)'])]
-BENCH = [r"'([A-Za-z_][A-Za-z0-9_]*)':", r'(0x[0-9a-fA-F]{5,8})']
+# Op names: dict keys and `op == 'x':`, and each name in `op in ('x', 'y'):` (a branch that folds one op's case into a shared one).
+BENCH = [r"'([A-Za-z_][A-Za-z0-9_]*)'(?=(?:,\s*'[A-Za-z_][A-Za-z0-9_]*')*\)?:)", r'(0x[0-9a-fA-F]{5,8})']
 
 
 def run(cmd):

@@ -404,4 +404,7 @@ u8 *__cdecl Wrap_Semaphore_Ctor_6c5ae0();
 
 // 0x6d8990: calls StringList_Dtor on the object at 0xfb34e0.
 void __cdecl Wrap_StringList_Dtor_6d8990();
+
+// 0x481410: jumps to Panel7b9940_Detach.
+u32 __cdecl Wrap_Panel7b9940_Detach_481410();
 }  // extern "C"

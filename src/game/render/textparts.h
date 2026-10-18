@@ -1,0 +1,76 @@
+// The renderer's text parts: a RendererPart (render/renderer, 0x1a0 bytes in all) with a text layout (gfx/textlayout) at +0xe4, the
+// base class's vtable 0x6ff320 and eleven classes derived from it (vtables 0x6ff350-0x6ff530, every 0x30). Their constructors, destructors
+// and deleting destructors: reimplementation of 0x48f6a0-0x491a00 (three functions a class). The names are unconfirmed.
+//
+// A constructor (thiscall (value), pops 4) runs RendererPart_Ctor(value) and TextLayout_Ctor(+0xe4), sets +0x48-+0x4a to 0xff, +0xd8 0,
+// +0xd9 1, +0xda, +0xdb 0, the words +0xde, +0xe0 0, +0xdc 0xff, +0xdd 0 and its class's vtable; 0x6ff380 and 0x6ff4d0 also set the
+// layout's flag (+0x178, the layout's +0x94) to 1. Returns this.
+// A destructor (thiscall) sets the base vtable 0x6ff320, destroys the layout (TextLayout_Dtor) and then the RendererPart (the original
+// inlines RendererPart_Dtor); all twelve are the same code. A deleting destructor (thiscall (flags), pops 4; slot 0 of the class's
+// vtable) runs its class's destructor and frees the part (Mem_Free) for flags bit 0; returns this.
+#pragma once
+
+#include "../../../re/types.h"
+
+extern "C" {
+// 0x48f6a0 / 0x48f760 / 0x48f740: vtable 0x6ff320.
+u8 *__fastcall TextPart_Ctor(u8 *part, void *, u32 value);
+void __fastcall TextPart_Dtor(u8 *part);
+u8 *__fastcall TextPart_DeletingDtor(u8 *part, void *, u32 flags);
+
+// 0x48fde0 / 0x48fea0 / 0x48fe80: vtable 0x6ff350.
+u8 *__fastcall TextPart6ff350_Ctor(u8 *part, void *, u32 value);
+void __fastcall TextPart6ff350_Dtor(u8 *part);
+u8 *__fastcall TextPart6ff350_DeletingDtor(u8 *part, void *, u32 flags);
+
+// 0x490040 / 0x490100 / 0x4900e0: vtable 0x6ff380, the layout flag set.
+u8 *__fastcall TextPart6ff380_Ctor(u8 *part, void *, u32 value);
+void __fastcall TextPart6ff380_Dtor(u8 *part);
+u8 *__fastcall TextPart6ff380_DeletingDtor(u8 *part, void *, u32 flags);
+
+// 0x490250 / 0x490310 / 0x4902f0: vtable 0x6ff3b0.
+u8 *__fastcall TextPart6ff3b0_Ctor(u8 *part, void *, u32 value);
+void __fastcall TextPart6ff3b0_Dtor(u8 *part);
+u8 *__fastcall TextPart6ff3b0_DeletingDtor(u8 *part, void *, u32 flags);
+
+// 0x4904c0 / 0x490580 / 0x490560: vtable 0x6ff3e0.
+u8 *__fastcall TextPart6ff3e0_Ctor(u8 *part, void *, u32 value);
+void __fastcall TextPart6ff3e0_Dtor(u8 *part);
+u8 *__fastcall TextPart6ff3e0_DeletingDtor(u8 *part, void *, u32 flags);
+
+// 0x4907b0 / 0x490870 / 0x490850: vtable 0x6ff410.
+u8 *__fastcall TextPart6ff410_Ctor(u8 *part, void *, u32 value);
+void __fastcall TextPart6ff410_Dtor(u8 *part);
+u8 *__fastcall TextPart6ff410_DeletingDtor(u8 *part, void *, u32 flags);
+
+// 0x4909f0 / 0x490ab0 / 0x490a90: vtable 0x6ff440.
+u8 *__fastcall TextPart6ff440_Ctor(u8 *part, void *, u32 value);
+void __fastcall TextPart6ff440_Dtor(u8 *part);
+u8 *__fastcall TextPart6ff440_DeletingDtor(u8 *part, void *, u32 flags);
+
+// 0x490c30 / 0x490cf0 / 0x490cd0: vtable 0x6ff470.
+u8 *__fastcall TextPart6ff470_Ctor(u8 *part, void *, u32 value);
+void __fastcall TextPart6ff470_Dtor(u8 *part);
+u8 *__fastcall TextPart6ff470_DeletingDtor(u8 *part, void *, u32 flags);
+
+// 0x490e60 / 0x490f20 / 0x490f00: vtable 0x6ff4a0.
+u8 *__fastcall TextPart6ff4a0_Ctor(u8 *part, void *, u32 value);
+void __fastcall TextPart6ff4a0_Dtor(u8 *part);
+u8 *__fastcall TextPart6ff4a0_DeletingDtor(u8 *part, void *, u32 flags);
+
+// 0x491170 / 0x491230 / 0x491210: vtable 0x6ff4d0, the layout flag set.
+u8 *__fastcall TextPart6ff4d0_Ctor(u8 *part, void *, u32 value);
+void __fastcall TextPart6ff4d0_Dtor(u8 *part);
+u8 *__fastcall TextPart6ff4d0_DeletingDtor(u8 *part, void *, u32 flags);
+
+// 0x491710 / 0x4917d0 / 0x4917b0: vtable 0x6ff500.
+u8 *__fastcall TextPart6ff500_Ctor(u8 *part, void *, u32 value);
+void __fastcall TextPart6ff500_Dtor(u8 *part);
+u8 *__fastcall TextPart6ff500_DeletingDtor(u8 *part, void *, u32 flags);
+
+// 0x491920 / 0x4919e0 / 0x4919c0: vtable 0x6ff530.
+u8 *__fastcall TextPart6ff530_Ctor(u8 *part, void *, u32 value);
+void __fastcall TextPart6ff530_Dtor(u8 *part);
+u8 *__fastcall TextPart6ff530_DeletingDtor(u8 *part, void *, u32 flags);
+
+}

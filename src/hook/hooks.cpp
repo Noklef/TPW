@@ -123,6 +123,7 @@
 #include "../game/gfx/surfacepool.h"
 #include "../game/gfx/texsprite.h"
 #include "../game/gfx/texatlas.h"
+#include "../game/gfx/textlayout.h"
 #include "../game/gfx/tvstatic.h"
 #include "../game/gfx/wctimage.h"
 #include "../game/core/crt.h"
@@ -290,6 +291,7 @@
 #include "../game/render/engineerrors.h"
 #include "../game/render/texcoords.h"
 #include "../game/render/graphicssettings.h"
+#include "../game/render/textparts.h"
 #include "../game/render/weatherfx.h"
 #include "../game/online/servers.h"
 #include "../game/frontend/helpbg.h"
@@ -307,8 +309,10 @@
 #include "../game/ui/guirect.h"
 #include "../game/ui/guitimers.h"
 #include "../game/ui/msgqueue.h"
+#include "../game/ui/panel7b9940.h"
 #include "../game/ui/textpool.h"
 #include "../game/ui/window.h"
+#include "../game/ui/windowreg.h"
 
 namespace tpw::hook {
 
@@ -888,6 +892,7 @@ const Hook kHooks[] = {
     {"Things_CountGroup",         0x0048ca00, (void *)&Things_CountGroup, {0xc7, 0x05, 0x60, 0x26, 0x7c}},
     {"Things_CountOne",           0x0048cad0, (void *)&Things_CountOne, {0xa1, 0x60, 0x26, 0x7c, 0x00}},
     {"Things_StepGroup",          0x0048caf0, (void *)&Things_StepGroup, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"Things_StepGroupBack",      0x0048cbe0, (void *)&Things_StepGroupBack, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
     {"Object_HandleDayMessage",   0x004dd320, (void *)&Object_HandleDayMessage, {0x53, 0x56, 0x57, 0x8b, 0x7c}},
     {"Object_QueueAddPerson",     0x004ddb90, (void *)&Object_QueueAddPerson, {0x51, 0x53, 0x55, 0x56, 0x57}},
     {"Object_QueuePosition",      0x004ddf50, (void *)&Object_QueuePosition, {0x83, 0xec, 0x08, 0x53, 0x55}},
@@ -2707,6 +2712,7 @@ const Hook kHooks[] = {
     {"Wrap_TexSurfaceB_Blit_58c930", 0x0058c930, (void *)&Wrap_TexSurfaceB_Blit_58c930, {0x2b, 0x49, 0xfc, 0xe9, 0x18}},
     {"Wrap_TexSurfaceB_DeletingDtor_58c950", 0x0058c950, (void *)&Wrap_TexSurfaceB_DeletingDtor_58c950, {0x2b, 0x49, 0xfc, 0xe9, 0x08}},
     {"Wrap_LiveObject7019f8_DeletingDtor_57abe0", 0x0057abe0, (void *)&Wrap_LiveObject7019f8_DeletingDtor_57abe0, {0x2b, 0x49, 0xfc, 0xe9, 0x08}},
+    {"Wrap_Panel7b9940_Detach_481410", 0x00481410, (void *)&Wrap_Panel7b9940_Detach_481410, {0xe9, 0xbb, 0x8f, 0x00, 0x00}},
     {"Table_AddressPlus18",       0x006b0620, (void *)&Table_AddressPlus18, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Table_Address",             0x006b0650, (void *)&Table_Address, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Packed_Read",               0x006b0510, (void *)&Packed_Read, {0x56, 0x8b, 0x74, 0x24, 0x08}},
@@ -3771,6 +3777,17 @@ const Hook kHooks[] = {
     {"LoadScreen_ShowImage",      0x00587130, (void *)&LoadScreen_ShowImage, {0x81, 0xec, 0x8c, 0x00, 0x00}},
     {"SurfacePool_SideIndex",     0x005848b0, (void *)&SurfacePool_SideIndex, {0x8b, 0x44, 0x24, 0x04, 0x83}},
     {"SurfacePool_Next",          0x0058b1f0, (void *)&SurfacePool_Next, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"TextStyle_Ctor",            0x006ad5d0, (void *)&TextStyle_Ctor, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
+    {"TextStyle_Dtor",            0x006ad640, (void *)&TextStyle_Dtor, {0x56, 0x8b, 0xf1, 0xc7, 0x06}},
+    {"TextStyle_DeletingDtor",    0x006ad620, (void *)&TextStyle_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"TextStyle_SetFont",         0x006ad7c0, (void *)&TextStyle_SetFont, {0x56, 0x8b, 0xf1, 0xc7, 0x46}},
+    {"TextStyle_SetColour",       0x006ad6e0, (void *)&TextStyle_SetColour, {0x8b, 0x41, 0x04, 0x56, 0x85}},
+    {"TextStyleHolder_Ctor",      0x006b0230, (void *)&TextStyleHolder_Ctor, {0x56, 0x8b, 0xf1, 0x8d, 0x4e}},
+    {"TextStyleHolder_Dtor",      0x006b0270, (void *)&TextStyleHolder_Dtor, {0xc7, 0x01, 0x3c, 0xa1, 0x70}},
+    {"TextStyleHolder_DeletingDtor", 0x006b0250, (void *)&TextStyleHolder_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"TextLayout_Ctor",           0x006ade00, (void *)&TextLayout_Ctor, {0x51, 0x56, 0x8b, 0xf1, 0x8d}},
+    {"TextLayout_Dtor",           0x006adeb0, (void *)&TextLayout_Dtor, {0x51, 0x56, 0x8b, 0xf1, 0x57}},
+    {"TextLayout_DeletingDtor",   0x006ade90, (void *)&TextLayout_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
@@ -3918,6 +3935,42 @@ const Hook kHooks[] = {
     {"EngineErrors_Push",         0x0056af20, (void *)&EngineErrors_Push, {0x83, 0xec, 0x64, 0x56, 0x8b}},
     {"Model_TexCoords",           0x00581410, (void *)&Model_TexCoords, {0x83, 0xec, 0x40, 0x8b, 0x44}},
     {"GraphicsSettings_Apply",    0x0044d8f0, (void *)&GraphicsSettings_Apply, {0xa1, 0x78, 0x58, 0x78, 0x00}},
+    {"TextPart_Ctor",             0x0048f6a0, (void *)&TextPart_Ctor, {0x6a, 0xff, 0x68, 0xf8, 0x97}},
+    {"TextPart_Dtor",             0x0048f760, (void *)&TextPart_Dtor, {0x6a, 0xff, 0x68, 0x2e, 0x98}},
+    {"TextPart_DeletingDtor",     0x0048f740, (void *)&TextPart_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"TextPart6ff350_Ctor",       0x0048fde0, (void *)&TextPart6ff350_Ctor, {0x6a, 0xff, 0x68, 0x48, 0x98}},
+    {"TextPart6ff350_Dtor",       0x0048fea0, (void *)&TextPart6ff350_Dtor, {0x6a, 0xff, 0x68, 0x7e, 0x98}},
+    {"TextPart6ff350_DeletingDtor", 0x0048fe80, (void *)&TextPart6ff350_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"TextPart6ff380_Ctor",       0x00490040, (void *)&TextPart6ff380_Ctor, {0x6a, 0xff, 0x68, 0x98, 0x98}},
+    {"TextPart6ff380_Dtor",       0x00490100, (void *)&TextPart6ff380_Dtor, {0x6a, 0xff, 0x68, 0xce, 0x98}},
+    {"TextPart6ff380_DeletingDtor", 0x004900e0, (void *)&TextPart6ff380_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"TextPart6ff3b0_Ctor",       0x00490250, (void *)&TextPart6ff3b0_Ctor, {0x6a, 0xff, 0x68, 0xe8, 0x98}},
+    {"TextPart6ff3b0_Dtor",       0x00490310, (void *)&TextPart6ff3b0_Dtor, {0x6a, 0xff, 0x68, 0x1e, 0x99}},
+    {"TextPart6ff3b0_DeletingDtor", 0x004902f0, (void *)&TextPart6ff3b0_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"TextPart6ff3e0_Ctor",       0x004904c0, (void *)&TextPart6ff3e0_Ctor, {0x6a, 0xff, 0x68, 0x38, 0x99}},
+    {"TextPart6ff3e0_Dtor",       0x00490580, (void *)&TextPart6ff3e0_Dtor, {0x6a, 0xff, 0x68, 0x6e, 0x99}},
+    {"TextPart6ff3e0_DeletingDtor", 0x00490560, (void *)&TextPart6ff3e0_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"TextPart6ff410_Ctor",       0x004907b0, (void *)&TextPart6ff410_Ctor, {0x6a, 0xff, 0x68, 0x88, 0x99}},
+    {"TextPart6ff410_Dtor",       0x00490870, (void *)&TextPart6ff410_Dtor, {0x6a, 0xff, 0x68, 0xbe, 0x99}},
+    {"TextPart6ff410_DeletingDtor", 0x00490850, (void *)&TextPart6ff410_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"TextPart6ff440_Ctor",       0x004909f0, (void *)&TextPart6ff440_Ctor, {0x6a, 0xff, 0x68, 0xd8, 0x99}},
+    {"TextPart6ff440_Dtor",       0x00490ab0, (void *)&TextPart6ff440_Dtor, {0x6a, 0xff, 0x68, 0x0e, 0x9a}},
+    {"TextPart6ff440_DeletingDtor", 0x00490a90, (void *)&TextPart6ff440_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"TextPart6ff470_Ctor",       0x00490c30, (void *)&TextPart6ff470_Ctor, {0x6a, 0xff, 0x68, 0x28, 0x9a}},
+    {"TextPart6ff470_Dtor",       0x00490cf0, (void *)&TextPart6ff470_Dtor, {0x6a, 0xff, 0x68, 0x5e, 0x9a}},
+    {"TextPart6ff470_DeletingDtor", 0x00490cd0, (void *)&TextPart6ff470_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"TextPart6ff4a0_Ctor",       0x00490e60, (void *)&TextPart6ff4a0_Ctor, {0x6a, 0xff, 0x68, 0x78, 0x9a}},
+    {"TextPart6ff4a0_Dtor",       0x00490f20, (void *)&TextPart6ff4a0_Dtor, {0x6a, 0xff, 0x68, 0xae, 0x9a}},
+    {"TextPart6ff4a0_DeletingDtor", 0x00490f00, (void *)&TextPart6ff4a0_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"TextPart6ff4d0_Ctor",       0x00491170, (void *)&TextPart6ff4d0_Ctor, {0x6a, 0xff, 0x68, 0xc8, 0x9a}},
+    {"TextPart6ff4d0_Dtor",       0x00491230, (void *)&TextPart6ff4d0_Dtor, {0x6a, 0xff, 0x68, 0xfe, 0x9a}},
+    {"TextPart6ff4d0_DeletingDtor", 0x00491210, (void *)&TextPart6ff4d0_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"TextPart6ff500_Ctor",       0x00491710, (void *)&TextPart6ff500_Ctor, {0x6a, 0xff, 0x68, 0x18, 0x9b}},
+    {"TextPart6ff500_Dtor",       0x004917d0, (void *)&TextPart6ff500_Dtor, {0x6a, 0xff, 0x68, 0x4e, 0x9b}},
+    {"TextPart6ff500_DeletingDtor", 0x004917b0, (void *)&TextPart6ff500_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"TextPart6ff530_Ctor",       0x00491920, (void *)&TextPart6ff530_Ctor, {0x6a, 0xff, 0x68, 0x68, 0x9b}},
+    {"TextPart6ff530_Dtor",       0x004919e0, (void *)&TextPart6ff530_Dtor, {0x6a, 0xff, 0x68, 0x9e, 0x9b}},
+    {"TextPart6ff530_DeletingDtor", 0x004919c0, (void *)&TextPart6ff530_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
@@ -4184,12 +4237,19 @@ const Hook kHooks[] = {
     {"TextPool_Take",             0x006695b9, (void *)&TextPool_Take, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"TextPool_Free",             0x00669586, (void *)&TextPool_Free, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"TextPool_Init",             0x00669440, (void *)&TextPool_Init, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"TextPool_Dup",              0x006696b4, (void *)&TextPool_Dup, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiTimers_Cancel",          0x00669e3a, (void *)&GuiTimers_Cancel, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiTimers_Fire",            0x00669d77, (void *)&GuiTimers_Fire, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiTimers_Add",             0x00669c8d, (void *)&GuiTimers_Add, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiTimers_Reset",           0x00669eb3, (void *)&GuiTimers_Reset, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiTimers_Free",            0x00669c62, (void *)&GuiTimers_Free, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiTimers_Init",            0x00669efb, (void *)&GuiTimers_Init, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Panel7b9940_Detach",        0x0048a3d0, (void *)&Panel7b9940_Detach, {0xe8, 0x32, 0xf2, 0x1c, 0x00}},
+    {"GuiWindows_FindByHash",     0x00659c42, (void *)&GuiWindows_FindByHash, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiWindows_FindByName",     0x00659bc9, (void *)&GuiWindows_FindByName, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Gui_HashName",              0x006588b6, (void *)&Gui_HashName, {0x55, 0x8b, 0xec, 0x51, 0xc7}},
+    {"GuiWindows_Clear",          0x00659b52, (void *)&GuiWindows_Clear, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiWindows_Register",       0x00659a58, (void *)&GuiWindows_Register, {0x55, 0x8b, 0xec, 0x83, 0xec}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

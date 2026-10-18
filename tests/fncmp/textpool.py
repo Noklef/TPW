@@ -1,9 +1,9 @@
-# The GUI library's text pools (src/game/ui/textpool: 0x669440, 0x669586, 0x6695b9, 0x66969e) against the originals. Init: the four
-# sizes small (now and then 0, 4 or less, equal or negative), the short row count below, equal to or above the long one; the heap
-# failing the first or second allocation now and then. Free: the blocks set or 0. Take: pools of 1-8 rows of 5-20 characters (each
-# row free or not), the blocks now and then 0, the length near either row length or anywhere. Release: a row or 0. The globals start
-# random.
-# usage: textpool.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Init,Free,Take,Release)
+# The GUI library's text pools (src/game/ui/textpool: 0x669440, 0x669586, 0x6695b9, 0x66969e, 0x6696b4) against the originals.
+# Init: the four sizes small (now and then 0, 4 or less, equal or negative), the short row count below, equal to or above the long
+# one; the heap failing the first or second allocation now and then. Free: the blocks set or 0. Take: pools of 1-8 rows of 5-20
+# characters (each row free or not), the blocks now and then 0, the length near either row length or anywhere. Release: a row or 0.
+# Dup: Take's pools and a string (high characters too) whose length is near either row length or short. The globals start random.
+# usage: textpool.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Init,Free,Take,Release,Dup)
 import os
 import struct
 import sys
@@ -11,9 +11,10 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, RAM, Bench, Call, heap  # noqa: E402
 
-CALLS = {'Init': 0x669440, 'Free': 0x669586, 'Take': 0x6695b9, 'Release': 0x66969e}
-B = Bench([(0x669440, 0x669586), (0x669586, 0x6695b9), (0x6695b9, 0x66969e), (0x66969e, 0x6696b4)])
-LONG, SHORT = RAM, RAM + 0x1000
+CALLS = {'Init': 0x669440, 'Free': 0x669586, 'Take': 0x6695b9, 'Release': 0x66969e, 'Dup': 0x6696b4}
+B = Bench([(0x669440, 0x669586), (0x669586, 0x6695b9), (0x6695b9, 0x66969e), (0x66969e, 0x6696b4), (0x6696b4, 0x6696fc),
+           (0x67acd0, 0x67acee), (0x67bf10, 0x67bf3d)])
+LONG, SHORT, TEXT = RAM, RAM + 0x1000, RAM + 0x2000
 GLOBALS = 0xfaa63c   # short block, short length, long block, long length, long rows, short rows
 
 
@@ -52,6 +53,10 @@ def case(r):
         return Call(CALLS[op], [row], regions)
     regions[GLOBALS] = struct.pack('<6I', r.choice([SHORT] * 9 + [0]), short_length, r.choice([LONG] * 9 + [0]), long_length,
                                    long_rows, short_rows)
+    if op == 'Dup':
+        n = r.choice([short_length - 2, short_length - 1, short_length, long_length - 1, long_length, r.randrange(4), r.randrange(30)])
+        regions[TEXT] = b''.join(r.randrange(1, 0x10000).to_bytes(2, 'little') for _ in range(max(n, 0))) + b'\0\0' + r.bytes(8)
+        return Call(CALLS[op], [TEXT], regions, ret='a')
     length = r.choice([short_length - 1, short_length, long_length - 1, long_length, r.randrange(-3, 25), r.getrandbits(32)])
     return Call(CALLS[op], [length & 0xffffffff], regions, ret='a')
 

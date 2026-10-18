@@ -2,7 +2,7 @@
 # the things behind them with a kind, flags and the fields the scans read) and the object definitions they are found through, between none and
 # six things; the finders start from the newest or after a thing. Cat / CatB (0x4824d0 / 0x482da0) pick a finder by a category bit (CatW 0x483740:
 # Cat, again from the start past the last; CatPW 0x483770: CatB, again from the end past the first; Step 0x4b3340: the thing browser's choice 1..6 or another, its thing one of the park's or 0;
-# Group 0x48caf0: an owner whose +4 group is one of the nine or another, its slots 0x3c and 4 recorders, the thing at 0x7c2658 one of the park's or 0): the things
+# Group / GroupB 0x48caf0 / 0x48cbe0 (forwards / backwards): an owner whose +4 group is one of the nine or another, its slots 0x3c and 4 recorders, the thing at 0x7c2658 one of the park's or 0): the things
 # are staff, kind 1 and objects, the staff lists' heads (world +0x1da73c..) and links (+0x210) name handles of the park or 0.
 # usage: thingscan.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=C1,C2,Max,...)
 import os
@@ -26,7 +26,8 @@ CALLS = {'C1': (0x4c9f90, 'c', 0xa0, 'n'), 'C2': (0x4ca0c0, 'c', 0xa0, 'n'), 'Ma
          'Sum': (0x4c9e60, 'c', 0x70, 'n'), 'Cs': (0x4c9a10, 'c', 0xa0, 'n'), 'U3c': (0x519690, 't', 0x130, 'u'), 'U3e': (0x519800, 't', 0x130, 'u'), 'U40': (0x519970, 't', 0x130, 'u'),
          'U42': (0x519c50, 't', 0x130, 'u'), 'U44': (0x519ae0, 't', 0x130, 'u'), 'U46': (0x519dc0, 't', 0x130, 'u'), 'S5': (0x59edd0, 't', 0x50, 's'), 'S6': (0x59ee20, 't', 0x50, 's'), 'S4': (0x59ee70, 't', 0x50, 's'), 'S7': (0x59eec0, 't', 0x50, 's'), 'S8': (0x59ef10, 't', 0x50, 's'),
          'Cat': (0x4824d0, 'c', 0x40c, 'kp'), 'CatB': (0x482da0, 'c', 0x430, 'kp'), 'CatW': (0x483740, 'c', 0x23, 'kp'), 'CatPW': (0x483770, 'c', 0x23, 'kp'),
-         'Step': (0x4b3340, 'c', 0x14c, 'kp'), 'Group': (0x48caf0, 't', 0xe4, 'kp')}   # (Step's and Group's ranges take in their jump tables)
+         'Step': (0x4b3340, 'c', 0x14c, 'kp'), 'Group': (0x48caf0, 't', 0xe4, 'kp'),
+         'GroupB': (0x48cbe0, 't', 0xe4, 'kp')}   # (Step's and Group's ranges take in their jump tables)
 B = Bench([(a, a + n) for (a, _c, n, _s) in CALLS.values()] + [(0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x4e0440, 0x4e0450),
                                                               (0x4e2710, 0x4e2740), (0x4dd4e0, 0x4dd500), (0x412e90, 0x412eea), (0x5da3c0, 0x5da3c1), (0x41a960, 0x41a970), (0x5161b0, 0x516200), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c), (0x519510, 0x519550),
                                                               (0x481f80, 0x481fa0), (0x481fc0, 0x482030), (0x4cd300, 0x4cd331)])
@@ -95,7 +96,7 @@ CATEGORIES = [1 << k for k in range(16)]
 
 def category(r, address):
     """The finder by category (a bit, mostly): the park's things of the staff kinds, kind 1 and objects; the staff list heads and links handles."""
-    small = address in (0x4b3340, 0x48caf0) and r.random() < 0.5   # (the steps: a lone thing of the group, the one they hold, more often)
+    small = address in (0x4b3340, 0x48caf0, 0x48cbe0) and r.random() < 0.5   # (the steps: a lone thing of the group, the one they hold, more often)
     regions, handles, things = park(r, count=r.choice([1, 1, 2]) if small else
                                     r.choice([0, 1, 2, 3, 4, 6, 6]) if address == 0x4824d0 or r.random() < 0.05 else r.choice([1, 2, 3, 4, 6, 6]),
                                     kinds=(4, 5, 6, 7, 8, 1, 1, 1, 3, 3, 3, 3, 3, 2, 0))
@@ -113,7 +114,7 @@ def category(r, address):
         choice = r.choice([1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 0, 7, 0xffffffff, r.getrandbits(32)])
         regions[0x7cc304] = struct.pack('<3I', r.getrandbits(32), prev, choice)
         return Call(address, [], regions, conv='c', ret='v')
-    if address == 0x48caf0:
+    if address in (0x48caf0, 0x48cbe0):
         group = r.choice(GROUPS + GROUPS + [-3, 4, 0x3e9, 0x3ed, r.getrandbits(32)])
         regions[OWNER] = struct.pack('<2I', OWNER_VT, group & 0xffffffff) + r.bytes(8)
         regions[OWNER_VT] = vtable({})
