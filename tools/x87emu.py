@@ -483,6 +483,14 @@ class Emu:
                 res = a if not m else ((a >> m) | (a << (bits - m)) if mn == 'ROR' else (a << m) | (a >> (bits - m))) & mask
                 self.cf = bool(res >> (bits - 1)) if mn == 'ROR' else bool(res & 1)
                 self.put(o[0], res)
+        elif mn in ('RCR', 'RCL'):  # through CF: a rotate of the operand's size + 1 bits with CF above it; CF set, SF/ZF kept (_alldiv's)
+            a, n, bits = self.get(o[0]), self.get(o[1]) & 31, 8 * self.size(o[0])
+            n %= bits + 1
+            if n:
+                w, mask = int(self.cf) << bits | a, (1 << (bits + 1)) - 1
+                w = (w >> n | w << (bits + 1 - n)) & mask if mn == 'RCR' else (w << n | w >> (bits + 1 - n)) & mask
+                self.cf = bool(w >> bits)
+                self.put(o[0], w & ((1 << bits) - 1))
         elif mn == 'MOVAPS' and len(o) == 2 and o[0] == o[1]:  # a register moved onto itself: the compiler's alignment filler
             pass
         elif mn == 'CDQ':

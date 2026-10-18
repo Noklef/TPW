@@ -1,20 +1,52 @@
 # The objects' definition lookups, counters and setters (src/game/world/object: 0x4dd4e0, 0x4e1670,
 # 0x4e1690, 0x4e1e00, 0x4e2190, 0x4e21c0, 0x4e2710, 0x4e2b50) against the originals: ids found in
-# gObjectDefs or its cache (the pushed high word anything), counts and averages about the wraps.
+# gObjectDefs or its cache (the pushed high word anything), counts and averages about the wraps. The scrap value by age (0x4e2290): the
+# world's calendar clock (funnytime.py's recorders) and the object's date set so its age is about 0, 30 days and 1 to 3 years (365 days)
+# or anything; an upgrade level of 0 to 7.
 # usage: object.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=GetDef,AddCustomer,...)
 import os
+import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, put  # noqa: E402
+from fncmp import IMPORT_TABLE as IAT, LOG, Bench, Call, RAM, fill, import_table, log_region, put, set_return  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from funnytime import IMPORTS, K, RANGES as CLOCK_RANGES  # noqa: E402
 
 B = Bench([(0x4dd4e0, 0x4dd4fb), (0x4e1670, 0x4e168b), (0x4e1690, 0x4e16ab), (0x4e1e00, 0x4e1e2b),
            (0x4e2190, 0x4e21a2), (0x4e21c0, 0x4e21d2), (0x4e2710, 0x4e273b), (0x4e2b50, 0x4e2b7b),
-           (0x412e90, 0x412eea)])
+           (0x412e90, 0x412eea), (0x4e2290, 0x4e23f4), (0x5fc550, 0x5fc570)] + CLOCK_RANGES)
 DEFS, OBJ, ITEMS, NITEMS = 0x7890a0, RAM, RAM + 0x400, 16
+WORLD = 0x31000000   # (its calendar clock at +0x2a0 and its ticks at +0x1da70c)
+DAY, YEAR = 864000000000, 365 * 864000000000   # FILETIME ticks
 CALLS = {'GetDef': (0x4dd4e0, 'f', 'a'), 'AddWalkAway': (0x4e1670, 'f', 'v'), 'AddCustomer': (0x4e1690, 'f', 'v'),
          'Happiness': (0x4e1e00, 't', 'v'), 'Quality': (0x4e2190, 't', 'v'), 'Chance': (0x4e21c0, 't', 'v'),
-         'Word284': (0x4e2710, 't', 'a'), 'IsKind3': (0x4e2b50, 'f', 'a')}
+         'Word284': (0x4e2710, 't', 'a'), 'IsKind3': (0x4e2b50, 'f', 'a'), 'Scrap': (0x4e2290, 'f', 'a')}
+
+
+def clock(r, regions, obj):
+    """The world's clock, its ticks and the imports; the object's date (+0x18) an age chosen about the steps before now."""
+    log = log_region()
+    regions[LOG] = log
+    regions[IAT] = import_table(log, IMPORTS)
+    fill(log, K['FileTimeToSystemTime'], 1, r.bytes(16), 0)
+    set_return(log, K['FileTimeToSystemTime'], r.choice([0, 1]))
+    regions[0x80239c] = struct.pack('<I', WORLD)
+    rate, ticks = r.choice([0, 1, 15000, r.randrange(1 << 16), r.getrandbits(32)]), r.choice([0, 4, r.randrange(1 << 20), r.getrandbits(32)])
+    start = r.choice([0, r.getrandbits(56), r.getrandbits(64)])
+    c = bytearray(r.bytes(0x20))
+    put(c, 0, 'Q', start)
+    put(c, 0x1c, 'I', rate)
+    regions[WORLD + 0x2a0] = c
+    regions[WORLD + 0x1da70c] = struct.pack('<I', ticks)
+    product = rate * ticks
+    seconds = product // 4 if product < 1 << 63 else -((2 ** 64 - product) // 4)
+    now = (start + seconds * 10000000) % 2 ** 64
+    age = r.choice([0, 1, 30 * DAY - 1, 30 * DAY, 30 * DAY + 1, YEAR - 1, YEAR, 2 * YEAR - 1, 2 * YEAR, 3 * YEAR - 1, 3 * YEAR, 3 * YEAR + 1,
+                    r.randrange(30 * DAY), r.randrange(4 * YEAR), r.randrange(1 << 63), -r.randrange(1, 4 * YEAR), r.getrandbits(64),
+                    YEAR << 32, (YEAR << 32) + YEAR, (30 * DAY) << 32])
+    put(obj, 0x18, 'Q', (now - age) % 2 ** 64)
+    obj[0x50] = r.choice([0, 0, 1, r.randrange(8)])
 
 
 def word(r):
@@ -22,13 +54,13 @@ def word(r):
 
 
 def case(r):
-    op = r.choice(OPS)
+    op = r.deal(OPS)
     addr, conv, ret = CALLS[op]
     obj = bytearray(r.bytes(0x400))
     for off in (0x1a0, 0x1a4, 0x1a8, 0x230, 0x340):
         put(obj, off, 'I', word(r))
     defs = bytearray(r.bytes(0x740))
-    items = bytearray(r.bytes(NITEMS * 0x300))
+    items = bytearray(r.bytes(NITEMS * 0x300 + 0x400))   # (the last's upgrade levels run past its 0x300)
     n = r.randrange(1, NITEMS + 1)
     ids = [r.choice([i, r.getrandbits(16)]) for i in range(NITEMS)]
     for i in range(NITEMS):
@@ -42,6 +74,14 @@ def case(r):
     put(defs, 0x730, 'HxxI', id_ if hit else id_ ^ r.randrange(1, 0x10000),
         ITEMS + 0x300 * r.randrange(NITEMS))
     put(obj, 0xe, 'H', id_)
+    if op == 'Scrap':
+        regions = {DEFS: defs, OBJ: obj, ITEMS: items}
+        clock(r, regions, obj)
+        for i in range(NITEMS):
+            put(items, i * 0x300 + 0x188, 'i', r.choice([0, 1, -1, 100, r.getrandbits(32) - (1 << 31)]))
+        if r.random() < 0.5:
+            put(obj, 0x1a0, 'I', 0)
+        return Call(addr, [OBJ], regions, conv=conv, ret=ret)
     args = [OBJ]
     if op in ('Happiness', 'Quality', 'Chance'):
         args.append(word(r))

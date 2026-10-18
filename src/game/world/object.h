@@ -1,5 +1,5 @@
 // The objects (thing model 3: rides, shops, facilities; serialized at 0x4db7d0): reimplementation
-// of 0x4dd4e0, 0x4e1670, 0x4e1690, 0x4e1e00, 0x4e2190, 0x4e21c0, 0x4e2710 and 0x4e2b50 (thiscall).
+// of 0x4dd4e0, 0x4e1670, 0x4e1690, 0x4e1e00, 0x4e2190, 0x4e21c0, 0x4e2290, 0x4e2710 and 0x4e2b50 (thiscall).
 // +0xe the definition's id; +0x18c mQualityOfGoods, +0x190 mChanceOfWinning; +0x1a0 mNumCustomers,
 // +0x1a4 mNumWalkAways, and their histories, CircBufU32s of 30 at +0x1a8 and +0x230 (mTemp first,
 // the count so far); +0x340 a running average of the customers' happiness changes.
@@ -28,6 +28,12 @@ u16 *__fastcall Object_DefWord284(const u8 *object, void *, u16 *out);
 
 // 0x4e2b50: whether the definition's +0x9c is 3.
 u32 __fastcall Object_DefIsKind3(const u8 *object);
+
+// 0x4e2290: the object's scrap value by its age, the world's funny time now (FunnyTime_Now) less the dword pair at +0x18: the
+// definition's mScrapValueYear1..4 (+0x188 + 4 * year, the last for 3 years or more; only the quotient's low dword is looked at) of the
+// upgrade level the byte +0x50 picks (+0x40 each); 100 instead when under 30 days old, with no customer yet (+0x1a0) and the first
+// level's first-year value positive (signed).
+u32 __fastcall Object_ScrapValue(const u8 *object);
 
 // 0x535600 (thiscall; kind, pops 4): whether the kind is allowed beside the kind in the dword at +8 (see the code: 0 always, 4 only
 // against anything but 4, 0x15 and 1 with their partners, equal kinds, 0 as the object's kind, 4 against 1, and 3 against 1 only while the
