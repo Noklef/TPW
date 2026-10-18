@@ -67,7 +67,9 @@ def fixups(r, address, regions, args):
         at = 0x300 - struct.unpack_from('<I', obj, 0x2fc)[0] - (0x3c if address == 0x58c2d0 else 0x10)   # (this lowered by the offset the thunk takes off)
         put(obj, at, 'I', RAM + 0x220)
         put(regions[RAM], 0x224, 'I', r.choice([0, 4, 0x10, 0x20, 0x30]))
-        if address == 0x58c8e0:   # pixels already: 0 (TexAtlas_Alloc is not reached)
+        if address == 0x58c8e0:   # pixels already: 0 (TexAtlas_Alloc is not reached); none at this - 0xc itself now and then, so a
+            if r.random() < 0.5:   # thunk that took nothing off would go on to allocate
+                put(obj, 0x2f4, 'I', 0)
             put(obj, at + 4, 'I', r.getrandbits(32) | 1)
         if address == 0x58c8f0:   # the pixels 0, tracked or not (the table at 0x87b1f8, its count 0-4 at 0x8bb214)
             pairs = [r.getrandbits(32) | 0x80000000 for _ in range(10)]
