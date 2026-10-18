@@ -3,6 +3,8 @@
 #include <cstdint>
 
 #include "../core/gameheap.h"
+#include "../render/particles.h"
+#include "guirect.h"
 #include "window.h"
 
 namespace {
@@ -21,6 +23,25 @@ s32 __cdecl Dialog7cc47c_Message6Off() { return Window_SendMessage(window(0x007c
 s32 __cdecl Dialog7cc4b4_Message4() { return Window_SendMessage(window(0x007cc4b4), 4, 0, 0); }
 
 s32 __cdecl Dialog7cc4b4_Message6Off() { return Window_SendMessage(window(0x007cc4b4), 6, 0, 0); }
+
+void __cdecl Dialog7cc4b4_SetEffect(u8 *window, u32 on) {
+    u32 &effect = *reinterpret_cast<u32 *>(0x007cc4bc);
+    if ((u8)on == 0) {
+        if (effect != 0) {
+            ParticleSystem_End(effect);
+            effect = 0;
+        }
+        return;
+    }
+    u8 rect[12];
+    GuiRect_Ctor(rect);
+    Window_GetRect(window, nullptr, rect, 1);
+    const s32 top = *reinterpret_cast<s16 *>(rect + 6), bottom = *reinterpret_cast<s16 *>(rect + 0xa);
+    const s32 centre = top + ((bottom - top) >> 1);
+    const s32 z = (s32)((u32)centre * 75000u) / 1536;
+    if (effect == 0) effect = (u32)Particle_Spawn(0x61, 50000, 0, z);
+    GuiRect_Dtor(rect);
+}
 
 s32 __cdecl Dialog7cc4c4_Message4() { return Window_SendMessage(window(0x007cc4c4), 4, 0, 0); }
 

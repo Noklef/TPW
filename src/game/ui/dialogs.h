@@ -16,6 +16,12 @@ s32 __cdecl Dialog7cc47c_Message6Off();
 s32 __cdecl Dialog7cc4b4_Message4();
 s32 __cdecl Dialog7cc4b4_Message6Off();
 
+// 0x4b8ee0 (cdecl (window, on: a byte); the 0x7cc4b4 dialog's, whose handler calls it with (0, 0) as it goes; name unconfirmed): on: the
+// window's inner rectangle (Window_GetRect, through a GUI rectangle on the stack) gives its vertical centre, top + (bottom - top) / 2
+// (an arithmetic shift), and unless the particle system [0x7cc4bc] is already set it becomes Particle_Spawn(0x61, 50000, 0, centre *
+// 75000 / 1536 (32-bit, wrapping; the quotient toward 0)). Off: the system ended (ParticleSystem_End) and [0x7cc4bc] cleared when set.
+void __cdecl Dialog7cc4b4_SetEffect(u8 *window, u32 on);
+
 // 0x4b9c00 / 0x4b9c20 (cdecl; names unconfirmed): Window_SendMessage of the window [0x7cc4c4] with message 4 (0, 0) and message 6 (1, 0).
 s32 __cdecl Dialog7cc4c4_Message4();
 s32 __cdecl Dialog7cc4c4_Message6On();

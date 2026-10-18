@@ -4759,6 +4759,7 @@ address,name,kind,confidence,notes
 0x004bcef0,Windows7cc8bc_Message6Pair,function,low,"reimplemented (src/game/ui/dialogs); cdecl: message 6 (same, 0) to [0x7cc8bc] and (!same, 0) to [0x7cc8c0], same = (0x7cc698 == [0x7cc8bc]); 0x7cc698 = 0; the second result"
 0x004a2590,Dialog7cb2b8_Child21Post,function,low,"reimplemented (src/game/ui/dialogs); cdecl (value): dialog [0x7cb2b8] and value != 0: child 0x21; 0 when its DwordA0(2) is set, else message 0xb sent and 0xa (value, 0) posted; the value otherwise"
 0x00492e00,WindowAt10_Handler,function,low,"reimplemented (src/game/ui/dialogs); cdecl (window, message, a, b): on 0x14 the window's object (A0[0]) +0x10 = 0; then Window_CallDefault"
+0x004b8ee0,Dialog7cc4b4_SetEffect,function,low,"reimplemented (src/game/ui/dialogs); cdecl (window, on): on: unless [0x7cc4bc] is set, Particle_Spawn(0x61, 50000, 0, the inner rectangle's centre * 75000 / 1536); off: that system ended and cleared"
 0x00659607,GuiManager_CallSlot4,function,low,"reimplemented (src/game/ui/guimanager); cdecl: slot 4 (thiscall, no arguments) of the GUI manager [0x77c48c], its result"
 0x0065961c,GuiManager_CallSlot3,function,low,"reimplemented (src/game/ui/guimanager); cdecl: slot 3 (thiscall, no arguments) of the GUI manager [0x77c48c], its result"
 0x00659631,GuiManager_Word4Set,function,low,"reimplemented (src/game/ui/guimanager); cdecl: 1 when the GUI manager's word +4 (Fn_659790) is not 0, else 0"
