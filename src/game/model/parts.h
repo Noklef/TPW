@@ -13,6 +13,10 @@ extern "C" {
 void __cdecl Model_MarkFacesByMask(const u8 *const *holder, u32 mask);
 void __cdecl Model_MarkFacesNotValue(const u8 *const *holder, u32 value);
 
+// 0x44ba60 (name unconfirmed): the same for each part whose flags (+0) have 0x80 (the part count read once), the holder's (*holder)
+// +0x28 dword then getting flag 2 as well.
+void __cdecl Model_MarkFlag80Faces(const u8 *const *holder);
+
 // 0x44b220 / 0x44b3c0: the first part (of holder +8 -> +4) whose +4 / +8 is key and whose
 // flags have any of mask's bits, or -1. A mask with none of 0x3da1f83 / 0x3da1f82 becomes
 // 0x3da1f82 / 1.

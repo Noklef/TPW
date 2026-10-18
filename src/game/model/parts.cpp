@@ -45,6 +45,16 @@ void __cdecl Model_MarkFacesNotValue(const u8 *const *holder, u32 value) {
     mark_faces(holder, [value](u32 v) { return v != value; });
 }
 
+void __cdecl Model_MarkFlag80Faces(const u8 *const *holder) {
+    const u32 n = at<u16>(at<const u8 *>(*holder, 4), 0x48);
+    for (u32 i = 0; i < n; ++i) {
+        const u8 *model = at<const u8 *>(*holder, 4);
+        if (!(at<u8>(at<const u8 *>(model, 0x7c), i * 0x14) & 0x80)) continue;
+        at<u32>(face(model, i), 0) |= 0x80000010;
+        at<u32>(at<u8 *>(*holder, 0x28), 0) |= 2;
+    }
+}
+
 u32 __cdecl Model_FindPartByKey4(const u8 *holder, u32 mask, u32 key) {
     return find_part(holder, mask & 0x3da1f83 ? mask : 0x3da1f82, key, 4);
 }

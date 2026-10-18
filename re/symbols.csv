@@ -4350,6 +4350,7 @@ address,name,kind,confidence,notes
 0x0044b270,Model_NthPart,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, nth): the nth part (from 1) with flags & mask, or -1"
 0x0044b2b0,Model_CountParts,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask): parts with flags & mask"
 0x0044b3c0,Model_FindPartByKey8,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +8 == key and flags & mask (mask defaults 1), or -1"
+0x0044ba60,Model_MarkFlag80Faces,function,low,reimplemented (src/game/model/parts); the faces of the parts with flag 0x80 marked
 0x0045bed0,Holder_FlagModel,function,high,reimplemented (src/game/model/holder); cdecl (holder**): model (+4) +0x30 |= 0x200
 0x0045bef0,Holder_SetPosition,function,high,"reimplemented (src/game/model/holder); cdecl (holder, x, y, z): model (+4) matrix (+0x78, +0x10) translation = x, y, z"
 0x004587b0,Ride_SlotKey,function,high,"reimplemented (src/game/model/holder); cdecl u32 (ride, i): slot i's +8 of the ride's holder (0x7a4610), 0 for a null slot"
