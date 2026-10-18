@@ -282,6 +282,7 @@
 #include "../game/render/dynfaces.h"
 #include "../game/render/lightsource.h"
 #include "../game/render/clipcodes.h"
+#include "../game/render/clipedge.h"
 #include "../game/render/dxerrors.h"
 #include "../game/render/quad.h"
 #include "../game/render/viewport.h"
@@ -4012,6 +4013,12 @@ const Hook kHooks[] = {
     {"FixedVerts_Pack",           0x00563220, (void *)&FixedVerts_Pack, {0x8b, 0x44, 0x24, 0x08, 0x85}},
     {"FixedVerts_PackRounded",    0x00563130, (void *)&FixedVerts_PackRounded, {0x55, 0x8b, 0xec, 0x51, 0xa1}},
     {"VertexBlock_Add",           0x0053ddd0, (void *)&VertexBlock_Add, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"ClipEdge_YW",               0x00561c40, (void *)&ClipEdge_YW, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
+    {"ClipEdge_YNegW",            0x00561ea0, (void *)&ClipEdge_YNegW, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
+    {"ClipEdge_XW",               0x00562100, (void *)&ClipEdge_XW, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
+    {"ClipEdge_XNegW",            0x00562360, (void *)&ClipEdge_XNegW, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
+    {"ClipEdge_ZW",               0x005625c0, (void *)&ClipEdge_ZW, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
+    {"ClipEdge_Z0",               0x00562820, (void *)&ClipEdge_Z0, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
