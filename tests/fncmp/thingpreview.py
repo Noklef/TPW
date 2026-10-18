@@ -2,14 +2,14 @@
 # edges, a thing whose script +0xc is a live slot, an empty one, 0 or out of range, the depth small or wide, the scale floats (whole,
 # fractions, huge past __ftol's range, infinities, NaNs), [0x74f898] (Sprite_FlipY's height) a few or random; the sprite scripts
 # ready or not, their slot table (now and then full, so it grows: the heap) and the shown copy [0x7c24d8] / [0x7c24a0] set or not.
-# Hide: the same globals. The heap region serves GlobalAlloc / GlobalFree.
+# Hide: the same globals. The heap region serves GlobalAlloc / GlobalFree (global_heap).
 # usage: thingpreview.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Show,Hide)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, RAM, Bench, Call, heap, put  # noqa: E402
+from fncmp import HEAP, RAM, Bench, Call, global_heap, heap, put  # noqa: E402
 
 CALLS = {'Show': 0x486530, 'Hide': 0x486630}
 B = Bench([(0x486530, 0x486601), (0x486630, 0x486652), (0x475010, 0x476a30), (0x476a70, 0x476a81), (0x67a830, 0x67a857),
@@ -45,7 +45,7 @@ def case(r):
     shown = bytearray(r.bytes(0x40))  # 0x7c24a0: the copy's slot; 0x7c24d8: the thing shown
     put(shown, 0, 'i', r.choice(live + [0, -1, nslots, r.randrange(13)]) if live else r.choice([0, -1, r.randrange(13)]))
     put(shown, 0x38, 'I', r.choice([THING, THING, 0, 0, r.getrandbits(32)]))
-    regions = {SCRIPTS: r.bytes(STRIDE * NSCRIPTS), TABLE: struct.pack('<12I', *slots), 0x7b49f0: g, 0x7c24a0: shown, HEAP: heap()}
+    regions = {SCRIPTS: r.bytes(STRIDE * NSCRIPTS), TABLE: struct.pack('<12I', *slots), 0x7b49f0: g, 0x7c24a0: shown, HEAP: heap(), **global_heap()}
     if op == 'Hide':
         return Call(CALLS[op], [], regions)
     rect = bytearray(r.bytes(0x10))

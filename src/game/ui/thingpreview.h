@@ -9,8 +9,8 @@ extern "C" {
 
 // 0x486530 (cdecl (rect, thing, depth, scale: a float)): any copy shown is killed (SpriteScript_Kill [0x7c24a0] while [0x7c24d8]
 // is set), then [0x7c24d8] = thing; with no script at the thing's +0xc it is 0 again and the thing is returned. Else the script is
-// copied (SpriteScript_Clone) to x = (left + (right - left) / 2 - 1000) / 1536-ish (the float 0x6ff154), y = ((bottom - top) / 4
-// (arithmetic shifts) - __ftol(scale * -0.25) - bottom + 0x300) / 1024, z = Sprite_FlipY(depth) and r8 the scale's bits, the rect's
+// copied (SpriteScript_Clone) to x = (left + (right - left) / 2 - 1016) / 1024 (the float 0x6ff154), y = ((bottom - top) / 4
+// (arithmetic shifts) - __ftol(scale * -0.25) - bottom + 0x300) / 768 (0x6ff150), z = Sprite_FlipY(depth) and r8 the scale's bits, the rect's
 // words +4..+0xa read sign-extended; the new slot is stored at [0x7c24a0] and returned.
 u32 __cdecl ThingPreview_Show(const u8 *rect, u8 *thing, s32 depth, u32 scale);
 

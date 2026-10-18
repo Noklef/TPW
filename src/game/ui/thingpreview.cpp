@@ -34,12 +34,12 @@ u32 __cdecl ThingPreview_Show(const u8 *rect, u8 *thing, s32 depth, u32 scale) {
         return (u32)(uintptr_t)thing;
     }
     const s32 left = at<s16>(rect, 4), top = at<s16>(rect, 6), right = at<s16>(rect, 8), bottom = at<s16>(rect, 0xa);
-    const float x = (float)X87_MulIntDouble(((right - left) >> 1) + left - 1000, global<float>(0x006ff154));
+    const float x = (float)X87_MulIntDouble(((right - left) >> 1) + left - 1016, global<float>(0x006ff154));  // / 1024
     float lift;
     std::memcpy(&lift, &scale, 4);
     const u32 sunk = FtolLow(X87Reg(lift) * X87Reg(global<float>(0x006ff160)));  // * -0.25
     const u32 row = (u32)((bottom - top) >> 2) - sunk - (u32)bottom + 0x300;
-    const float y = (float)X87_MulIntDouble((s32)row, global<float>(0x006ff150));  // / 1024
+    const float y = (float)X87_MulIntDouble((s32)row, global<float>(0x006ff150));  // / 768
     const float z = (float)Sprite_FlipY(depth);
     const s32 slot = SpriteScript_Clone(script, bits(x), bits(y), bits(z), scale);
     global<s32>(0x007c24a0) = slot;
