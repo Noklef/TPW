@@ -25,7 +25,8 @@ def value(r):
         r.choice([0.5, 0.75, 1.5, 0.25, -0.3, 0.0, 3.0, 1e-38, -1e-38, 5e-39, 3e38, r.uniform(-4, 4), r.uniform(-4, 4)])
 
 
-OTHER, FORCE, FLAGS, FALL, MONEY, WOBJ, THING, TIME = RAM + 0x800, RAM + 0x900, RAM + 0x940, RAM + 0xa00, RAM + 0xc00, RAM + 0x1000, RAM + 0x40000, RAM + 0x80000
+OTHER, FORCE, FLAGS, FALL, MONEY, WOBJ, THING, TIME = RAM + 0x800, RAM + 0x920, RAM + 0x940, RAM + 0xa00, RAM + 0xc00, RAM + 0x1000, RAM + 0x40000, RAM + 0x80000
+OTHER2 = RAM + 0xe00   # (the second neighbour: +0x64 and +0x68 can differ)
 
 
 def drag(r, regions):
@@ -36,8 +37,8 @@ def drag(r, regions):
     piece += bytes(0x110 - len(piece))
     put(piece, 4, 'I', r.choice([0, 1, 2, 3]))
     put(piece, 8, 'I', r.getrandbits(32) & ~0xc0 | r.choice([0, 0x80]) | r.choice([0, 0x40, 0x40]))
-    put(piece, 0x64, 'I', r.choice([OTHER, OTHER, 0]))
-    put(piece, 0x68, 'I', r.choice([OTHER, OTHER, OTHER, 0]))
+    put(piece, 0x64, 'I', r.choice([OTHER, OTHER, OTHER2, 0]))
+    put(piece, 0x68, 'I', r.choice([OTHER, OTHER, OTHER2, OTHER2, 0]))
     for off in (0x4c, 0x54, 0xe8):
         put(piece, off, 'f', value(r))
     definition += bytes(0x40 - len(definition))
@@ -50,9 +51,16 @@ def drag(r, regions):
     put(kind, 0, 'I', r.choice([0x20, 0x20, 0x20, 0, 0x4020, 0xc020, 0x8000]) | (r.getrandbits(32) & ~0xc020 if r.random() < 0.2 else 0))
     for off in (0x5c, 0x60, 0x64, 0x68, 0x6c, 0xbc, 0xc0, 0xc4):
         put(kind, off, 'f', value(r))
-    other = put(put(put(bytearray(r.bytes(0x110)), 0x100, 'I', r.choice([DEF] * 6 + [0])), 4, 'I', r.choice([0, 1, 2])), 8, 'I', r.getrandbits(32))
-    for off in (0x4c, 0x54, 0xe8):
-        put(other, off, 'f', value(r))
+    if r.random() < 0.25:   # (length == shortest: Unlerp's 0 / x a signed zero, and 0 / 0 with longest == shortest a NaN)
+        kind[0x68:0x6c] = kind[0xbc:0xc0]
+        if r.random() < 0.4:
+            kind[0xc0:0xc4] = kind[0xbc:0xc0]
+    others = []
+    for _ in range(2):
+        other = put(put(put(bytearray(r.bytes(0x110)), 0x100, 'I', r.choice([DEF] * 6 + [0])), 4, 'I', r.choice([0, 1, 2])), 8, 'I', r.getrandbits(32))
+        for off in (0x4c, 0x54, 0xe8):
+            put(other, off, 'f', value(r))
+        others.append(other)
     put(game, 4, 'I', FALL)
     fall = bytearray(r.bytes(0x110))
     put(fall, 0xa8, 'I', r.choice([0, 0x4000, 0xc000]))
@@ -68,7 +76,7 @@ def drag(r, regions):
     slots = bytearray(r.bytes(20 * 4))
     put(slots, 20 * h1, 'I', THING)
     put(slots, 20 * h2, 'I', MONEY)
-    regions.update({PIECE: piece, DEF: definition, TYPE: kind, GAME: game, OTHER: other, FORCE: put(bytearray(r.bytes(0x20)), 0x18, 'I', r.choice([FLAGS, 0])),
+    regions.update({PIECE: piece, DEF: definition, TYPE: kind, GAME: game, OTHER: others[0], OTHER2: others[1], FORCE: put(bytearray(r.bytes(0x20)), 0x18, 'I', r.choice([FLAGS, 0])),
                     FLAGS: struct.pack('<I', r.choice([0, 0x4000, 0xc000, r.getrandbits(32)])), FALL: fall, 0x79c600: glob, MONEY: money,
                     0x7cf83c: struct.pack('<I', WOBJ - 0x1da720), WOBJ: struct.pack('<HHHH', h1, 0, 0, h2), 0x7cfb90: slots,
                     0x80239c: struct.pack('<I', TIME - 0x1da70c), TIME: r.bytes(4), THING + 0x1fc90: r.bytes(4), THING + 0x1f5a0: r.bytes(4)})
