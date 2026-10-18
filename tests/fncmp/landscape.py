@@ -75,7 +75,7 @@ def sample(r):
     put(texture, 8, 'I', flags)
     put(texture, 0x10, 'h', w)
     put(texture, 0x12, 'h', h)
-    put(texture, 0x34, 'h', pitch)
+    put(texture, 0x34, 'h', -pitch if r.random() < 0.1 else pitch)   # (a negative pitch reads the rows below the pixels)
     put(texture, 0x40, 'I', pixels)
     regions[tex] = texture
     regions[pixels] = r.bytes(max(pitch * abs(h), 1) * 4 + 0x40)
