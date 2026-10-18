@@ -1,12 +1,15 @@
 #include "nav.h"
 
 #include <cstdint>
+#include <initializer_list>
 
+#include "../core/accessors.h"
 #include "../core/crt.h"
 #include "../core/savegame.h"
 #include "../core/trivial.h"
 #include "../math/intpair.h"
 #include "mapcell.h"
+#include "route.h"
 
 namespace {
 
@@ -14,6 +17,25 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 // a * b in 16.16 fixed point: the 64-bit product's bits 16-47 (imul; shl edx, 16; shr eax, 16; or).
 s32 MulFixed(s32 a, s32 b) { return (s32)(((long long)a * b) >> 16); }
+
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+// The octagonal length of a - b (IntPair_Sub): the longer distance and half the shorter, as the larger plus the smaller less half the
+// smaller (NEG for the distances: INT_MIN stays negative, sic).
+s32 OctDist(const s32 *a, const s32 *b) {
+    s32 d[2];
+    IntPair_Sub(reinterpret_cast<const u32 *>(a), nullptr, reinterpret_cast<u32 *>(d), reinterpret_cast<const u32 *>(b));
+    const s32 ax = d[0] < 0 ? (s32)(0u - (u32)d[0]) : d[0];
+    const s32 ay = d[1] < 0 ? (s32)(0u - (u32)d[1]) : d[1];
+    const s32 shorter = ax > ay ? ay : ax;
+    return (s32)((u32)ay - (u32)(shorter >> 1) + (u32)ax);
+}
+
+// The centre (16.16) of the k-th cell of the route at 0x7cf108.
+void CellCentre(s32 *out, s32 k) {
+    out[0] = (s32)(((u32)global<u8>(0x007cf10e + k * 2) << 16) + 0x8000);
+    out[1] = (s32)(((u32)global<u8>(0x007cf10f + k * 2) << 16) + 0x8000);
+}
 
 }  // namespace
 
@@ -201,5 +223,69 @@ u32 __fastcall Nav_Serialize(u8 *nav, void *, Stream *stream, u32 save, s32 vers
 
 u32 __fastcall Nav_SerializeFwd(u8 *nav, void *, Stream *stream, u32 save, s32 version, u32 unused) {
     return Nav_Serialize(nav, nullptr, stream, save, version, unused);
+}
+
+u32 __fastcall Nav_PathTo(u8 *nav, void *, const s32 *target, u32 prepend) {
+    u8 *const route = &global<u8>(0x007cf108);
+    route[2] = (u8)(at<s32>(nav, 8) >> 16);
+    route[3] = (u8)(at<s32>(nav, 0xc) >> 16);
+    route[4] = (u8)(target[0] >> 16);
+    route[5] = (u8)(target[1] >> 16);
+    if (Route_Find(route, at<u32>(nav, 0xb4)) == 0x70000000) {
+        at<s32>(nav, 0x4c) = target[0];
+        at<s32>(nav, 0x50) = target[1];
+        for (u32 offset : {0x54u, 0x58u, 0xa0u, 0xa4u, 0xa8u, 0xacu, 0xb0u, 0x5cu})
+            at<u32>(nav, offset) = 0;
+        at<u8>(nav, 0x60) = 1;
+        at<u32>(nav, 0xb8) = 1;
+        return 0;
+    }
+    if (prepend == 1) {  // the nav's own cell put first (the cells moved up one, the last of 0xfc dropped)
+        for (u32 cell = 0x007cf304; (s32)cell > 0x007cf10e; cell -= 2)
+            global<u16>(cell) = global<u16>(cell - 2);
+        route[6] = (u8)(at<s32>(nav, 8) >> 16);
+        route[7] = (u8)(at<s32>(nav, 0xc) >> 16);
+        if (route[0] < 0xfc)
+            ++route[0];
+    }
+    at<s32>(nav, 0x4c) = target[0];
+    at<s32>(nav, 0x50) = target[1];
+    at<s32>(nav, 0x54) = route[0];
+    at<s32>(nav, 0x58) = route[0] < 5 ? route[0] : 5;
+    s32 a[2], b[2];
+    CellCentre(a, 0);
+    at<s32>(nav, 0xa0) = OctDist(a, &at<s32>(nav, 8));
+    for (s32 k = 0; k < (s32)route[0] - 1; ++k) {
+        CellCentre(a, k);
+        CellCentre(b, k + 1);
+        at<u32>(nav, 0xa0) += (u32)OctDist(b, a);
+    }
+    for (s32 k = 0; k < at<s32>(nav, 0x58); ++k)
+        CellCentre(&at<s32>(nav, 0x64 + k * 8), k);
+    at<u32>(nav, 0xa4) = 0;
+    for (s32 k = 0; k < at<s32>(nav, 0x58) - 1; ++k) {
+        const s32 d = OctDist(&at<s32>(nav, 0x64 + (k + 1) * 8), &at<s32>(nav, 0x64 + k * 8));
+        at<s32>(nav, 0x8c + k * 4) = d;
+        at<u32>(nav, 0xa4) += (u32)d;
+    }
+    at<u32>(nav, 0xa8) = 0;
+    for (s32 k = at<s32>(nav, 0x58) - 1; k < at<s32>(nav, 0x54) - 1; ++k) {
+        CellCentre(a, k);
+        CellCentre(b, k + 1);
+        at<u32>(nav, 0xa8) += (u32)OctDist(b, a);
+    }
+    // (the original also takes the first path point less the position, unused)
+    at<u32>(nav, 0xac) = 0;
+    at<u32>(nav, 0xb0) = 0;
+    at<u32>(nav, 0x5c) = 0;
+    at<u8>(nav, 0x60) = 0;
+    at<u32>(nav, 0xb8) = 0;
+    at<u32>(nav, 0x48) = Counter7cdb98_Inc();
+    return 1;
+}
+
+u32 __fastcall Nav_PathToPoint(u8 *nav, void *, s32 x, s32 y) {
+    const s32 target[2] = {x, y};
+    return Nav_PathTo(nav, nullptr, target, 0);
 }
 }

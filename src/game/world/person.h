@@ -56,4 +56,9 @@ u8 *__fastcall Person_BaseCtor(u8 *object, void *, u32 unused);
 // 0x518e00 (thiscall; one stack argument, unused; name unconfirmed): Person_BaseCtor without its four cleared dwords: the thoughts (+0x30) and the navigation block (+0xd4)
 // constructed; returns the object. Its one caller builds a 0x22c-byte object with it.
 u8 *__fastcall Person_PartsCtor(u8 *object, void *, u32);
+
+// 0x4fa5f0 (thiscall; x, y in 1/256 cells, their low words; name unconfirmed): a moving person sent to the point. The dword +0x198 zeroed when
+// above the next count of 0x7cdb98; when still set and Obj_BlockValuesBelowLimit, 0. Else the words +0x18 and +0x1a the point, +0x198 zeroed,
+// and Nav_PathToPoint of the nav at +0xd4 to it (16.16, each << 8); its result.
+u32 __fastcall Sprite_SetDestination(u8 *sprite, void *, s32 x, s32 y);
 }

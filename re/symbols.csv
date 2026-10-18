@@ -3274,6 +3274,7 @@ address,name,kind,confidence,notes
 0x005065d0,Person_HasWordInState,function,high,reimplemented (src/game/world/person); whether a person has a word and is in the matching state
 0x00518e20,Person_BaseCtor,function,high,"reimplemented (src/game/world/person); thoughts, the navigation block and four cleared dwords"
 0x00518e00,Person_PartsCtor,function,high,"reimplemented (src/game/world/person); thiscall; one stack argument, unused; the thoughts (+0x30) and the navigation block (+0xd4) constructed (Person_BaseCtor without the four cleared dwords); name unconfirmed"
+0x004fa5f0,Sprite_SetDestination,function,low,"reimplemented (src/game/world/person); thiscall (x, y in 1/256 cells): unless held by Obj_BlockValuesBelowLimit (+0x198 still set), the destination words +0x18/+0x1a set and Nav_PathToPoint of the nav at +0xd4"
 0x00550d80,Setting_SetMode,function,high,reimplemented (src/game/core/options); stores a mode and sets its flag bits
 0x005633e0,Quad_Push,function,high,reimplemented (src/game/core/seqs); pushes four dwords into the next of four slots
 0x0059c390,Table76e300_GetObjectDword,function,high,reimplemented (src/game/world/objectdefs); a dword of the object indexed through a record of the table
@@ -3845,6 +3846,8 @@ address,name,kind,confidence,notes
 0x005102f0,Nav_VisitNeighbours,function,low,"reimplemented (src/game/world/nav); cdecl (nav, radius, visit): visits the people in the map cells within radius whose kind counts and whose distance (pos >> 8, squared) is under (radius >> 8) squared, at most five"
 0x0050f3b0,Nav_Update,function,low,"reimplemented (src/game/world/nav); thiscall: one step of the nav: the weighted behaviour forces, vel and pos (when the move test passes), the local axes and the path progress history"
 0x004f9440,Nav_SerializeFwd,function,low,reimplemented (src/game/world/nav); thiscall: Nav_Serialize with the same arguments (the sprite's call on its nav)
+0x0050f8e0,Nav_PathTo,function,low,"reimplemented (src/game/world/nav); thiscall (&target, prepend): Route_Find from the nav's cell to the target's on the route at 0x7cf108, then the nav's waypoints (up to 5 cell centres), their octagonal lengths and the route's; 0 (and the nav stopped) when none"
+0x00510100,Nav_PathToPoint,function,low,"reimplemented (src/game/world/nav); thiscall (x, y): Nav_PathTo the point, not prepending the nav's cell"
 0x0052a050,Cell_ExtendPath,function,high,reimplemented (src/game/world/mapcell); one step of a path across the map's cells
 0x0052c420,MapGrid_MarkEdges,function,high,"reimplemented (src/game/world/mapcell); edge cells of a map grid of types 4, 9, 0x17 and 0xa"
 0x0052c5b0,MapGrid_ClassifyTypes,function,high,reimplemented (src/game/world/mapcell); a map grid's cell types as codes 1 to 4

@@ -2,9 +2,11 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "../core/savegame.h"
 #include "nav.h"
+#include "object.h"
 
 namespace {
 
@@ -111,5 +113,16 @@ u32 __fastcall Thoughts_Serialize(u8 *thoughts, void *, Stream *stream, u32 save
         !Save_Field(stream, save, thoughts + 0x8c, 4, 0x00761da0))
         return 1;
     return 0;
+}
+
+u32 __fastcall Sprite_SetDestination(u8 *sprite, void *, s32 x, s32 y) {
+    if (Counter7cdb98_Inc() < at<u32>(sprite, 0x198))
+        at<u32>(sprite, 0x198) = 0;
+    if (at<u32>(sprite, 0x198) != 0 && Obj_BlockValuesBelowLimit(sprite))
+        return 0;
+    at<u16>(sprite, 0x1a) = (u16)y;
+    at<u32>(sprite, 0x198) = 0;
+    at<u16>(sprite, 0x18) = (u16)x;
+    return Nav_PathToPoint(sprite + 0xd4, nullptr, (s32)((u32)(s32)(s16)x << 8), (s32)((u32)(s32)(s16)y << 8));
 }
 }
