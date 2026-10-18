@@ -17,6 +17,12 @@ void __fastcall Class702ca8_AcquireModels(u8 *object);
 // (state 2) is started: LobbyModel_Play(the model at [+0xc] + 8, entry 1, now 0).
 u32 __fastcall Class702cb0_StartPendingPlay(u8 *object);
 
+// 0x5e1210 (class 0x702cb0; its one call 0x5e079b; name unconfirmed): the lobby camera's step. The model at [+0xc]'s +0x3c triple is copied
+// to the target (+0x4c) and the eye (+0x34); the eye is then moved by the angle +0x18 and radius +0x20 to (x + sin * r, y + height +0x24,
+// z + cos * r). The position +0x28 eases toward the eye by the frame's scale ([0xf82884] + 8) times 0.1, the look-at +0x40 toward the target
+// by it times 0.2 (each a + (b - a) * k, x87 in the original's order), and both go to the camera at [0xf83778] (+8 and +0x14).
+void __fastcall Class702cb0_StepCamera(u8 *object);
+
 // 0x5d9db0 (class 0x702af0's constructor, thiscall; count, two names, two 12-byte triples by pointer, two dwords; pops 0x1c; the SEH frame left
 // out; name unconfirmed): the strings at +0x10 and +0x24 constructed (String_Ctor), the vtable 0x702af0, a new 0x10-byte list (vtable 0x702aec,
 // +4..+0xc cleared; null when the allocation failed) at +0x58, +4 = 0; +8 = count * the percentage at 0x7858dc / 100 (signed, the product

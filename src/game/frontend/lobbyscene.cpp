@@ -5,6 +5,7 @@
 #include "../core/gameheap.h"
 #include "../core/string.h"
 #include "../core/vcall.h"
+#include "../math/x87.h"
 #include "../model/holder.h"
 #include "lobbymodel.h"
 
@@ -46,6 +47,45 @@ u32 __fastcall Class702cb0_StartPendingPlay(u8 *object) {
         LobbyModel_Play(at<u8 *>(at<u8 *>(object, 0xc), 8), nullptr, 1, 0);
     at<u32>(object, 0x14) = 0;
     return 1;
+}
+
+void __fastcall Class702cb0_StepCamera(u8 *object) {
+    const float angle = at<float>(object, 0x18);
+    const X87Reg s = X87_Sin(angle);
+    const u8 *const model = at<const u8 *>(object, 0xc);
+    for (u32 i = 0; i < 0xc; i += 4)  // the model's +0x3c to the target (+0x4c), then to the eye (+0x34)
+        at<u32>(object, 0x4c + i) = at<u32>(model, 0x3c + i);
+    for (u32 i = 0; i < 0xc; i += 4)
+        at<u32>(object, 0x34 + i) = at<u32>(model, 0x3c + i);
+    const X87Reg c = X87_Cos(angle);  // (also stored to a local nothing reads)
+    const float radius = at<float>(object, 0x20);
+    const float ex = (float)(s * radius + at<float>(object, 0x34));
+    const float ey = (float)(X87Reg(at<float>(object, 0x24)) + at<float>(object, 0x38));
+    const float ez = (float)(c * radius + at<float>(object, 0x3c));
+    at<float>(object, 0x34) = ex;
+    at<float>(object, 0x38) = ey;
+    at<float>(object, 0x3c) = ez;
+
+    // the position (+0x28) eased a tenth of the way to the eye, the look-at (+0x40) a fifth to the target, by the frame's scale
+    const X87Reg near1 = X87Reg(at<float>(at<const u8 *>(reinterpret_cast<const void *>(0x00f82884), 0), 8)) * 0.100000001f;  // 0x702c7c
+    float *const pos = &at<float>(object, 0x28);
+    const float px = (float)((X87Reg(pos[3]) - pos[0]) * near1 + pos[0]);
+    const float py = (float)((X87Reg(pos[4]) - pos[1]) * near1 + pos[1]);
+    const float pz = (float)((X87Reg(pos[5]) - pos[2]) * near1 + pos[2]);
+    pos[0] = px;
+    pos[1] = py;
+    pos[2] = pz;
+    const X87Reg near2 = X87Reg(at<float>(at<const u8 *>(reinterpret_cast<const void *>(0x00f82884), 0), 8)) * 0.200000003f;  // 0x702ca4
+    float *const look = &at<float>(object, 0x40);
+    for (int i = 0; i < 3; i++)
+        look[i] = (float)((X87Reg(look[i + 3]) - look[i]) * near2 + look[i]);
+
+    u8 *camera = at<u8 *>(reinterpret_cast<const void *>(0x00f83778), 0);
+    for (u32 i = 0; i < 0xc; i += 4)
+        at<u32>(camera, 8 + i) = at<u32>(pos, i);
+    camera = at<u8 *>(reinterpret_cast<const void *>(0x00f83778), 0);
+    for (u32 i = 0; i < 0xc; i += 4)
+        at<u32>(camera, 0x14 + i) = at<u32>(look, i);
 }
 
 u8 *__fastcall Class702af0_Ctor(u8 *object, void *, s32 count, const char *name, const char *name2, const u32 *first, const u32 *second, u32 a,
