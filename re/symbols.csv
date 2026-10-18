@@ -4714,3 +4714,6 @@ address,name,kind,confidence,notes
 0x00659c42,GuiWindows_FindByHash,function,low,"reimplemented (src/game/ui/windowreg); cdecl (hash): the first node with the hash: its window's slot 0x20, else 0"
 0x00659a58,GuiWindows_Register,function,low,"reimplemented (src/game/ui/windowreg); cdecl (window, name): unless a node before the last has the name's hash, a node added at the end (window +0x10 = 1, strncpy 12, the hash); 1 in AX, else 0"
 0x00659b52,GuiWindows_Clear,function,low,"reimplemented (src/game/ui/windowreg); cdecl (word): every node freed (the head kept, sic), the windows deleted (slot 0 (1)) first when the word is set"
+0x00661faa,WindowTimer_Unlink,function,low,"reimplemented (src/game/ui/windowtimers); thiscall: the timer node unlinked from its neighbours (+0x18 next, +0x1c previous); EAX its previous or the node"
+0x006620e2,WindowTimer_Find,function,low,"reimplemented (src/game/ui/windowtimers); thiscall (window, id): the last node from this one on with the window and id (recursive), else 0"
+0x00662500,WindowTimer_Delete,function,low,"reimplemented (src/game/ui/windowtimers); thiscall (flags): scalar deleting destructor: unlinked, with flag 1 back to the pool (Fn_661f9b); returns the node"
