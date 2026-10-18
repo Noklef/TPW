@@ -1,5 +1,5 @@
 // A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x409260, 0x45be80, 0x5f4490, 0x633dc0, 0x6486e0, 0x458310, 0x4583d0, 0x4bcec0, 0x486610, 0x4f36c0, 0x5c9040, 0x5d03b0, 0x5dd3d0, 0x5ddac0, 0x5c5230, 0x5c7490, 0x5dd810, 0x5e2750, 0x633120, 0x5b0d40, 0x5c7bb0, 0x5c7d00, 0x5c7d20, 0x5d1440, 0x52fc30, 0x5997b0, 0x56b340, 0x56e780, 0x583360, 0x4d09a0, 0x52fbf0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
-// 0x4e1c60, 0x4f00f0, 0x4f6020, 0x4f6820, 0x4f6850 and 0x56b830.
+// 0x4e1c60, 0x4f00f0, 0x4f6020, 0x4f6820, 0x4f6850.
 #pragma once
 
 #include "../../../re/types.h"
@@ -178,9 +178,6 @@ u32 __fastcall Wstreambuf_InitPointers(u8 *object);
 // first). Returns the count pointer.
 u32 *__fastcall Wstreambuf_Setg(u8 *object, void *, u32 first, u32 next, u32 last);
 u32 *__fastcall Wstreambuf_Setp(u8 *object, void *, u32 first, u32 last);
-
-// 0x56b830 (thiscall; a, b, pops 8): +0x30 = a and +0x34 = b; returns a.
-u32 __fastcall Obj_Set30_34(u8 *object, void *, u32 a, u32 b);
 
 u8 *__fastcall Class703770_Ctor(u8 *object);
 

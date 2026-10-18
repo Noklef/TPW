@@ -409,12 +409,6 @@ u32 *__fastcall Wstreambuf_Setp(u8 *object, void *, u32 first, u32 last) {
     return count;
 }
 
-u32 __fastcall Obj_Set30_34(u8 *object, void *, u32 a, u32 b) {
-    at<u32>(object, 0x30) = a;
-    at<u32>(object, 0x34) = b;
-    return a;
-}
-
 u8 *__fastcall Class703770_Ctor(u8 *object) {
     at<u32>(object, 0) = 0x00703770;
     at<u32>(object, 4) = 1;
