@@ -4,13 +4,19 @@
 
 #include "../core/crt.h"
 #include "../core/gameheap.h"
+#include "../math/x87.h"
 #include "../render/engineerrors.h"
+#include "../render/quad.h"
 #include "texcache.h"
 #include "texture.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+// Not 0 and not a NaN (fcomp against 0: neither equal nor unordered).
+bool NonZero(X87Reg x) { return x.v < 0.0 || x.v > 0.0; }
 
 // Texture_DestroyArray (gfx/texture) when set.
 void DestroyArray(u8 *array) {
@@ -148,5 +154,87 @@ void __fastcall SpriteFrame_SetSize30(u8 *frame, void *, s32 width, s32 height) 
     }
     at<u16>(frame, 0x30) = (u16)width;
     at<u16>(frame, 0x32) = (u16)height;
+}
+
+u32 __fastcall SpriteFrame_PlaceQuad(u8 *frame, void *, float *quad, float width, float height) {
+    const X87Reg w = NonZero(X87Reg(width)) ? X87Reg(width) : X87Reg(at<float>(frame, 0x2c)) * 20.0f * global<float>(0x008bcbcc);
+    const float h = NonZero(X87Reg(height)) ? height : (float)(X87Reg(at<float>(frame, 0x2c)) * 20.0f);   // 0x70200c
+    const u8 *const image = at<const u8 *>(frame, 0x28);
+    const s32 offsetX = at<s16>(image, 0x14);
+    const s32 offsetY = at<s16>(image, 0x16);
+    float left = (float)(X87Reg(offsetX) / X87Reg((s32)at<u16>(image, 0x10)) * w);
+    float right = (float)(X87Reg((s32)at<u16>(image, 0xc) + offsetX) / X87Reg((s32)at<u16>(image, 0x10)) * w);
+    X87Reg bottom = X87Reg((s32)at<u16>(image, 0xe) + offsetY) / X87Reg((s32)at<u16>(image, 0x12)) * h;
+    X87Reg top = X87Reg(offsetY) / X87Reg((s32)at<u16>(image, 0x12)) * h;
+    const float corner[4] = {quad[0], quad[1], quad[2], quad[3]};
+    u32 result = 0;
+    const u32 flags = at<u32>(frame, 0x10);
+    if (flags & 0x10) {
+        left = (float)(X87Reg(left) * -1.0f);   // 0x702038
+        right = (float)(X87Reg(right) * -1.0f);
+        result = 1;
+    }
+    if (flags & 0x60) {
+        top = top * -1.0f;
+        bottom = bottom * -1.0f;
+        result ^= 1;
+    }
+    const X87Reg x0 = X87Reg(left) + quad[0];
+    const X87Reg x1 = X87Reg(right) + quad[4];
+    const float x0f = (float)x0;
+    quad[0] = (float)x0;
+    quad[12] = x0f;
+    quad[4] = (float)x1;
+    quad[8] = (float)x1;
+    if ((at<u32>(frame, 0x10) & 0x200) && (global<u32>(0x008bcbc8) & 0x1000000)) {
+        const X87Reg inverse = X87Reg(1.0f) / quad[3];   // 0x702030
+        const X87Reg dx = X87_SubR(inverse * x0f, X87Reg(global<float>(0x008bd4f0)));
+        const X87Reg dy = X87_SubR(X87Reg(quad[1]) * inverse, X87Reg(global<float>(0x008bd4f4)));
+        const X87Reg dxx = dx * dx;
+        const X87Reg across = X87Reg(right) - left;
+        const float dyf = (float)dy;
+        const X87Reg dyy = dy * dyf;
+        const X87Reg down = bottom - top;
+        const float acrossf = (float)across;
+        const X87Reg aa = across * acrossf;
+        const float downf = (float)down;
+        const X87Reg dd = down * downf;
+        const float aaf = (float)aa;
+        const float dxxf = (float)dxx;
+        const X87Reg reach = (dd + aaf) * 0.0002f;   // 0x70203c
+        const float distance = (float)(dyy + dxxf);
+        if (reach.v > distance) {
+            const u8 *const picked = global<const u8 *>(0x008bd4fc);
+            if (!picked || !(quad[3] >= at<float>(picked, 0xc)))
+                global<u8 *>(0x008bd4fc) = frame;
+        }
+    }
+    if (at<u32>(frame, 0x10) & 0x80000) {
+        const X87Reg z0 = top + quad[2];
+        const X87Reg z2 = bottom + quad[10];
+        result ^= 1;
+        const float z2f = (float)z2;
+        quad[6] = (float)z0;
+        quad[2] = (float)z0;
+        quad[14] = (float)z2;
+        quad[10] = z2f;
+        for (u32 i = 1; i < 16; i += 4)
+            quad[i] = (float)(X87Reg(global<float>(0x008bd4ec)) + quad[i]);
+        if (at<u8>(frame, 0x10) & 0x80)
+            Quad_TurnXZ(quad, at<float>(frame, 0x30));
+        return result;
+    }
+    const X87Reg y0 = top + quad[1];
+    const X87Reg y2 = bottom + quad[9];
+    const float y2f = (float)y2;
+    quad[5] = (float)y0;
+    quad[1] = (float)y0;
+    quad[13] = (float)y2;
+    quad[9] = y2f;
+    if (at<u8>(frame, 0x10) & 0x80)
+        Quad_TurnXY(quad, at<float>(frame, 0x30), nullptr);
+    if (at<u32>(frame, 0x10) & 0x1000)
+        Quad_TurnXY(quad, global<float>(0x0087af60), corner);
+    return result;
 }
 }
