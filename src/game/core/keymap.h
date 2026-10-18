@@ -38,6 +38,10 @@ void __cdecl KeyMaps_EnableAllAndClearFlag();
 
 void __cdecl KeyMaps_ResetAllAndSetFlag();
 
+// 0x40d070 (cdecl; name unconfirmed): the blocks of the maps system, game, camera, cheat, 0x787294 and shortcuts freed (each when set; the
+// pointers are left as they were).
+void __cdecl KeyMaps_FreeAll();
+
 // 0x46b460 (cdecl; code): the low word of code remapped when it is 0x27, 0x2c, 0x2e, 0x2f, 0x3b or 0x60 to 0x7a (0x27 -> 0x2c, 0x2c -> 0x5ea, 0x2e -> 0x5e5, 0x2f -> 0x2e,
 // 0x3b -> 0x5e3, 0x60 -> 0x3b, 0x71 -> 0x2f, 0x77 -> 0x27, the others of 0x61 to 0x7a to 0x5d0 to 0x5e9); the upper word and any other code are returned as they are.
 u32 __cdecl Code_Remap46b460(u32 code);
