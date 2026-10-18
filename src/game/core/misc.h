@@ -89,10 +89,6 @@ s32 __cdecl PairTable_Commit();
 // for the id; the dword at +0x1c of the entry found, or 0x17f for none.
 u32 __cdecl Table768fb8_Lookup(u32 id);
 
-// 0x409260 (thiscall): Obj_AdvanceUnless30 on the object at 0x785970; 0x7477e4 = bit 3 of the flags
-// 0x7a1a14; and when the dword at +0x18 is set bit 1 of the flags is set. Returns the flags then, else 0.
-u32 __fastcall Flags7a1a14_Update(const u8 *object);
-
 // 0x45be80 (cdecl; object, from, to): the part at the object's +0x1c (a virtual base: the pointer plus the
 // offset at +4 of its vtable; 0 for none) is removed from the renderer's grid ([0x87a6d0]) over the
 // rectangle from.hi, from.lo to to.hi, to.lo (the positions' high and low words as x and y

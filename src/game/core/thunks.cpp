@@ -7,6 +7,7 @@
 #include "globals.h"
 #include "initializers.h"
 #include "misc.h"
+#include "namedobjects.h"
 #include "vtables.h"
 #include "../gfx/texsurface.h"
 #include "liveobjects.h"

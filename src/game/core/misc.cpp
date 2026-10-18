@@ -7,7 +7,6 @@
 #include "../render/state.h"
 #include "../sprite/script.h"
 #include "accessors.h"
-#include "gameclock.h"
 #include "gameheap.h"
 #include "initializers.h"
 #include "string.h"
@@ -246,16 +245,6 @@ u32 __cdecl Table768fb8_Lookup(u32 id) {
             return global<u32>(entry + 0x1c);
     }
     return 0x17f;
-}
-
-u32 __fastcall Flags7a1a14_Update(const u8 *object) {
-    const u32 bit = (global<u32>(0x007a1a14) >> 3) & 1;
-    Obj_AdvanceUnless30(reinterpret_cast<u8 *>(0x00785970));
-    global<u32>(0x007477e4) = bit;
-    if (!at<u32>(object, 0x18))
-        return 0;
-    global<u32>(0x007a1a14) |= 2;
-    return global<u32>(0x007a1a14);
 }
 
 u32 __cdecl Obj_RemoveFromRect(u8 *object, u32 from, u32 to) {
