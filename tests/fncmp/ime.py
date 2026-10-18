@@ -6,6 +6,7 @@
 # 0-40 characters or none, limits about them.
 # usage: ime.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
+import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
@@ -37,6 +38,8 @@ def case(r):
         host = bytearray(r.bytes(0x1b0))
         put(host, 4, 'I', r.choice([RAM + 0x400] * 3 + [0, RAM + 0x500]))
         regions[RAM] = host
+        if r.random() < 0.5:   # the IME's cap (0x6feee0, 12 in the game) raised so that the room's sign shows
+            regions[0x6feee0] = struct.pack('<I', r.choice([0x7fffffff, 0xffffffff, 0x10000]))
         return Call(0x480f90, [RAM, RAM + 0x400], regions, conv='t', ret='v')
     if op == 'Size':
         first = r.choice([0, RAM + 0x400])
