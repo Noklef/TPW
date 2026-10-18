@@ -4045,6 +4045,8 @@ address,name,kind,confidence,notes
 0x00590ff0,Texture_Reload,function,high,"reimplemented (src/game/gfx/texture); Raises the counter, stores the device generation and forwards to call 5 (name unconfirmed)"
 0x00590b90,Texture_Release,function,low,"reimplemented (src/game/gfx/texture); thiscall: the pixels / owned object freed, the cache item unlinked, the texture reset (name unconfirmed)"
 0x00590a80,Texture_Alloc,function,low,"reimplemented (src/game/gfx/texture); thiscall (size, flags; pops 8): the pixels (a tracked block of the format's pixel size times size squared) at +0x40; got: the sizes, flags << 6 | 0x1000000 | the level by size, and the cache key from the LOD float at +0x30 (x87, __ftol) at +0x38: 1; not got: error 2 pushed, 0"
+0x00590d40,Texture_Lock,function,low,"reimplemented (src/game/gfx/texture); thiscall: the pixels at +0x40, or with flag 0x10000000 the object there locked (its virtual call 2 with a stack record) and the dword at 0x879a68"
+0x00590da0,Texture_LockFlipped,function,low,"reimplemented (src/game/gfx/texture); thiscall: Texture_Lock, then with flag 0x40000 the rows swapped upside down (sic: the width counts the rows)"
 0x00588d70,SpriteFrame_Init,function,high,"reimplemented (src/game/gfx/spriteframe); thiscall (a sprite frame, 0x48 bytes): +0x10/+0x28/+0x30/+0x34 = 0, +0x24 = -1, +0x2c = 1.0f; returns the frame"
 0x00588320,SpriteImage_Init,function,high,"reimplemented (src/game/gfx/spriteframe); thiscall (a sprite image, 0x18 bytes): +0, +4 and the u16 sizes +0xc..+0x16 cleared; returns the image"
 0x005882e0,SpriteFrames_MarkTextures,function,high,"reimplemented (src/game/gfx/spriteframe); each image texture: flag 0x200 set, 0x100 cleared"

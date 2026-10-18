@@ -1,19 +1,21 @@
 # The engine textures' small methods (src/game/gfx/texture: 0x590a00, 0x590c40, 0x590cb0, 0x590cf0,
-# 0x590f80-0x590fb0)
+# 0x590f80-0x590fb0, 0x590d40, 0x590da0)
 # against the originals: sizes around the powers of two (zero and negative too), flags with and
 # without 0x30, 0x300, 0x30000 and 0x4000000, driver kinds 1 and others; the constructor most
-# derived or not.
+# derived or not. Lock / LockFlipped: the pixels or a locked object (a recorder vtable, its stack record logged as a
+# hash), flipped rows of widths 2-17 and heights around them, formats 0-3.
 # usage: texture.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=WrapMask,Level,...)
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, put  # noqa: E402
+from fncmp import LOG, Bench, Call, RAM, blob, log_region, put, vtable  # noqa: E402
 
-B = Bench([(0x590a00, 0x590a70), (0x590c40, 0x590ca8), (0x590cb0, 0x590d3e), (0x590f80, 0x590fcb)])
+B = Bench([(0x590a00, 0x590a70), (0x590c40, 0x590ca8), (0x590cb0, 0x590d3e), (0x590f80, 0x590fcb), (0x590d40, 0x590eae)])
 CALLS = {'Ctor': 0x590a00, 'FormatBits': 0x590c40, 'WrapMask': 0x590cb0, 'Level': 0x590cf0, 'ClearCacheFlags': 0x590f80, 'SetKeep': 0x590f90,
-         'ClearKeep': 0x590fa0, 'UsesDriverFilter': 0x590fb0}
-RETURNS = ('Ctor', 'FormatBits', 'Level', 'UsesDriverFilter')
+         'ClearKeep': 0x590fa0, 'UsesDriverFilter': 0x590fb0, 'Lock': 0x590d40, 'LockFlipped': 0x590da0}
+RETURNS = ('Ctor', 'FormatBits', 'Level', 'UsesDriverFilter', 'Lock', 'LockFlipped')
+PIXELS, OBJ = RAM + 0x1000, RAM + 0x800
 
 
 def size(r):
@@ -23,8 +25,33 @@ def size(r):
     return r.choice([p, p - 1, p + 1, 0, -p, 0x8000, r.getrandbits(16)]) & 0xffff
 
 
+def lock(r, op):
+    texture = bytearray(r.bytes(0x60))
+    flags = r.getrandbits(32) & ~0x10040000 | r.choice([0, 0x10000000]) | (0x40000 if op == 'LockFlipped' and r.random() < 0.85 else r.choice([0, 0x40000]))
+    put(texture, 8, 'I', flags)
+    w = r.choice([2, 3, 4, 5, 8, 16, 17, r.randrange(2, 18)])
+    h = r.choice([0, 1, 2, 3, w, w - 1, w + 1, 2 * w, r.randrange(0, 2 * w + 1), r.choice([-2, -1, 0x8001])])
+    put(texture, 0x10, 'H', w)
+    put(texture, 0x12, 'H', h & 0xffff)
+    log = log_region()
+    regions = {RAM: texture, PIXELS: r.bytes(w * w * 4), 0x8bd554: bytes([r.randrange(4), 0, 0, 0]), LOG: log}
+    if flags & 0x10000000:
+        put(texture, 0x40, 'I', OBJ)
+        regions[OBJ] = bytearray(4) + r.bytes(4)
+        put(regions[OBJ], 0, 'I', OBJ + 0x100)
+        regions[OBJ + 0x100] = vtable({2: 1}, 8)
+        blob(log, 2, 0, 0xf)
+        regions[0x879a68] = bytearray(4)
+        put(regions[0x879a68], 0, 'I', PIXELS)
+    else:
+        put(texture, 0x40, 'I', PIXELS)
+    return Call(CALLS[op], [RAM], regions, conv='t', ret='a')
+
+
 def case(r):
     op = r.choice(OPS)
+    if op in ('Lock', 'LockFlipped'):
+        return lock(r, op)
     texture = bytearray(r.bytes(0x60))
     put(texture, 8, 'I', r.choice([0, 0x30, 0x37, 0x10, 0x7000, 0x10000, 0x30000, r.getrandbits(32)]) | r.choice([0, 0x100, 0x200, 0x300, 0x4000000]))
     put(texture, 0x14, 'H', size(r))
