@@ -308,6 +308,7 @@ add_library(tpw_game STATIC
     src/game/render/engineerrors.cpp
     src/game/render/texcoords.cpp
     src/game/render/graphicssettings.cpp
+    src/game/render/textparts.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/online/itemlist.cpp

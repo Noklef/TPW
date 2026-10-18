@@ -291,6 +291,7 @@
 #include "../game/render/engineerrors.h"
 #include "../game/render/texcoords.h"
 #include "../game/render/graphicssettings.h"
+#include "../game/render/textparts.h"
 #include "../game/render/weatherfx.h"
 #include "../game/online/servers.h"
 #include "../game/frontend/helpbg.h"
@@ -3930,6 +3931,9 @@ const Hook kHooks[] = {
     {"EngineErrors_Push",         0x0056af20, (void *)&EngineErrors_Push, {0x83, 0xec, 0x64, 0x56, 0x8b}},
     {"Model_TexCoords",           0x00581410, (void *)&Model_TexCoords, {0x83, 0xec, 0x40, 0x8b, 0x44}},
     {"GraphicsSettings_Apply",    0x0044d8f0, (void *)&GraphicsSettings_Apply, {0xa1, 0x78, 0x58, 0x78, 0x00}},
+    {"TextPart_Ctor",             0x0048f6a0, (void *)&TextPart_Ctor, {0x6a, 0xff, 0x68, 0xf8, 0x97}},
+    {"TextPart_Dtor",             0x0048f760, (void *)&TextPart_Dtor, {0x6a, 0xff, 0x68, 0x2e, 0x98}},
+    {"TextPart_DeletingDtor",     0x0048f740, (void *)&TextPart_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
