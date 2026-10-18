@@ -80,6 +80,15 @@ void __fastcall TexCacheItem_SetKey(u8 *item);
 // the cache's list at +0x18c4; then the entry's +0 has its flags set to 0 (TexCacheItem_SetFlags).
 void __fastcall TexCache_Evict(u8 *cache);
 
+// 0x58d8e0 (thiscall on the cache; name unconfirmed; called at 0x576af6): the cache's bit 0 (+0x18cc) set when [0x8bd508] has a bit of
+// 0xc0000000, else cleared; Table879d08_FillFrom (the slot index 0-15 at 0x879d48). Then for each of the six entry sizes, the entries at
+// +0x400 * size (the signed count at +0x1800 + 4 * size, read again each time): each item of the entry's list (+4, next +4) has its
+// flag 0x2000 (+8) cleared; through its virtual base (the offset at +4 of the table its +0 points to) the base's byte at the slot index is
+// taken off its +0x10 and cleared, and its s32 +0x14 halved (an arithmetic shift); then flag 0x40000000 cleared, the float +0x30 = 1 and,
+// with the cache's bit 0, Texture_ClearKeep. With the bit 0 (tested again), the entry's +0 gets TexCacheItem_ClearFlag1. Last the list at
+// +0x18c4 has every flag 0x2000 cleared, and +0x18c4 is cleared.
+void __fastcall TexCache_BeginFrame(u8 *cache);
+
 // 0x58d1d0 (thiscall on the cache; side, made, format, levels; pops 0x10; name unconfirmed): new surfaces of the side while its budget
 // (+0x1860 + 4 * index, index SurfacePool_SideIndex) covers their area: the format size (0x7022d8 indexed by [0x8bd554]) * side *
 // side (32-bit), * 4 / 3 (signed) when levels > 1, kept at 0x8c4898. Each turn, unless one failed or the side has 0x100 entries

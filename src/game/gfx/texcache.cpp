@@ -8,11 +8,14 @@
 #include <initializer_list>
 
 #include "../core/gameheap.h"
+#include "../core/globals.h"
 #include "../math/x87.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 const u8 *Next(const u8 *item) { return at<const u8 *>(item, 4); }
 
@@ -256,6 +259,35 @@ void __fastcall TexCache_Evict(u8 *cache) {
     }
     if (returnClobbered)   // the original's RET goes to the entry pointer written over its return address (sic)
         reinterpret_cast<void(__cdecl *)()>((uintptr_t)entries[0x10])();
+}
+
+void __fastcall TexCache_BeginFrame(u8 *cache) {
+    if (global<u32>(0x008bd508) & 0xc0000000)
+        at<u32>(cache, 0x18cc) |= 1;
+    else
+        at<u32>(cache, 0x18cc) &= ~1u;
+    Table879d08_FillFrom();
+    for (u32 size = 0; size < 6; ++size) {
+        for (s32 i = 0; i < at<s32>(cache, 0x1800 + 4 * size); ++i) {
+            u8 *const entry = at<u8 *>(cache, 0x400 * size + 4 * i);
+            for (u8 *item = at<u8 *>(entry, 4); item; item = at<u8 *>(item, 4)) {
+                at<u32>(item, 8) &= ~0x2000u;
+                u8 *const base = item + at<s32>(at<u8 *>(item, 0), 4);
+                at<u32>(base, 0x10) -= at<u8>(base, global<u32>(0x00879d48));
+                at<u8>(base, global<u32>(0x00879d48)) = 0;
+                at<s32>(base, 0x14) >>= 1;
+                at<u32>(item, 8) &= ~0x40000000u;
+                at<u32>(item, 0x30) = 0x3f800000;   // 1.0f
+                if (at<u32>(cache, 0x18cc) & 1)
+                    Texture_ClearKeep(item);
+            }
+            if (at<u32>(cache, 0x18cc) & 1)
+                TexCacheItem_ClearFlag1(at<u8 *>(entry, 0));
+        }
+    }
+    for (u8 *item = at<u8 *>(cache, 0x18c4); item; item = at<u8 *>(item, 4))
+        at<u32>(item, 8) &= ~0x2000u;
+    at<u8 *>(cache, 0x18c4) = nullptr;
 }
 
 u32 __fastcall TexCache_AddSurfaces(u8 *cache, void *, s32 side, s32 *made, u32 format, s32 levels) {
