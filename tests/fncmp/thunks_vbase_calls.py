@@ -1,4 +1,4 @@
-# The adjusting thunks of src/game/core/thunks whose targets are the destructors, deleters and virtual forwarders (0x42a080, 0x564a80, 0x564af0, 0x569c70, 0x56a650, 0x579010, 0x5790b0, 0x579140, 0x58c360,
+# The adjusting thunks of src/game/core/thunks whose targets are the destructors, deleters and virtual forwarders (0x42a080, 0x564a80, 0x564b00, 0x564af0, 0x564ff0, 0x569c70, 0x569cc0, 0x5738c0, 0x56a650, 0x579010, 0x5790b0, 0x579140, 0x58c360,
 # 0x598790, 0x5987a0, 0x5987e0) and the vertex transforms (0x579060, 0x579070, 0x579080, 0x5790a0: this the first stack argument, which the transforms leave
 # unused, so it is given as a mapped address) against the originals. The cases are the targets' own (their benches' case generators, op by op): the call goes to the thunk with this raised by an offset, the
 # dword before it holding that offset, so that the thunk lowers it back to what the target is given.
@@ -23,20 +23,23 @@ def _recording_init(self, ranges, *a, **k):   # the benches below say which code
 fncmp.Bench.__init__ = _recording_init
 import buffers_nodes  # noqa: E402
 import counted_rings  # noqa: E402
+import d3dprobe  # noqa: E402
 import deleters_nodes  # noqa: E402
 import rleimage  # noqa: E402
+import texsurface  # noqa: E402
 import transform  # noqa: E402
 import vdtor  # noqa: E402
 import vobj2  # noqa: E402
 import vwrap  # noqa: E402
 import wavelet_decode  # noqa: E402
+import wctimage  # noqa: E402
 
 fncmp.Bench.__init__ = _init
 from fncmp import Bench, Call  # noqa: E402
 
 # (thunk, bench module, its op)
 SOURCES = [(0x42a080, deleters_nodes, 'Del60'), (0x56a650, deleters_nodes, 'Del8'), (0x569c70, buffers_nodes, 'Del'), (0x579010, counted_rings, 'V1'), (0x5790b0, counted_rings, 'V2'),
-           (0x579140, counted_rings, 'V3'), (0x58c360, vobj2, 'Del'), (0x564af0, vdtor, 'VB'), (0x564a80, rleimage, 'Dtor'), (0x5987e0, vwrap, 'Rel'), (0x5987a0, wavelet_decode, 'Decode'), (0x598790, wavelet_decode, 'Scaled'),
+           (0x579140, counted_rings, 'V3'), (0x58c360, vobj2, 'Del'), (0x564af0, vdtor, 'VB'), (0x564a80, rleimage, 'Dtor'), (0x564b00, rleimage, 'Draw'), (0x564ff0, wctimage, 'Dtor'), (0x569cc0, d3dprobe, 'SetFlags'), (0x5738c0, texsurface, 'NewA'), (0x5987e0, vwrap, 'Rel'), (0x5987a0, wavelet_decode, 'Decode'), (0x598790, wavelet_decode, 'Scaled'),
            (0x579060, transform, 'Vertices'), (0x579070, transform, 'Blocked'), (0x579080, transform, 'Project'), (0x5790a0, transform, 'Concat')]
 RANGES, HOOKS = [(a, a + (0x10 if m is transform else 8)) for a, m, _o in SOURCES], {}
 for _m in {m for _a, m, _o in SOURCES}:

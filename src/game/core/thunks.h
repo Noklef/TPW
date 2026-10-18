@@ -410,4 +410,16 @@ u32 __cdecl Wrap_Panel7b9940_Detach_481410();
 
 // 0x564a80 (thiscall; flags; pops 4): this lowered by the dword before it (a virtual base offset), then RleImage_DeletingDtor.
 u8 *__fastcall Wrap_RleImage_DeletingDtor_564a80(u8 *self, void *, u32 flags);
+
+// 0x564b00 (thiscall; dest; pops 4): this lowered by the dword before it (a virtual base offset), then RleImage_DrawScaled.
+u32 __fastcall Wrap_RleImage_DrawScaled_564b00(const u8 *self, void *, const u32 *dest);
+
+// 0x564ff0 (thiscall; flags; pops 4): this lowered by the dword before it (a virtual base offset), then WctImage_DeletingDtor.
+u8 *__fastcall Wrap_WctImage_DeletingDtor_564ff0(u8 *self, void *, u32 flags);
+
+// 0x569cc0 (thiscall; flags; pops 4): this lowered by the dword before it (a virtual base offset), then D3dProbe_SetFlags.
+u32 __fastcall Wrap_D3dProbe_SetFlags_569cc0(u8 *self, void *, u32 flags);
+
+// 0x5738c0 (thiscall): this lowered by the dword before it (a virtual base offset), then Renderer_NewSurfaceA.
+u8 *__fastcall Wrap_Renderer_NewSurfaceA_5738c0(void *self);
 }  // extern "C"
