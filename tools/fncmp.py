@@ -759,6 +759,8 @@ class Bench:
             rel = os.path.relpath(path if os.path.isabs(path) else os.path.join(ROOT, path), ROOT)
             full = os.path.join(tree, rel)
             src = open(full, newline='').read()
+            if '\r\n' in src:   # (a CRLF checkout: a mutant written with \n line breaks means the file's \r\n)
+                old, new = (x.replace('\r\n', '\n').replace('\n', '\r\n') for x in (old, new))
             if src.count(old) != 1:
                 raise ValueError('%s: %r occurs %d times' % (path, old, src.count(old)))
             open(full, 'w', newline='').write(src.replace(old, new))
