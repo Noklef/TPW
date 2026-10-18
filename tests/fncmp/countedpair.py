@@ -32,10 +32,11 @@ def pair(r, n, w):
 
 def insert_case(r):
     """insert(where, n, x) into a vector at V of 0-4 pairs (at ARR, capacity up to 4 more; or no block at all), where anywhere from first to last,
-    n 0-5, x the pair at X or one of the vector's own."""
+    n 0-5, x the pair at X or one of the vector's own; now and then an empty vector whose new block is not got (1-2 copies into null slots)."""
     nb, wb = bytearray(r.bytes(8 * stdstring.SLOT)), bytearray(r.bytes(8 * stdwstring.SLOT))
-    k = r.choice([0, 1, 2, 3, 4])
-    cap = k + r.choice([0, 0, 1, 2, 4])
+    fail = r.random() < 0.12   # the new block not got (an empty vector, mostly one copy: its null slot skipped)
+    k = 0 if fail else r.choice([0, 1, 2, 3, 4])
+    cap = 0 if fail else k + r.choice([0, 0, 1, 2, 4])
     arr = bytearray(r.bytes(0x24 * max(cap, 1)))
     for i in range(k):
         arr[0x24 * i:0x24 * i + 0x24] = pair(r, *strings(r, nb, wb, i + 1))
@@ -43,8 +44,9 @@ def insert_case(r):
     vec = struct.pack('<IIII', r.getrandbits(32), first, first + 0x24 * k, first + 0x24 * cap)
     where = first + 0x24 * r.randrange(k + 1)
     x = X if k == 0 or r.random() < 0.7 else ARR + 0x24 * r.randrange(k)
-    regions = {V: vec, X: pair(r, *strings(r, nb, wb, 0)), NB: nb, WB: wb, ARR: arr, HEAP: heap()}
-    return Call(CALLS['Insert'], [V, where, r.choice([0, 1, 1, 2, 3, 5]), x], regions, conv='t', ret='v')
+    regions = {V: vec, X: pair(r, *strings(r, nb, wb, 0)), NB: nb, WB: wb, ARR: arr, HEAP: heap(fail=1 if fail else 0)}
+    n = r.choice([1, 1, 1, 2]) if fail else r.choice([0, 1, 1, 2, 3, 5])
+    return Call(CALLS['Insert'], [V, where, n, x], regions, conv='t', ret='v')
 
 
 def case(r):
