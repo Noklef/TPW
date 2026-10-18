@@ -9,6 +9,7 @@
 #include "misc.h"
 #include "vtables.h"
 #include "../gfx/texsurface.h"
+#include "liveobjects.h"
 #include "../gfx/texture.h"
 #include "../render/rasteriser.h"
 #include "../render/softrender.h"
@@ -315,6 +316,10 @@ u8 *__fastcall Wrap_TexSurfaceB_DeletingDtor_58c950(u8 *self, void *, u32 flags)
 }
 
 u32 __fastcall Wrap_Texture_Release_590a70(u8 *self) { return Texture_Release(self); }
+
+u8 *__fastcall Wrap_LiveObject7019f8_DeletingDtor_57abe0(u8 *self, void *, u32 flags) {
+    return LiveObject7019f8_DeletingDtor(Adjust(self), nullptr, flags);
+}
 
 u32 __fastcall Wrap_TerrainTexCache_Dtor_572100(u8 *self) { return TerrainTexCache_Dtor(self); }
 

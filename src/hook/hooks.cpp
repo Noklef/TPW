@@ -2673,6 +2673,7 @@ const Hook kHooks[] = {
     {"Wrap_TerrainTexCache_Dtor_572100", 0x00572100, (void *)&Wrap_TerrainTexCache_Dtor_572100, {0xe9, 0x4b, 0x02, 0x00, 0x00}},
     {"Wrap_TexSurfaceB_Blit_58c930", 0x0058c930, (void *)&Wrap_TexSurfaceB_Blit_58c930, {0x2b, 0x49, 0xfc, 0xe9, 0x18}},
     {"Wrap_TexSurfaceB_DeletingDtor_58c950", 0x0058c950, (void *)&Wrap_TexSurfaceB_DeletingDtor_58c950, {0x2b, 0x49, 0xfc, 0xe9, 0x08}},
+    {"Wrap_LiveObject7019f8_DeletingDtor_57abe0", 0x0057abe0, (void *)&Wrap_LiveObject7019f8_DeletingDtor_57abe0, {0x2b, 0x49, 0xfc, 0xe9, 0x08}},
     {"Table_AddressPlus18",       0x006b0620, (void *)&Table_AddressPlus18, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Table_Address",             0x006b0650, (void *)&Table_Address, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Packed_Read",               0x006b0510, (void *)&Packed_Read, {0x56, 0x8b, 0x74, 0x24, 0x08}},

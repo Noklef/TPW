@@ -208,6 +208,10 @@ u8 *__fastcall Wrap_TexSurfaceB_DeletingDtor_58c950(u8 *self, void *, u32 flags)
 // 0x590a70 (thiscall): jumps to Texture_Release, the destructor the texture arrays are given.
 u32 __fastcall Wrap_Texture_Release_590a70(u8 *self);
 
+// 0x57abe0 (thiscall; flags; pops 4): this lowered by the dword before it (a virtual base offset), then
+// LiveObject7019f8_DeletingDtor (core/liveobjects; the class's vtable 0x7019f8 slot 0).
+u8 *__fastcall Wrap_LiveObject7019f8_DeletingDtor_57abe0(u8 *self, void *, u32 flags);
+
 // 0x572100 (thiscall): jumps to TerrainTexCache_Dtor (terrain/texcache).
 u32 __fastcall Wrap_TerrainTexCache_Dtor_572100(u8 *self);
 
