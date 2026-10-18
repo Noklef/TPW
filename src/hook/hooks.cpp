@@ -148,6 +148,7 @@
 #include "../game/core/sync.h"
 #include "../game/core/balancefile.h"
 #include "../game/core/timesig.h"
+#include "../game/core/wstdstring.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -3491,6 +3492,10 @@ const Hook kHooks[] = {
     {"SyncEvent_Wait",            0x005c8bf0, (void *)&SyncEvent_Wait, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"SyncEvent_Set",             0x005c8c20, (void *)&SyncEvent_Set, {0x8b, 0x01, 0x50, 0xff, 0x15}},
     {"CpuInfo_Ctor",              0x0055e470, (void *)&CpuInfo_Ctor, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"WStdString_AssignSub",      0x004f21d0, (void *)&WStdString_AssignSub, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"WStdString_Grow",           0x004f39e0, (void *)&WStdString_Grow, {0x53, 0x56, 0x57, 0x8b, 0x7c}},
+    {"WStdString_Copy",           0x004f6090, (void *)&WStdString_Copy, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"WStdString_Split",          0x004f6190, (void *)&WStdString_Split, {0x55, 0x56, 0x8b, 0xf1, 0x57}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

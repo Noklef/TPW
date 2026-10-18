@@ -3842,6 +3842,10 @@ address,name,kind,confidence,notes
 0x005c8bd0,SyncEvent_Ctor,function,low,"reimplemented (src/game/core/sync); CreateEventA(0,0,0,0) into the object's handle; returns the object"
 0x005c8bf0,SyncEvent_Wait,function,low,reimplemented (src/game/core/sync); WaitForSingleObject on the handle (INFINITE for a negative timeout); whether it answered WAIT_OBJECT_0
 0x005c8c20,SyncEvent_Set,function,low,reimplemented (src/game/core/sync); SetEvent on the handle; returns 0
+0x004f21d0,WStdString_AssignSub,function,high,"reimplemented (src/game/core/wstdstring); std::wstring::assign(const wstring &x, pos, n): shares x's block when it is all of x, erases in place when x is itself"
+0x004f39e0,WStdString_Grow,function,high,"reimplemented (src/game/core/wstdstring); std::wstring::_Grow(n, trim): room for n characters in a block s owns alone"
+0x004f6090,WStdString_Copy,function,high,reimplemented (src/game/core/wstdstring); std::wstring::_Copy(n): a new block of n | 31 characters keeping the old ones
+0x004f6190,WStdString_Split,function,high,reimplemented (src/game/core/wstdstring); std::wstring::_Split(): a shared string gets its own copy
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
