@@ -4186,6 +4186,7 @@ address,name,kind,confidence,notes
 0x005827f0,DrawBuffer_IndexLimit,function,high,reimplemented (src/game/render/drawbuffer); thiscall: the end of the current stream's index room
 0x00582340,DrawStream_Free,function,low,"reimplemented (src/game/render/drawbuffer); thiscall on a stream's record: indices (+0xc) and vertices (+0) freed (TrackedGlobal_Free) and cleared, the rooms (+8, +0x14) = 0; returns 1 (name unconfirmed)"
 0x00582280,DrawBuffer_Destroy,function,low,"reimplemented (src/game/render/drawbuffer); cdecl: the draw buffer at [0x8bcbc4] (0 without one): both streams, the batches and the scratch block freed, the buffer freed and the global cleared; returns 1 (name unconfirmed)"
+0x005823f0,DrawBuffer_Create,function,low,"reimplemented (src/game/render/drawbuffer); thiscall: the draw buffer's tracked blocks made (streams 2 and 1: 1 MB vertices, 0x20000 indices each; batches 0x38000; scratch 1 MB + 0xf aligned to 16) then DrawBuffer_Reset: 1; a failure pushes error (3, 0xb0754000), frees what was got: 0"
 0x005839a0,TexFormat_SetArgb32,function,high,"reimplemented (src/game/render/texformat); thiscall (the renderer settings, 0x8bd550): the DDPIXELFORMAT at +0x68 made 32-bit ARGB (software driver)"
 0x005839e0,TexFormat_Table,function,high,"reimplemented (src/game/render/texformat); thiscall: the current texture format's table, +0x88 + 0x1000 * (+4)"
 0x00581790,TexLoad_DriverFlags,function,high,reimplemented (src/game/render/texformat); the word for the driver to load a texture with

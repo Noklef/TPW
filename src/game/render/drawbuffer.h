@@ -14,6 +14,14 @@
 
 extern "C" {
 
+// 0x5823f0 (thiscall; name unconfirmed): the draw buffer's blocks made, each a tracked block (TrackedGlobal_Alloc, core/gameheap): stream 2
+// (+0x20) then stream 1 (+8), each 1 MB of vertices (+0, room +8) and 0x20000 bytes of indices (+0xc, room +0x14 = 0x10000), the used
+// counts (+4, +0x10) 0; the batches (+0x44, 0x38000 bytes, +0x48 = 0x1000) and the scratch block (+0x60, 1 MB + 0xf; +0x58 its first
+// 16-byte boundary, +0x3c 1 MB above that); then DrawBuffer_Reset (all streams): 1. A stream not got pushes the error (3, 0xb0754000) twice,
+// the batches or the scratch block once (EngineErrors_Push), and what was got is freed (a stream that failed, its vertices; stream 2
+// failing returns at once; else both streams as 0x582340, the batches and the scratch block, set or not): 0.
+u32 __fastcall DrawBuffer_Create(u8 *buffer);
+
 // 0x582340 (thiscall on a stream's record; name unconfirmed): its indices (+0xc) and vertices (+0), when set, freed
 // (TrackedGlobal_Free, core/gameheap) and cleared; both rooms (+8, +0x14) = 0. Returns 1.
 u32 __fastcall DrawStream_Free(u8 *stream);
