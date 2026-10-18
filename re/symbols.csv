@@ -3928,6 +3928,7 @@ address,name,kind,confidence,notes
 0x0047ba50,StdWString_Freeze,function,low,"reimplemented (src/game/core/stdwstring); thiscall: std::wstring::_Freeze(): a shared string's own copy, then its block's count byte 0xff (name unconfirmed)"
 0x0047bad0,StdWString_Grow,function,low,"reimplemented (src/game/core/stdwstring); thiscall (n, trim; pops 8): std::wstring::_Grow(n, trim): AL = characters to write (name unconfirmed)"
 0x0047bc00,StdWString_Split,function,low,reimplemented (src/game/core/stdwstring); thiscall: std::wstring::_Split(): a shared string's own copy (wcslen of the shared characters) (name unconfirmed)
+0x00405b90,GameError_IndexOfCode,function,low,reimplemented (src/game/core/gameerror); the error index of a library code
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
