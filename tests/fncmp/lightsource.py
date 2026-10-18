@@ -51,12 +51,14 @@ def case(r):
     if op == 'Scaled':   # Colour's part from {object, colour}; a scale about 0..1, beyond, huge or not a number
         d = r.choice([0, 8, 0x20, 0x40])
         obj = put(bytearray(r.bytes(0xa0)), 0, 'I', TABLES)
-        chans = [fb(r.choice([0.0, 1.0, 0.5, r.random(), r.random(), r.uniform(-1, 2), 1e10, -1e10, 1e-30, float('nan')])) if r.random() < 0.9 else r.getrandbits(32)
-                 for _ in range(3)]
+        nan = lambda: r.choice([0x7fc00000, 0xffc00000, 0x7fc00000, 0xffc00000,   # (ties: only the sign differs, the operand order shows)
+                                r.choice([0x7fc00000, 0x7f800000, 0xff800000]) | r.getrandbits(22) | 1])  # noqa: E731  (quiet or signalling, either sign)
+        chans = [fb(r.choice([0.0, 1.0, 0.5, r.random(), r.random(), r.uniform(-1, 2), 1e10, -1e10, 1e-30, float('nan')])) if r.random() < 0.8 else
+                 nan() if r.random() < 0.5 else r.getrandbits(32) for _ in range(3)]
         regions.update({TABLES: put(bytearray(r.bytes(0x10)), 8, 'i', d), PARTS: obj,
                         RAM + 0x1800: put(put(bytearray(0x20), 0, 'I', PARTS), 4, 'I', RAM + 0x1810)})
         put(regions[RAM + 0x1800], 0x10, '3I', *chans)
-        scale = fb(r.choice([1.0, 0.5, r.random(), 2.0, 255.0, 1e30, -1.0, 0.0, float('nan')])) if r.random() < 0.9 else r.getrandbits(32)
+        scale = fb(r.choice([1.0, 0.5, r.random(), 2.0, 255.0, 1e30, -1.0, 0.0, float('nan')])) if r.random() < 0.8 else nan() if r.random() < 0.5 else r.getrandbits(32)
         return Call(0x4587e0, [RAM + 0x1800, scale], regions, ret='v')
     if op == 'Colour':   # a part at an offset of the object (its vtable's +8); channels about 0..1, beyond, huge or not numbers
         d = r.choice([0, 8, 0x20, 0x40])
