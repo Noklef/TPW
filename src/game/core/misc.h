@@ -6,11 +6,6 @@
 
 extern "C" {
 
-// 0x458910 / 0x458940 (cdecl; pointer to the object): flag 0x10000000 of the part the object's vtable
-// (+8) reaches, at +0x50, cleared / set, the scene flags (0x8bd508) touched first.
-void __cdecl MeshRef_ClearFlag10000000(u8 *const *ref);
-void __cdecl MeshRef_SetFlag10000000(u8 *const *ref);
-
 // 0x4a9350 (cdecl): the counter at 0x7cc150 stepped down if above 0; 1 when it is 0 and 0x7cc190 is
 // set, else 0.
 u32 __cdecl Countdown7cc150_Step();
@@ -26,15 +21,6 @@ u32 __cdecl Global7cc698_Choose();
 // 0x4d09a0 (thiscall): over the 8 entries of 0x20 bytes from +0x20 (size = (+0 - +0xc) * +4 when +8
 // is set, else 0), the index of the smallest non-zero size (the first of equals), or -1 for none.
 s32 __fastcall Obj_SmallestEntry(const u8 *object);
-
-// 0x458310 (thiscall; mostDerived, pops 4): a class with a virtual base. When most derived: vtable
-// 0x6fe570 and the part at +0x60 gets vtable 0x6fdce8. Always: the virtual base (at the vtable's +4)
-// gets vtable 0x6fdcd8, the dword before it = its offset - 0x60, and +0x50 = 0. Returns the object.
-u8 *__fastcall Obj_CtorVirtual(u8 *object, void *, u32 mostDerived);
-
-// 0x4583d0 (thiscall; a, b, c, pops 12): the scene flags touched (SceneFlags_Touch on 0x8bd508), then
-// +0x2c = a, +0x30 = b, +0x34 = c. Returns a.
-u32 __fastcall Obj_SetVectorAt2c(u8 *object, void *, u32 a, u32 b, u32 c);
 
 // 0x5651c0 (thiscall): vtable 0x701260, +4 = +8 = +0x18 = +0x1c = +0x20 = +0x24 = 0, +0x14 = -1; and
 // 0x879ab4 = 1 when the display adapter record at [0x879a24] has vendor +0x428 = 0x10de and the driver

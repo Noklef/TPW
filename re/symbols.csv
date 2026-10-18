@@ -2731,15 +2731,15 @@ address,name,kind,confidence,notes
 0x004d9600,Obj_StampAt30,function,high,reimplemented (src/game/core/misc); a word at +0x30 and the world's stamp at +0x34
 0x004e01f0,Obj_StampAt5e,function,high,reimplemented (src/game/core/misc); a word at +0x5e and the world's stamp at +0x60
 0x0040f300,Obj_CtorPart8,function,high,"reimplemented (src/game/world/thingmsg); vtable 0x6fd7b8, a part built at +8, vtable 0x6fd7b0"
-0x00458910,MeshRef_ClearFlag10000000,function,high,reimplemented (src/game/core/misc); flag 0x10000000 of the referenced part cleared
-0x00458940,MeshRef_SetFlag10000000,function,high,reimplemented (src/game/core/misc); flag 0x10000000 of the referenced part set
+0x00458910,MeshRef_ClearFlag10000000,function,high,reimplemented (src/game/render/lightsource); flag 0x10000000 of the referenced part cleared
+0x00458940,MeshRef_SetFlag10000000,function,high,reimplemented (src/game/render/lightsource); flag 0x10000000 of the referenced part set
 0x004a9350,Countdown7cc150_Step,function,high,reimplemented (src/game/core/misc); a counter stepped down; 1 at zero when another global is set
 0x004b4670,Obj_KillSlot24,function,high,reimplemented (src/game/core/misc); the script slot at +0x24 killed and the slot fields cleared
 0x004bcec0,Global7cc698_Choose,function,high,reimplemented (src/game/core/misc); a global set from the first of three sources that applies
 0x0052fbf0,PairTable_Add,function,high,reimplemented (src/game/core/misc); a pair appended to the 8-byte entry table unless it is past 0x400
 0x004d09a0,Obj_SmallestEntry,function,high,"reimplemented (src/game/core/misc); the index of the smallest non-zero entry size of eight, or -1"
-0x00458310,Obj_CtorVirtual,function,high,reimplemented (src/game/core/misc); a class with a virtual base: vtables and the offset word
-0x004583d0,Obj_SetVectorAt2c,function,high,"reimplemented (src/game/core/misc); the scene flags touched, then three dwords at +0x2c"
+0x00458310,Obj_CtorVirtual,function,high,reimplemented (src/game/render/lightsource); a class with a virtual base: vtables and the offset word
+0x004583d0,Obj_SetVectorAt2c,function,high,"reimplemented (src/game/render/lightsource); the scene flags touched, then three dwords at +0x2c"
 0x005651c0,Class701260_Ctor,function,high,"reimplemented (src/game/core/misc); vtable 0x701260 and its defaults, plus a driver quirk flag"
 0x005646c0,Obj_CtorVirtual5646c0,function,high,"reimplemented (src/game/core/misc); a class with a virtual base (vtables 0x701188, 0x701178, 0x701168)"
 0x00564ba0,Obj_CtorVirtual564ba0,function,high,"reimplemented (src/game/core/misc); a class with a virtual base (vtables 0x7011d8, 0x701178, 0x7011c8)"

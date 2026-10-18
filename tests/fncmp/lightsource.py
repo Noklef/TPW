@@ -4,7 +4,8 @@
 # MessageBoxA (m3d2.py's import recorder) for kind 0. Main (0x458580) destroys the light 0x7a0b40 points at.
 # Colour (0x458890, or half the time 0x458350 on the part with an alpha): a part at an offset of 0 to 0x40 given channels about 0..1, beyond, huge, NaN or any bits.
 # Scaled (0x4587e0): the same part from a light {object, colour} whose colour (three floats such channels) is scaled first.
-# usage: lightsource.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Destroy,Main,Colour,Scaled)
+# The light part's constructor 0x458310, its vector 0x4583d0 and its flag 0x10000000 (0x458910 / 0x458940) over any object bytes.
+# usage: lightsource.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Destroy,Main,Colour,Scaled,CtorVirtual,SetVec,MeshClear,MeshSet)
 import os
 import sys
 
@@ -13,11 +14,30 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fncmp import IMPORT_TABLE, LOG, Bench, Call, RAM, fb, import_table, log_region, put, recorder, set_return  # noqa: E402
 import m3d2  # noqa: E402
 
-B = Bench([(0x458400, 0x4584bc), (0x46f100, 0x46f11f), (0x576540, 0x5765b8), (0x458580, 0x45858f), (0x458890, 0x458909), (0x458350, 0x4583cf), (0x5836b0, 0x5836c2), (0x4587e0, 0x45888f)])
+B = Bench([(0x458400, 0x4584bc), (0x46f100, 0x46f11f), (0x576540, 0x5765b8), (0x458580, 0x45858f), (0x458890, 0x458909), (0x458350, 0x4583cf), (0x5836b0, 0x5836c2), (0x4587e0, 0x45888f),
+           (0x458310, 0x45834d), (0x4583d0, 0x4583f6), (0x458910, 0x458935), (0x458940, 0x458965)])
 LIGHT, PARTS, TABLES, RENDERER, NODES = RAM, RAM + 0x100, RAM + 0x800, RAM + 0x1000, RAM + 0x1100
 
 
+def part_case(r, op):   # 0x458310 (CtorVirtual), 0x4583d0 (SetVec), 0x458910 / 0x458940 (MeshClear / MeshSet) over any object bytes
+    obj = bytearray(r.bytes(0x400))
+    regions = {RAM: obj, 0x8bd500: r.bytes(0x20), 0x8bcc40: r.bytes(8)}
+    if op == 'CtorVirtual':
+        put(obj, 0, 'I', RAM + 0x300)  # the vtable it starts with (when not most derived): +4 the virtual base offset
+        put(obj, 0x304, 'I', r.choice([0x60, 0x60, 0x64, 0x70, 0x80, 0x68]))
+        return Call(0x458310, [RAM, r.choice([0, 1, 1])], regions, conv='t', ret='a')
+    if op == 'SetVec':
+        return Call(0x4583d0, [RAM, r.getrandbits(32), r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='a')
+    put(obj, 0x100, 'I', RAM + 0x200)  # the light: -> the object, whose vtable (+8) gives the part's offset
+    put(obj, 0x200, 'I', RAM + 0x300)
+    put(obj, 0x308, 'I', r.choice([0x20, 0x40, 0x10, 0x60]))
+    return Call(0x458910 if op == 'MeshClear' else 0x458940, [RAM + 0x100], regions)
+
+
 def case(r):
+    op = r.deal(OPS)
+    if op in PART_OPS:
+        return part_case(r, op)
     log = log_region()
     set_return(log, m3d2.K_BOX, r.choice([1, 2]))
     light = bytearray(r.bytes(0x10))
@@ -47,7 +67,6 @@ def case(r):
     put(renderer, 0xc, 'I', r.randrange(8))
     regions = {LOG: log, IMPORT_TABLE: import_table(log, m3d2.IMPORTS), LIGHT: light, PARTS: parts, TABLES: tables, RENDERER: renderer,
                NODES: nodes, 0x87a6d0: put(bytearray(4), 0, 'I', RENDERER), 0x8bd508: r.bytes(8), 0x879dd8: r.bytes(0x10)}
-    op = r.deal(OPS)
     if op == 'Scaled':   # Colour's part from {object, colour}; a scale about 0..1, beyond, huge or not a number
         d = r.choice([0, 8, 0x20, 0x40])
         obj = put(bytearray(r.bytes(0xa0)), 0, 'I', TABLES)
@@ -75,7 +94,8 @@ def case(r):
     return Call(0x458400, [LIGHT], regions, ret='v')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Destroy,Main,Colour,Scaled').split(',') if k]
+PART_OPS = ['CtorVirtual', 'SetVec', 'MeshClear', 'MeshSet']
+OPS = [k for k in os.environ.get('OPS', ','.join(['Destroy', 'Main', 'Colour', 'Scaled'] + PART_OPS)).split(',') if k]
 
 
 if __name__ == '__main__':

@@ -90,4 +90,42 @@ void __fastcall LightPart_SetColour(u8 *part, void *, u32 a, u32 r, u32 g, u32 b
     const u32 high = (red | alpha << 8) << 8 | byte(g);
     at<u32>(part, 0x54) = high << 8 | byte(b);
 }
+
+u8 *__fastcall Obj_CtorVirtual(u8 *object, void *, u32 mostDerived) {
+    if (mostDerived) {
+        at<u32>(object, 0) = 0x006fe570;
+        at<u32>(object, 0x60) = 0x006fdce8;
+    }
+    at<u32>(object, at<u32>(at<u8 *>(object, 0), 4)) = 0x006fdcd8;
+    const u32 base = at<u32>(at<u8 *>(object, 0), 4);
+    at<u32>(object, base - 4) = base - 0x60;
+    at<u32>(object, 0x50) = 0;
+    return object;
+}
+
+u32 __fastcall Obj_SetVectorAt2c(u8 *object, void *, u32 a, u32 b, u32 c) {
+    SceneFlags_Touch(reinterpret_cast<u32 *>(0x008bd508));
+    at<u32>(object, 0x2c) = a;
+    at<u32>(object, 0x30) = b;
+    at<u32>(object, 0x34) = c;
+    return a;
+}
+
+// The part a light's object reaches: the object plus the offset at +8 of its vtable.
+static u8 *RefPart(u8 *const *ref) {
+    u8 *object = *ref;
+    return object + at<u32>(at<u8 *>(object, 0), 8);
+}
+
+void __cdecl MeshRef_ClearFlag10000000(u8 *const *ref) {
+    u8 *part = RefPart(ref);
+    SceneFlags_Touch(reinterpret_cast<u32 *>(0x008bd508));
+    at<u32>(part, 0x50) &= 0xefffffff;
+}
+
+void __cdecl MeshRef_SetFlag10000000(u8 *const *ref) {
+    u8 *part = RefPart(ref);
+    SceneFlags_Touch(reinterpret_cast<u32 *>(0x008bd508));
+    at<u32>(part, 0x50) |= 0x10000000;
+}
 }
