@@ -201,4 +201,31 @@ u32 __fastcall Options_SerializeMisc(u8 *options, void *, Stream *stream, u32 sa
         return 1;
     return 0;
 }
+
+u32 __fastcall Options_SaveFile(u8 *options, void *, const u8 *path) {
+    s32 result;
+    Stream *stream;
+    if (*FileStream_Open(&result, &stream, at<const char *>(path, 8), 0xc0000010) < 0)
+        return 0;
+    u32 version = 1;
+    s32 done = 0;
+    const bool ok = *Stream_Write(&result, stream, &version, 4, &done) >= 0 && done == 4 &&
+                    Options_SerializeDisplay(options, nullptr, stream, 1, version) == 0;
+    Stream_Close(&result, stream);
+    return ok ? 1 : 0;
+}
+
+u32 __fastcall Options_LoadFile(u8 *options, void *, const u8 *path) {
+    Options_Defaults(options);
+    s32 result;
+    Stream *stream;
+    if (*FileStream_Open(&result, &stream, at<const char *>(path, 8), 0x80000001) < 0)
+        return 0;
+    u32 version;
+    s32 done = 0;
+    const bool ok = *Stream_Read(&result, stream, &version, 4, &done) >= 0 && done == 4 && version != 0 &&
+                    Options_SerializeDisplay(options, nullptr, stream, 0, version) == 0;
+    Stream_Close(&result, stream);
+    return ok ? 1 : 0;
+}
 }

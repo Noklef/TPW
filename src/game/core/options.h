@@ -56,4 +56,13 @@ u32 __fastcall Options_SerializeSound(u8 *options, void *, Stream *stream, u32 s
 u32 __fastcall Options_SerializeDisplay(u8 *options, void *, Stream *stream, u32 saving, u32);
 // 0x424560: +0x78, +0x7c, +0x80 (read with Stream_Read), +0x84 (CURRENTTheme), +0x88 (DEBUGGuardUInts), +0x8c (TextureCacheSize).
 u32 __fastcall Options_SerializeMisc(u8 *options, void *, Stream *stream, u32 saving, u32);
+
+// The options file (thiscall; path, a String whose text is at +8; pops 4; names unconfirmed): 1 when it went through, else 0 (the reports to the
+// debug printf left out).
+// 0x424820: opened for writing (FileStream_Open, mode 0xc0000010; nothing more when that fails), the version 1 written (4 bytes), then
+// Options_SerializeDisplay (saving, the version); closed (Stream_Close) after the stream was used.
+u32 __fastcall Options_SaveFile(u8 *options, void *, const u8 *path);
+// 0x424930: the defaults first (Options_Defaults); opened for reading (mode 0x80000001), the version read (4 bytes; 0 is refused), then
+// Options_SerializeDisplay (loading, the version); closed after the stream was used.
+u32 __fastcall Options_LoadFile(u8 *options, void *, const u8 *path);
 }
