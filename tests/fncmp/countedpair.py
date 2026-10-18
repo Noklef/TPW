@@ -34,6 +34,8 @@ def case(r):
     nb, wb = bytearray(r.bytes(4 * stdstring.SLOT)), bytearray(r.bytes(4 * stdwstring.SLOT))
     xn, xw = strings(r, nb, wb, 0)
     pn, pw = strings(r, nb, wb, 1)
+    if pw[0] and r.random() < 0.2:  # a capacity of exactly 32 (the assignment's _Grow keeps a block of 31 or less)
+        pw = (pw[0], min(pw[1], 32), 32)
     if op == 'Assign' and r.random() < 0.2:  # x shares p's blocks (each one now and then), counted or not
         if r.random() < 0.7:
             xn = pn
