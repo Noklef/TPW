@@ -146,12 +146,15 @@ def add_symbols(spec):
     nl = eol(text)
     lines = text.split(nl)
     for name, addr, unit, desc in spec:
-        buf = io.StringIO()
-        csv.writer(buf, lineterminator='').writerow(
-            ['0x%08x' % addr, name, 'function', 'high', 'reimplemented (src/game/%s); %s' % (unit, desc)])
-        row = buf.getvalue()
         key = '0x%08x,' % addr
         hit = next((i for i, l in enumerate(lines) if l.startswith(key)), None)
+        # A name is unconfirmed (low) unless its row already had it: then its confidence stays. port.py --known raises a name to high.
+        old = next(csv.reader([lines[hit]])) if hit is not None else []
+        confidence = old[3] if len(old) > 3 and old[1] == name else 'low'
+        buf = io.StringIO()
+        csv.writer(buf, lineterminator='').writerow(
+            ['0x%08x' % addr, name, 'function', confidence, 'reimplemented (src/game/%s); %s' % (unit, desc)])
+        row = buf.getvalue()
         if hit is not None:
             if lines[hit] != row:
                 print('  symbols.csv: replaced %s' % lines[hit][:90])

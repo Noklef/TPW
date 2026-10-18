@@ -27,7 +27,10 @@ range, open items, known skips and the paths of the two memory files it should r
   wrong, fix the bench's cases, never by dropping cases.
 - Naming: never create bucket files (smallNN, tiny_*, misc*). Put each function in the module for its class/subject: an existing one, or a
   new module named for the subject. Benches are tests/fncmp/<module>.py. Keep names from re/symbols.csv. A name you invent is "low" confidence
-  in symbols.csv (pass `--low NAME...` to port.py), and you say "unconfirmed" in your report.
+  in symbols.csv, and you say "unconfirmed" in your report. port.py does this by default: a new or renamed row is "low", a row that
+  already had the name keeps its confidence. Pass `--known NAME...` only for a name the binary confirms (RTTI, a string, a library's own
+  function name). A failed port.py run puts hooks.cpp, symbols.csv, CMakeLists.txt and unverified.csv back as they were; don't revert
+  them by hand.
 - Leave out Debug_Printf asserts/prints.
 - Tooling and test code live only in tools/ or src/testing (or tests/fncmp benches).
 - **Never `sed -i` a tracked file from Git Bash**; use Edit/Write or integrate.py. Files are stored with LF and checked out CR LF

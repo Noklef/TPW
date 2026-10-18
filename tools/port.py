@@ -1,8 +1,14 @@
 """One porting cycle: integrate a spec, bench it, commit it, then run its mutants.
 
-  python -I tools/port.py SPEC --bench SUITE.py [suite args...] [--msg FILE] [--mut FILE] [--also PATH...] [--unverified REASON] [--low NAME...]
+  python -I tools/port.py SPEC --bench SUITE.py [suite args...] [--msg FILE] [--mut FILE] [--also PATH...] [--unverified REASON]
+                          [--known NAME...] [--low NAME...]
 
---low NAME...: the spec's names that were invented get "low" confidence in re/symbols.csv (integrate.py writes "high"), in the same commit.
+Names are unconfirmed by default: integrate.py writes a new or renamed symbols.csv row as "low" (a row that already had the name keeps
+its confidence). --known NAME...: names confirmed by the binary (RTTI, a string, a library's own name) get "high". --low NAME...: force
+"low" on a row that was higher.
+
+If anything fails before the commit is made (a failed `git commit` itself excepted), hooks.cpp, symbols.csv, CMakeLists.txt and unverified.csv are put back as they were before the
+run (the unit sources and the bench are the porter's and stay), so a rerun starts clean.
 
 Runs tools/integrate.py SPEC --bench SUITE.py ARGS (hook rows, symbols, CMake, build, hook tests,
 retcheck, bench). If all of that passes and --msg is given, commits by explicit path: each unit's
@@ -35,8 +41,20 @@ import time
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 AUTHOR = ['-c', 'user.name=Noklef', '-c', 'user.email=281545466+Noklef@users.noreply.github.com']
 TRAILER = 'Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>'
-FLAGS = ('--msg', '--mut', '--also', '--unverified', '--low')
+FLAGS = ('--msg', '--mut', '--also', '--unverified', '--low', '--known')
 MIN_CASES = 10
+TABLES = ['src/hook/hooks.cpp', 're/symbols.csv', 'CMakeLists.txt', 're/unverified.csv']  # (integrate.py's and this script's edits)
+saved = {}
+
+
+def fail(msg):
+    """Exits after putting the tables back as they were before the run."""
+    for path, data in saved.items():
+        with open(os.path.join(ROOT, path), 'wb') as f:
+            f.write(data)
+    if saved:
+        print('port: restored %s' % ', '.join(sorted(saved)))
+    sys.exit(msg)
 
 
 def take(a, flag):
@@ -77,7 +95,7 @@ def main():
     if len(a) < 3 or '--bench' not in a:
         sys.exit(__doc__)
     msg, mut, also, unverified = take(a, '--msg'), take(a, '--mut'), take(a, '--also'), ' '.join(take(a, '--unverified'))
-    low = set(take(a, '--low'))
+    low, known = set(take(a, '--low')), set(take(a, '--known'))
     spec = a[0]
     bench = a[a.index('--bench') + 1:]
     rows = []  # the spec's (name, address, unit)
@@ -88,6 +106,9 @@ def main():
     if unverified and (unverified.lower().startswith('todo') or len(unverified) < 12):
         sys.exit('port: --unverified needs the reason the functions cannot be compared, not a placeholder')
 
+    for path in TABLES:
+        if os.path.exists(os.path.join(ROOT, path)):
+            saved[path] = open(os.path.join(ROOT, path), 'rb').read()
     started = time.time()
     fd, cover = tempfile.mkstemp(suffix='.jsonl')
     os.close(fd)
@@ -102,7 +123,7 @@ def main():
     os.remove(cover)
     if p.returncode:
         print(out[-2500:])
-        sys.exit('port: integrate FAILED')
+        fail('port: integrate FAILED')
     keep = [l for l in out.splitlines() if l.startswith(('tests:', 'retcheck:')) or 'differ' in l or 'hook rows' in l]
     print(' | '.join(keep) + ' | %d s' % (time.time() - started))
     # A bench whose cases mostly fault in the original too tests little: say so (the commit still goes ahead, the decision is the porter's).
@@ -114,14 +135,14 @@ def main():
     # Each function must have been compared: cases that call it and match without a crash in either.
     weak = ['%s %x (%d)' % (name, addr, seen.get(addr, 0)) for name, addr, _ in rows if seen.get(addr, 0) < MIN_CASES]
     if weak and not unverified:
-        sys.exit('port: NOT VERIFIED, fewer than %d matching cases without a crash call: %s (bench them, or --unverified "REASON")'
+        fail('port: NOT VERIFIED, fewer than %d matching cases without a crash call: %s (bench them, or --unverified "REASON")'
                  % (MIN_CASES, ', '.join(weak)))
     # tools/coverage.py runs each bench at 10 cases (seed 5) and 400 (seed 6): every function this bench compares must get a case there too,
     # or ops added to a bench of many functions leave older ones without one and the gate fails after the merge (deal them: Rand.deal).
     gate = gate_cover(bench[0])
     starved = ['%x' % k for k in sorted(seen) if seen[k] >= MIN_CASES and not gate.get(k)]
     if starved:
-        sys.exit('port: the coverage gate\'s cases (%s 10 5 + 400 6) call none of %s: deal or weight the bench\'s ops (r.deal in tools/fncmp.py)'
+        fail('port: the coverage gate\'s cases (%s 10 5 + 400 6) call none of %s: deal or weight the bench\'s ops (r.deal in tools/fncmp.py)'
                  % (os.path.basename(bench[0]), ', '.join(starved)))
 
     if unverified:
@@ -139,22 +160,25 @@ def main():
         print('re/unverified.csv: %s listed as "%s"' % (', '.join(weak) or 'nothing', unverified))
         also = also + ['re/unverified.csv']
 
-    if low:
-        unknown = low - set(name for name, _, _ in rows)
+    if low or known:
+        unknown = (low | known) - set(name for name, _, _ in rows)
         if unknown:
-            sys.exit('port: --low names not in the spec: %s' % ', '.join(sorted(unknown)))
+            fail('port: --low / --known names not in the spec: %s' % ', '.join(sorted(unknown)))
+        if low & known:
+            fail('port: both --low and --known: %s' % ', '.join(sorted(low & known)))
         path = os.path.join(ROOT, 're', 'symbols.csv')
         with open(path, newline='') as f:
             text = f.read()
         for name, addr, _ in rows:
-            if name in low:
-                key = '0x%08x,%s,function,high,' % (addr, name)
-                if key not in text:
-                    sys.exit('port: no symbols.csv row %s' % key)
-                text = text.replace(key, '0x%08x,%s,function,low,' % (addr, name), 1)
+            if name in low or name in known:
+                pat = re.compile(r'^(0x%08x,%s,function,)\w+,' % (addr, re.escape(name)), re.M)
+                if not pat.search(text):
+                    fail('port: no symbols.csv row 0x%08x,%s' % (addr, name))
+                text = pat.sub(lambda m: m.group(1) + ('low' if name in low else 'high') + ',', text, count=1)
         with open(path, 'w', newline='') as f:
             f.write(text)
-        print('symbols.csv: low confidence for %s' % ', '.join(sorted(low)))
+        print('symbols.csv: %s' % '; '.join(x for x in ('low: ' + ', '.join(sorted(low)) if low else '',
+                                                        'high: ' + ', '.join(sorted(known)) if known else '') if x))
 
     if msg:
         units = set(unit for _, _, unit in rows)
@@ -163,7 +187,7 @@ def main():
         paths = [x.replace('\\', '/') for x in paths if os.path.exists(os.path.join(ROOT, x))]
         bad = [x for x in paths if x.startswith(('.data', '_re', 'build'))]
         if bad:
-            sys.exit('port: refusing to commit %s' % bad)
+            fail('port: refusing to commit %s' % bad)
         text = open(msg[0], encoding='utf-8').read().rstrip('\n')
         if TRAILER not in text:
             text += '\n\n' + TRAILER
@@ -174,6 +198,7 @@ def main():
         r = r if r.returncode else git(*AUTHOR, 'commit', '-q', '-F', tmp)
         os.remove(tmp)
         if r.returncode:
+            # (not restored: the files are staged by now; the verified port stays for a retried commit)
             sys.exit('port: commit FAILED\n' + (r.stdout + r.stderr)[-1500:])
         print('committed ' + git('log', '-1', '--format=%h %s').stdout.strip())
 
