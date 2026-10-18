@@ -4308,6 +4308,8 @@ address,name,kind,confidence,notes
 0x00435500,Coasters_InitTables,function,high,"reimplemented (src/game/coaster/registry); cdecl: Coasters_AllocTables([0x790fd0], [0x791cfc]), then IdTable_Init(0x790b04, 0x790b00, 0x791ce0)"
 0x00433f70,CoasterLinks_FindAtFocus,function,low,reimplemented (src/game/coaster/registry); the coaster entry at the cell of the focus point
 0x00434f10,CoasterEdit_SetBounds,function,low,"reimplemented (src/game/coaster/registry); cdecl: the edit bounds (0x79221c, 0x790fd8, 0x79104c, 0x791cf8) as the cells within reach of the edited piece, clamped to the map"
+0x004479a0,CoasterEdit_Tool1,function,low,"reimplemented (src/game/coaster/registry); cdecl: the edit's tool 1 (recorded 0x37; flag 0x40 cleared after tool 2 mode 2), then CoasterEdit_SetBounds"
+0x00447a10,CoasterEdit_Tool2,function,low,"reimplemented (src/game/coaster/registry); cdecl: the edit's tool 2 (recorded 0x38; mode 1 or 2 and flag 0x40 by the end piece), then CoasterEdit_SetBounds"
 0x0043b0e0,Coaster_QueuePush,function,high,"reimplemented (src/game/coaster/queue); cdecl (index, peep): appends the peep to the queue ring (+0xb0) of coaster index (table 0x790bd0) when it has room"
 0x0043b130,CoasterQueue_Add,function,high,"reimplemented (src/game/coaster/queue); cdecl (coaster, peep): appends the peep to the queue ring (+0xb0), else to the boarding ring (+0xd0), whichever has room"
 0x0043b1f0,Coaster_QueueRoom,function,high,"reimplemented (src/game/coaster/queue); cdecl (index): the queue ring's limit - reserved - count, at least 0"

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/actionrec.h"
 #include "../core/globalmem.h"
 #include "../core/idtable.h"
 #include "../math/x87.h"
@@ -219,6 +220,46 @@ void __cdecl CoasterEdit_SetBounds() {
     *reinterpret_cast<s32 *>(0x0079104c) = xHigh;
     *reinterpret_cast<s32 *>(0x0079221c) = xLow;
     *reinterpret_cast<s32 *>(0x00790fd8) = zLow;
+}
+
+void __cdecl CoasterEdit_Tool1() {
+    ActionRec_Write(reinterpret_cast<ActionRec *>(0x00785a08), nullptr, 0x37);
+    u8 **const current = reinterpret_cast<u8 **>(0x00790fec);
+    u32 &flags = *reinterpret_cast<u32 *>(0x0079c658);
+    u32 &tool = *reinterpret_cast<u32 *>(0x0079c644);
+    u32 &mode = *reinterpret_cast<u32 *>(0x0079c664);
+    at<u32>(*current, 0) &= ~0x2000u;
+    if (tool == 2 && mode == 2 && *current && (*at<const u8 *>(*current, 4) & 2)) flags &= ~0x40u;
+    mode = 0;
+    tool = 1;
+    CoasterEdit_SetBounds();
+}
+
+void __cdecl CoasterEdit_Tool2() {
+    ActionRec_Write(reinterpret_cast<ActionRec *>(0x00785a08), nullptr, 0x38);
+    u8 **const current = reinterpret_cast<u8 **>(0x00790fec);
+    u32 &flags = *reinterpret_cast<u32 *>(0x0079c658);
+    u32 &mode = *reinterpret_cast<u32 *>(0x0079c664);
+    at<u32>(*current, 0) &= ~0x2000u;
+    const u8 *const link = *current;
+    const bool typed = link && (*at<const u8 *>(link, 4) & 2);
+    bool flagged = false;
+    if (typed) {
+        const u32 state = at<u32>(link, 0x3c);
+        if (!(state & 1))
+            flagged = at<u8>(at<const u8 *>(link, 0x58), 8) & 0x80;
+        else if (state & 2)
+            flagged = at<u8>(at<const u8 *>(link, 0x60), 8) & 0x80;
+    }
+    if (flagged) {
+        mode = 1;
+        flags |= 0x40;
+    } else if (!(flags & 0x40) && typed) {
+        mode = 2;
+        flags |= 0x40;
+    }
+    *reinterpret_cast<u32 *>(0x0079c644) = 2;
+    CoasterEdit_SetBounds();
 }
 
 u32 __cdecl CoasterEdit_Flag1() { return *reinterpret_cast<const u32 *>(0x0079c658) & 1; }

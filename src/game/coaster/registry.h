@@ -104,6 +104,16 @@ void __cdecl Coasters_GetState(u32 *a, u32 *b, u32 *c, u32 *d);
 // sic: the z low is raised to 0x7a01bc, the x origin, as the x low is.
 void __cdecl CoasterEdit_SetBounds();
 
+// 0x4479a0 / 0x447a10 (cdecl; names unconfirmed): the edit's two tools (0x79c644 = 1 / 2), each recorded (ActionRec_Write of the
+// recorder 0x785a08, code 0x37 / 0x38) and ending in CoasterEdit_SetBounds; flag 0x2000 of the current link (0x790fec, +0; there
+// must be one) cleared first. Tool 1 clears edit flag 0x40 (0x79c658) when tool 2 was on with 0x79c664 2 and the link's type (+4)
+// has flag 2 (its first byte); 0x79c664 = 0. Tool 2, for a link whose type has flag 2: with the end piece flagged 0x80 (+8; the
+// link's +0x58 without its flag 1 at +0x3c, else its +0x60 when it has flag 2) 0x79c664 = 1, else, unless flag 0x40 is on, 0x79c664
+// = 2; either way flag 0x40 set.
+void __cdecl CoasterEdit_Tool1();
+
+void __cdecl CoasterEdit_Tool2();
+
 // 0x447990: flag 1 of 0x79c658.
 u32 __cdecl CoasterEdit_Flag1();
 
