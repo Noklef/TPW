@@ -15,4 +15,11 @@ u32 __cdecl Ride_Bounds(s32 index, float *out);
 // extents and y the ride model's root's y (not the box's), stored y first, then x, then z; returns 0. With the handle 0 or no
 // box, x, y and z are 0 (z stored first) and it returns 1.
 u32 __cdecl Ride_Centre(const s32 *handle, float *x, float *y, float *z);
+
+// 0x556b90 (name unconfirmed; called by the ride script's walk-node and instruction code): the place of a part of the ride whose index
+// is at obj +0xc8. For key at or above 0 and a ride, the part Model_FindPartByKey4(ride, mask, key) (none: 0 returned): its node (the
+// ride's +8 -> +0x28 -> +4 entries of 0x14 bytes, +4) gives pos (+0x30..+0x38, else 0s) and, when dir is not null, dir: its +0x20..
+// +0x28, negated when the entry's flag 0x10 is set, divided by its length (made a float) and times 1024 (no node: 0, 0, 1024).
+// Otherwise pos is the ride's box's centre with its root's y, as Ride_Centre has them (0s for no ride or box) and dir is left. Returns 1.
+u32 __cdecl Ride_PartPlace(const u8 *obj, float *pos, float *dir, s32 key, u32 mask);
 }

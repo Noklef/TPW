@@ -1,6 +1,8 @@
 # A ride's box in the world (src/game/coaster/ridebounds: 0x466b70) against the original:
 # rides (or none) in the 0x7a4610 table, with or without their +0xcc block, tile corners of
 # any 16 bits, heights and the root's y as floats; and its centre (0x556af0: the handle 0, or an index whose box there is or not).
+# Also a ride part's position and direction (0x556b90): an object with the ride's index or 0, up to 4 model parts with small keys and
+# masks (found or not, a negative key for the centre instead), their nodes or none, flipped or not, zero directions, no direction out.
 # usage: ridebounds.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import sys
@@ -8,7 +10,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x466b70, 0x466c7f), (0x556af0, 0x556b8c)])
+B = Bench([(0x466b70, 0x466c7f), (0x556af0, 0x556b8c), (0x556b90, 0x556ddb), (0x44b220, 0x44b267), (0x5da3c0, 0x5da3c1)])
 RIDE, BLOCK, HOLDER, MODEL, ROOT, OUT = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x220, RAM + 0x300, RAM + 0x400
 
 
@@ -35,8 +37,42 @@ def centre(r):   # (handle, x, y, z): the handle a dword (0: none) holding the i
     return Call(0x556af0, [RAM + 0x480, RAM + 0x4c0, RAM + 0x4c4, RAM + 0x4c8], c.regions, ret='a')
 
 
+def pose(r):   # (obj, pos, dir, key, mask): the ride at obj +0xc8 (or 0), a model part found by key and mask whose node gives both
+    c = box(r)
+    index = c.args[0]
+    ram = c.regions[RAM] + r.bytes(0x300)
+    table = c.regions[0x7a4610]
+    if r.random() < 0.95:
+        put(table, 4 * index, 'I', RIDE)
+    obj, parts, entries, inst, nodes = RAM + 0x500, RAM + 0x600, RAM + 0x680, RAM + 0x6e0, RAM + 0x700
+    put(ram, obj - RAM + 0xc8, 'I', index if r.random() < 0.9 else 0)
+    n = r.randrange(5)
+    put(ram, MODEL - RAM + 0x48, 'H', n)
+    put(ram, MODEL - RAM + 0x7c, 'I', parts)
+    put(ram, HOLDER - RAM + 0x28, 'I', inst)
+    put(ram, inst - RAM + 4, 'I', entries)
+    keys = [r.randrange(6) for _ in range(n)]
+    for i in range(n):
+        put(ram, parts - RAM + 0x14 * i, 'I', r.getrandbits(32) & r.choice([0xffffffff, 0x3da1f83, 0x10, 0]))
+        put(ram, parts - RAM + 0x14 * i + 4, 'I', keys[i])
+        node = nodes + 0x40 * i
+        put(ram, entries - RAM + 0x14 * i, 'I', r.getrandbits(32) & ~0x10 | r.choice([0, 0x10]))
+        put(ram, entries - RAM + 0x14 * i + 4, 'I', node if r.random() < 0.85 else 0)
+        scale = r.choice([1, 100, None])
+        r.floats(ram, [node - RAM + o for o in (0x20, 0x24, 0x28, 0x30, 0x34, 0x38)], scale)
+        if r.random() < 0.1:
+            put(ram, node - RAM + r.choice([0x20, 0x24, 0x28]), 'I', 0x80000000 if r.random() < 0.5 else 0)
+        if r.random() < 0.08:
+            put(ram, node - RAM + 0x20, 'III', 0, 0x80000000, 0)   # a zero direction (0 / 0)
+    key = r.choice(keys + [r.randrange(6), -1, -0x10, r.getrandbits(32)]) if keys else r.choice([0, 3, -1])
+    mask = r.choice([0xffffffff, 0x10, 1, 0x3da1f82, 0x400000, 0, r.getrandbits(32)])
+    out = r.choice([RAM + 0x4d0, RAM + 0x4d0, 0])
+    return Call(0x556b90, [obj, RAM + 0x4c0, out, key & 0xffffffff, mask], {RAM: ram, 0x7a4610: table}, ret='a')
+
+
 def case(r):
-    return box(r) if r.deal([0, 1]) else centre(r)
+    op = r.deal([0, 1, 2])
+    return box(r) if op == 0 else centre(r) if op == 1 else pose(r)
 
 
 if __name__ == '__main__':
