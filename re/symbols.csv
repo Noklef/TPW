@@ -3711,6 +3711,9 @@ address,name,kind,confidence,notes
 0x0051af00,ListScalarDelete700aa0_51af00,function,low,"reimplemented (src/game/core/vdel); a linked list scalar deleting destructor: sets the vtable pointer 0x700aa0, frees every node and, when bit 0 of the flags is set, the list"
 0x005e3fa0,Class702e70_ScalarDtor,function,high,"reimplemented (src/game/core/vdel); thiscall (flags, pops 4): Class702e70_Dtor, the object freed on flag bit 0; returns it"
 0x005e3fd0,Class702e20_ScalarDtor,function,high,"reimplemented (src/game/core/vdel); thiscall (flags, pops 4): Class702e20_Dtor, the object freed on flag bit 0; returns it"
+0x00409cf0,ScalarDeleteList6fd708_409cf0,function,low,reimplemented (src/game/core/vdel); the list deleting destructor with the list destructor inlined
+0x00458970,Deleter_Minus8_458970,function,low,reimplemented (src/game/core/vdel); the deleting destructor of a part 8 bytes into its block
+0x00421800,ScalarDeleteList6fdb10_421800,function,low,reimplemented (src/game/core/vdel); the list deleting destructor of vtable 0x6fdb10 with the list destructor inlined
 0x004dda20,Object_QueueHasRoom,function,high,reimplemented (src/game/world/objectmsg); whether the person queue is shorter than four times the limit
 0x005eb090,ArrayHolder_Clear,function,high,reimplemented (src/game/gfx/array3d); frees the four arrays of the holder
 0x005ea3f0,Image_CropInto,function,high,reimplemented (src/game/gfx/imageops); copies the part of an image that is left once moved into a fresh destination

@@ -213,6 +213,13 @@ u8 *__fastcall Deleter_Minus60_42a090(u8 *object, void *, u32 flags) {
     return object - 0x60;
 }
 
+u8 *__fastcall Deleter_Minus8_458970(u8 *object, void *, u32 flags) {
+    at<u32>(object, 0x0) = 0x006fdce8;
+    if (flags & 1)
+        GameHeap_Free(object - 0x8);
+    return object - 0x8;
+}
+
 u8 *__fastcall Deleter_Minus8_56a660(u8 *object, void *, u32 flags) {
     Vtbl701260_Set_565230(object);
     if (flags & 1)
@@ -364,6 +371,18 @@ u8 * __fastcall ScalarDelete703770_617ae0(u8 *o, void *, u32 v0) {
 
 u8 * __fastcall ScalarDeleteVia407c30_407c70(u8 *o, void *, u32 v0) {
     ListDtor6fd708_407c30(reinterpret_cast<u8 *>(o)); if (v0 & 1) GameHeap_Free(o); return o;
+}
+
+u8 *__fastcall ScalarDeleteList6fd708_409cf0(u8 *o, void *, u32 flags) {
+    ListDtor6fd708_407c30(o);  // (inlined in the original)
+    if (flags & 0x1) GameHeap_Free(o);
+    return o;
+}
+
+u8 *__fastcall ScalarDeleteList6fdb10_421800(u8 *o, void *, u32 flags) {
+    ListDtor6fdb10_421640(o);  // (inlined too)
+    if (flags & 1) GameHeap_Free(o);
+    return o;
 }
 
 u8 * __fastcall ScalarDeleteVia41c9a0_41c980(u8 *o, void *, u32 v0) {

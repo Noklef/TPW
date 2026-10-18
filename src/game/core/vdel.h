@@ -72,6 +72,10 @@ u8 *__fastcall Deleter_Minus60_42a090(u8 *object, void *, u32 flags);
 // Returns that address (the object - 8).
 u8 *__fastcall Deleter_Minus8_56a660(u8 *object, void *, u32 flags);
 
+// 0x458970 (thiscall; flags, pops 4; name unconfirmed): the vtable pointer at +0 = 0x6fdce8; when bit 0 of the flags is set the block 8
+// bytes before the object is freed. Returns that address (the object - 8), freed or not.
+u8 *__fastcall Deleter_Minus8_458970(u8 *object, void *, u32 flags);
+
 // 0x579020 / 0x5790c0 / 0x579150 (thiscall on the object 8 bytes above the base; flags, pops 4): the base's (the pointer - 8) virtual base
 // offset (dword +4 of its vtable) names where the vtable 0x7018d0 / 0x701920 / 0x7018f8 is stored; the dword at (the offset - 4, read
 // again from the base's new vtable) = the offset - 8; the dword at +8 = 0x701940; when bit 0 of the flags is set the base is freed.
@@ -186,6 +190,13 @@ u8 * __fastcall ScalarDelete703770_617ae0(u8 *o, void *, u32 v0);
 
 // 0x407c70: calls ListDtor6fd708_407c30, then frees the object when bit 0 of the flags is set.
 u8 * __fastcall ScalarDeleteVia407c30_407c70(u8 *o, void *, u32 v0);
+
+// 0x409cf0 (name unconfirmed): ListDtor6fd708_407c30 written out (the vtable pointer 0x6fd708, +8 and +4 cleared, the chain from the old +4
+// (next at +4) freed, +0xc cleared), then frees the object when bit 0 of the flags is set. Returns the object.
+u8 *__fastcall ScalarDeleteList6fd708_409cf0(u8 *o, void *, u32 flags);
+
+// 0x421800 (name unconfirmed): the same with ListDtor6fdb10_421640 (vtable 0x6fdb10).
+u8 *__fastcall ScalarDeleteList6fdb10_421800(u8 *o, void *, u32 flags);
 
 // 0x41c980: calls ListDtor6fd9e4_41c9a0, then frees the object when bit 0 of the flags is set.
 u8 * __fastcall ScalarDeleteVia41c9a0_41c980(u8 *o, void *, u32 v0);
