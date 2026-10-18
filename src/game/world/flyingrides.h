@@ -80,4 +80,11 @@ u32 __cdecl FlyingRide_Busy(s32 index);
 // of the record's thing (the u16 slot at +0x58 in gThingSlots), key 0x101, no description, the rest 0), the result kept as the slot's ride.
 // (A Debug_Printf is left out.)
 void __cdecl FlyingRides_ReclaimRides();
+
+// 0x55cc00 (cdecl; x, y; name unconfirmed; called at 0x55c417, 0x55c7b0 and 0x55c7c8): the floor at a world position. 100000 at or past
+// 20000 beyond the bounds (x below 0x7660b8 and from 0x7660bc, y below 0x7660c0 and from 0x7660c4); 30000 when a record of the table
+// (indices 1-99) is near: (x - its +0x14) / 32 and (y - its +0x1c) / 32 (truncated) squared and summed (wrapping), __ftol of its x87
+// square root << 5 under 10000 (signed); 0 outside the bounds themselves; else Terrain_SurfaceHeight (no slot) of the cell x / 3000,
+// y / 3000 (truncated, then clamped to 0 and to below the grid sizes at 0x7a0314 and 0x7a0374) by __ftol, times 300.
+s32 __cdecl FlyingRides_FloorAt(s32 x, s32 y);
 }
