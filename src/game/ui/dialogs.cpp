@@ -1,0 +1,19 @@
+#include "dialogs.h"
+
+#include <cstdint>
+
+#include "window.h"
+
+namespace {
+
+u8 *window(u32 address) { return *reinterpret_cast<u8 **>((uintptr_t)address); }
+}
+
+extern "C" {
+
+s32 __cdecl Dialog7cc47c_Message4() { return Window_SendMessage(window(0x007cc47c), 4, 0, 0); }
+
+s32 __cdecl Dialog7cc47c_Message6On() { return Window_SendMessage(window(0x007cc47c), 6, 1, 0); }
+
+s32 __cdecl Dialog7cc47c_Message6Off() { return Window_SendMessage(window(0x007cc47c), 6, 0, 0); }
+}

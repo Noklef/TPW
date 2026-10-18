@@ -310,6 +310,7 @@ add_library(tpw_game STATIC
     src/game/input/mouse.cpp
     src/game/ui/dialog7ca1c8.cpp
     src/game/ui/window.cpp
+    src/game/ui/dialogs.cpp
 )
 
 # Proxy dinput.dll that loads into tp.exe and installs the hooks.

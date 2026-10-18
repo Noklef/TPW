@@ -295,6 +295,7 @@
 #include "../game/online/chatavatar.h"
 #include "../game/online/session.h"
 #include "../game/ui/dialog7ca1c8.h"
+#include "../game/ui/dialogs.h"
 #include "../game/ui/window.h"
 
 namespace tpw::hook {
@@ -4064,8 +4065,13 @@ const Hook kHooks[] = {
     {"RsseScript_EventName",      0x00468600, (void *)&RsseScript_EventName, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"RSSE_StartTimer",           0x00557160, (void *)&RSSE_StartTimer, {0xb9, 0x70, 0x59, 0x78, 0x00}},
     {"Window_FindChild",          0x0065d7d0, (void *)&Window_FindChild, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window_CallHandler",        0x0065f697, (void *)&Window_CallHandler, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window_SendMessage",        0x00658d9f, (void *)&Window_SendMessage, {0x55, 0x8b, 0xec, 0x83, 0x7d}},
     {"Dialog7ca1c8_SetChecks",    0x00498090, (void *)&Dialog7ca1c8_SetChecks, {0x8b, 0x0d, 0xc8, 0xa1, 0x7c}},
     {"Dialog7ca1c8_SetChecksIfUp", 0x00498a50, (void *)&Dialog7ca1c8_SetChecksIfUp, {0xa1, 0xc8, 0xa1, 0x7c, 0x00}},
+    {"Dialog7cc47c_Message6Off",  0x004b8830, (void *)&Dialog7cc47c_Message6Off, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
+    {"Dialog7cc47c_Message6On",   0x004b8810, (void *)&Dialog7cc47c_Message6On, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
+    {"Dialog7cc47c_Message4",     0x004b87f0, (void *)&Dialog7cc47c_Message4, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

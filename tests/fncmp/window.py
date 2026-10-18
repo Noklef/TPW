@@ -2,17 +2,22 @@
 # 0x498090 / 0x498a50) against the originals. FindChild: a window with 0-6 children (ids from a few, repeats and misses) searched for one id.
 # SetChecks / SetChecksIfUp: the dialog's child 0x18 holds the nine buttons 0x18-0x21 shuffled among a few others (now and then one missing:
 # a fault in both), each with a recorder vtable whose slot 5 logs its bool (the low byte: the original pushes 0x20's with ECX's upper half);
-# [0x7ca1d0] +0x50 and [0x7ca1c8] / [0x7ca1cc] (the IfUp guard) set or 0.
+# [0x7ca1d0] +0x50 and [0x7ca1c8] / [0x7ca1cc] (the IfUp guard) set or 0. CallHandler / SendMessage (0x65f697 / 0x658d9f) and the dialog
+# wrappers that send to [0x7cc47c] (src/game/ui/dialogs): the window (or none) with its byte +4 now and then set, its handler +0x114 and the
+# hook [0xfaa5fc] fncmp's four-argument cdecl logger or 0 (its result now and then set).
 # usage: window.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FindChild,SetChecks,SetChecksIfUp)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, LOG_BYTES, Bench, Call, RAM, log_region, put, vtable  # noqa: E402
+from fncmp import CDECL_LOG4, LOG, LOG_BYTES, Bench, Call, RAM, log_region, put, set_return, vtable  # noqa: E402
 
-CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50}
-B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832)])
+CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50, 'CallHandler': 0x65f697, 'SendMessage': 0x658d9f,
+         'Dialog7cc47c_Message4': 0x4b87f0, 'Dialog7cc47c_Message6On': 0x4b8810, 'Dialog7cc47c_Message6Off': 0x4b8830}
+SENDS = {k: v for k, v in CALLS.items() if k.startswith('Dialog')}
+B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6d1), (0x658d9f, 0x658df4), (0x659710, 0x659721),
+           (0x4b87f0, 0x4b8850)])
 WINDOW, NODES, VTABLE, MISC = RAM, RAM + 0x100, RAM + 0x1000, RAM + 0x1100
 NODE = 0x90
 BUTTONS = list(range(0x18, 0x22))
@@ -39,6 +44,22 @@ def case(r):
     op = r.deal(OPS)
     log = log_region()
     regions = {LOG: log, VTABLE: vtable({5: 1})}
+    if op in ('CallHandler', 'SendMessage') or op in SENDS:
+        win = bytearray(r.bytes(0x120))
+        win[4] = r.choice([0, 0, 0, 1, 0x80])
+        put(win, 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, CDECL_LOG4, 0]))
+        regions[WINDOW] = win
+        regions[0xfaa5fc] = struct.pack('<I', r.choice([0, 0, CDECL_LOG4]))
+        if r.random() < 0.5:
+            set_return(log, 0x3d, r.choice([0, 1, -1, r.getrandbits(32)]))
+        window = r.choice([WINDOW] * 6 + [0])
+        args = [r.choice([0, 1, 4, 6, r.getrandbits(32)]) for _ in range(3)]
+        if op == 'CallHandler':
+            return Call(CALLS[op], [WINDOW] + args, regions, conv='t', ret='a')
+        if op == 'SendMessage':
+            return Call(CALLS[op], [window] + args, regions, ret='a')
+        regions[0x7cc47c] = struct.pack('<I', window)
+        return Call(CALLS[op], [], regions, ret='a')
     if op == 'FindChild':
         ids = [r.choice([0, 1, 5, 0x18, 0x1f, 0x100, r.getrandbits(32)]) for _ in range(r.choice([0, 1, 2, 3, 6]))]
         want = r.choice(ids + [r.choice([0, 5, 0x18, r.getrandbits(32)])]) if ids else r.choice([0, 5])

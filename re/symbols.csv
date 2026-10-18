@@ -4525,5 +4525,10 @@ address,name,kind,confidence,notes
 0x005e1350,Class702cb0_StartPendingPlay,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall, vtable 0x702cb0 slot 6: a pending play (state +0x14 == 2) started with LobbyModel_Play(entry 1); 0 when the state is 0, else 1 and the state cleared"
 0x005d9db0,Class702af0_Ctor,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall (count, name, name2, two triples by pointer, two dwords; pops 0x1c): strings +0x10/+0x24, vtable 0x702af0, a new list (0x702aec) at +0x58, +8 = count * [0x7858dc] / 100 clamped to 1..count, names assigned, triples to +0x38/+0x44, dwords to +0x50/+0x54, registered with [0xf83784] slot 6 (name unconfirmed)"
 0x0065d7d0,Window_FindChild,function,low,"reimplemented (src/game/ui/window); thiscall (id), pops 4: the first child of the window (list +0x5c, next +0x54) whose id (+0x8c) is id, or 0"
+0x0065f697,Window_CallHandler,function,low,"reimplemented (src/game/ui/window); thiscall (message, a, b), pops 12: the cdecl handler at +0x114 called with (window, message, a, b), its result; -1 when none"
+0x00658d9f,Window_SendMessage,function,low,"reimplemented (src/game/ui/window); cdecl (window, message, a, b): -1 for no window or byte +4 set; else the hook [0xfaa5fc] (if set) then Window_CallHandler"
 0x00498090,Dialog7ca1c8_SetChecks,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): the nine check buttons of the 0x7ca1c8 dialog's child 0x18 set (vtable slot 5, bool) from flags bits 0-8 (0x20's also needs [0x7ca1d0]+0x50)"
 0x00498a50,Dialog7ca1c8_SetChecksIfUp,function,low,reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): Dialog7ca1c8_SetChecks when [0x7ca1c8] and [0x7ca1cc] are not 0
+0x004b87f0,Dialog7cc47c_Message4,function,low,"reimplemented (src/game/ui/dialogs); cdecl: Window_SendMessage([0x7cc47c], 4, 0, 0)"
+0x004b8810,Dialog7cc47c_Message6On,function,low,"reimplemented (src/game/ui/dialogs); cdecl: Window_SendMessage([0x7cc47c], 6, 1, 0)"
+0x004b8830,Dialog7cc47c_Message6Off,function,low,"reimplemented (src/game/ui/dialogs); cdecl: Window_SendMessage([0x7cc47c], 6, 0, 0)"
