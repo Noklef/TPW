@@ -10,6 +10,8 @@
 
 #include "../../../re/types.h"
 
+struct StdWString;
+
 extern "C" {
 
 void __fastcall StdTree_IncA(u8 **it);
@@ -45,6 +47,9 @@ void __fastcall StdTree_CtorG(u8 *tree);
 u8 **__fastcall StdTree_InsertA(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u32 *value);
 u8 **__fastcall StdTree_InsertB(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u16 *value);
 u8 **__fastcall StdTree_InsertG(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u16 *value);
+// 0x4f4c20: the same for tree D (the wide string set: a std::wstring at +0xc, copied by StdWString_Construct; below y's when WString_Compare
+// is negative).
+u8 **__fastcall StdTree_InsertD(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const StdWString *value);
 
 u8 **__fastcall StdTree_EraseA(u8 *tree, void *, u8 **out, u8 *node);
 u8 **__fastcall StdTree_EraseB(u8 *tree, void *, u8 **out, u8 *node);

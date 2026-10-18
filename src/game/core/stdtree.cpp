@@ -4,6 +4,7 @@
 
 #include "crt.h"
 #include "gameheap.h"
+#include "stdwstring.h"
 #include "string.h"
 
 namespace {
@@ -87,12 +88,17 @@ template <u32 nilAt, u32 colourAt, Value value, u32 counterAt, u32 nodeSize> str
 
     // Inserts a new node for `value` under y (the node made by NewNode, which copies the value and makes the node's links nil): x is not nil for an insertion to the left.
     template <typename V, typename Less> static u8 **Insert(u8 *tree, u8 **out, u8 *x, u8 *y, const V *value, Less less) {
+        return Insert(tree, out, x, y, value, less, [](u8 *to, const V *v) { *reinterpret_cast<V *>(to) = *v; });
+    }
+
+    // The same with the value copied into the node (at +0xc) by `copy` (a copy constructor).
+    template <typename V, typename Less, typename Copy> static u8 **Insert(u8 *tree, u8 **out, u8 *x, u8 *y, const V *value, Less less, Copy copy) {
         u8 *z = static_cast<u8 *>(GameHeap_Alloc(nodeSize));
         P(z) = y;
         C(z) = kRed;
         L(z) = Nil();
         R(z) = Nil();
-        *reinterpret_cast<V *>(z + 0xc) = *value;
+        copy(z + 0xc, value);
         at<u32>(tree, 0xc) += 1;
         u8 *head = at<u8 *>(tree, 4);
         if (y == head || x != Nil() || less(value, y)) {
@@ -489,6 +495,12 @@ u8 **__fastcall StdTree_InsertA(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const 
 
 u8 **__fastcall StdTree_InsertB(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u16 *value) {
     return TreeB::Insert<u16>(tree, out, x, y, value, [](const u16 *v, u8 *node) { return StdTreeB_KeyLess(v, nullptr, reinterpret_cast<const u16 *>(node + 0xc)) != 0; });
+}
+
+u8 **__fastcall StdTree_InsertD(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const StdWString *value) {
+    return TreeD::Insert<StdWString>(
+        tree, out, x, y, value, [](const StdWString *v, u8 *node) { return WString_Compare(reinterpret_cast<const u8 *>(v), nullptr, node + 0xc) < 0; },
+        [](u8 *to, const StdWString *v) { StdWString_Construct(reinterpret_cast<StdWString *>(to), v); });
 }
 
 u8 **__fastcall StdTree_InsertG(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u16 *value) {
