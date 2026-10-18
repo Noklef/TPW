@@ -82,3 +82,11 @@ u32 __fastcall GameClock_Serialize(u8 *clock, void *, Stream *stream, u32 save, 
     return 0;
 }
 }
+
+s32 FunnyTime_DaysSince(const FileTime *date) {
+    FileTime now, age;
+    FunnyTime_Now(global<const u8 *>(0x0080239c) + 0x2a0, nullptr, &now, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+                  nullptr);
+    FileTime_Sub(&now, nullptr, &age, date);
+    return (s32)((long long)((unsigned long long)age.high << 32 | age.low) / 864000000000LL);  // (_alldiv by a day's ticks)
+}

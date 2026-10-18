@@ -3321,6 +3321,7 @@ address,name,kind,confidence,notes
 0x004de5a0,Object_ExitOpen,function,low,reimplemented (src/game/world/object); thiscall: whether any step but the one back is open from the cell beyond the exit (turned round when the exit is the entrance)
 0x004e2290,Object_ScrapValue,function,low,reimplemented (src/game/world/object); thiscall: the scrap value by the age in funny time (years of 365 days; 100 when new without customers)
 0x004e2400,Object_ScrapRefund,function,low,reimplemented (src/game/world/object); thiscall: the scrap value percentage of the first level's cost (32-bit product / 100)
+0x004dd670,Object_AgeDays,function,low,reimplemented (src/game/world/object); thiscall: the object's age in whole funny-time days from its date at +0x18
 0x005d46d0,Blocks7_Free,function,high,reimplemented (src/game/core/buffers); frees the seven blocks of an object and clears its groups
 0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/string); whether the first name is after the second, case blind"
 0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/string); whether two names are equal, case blind"
@@ -3614,6 +3615,7 @@ address,name,kind,confidence,notes
 0x00505a10,Staff_Train,function,low,"reimplemented (src/game/world/staff); thiscall (amount): pay for training: debit the money, add to the park's spend, add amount / cost points of progress, raise the grade at 100"
 0x00508000,Staff_CountTypes,function,low,"reimplemented (src/game/world/staff); thiscall: count the world's staff by type, flagging the types that reached their limits"
 0x0050c800,Staff_TrainAll,function,low,"reimplemented (src/game/world/staff); thiscall (amounts[5]): count the staff by type, then train each with its type's amount divided by the count"
+0x00505b70,Staff_AgeDays,function,low,reimplemented (src/game/world/staff); thiscall: the staff member's age in whole funny-time days from the date at +0x1f0
 0x00520d60,FreeList_Take,function,high,reimplemented (src/game/core/voices); takes a record off the free list into a table entry
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/voices); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/voices); scales a voice's levels by the factor over 1024

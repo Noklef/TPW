@@ -4,8 +4,8 @@
 # their hash. The SYSTEMTIME SystemTimeToFileTime is handed is logged as the hash of its bytes up to the first 0, put within its year and
 # month (its day of the week is the stack's on the original side). Now: rates and the world's ticks (+0x1da70c) about 0, 2^32 and
 # products past 2^63; each field out null or a slot (at times the same one). The spans: of ticks about the same, and since ticks about
-# the world's.
-# usage: funnytime.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Init,Now,SpanOf,Elapsed,SpanSince to pick)
+# the world's. Its users' ages in days (an object's 0x4dd670, a staff member's 0x505b70): dates about whole days before now.
+# usage: funnytime.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Init,Now,SpanOf,Elapsed,SpanSince,ObjectDays,StaffDays)
 import os
 import struct
 import sys
@@ -13,10 +13,11 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import IMPORT_TABLE as IAT, LOG, Bench, Call, RAM, fill, import_table, log_region, put, set_return  # noqa: E402
 
-RANGES = [(0x4f7e80, 0x4f7f2d), (0x4f8690, 0x4f8730), (0x4f8730, 0x4f8769), (0x4f8800, 0x4f88a6), (0x4f88b0, 0x4f88f6),
+RANGES = [(0x4f7e80, 0x4f7f2d), (0x4f8690, 0x4f8730), (0x4f8730, 0x4f8769), (0x4f8800, 0x4f88a6), (0x4f88b0, 0x4f88f6), (0x4dd670, 0x4dd6c3), (0x505b70, 0x505bc6),
           (0x5fc530, 0x5fc550), (0x5fc550, 0x5fc570), (0x5fc5c0, 0x5fc65e), (0x5fc660, 0x5fc733), (0x67c320, 0x67c3ca), (0x67c7f0, 0x67c824)]
 B = Bench(RANGES)
-CLOCK, OUT, TICKS = RAM, RAM + 0x100, RAM + 0x200
+CLOCK, OUT, TICKS = RAM, RAM + 0x100, RAM + 0x400
+DAY = 864000000000   # FILETIME ticks
 WORLD = TICKS - 0x1da70c   # (only its ticks are read)
 # The imports: slot, import table address, stack arguments, string arguments (mask), out arguments (mask).
 IMPORTS = {'GetLocalTime': (40, 0x6fd164, 1, 0, 1), 'SystemTimeToFileTime': (41, 0x6fd150, 2, 1, 0), 'FileTimeToSystemTime': (42, 0x6fd0bc, 2, 0, 3)}
@@ -61,6 +62,20 @@ def case(r):
     if r.random() < 0.3:
         put(clock, 0, 'I', r.choice([0, 0xffffffff]))
         put(clock, 4, 'I', r.choice([0, 0x01bf53eb, 0x7fffffff, 0xffffffff]))
+    if op in ('ObjectDays', 'StaffDays'):   # (the world's own clock: the world at CLOCK - 0x2a0, its ticks moved to match)
+        world = CLOCK - 0x2a0
+        regions[0x80239c] = struct.pack('<I', world)
+        regions[world + 0x1da70c] = regions.pop(TICKS)
+        rate, ticks = struct.unpack_from('<I', clock, 0x1c)[0], struct.unpack_from('<I', regions[world + 0x1da70c])[0]
+        product = rate * ticks
+        seconds = product // 4 if product < 1 << 63 else -((2 ** 64 - product) // 4)
+        now = struct.unpack_from('<Q', clock)[0] + seconds * 10000000
+        age = r.choice([0, 1, DAY - 1, DAY, DAY + 1, 30 * DAY, 31 * DAY - 1, r.randrange(1000) * DAY + r.choice([-1, 0, 1]), -DAY, -DAY - 1,
+                        r.getrandbits(64), r.randrange(1 << 63), DAY << 31, (DAY << 32) + DAY])
+        address, date = (0x4dd670, 0x18) if op == 'ObjectDays' else (0x505b70, 0x1f0)   # (the object or staff member at OUT)
+        regions[OUT] = bytearray(r.bytes(0x200))
+        put(regions[OUT], date, 'Q', (now - age) % 2 ** 64)
+        return Call(address, [OUT], regions, conv='t', ret='a')
     if op == 'SpanOf':
         return Call(0x4f8730, [CLOCK, OUT + 0x20, u32(r)], regions, conv='t', ret='a')
     if op == 'Elapsed':
@@ -73,7 +88,7 @@ def case(r):
     return Call(0x4f8690, [CLOCK, OUT + 0x20] + outs, regions, conv='t', ret='a')
 
 
-KINDS = ['Init', 'Now', 'Now', 'SpanOf', 'Elapsed', 'SpanSince']
+KINDS = ['Init', 'Now', 'Now', 'SpanOf', 'Elapsed', 'SpanSince', 'ObjectDays', 'StaffDays']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':

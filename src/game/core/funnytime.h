@@ -35,3 +35,7 @@ FileTime *__fastcall FunnyTime_SpanSince(const u8 *clock, void *edx, FileTime *o
 // (Save_Field; 1 at the first that fails). The load reads the last through Save_ReadU32, which takes the same steps.
 u32 __fastcall GameClock_Serialize(u8 *clock, void *, Stream *stream, u32 save, s32 version, u32 unused);
 }
+
+// (Not hooked: inlined by its users, Object_AgeDays 0x4dd670 and Staff_AgeDays 0x505b70.) Whole days (signed, toward 0; the low dword) of
+// the world's funny time now (FunnyTime_Now, no fields) less date.
+s32 FunnyTime_DaysSince(const FileTime *date);

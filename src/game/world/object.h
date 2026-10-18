@@ -1,5 +1,5 @@
 // The objects (thing model 3: rides, shops, facilities; serialized at 0x4db7d0): reimplementation
-// of 0x4dd4e0, 0x4e1670, 0x4e1690, 0x4e1e00, 0x4e2190, 0x4e21c0, 0x4e2290, 0x4e2400, 0x4e2710 and 0x4e2b50 (thiscall).
+// of 0x4dd4e0, 0x4dd670, 0x4e1670, 0x4e1690, 0x4e1e00, 0x4e2190, 0x4e21c0, 0x4e2290, 0x4e2400, 0x4e2710 and 0x4e2b50 (thiscall).
 // +0xe the definition's id; +0x18c mQualityOfGoods, +0x190 mChanceOfWinning; +0x1a0 mNumCustomers,
 // +0x1a4 mNumWalkAways, and their histories, CircBufU32s of 30 at +0x1a8 and +0x230 (mTemp first,
 // the count so far); +0x340 a running average of the customers' happiness changes.
@@ -34,6 +34,9 @@ u32 __fastcall Object_DefIsKind3(const u8 *object);
 // upgrade level the byte +0x50 picks (+0x40 each); 100 instead when under 30 days old, with no customer yet (+0x1a0) and the first
 // level's first-year value positive (signed).
 u32 __fastcall Object_ScrapValue(const u8 *object);
+
+// 0x4dd670: the object's age in whole days, from its date at +0x18 (FunnyTime_DaysSince).
+s32 __fastcall Object_AgeDays(const u8 *object);
 
 // 0x4e2400: the scrap value (Object_ScrapValue, a percentage) of the definition's dword +0x1b8 (the first level's cost): their product
 // (32-bit, wrapping) / 100, unsigned.
