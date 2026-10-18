@@ -4562,3 +4562,6 @@ address,name,kind,confidence,notes
 0x00659ee2,GuiRect_Centre,function,low,"reimplemented (src/game/ui/guirect); thiscall (x, y word pointers or 0), pops 8, slot 1: left + (right - left) >> 1 and the same for top/bottom stored through each"
 0x0065a3e9,GuiRect_Offset,function,low,"reimplemented (src/game/ui/guirect); thiscall (dx, dy words), pops 8, slot 2: dx added to left and right, dy to top and bottom"
 0x0065a43e,GuiRect_Adjust,function,low,"reimplemented (src/game/ui/guirect); thiscall (dl, dt, dr, db words), pops 16, slot 3: each added to left, top, right and bottom"
+0x006599f2,GuiDialog_SetA,function,low,"reimplemented (src/game/ui/guidialog); thiscall (word), pops 4: +0xa = value when value < the word +0xe (signed)"
+0x00659a19,GuiDialog_SetC,function,low,"reimplemented (src/game/ui/guidialog); thiscall (word), pops 4: +0xc = value when value < the word +0xe (signed)"
+0x006598f7,GuiDialog_Apply,function,low,"reimplemented (src/game/ui/guidialog); thiscall (flags, source), pops 8, slot 3: bit 0 SetC(src+4), bit 2 +0x30 = src+8, bit 19 SetA(src+0xa), bit 6 +0x34/+0x36 = src+0xc/+0xe; nothing for flags 0 or no source"
