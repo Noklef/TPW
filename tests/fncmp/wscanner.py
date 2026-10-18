@@ -1,7 +1,8 @@
 # The wide text scanner's text setter (src/game/core/wscanner: 0x5e6b30) against the original: its wstring at +4 and the text passed by
 # value made as stdwstring.py makes strings (null, empty, short and long, count bytes 0-2, 0xfd-0xff, sometimes the same block), any
-# flag bytes and context; the copies and frees from the heap region.
-# usage: wscanner.py [CASES [SEED]] [--wild|--both] [--show N]
+# flag bytes and context; the copies and frees from the heap region. Pair (0x5e73f0): the keyword pair's constructor on random bytes, the
+# key made the same way, the value random.
+# usage: wscanner.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetText,Pair)
 import os
 import sys
 
@@ -14,11 +15,21 @@ import stdwstring  # noqa: E402
 B = Bench([(0x405280, 0x405390), (0x479150, 0x4791b0), (0x47b750, 0x47bcf0), (0x4f23f0, 0x4f2450), (0x4f6080, 0x4f60a0),
            (0x67acd0, 0x67ad00), (0x4ea740, 0x4ea7e0), (0x47ae60, 0x47b060), (0x47b600, 0x47b750), (0x479230, 0x479256),
            (0x47cc10, 0x47cd00), (0x47b460, 0x47b5b0), (0x47d9d0, 0x47db00), (0x47d620, 0x47d780), (0x47b320, 0x47b460),
-           (0x5e6b30, 0x5e6c87)])
+           (0x5e6b30, 0x5e6c87), (0x5e73f0, 0x5e7518)])
 SCANNER, FLAGS = RAM + 0x800, RAM + 0x900
+OPS = [k for k in os.environ.get('OPS', 'SetText,Pair').split(',') if k]
+
+
+def pair(r):
+    blocks = bytearray(r.bytes(4 * stdwstring.SLOT))
+    x = stdwstring.string(r, blocks, 1)
+    regions = {SCANNER: r.bytes(0x20), stdwstring.BLOCKS: blocks, HEAP: heap()}
+    return Call(0x5e73f0, [SCANNER, r.getrandbits(32), *x, *(r.getrandbits(32) for _ in range(4))], regions, conv='t', ret='a')
 
 
 def case(r):
+    if r.deal(OPS) == 'Pair':
+        return pair(r)
     blocks = bytearray(r.bytes(4 * stdwstring.SLOT))
     s = stdwstring.string(r, blocks, 0)
     together = s[0] and r.random() < 0.2
