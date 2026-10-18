@@ -41,4 +41,20 @@ u32 __fastcall Obj_SetVectorAt2c(u8 *object, void *, u32 a, u32 b, u32 c);
 // reaches, at +0x50, cleared / set, the scene flags (0x8bd508) touched first.
 void __cdecl MeshRef_ClearFlag10000000(u8 *const *ref);
 void __cdecl MeshRef_SetFlag10000000(u8 *const *ref);
+
+// 0x457e70 (cdecl; kind, colour (0xAARRGGBB), point, direction (three dwords each); name unconfirmed): a light {kind, part (kind 2),
+// 0, part (kind 3), colour} in a zeroed GlobalMem block of 0x14 bytes. Kind 0: the M3D2 data error box ("Invalid lightsource creation
+// attempted", 0x74d0dc) and 0 (the block kept by nobody, sic). Kind 1: the ambient colour 0x879dd8 = {1, r, g, b} (each byte times
+// 0x6fe53c, 1/255). Kinds 2 and 3: a part of 0x68 bytes from Mem_Alloc built in place (2: the virtual base tables 0x6fdd00 / 0x6fdcf8,
+// vtables 0x6fdce8, 0x6fdcd8 and 0x6fdcc8, +0x50 of the part 2, its vector (Obj_SetVectorAt2c) 0, 0, 1; 3: tables 0x6fe560 / 0x6fe558
+// and Obj_CtorVirtual at +0xc, vtable 0x6fe548, +0x50 4, +0x44..+0x4c 100, 10000, 0.0001), coloured white (LightPart_SetColour), then
+// given the colour (+0x54, and +4..+0x10 a, r, g, b as byte times 0x6fe50c times 0x6fe53c) and the direction (2: +0x2c) or the point
+// (3: +0x14), and added to the renderer's (0x87a6d0) tag 0x70 list through its virtual base (Renderer_Add). No part (Mem_Alloc failing)
+// faults (sic). Other kinds: only the kind and colour. Returns the light.
+u32 *__cdecl LightSource_Create(u32 kind, u32 colour, const u32 *point, const u32 *direction);
+
+// 0x4584d0 (cdecl; name unconfirmed): the direction at 0x7a0b30 normalised (each over the float root of x x + y y + z z), then the
+// directional light (LightSource_Create kind 2) of the colour 0x7a0b3c in that direction, kept at 0x7a0b40, its part's flag 0x20 (at
+// +0x50 of the part the vtable's +8 reaches) set.
+void __cdecl LightSource_CreateMain();
 }

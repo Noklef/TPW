@@ -4514,6 +4514,8 @@ address,name,kind,confidence,notes
 0x00458890,LightSource_SetColour,function,low,"reimplemented (src/game/render/lightsource); a light's part colour from r, g, b"
 0x00458350,LightPart_SetColour,function,low,"reimplemented (src/game/render/lightsource); a light part's colour from a, r, g, b"
 0x004587e0,LightSource_SetColourScaled,function,low,"reimplemented (src/game/render/lightsource); cdecl (light, scale): LightSource_SetColour of the light's object with its colour times scale"
+0x00457e70,LightSource_Create,function,low,"reimplemented (src/game/render/lightsource); cdecl (kind, colour, point, direction): a light {kind, part, 0, part, colour} by kind: 0 the data error box and 0, 1 the ambient colour 0x879dd8, 2 / 3 a part built in place, coloured, given the direction / point and added to the renderer's tag 0x70 list"
+0x004584d0,LightSource_CreateMain,function,low,"reimplemented (src/game/render/lightsource); cdecl: the direction 0x7a0b30 normalised, the directional light of colour 0x7a0b3c made in it (LightSource_Create 2) and kept at 0x7a0b40, its part's flag 0x20 set"
 0x00561bc0,ClipCodes_Compute,function,low,"reimplemented (src/game/render/clipcodes); fastcall-shaped (caller's ECX, EDX; out, codes, points, count, stride, mask), pops 24: each point's 7-bit sign/magnitude index into the table at 0x879970, masked, stored; out = AND | OR << 8 | ECX's high half"
 0x00570d60,ClipCodes_Run,function,low,reimplemented (src/game/render/clipcodes); the caller ECX and six arguments on to ClipCodes_Compute; returns out (name unconfirmed)
 0x00561840,ClipCodes_InitTable,function,low,"reimplemented (src/game/render/clipcodes); cdecl: the clip code table at 0x879970 built and the 8-byte block at 0x879a20 allocated, unless the block is there"

@@ -5,17 +5,22 @@
 # Colour (0x458890, or half the time 0x458350 on the part with an alpha): a part at an offset of 0 to 0x40 given channels about 0..1, beyond, huge, NaN or any bits.
 # Scaled (0x4587e0): the same part from a light {object, colour} whose colour (three floats such channels) is scaled first.
 # The light part's constructor 0x458310, its vector 0x4583d0 and its flag 0x10000000 (0x458910 / 0x458940) over any object bytes.
+# Create (0x457e70): a light of every kind and colour, its block from the GlobalAlloc heap and its part from Mem_Alloc (the part failing
+# now and then), a point and a direction, the renderer's tag 0x70 list empty or not (the entries' slot 8 answering 1) and its free list
+# with nodes or none. MainCreate (0x4584d0): the directional light from the direction at 0x7a0b30 (normalised first: any length, none,
+# huge) and the colour 0x7a0b3c, kept at 0x7a0b40.
 # usage: lightsource.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Destroy,Main,Colour,Scaled,CtorVirtual,SetVec,MeshClear,MeshSet)
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from fncmp import IMPORT_TABLE, LOG, Bench, Call, RAM, fb, import_table, log_region, put, recorder, set_return  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, fb, global_heap, heap, import_table, log_region, put, recorder, set_return, vtable  # noqa: E402
 import m3d2  # noqa: E402
 
 B = Bench([(0x458400, 0x4584bc), (0x46f100, 0x46f11f), (0x576540, 0x5765b8), (0x458580, 0x45858f), (0x458890, 0x458909), (0x458350, 0x4583cf), (0x5836b0, 0x5836c2), (0x4587e0, 0x45888f),
-           (0x458310, 0x45834d), (0x4583d0, 0x4583f6), (0x458910, 0x458935), (0x458940, 0x458965)])
+           (0x458310, 0x45834d), (0x4583d0, 0x4583f6), (0x458910, 0x458935), (0x458940, 0x458965), (0x457e70, 0x458300), (0x45b9d0, 0x45ba15),
+           (0x576410, 0x576550), (0x576270, 0x576320), (0x42a030, 0x42a03b), (0x5d1410, 0x5d1416), (0x4584d0, 0x458573)])
 LIGHT, PARTS, TABLES, RENDERER, NODES = RAM, RAM + 0x100, RAM + 0x800, RAM + 0x1000, RAM + 0x1100
 
 
@@ -88,14 +93,49 @@ def case(r):
         if r.random() < 0.5:   # (0x458350: the part itself, alpha first)
             return Call(0x458350, [PARTS + d, fb(r.choice([0.0, 1.0, 0.5, r.random(), 2.0, float('nan')]))] + chans, regions, conv='t', ret='v')
         return Call(0x458890, [RAM + 0x1800] + chans, regions, ret='v')
+    if op in ('Create', 'MainCreate'):
+        return create(r, regions, renderer, nodes, op == 'MainCreate')
     if op == 'Main':
         regions[0x7a0b40] = put(bytearray(4), 0, 'I', LIGHT)
         return Call(0x458580, [], regions, ret='v')
     return Call(0x458400, [LIGHT], regions, ret='v')
 
 
+def create(r, regions, renderer, nodes, main=False):   # 0x457e70 (kind, colour, point, direction) or 0x4584d0
+    iat = bytearray(regions[IMPORT_TABLE])
+    for at, v in global_heap().items():   # (GlobalAlloc / GlobalFree in the import table m3d2's recorders fill)
+        iat[at - IMPORT_TABLE:at - IMPORT_TABLE + 4] = v
+    regions[IMPORT_TABLE] = iat
+    regions[HEAP] = heap(0x1000, r.choice([0] * 12 + [2]))
+    regions[0x8bcc40] = r.bytes(8)
+    entries = r.choice([0, 0, 1, 2])   # the tag 0x70 list (+0x2c): nodes {object, next} whose objects' slot 8 is a recorder
+    head = 0
+    for i in range(entries):
+        put(nodes, 8 * i, 'II', PARTS + 0x10 * i, head)
+        head = NODES + 8 * i
+    put(renderer, 0x2c, 'I', head)
+    free = r.choice([0, 1, 2, 2])   # the free list (+4)
+    for i in range(free):
+        put(nodes, 0x40 + 8 * i, 'II', r.getrandbits(32), NODES + 0x40 + 8 * (i + 1) if i + 1 < free else 0)
+    put(renderer, 4, 'I', NODES + 0x40 if free else 0)
+    parts = bytearray(r.bytes(0x100))
+    for i in range(2):
+        put(parts, 0x10 * i, 'I', TABLES)
+    regions.update({PARTS: parts, TABLES: vtable({2: 0}), RENDERER: renderer, NODES: nodes,
+                    RAM + 0x1800: r.bytes(0x18)})
+    kind = r.choice([0, 1, 1, 2, 2, 2, 3, 3, 3, 4, r.getrandbits(32)])
+    colour = r.choice([0, 0xffffffff, 0xff808080, r.getrandbits(32), r.getrandbits(32)])
+    if main:
+        v = [r.choice([0.0, 1.0, -1.0, r.uniform(-2, 2), r.uniform(-1e3, 1e3)]) for _ in range(3)]
+        if r.random() < 0.05:
+            v = r.choice([[0.0, 0.0, 0.0], [1e30, 1e30, 0.0], [1e-30, 0.0, 0.0]])
+        regions[0x7a0b30] = put(put(bytearray(r.bytes(0x14)), 0, '3f', *v), 0xc, 'I', colour)
+        return Call(0x4584d0, [], regions, ret='v')
+    return Call(0x457e70, [kind, colour, RAM + 0x1800, RAM + 0x180c], regions, ret='a')
+
+
 PART_OPS = ['CtorVirtual', 'SetVec', 'MeshClear', 'MeshSet']
-OPS = [k for k in os.environ.get('OPS', ','.join(['Destroy', 'Main', 'Colour', 'Scaled'] + PART_OPS)).split(',') if k]
+OPS = [k for k in os.environ.get('OPS', ','.join(['Destroy', 'Main', 'Colour', 'Scaled', 'Create', 'MainCreate'] + PART_OPS)).split(',') if k]
 
 
 if __name__ == '__main__':
