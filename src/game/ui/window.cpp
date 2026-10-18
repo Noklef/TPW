@@ -201,6 +201,12 @@ u32 __cdecl Window_CancelTimed(u8 *window) {
     return GuiTimers_Cancel(table, nullptr, (u32)(uintptr_t)window);
 }
 
+void __cdecl Gui_ResetQueues() {
+    if (u8 *const table = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f8)) GuiTimers_Reset(table);
+    if (u8 *const first = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f4)) MsgQueue_Clear(first);
+    if (u8 *const queue = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f0)) MsgQueue_Clear(queue);
+}
+
 u32 __fastcall Window_Dtor(u8 *window) {
     at<u32>(window, 0) = 0x705980;
     if (!window[4]) Window_Destroying(window);

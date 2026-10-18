@@ -89,6 +89,10 @@ u32 __cdecl Window_CancelPostedFirst(u8 *window);
 // 0x65903b (cdecl (window); name unconfirmed): likewise the window's timed messages in [0xfaa5f8] (GuiTimers_Cancel).
 u32 __cdecl Window_CancelTimed(u8 *window);
 
+// 0x659064 (cdecl; name unconfirmed): the timed table [0xfaa5f8] reset (GuiTimers_Reset), then the queues [0xfaa5f4] and [0xfaa5f0]
+// cleared (MsgQueue_Clear), each when set.
+void __cdecl Gui_ResetQueues();
+
 // 0x65c025 (thiscall; name unconfirmed): the destructor. The vtable 0x705980; Window_Destroying unless the byte +4 is set; the manager
 // [0x77c48c] told (slot 13 (window)); each object +0x98 / +0x9c let go (WindowImpl_Release) and, when that answers -1 (as a word),
 // deleted (slot 0 (1)) as read again; the timer of each set dword +0x120-+0x12c killed (WindowTimers_Kill, ids 0x80080-0x80083); the
