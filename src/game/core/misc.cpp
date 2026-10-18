@@ -7,6 +7,7 @@
 #include "../render/state.h"
 #include "../sprite/script.h"
 #include "accessors.h"
+#include "gameclock.h"
 #include "gameheap.h"
 #include "initializers.h"
 #include "string.h"
@@ -438,22 +439,6 @@ u32 __cdecl PairTable_Add(u32 a, u32 b) {
     global<u32>(0x0081b744 + 8 * count) = b;
     global<s32>(0x00820a8c) = count + 1;
     return 1;
-}
-
-u32 __fastcall Obj_AdvanceUnless30(u8 *object) {
-    u32 result = Obj_Get30(object);
-    if (!result) {
-        result = at<u32>(object, 0x40);
-        at<u32>(object, 0x3c) += result;
-    }
-    return result;
-}
-
-u8 *__fastcall Obj_CtorOne(u8 *object) {
-    Init_402f30(object);
-    at<u32>(object, 0x20) = 0;
-    at<u32>(object, 0x24) = 0x3ff00000;
-    return object;
 }
 
 u8 *__fastcall Obj_CtorValue(u8 *object, void *, u32 value) {

@@ -59,6 +59,13 @@ u32 __fastcall GameClock_Time(u8 *clock);
 u32 __fastcall GameClock_Now(u8 *clock);
 void __fastcall GameClock_RestoreNow(u8 *clock);
 
+// 0x402ef0 (thiscall): when Obj_Get30 is 0 (not paused), +0x3c += +0x40 (the frozen time moves on by its step). Returns +0x30 if set,
+// else +0x40.
+u32 __fastcall Obj_AdvanceUnless30(u8 *object);
+
+// 0x4032b0 (thiscall): Init_402f30, then +0x20 = 0 and +0x24 = 0x3ff00000 (the rate, the double 1.0 at +0x20). Returns the object.
+u8 *__fastcall Obj_CtorOne(u8 *object);
+
 // The pair (thiscall on the game clock; the real-time clock at +0x50; names unconfirmed): 0x402d70 GameClock_Now; 0x402d80 the real-time clock's
 // RealClock_Now; 0x402d90 / 0x402db0 / 0x402dd0 both paused / resumed / toggled (the game clock first); 0x402e60 both times kept to be put back to
 // (+0x4c, +0x74); 0x402e80 both put back.

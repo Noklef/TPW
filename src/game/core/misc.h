@@ -181,12 +181,6 @@ u8 *__cdecl Records32_MaxWeight(u8 *records, s32 count);
 // 0x820a8c), unless the count is above 0x400 (signed): 0 then, else 1.
 u32 __cdecl PairTable_Add(u32 a, u32 b);
 
-// 0x402ef0 (thiscall): when Obj_Get30 is 0, +0x3c += +0x40. Returns +0x30 if set, else +0x40.
-u32 __fastcall Obj_AdvanceUnless30(u8 *object);
-
-// 0x4032b0 (thiscall): Init_402f30, then +0x20 = 0 and +0x24 = 0x3ff00000 (the double 1.0 at +0x20).
-u8 *__fastcall Obj_CtorOne(u8 *object);
-
 // 0x47f940 (thiscall; value, pops 4): Fn_657d30 on the object, then vtable +0 = 0x6ff058 and +0x14 = value.
 u8 *__fastcall Obj_CtorValue(u8 *object, void *, u32 value);
 
