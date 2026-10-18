@@ -8,6 +8,7 @@
 #include "../core/funnytime.h"
 #include "../core/gameheap.h"
 #include "../core/initializers.h"
+#include "../model/stripanim.h"
 #include "objectdefs.h"
 #include "person.h"
 #include "mapcell.h"
@@ -195,6 +196,13 @@ void __fastcall Object_SetCapacity(u8 *object, void *, u32 capacity) {
     }
     Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 2, value);  // (the debug print of the capacity is left out)
     at<u8>(object, 0x5d) = value;
+}
+
+void __fastcall Object_RestartRide(u8 *object) {
+    at<u32>(object, 0x68) = 0;
+    at<u16>(object, 0x6c) = 0;
+    Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 6, 1);
+    StripAnim_StartGrow(reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(object, 0x20)], 1);
 }
 
 u32 __cdecl Object_TrackNeighboursOk(const u8 *object) {

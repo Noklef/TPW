@@ -3391,6 +3391,7 @@ address,name,kind,confidence,notes
 0x004e2290,Object_ScrapValue,function,low,reimplemented (src/game/world/object); thiscall: the scrap value by the age in funny time (years of 365 days; 100 when new without customers)
 0x004e2400,Object_ScrapRefund,function,low,reimplemented (src/game/world/object); thiscall: the scrap value percentage of the first level's cost (32-bit product / 100)
 0x004dd670,Object_AgeDays,function,low,reimplemented (src/game/world/object); thiscall: the object's age in whole funny-time days from its date at +0x18
+0x004df300,Object_RestartRide,function,low,"reimplemented (src/game/world/object); thiscall: +0x68 and the word +0x6c cleared, ride record element 6 = 1, the ride's strip animation grown from frame 1"
 0x005d46d0,Blocks7_Free,function,high,reimplemented (src/game/core/buffers); frees the seven blocks of an object and clears its groups
 0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/string); whether the first name is after the second, case blind"
 0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/string); whether two names are equal, case blind"
