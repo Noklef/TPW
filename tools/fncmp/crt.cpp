@@ -101,6 +101,9 @@ char *__cdecl strncat(char *to, const char *from, u32 n) {
 // The host's (its classification of the C locale; MSVC6 asks the same tables for c < 0x100 and Windows for the rest).
 u32 __cdecl iswctype(u32 c, u32 mask) { return (u32)::iswctype((wint_t)c, (wctype_t)mask); }
 
+// (The host's classification: checked against the game's for c below 0x80; above that MSVC6 asks its Latin-1 table, then Windows.)
+u32 __cdecl iswspace(u32 c) { return iswctype(c & 0xffff, 8); }
+
 // The host's: the legacy _vsnprintf returns -1 and leaves the buffer unterminated when it does not fit, as MSVC6's does.
 s32 __cdecl vsprintf(char *to, const char *format, void *args) { return std::vsprintf(to, format, (va_list)args); }
 s32 __cdecl vsnprintf(char *to, u32 size, const char *format, void *args) { return _vsnprintf(to, size, format, (va_list)args); }
@@ -151,7 +154,8 @@ s32 __cdecl wtoi(const u16 *s) {
 }  // namespace msvc6
 
 const CrtEnv kDriverCrt = {&msvc6::stricmp, &msvc6::strrchr, &msvc6::strchr, &msvc6::strncmp, &msvc6::strstr,
-                           &msvc6::toupper, &msvc6::tolower, &msvc6::atoi,   &msvc6::sprintf, &msvc6::wcslen};
+                           &msvc6::toupper, &msvc6::tolower, &msvc6::atoi,   &msvc6::sprintf, &msvc6::wcslen,
+                           &msvc6::strncpy, &msvc6::iswspace};
 
 const LibcEnv kDriverLibc = {&msvc6::strncpy, &msvc6::strncat, &msvc6::atoi,    &msvc6::iswctype, &msvc6::vsprintf,
                              &msvc6::vsnprintf, &msvc6::wcslen,  &msvc6::wcscpy,  &msvc6::wcsncpy,  &msvc6::wcscat,
@@ -161,6 +165,6 @@ const CrtStandIn kCrtStandIns[] = {
     {0x0067df40, (void *)&msvc6::stricmp}, {0x0067b5f0, (void *)&msvc6::strrchr}, {0x0067bfc0, (void *)&msvc6::strchr},
     {0x0067c250, (void *)&msvc6::strncmp}, {0x0067c080, (void *)&msvc6::strstr},  {0x0067f1a0, (void *)&msvc6::toupper},
     {0x0067fa60, (void *)&msvc6::tolower}, {0x0067a520, (void *)&msvc6::atoi},    {0x0067a650, (void *)&msvc6::sprintf},
-    {0x0067acd0, (void *)&msvc6::wcslen},
+    {0x0067acd0, (void *)&msvc6::wcslen},  {0x0067ae00, (void *)&msvc6::strncpy}, {0x0067a730, (void *)&msvc6::iswspace},
 };
 const u32 kCrtStandInCount = sizeof kCrtStandIns / sizeof kCrtStandIns[0];

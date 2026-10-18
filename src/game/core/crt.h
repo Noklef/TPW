@@ -18,6 +18,8 @@ struct CrtEnv {
     s32(__cdecl *atoi)(const char *s);                             // 0x67a520
     s32(__cdecl *sprintf)(char *to, const char *format, ...);      // 0x67a650
     u32(__cdecl *wcslen)(const u16 *s);                            // 0x67acd0
+    char *(__cdecl *strncpy)(char *to, const char *from, u32 n);   // 0x67ae00
+    u32(__cdecl *iswspace)(u32 c);                                 // 0x67a730: iswctype(c, _SPACE), c taken as 16 bits
 };
 
 // The CRT ports call (the game's unless swapped).
