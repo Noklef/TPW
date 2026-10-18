@@ -407,4 +407,7 @@ void __cdecl Wrap_StringList_Dtor_6d8990();
 
 // 0x481410: jumps to Panel7b9940_Detach.
 u32 __cdecl Wrap_Panel7b9940_Detach_481410();
+
+// 0x564a80 (thiscall; flags; pops 4): this lowered by the dword before it (a virtual base offset), then RleImage_DeletingDtor.
+u8 *__fastcall Wrap_RleImage_DeletingDtor_564a80(u8 *self, void *, u32 flags);
 }  // extern "C"

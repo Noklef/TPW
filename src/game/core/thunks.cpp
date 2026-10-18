@@ -32,6 +32,7 @@
 #include "../gfx/pixconv.h"
 #include "../gfx/screensurfaces.h"
 #include "../gfx/surface.h"
+#include "../gfx/rleimage.h"
 #include "../math/transform.h"
 #include "semaphore.h"
 #include "string.h"
@@ -583,4 +584,8 @@ void __cdecl Wrap_StringList_Dtor_6d8990() {
 }
 
 u32 __cdecl Wrap_Panel7b9940_Detach_481410() { return Panel7b9940_Detach(); }
+
+u8 *__fastcall Wrap_RleImage_DeletingDtor_564a80(u8 *self, void *, u32 flags) {
+    return RleImage_DeletingDtor(Adjust(self), nullptr, flags);
+}
 }  // extern "C"
