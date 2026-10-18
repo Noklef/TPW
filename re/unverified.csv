@@ -1,12 +1,9 @@
 address,name,module,reason
 429df0,ModelSlot_Animate,model/slots,todo
-432d50,Train_SetCouplings,coaster/train,todo
 43e120,Coasters_ResetUnit,coaster/registry,todo
 43e140,Coasters_InitEpsilon,coaster/registry,todo
 43e480,Angle_Lerp,coaster/helpers,todo
-43ea90,CoasterSearch_Reset,coaster/nodes,todo
 43fcd0,CoasterList_Append,coaster/lists,todo
-447830,Car_TravelCost,coaster/train,todo
 44a1d0,Screen_Shutdown,render/screen,todo
 44ab90,PartStates_UpdateNode,model/partstate,todo: indirect only
 46c580,MouseModeTile_Ctor,world/mousemode,todo
