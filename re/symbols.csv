@@ -175,7 +175,7 @@ address,name,kind,confidence,notes
 0x004d8dd0,MapCell_Serialize,function,high,reimplemented (src/game/world/mapcell); base + litter fields
 0x0050c200,TrackCell_Serialize,function,high,reimplemented (src/game/world/mapcell); base + mSegmentNumber
 0x00502490,RECell_Serialize,function,high,"reimplemented (src/game/world/mapcell); thiscall (stream, save, version, unused): the RE cell's five words saved or loaded"
-0x004f8b10,Sprite_Serialize,function,high,"moving-person base (anim, speeds, nav, thoughts)"
+0x004f8b10,Sprite_Serialize,function,high,"reimplemented (src/game/world/person); thiscall (stream, save, version, unused): the thing, the script reference, then for versions 0..1 the moving person's fields, its nav and thoughts saved or loaded (a load wraps the frame +0x20 to the folder's count); the destination set again (Sprite_SetDestination) unless a part failed"
 0x004d3ee0,SpriteAnim_Serialize,function,high,"reimplemented (src/game/sprite/scriptref); thiscall (stream, save, version, unused): the script reference's three dwords saved or loaded"
 0x0050d150,Nav_Serialize,function,high,reimplemented (src/game/world/nav); steering/pathing state (float vectors); loading clears +0x34 and +0x30
 0x0050bad0,Thoughts_Serialize,function,high,"reimplemented (src/game/world/person); thiscall (stream, save, version, unused): a person's thoughts (history index, 32 history pairs, +0, script, bubble time) saved or loaded"
@@ -3275,6 +3275,8 @@ address,name,kind,confidence,notes
 0x00518e20,Person_BaseCtor,function,high,"reimplemented (src/game/world/person); thoughts, the navigation block and four cleared dwords"
 0x00518e00,Person_PartsCtor,function,high,"reimplemented (src/game/world/person); thiscall; one stack argument, unused; the thoughts (+0x30) and the navigation block (+0xd4) constructed (Person_BaseCtor without the four cleared dwords); name unconfirmed"
 0x004fa5f0,Sprite_SetDestination,function,low,"reimplemented (src/game/world/person); thiscall (x, y in 1/256 cells): unless held by Obj_BlockValuesBelowLimit (+0x198 still set), the destination words +0x18/+0x1a set and Nav_PathToPoint of the nav at +0xd4"
+0x004fa530,Sprite_SetDestinationCell,function,low,reimplemented (src/game/world/person); thiscall (cell id): Sprite_SetDestination to the centre of the cell
+0x004f7de0,Sprite_SetDestinationMarked,function,low,"reimplemented (src/game/world/person); thiscall (x, y): Sprite_SetDestination; when it succeeds the dwords +0x39c and +0x10 set to 1"
 0x00550d80,Setting_SetMode,function,high,reimplemented (src/game/core/options); stores a mode and sets its flag bits
 0x005633e0,Quad_Push,function,high,reimplemented (src/game/core/seqs); pushes four dwords into the next of four slots
 0x0059c390,Table76e300_GetObjectDword,function,high,reimplemented (src/game/world/objectdefs); a dword of the object indexed through a record of the table

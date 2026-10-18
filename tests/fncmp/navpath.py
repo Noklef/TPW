@@ -57,12 +57,13 @@ def nav_case(r, op):
     return Call(op, [NAV, TARGET, r.choice([0, 1, 1, 1, 2, r.getrandbits(32)])], regions, conv='t', ret='a')
 
 
-def person_case(r):
+def person_case(r, xy=None):
+    """xy: the destination's words (else random)."""
     c = objectblocks.case(r)
     regions = dict(c.regions)
     obj = regions[RAM]
     limit = struct.unpack_from('<I', obj, 0x198)[0]
-    x, y = r.getrandbits(16), r.getrandbits(16)
+    x, y = xy or (r.getrandbits(16), r.getrandbits(16))
     sx, sy = (((v ^ 0x8000) - 0x8000) << 8 >> 16 & 0xff for v in (x, y))  # (the destination's cell: (short)x << 8, byte 2)
     put(obj, 0xd4 + 8, 'II', fixed(sx, r), fixed(sy, r))
     put(obj, 0xd4 + 0xb4, 'I', r.choice([0, 1, 2, 3]))
