@@ -1,5 +1,5 @@
 // A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x409260, 0x45be80, 0x5f4490, 0x633dc0, 0x6486e0, 0x458310, 0x4583d0, 0x5c9040, 0x5d03b0, 0x5dd3d0, 0x5ddac0, 0x5c5230, 0x5c7490, 0x5dd810, 0x5e2750, 0x633120, 0x5b0d40, 0x5c7bb0, 0x5c7d00, 0x5c7d20, 0x5d1440, 0x5d5ee0, 0x54dcc0, 0x556a80, 0x569f30, 0x52fc30, 0x557110, 0x5997b0, 0x54b290, 0x56b340, 0x56e780, 0x583360, 0x5646c0, 0x564ba0, 0x56b570, 0x5651c0, 0x52fbf0, 0x424ed0, 0x47f940,
-// 0x4f6020, 0x4f6820, 0x4f6850, 0x56a510, 0x56b630 and 0x56b830.
+// 0x56a510, 0x56b630 and 0x56b830.
 #pragma once
 
 #include "../../../re/types.h"
@@ -168,18 +168,6 @@ u8 *__fastcall Obj_CtorValue(u8 *object, void *, u32 value);
 
 // 0x424ed0 (cdecl; pointer): bit 0 of the dword cleared; returns 1.
 u32 __cdecl Dword_ClearBit0(u32 *p);
-
-// 0x4f6020 (thiscall): the wide streambuf's pointer slots pointed at its own fields: +0xc -> +4, +0x10 ->
-// +8, +0x1c -> +0x14, +0x20 -> +0x18, +0x2c -> +0x24, +0x30 -> +0x28; the six fields they name are
-// zeroed. Returns the address of the last (+0x24).
-u32 __fastcall Wstreambuf_InitPointers(u8 *object);
-
-// 0x4f6820 / 0x4f6850 (thiscall; the std::basic_string streambuf's setg and setp over wide characters,
-// pops 12 / 8): the pointers behind +0xc, +0x1c, +0x2c (first, next, count) / +0x10, +0x20, +0x30
-// get first, next and (last - next) / 2 (setg: first, next, last; setp: first, last, with next =
-// first). Returns the count pointer.
-u32 *__fastcall Wstreambuf_Setg(u8 *object, void *, u32 first, u32 next, u32 last);
-u32 *__fastcall Wstreambuf_Setp(u8 *object, void *, u32 first, u32 last);
 
 // 0x56a510 (stdcall; x, y, out, pops 12): *out = the dword at (y * width + x) in the software
 // renderer's buffer (0x879dac: +8 the buffer; width 0x8bcbd0); returns 1.

@@ -2712,12 +2712,12 @@ address,name,kind,confidence,notes
 0x004922d0,Obj_Clear18_0c,function,high,reimplemented (src/game/frontend/helpbg); +0x18 and the word +0xc cleared
 0x004e1c60,Obj_Diff180_184,function,high,reimplemented (src/game/world/object); the dword at +0x180 minus the one at +0x184
 0x004f00f0,Vtbl7099ec_SetVirtual,function,high,reimplemented (src/game/core/vtables); the virtual base's vtable pointer = 0x7099ec
-0x004f6820,Wstreambuf_Setg,function,high,"reimplemented (src/game/core/misc); the get area pointers: first, next and (last - next) / 2"
-0x004f6850,Wstreambuf_Setp,function,high,"reimplemented (src/game/core/misc); the put area pointers: first, first and (last - first) / 2"
+0x004f6820,Wstreambuf_Setg,function,high,"reimplemented (src/game/core/streambuf); the get area pointers: first, next and (last - next) / 2"
+0x004f6850,Wstreambuf_Setp,function,high,"reimplemented (src/game/core/streambuf); the put area pointers: first, first and (last - first) / 2"
 0x0056a510,SoftRenderer_PixelAt,function,high,"reimplemented (src/game/core/misc); a dword of the software renderer's buffer at x, y"
 0x0056b630,Table879d08_Fill,function,high,reimplemented (src/game/core/misc); the sixteen dwords at 0x879d08 = 16 down to 1
 0x0056b830,Obj_Set30_34,function,high,reimplemented (src/game/core/misc); +0x30 = a and +0x34 = b
-0x004f6020,Wstreambuf_InitPointers,function,high,"reimplemented (src/game/core/misc); the wide streambuf pointer slots pointed at its own fields, which are zeroed"
+0x004f6020,Wstreambuf_InitPointers,function,high,"reimplemented (src/game/core/streambuf); the wide streambuf pointer slots pointed at its own fields, which are zeroed"
 0x00402ef0,Obj_AdvanceUnless30,function,high,reimplemented (src/game/core/misc); +0x3c advances by +0x40 unless +0x30 is set
 0x004032b0,Obj_CtorOne,function,high,reimplemented (src/game/core/misc); Init_402f30 then the double 1.0 at +0x20
 0x0047f940,Obj_CtorValue,function,high,"reimplemented (src/game/core/misc); Fn_657d30, vtable 0x6ff058 and +0x14 = value"

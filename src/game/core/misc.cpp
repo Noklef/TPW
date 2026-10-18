@@ -408,31 +408,6 @@ u32 __cdecl Dword_ClearBit0(u32 *p) {
     return 1;
 }
 
-u32 __fastcall Wstreambuf_InitPointers(u8 *object) {
-    static const u32 kSlots[6][2] = {{0xc, 0x4}, {0x10, 0x8}, {0x1c, 0x14}, {0x20, 0x18}, {0x2c, 0x24}, {0x30, 0x28}};
-    for (const auto &slot : kSlots)
-        at<u32>(object, slot[0]) = (u32)(uintptr_t)object + slot[1];
-    for (u32 offset : {0x8u, 0x18u, 0x28u, 0x4u, 0x14u, 0x24u})
-        at<u32>(object, offset) = 0;
-    return (u32)(uintptr_t)object + 0x24;
-}
-
-u32 *__fastcall Wstreambuf_Setg(u8 *object, void *, u32 first, u32 next, u32 last) {
-    *at<u32 *>(object, 0xc) = first;
-    *at<u32 *>(object, 0x1c) = next;
-    u32 *count = at<u32 *>(object, 0x2c);
-    *count = (u32)((s32)(last - next) >> 1);
-    return count;
-}
-
-u32 *__fastcall Wstreambuf_Setp(u8 *object, void *, u32 first, u32 last) {
-    *at<u32 *>(object, 0x10) = first;
-    *at<u32 *>(object, 0x20) = first;
-    u32 *count = at<u32 *>(object, 0x30);
-    *count = (u32)((s32)(last - first) >> 1);
-    return count;
-}
-
 u32 __stdcall SoftRenderer_PixelAt(s32 x, s32 y, u32 *out) {
     const u32 *buffer = at<const u32 *>(global<u8 *>(0x00879dac), 8);
     *out = buffer[(u32)y * global<u32>(0x008bcbd0) + (u32)x];

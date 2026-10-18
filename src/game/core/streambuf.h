@@ -1,4 +1,4 @@
-// Stream buffers (MSVC6 streambuf and wstreambuf): reading and writing through the get and put areas, with the underflow and overflow slots when they run out. Reimplementation of 0x4f0700, 0x4f07c0, 0x4f6740, 0x5ceaf0, 0x5ceba0, 0x5eb1a0. Named by what they do until the classes are known.
+// Stream buffers (MSVC6 streambuf and wstreambuf): reading and writing through the get and put areas, with the underflow and overflow slots when they run out. Reimplementation of 0x4f0700, 0x4f07c0, 0x4f6740, 0x5ceaf0, 0x5ceba0, 0x5eb1a0, and the wide streambuf's pointer setup, setg and setp (0x4f6020, 0x4f6820, 0x4f6850). Named by what they do until the classes are known.
 #pragma once
 
 #include "../../../re/types.h"
@@ -26,4 +26,16 @@ u32 __fastcall Streambuf_Write(u8 *object, void *, const u8 *source, s32 count);
 
 // 0x5eb1a0 (thiscall; stream, pops 4): the eleven dwords at +0 .. +0x28 read from the stream (Object_CallSlot8Product with 4, 1). Returns true.
 u8 __fastcall Eleven_Read(u8 *object, void *, u8 *stream);
+
+// 0x4f6020 (thiscall): the wide streambuf's pointer slots pointed at its own fields: +0xc -> +4, +0x10 ->
+// +8, +0x1c -> +0x14, +0x20 -> +0x18, +0x2c -> +0x24, +0x30 -> +0x28; the six fields they name are
+// zeroed. Returns the address of the last (+0x24).
+u32 __fastcall Wstreambuf_InitPointers(u8 *object);
+
+// 0x4f6820 / 0x4f6850 (thiscall; the std::basic_string streambuf's setg and setp over wide characters,
+// pops 12 / 8): the pointers behind +0xc, +0x1c, +0x2c (first, next, count) / +0x10, +0x20, +0x30
+// get first, next and (last - next) / 2 (setg: first, next, last; setp: first, last, with next =
+// first). Returns the count pointer.
+u32 *__fastcall Wstreambuf_Setg(u8 *object, void *, u32 first, u32 next, u32 last);
+u32 *__fastcall Wstreambuf_Setp(u8 *object, void *, u32 first, u32 last);
 }  // extern "C"
