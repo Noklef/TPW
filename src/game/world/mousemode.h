@@ -39,6 +39,11 @@ void __cdecl MouseState_SetTileFromPosition(const float *position);
 // picked thing (+0) cleared.
 void __fastcall MouseState_NewFrame(u8 *self);
 
+// 0x46c110 (thiscall; name unconfirmed): the pointer state's picks resolved. +4 becomes its picked thing (+0) when that is of kind (+2) 1, 4,
+// 5, 6, 7, 8 or 0x12, else 0; +8 the thing (the dword of 0x7cfb90's 20-byte slot) of the handle Map_ObjectOrEntranceAt gives for its tile
+// (+0x24: column (tile - 1) & 0x7f, row (tile - 1) >> 7, unsigned), else 0; and a picked thing of 0 becomes that +8.
+void __fastcall MouseState_ResolvePick(u8 *self);
+
 // 0x46c450 / 0x46c650: empty methods (taking 4 and 2 arguments).
 void __fastcall MouseMode_Nop4(void *self, void *edx, u32, u32, u32, u32);
 void __fastcall MouseMode_Nop2(void *self, void *edx, u32, u32);

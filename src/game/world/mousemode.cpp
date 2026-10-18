@@ -4,6 +4,7 @@
 
 #include "../math/x87.h"
 #include "mapcell.h"
+#include "thingscan.h"
 
 namespace {
 
@@ -50,6 +51,21 @@ void __fastcall MouseState_NewFrame(u8 *self) {
     const u32 count = at<u32>(self, 0xc);
     at<u32>(self, 0) = 0;
     at<u32>(self, 0xc) = count + 1;
+}
+
+void __fastcall MouseState_ResolvePick(u8 *self) {
+    u8 *const picked = at<u8 *>(self, 0);
+    at<u32>(self, 4) = 0;
+    at<u32>(self, 8) = 0;
+    if (picked) {
+        const u8 kind = picked[2];
+        if (kind == 1 || kind == 4 || kind == 5 || kind == 6 || kind == 8 || kind == 7 || kind == 0x12) at<u8 *>(self, 4) = picked;
+    }
+    const u32 tile = at<u16>(self, 0x24);
+    u16 handle = (u16)tile;
+    Map_ObjectOrEntranceAt(&handle, (s32)((tile - 1) & 0x7f), (s32)((tile - 1) >> 7));
+    if (handle) at<u32>(self, 8) = *reinterpret_cast<u32 *>(0x007cfb90 + 20 * (u32)handle);  // (an assert on the thing table left out)
+    if (!at<u32>(self, 0)) at<u32>(self, 0) = at<u32>(self, 8);
 }
 
 void __fastcall MouseMode_Nop4(void *, void *, u32, u32, u32, u32) {}
