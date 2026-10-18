@@ -6,6 +6,7 @@
 #include "../files/file.h"
 #include "crt.h"
 #include "gameheap.h"
+#include "textarg.h"
 
 namespace {
 
@@ -69,6 +70,24 @@ u16 __fastcall KeyMap_IsHeld(const u8 *keys, void *, s16 action) {
         if (at<s16>(entries, i * 0x14) == action) found = i;
     if ((s16)found <= -1) return 0;
     return at<u16>(entries, (s16)found * 0x14 + 6);
+}
+
+void __fastcall KeyMap_SetKeyFromText(u8 *keys, void *, u32 action, u32 text) {
+    if ((s16)action < 0 || (s16)action >= at<s16>(keys, 4)) return;
+    u32 slot = action;  // (the original's own argument slot: the formatter's two characters land over it)
+    TextFormat().format(global<void *>(0x0078ba84), reinterpret_cast<u16 *>(&slot), 2, text);
+    u8 *const entries = at<u8 *>(keys, 0);
+    const s16 a = (s16)action;
+    if (at<s16>(entries, a * 0x14) == a) {
+        at<u16>(entries, a * 0x14 + 2) = (u16)slot;
+        return;
+    }
+    const s32 count = at<s16>(keys, 4);
+    s32 found = -1;
+    for (s32 i = 0; i < count && (s16)found < 0; ++i)
+        if (at<s16>(entries, i * 0x14) == a) found = i;
+    if ((s16)found <= -1) return;
+    at<u16>(entries, (s16)found * 0x14 + 2) = (u16)slot;
 }
 
 void __fastcall KeyMap_Enable(u8 *keys) { at<s16>(keys, 6) = 1; }

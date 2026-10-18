@@ -19,6 +19,11 @@ s32 __fastcall KeyMap_FindAction(const u8 *map, void *, s16 action);
 // action out of range or not found. Only AX is set.
 u16 __fastcall KeyMap_IsHeld(const u8 *map, void *, s16 action);
 
+// 0x40caa0 (name unconfirmed; the low words count): for an action in range, the formatter (TextFormat) writes text's first
+// character (table 0x78ba84, two characters) over the action's own argument, and the word left there becomes the key (+2) of
+// the action's entry (its own index, else the first for it; none: nothing).
+void __fastcall KeyMap_SetKeyFromText(u8 *map, void *, u32 action, u32 text);
+
 // 0x40cb40: enabled = 1.
 void __fastcall KeyMap_Enable(u8 *map);
 

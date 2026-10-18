@@ -2,19 +2,22 @@
 # key and by action over entries mostly at their own index (some moved, repeated or missing),
 # counts negative, zero or up to 0x40, and the enable / reset of one map or all five (entries
 # apart from the map or over it); the modifier keys held (0x46b420 / 0x486aa0), GetKeyState / GetAsyncKeyState
-# import-slot recorders answering one value for a case (its sign in AX or only in the upper word) or a hash of the key.
+# import-slot recorders answering one value for a case (its sign in AX or only in the upper word) or a hash of the key; setting a key from a text
+# (0x40caa0; the formatter a log stub filling none, one or both of its two characters, the buffer an out argument).
 # usage: keymap.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
+import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import IMPORT_TABLE, LOG, Bench, Call, RAM, import_table, log_region, put, set_return  # noqa: E402
+from fncmp import IMPORT_TABLE, LOG, Bench, Call, RAM, _cdecl_log4, fill, import_table, log_region, put, set_return, strings  # noqa: E402
 
 B = Bench([(0x40c870, 0x40c8b3), (0x40c8c0, 0x40c8f7), (0x40ca20, 0x40ca93), (0x40cb40, 0x40cb47),
            (0x40cb50, 0x40cb78), (0x40cf60, 0x40cf98), (0x40cfa0, 0x40d06a),
-           (0x46b420, 0x46b460), (0x486aa0, 0x486ae0)])
+           (0x46b420, 0x46b460), (0x486aa0, 0x486ae0), (0x40caa0, 0x40cb34)],
+          hooks={0x6acd60: _cdecl_log4})  # the text formatter: a log stub (driver: TextFormatEnv)
 GLOBALS = (0x78718c, 0x787a60, 0x787c14, 0x78733c, 0x78721c)
-CALLS = ('Key', 'Action', 'Held', 'Enable', 'Reset', 'EnableAll', 'ResetAll', 'Modifiers', 'AsyncModifiers')
+CALLS = ('Key', 'Action', 'Held', 'Enable', 'Reset', 'EnableAll', 'ResetAll', 'Modifiers', 'AsyncModifiers', 'SetKey')
 IMPORTS = {'GetKeyState': (40, 0x6fd324, 1, 0, 0), 'GetAsyncKeyState': (41, 0x6fd320, 1, 0, 0)}
 
 
@@ -59,6 +62,14 @@ def case(r):
         return Call(0x40c8c0, [M, small()], regs, conv='t', ret='a')
     if op == 'Held':
         return Call(0x40ca20, [M, small()], regs, conv='t', ret='w')
+    if op == 'SetKey':
+        log = log_region()
+        strings(log, 0x3d, 0, 2)  # (the buffer: the caller's argument slot)
+        fill(log, 0x3d, 1, r.bytes(r.choice([0, 2, 4, 4])))
+        regs[LOG] = log
+        regs[0x78ba84] = struct.pack('<I', r.choice([0x1234, r.getrandbits(32)]))
+        action = small() & 0xffff | r.choice([0, 0, r.getrandbits(16)]) << 16
+        return Call(0x40caa0, [M, action, r.choice([r.randrange(0x400), r.getrandbits(32)])], regs, conv='t')
     return Call(0x40cb40 if op == 'Enable' else 0x40cb50, [M], regs, conv='t')
 
 
