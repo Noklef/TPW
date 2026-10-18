@@ -190,19 +190,6 @@ void __fastcall Extents_Include(u8 *extents, void *, s32 low, s32 first, s32 hig
     }
 }
 
-void __cdecl Pool_FreeAll(u8 *owner) {
-    while (u8 *chunk = at<u8 *>(owner, 0xbc)) {
-        while (u8 *node = at<u8 *>(chunk, 0x1c)) {
-            at<u32>(chunk, 0x1c) = at<u32>(node, 0x14);
-            global<u32>(0x00877b74)--;
-            at<u32>(node, 0) &= 0xfffffffe;
-        }
-        at<u32>(owner, 0xbc) = at<u32>(chunk, 0x24);
-        at<u32>(chunk, 0) &= 0xfffffffe;
-        global<u32>(0x00877b84)--;
-    }
-}
-
 
 u32 __fastcall Masks_TopBits(u8 *object) {
     auto top = [](u32 mask) {

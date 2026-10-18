@@ -9,10 +9,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x424ed0, 0x424ee9), (0x4922d0, 0x4922e0), (0x4e1c60, 0x4e1c70), (0x4f00f0, 0x4f0110), (0x4f6020, 0x4f6080), (0x40f300, 0x40f329), (0x59b550, 0x59b590), (0x458910, 0x458935), (0x458940, 0x458965),
-           (0x5836b0, 0x5836c2), (0x4a9350, 0x4a9375), (0x4b4670, 0x4b4695), (0x4bcec0, 0x4bcef0), (0x52fbf0, 0x52fc21), (0x5f4490, 0x5f44d0), (0x56b620, 0x56b628), (0x633dc0, 0x633e00), (0x6486e0, 0x648720), (0x5c9040, 0x5c9062), (0x5d36c0, 0x5d36d0), (0x5d03b0, 0x5d03cf), (0x5dd3d0, 0x5dd3fd), (0x5ddac0, 0x5ddae0), (0x5dd810, 0x5dd822), (0x5e2750, 0x5e2763), (0x633120, 0x63313a), (0x6338b0, 0x6338c0), (0x5c7490, 0x5c749c), (0x5f6a20, 0x5f6a60), (0x5c5230, 0x5c524b), (0x5c7d20, 0x5c7d2e), (0x5c7d00, 0x5c7d16), (0x5c7bb0, 0x5c7bc7), (0x5b0d40, 0x5b0d54), (0x5d5ee0, 0x5d5eec), (0x5d1440, 0x5d1458), (0x54dcc0, 0x54dcf0), (0x556a80, 0x556aac), (0x569f30, 0x569f58), (0x45be80, 0x45becd), (0x4254e0, 0x425510), (0x5766e0, 0x57681a), (0x486610, 0x486630), (0x475e10, 0x475e80), (0x557110, 0x55715b), (0x409260, 0x409296), (0x4f36c0, 0x4f36e1), (0x52fc30, 0x52fc79), (0x5997b0, 0x5997f8), (0x56e780, 0x56e7de), (0x54b290, 0x54b2f0), (0x56b340, 0x56b37d), (0x576540, 0x5765b8), (0x583360, 0x5833ba), (0x5646c0, 0x564708), (0x564ba0, 0x564bf0), (0x56b570, 0x56b5b2), (0x4583d0, 0x4583f6), (0x5651c0, 0x56520b), (0x4d09a0, 0x4d09e6), (0x458310, 0x45834d), (0x402ef0, 0x402f10), (0x4032b0, 0x4032ca), (0x402f30, 0x402f50), (0x4030c0, 0x4030c4),
+           (0x5836b0, 0x5836c2), (0x4a9350, 0x4a9375), (0x4b4670, 0x4b4695), (0x4bcec0, 0x4bcef0), (0x52fbf0, 0x52fc21), (0x5f4490, 0x5f44d0), (0x56b620, 0x56b628), (0x633dc0, 0x633e00), (0x6486e0, 0x648720), (0x5c9040, 0x5c9062), (0x5d36c0, 0x5d36d0), (0x5d03b0, 0x5d03cf), (0x5dd3d0, 0x5dd3fd), (0x5ddac0, 0x5ddae0), (0x5dd810, 0x5dd822), (0x5e2750, 0x5e2763), (0x633120, 0x63313a), (0x6338b0, 0x6338c0), (0x5c7490, 0x5c749c), (0x5f6a20, 0x5f6a60), (0x5c5230, 0x5c524b), (0x5c7d20, 0x5c7d2e), (0x5c7d00, 0x5c7d16), (0x5c7bb0, 0x5c7bc7), (0x5b0d40, 0x5b0d54), (0x5d5ee0, 0x5d5eec), (0x5d1440, 0x5d1458), (0x54dcc0, 0x54dcf0), (0x556a80, 0x556aac), (0x569f30, 0x569f58), (0x45be80, 0x45becd), (0x4254e0, 0x425510), (0x5766e0, 0x57681a), (0x486610, 0x486630), (0x475e10, 0x475e80), (0x557110, 0x55715b), (0x409260, 0x409296), (0x4f36c0, 0x4f36e1), (0x52fc30, 0x52fc79), (0x5997b0, 0x5997f8), (0x56e780, 0x56e7de), (0x56b340, 0x56b37d), (0x576540, 0x5765b8), (0x583360, 0x5833ba), (0x5646c0, 0x564708), (0x564ba0, 0x564bf0), (0x56b570, 0x56b5b2), (0x4583d0, 0x4583f6), (0x5651c0, 0x56520b), (0x4d09a0, 0x4d09e6), (0x458310, 0x45834d), (0x402ef0, 0x402f10), (0x4032b0, 0x4032ca), (0x402f30, 0x402f50), (0x4030c0, 0x4030c4),
            (0x47f940, 0x47f95a), (0x657d30, 0x657d6c), (0x4d4170, 0x4d4186), (0x475550, 0x47558b), (0x4d9600, 0x4d9619), (0x4e01f0, 0x4e0209), (0x4f6820, 0x4f6850),
            (0x4f6850, 0x4f6880), (0x56a510, 0x56a540), (0x56b630, 0x56b650), (0x56b830, 0x56b850)])
-CALLS = ['Shown', 'Ctor3ca0', 'MaxW', 'Ctor295c', 'Swap', 'Choose', 'Pending', 'Pos40', 'SetOrKeep', 'Ctor3c18', 'WCtor', 'DirOk', 'Rec14', 'RecUsed', 'RecCount', 'Tab73', 'FlagsAnd', 'Span', 'Flag54', 'GetVec', 'Setting', 'RemRect', 'CopyScript', 'TakeDone', 'Flags', 'Size36', 'Commit', 'Lookup', 'Extents', 'FreeAll', 'RemRect14', 'ReleaseR', 'TopBits', 'Virt5646', 'Virt564b', 'FindSet', 'SetVec', 'Ctor1260', 'Smallest', 'CtorVirtual', 'PairAdd', 'CtorPart', 'MeshClear', 'MeshSet', 'Countdown', 'Kill24', 'Choose', 'Advance', 'CtorOne', 'CtorValue', 'KillSlot', 'Stamp30', 'Stamp5e', 'InitBuf', 'Clear0', 'Clear18', 'Diff', 'Virtual', 'Setg', 'Setp', 'Pixel', 'Fill', 'Set3034']
+CALLS = ['Shown', 'Ctor3ca0', 'MaxW', 'Ctor295c', 'Swap', 'Choose', 'Pending', 'Pos40', 'SetOrKeep', 'Ctor3c18', 'WCtor', 'DirOk', 'Rec14', 'RecUsed', 'RecCount', 'Tab73', 'FlagsAnd', 'Span', 'Flag54', 'GetVec', 'Setting', 'RemRect', 'CopyScript', 'TakeDone', 'Flags', 'Size36', 'Commit', 'Lookup', 'Extents', 'RemRect14', 'ReleaseR', 'TopBits', 'Virt5646', 'Virt564b', 'FindSet', 'SetVec', 'Ctor1260', 'Smallest', 'CtorVirtual', 'PairAdd', 'CtorPart', 'MeshClear', 'MeshSet', 'Countdown', 'Kill24', 'Choose', 'Advance', 'CtorOne', 'CtorValue', 'KillSlot', 'Stamp30', 'Stamp5e', 'InitBuf', 'Clear0', 'Clear18', 'Diff', 'Virtual', 'Setg', 'Setp', 'Pixel', 'Fill', 'Set3034']
 BUF = RAM + 0x1000
 
 
@@ -150,23 +150,6 @@ def case(r):
         put(obj, 0x20, 'i', first + r.choice([-1, 0, 1, r.randrange(-20, 20)]))  # the stored extents about the new ones
         put(obj, 0x24, 'i', last + r.choice([-1, 0, 1, r.randrange(-20, 20)]))
         return Call(0x56e780, [RAM, arg(), first, arg(), last], regions, conv='t')
-    if op == 'FreeAll':
-        # chunks at RAM + 0x100 + 0x40 * i (list head at the owner's +0xbc), their nodes at RAM + 0x400 + 0x20 * j
-        owner = RAM + 0x20
-        obj = bytearray(obj) + bytes(0x200)
-        nodes = [RAM + 0x400 + 0x20 * j for j in range(6)]
-        cs = [RAM + 0x100 + 0x40 * i for i in range(3)]
-        put(obj, 0x20 + 0xbc, 'I', cs[0] if r.random() < 0.9 else 0)
-        for i, c in enumerate(cs):
-            put(obj, 0x100 + 0x40 * i + 0x24, 'I', cs[i + 1] if i + 1 < len(cs) and r.random() < 0.8 else 0)
-            put(obj, 0x100 + 0x40 * i + 0x1c, 'I', r.choice([0, nodes[2 * i]]))
-            put(obj, 0x100 + 0x40 * i, 'I', r.getrandbits(32))
-        for j in range(6):
-            put(obj, 0x400 + 0x20 * j + 0x14, 'I', nodes[j + 1] if j % 2 == 0 and r.random() < 0.7 else 0)
-            put(obj, 0x400 + 0x20 * j, 'I', r.getrandbits(32))
-        regions[RAM] = obj
-        regions[0x877b70] = r.bytes(0x20)
-        return Call(0x54b290, [owner], regions)
     if op == 'ReleaseR':
         put(obj, 0, 'I', r.choice([0, 1, 1, 0xffffffff, r.getrandbits(32)]))
         put(obj, 4, 'I', r.choice([0, RAM + 0x100]))
