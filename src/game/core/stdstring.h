@@ -69,4 +69,9 @@ void __fastcall StdString_Copy(StdString *s, void *edx, u32 n);
 
 // 0x45b8d0: _Split(): gives a shared s its own copy.
 void __fastcall StdString_Split(StdString *s, void *edx);
+
+// 0x4a9420: basic_string(const basic_string &x), emitted out of line apart from the others (name unconfirmed): the allocator's
+// byte copied, s emptied, then assign(x, 0, npos) inlined: as AssignSub, but without its max_size check, and with x's length
+// read after s is emptied (so copying s into itself leaves it empty: sic). Returns s.
+StdString *__fastcall StdString_CopyCtor(StdString *s, void *edx, const StdString *x);
 }

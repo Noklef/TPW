@@ -80,6 +80,27 @@ StdString *__fastcall StdString_AssignSub(StdString *s, void *, const StdString 
     return s;
 }
 
+StdString *__fastcall StdString_CopyCtor(StdString *s, void *, const StdString *x) {
+    *reinterpret_cast<u8 *>(&s->allocator) = *reinterpret_cast<const u8 *>(&x->allocator);
+    empty(s);
+    const u32 npos = *reinterpret_cast<const u32 *>((uintptr_t)0x006fe5ac);
+    const u32 n = x->len < npos ? x->len : npos;  // x's length read after s is emptied: 0 when x is s
+    if (s == x) {  // assign(*this, 0, npos) as inlined
+        erase(s, n, npos);
+        erase(s, 0, 0);
+    } else if (n && n == x->len && refs(c_str(x)) < kFrozen - 1) {
+        empty(s);  // (the inlined _Tidy(true) of the empty string)
+        s->ptr = const_cast<char *>(c_str(x));
+        s->len = x->len;
+        s->res = x->res;
+        ++refs(s->ptr);
+    } else if (StdString_Grow(s, nullptr, n, 1)) {  // (no max_size check here)
+        Rep_Movs(s->ptr, c_str(x), n);
+        StdString_Eos(s, nullptr, n);
+    }
+    return s;
+}
+
 void __fastcall StdString_Tidy(StdString *s, void *, u8 built) {
     if (built && s->ptr) {
         if (refs(s->ptr) == 0 || refs(s->ptr) == kFrozen)
