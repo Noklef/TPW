@@ -81,6 +81,31 @@ u8 __fastcall ChatAvatar_MoveToCell(u8 *avatar, void *, u32 cell) {
     return 1;
 }
 
+u8 __fastcall ChatPlayer_NameIs(const u8 *thing, void *, const u8 *name) {
+    const u16 *a = at<const u16 *>(name, 4);
+    if (!a)
+        a = reinterpret_cast<const u16 *>((uintptr_t)0x006fd6c4);
+    const u16 *b = reinterpret_cast<const u16 *>(thing + 0x19c);
+    for (;; ++a, ++b) {
+        if (*a != *b)
+            return 0;
+        if (!*a)
+            return 1;
+    }
+}
+
+u8 *__stdcall ChatPlayers_FindByName(const u8 *name) {
+    u16 out;
+    u16 handle = *World_FirstThing(at<void *>(reinterpret_cast<void *>((uintptr_t)0x007cf83c), 0), nullptr, &out);
+    while (handle) {
+        u8 *const thing = slotThing(handle);
+        if (thing[2] == 0x12 && ChatPlayer_NameIs(thing, nullptr, name))
+            return thing;
+        handle = *World_NextThing(at<void *>(reinterpret_cast<void *>((uintptr_t)0x007cf83c), 0), nullptr, &out, thing);
+    }
+    return nullptr;
+}
+
 u8 __fastcall ChatAvatar_GoToCell(u8 *avatar, void *, u32 cell) {
     notAfk(avatar);
     u16 handle;

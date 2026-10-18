@@ -1,7 +1,7 @@
 // The player's avatar in an online chat room (the WEACHATR library's Chat): an object { +0 the Chat, +4 the park thing standing for the player,
 // +0xeb1 a byte cleared when the player acts }. Reimplementation of the moves that tell the room (Chat::MovePlayer, import 0x6fd4cc, with a
 // mode and the avatar as its context) and place the thing (Thing_ResetPlaceAt, only for a thing of kind 0x12): 0x4ea240, 0x4ea370, 0x4ea3f0,
-// 0x4ea410, 0x4ebfb0, 0x4eab40 and 0x4eac30. Names unconfirmed (the modes' meanings are not known).
+// 0x4ea410, 0x4ebfb0, 0x4eab40 and 0x4eac30; and the players' lookup by name (0x4f7d70, 0x4ebf00). Names unconfirmed (the modes' meanings are not known).
 #pragma once
 
 #include "../../../re/types.h"
@@ -36,4 +36,12 @@ u8 __fastcall ChatAvatar_MoveToCell(u8 *avatar, void *, u32 cell);
 // when of kind 0x12 and sent to the cell (Sprite_SetDestinationCellMarked), has Chat::MovePlayer told the cell's corner (column and row of the
 // cell's low word less 1, shifted left 8; mode 0). Returns 1 when sent, else 0 (AL).
 u8 __fastcall ChatAvatar_GoToCell(u8 *avatar, void *, u32 cell);
+
+// 0x4f7d70 (thiscall on a thing of kind 0x12, a chat player; name, pops 4): whether the std::wstring's characters (null: the empty
+// string 0x6fd6c4) equal the player's name, the wide characters at +0x19c (wcscmp 0x67c290 == 0, inlined here). Returns 1 or 0 (AL).
+u8 __fastcall ChatPlayer_NameIs(const u8 *thing, void *, const u8 *name);
+
+// 0x4ebf00 (stdcall, ECX not read; name, pops 4): the park's things walked newest first (World_FirstThing / World_NextThing on [0x7cf83c])
+// for the first chat player (kind 0x12) whose name it is (ChatPlayer_NameIs). Returns it, or 0.
+u8 *__stdcall ChatPlayers_FindByName(const u8 *name);
 }
