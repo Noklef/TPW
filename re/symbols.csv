@@ -474,6 +474,7 @@ address,name,kind,confidence,notes
 0x005851d0,Landscape_RemoveTexture,function,low,"reimplemented (src/game/terrain/landscape); thiscall (textures): the entry holding the array found (from one past the last), the array released and destroyed, the last entry swapped in (name unconfirmed)"
 0x00584ef0,Landscape_Init,function,low,"reimplemented (src/game/terrain/landscape); thiscall: the landscape renderer (0x8c1828) set up: identity matrix +0x2ecc, sizes, 300.0, the detail level from [0x8bd524], the weather points and +0x21ec factors (x87), the cells' index words, returns it"
 0x00418d70,Landscape_RemoveTextureList,function,low,reimplemented (src/game/terrain/landscape); thiscall on a list of texture arrays: the first [0x785724] (re-read each time) removed from the landscape at 0x8c1828 (Landscape_RemoveTexture); returns the count (name unconfirmed)
+0x00585ce0,Landscape_SampleColours,function,low,"reimplemented (src/game/terrain/landscape); thiscall: 16 x 16 colours sampled from the texture at +0x1fd4 (Texture_Lock) into +0xf60, copied to +0x400, +0x800, +0xc00 after them"
 0x005720d0,TerrainTexCache_Ctor,function,high,"reimplemented (src/game/terrain/texcache); the tile cache cleared, 0x40 tiles"
 0x00572350,TerrainTexCache_Dtor,function,low,"reimplemented (src/game/terrain/texcache); thiscall: the tiles' texture arrays, the tiles and the landscape freed (name unconfirmed)"
 0x00536490,MapCell_Reset,function,high,"default type/flags from the attribute byte: outside park 2/0x1e/7, inside 1 (path, bit 0x08) or 0; 0x10 -> flags 0x80, 0x04 -> flags 0x400"

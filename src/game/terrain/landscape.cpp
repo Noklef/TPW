@@ -79,6 +79,40 @@ u32 __fastcall Landscape_List(const u8 *landscape) { return at<u32>(landscape, 0
 
 u8 *__fastcall Landscape_Point(u8 *landscape) { return landscape + 0x1fa0; }
 
+void __fastcall Landscape_SampleColours(u8 *landscape) {
+    u8 *const texture = at<u8 *>(landscape, 0x1fd4);
+    if (!texture)
+        return;
+    const s32 stepX = (s32)at<s16>(texture, 0x10) / 16;
+    const s32 stepY = (s32)at<s16>(texture, 0x12) / 16;
+    const u32 x0 = (u32)(stepX / 2);
+    u32 y = (u32)(stepY / 2);
+    const uintptr_t pixels = (uintptr_t)Texture_Lock(texture);
+    u8 *column = landscape + 0xf60;
+    for (u32 row = 0; row < 16; row++) {
+        u8 *cell = column;
+        u32 x = 0;
+        for (u32 i = 0; i < 16; i++) {
+            const u32 format = *reinterpret_cast<const u32 *>((uintptr_t)0x008bd554);
+            const u32 index = (u32)(s32)at<s16>(texture, 0x34) * y + x0 + x;
+            if (format == 2) {
+                const u32 c = *reinterpret_cast<const u16 *>(pixels + index * 2);
+                at<u32>(cell, 0) = (c & 0xff80) << 12 | (c & 0xf0) << 8 | (c & 0xf) << 4 | 0xff080808;   // (its AND AL,0x80 keeps bit 7, sic)
+            } else if (format == 3) {
+                at<u32>(cell, 0) = *reinterpret_cast<const u32 *>(pixels + index * 4);
+            }
+            const u32 colour = at<u32>(cell, 0);
+            at<u32>(cell, 0x400) = colour;
+            at<u32>(cell, 0x800) = colour;
+            at<u32>(cell, 0xc00) = colour;
+            x += (u32)stepX;
+            cell += 0x40;
+        }
+        column += 4;
+        y += (u32)stepY;
+    }
+}
+
 u32 __fastcall Landscape_FreeTextures(u8 *landscape) {
     for (u32 offset = 0x1fd0; offset <= 0x1fd8; offset += 4) {
         if (!at<u8 *>(landscape, offset))
