@@ -56,7 +56,7 @@ def case(r):
             ox, oy = r.choice([0x7fffffff, -0x80000000, 1 << 21, 3 << 20]), r.randrange(-(1 << 22), 1 << 22)
         put(rides, 0x20 * i + 0x14, 'I', (x - ox) & 0xffffffff)
         put(rides, 0x20 * i + 0x1c, 'I', (y - oy) & 0xffffffff)
-        put(table, 4 * r.randrange(1, 100), 'I', RIDES + 0x20 * i)
+        put(table, 4 * r.choice([r.randrange(1, 100), 1, 99]), 'I', RIDES + 0x20 * i)   # (the first and last indices often)
     regions.update({0x8791f8: table, RIDES: rides})
     return Call(0x55cc00, [x & 0xffffffff, y & 0xffffffff], regions, ret='a')
 
