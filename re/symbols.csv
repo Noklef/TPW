@@ -4565,3 +4565,6 @@ address,name,kind,confidence,notes
 0x006599f2,GuiDialog_SetA,function,low,"reimplemented (src/game/ui/guidialog); thiscall (word), pops 4: +0xa = value when value < the word +0xe (signed)"
 0x00659a19,GuiDialog_SetC,function,low,"reimplemented (src/game/ui/guidialog); thiscall (word), pops 4: +0xc = value when value < the word +0xe (signed)"
 0x006598f7,GuiDialog_Apply,function,low,"reimplemented (src/game/ui/guidialog); thiscall (flags, source), pops 8, slot 3: bit 0 SetC(src+4), bit 2 +0x30 = src+8, bit 19 SetA(src+0xa), bit 6 +0x34/+0x36 = src+0xc/+0xe; nothing for flags 0 or no source"
+0x006597b0,GuiDialog_Ctor,function,low,"reimplemented (src/game/ui/guidialog); thiscall (value), pops 4: rects +0x14/+0x20 constructed, vtable 0x7058f8, +4 = value, words +0x10 +0x12 +0xa +0xc +8 +0x2c..+0x36 = 0, Fn_659994(0); returns this"
+0x00659886,GuiDialog_Dtor,function,low,"reimplemented (src/game/ui/guidialog); thiscall: vtable 0x7058f8, rects +0x20 and +0x14 destroyed"
+0x00659cb0,GuiDialog_ScalarDtor,function,low,"reimplemented (src/game/ui/guidialog); thiscall (flags), pops 4, slot 0: GuiDialog_Dtor, freed for flags bit 0; returns this"

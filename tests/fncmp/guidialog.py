@@ -10,7 +10,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, Bench, Call, RAM, heap  # noqa: E402
 
-CALLS = {'SetA': 0x6599f2, 'SetC': 0x659a19, 'Apply': 0x6598f7}
+CALLS = {'SetA': 0x6599f2, 'SetC': 0x659a19, 'Apply': 0x6598f7, 'Ctor': 0x6597b0, 'Dtor': 0x659886, 'ScalarDtor': 0x659cb0}
 B = Bench([(0x6597b0, 0x6598ed), (0x6598f7, 0x6599bc), (0x6599f2, 0x659a50), (0x659cb0, 0x659cf0), (0x659d00, 0x659d53), (0x659d90, 0x659dbc),
            (0x65a9d0, 0x65aa00), (0x66bff7, 0x66c01b)])
 DIALOG, SOURCE = RAM, RAM + 0x100
