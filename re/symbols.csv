@@ -4562,6 +4562,7 @@ address,name,kind,confidence,notes
 0x00562360,ClipEdge_XNegW,function,low,"reimplemented (src/game/render/clipedge); cdecl (out, a, b, stride): as ClipEdge_YW for the plane x = -w (distance x + w), x = -w"
 0x005625c0,ClipEdge_ZW,function,low,"reimplemented (src/game/render/clipedge); cdecl (out, a, b, stride): as ClipEdge_YW for the plane z = w (distance w - z), z = w"
 0x00562820,ClipEdge_Z0,function,low,"reimplemented (src/game/render/clipedge); cdecl (out, a, b, stride): as ClipEdge_YW for the plane z = 0 (distance z), z = 0"
+0x0056b790,ViewQuad_SetFov,function,low,"reimplemented (src/game/render/viewquad); thiscall (fov degrees): the 0x879d54 quad's corners (-w, h, 1), (w, h, 1), (w, -h, 1), (-w, -h, 1), h = tan(fov pi / 360) / 2 by fptan, w = h / the aspect at 0x8bcbcc"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"

@@ -300,6 +300,7 @@
 #include "../game/render/graphicssettings.h"
 #include "../game/render/textparts.h"
 #include "../game/render/vertexblock.h"
+#include "../game/render/viewquad.h"
 #include "../game/render/weatherfx.h"
 #include "../game/render/worldview.h"
 #include "../game/online/servers.h"
@@ -4079,6 +4080,7 @@ const Hook kHooks[] = {
     {"ClipEdge_XNegW",            0x00562360, (void *)&ClipEdge_XNegW, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
     {"ClipEdge_ZW",               0x005625c0, (void *)&ClipEdge_ZW, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
     {"ClipEdge_Z0",               0x00562820, (void *)&ClipEdge_Z0, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
+    {"ViewQuad_SetFov",           0x0056b790, (void *)&ViewQuad_SetFov, {0xd9, 0x44, 0x24, 0x04, 0xd8}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
