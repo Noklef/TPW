@@ -4194,6 +4194,8 @@ address,name,kind,confidence,notes
 0x006ad840,TextStyle_FontKind,function,low,"reimplemented (src/game/gfx/textlayout); thiscall: the font's kind (its slot 10, tail call), or 5 without a font"
 0x006b0280,TextStyleHolder_SetStyle,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (status, style): the style copied in and +0x54 the renderer from the table at 0x782d38 by (+0x10, font kind, state); *status 0 or -1; returns status"
 0x006b0300,TextStyleHolder_Render,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (status, a, b, c): the renderer (+0x54)'s slot 1 called with (status, a, b, c, the style), else *status = -1; returns status"
+0x006aeab0,TextLayout_CharClass,function,low,"reimplemented (src/game/gfx/textlayout); stdcall (character; callers pass the layout in ECX, unused): 0x12 for tab/space, 4 line feed, 0xc carriage return, else 1 (AL only)"
+0x006aeda0,Vector12_Erase,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (first, last) on a vector of 12-byte elements (begin +4, end +8): the tail moved down to first, the end set; returns first"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"

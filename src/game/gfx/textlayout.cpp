@@ -152,6 +152,37 @@ s32 *__fastcall TextStyleHolder_Render(u8 *holder, void *, s32 *status, u32 a, u
     return status;
 }
 
+u8 __stdcall TextLayout_CharClass(u32 character) {
+    switch ((u16)character) {
+    case 9:
+    case 0x20:
+        return 0x12;
+    case 10:
+        return 4;
+    case 13:
+        return 0xc;
+    default:
+        return 1;
+    }
+}
+
+u8 *__fastcall Vector12_Erase(u8 *vector, void *, u8 *first, u8 *last) {
+    u8 *const end = at<u8 *>(vector, 8);
+    u8 *to = first;
+    if (last != end) {
+        u8 *from = last;
+        do {
+            at<u32>(to, 0) = at<u32>(from, 0);
+            at<u32>(to, 4) = at<u32>(from, 4);
+            at<u32>(to, 8) = at<u32>(from, 8);
+            from += 12;
+            to += 12;
+        } while (from != end);
+    }
+    at<u8 *>(vector, 8) = to;
+    return first;
+}
+
 u8 *__fastcall TextLayout_Ctor(u8 *layout) {
     TextStyleHolder_Ctor(layout + 4);
     const u8 b = (u8)((uintptr_t)layout >> 24);  // sic: the top byte of the pushed ECX, read as an allocator temporary

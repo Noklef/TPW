@@ -10,11 +10,12 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, LOG, RAM, Bench, Call, heap, log_region, put, set_return, vtable  # noqa: E402
 
-B = Bench([(0x5fa680, 0x5fa6b0), (0x6ad5d0, 0x6ad740), (0x6ad7c0, 0x6ad860), (0x6ade00, 0x6adf30),
+B = Bench([(0x5fa680, 0x5fa6b0), (0x6ad5d0, 0x6ad740), (0x6ad7c0, 0x6ad860), (0x6ade00, 0x6adf30), (0x6aeab0, 0x6aeb10), (0x6aeda0, 0x6aedf0),
            (0x6b0230, 0x6b0340)])
 SOURCE = RAM + 0x400   # Assign's and SetStyle's source style
 TABLE = 0x782d18       # SetStyle's renderers (0x782d38) and the dwords before them
 RENDERER, VTABLE2 = RAM + 0x500, RAM + 0x480   # Render's renderer: slot 1 takes 5 arguments
+ELEMS = RAM + 0x600    # Erase12's elements (12 bytes each)
 DATA = 0x7d0000   # an object in the game's data (top byte 0)
 FONTS, VTABLE, COLOUR, STATUS = RAM + 0x200, RAM + 0x300, RAM + 0x380, RAM + 0x3c0
 # op: (address, the style's offset in the object, extra arguments)
@@ -22,10 +23,10 @@ CALLS = {'StyleCtor': (0x6ad5d0, 0), 'StyleDtor': (0x6ad640, 0), 'StyleDel': (0x
          'SetColour': (0x6ad6e0, 0), 'HolderCtor': (0x6b0230, 4), 'HolderDtor': (0x6b0270, 4), 'HolderDel': (0x6b0250, 4),
          'LayoutCtor': (0x6ade00, 8), 'LayoutDtor': (0x6adeb0, 8), 'LayoutDel': (0x6ade90, 8),
          'Assign': (0x6ad660, 0), 'GetFont': (0x6ad820, 0), 'FontKind': (0x6ad840, 0),
-         'SetStyle': (0x6b0280, 4), 'Render': (0x6b0300, 4)}
+         'SetStyle': (0x6b0280, 4), 'Render': (0x6b0300, 4), 'CharClass': (0x6aeab0, 0), 'Erase12': (0x6aeda0, 0)}
 RET = {'StyleCtor': 'a', 'StyleDel': 'a', 'SetFont': 'a', 'SetColour': 'a', 'HolderCtor': 'a', 'HolderDel': 'a', 'LayoutCtor': 'a',
        'LayoutDel': 'a', 'Assign': 'a', 'GetFont': 'a', 'FontKind': 'a',
-       'SetStyle': 'a', 'Render': 'a'}
+       'SetStyle': 'a', 'Render': 'a', 'CharClass': 'b', 'Erase12': 'a'}
 
 
 def case(r):
@@ -61,6 +62,7 @@ def case(r):
         put(source, 4, 'I', r.choice(fonts * 6 + [0]))
         put(source, 0xc, 'i', r.choice([0, 1, 2, 0, 1, 2, -1, 3, r.getrandbits(31)]))
         put(source, 0x10, 'I', r.choice([0, 1, 2]))
+        set_return(log, 10, r.choice([0, 1, 2, 3, 4, 5, 6, -1, -2]))   # the index stays in TABLE (a wild read faults only in the emulator)
         regions[SOURCE] = source
         regions[TABLE] = b''.join(struct.pack('<I', r.choice([0, r.getrandbits(32)])) for _ in range(0x40))
         args += [STATUS, SOURCE]
@@ -69,6 +71,16 @@ def case(r):
         regions[VTABLE2] = vtable({1: 5})
         regions[RENDERER] = struct.pack('<I', VTABLE2)
         args += [STATUS, r.getrandbits(32), r.getrandbits(32), r.getrandbits(32)]
+    elif op == 'CharClass':
+        ch = r.choice([9, 10, 13, 0x20, r.randrange(0, 0x30), r.randrange(0, 0x30), r.getrandbits(16)]) | r.choice([0, r.getrandbits(16) << 16])
+        return Call(address, [ch], regions, conv='s', ret='b')
+    elif op == 'Erase12':
+        n = r.randrange(0, 9)
+        j = r.randrange(0, n + 1)
+        i = r.randrange(0, j + 1)
+        put(body, 4, 'II', ELEMS, ELEMS + 12 * n)
+        regions[ELEMS] = r.bytes(12 * 8)
+        args += [ELEMS + 12 * i, ELEMS + 12 * j]
     return Call(address, args, regions, conv='t', ret=RET.get(op, 'v'))
 
 

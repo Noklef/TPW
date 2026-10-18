@@ -72,4 +72,12 @@ void __fastcall TextLayout_Dtor(u8 *layout);
 // 0x6ade90 (thiscall (flags), pops 4): TextLayout_Dtor, then the object freed (Mem_Free) for flags bit 0. Returns this.
 u8 *__fastcall TextLayout_DeletingDtor(u8 *layout, void *, u32 flags);
 
+// 0x6aeab0 (stdcall (character), pops 4; its callers pass the layout in ECX, unused): a character's class from its low word: 0x12 for a tab
+// or a space, 4 for a line feed, 0xc for a carriage return, else 1. Only AL is set (the rest of EAX is what it was).
+u8 __stdcall TextLayout_CharClass(u32 character);
+
+// 0x6aeda0 (thiscall (first, last), pops 8): erase from a vector of 12-byte elements (begin +4, end +8): the elements from last to the end
+// moved down to first (a do-while: last past the end runs on, sic), the end set after them. Returns first.
+u8 *__fastcall Vector12_Erase(u8 *vector, void *, u8 *first, u8 *last);
+
 }
