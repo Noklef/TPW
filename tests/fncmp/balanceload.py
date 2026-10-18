@@ -5,7 +5,8 @@
 # their copy equal or not, two dwords either side of 0x785910).
 # The real schemas; each file's values entries over zeroed data. The folder (the wide string at 0xf816c0 + 0x28) with or without its "\", the names
 # Strings of a few texts; FindFirstFileA (the size: 0, a few bytes, not found) and GetFileAttributesA recorded; the text whatever the heap held (its
-# blocks filled with comment lines, blank lines or 0xcd), the heap failing now and then.
+# blocks filled with comment lines, blank lines or 0xcd), the heap failing now and then. The files on the stack (Check, Changes) read and parsed
+# (their fields the defaults, 0), the fields of gBalanceGraphics they are checked against mostly 0.
 # usage: balanceload.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Graphics,Check,All,ForOptions,Changes)
 import os
 import struct
@@ -28,8 +29,8 @@ SIZES = {0x785828: 0x40, 0x785868: 0x78, 0x7858e0: 0x10, 0x7858f0: 0x48}
 FOLDER, BACKSLASH, OPTIONS = 0xf816c0, 0xf80be0, 0x78d8d8
 NAMES = {'Graphics': (0x79e3d8, 0x79e408, 0x79e660), 'Check': (0x78e338, 0x78e368, 0x78e5c0), 'All': (0x7a1c28, 0x7a0c58, 0x7a17c8)}
 TEXTS = RAM + 0x7000   # the Strings' texts, 0x40 apart
-FIND_FIRST, FIND_CLOSE, ATTRIBUTES, OPEN, GLOBAL_ALLOC, GLOBAL_FREE = 45, 46, 47, 9, 48, 49
-VALUES = RAM + 0xc000   # (in the regions' chunk, not in a region)
+FIND_FIRST, FIND_CLOSE, ATTRIBUTES, OPEN = 45, 46, 47, 9
+VALUES = RAM + 0xc000   # (in the regions' chunk, not in a region: a stack file's values block)
 FILE_STREAM_VTABLE, GLOBALS = 0x6fd930, 0xfa6ec8
 
 
@@ -53,20 +54,15 @@ def balance(r, regions, at, k, size=None):   # a balance file at `at`: its vtabl
 
 
 def common(r, op, stack=False):   # stack: a balance file on the stack, whose values block (its entries the stack's addresses, unlike between the
-    regions = {}                     # sides) GlobalAlloc recorded gives outside the regions; so no text is read (it would share that block)
+    regions = {}                     # sides) is the heap's first: the heap starts at VALUES, outside the regions, its later blocks in the region after it
     log = log_region()
     imports = {'FindFirstFileA': (FIND_FIRST, 0x6fd100, 2, 1, 2), 'FindClose': (FIND_CLOSE, 0x6fd104, 1, 0, 0),
                'GetFileAttributesA': (ATTRIBUTES, 0x6fd10c, 1, 1, 0)}
-    if stack:
-        imports.update({'GlobalAlloc': (GLOBAL_ALLOC, 0x6fd1cc, 2, 0, 0), 'GlobalFree': (GLOBAL_FREE, 0x6fd26c, 1, 0, 0)})
     iat = import_table(log, imports)
-    if stack:
-        set_return(log, GLOBAL_ALLOC, VALUES)
-    else:
-        for at, v in global_heap().items():
-            iat[at - IMPORT_TABLE:at - IMPORT_TABLE + 4] = v
+    for at, v in global_heap().items():
+        iat[at - IMPORT_TABLE:at - IMPORT_TABLE + 4] = v
     regions[IMPORT_TABLE] = iat
-    size = r.choice([0, 0, 0, 0, 3, 16, 40, 0xffffffff] if not stack else [0, 0, 0xffffffff])
+    size = r.choice([0, 0, 0, 0, 3, 16, 40, 0xffffffff] if not stack else [3, 16, 40, 40, 0xffffffff])   # (stack: an empty file leaves its fields unset)
     set_return(log, FIND_FIRST, 0xffffffff if size == 0xffffffff else 0x1234)
     fill(log, FIND_FIRST, 1, bytes(0x20) + struct.pack('<I', size) + bytes(0x10), 0)
     fill(log, OPEN, 0, struct.pack('<i', r.choice([0] * 8 + [-1])), 1)
@@ -79,6 +75,10 @@ def common(r, op, stack=False):   # stack: a balance file on the stack, whose va
     line = r.choice([b'# comment line\r\n', b'               \n', None])   # (16 bytes: every block starts a line)
     if line:
         block[0x10:] = line * ((len(block) - 0x10) // 16)
+    if stack:   # (the Graphics values block, 31 entries of 12 bytes, at VALUES; the blocks after it from VALUES + 0x180)
+        put(block, 0, 'I', VALUES | struct.unpack_from('<I', block, 0)[0] & 15)
+        regions[VALUES + 0x180] = block[0x10:0x3e90]
+        block = block[:0x10]
     regions[HEAP] = block
     regions[0x785de8] = r.bytes(0x60)
     regions[0xfb1440] = bytes(4)
@@ -107,9 +107,16 @@ def graphics(r, options=False):   # GraphicsSettings_Load (cdecl (flags)) or Gra
     return Call(0x44dc60, [flags], regions, conv='c', ret='a')
 
 
+def graphics_fields(r, obj):   # the fields the check compares (+0xc, +0x34, +0x3c, +0x40, +0x44, +0x68) mostly 0 (a parsed file's defaults): one of
+    fields = (0xc, 0x34, 0x3c, 0x40, 0x44, 0x68)   # them not, or each now and then
+    one = r.choice(fields) if r.random() < 0.5 else None
+    for j in fields:
+        put(obj, j, 'I', r.choice([1, r.getrandbits(32)]) if j == one or one is None and r.random() < 0.25 else 0)
+
+
 def check(r):   # Options_CheckGraphicsMode (thiscall (mode)): the options at RAM, their change level +0x94 below 2 or not
     regions = common(r, 'Check', True)
-    balance(r, regions, 0x785868, 0)
+    graphics_fields(r, balance(r, regions, 0x785868, 0))
     options = put(bytearray(r.bytes(0xa0)), 0x94, 'i', r.choice([0, 0, 1, 1, 2, 3, -1, -0x80000000]))
     regions[RAM] = options
     mode = r.choice([0, 1, 2, 0, 1, 2, 3, r.getrandbits(32)])
@@ -118,7 +125,7 @@ def check(r):   # Options_CheckGraphicsMode (thiscall (mode)): the options at RA
 
 def changes(r):   # Options_NoteChanges (thiscall): the options at RAM against their copy (+0x3c..), around the dword 0x785910
     regions = common(r, 'Check', True)
-    balance(r, regions, 0x785868, 0)
+    graphics_fields(r, balance(r, regions, 0x785868, 0))
     options = bytearray(r.bytes(0xa0))
     limit = r.choice([0, 50, 100, -1, r.getrandbits(32)]) & 0xffffffff
     for at in (0, 4, 8, 0xc):
