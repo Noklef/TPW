@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(tpw CXX)
+project(tpw C CXX)
 
 # The hook phase runs inside the original 32-bit tp.exe, and re/types.h is byte-exact for x86.
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
@@ -11,6 +11,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Static CRT: players shouldn't need a VC++ redistributable.
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 add_compile_options(/W4 /permissive- /utf-8)
+
+# The libraries the original links (zlib, libjpeg 6b and 6a), from their released sources.
+add_subdirectory(third_party)
 
 # Reimplemented game code, shared by the hook DLL and the tests.
 add_library(tpw_game STATIC
