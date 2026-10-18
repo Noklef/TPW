@@ -4,6 +4,7 @@
 
 #include "../core/gameheap.h"
 #include "../core/misc.h"
+#include "../math/sintable.h"
 #include "../math/x87.h"
 #include "../model/holder.h"
 
@@ -139,6 +140,46 @@ void __cdecl DynFaces_AddGrid(float dx, float dy, float dz, s32 rows, s32 cols, 
             const u32 tag = global<u32>(0x00871d18 + 4 * face++);
             DynFaces_AddPoly(reinterpret_cast<const u32 *>(corners), tag, uvs, colours, 1);
         }
+    }
+}
+
+void __cdecl DynFaces_WaveGrid(s32 rows, s32 cols, float step, float phase) {
+    const SinTable sines = SinTable_Game();
+    const float k = static_cast<float>(X87Reg(6.28318501f) * 0.333333343f);
+    const float a = static_cast<float>(X87Reg(0.0174532998f) * 10.0f);
+    const float sinA = SinTable_At(sines, static_cast<float>(X87Reg(sines.scale) * a));
+    const float cosA = SinTable_At(sines, static_cast<float>((X87Reg(a) - -1.57079637f) * sines.scale));
+    const float alongX = static_cast<float>(X87Reg(cosA) * k);
+    const float alongZ = static_cast<float>(-(X87Reg(k) * sinA).v);
+    if (cols <= 0) return;
+    float z = 0;
+    u32 column = 0;
+    for (s32 c = cols; c != 0; c--, column += 0xc) {
+        if (rows > 0) {
+            float x = 0;
+            const float base = static_cast<float>(X87Reg(z) * alongZ);
+            const float half = static_cast<float>(X87Reg(phase) * 0.5f);
+            u32 offset = column;
+            for (s32 r = rows; r != 0; r--, offset += 0xe4) {
+                float *const p = reinterpret_cast<float *>((uintptr_t)(0x00874180 + offset));
+                float *const n = reinterpret_cast<float *>((uintptr_t)(0x00870ed8 + offset));
+                const float h = static_cast<float>(X87Reg(x) * alongX + base - half);
+                p[0] = x;
+                p[1] = static_cast<float>(X87Reg(SinTable_At(sines, static_cast<float>((X87Reg(h) - -1.57079637f) * sines.scale))) * 1.70000005f);
+                p[2] = z;
+                const float t = X87_Through(SinTable_At(sines, static_cast<float>(X87Reg(sines.scale) * h)));
+                n[1] = 1.0f;
+                n[0] = t;
+                n[2] = t;
+                const X87Reg nx = n[0], ny = n[1], nz = n[2];
+                const X87Reg length = X87_Sqrt(nx * nx + ny * ny + nz * nz);
+                n[0] = static_cast<float>(X87Reg(n[0]) / length);
+                n[1] = static_cast<float>(X87Reg(n[1]) / length);
+                n[2] = static_cast<float>(X87Reg(n[2]) / length);
+                x = static_cast<float>(X87Reg(x) + step);
+            }
+        }
+        z = static_cast<float>(X87Reg(z) + step);
     }
 }
 

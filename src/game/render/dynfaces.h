@@ -21,6 +21,11 @@ void __cdecl DynFaces_AddPoly(const u32 *corners, u32 tag, const u32 *uvs, const
 // comes out quiet), the uvs (0, 0) (1, 0) (0, 1) (1, 1) in that order, and the tag the next of the dwords at 0x871d18.
 void __cdecl DynFaces_AddGrid(float dx, float dy, float dz, s32 rows, s32 cols, s32 row, s32 col);
 
+// 0x53d380 (cdecl; rows, cols, step, phase; name unconfirmed): that grid filled as a wave, x87 at the game's precision with the sine table
+// (sintable.h): with k = 2 pi / 3 and A = 10 degrees, for each column (z = 0, step, ...) and row (x = 0, step, ...) the vertex is
+// (x, 1.7 cos h, z), h = x * k cos A - z * k sin A - phase / 2, and its normal (sin h, 1, sin h) normalised.
+void __cdecl DynFaces_WaveGrid(s32 rows, s32 cols, float step, float phase);
+
 // 0x53c1f0 (cdecl; tags, count; name unconfirmed): the count tag words at tags[1..count] (the caller hands 0x872168 - 4) sorted by their tag (the low five
 // bits): a quicksort with a stack of 50 dwords and insertion sorts of runs under 7, unsigned throughout (a count of 0 goes to the partition). Sic: the
 // insertion sort steps down to tags[1], not to the run's start.
