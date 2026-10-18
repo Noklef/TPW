@@ -3362,6 +3362,9 @@ address,name,kind,confidence,notes
 0x004146b0,ObjectText_FullName,function,low,"reimplemented (src/game/world/objectdefs); thiscall on the name buffers (id, out, size), pops 12: an object's name and suffix joined into out"
 0x004147f0,ObjectText_Name,function,low,"reimplemented (src/game/world/objectdefs); thiscall (id, out, size, trim), pops 16: an object's name text into out, a last '-' cut when trim is 1"
 0x00414870,ObjectText_Suffix,function,low,"reimplemented (src/game/world/objectdefs); thiscall (id, out, size), pops 12: an object's suffix text into out"
+0x00412fb0,ObjectDefs_GetFullName,function,low,"reimplemented (src/game/world/objectdefs); thiscall (id, out, size), pops 12: the definition's full name text, else the object texts' full name"
+0x00413020,ObjectDefs_GetName,function,low,"reimplemented (src/game/world/objectdefs); thiscall (id, out, size), pops 12: the object texts' name, else the definition's +0x4f8 text"
+0x004130b0,ObjectDefs_GetSuffix,function,low,"reimplemented (src/game/world/objectdefs); thiscall (id, out, size), pops 12: the object texts' suffix, else the definition's +0x4fc text"
 0x0050c100,Ring_PushUnique,function,high,reimplemented (src/game/core/rings); pushes an id and value unless they repeat the last pair
 0x004e0220,Obj_GetTrackedHandle,function,high,"reimplemented (src/game/world/object); the tracked handle, dropped when the thing no longer has the object's handle"
 0x004dd7f0,Object_SetCapacity,function,high,reimplemented (src/game/world/object); the capacity clamped to the definition's limits and stored

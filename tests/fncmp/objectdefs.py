@@ -22,7 +22,7 @@ DEFS, ITEMS, DEF, GRID, REF = RAM, RAM + 0x1000, RAM + 0x3000, RAM + 0x3800, RAM
 OTXT, OUTW, TXTS, DEFN = RAM + 0x6000, RAM + 0x6200, RAM + 0x6400, RAM + 0x7000
 CALLS = {'Find': 0x412e90, 'At390': 0x412ef0, 'At410': 0x412f50, 'First': 0x412e60, 'Next': 0x412e70, 'Schema': 0x412c90,
          'TrackSchema': 0x4143f0, 'Cells': 0x413410, 'LoadText': 0x413600,
-         'FullName': 0x4146b0, 'Name': 0x4147f0, 'Suffix': 0x414870}
+         'FullName': 0x4146b0, 'Name': 0x4147f0, 'Suffix': 0x414870, 'GetFullName': 0x412fb0, 'GetName': 0x413020, 'GetSuffix': 0x4130b0}
 TEXT_OPS = ('FullName', 'Name', 'Suffix', 'GetFullName', 'GetName', 'GetSuffix')
 # The game's object text ids (0x7488d8 .. 0x749850: id, name text, suffix text; an id 0 ends it).
 TEXT_IDS = next([i for i in struct.unpack_from('<%dI' % 990, d, 0x7488d8 - b)[0::3] if i] for b, d in exe_sections() if b <= 0x7488d8 < b + len(d))
@@ -86,37 +86,42 @@ def object_text(r, op):
     this a definition set at DEFS, its buffers at +0x52c): ids of the game's table at 0x7488d8 or not, now and then a table of the case's own
     (full to 0x749850, or ended by an id 0 early); definitions with the id (cached or not) whose texts +0x4f4.. are L"MISSING" (0x6fd880),
     null or text; out lengths about 0x80; the trim flag 1 or another byte over junk."""
-    regions = {LOG: log_region(), 0x78bacc: struct.pack('<I', r.getrandbits(32)), OUTW: r.bytes(0x140)}
+    # (out holds what the formatter, which writes nothing, stands for: text ending in '-' or not; the char before it '-' or not)
+    out = r.choice([r.bytes(0x140), wtext(r) + b'-\0\0\0', b'-\0\0\0', b'\0\0', wtext(r) + b'\0\0'])
+    regions = {LOG: log_region(), 0x78bacc: struct.pack('<I', r.getrandbits(32)), OUTW - 2: (r.choice([b'-\0', b'x\0']) + out + r.bytes(0x140))[:0x142]}
     ids = TEXT_IDS
     if r.random() < 0.2:
         rows = [(r.choice([r.randrange(1, 40), r.getrandbits(16), r.getrandbits(32)]), r.getrandbits(32), r.getrandbits(32)) for _ in range(330)]
         if r.random() < 0.5:
             rows[r.choice([0, 1, r.randrange(330), 329])] = (0, 0, 0)
         regions[0x7488d8] = b''.join(struct.pack('<3I', *row) for row in rows)
-        ids = [row[0] for row in rows]
+        ids = [row[0] for row in rows] + [0x730025]   # (the dword at 0x749850, past the table: L"%s")
     id_ = r.choice([r.choice(ids), r.choice(ids), r.choice(ids), r.randrange(40), 0, r.getrandbits(16)])
+    if ids is not TEXT_IDS and 0 not in ids and r.random() < 0.3:
+        id_ = 0x730025
     size = r.choice([0, 1, 2, 8, 0x3f, 0x40, 0x7f, 0x80, 0x81, 0x90, 0xa0])
     if op in ('FullName', 'Name', 'Suffix'):
-        regions[OTXT] = name_buffers(r)
+        regions[OTXT - 2] = r.choice([b'-\0', b'x\0']) + name_buffers(r)
         args = [OTXT, id_ | (r.getrandbits(16) << 16 if r.random() < 0.1 else 0), OUTW, size]
         if op == 'Name':
-            args.append(r.choice([0, 1, 1, 2, 0x101, r.getrandbits(32)]))
+            args.append(r.choice([0, 1, 1, 2, 0x101, 0xffffff01, r.getrandbits(32)]))
         return Call(CALLS[op], args, regions, conv='t', ret='b')
     defs = bytearray(r.bytes(0x740))
     defs[0x52c:0x6ac] = name_buffers(r)
     n = r.choice([0, 1, 2, 3, 4])
+    low = id_ & 0xffff
     texts = [0x6fd880, 0, TXTS, TXTS + 0x80, TXTS + 0x100]
     for i in range(4):
         d = bytearray(r.bytes(0x500))
-        put(d, 0, 'H', r.choice([id_, id_, r.randrange(40), r.getrandbits(16)]))
+        put(d, 0, 'H', r.choice([low, low, r.randrange(40), r.getrandbits(16)]))
         for k in range(3):
             put(d, 0x4f4 + 4 * k, 'I', r.choice(texts[:1] * 2 + texts[2:] + ([0] if op == 'GetFullName' or r.random() < 0.05 else [])))
         put(defs, 4 * i, 'I', DEFN + 0x500 * i)
         regions[DEFN + 0x500 * i] = bytes(d)
     put(defs, 0x528, 'i', n)
-    put(defs, 0x730, 'HxxI', r.choice([id_, id_ ^ 1, r.getrandbits(16)]), r.choice([DEFN, DEFN + 0x500, DEFN + 0x500 * r.randrange(4)]))
+    put(defs, 0x730, 'HxxI', r.choice([low, low ^ 1, r.getrandbits(16)]), r.choice([DEFN, DEFN + 0x500, DEFN + 0x500 * r.randrange(4)]))
     regions[DEFS] = bytes(defs)
-    regions[TXTS] = b''.join((wtext(r, r.choice([0, 1, 5, 0x3f, 0x60])) + b'\0\0' + r.bytes(0x80))[:0x80] for _ in range(3))
+    regions[TXTS] = b''.join((wtext(r, r.choice([0, 1, 5, 0x3e, 0x3f])) + b'\0\0' + r.bytes(0x80))[:0x80] for _ in range(3))
     return Call(CALLS[op], [DEFS, id_ | (r.getrandbits(16) << 16 if r.random() < 0.3 else 0), OUTW, size], regions, conv='t', ret='v')
 
 

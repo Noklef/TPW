@@ -137,4 +137,14 @@ u8 __fastcall ObjectText_Name(void *, void *, u32 id, u16 *out, u32 size, u32 tr
 
 // 0x414870 (thiscall, this unused; id, out, size, pops 12; AL): no row: 0; else the suffix formatted into out; 1.
 u8 __fastcall ObjectText_Suffix(void *, void *, u32 id, u16 *out, u32 size);
+
+// The object set's names for an id (thiscall (id, out, size), pops 12; EAX incidental, the callers ignore it; names unconfirmed); each
+// looks the definition up with the id's low word (ObjectDefs_Find):
+// 0x412fb0: the definition's +0x4f4 text (wcsncpy, size chars) when it has one that is not L"MISSING" (0x6fd880), else ObjectText_FullName
+// on the buffers at +0x52c.
+void __fastcall ObjectDefs_GetFullName(u8 *defs, void *, u32 id, u16 *out, u32 size);
+// 0x413020 / 0x4130b0: ObjectText_Name (trim 0) / ObjectText_Suffix, else the definition's +0x4f8 / +0x4fc text (wcsncpy; no definition
+// faults, sic).
+void __fastcall ObjectDefs_GetName(u8 *defs, void *, u32 id, u16 *out, u32 size);
+void __fastcall ObjectDefs_GetSuffix(u8 *defs, void *, u32 id, u16 *out, u32 size);
 }

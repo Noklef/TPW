@@ -427,4 +427,27 @@ u8 __fastcall ObjectText_Suffix(void *, void *, u32 id, u16 *out, u32 size) {
     format_text(out, size, at<u32>(row, 8));
     return 1;
 }
+
+void __fastcall ObjectDefs_GetFullName(u8 *defs, void *, u32 id, u16 *out, u32 size) {
+    if (u8 *def = ObjectDefs_Find(defs, nullptr, (u16)id)) {
+        const u16 *text = at<const u16 *>(def, 0x4f4);
+        if (text && text != reinterpret_cast<const u16 *>((uintptr_t)0x006fd880)) {
+            Crt().wcsncpy(out, text, size);
+            return;
+        }
+    }
+    ObjectText_FullName(reinterpret_cast<u16 *>(defs + 0x52c), nullptr, id & 0xffff, out, (s32)size);
+}
+
+void __fastcall ObjectDefs_GetName(u8 *defs, void *, u32 id, u16 *out, u32 size) {
+    if (ObjectText_Name(defs + 0x52c, nullptr, id & 0xffff, out, size, 0)) return;
+    u8 *def = ObjectDefs_Find(defs, nullptr, (u16)id);
+    Crt().wcsncpy(out, at<const u16 *>(def, 0x4f8), size);  // (no definition: a fault, sic)
+}
+
+void __fastcall ObjectDefs_GetSuffix(u8 *defs, void *, u32 id, u16 *out, u32 size) {
+    if (ObjectText_Suffix(defs + 0x52c, nullptr, id & 0xffff, out, size)) return;
+    u8 *def = ObjectDefs_Find(defs, nullptr, (u16)id);
+    Crt().wcsncpy(out, at<const u16 *>(def, 0x4fc), size);  // (no definition: a fault, sic)
+}
 }
