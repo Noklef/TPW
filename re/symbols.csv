@@ -3796,6 +3796,7 @@ address,name,kind,confidence,notes
 0x005667d0,Class701378_Ctor,function,high,reimplemented (src/game/core/misc); stream class constructor with a virtual base
 0x0050afe0,Thing_Construct,function,high,"reimplemented (src/game/world/things); a thing's constructor: slot, handle, cell and chain"
 0x00502d20,ThingKindE_Ctor,function,high,reimplemented (src/game/world/things); a thing of kind 0xe with five records
+0x004f7e20,Thing_ResetPlaceAt,function,high,"reimplemented (src/game/world/things); thiscall (x, y, pops 8): +0x39c = 0, +0x10 = 3 (Set4_4217f0 on +0xc), then Thing_PlaceAt(x, y)"
 0x00565310,DrawBatch_Open,function,high,reimplemented (src/game/render/drawbuffer); a draw batch resumed and tagged
 0x0057b070,Object_ReleaseSavedPairs,function,high,reimplemented (src/game/core/vobj2); saved pairs written back and their arrays freed
 0x0057b5b0,Object_FreeBlock13c,function,low,reimplemented (src/game/core/vobj2); thiscall: the tracked block at +0x13c freed after its texture at +0x18 is released twice (sic) and freed (name unconfirmed)

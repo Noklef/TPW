@@ -2,10 +2,10 @@
 # ingredient record) against the originals:
 #   SetPos: things in a consistent table (thingenv's), a cell grid whose chains hold none or a thing, positions in the same cell or another;
 #   Construct: things.py's table of slots (a free one with its own id) and a short row of cells;
-#   Place: SetPos' world, through the navigation block at +0xd4;
+#   Place: SetPos' world, through the navigation block at +0xd4 (ResetPlace, 0x4f7e20: the same after setting +0x39c and +0x10);
 #   Choice: a thing with sprite folders that are empty or not and a world seed;
 #   Record: a thing whose definition has the ingredient value 0 to 5 and a table of records (some with a terminating zero word, some not).
-# usage: things_methods.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetPos,Construct,Place,Choice,Record)
+# usage: things_methods.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetPos,Construct,Place,ResetPlace,Choice,Record)
 import os
 import struct
 import sys
@@ -17,7 +17,7 @@ import things  # noqa: E402
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 from thingenv import CELLS, ITEM, ITEMS, NITEMS, POOL, THING, park  # noqa: E402
 
-B = Bench([(0x4d91f0, 0x4d93c0), (0x4e2200, 0x4e22a0), (0x4fa930, 0x4fa9a0), (0x4fcac0, 0x4fcb20), (0x50afe0, 0x50b090), (0x50b350, 0x50b370), (0x50b6a0, 0x50b790),
+B = Bench([(0x4f7e20, 0x4f7e4c), (0x4217f0, 0x421800), (0x4d91f0, 0x4d93c0),(0x4e2200, 0x4e22a0), (0x4fa930, 0x4fa9a0), (0x4fcac0, 0x4fcb20), (0x50afe0, 0x50b090), (0x50b350, 0x50b370), (0x50b6a0, 0x50b790),
            (0x5100e0, 0x510110), (0x510160, 0x510190), (0x412e90, 0x412f00), (0x516270, 0x516320), (0x516330, 0x516390), (0x541f60, 0x541fb0), (0x6ace60, 0x6aceb0), (0x5da3c0, 0x5da3c1)])
 NEWCELLS, NEWTHING = RAM + 0x6000, RAM + 0x5000
 STREAM, WORLD, SPRITE = RAM, RAM + 0x2000, RAM + 0x3000
@@ -67,6 +67,12 @@ def place(r):
     return c
 
 
+def reset_place(r):
+    c = setpos(r)
+    c.address = 0x4f7e20
+    return c
+
+
 def choice(r):
     counts = bytearray(0x30)
     for folder in range(4):
@@ -99,7 +105,7 @@ def record(r):
     return Call(0x4e2200, [things_[0]], regions, conv='t', ret='a')
 
 
-CASES = {'SetPos': setpos, 'Construct': construct, 'Place': place, 'Choice': choice, 'Record': record}
+CASES = {'SetPos': setpos, 'Construct': construct, 'Place': place, 'ResetPlace': reset_place, 'Choice': choice, 'Record': record}
 
 
 def case(r):
