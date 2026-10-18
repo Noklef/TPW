@@ -293,6 +293,7 @@
 #include "../game/render/heightgrid.h"
 #include "../game/render/vertexfog.h"
 #include "../game/render/d3dprobe.h"
+#include "../game/render/depthsort.h"
 #include "../game/render/device.h"
 #include "../game/render/engineerrors.h"
 #include "../game/render/fixedverts.h"
@@ -4081,6 +4082,7 @@ const Hook kHooks[] = {
     {"ClipEdge_ZW",               0x005625c0, (void *)&ClipEdge_ZW, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
     {"ClipEdge_Z0",               0x00562820, (void *)&ClipEdge_Z0, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
     {"ViewQuad_SetFov",           0x0056b790, (void *)&ViewQuad_SetFov, {0xd9, 0x44, 0x24, 0x04, 0xd8}},
+    {"DepthSort_Triangles",       0x005653d0, (void *)&DepthSort_Triangles, {0x8b, 0x54, 0x24, 0x0c, 0x53}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

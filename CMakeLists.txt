@@ -319,6 +319,7 @@ add_library(tpw_game STATIC
     src/game/render/vertexblock.cpp
     src/game/render/clipedge.cpp
     src/game/render/viewquad.cpp
+    src/game/render/depthsort.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/online/itemlist.cpp
