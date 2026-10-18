@@ -256,4 +256,8 @@ u32 __fastcall Obj_KeyMessageToSlots(u8 *object, void *, u32 message, u32 key, u
     return key;  // (what EAX held)
 }
 
+void __fastcall Obj7b51f0_PassThingTo7cc218(u8 *, void *, u32 handle) {
+    Obj_CallSlot14IfGlobalThing(reinterpret_cast<u8 *>(0x007cc218), nullptr, handle);
+}
+
 }  // extern "C"

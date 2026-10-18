@@ -3352,6 +3352,7 @@ address,name,kind,confidence,notes
 0x00569e10,Global879acc_Create,function,low,"reimplemented (src/game/core/vwrap); cdecl: when [0x879acc] is 0, a new 0x38-byte object (vbtable 0x701410, its virtual base Class701260 at +8 with the vtable 0x7013c8 and 0x1000 at +0xc) whose base part is stored there and has slot 1 called, 1; 0 when there was one or the allocation failed (the error (3, 0xb0754000) pushed)"
 0x005666f0,Global879ac0_Create,function,low,"reimplemented (src/game/core/vwrap); cdecl: when [0x879ac0] is 0, a new 0x5c-byte Class701378 (most derived) whose virtual base part is stored there and has slot 1 called, 1; 0 when there was one or the allocation failed (the error (3, 0xb0754000) pushed)"
 0x005c5000,Object_CallSlot14,function,low,reimplemented (src/game/core/vwrap); cdecl (object): a jump to the object's slot 0x14; returns what it returns (name unconfirmed)
+0x00481530,Obj7b51f0_PassThingTo7cc218,function,low,"reimplemented (src/game/core/vwrap); thiscall on the object at 0x7b51f0, this not used (handle, pops 4): Obj_CallSlot14IfGlobalThing on the object at 0x7cc218 (name unconfirmed)"
 0x005e3b90,Class702d48_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor that registers the object with a global one
 0x005e3c00,Class702d48_Release,function,high,reimplemented (src/game/core/vdtor); releases the object from a global one
 0x005e3bd0,Class702d48_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor that releases the object from a global one
