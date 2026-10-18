@@ -6,7 +6,9 @@
 #include "crt.h"
 
 #include <cstdarg>
+#include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <cwctype>
 
@@ -151,11 +153,78 @@ s32 __cdecl wtoi(const u16 *s) {
     return (s32)(sign == '-' ? 0 - total : total);
 }
 
+// The game's own table (the driver has the game's data at its addresses), read as MSVC6 reads it with __mb_cur_max 1:
+// c indexes the words of _pctype as given, so a sign-extended byte from 0x80 reads the data before the table (sic).
+s32 ctype(s32 c, u32 mask) { return (*reinterpret_cast<const u16 *const *>((uintptr_t)0x77ea90))[c] & mask; }
+s32 __cdecl isalpha(s32 c) { return ctype(c, 0x103); }
+s32 __cdecl isdigit(s32 c) { return ctype(c, 4); }
+s32 __cdecl isspace(s32 c) { return ctype(c, 8); }
+s32 __cdecl isalnum(s32 c) { return ctype(c, 0x107); }
+
+// MSVC6's grammar (__strgtold12: up to 25 significant digits, d or e for the exponent) rewritten for the host's strtod,
+// which rounds correctly: checked against the game's for short mantissas and moderate exponents (MSVC6 multiplies
+// through a 12-byte float and may differ in the last bit beyond that).
+double __cdecl atof(const char *s) {
+    while (space((u8)*s)) ++s;
+    char text[48];  // sign, 25 digits, "e", sign, 5 digits
+    u32 n = 0;
+    if (*s == '+' || *s == '-') text[n++] = *s++;
+    auto digit = [](char c) { return c >= '0' && c <= '9'; };
+    u32 significant = 0;
+    s32 exponent = 0;  // of the last digit kept
+    bool any = false;
+    for (; digit(*s); ++s) {
+        any = true;
+        if (significant == 0 && *s == '0') continue;
+        if (significant < 25) {
+            text[n++] = *s;
+            ++significant;
+        } else {
+            ++exponent;
+        }
+    }
+    if (*s == '.') {
+        const bool fraction = digit(s[1]);
+        if (any || fraction) ++s;
+        for (; digit(*s); ++s) {
+            any = true;
+            if (significant == 0 && *s == '0') {
+                --exponent;
+                continue;
+            }
+            if (significant < 25) {
+                text[n++] = *s;
+                ++significant;
+                --exponent;
+            }
+        }
+    }
+    if (!any) return 0.0;
+    if (significant == 0) text[n++] = '0';
+    s32 power = 0;
+    const char *e = s;
+    if (*e == 'e' || *e == 'E' || *e == 'd' || *e == 'D') {
+        ++e;
+        bool negative = false;
+        if (*e == '+' || *e == '-') negative = *e++ == '-';
+        if (digit(*e)) {
+            for (; digit(*e); ++e) {
+                if (power < 5200) power = power * 10 + (*e - '0');
+            }
+            if (power > 5200) power = 5200;
+            if (negative) power = -power;
+        }
+    }
+    std::snprintf(text + n, sizeof text - n, "e%d", (int)(power + exponent));
+    return std::strtod(text, nullptr);
+}
+
 }  // namespace msvc6
 
 const CrtEnv kDriverCrt = {&msvc6::stricmp, &msvc6::strrchr, &msvc6::strchr, &msvc6::strncmp, &msvc6::strstr,
                            &msvc6::toupper, &msvc6::tolower, &msvc6::atoi,   &msvc6::sprintf, &msvc6::wcslen,
-                           &msvc6::strncpy, &msvc6::iswspace};
+                           &msvc6::strncpy, &msvc6::iswspace, &msvc6::isalpha, &msvc6::isdigit, &msvc6::isspace,
+                           &msvc6::isalnum, &msvc6::atof};
 
 const LibcEnv kDriverLibc = {&msvc6::strncpy, &msvc6::strncat, &msvc6::atoi,    &msvc6::iswctype, &msvc6::vsprintf,
                              &msvc6::vsnprintf, &msvc6::wcslen,  &msvc6::wcscpy,  &msvc6::wcsncpy,  &msvc6::wcscat,
@@ -166,5 +235,7 @@ const CrtStandIn kCrtStandIns[] = {
     {0x0067c250, (void *)&msvc6::strncmp}, {0x0067c080, (void *)&msvc6::strstr},  {0x0067f1a0, (void *)&msvc6::toupper},
     {0x0067fa60, (void *)&msvc6::tolower}, {0x0067a520, (void *)&msvc6::atoi},    {0x0067a650, (void *)&msvc6::sprintf},
     {0x0067acd0, (void *)&msvc6::wcslen},  {0x0067ae00, (void *)&msvc6::strncpy}, {0x0067a730, (void *)&msvc6::iswspace},
+    {0x0067a530, (void *)&msvc6::isalpha}, {0x0067a560, (void *)&msvc6::isdigit}, {0x0067a590, (void *)&msvc6::isspace},
+    {0x0067a5c0, (void *)&msvc6::isalnum}, {0x0067a6c0, (void *)&msvc6::atof},
 };
 const u32 kCrtStandInCount = sizeof kCrtStandIns / sizeof kCrtStandIns[0];

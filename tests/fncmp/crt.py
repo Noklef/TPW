@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM  # noqa: E402
 
-B = Bench([(0x67a400, 0x690000)])
+B = Bench([(0x67a400, 0x6902c0)])
 A, Z, OUT = RAM, RAM + 0x100, RAM + 0x200  # two strings and an output buffer
 PICK = b'aAbBzZ@[`{.\\ 09-+\t\x80\xc1\xe1\xff'
 
@@ -27,6 +27,20 @@ def number(r):
     s = r.choice([b'', b' ', b'  \t', b'\n\x0b\x0c\r']) + r.choice([b'', b'-', b'+', b'--', b'+-'])
     s += str(r.choice([0, 7, r.getrandbits(16), r.getrandbits(32), r.getrandbits(40)])).encode()
     return s + r.choice([b'', b'xyz', b'.5', b' 12'])
+
+
+def decimal(r):
+    """A float as balance files and MSVC6's grammar have them: short mantissas, d or e exponents, the odd bare sign."""
+    d = lambda k: ''.join(r.choice('0123456789') for _ in range(k))
+    s = r.choice(['', ' ', '\t ', '\n\x0b\x0c\r']) + r.choice(['', '', '-', '+', '--', '-+'])
+    s += r.choice(['', '0', '00', d(1), d(r.randrange(1, 6)), d(r.randrange(1, 10))])
+    if r.random() < 0.6:
+        s += r.choice(['.', '.', ',']) + r.choice(['', d(1), d(r.randrange(1, 7)), '0' * r.randrange(1, 9) + d(2)])
+    if r.random() < 0.4:
+        s += r.choice('eEdD+-xf') + r.choice(['', '+', '-', '-', '+-']) + r.choice(['', '0', d(1), d(2), '00' + d(1)])
+    if r.random() < 0.15:
+        s = r.choice(['', ' ', '-']) + r.choice(['inf', 'nan', '0x1a', '.', '-.', 'e5', '1e400', '1e-400', '12345678901234567890123456789'])
+    return (s + r.choice(['', '', 'xyz', ' 12', '.5', '#'])).encode()
 
 
 FORMATS = [b'%d', b'%i', b'%u', b'%x', b'%X', b'%08x', b'%-5d|', b'%5d', b'%+d', b'%c', b'%s', b'%.3s',
@@ -60,6 +74,11 @@ def case(r):
     if op == 'iswspace':   # (below 0x80, with junk in the high half: MSVC6 asks a Latin-1 table above that, then Windows)
         c = r.choice([r.randrange(0x80), r.choice(b' \t\n\x0b\x0c\r\x08\x0e\x1f!0aZ')])
         return Call(0x67a730, [c | (r.getrandbits(16) << 16 if r.random() < 0.4 else 0)], {}, ret='a')
+    if op in CLASSES:   # (the callers' sign-extended chars: from 0x80 the words before the table)
+        c = r.choice([r.randrange(-128, 256), r.randrange(-1, 0x80), r.choice(b' \t\n\x0b\x0c\r09azAZ_.-@[`{')])
+        return Call(CLASSES[op], [c & 0xffffffff], {}, ret='a')
+    if op == 'atof':
+        return Call(0x67a6c0, [A], {A: decimal(r) + b'\0' + junk()}, ret='d')
     if op == 'wcslen':
         n = r.randrange(60)
         w = b''.join(r.randrange(1, 0x10000).to_bytes(2, 'little') for _ in range(n))
@@ -78,7 +97,9 @@ def case(r):
     return Call(0x67a650, [OUT, RAM + 0x300] + args, regions, ret='a')
 
 
-KINDS = ['stricmp', 'strrchr', 'strchr', 'strncmp', 'strstr', 'toupper', 'tolower', 'atoi', 'wcslen', 'sprintf', 'strncpy', 'iswspace']
+CLASSES = {'isalpha': 0x67a530, 'isdigit': 0x67a560, 'isspace': 0x67a590, 'isalnum': 0x67a5c0}
+KINDS = ['stricmp', 'strrchr', 'strchr', 'strncmp', 'strstr', 'toupper', 'tolower', 'atoi', 'wcslen', 'sprintf', 'strncpy', 'iswspace',
+         'isalpha', 'isdigit', 'isspace', 'isalnum', 'atof']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':
