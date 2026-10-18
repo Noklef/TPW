@@ -30,6 +30,7 @@
 #include "../../src/game/core/gameheap.h"
 #include "../../src/game/core/ptrlist.h"
 #include "../../src/game/core/stdstring.h"
+#include "../../src/game/core/textarg.h"
 #include "../../src/game/files/bufsource.h"
 #include "../../src/game/files/dirsource.h"
 #include "../../src/game/files/drives.h"
@@ -616,6 +617,9 @@ int main(int argc, char **argv) {
     // 0x564650 (the engine debug log, a file): stub_cdecl_log, as tests/fncmp/engineerrors.py hooks it (the text hashed: strings(log, 0x3f, 1)).
     static const EngineErrorsEnv engineErrors = {reinterpret_cast<void(__cdecl *)(const char *)>(&stub_cdecl_log)};
     EngineErrors_SetEnv(&engineErrors);
+    // 0x6acd60 (the text formatter, library code): stub_cdecl_log4, as tests/fncmp/objectdefs.py hooks it.
+    static const TextFormatEnv textFormat = {reinterpret_cast<u32(__cdecl *)(void *, u16 *, u32, u32, ...)>(&stub_cdecl_log4)};
+    TextFormat_SetEnv(&textFormat);
     static CanvasEnv canvas = *Canvas_GetEnv();
     canvas.infoCtor = reinterpret_cast<SurfaceInfo *(__fastcall *)(SurfaceInfo *)>(hooked(0x005fa680));
     Canvas_SetEnv(&canvas);

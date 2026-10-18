@@ -27,6 +27,8 @@ struct CrtEnv {
     s32(__cdecl *isspace)(s32 c);                                  // 0x67a590: _pctype[c] & 8
     s32(__cdecl *isalnum)(s32 c);                                  // 0x67a5c0: _pctype[c] & 0x107
     double(__cdecl *atof)(const char *s);                          // 0x67a6c0
+    s32(__cdecl *swprintf)(u16 *to, const u16 *format, ...);       // 0x67af00: %s takes a wide string
+    u16 *(__cdecl *wcsncpy)(u16 *to, const u16 *from, u32 n);      // 0x67b0d0: n chars, zeros after the end
 };
 
 // The CRT ports call (the game's unless swapped).

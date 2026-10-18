@@ -43,7 +43,16 @@ def decimal(r):
     return (s + r.choice(['', '', 'xyz', ' 12', '.5', '#'])).encode()
 
 
-FORMATS = [b'%d', b'%i', b'%u', b'%x', b'%X', b'%08x', b'%-5d|', b'%5d', b'%+d', b'%c', b'%s', b'%.3s',
+def wide(r):
+    """A short wide string (no NUL): ASCII, the odd '-', '%' or character above 0xff."""
+    n = r.choice([0, 1, r.randrange(8), r.randrange(30)])
+    pick = lambda: r.choice([r.randrange(0x20, 0x7f), 0x2d, 0x25, 0xe9, r.randrange(0x100, 0x10000)]) if r.random() < 0.9 else r.randrange(1, 0x20)
+    return b''.join(pick().to_bytes(2, 'little') for _ in range(n))
+
+
+# (strings and characters: MSVC6's wide integers go through code the emulator does not run, and a %c of 0xffff, WEOF, fails there)
+WFORMATS = [b'%s', b'%s', b'%s', b'%c', b'%.3s', b'%10s|', b'%-6s|', b'%%', b'%.0s']
+FORMATS = [b'%d',b'%i', b'%u', b'%x', b'%X', b'%08x', b'%-5d|', b'%5d', b'%+d', b'%c', b'%s', b'%.3s',
            b'%10s|', b'%-10s|', b'%%', b'%ld', b'%hd', b'%hx', b'%o', b'%#x', b'% d', b'%05d', b'%lu']
 
 
@@ -83,6 +92,21 @@ def case(r):
         n = r.randrange(60)
         w = b''.join(r.randrange(1, 0x10000).to_bytes(2, 'little') for _ in range(n))
         return Call(0x67acd0, [A], {A: w + b'\0\0'}, ret='a')
+    if op == 'wcsncpy':   # (the output's junk after the count must stay)
+        w = wide(r)
+        n = r.choice([0, 1, 2, 3, len(w) // 2, len(w) // 2 + 1, len(w) // 2 + 4, r.randrange(0x40)])
+        return Call(0x67b0d0, [OUT, A, n], {A: w + b'\0\0' + junk(), OUT: r.bytes(0x100)}, ret='a')
+    if op == 'swprintf':   # wide: %s takes a wide string, %c a wide char
+        fmt, args = b'', []
+        for _ in range(r.randrange(5)):
+            f = r.choice(WFORMATS)
+            fmt += r.choice([b'', b'n=', b' ', b'-']) + f
+            if b's' in f:
+                args.append(r.choice([A, Z]))
+            elif f != b'%%':
+                args.append(r.choice([0x41, 0x2d, 0xe9, 0x20ac, r.randrange(1, 0xffff)]) | (r.getrandbits(16) << 16 if r.random() < 0.3 else 0))
+        regions = {A: wide(r)[:40] + b'\0\0', Z: wide(r)[:40] + b'\0\0', OUT: bytes(0x100), RAM + 0x300: fmt.decode().encode('utf-16-le') + b'\0\0'}
+        return Call(0x67af00, [OUT, RAM + 0x300] + args, regions, ret='a')
     # sprintf: up to three conversions with integer or string arguments
     fmt, args = b'', []
     for _ in range(r.randrange(4)):
@@ -99,7 +123,7 @@ def case(r):
 
 CLASSES = {'isalpha': 0x67a530, 'isdigit': 0x67a560, 'isspace': 0x67a590, 'isalnum': 0x67a5c0}
 KINDS = ['stricmp', 'strrchr', 'strchr', 'strncmp', 'strstr', 'toupper', 'tolower', 'atoi', 'wcslen', 'sprintf', 'strncpy', 'iswspace',
-         'isalpha', 'isdigit', 'isspace', 'isalnum', 'atof']
+         'isalpha', 'isdigit', 'isspace', 'isalnum', 'atof', 'swprintf', 'wcsncpy']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':

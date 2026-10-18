@@ -113,6 +113,16 @@ s32 __cdecl vswprintf(u16 *to, const u16 *format, void *args) {
     return _vsnwprintf((wchar_t *)to, 0x7fffffff, (const wchar_t *)format, (va_list)args);
 }
 
+// The host's (%s a wide string, as MSVC's): checked for strings and characters; MSVC6's integers are unchecked (they go through code the
+// emulator does not run) and its %c of 0xffff (WEOF) fails with -1, which the host's does not.
+s32 __cdecl swprintf(u16 *to, const u16 *format, ...) {
+    va_list args;
+    va_start(args, format);
+    const s32 n = _vsnwprintf((wchar_t *)to, 0x7fffffff, (const wchar_t *)format, args);
+    va_end(args);
+    return n;
+}
+
 u16 *__cdecl wcscpy(u16 *to, const u16 *from) {
     u16 *p = to;
     while ((*p++ = *from++) != 0) {
@@ -224,7 +234,7 @@ double __cdecl atof(const char *s) {
 const CrtEnv kDriverCrt = {&msvc6::stricmp, &msvc6::strrchr, &msvc6::strchr, &msvc6::strncmp, &msvc6::strstr,
                            &msvc6::toupper, &msvc6::tolower, &msvc6::atoi,   &msvc6::sprintf, &msvc6::wcslen,
                            &msvc6::strncpy, &msvc6::iswspace, &msvc6::isalpha, &msvc6::isdigit, &msvc6::isspace,
-                           &msvc6::isalnum, &msvc6::atof};
+                           &msvc6::isalnum, &msvc6::atof, &msvc6::swprintf, &msvc6::wcsncpy};
 
 const LibcEnv kDriverLibc = {&msvc6::strncpy, &msvc6::strncat, &msvc6::atoi,    &msvc6::iswctype, &msvc6::vsprintf,
                              &msvc6::vsnprintf, &msvc6::wcslen,  &msvc6::wcscpy,  &msvc6::wcsncpy,  &msvc6::wcscat,
@@ -236,6 +246,7 @@ const CrtStandIn kCrtStandIns[] = {
     {0x0067fa60, (void *)&msvc6::tolower}, {0x0067a520, (void *)&msvc6::atoi},    {0x0067a650, (void *)&msvc6::sprintf},
     {0x0067acd0, (void *)&msvc6::wcslen},  {0x0067ae00, (void *)&msvc6::strncpy}, {0x0067a730, (void *)&msvc6::iswspace},
     {0x0067a530, (void *)&msvc6::isalpha}, {0x0067a560, (void *)&msvc6::isdigit}, {0x0067a590, (void *)&msvc6::isspace},
-    {0x0067a5c0, (void *)&msvc6::isalnum}, {0x0067a6c0, (void *)&msvc6::atof},
+    {0x0067a5c0, (void *)&msvc6::isalnum}, {0x0067a6c0, (void *)&msvc6::atof},    {0x0067af00, (void *)&msvc6::swprintf},
+    {0x0067b0d0, (void *)&msvc6::wcsncpy},
 };
 const u32 kCrtStandInCount = sizeof kCrtStandIns / sizeof kCrtStandIns[0];
