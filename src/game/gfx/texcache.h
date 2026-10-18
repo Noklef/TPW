@@ -103,4 +103,20 @@ s32 __fastcall TexCache_ChooseSize(u8 *cache, void *, s32 a, s32 b, s32 limit);
 // << 1 | whole << 2 (TexCacheItem_SetFlags); +8 loses the sum. With age = [0x8bcc40] - +0x14, fresh = 0x10 - age below 0x10 (else 0):
 // +0x10 = weighted + area * fresh + 2 * (items + 2 * (+0xc + 2 * (sum + 2 * counted))) (32-bit), which is returned.
 s32 __fastcall TexCacheEntry_Score(u8 *entry, void *, u32);
+
+// 0x590350 (thiscall on the cache; entry, place, texture; pops 0xc; name unconfirmed; 0x58f471 and 0x58f855 ask it): the texture (null:
+// place +0x10's) put at (place +0, +4) of the entry's surface: its slot 7 (texture, x, y) first. A texture with flag 0x80000000 wider or
+// taller (s16 +0x14 / +0x16) than its +0x10 / +0x12 is cut to them, x / y moved by half the excess (sar), and loses the flag. +0xc =
+// [[0x87a248] + 4], flags lose 0x2000 and get 0x1000, +0x18 = the entry. Then its texel offsets +0x28 / +0x2c and extents +0x20 / +0x24
+// (x87, the game's 24 bits) by the display driver kind (0x8bd524):
+//   4: b, a = 0x702474's 0.0 or [0x8c1628] by flags 0x10000 / 0x20000 (with 0x30000), else [0x8c1630] / [0x8c1634] with 0x4000000 or
+//      [0x8c1628]; +0x28 = b, +0x2c = a, +0x20 = width - 2b, +0x24 = height - 2a; Texture_UpdateWrapMask; +0x1c = (surface +0x10 * y +
+//      x) * 4 (the place's own x and y) + the surface's slot 2.
+//   else, with the cache's scale (+0x1900) and the surface's width / height (+8 / +0xc): flags 0x30000 (unless 0x400 with +0x3c 0):
+//      +0x28 = scale / width * a, +0x2c = scale / height * b (a, b by 0x10000 / 0x20000 as above), +0x20 / +0x24 = 1.0 - twice
+//      those; otherwise, from c, d, e, f = [0x8c1634], [0x8c1638], [0x8c163c], [0x8c1630] with 0x4000000 or [0x8c1628], 0.0, 0.0,
+//      [0x8c1628]: +0x2c = (e + c + y) / height * scale, +0x28 = (d + f + x) / width * scale, +0x24 = (height' - 2c) / height *
+//      scale and +0x20 = (width' - 2f) / width * scale (the texture's, cut); +0x1c = the surface's slot 2.
+// +0xc = [0x8bcc40]. Returns 1.
+u32 __fastcall TexCache_PlaceTexture(u8 *cache, void *, u8 *entry, const s32 *place, u8 *texture);
 }

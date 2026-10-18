@@ -337,4 +337,69 @@ s32 __fastcall TexCacheEntry_Score(u8 *entry, void *, u32) {
     at<s32>(entry, 0x10) = score;
     return score;
 }
+
+u32 __fastcall TexCache_PlaceTexture(u8 *cache, void *, u8 *entry, const s32 *place, u8 *texture) {
+    if (!texture)
+        texture = reinterpret_cast<u8 *>((uintptr_t)(u32)place[4]);
+    u8 *const surface = at<u8 *>(entry, 0);
+    void **const slots = at<void **>(surface, 0);
+    reinterpret_cast<u32(__fastcall *)(u8 *, void *, u8 *, s32, s32)>(slots[7])(surface, nullptr, texture, place[0], place[1]);
+    s32 x = place[0], y = place[1], w = at<s16>(texture, 0x14), h = at<s16>(texture, 0x16);
+    const u32 flags0 = at<u32>(texture, 8);
+    if (flags0 & 0x80000000) {
+        const s32 maxW = at<s16>(texture, 0x10);
+        if (w > maxW) {
+            x += (w - maxW) >> 1;
+            w = maxW;
+        }
+        const s32 maxH = at<s16>(texture, 0x12);
+        if (h > maxH) {
+            y += (h - maxH) >> 1;
+            h = maxH;
+        }
+        at<u32>(texture, 8) = flags0 & 0x7fffffff;
+    }
+    at<u32>(texture, 0xc) = at<u32>(at<const u8 *>(nullptr, 0x0087a248), 4);
+    at<u32>(texture, 8) = (at<u32>(texture, 8) & ~0x2000u) | 0x1000;
+    at<u8 *>(texture, 0x18) = entry;
+    const u32 flags = at<u32>(texture, 8);
+    const auto value = [](u32 address) { return X87Reg(at<float>(nullptr, address)); };
+    if (at<u32>(nullptr, 0x008bd524) == 4) {
+        const bool filtered = (flags & 0x30000) != 0, alt = (flags & 0x4000000) != 0;
+        const X87Reg b = X87_Through(at<float>(nullptr, filtered ? (flags & 0x10000 ? 0x00702474 : 0x008c1628) : alt ? 0x008c1630 : 0x008c1628));
+        const X87Reg a = value(filtered ? (flags & 0x20000 ? 0x00702474 : 0x008c1628) : alt ? 0x008c1634 : 0x008c1628);
+        at<float>(texture, 0x28) = (float)b;
+        at<float>(texture, 0x2c) = (float)a;
+        at<float>(texture, 0x20) = (float)(X87Reg((double)w) - (b + b));
+        at<float>(texture, 0x24) = (float)(X87Reg((double)h) - (a + a));
+        Texture_UpdateWrapMask(texture);
+        const u32 offset = ((u32)at<s32>(surface, 0x10) * (u32)place[1] + (u32)place[0]) << 2;
+        at<u32>(texture, 0x1c) = offset + reinterpret_cast<u32(__fastcall *)(u8 *)>(at<void **>(surface, 0)[2])(surface);
+    } else {
+        const X87Reg scale = at<float>(cache, 0x1900);
+        const X87Reg width = (double)at<s32>(surface, 8), height = (double)at<s32>(surface, 0xc);
+        if ((flags & 0x30000) && (!(flags & 0x400) || at<u32>(texture, 0x3c))) {
+            const X87Reg a = value(flags & 0x10000 ? 0x00702474 : 0x008c1628);
+            const X87Reg b = value(flags & 0x20000 ? 0x00702474 : 0x008c1628);
+            const X87Reg p = X87_DivR(width, scale) * a;
+            const X87Reg q = X87_DivR(height, scale) * b;
+            at<float>(texture, 0x28) = (float)p;
+            at<float>(texture, 0x2c) = (float)q;
+            at<float>(texture, 0x20) = (float)X87_SubR(p + p, X87Reg(1.0));
+            at<float>(texture, 0x24) = (float)X87_SubR(q + q, X87Reg(1.0));
+        } else {
+            const bool alt = (flags & 0x4000000) != 0;
+            const X87Reg c = value(alt ? 0x008c1634 : 0x008c1628), d = value(alt ? 0x008c1638 : 0x00702474);
+            const X87Reg e = alt ? value(0x008c163c) : X87Reg(0.0), f = value(alt ? 0x008c1630 : 0x008c1628);
+            const X87Reg down = (e + c) + X87Reg((double)y), across = (d + f) + X87Reg((double)x);
+            at<float>(texture, 0x2c) = (float)(down / height * scale);
+            at<float>(texture, 0x28) = (float)(across / width * scale);
+            at<float>(texture, 0x24) = (float)((X87Reg((double)h) - (c + c)) / height * scale);
+            at<float>(texture, 0x20) = (float)((X87Reg((double)w) - (f + f)) / width * scale);
+        }
+        at<u32>(texture, 0x1c) = reinterpret_cast<u32(__fastcall *)(u8 *)>(at<void **>(surface, 0)[2])(surface);
+    }
+    at<u32>(texture, 0xc) = at<u32>(nullptr, 0x008bcc40);
+    return 1;
+}
 }
