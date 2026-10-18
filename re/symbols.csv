@@ -745,6 +745,7 @@ address,name,kind,confidence,notes
 0x0046c100,MouseState_NewFrame,function,high,reimplemented (src/game/world/mousemode); steps the pointer state's frame count and clears its picked thing
 0x0045d560,MouseState_SetTileFromPosition,function,low,reimplemented (src/game/world/mousemode); the pointer state's tile from a position on the terrain grid
 0x0046c110,MouseState_ResolvePick,function,low,"reimplemented (src/game/world/mousemode); thiscall; the pointer state's picks: +4 the picked thing of a pickable kind, +8 the thing at its tile, +0 that when none"
+0x0046c480,MMPlaceStaff_Hover,function,low,"reimplemented (src/game/world/mousemode); thiscall (4 unused): the staff modes' sprite to the highlight point 5 up, and a square face over a cell that is not plain ground"
 0x0040f290,ThingMsg01_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (a): +8 a; vtable set, +4 cleared; returns this"
 0x0040f240,ThingMsg02_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (c, b): +8 b, +0xc c; vtable set, +4 cleared; returns this"
 0x0040f330,ThingMsg06_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (u16 a): +8 a; vtable set, +4 cleared; returns this"

@@ -1,7 +1,8 @@
 # The mouse modes' constructors, destructors and empty methods (src/game/world/mousemode:
 # 0x46c450-0x46d000) and the statics and frame step before them (0x46c070-0x46c100) against
 # the originals: each on a random object (the destructors' frees through heap()); and TileAt, the pointer's tile from a position
-# (0x45d560) on a map's grid of random origins, cell sizes and dimensions.
+# (0x45d560) on a map's grid of random origins, cell sizes and dimensions; Hover (0x46c480): a sprite slot or none, ready or not, at a
+# highlight point of any floats, over a cell (and its handle's entry and parent) of any type and flags, with a face queue part full or full.
 # usage: mousemode.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import sys
@@ -14,7 +15,12 @@ from fncmp import HEAP, Bench, Call, RAM, fb, heap, put  # noqa: E402
 B = Bench([(0x46c450, 0x46c453), (0x46c460, 0x46c480), (0x46c580, 0x46c5c6), (0x46c650, 0x46c653),
            (0x46c6a0, 0x46c6b0), (0x46c6d0, 0x46c702), (0x46c710, 0x46c72e), (0x46cbc0, 0x46cbe1),
            (0x46ced0, 0x46ced7), (0x46cfc0, 0x46cfd0), (0x46cff0, 0x46d000), (0x46c070, 0x46c10e),
-           (0x45d560, 0x45d60e), (0x4d8300, 0x4d8328)])
+           (0x45d560, 0x45d60e), (0x4d8300, 0x4d8328), (0x46c480, 0x46c578), (0x45d610, 0x45d616), (0x475480, 0x4754d4),
+           (0x535db0, 0x535dc3), (0x536300, 0x536484), (0x53ad20, 0x53aefc), (0x53c8d0, 0x53c9c0), (0x5da3c0, 0x5da3c1),
+           (0x4d0a70, 0x4d0a86), (0x4d0a90, 0x4d0ab1), (0x4d0ac0, 0x4d0ae1), (0x4d0af0, 0x4d0b06), (0x4d0b10, 0x4d0b27), (0x522700, 0x5228b5)])
+HTYPES = [0, 0, 1, 1, 3, 9, 2, 4, 0xb, 0xc, 0xd, 0x10, 0x11, 0x12, 0x19, 0x1e]
+CELLS = RAM + 0x1000   # the 0x44-byte cells: [0x7cf83c] + 0x294
+ENTRIES = CELLS - 0x294 + 0x1102b0   # the 0x28-byte entries of handles 0-5
 # op: (address, how many arguments after self)
 CALLS = {'Nop4': (0x46c450, 4), 'Nop2': (0x46c650, 2), 'Dtor': (0x46ced0, 0), 'DelDtor': (0x46c460, 1),
          'DerivedDelDtor': (0x46c710, 1), 'Tile': (0x46c580, 1), 'TileKind': (0x46c5a0, 2),
@@ -23,8 +29,36 @@ CALLS = {'Nop4': (0x46c450, 4), 'Nop2': (0x46c650, 2), 'Dtor': (0x46ced0, 0), 'D
 STATICS = {'One': 0x46c070, 'Epsilon': 0x46c090, 'Tile': 0x46c0b0}  # 0x7b05a0-0x7b05d3
 
 
+def hover(r):
+    def num():
+        return fb(r.choice([r.uniform(-50, 1300), r.uniform(-50, 1300), 0.0, -5.0, 5.0, -0.0, 1e-40, 3e38, float('inf'), float('nan')]))
+    self = put(bytearray(r.bytes(0x20)), 8, 'i', r.choice([1, 2, 3, 1, 2, 3, 0, 0, 4, 5, -1]))
+    g = put(bytearray(r.bytes(0x2c)), 0, 'Ii', RAM + 0x400, r.choice([4, 4, 4, 2, 1]))
+    put(g, 0x24, 'I', r.choice([1, 1, 1, 1, 0]))
+    tile = r.choice([0, 1, 2, 3, 0])
+    cells = bytearray(r.bytes(4 * 0x44))
+    entries = bytearray(r.bytes(6 * 0x28))
+    for c, k in [(cells, tile * 0x44)] + [(entries, i * 0x28) for i in range(6)]:
+        put(c, k + 8, 'I', r.choice(HTYPES + [r.getrandbits(32)]))
+        put(c, k + 0xe, 'H', r.choice([0, 0, 0x40, 0x400, 0x8, r.getrandbits(16)]))
+        put(c, k + 0x10, 'H', r.choice([0, 1, 2, 5, r.randrange(6)]))
+    put(cells, tile * 0x44, 'H', r.randrange(6))
+    n = r.choice([0, 1, 2, 5, 0x806])
+    tile_word = put(bytearray(r.bytes(4)), 0, 'H', tile)
+    regions = {RAM: self, 0x7b49f0: g, RAM + 0x400: struct.pack('<5I', 0, RAM + 0x500, RAM + 0x600, RAM + 0x700, RAM + 0x800),
+               RAM + 0x500: r.bytes(0xc4), RAM + 0x600: r.bytes(0xc4), RAM + 0x700: r.bytes(0xc4), RAM + 0x800: r.bytes(0xc4),
+               0x7a1c90: struct.pack('<3I', num(), num(), num()), 0x7b05cc: tile_word, CELLS: cells, ENTRIES: entries,
+               0x7cf83c: struct.pack('<I', CELLS - 0x294), 0x8023a0: struct.pack('<I', ENTRIES - 0x10ffd8),
+               0x81b4cc: bytes([r.choice([0, 1, r.getrandbits(8)])]) + r.bytes(3),
+               0x820b00: r.bytes(0xa0 * 7), 0x872168: r.bytes(0x40), 0x871ee0: struct.pack('<I', n),
+               0x763c98: bytes([r.choice([0, 1, 1])]) + bytes(3), 0x874fc4: struct.pack('<I', r.choice([0, 0, 1]))}
+    return Call(0x46c480, [RAM] + [r.getrandbits(32) for _ in range(4)], regions, conv='t', ret='v')
+
+
 def case(r):
     op = r.choice(OPS)
+    if op == 'Hover':
+        return hover(r)
     if op == 'TileAt':   # a map with a grid (or not): origins and cell sizes whole or odd (0, NaN), dims about 128 (0, 1 or huge)
         def num(*usual):
             return fb(r.choice(list(usual) * 3 + [0.0, -10.0, r.uniform(-50, 50), 1e10, float('nan')]))
@@ -48,7 +82,7 @@ def case(r):
     return Call(at, [RAM] + args, regions, conv='t', ret=ret)
 
 
-OPS_ALL = list(CALLS) + list(STATICS) + ['TileAt'] * 3
+OPS_ALL = list(CALLS) + list(STATICS) + ['TileAt'] * 3 + ['Hover'] * 10
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 
