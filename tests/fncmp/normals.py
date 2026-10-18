@@ -1,7 +1,8 @@
 # The terrain model's normals (src/game/terrain/normals: Terrain_ScaleNormals 0x450b30, Terrain_ShadeNormals 0x450d10) against the
 # originals, over Matrix_PreMul, WorldVerts_TransformNode, Matrix_Identity, MapCell_HasFlags and SceneFlags_Touch. A tree of one to five
 # nodes (flag 0x200 now and then; matrices the identity, turned by right angles or scaled, moved about the map, or random), each with up
-# to 8 vertices about the map and up to 8 normals (about unit length, zero, tiny, huge or NaN) whose vertex indices reach the block's
+# to 8 vertices about the map and up to 8 normals (about unit length, zero, tiny, huge or NaN; whole vectors zero, too long for a float
+# once squared, denormal, or NaNs of either sign and like significands) whose vertex indices reach the block's
 # first 0x40 entries (the node's own positions or older ones, about the map, now and then NaN or negative); a grid of 4 - 24 by 2 - 8
 # cells whose flags (+0x2c) have 0x400 or not, the table at 0x7a0884 that one or another, the length at 0x74cf30 0.225 or not. Scale: the
 # root with a matrix (the identity, moved, or random); Shade: the map's tree, the 0x44-byte map cells' flags 0x40 / 0x80 any mix, the
@@ -71,8 +72,12 @@ def tree(r, regions):
         normals = bytearray(12 * 8)
         for i in range(24):
             put(normals, 4 * i, 'f', odd(r, r.uniform(-1, 1)))
-        if r.random() < 0.1:
-            put(normals, 0, '3f', 0.0, 0.0, 0.0)
+        for i in range(8):   # whole vectors: zero, past float range when squared and summed, denormal; NaNs of either sign
+            if r.random() < 0.08:
+                put(normals, 12 * i, '3f', *r.choice([(0.0, 0.0, 0.0), (3e38, -3e38, 3e38), (2e38, 2e38, 1e38), (1e-40, -1e-40, 1e-40),
+                                                       (3e-39, 0.0, 1e-41)]))
+            if r.random() < 0.05:
+                put(normals, 12 * i, '3I', *(r.choice([0x7fc00000, 0xffc00000, 0x7fc00001, 0x3f000000]) for _ in range(3)))
         indices = bytearray(2 * 8)
         for i in range(8):
             put(indices, 2 * i, 'H', r.choice([r.randrange(max(nv, 1)), r.randrange(max(nv, 1)), r.randrange(NBLOCK)]))
