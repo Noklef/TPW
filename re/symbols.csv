@@ -3623,6 +3623,7 @@ address,name,kind,confidence,notes
 0x00424560,Options_SerializeMisc,function,low,"reimplemented (src/game/core/options); thiscall (stream, saving, an unused dword): +0x78..+0x8c (CURRENTTheme, DEBUGGuardUInts, TextureCacheSize) saved or loaded; 1 on a failure, else 0 (name unconfirmed)"
 0x00424820,Options_SaveFile,function,low,"reimplemented (src/game/core/options); thiscall (path String): opened for writing (0xc0000010), the version 1 written, then Options_SerializeDisplay (saving); closed; 1 when it went through, else 0 (name unconfirmed)"
 0x00424930,Options_LoadFile,function,low,"reimplemented (src/game/core/options); thiscall (path String): the defaults, opened for reading (0x80000001), the version read (0 refused), then Options_SerializeDisplay (loading); closed; 1 when it went through, else 0 (name unconfirmed)"
+0x0041aa40,Graphics_Tier,function,low,reimplemented (src/game/core/options); the graphics tier from the render mode or balance level
 0x0043ba20,Coaster_SetTrainCount,function,high,"reimplemented (src/game/coaster/setup); sets the car count, unloading the cars cut off"
 0x0041c8b0,Class6fd9d8_Dtor,function,high,"reimplemented (src/game/core/class6fd9d8); destructor: deletes its member and the held objects of its list, frees two strings"
 0x004f0700,Wstreambuf_Read,function,high,"reimplemented (src/game/core/streambuf); reads wide characters from the get area, else through the underflow slot"

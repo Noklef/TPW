@@ -1,6 +1,6 @@
 # The graphics level and the car count of src/game/core/graphics_level_trains against the originals: the render mode words (the size and depth tests), the quality level, coasters of up
 # to 4 trains (coaster.py's unload environment: the trains have cars, riders and seat parts) with the flags and counts either side.
-# usage: graphics_level_trains.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Level,Count)
+# usage: graphics_level_trains.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Level,Count,Tier; Tier 0x41aa40 as Level)
 import os
 import sys
 
@@ -9,14 +9,14 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import coaster  # noqa: E402
 from fncmp import Bench, Call, put  # noqa: E402
 
-CALLS = {'Level': 0x41a9d0, 'Count': 0x43ba20}
-B = Bench([(0x41a9d0, 0x41aa30), (0x43ba20, 0x43ba90), (0x44a590, 0x44a600), (0x43b480, 0x43b5ff), (0x44b4c0, 0x44b505), (0x475550, 0x47558b), (0x5da3c0, 0x5da3d0)] + [(a, b) for (a, b) in [(0x412e90, 0x412eea)]])
+CALLS = {'Level': 0x41a9d0, 'Count': 0x43ba20, 'Tier': 0x41aa40}
+B = Bench([(0x41a9d0, 0x41aa30), (0x41aa40, 0x41aa94), (0x43ba20, 0x43ba90), (0x44a590, 0x44a600), (0x43b480, 0x43b5ff), (0x44b4c0, 0x44b505), (0x475550, 0x47558b), (0x5da3c0, 0x5da3d0)] + [(a, b) for (a, b) in [(0x412e90, 0x412eea)]])
 TRAINS = coaster.CARS
 
 
 def case(r):
     name = r.choice(OPS)
-    if name == 'Level':
+    if name in ('Level', 'Tier'):
         return Call(CALLS[name], [], {0x79d86c: put(bytearray(4), 0, 'I', r.choice([0x4000, 0x2000, 0, 0x1000 | 0x4000, 0x4000 | 0x10, 0x4000 | 8, 0x4000 | 0x20, r.getrandbits(15)])),
                                       0x7858d0: put(bytearray(4), 0, 'I', r.choice([0, 1, 2, 3, 4, r.getrandbits(32)]))}, ret='a')
     call = coaster.queue(r, 'Unload')
