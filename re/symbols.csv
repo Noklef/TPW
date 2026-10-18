@@ -471,6 +471,9 @@ address,name,kind,confidence,notes
 0x0056e4e0,TerrainTex_Unload,function,low,"reimplemented (src/game/terrain/procedural); thiscall: the procedural texture object's tile cache destroyed twice and freed, its tracked block freed, +0 / +4 cleared; returns 1"
 0x0056de90,TerrainTex_Destroy,function,low,"reimplemented (src/game/terrain/procedural); cdecl: the procedural texture object [0x879d60] unloaded, unloaded again (sic) and freed, the global cleared; returns 1"
 0x0056e030,TerrainTex_AddRect,function,low,"reimplemented (src/game/terrain/procedural); thiscall (x0, y0, x1, y1, delta; pops 0x14): delta added to the grid floats at [+0x12970] in the rectangle, clipped to the header's width/height"
+0x0056e0a0,TerrainTex_StampFixed,function,low,reimplemented (src/game/terrain/procedural); thiscall: the fixed rectangles (27) added to the procedural grid through TerrainTex_AddRect (the first six inlined)
+0x0056e3f0,TerrainTex_Setup,function,low,"reimplemented (src/game/terrain/procedural); thiscall(land): header [land+0x6c], sizes, reciprocal steps; under render flag 0x10000 a new tracked grid copied from header+0x28 and stamped; then SetView"
+0x0056e6c0,TerrainTex_SetView,function,low,"reimplemented (src/game/terrain/procedural); thiscall: the world view [0x879d54]'s x / y ranges, bounds and diagonal from the header, the renderer's frame buffer for its size; returns 1"
 0x005856e0,Landscape_SetPoint,function,high,"reimplemented (src/game/terrain/landscape); thiscall (the landscape renderer, 0x8c1828; i, x, y, z floats): point i at +0x1f70 + 12 i (the weather sets four)"
 0x00585710,Landscape_SetDetail,function,high,"reimplemented (src/game/terrain/landscape); thiscall (level): +0x2ec8, the detail level (option 0x785888)"
 0x00585ef0,Landscape_List,function,high,reimplemented (src/game/terrain/landscape); thiscall: +0x1fd0
