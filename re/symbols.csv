@@ -4556,6 +4556,7 @@ address,name,kind,confidence,notes
 0x0048ee20,Windows7c26b0_Message5,function,low,"reimplemented (src/game/ui/dialogs); cdecl: message 5 (0, 0) to the window of each of the ten 0x208-byte entries from 0x7c26b0 whose word +4 is set"
 0x0048c8b0,WindowAt10_ScalarDtor,function,low,"reimplemented (src/game/ui/dialogs); thiscall (flags), pops 4: WindowAt10_Message4IfAny, then freed for flags bit 0; returns this"
 0x004bcef0,Windows7cc8bc_Message6Pair,function,low,"reimplemented (src/game/ui/dialogs); cdecl: message 6 (same, 0) to [0x7cc8bc] and (!same, 0) to [0x7cc8c0], same = (0x7cc698 == [0x7cc8bc]); 0x7cc698 = 0; the second result"
+0x004a2590,Dialog7cb2b8_Child21Post,function,low,"reimplemented (src/game/ui/dialogs); cdecl (value): dialog [0x7cb2b8] and value != 0: child 0x21; 0 when its DwordA0(2) is set, else message 0xb sent and 0xa (value, 0) posted; the value otherwise"
 0x00659607,GuiManager_CallSlot4,function,low,"reimplemented (src/game/ui/guimanager); cdecl: slot 4 (thiscall, no arguments) of the GUI manager [0x77c48c], its result"
 0x0065961c,GuiManager_CallSlot3,function,low,"reimplemented (src/game/ui/guimanager); cdecl: slot 3 (thiscall, no arguments) of the GUI manager [0x77c48c], its result"
 0x00659631,GuiManager_Word4Set,function,low,"reimplemented (src/game/ui/guimanager); cdecl: 1 when the GUI manager's word +4 (Fn_659790) is not 0, else 0"

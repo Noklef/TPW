@@ -79,4 +79,15 @@ void __cdecl Windows7c26b0_Message5() {
     for (u32 entry = 0x007c26b0; entry < 0x007c3b00; entry += 0x208)
         if (*reinterpret_cast<u16 *>((uintptr_t)entry + 4)) Window_SendMessage(*reinterpret_cast<u8 **>((uintptr_t)entry), 5, 0, 0);
 }
+
+u32 __cdecl Dialog7cb2b8_Child21Post(u32 value) {
+    u8 *const dialog = window(0x007cb2b8);
+    if (!dialog || !value) return value;
+    u8 *const child = Window_FindChild(dialog, nullptr, 0x21);
+    if (!child) return value;
+    if (Window_DwordA0(child, nullptr, 2)) return 0;
+    Window_SendMessage(child, 0xb, 0, 0);
+    Window_PostMessage(child, 0xa, value, 0);
+    return value;
+}
 }

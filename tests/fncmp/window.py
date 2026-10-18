@@ -5,7 +5,8 @@
 # [0x7ca1d0] +0x50 and [0x7ca1c8] / [0x7ca1cc] (the IfUp guard) set or 0. CallHandler / SendMessage (0x65f697 / 0x658d9f) and the dialog
 # wrappers that send to [0x7cc47c] (src/game/ui/dialogs): the window (or none) with its byte +4 now and then set, its handler +0x114 and the
 # hook [0xfaa5fc] fncmp's four-argument cdecl logger or 0 (its result now and then set). PostMessage (0x658ccc): each message kind, the
-# window or none (its byte +4 now and then set), the two queues 1-4 entries (free or not) or none.
+# window or none (its byte +4 now and then set), the two queues 1-4 entries (free or not) or none. Dialog7cb2b8_Child21Post (0x4a2590):
+# the dialog or none, its child 0x21 or none among others, the child's dword +0xa8 set or not, the value 0 or not.
 # usage: window.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FindChild,SetChecks,SetChecksIfUp)
 import os
 import struct
@@ -23,7 +24,7 @@ CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50
          'WindowAt10_Message4IfAny': 0x492e60, 'Windows7c26b0_Message5': 0x48ee20,
          'WindowAt10_ScalarDtor': 0x48c8b0, 'SetChecksIfUpThis': 0x481a00,
          'Windows7cc8bc_Message6Pair': 0x4bcef0, 'ImplSlot7': 0x65d6db, 'ImplSlot6': 0x65d745, 'DwordA0': 0x65e705,
-         'PostMessage': 0x658ccc}
+         'PostMessage': 0x658ccc, 'Dialog7cb2b8_Child21Post': 0x4a2590}
 SENDS = {k: int(k[6:12], 16) for k in CALLS if k.startswith('Dialog7')}   # the window's global
 B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6d1), (0x658d9f, 0x658df4), (0x659710, 0x659721),
            (0x4b87f0, 0x4b8850), (0x4b8e80, 0x4b8ea0), (0x4b8ec0, 0x4b8ee0), (0x4b9c00, 0x4b9c40),
@@ -31,7 +32,7 @@ B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x
            (0x48d990, 0x48d9b3), (0x4c25e0, 0x4c25f9), (0x48cf70, 0x48cf83), (0x492e60, 0x492e77), (0x48ee20, 0x48ee4e),
            (0x48c8b0, 0x48c8ce), (0x481a00, 0x481a10),
            (0x4bcef0, 0x4bcf60), (0x65d6db, 0x65d727), (0x65d745, 0x65d783), (0x65e705, 0x65e73d),
-           (0x658ccc, 0x658d9f), (0x6697e3, 0x6698a4)])
+           (0x658ccc, 0x658d9f), (0x6697e3, 0x6698a4), (0x4a2590, 0x4a25e5)])
 WINDOW, NODES, VTABLE, MISC, KIDS, HOLDER, WINDOW2 = RAM, RAM + 0x100, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200, RAM + 0x1600, RAM + 0x1800
 QUEUES = RAM + 0x2000
 NODE = 0x90
@@ -55,6 +56,19 @@ def chain(r, regions, ids, first, child_of=None):
     return first if ids else 0
 
 
+def queues(r, regions):
+    """the message queues [0xfaa5f4] / [0xfaa5f0] (as msgqueue.py: 1-4 entries, free or not) or 0"""
+    for k, q in enumerate((QUEUES, QUEUES + 0x100)):
+        cap = r.choice([1, 2, 4])
+        entries = bytearray(r.bytes(16 * cap))
+        for i in range(cap):
+            if r.random() < 0.6:
+                put(entries, 16 * i, 'I', 0)
+        regions[q + 0x40] = entries
+        regions[q] = struct.pack('<5I', q + 0x40, cap, 0, r.randrange(cap), r.getrandbits(8))
+        regions[0xfaa5f4 - 4 * k] = struct.pack('<I', q if r.random() < 0.85 else 0)
+
+
 def case(r):
     op = r.deal(OPS)
     log = log_region()
@@ -74,19 +88,30 @@ def case(r):
             return Call(CALLS[op], [WINDOW], regions, conv='t', ret='a')
         index = r.choice([0, 1, 7, 15, 16, 17, 0x7fff, 0xffff, 0xffe8, 0x10005, 0xfffe000f, r.getrandbits(32) & 0xffff000f, r.getrandbits(32)])
         return Call(CALLS[op], [WINDOW, index], regions, conv='t', ret='a')
+    if op == 'Dialog7cb2b8_Child21Post':   # the dialog [0x7cb2b8] or none; its child 0x21 among 0-2 others (or missing), its dword +0xa8 0 or not
+        regions[0xfaa5fc] = struct.pack('<I', r.choice([0, CDECL_LOG4]))
+        queues(r, regions)
+        ids = [r.choice([0x20, 0x22, 1]) for _ in range(r.choice([0, 1, 2]))]
+        if r.random() < 0.85:
+            ids.insert(r.randrange(len(ids) + 1), 0x21)
+        for i, ident in enumerate(ids):
+            kid = bytearray(r.bytes(0x120))
+            kid[4] = r.choice([0, 0, 0, 1])
+            put(kid, 0x54, 'I', KIDS + 0x120 * (i + 1) if i + 1 < len(ids) else 0)
+            put(kid, 0x8c, 'I', ident)
+            put(kid, 0xa8, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
+            put(kid, 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
+            regions[KIDS + 0x120 * i] = kid
+        dialog = bytearray(r.bytes(0x120))
+        put(dialog, 0x5c, 'I', KIDS if ids else 0)
+        regions[WINDOW2] = dialog
+        regions[0x7cb2b8] = struct.pack('<I', r.choice([WINDOW2] * 6 + [0]))
+        return Call(CALLS[op], [r.choice([0, 1, r.getrandbits(32), r.getrandbits(32)])], regions, ret='a')
     if op == 'PostMessage':   # the queues [0xfaa5f4] / [0xfaa5f0] (as msgqueue.py) or 0 (for 0x1000a-c too: a fault in both)
         win = bytearray(r.bytes(0x120))
         win[4] = r.choice([0, 0, 0, 1, 0x80])
         regions[WINDOW] = win
-        for k, q in enumerate((QUEUES, QUEUES + 0x100)):
-            cap = r.choice([1, 2, 4])
-            entries = bytearray(r.bytes(16 * cap))
-            for i in range(cap):
-                if r.random() < 0.6:
-                    put(entries, 16 * i, 'I', 0)
-            regions[q + 0x40] = entries
-            regions[q] = struct.pack('<5I', q + 0x40, cap, 0, r.randrange(cap), r.getrandbits(8))
-            regions[0xfaa5f4 - 4 * k] = struct.pack('<I', q if r.random() < 0.85 else 0)
+        queues(r, regions)
         message = r.choice([1, 2, 3, 0x1000a, 0x1000b, 0x1000c, 0, 4, 0x10001, 0x1000d, r.getrandbits(32)])
         return Call(CALLS[op], [r.choice([WINDOW] * 6 + [0]), message, r.getrandbits(32), r.getrandbits(32)], regions, ret='a')
     if op in ('CallHandler', 'SendMessage') or op in SENDS or op.startswith('Window'):
