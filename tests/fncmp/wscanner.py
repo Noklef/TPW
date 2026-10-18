@@ -23,7 +23,10 @@ OPS = [k for k in os.environ.get('OPS', 'SetText,Pair').split(',') if k]
 def pair(r):
     blocks = bytearray(r.bytes(4 * stdwstring.SLOT))
     x = stdwstring.string(r, blocks, 1)
-    regions = {SCANNER: r.bytes(0x20), stdwstring.BLOCKS: blocks, HEAP: heap()}
+    pair = bytearray(r.bytes(0x20))
+    if r.random() < 0.5:   # (an old capacity of 31 or under: _Grow keeps a null string's capacity unless it is cleared first)
+        put(pair, 0xc, 'I', r.choice([0, 1, 31, r.randrange(32)]))
+    regions = {SCANNER: pair, stdwstring.BLOCKS: blocks, HEAP: heap()}
     return Call(0x5e73f0, [SCANNER, r.getrandbits(32), *x, *(r.getrandbits(32) for _ in range(4))], regions, conv='t', ret='a')
 
 
