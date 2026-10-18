@@ -312,6 +312,7 @@
 #include "../game/ui/panel7b9940.h"
 #include "../game/ui/textpool.h"
 #include "../game/ui/window.h"
+#include "../game/ui/window705a50.h"
 #include "../game/ui/windowreg.h"
 #include "../game/ui/windowtimers.h"
 
@@ -4283,6 +4284,8 @@ const Hook kHooks[] = {
     {"WindowTimer_Find",          0x006620e2, (void *)&WindowTimer_Find, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"WindowTimer_Unlink",        0x00661faa, (void *)&WindowTimer_Unlink, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"WindowTimers_Kill",         0x00662306, (void *)&WindowTimers_Kill, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705a50_DeletingDtor", 0x006693a0, (void *)&Window705a50_DeletingDtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705a50_Dtor",         0x006689bc, (void *)&Window705a50_Dtor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

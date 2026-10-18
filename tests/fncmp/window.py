@@ -19,7 +19,9 @@
 # (going or not) with its objects +0x98 / +0x9c recorders (their counts near letting go) or 0, its timer flags set or not over a timer
 # list [0xfaa634] with its and others' nodes, its rectangle +0x44 its own, a recorder or 0, a parent and siblings or none, 0-3 real
 # child windows (vtable 0x705980: their own deleting destructors unlink them), the manager [0x77c48c] a recorder, the globals, queues and
-# timed table as above, the hover's root a tree's or none.
+# timed table as above, the hover's root a tree's or none; now and then an object's counts both -0x8000 (its release's 16-bit result
+# 0xffff, the 32-bit one not -1). Dtor705a50 / DeletingDtor705a50 (0x6689bc, 0x6693a0): the same, with the text row +0x148 or 0; the
+# children of either window class (the driver resolves both vtables).
 # usage: window.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FindChild,SetChecks,SetChecksIfUp)
 import os
 import struct
@@ -42,7 +44,7 @@ CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50
          'RectAssign': 0x65aa20, 'SaveRect': 0x65bc90, 'OffsetByParents': 0x65c979,
          'Ctor': 0x65bcad, 'ForgetGlobals': 0x6592b6, 'DropModal': 0x65e672, 'Destroying': 0x65c2d8,
          'CancelPosted': 0x658fe9, 'CancelPostedFirst': 0x659012, 'CancelTimed': 0x65903b,
-         'Dtor': 0x65c025, 'DeletingDtor': 0x661680}
+         'Dtor': 0x65c025, 'DeletingDtor': 0x661680, 'Dtor705a50': 0x6689bc, 'DeletingDtor705a50': 0x6693a0}
 SENDS = {k: int(k[6:12], 16) for k in CALLS if k.startswith('Dialog7')}   # the window's global
 B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6d1), (0x658d9f, 0x658df4), (0x659710, 0x659721),
            (0x4b87f0, 0x4b8850), (0x4b8e80, 0x4b8ea0), (0x4b8ec0, 0x4b8ee0), (0x4b9c00, 0x4b9c40),
@@ -58,10 +60,11 @@ B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x
            (0x6592b6, 0x659333), (0x65e672, 0x65e6a4), (0x65c2d8, 0x65c357),
            (0x658fe9, 0x659064), (0x669b3e, 0x669bdb), (0x669e3a, 0x669eb3),
            (0x65c025, 0x65c2c8), (0x661680, 0x6616b0), (0x659d90, 0x659dbc), (0x66bff7, 0x66c00b), (0x661f9b, 0x661fe5),
-           (0x6620e2, 0x66213e), (0x662306, 0x662384), (0x662500, 0x66252c)])
+           (0x6620e2, 0x66213e), (0x662306, 0x662384), (0x662500, 0x66252c), (0x6689bc, 0x668a23), (0x6693a0, 0x6693cc),
+           (0x66969e, 0x6696b4)])
 WINDOW, NODES, VTABLE, MISC, KIDS, HOLDER, WINDOW2 = RAM, RAM + 0x100, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200, RAM + 0x1600, RAM + 0x1800
 QUEUES, TREE, RECTS, TIMED = RAM + 0x2000, RAM + 0x3000, RAM + 0x4000, RAM + 0x5000
-MANAGER, TNODES, RECT, PARENT, CHILDREN = RAM + 0x5400, RAM + 0x5600, RAM + 0x5800, RAM + 0x6000, RAM + 0x7000
+MANAGER, TNODES, RECT, ROWS, PARENT, CHILDREN = RAM + 0x5400, RAM + 0x5600, RAM + 0x5800, RAM + 0x5c00, RAM + 0x6000, RAM + 0x7000
 NODE = 0x90
 BUTTONS = list(range(0x18, 0x22))
 
@@ -120,8 +123,10 @@ def destructor(r, regions, op):
     wins = tree(r, regions)
     x, y = point(r, regions, wins)
     regions[0xfaa540] = struct.pack('<II', x, y)
-    win = bytearray(r.bytes(0x140))
+    win = bytearray(r.bytes(0x150))
     win[4] = 0 if r.random() < 0.7 else 1
+    put(win, 0x148, 'I', r.choice([ROWS, ROWS, 0]))
+    regions[ROWS] = r.bytes(0x40)
     put(win, 0x114, 'I', r.choice([CDECL_LOG4, 0]))
     regions[0xfaa5fc] = struct.pack('<I', r.choice([0, CDECL_LOG4]))
     regions[0x77c48c] = struct.pack('<I', MANAGER)
@@ -131,8 +136,9 @@ def destructor(r, regions, op):
     for k, off in enumerate((0x98, 0x9c)):
         impl = bytearray(r.bytes(0x20))
         put(impl, 0, 'I', VTABLE)
-        put(impl, 0x10, 'H', r.choice([0, 1, 1, 2, 0xffff]))
-        put(impl, 0x12, 'H', r.choice([0, 1, 1, 2, 3]))
+        edge = r.random() < 0.05   # both counts -0x8000 after the release
+        put(impl, 0x10, 'H', 0x8000 if edge else r.choice([0, 1, 1, 2, 0xffff]))
+        put(impl, 0x12, 'H', 0x8001 if edge else r.choice([0, 1, 1, 2, 3]))
         regions[MISC + 0x40 * k] = impl
         put(win, off, 'I', r.choice([MISC + 0x40 * k, MISC + 0x40 * k, 0]))
     for i in range(4):
@@ -160,11 +166,12 @@ def destructor(r, regions, op):
     for k in range(3):
         regions[PARENT + 0x100 * k] = r.bytes(0x70)
     n = r.choice([0, 0, 1, 2, 3])
-    kids = [CHILDREN + 0x140 * i for i in range(n)]
+    kids = [CHILDREN + 0x150 * i for i in range(n)]
     put(win, 0x5c, 'I', kids[0] if n else 0)
     for i, a in enumerate(kids):
-        kid = bytearray(r.bytes(0x140))
-        put(kid, 0, 'I', 0x705980)
+        kid = bytearray(r.bytes(0x150))
+        put(kid, 0, 'I', r.choice([0x705980, 0x705a50]))
+        put(kid, 0x148, 'I', r.choice([ROWS + 0x10 * (i + 1), 0]))
         kid[4] = r.choice([0, 1])
         put(kid, 0x114, 'I', r.choice([CDECL_LOG4, 0]))
         put(kid, 0x60, 'I', WINDOW2)
@@ -186,7 +193,7 @@ def destructor(r, regions, op):
     regions[0xfaa588] = struct.pack('<3I', some(), some(), some())
     regions[0xfaa5d8] = struct.pack('<5I', r.choice([wins[0], 0, 0]), some(), some(), r.getrandbits(32), r.choice([0, 0, 0, some()]))
     regions[0xfaa5ec] = struct.pack('<I', some())
-    if op == 'Dtor':
+    if op.startswith('Dtor'):
         return Call(CALLS[op], [WINDOW2], regions, conv='t', ret='a')
     return Call(CALLS[op], [WINDOW2, r.choice([0, 1, 1, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
 
@@ -325,7 +332,7 @@ def case(r):
     if op.startswith('Cancel'):
         timers(r, regions, WINDOW)
         return Call(CALLS[op], [r.choice([WINDOW] * 5 + [0])], regions, ret='w')
-    if op in ('Dtor', 'DeletingDtor'):
+    if op in ('Dtor', 'DeletingDtor', 'Dtor705a50', 'DeletingDtor705a50'):
         return destructor(r, regions, op)
     if op == 'HitTest':
         wins = tree(r, regions)
