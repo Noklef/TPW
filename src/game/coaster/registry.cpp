@@ -4,6 +4,7 @@
 
 #include "../core/globalmem.h"
 #include "../core/idtable.h"
+#include "../math/x87.h"
 #include "../model/highlight.h"
 #include "../world/objectdefs.h"
 
@@ -59,6 +60,19 @@ u8 *__cdecl CoasterLinks_FindTile(u32 x, u32 y, u32 *key) {
     const u8 *map = at<const u8 *>(*reinterpret_cast<const u8 *const *>(0x007a0854), 0x6c);
     const u32 tile = at<u32>(map, 0x18) * y + x;
     u8 *found = CoasterLinks_FindKey(tile);
+    if (key) *key = tile;
+    return found;
+}
+
+u8 *__cdecl CoasterLinks_FindAtFocus(s32 *x, s32 *z, u32 *key) {
+    const float *focus = reinterpret_cast<const float *>(0x007a1c70);
+    const s32 cx = (s32)(long long)(X87Reg(focus[0]) * 0.100000001f).v;  // 0x6fdedc, __ftol
+    const s32 cz = (s32)(long long)(X87Reg(focus[2]) * 0.100000001f).v;
+    const u8 *map = at<const u8 *>(*reinterpret_cast<const u8 *const *>(0x007a0854), 0x6c);
+    const u32 tile = at<u32>(map, 0x18) * cz + cx;
+    u8 *found = CoasterLinks_FindKey(tile);
+    if (x) *x = cx;
+    if (z) *z = cz;
     if (key) *key = tile;
     return found;
 }

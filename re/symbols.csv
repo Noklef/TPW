@@ -4174,6 +4174,7 @@ address,name,kind,confidence,notes
 0x00441840,Coaster_FlashCar,function,high,"reimplemented (src/game/coaster/registry); stops the coaster's flashing car (+0x144) and flashes the one which picks (1: +0x58/+0x60, 2: +0x54/+0x64 by +0x3c bit 2)"
 0x00463ab0,Ride_Claim,function,high,"reimplemented (src/game/coaster/registry); cdecl (index, type, key, desc, unused, value, a, b): claims ride index or the first unclaimed (+4 flag 0x10000) ride of type with key and, given desc, its fields; sets value on its link when +4 has 0x40000; returns index or 0"
 0x00435500,Coasters_InitTables,function,high,"reimplemented (src/game/coaster/registry); cdecl: Coasters_AllocTables([0x790fd0], [0x791cfc]), then IdTable_Init(0x790b04, 0x790b00, 0x791ce0)"
+0x00433f70,CoasterLinks_FindAtFocus,function,low,reimplemented (src/game/coaster/registry); the coaster entry at the cell of the focus point
 0x0043b0e0,Coaster_QueuePush,function,high,"reimplemented (src/game/coaster/queue); cdecl (index, peep): appends the peep to the queue ring (+0xb0) of coaster index (table 0x790bd0) when it has room"
 0x0043b130,CoasterQueue_Add,function,high,"reimplemented (src/game/coaster/queue); cdecl (coaster, peep): appends the peep to the queue ring (+0xb0), else to the boarding ring (+0xd0), whichever has room"
 0x0043b1f0,Coaster_QueueRoom,function,high,"reimplemented (src/game/coaster/queue); cdecl (index): the queue ring's limit - reserved - count, at least 0"
