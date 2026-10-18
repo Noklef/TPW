@@ -40,6 +40,16 @@ u8 *__fastcall CountedPairVector_Deleter(u8 *object, void *, u32 flags);
 // 0x4f7480 (thiscall; flags, pops 4): CountedPair_Clear; when bit 0 of the flags is set the object is freed. Returns the object.
 u8 *__fastcall CountedPair_Deleter(u8 *object, void *, u32 flags);
 
+// 0x4f7170 (cdecl; element): CountedPair_Clear of the element (std::_Destroy).
+void __cdecl CountedPair_Destroy(u8 *element);
+
+// 0x4e5700 (thiscall): empties a deque of CountedPair vectors (16 bytes each: +4 begin, +8 end, +0xc capacity) in blocks of 0x1000 bytes (the begin
+// iterator at +4 {first, end, cursor, map slot}, the end iterator at +0x14, the map at +0x24, the count at +0x2c): while the count is not 0 the
+// element at the cursor (which moves on by 0x10) has CountedPair_Destroy done on each 0x24-byte entry, its block freed and its three dwords
+// cleared, and the count falls; at the end of a block, or the last element, the block (the map slot's, which moves on) is freed and, with the
+// count at 0, both iterators are cleared and the map freed, else the begin iterator is set to the next block.
+void __fastcall CountedPairVectorDeque_Clear(u8 *deque);
+
 // 0x5d46d0 (thiscall): for each of the seven 16-byte groups from +0 (last first): the dwords at +0, +4 and +8 = 0 and the block at +0xc, when there is
 // one, freed and cleared.
 void __fastcall Blocks7_Free(u8 *object);
