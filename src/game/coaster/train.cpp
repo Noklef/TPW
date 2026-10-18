@@ -183,24 +183,10 @@ void __cdecl Car_FreeCoupling(const u8 *car, u32 *coupling) {
 
 namespace {
 
-// Car_TrainLength as 0x433300 has it inline: the car's own length takes the sum (fadd st0, st1)
-// where Car_TrainLength adds it to the sum (faddp), which only a NaN pair tells apart.
-X87Reg InlineTrainLength(const u8 *car) {
-    const u8 *train = at<const u8 *>(car, 0x100);
-    const u8 *type = at<const u8 *>(train, 0x18);
-    const float shortest = at<float>(type, 0xbc), longest = at<float>(type, 0xc0);
-    X87Reg sum = 0.0;
-    for (u32 i = 0, n = at<u32>(car, 4); i < n; ++i) {
-        const u8 *other = at<const u8 *>(train, 0x34 + 4 * i);
-        if (!other) continue;
-        sum = sum + (X87Reg(longest) - shortest) * at<float>(other, 0xe8);
-        sum = sum + shortest;
-        sum = sum + at<float>(type, 0xc4);
-    }
-    return ((X87Reg(longest) - shortest) * at<float>(car, 0xe8) + sum) + shortest;
-}
-
-float CarLength(const u8 *car) { return car ? (float)InlineTrainLength(car) : 0.0f; }
+// A car's train length stored as a float (0 for no car). 0x433300 has Car_TrainLength inline,
+// adding the car's own length to the sum the other way round (fadd st0, st1, not faddp): only
+// a NaN pair tells the two apart, and a NaN length only ever reaches comparisons there.
+float CarLength(const u8 *car) { return (float)Car_TrainLength(car); }
 
 }  // namespace
 
