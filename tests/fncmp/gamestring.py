@@ -1,4 +1,4 @@
-# The game's String and WString classes (src/game/core/string: 0x5f5fc0-0x5f6c50, 0x5f7120-0x5f7e60) against the originals: strings of up to 24 units
+# The game's String and WString classes (src/game/core/string: 0x5f5fc0-0x5f6c50, 0x5f7120-0x5f7e60, 0x5c7490) against the originals: strings of up to 24 units
 # (a small alphabet, so equal, prefix and ordered cases come up), views of them, C strings and chars as arguments; the blocks come from the heap region.
 # Format is left out (the game's vsprintf). StripSuffix (0x424d30) cuts a case-blind suffix off a string; SkipDot (0x41cea0) steps over a leading "." and the
 # "\" / "." chars after it. EnsureSlash (0x5c5480) appends the global "\" unless s ends in it, IsWad (0x5c53c0) tests a directory entry's name for the
@@ -26,10 +26,11 @@ OPS_TABLE = {
     'WCtor': (0x5f6a20, 1, '', 'a'), 'WDtor': (0x5f6a60, 1, '', 'v'), 'WAssignChar': (0x5f6a80, 1, 'c', 'a'), 'WAssignStr': (0x5f6ac0, 1, 't', 'a'),
     'WAssignNarrow': (0x5f6b10, 1, 'w', 'a'), 'WAssign': (0x5f6b50, 1, 'v', 'a'), 'WAppendStr': (0x5f6ba0, 1, 't', 'a'), 'WAppendChar': (0x5f6be0, 1, 'c', 'a'),
     'WAppend': (0x5f6c10, 1, 'v', 'a'), 'WDelDtor': (0x5f7150, 1, 'f', 'a'), 'WNeStr': (0x5f7e60, 1, 't', 'b'),
+    'WCtorReturning': (0x5c7490, 1, '', 'a'),
     'StripSuffix': (0x424d30, 0, '', 'a'), 'SkipDot': (0x41cea0, 0, '', 'a'), 'EnsureSlash': (0x5c5480, 0, '', 'v'), 'IsWad': (0x5c53c0, 0, '', 'a'),
     'JoinPath': (0x5c5580, 0, '', 'v'),
 }
-B = Bench([(0x41cea0, 0x41cfe4), (0x424cf0, 0x424dc0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000), (0x5c53c0, 0x5c5510), (0x5c5580, 0x5c55a9)])
+B = Bench([(0x41cea0, 0x41cfe4), (0x424cf0, 0x424dc0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000), (0x5c53c0, 0x5c5510), (0x5c5580, 0x5c55a9), (0x5c7490, 0x5c749c)])
 DOT, BACKSLASH = 0x78c648, 0x78bee0   # the game's global strings "." and "\" (String objects in .bss)
 SLASH2, WAD = 0xf80be0, 0xf80808      # and "\" and ".wad" of the folder code
 LOCALE = 0xfb1440   # the CRT's LC_CTYPE handle: 0, the C locale (_stricmp's)
@@ -151,7 +152,7 @@ def case(r):
     w = 2 if wide else 1
     regions = {HEAP: heap(), OUT: r.bytes(0x20)}
     s_text = None
-    construct = name.lstrip('W') in ('CtorStr', 'CtorCopy', 'CtorChar', 'Ctor')
+    construct = name.lstrip('W') in ('CtorStr', 'CtorCopy', 'CtorChar', 'Ctor', 'CtorReturning')
     if construct:
         regions[S1] = r.bytes(0x20)  # not constructed yet
     else:

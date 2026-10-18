@@ -193,11 +193,6 @@ u8 *__fastcall Class703c18_Ctor(u8 *object) {
     return object;
 }
 
-u8 *__fastcall WString_CtorReturning(u8 *string) {
-    WString_Ctor(reinterpret_cast<WString *>(string));
-    return string;
-}
-
 u8 *__fastcall Class70295c_Ctor(u8 *object) {
     Init_5d36c0(object);
     at<u32>(object, 0) = 0x0070295c;
