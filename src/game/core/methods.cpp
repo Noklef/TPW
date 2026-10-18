@@ -172,6 +172,33 @@ u32 *__fastcall Narrow_FromWide(const u8 *object, void *, u32 *status, u8 *dest,
     return status;
 }
 
+u32 *__fastcall Wide_FromNarrow(const u8 *object, void *, u32 *status, u16 *dest, const u8 *source, u32 count) {
+    u16 left = (u16)count;
+    u8 ch = *source;
+    while (ch != 0) {
+        const u16 before = left--;
+        if (before == 0)
+            break;
+        const u16 lead = at<u8>(object, 8);
+        u16 code = (u16)(ch - 1);
+        ++source;
+        if (code >= lead) {
+            code = (u16)((code + 0x101) * 0xff - lead * 0xfe + *source);
+            ++source;
+        }
+        *dest++ = code < at<u16>(object, 0xa) ? at<const u16 *>(object, 0xc)[code] : 0;
+        ch = *source;
+    }
+    if (left == 0) {
+        dest[-1] = 0;
+        *status = 0xffffffff;
+    } else {
+        *dest = 0;
+        *status = 0;
+    }
+    return status;
+}
+
 bool __fastcall Obj_ByteForMask(const u8 *object, void *, u32 mask, u32 *out) {
     const u8 *kind = at<const u8 *>(object, 8);
     if (mask & at<u16>(kind, 0x18)) {
