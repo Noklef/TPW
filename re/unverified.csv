@@ -1,7 +1,5 @@
 address,name,module,reason
 429df0,ModelSlot_Animate,model/slots,todo
-43e120,Coasters_ResetUnit,coaster/registry,todo
-43e140,Coasters_InitEpsilon,coaster/registry,todo
 43e480,Angle_Lerp,coaster/helpers,todo
 43fcd0,CoasterList_Append,coaster/lists,todo
 44a1d0,Screen_Shutdown,render/screen,todo
