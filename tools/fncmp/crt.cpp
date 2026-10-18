@@ -137,6 +137,17 @@ u16 *__cdecl wcsncpy(u16 *to, const u16 *from, u32 n) {
     return to;
 }
 
+// The "C" locale's path (no locale handle at 0xfb1440): A-Z folded, other units as they are.
+s32 __cdecl wcsicmp(const u16 *a, const u16 *b) {
+    auto fold = [](u16 c) -> s32 { return (u16)(c - 'A') < 26 ? c + 0x20 : c; };
+    s32 x, y;
+    do {
+        x = fold(*a++);
+        y = fold(*b++);
+    } while (x && x == y);
+    return x - y;
+}
+
 u16 *__cdecl wcscat(u16 *to, const u16 *from) {
     u16 *p = to;
     while (*p) ++p;
@@ -234,7 +245,7 @@ double __cdecl atof(const char *s) {
 const CrtEnv kDriverCrt = {&msvc6::stricmp, &msvc6::strrchr, &msvc6::strchr, &msvc6::strncmp, &msvc6::strstr,
                            &msvc6::toupper, &msvc6::tolower, &msvc6::atoi,   &msvc6::sprintf, &msvc6::wcslen,
                            &msvc6::strncpy, &msvc6::iswspace, &msvc6::isalpha, &msvc6::isdigit, &msvc6::isspace,
-                           &msvc6::isalnum, &msvc6::atof, &msvc6::swprintf, &msvc6::wcsncpy};
+                           &msvc6::isalnum, &msvc6::atof, &msvc6::swprintf, &msvc6::wcsncpy, &msvc6::wcsicmp};
 
 const LibcEnv kDriverLibc = {&msvc6::strncpy, &msvc6::strncat, &msvc6::atoi,    &msvc6::iswctype, &msvc6::vsprintf,
                              &msvc6::vsnprintf, &msvc6::wcslen,  &msvc6::wcscpy,  &msvc6::wcsncpy,  &msvc6::wcscat,
@@ -247,6 +258,6 @@ const CrtStandIn kCrtStandIns[] = {
     {0x0067acd0, (void *)&msvc6::wcslen},  {0x0067ae00, (void *)&msvc6::strncpy}, {0x0067a730, (void *)&msvc6::iswspace},
     {0x0067a530, (void *)&msvc6::isalpha}, {0x0067a560, (void *)&msvc6::isdigit}, {0x0067a590, (void *)&msvc6::isspace},
     {0x0067a5c0, (void *)&msvc6::isalnum}, {0x0067a6c0, (void *)&msvc6::atof},    {0x0067af00, (void *)&msvc6::swprintf},
-    {0x0067b0d0, (void *)&msvc6::wcsncpy},
+    {0x0067b0d0, (void *)&msvc6::wcsncpy}, {0x0067b140, (void *)&msvc6::wcsicmp},
 };
 const u32 kCrtStandInCount = sizeof kCrtStandIns / sizeof kCrtStandIns[0];

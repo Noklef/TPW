@@ -96,6 +96,17 @@ def case(r):
         w = wide(r)
         n = r.choice([0, 1, 2, 3, len(w) // 2, len(w) // 2 + 1, len(w) // 2 + 4, r.randrange(0x40)])
         return Call(0x67b0d0, [OUT, A, n], {A: w + b'\0\0' + junk(), OUT: r.bytes(0x100)}, ret='a')
+    if op == 'wcsicmp':   # a wide string and a copy with case flips, a changed unit or a cut
+        units = [r.choice([r.randrange(0x20, 0x7f), r.choice(b'@AZ[`az{'), 0xc9, 0xe9, 0x141, 0x161, 0xff21, 0xff41, 0xffff, r.randrange(1, 0x10000)])
+                 for _ in range(r.choice([0, 1, r.randrange(8), r.randrange(30)]))]
+        other = [c ^ 0x20 if r.random() < 0.4 and (c & ~0x20) in range(0x40, 0x5c) or c > 0xff and r.random() < 0.2 else c for c in units]
+        if other and r.random() < 0.3:
+            other[r.randrange(len(other))] = r.choice([0x40, 0x5b, 0x60, 0x7b, 0x41, 0x61, 0xffff, r.randrange(1, 0x10000)])
+        if r.random() < 0.2:
+            other = other[:r.randrange(len(other) + 1)]
+        w = lambda us: b''.join(c.to_bytes(2, 'little') for c in us) + b'\0\0' + junk()
+        a, z = (w(units), w(other)) if r.random() < 0.5 else (w(other), w(units))
+        return Call(0x67b140, [A, Z], {A: a, Z: z}, ret='a')
     if op == 'swprintf':   # wide: %s takes a wide string, %c a wide char
         fmt, args = b'', []
         for _ in range(r.randrange(5)):
@@ -123,7 +134,7 @@ def case(r):
 
 CLASSES = {'isalpha': 0x67a530, 'isdigit': 0x67a560, 'isspace': 0x67a590, 'isalnum': 0x67a5c0}
 KINDS = ['stricmp', 'strrchr', 'strchr', 'strncmp', 'strstr', 'toupper', 'tolower', 'atoi', 'wcslen', 'sprintf', 'strncpy', 'iswspace',
-         'isalpha', 'isdigit', 'isspace', 'isalnum', 'atof', 'swprintf', 'wcsncpy']
+         'isalpha', 'isdigit', 'isspace', 'isalnum', 'atof', 'swprintf', 'wcsncpy', 'wcsicmp']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':
