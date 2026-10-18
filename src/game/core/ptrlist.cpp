@@ -5,8 +5,10 @@
 
 #include "../gfx/spriteframe.h"
 #include "../render/engineerrors.h"
+#include "../render/renderer.h"
 #include "gameheap.h"
 #include "stdlist.h"
+#include "vcall.h"
 
 namespace {
 
@@ -154,5 +156,61 @@ void __fastcall SortedPtrList_Add(u8 *holder, void *, u8 *item) {
     else
         PtrList_Append(reinterpret_cast<PtrList *>(list), nullptr, item);
     at<u8 *>(holder, 0x10) = item;
+}
+
+u32 __fastcall PtrArray_RemoveImage(u8 *object, void *, u8 *image) {
+    s32 index = at<s32>(object, 0x18) - 1;
+    u8 **items = at<u8 **>(object, 0xc);
+    while (index >= 0 && items[index] != image)
+        --index;
+    if (index < 0)
+        return 0;
+    SpriteImage_Release(image);
+    if (image) {
+        SpriteImage_Dtor(image);
+        GameHeap_Free(image);
+    }
+    const s32 count = at<s32>(object, 0x18) - 1;
+    at<s32>(object, 0x18) = count;
+    items = at<u8 **>(object, 0xc);
+    items[index] = items[count];
+    return 1;
+}
+
+u32 __fastcall PtrArray_ReleaseAll(u8 *object, void *) {
+    if (at<u32>(object, 0) & 1) {
+        at<u32>(object, 0) &= ~1u;
+        u8 *renderer = *reinterpret_cast<u8 **>((uintptr_t)0x0087a6d0);
+        if (renderer) {
+            u8 *owner = at<u8 *>(object, 4);
+            const u32 part = owner ? (u32)(uintptr_t)owner + at<u32>(at<u8 *>(owner, 0), 4) : 0;
+            Renderer_RemoveFromSlot(renderer, nullptr, part, 0x60);
+        }
+    }
+    if (at<u32>(object, 0xc)) {
+        for (s32 i = 0; i < at<s32>(object, 0x18); ++i) {
+            SpriteImage_Release(at<u8 **>(object, 0xc)[i]);
+            u8 *image = at<u8 **>(object, 0xc)[i];
+            if (image) {
+                SpriteImage_Dtor(image);
+                GameHeap_Free(image);
+            }
+        }
+        TrackedGlobal_Free(at<u32>(object, 0xc));
+        at<u32>(object, 0xc) = 0;
+        at<u32>(object, 0x18) = 0;
+    }
+    if (at<u32>(object, 4)) {
+        for (s32 i = 0; i < at<s32>(object, 0x1c); ++i)
+            GameHeap_Free(at<void **>(object, 8)[i]);
+        u8 *owner = at<u8 *>(object, 4);
+        if (owner)
+            vcall<void>(owner + at<u32>(at<u8 *>(owner, 0), 4), 0, 1u);
+        at<u32>(object, 4) = 0;
+        at<u32>(object, 0x1c) = 0;
+    }
+    at<u32>(object, 8) = 0;
+    at<u32>(object, 0x10) = 0;
+    return 1;
 }
 }  // extern "C"
