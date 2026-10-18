@@ -4121,6 +4121,8 @@ const Hook kHooks[] = {
     {"GuiDialog_Ctor",            0x006597b0, (void *)&GuiDialog_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"MsgQueue_Push",             0x006697e3, (void *)&MsgQueue_Push, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"MsgQueue_Free",             0x00669735, (void *)&MsgQueue_Free, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"MsgQueue_DispatchOne",      0x006698e6, (void *)&MsgQueue_DispatchOne, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"WordPairs_Contains",        0x006698a4, (void *)&WordPairs_Contains, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

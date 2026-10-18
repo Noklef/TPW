@@ -1,17 +1,22 @@
-# The GUI library's message queue (src/game/ui/msgqueue: 0x669735, 0x6697e3) against the originals: a queue of 1-8 entries (each free or
-# not), its fill index anywhere in them, its count and the four values random; the window now and then 0. The free: entries set or not
-# (the heap region given: its free count and hash).
-# usage: msgqueue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Free,Push)
+# The GUI library's message queue (src/game/ui/msgqueue: 0x669735, 0x6697e3, 0x6698a4, 0x6698e6) against the originals: a queue of 1-8
+# entries (each free or not), its fill index anywhere in them, its count and the four values random; the window now and then 0. The free:
+# entries set or not (the heap region given: its free count and hash). Contains: 0-4 word pairs (then the end), the pair asked for one of
+# them or random (upper halves random). DispatchOne: the entries' windows among 4 (flags bit 0 and the handler, a logger, set or not),
+# their messages mostly 0x1000a-0x1000c, now and then a value 0x80808080, the pairs [0xfaa578] and the windows [0xfaa57c], [0xfaa5dc],
+# [0xfaa5ec] set or not, the pair asked for in the list half the time; the entries now and then missing.
+# usage: msgqueue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Free,Push,Contains,DispatchOne)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, RAM, Bench, Call, heap, put  # noqa: E402
+from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, heap, log_region, put  # noqa: E402
 
-CALLS = {'Free': 0x669735, 'Push': 0x6697e3}
-B = Bench([(0x669735, 0x669767), (0x6697e3, 0x6698a4)])
-QUEUE, ENTRIES = RAM, RAM + 0x100
+CALLS = {'Free': 0x669735, 'Push': 0x6697e3, 'Contains': 0x6698a4, 'DispatchOne': 0x6698e6}
+B = Bench([(0x669735, 0x669767), (0x6697e3, 0x6698a4), (0x6698a4, 0x6698e6), (0x6698e6, 0x669ad7), (0x65d57c, 0x65d58d),
+           (0x65f697, 0x65f6d1)])
+QUEUE, ENTRIES, WINDOWS, PAIRS = RAM, RAM + 0x100, RAM + 0x400, RAM + 0x1000
+WINDOW = 0x120
 
 
 def queue(r, regions):
@@ -27,16 +32,58 @@ def queue(r, regions):
     put(q, 8, 'I', r.randrange(cap))
     put(q, 0xc, 'I', r.choice([0, 0, cap - 1, r.randrange(cap)]))
     regions[QUEUE] = q
+    return cap
+
+
+def pairs(r, regions):
+    """0-4 word pairs (the seconds mostly bytes, never -1) and the end (a pair whose second is -1). Returns the pairs."""
+    words = [(r.getrandbits(16), r.choice([r.getrandbits(8), r.getrandbits(8), r.getrandbits(15)])) for _ in range(r.choice([0, 1, 2, 4]))]
+    regions[PAIRS] = b''.join(struct.pack('<HH', a, b) for a, b in words) + struct.pack('<Hh', r.getrandbits(16), -1)
+    return words
 
 
 def case(r):
     op = r.deal(OPS)
     regions = {}
-    queue(r, regions)
+    cap = queue(r, regions)
     if op == 'Free':
         regions[HEAP] = heap(0x20)
         put(regions[QUEUE], 0, 'I', r.choice([HEAP + 0x10, HEAP + 0x10, 0]))
         return Call(CALLS[op], [QUEUE], regions, conv='t')
+    if op == 'Contains':
+        words = pairs(r, regions)
+        a, b = r.getrandbits(32), r.getrandbits(32)
+        if words and r.random() < 0.6:
+            wa, wb = r.choice(words)
+            a = a & 0xffff0000 | wa
+            b = b & 0xffff0000 | (wb if r.random() < 0.8 else r.getrandbits(16))
+        return Call(CALLS[op], [PAIRS, a, b], regions, ret='w')
+    if op == 'DispatchOne':
+        regions[LOG] = log_region()
+        wins = [WINDOWS + WINDOW * k for k in range(4)]
+        for w in wins:
+            win = bytearray(r.bytes(WINDOW))
+            put(win, 0x48, 'I', win[0x48] & 0xfe | (r.random() < 0.7))
+            put(win, 0x114, 'I', r.choice([CDECL_LOG4] * 4 + [0]))
+            regions[w] = win
+        words = pairs(r, regions)
+        for k in range(cap):
+            entry = regions[ENTRIES]
+            if struct.unpack_from('<I', entry, 16 * k)[0] == 0 and r.random() < 0.8:
+                continue
+            message = r.choice([0x1000a, 0x1000b, 0x1000c] * 3 + [0x10001, 1, r.getrandbits(32), 0x80808080])
+            a, b = [r.choice([r.getrandbits(32)] * 12 + [0x80808080]) for _ in range(2)]
+            if words and r.random() < 0.5:
+                wa, wb = r.choice(words)
+                a = a & 0xffff0000 | wa if a != 0x80808080 else a
+                b = b & 0xff00ffff | (wb & 0xff) << 16 if b != 0x80808080 else b
+            put(entry, 16 * k, '4I', r.choice(wins), message, a, b)
+        regions[0xfaa578] = struct.pack('<II', r.choice([PAIRS, PAIRS, 0]), r.choice(wins[:2] + [0]))
+        regions[0xfaa5dc] = struct.pack('<I', r.choice(wins[1:3] + [0]))
+        regions[0xfaa5ec] = struct.pack('<I', r.choice(wins[2:] + [0]))
+        if r.random() < 0.08:
+            put(regions[QUEUE], 0, 'I', 0)
+        return Call(CALLS[op], [QUEUE], regions, conv='t', ret='w')
     window = r.choice([0x1234, r.getrandbits(32), r.getrandbits(32), 0])
     return Call(CALLS[op], [QUEUE, window] + [r.getrandbits(32) for _ in range(3)], regions, conv='t', ret='w')
 

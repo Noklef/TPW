@@ -4577,3 +4577,5 @@ address,name,kind,confidence,notes
 0x00659cb0,GuiDialog_ScalarDtor,function,low,"reimplemented (src/game/ui/guidialog); thiscall (flags), pops 4, slot 0: GuiDialog_Dtor, freed for flags bit 0; returns this"
 0x00669735,MsgQueue_Free,function,low,reimplemented (src/game/ui/msgqueue); thiscall: the entries (when set) freed (Mem_Free) and +0 cleared
 0x006697e3,MsgQueue_Push,function,low,"reimplemented (src/game/ui/msgqueue); thiscall (window, message, a, b), pops 16: into the entry +0xc when it is free and window != 0: count up, index down (wrapping to cap - 1); 1 / 0 in AX"
+0x006698a4,WordPairs_Contains,function,low,"reimplemented (src/game/ui/msgqueue); cdecl (pairs, a, b): 1 (AX) when the word pairs (ended by a second of -1) hold (a, b), else 0"
+0x006698e6,MsgQueue_DispatchOne,function,low,"reimplemented (src/game/ui/msgqueue); thiscall: the entry to take sent (0x1000a-c to [0xfaa57c] / [0xfaa5ec] / [0xfaa5dc], others to its window; 0x80808080 dropped), freed, the take index down; 1, or 0 without one (AX)"
