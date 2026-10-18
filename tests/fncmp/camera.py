@@ -1,7 +1,8 @@
 # The camera (src/game/world/camera: 0x42a0f0-0x42a182 and the leaves 0x42a410-0x42cd40)
 # against the original: the static initialisers, the follow tests, the part face, the view
 # setter, flag 0x80, the matrix closeness test 0x42b070 and the cell clamp. CentreCell (0x4868d0) sets the view's point from a cell id (0, 1,
-# 0xffff or any); CentreThing (0x4867b0) from a thing's cell (a handle naming a slot of a thing, an empty slot or 0, high bits random).
+# 0xffff or any); CentreThing (0x4867b0) from a thing's cell (a handle naming a slot of a thing, an empty slot or 0, high bits random);
+# CentreGlobal (0x48ce80) the same for the handle of the thing [0x7c2658] points to.
 # usage: camera.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -11,7 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x42a0f0, 0x42a183), (0x42a410, 0x42a43a), (0x42a4e0, 0x42a4fb), (0x42a720, 0x42a75f), (0x42aab0, 0x42ab1d),
-           (0x42afd0, 0x42afed), (0x42b070, 0x42b1b6), (0x42cd40, 0x42cd7f), (0x4867b0, 0x486858), (0x4868d0, 0x48691f),
+           (0x42afd0, 0x42afed), (0x42b070, 0x42b1b6), (0x42cd40, 0x42cd7f), (0x4867b0, 0x486858), (0x4868d0, 0x48691f), (0x48ce80, 0x48ce9f), (0x50b350, 0x50b35d),
            (0x5da3c0, 0x5da3c1)])
 INITS = {'One': (0x42a0f0, 0x7909e8, 4), 'Epsilon': (0x42a110, 0x790a94, 4), 'Zoom': (0x42a130, 0x7909ec, 4),
          'Yaw': (0x42a140, 0x790a38, 4), 'E0': (0x42a150, 0x7909e0, 4), 'Point': (0x42a160, 0x7908f0, 12)}
@@ -19,7 +20,7 @@ INITS = {'One': (0x42a0f0, 0x7909e8, 4), 'Epsilon': (0x42a110, 0x790a94, 4), 'Zo
 
 def case(r):
     op = r.deal(OPS)
-    if op in ('CentreCell', 'CentreThing'):
+    if op in ('CentreCell', 'CentreThing', 'CentreGlobal'):
         regions = {0x790a88: bytearray(r.bytes(12)), 0x7908f0: bytearray(r.bytes(12)), 0x7909ec: bytearray(r.bytes(4)),
                    0x790a38: bytearray(r.bytes(4)), 0x74c9bc: bytearray(r.bytes(4))}
         if op == 'CentreCell':
@@ -32,6 +33,10 @@ def case(r):
             regions[thing] = r.bytes(0x10)
         regions[0x7cfb90] = table
         handle = r.choice([0, 1, 2, 3, 4, 5, 5]) | (r.choice([0, 0, r.getrandbits(16)]) << 16)
+        if op == 'CentreGlobal':   # (the thing's handle word at +0; the pointer's high word goes along)
+            regions[RAM + 0x400] = struct.pack('<I', handle)
+            regions[0x7c2658] = struct.pack('<I', RAM + 0x400)
+            return Call(0x48ce80, [], regions)
         return Call(0x4867b0, [handle], regions)
     if op == 'Close':  # two matrices, often nearly equal so the 1e-5 threshold decides
         scale = r.choice([1, 1, 2, None])  # near 1, a nudge of a few ulps is near 1e-5
@@ -84,7 +89,7 @@ def case(r):
     return Call(0x42a410, [thing], regions, ret='a')
 
 
-OPS_ALL = list(INITS) + ['Follow'] * 6 + ['Close'] * 6 + ['Followed'] * 3 + ['Face', 'View', 'Clamp'] * 4 + ['Flag80'] * 2 + ['CentreCell', 'CentreThing'] * 3
+OPS_ALL = list(INITS) + ['Follow'] * 6 + ['Close'] * 6 + ['Followed'] * 3 + ['Face', 'View', 'Clamp'] * 4 + ['Flag80'] * 2 + ['CentreCell', 'CentreThing', 'CentreGlobal'] * 3
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

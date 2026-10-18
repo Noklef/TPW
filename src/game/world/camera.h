@@ -57,4 +57,7 @@ void __cdecl Camera_SetFlag80(u32 on);
 // 0x42cd40: clamps a cell to [0, 0x7a0314 - 1] x [0, 0x7a0374 - 1] (signed; the lower bound
 // first).
 void __cdecl Camera_ClampCell(s32 *x, s32 *z);
+
+// 0x48ce80 (cdecl; name unconfirmed): the camera centred on the thing [0x7c2658] points to (Camera_CentreOnThing with its handle).
+void __cdecl Camera_CentreOnGlobalThing();
 }
