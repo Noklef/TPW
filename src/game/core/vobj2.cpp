@@ -243,6 +243,28 @@ u32 __fastcall Object_ReleaseSavedPairs(u8 *object) {
     return 1;
 }
 
+u32 __fastcall Object_ReleaseSavedPairs130(u8 *object) {
+    if (!(at<u32>(object, 4) & 0x40000000) || at<s32>(object, 0x138) <= 0)
+        return 1;   // (the count left as it is)
+    for (s32 i = 0; i < at<s32>(object, 0x138); i++) {
+        const u32 *const pair = reinterpret_cast<const u32 *>(at<u8 *>(object, 0x130) + i * 8);
+        if (pair[0])
+            *reinterpret_cast<u32 *>((uintptr_t)pair[1]) = pair[0];
+    }
+    at<u32>(object, 4) &= 0xbfffffff;
+    if (at<u8 *>(object, 0x130)) {
+        GameHeap_Free(at<u8 *>(object, 0x130));
+        at<u32>(object, 0x130) = 0;
+    }
+    if (u8 *elements = at<u8 *>(object, 0x134)) {
+        CRT_VectorDtorIterator(elements, 0x10, at<s32>(elements - 4, 0), reinterpret_cast<void(__fastcall *)(void *)>(0x00575bf0));
+        GameHeap_Free(elements - 4);
+        at<u32>(object, 0x134) = 0;
+    }
+    at<u32>(object, 0x138) = 0;
+    return 1;
+}
+
 u32 __fastcall Obj_ReleaseSevenIfMode1(u8 *object) {
     if (global<u32>(0x008bd524) == 1)
         return Obj_ReleaseSevenComMembers(object);

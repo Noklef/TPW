@@ -1,6 +1,6 @@
 // Methods that hand their members to virtual methods and little else (COM releases, deleting destructors, drains of lists of objects, a loop over the slots of
 // pointed-to objects): reimplementation of 0x47e460, 0x5e4140, 0x421520, 0x421720, 0x5b7990, 0x5cea40, 0x4f0650, 0x579c80, 0x58c370, 0x5e1fa0 and 0x5e4020,
-// and the block at +0x13c made and freed (0x57b490, 0x57b5b0).
+// the second saved pairs' release (0x57b2e0) and the block at +0x13c made and freed (0x57b490, 0x57b5b0).
 // Named by what they do until the classes are known.
 #pragma once
 
@@ -52,6 +52,13 @@ void __fastcall Class702da0_Dtor(u8 *object);
 // word the pointer names, the last pair first) and the array freed (Mem_Free); the 0x10-byte elements at +0x128 (their count the dword before them) are destroyed (the dtor at
 // 0x575bf0) and their block freed from 4 bytes before; the flag is cleared. In every case the count is cleared. Returns 1.
 u32 __fastcall Object_ReleaseSavedPairs(u8 *object);
+
+// 0x57b2e0 (thiscall on the object; name unconfirmed): Object_ReleaseSavedPairs' second set: with flag 0x40000000 of the flags (+4) and
+// a positive count (+0x138, re-read each time) the saved pairs {value, pointer} at +0x130 are written back from the first, each only when
+// its value is not 0; the flag is cleared, the array freed (Mem_Free) and cleared, the 0x10-byte elements at +0x134 (their count the dword
+// before them) destroyed (the dtor at 0x575bf0) and their block freed from 4 bytes before, and the count cleared. Without the flag or a
+// positive count the count stays. Returns 1.
+u32 __fastcall Object_ReleaseSavedPairs130(u8 *object);
 
 // 0x57b490 (thiscall on the object; name unconfirmed): with a block at +0x13c already, 0 (sic). Else a tracked block of 0x38
 // (TrackedGlobal_Alloc) goes there and its +0x18 gets a new texture (0x60 bytes, GameHeap_Alloc, Texture_Ctor; none got: 0) whose pixels
