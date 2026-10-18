@@ -4255,6 +4255,7 @@ address,name,kind,confidence,notes
 0x00576310,Renderer_MakeFrameBuffer,function,low,"reimplemented (src/game/render/renderer); thiscall (width, height): the old frame buffer freed, a zeroed tracked one of width*height*4 at +0x10, the render state at +0x48 reset and pushed on the state stack (+0x60, count set to 1 after, sic): 1; not got: error 3 pushed, 0"
 0x0048f3c0,RendererPart_FreeTextures,function,low,"reimplemented (src/game/render/renderer); thiscall (one unused argument, pops 4): the image at +0x9c's textures freed (SpriteImage_FreeTexturesIfSet); slot 9 of vtable 0x6ff2d8 (name unconfirmed)"
 0x0048f410,RendererPart_FreeTextures2,function,low,reimplemented (src/game/render/renderer); thiscall: the same with no argument; slot 6 of vtable 0x6ff2d8 (name unconfirmed)
+0x0048f3d0,RendererPart_AllocPixels,function,low,"reimplemented (src/game/render/renderer); thiscall (unused, pops 4): unless +0x44, the image at +0x9c gets pixels and the frame at +0x54 its size, of the s16 sizes at +0x3c / +0x3e; +0x44 = 1"
 0x005777a0,Backdrop_Clear5c,function,high,"reimplemented (src/game/render/backdrop); thiscall (the tiled backdrop, 0x87aee8): +0x5c = 0"
 0x00577940,Backdrop_SetRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the rectangle drawn into, +0x20..+0x2c, and flag 2 in +0"
 0x00577970,Backdrop_SetSourceRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the part of the image drawn, +0x30..+0x3c"

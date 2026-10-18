@@ -101,4 +101,9 @@ u32 __fastcall RendererPart_FreeTextures(u8 *object, void *, u32);
 
 // 0x48f410 (thiscall; slot 6 of vtable 0x6ff2d8; name unconfirmed): the same with no argument (a jump to SpriteImage_FreeTexturesIfSet).
 u32 __fastcall RendererPart_FreeTextures2(u8 *object);
+
+// 0x48f3d0 (thiscall; one unused argument, pops 4; slot 10 of vtable 0x6ff2d8; name unconfirmed): unless the u16 at +0x44 is set, the
+// image at +0x9c gets pixels (SpriteImage_AllocPixels) and the frame at +0x54 its size (SpriteFrame_SetSize30), both of the s16 sizes at
+// +0x3c / +0x3e; then +0x44 = 1.
+void __fastcall RendererPart_AllocPixels(u8 *object, void *, u32);
 }
