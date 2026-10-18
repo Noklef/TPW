@@ -262,6 +262,7 @@ add_library(tpw_game STATIC
     src/game/terrain/procedural.cpp
     src/game/terrain/landscape.cpp
     src/game/terrain/texcache.cpp
+    src/game/terrain/normals.cpp
     src/game/model/parts.cpp
     src/game/model/holder.cpp
     src/game/model/remap.cpp

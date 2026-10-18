@@ -3805,6 +3805,8 @@ address,name,kind,confidence,notes
 0x00452a60,Map_RideIndexAt,function,low,"reimplemented (src/game/terrain/land); cdecl (x, y): the ride index of a map cell, from its dword or the ride object there"
 0x00450ac0,Terrain_RideAt,function,low,"reimplemented (src/game/terrain/land); cdecl (x, y): the ride at the grid cell, clamped to the grid"
 0x00452ae0,Terrain_SurfaceHeight,function,low,"reimplemented (src/game/terrain/land); cdecl (x, y, slot): the height at cell (x, y): the ride height map there (by its origin and angle) or the ground"
+0x00450b30,Terrain_ScaleNormals,function,low,"reimplemented (src/game/terrain/normals); cdecl (node, matrix by value): the node's matrix applied; its normals scaled to 0.225 or 1 by the grid flag 0x400 under their vertices; then its children"
+0x00450d10,Terrain_ShadeNormals,function,low,"reimplemented (src/game/terrain/normals); cdecl: grid flag 0x400 from each map cell's flags 0x40 / 0x80, then Terrain_ScaleNormals from the map's model with the identity"
 0x005ea510,Image_Dilate,function,high,reimplemented (src/game/gfx/imageops); separable maximum filter of an image
 0x005ea6d0,Image_Erode,function,high,reimplemented (src/game/gfx/imageops); separable minimum filter of an image
 0x005ea1f0,Image_MinMark,function,high,"reimplemented (src/game/gfx/imageops); 3 x 3 minimum of a two byte per pixel image, marking the changed pixels"
