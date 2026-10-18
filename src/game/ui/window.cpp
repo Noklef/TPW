@@ -15,6 +15,19 @@
 namespace {
 
 template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+// Slot 5 (thiscall, one argument) of `object`; returns the ECX the slot left (Window_NotifyShown pushes its upper half next).
+u32 Slot5LeavingEcx(u8 *object, u32 arg) {
+    u32 left;
+    __asm {
+        push arg
+        mov ecx, object
+        mov eax, [ecx]
+        call dword ptr [eax + 0x14]
+        mov left, ecx
+    }
+    return left;
+}
 }
 
 extern "C" {
@@ -69,6 +82,36 @@ u16 __fastcall Window_IsShown(u8 *window) {
     return shown;
 }
 
+void __fastcall Window_NotifyShown(u8 *window, void *edx, u32 shown) {
+    const s16 s = (s16)shown;
+    u32 dx = (u32)(uintptr_t)edx;
+    if (at<u32>(window, 0x48) & 1) dx = (u32)(s32)s;
+    else if (s != 0) return;
+    u32 cx = (u32)(uintptr_t)window;
+    if (u8 *const object = at<u8 *>(window, 0x98)) cx = Slot5LeavingEcx(object, (dx & 0xffff0000u) | (u16)s);  // sic
+    if (u8 *const object = at<u8 *>(window, 0x9c)) vcall<void>(object, 0x14, (cx & 0xffff0000u) | (u16)s);   // sic
+    using Handler = s32(__cdecl *)(u8 *, u32, s32, u32);
+    if (const Handler handler = at<Handler>(window, 0x114)) handler(window, 0x11, s, 0);
+    u8 *previous = window;
+    for (u8 *child = at<u8 *>(window, 0x5c); child; child = at<u8 *>(child, 0x54)) {
+        Window_NotifyShown(child, previous, (u16)s);
+        previous = child;
+    }
+}
+
+u32 __fastcall Window_SetShown(u8 *window, void *, u32 shown) {
+    const u16 s = (s16)shown != 0 ? 1 : 0;
+    if (s == (at<u32>(window, 0x48) & 1)) return 1;
+    if (s == 0) at<u32>(window, 0x48) &= ~1u;
+    else at<u32>(window, 0x48) |= 1;
+    if (s == 0 || Window_IsShown(window) != 0)
+        Window_NotifyShown(window, reinterpret_cast<void *>(((uintptr_t)window & 0xffff0000u) | s), s);
+    Window_UpdateHover();
+    if (s != 0) return 1;
+    u8 *const manager = *reinterpret_cast<u8 **>((uintptr_t)0x0077c48c);
+    return (vcall<u32>(manager, 0x34, window) & 0xffff0000u) | 1;
+}
+
 u8 *__fastcall Window_SaveRect(u8 *window) { return GuiRect_Assign(window + 0x2c, nullptr, window + 8); }
 
 u16 __fastcall Window_GetRect(u8 *window, void *, u8 *rect, u32 inner) {
@@ -95,6 +138,98 @@ u8 *__fastcall Window_OffsetByParents(u8 *window, void *, u8 *rect) {
         previous = p;
     }
     return previous;
+}
+
+u32 __fastcall Window_Offset(u8 *window, void *, u32 dx, u32 dy) {
+    const s16 x = (s16)dx, y = (s16)dy;
+    if (x == 0 && y == 0) return 0;
+    using Offset = void(__fastcall *)(u8 *, void *, u32, u32);
+    const auto offset = [&](u8 *rect) { reinterpret_cast<Offset>(at<void **>(rect, 0)[2])(rect, nullptr, (u16)x, (u16)y); };
+    offset(window + 8);
+    if (at<u8 *>(window, 0x44) != window + 8) offset(at<u8 *>(window, 0x44));
+    offset(window + 0x2c);
+    at<u16>(window, 0xe4) += (u16)x;
+    at<u16>(window, 0xe6) += (u16)y;
+    u8 event[0x18];  // (the rest is left as it is)
+    at<u16>(event, 0xc) = at<u16>(window, 0xe4);
+    at<u16>(event, 0xe) = at<u16>(window, 0xe6);
+    if (u8 *const object = at<u8 *>(window, 0x98)) {
+        at<u8 *>(event, 0x14) = window + 8;
+        vcall<void>(object, 0xc, 0x50u, event);
+    }
+    if (u8 *const object = at<u8 *>(window, 0x9c)) {
+        at<u8 *>(event, 0x14) = window + 0x2c;
+        vcall<void>(object, 0xc, 0x50u, event);
+    }
+    Window_SendMessage(window, 0x13, (u32)(s32)x, (u32)(s32)y);
+    u32 left = (u32)(uintptr_t)window;  // EAX: the window, or the last child's result
+    for (u8 *child = at<u8 *>(window, 0x5c); child; child = at<u8 *>(child, 0x54)) left = Window_Offset(child, nullptr, (u16)x, (u16)y);
+    return (left & 0xffff0000u) | 1;
+}
+
+void __fastcall Window_Set4c(u8 *window, void *, u8 *object) {
+    if (object == at<u8 *>(window, 0x4c)) return;
+    u8 inner[0x14], event[0x18];  // (only inner's byte +8 and event's pointer +0x10 set)
+    at<u8 *>(event, 0x10) = inner;
+    at<u8 *>(window, 0x4c) = object;
+    inner[8] = object ? at<u8>(object, 0x10) : 0xff;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 0x10000u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0x10000u, event);
+}
+
+void __fastcall Window_NotifyC00(u8 *window, void *, u32 a, u32 b) {
+    if (!at<u8 *>(window, 0x98) && !at<u8 *>(window, 0x9c)) return;
+    u8 inner[0x14], event[0x18];  // (only inner's bytes +4 / +5 and event's pointer +0x10 set)
+    at<u8 *>(event, 0x10) = inner;
+    inner[4] = (u8)a;
+    inner[5] = (u8)b;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 0xc00u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0xc00u, event);
+}
+
+void __fastcall Window_Notify3000(u8 *window, void *, u32 a, u32 b) {
+    if (!at<u8 *>(window, 0x98) && !at<u8 *>(window, 0x9c)) return;
+    u8 inner[0x14], event[0x18];  // (only inner's bytes +6 / +7 and event's pointer +0x10 set)
+    at<u8 *>(event, 0x10) = inner;
+    inner[6] = (u8)a;
+    inner[7] = (u8)b;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 0x3000u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0x3000u, event);
+}
+
+void __fastcall Window_Notify20000(u8 *window, void *, u32 a) {
+    if (!at<u8 *>(window, 0x98) && !at<u8 *>(window, 0x9c)) return;
+    u8 inner[0x14], event[0x18];  // (only inner's byte +9 and event's pointer +0x10 set)
+    at<u8 *>(event, 0x10) = inner;
+    inner[9] = (u8)a;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 0x20000u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0x20000u, event);
+}
+
+void __fastcall Window_SetImpl(u8 *window, void *, u8 *impl) {
+    if (impl == at<u8 *>(window, 0x9c)) return;
+    if (at<u8 *>(window, 0x9c) && (s16)WindowImpl_Release(at<u8 *>(window, 0x9c)) == -1) {
+        if (u8 *const o = at<u8 *>(window, 0x98)) vcall<u32>(o, 0, 1u);   // sic: +0x98's slot 0, not the released one's
+    }
+    at<u8 *>(window, 0x9c) = impl;
+    if (!at<u8 *>(window, 0x9c)) return;
+    Fn_6617f0(at<u8 *>(window, 0x9c));
+    u8 inner[0x14], event[0x1c];  // (event's dword +0, its bytes +0xa / +0xb and inner but its byte +8 left as they are)
+    at<u16>(event, 4) = 0;
+    at<u16>(event, 6) = (u16)(at<s16>(window, 0xe0) + 1);
+    at<u16>(event, 8) = at<u16>(window, 0xe2);
+    at<u8 *>(event, 0x14) = window + 0x2c;
+    at<u16>(event, 0xc) = at<u16>(window, 0xe4);
+    at<u16>(event, 0xe) = at<u16>(window, 0xe6);
+    u32 flags = 0x57;
+    if (at<u8 *>(window, 0x4c)) {   // (else the pointer +0x10 is left as it is too)
+        flags |= 0x10000;
+        inner[8] = at<u8>(at<u8 *>(window, 0x4c), 0x10);
+        at<u8 *>(event, 0x10) = inner;
+    }
+    at<u32>(event, 0x18) = flags;
+    vcall<void>(at<u8 *>(window, 0x9c), 0xc, flags, event);
+    if ((s16)Window_IsShown(window) != 0) vcall<void>(at<u8 *>(window, 0x9c), 0x14, 1u);
 }
 
 u8 *__fastcall Window_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom) {

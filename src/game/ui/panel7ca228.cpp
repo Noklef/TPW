@@ -1,0 +1,29 @@
+#include "panel7ca228.h"
+
+#include <cstdint>
+
+#include "../core/vcall.h"
+#include "window.h"
+
+namespace {
+
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+}  // namespace
+
+extern "C" {
+
+void __fastcall Panel7ca228_Update(u8 *self) {
+    const u8 *const thing = global<const u8 *>(0x007c2658);
+    void *const *const table = at<void *const *>(at<u8 *>(self, 0x20), 0);
+    const u32 value = vcall<u32>(self, 0x34);
+    // sic: the object's vtable from before the call, the object read again after it
+    reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>(table[9])(at<u8 *>(self, 0x20), nullptr, value);
+    const u32 shown = (at<u8>(thing, 0x32) & 0x10) ? 1 : 0;
+    Window_SetShown(Window_FindChild(at<u8 *>(self, 0x10), nullptr, 0x1581), nullptr, shown);
+    vcall<void>(self, 0x18);
+    vcall<void>(self, 0x14);
+}
+
+}

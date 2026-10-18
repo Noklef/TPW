@@ -37,6 +37,19 @@ s32 __fastcall WindowImpl_Release(u8 *impl);
 // (1 for no window). Only AX is set.
 u16 __fastcall Window_IsShown(u8 *window);
 
+// 0x65d90b (thiscall (shown: a word), pops 4; recursive; name unconfirmed): a window told it is shown or hidden: unless it is hidden (flag 0
+// of +0x48 clear) and shown is not 0, its object +0x98's slot 5 and then +0x9c's (when set) get shown, the handler +0x114 (when set) gets
+// (window, 0x11, shown, 0), then each child (+0x5c, next +0x54 read after its call) in turn. The objects' arguments are pushed as dwords
+// whose upper halves are left over (sic): +0x98's from EDX (the caller's, here `edx`, when the window is hidden; else shown's sign), +0x9c's
+// from ECX (the window, or what +0x98's slot left in it). Each child is entered with EDX the window (the first) or the previous child.
+void __fastcall Window_NotifyShown(u8 *window, void *edx, u32 shown);
+
+// 0x65d9dd (thiscall (shown: a word, any non-zero 1), pops 4; name unconfirmed): nothing when flag 0 of +0x48 already says so; else the flag
+// set or cleared, the window told (Window_NotifyShown, EDX the window's upper half and shown) when hiding or when it and its parents are now
+// shown (Window_IsShown), the hover updated (Window_UpdateHover), and on hiding the manager [0x77c48c]'s slot 13 (window). Returns 1 in AX,
+// the upper half of EAX the manager slot's result when hiding, else 0.
+u32 __fastcall Window_SetShown(u8 *window, void *, u32 shown);
+
 // 0x65bc90 (thiscall; name unconfirmed): the rectangle at +8 copied to the one at +0x2c (GuiRect_Assign); returns +0x2c.
 u8 *__fastcall Window_SaveRect(u8 *window);
 
@@ -58,6 +71,37 @@ void __cdecl Window_SaveInsetRect(u8 *window, s32 dx, s32 dy);
 // called with the parent's words +0xc and +0xe (sic: pushed as dwords whose upper halves are the parent's address for the first and the
 // previous one's, the window's at first, for the second). EAX is left as the last parent, or the window when there is none.
 u8 *__fastcall Window_OffsetByParents(u8 *window, void *, u8 *rect);
+
+// 0x65c7fe (thiscall (dx, dy: words), pops 8; name unconfirmed): moves the window and its children: 0 when both are 0; otherwise slot 2
+// (GuiRect_Offset) of the rectangles +8, +0x44 (unless it is +8) and +0x2c (the original pushes the words as dwords whose upper halves are
+// what the registers held; the GUI rectangles read only the words, and these pass 0), the words +0xe4 / +0xe6 moved too, then an event
+// on the stack (its words +0xc / +0xe those two, +0x14 the rectangle +8, then +0x2c; the rest unset) to the objects +0x98 and +0x9c when
+// set (slot 3 with 0x50), message 0x13 (dx, dy sign-extended; Window_SendMessage), and each child (+0x5c, then +0x54) moved the same way.
+// 1 in AX; the upper half of EAX is the last child's result's, or the window's for none.
+u32 __fastcall Window_Offset(u8 *window, void *, u32 dx, u32 dy);
+
+// 0x65c388 (thiscall (object), pops 4; name unconfirmed): nothing when the object is +0x4c already; else +0x4c = object and the objects
+// +0x98 and +0x9c (when set) told by slot 3 (0x10000, an event on the stack whose +0x10 points to a second one on the stack with its byte
+// +8 the object's byte +0x10, or 0xff for none; the rest of both unset). EAX not kept.
+void __fastcall Window_Set4c(u8 *window, void *, u8 *object);
+
+// 0x65c428 (thiscall (a, b: bytes), pops 8; name unconfirmed): with an object +0x98 or +0x9c set, each set one told by slot 3 (0xc00,
+// an event on the stack whose +0x10 points to a second one with the bytes +4 = a and +5 = b; the rest unset). EAX not kept.
+void __fastcall Window_NotifyC00(u8 *window, void *, u32 a, u32 b);
+
+// 0x65c4b9 (thiscall (a, b: bytes), pops 8; name unconfirmed): as Window_NotifyC00 with 0x3000 and the bytes at +6 / +7.
+void __fastcall Window_Notify3000(u8 *window, void *, u32 a, u32 b);
+
+// 0x65c54a (thiscall (a: a byte), pops 4; name unconfirmed): as Window_NotifyC00 with 0x20000 and the one byte at +9.
+void __fastcall Window_Notify20000(u8 *window, void *, u32 a);
+
+// 0x65d1c8 (thiscall (impl), pops 4; name unconfirmed): nothing when impl is +0x9c already. The old one (when set) let go
+// (WindowImpl_Release), and when that answers -1 (as a word) +0x98's slot 0 (1) called when +0x98 is set (sic: not the old one's).
+// +0x9c = impl; when set: Fn_6617f0 on it (+0x12 = 1), then its slot 3 (flags, an event on the stack: the words +4 = 0, +6 = the
+// word +0xe0 + 1, +8 = +0xe2, +0xc / +0xe = +0xe4 / +0xe6, +0x14 = the window + 0x2c and +0x18 = the flags 0x57; with +0x4c set, flags
+// | 0x10000 and +0x10 points to a second event on the stack whose byte +8 is +0x4c's byte +0x10) and, when the window is shown
+// (Window_IsShown), its slot 5 (1). EAX not kept.
+void __fastcall Window_SetImpl(u8 *window, void *, u8 *impl);
 
 // 0x65bcad (thiscall (parent, flags, id, left, top, right, bottom: words), pops 28; name unconfirmed): the constructor: five rectangles
 // (+8, +0x14, +0x20, +0x2c, +0x38; GuiRect_Ctor), the vtable 0x705980, the flags at +0x48, the parent at +0x60, the id at +0x8c, the

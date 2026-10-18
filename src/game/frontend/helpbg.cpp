@@ -2,8 +2,10 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
 #include "../core/vcall.h"
 #include "../ui/frame.h"
+#include "../ui/guirect.h"
 #include "../ui/window.h"
 
 namespace {
@@ -29,6 +31,36 @@ void __fastcall HelpBg_SetInterval(u8 *self, void *, u32 value) {
     if (at<u16>(self, 0xc) == 0) return;
     Frame_SetInterval(self, nullptr, value);
     vcall<void>(self, 0);
+}
+
+void __fastcall HelpBg_Close(u8 *self) {
+    if (at<u16>(self, 0xc) == 0) return;
+    if (u8 *const window = at<u8 *>(self, 0x18)) Window_SetShown(window, nullptr, 0);
+    Fn_669f94(self);
+}
+
+void __fastcall HelpBg_Show(u8 *self) {
+    if (at<u16>(self, 0xc) == 0) return;
+    Fn_66a002(self);
+    Window_SetShown(at<u8 *>(self, 0x18), nullptr, 1);
+}
+
+void __fastcall HelpBg_Hide(u8 *self) {
+    if (at<u16>(self, 0xc) == 0) return;
+    Frame_Stop(self);
+    Window_SetShown(at<u8 *>(self, 0x18), nullptr, 0);
+}
+
+u32 __fastcall HelpBg_MoveTo(u8 *self, void *, u32 x, u32 y) {
+    if (!at<u8 *>(self, 0x18)) return 0;
+    u8 rect[12];
+    GuiRect_Ctor(rect);
+    Window_GetRect(at<u8 *>(self, 0x18), nullptr, rect, 1);
+    const u32 left = at<u32>(rect, 4), top = at<u32>(rect, 6);  // (dwords: left with top, top with right)
+    if ((u16)x == 0xffff) x = left;
+    if ((u16)y == 0xffff) y = top;
+    Window_Offset(at<u8 *>(self, 0x18), nullptr, x - left, y - top);
+    return GuiRect_Dtor(rect);
 }
 
 s32 __cdecl HelpBg_WindowHandler(u8 *window, u32 message, u32 a, u32 b) {

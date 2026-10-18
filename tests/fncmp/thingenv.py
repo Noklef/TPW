@@ -15,8 +15,8 @@ WORLD_PTRS = (0x80239c, 0x7cf83c)   # the world pointers the callers load into E
 CELLS = RAM + 0x30000     # the map cells (0x44 bytes, 128 to a row) the analyser test looks the things' columns and rows up in
 
 
-def park(r, count=None, kinds=(3, 3, 3, 1, 2, 0xff, 0), defs=True, cells=False):
-    """(regions, handles newest first, thing addresses newest first)."""
+def park(r, count=None, kinds=(3, 3, 3, 1, 2, 0xff, 0), defs=True, cells=False, pool=POOL):
+    """(regions, handles newest first, thing addresses newest first); the things at pool (POOL unless a bench needs that room)."""
     count = r.choice([0, 1, 2, 3, 4, 6]) if count is None else count
     handles = r.sample(range(1, 12), count)
     slots = bytearray(r.bytes(20 * 12))
@@ -27,8 +27,8 @@ def park(r, count=None, kinds=(3, 3, 3, 1, 2, 0xff, 0), defs=True, cells=False):
     for i, h in enumerate(handles):
         nxt = SLOTS + 20 * handles[i + 1] if i + 1 < count else 0
         prv = SLOTS + 20 * handles[i - 1] if i else 0
-        put(slots, 20 * h, 'IIIII', POOL + THING * i, h, nxt, prv, 0)
-        addrs.append(POOL + THING * i)
+        put(slots, 20 * h, 'IIIII', pool + THING * i, h, nxt, prv, 0)
+        addrs.append(pool + THING * i)
         t = THING * i
         put(things, t, 'H', h)
         things[t + 2] = r.choice(kinds)
@@ -45,7 +45,7 @@ def park(r, count=None, kinds=(3, 3, 3, 1, 2, 0xff, 0), defs=True, cells=False):
             col, row = r.choice([0, 1, 127, 128, 255, r.randrange(256)]), r.randrange(4)
             things[THING * i + 5], things[THING * i + 7] = col, row
             put(grid, ((row << 7) + col) * 0x44 + 8, 'I', r.choice([0, 1, 2, 3, 4, 5, 8, 9, 0xa, 0xb, 0x109]))
-    regions = {SLOTS: slots, POOL: things, USED: struct.pack('<I', SLOTS + 20 * handles[0] if count else 0)}
+    regions = {SLOTS: slots, pool: things, USED: struct.pack('<I', SLOTS + 20 * handles[0] if count else 0)}
     for g in WORLD_PTRS:
         regions[g] = struct.pack('<I', RAM)
     if cells:

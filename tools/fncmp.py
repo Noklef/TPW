@@ -368,6 +368,30 @@ def blob(log, k, arg, mask):
     struct.pack_into('<II', log, LOG_BLOBS + 8 * (k & 63), arg + 1, mask)
 
 
+def blob_bytes(log, k, arg, mask, inner=None):
+    """As blob(), but `mask` selects bytes 0-31 (bit i: byte i), and inner = (offset, mask) also hashes bytes 0-14 of the structure that the pointer at that
+    offset points to (unless null): an event on the stack that points to a second one, both only partly set."""
+    at, inner_mask = inner or (-1, 0)
+    struct.pack_into('<II', log, LOG_BLOBS + 8 * (k & 63), 0x80000000 | (arg + 1) | (at + 1) << 8 | (inner_mask & 0x7fff) << 16, mask)
+
+
+def bytes_hash(h, data, mask):
+    for i in range(32):
+        if mask >> i & 1:
+            h = ((h ^ data[i]) * 0x01000193) & 0xffffffff
+    return h
+
+
+def blob_bytes_hash(read, p, how, mask):
+    h = bytes_hash(0x811c9dc5, read(p, 32), mask)
+    at = how >> 8 & 0xff
+    if at:
+        inner = struct.unpack('<I', read(p + at - 1, 4))[0]
+        if inner:
+            h = bytes_hash(h, read(inner, 15), how >> 16 & 0x7fff)
+    return h
+
+
 def blob_hash(read, p, mask):
     h = 0x811c9dc5
     for i in range(32):
@@ -427,8 +451,8 @@ def _log_args(e, k, raw):
                     e.write(args[i], struct.pack('<I', raw[fn & 0xff] if (fn & 0xff) < n else 0))
                 else:
                     e.write(args[i], e.read(at + 0x10, min(fn, 0x70)))
-        if blob_arg == i + 1 and args[i]:
-            args[i] = blob_hash(e.read, args[i], blob_mask)
+        if (blob_arg & 0xff) == i + 1 and args[i]:
+            args[i] = blob_bytes_hash(e.read, args[i], blob_arg, blob_mask) if blob_arg & 0x80000000 else blob_hash(e.read, args[i], blob_mask)
         if mask >> i & 1:
             args[i] = string_hash(e.read, args[i])
         if mask >> (16 + i) & 1:

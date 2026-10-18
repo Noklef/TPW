@@ -69,6 +69,7 @@ add_library(tpw_game STATIC
     src/game/files/gamepaths.cpp
     src/game/files/direntry.cpp
     src/game/files/userslots.cpp
+    src/game/files/chunkfile.cpp
     src/game/core/regkey.cpp
     src/game/core/stdstring.cpp
     src/game/core/globalmem.cpp
@@ -143,6 +144,7 @@ add_library(tpw_game STATIC
     src/game/core/framecountdown.cpp
     src/game/ui/panel7cc328.cpp
     src/game/core/wscanner.cpp
+    src/game/core/soundplay.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -353,6 +355,10 @@ add_library(tpw_game STATIC
     src/game/ui/thingpreview.cpp
     src/game/ui/listrows.cpp
     src/game/ui/frame.cpp
+    src/game/ui/dialog7cb398.cpp
+    src/game/ui/panel7ca228.cpp
+    src/game/ui/cursor.cpp
+    src/game/ui/textbutton.cpp
 )
 
 # Proxy dinput.dll that loads into tp.exe and installs the hooks.

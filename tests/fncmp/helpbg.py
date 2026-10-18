@@ -2,22 +2,54 @@
 # default handler +0x118 fncmp's logger (its result now and then set), its object A0[0] a recorder (slot 15), the message 0x14 often.
 # SetInterval / FrameSetInterval (0x492160, src/game/ui/frame's 0x66a084): the words +4 / +0xc set or not, slot 0 and the clock recorders. (Its HelpBg_Refresh, 0x492320, is
 # benched with the virtual call forwarders in vcall_forwards.py.)
-# usage: helpbg.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Clear,Handler,SetInterval,FrameSetInterval)
+# Close / Show / Hide / FrameStop (0x492130, 0x4922e0, 0x492300, ui/frame's 0x66a016): window.py's tree for Window_SetShown, the words set or not.
+# MoveTo (0x492330): window.py's tree for Window_Offset (offset_env), the window +0x18 one of it or none, x and y words 0xffff or not.
+# usage: helpbg.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Clear,Handler,SetInterval,FrameSetInterval,Close,Show,Hide,FrameStop,MoveTo)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import CDECL_LOG4, LOG, Bench, Call, RAM, log_region, put, set_return, vtable  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from window import RANGES as WINDOW_RANGES, offset_env, shown_env, word  # noqa: E402
 
-CALLS = {'Clear': 0x4922d0, 'Handler': 0x491fe0, 'SetInterval': 0x492160, 'FrameSetInterval': 0x66a084}
+CALLS = {'Clear': 0x4922d0, 'Handler': 0x491fe0, 'SetInterval': 0x492160, 'FrameSetInterval': 0x66a084, 'Close': 0x492130, 'Show': 0x4922e0,
+         'Hide': 0x492300, 'FrameStop': 0x66a016, 'MoveTo': 0x492330}
 B = Bench([(0x4922d0, 0x4922e0), (0x491fe0, 0x492014), (0x65e705, 0x65e73d), (0x65f66e, 0x65f697), (0x492160, 0x49217c), (0x66a084, 0x66a0b9),
-           (0x65968e, 0x6596a2)])
+           (0x65968e, 0x6596a2), (0x492130, 0x492151), (0x4922e0, 0x492320), (0x66a016, 0x66a040), (0x669f94, 0x669fa8),
+           (0x66a002, 0x66a016), (0x492330, 0x4923c5)] + WINDOW_RANGES)
 WINDOW, OBJECT, VTABLE = RAM + 0x100, RAM + 0x300, RAM + 0x400
+FRAME = 0x30008000
 
 
 def case(r):
     op = r.deal(OPS)
+    if op == 'MoveTo':
+        log = log_region()
+        regions = {LOG: log}
+        wins = offset_env(r, regions, log)
+        obj = bytearray(r.bytes(0x20))
+        window = r.choice(wins + [0])
+        put(obj, 0x18, 'I', window)
+        regions[FRAME] = obj
+        x, y = (r.choice([word(r), word(r), 0xffff | r.getrandbits(16) << 16]) for _ in range(2))
+        # (with the window EAX is the rectangle's destructor's: a stack address, which differs between the sides)
+        return Call(CALLS[op], [FRAME, x, y], regions, conv='t', ret='v' if window else 'a')
+    if op in ('Close', 'Show', 'Hide', 'FrameStop'):   # window.py's tree for Window_SetShown; the words +4 / +6 / +0xc set or not, the window +0x18 one of
+        log = log_region()  # the tree's (or none for Close), the object's slot 1 a recorder
+        regions = {LOG: log}
+        wins = shown_env(r, regions, log)
+        obj = bytearray(r.bytes(0x20))
+        put(obj, 0, 'I', FRAME + 0x40)
+        for off in (4, 6, 0xc):
+            put(obj, off, 'H', r.choice([0, 0, 1, 1, 0x100, 0x8000, r.getrandbits(16)]))
+        put(obj, 0x18, 'I', r.choice(wins + ([0] if op == 'Close' else [])))
+        regions[FRAME] = obj
+        regions[FRAME + 0x40] = vtable({}, size=8)
+        if r.random() < 0.5:
+            set_return(log, 1, r.getrandbits(32))
+        return Call(CALLS[op], [FRAME], regions, conv='t', ret='a' if op == 'FrameStop' else 'v')
     if op in ('SetInterval', 'FrameSetInterval'):   # the words +4 / +0xc 0 or not (upper bytes too), slot 0 and the clock [0x77c490] recorders
         log = log_region()
         obj = bytearray(r.bytes(0x20))

@@ -32,6 +32,7 @@
 #include "../game/files/wrapsources.h"
 #include "../game/files/wadsource.h"
 #include "../game/files/bufsource.h"
+#include "../game/files/chunkfile.h"
 #include "../game/files/direntry.h"
 #include "../game/files/filestream.h"
 #include "../game/files/gamepaths.h"
@@ -161,6 +162,7 @@
 #include "../game/core/gameerror.h"
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
+#include "../game/core/soundplay.h"
 #include "../game/core/stringmapsrecord.h"
 #include "../game/core/wscanner.h"
 #include "../game/core/wtraits.h"
@@ -320,6 +322,7 @@
 #include "../game/online/ftp.h"
 #include "../game/online/session.h"
 #include "../game/ui/dialog7ca1c8.h"
+#include "../game/ui/dialog7cb398.h"
 #include "../game/ui/dialogs.h"
 #include "../game/ui/frame.h"
 #include "../game/ui/guidialog.h"
@@ -329,12 +332,15 @@
 #include "../game/ui/listrows.h"
 #include "../game/ui/msgqueue.h"
 #include "../game/ui/panel7b9940.h"
+#include "../game/ui/panel7ca228.h"
 #include "../game/ui/panel7cc328.h"
 #include "../game/ui/textpool.h"
 #include "../game/ui/thingpreview.h"
 #include "../game/ui/window.h"
 #include "../game/ui/window705a50.h"
 #include "../game/ui/windowreg.h"
+#include "../game/ui/cursor.h"
+#include "../game/ui/textbutton.h"
 #include "../game/ui/windowtimers.h"
 
 namespace tpw::hook {
@@ -2408,6 +2414,7 @@ const Hook kHooks[] = {
     {"Class703c18_Ctor",          0x00633120, (void *)&Class703c18_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0x88}},
     {"WString_CtorReturning",     0x005c7490, (void *)&WString_CtorReturning, {0x56, 0x8b, 0xf1, 0xe8, 0x88}},
     {"DirEntry_IsRealDir",        0x005c5230, (void *)&DirEntry_IsRealDir, {0x8b, 0x44, 0x24, 0x04, 0xf6}},
+    {"ChunkFile_ReadStream",      0x004d3860, (void *)&ChunkFile_ReadStream, {0x83, 0xec, 0x18, 0x53, 0x55}},
     {"Class70295c_Ctor",          0x005c9040, (void *)&Class70295c_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0x78}},
     {"Obj_SwapPair",              0x005d03b0, (void *)&Obj_SwapPair, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Obj_ChooseVector",          0x005dd3d0, (void *)&Obj_ChooseVector, {0x8b, 0x41, 0x58, 0x85, 0xc0}},
@@ -3785,6 +3792,10 @@ const Hook kHooks[] = {
     {"CommandLine_Parse",         0x0040f000, (void *)&CommandLine_Parse, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"WScanner_SetText",          0x005e6b30, (void *)&WScanner_SetText, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"WKeywordPair_Ctor",         0x005e73f0, (void *)&WKeywordPair_Ctor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Sound_PlayAt",              0x0051bfc0, (void *)&Sound_PlayAt, {0xa1, 0xc8, 0x2b, 0x80, 0x00}},
+    {"Sound_PlayAtRange",         0x0051c130, (void *)&Sound_PlayAtRange, {0xa1, 0xc8, 0x2b, 0x80, 0x00}},
+    {"SoundUi_Play",              0x00485aa0, (void *)&SoundUi_Play, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"SoundUi_Play1d",            0x00486ae0, (void *)&SoundUi_Play1d, {0xa1, 0x2c, 0x3a, 0x80, 0x00}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -3962,6 +3973,7 @@ const Hook kHooks[] = {
     {"ParticlePool2_Empty",       0x005edac0, (void *)&ParticlePool2_Empty, {0x6a, 0x00, 0x6a, 0x00, 0x6a}},
     {"ParticlePools_Reset",       0x005ed580, (void *)&ParticlePools_Reset, {0x57, 0xb9, 0x33, 0x00, 0x00}},
     {"ParticlePool_Move",         0x005ed660, (void *)&ParticlePool_Move, {0x8b, 0x44, 0x24, 0x08, 0x56}},
+    {"Particle_SpawnAtWindow",    0x00486b90, (void *)&Particle_SpawnAtWindow, {0x6a, 0xff, 0x68, 0x48, 0x92}},
     {"SceneFlags_Touch",          0x005836b0, (void *)&SceneFlags_Touch, {0xa1, 0x40, 0xcc, 0x8b, 0x00}},
     {"Render_FogOn",              0x005d9680, (void *)&Render_FogOn, {0xa1, 0xc8, 0xcb, 0x8b, 0x00}},
     {"Render_FogOff",             0x005d9690, (void *)&Render_FogOff, {0xa1, 0xc8, 0xcb, 0x8b, 0x00}},
@@ -4353,6 +4365,10 @@ const Hook kHooks[] = {
     {"HelpBg_Refresh",            0x00492320, (void *)&HelpBg_Refresh, {0x66, 0x83, 0x79, 0x04, 0x00}},
     {"HelpBg_WindowHandler",      0x00491fe0, (void *)&HelpBg_WindowHandler, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"HelpBg_SetInterval",        0x00492160, (void *)&HelpBg_SetInterval, {0x56, 0x8b, 0xf1, 0x66, 0x83}},
+    {"HelpBg_Close",              0x00492130, (void *)&HelpBg_Close, {0x56, 0x8b, 0xf1, 0x66, 0x83}},
+    {"HelpBg_Show",               0x004922e0, (void *)&HelpBg_Show, {0x56, 0x8b, 0xf1, 0x66, 0x83}},
+    {"HelpBg_Hide",               0x00492300, (void *)&HelpBg_Hide, {0x56, 0x8b, 0xf1, 0x66, 0x83}},
+    {"HelpBg_MoveTo",             0x00492330, (void *)&HelpBg_MoveTo, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Class702af0_AcquireModels", 0x005da120, (void *)&Class702af0_AcquireModels, {0x53, 0x8b, 0xd9, 0x8b, 0x43}},
     {"Class702ca8_AcquireModels", 0x005dfca0, (void *)&Class702ca8_AcquireModels, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"Class702cb0_StartPendingPlay", 0x005e1350, (void *)&Class702cb0_StartPendingPlay, {0x56, 0x8b, 0xf1, 0x33, 0xc0}},
@@ -4404,6 +4420,14 @@ const Hook kHooks[] = {
     {"Window_KillFocus",          0x0065e5fa, (void *)&Window_KillFocus, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Gui_MouseDown",             0x00658af1, (void *)&Gui_MouseDown, {0x55, 0x8b, 0xec, 0x83, 0x3d}},
     {"Gui_MouseUp",               0x00658b5b, (void *)&Gui_MouseUp, {0x55, 0x8b, 0xec, 0x83, 0x3d}},
+    {"Window_NotifyShown",        0x0065d90b, (void *)&Window_NotifyShown, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window_SetShown",           0x0065d9dd, (void *)&Window_SetShown, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window_Offset",             0x0065c7fe, (void *)&Window_Offset, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window_Set4c",              0x0065c388, (void *)&Window_Set4c, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window_NotifyC00",          0x0065c428, (void *)&Window_NotifyC00, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window_SetImpl",            0x0065d1c8, (void *)&Window_SetImpl, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window_Notify3000",         0x0065c4b9, (void *)&Window_Notify3000, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window_Notify20000",        0x0065c54a, (void *)&Window_Notify20000, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Dialog7ca1c8_SetChecks",    0x00498090, (void *)&Dialog7ca1c8_SetChecks, {0x8b, 0x0d, 0xc8, 0xa1, 0x7c}},
     {"Dialog7ca1c8_SetChecksIfUp", 0x00498a50, (void *)&Dialog7ca1c8_SetChecksIfUp, {0xa1, 0xc8, 0xa1, 0x7c, 0x00}},
     {"Dialog7ca1c8_SetChecksIfUpThis", 0x00481a00, (void *)&Dialog7ca1c8_SetChecksIfUpThis, {0x8b, 0x44, 0x24, 0x04, 0x50}},
@@ -4432,6 +4456,7 @@ const Hook kHooks[] = {
     {"Dialog7cb2b8_Handler",      0x004a0a20, (void *)&Dialog7cb2b8_Handler, {0x6a, 0xff, 0x68, 0xe8, 0xa3}},
     {"Window_DefaultHandler",     0x004a0a90, (void *)&Window_DefaultHandler, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
     {"Dialog7ca168_ShowText",     0x00496570, (void *)&Dialog7ca168_ShowText, {0x8b, 0x0d, 0x68, 0xa1, 0x7c}},
+    {"Windows7cc8bc_SelectSecond", 0x004bce80, (void *)&Windows7cc8bc_SelectSecond, {0xa1, 0xbc, 0xc8, 0x7c, 0x00}},
     {"GuiManager_Word4Set",       0x00659631, (void *)&GuiManager_Word4Set, {0x55, 0x8b, 0xec, 0x8b, 0x0d}},
     {"GuiManager_CallSlot3",      0x0065961c, (void *)&GuiManager_CallSlot3, {0x55, 0x8b, 0xec, 0xa1, 0x8c}},
     {"GuiManager_CallSlot4",      0x00659607, (void *)&GuiManager_CallSlot4, {0x55, 0x8b, 0xec, 0xa1, 0x8c}},
@@ -4490,6 +4515,17 @@ const Hook kHooks[] = {
     {"List7cc188_NewRow",         0x004a8380, (void *)&List7cc188_NewRow, {0x6a, 0xff, 0x68, 0xdb, 0xa7}},
     {"HilightList_NewRow",        0x00480d30, (void *)&HilightList_NewRow, {0x6a, 0xff, 0x68, 0xcb, 0x90}},
     {"Frame_SetInterval",         0x0066a084, (void *)&Frame_SetInterval, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Frame_Stop",                0x0066a016, (void *)&Frame_Stop, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Dialog7cb398_ShowTopThree", 0x004a4ab0, (void *)&Dialog7cb398_ShowTopThree, {0x8b, 0x0d, 0x98, 0xb3, 0x7c}},
+    {"Panel7ca228_Update",        0x00499b40, (void *)&Panel7ca228_Update, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
+    {"Window_SetCursor",          0x0065f11d, (void *)&Window_SetCursor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Gui_SetCursor",             0x006590f7, (void *)&Gui_SetCursor, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"CursorTable_Get",           0x00661d96, (void *)&CursorTable_Get, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Obj7b51f0_SetCursor",       0x004814a0, (void *)&Obj7b51f0_SetCursor, {0xa1, 0xac, 0xb2, 0x7c, 0x00}},
+    {"GameCursor_Set",            0x004a2aa0, (void *)&GameCursor_Set, {0x8b, 0x0d, 0xac, 0xb2, 0x7c}},
+    {"Window_ApplyCursor",        0x0065f150, (void *)&Window_ApplyCursor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GameCursor_Update",         0x0052f950, (void *)&GameCursor_Update, {0xa1, 0x2c, 0xae, 0x81, 0x00}},
+    {"TextButton_Handler",        0x00492d80, (void *)&TextButton_Handler, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

@@ -78,6 +78,10 @@ void __cdecl Windows7c26b0_Message5();
 // message 6 (!same, 0) to [0x7cc8c0] (Window_SendMessage; the second's result returned); then 0x7cc698 = 0.
 s32 __cdecl Windows7cc8bc_Message6Pair();
 
+// 0x4bce80 (cdecl; called from 0x4e6ad0; name unconfirmed): message 6 (0, 0) to the window [0x7cc8bc] and message 6 (1, 0) to [0x7cc8c0]
+// (Window_SendMessage), the byte 0x7cc6a0 = 1, then [0x7cc8c0] (read again) takes the focus (Window_SetFocus(0)), whose result is returned.
+u32 __cdecl Windows7cc8bc_SelectSecond();
+
 // 0x4bcec0 (cdecl): the window 0x7cc698 (that Windows7cc8bc_Message6Pair compares) = [0x7cc8b8] if set, else [0x7cc8bc] if the byte
 // 0x7cc8b4 is set, else [0x7cc8c0]. Returns the value stored in the first two cases, else 0.
 u32 __cdecl Global7cc698_Choose();

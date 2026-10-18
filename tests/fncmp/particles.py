@@ -3,6 +3,7 @@
 # handles live, stale (serial off), past the slots or 0, before and after set-up; effect numbers
 # about 0x69; ages and lifetimes about the quarters, negative and zero.
 # usage: particles.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Alive,Effector,...)
+# AtWindow (0x486b90): Spawn's set-up and a window (rectangle and insets random) through the GUI rectangle code.
 import os
 import struct
 import sys
@@ -14,16 +15,18 @@ RANGES = [(0x5222e0, 0x52231b), (0x522320, 0x522356), (0x51fd80, 0x51fd8a), (0x5
           (0x51feb0, 0x51ff06), (0x51ff10, 0x51ff68), (0x51ff70, 0x51ffc6), (0x51ffd0, 0x520028),
           (0x520470, 0x5204ba), (0x51fe30, 0x51fea4), (0x520030, 0x5200a4), (0x51fd90, 0x51fe2d), (0x5200b0, 0x520123), (0x5204c0, 0x52055f), (0x521810, 0x521845), (0x521850, 0x52188a), (0x520e00, 0x520f0c),
           (0x520560, 0x520d60), (0x520d60, 0x520e00), (0x521e60, 0x5222e0), (0x521d60, 0x521e60), (0x522360, 0x5224f0),
-          (0x5214a0, 0x521807), (0x521890, 0x521930), (0x5da3c0, 0x5da3c1), (0x521930, 0x521d54), (0x520f10, 0x5214a0), (0x520130, 0x520469), (0x5224f0, 0x5226fa)]
+          (0x5214a0, 0x521807), (0x521890, 0x521930), (0x5da3c0, 0x5da3c1), (0x521930, 0x521d54), (0x520f10, 0x5214a0), (0x520130, 0x520469), (0x5224f0, 0x5226fa),
+          (0x486b90, 0x486c70), (0x659d00, 0x659d43), (0x659d90, 0x659dbc), (0x65a9d0, 0x65aa00), (0x65aa20, 0x65aa90), (0x66bff7, 0x66c00b),
+          (0x65d42e, 0x65d49e), (0x65d773, 0x65d7bc), (0x65a43e, 0x65a493)]
 B = Bench(RANGES)
 SYSTEMS, EFFECTS, EFFECTORS, SETUP = 0x80cefc, 0x804370, 0x816504, 0x816d40
 CALLS = {'Alive': 0x5222e0, 'Effector': 0x522320, 'Reduced': 0x51fd80, 'Clear': 0x51fa80, 'End': 0x51feb0,
-         'Age': 0x51ff70, 'Set2a': 0x51ff10, 'SetA2': 0x51ffd0, 'Quarter': 0x520470, 'VecA': 0x51fe30, 'VecB': 0x520030, 'Scaled': 0x51fd90, 'EndAll': 0x5200b0, 'Release': 0x5204c0, 'RandS': 0x521810, 'Rand': 0x521850, 'Move': 0x520e00, 'Emit': 0x520560, 'Spawn': 0x521e60, 'Update': 0x5214a0, 'SpawnVel': 0x521930, 'Effectors': 0x520f10, 'Tick': 0x520130}
+         'Age': 0x51ff70, 'Set2a': 0x51ff10, 'SetA2': 0x51ffd0, 'Quarter': 0x520470, 'VecA': 0x51fe30, 'VecB': 0x520030, 'Scaled': 0x51fd90, 'EndAll': 0x5200b0, 'Release': 0x5204c0, 'RandS': 0x521810, 'Rand': 0x521850, 'Move': 0x520e00, 'Emit': 0x520560, 'Spawn': 0x521e60, 'Update': 0x5214a0, 'SpawnVel': 0x521930, 'Effectors': 0x520f10, 'Tick': 0x520130, 'AtWindow': 0x486b90}
 NODES, SINES = RAM + 0x1000, RAM + 0x2000
 
 
 def case(r):
-    op = r.choice(OPS)
+    op = r.deal(OPS)
     setup = bytearray(r.bytes(0x10))
     put(setup, 0, 'I', r.choice([0, 1, 1, 1, r.getrandbits(32)]))
     if op == 'Reduced':
@@ -50,6 +53,16 @@ def case(r):
         return pull(r)
     if op == 'Tick':
         return tick(r)
+    if op == 'AtWindow':  # 0x486b90: Spawn's cases at a window's centre: its rectangle and insets small or edges, shown or not (no parents)
+        c = spawn(r)
+        win = bytearray(r.bytes(0x120))
+        for k in list(range(0xc, 0x14, 2)) + list(range(0xf8, 0x100, 2)):
+            put(win, k, 'h', r.choice([0, 1, 2, 5, 0x7fff, -0x8000, -1, r.randrange(-50, 50), r.randrange(-700, 700), r.randrange(-700, 700)]))
+        win[0x48] = r.choice([0, 0, 0, 1, 2, 3])
+        put(win, 0x60, 'I', 0)
+        c.regions[RAM + 0x3000] = win
+        c.regions[0x786b84] = struct.pack('<I', r.choice([0, 0, 0, 0, 1, 0x100, r.getrandbits(32)]))
+        return Call(0x486b90, [c.args[0], RAM + 0x3000], c.regions, ret='v')
     if op == 'SpawnVel':  # 0x521930: Spawn's cases with a velocity, the systems' scales about 1024
         c = spawn(r)
         defs = c.regions[0x804370]
