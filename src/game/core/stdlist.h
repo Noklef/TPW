@@ -14,6 +14,11 @@ void __fastcall StdListString_Clear(u8 *list);
 // 0x5cdf00 (thiscall; x, pops 4): a node holding a copy of x (the allocator byte, then assign(x, 0, npos)) is linked in front of the sentinel, the count raised.
 void __fastcall StdListString_PushBack(u8 *list, void *, const StdString *x);
 
+// 0x4a8ad0 (thiscall on the owner of a list of std::string at +0x10 (sentinel +0x14, count +0x18); chars, pops 4; name unconfirmed): a std::string
+// made of the characters (_Grow(strlen, true); its allocator byte the low byte of the chars pointer, sic) is copied (StdString_CopyCtor) into a node linked in
+// front of the sentinel, the count raised; then released.
+void __fastcall TokenList_PushChars(u8 *owner, void *, const char *chars);
+
 // 0x5d0330 (thiscall; out, before, x, pops 12): the same in front of the node before; *out = the new node.
 void __fastcall StdListString_Insert(u8 *list, void *, u8 **out, u8 *before, const StdString *x);
 

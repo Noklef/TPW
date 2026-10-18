@@ -97,6 +97,24 @@ void __fastcall StdListString_PushBack(u8 *list, void *, const StdString *x) {
     at<u32>(list, 8) += 1;
 }
 
+void __fastcall TokenList_PushChars(u8 *owner, void *, const char *chars) {
+    StdString temp;
+    *(u8 *)&temp = (u8)(uintptr_t)chars;
+    temp.ptr = nullptr;
+    temp.len = 0;
+    temp.res = 0;
+    const u32 n = (u32)strlen(chars);
+    if (StdString_Grow(&temp, nullptr, n, 1)) {
+        memcpy(temp.ptr, chars, n);
+        temp.len = n;
+        temp.ptr[n] = 0;
+    }
+    u8 *node = LinkBefore(at<u8 *>(owner, 0x14), 0x18);
+    StdString_CopyCtor((StdString *)(node + 8), nullptr, &temp);
+    at<u32>(owner, 0x18) += 1;
+    StdString_Dtor(&temp, nullptr);
+}
+
 void __fastcall StdListString_Insert(u8 *list, void *, u8 **out, u8 *before, const StdString *x) {
     u8 *node = LinkBefore(before, 0x18);
     CopyString(node, x);
