@@ -4501,6 +4501,7 @@ address,name,kind,confidence,notes
 0x0056b880,WorldView_SetRangeX,function,low,"reimplemented (src/game/render/worldview); thiscall (start, end, step; pops 0xc): +0x3c/+0x40/+0x4c set; unless the step is 0 or NaN +0x54 = __ftol((end - start) / step), +0x5c = that - 1"
 0x0056b8d0,WorldView_SetRangeY,function,low,"reimplemented (src/game/render/worldview); thiscall (start, end, step; pops 0xc): the same for +0x44/+0x48/+0x50 and +0x58/+0x60, computed twice (sic)"
 0x00563220,FixedVerts_Pack,function,low,"reimplemented (src/game/render/fixedverts); cdecl (verts, count, stride): transformed vertices packed in place to 0x18-byte fixed-point ones (x*32, y*16, z*65535, colour, u*16, v*16)"
+0x00563130,FixedVerts_PackRounded,function,low,"reimplemented (src/game/render/fixedverts); cdecl (verts, count, stride): FixedVerts_Pack's packing with x, y * 8 or 16 by the flags 0x8bd508, z * 32768, rounded to nearest through 0xfb34a0 / 0xfb34a4"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
