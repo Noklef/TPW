@@ -412,7 +412,7 @@ bool parse_line(u8 *self, char *&line, char *p, LineNames &names, const char *&m
         const u32 kind = type(self, index);
         if (kind == 0xb) {  // a map: the only field of its line
             if (count != 1) return false;
-            u8 *map;
+            u8 *map = nullptr;  // (set whenever ok is)
             u32 ok = 0;
             switch (at<u32>(key(self, index), 0x38)) {
             case 1:
