@@ -3624,6 +3624,7 @@ address,name,kind,confidence,notes
 0x005c5580,Strings5_JoinPath,function,low,"reimplemented (src/game/core/string); thiscall (name); +0x3c = +0x28 (vtable +0x18), a trailing backslash ensured, then name appended (vtable +0x28)"
 0x005e3170,String_ReadToken,function,low,"reimplemented (src/game/core/string); cdecl (out, cursor, delimiter): the chars from *cursor up to the delimiter appended (String vtable +0x24) to a string copied into out; the cursor left past the delimiter"
 0x005ed130,StringVector_InsertN,function,low,"reimplemented (src/game/core/string); thiscall on a vector of strings (position, count, value, pops 12): count copies of the value inserted at the position (grown into a new block of size + max(size, count), or in place by copy-constructing, assigning through slot 0x18 and, on growth, destroying through slot 0xc)"
+0x00424d10,WNames_Equal,function,low,"reimplemented (src/game/core/string); cdecl (a, b; name unconfirmed): whether the wide texts at +8 of a and b are equal, case blind"
 0x005bdc10,Class702938_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings
 0x005be320,Class702940_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three strings
 0x005be750,Class702948_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings

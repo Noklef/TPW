@@ -8,8 +8,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-CALLS = {'After': 0x424cc0, 'Equal': 0x424cf0, 'Mouth': 0x44b2e0}
-B = Bench([(0x424cc0, 0x424cf0), (0x424cf0, 0x424d10), (0x44b2e0, 0x44b3c0), (0x67df40, 0x67e040), (0x67faf0, 0x67fb20), (0x682720, 0x682780)])
+CALLS = {'After': 0x424cc0, 'Equal': 0x424cf0, 'WEqual': 0x424d10, 'Mouth': 0x44b2e0}
+B = Bench([(0x424cc0, 0x424cf0), (0x424cf0, 0x424d10), (0x424d10, 0x424d2e), (0x67b140, 0x67b237), (0x44b2e0, 0x44b3c0), (0x67df40, 0x67e040), (0x67faf0, 0x67fb20), (0x682720, 0x682780)])
 NAMES = [b'mouth - normal', b'mouth - aah', b'mouth - eee', b'mouth - ooh', b'mouth - sss', b'bug head']
 TEXTS, ARR = RAM + 0x1000, RAM + 0x2000
 
@@ -26,13 +26,20 @@ def varied(r, base):
     return bytes(s)
 
 
+def widen(r, s):
+    pick = lambda c: c if r.random() < 0.9 else r.choice([0x141, 0x161, 0xff21, 0xff41, 0xffff, c | 0x100])
+    return b''.join(pick(c).to_bytes(2, 'little') for c in s[:-1]) + b'\0\0'
+
+
 def case(r):
     name = r.choice(OPS)
     address = CALLS[name]
     regions = {}
-    if name in ('After', 'Equal'):
+    if name in ('After', 'Equal', 'WEqual'):
         base = r.choice(NAMES + [b'', b'Zz', b'abc\x80'])
         a, b = varied(r, base) + b'\0', varied(r, base) + b'\0'
+        if name == 'WEqual':   # wide: the odd unit above 0xff, which only matches itself
+            a, b = widen(r, a), widen(r, b)
         regions[TEXTS] = a + bytes(0x40 - len(a)) if len(a) < 0x40 else a
         regions[TEXTS + 0x100] = b + bytes(0x40)
         pa, pb = bytearray(0x20), bytearray(0x20)
