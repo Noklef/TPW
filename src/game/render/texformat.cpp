@@ -162,4 +162,21 @@ void __cdecl TexFormat_ConvertSquare(u16 *to, const u32 *from, u32 side) {
     default: EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754003);
     }
 }
+
+u32 __fastcall Masks_TopBits(u8 *object) {
+    auto top = [](u32 mask) {
+        u32 bit = 0x80000000;
+        while (!(mask & bit) && (bit >>= 1)) {
+        }
+        return bit;
+    };
+    const u32 red = top(at<u32>(object, 0x8fc));
+    at<u32>(object, 0x900) = red;
+    const u32 green = top(at<u32>(object, 0x904));
+    at<u32>(object, 0x908) = green;
+    const u32 blue = top(at<u32>(object, 0x90c));
+    at<u32>(object, 0x910) = blue;
+    at<u32>(object, 0x918) = blue | green | red;
+    return blue | green | red;
+}
 }
