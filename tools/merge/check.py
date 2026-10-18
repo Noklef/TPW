@@ -8,7 +8,8 @@ In order:
   2. kept: nothing the branch or main had is lost in the result. Per file: bench op names ('Name':) and hex addresses in
      tests/fncmp, hooks.cpp rows and includes, symbols.csv addresses, CMakeLists src/game entries. An item counts as lost when
      the branch dropped it from the merge base, or when either side has it and the result does not (unless main itself removed
-     it). Duplicates in the tables and lone CRs in hooks.cpp also fail;
+     it); a bench range end that a widened range covers is not lost. Duplicates in the tables, lone CRs in hooks.cpp, and a
+     module-level name bound twice in a bench (the merge of two sides' constants, which git does not see as a conflict) also fail;
   3. hooks: rows the branch added (its own count, for checking an agent's report against);
   4. build, tpw_tests, retcheck, convcheck;
   5. each bench the merge touches, at N cases (default 1000) seed 5, --both: every run must show 0 differ.
@@ -53,14 +54,45 @@ def items(text, pat):
     return {int(x, 16) if x.startswith('0x') else x for x in found}, collections.Counter(found)
 
 
+def ranges(text):
+    return [(int(a, 16), int(b, 16)) for a, b in re.findall(r'\((0x[0-9a-fA-F]+),\s*(0x[0-9a-fA-F]+)\)', text)]
+
+
+def top_names(text):
+    """Module-level names a bench binds more than once (assignments, defs): one side's constant silently redefined by the other's."""
+    import ast
+    c = collections.Counter()
+    try:
+        body = ast.parse(text).body
+    except SyntaxError:
+        return set()
+    for n in body:
+        if isinstance(n, ast.Assign):
+            for tg in n.targets:
+                c.update(e.id for e in (tg.elts if isinstance(tg, ast.Tuple) else [tg]) if isinstance(e, ast.Name))
+        elif isinstance(n, (ast.FunctionDef, ast.ClassDef)):
+            c[n.name] += 1
+    return {k for k, v in c.items() if v > 1}
+
+
 def kept(path, pats, base, branch, table):
     problems = []
+    texts = [show(r, path) for r in (base, 'HEAD', branch)]
+    result = worktree(path)
+    bench = path.startswith('tests/')
+    if bench:
+        twice = top_names(result) - top_names(texts[1]) - top_names(texts[2])
+        if twice:
+            problems.append('%s binds %s twice at module level (one side redefines the other\'s)' % (path, sorted(twice)))
+    # A bench range's end that a widened range now covers is not lost (a branch that grows (lo, x) to (lo, y) drops x as text only).
+    bounds = {x for t in texts for r in ranges(t) for x in r} if bench else set()
+    spans = ranges(result) if bench else []
     for pat in pats:
-        b, h, t = (items(show(r, path), pat)[0] for r in (base, 'HEAD', branch))
-        res, counts = items(worktree(path), pat)
-        dropped = (b - t) - res if path.startswith('tests/') else b - t
+        b, h, t = (items(x, pat)[0] for x in texts)
+        res, counts = items(result, pat)
+        dropped = (b - t) - res if bench else b - t
         lost = (h | t) - res - (b - h)
-        bad = sorted(dropped | lost, key=str)
+        bad = sorted((x for x in dropped | lost if not (x in bounds and any(lo <= x <= hi for lo, hi in spans))), key=str)
         if bad:
             problems.append('%s lost %s' % (path, ', '.join('%x' % x if isinstance(x, int) else x for x in bad[:8])))
         dups = [k for k, v in counts.items() if v > 1] if table else []
@@ -73,6 +105,7 @@ def main():
     a = sys.argv[1:]
     if not a or a[0].startswith('-'):
         sys.exit(__doc__)
+    sys.stdout.reconfigure(line_buffering=True)  # (progress shows in a redirected log as it goes)
     branch = a[0]
     cases = a[a.index('--cases') + 1] if '--cases' in a else '1000'
     if not git('rev-parse', '-q', '--verify', 'MERGE_HEAD').strip():
