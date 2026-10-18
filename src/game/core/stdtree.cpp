@@ -425,18 +425,19 @@ template <typename K> u8 *LowerBound(u8 *tree, K key, u32 sentinelAt) {
     return result;
 }
 
-// The insert over a tree whose keys are Key (the first member of the value, at +0xc of a node): Dec is the instantiation's iterator decrement and Insert its node insert.
-template <typename Key, typename Value, u32 SentinelAt, void(__fastcall *Dec)(u8 **), u8 **(__fastcall *Insert)(u8 *, void *, u8 **, u8 *, u8 *, const Value *)>
-void MapInsert(u8 *tree, u8 **result, const Value *value) {
+// The insert over a tree: Dec is the instantiation's iterator decrement and Insert its node insert; keyBelow(node) is whether the value's key is below the
+// node's, nodeBelow(node) whether the node's is below the value's.
+template <typename Value, u32 SentinelAt, void(__fastcall *Dec)(u8 **), u8 **(__fastcall *Insert)(u8 *, void *, u8 **, u8 *, u8 *, const Value *), typename KeyBelow,
+          typename NodeBelow>
+void MapInsertBy(u8 *tree, u8 **result, const Value *value, KeyBelow keyBelow, NodeBelow nodeBelow) {
     u8 *const head = at<u8 *>(tree, 4);
     u8 *const nil = global<u8 *>(SentinelAt);
-    const Key key = *reinterpret_cast<const Key *>(value);
     u8 *y = head;
     u8 *x = at<u8 *>(head, 4);
     bool below = true;
     while (x != nil) {
         y = x;
-        below = key < at<Key>(x, 0xc);
+        below = keyBelow(x);
         x = at<u8 *>(x, below ? 0 : 8);
     }
     bool insert = at<u8>(tree, 8) != 0;
@@ -448,7 +449,7 @@ void MapInsert(u8 *tree, u8 **result, const Value *value) {
             else
                 Dec(&found);
         }
-        if (!insert && at<Key>(found, 0xc) < key)
+        if (!insert && nodeBelow(found))
             insert = true;
     }
     if (insert) {
@@ -460,6 +461,14 @@ void MapInsert(u8 *tree, u8 **result, const Value *value) {
     }
     at<u8 *>(result, 0) = found;
     at<u8>(result, 4) = 0;
+}
+
+// The same over a tree whose keys are Key (the first member of the value, at +0xc of a node), compared with <.
+template <typename Key, typename Value, u32 SentinelAt, void(__fastcall *Dec)(u8 **), u8 **(__fastcall *Insert)(u8 *, void *, u8 **, u8 *, u8 *, const Value *)>
+void MapInsert(u8 *tree, u8 **result, const Value *value) {
+    const Key key = *reinterpret_cast<const Key *>(value);
+    MapInsertBy<Value, SentinelAt, Dec, Insert>(
+        tree, result, value, [key](u8 *node) { return key < at<Key>(node, 0xc); }, [key](u8 *node) { return at<Key>(node, 0xc) < key; });
 }
 
 }  // namespace
@@ -588,6 +597,19 @@ void __fastcall StdMapG_Insert(u8 *tree, void *, u8 **result, const u16 *value) 
 
 u8 **__fastcall StdMapB_Insert(u8 *tree, void *, u8 **result, const u16 *value) {
     MapInsert<u16, u16, 0x00785de4, StdTree_DecB, StdTree_InsertB>(tree, result, value);
+    return result;
+}
+
+u8 **__fastcall StdMapD_Insert(u8 *tree, void *, u8 **result, const StdWString *value) {
+    const u8 *key = reinterpret_cast<const u8 *>(value);
+    MapInsertBy<StdWString, 0x007ced24, StdTree_DecD, StdTree_InsertD>(
+        tree, result, value,
+        [key](u8 *node) {
+            const u16 *chars = at<const u16 *>(node, 0x10);
+            if (!chars) chars = reinterpret_cast<const u16 *>(0x006fd6c4);
+            return WString_CompareSub(key, nullptr, 0, at<u32>(key, 8), chars, at<u32>(node, 0x14)) < 0;
+        },
+        [key](u8 *node) { return WString_Compare(node + 0xc, nullptr, key) < 0; });
     return result;
 }
 

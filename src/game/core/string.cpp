@@ -10,6 +10,7 @@
 #include "../files/file.h"
 #include "gameheap.h"
 #include "methods.h"
+#include "stdstring.h"
 #include "vcall.h"
 
 namespace {
@@ -618,6 +619,24 @@ s32 __fastcall WString_Compare(const u8 *self, void *, const u8 *other) {
     if (selfLength < otherLength)
         return -1;
     return selfLength != otherLength ? 1 : 0;
+}
+
+s32 __fastcall WString_CompareSub(const u8 *self, void *, u32 pos, u32 n, const u16 *other, u32 count) {
+    if (at<u32>(self, 8) < pos)
+        StdStrings_Xran();
+    const u32 left = at<u32>(self, 8) - pos;
+    if (left < n)
+        n = left;
+    const u16 *a = at<const u16 *>(self, 4);
+    if (a)
+        a += pos;
+    for (u32 k = n < count ? n : count; k; k--, a++, other++) {
+        if (*a != *other)
+            return *a < *other ? -1 : 1;
+    }
+    if (n < count)
+        return -1;
+    return n != count ? 1 : 0;
 }
 
 u32 __cdecl Names_FirstAfter(const u8 *a, const u8 *b) {

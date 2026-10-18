@@ -116,6 +116,10 @@ void __fastcall StdMapG_Insert(u8 *tree, void *, u8 **result, const u16 *value);
 // 0x40fe60: the same over tree B (the message centre's; sentinel 0x785de4, 16-bit keys; StdTree_DecB / StdTree_InsertB), the result made by Pair_Assign; returns it.
 u8 **__fastcall StdMapB_Insert(u8 *tree, void *, u8 **result, const u16 *value);
 
+// 0x4f2810: the same over tree D (the wide string set; StdTree_DecD / StdTree_InsertD): the key compared with each node's by 0x4f7870 (the
+// whole key against the node's string, no data being the empty string at 0x6fd6c4) and with the one found by WString_Compare.
+u8 **__fastcall StdMapD_Insert(u8 *tree, void *, u8 **result, const StdWString *value);
+
 // 0x5b2f40 (thiscall on the tree {allocator, head}; the key (a string), pops 4): the lower bound: the last node passed whose string (at +0xc) is not below the key
 // (String_Less), the head for none.
 u8 *__fastcall StdTreeF_LowerBound(u8 *tree, void *, const u8 *key);
