@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../core/accessors.h"
+#include "../core/crt.h"
 #include "../math/x87.h"
 #include "../model/highlight.h"
 #include "../render/dynfaces.h"
@@ -61,6 +63,12 @@ void __fastcall MouseState_NewFrame(u8 *self) {
     const u32 count = at<u32>(self, 0xc);
     at<u32>(self, 0) = 0;
     at<u32>(self, 0xc) = count + 1;
+}
+
+u32 __fastcall MouseState_ShowFps(u8 *self, void *, float fps) {
+    char *const text = reinterpret_cast<char *>(self + 0x10);
+    Crt().sprintf(text, reinterpret_cast<const char *>(0x0074d85c), (double)fps);  // "FPS: %4g\n"
+    return Obj_Set14_18_10(reinterpret_cast<u8 *>(0x008bba50), nullptr, 0, 0, (u32)(uintptr_t)text);
 }
 
 void __fastcall MouseState_ResolvePick(u8 *self) {

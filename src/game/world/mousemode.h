@@ -39,6 +39,10 @@ void __cdecl MouseState_SetTileFromPosition(const float *position);
 // picked thing (+0) cleared.
 void __fastcall MouseState_NewFrame(u8 *self);
 
+// 0x46c0d0 (thiscall; fps, pops 4; name unconfirmed): "FPS: %4g\n" (0x74d85c) of fps (as a double) printed (sprintf) into the
+// pointer state's +0x10 and that text given to the object at 0x8bba50 (Obj_Set14_18_10(0, 0, text)). Returns what that does.
+u32 __fastcall MouseState_ShowFps(u8 *self, void *, float fps);
+
 // 0x46c110 (thiscall; name unconfirmed): the pointer state's picks resolved. +4 becomes its picked thing (+0) when that is of kind (+2) 1, 4,
 // 5, 6, 7, 8 or 0x12, else 0; +8 the thing (the dword of 0x7cfb90's 20-byte slot) of the handle Map_ObjectOrEntranceAt gives for its tile
 // (+0x24: column (tile - 1) & 0x7f, row (tile - 1) >> 7, unsigned), else 0; and a picked thing of 0 becomes that +8.
