@@ -9,4 +9,9 @@ extern "C" {
 // 0x5787b0 (thiscall; x87): v times 1 / sqrt(y * y + x * x); a zero (or NaN) length squared is taken as 1, so a zero pair stays zero
 // and a NaN one keeps its NaNs (the name is unconfirmed).
 void __fastcall Vec2_Normalize(float *v);
+
+// 0x549020 (cdecl; name unconfirmed): the length of the integer pair (x, y): their magnitudes (INT_MIN staying negative, sic) halved
+// (arithmetic shifts) n times while |x| > 0x8000 or |y| > 0x7fff, the sum of their squares (wrapping 32-bit) square-rooted (x87, so a
+// negative sum gives NaN and __ftol 0), truncated and shifted back left n times.
+s32 __cdecl IntVec2_Length(s32 x, s32 y);
 }

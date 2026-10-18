@@ -3686,6 +3686,7 @@ address,name,kind,confidence,notes
 0x0046c010,Text_SelectFont,function,low,"reimplemented (src/game/gfx/text); cdecl (index, mode): with the font table (0x7b059c) and a font in entry index (+0xc), Text_SetDriver of the plain glyph driver (mode 1) or the shape one (mode 0) with the font; 1, else 0 (name unconfirmed)"
 0x0050f310,Matrix2_Transform,function,high,reimplemented (src/game/math/matrix); fixed point 2 x 2 transform of a pair
 0x005787b0,Vec2_Normalize,function,low,reimplemented (src/game/math/vec2); thiscall (x87): the float pair over its length; a zero or NaN length squared taken as 1
+0x00549020,IntVec2_Length,function,low,"reimplemented (src/game/math/vec2); cdecl (x, y): the integer pair's length, both halved while too big for the squares, the root shifted back"
 0x005812f0,Vec3_DotByValue,function,low,"reimplemented (src/game/math/geometry); cdecl (ax, ay, az, bx, by, bz by value): the dot product in st0"
 0x00581320,Tri_WindingTest,function,low,"reimplemented (src/game/math/geometry); cdecl (a, b, c): x, y, w copied to 0x8c63b0-0x8c63d0; 1 when the homogeneous winding compare is below or unordered"
 0x0057b410,Box_Extend,function,low,"reimplemented (src/game/math/geometry); thiscall (x, y, z): the box (min +0, max +0xc) grown to take the point; a NaN goes into the minimum"
