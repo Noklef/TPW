@@ -215,14 +215,6 @@ void __cdecl Global7c24d8_CopyScript() {
         SpriteScript_CopyFrom((s32)global<u32>(0x007c24a0), (s32)at<u32>(object, 0xc));
 }
 
-u32 __stdcall Setting569f30_Set(u32, u32 value) {
-    if (value)
-        global<u32>(0x00fbe038) = value;
-    else
-        global<u32>(0x00fbe044) = global<u32>(0x006f1a10);
-    return 1;
-}
-
 u32 __fastcall Records24_Field14(const u8 *records, void *, u32 i) { return at<u32>(records, 24 * i + 0x14); }
 
 u8 *__fastcall Records24_IfUsed(u8 *records, void *, u32 i) {
@@ -435,12 +427,6 @@ u32 *__fastcall Wstreambuf_Setp(u8 *object, void *, u32 first, u32 last) {
     u32 *count = at<u32 *>(object, 0x30);
     *count = (u32)((s32)(last - first) >> 1);
     return count;
-}
-
-u32 __stdcall SoftRenderer_PixelAt(s32 x, s32 y, u32 *out) {
-    const u32 *buffer = at<const u32 *>(global<u8 *>(0x00879dac), 8);
-    *out = buffer[(u32)y * global<u32>(0x008bcbd0) + (u32)x];
-    return 1;
 }
 
 u32 __cdecl Table879d08_Fill() {

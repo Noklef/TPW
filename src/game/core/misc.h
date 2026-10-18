@@ -1,5 +1,5 @@
-// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x409260, 0x45be80, 0x5f4490, 0x633dc0, 0x6486e0, 0x458310, 0x4583d0, 0x4bcec0, 0x486610, 0x4f36c0, 0x5c9040, 0x5d03b0, 0x5dd3d0, 0x5ddac0, 0x5c5230, 0x5c7490, 0x5dd810, 0x5e2750, 0x633120, 0x5b0d40, 0x5c7bb0, 0x5c7d00, 0x5c7d20, 0x5d1440, 0x5d5ee0,0x569f30, 0x52fc30, 0x5997b0, 0x56b340, 0x56e780, 0x583360, 0x56b570, 0x4d09a0, 0x52fbf0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
-// 0x4e1c60, 0x4f00f0, 0x4f6020, 0x4f6820, 0x4f6850, 0x56a510, 0x56b630 and 0x56b830.
+// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x409260, 0x45be80, 0x5f4490, 0x633dc0, 0x6486e0, 0x458310, 0x4583d0, 0x4bcec0, 0x486610, 0x4f36c0, 0x5c9040, 0x5d03b0, 0x5dd3d0, 0x5ddac0, 0x5c5230, 0x5c7490, 0x5dd810, 0x5e2750, 0x633120, 0x5b0d40, 0x5c7bb0, 0x5c7d00, 0x5c7d20, 0x5d1440, 0x5d5ee0,0x52fc30, 0x5997b0, 0x56b340, 0x56e780, 0x583360, 0x56b570, 0x4d09a0, 0x52fbf0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
+// 0x4e1c60, 0x4f00f0, 0x4f6020, 0x4f6820, 0x4f6850, 0x56b630 and 0x56b830.
 #pragma once
 
 #include "../../../re/types.h"
@@ -81,10 +81,6 @@ u32 __cdecl Obj_RemoveFromRect(u8 *object, u32 from, u32 to);
 // 0x486610 (cdecl): when the object at [0x7c24d8] has its +0xc set the sprite script slot [0x7c24a0] is
 // made a copy of that script slot (SpriteScript_CopyFrom).
 void __cdecl Global7c24d8_CopyScript();
-
-// 0x569f30 (stdcall; _, value, pops 8): with a value, 0xfbe038 = value; else 0xfbe044 = the dword at 0x6f1a10;
-// returns 1.
-u32 __stdcall Setting569f30_Set(u32 unused, u32 value);
 
 // 0x5c7d20 (thiscall; i, pops 4): the dword at +0x14 of record i of 24 bytes.
 u32 __fastcall Records24_Field14(const u8 *records, void *, u32 i);
@@ -190,10 +186,6 @@ u32 __fastcall Wstreambuf_InitPointers(u8 *object);
 // first). Returns the count pointer.
 u32 *__fastcall Wstreambuf_Setg(u8 *object, void *, u32 first, u32 next, u32 last);
 u32 *__fastcall Wstreambuf_Setp(u8 *object, void *, u32 first, u32 last);
-
-// 0x56a510 (stdcall; x, y, out, pops 12): *out = the dword at (y * width + x) in the software
-// renderer's buffer (0x879dac: +8 the buffer; width 0x8bcbd0); returns 1.
-u32 __stdcall SoftRenderer_PixelAt(s32 x, s32 y, u32 *out);
 
 // 0x56b630 (cdecl): the sixteen dwords at 0x879d08 = 16, 15 ... 1; returns 0.
 u32 __cdecl Table879d08_Fill();
