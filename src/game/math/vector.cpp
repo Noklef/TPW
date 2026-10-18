@@ -56,3 +56,10 @@ extern "C" void __cdecl Vec3_RotateY(float *v, float angle) { Vec3_RotateYWith(S
 extern "C" void __cdecl Matrix_RotateYAngle(float *m, float angle) {
     Matrix_RotateYAngleWith(SinTable_Game(), m, angle);
 }
+
+extern "C" void __fastcall Vec3_Clamp(float *v, void *, float lo, float hi) {
+    for (int i = 0; i < 3; i++) {
+        const float c = v[i];
+        v[i] = X87_Through(c > hi ? hi : !(c >= lo) ? lo : c);  // fcomp, test ah 0x41 / 0x1
+    }
+}

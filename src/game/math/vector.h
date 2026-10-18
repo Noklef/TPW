@@ -21,4 +21,7 @@ void __cdecl Vec3_RotateX(float *v, float angle);
 void __cdecl Vec3_RotateY(float *v, float angle);
 // 0x4315f0: Matrix_RotateY(m, cos angle, sin angle) from gSinTable.
 void __cdecl Matrix_RotateYAngle(float *m, float angle);
+// 0x5ebe50 (thiscall; name unconfirmed; its one caller clamps a colour scaled by 255 to 0..255): each of v's three floats above hi becomes
+// hi, else one not at or above lo (below it, or NaN, or lo NaN) becomes lo; each stored through the x87 (a signalling NaN quietened).
+void __fastcall Vec3_Clamp(float *v, void *, float lo, float hi);
 }
