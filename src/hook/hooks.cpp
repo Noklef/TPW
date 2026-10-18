@@ -311,6 +311,7 @@
 #include "../game/ui/msgqueue.h"
 #include "../game/ui/panel7b9940.h"
 #include "../game/ui/textpool.h"
+#include "../game/ui/thingpreview.h"
 #include "../game/ui/window.h"
 #include "../game/ui/window705a50.h"
 #include "../game/ui/windowreg.h"
@@ -4288,6 +4289,8 @@ const Hook kHooks[] = {
     {"WindowTimers_Kill",         0x00662306, (void *)&WindowTimers_Kill, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window705a50_DeletingDtor", 0x006693a0, (void *)&Window705a50_DeletingDtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705a50_Dtor",         0x006689bc, (void *)&Window705a50_Dtor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"ThingPreview_Hide",         0x00486630, (void *)&ThingPreview_Hide, {0xa1, 0xd8, 0x24, 0x7c, 0x00}},
+    {"ThingPreview_Show",         0x00486530, (void *)&ThingPreview_Show, {0x51, 0xa1, 0xd8, 0x24, 0x7c}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
