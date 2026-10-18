@@ -320,6 +320,7 @@
 #include "../game/online/ftp.h"
 #include "../game/online/session.h"
 #include "../game/ui/dialog7ca1c8.h"
+#include "../game/ui/dialog7cb398.h"
 #include "../game/ui/dialogs.h"
 #include "../game/ui/frame.h"
 #include "../game/ui/guidialog.h"
@@ -4488,6 +4489,7 @@ const Hook kHooks[] = {
     {"HilightList_NewRow",        0x00480d30, (void *)&HilightList_NewRow, {0x6a, 0xff, 0x68, 0xcb, 0x90}},
     {"Frame_SetInterval",         0x0066a084, (void *)&Frame_SetInterval, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Frame_Stop",                0x0066a016, (void *)&Frame_Stop, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Dialog7cb398_ShowTopThree", 0x004a4ab0, (void *)&Dialog7cb398_ShowTopThree, {0x8b, 0x0d, 0x98, 0xb3, 0x7c}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
