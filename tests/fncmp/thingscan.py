@@ -1,6 +1,7 @@
 # The walks over the park's things (src/game/world/thingscan) against the originals: a consistent thing table (slots in use linked newest first,
 # the things behind them with a kind, flags and the fields the scans read) and the object definitions they are found through, between none and
-# six things; the finders start from the newest or after a thing. Cat / CatB (0x4824d0 / 0x482da0) pick a finder by a category bit: the things
+# six things; the finders start from the newest or after a thing. Cat / CatB (0x4824d0 / 0x482da0) pick a finder by a category bit (CatW 0x483740:
+# Cat, again from the start past the last): the things
 # are staff, kind 1 and objects, the staff lists' heads (world +0x1da73c..) and links (+0x210) name handles of the park or 0.
 # usage: thingscan.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=C1,C2,Max,...)
 import os
@@ -23,7 +24,7 @@ CALLS = {'C1': (0x4c9f90, 'c', 0xa0, 'n'), 'C2': (0x4ca0c0, 'c', 0xa0, 'n'), 'Ma
          'P1': (0x4c9130, 'c', 0xa0, 'n'), 'P2': (0x4c9530, 'c', 0xa0, 'n'), 'P3': (0x4c95d0, 'c', 0xa0, 'n'),
          'Sum': (0x4c9e60, 'c', 0x70, 'n'), 'Cs': (0x4c9a10, 'c', 0xa0, 'n'), 'U3c': (0x519690, 't', 0x130, 'u'), 'U3e': (0x519800, 't', 0x130, 'u'), 'U40': (0x519970, 't', 0x130, 'u'),
          'U42': (0x519c50, 't', 0x130, 'u'), 'U44': (0x519ae0, 't', 0x130, 'u'), 'U46': (0x519dc0, 't', 0x130, 'u'), 'S5': (0x59edd0, 't', 0x50, 's'), 'S6': (0x59ee20, 't', 0x50, 's'), 'S4': (0x59ee70, 't', 0x50, 's'), 'S7': (0x59eec0, 't', 0x50, 's'), 'S8': (0x59ef10, 't', 0x50, 's'),
-         'Cat': (0x4824d0, 'c', 0x40c, 'kp'), 'CatB': (0x482da0, 'c', 0x430, 'kp')}
+         'Cat': (0x4824d0, 'c', 0x40c, 'kp'), 'CatB': (0x482da0, 'c', 0x430, 'kp'), 'CatW': (0x483740, 'c', 0x23, 'kp')}
 B = Bench([(a, a + n) for (a, _c, n, _s) in CALLS.values()] + [(0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x4e0440, 0x4e0450),
                                                               (0x4e2710, 0x4e2740), (0x4dd4e0, 0x4dd500), (0x412e90, 0x412eea), (0x5da3c0, 0x5da3c1), (0x41a960, 0x41a970), (0x5161b0, 0x516200), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c), (0x519510, 0x519550),
                                                               (0x481f80, 0x481fa0), (0x481fc0, 0x482030), (0x4cd300, 0x4cd331)])

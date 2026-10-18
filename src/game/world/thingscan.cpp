@@ -613,4 +613,9 @@ u8 *__cdecl Things_FindPrevOfCategory(s32 category, const u8 *previous) {
     default: return nullptr;
     }
 }
+
+u8 *__cdecl Things_FindNextOfCategoryWrap(s32 category, const u8 *previous) {
+    u8 *const next = Things_FindNextOfCategory(category, previous);
+    return next ? next : Things_FindNextOfCategory(category, nullptr);
+}
 }  // extern "C"
