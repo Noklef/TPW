@@ -54,6 +54,11 @@ s32 __fastcall WindowAt10_Message4IfAny(u8 *object);
 // message 0x14 the object (Window_DwordA0 0) forgets its window (+0x10 = 0); then Window_CallDefault with the message, its result returned.
 s32 __cdecl WindowAt10_Handler(u8 *window, u32 message, u32 a, u32 b);
 
+// 0x496570 (cdecl (which); called from 0x4962a4, 0x4962bd and 0x4962d6; name unconfirmed): the child 0x32a of the child 0x329 of the
+// window [0x7ca168] (Window_FindChild) gets the language text (Language_WideText) 0x6b, 0x6c, 0x6e, 0x6d or 0x6f for which 0-4 through its
+// slot 9 (thiscall, one argument), whose result is returned; for any other which (unsigned) nothing is set and which is returned.
+u32 __cdecl Dialog7ca168_ShowText(u32 which);
+
 // 0x4a0a20 (cdecl (window, message, a, b); the handler of the dialog [0x7cb2b8]; name unconfirmed): on message 0x14 [0x7cb2b8] = 0; then
 // Window_CallDefault, its result returned (a GUI rectangle built and destroyed on the stack around it, unused, is left out).
 s32 __cdecl Dialog7cb2b8_Handler(u8 *window, u32 message, u32 a, u32 b);

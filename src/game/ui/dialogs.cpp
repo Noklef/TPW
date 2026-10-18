@@ -3,6 +3,8 @@
 #include <cstdint>
 
 #include "../core/gameheap.h"
+#include "../core/language.h"
+#include "../core/vcall.h"
 #include "../render/particles.h"
 #include "guirect.h"
 #include "window.h"
@@ -78,6 +80,13 @@ s32 __fastcall WindowAt10_Message4(u8 *object) { return Window_SendMessage(*rein
 s32 __fastcall WindowAt10_Message4IfAny(u8 *object) {
     u8 *const w = *reinterpret_cast<u8 **>(object + 0x10);
     return w ? Window_SendMessage(w, 4, 0, 0) : 0;
+}
+
+u32 __cdecl Dialog7ca168_ShowText(u32 which) {
+    static const u32 kTexts[5] = {0x6b, 0x6c, 0x6e, 0x6d, 0x6f};
+    u8 *const label = Window_FindChild(Window_FindChild(window(0x007ca168), nullptr, 0x329), nullptr, 0x32a);
+    if (which > 4) return which;
+    return vcall<u32>(label, 0x24, Language_WideText(kTexts[which]));
 }
 
 s32 __cdecl Dialog7cb2b8_Handler(u8 *window, u32 message, u32 a, u32 b) {

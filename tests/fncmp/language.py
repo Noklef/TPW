@@ -3,7 +3,7 @@
 # the originals: widths about the 512 / 640 / 800 steps and negative, ids Hebrew or not, font
 # indexes about 13 and font sets beyond 3, alignments 0-3 and wild. Its texts widened (0x485ac0, 0x485b00, 0x485f00): the converter
 # [0x78ba7c] (lead byte, table size and words as methods.py's Widen) on or off ([0x78ba80]), texts of 0-12 bytes (0x485ac0's about 0x200 too) or none, record
-# tables [0x78ba94] / [0x78baa4] of 0-4 records (some not text records or unterminated) and indexes about them, the object a recorder.
+# tables [0x78ba94] / [0x78baa4] of 0-4 records (some not text records or unterminated) and indexes about them, the object a recorder; 0x496570 (src/game/ui/dialogs) with its label among other windows.
 # usage: language.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -13,15 +13,16 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import LOG, Bench, Call, RAM, log_region, put, set_return, vtable  # noqa: E402
 
 B = Bench([(0x41a5a0, 0x41a5df), (0x41a820, 0x41a85f), (0x485a70, 0x485a94), (0x4925a0, 0x4925cb), (0x485ac0, 0x485af4), (0x485b00, 0x485b40),
-           (0x485f00, 0x485f54), (0x6adc80, 0x6add25), (0x6ace60, 0x6acea0)])
+           (0x485f00, 0x485f54), (0x6adc80, 0x6add25), (0x6ace60, 0x6acea0),
+           (0x496570, 0x496609), (0x65d7bc, 0x65d832)])
 LANG = RAM + 0x100
 
 
 def case(r):
     mem = put(r.bytes(0x400), 0x108, 'I', r.choice([0x40d, 0x409, 0x40d ^ (1 << r.randrange(32)), r.getrandbits(32)]))
-    op = r.randrange(10)
+    op = r.randrange(11)
     if op >= 7:
-        return texts(r, op)
+        return texts(r, op)   # (10: 0x496570)
     if op >= 5:
         put(mem, 4, 'I', r.choice([0, 1, 2, 3, r.randrange(100), r.getrandbits(32)]))
         put(mem, 8, 'I', r.choice([0x40d, 0x40d, 0x409, 0x40d ^ (1 << r.randrange(32))]))
@@ -58,7 +59,7 @@ def texts(r, op):
     table = bytearray(r.bytes(0x20))
     put(table, 8, 'II', count, RAM + 0xb00)
     regions[RAM + 0xa00] = table
-    put(lang, 0x564 if op == 8 else 0x574, 'I', RAM + 0xa00)
+    put(lang, 0x574 if op == 9 else 0x564, 'I', RAM + 0xa00)
     pool = bytearray()
     for i in range(5):
         body = text(r) + bytes([0]) * r.choice([1, 1, 2])
@@ -72,6 +73,36 @@ def texts(r, op):
     index = r.choice([0, 1, 2, 3, 4, count, count - 1, 0xffffffff]) & 0xffffffff
     if op == 8:
         return Call(0x485b00, [index], regions, ret='a')
+    if op == 10:   # 0x496570: the label (child 0x32a of child 0x329 of [0x7ca168], each among 0-2 others) a recorder; the texts' indexes 0x6b-0x6f
+        put(table, 8, 'I', r.choice([0x70, 0x70, 0x6e, 0x6c, 5]))
+        put(table, 0xc, 'I', RAM + 0xb00 - 4 * 0x6b)   # (indexes 0x6b-0x6f: the five records)
+        regions[RAM + 0xa00] = table
+        kids = []
+        for level, ident in enumerate((0x329, 0x32a)):
+            ids = r.sample([ident, 0x328, 0x32b, 7], r.choice([1, 2, 3]))
+            if ident not in ids:
+                ids[0] = ident
+            kids.append(ids)
+        windows = RAM + 0x5000
+        nodes = {}
+        for level, ids in enumerate(kids):
+            for i, ident in enumerate(ids):
+                nodes[(level, i)] = (windows + 0x100 * (4 * level + i), ident)
+        regions[0x7ca168] = struct.pack('<I', windows + 0x800)
+        top = bytearray(r.bytes(0x90))
+        put(top, 0x5c, 'I', nodes[(0, 0)][0])
+        regions[windows + 0x800] = top
+        for (level, i), (address, ident) in nodes.items():
+            buf = bytearray(r.bytes(0x90))
+            put(buf, 0, 'I', RAM + 0x1100)
+            put(buf, 0x54, 'I', nodes[(level, i + 1)][0] if (level, i + 1) in nodes else 0)
+            put(buf, 0x5c, 'I', nodes[(1, 0)][0] if level == 0 and ident == 0x329 else 0)
+            put(buf, 0x8c, 'I', ident)
+            regions[address] = buf
+        regions[RAM + 0x1100] = vtable({9: 1})
+        if r.random() < 0.5:
+            set_return(log, 9, r.getrandbits(32))
+        return Call(0x496570, [r.choice([0, 1, 2, 3, 4, 4, 5, 0xffffffff, r.getrandbits(32)])], regions, ret='a')
     regions[RAM + 0x1000] = struct.pack('<I', RAM + 0x1100)
     regions[RAM + 0x1100] = vtable({9: 1})
     if r.random() < 0.5:
