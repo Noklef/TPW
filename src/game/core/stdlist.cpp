@@ -8,6 +8,7 @@
 #include "crt.h"
 #include "gameheap.h"
 #include "string.h"
+#include "stdstring.h"
 
 namespace {
 
@@ -408,6 +409,23 @@ u32 __fastcall List_PushHead(u8 *list, void *, u32 item) {
     const u32 count = at<u32>(list, 0xc) + 1;
     at<u32>(list, 0xc) = count;
     return count;
+}
+
+void __fastcall StringsListRecord_Dtor(u8 *record) {
+    StdString_Tidy(reinterpret_cast<StdString *>(record + 0x2c), nullptr, 1);   // (inlined)
+    u8 *const list = record + 0x20;
+    u8 *const head = at<u8 *>(list, 4);
+    u32 out;
+    for (u8 *node = at<u8 *>(head, 0); node != head;) {
+        u8 *const erase = node;
+        node = at<u8 *>(node, 0);
+        List_EraseNodeCounted(list, nullptr, &out, erase);
+    }
+    GameHeap_Free(at<void *>(list, 4));
+    at<u32>(list, 4) = 0;
+    at<u32>(list, 8) = 0;
+    StdString_Tidy(reinterpret_cast<StdString *>(record + 0x10), nullptr, 1);
+    StdString_Tidy(reinterpret_cast<StdString *>(record), nullptr, 1);
 }
 
 void __fastcall CountedListPair_Dtor(u8 *pair) {

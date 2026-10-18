@@ -101,6 +101,12 @@ u8 *__stdcall Node0c_New(u32 a, u32 b);
 // for an empty list, otherwise the new count.
 u32 __fastcall List_PushHead(u8 *list, void *, u32 item);
 
+// 0x5caf20 (thiscall; name unconfirmed; run only by exception unwinds, 0x6e09dc / 0x6e0a3e): a record of three std::strings (+0, +0x10,
+// +0x2c) and a list of 0x18-byte nodes with counted buffers (+0x20: head +0x24, count +0x28) destroyed: the string at +0x2c tidied (inlined
+// StdString_Tidy(true)), the list erased node by node (List_EraseNodeCounted), its sentinel freed and its head and count cleared, then the
+// strings at +0x10 and +0 tidied.
+void __fastcall StringsListRecord_Dtor(u8 *record);
+
 // 0x5af0e0 (thiscall; name unconfirmed; run only by exception unwinds, 0x6df82b / 0x6df883): two lists of 0x18-byte nodes {next, prev, a
 // counted buffer at +8} ({?, head +4, count +8}) destroyed: the one at +0xc erased node by node (List_EraseNodeCounted2), the one at +0 by
 // hand (unlinked, the buffer released with CountedBuf_Deleter (core/buffers), freed, its count lowered); each sentinel freed and its head and

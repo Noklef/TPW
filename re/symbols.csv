@@ -3625,6 +3625,7 @@ address,name,kind,confidence,notes
 0x005ce080,StdListString_Unique,function,high,reimplemented (src/game/core/stdlist); removes elements equal to the one before from a list of counted strings
 0x005d0590,StdListDword_Merge,function,high,reimplemented (src/game/core/stdlist); merges a sorted list of dwords into another
 0x005af0e0,CountedListPair_Dtor,function,low,"reimplemented (src/game/core/stdlist); thiscall: two lists of 0x18-byte nodes with counted buffers destroyed (+0xc's erased with List_EraseNodeCounted2, +0's by hand with CountedBuf_Deleter), sentinels freed, heads and counts cleared"
+0x005caf20,StringsListRecord_Dtor,function,low,"reimplemented (src/game/core/stdlist); thiscall (unwinds only): a record's std::strings (+0x2c, then +0x10, +0) tidied and its list of counted-buffer nodes at +0x20 erased (List_EraseNodeCounted), its sentinel freed"
 0x0041e2c0,Class6fda48_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
 0x0041e320,Class6fda68_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
 0x0041e4d0,Class6fdaa8_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
