@@ -95,7 +95,9 @@ CATEGORIES = [1 << k for k in range(16)]
 
 def category(r, address):
     """The finder by category (a bit, mostly): the park's things of the staff kinds, kind 1 and objects; the staff list heads and links handles."""
-    regions, handles, things = park(r, count=r.choice([0, 1, 2, 3, 4, 6, 6]) if address == 0x4824d0 or r.random() < 0.05 else r.choice([1, 2, 3, 4, 6, 6]),
+    small = address in (0x4b3340, 0x48caf0) and r.random() < 0.5   # (the steps: a lone thing of the group, the one they hold, more often)
+    regions, handles, things = park(r, count=r.choice([1, 1, 2]) if small else
+                                    r.choice([0, 1, 2, 3, 4, 6, 6]) if address == 0x4824d0 or r.random() < 0.05 else r.choice([1, 2, 3, 4, 6, 6]),
                                     kinds=(4, 5, 6, 7, 8, 1, 1, 1, 3, 3, 3, 3, 3, 2, 0))
     pool = regions[POOL]
     links = handles + [0, 0, r.getrandbits(16)]
@@ -106,7 +108,7 @@ def category(r, address):
     for i in range(NITEMS):   # (the definitions' +0x4ac any of the values the categories 0x80-0x400 ask for)
         struct.pack_into('<I', items, ITEM * i + 0x4ac, r.choice([0, 1, 2, 3, 3, 5]))
     cat = r.choice(CATEGORIES) if r.random() < 0.9 else r.choice([0, 3, 5, 9, 0x18, 0x10000, -1, 0x80000000])
-    prev = r.choice([0, 0] + things) if things else 0
+    prev = r.choice(([] if small else [0, 0]) + things) if things else 0
     if address == 0x4b3340:
         choice = r.choice([1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 0, 7, 0xffffffff, r.getrandbits(32)])
         regions[0x7cc304] = struct.pack('<3I', r.getrandbits(32), prev, choice)
