@@ -4072,6 +4072,10 @@ const Hook kHooks[] = {
     {"Dialog7cc47c_Message6Off",  0x004b8830, (void *)&Dialog7cc47c_Message6Off, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
     {"Dialog7cc47c_Message6On",   0x004b8810, (void *)&Dialog7cc47c_Message6On, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
     {"Dialog7cc47c_Message4",     0x004b87f0, (void *)&Dialog7cc47c_Message4, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
+    {"Dialog7cc4c4_Message6On",   0x004b9c20, (void *)&Dialog7cc4c4_Message6On, {0xa1, 0xc4, 0xc4, 0x7c, 0x00}},
+    {"Dialog7cc4c4_Message4",     0x004b9c00, (void *)&Dialog7cc4c4_Message4, {0xa1, 0xc4, 0xc4, 0x7c, 0x00}},
+    {"Dialog7cc4b4_Message6Off",  0x004b8ec0, (void *)&Dialog7cc4b4_Message6Off, {0xa1, 0xb4, 0xc4, 0x7c, 0x00}},
+    {"Dialog7cc4b4_Message4",     0x004b8e80, (void *)&Dialog7cc4b4_Message4, {0xa1, 0xb4, 0xc4, 0x7c, 0x00}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

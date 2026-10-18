@@ -11,4 +11,12 @@ extern "C" {
 s32 __cdecl Dialog7cc47c_Message4();
 s32 __cdecl Dialog7cc47c_Message6On();
 s32 __cdecl Dialog7cc47c_Message6Off();
+
+// 0x4b8e80 / 0x4b8ec0 (cdecl; names unconfirmed): Window_SendMessage of the window [0x7cc4b4] with message 4 (0, 0) and message 6 (0, 0).
+s32 __cdecl Dialog7cc4b4_Message4();
+s32 __cdecl Dialog7cc4b4_Message6Off();
+
+// 0x4b9c00 / 0x4b9c20 (cdecl; names unconfirmed): Window_SendMessage of the window [0x7cc4c4] with message 4 (0, 0) and message 6 (1, 0).
+s32 __cdecl Dialog7cc4c4_Message4();
+s32 __cdecl Dialog7cc4c4_Message6On();
 }

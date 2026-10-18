@@ -14,10 +14,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import CDECL_LOG4, LOG, LOG_BYTES, Bench, Call, RAM, log_region, put, set_return, vtable  # noqa: E402
 
 CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50, 'CallHandler': 0x65f697, 'SendMessage': 0x658d9f,
-         'Dialog7cc47c_Message4': 0x4b87f0, 'Dialog7cc47c_Message6On': 0x4b8810, 'Dialog7cc47c_Message6Off': 0x4b8830}
-SENDS = {k: v for k, v in CALLS.items() if k.startswith('Dialog')}
+         'Dialog7cc47c_Message4': 0x4b87f0, 'Dialog7cc47c_Message6On': 0x4b8810, 'Dialog7cc47c_Message6Off': 0x4b8830,
+         'Dialog7cc4b4_Message4': 0x4b8e80, 'Dialog7cc4b4_Message6Off': 0x4b8ec0, 'Dialog7cc4c4_Message4': 0x4b9c00, 'Dialog7cc4c4_Message6On': 0x4b9c20}
+SENDS = {k: int(k[6:12], 16) for k in CALLS if k.startswith('Dialog7')}   # the window's global
 B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6d1), (0x658d9f, 0x658df4), (0x659710, 0x659721),
-           (0x4b87f0, 0x4b8850)])
+           (0x4b87f0, 0x4b8850), (0x4b8e80, 0x4b8ea0), (0x4b8ec0, 0x4b8ee0), (0x4b9c00, 0x4b9c40)])
 WINDOW, NODES, VTABLE, MISC = RAM, RAM + 0x100, RAM + 0x1000, RAM + 0x1100
 NODE = 0x90
 BUTTONS = list(range(0x18, 0x22))
@@ -58,7 +59,7 @@ def case(r):
             return Call(CALLS[op], [WINDOW] + args, regions, conv='t', ret='a')
         if op == 'SendMessage':
             return Call(CALLS[op], [window] + args, regions, ret='a')
-        regions[0x7cc47c] = struct.pack('<I', window)
+        regions[SENDS[op]] = struct.pack('<I', window)
         return Call(CALLS[op], [], regions, ret='a')
     if op == 'FindChild':
         ids = [r.choice([0, 1, 5, 0x18, 0x1f, 0x100, r.getrandbits(32)]) for _ in range(r.choice([0, 1, 2, 3, 6]))]
