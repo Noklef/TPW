@@ -5,7 +5,9 @@
 # (0x5b0cd0) with its theme balance file (vtable 0x702800) or none and a name of any block. A map description parsed (0x402720): leading white
 # space and a first line, the "---" marker (or a near miss), rows of the symbols' chars, spaces and others up to 22 wide and 21
 # high (the 21st with a char), the closing marker or none; symbol tables of 0-8 entries (or a negative count); the map's block from heap() (or none).
-# usage: balancefile.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Defaults,Release,Schema,Dtor,Init,ObjCtor,Advisor,Find,Theme,Map)
+# A balance file's text parsed (0x4017a0): a schema of 1-3 sections (grouped or not) of keys of the value types, and lines naming them (near
+# misses, rows in and out of range, 1-17 fields, 64-char names) with values near the keys' bounds and malformed ones, strings, maps, comments.
+# usage: balancefile.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Defaults,Release,Schema,Dtor,Init,ObjCtor,Advisor,Find,Theme,Map,Parse)
 import os
 import struct
 import sys
@@ -21,7 +23,8 @@ DTORS = {0x402a70: (0x784e30, 0x6fd618), 0x402ac0: (0x784c20, 0x6fd618), 0x402b3
          0x412d40: (0, 0x6fd8a8), 0x414410: (0, 0x6fd8b0), 0x423dc0: (0, 0x6fd630), 0x59bf10: (0, 0x6fd958)}   # the static (global, vtable) and thiscall (0, vtable) destructors
 B = Bench([(0x401250, 0x40127a), (0x4013e0, 0x40161d), (0x5f5680, 0x5f5690), (0x412c90, 0x412ca2), (0x4143f0, 0x414402), (0x4d1e60, 0x4d1e72), (0x5da3c0, 0x5da3c1)]
           + [(a, a + 0x12) for a in GETTERS] + [(a, a + 0x10) for a in DTORS] + [(0x401030, 0x401212), (0x5f5660, 0x5f5680), (0x5b0d60, 0x5b0d64), (0x412c20, 0x412c89), (0x415e70, 0x415e8e), (0x401280, 0x4013dc),
-           (0x5b0cd0, 0x5b0d34), (0x5b0d40, 0x5b0d54), (0x5f61e0, 0x5f61f3), (0x402720, 0x402a1e), (0x405710, 0x405742), (0x67a400, 0x690000)])
+           (0x5b0cd0, 0x5b0d34), (0x5b0d40, 0x5b0d54), (0x5f61e0, 0x5f61f3), (0x402720, 0x402a1e), (0x405710, 0x405742), (0x67a400, 0x6902c0),
+           (0x4017a0, 0x402720)])
 VALS, FLAGS, DATA = RAM + 0x800, RAM + 0x900, RAM + 0x1000
 INIT = RAM + 0x4000
 GROUPED = [0, 1, 2, 2, 2, 3, 3, 4, 6, 9, 10, 0xd]   # (Init: groups nested, cut short and empty more often)
@@ -128,6 +131,104 @@ def parse_map(r):   # 0x402720 (&text, &map, &error, symbols, count)
     return Call(0x402720, [RAM, RAM + 4, RAM + 8, RAM + 0x100, count & 0xffffffff], regions, conv='c', ret='a')
 
 
+TEXT = RAM + 0x8000
+WORDS = [b'Speed', b'Cost', b'Speed2', b'Ride', b'Map', b'Name', b'Rate', b'x', b'Spee', b'A' * 40]
+
+
+def number(r, low, high, kind):   # a value's text for a key of the kind (types 4-6 integers, 7-9 floats), near its bounds often
+    if kind in (7, 8, 9):
+        v = r.choice([low, high, r.uniform(low, high), r.uniform(-5, 5), 0.0, -0.0])
+        s = r.choice(['%g' % v, '%.3f' % v, '%d' % int(v), '.5', '-.25', '3.', '1.2.3', '1..2', '-', '', '1e5', '0x1',
+                      '1' * r.choice([99, 100, 101]), '-' + '1' * 98, '1.' + '5' * 40, '%.2f' % v])
+    else:
+        v = r.choice([low, high, high - 1, low - 1, r.randint(low, high), r.randrange(-9, 99), 0, -1])
+        s = r.choice(['%d' % v, '%d' % v, '%d' % v, '-', '', '1.5', '12x', '+3', str(r.getrandbits(32)), '00%d' % abs(v)])
+    return s.encode()
+
+
+def map_text(r, kind):   # a map description after its key's line (ParseMap from the line's start), mostly well formed
+    syms = b'.*Q@+#8624NESWD><OX' if kind == 1 else b'.^_[]JF7L=HCUn3O'
+    rows = [bytes(r.choice(syms + b' ') for _ in range(r.choice([1, 3, 8, 20, 21]))) for _ in range(r.choice([0, 1, 4, 20]))]
+    if r.random() < 0.1:
+        rows.append(b'?!')
+    return r.choice([b'', b' rest']) + b'\n' + r.choice([b'---', b'---', b'--']) + b'\n' + b''.join(x + b'\n' for x in rows) + r.choice([b'---\n', b'---\n', b'']) + b'skipped line\n'
+
+
+def parse(r):   # BalanceFile_Parse (thiscall (name, text, keep)): a made-up schema of sections and the text of lines naming their keys
+    vt = r.choice(list(VTABLES))
+    pool = r.sample(WORDS, 5)
+    recs, sections = [], []   # (type, name, extra); (name, grouped, count, keys)
+    if r.random() < 0.3:
+        recs.append((0, b'', None))
+    for _ in range(r.choice([1, 2, 2, 3])):
+        grouped, sname = r.random() < 0.4, r.choice(pool)
+        if grouped:
+            recs.append((2, r.choice(pool), None))
+        keys = []
+        for _ in range(r.choice([1, 2, 3, 4])):
+            t = r.choice([4, 5, 6, 6, 7, 8, 9, 9, 10, 10, 11, 11])
+            keys.append((t, r.choice(pool)))
+            recs.append((t, keys[-1][1], None))
+        count = r.choice([1, 2, 3])
+        recs.append((3 if grouped else 1, sname, count))
+        sections.append((sname, grouped, count, keys))
+    n = len(recs)
+    table = bytearray(r.bytes(0x3c * (n + 2)))
+    bounds = {}
+    for k, (t, name, count) in enumerate(recs + [(0xc, b'', None), (3, b'', None)]):
+        put(table, 0x3c * k, 'I', t)
+        table[0x3c * k + 4:0x3c * k + 0x24] = (name + bytes(0x20))[:0x1f] + b'\0'
+        lo, hi = r.choice([(0, 10), (-5, 5), (1, 100), (3, 3)])
+        put(table, 0x3c * k + 0x24, 'ii', lo, hi)
+        put(table, 0x3c * k + 0x2c, 'ff', lo / 2, hi / 2)
+        put(table, 0x3c * k + 0x34, 'iI', count if count is not None else r.choice([0, 1, 2]), r.choice([1, 1, 2]))
+        bounds[k] = (lo, hi, struct.unpack_from('<I', table, 0x3c * k + 0x38)[0])
+    vals, regions = bytearray(0xc * n), {}
+    for k in range(n):
+        put(vals, 0xc * k, 'IiI', DATA + 0x40 * k, r.choice([1, 1, 2, 3]), FLAGS + 4 * k)
+        regions[DATA + 0x40 * k] = b''.join(r.choice([0, 0, r.getrandbits(32)]).to_bytes(4, 'little') for _ in range(0x10))
+    flags = b''.join(struct.pack('<i', r.choice([0, 0, 1, 2, 5, -1])) for _ in range(n))
+    text = b''
+    for _ in range(r.choice([1, 2, 3, 5])):
+        roll = r.random()
+        if roll < 0.12:
+            text += r.choice([b'# comment\n', b'\n', b'   \n', b'\t# x.y 1\n', b'#'])
+            continue
+        sname, grouped, count, keys = r.choice(sections)
+        if r.random() < 0.08:
+            sname = r.choice(pool + [b'Other', b'', b'9x', b'A' * 64, b'A' * 65])
+        line = r.choice([b'', b'', b'  ', b'\t', b'\n '])
+        if grouped and r.random() < 0.9 or r.random() < 0.05:
+            row = r.choice([0, 1, count - 1, count, 2])
+            line += sname + r.choice([b'[%d].' % row, b'[%d].' % row, b'[x].', b'[1]', b'[1.', b'[01].'])
+        else:
+            line += sname + r.choice([b'.', b'.', b'.', b'[', b' .', b'.9'])
+        chosen = [r.choice(keys) for _ in range(r.choice([1, 1, 1, 2, 3, 16, 17]))]
+        if r.random() < 0.06:
+            chosen[0] = (4, r.choice([b'Other', b'B' * 64, b'C' * 63]))
+        line += r.choice([b'.', b'.', b'.', b'..', b'.9']).join(name for _, name in chosen)
+        if any(t == 11 for t, _ in chosen) and len(chosen) == 1:
+            text += line + map_text(r, r.choice([1, 2]))
+            continue
+        line += r.choice([b' ', b' ', b'\t', b'', b'#'])
+        for t, name in chosen:
+            k = next((i for i, (tt, nn, _) in enumerate(recs) if nn == name and tt == t), 0)
+            lo, hi, _ = bounds.get(k, (0, 10, 1))
+            if t == 10:
+                v = r.choice([b'"text"', b'""', b'"two words"', b'"open', b'bare', b' "x"y', b'"a\nb"'])
+            else:
+                v = number(r, lo / 2 if t in (7, 8, 9) else lo, hi / 2 if t in (7, 8, 9) else hi, t)
+            line += v + r.choice([b' ', b' ', b'\t', b''])
+        text += line + r.choice([b'\n', b'\r\n', b'\n', b' # note\n', b''])
+    for k, (t, name, _) in enumerate(recs):   # map keys parse with the symbol table their +0x38 names (1 or 2; others read an uninitialised pointer)
+        if t == 11:
+            put(table, 0x3c * k + 0x38, 'I', r.choice([1, 2]))
+    regions.update({RAM: put(bytearray(r.bytes(0x10)), 0, 'II', vt, VALS), VALS: vals, FLAGS: flags, VTABLES[vt]: table,
+                    RAM + 0x100: b'test.sam\0', TEXT: text[:0x1f00] + b'\0' + r.bytes(4), HEAP: heap(0x8000, fail=r.choice([0] * 15 + [1])),
+                    **global_heap(), 0x785de8: r.bytes(0x60)})
+    return Call(0x4017a0, [RAM, RAM + 0x100, TEXT, r.choice([0, 1, 1, 2])], regions, conv='t', ret='a')
+
+
 def case(r):
     op = r.deal(OPS + [k for k in ('Dtor', 'Schema') if k in OPS])   # (a deck, those two twice: they share out many functions)
     if op == 'Defaults':
@@ -150,10 +251,12 @@ def case(r):
         return find(r)
     if op == 'Map':
         return parse_map(r)
+    if op == 'Parse':
+        return parse(r)
     return Call(r.deal(list(GETTERS)), [r.getrandbits(32), r.choice([0, 1, r.randrange(64), r.getrandbits(32)])], {}, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Defaults,Release,Schema,Dtor,Init,ObjCtor,Advisor,Find,Theme,Map').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Defaults,Release,Schema,Dtor,Init,ObjCtor,Advisor,Find,Theme,Map,Parse').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

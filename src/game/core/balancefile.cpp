@@ -1,6 +1,7 @@
 #include "balancefile.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "vcall.h"
 #include "../files/file.h"
@@ -323,5 +324,186 @@ u32 __cdecl BalanceFile_ParseMap(const char **text, u8 **map, const char **error
         while (*p && *p != '\n') ++p;
         if (*p == '\n') ++p;
     }
+}
+}
+
+namespace {
+
+// The classifiers as the original calls them: the char sign-extended.
+bool space(char c) { return Crt().isspace((s32)c) != 0; }
+bool digit(char c) { return Crt().isdigit((s32)c) != 0; }
+bool alpha(char c) { return Crt().isalpha((s32)c) != 0; }
+bool alnum(char c) { return Crt().isalnum((s32)c) != 0; }
+
+// A line's names, adjacent as on the original's stack: a group name of all 64 chars runs on into the first field (and the 16th
+// field into the original's return address, which no key record's name can match).
+struct LineNames {
+    char group[0x40];
+    char fields[0x10][0x40];
+};
+
+// Where key record index's value goes: row of it when grouped (the entry's row count at +8 raised to row + 1 first), else
+// its single value. The record is fetched once more after, as the original does.
+u32 *value_slot(u8 *self, s32 index, u32 grouped, s32 row) {
+    u32 *slot;
+    if (grouped) {
+        u8 *const e = entry(self, index);
+        s32 *const rows = at<s32 *>(e, 8);
+        if (*rows < row + 1) *rows = row + 1;
+        slot = &value(e, row);
+    } else {
+        slot = at<u32 *>(entry(self, index), 0);
+    }
+    key(self, index);
+    return slot;
+}
+
+// A block (a string or a map) stored over the slot's old one, which is freed.
+void replace(u32 *slot, void *block) {
+    if (*slot) Mem_GlobalFree(reinterpret_cast<void *>((uintptr_t)*slot));
+    *slot = (u32)(uintptr_t)block;
+}
+
+// One "Group.Field.Field value value" line (or "Group[row].Field ..."), from p (its first char past the white space). False on a
+// parse error, whose message (to Debug_Printf) is left out. A map moves line itself.
+bool parse_line(u8 *self, char *&line, char *p, LineNames &names, const char *&map_error) {
+    const CrtEnv &crt = Crt();
+    std::memset(names.group, 0, sizeof names.group);
+    s32 length = 0;
+    while (alnum(*p) && length < 0x40) names.group[length++] = *p++;
+    if (length == 0 || (*p != '.' && *p != '[')) return false;
+    u32 grouped = 0;
+    s32 row = 0;
+    if (*p == '[') {
+        ++p;
+        if (!digit(*p)) return false;
+        row = crt.atoi(p);
+        while (digit(*p)) ++p;
+        if (*p != ']' || *++p != '.') return false;
+        ++p;
+        grouped = 1;
+    } else {
+        ++p;
+    }
+    std::memset(names.fields, 0, sizeof names.fields);
+    s32 count = 0;
+    if (!alpha(*p)) return false;
+    for (;;) {
+        char *const field = names.fields[count];
+        s32 k = 0;
+        do {
+            if (!alnum(*p)) break;
+            field[k++] = *p++;
+        } while (k < 0x40);
+        ++count;
+        if (*p != '.' && !space(*p)) return false;
+        if (*p++ == '.' && count < 0x10) {
+            if (!alpha(*p)) return false;
+            continue;
+        }
+        if (count == 0x10 && *p == '.') return false;  // "Too many fields have been specified"
+        break;
+    }
+    for (s32 i = 0; i < count; ++i) {
+        s32 index;
+        if (!BalanceFile_FindKey(self, nullptr, names.group, names.fields[i], &index, grouped, row)) return false;
+        const u32 kind = type(self, index);
+        if (kind == 0xb) {  // a map: the only field of its line
+            if (count != 1) return false;
+            u8 *map;
+            u32 ok = 0;
+            switch (at<u32>(key(self, index), 0x38)) {
+            case 1:
+                ok = BalanceFile_ParseMap(const_cast<const char **>(&line), &map, &map_error, reinterpret_cast<const u8 *>(0x007396c8), 0x13);
+                break;
+            case 2:
+                ok = BalanceFile_ParseMap(const_cast<const char **>(&line), &map, &map_error, reinterpret_cast<const u8 *>(0x007397b0), 0x10);
+                break;
+            default:  // (asserts: no map_type or an unknown one)
+                break;
+            }
+            if (!ok) {
+                // The message takes the map's error text (strcat): none (an allocation failed) faults (sic).
+                static_cast<void>(*static_cast<const volatile char *>(map_error));
+                return false;
+            }
+            replace(value_slot(self, index, grouped, row), map);
+        } else if (kind == 0xa) {  // a string: "text" up to its closing quote on the line
+            while (space(*p)) ++p;
+            if (*p != '"') return false;
+            const char *const from = ++p;
+            u32 n = 0;
+            const char *end = from;
+            while (*end != '"' && *end != '\n' && *end) {
+                ++end;
+                ++n;
+            }
+            if (*end != '"') return false;
+            char *const text = static_cast<char *>(Mem_GlobalAlloc(n + 1));
+            if (!text) return false;
+            char *to = text;
+            for (end = from; *end != '"' && *end != '\n' && *end; ++end) *to++ = *end;
+            *to = 0;
+            p = const_cast<char *>(end) + 1;
+            replace(value_slot(self, index, grouped, row), text);
+        } else if (kind == 7 || kind == 8 || kind == 9) {  // a float: [-]digits with up to one point, fewer than 100 chars
+            while (space(*p)) ++p;
+            char *end = p;
+            if (*end == '-') ++end;
+            s32 points = 0;
+            while (digit(*end) || (*end == '.' && points < 2)) {
+                if (*end == '.') ++points;
+                ++end;
+            }
+            if (!space(*end) && *end) return false;
+            if (points > 1 && *end != '.') return false;
+            if (end - p >= 0x64) return false;
+            const float f = static_cast<float>(crt.atof(p));
+            p = end;
+            u32 *const slot = value_slot(self, index, grouped, row);
+            const u8 *const record = key(self, index);
+            const u32 t = at<u32>(record, 0);
+            if (t == 8 && !(f >= 0.0f)) return false;  // "invalid -ve value"
+            if (t == 9 && (!(f >= at<float>(record, 0x2c)) || f >= at<float>(record, 0x30))) return false;  // "bounded value out of range"
+            std::memcpy(slot, &f, 4);
+        } else {  // an integer: [-]digits
+            while (space(*p)) ++p;
+            char *end = p;
+            if (*end == '-') ++end;
+            while (digit(*end)) ++end;
+            if (!space(*end) && *end) return false;
+            const s32 v = crt.atoi(p);
+            p = end;
+            u32 *const slot = value_slot(self, index, grouped, row);
+            const u8 *const record = key(self, index);
+            const u32 t = at<u32>(record, 0);
+            if (t == 5 && v < 0) return false;
+            if (t == 6 && (v < at<s32>(record, 0x24) || v >= at<s32>(record, 0x28))) return false;
+            *slot = (u32)v;
+        }
+    }
+    return true;
+}
+
+}  // namespace
+
+extern "C" {
+
+u32 __fastcall BalanceFile_Parse(u8 *self, void *, const char *, char *text, u32 keep) {
+    if (!keep) BalanceFile_SetDefaults(self, nullptr, 0);
+    char *to = text;
+    for (const char *from = text; *from; ++from)
+        if (*from != '\r') *to++ = *from;
+    *to = 0;
+    LineNames names;
+    const char *map_error = nullptr;  // (sic: the original's is uninitialised until a map has been parsed)
+    for (char *line = text; *line;) {
+        char *p = line;
+        while (space(*p)) ++p;  // (across line ends too)
+        if (*p && *p != '#' && *p != '\n' && !parse_line(self, line, p, names, map_error)) return 0;
+        while (*line && *line != '\n') ++line;
+        if (*line == '\n') ++line;
+    }
+    return 1;
 }
 }

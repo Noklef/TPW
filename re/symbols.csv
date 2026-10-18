@@ -303,7 +303,7 @@ address,name,kind,confidence,notes
 0x00401030,BalanceFile_Init,function,high,"reimplemented (src/game/core/balancefile); thiscall: the values entries laid out from the schema (groups, strides, running index into the values at +8), then SetDefaults(1)"
 0x004013e0,BalanceFile_SetDefaults,function,high,reimplemented (src/game/core/balancefile); thiscall (keep): the values set to their schema defaults group by group; strings freed unless keep is 1
 0x00401250,BalanceFile_Release,function,low,"reimplemented (src/game/core/balancefile); thiscall: SetDefaults(0) when there are values, then the values block freed and cleared"
-0x004017a0,BalanceFile_Parse,function,medium,"parses Group.Key value lines; 'Balance file %s parse error', range checks per type"
+0x004017a0,BalanceFile_Parse,function,medium,"reimplemented (src/game/core/balancefile); thiscall (name, text, keep), pops 12: a balance file text into its values (Group[row].Field.Field value lines); 1, or 0 at the first error"
 0x00412c90,ObjectDef_GetSchema,function,high,"reimplemented (src/game/world/objectdefs); thiscall (i), this unused: &key record i of the object .sam schema at 0x744b30 (0x3c bytes each)"
 0x004143f0,TrackType_GetSchema,function,high,"reimplemented (src/game/world/objectdefs); thiscall (i), this unused: &key record i of the track type .sam schema at 0x739ea8 (0x3c bytes each); BalanceTrack vtable 0x6fd8b0"
 0x00412e60,ObjectDefs_First,function,high,"reimplemented (src/game/world/objectdefs); thiscall: the first definition (+0, whatever the count); the walk cursor (+0x72c) set to 0"
