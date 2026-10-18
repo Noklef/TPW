@@ -1,6 +1,6 @@
 # The world view object's ranges of src/game/render/worldview (0x56b850-0x56b93d) against the originals: an object of random bytes, its
 # range floats (+0x3c-+0x48) now and then ordinary floats or fncmp's specials; the arguments ordinary floats, specials (zeros, NaNs,
-# infinities) or steps that make the count tiny, huge (past 32 and 63 bits) or negative.
+# signalling ones too, infinities) or steps that make the count tiny, huge (past 32 and 63 bits) or negative.
 # usage: worldview.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Diagonal,RangeX,RangeY)
 import os
 import sys
@@ -18,7 +18,7 @@ def ordinary(r):
 
 
 def value(r):
-    return r.choice([ordinary(r), ordinary(r), ordinary(r), r.f()])
+    return r.choice([ordinary(r), ordinary(r), ordinary(r), r.f(), r.choice([0x7fa00000, 0xff800001])])
 
 
 def case(r):
