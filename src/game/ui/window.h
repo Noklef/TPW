@@ -13,6 +13,10 @@ u8 *__fastcall Window_FindChild(u8 *window, void *, u32 id);
 // (window, message, a, b) and its result returned; -1 when there is none.
 s32 __fastcall Window_CallHandler(u8 *window, void *, u32 message, u32 a, u32 b);
 
+// 0x65f66e (thiscall (message, a, b), pops 12; name unconfirmed): the window's default handler (the cdecl function at +0x118, 0x65f6d1
+// unless replaced; not checked for 0) called with (window, message, a, b) and its result returned.
+s32 __fastcall Window_CallDefault(u8 *window, void *, u32 message, u32 a, u32 b);
+
 // 0x658d9f (cdecl (window, message, a, b); name unconfirmed): -1 for no window or one whose byte +4 (Fn_659710) is set; otherwise the
 // global message hook [0xfaa5fc] (when set) is called with the same four, then Window_CallHandler's result is returned.
 s32 __cdecl Window_SendMessage(u8 *window, u32 message, u32 a, u32 b);

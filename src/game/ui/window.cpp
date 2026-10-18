@@ -31,6 +31,11 @@ s32 __fastcall Window_CallHandler(u8 *window, void *, u32 message, u32 a, u32 b)
     return handler ? handler(window, message, a, b) : -1;
 }
 
+s32 __fastcall Window_CallDefault(u8 *window, void *, u32 message, u32 a, u32 b) {
+    using Handler = s32(__cdecl *)(u8 *, u32, u32, u32);
+    return at<Handler>(window, 0x118)(window, message, a, b);
+}
+
 s32 __cdecl Window_SendMessage(u8 *window, u32 message, u32 a, u32 b) {
     using Hook = void(__cdecl *)(u8 *, u32, u32, u32);
     if (!window || Fn_659710(window)) return -1;

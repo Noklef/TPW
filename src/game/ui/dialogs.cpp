@@ -59,6 +59,11 @@ s32 __fastcall WindowAt10_Message4IfAny(u8 *object) {
     return w ? Window_SendMessage(w, 4, 0, 0) : 0;
 }
 
+s32 __cdecl WindowAt10_Handler(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 0x14) *reinterpret_cast<u32 *>(Window_DwordA0(window, nullptr, 0) + 0x10) = 0;
+    return Window_CallDefault(window, nullptr, message, a, b);
+}
+
 u8 *__fastcall WindowAt10_ScalarDtor(u8 *object, void *, u32 flags) {
     WindowAt10_Message4IfAny(object);
     if (flags & 1) GameHeap_Free(object);
