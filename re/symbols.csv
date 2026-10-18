@@ -3656,6 +3656,8 @@ address,name,kind,confidence,notes
 0x005f4400,Class703088_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor leaving the global list of its kind
 0x00618110,Class7037b8_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor of the 0x7037b8 class
 0x0051af00,ListScalarDelete700aa0_51af00,function,low,"reimplemented (src/game/core/vdel); a linked list scalar deleting destructor: sets the vtable pointer 0x700aa0, frees every node and, when bit 0 of the flags is set, the list"
+0x005e3fa0,Class702e70_ScalarDtor,function,high,"reimplemented (src/game/core/vdel); thiscall (flags, pops 4): Class702e70_Dtor, the object freed on flag bit 0; returns it"
+0x005e3fd0,Class702e20_ScalarDtor,function,high,"reimplemented (src/game/core/vdel); thiscall (flags, pops 4): Class702e20_Dtor, the object freed on flag bit 0; returns it"
 0x004dda20,Object_QueueHasRoom,function,high,reimplemented (src/game/world/objectmsg); whether the person queue is shorter than four times the limit
 0x005eb090,ArrayHolder_Clear,function,high,reimplemented (src/game/gfx/array3d); frees the four arrays of the holder
 0x005ea3f0,Image_CropInto,function,high,reimplemented (src/game/gfx/imageops); copies the part of an image that is left once moved into a fresh destination
@@ -3739,6 +3741,8 @@ address,name,kind,confidence,notes
 0x005dc660,Class702bc8_DeletingDtor,function,low,"reimplemented (src/game/core/vdtor); thiscall (flags): Class702bc8_Dtor, the object freed when bit 0 is set; returns it"
 0x005dfc30,Class702ca8_Dtor,function,low,reimplemented (src/game/core/vdtor); thiscall: vtable pointer 0x702ca8; the member at +0xc told (slot 0x34); the WString at +0x48 and the String at +0x28 destroyed
 0x005dfc10,Class702ca8_DeletingDtor,function,low,"reimplemented (src/game/core/vdtor); thiscall (flags): Class702ca8_Dtor, the object freed when bit 0 is set; returns it"
+0x005e3fc0,Class702e70_Dtor,function,high,"reimplemented (src/game/core/vdtor); thiscall destructor: vtable pointer 0x702e70, then Class702bc8_Dtor"
+0x005e3ff0,Class702e20_Dtor,function,high,"reimplemented (src/game/core/vdtor); thiscall destructor: vtable pointer 0x702e20, then Class702bc8_Dtor"
 0x00617ff0,Class7037c0_Create,function,high,reimplemented (src/game/core/factories); object factory with a result code
 0x00617970,Class703750_Create,function,high,reimplemented (src/game/core/factories); Allocates and constructs the 0x703750 class object
 0x00403be0,ActionRec_Write,function,low,"reimplemented (src/game/core/actionrec); thiscall (code): the action recorder's code byte, while recording and not playing back"

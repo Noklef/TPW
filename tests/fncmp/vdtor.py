@@ -18,7 +18,8 @@ CALLS = {'C48C': (0x5e3b90, 't', 'a', 0x20), 'C48R': (0x5e3c00, 't', 'a', 0x20),
          'D20': (0x5bd740, 't', 'v', 0xc0), 'X80': (0x5b98a0, 't', 'a', 0xd0), 'X90': (0x5b9970, 't', 'a', 0xd0), 'Xd0': (0x5be810, 't', 'a', 0xd0),
          'Xf8': (0x5be8e0, 't', 'a', 0xd0), 'X20': (0x5be9b0, 't', 'a', 0xd0),
          'Af0': (0x5d9f50, 't', 'v', 0xc4), 'Af0X': (0x5d9ed0, 't', 'a', 0x1e), 'Bc8': (0x5dc740, 't', 'v', 0x102), 'Bc8X': (0x5dc660, 't', 'a', 0x1e),
-         'Ca8': (0x5dfc30, 't', 'v', 0x61), 'Ca8X': (0x5dfc10, 't', 'a', 0x1e)}
+         'Ca8': (0x5dfc30, 't', 'v', 0x61), 'Ca8X': (0x5dfc10, 't', 'a', 0x1e),
+         'E70': (0x5e3fc0, 't', 'v', 0xc), 'E70X': (0x5e3fa0, 't', 'a', 0x1c), 'E20': (0x5e3ff0, 't', 'v', 0xc), 'E20X': (0x5e3fd0, 't', 'a', 0x1c)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()] + [(0x67acb0, 0x67acb1), (0x67afa0, 0x67b060),
                                                                                    (0x5f61e0, 0x5f6210), (0x5f6a60, 0x5f6a90)])
 OBJ, OTHER, SUB, VT, VT2, VT3 = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200
@@ -98,14 +99,14 @@ def case(r):
         regions[VT3] = vtable({7: 0, 18: 0})
         regions[VT2] = vtable({})
         return Call(address, [OBJ], regions, conv=conv, ret=ret)
-    if name[:3] in ('Af0', 'Bc8', 'Ca8'):  # front-end destructors: member lists drained, strings freed, a global or member told (recorders)
+    if name[:3] in ('Af0', 'Bc8', 'Ca8', 'E70', 'E20'):  # front-end destructors: member lists drained, strings freed, a global or member told (recorders)
         args = [OBJ] + (flags if name[-1] == 'X' else [])
         if name[:3] == 'Af0':  # [0xf83784] slot 0x1c; the list at +0x58; strings at +0x10 and +0x24
             regions[0xf83784] = struct.pack('<I', OTHER)
             regions[OTHER] = struct.pack('<I', VT) + r.bytes(0x20)
             regions[VT] = vtable({7: 1})
             put(obj, 0x58, 'I', member_list(r, regions, LISTS))  # (never none: the drain reads it first)
-        elif name[:3] == 'Bc8':  # lists at +8 and +0x6c, then Class702d48_Release ([0xf85614] slot 0x1c)
+        elif name[:3] in ('Bc8', 'E70', 'E20'):  # lists at +8 and +0x6c, then Class702d48_Release ([0xf85614] slot 0x1c); (E70, E20: derived classes)
             regions[0xf85614] = struct.pack('<I', OTHER)
             regions[OTHER] = struct.pack('<I', VT) + r.bytes(0x20)
             regions[VT] = vtable({7: 1})

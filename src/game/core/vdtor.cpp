@@ -424,6 +424,16 @@ void __fastcall Class702dd0_Dtor(u8 *object) {
     Class702cb0_Dtor(object);
 }
 
+void __fastcall Class702e70_Dtor(u8 *object) {
+    *reinterpret_cast<u32 *>(object) = 0x00702e70;
+    Class702bc8_Dtor(object);
+}
+
+void __fastcall Class702e20_Dtor(u8 *object) {
+    *reinterpret_cast<u32 *>(object) = 0x00702e20;
+    Class702bc8_Dtor(object);
+}
+
 void __fastcall Class7037b8_Dtor(u8 *object) {
     at<u32>(object, 0) = 0x007037b8;
     u8 *const head = at<u8 *>(object, 8);
