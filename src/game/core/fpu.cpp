@@ -77,4 +77,16 @@ void __cdecl Fpu_LoadControlFullPrecision(u32 cw) {
     __asm fldcw word ptr cw
 }
 
+u8 *__fastcall Class7035d8_Ctor(u8 *object) {
+    FpuControl *control = reinterpret_cast<FpuControl *>(object + 4);
+    control->vtable = reinterpret_cast<void *>(static_cast<std::uintptr_t>(0x007035d8));
+    object[0] = 0;
+    control->saved = 0;
+    control->changed[0] = 0;
+    control->changed[1] = 0;
+    return object;
+}
+
+u8 *__cdecl Class7035d8_InitGlobal() { return Class7035d8_Ctor(reinterpret_cast<u8 *>(0x00fa78e8)); }
+
 }  // extern "C"

@@ -1,4 +1,5 @@
-// The x87 control word guard (0x62f980-0x62f9d4, thiscall; destructors 0x5f9fa0-0x5f9ff1): the
+// The x87 control word guard (0x62f980-0x62f9d4, thiscall; destructors 0x5f9fa0-0x5f9ff1; a holder's constructor 0x5f9f70 /
+// 0x5f9f80): the
 // bits it changed are restored when it goes. The game never sets the changed masks (nothing
 // writes them but the constructors), so the restore only ever zeroes them.
 //
@@ -24,6 +25,11 @@ void __fastcall FpuControl_Dtor(FpuControl *f);  // 0x5f9fc0: the base vtable, R
 // 0x5f9fa0 / 0x5f9fd0 (flags): the deleting destructors (the derived and the base vtable's).
 FpuControl *__fastcall FpuControl_DeletingDtor(FpuControl *f, void *edx, u32 flags);
 FpuControl *__fastcall FpuControl_BaseDeletingDtor(FpuControl *f, void *edx, u32 flags);
+// 0x5f9f80 (thiscall): an object of a byte at +0 and an FpuControl at +4: the guard's vtable pointer 0x7035d8 at +4, the byte at
+// +0 and the words at +8, +0xa, +0xc (saved, changed) cleared. Returns the object. 0x5f9f70 (cdecl): that for the global object at
+// 0xfa78e8 (its static initialiser; the byte is the screen's lock flag, gfx/screen).
+u8 *__fastcall Class7035d8_Ctor(u8 *object);
+u8 *__cdecl Class7035d8_InitGlobal();
 }
 
 struct FpuEnv {

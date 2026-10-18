@@ -322,17 +322,6 @@ u8 *__cdecl Codec631280_Init(u8 *object) {
     return object;
 }
 
-u8 *__fastcall Class7035d8_Ctor(u8 *object) {
-    at<u32>(object, 4) = 0x007035d8;
-    at<u8>(object, 0) = 0;
-    at<u16>(object, 8) = 0;
-    at<u16>(object, 0xa) = 0;
-    at<u16>(object, 0xc) = 0;
-    return object;
-}
-
-u8 *__cdecl Class7035d8_InitGlobal() { return Class7035d8_Ctor(reinterpret_cast<u8 *>(0x00fa78e8)); }
-
 u32 __cdecl Obj_RemoveRectAndClear14(u8 *object, u32 from, u32 to) {
     Obj_RemoveFromRect(at<u8 *>(object, 0x24), from, to);
     at<u32>(object, 0) &= ~0x4000u;

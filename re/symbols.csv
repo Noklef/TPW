@@ -3626,8 +3626,8 @@ address,name,kind,confidence,notes
 0x004f08a0,Obj_InitMinus1B,function,high,reimplemented (src/game/core/accessors); initialises an object with -1 ignoring seven arguments
 0x0048c980,Globals7c264c_Clear,function,low,"reimplemented (src/game/core/accessors); cdecl static initialiser: 0x7c264c, 0x7c2650, 0x7c2654 = 0; returns 0"
 0x00421680,Obj_SetAt8AndAdd,function,high,reimplemented (src/game/core/observers); records an item and adds it to the observer list
-0x005f9f80,Class7035d8_Ctor,function,high,reimplemented (src/game/core/misc); constructor of the class with vtable pointer 0x7035d8
-0x005f9f70,Class7035d8_InitGlobal,function,high,reimplemented (src/game/core/misc); constructs the global object at 0xfa78e8
+0x005f9f80,Class7035d8_Ctor,function,high,reimplemented (src/game/core/fpu); constructor of the class with vtable pointer 0x7035d8
+0x005f9f70,Class7035d8_InitGlobal,function,high,reimplemented (src/game/core/fpu); constructs the global object at 0xfa78e8
 0x005ed490,Strings_CopyRange,function,high,reimplemented (src/game/core/string); copy-constructs a range of strings
 0x005ed4d0,Strings_FillCopy,function,high,reimplemented (src/game/core/string); copy-constructs one string into several
 0x005ed560,String_PlacementCopy,function,high,reimplemented (src/game/core/string); copy-constructs a string in place
