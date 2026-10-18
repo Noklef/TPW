@@ -678,7 +678,7 @@ address,name,kind,confidence,notes
 0x004d4100,ScriptRef_IsAt,function,high,"reimplemented (src/game/sprite/scriptref); the referenced script is at an entry point, or last put there"
 0x004d4140,ScriptRef_Start,function,high,reimplemented (src/game/sprite/scriptref); a script started at an entry point with a folder and sprite
 0x004d4190,ScriptRef_Apply,function,high,reimplemented (src/game/sprite/scriptref); the pending jump and period sent to the script
-0x00541ed0,Sprites_FreeAll,function,medium,"frees every sprite and its image set (0x588230), then resets the 17 draw list objects (0x58a520)"
+0x00541ed0,Sprites_FreeAll,function,high,"reimplemented (src/game/sprite/loading); cdecl: each loaded sprite (gSprites, count 0x87626c) with its frame set (+0x204) gets it freed (SpriteFrames_Free twice, GameHeap_Free) and +0 cleared, the sprite freed; the 17 draw list objects emptied (TrackedArray_Free)"
 0x00541210,SpriteFiles_Sort,function,low,reimplemented (src/game/sprite/loading); bubble-sorts the 12-byte sprite file entries at 0x875970 (count 0x875430) by their names (Names_FirstAfter on String copies)
 0x008751f0,gSpriteDrawListObjs,data,medium,"16 x 0x24-byte render list objects (+4 count), one per map cell; the overlay one at 0x876420; created by Sprites_Init (0x58a4f0)"
 0x00515f30,Things_InitTable,function,high,"reimplemented (src/game/world/things); every slot of gThingSlots free (1..0x27ff stacked in order), none in use"
