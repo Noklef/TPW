@@ -657,7 +657,7 @@ address,name,kind,confidence,notes
 0x00540ab0,SpriteDraw_Begin,function,high,"reimplemented (src/game/sprite/draw); empties the draw lists; camera heading 0x876b24 = Matrix_Heading of the camera (flags 0x16) or the camera angle wrapped to 0..2pi"
 0x00540b30,SpriteDraw_End,function,high,"reimplemented (src/game/sprite/draw); copies the list counts for the renderer; picks (0x532bd0) and hands the last pick to 0x7b05a8"
 0x00542010,Sprite_DrawScript,function,high,"reimplemented (src/game/sprite/draw); (script): fills the draw record (+0xd0) and appends it to its map cell list (4x4) or the 0x40000 list"
-0x004527f0,Terrain_HeightAt,function,low,"(float x, float z): the ground height, in ST0 (Sprite_DrawScript)"
+0x004527f0,Terrain_HeightAt,function,high,"reimplemented (src/game/terrain/land); cdecl (x, y): the ground height on the map's grid in st0: 0 off the grid (or NaN), else the cell's corner heights blended over one of its two triangles (the cell's flags 0x800 / 4 and the fractions pick it), on the x87"
 0x00532bd0,Sprite_PickThing,function,medium,"the thing whose script draws the sprite under the cursor (0x8bd4fc), via SpriteScript_FindShown; 0 for none"
 0x00423b50,Obj_SetFirst,function,high,reimplemented (src/game/core/accessors); +0 = value
 0x00763f84,gSpriteDrawOn,data,medium,"u8: nothing is drawn while 0 (SpriteDraw_Enable/Disable; Sprites_Init sets it)"
