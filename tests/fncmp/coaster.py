@@ -1185,6 +1185,11 @@ def edit_bounds(r, op):
     lt = bytearray(r.bytes(0x280))
     for o in (0x148, 0x268):
         put(lt, o, 'I', r.choice([0, 1, 2, 3, 4, 8, 9, 15, 16, 24, 25, 99, 100, 0xffffffff, 0x7fffffff, r.randrange(400), r.getrandbits(32)]))
+    edge = r.random() < 0.3   # (a perfect square for both reaches, the cells on a bound: reach exactly to it, one short or one past)
+    if edge:
+        root = r.choice([0, 1, 2, 3, 5, 10])
+        put(lt, 0x148, 'I', root * root)
+        put(lt, 0x268, 'I', root * root)
     sl = put(bytearray(r.bytes(0x80)), 0x64, 'II', pieces + 0x200 * r.randrange(4), pieces + 0x200 * r.randrange(4))
     ps, cs = bytearray(r.bytes(0x800)), bytearray(r.bytes(0x80))
     every = r.random() < 0.05
@@ -1196,10 +1201,18 @@ def edit_bounds(r, op):
         put(cs, 0x20 * k + 0xc, 'ii', near(), near())
     small = lambda: r.choice([0, 0, 1, -1, 4, r.randrange(-8, 9), r.getrandbits(32) - (1 << 31)])  # noqa: E731
     size = lambda: r.choice([0x80, 0x80, 0x40, 0, 1, r.randrange(0x100), 0x7fffffff])  # noqa: E731
+    ox, oz, wx, wz = small(), small(), size(), size()
+    if edge:
+        ox, oz, wx, wz = r.randrange(-4, 5), r.randrange(-4, 5), r.choice([0x40, 0x80]), r.choice([0x40, 0x80])
+        reach = root + 1
+        for k in range(4):
+            d = lambda: r.choice([-1, 0, 0, 1])  # noqa: E731
+            x = r.choice([ox + wx - reach, ox + reach]) + d()
+            z = r.choice([oz + wz - reach, ox + reach, oz + reach]) + d()
+            put(cs, 0x20 * k + 0xc, 'ii', x, z)
     regions = {link: lk, ltype: lt, sel: sl, pieces: ps, cells: cs, 0x790fec: struct.pack('<I', link), 0x79c6a4: struct.pack('<I', sel),
                0x79c658: struct.pack('<I', r.getrandbits(32) & ~0x140 | r.choice([0, 0x40, 0x100, 0x140])),
-               0x7a01bc: struct.pack('<i', small()), 0x7a029c: struct.pack('<i', small()),
-               0x7a0314: struct.pack('<I', size() & 0xffffffff), 0x7a0374: struct.pack('<I', size() & 0xffffffff)}
+               0x7a01bc: struct.pack('<i', ox), 0x7a029c: struct.pack('<i', oz), 0x7a0314: struct.pack('<I', wx), 0x7a0374: struct.pack('<I', wz)}
     for g in (0x791cf8, 0x79104c, 0x79221c, 0x790fd8):
         regions[g] = r.bytes(4)
     return Call(0x434f10, [], regions, ret='v')
