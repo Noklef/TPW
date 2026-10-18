@@ -50,6 +50,19 @@ u8 *__fastcall Window_OffsetByParents(u8 *window, void *, u8 *rect);
 // with flag 1 the hover is updated (Window_UpdateHover); then the window is posted 0x15 (0, 0). Returns the window.
 u8 *__fastcall Window_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom);
 
+// 0x6592b6 (cdecl (window); name unconfirmed): each of the globals [0xfaa5e0] (the hovered window), [0xfaa5dc], [0xfaa5e8] and the
+// three from 0xfaa588 that is the window cleared. EAX is left 3 (the loop's count).
+u32 __cdecl Window_ForgetGlobals(u8 *window);
+
+// 0x65e672 (thiscall; name unconfirmed): when the window is the modal one [0xfaa57c] (msgqueue's first taker of 0x1000a-0x1000c), it and
+// its pairs [0xfaa578] are cleared and 1 is in AX; else 0. Only AX is set (sic: the rest of EAX is [0xfaa57c]'s).
+u32 __fastcall Window_DropModal(u8 *window);
+
+// 0x65c2d8 (thiscall; name unconfirmed): the window and its children (from +0x5c by +0x54, each in turn) told they are going: sent 0x14
+// (0, 0) (Window_SendMessage), then the byte +4 set; after the children, Window_DropModal, and [0xfaa5ec] and [0xfaa5dc] cleared when
+// they are the window. EAX is left as [0xfaa5ec] as it was read.
+u32 __fastcall Window_Destroying(u8 *window);
+
 // 0x65e705 (thiscall (index: a word), pops 4; name unconfirmed): the dword +0xa0 + 4 * index (signed) for an index below 16, else 0.
 u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index);
 

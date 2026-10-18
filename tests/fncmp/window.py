@@ -12,6 +12,8 @@
 # (0x6616b0, 0x65d773, 0x65c979): recorder objects, chains of 0-4 windows by +0x60. RectAssign / SaveRect (0x65aa20, 0x65bc90): random.
 # Ctor (0x65bcad): a random window built with a parent from a tree (its +0x60 chain and word +0xe0 near 0x100) or none, flags 0x400 and 1
 # set or not, words edges or near (upper halves random); the root the new window, the tree's or none, the queues as above.
+# ForgetGlobals / DropModal / Destroying (0x6592b6, 0x65e672, 0x65c2d8): the globals the window (or one in its tree) or others (upper
+# halves too); Destroying on a tree as HitTest's, the handlers fncmp's logger or 0, the hook [0xfaa5fc] set or not.
 # usage: window.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FindChild,SetChecks,SetChecksIfUp)
 import os
 import struct
@@ -32,7 +34,7 @@ CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50
          'PostMessage': 0x658ccc, 'Dialog7cb2b8_Child21Post': 0x4a2590,
          'HitTest': 0x65db25, 'UpdateHover': 0x6589f9, 'ImplRelease': 0x6616b0, 'IsShown': 0x65d773,
          'RectAssign': 0x65aa20, 'SaveRect': 0x65bc90, 'OffsetByParents': 0x65c979,
-         'Ctor': 0x65bcad}
+         'Ctor': 0x65bcad, 'ForgetGlobals': 0x6592b6, 'DropModal': 0x65e672, 'Destroying': 0x65c2d8}
 SENDS = {k: int(k[6:12], 16) for k in CALLS if k.startswith('Dialog7')}   # the window's global
 B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6d1), (0x658d9f, 0x658df4), (0x659710, 0x659721),
            (0x4b87f0, 0x4b8850), (0x4b8e80, 0x4b8ea0), (0x4b8ec0, 0x4b8ee0), (0x4b9c00, 0x4b9c40),
@@ -44,7 +46,8 @@ B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x
            (0x65db25, 0x65dbee), (0x6589f9, 0x658aab), (0x659e83, 0x659ee2),
            (0x6616b0, 0x6616f1), (0x65d773, 0x65d7bc),
            (0x65aa20, 0x65aa90), (0x65bc90, 0x65bcad), (0x65c979, 0x65c9bd),
-           (0x65bcad, 0x65c025), (0x659d00, 0x659d43), (0x65a9d0, 0x65aa00), (0x65a3e9, 0x65a43e), (0x67fff0, 0x680048)])
+           (0x65bcad, 0x65c025), (0x659d00, 0x659d43), (0x65a9d0, 0x65aa00), (0x65a3e9, 0x65a43e), (0x67fff0, 0x680048),
+           (0x6592b6, 0x659333), (0x65e672, 0x65e6a4), (0x65c2d8, 0x65c357)])
 WINDOW, NODES, VTABLE, MISC, KIDS, HOLDER, WINDOW2 = RAM, RAM + 0x100, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200, RAM + 0x1600, RAM + 0x1800
 QUEUES, TREE, RECTS = RAM + 0x2000, RAM + 0x3000, RAM + 0x4000
 NODE = 0x90
@@ -194,6 +197,24 @@ def case(r):
                                         r.getrandbits(32), r.choice([0] * 6 + [1]))
         flags = r.choice([1, 0x401, 0x400, 0, 0x10000001, r.getrandbits(32)]) | (r.getrandbits(32) & 0x0ffff800 if r.random() < 0.3 else 0)
         return Call(CALLS[op], [WINDOW2, r.choice(wins + [0, 0]), flags, r.getrandbits(32)] + words, regions, conv='t', ret='a')
+    if op in ('ForgetGlobals', 'DropModal', 'Destroying'):
+        wins = tree(r, regions) if op == 'Destroying' else [WINDOW]
+        if op != 'Destroying':
+            regions[WINDOW] = r.bytes(0x20)
+        else:
+            for w in wins:
+                put(regions[w], 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
+        regions[0xfaa5fc] = struct.pack('<I', r.choice([0, CDECL_LOG4]))
+
+        def some():
+            return r.choice(wins + [wins[0], 0, r.getrandbits(32), (wins[0] & 0xffff) | 0x12340000])
+        regions[0xfaa578] = struct.pack('<II', r.getrandbits(32), some())
+        regions[0xfaa588] = struct.pack('<3I', some(), some(), some())
+        regions[0xfaa5dc] = struct.pack('<4I', some(), some(), r.getrandbits(32), some())
+        regions[0xfaa5ec] = struct.pack('<I', some())
+        if op == 'ForgetGlobals':
+            return Call(CALLS[op], [r.choice([WINDOW] * 5 + [0])], regions, ret='a')
+        return Call(CALLS[op], [r.choice(wins[:1] * 3 + wins)], regions, conv='t', ret='a')
     if op == 'HitTest':
         wins = tree(r, regions)
         return Call(CALLS[op], [r.choice(wins[:1] * 3 + wins)] + list(point(r, regions, wins)), regions, conv='t', ret='a')

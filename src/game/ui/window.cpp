@@ -128,6 +128,37 @@ u8 *__fastcall Window_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u3
     return window;
 }
 
+u32 __cdecl Window_ForgetGlobals(u8 *window) {
+    for (const uintptr_t global : {0x00faa5e0u, 0x00faa5dcu, 0x00faa5e8u})
+        if (*reinterpret_cast<u8 **>(global) == window) *reinterpret_cast<u8 **>(global) = nullptr;
+    for (u32 i = 0; i < 3; ++i)
+        if (reinterpret_cast<u8 **>((uintptr_t)0x00faa588)[i] == window) reinterpret_cast<u8 **>((uintptr_t)0x00faa588)[i] = nullptr;
+    return 3;  // sic: EAX is left as the loop's count
+}
+
+u32 __fastcall Window_DropModal(u8 *window) {
+    u8 *&modal = *reinterpret_cast<u8 **>((uintptr_t)0x00faa57c);
+    const u32 high = (u32)(uintptr_t)modal & 0xffff0000u;  // sic: only AX is set, EAX held the modal window
+    if (modal != window) return high;
+    modal = nullptr;
+    *reinterpret_cast<u32 *>((uintptr_t)0x00faa578) = 0;
+    return high | 1;
+}
+
+u32 __fastcall Window_Destroying(u8 *window) {
+    Window_SendMessage(window, 0x14, 0, 0);
+    window[4] = 1;
+    for (u8 *child = at<u8 *>(window, 0x5c); child; child = at<u8 *>(child, 0x54))
+        Window_Destroying(child);
+    Window_DropModal(window);
+    u8 *&focus = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5ec);
+    u8 *const old = focus;
+    if (focus == window) focus = nullptr;
+    u8 *&other = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5dc);
+    if (other == window) other = nullptr;
+    return (u32)(uintptr_t)old;  // EAX is left as [0xfaa5ec] as read
+}
+
 u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index) {
     const s32 i = static_cast<s16>(index);
     return i < 16 ? at<u32>(window, 0xa0 + 4 * i) : 0;
