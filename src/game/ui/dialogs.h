@@ -51,4 +51,8 @@ u8 *__fastcall WindowAt10_ScalarDtor(u8 *object, void *, u32 flags);
 // 0x48ee20 (cdecl; name unconfirmed): message 5 (0, 0) sent (Window_SendMessage) to the window (+0) of each of the ten entries of 0x208 bytes
 // from 0x7c26b0 whose word +4 is not 0.
 void __cdecl Windows7c26b0_Message5();
+
+// 0x4bcef0 (cdecl; name unconfirmed): with `same` = (the dword 0x7cc698 == the window [0x7cc8bc]), message 6 (same, 0) to [0x7cc8bc] and
+// message 6 (!same, 0) to [0x7cc8c0] (Window_SendMessage; the second's result returned); then 0x7cc698 = 0.
+s32 __cdecl Windows7cc8bc_Message6Pair();
 }

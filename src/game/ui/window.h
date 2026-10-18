@@ -16,4 +16,15 @@ s32 __fastcall Window_CallHandler(u8 *window, void *, u32 message, u32 a, u32 b)
 // 0x658d9f (cdecl (window, message, a, b); name unconfirmed): -1 for no window or one whose byte +4 (Fn_659710) is set; otherwise the
 // global message hook [0xfaa5fc] (when set) is called with the same four, then Window_CallHandler's result is returned.
 s32 __cdecl Window_SendMessage(u8 *window, u32 message, u32 a, u32 b);
+
+// 0x65d6db (thiscall (a, b), pops 8; name unconfirmed): slot 7 (thiscall (a, b)) of the window's object at +0x9c, its result; 0 when there is
+// none.
+u32 __fastcall Window_ImplSlot7(u8 *window, void *, u32 a, u32 b);
+
+// 0x65d745 (thiscall; name unconfirmed): slot 6 (thiscall, no arguments) of the window's object at +0x9c, its result; the window itself when
+// there is none (sic: EAX still holds it).
+u32 __fastcall Window_ImplSlot6(u8 *window);
+
+// 0x65e705 (thiscall (index: a word), pops 4; name unconfirmed): the dword +0xa0 + 4 * index (signed) for an index below 16, else 0.
+u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index);
 }

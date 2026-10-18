@@ -65,6 +65,16 @@ u8 *__fastcall WindowAt10_ScalarDtor(u8 *object, void *, u32 flags) {
     return object;
 }
 
+s32 __cdecl Windows7cc8bc_Message6Pair() {
+    u8 *const first = window(0x007cc8bc);
+    u32 &chosen = *reinterpret_cast<u32 *>((uintptr_t)0x007cc698);
+    const bool same = chosen == (u32)(uintptr_t)first;
+    Window_SendMessage(first, 6, same, 0);
+    const s32 result = Window_SendMessage(window(0x007cc8c0), 6, !same, 0);
+    chosen = 0;
+    return result;
+}
+
 void __cdecl Windows7c26b0_Message5() {
     for (u32 entry = 0x007c26b0; entry < 0x007c3b00; entry += 0x208)
         if (*reinterpret_cast<u16 *>((uintptr_t)entry + 4)) Window_SendMessage(*reinterpret_cast<u8 **>((uintptr_t)entry), 5, 0, 0);
