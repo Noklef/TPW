@@ -77,4 +77,13 @@ u8 *__fastcall DrawBatch_Open(u8 *object, void *, u32 mode, u32 a, u32 kind, u32
 // mask is clipped into a fan (ClipPoly_TriangleFan with those codes, stride 0x20; it may add vertices). Returns the indices written.
 s32 __fastcall DrawBatch_AddClippedTriangles(u8 *object, void *, u32 *vertexCount, const u16 *indices, s32 count, u32 mask);
 
+// 0x565bb0 (thiscall on the same object; vertices, count, stride, codes, flags; pops 20; name unconfirmed): nothing unless there is room for
+// 10 more vertices (of the object's size) and 0x30 bytes of indices. codes is {and, or} of the vertices' clip codes, or 0 to have them
+// computed (ClipCodes_Compute, the caller's ECX [0x879a20]; into an 8-byte local, sic: more vertices run over the original's return
+// address). An and with a bit: nothing. With an or the polygon is clipped into the batch's next vertices (ClipPoly_Vertices with the
+// vertices as its second buffer; nothing more under 3), else copied there. The batch's vertex count rises by the count and its index count
+// by 3 (count - 2); then for 3-8 vertices the fan's triangles from its index end, the last first: (first, first + k, first + k + 1), with
+// flag 2 (first, first + k + 1, first + k). Returns 1.
+u32 __fastcall DrawBatch_AddPolygon(u8 *object, void *, u8 *vertices, u32 count, u32 stride, const u8 *codes, u32 flags);
+
 }

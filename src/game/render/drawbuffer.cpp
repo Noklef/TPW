@@ -305,4 +305,45 @@ s32 __fastcall DrawBatch_AddClippedTriangles(u8 *object, void *, u32 *vertexCoun
     return (s32)((uintptr_t)w - at<u32>(batch, 0x2c)) >> 1;
 }
 
+u32 __fastcall DrawBatch_AddPolygon(u8 *object, void *, u8 *vertices, u32 count, u32 stride, const u8 *codes, u32 flags) {
+    u8 *batch = at<u8 *>(object, 0x20);
+    const u32 base = at<u32>(batch, 0x20), used = at<u32>(batch, 0x24), start = at<u32>(batch, 0x28);
+    const u32 indices = at<u32>(batch, 0x2c);
+    if (at<u32>(object, 0x28) < at<u32>(object, 0x1c) * (base + 10) + start || at<u32>(object, 0x2c) < indices + used * 2 + 0x30)
+        return 1;
+    u8 *const dest = reinterpret_cast<u8 *>((uintptr_t)(base * stride + start));
+    u16 *w = reinterpret_cast<u16 *>((uintptr_t)(indices + used * 2));
+    u32 out;
+    if (!codes) {
+        u8 scratch[0x400];   // (the original's has 8 bytes before its return address: more vertices run over it, sic)
+        ClipCodes_Compute(global<u32>(0x00879a20), 0, reinterpret_cast<u8 *>(&out), scratch, vertices, count, stride, 0xff);
+        codes = reinterpret_cast<const u8 *>(&out);
+    }
+    if (codes[0])
+        return 1;
+    if (codes[1]) {
+        ClipPoly_Vertices(codes[1], dest, vertices, &count, (s32)stride);
+        if ((s32)count < 3)
+            return 1;
+    } else {
+        const u8 *s = vertices;
+        u8 *d = dest;
+        const u32 n = stride * count;
+        for (u32 k = n >> 2; k != 0; k--, d += 4, s += 4)   // (rep movsd, movsb)
+            at<u32>(d, 0) = at<u32>(s, 0);
+        for (u32 k = n & 3; k != 0; k--)
+            *d++ = *s++;
+    }
+    at<u32>(at<u8 *>(object, 0x20), 0x20) += count;
+    at<u32>(at<u8 *>(object, 0x20), 0x24) += 3 * (count - 2);
+    if (count - 3 > 5)
+        return 1;
+    for (u32 k = count - 2; k != 0; k--) {   // a fan from the first vertex, the last triangle first
+        *w++ = (u16)base;
+        *w++ = (u16)(base + (flags & 2 ? k + 1 : k));
+        *w++ = (u16)(base + (flags & 2 ? k : k + 1));
+    }
+    return 1;
+}
+
 }
