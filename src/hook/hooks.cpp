@@ -4076,6 +4076,11 @@ const Hook kHooks[] = {
     {"Dialog7cc4c4_Message4",     0x004b9c00, (void *)&Dialog7cc4c4_Message4, {0xa1, 0xc4, 0xc4, 0x7c, 0x00}},
     {"Dialog7cc4b4_Message6Off",  0x004b8ec0, (void *)&Dialog7cc4b4_Message6Off, {0xa1, 0xb4, 0xc4, 0x7c, 0x00}},
     {"Dialog7cc4b4_Message4",     0x004b8e80, (void *)&Dialog7cc4b4_Message4, {0xa1, 0xb4, 0xc4, 0x7c, 0x00}},
+    {"Dialog7cdb0c_Child16007Message6Off", 0x004c5800, (void *)&Dialog7cdb0c_Child16007Message6Off, {0x8b, 0x0d, 0x0c, 0xdb, 0x7c}},
+    {"Dialog7cdb0c_Child16007Message6On", 0x004c57e0, (void *)&Dialog7cdb0c_Child16007Message6On, {0x8b, 0x0d, 0x0c, 0xdb, 0x7c}},
+    {"Dialog7cdb0c_Message6Off",  0x004c57c0, (void *)&Dialog7cdb0c_Message6Off, {0xa1, 0x0c, 0xdb, 0x7c, 0x00}},
+    {"Dialog7cdb0c_Message6On",   0x004c57a0, (void *)&Dialog7cdb0c_Message6On, {0xa1, 0x0c, 0xdb, 0x7c, 0x00}},
+    {"Dialog7cdb0c_Message4",     0x004c5780, (void *)&Dialog7cdb0c_Message4, {0xa1, 0x0c, 0xdb, 0x7c, 0x00}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

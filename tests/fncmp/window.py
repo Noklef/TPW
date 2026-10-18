@@ -15,11 +15,14 @@ from fncmp import CDECL_LOG4, LOG, LOG_BYTES, Bench, Call, RAM, log_region, put,
 
 CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50, 'CallHandler': 0x65f697, 'SendMessage': 0x658d9f,
          'Dialog7cc47c_Message4': 0x4b87f0, 'Dialog7cc47c_Message6On': 0x4b8810, 'Dialog7cc47c_Message6Off': 0x4b8830,
-         'Dialog7cc4b4_Message4': 0x4b8e80, 'Dialog7cc4b4_Message6Off': 0x4b8ec0, 'Dialog7cc4c4_Message4': 0x4b9c00, 'Dialog7cc4c4_Message6On': 0x4b9c20}
+         'Dialog7cc4b4_Message4': 0x4b8e80, 'Dialog7cc4b4_Message6Off': 0x4b8ec0, 'Dialog7cc4c4_Message4': 0x4b9c00, 'Dialog7cc4c4_Message6On': 0x4b9c20,
+         'Dialog7cdb0c_Message4': 0x4c5780, 'Dialog7cdb0c_Message6On': 0x4c57a0, 'Dialog7cdb0c_Message6Off': 0x4c57c0,
+         'Dialog7cdb0c_Child16007Message6On': 0x4c57e0, 'Dialog7cdb0c_Child16007Message6Off': 0x4c5800}
 SENDS = {k: int(k[6:12], 16) for k in CALLS if k.startswith('Dialog7')}   # the window's global
 B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6d1), (0x658d9f, 0x658df4), (0x659710, 0x659721),
-           (0x4b87f0, 0x4b8850), (0x4b8e80, 0x4b8ea0), (0x4b8ec0, 0x4b8ee0), (0x4b9c00, 0x4b9c40)])
-WINDOW, NODES, VTABLE, MISC = RAM, RAM + 0x100, RAM + 0x1000, RAM + 0x1100
+           (0x4b87f0, 0x4b8850), (0x4b8e80, 0x4b8ea0), (0x4b8ec0, 0x4b8ee0), (0x4b9c00, 0x4b9c40),
+           (0x4c5780, 0x4c5820)])
+WINDOW, NODES, VTABLE, MISC, KIDS = RAM, RAM + 0x100, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200
 NODE = 0x90
 BUTTONS = list(range(0x18, 0x22))
 
@@ -59,6 +62,20 @@ def case(r):
             return Call(CALLS[op], [WINDOW] + args, regions, conv='t', ret='a')
         if op == 'SendMessage':
             return Call(CALLS[op], [window] + args, regions, ret='a')
+        if 'Child' in op:   # the dialog's child (from 0-3 others, now and then missing: the send gets no window) sent to instead
+            want = int(op.split('Child')[1][:5], 16)
+            ids = [r.choice([want - 1, want + 1, 1]) for _ in range(r.choice([0, 1, 2]))]
+            if r.random() < 0.9:
+                ids.insert(r.randrange(len(ids) + 1), want)
+            for i, ident in enumerate(ids):
+                kid = bytearray(r.bytes(0x120))
+                kid[4] = r.choice([0, 0, 0, 1])
+                put(kid, 0x54, 'I', KIDS + 0x120 * (i + 1) if i + 1 < len(ids) else 0)
+                put(kid, 0x8c, 'I', ident)
+                put(kid, 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
+                regions[KIDS + 0x120 * i] = kid
+            put(win, 0x5c, 'I', KIDS if ids else 0)
+            window = WINDOW
         regions[SENDS[op]] = struct.pack('<I', window)
         return Call(CALLS[op], [], regions, ret='a')
     if op == 'FindChild':
