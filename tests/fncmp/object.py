@@ -2,7 +2,7 @@
 # 0x4e1690, 0x4e1e00, 0x4e2190, 0x4e21c0, 0x4e2710, 0x4e2b50) against the originals: ids found in
 # gObjectDefs or its cache (the pushed high word anything), counts and averages about the wraps. The scrap value by age (0x4e2290): the
 # world's calendar clock (funnytime.py's recorders) and the object's date set so its age is about 0, 30 days and 1 to 3 years (365 days)
-# or anything; an upgrade level of 0 to 7.
+# or anything; an upgrade level of 0 to 7. Its share of the first level's cost (0x4e2400): costs about the product's wrap.
 # usage: object.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=GetDef,AddCustomer,...)
 import os
 import struct
@@ -15,13 +15,13 @@ from funnytime import IMPORTS, K, RANGES as CLOCK_RANGES  # noqa: E402
 
 B = Bench([(0x4dd4e0, 0x4dd4fb), (0x4e1670, 0x4e168b), (0x4e1690, 0x4e16ab), (0x4e1e00, 0x4e1e2b),
            (0x4e2190, 0x4e21a2), (0x4e21c0, 0x4e21d2), (0x4e2710, 0x4e273b), (0x4e2b50, 0x4e2b7b),
-           (0x412e90, 0x412eea), (0x4e2290, 0x4e23f4), (0x5fc550, 0x5fc570)] + CLOCK_RANGES)
+           (0x412e90, 0x412eea), (0x4e2290, 0x4e23f4), (0x4e2400, 0x4e243f), (0x5fc550, 0x5fc570)] + CLOCK_RANGES)
 DEFS, OBJ, ITEMS, NITEMS = 0x7890a0, RAM, RAM + 0x400, 16
 WORLD = 0x31000000   # (its calendar clock at +0x2a0 and its ticks at +0x1da70c)
 DAY, YEAR = 864000000000, 365 * 864000000000   # FILETIME ticks
 CALLS = {'GetDef': (0x4dd4e0, 'f', 'a'), 'AddWalkAway': (0x4e1670, 'f', 'v'), 'AddCustomer': (0x4e1690, 'f', 'v'),
          'Happiness': (0x4e1e00, 't', 'v'), 'Quality': (0x4e2190, 't', 'v'), 'Chance': (0x4e21c0, 't', 'v'),
-         'Word284': (0x4e2710, 't', 'a'), 'IsKind3': (0x4e2b50, 'f', 'a'), 'Scrap': (0x4e2290, 'f', 'a')}
+         'Word284': (0x4e2710, 't', 'a'), 'IsKind3': (0x4e2b50, 'f', 'a'), 'Scrap': (0x4e2290, 'f', 'a'), 'Refund': (0x4e2400, 'f', 'a')}
 
 
 def clock(r, regions, obj):
@@ -74,11 +74,12 @@ def case(r):
     put(defs, 0x730, 'HxxI', id_ if hit else id_ ^ r.randrange(1, 0x10000),
         ITEMS + 0x300 * r.randrange(NITEMS))
     put(obj, 0xe, 'H', id_)
-    if op == 'Scrap':
+    if op in ('Scrap', 'Refund'):
         regions = {DEFS: defs, OBJ: obj, ITEMS: items}
         clock(r, regions, obj)
         for i in range(NITEMS):
             put(items, i * 0x300 + 0x188, 'i', r.choice([0, 1, -1, 100, r.getrandbits(32) - (1 << 31)]))
+            put(items, i * 0x300 + 0x1b8, 'I', r.choice([0, 1, 100, 5000, 0x28f5c29, r.getrandbits(32)]))
         if r.random() < 0.5:
             put(obj, 0x1a0, 'I', 0)
         return Call(addr, [OBJ], regions, conv=conv, ret=ret)

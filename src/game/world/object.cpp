@@ -75,6 +75,11 @@ u32 __fastcall Object_ScrapValue(const u8 *object) {
     return at<u32>(Object_GetDef(object), column + at<u8>(object, 0x50) * 0x40);
 }
 
+u32 __fastcall Object_ScrapRefund(const u8 *object) {
+    const u8 *const def = Object_GetDef(object);
+    return Object_ScrapValue(object) * at<u32>(def, 0x1b8) / 100;
+}
+
 u32 __fastcall Kinds_Compatible(const u8 *object, void *, u32 kind) {
     if (kind == 0)
         return 1;

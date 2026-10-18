@@ -3317,6 +3317,7 @@ address,name,kind,confidence,notes
 0x004daa90,Objects_NearestFreeFor,function,low,"reimplemented (src/game/world/object); thiscall (out, person handle): one round of the world's object list from the cursor for the nearest free object the person may take"
 0x004de5a0,Object_ExitOpen,function,low,reimplemented (src/game/world/object); thiscall: whether any step but the one back is open from the cell beyond the exit (turned round when the exit is the entrance)
 0x004e2290,Object_ScrapValue,function,low,reimplemented (src/game/world/object); thiscall: the scrap value by the age in funny time (years of 365 days; 100 when new without customers)
+0x004e2400,Object_ScrapRefund,function,low,reimplemented (src/game/world/object); thiscall: the scrap value percentage of the first level's cost (32-bit product / 100)
 0x005d46d0,Blocks7_Free,function,high,reimplemented (src/game/core/buffers); frees the seven blocks of an object and clears its groups
 0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/string); whether the first name is after the second, case blind"
 0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/string); whether two names are equal, case blind"
