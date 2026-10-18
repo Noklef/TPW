@@ -25,6 +25,10 @@ u8 *__fastcall Class702940_ScalarDtor(u8 *object, void *, u32 flags);
 u8 *__fastcall Class702948_ScalarDtor(u8 *object, void *, u32 flags);
 u8 *__fastcall Class709914_ScalarDtor(u8 *object, void *, u32 flags);
 
+// 0x5e3fa0 / 0x5e3fd0 (thiscall; flags, pops 4): the same over the core/vdtor destructors of the 0x702e70 and 0x702e20 classes.
+u8 *__fastcall Class702e70_ScalarDtor(u8 *object, void *, u32 flags);
+u8 *__fastcall Class702e20_ScalarDtor(u8 *object, void *, u32 flags);
+
 // 0x5da270 / 0x5e0330 / 0x5e3c90 (thiscall; flags, pops 4): the same over Class702b08_Dtor / Class702cb0_Dtor / Class702d78_Dtor (core/vdtor).
 u8 *__fastcall Class702b08_ScalarDtor(u8 *object, void *, u32 flags);
 

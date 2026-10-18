@@ -74,4 +74,16 @@ void __fastcall ListRemove18_5e4250(u8 *o, void *, u32 v0);
 // first (List_PushHead) when the list is empty, otherwise before the first item whose key is not below the new one's (PtrList_Insert), else at the end (PtrList_Append). The holder keeps
 // the item at +0x10.
 void __fastcall SortedPtrList_Add(u8 *holder, void *, u8 *item);
+
+// 0x56b450 (thiscall on the same array object; image, pops 4; name unconfirmed): the image is looked for in the array of sprite images at +0xc
+// (count at +0x18) from the back; when found it is released (SpriteImage_Release, even a null one), destroyed (SpriteImage_Dtor) and freed
+// when not null, the count is one less and the slot gets the last element. Returns 1 when found, otherwise 0.
+u32 __fastcall PtrArray_RemoveImage(u8 *object, void *, u8 *image);
+
+// 0x56b210 (thiscall on the same array object; name unconfirmed): with bit 0 of +0 set, it is cleared and, when there is a renderer
+// (0x87a6d0), the part (the object at +4 at its virtual base offset, or 0) leaves its tag 0x60 list (Renderer_RemoveFromSlot); with images
+// (+0xc) each of the +0x18 is released and, when not null, destroyed and freed, the array freed (TrackedGlobal_Free) and +0xc / +0x18
+// cleared; with an object at +4 each of the +0x1c frames at +8 is freed, the object deleted through its virtual base (slot 0, flags 1) and
+// +4 / +0x1c cleared; +8 and +0x10 are cleared in any case. Returns 1.
+u32 __fastcall PtrArray_ReleaseAll(u8 *object, void *);
 }  // extern "C"

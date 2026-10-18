@@ -108,6 +108,16 @@ u8 *__fastcall Class702da0_ScalarDtor(u8 *object, void *, u32 flags) {
     return Finish(object, flags);
 }
 
+u8 *__fastcall Class702e70_ScalarDtor(u8 *object, void *, u32 flags) {
+    Class702e70_Dtor(object);
+    return Finish(object, flags);
+}
+
+u8 *__fastcall Class702e20_ScalarDtor(u8 *object, void *, u32 flags) {
+    Class702e20_Dtor(object);
+    return Finish(object, flags);
+}
+
 u8 *__fastcall Class7099a4_ScalarDtor(u8 *object, void *, u32 flags) {
     Class7099a4_Dtor(object);
     return Finish(object, flags);

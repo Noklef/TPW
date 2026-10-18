@@ -35,6 +35,44 @@ s32 __cdecl TrakChunk_Write(u8 *chunk, const void *buffer, s32 count) {
     return done;
 }
 
+void *__cdecl TrakMem_Alloc(u32 size) { return size ? (*Files_GetEnv()->globalAlloc)(0x40, size) : nullptr; }  // (GMEM_ZEROINIT)
+
+u8 *__cdecl TrakChunk_Begin(u32 version, Stream *stream) {
+    u8 *chunk = static_cast<u8 *>((*Files_GetEnv()->globalAlloc)(0x40, 0x18));
+    if (!chunk)
+        return nullptr;
+    at<u32>(chunk, 0) = Stream_Tell(stream);
+    at<u32>(chunk, 0xc) = version;
+    at<Stream *>(chunk, 4) = stream;
+    at<u32>(chunk, 8) = 0;
+    at<u32>(chunk, 0x10) = 0;
+    at<u32>(chunk, 0x14) = 0;
+    s32 result, done;
+    if (*Stream_Write(&result, stream, chunk + 0xc, 0xc, &done) >= 0)
+        at<u32>(chunk, 0x10) += 0xc;
+    return chunk;
+}
+
+u32 __cdecl TrakChunk_End(u8 *chunk) {
+    Stream *stream = at<Stream *>(chunk, 4);
+    const u32 end = Stream_Tell(stream);
+    at<u32>(chunk, 0x14) = end - at<u32>(chunk, 0);
+    Stream_Seek(at<Stream *>(chunk, 4), (s32)at<u32>(chunk, 0), 0);
+    s32 result, done;
+    if (*Stream_Write(&result, at<Stream *>(chunk, 4), chunk + 0xc, 0xc, &done) >= 0)
+        at<u32>(chunk, 0x10) += 0xc;
+    Stream_Seek(at<Stream *>(chunk, 4), (s32)end, 0);
+    (*Files_GetEnv()->globalFree)(chunk);
+    return at<u32>(chunk, 0x14);  // (sic: after the free)
+}
+
+u32 __cdecl TrakChunk_Close(u8 *chunk) {
+    Stream_Seek(at<Stream *>(chunk, 4), (s32)(at<u32>(chunk, 0) + at<u32>(chunk, 0x14)), 0);
+    const u32 total = at<u32>(chunk, 0x14);
+    (*Files_GetEnv()->globalFree)(chunk);
+    return total;
+}
+
 s32 *__cdecl TrakStream_Read(s32 *result, Stream *stream, void *buffer, s32 count, s32 *done) {
     Stream_Read(result, stream, buffer, count, done);
     return result;

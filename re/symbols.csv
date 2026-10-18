@@ -379,7 +379,7 @@ address,name,kind,confidence,notes
 0x005ec3a0,SignStyle_Load,function,high,".sgn: version >= 100, 2 line styles (font, ttf, x, y, LOGFONTA, layout), effects, 2 fill strips, background"
 0x005eb1a0,Eleven_Read,function,high,reimplemented (src/game/core/streambuf); reads eleven dwords from a stream
 0x005ecb40,SignStyle_Render,function,medium,"(HDC, text lines + target textures)"
-0x005e7990,Array3D_ReadCompressed,function,high,"u32 w, h, bpp + float quantisers + BILZ wavelet streams, decoded via IWaveletCodec slot 3"
+0x005e7990,Array3D_ReadCompressed,function,high,"reimplemented (src/game/gfx/array3d); thiscall (stream, codec; pops 8): width, height, depth read and a cleared block made; by the depth (1, 3, 4) the parts read and decoded through the codec's slot 3, the depth 4 alpha and colour interleaved; AL 0 when a part's block is not made, else 1"
 0x005987b0,WaveletCodec_DecodePlanes,function,high,"vtable slot 3: colour -> 0x592730, grey -> 0x592e60; takes float quantiser steps"
 0x00592730,WaveletCodec_DecodeColourStream,function,high,"Buffer_Decompress, then Y (q1), Cb (q2), Cr (q3) planes, inverse D4, YUV->RGB"
 0x00592e60,WaveletCodec_DecodeGrey,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (width, height, packed source, pixels, q): the grey decoder, rows through the coefficient reader and inverse D4, then the columns, then clamped bytes (name unconfirmed)"
@@ -678,7 +678,7 @@ address,name,kind,confidence,notes
 0x004d4100,ScriptRef_IsAt,function,high,"reimplemented (src/game/sprite/scriptref); the referenced script is at an entry point, or last put there"
 0x004d4140,ScriptRef_Start,function,high,reimplemented (src/game/sprite/scriptref); a script started at an entry point with a folder and sprite
 0x004d4190,ScriptRef_Apply,function,high,reimplemented (src/game/sprite/scriptref); the pending jump and period sent to the script
-0x00541ed0,Sprites_FreeAll,function,medium,"frees every sprite and its image set (0x588230), then resets the 17 draw list objects (0x58a520)"
+0x00541ed0,Sprites_FreeAll,function,high,"reimplemented (src/game/sprite/loading); cdecl: each loaded sprite (gSprites, count 0x87626c) with its frame set (+0x204) gets it freed (SpriteFrames_Free twice, GameHeap_Free) and +0 cleared, the sprite freed; the 17 draw list objects emptied (TrackedArray_Free)"
 0x00541210,SpriteFiles_Sort,function,low,reimplemented (src/game/sprite/loading); bubble-sorts the 12-byte sprite file entries at 0x875970 (count 0x875430) by their names (Names_FirstAfter on String copies)
 0x008751f0,gSpriteDrawListObjs,data,medium,"16 x 0x24-byte render list objects (+4 count), one per map cell; the overlay one at 0x876420; created by Sprites_Init (0x58a4f0)"
 0x00515f30,Things_InitTable,function,high,"reimplemented (src/game/world/things); every slot of gThingSlots free (1..0x27ff stacked in order), none in use"
@@ -894,6 +894,10 @@ address,name,kind,confidence,notes
 0x0054aa80,TrakRide_AddNextCar,function,high,reimplemented (src/game/world/trackrides); puts a node on the next car list
 0x00544840,TrakRide_Open,function,high,reimplemented (src/game/world/trackrides); opens a ride and picks its current piece
 0x00545890,TrakRide_Create,function,high,reimplemented (src/game/world/trackrides); creates a ride of a kind with its collision nodes and pieces
+0x00543400,TrakMem_Alloc,function,low,"reimplemented (src/game/world/trackrides); cdecl: GlobalAlloc(GMEM_ZEROINIT, size) through its import slot, 0 for a size of 0 (name unconfirmed)"
+0x00543420,TrakChunk_Begin,function,low,"reimplemented (src/game/world/trackrides); cdecl: a new 0x18-byte chunk (GlobalAlloc) at the stream's position, its 12-byte header (version, 0, 0) written, the count grown by 12 (name unconfirmed)"
+0x005434d0,TrakChunk_End,function,low,"reimplemented (src/game/world/trackrides); cdecl: the total set from the stream's position, the header written again at the chunk's start, the stream sought back and the chunk freed; returns the total read after the free (name unconfirmed)"
+0x00544290,TrakChunk_Close,function,low,"reimplemented (src/game/world/trackrides); cdecl: the stream sought past the chunk (start + total), the chunk freed; returns the total (name unconfirmed)"
 0x0055a570,FlyingRide_FirstSlotRide,function,high,"reimplemented (src/game/world/flyingrides); cdecl u32 (index): flying ride index's (1-99, 0x8791f8) first slot's ride (+0x11c), else 0"
 0x0055d610,FlyingRide_StepInSlot,function,high,"reimplemented (src/game/world/flyingrides); cdecl u32 (index): first slot in state 1 (slot +0x80) with a negative step (+0x8c): its ride part (key (base + -step) % count + 1, flag 0x80) released, step +1, +0x48 -1, the step's u32 (+0x90 + -step * 4); else 0"
 0x0055d720,FlyingRide_StepOutSlot,function,high,reimplemented (src/game/world/flyingrides); cdecl u32 (index): as 0x55d610 for the first slot with a positive step: step -1
@@ -913,6 +917,7 @@ address,name,kind,confidence,notes
 0x0055c270,FlyingRide_NextCameraCorner,function,high,reimplemented (src/game/world/flyingrides); moves the camera target to the next corner of the ride
 0x0055d830,FlyingRide_AddToSlot,function,low,"reimplemented (src/game/world/flyingrides); cdecl (index, value): the first state-1 slot with a step not negative takes value for its step, counts up, activates the ride part the step names; +0x48 counted up"
 0x0055aa80,FlyingRide_PlaySlotMotion,function,low,"reimplemented (src/game/world/flyingrides); cdecl (index, slot, bank, entry, loop): a slot with a ride whose last motion differs has the ride's animator play it (Animator_Play mode loop != 0, speed 1, layer 0) and keeps the three"
+0x0055e3b0,FlyingRides_ReclaimRides,function,low,"reimplemented (src/game/world/flyingrides); cdecl: each used slot (+0x80) of the flying ride records 1-99 claims its ride (+0xc0) again, Ride_Claim with the +0x4bc of the definition for the record's thing's id, key 0x101 (name unconfirmed)"
 0x004fa990,AnalyserCell_TypePlain,function,high,"reimplemented (src/game/world/analysercell); 1 when the cell under the record is type 0, 1, 3, 9 or 0xa"
 0x004de040,Object_NeighbourCellId,function,high,reimplemented (src/game/world/analysercell); the id of the cell a neighbour bit points to
 0x00505bd0,AnalyserRecord_ChecksCell,function,high,reimplemented (src/game/world/analysercell); 0 for kinds 4 5 7 d 12 else the cell type test
@@ -3650,9 +3655,13 @@ address,name,kind,confidence,notes
 0x005e2a80,PtrList_Insert,function,high,reimplemented (src/game/core/ptrlist); inserts a value before an iterator in a pointer list
 0x005e1540,SortedPtrList_Add,function,high,reimplemented (src/game/core/ptrlist); an item added to a pointer list in order of its key
 0x0056b4c0,PtrArray_AddSpriteFrame,function,low,"reimplemented (src/game/core/ptrlist); thiscall (image, pops 4): a new 0x44-byte sprite frame (flags 0x58000, +0x24 -1, +0x2c 10.0f, the image at +0x28) appended to the pointer array (items +8, count +0x1c mirrored at +4 of what +4 points to); returns it, or 0 when the allocation failed (the error (2, 0xb0754000) pushed)"
+0x0056b450,PtrArray_RemoveImage,function,low,"reimplemented (src/game/core/ptrlist); thiscall (image, pops 4): the image found in the array at +0xc (count +0x18) from the back is released, destroyed and freed, the last element takes its slot; 1, else 0 (name unconfirmed)"
+0x0056b210,PtrArray_ReleaseAll,function,low,"reimplemented (src/game/core/ptrlist); thiscall: leaves the renderer's tag 0x60 list (bit 0 of +0), releases and frees the images at +0xc, frees the frames at +8 and deletes the object at +4 through its virtual base; returns 1 (name unconfirmed)"
 0x005f4400,Class703088_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor leaving the global list of its kind
 0x00618110,Class7037b8_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor of the 0x7037b8 class
 0x0051af00,ListScalarDelete700aa0_51af00,function,low,"reimplemented (src/game/core/vdel); a linked list scalar deleting destructor: sets the vtable pointer 0x700aa0, frees every node and, when bit 0 of the flags is set, the list"
+0x005e3fa0,Class702e70_ScalarDtor,function,high,"reimplemented (src/game/core/vdel); thiscall (flags, pops 4): Class702e70_Dtor, the object freed on flag bit 0; returns it"
+0x005e3fd0,Class702e20_ScalarDtor,function,high,"reimplemented (src/game/core/vdel); thiscall (flags, pops 4): Class702e20_Dtor, the object freed on flag bit 0; returns it"
 0x004dda20,Object_QueueHasRoom,function,high,reimplemented (src/game/world/objectmsg); whether the person queue is shorter than four times the limit
 0x005eb090,ArrayHolder_Clear,function,high,reimplemented (src/game/gfx/array3d); frees the four arrays of the holder
 0x005ea3f0,Image_CropInto,function,high,reimplemented (src/game/gfx/imageops); copies the part of an image that is left once moved into a fresh destination
@@ -3736,6 +3745,8 @@ address,name,kind,confidence,notes
 0x005dc660,Class702bc8_DeletingDtor,function,low,"reimplemented (src/game/core/vdtor); thiscall (flags): Class702bc8_Dtor, the object freed when bit 0 is set; returns it"
 0x005dfc30,Class702ca8_Dtor,function,low,reimplemented (src/game/core/vdtor); thiscall: vtable pointer 0x702ca8; the member at +0xc told (slot 0x34); the WString at +0x48 and the String at +0x28 destroyed
 0x005dfc10,Class702ca8_DeletingDtor,function,low,"reimplemented (src/game/core/vdtor); thiscall (flags): Class702ca8_Dtor, the object freed when bit 0 is set; returns it"
+0x005e3fc0,Class702e70_Dtor,function,high,"reimplemented (src/game/core/vdtor); thiscall destructor: vtable pointer 0x702e70, then Class702bc8_Dtor"
+0x005e3ff0,Class702e20_Dtor,function,high,"reimplemented (src/game/core/vdtor); thiscall destructor: vtable pointer 0x702e20, then Class702bc8_Dtor"
 0x00617ff0,Class7037c0_Create,function,high,reimplemented (src/game/core/factories); object factory with a result code
 0x00617970,Class703750_Create,function,high,reimplemented (src/game/core/factories); Allocates and constructs the 0x703750 class object
 0x00403be0,ActionRec_Write,function,low,"reimplemented (src/game/core/actionrec); thiscall (code): the action recorder's code byte, while recording and not playing back"
@@ -3988,6 +3999,7 @@ address,name,kind,confidence,notes
 0x00592b80,WaveletCodec_ReadCoefficients,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (cursor's address, dst, count, q): the decoders' coefficient reader, tables at 0xfb27e0 built once, 0x80 escapes an s16 (name unconfirmed)"
 0x00592c50,WaveletCodec_InverseD4Row,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (src, dst, n): one inverse D4 step along a row, pipelined for n >= 6 (name unconfirmed)"
 0x005933a0,WaveletCodec_InverseD4Columns,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (src plane, dst plane, width, n): the inverse D4 step down the columns, then the wrapped rows (name unconfirmed)"
+0x00564b60,Wavelet_Shutdown,function,low,"reimplemented (src/game/gfx/wavelet); cdecl: with the block at 0x879a68, frees it (TrackedGlobal_Free), clears it, calls the codec at 0x879a64's slot 6 when set and returns 1; else 0 (name unconfirmed)"
 0x0058c2c0,TexSurfaceA_Field38,function,high,reimplemented (src/game/gfx/texsurface); surface class A: the dword at ECX-0x38
 0x0058c2e0,TexSurfaceA_Area,function,high,reimplemented (src/game/gfx/texsurface); surface class A: its virtual base's two dwords multiplied
 0x0058c330,TexSurfaceA_Field10,function,high,reimplemented (src/game/gfx/texsurface); surface class A: the dword at ECX-0x10
@@ -4008,8 +4020,15 @@ address,name,kind,confidence,notes
 0x0049a7b0,StatsGraph_ShownMax,function,low,"reimplemented (src/game/gfx/statsgraph); the greatest sample of the shown lines of the park statistics graph within its window, from 0"
 0x0049a8f0,StatsGraph_ShownMin,function,low,"reimplemented (src/game/gfx/statsgraph); the least sample of the shown lines of the park statistics graph within its window, from 0"
 0x00564790,RleImage_DrawScaled,function,low,"reimplemented (src/game/gfx/rleimage); thiscall (adjusted image: codes -0x14, palette -0x10, width -0xc, height -8; dest {pixels, width, height, pitch}), pops 4: run-length rows through the palette, scaled by x / y steps into dest; returns 1"
+0x00564750,RleImage_ReadCodes,function,low,"reimplemented (src/game/gfx/rleimage); thiscall (stream, size; pops 8): +4 = a tracked block of size bytes; 0 when that failed, else the stream's slot 8 reads size bytes into it, 1 (name unconfirmed)"
+0x00564a90,RleImage_DeletingDtor,function,low,"reimplemented (src/game/gfx/rleimage); thiscall on the part at +0x18 (flags; pops 4): virtual base vtable 0x701168 back, the codes freed (TrackedGlobal_Free), +0x10/+0xc cleared, part vtable 0x701178, freed on bit 0 (name unconfirmed)"
 0x005f4370,TexSprite_Ctor,function,low,"reimplemented (src/game/gfx/texsprite); thiscall (image, a, b, c, d, pops 0x14): the decoded texture sprite 0x703088 built: a new frame for the image in the array 0x879ce0 (+0x28, its flags | 1 | 0x30000), +0x14/+0x1c/+0x20/+0x24 = a/b/c/d, +0x2c = 0, appended to the list at [0xfa6e38]; returns the object"
 0x0058c3c0,TexAtlas_Alloc,function,low,"reimplemented (src/game/gfx/texatlas); cdecl (out, size): a square cut from the 256 x 256 texture pages (the free rectangles at 0x8c4928), a new page made when none fits (name unconfirmed)"
+0x00565000,WctImage_DeletingDtor,function,low,"reimplemented (src/game/gfx/wctimage); thiscall on the part at +0x2c (flags; pops 4): virtual base vtable 0x7011c8 back, the tracked blocks at +0x20/+0x24 freed, +4..+0x1c cleared, part vtable 0x701178, freed on bit 0 (name unconfirmed)"
+0x00561460,ScreenGrab_ToRgb24,function,low,"reimplemented (src/game/gfx/screengrab); thiscall: by the display depth (0x8bcbe4) the pixels at +0 (count +8) become 24-bit ones at +4: 32 packed in place, 24 moved, 16 converted into a new tracked block through the display's masks and shifts (0 and the error pushed when that fails); returns 1 (name unconfirmed)"
+0x0053e650,TvStatic_CreateSurface,function,low,"reimplemented (src/game/gfx/tvstatic); cdecl (SEH frame left out): a new Surface (0x50 bytes, key/+0x20/+0x24 cleared, info constructed) and a 320x240 off-screen system memory DirectDraw surface for it (CreateSurface, slot 6 of [[0x879a24]]), attached (Surface_Attach); on a failure the Surface is freed and 0 returned (name unconfirmed)"
+0x0053e920,TvStatic_Init,function,low,reimplemented (src/game/gfx/tvstatic); cdecl: 0x874fd0 = TvStatic_CreateSurface() (name unconfirmed)
+0x0053e930,TvStatic_Free,function,low,"reimplemented (src/game/gfx/tvstatic); cdecl: the DirectDraw surface of the Surface at 0x874fd0 (Surface_GetSurface, addRef 1) released, the Surface freed (name unconfirmed)"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
@@ -4188,6 +4207,8 @@ address,name,kind,confidence,notes
 0x005744d0,Meshes_Ready,function,high,reimplemented (src/game/render/meshlist); a zero-ended array of meshes readied (flag 0x20: object +0x30; no 0x10000000: pushed on 0x879dec)
 0x00574110,Meshes_SetDirection,function,low,"reimplemented (src/game/render/meshlist); thiscall on [0x87a248] (x, y, z): +0x34-+0x3c = the vector made unit length, or as it is when its length is 0 or NaN"
 0x00565240,Batch_Begin,function,high,"reimplemented (src/game/render/batch); a draw batch begun for a primitive kind, its fields filled"
+0x00565e70,Batch_FogVertices,function,low,"reimplemented (src/game/render/batch); thiscall (vertices, count; pops 8): with fog (0x8bcbc8 bit 0x2000), colour fog (0x4000: VertexFog_Colour at the vertex size +0x1c, the batch's flags lose 0x100000 and gain 0x80000) or alpha fog (0x8000: VertexFog_Alpha) (name unconfirmed)"
+0x00565ee0,Batch_Fog,function,low,"reimplemented (src/game/render/batch); thiscall: with the driver kind 0x8bd524 1, the same on the batch's vertices (+0x28) and count (+0x20), no fog bit test (name unconfirmed)"
 0x00569f60,Rasteriser_ChooseSpan,function,high,reimplemented (src/game/render/rasteriser); the span routine chosen by the render flags
 0x00569f20,Rasteriser_ClearMmx,function,high,"reimplemented (src/game/render/rasteriser); EMMS, returns 1 (name unconfirmed)"
 0x0053c8d0,DynFaces_AddSquare,function,high,reimplemented (src/game/render/dynfaces); queues a square dynamic face
@@ -4353,3 +4374,4 @@ address,name,kind,confidence,notes
 0x005da120,Class702af0_AcquireModels,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall: once (+4), each list item (+0x58) not yet set up (+0xc) has its lobby model (+8) set up by RideUser_Acquire"
 0x005dfca0,Class702ca8_AcquireModels,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall: once (+0x10), the lobby models at +4 and +8 set up by RideUser_Acquire"
 0x005e1350,Class702cb0_StartPendingPlay,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall, vtable 0x702cb0 slot 6: a pending play (state +0x14 == 2) started with LobbyModel_Play(entry 1); 0 when the state is 0, else 1 and the state cleared"
+0x005d9db0,Class702af0_Ctor,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall (count, name, name2, two triples by pointer, two dwords; pops 0x1c): strings +0x10/+0x24, vtable 0x702af0, a new list (0x702aec) at +0x58, +8 = count * [0x7858dc] / 100 clamped to 1..count, names assigned, triples to +0x38/+0x44, dwords to +0x50/+0x54, registered with [0xf83784] slot 6 (name unconfirmed)"

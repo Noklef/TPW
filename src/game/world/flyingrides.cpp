@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "objectdefs.h"
+#include "../coaster/registry.h"
 #include "../core/initializers.h"
 #include "../model/parts.h"
 #include "../model/partstate.h"
@@ -221,5 +223,22 @@ u32 __cdecl FlyingRide_Busy(s32 index) {
     u8 *const rec = record(index);
     if (!rec) return 0;
     return at<u32>(rec, 0x48) == 0 && at<u32>(rec, 0x3c) != 0 && at<u32>(rec, 0xc) == 1 ? 0 : 1;
+}
+
+void __cdecl FlyingRides_ReclaimRides() {
+    for (s32 index = 1; index < 100; ++index) {
+        u8 *rec = table()[index];
+        if (!rec)
+            continue;
+        for (u32 i = 0; i < 20; ++i) {
+            u8 *s = slot(rec, i);
+            if (!at<u32>(s, 0x80))
+                continue;
+            const u16 thing = at<u16>(rec, 0x58);
+            const u8 *object = *reinterpret_cast<u8 *const *>((uintptr_t)(0x007cfb90 + 20 * thing));
+            u8 *def = ObjectDefs_Find(reinterpret_cast<u8 *>((uintptr_t)0x007890a0), nullptr, at<u16>(object, 0xe));
+            at<u32>(s, 0xc0) = Ride_Claim(at<u32>(s, 0xc0), at<u32>(def, 0x4bc), 0x101, nullptr, 0, 0, 0, 0);
+        }
+    }
 }
 }

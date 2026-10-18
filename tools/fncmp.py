@@ -340,6 +340,7 @@ def echo(log, k, arg):
 LOG_STRINGS = 0xa00  # from here a mask for each slot: the arguments that are C strings, and out arguments (see strings())
 LOG_FILL = 0xb00  # two fills (+ 0x80 the second): (k | 0x80000000, argument, length), the bytes from + 0x10 (see fill())
 LOG_BYTES = 0xc00  # from here a mask for each slot: BYTE arguments, logged as their low byte (the rest of the pushed register is not the callee's)
+LOG_BLOBS = 0xd00  # from here two dwords for each slot: an argument + 1 and a dword mask; that argument is logged as a hash of the dwords it selects (see blob())
 LOG_ZLIB = 0xf00  # the zlib stand-ins' overrides: the inits', deflate's, inflate's (a flag and a value each, see zlib_results())
 
 
@@ -359,6 +360,21 @@ def fill(log, k, arg, data, which=0):
 def fill_arg(log, k, arg, source, which=0):
     """Makes slot k's recorder write its argument `source` (a dword, as passed) through its argument `arg`: ReadFile's bytes read, all it was asked for."""
     struct.pack_into('<3I', log, LOG_FILL + 0x80 * which, (k & 63) | 0x80000000, arg, 0x80000000 | source)
+
+
+def blob(log, k, arg, mask):
+    """Makes slot k's recorder log its argument `arg` (unless null) as a hash of the dwords it points to that `mask` selects (bit i: dword i), not its
+    address: a structure on the stack that the code under test only partly sets (the rest is stack garbage that differs between the sides)."""
+    struct.pack_into('<II', log, LOG_BLOBS + 8 * (k & 63), arg + 1, mask)
+
+
+def blob_hash(read, p, mask):
+    h = 0x811c9dc5
+    for i in range(32):
+        if mask >> i & 1:
+            for c in read(p + 4 * i, 4):
+                h = ((h ^ c) * 0x01000193) & 0xffffffff
+    return h
 
 
 IMPORT_TABLE = 0x6fd000  # the game's import address table (0x400 bytes covers the slots the benches use)
@@ -405,6 +421,7 @@ def _recorder(k, n, com=False):
         mask = e.u32(LOG + LOG_STRINGS + 4 * (k & 63))
         low = e.u32(LOG + LOG_BYTES + 4 * (k & 63))
         fills = [(LOG + LOG_FILL + 0x80 * f,) + struct.unpack('<3I', e.read(LOG + LOG_FILL + 0x80 * f, 12)) for f in range(2)]
+        blob_arg, blob_mask = struct.unpack('<2I', e.read(LOG + LOG_BLOBS + 8 * (k & 63), 8))
         for i in range(n):
             for at, fk, fa, fn in fills:
                 if fk == (k & 63) | 0x80000000 and fa == i and args[i]:
@@ -412,6 +429,8 @@ def _recorder(k, n, com=False):
                         e.write(args[i], struct.pack('<I', raw[fn & 0xff] if (fn & 0xff) < n else 0))
                     else:
                         e.write(args[i], e.read(at + 0x10, min(fn, 0x70)))
+            if blob_arg == i + 1 and args[i]:
+                args[i] = blob_hash(e.read, args[i], blob_mask)
             if mask >> i & 1:
                 args[i] = string_hash(e.read, args[i])
             if mask >> (16 + i) & 1:

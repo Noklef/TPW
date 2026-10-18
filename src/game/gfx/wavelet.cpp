@@ -95,6 +95,18 @@ void InverseD4RowPairs(const u8 *src, u8 *dst, u32 width, u32 n) {
 
 extern "C" {
 
+u32 __cdecl Wavelet_Shutdown() {
+    const u32 block = global<u32>(0x00879a68);
+    if (!block)
+        return 0;
+    TrackedGlobal_Free(block);
+    u8 *codec = global<u8 *>(0x00879a64);
+    global<u32>(0x00879a68) = 0;
+    if (codec)
+        vcall<void>(codec, 0x18);
+    return 1;
+}
+
 void __stdcall WaveletCodec_PutCoefficient(u32 value, u8 **cursor) {
     s16 v = (s16)value;
     if (v >= -0x7f && v <= 0x7f) {

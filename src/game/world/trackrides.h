@@ -15,6 +15,25 @@ extern "C" {
 // +0xc: version 1, the count, 0.
 s32 __cdecl TrakChunk_Write(u8 *chunk, const void *buffer, s32 count);
 
+// The chunk: +0 the stream's position where it starts, +4 the stream, +8 the read position, +0xc the header (version, count, total).
+
+// 0x543400 (size; name unconfirmed): GlobalAlloc(GMEM_ZEROINIT, size) through its import slot; 0 for a size of 0.
+void *__cdecl TrakMem_Alloc(u32 size);
+
+// 0x543420 (version, stream; name unconfirmed): a new chunk (GlobalAlloc(GMEM_ZEROINIT, 0x18); none: 0) starting at the stream's position
+// (Stream_Tell), the header (version, 0, 0) written to the stream (Stream_Write); unless that result is negative (never) the count grows by
+// the header's 12 bytes. Returns the chunk.
+u8 *__cdecl TrakChunk_Begin(u32 version, Stream *stream);
+
+// 0x5434d0 (chunk; name unconfirmed): the total (+0x14) becomes the stream's position (Stream_Tell) less the chunk's start; the stream is
+// sought back to the start (origin 0), the header written again (as Begin writes it, the count growing by 12 again) and the stream sought to
+// where it was; the chunk is freed (GlobalFree). Returns the total, read after the free (sic). (A Debug_Printf is left out.)
+u32 __cdecl TrakChunk_End(u8 *chunk);
+
+// 0x544290 (chunk; name unconfirmed): the stream sought to the chunk's start plus its total (origin 0), the chunk freed (GlobalFree).
+// Returns the total. (A Debug_Printf is left out.)
+u32 __cdecl TrakChunk_Close(u8 *chunk);
+
 // 0x54bbb0 (&result, stream, buffer, count, &done): Stream_Read; returns &result.
 s32 *__cdecl TrakStream_Read(s32 *result, Stream *stream, void *buffer, s32 count, s32 *done);
 

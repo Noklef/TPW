@@ -78,6 +78,7 @@
 #include "../game/gfx/tga.h"
 #include "../game/gfx/array3d.h"
 #include "../game/gfx/rleimage.h"
+#include "../game/gfx/screengrab.h"
 #include "../game/gfx/wavelet.h"
 #include "../game/core/events.h"
 #include "../game/core/fieldops.h"
@@ -119,7 +120,9 @@
 #include "../game/gfx/imageops.h"
 #include "../game/gfx/statsgraph.h"
 #include "../game/gfx/texsprite.h"
-#include "../game/gfx/texatlas.h"
+#include "../game/gfx/texatlas.h"
+#include "../game/gfx/tvstatic.h"
+#include "../game/gfx/wctimage.h"
 #include "../game/core/crt.h"
 #include "../game/core/gameheap.h"
 #include "../game/core/ptrlist.h"
@@ -446,6 +449,7 @@ const Hook kHooks[] = {
     {"ScriptRef_Apply",           0x004d4190, (void *)&ScriptRef_Apply, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"SpriteAnim_Serialize",      0x004d3ee0, (void *)&SpriteAnim_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"SpriteFiles_Sort",          0x00541210, (void *)&SpriteFiles_Sort, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Sprites_FreeAll",           0x00541ed0, (void *)&Sprites_FreeAll, {0xa1, 0x6c, 0x62, 0x87, 0x00}},
     {"World_Rand",               0x00516330, (void *)&World_Rand, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"World_SetSeed",            0x00516370, (void *)&World_SetSeed, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Things_InitTable",         0x00515f30, (void *)&Things_InitTable, {0x33, 0xd2, 0x56, 0x89, 0x15}},
@@ -716,6 +720,10 @@ const Hook kHooks[] = {
     {"TrakRide_AddNextCar",       0x0054aa80, (void *)&TrakRide_AddNextCar, {0x8b, 0x15, 0x58, 0x7b, 0x87}},
     {"TrakRide_Open",             0x00544840, (void *)&TrakRide_Open, {0x8b, 0x0d, 0x58, 0x7b, 0x87}},
     {"TrakRide_Create",           0x00545890, (void *)&TrakRide_Create, {0xa1, 0x58, 0x7b, 0x87, 0x00}},
+    {"TrakMem_Alloc",             0x00543400, (void *)&TrakMem_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"TrakChunk_Begin",           0x00543420, (void *)&TrakChunk_Begin, {0x56, 0x6a, 0x18, 0x6a, 0x40}},
+    {"TrakChunk_End",             0x005434d0, (void *)&TrakChunk_End, {0x51, 0x56, 0x8b, 0x74, 0x24}},
+    {"TrakChunk_Close",           0x00544290, (void *)&TrakChunk_Close, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"FlyingRide_FirstSlotRide",  0x0055a570, (void *)&FlyingRide_FirstSlotRide, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"FlyingRide_StepInSlot",     0x0055d610, (void *)&FlyingRide_StepInSlot, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"FlyingRide_StepOutSlot",    0x0055d720, (void *)&FlyingRide_StepOutSlot, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
@@ -735,6 +743,7 @@ const Hook kHooks[] = {
     {"FlyingRide_NextCameraCorner", 0x0055c270, (void *)&FlyingRide_NextCameraCorner, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"FlyingRide_AddToSlot",      0x0055d830, (void *)&FlyingRide_AddToSlot, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
     {"FlyingRide_PlaySlotMotion", 0x0055aa80, (void *)&FlyingRide_PlaySlotMotion, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"FlyingRides_ReclaimRides",  0x0055e3b0, (void *)&FlyingRides_ReclaimRides, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"AnalyserCell_TypePlain",    0x004fa990, (void *)&AnalyserCell_TypePlain, {0x33, 0xc0, 0x33, 0xd2, 0x8a}},
     {"Object_NeighbourCellId",    0x004de040, (void *)&Object_NeighbourCellId, {0x56, 0x8b, 0xf1, 0x33, 0xc0}},
     {"AnalyserRecord_ChecksCell", 0x00505bd0, (void *)&AnalyserRecord_ChecksCell, {0x8b, 0x81, 0x9c, 0x01, 0x00}},
@@ -3205,6 +3214,7 @@ const Hook kHooks[] = {
     {"WaveletCodec_InverseD4Row", 0x00592c50, (void *)&WaveletCodec_InverseD4Row, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"WaveletCodec_InverseD4Columns", 0x005933a0, (void *)&WaveletCodec_InverseD4Columns, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"WaveletCodec_DecodeGrey",   0x00592e60, (void *)&WaveletCodec_DecodeGrey, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Wavelet_Shutdown",          0x00564b60, (void *)&Wavelet_Shutdown, {0xa1, 0x68, 0x9a, 0x87, 0x00}},
     {"Record_IsActive",           0x0059c610, (void *)&Record_IsActive, {0x8b, 0x4c, 0x24, 0x04, 0x81}},
     {"ObjectDef_FindMarkedCells", 0x00413410, (void *)&ObjectDef_FindMarkedCells, {0x6a, 0xff, 0x68, 0x58, 0x7e}},
     {"ObjectDef_Ctor",            0x00412c20, (void *)&ObjectDef_Ctor, {0x56, 0x8b, 0xf1, 0x8d, 0x4e}},
@@ -3256,12 +3266,17 @@ const Hook kHooks[] = {
     {"PtrList_Insert",            0x005e2a80, (void *)&PtrList_Insert, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"SortedPtrList_Add",         0x005e1540, (void *)&SortedPtrList_Add, {0x51, 0x53, 0x8b, 0xd9, 0x56}},
     {"PtrArray_AddSpriteFrame",   0x0056b4c0, (void *)&PtrArray_AddSpriteFrame, {0x6a, 0xff, 0x68, 0x5b, 0xf1}},
+    {"PtrArray_RemoveImage",      0x0056b450, (void *)&PtrArray_RemoveImage, {0x53, 0x56, 0x8b, 0x5c, 0x24}},
+    {"PtrArray_ReleaseAll",       0x0056b210, (void *)&PtrArray_ReleaseAll, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
     {"Class703088_ScalarDtor",    0x005f4400, (void *)&Class703088_ScalarDtor, {0x56, 0x8b, 0xf1, 0x57, 0xc7}},
     {"Class7037b8_ScalarDtor",    0x00618110, (void *)&Class7037b8_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x28}},
     {"ListScalarDelete700aa0_51af00", 0x0051af00, (void *)&ListScalarDelete700aa0_51af00, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"Class702e70_ScalarDtor",    0x005e3fa0, (void *)&Class702e70_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"Class702e20_ScalarDtor",    0x005e3fd0, (void *)&Class702e20_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"Object_QueueHasRoom",       0x004dda20, (void *)&Object_QueueHasRoom, {0x56, 0x8b, 0xf1, 0x51, 0x8b}},
     {"ArrayHolder_Clear",         0x005eb090, (void *)&ArrayHolder_Clear, {0x6a, 0xff, 0x68, 0xcc, 0x1d}},
     {"Array3D_Read",              0x005e78b0, (void *)&Array3D_Read, {0x83, 0xec, 0x14, 0x53, 0x55}},
+    {"Array3D_ReadCompressed",    0x005e7990, (void *)&Array3D_ReadCompressed, {0x83, 0xec, 0x28, 0x53, 0x55}},
     {"Eleven_Read",               0x005eb1a0, (void *)&Eleven_Read, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"Image_CropInto",            0x005ea3f0, (void *)&Image_CropInto, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"TileSet_Clear",             0x0055f210, (void *)&TileSet_Clear, {0x6a, 0xff, 0x68, 0x4e, 0xf0}},
@@ -3346,6 +3361,8 @@ const Hook kHooks[] = {
     {"Class702bc8_DeletingDtor",  0x005dc660, (void *)&Class702bc8_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0xd8}},
     {"Class702ca8_Dtor",          0x005dfc30, (void *)&Class702ca8_Dtor, {0x6a, 0xff, 0x68, 0x16, 0x15}},
     {"Class702ca8_DeletingDtor",  0x005dfc10, (void *)&Class702ca8_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"Class702e70_Dtor",          0x005e3fc0, (void *)&Class702e70_Dtor, {0xc7, 0x01, 0x70, 0x2e, 0x70}},
+    {"Class702e20_Dtor",          0x005e3ff0, (void *)&Class702e20_Dtor, {0xc7, 0x01, 0x20, 0x2e, 0x70}},
     {"Class7037c0_Create",        0x00617ff0, (void *)&Class7037c0_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Class703750_Create",        0x00617970, (void *)&Class703750_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"VanillaTime_Save",          0x00403220, (void *)&VanillaTime_Save, {0x51, 0xe8, 0x7a, 0x2d, 0x1f}},
@@ -3571,8 +3588,15 @@ const Hook kHooks[] = {
     {"StatsGraph_ShownMax",       0x0049a7b0, (void *)&StatsGraph_ShownMax, {0x51, 0x8b, 0x0d, 0x3c, 0xf8}},
     {"StatsGraph_ShownMin",       0x0049a8f0, (void *)&StatsGraph_ShownMin, {0x51, 0x8b, 0x0d, 0x3c, 0xf8}},
     {"RleImage_DrawScaled",       0x00564790, (void *)&RleImage_DrawScaled, {0x81, 0xec, 0x2c, 0x02, 0x00}},
+    {"RleImage_ReadCodes",        0x00564750, (void *)&RleImage_ReadCodes, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
+    {"RleImage_DeletingDtor",     0x00564a90, (void *)&RleImage_DeletingDtor, {0x8b, 0x41, 0xe8, 0x56, 0x8d}},
     {"TexSprite_Ctor",            0x005f4370, (void *)&TexSprite_Ctor, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"TexAtlas_Alloc",            0x0058c3c0, (void *)&TexAtlas_Alloc, {0x53, 0x55, 0x56, 0x8b, 0x74}},
+    {"WctImage_DeletingDtor",     0x00565000, (void *)&WctImage_DeletingDtor, {0x8b, 0x41, 0xd4, 0x56, 0x8d}},
+    {"ScreenGrab_ToRgb24",        0x00561460, (void *)&ScreenGrab_ToRgb24, {0xa1, 0xe4, 0xcb, 0x8b, 0x00}},
+    {"TvStatic_CreateSurface",    0x0053e650, (void *)&TvStatic_CreateSurface, {0x6a, 0xff, 0x68, 0xbb, 0xea}},
+    {"TvStatic_Init",             0x0053e920, (void *)&TvStatic_Init, {0xe8, 0x2b, 0xfd, 0xff, 0xff}},
+    {"TvStatic_Free",             0x0053e930, (void *)&TvStatic_Free, {0xa1, 0xd0, 0x4f, 0x87, 0x00}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
@@ -3670,6 +3694,8 @@ const Hook kHooks[] = {
     {"Meshes_Ready",              0x005744d0, (void *)&Meshes_Ready, {0x8b, 0x44, 0x24, 0x04, 0x83}},
     {"Meshes_SetDirection",       0x00574110, (void *)&Meshes_SetDirection, {0x83, 0xec, 0x0c, 0xd9, 0x44}},
     {"Batch_Begin",               0x00565240, (void *)&Batch_Begin, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"Batch_FogVertices",         0x00565e70, (void *)&Batch_FogVertices, {0xa1, 0xc8, 0xcb, 0x8b, 0x00}},
+    {"Batch_Fog",                 0x00565ee0, (void *)&Batch_Fog, {0xa1, 0x24, 0xd5, 0x8b, 0x00}},
     {"Rasteriser_ChooseSpan",     0x00569f60, (void *)&Rasteriser_ChooseSpan, {0x8b, 0x44, 0x24, 0x04, 0xf6}},
     {"Rasteriser_ClearMmx",       0x00569f20, (void *)&Rasteriser_ClearMmx, {0x0f, 0x77, 0xb8, 0x01, 0x00}},
     {"DynFaces_AddSquare",        0x0053c8d0, (void *)&DynFaces_AddSquare, {0x56, 0x8b, 0x35, 0xe0, 0x1e}},
@@ -3873,6 +3899,7 @@ const Hook kHooks[] = {
     {"Class702af0_AcquireModels", 0x005da120, (void *)&Class702af0_AcquireModels, {0x53, 0x8b, 0xd9, 0x8b, 0x43}},
     {"Class702ca8_AcquireModels", 0x005dfca0, (void *)&Class702ca8_AcquireModels, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"Class702cb0_StartPendingPlay", 0x005e1350, (void *)&Class702cb0_StartPendingPlay, {0x56, 0x8b, 0xf1, 0x33, 0xc0}},
+    {"Class702af0_Ctor",          0x005d9db0, (void *)&Class702af0_Ctor, {0x6a, 0xff, 0x68, 0xc6, 0x13}},
     {"RSSE_Init",                 0x00551600, (void *)&RSSE_Init, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"RsseScript_EventName",      0x00468600, (void *)&RsseScript_EventName, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"RSSE_StartTimer",           0x00557160, (void *)&RSSE_StartTimer, {0xb9, 0x70, 0x59, 0x78, 0x00}},

@@ -2,7 +2,9 @@
 
 #include <cstdint>
 
+#include "../core/gameheap.h"
 #include "../core/string.h"
+#include "../gfx/spriteframe.h"
 
 namespace {
 
@@ -49,5 +51,26 @@ void __cdecl SpriteFiles_Sort() {
             }
         }
     } while (swaps);
+}
+
+void __cdecl Sprites_FreeAll() {
+    u8 **sprites = reinterpret_cast<u8 **>((uintptr_t)0x00876b48);
+    for (s32 i = 0; i < global<s32>(0x0087626c); ++i) {
+        u8 *sprite = sprites[i];
+        if (sprite[0x204]) {
+            SpriteFrames_Free(*reinterpret_cast<u8 **>(sprite));
+            u8 *frames = *reinterpret_cast<u8 **>(sprite);
+            if (frames) {
+                SpriteFrames_Free(frames);
+                GameHeap_Free(frames);
+            }
+            *reinterpret_cast<u8 **>(sprite) = nullptr;
+        }
+        if (sprites[i])
+            GameHeap_Free(sprites[i]);
+    }
+    for (u32 k = 0; k < 16; ++k)
+        TrackedArray_Free(reinterpret_cast<u8 *>((uintptr_t)(0x008751f0 + 0x24 * k)));
+    TrackedArray_Free(reinterpret_cast<u8 *>((uintptr_t)0x00876420));
 }
 }

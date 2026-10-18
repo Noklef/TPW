@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "../core/gameheap.h"
+#include "../core/vcall.h"
 #include "../core/vwrap.h"
 
 namespace {
@@ -14,6 +15,14 @@ u8 *Pixels(const u8 *buffer) { return at<u8 *>(buffer, 0xc); }
 
 // width * height as the code multiplies it, re-read from the header.
 s32 Count(const u8 *buffer) { return at<s32>(buffer, 0) * at<s32>(buffer, 4); }
+
+// size bytes from the stream (0x5c4f60 with a count of 1).
+void take(void *to, u32 size, u8 *stream) { Object_CallSlot8Product((u32)(uintptr_t)to, size, 1, stream); }
+
+// The codec's slot 3 (thiscall; width, height, flag, data, out, three dwords) on the array's width and height.
+void decode(u8 *codec, const u8 *object, u32 flag, u8 *data, u8 *out, u32 a, u32 b, u32 c) {
+    vcall<void>(codec, 0xc, at<u32>(object, 0), at<u32>(object, 4), flag, data, out, a, b, c);
+}
 
 }  // namespace
 
@@ -174,5 +183,91 @@ u32 __fastcall Array3D_Read(u8 *object, void *, u8 *stream) {
     }
     const u32 read = Object_CallSlot8Product((u32)(uintptr_t)at<u8 *>(object, 0xc), c * b * a, 1, stream);  // sic: into a null block too
     return (read & ~0xffu) | 1;
+}
+
+u8 __fastcall Array3D_ReadCompressed(u8 *object, void *, u8 *stream, u8 *codec) {
+    at<u32>(object, 0) = 0;
+    at<u32>(object, 4) = 0;
+    at<u32>(object, 8) = 0;
+    if (at<void *>(object, 0xc))
+        GameHeap_Free(at<void *>(object, 0xc));
+    at<void *>(object, 0xc) = nullptr;
+    u32 a, b, c;
+    take(&a, 4, stream);
+    take(&b, 4, stream);
+    take(&c, 4, stream);
+    if (at<void *>(object, 0xc))
+        GameHeap_Free(at<void *>(object, 0xc));
+    const u32 size = c * b * a;
+    u8 *block = static_cast<u8 *>(GameHeap_Alloc(size));
+    at<u8 *>(object, 0xc) = block;
+    if (block) {
+        std::memset(block, 0, size);
+        at<u32>(object, 0) = a;
+        at<u32>(object, 4) = b;
+        at<u32>(object, 8) = c;
+    }
+    if (c == 1) {
+        u32 total, length;
+        take(&total, 4, stream);
+        take(&length, 4, stream);
+        u8 *data = static_cast<u8 *>(GameHeap_Alloc(length));
+        if (!data)
+            return 0;
+        take(data, length, stream);
+        decode(codec, object, 0, data, Pixels(object), total, 0, 0);
+        GameHeap_Free(data);
+        return 1;
+    }
+    if (c == 3) {
+        u32 q0, q1, q2, length;
+        take(&q0, 4, stream);
+        take(&q1, 4, stream);
+        take(&q2, 4, stream);
+        take(&length, 4, stream);
+        u8 *data = static_cast<u8 *>(GameHeap_Alloc(length));
+        if (!data)
+            return 0;
+        take(data, length, stream);
+        decode(codec, object, 1, data, Pixels(object), q0, q1, q2);
+        GameHeap_Free(data);
+        return 1;
+    }
+    if (c == 4) {
+        u32 q0, q1, q2, total, length, length2;
+        take(&q0, 4, stream);
+        take(&q1, 4, stream);
+        take(&q2, 4, stream);
+        take(&total, 4, stream);
+        take(&length, 4, stream);
+        take(&length2, 4, stream);
+        u8 *data = static_cast<u8 *>(GameHeap_Alloc(length));
+        if (!data)
+            return 0;
+        u8 *data2 = static_cast<u8 *>(GameHeap_Alloc(length2));
+        if (!data2)
+            return 0;
+        take(data, length, stream);
+        take(data2, length2, stream);
+        u8 *rgb = static_cast<u8 *>(GameHeap_Alloc(at<u32>(object, 0) * at<u32>(object, 4) * 3));
+        decode(codec, object, 1, data, rgb, q0, q1, q2);
+        u8 *alpha = static_cast<u8 *>(GameHeap_Alloc(at<u32>(object, 0) * at<u32>(object, 4)));
+        decode(codec, object, 0, data2, alpha, total, 0, 0);
+        u8 *out = Pixels(object);
+        const u8 *from = rgb;
+        for (s32 i = 0; i < Count(object); ++i) {
+            out[0] = alpha[i];
+            out[1] = from[0];
+            out[2] = from[1];
+            out[3] = from[2];
+            out += 4;
+            from += 3;
+        }
+        GameHeap_Free(alpha);
+        GameHeap_Free(rgb);
+        GameHeap_Free(data2);
+        GameHeap_Free(data);
+    }
+    return 1;
 }
 }

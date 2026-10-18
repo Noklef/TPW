@@ -254,11 +254,21 @@ constexpr u32 recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x400 * n + 0x20
 // (so that a path in a stack buffer, whose address differs between the sides, compares by its text), bits 16-31 out arguments, logged as 0 (a stack address;
 // what is written through them is a fill's, and shows in what the code does with it); at + 0xb00 and + 0xb80 two fills (k | 0x80000000, the argument, the
 // length; the bytes from + 0x10, at most 0x70; length bit 31: argument length & 0xff's value, fncmp.fill_arg()) written through that argument before the
-// recorder returns (an out structure, FindFirstFile's); at + 0xc00 a mask per slot of BYTE arguments, logged as their low byte (fncmp.LOG_BYTES).
+// recorder returns (an out structure, FindFirstFile's); at + 0xc00 a mask per slot of BYTE arguments, logged as their low byte (fncmp.LOG_BYTES); at + 0xd00
+// two dwords per slot, an argument + 1 and a dword mask: that argument (unless null) logged as a hash of the dwords it points to that the mask selects, a
+// structure only partly set (fncmp.blob()).
 u32 string_hash(const u8 *s) {
     if (!s) return 0;
     u32 h = 0x811c9dc5u;
     for (u32 i = 0; i < 0x400 && s[i]; ++i) h = (h ^ s[i]) * 0x01000193u;
+    return h;
+}
+
+u32 blob_hash(const u8 *p, u32 mask) {
+    u32 h = 0x811c9dc5u;
+    for (u32 i = 0; i < 32; ++i)
+        if (mask >> i & 1)
+            for (u32 b = 0; b < 4; ++b) h = (h ^ p[4 * i + b]) * 0x01000193u;
     return h;
 }
 
@@ -278,6 +288,8 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
                 std::memcpy(reinterpret_cast<void *>((uintptr_t)args[i]), fill + 4, fill[2] < 0x70 ? fill[2] : 0x70);
             }
         }
+        const u32 *blob = log + 0x340 + 2 * (k & 63);  // (LOG_BLOBS)
+        if (blob[0] == i + 1 && args[i]) args[i] = blob_hash(reinterpret_cast<const u8 *>((uintptr_t)args[i]), blob[1]);
         if (mask >> i & 1) args[i] = string_hash(reinterpret_cast<const u8 *>((uintptr_t)args[i]));
         if (mask >> (16 + i) & 1) args[i] = 0;
         if (log[0x300 + (k & 63)] >> i & 1) args[i] &= 0xff;

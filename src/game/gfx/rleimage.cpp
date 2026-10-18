@@ -1,6 +1,8 @@
 #include "rleimage.h"
 
 #include <cstdint>
+#include "../core/gameheap.h"
+#include "../core/vwrap.h"
 
 namespace {
 
@@ -94,5 +96,38 @@ u32 __fastcall RleImage_DrawScaled(const u8 *image, void *, const u32 *dest) {
         }
     }
     return 1;
+}
+}
+
+namespace {
+
+template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+}  // namespace
+
+extern "C" {
+
+u32 __fastcall RleImage_ReadCodes(u8 *image, void *, u8 *stream, u32 size) {
+    const u32 block = TrackedGlobal_Alloc(size);
+    at<u32>(image, 4) = block;
+    if (!block) return 0;
+    Object_CallSlot8Product(block, 1, size, stream);
+    return 1;
+}
+
+u8 *__fastcall RleImage_DeletingDtor(u8 *part, void *, u32 flags) {
+    u8 *image = part - 0x18;
+    at<u32>(image, at<u32>(at<u8 *>(image, 0), 4)) = 0x00701168;
+    const u32 base = at<u32>(at<u8 *>(image, 0), 4);
+    at<u32>(image, base - 4) = base - 0x18;
+    if (at<u32>(image, 4)) {
+        TrackedGlobal_Free(at<u32>(image, 4));
+        at<u32>(image, 4) = 0;
+    }
+    at<u32>(image, 0x10) = 0;
+    at<u32>(image, 0xc) = 0;
+    at<u32>(image, 0x18) = 0x00701178;
+    if (flags & 1) GameHeap_Free(image);
+    return image;
 }
 }

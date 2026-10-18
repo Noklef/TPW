@@ -102,6 +102,10 @@ void __fastcall Class702ec0_Dtor(u8 *object);
 
 void __fastcall Class702dd0_Dtor(u8 *object);
 
+// 0x5e3fc0 / 0x5e3ff0 (thiscall destructors): set the vtable pointer named, then Class702bc8_Dtor on the object (which sets its own).
+void __fastcall Class702e70_Dtor(u8 *object);
+void __fastcall Class702e20_Dtor(u8 *object);
+
 // 0x617f40 (thiscall destructor): sets the vtable pointer 0x7037b8, frees the block at +8 of every node of the list at +8 (head, size at +0xc), then every node and the
 // head, and clears the pointer and the size.
 void __fastcall Class7037b8_Dtor(u8 *object);
