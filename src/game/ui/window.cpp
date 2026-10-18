@@ -187,6 +187,25 @@ void __fastcall Window_NotifyC00(u8 *window, void *, u32 a, u32 b) {
     if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0xc00u, event);
 }
 
+void __fastcall Window_Notify3000(u8 *window, void *, u32 a, u32 b) {
+    if (!at<u8 *>(window, 0x98) && !at<u8 *>(window, 0x9c)) return;
+    u8 inner[0x14], event[0x18];  // (only inner's bytes +6 / +7 and event's pointer +0x10 set)
+    at<u8 *>(event, 0x10) = inner;
+    inner[6] = (u8)a;
+    inner[7] = (u8)b;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 0x3000u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0x3000u, event);
+}
+
+void __fastcall Window_Notify20000(u8 *window, void *, u32 a) {
+    if (!at<u8 *>(window, 0x98) && !at<u8 *>(window, 0x9c)) return;
+    u8 inner[0x14], event[0x18];  // (only inner's byte +9 and event's pointer +0x10 set)
+    at<u8 *>(event, 0x10) = inner;
+    inner[9] = (u8)a;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 0x20000u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0x20000u, event);
+}
+
 void __fastcall Window_SetImpl(u8 *window, void *, u8 *impl) {
     if (impl == at<u8 *>(window, 0x9c)) return;
     if (at<u8 *>(window, 0x9c) && (s16)WindowImpl_Release(at<u8 *>(window, 0x9c)) == -1) {

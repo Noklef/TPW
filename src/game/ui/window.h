@@ -89,6 +89,12 @@ void __fastcall Window_Set4c(u8 *window, void *, u8 *object);
 // an event on the stack whose +0x10 points to a second one with the bytes +4 = a and +5 = b; the rest unset). EAX not kept.
 void __fastcall Window_NotifyC00(u8 *window, void *, u32 a, u32 b);
 
+// 0x65c4b9 (thiscall (a, b: bytes), pops 8; name unconfirmed): as Window_NotifyC00 with 0x3000 and the bytes at +6 / +7.
+void __fastcall Window_Notify3000(u8 *window, void *, u32 a, u32 b);
+
+// 0x65c54a (thiscall (a: a byte), pops 4; name unconfirmed): as Window_NotifyC00 with 0x20000 and the one byte at +9.
+void __fastcall Window_Notify20000(u8 *window, void *, u32 a);
+
 // 0x65d1c8 (thiscall (impl), pops 4; name unconfirmed): nothing when impl is +0x9c already. The old one (when set) let go
 // (WindowImpl_Release), and when that answers -1 (as a word) +0x98's slot 0 (1) called when +0x98 is set (sic: not the old one's).
 // +0x9c = impl; when set: Fn_6617f0 on it (+0x12 = 1), then its slot 3 (flags, an event on the stack: the words +4 = 0, +6 = the

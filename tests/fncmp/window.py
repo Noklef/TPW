@@ -11,7 +11,7 @@
 # them or anywhere (upper halves random), the root, the hovered window and the queues set or not. NotifyShown / SetShown (0x65d90b,
 # 0x65d9dd): UpdateHover's tree with parents, shown or hidden, recorder objects +0x98 / +0x9c, handlers, the manager. Offset (0x65c7fe):
 # that tree's windows given GUI rectangles (offset_env), moved by words 0 or not (upper halves random). Set4c / NotifyC00 / SetImpl
-# (0x65c388, 0x65c428, 0x65d1c8): that tree with +0x4c look objects or none, the objects' events hashed (notify_env). ImplRelease / IsShown / OffsetByParents
+# (0x65c388, 0x65c428, 0x65d1c8) and Notify3000 / Notify20000 (0x65c4b9, 0x65c54a): that tree with +0x4c look objects or none, the objects' events hashed (notify_env). ImplRelease / IsShown / OffsetByParents
 # (0x6616b0, 0x65d773, 0x65c979): recorder objects, chains of 0-4 windows by +0x60. RectAssign / SaveRect (0x65aa20, 0x65bc90): random.
 # Ctor (0x65bcad): a random window built with a parent from a tree (its +0x60 chain and word +0xe0 near 0x100) or none, flags 0x400 and 1
 # set or not, words edges or near (upper halves random); the root the new window, the tree's or none, the queues as above.
@@ -51,7 +51,7 @@ CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50
          'WindowAt10_ScalarDtor': 0x48c8b0, 'SetChecksIfUpThis': 0x481a00,
          'Windows7cc8bc_Message6Pair': 0x4bcef0, 'Windows7cc8bc_SelectSecond': 0x4bce80, 'Global7cc698_Choose': 0x4bcec0, 'ImplSlot7': 0x65d6db, 'ImplSlot6': 0x65d745, 'DwordA0': 0x65e705,
          'PostMessage': 0x658ccc, 'Dialog7cb2b8_Child21Post': 0x4a2590,
-         'HitTest': 0x65db25, 'UpdateHover': 0x6589f9, 'NotifyShown': 0x65d90b, 'SetShown': 0x65d9dd, 'Offset': 0x65c7fe, 'Set4c': 0x65c388, 'NotifyC00': 0x65c428, 'SetImpl': 0x65d1c8, 'ImplRelease': 0x6616b0, 'IsShown': 0x65d773,
+         'HitTest': 0x65db25, 'UpdateHover': 0x6589f9, 'NotifyShown': 0x65d90b, 'SetShown': 0x65d9dd, 'Offset': 0x65c7fe, 'Set4c': 0x65c388, 'NotifyC00': 0x65c428, 'Notify3000': 0x65c4b9, 'Notify20000': 0x65c54a, 'SetImpl': 0x65d1c8, 'ImplRelease': 0x6616b0, 'IsShown': 0x65d773,
          'RectAssign': 0x65aa20, 'SaveRect': 0x65bc90, 'OffsetByParents': 0x65c979,
          'Ctor': 0x65bcad, 'ForgetGlobals': 0x6592b6, 'DropModal': 0x65e672, 'Destroying': 0x65c2d8,
          'CancelPosted': 0x658fe9, 'CancelPostedFirst': 0x659012, 'CancelTimed': 0x65903b,
@@ -66,7 +66,7 @@ RANGES = [(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x6
            (0x4c5780, 0x4c5820),
            (0x48d990, 0x48d9b3), (0x4c25e0, 0x4c25f9), (0x48cf70, 0x48cf83), (0x492e60, 0x492e77), (0x48ee20, 0x48ee4e),
            (0x48c8b0, 0x48c8ce), (0x481a00, 0x481a10),
-           (0x4bcef0, 0x4bcf60), (0x4bcec0, 0x4bcef0), (0x4bce80, 0x4bcec0), (0x65d90b, 0x65d9dd), (0x65d9dd, 0x65da8d), (0x65c7fe, 0x65c979), (0x65c388, 0x65c428), (0x65c428, 0x65c4b9), (0x65d1c8, 0x65d323), (0x6617f0, 0x661804), (0x65d6db, 0x65d727), (0x65d745, 0x65d783), (0x65e705, 0x65e73d),
+           (0x4bcef0, 0x4bcf60), (0x4bcec0, 0x4bcef0), (0x4bce80, 0x4bcec0), (0x65d90b, 0x65d9dd), (0x65d9dd, 0x65da8d), (0x65c7fe, 0x65c979), (0x65c388, 0x65c428), (0x65c428, 0x65c4b9), (0x65c4b9, 0x65c54a), (0x65c54a, 0x65c5d5), (0x65d1c8, 0x65d323), (0x6617f0, 0x661804), (0x65d6db, 0x65d727), (0x65d745, 0x65d783), (0x65e705, 0x65e73d),
            (0x658ccc, 0x658d9f), (0x6697e3, 0x6698a4), (0x4a2590, 0x4a25e5),
            (0x65db25, 0x65dbee), (0x6589f9, 0x658aab), (0x659e83, 0x659ee2),
            (0x6616b0, 0x6616f1), (0x65d773, 0x65d7bc),
@@ -525,15 +525,16 @@ def case(r):
                 set_return(log, 0x3d, r.choice([0, 1, -1, r.getrandbits(32)]))
             return Call(CALLS[op], [], regions, ret='a')
         return Call(CALLS[op], [window, r.getrandbits(32)], regions, conv='t', ret='w')
-    if op in ('Set4c', 'NotifyC00', 'SetImpl'):   # see notify_env()
+    if op in ('Set4c', 'NotifyC00', 'SetImpl', 'Notify3000', 'Notify20000'):   # see notify_env()
         wins = notify_env(r, regions, log)
         window = r.choice(wins)
         if op == 'Set4c':
             notify_blobs(log, 0, 1 << 8)
             return Call(CALLS[op], [window, r.choice([LOOK, LOOK + 0x40, 0])], regions, conv='t', ret='v')
-        if op == 'NotifyC00':
-            notify_blobs(log, 0, 0x30)
-            return Call(CALLS[op], [window, r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='v')
+        if op in ('NotifyC00', 'Notify3000', 'Notify20000'):   # (the bytes +4 / +5, +6 / +7 or +9 of the second event)
+            notify_blobs(log, 0, {'NotifyC00': 0x30, 'Notify3000': 0xc0, 'Notify20000': 0x200}[op])
+            args = [r.getrandbits(32) for _ in range(1 if op == 'Notify20000' else 2)]
+            return Call(CALLS[op], [window] + args, regions, conv='t', ret='v')
         look = struct.unpack_from('<I', regions[window], 0x4c)[0]
         notify_blobs(log, 0x0ff0f3f0, 1 << 8 if look else 0)
         return Call(CALLS[op], [window, r.choice([IMPL, IMPL, MISC + 0x40, 0])], regions, conv='t', ret='v')
