@@ -101,6 +101,15 @@ void __cdecl Coaster_SetMixAtPinned(u32 index, u32 value);
 // seated (+0x2c) and +0x34 raised. sic: a rider no car has room for is dropped. Each rider lowers +0x14.
 void __cdecl Coaster_BoardRiders(u8 *queue, u8 *coaster, u32 first, u32 count);
 
+// 0x43b8b0 (cdecl; coaster, train; name unconfirmed): the train at the station. It is there when its front (+0x20) is not below the
+// coaster's segment window (+0xf8; NaN: not there) and its back (+0x24) not past it (+0xfc; NaN passes).
+// Arriving or staying: unless the train has flag 0x20 its riders get off (CoasterTrain_Unload, side 1); with the coaster's flag 4 (+8)
+// its cars in the window (CoasterCar_FindSegmentsInWindow), widened to the last ones (+0x18 / +0x1c, unsigned), give the seats free
+// (+0x14 = the sum of +0x44 - +0x34) and board (Coaster_BoardRiders), then become +0x18 / +0x1c; flag 0x20 is set.
+// Leaving (away with flag 0x20): with flag 4 the cars from +0x18 to the count (+0xc) board as above; +0x18 / +0x1c = 0; each car
+// from +8 (+0xc of them) swaps its rider lists (+0x28 / +0x2c), +0x30 = +0x34 and +0x34 = 0; flag 0x20 is cleared. Otherwise nothing.
+void __cdecl CoasterTrain_AtStation(u8 *coaster, u8 *train);
+
 // 0x43bbe0 / 0x43bc00 (cdecl; names unconfirmed): this unit's static initialisers of the shared header's two floats
 // nothing reads (core/floatconsts): 0x7923a0 = 1 and 0x7923a4 = 1 / 2^23.
 void __cdecl CoasterCars_InitUnusedOne();
