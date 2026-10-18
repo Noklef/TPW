@@ -187,10 +187,13 @@ def parse(r):   # BalanceFile_Parse (thiscall (name, text, keep)): a made-up sch
             if len(keys[-1][1]) > 0x1f:
                 recs.append((0xd, b'', None))
         count = r.choice([1, 2, 3])
-        recs.append((3 if grouped else 1, sname, count))
+        spill = None
+        if len(sname) > 0x1f and len(keys[-1][1]) <= 8 and r.random() < 0.6:
+            spill = keys[-1][1]   # (written after the 64 chars, as a line's group of 64 runs on into its first field: that field's line finds it)
+        recs.append((3 if grouped else 1, sname + (spill or b''), count))
         if len(sname) > 0x1f:
             recs.append((0xd, b'', None))
-        sections.append((sname, grouped, count, keys))
+        sections.append((sname, grouped, count, keys, spill))
     n = len(recs)
     table = bytearray(r.bytes(0x3c * (n + 2)))
     bounds = {}
@@ -210,13 +213,18 @@ def parse(r):   # BalanceFile_Parse (thiscall (name, text, keep)): a made-up sch
         put(vals, 0xc * k, 'IiI', DATA + 0x40 * k, r.choice([1, 1, 2, 3]), FLAGS + 4 * k)
         regions[DATA + 0x40 * k] = b''.join(r.choice([0, 0, r.getrandbits(32)]).to_bytes(4, 'little') for _ in range(0x10))
     flags = b''.join(struct.pack('<i', r.choice([0, 0, 1, 2, 5, -1])) for _ in range(n))
+    kinds = {}
+    for k, (t, name, _) in enumerate(recs):   # map keys parse with the symbol table their +0x38 names (1 or 2; others read an uninitialised pointer)
+        if t == 11:
+            kinds[k] = r.choice([1, 2])
+            put(table, 0x3c * k + 0x38, 'I', kinds[k])
     text = b''
     for _ in range(r.choice([1, 2, 3, 5])):
         roll = r.random()
         if roll < 0.12:
             text += r.choice([b'# comment\n', b'\n', b'   \n', b'\t# x.y 1\n', b'#'])
             continue
-        sname, grouped, count, keys = r.choice(sections)
+        sname, grouped, count, keys, spill = r.choice(sections)
         clean = r.random() < 0.3   # (a well-formed line of one key, its value at a bound: the checks past the parsing)
         if r.random() < 0.08 and not clean:
             sname = r.choice(pool + [b'Other', b'', b'9x', b'A' * 64, b'A' * 65])
@@ -231,11 +239,20 @@ def parse(r):   # BalanceFile_Parse (thiscall (name, text, keep)): a made-up sch
         chosen = [r.choice(keys) for _ in range(1 if clean else r.choice([1, 1, 1, 2, 2, 3, 16, 17]))]
         if r.random() < 0.06 and not clean:
             chosen[0] = (4, r.choice([b'Other', b'B' * 64, b'C' * 63]))
+        elif spill and r.random() < 0.7:
+            chosen[0] = keys[-1]
+        maps = [kk for kk in keys if kk[0] == 11]
+        if len(chosen) == 2 and maps and r.random() < 0.5:   # (a map first of two fields, the line well formed: the error before the map is read)
+            chosen[0] = r.choice(maps)
+            line = sname + (b'[%d].' % r.randrange(count) if grouped else b'.')
+            clean = True
         line += (b'.' if clean else r.choice([b'.', b'.', b'.', b'..', b'.9'])).join(name for _, name in chosen)
         if len(chosen) == 16 and r.random() < 0.5:
             line += b'..' + chosen[0][1]   # (past the 16th field: "Too many fields")
         if any(t == 11 for t, _ in chosen) and (len(chosen) == 1 or len(chosen) == 2 and r.random() < 0.5):
-            text += line + map_text(r, r.choice([1, 2]))   # (two fields with a map: an error before the map is read)
+            k = find_key(recs, sname, next(name for t, name in chosen if t == 11), grouped)
+            kind = kinds.get(k, 1) if r.random() < 0.8 else r.choice([1, 2])   # (mostly the symbols the key's +0x38 names)
+            text += line + map_text(r, kind)   # (two fields with a map: an error before the map is read)
             continue
         line += b' ' if clean else r.choice([b' ', b' ', b'\t', b'', b'#'])
         for t, name in chosen:
@@ -251,9 +268,6 @@ def parse(r):   # BalanceFile_Parse (thiscall (name, text, keep)): a made-up sch
                 v = number(r, lo / 2 if t in (7, 8, 9) else lo, hi / 2 if t in (7, 8, 9) else hi, t)
             line += v + r.choice([b' ', b' ', b'\t', b''])
         text += line + r.choice([b'\n', b'\r\n', b'\n', b' # note\n', b''])
-    for k, (t, name, _) in enumerate(recs):   # map keys parse with the symbol table their +0x38 names (1 or 2; others read an uninitialised pointer)
-        if t == 11:
-            put(table, 0x3c * k + 0x38, 'I', r.choice([1, 2]))
     regions.update({RAM: put(bytearray(r.bytes(0x10)), 0, 'II', vt, VALS), VALS: vals, FLAGS: flags, VTABLES[vt]: table,
                     RAM + 0x100: b'test.sam\0', TEXT: text[:0x1f00] + b'\0' + r.bytes(4), HEAP: heap(0x8000, fail=r.choice([0] * 15 + [1])),
                     **global_heap(), 0x785de8: r.bytes(0x60)})
