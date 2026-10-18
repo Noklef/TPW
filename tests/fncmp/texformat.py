@@ -15,8 +15,8 @@ CALLS = {'FillTables': 0x5839f0, 'Classify': 0x583ba0, 'DriverFlags': 0x581790, 
 
 
 def record(r):
-    records = bytearray(r.bytes(0xc0))   # (from 0x8bd518: index -2's record at 0x8bd518, index 3's at 0x8bd5b8)
-    for k in range(6):
+    records = bytearray(r.bytes(0x100))   # (from 0x8bd518: index -2's record at 0x8bd518, index 3's at 0x8bd5b8, 5's at 0x8bd5f8)
+    for k in range(8):
         if r.random() < 0.3:
             put(records, 0x20 * k, 'I', 0)
     errors = bytearray(r.bytes(0x204))
