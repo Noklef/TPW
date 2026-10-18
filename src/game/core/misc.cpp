@@ -260,29 +260,6 @@ void __cdecl Global7c24d8_CopyScript() {
         SpriteScript_CopyFrom((s32)global<u32>(0x007c24a0), (s32)at<u32>(object, 0xc));
 }
 
-u32 __cdecl Rsse_TakeFinished(u8 *vm) {
-    const s32 count = at<s32>(vm, 0x7c);
-    u8 *entries = at<u8 *>(vm, 0x2c);
-    for (s32 i = 0; i < count; i++) {
-        u8 *entry = entries + 0x20 * (u32)i;
-        if (at<u16>(entry, 0x18) == 4) {
-            const u32 value = at<u32>(entry, 0x10);
-            at<u16>(entry, 0x18) = 0;
-            at<u32>(at<u8 *>(vm, 0x2c), 0x20 * (u32)i + 0x10) = 0;
-            return value;
-        }
-    }
-    return 0;
-}
-
-u32 __cdecl Rsse_GetVector(const u8 *frame, u32 *x, u32 *y, u32 *z) {
-    const u8 *record = at<const u8 *>(at<const u8 *>(at<const u8 *>(frame, 8), 4), 0x78) + 0x10;
-    *x = at<u32>(record, 0x30);
-    *y = at<u32>(record, 0x34);
-    *z = at<u32>(record, 0x38);
-    return *z;
-}
-
 u32 __stdcall Setting569f30_Set(u32, u32 value) {
     if (value)
         global<u32>(0x00fbe038) = value;
