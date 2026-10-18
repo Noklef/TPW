@@ -28,6 +28,7 @@
 # the message 0x14 often. GetRect / SetSavedRect (0x65d42e, 0x65cfd4): a GUI rectangle, a recorder or none, the insets small or edges. SaveInsetRect (0x485e30):
 # random rectangles and insets. ResetQueues (0x659064): the queues and the timed table as for the cancels, each now and then missing.
 # SetFocus / KillFocus (0x65e59b, 0x65e5fa): UpdateHover's tree and hover, the focus [0xfaa5ec] the window, another or none.
+# Windows7cc8bc_SelectSecond (0x4bce80): SetFocus's set-up, the two windows [0x7cc8bc] / [0x7cc8c0] of the tree with handlers the logger or none.
 # MouseDown / MouseUp (0x658af1, 0x658b5b): buttons 0-7, the windows the window or none, the queues as for PostMessage.
 # usage: window.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FindChild,SetChecks,SetChecksIfUp)
 import os
@@ -45,7 +46,7 @@ CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50
          'Dialog7ca098_Message4IfUp': 0x48d990, 'Dialog7cca94_Message4IfUp': 0x4c25e0, 'WindowAt10_Message4': 0x48cf70,
          'WindowAt10_Message4IfAny': 0x492e60, 'Windows7c26b0_Message5': 0x48ee20,
          'WindowAt10_ScalarDtor': 0x48c8b0, 'SetChecksIfUpThis': 0x481a00,
-         'Windows7cc8bc_Message6Pair': 0x4bcef0, 'Global7cc698_Choose': 0x4bcec0, 'ImplSlot7': 0x65d6db, 'ImplSlot6': 0x65d745, 'DwordA0': 0x65e705,
+         'Windows7cc8bc_Message6Pair': 0x4bcef0, 'Windows7cc8bc_SelectSecond': 0x4bce80, 'Global7cc698_Choose': 0x4bcec0, 'ImplSlot7': 0x65d6db, 'ImplSlot6': 0x65d745, 'DwordA0': 0x65e705,
          'PostMessage': 0x658ccc, 'Dialog7cb2b8_Child21Post': 0x4a2590,
          'HitTest': 0x65db25, 'UpdateHover': 0x6589f9, 'ImplRelease': 0x6616b0, 'IsShown': 0x65d773,
          'RectAssign': 0x65aa20, 'SaveRect': 0x65bc90, 'OffsetByParents': 0x65c979,
@@ -62,7 +63,7 @@ B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x
            (0x4c5780, 0x4c5820),
            (0x48d990, 0x48d9b3), (0x4c25e0, 0x4c25f9), (0x48cf70, 0x48cf83), (0x492e60, 0x492e77), (0x48ee20, 0x48ee4e),
            (0x48c8b0, 0x48c8ce), (0x481a00, 0x481a10),
-           (0x4bcef0, 0x4bcf60), (0x4bcec0, 0x4bcef0), (0x65d6db, 0x65d727), (0x65d745, 0x65d783), (0x65e705, 0x65e73d),
+           (0x4bcef0, 0x4bcf60), (0x4bcec0, 0x4bcef0), (0x4bce80, 0x4bcec0), (0x65d6db, 0x65d727), (0x65d745, 0x65d783), (0x65e705, 0x65e73d),
            (0x658ccc, 0x658d9f), (0x6697e3, 0x6698a4), (0x4a2590, 0x4a25e5),
            (0x65db25, 0x65dbee), (0x6589f9, 0x658aab), (0x659e83, 0x659ee2),
            (0x6616b0, 0x6616f1), (0x65d773, 0x65d7bc),
@@ -406,7 +407,7 @@ def case(r):
         regions[0xfaa5e0] = struct.pack('<I', r.choice([WINDOW, WINDOW, 0]))
         button = r.choice([0, 1, 2, 2, 7]) | r.choice([0, 0, 0x10000, 0xffff0000])
         return Call(CALLS[op], [button, r.getrandbits(32), r.choice([0, 5, 0x8000, r.getrandbits(32)])], regions, ret='w')
-    if op in ('SetFocus', 'KillFocus'):   # the hover as UpdateHover's; the focus [0xfaa5ec] the window, another of the tree or none
+    if op in ('SetFocus', 'KillFocus', 'Windows7cc8bc_SelectSecond'):   # the hover as UpdateHover's; the focus [0xfaa5ec] the window, another of the tree or none
         wins = tree(r, regions)
         queues(r, regions)
         x, y = point(r, regions, wins)
@@ -415,6 +416,15 @@ def case(r):
                                         r.getrandbits(32), r.choice([0] * 6 + [1, r.getrandbits(32)]))
         window = r.choice(wins)
         regions[0xfaa5ec] = struct.pack('<I', r.choice([window, window, 0] + wins))
+        if op == 'Windows7cc8bc_SelectSecond':   # the two windows of the tree (now and then none), their handlers fncmp's logger or none
+            for w in wins:
+                put(regions[w], 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
+            regions[0xfaa5fc] = struct.pack('<I', r.choice([0, 0, CDECL_LOG4]))
+            regions[0x7cc8bc] = struct.pack('<II', r.choice(wins + [0]), r.choice(wins * 4 + [0]))
+            regions[0x7cc6a0] = r.bytes(4)
+            if r.random() < 0.5:
+                set_return(log, 0x3d, r.choice([0, 1, -1, r.getrandbits(32)]))
+            return Call(CALLS[op], [], regions, ret='a')
         return Call(CALLS[op], [window, r.getrandbits(32)], regions, conv='t', ret='w')
     if op == 'UpdateHover':   # the root [0xfaa5d8] or none, [0xfaa5e8] mostly 0, the hovered window [0xfaa5e0] one of them or none
         wins = tree(r, regions)

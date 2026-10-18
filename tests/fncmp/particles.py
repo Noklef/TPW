@@ -61,7 +61,7 @@ def case(r):
         win[0x48] = r.choice([0, 0, 0, 1, 2, 3])
         put(win, 0x60, 'I', 0)
         c.regions[RAM + 0x3000] = win
-        c.regions[0x786b84] = struct.pack('<I', r.choice([0, 0, 0, 0, 1, r.getrandbits(32)]))
+        c.regions[0x786b84] = struct.pack('<I', r.choice([0, 0, 0, 0, 1, 0x100, r.getrandbits(32)]))
         return Call(0x486b90, [c.args[0], RAM + 0x3000], c.regions, ret='v')
     if op == 'SpawnVel':  # 0x521930: Spawn's cases with a velocity, the systems' scales about 1024
         c = spawn(r)

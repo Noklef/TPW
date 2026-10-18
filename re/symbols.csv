@@ -4842,6 +4842,7 @@ address,name,kind,confidence,notes
 0x004a0a20,Dialog7cb2b8_Handler,function,low,"reimplemented (src/game/ui/dialogs); cdecl (window, message, a, b): on 0x14 [0x7cb2b8] = 0; then Window_CallDefault"
 0x004a0a90,Window_DefaultHandler,function,low,"reimplemented (src/game/ui/dialogs); cdecl (window, message, a, b): Window_CallDefault"
 0x00496570,Dialog7ca168_ShowText,function,low,reimplemented (src/game/ui/dialogs); cdecl (which): the label (child 0x32a of child 0x329 of [0x7ca168]) gets language text 0x6b/0x6c/0x6e/0x6d/0x6f for 0-4 (slot 9); else which returned
+0x004bce80,Windows7cc8bc_SelectSecond,function,low,"reimplemented (src/game/ui/dialogs); cdecl: message 6 (0, 0) to [0x7cc8bc] and (1, 0) to [0x7cc8c0], the byte 0x7cc6a0 = 1, then [0x7cc8c0] takes the focus (its result returned)"
 0x00659607,GuiManager_CallSlot4,function,low,"reimplemented (src/game/ui/guimanager); cdecl: slot 4 (thiscall, no arguments) of the GUI manager [0x77c48c], its result"
 0x0065961c,GuiManager_CallSlot3,function,low,"reimplemented (src/game/ui/guimanager); cdecl: slot 3 (thiscall, no arguments) of the GUI manager [0x77c48c], its result"
 0x00659631,GuiManager_Word4Set,function,low,"reimplemented (src/game/ui/guimanager); cdecl: 1 when the GUI manager's word +4 (Fn_659790) is not 0, else 0"

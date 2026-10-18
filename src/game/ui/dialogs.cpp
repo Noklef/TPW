@@ -117,6 +117,13 @@ s32 __cdecl Windows7cc8bc_Message6Pair() {
     return result;
 }
 
+u32 __cdecl Windows7cc8bc_SelectSecond() {
+    Window_SendMessage(window(0x007cc8bc), 6, 0, 0);
+    Window_SendMessage(window(0x007cc8c0), 6, 1, 0);
+    *reinterpret_cast<u8 *>((uintptr_t)0x007cc6a0) = 1;
+    return Window_SetFocus(window(0x007cc8c0), nullptr, 0);
+}
+
 void __cdecl Windows7c26b0_Message5() {
     for (u32 entry = 0x007c26b0; entry < 0x007c3b00; entry += 0x208)
         if (*reinterpret_cast<u16 *>((uintptr_t)entry + 4)) Window_SendMessage(*reinterpret_cast<u8 **>((uintptr_t)entry), 5, 0, 0);
