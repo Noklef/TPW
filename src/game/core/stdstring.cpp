@@ -154,4 +154,23 @@ void __fastcall StdString_Split(StdString *s, void *) {
     empty(s);
     StdString_AssignChars(s, nullptr, p, (u32)std::strlen(p));
 }
+
+StdString *__fastcall StdString_AssignFill(StdString *s, void *, u32 n, u32 ch) {
+    if (n == 0xffffffff) g_env->xlen();  // npos (0x6fe5ac)
+    if (n > kMaxSize) g_env->xlen();
+    if (StdString_Grow(s, nullptr, n, 1)) {  // (inlined; its own max_size check is the one above)
+        for (u32 i = 0; i < n; ++i) s->ptr[i] = (char)ch;
+        StdString_Eos(s, nullptr, n);
+    }
+    return s;
+}
+
+void __fastcall StdString_Freeze(StdString *s, void *) {
+    if (shared(s->ptr)) {
+        const u32 n = s->len;
+        if (n > kMaxSize) g_env->xlen();
+        StdString_Grow(s, nullptr, n, 0);  // (inlined)
+    }
+    if (s->ptr) refs(s->ptr) = kFrozen;
+}
 }

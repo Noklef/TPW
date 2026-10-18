@@ -69,4 +69,11 @@ void __fastcall StdString_Copy(StdString *s, void *edx, u32 n);
 
 // 0x45b8d0: _Split(): gives a shared s its own copy.
 void __fastcall StdString_Split(StdString *s, void *edx);
+
+// Members emitted again outside that range:
+// 0x47b1c0: assign(n, ch): n copies of ch (n of npos, 0x6fe5ac, throws as too long). Returns s.
+StdString *__fastcall StdString_AssignFill(StdString *s, void *edx, u32 n, u32 ch);
+
+// 0x47b280: _Freeze(): gives a shared s its own copy, then marks s's block (when it has one) frozen.
+void __fastcall StdString_Freeze(StdString *s, void *edx);
 }

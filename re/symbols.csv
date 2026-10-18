@@ -2284,6 +2284,8 @@ address,name,kind,confidence,notes
 0x0045b7c0,StdString_MaxSize,function,high,reimplemented (src/game/core/stdstring); std::string::max_size(): 0xfffffffd
 0x0045b7d0,StdString_Copy,function,high,reimplemented (src/game/core/stdstring); std::string::_Copy(n): new block of n | 31 (sic: copies all old chars unclamped)
 0x0045b8d0,StdString_Split,function,high,reimplemented (src/game/core/stdstring); std::string::_Split(): unshares a copy-on-write block
+0x0047b1c0,StdString_AssignFill,function,low,"reimplemented (src/game/core/stdstring); thiscall (n, ch), pops 8: assign(n, ch)"
+0x0047b280,StdString_Freeze,function,low,reimplemented (src/game/core/stdstring); thiscall: _Freeze
 0x0045b9d0,GlobalMem_Alloc,function,high,"reimplemented (src/game/core/globalmem); GlobalAlloc(GMEM_ZEROINIT or GMEM_FIXED, size) through the import slot; null for 0"
 0x0045ba00,GlobalMem_Free,function,high,reimplemented (src/game/core/globalmem); GlobalFree through the import slot; null for null
 0x0045ba70,GlobalMem_AllocCounted,function,high,reimplemented (src/game/core/globalmem); a zeroed 0x40-byte block with count at +4; null for 0
