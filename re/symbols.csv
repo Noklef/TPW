@@ -3579,6 +3579,9 @@ address,name,kind,confidence,notes
 0x0041a9d0,Graphics_Level,function,high,reimplemented (src/game/core/options); level 2 to 8 from the render mode or the graphics balance
 0x00423dd0,Options_ApplySound,function,low,"reimplemented (src/game/core/options); cdecl: the options sound switches and volumes applied (Sound_Set803adc/ac0, ae0/ac4, ad8/abc; Global802ba8_SetMasked(+0x2c * 1023 / 100))"
 0x00423690,Options_Defaults,function,low,"reimplemented (src/game/core/options); thiscall; the option defaults (+0..+0x3a, volumes from 0x785928-34, switches when 0x785924), the copy at +0x3c, then Options_ApplySound"
+0x00423e90,Options_SerializeSound,function,low,"reimplemented (src/game/core/options); thiscall (stream, saving, an unused dword): the volumes +0x10..+0x28 and switches +0x34..+0x3a saved or loaded, then Options_ApplySound; 1 on a failure, else 0 (name unconfirmed)"
+0x004242c0,Options_SerializeDisplay,function,low,"reimplemented (src/game/core/options); thiscall (stream, saving, an unused dword): +0, +4, +8, +0xc (VideoCard), +0x28 (MovieVolume), +0x30 (SoundQuality) saved or loaded, then Options_ApplySound; 1 on a failure, else 0 (name unconfirmed)"
+0x00424560,Options_SerializeMisc,function,low,"reimplemented (src/game/core/options); thiscall (stream, saving, an unused dword): +0x78..+0x8c (CURRENTTheme, DEBUGGuardUInts, TextureCacheSize) saved or loaded; 1 on a failure, else 0 (name unconfirmed)"
 0x0043ba20,Coaster_SetTrainCount,function,high,"reimplemented (src/game/coaster/setup); sets the car count, unloading the cars cut off"
 0x0041c8b0,Class6fd9d8_Dtor,function,high,"reimplemented (src/game/core/class6fd9d8); destructor: deletes its member and the held objects of its list, frees two strings"
 0x004f0700,Wstreambuf_Read,function,high,"reimplemented (src/game/core/streambuf); reads wide characters from the get area, else through the underflow slot"
