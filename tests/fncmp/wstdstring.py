@@ -1,6 +1,7 @@
 # The game's MSVC6 std::wstring members (src/game/core/wstdstring: assign 0x4f21d0, _Grow 0x4f39e0, _Copy 0x4f6090, _Split 0x4f6190) against
 # the originals, as stdstring.py's narrow ones: a string under test and a second one, each null or a block (a byte, the count byte, up to
 # 0x7c characters, usually a terminator) with counts about 0 and 0xff, at times sharing one block; Mem_Alloc / Mem_Free on the heap region.
+# _Grow also on strings left unterminated (some empty), assign also for exactly the room s has.
 # usage: wstdstring.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import sys
@@ -46,6 +47,13 @@ def case(r):
     regions = {STRS: strs, BLOCKS: blocks, HEAP: heap()}
     small = r.choice([0, 1, r.randrange(40), r.randrange(30, 0x90), s[1], s[2], s[2] + 1])
     if op == 'Grow':
+        if s[0] and r.random() < 0.3:  # no terminator where the length ends (an emptied string's is written)
+            put(blocks, s[0] - BLOCKS + 2 * s[1], 'H', r.randrange(1, 0x10000))
+        if s[0] and r.random() < 0.2:  # an unterminated empty string of its own, emptied again
+            put(strs, 8, 'I', 0)
+            blocks[s[0] - BLOCKS - 1] = r.choice([0, 0xff])
+            put(blocks, s[0] - BLOCKS, 'H', r.randrange(1, 0x10000))
+            small = r.choice([0, small])
         return Call(0x4f39e0, [S, small, r.choice([0, 1, 0x100, r.getrandbits(32)])], regions, conv='t', ret='b')
     if op == 'Copy':
         huge = r.choice([0x7ffffffe, 0x7fffffe0, 0xfffffff0, 0xffffffe1])  # the block size wraps negative
@@ -55,7 +63,7 @@ def case(r):
     # AssignSub: from x, or from s itself
     src, (_, n, _) = r.choice([(X, x), (X, x), (S, s)])
     pos = r.choice([0, n, r.randrange(n + 1)])
-    count = r.choice([0xffffffff, r.randrange(50), 0, n - pos, max(0, n - pos - 1)])
+    count = r.choice([0xffffffff, r.randrange(50), 0, n - pos, max(0, n - pos - 1), s[2]])  # (s's room: a block kept exactly full)
     return Call(0x4f21d0, [S, src, pos, count], regions, conv='t', ret='a')
 
 
