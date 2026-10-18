@@ -132,6 +132,7 @@
 #include "../game/core/class6fd9d8.h"
 #include "../game/core/factories.h"
 #include "../game/core/floatconsts.h"
+#include "../game/core/framecountdown.h"
 #include "../game/core/funnytime.h"
 #include "../game/core/wstringmap.h"
 #include "../game/core/streambuf.h"

@@ -49,13 +49,6 @@ void __cdecl MeshRef_SetFlag10000000(u8 *const *ref) {
     at<u32>(part, 0x50) |= 0x10000000;
 }
 
-u32 __cdecl Countdown7cc150_Step() {
-    s32 &counter = global<s32>(0x007cc150);
-    if (counter > 0)
-        counter--;
-    return counter == 0 && global<u32>(0x007cc190) != 0 ? 1 : 0;
-}
-
 u32 __fastcall Obj_KillSlot24(u8 *object) {
     if (!at<u32>(object, 0x24))
         return 0;
