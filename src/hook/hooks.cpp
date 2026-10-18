@@ -282,6 +282,7 @@
 #include "../game/render/vertexfog.h"
 #include "../game/render/d3dprobe.h"
 #include "../game/render/engineerrors.h"
+#include "../game/render/texcoords.h"
 #include "../game/render/weatherfx.h"
 #include "../game/online/servers.h"
 #include "../game/frontend/helpbg.h"
@@ -3826,6 +3827,7 @@ const Hook kHooks[] = {
     {"D3dProbe_SetFlags",         0x00567620, (void *)&D3dProbe_SetFlags, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
     {"D3dProbe_SetTextureStages", 0x005686d0, (void *)&D3dProbe_SetTextureStages, {0x56, 0x8b, 0xf1, 0x57, 0x83}},
     {"EngineErrors_Push",         0x0056af20, (void *)&EngineErrors_Push, {0x83, 0xec, 0x64, 0x56, 0x8b}},
+    {"Model_TexCoords",           0x00581410, (void *)&Model_TexCoords, {0x83, 0xec, 0x40, 0x8b, 0x44}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
