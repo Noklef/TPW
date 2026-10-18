@@ -310,6 +310,7 @@
 #include "../game/online/items.h"
 #include "../game/online/onlinelist.h"
 #include "../game/online/chatavatar.h"
+#include "../game/online/ftp.h"
 #include "../game/online/session.h"
 #include "../game/ui/dialog7ca1c8.h"
 #include "../game/ui/dialogs.h"
@@ -4271,6 +4272,7 @@ const Hook kHooks[] = {
     {"ChatAvatar_Arrive",         0x004ea240, (void *)&ChatAvatar_Arrive, {0x83, 0xec, 0x08, 0x53, 0x56}},
     {"ChatPlayer_NameIs",         0x004f7d70, (void *)&ChatPlayer_NameIs, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"ChatPlayers_FindByName",    0x004ebf00, (void *)&ChatPlayers_FindByName, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
+    {"Ftp_ListLineSize",          0x005d2720, (void *)&Ftp_ListLineSize, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
