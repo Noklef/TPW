@@ -4116,7 +4116,17 @@ address,name,kind,confidence,notes
 0x00477cc0,BarMesh_SetTopVertices,function,high,reimplemented (src/game/gfx/barmesh); virtual: the bar's top edge vertices at its level (+0x120)
 0x00477d20,BarMesh_SetTopTexCoords,function,high,reimplemented (src/game/gfx/barmesh); virtual: the bar's top edge texture v = level * 0.01
 0x004786f0,BarMesh_SetTexCoord,function,high,reimplemented (src/game/gfx/barmesh); texture coordinate i of a 4-lane u/v block array
+0x00477c50,BarMesh_Dtor,function,low,"reimplemented (src/game/gfx/barmesh); thiscall: the bar mesh's destructor (flag bit cleared, animator disposed of, then the GUI dialog base's)"
+0x00477c30,BarMesh_ScalarDtor,function,low,"reimplemented (src/game/gfx/barmesh); thiscall (flags), pops 4: BarMesh_Dtor, freed for flags bit 0"
+0x00478390,MeshOverlay_Dtor,function,low,"reimplemented (src/game/gfx/barmesh); thiscall: the sibling mesh overlay's (0x6feeb8) destructor, as BarMesh_Dtor"
+0x00478370,MeshOverlay_ScalarDtor,function,low,"reimplemented (src/game/gfx/barmesh); thiscall (flags), pops 4: its scalar deleting destructor"
 0x00476e80,Overlay_ShowFrame,function,high,"reimplemented (src/game/gfx/overlay); shows node base + frame of the holder model list; old node 0x8010 set, new cleared"
+0x00476b70,Overlay_Dtor,function,low,"reimplemented (src/game/gfx/overlay); thiscall: the overlay base's destructor (holder disposed of or destroyed, then the GUI dialog base's)"
+0x00476b50,Overlay_ScalarDtor,function,low,"reimplemented (src/game/gfx/overlay); thiscall (flags), pops 4: Overlay_Dtor, freed for flags bit 0"
+0x00477290,Overlay_Dtor_477290,function,low,"reimplemented (src/game/gfx/overlay); thiscall: the 0x6fee38 overlay's destructor, as Overlay_Dtor"
+0x00477270,Overlay_ScalarDtor_477270,function,low,"reimplemented (src/game/gfx/overlay); thiscall (flags), pops 4: its scalar deleting destructor"
+0x004775c0,Overlay_Dtor_4775c0,function,low,"reimplemented (src/game/gfx/overlay); thiscall: the 0x6fee60 overlay's destructor, as Overlay_Dtor"
+0x004775a0,Overlay_ScalarDtor_4775a0,function,low,"reimplemented (src/game/gfx/overlay); thiscall (flags), pops 4: its scalar deleting destructor"
 0x0047e2f0,ScreenSurfaces_Ctor,function,high,reimplemented (src/game/gfx/screensurfaces); the screen surfaces source: both Surfaces cleared and their infos constructed
 0x0047e390,SurfaceSource_Dtor,function,high,reimplemented (src/game/gfx/screensurfaces); the abstract surface source's destructor (vtable 0x6fef90 back)
 0x0047e570,ScreenSurfaces_Bounds,function,high,"reimplemented (src/game/gfx/screensurfaces); virtual: out = {0, 0, width - 1, height - 1}"

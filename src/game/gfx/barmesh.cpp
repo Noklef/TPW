@@ -3,7 +3,11 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../core/gameheap.h"
+#include "../core/misc.h"
 #include "../math/x87.h"
+#include "../model/holder.h"
+#include "../ui/guidialog.h"
 
 namespace {
 
@@ -18,6 +22,21 @@ u32 bitsOf(float f) {
 constexpr u32 kHundred = 0x42c80000;  // 100.0f
 constexpr u32 kOne = 0x3f800000;
 constexpr u32 kHalf = 0x3f000000;
+
+void Mesh_Dtor(u8 *mesh, u32 vtable) {
+    at<u32>(mesh, 0) = vtable;
+    if (at<u32>(mesh, 4)) {
+        Dword_ClearBit0(&at<u32>(mesh, 0xbc));
+        Animator_Dispose(mesh + 0x6c);
+    }
+    GuiDialog_Dtor(mesh);
+}
+
+u8 *Mesh_ScalarDtor(u8 *mesh, u32 vtable, u32 flags) {
+    Mesh_Dtor(mesh, vtable);
+    if (flags & 1) GameHeap_Free(mesh);
+    return mesh;
+}
 
 }  // namespace
 
@@ -74,4 +93,12 @@ void __fastcall BarMesh_SetTopTexCoords(const u8 *bar) {
     at<u32>(t, 0x24) = kHalf;  // 5
     at<u32>(t, 0x34) = v;
 }
+
+void __fastcall BarMesh_Dtor(u8 *bar) { Mesh_Dtor(bar, 0x006fee88); }
+
+u8 *__fastcall BarMesh_ScalarDtor(u8 *bar, void *, u32 flags) { return Mesh_ScalarDtor(bar, 0x006fee88, flags); }
+
+void __fastcall MeshOverlay_Dtor(u8 *mesh) { Mesh_Dtor(mesh, 0x006feeb8); }
+
+u8 *__fastcall MeshOverlay_ScalarDtor(u8 *mesh, void *, u32 flags) { return Mesh_ScalarDtor(mesh, 0x006feeb8, flags); }
 }
