@@ -209,6 +209,11 @@ u8 *__fastcall Class702bc8_DeletingDtor(u8 *object, void *, u32 flags);
 // 0x5dfc30 / 0x5dfc10: vtable pointer 0x702ca8; the member at +0xc is told (slot 0x34); the WString at +0x48 and the String at +0x28 destroyed.
 void __fastcall Class702ca8_Dtor(u8 *object);
 u8 *__fastcall Class702ca8_DeletingDtor(u8 *object, void *, u32 flags);
+// 0x5d8690 / 0x5d85b0: vtable pointer 0x702a60; the list at +0xc; then the list at +8 the same way, but its items are records told to the object
+// [0xf83774] points to (slot 0x24), their Strings at +0x18 and +4 destroyed and the records freed; then the instance types and the loaded terrain
+// freed (InstanceTypes_FreeAll, Terrain_FreeLoaded) and the 0x7029d0 base released (Class7029d0_Release).
+void __fastcall Class702a60_Dtor(u8 *object);
+u8 *__fastcall Class702a60_DeletingDtor(u8 *object, void *, u32 flags);
 
 // 0x5c9040 (thiscall): Init_5d36c0, vtable 0x70295c and the four dwords from +8 zeroed. Returns the object.
 u8 *__fastcall Class70295c_Ctor(u8 *object);

@@ -1,7 +1,7 @@
 # The list<string> and list<dword> members of src/game/core/stdlist against the originals: lists of 0 to 3 nodes around a sentinel, strings of the std::string bench
 # (null, shared, frozen, short and long), the new nodes from the heap region. A record's destructor (0x5caf20): three such strings and a list of
 # counted-buffer nodes (as Pair's). Swap (0x5d03b0): two lists' head and size exchanged. Chars (0x4a8ad0): a list at +0x10 of the owner, given characters (none to 0x7e, at any address: its low byte
-# becomes the allocator byte) made into a string and pushed.
+# becomes the allocator byte) made into a string and pushed. Chars34 (0x5ca220): the same for a list at +0x30.
 # usage: stdlist.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import sys
@@ -14,7 +14,7 @@ from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 # name: (address, convention, returns, size)
 CALLS = {'Clear': (0x5cde80, 't', 'v', 0x80), 'Push': (0x5cdf00, 't', 'v', 0x70), 'Insert': (0x5d0330, 't', 'v', 0x80), 'Dword': (0x618160, 't', 'v', 0x50),
          'Pair': (0x5af0e0, 't', 'v', 0xf4), 'Record': (0x5caf20, 't', 'v', 0x110),
-         'Chars': (0x4a8ad0, 't', 'v', 0xfc), 'Swap': (0x5d03b0, 't', 'v', 0x1f)}
+         'Chars': (0x4a8ad0, 't', 'v', 0xfc), 'Swap': (0x5d03b0, 't', 'v', 0x1f), 'Chars34': (0x5ca220, 't', 'v', 0xfc)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()] + [(0x45b340, 0x45b9a0), (0x67acb0, 0x67acb1), (0x4f54e0, 0x4f5560), (0x47db20, 0x47db80),
                                                                 (0x5cdf70, 0x5cdfdd), (0x4a9420, 0x4a953c)])
 NODES, LIST, X = RAM + 0x3000, RAM, RAM + 0x2000
@@ -81,16 +81,16 @@ def case(r):
         if name != 'Dword':
             ptr, ln, res = stdstring.string(r, blocks, i)
             put(nodes, size * i + 8, '4I', r.getrandbits(32), ptr, ln, res)
-    obj = bytearray(r.bytes(0x20))
-    put(obj, 0x14 if name == 'Chars' else 4, 'II', at[0], n)
+    obj = bytearray(r.bytes(0x40))
+    put(obj, {'Chars': 0x14, 'Chars34': 0x34}.get(name, 4), 'II', at[0], n)
     regions = {LIST: obj, NODES: nodes, stdstring.BLOCKS: blocks, HEAP: heap()}
     if name == 'Clear':
         return Call(address, [LIST], regions, conv=conv, ret=ret)
     if name == 'Dword':
         regions[X] = r.bytes(0x10)
         return Call(address, [LIST, X], regions, conv=conv, ret=ret)
-    if name == 'Chars':
-        k = r.choice([0, 1, 2, r.randrange(0x20), r.randrange(0x7f)])
+    if name in ('Chars', 'Chars34'):
+        k =r.choice([0, 1, 2, r.randrange(0x20), r.randrange(0x7f)])
         off = r.randrange(0x40)
         text = bytearray(r.bytes(0xd0))
         text[off:off + k] = bytes(r.randrange(1, 0x100) for _ in range(k))

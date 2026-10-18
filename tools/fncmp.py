@@ -462,6 +462,16 @@ def _log_args(e, k, raw):
     return args
 
 
+def tail_hash(args):
+    """A log entry's dword 10: 0 for seven arguments or fewer, else a hash of those past the seventh (driver.cpp record_call)."""
+    if len(args) <= 7:
+        return 0
+    h = 0x811c9dc5
+    for a in args[7:]:
+        h = ((h ^ a) * 0x01000193) & 0xffffffff
+    return h
+
+
 def _recorder(k, n, com=False):
     def hook(e):
         sp = e.r['ESP'] + (4 if e.tail else 0)
@@ -472,7 +482,7 @@ def _recorder(k, n, com=False):
         count = e.u32(LOG)
         if count < LOG_ENTRIES:
             entry = LOG + 4 + 4 * LOG_ENTRY * count
-            e.write(entry, struct.pack('<%dI' % LOG_ENTRY, kk, n, this, *(args + [0] * 7)[:7], 0, 0))
+            e.write(entry, struct.pack('<%dI' % LOG_ENTRY, kk, n, this, *(args + [0] * 7)[:7], tail_hash(args), 0))
             e.write(LOG, struct.pack('<I', count + 1))
         flag, value = struct.unpack('<2I', e.read(LOG + LOG_RETURNS + 8 * k, 8))
         e.r['EAX'] = raw[value] if flag == 2 and value < n else value if flag else vhash(kk, n, this, args)

@@ -67,4 +67,23 @@ u32 __fastcall DrawBuffer_IndexLimit(const u8 *buffer);
 // 0x3c4 and 0 for anything else. Returns the batch.
 u8 *__fastcall DrawBatch_Open(u8 *object, void *, u32 mode, u32 a, u32 kind, u32 b, u32 c);
 
+// 0x565960 (thiscall on the object DrawBatch_Open keeps its batch in (+0x20; vertex size +0x1c, vertex end +0x28, index end +0x2c);
+// vertex count pointer, indices, count, mask; pops 16; name unconfirmed): 0 when the batch's vertices (+0x28, its count +0x20 plus *the
+// vertex count, of the object's size) or indices (+0x2c, its count +0x24 plus count) pass the ends (unsigned). The clip codes of the
+// vertices from the batch's +0x28 (*the vertex count of them, stride 0x20; ClipCodes_Compute, the caller's ECX [0x879a20]) into a 0x400-byte
+// local (an index past it reads the original's stack); 0 when all share a code. Then the triangles of the indices (count read 3 at a time)
+// written from the batch's +0x2c on: one whose codes share a bit outside the mask is skipped; the list stops once the write position passes
+// the index end - 0x18 or the vertices (32 bytes each, *the vertex count re-read) the vertex end - 0x140. A triangle with a code outside the
+// mask is clipped into a fan (ClipPoly_TriangleFan with those codes, stride 0x20; it may add vertices). Returns the indices written.
+s32 __fastcall DrawBatch_AddClippedTriangles(u8 *object, void *, u32 *vertexCount, const u16 *indices, s32 count, u32 mask);
+
+// 0x565bb0 (thiscall on the same object; vertices, count, stride, codes, flags; pops 20; name unconfirmed): nothing unless there is room for
+// 10 more vertices (of the object's size) and 0x30 bytes of indices. codes is {and, or} of the vertices' clip codes, or 0 to have them
+// computed (ClipCodes_Compute, the caller's ECX [0x879a20]; into an 8-byte local, sic: more vertices run over the original's return
+// address). An and with a bit: nothing. With an or the polygon is clipped into the batch's next vertices (ClipPoly_Vertices with the
+// vertices as its second buffer; nothing more under 3), else copied there. The batch's vertex count rises by the count and its index count
+// by 3 (count - 2); then for 3-8 vertices the fan's triangles from its index end, the last first: (first, first + k, first + k + 1), with
+// flag 2 (first, first + k + 1, first + k). Returns 1.
+u32 __fastcall DrawBatch_AddPolygon(u8 *object, void *, u8 *vertices, u32 count, u32 stride, const u8 *codes, u32 flags);
+
 }

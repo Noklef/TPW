@@ -254,7 +254,8 @@ const WrapSourcesEnv kWrapSourcesEnv = {&heap_alloc, &heap_free, reinterpret_cas
                                         reinterpret_cast<ZlibCodec *>((uintptr_t)0x00fa75fc)};
 
 // The recorders (tools/fncmp.py recorder(k, n)): thunks at kStubs + 0x1000 + 0x400 * n + 0x20 * k, thiscall with n stack arguments (popped by the thunk), that
-// log (k, n, this, the arguments) at kLog and return a hash of them, ECX left as this. The log is a count, then 12 dwords an entry; room for 80.
+// log (k, n, this, the arguments) at kLog and return a hash of them, ECX left as this. The log is a count, then 12 dwords an entry; room for 80. An
+// entry holds the first seven arguments and, for more, a hash of the rest.
 const u32 kLog = kStubs + 0x100000;  // (the case maps it)
 constexpr u32 recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x400 * n + 0x20 * k; }
 
@@ -328,7 +329,13 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
         entry[1] = n;
         entry[2] = self;
         for (u32 i = 0; i < 7; ++i) entry[3 + i] = i < n ? args[i] : 0;
-        entry[10] = entry[11] = 0;
+        entry[10] = 0;   // (past seven arguments, a hash of the rest: tools/fncmp.py tail_hash())
+        if (n > 7) {
+            u32 t = 0x811c9dc5u;
+            for (u32 i = 7; i < n; ++i) t = (t ^ args[i]) * 0x01000193u;
+            entry[10] = t;
+        }
+        entry[11] = 0;
         ++log[0];
     }
     u32 h = self * 0x9e3779b1u + (k + 1) * 0x10001u + n;

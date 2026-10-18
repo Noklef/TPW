@@ -113,6 +113,31 @@ void __fastcall Texture_SetKeep(u8 *texture) { at<u32>(texture, 8) |= 0x4000; }
 
 void __fastcall Texture_ClearKeep(u8 *texture) { at<u32>(texture, 8) &= ~0x4000u; }
 
+void __fastcall Texture_SetSize(u8 *texture, void *, u32 width, u32 height) {
+    const u16 w = (u16)width, h = (u16)height;
+    at<u16>(texture, 0x14) = w;
+    const u32 flags = at<u32>(texture, 8) & ~7u;
+    at<u32>(texture, 8) = flags;
+    at<u16>(texture, 0x10) = w;
+    at<u16>(texture, 0x16) = h;
+    at<u16>(texture, 0x12) = h;
+    const s32 side = (s16)w > (s16)h ? (s16)w : (s16)h;
+    at<u32>(texture, 8) = flags;   // (and ~3 again)
+    u32 level;
+    if (side > 0x80)
+        level = 0;
+    else if (side > 0x40)
+        level = 1;
+    else if (side > 0x20)
+        level = 2;
+    else if (side > 0x10)
+        level = 3;
+    else
+        level = side <= 8 ? 5 : 4;
+    at<u32>(texture, 8) = level | flags;
+    TexCacheItem_SetKey(texture);   // (inlined, with 0x702530's copies of its constants)
+}
+
 u32 __fastcall Texture_UsesDriverFilter(const u8 *texture) {
     if ((at<u32>(texture, 8) & 0x30000) == 0)
         return 0;

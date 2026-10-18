@@ -1,5 +1,5 @@
 # The engine textures' small methods (src/game/gfx/texture: 0x590a00, 0x590c40, 0x590cb0, 0x590cf0,
-# 0x590f80-0x590fb0, 0x590d40, 0x590da0)
+# 0x590f80-0x590fb0, 0x590d40, 0x590da0, 0x590eb0)
 # against the originals: sizes around the powers of two (zero and negative too), flags with and
 # without 0x30, 0x300, 0x30000 and 0x4000000, driver kinds 1 and others; the constructor most
 # derived or not. Lock / LockFlipped: the pixels or a locked object (a recorder vtable, its stack record logged as a
@@ -11,9 +11,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import LOG, Bench, Call, RAM, blob, log_region, put, vtable  # noqa: E402
 
-B = Bench([(0x590a00, 0x590a70), (0x590c40, 0x590ca8), (0x590cb0, 0x590d3e), (0x590f80, 0x590fcb), (0x590d40, 0x590eae)])
+B = Bench([(0x590a00, 0x590a70), (0x590c40, 0x590ca8), (0x590cb0, 0x590d3e), (0x590f80, 0x590fcb), (0x590d40, 0x590f7e), (0x67a830, 0x67a860)])
 CALLS = {'Ctor': 0x590a00, 'FormatBits': 0x590c40, 'WrapMask': 0x590cb0, 'Level': 0x590cf0, 'ClearCacheFlags': 0x590f80, 'SetKeep': 0x590f90,
-         'ClearKeep': 0x590fa0, 'UsesDriverFilter': 0x590fb0, 'Lock': 0x590d40, 'LockFlipped': 0x590da0}
+         'ClearKeep': 0x590fa0, 'UsesDriverFilter': 0x590fb0, 'Lock': 0x590d40, 'LockFlipped': 0x590da0, 'SetSize': 0x590eb0}
 RETURNS = ('Ctor', 'FormatBits', 'Level', 'UsesDriverFilter', 'Lock', 'LockFlipped')
 PIXELS, OBJ = RAM + 0x1000, RAM + 0x800
 
@@ -59,6 +59,11 @@ def case(r):
     regions = {RAM: texture, 0x8bd520: r.bytes(4) + bytes([r.choice([0, 1, 4, 0xff])]) + r.bytes(3)}
     if r.random() < 0.3:
         regions[0x8bd520] = r.bytes(4) + bytes([1, 0, 0, 0])
+    if op == 'SetSize':   # (any high halves; the float +0x30 about 0..1.5 mostly, flags 0x4000 and 0x80000 often)
+        if r.random() < 0.8:
+            put(texture, 0x30, 'f', r.choice([r.uniform(0, 1.5), 0.0, 1.5, -2.0]))
+        put(texture, 8, 'I', r.getrandbits(32) & ~0x84000 | r.choice([0, 0x4000]) | r.choice([0, 0x80000]))
+        return Call(CALLS[op], [RAM, size(r) | r.getrandbits(16) << 16, size(r) | r.getrandbits(16) << 16], regions, conv='t', ret='v')
     args = [RAM, r.choice([0, 1, r.getrandbits(32)])] if op == 'Ctor' else [RAM]
     return Call(CALLS[op], args, regions, conv='t', ret='a' if op in RETURNS else 'v')
 

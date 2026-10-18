@@ -8,13 +8,41 @@
 #include <initializer_list>
 
 #include "../core/gameheap.h"
+#include "../core/globals.h"
 #include "../math/x87.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
 const u8 *Next(const u8 *item) { return at<const u8 *>(item, 4); }
+
+// Through the item's virtual base (the offset at +4 of the table its +0 points to): the base's byte at the frame slot (0x879d48) taken
+// off its +0x10 and cleared, its s32 +0x14 halved (an arithmetic shift).
+void DecaySlot(u8 *item) {
+    u8 *const base = item + at<s32>(at<u8 *>(item, 0), 4);
+    at<u32>(base, 0x10) -= at<u8>(base, global<u32>(0x00879d48));
+    at<u8>(base, global<u32>(0x00879d48)) = 0;
+    at<s32>(base, 0x14) >>= 1;
+}
+
+// TexCache_ReleaseItems' reset: flags 0x7000 and 0x30 cleared and bits 6 and 7 copied to 4 and 5, the sizes (+0x10, +0x12) rounded
+// up by the cache's mask (+0x18e4) to +0x14 / +0x16, the key set; with clear, the virtual base's first six dwords zeroed.
+void ResetItem(const u8 *cache, u8 *item, bool clear) {
+    const u32 masked = at<u32>(item, 8) & ~0x7030u;
+    at<u32>(item, 8) = ((u32)((s32)masked >> 2) & 0x30) | masked;
+    const u32 mask = at<u32>(cache, 0x18e4);
+    at<u16>(item, 0x14) = (u16)((at<u16>(item, 0x10) + mask) & ~mask);
+    at<u16>(item, 0x16) = (u16)((at<u16>(item, 0x12) + mask) & ~mask);
+    TexCacheItem_SetKey(item);   // (inlined in the second loop, with 0x70232c's copies of its constants)
+    if (clear) {
+        u8 *const base = item + at<s32>(at<u8 *>(item, 0), 4);
+        for (u32 offset = 0; offset < 0x18; offset += 4)
+            at<u32>(base, offset) = 0;
+    }
+}
 
 // Puts the item in the output and adds its area.
 void Put(u32 *&out, u32 &area, const u8 *item) {
@@ -256,6 +284,142 @@ void __fastcall TexCache_Evict(u8 *cache) {
     }
     if (returnClobbered)   // the original's RET goes to the entry pointer written over its return address (sic)
         reinterpret_cast<void(__cdecl *)()>((uintptr_t)entries[0x10])();
+}
+
+void __fastcall TexCache_RequeueItems(u8 *, void *, u8 **list, u8 *item) {
+    while (item) {
+        Texture_ClearCacheFlags(item);
+        at<u32>(item, 0x1c) = 0;
+        const u32 flags = at<u32>(item, 8);
+        if (flags & 0x40000000) {
+            at<u32>(item, 8) = flags | 0x2000;
+            u8 *prev = nullptr;
+            u8 *cur = *list;
+            if (cur) {
+                const s32 key = at<s32>(item, 0x38);
+                while (at<s32>(cur, 0x38) > key) {
+                    prev = cur;
+                    cur = at<u8 *>(cur, 4);
+                    if (!cur)
+                        break;
+                }
+            }
+            u8 *const next = at<u8 *>(item, 4);
+            if (cur) {
+                if (!prev) {
+                    at<u8 *>(item, 4) = cur;
+                    *list = item;
+                } else {
+                    at<u8 *>(prev, 4) = item;
+                    at<u8 *>(item, 4) = cur;
+                }
+            } else {
+                at<u8 *>(item, 4) = nullptr;
+                if (prev)
+                    at<u8 *>(prev, 4) = item;
+                else
+                    *list = item;
+            }
+            item = next;
+            continue;
+        }
+        const u32 kept = flags & 0xffff0fcf;
+        at<u32>(item, 8) = kept;
+        const u16 w = (u16)((at<u16>(item, 0x10) + 7) & ~7);
+        const u16 h = (u16)((at<u16>(item, 0x12) + 7) & ~7);
+        at<u32>(item, 8) = kept | ((u32)((s32)kept >> 2) & 0x30);   // (bits 6 and 7 copied down to 4 and 5)
+        at<u16>(item, 0x14) = w;
+        at<u16>(item, 0x16) = h;
+        TexCacheItem_SetKey(item);   // (inlined; its constants are 0x702460's copies)
+        DecaySlot(item);
+        item = at<u8 *>(item, 4);
+    }
+}
+
+void __fastcall TexCache_ReleaseItems(u8 *cache, void *, u32 mode) {
+    for (u32 size = 0; size < 6; size++) {
+        u8 **const entries = reinterpret_cast<u8 **>(cache + 0x400 * size);
+        const s32 *const count = &at<s32>(cache, 0x1800 + 4 * size);
+        for (s32 i = 0; i < *count; i++) {
+            u8 *item = at<u8 *>(entries[i], 4);
+            at<u8 *>(entries[i], 4) = nullptr;
+            if (!(mode & 2)) {
+                for (; item; item = at<u8 *>(item, 4))
+                    ResetItem(cache, item, (mode & 1) != 0);
+                continue;
+            }
+            TexCacheItem_SetFlags(at<u8 *>(entries[i], 0), nullptr, 0);
+            while (item) {
+                if (at<u32>(item, 8) & 0x200000) {
+                    ResetItem(cache, item, (mode & 1) != 0);
+                    item = at<u8 *>(item, 4);
+                } else {
+                    u8 *const next = at<u8 *>(item, 4);
+                    at<u8 *>(item, 4) = at<u8 *>(entries[i], 4);
+                    at<u8 *>(entries[i], 4) = item;
+                    item = next;
+                }
+            }
+        }
+    }
+}
+
+void __fastcall TexCache_ShrinkItems(u8 *cache, void *, u8 **items, s32 count, s32 tier, s32 limit) {
+    const s32 *const tiers = reinterpret_cast<const s32 *>((uintptr_t)0x00702360);
+    const s32 smallest = global<s32>(0x0070235c);
+    for (s32 i = 0; i < count; i = (s32)((u32)i + 1)) {
+        u8 *const item = items[i];
+        if ((s32)(at<u32>(item, 8) & 0xc0) < tiers[tier * 2])
+            continue;
+        const s32 band = tiers[tier * 2 + 1];
+        const float lod = at<float>(item, 0x30);
+        if (!(lod > at<float>(cache, 0x1904 + band * 4)) || lod > at<float>(cache, 0x1908 + band * 4))
+            continue;
+        const bool filter = Texture_UsesDriverFilter(item) != 0;
+        if (!(at<u8>(item, 8) & 0x30) || (filter && !(at<s16>(item, 0x14) > smallest)))
+            continue;
+        const s32 before = (s32)at<s16>(item, 0x16) * at<s16>(item, 0x14);
+        if (at<u32>(item, 8) & 0x80000)
+            continue;
+        if (Texture_UsesDriverFilter(item) && at<s16>(item, 0x14) == smallest)
+            continue;
+        const s32 width = ((s32)at<s16>(item, 0x14) + 1) >> 1;
+        const s32 height = ((s32)at<s16>(item, 0x16) + 1) >> 1;
+        at<u32>(item, 8) -= 0x10;
+        at<u16>(item, 0x14) = (u16)width;
+        at<u16>(item, 0x16) = (u16)height;
+        TexCacheItem_SetKey(item);   // (inlined; its constants are 0x7023f0's copies)
+        const s32 after = (s32)at<s16>(items[i], 0x16) * at<s16>(items[i], 0x14);
+        at<u32>(cache, 0x18dc) += (u32)(after - before);
+        if (at<s32>(cache, 0x18dc) < limit)
+            i = count;
+    }
+}
+
+void __fastcall TexCache_BeginFrame(u8 *cache) {
+    if (global<u32>(0x008bd508) & 0xc0000000)
+        at<u32>(cache, 0x18cc) |= 1;
+    else
+        at<u32>(cache, 0x18cc) &= ~1u;
+    Table879d08_FillFrom();
+    for (u32 size = 0; size < 6; ++size) {
+        for (s32 i = 0; i < at<s32>(cache, 0x1800 + 4 * size); ++i) {
+            u8 *const entry = at<u8 *>(cache, 0x400 * size + 4 * i);
+            for (u8 *item = at<u8 *>(entry, 4); item; item = at<u8 *>(item, 4)) {
+                at<u32>(item, 8) &= ~0x2000u;
+                DecaySlot(item);
+                at<u32>(item, 8) &= ~0x40000000u;
+                at<u32>(item, 0x30) = 0x3f800000;   // 1.0f
+                if (at<u32>(cache, 0x18cc) & 1)
+                    Texture_ClearKeep(item);
+            }
+            if (at<u32>(cache, 0x18cc) & 1)
+                TexCacheItem_ClearFlag1(at<u8 *>(entry, 0));
+        }
+    }
+    for (u8 *item = at<u8 *>(cache, 0x18c4); item; item = at<u8 *>(item, 4))
+        at<u32>(item, 8) &= ~0x2000u;
+    at<u8 *>(cache, 0x18c4) = nullptr;
 }
 
 u32 __fastcall TexCache_AddSurfaces(u8 *cache, void *, s32 side, s32 *made, u32 format, s32 levels) {

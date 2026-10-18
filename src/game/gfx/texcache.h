@@ -80,6 +80,39 @@ void __fastcall TexCacheItem_SetKey(u8 *item);
 // the cache's list at +0x18c4; then the entry's +0 has its flags set to 0 (TexCacheItem_SetFlags).
 void __fastcall TexCache_Evict(u8 *cache);
 
+// 0x58d8e0 (thiscall on the cache; name unconfirmed; called at 0x576af6): the cache's bit 0 (+0x18cc) set when [0x8bd508] has a bit of
+// 0xc0000000, else cleared; Table879d08_FillFrom (the slot index 0-15 at 0x879d48). Then for each of the six entry sizes, the entries at
+// +0x400 * size (the signed count at +0x1800 + 4 * size, read again each time): each item of the entry's list (+4, next +4) has its
+// flag 0x2000 (+8) cleared; through its virtual base (the offset at +4 of the table its +0 points to) the base's byte at the slot index is
+// taken off its +0x10 and cleared, and its s32 +0x14 halved (an arithmetic shift); then flag 0x40000000 cleared, the float +0x30 = 1 and,
+// with the cache's bit 0, Texture_ClearKeep. With the bit 0 (tested again), the entry's +0 gets TexCacheItem_ClearFlag1. Last the list at
+// +0x18c4 has every flag 0x2000 cleared, and +0x18c4 is cleared.
+void __fastcall TexCache_BeginFrame(u8 *cache);
+
+// 0x58e8d0 (thiscall on the cache, not used; list head pointer, item, pops 8; name unconfirmed; called at 0x58f416 and 0x58f705): each item of
+// the chain from item (next +4) has its cache flags cleared (Texture_ClearCacheFlags) and +0x1c = 0. One with flag 0x40000000 gets flag
+// 0x2000 and goes into the list in front of the first whose key (s32 +0x38) is not above its own (the end otherwise). Any other has flags
+// 0xf030 cleared and bits 6 and 7 copied to 4 and 5, its size (+0x10, +0x12) rounded up to 8 at +0x14 / +0x16 (16-bit), its key set as
+// TexCacheItem_SetKey does (inlined) and its virtual base's frame slot decayed as TexCache_BeginFrame does.
+void __fastcall TexCache_RequeueItems(u8 *cache, void *, u8 **list, u8 *item);
+
+// 0x58dd60 (thiscall on the cache; mode, pops 4; name unconfirmed; called from a dozen places, 0x46b6f0 the first): for each of the six
+// entry sizes, each entry (the signed count at +0x1800 + 4 * size, re-read per entry) has its item list (+4) taken off. Mode bit 2:
+// the entry's +0 gets TexCacheItem_SetFlags(0), then items with flag 0x200000 are reset and dropped, the others pushed back on the
+// entry's list (so reversed). Without it every item is reset and dropped. A reset clears flags 0x7000 and 0x30, copies bits 6 and 7
+// to 4 and 5, rounds the sizes +0x10 / +0x12 up by the cache's mask (+0x18e4) into +0x14 / +0x16 and sets the key as
+// TexCacheItem_SetKey does (inlined without bit 2); mode bit 1 also zeroes the first six dwords of its virtual base.
+void __fastcall TexCache_ReleaseItems(u8 *cache, void *, u32 mode);
+
+// 0x58e1d0 (thiscall on the cache; items, count, tier, limit; pops 0x10; name unconfirmed; called at 0x58e529 and 0x58e5a8): the items
+// halved while the cache's total area (s32 +0x18dc) stays at or above limit. The tier picks a pair at 0x702360: the least flags & 0xc0
+// (signed) and a band, whose floats at +0x1904 and +0x1908 + 4 * band bound the item's float +0x30 (above the first, not above the second).
+// An item also needs flags 0x30 (with the driver filter, Texture_UsesDriverFilter, a width (s16 +0x14) above the s32 at 0x70235c, 8)
+// and not flag 0x80000, nor the driver filter and that width exactly. Then its flags lose 0x10, its s16 sizes +0x14 / +0x16 are
+// (side + 1) >> 1 (arithmetic), its key is set as TexCacheItem_SetKey does (inlined) and +0x18dc takes the area's change (s16 by
+// s16); below limit the loop ends.
+void __fastcall TexCache_ShrinkItems(u8 *cache, void *, u8 **items, s32 count, s32 tier, s32 limit);
+
 // 0x58d1d0 (thiscall on the cache; side, made, format, levels; pops 0x10; name unconfirmed): new surfaces of the side while its budget
 // (+0x1860 + 4 * index, index SurfacePool_SideIndex) covers their area: the format size (0x7022d8 indexed by [0x8bd554]) * side *
 // side (32-bit), * 4 / 3 (signed) when levels > 1, kept at 0x8c4898. Each turn, unless one failed or the side has 0x100 entries

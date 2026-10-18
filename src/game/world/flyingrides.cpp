@@ -5,9 +5,11 @@
 #include "objectdefs.h"
 #include "../coaster/registry.h"
 #include "../core/initializers.h"
+#include "../math/x87.h"
 #include "../model/parts.h"
 #include "../model/partstate.h"
 #include "../motion/animator.h"
+#include "../terrain/land.h"
 
 namespace {
 
@@ -19,6 +21,8 @@ u8 *const *table() { return reinterpret_cast<u8 *const *>(0x008791f8); }
 u8 *record(s32 index) { return index > 0 && index < 100 ? table()[index] : nullptr; }
 
 u8 *slot(u8 *rec, u32 i) { return rec + 0x5c + i * 0xe4; }
+
+s32 bound(u32 address) { return *reinterpret_cast<const s32 *>((uintptr_t)address); }
 
 // The ride part step names released: key (base + step) % count + 1 among the flag-0x80 parts.
 void release(u8 *s, s32 step) {
@@ -240,5 +244,32 @@ void __cdecl FlyingRides_ReclaimRides() {
             at<u32>(s, 0xc0) = Ride_Claim(at<u32>(s, 0xc0), at<u32>(def, 0x4bc), 0x101, nullptr, 0, 0, 0, 0);
         }
     }
+}
+
+s32 __cdecl FlyingRides_FloorAt(s32 x, s32 y) {
+    if (x >= (s32)((u32)bound(0x007660b8) + 20000) || y >= (s32)((u32)bound(0x007660c0) + 20000) || x < (s32)((u32)bound(0x007660bc) - 20000) ||
+        y < (s32)((u32)bound(0x007660c4) - 20000))
+        return 100000;
+    for (s32 index = 1; index < 100; index++) {
+        const u8 *const ride = table()[index];
+        if (!ride)
+            continue;
+        const s32 dx = (s32)((u32)x - at<u32>(ride, 0x14)) / 32, dy = (s32)((u32)y - at<u32>(ride, 0x1c)) / 32;
+        const s32 square = (s32)((u32)dx * (u32)dx + (u32)dy * (u32)dy);
+        if ((s32)((u32)(long long)X87_Sqrt(X87Reg((double)square)).v << 5) < 10000)   // (a wrapped square's NaN: __ftol's 0)
+            return 30000;
+    }
+    if (x >= bound(0x007660b8) || y >= bound(0x007660c0) || x < bound(0x007660bc) || y < bound(0x007660c4))
+        return 0;
+    s32 cx = x / 300 / 10, cy = y / 300 / 10;
+    if (cx < 0)
+        cx = 0;
+    if (cy < 0)
+        cy = 0;
+    if (cx >= bound(0x007a0314))
+        cx = bound(0x007a0314) - 1;
+    if (cy >= bound(0x007a0374))
+        cy = bound(0x007a0374) - 1;
+    return (s32)((u32)(long long)Terrain_SurfaceHeight(cx, cy, nullptr) * 300);
 }
 }

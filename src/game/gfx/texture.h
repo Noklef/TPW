@@ -44,6 +44,11 @@ void __fastcall Texture_ClearCacheFlags(u8 *texture);
 void __fastcall Texture_SetKeep(u8 *texture);
 void __fastcall Texture_ClearKeep(u8 *texture);
 
+// 0x590eb0 (thiscall; width, height, pops 8; name unconfirmed): the u16 width at +0x14 and +0x10 and the height at +0x16 and +0x12; the
+// flags' low 3 bits the size class of the greater (s16) side: above 0x80 0, 0x40 1, 0x20 2, 0x10 3, else 4, 5 for 8 or less; then the
+// cache key as TexCacheItem_SetKey (gfx/texcache) sets it (inlined).
+void __fastcall Texture_SetSize(u8 *texture, void *, u32 width, u32 height);
+
 // 0x590fb0 (thiscall): 1 when a flag of 0x30000 is set and the display driver kind (0x8bd524,
 // 1 for Direct3D, 0x44de0b) is 1, else 0.
 u32 __fastcall Texture_UsesDriverFilter(const u8 *texture);

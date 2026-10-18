@@ -651,6 +651,19 @@ u32 __cdecl WNames_Equal(const u8 *a, const u8 *b) {
     return Crt().wcsicmp(at<const u16 *>(a, 8), at<const u16 *>(b, 8)) == 0 ? 1 : 0;
 }
 
+u8 *__fastcall WNamedList_FindAfter(u8 *list, void *, const u8 *key) {
+    u8 *node = at<u8 *>(list, 4);
+    if (!node)
+        return nullptr;
+    for (;;) {
+        u8 *const item = at<u8 *>(node, 0);
+        node = at<u8 *>(node, 4);
+        if (WNames_Equal(key, item) != 0 || !node)
+            break;
+    }
+    return node ? at<u8 *>(node, 0) : nullptr;  // (the item after the match, sic)
+}
+
 u8 *__fastcall Record_CopyWithText(u8 *dest, void *, const u8 *source) {
     for (u32 offset = 0; offset < 0x20; offset += 4)
         at<u32>(dest, offset) = at<u32>(source, offset);
