@@ -100,4 +100,44 @@ u32 __cdecl Ride_PartPlace(const u8 *obj, float *pos, float *dir, s32 key, u32 m
     dir[2] = (float)(dz * 1024.0f);
     return 1;
 }
+
+void __cdecl Ride_PartAxes(s32 index, const u32 *part, float *dir, float *up) {
+    const u8 *const ride = reinterpret_cast<const u8 *const *>(0x007a4610)[index];
+    const u8 *const entry = at<const u8 *>(at<const u8 *>(at<const u8 *>(ride, 8), 0x28), 4) + *part * 0x14;
+    const u8 *const node = at<const u8 *>(entry, 4);
+    if (!node) {
+        dir[1] = 0.0f;
+        dir[0] = 0.0f;
+        dir[2] = 1.0f;
+        if (up) {
+            up[2] = 0.0f;
+            up[0] = 0.0f;
+            up[1] = 1.0f;
+        }
+        return;
+    }
+    if (at<u8>(entry, 0) & 0x10)
+        for (int i = 0; i < 3; i++) dir[i] = -X87_Through(at<float>(node, 0x20 + 4 * i));  // fchs; fstp
+    else
+        for (int i = 0; i < 3; i++) at<u32>(dir, 4 * i) = at<u32>(node, 0x20 + 4 * i);
+    // each component read back from dir (y through a temporary), squared and summed, fsqrt stored as a float, then divided by it
+    float x = dir[0], y = dir[1], z = dir[2];
+    float length = (float)X87_Sqrt(X87Reg(x) * x + X87Reg(y) * y + X87Reg(z) * z);
+    x = dir[0], y = dir[1], z = dir[2];
+    dir[0] = (float)(X87Reg(x) / length);
+    dir[1] = (float)(X87Reg(y) / length);
+    dir[2] = (float)(X87Reg(z) / length);
+    if (!up) return;
+    at<u32>(up, 0) = at<u32>(node, 0x10);
+    at<u32>(up, 4) = at<u32>(node, 0x14);
+    x = up[0], y = up[1], z = at<float>(node, 0x18);
+    const float sum_z = z;
+    length = (float)X87_Sqrt(X87Reg(x) * x + X87Reg(y) * y + X87Reg(sum_z) * sum_z);
+    x = up[0], y = up[1];
+    up[2] = X87_Through(z);  // fstp, before the length is stored
+    z = up[2];
+    up[0] = (float)(X87Reg(x) / length);
+    up[1] = (float)(X87Reg(y) / length);
+    up[2] = (float)(X87Reg(z) / length);
+}
 }

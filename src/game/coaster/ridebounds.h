@@ -22,4 +22,9 @@ u32 __cdecl Ride_Centre(const s32 *handle, float *x, float *y, float *z);
 // +0x28, negated when the entry's flag 0x10 is set, divided by its length (made a float) and times 1024 (no node: 0, 0, 1024).
 // Otherwise pos is the ride's box's centre with its root's y, as Ride_Centre has them (0s for no ride or box) and dir is left. Returns 1.
 u32 __cdecl Ride_PartPlace(const u8 *obj, float *pos, float *dir, s32 key, u32 mask);
+
+// 0x551b30 (name unconfirmed; called by the ride script's scheduler code): for part *part of ride index's model (its node as
+// Ride_PartPlace finds it), dir is the node's +0x20..+0x28 (negated when the entry's flag 0x10 is set) and up, when not null, its
+// +0x10..+0x18 (as they are), each divided by its length made a float; with no node, dir is (0, 0, 1) and up (0, 1, 0).
+void __cdecl Ride_PartAxes(s32 index, const u32 *part, float *dir, float *up);
 }
