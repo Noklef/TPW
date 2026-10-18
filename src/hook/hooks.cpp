@@ -293,6 +293,7 @@
 #include "../game/frontend/helpbg.h"
 #include "../game/frontend/lobbymodel.h"
 #include "../game/frontend/lobbyscene.h"
+#include "../game/frontend/viewcontrols.h"
 #include "../game/online/itemlist.h"
 #include "../game/online/items.h"
 #include "../game/online/onlinelist.h"
@@ -4095,6 +4096,10 @@ const Hook kHooks[] = {
     {"Class702ca8_AcquireModels", 0x005dfca0, (void *)&Class702ca8_AcquireModels, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"Class702cb0_StartPendingPlay", 0x005e1350, (void *)&Class702cb0_StartPendingPlay, {0x56, 0x8b, 0xf1, 0x33, 0xc0}},
     {"Class702af0_Ctor",          0x005d9db0, (void *)&Class702af0_Ctor, {0x6a, 0xff, 0x68, 0xc6, 0x13}},
+    {"ViewCtl_Lower48",           0x005dd310, (void *)&ViewCtl_Lower48, {0xd9, 0x41, 0x48, 0xd8, 0x61}},
+    {"ViewCtl_Raise48",           0x005dd320, (void *)&ViewCtl_Raise48, {0xd9, 0x41, 0x14, 0xd8, 0x41}},
+    {"ViewCtl_Raise50",           0x005dd330, (void *)&ViewCtl_Raise50, {0xd9, 0x41, 0x14, 0xd8, 0x41}},
+    {"ViewCtl_Lower50",           0x005dd340, (void *)&ViewCtl_Lower50, {0xd9, 0x41, 0x50, 0xd8, 0x61}},
     {"RSSE_Init",                 0x00551600, (void *)&RSSE_Init, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"RsseScript_EventName",      0x00468600, (void *)&RsseScript_EventName, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"RSSE_StartTimer",           0x00557160, (void *)&RSSE_StartTimer, {0xb9, 0x70, 0x59, 0x78, 0x00}},

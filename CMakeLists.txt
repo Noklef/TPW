@@ -311,6 +311,7 @@ add_library(tpw_game STATIC
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
     src/game/frontend/lobbyscene.cpp
+    src/game/frontend/viewcontrols.cpp
     src/game/input/mouse.cpp
     src/game/ui/dialog7ca1c8.cpp
     src/game/ui/window.cpp
