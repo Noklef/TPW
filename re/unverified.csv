@@ -32,7 +32,6 @@ address,name,module,reason
 4758f0,SpriteScript_Init,sprite/script,todo
 475a10,SpriteScript_Start,sprite/script,todo: indirect only
 475cf0,SpriteScript_Clone,sprite/script,todo
-4bcec0,Global7cc698_Choose,core/misc,todo
 4d7bb0,World_InitBlock,world/mapcell,todo
 50b350,Thing_GetHandle,world/things,todo: indirect only
 515660,World_Attach,world/things,todo
@@ -58,7 +57,6 @@ address,name,module,reason
 58b370,TexCacheItem_Flag4,gfx/texcache,todo
 58b380,TexCacheItem_SetFlag1,gfx/texcache,todo
 58b390,TexCacheItem_ClearFlag1,gfx/texcache,todo
-5c7490,WString_CtorReturning,core/misc,todo
 5e42d0,PtrList_Append,core/ptrlist,todo: indirect only
 5f5650,Wrap_Owner64_Copy4At34_5f5650,core/thunks,todo
 5f63d0,String_Format,core/string,todo
