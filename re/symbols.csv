@@ -2765,7 +2765,7 @@ address,name,kind,confidence,notes
 0x005e2750,Obj_SetOrKeepC,function,high,reimplemented (src/game/core/misc); +0xc = value and +0x14 = 0 for a non-zero value
 0x00633120,Class703c18_Ctor,function,high,"reimplemented (src/game/core/misc); Class703770_Ctor, vtable 0x703c18 and two zeroed dwords"
 0x005c7490,WString_CtorReturning,function,high,"reimplemented (src/game/core/misc); an empty wide string, returned"
-0x005c5230,DirEntry_IsRealDir,function,high,reimplemented (src/game/core/misc); a directory entry whose name does not start with a full stop
+0x005c5230,DirEntry_IsRealDir,function,high,reimplemented (src/game/files/direntry); a directory entry whose name does not start with a full stop
 0x005c9040,Class70295c_Ctor,function,high,"reimplemented (src/game/core/misc); Init_5d36c0, vtable 0x70295c and four zeroed dwords"
 0x005d03b0,Obj_SwapPair,function,high,reimplemented (src/game/core/misc); the dwords at +4 and +8 swapped with another object's
 0x005dd3d0,Obj_ChooseVector,function,high,reimplemented (src/game/core/misc); the vector at +0x10 taken from one of two others

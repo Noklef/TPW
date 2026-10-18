@@ -198,14 +198,6 @@ u8 *__fastcall WString_CtorReturning(u8 *string) {
     return string;
 }
 
-u32 __cdecl DirEntry_IsRealDir(const u8 *entry) {
-    if (at<u8>(entry, 4) & 0x10) {
-        if (*at<const char *>(entry, 0x20) != '.')
-            return 1;
-    }
-    return 0;
-}
-
 u8 *__fastcall Class70295c_Ctor(u8 *object) {
     Init_5d36c0(object);
     at<u32>(object, 0) = 0x0070295c;
