@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "../core/filetime.h"
+#include "../core/funnytime.h"
 #include "world.h"
 
 namespace {
@@ -76,5 +78,14 @@ u32 __fastcall Money_PayOffLoan(u8 *money, void *, u32 index) {
 }
 
 u32 __fastcall Money_Total(const u8 *money) { return at<u32>(money, 0x124); }
+
+FileTime *__fastcall Money_TimeInRed(const u8 *money, void *, FileTime *out) {
+    if (at<s32>(money, 0x11c) >= 0) {
+        out->low = out->high = 0;
+        return out;
+    }
+    // (the original's debug check that the time entered is not after the world's is left out)
+    return FunnyTime_SpanSince(global<const u8 *>(0x0080239c) + 0x2a0, nullptr, out, at<u32>(money, 0x120));
+}
 
 }  // extern "C"

@@ -1,6 +1,7 @@
 # The money record's changes (src/game/world/money: 0x4d0190, 0x4d01f0, 0x4d0750, 0x4d0850) and its total (0x4d09f0) against the originals: any record bytes, amounts of either
-# sign, the flag set or not, the game's thing found through its handle and the table.
-# usage: money.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Credit,Debit,Take,Repay,Total)
+# sign, the flag set or not, the game's thing found through its handle and the table. The time in the red (0x4d0260): the balance copy
+# either side of 0, the time it went below about the world's ticks; the world's calendar clock's rate.
+# usage: money.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Credit,Debit,Take,Repay,Total,InRed)
 import os
 import struct
 import sys
@@ -8,14 +9,15 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-CALLS = {'Credit': (0x4d0190, 0x60), 'Debit': (0x4d01f0, 0x70), 'Take': (0x4d0750, 0x100), 'Repay': (0x4d0850, 0x150), 'Total': (0x4d09f0, 7)}
-B = Bench([(a, a + n) for (a, n) in CALLS.values()] + [(0x519510, 0x519550), (0x5da3c0, 0x5da3c1)])
-GAME, THING, TIME = RAM + 0x40000, RAM + 0x80000, RAM + 0xc0000
+CALLS = {'Credit': (0x4d0190, 0x60), 'Debit': (0x4d01f0, 0x70), 'Take': (0x4d0750, 0x100), 'Repay': (0x4d0850, 0x150), 'Total': (0x4d09f0, 7), 'InRed': (0x4d0260, 0x68)}
+B = Bench([(a, a + n) for (a, n) in CALLS.values()] + [(0x519510, 0x519550), (0x5da3c0, 0x5da3c1), (0x4f88b0, 0x4f88f6), (0x67c320, 0x67c3ca),
+                                                             (0x67c7f0, 0x67c824)])
+GAME, THING, TIME, WORLD = RAM + 0x40000, RAM + 0x80000, RAM + 0xc0000, RAM + 0x100000   # (WORLD: the time in the red's)
 AMOUNTS = [0, 1, 5, 100, 999999, 1000000, 1000001, 0x7fffffff, -1, -100, -0x80000000, 0x40000000]
 
 
 def case(r):
-    name = r.choice(OPS)
+    name = r.deal(OPS)
     address, _n = CALLS[name]
     money = bytearray(r.bytes(0x200))
     put(money, 0xc, 'i', r.choice([0, 1, 50, 99, 100, 101, -1, 0x7fffffff, r.getrandbits(32) - (1 << 31)]))
@@ -28,6 +30,13 @@ def case(r):
                0x7cf83c: struct.pack('<I', GAME - 0x1da720), GAME: struct.pack('<H', handle), 0x7cfb90: slots,
                0x80239c: struct.pack('<I', TIME - 0x1da70c), TIME: r.bytes(4),
                THING + 0x1fc90: r.bytes(4), THING + 0x1f5a0: r.bytes(4)}
+    if name == 'InRed':
+        ticks = r.choice([0, 4, r.randrange(1 << 20), r.getrandbits(32)])
+        put(money, 0x120, 'I', r.choice([ticks, ticks - 1 & 0xffffffff, ticks + 1 & 0xffffffff, 0, r.getrandbits(32), ticks - r.randrange(1 << 16) & 0xffffffff]))
+        clock = bytearray(r.bytes(0x20))
+        put(clock, 0x1c, 'I', r.choice([15000, 1, 0, r.getrandbits(32)]))
+        regions.update({0x80239c: struct.pack('<I', WORLD), WORLD + 0x2a0: clock, WORLD + 0x1da70c: struct.pack('<I', ticks), RAM + 0x400: r.bytes(8)})
+        return Call(address, [RAM, RAM + 0x400], regions, conv='t', ret='a')
     if name == 'Total':
         return Call(address, [RAM], regions, conv='t', ret='a')
     if name in ('Take', 'Repay'):  # loans: records of 0x20 bytes whose fields +0x18 (amount), +0x24 (rate), +0x28 (taken), +0x2c (months paid) and whose first dword (the term of the previous) matter
