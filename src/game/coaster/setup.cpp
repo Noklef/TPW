@@ -1,7 +1,9 @@
 #include "setup.h"
 
 #include <cstdint>
+#include <initializer_list>
 
+#include "../core/balancefile.h"
 #include "../core/globalmem.h"
 #include "../math/x87.h"
 #include "../model/holder.h"
@@ -230,5 +232,121 @@ void __cdecl CoasterTypes_FreeAll() {
         slot = nullptr;
     }
     global(0x00790fe8) = 0;
+}
+
+u8 *__cdecl CoasterType_Create(u32 holder, u32, u32 id, const u8 *source) {
+    u8 balance[0x3b80];   // (a track type balance file laid out and released again, used for nothing: sic)
+    at<u32>(balance, 0) = 0x006fd8b0;
+    BalanceFile_Init(balance);
+    u8 *const t = static_cast<u8 *>(GlobalMem_Alloc(0x35c, 1));
+    reinterpret_cast<u8 **>(0x00790b08)[global(0x00790fe8)] = t;
+    ++global(0x00790fe8);
+    const u32 one = 0x3f800000, five = 0x40a00000, ten = 0x41200000, half = 0x3f000000, pi = 0x40490fdb;
+    at<u32>(t, 4) = holder;
+    at<u32>(t, 0) = 0;
+    at<u32>(t, 0x40) = 0;
+    at<u32>(t, 8) = 0x3fa00000;   // 1.25
+    at<u32>(t, 0xc) = 0x3fa00000;
+    at<u32>(t, 0x10) = 0x40800000;   // 4
+    at<u32>(t, 0x24) = 0x3fc00000;   // 1.5
+    at<u32>(t, 0x28) = one;
+    at<u32>(t, 0x2c) = one;
+    at<u32>(t, 0x2e8) = 1;
+    at<u32>(t, 0x2ec) = 15000;
+    at<u32>(t, 0xa4) = ten;
+    at<u32>(t, 0x30) = 100;
+    at<u32>(t, 0x34) = 100;
+    at<u32>(t, 0x38) = 0;
+    at<u32>(t, 0x3c) = 0x96;
+    at<u32>(t, 0x70) = one;
+    at<u32>(t, 0x44) = five;
+    at<u32>(t, 0x48) = five;
+    at<u32>(t, 0x4c) = 0x42a00000;   // 80
+    at<u32>(t, 0x50) = 0x43020000;   // 130
+    at<u32>(t, 0x54) = 0x3f4ccccd;   // 0.8
+    at<u32>(t, 0x58) = 0;
+    at<u32>(t, 0x5c) = 0;
+    at<u32>(t, 0x60) = 0;
+    at<u32>(t, 0x64) = 0xbe99999a;   // -0.3
+    at<u32>(t, 0x68) = 0;
+    at<u32>(t, 0x6c) = 0x3e4ccccd;   // 0.2
+    at<u32>(t, 0x320) = 0;
+    at<u32>(t, 0x324) = one;
+    at<u32>(t, 0x328) = 0;
+    at<u32>(t, 0x32c) = half;
+    at<u32>(t, 0x330) = 0x40400000;   // 3
+    at<u32>(t, 0x334) = 0x3dcccccd;   // 0.1
+    at<u32>(t, 0x338) = one;
+    at<u32>(t, 0x33c) = one;
+    at<u32>(t, 0x340) = five;
+    at<u32>(t, 0x344) = one;
+    at<u32>(t, 0x348) = 0x40000000;   // 2
+    at<u32>(t, 0x34c) = half;
+    at<u32>(t, 0x350) = one;
+    at<u32>(t, 0x354) = ten;
+    at<u32>(t, 0x358) = 0x41a00000;   // 20
+    at<u32>(t, 0x9c) = global(0x0074cac8);
+    at<u32>(t, 0xa0) = global(0x0074cacc);
+    for (u32 k = 0; k < 5; ++k) {   // two sets of five {0, 1, 1, 0}
+        for (u32 base : {0x178u, 0x298u}) {
+            u32 *const e = &at<u32>(t, base + 0x10 * k);
+            e[0] = 0;
+            e[1] = one;
+            e[2] = one;
+            e[3] = 0;
+        }
+    }
+    const float root1 = (float)X87_Sqrt(X87Reg(global<double>(0x006fde80)));
+    at<u32>(t, 0xa8) = 4;
+    at<u32>(t, 0x158) = 0xbf7fbe77;
+    at<u32>(t, 0x15c) = 1;
+    at<u32>(t, 0x160) = 1;
+    at<u32>(t, 0x100) = five;
+    at<u32>(t, 0x174) = 1;
+    at<u32>(t, 0x110) = ten;
+    at<u32>(t, 0x114) = ten;
+    at<u32>(t, 0x11c) = 0x401c61aa;
+    at<u32>(t, 0x120) = pi;
+    at<u32>(t, 0x124) = 0x3ff5be0c;
+    at<u32>(t, 0x128) = pi;
+    at<u32>(t, 0x12c) = 0x3fb2b8c3;
+    at<u32>(t, 0x130) = pi;
+    at<u32>(t, 0x134) = 0x3f5f66f3;
+    at<u32>(t, 0x138) = pi;
+    at<u32>(t, 0x144) = 9;
+    at<u32>(t, 0x148) = 0x40;
+    at<u32>(t, 0x13c) = 0x3f490fdb;   // pi / 4
+    at<u32>(t, 0x140) = 0;
+    at<u32>(t, 0x154) = 0;
+    at<float>(t, 0x14c) = root1;
+    at<float>(t, 0x150) = (float)X87_Sqrt(X87Reg(global<double>(0x006fde88)));
+    at<u32>(t, 0x230) = ten;
+    at<u32>(t, 0x234) = ten;
+    at<float>(t, 0x26c) = root1;
+    at<u32>(t, 0x264) = 9;
+    at<u32>(t, 0x23c) = 0x40060a92;
+    at<u32>(t, 0x244) = 0x40060a92;
+    at<u32>(t, 0x240) = 0x40425c20;
+    at<u32>(t, 0x248) = 0x40425c20;
+    at<u32>(t, 0x250) = 0x40425c20;
+    at<u32>(t, 0x258) = 0x40425c20;
+    at<u32>(t, 0x1c8) = 0x4004;
+    at<u32>(t, 0x278) = 0xbf4ccccd;   // -0.8
+    at<u32>(t, 0x27c) = 1;
+    at<u32>(t, 0x280) = 1;
+    at<u32>(t, 0x220) = five;
+    at<u32>(t, 0x294) = 1;
+    at<u32>(t, 0x24c) = 0;
+    at<u32>(t, 0x254) = 0;
+    at<u32>(t, 0x268) = 0x51;
+    at<u32>(t, 0x25c) = 0x3fc90fdb;   // pi / 2
+    at<u32>(t, 0x260) = 0x3fc90fdb;
+    at<u32>(t, 0x274) = 0x41c80000;   // 25
+    at<float>(t, 0x270) = (float)X87_Sqrt(X87Reg(global<double>(0x006fde90)));
+    CoasterType_Setup(t, id, source);   // (its result unused: sic)
+    at<u32>(at<u8 *>(t, 0x1c), 0xc) = 0x0074cb98;   // "Data\Generic\Dynamic\Textures"
+    at<u32>(balance, 0) = 0x006fd8b0;
+    BalanceFile_Release(balance);
+    return t;
 }
 }

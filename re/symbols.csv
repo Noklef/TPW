@@ -4401,6 +4401,7 @@ address,name,kind,confidence,notes
 0x0042f1a0,CoasterTrains_Setup,function,high,reimplemented (src/game/coaster/setup); a coaster's cars and trains from its description
 0x0042f390,CoasterType_Setup,function,high,"reimplemented (src/game/coaster/setup); a coaster type from its description: track entries, cross sections, pylons, trains and fields"
 0x00430ad0,CoasterTypes_FreeAll,function,low,"reimplemented (src/game/coaster/setup); cdecl: every coaster type of the table 0x790b08 freed (its pieces, names, animator, blocks), the slots and the count 0x790fe8 cleared"
+0x0042fd90,CoasterType_Create,function,low,"reimplemented (src/game/coaster/setup); cdecl (holder, unused, id, source): a new coaster type (GlobalMem 0x35c) added to the table 0x790b08 (count 0x790fe8), its defaults, then CoasterType_Setup; a track type balance file laid out and released on the stack for nothing (sic)"
 0x00466b70,Ride_Bounds,function,high,reimplemented (src/game/coaster/ridebounds); a ride's box in the world
 0x00556af0,Ride_Centre,function,low,"reimplemented (src/game/coaster/ridebounds); cdecl (handle, x, y, z): the middle of the ride box's x and z extents and the root's y, 0; zeros and 1 for no ride or box"
 0x00556b90,Ride_PartPlace,function,low,"reimplemented (src/game/coaster/ridebounds); cdecl (obj, pos, dir, key, mask): a ride part's node position and unit direction times 1024, else the ride box's centre; returns 1 (0 for no part)"
