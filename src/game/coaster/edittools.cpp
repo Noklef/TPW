@@ -182,4 +182,14 @@ u32 __cdecl CoasterEdit_ToggleAdjustAngles() {
     Highlight_SetShown(1);
     return 1;
 }
+
+u32 __cdecl CoasterEdit_ToggleAdjust() {
+    const u8 *const game = g<const u8 *>(0x00790fec);
+    if (!game || !at<u32>(game, 0x40))
+        return 1;
+    const u8 *const piece = Piece();
+    if (!piece || (at<u8>(Def(piece), 4) & 2))
+        return 1;
+    return (at<u8>(piece, 8) & 0x40) ? CoasterEdit_ToggleAdjustF8() : CoasterEdit_ToggleAdjustAngles();
+}
 }

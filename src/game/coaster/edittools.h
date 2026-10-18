@@ -28,4 +28,8 @@ u32 __cdecl CoasterEdit_ToggleAdjustE0();
 // +8 flag 4) and +0xdc (type flag 0x80: 0x400, the piece's +8 flag 2), recorded as 0x3b with both and the handle; ranges -pi..pi
 // (as floats 0xc0490e38 / 0x40490e38), step 0.02.
 u32 __cdecl CoasterEdit_ToggleAdjustAngles();
+
+// 0x4421e0 (cdecl; name unconfirmed): only with a game whose +0x40 is set and a piece whose definition lacks flag 2 (else 1):
+// CoasterEdit_ToggleAdjustF8 when the piece's +8 has flag 0x40, else CoasterEdit_ToggleAdjustAngles.
+u32 __cdecl CoasterEdit_ToggleAdjust();
 }

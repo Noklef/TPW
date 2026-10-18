@@ -1,7 +1,7 @@
 # The coaster editor's adjust tool toggles (src/game/coaster/edittools: 0x441cd0, 0x441e80, 0x442010) against the originals: the editor's
 # flags (no tool, tool 2 or 4, another, with 0x200 / 0x1e00 / 0x2000 or random high bits), a piece being edited or none (its definition's
 # flag 2 or not, its type's flags 0x40 / 0x80 / 0x100 / 0x200 / 0x180 or others, values about the thresholds, odd floats), the game's +0x40
-# set or not, the action recorder at 0x785a08 recording into a record stream or not, a current highlight or none.
+# set or not (Toggle 0x4421e0 picks F8 or Angles by the piece's flag 0x40), the action recorder at 0x785a08 recording into a record stream or not, a current highlight or none.
 # usage: edittools.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=F8,E0,Angles)
 import os
 import struct
@@ -10,8 +10,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, STUBS, Bench, Call, put  # noqa: E402
 
-CALLS = {'F8': 0x441cd0, 'E0': 0x441e80, 'Angles': 0x442010}
-B = Bench([(0x441cd0, 0x441e78), (0x441e80, 0x442002), (0x442010, 0x4421d6), (0x403400, 0x403fc6), (0x45d630, 0x45d660), (0x5da3c0, 0x5da3d0)])
+CALLS = {'F8': 0x441cd0, 'E0': 0x441e80, 'Angles': 0x442010, 'Toggle': 0x4421e0}
+B = Bench([(0x441cd0, 0x441e78), (0x441e80, 0x442002), (0x442010, 0x4421d6), (0x4421e0, 0x44221b), (0x403400, 0x403fc6), (0x45d630, 0x45d660), (0x5da3c0, 0x5da3d0)])
 PIECE, DEF, TYPE, GAME, VT, BUF = RAM, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500, RAM + 0x600
 TOOLS = [0, 0, 0, 2, 2, 4, 4, 4, 1, 6, 0x20, 0x3f]
 TYPES = [0x40, 0x80, 0x100, 0x180, 0x200, 0x240, 0x380, 0]
@@ -24,13 +24,13 @@ def value(r):
 
 def case(r):
     op = r.deal(OPS)
-    tool = 2 if op == 'E0' else 4   # (the op's own tool, or none, more often)
+    tool = 2 if op == 'E0' else 4   # (the op's own tool, or none, more often; Toggle's are F8's and Angles')
     flags = r.choice(TOOLS + [0, 0, tool, tool]) | r.choice([0, 0, 0x200, 0x1e00, 0x2000, 0x400]) | (r.getrandbits(32) & 0xffffc000 if r.random() < 0.2 else 0)
     glob = bytearray(r.bytes(0x110))
     put(glob, 0x40, 'I', PIECE if r.random() < 0.85 else 0)
     put(glob, 0x58, 'I', flags)
     piece = bytearray(r.bytes(0x110))
-    put(piece, 8, 'I', r.getrandbits(32) & ~0x80 | r.choice([0, 0x80]))
+    put(piece, 8, 'I', r.getrandbits(32) & ~0xc0 | r.choice([0, 0x80]) | r.choice([0, 0x40]))
     for off in (0xd4, 0xd8, 0xdc, 0xe0, 0xf8):
         put(piece, off, 'f', value(r))
     put(piece, 0x100, 'I', DEF)
