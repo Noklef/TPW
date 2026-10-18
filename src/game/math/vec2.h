@@ -11,7 +11,7 @@ extern "C" {
 void __fastcall Vec2_Normalize(float *v);
 
 // 0x549020 (cdecl; name unconfirmed): the length of the integer pair (x, y): their magnitudes (INT_MIN staying negative, sic) halved
-// (arithmetic shifts) n times while |x| > 0x8000 or |y| > 0x7fff, the sum of their squares (wrapping 32-bit) square-rooted (x87, so a
-// negative sum gives NaN and __ftol 0), truncated and shifted back left n times.
+// (arithmetic shifts) n times while |x| > 0x8000 or |y| > 0x7fff, the sum of their squares (32-bit; never negative, even from INT_MIN, whose
+// square wraps to 0 or 2^30) square-rooted on the x87, truncated and shifted back left n times.
 s32 __cdecl IntVec2_Length(s32 x, s32 y);
 }
