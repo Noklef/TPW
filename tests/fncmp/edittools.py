@@ -24,7 +24,8 @@ def value(r):
 
 def case(r):
     op = r.deal(OPS)
-    flags = r.choice(TOOLS) | r.choice([0, 0, 0x200, 0x1e00, 0x2000, 0x400]) | (r.getrandbits(32) & 0xffffc000 if r.random() < 0.2 else 0)
+    tool = 2 if op == 'E0' else 4   # (the op's own tool, or none, more often)
+    flags = r.choice(TOOLS + [0, 0, tool, tool]) | r.choice([0, 0, 0x200, 0x1e00, 0x2000, 0x400]) | (r.getrandbits(32) & 0xffffc000 if r.random() < 0.2 else 0)
     glob = bytearray(r.bytes(0x110))
     put(glob, 0x40, 'I', PIECE if r.random() < 0.85 else 0)
     put(glob, 0x58, 'I', flags)
@@ -39,6 +40,9 @@ def case(r):
     kind = bytearray(r.bytes(0x98))
     put(kind, 0, 'I', r.choice(TYPES) | (r.getrandbits(32) & ~0x3c0 if r.random() < 0.2 else 0))
     put(kind, 0x94, 'f', value(r))
+    if r.random() < 0.05:   # (two NaNs: which one comes out of the x87's bounds)
+        put(piece, 0xd4, 'I', r.choice([0x7fc00001, 0xffc12345, 0x7f800001]))
+        put(kind, 0x94, 'I', r.choice([0x7fc54321, 0xffe00000, 0x7f812345]))
     game = bytearray(r.bytes(0x44))
     put(game, 0x40, 'I', r.choice([0, 1, 1, r.getrandbits(32)]))
     rec = bytearray(r.bytes(0x28))   # (recording, mode, playback; its first stream a record stream at +0xc)
