@@ -7,6 +7,9 @@
 # cells whose flags (+0x2c) have 0x400 or not, the table at 0x7a0884 that one or another, the length at 0x74cf30 0.225 or not. Scale: the
 # root with a matrix (the identity, moved, or random); Shade: the map's tree, the 0x44-byte map cells' flags 0x40 / 0x80 any mix, the
 # map's size (0x7a0314 / 0x7a0374) the grid's or less.
+# Cells / ModelCells (src/game/terrain/nodecells: Terrain_NodeCells 0x46eeb0, Terrain_ModelCells 0x46f0c0, over Matrix_TransformPoint): the
+# same trees with boxes about the map (either way round on each axis, now and then NaN, on a cell's edge or below 0), children skipped by
+# flag 0x40000000 now and then; the grid's origin 0 or moved (or NaN), its cells 10 (or 5, 0.3, 0, NaN), its size 4 - 24 by 2 - 8.
 # usage: normals.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -16,7 +19,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import RAM, Bench, Call, put  # noqa: E402
 
 B = Bench([(0x450b30, 0x450d0d), (0x450d10, 0x450e1c), (0x4702d0, 0x4704c0), (0x466c80, 0x466d62), (0x46f150, 0x46f176),
-           (0x535db0, 0x535dc3), (0x5836b0, 0x5836c2)])
+           (0x535db0, 0x535dc3), (0x5836b0, 0x5836c2), (0x46eeb0, 0x46f0bf), (0x46f0c0, 0x46f0f9), (0x46fc00, 0x46fca0)])
 NODES, BLOCK, MAP, GRID, FLAGS, TABLE, PARTS = RAM, RAM + 0x800, RAM + 0xc00, RAM + 0xd00, RAM + 0x1000, RAM + 0x1400, RAM + 0x2000
 WORLD = 0x32000000
 NBLOCK = 0x40
@@ -126,7 +129,29 @@ def shade(r):
     return Call(0x450d10, [], regions)
 
 
-CASES = {'Scale': scale, 'Shade': shade}
+def boxes(r, regions):
+    nodes = regions[NODES]
+    for base in range(0, len(nodes), 0x100):
+        lo = [odd(r, r.choice([r.uniform(-20, 200), float(r.randrange(-2, 20) * 10), -0.0])) for _ in range(3)]
+        hi = [odd(r, v + r.choice([r.uniform(-5, 60), 10.0, 0.0])) if v == v else 1.0 for v in lo]
+        put(nodes, base + 0x78, '6f', *(lo + hi))
+        if base and r.random() < 0.15:
+            put(nodes, base, 'I', struct.unpack_from('<I', nodes, base)[0] | 0x40000000)
+    grid = regions[GRID]
+    put(grid, 8, '2f', *(r.choice([0.0, 0.0, 0.0, r.uniform(-30, 30), float('nan')]) for _ in range(2)))
+    put(grid, 0x10, '2f', *(r.choice([10.0, 10.0, 10.0, 5.0, 0.3, 0.0, float('nan')]) for _ in range(2)))
+
+
+def cells(r, op):
+    regions, _, _ = setup(r)
+    boxes(r, regions)
+    if op == 'ModelCells':
+        return Call(0x46f0c0, [MAP], regions)
+    m = [1.0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 1.0] if r.random() < 0.4 else matrix(r, 40.0)
+    return Call(0x46eeb0, [NODES, GRID] + list(struct.unpack('<16I', struct.pack('<16f', *m))), regions)
+
+
+CASES = {'Scale': scale, 'Shade': shade, 'Cells': lambda r: cells(r, 'Cells'), 'ModelCells': lambda r: cells(r, 'ModelCells')}
 
 
 def case(r):

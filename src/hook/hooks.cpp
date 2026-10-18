@@ -196,6 +196,7 @@
 #include "../game/coaster/xsection.h"
 #include "../game/terrain/land.h"
 #include "../game/terrain/landscape.h"
+#include "../game/terrain/nodecells.h"
 #include "../game/terrain/normals.h"
 #include "../game/terrain/procedural.h"
 #include "../game/terrain/terrain_blend.h"
@@ -4194,6 +4195,8 @@ const Hook kHooks[] = {
     {"Lnd_BlendRow16x3",          0x0055eaa0, (void *)&Lnd_BlendRow16x3, {0x83, 0xec, 0x34, 0x8b, 0x44}},
     {"Terrain_ScaleNormals",      0x00450b30, (void *)&Terrain_ScaleNormals, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
     {"Terrain_ShadeNormals",      0x00450d10, (void *)&Terrain_ShadeNormals, {0x8b, 0x0d, 0x54, 0x08, 0x7a}},
+    {"Terrain_NodeCells",         0x0046eeb0, (void *)&Terrain_NodeCells, {0x83, 0xec, 0x18, 0x8d, 0x44}},
+    {"Terrain_ModelCells",        0x0046f0c0, (void *)&Terrain_ModelCells, {0x83, 0xec, 0x40, 0x8d, 0x44}},
     {"Online_ApplyBalance",       0x0045aee0, (void *)&Online_ApplyBalance, {0x6a, 0xff, 0x68, 0x08, 0x89}},
     {"Online_LoggedIn",           0x005b6450, (void *)&Online_LoggedIn, {0x8b, 0x41, 0x60, 0xc3, 0x90}},
     {"Online_Restricted",         0x005b6460, (void *)&Online_Restricted, {0x8b, 0x51, 0x60, 0x33, 0xc0}},
