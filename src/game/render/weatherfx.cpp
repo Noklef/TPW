@@ -1,6 +1,7 @@
 #include "weatherfx.h"
 
 #include <cstdint>
+#include <cstdlib>
 
 #include "../core/gameheap.h"
 #include "../gfx/texture.h"
@@ -34,6 +35,16 @@ void SetDirection(u8 *fx, X87Reg x, X87Reg z) {
     at<u32>(fx, 0x3320) = out[1];
     at<u32>(fx, 0x3324) = out[2];
 }
+
+// The weather's random numbers (inline in the original): the renderer's seed at +0xa198 stepped.
+u32 NextRandom(u8 *fx) {
+    const u32 seed = (u32)_rotl(at<u32>(fx, 0xa198) * 0x13d573u, 3) + 0xe0423u;
+    at<u32>(fx, 0xa198) = (u32)_rotl(seed, 4);
+    return at<u32>(fx, 0xa198);
+}
+
+// Not 0 and not a NaN (fcom against 0: neither equal nor unordered).
+bool NonZero(float x) { return x < 0.0f || x > 0.0f; }
 
 // The landscape's point i at (sin((angle - a) degrees) * strength, -1, cos((angle - b) degrees) * strength); its x and z.
 void SetPoint(s32 i, float angle, float a, float b, float strength, float &x, float &z) {
@@ -75,6 +86,41 @@ void __fastcall WeatherFx_SetWind(u8 *fx, void *, float angle, float strength) {
     SetPoint(2, from, 1.2f, -1.7f, s, x, z);    // 0x701cb4, 0x701cb8
     SetPoint(3, from, -1.8f, -2.9f, s, x, z);   // 0x701cbc, 0x701cc0
     SetDirection(fx, X87Reg(x) * 0.2f, X87Reg(z) * 0.2f);   // 0x701cc4
+}
+
+float *__cdecl WeatherFx_BoltMidpoint(float *out, const float *a, const float *b, float scale) {
+    float m[3], d[3];
+    for (u32 i = 0; i < 3; ++i)
+        m[i] = (float)((X87Reg(a[i]) + b[i]) * 0.5f);   // 0x701c84
+    for (u32 i = 0; i < 3; ++i)
+        d[i] = (float)(X87Reg(b[i]) - a[i]);
+    const float q = (float)((X87Reg(m[0]) * m[0] + X87Reg(m[1]) * m[1]) + X87Reg(m[2]) * m[2]);
+    u8 *const fx = *reinterpret_cast<u8 **>((uintptr_t)0x008bcbac);
+    const float step = 1.0f / 8192;   // 0x701cc8
+    const float r1 = (float)(X87Reg((s32)NextRandom(fx) % 0x1fff) * step);
+    float r = (float)((X87Reg(r1) * r1) * (X87Reg((s32)NextRandom(fx) % 0x1fff) * step));
+    if (NextRandom(fx) & 1)
+        r = -r;
+    NextRandom(fx);
+    float p[3] = {m[0], m[1], m[2]};
+    static const u8 kOrder[3][3] = {{0, 1, 2}, {1, 2, 0}, {2, 0, 1}};
+    const s32 pick = (s32)NextRandom(fx) % 3;
+    const u8 *const order = kOrder[pick == 0 ? 0 : pick == 1 ? 1 : 2];
+    const u32 axis = NonZero(d[order[0]]) ? order[0] : NonZero(d[order[1]]) ? order[1] : order[2];
+    p[axis] = (float)X87_SubR(X87Reg(q) / d[axis], m[axis]);
+    const X87Reg n0 = X87Reg(p[2]) * d[1] - X87Reg(p[1]) * d[2];
+    const float n1 = (float)(X87Reg(p[0]) * d[2] - X87Reg(p[2]) * d[0]);
+    const float n2 = (float)(X87Reg(p[1]) * d[0] - X87Reg(p[0]) * d[1]);
+    const X87Reg along = X87_Sqrt((X87Reg(d[0]) * d[0] + X87Reg(d[1]) * d[1]) + X87Reg(d[2]) * d[2]) * scale * r;
+    const X87Reg f = along / X87_Sqrt((X87Reg(p[0]) * p[0] + X87Reg(p[1]) * p[1]) + X87Reg(p[2]) * p[2]);
+    for (u32 i = 0; i < 3; ++i)
+        p[i] = (float)(f * p[i]);
+    const X87Reg g = X87_DivR(X87_Sqrt((n0 * n0 + X87Reg(n1) * n1) + X87Reg(n2) * n2), X87Reg(0.0f));   // 0x701ca0 (sic)
+    out[0] = (float)((g * n0 + p[0]) + m[0]);
+    const float gf = (float)g;
+    out[1] = (float)((X87Reg(gf) * n1 + p[1]) + m[1]);
+    out[2] = (float)((X87Reg(gf) * n2 + p[2]) + m[2]);
+    return out;
 }
 
 u32 __cdecl WeatherFx_Delete() {
