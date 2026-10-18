@@ -1094,11 +1094,11 @@ def cost_change(r, op):
     for o in (0, 4):
         put(before, o, 'f', r.choice([r.uniform(-50, 300), float(r.randrange(-20, 100)), 0.5, -0.5, 2.5e9, -1e20, float('nan')]))
     a, b = r.getrandbits(32), r.getrandbits(32)
-    same = r.random() < 0.2
+    same_a, same_b = r.random() < 0.4, r.random() < 0.5   # (each way: a alone decides nothing)
     regions.update({0x790fec: struct.pack('<I', r.choice([CARS] * 9 + [0])), 0x79c640: struct.pack('<I', r.choice([1, 1, 1, 1, 0])),
                     0x785a2c: struct.pack('<I', r.choice([0, 0, 0, 0, 1])), FLAGS + 0x100: before,
-                    0x79c6d8: struct.pack('<I', a if same else r.choice([a ^ 1, r.getrandbits(32)])),
-                    0x79c6a0: struct.pack('<I', b if same or r.random() < 0.5 else b ^ 0x10000), 0x79c69c: r.bytes(4)})
+                    0x79c6d8: struct.pack('<I', a if same_a else r.choice([a ^ 1, r.getrandbits(32)])),
+                    0x79c6a0: struct.pack('<I', b if same_b else b ^ 0x10000), 0x79c69c: r.bytes(4)})
     args = [r.choice([COAST] * 9 + [0]), FLAGS + 0x100, r.choice([FLAGS + 0x104, 0]), OUT, OUT + 4, a, b]
     return Call(0x443df0, args, regions, ret='v')
 
