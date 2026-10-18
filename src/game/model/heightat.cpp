@@ -1,12 +1,17 @@
 #include "heightat.h"
 
+#include <cmath>
 #include <cstdint>
+#include <cstring>
 
 #include "../math/x87.h"
+#include "../terrain/land.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>(address); }
+// The view's (0x79fb18) model's (+4) floor offset (+0xa0), read afresh each time as the original does.
+u32 &view_offset() { return *reinterpret_cast<u32 *>(global<uintptr_t>(global<uintptr_t>(0x0079fb18) + 4) + 0xa0); }
 template <typename T> T &at(const void *p, u32 offset) {
     return *reinterpret_cast<T *>((uintptr_t)p + offset);
 }
@@ -109,5 +114,28 @@ float __cdecl Model_FloorHeight(float x, float z, s32 noParts, s32 noMain) {
         best = h;
     }
     return best;
+}
+
+void __cdecl View_FloorAt(float x, float z, float *out) {
+    float offset;
+    std::memcpy(&offset, &view_offset(), 4);
+    if (std::isnan(offset)) view_offset() = 0;   // _isnan (0x67b410)
+    const u8 mode = global<u8>(0x0079fb10);
+    double height;
+    if (mode & 1) {
+        height = Terrain_HeightAt(x, z);
+    } else if (mode & 8) {
+        *reinterpret_cast<u32 *>(out) = view_offset();
+        return;
+    } else if (mode & 2) {
+        height = Model_FloorHeight(x, z, 0, 1);
+    } else if (mode & 4) {
+        height = Model_FloorHeight(x, z, 1, 0);
+    } else {
+        *reinterpret_cast<u32 *>(out) = 0;
+        return;
+    }
+    std::memcpy(&offset, &view_offset(), 4);
+    *out = (float)(X87Reg(height) + offset).v;
 }
 }

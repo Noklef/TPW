@@ -1,21 +1,48 @@
 # The height of a model's floor under a point (src/game/model/heightat: 0x451390) against the
 # original: groups of faces (floor or not) over small triangles around the point, with or
 # without an instance's vertex offset and given normals, at each view angle, first or best.
-# Also 0x451290, the view's floor height: its main node, then its parts.
-# usage: heightat.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=At,Floor to pick)
+# Also 0x451290, the view's floor height: its main node, then its parts; and View (0x4511a0), the floor by the view's way (0x79fb10:
+# each bit, several or none) over Floor's view or terrainheight.py's ground, the offset any float (NaN too).
+# usage: heightat.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=At,Floor,View to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, put  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
+import terrainheight  # noqa: E402
 
-B = Bench([(0x451290, 0x45138d), (0x451390, 0x451634)])
+B = Bench([(0x451290, 0x45138d), (0x451390, 0x451634), (0x4511a0, 0x451286), (0x4527f0, 0x452a70), (0x67a400, 0x690000)])
 MODEL, GROUPS, FACES, REMAP, NORMALS, GIVEN = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x400, RAM + 0x500, RAM + 0x600
 INSTANCE, VIEW, VERTS = RAM + 0x780, RAM + 0x7c0, RAM + 0x800
 
 
+def view(r):   # 0x4511a0 (x, z, &out)
+    mode = r.choice([1, 1, 2, 2, 4, 4, 8, 0, 0x10, 3, 6, 0xc, r.getrandbits(8)])
+    offset = r.choice([fb(0.0), fb(r.uniform(-20, 20)), fb(1.5), r.f(), 0x7fc00000, 0xffc00000, 0x7f800001, fb(float('inf'))])
+    if mode & 1:
+        c = terrainheight.case(r)
+        regions = dict(c.regions)
+        regions.update({0x79fb18: struct.pack('<I', TVIEW), TVIEW: put(bytearray(r.bytes(0x10)), 4, 'I', TMODEL),
+                        TMODEL: put(bytearray(r.bytes(0xa4)), 0xa0, 'I', offset)})
+    else:
+        c = floor(r, 'Floor')
+        regions = dict(c.regions)
+        regions[RAM] = put(bytearray(regions[RAM]), PMODEL - RAM + 0xa0, 'I', offset)
+    regions[0x79fb10] = bytes([mode]) + r.bytes(3)
+    regions[OUT] = r.bytes(4)
+    return Call(0x4511a0, c.args[:2] + [OUT], regions, ret='v')
+
+
 def case(r):
+    op = r.choice(OPS)
+    if op == 'View':
+        return view(r)
+    return floor(r, op)
+
+
+def floor(r, op):
     ram = bytearray(r.bytes(0xa00))
     groups = r.choice([0, 1, 1, 2, 4])
     put(ram, 0x5a, 'H', groups)
@@ -58,7 +85,7 @@ def case(r):
         x, z = (struct.unpack('<I', struct.pack('<f', v))[0] for v in (p[0], p[2]))
     first = r.choice([0, 0, 1, 4])
     regions = {RAM: ram, 0x79f7e0: struct.pack('<I', VERTS), 0x79fb18: struct.pack('<I', VIEW)}
-    if r.choice(OPS) == 'At':
+    if op == 'At':
         return Call(0x451390, [MODEL, instance, x, z, normals, first], regions, ret='d')
     # Floor: the view's main node (the model above, or none) and parts, each a copy of it
     # with fewer groups, from PARTS (+0x46 on, 0xa0 apart), flagged 2 and / or 4 or not
@@ -84,8 +111,9 @@ def case(r):
     return Call(0x451290, [x, z, r.choice([0, 0, 1]), r.choice([0, 0, 1])], regions, ret='d')
 
 
-OPS = [k for k in os.environ.get('OPS', 'At,Floor').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'At,Floor,View').split(',') if k]
 PMODEL, HOLDER, PFLAGS, ROOT, PARTS, INSTS = RAM + 0xa00, RAM + 0xa80, RAM + 0xa90, RAM + 0xb08, RAM + 0xb80, RAM + 0xf40
+TVIEW, TMODEL, OUT = RAM + 0x8000, RAM + 0x8100, RAM + 0x9000   # (clear of Floor's RAM and terrainheight.py's)
 
 
 if __name__ == '__main__':

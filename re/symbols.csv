@@ -4472,6 +4472,7 @@ address,name,kind,confidence,notes
 0x00454670,StripAnim_Show,function,low,"reimplemented (src/game/model/stripanim); cdecl (object, shown): the strip owner placed at the holder (identity, translation, turned by its degrees), joining the grid, or hidden and out of it"
 0x00451390,Model_HeightAt,function,high,reimplemented (src/game/model/heightat); the height of a model's floor under a point
 0x00451290,Model_FloorHeight,function,high,reimplemented (src/game/model/heightat); the view's floor height under a point
+0x004511a0,View_FloorAt,function,low,"reimplemented (src/game/model/heightat); cdecl (x, z, &out): the floor under a point by the view's way (0x79fb10): the ground, the offset, the parts or the main node, plus the model's offset (+0xa0, a NaN cleared)"
 0x0046f100,M3D2_DataErrorBox,function,low,"reimplemented (src/game/model/m3d2); cdecl (text): MessageBoxA(0, text, ""M3D2 Exporter - Data Error"", 0x31) != IDCANCEL"
 0x0045aee0,Online_ApplyBalance,function,high,reimplemented (src/game/online/servers); copies Online.sam (gBalanceOnline) into the servers object 0x7a14f0
 0x005b6450,Online_LoggedIn,function,high,"reimplemented (src/game/online/session); thiscall u32: the online session's (0xf7d88c) +0x60, set while logged in"
