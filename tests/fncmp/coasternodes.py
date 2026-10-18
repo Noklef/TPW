@@ -95,10 +95,10 @@ def case(r):
     if r.random() < 0.6:   # a block big enough already
         put(coaster, 0x98, 'II', SLOTS, BUF)
         regions[BUF] = bytearray(r.bytes(0x38 * (SLOTS + 1)))
-    else:   # none, a small one (freed), or one too big to need more
-        cap = r.choice([0, 0, 1, 5])
+    else:   # none, a small one (freed), or one too big to need more (now and then just the size the estimate asks for)
+        cap = r.choice([0, 0, 1, 5, r.randrange(2, 12)])
         put(coaster, 0x98, 'II', cap, BUF if cap or r.random() < 0.5 else 0)
-        regions[BUF] = bytearray(r.bytes(0x38 * 6))
+        regions[BUF] = bytearray(r.bytes(0x38 * 14))
     return Call(CALLS[op], [COASTER], regions)
 
 
