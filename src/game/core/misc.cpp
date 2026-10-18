@@ -213,8 +213,6 @@ u32 __fastcall Records24_CountUsed(const u8 *records) {
 
 u32 __stdcall Table73f8a8_At(u32 i) { return 0x0073f8a8 + 60 * i; }
 
-u32 __fastcall Obj_Flags1cAnd(const u8 *object, void *, u32 mask) { return at<u32>(object, 0x1c) & mask; }
-
 u32 __stdcall Span_Limited(u32, u32 from, u32 to, u32 limit) {
     const u32 span = to - from;
     return limit < span ? limit : span;
@@ -409,12 +407,6 @@ u32 *__fastcall Wstreambuf_Setp(u8 *object, void *, u32 first, u32 last) {
     u32 *count = at<u32 *>(object, 0x30);
     *count = (u32)((s32)(last - first) >> 1);
     return count;
-}
-
-u32 __cdecl Table879d08_Fill() {
-    for (u32 i = 0; i < 16; i++)
-        global<u32>(0x00879d08 + 4 * i) = 16 - i;
-    return 0;
 }
 
 u32 __fastcall Obj_Set30_34(u8 *object, void *, u32 a, u32 b) {

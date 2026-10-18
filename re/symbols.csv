@@ -2719,7 +2719,7 @@ address,name,kind,confidence,notes
 0x004f6820,Wstreambuf_Setg,function,high,"reimplemented (src/game/core/misc); the get area pointers: first, next and (last - next) / 2"
 0x004f6850,Wstreambuf_Setp,function,high,"reimplemented (src/game/core/misc); the put area pointers: first, first and (last - first) / 2"
 0x0056a510,SoftRenderer_PixelAt,function,high,"reimplemented (src/game/render/rasteriser); a dword of the software renderer's buffer at x, y"
-0x0056b630,Table879d08_Fill,function,high,reimplemented (src/game/core/misc); the sixteen dwords at 0x879d08 = 16 down to 1
+0x0056b630,Table879d08_Fill,function,high,reimplemented (src/game/core/globals); the sixteen dwords at 0x879d08 = 16 down to 1
 0x0056b830,Obj_Set30_34,function,high,reimplemented (src/game/core/misc); +0x30 = a and +0x34 = b
 0x004f6020,Wstreambuf_InitPointers,function,high,"reimplemented (src/game/core/misc); the wide streambuf pointer slots pointed at its own fields, which are zeroed"
 0x00402ef0,Obj_AdvanceUnless30,function,high,reimplemented (src/game/core/misc); +0x3c advances by +0x40 unless +0x30 is set
@@ -2759,7 +2759,7 @@ address,name,kind,confidence,notes
 0x005c7d00,Records24_IfUsed,function,high,reimplemented (src/game/core/misc); a 24-byte record's address when its dword at +4 is set
 0x005c7bb0,Records24_CountUsed,function,high,reimplemented (src/game/core/misc); how many of four 24-byte records are in use
 0x005b0d40,Table73f8a8_At,function,high,reimplemented (src/game/core/misc); the address of a 60-byte record of the table at 0x73f8a8
-0x005d5ee0,Obj_Flags1cAnd,function,high,reimplemented (src/game/core/misc); the dword at +0x1c masked
+0x005d5ee0,Obj_Flags1cAnd,function,high,reimplemented (src/game/core/globals); the dword at +0x1c masked
 0x005d1440,Span_Limited,function,high,"reimplemented (src/game/core/misc); to - from, at most a limit"
 0x005dd810,Obj_Positive40,function,high,reimplemented (src/game/core/misc); 1 when the signed dword at +0x40 is above 0
 0x005e2750,Obj_SetOrKeepC,function,high,reimplemented (src/game/core/misc); +0xc = value and +0x14 = 0 for a non-zero value
