@@ -112,24 +112,6 @@ u32 __fastcall Obj_SetVectorAt2c(u8 *object, void *, u32 a, u32 b, u32 c) {
     return a;
 }
 
-u32 __fastcall PtrArray_SetVectorOf(const u8 *list, void *, u8 *key, u32 a, u32 b, u32 c) {
-    const u32 *items = at<const u32 *>(list, 8);
-    s32 index = (s32)at<u32>(list, 0x1c) - 1;
-    if (index >= 0) {
-        while (items[index] != (u32)(uintptr_t)key) {
-            index--;
-            if (index < 0)
-                break;
-        }
-    }
-    if (index < 0)
-        return 0;
-    at<u32>(key, 0x14) = a;
-    at<u32>(key, 0x18) = b;
-    at<u32>(key, 0x1c) = c;
-    return 1;
-}
-
 void __fastcall Extents_Include(u8 *extents, void *, s32 low, s32 first, s32 high, s32 last) {
     if (at<s32>(extents, 0x20) > first)
         at<s32>(extents, 0x20) = first;

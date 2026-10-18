@@ -260,4 +260,22 @@ u32 __fastcall PtrArray_Init(u8 *object, void *, u32 frames, u32 images) {
     at<u32>(object, 0x14) = images;
     return 1;
 }
+
+u32 __fastcall PtrArray_SetVectorOf(const u8 *list, void *, u8 *key, u32 a, u32 b, u32 c) {
+    const u32 *items = at<const u32 *>(list, 8);
+    s32 index = (s32)at<u32>(list, 0x1c) - 1;
+    if (index >= 0) {
+        while (items[index] != (u32)(uintptr_t)key) {
+            index--;
+            if (index < 0)
+                break;
+        }
+    }
+    if (index < 0)
+        return 0;
+    at<u32>(key, 0x14) = a;
+    at<u32>(key, 0x18) = b;
+    at<u32>(key, 0x1c) = c;
+    return 1;
+}
 }  // extern "C"

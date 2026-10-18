@@ -2741,7 +2741,7 @@ address,name,kind,confidence,notes
 0x005651c0,Class701260_Ctor,function,high,"reimplemented (src/game/render/device); vtable 0x701260 and its defaults, plus a driver quirk flag"
 0x005646c0,Obj_CtorVirtual5646c0,function,high,"reimplemented (src/game/gfx/rleimage); a class with a virtual base (vtables 0x701188, 0x701178, 0x701168)"
 0x00564ba0,Obj_CtorVirtual564ba0,function,high,"reimplemented (src/game/gfx/wctimage); a class with a virtual base (vtables 0x7011d8, 0x701178, 0x7011c8)"
-0x0056b570,PtrArray_SetVectorOf,function,high,reimplemented (src/game/core/misc); a pointer array searched for a key; its three dwords at +0x14 set
+0x0056b570,PtrArray_SetVectorOf,function,high,reimplemented (src/game/core/ptrlist); a pointer array searched for a key; its three dwords at +0x14 set
 0x0056e780,Extents_Include,function,high,reimplemented (src/game/core/misc); a column range's lowest and highest bytes extended
 0x0054b290,Pool_FreeAll,function,high,"reimplemented (src/game/world/collobj); every chunk of an owner's list freed, with its nodes"
 0x0056b340,Obj_ReleaseFromRenderer,function,high,reimplemented (src/game/core/misc); bit 0 cleared and the part removed from the renderer's tag 0x60 list
