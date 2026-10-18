@@ -78,6 +78,7 @@
 #include "../game/gfx/tga.h"
 #include "../game/gfx/array3d.h"
 #include "../game/gfx/rleimage.h"
+#include "../game/gfx/screengrab.h"
 #include "../game/gfx/wavelet.h"
 #include "../game/core/events.h"
 #include "../game/core/fieldops.h"
@@ -3581,6 +3582,7 @@ const Hook kHooks[] = {
     {"TexSprite_Ctor",            0x005f4370, (void *)&TexSprite_Ctor, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"TexAtlas_Alloc",            0x0058c3c0, (void *)&TexAtlas_Alloc, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"WctImage_DeletingDtor",     0x00565000, (void *)&WctImage_DeletingDtor, {0x8b, 0x41, 0xd4, 0x56, 0x8d}},
+    {"ScreenGrab_ToRgb24",        0x00561460, (void *)&ScreenGrab_ToRgb24, {0xa1, 0xe4, 0xcb, 0x8b, 0x00}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
