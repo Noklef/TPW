@@ -114,6 +114,10 @@ void __cdecl CoasterEdit_Tool1();
 
 void __cdecl CoasterEdit_Tool2();
 
+// 0x4445b0 (cdecl; tool; name unconfirmed): CoasterEdit_Tool2 for tool 2; for any other, CoasterEdit_Tool1 with 0x79c644 = tool.
+// (Tool1 and Tool2 are this with 1 and 2.)
+void __cdecl CoasterEdit_SetTool(u32 tool);
+
 // 0x447990: flag 1 of 0x79c658.
 u32 __cdecl CoasterEdit_Flag1();
 

@@ -222,24 +222,21 @@ void __cdecl CoasterEdit_SetBounds() {
     *reinterpret_cast<s32 *>(0x00790fd8) = zLow;
 }
 
-void __cdecl CoasterEdit_Tool1() {
-    ActionRec_Write(reinterpret_cast<ActionRec *>(0x00785a08), nullptr, 0x37);
+void __cdecl CoasterEdit_SetTool(u32 tool) {
     u8 **const current = reinterpret_cast<u8 **>(0x00790fec);
     u32 &flags = *reinterpret_cast<u32 *>(0x0079c658);
-    u32 &tool = *reinterpret_cast<u32 *>(0x0079c644);
     u32 &mode = *reinterpret_cast<u32 *>(0x0079c664);
-    at<u32>(*current, 0) &= ~0x2000u;
-    if (tool == 2 && mode == 2 && *current && (*at<const u8 *>(*current, 4) & 2)) flags &= ~0x40u;
-    mode = 0;
-    tool = 1;
-    CoasterEdit_SetBounds();
-}
-
-void __cdecl CoasterEdit_Tool2() {
+    u32 &selected = *reinterpret_cast<u32 *>(0x0079c644);
+    if (tool != 2) {
+        ActionRec_Write(reinterpret_cast<ActionRec *>(0x00785a08), nullptr, 0x37);
+        at<u32>(*current, 0) &= ~0x2000u;
+        if (selected == 2 && mode == 2 && *current && (*at<const u8 *>(*current, 4) & 2)) flags &= ~0x40u;
+        mode = 0;
+        selected = tool;
+        CoasterEdit_SetBounds();
+        return;
+    }
     ActionRec_Write(reinterpret_cast<ActionRec *>(0x00785a08), nullptr, 0x38);
-    u8 **const current = reinterpret_cast<u8 **>(0x00790fec);
-    u32 &flags = *reinterpret_cast<u32 *>(0x0079c658);
-    u32 &mode = *reinterpret_cast<u32 *>(0x0079c664);
     at<u32>(*current, 0) &= ~0x2000u;
     const u8 *const link = *current;
     const bool typed = link && (*at<const u8 *>(link, 4) & 2);
@@ -258,9 +255,13 @@ void __cdecl CoasterEdit_Tool2() {
         mode = 2;
         flags |= 0x40;
     }
-    *reinterpret_cast<u32 *>(0x0079c644) = 2;
+    selected = 2;
     CoasterEdit_SetBounds();
 }
+
+void __cdecl CoasterEdit_Tool1() { CoasterEdit_SetTool(1); }
+
+void __cdecl CoasterEdit_Tool2() { CoasterEdit_SetTool(2); }
 
 u32 __cdecl CoasterEdit_Flag1() { return *reinterpret_cast<const u32 *>(0x0079c658) & 1; }
 
