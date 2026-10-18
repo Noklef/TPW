@@ -339,6 +339,7 @@
 #include "../game/ui/window705a50.h"
 #include "../game/ui/windowreg.h"
 #include "../game/ui/cursor.h"
+#include "../game/ui/textbutton.h"
 #include "../game/ui/windowtimers.h"
 
 namespace tpw::hook {
@@ -4512,6 +4513,7 @@ const Hook kHooks[] = {
     {"GameCursor_Set",            0x004a2aa0, (void *)&GameCursor_Set, {0x8b, 0x0d, 0xac, 0xb2, 0x7c}},
     {"Window_ApplyCursor",        0x0065f150, (void *)&Window_ApplyCursor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"GameCursor_Update",         0x0052f950, (void *)&GameCursor_Update, {0xa1, 0x2c, 0xae, 0x81, 0x00}},
+    {"TextButton_Handler",        0x00492d80, (void *)&TextButton_Handler, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
