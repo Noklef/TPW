@@ -157,33 +157,12 @@ void __cdecl Global7c24d8_CopyScript() {
         SpriteScript_CopyFrom((s32)global<u32>(0x007c24a0), (s32)at<u32>(object, 0xc));
 }
 
-u32 __stdcall Obj_Positive40(const u8 *object) { return at<s32>(object, 0x40) > 0 ? 1 : 0; }
-
-void __fastcall Obj_SetOrKeepC(u8 *object, void *, u32 value) {
-    if (value) {
-        at<u32>(object, 0xc) = value;
-        at<u32>(object, 0x14) = 0;
-    }
-}
-
 u8 *__fastcall Class703c18_Ctor(u8 *object) {
     Class703770_Ctor(object);
     at<u32>(object, 0) = 0x00703c18;
     at<u32>(object, 8) = 0;
     at<u32>(object, 0xc) = 0;
     return object;
-}
-
-void __fastcall Obj_ChooseVector(u8 *object) {
-    const u32 base = at<u32>(object, 0x58) ? 0x28 : 0x1c;
-    const u32 x = at<u32>(object, base), y = at<u32>(object, base + 4), z = at<u32>(object, base + 8);
-    at<u32>(object, 0x10) = x;
-    at<u32>(object, 0x14) = y;
-    at<u32>(object, 0x18) = z;
-}
-
-u32 __stdcall Obj_Pending(const u8 *object) {
-    return at<u32>(object, 0x60) == 0 && at<s32>(object, 0x40) < at<s32>(object, 0x64) ? 1 : 0;
 }
 
 u32 __fastcall Obj_SetShown(u8 *object, void *, u32 value) {

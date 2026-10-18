@@ -2761,15 +2761,15 @@ address,name,kind,confidence,notes
 0x005b0d40,Table73f8a8_At,function,high,reimplemented (src/game/core/balancefile); the address of a 60-byte record of the table at 0x73f8a8
 0x005d5ee0,Obj_Flags1cAnd,function,high,reimplemented (src/game/core/globals); the dword at +0x1c masked
 0x005d1440,Span_Limited,function,high,"reimplemented (src/game/core/codecvt); to - from, at most a limit"
-0x005dd810,Obj_Positive40,function,high,reimplemented (src/game/core/misc); 1 when the signed dword at +0x40 is above 0
-0x005e2750,Obj_SetOrKeepC,function,high,reimplemented (src/game/core/misc); +0xc = value and +0x14 = 0 for a non-zero value
+0x005dd810,Obj_Positive40,function,high,reimplemented (src/game/frontend/viewcontrols); 1 when the signed dword at +0x40 is above 0
+0x005e2750,Obj_SetOrKeepC,function,high,reimplemented (src/game/frontend/viewcontrols); +0xc = value and +0x14 = 0 for a non-zero value
 0x00633120,Class703c18_Ctor,function,high,"reimplemented (src/game/core/misc); Class703770_Ctor, vtable 0x703c18 and two zeroed dwords"
 0x005c7490,WString_CtorReturning,function,high,"reimplemented (src/game/core/string); an empty wide string, returned"
 0x005c5230,DirEntry_IsRealDir,function,high,reimplemented (src/game/files/direntry); a directory entry whose name does not start with a full stop
 0x005c9040,Class70295c_Ctor,function,high,"reimplemented (src/game/core/vdtor); Init_5d36c0, vtable 0x70295c and four zeroed dwords"
 0x005d03b0,Obj_SwapPair,function,high,reimplemented (src/game/core/stdlist); the dwords at +4 and +8 swapped with another object's
-0x005dd3d0,Obj_ChooseVector,function,high,reimplemented (src/game/core/misc); the vector at +0x10 taken from one of two others
-0x005ddac0,Obj_Pending,function,high,reimplemented (src/game/core/misc); +0x60 is 0 and +0x40 is below +0x64
+0x005dd3d0,Obj_ChooseVector,function,high,reimplemented (src/game/frontend/viewcontrols); the vector at +0x10 taken from one of two others
+0x005ddac0,Obj_Pending,function,high,reimplemented (src/game/frontend/viewcontrols); +0x60 is 0 and +0x40 is below +0x64
 0x005f4490,Obj_SetShown,function,high,"reimplemented (src/game/core/misc); a shown value kept, and bit 0 of the object at +0x28 flipped to match"
 0x00633dc0,Class703ca0_Ctor,function,high,"reimplemented (src/game/core/misc); Class703770_Ctor, vtables 0x703ca0 and 0x703c98 and zeroed fields"
 0x006486e0,Records32_MaxWeight,function,high,reimplemented (src/game/core/misc); the 0x20-byte record with the greatest positive weight

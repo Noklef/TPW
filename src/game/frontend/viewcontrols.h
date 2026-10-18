@@ -40,4 +40,16 @@ s32 __fastcall Scene702dd0_HideDialog(u8 *self);
 // becomes 0; then Dialog7cc47c_Message6On (its result).
 s32 __cdecl Scene702dd0_ShowDialogCallback();
 s32 __cdecl Scene702dd0_DialogDone(s32 accepted, u8 *self);
+
+// 0x5dd3d0 (thiscall; UseFirst / UseSecond end with it): the three dwords at +0x10 take those at +0x28 when +0x58 is set, else those at +0x1c.
+void __fastcall Obj_ChooseVector(u8 *object);
+
+// 0x5dd810 (Class702e70 slot 16; stdcall; object, pops 4): 1 when the signed dword at +0x40 is above 0, else 0.
+u32 __stdcall Obj_Positive40(const u8 *object);
+
+// 0x5ddac0 (Class702e20 slot 16; stdcall; object, pops 4): 1 when the dword at +0x60 is 0 and the signed +0x40 is below +0x64.
+u32 __stdcall Obj_Pending(const u8 *object);
+
+// 0x5e2750 (Class702dd0 slot 19; thiscall; value, pops 4): with a value, +0xc = value and +0x14 = 0.
+void __fastcall Obj_SetOrKeepC(u8 *object, void *, u32 value);
 }  // extern "C"
