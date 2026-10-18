@@ -1171,6 +1171,7 @@ address,name,kind,confidence,notes
 0x005f7360,Palette_ExpandRgb,function,high,"reimplemented (src/game/gfx/palette); cdecl (dst, src, count): RGB triples to RGBX quads, flags 0"
 0x005f73a0,Palette_Nearest,function,high,"reimplemented (src/game/gfx/palette); cdecl (palette, r, g, b) -> index: least squared distance, then summed distance, then b^2 + 2(r^2 + g^2), then lowest index"
 0x0047ddc0,PalColour_Set,function,high,"reimplemented (src/game/gfx/palette); thiscall (red, green, blue): bytes blue, green, red, 0xff, then Palette_Nearest in the game palette 0xfa71f8 at +4"
+0x00409db0,ColourRamps_SetFromPalette,function,low,reimplemented (src/game/gfx/palette); cdecl: eight colours of the ramps at 0x7b04b8 / 0x7b0528 from game palette entries 0x85-0x8b and 0xa7-0xad
 0x00fa71f8,gPalette,data,high,PALETTEENTRY[256]; Palette_Nearest looks colours up in it
 0x005f76c0,Lib_StrLen,function,high,reimplemented (src/game/core/libc); stdcall; inline strlen
 0x005f76e0,Lib_StrCpy,function,high,reimplemented (src/game/core/libc); stdcall; inline strcpy (REP MOVSD then MOVSB)
