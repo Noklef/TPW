@@ -80,4 +80,11 @@ u8 __stdcall TextLayout_CharClass(u32 character);
 // moved down to first (a do-while: last past the end runs on, sic), the end set after them. Returns first.
 u8 *__fastcall Vector12_Erase(u8 *vector, void *, u8 *first, u8 *last);
 
+// 0x6aedf0 / 0x6af0a0 (thiscall (position, count, value), pops 0xc): MSVC6's vector<T>::insert(position, count, value) for an 8- / 16-byte
+// T (first +4, last +8, end +0xc). With room, the tail moved up and count copies of *value written at position; without, a new block of
+// (max(count, size) + size) elements (Mem_Alloc; a negative count clamped at 0 for the allocation but not for the end), the three parts
+// copied in (null destinations skipped), the old block freed (Mem_Free). *value is read again for every copy.
+void __fastcall Vector8_InsertN(u8 *vector, void *, u8 *position, u32 count, const u8 *value);
+void __fastcall Vector16_InsertN(u8 *vector, void *, u8 *position, u32 count, const u8 *value);
+
 }

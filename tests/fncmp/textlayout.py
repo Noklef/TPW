@@ -10,12 +10,13 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, LOG, RAM, Bench, Call, heap, log_region, put, set_return, vtable  # noqa: E402
 
-B = Bench([(0x5fa680, 0x5fa6b0), (0x6ad5d0, 0x6ad740), (0x6ad7c0, 0x6ad860), (0x6ade00, 0x6adf30), (0x6aeab0, 0x6aeb10), (0x6aeda0, 0x6aedf0),
+B = Bench([(0x5fa680, 0x5fa6b0), (0x6ad5d0, 0x6ad740), (0x6ad7c0, 0x6ad860), (0x6ade00, 0x6adf30), (0x6aeab0, 0x6aeb10), (0x6aeda0, 0x6af3c0),
            (0x6b0230, 0x6b0340)])
 SOURCE = RAM + 0x400   # Assign's and SetStyle's source style
 TABLE = 0x782d18       # SetStyle's renderers (0x782d38) and the dwords before them
 RENDERER, VTABLE2 = RAM + 0x500, RAM + 0x480   # Render's renderer: slot 1 takes 5 arguments
 ELEMS = RAM + 0x600    # Erase12's elements (12 bytes each)
+VEC, VALUE = RAM + 0x700, RAM + 0x800   # Insert8/16's storage (up to 8 elements) and value
 DATA = 0x7d0000   # an object in the game's data (top byte 0)
 FONTS, VTABLE, COLOUR, STATUS = RAM + 0x200, RAM + 0x300, RAM + 0x380, RAM + 0x3c0
 # op: (address, the style's offset in the object, extra arguments)
@@ -23,7 +24,8 @@ CALLS = {'StyleCtor': (0x6ad5d0, 0), 'StyleDtor': (0x6ad640, 0), 'StyleDel': (0x
          'SetColour': (0x6ad6e0, 0), 'HolderCtor': (0x6b0230, 4), 'HolderDtor': (0x6b0270, 4), 'HolderDel': (0x6b0250, 4),
          'LayoutCtor': (0x6ade00, 8), 'LayoutDtor': (0x6adeb0, 8), 'LayoutDel': (0x6ade90, 8),
          'Assign': (0x6ad660, 0), 'GetFont': (0x6ad820, 0), 'FontKind': (0x6ad840, 0),
-         'SetStyle': (0x6b0280, 4), 'Render': (0x6b0300, 4), 'CharClass': (0x6aeab0, 0), 'Erase12': (0x6aeda0, 0)}
+         'SetStyle': (0x6b0280, 4), 'Render': (0x6b0300, 4), 'CharClass': (0x6aeab0, 0), 'Erase12': (0x6aeda0, 0),
+         'Insert8': (0x6aedf0, 0), 'Insert16': (0x6af0a0, 0)}
 RET = {'StyleCtor': 'a', 'StyleDel': 'a', 'SetFont': 'a', 'SetColour': 'a', 'HolderCtor': 'a', 'HolderDel': 'a', 'LayoutCtor': 'a',
        'LayoutDel': 'a', 'Assign': 'a', 'GetFont': 'a', 'FontKind': 'a',
        'SetStyle': 'a', 'Render': 'a', 'CharClass': 'b', 'Erase12': 'a'}
@@ -81,6 +83,23 @@ def case(r):
         put(body, 4, 'II', ELEMS, ELEMS + 12 * n)
         regions[ELEMS] = r.bytes(12 * 8)
         args += [ELEMS + 12 * i, ELEMS + 12 * j]
+    elif op in ('Insert8', 'Insert16'):
+        size = 8 if op == 'Insert8' else 16
+        cap = r.randrange(0, 9)
+        n = r.randrange(0, cap + 1)
+        i = r.randrange(0, n + 1)
+        count = r.choice([0, 1, 1, 2, 3, r.randrange(0, 7)])
+        if r.random() < 0.15:
+            put(body, 4, 'III', 0, 0, 0)   # an empty vector
+            position = 0
+        else:
+            put(body, 4, 'III', VEC, VEC + size * n, VEC + size * cap)
+            position = VEC + size * i
+        regions[VEC] = r.bytes(size * 8)
+        regions[VALUE] = r.bytes(16)
+        regions[HEAP] = heap(0x400, fail=r.choice([0] * 7 + [1]))
+        value = VALUE if r.random() < 0.8 or n == 0 else VEC + size * r.randrange(0, n)   # a value inside the vector too
+        args += [position, count, value]
     return Call(address, args, regions, conv='t', ret=RET.get(op, 'v'))
 
 

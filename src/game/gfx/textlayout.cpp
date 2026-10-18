@@ -20,6 +20,79 @@ void FreeVector(u8 *layout, u32 offset) {
     at<u32>(layout, offset + 4) = 0;
     at<u32>(layout, offset + 8) = 0;
 }
+
+// one N-byte element copied a dword at a time, in order
+template <u32 N> void CopyElement(u8 *to, const u8 *from) {
+    for (u32 i = 0; i < N; i += 4) at<u32>(to, i) = at<u32>(const_cast<u8 *>(from), i);
+}
+
+// the signed element count between two pointers (SUB, SAR: rounded down); N is 8 or 16
+template <u32 N> s32 Elements(const u8 *a, const u8 *b) {
+    return (s32)((u32)(uintptr_t)a - (u32)(uintptr_t)b) >> (N == 8 ? 3 : 4);
+}
+
+// MSVC6's vector<T>::insert(position, count, value) for an N-byte T (first +4, last +8, end +0xc): every copy into new room skips a null
+// destination, the value is read again for every copy.
+template <u32 N> void InsertN(u8 *vec, u8 *position, u32 count, const u8 *value) {
+    u8 *const last = at<u8 *>(vec, 8);
+    if ((u32)Elements<N>(at<u8 *>(vec, 0xc), last) >= count) {
+        const u32 bytes = count * N;
+        if ((u32)Elements<N>(last, position) >= count) {
+            if (count == 0) return;
+            u8 *to = last;
+            for (u8 *from = last - bytes; from != last; from += N, to += N)
+                if (to) CopyElement<N>(to, from);
+            u8 *e = at<u8 *>(vec, 8) - bytes;
+            to = at<u8 *>(vec, 8);
+            if (position != e) {
+                do {
+                    e -= N;
+                    to -= N;
+                    CopyElement<N>(to, e);
+                } while (e != position);
+            }
+            u8 *const stop = position + bytes;
+            for (u8 *p = position; p != stop; p += N) CopyElement<N>(p, value);
+        } else {
+            if (position != last) {
+                u8 *to = position + bytes;
+                u8 *from = position;
+                do {
+                    if (to) CopyElement<N>(to, from);
+                    from += N;
+                    to += N;
+                } while (from != last);
+            }
+            u8 *fill = at<u8 *>(vec, 8);
+            for (u32 n = count - (u32)Elements<N>(fill, position); n != 0; --n, fill += N)
+                if (fill) CopyElement<N>(fill, value);
+            u8 *const end = at<u8 *>(vec, 8);
+            for (u8 *p = position; p != end; p += N) CopyElement<N>(p, value);
+        }
+        at<u8 *>(vec, 8) += bytes;
+        return;
+    }
+    u8 *const first = at<u8 *>(vec, 4);
+    const u32 size = first ? (u32)Elements<N>(last, first) : 0;
+    const u32 grow = count >= size ? count : size;
+    const s32 capacity = (s32)(grow + size);
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc((u32)(capacity < 0 ? 0 : capacity) * N));
+    u8 *to = block;
+    for (u8 *from = first; from != position; from += N, to += N)
+        if (to) CopyElement<N>(to, from);
+    u8 *fill = to;
+    for (u32 n = count; n != 0; --n, fill += N)
+        if (fill) CopyElement<N>(fill, value);
+    u8 *const oldLast = at<u8 *>(vec, 8);
+    u8 *dest = to + count * N;
+    for (u8 *from = position; from != oldLast; from += N, dest += N)
+        if (dest) CopyElement<N>(dest, from);
+    GameHeap_Free(at<u8 *>(vec, 4));
+    at<u8 *>(vec, 0xc) = block + (u32)capacity * N;  // the capacity before it was clamped at 0
+    const u32 kept = at<u8 *>(vec, 4) ? (u32)Elements<N>(at<u8 *>(vec, 8), at<u8 *>(vec, 4)) : 0;
+    at<u8 *>(vec, 4) = block;
+    at<u8 *>(vec, 8) = block + (count + kept) * N;
+}
 }
 
 extern "C" {
@@ -181,6 +254,14 @@ u8 *__fastcall Vector12_Erase(u8 *vector, void *, u8 *first, u8 *last) {
     }
     at<u8 *>(vector, 8) = to;
     return first;
+}
+
+void __fastcall Vector8_InsertN(u8 *vector, void *, u8 *position, u32 count, const u8 *value) {
+    InsertN<8>(vector, position, count, value);
+}
+
+void __fastcall Vector16_InsertN(u8 *vector, void *, u8 *position, u32 count, const u8 *value) {
+    InsertN<16>(vector, position, count, value);
 }
 
 u8 *__fastcall TextLayout_Ctor(u8 *layout) {
