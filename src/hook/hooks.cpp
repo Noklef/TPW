@@ -118,6 +118,7 @@
 #include "../game/core/cpuinfo.h"
 #include "../game/core/observers.h"
 #include "../game/gfx/imageops.h"
+#include "../game/gfx/loadscreen.h"
 #include "../game/gfx/statsgraph.h"
 #include "../game/gfx/texsprite.h"
 #include "../game/gfx/texatlas.h"
@@ -3677,6 +3678,8 @@ const Hook kHooks[] = {
     {"TvStatic_CreateSurface",    0x0053e650, (void *)&TvStatic_CreateSurface, {0x6a, 0xff, 0x68, 0xbb, 0xea}},
     {"TvStatic_Init",             0x0053e920, (void *)&TvStatic_Init, {0xe8, 0x2b, 0xfd, 0xff, 0xff}},
     {"TvStatic_Free",             0x0053e930, (void *)&TvStatic_Free, {0xa1, 0xd0, 0x4f, 0x87, 0x00}},
+    {"LoadScreen_Close",          0x005879c0, (void *)&LoadScreen_Close, {0xa1, 0x8c, 0x47, 0x8c, 0x00}},
+    {"LoadScreen_StaticDtor",     0x00586d70, (void *)&LoadScreen_StaticDtor, {0xa1, 0x8c, 0x47, 0x8c, 0x00}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
