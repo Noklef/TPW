@@ -10,7 +10,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, LOG, RAM, Bench, Call, heap, log_region, put, set_return, vtable  # noqa: E402
 
-B = Bench([(0x5fa680, 0x5fa6b0), (0x6add90, 0x6ade00), (0x6ad5d0, 0x6ad740), (0x6ad7c0, 0x6ad860), (0x6ade00, 0x6adf30), (0x6aeab0, 0x6af700),
+B = Bench([(0x5fa680, 0x5fa6b0), (0x6add90, 0x6ade00), (0x6ad5d0, 0x6ad740), (0x6ad7c0, 0x6ad860), (0x6ade00, 0x6ae0f0), (0x6aeab0, 0x6af770), (0x6b70d0, 0x6b70f0),
            (0x6b0230, 0x6b0340)])
 SOURCE = RAM + 0x400   # Assign's and SetStyle's source style
 TABLE = 0x782d18       # SetStyle's renderers (0x782d38) and the dwords before them
@@ -27,10 +27,10 @@ CALLS = {'StyleCtor': (0x6ad5d0, 0), 'StyleDtor': (0x6ad640, 0), 'StyleDel': (0x
          'Assign': (0x6ad660, 0), 'GetFont': (0x6ad820, 0), 'FontKind': (0x6ad840, 0),
          'SetStyle': (0x6b0280, 4), 'Render': (0x6b0300, 4), 'CharClass': (0x6aeab0, 0), 'Erase12': (0x6aeda0, 0),
          'Insert8': (0x6aedf0, 0), 'Insert16': (0x6af0a0, 0), 'Insert12': (0x6af3b0, 0), 'Append': (0x6add90, 0),
-         'BreakLines': (0x6aec80, 0), 'Arrange': (0x6aeb10, 0)}
+         'BreakLines': (0x6aec80, 0), 'Arrange': (0x6aeb10, 0), 'SetOrigin': (0x6adfb0, 0)}
 RET = {'StyleCtor': 'a', 'StyleDel': 'a', 'SetFont': 'a', 'SetColour': 'a', 'HolderCtor': 'a', 'HolderDel': 'a', 'LayoutCtor': 'a',
        'LayoutDel': 'a', 'Assign': 'a', 'GetFont': 'a', 'FontKind': 'a',
-       'SetStyle': 'a', 'Render': 'a', 'CharClass': 'b', 'Erase12': 'a', 'BreakLines': 'a', 'Arrange': 'a'}
+       'SetStyle': 'a', 'Render': 'a', 'CharClass': 'b', 'Erase12': 'a', 'BreakLines': 'a', 'Arrange': 'a', 'SetOrigin': 'a'}
 
 
 def case(r):
@@ -135,6 +135,18 @@ def case(r):
             put(body, 0xa4, 'I', r.choice([0, 1, 2, 1, 2, r.getrandbits(32)]))
             put(body, 0xbc, 'I', r.choice([r.randrange(0, 0x20), r.getrandbits(32)]))
             args += [STATUS] + [r.choice([r.randrange(-0x100, 0x400) & 0xffffffff, r.getrandbits(32)]) for _ in range(4)]
+    elif op == 'SetOrigin':
+        # the positions: an 8-byte vector at +0x84 (first +0x88), empty (all 0) or in VEC
+        cap = r.randrange(0, 9)
+        n = r.randrange(0, cap + 1)
+        put(body, 0x88, 'III', *([0, 0, 0] if r.random() < 0.2 else [VEC, VEC + 8 * n, VEC + 8 * cap]))
+        regions[VEC] = r.bytes(8 * 8)
+        regions[HEAP] = heap(0x200)
+        put(body, 0xa0, 'I', r.choice([0, 2, 5, 2, 5, r.getrandbits(32)]))
+        put(body, 0xa4, 'I', r.choice([0, 1, 2, 1, 2, r.getrandbits(32)]))
+        put(body, 0xbc, 'I', r.choice([r.randrange(0, 0x20), r.getrandbits(32)]))
+        regions[VALUE] = b''.join(struct.pack('<I', r.choice([r.randrange(-0x100, 0x400) & 0xffffffff, r.getrandbits(32)])) for _ in range(4))
+        args += [STATUS, VALUE]
     return Call(address, args, regions, conv='t', ret=RET.get(op, 'v'))
 
 

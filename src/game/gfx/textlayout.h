@@ -108,4 +108,10 @@ s32 __fastcall TextLayout_BreakLines(u8 *layout, void *, u8 *begin, u8 *end);
 // right of the widest line by the horizontal kind (+0xa4: 1 at the right, 2 centred, else at the left). *status = 0. Returns status.
 s32 *__fastcall TextLayout_Arrange(u8 *layout, void *, s32 *status, s32 left, s32 top, s32 right, s32 bottom);
 
+// 0x6adfb0 (thiscall (status, rect), pops 8): the positions (an 8-byte vector at +0x84: first +0x88, last +0x8c) resized to one (a {0, 0}
+// inserted, Vector8_InsertN, or the rest erased); the origin (+0x98, +0x9c) the rect's left / top, moved by the vertical kind (+0xa0: 2
+// centred on the line height +0xbc with an unsigned halving, sic; 5 the bottom less the line height) and the horizontal kind (+0xa4: 1 the
+// right, 2 centred), and copied into the first position. *status = 0. Returns status.
+s32 *__fastcall TextLayout_SetOrigin(u8 *layout, void *, s32 *status, const s32 *rect);
+
 }

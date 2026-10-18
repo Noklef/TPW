@@ -3,6 +3,8 @@
 #include <cstdint>
 
 #include "../core/gameheap.h"
+#include "../core/seqs.h"
+#include "../core/trivial.h"
 #include "../core/vcall.h"
 #include "../files/wrapsources.h"
 #include "surface.h"
@@ -407,6 +409,45 @@ s32 *__fastcall TextLayout_Arrange(u8 *layout, void *, s32 *status, s32 left, s3
         at<u32>(layout, 0xb4) = widest + (u32)left;
         break;
     }
+    *status = 0;
+    return status;
+}
+
+s32 *__fastcall TextLayout_SetOrigin(u8 *layout, void *, s32 *status, const s32 *rect) {
+    const u32 zero[2] = {0, 0};
+    u8 *const positions = layout + 0x84;
+    u8 *const first = at<u8 *>(layout, 0x88);
+    const u32 size = first ? (u32)Elements<8>(at<u8 *>(layout, 0x8c), first) : 0;
+    if (size < 1) {
+        Vector8_InsertN(positions, nullptr, at<u8 *>(layout, 0x8c), 1 - size, reinterpret_cast<const u8 *>(zero));
+    } else if (size > 1) {  // erase(begin() + 1, end())
+        u8 *const last = at<u8 *>(layout, 0x8c);
+        u8 *const kept = Blocks8_Copy(last, last, first + 8);
+        Stub_Ret8_6b70d0((u32)(uintptr_t)kept, (u32)(uintptr_t)at<u8 *>(layout, 0x8c));
+        at<u8 *>(layout, 0x8c) = kept;
+    }
+    const u32 *const r = reinterpret_cast<const u32 *>(rect);
+    at<u32>(layout, 0x98) = r[0];
+    at<u32>(layout, 0x9c) = r[1];
+    switch (at<s32>(layout, 0xa0)) {
+    case 2:
+        at<u32>(layout, 0x9c) = ((r[3] - at<u32>(layout, 0xbc) - r[1]) >> 1) + r[1];  // sic: an unsigned halving
+        break;
+    case 5:
+        at<u32>(layout, 0x9c) = r[3] - at<u32>(layout, 0xbc);
+        break;
+    }
+    switch (at<s32>(layout, 0xa4)) {
+    case 1:
+        at<u32>(layout, 0x98) = r[2];
+        break;
+    case 2:
+        at<u32>(layout, 0x98) = (u32)((s32)(r[2] - r[0]) / 2) + r[0];
+        break;
+    }
+    u32 *const origin = at<u32 *>(layout, 0x88);
+    origin[0] = at<u32>(layout, 0x98);
+    origin[1] = at<u32>(layout, 0x9c);
     *status = 0;
     return status;
 }
