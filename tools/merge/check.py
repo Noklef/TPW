@@ -15,7 +15,8 @@ In order:
      --accept-lost PATH:ITEM (repeatable): one lost item checked by hand; printed, and to be named in the merge commit;
   3. hooks: rows the branch added (its own count, for checking an agent's report against);
   4. build, tpw_tests, retcheck, convcheck;
-  5. each bench the merge touches, at N cases (default 1000) seed 5, --both: every run must show 0 differ.
+  5. each bench the merge touches, at N cases (default 1000) seed 5, --both: every run must show 0 differ. A touched helper module
+     (no main, e.g. thingenv.py) runs as every bench that imports it.
 """
 import collections
 import glob
@@ -194,9 +195,22 @@ def main():
     if '--no-bench' in a:
         print('benches: skipped (--no-bench)')
         return
+    # A changed helper module (no main of its own, e.g. thingenv.py) is checked through every bench that imports it.
+    runs = []
     for f in benches:
         if not os.path.exists(os.path.join(ROOT, f)):
             continue
+        if '.main(' in worktree(f):
+            runs.append(f)
+            continue
+        name = os.path.basename(f)[:-3]
+        users = sorted(os.path.relpath(u, ROOT).replace('\\', '/') for u in glob.glob(os.path.join(ROOT, 'tests', 'fncmp', '*.py'))
+                       if re.search(r'^\s*(from %s import|import %s\b)' % (name, name), open(u, encoding='utf-8', errors='replace').read(), re.M))
+        print('helper %s: through %s' % (name, ', '.join(os.path.basename(u)[:-3] for u in users) or 'no bench (FAILED)'))
+        if not users:
+            fail('helper %s has no bench importing it' % name)
+        runs += users
+    for f in sorted(set(runs)):
         p = run([sys.executable, '-I', f, cases, '5', '--both'])
         res = [l.strip() for l in p.stdout.splitlines() if 'differ' in l]
         name = os.path.basename(f)[:-3]
