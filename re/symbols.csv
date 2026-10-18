@@ -3505,6 +3505,7 @@ address,name,kind,confidence,notes
 0x00598760,Ptr_FreeIfSet,function,high,reimplemented (src/game/core/buffers); frees the block a pointer variable points to
 0x00598770,Dwords_Zero,function,high,reimplemented (src/game/core/seqs); zeroes a run of dwords
 0x0056f2f0,Bands_SortValues,function,low,"reimplemented (src/game/core/seqs); thiscall on the bands object (values, lo, hi; pops 0xc): quicksort of dwords values[lo..hi] ascending unsigned; the j scan only when i > lo (sic), unbounded"
+0x0056f380,Bands_CollectTextures,function,low,"reimplemented (src/game/core/seqs); thiscall(ids, count, textures): each visible cell's texture (override box or its texture set's first) listed, its id added once; then the ids sorted"
 0x005f4ea0,ReturnOne,function,high,reimplemented (src/game/core/trivial); returns 1
 0x00414670,Low16_414670,function,low,reimplemented (src/game/core/trivial); the low word of a value
 0x0044e600,OutOne_44e600,function,low,"reimplemented (src/game/core/trivial); an init step's answer: *out = 1, returns 1"

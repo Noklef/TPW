@@ -81,4 +81,13 @@ u32 __cdecl Dwords_Zero(u32 *to, u32 count);
 // unbounded; i <= j swaps the two and moves both on, again while i <= j. The left part (lo, j) recurses when lo < j and the right
 // (i, hi) loops when i < hi (all signed).
 void __fastcall Bands_SortValues(const u8 *object, void *, u32 *values, s32 lo, s32 hi);
+
+// 0x56f380 (thiscall on the bands object; ids, count, textures; pops 0xc; name unconfirmed; asked by 0x56f741): *count = 0, then for
+// each row from the signed dword at +0x128 while below the one at +0x12c (re-read) and each column from the signed byte at +0x130 + row
+// while below the one at +0x1b0 + row (re-read), the map cell [[+0]+0x2c] + 4 * ([[+0]+0x18] * row + column) unless its byte 0 has
+// bit 1: its texture, the next of the dwords from +0x248 when [0x8bd550] has bit 4 and the cell is in the box column +0x234..+0x23c,
+// row +0x238..+0x240 (inclusive, signed), else texture 0 of the texture set at +4 of entry (the cell's word at +2) of the 8-byte table
+// [+4] (0 for none), goes to the next of textures; its id (+0x1c when its +8 has bit 0x1000, else 0; 0 for none) is added to ids
+// unless among the first *count (as read before the search) already. Then Bands_SortValues(ids, 0, *count - 1).
+void __fastcall Bands_CollectTextures(u8 *object, void *, u32 *ids, s32 *count, u32 *textures);
 }  // extern "C"
