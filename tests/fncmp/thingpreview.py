@@ -1,9 +1,10 @@
-# The thing preview (src/game/ui/thingpreview: 0x486530, 0x486630) against the originals. Show: a rectangle with words small, wide or
+# The thing preview (src/game/ui/thingpreview: 0x486530, 0x486610, 0x486630) against the originals. Show: a rectangle with words small, wide or
 # edges, a thing whose script +0xc is a live slot, an empty one, 0 or out of range, the depth small or wide, the scale floats (whole,
 # fractions, huge past __ftol's range, infinities, NaNs), [0x74f898] (Sprite_FlipY's height) a few or random; the sprite scripts
 # ready or not, their slot table (now and then full, so it grows: the heap) and the shown copy [0x7c24d8] / [0x7c24a0] set or not.
-# Hide: the same globals. The heap region serves GlobalAlloc / GlobalFree (global_heap).
-# usage: thingpreview.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Show,Hide)
+# Hide: the same globals. Copy (0x486610): those globals with the shown thing's script slot. The heap region serves GlobalAlloc /
+# GlobalFree (global_heap).
+# usage: thingpreview.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Show,Hide,Copy)
 import os
 import struct
 import sys
@@ -11,8 +12,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, RAM, Bench, Call, global_heap, heap, put  # noqa: E402
 
-CALLS = {'Show': 0x486530, 'Hide': 0x486630}
-B = Bench([(0x486530, 0x486601), (0x486630, 0x486652), (0x475010, 0x476a30), (0x476a70, 0x476a81), (0x67a830, 0x67a857),
+CALLS = {'Show': 0x486530, 'Hide': 0x486630, 'Copy': 0x486610}
+B = Bench([(0x486530, 0x486601), (0x486630, 0x486652), (0x486610, 0x486630), (0x475010, 0x476a30), (0x476a70, 0x476a81), (0x67a830, 0x67a857),
            (0x5f5660, 0x5f5690)])
 SCRIPTS, TABLE, RECT, THING = RAM, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200
 NSCRIPTS, STRIDE = 6, 0x120
@@ -47,6 +48,14 @@ def case(r):
     put(shown, 0x38, 'I', r.choice([THING, THING, 0, 0, r.getrandbits(32)]))
     regions = {SCRIPTS: r.bytes(STRIDE * NSCRIPTS), TABLE: struct.pack('<12I', *slots), 0x7b49f0: g, 0x7c24a0: shown, HEAP: heap(), **global_heap()}
     if op == 'Hide':
+        return Call(CALLS[op], [], regions)
+    if op == 'Copy':  # the shown thing's script (+0xc) a live slot or 0, copied to the live slot [0x7c24a0] (a dead one faults in both)
+        thing = bytearray(r.bytes(0x20))
+        put(thing, 0xc, 'i', r.choice(live * 4 + [0]) if live else 0)
+        if live:
+            put(shown, 0, 'i', r.choice(live))
+        regions[THING] = thing
+        put(shown, 0x38, 'I', r.choice([THING, THING, THING, 0]))  # a random pointer would only fault in both
         return Call(CALLS[op], [], regions)
     rect = bytearray(r.bytes(0x10))
     put(rect, 4, 'HHHH', *(word(r) for _ in range(4)))

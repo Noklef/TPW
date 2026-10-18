@@ -2746,7 +2746,7 @@ address,name,kind,confidence,notes
 0x0052fc30,PairTable_Commit,function,high,reimplemented (src/game/core/misc); the pair table copied to its committed copy
 0x005997b0,Table768fb8_Lookup,function,high,reimplemented (src/game/core/misc); a value looked up by id in the 0x20-byte table at 0x768fb8
 0x00409260,Flags7a1a14_Update,function,high,reimplemented (src/game/core/misc); a flag word updated from another and an object's advance
-0x00486610,Global7c24d8_CopyScript,function,high,reimplemented (src/game/core/misc); a sprite script slot made a copy of another
+0x00486610,Global7c24d8_CopyScript,function,high,reimplemented (src/game/ui/thingpreview); a sprite script slot made a copy of another
 0x00557110,Rsse_TakeFinished,function,high,"reimplemented (src/game/core/misc); the value of the first finished entry, which is cleared"
 0x0054dcc0,Flag54dcc0_Test,function,high,reimplemented (src/game/core/misc); a flag test on two settings
 0x00556a80,Rsse_GetVector,function,high,reimplemented (src/game/core/misc); three dwords of a frame's record written through pointers

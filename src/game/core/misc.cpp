@@ -267,12 +267,6 @@ u32 __cdecl Obj_RemoveFromRect(u8 *object, u32 from, u32 to) {
     return at<u32>(object, 0);
 }
 
-void __cdecl Global7c24d8_CopyScript() {
-    u8 *object = global<u8 *>(0x007c24d8);
-    if (object && at<u32>(object, 0xc))
-        SpriteScript_CopyFrom((s32)global<u32>(0x007c24a0), (s32)at<u32>(object, 0xc));
-}
-
 u32 __cdecl Rsse_TakeFinished(u8 *vm) {
     const s32 count = at<s32>(vm, 0x7c);
     u8 *entries = at<u8 *>(vm, 0x2c);
