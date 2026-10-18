@@ -64,6 +64,9 @@ def pose(r):   # (obj, pos, dir, key, mask): the ride at obj +0xc8 (or 0), a mod
             put(ram, node - RAM + r.choice([0x20, 0x24, 0x28]), 'I', 0x80000000 if r.random() < 0.5 else 0)
         if r.random() < 0.08:
             put(ram, node - RAM + 0x20, 'III', 0, 0x80000000, 0)   # a zero direction (0 / 0)
+        elif r.random() < 0.3:   # a length past the float range (inf) or under it (denormal), as the float it is stored as
+            big = r.random() < 0.5
+            put(ram, node - RAM + 0x20, '3f', *(r.uniform(-3.4e38, 3.4e38) if big else r.uniform(-2e-38, 2e-38) for _ in range(3)))
     key = r.choice(keys + [r.randrange(6), -1, -0x10, r.getrandbits(32)]) if keys else r.choice([0, 3, -1])
     mask = r.choice([0xffffffff, 0x10, 1, 0x3da1f82, 0x400000, 0, r.getrandbits(32)])
     out = r.choice([RAM + 0x4d0, RAM + 0x4d0, 0])
