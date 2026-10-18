@@ -163,6 +163,10 @@ u32 __cdecl Names_Equal(const u8 *a, const u8 *b);
 // equal, case blind, otherwise 0.
 u32 __cdecl WNames_Equal(const u8 *a, const u8 *b);
 
+// 0x5accb0 (thiscall on a list {vtable, head, ...}, nodes {item, next}; key, pops 4; name unconfirmed): walks the list until an item whose wide
+// text equals the key's (WNames_Equal(key, item)), then returns the item of the node after it (sic: 0 when the match is the last or there is none).
+u8 *__fastcall WNamedList_FindAfter(u8 *list, void *, const u8 *key);
+
 // 0x489350 (thiscall on the destination; source, pops 4): the eight dwords at +0..+0x1c and the text at +0x24 (up to and including its NUL) of the source
 // are copied; the dword at +0x20 (a pointer into the record) = the source's moved by the distance between the two. Returns the destination.
 u8 *__fastcall Record_CopyWithText(u8 *dest, void *, const u8 *source);

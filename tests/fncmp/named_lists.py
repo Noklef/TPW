@@ -1,5 +1,5 @@
 # The list searches and string destructor of src/game/core/named_lists against the originals: lists of 0 to 4 objects whose names (case varied) are the key's or not, and five
-# game strings (gamestring.py's).
+# game strings (gamestring.py's). WFind: the wide-text list search (0x5accb0) on the same lists, the texts made wide.
 # usage: named_lists.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import sys
@@ -10,8 +10,8 @@ import gamestring  # noqa: E402
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
 # name: (address, convention, returns, size)
-CALLS = {'Find': (0x421770, 't', 'a', 0x70), 'Has': (0x41ede0, 't', 'a', 0x50), 'Dtor': (0x5c4c60, 't', 'v', 0x80)}
-B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()] + [(0x424cf0, 0x424d10), (0x67df40, 0x67e040), (0x67faf0, 0x67fb20), (0x682720, 0x682780),
+CALLS = {'Find': (0x421770, 't', 'a', 0x70), 'Has': (0x41ede0, 't', 'a', 0x50), 'Dtor': (0x5c4c60, 't', 'v', 0x80), 'WFind': (0x5accb0, 't', 'a', 0x36)}
+B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()] + [(0x424cf0, 0x424d40),(0x67df40, 0x67e040), (0x67faf0, 0x67fb20), (0x682720, 0x682780),
           (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000)])
 NAMES = [b'Sloth', b'sloth', b'SLOTH', b'Slot', b'', b'b']
 LIST, NODES, OBJS, TEXTS = RAM + 0x800, RAM + 0x900, RAM + 0x1000, RAM + 0x2000
@@ -23,6 +23,10 @@ def varied(r, base):
         if r.random() < 0.3:
             s[i] ^= 0x20
     return bytes(s) + bytes(0x10)
+
+
+def wide(text):
+    return b''.join(bytes([c, 0]) for c in text)
 
 
 def case(r):
@@ -48,6 +52,12 @@ def case(r):
         regions[TEXTS + 0x40 * k] = varied(r, wanted if r.random() < 0.5 else r.choice(NAMES))
     key = bytearray(r.bytes(0x20))
     put(key, 8, 'I', TEXTS + 0x400)
+    if name == 'WFind':   # the items' wide texts at +8
+        for k in range(n):
+            put(regions[OBJS + 0x40 * k], 8, 'I', TEXTS + 0x40 * k)
+            regions[TEXTS + 0x40 * k] = wide(regions[TEXTS + 0x40 * k])
+        regions.update({LIST: lst, NODES: nodes, RAM + 0x400: key, TEXTS + 0x400: wide(varied(r, wanted))})
+        return Call(address, [LIST, RAM + 0x400], regions, conv=conv, ret=ret)
     regions.update({LIST: lst, NODES: nodes, RAM + 0x400: key, TEXTS + 0x400: varied(r, wanted), RAM + 0x500: r.bytes(0x10)})
     if name == 'Find':
         put(obj, 0, 'I', LIST if r.random() < 0.9 else 0)
