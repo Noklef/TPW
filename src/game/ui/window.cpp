@@ -140,6 +140,33 @@ u8 *__fastcall Window_OffsetByParents(u8 *window, void *, u8 *rect) {
     return previous;
 }
 
+u32 __fastcall Window_Offset(u8 *window, void *, u32 dx, u32 dy) {
+    const s16 x = (s16)dx, y = (s16)dy;
+    if (x == 0 && y == 0) return 0;
+    using Offset = void(__fastcall *)(u8 *, void *, u32, u32);
+    const auto offset = [&](u8 *rect) { reinterpret_cast<Offset>(at<void **>(rect, 0)[2])(rect, nullptr, (u16)x, (u16)y); };
+    offset(window + 8);
+    if (at<u8 *>(window, 0x44) != window + 8) offset(at<u8 *>(window, 0x44));
+    offset(window + 0x2c);
+    at<u16>(window, 0xe4) += (u16)x;
+    at<u16>(window, 0xe6) += (u16)y;
+    u8 event[0x18];  // (the rest is left as it is)
+    at<u16>(event, 0xc) = at<u16>(window, 0xe4);
+    at<u16>(event, 0xe) = at<u16>(window, 0xe6);
+    if (u8 *const object = at<u8 *>(window, 0x98)) {
+        at<u8 *>(event, 0x14) = window + 8;
+        vcall<void>(object, 0xc, 0x50u, event);
+    }
+    if (u8 *const object = at<u8 *>(window, 0x9c)) {
+        at<u8 *>(event, 0x14) = window + 0x2c;
+        vcall<void>(object, 0xc, 0x50u, event);
+    }
+    Window_SendMessage(window, 0x13, (u32)(s32)x, (u32)(s32)y);
+    u32 left = (u32)(uintptr_t)window;  // EAX: the window, or the last child's result
+    for (u8 *child = at<u8 *>(window, 0x5c); child; child = at<u8 *>(child, 0x54)) left = Window_Offset(child, nullptr, (u16)x, (u16)y);
+    return (left & 0xffff0000u) | 1;
+}
+
 u8 *__fastcall Window_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom) {
     for (u32 off = 8; off <= 0x38; off += 0xc)
         GuiRect_Ctor(window + off);

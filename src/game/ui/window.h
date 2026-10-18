@@ -72,6 +72,14 @@ void __cdecl Window_SaveInsetRect(u8 *window, s32 dx, s32 dy);
 // previous one's, the window's at first, for the second). EAX is left as the last parent, or the window when there is none.
 u8 *__fastcall Window_OffsetByParents(u8 *window, void *, u8 *rect);
 
+// 0x65c7fe (thiscall (dx, dy: words), pops 8; name unconfirmed): moves the window and its children: 0 when both are 0; otherwise slot 2
+// (GuiRect_Offset) of the rectangles +8, +0x44 (unless it is +8) and +0x2c (the original pushes the words as dwords whose upper halves are
+// what the registers held; the GUI rectangles read only the words, and these pass 0), the words +0xe4 / +0xe6 moved too, then an event
+// on the stack (its words +0xc / +0xe those two, +0x14 the rectangle +8, then +0x2c; the rest unset) to the objects +0x98 and +0x9c when
+// set (slot 3 with 0x50), message 0x13 (dx, dy sign-extended; Window_SendMessage), and each child (+0x5c, then +0x54) moved the same way.
+// 1 in AX; the upper half of EAX is the last child's result's, or the window's for none.
+u32 __fastcall Window_Offset(u8 *window, void *, u32 dx, u32 dy);
+
 // 0x65bcad (thiscall (parent, flags, id, left, top, right, bottom: words), pops 28; name unconfirmed): the constructor: five rectangles
 // (+8, +0x14, +0x20, +0x2c, +0x38; GuiRect_Ctor), the vtable 0x705980, the flags at +0x48, the parent at +0x60, the id at +0x8c, the
 // handlers +0x114 / +0x118 0x65f6d1 and most fields cleared (+0x90 / +0x94 -1, the word +0x50 0xffff). The rectangle +8 is set from the
