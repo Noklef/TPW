@@ -294,6 +294,10 @@
 #include "../game/online/onlinelist.h"
 #include "../game/online/chatavatar.h"
 #include "../game/online/session.h"
+#include "../game/ui/dialog7ca1c8.h"
+#include "../game/ui/dialogs.h"
+#include "../game/ui/guimanager.h"
+#include "../game/ui/window.h"
 
 namespace tpw::hook {
 
@@ -3713,6 +3717,7 @@ const Hook kHooks[] = {
     {"ScreenSurfaces_Surface14",  0x0047e510, (void *)&ScreenSurfaces_Surface14, {0x51, 0x57, 0x8b, 0xf9, 0x8b}},
     {"StatsGraph_ShownMax",       0x0049a7b0, (void *)&StatsGraph_ShownMax, {0x51, 0x8b, 0x0d, 0x3c, 0xf8}},
     {"StatsGraph_ShownMin",       0x0049a8f0, (void *)&StatsGraph_ShownMin, {0x51, 0x8b, 0x0d, 0x3c, 0xf8}},
+    {"StatsGraph7cb318_ShownMax", 0x004a51d0, (void *)&StatsGraph7cb318_ShownMax, {0x51, 0x8b, 0x0d, 0x3c, 0xf8}},
     {"RleImage_DrawScaled",       0x00564790, (void *)&RleImage_DrawScaled, {0x81, 0xec, 0x2c, 0x02, 0x00}},
     {"RleImage_ReadCodes",        0x00564750, (void *)&RleImage_ReadCodes, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"RleImage_DeletingDtor",     0x00564a90, (void *)&RleImage_DeletingDtor, {0x8b, 0x41, 0xe8, 0x56, 0x8d}},
@@ -4060,6 +4065,37 @@ const Hook kHooks[] = {
     {"RSSE_Init",                 0x00551600, (void *)&RSSE_Init, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"RsseScript_EventName",      0x00468600, (void *)&RsseScript_EventName, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"RSSE_StartTimer",           0x00557160, (void *)&RSSE_StartTimer, {0xb9, 0x70, 0x59, 0x78, 0x00}},
+    {"Window_FindChild",          0x0065d7d0, (void *)&Window_FindChild, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window_CallHandler",        0x0065f697, (void *)&Window_CallHandler, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window_SendMessage",        0x00658d9f, (void *)&Window_SendMessage, {0x55, 0x8b, 0xec, 0x83, 0x7d}},
+    {"Window_ImplSlot7",          0x0065d6db, (void *)&Window_ImplSlot7, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window_ImplSlot6",          0x0065d745, (void *)&Window_ImplSlot6, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window_DwordA0",            0x0065e705, (void *)&Window_DwordA0, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Dialog7ca1c8_SetChecks",    0x00498090, (void *)&Dialog7ca1c8_SetChecks, {0x8b, 0x0d, 0xc8, 0xa1, 0x7c}},
+    {"Dialog7ca1c8_SetChecksIfUp", 0x00498a50, (void *)&Dialog7ca1c8_SetChecksIfUp, {0xa1, 0xc8, 0xa1, 0x7c, 0x00}},
+    {"Dialog7ca1c8_SetChecksIfUpThis", 0x00481a00, (void *)&Dialog7ca1c8_SetChecksIfUpThis, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"Dialog7cc47c_Message6Off",  0x004b8830, (void *)&Dialog7cc47c_Message6Off, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
+    {"Dialog7cc47c_Message6On",   0x004b8810, (void *)&Dialog7cc47c_Message6On, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
+    {"Dialog7cc47c_Message4",     0x004b87f0, (void *)&Dialog7cc47c_Message4, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
+    {"Dialog7cc4c4_Message6On",   0x004b9c20, (void *)&Dialog7cc4c4_Message6On, {0xa1, 0xc4, 0xc4, 0x7c, 0x00}},
+    {"Dialog7cc4c4_Message4",     0x004b9c00, (void *)&Dialog7cc4c4_Message4, {0xa1, 0xc4, 0xc4, 0x7c, 0x00}},
+    {"Dialog7cc4b4_Message6Off",  0x004b8ec0, (void *)&Dialog7cc4b4_Message6Off, {0xa1, 0xb4, 0xc4, 0x7c, 0x00}},
+    {"Dialog7cc4b4_Message4",     0x004b8e80, (void *)&Dialog7cc4b4_Message4, {0xa1, 0xb4, 0xc4, 0x7c, 0x00}},
+    {"Dialog7cdb0c_Child16007Message6Off", 0x004c5800, (void *)&Dialog7cdb0c_Child16007Message6Off, {0x8b, 0x0d, 0x0c, 0xdb, 0x7c}},
+    {"Dialog7cdb0c_Child16007Message6On", 0x004c57e0, (void *)&Dialog7cdb0c_Child16007Message6On, {0x8b, 0x0d, 0x0c, 0xdb, 0x7c}},
+    {"Dialog7cdb0c_Message6Off",  0x004c57c0, (void *)&Dialog7cdb0c_Message6Off, {0xa1, 0x0c, 0xdb, 0x7c, 0x00}},
+    {"Dialog7cdb0c_Message6On",   0x004c57a0, (void *)&Dialog7cdb0c_Message6On, {0xa1, 0x0c, 0xdb, 0x7c, 0x00}},
+    {"Dialog7cdb0c_Message4",     0x004c5780, (void *)&Dialog7cdb0c_Message4, {0xa1, 0x0c, 0xdb, 0x7c, 0x00}},
+    {"Windows7c26b0_Message5",    0x0048ee20, (void *)&Windows7c26b0_Message5, {0x56, 0xbe, 0xb0, 0x26, 0x7c}},
+    {"WindowAt10_Message4IfAny",  0x00492e60, (void *)&WindowAt10_Message4IfAny, {0x8b, 0x41, 0x10, 0x85, 0xc0}},
+    {"WindowAt10_Message4",       0x0048cf70, (void *)&WindowAt10_Message4, {0x8b, 0x41, 0x10, 0x6a, 0x00}},
+    {"Dialog7cca94_Message4IfUp", 0x004c25e0, (void *)&Dialog7cca94_Message4IfUp, {0xa1, 0x94, 0xca, 0x7c, 0x00}},
+    {"Dialog7ca098_Message4IfUp", 0x0048d990, (void *)&Dialog7ca098_Message4IfUp, {0xa1, 0x98, 0xa0, 0x7c, 0x00}},
+    {"WindowAt10_ScalarDtor",     0x0048c8b0, (void *)&WindowAt10_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0xa8}},
+    {"Windows7cc8bc_Message6Pair", 0x004bcef0, (void *)&Windows7cc8bc_Message6Pair, {0x51, 0xa1, 0xbc, 0xc8, 0x7c}},
+    {"GuiManager_Word4Set",       0x00659631, (void *)&GuiManager_Word4Set, {0x55, 0x8b, 0xec, 0x8b, 0x0d}},
+    {"GuiManager_CallSlot3",      0x0065961c, (void *)&GuiManager_CallSlot3, {0x55, 0x8b, 0xec, 0xa1, 0x8c}},
+    {"GuiManager_CallSlot4",      0x00659607, (void *)&GuiManager_CallSlot4, {0x55, 0x8b, 0xec, 0xa1, 0x8c}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

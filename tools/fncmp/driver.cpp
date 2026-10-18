@@ -206,6 +206,12 @@ u32 __cdecl stub_cdecl_log2(u32 a, u32 b) {
     return record_call(0x13e, 2, 0, stack);
 }
 
+// The same with four arguments (kStubs + 0x90, tools/fncmp.py CDECL_LOG4): the entry k 0x13d.
+u32 __cdecl stub_cdecl_log4(u32 a, u32 b, u32 c, u32 d) {
+    const u32 stack[5] = {0, a, b, c, d};
+    return record_call(0x13d, 4, 0, stack);
+}
+
 // QueryPerformanceFrequency / QueryPerformanceCounter (stdcall) for code that calls through the game's import slots (kStubs + 0x60, tools/fncmp.py COUNTER;
 // the case maps the log): writes the 64-bit value at log + 0x7f0, then steps it by the one at log + 0x7f8; returns bit 0 of the dword at log + 0x7e8, which then shifts right.
 s32 __stdcall stub_counter(unsigned long long *value) {
@@ -458,7 +464,7 @@ void map_stubs() {
     if (!p) fail("cannot map the stubs at", kStubs);
     const void *stubs[] = {(const void *)&stub_read, (const void *)&stub_write, (const void *)&stub_global_alloc,
                            (const void *)&stub_global_free, (const void *)&stub_mark, (const void *)&stub_cdecl_log, (const void *)&stub_counter,
-                           (const void *)&stub_seek, (const void *)&stub_cdecl_log2};
+                           (const void *)&stub_seek, (const void *)&stub_cdecl_log2, (const void *)&stub_cdecl_log4};
     for (u32 i = 0; i < sizeof stubs / sizeof stubs[0]; ++i) jump(p + 0x10 * i, stubs[i]);
     map_recorders(p);
 }

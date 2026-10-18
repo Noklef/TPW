@@ -490,6 +490,22 @@ def _cdecl_log2(e):  # (driver.cpp stub_cdecl_log2)
     e.r['EAX'] = e.u32(LOG + LOG_RETURNS + 8 * 0x3e + 4) if e.u32(LOG + LOG_RETURNS + 8 * 0x3e) else vhash(0x13e, 2, 0, args)
 
 
+CDECL_LOG4 = STUBS + 0x90  # a callback of four cdecl arguments that logs them (the entry k 0x13d, n 4, this 0; LOG_BYTES / LOG_RETURNS of 0x3d apply)
+
+
+def _cdecl_log4(e):  # (driver.cpp stub_cdecl_log4)
+    sp = e.r['ESP'] + (4 if e.tail else 0)
+    raw = [e.u32(sp + 4 * i) for i in range(4)]
+    low = e.u32(LOG + LOG_BYTES + 4 * 0x3d)
+    args = [a & 0xff if low >> i & 1 else a for i, a in enumerate(raw)]
+    count = e.u32(LOG)
+    if count < LOG_ENTRIES:
+        e.write(LOG + 4 + 4 * LOG_ENTRY * count, struct.pack('<%dI' % LOG_ENTRY, 0x13d, 4, 0, *args, *([0] * 5)))
+        e.write(LOG, struct.pack('<I', count + 1))
+    flag, value = struct.unpack('<2I', e.read(LOG + LOG_RETURNS + 8 * 0x3d, 8))
+    e.r['EAX'] = raw[value] if flag == 2 and value < 4 else value if flag else vhash(0x13d, 4, 0, args)
+
+
 
 CPU = 0x2d000000  # the fake CPU a case maps (cpu_region()): CPUID and EFLAGS.ID in the emulator, driver.cpp's stub_cpuid / stub_has_cpuid natively
 
@@ -589,7 +605,7 @@ class Bench:
         self.emu = x87emu.Emu([slice_listing(ranges)])
         self.emu.hooks.update({0x67a830: _ftol, 0x67b280: _modf, 0x67b24a: _cifmod,
                                STUBS: _record(False), STUBS + 0x10: _record(True),
-                               STUBS + 0x20: _global_alloc, STUBS + 0x30: _global_free, STUBS + 0x40: _mark, CDECL_LOG: _cdecl_log, COUNTER: _counter, SEEK: _seek, CDECL_LOG2: _cdecl_log2,
+                               STUBS + 0x20: _global_alloc, STUBS + 0x30: _global_free, STUBS + 0x40: _mark, CDECL_LOG: _cdecl_log, COUNTER: _counter, SEEK: _seek, CDECL_LOG2: _cdecl_log2, CDECL_LOG4: _cdecl_log4,
                                0x6351a0: _zlib_init(0x140, 7), 0x635450: _zlib_copy(1), 0x6357c0: _zlib_end(0x142), 0x636600: _zlib_init(0x143, 3),
                                0x636710: _zlib_copy(2), 0x6365b0: _zlib_end(0x145),
                                0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove,
