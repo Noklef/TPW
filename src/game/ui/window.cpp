@@ -285,4 +285,13 @@ u32 __cdecl Window_UpdateHover() {
     }
     return 1;
 }
+
+void __cdecl Window_SaveInsetRect(u8 *window, s32 dx, s32 dy) {
+    u8 rect[12];
+    GuiRect_Ctor(rect);
+    Window_GetRect(window, nullptr, rect, 1);
+    GuiRect_Adjust(rect, nullptr, (u32)dx, (u32)dy, (u32)-dx, (u32)-dy);
+    Window_SetSavedRect(window, nullptr, rect);
+    GuiRect_Dtor(rect);
+}
 }

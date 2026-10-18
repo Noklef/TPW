@@ -25,7 +25,8 @@
 # HilightList_NewRow / List7cc188_NewRow (0x480d30 / 0x4a8380, src/game/ui/listrows): the Ctor's surroundings, the heap failing now and then,
 # font 7 (Language_Font, of group 0-2) a recorder whose slot 1 gives its height (edges too), the divisor word [0xfaa5c0] any but 0.
 # CallDefault / WindowAt10_Handler (0x65f66e, 0x492e00): the default handler +0x118 fncmp's logger, the window's object A0[0] random bytes,
-# the message 0x14 often. GetRect / SetSavedRect (0x65d42e, 0x65cfd4): a GUI rectangle, a recorder or none, the insets small or edges.
+# the message 0x14 often. GetRect / SetSavedRect (0x65d42e, 0x65cfd4): a GUI rectangle, a recorder or none, the insets small or edges. SaveInsetRect (0x485e30):
+# random rectangles and insets.
 # usage: window.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FindChild,SetChecks,SetChecksIfUp)
 import os
 import struct
@@ -50,7 +51,7 @@ CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50
          'CancelPosted': 0x658fe9, 'CancelPostedFirst': 0x659012, 'CancelTimed': 0x65903b,
          'Dtor': 0x65c025, 'DeletingDtor': 0x661680, 'Dtor705a50': 0x6689bc, 'DeletingDtor705a50': 0x6693a0,
          'HilightList_NewRow': 0x480d30, 'List7cc188_NewRow': 0x4a8380, 'CallDefault': 0x65f66e, 'WindowAt10_Handler': 0x492e00,
-         'GetRect': 0x65d42e, 'SetSavedRect': 0x65cfd4}
+         'GetRect': 0x65d42e, 'SetSavedRect': 0x65cfd4, 'SaveInsetRect': 0x485e30}
 SENDS = {k: int(k[6:12], 16) for k in CALLS if k.startswith('Dialog7')}   # the window's global
 B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6d1), (0x658d9f, 0x658df4), (0x659710, 0x659721),
            (0x4b87f0, 0x4b8850), (0x4b8e80, 0x4b8ea0), (0x4b8ec0, 0x4b8ee0), (0x4b9c00, 0x4b9c40),
@@ -68,7 +69,7 @@ B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x
            (0x65c025, 0x65c2c8), (0x661680, 0x6616b0), (0x659d90, 0x659dbc), (0x66bff7, 0x66c00b), (0x661f9b, 0x661fe5),
            (0x6620e2, 0x66213e), (0x662306, 0x662384), (0x662500, 0x66252c), (0x6689bc, 0x668a23), (0x6693a0, 0x6693cc),
            (0x66969e, 0x6696b4), (0x480d30, 0x480dc3), (0x4a8380, 0x4a8413), (0x485a70, 0x485a94),
-           (0x65f66e, 0x65f697), (0x492e00, 0x492e34), (0x65d42e, 0x65d49e), (0x65cfd4, 0x65cffd), (0x65a43e, 0x65a493)])
+           (0x65f66e, 0x65f697), (0x492e00, 0x492e34), (0x65d42e, 0x65d49e), (0x65cfd4, 0x65cffd), (0x65a43e, 0x65a493), (0x485e30, 0x485eb6)])
 WINDOW, NODES, VTABLE, MISC, KIDS, HOLDER, WINDOW2 = RAM, RAM + 0x100, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200, RAM + 0x1600, RAM + 0x1800
 QUEUES, TREE, RECTS, TIMED = RAM + 0x2000, RAM + 0x3000, RAM + 0x4000, RAM + 0x5000
 MANAGER, TNODES, RECT, ROWS, PARENT, CHILDREN = RAM + 0x5400, RAM + 0x5600, RAM + 0x5800, RAM + 0x5c00, RAM + 0x6000, RAM + 0x7000
@@ -296,6 +297,12 @@ def case(r):
         inner = r.choice([0, 1, 0x10000, 0xffff0000, r.getrandbits(32)])
         args = [r.choice([MISC] * 6 + [0])] + ([inner] if op == 'GetRect' else [])
         return Call(CALLS[op], [WINDOW] + args, regions, conv='t', ret='w')
+    if op == 'SaveInsetRect':   # the window's rectangles (+8 and the saved +0x2c) and insets random (small or edges), the insets dx / dy too
+        win = bytearray(r.bytes(0x120))
+        for k in list(range(0xc, 0x14, 2)) + list(range(0xf8, 0x100, 2)):
+            put(win, k, 'H', r.choice([0, 1, 2, 5, 0x7fff, 0x8000, 0xffff, r.randrange(-50, 50) & 0xffff, r.getrandbits(16)]))
+        regions[WINDOW] = win
+        return Call(CALLS[op], [WINDOW] + [r.choice([0, 1, 3, -2, 0x7fff, -0x8000, 0x12345, r.getrandbits(32)]) & 0xffffffff for _ in range(2)], regions, ret='v')
     if op in ('RectAssign', 'SaveRect'):   # random rectangles (the window's at +8 and +0x2c)
         regions[MISC] = r.bytes(0x10)
         regions[MISC + 0x40] = r.bytes(0x10)

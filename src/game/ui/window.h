@@ -49,6 +49,11 @@ u16 __fastcall Window_GetRect(u8 *window, void *, u8 *rect, u32 inner);
 // (GuiRect_Assign); 1 (AX).
 u16 __fastcall Window_SetSavedRect(u8 *window, void *, const u8 *rect);
 
+// 0x485e30 (cdecl (window, dx, dy); game code, called from 0x493b79, 0x493ba3 and 0x494793; name unconfirmed): the saved rectangle +0x2c
+// set (Window_SetSavedRect) to the inner one (Window_GetRect) shrunk by dx on the left and right and dy on the top and bottom
+// (GuiRect_Adjust: dx, dy, -dx, -dy as words), through a GUI rectangle on the stack (EAX: its destructor's, the stack address; left out).
+void __cdecl Window_SaveInsetRect(u8 *window, s32 dx, s32 dy);
+
 // 0x65c979 (thiscall (rect), pops 4; name unconfirmed): for each parent up the chain (+0x60), the rectangle's slot 2 (GuiRect_Offset)
 // called with the parent's words +0xc and +0xe (sic: pushed as dwords whose upper halves are the parent's address for the first and the
 // previous one's, the window's at first, for the second). EAX is left as the last parent, or the window when there is none.
