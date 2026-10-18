@@ -299,6 +299,7 @@
 #include "../game/ui/guidialog.h"
 #include "../game/ui/guimanager.h"
 #include "../game/ui/guirect.h"
+#include "../game/ui/guitimers.h"
 #include "../game/ui/msgqueue.h"
 #include "../game/ui/textpool.h"
 #include "../game/ui/window.h"
@@ -4133,6 +4134,12 @@ const Hook kHooks[] = {
     {"TextPool_Take",             0x006695b9, (void *)&TextPool_Take, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"TextPool_Free",             0x00669586, (void *)&TextPool_Free, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"TextPool_Init",             0x00669440, (void *)&TextPool_Init, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiTimers_Cancel",          0x00669e3a, (void *)&GuiTimers_Cancel, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiTimers_Fire",            0x00669d77, (void *)&GuiTimers_Fire, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiTimers_Add",             0x00669c8d, (void *)&GuiTimers_Add, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiTimers_Reset",           0x00669eb3, (void *)&GuiTimers_Reset, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiTimers_Free",            0x00669c62, (void *)&GuiTimers_Free, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiTimers_Init",            0x00669efb, (void *)&GuiTimers_Init, {0x55, 0x8b, 0xec, 0x83, 0xec}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
