@@ -3525,6 +3525,7 @@ const Hook kHooks[] = {
     {"BalanceFile_FindKey",       0x00401280, (void *)&BalanceFile_FindKey, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"AdvisorScoringFile_Dtor",   0x0059bf10, (void *)&AdvisorScoringFile_Dtor, {0xc7, 0x01, 0x58, 0xd9, 0x6f}},
     {"ThemeRecord_Dtor",          0x005b0cd0, (void *)&ThemeRecord_Dtor, {0x6a, 0xff, 0x68, 0x1b, 0xf9}},
+    {"BalanceFile_ParseMap",      0x00402720, (void *)&BalanceFile_ParseMap, {0x8b, 0x44, 0x24, 0x04, 0x81}},
     {"TimeSig_Serialize",         0x0041a860, (void *)&TimeSig_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x56}},
     {"FloatConsts_InitOne_407b20", 0x00407b20, (void *)&FloatConsts_InitOne_407b20, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"FloatConsts_InitEpsilon_407b40", 0x00407b40, (void *)&FloatConsts_InitEpsilon_407b40, {0xd9, 0x05, 0x00, 0xd7, 0x6f}},

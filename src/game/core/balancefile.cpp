@@ -4,6 +4,8 @@
 
 #include "vcall.h"
 #include "../files/file.h"
+#include "crt.h"
+#include "gameerror.h"
 #include "gameheap.h"
 #include "string.h"
 
@@ -241,4 +243,85 @@ void __fastcall AdvisorScoringFile_Dtor(u8 *self) {
 }
 
 void __cdecl AdvisorScoring_StaticDtor() { AdvisorScoring_Dtor(reinterpret_cast<u8 *>(0x00fb3540)); }
+
+u32 __cdecl BalanceFile_ParseMap(const char **text, u8 **map, const char **error, const u8 *symbols, s32 count) {
+    u8 grid[0xc88] = {};  // +0 the width, +4 the height, +8 20 rows of 20 cells {the symbol's +4 dword, its +8 byte, 3 zeros}
+    *error = nullptr;
+    const char *s = *text;
+    while (*s && Crt().iswspace((u32)(s32)(s16)(s8)*s)) ++s;
+    while (*s && *s != '\n') ++s;
+    if (!*s) {
+        *error = reinterpret_cast<const char *>(0x00739b80);  // "Missing map description"
+        return 0;
+    }
+    if (s[1] != '-' || s[2] != '-' || s[3] != '-') {
+        *error = reinterpret_cast<const char *>(0x00739b08);  // "Missing map description initial marker"
+        return 0;
+    }
+    const char *p = s + 3;
+    while (*p && *p != '\n') ++p;  // (from the third dash on)
+    if (*p == '\n') ++p;
+    s32 width = 0, rows = 0, base = 0;
+    for (;;) {
+        char c = *p;
+        if (c == '-' && p[1] == '-' && p[2] == '-') {  // the closing marker
+            const char *end = p + 2;
+            while (*end && *end != '\n') ++end;
+            if (*end == '\n') ++end;
+            *reinterpret_cast<s32 *>(grid) = width;
+            *reinterpret_cast<s32 *>(grid + 4) = rows;
+            u8 *top = grid + 8, *bottom = grid + 8 + (rows - 1) * 0xa0;  // the rows turned upside down
+            for (s32 n = rows / 2; n > 0; --n, top += 0xa0, bottom -= 0xa0) {
+                u8 row[0xa0];
+                for (u32 i = 0; i < 0xa0; ++i) row[i] = top[i];
+                for (u32 i = 0; i < 0xa0; ++i) top[i] = bottom[i];
+                for (u32 i = 0; i < 0xa0; ++i) bottom[i] = row[i];
+            }
+            u8 *const block = static_cast<u8 *>(Mem_GlobalAlloc(0xc88));
+            if (!block) {
+                GameError_Set(reinterpret_cast<u8 *>(0x00785de8), nullptr, 8, 0, nullptr);
+                return 0;
+            }
+            for (u32 i = 0; i < 0xc88; ++i) block[i] = grid[i];
+            *map = block;
+            *text = end;
+            return 1;
+        }
+        if (!c) {
+            *error = reinterpret_cast<const char *>(0x00739b68);  // "Missing map delimter"
+            return 0;
+        }
+        s32 column = 0;
+        while (c != '\n') {
+            if (c != ' ') {
+                if (base == 0x190) {
+                    *error = reinterpret_cast<const char *>(0x00739b58);  // "Map too high"
+                    return 0;
+                }
+                s32 i = 0;
+                if (count > 0)
+                    while (i < count && (char)symbols[i * 0xc] != c) ++i;
+                if (i == count) {  // (a negative count takes the first symbol, sic)
+                    *error = reinterpret_cast<const char *>(0x00739b40);  // "Illegal map character"
+                    return 0;
+                }
+                if (column == 0x14) {
+                    *error = reinterpret_cast<const char *>(0x00739b30);  // "Map too wide"
+                    return 0;
+                }
+                u8 *const cell = grid + 8 + (column + base) * 8;
+                *reinterpret_cast<u32 *>(cell) = *reinterpret_cast<const u32 *>(symbols + i * 0xc + 4);
+                cell[4] = symbols[i * 0xc + 8];
+                ++column;
+            }
+            c = *++p;
+            if (!c) break;
+        }
+        if (column > width) width = column;
+        ++rows;
+        base += 0x14;
+        while (*p && *p != '\n') ++p;
+        if (*p == '\n') ++p;
+    }
+}
 }

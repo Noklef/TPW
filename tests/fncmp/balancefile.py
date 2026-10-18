@@ -2,8 +2,10 @@
 # on a file whose vtable is one of the game's balance vtables (the driver points their slot 0 at the ported schema getters), with a made-up schema
 # laid over that getter's table (types 0-11 and others, groups of type 2 closed by a type-3 record's count, a type-3 record after the 0xc end so
 # a group's search always stops) and values entries of a few strides; and the six schema getters themselves. A theme's record's destructor
-# (0x5b0cd0) with its theme balance file (vtable 0x702800) or none and a name of any block.
-# usage: balancefile.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Defaults,Release,Schema,Dtor,Init,ObjCtor,Advisor,Find,Theme)
+# (0x5b0cd0) with its theme balance file (vtable 0x702800) or none and a name of any block. A map description parsed (0x402720): leading white
+# space and a first line, the "---" marker (or a near miss), rows of the symbols' chars, spaces and others up to 22 wide and 21
+# high (the 21st with a char), the closing marker or none; symbol tables of 0-8 entries (or a negative count); the map's block from heap() (or none).
+# usage: balancefile.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Defaults,Release,Schema,Dtor,Init,ObjCtor,Advisor,Find,Theme,Map)
 import os
 import struct
 import sys
@@ -19,7 +21,7 @@ DTORS = {0x402a70: (0x784e30, 0x6fd618), 0x402ac0: (0x784c20, 0x6fd618), 0x402b3
          0x412d40: (0, 0x6fd8a8), 0x414410: (0, 0x6fd8b0), 0x423dc0: (0, 0x6fd630), 0x59bf10: (0, 0x6fd958)}   # the static (global, vtable) and thiscall (0, vtable) destructors
 B = Bench([(0x401250, 0x40127a), (0x4013e0, 0x40161d), (0x5f5680, 0x5f5690), (0x412c90, 0x412ca2), (0x4143f0, 0x414402), (0x4d1e60, 0x4d1e72), (0x5da3c0, 0x5da3c1)]
           + [(a, a + 0x12) for a in GETTERS] + [(a, a + 0x10) for a in DTORS] + [(0x401030, 0x401212), (0x5f5660, 0x5f5680), (0x5b0d60, 0x5b0d64), (0x412c20, 0x412c89), (0x415e70, 0x415e8e), (0x401280, 0x4013dc),
-           (0x5b0cd0, 0x5b0d34), (0x5b0d40, 0x5b0d54), (0x5f61e0, 0x5f61f3)])
+           (0x5b0cd0, 0x5b0d34), (0x5b0d40, 0x5b0d54), (0x5f61e0, 0x5f61f3), (0x402720, 0x402a1e), (0x405710, 0x405742), (0x67a400, 0x690000)])
 VALS, FLAGS, DATA = RAM + 0x800, RAM + 0x900, RAM + 0x1000
 INIT = RAM + 0x4000
 GROUPED = [0, 1, 2, 2, 2, 3, 3, 4, 6, 9, 10, 0xd]   # (Init: groups nested, cut short and empty more often)
@@ -109,6 +111,22 @@ def find(r):   # BalanceFile_FindKey: names from a few (near misses among them) 
     return Call(0x401280, args, regions, conv='t', ret='a')
 
 
+def parse_map(r):   # 0x402720 (&text, &map, &error, symbols, count)
+    count = r.choice([0, 1, 2, 3, 5, 8, 8, -1])
+    chars = r.sample(b'#.ABx-~*o+=!', max(count, 1))
+    symbols = b''.join(bytes([c]) + r.bytes(3) + r.bytes(4) + r.bytes(4) for c in chars)
+    pool = bytes(chars) + b' ' * 3 + (r.choice([b'?', b'\x80', b'\xff', b'-']) if r.random() < 0.15 else b'')
+    text = r.choice([b'', b'', b' ', b'\t\r\n ', b'\n']) + r.choice([b'[Map]', b'x', b'map 1 \x90']) + r.choice([b'\n', b'\n', b'\n', b''])
+    text += r.choice([b'---', b'---', b'-----x', b'--', b'-x-', b'']) + r.choice([b'', b' row', b'\r']) + b'\n'
+    for k in range(r.choice([0, 1, 2, 3, 5, 10, 20, 20, 21, r.randrange(22)])):   # a 21st row has a char (blank ones overrun the grid, sic)
+        line = bytes(r.choice(pool) for _ in range(r.choice([0, 1, 3, 10, 20, 20, 21, r.randrange(23)])))
+        text += line + (bytes([r.choice(b'#x?')]) if k == 20 else b'') + r.choice([b'\n', b'\n', b'\n', b'\r\n', b' \n'])
+    text += r.choice([b'---\n', b'---\n', b'---', b'----end\nrest', b'--\n', b''])
+    regions = {RAM: struct.pack('<III', RAM + 0x1000, r.getrandbits(32), r.getrandbits(32)), RAM + 0x100: symbols + r.bytes(4),
+               RAM + 0x1000: text[:0x7f0] + b'\0' + r.bytes(4), HEAP: heap(fail=r.choice([0] * 15 + [1])), **global_heap(), 0x785de8: r.bytes(0x60)}
+    return Call(0x402720, [RAM, RAM + 4, RAM + 8, RAM + 0x100, count & 0xffffffff], regions, conv='c', ret='a')
+
+
 def case(r):
     op = r.deal(OPS + [k for k in ('Dtor', 'Schema') if k in OPS])   # (a deck, those two twice: they share out many functions)
     if op == 'Defaults':
@@ -129,10 +147,12 @@ def case(r):
         return theme(r)
     if op == 'Find':
         return find(r)
+    if op == 'Map':
+        return parse_map(r)
     return Call(r.deal(list(GETTERS)), [r.getrandbits(32), r.choice([0, 1, r.randrange(64), r.getrandbits(32)])], {}, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Defaults,Release,Schema,Dtor,Init,ObjCtor,Advisor,Find,Theme').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Defaults,Release,Schema,Dtor,Init,ObjCtor,Advisor,Find,Theme,Map').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
