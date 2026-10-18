@@ -1,7 +1,9 @@
 # The particle pools' resize (src/game/render/particles: 0x5ed5a0) against the original, on the particle bench's Spawn world (tests/fncmp/particles.py
 # spawn()): pools of 16 handles at 0xf8692c (0x44 bytes each: the count, then the handles) grown (each new handle Particle_Spawn's of the effect) or
 # shrunk (each handle past the new count ended, ParticleSystem_End, and cleared when there is one), or left; handles of the six systems (their serials
-# right or not), none or random. Also pool 2's emptying (0x5edac0) and its marking then emptying (0x5eda70).
+# right or not), none or random. Also pool 2's emptying (0x5edac0) and its marking then emptying (0x5eda70). And a pool's move (0x5ed660:
+# the position blocks at 0xf86900, 0x44 apart, of random floats; the old position kept or jumped; a third float 0, -0 or not, with the game
+# clock's real time less its pauses as gameclock.py's less_pauses() sets it up).
 # usage: particlepools.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -12,10 +14,22 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import particles  # noqa: E402
 from fncmp import Bench, Call, put  # noqa: E402
+from gameclock import less_pauses  # noqa: E402
 
-B = Bench([(0x51feb0, 0x51ff70), (0x520560, 0x520e10), (0x521d60, 0x5222f0), (0x522360, 0x522500), (0x5ed5a0, 0x5ed670), (0x5eda70, 0x5edad0), (0x5da3c0, 0x5da3c1)])
+B = Bench([(0x51feb0, 0x51ff70), (0x520560, 0x520e10), (0x521d60, 0x5222f0), (0x522360, 0x522500), (0x5ed5a0, 0x5ed670), (0x5eda70, 0x5edad0), (0x5da3c0, 0x5da3c1),
+           (0x5ed660, 0x5ed6f1), (0x402d70, 0x402e00), (0x402e60, 0x4030f0), (0x403150, 0x403172), (0x4031e0, 0x403202), (0x4033a0, 0x4033f0),
+           (0x5f5e20, 0x5f5e80), (0x5f5f10, 0x5f5fc0), (0x5988e0, 0x598955)])
 POOLS = 0xf8692c
-OPS = [k for k in os.environ.get('OPS', 'Resize,Finish,Empty').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Resize,Finish,Empty,Move').split(',') if k]
+
+
+def move(r):   # 0x5ed660 (pool, jump, x, y, t): +0 the old position (x, y if jumping, else the last), +8 the new; when t is not 0 the clock's time at
+    c = less_pauses(r)   # +0x10 (as a float) and t at +0x14
+    index = r.choice([0, 1, 2, 3])
+    regions = dict(c.regions)
+    regions[0xf86900] = bytes(r.floats(bytearray(r.bytes(0x44 * 4 + 0x20)), range(0, 0x44 * 4, 4)))
+    t = r.choice([0, 0, 0x80000000, r.f(), r.f()])
+    return Call(0x5ed660, [index, r.choice([0, 1, r.getrandbits(32)]), r.f(), r.f(), t], regions, ret='v')
 
 
 def case(r):
@@ -34,6 +48,8 @@ def case(r):
         return r.choice([serial << 16 | slot] * 4 + [0, 0, (serial ^ 1) << 16 | slot, r.getrandbits(32)])
 
     op = r.deal(OPS)
+    if op == 'Move':
+        return move(r)
     index = r.choice([0, 1, 2, 3]) if op == 'Resize' else 2
     pools = bytearray(r.bytes(0x44 * (index + 2)))
     old = r.choice([0, 1, 2, 5, 8, 16, r.randrange(17)])

@@ -109,6 +109,11 @@ s32 __cdecl ParticlePool2_Empty();
 // zeroed, then the integer sine table built (IntSin_BuildTable).
 void __cdecl ParticlePools_Reset();
 
+// 0x5ed660 (cdecl; pool, jump, x, y, t; name unconfirmed; 0x598ee3 and three more ask it): the pool's position block at 0xf86900 + pool * 0x44
+// (no bound on pool): its old position +0/+4 becomes (x, y) when jumping, else the last one (+8/+0xc, copied), and +8/+0xc becomes (x, y); when t
+// is neither 0 nor NaN, +0x10 is the game clock's real time less its pauses (Clocks_RealNowLessPauses) as a float and +0x14 is t.
+void __cdecl ParticlePool_Move(s32 pool, s32 jump, float x, float y, float t);
+
 // 0x521930 (cdecl; effect, x, y, z, vx, vy, vz; name unconfirmed): Particle_Spawn with a velocity: the system's +0x38/+0x3c/+0x40 = vx, vy, vz times its
 // +0xb0 over 1024 (truncated toward 0) in place of the jitter of +0x2c. (Its linked effect is started by Particle_Spawn.)
 s32 __cdecl Particle_SpawnWithVelocity(s32 effect, s32 x, s32 y, s32 z, s32 vx, s32 vy, s32 vz);
