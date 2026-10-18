@@ -174,13 +174,6 @@ u32 __fastcall Masks_TopBits(u8 *object) {
     return blue | green | red;
 }
 
-s32 __fastcall Vector36_Size(const u8 *vector) {
-    const u32 begin = at<u32>(vector, 4);
-    if (!begin)
-        return 0;
-    return (s32)(at<u32>(vector, 8) - begin) / 36;
-}
-
 s32 __cdecl PairTable_Commit() {
     const s32 count = global<s32>(0x00820a8c);
     for (s32 i = 0; i < count; i++) {

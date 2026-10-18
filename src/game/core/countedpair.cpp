@@ -204,4 +204,11 @@ void __cdecl CountedPairVector_Construct(u8 *v, const u8 *x) {
     *reinterpret_cast<u32 *>(v + 8) = e;
     *reinterpret_cast<u32 *>(v + 0xc) = e;
 }
+
+s32 __fastcall Vector36_Size(const u8 *vector) {
+    const u32 begin = *reinterpret_cast<const u32 *>(vector + 4);
+    if (!begin)
+        return 0;
+    return (s32)(*reinterpret_cast<const u32 *>(vector + 8) - begin) / 36;
+}
 }
