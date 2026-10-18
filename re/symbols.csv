@@ -1712,6 +1712,8 @@ address,name,kind,confidence,notes
 0x005c7ac0,GamePaths_MakeFolders,function,low,"reimplemented (src/game/files/gamepaths); thiscall, this unused (root wide String): for each name listed at [0x786b90], root + the String at 0xf81b48 + the name; when that folder does not open (Handle_Open28) it is created (Dir_Create)"
 0x005c53c0,DirEntry_IsWad,function,low,"reimplemented (src/game/files/direntry); cdecl (entry); whether the entry's name ends in the global "".wad"" String (0xf80808, Names_Equal)"
 0x0055e470,CpuInfo_Ctor,function,high,"reimplemented (src/game/core/cpuinfo); thiscall; CPUID probe (EFLAGS.ID test, then the vendor string and features); SystemInfo's base"
+0x00591210,Cpu_Ticks,function,low,reimplemented (src/game/core/cpuinfo); cdecl: the low dword of the time-stamp counter (rdtsc)
+0x0057cb90,Cpu_Ticks16,function,low,"reimplemented (src/game/core/cpuinfo); cdecl: the time-stamp counter's bits 4..35 (rdtsc; shrd eax, edx, 4)"
 0x0067df40,CRT_stricmp,function,high,"MSVC CRT _stricmp: A-Z folded, or the locale's tolower when one is set"
 0x00f7a7d0,gCdVolumeLabel,data,medium,"const char *: the CD's volume label, looked for on the CD-ROM drives by the CD check (0x5aa585)"
 0x005f8ae0,RegKey_Open,function,high,"reimplemented (src/game/core/regkey); thiscall (&out, subkey or null, nonzero: HKCU else HKLM); the company key (0x775748) made, then the subkey in it; a held key closed first"
