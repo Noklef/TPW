@@ -7,6 +7,7 @@
 #include "../core/idtable.h"
 #include "../math/x87.h"
 #include "../model/highlight.h"
+#include "../terrain/land.h"
 #include "../world/objectdefs.h"
 
 namespace {
@@ -371,5 +372,47 @@ u32 __cdecl Ride_Claim(u32 index, u32 type, u32 key, const u32 *desc, u32, u32 v
     if (at<u32>(ride, 4) & 0x40000) CoasterLink_SetById(index, value);
     at<u32>(ride, 4) |= 0x10000;
     return index;
+}
+
+u8 *__cdecl CoasterLink_AddEntry(s32 x, s32 y, u32 flags, u32, u32 value, const float *position) {
+    u8 *const link = *reinterpret_cast<u8 **>(0x00790fec);
+    u8 *const entry = static_cast<u8 *>(GlobalMem_Alloc(0x48, 1));
+    if (flags & 4) {
+        at<u8 *>(link, 0x68) = entry;
+    } else {
+        if (!at<u8 *>(link, 0x4c)) at<u8 *>(link, 0x4c) = entry;
+        if (u8 *const last = at<u8 *>(link, 0x50)) at<u8 *>(last, 0x28) = entry;
+        at<u8 *>(entry, 0x2c) = at<u8 *>(link, 0x50);
+        const u32 index = at<u32>(link, 0x40);
+        at<u8 *>(link, 0x50) = entry;
+        at<u32>(entry, 0) = index;
+        ++at<u32>(link, 0x40);
+    }
+    at<u32>(entry, 4) = flags;
+    if (position) {
+        const u32 *const bits = reinterpret_cast<const u32 *>(position);   // (copied as dwords)
+        at<u32>(entry, 0x1c) = bits[0];
+        at<u32>(entry, 0x20) = bits[1];
+        at<u32>(entry, 0x24) = bits[2];
+        s32 cx = (s32)(long long)(X87Reg(position[0]) * 0.100000001f).v;  // 0x6fdedc, __ftol
+        s32 cz = (s32)(long long)(X87Reg(position[2]) * 0.100000001f).v;
+        if (cx < 0) cx = 0;
+        if (cz < 0) cz = 0;
+        if (cx >= *reinterpret_cast<const s32 *>(0x007a0314)) cx = *reinterpret_cast<const s32 *>(0x007a0314) - 1;
+        if (cz >= *reinterpret_cast<const s32 *>(0x007a0374)) cz = *reinterpret_cast<const s32 *>(0x007a0374) - 1;
+        at<s32>(entry, 0xc) = cx;
+        at<s32>(entry, 0x10) = cz;
+    } else {
+        at<s32>(entry, 0xc) = x;
+        at<float>(entry, 0x1c) = (float)X87_MulInt((u32)x, 10.0f);   // fild qword (x, 0); 0x6fde7c
+        at<s32>(entry, 0x10) = y;
+        at<float>(entry, 0x24) = (float)X87_MulInt((u32)y, 10.0f);
+        at<float>(entry, 0x20) = (float)Terrain_FootprintHeight(x, y, nullptr, 1, 1, 0, 0);
+        const u8 *const grid = at<const u8 *>(*reinterpret_cast<const u8 *const *>(0x007a0854), 0x6c);
+        at<u32>(entry, 8) = at<u32>(grid, 0x18) * y + x;
+    }
+    at<u8 *>(entry, 0x14) = *reinterpret_cast<u8 **>(0x00790fec);
+    at<u32>(entry, 0x18) = value;
+    return entry;
 }
 }

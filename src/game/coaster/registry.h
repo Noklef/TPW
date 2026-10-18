@@ -167,4 +167,12 @@ void __cdecl Coaster_FlashCar(u8 *coaster, u32 which);
 // words when 0). Sets value on its coaster link (by index) when it has +4 flag 0x40000, flags it
 // claimed and returns index, else 0. The fifth argument is unused.
 u32 __cdecl Ride_Claim(u32 index, u32 type, u32 key, const u32 *desc, u32, u32 value, u32 a, u32 b);
+
+// 0x432c10 (cdecl; x, y, flags, unused, value, position; name unconfirmed): a new entry (0x48 bytes, GlobalMem_Alloc zeroed) for the current
+// link (0x790fec): with flags 4 its +0x68; otherwise appended to its chain (+0x4c first, +0x50 last, entries' next +0x28 and previous +0x2c),
+// +0 the link's count (+0x40), which then counts it. +4 = flags. With a position its three floats go to +0x1c (copied as dwords) and its cell
+// (__ftol of a tenth of +0 and +8, each held in [0, 0x7a0314 - 1] / [0, 0x7a0374 - 1], below 0 first) to +0xc / +0x10; otherwise +0xc / +0x10
+// = x / y, +0x1c / +0x24 = x * 10 / y * 10 (each as an unsigned dword), +0x20 = Terrain_FootprintHeight(x, y, null, 1, 1, 0, 0) and +8 the
+// tile, x + y * the map width (0x7a0854 -> +0x6c -> +0x18). Then +0x14 = the link, +0x18 = value. Returns the entry.
+u8 *__cdecl CoasterLink_AddEntry(s32 x, s32 y, u32 flags, u32 unused, u32 value, const float *position);
 }
