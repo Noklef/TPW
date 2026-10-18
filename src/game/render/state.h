@@ -40,6 +40,10 @@ void __fastcall Render_FogOff(void *);
 // 0x5d96a0 (thiscall, the object unused; colour, start, end): the fog's settings.
 void __fastcall Render_SetFog(void *, void *, u32 colour, u32 start, u32 end);
 
+// 0x5d9230 (thiscall, the object unused (its callers pass [0xf83778]); on, colour; name unconfirmed): the ambient light's colour 0x879dd8 =
+// {1, r, g, b}: r, g, b the colour's bytes 2, 1, 0 times 1 / 255 when on, else 0.
+void __fastcall Render_SetAmbient(void *, void *, u32 on, u32 colour);
+
 // 0x5d96c0 (thiscall on a fade: the colour's three components, 16.16, at +0x44, +0x48, +0x4c and
 // its targets at +0x50, +0x54, +0x58): with more than one thing to draw (0x785888 > 1) and
 // 0x78d8d8 == 1, while the components differ from the targets each takes a sixteenth of the

@@ -23,6 +23,10 @@ void __fastcall LobbyModel_SetScale(const u8 *model, void *, float x, float y, f
 // 0, speed 1, layer 0) and the ms until it ends; else 0.
 u32 __fastcall LobbyModel_Play(const u8 *model, void *, u32 entry, u32 now);
 
+// 0x5d81c0 (v; name unconfirmed): the matrix made the identity, then its first row (z, 0, -x) of v over its length, its second
+// that row crossed with v over its length and its third v itself (its fourth left the identity's); the lengths stored as floats.
+void __fastcall LobbyModel_AlignTo(const u8 *model, void *, const float *v);
+
 // 0x5d8440: when there is a model, the ms left of its layer 0 (Layer_GetPlayback); else 0.
 u32 __fastcall LobbyModel_TimeLeft(const u8 *model);
 }

@@ -21,4 +21,11 @@ void __cdecl Vec3_RotateX(float *v, float angle);
 void __cdecl Vec3_RotateY(float *v, float angle);
 // 0x4315f0: Matrix_RotateY(m, cos angle, sin angle) from gSinTable.
 void __cdecl Matrix_RotateYAngle(float *m, float angle);
+// 0x5ebe50 (thiscall; name unconfirmed; its one caller clamps a colour scaled by 255 to 0..255): each of v's three floats above hi becomes
+// hi, else one not at or above lo (below it, or NaN, or lo NaN) becomes lo; each stored through the x87 (a signalling NaN quietened).
+void __fastcall Vec3_Clamp(float *v, void *, float lo, float hi);
+// 0x565110 (thiscall; angle; name unconfirmed; called only by the static initialiser 0x5650f0, on 0x879a70 after its +0 = 100.0): three
+// directions in the xy plane after the dword +0: (sin, cos, 0) of the angle at +4, of pi times it at +0x10, and of pi times (it + 1) at
+// +0x1c (the x87's fsin / fcos; the products rounded to the precision control).
+void __fastcall Vec3_DirectionsFromAngle(float *out, void *, float angle);
 }

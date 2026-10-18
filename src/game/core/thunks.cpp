@@ -32,6 +32,9 @@
 #include "../gfx/pixconv.h"
 #include "../gfx/screensurfaces.h"
 #include "../gfx/surface.h"
+#include "../gfx/rleimage.h"
+#include "../gfx/wctimage.h"
+#include "../render/d3dprobe.h"
 #include "../math/transform.h"
 #include "semaphore.h"
 #include "string.h"
@@ -583,4 +586,22 @@ void __cdecl Wrap_StringList_Dtor_6d8990() {
 }
 
 u32 __cdecl Wrap_Panel7b9940_Detach_481410() { return Panel7b9940_Detach(); }
+
+u8 *__fastcall Wrap_RleImage_DeletingDtor_564a80(u8 *self, void *, u32 flags) {
+    return RleImage_DeletingDtor(Adjust(self), nullptr, flags);
+}
+
+u32 __fastcall Wrap_RleImage_DrawScaled_564b00(const u8 *self, void *, const u32 *dest) {
+    return RleImage_DrawScaled(Adjust(self), nullptr, dest);
+}
+
+u8 *__fastcall Wrap_WctImage_DeletingDtor_564ff0(u8 *self, void *, u32 flags) {
+    return WctImage_DeletingDtor(Adjust(self), nullptr, flags);
+}
+
+u32 __fastcall Wrap_D3dProbe_SetFlags_569cc0(u8 *self, void *, u32 flags) {
+    return D3dProbe_SetFlags(Adjust(self), nullptr, flags);
+}
+
+u8 *__fastcall Wrap_Renderer_NewSurfaceA_5738c0(void *self) { return Renderer_NewSurfaceA(Adjust(self)); }
 }  // extern "C"

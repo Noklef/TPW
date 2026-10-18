@@ -2,8 +2,10 @@
 
 #include <cstdint>
 
+#include "../core/gameclock.h"
 #include "../core/voices.h"
 #include "../math/intsin.h"
+#include "../math/x87.h"
 
 namespace {
 
@@ -422,6 +424,23 @@ void __cdecl ParticlePools_Reset() {
     for (u32 i = 0; i < 0x33; ++i)  // rep stosd
         block[i] = 0;
     IntSin_BuildTable();
+}
+
+void __cdecl ParticlePool_Move(s32 pool, s32 jump, float x, float y, float t) {
+    u8 *const p = reinterpret_cast<u8 *>(0x00f86900 + pool * 0x44);
+    if (jump) {
+        field<float>(p, 0) = x;  // (dword moves)
+        field<float>(p, 4) = y;
+    } else {
+        field<u32>(p, 0) = field<u32>(p, 8);
+        field<u32>(p, 4) = field<u32>(p, 0xc);
+    }
+    const bool skip = t == 0.0f || t != t;  // fcomp 0x702f70 (0.0), test ah 0x40: equal or unordered
+    field<float>(p, 8) = X87_Through(x);
+    field<float>(p, 0xc) = X87_Through(y);
+    if (skip) return;
+    field<float>(p, 0x10) = (float)(s32)Clocks_RealNowLessPauses();  // fild
+    field<float>(p, 0x14) = X87_Through(t);
 }
 
 void __cdecl ParticleEffectors_Update() {

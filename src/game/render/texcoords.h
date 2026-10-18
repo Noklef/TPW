@@ -15,4 +15,8 @@ extern "C" {
 // shifted by s and t, the dots of the light at [[0x87a248] + 0x30] with the two vectors of each vertex's 24 bytes from +0x74, times
 // [0x8c1618] and clamped to +-[0x8c161c] (NaNs to the minus side), times u scale / s16 +0x14 and -(v scale / s16 +0x16).
 void __cdecl Model_TexCoords(u8 *out, const u8 *settings, s32 index, const u8 *texture, s32 stride, s32 mode);
+
+// 0x566690 (thiscall on a transformed vertex (0x20 bytes as its callers from 0x566220 on fill them: x, y, z, rhw, colour, specular, (u, v));
+// stage, u, v; pops 12; name unconfirmed): the stage's (u, v) at +0x18 + 8 * stage, through the x87 (no bound on stage).
+void __fastcall Vertex_SetTexCoords(u8 *vertex, void *, s32 stage, float u, float v);
 }

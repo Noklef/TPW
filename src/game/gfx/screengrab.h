@@ -15,4 +15,8 @@ extern "C" {
 // the allocation fails the pixels are freed and +0 cleared, the error (2, 0xb0754000) is pushed (EngineErrors_Push on 0x879ad0) and 0 is
 // returned. Any other depth leaves everything. Returns 1.
 u32 __fastcall ScreenGrab_ToRgb24(u8 *grab, void *);
+
+// 0x5617c0 (thiscall on the grab at 0x8798d0; name; pops 4; name unconfirmed): the file name to grab to next: a name is measured, then
+// copied with its 0 to +0xc (0x80 bytes, unchecked, sic) and +0x8c pointed at the copy; a null name leaves both. Returns 1.
+u32 __fastcall ScreenGrab_SetName(u8 *grab, void *, const char *name);
 }

@@ -282,6 +282,7 @@
 #include "../game/render/dynfaces.h"
 #include "../game/render/lightsource.h"
 #include "../game/render/clipcodes.h"
+#include "../game/render/clipedge.h"
 #include "../game/render/dxerrors.h"
 #include "../game/render/quad.h"
 #include "../game/render/viewport.h"
@@ -289,9 +290,11 @@
 #include "../game/render/vertexfog.h"
 #include "../game/render/d3dprobe.h"
 #include "../game/render/engineerrors.h"
+#include "../game/render/fixedverts.h"
 #include "../game/render/texcoords.h"
 #include "../game/render/graphicssettings.h"
 #include "../game/render/textparts.h"
+#include "../game/render/vertexblock.h"
 #include "../game/render/weatherfx.h"
 #include "../game/render/worldview.h"
 #include "../game/online/servers.h"
@@ -372,6 +375,8 @@ const Hook kHooks[] = {
     {"Vec3_RotateX", 0x004314f0, (void *)&Vec3_RotateX, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Vec3_RotateY", 0x00431570, (void *)&Vec3_RotateY, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Matrix_RotateYAngle", 0x004315f0, (void *)&Matrix_RotateYAngle, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Vec3_Clamp",                0x005ebe50, (void *)&Vec3_Clamp, {0xd9, 0x01, 0xd8, 0x5c, 0x24}},
+    {"Vec3_DirectionsFromAngle",  0x00565110, (void *)&Vec3_DirectionsFromAngle, {0xd9, 0x44, 0x24, 0x04, 0xd9}},
     {"Motion_ApplyUVs", 0x004745c0, (void *)&Motion_ApplyUVs, {0x83, 0xec, 0x10, 0x8b, 0x44}},
     {"Motion_FindKeys", 0x00470b60, (void *)&Motion_FindKeys, {0x8b, 0x44, 0x24, 0x10, 0x83}},
     {"Motion_ApplyMaterial", 0x00470c90, (void *)&Motion_ApplyMaterial, {0x8b, 0x44, 0x24, 0x0c, 0x56}},
@@ -766,6 +771,7 @@ const Hook kHooks[] = {
     {"TrakChunk_Begin",           0x00543420, (void *)&TrakChunk_Begin, {0x56, 0x6a, 0x18, 0x6a, 0x40}},
     {"TrakChunk_End",             0x005434d0, (void *)&TrakChunk_End, {0x51, 0x56, 0x8b, 0x74, 0x24}},
     {"TrakChunk_Close",           0x00544290, (void *)&TrakChunk_Close, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"TrakRide_SetAsleep",        0x00548e80, (void *)&TrakRide_SetAsleep, {0x8b, 0x4c, 0x24, 0x08, 0x56}},
     {"FlyingRide_FirstSlotRide",  0x0055a570, (void *)&FlyingRide_FirstSlotRide, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"FlyingRide_StepInSlot",     0x0055d610, (void *)&FlyingRide_StepInSlot, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"FlyingRide_StepOutSlot",    0x0055d720, (void *)&FlyingRide_StepOutSlot, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
@@ -1529,6 +1535,9 @@ const Hook kHooks[] = {
     {"CoasterTrains_Setup",       0x0042f1a0, (void *)&CoasterTrains_Setup, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"CoasterType_Setup",         0x0042f390, (void *)&CoasterType_Setup, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"Ride_Bounds",               0x00466b70, (void *)&Ride_Bounds, {0x8b, 0x44, 0x24, 0x04, 0x83}},
+    {"Ride_Centre",               0x00556af0, (void *)&Ride_Centre, {0x83, 0xec, 0x18, 0x56, 0x8b}},
+    {"Ride_PartPlace",            0x00556b90, (void *)&Ride_PartPlace, {0x8b, 0x4c, 0x24, 0x10, 0x83}},
+    {"Ride_PartAxes",             0x00551b30, (void *)&Ride_PartAxes, {0x8b, 0x44, 0x24, 0x04, 0x83}},
     {"RowReader_Decode",          0x0062fe00, (void *)&RowReader_Decode, {0x6a, 0xff, 0x68, 0x38, 0x2b}},
     {"RowReader_CopyRow",         0x006300c0, (void *)&RowReader_CopyRow, {0x8b, 0xc1, 0x56, 0x57, 0x8b}},
     {"TgaReader_Load",            0x006300f0, (void *)&TgaReader_Load, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
@@ -2724,6 +2733,11 @@ const Hook kHooks[] = {
     {"Wrap_TexSurfaceB_DeletingDtor_58c950", 0x0058c950, (void *)&Wrap_TexSurfaceB_DeletingDtor_58c950, {0x2b, 0x49, 0xfc, 0xe9, 0x08}},
     {"Wrap_LiveObject7019f8_DeletingDtor_57abe0", 0x0057abe0, (void *)&Wrap_LiveObject7019f8_DeletingDtor_57abe0, {0x2b, 0x49, 0xfc, 0xe9, 0x08}},
     {"Wrap_Panel7b9940_Detach_481410", 0x00481410, (void *)&Wrap_Panel7b9940_Detach_481410, {0xe9, 0xbb, 0x8f, 0x00, 0x00}},
+    {"Wrap_RleImage_DeletingDtor_564a80", 0x00564a80, (void *)&Wrap_RleImage_DeletingDtor_564a80, {0x2b, 0x49, 0xfc, 0xe9, 0x08}},
+    {"Wrap_RleImage_DrawScaled_564b00", 0x00564b00, (void *)&Wrap_RleImage_DrawScaled_564b00, {0x2b, 0x49, 0xfc, 0xe9, 0x88}},
+    {"Wrap_WctImage_DeletingDtor_564ff0", 0x00564ff0, (void *)&Wrap_WctImage_DeletingDtor_564ff0, {0x2b, 0x49, 0xfc, 0xe9, 0x08}},
+    {"Wrap_D3dProbe_SetFlags_569cc0", 0x00569cc0, (void *)&Wrap_D3dProbe_SetFlags_569cc0, {0x2b, 0x49, 0xfc, 0xe9, 0x58}},
+    {"Wrap_Renderer_NewSurfaceA_5738c0", 0x005738c0, (void *)&Wrap_Renderer_NewSurfaceA_5738c0, {0x2b, 0x49, 0xfc, 0xe9, 0x08}},
     {"Table_AddressPlus18",       0x006b0620, (void *)&Table_AddressPlus18, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Table_Address",             0x006b0650, (void *)&Table_Address, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Packed_Read",               0x006b0510, (void *)&Packed_Read, {0x56, 0x8b, 0x74, 0x24, 0x08}},
@@ -3307,6 +3321,7 @@ const Hook kHooks[] = {
     {"Text_SelectFont",           0x0046c010, (void *)&Text_SelectFont, {0x8b, 0x0d, 0x9c, 0x05, 0x7b}},
     {"Matrix2_Transform",         0x0050f310, (void *)&Matrix2_Transform, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Vec2_Normalize",            0x005787b0, (void *)&Vec2_Normalize, {0x51, 0x8b, 0x01, 0xd9, 0x41}},
+    {"IntVec2_Length",            0x00549020, (void *)&IntVec2_Length, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Vec3_DotByValue",           0x005812f0, (void *)&Vec3_DotByValue, {0xd9, 0x44, 0x24, 0x14, 0xd9}},
     {"Tri_WindingTest",           0x00581320, (void *)&Tri_WindingTest, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Box_Extend",                0x0057b410, (void *)&Box_Extend, {0xd9, 0x44, 0x24, 0x04, 0xd8}},
@@ -3422,6 +3437,7 @@ const Hook kHooks[] = {
     {"PtrArray_AddSpriteFrame",   0x0056b4c0, (void *)&PtrArray_AddSpriteFrame, {0x6a, 0xff, 0x68, 0x5b, 0xf1}},
     {"PtrArray_RemoveImage",      0x0056b450, (void *)&PtrArray_RemoveImage, {0x53, 0x56, 0x8b, 0x5c, 0x24}},
     {"PtrArray_ReleaseAll",       0x0056b210, (void *)&PtrArray_ReleaseAll, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
+    {"PtrArray_Init",             0x0056b0c0, (void *)&PtrArray_Init, {0x6a, 0xff, 0x68, 0x25, 0xf1}},
     {"Class703088_ScalarDtor",    0x005f4400, (void *)&Class703088_ScalarDtor, {0x56, 0x8b, 0xf1, 0x57, 0xc7}},
     {"Class7037b8_ScalarDtor",    0x00618110, (void *)&Class7037b8_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x28}},
     {"ListScalarDelete700aa0_51af00", 0x0051af00, (void *)&ListScalarDelete700aa0_51af00, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
@@ -3741,6 +3757,7 @@ const Hook kHooks[] = {
     {"MapCell_Serialize",         0x004d8dd0, (void *)&MapCell_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x53}},
     {"TrackCell_Serialize",       0x0050c200, (void *)&TrackCell_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x53}},
     {"MapCell_Dword4At",          0x0053bf30, (void *)&MapCell_Dword4At, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"MapCell_Word40",            0x00536c50, (void *)&MapCell_Word40, {0x66, 0x8b, 0x41, 0x40, 0xc3}},
     {"MessageSlot_Dtor",          0x0040f970, (void *)&MessageSlot_Dtor, {0x51, 0x8b, 0x41, 0x08, 0x56}},
     {"MessageCentre_DtorSlots",   0x00409250, (void *)&MessageCentre_DtorSlots, {0x68, 0x70, 0xf9, 0x40, 0x00}},
     {"MessageCentre_RemoveThing", 0x0040fa40, (void *)&MessageCentre_RemoveThing, {0x83, 0xec, 0x18, 0x53, 0x55}},
@@ -3814,6 +3831,7 @@ const Hook kHooks[] = {
     {"TexAtlas_Alloc",            0x0058c3c0, (void *)&TexAtlas_Alloc, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"WctImage_DeletingDtor",     0x00565000, (void *)&WctImage_DeletingDtor, {0x8b, 0x41, 0xd4, 0x56, 0x8d}},
     {"ScreenGrab_ToRgb24",        0x00561460, (void *)&ScreenGrab_ToRgb24, {0xa1, 0xe4, 0xcb, 0x8b, 0x00}},
+    {"ScreenGrab_SetName",        0x005617c0, (void *)&ScreenGrab_SetName, {0x53, 0x57, 0x8b, 0x7c, 0x24}},
     {"TvStatic_CreateSurface",    0x0053e650, (void *)&TvStatic_CreateSurface, {0x6a, 0xff, 0x68, 0xbb, 0xea}},
     {"TvStatic_Init",             0x0053e920, (void *)&TvStatic_Init, {0xe8, 0x2b, 0xfd, 0xff, 0xff}},
     {"TvStatic_Free",             0x0053e930, (void *)&TvStatic_Free, {0xa1, 0xd0, 0x4f, 0x87, 0x00}},
@@ -3886,6 +3904,7 @@ const Hook kHooks[] = {
     {"ParticlePool2_Finish",      0x005eda70, (void *)&ParticlePool2_Finish, {0x8b, 0x0d, 0xb4, 0x69, 0xf8}},
     {"ParticlePool2_Empty",       0x005edac0, (void *)&ParticlePool2_Empty, {0x6a, 0x00, 0x6a, 0x00, 0x6a}},
     {"ParticlePools_Reset",       0x005ed580, (void *)&ParticlePools_Reset, {0x57, 0xb9, 0x33, 0x00, 0x00}},
+    {"ParticlePool_Move",         0x005ed660, (void *)&ParticlePool_Move, {0x8b, 0x44, 0x24, 0x08, 0x56}},
     {"SceneFlags_Touch",          0x005836b0, (void *)&SceneFlags_Touch, {0xa1, 0x40, 0xcc, 0x8b, 0x00}},
     {"Render_FogOn",              0x005d9680, (void *)&Render_FogOn, {0xa1, 0xc8, 0xcb, 0x8b, 0x00}},
     {"Render_FogOff",             0x005d9690, (void *)&Render_FogOff, {0xa1, 0xc8, 0xcb, 0x8b, 0x00}},
@@ -3894,6 +3913,7 @@ const Hook kHooks[] = {
     {"Environment_Apply",         0x004080e0, (void *)&Environment_Apply, {0xa1, 0xd4, 0x56, 0x78, 0x00}},
     {"Options_Apply",             0x0044dd50, (void *)&Options_Apply, {0x8b, 0x15, 0x6c, 0xd8, 0x79}},
     {"RenderDevice_Call0",        0x00583720, (void *)&RenderDevice_Call0, {0x8b, 0x0d, 0x2c, 0xd5, 0x8b}},
+    {"Render_SetAmbient",         0x005d9230, (void *)&Render_SetAmbient, {0x8b, 0x44, 0x24, 0x04, 0x33}},
     {"WeatherFx_SetDropCount",    0x0057d910, (void *)&WeatherFx_SetDropCount, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"WeatherFx_SetFallSpeed",    0x0057dc40, (void *)&WeatherFx_SetFallSpeed, {0x8b, 0x01, 0xa8, 0x01, 0x74}},
     {"WeatherFx_RequestReload",   0x0057dc70, (void *)&WeatherFx_RequestReload, {0xc7, 0x41, 0x04, 0x01, 0x00}},
@@ -3977,6 +3997,7 @@ const Hook kHooks[] = {
     {"LightPart_SetColour",       0x00458350, (void *)&LightPart_SetColour, {0x56, 0x8b, 0xf1, 0x57, 0xb9}},
     {"ClipCodes_Compute",         0x00561bc0, (void *)&ClipCodes_Compute, {0x55, 0x8b, 0xec, 0x51, 0x53}},
     {"ClipCodes_Run",             0x00570d60, (void *)&ClipCodes_Run, {0x8b, 0x44, 0x24, 0x18, 0x8b}},
+    {"ClipCodes_InitTable",       0x00561840, (void *)&ClipCodes_InitTable, {0xa1, 0x20, 0x9a, 0x87, 0x00}},
     {"DxResult_Message",          0x0056a770, (void *)&DxResult_Message, {0x8b, 0x44, 0x24, 0x04, 0x3d}},
     {"View_SetScreen",            0x00582eb0, (void *)&View_SetScreen, {0x51, 0xdb, 0x44, 0x24, 0x08}},
     {"View_SetWindow",            0x00582f70, (void *)&View_SetWindow, {0x51, 0x56, 0x8b, 0xf1, 0x57}},
@@ -3994,6 +4015,7 @@ const Hook kHooks[] = {
     {"D3dProbe_SetTextureStages", 0x005686d0, (void *)&D3dProbe_SetTextureStages, {0x56, 0x8b, 0xf1, 0x57, 0x83}},
     {"EngineErrors_Push",         0x0056af20, (void *)&EngineErrors_Push, {0x83, 0xec, 0x64, 0x56, 0x8b}},
     {"Model_TexCoords",           0x00581410, (void *)&Model_TexCoords, {0x83, 0xec, 0x40, 0x8b, 0x44}},
+    {"Vertex_SetTexCoords",       0x00566690, (void *)&Vertex_SetTexCoords, {0xd9, 0x44, 0x24, 0x08, 0x8b}},
     {"GraphicsSettings_Apply",    0x0044d8f0, (void *)&GraphicsSettings_Apply, {0xa1, 0x78, 0x58, 0x78, 0x00}},
     {"TextPart_Ctor",             0x0048f6a0, (void *)&TextPart_Ctor, {0x6a, 0xff, 0x68, 0xf8, 0x97}},
     {"TextPart_Dtor",             0x0048f760, (void *)&TextPart_Dtor, {0x6a, 0xff, 0x68, 0x2e, 0x98}},
@@ -4034,6 +4056,15 @@ const Hook kHooks[] = {
     {"WorldView_UpdateDiagonal",  0x0056b850, (void *)&WorldView_UpdateDiagonal, {0x51, 0xd9, 0x41, 0x48, 0xd9}},
     {"WorldView_SetRangeX",       0x0056b880, (void *)&WorldView_SetRangeX, {0xd9, 0x44, 0x24, 0x0c, 0xd8}},
     {"WorldView_SetRangeY",       0x0056b8d0, (void *)&WorldView_SetRangeY, {0xd9, 0x44, 0x24, 0x0c, 0xd8}},
+    {"FixedVerts_Pack",           0x00563220, (void *)&FixedVerts_Pack, {0x8b, 0x44, 0x24, 0x08, 0x85}},
+    {"FixedVerts_PackRounded",    0x00563130, (void *)&FixedVerts_PackRounded, {0x55, 0x8b, 0xec, 0x51, 0xa1}},
+    {"VertexBlock_Add",           0x0053ddd0, (void *)&VertexBlock_Add, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"ClipEdge_YW",               0x00561c40, (void *)&ClipEdge_YW, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
+    {"ClipEdge_YNegW",            0x00561ea0, (void *)&ClipEdge_YNegW, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
+    {"ClipEdge_XW",               0x00562100, (void *)&ClipEdge_XW, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
+    {"ClipEdge_XNegW",            0x00562360, (void *)&ClipEdge_XNegW, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
+    {"ClipEdge_ZW",               0x005625c0, (void *)&ClipEdge_ZW, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
+    {"ClipEdge_Z0",               0x00562820, (void *)&ClipEdge_Z0, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
@@ -4240,11 +4271,13 @@ const Hook kHooks[] = {
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
     {"LobbyModel_Play",           0x005d83f0, (void *)&LobbyModel_Play, {0x8b, 0x44, 0x24, 0x08, 0x85}},
     {"LobbyModel_TimeLeft",       0x005d8440, (void *)&LobbyModel_TimeLeft, {0x8b, 0x41, 0x04, 0x85, 0xc0}},
+    {"LobbyModel_AlignTo",        0x005d81c0, (void *)&LobbyModel_AlignTo, {0x83, 0xec, 0x2c, 0x8b, 0x41}},
     {"HelpBg_Refresh",            0x00492320, (void *)&HelpBg_Refresh, {0x66, 0x83, 0x79, 0x04, 0x00}},
     {"Class702af0_AcquireModels", 0x005da120, (void *)&Class702af0_AcquireModels, {0x53, 0x8b, 0xd9, 0x8b, 0x43}},
     {"Class702ca8_AcquireModels", 0x005dfca0, (void *)&Class702ca8_AcquireModels, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"Class702cb0_StartPendingPlay", 0x005e1350, (void *)&Class702cb0_StartPendingPlay, {0x56, 0x8b, 0xf1, 0x33, 0xc0}},
     {"Class702af0_Ctor",          0x005d9db0, (void *)&Class702af0_Ctor, {0x6a, 0xff, 0x68, 0xc6, 0x13}},
+    {"Class702cb0_StepCamera",    0x005e1210, (void *)&Class702cb0_StepCamera, {0x51, 0xd9, 0x41, 0x18, 0xd9}},
     {"ViewCtl_Lower48",           0x005dd310, (void *)&ViewCtl_Lower48, {0xd9, 0x41, 0x48, 0xd8, 0x61}},
     {"ViewCtl_Raise48",           0x005dd320, (void *)&ViewCtl_Raise48, {0xd9, 0x41, 0x14, 0xd8, 0x41}},
     {"ViewCtl_Raise50",           0x005dd330, (void *)&ViewCtl_Raise50, {0xd9, 0x41, 0x14, 0xd8, 0x41}},

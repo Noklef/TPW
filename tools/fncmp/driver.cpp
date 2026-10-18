@@ -449,7 +449,8 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x00702250, 10},   // the texture surface B's virtual base (its thunks; slot 1 FreePixels' the destructor calls)
                                    {0x00705920, 4},   // the GUI rectangle (GuiRect_Contains, _Centre, _Offset, _Adjust)
                                    {0x00705980, 3},   // the GUI window (Debug_Printf, Window_SaveRect, Window_DeletingDtor)
-                                   {0x00705a50, 3}};  // its subclass (the same, but Window705a50_DeletingDtor)
+                                   {0x00705a50, 3},   // its subclass (the same, but Window705a50_DeletingDtor)
+                                   {0x006ff308, 3}};  // the sprite set's virtual base (its deleting destructor's thunk, PtrArray_ReleaseAll's)
 
 void __cdecl debug_printf(const char *, ...) {}  // Debug_Printf 0x5da3c0 (RefObject's teardown slot among others)
 

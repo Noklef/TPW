@@ -310,6 +310,9 @@ add_library(tpw_game STATIC
     src/game/render/graphicssettings.cpp
     src/game/render/textparts.cpp
     src/game/render/worldview.cpp
+    src/game/render/fixedverts.cpp
+    src/game/render/vertexblock.cpp
+    src/game/render/clipedge.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/online/itemlist.cpp

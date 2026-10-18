@@ -87,4 +87,9 @@ void __cdecl Model_TexCoords(u8 *out, const u8 *settings, s32 index, const u8 *t
         lane &= 3;
     }
 }
+
+void __fastcall Vertex_SetTexCoords(u8 *vertex, void *, s32 stage, float u, float v) {
+    at<float>(vertex, 0x18 + stage * 8) = X87_Through(u);
+    at<float>(vertex, 0x1c + stage * 8) = X87_Through(v);
+}
 }

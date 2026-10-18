@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../math/x87.h"
+#include "../model/parts.h"
 
 namespace {
 
@@ -29,5 +30,114 @@ u32 __cdecl Ride_Bounds(s32 index, float *out) {
     out[4] = (float)(X87Reg(at<float>(block, 0x28)) + base);
     out[5] = (float)((X87Reg(high & 0xffff) - -1.0f) * 10.0f);
     return 1;
+}
+
+u32 __cdecl Ride_Centre(const s32 *handle, float *x, float *y, float *z) {
+    float box[6];
+    if (*handle == 0 || !Ride_Bounds(*handle, box)) {
+        *z = 0.0f;
+        *y = 0.0f;
+        *x = 0.0f;
+        return 1;
+    }
+    const u8 *const ride = reinterpret_cast<const u8 *const *>(0x007a4610)[*handle];
+    const float cx = (float)((X87Reg(box[0]) + box[3]) * 0.5f);
+    const float cz = (float)((X87Reg(box[2]) + box[5]) * 0.5f);
+    *y = X87_Through(at<float>(at<const u8 *>(at<const u8 *>(at<const u8 *>(ride, 8), 4), 0x78), 0x44));
+    *x = cx;
+    *z = cz;
+    return 0;
+}
+
+u32 __cdecl Ride_PartPlace(const u8 *obj, float *pos, float *dir, s32 key, u32 mask) {
+    const u8 *const *const rides = reinterpret_cast<const u8 *const *>(0x007a4610);
+    const u32 index = at<u32>(obj, 0xc8);
+    if (key < 0 || index == 0) {
+        float box[6];
+        if (index == 0 || !Ride_Bounds(index, box)) {
+            pos[0] = 0.0f;
+            pos[1] = 0.0f;
+            pos[2] = 0.0f;
+            return 1;
+        }
+        const float cx = (float)((X87Reg(box[0]) + box[3]) * 0.5f);  // 0x700fd0
+        const float cz = (float)((X87Reg(box[2]) + box[5]) * 0.5f);
+        const float y = X87_Through(at<float>(at<const u8 *>(at<const u8 *>(at<const u8 *>(rides[index], 8), 4), 0x78), 0x44));
+        pos[0] = cx;
+        pos[1] = y;
+        pos[2] = cz;
+        return 1;
+    }
+    const u32 part = Model_FindPartByKey4(rides[index], mask, (u32)key);
+    if (part == 0xffffffff) return 0;  // (and the empty Debug_Printf)
+    const auto entry = [&] {
+        return at<const u8 *>(at<const u8 *>(at<const u8 *>(rides[at<u32>(obj, 0xc8)], 8), 0x28), 4) + part * 0x14;
+    };
+    const u8 *node = at<const u8 *>(entry(), 4);
+    // x through a temporary and z loaded first, both by the x87; y copied as it is
+    const float z = node ? X87_Through(at<float>(node, 0x38)) : 0.0f;  // 0x700fd8
+    const float x = node ? X87_Through(at<float>(node, 0x30)) : 0.0f;
+    const u32 y = node ? at<u32>(node, 0x34) : 0;
+    at<u32>(pos, 4) = y;
+    pos[0] = x;
+    pos[2] = z;
+    if (!dir) return 1;
+    const u8 *const e = entry();
+    node = at<const u8 *>(e, 4);
+    X87Reg dx = 0.0f, dy = 0.0f, dz = 1.0f;  // 0x700fd8, 0x700fc8
+    if (node) {
+        float v[3];
+        for (int i = 0; i < 3; i++) v[i] = at<float>(node, 0x20 + 4 * i);
+        if (at<u8>(e, 0) & 0x10)
+            for (int i = 0; i < 3; i++) v[i] = -X87_Through(v[i]);  // fchs; fstp
+        const float length = (float)X87_Sqrt(X87Reg(v[0]) * v[0] + X87Reg(v[1]) * v[1] + X87Reg(v[2]) * v[2]);
+        dx = X87Reg(v[0]) / length;
+        dy = X87Reg(v[1]) / length;
+        dz = X87Reg(v[2]) / length;
+    }
+    dir[0] = (float)(dx * 1024.0f);  // 0x700fdc
+    dir[1] = (float)(dy * 1024.0f);
+    dir[2] = (float)(dz * 1024.0f);
+    return 1;
+}
+
+void __cdecl Ride_PartAxes(s32 index, const u32 *part, float *dir, float *up) {
+    const u8 *const ride = reinterpret_cast<const u8 *const *>(0x007a4610)[index];
+    const u8 *const entry = at<const u8 *>(at<const u8 *>(at<const u8 *>(ride, 8), 0x28), 4) + *part * 0x14;
+    const u8 *const node = at<const u8 *>(entry, 4);
+    if (!node) {
+        dir[1] = 0.0f;
+        dir[0] = 0.0f;
+        dir[2] = 1.0f;
+        if (up) {
+            up[2] = 0.0f;
+            up[0] = 0.0f;
+            up[1] = 1.0f;
+        }
+        return;
+    }
+    if (at<u8>(entry, 0) & 0x10)
+        for (int i = 0; i < 3; i++) dir[i] = -X87_Through(at<float>(node, 0x20 + 4 * i));  // fchs; fstp
+    else
+        for (int i = 0; i < 3; i++) at<u32>(dir, 4 * i) = at<u32>(node, 0x20 + 4 * i);
+    // each component read back from dir (y through a temporary), squared and summed, fsqrt stored as a float, then divided by it
+    float x = dir[0], y = dir[1], z = dir[2];
+    float length = (float)X87_Sqrt(X87Reg(x) * x + X87Reg(y) * y + X87Reg(z) * z);
+    x = dir[0], y = dir[1], z = dir[2];
+    dir[0] = (float)(X87Reg(x) / length);
+    dir[1] = (float)(X87Reg(y) / length);
+    dir[2] = (float)(X87Reg(z) / length);
+    if (!up) return;
+    at<u32>(up, 0) = at<u32>(node, 0x10);
+    at<u32>(up, 4) = at<u32>(node, 0x14);
+    x = up[0], y = up[1], z = at<float>(node, 0x18);
+    const float sum_z = z;
+    length = (float)X87_Sqrt(X87Reg(x) * x + X87Reg(y) * y + X87Reg(sum_z) * sum_z);
+    x = up[0], y = up[1];
+    up[2] = X87_Through(z);  // fstp, before the length is stored
+    z = up[2];
+    up[0] = (float)(X87Reg(x) / length);
+    up[1] = (float)(X87Reg(y) / length);
+    up[2] = (float)(X87Reg(z) / length);
 }
 }

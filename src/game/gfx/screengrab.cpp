@@ -52,4 +52,16 @@ u32 __fastcall ScreenGrab_ToRgb24(u8 *grab, void *) {
     at<u32>(grab, 4) = pixels;
     return 1;
 }
+
+u32 __fastcall ScreenGrab_SetName(u8 *grab, void *, const char *name) {
+    if (name) {
+        u32 size = 0;  // repne scasb, then rep movsd / movsb of the name and its 0
+        while (name[size++] != 0) {
+        }
+        u8 *const out = grab + 0xc;
+        for (u32 i = 0; i < size; i++) out[i] = (u8)name[i];
+        at<u8 *>(grab, 0x8c) = out;
+    }
+    return 1;
+}
 }
