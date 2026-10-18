@@ -179,14 +179,6 @@ u8 *__fastcall Class703c18_Ctor(u8 *object) {
     return object;
 }
 
-u8 *__fastcall Class70295c_Ctor(u8 *object) {
-    Init_5d36c0(object);
-    at<u32>(object, 0) = 0x0070295c;
-    for (u32 offset : {0x8u, 0xcu, 0x10u, 0x14u})
-        at<u32>(object, offset) = 0;
-    return object;
-}
-
 void __fastcall Obj_SwapPair(u8 *object, void *, u8 *other) {
     const u32 first = at<u32>(object, 4);
     at<u32>(object, 4) = at<u32>(other, 4);

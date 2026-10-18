@@ -1,7 +1,7 @@
 # The constructors, destructors and releases that call a virtual method of another object (src/game/core/vdtor) against the originals: the other objects
 # (a global one, a member, a virtual base) have vtables of recorders (see tools/fncmp.py recorder()), so the comparison covers the slot, the object it is called on,
 # the arguments (the log) and what is done with the result. The 0x7028xx destructors' shared arrays hold 0-3 elements, each destroyed through its
-# class's WEACITYR import (0x6fd500-0x6fd510, a recorder of its own each). D28 / X28: the derived class 0x702828's destructor (its wide string at +0x34
+# class's WEACITYR import (0x6fd500-0x6fd510, a recorder of its own each). D28 / X28: C5c: the base constructor 0x5c9040 of 0x702958 (no virtual call). D28 / X28: the derived class 0x702828's destructor (its wide string at +0x34
 # freed first, then 0x702890's) and scalar deleting destructor.
 # usage: vdtor.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
@@ -20,9 +20,10 @@ CALLS = {'C48C': (0x5e3b90, 't', 'a', 0x20), 'C48R': (0x5e3c00, 't', 'a', 0x20),
          'Xf8': (0x5be8e0, 't', 'a', 0xd0), 'X20': (0x5be9b0, 't', 'a', 0xd0), 'D28': (0x5b57a0, 't', 'v', 0xf9), 'X28': (0x5b5780, 't', 'a', 0x1e),
          'Af0': (0x5d9f50, 't', 'v', 0xc4), 'Af0X': (0x5d9ed0, 't', 'a', 0x1e), 'Bc8': (0x5dc740, 't', 'v', 0x102), 'Bc8X': (0x5dc660, 't', 'a', 0x1e),
          'Ca8': (0x5dfc30, 't', 'v', 0x61), 'Ca8X': (0x5dfc10, 't', 'a', 0x1e),
-         'E70': (0x5e3fc0, 't', 'v', 0xc), 'E70X': (0x5e3fa0, 't', 'a', 0x1c), 'E20': (0x5e3ff0, 't', 'v', 0xc), 'E20X': (0x5e3fd0, 't', 'a', 0x1c)}
+         'E70': (0x5e3fc0, 't', 'v', 0xc), 'E70X': (0x5e3fa0, 't', 'a', 0x1c), 'E20': (0x5e3ff0, 't', 'v', 0xc), 'E20X': (0x5e3fd0, 't', 'a', 0x1c),
+         'C5c': (0x5c9040, 't', 'a', 0x22)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()] + [(0x67acb0, 0x67acb1), (0x67afa0, 0x67b060),
-                                                                                   (0x5f61e0, 0x5f6210), (0x5f6a60, 0x5f6a90)])
+                                                                                   (0x5f61e0, 0x5f6210), (0x5f6a60, 0x5f6a90), (0x5d36c0, 0x5d36d0)])
 OBJ, OTHER, SUB, VT, VT2, VT3 = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200
 LISTS, VT4 = RAM + 0x2000, RAM + 0x1300
 
@@ -118,6 +119,8 @@ def case(r):
             regions[OTHER] = struct.pack('<I', VT) + r.bytes(0x20)
             regions[VT] = vtable({13: 1})
         return Call(address, args, regions, conv=conv, ret=ret)
+    if name == 'C5c':  # the base constructor: no other object
+        return Call(address, [OBJ], regions, conv=conv, ret=ret)
     # VB: the object is 0x18 into a class whose first dword is a vtable pointer; dword +4 of that vtable is the virtual base's offset
     put(obj, 0, 'I', VT)
     offset = r.choice([0x40, 0x80, 0xc0])

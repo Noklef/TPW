@@ -2,9 +2,11 @@
 
 #include <cstdint>
 #include <cstring>
+#include <initializer_list>
 
 #include "crt.h"
 #include "gameheap.h"
+#include "initializers.h"
 #include "misc.h"
 #include "string.h"
 #include "vcall.h"
@@ -639,6 +641,14 @@ void __fastcall Class702ca8_Dtor(u8 *object) {
 u8 *__fastcall Class702ca8_DeletingDtor(u8 *object, void *, u32 flags) {
     Class702ca8_Dtor(object);
     return Finish(object, flags);
+}
+
+u8 *__fastcall Class70295c_Ctor(u8 *object) {
+    Init_5d36c0(object);
+    at<u32>(object, 0) = 0x0070295c;
+    for (u32 offset : {0x8u, 0xcu, 0x10u, 0x14u})
+        at<u32>(object, offset) = 0;
+    return object;
 }
 
 }  // extern "C"
