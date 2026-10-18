@@ -26,6 +26,12 @@ void __cdecl ModelSlot_SetPartFlag(u32 key, u32 slot);
 // 0x429fe0: the slot's holder.
 u8 *__cdecl ModelSlot_Holder(u32 slot);
 
+// 0x429e20: frees the slot's model, when it has one (+4): its part at +0x48 (through the
+// virtual base offset at +4 of its vbtable) leaves the renderer's tag 0x10 list
+// (Renderer_RemoveFromSlot), the model is disposed of (Instance_Dispose) and the instance at
+// +0 freed (Instance_Free, not kept); both pointers are then cleared.
+void __cdecl ModelSlot_Free(u32 slot);
+
 // 0x429a60 (thiscall; the table's element constructor, CRT_VectorCtorIterator over the 4 slots; the SEH frame left out): only the part at +0x48 is built, a class with
 // virtual bases: its vbtables 0x6fdd00 (+0) and 0x6fdcf8 (+0xc) and vtable 0x6fdce8 (+8) are set, then through the offsets those vbtables hold (re-read for each store)
 // the bases get vtables 0x6fdcd8 and 0x6fdcc8 with their displacement dwords before them, +0x5c = 0 and the base's +0x50 = 2; then twice the scene flags are touched
