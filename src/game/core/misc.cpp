@@ -112,21 +112,6 @@ u32 __fastcall Obj_SetVectorAt2c(u8 *object, void *, u32 a, u32 b, u32 c) {
     return a;
 }
 
-void __fastcall Extents_Include(u8 *extents, void *, s32 low, s32 first, s32 high, s32 last) {
-    if (at<s32>(extents, 0x20) > first)
-        at<s32>(extents, 0x20) = first;
-    if (at<s32>(extents, 0x24) < last)
-        at<s32>(extents, 0x24) = last;
-    for (s32 column = first; column <= last; column++) {
-        s8 &lowest = at<s8>(extents, 0x28 + (u32)column);
-        s8 &highest = at<s8>(extents, 0xa8 + (u32)column);
-        if (lowest > low)
-            lowest = (s8)low;
-        if (highest < high)
-            highest = (s8)high;
-    }
-}
-
 
 u32 __fastcall Masks_TopBits(u8 *object) {
     auto top = [](u32 mask) {

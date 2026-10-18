@@ -231,4 +231,19 @@ void __cdecl Terrain_RestoreCells() { Terrain_CopyAttrs(pointer(0x007a0854), poi
 void __cdecl Terrain_InitUnusedOne() { *reinterpret_cast<float *>(0x007a0b28) = 1.0f; }
 
 void __cdecl Terrain_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x007a0b48) = 1.0f / 8388608.0f; }
+
+void __fastcall Extents_Include(u8 *extents, void *, s32 low, s32 first, s32 high, s32 last) {
+    if (at<s32>(extents, 0x20) > first)
+        at<s32>(extents, 0x20) = first;
+    if (at<s32>(extents, 0x24) < last)
+        at<s32>(extents, 0x24) = last;
+    for (s32 column = first; column <= last; column++) {
+        s8 &lowest = at<s8>(extents, 0x28 + (u32)column);
+        s8 &highest = at<s8>(extents, 0xa8 + (u32)column);
+        if (lowest > low)
+            lowest = (s8)low;
+        if (highest < high)
+            highest = (s8)high;
+    }
+}
 }
