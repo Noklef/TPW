@@ -50,7 +50,7 @@ def overlay_dtor(r, address):   # holder.py's Dispose: the holder at RAM (its pa
     regions = holder.dispose(r).regions
     ov = bytearray(r.bytes(0x80))
     put(ov, 4, 'I', r.choice([RAM, RAM, RAM, 0]))
-    put(ov, 0x10, 'H', r.choice([0, 0, 1, r.getrandbits(16)]))
+    put(ov, 0x10, 'H', r.choice([0, 0, 1, 0x100, r.getrandbits(16)]))   # (0x100: the word, not its low byte)
     regions[DOBJ] = ov
     return dtor_call(r, address, DOBJ, regions)
 
