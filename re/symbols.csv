@@ -4717,3 +4717,4 @@ address,name,kind,confidence,notes
 0x00661faa,WindowTimer_Unlink,function,low,"reimplemented (src/game/ui/windowtimers); thiscall: the timer node unlinked from its neighbours (+0x18 next, +0x1c previous); EAX its previous or the node"
 0x006620e2,WindowTimer_Find,function,low,"reimplemented (src/game/ui/windowtimers); thiscall (window, id): the last node from this one on with the window and id (recursive), else 0"
 0x00662500,WindowTimer_Delete,function,low,"reimplemented (src/game/ui/windowtimers); thiscall (flags): scalar deleting destructor: unlinked, with flag 1 back to the pool (Fn_661f9b); returns the node"
+0x00662306,WindowTimers_Kill,function,low,"reimplemented (src/game/ui/windowtimers); cdecl (window, id): the window's timer with the id found and deleted (the list head moved on); 1, or 0 for none"

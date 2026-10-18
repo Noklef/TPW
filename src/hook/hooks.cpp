@@ -4274,6 +4274,7 @@ const Hook kHooks[] = {
     {"WindowTimer_Delete",        0x00662500, (void *)&WindowTimer_Delete, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"WindowTimer_Find",          0x006620e2, (void *)&WindowTimer_Find, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"WindowTimer_Unlink",        0x00661faa, (void *)&WindowTimer_Unlink, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"WindowTimers_Kill",         0x00662306, (void *)&WindowTimers_Kill, {0x55, 0x8b, 0xec, 0x83, 0xec}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

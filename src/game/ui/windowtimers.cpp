@@ -7,6 +7,8 @@
 namespace {
 
 template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+u8 *&timers() { return *reinterpret_cast<u8 **>((uintptr_t)0x00faa634); }
 }
 
 extern "C" {
@@ -29,5 +31,14 @@ u8 *__fastcall WindowTimer_Delete(u8 *node, void *, u32 flags) {
     WindowTimer_Unlink(node);
     if (flags & 1) Fn_661f9b((u32)(uintptr_t)node);
     return node;
+}
+
+u32 __cdecl WindowTimers_Kill(u32 window, u32 id) {
+    if (!timers()) return 0;
+    u8 *const node = WindowTimer_Find(timers(), nullptr, window, id);
+    if (!node) return 0;
+    if (node == timers()) timers() = at<u8 *>(node, 0x18);
+    WindowTimer_Delete(node, nullptr, 1);
+    return 1;
 }
 }

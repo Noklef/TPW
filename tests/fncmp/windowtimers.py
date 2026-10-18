@@ -10,7 +10,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, Bench, Call, put  # noqa: E402
 
-CALLS = {'Unlink': 0x661faa, 'Find': 0x6620e2, 'Delete': 0x662500}
+CALLS = {'Unlink': 0x661faa, 'Find': 0x6620e2, 'Delete': 0x662500, 'Kill': 0x662306}
 B = Bench([(0x661f9b, 0x661fe5), (0x6620e2, 0x66213e), (0x662306, 0x662384), (0x662500, 0x66252c)])
 NODES = RAM
 WINDOWS = [RAM + 0x1000, RAM + 0x1200, 0]
