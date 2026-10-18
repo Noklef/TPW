@@ -11,4 +11,9 @@ extern "C" {
 // +0x1f5a0 and +0x1f7f0 of the game's record (GameTable7cfb90_Get1da720_519510 of the game object [0x7cf83c]).
 s32 __cdecl StatsGraph_ShownMax();
 s32 __cdecl StatsGraph_ShownMin();
+
+// 0x4a51d0 (cdecl; name unconfirmed): the same for the graph whose Gauge is at 0x7cb318: from 0, the greatest sample (window kind [0x7cb39c]) of
+// each line shown by bits 0-4 of 0x753c48: the CircBufU32s of 144 at +0x20cc0, +0x21160, +0x205d0 and +0x213b0 (CircBufU32_144_MaxInWindow) and,
+// for bit 1, the CircBufF32 at +0x20f10 (CircBufF32_144_MaxInWindow), of the game's record.
+s32 __cdecl StatsGraph7cb318_ShownMax();
 }

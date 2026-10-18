@@ -28,4 +28,13 @@ extern "C" {
 s32 __cdecl StatsGraph_ShownMax() { return shown(&CircBufU32_144_MaxInWindow); }
 
 s32 __cdecl StatsGraph_ShownMin() { return shown(&CircBufU32_144_MinInWindow); }
+
+s32 __cdecl StatsGraph7cb318_ShownMax() {
+    constexpr u32 kOffsets[] = {0x20cc0, 0x20f10, 0x21160, 0x205d0, 0x213b0};
+    s32 result = 0;
+    const u8 *const record = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
+    for (u32 k = 0; k < 5; ++k)
+        if (global<u8>(0x00753c48) & (1u << k)) (k == 1 ? &CircBufF32_144_MaxInWindow : &CircBufU32_144_MaxInWindow)(record + kOffsets[k], &result, global<u32>(0x007cb39c));
+    return result;
+}
 }
