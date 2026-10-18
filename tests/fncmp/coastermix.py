@@ -3,7 +3,8 @@
 # not, its first stream a record stream with room or none) or quiet; the type's flag 8 set or not (the coaster's contacts cleared:
 # nodes 0x100 apart in its +0x54 list, their held contacts followed); for 0x43b2b0 the coaster table 0x790bd0's entry null or not,
 # its +0x30 equal to the value or not, its flag 0x8000 with the recorder playing back (+0x24) or not.
-# usage: coastermix.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Mix,MixAt)
+# MixPin (0x447e30): MixAt, then the entry's flag 0x8000.
+# usage: coastermix.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Mix,MixAt,MixPin)
 import os
 import struct
 import sys
@@ -12,10 +13,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import RAM, STUBS, Bench, Call, put  # noqa: E402
 
 B = Bench([(0x403d60, 0x403de0), (0x4346c0, 0x434700), (0x43ad50, 0x43af80), (0x43afa0, 0x43afe0), (0x43b2b0, 0x43b300),
-           (0x43c3d0, 0x43c460), (0x447e10, 0x447e40), (0x5da3c0, 0x5da3c1)])
+           (0x43c3d0, 0x43c460), (0x447e10, 0x447e57), (0x5da3c0, 0x5da3c1)])
 RECORDER, TABLE = 0x785a08, 0x790bd0
 COAST, TYPE, NODES, VT, BUF = RAM, RAM + 0x400, RAM + 0x1000, RAM + 0x800, RAM + 0x900
-OPS = [k for k in os.environ.get('OPS', 'Mix,MixAt').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Mix,MixAt,MixPin').split(',') if k]
 
 
 def recorder(r):
@@ -72,7 +73,7 @@ def case(r):
     for i in range(count):
         put(table, 4 * i, 'I', r.choice([COAST, COAST, 0]))
     regions[TABLE] = table
-    return Call(0x43b2b0, [r.randrange(count), v], regions, conv='c')
+    return Call(0x43b2b0 if op == 'MixAt' else 0x447e30, [r.randrange(count), v], regions, conv='c')
 
 
 if __name__ == '__main__':

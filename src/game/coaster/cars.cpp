@@ -206,6 +206,11 @@ void __cdecl Coaster_SetMixAt(u32 index, u32 value) {
     Coaster_SetMix(coaster, value, 0);
 }
 
+void __cdecl Coaster_SetMixAtPinned(u32 index, u32 value) {
+    Coaster_SetMixAt(index, value);
+    if (u32 *const pinned = reinterpret_cast<u32 **>(0x00790bd0)[index]) *pinned |= 0x8000;
+}
+
 void __cdecl Coaster_BoardRiders(u8 *queue, u8 *coaster, u32 first, u32 count) {
     while (at<u32>(coaster, 0x14) && count) {
         if (!at<u32>(queue, 0xbc)) return;

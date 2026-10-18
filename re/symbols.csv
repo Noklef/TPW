@@ -4129,6 +4129,7 @@ address,name,kind,confidence,notes
 0x0043b600,Coaster_BoardRiders,function,low,"reimplemented (src/game/coaster/cars); cdecl (queue, coaster, first, count): riders taken from the queue ring seated in a random car with room from first on, each part activated"
 0x0043c3d0,Coaster_SetMix,function,low,"reimplemented (src/game/coaster/cars); cdecl (coaster, value, quiet): unless quiet the record 0x45; +0x30 = value, +0x34 = the type's +0x4c/+0x50 mixed value percent of the way (x87); flags changed; contacts cleared on type flag 8 (name unconfirmed)"
 0x0043b2b0,Coaster_SetMixAt,function,low,"reimplemented (src/game/coaster/cars); cdecl (index, value): table 0x790bd0's coaster's Coaster_SetMix (recorded) when value differs, unless flag 0x8000 and not playing back (name unconfirmed)"
+0x00447e30,Coaster_SetMixAtPinned,function,low,"reimplemented (src/game/coaster/cars); the recorded mix replayed, the coaster then pinned (flag 0x8000)"
 0x0043b050,CoasterLink_Find,function,high,"reimplemented (src/game/coaster/registry); cdecl (key): +0x14 of the first entry of the list at 0x790fe0 (next +0x18) whose +0x24 is key, else 0"
 0x00438720,Coaster_Count,function,high,reimplemented (src/game/coaster/registry); cdecl (): the coaster count (0x792214)
 0x00438730,CoasterLink_Nodes,function,high,"reimplemented (src/game/coaster/registry); cdecl (n, value or null): link n of the list at 0x790fe0: its +0x28 to *value, returns its +0x54 -> +0x90 -> +4 node list"

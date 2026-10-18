@@ -88,6 +88,10 @@ void __cdecl Coaster_SetMix(u8 *coaster, u32 value, u32 quiet);
 // one and value differs from its +0x30, unless the coaster has flag 0x8000 and the recorder (0x785a08) is not playing back (+0x24).
 void __cdecl Coaster_SetMixAt(u32 index, u32 value);
 
+// 0x447e30 (cdecl; index, value; name unconfirmed): the recorded action 0x45 replayed: Coaster_SetMixAt, then the coaster's (the table
+// read again) flag 0x8000 set when there is one.
+void __cdecl Coaster_SetMixAtPinned(u32 index, u32 value);
+
 // 0x43b600 (cdecl; queue, coaster, first, count; name unconfirmed): boards riders while the coaster has some to take (+0x14) and count
 // is not 0: one is taken from the queue's ring (+0xb4 the slots, +0xb0 their number, +0xbc the count, +0xc4 the read position, moved
 // on round the ring; none when the count is 0, and then nothing more), a car of the count from first picked at random (the rand()
