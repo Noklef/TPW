@@ -4541,3 +4541,8 @@ address,name,kind,confidence,notes
 0x004c57c0,Dialog7cdb0c_Message6Off,function,low,"reimplemented (src/game/ui/dialogs); cdecl: Window_SendMessage([0x7cdb0c], 6, 0, 0)"
 0x004c57e0,Dialog7cdb0c_Child16007Message6On,function,low,"reimplemented (src/game/ui/dialogs); cdecl: Window_SendMessage(Window_FindChild([0x7cdb0c], 0x16007), 6, 1, 0)"
 0x004c5800,Dialog7cdb0c_Child16007Message6Off,function,low,"reimplemented (src/game/ui/dialogs); cdecl: Window_SendMessage(Window_FindChild([0x7cdb0c], 0x16007), 6, 0, 0)"
+0x0048d990,Dialog7ca098_Message4IfUp,function,low,"reimplemented (src/game/ui/dialogs); cdecl: Window_SendMessage([0x7ca098], 4, 0, 0) when set, then 0x7ca090 = 0; the result (0 without)"
+0x004c25e0,Dialog7cca94_Message4IfUp,function,low,"reimplemented (src/game/ui/dialogs); cdecl: Window_SendMessage([0x7cca94], 4, 0, 0) when set (0 without)"
+0x0048cf70,WindowAt10_Message4,function,low,"reimplemented (src/game/ui/dialogs); thiscall: Window_SendMessage(+0x10, 4, 0, 0)"
+0x00492e60,WindowAt10_Message4IfAny,function,low,"reimplemented (src/game/ui/dialogs); thiscall: Window_SendMessage(+0x10, 4, 0, 0) when +0x10 is not 0 (0 without)"
+0x0048ee20,Windows7c26b0_Message5,function,low,"reimplemented (src/game/ui/dialogs); cdecl: message 5 (0, 0) to the window of each of the ten 0x208-byte entries from 0x7c26b0 whose word +4 is set"

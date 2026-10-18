@@ -17,12 +17,15 @@ CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50
          'Dialog7cc47c_Message4': 0x4b87f0, 'Dialog7cc47c_Message6On': 0x4b8810, 'Dialog7cc47c_Message6Off': 0x4b8830,
          'Dialog7cc4b4_Message4': 0x4b8e80, 'Dialog7cc4b4_Message6Off': 0x4b8ec0, 'Dialog7cc4c4_Message4': 0x4b9c00, 'Dialog7cc4c4_Message6On': 0x4b9c20,
          'Dialog7cdb0c_Message4': 0x4c5780, 'Dialog7cdb0c_Message6On': 0x4c57a0, 'Dialog7cdb0c_Message6Off': 0x4c57c0,
-         'Dialog7cdb0c_Child16007Message6On': 0x4c57e0, 'Dialog7cdb0c_Child16007Message6Off': 0x4c5800}
+         'Dialog7cdb0c_Child16007Message6On': 0x4c57e0, 'Dialog7cdb0c_Child16007Message6Off': 0x4c5800,
+         'Dialog7ca098_Message4IfUp': 0x48d990, 'Dialog7cca94_Message4IfUp': 0x4c25e0, 'WindowAt10_Message4': 0x48cf70,
+         'WindowAt10_Message4IfAny': 0x492e60, 'Windows7c26b0_Message5': 0x48ee20}
 SENDS = {k: int(k[6:12], 16) for k in CALLS if k.startswith('Dialog7')}   # the window's global
 B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6d1), (0x658d9f, 0x658df4), (0x659710, 0x659721),
            (0x4b87f0, 0x4b8850), (0x4b8e80, 0x4b8ea0), (0x4b8ec0, 0x4b8ee0), (0x4b9c00, 0x4b9c40),
-           (0x4c5780, 0x4c5820)])
-WINDOW, NODES, VTABLE, MISC, KIDS = RAM, RAM + 0x100, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200
+           (0x4c5780, 0x4c5820),
+           (0x48d990, 0x48d9b3), (0x4c25e0, 0x4c25f9), (0x48cf70, 0x48cf83), (0x492e60, 0x492e77), (0x48ee20, 0x48ee4e)])
+WINDOW, NODES, VTABLE, MISC, KIDS, HOLDER, WINDOW2 = RAM, RAM + 0x100, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200, RAM + 0x1600, RAM + 0x1800
 NODE = 0x90
 BUTTONS = list(range(0x18, 0x22))
 
@@ -48,7 +51,7 @@ def case(r):
     op = r.deal(OPS)
     log = log_region()
     regions = {LOG: log, VTABLE: vtable({5: 1})}
-    if op in ('CallHandler', 'SendMessage') or op in SENDS:
+    if op in ('CallHandler', 'SendMessage') or op in SENDS or op.startswith('Window'):
         win = bytearray(r.bytes(0x120))
         win[4] = r.choice([0, 0, 0, 1, 0x80])
         put(win, 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, CDECL_LOG4, 0]))
@@ -62,6 +65,22 @@ def case(r):
             return Call(CALLS[op], [WINDOW] + args, regions, conv='t', ret='a')
         if op == 'SendMessage':
             return Call(CALLS[op], [window] + args, regions, ret='a')
+        if op.startswith('WindowAt10'):
+            holder = bytearray(r.bytes(0x20))
+            put(holder, 0x10, 'I', window)
+            regions[HOLDER] = holder
+            return Call(CALLS[op], [HOLDER], regions, conv='t', ret='a')
+        if op == 'Windows7c26b0_Message5':   # ten entries of 0x208: +0 the window, +4 a word (0: skipped)
+            other = bytearray(r.bytes(0x120))
+            other[4] = r.choice([0, 0, 1])
+            put(other, 0x114, 'I', r.choice([CDECL_LOG4, 0]))
+            regions[WINDOW2] = other
+            for i in range(10):
+                regions[0x7c26b0 + 0x208 * i] = struct.pack('<IH', r.choice([WINDOW, WINDOW2, 0]), r.choice([0, 0, 1, 0x100, 0xffff]))
+            return Call(CALLS[op], [], regions)
+        if op == 'Dialog7ca098_Message4IfUp':   # (the dword 0x7ca090 is cleared)
+            regions[0x7ca090] = r.bytes(8) + struct.pack('<I', window)
+            return Call(CALLS[op], [], regions, ret='a')
         if 'Child' in op:   # the dialog's child (from 0-3 others, now and then missing: the send gets no window) sent to instead
             want = int(op.split('Child')[1][:5], 16)
             ids = [r.choice([want - 1, want + 1, 1]) for _ in range(r.choice([0, 1, 2]))]

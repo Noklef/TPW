@@ -30,4 +30,21 @@ s32 __cdecl Dialog7cdb0c_Message6Off();
 // the send's -1).
 s32 __cdecl Dialog7cdb0c_Child16007Message6On();
 s32 __cdecl Dialog7cdb0c_Child16007Message6Off();
+
+// 0x48d990 (cdecl; name unconfirmed): when the window [0x7ca098] is not 0, Window_SendMessage of it with message 4 (0, 0); then the dword
+// 0x7ca090 = 0. Returns the send's result (0 without a window).
+s32 __cdecl Dialog7ca098_Message4IfUp();
+
+// 0x4c25e0 (cdecl; name unconfirmed): when the window [0x7cca94] is not 0, Window_SendMessage of it with message 4 (0, 0) (its result; 0
+// without a window).
+s32 __cdecl Dialog7cca94_Message4IfUp();
+
+// 0x48cf70 / 0x492e60 (thiscall; names unconfirmed): Window_SendMessage with message 4 (0, 0) of the window at +0x10 of the object (0x492e60
+// only when it is not 0; 0 then).
+s32 __fastcall WindowAt10_Message4(u8 *object);
+s32 __fastcall WindowAt10_Message4IfAny(u8 *object);
+
+// 0x48ee20 (cdecl; name unconfirmed): message 5 (0, 0) sent (Window_SendMessage) to the window (+0) of each of the ten entries of 0x208 bytes
+// from 0x7c26b0 whose word +4 is not 0.
+void __cdecl Windows7c26b0_Message5();
 }

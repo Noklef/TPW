@@ -38,4 +38,28 @@ s32 __cdecl Dialog7cdb0c_Child16007Message6On() {
 s32 __cdecl Dialog7cdb0c_Child16007Message6Off() {
     return Window_SendMessage(Window_FindChild(window(0x007cdb0c), nullptr, 0x16007), 6, 0, 0);
 }
+
+s32 __cdecl Dialog7ca098_Message4IfUp() {
+    s32 result = 0;
+    if (u8 *const w = window(0x007ca098)) result = Window_SendMessage(w, 4, 0, 0);
+    *reinterpret_cast<u32 *>((uintptr_t)0x007ca090) = 0;
+    return result;
+}
+
+s32 __cdecl Dialog7cca94_Message4IfUp() {
+    u8 *const w = window(0x007cca94);
+    return w ? Window_SendMessage(w, 4, 0, 0) : 0;
+}
+
+s32 __fastcall WindowAt10_Message4(u8 *object) { return Window_SendMessage(*reinterpret_cast<u8 **>(object + 0x10), 4, 0, 0); }
+
+s32 __fastcall WindowAt10_Message4IfAny(u8 *object) {
+    u8 *const w = *reinterpret_cast<u8 **>(object + 0x10);
+    return w ? Window_SendMessage(w, 4, 0, 0) : 0;
+}
+
+void __cdecl Windows7c26b0_Message5() {
+    for (u32 entry = 0x007c26b0; entry < 0x007c3b00; entry += 0x208)
+        if (*reinterpret_cast<u16 *>((uintptr_t)entry + 4)) Window_SendMessage(*reinterpret_cast<u8 **>((uintptr_t)entry), 5, 0, 0);
+}
 }
