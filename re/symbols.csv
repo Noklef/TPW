@@ -304,7 +304,7 @@ address,name,kind,confidence,notes
 0x00401030,BalanceFile_Init,function,high,"reimplemented (src/game/core/balancefile); thiscall: the values entries laid out from the schema (groups, strides, running index into the values at +8), then SetDefaults(1)"
 0x004013e0,BalanceFile_SetDefaults,function,high,reimplemented (src/game/core/balancefile); thiscall (keep): the values set to their schema defaults group by group; strings freed unless keep is 1
 0x00401250,BalanceFile_Release,function,low,"reimplemented (src/game/core/balancefile); thiscall: SetDefaults(0) when there are values, then the values block freed and cleared"
-0x004017a0,BalanceFile_Parse,function,medium,"parses Group.Key value lines; 'Balance file %s parse error', range checks per type"
+0x004017a0,BalanceFile_Parse,function,medium,"reimplemented (src/game/core/balancefile); thiscall (name, text, keep), pops 12: a balance file text into its values (Group[row].Field.Field value lines); 1, or 0 at the first error"
 0x00412c90,ObjectDef_GetSchema,function,high,"reimplemented (src/game/world/objectdefs); thiscall (i), this unused: &key record i of the object .sam schema at 0x744b30 (0x3c bytes each)"
 0x004143f0,TrackType_GetSchema,function,high,"reimplemented (src/game/world/objectdefs); thiscall (i), this unused: &key record i of the track type .sam schema at 0x739ea8 (0x3c bytes each); BalanceTrack vtable 0x6fd8b0"
 0x00412e60,ObjectDefs_First,function,high,"reimplemented (src/game/world/objectdefs); thiscall: the first definition (+0, whatever the count); the walk cursor (+0x72c) set to 0"
@@ -549,6 +549,8 @@ address,name,kind,confidence,notes
 0x0059bf10,AdvisorScoringFile_Dtor,function,low,"reimplemented (src/game/core/balancefile); thiscall: vtable 0x6fd958 back, BalanceFile_Release (name unconfirmed)"
 0x005b0cd0,ThemeRecord_Dtor,function,low,"reimplemented (src/game/core/balancefile); thiscall: a theme's record destroyed: its theme balance file (+0x1c, vtable 0x702800) when there is one released and freed, then its name (String at +0x20)"
 0x00402720,BalanceFile_ParseMap,function,low,"reimplemented (src/game/core/balancefile); cdecl (&text, &map, &error, symbols, count): a map description of up to 20 x 20 symbol cells, flipped, into a GlobalAlloc block; 0 with an error text"
+0x00401650,BalanceFile_Load,function,low,"reimplemented (src/game/core/balancefile); thiscall (path, keep), pops 8: a balance file read from its path and parsed"
+0x00401700,BalanceFile_LoadStream,function,low,"reimplemented (src/game/core/balancefile); thiscall (name, stream, keep), pops 12: a balance file read from a stream and parsed"
 0x00470c90,Motion_ApplyMaterial,function,high,"reimplemented (src/game/motion/keys); (model, table, state): last (frame, value) key at or before the frame set into the material record (+2), flagged +1 |= 4 on change"
 0x00470d10,Matrix_PreMul33,function,high,"reimplemented (src/game/math/matrix); m = r * m on the rotation part, r a packed row-major 3x3"
 0x00470e90,Motion_LerpPackedVertices,function,high,"reimplemented (src/game/motion/vertexanim); (block, positions, group, t, add): 10:10:10 keys * scale (+0x20) + offset (+0x14), lerped key -> key+1 into slot (12 * (slot >> 2) + (slot & 3)), axes 4 floats apart"
@@ -755,6 +757,7 @@ address,name,kind,confidence,notes
 0x0045d560,MouseState_SetTileFromPosition,function,low,reimplemented (src/game/world/mousemode); the pointer state's tile from a position on the terrain grid
 0x0046c110,MouseState_ResolvePick,function,low,"reimplemented (src/game/world/mousemode); thiscall; the pointer state's picks: +4 the picked thing of a pickable kind, +8 the thing at its tile, +0 that when none"
 0x0046c480,MMPlaceStaff_Hover,function,low,"reimplemented (src/game/world/mousemode); thiscall (4 unused): the staff modes' sprite to the highlight point 5 up, and a square face over a cell that is not plain ground"
+0x0046c0d0,MouseState_ShowFps,function,low,"reimplemented (src/game/world/mousemode); thiscall (fps), pops 4: ""FPS: %4g"" printed into +0x10 and handed to 0x8bba50"
 0x0040f290,ThingMsg01_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (a): +8 a; vtable set, +4 cleared; returns this"
 0x0040f240,ThingMsg02_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (c, b): +8 b, +0xc c; vtable set, +4 cleared; returns this"
 0x0040f330,ThingMsg06_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (u16 a): +8 a; vtable set, +4 cleared; returns this"
@@ -2291,6 +2294,8 @@ address,name,kind,confidence,notes
 0x0045b7c0,StdString_MaxSize,function,high,reimplemented (src/game/core/stdstring); std::string::max_size(): 0xfffffffd
 0x0045b7d0,StdString_Copy,function,high,reimplemented (src/game/core/stdstring); std::string::_Copy(n): new block of n | 31 (sic: copies all old chars unclamped)
 0x0045b8d0,StdString_Split,function,high,reimplemented (src/game/core/stdstring); std::string::_Split(): unshares a copy-on-write block
+0x0047b1c0,StdString_AssignFill,function,low,"reimplemented (src/game/core/stdstring); thiscall (n, ch), pops 8: assign(n, ch)"
+0x0047b280,StdString_Freeze,function,low,reimplemented (src/game/core/stdstring); thiscall: _Freeze
 0x0045b9d0,GlobalMem_Alloc,function,high,"reimplemented (src/game/core/globalmem); GlobalAlloc(GMEM_ZEROINIT or GMEM_FIXED, size) through the import slot; null for 0"
 0x0045ba00,GlobalMem_Free,function,high,reimplemented (src/game/core/globalmem); GlobalFree through the import slot; null for null
 0x0045ba70,GlobalMem_AllocCounted,function,high,reimplemented (src/game/core/globalmem); a zeroed 0x40-byte block with count at +4; null for 0
@@ -3367,6 +3372,12 @@ address,name,kind,confidence,notes
 0x004e2b80,Obj_DefKind123,function,high,"reimplemented (src/game/world/objectdefs); whether the object definition is of kind 1, 2 or 3"
 0x00413410,ObjectDef_FindMarkedCells,function,low,"reimplemented (src/game/world/objectdefs); the cells of kinds 9 and 0xa of a definition grid noted at +0x494..+0x4a8, then +0x4ac..+0x4b4 and the id from their fields"
 0x00413600,ObjectDef_LoadText,function,low,reimplemented (src/game/world/objectdefs); thiscall (stream): the definition text file read; NAME / SIGNA / SIGNB lines each followed by its value line copied into +0x4f4 fields
+0x004146b0,ObjectText_FullName,function,low,"reimplemented (src/game/world/objectdefs); thiscall on the name buffers (id, out, size), pops 12: an object's name and suffix joined into out"
+0x004147f0,ObjectText_Name,function,low,"reimplemented (src/game/world/objectdefs); thiscall (id, out, size, trim), pops 16: an object's name text into out, a last '-' cut when trim is 1"
+0x00414870,ObjectText_Suffix,function,low,"reimplemented (src/game/world/objectdefs); thiscall (id, out, size), pops 12: an object's suffix text into out"
+0x00412fb0,ObjectDefs_GetFullName,function,low,"reimplemented (src/game/world/objectdefs); thiscall (id, out, size), pops 12: the definition's full name text, else the object texts' full name"
+0x00413020,ObjectDefs_GetName,function,low,"reimplemented (src/game/world/objectdefs); thiscall (id, out, size), pops 12: the object texts' name, else the definition's +0x4f8 text"
+0x004130b0,ObjectDefs_GetSuffix,function,low,"reimplemented (src/game/world/objectdefs); thiscall (id, out, size), pops 12: the object texts' suffix, else the definition's +0x4fc text"
 0x0050c100,Ring_PushUnique,function,high,reimplemented (src/game/core/rings); pushes an id and value unless they repeat the last pair
 0x004e0220,Obj_GetTrackedHandle,function,high,"reimplemented (src/game/world/object); the tracked handle, dropped when the thing no longer has the object's handle"
 0x004dd7f0,Object_SetCapacity,function,high,reimplemented (src/game/world/object); the capacity clamped to the definition's limits and stored
@@ -3629,6 +3640,7 @@ address,name,kind,confidence,notes
 0x005c5580,Strings5_JoinPath,function,low,"reimplemented (src/game/core/string); thiscall (name); +0x3c = +0x28 (vtable +0x18), a trailing backslash ensured, then name appended (vtable +0x28)"
 0x005e3170,String_ReadToken,function,low,"reimplemented (src/game/core/string); cdecl (out, cursor, delimiter): the chars from *cursor up to the delimiter appended (String vtable +0x24) to a string copied into out; the cursor left past the delimiter"
 0x005ed130,StringVector_InsertN,function,low,"reimplemented (src/game/core/string); thiscall on a vector of strings (position, count, value, pops 12): count copies of the value inserted at the position (grown into a new block of size + max(size, count), or in place by copy-constructing, assigning through slot 0x18 and, on growth, destroying through slot 0xc)"
+0x00424d10,WNames_Equal,function,low,"reimplemented (src/game/core/string); cdecl (a, b; name unconfirmed): whether the wide texts at +8 of a and b are equal, case blind"
 0x005bdc10,Class702938_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings
 0x005be320,Class702940_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three strings
 0x005be750,Class702948_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings
@@ -3674,6 +3686,7 @@ address,name,kind,confidence,notes
 0x005b1930,StdMapG_Insert,function,high,reimplemented (src/game/core/stdtree); map insert of a 16-bit key with the sentinel at 0xf7c970
 0x0047c740,ImeVector_InsertOne,function,high,reimplemented (src/game/core/ime); inserts one dword into the IME vector
 0x0047cf20,ImeVector_InsertN,function,high,reimplemented (src/game/core/ime); inserts count copies of a dword into the IME vector
+0x0047a9b0,Ime_CacheCurrent,function,low,reimplemented (src/game/core/ime); thiscall: the current entry cached at +0x160; returns its string count
 0x0047f9a0,TextMetrics_Width,function,high,reimplemented (src/game/gfx/text); width of a run of characters by the glyph width slot
 0x0047fa00,TextMetrics_FitIndex,function,high,reimplemented (src/game/gfx/text); index at which the width runs out
 0x0047f990,TextMetrics_ForwardSlot8,function,high,reimplemented (src/game/gfx/text); Forwards to virtual call 8 of the inner object (name unconfirmed)
@@ -3707,6 +3720,10 @@ address,name,kind,confidence,notes
 0x004f7480,CountedPair_Deleter,function,low,"reimplemented (src/game/core/buffers); thiscall: clear the pair, free the object when flags bit 0 is set"
 0x004f7170,CountedPair_Destroy,function,low,reimplemented (src/game/core/buffers); cdecl (element): CountedPair_Clear of the element (std::_Destroy)
 0x004e5700,CountedPairVectorDeque_Clear,function,low,"reimplemented (src/game/core/buffers); thiscall: empties a deque of CountedPair vectors (0x10-byte elements, 0x1000-byte blocks): each vector's pairs destroyed and its block freed, finished blocks and at the end the map freed"
+0x00479490,CountedVector14_Assign,function,low,"reimplemented (src/game/core/buffers); thiscall (x), pops 4: the 0x24-byte entry's operator="
+0x0047d780,CountedVector14s_Copy,function,low,"reimplemented (src/game/core/buffers); cdecl (first, last, dest): std::copy of the entries"
+0x0047dba0,CountedVector14_CtorCopy,function,low,"reimplemented (src/game/core/buffers); thiscall (x), pops 4: the 0x24-byte entry's copy constructor"
+0x0047bce0,CountedVector14Vector_InsertN,function,low,"reimplemented (src/game/core/buffers); thiscall (position, n, x), pops 12: insert(position, n, x) on a vector of the entries"
 0x005b2f40,StdTreeF_LowerBound,function,high,reimplemented (src/game/core/stdtree); lower bound of a string key in the string map
 0x005b0c40,StdTreeF_AllFlagged,function,high,reimplemented (src/game/core/stdtree); whether every mapped object has the byte at +0xb9 set
 0x005b20c0,StdTreeF_FindLower,function,high,reimplemented (src/game/core/stdtree); stores the lower bound of a string key
@@ -3781,6 +3798,7 @@ address,name,kind,confidence,notes
 0x0055f5a0,Lnd_Dtor,function,high,"reimplemented (src/game/terrain/land); The landscape's destructor: Lnd_Clear, the tile buffer freed, the levels cleared (name unconfirmed)"
 0x00454050,Terrain_FootprintCell,function,low,"reimplemented (src/game/terrain/land); (angle, x0, y0, x1, y1, u, v, &cellX, &cellY): the cell at fractions (u, v) of a footprint turned by a right angle"
 0x00466d70,Terrain_FootprintHeight,function,low,"reimplemented (src/game/terrain/land); (x, y, cells, width, depth, flags, angle): (lowest + highest) / 2 of the grid heights at the corners of a footprint's cells, in st0"
+0x00450a80,Terrain_FreeLoaded,function,low,"reimplemented (src/game/terrain/land); cdecl: the loaded grid and the instance at 0x79fcb4 freed, then GlobalMem_FreeThree_427bb0"
 0x005ea510,Image_Dilate,function,high,reimplemented (src/game/gfx/imageops); separable maximum filter of an image
 0x005ea6d0,Image_Erode,function,high,reimplemented (src/game/gfx/imageops); separable minimum filter of an image
 0x005ea1f0,Image_MinMark,function,high,"reimplemented (src/game/gfx/imageops); 3 x 3 minimum of a two byte per pixel image, marking the changed pixels"
@@ -3976,6 +3994,16 @@ address,name,kind,confidence,notes
 0x0047ba50,StdWString_Freeze,function,low,"reimplemented (src/game/core/stdwstring); thiscall: std::wstring::_Freeze(): a shared string's own copy, then its block's count byte 0xff (name unconfirmed)"
 0x0047bad0,StdWString_Grow,function,low,"reimplemented (src/game/core/stdwstring); thiscall (n, trim; pops 8): std::wstring::_Grow(n, trim): AL = characters to write (name unconfirmed)"
 0x0047bc00,StdWString_Split,function,low,reimplemented (src/game/core/stdwstring); thiscall: std::wstring::_Split(): a shared string's own copy (wcslen of the shared characters) (name unconfirmed)
+0x0047ae60,StdWString_CtorCopy,function,low,"reimplemented (src/game/core/stdwstring); thiscall (x), pops 4: the copy constructor"
+0x0047af80,StdWString_CtorFill,function,low,"reimplemented (src/game/core/stdwstring); thiscall (n, ch, allocator), pops 12: n copies of ch"
+0x0047b600,StdWStrings_UninitCopy,function,low,"reimplemented (src/game/core/stdwstring); thiscall (first, last, dest), pops 12: _Ucopy"
+0x0047cc10,StdWString_AppendSub,function,low,"reimplemented (src/game/core/stdwstring); thiscall (x, pos, n), pops 12: append"
+0x0047b460,StdWString_Erase,function,low,"reimplemented (src/game/core/stdwstring); thiscall (pos, n), pops 8: erase"
+0x0047d9d0,StdWString_Construct,function,low,"reimplemented (src/game/core/stdwstring); cdecl (p, x): _Construct"
+0x0047d620,StdWStrings_Copy,function,low,"reimplemented (src/game/core/stdwstring); cdecl (first, last, dest): std::copy"
+0x0047b320,StdWStringVector_Erase,function,low,"reimplemented (src/game/core/stdwstring); thiscall (first, last), pops 8: vector erase"
+0x0047ac10,StdWStringVector_Assign,function,low,"reimplemented (src/game/core/stdwstring); thiscall (x), pops 4: vector<wstring>::operator="
+0x0047c970,StdWStringVector_InsertN,function,low,"reimplemented (src/game/core/stdwstring); thiscall (position, n, x), pops 12: vector<wstring>::insert(position, n, x)"
 0x00405b90,GameError_IndexOfCode,function,low,reimplemented (src/game/core/gameerror); the error index of a library code
 0x00405710,GameError_Set,function,low,"reimplemented (src/game/core/gameerror); thiscall (index, arg, text), pops 12: +4 index, +8 arg, text strncpy into +0xc (0x50), +0 = 1"
 0x004ea740,CountedPair_CtorWide,function,low,"reimplemented (src/game/core/countedpair); thiscall (std::wstring by value, pops 16): the 0x24-byte pair of a narrow and a wide string and a dword: the narrow one empty, the wide one assigned the string, the dword 0; the string destroyed"
@@ -4511,6 +4539,9 @@ address,name,kind,confidence,notes
 0x004255d0,Animator_InitUnusedEpsilon,function,low,reimplemented (src/game/model/holder); cdecl static initialiser: unused 0x78f47c = 1 / 2^23
 0x00455bf0,Instance_InitUnusedOne,function,low,reimplemented (src/game/model/holder); cdecl static initialiser: unused 0x7a0174 = 1.0f
 0x00455c10,Instance_InitUnusedEpsilon,function,low,reimplemented (src/game/model/holder); cdecl static initialiser: unused 0x7a086c = 1 / 2^23
+0x0045bac0,Holder_Free,function,low,"reimplemented (src/game/model/holder); cdecl (holder): a holder's part, object model, blocks and itself freed"
+0x00463db0,Instance_Free,function,low,"reimplemented (src/game/model/holder); cdecl (instance, kept): an instance its arrays, animator, object, holder and itself freed"
+0x00463ed0,InstanceTypes_FreeAll,function,low,"reimplemented (src/game/model/holder); cdecl: the type tables instances freed, the last first"
 0x0046de00,Model_RemapTextures,function,high,"reimplemented (src/game/model/remap); (model, remap, textures, first): face texture pointers and grid cell textures renumbered"
 0x0046e130,Model_AddTerrainSets,function,low,"reimplemented (src/game/model/remap); cdecl (model, sets, dir): the model's textures found among the sets' tiles by name or kept, a new table of the kept ones then the tiles (named, numbered, their directories), Model_RemapTextures onto it; 1"
 0x00469180,Highlight_Update,function,high,"reimplemented (src/game/model/highlight); releases the current holder (0x7a1ce0) for another target (0x7afda0), highlights the target: mesh vertex blocks copied into 0x7afd00"

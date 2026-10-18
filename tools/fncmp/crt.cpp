@@ -6,7 +6,9 @@
 #include "crt.h"
 
 #include <cstdarg>
+#include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <cwctype>
 
@@ -111,6 +113,16 @@ s32 __cdecl vswprintf(u16 *to, const u16 *format, void *args) {
     return _vsnwprintf((wchar_t *)to, 0x7fffffff, (const wchar_t *)format, (va_list)args);
 }
 
+// The host's (%s a wide string, as MSVC's): checked for strings and characters; MSVC6's integers are unchecked (they go through code the
+// emulator does not run) and its %c of 0xffff (WEOF) fails with -1, which the host's does not.
+s32 __cdecl swprintf(u16 *to, const u16 *format, ...) {
+    va_list args;
+    va_start(args, format);
+    const s32 n = _vsnwprintf((wchar_t *)to, 0x7fffffff, (const wchar_t *)format, args);
+    va_end(args);
+    return n;
+}
+
 u16 *__cdecl wcscpy(u16 *to, const u16 *from) {
     u16 *p = to;
     while ((*p++ = *from++) != 0) {
@@ -123,6 +135,17 @@ u16 *__cdecl wcsncpy(u16 *to, const u16 *from, u32 n) {
     for (; n && *from; --n) *p++ = *from++;
     for (; n; --n) *p++ = 0;
     return to;
+}
+
+// The "C" locale's path (no locale handle at 0xfb1440): A-Z folded, other units as they are.
+s32 __cdecl wcsicmp(const u16 *a, const u16 *b) {
+    auto fold = [](u16 c) -> s32 { return (u16)(c - 'A') < 26 ? c + 0x20 : c; };
+    s32 x, y;
+    do {
+        x = fold(*a++);
+        y = fold(*b++);
+    } while (x && x == y);
+    return x - y;
 }
 
 u16 *__cdecl wcscat(u16 *to, const u16 *from) {
@@ -151,11 +174,79 @@ s32 __cdecl wtoi(const u16 *s) {
     return (s32)(sign == '-' ? 0 - total : total);
 }
 
+// The game's own table (the driver has the game's data at its addresses), read as MSVC6 reads it with __mb_cur_max 1:
+// c indexes the words of _pctype as given, so a sign-extended byte from 0x80 reads the data before the table (sic).
+s32 ctype(s32 c, u32 mask) { return (*reinterpret_cast<const u16 *const *>((uintptr_t)0x77ea90))[c] & mask; }
+s32 __cdecl isalpha(s32 c) { return ctype(c, 0x103); }
+s32 __cdecl isdigit(s32 c) { return ctype(c, 4); }
+s32 __cdecl isspace(s32 c) { return ctype(c, 8); }
+s32 __cdecl isalnum(s32 c) { return ctype(c, 0x107); }
+
+// MSVC6's grammar (__strgtold12: up to 25 significant digits, d or e for the exponent) rewritten for the host's strtod,
+// which rounds correctly: checked against the game's for short mantissas and moderate exponents (MSVC6 multiplies
+// through a 12-byte float and may differ in the last bit beyond that).
+double __cdecl atof(const char *s) {
+    while (space((u8)*s)) ++s;
+    char text[48];  // sign, 25 digits, "e", sign, 5 digits
+    u32 n = 0;
+    if (*s == '+' || *s == '-') text[n++] = *s++;
+    auto digit = [](char c) { return c >= '0' && c <= '9'; };
+    u32 significant = 0;
+    s32 exponent = 0;  // of the last digit kept
+    bool any = false;
+    for (; digit(*s); ++s) {
+        any = true;
+        if (significant == 0 && *s == '0') continue;
+        if (significant < 25) {
+            text[n++] = *s;
+            ++significant;
+        } else {
+            ++exponent;
+        }
+    }
+    if (*s == '.') {
+        const bool fraction = digit(s[1]);
+        if (any || fraction) ++s;
+        for (; digit(*s); ++s) {
+            any = true;
+            if (significant == 0 && *s == '0') {
+                --exponent;
+                continue;
+            }
+            if (significant < 25) {
+                text[n++] = *s;
+                ++significant;
+                --exponent;
+            }
+        }
+    }
+    if (!any) return 0.0;
+    if (significant == 0) text[n++] = '0';
+    s32 power = 0;
+    const char *e = s;
+    if (*e == 'e' || *e == 'E' || *e == 'd' || *e == 'D') {
+        ++e;
+        bool negative = false;
+        if (*e == '+' || *e == '-') negative = *e++ == '-';
+        if (digit(*e)) {
+            for (; digit(*e); ++e) {
+                if (power < 5200) power = power * 10 + (*e - '0');
+            }
+            if (power > 5200) power = 5200;
+            if (negative) power = -power;
+        }
+    }
+    std::snprintf(text + n, sizeof text - n, "e%d", (int)(power + exponent));
+    return std::strtod(text, nullptr);
+}
+
 }  // namespace msvc6
 
 const CrtEnv kDriverCrt = {&msvc6::stricmp, &msvc6::strrchr, &msvc6::strchr, &msvc6::strncmp, &msvc6::strstr,
                            &msvc6::toupper, &msvc6::tolower, &msvc6::atoi,   &msvc6::sprintf, &msvc6::wcslen,
-                           &msvc6::strncpy, &msvc6::iswspace, &msvc6::wcscpy};
+                           &msvc6::strncpy, &msvc6::iswspace, &msvc6::wcscpy,
+                           &msvc6::isalpha, &msvc6::isdigit, &msvc6::isspace,
+                           &msvc6::isalnum, &msvc6::atof, &msvc6::swprintf, &msvc6::wcsncpy, &msvc6::wcsicmp};
 
 const LibcEnv kDriverLibc = {&msvc6::strncpy, &msvc6::strncat, &msvc6::atoi,    &msvc6::iswctype, &msvc6::vsprintf,
                              &msvc6::vsnprintf, &msvc6::wcslen,  &msvc6::wcscpy,  &msvc6::wcsncpy,  &msvc6::wcscat,
@@ -167,5 +258,8 @@ const CrtStandIn kCrtStandIns[] = {
     {0x0067fa60, (void *)&msvc6::tolower}, {0x0067a520, (void *)&msvc6::atoi},    {0x0067a650, (void *)&msvc6::sprintf},
     {0x0067acd0, (void *)&msvc6::wcslen},  {0x0067ae00, (void *)&msvc6::strncpy}, {0x0067a730, (void *)&msvc6::iswspace},
     {0x0067bf10, (void *)&msvc6::wcscpy},
+    {0x0067a530, (void *)&msvc6::isalpha}, {0x0067a560, (void *)&msvc6::isdigit}, {0x0067a590, (void *)&msvc6::isspace},
+    {0x0067a5c0, (void *)&msvc6::isalnum}, {0x0067a6c0, (void *)&msvc6::atof},    {0x0067af00, (void *)&msvc6::swprintf},
+    {0x0067b0d0, (void *)&msvc6::wcsncpy}, {0x0067b140, (void *)&msvc6::wcsicmp},
 };
 const u32 kCrtStandInCount = sizeof kCrtStandIns / sizeof kCrtStandIns[0];

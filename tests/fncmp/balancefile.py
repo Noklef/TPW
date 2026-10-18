@@ -5,13 +5,15 @@
 # (0x5b0cd0) with its theme balance file (vtable 0x702800) or none and a name of any block. A map description parsed (0x402720): leading white
 # space and a first line, the "---" marker (or a near miss), rows of the symbols' chars, spaces and others up to 22 wide and 21
 # high (the 21st with a char), the closing marker or none; symbol tables of 0-8 entries (or a negative count); the map's block from heap() (or none).
-# usage: balancefile.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Defaults,Release,Schema,Dtor,Init,ObjCtor,Advisor,Find,Theme,Map)
+# A balance file's text parsed (0x4017a0): a schema of 1-3 sections (grouped or not) of keys of the value types, and lines naming them (near
+# misses, rows in and out of range, 1-17 fields, 64-char names) with values near the keys' bounds and malformed ones, strings, maps, comments.
+# usage: balancefile.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Defaults,Release,Schema,Dtor,Init,ObjCtor,Advisor,Find,Theme,Map,Parse,Load)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, Bench, Call, RAM, global_heap, heap, put  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, fill, global_heap, heap, import_table, log_region, put, set_return, strings, vtable  # noqa: E402
 
 GETTERS = {0x402a50: 0x73fb40, 0x402b10: 0x73fc70, 0x402b80: 0x743f00, 0x402bf0: 0x7442c0, 0x402c60: 0x744a40, 0x402cd0: 0x746a20, 0x415e90: 0x72e120}
 VTABLES = {0x6fd618: 0x73fb40, 0x6fd620: 0x73fc70, 0x6fd628: 0x743f00, 0x6fd630: 0x7442c0, 0x6fd638: 0x744a40, 0x6fd640: 0x746a20,
@@ -21,7 +23,9 @@ DTORS = {0x402a70: (0x784e30, 0x6fd618), 0x402ac0: (0x784c20, 0x6fd618), 0x402b3
          0x412d40: (0, 0x6fd8a8), 0x414410: (0, 0x6fd8b0), 0x423dc0: (0, 0x6fd630), 0x59bf10: (0, 0x6fd958)}   # the static (global, vtable) and thiscall (0, vtable) destructors
 B = Bench([(0x401250, 0x40127a), (0x4013e0, 0x40161d), (0x5f5680, 0x5f5690), (0x412c90, 0x412ca2), (0x4143f0, 0x414402), (0x4d1e60, 0x4d1e72), (0x5da3c0, 0x5da3c1)]
           + [(a, a + 0x12) for a in GETTERS] + [(a, a + 0x10) for a in DTORS] + [(0x401030, 0x401212), (0x5f5660, 0x5f5680), (0x5b0d60, 0x5b0d64), (0x412c20, 0x412c89), (0x415e70, 0x415e8e), (0x401280, 0x4013dc),
-           (0x5b0cd0, 0x5b0d34), (0x5b0d40, 0x5b0d54), (0x5f61e0, 0x5f61f3), (0x402720, 0x402a1e), (0x405710, 0x405742), (0x67a400, 0x690000)])
+           (0x5b0cd0, 0x5b0d34), (0x5b0d40, 0x5b0d54), (0x5f61e0, 0x5f61f3), (0x402720, 0x402a1e), (0x405710, 0x405742), (0x67a400, 0x6902c0),
+           (0x4017a0, 0x402720), (0x401650, 0x4017a0), (0x5f56f0, 0x5f5a30), (0x5f5ad0, 0x5f5bc0), (0x5f5c70, 0x5f5ce0), (0x5f5e20, 0x5f5e60),
+           (0x5f7180, 0x5f71a0)])
 VALS, FLAGS, DATA = RAM + 0x800, RAM + 0x900, RAM + 0x1000
 INIT = RAM + 0x4000
 GROUPED = [0, 1, 2, 2, 2, 3, 3, 4, 6, 9, 10, 0xd]   # (Init: groups nested, cut short and empty more often)
@@ -128,6 +132,187 @@ def parse_map(r):   # 0x402720 (&text, &map, &error, symbols, count)
     return Call(0x402720, [RAM, RAM + 4, RAM + 8, RAM + 0x100, count & 0xffffffff], regions, conv='c', ret='a')
 
 
+TEXT = RAM + 0x8000
+WORDS = [b'Speed', b'Cost', b'Speed2', b'Ride', b'Map', b'Name', b'Rate', b'x', b'Spee', b'A' * 40]
+
+
+def number(r, low, high, kind):   # a value's text for a key of the kind (types 4-6 integers, 7-9 floats), near its bounds often
+    if kind in (7, 8, 9):
+        v = r.choice([low, high, r.uniform(low, high), r.uniform(-5, 5), 0.0, -0.0])
+        s = r.choice(['%g' % v, '%.3f' % v, '%d' % int(v), '.5', '-.25', '3.', '1.2.3', '1..2', '-', '', '1e5', '0x1',
+                      '1' * r.choice([99, 100, 101]), '-' + '1' * 98, '1.' + '5' * 40, '%.2f' % v])
+    else:
+        v = r.choice([low, high, high - 1, low - 1, r.randint(low, high), r.randrange(-9, 99), 0, -1])
+        s = r.choice(['%d' % v, '%d' % v, '%d' % v, '-', '', '1.5', '12x', '+3', str(r.getrandbits(32)), '00%d' % abs(v)])
+    return s.encode()
+
+
+def map_text(r, kind):   # a map description after its key's line (ParseMap from the line's start), mostly well formed
+    syms = b'.*Q@+#8624NESWD><OX' if kind == 1 else b'.^_[]JF7L=HCUn3O'
+    rows = [bytes(r.choice(syms + b' ') for _ in range(r.choice([1, 3, 8, 20, 21]))) for _ in range(r.choice([0, 1, 4, 20]))]
+    if r.random() < 0.1:
+        rows.append(b'?!')
+    return r.choice([b'', b' rest']) + b'\n' + r.choice([b'---', b'---', b'--']) + b'\n' + b''.join(x + b'\n' for x in rows) + r.choice([b'---\n', b'---\n', b'']) + b'skipped line\n'
+
+
+def find_key(recs, sname, name, grouped):   # BalanceFile_FindKey's record for the bench's bounds (None: not found)
+    s = next((i for i in range(len(recs) - 1, -1, -1) if recs[i][0] in (1, 3) and recs[i][1] == sname), None)
+    if s is None or recs[s][0] != (3 if grouped else 1):
+        return None
+    for i in range(s - 1, -1, -1):
+        if recs[i][0] in (0, 2):
+            return None
+        if recs[i][1] == name:
+            return i
+    return None
+
+
+def parse(r):   # BalanceFile_Parse (thiscall (name, text, keep)): a made-up schema of sections and the text of lines naming their keys
+    vt = r.choice(list(VTABLES))
+    pool = r.sample(WORDS, 5)
+    recs, sections = [], []   # (type, name, extra); (name, grouped, count, keys)
+    if r.random() < 0.3:
+        recs.append((0, b'', None))
+    for _ in range(r.choice([1, 2, 2, 3])):
+        grouped, sname = r.random() < 0.4, r.choice(pool)
+        if r.random() < 0.08:
+            sname = b'S' * 64   # (a name of 64 chars runs over its record into the next one, a filler: the group name's limit)
+        if grouped:
+            recs.append((2, r.choice(pool), None))
+        keys = []
+        for _ in range(r.choice([1, 2, 3, 4])):
+            t = r.choice([4, 5, 6, 6, 7, 8, 9, 9, 10, 10, 11, 11])
+            keys.append((t, b'L' * 64 if r.random() < 0.05 else r.choice(pool)))
+            recs.append((t, keys[-1][1], None))
+            if len(keys[-1][1]) > 0x1f:
+                recs.append((0xd, b'', None))
+        count = r.choice([1, 2, 3])
+        spill = None
+        if len(sname) > 0x1f and len(keys[-1][1]) <= 8 and r.random() < 0.6:
+            spill = keys[-1][1]   # (written after the 64 chars, as a line's group of 64 runs on into its first field: that field's line finds it)
+        recs.append((3 if grouped else 1, sname + (spill or b''), count))
+        if len(sname) > 0x1f:
+            recs.append((0xd, b'', None))
+        sections.append((sname, grouped, count, keys, spill))
+    n = len(recs)
+    table = bytearray(r.bytes(0x3c * (n + 2)))
+    bounds = {}
+    for k, (t, name, count) in enumerate(recs + [(0xc, b'', None), (3, b'', None)]):
+        put(table, 0x3c * k, 'I', t)
+        table[0x3c * k + 4:0x3c * k + 0x24] = (name + bytes(0x20))[:0x1f] + b'\0'
+        lo, hi = r.choice([(0, 10), (-5, 5), (1, 100), (3, 3)])
+        put(table, 0x3c * k + 0x24, 'ii', lo, hi)
+        put(table, 0x3c * k + 0x2c, 'ff', lo / 2, hi / 2)
+        put(table, 0x3c * k + 0x34, 'iI', count if count is not None else r.choice([0, 1, 2]), r.choice([1, 1, 2]))
+        bounds[k] = (lo, hi, struct.unpack_from('<I', table, 0x3c * k + 0x38)[0])
+    for k, (t, name, _) in enumerate(recs):   # the long names written whole over their filler record's type and name
+        if len(name) > 0x1f:
+            table[0x3c * k + 4:0x3c * k + 5 + len(name)] = name + b'\0'
+    vals, regions = bytearray(0xc * n), {}
+    for k in range(n):
+        put(vals, 0xc * k, 'IiI', DATA + 0x40 * k, r.choice([1, 1, 2, 3]), FLAGS + 4 * k)
+        regions[DATA + 0x40 * k] = b''.join(r.choice([0, 0, r.getrandbits(32)]).to_bytes(4, 'little') for _ in range(0x10))
+    flags = b''.join(struct.pack('<i', r.choice([0, 0, 1, 2, 5, -1])) for _ in range(n))
+    kinds = {}
+    for k, (t, name, _) in enumerate(recs):   # map keys parse with the symbol table their +0x38 names (1 or 2; others read an uninitialised pointer)
+        if t == 11:
+            kinds[k] = r.choice([1, 2])
+            put(table, 0x3c * k + 0x38, 'I', kinds[k])
+    text = b''
+    for _ in range(r.choice([1, 2, 3, 5])):
+        roll = r.random()
+        if roll < 0.12:
+            text += r.choice([b'# comment\n', b'\n', b'   \n', b'\t# x.y 1\n', b'#'])
+            continue
+        sname, grouped, count, keys, spill = r.choice(sections)
+        clean = r.random() < 0.3   # (a well-formed line of one key, its value at a bound: the checks past the parsing)
+        if r.random() < 0.08 and not clean:
+            sname = r.choice(pool + [b'Other', b'', b'9x', b'A' * 64, b'A' * 65])
+        line = r.choice([b'', b'', b'  ', b'\t', b'\n '])
+        if clean:
+            line += sname + (b'[%d].' % r.randrange(count) if grouped else b'.')
+        elif grouped and r.random() < 0.9 or r.random() < 0.05:
+            row = r.choice([0, 1, count - 1, count, 2])
+            line += sname + r.choice([b'[%d].' % row, b'[%d].' % row, b'[x].', b'[1]', b'[1.', b'[01].'])
+        else:
+            line += sname + r.choice([b'.', b'.', b'.', b'[', b' .', b'.9'])
+        chosen = [r.choice(keys) for _ in range(1 if clean else r.choice([1, 1, 1, 2, 2, 3, 16, 17]))]
+        if r.random() < 0.06 and not clean:
+            chosen[0] = (4, r.choice([b'Other', b'B' * 64, b'C' * 63]))
+        elif spill and r.random() < 0.7:
+            chosen[0] = keys[-1]
+        maps = [kk for kk in keys if kk[0] == 11]
+        if len(chosen) == 2 and maps and r.random() < 0.5:   # (a map first of two fields, the line well formed: the error before the map is read)
+            chosen[0] = r.choice(maps)
+            line = sname + (b'[%d].' % r.randrange(count) if grouped else b'.')
+            clean = True
+        line += (b'.' if clean else r.choice([b'.', b'.', b'.', b'..', b'.9'])).join(name for _, name in chosen)
+        if len(chosen) == 16 and r.random() < 0.5:
+            line += b'..' + chosen[0][1]   # (past the 16th field: "Too many fields")
+        if any(t == 11 for t, _ in chosen) and (len(chosen) == 1 or len(chosen) == 2 and r.random() < 0.5):
+            k = find_key(recs, sname, next(name for t, name in chosen if t == 11), grouped)
+            kind = kinds.get(k, 1) if r.random() < 0.8 else r.choice([1, 2])   # (mostly the symbols the key's +0x38 names)
+            text += line + map_text(r, kind)   # (two fields with a map: an error before the map is read)
+            continue
+        line += b' ' if clean else r.choice([b' ', b' ', b'\t', b'', b'#'])
+        for t, name in chosen:
+            k = find_key(recs, sname, name, grouped)
+            lo, hi, _ = bounds.get(k, (0, 10, 1))
+            t = recs[k][0] if k is not None else t
+            if t == 10:
+                v = r.choice([b'"text"', b'""', b'"two words"', b'"open', b'bare', b' "x"y', b'"a\nb"'])
+            elif clean:
+                bound = r.choice([lo, hi, hi - 1, lo - 1, 0, -1])
+                v = b'%g' % (bound / 2) if t in (7, 8, 9) else b'%d' % bound
+            else:
+                v = number(r, lo / 2 if t in (7, 8, 9) else lo, hi / 2 if t in (7, 8, 9) else hi, t)
+            line += v + r.choice([b' ', b' ', b'\t', b''])
+        text += line + r.choice([b'\n', b'\r\n', b'\n', b' # note\n', b''])
+    regions.update({RAM: put(bytearray(r.bytes(0x10)), 0, 'II', vt, VALS), VALS: vals, FLAGS: flags, VTABLES[vt]: table,
+                    RAM + 0x100: b'test.sam\0', TEXT: text[:0x1f00] + b'\0' + r.bytes(4), HEAP: heap(0x8000, fail=r.choice([0] * 15 + [1])),
+                    **global_heap(), 0x785de8: r.bytes(0x60)})
+    return Call(0x4017a0, [RAM, RAM + 0x100, TEXT, r.choice([0, 1, 1, 2])], regions, conv='t', ret='a')
+
+
+FILE_STREAM_VTABLE, GLOBALS = 0x6fd930, 0xfa6ec8   # (file.py's: the file stream's vtable; the command line, + 0x108 the base directory, + 0x210 the path buffer)
+FIND_FIRST, FIND_CLOSE, OPEN, READ, SIZE = 45, 46, 9, 2, 5
+
+
+def load(r):   # BalanceFile_Load (thiscall (path, keep)) or BalanceFile_LoadStream (thiscall (name, stream, keep)): a parse case's text read into
+    c = parse(r)   # the first block of the heap (as it was before the read: the read recorder writes nothing), its size as found or a near miss
+    regions = c.regions
+    text = regions.pop(TEXT).split(b'\0')[0]
+    size = r.choice([len(text)] * 6 + [0, len(text) + 3, max(len(text) - 2, 0)])
+    block = heap(0x8000, fail=r.choice([0] * 12 + [1, 2]))
+    block[0x10:0x10 + len(text) + 8] = text + r.bytes(8)
+    regions[HEAP] = block
+    log = log_region()
+    stream = r.random() < 0.5
+    if stream:
+        set_return(log, SIZE, r.choice([size] * 5 + [0, -1, 0x80000000]))
+        set_return(log, READ, r.choice([size] * 5 + [size - 1, size + 1, 0, -1]))
+        regions[RAM + 0x200] = struct.pack('<I', RAM + 0x300)
+        regions[RAM + 0x300] = vtable({READ: 2})
+    else:
+        iat = import_table(log, {'FindFirstFileA': (FIND_FIRST, 0x6fd100, 2, 1, 2), 'FindClose': (FIND_CLOSE, 0x6fd104, 1, 0, 0)})
+        for at, v in global_heap().items():
+            iat[at - IMPORT_TABLE:at - IMPORT_TABLE + 4] = v
+        regions[IMPORT_TABLE] = iat
+        for at in global_heap():
+            regions.pop(at)
+        set_return(log, FIND_FIRST, r.choice([0x1234] * 8 + [0xffffffff]))
+        fill(log, FIND_FIRST, 1, bytes(0x20) + struct.pack('<I', size & 0xffffffff) + bytes(0x10), 0)
+        fill(log, OPEN, 0, struct.pack('<i', r.choice([0] * 8 + [-1, 1])), 1)
+        strings(log, OPEN, 2, 1)
+        regions[FILE_STREAM_VTABLE] = vtable({0: 1, 2: 2, 3: 2, 4: 2, 9: 3})
+        regions[GLOBALS] = (b'tp.exe' + bytes(0xfe) + bytes(4) + b'C:\\tpw\\' + bytes(0xfd) + bytes(4) + bytes(0x108))[:0x318]
+    regions[LOG] = log
+    keep = r.choice([0, 1, 1, 2])
+    if stream:
+        return Call(0x401700, [RAM, RAM + 0x100, RAM + 0x200, keep], regions, conv='t', ret='a')
+    return Call(0x401650, [RAM, RAM + 0x100, keep], regions, conv='t', ret='a')
+
+
 def case(r):
     op = r.deal(OPS + [k for k in ('Dtor', 'Schema') if k in OPS])   # (a deck, those two twice: they share out many functions)
     if op == 'Defaults':
@@ -150,10 +335,14 @@ def case(r):
         return find(r)
     if op == 'Map':
         return parse_map(r)
+    if op == 'Parse':
+        return parse(r)
+    if op == 'Load':
+        return load(r)
     return Call(r.deal(list(GETTERS)), [r.getrandbits(32), r.choice([0, 1, r.randrange(64), r.getrandbits(32)])], {}, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Defaults,Release,Schema,Dtor,Init,ObjCtor,Advisor,Find,Theme,Map').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Defaults,Release,Schema,Dtor,Init,ObjCtor,Advisor,Find,Theme,Map,Parse,Load').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

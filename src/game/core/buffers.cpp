@@ -5,6 +5,7 @@
 #include "../files/file.h"
 #include "crt.h"
 #include "gameheap.h"
+#include "stdwstring.h"
 #include "string.h"
 
 namespace {
@@ -431,4 +432,84 @@ u8 *__fastcall Block50_Ctor(u8 *object) {
 void __fastcall CountedVector14_Clear(u8 *object) { ClearCountedVector(object, 0x14, 0x18, 0x1c); }
 
 void __fastcall CountedVector4_Clear(u8 *object) { ClearCountedVector(object, 4, 8, 0xc); }
+
+u8 *__fastcall CountedVector14_Assign(u8 *object, void *, const u8 *x) {
+    for (u32 offset = 0; offset < 0x10; offset += 4) at<u32>(object, offset) = at<u32>(x, offset);
+    StdWStringVector_Assign(object + 0x10, nullptr, x + 0x10);  // (inlined; nothing when object is x)
+    at<u32>(object, 0x20) = at<u32>(x, 0x20);
+    return object;
+}
+
+u8 *__cdecl CountedVector14s_Copy(const u8 *first, const u8 *last, u8 *dest) {
+    for (; first != last; first += 0x24, dest += 0x24) CountedVector14_Assign(dest, nullptr, first);
+    return dest;
+}
+
+u8 *__fastcall CountedVector14_CtorCopy(u8 *object, void *, const u8 *x) {
+    for (u32 offset = 0; offset < 0x10; offset += 4) at<u32>(object, offset) = at<u32>(x, offset);
+    at<u8>(object, 0x10) = at<u8>(x, 0x10);
+    const StdWString *const xFirst = at<const StdWString *>(x, 0x14);
+    const s32 n = xFirst ? (s32)((uintptr_t)at<const StdWString *>(x, 0x18) - (uintptr_t)xFirst) >> 4 : 0;
+    StdWString *const first = static_cast<StdWString *>(GameHeap_Alloc((u32)(n < 0 ? 0 : n) << 4));
+    at<StdWString *>(object, 0x14) = first;
+    const StdWString *const xLast = at<const StdWString *>(x, 0x18);
+    StdWString *const last = StdWStrings_UninitCopy(object + 0x10, nullptr, at<const StdWString *>(x, 0x14), xLast, first);  // (inlined)
+    at<StdWString *>(object, 0x18) = last;
+    at<StdWString *>(object, 0x1c) = last;
+    at<u32>(object, 0x20) = at<u32>(x, 0x20);
+    return object;
+}
+
+void __fastcall CountedVector14Vector_InsertN(u8 *vector, void *, u8 *position, u32 n, const u8 *x) {
+    // (the counts: the byte spans divided by 0x24 signed, truncating; compared unsigned)
+    auto count = [](const u8 *first, const u8 *to) { return (u32)((s32)((uintptr_t)to - (uintptr_t)first) / 0x24); };
+    u8 *&vFirst = at<u8 *>(vector, 4);
+    u8 *&vLast = at<u8 *>(vector, 8);
+    u8 *const last = vLast;
+    const u32 bytes = n * 0x24;
+    if (count(last, at<u8 *>(vector, 0xc)) < n) {
+        const u32 size = vFirst ? count(vFirst, last) : 0;
+        const u32 grown = (n < size ? size : n) + size;
+        u8 *const block = static_cast<u8 *>(GameHeap_Alloc((u32)((s32)grown < 0 ? 0 : grown) * 0x24));
+        u8 *to = block;
+        for (const u8 *from = vFirst; from != position; from += 0x24, to += 0x24)
+            if (to) CountedVector14_CtorCopy(to, nullptr, from);
+        u8 *p = to;
+        for (u32 k = n; k; --k, p += 0x24)
+            if (p) CountedVector14_CtorCopy(p, nullptr, x);
+        to += bytes;
+        for (const u8 *from = position, *const end = vLast; from != end; from += 0x24, to += 0x24)
+            if (to) CountedVector14_CtorCopy(to, nullptr, from);
+        for (u8 *q = vFirst, *const stop = vLast; q != stop; q += 0x24) CountedVector14_Clear(q);
+        GameHeap_Free(vFirst);
+        at<u8 *>(vector, 0xc) = block + grown * 0x24;
+        const u32 old = vFirst ? count(vFirst, vLast) : 0;  // (the freed block's pointers)
+        vFirst = block;
+        vLast = block + (n + old) * 0x24;
+        return;
+    }
+    if (count(position, last) < n) {
+        u8 *to = position + bytes;
+        for (const u8 *from = position; from != last; from += 0x24, to += 0x24)
+            if (to) CountedVector14_CtorCopy(to, nullptr, from);
+        u8 *p = vLast;
+        for (u32 k = n - count(position, vLast); k; --k, p += 0x24)
+            if (p) CountedVector14_CtorCopy(p, nullptr, x);
+        for (u8 *q = position, *const stop = vLast; q != stop; q += 0x24) CountedVector14_Assign(q, nullptr, x);
+        vLast += bytes;
+        return;
+    }
+    if (!n) return;
+    u8 *to = last;
+    for (const u8 *from = last - bytes; from != last; from += 0x24, to += 0x24)
+        if (to) CountedVector14_CtorCopy(to, nullptr, from);
+    u8 *e = vLast;
+    for (const u8 *from = e - bytes; from != position;) {  // (copy_backward)
+        from -= 0x24;
+        e -= 0x24;
+        CountedVector14_Assign(e, nullptr, from);
+    }
+    for (u8 *q = position, *const stop = position + bytes; q != stop; q += 0x24) CountedVector14_Assign(q, nullptr, x);
+    vLast += bytes;
+}
 }  // extern "C"

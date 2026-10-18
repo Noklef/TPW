@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "buffers.h"
 #include "gameheap.h"
 
 namespace {
@@ -72,6 +73,19 @@ void __cdecl ImeVector_Construct(u32 *slot, const u32 *value) {
 u8 *__fastcall Ime_Current(const u8 *ime) {
     const s32 index = at<s32>(ime, 0x54);
     return index == -1 ? nullptr : at<u8 *>(ime, 0x3c) + index * 0x24;
+}
+
+u32 __fastcall Ime_CacheCurrent(u8 *ime) {
+    const u8 *cur = Ime_Current(ime);
+    if (!cur) {
+        at<u32>(ime, 0x188) = 0;
+        at<u8>(ime, 0x184) = 0;
+    } else if (!at<u8>(ime, 0x184) || at<u32>(cur, 0) != at<u32>(ime, 0x160)) {
+        CountedVector14_Assign(ime + 0x160, nullptr, cur);  // (inlined)
+        if (!at<u32>(ime, 0x188)) at<u32>(ime, 0x188) = at<u32>(ime, 0x180);
+        at<u8>(ime, 0x184) = 1;
+    }
+    return at<u8>(ime, 0x184) ? ImeVector16_Size(ime + 0x170) : 0;
 }
 
 void __fastcall Ime_SetLimit(u8 *ime, void *, u32 limit) {

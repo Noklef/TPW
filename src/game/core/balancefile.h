@@ -86,4 +86,33 @@ void __cdecl AdvisorScoring_StaticDtor();
 // 0xc88-byte map (+0 width, +4 height, +8 20 x 20 cells of 8 bytes, zeros elsewhere) copied into a Mem_GlobalAlloc block (none:
 // GameError_Set(0x785de8, 8, 0, 0), 0) that goes to *map; *text moves past the closing marker's line; 1.
 u32 __cdecl BalanceFile_ParseMap(const char **text, u8 **map, const char **error, const u8 *symbols, s32 count);
+
+// 0x4017a0 (thiscall (name, text, keep), pops 12): a balance file's text into its values; 1, or 0 at the first error (its message,
+// with the file's name, went to Debug_Printf: left out). keep 0 sets the defaults first (BalanceFile_SetDefaults(0)). The text's CRs
+// are removed in place. Lines, each from its first char past white space (the CRT's isspace, across line ends too, sic), are
+// skipped when that is the end, '#' or '\n'; else "Group.Field value" or "Group[row].Field.Field value value": a group name of
+// alphanumerics (up to 64), '.' or '[' digits (row, atoi) "]."; 1-16 fields of up to 64 alphanumerics, each starting with a
+// letter, joined by '.' and ended by white space (a 17th field is an error); then each field's key is found (BalanceFile_FindKey;
+// grouped with a row) and its value read: a map (type 11, the line's only field) parsed from the line's start
+// (BalanceFile_ParseMap with the symbols at 0x7396c8 (19) or 0x7397b0 (16) as the key record's +0x38 is 1 or 2; another
+// map_type an error whose message reads an uninitialised pointer, sic, and a failed map with no error text faults in its
+// strcat, sic), a quoted string (type 10) on the line copied into a Mem_GlobalAlloc block, a float (types 7-9: [-]digits and at
+// most one point, under 100 chars, atof; type 8 at least 0, type 9 from +0x2c up to +0x30) or else an integer ([-]digits, atoi;
+// type 5 at least 0, type 6 from +0x24 up to +0x28), each ended by white space or the text's end. A value goes to row of the key's
+// entry when grouped (its row count at +8 raised to row + 1, even when the value is then out of range) or to its single value; a
+// map or string frees the block it replaces (Mem_GlobalFree). The next line starts past the next '\n' (after a map, the one
+// after its closing marker's line, sic).
+u32 __fastcall BalanceFile_Parse(u8 *self, void *, const char *name, char *text, u32 keep);
+
+// 0x401650 (thiscall (path, keep), pops 8; name unconfirmed): the balance file at path parsed (BalanceFile_Parse, keep passed on)
+// from a Mem_GlobalAlloc block of its size (File_GetSize) + 1, loaded (File_Load) and freed after. No file: 0, with
+// GameError_Set(0x785de8, 3, 0, path) unless keep; an empty one: 1; no block or a failed load: that error (keep or not) and 0
+// (a loaded block not freed, sic).
+u32 __fastcall BalanceFile_Load(u8 *self, void *, const char *path, u32 keep);
+
+// 0x401700 (thiscall (name, stream, keep), pops 12; name unconfirmed): the same from a stream: its size (vtable +0x14) above 0,
+// a block of it + 1 read (vtable +8 (block, size)) whole (unsigned), else GameError_Set(0x785de8, 3, 0, name) (8 when the
+// allocation fails) and 0, the read block not freed (sic).
+struct Stream;
+u32 __fastcall BalanceFile_LoadStream(u8 *self, void *, const char *name, Stream *stream, u32 keep);
 }

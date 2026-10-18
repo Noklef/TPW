@@ -27,6 +27,23 @@ u8 *bytes(StdWString *s) { return reinterpret_cast<u8 *>(s); }
 // _Tidy(true) (the counted buffer reset): releases s's block and empties s.
 void tidy(StdWString *s) { CountedBuf_Reset(bytes(s), nullptr, 1); }
 
+// A vector<wstring>: the allocator (a byte), first, last, end.
+struct WVector {
+    u32 allocator;
+    StdWString *first;
+    StdWString *last;
+    StdWString *end;
+};
+
+// The strings from first up to to: 0 for a null first, else the byte span shifted signed (the vector's size and capacity).
+u32 count(const StdWString *first, const StdWString *to) { return first ? (u32)((s32)((uintptr_t)to - (uintptr_t)first) >> 4) : 0; }
+
+// The same without the null check.
+u32 span(const StdWString *first, const StdWString *to) { return (u32)((s32)((uintptr_t)to - (uintptr_t)first) >> 4); }
+
+// p moved on by k strings (wrapping).
+StdWString *advance(const StdWString *p, u32 k) { return reinterpret_cast<StdWString *>((uintptr_t)p + (k << 4)); }
+
 // _Grow(n, true) as inlined into the assigns (with no max_size check of its own): whether there
 // are characters to write.
 bool grow_trim(StdWString *s, u32 n) {
@@ -181,6 +198,143 @@ void __fastcall StdWString_Split(StdWString *s, void *) {
         s->len = n;
         s->ptr[n] = 0;
     }
+}
+
+StdWString *__fastcall StdWString_CtorCopy(StdWString *s, void *, const StdWString *x) {
+    *bytes(s) = *reinterpret_cast<const u8 *>(x);
+    s->ptr = nullptr;
+    s->len = 0;
+    s->res = 0;
+    return StdWString_AssignSub(s, nullptr, x, 0, kNpos);
+}
+
+StdWString *__fastcall StdWString_CtorFill(StdWString *s, void *, u32 n, u32 ch, const u8 *allocator) {
+    *bytes(s) = *allocator;
+    s->ptr = nullptr;
+    s->len = 0;
+    s->res = 0;
+    return StdWString_AssignFill(s, nullptr, n, ch);
+}
+
+StdWString *__fastcall StdWStrings_UninitCopy(void *, void *, const StdWString *first, const StdWString *last, StdWString *dest) {
+    for (; first != last; ++first, dest = reinterpret_cast<StdWString *>((uintptr_t)dest + sizeof(StdWString)))
+        if (dest) StdWString_CtorCopy(dest, nullptr, first);
+    return dest;
+}
+
+StdWString *__fastcall StdWString_AppendSub(StdWString *s, void *, const StdWString *x, u32 pos, u32 n) {
+    if (x->len < pos) StdStrings_Xran();
+    const u32 rest = x->len - pos;
+    if (rest < n) n = rest;
+    if (kNpos - s->len <= n) StdStrings_Xlen();
+    if (!n) return s;
+    const u32 total = s->len + n;
+    if (StdWString_Grow(s, nullptr, total, 0)) {  // (inlined)
+        const u16 *src = c_str(x) + pos;
+        for (u32 i = 0; i < n; ++i) s->ptr[s->len + i] = src[i];
+        s->len = total;
+        s->ptr[total] = 0;
+    }
+    return s;
+}
+
+StdWString *__fastcall StdWString_Erase(StdWString *s, void *, u32 pos, u32 n) {
+    erase(s, pos, n, true);
+    return s;
+}
+
+void __cdecl StdWString_Construct(StdWString *p, const StdWString *x) {
+    if (p) StdWString_CtorCopy(p, nullptr, x);
+}
+
+StdWString *__cdecl StdWStrings_Copy(const StdWString *first, const StdWString *last, StdWString *dest) {
+    for (; first != last; ++first, ++dest) StdWString_AssignSub(dest, nullptr, first, 0, kNpos);
+    return dest;
+}
+
+StdWString *__fastcall StdWStringVector_Erase(u8 *vector, void *, StdWString *first, const StdWString *last) {
+    StdWString *const end = *reinterpret_cast<StdWString **>(vector + 8);
+    StdWString *dest = StdWStrings_Copy(last, end, first);
+    for (StdWString *p = dest; p != end; ++p) tidy(p);
+    *reinterpret_cast<StdWString **>(vector + 8) = dest;
+    return first;
+}
+
+u8 *__fastcall StdWStringVector_Assign(u8 *vector, void *, const u8 *x) {
+    if (vector == x) return vector;
+    WVector *const v = reinterpret_cast<WVector *>(vector);
+    const WVector *const xv = reinterpret_cast<const WVector *>(x);
+    const StdWString *from = xv->first;
+    if (count(xv->first, xv->last) <= count(v->first, v->last)) {
+        StdWString *dest = v->first;
+        for (const StdWString *const end = xv->last; from != end; ++from, ++dest) StdWString_AssignSub(dest, nullptr, from, 0, kNpos);
+        for (StdWString *p = dest, *const stop = v->last; p != stop; ++p) CountedBuf_Deleter(bytes(p), nullptr, 0);
+        v->last = v->first + count(xv->first, xv->last);
+    } else if (count(xv->first, xv->last) <= count(v->first, v->end)) {
+        const StdWString *const mid = from + count(v->first, v->last);
+        StdWString *dest = v->first;
+        for (; from != mid; ++from, ++dest) StdWString_AssignSub(dest, nullptr, from, 0, kNpos);
+        dest = v->last;
+        for (const StdWString *const end = xv->last; from != end; ++from, ++dest) StdWString_Construct(dest, from);
+        v->last = v->first + count(xv->first, xv->last);
+    } else {
+        for (StdWString *p = v->first, *const stop = v->last; p != stop; ++p) tidy(p);
+        GameHeap_Free(v->first);
+        const s32 n = xv->first ? (s32)((uintptr_t)xv->last - (uintptr_t)xv->first) >> 4 : 0;
+        v->first = static_cast<StdWString *>(GameHeap_Alloc((u32)(n < 0 ? 0 : n) << 4));
+        v->last = v->end = StdWStrings_UninitCopy(vector, nullptr, xv->first, xv->last, v->first);  // (inlined)
+    }
+    return vector;
+}
+
+void __fastcall StdWStringVector_InsertN(u8 *vector, void *, StdWString *position, u32 n, const StdWString *x) {
+    WVector *const v = reinterpret_cast<WVector *>(vector);
+    StdWString *const last = v->last;
+    if (span(last, v->end) < n) {
+        const u32 size = count(v->first, last);
+        const u32 grown = (n < size ? size : n) + size;
+        StdWString *const block = static_cast<StdWString *>(GameHeap_Alloc((u32)((s32)grown < 0 ? 0 : grown) << 4));
+        StdWString *to = block;
+        for (const StdWString *from = v->first; from != position; ++from, ++to)
+            if (to) StdWString_CtorCopy(to, nullptr, from);
+        StdWString *p = to;
+        for (u32 k = n; k; --k, ++p)
+            if (p) StdWString_CtorCopy(p, nullptr, x);
+        to = advance(to, n);
+        for (const StdWString *from = position, *const end = v->last; from != end; ++from, ++to)
+            if (to) StdWString_CtorCopy(to, nullptr, from);
+        for (StdWString *q = v->first, *const stop = v->last; q != stop; ++q) tidy(q);
+        GameHeap_Free(v->first);
+        v->end = advance(block, grown);
+        const u32 old = count(v->first, v->last);  // (the freed block's pointers)
+        v->first = block;
+        v->last = advance(block, n + old);
+        return;
+    }
+    const u32 after = span(position, last);
+    if (after < n) {
+        StdWString *to = advance(position, n);
+        for (const StdWString *from = position; from != last; ++from, ++to)
+            if (to) StdWString_CtorCopy(to, nullptr, from);
+        StdWString *p = v->last;
+        for (u32 k = n - span(position, v->last); k; --k, ++p)
+            if (p) StdWString_CtorCopy(p, nullptr, x);
+        for (StdWString *q = position, *const stop = v->last; q != stop; ++q) StdWString_AssignSub(q, nullptr, x, 0, kNpos);
+        v->last = advance(v->last, n);
+        return;
+    }
+    if (!n) return;
+    StdWString *to = last;
+    for (const StdWString *from = advance(last, 0 - n); from != last; ++from, ++to)
+        if (to) StdWString_CtorCopy(to, nullptr, from);
+    StdWString *e = v->last;
+    for (const StdWString *from = advance(e, 0 - n); from != position;) {  // (copy_backward)
+        --from;
+        --e;
+        StdWString_AssignSub(e, nullptr, from, 0, kNpos);
+    }
+    for (StdWString *q = position, *const stop = advance(position, n); q != stop; ++q) StdWString_AssignSub(q, nullptr, x, 0, kNpos);
+    v->last = advance(v->last, n);
 }
 }
 

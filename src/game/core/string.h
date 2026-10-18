@@ -155,6 +155,10 @@ u32 __cdecl Names_FirstAfter(const u8 *a, const u8 *b);
 
 u32 __cdecl Names_Equal(const u8 *a, const u8 *b);
 
+// 0x424d10 (cdecl; a, b; name unconfirmed): the same for wide texts (_wcsicmp): 1 when the texts the dwords at +8 of a and b point to are
+// equal, case blind, otherwise 0.
+u32 __cdecl WNames_Equal(const u8 *a, const u8 *b);
+
 // 0x489350 (thiscall on the destination; source, pops 4): the eight dwords at +0..+0x1c and the text at +0x24 (up to and including its NUL) of the source
 // are copied; the dword at +0x20 (a pointer into the record) = the source's moved by the distance between the two. Returns the destination.
 u8 *__fastcall Record_CopyWithText(u8 *dest, void *, const u8 *source);

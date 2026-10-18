@@ -4,12 +4,14 @@
 #include <cstring>
 
 #include "../core/balancefile.h"
+#include "../core/crt.h"
 #include "../core/defids.h"
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
 #include "../files/file.h"
 #include "../files/wtext.h"
 #include "../core/savegame.h"
+#include "../core/textarg.h"
 
 namespace {
 
@@ -46,6 +48,29 @@ bool find_cell(u8 *grid, u32 kind, s32 *column, s32 *row) {
                 *row = j;
                 return true;
             }
+    return false;
+}
+
+// The object text table's row for the id (0x7488d8 .. 0x749850, 0xc bytes a row; an id 0 ends it), or none.
+const u8 *object_text_row(u32 id) {
+    for (u32 row = 0x007488d8; row < 0x00749850; row += 0xc) {
+        const u32 k = global<u32>(row);
+        if (k == 0) break;
+        if (k == id) return reinterpret_cast<const u8 *>((uintptr_t)row);
+    }
+    return nullptr;
+}
+
+// A text of the game's text table (0x78bacc) into to (size chars).
+void format_text(u16 *to, u32 size, u32 text) { TextFormat().format(global<void *>(0x0078bacc), to, size, text); }
+
+// A text ending in '-' loses it (true).
+bool cut_dash(u16 *text) {
+    const s32 n = (s32)Crt().wcslen(text);
+    if (n > 0 && text[n - 1] == '-') {
+        text[n - 1] = 0;
+        return true;
+    }
     return false;
 }
 
@@ -364,5 +389,65 @@ void __fastcall ObjectDef_LoadText(u8 *def, void *, Stream *stream) {
         p = nextLine(value);
     }
     Mem_GlobalFree(text);
+}
+
+u8 __fastcall ObjectText_FullName(u16 *self, void *, u32 id, u16 *out, s32 size) {
+    const u16 *const none = &global<u16>(0x0078a374);  // (an empty bss string, the format)
+    if (const u8 *row = object_text_row(id))
+        format_text(self, 0x40, at<u32>(row, 4));
+    else
+        Crt().swprintf(self, none);
+    u16 *const suffix = self + 0x40;
+    if (const u8 *row = object_text_row(id))
+        format_text(suffix, 0x40, at<u32>(row, 8));
+    else
+        Crt().swprintf(suffix, none);
+    u16 *const full = self + 0x80;
+    if (!cut_dash(self)) {
+        const u16 *const gap = *suffix ? reinterpret_cast<const u16 *>(L" ") : &global<u16>(0x00786de4);
+        Crt().swprintf(full, reinterpret_cast<const u16 *>(L"%s%s%s"), self, gap, suffix);
+    } else {
+        Crt().swprintf(full, reinterpret_cast<const u16 *>(L"%s%s"), self, suffix);
+    }
+    Crt().wcsncpy(out, full, (u32)(size > 0x80 ? 0x80 : size));
+    return 1;
+}
+
+u8 __fastcall ObjectText_Name(void *, void *, u32 id, u16 *out, u32 size, u32 trim) {
+    const u8 *row = object_text_row(id);
+    if (!row) return 0;
+    format_text(out, size, at<u32>(row, 4));
+    if ((u8)trim == 1) cut_dash(out);
+    return 1;
+}
+
+u8 __fastcall ObjectText_Suffix(void *, void *, u32 id, u16 *out, u32 size) {
+    const u8 *row = object_text_row(id);
+    if (!row) return 0;
+    format_text(out, size, at<u32>(row, 8));
+    return 1;
+}
+
+void __fastcall ObjectDefs_GetFullName(u8 *defs, void *, u32 id, u16 *out, u32 size) {
+    if (u8 *def = ObjectDefs_Find(defs, nullptr, (u16)id)) {
+        const u16 *text = at<const u16 *>(def, 0x4f4);
+        if (text && text != reinterpret_cast<const u16 *>((uintptr_t)0x006fd880)) {
+            Crt().wcsncpy(out, text, size);
+            return;
+        }
+    }
+    ObjectText_FullName(reinterpret_cast<u16 *>(defs + 0x52c), nullptr, id & 0xffff, out, (s32)size);
+}
+
+void __fastcall ObjectDefs_GetName(u8 *defs, void *, u32 id, u16 *out, u32 size) {
+    if (ObjectText_Name(defs + 0x52c, nullptr, id & 0xffff, out, size, 0)) return;
+    u8 *def = ObjectDefs_Find(defs, nullptr, (u16)id);
+    Crt().wcsncpy(out, at<const u16 *>(def, 0x4f8), size);  // (no definition: a fault, sic)
+}
+
+void __fastcall ObjectDefs_GetSuffix(u8 *defs, void *, u32 id, u16 *out, u32 size) {
+    if (ObjectText_Suffix(defs + 0x52c, nullptr, id & 0xffff, out, size)) return;
+    u8 *def = ObjectDefs_Find(defs, nullptr, (u16)id);
+    Crt().wcsncpy(out, at<const u16 *>(def, 0x4fc), size);  // (no definition: a fault, sic)
 }
 }

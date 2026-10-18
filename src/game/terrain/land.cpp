@@ -11,6 +11,7 @@
 #include "../gfx/array3d.h"
 #include "../math/x87.h"
 #include "../model/faces.h"
+#include "../model/holder.h"
 #include "../render/frame.h"
 
 namespace {
@@ -86,6 +87,18 @@ void __cdecl Terrain_PaintCell(const u8 *map, const u8 *sets, s32 x, s32 y, s32 
         flags() |= 0x10;
     else if (rotation == 270)
         flags() |= 8;
+}
+
+void __cdecl Terrain_FreeLoaded() {
+    if (void *const grid = global<void *>(0x0079fc54)) {
+        GlobalMem_Free(grid);
+        global<void *>(0x0079fc54) = nullptr;
+    }
+    if (u8 *const instance = global<u8 *>(0x0079fcb4)) {
+        Instance_Free(instance, 0);
+        global<u8 *>(0x0079fcb4) = nullptr;
+    }
+    GlobalMem_FreeThree_427bb0();  // (a tail jump)
 }
 
 void __cdecl Terrain_GridSize(u32 *width, u32 *height) {

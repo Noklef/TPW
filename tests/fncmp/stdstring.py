@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
-B = Bench([(0x45b340, 0x45b9a0), (0x45aee0, 0x45b1e4)])
+B = Bench([(0x45b340, 0x45b9a0), (0x45aee0, 0x45b1e4), (0x47b1c0, 0x47b2f6)])
 STRS, BLOCKS, CHARS = RAM, RAM + 0x1000, RAM + 0x2000
 S, X = STRS, STRS + 0x10  # the string under test and a second one
 SLOT = 0x80  # a block per string in BLOCKS: count byte, then up to 0x7e characters + NUL
@@ -90,6 +90,10 @@ def case(r):
     if op == 'Copy':
         huge = r.choice([0x7ffffffe, 0x7fffffe0, 0xfffffff0, 0xffffffe1])  # the block size wraps negative
         return Call(0x45b7d0, [S, r.choice([small] * 3 + [huge])], regions, conv='t')
+    if op == 'Fill':   # (not npos or past max_size: the throws end the case)
+        return Call(0x47b1c0, [S, small, r.choice([0, r.getrandbits(8), r.getrandbits(32)])], regions, conv='t', ret='a')
+    if op == 'Freeze':
+        return Call(0x47b280, [S], regions, conv='t')
     if op == 'Split':
         return Call(0x45b8d0, [S], regions, conv='t')
     # AssignSub: from x, or from s itself
@@ -99,7 +103,7 @@ def case(r):
     return Call(0x45b380, [S, src, pos, count], regions, conv='t', ret='a')
 
 
-KINDS = ['Dtor', 'Tidy', 'AssignChars', 'Eos', 'Grow', 'MaxSize', 'Copy', 'Split', 'AssignSub', 'AssignSub', 'Online']
+KINDS = ['Dtor', 'Tidy', 'AssignChars', 'Eos', 'Grow', 'MaxSize', 'Copy', 'Split', 'AssignSub', 'AssignSub', 'Online', 'Fill', 'Freeze']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':

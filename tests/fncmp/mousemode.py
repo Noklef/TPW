@@ -3,6 +3,7 @@
 # the originals: each on a random object (the destructors' frees through heap()); and TileAt, the pointer's tile from a position
 # (0x45d560) on a map's grid of random origins, cell sizes and dimensions; Hover (0x46c480): a sprite slot or none, ready or not, at a
 # highlight point of any floats, over a cell (and its handle's entry and parent) of any type and flags, with a face queue part full or full.
+# Fps (0x46c0d0): the FPS text printed into the pointer state and handed to 0x8bba50.
 # usage: mousemode.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import sys
@@ -17,7 +18,8 @@ B = Bench([(0x46c450, 0x46c453), (0x46c460, 0x46c480), (0x46c580, 0x46c5c6), (0x
            (0x46ced0, 0x46ced7), (0x46cfc0, 0x46cfd0), (0x46cff0, 0x46d000), (0x46c070, 0x46c10e),
            (0x45d560, 0x45d60e), (0x4d8300, 0x4d8328), (0x46c480, 0x46c578), (0x45d610, 0x45d616), (0x475480, 0x4754d4),
            (0x535db0, 0x535dc3), (0x536300, 0x536484), (0x53ad20, 0x53aefc), (0x53c8d0, 0x53c9c0), (0x5da3c0, 0x5da3c1),
-           (0x4d0a70, 0x4d0a86), (0x4d0a90, 0x4d0ab1), (0x4d0ac0, 0x4d0ae1), (0x4d0af0, 0x4d0b06), (0x4d0b10, 0x4d0b27), (0x522700, 0x5228b5)])
+           (0x4d0a70, 0x4d0a86), (0x4d0a90, 0x4d0ab1), (0x4d0ac0, 0x4d0ae1), (0x4d0af0, 0x4d0b06), (0x4d0b10, 0x4d0b27), (0x522700, 0x5228b5),
+           (0x46c0d0, 0x46c0ff), (0x57cb10, 0x57cb28), (0x67a400, 0x6902c0)])
 HTYPES = [0, 0, 1, 1, 3, 9, 2, 4, 0xb, 0xc, 0xd, 0x10, 0x11, 0x12, 0x19, 0x1e]
 CELLS = RAM + 0x1000   # the 0x44-byte cells: [0x7cf83c] + 0x294
 ENTRIES = CELLS - 0x294 + 0x1102b0   # the 0x28-byte entries of handles 0-5
@@ -79,6 +81,12 @@ def case(r):
                    RAM + 0x300: struct.pack('<3I', *pos), 0x7a0314: struct.pack('<i', dims[0]), 0x7a0374: struct.pack('<i', dims[1]),
                    0x7b05a0: bytearray(r.bytes(0x34))}
         return Call(0x45d560, [RAM + 0x300], regions, ret='v')
+    if op == 'Fps':   # (fps where the driver's stand-in sprintf, the host's, prints %g as MSVC6 does: no exponent, no NaN or infinity)
+        fps = r.choice([0.0, 30.0, 60.0, 59.94, 0.5, -12.25, r.uniform(0, 200), r.uniform(-1000, 1000), float(r.randrange(100000))])
+        # (the CRT's float conversions table as its startup sets it, 0x67a610: _cfltcvt, _cropzeros, _fassign, _forcdecpt, _positive, _cldcvt)
+        cfltcvt = struct.pack('<6I', 0x680a30, 0x6805d0, 0x680660, 0x680570, 0x680640, 0x680a30)
+        regions = {RAM: bytearray(r.bytes(0x40)), 0x8bba50: bytearray(r.bytes(0x20)), 0x77eca0: cfltcvt}
+        return Call(0x46c0d0, [RAM, fb(fps)], regions, conv='t', ret='a')
     if op in STATICS:
         return Call(STATICS[op], [], {0x7b05a0: bytearray(r.bytes(0x34))})
     at, n = CALLS[op]
@@ -88,7 +96,7 @@ def case(r):
     return Call(at, [RAM] + args, regions, conv='t', ret=ret)
 
 
-OPS_ALL = list(CALLS) + list(STATICS) + ['TileAt'] * 3 + ['Hover'] * 10
+OPS_ALL = list(CALLS) + list(STATICS) + ['TileAt'] * 3 + ['Hover'] * 10 + ['Fps'] * 2
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

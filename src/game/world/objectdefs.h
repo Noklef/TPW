@@ -120,4 +120,31 @@ void __fastcall ObjectDef_FindMarkedCells(void *, void *, u8 **def);
 // 0x412c20 (thiscall; returns the definition): the balance file at +4 gets vtable 0x6fd8a8 and is laid out (BalanceFile_Init); the runtime
 // fields +0x494, +0x498, +0x4a0, +0x4a4, +0x4b0, +0x4b4, +0x4e0-+0x4f0 and +0x4f4-+0x500 are cleared.
 u8 *__fastcall ObjectDef_Ctor(u8 *def);
+
+// The object texts (names unconfirmed): the table 0x7488d8 .. 0x749850 of 0xc-byte rows (an object id, its name's text id, its suffix's;
+// an id 0 ends it) whose texts the text formatter (TextFormat, with the text table at 0x78bacc) writes. The object set's +0x52c holds
+// three buffers of 0x40 characters for them: a name, a suffix and the two joined.
+
+// 0x4146b0 (thiscall on the buffers; id, out, size, pops 12; returns 1 in AL): the name (0x40 chars; no row: an empty format, the bss
+// string 0x78a374, through swprintf) and the suffix (+0x80, the same; the row looked up again); a name ending in '-' loses it and is joined
+// to the suffix without a separator (L"%s%s"), else with a space when the suffix is not empty (L"%s%s%s", the space or the empty bss string
+// 0x786de4); the full name (+0x100) is copied to out (wcsncpy, size capped at 0x80 as a signed number).
+u8 __fastcall ObjectText_FullName(u16 *self, void *, u32 id, u16 *out, s32 size);
+
+// 0x4147f0 (thiscall, this unused; id, out, size, trim, pops 16; AL): no row: 0; else the name formatted into out (size chars) and, when the
+// trim byte is 1, a last '-' cut (a non-empty text ending in one); 1.
+u8 __fastcall ObjectText_Name(void *, void *, u32 id, u16 *out, u32 size, u32 trim);
+
+// 0x414870 (thiscall, this unused; id, out, size, pops 12; AL): no row: 0; else the suffix formatted into out; 1.
+u8 __fastcall ObjectText_Suffix(void *, void *, u32 id, u16 *out, u32 size);
+
+// The object set's names for an id (thiscall (id, out, size), pops 12; EAX incidental, the callers ignore it; names unconfirmed); each
+// looks the definition up with the id's low word (ObjectDefs_Find):
+// 0x412fb0: the definition's +0x4f4 text (wcsncpy, size chars) when it has one that is not L"MISSING" (0x6fd880), else ObjectText_FullName
+// on the buffers at +0x52c.
+void __fastcall ObjectDefs_GetFullName(u8 *defs, void *, u32 id, u16 *out, u32 size);
+// 0x413020 / 0x4130b0: ObjectText_Name (trim 0) / ObjectText_Suffix, else the definition's +0x4f8 / +0x4fc text (wcsncpy; no definition
+// faults, sic).
+void __fastcall ObjectDefs_GetName(u8 *defs, void *, u32 id, u16 *out, u32 size);
+void __fastcall ObjectDefs_GetSuffix(u8 *defs, void *, u32 id, u16 *out, u32 size);
 }

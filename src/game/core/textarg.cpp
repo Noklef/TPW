@@ -41,3 +41,12 @@ u8 *__fastcall TextArgInt_Ctor(u8 *arg, void *, u32 n, s32 value, u32 isSigned) 
     return arg;
 }
 }
+
+namespace {
+const TextFormatEnv kGameTextFormat = {reinterpret_cast<u32(__cdecl *)(void *, u16 *, u32, u32, ...)>((uintptr_t)0x006acd60)};
+const TextFormatEnv *g_textFormat = &kGameTextFormat;
+}  // namespace
+
+const TextFormatEnv &TextFormat() { return *g_textFormat; }
+
+void TextFormat_SetEnv(const TextFormatEnv *env) { g_textFormat = env ? env : &kGameTextFormat; }

@@ -57,6 +57,51 @@ u8 __fastcall StdWString_Grow(StdWString *s, void *edx, u32 n, u8 trim);
 // 0x47bc00: _Split(): gives a shared s its own copy.
 void __fastcall StdWString_Split(StdWString *s, void *edx);
 
+// 0x47ae60: basic_string(const wstring &x): x's allocator byte, then empty and assign(x, 0, npos) (inlined: shares x's block as
+// AssignSub does). Returns s.
+StdWString *__fastcall StdWString_CtorCopy(StdWString *s, void *edx, const StdWString *x);
+
+// 0x47af80: basic_string(n, ch, allocator): the allocator's byte, then empty and assign(n, ch) (inlined). Returns s.
+StdWString *__fastcall StdWString_CtorFill(StdWString *s, void *edx, u32 n, u32 ch, const u8 *allocator);
+
+// 0x47b600 (thiscall on a vector, which is not read; first, last, dest, pops 12): _Ucopy: each string of [first, last) copied
+// (CtorCopy, inlined) to the next 16 bytes from dest, unless dest is null (only skipped: the next is 0x10 on, sic). Returns the end.
+StdWString *__fastcall StdWStrings_UninitCopy(void *vector, void *edx, const StdWString *first, const StdWString *last, StdWString *dest);
+
+// 0x47cc10: append(const wstring &x, pos, n): x's characters from pos (past x's length: _Xran), at most n, after s's (n of npos less
+// s's length or more: _Xlen); _Grow(length, false) inlined. Returns s.
+StdWString *__fastcall StdWString_AppendSub(StdWString *s, void *edx, const StdWString *x, u32 pos, u32 n);
+
+// 0x47b460: erase(pos, n): (past the length: _Xran) s split, then at most n characters from pos removed. Returns s.
+StdWString *__fastcall StdWString_Erase(StdWString *s, void *edx, u32 pos, u32 n);
+
+// 0x47d9d0 (cdecl; p, x): std::_Construct: a copy of x made at p (CtorCopy, inlined) unless p is null.
+void __cdecl StdWString_Construct(StdWString *p, const StdWString *x);
+
+// 0x47d620 (cdecl; first, last, dest): std::copy: each string of [first, last) assigned (assign(x, 0, npos), inlined) to the next
+// from dest. Returns the end.
+StdWString *__cdecl StdWStrings_Copy(const StdWString *first, const StdWString *last, StdWString *dest);
+
+// 0x47b320 (thiscall on a vector<wstring> {allocator, first +4, last +8, end +0xc}; first, last, pops 8): erase(first, last): the
+// strings from last on assigned down from first (as StdWStrings_Copy), those after the new last released and emptied (_Tidy). Returns
+// first.
+StdWString *__fastcall StdWStringVector_Erase(u8 *vector, void *edx, StdWString *first, const StdWString *last);
+
+// 0x47ac10 (thiscall on a vector<wstring>; x, pops 4): operator=: nothing onto itself; when x has no more strings, its strings assigned
+// over the first ones (assign(x, 0, npos)) and the rest released (CountedBuf_Deleter, core/buffers); within the capacity, as many as
+// there are assigned and the rest copied into the room past them (_Construct); past it, all released (_Tidy), the block freed and a new
+// one of x's size (a negative one 0) made with copies of x's (_Ucopy, inlined), end = last. Returns vector.
+u8 *__fastcall StdWStringVector_Assign(u8 *vector, void *edx, const u8 *x);
+
+// 0x47c970 (thiscall on a vector<wstring>; position, n, x, pops 12): insert(position, n, x). Without room for n (the end less the last,
+// shifted signed, compared unsigned): a new block of the size plus the larger of n and the size (a negative count 0) gets copies
+// (CtorCopy, inlined; a null slot skipped) of the strings before the position, n of x and the rest; the old ones released (_Tidy) and the
+// block freed, last = the new first + n + the old size (read from the freed block's pointers). With room and fewer than n strings after the
+// position: those copied n on, the room past them filled with copies of x and x assigned over the ones after the position. Else (n 0:
+// nothing) the last n copied past the end, the rest from the position shifted up n (assigned backwards), x assigned over the n from the
+// position. Each x is read through its pointer, so an x inside the vector is the string then at that place (sic).
+void __fastcall StdWStringVector_InsertN(u8 *vector, void *edx, StdWString *position, u32 n, const StdWString *x);
+
 // The second copy (_Nullstr 0x700624):
 
 // 0x4f21d0: assign(const wstring &x, pos, n): x's characters from pos (past x's length: _Xran), at most n. Shares x's block (its count
