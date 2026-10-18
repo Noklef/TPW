@@ -57,6 +57,39 @@ u32 __cdecl TerrainTex_Create() {
     return 1;
 }
 
+u32 __cdecl TerrainTex_Destroy() {
+    u8 *&global_tex = *reinterpret_cast<u8 **>(0x00879d60);
+    if (!global_tex) return 1;
+    TerrainTex_Unload(global_tex);
+    if (u8 *const tex = global_tex) {
+        TerrainTex_Unload(tex);   // sic: a second time
+        GameHeap_Free(tex);
+    }
+    global_tex = nullptr;
+    return 1;
+}
+
+void __fastcall TerrainTex_AddRect(u8 *tex, void *, s32 x0, s32 y0, s32 x1, s32 y1, float delta) {
+    if (y0 > y1) return;
+    s32 y = y0;
+    do {
+        if (y >= 0 && (u32)y <= at<u32>(pointer((uintptr_t)tex), 0x1c) && x0 <= x1) {
+            s32 x = x0;
+            do {
+                if (x >= 0) {
+                    const u32 width = at<u32>(pointer((uintptr_t)tex), 0x18);
+                    if ((u32)x <= width) {
+                        float *const cell = reinterpret_cast<float *>((uintptr_t)at<u32>(tex, 0x12970)) + ((width + 1) * (u32)y + (u32)x);
+                        *cell = delta + *cell;
+                    }
+                }
+                x = (s32)((u32)x + 1);
+            } while (x <= x1);
+        }
+        y = (s32)((u32)y + 1);
+    } while (y <= y1);
+}
+
 u32 __fastcall TerrainTex_Unload(u8 *tex) {
     if (at<u32>(tex, 0x230)) {
         TerrainTexCache_Dtor(reinterpret_cast<u8 *>((uintptr_t)at<u32>(tex, 0x230)));

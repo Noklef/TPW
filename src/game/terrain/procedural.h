@@ -34,6 +34,15 @@ u32 __cdecl TerrainTex_Create();
 // [0x879d60], which is kept.
 u32 __fastcall TerrainTex_Unload(u8 *tex);
 
+// 0x56de90 (cdecl; name unconfirmed): when the procedural texture object [0x879d60] exists, it is unloaded (TerrainTex_Unload, inlined), then,
+// re-read, unloaded again (sic) and freed (the game's heap); [0x879d60] = 0. Returns 1.
+u32 __cdecl TerrainTex_Destroy();
+
+// 0x56e030 (thiscall (x0, y0, x1, y1, delta); pops 0x14; name unconfirmed): delta added to each float of the grid at [+0x12970] (rows of
+// width + 1, the width and height the dwords +0x18 / +0x1c of the header [+0]) for rows y0..y1 and columns x0..x1 (signed, inclusive);
+// negative ones and those past the width / height (unsigned) are left. The header and the grid pointer are read for each cell.
+void __fastcall TerrainTex_AddRect(u8 *tex, void *, s32 x0, s32 y0, s32 x1, s32 y1, float delta);
+
 // 0x457a00: when available and not in use: the option 0x78d8d8 at 1 turns them on (flag, the
 // renderer, the cells); at 0 marks them unavailable (clears 0x6000); else nothing.
 void __cdecl Terrain_ProceduralEnter();
