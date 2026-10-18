@@ -1,7 +1,7 @@
 // The texture cache's items (the cache's log is c:\tcache.log; set up by 0x58da40, "Texture
 // Cache Initialization"): the abstract base with vtable 0x702198 that its surfaces derive from
 // virtually (0x58b3e0 builds one at +0x3c of a 0x702218 object). Reimplementation of the
-// base's constructor and flag word methods 0x58b300-0x58b390 (thiscall).
+// base's constructor and flag word methods 0x58b300-0x58b390 (thiscall), and an item's key (0x58cb40).
 //
 // +4 is a flag word: bits 1, 2 and 4 are tested by the cache (0x58cd07, 0x58fe3d, 0x59007f);
 // 0x10000000 survives SetFlags.
@@ -62,4 +62,9 @@ void __fastcall TexCacheItem_ClearFlag1(u8 *item);
 // & 0xfff) << 8 plus the s16 width, << 8, plus the s16 height, with 0x20000000 for flag 0x4000 (never: just cleared, sic) and
 // 0x40000000 (set in memory) for flag 0x80000. Returns 1.
 u32 __fastcall TexCache_UnlinkItem(u8 *cache, void *, u8 *item);
+
+// 0x58cb40 (thiscall on the item; name unconfirmed): +0x38 = the key as TexCache_UnlinkItem's, from the words at +0x14 and +0x16 as they
+// are: ((__ftol((1.5 - the float at +0x30) * 2047) & 0xfff) << 8 plus the s16 at +0x14, << 8, plus the s16 at +0x16, with 0x20000000
+// for flag 0x4000 (+8) and 0x40000000 (set in memory) for flag 0x80000.
+void __fastcall TexCacheItem_SetKey(u8 *item);
 }

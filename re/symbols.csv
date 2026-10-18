@@ -3963,6 +3963,7 @@ address,name,kind,confidence,notes
 0x0058eae0,TexCache_MergeItems,function,high,reimplemented (src/game/gfx/texcache); merges two item lists into an array by position; returns the area sum
 0x0058b890,TexCache_Halve,function,high,reimplemented (src/game/gfx/texcache); 2x2 box filter to the next mip level (32-bit and 4444 pixels)
 0x0058dc50,TexCache_UnlinkItem,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache (item): unlinks a cache item from its owner list, rounds its size, rebuilds its key (name unconfirmed)"
+0x0058cb40,TexCacheItem_SetKey,function,low,"reimplemented (src/game/gfx/texcache); thiscall: the item's key +0x38 = ((ftol((1.5 - f30) * 2047) & 0xfff) << 8 + s16 +0x14) << 8 + s16 +0x16, with 0x20000000 for flag 0x4000 and 0x40000000 for 0x80000"
 0x00575bd0,TexSet_Ctor,function,high,"reimplemented (src/game/gfx/texset); thiscall (a texture set, 16 bytes): all zero; returns the set"
 0x00575f90,TexSet_Texture,function,high,"reimplemented (src/game/gfx/texset); thiscall (i): texture i, [+8][i]"
 0x00575fa0,TexSet_TextureSlot,function,high,reimplemented (src/game/gfx/texset); thiscall (i): &[+8][i]
