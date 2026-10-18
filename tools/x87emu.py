@@ -6,7 +6,7 @@ The x87 unit runs as the game leaves it, at single precision (Direct3D): every F
 FMUL/FDIV/FSQRT (and FIADD...) result is the exact result rounded once to a 24-bit
 significand, with the register's wide exponent (it becomes a float only when stored). FSIN/FCOS/FPTAN/FPATAN are exempt from precision
 control on real hardware; here they are evaluated in double, standing in for 64-bit
-extended. Integer flags cover what compiled MSVC 6 code tests.
+extended (the first three reduced by the hardware's 66-bit pi, see hw_trig). Integer flags cover what compiled MSVC 6 code tests.
 
     emu = Emu([listing paths])
     a = emu.alloc_floats([...])           # input data
@@ -17,6 +17,8 @@ LISTING lines are "ADDRESS  MNEMONIC OPERANDS" (the DumpAsm Ghidra script). CALL
 addresses outside the listing go to emu.hooks[address](emu), which must pop its own
 x87 arguments and push its result as the original would.
 """
+import decimal
+import functools
 import math
 import os
 import re
@@ -34,6 +36,43 @@ SIZES = {'byte': 1, 'word': 2, 'dword': 4, 'float': 4, 'qword': 8, 'double': 8, 
 
 # The NaN an invalid operation (0/0, inf - inf, sqrt(-1)) makes on x86: sign set.
 INDEFINITE = struct.unpack('<d', bytes.fromhex('000000000000f8ff'))[0]
+
+# The hardware's pi, 66 bits: pi66 = 0xC90FDAA22168C234C * 2^-66. FSIN, FCOS and FPTAN reduce their argument by it, so for |x| < 2^63
+# they give the function of x * pi / pi66, not of x: the two pis differ in the 66th bit, which the result shows from |x| of about 2^33
+# on. (The 32-bit UCRT's tan runs FPTAN itself from |x| = 12288, sin and cos FSIN / FCOS from 90112, so the game and a port agree there.)
+PI66_NUM, PI66_SHIFT = 0xC90FDAA22168C234C, 66
+PI_DIGITS = ('3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230'
+             '66470938446095505822317253594081284811174502841027019385211055596446229489549303819644288109756659334461284756482337')
+TRIG_PREC = 90  # digits: 19 before the point for 2^63, enough after it for the result to round right (tan near a pole included)
+
+
+def hw_trig(v):
+    """(sin, cos, tan) of the finite float v, |v| < 2^63, as the x87 computes them: of v * pi / pi66, each rounded once to a double."""
+    return (v, 1.0, v) if v == 0 else _hw_trig(v)  # (a zero keeps its sign; -0.0 == 0.0 would share a cache entry)
+
+
+@functools.lru_cache(maxsize=1 << 16)
+def _hw_trig(v):
+    with decimal.localcontext() as c:
+        c.prec = TRIG_PREC
+        pi = decimal.Decimal(PI_DIGITS)
+        y = decimal.Decimal(v) * pi * (1 << PI66_SHIFT) / PI66_NUM
+        half = pi / 2
+        k = int((y / half).to_integral_value(decimal.ROUND_HALF_EVEN))
+        r = y - k * half  # |r| <= pi / 4
+        r2 = r * r
+        s, co, ts, tc, n = r, decimal.Decimal(1), r, decimal.Decimal(1), 0
+        limit = abs(r) * decimal.Decimal(10) ** -(TRIG_PREC + 4)
+        while True:
+            n += 2
+            tc = tc * -r2 / ((n - 1) * n)
+            ts = ts * -r2 / (n * (n + 1))
+            co += tc
+            s += ts
+            if abs(ts) < limit and abs(tc) < limit:
+                break
+        s, co = [(s, co), (co, -s), (-s, -co), (-co, s)][k & 3]
+        return float(s), float(co), float(s / co)
 
 
 def significand(x):
@@ -414,13 +453,13 @@ class Emu:
             if math.isinf(v):
                 self.st[0] = INDEFINITE
             elif not math.isnan(v) and not self.c2:
-                self.st[0] = (math.sin if mn == 'FSIN' else math.cos)(v)
+                self.st[0] = hw_trig(v)[0 if mn == 'FSIN' else 1]
         elif mn == 'FPTAN':
             v = self.st[0]
             # as fsin; then 1.0 pushed (a NaN or the indefinite for a NaN or infinity), nothing beyond 2^63
             self.c2 = not math.isnan(v) and math.inf > abs(v) >= 2.0 ** 63
             if not self.c2:
-                self.st[0] = INDEFINITE if math.isinf(v) else v if math.isnan(v) else math.tan(v)
+                self.st[0] = INDEFINITE if math.isinf(v) else v if math.isnan(v) else hw_trig(v)[2]
                 self.st.insert(0, self.st[0] if math.isnan(self.st[0]) else 1.0)
         elif mn == 'FPATAN':
             x, y = self.st.pop(0), self.st[0]
