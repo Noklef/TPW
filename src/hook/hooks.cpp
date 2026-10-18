@@ -503,6 +503,7 @@ const Hook kHooks[] = {
     {"MouseModes_InitUnusedEpsilon", 0x0046c090, (void *)&MouseModes_InitUnusedEpsilon, {0xd9, 0x05, 0x38, 0xe9, 0x6f}},
     {"MouseModes_InitTile",       0x0046c0b0, (void *)&MouseModes_InitTile, {0x66, 0xc7, 0x05, 0xcc, 0x05}},
     {"MouseState_NewFrame",       0x0046c100, (void *)&MouseState_NewFrame, {0x8b, 0x41, 0x0c, 0xc7, 0x01}},
+    {"MouseState_SetTileFromPosition", 0x0045d560, (void *)&MouseState_SetTileFromPosition, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"ObjectDefs_Find",           0x00412e90, (void *)&ObjectDefs_Find, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"ObjectDefs_FindAt390",      0x00412ef0, (void *)&ObjectDefs_FindAt390, {0x53, 0x66, 0x8b, 0x5c, 0x24}},
     {"ObjectDefs_FindAt410",      0x00412f50, (void *)&ObjectDefs_FindAt410, {0x53, 0x66, 0x8b, 0x5c, 0x24}},

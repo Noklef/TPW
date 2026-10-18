@@ -29,6 +29,12 @@ void __cdecl MouseModes_InitUnusedOne();
 void __cdecl MouseModes_InitUnusedEpsilon();
 void __cdecl MouseModes_InitTile();
 
+// 0x45d560 (cdecl; position; name unconfirmed): the pointer state's tile (0x7b05cc) from a position, when there is a terrain map
+// (0x7a0854) with a grid (+0x6c): x = __ftol((position[0] - grid +8) / grid +0x10), z the same from position[2] with +0xc / +0x14;
+// each then clamped to 0 (signed), below the grid's width / depth (+0x18 / +0x1c, unsigned: else that - 1), to 0 again and below
+// 0x7a0314 / 0x7a0374 (signed); the tile is (z << 7) + x + 1 when Map_InBounds, else 0.
+void __cdecl MouseState_SetTileFromPosition(const float *position);
+
 // 0x46c100: a new frame for the pointer state (0x7b05a8): its +0xc count stepped and its
 // picked thing (+0) cleared.
 void __fastcall MouseState_NewFrame(u8 *self);
