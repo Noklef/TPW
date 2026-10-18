@@ -4200,6 +4200,8 @@ address,name,kind,confidence,notes
 0x006af0a0,Vector16_InsertN,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (position, count, value): MSVC6 vector<16-byte T>::insert(position, count, value) (first +4, last +8, end +0xc)"
 0x006af3b0,Vector12_InsertN,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (position, count, value): MSVC6 vector<12-byte T>::insert(position, count, value) (first +4, last +8, end +0xc)"
 0x006add90,TextLines_Append,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (first, shown, next, width) on the layout's lines (+0x70): {first, next, width} appended, the widest line (+0x10) raised, records shown..next flagged 0x40"
+0x006aec80,TextLayout_BreakLines,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (begin, end): the 16-byte character records broken into lines no wider than +0xa8, each appended to the lines (+0x70); returns the line count"
+0x006aeb10,TextLayout_Arrange,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (status, left, top, right, bottom): the lines rebuilt per paragraph, the text box (+0xac-+0xb8) placed by the kinds at +0xa0 / +0xa4; *status = 0; returns status"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"

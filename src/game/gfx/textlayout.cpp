@@ -282,6 +282,135 @@ void __fastcall TextLines_Append(u8 *lines, void *, u8 *first, u8 *shown, u8 *ne
     }
 }
 
+s32 __fastcall TextLayout_BreakLines(u8 *layout, void *, u8 *begin, u8 *end) {
+    u8 *const lines = layout + 0x70;
+    s32 count = 0;
+    u32 width = 0;
+    u8 *start = begin;
+    if (begin == end) {
+        TextLines_Append(lines, nullptr, begin, end, end, 0);
+        return 1;
+    }
+    u8 *r = begin;
+    do {
+        if (!(at<u8>(r, 4) & 4)) {
+            const u32 wide = at<u32>(r, 8) + width;
+            if (wide <= at<u32>(layout, 0xa8)) {
+                width = wide;
+            } else {
+                u8 *shown;
+                u32 lineWidth;
+                if (r == start) {  // a single record wider than the line: it goes on the line by itself
+                    r += 0x10;
+                    shown = r;
+                    lineWidth = wide;
+                } else {
+                    u8 *p = r;
+                    u32 w = width;
+                    do {  // back to a record that allows a break (flag 0x10)
+                        if (at<u8>(p, 4) & 0x10) break;
+                        p -= 0x10;
+                        w -= at<u32>(p, 8);
+                    } while (p != start);
+                    if (p == start) {
+                        shown = r;
+                        lineWidth = width;
+                    } else {
+                        r = p;
+                        p -= 0x10;
+                        if (p != start) {
+                            while (at<u8>(p, 4) & 2) {  // trailing spaces are not shown
+                                const u32 space = at<u32>(p, 8);
+                                p -= 0x10;
+                                w -= space;
+                                if (p == start) break;
+                            }
+                        }
+                        shown = p + 0x10;
+                        lineWidth = w;
+                    }
+                }
+                while (r != end && (at<u8>(r, 4) & 2)) r += 0x10;
+                TextLines_Append(lines, nullptr, start, shown, r, lineWidth);
+                ++count;
+                start = r;
+                width = 0;
+                r -= 0x10;
+            }
+        }
+        r += 0x10;
+    } while (r != end);
+    if (start != end) {
+        TextLines_Append(lines, nullptr, start, end, end, width);
+        ++count;
+    }
+    return count;
+}
+
+s32 *__fastcall TextLayout_Arrange(u8 *layout, void *, s32 *status, s32 left, s32 top, s32 right, s32 bottom) {
+    u8 *const lines = layout + 0x70;
+    Vector12_Erase(lines, nullptr, at<u8 *>(layout, 0x74), at<u8 *>(layout, 0x78));
+    at<u32>(lines, 0x10) = 0;
+    u8 *r = at<u8 *>(layout, 0x60);
+    if (r == at<u8 *>(layout, 0x64)) {
+        *status = 0;
+        return status;
+    }
+    s32 count = 0;
+    u8 *start = r;
+    while (r != at<u8 *>(layout, 0x64)) {
+        if (at<u8>(r, 4) & 4) {  // a line break ends a paragraph (a CR LF pair, flags 4 and 8, counts as one)
+            r += 0x10;
+            if (r != at<u8 *>(layout, 0x64)) {
+                const u8 f = at<u8>(r, 4);
+                if ((f & 4) && (f & 8)) r += 0x10;
+            }
+            count += TextLayout_BreakLines(layout, nullptr, start, r);
+            start = r;
+        } else {
+            r += 0x10;
+        }
+    }
+    if (start != at<u8 *>(layout, 0x64)) count += TextLayout_BreakLines(layout, nullptr, start, at<u8 *>(layout, 0x64));
+    // the sums wrap (u32); the halvings are signed divisions
+    const u32 height = at<u32>(layout, 0xbc) * (u32)count;
+    const u32 widest = at<u32>(layout, 0x80);
+    switch (at<s32>(layout, 0xa0)) {
+    case 2: {
+        const u32 y = (u32)((s32)((u32)bottom - (u32)top - height) / 2) + (u32)top;
+        at<u32>(layout, 0xb0) = y;
+        at<u32>(layout, 0xb8) = height + y;
+        break;
+    }
+    case 5:
+        at<u32>(layout, 0xb8) = (u32)bottom;
+        at<u32>(layout, 0xb0) = (u32)bottom - height;
+        break;
+    default:
+        at<u32>(layout, 0xb0) = (u32)top;
+        at<u32>(layout, 0xb8) = height + (u32)top;
+        break;
+    }
+    switch (at<s32>(layout, 0xa4)) {
+    case 1:
+        at<u32>(layout, 0xb4) = (u32)right;
+        at<u32>(layout, 0xac) = (u32)right - widest;
+        break;
+    case 2: {
+        const u32 x = (u32)((s32)((u32)right - (u32)left - widest) / 2) + (u32)left;
+        at<u32>(layout, 0xac) = x;
+        at<u32>(layout, 0xb4) = widest + x;
+        break;
+    }
+    default:
+        at<u32>(layout, 0xac) = (u32)left;
+        at<u32>(layout, 0xb4) = widest + (u32)left;
+        break;
+    }
+    *status = 0;
+    return status;
+}
+
 u8 *__fastcall TextLayout_Ctor(u8 *layout) {
     TextStyleHolder_Ctor(layout + 4);
     const u8 b = (u8)((uintptr_t)layout >> 24);  // sic: the top byte of the pushed ECX, read as an allocator temporary

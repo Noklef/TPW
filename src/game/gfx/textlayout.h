@@ -95,4 +95,17 @@ void __fastcall Vector12_InsertN(u8 *vector, void *, u8 *position, u32 count, co
 // records from shown up to next (a do-while) get flag 0x40 in their byte +4.
 void __fastcall TextLines_Append(u8 *lines, void *, u8 *first, u8 *shown, u8 *next, u32 width);
 
+// 0x6aec80 (thiscall (begin, end), pops 8): breaks the layout's 16-byte character records (+4 flags: 2 a space, 4 a line break (no width),
+// 0x10 a break allowed; +8 the width) from begin to end into lines no wider than +0xa8 (unsigned), appending each (TextLines_Append on
+// +0x70): an overflowing line goes back to the last record with flag 0x10 (its trailing spaces not shown), or breaks where it overflowed;
+// a lone record wider than the line takes a line of its own. An empty range is one empty line. Returns the number of lines.
+s32 __fastcall TextLayout_BreakLines(u8 *layout, void *, u8 *begin, u8 *end);
+
+// 0x6aeb10 (thiscall (status, left, top, right, bottom), pops 0x14): the lines cleared (Vector12_Erase, the widest +0x80 = 0); without
+// records (+0x60 = +0x64) *status = 0 and nothing else. Otherwise each paragraph (up to a record with flag 4, a following record with
+// flags 4 and 8 taken along) broken into lines (TextLayout_BreakLines); then the text box placed: +0xb0 / +0xb8 the top and bottom of
+// lines * the line height (+0xbc) by the vertical kind (+0xa0: 2 centred, 5 at the bottom, else at the top), +0xac / +0xb4 the left and
+// right of the widest line by the horizontal kind (+0xa4: 1 at the right, 2 centred, else at the left). *status = 0. Returns status.
+s32 *__fastcall TextLayout_Arrange(u8 *layout, void *, s32 *status, s32 left, s32 top, s32 right, s32 bottom);
+
 }
