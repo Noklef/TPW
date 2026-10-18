@@ -1,8 +1,9 @@
 # The WCT image's deleting destructor (src/game/gfx/wctimage: 0x565000 on the part at +0x2c) and the wavelet codec's shutdown
 # (src/game/gfx/wavelet: 0x564b60) against the originals: virtual base offsets 0x2c and others, blocks at +0x20 / +0x24 tracked, untracked or
 # none (the tracked blocks' table as in trackedglobal.py), flags with and without bit 0; the shutdown with or without its block (0x879a68)
-# and codec (0x879a64, a recorder whose slot 6 is logged).
-# usage: wctimage.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Dtor,Shutdown)
+# and codec (0x879a64, a recorder whose slot 6 is logged); the image's constructor (0x564ba0: most derived or not, virtual base offsets 0x2c
+# and others).
+# usage: wctimage.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Dtor,Shutdown,Ctor)
 import os
 import struct
 import sys
@@ -10,7 +11,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, LOG, Bench, Call, RAM, global_heap, heap, log_region, put, vtable  # noqa: E402
 
-B = Bench([(0x565000, 0x565070), (0x564b60, 0x564b94), (0x579b80, 0x579c13)])
+B = Bench([(0x565000, 0x565070), (0x564b60, 0x564b94), (0x579b80, 0x579c13), (0x564ba0, 0x564bf0)])
 COUNT, TABLE = 0x8bb214, 0x87b1f8   # the tracked blocks: their count and (block, block) pairs
 OBJ, VBT, CODEC, CVT = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300
 BLOCKS = [HEAP + 0x20, HEAP + 0x40, HEAP + 0x3c]
@@ -53,11 +54,18 @@ def shutdown(r):
     return Call(0x564b60, [], regions, ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Dtor,Shutdown').split(',') if k]
+def ctor(r):
+    obj = bytearray(r.bytes(0x400))
+    put(obj, 0, 'I', RAM + 0x300)  # the vtable it starts with (when not most derived): +4 the virtual base offset
+    put(obj, 0x304, 'I', r.choice([0x2c, 0x2c, 0x30, 0x34]))
+    return Call(0x564ba0, [RAM, r.choice([0, 1, 1])], {RAM: obj}, conv='t', ret='a')
+
+
+OPS = [k for k in os.environ.get('OPS', 'Dtor,Shutdown,Ctor').split(',') if k]
 
 
 def case(r):
-    return {'Dtor': dtor, 'Shutdown': shutdown}[r.deal(OPS)](r)
+    return {'Dtor': dtor, 'Shutdown': shutdown, 'Ctor': ctor}[r.deal(OPS)](r)
 
 
 if __name__ == '__main__':

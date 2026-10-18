@@ -129,21 +129,6 @@ u8 *__fastcall Class701260_Ctor(u8 *object) {
     return object;
 }
 
-u8 *__fastcall Obj_CtorVirtual564ba0(u8 *object, void *, u32 mostDerived) {
-    if (mostDerived) {
-        at<u32>(object, 0) = 0x007011d8;
-        at<u32>(object, 0x2c) = 0x00701178;
-    }
-    at<u32>(object, at<u32>(at<u8 *>(object, 0), 4)) = 0x007011c8;
-    const u32 base = at<u32>(at<u8 *>(object, 0), 4);
-    at<u32>(object, base - 4) = base - 0x2c;
-    for (u32 i = 0; i < 7; i++)
-        at<u32>(object, 4 + 4 * i) = 0;
-    at<u32>(object, 0x24) = 0;
-    at<u32>(object, 0x20) = 0;
-    return object;
-}
-
 u32 __fastcall PtrArray_SetVectorOf(const u8 *list, void *, u8 *key, u32 a, u32 b, u32 c) {
     const u32 *items = at<const u32 *>(list, 8);
     s32 index = (s32)at<u32>(list, 0x1c) - 1;
