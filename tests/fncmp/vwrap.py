@@ -13,7 +13,7 @@ CALLS = {'S18': (0x5c5510, 't', 'a', 0x20), 'Pass': (0x617dd0, 't', 'a', 0x20), 
          'G14': (0x46c330, 's', 'a', 0x30), 'G1e0': (0x498b90, 'c', 'v', 0x30), 'G1c8': (0x4987d0, 'c', 'v', 0x30), 'G1d8': (0x578390, 'c', 'v', 0x30),
          'Sub14': (0x5c5530, 't', 'a', 0x30), 'Sub28': (0x5c5560, 't', 'a', 0x30), 'M14': (0x617a30, 't', 'a', 0x30), 'M18': (0x617b00, 't', 'a', 0x30),
          'M10': (0x617b30, 't', 'a', 0x30), 'Fin': (0x5c4f80, 'c', 'a', 0x30), 'Prod': (0x5c4f60, 'c', 'a', 0x30), 'Sized': (0x565560, 't', 'a', 0x30),
-         'Shared': (0x565930, 't', 'a', 0x50), 'G2c': (0x48ccd0, 't', 'a', 0x30), 'D9acc': (0x569ef0, 'c', 'a', 0x30), 'D9ac0': (0x5667a0, 'c', 'a', 0x30),
+         'Shared': (0x565930, 't', 'a', 0x50), 'G2c': (0x48ccd0, 't', 'a', 0x30), 'G2c10': (0x4b7a00, 't', 'a', 0x14), 'D9acc': (0x569ef0, 'c', 'a', 0x30), 'D9ac0': (0x5667a0, 'c', 'a', 0x30),
          'D4b84': (0x47e990, 'c', 'v', 0x20), 'R2fc': (0x4b3f20, 'c', 'v', 0x40), 'T26b0': (0x48eaf0, 'c', 'v', 0x30), 'VB48': (0x57c4a0, 'c', 'a', 0x30),
          'Drain': (0x576230, 't', 'v', 0x30), 'Rel': (0x591a80, 't', 'a', 0x30), 'R1bc': (0x497b60, 'c', 'v', 0x12), 'M20': (0x48d860, 't', 'a', 0x10),
          'GThing': (0x4af9f0, 't', 'v', 0x4f), 'GThingW': (0x481530, 't', 'v', 0x12),'Keys': (0x5e2310, 't', 'a', 0x50), 'C14': (0x5c5000, 'c', 'a', 0x10)}
@@ -159,8 +159,9 @@ def case(r):
         put(obj, 0, 'I', VT)
         regions[VT] = vtable({5: 0})
         return Call(address, [OBJ], regions, conv=conv, ret=ret)
-    if name == 'G2c':
+    if name in ('G2c', 'G2c10'):
         put(obj, 0, 'I', VT)
+        put(obj, 0x10, 'I', r.choice([0, 0, 1, 0x100, r.getrandbits(32)]))
         regions[VT] = vtable({11: 0})
         g = r.choice([0, 5, 0x1234, r.getrandbits(32)])
         regions[0x7c2658] = struct.pack('<I', g)
