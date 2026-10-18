@@ -289,4 +289,11 @@ static u32 CreateGlobal(u32 slot, u32 size, u32 fill) {
 u32 __cdecl CreateGlobal8bcbb8_5804b0() { return CreateGlobal(0x008bcbb8, 0x14004, 0); }
 
 u32 __cdecl CreateGlobal8c47d4_58aff0() { return CreateGlobal(0x008c47d4, 0xc, 0xffffffff); }
+u32 __cdecl Table879d08_FillFrom() {
+    const u32 start = global<u32>(0x008bcc40) & 0xf;
+    global<u32>(0x00879d48) = start;
+    for (u32 i = 0; i < 16; i++)
+        global<u32>(0x00879d08 + 4 * ((i + start) & 0xf)) = 16 - i;
+    return 0;
+}
 }  // extern "C"

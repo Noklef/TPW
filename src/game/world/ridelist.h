@@ -23,6 +23,9 @@ void __cdecl Rides_SetWordC0(u8 *record, u32 value);
 s32 __cdecl Rides_GetWordC0(const u8 *record);
 u32 __cdecl Rides_Get9c(const u8 *record);
 
+// 0x55a4e0 (cdecl (id); name unconfirmed): the dword +0xe0 of the ride record with the id; 0 without the system or such a record.
+u32 __cdecl Rides_GetE0ById(s32 id);
+
 // 0x55a3e0 (cdecl; id, index): the element of the array of the record that the link id (+0x14) of the record with the id names; 0 if either
 // record is missing or the index is outside.
 u32 __cdecl Rides_GetLinkedElement(s32 id, s32 index);

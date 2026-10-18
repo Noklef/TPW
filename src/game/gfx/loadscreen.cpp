@@ -53,17 +53,17 @@ u32 __fastcall LoadScreen_ShowImage(u8 *image) {
         return 1;
     if (global<u32>(0x008bd524) == 1) {
         void *const surface = *reinterpret_cast<void **>(global<u8 *>(0x00879a24) + 0x14);
-        void **const slots = *reinterpret_cast<void ***>(surface);
         u32 desc[0x1f] = {};
         desc[0] = 0x7c;
-        if (reinterpret_cast<s32(__stdcall *)(void *, void *, u32 *, u32, u32)>(slots[0x19])(surface, nullptr, desc, 1, 0))
+        if (reinterpret_cast<s32(__stdcall *)(void *, void *, u32 *, u32, u32)>((*reinterpret_cast<void ***>(surface))[0x19])(surface, nullptr, desc, 1, 0))
             return 1;
         u8 *const lines = reinterpret_cast<u8 *>((uintptr_t)desc[9]);
         if (*reinterpret_cast<u32 *>(image + 0xc) == 2)
             copyRows(image, *reinterpret_cast<const u16 *const *>(image), lines, desc);
         else
             copyRows(image, *reinterpret_cast<const u32 *const *>(image), lines, desc);
-        reinterpret_cast<s32(__stdcall *)(void *, void *)>(slots[0x20])(surface, nullptr);
+        // (the vtable read again for the Unlock, as the original does)
+        reinterpret_cast<s32(__stdcall *)(void *, void *)>((*reinterpret_cast<void ***>(surface))[0x20])(surface, nullptr);
         return 1;
     }
     if (global<u32>(0x008bd524) == 4) {

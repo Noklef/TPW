@@ -223,6 +223,9 @@ void __fastcall MapCell_SetStepDirection(u8 *cell, void *, s32 dx, s32 dy);
 // (value): the u16 +0x24 set.
 u16 __fastcall MapCell_Word24(const u8 *cell);
 void __fastcall MapCell_SetWord24(u8 *cell, void *, u32 value);
+// 0x53bf30 (cdecl (x, y); name unconfirmed): the dword +4 of the 0x28-byte cell at (x, y) (the id (y << 7) + x + 1 cut to 16 bits, [0x7cf83c]'s
+// table), or for a 0xc / 0x11 cell its parent's (the id at +0x10; 0 for none).
+u32 __cdecl MapCell_Dword4At(s32 x, s32 y);
 // 0x52a050 (cdecl; the path point {x, y, +0x10 direction byte}, the next x out, the next y out): 0 when the point is outside the map (Map_InBounds); otherwise the cell at the point
 // (in the map at [0x7cf83c] + 0x294, 0x44 bytes each, the id (y << 7) + x + 1 cut to 16 bits) gets the neighbour bits of the direction (MapCell_AddNeighbours with Nibble_Scale),
 // the next point is the point moved by the direction (1: y + 1, 0x10: y - 1, 4: x - 1, 0x40: x + 1, any other: not moved), 0 again when that is outside; else the cell there is

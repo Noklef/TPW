@@ -153,4 +153,8 @@ u32 __cdecl FreeGlobal8c47d4_58b040();
 // pushed onto the engine's list, EngineErrors_Push).
 u32 __cdecl CreateGlobal8bcbb8_5804b0();
 u32 __cdecl CreateGlobal8c47d4_58aff0();
+
+// 0x56b650 (cdecl; name unconfirmed): the start [0x8bcc40] & 0xf kept at 0x879d48, then the sixteen dwords at 0x879d08 = 16 down to 1 from
+// that index on (wrapping at 16): Table879d08_Fill turned by the start. Returns 0 (the count left in EAX).
+u32 __cdecl Table879d08_FillFrom();
 }  // extern "C"

@@ -1,15 +1,17 @@
 # The mesh builder's geometry helpers (src/game/math/geometry: 0x5812f0, 0x581320) against the originals: any floats (special values
-# now and then), points sharing coordinates so the winding products tie, and NaNs.
-# usage: geometry.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Dot,Winding)
+# now and then), points sharing coordinates so the winding products tie, and NaNs. AtX / AtZ (0x56d520, 0x56d590): two points and a
+# plane of ordinary floats or fncmp's (signalling NaNs too, and quiet ones of either sign, whose ties show the operand order),
+# coordinates shared so the span or the distance is zero.
+# usage: geometry.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Dot,Winding,BoxExtend,AtX,AtZ)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import RAM, Bench, Call, bf  # noqa: E402
+from fncmp import RAM, Bench, Call, bf, fb  # noqa: E402
 
-B = Bench([(0x5812f0, 0x581315), (0x581320, 0x581403), (0x57b410, 0x57b48f)])
-OPS = [k for k in os.environ.get('OPS', 'Dot,Winding,BoxExtend').split(',') if k]
+B = Bench([(0x5812f0, 0x581315), (0x581320, 0x581403), (0x57b410, 0x57b48f), (0x56d520, 0x56d5fd)])
+OPS = [k for k in os.environ.get('OPS', 'Dot,Winding,BoxExtend,AtX,AtZ').split(',') if k]
 
 
 def point(r, shared):
@@ -20,8 +22,23 @@ def point(r, shared):
     return struct.pack('<4I', *v)
 
 
+def coordinate(r):
+    return r.choice([fb(r.uniform(-1000.0, 1000.0)), fb(float(r.randrange(-64, 65))), fb(r.uniform(-1e-3, 1e-3)), r.f(), 0x7fa00000,
+                     0xff800001, 0x7fc00000, 0xffc00000])
+
+
 def case(r):
     op = r.deal(OPS)
+    if op in ('AtX', 'AtZ'):
+        a, b = [coordinate(r) for _ in range(3)], [coordinate(r) for _ in range(3)]
+        k = 0 if op == 'AtX' else 2
+        plane = coordinate(r)
+        roll = r.random()
+        if roll < 0.1:
+            b[k] = a[k]
+        elif roll < 0.2:
+            plane = r.choice([a[k], b[k]])
+        return Call(0x56d520 if op == 'AtX' else 0x56d590, [RAM] + a + b + [plane], {RAM: r.bytes(0x10)}, ret='a')
     if op == 'Dot':
         return Call(0x5812f0, [r.f() for _ in range(6)], {}, ret='d')
     if op == 'BoxExtend':

@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../files/file.h"
+#include "../gfx/texset.h"
 #include "gameheap.h"
 #include "movs.h"
 
@@ -238,5 +239,66 @@ u32 __cdecl Dwords_Zero(u32 *to, u32 count) {
     for (u32 i = 0; i < count; ++i)
         to[i] = 0;
     return 0;
+}
+
+void __fastcall Bands_SortValues(const u8 *object, void *, u32 *values, s32 lo, s32 hi) {
+    for (;;) {
+        const u32 pivot = values[(s32)((u32)lo + (u32)hi) >> 1];
+        s32 i = lo, j = hi;
+        do {
+            while (i <= hi && values[i] < pivot)
+                ++i;
+            if (i > lo) {  // (the original tests i, not j, against lo, sic)
+                while (values[j] > pivot)
+                    --j;
+            }
+            if (i > j)
+                break;
+            const u32 swap = values[i];
+            values[i] = values[j];
+            values[j] = swap;
+            ++i;
+            --j;
+        } while (i <= j);
+        if (lo < j)
+            Bands_SortValues(object, nullptr, values, lo, j);
+        if (i >= hi)
+            return;
+        lo = i;
+    }
+}
+
+void __fastcall Bands_CollectTextures(u8 *object, void *, u32 *ids, s32 *count, u32 *textures) {
+    u32 overrides = 0, taken = 0;
+    *count = 0;
+    for (s32 row = at<s32>(object, 0x128); row < at<s32>(object, 0x12c); ++row) {
+        for (s32 column = at<s8>(object, 0x130 + row); column < at<s8>(object, 0x1b0 + row); ++column) {
+            const u8 *const map = at<const u8 *>(object, 0);
+            const u8 *const cell = at<const u8 *>(map, 0x2c) + 4 * (u32)(at<s32>(map, 0x18) * row + column);
+            if (cell[0] & 1)
+                continue;
+            u32 texture;
+            if ((*reinterpret_cast<const u8 *>((uintptr_t)0x008bd550) & 4) && column >= at<s32>(object, 0x234) &&
+                column <= at<s32>(object, 0x23c) && row >= at<s32>(object, 0x238) && row <= at<s32>(object, 0x240)) {
+                texture = at<u32>(object, 0x248 + 4 * overrides++);
+            } else {
+                const u8 *const set = at<const u8 *>(at<const u8 *>(object, 4), 8 * (u32)at<u16>(cell, 2) + 4);
+                texture = set ? TexSet_Texture(set, nullptr, 0) : 0;
+            }
+            textures[taken++] = texture;
+            const u32 id = texture && (at<u32>(reinterpret_cast<const void *>((uintptr_t)texture), 8) & 0x1000)
+                               ? at<u32>(reinterpret_cast<const void *>((uintptr_t)texture), 0x1c)
+                               : 0;
+            const s32 n = *count;
+            s32 i = 0;
+            while (i < n && ids[i] != id)
+                ++i;
+            if (i == n) {
+                ids[i] = id;
+                ++*count;
+            }
+        }
+    }
+    Bands_SortValues(object, nullptr, ids, 0, *count - 1);
 }
 }  // extern "C"

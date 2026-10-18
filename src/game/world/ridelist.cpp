@@ -63,6 +63,13 @@ u32 __cdecl Rides_Get9c(const u8 *record) {
     return at<u32>(record, 0x9c);
 }
 
+u32 __cdecl Rides_GetE0ById(s32 id) {
+    if (!system())
+        return 0;
+    const u8 *record = find(id);
+    return record ? at<u32>(record, 0xe0) : 0;
+}
+
 u32 __cdecl Rides_GetLinkedElement(s32 id, s32 index) {
     if (!system())
         return 0;

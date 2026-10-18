@@ -309,6 +309,7 @@ add_library(tpw_game STATIC
     src/game/render/texcoords.cpp
     src/game/render/graphicssettings.cpp
     src/game/render/textparts.cpp
+    src/game/render/worldview.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/online/itemlist.cpp
@@ -318,6 +319,7 @@ add_library(tpw_game STATIC
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
     src/game/frontend/lobbyscene.cpp
+    src/game/frontend/viewcontrols.cpp
     src/game/input/mouse.cpp
     src/game/ui/dialog7ca1c8.cpp
     src/game/ui/window.cpp

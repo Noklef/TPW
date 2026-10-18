@@ -138,6 +138,7 @@ address,name,kind,confidence,notes
 0x004e0ac0,Obj_ReleaseRideElement0,function,low,reimplemented (src/game/world/ridelist); thiscall (handle): clear the word at +0x6c; element 0 of the ride record = 0 when it holds the handle
 0x004e0900,Obj_ClaimRideElement0,function,low,reimplemented (src/game/world/ridelist); thiscall (handle): claim element 0 of the ride record for the handle when the object is open and the element is free
 0x0051a760,Game_PollRideElement1,function,low,"reimplemented (src/game/world/ridelist); thiscall on the game object: 0 when the taken ride element 1 is 3, then (count at +0x2d0 under 10) 1, then 2; else 1"
+0x0055a4e0,Rides_GetE0ById,function,low,reimplemented (src/game/world/ridelist); cdecl (id): the dword +0xe0 of the ride record with the id; 0 without the system or the record
 0x00516330,World_Rand,function,high,"reimplemented (src/game/world/random); thiscall; LCG x*0x19660d+0x3c6ef35f, rotr 13, abs; state at world+0x1da708. Must be bit-exact for determinism"
 0x008791b0,RSSE_ScriptList,data,high,head of doubly linked list of live script contexts (0xF4 bytes each)
 0x008791ac,RSSE_ScriptCount,data,high,
@@ -435,6 +436,7 @@ address,name,kind,confidence,notes
 0x005ed5a0,ParticlePool_Resize,function,low,"reimplemented (src/game/render/particles); cdecl (pool, count, effect): a 16-handle pool at 0xf8692c + pool * 0x44 grown with Particle_Spawn(effect) or shrunk with ParticleSystem_End; returns the change"
 0x005eda70,ParticlePool2_Finish,function,low,"reimplemented (src/game/render/particles); cdecl (): each of pool 2's systems with a handle, up to its count, gets ParticleSystem_Set2a(handle, 1); then ParticlePool_Resize(2, 0, 0)"
 0x005edac0,ParticlePool2_Empty,function,low,"reimplemented (src/game/render/particles); cdecl (): ParticlePool_Resize(2, 0, 0)"
+0x005ed580,ParticlePools_Reset,function,low,"reimplemented (src/game/render/particles); cdecl: the 0x33 dwords from 0xf86900 (the particle pools' block) zeroed, then IntSin_BuildTable"
 0x00804370,gParticleEffects,data,high,0x69 x 0x140-byte effect definitions from Tp2.plb
 0x0080c6b0,gParticleEffectors,data,high,20 x 0x68-byte effector definitions
 0x0080cefc,gParticleSystems,data,high,live systems: 0x140-byte copies of an effect definition
@@ -467,6 +469,11 @@ address,name,kind,confidence,notes
 0x0056df70,TerrainTex_SetRect,function,high,reimplemented (src/game/terrain/procedural); the procedural texture object +0x234..+0x240 = the view rect
 0x0056ddf0,TerrainTex_Create,function,low,"reimplemented (src/game/terrain/procedural); cdecl: when [0x879d60] is null, a new 0x12974-byte procedural texture object there with its fields cleared and the rectangle's right / bottom 0x7f, 1; 0 when there was one or the allocation failed (the error (3, 0xb0754000) pushed)"
 0x0056e4e0,TerrainTex_Unload,function,low,"reimplemented (src/game/terrain/procedural); thiscall: the procedural texture object's tile cache destroyed twice and freed, its tracked block freed, +0 / +4 cleared; returns 1"
+0x0056de90,TerrainTex_Destroy,function,low,"reimplemented (src/game/terrain/procedural); cdecl: the procedural texture object [0x879d60] unloaded, unloaded again (sic) and freed, the global cleared; returns 1"
+0x0056e030,TerrainTex_AddRect,function,low,"reimplemented (src/game/terrain/procedural); thiscall (x0, y0, x1, y1, delta; pops 0x14): delta added to the grid floats at [+0x12970] in the rectangle, clipped to the header's width/height"
+0x0056e0a0,TerrainTex_StampFixed,function,low,reimplemented (src/game/terrain/procedural); thiscall: the fixed rectangles (27) added to the procedural grid through TerrainTex_AddRect (the first six inlined)
+0x0056e3f0,TerrainTex_Setup,function,low,"reimplemented (src/game/terrain/procedural); thiscall(land): header [land+0x6c], sizes, reciprocal steps; under render flag 0x10000 a new tracked grid copied from header+0x28 and stamped; then SetView"
+0x0056e6c0,TerrainTex_SetView,function,low,"reimplemented (src/game/terrain/procedural); thiscall: the world view [0x879d54]'s x / y ranges, bounds and diagonal from the header, the renderer's frame buffer for its size; returns 1"
 0x005856e0,Landscape_SetPoint,function,high,"reimplemented (src/game/terrain/landscape); thiscall (the landscape renderer, 0x8c1828; i, x, y, z floats): point i at +0x1f70 + 12 i (the weather sets four)"
 0x00585710,Landscape_SetDetail,function,high,"reimplemented (src/game/terrain/landscape); thiscall (level): +0x2ec8, the detail level (option 0x785888)"
 0x00585ef0,Landscape_List,function,high,reimplemented (src/game/terrain/landscape); thiscall: +0x1fd0
@@ -1646,6 +1653,7 @@ address,name,kind,confidence,notes
 0x0050f700,IntPair_Normalize,function,low,"reimplemented (src/game/math/intpair); cdecl (&out, &pair): the pair made 1.0 long (ISqrt length in three tiers; 0 for a zero root)"
 0x005428a0,IntSin,function,high,"reimplemented (src/game/math/intsin); cdecl (angle, 512 a turn): the integer sine table's (0x877358) entry angle & 0x1ff, shifted left 2"
 0x005428c0,IntCos,function,high,reimplemented (src/game/math/intsin); cdecl (angle): as IntSin for angle + 0x80
+0x005442e0,IntSin_BuildTable,function,low,"reimplemented (src/game/math/intsin); cdecl: the 512 entries at 0x877358 = __ftol(fsin(2i * 0.00613591796875) * 256.0) (x87, 24-bit)"
 0x00578800,Mat4_Identity,function,high,"reimplemented (src/game/math/mat4); thiscall (a matrix object, the 4x4 at +0): the identity"
 0x00578bc0,Mat4_Assign,function,high,"reimplemented (src/game/math/mat4); thiscall (from): the 16 dwords copied in, upwards (rep movsd)"
 0x005780a0,Mat4_InitGlobals,function,high,reimplemented (src/game/math/mat4); static init: eight global 4x4 identity matrices
@@ -3503,6 +3511,8 @@ address,name,kind,confidence,notes
 0x005be510,Class702944_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor of the 0x702944 class
 0x00598760,Ptr_FreeIfSet,function,high,reimplemented (src/game/core/buffers); frees the block a pointer variable points to
 0x00598770,Dwords_Zero,function,high,reimplemented (src/game/core/seqs); zeroes a run of dwords
+0x0056f2f0,Bands_SortValues,function,low,"reimplemented (src/game/core/seqs); thiscall on the bands object (values, lo, hi; pops 0xc): quicksort of dwords values[lo..hi] ascending unsigned; the j scan only when i > lo (sic), unbounded"
+0x0056f380,Bands_CollectTextures,function,low,"reimplemented (src/game/core/seqs); thiscall(ids, count, textures): each visible cell's texture (override box or its texture set's first) listed, its id added once; then the ids sorted"
 0x005f4ea0,ReturnOne,function,high,reimplemented (src/game/core/trivial); returns 1
 0x00414670,Low16_414670,function,low,reimplemented (src/game/core/trivial); the low word of a value
 0x0044e600,OutOne_44e600,function,low,"reimplemented (src/game/core/trivial); an init step's answer: *out = 1, returns 1"
@@ -3588,6 +3598,7 @@ address,name,kind,confidence,notes
 0x0056b6c0,CreateGlobal879d54_56b6c0,function,low,"reimplemented (src/game/core/globals); cdecl: when [0x879d54] is null, a new 0x2d8-byte block there with its fields from +0x30 cleared, 1; 0 when there was one or the allocation failed (the error (3, 0xb0754000) pushed)"
 0x005804b0,CreateGlobal8bcbb8_5804b0,function,low,"reimplemented (src/game/core/globals); cdecl: when the dword at 0x8bcbb8 is null a new block of 0x14004 bytes (first dword 0) there, 1; 0 when there was one or the allocation failed (error 3 pushed, EngineErrors_Push)"
 0x0058aff0,CreateGlobal8c47d4_58aff0,function,low,"reimplemented (src/game/core/globals); cdecl: when the dword at 0x8c47d4 is null a new block of 0xc bytes (first dword -1) there, 1; 0 when there was one or the allocation failed (error 3 pushed, EngineErrors_Push)"
+0x0056b650,Table879d08_FillFrom,function,low,"reimplemented (src/game/core/globals); cdecl: start = [0x8bcc40] & 0xf kept at 0x879d48; the sixteen dwords at 0x879d08 = 16 down to 1 from the start on, wrapping; returns 0"
 0x004f0370,StdTreeC_PostInc,function,high,reimplemented (src/game/core/stdtree); post-increment of a std::map iterator
 0x004f0460,StdTreeE_PostInc,function,high,reimplemented (src/game/core/stdtree); post-increment of a std::map iterator
 0x004f0880,Obj_InitMinus1A,function,high,reimplemented (src/game/core/accessors); initialises an object with -1 ignoring three arguments
@@ -3672,6 +3683,8 @@ address,name,kind,confidence,notes
 0x005812f0,Vec3_DotByValue,function,low,"reimplemented (src/game/math/geometry); cdecl (ax, ay, az, bx, by, bz by value): the dot product in st0"
 0x00581320,Tri_WindingTest,function,low,"reimplemented (src/game/math/geometry); cdecl (a, b, c): x, y, w copied to 0x8c63b0-0x8c63d0; 1 when the homogeneous winding compare is below or unordered"
 0x0057b410,Box_Extend,function,low,"reimplemented (src/game/math/geometry); thiscall (x, y, z): the box (min +0, max +0xc) grown to take the point; a NaN goes into the minimum"
+0x0056d520,Segment_AtX,function,low,"reimplemented (src/game/math/geometry); cdecl(out, a, b by value, x): the point of the line b-a at x into out (returned); x87 at the game's precision"
+0x0056d590,Segment_AtZ,function,low,"reimplemented (src/game/math/geometry); cdecl(out, a, b by value, z): the point of the line b-a at z into out (returned); z copied as a dword"
 0x00579250,Transform_BlockedPoints,function,low,"reimplemented (src/game/math/transform); cdecl: points in blocks of four (x[4], y[4], z[4]) transformed to x, y, z, w by a 4x4 matrix"
 0x00579330,Transform_Vertices,function,low,"reimplemented (src/game/math/transform); cdecl: vertices transformed by a 4x4 matrix, by mode (4 in 4 out, point to 3, direction to 3, point to 4)"
 0x00579690,Transform_ProjectToScreen,function,low,"reimplemented (src/game/math/transform); cdecl: vertices divided by w and mapped to the render view's window, z by mode; returns the sum of the z's in st0"
@@ -3756,6 +3769,9 @@ address,name,kind,confidence,notes
 0x00458970,Deleter_Minus8_458970,function,low,reimplemented (src/game/core/vdel); the deleting destructor of a part 8 bytes into its block
 0x00421800,ScalarDeleteList6fdb10_421800,function,low,reimplemented (src/game/core/vdel); the list deleting destructor of vtable 0x6fdb10 with the list destructor inlined
 0x005b5780,Class702828_ScalarDtor,function,low,"reimplemented (src/game/core/vdel); thiscall (flags, pops 4): Class702828_Dtor, the object freed with bit 0; returns it"
+0x005d97a0,ListScalarDelete702a8c_5d97a0,function,low,"reimplemented (src/game/core/vdel); thiscall (flags, pops 4): vtable 0x702a8c, the node chain at +4 freed, +4/+8/+0xc cleared, the list freed on bit 0; returns it"
+0x005e4370,ListScalarDelete702d98_5e4370,function,low,"reimplemented (src/game/core/vdel); slot 0 of vtable 0x702d98 (thiscall, flags): linked list scalar deleting destructor: vtable 0x702d98, nodes freed, +4/+8/+0xc cleared, the list freed for flags bit 0"
+0x005d5ef0,ListScalarDelete7029f8_5d5ef0,function,low,"reimplemented (src/game/core/vdel); slot 0 of vtable 0x7029f8 (thiscall, flags): linked list scalar deleting destructor: vtable 0x7029f8, nodes freed, +4/+8/+0xc cleared, the list freed for flags bit 0"
 0x004dda20,Object_QueueHasRoom,function,high,reimplemented (src/game/world/objectmsg); whether the person queue is shorter than four times the limit
 0x005eb090,ArrayHolder_Clear,function,high,reimplemented (src/game/gfx/array3d); frees the four arrays of the holder
 0x005ea3f0,Image_CropInto,function,high,reimplemented (src/game/gfx/imageops); copies the part of an image that is left once moved into a fresh destination
@@ -3992,6 +4008,7 @@ address,name,kind,confidence,notes
 0x00539670,MapCell_SetStepDirection,function,low,"reimplemented (src/game/world/mapcell); mDirection from a step of 2, added on junctions, set otherwise (name unconfirmed)"
 0x004d8750,MapCell_StepBlocked,function,low,"reimplemented (src/game/world/mapcell); cdecl (x, y, direction, mode): 1 when a step from the cell in the direction is blocked (off the map, the cell types' rules, a ride cell's ride in mode 2, the entries' low flags, the neighbour bits and directions), else 0"
 0x00510510,MapCell_StepOpen,function,low,"reimplemented (src/game/world/mapcell); cdecl (two cell handles, mode): 1 when the step between the two neighbouring cells is open (straight: MapCell_StepBlocked's one step; diagonal: round one corner or the other), 0 when blocked, not neighbours (print-once flag 0x7cf38c) or the second argument -1 (its whole dword)"
+0x0053bf30,MapCell_Dword4At,function,low,"reimplemented (src/game/world/mapcell); cdecl (x, y): the dword +4 of the 0x28-byte cell at the position, or of its parent for a 0xc / 0x11 cell (0 without one)"
 0x0040f970,MessageSlot_Dtor,function,high,"reimplemented (src/game/world/messagecentre); thiscall on a slot: a dword, then a std::map of tree B at +4, destroyed (StdTree_DtorB); name unconfirmed"
 0x00409250,MessageCentre_DtorSlots,function,high,"reimplemented (src/game/world/messagecentre); thiscall: the 29 slots of 0x14 bytes from +0 destroyed, the last first (CRT_VectorDtorIterator, MessageSlot_Dtor); name unconfirmed"
 0x0040fa40,MessageCentre_RemoveThing,function,low,"reimplemented (src/game/world/messagecentre); thiscall (thing); the thing's handle erased from each of the 29 slots' maps (lower bound, key check, StdTree_EraseB); returns the count erased"
@@ -4463,6 +4480,9 @@ address,name,kind,confidence,notes
 0x00491920,TextPart6ff530_Ctor,function,low,"reimplemented (src/game/render/textparts); thiscall (value): RendererPart_Ctor, TextLayout_Ctor(+0xe4), the text fields set, vtable 0x6ff530; returns this"
 0x004919e0,TextPart6ff530_Dtor,function,low,"reimplemented (src/game/render/textparts); thiscall: vtable 0x6ff320, TextLayout_Dtor(+0xe4), then the RendererPart destroyed (inlined)"
 0x004919c0,TextPart6ff530_DeletingDtor,function,low,"reimplemented (src/game/render/textparts); thiscall (flags): TextPart6ff530_Dtor, freed for flags bit 0; returns this"
+0x0056b850,WorldView_UpdateDiagonal,function,low,"reimplemented (src/game/render/worldview); thiscall on the world view [0x879d54] (x87): +0x38 = sqrt(dx*dx + dy*dy), dx = +0x40 - +0x3c, dy = +0x48 - +0x44"
+0x0056b880,WorldView_SetRangeX,function,low,"reimplemented (src/game/render/worldview); thiscall (start, end, step; pops 0xc): +0x3c/+0x40/+0x4c set; unless the step is 0 or NaN +0x54 = __ftol((end - start) / step), +0x5c = that - 1"
+0x0056b8d0,WorldView_SetRangeY,function,low,"reimplemented (src/game/render/worldview); thiscall (start, end, step; pops 0xc): the same for +0x44/+0x48/+0x50 and +0x58/+0x60, computed twice (sic)"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
@@ -4620,6 +4640,18 @@ address,name,kind,confidence,notes
 0x005dfca0,Class702ca8_AcquireModels,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall: once (+0x10), the lobby models at +4 and +8 set up by RideUser_Acquire"
 0x005e1350,Class702cb0_StartPendingPlay,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall, vtable 0x702cb0 slot 6: a pending play (state +0x14 == 2) started with LobbyModel_Play(entry 1); 0 when the state is 0, else 1 and the state cleared"
 0x005d9db0,Class702af0_Ctor,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall (count, name, name2, two triples by pointer, two dwords; pops 0x1c): strings +0x10/+0x24, vtable 0x702af0, a new list (0x702aec) at +0x58, +8 = count * [0x7858dc] / 100 clamped to 1..count, names assigned, triples to +0x38/+0x44, dwords to +0x50/+0x54, registered with [0xf83784] slot 6 (name unconfirmed)"
+0x005dd310,ViewCtl_Lower48,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x48 lowered by the float +0x14
+0x005dd320,ViewCtl_Raise48,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x48 raised by the float +0x14
+0x005dd330,ViewCtl_Raise50,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x50 raised by the float +0x14
+0x005dd340,ViewCtl_Lower50,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x50 lowered by the float +0x14
+0x005dd350,ViewCtl_UseSecondVector,function,low,"reimplemented (src/game/frontend/viewcontrols); thiscall: mode +0x58 = 1, the 0x7cdb0c dialog's child 0x16007 sent message 6 off, then Obj_ChooseVector"
+0x005dd390,ViewCtl_UseFirstVector,function,low,"reimplemented (src/game/frontend/viewcontrols); thiscall: mode +0x58 = 0, the 0x7cdb0c dialog's child 0x16007 sent message 6 on, then Obj_ChooseVector"
+0x005dd7a0,ViewCtl702e70_ShowDialogs,function,low,"reimplemented (src/game/frontend/viewcontrols); Class702e70 slot 17 (thiscall, self unused): Dialog7cdb0c_Message6On, Dialog7cc4c4_Message6On, then Dialog7cdb0c_Child16007Message6On's result"
+0x005dda70,ViewCtl702e20_ShowDialogs,function,low,"reimplemented (src/game/frontend/viewcontrols); Class702e20 slot 17 (thiscall, self unused): Dialog7cdb0c_Message6On, then Dialog7cc4c4_Message6On's result"
+0x005e2620,Scene702dd0_ShowDialog,function,low,"reimplemented (src/game/frontend/viewcontrols); Class702dd0 slot 10 (thiscall): Dialog7cc47c_Message6On (its result), +0xe8 = 1"
+0x005e2640,Scene702dd0_HideDialog,function,low,"reimplemented (src/game/frontend/viewcontrols); Class702dd0 slot 11 (thiscall, self unused): Dialog7cc47c_Message6Off's result"
+0x005e2650,Scene702dd0_ShowDialogCallback,function,low,reimplemented (src/game/frontend/viewcontrols); cdecl callback of Class702dd0 slot 17 for 0x4c0ae0: Dialog7cc47c_Message6On's result
+0x005e2660,Scene702dd0_DialogDone,function,low,"reimplemented (src/game/frontend/viewcontrols); cdecl (accepted, self) callback of Class702dd0 slot 17: 0 calls self slot 0x44; else state +0x14 2 plays the +0xc +8 lobby model, +0x14 = 0, Dialog7cc47c_Message6On"
 0x0065d7d0,Window_FindChild,function,low,"reimplemented (src/game/ui/window); thiscall (id), pops 4: the first child of the window (list +0x5c, next +0x54) whose id (+0x8c) is id, or 0"
 0x0065f697,Window_CallHandler,function,low,"reimplemented (src/game/ui/window); thiscall (message, a, b), pops 12: the cdecl handler at +0x114 called with (window, message, a, b), its result; -1 when none"
 0x00658d9f,Window_SendMessage,function,low,"reimplemented (src/game/ui/window); cdecl (window, message, a, b): -1 for no window or byte +4 set; else the hook [0xfaa5fc] (if set) then Window_CallHandler"

@@ -5,7 +5,11 @@
 
 #include "../core/gameheap.h"
 #include "../core/thunks.h"
+#include "../core/misc.h"
+#include "../math/x87.h"
 #include "../render/engineerrors.h"
+#include "../render/renderer.h"
+#include "../render/worldview.h"
 #include "land.h"
 #include "texcache.h"
 
@@ -54,6 +58,112 @@ u32 __cdecl TerrainTex_Create() {
         EngineErrors_Push(reinterpret_cast<u8 *>(0x00879ad0), nullptr, 3, 0xb0754000);
         return 0;
     }
+    return 1;
+}
+
+u32 __cdecl TerrainTex_Destroy() {
+    u8 *&global_tex = *reinterpret_cast<u8 **>(0x00879d60);
+    if (!global_tex) return 1;
+    TerrainTex_Unload(global_tex);
+    if (u8 *const tex = global_tex) {
+        TerrainTex_Unload(tex);   // sic: a second time
+        GameHeap_Free(tex);
+    }
+    global_tex = nullptr;
+    return 1;
+}
+
+void __fastcall TerrainTex_AddRect(u8 *tex, void *, s32 x0, s32 y0, s32 x1, s32 y1, float delta) {
+    if (y0 > y1) return;
+    s32 y = y0;
+    do {
+        if (y >= 0 && (u32)y <= at<u32>(pointer((uintptr_t)tex), 0x1c) && x0 <= x1) {
+            s32 x = x0;
+            do {
+                if (x >= 0) {
+                    const u32 width = at<u32>(pointer((uintptr_t)tex), 0x18);
+                    if ((u32)x <= width) {
+                        float *const cell = reinterpret_cast<float *>((uintptr_t)at<u32>(tex, 0x12970)) + ((width + 1) * (u32)y + (u32)x);
+                        *cell = delta + *cell;
+                    }
+                }
+                x = (s32)((u32)x + 1);
+            } while (x <= x1);
+        }
+        y = (s32)((u32)y + 1);
+    } while (y <= y1);
+}
+
+void __fastcall TerrainTex_StampFixed(u8 *tex) {
+    // (the first six inlined in the original as cell - -4.0: the same sums)
+    TerrainTex_AddRect(tex, nullptr, 0x1c, 0x0, 0x1e, 0xc, 4.0f);
+    TerrainTex_AddRect(tex, nullptr, 0x1f, 0xb, 0x2b, 0xd, 4.0f);
+    TerrainTex_AddRect(tex, nullptr, 0x2c, 0xb, 0x2e, 0x10, 4.0f);
+    TerrainTex_AddRect(tex, nullptr, 0x1d, 0x0, 0x1d, 0xc, 4.0f);
+    TerrainTex_AddRect(tex, nullptr, 0x1e, 0xb, 0x2c, 0xc, 4.0f);
+    TerrainTex_AddRect(tex, nullptr, 0x2d, 0xb, 0x2d, 0x10, 4.0f);
+    static const struct {
+        s32 x0, y0, x1, y1;
+        float delta;
+    } kRects[] = {
+        {0x1f, 0xa, 0x2f, 0xa, 1.0f},  {0x20, 0x8, 0x22, 0x8, 1.0f},  {0x1f, 0x9, 0x2e, 0x9, 1.0f},  {0x1f, 0x0, 0x20, 0x8, 1.0f},
+        {0x21, 0x6, 0x22, 0x8, 1.0f},  {0x23, 0x7, 0x27, 0x8, 1.0f},  {0x42, 0x0, 0x44, 0xc, 4.0f},  {0x35, 0xb, 0x41, 0xd, 4.0f},
+        {0x32, 0xb, 0x34, 0x10, 4.0f}, {0x43, 0x0, 0x43, 0xc, 4.0f},  {0x34, 0xb, 0x43, 0xc, 4.0f},  {0x33, 0xb, 0x33, 0x10, 4.0f},
+        {0x31, 0xa, 0x41, 0xa, 1.0f},  {0x30, 0x8, 0x32, 0x8, 1.0f},  {0x31, 0x9, 0x41, 0x9, 1.0f},  {0x3f, 0x0, 0x41, 0x8, 1.0f},
+        {0x3f, 0x6, 0x41, 0x8, 1.0f},  {0x3a, 0x7, 0x3e, 0x8, 1.0f},  {0x21, 0x0, 0x2e, 0x6, 1.4f},  {0x32, 0x0, 0x3c, 0x6, 1.4f},
+        {0x2e, 0x0, 0x31, 0x4, 1.4f},
+    };
+    for (const auto &r : kRects)
+        TerrainTex_AddRect(tex, nullptr, r.x0, r.y0, r.x1, r.y1, r.delta);
+}
+
+u32 __fastcall TerrainTex_Setup(u8 *tex, void *, const u8 *land) {
+    const u8 *const header = at<const u8 *>(land, 0x6c);
+    at<const u8 *>(tex, 0) = header;
+    at<u32>(tex, 4) = at<u32>(land, 0x50);
+    at<u32>(tex, 8) = at<u32>(header, 0x18) + 1;
+    at<u32>(tex, 0xc) = at<u32>(header, 0x1c) + 1;
+    at<float>(tex, 0x10) = (float)(X87Reg(1.0f) / X87Reg(at<float>(header, 0x10)));
+    at<float>(tex, 0x14) = (float)(X87Reg(1.0f) / X87Reg(at<float>(header, 0x14)));
+    const X87Reg span = X87Reg(at<float>(header, 0x24)) - X87Reg(at<float>(header, 0x20));
+    if (span.v == 0.0 || span.v != span.v)  // (fcom 0.0: C3 for equal or unordered)
+        at<u32>(tex, 0x18) = 0x3d800000;  // 0.0625
+    else
+        at<float>(tex, 0x18) = (float)(X87Reg(1.0f) / span);
+    at<u32>(tex, 0x12968) = 0;
+    if (global(0x008bcbc8) & 0x10000) {
+        if (at<u32>(tex, 0x12970)) {
+            TrackedGlobal_Free(at<u32>(tex, 0x12970));
+            at<u32>(tex, 0x12970) = 0;
+        }
+        const u32 size = (u32)at<u16>(at<const u8 *>(tex, 0), 4) << 2;
+        const u32 block = TrackedGlobal_Alloc(size);
+        at<u32>(tex, 0x12970) = block;
+        if (block) {
+            const u8 *const from = at<const u8 *>(at<const u8 *>(tex, 0), 0x28);
+            u8 *const to = reinterpret_cast<u8 *>((uintptr_t)block);
+            for (u32 i = 0; i < size; ++i)  // rep movsd / movsb
+                to[i] = from[i];
+            TerrainTex_StampFixed(tex);
+        }
+    }
+    return TerrainTex_SetView(tex);
+}
+
+u32 __fastcall TerrainTex_SetView(u8 *tex) {
+    const u8 *header = at<const u8 *>(tex, 0);
+    WorldView_SetRangeX(const_cast<u8 *>(pointer(0x00879d54)), nullptr, at<float>(header, 8),
+                        (float)(X87Reg(X87_MulInt(at<u32>(header, 0x18), at<float>(header, 0x10))) + X87Reg(at<float>(header, 8))),
+                        at<float>(header, 0x10));
+    header = at<const u8 *>(tex, 0);
+    WorldView_SetRangeY(const_cast<u8 *>(pointer(0x00879d54)), nullptr, at<float>(header, 0xc),
+                        (float)(X87Reg(X87_MulInt(at<u32>(header, 0x1c), at<float>(header, 0x14))) + X87Reg(at<float>(header, 0xc))),
+                        at<float>(header, 0x14));
+    header = at<const u8 *>(tex, 0);
+    Obj_Set30_34(const_cast<u8 *>(pointer(0x00879d54)), nullptr, at<u32>(header, 0x20), at<u32>(header, 0x24));
+    WorldView_UpdateDiagonal(const_cast<u8 *>(pointer(0x00879d54)));
+    header = at<const u8 *>(tex, 0);
+    Renderer_MakeFrameBuffer(const_cast<u8 *>(pointer(0x0087a6d0)), nullptr, at<s32>(header, 0x18), at<s32>(header, 0x1c));
     return 1;
 }
 

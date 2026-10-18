@@ -457,6 +457,15 @@ u16 __fastcall MapCell_Word24(const u8 *cell) {
 }
 
 void __fastcall MapCell_SetWord24(u8 *cell, void *, u32 value) { at<u16>(cell, 0x24) = (u16)value; }
+u32 __cdecl MapCell_Dword4At(s32 x, s32 y) {
+    const u8 *const cell = world_cell((((u32)y << 7) + (u32)x + 1) & 0xffff);
+    const u32 type = at<u32>(cell, 8);
+    if (type == 0xc || type == 0x11) {
+        const u16 parent = at<u16>(cell, 0x10);
+        return parent ? at<u32>(world_cell(parent), 4) : 0;
+    }
+    return at<u32>(cell, 4);
+}
 u8 *__cdecl Cell_ExtendPath(const s32 *point, s32 *nextX, s32 *nextY) {
     if (!Map_InBounds(point[0], point[1]))
         return nullptr;
