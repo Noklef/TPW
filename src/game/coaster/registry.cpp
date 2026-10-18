@@ -185,6 +185,42 @@ void __cdecl Coasters_GetState(u32 *a, u32 *b, u32 *c, u32 *d) {
     *d = *reinterpret_cast<const u32 *>(0x00791cf8);
 }
 
+void __cdecl CoasterEdit_SetBounds() {
+    const u32 flags = *reinterpret_cast<const u32 *>(0x0079c658);
+    const u8 *const link = *reinterpret_cast<u8 *const *>(0x00790fec);
+    const u8 *const selection = *reinterpret_cast<u8 *const *>(0x0079c6a4);
+    const u8 *piece;
+    if (at<u8>(link, 0x3c) & 2) {
+        if (flags & 0x100) {
+            piece = at<const u8 *>(selection, 0x68);
+            if (at<u32>(piece, 8) & 0x10000) piece = at<const u8 *>(selection, 0x64);
+        } else {
+            piece = at<const u8 *>(link, 0x60);
+        }
+    } else if (flags & 0x100) {
+        piece = at<const u8 *>(selection, 0x68);
+    } else {
+        piece = at<const u8 *>(link, 0x58);
+        while (piece && (at<u32>(piece, 8) & 0x2000)) piece = at<const u8 *>(piece, 0x68);
+    }
+    const u8 *const cell = *reinterpret_cast<u8 *const *>(reinterpret_cast<uintptr_t>(piece) + 0x100);  // (null: faults)
+    const u32 x = at<u32>(cell, 0xc), z = at<u32>(cell, 0x10);
+    const u8 *const type = at<const u8 *>(link, 4) + (flags & 0x40 ? 0x1c8 : 0xa8);
+    const u32 reach = (u32)(long long)X87_Sqrt(X87Reg((double)at<u32>(type, 0xa0))).v + 1;  // (__ftol)
+    s32 xLow = (s32)(x - reach), zLow = (s32)(z - reach), xHigh = (s32)(reach + x), zHigh = (s32)(reach + z);
+    const s32 origin = *reinterpret_cast<const s32 *>(0x007a01bc);
+    if (xLow < origin) xLow = origin;
+    if (zLow < origin) zLow = origin;  // sic: the x origin
+    const s32 xEnd = (s32)((u32)origin + *reinterpret_cast<const u32 *>(0x007a0314));
+    if (xHigh >= xEnd) xHigh = (s32)((u32)xEnd - 1);
+    const s32 zEnd = (s32)(*reinterpret_cast<const u32 *>(0x007a029c) + *reinterpret_cast<const u32 *>(0x007a0374));
+    if (zHigh >= zEnd) zHigh = (s32)((u32)zEnd - 1);
+    *reinterpret_cast<s32 *>(0x00791cf8) = zHigh;
+    *reinterpret_cast<s32 *>(0x0079104c) = xHigh;
+    *reinterpret_cast<s32 *>(0x0079221c) = xLow;
+    *reinterpret_cast<s32 *>(0x00790fd8) = zLow;
+}
+
 u32 __cdecl CoasterEdit_Flag1() { return *reinterpret_cast<const u32 *>(0x0079c658) & 1; }
 
 void __cdecl CoasterLink_SetCurrent(u8 *link) { *reinterpret_cast<u8 **>(0x00790fec) = link; }

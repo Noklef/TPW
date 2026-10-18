@@ -95,6 +95,15 @@ u32 __cdecl Object_LinkBare(const u8 *object);
 // 0x434710: copies 0x79221c, 0x790fd8, 0x79104c and 0x791cf8 to *a, *b, *c and *d.
 void __cdecl Coasters_GetState(u32 *a, u32 *b, u32 *c, u32 *d);
 
+// 0x434f10 (cdecl; name unconfirmed): those four as the cells within reach of the edited piece: the piece is, for the current link
+// (0x790fec) with flag 2 (byte +0x3c), the selection's (0x79c6a4) +0x68 - or its +0x64 when that has flag 0x10000 (+8) - with edit
+// flag 0x100 (0x79c658), else the link's +0x60; without flag 2, the selection's +0x68 with flag 0x100, else the first of the link's
+// +0x58 chain (through +0x68) without flag 0x2000 (none: the piece is null, and its +0x100 read faults, as the original). Its cell
+// (+0x100 -> +0xc, +0x10) +/- reach, reach = __ftol(fsqrt of the dword +0xa0 of the link's type (+4) at +0x1c8 with edit flag 0x40,
+// else +0xa8)) + 1; the lows raised to 0x7a01bc, the highs held below 0x7a01bc + 0x7a0314 and 0x7a029c + 0x7a0374 (all signed).
+// sic: the z low is raised to 0x7a01bc, the x origin, as the x low is.
+void __cdecl CoasterEdit_SetBounds();
+
 // 0x447990: flag 1 of 0x79c658.
 u32 __cdecl CoasterEdit_Flag1();
 
