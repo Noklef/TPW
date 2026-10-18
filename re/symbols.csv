@@ -4681,6 +4681,7 @@ address,name,kind,confidence,notes
 0x00669586,TextPool_Free,function,low,reimplemented (src/game/ui/textpool); cdecl: both text pool blocks freed (Mem_Free)
 0x006695b9,TextPool_Take,function,low,"reimplemented (src/game/ui/textpool); cdecl (length): the first free row of the short pool (length below its row length), else the last free one of the long one; its first character 0; 0 for none"
 0x0066969e,TextPool_Release,function,low,reimplemented (src/game/ui/textpool); cdecl (row): the row (when not null) marked free (dword -1)
+0x006696b4,TextPool_Dup,function,low,"reimplemented (src/game/ui/textpool); cdecl (text): TextPool_Take(wcslen(text)), and the text wcscpy-ed into the row when there is one; returns the row or 0"
 0x00669efb,GuiTimers_Init,function,low,"reimplemented (src/game/ui/guitimers); thiscall (count): without entries and count below 0x200, count * 0x14 bytes allocated, the count stored, each free; 1 (AX), else 0"
 0x00669c62,GuiTimers_Free,function,low,reimplemented (src/game/ui/guitimers); thiscall: the timed-message entries (when set) freed
 0x00669eb3,GuiTimers_Reset,function,low,"reimplemented (src/game/ui/guitimers); thiscall: with entries, each one freed (time due 0)"

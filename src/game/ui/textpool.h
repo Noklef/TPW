@@ -22,4 +22,8 @@ u16 *__cdecl TextPool_Take(s32 length);
 
 // 0x66969e (cdecl (row); name unconfirmed): the row (when not null) marked free again.
 void __cdecl TextPool_Release(u8 *row);
+
+// 0x6696b4 (cdecl (text); name unconfirmed): a row for the text's length (TextPool_Take(wcslen)) and, when there is one, the text
+// copied into it (wcscpy; Take's rows are longer than the length, so the terminator fits); returns the row or 0.
+u16 *__cdecl TextPool_Dup(const u16 *text);
 }

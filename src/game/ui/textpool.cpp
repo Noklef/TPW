@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/crt.h"
 #include "../core/gameheap.h"
 
 namespace {
@@ -58,5 +59,11 @@ u16 *__cdecl TextPool_Take(s32 length) {
 
 void __cdecl TextPool_Release(u8 *row) {
     if (row) *reinterpret_cast<u32 *>(row) = 0xffffffff;
+}
+
+u16 *__cdecl TextPool_Dup(const u16 *text) {
+    u16 *const row = TextPool_Take((s32)Crt().wcslen(text));
+    if (row) Crt().wcscpy(row, text);
+    return row;
 }
 }
