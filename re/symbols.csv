@@ -3717,6 +3717,7 @@ address,name,kind,confidence,notes
 0x0050f310,Matrix2_Transform,function,high,reimplemented (src/game/math/matrix); fixed point 2 x 2 transform of a pair
 0x005787b0,Vec2_Normalize,function,low,reimplemented (src/game/math/vec2); thiscall (x87): the float pair over its length; a zero or NaN length squared taken as 1
 0x00549020,IntVec2_Length,function,low,"reimplemented (src/game/math/vec2); cdecl (x, y): the integer pair's length, both halved while too big for the squares, the root shifted back"
+0x005493f0,IntArea_Contains,function,low,"reimplemented (src/game/math/vec2); cdecl (x, y, area {flags, cx, cy, rx, ry}): 0 without an area, 1 on the centre; the centre's side must be allowed (flags 2/4 for x, 0x10/8 for y); flag 0x20 a box (|dx| <= rx, |dy| <= ry), else a circle (IntVec2_Length(dx, dy) <= rx)"
 0x005812f0,Vec3_DotByValue,function,low,"reimplemented (src/game/math/geometry); cdecl (ax, ay, az, bx, by, bz by value): the dot product in st0"
 0x00581320,Tri_WindingTest,function,low,"reimplemented (src/game/math/geometry); cdecl (a, b, c): x, y, w copied to 0x8c63b0-0x8c63d0; 1 when the homogeneous winding compare is below or unordered"
 0x0057b410,Box_Extend,function,low,"reimplemented (src/game/math/geometry); thiscall (x, y, z): the box (min +0, max +0xc) grown to take the point; a NaN goes into the minimum"

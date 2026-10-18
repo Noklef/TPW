@@ -27,4 +27,23 @@ s32 __cdecl IntVec2_Length(s32 x, s32 y) {
     const s32 root = (s32)(long long)X87_Sqrt(X87Reg((double)sum)).v;  // __ftol
     return (s32)((u32)root << (n & 31));
 }
+
+u32 __cdecl IntArea_Contains(s32 x, s32 y, const s32 *area) {
+    if (!area)
+        return 0;
+    const s32 dx = (s32)((u32)area[1] - (u32)x);
+    const s32 dy = (s32)((u32)area[2] - (u32)y);
+    const u32 side = (dx >= 0 ? 2u : 4u) | (dy >= 0 ? 0x10u : 8u);
+    if (dx == 0 && dy == 0)
+        return 1;
+    const u32 flags = (u32)area[0];
+    if ((side & flags) != side)
+        return 0;
+    if (flags & 0x20) {
+        const s32 ax = (s32)(((u32)dx ^ (u32)(dx >> 31)) - (u32)(dx >> 31));  // (INT_MIN stays INT_MIN)
+        const s32 ay = (s32)(((u32)dy ^ (u32)(dy >> 31)) - (u32)(dy >> 31));
+        return ax <= area[3] && ay <= area[4] ? 1 : 0;
+    }
+    return IntVec2_Length(dx, dy) <= area[3] ? 1 : 0;
+}
 }
