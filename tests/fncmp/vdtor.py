@@ -1,7 +1,8 @@
 # The constructors, destructors and releases that call a virtual method of another object (src/game/core/vdtor) against the originals: the other objects
 # (a global one, a member, a virtual base) have vtables of recorders (see tools/fncmp.py recorder()), so the comparison covers the slot, the object it is called on,
 # the arguments (the log) and what is done with the result. The 0x7028xx destructors' shared arrays hold 0-3 elements, each destroyed through its
-# class's WEACITYR import (0x6fd500-0x6fd510, a recorder of its own each).
+# class's WEACITYR import (0x6fd500-0x6fd510, a recorder of its own each). D28 / X28: the derived class 0x702828's destructor (its wide string at +0x34
+# freed first, then 0x702890's) and scalar deleting destructor.
 # usage: vdtor.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
@@ -16,7 +17,7 @@ CALLS = {'C48C': (0x5e3b90, 't', 'a', 0x20), 'C48R': (0x5e3c00, 't', 'a', 0x20),
          'Bb8': (0x5dc550, 't', 'a', 0x30), 'S20': (0x5dd7f0, 't', 'a', 0x20), 'S20b': (0x5ddaa0, 't', 'a', 0x20), 'VB': (0x564a60, 't', 'a', 0x20),
          'D80': (0x5b5600, 't', 'v', 0xc0), 'D90': (0x5b56c0, 't', 'v', 0xc0), 'Dd0': (0x5bcef0, 't', 'v', 0xc0), 'Df8': (0x5bd330, 't', 'v', 0xc0),
          'D20': (0x5bd740, 't', 'v', 0xc0), 'X80': (0x5b98a0, 't', 'a', 0xd0), 'X90': (0x5b9970, 't', 'a', 0xd0), 'Xd0': (0x5be810, 't', 'a', 0xd0),
-         'Xf8': (0x5be8e0, 't', 'a', 0xd0), 'X20': (0x5be9b0, 't', 'a', 0xd0),
+         'Xf8': (0x5be8e0, 't', 'a', 0xd0), 'X20': (0x5be9b0, 't', 'a', 0xd0), 'D28': (0x5b57a0, 't', 'v', 0xf9), 'X28': (0x5b5780, 't', 'a', 0x1e),
          'Af0': (0x5d9f50, 't', 'v', 0xc4), 'Af0X': (0x5d9ed0, 't', 'a', 0x1e), 'Bc8': (0x5dc740, 't', 'v', 0x102), 'Bc8X': (0x5dc660, 't', 'a', 0x1e),
          'Ca8': (0x5dfc30, 't', 'v', 0x61), 'Ca8X': (0x5dfc10, 't', 'a', 0x1e),
          'E70': (0x5e3fc0, 't', 'v', 0xc), 'E70X': (0x5e3fa0, 't', 'a', 0x1c), 'E20': (0x5e3ff0, 't', 'v', 0xc), 'E20X': (0x5e3fd0, 't', 'a', 0x1c)}
