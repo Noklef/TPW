@@ -16,6 +16,14 @@ extern "C" {
 // Nothing for a count of 0 or less.
 void __cdecl StripAnim_Apply(const u8 *object, float t);
 
+// 0x454670 (cdecl (object, shown); name unconfirmed): when the object's flags (+4) have 2, its strip owner (+0xb4, an animator) is
+// shown or hidden. Shown: the owner's matrix (+8 -> +0x28) becomes the identity (Matrix_Identity) with the translation of the
+// holder's (+8) model's (+4) root (+0x78 -> +0x40..+0x48), turned about y by the holder's +0x10 degrees (fild; fmul 0.0174533 to a
+// float; then as Matrix_RotateYAngle, inlined); the model's 0x18 bytes at +0x80 are copied to +0x80 of the owner's +0x24 -> +4; and
+// the owner joins the grid over (+0xc0, +0xc4) (Animator_AddToGrid). Hidden: the dword at owner +8 -> +0x2c points to gets
+// owner +0x24 -> +4 -> +0x50, the flags trade 0xe00 for 0x100, and the owner leaves the grid (Obj_RemoveRectAndClear14).
+void __cdecl StripAnim_Show(u8 *object, u32 shown);
+
 // 0x4547c0: when it has strips (+0xb0), the step (+0xbc) = -0.3, and flags 0x20 trade 0x40 for 0x80.
 void __cdecl StripAnim_StartShrink(u8 *object);
 

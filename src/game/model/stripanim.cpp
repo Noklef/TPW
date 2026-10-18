@@ -2,8 +2,12 @@
 
 #include <cstdint>
 
+#include "../core/misc.h"
+#include "../math/matrix.h"
+#include "../math/vector.h"
 #include "../math/x87.h"
 #include "../terrain/land.h"
+#include "holder.h"
 
 namespace {
 
@@ -14,6 +18,27 @@ template <typename T> T &at(const void *p, u32 offset) {
 }  // namespace
 
 extern "C" {
+
+void __cdecl StripAnim_Show(u8 *object, u32 shown) {
+    if (!(at<u8>(object, 4) & 2)) return;
+    if (shown) {
+        const u8 *const root = at<const u8 *>(at<const u8 *>(at<const u8 *>(object, 8), 4), 0x78);
+        float *const m = at<float *>(at<const u8 *>(at<const u8 *>(object, 0xb4), 8), 0x28);
+        Matrix_Identity(m);
+        for (u32 i = 0; i < 3; ++i) at<u32>(m, 0x30 + 4 * i) = at<u32>(root, 0x40 + 4 * i);
+        const float angle = (float)X87_MulIntDouble(at<s32>(at<const u8 *>(object, 8), 0x10), 0.0174532924f);  // 0x6fe48c
+        Matrix_RotateYAngle(m, angle);   // (inlined in the original)
+        const u8 *const from = at<const u8 *>(at<const u8 *>(object, 8), 4) + 0x80;
+        u8 *const to = at<u8 *>(at<const u8 *>(at<const u8 *>(object, 0xb4), 0x24), 4) + 0x80;
+        for (u32 i = 0; i < 0x18; i += 4) at<u32>(to, i) = at<u32>(from, i);
+        Animator_AddToGrid(at<u8 *>(object, 0xb4), at<u32>(object, 0xc0), at<u32>(object, 0xc4));
+        return;
+    }
+    const u8 *const shape = at<const u8 *>(object, 0xb4);
+    *at<u32 *>(at<const u8 *>(shape, 8), 0x2c) = at<u32>(at<const u8 *>(at<const u8 *>(shape, 0x24), 4), 0x50);
+    at<u32>(object, 4) = (at<u32>(object, 4) & ~0xe00u) | 0x100;
+    Obj_RemoveRectAndClear14(at<u8 *>(object, 0xb4), at<u32>(object, 0xc0), at<u32>(object, 0xc4));
+}
 
 void __cdecl StripAnim_Apply(const u8 *object, float t) {
     if (!(at<u8>(object, 4) & 2)) return;
