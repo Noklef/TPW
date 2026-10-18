@@ -1,6 +1,6 @@
 // The game's circular buffers (CircBufU8 / U16 / U32, serialized at 0x4cea00, 0x4cdb80 and
 // 0x4cdf00 as mCurrentEntry, mNumEntries, mWrappedAround, mTemp, mData): reimplementation of
-// 0x4cdb60, 0x4ce9e0, 0x4ce290, 0x495cf0 and 0x51ade0-0x51ae90, each for one size (thiscall). mTemp is the first
+// 0x4cdb60, 0x4ce9e0, 0x4ce290, 0x495c20, 0x495cf0 and 0x51ade0-0x51ae90, each for one size (thiscall). mTemp is the first
 // value; the entries follow it, then the cursor (-1 when empty), the size and the wrapped flag.
 #pragma once
 
@@ -42,6 +42,11 @@ void __fastcall CircBufU32_144_Push(u8 *buf, void *, u32 value);
 // wrapped +0x84): the value back entries before the cursor (signed compares; past the start
 // only once wrapped) to *out, and 1; 0 (out untouched) when there is none. Returns in AL only.
 u8 __fastcall CircBufU32_30_Get(const u8 *buf, void *, u32 *out, s32 back);
+
+// 0x495c20 (&sum, count; pops 8; name unconfirmed): the CHistory sum: *sum (a double) = 0, then each of the newest count entries (at most the
+// size once wrapped, else the cursor + 1; signed) that CircBufU32_30_Get finds (inlined) added to it on the x87 (fild of the unsigned value,
+// fadd of the sum: rounded to 24 bits). (The debug print of whether count is within the size is left out.)
+void __fastcall CircBufU32_30_Sum(const u8 *buf, void *, double *sum, s32 count);
 
 // 0x4e2c10 (thiscall; stream, save, version, unused): a CircBufU32 of 30 saved or loaded as a serializer does (Save_Field; the entries'
 // load through Save_ReadU32): mCurrentEntry (+0x7c), mNumEntries (+0x80), mWrappedAround (+0x84), mTemp (+0); then mData[i] (from +4)
