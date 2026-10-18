@@ -1,8 +1,10 @@
 # The IME's 0x24-byte entries (four dwords, a vector<wstring> at +0x10, a dword at +0x20) assigned (src/game/core/buffers: 0x479490, and
-# std::copy of them 0x47d780) and the current one cached (core/ime: 0x47a9b0) against the originals: the vectors null, smaller, within
+# std::copy of them 0x47d780; the vector's own operator= and insert(position, n, x) in core/stdwstring: 0x47ac10, 0x47c970) and the current one cached (core/ime: 0x47a9b0)
+# against the originals: the vectors null, smaller, within
 # the capacity or past it (a new block); assigned onto itself; the cache marked or not, matching the current entry's first dword or not.
 # usage: ime_cache.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
+import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
@@ -13,7 +15,8 @@ from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 B = Bench([(0x479490, 0x4796a8), (0x47d780, 0x47d9cc), (0x47a9b0, 0x47ab92), (0x47a960, 0x47a975), (0x47b5b0, 0x47b5fc),
            (0x47db20, 0x47db74), (0x47ae40, 0x47ae53), (0x47b300, 0x47b313), (0x405280, 0x405390), (0x479150, 0x4791b0),
            (0x47b750, 0x47bcf0), (0x4f23f0, 0x4f2450), (0x4f6080, 0x4f60a0), (0x67acd0, 0x67ad00), (0x47ae60, 0x47b060),
-           (0x47b600, 0x47b750), (0x479230, 0x479256), (0x47d9d0, 0x47db00), (0x47d620, 0x47d780)])
+           (0x47b600, 0x47b750), (0x479230, 0x479256), (0x47d9d0, 0x47db00), (0x47d620, 0x47d780), (0x47ac10, 0x47ae3d),
+           (0x47c970, 0x47cc0c)])
 ENTS = RAM            # entries: the object +0x40, x +0x80; std::copy's sources +0x100 on, destinations +0x200 on; the IME's list +0x300 on
 ARRS = RAM + 0x400    # a vector's strings: 0x80 (eight) each
 IME = RAM + 0xc00     # the IME (0x190 bytes)
@@ -79,6 +82,18 @@ def case(r):
         m.entry(ENTS + 0x40)
         m.entry(ENTS + 0x80)
         return Call(0x479490, [ENTS + 0x40, r.choice([ENTS + 0x80] * 4 + [ENTS + 0x40])], m.regions(), conv='t', ret='a')
+    if op == 'VecAssign':   # the entries' vectors alone
+        m.entry(ENTS + 0x40)
+        m.entry(ENTS + 0x80)
+        return Call(0x47ac10, [ENTS + 0x50, r.choice([ENTS + 0x90] * 4 + [ENTS + 0x50])], m.regions(), conv='t', ret='a')
+    if op == 'Insert':   # n copies of x (a string of its own, or one of the vector's) at a position from first to last
+        m.entry(ENTS + 0x40)
+        first, last = struct.unpack_from('<2I', m.ram, 0x54)
+        put(m.ram, 0xe0, '4I', r.getrandbits(32), *string(r, m.blocks, m.slots))
+        position = first + 0x10 * r.randrange((last - first) // 0x10 + 1) if first else 0
+        x = r.choice([ENTS + 0xe0] * 3 + ([first + 0x10 * r.randrange((last - first) // 0x10)] if last != first else []))
+        n = r.choice([0, 1, 1, 2, 3, r.randrange(4, 9)])
+        return Call(0x47c970, [ENTS + 0x50, position, n, x], m.regions(), conv='t', ret='v')
     if op == 'Copy':   # 0-3 entries to the destinations (or onto themselves)
         k = r.choice([0, 1, 2, 3, 3])
         for i in range(3):
@@ -97,7 +112,7 @@ def case(r):
     return Call(0x47a9b0, [IME], m.regions(), conv='t', ret='a')
 
 
-KINDS = ['Assign', 'Copy', 'Cache']
+KINDS = ['Assign', 'Copy', 'Cache', 'VecAssign', 'Insert']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':

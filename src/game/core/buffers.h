@@ -129,7 +129,8 @@ void __fastcall CountedVector14_Clear(u8 *object);
 void __fastcall CountedVector4_Clear(u8 *object);
 
 // 0x479490 (thiscall; x, pops 4; name unconfirmed): operator= of the 0x24-byte object whose vector<wstring> is at +0x10 (first +0x14,
-// last +0x18, end +0x1c): the dwords +0 to +0xc and +0x20 copied, and unless the vectors are one the strings assigned in place
+// last +0x18, end +0x1c): the dwords +0 to +0xc and +0x20 copied, and the vector assigned (StdWStringVector_Assign, core/stdwstring,
+// inlined): unless the vectors are one the strings assigned in place
 // (StdWString_AssignSub of all of each) as far as both go, then the rest of x's constructed after the end (StdWString_Construct) or the
 // object's left over destroyed (CountedBuf_Deleter); when x has more than the capacity, the strings destroyed, the block freed and a new
 // one of x's size (Mem_Alloc; a negative size 0) built (StdWStrings_UninitCopy). The sizes are the byte spans shifted signed. Returns

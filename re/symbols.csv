@@ -3980,6 +3980,8 @@ address,name,kind,confidence,notes
 0x0047d9d0,StdWString_Construct,function,low,"reimplemented (src/game/core/stdwstring); cdecl (p, x): _Construct"
 0x0047d620,StdWStrings_Copy,function,low,"reimplemented (src/game/core/stdwstring); cdecl (first, last, dest): std::copy"
 0x0047b320,StdWStringVector_Erase,function,low,"reimplemented (src/game/core/stdwstring); thiscall (first, last), pops 8: vector erase"
+0x0047ac10,StdWStringVector_Assign,function,low,"reimplemented (src/game/core/stdwstring); thiscall (x), pops 4: vector<wstring>::operator="
+0x0047c970,StdWStringVector_InsertN,function,low,"reimplemented (src/game/core/stdwstring); thiscall (position, n, x), pops 12: vector<wstring>::insert(position, n, x)"
 0x00405b90,GameError_IndexOfCode,function,low,reimplemented (src/game/core/gameerror); the error index of a library code
 0x00405710,GameError_Set,function,low,"reimplemented (src/game/core/gameerror); thiscall (index, arg, text), pops 12: +4 index, +8 arg, text strncpy into +0xc (0x50), +0 = 1"
 0x004ea740,CountedPair_CtorWide,function,low,"reimplemented (src/game/core/countedpair); thiscall (std::wstring by value, pops 16): the 0x24-byte pair of a narrow and a wide string and a dword: the narrow one empty, the wide one assigned the string, the dword 0; the string destroyed"

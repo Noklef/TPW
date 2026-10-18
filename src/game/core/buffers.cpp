@@ -14,14 +14,6 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const u32 kWNpos = 0xffffffff;  // wstring::npos (the read-only 0x6fef00)
-
-// The bytes from a to b, signed (vector sizes are this shifted right arithmetically).
-s32 Span(const void *a, const void *b) { return (s32)((uintptr_t)b - (uintptr_t)a); }
-
-// p moved on by n 16-byte strings.
-template <typename T> T *Advance(T *p, u32 n) { return reinterpret_cast<T *>((uintptr_t)p + (n << 4)); }
-
 // One use less for a counted buffer whose count is the block's first byte, or the block freed.
 void ReleaseCounted1(u8 *buffer) {
     const u8 uses = buffer[-1];
@@ -443,37 +435,7 @@ void __fastcall CountedVector4_Clear(u8 *object) { ClearCountedVector(object, 4,
 
 u8 *__fastcall CountedVector14_Assign(u8 *object, void *, const u8 *x) {
     for (u32 offset = 0; offset < 0x10; offset += 4) at<u32>(object, offset) = at<u32>(x, offset);
-    if (object != x) {
-        StdWString *&first = at<StdWString *>(object, 0x14);
-        StdWString *&last = at<StdWString *>(object, 0x18);
-        // (x's first and last and its size read afresh where the original reads them: 0 for a null first, else the byte span shifted signed)
-        auto xFirst = [x]() { return at<const StdWString *>(x, 0x14); };
-        auto xLast = [x]() { return at<const StdWString *>(x, 0x18); };
-        auto xSize = [&]() -> u32 { return xFirst() ? (u32)(Span(xFirst(), xLast()) >> 4) : 0; };
-        const StdWString *const from0 = xFirst();
-        const u32 size = first ? (u32)(Span(first, last) >> 4) : 0;
-        if (xSize() <= size) {
-            StdWString *dest = first;
-            const StdWString *const end = xLast();
-            for (const StdWString *from = from0; from != end; ++from, ++dest) StdWString_AssignSub(dest, nullptr, from, 0, kWNpos);
-            for (StdWString *p = dest, *const stop = last; p != stop; ++p) CountedBuf_Deleter(reinterpret_cast<u8 *>(p), nullptr, 0);
-            last = Advance(first, xSize());
-        } else if (xSize() <= (first ? (u32)(Span(first, at<StdWString *>(object, 0x1c)) >> 4) : 0)) {
-            const StdWString *const mid = Advance(from0, first ? (u32)(Span(first, last) >> 4) : 0);
-            StdWString *dest = first;
-            for (const StdWString *from = from0; from != mid; ++from, ++dest) StdWString_AssignSub(dest, nullptr, from, 0, kWNpos);
-            dest = last;
-            for (const StdWString *from = mid, *const end = xLast(); from != end; ++from, ++dest) StdWString_Construct(dest, from);
-            last = Advance(first, xSize());
-        } else {
-            for (StdWString *p = first, *const stop = last; p != stop; ++p) CountedBuf_Deleter(reinterpret_cast<u8 *>(p), nullptr, 0);
-            GameHeap_Free(first);
-            const s32 n = xFirst() ? Span(xFirst(), xLast()) >> 4 : 0;
-            first = static_cast<StdWString *>(GameHeap_Alloc((u32)(n < 0 ? 0 : n) << 4));
-            last = StdWStrings_UninitCopy(object + 0x10, nullptr, xFirst(), xLast(), first);
-            at<StdWString *>(object, 0x1c) = last;
-        }
-    }
+    StdWStringVector_Assign(object + 0x10, nullptr, x + 0x10);  // (inlined; nothing when object is x)
     at<u32>(object, 0x20) = at<u32>(x, 0x20);
     return object;
 }
