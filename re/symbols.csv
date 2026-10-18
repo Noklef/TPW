@@ -738,6 +738,7 @@ address,name,kind,confidence,notes
 0x0048ce80,Camera_CentreOnGlobalThing,function,low,reimplemented (src/game/world/camera); cdecl: the camera centred on the thing [0x7c2658] points to (Camera_CentreOnThing with its handle) (name unconfirmed)
 0x0042cd80,Camera_CellOf,function,low,reimplemented (src/game/world/camera); the cell of a position
 0x004bd020,Camera_PackCellFractions,function,low,reimplemented (src/game/world/camera); a position's tenths as cell and fraction bytes
+0x0042a1d0,Camera_SnapToRide,function,low,"reimplemented (src/game/world/camera); cdecl: the camera point moved to the centre of the ride object in its cell, the yaw by that cell direction"
 0x0046c450,MouseMode_Nop4,function,high,reimplemented (src/game/world/mousemode); an empty mouse-mode method (4 arguments)
 0x0046c460,MouseMode_DeletingDtor,function,high,reimplemented (src/game/world/mousemode); the base mouse mode's deleting destructor
 0x0046c580,MouseModeTile_Ctor,function,high,reimplemented (src/game/world/mousemode); the 0x6fe9e0 tile mode's constructor
