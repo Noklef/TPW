@@ -53,6 +53,14 @@ def case(r):
     fy = r.choice([0.0, 0.25, 0.5, 0.75])
     x = coordinate(r, w if w < 64 else 8, size_x, fy)
     y = coordinate(r, h if h < 64 else 8, size_y, (x / 10.0) % 1.0 if x == x and abs(x) < 1e9 else 0.0)
+    if r.random() < 0.2 and w and h and w < 64 and h < 64:   # a tie on one of the diagonals, with a corner only one of its triangles reads odd
+        put(grid, 0x10, '2f', 10.0, 10.0)
+        ix, iy = r.randrange(w), r.randrange(h)
+        fy = r.choice([0.0, 0.25, 0.5, 0.75])
+        fx = r.choice([fy, 1.0 - fy]) if fy else r.choice([0.0, 0.0])
+        x, y = ix * 10.0 + fx * 10.0, iy * 10.0 + fy * 10.0
+        a = (w + 1) * iy + ix
+        put(heights, 4 * r.choice([a, a + 1, a + w + 1, a + w + 2]), 'f', r.choice([float('inf'), float('-inf'), 3e38, -3e38]))
     regions = {0x7a0854: struct.pack('<I', MAP), MAP: put(bytearray(r.bytes(0x70)), 0x6c, 'I', GRID), GRID: grid, HEIGHTS: heights, CELLS: cells}
     return Call(0x4527f0, [fb(x), fb(y)], regions, ret='d')
 
