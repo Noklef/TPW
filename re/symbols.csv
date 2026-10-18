@@ -3102,6 +3102,7 @@ address,name,kind,confidence,notes
 0x0058c930,Wrap_TexSurfaceB_Blit_58c930,function,high,"reimplemented (src/game/core/thunks); thiscall: this lowered by the dword before it, then TexSurfaceB_Blit"
 0x0058c950,Wrap_TexSurfaceB_DeletingDtor_58c950,function,high,"reimplemented (src/game/core/thunks); thiscall (flags; pops 4): this lowered by the dword before it, then TexSurfaceB_DeletingDtor"
 0x0057abe0,Wrap_LiveObject7019f8_DeletingDtor_57abe0,function,high,"reimplemented (src/game/core/thunks); thiscall (flags; pops 4): this lowered by the dword before it, then LiveObject7019f8_DeletingDtor"
+0x00481410,Wrap_Panel7b9940_Detach_481410,function,low,reimplemented (src/game/core/thunks); jumps to Panel7b9940_Detach
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value
@@ -4686,3 +4687,4 @@ address,name,kind,confidence,notes
 0x00669c8d,GuiTimers_Add,function,low,"reimplemented (src/game/ui/guitimers); thiscall (window, message, a, b, delay): delay 1-59999 and a free entry: it gets the four, due GuiClock_Now() + delay; 1 (AX), else 0"
 0x00669d77,GuiTimers_Fire,function,low,reimplemented (src/game/ui/guitimers); thiscall: each set entry due by GuiClock_Now() (unsigned) sent (Window_CallHandler) and freed; their number (AX)
 0x00669e3a,GuiTimers_Cancel,function,low,"reimplemented (src/game/ui/guitimers); thiscall (window): the window's entries freed; their number (AX), -1 without entries"
+0x0048a3d0,Panel7b9940_Detach,function,low,"reimplemented (src/game/ui/panel7b9940); cdecl: GuiManager_CallSlot4, then the 0x7b9940 object's virtual base out of the renderer's tag 0x20 list; returns that result"

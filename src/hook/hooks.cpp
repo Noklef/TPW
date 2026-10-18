@@ -309,6 +309,7 @@
 #include "../game/ui/guirect.h"
 #include "../game/ui/guitimers.h"
 #include "../game/ui/msgqueue.h"
+#include "../game/ui/panel7b9940.h"
 #include "../game/ui/textpool.h"
 #include "../game/ui/window.h"
 
@@ -2710,6 +2711,7 @@ const Hook kHooks[] = {
     {"Wrap_TexSurfaceB_Blit_58c930", 0x0058c930, (void *)&Wrap_TexSurfaceB_Blit_58c930, {0x2b, 0x49, 0xfc, 0xe9, 0x18}},
     {"Wrap_TexSurfaceB_DeletingDtor_58c950", 0x0058c950, (void *)&Wrap_TexSurfaceB_DeletingDtor_58c950, {0x2b, 0x49, 0xfc, 0xe9, 0x08}},
     {"Wrap_LiveObject7019f8_DeletingDtor_57abe0", 0x0057abe0, (void *)&Wrap_LiveObject7019f8_DeletingDtor_57abe0, {0x2b, 0x49, 0xfc, 0xe9, 0x08}},
+    {"Wrap_Panel7b9940_Detach_481410", 0x00481410, (void *)&Wrap_Panel7b9940_Detach_481410, {0xe9, 0xbb, 0x8f, 0x00, 0x00}},
     {"Table_AddressPlus18",       0x006b0620, (void *)&Table_AddressPlus18, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Table_Address",             0x006b0650, (void *)&Table_Address, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Packed_Read",               0x006b0510, (void *)&Packed_Read, {0x56, 0x8b, 0x74, 0x24, 0x08}},
@@ -4240,6 +4242,7 @@ const Hook kHooks[] = {
     {"GuiTimers_Reset",           0x00669eb3, (void *)&GuiTimers_Reset, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiTimers_Free",            0x00669c62, (void *)&GuiTimers_Free, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiTimers_Init",            0x00669efb, (void *)&GuiTimers_Init, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Panel7b9940_Detach",        0x0048a3d0, (void *)&Panel7b9940_Detach, {0xe8, 0x32, 0xf2, 0x1c, 0x00}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

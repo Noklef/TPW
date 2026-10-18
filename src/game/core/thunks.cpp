@@ -36,6 +36,7 @@
 #include "semaphore.h"
 #include "string.h"
 #include "../terrain/texcache.h"
+#include "../ui/panel7b9940.h"
 
 namespace {
 
@@ -580,4 +581,6 @@ u8 *__cdecl Wrap_Semaphore_Ctor_6c5ae0() {
 void __cdecl Wrap_StringList_Dtor_6d8990() {
     StringList_Dtor(reinterpret_cast<StringList *>(0xfb34e0));
 }
+
+u32 __cdecl Wrap_Panel7b9940_Detach_481410() { return Panel7b9940_Detach(); }
 }  // extern "C"
