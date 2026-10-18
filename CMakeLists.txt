@@ -157,6 +157,7 @@ add_library(tpw_game STATIC
     src/game/gfx/screengrab.cpp
     src/game/gfx/tvstatic.cpp
     src/game/gfx/loadscreen.cpp
+    src/game/gfx/surfacepool.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp
