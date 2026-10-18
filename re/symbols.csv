@@ -3740,6 +3740,7 @@ address,name,kind,confidence,notes
 0x00598ca0,ModelSlot_ApplySelection,function,high,reimplemented (src/game/model/slots); sets or clears the part flags of the selection kind
 0x004d9620,Litter_Remove,function,high,reimplemented (src/game/world/litter); takes a piece of litter off its cell
 0x004f2b40,WStringMap_Find,function,high,reimplemented (src/game/core/wstringmap); a wide string map lookup
+0x004f2ad0,WStringMap_EraseKey,function,high,"reimplemented (src/game/core/wstringmap); thiscall (key, pops 4): erase(key): the nodes from the lower to the upper bound counted and erased (tree D's range erase); returns the count"
 0x004de130,Object_BackOfQueue,function,high,reimplemented (src/game/world/objectmsg); the back of a queue found by walking neighbours
 0x0041e270,Class6fda58_DtorA,function,high,"reimplemented (src/game/core/class6fd9d8); complete destructor, handle at +0x40"
 0x0041e2d0,Class6fda58_DtorB,function,high,"reimplemented (src/game/core/class6fd9d8); complete destructor, handle at +0x40"
