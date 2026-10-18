@@ -34,6 +34,7 @@
 #include "../math/transform.h"
 #include "semaphore.h"
 #include "string.h"
+#include "../terrain/texcache.h"
 
 namespace {
 
@@ -306,6 +307,8 @@ float __fastcall Wrap_TexSurfaceB_Zero_58c940(const u8 *self) {
 }
 
 u32 __fastcall Wrap_Texture_Release_590a70(u8 *self) { return Texture_Release(self); }
+
+u32 __fastcall Wrap_TerrainTexCache_Dtor_572100(u8 *self) { return TerrainTexCache_Dtor(self); }
 
 u32 __fastcall Wrap_Obj_IncBefore4c_5987c0(u8 *self) {
     return Obj_IncBefore4c(Adjust(self));

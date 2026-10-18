@@ -3080,6 +3080,7 @@ address,name,kind,confidence,notes
 0x00573f00,Wrap_SoftRenderer_NewSurfaceB_573f00,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls SoftRenderer_NewSurfaceB
 0x0058c8e0,Wrap_TexSurfaceB_AllocPixels_58c8e0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls TexSurfaceB_AllocPixels
 0x0058c8f0,Wrap_TexSurfaceB_FreePixels_58c8f0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls TexSurfaceB_FreePixels
+0x00572100,Wrap_TerrainTexCache_Dtor_572100,function,high,reimplemented (src/game/core/thunks); thiscall: jumps to TerrainTexCache_Dtor
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value
