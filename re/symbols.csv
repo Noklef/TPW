@@ -2767,7 +2767,7 @@ address,name,kind,confidence,notes
 0x005c7490,WString_CtorReturning,function,high,"reimplemented (src/game/core/string); an empty wide string, returned"
 0x005c5230,DirEntry_IsRealDir,function,high,reimplemented (src/game/files/direntry); a directory entry whose name does not start with a full stop
 0x005c9040,Class70295c_Ctor,function,high,"reimplemented (src/game/core/vdtor); Init_5d36c0, vtable 0x70295c and four zeroed dwords"
-0x005d03b0,Obj_SwapPair,function,high,reimplemented (src/game/core/misc); the dwords at +4 and +8 swapped with another object's
+0x005d03b0,Obj_SwapPair,function,high,reimplemented (src/game/core/stdlist); the dwords at +4 and +8 swapped with another object's
 0x005dd3d0,Obj_ChooseVector,function,high,reimplemented (src/game/core/misc); the vector at +0x10 taken from one of two others
 0x005ddac0,Obj_Pending,function,high,reimplemented (src/game/core/misc); +0x60 is 0 and +0x40 is below +0x64
 0x005f4490,Obj_SetShown,function,high,"reimplemented (src/game/core/misc); a shown value kept, and bit 0 of the object at +0x28 flipped to match"

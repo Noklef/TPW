@@ -179,16 +179,6 @@ u8 *__fastcall Class703c18_Ctor(u8 *object) {
     return object;
 }
 
-void __fastcall Obj_SwapPair(u8 *object, void *, u8 *other) {
-    const u32 first = at<u32>(object, 4);
-    at<u32>(object, 4) = at<u32>(other, 4);
-    at<u32>(other, 4) = first;
-    const u32 second = at<u32>(other, 8);
-    const u32 own = at<u32>(object, 8);
-    at<u32>(object, 8) = second;
-    at<u32>(other, 8) = own;
-}
-
 void __fastcall Obj_ChooseVector(u8 *object) {
     const u32 base = at<u32>(object, 0x58) ? 0x28 : 0x1c;
     const u32 x = at<u32>(object, base), y = at<u32>(object, base + 4), z = at<u32>(object, base + 8);

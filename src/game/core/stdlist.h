@@ -112,4 +112,7 @@ void __fastcall StringsListRecord_Dtor(u8 *record);
 // hand (unlinked, the buffer released with CountedBuf_Deleter (core/buffers), freed, its count lowered); each sentinel freed and its head and
 // count cleared.
 void __fastcall CountedListPair_Dtor(u8 *pair);
+
+// 0x5d03b0 (thiscall; other, pops 4): the dwords at +4 and +8 swapped with the other object's (a list's swap: its head node and size).
+void __fastcall Obj_SwapPair(u8 *object, void *, u8 *other);
 }  // extern "C"
