@@ -6,6 +6,7 @@
 
 #include "../core/accessors.h"
 #include "../core/gameheap.h"
+#include "../core/vcall.h"
 #include "guirect.h"
 #include "guitimers.h"
 #include "msgqueue.h"
@@ -69,6 +70,21 @@ u16 __fastcall Window_IsShown(u8 *window) {
 }
 
 u8 *__fastcall Window_SaveRect(u8 *window) { return GuiRect_Assign(window + 0x2c, nullptr, window + 8); }
+
+u16 __fastcall Window_GetRect(u8 *window, void *, u8 *rect, u32 inner) {
+    if (!rect) return 0;
+    GuiRect_Assign(rect, nullptr, window + 8);
+    if ((s16)inner != 0)
+        vcall<void>(rect, 0xc, -(s32)at<s16>(window, 0xf8), -(s32)at<s16>(window, 0xfa), -(s32)at<s16>(window, 0xfc),
+                    -(s32)at<s16>(window, 0xfe));
+    return 1;
+}
+
+u16 __fastcall Window_SetSavedRect(u8 *window, void *, const u8 *rect) {
+    if (!rect) return 0;
+    GuiRect_Assign(window + 0x2c, nullptr, rect);
+    return 1;
+}
 
 u8 *__fastcall Window_OffsetByParents(u8 *window, void *, u8 *rect) {
     u8 *previous = window;  // the pushed words' upper halves: dy's from EAX (the window, then the last parent), dx's from the parent

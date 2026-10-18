@@ -4732,6 +4732,8 @@ address,name,kind,confidence,notes
 0x0065c025,Window_Dtor,function,low,"reimplemented (src/game/ui/window); thiscall: the window destructor: going notice, manager told, objects released, timers killed, rectangle, globals, queues, unlinked, children deleted, hover, rectangles"
 0x00661680,Window_DeletingDtor,function,low,"reimplemented (src/game/ui/window); thiscall (flags): the scalar deleting destructor (slot 2): Window_Dtor, then with flag 1 freed; returns the window"
 0x0065f66e,Window_CallDefault,function,low,"reimplemented (src/game/ui/window); thiscall (message, a, b): the default handler +0x118 called with (window, message, a, b)"
+0x0065d42e,Window_GetRect,function,low,"reimplemented (src/game/ui/window); thiscall (rect, inner): 0 for none; else the rectangle +8 assigned to it, shrunk by the insets +0xf8..+0xfe (slot 3) for inner; 1"
+0x0065cfd4,Window_SetSavedRect,function,low,reimplemented (src/game/ui/window); thiscall (rect): 0 for none; else assigned to the saved rectangle +0x2c; 1
 0x00498090,Dialog7ca1c8_SetChecks,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): the nine check buttons of the 0x7ca1c8 dialog's child 0x18 set (vtable slot 5, bool) from flags bits 0-8 (0x20's also needs [0x7ca1d0]+0x50)"
 0x00498a50,Dialog7ca1c8_SetChecksIfUp,function,low,reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): Dialog7ca1c8_SetChecks when [0x7ca1c8] and [0x7ca1cc] are not 0
 0x00481a00,Dialog7ca1c8_SetChecksIfUpThis,function,low,"reimplemented (src/game/ui/dialog7ca1c8); thiscall (flags), pops 4, this unused: Dialog7ca1c8_SetChecksIfUp(flags)"
