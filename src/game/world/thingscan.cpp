@@ -6,6 +6,7 @@
 #include "analysercell.h"
 #include "object.h"
 #include "objectdefs.h"
+#include "person.h"
 #include "things.h"
 #include "ridelist.h"
 #include "staff.h"
@@ -483,6 +484,24 @@ void __fastcall Things_NearestFlag80Close(const u8 *thing, void *, u16 *out) {
         handle = at<u16>(other, 0xc);
     }
     *out = best;
+}
+
+u16 *__fastcall Things_HeadForNearestFlag40(u8 *sprite, void *, u16 *out, u32 radius) {
+    u16 best = 0;
+    u32 bestDistance = 0xffffffff;
+    for (u16 handle = at<u16>(global<u8 *>(0x0080239c), 0x1da746); handle != 0;) {
+        const u8 *other = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
+        if (other[0x32] & 0x40) {
+            const u32 distance = CellDistanceSquared(other, sprite);
+            if (distance < radius * radius && distance < bestDistance && Sprite_SetDestinationCell(sprite, nullptr, at<u16>(other, 0x36)) != 0) {
+                bestDistance = distance;
+                best = handle;
+            }
+        }
+        handle = at<u16>(other, 0xc);
+    }
+    *out = best;
+    return out;
 }
 }  // extern "C"
 

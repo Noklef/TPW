@@ -69,6 +69,8 @@ u32 __fastcall Sprite_SetDestinationCell(u8 *sprite, void *, u32 cell);
 // 0x4f7de0 (thiscall; x, y; name unconfirmed): Sprite_SetDestination; when it answers nonzero the dword +0x39c and the dword +0x10 (+0xc's
 // second, Set4_4217f0) set to 1, and 1; else 0.
 u32 __fastcall Sprite_SetDestinationMarked(u8 *sprite, void *, s32 x, s32 y);
+// 0x4f7da0 (thiscall; a cell id; name unconfirmed): the same with Sprite_SetDestinationCell.
+u32 __fastcall Sprite_SetDestinationCellMarked(u8 *sprite, void *, u32 cell);
 
 // 0x4f8b10 (thiscall; stream, save, version, unused): a moving person: 1 when the thing (Thing_Serialize) or the script reference (+0xc,
 // SpriteAnim_Serialize) fails. Then, for a version of 0..1, saved (save nonzero) or loaded: the words +0x18, +0x1a, +0xc4, +0xc0, the byte +0x2c,

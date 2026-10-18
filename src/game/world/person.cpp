@@ -144,6 +144,14 @@ u32 __fastcall Sprite_SetDestinationMarked(u8 *sprite, void *, s32 x, s32 y) {
     return 1;
 }
 
+u32 __fastcall Sprite_SetDestinationCellMarked(u8 *sprite, void *, u32 cell) {
+    if (Sprite_SetDestinationCell(sprite, nullptr, cell) == 0)
+        return 0;
+    at<u32>(sprite, 0x39c) = 1;
+    Set4_4217f0(sprite + 0xc, nullptr, 1);
+    return 1;
+}
+
 u32 __fastcall Sprite_Serialize(u8 *sprite, void *, Stream *stream, u32 save, s32 version, u32 unused) {
     if (Thing_Serialize(sprite, nullptr, stream, save, version, unused) != 0)
         return 1;

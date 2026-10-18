@@ -971,6 +971,7 @@ address,name,kind,confidence,notes
 0x0059ef10,Staff_SurplusKind8,function,high,reimplemented (src/game/world/thingscan); a value when the staff of kind 8 outnumber the objects and a limit
 0x004824d0,Things_FindNextOfCategory,function,low,"reimplemented (src/game/world/thingscan); The next thing of a category bit after a thing: staff, a staff list, kind 1 or one of the object finders"
 0x00482da0,Things_FindPrevOfCategory,function,low,"reimplemented (src/game/world/thingscan); The previous thing of a category bit before a thing: staff, kind 1, shops or one of the object finders"
+0x00500dc0,Things_HeadForNearestFlag40,function,low,"reimplemented (src/game/world/thingscan); thiscall (out, radius): the nearest thing with flag 0x40 in the game's list within the radius that the person can be sent to (its cell +0x36), its handle to out"
 0x0054b130,Buoy_FindFree,function,high,"reimplemented (src/game/world/trackpools); the first free buoy record, its index stored in it"
 0x0054b170,Buoy_Alloc,function,high,reimplemented (src/game/world/trackpools); takes the first free buoy record
 0x0054b1e0,CollNode_FindFree,function,high,reimplemented (src/game/world/trackpools); the first free collision node
@@ -3277,6 +3278,7 @@ address,name,kind,confidence,notes
 0x004fa5f0,Sprite_SetDestination,function,low,"reimplemented (src/game/world/person); thiscall (x, y in 1/256 cells): unless held by Obj_BlockValuesBelowLimit (+0x198 still set), the destination words +0x18/+0x1a set and Nav_PathToPoint of the nav at +0xd4"
 0x004fa530,Sprite_SetDestinationCell,function,low,reimplemented (src/game/world/person); thiscall (cell id): Sprite_SetDestination to the centre of the cell
 0x004f7de0,Sprite_SetDestinationMarked,function,low,"reimplemented (src/game/world/person); thiscall (x, y): Sprite_SetDestination; when it succeeds the dwords +0x39c and +0x10 set to 1"
+0x004f7da0,Sprite_SetDestinationCellMarked,function,low,"reimplemented (src/game/world/person); thiscall (cell): Sprite_SetDestinationCell; when it answers nonzero +0x39c and +0xc's Set4_4217f0 set to 1, and 1; else 0"
 0x00550d80,Setting_SetMode,function,high,reimplemented (src/game/core/options); stores a mode and sets its flag bits
 0x005633e0,Quad_Push,function,high,reimplemented (src/game/core/seqs); pushes four dwords into the next of four slots
 0x0059c390,Table76e300_GetObjectDword,function,high,reimplemented (src/game/world/objectdefs); a dword of the object indexed through a record of the table
