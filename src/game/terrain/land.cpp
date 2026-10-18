@@ -244,4 +244,30 @@ void __fastcall Lnd_Dtor(u8 *object) {
     at<u32>(object, 0x1c) = 0;
     at<u32>(object, 0x20) = 0;
 }
+
+double __cdecl Terrain_HeightAt(float x, float y) {
+    // The grid is read before anything is checked (volatile: a missing map or grid faults as in the original).
+    const u8 *const grid = *reinterpret_cast<const u8 *const volatile *>(*reinterpret_cast<const u8 *const volatile *>(0x007a0854) + 0x6c);
+    if (!(x >= 0.0f) || !(y >= 0.0f))   // (0x6fe3dc; unordered is "below")
+        return 0.0;
+    if (!(X87_MulInt(at<u32>(grid, 0x18), 10.0f) > x) || !(X87_MulInt(at<u32>(grid, 0x1c), 10.0f) > y))   // (0x6fe3e4; fild qword)
+        return 0.0;
+    double whole;   // (CRT modf 0x67b280, then __ftol of the whole part)
+    const float fx = (float)std::modf((X87Reg(x) / at<float>(grid, 0x10)).v, &whole);
+    const u32 ix = (u32)(long long)whole;
+    const float fy = (float)std::modf((X87Reg(y) / at<float>(grid, 0x14)).v, &whole);
+    const u32 iy = (u32)(long long)whole;
+    const u32 w = at<u32>(grid, 0x18);
+    const u32 a = (w + 1) * iy + ix, b = a + w + 1;   // (the corners: a, a + 1 on this row of heights, b, b + 1 on the next)
+    const u16 flags = at<u16>(at<const u8 *>(grid, 0x2c), (w * iy + ix) * 4);
+    const float *const h = at<const float *>(grid, 0x28);
+    const X87Reg u = X87Reg(1.0f) - fx;
+    if (!(flags & 0x800) || ((flags & 4) && !(fx >= (X87Reg(1.0f) - fy).v)))   // (the cell's first triangle, or the one diagonal's)
+        return (((X87Reg(h[a + 1]) * fx) + u * h[a]) + (X87Reg(h[b]) - h[a]) * fy).v;
+    if (flags & 4)
+        return (((u * h[b]) + X87Reg(fx) * h[b + 1]) + X87Reg(-(X87Reg(h[b + 1]) - h[a + 1]).v) * (X87Reg(1.0f) - fy)).v;
+    if (!(fx >= fy))
+        return (((X87Reg(h[b + 1]) * fx) + u * h[b]) + X87Reg(-(X87Reg(h[b]) - h[a]).v) * (X87Reg(1.0f) - fy)).v;
+    return (((u * h[a]) + X87Reg(fx) * h[a + 1]) + (X87Reg(h[b + 1]) - h[a + 1]) * fy).v;
+}
 }

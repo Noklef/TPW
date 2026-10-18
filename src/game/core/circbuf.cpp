@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../math/x87.h"
 #include "savegame.h"
 
 namespace {
@@ -129,6 +130,16 @@ u8 __fastcall CircBufU32_30_Get(const u8 *buf, void *, u32 *out, s32 back) {
     if (!at<u8>(buf, 0x84)) return 0;
     *out = at<u32>(buf, 4 + ((u32)cursor - (u32)back + (u32)size) * 4);
     return 1;
+}
+
+void __fastcall CircBufU32_30_Sum(const u8 *buf, void *, double *sum, s32 count) {
+    const s32 limit = at<u8>(buf, 0x84) ? at<s32>(buf, 0x80) : at<s32>(buf, 0x7c) + 1;
+    const s32 n = count > limit ? limit : count;
+    *sum = 0;
+    for (s32 i = 0; i < n; ++i) {
+        u32 value;
+        if (CircBufU32_30_Get(buf, nullptr, &value, i)) *sum = X87_Add((double)value, *sum);
+    }
 }
 
 u32 __fastcall CircBufU32_30_Serialize(u8 *buf, void *, Stream *stream, u32 save, s32 version, u32) {

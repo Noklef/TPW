@@ -94,4 +94,11 @@ u32 __fastcall Obj_AddToRenderer(u8 *object);
 // 0x48f5c0 (thiscall; id, pops 4; name unconfirmed): nothing when the word at +0x44 is 0 or the word at +8 already equals the low word of id. Else the part at +0xb4 (a virtual base: its address plus
 // the offset at +4 of its vtable) is added to the renderer's tag 0x30 list (Renderer_Add) for an id that is not 0 and removed from it (Renderer_RemoveFromSlot) for 0; the word at +8 becomes the id.
 void __fastcall Obj_SetRendererPart30(u8 *object, void *, u32 value);
+
+// 0x48f3c0 (thiscall; one unused argument, pops 4; slot 9 of vtable 0x6ff2d8, the class of Obj_SetRendererPart30; name unconfirmed):
+// the image at +0x9c's textures freed (SpriteImage_FreeTexturesIfSet), its result returned.
+u32 __fastcall RendererPart_FreeTextures(u8 *object, void *, u32);
+
+// 0x48f410 (thiscall; slot 6 of vtable 0x6ff2d8; name unconfirmed): the same with no argument (a jump to SpriteImage_FreeTexturesIfSet).
+u32 __fastcall RendererPart_FreeTextures2(u8 *object);
 }

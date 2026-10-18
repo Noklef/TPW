@@ -161,4 +161,12 @@ u8 *__cdecl Things_FindNextOfCategory(s32 category, const u8 *previous);
 // (Object_GetDef) and whose byte +0x32 has neither bit 0 nor 1 (0x800, the thing table read inline) / bit 0 (0x1000, Thing_ByHandle); 0x2000
 // Things_FindPrevWithDefWord; 0x4000 Things_FindPrevWithDefWordUpgrade2; 0x8000 Things_FindPrevKind3Flag2. Anything else: 0.
 u8 *__cdecl Things_FindPrevOfCategory(s32 category, const u8 *previous);
+
+// 0x483740 (cdecl; name unconfirmed): Things_FindNextOfCategory after previous; past the last, again from the start (previous 0).
+u8 *__cdecl Things_FindNextOfCategoryWrap(s32 category, const u8 *previous);
+
+// 0x4b3340 (cdecl; name unconfirmed): the thing browser's (an MFC dialog at 0x7cc304) step: for its choice (the dword at 0x7cc30c) 1..6, the
+// category 2, 4, 8, 0x10, 0x20 or 0x40; the thing at 0x7cc308 = Things_FindNextOfCategory after it, else (past the last) from the start (as
+// Things_FindNextOfCategoryWrap, the first result stored before the second call); another choice: 0.
+void __cdecl ThingBrowser_Step();
 }  // extern "C"

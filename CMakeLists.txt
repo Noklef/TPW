@@ -131,6 +131,7 @@ add_library(tpw_game STATIC
     src/game/core/sync.cpp
     src/game/core/cpuinfo.cpp
     src/game/core/wstdstring.cpp
+    src/game/core/stdwstring.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -245,6 +246,7 @@ add_library(tpw_game STATIC
     src/game/coaster/setup.cpp
     src/game/coaster/ridebounds.cpp
     src/game/coaster/tracktypes.cpp
+    src/game/coaster/edittools.cpp
     src/game/terrain/terrain_blend.cpp
     src/game/terrain/land.cpp
     src/game/terrain/procedural.cpp

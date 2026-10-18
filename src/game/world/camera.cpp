@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "../math/x87.h"
+#include "things.h"
 
 namespace {
 
@@ -95,5 +96,13 @@ void __cdecl Camera_ClampCell(s32 *x, s32 *z) {
     if (*z < 0) *z = 0;
     if (*x >= global<s32>(0x007a0314)) *x = global<s32>(0x007a0314) - 1;
     if (*z >= global<s32>(0x007a0374)) *z = global<s32>(0x007a0374) - 1;
+}
+
+void __cdecl Camera_CentreOnGlobalThing() {
+    const u8 *const thing = global<const u8 *>(0x007c2658);
+    u16 handle;
+    Thing_GetHandle(thing, nullptr, &handle);
+    // (the high word what ECX held: the thing pointer's)
+    Camera_CentreOnThing((static_cast<u32>(reinterpret_cast<uintptr_t>(thing)) & 0xffff0000u) | handle);
 }
 }

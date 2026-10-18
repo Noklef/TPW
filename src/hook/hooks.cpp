@@ -147,7 +147,8 @@
 #include "../game/core/vwrap.h"
 #include "../game/core/actionrec.h"
 #include "../game/core/namedobjects.h"
-#include "../game/core/savegame.h"
+#include "../game/core/savegame.h"
+#include "../game/core/stdwstring.h"
 #include "../game/core/sync.h"
 #include "../game/core/balancefile.h"
 #include "../game/core/timesig.h"
@@ -178,7 +179,8 @@
 #include "../game/coaster/queue.h"
 #include "../game/coaster/cursor.h"
 #include "../game/coaster/registry.h"
-#include "../game/coaster/contacts.h"
+#include "../game/coaster/contacts.h"
+#include "../game/coaster/edittools.h"
 #include "../game/coaster/ridebounds.h"
 #include "../game/coaster/setup.h"
 #include "../game/coaster/save.h"
@@ -481,6 +483,7 @@ const Hook kHooks[] = {
     {"Camera_ClampCell",          0x0042cd40, (void *)&Camera_ClampCell, {0x8b, 0x4c, 0x24, 0x04, 0x56}},
     {"Camera_CentreOnCell",       0x004868d0, (void *)&Camera_CentreOnCell, {0x51, 0x8b, 0x4c, 0x24, 0x08}},
     {"Camera_CentreOnThing",      0x004867b0, (void *)&Camera_CentreOnThing, {0x51, 0x56, 0x8b, 0x74, 0x24}},
+    {"Camera_CentreOnGlobalThing", 0x0048ce80, (void *)&Camera_CentreOnGlobalThing, {0x51, 0x8b, 0x0d, 0x58, 0x26}},
     {"MouseMode_Nop4",            0x0046c450, (void *)&MouseMode_Nop4, {0xc2, 0x10, 0x00, 0x90, 0x90}},
     {"MouseMode_DeletingDtor",    0x0046c460, (void *)&MouseMode_DeletingDtor, {0x8a, 0x44, 0x24, 0x04, 0x56}},
     {"MouseModeTile_Ctor",        0x0046c580, (void *)&MouseModeTile_Ctor, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
@@ -809,6 +812,8 @@ const Hook kHooks[] = {
     {"Cell_FirstObject",          0x004d99e0, (void *)&Cell_FirstObject, {0x51, 0x53, 0x56, 0x66, 0x8b}},
     {"Map_ObjectAtCell",          0x00527d60, (void *)&Map_ObjectAtCell, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
     {"Map_ObjectOrEntranceAt",    0x00527e80, (void *)&Map_ObjectOrEntranceAt, {0x8b, 0x0d, 0xbc, 0x55, 0x78}},
+    {"Things_FindNextOfCategoryWrap", 0x00483740, (void *)&Things_FindNextOfCategoryWrap, {0x8b, 0x44, 0x24, 0x08, 0x56}},
+    {"ThingBrowser_Step",         0x004b3340, (void *)&ThingBrowser_Step, {0xa1, 0x0c, 0xc3, 0x7c, 0x00}},
     {"Rides_FindById",            0x0055a070, (void *)&Rides_FindById, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"Rides_SetElement",          0x0055a0b0, (void *)&Rides_SetElement, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"Rides_SetWordC0",           0x0055a300, (void *)&Rides_SetWordC0, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
@@ -855,6 +860,7 @@ const Hook kHooks[] = {
     {"Things_ForEachSelected",    0x00481bc0, (void *)&Things_ForEachSelected, {0x83, 0xec, 0x0c, 0x53, 0x8a}},
     {"Things_CountGroup",         0x0048ca00, (void *)&Things_CountGroup, {0xc7, 0x05, 0x60, 0x26, 0x7c}},
     {"Things_CountOne",           0x0048cad0, (void *)&Things_CountOne, {0xa1, 0x60, 0x26, 0x7c, 0x00}},
+    {"Things_StepGroup",          0x0048caf0, (void *)&Things_StepGroup, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
     {"Object_HandleDayMessage",   0x004dd320, (void *)&Object_HandleDayMessage, {0x53, 0x56, 0x57, 0x8b, 0x7c}},
     {"Object_QueueAddPerson",     0x004ddb90, (void *)&Object_QueueAddPerson, {0x51, 0x53, 0x55, 0x56, 0x57}},
     {"Object_QueuePosition",      0x004ddf50, (void *)&Object_QueuePosition, {0x83, 0xec, 0x08, 0x53, 0x55}},
@@ -1383,6 +1389,8 @@ const Hook kHooks[] = {
     {"CoasterCars_InitUnusedOne", 0x0043bbe0, (void *)&CoasterCars_InitUnusedOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"CoasterCars_InitUnusedEpsilon", 0x0043bc00, (void *)&CoasterCars_InitUnusedEpsilon, {0xd9, 0x05, 0x20, 0xe0, 0x6f}},
     {"Coaster_BoardRiders",       0x0043b600, (void *)&Coaster_BoardRiders, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
+    {"Coaster_SetMix",            0x0043c3d0, (void *)&Coaster_SetMix, {0x8b, 0x44, 0x24, 0x0c, 0x83}},
+    {"Coaster_SetMixAt",          0x0043b2b0, (void *)&Coaster_SetMixAt, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"CoasterNode_Lerp",          0x0043c000, (void *)&CoasterNode_Lerp, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Coaster_IsPastEnd",         0x0043c080, (void *)&Coaster_IsPastEnd, {0x8b, 0x44, 0x24, 0x04, 0xd9}},
     {"Coaster_FindZone",          0x0043e9c0, (void *)&Coaster_FindZone, {0x51, 0x8b, 0x44, 0x24, 0x08}},
@@ -1908,6 +1916,7 @@ const Hook kHooks[] = {
     {"CircBufU32_144_MaxInWindow", 0x004801d0, (void *)&CircBufU32_144_MaxInWindow, {0x8b, 0x44, 0x24, 0x0c, 0x53}},
     {"CircBufU32_144_MinInWindow", 0x00480380, (void *)&CircBufU32_144_MinInWindow, {0x8b, 0x44, 0x24, 0x0c, 0x53}},
     {"CircBufU32_30_Serialize",   0x004e2c10, (void *)&CircBufU32_30_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"CircBufU32_30_Sum",         0x00495c20, (void *)&CircBufU32_30_Sum, {0x83, 0xec, 0x08, 0x33, 0xc0}},
     {"TextArg_Ctor",              0x004a77a0, (void *)&TextArg_Ctor, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
     {"TextArgString_Ctor",        0x004ea220, (void *)&TextArgString_Ctor, {0x8b, 0x54, 0x24, 0x08, 0x8b}},
     {"TextArgInt_Ctor",           0x0050aef0, (void *)&TextArgInt_Ctor, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
@@ -2960,6 +2969,7 @@ const Hook kHooks[] = {
     {"Global879ac0_Create",       0x005666f0, (void *)&Global879ac0_Create, {0x6a, 0xff, 0x68, 0xcb, 0xf0}},
     {"Object_CallSlot14",         0x005c5000, (void *)&Object_CallSlot14, {0x8b, 0x4c, 0x24, 0x04, 0x8b}},
     {"Global8bba48_Create",       0x0057c360, (void *)&Global8bba48_Create, {0x6a, 0xff, 0x68, 0x68, 0xf3}},
+    {"Obj7b51f0_PassThingTo7cc218", 0x00481530, (void *)&Obj7b51f0_PassThingTo7cc218, {0x8b, 0x44, 0x24, 0x04, 0xb9}},
     {"Class702d48_Ctor",          0x005e3b90, (void *)&Class702d48_Ctor, {0x56, 0x8b, 0xf1, 0x56, 0xc7}},
     {"Class702d48_Release",       0x005e3c00, (void *)&Class702d48_Release, {0x8b, 0xc1, 0x50, 0xc7, 0x00}},
     {"Class702d48_DeletingDtor",  0x005e3bd0, (void *)&Class702d48_DeletingDtor, {0x56, 0x8b, 0xf1, 0x56, 0xc7}},
@@ -3191,6 +3201,11 @@ const Hook kHooks[] = {
     {"Graphics_Level",            0x0041a9d0, (void *)&Graphics_Level, {0xe8, 0xbb, 0xfb, 0x02, 0x00}},
     {"Options_ApplySound",        0x00423dd0, (void *)&Options_ApplySound, {0xa0, 0xf0, 0xd8, 0x78, 0x00}},
     {"Options_Defaults",          0x00423690, (void *)&Options_Defaults, {0x8b, 0xc1, 0x33, 0xd2, 0xb9}},
+    {"Options_SerializeSound",    0x00423e90, (void *)&Options_SerializeSound, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"Options_SerializeDisplay",  0x004242c0, (void *)&Options_SerializeDisplay, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"Options_SerializeMisc",     0x00424560, (void *)&Options_SerializeMisc, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"Options_SaveFile",          0x00424820, (void *)&Options_SaveFile, {0x83, 0xec, 0x0c, 0x8d, 0x54}},
+    {"Options_LoadFile",          0x00424930, (void *)&Options_LoadFile, {0x83, 0xec, 0x0c, 0x56, 0x57}},
     {"Coaster_SetTrainCount",     0x0043ba20, (void *)&Coaster_SetTrainCount, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
     {"CoasterTypes_FreeAll",      0x00430ad0, (void *)&CoasterTypes_FreeAll, {0x83, 0xec, 0x0c, 0xa1, 0xe8}},
     {"Class6fd9d8_Dtor",          0x0041c8b0, (void *)&Class6fd9d8_Dtor, {0x6a, 0xff, 0x68, 0x56, 0x80}},
@@ -3208,6 +3223,7 @@ const Hook kHooks[] = {
     {"TextMetrics_Width",         0x0047f9a0, (void *)&TextMetrics_Width, {0x51, 0x0f, 0xbf, 0x44, 0x24}},
     {"TextMetrics_FitIndex",      0x0047fa00, (void *)&TextMetrics_FitIndex, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"TextMetrics_ForwardSlot8",  0x0047f990, (void *)&TextMetrics_ForwardSlot8, {0x8b, 0x49, 0x14, 0x85, 0xc9}},
+    {"Text_SelectFont",           0x0046c010, (void *)&Text_SelectFont, {0x8b, 0x0d, 0x9c, 0x05, 0x7b}},
     {"Matrix2_Transform",         0x0050f310, (void *)&Matrix2_Transform, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Vec2_Normalize",            0x005787b0, (void *)&Vec2_Normalize, {0x51, 0x8b, 0x01, 0xd9, 0x41}},
     {"Vec3_DotByValue",           0x005812f0, (void *)&Vec3_DotByValue, {0xd9, 0x44, 0x24, 0x14, 0xd9}},
@@ -3370,6 +3386,8 @@ const Hook kHooks[] = {
     {"Class6fdad8_Ctor",          0x0041dfc0, (void *)&Class6fdad8_Ctor, {0x6a, 0xff, 0x68, 0x6e, 0x83}},
     {"Class6fdae8_Ctor",          0x0041e0b0, (void *)&Class6fdae8_Ctor, {0x6a, 0xff, 0x68, 0x96, 0x83}},
     {"Class6fdaf8_Ctor",          0x0041e190, (void *)&Class6fdaf8_Ctor, {0x6a, 0xff, 0x68, 0xb6, 0x83}},
+    {"Class6fd9d8_AddFolderAndWadIn", 0x0041cd50, (void *)&Class6fd9d8_AddFolderAndWadIn, {0x6a, 0xff, 0x68, 0xd3, 0x80}},
+    {"Class6fd9d8_AddFolderAndWadBoth", 0x0041cc20, (void *)&Class6fd9d8_AddFolderAndWadBoth, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"Animator_Sleep",            0x004254c0, (void *)&Animator_Sleep, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Object_BackOfQueueTo",      0x004de110, (void *)&Object_BackOfQueueTo, {0x8a, 0x41, 0x32, 0x56, 0x8b}},
     {"Object_QueuePositionOfNone", 0x004ddf40, (void *)&Object_QueuePositionOfNone, {0x51, 0x8b, 0xc4, 0x66, 0xc7}},
@@ -3377,6 +3395,10 @@ const Hook kHooks[] = {
     {"Object_QueueOpen",          0x004dd920, (void *)&Object_QueueOpen, {0x51, 0x56, 0x8b, 0xf1, 0x66}},
     {"Thing_PlaceAt",             0x004fa930, (void *)&Thing_PlaceAt, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
     {"TrackTypeSlot_ReadIntoFree",         0x0051fa20, (void *)&TrackTypeSlot_ReadIntoFree, {0xa1, 0x40, 0x6d, 0x81, 0x00}},
+    {"CoasterEdit_ToggleAdjustF8", 0x00441cd0, (void *)&CoasterEdit_ToggleAdjustF8, {0x8b, 0x15, 0x58, 0xc6, 0x79}},
+    {"CoasterEdit_ToggleAdjustE0", 0x00441e80, (void *)&CoasterEdit_ToggleAdjustE0, {0xa1, 0xec, 0x0f, 0x79, 0x00}},
+    {"CoasterEdit_ToggleAdjustAngles", 0x00442010, (void *)&CoasterEdit_ToggleAdjustAngles, {0x8b, 0x15, 0x58, 0xc6, 0x79}},
+    {"CoasterEdit_ToggleAdjust",  0x004421e0, (void *)&CoasterEdit_ToggleAdjust, {0xa1, 0xec, 0x0f, 0x79, 0x00}},
     {"Thing_SpriteChoice",        0x004fcac0, (void *)&Thing_SpriteChoice, {0x51, 0x56, 0x8b, 0xf1, 0x6a}},
     {"Thing_IngredientRecord",    0x004e2200, (void *)&Thing_IngredientRecord, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
     {"Class701378_Ctor",          0x005667d0, (void *)&Class701378_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},
@@ -3547,6 +3569,12 @@ const Hook kHooks[] = {
     {"WStdString_Grow",           0x004f39e0, (void *)&WStdString_Grow, {0x53, 0x56, 0x57, 0x8b, 0x7c}},
     {"WStdString_Copy",           0x004f6090, (void *)&WStdString_Copy, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"WStdString_Split",          0x004f6190, (void *)&WStdString_Split, {0x55, 0x56, 0x8b, 0xf1, 0x57}},
+    {"StdWString_Copy",           0x00405280, (void *)&StdWString_Copy, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"StdWString_AssignSub",      0x0047b750, (void *)&StdWString_AssignSub, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"StdWString_AssignFill",     0x0047b970, (void *)&StdWString_AssignFill, {0xa1, 0x00, 0xef, 0x6f, 0x00}},
+    {"StdWString_Freeze",         0x0047ba50, (void *)&StdWString_Freeze, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
+    {"StdWString_Grow",           0x0047bad0, (void *)&StdWString_Grow, {0x53, 0x56, 0x57, 0x8b, 0x7c}},
+    {"StdWString_Split",          0x0047bc00, (void *)&StdWString_Split, {0x55, 0x56, 0x8b, 0xf1, 0x57}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -3711,6 +3739,8 @@ const Hook kHooks[] = {
     {"Renderer_Destroy",          0x005761b0, (void *)&Renderer_Destroy, {0x53, 0x56, 0x8b, 0x35, 0xd0}},
     {"Renderer_Create",           0x005760a0, (void *)&Renderer_Create, {0x6a, 0xff, 0x68, 0x5b, 0xf2}},
     {"Renderer_MakeFrameBuffer",  0x00576310, (void *)&Renderer_MakeFrameBuffer, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
+    {"RendererPart_FreeTextures", 0x0048f3c0, (void *)&RendererPart_FreeTextures, {0x81, 0xc1, 0x9c, 0x00, 0x00}},
+    {"RendererPart_FreeTextures2", 0x0048f410, (void *)&RendererPart_FreeTextures2, {0x81, 0xc1, 0x9c, 0x00, 0x00}},
     {"Backdrop_Clear5c",          0x005777a0, (void *)&Backdrop_Clear5c, {0xc7, 0x41, 0x5c, 0x00, 0x00}},
     {"Backdrop_SetRect",          0x00577940, (void *)&Backdrop_SetRect, {0x8b, 0x01, 0x8b, 0x54, 0x24}},
     {"Backdrop_SetSourceRect",    0x00577970, (void *)&Backdrop_SetSourceRect, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
@@ -3885,6 +3915,7 @@ const Hook kHooks[] = {
     {"Lnd_ReadLevel",             0x0055f470, (void *)&Lnd_ReadLevel, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"Lnd_Ctor",                  0x0055f530, (void *)&Lnd_Ctor, {0x6a, 0xff, 0x68, 0x84, 0xf0}},
     {"Lnd_Dtor",                  0x0055f5a0, (void *)&Lnd_Dtor, {0x6a, 0xff, 0x68, 0xb4, 0xf0}},
+    {"Terrain_HeightAt",          0x004527f0, (void *)&Terrain_HeightAt, {0xd9, 0x44, 0x24, 0x04, 0xd8}},
     {"Terrain_SetProceduralCells", 0x0046ded0, (void *)&Terrain_SetProceduralCells, {0x8b, 0x0d, 0x54, 0xfc, 0x79}},
     {"Terrain_ProceduralOn",      0x00457a70, (void *)&Terrain_ProceduralOn, {0xa1, 0x8c, 0x1a, 0x7a, 0x00}},
     {"Terrain_ProceduralLeave",   0x00457a40, (void *)&Terrain_ProceduralLeave, {0xa1, 0x8c, 0x1a, 0x7a, 0x00}},
@@ -3903,6 +3934,7 @@ const Hook kHooks[] = {
     {"Landscape_FreeTextures",    0x00585e20, (void *)&Landscape_FreeTextures, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
     {"Landscape_RemoveTexture",   0x005851d0, (void *)&Landscape_RemoveTexture, {0x83, 0xec, 0x20, 0x53, 0x55}},
     {"Landscape_Init",            0x00584ef0, (void *)&Landscape_Init, {0x83, 0xec, 0x0c, 0x53, 0x8b}},
+    {"Landscape_RemoveTextureList", 0x00418d70, (void *)&Landscape_RemoveTextureList, {0xa1, 0x24, 0x57, 0x78, 0x00}},
     {"TerrainTexCache_Ctor",      0x005720d0, (void *)&TerrainTexCache_Ctor, {0x8b, 0xd1, 0x57, 0xb9, 0x00}},
     {"TerrainTexCache_Dtor",      0x00572350, (void *)&TerrainTexCache_Dtor, {0x8b, 0x15, 0x50, 0xd5, 0x8b}},
     {"Lnd_BuildRamp",             0x0055e710, (void *)&Lnd_BuildRamp, {0x0f, 0xbf, 0x44, 0x24, 0x0c}},

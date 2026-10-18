@@ -112,4 +112,8 @@ void __fastcall Obj_CallSlot14IfGlobalThing(u8 *object, void *, u32 handle);
 // returns). Otherwise returns what EAX held: the key (messages 0x10005 and 0x1000b), or the message less 0x1000b.
 u32 __fastcall Obj_KeyMessageToSlots(u8 *object, void *, u32 message, u32 key, u32 unused);
 
+// 0x481530 (thiscall on the object at 0x7b51f0, this not used; handle, pops 4; name unconfirmed): Obj_CallSlot14IfGlobalThing on the object at
+// 0x7cc218 with the handle.
+void __fastcall Obj7b51f0_PassThingTo7cc218(u8 *object, void *, u32 handle);
+
 }  // extern "C"

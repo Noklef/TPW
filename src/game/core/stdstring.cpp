@@ -49,6 +49,10 @@ void erase(StdString *s, u32 p, u32 m) {
 
 void StdStrings_SetEnv(const StdStringEnv *e) { g_env = e ? e : &kGameEnv; }
 
+void StdStrings_Xlen() { g_env->xlen(); }
+
+void StdStrings_Xran() { g_env->xran(); }
+
 extern "C" {
 
 void __fastcall StdString_Dtor(StdString *s, void *) { StdString_Tidy(s, nullptr, 1); }

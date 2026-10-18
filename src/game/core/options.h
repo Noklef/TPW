@@ -6,6 +6,8 @@
 
 #include "../../../re/types.h"
 
+struct Stream;
+
 extern "C" {
 
 // 0x423ad0: the copy back over the options; +0x94 = 0, the change bits cleared.
@@ -43,4 +45,24 @@ void __cdecl Options_ApplySound();
 // 0x78591c, the bytes +0x34..+0x37, +0x39, +0x3a = 1 and +0x38 = 0; then the copy at +0x3c = the options and Options_ApplySound (which reads the
 // game's options at 0x78d8d8, whatever this is).
 void __fastcall Options_Defaults(u8 *options);
+
+// The options' save and load (thiscall; stream, saving, an unused dword; pops 12; names unconfirmed): saving, each field written whole (Stream_Write); loading,
+// read (Stream_Read, or quietly by name as the save game's fields: Save_ReadU8 / Save_ReadU32 / Save_Read8Bytes). 1 at the first that fails,
+// else 0.
+// 0x423e90: the volumes +0x10, +0x18, +0x20, +0x28 (8 bytes each: SFX, music, speech, movie) and the switches +0x34..+0x3a (AdvisorOn,
+// TutorialOn, TooltipsOn, ConfirmDeleteOn, RMBScrollOn, RMBCancelOn, IsometricOn); then the sound applied (Options_ApplySound).
+u32 __fastcall Options_SerializeSound(u8 *options, void *, Stream *stream, u32 saving, u32);
+// 0x4242c0: +0, +4, +8 (read with Stream_Read), +0xc (VideoCard), +0x28 (MovieVolume, 8 bytes), +0x30 (SoundQuality); then the sound applied.
+u32 __fastcall Options_SerializeDisplay(u8 *options, void *, Stream *stream, u32 saving, u32);
+// 0x424560: +0x78, +0x7c, +0x80 (read with Stream_Read), +0x84 (CURRENTTheme), +0x88 (DEBUGGuardUInts), +0x8c (TextureCacheSize).
+u32 __fastcall Options_SerializeMisc(u8 *options, void *, Stream *stream, u32 saving, u32);
+
+// The options file (thiscall; path, a String whose text is at +8; pops 4; names unconfirmed): 1 when it went through, else 0 (the reports to the
+// debug printf left out).
+// 0x424820: opened for writing (FileStream_Open, mode 0xc0000010; nothing more when that fails), the version 1 written (4 bytes), then
+// Options_SerializeDisplay (saving, the version); closed (Stream_Close) after the stream was used.
+u32 __fastcall Options_SaveFile(u8 *options, void *, const u8 *path);
+// 0x424930: the defaults first (Options_Defaults); opened for reading (mode 0x80000001), the version read (4 bytes; 0 is refused), then
+// Options_SerializeDisplay (loading, the version); closed after the stream was used.
+u32 __fastcall Options_LoadFile(u8 *options, void *, const u8 *path);
 }

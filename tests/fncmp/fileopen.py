@@ -6,7 +6,9 @@
 # a WAD header (DWFB, versions 0-3, mostly no entries and no name block) and reporting all it was asked for read (fill_arg()), IsDBCSLeadByte one answer
 # for a case, InterlockedDecrement now and then 0 (the object freed). The stream or handle at THIS has a source / object or not; its vtable is the
 # game's or recorders. AddFolder / AddWad (src/game/core/class6fd9d8) open a new folder / WAD handle on a path String and append it to a list of 0-2 nodes; AddBoth
-# (0x41cc40) adds the path as a folder and, with the game's ".wad" string (0x78bb08) appended, as a WAD. MakeFolders (0x5c7ac0, files/gamepaths): a
+# (0x41cc40) adds the path as a folder and, with the game's ".wad" string (0x78bb08) appended, as a WAD; AddIn (0x41cd50) the same under the game's
+# second root (the String at 0xf816d4: empty, ending in a backslash or not), the global backslash String (0xf80be0) put between; AddBothIn (0x41cc20)
+# AddBoth and then AddIn. MakeFolders (0x5c7ac0, files/gamepaths): a
 # root (a wide String; WideCharToMultiByte a recorder answering one path, the GlobalAlloc / GlobalFree stubs) with the String at 0xf81b48 ("\"
 # mostly) and each of 0-3 listed names (0x786b90) appended, opened as a folder and, when that fails, created (CreateDirectoryA a recorder).
 # usage: fileopen.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Open28,...)
@@ -17,7 +19,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import IMPORT_TABLE, LOG, Bench, Call, HEAP, RAM, echo, fill, fill_arg, global_heap, heap, import_table, log_region, set_return, vtable  # noqa: E402
 
-B = Bench([(0x41c9e0, 0x41cd60), (0x5c5550, 0x5c5560), (0x4036a0, 0x4036c0), (0x5da3c0, 0x5da3d0), (0x638ef0, 0x639230), (0x62fa40, 0x630000), (0x636e40, 0x637460), (0x45f940, 0x45fa40), (0x61a060, 0x61af40), (0x45d820, 0x45d880),
+B = Bench([(0x41c9e0, 0x41ce90), (0x5c5480, 0x5c5570), (0x424cf0, 0x424d20), (0x4036a0, 0x4036c0), (0x5da3c0, 0x5da3d0), (0x638ef0, 0x639230), (0x62fa40, 0x630000), (0x636e40, 0x637460), (0x45f940, 0x45fa40), (0x61a060, 0x61af40), (0x45d820, 0x45d880),
            (0x4217e0, 0x421800), (0x637460, 0x638f00), (0x641500, 0x642400), (0x5f5660, 0x5f9000), (0x618000, 0x61a060), (0x6307c0, 0x630900),
            (0x6ad800, 0x6ad820), (0x67a400, 0x690000), (0x405000, 0x406000), (0x5e4000, 0x5e5000), (0x636b00, 0x636e40),
            (0x5c7ac0, 0x5c7ba6), (0x424db0, 0x424e10)])
@@ -26,6 +28,7 @@ VT_THIS, VT_OBJ, VT_SRC = RAM + 0x200, RAM + 0x280, RAM + 0x300
 NAME, CONTAINER, TEXT, BUF = RAM + 0x400, RAM + 0x500, RAM + 0x600, RAM + 0x700
 LIST, NODES, PATHSTR = RAM + 0x800, RAM + 0x840, RAM + 0x880   # the held-handle list at +0x2c, its nodes, a path String
 WAD_EXT = 0x78bb08   # the game's ".wad" String
+ROOT2, SLASH = 0xf816d4, 0xf80be0   # the game's second root and the global backslash (Strings)
 GLOBALS = 0xfa6ec8   # the command line (0x104), + 0x108 the base directory, + 0x210 the path buffer
 PATHS = 0xfaa2c8   # the file source's resolved path (0x104), + 0x108 the mmio source's
 LOCALE = 0xfb1440   # the CRT's LC_CTYPE handle: 0, the C locale
@@ -54,7 +57,8 @@ OPS = {
     'OpenPath': (0x5f7ed0, 's', 'RNm', 'a'), 'OpenIn': (0x62fa40, 's', 'RNC', 'a'), 'OpenBuffered': (0x62fd30, 's', 'ROc', 'a'),
     'RefObject2Ctor': (0x619730, 'x', '', 'a'), 'RefObject2DeletingDtor': (0x619790, 'o', 'F', 'a'), 'RefObject2Dtor': (0x6197b0, 'o', '', 'v'),
     'RefObject2Vfn5': (0x6198b0, 'o', 'RBTc', 'a'), 'AddFolder': (0x41c9e0, 'l', 'P', 'v'), 'AddWad': (0x41cb10, 'l', 'P', 'v'),
-    'AddBoth': (0x41cc40, 'l', 'P', 'v'), 'MakeFolders': (0x5c7ac0, 'x', 'W', 'v'),
+    'AddBoth': (0x41cc40, 'l', 'P', 'v'), 'AddIn': (0x41cd50, 'l', 'P', 'v'), 'AddBothIn': (0x41cc20, 'l', 'P', 'v'),
+    'MakeFolders': (0x5c7ac0, 'x', 'W', 'v'),
 }
 ROOT, FOLDERS, SEP = RAM + 0x900, RAM + 0xa00, 0xf81b48   # MakeFolders: the root, the list's nodes and names, the separator String
 
@@ -151,6 +155,10 @@ def case(r):
             regions[PATHSTR] = struct.pack('<5I', STRING_VTABLE, len(p), NAME, len(p) + 8, 8)
             regions[WAD_EXT] = struct.pack('<5I', STRING_VTABLE, 4, PATHSTR + 0x40, 8, 8)   # (the game's ".wad" string; AddBoth appends it)
             regions[PATHSTR + 0x40] = b'.wad\0' + r.bytes(8)
+            if op in ('AddIn', 'AddBothIn'):   # (the root: a String; the backslash a String)
+                root = r.choice([b'', b'C:\\tp', b'C:\\tp\\', b'data', b'\\'])
+                regions[ROOT2] = struct.pack('<5I', STRING_VTABLE, len(root), ROOT2 + 0x20, len(root) + 8, 8) + bytes(0xc) + root + b'\0' + r.bytes(8)
+                regions[SLASH] = struct.pack('<5I', STRING_VTABLE, 1, SLASH + 0x20, 8, 8) + bytes(0xc) + r.choice([b'\\', b'\\', b'/']) + b'\0' + r.bytes(8)
             stack.append(PATHSTR)
         elif x == 'W':   # MakeFolders' root and list
             root = r.choice([b'C:\\tp\\save', b'D:', b'', b'C:\\tp\\'])

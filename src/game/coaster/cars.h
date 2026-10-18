@@ -78,6 +78,16 @@ void __cdecl Coaster_SetupCars(u8 *coaster, u32 riders, u32 segments, u32 flags)
 // 1) when that changes +0xf0.
 void __cdecl Coaster_SetRiders(u32 index, s32 n);
 
+// 0x43c3d0 (cdecl; coaster, value, quiet; name unconfirmed): unless quiet, the record 0x45 (ActionRec_RecordCoaster45); then +0x30 = value
+// and +0x34 = the type's (+4) +0x4c and +0x50 mixed value percent of the way, on the x87: p = value (fild, unsigned) * 0.01f, then
+// (1 - p) * +0x4c + +0x50 * p, stored as a float; the coaster's flags changed (Flags_SetChanged, also 0x1000), and when the type
+// (read again) has flag 8 its contacts cleared (Contacts_ClearAll).
+void __cdecl Coaster_SetMix(u8 *coaster, u32 value, u32 quiet);
+
+// 0x43b2b0 (cdecl; index, value; name unconfirmed): coaster index's (table 0x790bd0) Coaster_SetMix(value, recorded) when there is
+// one and value differs from its +0x30, unless the coaster has flag 0x8000 and the recorder (0x785a08) is not playing back (+0x24).
+void __cdecl Coaster_SetMixAt(u32 index, u32 value);
+
 // 0x43b600 (cdecl; queue, coaster, first, count; name unconfirmed): boards riders while the coaster has some to take (+0x14) and count
 // is not 0: one is taken from the queue's ring (+0xb4 the slots, +0xb0 their number, +0xbc the count, +0xc4 the read position, moved
 // on round the ring; none when the count is 0, and then nothing more), a car of the count from first picked at random (the rand()

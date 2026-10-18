@@ -75,4 +75,13 @@ u8 *__fastcall Lnd_Ctor(u8 *object);
 // 0x55f5a0 (thiscall; name unconfirmed): Lnd_Clear; the buffer at 0x8798c8 freed (when there is one) and cleared; the three levels' TileSet_Clear, the last
 // first; the block at +0x20 freed when still set and the dwords +0x14 .. +0x20 cleared.
 void __fastcall Lnd_Dtor(u8 *object);
+
+// 0x4527f0 (cdecl; x, y): the ground height at (x, y) on the map's (0x7a0854) grid (+0x6c), in st0: 0 for x or y below 0 (or NaN) or
+// not below 10 times the grid's width (+0x18) / height (+0x1c); else the cell's column and row the whole parts of x / +0x10 and y / +0x14
+// (CRT modf, __ftol), fx and fy their fractions (as floats), and the heights (floats from +0x28, a row of width + 1 to a row of cells)
+// at its corners h00, h10 (this row), h01, h11 (the next) blended over one of the cell's triangles: without the cell's flag 0x800 (or with
+// flags 0x804 and fx < 1 - fy, or NaN) (h10 fx + (1 - fx) h00) + (h01 - h00) fy; 0x804 otherwise ((1 - fx) h01 + fx h11) - (h11 - h10)
+// (1 - fy); 0x800 alone with fx < fy (or NaN) (h11 fx + (1 - fx) h01) - (h01 - h00)(1 - fy), else ((1 - fx) h00 + fx h10) + (h11 - h10) fy;
+// on the x87, in that order. The grid is read first, whatever x and y are.
+double __cdecl Terrain_HeightAt(float x, float y);
 }

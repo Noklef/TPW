@@ -283,6 +283,22 @@ void __fastcall Class6fd9d8_AddFolderAndWad(u8 *object, void *, const StringView
     String_Dtor(&name);
 }
 
+void __fastcall Class6fd9d8_AddFolderAndWadBoth(u8 *object, void *, const StringView *path) {
+    Class6fd9d8_AddFolderAndWad(object, nullptr, path);
+    Class6fd9d8_AddFolderAndWadIn(object, nullptr, path);
+}
+
+void __fastcall Class6fd9d8_AddFolderAndWadIn(u8 *object, void *, const StringView *path) {
+    String name;
+    String_CtorCopy(&name, nullptr, reinterpret_cast<const StringView *>((uintptr_t)0x00f816d4));   // (Obj_Part14 of 0xf816c0)
+    String_EnsureTrailingBackslash(&name);
+    String_Append(&name, nullptr, path);   // (the vtable's +0x28)
+    Class6fd9d8_AddFolder(object, nullptr, &name);
+    String_Append(&name, nullptr, reinterpret_cast<const StringView *>((uintptr_t)0x0078bb08));
+    Class6fd9d8_AddWad(object, nullptr, &name);
+    String_Dtor(&name);
+}
+
 u32 __fastcall Class6fd9d8_Find(u8 *object, void *, u32 key) {
     u8 *const current = at<u8 *>(object, 0x34);
     if (!current)

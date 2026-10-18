@@ -41,4 +41,9 @@ s32 __fastcall Things_CountGroup(const u8 *owner, void *, u32 value);
 // 0x48cad0 (cdecl; thing, unused; name unconfirmed): the count 0x7c2660 raised; returns 1.
 s32 __cdecl Things_CountOne(u8 *thing);
 
+// 0x48caf0 (thiscall; name unconfirmed): the owner's slot 0x3c called, then the next thing of the group its +4 picks (the masks as
+// Things_CountGroup's, as a category) after 0x7c2658, from the start past the last (Things_FindNextOfCategoryWrap; any other group: none);
+// when there is one and it is not 0x7c2658 already, 0x7c2658 = it and the owner's slot 4 called.
+void __fastcall Things_StepGroup(u8 *owner);
+
 }  // extern "C"

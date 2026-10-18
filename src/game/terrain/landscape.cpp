@@ -116,4 +116,11 @@ u32 __fastcall Landscape_RemoveTexture(u8 *landscape, void *, u8 *textures) {
     }
     return 1;
 }
+
+u32 __fastcall Landscape_RemoveTextureList(u8 **list) {
+    const s32 &count = *reinterpret_cast<const s32 *>(0x00785724);
+    for (s32 i = 0; i < count; i++)
+        Landscape_RemoveTexture(reinterpret_cast<u8 *>(0x008c1828), nullptr, list[i]);
+    return static_cast<u32>(count);
+}
 }

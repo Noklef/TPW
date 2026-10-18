@@ -42,4 +42,8 @@ u32 __fastcall Landscape_FreeTextures(u8 *landscape);
 // negative count) 0. Found, its array is cleared, released and destroyed when set, the count lowered and, unless that leaves 0,
 // the entry swapped with entry[count] (the new last; entry[-1] when the count was 0, sic). Returns 1.
 u32 __fastcall Landscape_RemoveTexture(u8 *landscape, void *, u8 *textures);
+
+// 0x418d70 (thiscall on a list of texture arrays; name unconfirmed): each of the first [0x785724] (the count re-read after each) removed
+// from the landscape at 0x8c1828 (Landscape_RemoveTexture). Returns the count last read.
+u32 __fastcall Landscape_RemoveTextureList(u8 **list);
 }
