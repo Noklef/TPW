@@ -2,7 +2,11 @@
 #include "parkmap.h"
 
 #include <cstdint>
+#include <cstring>
 
+#include "../core/accessors.h"
+#include "../core/ptrlist.h"
+#include "../math/x87.h"
 #include "mapcell.h"
 #include "object.h"
 
@@ -74,6 +78,29 @@ void __fastcall ParkMap_Classify(u8 *map) {
             }
         }
     }
+}
+
+void __fastcall ParkMap_PlaceSprite(const u8 *map, void *, u8 *sprite) {
+    const X87Reg width = static_cast<double>(global<u32>(0x007a1968)), height = static_cast<double>(global<u32>(0x007a1930));
+    const X87Reg toX = X87_DivR(static_cast<double>(at<s32>(map, 0x24)), 480.0);
+    const float toY = static_cast<float>(X87_DivR(static_cast<double>(at<s32>(map, 0x28)), 425.0));
+    const float widthF = static_cast<float>(width), heightF = static_cast<float>(height);
+    const X87Reg x = (X87Reg(at<float>(sprite, 4)) - at<float>(map, 0x54)) * toX * at<float>(map, 0x5c) + width * 0.5;
+    at<float>(sprite, 0xc) = static_cast<float>(x);
+    const X87Reg y = (X87Reg(at<float>(sprite, 8)) - at<float>(map, 0x58)) * toY * at<float>(map, 0x5c) + height * 0.5;
+    const X87Reg left = X87Reg(at<float>(sprite, 0xc)) + at<float>(sprite, 0xc);
+    const float u = static_cast<float>(left / widthF - 1.0);
+    const float v = static_cast<float>((y + y) / heightF - 1.0);
+    at<float>(sprite, 0x10) = static_cast<float>(y);
+    const s32 layer = at<s32>(sprite, 0x14);
+    const u32 depth = layer >= 0 && layer <= 2 ? 0x3f7d70a4 : 0x3f7ff972;  // 0.99 / 0.9999
+    u32 ub, vb;
+    std::memcpy(&ub, &u, 4);
+    std::memcpy(&vb, &v, 4);
+    PtrArray_SetVectorOf(reinterpret_cast<const u8 *>(0x00879ce0), nullptr, at<u8 *>(sprite, 0x28), ub, vb, depth);
+    const float scale = static_cast<float>(X87Reg(at<float>(sprite, 0x24)) * at<float>(map, 0x5c) * 0.5);
+    u8 *const frame = reinterpret_cast<u8 *>(static_cast<uintptr_t>(Fn_56b620(at<u32>(sprite, 0x28))));
+    at<float>(frame, 0x2c) = static_cast<float>(X87Reg(at<u16>(at<u8 *>(frame, 0x28), 0xc)) * scale * 0.0625);
 }
 
 }  // extern "C"

@@ -19,4 +19,11 @@
 extern "C" {
 // 0x5f2050 (thiscall on the map).
 void __fastcall ParkMap_Classify(u8 *map);
+// 0x5f4180 (thiscall on the map; sprite, pops 4; name unconfirmed): a sprite (its frame at +0x28, as TexSprite's) placed on the overview
+// from its map position (+4, +8): screen x, y = (pos - the view origin (+0x54, +0x58)) * 480 / width (425 / height, rounded to a float) *
+// the zoom (+0x5c) + half the screen's width (height) (0x7a1968 / 0x7a1930), stored at +0xc / +0x10; the frame's vector in the array at
+// 0x879ce0 (PtrArray_SetVectorOf) set to (2x / screen width - 1, 2y / screen height - 1, 0.99 for a layer (+0x14) of 0 to 2, else
+// 0.9999), and the frame's +0x2c = the word at +0xc of the frame's +0x28 times the sprite's size (+0x24) * zoom * 0.5 / 16. x87 at the
+// game's precision (X87Reg); x is reread as the float stored.
+void __fastcall ParkMap_PlaceSprite(const u8 *map, void *, u8 *sprite);
 }
