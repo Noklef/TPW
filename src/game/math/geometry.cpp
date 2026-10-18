@@ -23,6 +23,26 @@ double __cdecl Vec3_DotByValue(float ax, float ay, float az, float bx, float by,
     return (X87Reg(bx) * ax + X87Reg(by) * ay + X87Reg(bz) * az).v;
 }
 
+float *__cdecl Segment_AtX(float *out, float ax, float ay, float az, float bx, float by, float bz, float x) {
+    const X87Reg t = (X87Reg(x) - bx) / (X87Reg(ax) - bx);  // fdivp st2: the destination (x - bx) over (ax - bx)
+    const X87Reg y = (X87Reg(ay) - by) * t + by;
+    const X87Reg z = (X87Reg(az) - bz) * t + bz;
+    out[0] = X87_Through(x);
+    out[1] = (float)y;
+    out[2] = (float)z;
+    return out;
+}
+
+float *__cdecl Segment_AtZ(float *out, float ax, float ay, float az, float bx, float by, float bz, u32 z) {
+    const X87Reg t = (X87Reg(AsFloat(z)) - bz) / (X87Reg(az) - bz);
+    const X87Reg x = (X87Reg(ax) - bx) * t + bx;
+    const X87Reg y = (X87Reg(ay) - by) * t + by;
+    out[0] = (float)x;
+    out[1] = (float)y;
+    reinterpret_cast<u32 *>(out)[2] = z;  // (mov: the dword as it came)
+    return out;
+}
+
 u32 __cdecl Tri_WindingTest(const float *a, const float *b, const float *c) {
     const u32 *pa = reinterpret_cast<const u32 *>(a), *pb = reinterpret_cast<const u32 *>(b), *pc = reinterpret_cast<const u32 *>(c);
     global<u32>(0x008c63bc) = pa[0];

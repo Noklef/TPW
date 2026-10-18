@@ -3674,6 +3674,8 @@ address,name,kind,confidence,notes
 0x005812f0,Vec3_DotByValue,function,low,"reimplemented (src/game/math/geometry); cdecl (ax, ay, az, bx, by, bz by value): the dot product in st0"
 0x00581320,Tri_WindingTest,function,low,"reimplemented (src/game/math/geometry); cdecl (a, b, c): x, y, w copied to 0x8c63b0-0x8c63d0; 1 when the homogeneous winding compare is below or unordered"
 0x0057b410,Box_Extend,function,low,"reimplemented (src/game/math/geometry); thiscall (x, y, z): the box (min +0, max +0xc) grown to take the point; a NaN goes into the minimum"
+0x0056d520,Segment_AtX,function,low,"reimplemented (src/game/math/geometry); cdecl(out, a, b by value, x): the point of the line b-a at x into out (returned); x87 at the game's precision"
+0x0056d590,Segment_AtZ,function,low,"reimplemented (src/game/math/geometry); cdecl(out, a, b by value, z): the point of the line b-a at z into out (returned); z copied as a dword"
 0x00579250,Transform_BlockedPoints,function,low,"reimplemented (src/game/math/transform); cdecl: points in blocks of four (x[4], y[4], z[4]) transformed to x, y, z, w by a 4x4 matrix"
 0x00579330,Transform_Vertices,function,low,"reimplemented (src/game/math/transform); cdecl: vertices transformed by a 4x4 matrix, by mode (4 in 4 out, point to 3, direction to 3, point to 4)"
 0x00579690,Transform_ProjectToScreen,function,low,"reimplemented (src/game/math/transform); cdecl: vertices divided by w and mapped to the render view's window, z by mode; returns the sum of the z's in st0"
