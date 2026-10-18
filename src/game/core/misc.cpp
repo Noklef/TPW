@@ -49,22 +49,6 @@ void __cdecl MeshRef_SetFlag10000000(u8 *const *ref) {
     at<u32>(part, 0x50) |= 0x10000000;
 }
 
-s32 __fastcall Obj_SmallestEntry(const u8 *object) {
-    s32 best = -1;
-    u32 smallest = 0;
-    bool found = false;
-    for (u32 i = 0; i < 8; i++) {
-        const u8 *entry = object + 0x20 + 0x20 * i;
-        const u32 size = at<u32>(entry, 8) ? (at<u32>(entry, 0) - at<u32>(entry, 0xc)) * at<u32>(entry, 4) : 0;
-        if (size > 0 && (size < smallest || !found)) {
-            best = (s32)i;
-            smallest = size;
-            found = true;
-        }
-    }
-    return best;
-}
-
 u8 *__fastcall Obj_CtorVirtual(u8 *object, void *, u32 mostDerived) {
     if (mostDerived) {
         at<u32>(object, 0) = 0x006fe570;
