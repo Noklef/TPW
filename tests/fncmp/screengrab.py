@@ -1,7 +1,8 @@
 # The screen grab's conversion to 24-bit pixels (src/game/gfx/screengrab: 0x561460) against the original: display depths (0x8bcbe4) of 16,
 # 24, 32 and others; 0-40 pixels; for 16 bits the display's masks and shifts at 0x8bcc54-0x8bcc74 as 5:6:5, 5:5:5 or any (shift counts past
 # 31 or negative), the tracked allocation failing now and then (fncmp's heap; the error then pushed onto the engine's list at 0x879ad0, as in
-# ptrarray_add.py) and the tracked table as in trackedglobal.py.
+# ptrarray_add.py) and the tracked table as in trackedglobal.py. And the grab's file name set (0x5617c0): none, or names of 0 to 0x90 characters
+# (the longest running past the 0x80 bytes at +0xc, over +0x8c).
 # usage: screengrab.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -10,14 +11,14 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, LOG, RAM, Bench, Call, _cdecl_log, global_heap, heap, log_region, put, strings  # noqa: E402
 
-B = Bench([(0x561460, 0x561606), (0x579b40, 0x579c13), (0x56af20, 0x56af9c), (0x56a770, 0x56ae60), (0x67a400, 0x690000)],
+B = Bench([(0x561460, 0x561606), (0x5617c0, 0x5617fe), (0x579b40, 0x579c13), (0x56af20, 0x56af9c), (0x56a770, 0x56ae60), (0x67a400, 0x690000)],
           hooks={0x564650: _cdecl_log})
 COUNT, TABLE = 0x8bb214, 0x87b1f8   # the tracked blocks: their count and (block, block) pairs
 GRAB, PIXELS = RAM, RAM + 0x100
 FORMATS = [(0xf800, 11, 5, 0x7e0, 5, 6, 0x1f, 0, 5), (0x7c00, 10, 5, 0x3e0, 5, 5, 0x1f, 0, 5)]
 
 
-def case(r):
+def convert(r):
     log = log_region()
     strings(log, 0x3f, 1)
     regions = {HEAP: heap(0x400, r.choice([0, 0, 0, 1])), **global_heap(), LOG: log}
@@ -44,6 +45,16 @@ def case(r):
     regions[GRAB] = put(bytearray(r.bytes(0x10)), 0, '3I', r.choice([PIXELS, PIXELS, PIXELS, 0]), r.getrandbits(32), r.choice([n, n, n, 0, -1 & 0xffffffff]))
     return Call(0x561460, [GRAB], regions, conv='t', ret='a')
 
+
+def name(r):   # 0x5617c0 (thiscall, name): copied to +0xc and +0x8c pointed at it; none leaves them; returns 1
+    grab = bytearray(r.bytes(0x100))
+    n = r.choice([0, 1, 3, 4, 5, 12, 0x7f, 0x80, 0x90, r.randrange(0x90)])
+    text = bytes(r.choice(b'abcdefghijklmnopqrstuvwxyz0123456789./') for _ in range(n)) + b'\0'
+    return Call(0x5617c0, [GRAB, 0 if r.random() < 0.1 else PIXELS], {GRAB: grab, PIXELS: text + r.bytes(8)}, conv='t', ret='a')
+
+
+def case(r):
+    return name(r) if r.deal([0, 0, 0, 1]) else convert(r)
 
 if __name__ == '__main__':
     B.main(case)
