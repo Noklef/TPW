@@ -29,4 +29,9 @@ void __fastcall HelpBg_Close(u8 *self);
 // +4 = 1, Fn_66a002) or stopped (Frame_Stop, ui/frame), then the window +0x18 shown or hidden (Window_SetShown(1 / 0); not checked for 0).
 void __fastcall HelpBg_Show(u8 *self);
 void __fastcall HelpBg_Hide(u8 *self);
+
+// 0x492330 (thiscall (x, y), pops 8; called by 0x492530 for the object at 0x7ca0c0; name unconfirmed): with the window +0x18 set, moved
+// (Window_Offset) by x and y less its inner rectangle's left and top (Window_GetRect through a GUI rectangle on the stack); a word 0xffff
+// for x or y keeps that one. EAX: the rectangle's destructor's (a stack address), or 0 without the window.
+u32 __fastcall HelpBg_MoveTo(u8 *self, void *, u32 x, u32 y);
 }  // extern "C"
