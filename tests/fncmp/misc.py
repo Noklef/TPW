@@ -9,10 +9,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x424ed0, 0x424ee9), (0x4922d0, 0x4922e0), (0x4e1c60, 0x4e1c70), (0x4f00f0, 0x4f0110), (0x4f6020, 0x4f6080), (0x40f300, 0x40f329), (0x59b550, 0x59b590), (0x458910, 0x458935), (0x458940, 0x458965),
-           (0x5836b0, 0x5836c2), (0x4a9350, 0x4a9375), (0x4b4670, 0x4b4695), (0x4bcec0, 0x4bcef0), (0x52fbf0, 0x52fc21), (0x56b620, 0x56b628), (0x633dc0, 0x633e00), (0x6486e0, 0x648720), (0x5d36c0, 0x5d36d0), (0x633120, 0x63313a), (0x6338b0, 0x6338c0), (0x5f6a20, 0x5f6a60), (0x45be80, 0x45becd), (0x4254e0, 0x425510), (0x5766e0, 0x57681a), (0x486610, 0x486630), (0x475e10, 0x475e80), (0x409260, 0x409296), (0x4f36c0, 0x4f36e1), (0x52fc30, 0x52fc79), (0x56b340, 0x56b37d), (0x576540, 0x5765b8), (0x4583d0, 0x4583f6), (0x4d09a0, 0x4d09e6), (0x458310, 0x45834d), (0x402ef0, 0x402f10), (0x4032b0, 0x4032ca), (0x402f30, 0x402f50), (0x4030c0, 0x4030c4),
+           (0x5836b0, 0x5836c2), (0x4a9350, 0x4a9375), (0x4b4670, 0x4b4695), (0x4bcec0, 0x4bcef0), (0x52fbf0, 0x52fc21), (0x56b620, 0x56b628), (0x633dc0, 0x633e00), (0x6486e0, 0x648720), (0x5d36c0, 0x5d36d0), (0x633120, 0x63313a), (0x6338b0, 0x6338c0), (0x5f6a20, 0x5f6a60), (0x45be80, 0x45becd), (0x4254e0, 0x425510), (0x5766e0, 0x57681a), (0x486610, 0x486630), (0x475e10, 0x475e80), (0x409260, 0x409296), (0x4f36c0, 0x4f36e1), (0x52fc30, 0x52fc79), (0x576540, 0x5765b8), (0x4583d0, 0x4583f6), (0x4d09a0, 0x4d09e6), (0x458310, 0x45834d), (0x402ef0, 0x402f10), (0x4032b0, 0x4032ca), (0x402f30, 0x402f50), (0x4030c0, 0x4030c4),
            (0x47f940, 0x47f95a), (0x657d30, 0x657d6c), (0x4d4170, 0x4d4186), (0x475550, 0x47558b), (0x4d9600, 0x4d9619), (0x4e01f0, 0x4e0209), (0x4f6820, 0x4f6850),
            (0x4f6850, 0x4f6880)])
-CALLS = ['Ctor3ca0', 'MaxW', 'Ctor3c18', 'RemRect', 'CopyScript', 'Flags', 'Size36', 'Commit', 'RemRect14', 'ReleaseR', 'SetVec', 'Smallest', 'CtorVirtual', 'PairAdd', 'CtorPart', 'MeshClear', 'MeshSet', 'Countdown', 'Kill24', 'Choose', 'Advance', 'CtorOne', 'CtorValue', 'KillSlot', 'Stamp30', 'Stamp5e', 'InitBuf', 'Clear0', 'Clear18', 'Diff', 'Virtual', 'Setg', 'Setp']
+CALLS = ['Ctor3ca0', 'MaxW', 'Ctor3c18', 'RemRect', 'CopyScript', 'Flags', 'Size36', 'Commit', 'RemRect14', 'SetVec', 'Smallest', 'CtorVirtual', 'PairAdd', 'CtorPart', 'MeshClear', 'MeshSet', 'Countdown', 'Kill24', 'Choose', 'Advance', 'CtorOne', 'CtorValue', 'KillSlot', 'Stamp30', 'Stamp5e', 'InitBuf', 'Clear0', 'Clear18', 'Diff', 'Virtual', 'Setg', 'Setp']
 
 
 def case(r):
@@ -70,20 +70,6 @@ def case(r):
         count = r.choice([0, 1, 5, 0x400, 0x401, 0xffffffff, 0xfffffffb])
         regions = {0x81b740: r.bytes(0x2010), 0x818d90: r.bytes(0x2010), 0x820a80: put(bytearray(r.bytes(0x20)), 0xc, 'I', count)}
         return Call(0x52fc30, [], regions, ret='a')
-    if op == 'ReleaseR':
-        put(obj, 0, 'I', r.choice([0, 1, 1, 0xffffffff, r.getrandbits(32)]))
-        put(obj, 4, 'I', r.choice([0, RAM + 0x100]))
-        put(obj, 0x100, 'I', RAM + 0x300)  # the part's vtable: +4 = the virtual base offset
-        offset = r.choice([0, 0x10, 0x20])
-        put(obj, 0x304, 'I', offset)
-        renderer = bytearray(r.bytes(0x100))
-        put(renderer, 0x28, 'I', r.choice([0, RAM + 0x1100, RAM + 0x1100]))  # the tag 0x60 list: one node, the part's or not
-        put(renderer, 4, 'I', 0)
-        put(renderer, 0xc, 'I', 5)
-        regions[RAM + 0x1100] = put(put(bytearray(8), 0, 'I', RAM + 0x100 + offset if r.random() < 0.6 else r.getrandbits(32)), 4, 'I', 0)
-        regions.update({0x87a6d0: put(bytearray(r.bytes(0x10)), 0, 'I', r.choice([RAM + 0x1000, RAM + 0x1000, 0])),
-                        RAM + 0x1000: renderer, 0x8bd500: r.bytes(0x20)})
-        return Call(0x56b340, [RAM], regions, conv='t', ret='a')
     if op == 'SetVec':
         regions.update({0x8bd500: r.bytes(0x20), 0x8bcc40: r.bytes(8)})
         return Call(0x4583d0, [RAM, r.getrandbits(32), r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='a')

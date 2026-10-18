@@ -4,7 +4,8 @@
 # (keys from a few values so that removals both find and miss), grids from empty to 6 by 5, tags
 # with and without 0x70, rectangles from beyond the grid on every side; for the add (0x576410) grid_masks.py's environment, the object's virtual calls 2 and 3 answering with 2 and a record
 # whose packed rectangle bytes run from inside the grid to far outside it. The release (0x5761b0): the renderer at 0x87a6d0 or none, its
-# pool and frame buffer set or 0, tracked (as they are or 4 below) or not.
+# pool and frame buffer set or 0, tracked (as they are or 4 below) or not. ReleaseFromRenderer (0x56b340): an object with bit 0 set or
+# not and a part (or none) at a virtual base offset of 0-0x20, the renderer's tag 0x60 list holding it, another or nothing.
 # usage: renderer.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetRestoreCallback,...)
 import os
 import struct
@@ -20,10 +21,12 @@ from fncmp import Bench, Call, HEAP, RAM, global_heap, heap, put, set_return  # 
 
 B = Bench([(0x576260, 0x57626a), (0x5763f0, 0x5763fa), (0x576400, 0x576404), (0x576540, 0x5765b8),
            (0x5765c0, 0x576616), (0x5766e0, 0x57681a), (0x576820, 0x57690c),
-           (0x576410, 0x576550), (0x576270, 0x576320), (0x590730, 0x590750), (0x67acb0, 0x67acb1), (0x5761b0, 0x576223), (0x579b40, 0x579c13)],
+           (0x576410, 0x576550), (0x576270, 0x576320), (0x590730, 0x590750), (0x67acb0, 0x67acb1), (0x5761b0, 0x576223), (0x579b40, 0x579c13),
+           (0x56b340, 0x56b37d)],
           hooks={0x691de0: vobj3.lock, 0x691ea0: lambda e: None})
 CALLS = {'SetRestoreCallback': 0x576260, 'SetStateFlags': 0x5763f0, 'StateFlags': 0x576400,
-         'RemoveFromSlot': 0x576540, 'ClearSlot': 0x5765c0, 'RemoveInRect': 0x5766e0, 'ClearAll': 0x576820, 'Add': 0x576410, 'Destroy': 0x5761b0}
+         'RemoveFromSlot': 0x576540, 'ClearSlot': 0x5765c0, 'RemoveInRect': 0x5766e0, 'ClearAll': 0x576820, 'Add': 0x576410, 'Destroy': 0x5761b0,
+         'ReleaseFromRenderer': 0x56b340}
 LISTS = ('RemoveFromSlot', 'ClearSlot', 'RemoveInRect', 'ClearAll')
 GRID, POOL = RAM + 0x1000, RAM + 0x2000
 
@@ -107,12 +110,32 @@ def destroy_case(r):
     return Call(0x5761b0, [], regions, conv='c', ret='a')
 
 
+def release_case(r):
+    obj = bytearray(r.bytes(0x400))
+    regions = {RAM: obj}
+    put(obj, 0, 'I', r.choice([0, 1, 1, 0xffffffff, r.getrandbits(32)]))
+    put(obj, 4, 'I', r.choice([0, RAM + 0x100]))
+    put(obj, 0x100, 'I', RAM + 0x300)  # the part's vtable: +4 = the virtual base offset
+    offset = r.choice([0, 0x10, 0x20])
+    put(obj, 0x304, 'I', offset)
+    renderer = bytearray(r.bytes(0x100))
+    put(renderer, 0x28, 'I', r.choice([0, RAM + 0x1100, RAM + 0x1100]))  # the tag 0x60 list: one node, the part's or not
+    put(renderer, 4, 'I', 0)
+    put(renderer, 0xc, 'I', 5)
+    regions[RAM + 0x1100] = put(put(bytearray(8), 0, 'I', RAM + 0x100 + offset if r.random() < 0.6 else r.getrandbits(32)), 4, 'I', 0)
+    regions.update({0x87a6d0: put(bytearray(r.bytes(0x10)), 0, 'I', r.choice([RAM + 0x1000, RAM + 0x1000, 0])),
+                    RAM + 0x1000: renderer, 0x8bd500: r.bytes(0x20)})
+    return Call(0x56b340, [RAM], regions, conv='t', ret='a')
+
+
 def case(r):
     op = r.choice(OPS)
     if op == 'Destroy':
         return destroy_case(r)
     if op == 'Add':
         return add_case(r)
+    if op == 'ReleaseFromRenderer':
+        return release_case(r)
     if op in LISTS:
         return lists_case(op, r)
     args = [RAM]
