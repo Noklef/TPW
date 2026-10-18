@@ -1,9 +1,12 @@
-// An animated object put down on the park grid: reimplementation of 0x467030.
+// An animated object put down on the park grid: reimplementation of 0x467030 and 0x4671f0.
 #include "placement.h"
 
+#include "../core/misc.h"
 #include "../math/matrix.h"
 #include "../math/sintable.h"
 #include "../math/x87.h"
+#include "../model/holder.h"
+#include "../terrain/land.h"
 
 namespace {
 
@@ -21,6 +24,39 @@ const float kMinusHalfPi = -1.57079637f;  // 0x6fe778
 }  // namespace
 
 extern "C" {
+
+void __cdecl Animator_PlaceOnGround(u8 *animator, s32 x, s32 y, const u8 *cells, s32 width, s32 depth, u32 flags) {
+    if (at<u32>(animator, 4) & 0x4000)
+        Obj_RemoveFromRect(at<u8 *>(animator, 8), at<u32>(animator, 0xc0), at<u32>(animator, 0xc4));
+    else
+        Holder_Sleep(at<u8 *>(animator, 8));
+    const s32 turn = at<s32>(at<u8 *>(animator, 8), 0x10);
+    s32 cornerX = x, cornerY = y, cellX = x, cellY = y;
+    switch (turn) {
+    case 90:
+        cornerY = y + 1;
+        cellY = cornerY - width;
+        break;
+    case 180:
+        cornerX = x + 1;
+        cornerY = y + 1;
+        cellX = cornerX - width;
+        cellY = cornerY - depth;
+        break;
+    case 270:
+        cornerX = x + 1;
+        cellX = cornerX - depth;
+        break;
+    }
+    const float height = (float)Terrain_FootprintHeight(cornerX, cornerY, cells, width, depth, flags, turn);
+    Animator_Place(animator, cornerX, cornerY, cellX, cellY, 0, reinterpret_cast<const u32 &>(height), flags, width, depth);
+    at<s32>(animator, 0xe8) = x;
+    at<s32>(animator, 0xec) = y;
+    if (at<u32>(animator, 4) & 0x4000)
+        Holder_AddToGrid(at<u8 *>(animator, 8), at<u32>(animator, 0xc0), at<u32>(animator, 0xc4));
+    else
+        Holder_Wake(at<u8 *>(animator, 8));
+}
 
 void __cdecl Animator_Place(u8 *animator, s32 x, s32 y, s32 cellX, s32 cellY, s32 angle, u32 height, u32 flags, s32 width, s32 depth) {
     if (flags & 2) {

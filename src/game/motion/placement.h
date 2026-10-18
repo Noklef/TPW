@@ -1,4 +1,4 @@
-// An animated object put down on the park grid: reimplementation of 0x467030.
+// An animated object put down on the park grid: reimplementation of 0x467030 and 0x4671f0.
 //
 // The animator (see animator.h): +8 the holder, whose +4 is the model and +0x10 its turn in
 // degrees (0-359); the model's +0x78 points at its transform block, the matrix at +0x10.
@@ -17,4 +17,12 @@ extern "C" {
 // grid +8, height, cellY * grid +0x14 + grid +0xc), the grid being 0x7a0854's +0x6c (read
 // either way).
 void __cdecl Animator_Place(u8 *animator, s32 x, s32 y, s32 cellX, s32 cellY, s32 angle, u32 height, u32 flags, s32 width, s32 depth);
+
+// 0x4671f0 (animator, x, y, cells, width, depth, flags; name unconfirmed): the animator moved to cell (x, y) on the ground, keeping its
+// holder's turn. Its holder first leaves the renderer (flag 0x4000 of +4: Obj_RemoveFromRect over +0xc0 / +0xc4, else Holder_Sleep); the
+// footprint's corner by the turn (0: x, y; 90: x, y + 1, cells from y + 1 - width; 180: x + 1, y + 1, cells from x + 1 - width,
+// y + 1 - depth; 270: x + 1, y, cells from x + 1 - depth; others as 0); Animator_Place at that corner and cell, angle 0, the
+// Terrain_FootprintHeight there (stored as a float); +0xe8 / +0xec = x, y; then the holder rejoins (Holder_AddToGrid over the new
+// +0xc0 / +0xc4, else Holder_Wake).
+void __cdecl Animator_PlaceOnGround(u8 *animator, s32 x, s32 y, const u8 *cells, s32 width, s32 depth, u32 flags);
 }
