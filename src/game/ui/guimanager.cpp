@@ -21,4 +21,9 @@ u32 __cdecl GuiManager_CallSlot4() { return callSlot(4); }
 u32 __cdecl GuiManager_CallSlot3() { return callSlot(3); }
 
 u32 __cdecl GuiManager_Word4Set() { return Fn_659790(manager()) != 0 ? 1 : 0; }
+
+u32 __cdecl GuiClock_Now() {
+    u8 *const clock = *reinterpret_cast<u8 **>((uintptr_t)0x0077c490);
+    return reinterpret_cast<u32(__fastcall *)(u8 *, void *)>((*reinterpret_cast<void ***>(clock))[0])(clock, nullptr);
+}
 }
