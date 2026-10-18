@@ -1,6 +1,7 @@
 # A nav's path to a point (src/game/world/nav: 0x50f8e0, 0x510100 that takes the point's two parts) and a moving person's destination
 # (src/game/world/person: 0x4fa5f0) against the original. The nav's: routesearch.py's box of cells, the nav's position in one of its cells
-# (at times with a wild top byte), the target in the box, at the start or in the ring; the route at 0x7cf108 random before the search, the
+# (at times with a wild top byte), the target in the box, at the start or in the ring; at times a bigger box made a comb of open cells and walls
+# (routes of up to 14 cells, past the 5 waypoints); the route at 0x7cf108 random before the search, the
 # counter 0x7cdb98, prepending 0, 1 or other. The person's: objectblocks.py's object and block values (the limit +0x198 about the counter),
 # the destination's cell the nav's (its route then that one cell, needing no map).
 # usage: navpath.py [CASES [SEED]] [--wild|--both] [--show N]
@@ -11,6 +12,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
+import cellstep  # noqa: E402
 import objectblocks  # noqa: E402
 import routesearch  # noqa: E402
 from fncmp import Bench, Call, RAM, put  # noqa: E402
@@ -40,14 +42,39 @@ def common(regions, r, counter):
     regions[0x7cdb98] = struct.pack('<I', counter & 0xffffffff)
 
 
+def maze(regions, r, box, bx, by, size):
+    """A big box made a comb: its cells of type 1 (every step between them open), walls of type-4 cells down every other column from the
+    top or the bottom alternately, a cell short of the other side (at times one more gap), so a route from the left to the right winds past
+    the nav's 5 waypoints. Returns the start and the target (from the first column to the last, at times anywhere in the box)."""
+    for x, y in sorted(box):
+        routesearch.set_type(regions, r, cellstep.target_of(x, y, 0)[1], 1)
+    first = r.choice([1, 2])
+    for k, x in enumerate(range(bx + first, bx + size - 1, 2)):
+        top = (k + first) % 2 == 0
+        gap = r.choice([1, 1, 1, 2])
+        for y in (range(by, by + size - gap) if top else range(by + gap, by + size)):
+            routesearch.set_type(regions, r, cellstep.target_of(x, y, 0)[1], 4)
+            box.discard((x, y))
+    if r.random() < 0.2:
+        return r.choice(sorted(box)), r.choice(sorted(box))
+    left = sorted((x, y) for x, y in box if x == bx)
+    right = sorted((x, y) for x, y in box if x == bx + size - 1)
+    return r.choice(left), r.choice(right)
+
+
 def nav_case(r, op):
     mode = r.choice([0, 1, 2, 2, 2, 3])
-    regions, box, ring, bx, by, size = routesearch.boxed(r, mode)
+    big = r.random() < 0.3
+    regions, box, ring, bx, by, size = routesearch.boxed(r, mode, r.choice([8, 10, 12, 14]) if big else None)
+    if big:  # (a winding route)
+        (sx, sy), (tx, ty) = maze(regions, r, box, bx, by, size)
     nav = bytearray(r.bytes(0x100))
-    sx, sy = r.choice(sorted(box))
+    if not big:
+        sx, sy = r.choice(sorted(box))
     put(nav, 8, 'II', fixed(sx, r), fixed(sy, r))
     put(nav, 0xb4, 'I', mode)
-    tx, ty = r.choice(sorted(box) * 6 + [(sx, sy)] * 2 + sorted(ring))
+    if not big:
+        tx, ty = r.choice(sorted(box) * 6 + [(sx, sy)] * 2 + sorted(ring))
     target = (fixed(tx, r), fixed(ty, r))
     regions[NAV] = nav
     common(regions, r, r.choice([0, 0xffffffff, r.getrandbits(32)]))

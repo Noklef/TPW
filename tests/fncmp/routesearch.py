@@ -48,9 +48,9 @@ def get_type(regions, r, handle):
     return struct.unpack('<I', bytes(regions[(a + i) & ~0xfff][(a + i) & 0xfff] for i in range(4)))[0]
 
 
-def boxed(r, mode):
-    """cellstep.py's world for a box of cells ringed by cells of type 4: (regions, box, ring, bx, by, size)."""
-    size = r.choice([3, 4, 5, 6, 8])
+def boxed(r, mode, size=None):
+    """cellstep.py's world for a box of cells (of the size given, else 3 to 8 square) ringed by cells of type 4: (regions, box, ring, bx, by, size)."""
+    size = size or r.choice([3, 4, 5, 6, 8])
     bx = r.choice([2, 0x80 - size, r.randrange(2, 0x7f - size)])
     by = r.choice([2, 0x80 - size, r.randrange(2, 0x7f - size)])
     box = {(x, y) for x in range(bx, bx + size) for y in range(by, by + size)}
