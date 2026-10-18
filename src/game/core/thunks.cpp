@@ -258,6 +258,10 @@ u32 __fastcall Wrap_TexSurfaceB_AllocPixels_58c8e0(u8 *self, void *, u32 width, 
     return TexSurfaceB_AllocPixels(Adjust(self), nullptr, width, height, c, d);
 }
 
+u32 __fastcall Wrap_TexSurfaceB_Blit_58c930(u8 *self, void *, u8 *texture, s32 x, s32 y) {
+    return TexSurfaceB_Blit(Adjust(self), nullptr, texture, x, y);
+}
+
 u32 __fastcall Wrap_TexSurfaceB_FreePixels_58c8f0(u8 *self) {
     return TexSurfaceB_FreePixels(Adjust(self));
 }

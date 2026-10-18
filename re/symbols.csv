@@ -3081,6 +3081,7 @@ address,name,kind,confidence,notes
 0x0058c8e0,Wrap_TexSurfaceB_AllocPixels_58c8e0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls TexSurfaceB_AllocPixels
 0x0058c8f0,Wrap_TexSurfaceB_FreePixels_58c8f0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls TexSurfaceB_FreePixels
 0x00572100,Wrap_TerrainTexCache_Dtor_572100,function,high,reimplemented (src/game/core/thunks); thiscall: jumps to TerrainTexCache_Dtor
+0x0058c930,Wrap_TexSurfaceB_Blit_58c930,function,high,"reimplemented (src/game/core/thunks); thiscall: this lowered by the dword before it, then TexSurfaceB_Blit"
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value
@@ -4087,6 +4088,7 @@ address,name,kind,confidence,notes
 0x0058c8d0,TexSurfaceB_Zero,function,low,"reimplemented (src/game/gfx/texsurface); thiscall, this unused: 0.0f from 0x702248 on ST0 (name unconfirmed)"
 0x0058c710,TexSurfaceB_FreePixels,function,low,"reimplemented (src/game/gfx/texsurface); thiscall on class B's sub-object: the pixels at ECX - 0xc freed (TrackedGlobal_Free) unless the base's flags have 0x10000000, and cleared (name unconfirmed)"
 0x0058c670,TexSurfaceB_AllocPixels,function,low,"reimplemented (src/game/gfx/texsurface); thiscall (width, height, -, -; pops 0x10): without pixels, a square from the texture pages (flag 0x10000000 when cut from an old one) and the base's size set; 1 when got (name unconfirmed)"
+0x0058c750,TexSurfaceB_Blit,function,low,"reimplemented (src/game/gfx/texsurface); thiscall on class B's sub-object (texture, x, y; pops 0xc): the texture drawn scaled into its pixels at (x, y), or by the texture's object (virtual call 1)"
 0x005e7740,Array3D_Fill,function,high,"reimplemented (src/game/gfx/array3d); fills the pixels with a colour (4 bytes: d, a, b, c; 1 byte: d)"
 0x005e77c0,Array3D_CopyTo,function,high,reimplemented (src/game/gfx/array3d); copies the pixel bytes to another buffer
 0x005e77f0,Array3D_ReverseBytes,function,high,reimplemented (src/game/gfx/array3d); reverses the bytes of each 4-byte pixel

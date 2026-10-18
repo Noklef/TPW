@@ -5,6 +5,7 @@
 
 #include "texatlas.h"
 #include "texcache.h"
+#include "texture.h"
 #include "../core/vcall.h"
 #include "../core/gameheap.h"
 
@@ -18,6 +19,18 @@ u32 BaseOffset(const u8 *surface) { return at<u32>(at<const u8 *>(surface, 0), 4
 
 // Class B's virtual base offset from its sub-object (the vbtable pointer at ECX - 0x10).
 u32 SubBaseOffset(const u8 *sub) { return at<u32>(back<const u8 *>(sub, 0x10), 4); }
+
+// a / divisor as CDQ; IDIV: it faults (sic) on 0 or a quotient past 31 bits, as the originals.
+s32 Idiv(s32 a, s32 divisor) {
+    s32 q;
+    __asm {
+        mov eax, a
+        cdq
+        idiv divisor
+        mov q, eax
+    }
+    return q;
+}
 
 }  // namespace
 
@@ -130,6 +143,50 @@ u32 __fastcall TexSurfaceA_ReleaseSurfaces(u8 *sub) {
         }
     }
     *reinterpret_cast<u32 *>(sub - 0x18) = 0;
+    return 1;
+}
+
+u32 __fastcall TexSurfaceB_Blit(u8 *sub, void *, u8 *texture, s32 x, s32 y) {
+    const s32 height = at<s16>(texture, 0x16);
+    uintptr_t dst = back<u32>(sub, 0xc) + (at<u32>(sub, SubBaseOffset(sub)) * (u32)y + (u32)x) * 4;
+    const s32 width = at<s16>(texture, 0x14);
+    const u32 flags = at<u32>(texture, 8);
+    if (flags & 0x10000000) {
+        u32 record[4] = {(u32)dst, (u32)width, (u32)height, at<u32>(sub, SubBaseOffset(sub)) << 2};
+        if (vcall<u32>(at<u8 *>(texture, 0x40), 4, record, flags & 0x40000))
+            return 1;
+    }
+    uintptr_t src = (uintptr_t)Texture_Lock(texture);
+    const s32 stepX = Idiv((s32)((u32)(s32)at<s16>(texture, 0x10) << 16), width);
+    const u32 skip = (at<u32>(sub, SubBaseOffset(sub)) - (u32)width) * 4;
+    const u32 flip = at<u32>(texture, 8) & 0x40000;
+    s32 stepY = Idiv((s32)((u32)(s32)at<s16>(texture, 0x12) << 16), height);
+    u32 frac = 0;
+    const u32 srcPitch = (u32)(s32)at<s16>(texture, 0x34) << 2;
+    if (flip) {   // from the last row up
+        const u32 last = (u32)(height - 1) * (u32)stepY;
+        stepY = -stepY;
+        src += (u32)((s32)last >> 16) * srcPitch;
+        frac = last & 0xffff;
+    }
+    if (height == 0)
+        return 1;
+    u32 rows = (u32)height;
+    do {
+        u32 n = (u32)width;
+        u32 fx = 0;
+        if (n) {
+            do {
+                *reinterpret_cast<u32 *>(dst) = *reinterpret_cast<const u32 *>(src + (u32)((s32)fx >> 16) * 4);
+                dst += 4;
+                fx += (u32)stepX;
+            } while (--n);
+        }
+        dst += skip;
+        frac += (u32)stepY;
+        src += (u32)((s32)frac >> 16) * srcPitch;
+        frac &= 0xffff;
+    } while (--rows);
     return 1;
 }
 }

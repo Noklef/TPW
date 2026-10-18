@@ -66,4 +66,12 @@ u8 *__fastcall SoftRenderer_NewSurfaceB(void *self);
 // dword at ECX - 0x10, at least 1), the COM objects of the two arrays at ECX - 0x38 and ECX - 0x28 (that order) that are set are released
 // (slot 2) and cleared; then the dword at ECX - 0x18 is cleared. Returns 1.
 u32 __fastcall TexSurfaceA_ReleaseSurfaces(u8 *sub);
+
+// 0x58c750 (thiscall on class B's sub-object; texture, x, y; pops 0xc; name unconfirmed; behind the thunk 0x58c930): the texture (gfx/texture)
+// drawn scaled into the pixels at ECX - 0xc (dwords, the pitch in pixels at ECX + off, off = vbtable[1] of the vbtable at ECX - 0x10) at (x, y),
+// its s16 +0x14 x +0x16 the size drawn. With texture flag 0x10000000 its object at +0x40 is asked first (virtual call 1: a stack record of
+// the destination, the width, the height and the pitch in bytes, and the flag 0x40000): not 0, done. Else from Texture_Lock's pixels
+// (the s16 pitch +0x34 in pixels) of size +0x10 x +0x12, 16.16 steps (source size << 16 over the size drawn: one IDIV each, faulting, sic,
+// on a size of 0); flag 0x40000 reads the rows from the last up. A height of 0 draws nothing. Returns 1.
+u32 __fastcall TexSurfaceB_Blit(u8 *sub, void *, u8 *texture, s32 x, s32 y);
 }
