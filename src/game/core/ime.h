@@ -40,6 +40,11 @@ void __fastcall Ime_SetLimit(u8 *ime, void *, u32 limit);
 // +0x18c the top byte of host (an unset local, sic). Returns host.
 u8 *__fastcall ImeHost_Ctor(u8 *host);
 
+// 0x480f90 (thiscall on the host; window, pops 4; name unconfirmed): only for the host's own window (+4): the words +0x1a8 = 0 and +0x1aa = 1,
+// and the IME's limit (Ime_SetLimit on +0x1c) = what the text window has room for: its limit word +0x13c (signed) less its text's length
+// (Window705a50_TextLength, ui/window705a50; signed word).
+void __fastcall ImeHost_OnWindow(u8 *host, void *, u8 *window);
+
 // 0x47c740 (thiscall; position, pointer to the value, pops 8): inserts one value before the position. With room it is built at the end when the position is the end
 // (ImeVector_Copy / ImeVector_Fill), else the last is copied up to the end, the rest shifted up and the value assigned over the position; with none the vector is rebuilt in
 // a new block of twice the size (one when it was empty), the old block freed. Returns where the value went (first + the position's index).
