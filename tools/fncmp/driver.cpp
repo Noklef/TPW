@@ -643,7 +643,7 @@ int main(int argc, char **argv) {
                                             reinterpret_cast<void(__cdecl *)(u32 *, void *, const void *, u32, u32)>(hooked(0x005f5e50)),
                                             reinterpret_cast<void(__cdecl *)(u32 *, void *, void *, u32, u32)>(hooked(0x005f5e20))};
     SpriteScripts_SetEnv(&sprites);
-    static char token[1 << 22];
+    static char token[1 << 24];   // (a region of up to 8 MB)
     for (;;) {
         u32 address, count;
         char conv[8], ret[8];
@@ -656,7 +656,7 @@ int main(int argc, char **argv) {
         std::vector<std::pair<u32, u32>> spans;
         for (u32 i = 0; i < regions; ++i) {
             u32 at;
-            std::scanf("%x %4194303s", &at, token);
+            std::scanf("%x %16777215s", &at, token);
             std::vector<u8> bytes = unhex(token);
             map(at, (u32)bytes.size());
             std::memcpy(reinterpret_cast<void *>((uintptr_t)at), bytes.data(), bytes.size());
