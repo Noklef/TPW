@@ -26,6 +26,11 @@ void __cdecl DynFaces_AddGrid(float dx, float dy, float dz, s32 rows, s32 cols, 
 // (x, 1.7 cos h, z), h = x * k cos A - z * k sin A - phase / 2, and its normal (sin h, 1, sin h) normalised.
 void __cdecl DynFaces_WaveGrid(s32 rows, s32 cols, float step, float phase);
 
+// 0x53d570 (cdecl; rows, cols, step, phase; name unconfirmed): that grid filled as a ripple, likewise: for each column (z = 0, -step, ...) and
+// row (x = 0, step, ...), with d = sqrt(x^2 + (z - cols step)^2) - 0.6 phase and the fall x / ((rows - 4) step) up to 1 (a NaN kept), the
+// vertex is (x, 0.6 fall cos(d pi / 2) + z - 0.02 x^2, 0.3 fall cos(2 pi d / 3)) and its normal (s, s, 1) normalised, s = fall sin(2 pi d / 3).
+void __cdecl DynFaces_RippleGrid(s32 rows, s32 cols, float step, float phase);
+
 // 0x53c1f0 (cdecl; tags, count; name unconfirmed): the count tag words at tags[1..count] (the caller hands 0x872168 - 4) sorted by their tag (the low five
 // bits): a quicksort with a stack of 50 dwords and insertion sorts of runs under 7, unsigned throughout (a count of 0 goes to the partition). Sic: the
 // insertion sort steps down to tags[1], not to the run's start.

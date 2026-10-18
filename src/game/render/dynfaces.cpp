@@ -183,6 +183,51 @@ void __cdecl DynFaces_WaveGrid(s32 rows, s32 cols, float step, float phase) {
     }
 }
 
+void __cdecl DynFaces_RippleGrid(s32 rows, s32 cols, float step, float phase) {
+    const SinTable sines = SinTable_Game();
+    const float k = static_cast<float>(X87Reg(6.28318501f) * 0.333333343f);
+    float z = 0;
+    const float depth = static_cast<float>(X87Reg(X87_MulIntDouble(cols, step)));
+    if (cols <= 0) return;
+    u32 column = 0;
+    for (s32 c = cols; c != 0; c--, column += 0xc) {
+        if (rows > 0) {
+            float x = 0;
+            const X87Reg dz = X87Reg(z) - depth;
+            const float dz2 = static_cast<float>(dz * dz);
+            const float lift = static_cast<float>(X87Reg(phase) * 0.600000024f);
+            const float reach = static_cast<float>(X87Reg(X87_MulIntDouble(rows - 4, step)));
+            u32 offset = column;
+            for (s32 r = rows; r != 0; r--, offset += 0xe4) {
+                float *const p = reinterpret_cast<float *>((uintptr_t)(0x00874180 + offset));
+                float *const n = reinterpret_cast<float *>((uintptr_t)(0x00870ed8 + offset));
+                const X87Reg d = X87_Sqrt(X87Reg(x) * x + dz2) - lift;
+                const float angle = static_cast<float>(X87Reg(k) * d);
+                const float quarter = static_cast<float>(X87Reg(6.28318501f) * d * 0.25f);
+                const X87Reg q = X87Reg(x) / reach;
+                const float fall = q.v >= 1.0 ? 1.0f : static_cast<float>(q);  // (a NaN is kept)
+                const float across = static_cast<float>(
+                    X87Reg(SinTable_At(sines, static_cast<float>((X87Reg(angle) - -1.57079637f) * sines.scale))) * fall * 0.300000012f);
+                const float up = SinTable_At(sines, static_cast<float>((X87Reg(quarter) - -1.57079637f) * sines.scale));
+                p[0] = x;
+                p[1] = static_cast<float>(X87Reg(up) * (X87Reg(fall) + fall) * 0.300000012f + z - X87Reg(x) * x * 0.0199999996f);
+                p[2] = across;
+                n[2] = 1.0f;
+                const float t = static_cast<float>(X87Reg(SinTable_At(sines, static_cast<float>(X87Reg(sines.scale) * angle))) * fall);
+                n[0] = t;
+                n[1] = t;
+                const X87Reg nx = n[0], ny = n[1], nz = n[2];
+                const X87Reg length = X87_Sqrt(nx * nx + ny * ny + nz * nz);
+                n[0] = static_cast<float>(X87Reg(n[0]) / length);
+                n[1] = static_cast<float>(X87Reg(n[1]) / length);
+                n[2] = static_cast<float>(X87Reg(n[2]) / length);
+                x = static_cast<float>(X87Reg(x) + step);
+            }
+        }
+        z = static_cast<float>(X87Reg(z) - step);
+    }
+}
+
 void __cdecl DynFaces_ReleaseModels() {
     u32 &flag = *reinterpret_cast<u32 *>((uintptr_t)0x00874fcc);
     if (flag != 0) {
