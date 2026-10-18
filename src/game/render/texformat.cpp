@@ -14,6 +14,18 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 extern "C" {
 
+u32 __fastcall TexFormat_Record(void *, void *, u32 *out, s32 index) {
+    if (index < 4) {
+        u8 *const record = reinterpret_cast<u8 *>((uintptr_t)(0x008bd558 + (u32)index * 0x20));
+        if (*reinterpret_cast<const u32 *>(record)) {
+            *out = (u32)(uintptr_t)record;
+            return 1;
+        }
+    }
+    EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754003);
+    return 0;
+}
+
 void __fastcall TexFormat_FillTables(u8 *settings) {
     for (u32 k = 0; k < 4; k++) {
         const u8 *format = settings + 0x20 * k;

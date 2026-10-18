@@ -1,4 +1,4 @@
-// The renderer settings' texture format helpers: reimplementation of 0x581790, 0x583ba0, 0x5839a0, 0x5839e0 and 0x5839f0.
+// The renderer settings' texture format helpers: reimplementation of 0x573820, 0x581790, 0x583ba0, 0x5839a0, 0x5839e0 and 0x5839f0.
 //
 // The renderer settings are the object at 0x8bd550 (its +0 the renderer flags; +4 the current
 // texture format, read all over as 0x8bd554). 0x5839f0 fills its tables, 0x1000 bytes per format
@@ -9,6 +9,11 @@
 #include "../../../re/types.h"
 
 extern "C" {
+
+// 0x573820 (thiscall, this unused (the device at [0x879da8]); out, index; pops 8; name unconfirmed): for an index below 4 (signed)
+// whose format record (0x20 bytes a format from 0x8bd558, the settings' +8) has a non-zero first dword, *out = the record and 1. Else
+// the error (2, 0xb0754003) pushed (EngineErrors_Push) and 0.
+u32 __fastcall TexFormat_Record(void *, void *, u32 *out, s32 index);
 
 // 0x5839f0 (thiscall on the settings): for each of the 4 formats k (0x20 bytes apart from
 // +0x8; masks a, b, c, d at +0x24, +0x18, +0x1c, +0x20 + 0x20k): +0x4088 + 0x10k = the four
