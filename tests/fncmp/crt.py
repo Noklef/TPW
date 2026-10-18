@@ -60,9 +60,11 @@ def case(r):
     if op == 'iswspace':   # (below 0x80, with junk in the high half: MSVC6 asks a Latin-1 table above that, then Windows)
         c = r.choice([r.randrange(0x80), r.choice(b' \t\n\x0b\x0c\r\x08\x0e\x1f!0aZ')])
         return Call(0x67a730, [c | (r.getrandbits(16) << 16 if r.random() < 0.4 else 0)], {}, ret='a')
-    if op == 'wcslen':
+    if op in ('wcslen', 'wcscpy'):
         n = r.randrange(60)
         w = b''.join(r.randrange(1, 0x10000).to_bytes(2, 'little') for _ in range(n))
+        if op == 'wcscpy':   # (the output's junk after the terminator must stay)
+            return Call(0x67bf10, [OUT, A], {A: w + b'XX', OUT: r.bytes(0x100)}, ret='a')
         return Call(0x67acd0, [A], {A: w + b'\0\0'}, ret='a')
     # sprintf: up to three conversions with integer or string arguments
     fmt, args = b'', []
@@ -78,7 +80,7 @@ def case(r):
     return Call(0x67a650, [OUT, RAM + 0x300] + args, regions, ret='a')
 
 
-KINDS = ['stricmp', 'strrchr', 'strchr', 'strncmp', 'strstr', 'toupper', 'tolower', 'atoi', 'wcslen', 'sprintf', 'strncpy', 'iswspace']
+KINDS = ['stricmp', 'strrchr', 'strchr', 'strncmp', 'strstr', 'toupper', 'tolower', 'atoi', 'wcslen', 'sprintf', 'strncpy', 'iswspace', 'wcscpy']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':

@@ -17,6 +17,7 @@ const CrtEnv kGameCrt = {
     game<u32(__cdecl *)(const u16 *)>(0x0067acd0),
     game<char *(__cdecl *)(char *, const char *, u32)>(0x0067ae00),
     game<u32(__cdecl *)(u32)>(0x0067a730),
+    game<u16 *(__cdecl *)(u16 *, const u16 *)>(0x0067bf10),
 };
 const CrtEnv *g_crt = &kGameCrt;
 
