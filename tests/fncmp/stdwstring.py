@@ -64,15 +64,18 @@ def case(r):
     if op == 'Fill':
         n = small  # (not npos or past max_size: the throws end the case)
         return Call(0x47b970, [S, n, r.choice([0, r.getrandbits(16), r.getrandbits(32)])], regions, conv='t', ret='a')
-    if op == 'CtorCopy':   # (s's fields are overwritten: x, or s itself)
+    if op == 'CtorCopy':   # (s's fields are overwritten: x, or s itself; x's length past 0x7ffffff, only its block shared, now and then)
+        if x[0] and r.random() < 0.15:
+            blocks[x[0] - BLOCKS - 1] = r.choice([0, 1, 0xfd])
+            put(strs, 0x18, 'I', r.choice([0x8000000, 0x7ffffffd, 0xfffffff0]))
         return Call(0x47ae60, [S, r.choice([X, X, X, S])], regions, conv='t', ret='a')
     if op == 'CtorFill':   # (the allocator's byte from anywhere)
         return Call(0x47af80, [S, small, r.choice([0, r.getrandbits(16), r.getrandbits(32)]), r.choice([X, STRS + 0x31])], regions, conv='t', ret='a')
-    if op == 'UninitCopy':   # 0-3 strings from x on copied to DEST (or onto themselves); a null dest only for none
-        k = r.choice([0, 1, 2, 3, 3])
+    if op == 'UninitCopy':   # 0-3 strings from x on copied to DEST (or onto themselves); a null dest only for none or one (skipped)
+        k = r.choice([0, 1, 1, 2, 3, 3])
         for j in (2, 3):
             put(strs, 0x10 * j + 4, '3I', *string(r, blocks, j))
-        dest = r.choice([DEST, DEST, DEST, X] + ([0] if k == 0 else []))
+        dest = r.choice([DEST, DEST, DEST, X] + ([0, 0] if k < 2 else []))
         regions[DEST] = r.bytes(0x40)
         return Call(0x47b600, [r.getrandbits(32), X, X + 0x10 * k, dest], regions, conv='t', ret='a')
     # AssignSub: from x, or from s itself
