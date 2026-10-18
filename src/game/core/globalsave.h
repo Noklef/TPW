@@ -1,7 +1,7 @@
 // The global save info: the singleton at 0xf7c58c (made by 0x409410, 0x50 bytes, constructed by
 // 0x5aef50) that keeps a record for each theme ("Global save info for a theme", 0x5b0a70) and
 // the swear filter's word lists (0x5afd70). Reimplementation of its byte accessors 0x5af7f0-
-// 0x5b0cc0 (thiscall).
+// 0x5b0cc0 (thiscall) and a theme record's save and load (0x5b0d70).
 //
 // Fields as 0x5aef50 sets them: +0x20 a counter (0), +0x24 a byte (0), +0x25 a byte (1), +0x26
 // a byte array (its first u16 0), +0x48 the current theme's record, +0x4c a byte (1). A theme
@@ -11,7 +11,16 @@
 
 #include "../../../re/types.h"
 
+struct Stream;
+
 extern "C" {
+
+// 0x5b0d70 (thiscall on a theme's record; stream, save, an unused third; pops 0xc; name unconfirmed): the record written (save not 0;
+// Stream_Write) or read (Stream_Read) field by field: the bytes +0-+5, then four times a byte (+6 on) and a dword (+0xc on), then 0x21
+// times the u16s mSignNameA[i] (+0x34 on) and mSignNameB[i] (+0x76 on), then the bytes mNameChanged (+0xb8) and
+// mAllResearchCompleted (+0xb9); the read takes those last ones through Save_ReadU16 / Save_ReadU8 (quiet). A field not all done
+// (or a negative result): 1 at once. Else 0.
+u32 __fastcall ThemeSaveRecord_Serialize(u8 *record, void *, Stream *stream, u32 save, u32);
 
 // 0x5af7f0 (i): byte i of the current theme's record (in AL only, as all the byte getters).
 u8 __fastcall GlobalSave_ThemeByte(const u8 *info, void *, u32 i);

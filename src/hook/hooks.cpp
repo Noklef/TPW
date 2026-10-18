@@ -1917,6 +1917,7 @@ const Hook kHooks[] = {
     {"GlobalSave_SetAllResearchCompleted", 0x005b0ca0, (void *)&GlobalSave_SetAllResearchCompleted, {0x8b, 0x41, 0x48, 0x85, 0xc0}},
     {"GlobalSave_Byte4c",         0x005b0cb0, (void *)&GlobalSave_Byte4c, {0x8a, 0x41, 0x4c, 0xc3, 0x90}},
     {"GlobalSave_ClearByte4c",    0x005b0cc0, (void *)&GlobalSave_ClearByte4c, {0xc6, 0x41, 0x4c, 0x00, 0xc3}},
+    {"ThemeSaveRecord_Serialize", 0x005b0d70, (void *)&ThemeSaveRecord_Serialize, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
     {"LiveObjects_Add",           0x005775d0, (void *)&LiveObjects_Add, {0xa1, 0xd8, 0xae, 0x87, 0x00}},
     {"LiveObjects_Remove",        0x00577600, (void *)&LiveObjects_Remove, {0xa1, 0xd8, 0xae, 0x87, 0x00}},
     {"LiveObject7019f8_Construct", 0x00579cd0, (void *)&LiveObject7019f8_Construct, {0x6a, 0xff, 0x68, 0xad, 0xf2}},

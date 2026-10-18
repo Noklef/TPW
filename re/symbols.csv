@@ -2359,6 +2359,7 @@ address,name,kind,confidence,notes
 0x005b0ca0,GlobalSave_SetAllResearchCompleted,function,high,"reimplemented (src/game/core/globalsave); thiscall: the current theme record's (+0x48) mAllResearchCompleted (+0xb9) = 1, when there is one"
 0x005b0cb0,GlobalSave_Byte4c,function,high,reimplemented (src/game/core/globalsave); thiscall u8: the global save info's byte +0x4c
 0x005b0cc0,GlobalSave_ClearByte4c,function,high,reimplemented (src/game/core/globalsave); thiscall: the global save info's byte +0x4c = 0
+0x005b0d70,ThemeSaveRecord_Serialize,function,low,"reimplemented (src/game/core/globalsave); thiscall (stream, save, unused): a theme's save record written or read field by field (6 bytes, 4 x byte+dword, 0x21 x mSignNameA/B u16s, mNameChanged, mAllResearchCompleted); 1 at the first short field, else 0"
 0x005775d0,LiveObjects_Add,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): appended to the live objects list (0x87a6d8, count 0x87aed8, room for 0x200; the rest dropped); 1 either way"
 0x00577600,LiveObjects_Remove,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): the last match is replaced by the last entry and the count drops; 1, or 0 when not there"
 0x00579cd0,LiveObject7019f8_Construct,function,low,"reimplemented (src/game/core/liveobjects); thiscall (most derived): two identity matrices, fields cleared, the virtual base's vtable 0x7019f8 set and the base added to the live objects"
