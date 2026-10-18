@@ -298,4 +298,43 @@ s32 __fastcall TexCache_ChooseSize(u8 *cache, void *, s32 a, s32 b, s32 limit) {
         return b;
     return a;
 }
+
+s32 __fastcall TexCacheEntry_Score(u8 *entry, void *, u32) {
+    u8 *const surface = at<u8 *>(entry, 0);
+    const s32 area = reinterpret_cast<s32(__fastcall *)(u8 *)>(at<void **>(surface, 0)[3])(surface);
+    at<s32>(entry, 8) = area;
+    at<s32>(entry, 0xc) = 0;
+    at<s32>(entry, 0x1c) = 0;
+    const u8 *item = at<const u8 *>(entry, 4);
+    bool keep = false, filtered = false, whole = item != nullptr;
+    s32 tagged = 0, count = 0, sum = 0, weighted = 0;
+    for (; item; item = Next(item)) {
+        if (at<u32>(item, 8) & 0x4000)
+            keep = true;
+        const bool filter = Texture_UsesDriverFilter(item);
+        const u8 low = at<u8>(item, 8);
+        if (filter ? (low & 0x30) && at<s16>(item, 0x14) > at<s32>(nullptr, 0x00702564) : (low & 0x30) != 0)
+            whole = false;
+        if (Texture_UsesDriverFilter(item))
+            filtered = true;
+        const s32 itemArea = (s32)at<s16>(item, 0x14) * (s32)at<s16>(item, 0x16);
+        if (at<u32>(item, 8) & 0x40000000)
+            at<s32>(entry, 0xc) += itemArea;
+        const u32 flags = at<u32>(item, 8);
+        if (flags & 0x10000000)
+            ++tagged;
+        sum += itemArea;
+        weighted += at<s32>(item, at<u32>(at<const u8 *>(item, 0), 4) + 0x10) * itemArea;
+        if (flags & 0x4000)
+            at<s32>(entry, 0x1c) += itemArea;
+        ++count;
+    }
+    TexCacheItem_SetFlags(surface, nullptr, (keep ? 1 : 0) | (filtered ? 2 : 0) | (whole ? 4 : 0));
+    at<s32>(entry, 8) -= sum;
+    const s32 age = at<s32>(nullptr, 0x008bcc40) - at<s32>(entry, 0x14);
+    const s32 fresh = age < 0x10 ? 0x10 - age : 0;
+    const s32 score = weighted + area * fresh + 2 * (count + 2 * (at<s32>(entry, 0xc) + 2 * (sum + 2 * tagged)));
+    at<s32>(entry, 0x10) = score;
+    return score;
+}
 }

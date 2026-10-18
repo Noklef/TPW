@@ -4035,6 +4035,7 @@ address,name,kind,confidence,notes
 0x0058faf0,TexCache_Evict,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache: per entry size, the least-keyed lightly used entries (at most +0x1878, 16) emptied, their items' cache flags cleared and the flagged ones put on the list at +0x18c4"
 0x0058d1d0,TexCache_AddSurfaces,function,high,"reimplemented (src/game/gfx/texcache); thiscall (side, made, format, levels; pops 0x10): new surfaces from the render device while the side's budget covers their area, each in a new cache entry; *made, AnimTextures_Set; returns made > 0"
 0x0058ea20,TexCache_ChooseSize,function,high,"reimplemented (src/game/gfx/texcache); thiscall (a, b, limit; pops 0xc): b when twice its share is below a's, its total 10 below a's and a's surface's count * 3 below limit * 4; else a; x87 shares"
+0x00591010,TexCacheEntry_Score,function,high,"reimplemented (src/game/gfx/texcache); thiscall (an unused dword; pops 4): the entry's area, its items' area sums and flags (the surface's flags set from them) and a score of them and the age; returns the score"
 0x00575bd0,TexSet_Ctor,function,high,"reimplemented (src/game/gfx/texset); thiscall (a texture set, 16 bytes): all zero; returns the set"
 0x00575f90,TexSet_Texture,function,high,"reimplemented (src/game/gfx/texset); thiscall (i): texture i, [+8][i]"
 0x00575fa0,TexSet_TextureSlot,function,high,reimplemented (src/game/gfx/texset); thiscall (i): &[+8][i]

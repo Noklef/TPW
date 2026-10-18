@@ -93,4 +93,14 @@ u32 __fastcall TexCache_AddSurfaces(u8 *cache, void *, s32 side, s32 *made, u32 
 // surface (+0x400 * a, its +0) answers a count. b when twice b's share is below a's (or unordered), b's +0x1818 + 10 is below a's
 // and count * 3 is below limit * 4 (signed, 32-bit); else a.
 s32 __fastcall TexCache_ChooseSize(u8 *cache, void *, s32 a, s32 b, s32 limit);
+
+// 0x591010 (thiscall on a cache entry; an unused dword; pops 4; name unconfirmed; 0x58cd19 and 0x58cec2 ask it): +8 = slot 3 of the
+// surface (+0) (its area), +0xc and +0x1c zeroed; then for each item of the list at +4 (next +4; flags +8, size s16 +0x14 by +0x16,
+// area their product): bit 0x4000 marks the entry kept; an item with flags & 0x30 (and when it uses the driver filter,
+// Texture_UsesDriverFilter, also width > [0x702564]) clears "whole" (set when the list has items), one using the driver filter sets
+// "filtered"; the area adds to +0xc with 0x40000000, to +0x1c with 0x4000, to the sum always, times the dword at +0x10 past the
+// item's virtual base (vbtable +0[4]) to a weighted sum; 0x10000000 items are counted. The surface's flags are set to kept | filtered
+// << 1 | whole << 2 (TexCacheItem_SetFlags); +8 loses the sum. With age = [0x8bcc40] - +0x14, fresh = 0x10 - age below 0x10 (else 0):
+// +0x10 = weighted + area * fresh + 2 * (items + 2 * (+0xc + 2 * (sum + 2 * counted))) (32-bit), which is returned.
+s32 __fastcall TexCacheEntry_Score(u8 *entry, void *, u32);
 }
