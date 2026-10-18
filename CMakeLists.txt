@@ -138,6 +138,8 @@ add_library(tpw_game STATIC
     src/game/core/countedpair.cpp
     src/game/core/stringmapsrecord.cpp
     src/game/core/cmdline.cpp
+    src/game/core/framecountdown.cpp
+    src/game/ui/panel7cc328.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -340,6 +342,8 @@ add_library(tpw_game STATIC
     src/game/ui/windowtimers.cpp
     src/game/ui/window705a50.cpp
     src/game/ui/thingpreview.cpp
+    src/game/ui/listrows.cpp
+    src/game/ui/frame.cpp
 )
 
 # Proxy dinput.dll that loads into tp.exe and installs the hooks.

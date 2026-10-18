@@ -8,6 +8,8 @@
 # as the strip owner; the holder's turn in degrees of any value, the root's translation and the model's 0x18 bytes random.
 # Grow (0x454550, frames 1, 2, 4, 8 and others) and Refresh (0x4547f0): Show's shown environment with strips for StripAnim_Apply
 # (0-3, or none at all), flags of any frame (several, none), growing or not, either direction.
+# Restart (0x4df300, src/game/world/object): Grow's environment as the ride at 0x7a4610[+0x20] (0-3) of an object of random bytes whose ride id
+# (+0x24) has a record in ridelist.py's list or not (the system flag set or not; arrays of 0-16 dwords, so element 6 is there or not).
 # usage: stripanim.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -19,7 +21,8 @@ from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 import holder  # noqa: E402
 import misc  # noqa: E402
 
-B = Bench([(0x454050, 0x45453b), (0x4547c0, 0x4547e7), (0x454670, 0x4547b6), (0x46f150, 0x475010), (0x454550, 0x454661), (0x4547f0, 0x4548eb)] + holder.RANGES, sines=256,
+B = Bench([(0x454050, 0x45453b), (0x4547c0, 0x4547e7), (0x454670, 0x4547b6), (0x46f150, 0x475010), (0x454550, 0x454661), (0x4547f0, 0x4548eb),
+           (0x4df300, 0x4df389), (0x50b350, 0x50b360), (0x55a070, 0x55a0b0), (0x55a0b0, 0x55a100)] + holder.RANGES, sines=256,
           hooks=holder.HOOKS)
 OBJECT, SHAPE, CHAIN, VERTS, COORDS = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x1000, RAM + 0x2000
 
@@ -114,8 +117,35 @@ def strips_case(r, op):   # Grow / Refresh
     return Call(0x4547f0, [SOBJ], regions, conv='c', ret='v')
 
 
+ROBJ, RNODES, RARRAYS = RAM + 0xf000, RAM + 0xf100, RAM + 0xf600
+
+
+def restart_case(r):
+    c = strips_case(r, 'grow')
+    regions = dict(c.regions)
+    count = r.choice([0, 1, 2, 3, 4])
+    ids = r.sample(range(1, 9), count)
+    nodes = bytearray(r.bytes(0x100 * 4))
+    for i, rid in enumerate(ids):
+        put(nodes, 0x100 * i, 'I', RNODES + 0x100 * (i + 1) if i + 1 < count else 0)
+        put(nodes, 0x100 * i + 8, 'I', rid)
+        put(nodes, 0x100 * i + 0x1c, 'I', RARRAYS + 0x40 * i)
+        put(nodes, 0x100 * i + 0x8c, 'i', r.choice([0, 4, 6, 7, 8, 16, -1]))
+    k = r.randrange(4)
+    obj = bytearray(r.bytes(0x80))
+    put(obj, 0x20, 'I', k)
+    put(obj, 0x24, 'I', r.choice(ids + [0, 99]) if ids else r.choice([0, 1, 5]))
+    table = bytearray(r.bytes(0x10))
+    put(table, 4 * k, 'I', SOBJ)
+    regions.update({ROBJ: obj, RNODES: nodes, RARRAYS: r.bytes(0x100), 0x7a4610: table, 0x8791a0: struct.pack('<I', r.choice([0, 1, 1, 1])),
+                    0x8791b0: struct.pack('<I', RNODES if count else 0)})
+    return Call(0x4df300, [ROBJ], regions, conv='t', ret='v')
+
+
 def case(r):
-    op = r.deal(['apply', 'apply', 'shrink', 'fit', 'show', 'show', 'grow', 'grow', 'refresh', 'refresh'])
+    op = r.deal(['apply', 'apply', 'shrink', 'fit', 'show', 'show', 'grow', 'grow', 'refresh', 'refresh', 'restart', 'restart'])
+    if op == 'restart':
+        return restart_case(r)
     if op == 'fit':
         return fit_case(r)
     if op == 'show':

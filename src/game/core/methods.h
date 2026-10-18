@@ -73,6 +73,13 @@ u32 __fastcall Ranges_LookupAdapter(const u8 *object, void *, u32 key);
 // that is left, else 0. Returns status.
 u32 *__fastcall Narrow_FromWide(const u8 *object, void *, u32 *status, u8 *dest, const u16 *source, u32 room);
 
+// 0x6adc80 (thiscall; status, dest, source, count, pops 16; name unconfirmed): the other way: the bytes of the source (up to its zero) to
+// 16-bit characters at dest, at most count of them (a 16-bit count). A byte b below the lead byte +8 plus 1 is the code b - 1; any other
+// takes the next byte n too (even the zero, sic) for the code (b + 0x100) * 0xff - lead * 0xfe + n (16 bits). A code below the word +0xa is
+// looked up in the table of words at +0xc, else 0. Ends with a zero character; when the count ran out exactly at the source's zero, that
+// zero overwrites the last character instead (the one before dest for a count of 0) and *status = -1, else 0. Returns status.
+u32 *__fastcall Wide_FromNarrow(const u8 *object, void *, u32 *status, u16 *dest, const u8 *source, u32 count);
+
 // 0x6bc040 (thiscall; mask, out, pops 8): whether the mask has a bit in common with the word at +0x18 of what the dword at
 // +8 points to (*out = the byte at +5 of what +0x4c points to) or else with the word at +0x1c (the byte at +6).
 bool __fastcall Obj_ByteForMask(const u8 *object, void *, u32 mask, u32 *out);

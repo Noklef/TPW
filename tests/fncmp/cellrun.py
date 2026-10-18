@@ -7,7 +7,8 @@
 # not the same on both sides: a run over it may never stop). So a run moved off the map (a next cell off it does not stop it) is seldom kept.
 # Most cases (lay_path) lay a track of 0x19 cells with matching neighbour bits over the random ones, so that runs turn and go on. The point list's
 # cap (0x401 points) needs a run with over 0x400 corners: not reached.
-# usage: cellrun.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Mark,Corners)
+# The point list's own add (0x52fbf0) and commit (0x52fc30): any list, any count (at and around the cap, negative), any copy below 0x818d98.
+# usage: cellrun.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Mark,Corners,Add,Commit)
 import os
 import struct
 import sys
@@ -16,7 +17,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x531040, 0x531167), (0x530e80, 0x530fe7),(0x4d8c00, 0x4d8c30), (0x4d8300, 0x4d8328), (0x522700, 0x5228b5), (0x53a510, 0x53a53d), (0x53ad20, 0x53aefc),
-           (0x50c320, 0x50c3e0), (0x50c3e0, 0x50c540), (0x536300, 0x53644c), (0x522850, 0x522860), (0x4d99c0, 0x4d99e0), (0x4d97b0, 0x4d97e0), (0x5da3c0, 0x5da3c1)])
+           (0x50c320, 0x50c3e0), (0x50c3e0, 0x50c540), (0x536300, 0x53644c), (0x522850, 0x522860), (0x4d99c0, 0x4d99e0), (0x4d97b0, 0x4d97e0), (0x5da3c0, 0x5da3c1),
+           (0x52fbf0, 0x52fc21), (0x52fc30, 0x52fc79)])
 CELLS = RAM + 0x10000
 WORLD = (CELLS - 0x6cde * 0x28) & 0xffffffff
 REACH = 4  # cells two apart either side of the start
@@ -26,7 +28,7 @@ PAIRS = bytearray(0x40)
 for _d, _at in TABLE.items():
     struct.pack_into('<ii', PAIRS, _at, *STEPS[_d])
 MOVES = {1: (0, -2), 4: (2, 0), 0x10: (0, 2), 0x40: (-2, 0)}
-OPS = [k for k in os.environ.get('OPS', 'Mark,Corners').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Mark,Corners,Add,Commit').split(',') if k]
 
 
 def ident(x, y):
@@ -145,6 +147,14 @@ def lay_path(r, cells, x0, y0):
 
 def case(r):
     op = r.deal(OPS)
+    if op == 'Add':
+        count = r.choice([0, 1, 5, 0x3ff, 0x400, 0x401, 0x402, 0xffffffff, r.randrange(0x400)])
+        regions = {0x81b740: r.bytes(0x2010), 0x820a80: put(bytearray(r.bytes(0x20)), 0xc, 'I', count)}
+        return Call(0x52fbf0, [r.getrandbits(32), r.getrandbits(32)], regions, conv='c', ret='a')
+    if op == 'Commit':
+        count = r.choice([0, 1, 5, 0x400, 0x401, 0xffffffff, 0xfffffffb])
+        regions = {0x81b740: r.bytes(0x2010), 0x818d90: r.bytes(0x2010), 0x820a80: put(bytearray(r.bytes(0x20)), 0xc, 'I', count)}
+        return Call(0x52fc30, [], regions, conv='c', ret='a')
     while True:
         x0, y0, hoarding, rows, cells = draw(r)
         if stops(cells, x0, y0, hoarding):

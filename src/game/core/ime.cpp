@@ -4,6 +4,7 @@
 
 #include "buffers.h"
 #include "gameheap.h"
+#include "../ui/window705a50.h"
 
 namespace {
 
@@ -238,5 +239,13 @@ void __fastcall ImeVector_InsertN(u8 *vec, void *, u32 *position, u32 count, con
     u32 *const old = at<u32 *>(vec, 4);
     at<u32 *>(vec, 4) = block;
     at<u32 *>(vec, 8) = block + count + (old == nullptr ? 0 : Dwords(at<u32 *>(vec, 8), old));
+}
+
+void __fastcall ImeHost_OnWindow(u8 *host, void *, u8 *window) {
+    if (window != at<u8 *>(host, 4)) return;
+    at<u16>(host, 0x1a8) = 0;
+    at<u16>(host, 0x1aa) = 1;
+    const s32 room = at<s16>(window, 0x13c);
+    Ime_SetLimit(host + 0x1c, nullptr, (u32)(room - (s16)Window705a50_TextLength(window)));
 }
 }

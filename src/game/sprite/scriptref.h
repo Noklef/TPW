@@ -25,4 +25,7 @@ u32 __fastcall ScriptRef_IsAt(const u8 *ref, void *, u32 anim);
 // 0x4d4190 (thiscall): when +4 is set the script is sent to that entry point (SpriteScript_Jump) and
 // +4 cleared; when +8 is set it is made the script's period (SpriteScript_SetPeriod) and +8 cleared.
 void __fastcall ScriptRef_Apply(u8 *ref);
+
+// 0x4d4170 (thiscall): the script at +0 killed (SpriteScript_Kill) and +0 = 0.
+void __fastcall Obj_KillSlot(u8 *object);
 }

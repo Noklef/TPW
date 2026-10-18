@@ -149,6 +149,10 @@ extern "C" {
 // decides (-1 below, 1 above, unsigned), else the shorter is less. -1, 0 or 1.
 s32 __fastcall WString_Compare(const u8 *self, void *, const u8 *other);
 
+// 0x4f7870 (thiscall; pos, n, other, count, pops 16): compare(pos, n, other, count): past the length a pos is std::_Xran; at most n
+// characters from pos (no data stays a null pointer, sic, not the empty string) against the count at other, as WString_Compare. -1, 0 or 1.
+s32 __fastcall WString_CompareSub(const u8 *self, void *, u32 pos, u32 n, const u16 *other, u32 count);
+
 // 0x424cc0 / 0x424cf0 (cdecl; a, b): the texts the dwords at +8 of a and b point to compare, case blind: 1 when the first is after the second / when
 // they are equal, otherwise 0.
 u32 __cdecl Names_FirstAfter(const u8 *a, const u8 *b);

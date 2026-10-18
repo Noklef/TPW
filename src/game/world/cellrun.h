@@ -19,6 +19,8 @@
 // (MapCell_IsTypeDOr12ViaParent) of the same +0x10 word with the reverse side among its neighbour bits, A moving on to it first. The run moves on
 // (as above) unless stopped; other cells only move. B stops after the first cell when the start is not of type 0xb, 0xd, 0x10, 0x12 or 0x19. The
 // end is listed and goes to 0x81ede4 / 0x81ede8.
+//
+// The point list's own add and commit (0x52fbf0, called from 0x524800-0x526600; 0x52fc30, called from 0x48d013): the runs above add inline.
 #pragma once
 
 #include "../../../re/types.h"
@@ -31,4 +33,12 @@ void __cdecl CellRun_Corners();
 // 0x530830 / 0x530b70 (cdecl; thing).
 void __cdecl TrackRun_TraceA(const u8 *thing);
 void __cdecl TrackRun_TraceB(const u8 *thing);
+
+// 0x52fbf0 (cdecl; a, b): appends the pair to the table of 8-byte entries at 0x81b740 (count at
+// 0x820a8c), unless the count is above 0x400 (signed): 0 then, else 1.
+u32 __cdecl PairTable_Add(u32 a, u32 b);
+
+// 0x52fc30 (cdecl): the pair table at 0x81b740 (count 0x820a8c) copied to 0x818d98; then 0x820a90 = the
+// count and 0x820a94 = 0. Returns the count when above 0, else 0.
+s32 __cdecl PairTable_Commit();
 }

@@ -22,6 +22,13 @@
 # timed table as above, the hover's root a tree's or none; now and then an object's counts both -0x8000 (its release's 16-bit result
 # 0xffff, the 32-bit one not -1). Dtor705a50 / DeletingDtor705a50 (0x6689bc, 0x6693a0): the same, with the text row +0x148 or 0; the
 # children of either window class (the driver resolves both vtables).
+# HilightList_NewRow / List7cc188_NewRow (0x480d30 / 0x4a8380, src/game/ui/listrows): the Ctor's surroundings, the heap failing now and then,
+# font 7 (Language_Font, of group 0-2) a recorder whose slot 1 gives its height (edges too), the divisor word [0xfaa5c0] any but 0.
+# CallDefault / WindowAt10_Handler / Dialog7cb2b8_Handler / DefaultHandler (0x65f66e, 0x492e00, 0x4a0a20, 0x4a0a90; [0x7cb2b8] random): the default handler +0x118 fncmp's logger, the window's object A0[0] random bytes,
+# the message 0x14 often. GetRect / SetSavedRect (0x65d42e, 0x65cfd4): a GUI rectangle, a recorder or none, the insets small or edges. SaveInsetRect (0x485e30):
+# random rectangles and insets. ResetQueues (0x659064): the queues and the timed table as for the cancels, each now and then missing.
+# SetFocus / KillFocus (0x65e59b, 0x65e5fa): UpdateHover's tree and hover, the focus [0xfaa5ec] the window, another or none.
+# MouseDown / MouseUp (0x658af1, 0x658b5b): buttons 0-7, the windows the window or none, the queues as for PostMessage.
 # usage: window.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FindChild,SetChecks,SetChecksIfUp)
 import os
 import struct
@@ -38,20 +45,24 @@ CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50
          'Dialog7ca098_Message4IfUp': 0x48d990, 'Dialog7cca94_Message4IfUp': 0x4c25e0, 'WindowAt10_Message4': 0x48cf70,
          'WindowAt10_Message4IfAny': 0x492e60, 'Windows7c26b0_Message5': 0x48ee20,
          'WindowAt10_ScalarDtor': 0x48c8b0, 'SetChecksIfUpThis': 0x481a00,
-         'Windows7cc8bc_Message6Pair': 0x4bcef0, 'ImplSlot7': 0x65d6db, 'ImplSlot6': 0x65d745, 'DwordA0': 0x65e705,
+         'Windows7cc8bc_Message6Pair': 0x4bcef0, 'Global7cc698_Choose': 0x4bcec0, 'ImplSlot7': 0x65d6db, 'ImplSlot6': 0x65d745, 'DwordA0': 0x65e705,
          'PostMessage': 0x658ccc, 'Dialog7cb2b8_Child21Post': 0x4a2590,
          'HitTest': 0x65db25, 'UpdateHover': 0x6589f9, 'ImplRelease': 0x6616b0, 'IsShown': 0x65d773,
          'RectAssign': 0x65aa20, 'SaveRect': 0x65bc90, 'OffsetByParents': 0x65c979,
          'Ctor': 0x65bcad, 'ForgetGlobals': 0x6592b6, 'DropModal': 0x65e672, 'Destroying': 0x65c2d8,
          'CancelPosted': 0x658fe9, 'CancelPostedFirst': 0x659012, 'CancelTimed': 0x65903b,
-         'Dtor': 0x65c025, 'DeletingDtor': 0x661680, 'Dtor705a50': 0x6689bc, 'DeletingDtor705a50': 0x6693a0}
+         'Dtor': 0x65c025, 'DeletingDtor': 0x661680, 'Dtor705a50': 0x6689bc, 'DeletingDtor705a50': 0x6693a0,
+         'HilightList_NewRow': 0x480d30, 'List7cc188_NewRow': 0x4a8380, 'CallDefault': 0x65f66e, 'WindowAt10_Handler': 0x492e00,
+         'GetRect': 0x65d42e, 'SetSavedRect': 0x65cfd4, 'SaveInsetRect': 0x485e30,
+         'Dialog7cb2b8_Handler': 0x4a0a20, 'DefaultHandler': 0x4a0a90, 'ResetQueues': 0x659064, 'SetFocus': 0x65e59b, 'KillFocus': 0x65e5fa,
+         'MouseDown': 0x658af1, 'MouseUp': 0x658b5b}
 SENDS = {k: int(k[6:12], 16) for k in CALLS if k.startswith('Dialog7')}   # the window's global
 B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6d1), (0x658d9f, 0x658df4), (0x659710, 0x659721),
            (0x4b87f0, 0x4b8850), (0x4b8e80, 0x4b8ea0), (0x4b8ec0, 0x4b8ee0), (0x4b9c00, 0x4b9c40),
            (0x4c5780, 0x4c5820),
            (0x48d990, 0x48d9b3), (0x4c25e0, 0x4c25f9), (0x48cf70, 0x48cf83), (0x492e60, 0x492e77), (0x48ee20, 0x48ee4e),
            (0x48c8b0, 0x48c8ce), (0x481a00, 0x481a10),
-           (0x4bcef0, 0x4bcf60), (0x65d6db, 0x65d727), (0x65d745, 0x65d783), (0x65e705, 0x65e73d),
+           (0x4bcef0, 0x4bcf60), (0x4bcec0, 0x4bcef0), (0x65d6db, 0x65d727), (0x65d745, 0x65d783), (0x65e705, 0x65e73d),
            (0x658ccc, 0x658d9f), (0x6697e3, 0x6698a4), (0x4a2590, 0x4a25e5),
            (0x65db25, 0x65dbee), (0x6589f9, 0x658aab), (0x659e83, 0x659ee2),
            (0x6616b0, 0x6616f1), (0x65d773, 0x65d7bc),
@@ -61,7 +72,10 @@ B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x
            (0x658fe9, 0x659064), (0x669b3e, 0x669bdb), (0x669e3a, 0x669eb3),
            (0x65c025, 0x65c2c8), (0x661680, 0x6616b0), (0x659d90, 0x659dbc), (0x66bff7, 0x66c00b), (0x661f9b, 0x661fe5),
            (0x6620e2, 0x66213e), (0x662306, 0x662384), (0x662500, 0x66252c), (0x6689bc, 0x668a23), (0x6693a0, 0x6693cc),
-           (0x66969e, 0x6696b4)])
+           (0x66969e, 0x6696b4), (0x480d30, 0x480dc3), (0x4a8380, 0x4a8413), (0x485a70, 0x485a94),
+           (0x65f66e, 0x65f697), (0x492e00, 0x492e34), (0x65d42e, 0x65d49e), (0x65cfd4, 0x65cffd), (0x65a43e, 0x65a493), (0x485e30, 0x485eb6), (0x4a0a20, 0x4a0aa9),
+           (0x659064, 0x6590a5), (0x669eb3, 0x669efb), (0x669c62, 0x669c8d), (0x669bdb, 0x669c30),
+           (0x65e59b, 0x65e5fa), (0x65e5fa, 0x65e640), (0x658af1, 0x658b5b), (0x658b5b, 0x658bcb)])
 WINDOW, NODES, VTABLE, MISC, KIDS, HOLDER, WINDOW2 = RAM, RAM + 0x100, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200, RAM + 0x1600, RAM + 0x1800
 QUEUES, TREE, RECTS, TIMED = RAM + 0x2000, RAM + 0x3000, RAM + 0x4000, RAM + 0x5000
 MANAGER, TNODES, RECT, ROWS, PARENT, CHILDREN = RAM + 0x5400, RAM + 0x5600, RAM + 0x5800, RAM + 0x5c00, RAM + 0x6000, RAM + 0x7000
@@ -242,6 +256,11 @@ def case(r):
     op = r.deal(OPS)
     log = log_region()
     regions = {LOG: log, VTABLE: vtable({5: 1})}
+    if op == 'Global7cc698_Choose':   # 0x7cc8b8 set or not, the byte 0x7cc8b4 set or not, any windows
+        g = bytearray(r.bytes(0x40))
+        put(g, 0x28, 'I', r.choice([0, 0, 7, 0x80000000]))  # 0x7cc8b8 (region base 0x7cc890)
+        g[0x24] = r.choice([0, 0, 1, 0xff])  # 0x7cc8b4
+        return Call(CALLS[op], [], {0x7cc890: g, 0x7cc690: r.bytes(0x20)}, ret='a')
     if op in ('ImplSlot7', 'ImplSlot6', 'DwordA0'):   # +0x9c a recorder object or 0; +0xa0 sixteen dwords (an index reads before them too)
         win = bytearray(r.bytes(0x120))
         put(win, 0x9c, 'I', r.choice([MISC, MISC, 0]))
@@ -272,6 +291,24 @@ def case(r):
             put(w, 0x60, 'I', TREE + 0x80 * (i + 1) if i + 1 < n else 0)
             regions[TREE + 0x80 * i] = w
         return Call(CALLS[op], [TREE if n else 0], regions, conv='t', ret='w')
+    if op in ('GetRect', 'SetSavedRect'):   # the rectangle a GUI one, a recorder (slot 3: four) or 0; insets small or edges; inner's low word 0 or not
+        win = bytearray(r.bytes(0x120))
+        for k in range(0xf8, 0x100, 2):
+            put(win, k, 'H', r.choice([0, 1, 2, 5, 0x7fff, 0x8000, 0xffff, r.getrandbits(16)]))
+        regions[WINDOW] = win
+        rect = bytearray(r.bytes(0x10))
+        put(rect, 0, 'I', r.choice([0x705920, 0x705920, VTABLE]))
+        regions[MISC] = rect
+        regions[VTABLE] = vtable({3: 4})
+        inner = r.choice([0, 1, 0x10000, 0xffff0000, r.getrandbits(32)])
+        args = [r.choice([MISC] * 6 + [0])] + ([inner] if op == 'GetRect' else [])
+        return Call(CALLS[op], [WINDOW] + args, regions, conv='t', ret='w')
+    if op == 'SaveInsetRect':   # the window's rectangles (+8 and the saved +0x2c) and insets random (small or edges), the insets dx / dy too
+        win = bytearray(r.bytes(0x120))
+        for k in list(range(0xc, 0x14, 2)) + list(range(0xf8, 0x100, 2)):
+            put(win, k, 'H', r.choice([0, 1, 2, 5, 0x7fff, 0x8000, 0xffff, r.randrange(-50, 50) & 0xffff, r.getrandbits(16)]))
+        regions[WINDOW] = win
+        return Call(CALLS[op], [WINDOW] + [r.choice([0, 1, 3, -2, 0x7fff, -0x8000, 0x12345, r.getrandbits(32)]) & 0xffffffff for _ in range(2)], regions, ret='v')
     if op in ('RectAssign', 'SaveRect'):   # random rectangles (the window's at +8 and +0x2c)
         regions[MISC] = r.bytes(0x10)
         regions[MISC + 0x40] = r.bytes(0x10)
@@ -311,6 +348,22 @@ def case(r):
                                         r.getrandbits(32), r.choice([0] * 6 + [1]))
         flags = r.choice([1, 0x401, 0x400, 0, 0x10000001, r.getrandbits(32)]) | (r.getrandbits(32) & 0x0ffff800 if r.random() < 0.3 else 0)
         return Call(CALLS[op], [WINDOW2, r.choice(wins + [0, 0]), flags, r.getrandbits(32)] + words, regions, conv='t', ret='a')
+    if op in ('HilightList_NewRow', 'List7cc188_NewRow'):   # the Ctor's surroundings for a window from the heap (or none), font 7's height
+        wins = tree(r, regions)
+        queues(r, regions)
+        regions[HEAP] = heap(0x400, r.choice([0] * 5 + [1]))
+        regions[0xfaa540] = struct.pack('<II', r.randrange(-10, 120) & 0xffffffff, r.randrange(-10, 40) & 0xffffffff)
+        regions[0xfaa5d8] = struct.pack('<5I', r.choice([wins[0], 0]), r.getrandbits(32), r.choice(wins + [0, 0]), r.getrandbits(32),
+                                        r.choice([0] * 6 + [1]))
+        regions[0xfaa5c0] = struct.pack('<H', r.choice([1, 2, 3, 0x600, 0x7fff, 0x8000, 0xffff, 0xfffd, r.randrange(1, 0x10000)]))
+        lang = bytearray(r.bytes(0x400))
+        group = r.choice([0, 1, 2])
+        put(lang, 4, 'I', group)
+        put(lang, 0x1c + (7 + 13 * group) * 0x18, 'I', VTABLE)
+        regions[0x78b530] = lang
+        regions[VTABLE] = vtable({})
+        set_return(log, 1, r.choice([r.randrange(0, 40), 0x7fff, 0x8000, 0xffff, r.getrandbits(16)]) | (r.getrandbits(16) << 16 if r.random() < 0.5 else 0))
+        return Call(CALLS[op], [], regions, ret='a')
     if op in ('ForgetGlobals', 'DropModal', 'Destroying'):
         wins = tree(r, regions) if op == 'Destroying' else [WINDOW]
         if op != 'Destroying':
@@ -329,6 +382,9 @@ def case(r):
         if op == 'ForgetGlobals':
             return Call(CALLS[op], [r.choice([WINDOW] * 5 + [0])], regions, ret='a')
         return Call(CALLS[op], [r.choice(wins[:1] * 3 + wins)], regions, conv='t', ret='a')
+    if op == 'ResetQueues':   # the queues and the timed table as for the cancels
+        timers(r, regions, WINDOW)
+        return Call(CALLS[op], [], regions, ret='v')
     if op.startswith('Cancel'):
         timers(r, regions, WINDOW)
         return Call(CALLS[op], [r.choice([WINDOW] * 5 + [0])], regions, ret='w')
@@ -337,6 +393,29 @@ def case(r):
     if op == 'HitTest':
         wins = tree(r, regions)
         return Call(CALLS[op], [r.choice(wins[:1] * 3 + wins)] + list(point(r, regions, wins)), regions, conv='t', ret='a')
+    if op in ('MouseDown', 'MouseUp'):
+        # the GUI up ([0x77c488]) or not, the hovered window and the buttons' windows (0xfaa588) the window or none, the button bits
+        # [0xfaa5bc]; buttons 0-7 (their high words random), x and y anything
+        win = bytearray(r.bytes(0x120))
+        win[4] = r.choice([0, 0, 1])
+        regions[WINDOW] = win
+        queues(r, regions)
+        regions[0x77c488] = struct.pack('<I', r.choice([1, 1, 1, 0, 0x100]))
+        regions[0xfaa588] = struct.pack('<8I', *[r.choice([WINDOW, 0]) for _ in range(8)])
+        regions[0xfaa5bc] = r.bytes(2)
+        regions[0xfaa5e0] = struct.pack('<I', r.choice([WINDOW, WINDOW, 0]))
+        button = r.choice([0, 1, 2, 2, 7]) | r.choice([0, 0, 0x10000, 0xffff0000])
+        return Call(CALLS[op], [button, r.getrandbits(32), r.choice([0, 5, 0x8000, r.getrandbits(32)])], regions, ret='w')
+    if op in ('SetFocus', 'KillFocus'):   # the hover as UpdateHover's; the focus [0xfaa5ec] the window, another of the tree or none
+        wins = tree(r, regions)
+        queues(r, regions)
+        x, y = point(r, regions, wins)
+        regions[0xfaa540] = struct.pack('<II', x, y)
+        regions[0xfaa5d8] = struct.pack('<5I', r.choice([wins[0]] * 6 + [0]), r.getrandbits(32), r.choice(wins + [0, 0]),
+                                        r.getrandbits(32), r.choice([0] * 6 + [1, r.getrandbits(32)]))
+        window = r.choice(wins)
+        regions[0xfaa5ec] = struct.pack('<I', r.choice([window, window, 0] + wins))
+        return Call(CALLS[op], [window, r.getrandbits(32)], regions, conv='t', ret='w')
     if op == 'UpdateHover':   # the root [0xfaa5d8] or none, [0xfaa5e8] mostly 0, the hovered window [0xfaa5e0] one of them or none
         wins = tree(r, regions)
         queues(r, regions)
@@ -371,6 +450,19 @@ def case(r):
         queues(r, regions)
         message = r.choice([1, 2, 3, 0x1000a, 0x1000b, 0x1000c, 0, 4, 0x10001, 0x1000d, r.getrandbits(32)])
         return Call(CALLS[op], [r.choice([WINDOW] * 6 + [0]), message, r.getrandbits(32), r.getrandbits(32)], regions, ret='a')
+    if op in ('CallDefault', 'WindowAt10_Handler', 'Dialog7cb2b8_Handler', 'DefaultHandler'):   # the default handler +0x118 fncmp's logger (its result now and then set); the object A0[0]
+        win = bytearray(r.bytes(0x120))
+        put(win, 0x118, 'I', CDECL_LOG4)
+        put(win, 0xa0, 'I', MISC)
+        regions[WINDOW] = win
+        regions[MISC] = r.bytes(0x20)
+        regions[0x7cb2b8] = r.bytes(4)
+        if r.random() < 0.5:
+            set_return(log, 0x3d, r.choice([0, 1, -1, r.getrandbits(32)]))
+        args = [r.choice([0x14, 0x14, 0x15, 0, 4, r.getrandbits(32)])] + [r.choice([0, 1, 4, r.getrandbits(32)]) for _ in range(2)]
+        if op == 'CallDefault':
+            return Call(CALLS[op], [WINDOW] + args, regions, conv='t', ret='a')
+        return Call(CALLS[op], [WINDOW] + args, regions, ret='a')
     if op in ('CallHandler', 'SendMessage') or op in SENDS or op.startswith('Window'):
         win = bytearray(r.bytes(0x120))
         win[4] = r.choice([0, 0, 0, 1, 0x80])

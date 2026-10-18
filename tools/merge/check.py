@@ -9,12 +9,15 @@ In order:
      tests/fncmp, hooks.cpp rows and includes, symbols.csv addresses, CMakeLists src/game entries. An item counts as lost when
      the branch dropped it from the merge base, or when either side has it and the result does not (unless main itself removed
      it); a bench range end that a widened range covers is not lost. Duplicates in the tables, CRs not ending a line in hooks.cpp, and a
-     module-level name bound twice in a bench (the merge of two sides' constants, which git does not see as a conflict) also fail;
+     module-level name bound twice in a bench (the merge of two sides' constants, which git does not see as a conflict) also fail.
+     --moved BENCH (repeatable): a bench the branch empties by moving its cases to other benches (a bucket clean-up); its op names
+     are not checked, and an address it lost is kept when another bench has it (or, for a range's end, the range's start);
   3. hooks: rows the branch added (its own count, for checking an agent's report against);
   4. build, tpw_tests, retcheck, convcheck;
   5. each bench the merge touches, at N cases (default 1000) seed 5, --both: every run must show 0 differ.
 """
 import collections
+import glob
 import os
 import re
 import subprocess
@@ -76,7 +79,16 @@ def top_names(text):
     return {k for k, v in c.items() if v > 1}
 
 
-def kept(path, pats, base, branch, table):
+def elsewhere(path):
+    """Every hex address the working tree's other benches mention."""
+    out = set()
+    for f in glob.glob(os.path.join(ROOT, 'tests', 'fncmp', '*.py')):
+        if os.path.normcase(os.path.relpath(f, ROOT)) != os.path.normcase(path):
+            out |= items(open(f, encoding='utf-8', errors='replace').read(), BENCH[1])[0]
+    return out
+
+
+def kept(path, pats, base, branch, table, moved=False):
     problems = []
     texts = [show(r, path) for r in (base, 'HEAD', branch)]
     result = worktree(path)
@@ -88,12 +100,19 @@ def kept(path, pats, base, branch, table):
     # A bench range's end that a widened range now covers is not lost (a branch that grows (lo, x) to (lo, y) drops x as text only).
     bounds = {x for t in texts for r in ranges(t) for x in r} if bench else set()
     spans = ranges(result) if bench else []
+    # A bench emptied by moves (--moved): its cases went to the destination modules' benches, under new op names, so its op names are
+    # not checked, and an address it lost counts as kept when another bench has it (or, for a range's end, the range's start).
+    there = elsewhere(path) if moved else set()
+    ends = {hi: lo for t in texts for lo, hi in ranges(t)}
     for pat in pats:
+        if moved and pat == BENCH[0]:
+            continue
         b, h, t = (items(x, pat)[0] for x in texts)
         res, counts = items(result, pat)
         dropped = (b - t) - res if bench else b - t
         lost = (h | t) - res - (b - h)
-        bad = sorted((x for x in dropped | lost if not (x in bounds and any(lo <= x <= hi for lo, hi in spans))), key=str)
+        bad = sorted((x for x in dropped | lost if not (x in bounds and any(lo <= x <= hi for lo, hi in spans))
+                      and not (moved and (x in there or ends.get(x) in there))), key=str)
         if bad:
             problems.append('%s lost %s' % (path, ', '.join('%x' % x if isinstance(x, int) else x for x in bad[:8])))
         dups = [k for k, v in counts.items() if v > 1] if table else []
@@ -122,8 +141,9 @@ def main():
     problems = []
     benches = sorted({f for f in git('diff', '--name-only', base, branch, '--', 'tests/fncmp/').split() + git('diff', '--name-only', 'HEAD', '--', 'tests/fncmp/').split()
                       if f.endswith('.py')})
+    moved = {m.replace('\\', '/') for i, m in enumerate(a) if i and a[i - 1] == '--moved'}
     for f in benches:
-        problems += kept(f, BENCH, base, branch, False)
+        problems += kept(f, BENCH, base, branch, False, f in moved)
     for f, pats in TABLES:
         problems += kept(f, pats, base, branch, True)
     lone = len(re.findall(rb'\r(?!\n)', open(os.path.join(ROOT, HOOKS), 'rb').read()))

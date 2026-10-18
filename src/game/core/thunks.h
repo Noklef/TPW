@@ -422,4 +422,6 @@ u32 __fastcall Wrap_D3dProbe_SetFlags_569cc0(u8 *self, void *, u32 flags);
 
 // 0x5738c0 (thiscall): this lowered by the dword before it (a virtual base offset), then Renderer_NewSurfaceA.
 u8 *__fastcall Wrap_Renderer_NewSurfaceA_5738c0(void *self);
+// 0x4813f0: jumps to 0x48a290 (ui/panel7b9940).
+void __cdecl Wrap_Panel7b9940_Close_4813f0();
 }  // extern "C"

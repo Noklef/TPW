@@ -1,5 +1,5 @@
 // The vtable-pointer setters: functions that only store a vtable pointer (the constructors of the abstract interface classes at 0x6fd7a0 .. 0x6fd848 and others, and virtual
-// bases whose constructor sets the pointer at +0 or +0x60). Reimplementation of 0x405520, 0x429b50, 0x429b80, 0x4a8bf0, 0x4bc420, 0x4c75f0, 0x4d19f0, 0x4d5260, 0x4db7c0, 0x4dd310, 0x4e11f0, 0x4e1200, 0x4e1210, 0x4e5b90 and others. Named by what they do until the classes are known.
+// bases whose constructor sets the pointer at +0 or +0x60). Reimplementation of 0x405520, 0x429b50, 0x429b80, 0x4a8bf0, 0x4bc420, 0x4c75f0, 0x4d19f0, 0x4d5260, 0x4db7c0, 0x4dd310, 0x4e11f0, 0x4e1200, 0x4e1210, 0x4e5b90, 0x4f00f0 and others. Named by what they do until the classes are known.
 #pragma once
 
 #include "../../../re/types.h"
@@ -18,6 +18,10 @@ void __fastcall Vtbl703770_Set(u8 *object);
 u32 __fastcall VirtualBase_SetVtbl7099dc(u8 *object);
 
 u32 __fastcall VirtualBase_SetVtbl70995c(u8 *object);
+
+// 0x4f00f0 (thiscall on a sub-object; reached from the exception unwinds 0x6dd580, 0x6dd680, 0x6dd766): like VirtualBase_SetVtbl70995c
+// (the pointer 4 before the object), with 0x7099ec. Returns that vtable pointer.
+u32 __fastcall Vtbl7099ec_SetVirtual(u8 *sub);
 
 // 0x504740 / 0x429b80 (thiscall): the vtable pointer at +0 / +0x60 = 0x6fd800 / 0x6fdce8. Undefined return.
 void __fastcall Vtbl6fd800_Set(u8 *object);

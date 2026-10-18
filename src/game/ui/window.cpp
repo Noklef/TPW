@@ -6,6 +6,7 @@
 
 #include "../core/accessors.h"
 #include "../core/gameheap.h"
+#include "../core/vcall.h"
 #include "guirect.h"
 #include "guitimers.h"
 #include "msgqueue.h"
@@ -29,6 +30,11 @@ s32 __fastcall Window_CallHandler(u8 *window, void *, u32 message, u32 a, u32 b)
     using Handler = s32(__cdecl *)(u8 *, u32, u32, u32);
     const Handler handler = at<Handler>(window, 0x114);
     return handler ? handler(window, message, a, b) : -1;
+}
+
+s32 __fastcall Window_CallDefault(u8 *window, void *, u32 message, u32 a, u32 b) {
+    using Handler = s32(__cdecl *)(u8 *, u32, u32, u32);
+    return at<Handler>(window, 0x118)(window, message, a, b);
 }
 
 s32 __cdecl Window_SendMessage(u8 *window, u32 message, u32 a, u32 b) {
@@ -64,6 +70,21 @@ u16 __fastcall Window_IsShown(u8 *window) {
 }
 
 u8 *__fastcall Window_SaveRect(u8 *window) { return GuiRect_Assign(window + 0x2c, nullptr, window + 8); }
+
+u16 __fastcall Window_GetRect(u8 *window, void *, u8 *rect, u32 inner) {
+    if (!rect) return 0;
+    GuiRect_Assign(rect, nullptr, window + 8);
+    if ((s16)inner != 0)
+        vcall<void>(rect, 0xc, -(s32)at<s16>(window, 0xf8), -(s32)at<s16>(window, 0xfa), -(s32)at<s16>(window, 0xfc),
+                    -(s32)at<s16>(window, 0xfe));
+    return 1;
+}
+
+u16 __fastcall Window_SetSavedRect(u8 *window, void *, const u8 *rect) {
+    if (!rect) return 0;
+    GuiRect_Assign(window + 0x2c, nullptr, rect);
+    return 1;
+}
 
 u8 *__fastcall Window_OffsetByParents(u8 *window, void *, u8 *rect) {
     u8 *previous = window;  // the pushed words' upper halves: dy's from EAX (the window, then the last parent), dx's from the parent
@@ -180,6 +201,12 @@ u32 __cdecl Window_CancelTimed(u8 *window) {
     return GuiTimers_Cancel(table, nullptr, (u32)(uintptr_t)window);
 }
 
+void __cdecl Gui_ResetQueues() {
+    if (u8 *const table = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f8)) GuiTimers_Reset(table);
+    if (u8 *const first = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f4)) MsgQueue_Clear(first);
+    if (u8 *const queue = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f0)) MsgQueue_Clear(queue);
+}
+
 u32 __fastcall Window_Dtor(u8 *window) {
     at<u32>(window, 0) = 0x705980;
     if (!window[4]) Window_Destroying(window);
@@ -263,5 +290,52 @@ u32 __cdecl Window_UpdateHover() {
         Window_PostMessage(hovered, 0x10001, (u32)(s32)x << 16 | (u32)(s32)y, 0);
     }
     return 1;
+}
+
+void __cdecl Window_SaveInsetRect(u8 *window, s32 dx, s32 dy) {
+    u8 rect[12];
+    GuiRect_Ctor(rect);
+    Window_GetRect(window, nullptr, rect, 1);
+    GuiRect_Adjust(rect, nullptr, (u32)dx, (u32)dy, (u32)-dx, (u32)-dy);
+    Window_SetSavedRect(window, nullptr, rect);
+    GuiRect_Dtor(rect);
+}
+
+u32 __fastcall Window_SetFocus(u8 *window, void *, u32 a) {
+    u8 *&focus = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5ec);
+    if (focus == window) return (u32)(uintptr_t)focus & 0xffff0000u;  // only AX is set
+    if (focus) Window_PostMessage(focus, 0x20, a, 0);
+    focus = window;
+    return (Window_PostMessage(focus, 0x1f, a, 0) & 0xffff0000u) | 1;
+}
+
+u32 __fastcall Window_KillFocus(u8 *window, void *, u32 a) {
+    u8 *&focus = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5ec);
+    if (focus != window) return (u32)(uintptr_t)focus & 0xffff0000u;  // only AX is set
+    Window_PostMessage(focus, 0x20, a, 0);
+    focus = nullptr;
+    return (Window_UpdateHover() & 0xffff0000u) | 1;
+}
+
+u32 __cdecl Gui_MouseDown(u32 button, u32 x, u32 y) {
+    if (*reinterpret_cast<const u32 *>((uintptr_t)0x0077c488) == 0) return 0;  // only AX is set
+    const s32 b = (s16)button;
+    u8 *const *const hovered = reinterpret_cast<u8 *const *>((uintptr_t)0x00faa5e0);
+    Window_PostMessage(*hovered, 0x10005, (u32)b, ((u32)(s32)(s16)x << 16) | (u32)(s32)(s16)y);
+    reinterpret_cast<u8 **>((uintptr_t)0x00faa588)[b] = *hovered;
+    const u32 bit = 1u << (b & 31);
+    *reinterpret_cast<u16 *>((uintptr_t)0x00faa5bc) |= (u16)bit;
+    return (bit & 0xffff0000u) | 1;
+}
+
+u32 __cdecl Gui_MouseUp(u32 button, u32 x, u32 y) {
+    if (*reinterpret_cast<const u32 *>((uintptr_t)0x0077c488) == 0) return 0;  // only AX is set
+    const s32 b = (s16)button;
+    u8 **const windows = reinterpret_cast<u8 **>((uintptr_t)0x00faa588);
+    Window_PostMessage(windows[b], 0x10004, (u32)b, ((u32)(s32)(s16)x << 16) | (u32)(s32)(s16)y);
+    windows[b] = nullptr;
+    const u32 mask = ~(1u << (b & 31));
+    *reinterpret_cast<u16 *>((uintptr_t)0x00faa5bc) &= (u16)mask;
+    return (mask & 0xffff0000u) | 1;
 }
 }

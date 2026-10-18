@@ -1,5 +1,5 @@
 // The objects (thing model 3: rides, shops, facilities; serialized at 0x4db7d0): reimplementation
-// of 0x4dd4e0, 0x4dd670, 0x4e1670, 0x4e1690, 0x4e1e00, 0x4e2190, 0x4e21c0, 0x4e2290, 0x4e2400, 0x4e2710 and 0x4e2b50 (thiscall).
+// of 0x4dd4e0, 0x4dd670, 0x4e01f0, 0x4e1670, 0x4e1690, 0x4e1c60, 0x4e1e00, 0x4e2190, 0x4e21c0, 0x4e2290, 0x4e2400, 0x4e2710 and 0x4e2b50 (thiscall).
 // +0xe the definition's id; +0x18c mQualityOfGoods, +0x190 mChanceOfWinning; +0x1a0 mNumCustomers,
 // +0x1a4 mNumWalkAways, and their histories, CircBufU32s of 30 at +0x1a8 and +0x230 (mTemp first,
 // the count so far); +0x340 a running average of the customers' happiness changes.
@@ -66,6 +66,14 @@ u32 __fastcall Obj_HasActivity(const u8 *object);
 // this object's own handle (the word at +0); otherwise +0x5e and +0x60 are cleared and 0 is stored. Returns out.
 u16 *__fastcall Obj_GetTrackedHandle(u8 *object, void *, u16 *out);
 
+// 0x4e01f0 (thiscall; word, pops 4; the mechanic's 0x4da490 and 0x4d7a50 call it with a thing's handle): the tracked handle (the word at
+// +0x5e that Obj_GetTrackedHandle reads) = word and its stamp, the dword +0x60, = the dword at +0x1da70c of the object at [0x80239c] (the
+// world's clock); returns that dword.
+u32 __fastcall Obj_StampAt5e(u8 *object, void *, u32 word);
+
+// 0x4e1c60 (thiscall): the dword at +0x180 minus the one at +0x184.
+u32 __fastcall Obj_Diff180_184(const u8 *object);
+
 // 0x4e0370: 1 when the dword at 0x19c is 0x1, else 0.
 u32 __fastcall Is19c_Eq1_4e0370(const u8 *o);
 
@@ -81,6 +89,11 @@ u32 __fastcall Is68_Zero_4e0440(const u8 *o);
 // 0x4dd7f0 (thiscall on the object; capacity, pops 4; the debug print is left out): the low byte of the capacity is held to the object definition's limits (the dwords at +0x124
 // and +0x128 when their sum is above 0; the minimum first), set as element 2 of the object's ride record (Rides_SetElement of Rides_FindById of the dword at +0x24) and kept at +0x5d.
 void __fastcall Object_SetCapacity(u8 *object, void *, u32 capacity);
+
+// 0x4df300 (thiscall on the object; the debug prints of its handle and the word at +0x6c are left out; name unconfirmed): the dword at +0x68 and the
+// word at +0x6c cleared, element 6 of the object's ride record set to 1 (Rides_SetElement of Rides_FindById of the dword at +0x24) and the strip
+// animation of the ride at 0x7a4610[+0x20] grown from frame 1 (StripAnim_StartGrow).
+void __fastcall Object_RestartRide(u8 *object);
 
 // 0x52c2b0 (cdecl; the object): 1 unless the object definition's track type (+0x9c) is 1 or 2 and the cell a few steps ahead (by the angle at +0x10: 0 is (+4, +1), 0x5a (+1, -5), 0xb4
 // (-5, -2), 0x10e (-2, +4) from the cell of columns/rows at +5 and +7; any other angle stays) and the one beside it (the second offsets: 0 is (-2, +1), 0x5a (+1, +1), 0xb4 (+1, -2), 0x10e (-2, -2)) each have exactly one neighbour

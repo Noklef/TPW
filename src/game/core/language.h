@@ -24,6 +24,19 @@ u32 __fastcall Language_IsHebrew(const u8 *lang);
 // +0x1c; null from 13 on (unsigned).
 u8 *__cdecl Language_Font(u32 index);
 
+// 0x485ac0 (cdecl (text); name unconfirmed): 0 for no text; otherwise the static wide buffer 0x7ba058, filled from the text first
+// (Wide_FromNarrow, core/methods, by the converter [0x78ba7c], at most 0x200 characters; its status into the argument's own slot) only
+// while [0x78ba80] is set.
+u16 *__cdecl Language_Widen(const u8 *text);
+
+// 0x485b00 (cdecl (index); name unconfirmed): the text the record table [0x78ba94] holds at the index (Records_DataIfTerminated,
+// core/methods), widened as Language_Widen does; 0 when there is none.
+u16 *__cdecl Language_WideText(u32 index);
+
+// 0x485f00 (cdecl (object, index); name unconfirmed): the text of the record table [0x78baa4] at the index, widened as Language_Widen
+// does (0 when there is none), handed to the object's slot 9 (thiscall, one argument); returns what that returns.
+u32 __cdecl Language_SetObjectText(u8 *object, u32 index);
+
 // 0x4925a0 (cdecl): in Hebrew, an alignment of 0 becomes 2 and 2 becomes 0.
 void __cdecl Language_MirrorAlign(u32 *align);
 }

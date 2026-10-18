@@ -10,6 +10,8 @@
 
 #include "../../../re/types.h"
 
+struct StdWString;
+
 extern "C" {
 
 void __fastcall StdTree_IncA(u8 **it);
@@ -45,6 +47,9 @@ void __fastcall StdTree_CtorG(u8 *tree);
 u8 **__fastcall StdTree_InsertA(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u32 *value);
 u8 **__fastcall StdTree_InsertB(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u16 *value);
 u8 **__fastcall StdTree_InsertG(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u16 *value);
+// 0x4f4c20: the same for tree D (the wide string set: a std::wstring at +0xc, copied by StdWString_Construct; below y's when WString_Compare
+// is negative).
+u8 **__fastcall StdTree_InsertD(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const StdWString *value);
 
 u8 **__fastcall StdTree_EraseA(u8 *tree, void *, u8 **out, u8 *node);
 u8 **__fastcall StdTree_EraseB(u8 *tree, void *, u8 **out, u8 *node);
@@ -111,6 +116,10 @@ void __fastcall StdMapG_Insert(u8 *tree, void *, u8 **result, const u16 *value);
 // 0x40fe60: the same over tree B (the message centre's; sentinel 0x785de4, 16-bit keys; StdTree_DecB / StdTree_InsertB), the result made by Pair_Assign; returns it.
 u8 **__fastcall StdMapB_Insert(u8 *tree, void *, u8 **result, const u16 *value);
 
+// 0x4f2810: the same over tree D (the wide string set; StdTree_DecD / StdTree_InsertD): the key compared with each node's by 0x4f7870 (the
+// whole key against the node's string, no data being the empty string at 0x6fd6c4) and with the one found by WString_Compare.
+u8 **__fastcall StdMapD_Insert(u8 *tree, void *, u8 **result, const StdWString *value);
+
 // 0x5b2f40 (thiscall on the tree {allocator, head}; the key (a string), pops 4): the lower bound: the last node passed whose string (at +0xc) is not below the key
 // (String_Less), the head for none.
 u8 *__fastcall StdTreeF_LowerBound(u8 *tree, void *, const u8 *key);
@@ -124,6 +133,9 @@ u8 **__fastcall StdTreeF_FindLower(u8 *tree, void *, u8 **out, const u8 *key);
 
 // 0x5b1650 (thiscall on the tree; out, value, pops 8): StdMapG_Insert's result {iterator, inserted byte} copied to out. Returns out.
 u32 *__fastcall StdMapG_InsertCopy(u8 *tree, void *, u32 *out, const u16 *value);
+
+// 0x4f0390: the same for tree D (StdMapD_Insert).
+u32 *__fastcall StdMapD_InsertCopy(u8 *tree, void *, u32 *out, const StdWString *value);
 
 // 0x5af740 (thiscall on an object whose tree is at +0x28; key (a 16-bit value passed on the stack), amount, pops 8): inserts the key; true (and +0x1c grows by the amount)
 // when it was new, else false.

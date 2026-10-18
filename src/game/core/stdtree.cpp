@@ -4,6 +4,7 @@
 
 #include "crt.h"
 #include "gameheap.h"
+#include "stdwstring.h"
 #include "string.h"
 
 namespace {
@@ -87,12 +88,17 @@ template <u32 nilAt, u32 colourAt, Value value, u32 counterAt, u32 nodeSize> str
 
     // Inserts a new node for `value` under y (the node made by NewNode, which copies the value and makes the node's links nil): x is not nil for an insertion to the left.
     template <typename V, typename Less> static u8 **Insert(u8 *tree, u8 **out, u8 *x, u8 *y, const V *value, Less less) {
+        return Insert(tree, out, x, y, value, less, [](u8 *to, const V *v) { *reinterpret_cast<V *>(to) = *v; });
+    }
+
+    // The same with the value copied into the node (at +0xc) by `copy` (a copy constructor).
+    template <typename V, typename Less, typename Copy> static u8 **Insert(u8 *tree, u8 **out, u8 *x, u8 *y, const V *value, Less less, Copy copy) {
         u8 *z = static_cast<u8 *>(GameHeap_Alloc(nodeSize));
         P(z) = y;
         C(z) = kRed;
         L(z) = Nil();
         R(z) = Nil();
-        *reinterpret_cast<V *>(z + 0xc) = *value;
+        copy(z + 0xc, value);
         at<u32>(tree, 0xc) += 1;
         u8 *head = at<u8 *>(tree, 4);
         if (y == head || x != Nil() || less(value, y)) {
@@ -419,18 +425,19 @@ template <typename K> u8 *LowerBound(u8 *tree, K key, u32 sentinelAt) {
     return result;
 }
 
-// The insert over a tree whose keys are Key (the first member of the value, at +0xc of a node): Dec is the instantiation's iterator decrement and Insert its node insert.
-template <typename Key, typename Value, u32 SentinelAt, void(__fastcall *Dec)(u8 **), u8 **(__fastcall *Insert)(u8 *, void *, u8 **, u8 *, u8 *, const Value *)>
-void MapInsert(u8 *tree, u8 **result, const Value *value) {
+// The insert over a tree: Dec is the instantiation's iterator decrement and Insert its node insert; keyBelow(node) is whether the value's key is below the
+// node's, nodeBelow(node) whether the node's is below the value's.
+template <typename Value, u32 SentinelAt, void(__fastcall *Dec)(u8 **), u8 **(__fastcall *Insert)(u8 *, void *, u8 **, u8 *, u8 *, const Value *), typename KeyBelow,
+          typename NodeBelow>
+void MapInsertBy(u8 *tree, u8 **result, const Value *value, KeyBelow keyBelow, NodeBelow nodeBelow) {
     u8 *const head = at<u8 *>(tree, 4);
     u8 *const nil = global<u8 *>(SentinelAt);
-    const Key key = *reinterpret_cast<const Key *>(value);
     u8 *y = head;
     u8 *x = at<u8 *>(head, 4);
     bool below = true;
     while (x != nil) {
         y = x;
-        below = key < at<Key>(x, 0xc);
+        below = keyBelow(x);
         x = at<u8 *>(x, below ? 0 : 8);
     }
     bool insert = at<u8>(tree, 8) != 0;
@@ -442,7 +449,7 @@ void MapInsert(u8 *tree, u8 **result, const Value *value) {
             else
                 Dec(&found);
         }
-        if (!insert && at<Key>(found, 0xc) < key)
+        if (!insert && nodeBelow(found))
             insert = true;
     }
     if (insert) {
@@ -454,6 +461,14 @@ void MapInsert(u8 *tree, u8 **result, const Value *value) {
     }
     at<u8 *>(result, 0) = found;
     at<u8>(result, 4) = 0;
+}
+
+// The same over a tree whose keys are Key (the first member of the value, at +0xc of a node), compared with <.
+template <typename Key, typename Value, u32 SentinelAt, void(__fastcall *Dec)(u8 **), u8 **(__fastcall *Insert)(u8 *, void *, u8 **, u8 *, u8 *, const Value *)>
+void MapInsert(u8 *tree, u8 **result, const Value *value) {
+    const Key key = *reinterpret_cast<const Key *>(value);
+    MapInsertBy<Value, SentinelAt, Dec, Insert>(
+        tree, result, value, [key](u8 *node) { return key < at<Key>(node, 0xc); }, [key](u8 *node) { return at<Key>(node, 0xc) < key; });
 }
 
 }  // namespace
@@ -489,6 +504,12 @@ u8 **__fastcall StdTree_InsertA(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const 
 
 u8 **__fastcall StdTree_InsertB(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u16 *value) {
     return TreeB::Insert<u16>(tree, out, x, y, value, [](const u16 *v, u8 *node) { return StdTreeB_KeyLess(v, nullptr, reinterpret_cast<const u16 *>(node + 0xc)) != 0; });
+}
+
+u8 **__fastcall StdTree_InsertD(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const StdWString *value) {
+    return TreeD::Insert<StdWString>(
+        tree, out, x, y, value, [](const StdWString *v, u8 *node) { return WString_Compare(reinterpret_cast<const u8 *>(v), nullptr, node + 0xc) < 0; },
+        [](u8 *to, const StdWString *v) { StdWString_Construct(reinterpret_cast<StdWString *>(to), v); });
 }
 
 u8 **__fastcall StdTree_InsertG(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u16 *value) {
@@ -579,6 +600,19 @@ u8 **__fastcall StdMapB_Insert(u8 *tree, void *, u8 **result, const u16 *value) 
     return result;
 }
 
+u8 **__fastcall StdMapD_Insert(u8 *tree, void *, u8 **result, const StdWString *value) {
+    const u8 *key = reinterpret_cast<const u8 *>(value);
+    MapInsertBy<StdWString, 0x007ced24, StdTree_DecD, StdTree_InsertD>(
+        tree, result, value,
+        [key](u8 *node) {
+            const u16 *chars = at<const u16 *>(node, 0x10);
+            if (!chars) chars = reinterpret_cast<const u16 *>(0x006fd6c4);
+            return WString_CompareSub(key, nullptr, 0, at<u32>(key, 8), chars, at<u32>(node, 0x14)) < 0;
+        },
+        [key](u8 *node) { return WString_Compare(node + 0xc, nullptr, key) < 0; });
+    return result;
+}
+
 u8 *__fastcall StdTreeF_LowerBound(u8 *tree, void *, const u8 *key) {
     u8 *result = at<u8 *>(tree, 4);
     u8 *const nil = global<u8 *>(0x00f7c968);
@@ -613,6 +647,14 @@ u8 **__fastcall StdTreeF_FindLower(u8 *tree, void *, u8 **out, const u8 *key) {
 u32 *__fastcall StdMapG_InsertCopy(u8 *tree, void *, u32 *out, const u16 *value) {
     u32 result[2];
     StdMapG_Insert(tree, nullptr, reinterpret_cast<u8 **>(result), value);
+    at<u32>(out, 0) = result[0];
+    at<u8>(out, 4) = (u8)result[1];
+    return out;
+}
+
+u32 *__fastcall StdMapD_InsertCopy(u8 *tree, void *, u32 *out, const StdWString *value) {
+    u32 result[2];
+    StdMapD_Insert(tree, nullptr, reinterpret_cast<u8 **>(result), value);
     at<u32>(out, 0) = result[0];
     at<u8>(out, 4) = (u8)result[1];
     return out;

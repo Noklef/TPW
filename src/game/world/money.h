@@ -27,6 +27,12 @@ u32 __fastcall Money_TakeLoan(u8 *money, void *, u32 index);
 // the total at +0x124 gains what is owed less ((term * rate - amount) / term, unsigned) * term, where term is the next record's first dword (none when it is 0). Returns 1.
 u32 __fastcall Money_PayOffLoan(u8 *money, void *, u32 index);
 
+// 0x4d09a0 (thiscall; nothing calls it): the loan owing least. Over the 8 loan entries of 0x20 bytes from +0x20 (owed = (term +0 -
+// months paid +0xc) * rate +4 when taken, +8, is set, else 0), the index of the smallest non-zero amount owed (unsigned; the first of
+// equals), or -1 for none. (Entry i is the loan Money_TakeLoan's index i names: its +0x24, +0x28 and +0x2c, and the next record's
+// first dword as the term, as Money_PayOffLoan reads them.)
+s32 __fastcall Obj_SmallestEntry(const u8 *object);
+
 // 0x4d09f0 (thiscall): the total at +0x124.
 u32 __fastcall Money_Total(const u8 *money);
 

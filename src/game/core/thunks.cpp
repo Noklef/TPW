@@ -604,4 +604,5 @@ u32 __fastcall Wrap_D3dProbe_SetFlags_569cc0(u8 *self, void *, u32 flags) {
 }
 
 u8 *__fastcall Wrap_Renderer_NewSurfaceA_5738c0(void *self) { return Renderer_NewSurfaceA(Adjust(self)); }
+void __cdecl Wrap_Panel7b9940_Close_4813f0() { Panel7b9940_Close(); }
 }  // extern "C"

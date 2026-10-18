@@ -2343,6 +2343,9 @@ address,name,kind,confidence,notes
 0x0041a850,Language_IsHebrew,function,high,reimplemented (src/game/core/language); thiscall; +8 == 0x40d
 0x00485a70,Language_Font,function,high,"reimplemented (src/game/core/language); cdecl (index): &fonts[set +4][index] (0x18-byte entries, 13 a set, from 0x78b54c); null from 13"
 0x004925a0,Language_MirrorAlign,function,high,reimplemented (src/game/core/language); cdecl (&align): in Hebrew 0 becomes 2 and 2 becomes 0
+0x00485ac0,Language_Widen,function,low,"reimplemented (src/game/core/language); cdecl (text): 0 for none; else the static wide buffer 0x7ba058, filled (Wide_FromNarrow by [0x78ba7c]) while [0x78ba80] is set"
+0x00485b00,Language_WideText,function,low,reimplemented (src/game/core/language); cdecl (index): the record table [0x78ba94]'s text at the index widened as Language_Widen; 0 for none
+0x00485f00,Language_SetObjectText,function,low,"reimplemented (src/game/core/language); cdecl (object, index): the text of [0x78baa4] at the index widened (or 0) to the object's slot 9"
 0x00423ad0,Options_Revert,function,high,"reimplemented (src/game/core/options); thiscall; the copy +0x3c..+0x78 back over +0..+0x3c, +0x94 = 0, +0x98 &= ~7"
 0x00423b00,Options_Keep,function,high,"reimplemented (src/game/core/options); thiscall; +0..+0x3c over the copy at +0x3c, +0x94 raised to 0 when negative, +0x98 &= ~7"
 0x00423b40,Options_Set30,function,high,reimplemented (src/game/core/options); thiscall (value); +0x30 = value
@@ -2715,29 +2718,29 @@ address,name,kind,confidence,notes
 0x006d29e0,StoreThrough_ffffffff_6d29e0,function,high,reimplemented (src/game/core/fieldops); *first argument = 0xffffffff; returns that pointer
 0x006d6c50,Init_6d6c50,function,high,"reimplemented (src/game/core/initializers); sets +0x4, +0x8, +0xc, +0x10, +0x0; returns the object"
 0x00424ed0,Dword_ClearBit0,function,high,reimplemented (src/game/core/misc); bit 0 of the dword cleared; returns 1
-0x004922d0,Obj_Clear18_0c,function,high,reimplemented (src/game/core/misc); +0x18 and the word +0xc cleared
-0x004e1c60,Obj_Diff180_184,function,high,reimplemented (src/game/core/misc); the dword at +0x180 minus the one at +0x184
-0x004f00f0,Vtbl7099ec_SetVirtual,function,high,reimplemented (src/game/core/misc); the virtual base's vtable pointer = 0x7099ec
-0x004f6820,Wstreambuf_Setg,function,high,"reimplemented (src/game/core/misc); the get area pointers: first, next and (last - next) / 2"
-0x004f6850,Wstreambuf_Setp,function,high,"reimplemented (src/game/core/misc); the put area pointers: first, first and (last - first) / 2"
+0x004922d0,Obj_Clear18_0c,function,high,reimplemented (src/game/frontend/helpbg); +0x18 and the word +0xc cleared
+0x004e1c60,Obj_Diff180_184,function,high,reimplemented (src/game/world/object); the dword at +0x180 minus the one at +0x184
+0x004f00f0,Vtbl7099ec_SetVirtual,function,high,reimplemented (src/game/core/vtables); the virtual base's vtable pointer = 0x7099ec
+0x004f6820,Wstreambuf_Setg,function,high,"reimplemented (src/game/core/streambuf); the get area pointers: first, next and (last - next) / 2"
+0x004f6850,Wstreambuf_Setp,function,high,"reimplemented (src/game/core/streambuf); the put area pointers: first, first and (last - first) / 2"
 0x0056a510,SoftRenderer_PixelAt,function,high,"reimplemented (src/game/core/misc); a dword of the software renderer's buffer at x, y"
 0x0056b630,Table879d08_Fill,function,high,reimplemented (src/game/core/misc); the sixteen dwords at 0x879d08 = 16 down to 1
 0x0056b830,Obj_Set30_34,function,high,reimplemented (src/game/core/misc); +0x30 = a and +0x34 = b
-0x004f6020,Wstreambuf_InitPointers,function,high,"reimplemented (src/game/core/misc); the wide streambuf pointer slots pointed at its own fields, which are zeroed"
+0x004f6020,Wstreambuf_InitPointers,function,high,"reimplemented (src/game/core/streambuf); the wide streambuf pointer slots pointed at its own fields, which are zeroed"
 0x00402ef0,Obj_AdvanceUnless30,function,high,reimplemented (src/game/core/misc); +0x3c advances by +0x40 unless +0x30 is set
 0x004032b0,Obj_CtorOne,function,high,reimplemented (src/game/core/misc); Init_402f30 then the double 1.0 at +0x20
 0x0047f940,Obj_CtorValue,function,high,"reimplemented (src/game/core/misc); Fn_657d30, vtable 0x6ff058 and +0x14 = value"
-0x004d4170,Obj_KillSlot,function,high,reimplemented (src/game/core/misc); the script slot at +0 killed and cleared
-0x004d9600,Obj_StampAt30,function,high,reimplemented (src/game/core/misc); a word at +0x30 and the world's stamp at +0x34
-0x004e01f0,Obj_StampAt5e,function,high,reimplemented (src/game/core/misc); a word at +0x5e and the world's stamp at +0x60
+0x004d4170,Obj_KillSlot,function,high,reimplemented (src/game/sprite/scriptref); the script slot at +0 killed and cleared
+0x004d9600,Obj_StampAt30,function,high,reimplemented (src/game/world/litter); a word at +0x30 and the world's stamp at +0x34
+0x004e01f0,Obj_StampAt5e,function,high,reimplemented (src/game/world/object); a word at +0x5e and the world's stamp at +0x60
 0x0040f300,Obj_CtorPart8,function,high,"reimplemented (src/game/core/misc); vtable 0x6fd7b8, a part built at +8, vtable 0x6fd7b0"
 0x00458910,MeshRef_ClearFlag10000000,function,high,reimplemented (src/game/core/misc); flag 0x10000000 of the referenced part cleared
 0x00458940,MeshRef_SetFlag10000000,function,high,reimplemented (src/game/core/misc); flag 0x10000000 of the referenced part set
-0x004a9350,Countdown7cc150_Step,function,high,reimplemented (src/game/core/misc); a counter stepped down; 1 at zero when another global is set
-0x004b4670,Obj_KillSlot24,function,high,reimplemented (src/game/core/misc); the script slot at +0x24 killed and the slot fields cleared
-0x004bcec0,Global7cc698_Choose,function,high,reimplemented (src/game/core/misc); a global set from the first of three sources that applies
-0x0052fbf0,PairTable_Add,function,high,reimplemented (src/game/core/misc); a pair appended to the 8-byte entry table unless it is past 0x400
-0x004d09a0,Obj_SmallestEntry,function,high,"reimplemented (src/game/core/misc); the index of the smallest non-zero entry size of eight, or -1"
+0x004a9350,Countdown7cc150_Step,function,high,reimplemented (src/game/core/framecountdown); a counter stepped down; 1 at zero when another global is set
+0x004b4670,Obj_KillSlot24,function,high,reimplemented (src/game/ui/panel7cc328); the script slot at +0x24 killed and the slot fields cleared
+0x004bcec0,Global7cc698_Choose,function,high,reimplemented (src/game/ui/dialogs); a global set from the first of three sources that applies
+0x0052fbf0,PairTable_Add,function,high,reimplemented (src/game/world/cellrun); a pair appended to the 8-byte entry table unless it is past 0x400
+0x004d09a0,Obj_SmallestEntry,function,high,"reimplemented (src/game/world/money); the index of the smallest non-zero entry size of eight, or -1"
 0x00458310,Obj_CtorVirtual,function,high,reimplemented (src/game/core/misc); a class with a virtual base: vtables and the offset word
 0x004583d0,Obj_SetVectorAt2c,function,high,"reimplemented (src/game/core/misc); the scene flags touched, then three dwords at +0x2c"
 0x005651c0,Class701260_Ctor,function,high,"reimplemented (src/game/core/misc); vtable 0x701260 and its defaults, plus a driver quirk flag"
@@ -2748,11 +2751,11 @@ address,name,kind,confidence,notes
 0x0054b290,Pool_FreeAll,function,high,"reimplemented (src/game/core/misc); every chunk of an owner's list freed, with its nodes"
 0x0056b340,Obj_ReleaseFromRenderer,function,high,reimplemented (src/game/core/misc); bit 0 cleared and the part removed from the renderer's tag 0x60 list
 0x00583360,Masks_TopBits,function,high,"reimplemented (src/game/core/misc); the highest set bit of three masks stored, and their union"
-0x004f36c0,Vector36_Size,function,high,reimplemented (src/game/core/misc); the number of 36-byte elements between a vector's pointers
-0x0052fc30,PairTable_Commit,function,high,reimplemented (src/game/core/misc); the pair table copied to its committed copy
+0x004f36c0,Vector36_Size,function,high,reimplemented (src/game/core/countedpair); the number of 36-byte elements between a vector's pointers
+0x0052fc30,PairTable_Commit,function,high,reimplemented (src/game/world/cellrun); the pair table copied to its committed copy
 0x005997b0,Table768fb8_Lookup,function,high,reimplemented (src/game/core/misc); a value looked up by id in the 0x20-byte table at 0x768fb8
 0x00409260,Flags7a1a14_Update,function,high,reimplemented (src/game/core/misc); a flag word updated from another and an object's advance
-0x00486610,Global7c24d8_CopyScript,function,high,reimplemented (src/game/core/misc); a sprite script slot made a copy of another
+0x00486610,Global7c24d8_CopyScript,function,high,reimplemented (src/game/ui/thingpreview); a sprite script slot made a copy of another
 0x00557110,Rsse_TakeFinished,function,high,"reimplemented (src/game/core/misc); the value of the first finished entry, which is cleared"
 0x0054dcc0,Flag54dcc0_Test,function,high,reimplemented (src/game/core/misc); a flag test on two settings
 0x00556a80,Rsse_GetVector,function,high,reimplemented (src/game/core/misc); three dwords of a frame's record written through pointers
@@ -2999,6 +3002,7 @@ address,name,kind,confidence,notes
 0x006c0310,Obj_CheckId,function,high,reimplemented (src/game/core/methods); sets a flag from an id and compares it with a known id
 0x006c4120,Obj_CacheStatics,function,high,reimplemented (src/game/core/methods); caches two values once
 0x006ada00,Narrow_FromWide,function,high,reimplemented (src/game/core/methods); converts 16-bit characters to bytes through the range lookup
+0x006adc80,Wide_FromNarrow,function,low,"reimplemented (src/game/core/methods); thiscall (status, dest, source, count): bytes (lead bytes take the next one too) to 16-bit characters through the word table +0xc"
 0x0057ac90,Obj_GetBefore14c,function,high,reimplemented (src/game/core/accessors); the dword 0x14c before the object
 0x0057aca0,Global8bb628_SetOne,function,high,reimplemented (src/game/core/globals); sets the float at 0x8bb628 to 1.0
 0x0057cb10,Obj_Set14_18_10,function,high,reimplemented (src/game/core/accessors); sets three fields from three arguments
@@ -3128,6 +3132,7 @@ address,name,kind,confidence,notes
 0x00564ff0,Wrap_WctImage_DeletingDtor_564ff0,function,low,"reimplemented (src/game/core/thunks); thiscall (flags), pops 4: this lowered by the dword before it, then WctImage_DeletingDtor"
 0x00569cc0,Wrap_D3dProbe_SetFlags_569cc0,function,low,"reimplemented (src/game/core/thunks); thiscall (flags), pops 4: this lowered by the dword before it, then D3dProbe_SetFlags"
 0x005738c0,Wrap_Renderer_NewSurfaceA_5738c0,function,low,"reimplemented (src/game/core/thunks); thiscall: this lowered by the dword before it, then Renderer_NewSurfaceA"
+0x004813f0,Wrap_Panel7b9940_Close_4813f0,function,low,reimplemented (src/game/core/thunks); jump to 0x48a290
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value
@@ -3402,6 +3407,7 @@ address,name,kind,confidence,notes
 0x004e2290,Object_ScrapValue,function,low,reimplemented (src/game/world/object); thiscall: the scrap value by the age in funny time (years of 365 days; 100 when new without customers)
 0x004e2400,Object_ScrapRefund,function,low,reimplemented (src/game/world/object); thiscall: the scrap value percentage of the first level's cost (32-bit product / 100)
 0x004dd670,Object_AgeDays,function,low,reimplemented (src/game/world/object); thiscall: the object's age in whole funny-time days from its date at +0x18
+0x004df300,Object_RestartRide,function,low,"reimplemented (src/game/world/object); thiscall: +0x68 and the word +0x6c cleared, ride record element 6 = 1, the ride's strip animation grown from frame 1"
 0x005d46d0,Blocks7_Free,function,high,reimplemented (src/game/core/buffers); frees the seven blocks of an object and clears its groups
 0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/string); whether the first name is after the second, case blind"
 0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/string); whether two names are equal, case blind"
@@ -3653,6 +3659,7 @@ address,name,kind,confidence,notes
 0x005e3170,String_ReadToken,function,low,"reimplemented (src/game/core/string); cdecl (out, cursor, delimiter): the chars from *cursor up to the delimiter appended (String vtable +0x24) to a string copied into out; the cursor left past the delimiter"
 0x005ed130,StringVector_InsertN,function,low,"reimplemented (src/game/core/string); thiscall on a vector of strings (position, count, value, pops 12): count copies of the value inserted at the position (grown into a new block of size + max(size, count), or in place by copy-constructing, assigning through slot 0x18 and, on growth, destroying through slot 0xc)"
 0x00424d10,WNames_Equal,function,low,"reimplemented (src/game/core/string); cdecl (a, b; name unconfirmed): whether the wide texts at +8 of a and b are equal, case blind"
+0x004f7870,WString_CompareSub,function,high,"reimplemented (src/game/core/string); thiscall (pos, n, other, count; pops 16): the wide string's compare(pos, n, other, count)"
 0x005bdc10,Class702938_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings
 0x005be320,Class702940_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three strings
 0x005be750,Class702948_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings
@@ -3700,6 +3707,7 @@ address,name,kind,confidence,notes
 0x0047c740,ImeVector_InsertOne,function,high,reimplemented (src/game/core/ime); inserts one dword into the IME vector
 0x0047cf20,ImeVector_InsertN,function,high,reimplemented (src/game/core/ime); inserts count copies of a dword into the IME vector
 0x0047a9b0,Ime_CacheCurrent,function,low,reimplemented (src/game/core/ime); thiscall: the current entry cached at +0x160; returns its string count
+0x00480f90,ImeHost_OnWindow,function,low,"reimplemented (src/game/core/ime); thiscall (window): for the host's window (+4), +0x1a8 = 0, +0x1aa = 1 and the IME limit = the window's room (+0x13c less its text length)"
 0x0047f9a0,TextMetrics_Width,function,high,reimplemented (src/game/gfx/text); width of a run of characters by the glyph width slot
 0x0047fa00,TextMetrics_FitIndex,function,high,reimplemented (src/game/gfx/text); index at which the width runs out
 0x0047f990,TextMetrics_ForwardSlot8,function,high,reimplemented (src/game/gfx/text); Forwards to virtual call 8 of the inner object (name unconfirmed)
@@ -3745,6 +3753,7 @@ address,name,kind,confidence,notes
 0x005d0590,StdListDword_Merge,function,high,reimplemented (src/game/core/stdlist); merges a sorted list of dwords into another
 0x005af0e0,CountedListPair_Dtor,function,low,"reimplemented (src/game/core/stdlist); thiscall: two lists of 0x18-byte nodes with counted buffers destroyed (+0xc's erased with List_EraseNodeCounted2, +0's by hand with CountedBuf_Deleter), sentinels freed, heads and counts cleared"
 0x005caf20,StringsListRecord_Dtor,function,low,"reimplemented (src/game/core/stdlist); thiscall (unwinds only): a record's std::strings (+0x2c, then +0x10, +0) tidied and its list of counted-buffer nodes at +0x20 erased (List_EraseNodeCounted), its sentinel freed"
+0x004a8ad0,TokenList_PushChars,function,low,reimplemented (src/game/core/stdlist); thiscall (chars; pops 4): a std::string of the characters pushed onto the owner's list of strings at +0x10
 0x0041e2c0,Class6fda48_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
 0x0041e320,Class6fda68_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
 0x0041e4d0,Class6fdaa8_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
@@ -3782,6 +3791,9 @@ address,name,kind,confidence,notes
 0x004e5870,StdTree_DtorC,function,high,"reimplemented (src/game/core/stdtree); thiscall: tree C's destructor: every node erased, the head freed, the map counter 0x7ced30 lowered and at 0 the nil node 0x7ced2c freed"
 0x004e5800,StdTree_DtorD,function,high,"reimplemented (src/game/core/stdtree); thiscall: tree D's destructor (counter 0x7ced28, nil 0x7ced24), as tree C's"
 0x004e58e0,StdTree_DtorE,function,high,"reimplemented (src/game/core/stdtree); thiscall: tree E's destructor (counter 0x7ced38, nil 0x7ced34), as tree C's"
+0x004f4c20,StdTree_InsertD,function,high,"reimplemented (src/game/core/stdtree); thiscall (out, x, y, value; pops 16): tree D's node insert, the wide string copied by StdWString_Construct and compared by WString_Compare"
+0x004f2810,StdMapD_Insert,function,high,"reimplemented (src/game/core/stdtree); thiscall (result, value; pops 8): tree D's set insert, the {node, inserted} result; returns result"
+0x004f0390,StdMapD_InsertCopy,function,high,"reimplemented (src/game/core/stdtree); thiscall (out, value; pops 8): StdMapD_Insert's {iterator, inserted byte} copied to out; returns out"
 0x00617f40,Class7037b8_Dtor,function,high,reimplemented (src/game/core/vdtor); frees the list of blocks
 0x005d48d0,Panel_Reset,function,high,reimplemented (src/game/gfx/imageops); fills the panel image and blends the six parts onto it
 0x00576620,Grid_AddObject,function,high,reimplemented (src/game/render/renderer); adds an object to every list in a rectangle of the grid
@@ -4113,6 +4125,7 @@ address,name,kind,confidence,notes
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
+0x00486c70,Mouse_HandleGuiButton,function,low,"reimplemented (src/game/input/mouse); cdecl (event, state, unused, x, y): the point scaled to the GUI, buttons 0-2 down or up through Gui_MouseDown / Gui_MouseUp with their held flags"
 0x0047e3e0,ScreenSurfaces_Dtor,function,high,reimplemented (src/game/gfx/screensurfaces); an object releases its two COM objects
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
@@ -4739,6 +4752,8 @@ address,name,kind,confidence,notes
 0x005d8440,LobbyModel_TimeLeft,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall u32: when the lobby model is set, Layer_GetPlayback(entry, 0, 0, 0, layer 0) (ms left); else 0"
 0x005d81c0,LobbyModel_AlignTo,function,low,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the matrix the identity, then rows (z, 0, -x) normalised, that crossed with v normalised, and v"
 0x00492320,HelpBg_Refresh,function,high,"reimplemented (src/game/frontend/helpbg); thiscall; slot 7 of the help background vtable 0x6ff598: when the word at +4 is set, the object virtual method 0 (a tail call); name unconfirmed"
+0x00491fe0,HelpBg_WindowHandler,function,low,"reimplemented (src/game/frontend/helpbg); cdecl (window, message, a, b): on 0x14 slot 15 of the window's object (the help background); then Window_CallDefault"
+0x00492160,HelpBg_SetInterval,function,low,"reimplemented (src/game/frontend/helpbg); thiscall (value): with the word +0xc set, Frame_SetInterval then slot 0"
 0x005da120,Class702af0_AcquireModels,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall: once (+4), each list item (+0x58) not yet set up (+0xc) has its lobby model (+8) set up by RideUser_Acquire"
 0x005dfca0,Class702ca8_AcquireModels,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall: once (+0x10), the lobby models at +4 and +8 set up by RideUser_Acquire"
 0x005e1350,Class702cb0_StartPendingPlay,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall, vtable 0x702cb0 slot 6: a pending play (state +0x14 == 2) started with LobbyModel_Play(entry 1); 0 when the state is 0, else 1 and the state cleared"
@@ -4778,6 +4793,15 @@ address,name,kind,confidence,notes
 0x0065903b,Window_CancelTimed,function,low,reimplemented (src/game/ui/window); cdecl (window): likewise for the timed messages [0xfaa5f8] (GuiTimers_Cancel)
 0x0065c025,Window_Dtor,function,low,"reimplemented (src/game/ui/window); thiscall: the window destructor: going notice, manager told, objects released, timers killed, rectangle, globals, queues, unlinked, children deleted, hover, rectangles"
 0x00661680,Window_DeletingDtor,function,low,"reimplemented (src/game/ui/window); thiscall (flags): the scalar deleting destructor (slot 2): Window_Dtor, then with flag 1 freed; returns the window"
+0x0065f66e,Window_CallDefault,function,low,"reimplemented (src/game/ui/window); thiscall (message, a, b): the default handler +0x118 called with (window, message, a, b)"
+0x0065d42e,Window_GetRect,function,low,"reimplemented (src/game/ui/window); thiscall (rect, inner): 0 for none; else the rectangle +8 assigned to it, shrunk by the insets +0xf8..+0xfe (slot 3) for inner; 1"
+0x0065cfd4,Window_SetSavedRect,function,low,reimplemented (src/game/ui/window); thiscall (rect): 0 for none; else assigned to the saved rectangle +0x2c; 1
+0x00485e30,Window_SaveInsetRect,function,low,"reimplemented (src/game/ui/window); cdecl (window, dx, dy): the saved rectangle +0x2c = the inner one shrunk by dx / dy on each side"
+0x00659064,Gui_ResetQueues,function,low,"reimplemented (src/game/ui/window); cdecl: the timed table and the two message queues reset, each when set"
+0x0065e59b,Window_SetFocus,function,low,"reimplemented (src/game/ui/window); thiscall (a): the window takes the focus, the old one posted 0x20 and the new 0x1f"
+0x0065e5fa,Window_KillFocus,function,low,"reimplemented (src/game/ui/window); thiscall (a): the focus window posted 0x20, the focus cleared and the hover updated"
+0x00658af1,Gui_MouseDown,function,low,"reimplemented (src/game/ui/window); cdecl (button, x, y): the hovered window posted 0x10005 and kept as the button window, its bit set"
+0x00658b5b,Gui_MouseUp,function,low,"reimplemented (src/game/ui/window); cdecl (button, x, y): the button window posted 0x10004 and cleared, its bit cleared"
 0x00498090,Dialog7ca1c8_SetChecks,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): the nine check buttons of the 0x7ca1c8 dialog's child 0x18 set (vtable slot 5, bool) from flags bits 0-8 (0x20's also needs [0x7ca1d0]+0x50)"
 0x00498a50,Dialog7ca1c8_SetChecksIfUp,function,low,reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): Dialog7ca1c8_SetChecks when [0x7ca1c8] and [0x7ca1cc] are not 0
 0x00481a00,Dialog7ca1c8_SetChecksIfUpThis,function,low,"reimplemented (src/game/ui/dialog7ca1c8); thiscall (flags), pops 4, this unused: Dialog7ca1c8_SetChecksIfUp(flags)"
@@ -4801,6 +4825,11 @@ address,name,kind,confidence,notes
 0x0048c8b0,WindowAt10_ScalarDtor,function,low,"reimplemented (src/game/ui/dialogs); thiscall (flags), pops 4: WindowAt10_Message4IfAny, then freed for flags bit 0; returns this"
 0x004bcef0,Windows7cc8bc_Message6Pair,function,low,"reimplemented (src/game/ui/dialogs); cdecl: message 6 (same, 0) to [0x7cc8bc] and (!same, 0) to [0x7cc8c0], same = (0x7cc698 == [0x7cc8bc]); 0x7cc698 = 0; the second result"
 0x004a2590,Dialog7cb2b8_Child21Post,function,low,"reimplemented (src/game/ui/dialogs); cdecl (value): dialog [0x7cb2b8] and value != 0: child 0x21; 0 when its DwordA0(2) is set, else message 0xb sent and 0xa (value, 0) posted; the value otherwise"
+0x00492e00,WindowAt10_Handler,function,low,"reimplemented (src/game/ui/dialogs); cdecl (window, message, a, b): on 0x14 the window's object (A0[0]) +0x10 = 0; then Window_CallDefault"
+0x004b8ee0,Dialog7cc4b4_SetEffect,function,low,"reimplemented (src/game/ui/dialogs); cdecl (window, on): on: unless [0x7cc4bc] is set, Particle_Spawn(0x61, 50000, 0, the inner rectangle's centre * 75000 / 1536); off: that system ended and cleared"
+0x004a0a20,Dialog7cb2b8_Handler,function,low,"reimplemented (src/game/ui/dialogs); cdecl (window, message, a, b): on 0x14 [0x7cb2b8] = 0; then Window_CallDefault"
+0x004a0a90,Window_DefaultHandler,function,low,"reimplemented (src/game/ui/dialogs); cdecl (window, message, a, b): Window_CallDefault"
+0x00496570,Dialog7ca168_ShowText,function,low,reimplemented (src/game/ui/dialogs); cdecl (which): the label (child 0x32a of child 0x329 of [0x7ca168]) gets language text 0x6b/0x6c/0x6e/0x6d/0x6f for 0-4 (slot 9); else which returned
 0x00659607,GuiManager_CallSlot4,function,low,"reimplemented (src/game/ui/guimanager); cdecl: slot 4 (thiscall, no arguments) of the GUI manager [0x77c48c], its result"
 0x0065961c,GuiManager_CallSlot3,function,low,"reimplemented (src/game/ui/guimanager); cdecl: slot 3 (thiscall, no arguments) of the GUI manager [0x77c48c], its result"
 0x00659631,GuiManager_Word4Set,function,low,"reimplemented (src/game/ui/guimanager); cdecl: 1 when the GUI manager's word +4 (Fn_659790) is not 0, else 0"
@@ -4840,6 +4869,8 @@ address,name,kind,confidence,notes
 0x00669e3a,GuiTimers_Cancel,function,low,"reimplemented (src/game/ui/guitimers); thiscall (window): the window's entries freed; their number (AX), -1 without entries"
 0x0048a3d0,Panel7b9940_Detach,function,low,"reimplemented (src/game/ui/panel7b9940); cdecl: GuiManager_CallSlot4, then the 0x7b9940 object's virtual base out of the renderer's tag 0x20 list; returns that result"
 0x004855d0,Panel7b9940_Ctor,function,low,"reimplemented (src/game/ui/panel7b9940); thiscall (complete), pops 4: the constructor: complete sets the vbtables and vtable, then through the vbtable the vtable 0x6fdcc8, displacements, +0x50 2, scene flags touched twice, 1.0f fields, +0x54 -1; returns the object"
+0x0048a290,Panel7b9940_Close,function,low,"reimplemented (src/game/ui/panel7b9940); cdecl: message 5 to the 0x7c26b0 windows, the panel out of the renderer, the GUI manager slot 4, the front-end globals released and two windows sent message 4"
+0x0048a310,Panel7b9940_Show,function,low,"reimplemented (src/game/ui/panel7b9940); cdecl: GUI queues reset, the second base set up, the first base added to the renderer, the GUI manager slot 3 or 4"
 0x006588b6,Gui_HashName,function,low,"reimplemented (src/game/ui/windowreg); cdecl (text, multiplier): h = (signed char ^ h) * multiplier over the characters; returns h"
 0x00659bc9,GuiWindows_FindByName,function,low,"reimplemented (src/game/ui/windowreg); cdecl (name): the first node with the name's hash (0x2f): its window's slot 0x20, else 0"
 0x00659c42,GuiWindows_FindByHash,function,low,"reimplemented (src/game/ui/windowreg); cdecl (hash): the first node with the hash: its window's slot 0x20, else 0"
@@ -4851,5 +4882,9 @@ address,name,kind,confidence,notes
 0x00662306,WindowTimers_Kill,function,low,"reimplemented (src/game/ui/windowtimers); cdecl (window, id): the window's timer with the id found and deleted (the list head moved on); 1, or 0 for none"
 0x006689bc,Window705a50_Dtor,function,low,"reimplemented (src/game/ui/window705a50); thiscall: the 0x705a50 window's destructor: its vtable, the text row +0x148 released when set, then Window_Dtor"
 0x006693a0,Window705a50_DeletingDtor,function,low,"reimplemented (src/game/ui/window705a50); thiscall (flags): the 0x705a50 window's scalar deleting destructor (slot 2): Window705a50_Dtor, then with flag 1 freed; returns the window"
+0x0066852b,Window705a50_TextLength,function,low,"reimplemented (src/game/ui/window705a50); thiscall: wcslen of the wide text +0x138 (AX), 0 for none"
 0x00486530,ThingPreview_Show,function,low,"reimplemented (src/game/ui/thingpreview); cdecl (rect, thing, depth, scale float): any shown copy killed, [0x7c24d8] = thing; its script +0xc cloned at a position from the rect (x87, __ftol) and Sprite_FlipY(depth), the slot to [0x7c24a0] and returned (no script: [0x7c24d8] 0, the thing returned)"
 0x00486630,ThingPreview_Hide,function,low,reimplemented (src/game/ui/thingpreview); cdecl: with [0x7c24d8] set the copy (slot [0x7c24a0]) killed and [0x7c24d8] cleared
+0x00480d30,HilightList_NewRow,function,low,"reimplemented (src/game/ui/listrows); cdecl: the ""hilight"" list's row window (0x138 bytes, Window_Ctor (0, 0, 100, font 7's height * 0x600 / [0xfaa5c0] + 6)), the height first"
+0x004a8380,List7cc188_NewRow,function,low,"reimplemented (src/game/ui/listrows); cdecl: the same for the list of the window [0x7cc188], the height once allocated"
+0x0066a084,Frame_SetInterval,function,low,"reimplemented (src/game/ui/frame); thiscall (value): +0x14 = value; with the words +4 and +0xc set, +0x10 = GuiClock_Now"

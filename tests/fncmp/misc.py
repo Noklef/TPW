@@ -1,6 +1,5 @@
-# The small functions of src/game/core/misc against the originals: any object bytes; the streambuf
-# pointers pointing into the object or a buffer (now and then at each other), any positions.
-# usage: misc.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Clear0,Setg,...)
+# The small functions of src/game/core/misc against the originals: any object bytes, any positions.
+# usage: misc.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Clear0,Pixel,...)
 import os
 import struct
 import sys
@@ -8,11 +7,11 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x424ed0, 0x424ee9), (0x4922d0, 0x4922e0), (0x4e1c60, 0x4e1c70), (0x4f00f0, 0x4f0110), (0x4f6020, 0x4f6080), (0x40f300, 0x40f329), (0x59b550, 0x59b590), (0x458910, 0x458935), (0x458940, 0x458965),
-           (0x5836b0, 0x5836c2), (0x4a9350, 0x4a9375), (0x4b4670, 0x4b4695), (0x4bcec0, 0x4bcef0), (0x52fbf0, 0x52fc21), (0x5f4490, 0x5f44d0), (0x56b620, 0x56b628), (0x633dc0, 0x633e00), (0x6486e0, 0x648720), (0x5c9040, 0x5c9062), (0x5d36c0, 0x5d36d0), (0x5d03b0, 0x5d03cf), (0x5dd3d0, 0x5dd3fd), (0x5ddac0, 0x5ddae0), (0x5dd810, 0x5dd822), (0x5e2750, 0x5e2763), (0x633120, 0x63313a), (0x6338b0, 0x6338c0), (0x5c7490, 0x5c749c), (0x5f6a20, 0x5f6a60), (0x5c5230, 0x5c524b), (0x5c7d20, 0x5c7d2e), (0x5c7d00, 0x5c7d16), (0x5c7bb0, 0x5c7bc7), (0x5b0d40, 0x5b0d54), (0x5d5ee0, 0x5d5eec), (0x5d1440, 0x5d1458), (0x54dcc0, 0x54dcf0), (0x556a80, 0x556aac), (0x569f30, 0x569f58), (0x45be80, 0x45becd), (0x4254e0, 0x425510), (0x5766e0, 0x57681a), (0x486610, 0x486630), (0x475e10, 0x475e80), (0x557110, 0x55715b), (0x409260, 0x409296), (0x4f36c0, 0x4f36e1), (0x52fc30, 0x52fc79), (0x5997b0, 0x5997f8), (0x56e780, 0x56e7de), (0x54b290, 0x54b2f0), (0x56b340, 0x56b37d), (0x576540, 0x5765b8), (0x583360, 0x5833ba), (0x5646c0, 0x564708), (0x564ba0, 0x564bf0), (0x56b570, 0x56b5b2), (0x4583d0, 0x4583f6), (0x5651c0, 0x56520b), (0x4d09a0, 0x4d09e6), (0x458310, 0x45834d), (0x402ef0, 0x402f10), (0x4032b0, 0x4032ca), (0x402f30, 0x402f50), (0x4030c0, 0x4030c4),
-           (0x47f940, 0x47f95a), (0x657d30, 0x657d6c), (0x4d4170, 0x4d4186), (0x475550, 0x47558b), (0x4d9600, 0x4d9619), (0x4e01f0, 0x4e0209), (0x4f6820, 0x4f6850),
-           (0x4f6850, 0x4f6880), (0x56a510, 0x56a540), (0x56b630, 0x56b650), (0x56b830, 0x56b850)])
-CALLS = ['Shown', 'Ctor3ca0', 'MaxW', 'Ctor295c', 'Swap', 'Choose', 'Pending', 'Pos40', 'SetOrKeep', 'Ctor3c18', 'WCtor', 'DirOk', 'Rec14', 'RecUsed', 'RecCount', 'Tab73', 'FlagsAnd', 'Span', 'Flag54', 'GetVec', 'Setting', 'RemRect', 'CopyScript', 'TakeDone', 'Flags', 'Size36', 'Commit', 'Lookup', 'Extents', 'FreeAll', 'RemRect14', 'ReleaseR', 'TopBits', 'Virt5646', 'Virt564b', 'FindSet', 'SetVec', 'Ctor1260', 'Smallest', 'CtorVirtual', 'PairAdd', 'CtorPart', 'MeshClear', 'MeshSet', 'Countdown', 'Kill24', 'Choose', 'Advance', 'CtorOne', 'CtorValue', 'KillSlot', 'Stamp30', 'Stamp5e', 'InitBuf', 'Clear0', 'Clear18', 'Diff', 'Virtual', 'Setg', 'Setp', 'Pixel', 'Fill', 'Set3034']
+B = Bench([(0x424ed0, 0x424ee9), (0x40f300, 0x40f329), (0x59b550, 0x59b590), (0x458910, 0x458935), (0x458940, 0x458965),
+           (0x5836b0, 0x5836c2), (0x5f4490, 0x5f44d0), (0x56b620, 0x56b628), (0x633dc0, 0x633e00), (0x6486e0, 0x648720), (0x5c9040, 0x5c9062), (0x5d36c0, 0x5d36d0), (0x5d03b0, 0x5d03cf), (0x5dd3d0, 0x5dd3fd), (0x5ddac0, 0x5ddae0), (0x5dd810, 0x5dd822), (0x5e2750, 0x5e2763), (0x633120, 0x63313a), (0x6338b0, 0x6338c0), (0x5c7490, 0x5c749c), (0x5f6a20, 0x5f6a60), (0x5c5230, 0x5c524b), (0x5c7d20, 0x5c7d2e), (0x5c7d00, 0x5c7d16), (0x5c7bb0, 0x5c7bc7), (0x5b0d40, 0x5b0d54), (0x5d5ee0, 0x5d5eec), (0x5d1440, 0x5d1458), (0x54dcc0, 0x54dcf0), (0x556a80, 0x556aac), (0x569f30, 0x569f58), (0x45be80, 0x45becd), (0x4254e0, 0x425510), (0x5766e0, 0x57681a), (0x557110, 0x55715b), (0x409260, 0x409296), (0x5997b0, 0x5997f8), (0x56e780, 0x56e7de), (0x54b290, 0x54b2f0), (0x56b340, 0x56b37d), (0x576540, 0x5765b8), (0x583360, 0x5833ba), (0x5646c0, 0x564708), (0x564ba0, 0x564bf0), (0x56b570, 0x56b5b2), (0x4583d0, 0x4583f6), (0x5651c0, 0x56520b), (0x458310, 0x45834d), (0x402ef0, 0x402f10), (0x4032b0, 0x4032ca), (0x402f30, 0x402f50), (0x4030c0, 0x4030c4),
+           (0x47f940, 0x47f95a), (0x657d30, 0x657d6c),
+           (0x56a510, 0x56a540), (0x56b630, 0x56b650), (0x56b830, 0x56b850)])
+CALLS = ['Shown', 'Ctor3ca0', 'MaxW', 'Ctor295c', 'Swap', 'Choose', 'Pending', 'Pos40', 'SetOrKeep', 'Ctor3c18', 'WCtor', 'DirOk', 'Rec14', 'RecUsed', 'RecCount', 'Tab73', 'FlagsAnd', 'Span', 'Flag54', 'GetVec', 'Setting', 'RemRect', 'TakeDone', 'Flags', 'Lookup', 'Extents', 'FreeAll', 'RemRect14', 'ReleaseR', 'TopBits', 'Virt5646', 'Virt564b', 'FindSet', 'SetVec', 'Ctor1260', 'CtorVirtual', 'CtorPart', 'MeshClear', 'MeshSet', 'Advance', 'CtorOne', 'CtorValue', 'Clear0','Pixel', 'Fill', 'Set3034']
 BUF = RAM + 0x1000
 
 
@@ -111,10 +110,6 @@ def case(r):
             regions[RAM + 0x1800] = put(put(bytearray(r.bytes(0x40)), 0x24, 'I', RAM), 0, 'I', r.choice([0, 0x4000, 0xffffffff, r.getrandbits(32)]))
             return Call(0x4254e0, [RAM + 0x1800, pos(), pos()], regions, ret='a')
         return Call(0x45be80, [RAM, pos(), pos()], regions, ret='a')
-    if op == 'CopyScript':
-        put(obj, 0xc, 'I', r.choice([0, 0, 1, 2, 5]))
-        regions.update({0x7c24d0: put(bytearray(r.bytes(0x20)), 8, 'I', r.choice([0, RAM])), 0x7c24a0: r.bytes(8), 0x7b49f0: bytearray(16)})
-        return Call(0x486610, [], regions)
     if op == 'TakeDone':
         count = r.choice([0, 1, 3, 5, -1])
         put(obj, 0x7c, 'i', count)
@@ -127,14 +122,6 @@ def case(r):
         put(obj, 0x18, 'I', r.choice([0, 0, 1, 5]))
         regions.update({0x7a1a10: r.bytes(8), 0x7477e0: r.bytes(8), 0x785970: r.bytes(0x60)})
         return Call(0x409260, [RAM], regions, conv='t', ret='a')
-    if op == 'Size36':
-        put(obj, 4, 'I', r.choice([0, 0x1000, 0x7fffff00, 0xfffffff0]))
-        put(obj, 8, 'I', r.choice([0, 0x1000 + 36 * r.randrange(100), 0x1000 + r.randrange(5000), r.getrandbits(32)]))
-        return Call(0x4f36c0, [RAM], regions, conv='t', ret='a')
-    if op == 'Commit':
-        count = r.choice([0, 1, 5, 0x400, 0x401, 0xffffffff, 0xfffffffb])
-        regions = {0x81b740: r.bytes(0x2010), 0x818d90: r.bytes(0x2010), 0x820a80: put(bytearray(r.bytes(0x20)), 0xc, 'I', count)}
-        return Call(0x52fc30, [], regions, ret='a')
     if op == 'Lookup':
         table = bytearray(r.bytes(0x20 * 8))
         end = r.randrange(0, 8)
@@ -212,21 +199,11 @@ def case(r):
                         0x8bd520: r.bytes(4) + struct.pack('<I', r.choice([1, 1, 0, 4]))})
         regions[RAM + 0x1000] = put(bytearray(r.bytes(0x500)), 0x428, 'I', r.choice([0x10de, 0x10de, 0x1002, 0]))
         return Call(0x5651c0, [RAM], regions, conv='t', ret='a')
-    if op == 'Smallest':
-        for i in range(8):
-            e = 0x20 + 0x20 * i
-            put(obj, e, 'IIII', r.choice([0, 3, 5, 10, 100, 0xffffffff]), r.choice([0, 1, 2, 5, 0x10000]),
-                r.choice([0, 0, 1, RAM]), r.choice([0, 1, 3, 5, 0xffffffff]))
-        return Call(0x4d09a0, [RAM], regions, conv='t', ret='a')
     if op == 'CtorVirtual':
         off = r.choice([0x60, 0x60, 0x64, 0x70, 0x80, 0x68])
         put(obj, 0, 'I', RAM + 0x300)  # the vtable it starts with (when not most derived)
         put(obj, 0x304, 'I', off)
         return Call(0x458310, [RAM, r.choice([0, 1, 1])], regions, conv='t', ret='a')
-    if op == 'PairAdd':
-        count = r.choice([0, 1, 5, 0x3ff, 0x400, 0x401, 0x402, 0xffffffff, r.randrange(0x400)])
-        regions = {0x81b740: r.bytes(0x2010), 0x820a80: put(bytearray(r.bytes(0x20)), 0xc, 'I', count)}
-        return Call(0x52fbf0, [r.getrandbits(32), r.getrandbits(32)], regions, ret='a')
     if op == 'CtorPart':
         return Call(0x40f300, [RAM, RAM + 0x100 + r.choice([0, 4, 0x20])], regions, conv='t', ret='a')
     if op in ('MeshClear', 'MeshSet'):
@@ -235,19 +212,6 @@ def case(r):
         put(obj, 0x308, 'I', r.choice([0x20, 0x40, 0x10, 0x60]))
         regions.update({0x8bd500: r.bytes(0x20), 0x8bcc40: r.bytes(8)})
         return Call(0x458910 if op == 'MeshClear' else 0x458940, [RAM + 0x100], regions)
-    if op == 'Countdown':
-        regions = {0x7cc150: struct.pack('<i', r.choice([-3, -1, 0, 0, 1, 2, 5])) + bytes(0x3c) + struct.pack('<I', r.choice([0, 0, 1, 0xffff0000]))}
-        return Call(0x4a9350, [], regions, ret='a')
-    if op == 'Kill24':
-        put(obj, 0x24, 'I', r.choice([0, 0, 1, 2, 3, 0xffffffff, r.randrange(8)]))
-        regions[0x7b49f0] = bytearray(16)  # sprite scripts not ready: kill is a no-op
-        return Call(0x4b4670, [RAM], regions, conv='t', ret='a')
-    if op == 'Choose':
-        g = bytearray(r.bytes(0x40))
-        put(g, 0x28, 'I', r.choice([0, 0, 7, 0x80000000]))  # 0x7cc8b8 (region base 0x7cc890)
-        g[0x24] = r.choice([0, 0, 1, 0xff])  # 0x7cc8b4
-        regions = {0x7cc890: g, 0x7cc690: r.bytes(0x20)}
-        return Call(0x4bcec0, [], regions, ret='a')
     if op == 'Advance':
         put(obj, 0x30, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
         return Call(0x402ef0, [RAM], regions, conv='t', ret='a')
@@ -255,37 +219,8 @@ def case(r):
         return Call(0x4032b0, [RAM], regions, conv='t', ret='a')
     if op == 'CtorValue':
         return Call(0x47f940, [RAM, r.getrandbits(32)], regions, conv='t', ret='a')
-    if op == 'KillSlot':
-        put(obj, 0, 'I', r.choice([0, 1, 2, 3, 0xffffffff, r.randrange(8)]))
-        regions[0x7b49f0] = bytearray(16)  # sprite scripts not ready: kill is a no-op
-        return Call(0x4d4170, [RAM], regions, conv='t')
-    if op in ('Stamp30', 'Stamp5e'):
-        world = bytearray(r.bytes(0x10))
-        regions.update({0x802390: put(bytearray(r.bytes(0x20)), 0xc, 'I', RAM + 0x1000 - 0x1da70c), RAM + 0x1000: r.bytes(0x20)})
-        return Call(0x4d9600 if op == 'Stamp30' else 0x4e01f0, [RAM, r.getrandbits(32)], regions, conv='t', ret='a')
-    if op == 'InitBuf':
-        return Call(0x4f6020, [RAM + r.choice([0, 0x20])], regions, conv='t', ret='a')
     if op == 'Clear0':
         return Call(0x424ed0, [RAM + 0x10], regions, ret='a')
-    if op == 'Clear18':
-        return Call(0x4922d0, [RAM + 0x20], regions, conv='t', ret='a')
-    if op == 'Diff':
-        return Call(0x4e1c60, [RAM], regions, conv='t', ret='a')
-    if op == 'Virtual':
-        sub = RAM + 0x100
-        put(obj, 0x100 - 4, 'I', RAM + 0x300)
-        put(obj, 0x304, 'I', r.choice([0x10, 0x20, 0x4, 0x8, 0x80]))
-        return Call(0x4f00f0, [sub], regions, conv='t')
-    if op in ('Setg', 'Setp'):
-        slots = (0xc, 0x1c, 0x2c) if op == 'Setg' else (0x10, 0x20, 0x30)
-        for i, off in enumerate(slots):  # the pointers go to their own words, or all to one, or the object itself
-            put(obj, off, 'I', r.choice([RAM + 0x200 + 4 * i, RAM + 0x200 + 4 * i, RAM + 0x200, RAM + off]))
-        a = r.choice([0, 1, 100, 0x7fffffff, r.getrandbits(32)])
-        b = r.choice([0, 2, 100, 0x80000000, r.getrandbits(32)])
-        c = r.choice([0, 8, 0x1000, r.getrandbits(32)])
-        if op == 'Setg':
-            return Call(0x4f6820, [RAM, a, b, c], regions, conv='t', ret='a')
-        return Call(0x4f6850, [RAM, a, b], regions, conv='t', ret='a')
     if op == 'Pixel':
         width = r.choice([1, 4, 16, 64])
         x, y = r.randrange(width), r.randrange(8)

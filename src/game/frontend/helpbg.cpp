@@ -3,6 +3,8 @@
 #include <cstdint>
 
 #include "../core/vcall.h"
+#include "../ui/frame.h"
+#include "../ui/window.h"
 
 namespace {
 
@@ -15,5 +17,22 @@ extern "C" {
 void __fastcall HelpBg_Refresh(u8 *self) {
     if (at<u16>(self, 4) != 0)
         vcall<void>(self, 0);
+}
+
+u32 __fastcall Obj_Clear18_0c(u8 *object) {
+    at<u32>(object, 0x18) = 0;
+    at<u16>(object, 0xc) = 0;
+    return 0;
+}
+
+void __fastcall HelpBg_SetInterval(u8 *self, void *, u32 value) {
+    if (at<u16>(self, 0xc) == 0) return;
+    Frame_SetInterval(self, nullptr, value);
+    vcall<void>(self, 0);
+}
+
+s32 __cdecl HelpBg_WindowHandler(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 0x14) vcall<u32>(reinterpret_cast<u8 *>(Window_DwordA0(window, nullptr, 0)), 0x3c);
+    return Window_CallDefault(window, nullptr, message, a, b);
 }
 }  // extern "C"

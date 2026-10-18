@@ -5,7 +5,6 @@
 
 #include "../render/renderer.h"
 #include "../render/state.h"
-#include "../sprite/script.h"
 #include "accessors.h"
 #include "gameheap.h"
 #include "initializers.h"
@@ -47,52 +46,6 @@ void __cdecl MeshRef_SetFlag10000000(u8 *const *ref) {
     u8 *part = RefPart(ref);
     SceneFlags_Touch(reinterpret_cast<u32 *>(0x008bd508));
     at<u32>(part, 0x50) |= 0x10000000;
-}
-
-u32 __cdecl Countdown7cc150_Step() {
-    s32 &counter = global<s32>(0x007cc150);
-    if (counter > 0)
-        counter--;
-    return counter == 0 && global<u32>(0x007cc190) != 0 ? 1 : 0;
-}
-
-u32 __fastcall Obj_KillSlot24(u8 *object) {
-    if (!at<u32>(object, 0x24))
-        return 0;
-    SpriteScript_Kill((s32)at<u32>(object, 0x24));
-    at<u32>(object, 0x24) = 0;
-    at<u32>(object, 0x28) = 0xffffffff;
-    at<u32>(object, 0x2c) = 0xffffffff;
-    return 0xffffffff;
-}
-
-u32 __cdecl Global7cc698_Choose() {
-    if (global<u32>(0x007cc8b8)) {
-        global<u32>(0x007cc698) = global<u32>(0x007cc8b8);
-        return global<u32>(0x007cc698);
-    }
-    if (global<u8>(0x007cc8b4)) {
-        global<u32>(0x007cc698) = global<u32>(0x007cc8bc);
-        return global<u32>(0x007cc698);
-    }
-    global<u32>(0x007cc698) = global<u32>(0x007cc8c0);
-    return 0;
-}
-
-s32 __fastcall Obj_SmallestEntry(const u8 *object) {
-    s32 best = -1;
-    u32 smallest = 0;
-    bool found = false;
-    for (u32 i = 0; i < 8; i++) {
-        const u8 *entry = object + 0x20 + 0x20 * i;
-        const u32 size = at<u32>(entry, 8) ? (at<u32>(entry, 0) - at<u32>(entry, 0xc)) * at<u32>(entry, 4) : 0;
-        if (size > 0 && (size < smallest || !found)) {
-            best = (s32)i;
-            smallest = size;
-            found = true;
-        }
-    }
-    return best;
 }
 
 u8 *__fastcall Obj_CtorVirtual(u8 *object, void *, u32 mostDerived) {
@@ -221,24 +174,6 @@ u32 __fastcall Masks_TopBits(u8 *object) {
     return blue | green | red;
 }
 
-s32 __fastcall Vector36_Size(const u8 *vector) {
-    const u32 begin = at<u32>(vector, 4);
-    if (!begin)
-        return 0;
-    return (s32)(at<u32>(vector, 8) - begin) / 36;
-}
-
-s32 __cdecl PairTable_Commit() {
-    const s32 count = global<s32>(0x00820a8c);
-    for (s32 i = 0; i < count; i++) {
-        global<u32>(0x00818d98 + 8 * (u32)i) = global<u32>(0x0081b740 + 8 * (u32)i);
-        global<u32>(0x00818d9c + 8 * (u32)i) = global<u32>(0x0081b744 + 8 * (u32)i);
-    }
-    global<s32>(0x00820a90) = count;
-    global<u32>(0x00820a94) = 0;
-    return count > 0 ? count : 0;
-}
-
 u32 __cdecl Table768fb8_Lookup(u32 id) {
     for (u32 entry = 0x00768fb8; global<u32>(entry) != 0x270f; entry += 0x20) {
         if (global<u32>(entry) == id)
@@ -265,12 +200,6 @@ u32 __cdecl Obj_RemoveFromRect(u8 *object, u32 from, u32 to) {
                           (s32)(to & 0xffff), (u32)(uintptr_t)part);
     at<u32>(object, 0) &= 0xfffffffe;
     return at<u32>(object, 0);
-}
-
-void __cdecl Global7c24d8_CopyScript() {
-    u8 *object = global<u8 *>(0x007c24d8);
-    if (object && at<u32>(object, 0xc))
-        SpriteScript_CopyFrom((s32)global<u32>(0x007c24a0), (s32)at<u32>(object, 0xc));
 }
 
 u32 __cdecl Rsse_TakeFinished(u8 *vm) {
@@ -430,16 +359,6 @@ u8 *__cdecl Records32_MaxWeight(u8 *records, s32 count) {
     return best;
 }
 
-u32 __cdecl PairTable_Add(u32 a, u32 b) {
-    const s32 count = global<s32>(0x00820a8c);
-    if (count > 0x400)
-        return 0;
-    global<u32>(0x0081b740 + 8 * count) = a;
-    global<u32>(0x0081b744 + 8 * count) = b;
-    global<s32>(0x00820a8c) = count + 1;
-    return 1;
-}
-
 u32 __fastcall Obj_AdvanceUnless30(u8 *object) {
     u32 result = Obj_Get30(object);
     if (!result) {
@@ -463,66 +382,9 @@ u8 *__fastcall Obj_CtorValue(u8 *object, void *, u32 value) {
     return object;
 }
 
-void __fastcall Obj_KillSlot(u8 *object) {
-    SpriteScript_Kill((s32)at<u32>(object, 0));
-    at<u32>(object, 0) = 0;
-}
-
-u32 __fastcall Obj_StampAt30(u8 *object, void *, u32 word) {
-    at<u16>(object, 0x30) = (u16)word;
-    const u32 stamp = at<u32>(global<u8 *>(0x0080239c), 0x1da70c);
-    at<u32>(object, 0x34) = stamp;
-    return stamp;
-}
-
-u32 __fastcall Obj_StampAt5e(u8 *object, void *, u32 word) {
-    at<u16>(object, 0x5e) = (u16)word;
-    const u32 stamp = at<u32>(global<u8 *>(0x0080239c), 0x1da70c);
-    at<u32>(object, 0x60) = stamp;
-    return stamp;
-}
-
 u32 __cdecl Dword_ClearBit0(u32 *p) {
     *p &= 0xfffffffe;
     return 1;
-}
-
-u32 __fastcall Obj_Clear18_0c(u8 *object) {
-    at<u32>(object, 0x18) = 0;
-    at<u16>(object, 0xc) = 0;
-    return 0;
-}
-
-u32 __fastcall Obj_Diff180_184(const u8 *object) { return at<u32>(object, 0x180) - at<u32>(object, 0x184); }
-
-void __fastcall Vtbl7099ec_SetVirtual(u8 *sub) {
-    const u32 base = at<u32>(at<u8 *>(sub, (u32)-4), 4);
-    at<u32>(sub, base - 4) = 0x007099ec;
-}
-
-u32 __fastcall Wstreambuf_InitPointers(u8 *object) {
-    static const u32 kSlots[6][2] = {{0xc, 0x4}, {0x10, 0x8}, {0x1c, 0x14}, {0x20, 0x18}, {0x2c, 0x24}, {0x30, 0x28}};
-    for (const auto &slot : kSlots)
-        at<u32>(object, slot[0]) = (u32)(uintptr_t)object + slot[1];
-    for (u32 offset : {0x8u, 0x18u, 0x28u, 0x4u, 0x14u, 0x24u})
-        at<u32>(object, offset) = 0;
-    return (u32)(uintptr_t)object + 0x24;
-}
-
-u32 *__fastcall Wstreambuf_Setg(u8 *object, void *, u32 first, u32 next, u32 last) {
-    *at<u32 *>(object, 0xc) = first;
-    *at<u32 *>(object, 0x1c) = next;
-    u32 *count = at<u32 *>(object, 0x2c);
-    *count = (u32)((s32)(last - next) >> 1);
-    return count;
-}
-
-u32 *__fastcall Wstreambuf_Setp(u8 *object, void *, u32 first, u32 last) {
-    *at<u32 *>(object, 0x10) = first;
-    *at<u32 *>(object, 0x20) = first;
-    u32 *count = at<u32 *>(object, 0x30);
-    *count = (u32)((s32)(last - first) >> 1);
-    return count;
 }
 
 u32 __stdcall SoftRenderer_PixelAt(s32 x, s32 y, u32 *out) {

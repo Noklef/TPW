@@ -1,6 +1,6 @@
 // A copy of a thing's sprite script shown over a GUI window (the panels 0x4b5340 and 0x4b6b90 show the selected thing's,
 // [0x7c2658], over their window's rectangle): the thing at [0x7c24d8] and the copy's script slot at [0x7c24a0] (0x486610,
-// Global7c24d8_CopyScript, keeps the copy in step). Reimplementation of 0x486530 and 0x486630. The names are unconfirmed.
+// Global7c24d8_CopyScript, keeps the copy in step). Reimplementation of 0x486530, 0x486610 and 0x486630. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -17,4 +17,8 @@ u32 __cdecl ThingPreview_Show(const u8 *rect, u8 *thing, s32 depth, u32 scale);
 // 0x486630 (cdecl; also reached through the jump 0x4b6b80): with [0x7c24d8] set the copy (slot [0x7c24a0]) is killed and
 // [0x7c24d8] cleared.
 void __cdecl ThingPreview_Hide();
+
+// 0x486610 (cdecl): when the object at [0x7c24d8] has its +0xc set the sprite script slot [0x7c24a0] is
+// made a copy of that script slot (SpriteScript_CopyFrom).
+void __cdecl Global7c24d8_CopyScript();
 }

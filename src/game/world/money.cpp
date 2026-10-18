@@ -88,4 +88,20 @@ FileTime *__fastcall Money_TimeInRed(const u8 *money, void *, FileTime *out) {
     return FunnyTime_SpanSince(global<const u8 *>(0x0080239c) + 0x2a0, nullptr, out, at<u32>(money, 0x120));
 }
 
+s32 __fastcall Obj_SmallestEntry(const u8 *object) {
+    s32 best = -1;
+    u32 smallest = 0;
+    bool found = false;
+    for (u32 i = 0; i < 8; i++) {
+        const u8 *entry = object + 0x20 + 0x20 * i;
+        const u32 size = at<const u32>(entry, 8) ? (at<const u32>(entry, 0) - at<const u32>(entry, 0xc)) * at<const u32>(entry, 4) : 0;
+        if (size > 0 && (size < smallest || !found)) {
+            best = (s32)i;
+            smallest = size;
+            found = true;
+        }
+    }
+    return best;
+}
+
 }  // extern "C"

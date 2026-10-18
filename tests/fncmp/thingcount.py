@@ -70,6 +70,7 @@ def case(r):
             first, last = sorted([near(x), near(x)]) if r.random() < 0.8 else (near(x), near(x))
             regions[0x7855bc] = struct.pack('<3I', first & 0xffffffff, (y if r.random() < 0.6 else near(y)) & 0xffffffff, last & 0xffffffff)
             regions[world + 0x1da732] = r.bytes(2)
+            return Call(CALLS[name], [OUT, x & 0xffffffff, y & 0xffffffff], regions, conv='c', ret='a')   # (x and y by value)
         if name == 'Hover':  # (the entrance's columns about the tile's, its row the tile's half the time)
             first, last = sorted([x + r.randrange(-2, 3), x + r.randrange(-2, 3)])
             regions[0x7855bc] = struct.pack('<3I', first & 0xffffffff, y if r.random() < 0.5 else r.randrange(128), last & 0xffffffff)
@@ -80,7 +81,6 @@ def case(r):
             regions[RAM + 0x20000] = state
             regions[RAM + 0x21000] = bytes([r.getrandbits(8), r.getrandbits(8), r.choice([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0x11, 0x12, 0x13, 0xff])]) + r.bytes(5)
             return Call(CALLS[name], [RAM + 0x20000], regions, conv='t', ret='v')
-            return Call(CALLS[name], [OUT, x & 0xffffffff, y & 0xffffffff], regions, conv='c', ret='a')
         regions[RAM + 0x20000] = struct.pack('<ii', x, y)
         return Call(CALLS[name], [OUT, RAM + 0x20000, RAM + 0x20004], regions, conv='c', ret='a')
     if name == 'Unlink':

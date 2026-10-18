@@ -13,6 +13,10 @@ u8 *__fastcall Window_FindChild(u8 *window, void *, u32 id);
 // (window, message, a, b) and its result returned; -1 when there is none.
 s32 __fastcall Window_CallHandler(u8 *window, void *, u32 message, u32 a, u32 b);
 
+// 0x65f66e (thiscall (message, a, b), pops 12; name unconfirmed): the window's default handler (the cdecl function at +0x118, 0x65f6d1
+// unless replaced; not checked for 0) called with (window, message, a, b) and its result returned.
+s32 __fastcall Window_CallDefault(u8 *window, void *, u32 message, u32 a, u32 b);
+
 // 0x658d9f (cdecl (window, message, a, b); name unconfirmed): -1 for no window or one whose byte +4 (Fn_659710) is set; otherwise the
 // global message hook [0xfaa5fc] (when set) is called with the same four, then Window_CallHandler's result is returned.
 s32 __cdecl Window_SendMessage(u8 *window, u32 message, u32 a, u32 b);
@@ -35,6 +39,20 @@ u16 __fastcall Window_IsShown(u8 *window);
 
 // 0x65bc90 (thiscall; name unconfirmed): the rectangle at +8 copied to the one at +0x2c (GuiRect_Assign); returns +0x2c.
 u8 *__fastcall Window_SaveRect(u8 *window);
+
+// 0x65d42e (thiscall (rect, inner: a word), pops 8; name unconfirmed): 0 for no rect; otherwise the rectangle +8 is assigned to it
+// (GuiRect_Assign) and, for inner not 0, its slot 3 (GuiRect_Adjust for a GUI rectangle) shrinks it by the insets, the signed words
+// +0xf8, +0xfa, +0xfc and +0xfe negated; 1 (AX).
+u16 __fastcall Window_GetRect(u8 *window, void *, u8 *rect, u32 inner);
+
+// 0x65cfd4 (thiscall (rect), pops 4; name unconfirmed): 0 for no rect; otherwise it is assigned to the saved rectangle +0x2c
+// (GuiRect_Assign); 1 (AX).
+u16 __fastcall Window_SetSavedRect(u8 *window, void *, const u8 *rect);
+
+// 0x485e30 (cdecl (window, dx, dy); game code, called from 0x493b79, 0x493ba3 and 0x494793; name unconfirmed): the saved rectangle +0x2c
+// set (Window_SetSavedRect) to the inner one (Window_GetRect) shrunk by dx on the left and right and dy on the top and bottom
+// (GuiRect_Adjust: dx, dy, -dx, -dy as words), through a GUI rectangle on the stack (EAX: its destructor's, the stack address; left out).
+void __cdecl Window_SaveInsetRect(u8 *window, s32 dx, s32 dy);
 
 // 0x65c979 (thiscall (rect), pops 4; name unconfirmed): for each parent up the chain (+0x60), the rectangle's slot 2 (GuiRect_Offset)
 // called with the parent's words +0xc and +0xe (sic: pushed as dwords whose upper halves are the parent's address for the first and the
@@ -71,6 +89,10 @@ u32 __cdecl Window_CancelPostedFirst(u8 *window);
 // 0x65903b (cdecl (window); name unconfirmed): likewise the window's timed messages in [0xfaa5f8] (GuiTimers_Cancel).
 u32 __cdecl Window_CancelTimed(u8 *window);
 
+// 0x659064 (cdecl; name unconfirmed): the timed table [0xfaa5f8] reset (GuiTimers_Reset), then the queues [0xfaa5f4] and [0xfaa5f0]
+// cleared (MsgQueue_Clear), each when set.
+void __cdecl Gui_ResetQueues();
+
 // 0x65c025 (thiscall; name unconfirmed): the destructor. The vtable 0x705980; Window_Destroying unless the byte +4 is set; the manager
 // [0x77c48c] told (slot 13 (window)); each object +0x98 / +0x9c let go (WindowImpl_Release) and, when that answers -1 (as a word),
 // deleted (slot 0 (1)) as read again; the timer of each set dword +0x120-+0x12c killed (WindowTimers_Kill, ids 0x80080-0x80083); the
@@ -103,4 +125,23 @@ u8 *__fastcall Window_HitTest(u8 *window, void *, u32 x, u32 y);
 // one (when set) is posted 0x10002 (0, 0), the new one becomes it and is posted 0x10001 (x << 16 | y, both signed: sic, a negative y
 // fills the top half, 0) (Window_PostMessage). 1 in AX. Only AX is set.
 u32 __cdecl Window_UpdateHover();
+
+// 0x65e59b (thiscall (a), pops 4; name unconfirmed): the window takes the focus [0xfaa5ec]: nothing and 0 in AX when it has it already
+// (the rest of EAX the focus's); else the old focus (when set) is posted 0x20 (a, 0), the window becomes the focus and is posted 0x1f
+// (a, 0) (Window_PostMessage), and 1 in AX (the rest of EAX the post's).
+u32 __fastcall Window_SetFocus(u8 *window, void *, u32 a);
+
+// 0x65e5fa (thiscall (a), pops 4; name unconfirmed): when the window has the focus [0xfaa5ec] it is posted 0x20 (a, 0), the focus
+// cleared and the hover updated (Window_UpdateHover), 1 in AX (the rest of EAX the update's); otherwise 0 in AX (the rest the focus's).
+u32 __fastcall Window_KillFocus(u8 *window, void *, u32 a);
+
+// 0x658af1 (cdecl (button, x, y: words); name unconfirmed): a mouse button pressed. 0 in AX while [0x77c488] is 0 (the rest of EAX not
+// set: 0 here). Else the hovered window [0xfaa5e0] is posted 0x10005 (button, x << 16 | y; all three signed: sic, a negative y fills the
+// top half) (Window_PostMessage), becomes the button's window (0xfaa588 + 4 * button, signed) and the button's bit (1 << button, the
+// shift taken mod 32) is set in the word [0xfaa5bc]; 1 in AX (the rest of EAX the bit's).
+u32 __cdecl Gui_MouseDown(u32 button, u32 x, u32 y);
+
+// 0x658b5b (cdecl (button, x, y: words); name unconfirmed): a mouse button released: the same, the button's window posted 0x10004 and
+// cleared, its bit cleared in [0xfaa5bc]; 1 in AX (the rest of EAX the inverted bit's).
+u32 __cdecl Gui_MouseUp(u32 button, u32 x, u32 y);
 }

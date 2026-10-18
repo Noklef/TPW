@@ -8,6 +8,7 @@
 #include "../core/funnytime.h"
 #include "../core/gameheap.h"
 #include "../core/initializers.h"
+#include "../model/stripanim.h"
 #include "objectdefs.h"
 #include "person.h"
 #include "mapcell.h"
@@ -197,6 +198,13 @@ void __fastcall Object_SetCapacity(u8 *object, void *, u32 capacity) {
     at<u8>(object, 0x5d) = value;
 }
 
+void __fastcall Object_RestartRide(u8 *object) {
+    at<u32>(object, 0x68) = 0;
+    at<u16>(object, 0x6c) = 0;
+    Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 6, 1);
+    StripAnim_StartGrow(reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(object, 0x20)], 1);
+}
+
 u32 __cdecl Object_TrackNeighboursOk(const u8 *object) {
     const s32 track = at<s32>(Object_GetDef(object), 0x9c);
     if (track <= 0 || track > 2)
@@ -333,4 +341,13 @@ u32 __fastcall Object_ExitOpen(const u8 *object) {
     }
     return 0;
 }
+
+u32 __fastcall Obj_StampAt5e(u8 *object, void *, u32 word) {
+    at<u16>(object, 0x5e) = (u16)word;
+    const u32 stamp = at<u32>(global<u8 *>(0x0080239c), 0x1da70c);
+    at<u32>(object, 0x60) = stamp;
+    return stamp;
+}
+
+u32 __fastcall Obj_Diff180_184(const u8 *object) { return at<const u32>(object, 0x180) - at<const u32>(object, 0x184); }
 }

@@ -132,6 +132,7 @@
 #include "../game/core/class6fd9d8.h"
 #include "../game/core/factories.h"
 #include "../game/core/floatconsts.h"
+#include "../game/core/framecountdown.h"
 #include "../game/core/funnytime.h"
 #include "../game/core/wstringmap.h"
 #include "../game/core/streambuf.h"
@@ -311,12 +312,15 @@
 #include "../game/online/session.h"
 #include "../game/ui/dialog7ca1c8.h"
 #include "../game/ui/dialogs.h"
+#include "../game/ui/frame.h"
 #include "../game/ui/guidialog.h"
 #include "../game/ui/guimanager.h"
 #include "../game/ui/guirect.h"
 #include "../game/ui/guitimers.h"
+#include "../game/ui/listrows.h"
 #include "../game/ui/msgqueue.h"
 #include "../game/ui/panel7b9940.h"
+#include "../game/ui/panel7cc328.h"
 #include "../game/ui/textpool.h"
 #include "../game/ui/thingpreview.h"
 #include "../game/ui/window.h"
@@ -1954,6 +1958,9 @@ const Hook kHooks[] = {
     {"Language_IsHebrew",         0x0041a850, (void *)&Language_IsHebrew, {0x8b, 0x51, 0x08, 0x33, 0xc0}},
     {"Language_Font",             0x00485a70, (void *)&Language_Font, {0x8b, 0x4c, 0x24, 0x04, 0x83}},
     {"Language_MirrorAlign",      0x004925a0, (void *)&Language_MirrorAlign, {0xb9, 0x30, 0xb5, 0x78, 0x00}},
+    {"Language_Widen",            0x00485ac0, (void *)&Language_Widen, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"Language_WideText",         0x00485b00, (void *)&Language_WideText, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Language_SetObjectText",    0x00485f00, (void *)&Language_SetObjectText, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Options_Revert",            0x00423ad0, (void *)&Options_Revert, {0x8b, 0xc1, 0x56, 0x57, 0xb9}},
     {"Options_Keep",              0x00423b00, (void *)&Options_Keep, {0x8b, 0xc1, 0x56, 0x57, 0xb9}},
     {"Options_Set30",             0x00423b40, (void *)&Options_Set30, {0x8b, 0x44, 0x24, 0x04, 0x89}},
@@ -2628,6 +2635,7 @@ const Hook kHooks[] = {
     {"Obj_CheckId",               0x006c0310, (void *)&Obj_CheckId, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Obj_CacheStatics",          0x006c4120, (void *)&Obj_CacheStatics, {0x51, 0xa0, 0x24, 0x20, 0xfb}},
     {"Narrow_FromWide",           0x006ada00, (void *)&Narrow_FromWide, {0x53, 0x8b, 0x5c, 0x24, 0x14}},
+    {"Wide_FromNarrow",           0x006adc80, (void *)&Wide_FromNarrow, {0x53, 0x55, 0x8b, 0x5c, 0x24}},
     {"Obj_GetBefore14c",          0x0057ac90, (void *)&Obj_GetBefore14c, {0x8b, 0x81, 0xb4, 0xfe, 0xff}},
     {"Global8bb628_SetOne",       0x0057aca0, (void *)&Global8bb628_SetOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"Obj_Set14_18_10",           0x0057cb10, (void *)&Obj_Set14_18_10, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
@@ -2758,6 +2766,7 @@ const Hook kHooks[] = {
     {"Wrap_WctImage_DeletingDtor_564ff0", 0x00564ff0, (void *)&Wrap_WctImage_DeletingDtor_564ff0, {0x2b, 0x49, 0xfc, 0xe9, 0x08}},
     {"Wrap_D3dProbe_SetFlags_569cc0", 0x00569cc0, (void *)&Wrap_D3dProbe_SetFlags_569cc0, {0x2b, 0x49, 0xfc, 0xe9, 0x58}},
     {"Wrap_Renderer_NewSurfaceA_5738c0", 0x005738c0, (void *)&Wrap_Renderer_NewSurfaceA_5738c0, {0x2b, 0x49, 0xfc, 0xe9, 0x08}},
+    {"Wrap_Panel7b9940_Close_4813f0", 0x004813f0, (void *)&Wrap_Panel7b9940_Close_4813f0, {0xe9, 0x9b, 0x8e, 0x00, 0x00}},
     {"Table_AddressPlus18",       0x006b0620, (void *)&Table_AddressPlus18, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Table_Address",             0x006b0650, (void *)&Table_Address, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Packed_Read",               0x006b0510, (void *)&Packed_Read, {0x56, 0x8b, 0x74, 0x24, 0x08}},
@@ -3027,6 +3036,7 @@ const Hook kHooks[] = {
     {"Object_ScrapValue",         0x004e2290, (void *)&Object_ScrapValue, {0x83, 0xec, 0x10, 0x8d, 0x54}},
     {"Object_ScrapRefund",        0x004e2400, (void *)&Object_ScrapRefund, {0x51, 0x56, 0x8b, 0xf1, 0x57}},
     {"Object_AgeDays",            0x004dd670, (void *)&Object_AgeDays, {0x83, 0xec, 0x10, 0x83, 0xc1}},
+    {"Object_RestartRide",        0x004df300, (void *)&Object_RestartRide, {0x51, 0x8d, 0x44, 0x24, 0x02}},
     {"Blocks7_Free",              0x005d46d0, (void *)&Blocks7_Free, {0x56, 0x8b, 0xf1, 0x57, 0x33}},
     {"Names_FirstAfter",          0x00424cc0, (void *)&Names_FirstAfter, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Names_Equal",               0x00424cf0, (void *)&Names_Equal, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
@@ -3288,6 +3298,7 @@ const Hook kHooks[] = {
     {"String_ReadToken",          0x005e3170, (void *)&String_ReadToken, {0x6a, 0xff, 0x68, 0xbf, 0x16}},
     {"StringVector_InsertN",      0x005ed130, (void *)&StringVector_InsertN, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"WNames_Equal",              0x00424d10, (void *)&WNames_Equal, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"WString_CompareSub",        0x004f7870, (void *)&WString_CompareSub, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
     {"Class702938_Dtor",          0x005bdc10, (void *)&Class702938_Dtor, {0x6a, 0xff, 0x68, 0x16, 0x00}},
     {"Class702940_Dtor",          0x005be320, (void *)&Class702940_Dtor, {0x6a, 0xff, 0x68, 0x56, 0x01}},
     {"Class702948_Dtor",          0x005be750, (void *)&Class702948_Dtor, {0x6a, 0xff, 0x68, 0x36, 0x02}},
@@ -3336,6 +3347,7 @@ const Hook kHooks[] = {
     {"ImeVector_InsertOne",       0x0047c740, (void *)&ImeVector_InsertOne, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"ImeVector_InsertN",         0x0047cf20, (void *)&ImeVector_InsertN, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"Ime_CacheCurrent",          0x0047a9b0, (void *)&Ime_CacheCurrent, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"ImeHost_OnWindow",          0x00480f90, (void *)&ImeHost_OnWindow, {0x8b, 0x44, 0x24, 0x04, 0x57}},
     {"TextMetrics_Width",         0x0047f9a0, (void *)&TextMetrics_Width, {0x51, 0x0f, 0xbf, 0x44, 0x24}},
     {"TextMetrics_FitIndex",      0x0047fa00, (void *)&TextMetrics_FitIndex, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"TextMetrics_ForwardSlot8",  0x0047f990, (void *)&TextMetrics_ForwardSlot8, {0x8b, 0x49, 0x14, 0x85, 0xc9}},
@@ -3412,6 +3424,7 @@ const Hook kHooks[] = {
     {"StdListDword_Merge",        0x005d0590, (void *)&StdListDword_Merge, {0x51, 0x55, 0x8b, 0xe9, 0x8b}},
     {"CountedListPair_Dtor",      0x005af0e0, (void *)&CountedListPair_Dtor, {0x6a, 0xff, 0x68, 0x6b, 0xf8}},
     {"StringsListRecord_Dtor",    0x005caf20, (void *)&StringsListRecord_Dtor, {0x6a, 0xff, 0x68, 0x23, 0x0a}},
+    {"TokenList_PushChars",       0x004a8ad0, (void *)&TokenList_PushChars, {0x6a, 0xff, 0x68, 0xd8, 0xa8}},
     {"Class6fda48_Dtor",          0x0041e2c0, (void *)&Class6fda48_Dtor, {0xc7, 0x01, 0x48, 0xda, 0x6f}},
     {"Class6fda68_Dtor",          0x0041e320, (void *)&Class6fda68_Dtor, {0xc7, 0x01, 0x68, 0xda, 0x6f}},
     {"Class6fdaa8_Dtor",          0x0041e4d0, (void *)&Class6fdaa8_Dtor, {0xc7, 0x01, 0xa8, 0xda, 0x6f}},
@@ -3449,6 +3462,9 @@ const Hook kHooks[] = {
     {"StdTree_DtorC",             0x004e5870, (void *)&StdTree_DtorC, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
     {"StdTree_DtorD",             0x004e5800, (void *)&StdTree_DtorD, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
     {"StdTree_DtorE",             0x004e58e0, (void *)&StdTree_DtorE, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
+    {"StdTree_InsertD",           0x004f4c20, (void *)&StdTree_InsertD, {0x6a, 0xff, 0x68, 0xd8, 0xda}},
+    {"StdMapD_Insert",            0x004f2810, (void *)&StdMapD_Insert, {0x6a, 0xff, 0x68, 0xf8, 0xd8}},
+    {"StdMapD_InsertCopy",        0x004f0390, (void *)&StdMapD_InsertCopy, {0x8b, 0x44, 0x24, 0x08, 0x83}},
     {"Class7037b8_Dtor",          0x00617f40, (void *)&Class7037b8_Dtor, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
     {"Panel_Reset",               0x005d48d0, (void *)&Panel_Reset, {0x56, 0x57, 0x8b, 0xf9, 0x33}},
     {"Grid_AddObject",            0x00576620, (void *)&Grid_AddObject, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
@@ -3838,6 +3854,7 @@ const Hook kHooks[] = {
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
+    {"Mouse_HandleGuiButton",     0x00486c70, (void *)&Mouse_HandleGuiButton, {0x8b, 0x44, 0x24, 0x10, 0x56}},
     {"ScreenSurfaces_Dtor",       0x0047e3e0, (void *)&ScreenSurfaces_Dtor, {0x6a, 0xff, 0x68, 0xa8, 0x8f}},
     {"ScreenSurfaces_ScalarDtor", 0x0047e3c0, (void *)&ScreenSurfaces_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"ScreenSurfaces_Surface10",  0x0047e4b0, (void *)&ScreenSurfaces_Surface10, {0x51, 0x57, 0x8b, 0xf9, 0x8b}},
@@ -4303,6 +4320,8 @@ const Hook kHooks[] = {
     {"LobbyModel_TimeLeft",       0x005d8440, (void *)&LobbyModel_TimeLeft, {0x8b, 0x41, 0x04, 0x85, 0xc0}},
     {"LobbyModel_AlignTo",        0x005d81c0, (void *)&LobbyModel_AlignTo, {0x83, 0xec, 0x2c, 0x8b, 0x41}},
     {"HelpBg_Refresh",            0x00492320, (void *)&HelpBg_Refresh, {0x66, 0x83, 0x79, 0x04, 0x00}},
+    {"HelpBg_WindowHandler",      0x00491fe0, (void *)&HelpBg_WindowHandler, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"HelpBg_SetInterval",        0x00492160, (void *)&HelpBg_SetInterval, {0x56, 0x8b, 0xf1, 0x66, 0x83}},
     {"Class702af0_AcquireModels", 0x005da120, (void *)&Class702af0_AcquireModels, {0x53, 0x8b, 0xd9, 0x8b, 0x43}},
     {"Class702ca8_AcquireModels", 0x005dfca0, (void *)&Class702ca8_AcquireModels, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"Class702cb0_StartPendingPlay", 0x005e1350, (void *)&Class702cb0_StartPendingPlay, {0x56, 0x8b, 0xf1, 0x33, 0xc0}},
@@ -4345,6 +4364,15 @@ const Hook kHooks[] = {
     {"Window_CancelTimed",        0x0065903b, (void *)&Window_CancelTimed, {0x55, 0x8b, 0xec, 0x83, 0x3d}},
     {"Window_Dtor",               0x0065c025, (void *)&Window_Dtor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window_DeletingDtor",       0x00661680, (void *)&Window_DeletingDtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window_CallDefault",        0x0065f66e, (void *)&Window_CallDefault, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window_GetRect",            0x0065d42e, (void *)&Window_GetRect, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window_SetSavedRect",       0x0065cfd4, (void *)&Window_SetSavedRect, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window_SaveInsetRect",      0x00485e30, (void *)&Window_SaveInsetRect, {0x6a, 0xff, 0x68, 0x08, 0x92}},
+    {"Gui_ResetQueues",           0x00659064, (void *)&Gui_ResetQueues, {0x55, 0x8b, 0xec, 0x83, 0x3d}},
+    {"Window_SetFocus",           0x0065e59b, (void *)&Window_SetFocus, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window_KillFocus",          0x0065e5fa, (void *)&Window_KillFocus, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Gui_MouseDown",             0x00658af1, (void *)&Gui_MouseDown, {0x55, 0x8b, 0xec, 0x83, 0x3d}},
+    {"Gui_MouseUp",               0x00658b5b, (void *)&Gui_MouseUp, {0x55, 0x8b, 0xec, 0x83, 0x3d}},
     {"Dialog7ca1c8_SetChecks",    0x00498090, (void *)&Dialog7ca1c8_SetChecks, {0x8b, 0x0d, 0xc8, 0xa1, 0x7c}},
     {"Dialog7ca1c8_SetChecksIfUp", 0x00498a50, (void *)&Dialog7ca1c8_SetChecksIfUp, {0xa1, 0xc8, 0xa1, 0x7c, 0x00}},
     {"Dialog7ca1c8_SetChecksIfUpThis", 0x00481a00, (void *)&Dialog7ca1c8_SetChecksIfUpThis, {0x8b, 0x44, 0x24, 0x04, 0x50}},
@@ -4368,6 +4396,11 @@ const Hook kHooks[] = {
     {"WindowAt10_ScalarDtor",     0x0048c8b0, (void *)&WindowAt10_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0xa8}},
     {"Windows7cc8bc_Message6Pair", 0x004bcef0, (void *)&Windows7cc8bc_Message6Pair, {0x51, 0xa1, 0xbc, 0xc8, 0x7c}},
     {"Dialog7cb2b8_Child21Post",  0x004a2590, (void *)&Dialog7cb2b8_Child21Post, {0x8b, 0x0d, 0xb8, 0xb2, 0x7c}},
+    {"WindowAt10_Handler",        0x00492e00, (void *)&WindowAt10_Handler, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Dialog7cc4b4_SetEffect",    0x004b8ee0, (void *)&Dialog7cc4b4_SetEffect, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Dialog7cb2b8_Handler",      0x004a0a20, (void *)&Dialog7cb2b8_Handler, {0x6a, 0xff, 0x68, 0xe8, 0xa3}},
+    {"Window_DefaultHandler",     0x004a0a90, (void *)&Window_DefaultHandler, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
+    {"Dialog7ca168_ShowText",     0x00496570, (void *)&Dialog7ca168_ShowText, {0x8b, 0x0d, 0x68, 0xa1, 0x7c}},
     {"GuiManager_Word4Set",       0x00659631, (void *)&GuiManager_Word4Set, {0x55, 0x8b, 0xec, 0x8b, 0x0d}},
     {"GuiManager_CallSlot3",      0x0065961c, (void *)&GuiManager_CallSlot3, {0x55, 0x8b, 0xec, 0xa1, 0x8c}},
     {"GuiManager_CallSlot4",      0x00659607, (void *)&GuiManager_CallSlot4, {0x55, 0x8b, 0xec, 0xa1, 0x8c}},
@@ -4407,6 +4440,8 @@ const Hook kHooks[] = {
     {"GuiTimers_Init",            0x00669efb, (void *)&GuiTimers_Init, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Panel7b9940_Detach",        0x0048a3d0, (void *)&Panel7b9940_Detach, {0xe8, 0x32, 0xf2, 0x1c, 0x00}},
     {"Panel7b9940_Ctor",          0x004855d0, (void *)&Panel7b9940_Ctor, {0x6a, 0xff, 0x68, 0x64, 0x91}},
+    {"Panel7b9940_Close",         0x0048a290, (void *)&Panel7b9940_Close, {0xe8, 0x8b, 0x4b, 0x00, 0x00}},
+    {"Panel7b9940_Show",          0x0048a310, (void *)&Panel7b9940_Show, {0x51, 0x56, 0xe8, 0x4d, 0xed}},
     {"GuiWindows_FindByHash",     0x00659c42, (void *)&GuiWindows_FindByHash, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiWindows_FindByName",     0x00659bc9, (void *)&GuiWindows_FindByName, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Gui_HashName",              0x006588b6, (void *)&Gui_HashName, {0x55, 0x8b, 0xec, 0x51, 0xc7}},
@@ -4418,8 +4453,12 @@ const Hook kHooks[] = {
     {"WindowTimers_Kill",         0x00662306, (void *)&WindowTimers_Kill, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window705a50_DeletingDtor", 0x006693a0, (void *)&Window705a50_DeletingDtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705a50_Dtor",         0x006689bc, (void *)&Window705a50_Dtor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Window705a50_TextLength",   0x0066852b, (void *)&Window705a50_TextLength, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"ThingPreview_Hide",         0x00486630, (void *)&ThingPreview_Hide, {0xa1, 0xd8, 0x24, 0x7c, 0x00}},
     {"ThingPreview_Show",         0x00486530, (void *)&ThingPreview_Show, {0x51, 0xa1, 0xd8, 0x24, 0x7c}},
+    {"List7cc188_NewRow",         0x004a8380, (void *)&List7cc188_NewRow, {0x6a, 0xff, 0x68, 0xdb, 0xa7}},
+    {"HilightList_NewRow",        0x00480d30, (void *)&HilightList_NewRow, {0x6a, 0xff, 0x68, 0xcb, 0x90}},
+    {"Frame_SetInterval",         0x0066a084, (void *)&Frame_SetInterval, {0x55, 0x8b, 0xec, 0x51, 0x89}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
