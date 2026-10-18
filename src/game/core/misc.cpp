@@ -23,14 +23,6 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 extern "C" {
 
-u8 *__fastcall Obj_CtorPart8(u8 *object, void *, u32 value) {
-    at<u32>(object, 4) = 0;
-    at<u32>(object, 0) = 0x006fd7b8;
-    Fn_59b550(object + 8, nullptr, value);
-    at<u32>(object, 0) = 0x006fd7b0;
-    return object;
-}
-
 // The part a reference reaches: the object plus the offset at +8 of its vtable.
 static u8 *RefPart(u8 *const *ref) {
     u8 *object = *ref;

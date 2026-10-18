@@ -2730,7 +2730,7 @@ address,name,kind,confidence,notes
 0x004d4170,Obj_KillSlot,function,high,reimplemented (src/game/core/misc); the script slot at +0 killed and cleared
 0x004d9600,Obj_StampAt30,function,high,reimplemented (src/game/core/misc); a word at +0x30 and the world's stamp at +0x34
 0x004e01f0,Obj_StampAt5e,function,high,reimplemented (src/game/core/misc); a word at +0x5e and the world's stamp at +0x60
-0x0040f300,Obj_CtorPart8,function,high,"reimplemented (src/game/core/misc); vtable 0x6fd7b8, a part built at +8, vtable 0x6fd7b0"
+0x0040f300,Obj_CtorPart8,function,high,"reimplemented (src/game/world/thingmsg); vtable 0x6fd7b8, a part built at +8, vtable 0x6fd7b0"
 0x00458910,MeshRef_ClearFlag10000000,function,high,reimplemented (src/game/core/misc); flag 0x10000000 of the referenced part cleared
 0x00458940,MeshRef_SetFlag10000000,function,high,reimplemented (src/game/core/misc); flag 0x10000000 of the referenced part set
 0x004a9350,Countdown7cc150_Step,function,high,reimplemented (src/game/core/misc); a counter stepped down; 1 at zero when another global is set

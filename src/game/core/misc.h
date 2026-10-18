@@ -6,10 +6,6 @@
 
 extern "C" {
 
-// 0x40f300 (thiscall; value, pops 4): +4 = 0, vtable 0x6fd7b8, Fn_59b550 on the part at +8 with the value,
-// then vtable 0x6fd7b0. Returns the object.
-u8 *__fastcall Obj_CtorPart8(u8 *object, void *, u32 value);
-
 // 0x458910 / 0x458940 (cdecl; pointer to the object): flag 0x10000000 of the part the object's vtable
 // (+8) reaches, at +0x50, cleared / set, the scene flags (0x8bd508) touched first.
 void __cdecl MeshRef_ClearFlag10000000(u8 *const *ref);
