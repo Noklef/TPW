@@ -1,6 +1,6 @@
 # The red-black tree members of src/game/core/stdtree (iterator increment and erase for seven instantiations of the game's std::map / std::set) against the originals:
 # valid red-black trees of 1 to 12 nodes (built with the usual insertion), every node erased in turn across the cases, the iterator increment from every node; for B the
-# range erase (0x4104b0: the whole tree, a tail, a stretch or nothing, the size now and then 0) and _Erase (0x410720) from the root, a node or nil; B's key compare (0x40f950); A's map constructor (0x47b060), the nil node made already or not.
+# range erase (0x4104b0: the whole tree, a tail, a stretch or nothing, the size now and then 0) and _Erase (0x410720) from the root, a node or nil, as C, D and E's (0x4f4070 / 0x4f4ac0 / 0x4f4fd0, the strings released); B's key compare (0x40f950); A's map constructor (0x47b060), the nil node made already or not.
 # usage: stdtree.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
@@ -19,8 +19,9 @@ TREES = {'A': (0x47d570, 0x47c010, 0x7b4a54, 0x18), 'B': (0x410670, 0x40ff80, 0x
 INSERT = {'A': 0x47d140, 'B': 0x4107b0, 'G': 0x5b2ba0}
 DEC = {'A': 0x47d4b0, 'B': 0x410b20, 'C': 0x4f6340, 'D': 0x4f64f0, 'E': 0x4f6680, 'F': 0x5b2ff0, 'G': 0x5b3130}
 RANGE = {'B': (0x4104b0, 0x410720)}   # erase(first, last), _Erase
+SUBTREE = {'C': 0x4f4070, 'D': 0x4f4ac0, 'E': 0x4f4fd0}   # _Erase (each node's std::string released)
 CTOR = {'A': (0x47ce70, 0x7b4a50), 'C': (0x4f4120, 0x7ced30), 'D': (0x4f4b70, 0x7ced28), 'E': (0x4f5080, 0x7ced38), 'G': (0x5b2af0, 0xf7c96c)}
-B = Bench([(a, a + 0x330) for a in INSERT.values()] + [(0x5b3210, 0x5b3230)] + [(a, a + 0xc0) for a in DEC.values()] + [(a, a + 0xb0) for (a, _c) in CTOR.values()] + [(a, a + 0xb0) for (a, _e, _n, _c) in TREES.values()] + [(e, e + 0x560) for (_a, e, _n, _c) in TREES.values()] + [(0x40f950, 0x40f961), (0x47b060, 0x47b122), (0x4104b0, 0x410610), (0x410720, 0x4107a0), (0x67acb0, 0x67acb1), (0x45b340, 0x45b9a0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000)],
+B = Bench([(a, a + 0x330) for a in INSERT.values()] + [(0x5b3210, 0x5b3230)] + [(a, a + 0xc0) for a in DEC.values()] + [(a, a + 0xb0) for (a, _c) in CTOR.values()] + [(a, a + 0xb0) for (a, _e, _n, _c) in TREES.values()] + [(e, e + 0x560) for (_a, e, _n, _c) in TREES.values()] + [(0x40f950, 0x40f961), (0x47b060, 0x47b122), (0x4104b0, 0x410610), (0x410720, 0x4107a0), (0x4f4070, 0x4f4120), (0x4f4ac0, 0x4f4b70), (0x4f4fd0, 0x4f5080), (0x67acb0, 0x67acb1), (0x45b340, 0x45b9a0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000)],
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})
 TREE, HEAD, NIL, NODES = RAM, RAM + 0x200, RAM + 0x300, RAM + 0x10000
 RED, BLACK = 0, 1
@@ -198,6 +199,8 @@ def case(r):
         if r.random() < 0.15:
             struct.pack_into('<I', tree, 0xc, 0)
         return Call(erase_range, [TREE, RAM + 0x800, first, last], regions, conv='t', ret='a')
+    if name in SUBTREE and r.random() < 0.3:  # _Erase from the root, a node or nil
+        return Call(SUBTREE[name], [TREE, r.choice([addr[root], node, node, NIL])], regions, conv='t', ret='v')
     if name in CTOR and r.random() < 0.2:  # the constructor: the nil node made already or not
         address, counter = CTOR[name]
         low = min(nil_at, counter) & ~0xf
