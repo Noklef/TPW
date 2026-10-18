@@ -313,6 +313,7 @@
 #include "../game/ui/guitimers.h"
 #include "../game/ui/msgqueue.h"
 #include "../game/ui/panel7b9940.h"
+#include "../game/ui/panel7cc328.h"
 #include "../game/ui/textpool.h"
 #include "../game/ui/thingpreview.h"
 #include "../game/ui/window.h"

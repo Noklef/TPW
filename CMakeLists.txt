@@ -139,6 +139,7 @@ add_library(tpw_game STATIC
     src/game/core/stringmapsrecord.cpp
     src/game/core/cmdline.cpp
     src/game/core/framecountdown.cpp
+    src/game/ui/panel7cc328.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

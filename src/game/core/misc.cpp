@@ -49,16 +49,6 @@ void __cdecl MeshRef_SetFlag10000000(u8 *const *ref) {
     at<u32>(part, 0x50) |= 0x10000000;
 }
 
-u32 __fastcall Obj_KillSlot24(u8 *object) {
-    if (!at<u32>(object, 0x24))
-        return 0;
-    SpriteScript_Kill((s32)at<u32>(object, 0x24));
-    at<u32>(object, 0x24) = 0;
-    at<u32>(object, 0x28) = 0xffffffff;
-    at<u32>(object, 0x2c) = 0xffffffff;
-    return 0xffffffff;
-}
-
 u32 __cdecl Global7cc698_Choose() {
     if (global<u32>(0x007cc8b8)) {
         global<u32>(0x007cc698) = global<u32>(0x007cc8b8);
