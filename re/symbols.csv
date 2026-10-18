@@ -466,7 +466,7 @@ address,name,kind,confidence,notes
 0x00457e50,Terrain_InitUnusedEpsilon,function,high,reimplemented (src/game/terrain/procedural); unused static 0x7a0b48 = 1 / 2^23
 0x0056df70,TerrainTex_SetRect,function,high,reimplemented (src/game/terrain/procedural); the procedural texture object +0x234..+0x240 = the view rect
 0x0056ddf0,TerrainTex_Create,function,low,"reimplemented (src/game/terrain/procedural); cdecl: when [0x879d60] is null, a new 0x12974-byte procedural texture object there with its fields cleared and the rectangle's right / bottom 0x7f, 1; 0 when there was one or the allocation failed (the error (3, 0xb0754000) pushed)"
-0x0056e4e0,TerrainTex_Unload,function,high,"reimplemented (src/game/terrain/procedural); thiscall: the procedural texture object's tile cache destroyed twice and freed, its tracked block freed, +0 / +4 cleared; returns 1"
+0x0056e4e0,TerrainTex_Unload,function,low,"reimplemented (src/game/terrain/procedural); thiscall: the procedural texture object's tile cache destroyed twice and freed, its tracked block freed, +0 / +4 cleared; returns 1"
 0x005856e0,Landscape_SetPoint,function,high,"reimplemented (src/game/terrain/landscape); thiscall (the landscape renderer, 0x8c1828; i, x, y, z floats): point i at +0x1f70 + 12 i (the weather sets four)"
 0x00585710,Landscape_SetDetail,function,high,"reimplemented (src/game/terrain/landscape); thiscall (level): +0x2ec8, the detail level (option 0x785888)"
 0x00585ef0,Landscape_List,function,high,reimplemented (src/game/terrain/landscape); thiscall: +0x1fd0
@@ -1642,7 +1642,7 @@ address,name,kind,confidence,notes
 0x00578820,Mat4_LuBackSubstitute,function,low,"reimplemented (src/game/math/mat4); cdecl (lu, index, b): Numerical Recipes' lubksb for n = 4, b solved in place"
 0x00578be0,Mat4_Perspective,function,low,"reimplemented (src/game/math/mat4); thiscall (near, far, fov degrees): the perspective matrix scaled by sin(fov / 2); the arguments kept in globals"
 0x00578ca0,Mat4_SetFar,function,low,"reimplemented (src/game/math/mat4); thiscall (far): the perspective remade with the kept near and field of view, and the depth at far (at least the near) handed to the render view's projection"
-0x00578d20,Mat4_Transform,function,high,"reimplemented (src/game/math/mat4); thiscall (out, in, mode; pops 0xc): the vector through the matrix by mode (point, 4D, point xyz, direction, transposed direction), x87"
+0x00578d20,Mat4_Transform,function,low,"reimplemented (src/game/math/mat4); thiscall (out, in, mode; pops 0xc): the vector through the matrix by mode (point, 4D, point xyz, direction, transposed direction), x87"
 0x005911d0,Bits_Count,function,high,reimplemented (src/game/math/bits); cdecl (mask): how many bits are set (a colour mask's width)
 0x005911f0,Bits_Shift,function,high,"reimplemented (src/game/math/bits); cdecl (mask): the clear bits below the lowest set one, 0 for 0 (a colour mask's shift)"
 0x005913f0,SinTable256_Build,function,high,reimplemented (src/game/math/sintable); fills the renderer sine table at 0x8c63d8
@@ -2393,7 +2393,7 @@ address,name,kind,confidence,notes
 0x00577600,LiveObjects_Remove,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): the last match is replaced by the last entry and the count drops; 1, or 0 when not there"
 0x00579cd0,LiveObject7019f8_Construct,function,low,"reimplemented (src/game/core/liveobjects); thiscall (most derived): two identity matrices, fields cleared, the virtual base's vtable 0x7019f8 set and the base added to the live objects"
 0x0057ca00,LiveObject701b30_DeletingDtor,function,low,"reimplemented (src/game/core/liveobjects); thiscall on the virtual base (flags): its vtable 0x701b30 set, taken out of the live objects, the base's vtable 0x6fdce8, freed with flag 1"
-0x0057abf0,LiveObject7019f8_DeletingDtor,function,high,"reimplemented (src/game/core/liveobjects); thiscall on the virtual base (flags; pops 4): vtable 0x7019f8 set, taken out of the live objects, model unloaded, +0x154 = 0x6fdce8, freed with flag 1; returns the object"
+0x0057abf0,LiveObject7019f8_DeletingDtor,function,low,"reimplemented (src/game/core/liveobjects); thiscall on the virtual base (flags; pops 4): vtable 0x7019f8 set, taken out of the live objects, model unloaded, +0x154 = 0x6fdce8, freed with flag 1; returns the object"
 0x005b96a0,Obj_Get3e4,function,high,reimplemented (src/game/core/trivial); the dword at +0x3e4
 0x005b96b0,Obj_Get3a4,function,high,reimplemented (src/game/core/trivial); the dword at +0x3a4
 0x005c5520,Obj_Self,function,high,reimplemented (src/game/core/trivial); returns the object itself
@@ -4037,10 +4037,10 @@ address,name,kind,confidence,notes
 0x0058dc50,TexCache_UnlinkItem,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache (item): unlinks a cache item from its owner list, rounds its size, rebuilds its key (name unconfirmed)"
 0x0058cb40,TexCacheItem_SetKey,function,low,"reimplemented (src/game/gfx/texcache); thiscall: the item's key +0x38 = ((ftol((1.5 - f30) * 2047) & 0xfff) << 8 + s16 +0x14) << 8 + s16 +0x16, with 0x20000000 for flag 0x4000 and 0x40000000 for 0x80000"
 0x0058faf0,TexCache_Evict,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache: per entry size, the least-keyed lightly used entries (at most +0x1878, 16) emptied, their items' cache flags cleared and the flagged ones put on the list at +0x18c4"
-0x0058d1d0,TexCache_AddSurfaces,function,high,"reimplemented (src/game/gfx/texcache); thiscall (side, made, format, levels; pops 0x10): new surfaces from the render device while the side's budget covers their area, each in a new cache entry; *made, AnimTextures_Set; returns made > 0"
-0x0058ea20,TexCache_ChooseSize,function,high,"reimplemented (src/game/gfx/texcache); thiscall (a, b, limit; pops 0xc): b when twice its share is below a's, its total 10 below a's and a's surface's count * 3 below limit * 4; else a; x87 shares"
-0x00591010,TexCacheEntry_Score,function,high,"reimplemented (src/game/gfx/texcache); thiscall (an unused dword; pops 4): the entry's area, its items' area sums and flags (the surface's flags set from them) and a score of them and the age; returns the score"
-0x00590350,TexCache_PlaceTexture,function,high,"reimplemented (src/game/gfx/texcache); thiscall (entry, place, texture; pops 0xc): the texture put on the entry's surface (slot 7), cut to its limits, its texel offsets and extents by driver kind (x87), its +0x1c offset (slot 2); returns 1"
+0x0058d1d0,TexCache_AddSurfaces,function,low,"reimplemented (src/game/gfx/texcache); thiscall (side, made, format, levels; pops 0x10): new surfaces from the render device while the side's budget covers their area, each in a new cache entry; *made, AnimTextures_Set; returns made > 0"
+0x0058ea20,TexCache_ChooseSize,function,low,"reimplemented (src/game/gfx/texcache); thiscall (a, b, limit; pops 0xc): b when twice its share is below a's, its total 10 below a's and a's surface's count * 3 below limit * 4; else a; x87 shares"
+0x00591010,TexCacheEntry_Score,function,low,"reimplemented (src/game/gfx/texcache); thiscall (an unused dword; pops 4): the entry's area, its items' area sums and flags (the surface's flags set from them) and a score of them and the age; returns the score"
+0x00590350,TexCache_PlaceTexture,function,low,"reimplemented (src/game/gfx/texcache); thiscall (entry, place, texture; pops 0xc): the texture put on the entry's surface (slot 7), cut to its limits, its texel offsets and extents by driver kind (x87), its +0x1c offset (slot 2); returns 1"
 0x00575bd0,TexSet_Ctor,function,high,"reimplemented (src/game/gfx/texset); thiscall (a texture set, 16 bytes): all zero; returns the set"
 0x00575f90,TexSet_Texture,function,high,"reimplemented (src/game/gfx/texset); thiscall (i): texture i, [+8][i]"
 0x00575fa0,TexSet_TextureSlot,function,high,reimplemented (src/game/gfx/texset); thiscall (i): &[+8][i]
@@ -4102,7 +4102,7 @@ address,name,kind,confidence,notes
 0x0058c710,TexSurfaceB_FreePixels,function,low,"reimplemented (src/game/gfx/texsurface); thiscall on class B's sub-object: the pixels at ECX - 0xc freed (TrackedGlobal_Free) unless the base's flags have 0x10000000, and cleared (name unconfirmed)"
 0x0058c670,TexSurfaceB_AllocPixels,function,low,"reimplemented (src/game/gfx/texsurface); thiscall (width, height, -, -; pops 0x10): without pixels, a square from the texture pages (flag 0x10000000 when cut from an old one) and the base's size set; 1 when got (name unconfirmed)"
 0x0058c750,TexSurfaceB_Blit,function,low,"reimplemented (src/game/gfx/texsurface); thiscall on class B's sub-object (texture, x, y; pops 0xc): the texture drawn scaled into its pixels at (x, y), or by the texture's object (virtual call 1)"
-0x0058c960,TexSurfaceB_DeletingDtor,function,high,"reimplemented (src/game/gfx/texsurface); thiscall on the sub-object (flags; pops 4): the scalar deleting destructor of class B: base vtable 0x702250 and its offset dword, its slot 1 (FreePixels), +0x10 vtable 0x702198, freed with flags bit 0; returns the object"
+0x0058c960,TexSurfaceB_DeletingDtor,function,low,"reimplemented (src/game/gfx/texsurface); thiscall on the sub-object (flags; pops 4): the scalar deleting destructor of class B: base vtable 0x702250 and its offset dword, its slot 1 (FreePixels), +0x10 vtable 0x702198, freed with flags bit 0; returns the object"
 0x005e7740,Array3D_Fill,function,high,"reimplemented (src/game/gfx/array3d); fills the pixels with a colour (4 bytes: d, a, b, c; 1 byte: d)"
 0x005e77c0,Array3D_CopyTo,function,high,reimplemented (src/game/gfx/array3d); copies the pixel bytes to another buffer
 0x005e77f0,Array3D_ReverseBytes,function,high,reimplemented (src/game/gfx/array3d); reverses the bytes of each 4-byte pixel
@@ -4121,7 +4121,7 @@ address,name,kind,confidence,notes
 0x0053e930,TvStatic_Free,function,low,"reimplemented (src/game/gfx/tvstatic); cdecl: the DirectDraw surface of the Surface at 0x874fd0 (Surface_GetSurface, addRef 1) released, the Surface freed (name unconfirmed)"
 0x005879c0,LoadScreen_Close,function,low,"reimplemented (src/game/gfx/loadscreen); thiscall: waits until 3 s after the screen was shown (timeGetTime), frees the blocks at +0x10 / +0x14 and clears bit 0x40000000 of 0x8bcbc8; returns 1"
 0x00586d70,LoadScreen_StaticDtor,function,low,reimplemented (src/game/gfx/loadscreen); cdecl: the atexit destructor of the loading screen at 0x8c4748 (the same steps)
-0x00587130,LoadScreen_ShowImage,function,high,"reimplemented (src/game/gfx/loadscreen); thiscall on an image (pixels, width, height, bytes a pixel): stretched upside down into the locked display surface (driver kind 1, u16 or u32) or the renderer's buffer (kind 4); returns 1"
+0x00587130,LoadScreen_ShowImage,function,low,"reimplemented (src/game/gfx/loadscreen); thiscall on an image (pixels, width, height, bytes a pixel): stretched upside down into the locked display surface (driver kind 1, u16 or u32) or the renderer's buffer (kind 4); returns 1"
 0x005848b0,SurfacePool_SideIndex,function,low,"reimplemented (src/game/gfx/surfacepool); cdecl (side): a power-of-two side's index, 0x100 -> 0 down to 1 -> 8, else -1"
 0x0058b1f0,SurfacePool_Next,function,low,"reimplemented (src/game/gfx/surfacepool); thiscall on the surface pool 0x8c47d8 (side, unused; pops 8): the side's turn (+0x80) flipped, the surface of the old turn returned"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
@@ -4439,7 +4439,7 @@ address,name,kind,confidence,notes
 0x00451390,Model_HeightAt,function,high,reimplemented (src/game/model/heightat); the height of a model's floor under a point
 0x00451290,Model_FloorHeight,function,high,reimplemented (src/game/model/heightat); the view's floor height under a point
 0x0046f100,M3D2_DataErrorBox,function,low,"reimplemented (src/game/model/m3d2); cdecl (text): MessageBoxA(0, text, ""M3D2 Exporter - Data Error"", 0x31) != IDCANCEL"
-0x0057a100,ObjModel_Unload,function,high,"reimplemented (src/game/model/objmodel); thiscall: an engine object's model unloaded (meshes' tracked blocks, saved pairs, block, texture sets, tracked block, procedural textures); +8 and flag 0x10000000 cleared; returns 1"
+0x0057a100,ObjModel_Unload,function,low,"reimplemented (src/game/model/objmodel); thiscall: an engine object's model unloaded (meshes' tracked blocks, saved pairs, block, texture sets, tracked block, procedural textures); +8 and flag 0x10000000 cleared; returns 1"
 0x0045aee0,Online_ApplyBalance,function,high,reimplemented (src/game/online/servers); copies Online.sam (gBalanceOnline) into the servers object 0x7a14f0
 0x005b6450,Online_LoggedIn,function,high,"reimplemented (src/game/online/session); thiscall u32: the online session's (0xf7d88c) +0x60, set while logged in"
 0x005b6460,Online_Restricted,function,high,reimplemented (src/game/online/session); thiscall u32: 1 unless logged in (+0x60) with the user's flag 0x20 (+0x58) clear
