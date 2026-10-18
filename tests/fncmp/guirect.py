@@ -9,7 +9,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM  # noqa: E402
 
-CALLS = {'Ctor': 0x659d00, 'CtorWith': 0x659d43, 'Dtor': 0x659d90}
+CALLS = {'Ctor': 0x659d00, 'CtorWith': 0x659d43, 'Dtor': 0x659d90, 'Contains': 0x659e83, 'Centre': 0x659ee2, 'Offset': 0x65a3e9}
 B = Bench([(0x659d00, 0x659dbc), (0x659e83, 0x659f4d), (0x65a3e9, 0x65a4a3), (0x65a9d0, 0x65aa00), (0x66bff7, 0x66c01b)])
 RECT, OUT = RAM, RAM + 0x100
 

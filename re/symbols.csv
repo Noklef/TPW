@@ -4558,3 +4558,6 @@ address,name,kind,confidence,notes
 0x00659d00,GuiRect_Ctor,function,low,"reimplemented (src/game/ui/guirect); thiscall: base ctor 0x65a9d0, vtable 0x705920, the four words 0; returns this"
 0x00659d43,GuiRect_CtorWith,function,low,"reimplemented (src/game/ui/guirect); thiscall (left, top, right, bottom words), pops 16: as GuiRect_Ctor with the words given; returns this"
 0x00659d90,GuiRect_Dtor,function,low,"reimplemented (src/game/ui/guirect); thiscall: vtable 0x705920, then the base dtor 0x66bff7 (its EAX)"
+0x00659e83,GuiRect_Contains,function,low,"reimplemented (src/game/ui/guirect); thiscall (x, y words), pops 8, slot 0: 1 in AX when left <= x < right and top <= y < bottom (signed), else 0"
+0x00659ee2,GuiRect_Centre,function,low,"reimplemented (src/game/ui/guirect); thiscall (x, y word pointers or 0), pops 8, slot 1: left + (right - left) >> 1 and the same for top/bottom stored through each"
+0x0065a3e9,GuiRect_Offset,function,low,"reimplemented (src/game/ui/guirect); thiscall (dx, dy words), pops 8, slot 2: dx added to left and right, dy to top and bottom"
