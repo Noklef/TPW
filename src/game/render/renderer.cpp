@@ -10,6 +10,9 @@
 #include "../render/engineerrors.h"
 #include "../gfx/array3d.h"
 #include "../gfx/spriteframe.h"
+#include "../core/liveobjects.h"
+#include "../render/spritequeue.h"
+#include "../ui/guidialog.h"
 
 namespace {
 
@@ -346,5 +349,49 @@ void __fastcall RendererPart_AllocPixels(u8 *object, void *, u32) {
     SpriteImage_AllocPixels(object + 0x9c, nullptr, (u32)(s32)at<s16>(object, 0x3c), (u32)(s32)at<s16>(object, 0x3e));
     SpriteFrame_SetSize30(object + 0x54, nullptr, at<s16>(object, 0x3c), at<s16>(object, 0x3e));
     at<u16>(object, 0x44) = 1;
+}
+
+u8 *__fastcall RendererPart_Ctor(u8 *object, void *, u32 value) {
+    GuiDialog_Ctor(object, nullptr, value);
+    SpriteFrame_Init(object + 0x54);
+    SpriteImage_Init(object + 0x9c);
+    u8 *const set = object + 0xb4;   // (the sprite set's construction, inlined)
+    at<u32>(set, 0) = 0x006ff318;
+    at<u32>(set, 0x20) = 0x006fdce8;
+    at<u32>(set, at<s32>(at<u8 *>(set, 0), 4)) = 0x006ff308;
+    const s32 base = at<s32>(at<u8 *>(set, 0), 4);
+    at<s32>(set, base - 4) = base - 0x20;
+    at<u32>(set, 4) = 0;
+    at<u32>(set, 8) = 0;
+    at<u32>(set, 0x10) = 0;
+    at<u32>(set, 0xc) = 0xffffffff;
+    at<u32>(set, 0x14) = 0;
+    at<u32>(set, 0x18) = 0;
+    LiveObjects_Add(set ? set + at<s32>(at<u8 *>(set, 0), 4) : nullptr);
+    at<u32>(object, 0) = 0x006ff2d8;
+    at<u16>(object, 0x44) = 0;
+    at<u32>(object, 0x98) = TrackedArray_Alloc(set, nullptr, 1);
+    at<u32>(object, 0x64) = 0x30000;
+    at<u32>(object, 0x80) = 0x3f800000;   // 1.0f
+    at<u8 *>(object, 0x7c) = object + 0x9c;
+    SpriteFrame_SetSize(object + 0x54, nullptr, 0, 0);
+    at<u8 *>(at<u8 *>(object, 0x98), 0) = object + 0x54;   // (sic: a failed allocation faults)
+    at<u32>(object, 0xb8) = 1;
+    at<u32>(object, 0x4c) = 0;
+    at<u32>(object, 0x50) = 0;
+    return object;
+}
+
+void __fastcall RendererPart_Dtor(u8 *object) {
+    at<u32>(object, 0) = 0x006ff2d8;
+    SpriteSet_Dtor(object + 0xb4);
+    SpriteImage_Dtor(object + 0x9c);
+    GuiDialog_Dtor(object);
+}
+
+u8 *__fastcall RendererPart_ScalarDtor(u8 *object, void *, u32 flags) {
+    RendererPart_Dtor(object);
+    if (flags & 1) GameHeap_Free(object);
+    return object;
 }
 }

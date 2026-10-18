@@ -106,4 +106,20 @@ u32 __fastcall RendererPart_FreeTextures2(u8 *object);
 // image at +0x9c gets pixels (SpriteImage_AllocPixels) and the frame at +0x54 its size (SpriteFrame_SetSize30), both of the s16 sizes at
 // +0x3c / +0x3e; then +0x44 = 1.
 void __fastcall RendererPart_AllocPixels(u8 *object, void *, u32);
+
+// 0x48f150 (thiscall (value), pops 4; name unconfirmed): the renderer part's constructor, over the GUI dialog base (GuiDialog_Ctor with
+// value): the sprite frame +0x54 and image +0x9c initialised, the sprite set +0xb4 built inline (its table 0x6ff318, the virtual base
+// at the offset that gives with vtable 0x6ff308, the displacement before it, +4..+0x18 cleared with +0xc = -1) and its virtual base added
+// to the live objects; vtable 0x6ff2d8, +0x44 = 0, +0x98 = the set's one-entry tracked array (TrackedArray_Alloc), +0x64 = 0x30000,
+// +0x80 = 1.0f, +0x7c = the image, the frame sized 0 by 0, the array's entry = the frame (sic: a failed allocation faults), +0xb8 = 1,
+// +0x4c / +0x50 = 0. Returns the part.
+u8 *__fastcall RendererPart_Ctor(u8 *object, void *, u32 value);
+
+// 0x48f300 (thiscall; name unconfirmed): the destructor: vtable 0x6ff2d8, the sprite set +0xb4 (SpriteSet_Dtor, inlined), the image +0x9c
+// (SpriteImage_Dtor) and the dialog base (GuiDialog_Dtor) destroyed.
+void __fastcall RendererPart_Dtor(u8 *object);
+
+// 0x48f2e0 (thiscall (flags), pops 4; slot 0 of vtable 0x6ff2d8; name unconfirmed): RendererPart_Dtor, the part freed (Mem_Free) for
+// flags bit 0; returns it.
+u8 *__fastcall RendererPart_ScalarDtor(u8 *object, void *, u32 flags);
 }
