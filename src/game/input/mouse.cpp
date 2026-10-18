@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/vcall.h"
+#include "../ui/window.h"
 
 namespace {
 
@@ -46,6 +47,24 @@ void __stdcall Mouse_Moved(s32 x, s32 y) {
         vcall<u32>(Mouse(), 0x20, (u32)x, (u32)y);
     global<s32>(0x007b05d4) = x;
     global<s32>(0x007b05e0) = x;  // (sic)
+}
+
+u32 __cdecl Mouse_HandleGuiButton(u32 event, u32 state, u32, s32 x, s32 y) {
+    const s32 gx = (s32)((u32)x << 11) / (s32)global<s16>(0x00faa5c4);
+    const s32 gy = (s32)((u32)y * 0x600u) / (s32)global<s16>(0x00faa5c0);
+    if (event < 0xf0 || event > 0xf2) return 1;
+    const u32 button = event - 0xf0;
+    u32 &held = global<u32>(0x007c24dc + 4 * button);
+    if (state != 0) {
+        if (held != 0) return 1;
+        held = 1;
+        Gui_MouseDown(button, (u32)gx, (u32)gy);
+    } else {
+        if (held == 0) return 1;
+        held = 0;
+        Gui_MouseUp(button, (u32)gx, (u32)gy);
+    }
+    return 1;
 }
 
 }  // extern "C"
