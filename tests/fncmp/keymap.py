@@ -69,6 +69,12 @@ def case(r):
         regs[LOG] = log
         regs[0x78ba84] = struct.pack('<I', r.choice([0x1234, r.getrandbits(32)]))
         action = small() & 0xffff | r.choice([0, 0, r.getrandbits(16)]) << 16
+        if 0 <= (action & 0xffff) < min(n, 0x40) and r.random() < 0.4:  # moved: not at its own index, at two or three others
+            e = regs[M + 0x400]
+            put(e, (action & 0xffff) * 0x14, 'h', (action & 0xffff) + 1)
+            for i in r.sample(range(min(n, 0x40)), min(n, 0x40, r.choice([2, 3]))):
+                if i != action & 0xffff:
+                    put(e, i * 0x14, 'h', action & 0xffff)
         return Call(0x40caa0, [M, action, r.choice([r.randrange(0x400), r.getrandbits(32)])], regs, conv='t')
     return Call(0x40cb40 if op == 'Enable' else 0x40cb50, [M], regs, conv='t')
 
