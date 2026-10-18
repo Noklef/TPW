@@ -167,6 +167,52 @@ u32 __fastcall Window_Offset(u8 *window, void *, u32 dx, u32 dy) {
     return (left & 0xffff0000u) | 1;
 }
 
+void __fastcall Window_Set4c(u8 *window, void *, u8 *object) {
+    if (object == at<u8 *>(window, 0x4c)) return;
+    u8 inner[0x14], event[0x18];  // (only inner's byte +8 and event's pointer +0x10 set)
+    at<u8 *>(event, 0x10) = inner;
+    at<u8 *>(window, 0x4c) = object;
+    inner[8] = object ? at<u8>(object, 0x10) : 0xff;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 0x10000u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0x10000u, event);
+}
+
+void __fastcall Window_NotifyC00(u8 *window, void *, u32 a, u32 b) {
+    if (!at<u8 *>(window, 0x98) && !at<u8 *>(window, 0x9c)) return;
+    u8 inner[0x14], event[0x18];  // (only inner's bytes +4 / +5 and event's pointer +0x10 set)
+    at<u8 *>(event, 0x10) = inner;
+    inner[4] = (u8)a;
+    inner[5] = (u8)b;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 0xc00u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0xc00u, event);
+}
+
+void __fastcall Window_SetImpl(u8 *window, void *, u8 *impl) {
+    if (impl == at<u8 *>(window, 0x9c)) return;
+    if (at<u8 *>(window, 0x9c) && (s16)WindowImpl_Release(at<u8 *>(window, 0x9c)) == -1) {
+        if (u8 *const o = at<u8 *>(window, 0x98)) vcall<u32>(o, 0, 1u);   // sic: +0x98's slot 0, not the released one's
+    }
+    at<u8 *>(window, 0x9c) = impl;
+    if (!at<u8 *>(window, 0x9c)) return;
+    Fn_6617f0(at<u8 *>(window, 0x9c));
+    u8 inner[0x14], event[0x1c];  // (event's dword +0, its bytes +0xa / +0xb and inner but its byte +8 left as they are)
+    at<u16>(event, 4) = 0;
+    at<u16>(event, 6) = (u16)(at<s16>(window, 0xe0) + 1);
+    at<u16>(event, 8) = at<u16>(window, 0xe2);
+    at<u8 *>(event, 0x14) = window + 0x2c;
+    at<u16>(event, 0xc) = at<u16>(window, 0xe4);
+    at<u16>(event, 0xe) = at<u16>(window, 0xe6);
+    u32 flags = 0x57;
+    if (at<u8 *>(window, 0x4c)) {   // (else the pointer +0x10 is left as it is too)
+        flags |= 0x10000;
+        inner[8] = at<u8>(at<u8 *>(window, 0x4c), 0x10);
+        at<u8 *>(event, 0x10) = inner;
+    }
+    at<u32>(event, 0x18) = flags;
+    vcall<void>(at<u8 *>(window, 0x9c), 0xc, flags, event);
+    if ((s16)Window_IsShown(window) != 0) vcall<void>(at<u8 *>(window, 0x9c), 0x14, 1u);
+}
+
 u8 *__fastcall Window_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom) {
     for (u32 off = 8; off <= 0x38; off += 0xc)
         GuiRect_Ctor(window + off);

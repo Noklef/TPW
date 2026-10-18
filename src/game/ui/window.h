@@ -80,6 +80,23 @@ u8 *__fastcall Window_OffsetByParents(u8 *window, void *, u8 *rect);
 // 1 in AX; the upper half of EAX is the last child's result's, or the window's for none.
 u32 __fastcall Window_Offset(u8 *window, void *, u32 dx, u32 dy);
 
+// 0x65c388 (thiscall (object), pops 4; name unconfirmed): nothing when the object is +0x4c already; else +0x4c = object and the objects
+// +0x98 and +0x9c (when set) told by slot 3 (0x10000, an event on the stack whose +0x10 points to a second one on the stack with its byte
+// +8 the object's byte +0x10, or 0xff for none; the rest of both unset). EAX not kept.
+void __fastcall Window_Set4c(u8 *window, void *, u8 *object);
+
+// 0x65c428 (thiscall (a, b: bytes), pops 8; name unconfirmed): with an object +0x98 or +0x9c set, each set one told by slot 3 (0xc00,
+// an event on the stack whose +0x10 points to a second one with the bytes +4 = a and +5 = b; the rest unset). EAX not kept.
+void __fastcall Window_NotifyC00(u8 *window, void *, u32 a, u32 b);
+
+// 0x65d1c8 (thiscall (impl), pops 4; name unconfirmed): nothing when impl is +0x9c already. The old one (when set) let go
+// (WindowImpl_Release), and when that answers -1 (as a word) +0x98's slot 0 (1) called when +0x98 is set (sic: not the old one's).
+// +0x9c = impl; when set: Fn_6617f0 on it (+0x12 = 1), then its slot 3 (flags, an event on the stack: the words +4 = 0, +6 = the
+// word +0xe0 + 1, +8 = +0xe2, +0xc / +0xe = +0xe4 / +0xe6, +0x14 = the window + 0x2c and +0x18 = the flags 0x57; with +0x4c set, flags
+// | 0x10000 and +0x10 points to a second event on the stack whose byte +8 is +0x4c's byte +0x10) and, when the window is shown
+// (Window_IsShown), its slot 5 (1). EAX not kept.
+void __fastcall Window_SetImpl(u8 *window, void *, u8 *impl);
+
 // 0x65bcad (thiscall (parent, flags, id, left, top, right, bottom: words), pops 28; name unconfirmed): the constructor: five rectangles
 // (+8, +0x14, +0x20, +0x2c, +0x38; GuiRect_Ctor), the vtable 0x705980, the flags at +0x48, the parent at +0x60, the id at +0x8c, the
 // handlers +0x114 / +0x118 0x65f6d1 and most fields cleared (+0x90 / +0x94 -1, the word +0x50 0xffff). The rectangle +8 is set from the
