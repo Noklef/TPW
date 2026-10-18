@@ -300,6 +300,7 @@
 #include "../game/ui/guimanager.h"
 #include "../game/ui/guirect.h"
 #include "../game/ui/msgqueue.h"
+#include "../game/ui/textpool.h"
 #include "../game/ui/window.h"
 
 namespace tpw::hook {
@@ -4123,6 +4124,10 @@ const Hook kHooks[] = {
     {"MsgQueue_Free",             0x00669735, (void *)&MsgQueue_Free, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"MsgQueue_DispatchOne",      0x006698e6, (void *)&MsgQueue_DispatchOne, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"WordPairs_Contains",        0x006698a4, (void *)&WordPairs_Contains, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"TextPool_Release",          0x0066969e, (void *)&TextPool_Release, {0x55, 0x8b, 0xec, 0x83, 0x7d}},
+    {"TextPool_Take",             0x006695b9, (void *)&TextPool_Take, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"TextPool_Free",             0x00669586, (void *)&TextPool_Free, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"TextPool_Init",             0x00669440, (void *)&TextPool_Init, {0x55, 0x8b, 0xec, 0x83, 0xec}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

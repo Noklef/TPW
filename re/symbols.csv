@@ -4579,3 +4579,7 @@ address,name,kind,confidence,notes
 0x006697e3,MsgQueue_Push,function,low,"reimplemented (src/game/ui/msgqueue); thiscall (window, message, a, b), pops 16: into the entry +0xc when it is free and window != 0: count up, index down (wrapping to cap - 1); 1 / 0 in AX"
 0x006698a4,WordPairs_Contains,function,low,"reimplemented (src/game/ui/msgqueue); cdecl (pairs, a, b): 1 (AX) when the word pairs (ended by a second of -1) hold (a, b), else 0"
 0x006698e6,MsgQueue_DispatchOne,function,low,"reimplemented (src/game/ui/msgqueue); thiscall: the entry to take sent (0x1000a-c to [0xfaa57c] / [0xfaa5ec] / [0xfaa5dc], others to its window; 0x80808080 dropped), freed, the take index down; 1, or 0 without one (AX)"
+0x00669440,TextPool_Init,function,low,"reimplemented (src/game/ui/textpool); cdecl (long length, long rows, short length, short rows): sizes checked and stored, both blocks allocated, the rows marked free (the short pool with the long count, sic); 1, else 0"
+0x00669586,TextPool_Free,function,low,reimplemented (src/game/ui/textpool); cdecl: both text pool blocks freed (Mem_Free)
+0x006695b9,TextPool_Take,function,low,"reimplemented (src/game/ui/textpool); cdecl (length): the first free row of the short pool (length below its row length), else the last free one of the long one; its first character 0; 0 for none"
+0x0066969e,TextPool_Release,function,low,reimplemented (src/game/ui/textpool); cdecl (row): the row (when not null) marked free (dword -1)
