@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../render/device.h"
 #include "../render/engineerrors.h"
 #include "gameheap.h"
 #include "liveobjects.h"

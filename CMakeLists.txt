@@ -305,6 +305,7 @@ add_library(tpw_game STATIC
     src/game/render/vertexfog.cpp
     src/game/render/quad.cpp
     src/game/render/d3dprobe.cpp
+    src/game/render/device.cpp
     src/game/render/engineerrors.cpp
     src/game/render/texcoords.cpp
     src/game/render/graphicssettings.cpp

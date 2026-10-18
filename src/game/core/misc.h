@@ -1,4 +1,4 @@
-// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x409260, 0x45be80, 0x5f4490, 0x633dc0, 0x6486e0, 0x458310, 0x4583d0, 0x4bcec0, 0x486610, 0x4f36c0, 0x5c9040, 0x5d03b0, 0x5dd3d0, 0x5ddac0, 0x5c5230, 0x5c7490, 0x5dd810, 0x5e2750, 0x633120, 0x5b0d40, 0x5c7bb0, 0x5c7d00, 0x5c7d20, 0x5d1440, 0x5d5ee0,0x569f30, 0x52fc30, 0x5997b0, 0x56b340, 0x56e780, 0x583360, 0x56b570, 0x5651c0, 0x4d09a0, 0x52fbf0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
+// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x409260, 0x45be80, 0x5f4490, 0x633dc0, 0x6486e0, 0x458310, 0x4583d0, 0x4bcec0, 0x486610, 0x4f36c0, 0x5c9040, 0x5d03b0, 0x5dd3d0, 0x5ddac0, 0x5c5230, 0x5c7490, 0x5dd810, 0x5e2750, 0x633120, 0x5b0d40, 0x5c7bb0, 0x5c7d00, 0x5c7d20, 0x5d1440, 0x5d5ee0,0x569f30, 0x52fc30, 0x5997b0, 0x56b340, 0x56e780, 0x583360, 0x56b570, 0x4d09a0, 0x52fbf0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
 // 0x4e1c60, 0x4f00f0, 0x4f6020, 0x4f6820, 0x4f6850, 0x56a510, 0x56b630 and 0x56b830.
 #pragma once
 
@@ -39,11 +39,6 @@ u8 *__fastcall Obj_CtorVirtual(u8 *object, void *, u32 mostDerived);
 // 0x4583d0 (thiscall; a, b, c, pops 12): the scene flags touched (SceneFlags_Touch on 0x8bd508), then
 // +0x2c = a, +0x30 = b, +0x34 = c. Returns a.
 u32 __fastcall Obj_SetVectorAt2c(u8 *object, void *, u32 a, u32 b, u32 c);
-
-// 0x5651c0 (thiscall): vtable 0x701260, +4 = +8 = +0x18 = +0x1c = +0x20 = +0x24 = 0, +0x14 = -1; and
-// 0x879ab4 = 1 when the display adapter record at [0x879a24] has vendor +0x428 = 0x10de and the driver
-// kind 0x8bd524 is 1. Returns the object.
-u8 *__fastcall Class701260_Ctor(u8 *object);
 
 // 0x56b570 (thiscall; key, a, b, c, pops 16): the array of pointers at +8 (count +0x1c) searched
 // backwards for the key; when found the key's dwords at +0x14, +0x18, +0x1c = a, b, c and 1 is
@@ -205,11 +200,6 @@ u32 __cdecl Table879d08_Fill();
 
 // 0x56b830 (thiscall; a, b, pops 8): +0x30 = a and +0x34 = b; returns a.
 u32 __fastcall Obj_Set30_34(u8 *object, void *, u32 a, u32 b);
-
-// 0x5667d0 (thiscall; most derived flag, pops 4): with the flag set the vtable 0x701378 is stored and the base class constructor (Class701260_Ctor) runs on the part at +0x2c;
-// then the virtual base (offset from the word at +4 of the vtable) gets the vtable 0x701330, the word before it the distance to that base less 0x2c, and the fields +8, +0x18, +4 are
-// cleared, +0x10 is 2, +0x14 is 1, +0x20 is -1 and the word at the virtual base + 0xc is 0x3000. Returns the object.
-u8 *__fastcall Class701378_Ctor(u8 *object, void *, u32 mostDerived);
 
 u8 *__fastcall Class703770_Ctor(u8 *object);
 

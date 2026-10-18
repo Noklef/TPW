@@ -1,7 +1,7 @@
 # The creators of the engine's two singletons with a virtual base (src/game/core/vwrap: 0x569e10 for 0x879acc, 0x5666f0 for 0x879ac0) against the
 # originals: there already (sometimes) or made on fncmp's heap, whose allocation fails now and then (the error then pushed onto the engine's list at
 # 0x879ad0, the log 0x564650 fncmp's cdecl logger, as in enginecreate.py); the vbtables 0x701410 / 0x701378 as in the game, the vtables 0x7013c8 /
-# 0x701330 recorders (slot 1 is called); the base constructor's driver quirk globals as in class701378.py.
+# 0x701330 recorders (slot 1 is called); the base constructor's driver quirk globals as in device.py.
 # usage: singletons.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct

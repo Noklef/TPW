@@ -2738,7 +2738,7 @@ address,name,kind,confidence,notes
 0x004d09a0,Obj_SmallestEntry,function,high,"reimplemented (src/game/core/misc); the index of the smallest non-zero entry size of eight, or -1"
 0x00458310,Obj_CtorVirtual,function,high,reimplemented (src/game/core/misc); a class with a virtual base: vtables and the offset word
 0x004583d0,Obj_SetVectorAt2c,function,high,"reimplemented (src/game/core/misc); the scene flags touched, then three dwords at +0x2c"
-0x005651c0,Class701260_Ctor,function,high,"reimplemented (src/game/core/misc); vtable 0x701260 and its defaults, plus a driver quirk flag"
+0x005651c0,Class701260_Ctor,function,high,"reimplemented (src/game/render/device); vtable 0x701260 and its defaults, plus a driver quirk flag"
 0x005646c0,Obj_CtorVirtual5646c0,function,high,"reimplemented (src/game/gfx/rleimage); a class with a virtual base (vtables 0x701188, 0x701178, 0x701168)"
 0x00564ba0,Obj_CtorVirtual564ba0,function,high,"reimplemented (src/game/gfx/wctimage); a class with a virtual base (vtables 0x7011d8, 0x701178, 0x7011c8)"
 0x0056b570,PtrArray_SetVectorOf,function,high,reimplemented (src/game/core/misc); a pointer array searched for a key; its three dwords at +0x14 set
@@ -3876,7 +3876,7 @@ address,name,kind,confidence,notes
 0x0051fa20,TrackTypeSlot_ReadIntoFree,function,high,reimplemented (src/game/coaster/tracktypes); a stream read into the first free 0x140-byte slot
 0x004fcac0,Thing_SpriteChoice,function,high,"reimplemented (src/game/world/things); the flags of a sprite, or a random sprite of folder 1"
 0x004e2200,Thing_IngredientRecord,function,high,reimplemented (src/game/world/things); the record of the definition's special ingredient
-0x005667d0,Class701378_Ctor,function,high,reimplemented (src/game/core/misc); stream class constructor with a virtual base
+0x005667d0,Class701378_Ctor,function,high,reimplemented (src/game/render/device); stream class constructor with a virtual base
 0x0050afe0,Thing_Construct,function,high,"reimplemented (src/game/world/things); a thing's constructor: slot, handle, cell and chain"
 0x00502d20,ThingKindE_Ctor,function,high,reimplemented (src/game/world/things); a thing of kind 0xe with five records
 0x004f7e20,Thing_ResetPlaceAt,function,high,"reimplemented (src/game/world/things); thiscall (x, y, pops 8): +0x39c = 0, +0x10 = 3 (Set4_4217f0 on +0xc), then Thing_PlaceAt(x, y)"

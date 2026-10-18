@@ -289,6 +289,7 @@
 #include "../game/render/heightgrid.h"
 #include "../game/render/vertexfog.h"
 #include "../game/render/d3dprobe.h"
+#include "../game/render/device.h"
 #include "../game/render/engineerrors.h"
 #include "../game/render/fixedverts.h"
 #include "../game/render/texcoords.h"
