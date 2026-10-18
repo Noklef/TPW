@@ -76,4 +76,9 @@ StdString *__fastcall StdString_AssignFill(StdString *s, void *edx, u32 n, u32 c
 
 // 0x47b280: _Freeze(): gives a shared s its own copy, then marks s's block (when it has one) frozen.
 void __fastcall StdString_Freeze(StdString *s, void *edx);
+
+// 0x4a9420: basic_string(const basic_string &x), emitted out of line apart from the others (name unconfirmed): the allocator's
+// byte copied, s emptied, then assign(x, 0, npos) inlined: as AssignSub, but without its max_size check, and with x's length
+// read after s is emptied (so copying s into itself leaves it empty: sic). Returns s.
+StdString *__fastcall StdString_CopyCtor(StdString *s, void *edx, const StdString *x);
 }

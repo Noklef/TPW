@@ -2296,6 +2296,7 @@ address,name,kind,confidence,notes
 0x0045b8d0,StdString_Split,function,high,reimplemented (src/game/core/stdstring); std::string::_Split(): unshares a copy-on-write block
 0x0047b1c0,StdString_AssignFill,function,low,"reimplemented (src/game/core/stdstring); thiscall (n, ch), pops 8: assign(n, ch)"
 0x0047b280,StdString_Freeze,function,low,reimplemented (src/game/core/stdstring); thiscall: _Freeze
+0x004a9420,StdString_CopyCtor,function,low,"reimplemented (src/game/core/stdstring); thiscall (x), pops 4: basic_string(const basic_string &x): the allocator byte copied, s emptied, then assign(x, 0, npos) inlined (x's length read after the emptying; no max_size check); returns s"
 0x0045b9d0,GlobalMem_Alloc,function,high,"reimplemented (src/game/core/globalmem); GlobalAlloc(GMEM_ZEROINIT or GMEM_FIXED, size) through the import slot; null for 0"
 0x0045ba00,GlobalMem_Free,function,high,reimplemented (src/game/core/globalmem); GlobalFree through the import slot; null for null
 0x0045ba70,GlobalMem_AllocCounted,function,high,reimplemented (src/game/core/globalmem); a zeroed 0x40-byte block with count at +4; null for 0
@@ -4234,6 +4235,20 @@ address,name,kind,confidence,notes
 0x006ade00,TextLayout_Ctor,function,low,"reimplemented (src/game/gfx/textlayout); thiscall: the holder at +4 constructed, the vectors and fields cleared, +0x5c/+0x70/+0x84 the top byte of this (sic), vtable 0x70a10c; returns this"
 0x006adeb0,TextLayout_Dtor,function,low,"reimplemented (src/game/gfx/textlayout); thiscall: vtable 0x70a10c, the vectors at +0x88, +0x74, +0x60 freed and cleared, the holder at +4 destroyed"
 0x006ade90,TextLayout_DeletingDtor,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (flags): TextLayout_Dtor, freed for flags bit 0; returns this"
+0x006ad660,TextStyle_Assign,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (source): the text style copied from source unless the same, the font given a reference (no null check, old font not released, sic); returns this"
+0x006ad820,TextStyle_GetFont,function,low,"reimplemented (src/game/gfx/textlayout); thiscall: the font (+4), given a reference (slot 1) when not 0"
+0x006ad840,TextStyle_FontKind,function,low,"reimplemented (src/game/gfx/textlayout); thiscall: the font's kind (its slot 10, tail call), or 5 without a font"
+0x006b0280,TextStyleHolder_SetStyle,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (status, style): the style copied in and +0x54 the renderer from the table at 0x782d38 by (+0x10, font kind, state); *status 0 or -1; returns status"
+0x006b0300,TextStyleHolder_Render,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (status, a, b, c): the renderer (+0x54)'s slot 1 called with (status, a, b, c, the style), else *status = -1; returns status"
+0x006aeab0,TextLayout_CharClass,function,low,"reimplemented (src/game/gfx/textlayout); stdcall (character; callers pass the layout in ECX, unused): 0x12 for tab/space, 4 line feed, 0xc carriage return, else 1 (AL only)"
+0x006aeda0,Vector12_Erase,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (first, last) on a vector of 12-byte elements (begin +4, end +8): the tail moved down to first, the end set; returns first"
+0x006aedf0,Vector8_InsertN,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (position, count, value): MSVC6 vector<8-byte T>::insert(position, count, value) (first +4, last +8, end +0xc)"
+0x006af0a0,Vector16_InsertN,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (position, count, value): MSVC6 vector<16-byte T>::insert(position, count, value) (first +4, last +8, end +0xc)"
+0x006af3b0,Vector12_InsertN,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (position, count, value): MSVC6 vector<12-byte T>::insert(position, count, value) (first +4, last +8, end +0xc)"
+0x006add90,TextLines_Append,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (first, shown, next, width) on the layout's lines (+0x70): {first, next, width} appended, the widest line (+0x10) raised, records shown..next flagged 0x40"
+0x006aec80,TextLayout_BreakLines,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (begin, end): the 16-byte character records broken into lines no wider than +0xa8, each appended to the lines (+0x70); returns the line count"
+0x006aeb10,TextLayout_Arrange,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (status, left, top, right, bottom): the lines rebuilt per paragraph, the text box (+0xac-+0xb8) placed by the kinds at +0xa0 / +0xa4; *status = 0; returns status"
+0x006adfb0,TextLayout_SetOrigin,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (status, rect): the positions (+0x84) resized to one, the origin (+0x98/+0x9c) placed in the rect by the kinds at +0xa0 / +0xa4 and stored as the first position; *status = 0; returns status"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
@@ -4692,6 +4707,19 @@ address,name,kind,confidence,notes
 0x00658ccc,Window_PostMessage,function,low,"reimplemented (src/game/ui/window); cdecl (window, message, a, b): messages 1-3 pushed to queue [0xfaa5f4], 0x1000a-c to [0xfaa5f0] unchecked (0), others to [0xfaa5f0]; 1 when pushed (queue, window and its byte +4 clear), else 0"
 0x0065db25,Window_HitTest,function,low,"reimplemented (src/game/ui/window); thiscall (x, y words), pops 8: 0 for flag 2 of +0x48, byte +4, or neither flag 0 nor the top four; children searched (the last hit kept), then the rect +0x44 slot 0 (x, y): the window when it holds and no child hit"
 0x006589f9,Window_UpdateHover,function,low,"reimplemented (src/game/ui/window); cdecl: 0 (AX) without root [0xfaa5d8] or with [0xfaa5e8]; the hit under (0xfaa540, 0xfaa544) replaces [0xfaa5e0] (0x10002 posted to the old, 0x10001 (x << 16 | y signed) to the new); 1 (AX)"
+0x006616b0,WindowImpl_Release,function,low,"reimplemented (src/game/ui/window); thiscall: the window object's word count +0x12 decremented, its slot 5 (0) called; returns the count less (1 - word +0x10), -1 meaning delete"
+0x0065d773,Window_IsShown,function,low,"reimplemented (src/game/ui/window); thiscall: 1 in AX when the window and all its parents (+0x60) have flag 0 of +0x48, else 0"
+0x0065bc90,Window_SaveRect,function,low,reimplemented (src/game/ui/window); thiscall: the rectangle +8 assigned to +0x2c; returns +0x2c
+0x0065c979,Window_OffsetByParents,function,low,"reimplemented (src/game/ui/window); thiscall (rect): the rectangle's slot 2 called with each parent's words +0xc / +0xe (upper halves garbage, sic)"
+0x0065bcad,Window_Ctor,function,low,"reimplemented (src/game/ui/window); thiscall (parent, flags, id, left, top, right, bottom): the window constructor; rectangles, fields, depth, centre, hover update, posts 0x15"
+0x006592b6,Window_ForgetGlobals,function,low,"reimplemented (src/game/ui/window); cdecl (window): the hovered [0xfaa5e0], [0xfaa5dc], [0xfaa5e8] and the three at 0xfaa588 cleared when they are the window; EAX 3"
+0x0065e672,Window_DropModal,function,low,"reimplemented (src/game/ui/window); thiscall: the modal window [0xfaa57c] and its pairs [0xfaa578] cleared when it is this one: AX 1, else 0 (EAX's top [0xfaa57c]'s)"
+0x0065c2d8,Window_Destroying,function,low,"reimplemented (src/game/ui/window); thiscall: sent 0x14, byte +4 set, each child likewise (recursive), the modal dropped, [0xfaa5ec] / [0xfaa5dc] cleared when this"
+0x00658fe9,Window_CancelPosted,function,low,reimplemented (src/game/ui/window); cdecl (window): the window's messages in the queue [0xfaa5f0] cancelled (MsgQueue_Cancel); AX 0xffff without the queue or window
+0x00659012,Window_CancelPostedFirst,function,low,reimplemented (src/game/ui/window); cdecl (window): likewise for the queue [0xfaa5f4]
+0x0065903b,Window_CancelTimed,function,low,reimplemented (src/game/ui/window); cdecl (window): likewise for the timed messages [0xfaa5f8] (GuiTimers_Cancel)
+0x0065c025,Window_Dtor,function,low,"reimplemented (src/game/ui/window); thiscall: the window destructor: going notice, manager told, objects released, timers killed, rectangle, globals, queues, unlinked, children deleted, hover, rectangles"
+0x00661680,Window_DeletingDtor,function,low,"reimplemented (src/game/ui/window); thiscall (flags): the scalar deleting destructor (slot 2): Window_Dtor, then with flag 1 freed; returns the window"
 0x00498090,Dialog7ca1c8_SetChecks,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): the nine check buttons of the 0x7ca1c8 dialog's child 0x18 set (vtable slot 5, bool) from flags bits 0-8 (0x20's also needs [0x7ca1d0]+0x50)"
 0x00498a50,Dialog7ca1c8_SetChecksIfUp,function,low,reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): Dialog7ca1c8_SetChecks when [0x7ca1c8] and [0x7ca1cc] are not 0
 0x00481a00,Dialog7ca1c8_SetChecksIfUpThis,function,low,"reimplemented (src/game/ui/dialog7ca1c8); thiscall (flags), pops 4, this unused: Dialog7ca1c8_SetChecksIfUp(flags)"
@@ -4726,6 +4754,7 @@ address,name,kind,confidence,notes
 0x00659ee2,GuiRect_Centre,function,low,"reimplemented (src/game/ui/guirect); thiscall (x, y word pointers or 0), pops 8, slot 1: left + (right - left) >> 1 and the same for top/bottom stored through each"
 0x0065a3e9,GuiRect_Offset,function,low,"reimplemented (src/game/ui/guirect); thiscall (dx, dy words), pops 8, slot 2: dx added to left and right, dy to top and bottom"
 0x0065a43e,GuiRect_Adjust,function,low,"reimplemented (src/game/ui/guirect); thiscall (dl, dt, dr, db words), pops 16, slot 3: each added to left, top, right and bottom"
+0x0065aa20,GuiRect_Assign,function,low,"reimplemented (src/game/ui/guirect); thiscall (source): the base's assignment (Fn_65aa80), the four words copied; returns the rectangle"
 0x006599f2,GuiDialog_SetA,function,low,"reimplemented (src/game/ui/guidialog); thiscall (word), pops 4: +0xa = value when value < the word +0xe (signed)"
 0x00659a19,GuiDialog_SetC,function,low,"reimplemented (src/game/ui/guidialog); thiscall (word), pops 4: +0xc = value when value < the word +0xe (signed)"
 0x006598f7,GuiDialog_Apply,function,low,"reimplemented (src/game/ui/guidialog); thiscall (flags, source), pops 8, slot 3: bit 0 SetC(src+4), bit 2 +0x30 = src+8, bit 19 SetA(src+0xa), bit 6 +0x34/+0x36 = src+0xc/+0xe; nothing for flags 0 or no source"
@@ -4752,8 +4781,17 @@ address,name,kind,confidence,notes
 0x00669d77,GuiTimers_Fire,function,low,reimplemented (src/game/ui/guitimers); thiscall: each set entry due by GuiClock_Now() (unsigned) sent (Window_CallHandler) and freed; their number (AX)
 0x00669e3a,GuiTimers_Cancel,function,low,"reimplemented (src/game/ui/guitimers); thiscall (window): the window's entries freed; their number (AX), -1 without entries"
 0x0048a3d0,Panel7b9940_Detach,function,low,"reimplemented (src/game/ui/panel7b9940); cdecl: GuiManager_CallSlot4, then the 0x7b9940 object's virtual base out of the renderer's tag 0x20 list; returns that result"
+0x004855d0,Panel7b9940_Ctor,function,low,"reimplemented (src/game/ui/panel7b9940); thiscall (complete), pops 4: the constructor: complete sets the vbtables and vtable, then through the vbtable the vtable 0x6fdcc8, displacements, +0x50 2, scene flags touched twice, 1.0f fields, +0x54 -1; returns the object"
 0x006588b6,Gui_HashName,function,low,"reimplemented (src/game/ui/windowreg); cdecl (text, multiplier): h = (signed char ^ h) * multiplier over the characters; returns h"
 0x00659bc9,GuiWindows_FindByName,function,low,"reimplemented (src/game/ui/windowreg); cdecl (name): the first node with the name's hash (0x2f): its window's slot 0x20, else 0"
 0x00659c42,GuiWindows_FindByHash,function,low,"reimplemented (src/game/ui/windowreg); cdecl (hash): the first node with the hash: its window's slot 0x20, else 0"
 0x00659a58,GuiWindows_Register,function,low,"reimplemented (src/game/ui/windowreg); cdecl (window, name): unless a node before the last has the name's hash, a node added at the end (window +0x10 = 1, strncpy 12, the hash); 1 in AX, else 0"
 0x00659b52,GuiWindows_Clear,function,low,"reimplemented (src/game/ui/windowreg); cdecl (word): every node freed (the head kept, sic), the windows deleted (slot 0 (1)) first when the word is set"
+0x00661faa,WindowTimer_Unlink,function,low,"reimplemented (src/game/ui/windowtimers); thiscall: the timer node unlinked from its neighbours (+0x18 next, +0x1c previous); EAX its previous or the node"
+0x006620e2,WindowTimer_Find,function,low,"reimplemented (src/game/ui/windowtimers); thiscall (window, id): the last node from this one on with the window and id (recursive), else 0"
+0x00662500,WindowTimer_Delete,function,low,"reimplemented (src/game/ui/windowtimers); thiscall (flags): scalar deleting destructor: unlinked, with flag 1 back to the pool (Fn_661f9b); returns the node"
+0x00662306,WindowTimers_Kill,function,low,"reimplemented (src/game/ui/windowtimers); cdecl (window, id): the window's timer with the id found and deleted (the list head moved on); 1, or 0 for none"
+0x006689bc,Window705a50_Dtor,function,low,"reimplemented (src/game/ui/window705a50); thiscall: the 0x705a50 window's destructor: its vtable, the text row +0x148 released when set, then Window_Dtor"
+0x006693a0,Window705a50_DeletingDtor,function,low,"reimplemented (src/game/ui/window705a50); thiscall (flags): the 0x705a50 window's scalar deleting destructor (slot 2): Window705a50_Dtor, then with flag 1 freed; returns the window"
+0x00486530,ThingPreview_Show,function,low,"reimplemented (src/game/ui/thingpreview); cdecl (rect, thing, depth, scale float): any shown copy killed, [0x7c24d8] = thing; its script +0xc cloned at a position from the rect (x87, __ftol) and Sprite_FlipY(depth), the slot to [0x7c24a0] and returned (no script: [0x7c24d8] 0, the thing returned)"
+0x00486630,ThingPreview_Hide,function,low,reimplemented (src/game/ui/thingpreview); cdecl: with [0x7c24d8] set the copy (slot [0x7c24a0]) killed and [0x7c24d8] cleared

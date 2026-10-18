@@ -25,6 +25,64 @@ u32 __fastcall Window_ImplSlot7(u8 *window, void *, u32 a, u32 b);
 // there is none (sic: EAX still holds it).
 u32 __fastcall Window_ImplSlot6(u8 *window);
 
+// 0x6616b0 (thiscall; name unconfirmed): a window's object (+0x98) let go: its word count +0x12 decremented, its slot 5 called with
+// (0), then the count less (1 - the word +0x10) (both signed) returned; -1 tells the caller to delete it.
+s32 __fastcall WindowImpl_Release(u8 *impl);
+
+// 0x65d773 (thiscall; name unconfirmed): 1 in AX when the window and every parent (+0x60) up the chain has flag 0 of +0x48, else 0
+// (1 for no window). Only AX is set.
+u16 __fastcall Window_IsShown(u8 *window);
+
+// 0x65bc90 (thiscall; name unconfirmed): the rectangle at +8 copied to the one at +0x2c (GuiRect_Assign); returns +0x2c.
+u8 *__fastcall Window_SaveRect(u8 *window);
+
+// 0x65c979 (thiscall (rect), pops 4; name unconfirmed): for each parent up the chain (+0x60), the rectangle's slot 2 (GuiRect_Offset)
+// called with the parent's words +0xc and +0xe (sic: pushed as dwords whose upper halves are the parent's address for the first and the
+// previous one's, the window's at first, for the second). EAX is left as the last parent, or the window when there is none.
+u8 *__fastcall Window_OffsetByParents(u8 *window, void *, u8 *rect);
+
+// 0x65bcad (thiscall (parent, flags, id, left, top, right, bottom: words), pops 28; name unconfirmed): the constructor: five rectangles
+// (+8, +0x14, +0x20, +0x2c, +0x38; GuiRect_Ctor), the vtable 0x705980, the flags at +0x48, the parent at +0x60, the id at +0x8c, the
+// handlers +0x114 / +0x118 0x65f6d1 and most fields cleared (+0x90 / +0x94 -1, the word +0x50 0xffff). The rectangle +8 is set from the
+// four words (offset by the parents when flag 0x400 is set: Window_OffsetByParents), saved to +0x2c (Window_SaveRect) and +0x14, and +0x44
+// points to it; [0xfaa5e4] becomes the window. The depth word +0xe0 is the parent's + 2 (1 with none, at most 0x100); +0xe4 / +0xe6 the
+// rectangle's centre from the words (sic: the parent's, or left and bottom, are stored first and overwritten). +0xa0 cleared for 0x40 bytes;
+// with flag 1 the hover is updated (Window_UpdateHover); then the window is posted 0x15 (0, 0). Returns the window.
+u8 *__fastcall Window_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom);
+
+// 0x6592b6 (cdecl (window); name unconfirmed): each of the globals [0xfaa5e0] (the hovered window), [0xfaa5dc], [0xfaa5e8] and the
+// three from 0xfaa588 that is the window cleared. EAX is left 3 (the loop's count).
+u32 __cdecl Window_ForgetGlobals(u8 *window);
+
+// 0x65e672 (thiscall; name unconfirmed): when the window is the modal one [0xfaa57c] (msgqueue's first taker of 0x1000a-0x1000c), it and
+// its pairs [0xfaa578] are cleared and 1 is in AX; else 0. Only AX is set (sic: the rest of EAX is [0xfaa57c]'s).
+u32 __fastcall Window_DropModal(u8 *window);
+
+// 0x65c2d8 (thiscall; name unconfirmed): the window and its children (from +0x5c by +0x54, each in turn) told they are going: sent 0x14
+// (0, 0) (Window_SendMessage), then the byte +4 set; after the children, Window_DropModal, and [0xfaa5ec] and [0xfaa5dc] cleared when
+// they are the window. EAX is left as [0xfaa5ec] as it was read.
+u32 __fastcall Window_Destroying(u8 *window);
+
+// 0x658fe9 / 0x659012 (cdecl (window); names unconfirmed): the window's messages in the queue [0xfaa5f0] / [0xfaa5f4] cancelled
+// (MsgQueue_Cancel), its result; 0xffff without the queue or a window. Only AX is set.
+u32 __cdecl Window_CancelPosted(u8 *window);
+u32 __cdecl Window_CancelPostedFirst(u8 *window);
+
+// 0x65903b (cdecl (window); name unconfirmed): likewise the window's timed messages in [0xfaa5f8] (GuiTimers_Cancel).
+u32 __cdecl Window_CancelTimed(u8 *window);
+
+// 0x65c025 (thiscall; name unconfirmed): the destructor. The vtable 0x705980; Window_Destroying unless the byte +4 is set; the manager
+// [0x77c48c] told (slot 13 (window)); each object +0x98 / +0x9c let go (WindowImpl_Release) and, when that answers -1 (as a word),
+// deleted (slot 0 (1)) as read again; the timer of each set dword +0x120-+0x12c killed (WindowTimers_Kill, ids 0x80080-0x80083); the
+// rectangle +0x44 deleted (slot 4 (1)) when it is not its own +8; Window_ForgetGlobals and the three cancels; unlinked from its parent
+// (+0x60, when first: the parent's +0x5c) and siblings (+0x58 / +0x54); each child deleted (slot 2 (1)) until +0x5c is 0 (each child
+// unlinks itself); the hover updated; the five rectangles destroyed (GuiRect_Dtor, the last's EAX left).
+u32 __fastcall Window_Dtor(u8 *window);
+
+// 0x661680 (thiscall (flags), pops 4; slot 2; name unconfirmed): the scalar deleting destructor: Window_Dtor, then with flag 1 freed
+// (Mem_Free). Returns the window.
+u8 *__fastcall Window_DeletingDtor(u8 *window, void *, u32 flags);
+
 // 0x65e705 (thiscall (index: a word), pops 4; name unconfirmed): the dword +0xa0 + 4 * index (signed) for an index below 16, else 0.
 u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index);
 
