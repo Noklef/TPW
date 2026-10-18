@@ -45,9 +45,10 @@ def vertex(r, p, stride):
 
 
 def vertices(r, stride):
-    """The vertex clipper (0x562a70): a polygon of 0-5 vertices (as the indexed one's) copied in, the count pointer, two buffers of room."""
+    """The vertex clipper (0x562a70): a polygon of 0-5 vertices (as the indexed one's; 0-2 often: 2 kept by a pass ends it) copied in, the
+    count pointer, two buffers of room."""
     k = r.random()
-    n = 3 if k < 0.6 else (r.choice([4, 5]) if k < 0.93 else r.randrange(3))
+    n = 3 if k < 0.5 else (r.choice([4, 5]) if k < 0.8 else r.choice([0, 1, 2, 2, 2]))
     src = bytearray()
     for p in polygon(r, max(n, 3))[:n]:
         src += vertex(r, p, stride)
