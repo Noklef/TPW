@@ -508,6 +508,9 @@ void __fastcall StdTree_EraseSubtreeC(u8 *, void *, u8 *node) { TreeC::EraseSubt
 void __fastcall StdTree_EraseSubtreeD(u8 *, void *, u8 *node) { TreeD::EraseSubtree(node); }
 void __fastcall StdTree_EraseSubtreeE(u8 *, void *, u8 *node) { TreeE::EraseSubtree(node); }
 u8 **__fastcall StdTree_EraseRangeB(u8 *tree, void *, u8 **out, u8 *first, u8 *last) { return TreeB::EraseRange(tree, out, first, last); }
+u8 **__fastcall StdTree_EraseRangeC(u8 *tree, void *, u8 **out, u8 *first, u8 *last) { return TreeC::EraseRange(tree, out, first, last); }
+u8 **__fastcall StdTree_EraseRangeD(u8 *tree, void *, u8 **out, u8 *first, u8 *last) { return TreeD::EraseRange(tree, out, first, last); }
+u8 **__fastcall StdTree_EraseRangeE(u8 *tree, void *, u8 **out, u8 *first, u8 *last) { return TreeE::EraseRange(tree, out, first, last); }
 void StdTree_DtorB(u8 *tree) { TreeB::Dtor(tree); }
 
 u8 *__fastcall Tree16a_LowerBound(u8 *tree, void *, const u16 *key) { return LowerBound<u16>(tree, *key, 0x00785de4); }
