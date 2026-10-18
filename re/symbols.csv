@@ -168,6 +168,8 @@ address,name,kind,confidence,notes
 0x00507850,StaffPool_Serialize,function,high,"reimplemented (src/game/world/staff); 0x20 x StaffPoolEntry + 5 categories, a time stamp, a byte"
 0x005070a0,StaffPoolEntry_Serialize,function,high,"reimplemented (src/game/world/staff); 6 fields, a time stamp at +0xc (TimeSig_Serialize), the dword at +0x10"
 0x004f7f30,GameClock_Serialize,function,high,"reimplemented (src/game/core/funnytime); thiscall (stream, save, version, unused): the calendar clock's five fields"
+0x004f7e80,FunnyTime_Construct,function,low,"reimplemented (src/game/core/funnytime); thiscall: the calendar clock constructed: 2000-01-01 start, the local time as the session start, 15000 funny seconds a second"
+0x004f8690,FunnyTime_Now,function,low,"reimplemented (src/game/core/funnytime); thiscall (out, 8 field outs): the funny time now (start + rate * world ticks / 4 seconds) and its fields"
 0x004cf050,ParkGates_Serialize,function,high,"arrival rate, bus capacity, gates open"
 0x004d3aa0,ObjectControls_Serialize,function,high,"reimplemented (src/game/world/objectdefs); thiscall (stream, save, version, unused): the 0x96 object control records, their count and the search key saved or loaded; a full load clears the key and +0x12c8"
 0x004d7ea0,Map_Serialize,function,high,"128x128 cells; per-cell status byte: bit0 map cell, bit1 track cell, bit2 RE cell"
