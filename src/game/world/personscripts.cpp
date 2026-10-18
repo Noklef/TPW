@@ -3,8 +3,8 @@
 #include <cstdint>
 
 #include "../sprite/script.h"
+#include "../sprite/scriptref.h"
 #include "person.h"
-#include "../core/misc.h"
 
 namespace {
 

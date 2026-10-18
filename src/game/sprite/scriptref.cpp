@@ -45,4 +45,9 @@ u32 __fastcall SpriteAnim_Serialize(u8 *ref, void *, Stream *stream, u32 save, s
         return 1;
     return 0;
 }
+
+void __fastcall Obj_KillSlot(u8 *object) {
+    SpriteScript_Kill((s32)at<u32>(object, 0));
+    at<u32>(object, 0) = 0;
+}
 }

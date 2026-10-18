@@ -5,7 +5,6 @@
 
 #include "../render/renderer.h"
 #include "../render/state.h"
-#include "../sprite/script.h"
 #include "accessors.h"
 #include "gameheap.h"
 #include "initializers.h"
@@ -409,11 +408,6 @@ u8 *__fastcall Obj_CtorValue(u8 *object, void *, u32 value) {
     at<u32>(object, 0) = 0x006ff058;
     at<u32>(object, 0x14) = value;
     return object;
-}
-
-void __fastcall Obj_KillSlot(u8 *object) {
-    SpriteScript_Kill((s32)at<u32>(object, 0));
-    at<u32>(object, 0) = 0;
 }
 
 u32 __fastcall Obj_StampAt30(u8 *object, void *, u32 word) {
