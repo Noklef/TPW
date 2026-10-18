@@ -185,6 +185,10 @@ u8 *__fastcall Wrap_Plus28_IfKind2_42a0e0(u8 *self) {
     return Plus28_IfKind2(Adjust(self));
 }
 
+u8 *__fastcall Wrap_SpriteSet_DeletingDtor_491f10(u8 *self, void *, u32 flags) {
+    return SpriteSet_DeletingDtor(Adjust(self), nullptr, flags);
+}
+
 u32 __fastcall Wrap_SpriteQueue_Ready_491f80(u8 *self) {
     return SpriteQueue_Ready(Adjust(self));
 }

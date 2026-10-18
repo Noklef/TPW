@@ -3047,6 +3047,7 @@ address,name,kind,confidence,notes
 0x005790a0,Wrap_Transform_Concatenate_5790a0,function,low,"reimplemented (src/game/core/thunks); cdecl: the first stack argument lowered by the dword before it, then Transform_Concatenate"
 0x0058c940,Wrap_TexSurfaceB_Zero_58c940,function,high,"reimplemented (src/game/core/thunks); thiscall: this lowered by the dword before it, then TexSurfaceB_Zero"
 0x00590a70,Wrap_Texture_Release_590a70,function,high,reimplemented (src/game/core/thunks); thiscall: jumps to Texture_Release
+0x00491f10,Wrap_SpriteSet_DeletingDtor_491f10,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls SpriteSet_DeletingDtor
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value
@@ -4176,6 +4177,7 @@ address,name,kind,confidence,notes
 0x0058a550,SpriteQueue_Ready,function,high,reimplemented (src/game/render/spritequeue); a frame set is queued once per stamp (room for 0x80)
 0x0058a490,SpriteQueue_Free,function,low,reimplemented (src/game/render/spritequeue); cdecl: the sprite queue's texture array destroyed and the queue freed (name unconfirmed)
 0x0058a430,SpriteQueue_Create,function,low,"reimplemented (src/game/render/spritequeue); cdecl: without a sprite queue at [0x8c47a0] a new one (0x2410 bytes, counts and texture array cleared), 1; 0 when there was one or the allocation failed (error 3 pushed)"
+0x00491f20,SpriteSet_DeletingDtor,function,low,"reimplemented (src/game/render/spritequeue); thiscall on a sprite set's +0x20 (flags): the 0x6ff308 class's deleting destructor: vbase vtable 0x6ff308 and displacement, TrackedArray_Free, LiveObjects_Remove(vbase), +0x20 = 0x6fdce8, flags bit 0 frees; returns the set"
 0x00582390,DrawBuffer_Reset,function,high,"reimplemented (src/game/render/drawbuffer); thiscall (the draw buffer, [0x8bcbc4]; streams byte 1/2): streams emptied, stream 1's batches from the top again (else the batches above +0x54 cleared), the scratch area emptied"
 0x00582640,DrawBuffer_Alloc,function,high,"reimplemented (src/game/render/drawbuffer); thiscall (n): n * 16 bytes from the scratch area (+0x5c up to +0x3c), or 0"
 0x00582670,DrawBuffer_Begin,function,high,"reimplemented (src/game/render/drawbuffer); thiscall (mode): the stream's next batch begun, cleared and pointed at the free vertices and indices; returns it"

@@ -113,6 +113,9 @@ u8 *__fastcall Wrap_Plus28_IfKind2_42a0e0(u8 *self);
 // 0x491f80 (thiscall): this lowered by the dword before it (a virtual base offset), then SpriteQueue_Ready.
 u32 __fastcall Wrap_SpriteQueue_Ready_491f80(u8 *self);
 
+// 0x491f10 (thiscall; flags; pops 4): this lowered by the dword before it (a virtual base offset), then SpriteSet_DeletingDtor.
+u8 *__fastcall Wrap_SpriteSet_DeletingDtor_491f10(u8 *self, void *, u32 flags);
+
 // 0x491f90 (this is not used): calls Const3_6b71c0.
 u32 __fastcall Wrap_Const3_6b71c0_491f90(u8 *);
 
