@@ -1,7 +1,7 @@
 // The terrain attribute grid (TerrainAttrMap_Load 0x450900; the map 0x7a0854 +0x6c): width
 // +0x18, height +0x1c, a dword per cell from +0x2c, and a cell count at +6 (u16) for copies.
 // Reimplementation of 0x450420, 0x450470, 0x450a30, 0x450a80, 0x450b00 and 0x46df50; 0x4508b0, a vector
-// helper.
+// helper; the ride at a cell, 0x450ac0 and 0x452a60.
 #pragma once
 
 #include "../../../re/types.h"
@@ -22,6 +22,15 @@ void __cdecl Terrain_FreeLoaded();
 
 // 0x450b00: the grid's width and height (the map and grid must be there).
 void __cdecl Terrain_GridSize(u32 *width, u32 *height);
+
+// 0x452a60 (cdecl (x, y); name unconfirmed): the index of the ride at map cell (x, y): the cell's dword +4 (MapCell_Dword4At) when
+// not 0; else the object there (Map_ObjectOrEntranceAt's handle; 0 for none) when its thing (0x7cfb90, 20 bytes a slot) is there
+// and of kind 3 (the byte +2): its dword +0x20; else 0. (Its debug check of the thing table left out.)
+u32 __cdecl Map_RideIndexAt(s32 x, s32 y);
+
+// 0x450ac0 (cdecl (x, y); name unconfirmed): the ride (0x7a4610 by index) at the grid's cell (x, y), each clamped below the grid's
+// width / height (unsigned; the map and grid must be there) by Map_RideIndexAt; null for index 0.
+u8 *__cdecl Terrain_RideAt(u32 x, u32 y);
 
 // 0x46df50: paints cell (x, y) of map's grid with tile of set (from 1; 0 means 1) in sets
 // ({count, entries}; an entry is 12 bytes, +4 its tile count, +8 its tiles, 12 bytes each with

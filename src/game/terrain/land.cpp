@@ -13,6 +13,8 @@
 #include "../model/faces.h"
 #include "../model/holder.h"
 #include "../render/frame.h"
+#include "../world/mapcell.h"
+#include "../world/thingscan.h"
 
 namespace {
 
@@ -361,5 +363,25 @@ double __cdecl Terrain_FootprintHeight(s32 x, s32 y, const u8 *cells, s32 width,
         }
     }
     return ((X87Reg(lowest) + highest) * 0.5f).v;  // 0x6fe770
+}
+
+u32 __cdecl Map_RideIndexAt(s32 x, s32 y) {
+    const u32 ride = MapCell_Dword4At(x, y);
+    if (ride) return ride;
+    u16 handle;
+    handle = *Map_ObjectOrEntranceAt(&handle, x, y);
+    if (!handle) return 0;
+    const u8 *const thing = global<const u8 *>(0x007cfb90 + 20 * (u32)handle);
+    return thing && thing[2] == 3 ? at<u32>(thing, 0x20) : 0;
+}
+
+u8 *__cdecl Terrain_RideAt(u32 x, u32 y) {
+    const u8 *const grid = at<const u8 *>(map(), 0x6c);
+    const u32 width = at<u32>(grid, 0x18);
+    if (x >= width) x = width - 1;
+    const u32 height = at<u32>(grid, 0x1c);
+    if (y >= height) y = height - 1;
+    const u32 ride = Map_RideIndexAt((s32)x, (s32)y);
+    return ride ? global<u8 *>(0x007a4610 + 4 * ride) : nullptr;
 }
 }
