@@ -182,6 +182,28 @@ void __fastcall StdWString_Split(StdWString *s, void *) {
         s->ptr[n] = 0;
     }
 }
+
+StdWString *__fastcall StdWString_CtorCopy(StdWString *s, void *, const StdWString *x) {
+    *bytes(s) = *reinterpret_cast<const u8 *>(x);
+    s->ptr = nullptr;
+    s->len = 0;
+    s->res = 0;
+    return StdWString_AssignSub(s, nullptr, x, 0, kNpos);
+}
+
+StdWString *__fastcall StdWString_CtorFill(StdWString *s, void *, u32 n, u32 ch, const u8 *allocator) {
+    *bytes(s) = *allocator;
+    s->ptr = nullptr;
+    s->len = 0;
+    s->res = 0;
+    return StdWString_AssignFill(s, nullptr, n, ch);
+}
+
+StdWString *__fastcall StdWStrings_UninitCopy(void *, void *, const StdWString *first, const StdWString *last, StdWString *dest) {
+    for (; first != last; ++first, dest = reinterpret_cast<StdWString *>((uintptr_t)dest + sizeof(StdWString)))
+        if (dest) StdWString_CtorCopy(dest, nullptr, first);
+    return dest;
+}
 }
 
 // The second copy (_Nullstr 0x700624, npos 0x700628): its own helpers, as its code inlines them.

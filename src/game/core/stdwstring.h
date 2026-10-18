@@ -57,6 +57,17 @@ u8 __fastcall StdWString_Grow(StdWString *s, void *edx, u32 n, u8 trim);
 // 0x47bc00: _Split(): gives a shared s its own copy.
 void __fastcall StdWString_Split(StdWString *s, void *edx);
 
+// 0x47ae60: basic_string(const wstring &x): x's allocator byte, then empty and assign(x, 0, npos) (inlined: shares x's block as
+// AssignSub does). Returns s.
+StdWString *__fastcall StdWString_CtorCopy(StdWString *s, void *edx, const StdWString *x);
+
+// 0x47af80: basic_string(n, ch, allocator): the allocator's byte, then empty and assign(n, ch) (inlined). Returns s.
+StdWString *__fastcall StdWString_CtorFill(StdWString *s, void *edx, u32 n, u32 ch, const u8 *allocator);
+
+// 0x47b600 (thiscall on a vector, which is not read; first, last, dest, pops 12): _Ucopy: each string of [first, last) copied
+// (CtorCopy, inlined) to the next 16 bytes from dest, unless dest is null (only skipped: the next is 0x10 on, sic). Returns the end.
+StdWString *__fastcall StdWStrings_UninitCopy(void *vector, void *edx, const StdWString *first, const StdWString *last, StdWString *dest);
+
 // The second copy (_Nullstr 0x700624):
 
 // 0x4f21d0: assign(const wstring &x, pos, n): x's characters from pos (past x's length: _Xran), at most n. Shares x's block (its count
