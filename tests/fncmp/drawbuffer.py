@@ -3,14 +3,14 @@
 # scratch areas full and not. The releases (0x582340 a stream's, 0x582280 the buffer's at 0x8bcbc4): blocks set or 0,
 # tracked (as they are or 4 below) or not, no buffer. The creation (0x5823f0): each of its six tracked allocations failing in turn (the
 # heap region only as large as what comes before it) or none, the tracked table's count 0-3 or full (0x8000), the batches and scratch
-# block fields set, 0 or any (freed on a failure); the errors go onto the engine's list at 0x879ad0 (its count 0 to 0x40).
+# block fields set, 0 or any (freed on a failure), now and then GlobalAlloc a recorder answering one block of any alignment; the errors go onto the engine's list at 0x879ad0 (its count 0 to 0x40).
 # usage: drawbuffer.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Reset,Alloc,...)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, HEAP, RAM, global_heap, heap, put  # noqa: E402
+from fncmp import IMPORT_TABLE, LOG, Bench, Call, HEAP, RAM, global_heap, heap, import_table, log_region, put, set_return  # noqa: E402
 
 B = Bench([(0x582390, 0x5823ed), (0x582640, 0x582804), (0x582280, 0x582384), (0x579b40, 0x579c13), (0x67acb0, 0x67acb1), (0x5823f0, 0x582638),
            (0x56af20, 0x56af9c)])
@@ -54,6 +54,14 @@ def create_case(r):
     put(errors, 0x200, 'i', r.choice([r.randrange(0x40), 0, 0x3e, 0x3f, 0x40]))
     regions[0x879ad0] = errors
     regions[0x8bd508] = struct.pack('<I', r.getrandbits(32) & ~0x1000000)
+    if r.random() < 0.25:   # GlobalAlloc a recorder answering one block at any alignment for every allocation (the scratch block's rounding up)
+        log = log_region()
+        table = import_table(log, {'GlobalAlloc': (40, 0x6fd1cc, 2, 0, 0)})
+        stub = global_heap()[0x6fd26c]
+        table[0x6fd26c - IMPORT_TABLE:0x6fd26c - IMPORT_TABLE + 4] = stub
+        set_return(log, 40, RAM + 0x1000 + r.randrange(16))
+        regions.update({LOG: log, IMPORT_TABLE: table, HEAP: heap(0x100)})
+        regions[COUNT] = struct.pack('<I', r.choice([0, 1, 2]))
     return Call(0x5823f0, [RAM], regions, conv='t', ret='a')
 
 
