@@ -2,7 +2,7 @@
 # originals. Close / StaticDtor: shown or not,
 # timeGetTime (a recorder) 3000 ms or more past the time shown (less would wait forever: the recorder's answer does not move); the
 # blocks at +0x10 / +0x14 set or not, their handles 0 or set and in the tracked table (as texturemem.py) or not. ShowImage: images of
-# 0-24 x 0-24 (pixels null now and then), 2 or 4 bytes a pixel (or 3 / other: 4); driver kind 1 (the surface's Lock a COM recorder
+# 0-24 x 0-24 (pixels null now and then), 2 or 4 bytes a pixel (or 0, 1, 3 / other: 4); driver kind 1 (the surface's Lock a COM recorder
 # filling the description: rows / columns -2-20, pitch at or past the row; the rest of the description logged as a hash; failing or
 # not), 4 (rows / columns -2-20 into a packed buffer) or another.
 # usage: loadscreen.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Close,StaticDtor,ShowImage)
@@ -26,7 +26,7 @@ def count(r):
 def show_image(r):
     log = log_region()
     w, h = r.choice([0, 1, 24, r.randrange(1, 25)]), r.choice([0, 1, 24, r.randrange(1, 25)])
-    bpp = r.choice([2, 2, 4, 4, 3, r.getrandbits(32)])
+    bpp = r.choice([2, 2, 4, 4, 3, 1, 0, r.getrandbits(32)])
     size = 2 if bpp == 2 else 4
     image = bytearray(r.bytes(0x10))
     put(image, 0, 'IIII', PIX if r.random() > 0.05 else 0, w, h, bpp)
