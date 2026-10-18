@@ -15,6 +15,12 @@ template <typename T> T &at(const void *p, u32 offset) {
     return *reinterpret_cast<T *>((uintptr_t)p + offset);
 }
 
+// The strip owner's (+0xb4) frame pointer (its +8 -> +0x2c points to it) = the frame list (+0x24 -> +4 -> +0x50) + offset.
+void set_frame(const u8 *object, u32 offset) {
+    const u8 *const owner = at<const u8 *>(object, 0xb4);
+    *at<u32 *>(at<const u8 *>(owner, 8), 0x2c) = at<u32>(at<const u8 *>(at<const u8 *>(owner, 0x24), 4), 0x50) + offset;
+}
+
 }  // namespace
 
 extern "C" {
@@ -38,6 +44,47 @@ void __cdecl StripAnim_Show(u8 *object, u32 shown) {
     *at<u32 *>(at<const u8 *>(shape, 8), 0x2c) = at<u32>(at<const u8 *>(at<const u8 *>(shape, 0x24), 4), 0x50);
     at<u32>(object, 4) = (at<u32>(object, 4) & ~0xe00u) | 0x100;
     Obj_RemoveRectAndClear14(at<u8 *>(object, 0xb4), at<u32>(object, 0xc0), at<u32>(object, 0xc4));
+}
+
+void __cdecl StripAnim_StartGrow(u8 *object, u32 frame) {
+    if (!at<u32>(object, 0xb0)) return;
+    const u32 flags = at<u32>(object, 4);
+    if (frame == 1 && ((flags & 0x80) || !(flags & 0xf00))) {
+        set_frame(object, 0);
+        at<u32>(object, 4) = (at<u32>(object, 4) & ~0xe00u) | 0x100;
+    } else if ((frame == 2 || frame == 4 || frame == 8) && !(flags & frame << 8)) {
+        set_frame(object, frame == 2 ? 8 : frame == 4 ? 0x10 : 0x18);
+        at<u32>(object, 4) = (at<u32>(object, 4) & ~0xf00u) | frame << 8;
+    }
+    at<u32>(object, 0xbc) = 0x3e4ccccd;   // 0.2f
+    if (!(at<u8>(object, 4) & 0x20)) StripAnim_Show(object, 1);
+    at<u32>(object, 4) = (at<u32>(object, 4) & ~0x80u) | 0x60;
+}
+
+void __cdecl StripAnim_Refresh(u8 *object) {
+    if (!at<u32>(object, 0xb0)) return;
+    if (at<u8>(object, 4) & 0x20) {
+        StripAnim_Show(object, 1);
+        const u32 flags = at<u32>(object, 4);
+        if (flags & 0x40)
+            at<u32>(object, 0xbc) = 0x3e4ccccd;   // 0.2f
+        else if (flags & 0x80)
+            at<u32>(object, 0xbc) = 0xbe99999a;   // -0.3f
+    }
+    StripAnim_Apply(object, at<float>(object, 0xb8));
+    const u32 flags = at<u32>(object, 4);
+    if (flags & 0x100) {
+        set_frame(object, 0);
+    } else if (flags & 0x200) {
+        set_frame(object, 8);
+    } else if (flags & 0x400) {
+        set_frame(object, 0x10);
+    } else if (flags & 0x800) {
+        set_frame(object, 0x18);
+    } else {
+        set_frame(object, 0);
+        at<u32>(object, 4) |= 0x100;
+    }
 }
 
 void __cdecl StripAnim_Apply(const u8 *object, float t) {

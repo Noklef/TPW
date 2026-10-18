@@ -6,6 +6,8 @@
 # infinite or NaN); sometimes no map or grid, or flag 2 clear.
 # Show (0x454670): shown (any nonzero) with holder.py's animator joining the grid, or hidden with misc.py's RemRect14 object leaving it,
 # as the strip owner; the holder's turn in degrees of any value, the root's translation and the model's 0x18 bytes random.
+# Grow (0x454550, frames 1, 2, 4, 8 and others) and Refresh (0x4547f0): Show's shown environment with strips for StripAnim_Apply
+# (0-3, or none at all), flags of any frame (several, none), growing or not, either direction.
 # usage: stripanim.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -17,7 +19,7 @@ from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 import holder  # noqa: E402
 import misc  # noqa: E402
 
-B = Bench([(0x454050, 0x45453b), (0x4547c0, 0x4547e7), (0x454670, 0x4547b6), (0x46f150, 0x475010)] + holder.RANGES, sines=256,
+B = Bench([(0x454050, 0x45453b), (0x4547c0, 0x4547e7), (0x454670, 0x4547b6), (0x46f150, 0x475010), (0x454550, 0x454661), (0x4547f0, 0x4548eb)] + holder.RANGES, sines=256,
           hooks=holder.HOOKS)
 OBJECT, SHAPE, CHAIN, VERTS, COORDS = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x1000, RAM + 0x2000
 
@@ -63,8 +65,9 @@ def fit_case(r):
 SOBJ, SHOLDER, SMODEL, SROOT, SA8, SMAT, SDEST, SPTR = (RAM + 0xc000 + 0x200 * i for i in range(8))
 
 
-def show_case(r):
-    shown = r.choice([1, 1, 1, 0, 0, 0, 2, 0x100])
+def show_case(r, shown=None):
+    if shown is None:
+        shown = r.choice([1, 1, 1, 0, 0, 0, 2, 0x100])
     if shown:
         c = holder.animator_grid(r)
     else:
@@ -88,12 +91,37 @@ def show_case(r):
     return Call(0x454670, [SOBJ, shown], regions, conv='c', ret='v')
 
 
+SCOUNT, SVERTS, SROOT2, SCOORDS = (RAM + 0xd000 + 0x400 * i for i in range(4))
+
+
+def strips_case(r, op):   # Grow / Refresh
+    c = show_case(r, 1)
+    regions = c.regions
+    obj = regions[SOBJ]
+    flags = r.getrandbits(32) & ~0xfe2 | r.choice([2, 2, 2, 0]) | r.choice([0x20, 0x20, 0]) | r.choice([0x40, 0x80, 0xc0, 0])
+    put(obj, 4, 'I', flags | r.choice([0, 0x100, 0x200, 0x400, 0x800, 0x900, 0x600, 0xc00, 0xf00, 0]))
+    put(obj, 0xb0, 'I', r.choice([SCOUNT] * 9 + [0]))
+    put(obj, 0xb8, 'I', r.choice([fb(r.uniform(0, 1.25)), fb(0.25), fb(1.0), r.f()]))
+    owner = struct.unpack_from('<I', obj, 0xb4)[0]
+    regions[owner] = put(bytearray(regions[owner]), 0x10, 'I', SVERTS)
+    regions[SDEST] = put(bytearray(regions[SDEST]), 0x78, 'I', SROOT2)
+    verts = bytearray(0x200)
+    r.floats(verts, range(0, 0x200, 4), r.choice([1, 10, 100, None]))
+    regions.update({SCOUNT: struct.pack('<i', r.choice([1, 2, 3, 0, -1])), SVERTS: verts,
+                    SROOT2: put(bytearray(r.bytes(0x70)), 0x68, 'I', SCOORDS), SCOORDS: r.bytes(0x100)})
+    if op == 'grow':
+        return Call(0x454550, [SOBJ, r.choice([1, 1, 2, 2, 4, 4, 8, 8, 0, 3, 0x10])], regions, conv='c', ret='v')
+    return Call(0x4547f0, [SOBJ], regions, conv='c', ret='v')
+
+
 def case(r):
-    op = r.deal(['apply', 'apply', 'shrink', 'fit', 'show', 'show'])
+    op = r.deal(['apply', 'apply', 'shrink', 'fit', 'show', 'show', 'grow', 'grow', 'refresh', 'refresh'])
     if op == 'fit':
         return fit_case(r)
     if op == 'show':
         return show_case(r)
+    if op in ('grow', 'refresh'):
+        return strips_case(r, op)
     ram = bytearray(r.bytes(0x3000))
     n = r.choice([0, 1, 2, 3, 8, r.randrange(-3, 40)])
     put(ram, 4, 'I', r.getrandbits(32) | r.choice([2, 2, 2, 0]) if r.random() < 0.9 else r.getrandbits(32) & ~2)

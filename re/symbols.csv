@@ -4470,6 +4470,8 @@ address,name,kind,confidence,notes
 0x004547c0,StripAnim_StartShrink,function,high,"reimplemented (src/game/model/stripanim); cdecl (object): when +0xb0 is set, +0xbc = -0.3f and, with flags (+4) 0x20, flag 0x40 traded for 0x80"
 0x00454190,StripAnim_FitGround,function,low,"reimplemented (src/game/model/stripanim); (object): the strips' vertex heights from the grid under their ends (Terrain_FootprintCell), less the model's y, halved (+10 for the upper)"
 0x00454670,StripAnim_Show,function,low,"reimplemented (src/game/model/stripanim); cdecl (object, shown): the strip owner placed at the holder (identity, translation, turned by its degrees), joining the grid, or hidden and out of it"
+0x00454550,StripAnim_StartGrow,function,low,"reimplemented (src/game/model/stripanim); cdecl (object, frame): with strips, the frame pointer and flags for frame 1/2/4/8 (when not already set), step 0.2, shown unless 0x20, flags 0x60 set and 0x80 cleared"
+0x004547f0,StripAnim_Refresh,function,low,"reimplemented (src/game/model/stripanim); cdecl (object): with strips, a growing object shown again with its step reset, StripAnim_Apply at +0xb8, the frame pointer from the frame flags (none: frame 1)"
 0x00451390,Model_HeightAt,function,high,reimplemented (src/game/model/heightat); the height of a model's floor under a point
 0x00451290,Model_FloorHeight,function,high,reimplemented (src/game/model/heightat); the view's floor height under a point
 0x004511a0,View_FloorAt,function,low,"reimplemented (src/game/model/heightat); cdecl (x, z, &out): the floor under a point by the view's way (0x79fb10): the ground, the offset, the parts or the main node, plus the model's offset (+0xa0, a NaN cleared)"
