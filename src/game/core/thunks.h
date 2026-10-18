@@ -417,6 +417,12 @@ u32 __fastcall Wrap_RleImage_DrawScaled_564b00(const u8 *self, void *, const u32
 // 0x564ff0 (thiscall; flags; pops 4): this lowered by the dword before it (a virtual base offset), then WctImage_DeletingDtor.
 u8 *__fastcall Wrap_WctImage_DeletingDtor_564ff0(u8 *self, void *, u32 flags);
 
+// 0x565080 (thiscall; surface, flip; pops 8): this lowered by the dword before it (a virtual base offset), then Texture_DecodeWctInto.
+u32 __fastcall Wrap_Texture_DecodeWctInto_565080(const u8 *self, void *, u32 *surface, u32 flip);
+
+// 0x565090 (thiscall; pixels; pops 4): this lowered by the dword before it (a virtual base offset), then Texture_DecodeWct.
+u32 __fastcall Wrap_Texture_DecodeWct_565090(const u8 *self, void *, u8 *const *pixels);
+
 // 0x569cc0 (thiscall; flags; pops 4): this lowered by the dword before it (a virtual base offset), then D3dProbe_SetFlags.
 u32 __fastcall Wrap_D3dProbe_SetFlags_569cc0(u8 *self, void *, u32 flags);
 

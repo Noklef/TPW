@@ -2,8 +2,10 @@
 # (src/game/gfx/wavelet: 0x564b60) against the originals: virtual base offsets 0x2c and others, blocks at +0x20 / +0x24 tracked, untracked or
 # none (the tracked blocks' table as in trackedglobal.py), flags with and without bit 0; the shutdown with or without its block (0x879a68)
 # and codec (0x879a64, a recorder whose slot 6 is logged); the image's constructor (0x564ba0: most derived or not, virtual base offsets 0x2c
-# and others).
-# usage: wctimage.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Dtor,Shutdown,Ctor)
+# and others). Decode / DecodeInto (0x564e20 / 0x564ef0, also through their thunks 0x565090 / 0x565080): kind bytes around 0x12, the
+# header words any (small often), formats 0-3, the codec a recorder whose slots 1 and 2 are logged; the surface's sizes and pitch any
+# (small often), flipped or not.
+# usage: wctimage.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Dtor,Shutdown,Ctor,Decode,DecodeInto)
 import os
 import struct
 import sys
@@ -11,9 +13,10 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, LOG, Bench, Call, RAM, global_heap, heap, log_region, put, vtable  # noqa: E402
 
-B = Bench([(0x565000, 0x565070), (0x564b60, 0x564b94), (0x579b80, 0x579c13), (0x564ba0, 0x564bf0)])
+B = Bench([(0x565000, 0x565070), (0x564b60, 0x564b94), (0x579b80, 0x579c13), (0x564ba0, 0x564bf0), (0x564e20, 0x564ee0), (0x564ef0, 0x564fe2),
+           (0x565080, 0x5650a0)])
 COUNT, TABLE = 0x8bb214, 0x87b1f8   # the tracked blocks: their count and (block, block) pairs
-OBJ, VBT, CODEC, CVT = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300
+OBJ, VBT, CODEC, CVT, SURFACE = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400
 BLOCKS = [HEAP + 0x20, HEAP + 0x40, HEAP + 0x3c]
 
 
@@ -61,11 +64,37 @@ def ctor(r):
     return Call(0x564ba0, [RAM, r.choice([0, 1, 1])], {RAM: obj}, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Dtor,Shutdown,Ctor').split(',') if k]
+THUNKS = {0x564e20: 0x565090, 0x564ef0: 0x565080}
+
+
+def decode(r, address):
+    obj = bytearray(r.bytes(0x100))
+    obj[4] = r.choice([0x12, 0x13, 0x11, 0x14, 0, 0xff, r.randrange(256)])
+    for at in range(8, 0x14, 2):
+        put(obj, at, 'H', r.choice([0, 1, 2, 7, 0x40, 0xffff, r.getrandbits(16)]))
+    regions = {LOG: log_region(), CODEC: struct.pack('<I', CVT), CVT: vtable({1: 14, 2: 11}), 0x879a64: struct.pack('<I', CODEC),
+               0x8bd554: bytes([r.randrange(4), 0, 0, 0]), SURFACE: r.bytes(0x10)}
+    if address == 0x564ef0:
+        regions[SURFACE] = put(bytearray(r.bytes(0x10)), 4, '3I', *(r.choice([0, 1, 2, 0x40, 0x100, r.getrandbits(32)]) for _ in range(3)))
+        args = [SURFACE, r.choice([0, 1, 1, r.getrandbits(32)])]
+    else:
+        args = [SURFACE]
+    self = OBJ + 0x2c
+    if r.random() < 0.3:   # through the thunk: this the virtual base, the dword before it its offset from the part
+        address, self = THUNKS[address], OBJ + 0x80
+        put(obj, 0x7c, 'I', 0x80 - 0x2c)
+    regions[OBJ] = obj
+    return Call(address, [self] + args, regions, conv='t', ret='a')
+
+
+OPS = [k for k in os.environ.get('OPS', 'Dtor,Shutdown,Ctor,Decode,DecodeInto').split(',') if k]
 
 
 def case(r):
-    return {'Dtor': dtor, 'Shutdown': shutdown, 'Ctor': ctor}[r.deal(OPS)](r)
+    op = r.deal(OPS)
+    if op in ('Decode', 'DecodeInto'):
+        return decode(r, 0x564e20 if op == 'Decode' else 0x564ef0)
+    return {'Dtor': dtor, 'Shutdown': shutdown, 'Ctor': ctor}[op](r)
 
 
 if __name__ == '__main__':

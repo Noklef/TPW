@@ -599,6 +599,12 @@ u8 *__fastcall Wrap_WctImage_DeletingDtor_564ff0(u8 *self, void *, u32 flags) {
     return WctImage_DeletingDtor(Adjust(self), nullptr, flags);
 }
 
+u32 __fastcall Wrap_Texture_DecodeWctInto_565080(const u8 *self, void *, u32 *surface, u32 flip) {
+    return Texture_DecodeWctInto(Adjust(self), nullptr, surface, flip);
+}
+
+u32 __fastcall Wrap_Texture_DecodeWct_565090(const u8 *self, void *, u8 *const *pixels) { return Texture_DecodeWct(Adjust(self), nullptr, pixels); }
+
 u32 __fastcall Wrap_D3dProbe_SetFlags_569cc0(u8 *self, void *, u32 flags) {
     return D3dProbe_SetFlags(Adjust(self), nullptr, flags);
 }
