@@ -1,7 +1,7 @@
 # A sprite frame's quad (src/game/gfx/spriteframe: 0x5890e0, with render/quad's turns 0x591430 and 0x591510) against the original:
 # sizes given or 0 (a NaN now and then: the frame's scale), the image's sizes and offsets any (0 full sizes too), the flags 0x10,
 # 0x20 / 0x40, 0x200 (with or without bit 0x1000000 of 0x8bcbc8; the pointer near vertex 0 or not; a frame picked before or not),
-# 0x80000, 0x80 and 0x1000 each set or not; vertices any (special values now and then). The x-z turn's angles stay under 1e7 radians
+# 0x80000, 0x80 and 0x1000 each set or not (the picked frame's w a NaN now and then); vertices any (special values now and then). The x-z turn's angles stay under 1e7 radians
 # (fsin / fcos reduce larger ones by their own 66-bit pi, see quad.py).
 # usage: spritequad.py [CASES [SEED]] [--wild|--both] [--show N]
 import math
@@ -39,7 +39,7 @@ def case(r):
         put(quad, 0xc, 'I', fb(r.uniform(0.2, 4)))
     size = [r.choice([0, 0, fb(r.uniform(1, 64)), r.f(), 0x7fc00000]) for _ in range(2)]
     picked = bytearray(r.bytes(0x10))
-    put(picked, 0xc, 'I', r.choice([fb(r.uniform(0.2, 4)), struct.unpack_from('<I', quad, 0xc)[0], r.f()]))
+    put(picked, 0xc, 'I', r.choice([fb(r.uniform(0.2, 4)), struct.unpack_from('<I', quad, 0xc)[0], r.f(), 0x7fc00000]))
     near = r.random() < 0.5
     pointer = [r.f(100), r.f(100)]
     if near:   # the pointer at vertex 0's x, y seen through 1 / w, give or take
