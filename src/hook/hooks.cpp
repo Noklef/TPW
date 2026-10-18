@@ -118,7 +118,9 @@
 #include "../game/core/cpuinfo.h"
 #include "../game/core/observers.h"
 #include "../game/gfx/imageops.h"
+#include "../game/gfx/loadscreen.h"
 #include "../game/gfx/statsgraph.h"
+#include "../game/gfx/surfacepool.h"
 #include "../game/gfx/texsprite.h"
 #include "../game/gfx/texatlas.h"
 #include "../game/gfx/tvstatic.h"
@@ -256,6 +258,7 @@
 #include "../game/model/slots.h"
 #include "../game/model/bounds.h"
 #include "../game/model/m3d2.h"
+#include "../game/model/objmodel.h"
 #include "../game/model/stripanim.h"
 #include "../game/model/worldverts.h"
 #include "../game/render/frame.h"
@@ -284,6 +287,7 @@
 #include "../game/render/vertexfog.h"
 #include "../game/render/d3dprobe.h"
 #include "../game/render/engineerrors.h"
+#include "../game/render/texcoords.h"
 #include "../game/render/weatherfx.h"
 #include "../game/online/servers.h"
 #include "../game/frontend/helpbg.h"
@@ -1643,6 +1647,7 @@ const Hook kHooks[] = {
     {"Mat4_LuBackSubstitute",     0x00578820, (void *)&Mat4_LuBackSubstitute, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"Mat4_Perspective",          0x00578be0, (void *)&Mat4_Perspective, {0x83, 0xec, 0x08, 0xd9, 0x44}},
     {"Mat4_SetFar",               0x00578ca0, (void *)&Mat4_SetFar, {0xa1, 0x58, 0xaf, 0x87, 0x00}},
+    {"Mat4_Transform",            0x00578d20, (void *)&Mat4_Transform, {0x8b, 0x44, 0x24, 0x0c, 0x83}},
     {"Bits_Count",                0x005911d0, (void *)&Bits_Count, {0x8b, 0x4c, 0x24, 0x04, 0x33}},
     {"Bits_Shift",                0x005911f0, (void *)&Bits_Shift, {0x8b, 0x4c, 0x24, 0x04, 0x33}},
     {"SinTable256_Build",         0x005913f0, (void *)&SinTable256_Build, {0x51, 0xc7, 0x44, 0x24, 0x00}},
@@ -1735,6 +1740,11 @@ const Hook kHooks[] = {
     {"TexCache_Halve",            0x0058b890, (void *)&TexCache_Halve, {0x83, 0xec, 0x18, 0x8b, 0x54}},
     {"TexCache_UnlinkItem",       0x0058dc50, (void *)&TexCache_UnlinkItem, {0x8b, 0x81, 0xcc, 0x18, 0x00}},
     {"TexCacheItem_SetKey",       0x0058cb40, (void *)&TexCacheItem_SetKey, {0xd9, 0x05, 0xd0, 0x22, 0x70}},
+    {"TexCache_Evict",            0x0058faf0, (void *)&TexCache_Evict, {0x81, 0xec, 0xa8, 0x00, 0x00}},
+    {"TexCache_AddSurfaces",      0x0058d1d0, (void *)&TexCache_AddSurfaces, {0x6a, 0xff, 0x68, 0xcb, 0xf4}},
+    {"TexCache_ChooseSize",       0x0058ea20, (void *)&TexCache_ChooseSize, {0x51, 0x53, 0x55, 0x56, 0x57}},
+    {"TexCacheEntry_Score",       0x00591010, (void *)&TexCacheEntry_Score, {0x83, 0xec, 0x1c, 0x53, 0x55}},
+    {"TexCache_PlaceTexture",     0x00590350, (void *)&TexCache_PlaceTexture, {0x83, 0xec, 0x0c, 0x53, 0x8b}},
     {"TexSet_Ctor",               0x00575bd0, (void *)&TexSet_Ctor, {0x8b, 0xc1, 0x33, 0xc9, 0x89}},
     {"TexSet_Texture",            0x00575f90, (void *)&TexSet_Texture, {0x8b, 0x41, 0x08, 0x8b, 0x4c}},
     {"TexSet_TextureSlot",        0x00575fa0, (void *)&TexSet_TextureSlot, {0x8b, 0x41, 0x08, 0x8b, 0x4c}},
@@ -1754,6 +1764,8 @@ const Hook kHooks[] = {
     {"Texture_Reload",            0x00590ff0, (void *)&Texture_Reload, {0xa1, 0x60, 0x4b, 0x8c, 0x00}},
     {"Texture_Release",           0x00590b90, (void *)&Texture_Release, {0x56, 0x8b, 0xf1, 0x57, 0xf7}},
     {"Texture_Alloc",             0x00590a80, (void *)&Texture_Alloc, {0xa1, 0x54, 0xd5, 0x8b, 0x00}},
+    {"Texture_Lock",              0x00590d40, (void *)&Texture_Lock, {0x8b, 0x41, 0x08, 0x83, 0xec}},
+    {"Texture_LockFlipped",       0x00590da0, (void *)&Texture_LockFlipped, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"SpriteFrame_Init",          0x00588d70, (void *)&SpriteFrame_Init, {0x8b, 0xc1, 0x33, 0xc9, 0x89}},
     {"SpriteImage_Init",          0x00588320, (void *)&SpriteImage_Init, {0x8b, 0xc1, 0x33, 0xc9, 0x66}},
     {"SpriteFrames_MarkTextures", 0x005882e0, (void *)&SpriteFrames_MarkTextures, {0x8b, 0x01, 0x33, 0xd2, 0x85}},
@@ -1765,6 +1777,7 @@ const Hook kHooks[] = {
     {"SpriteImage_Dtor",          0x00588350, (void *)&SpriteImage_Dtor, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
     {"SpriteFrames_Free",         0x00588230, (void *)&SpriteFrames_Free, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
     {"SpriteImage_AllocPixels",   0x00588940, (void *)&SpriteImage_AllocPixels, {0xa1, 0x54, 0xd5, 0x8b, 0x00}},
+    {"SpriteFrame_PlaceQuad",     0x005890e0, (void *)&SpriteFrame_PlaceQuad, {0xd9, 0x44, 0x24, 0x08, 0xd8}},
     {"AnimTextures_Set",          0x005906e0, (void *)&AnimTextures_Set, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"AnimTextures_Clear",        0x00590730, (void *)&AnimTextures_Clear, {0x57, 0xb9, 0x06, 0x00, 0x00}},
     {"WaveletCodec_PutCoefficient", 0x00591d30, (void *)&WaveletCodec_PutCoefficient, {0x66, 0x8b, 0x4c, 0x24, 0x04}},
@@ -1781,6 +1794,8 @@ const Hook kHooks[] = {
     {"TexSurfaceB_Zero",          0x0058c8d0, (void *)&TexSurfaceB_Zero, {0xd9, 0x05, 0x48, 0x22, 0x70}},
     {"TexSurfaceB_FreePixels",    0x0058c710, (void *)&TexSurfaceB_FreePixels, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"TexSurfaceB_AllocPixels",   0x0058c670, (void *)&TexSurfaceB_AllocPixels, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
+    {"TexSurfaceB_Blit",          0x0058c750, (void *)&TexSurfaceB_Blit, {0x83, 0xec, 0x18, 0x53, 0x55}},
+    {"TexSurfaceB_DeletingDtor",  0x0058c960, (void *)&TexSurfaceB_DeletingDtor, {0x8b, 0x41, 0xf0, 0x56, 0x8d}},
     {"Array3D_Fill",              0x005e7740, (void *)&Array3D_Fill, {0x8b, 0x41, 0x0c, 0x53, 0x56}},
     {"Array3D_CopyTo",            0x005e77c0, (void *)&Array3D_CopyTo, {0x8b, 0xc1, 0x56, 0x8b, 0x70}},
     {"Array3D_ReverseBytes",      0x005e77f0, (void *)&Array3D_ReverseBytes, {0x51, 0x8b, 0x11, 0x8b, 0x41}},
@@ -1971,6 +1986,7 @@ const Hook kHooks[] = {
     {"LiveObjects_Remove",        0x00577600, (void *)&LiveObjects_Remove, {0xa1, 0xd8, 0xae, 0x87, 0x00}},
     {"LiveObject7019f8_Construct", 0x00579cd0, (void *)&LiveObject7019f8_Construct, {0x6a, 0xff, 0x68, 0xad, 0xf2}},
     {"LiveObject701b30_DeletingDtor", 0x0057ca00, (void *)&LiveObject701b30_DeletingDtor, {0x56, 0x8d, 0xb1, 0x5c, 0xff}},
+    {"LiveObject7019f8_DeletingDtor", 0x0057abf0, (void *)&LiveObject7019f8_DeletingDtor, {0x56, 0x8d, 0xb1, 0xac, 0xfe}},
     {"Obj_Get3e4",                0x005b96a0, (void *)&Obj_Get3e4, {0x8b, 0x81, 0xe4, 0x03, 0x00}},
     {"Obj_Get3a4",                0x005b96b0, (void *)&Obj_Get3a4, {0x8b, 0x81, 0xa4, 0x03, 0x00}},
     {"Obj_Self",                  0x005c5520, (void *)&Obj_Self, {0x8b, 0xc1, 0xc3, 0x90, 0x90}},
@@ -2675,6 +2691,10 @@ const Hook kHooks[] = {
     {"Wrap_SoftRenderer_NewSurfaceB_573f00", 0x00573f00, (void *)&Wrap_SoftRenderer_NewSurfaceB_573f00, {0x2b, 0x49, 0xfc, 0xe9, 0x68}},
     {"Wrap_TexSurfaceB_AllocPixels_58c8e0", 0x0058c8e0, (void *)&Wrap_TexSurfaceB_AllocPixels_58c8e0, {0x2b, 0x49, 0xfc, 0xe9, 0x88}},
     {"Wrap_TexSurfaceB_FreePixels_58c8f0", 0x0058c8f0, (void *)&Wrap_TexSurfaceB_FreePixels_58c8f0, {0x2b, 0x49, 0xfc, 0xe9, 0x18}},
+    {"Wrap_TerrainTexCache_Dtor_572100", 0x00572100, (void *)&Wrap_TerrainTexCache_Dtor_572100, {0xe9, 0x4b, 0x02, 0x00, 0x00}},
+    {"Wrap_TexSurfaceB_Blit_58c930", 0x0058c930, (void *)&Wrap_TexSurfaceB_Blit_58c930, {0x2b, 0x49, 0xfc, 0xe9, 0x18}},
+    {"Wrap_TexSurfaceB_DeletingDtor_58c950", 0x0058c950, (void *)&Wrap_TexSurfaceB_DeletingDtor_58c950, {0x2b, 0x49, 0xfc, 0xe9, 0x08}},
+    {"Wrap_LiveObject7019f8_DeletingDtor_57abe0", 0x0057abe0, (void *)&Wrap_LiveObject7019f8_DeletingDtor_57abe0, {0x2b, 0x49, 0xfc, 0xe9, 0x08}},
     {"Table_AddressPlus18",       0x006b0620, (void *)&Table_AddressPlus18, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Table_Address",             0x006b0650, (void *)&Table_Address, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Packed_Read",               0x006b0510, (void *)&Packed_Read, {0x56, 0x8b, 0x74, 0x24, 0x08}},
@@ -3363,6 +3383,7 @@ const Hook kHooks[] = {
     {"ScalarDeleteList6fd708_409cf0", 0x00409cf0, (void *)&ScalarDeleteList6fd708_409cf0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"Deleter_Minus8_458970",     0x00458970, (void *)&Deleter_Minus8_458970, {0x8a, 0x44, 0x24, 0x04, 0x56}},
     {"ScalarDeleteList6fdb10_421800", 0x00421800, (void *)&ScalarDeleteList6fdb10_421800, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"Class702828_ScalarDtor",    0x005b5780, (void *)&Class702828_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"Object_QueueHasRoom",       0x004dda20, (void *)&Object_QueueHasRoom, {0x56, 0x8b, 0xf1, 0x51, 0x8b}},
     {"ArrayHolder_Clear",         0x005eb090, (void *)&ArrayHolder_Clear, {0x6a, 0xff, 0x68, 0xcc, 0x1d}},
     {"Array3D_Read",              0x005e78b0, (void *)&Array3D_Read, {0x83, 0xec, 0x14, 0x53, 0x55}},
@@ -3463,6 +3484,7 @@ const Hook kHooks[] = {
     {"Class702ca8_DeletingDtor",  0x005dfc10, (void *)&Class702ca8_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"Class702e70_Dtor",          0x005e3fc0, (void *)&Class702e70_Dtor, {0xc7, 0x01, 0x70, 0x2e, 0x70}},
     {"Class702e20_Dtor",          0x005e3ff0, (void *)&Class702e20_Dtor, {0xc7, 0x01, 0x20, 0x2e, 0x70}},
+    {"Class702828_Dtor",          0x005b57a0, (void *)&Class702828_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Class7037c0_Create",        0x00617ff0, (void *)&Class7037c0_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Class703750_Create",        0x00617970, (void *)&Class703750_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"VanillaTime_Save",          0x00403220, (void *)&VanillaTime_Save, {0x51, 0xe8, 0x7a, 0x2d, 0x1f}},
@@ -3728,6 +3750,11 @@ const Hook kHooks[] = {
     {"TvStatic_CreateSurface",    0x0053e650, (void *)&TvStatic_CreateSurface, {0x6a, 0xff, 0x68, 0xbb, 0xea}},
     {"TvStatic_Init",             0x0053e920, (void *)&TvStatic_Init, {0xe8, 0x2b, 0xfd, 0xff, 0xff}},
     {"TvStatic_Free",             0x0053e930, (void *)&TvStatic_Free, {0xa1, 0xd0, 0x4f, 0x87, 0x00}},
+    {"LoadScreen_Close",          0x005879c0, (void *)&LoadScreen_Close, {0xa1, 0x8c, 0x47, 0x8c, 0x00}},
+    {"LoadScreen_StaticDtor",     0x00586d70, (void *)&LoadScreen_StaticDtor, {0xa1, 0x8c, 0x47, 0x8c, 0x00}},
+    {"LoadScreen_ShowImage",      0x00587130, (void *)&LoadScreen_ShowImage, {0x81, 0xec, 0x8c, 0x00, 0x00}},
+    {"SurfacePool_SideIndex",     0x005848b0, (void *)&SurfacePool_SideIndex, {0x8b, 0x44, 0x24, 0x04, 0x83}},
+    {"SurfacePool_Next",          0x0058b1f0, (void *)&SurfacePool_Next, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
@@ -3779,6 +3806,8 @@ const Hook kHooks[] = {
     {"WeatherFx_RequestReload",   0x0057dc70, (void *)&WeatherFx_RequestReload, {0xc7, 0x41, 0x04, 0x01, 0x00}},
     {"WeatherFx_FreeTextures",    0x0057d720, (void *)&WeatherFx_FreeTextures, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
     {"WeatherFx_Delete",          0x0057d1a0, (void *)&WeatherFx_Delete, {0x8b, 0x0d, 0xac, 0xcb, 0x8b}},
+    {"WeatherFx_SetWind",         0x0057d920, (void *)&WeatherFx_SetWind, {0x83, 0xec, 0x1c, 0xd9, 0x44}},
+    {"WeatherFx_BoltMidpoint",    0x0057e4b0, (void *)&WeatherFx_BoltMidpoint, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Renderer_SetRestoreCallback", 0x00576260, (void *)&Renderer_SetRestoreCallback, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Renderer_SetStateFlags",    0x005763f0, (void *)&Renderer_SetStateFlags, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Renderer_StateFlags",       0x00576400, (void *)&Renderer_StateFlags, {0x8b, 0x41, 0x48, 0xc3, 0x90}},
@@ -3868,6 +3897,7 @@ const Hook kHooks[] = {
     {"D3dProbe_SetFlags",         0x00567620, (void *)&D3dProbe_SetFlags, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
     {"D3dProbe_SetTextureStages", 0x005686d0, (void *)&D3dProbe_SetTextureStages, {0x56, 0x8b, 0xf1, 0x57, 0x83}},
     {"EngineErrors_Push",         0x0056af20, (void *)&EngineErrors_Push, {0x83, 0xec, 0x64, 0x56, 0x8b}},
+    {"Model_TexCoords",           0x00581410, (void *)&Model_TexCoords, {0x83, 0xec, 0x40, 0x8b, 0x44}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
@@ -3961,6 +3991,7 @@ const Hook kHooks[] = {
     {"Model_HeightAt",            0x00451390, (void *)&Model_HeightAt, {0x83, 0xec, 0x50, 0x8b, 0x4c}},
     {"Model_FloorHeight",         0x00451290, (void *)&Model_FloorHeight, {0x51, 0x8b, 0x0d, 0x18, 0xfb}},
     {"M3D2_DataErrorBox",         0x0046f100, (void *)&M3D2_DataErrorBox, {0x8b, 0x44, 0x24, 0x04, 0x6a}},
+    {"ObjModel_Unload",           0x0057a100, (void *)&ObjModel_Unload, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
@@ -3988,6 +4019,7 @@ const Hook kHooks[] = {
     {"Terrain_InitUnusedEpsilon", 0x00457e50, (void *)&Terrain_InitUnusedEpsilon, {0xd9, 0x05, 0x38, 0xe5, 0x6f}},
     {"TerrainTex_SetRect",        0x0056df70, (void *)&TerrainTex_SetRect, {0xa1, 0x60, 0x9d, 0x87, 0x00}},
     {"TerrainTex_Create",         0x0056ddf0, (void *)&TerrainTex_Create, {0xa1, 0x60, 0x9d, 0x87, 0x00}},
+    {"TerrainTex_Unload",         0x0056e4e0, (void *)&TerrainTex_Unload, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
     {"Landscape_SetPoint",        0x005856e0, (void *)&Landscape_SetPoint, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Landscape_SetDetail",       0x00585710, (void *)&Landscape_SetDetail, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Landscape_List",            0x00585ef0, (void *)&Landscape_List, {0x8b, 0x81, 0xd0, 0x1f, 0x00}},
@@ -3996,6 +4028,7 @@ const Hook kHooks[] = {
     {"Landscape_RemoveTexture",   0x005851d0, (void *)&Landscape_RemoveTexture, {0x83, 0xec, 0x20, 0x53, 0x55}},
     {"Landscape_Init",            0x00584ef0, (void *)&Landscape_Init, {0x83, 0xec, 0x0c, 0x53, 0x8b}},
     {"Landscape_RemoveTextureList", 0x00418d70, (void *)&Landscape_RemoveTextureList, {0xa1, 0x24, 0x57, 0x78, 0x00}},
+    {"Landscape_SampleColours",   0x00585ce0, (void *)&Landscape_SampleColours, {0x83, 0xec, 0x1c, 0x55, 0x8b}},
     {"TerrainTexCache_Ctor",      0x005720d0, (void *)&TerrainTexCache_Ctor, {0x8b, 0xd1, 0x57, 0xb9, 0x00}},
     {"TerrainTexCache_Dtor",      0x00572350, (void *)&TerrainTexCache_Dtor, {0x8b, 0x15, 0x50, 0xd5, 0x8b}},
     {"Lnd_BuildRamp",             0x0055e710, (void *)&Lnd_BuildRamp, {0x0f, 0xbf, 0x44, 0x24, 0x0c}},

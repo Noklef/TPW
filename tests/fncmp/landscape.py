@@ -4,7 +4,8 @@
 # array's removal (0x5851d0: 0-4 entries of 0x20 bytes from +0x1fdc, the count at +0x21dc theirs, one less,
 # 0 or negative; the array asked for one of theirs, the one past the last, 0 or another), and a list's removal from the landscape at
 # 0x8c1828 (0x418d70: 0-4 of those, the count at 0x785724 theirs, one less, 0 or -1). Its constructor (0x584ef0): the whole object
-# (0x2f20 bytes) of any bytes, [0x8bd524] 4 or not.
+# (0x2f20 bytes) of any bytes, [0x8bd524] 4 or not. Its colour sampling (0x585ce0): a texture (or none) of sizes 0-48 (a few
+# negative), pitches around the width, formats 2, 3 and others, its pixels as they are or locked (a recorder vtable).
 # usage: landscape.py [CASES [SEED]] [--wild|--both] [--show N]
 #        (env OPS=SetPoint,SetDetail,List,Point,FreeTextures,RemoveTexture,RemoveList,Init)
 import os
@@ -14,12 +15,12 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import texturemem  # noqa: E402
-from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put  # noqa: E402
+from fncmp import Bench, Call, HEAP, LOG, RAM, blob, global_heap, heap, log_region, put, vtable  # noqa: E402
 
 B = Bench([(0x418d70, 0x418d9c), (0x5856e0, 0x585705), (0x585710, 0x58571d), (0x585ef0, 0x585ef7), (0x585f00, 0x585f07), (0x585e20, 0x585eed), (0x5851d0, 0x5852af),
            (0x590a70, 0x590a75), (0x590b90, 0x590c39), (0x579b40, 0x579c13), (0x58dc50, 0x58dd5e), (0x67afa0, 0x67b0d0), (0x67acb0, 0x67acb1),
-           (0x584ef0, 0x5850b4)])
-CALLS = {'Init': 0x584ef0, 'SetPoint': 0x5856e0, 'SetDetail': 0x585710, 'List': 0x585ef0, 'Point': 0x585f00, 'FreeTextures': 0x585e20, 'RemoveTexture': 0x5851d0, 'RemoveList': 0x418d70}
+           (0x584ef0, 0x5850b4), (0x585ce0, 0x585e1e), (0x590d40, 0x590d96)])
+CALLS = {'Init': 0x584ef0, 'SetPoint': 0x5856e0, 'SetDetail': 0x585710, 'List': 0x585ef0, 'Point': 0x585f00, 'FreeTextures': 0x585e20, 'RemoveTexture': 0x5851d0, 'RemoveList': 0x418d70, 'SampleColours': 0x585ce0}
 LAND, ARRAYS = RAM + 0x10000, RAM + 0x5000   # (texturemem.py's regions below RAM + 0x4000)
 
 
@@ -58,8 +59,39 @@ def textures(r, op):
     return Call(0x5851d0, [LAND, arg], regions, conv='t', ret='a')
 
 
+def sample(r):
+    tex, pixels, obj = RAM + 0x4000, RAM + 0x8000, RAM + 0x4100
+    land = bytearray(r.bytes(0x1078))   # (+0xf60..+0x1fd8)
+    log = log_region()
+    regions = {LAND + 0xf60: land, LOG: log, 0x8bd554: struct.pack('<I', r.choice([2, 3, 2, 3, 0, 1, 5]))}
+    if r.random() < 0.05:
+        put(land, 0x1074, 'I', 0)
+        return Call(0x585ce0, [LAND], regions, conv='t')
+    w = r.choice([16, 32, 17, 31, 48, 0, 1, 15, r.randrange(49), r.randrange(-40, 49)])
+    h = r.choice([16, 32, 17, 31, 48, 0, 1, 15, r.randrange(49), r.randrange(-40, 49)])
+    pitch = max(abs(w) + r.choice([0, 0, 0, -1, 1, 3]), 0)
+    texture = bytearray(r.bytes(0x60))
+    flags = r.getrandbits(32) & ~0x10000000 | (0x10000000 if r.random() < 0.2 else 0)
+    put(texture, 8, 'I', flags)
+    put(texture, 0x10, 'h', w)
+    put(texture, 0x12, 'h', h)
+    put(texture, 0x34, 'h', -pitch if r.random() < 0.1 else pitch)   # (a negative pitch reads the rows below the pixels)
+    put(texture, 0x40, 'I', pixels)
+    regions[tex] = texture
+    regions[pixels] = r.bytes(max(pitch * abs(h), 1) * 4 + 0x40)
+    if flags & 0x10000000:
+        put(texture, 0x40, 'I', obj)
+        regions[obj] = struct.pack('<I', obj + 0x10) + r.bytes(0xc) + vtable({2: 1}, 8)
+        blob(log, 2, 0, 0xf)
+        regions[0x879a68] = struct.pack('<I', pixels)
+    put(land, 0x1074, 'I', tex)
+    return Call(0x585ce0, [LAND], regions, conv='t')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'SampleColours':
+        return sample(r)
     if op in ('FreeTextures', 'RemoveTexture', 'RemoveList'):
         return textures(r, op)
     if op == 'Init':

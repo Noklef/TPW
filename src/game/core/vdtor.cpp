@@ -281,6 +281,12 @@ void __fastcall Class7028d0_Dtor(u8 *object) { Class7028_Dtor(object, 0x007028d0
 void __fastcall Class7028f8_Dtor(u8 *object) { Class7028_Dtor(object, 0x007028f8); }
 void __fastcall Class702920_Dtor(u8 *object) { Class7028_Dtor(object, 0x00702920); }
 
+void __fastcall Class702828_Dtor(u8 *object) {
+    at<u32>(object, 0) = 0x00702828;
+    WString_Dtor((WString *)(object + 0x34));
+    Class7028_Dtor(object, 0x00702890);
+}
+
 u8 *__fastcall Class702880_DeletingDtor(u8 *object, void *, u32 flags) {
     Class7028_Dtor(object, 0x00702880);
     return Finish(object, flags);

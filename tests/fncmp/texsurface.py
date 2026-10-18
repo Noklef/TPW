@@ -3,6 +3,8 @@
 # offset reaches back and forward; the constructors most derived or not, over vtables with usual and
 # odd base offsets (0 included: the stores then reach the vtable pointer); the factories on a heap whose allocation fails now and then.
 # Class A's surface release (0x58b790, and through its thunk 0x58c2a0): counts 0-5 and the two arrays of COM objects (a recorder's slot 2) or nulls.
+# Class B's deleting destructor (0x58c960, and through its thunk 0x58c950): BFree's objects (the pixels released through the base's
+# vtable 0x702250, the game's), flags 0-3 (and any), the object freed or not.
 # usage: texsurface.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
@@ -12,9 +14,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put, vtable  # noqa: E402
 
 B = Bench([(0x58b300, 0x58b330), (0x58b3e0, 0x58b464), (0x58c610, 0x58c66a), (0x58c2c0, 0x58c2c4), (0x58b790, 0x58b805), (0x58c2a0, 0x58c2a8), (0x58c2e0, 0x58c2f2), (0x58c330, 0x58c334), (0x58c8a0, 0x58c8a4), (0x58c8b0, 0x58c8c2), (0x58c8d0, 0x58c8d7), (0x5738d0, 0x57393c), (0x573e70, 0x573edc), (0x67acc0, 0x67acc1),
-           (0x58c710, 0x58c741), (0x579b40, 0x579c13), (0x58c670, 0x58c703), (0x58c3c0, 0x58c605)])
+           (0x58c710, 0x58c741), (0x579b40, 0x579c13), (0x58c670, 0x58c703), (0x58c3c0, 0x58c605),
+           (0x58c8f0, 0x58c8f6), (0x58c950, 0x58c9a9), (0x67acb0, 0x67acb1)])
 CALLS = {'CtorA': 0x58b3e0, 'CtorB': 0x58c610, 'A38': 0x58c2c0, 'AArea': 0x58c2e0, 'A10': 0x58c330, 'BC': 0x58c8a0, 'BArea': 0x58c8b0, 'BZero': 0x58c8d0, 'NewA': 0x5738d0, 'NewB': 0x573e70, 'ARelease': 0x58b790, 'WRelease': 0x58c2a0, 'BFree': 0x58c710,
-         'BAlloc': 0x58c670}
+         'BAlloc': 0x58c670, 'BDtor': 0x58c960, 'WDtor': 0x58c950}
 SUB = RAM + 0x100
 VB = RAM + 0x1000
 COM, VTC = RAM + 0x400, RAM + 0x800
@@ -50,7 +53,7 @@ def case(r):
     put(obj, 0x100 - 0x3c, 'I', VB)
     put(obj, 0x100 - 0x10, 'I', VB)
     vb = struct.pack('<ii', 0, r.choice([0, 0x10, 0x30, 0x38, 0x3c, 0x40, 0x50, -0x10, 0x80]))
-    if op == 'BFree':   # the pixels (at ECX - 0xc) tracked or not, the base's flags with 0x10000000 or not
+    if op in ('BFree', 'BDtor', 'WDtor'):   # the pixels (at ECX - 0xc) tracked or not, the base's flags with 0x10000000 or not
         pixels = r.choice([0, HEAP + 0x40, HEAP + 0x80, r.getrandbits(32)])
         put(obj, 0x100 - 0xc, 'I', pixels)
         off = r.choice([0x10, 0x10, 0x14, 0x20, 0, -0x10])
@@ -60,7 +63,14 @@ def case(r):
         pairs = b''.join(struct.pack('<II', r.getrandbits(32), r.choice([pixels, HEAP + 0x40, 0])) for _ in range(4))
         regions = {RAM: obj, VB: struct.pack('<ii', 0, off), HEAP: heap(), **global_heap(), 0x8bb214: struct.pack('<I', r.choice([0, 1, 2, 4])),
                    0x87b1f8: pairs}
-        return Call(0x58c710, [SUB], regions, conv='t', ret='a')
+        if op == 'BFree':
+            return Call(0x58c710, [SUB], regions, conv='t', ret='a')
+        flags = r.choice([0, 1, 2, 3, r.getrandbits(32)])
+        if op == 'BDtor':
+            return Call(0x58c960, [SUB, flags], regions, conv='t', ret='a')
+        adj = r.choice([0x10, 0x14, 0x20, -0x10])   # (the thunk's this: the base, the dword before it the offset back to the object + 0x10)
+        put(obj, 0x100 + adj - 4, 'I', adj & 0xffffffff)
+        return Call(0x58c950, [SUB + adj, flags], regions, conv='t', ret='a')
     if op == 'BAlloc':   # the pixels (ECX - 0xc) none or some; a square from the free rectangles (texatlas.py's) or a new page (failing now and then)
         put(obj, 0x100 - 0xc, 'I', 0 if r.random() < 0.85 else r.getrandbits(32))
         off = r.choice([0x10, 0x10, 0x14, 0x20, 0, -0x10])

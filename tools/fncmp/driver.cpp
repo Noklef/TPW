@@ -444,7 +444,8 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x00700398, 2},   // Challenges,
                                    {0x007034d8, 16},  // the 8-bit draw primitives (DrawDriver table; 14, the sprite blitter, is not hooked)
                                    {0x006fd958, 2},   // AdvisorScoring,
-                                   {0x00702800, 2}};  // a theme's (Table73f8a8_At, BalanceFile_GetValues)
+                                   {0x00702800, 2},   // a theme's (Table73f8a8_At, BalanceFile_GetValues)
+                                   {0x00702250, 10}};  // the texture surface B's virtual base (its thunks; slot 1 FreePixels' the destructor calls)
 
 void __cdecl debug_printf(const char *, ...) {}  // Debug_Printf 0x5da3c0 (RefObject's teardown slot among others)
 

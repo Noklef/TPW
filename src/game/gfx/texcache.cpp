@@ -1,10 +1,13 @@
 #include "texcache.h"
 
+#include "animtex.h"
+#include "surfacepool.h"
 #include "texture.h"
 
 #include <cstdint>
 #include <initializer_list>
 
+#include "../core/gameheap.h"
 #include "../math/x87.h"
 
 namespace {
@@ -189,5 +192,214 @@ void __fastcall TexCacheItem_SetKey(u8 *item) {
         at<u32>(item, 0x38) = key | 0x20000000;   // (the flags as they are)
     if (flags & 0x80000)
         at<u32>(item, 0x38) |= 0x40000000;   // (in memory)
+}
+
+void __fastcall TexCache_Evict(u8 *cache) {
+    s32 limit = at<s32>(cache, 0x1878);
+    if (limit > 0x10)
+        limit = 0x10;
+    for (u32 size = 0; size < 6; ++size) {
+        const s32 side = at<s32>(reinterpret_cast<const void *>((uintptr_t)0x00702420), 4 * size);
+        const s32 area = side * side;
+        s32 keys[0x11];   // (one past for the full insertions)
+        u8 *entries[0x11];
+        s32 kept = 0;
+        const s32 count = at<s32>(cache, 0x1800 + 4 * size);
+        for (s32 i = 0; i < count; ++i) {
+            u8 *const entry = at<u8 *>(cache, 0x400 * size + 4 * i);
+            if (!at<u32>(entry, 4))
+                continue;
+            const s32 used = at<s32>(entry, 0x1c);
+            const s32 key = at<s32>(entry, 0xc);
+            if (used <= 0 || (s32)((u32)used << 2) >= area || (s32)((u32)key * 2) >= area)
+                continue;
+            s32 place = kept;
+            while (place && key < keys[place - 1])
+                --place;
+            for (s32 j = place; j < kept; ++j)   // forward over the overlap (sic)
+                entries[j + 1] = entries[j];
+            for (s32 j = place; j < kept; ++j)
+                keys[j + 1] = keys[j];
+            if (kept < limit)
+                ++kept;
+            entries[place] = entry;
+            keys[place] = key;
+        }
+        for (s32 i = kept - 1; i >= 0; --i) {
+            u8 *const entry = entries[i];
+            u8 *const owner = at<u8 *>(entry, 0);
+            u8 *item = at<u8 *>(entry, 4);
+            at<u8 *>(entry, 4) = nullptr;
+            while (item) {
+                const u32 had = at<u32>(item, 8) & 0x4000;
+                u8 *const next = at<u8 *>(item, 4);
+                Texture_ClearCacheFlags(item);
+                at<u32>(item, 0x1c) = 0;
+                const u32 flags = at<u32>(item, 8);
+                if (flags & 0x40000000) {
+                    at<u32>(item, 8) = flags | (had ? 0x6000 : 0x2000);
+                    at<u8 *>(item, 4) = at<u8 *>(cache, 0x18c4);
+                    at<u8 *>(cache, 0x18c4) = item;
+                }
+                item = next;
+            }
+            TexCacheItem_SetFlags(owner, nullptr, 0);
+        }
+    }
+}
+
+u32 __fastcall TexCache_AddSurfaces(u8 *cache, void *, s32 side, s32 *made, u32 format, s32 levels) {
+    s32 count = 0;
+    bool failed = false;
+    const s32 index = SurfacePool_SideIndex(side);
+    s32 area = (s32)(at<u32>(nullptr, 0x007022d8 + 4 * at<u32>(nullptr, 0x008bd554)) * (u32)side * (u32)side);
+    if (levels > 1)
+        area = (s32)((u32)area * 4) / 3;
+    s32 &step = at<s32>(nullptr, 0x008c4898);
+    step = area;
+    s32 &budget = at<s32>(cache, 0x1860 + 4 * index);
+    s32 &entries = at<s32>(cache, 0x1800 + 4 * index);
+    if (budget >= area) {
+        do {
+            if (failed || entries >= 0x100)
+                break;
+            u8 *const device = at<u8 *>(nullptr, 0x008bd52c);
+            u8 *const surface = reinterpret_cast<u8 *(__fastcall *)(u8 *)>(at<void **>(device, 0)[4])(device);
+            if (surface) {
+                void **const slots = at<void **>(surface, 0);
+                if (!reinterpret_cast<s32(__fastcall *)(u8 *, void *, s32, s32, u32, s32)>(slots[0])(surface, nullptr, side, side, format, levels)) {
+                    reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>(slots[9])(surface, nullptr, 1);
+                    failed = true;
+                } else {
+                    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x20));
+                    at<u8 *>(cache, 4 * (entries + (index << 8))) = block ? TexCacheEntry_Ctor(block) : nullptr;
+                    at<u8 *>(at<u8 *>(cache, 4 * (entries + (index << 8))), 0) = surface;
+                    ++entries;
+                    ++count;
+                }
+            }
+            budget -= step ? step : area;
+        } while (budget >= step);
+    }
+    *made = count;
+    AnimTextures_Set(reinterpret_cast<const u32 *>(cache), reinterpret_cast<const u32 *>(cache + 0x1800));
+    return count > 0;
+}
+
+s32 __fastcall TexCache_ChooseSize(u8 *cache, void *, s32 a, s32 b, s32 limit) {
+    const s32 freeA = (s32)(at<u32>(cache, 0x1818 + 4 * a) - at<u32>(cache, 0x1830 + 4 * a));
+    const float shareA = (float)(X87Reg((double)freeA) / X87Reg((double)at<s32>(cache, 0x1800 + 4 * a)));
+    const s32 freeB = (s32)(at<u32>(cache, 0x1818 + 4 * b) - at<u32>(cache, 0x1830 + 4 * b));
+    const float shareB = (float)(X87Reg((double)freeB) / X87Reg((double)at<s32>(cache, 0x1800 + 4 * b)));
+    u8 *const surface = at<u8 *>(at<u8 *>(cache, (u32)a << 10), 0);
+    const s32 used = reinterpret_cast<s32(__fastcall *)(u8 *)>(at<void **>(surface, 0)[3])(surface);
+    if (!((X87Reg(shareB) + X87Reg(shareB)).v >= shareA) && at<s32>(cache, 0x1818 + 4 * b) + 10 < at<s32>(cache, 0x1818 + 4 * a) &&
+        (s32)((u32)used * 3) < (s32)((u32)limit * 4))
+        return b;
+    return a;
+}
+
+s32 __fastcall TexCacheEntry_Score(u8 *entry, void *, u32) {
+    u8 *const surface = at<u8 *>(entry, 0);
+    const s32 area = reinterpret_cast<s32(__fastcall *)(u8 *)>(at<void **>(surface, 0)[3])(surface);
+    at<s32>(entry, 8) = area;
+    at<s32>(entry, 0xc) = 0;
+    at<s32>(entry, 0x1c) = 0;
+    const u8 *item = at<const u8 *>(entry, 4);
+    bool keep = false, filtered = false, whole = item != nullptr;
+    s32 tagged = 0, count = 0, sum = 0, weighted = 0;
+    for (; item; item = Next(item)) {
+        if (at<u32>(item, 8) & 0x4000)
+            keep = true;
+        const bool filter = Texture_UsesDriverFilter(item);
+        const u8 low = at<u8>(item, 8);
+        if (filter ? (low & 0x30) && at<s16>(item, 0x14) > at<s32>(nullptr, 0x00702564) : (low & 0x30) != 0)
+            whole = false;
+        if (Texture_UsesDriverFilter(item))
+            filtered = true;
+        const s32 itemArea = (s32)at<s16>(item, 0x14) * (s32)at<s16>(item, 0x16);
+        if (at<u32>(item, 8) & 0x40000000)
+            at<s32>(entry, 0xc) += itemArea;
+        const u32 flags = at<u32>(item, 8);
+        if (flags & 0x10000000)
+            ++tagged;
+        sum += itemArea;
+        weighted += at<s32>(item, at<u32>(at<const u8 *>(item, 0), 4) + 0x10) * itemArea;
+        if (flags & 0x4000)
+            at<s32>(entry, 0x1c) += itemArea;
+        ++count;
+    }
+    TexCacheItem_SetFlags(surface, nullptr, (keep ? 1 : 0) | (filtered ? 2 : 0) | (whole ? 4 : 0));
+    at<s32>(entry, 8) -= sum;
+    const s32 age = at<s32>(nullptr, 0x008bcc40) - at<s32>(entry, 0x14);
+    const s32 fresh = age < 0x10 ? 0x10 - age : 0;
+    const s32 score = weighted + area * fresh + 2 * (count + 2 * (at<s32>(entry, 0xc) + 2 * (sum + 2 * tagged)));
+    at<s32>(entry, 0x10) = score;
+    return score;
+}
+
+u32 __fastcall TexCache_PlaceTexture(u8 *cache, void *, u8 *entry, const s32 *place, u8 *texture) {
+    if (!texture)
+        texture = reinterpret_cast<u8 *>((uintptr_t)(u32)place[4]);
+    u8 *const surface = at<u8 *>(entry, 0);
+    void **const slots = at<void **>(surface, 0);
+    reinterpret_cast<u32(__fastcall *)(u8 *, void *, u8 *, s32, s32)>(slots[7])(surface, nullptr, texture, place[0], place[1]);
+    s32 x = place[0], y = place[1], w = at<s16>(texture, 0x14), h = at<s16>(texture, 0x16);
+    const u32 flags0 = at<u32>(texture, 8);
+    if (flags0 & 0x80000000) {
+        const s32 maxW = at<s16>(texture, 0x10);
+        if (w > maxW) {
+            x += (w - maxW) >> 1;
+            w = maxW;
+        }
+        const s32 maxH = at<s16>(texture, 0x12);
+        if (h > maxH) {
+            y += (h - maxH) >> 1;
+            h = maxH;
+        }
+        at<u32>(texture, 8) = flags0 & 0x7fffffff;
+    }
+    at<u32>(texture, 0xc) = at<u32>(at<const u8 *>(nullptr, 0x0087a248), 4);
+    at<u32>(texture, 8) = (at<u32>(texture, 8) & ~0x2000u) | 0x1000;
+    at<u8 *>(texture, 0x18) = entry;
+    const u32 flags = at<u32>(texture, 8);
+    const auto value = [](u32 address) { return X87Reg(at<float>(nullptr, address)); };
+    if (at<u32>(nullptr, 0x008bd524) == 4) {
+        const bool filtered = (flags & 0x30000) != 0, alt = (flags & 0x4000000) != 0;
+        const X87Reg b = X87_Through(at<float>(nullptr, filtered ? (flags & 0x10000 ? 0x00702474 : 0x008c1628) : alt ? 0x008c1630 : 0x008c1628));
+        const X87Reg a = value(filtered ? (flags & 0x20000 ? 0x00702474 : 0x008c1628) : alt ? 0x008c1634 : 0x008c1628);
+        at<float>(texture, 0x28) = (float)b;
+        at<float>(texture, 0x2c) = (float)a;
+        at<float>(texture, 0x20) = (float)(X87Reg((double)w) - (b + b));
+        at<float>(texture, 0x24) = (float)(X87Reg((double)h) - (a + a));
+        Texture_UpdateWrapMask(texture);
+        const u32 offset = ((u32)at<s32>(surface, 0x10) * (u32)place[1] + (u32)place[0]) << 2;
+        at<u32>(texture, 0x1c) = offset + reinterpret_cast<u32(__fastcall *)(u8 *)>(at<void **>(surface, 0)[2])(surface);
+    } else {
+        const X87Reg scale = at<float>(cache, 0x1900);
+        const X87Reg width = (double)at<s32>(surface, 8), height = (double)at<s32>(surface, 0xc);
+        if ((flags & 0x30000) && (!(flags & 0x400) || at<u32>(texture, 0x3c))) {
+            const X87Reg a = value(flags & 0x10000 ? 0x00702474 : 0x008c1628);
+            const X87Reg b = value(flags & 0x20000 ? 0x00702474 : 0x008c1628);
+            const X87Reg p = X87_DivR(width, scale) * a;
+            const X87Reg q = X87_DivR(height, scale) * b;
+            at<float>(texture, 0x28) = (float)p;
+            at<float>(texture, 0x2c) = (float)q;
+            at<float>(texture, 0x20) = (float)X87_SubR(p + p, X87Reg(1.0));
+            at<float>(texture, 0x24) = (float)X87_SubR(q + q, X87Reg(1.0));
+        } else {
+            const bool alt = (flags & 0x4000000) != 0;
+            const X87Reg c = value(alt ? 0x008c1634 : 0x008c1628), d = value(alt ? 0x008c1638 : 0x00702474);
+            const X87Reg e = alt ? value(0x008c163c) : X87Reg(0.0), f = value(alt ? 0x008c1630 : 0x008c1628);
+            const X87Reg down = (e + c) + X87Reg((double)y), across = (d + f) + X87Reg((double)x);
+            at<float>(texture, 0x2c) = (float)(down / height * scale);
+            at<float>(texture, 0x28) = (float)(across / width * scale);
+            at<float>(texture, 0x24) = (float)((X87Reg((double)h) - (c + c)) / height * scale);
+            at<float>(texture, 0x20) = (float)((X87Reg((double)w) - (f + f)) / width * scale);
+        }
+        at<u32>(texture, 0x1c) = reinterpret_cast<u32(__fastcall *)(u8 *)>(at<void **>(surface, 0)[2])(surface);
+    }
+    at<u32>(texture, 0xc) = at<u32>(nullptr, 0x008bcc40);
+    return 1;
 }
 }

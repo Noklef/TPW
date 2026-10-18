@@ -67,4 +67,56 @@ u32 __fastcall TexCache_UnlinkItem(u8 *cache, void *, u8 *item);
 // are: ((__ftol((1.5 - the float at +0x30) * 2047) & 0xfff) << 8 plus the s16 at +0x14, << 8, plus the s16 at +0x16, with 0x20000000
 // for flag 0x4000 (+8) and 0x40000000 (set in memory) for flag 0x80000.
 void __fastcall TexCacheItem_SetKey(u8 *item);
+
+// 0x58faf0 (thiscall on the cache; name unconfirmed): for each of the six entry sizes (the sides at 0x702420: 0x100 down to 8, the
+// area the side squared), the entries at +0x400 * size (the signed count at +0x1800 + 4 * size) with items (+4) whose s32 +0x1c is
+// over 0 and its << 2 (s32) under the area and whose key (s32 +0xc) * 2 under it too are sorted by key, ascending, keeping
+// min(s32 +0x1878, 16) of them: each is inserted after the keys not above its own, those past it moved up one by a forward copy, so
+// what was at its place fills the rest (sic), and the last falls off when full. (A 17th with 16 kept writes over the return address.)
+// From the last kept down: the entry's items (+4, next at +4) are taken off it (+4 = 0), each with its cache flags cleared
+// (Texture_ClearCacheFlags) and +0x1c = 0, and one with flag 0x40000000 (+8) gets 0x2000 (and 0x4000 when it had that) and goes onto
+// the cache's list at +0x18c4; then the entry's +0 has its flags set to 0 (TexCacheItem_SetFlags).
+void __fastcall TexCache_Evict(u8 *cache);
+
+// 0x58d1d0 (thiscall on the cache; side, made, format, levels; pops 0x10; name unconfirmed): new surfaces of the side while its budget
+// (+0x1860 + 4 * index, index SurfacePool_SideIndex) covers their area: the format size (0x7022d8 indexed by [0x8bd554]) * side *
+// side (32-bit), * 4 / 3 (signed) when levels > 1, kept at 0x8c4898. Each turn, unless one failed or the side has 0x100 entries
+// (+0x1800 + 4 * index): slot 4 of the render device ([0x8bd52c]) makes a surface; one made has its slot 0 (side, side, format,
+// levels) set it up: failing, its slot 9 (1) deletes it and the turns end; else a new entry (Mem_Alloc 0x20, TexCacheEntry_Ctor)
+// holding it at +0 goes at +0x400 * index + 4 * count and the count rises. The budget then loses [0x8c4898] (or the area when
+// that is 0) and the turns go on while it is at least [0x8c4898]. *made = the entries made; AnimTextures_Set(cache, cache +
+// 0x1800); returns made > 0.
+u32 __fastcall TexCache_AddSurfaces(u8 *cache, void *, s32 side, s32 *made, u32 format, s32 levels);
+
+// 0x58ea20 (thiscall on the cache; a, b, limit: two size indices; pops 0xc; name unconfirmed; 0x58f6ca asks it): each size's share
+// (+0x1818 - +0x1830, 32-bit, over its count +0x1800; fild / fidiv at 24 bits, stored as floats); slot 3 of a's first entry's
+// surface (+0x400 * a, its +0) answers a count. b when twice b's share is below a's (or unordered), b's +0x1818 + 10 is below a's
+// and count * 3 is below limit * 4 (signed, 32-bit); else a.
+s32 __fastcall TexCache_ChooseSize(u8 *cache, void *, s32 a, s32 b, s32 limit);
+
+// 0x591010 (thiscall on a cache entry; an unused dword; pops 4; name unconfirmed; 0x58cd19 and 0x58cec2 ask it): +8 = slot 3 of the
+// surface (+0) (its area), +0xc and +0x1c zeroed; then for each item of the list at +4 (next +4; flags +8, size s16 +0x14 by +0x16,
+// area their product): bit 0x4000 marks the entry kept; an item with flags & 0x30 (and when it uses the driver filter,
+// Texture_UsesDriverFilter, also width > [0x702564]) clears "whole" (set when the list has items), one using the driver filter sets
+// "filtered"; the area adds to +0xc with 0x40000000, to +0x1c with 0x4000, to the sum always, times the dword at +0x10 past the
+// item's virtual base (vbtable +0[4]) to a weighted sum; 0x10000000 items are counted. The surface's flags are set to kept | filtered
+// << 1 | whole << 2 (TexCacheItem_SetFlags); +8 loses the sum. With age = [0x8bcc40] - +0x14, fresh = 0x10 - age below 0x10 (else 0):
+// +0x10 = weighted + area * fresh + 2 * (items + 2 * (+0xc + 2 * (sum + 2 * counted))) (32-bit), which is returned.
+s32 __fastcall TexCacheEntry_Score(u8 *entry, void *, u32);
+
+// 0x590350 (thiscall on the cache; entry, place, texture; pops 0xc; name unconfirmed; 0x58f471 and 0x58f855 ask it): the texture (null:
+// place +0x10's) put at (place +0, +4) of the entry's surface: its slot 7 (texture, x, y) first. A texture with flag 0x80000000 wider or
+// taller (s16 +0x14 / +0x16) than its +0x10 / +0x12 is cut to them, x / y moved by half the excess (sar), and loses the flag. +0xc =
+// [[0x87a248] + 4], flags lose 0x2000 and get 0x1000, +0x18 = the entry. Then its texel offsets +0x28 / +0x2c and extents +0x20 / +0x24
+// (x87, the game's 24 bits) by the display driver kind (0x8bd524):
+//   4: b, a = 0x702474's 0.0 or [0x8c1628] by flags 0x10000 / 0x20000 (with 0x30000), else [0x8c1630] / [0x8c1634] with 0x4000000 or
+//      [0x8c1628]; +0x28 = b, +0x2c = a, +0x20 = width - 2b, +0x24 = height - 2a; Texture_UpdateWrapMask; +0x1c = (surface +0x10 * y +
+//      x) * 4 (the place's own x and y) + the surface's slot 2.
+//   else, with the cache's scale (+0x1900) and the surface's width / height (+8 / +0xc): flags 0x30000 (unless 0x400 with +0x3c 0):
+//      +0x28 = scale / width * a, +0x2c = scale / height * b (a, b by 0x10000 / 0x20000 as above), +0x20 / +0x24 = 1.0 - twice
+//      those; otherwise, from c, d, e, f = [0x8c1634], [0x8c1638], [0x8c163c], [0x8c1630] with 0x4000000 or [0x8c1628], 0.0, 0.0,
+//      [0x8c1628]: +0x2c = (e + c + y) / height * scale, +0x28 = (d + f + x) / width * scale, +0x24 = (height' - 2c) / height *
+//      scale and +0x20 = (width' - 2f) / width * scale (the texture's, cut); +0x1c = the surface's slot 2.
+// +0xc = [0x8bcc40]. Returns 1.
+u32 __fastcall TexCache_PlaceTexture(u8 *cache, void *, u8 *entry, const s32 *place, u8 *texture);
 }

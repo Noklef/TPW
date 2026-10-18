@@ -37,6 +37,13 @@ u8 *__fastcall Landscape_Point(u8 *landscape);
 // released (Texture_Release), the array destroyed when still set (Texture_DestroyArray), the field cleared. Returns 1.
 u32 __fastcall Landscape_FreeTextures(u8 *landscape);
 
+// 0x585ce0 (thiscall; name unconfirmed): with a texture at +0x1fd4, 16 x 16 colours sampled from its pixels (Texture_Lock) into
+// +0xf60: step = its s16 sizes at +0x10 / +0x12 over 16 (signed), from half a step in; the colour of sample (x, y) at +0xf60 + 4 y +
+// 0x40 x is the pixel at the s16 pitch +0x34 times the row plus the column: format ([0x8bd554]) 2 a u16 c turned into (c & 0xff80) << 12
+// | (c & 0xf0) << 8 | (c & 0xf) << 4 | 0xff080808 (sic), 3 a u32 as it is, else the dword there kept; then copied to +0x400, +0x800 and
+// +0xc00 from it.
+void __fastcall Landscape_SampleColours(u8 *landscape);
+
 // 0x5851d0 (thiscall; textures; name unconfirmed): the 0x20-byte entries from +0x1fdc (their texture array first), the count at
 // +0x21dc. The entry holding textures is looked for from entry[count] (one past the last, sic) down to the first: none (or a
 // negative count) 0. Found, its array is cleared, released and destroyed when set, the count lowered and, unless that leaves 0,

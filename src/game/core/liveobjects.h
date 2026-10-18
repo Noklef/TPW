@@ -29,4 +29,9 @@ u8 *__fastcall LiveObject7019f8_Construct(u8 *object, void *, u32 most_derived);
 // base (the object plus the offset, read again; 0 when the object is) taken out of the live objects, +0xa4 = 0x6fdce8, and with flag
 // 1 the object freed (0x67acb0). Returns the object.
 u8 *__fastcall LiveObject701b30_DeletingDtor(u8 *base, void *, u32 flags);
+
+// 0x57abf0 (thiscall on the virtual base, 0x154 into the object; flags: pops 4; name unconfirmed): as 0x57ca00 for the class
+// LiveObject7019f8_Construct builds: the vtable 0x7019f8 and the offset - 0x154 stored, the base taken out of the live objects, then
+// its model unloaded (ObjModel_Unload, model/objmodel), +0x154 = 0x6fdce8 and with flag 1 the object freed. Returns the object.
+u8 *__fastcall LiveObject7019f8_DeletingDtor(u8 *base, void *, u32 flags);
 }

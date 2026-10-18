@@ -125,6 +125,44 @@ u32 __fastcall Texture_Reload(u8 *texture) {
     return vcall<u32>(at<u8 *>(texture, 0), 0x14);
 }
 
+u8 *__fastcall Texture_Lock(u8 *texture) {
+    if (!(at<u32>(texture, 8) & 0x10000000))
+        return at<u8 *>(texture, 0x40);
+    u32 lock[4];
+    lock[0] = global<u32>(0x00879a68);
+    lock[1] = (u32)(s32)at<s16>(texture, 0x10);
+    lock[2] = (u32)(s32)at<s16>(texture, 0x12);
+    lock[3] = reinterpret_cast<const u32 *>((uintptr_t)0x007024e0)[global<u32>(0x008bd554)] * lock[1];
+    vcall<void>(at<u8 *>(texture, 0x40), 8, lock);
+    return global<u8 *>(0x00879a68);
+}
+
+u8 *__fastcall Texture_LockFlipped(u8 *texture) {
+    u8 *const pixels = Texture_Lock(texture);
+    if (!(at<u32>(texture, 8) & 0x40000))
+        return pixels;
+    const u32 pitch = reinterpret_cast<const u32 *>((uintptr_t)0x007024e0)[global<u32>(0x008bd554)] * (u32)(s32)at<s16>(texture, 0x10);
+    if ((s16)(at<u16>(texture, 0x12) & 0xfffe) <= 0)
+        return pixels;
+    u8 *top = pixels;
+    s32 row = 0;
+    do {
+        u32 *a = reinterpret_cast<u32 *>(top);
+        u32 *b = reinterpret_cast<u32 *>(pixels + (u32)((s32)at<s16>(texture, 0x10) - row - 1) * pitch);  // sic: the width counts the rows
+        u32 n = pitch >> 2;
+        do {   // sic: a pitch under 4 bytes wraps the count
+            const u32 t = *a;
+            *a = *b;
+            *b = t;
+            a++;
+            b++;
+        } while (--n);
+        top += pitch;
+        row++;
+    } while (row < (at<s16>(texture, 0x12) >> 1));
+    return pixels;
+}
+
 u32 __fastcall Texture_Release(u8 *texture) {
     if (at<u32>(texture, 8) & 0x800000)
         Texture_Release(texture + 0x60);

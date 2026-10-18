@@ -15,6 +15,8 @@ u8 *__fastcall Class702890_ScalarDtor(u8 *object, void *, u32 flags);
 u8 *__fastcall Class7028d0_ScalarDtor(u8 *object, void *, u32 flags);
 u8 *__fastcall Class7028f8_ScalarDtor(u8 *object, void *, u32 flags);
 u8 *__fastcall Class702920_ScalarDtor(u8 *object, void *, u32 flags);
+// 0x5b5780 (thiscall; flags, pops 4): the same with the destructor 0x5b57a0 (core/vdtor).
+u8 *__fastcall Class702828_ScalarDtor(u8 *object, void *, u32 flags);
 u8 *__fastcall Class702da0_ScalarDtor(u8 *object, void *, u32 flags);
 u8 *__fastcall Class7099a4_ScalarDtor(u8 *object, void *, u32 flags);
 u8 *__fastcall Counted2_ScalarDtor(u8 *object, void *, u32 flags);

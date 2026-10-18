@@ -159,6 +159,8 @@ add_library(tpw_game STATIC
     src/game/gfx/wctimage.cpp
     src/game/gfx/screengrab.cpp
     src/game/gfx/tvstatic.cpp
+    src/game/gfx/loadscreen.cpp
+    src/game/gfx/surfacepool.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp
@@ -271,6 +273,7 @@ add_library(tpw_game STATIC
     src/game/model/stripanim.cpp
     src/game/model/heightat.cpp
     src/game/model/m3d2.cpp
+    src/game/model/objmodel.cpp
     src/game/render/mode.cpp
     src/game/render/frame.cpp
     src/game/render/screen.cpp
@@ -298,6 +301,7 @@ add_library(tpw_game STATIC
     src/game/render/quad.cpp
     src/game/render/d3dprobe.cpp
     src/game/render/engineerrors.cpp
+    src/game/render/texcoords.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/online/itemlist.cpp

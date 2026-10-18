@@ -58,6 +58,17 @@ u32 __fastcall Texture_Reload(u8 *texture);
 // (TrackedGlobal_Free) and cleared; so is the block at +0x3c. Then the sizes at +0x10-+0x16 are zeroed, the flags 5 and +0x38 the cache key's
 // level part alone (<< 16). Returns 1.
 u32 __fastcall Texture_Release(u8 *texture);
+
+// 0x590d40 (thiscall; name unconfirmed): the pixels. Without flag 0x10000000 the pointer at +0x40; with it the object at +0x40 is
+// locked (its virtual call 2 with a stack record: the dword at 0x879a68, the s16 sizes at +0x10 and +0x12 widened, the format's pixel
+// size (0x7024e0 indexed by [0x8bd554]) times the first) and the dword at 0x879a68 is returned as read after it.
+u8 *__fastcall Texture_Lock(u8 *texture);
+
+// 0x590da0 (thiscall; name unconfirmed): Texture_Lock's pixels, turned upside down first with flag 0x40000: for each row below the s16
+// at +0x12 halved, its dwords (the pitch, pixel size times the s16 at +0x10, over 4) swapped with the row the s16 at +0x10 counts from
+// the end (sic: the width, not the height); nothing when the s16 at +0x12 with bit 0 cleared is not above 0. A pitch under 4 wraps
+// the dword count (sic). Returns the pixels.
+u8 *__fastcall Texture_LockFlipped(u8 *texture);
 }
 
 // A count-prefixed array of textures (the count in the dword before it; not 0) destroyed, Texture_Release on each from the last

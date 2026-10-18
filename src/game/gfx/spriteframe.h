@@ -1,5 +1,5 @@
-// The sprite frames' and images' constructors, their textures' release and a frame set's texture flags: reimplementation
-// of 0x588d70, 0x588320, 0x5882e0, 0x588ba0, 0x588c20, 0x588ca0, 0x588350, 0x588230, 0x588d90 and 0x588e40.
+// The sprite frames' and images' constructors, their textures' release, a frame's quad and a frame set's texture flags: reimplementation
+// of 0x5890e0, 0x588d70, 0x588320, 0x5882e0, 0x588ba0, 0x588c20, 0x588ca0, 0x588350, 0x588230, 0x588d90 and 0x588e40.
 //
 // A sprite frame (0x48 bytes; a font's at +0x54, 0x48f18b; the decoded textures', 0x56b4f5) is
 // readied for drawing by 0x588ef0, which queues it in the sprite queue (spritequeue.h): +0x10 its
@@ -61,4 +61,17 @@ void __fastcall SpriteFrame_SetSize(u8 *frame, void *, s32 width, s32 height);
 // 0x588e40 (thiscall; width, height, pops 8; name unconfirmed): the same for the sizes at +0x30 / +0x32, but the height is compared with
 // the s16 at +0x30 again (sic) and the image's array is not checked (only the image and the count).
 void __fastcall SpriteFrame_SetSize30(u8 *frame, void *, s32 width, s32 height);
+
+// 0x5890e0 (thiscall; quad (four x, y, z, w vertices), width, height: floats; pops 0xc; name unconfirmed): x87 in the original's order.
+// A width or height of 0 (or a NaN) is the frame's scale (+0x2c) * 20, the width also times [0x8bcbcc]. With the image (+0x28; u16
+// +0xc / +0xe its size, u16 +0x10 / +0x12 the full size, s16 +0x14 / +0x16 the offset): left = offset x / full width * width, right
+// = (size x + offset x) / full width * width, top = offset y / full height * height, bottom = (size y + offset y) / full height *
+// height. Flag 0x10 (+0x10) negates left and right (1 returned), flag 0x20 or 0x40 top and bottom (the result flipped). Vertices 0
+// and 3 get x = left + x0, 1 and 2 right + x1. With flag 0x200 and bit 0x1000000 of 0x8bcbc8 the frame is picked ([0x8bd4fc] =
+// frame) when the pointer at 0x8bd4f0 / 0x8bd4f4 is within sqrt(((right - left)^2 + (bottom - top)^2) * 0.0002) of vertex 0 seen
+// through 1 / w0, unless the frame picked before has a w (+0xc) at or below w0. Flag 0x80000 (the result flipped): vertices 0 and
+// 1 get z = top + z0, 2 and 3 bottom + z2, every y raised by [0x8bd4ec], and flag 0x80 turns the quad in x and z by +0x30
+// (Quad_TurnXZ). Otherwise 0 and 1 get y = top + y0, 2 and 3 bottom + y2, flag 0x80 turns it in x and y by +0x30 (Quad_TurnXY about
+// its middle) and flag 0x1000 by [0x87af60] about vertex 0 as it came. Returns 0 or 1.
+u32 __fastcall SpriteFrame_PlaceQuad(u8 *frame, void *, float *quad, float width, float height);
 }

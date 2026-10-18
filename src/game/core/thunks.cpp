@@ -9,6 +9,7 @@
 #include "misc.h"
 #include "vtables.h"
 #include "../gfx/texsurface.h"
+#include "liveobjects.h"
 #include "../gfx/texture.h"
 #include "../render/rasteriser.h"
 #include "../render/softrender.h"
@@ -34,6 +35,7 @@
 #include "../math/transform.h"
 #include "semaphore.h"
 #include "string.h"
+#include "../terrain/texcache.h"
 
 namespace {
 
@@ -257,6 +259,10 @@ u32 __fastcall Wrap_TexSurfaceB_AllocPixels_58c8e0(u8 *self, void *, u32 width, 
     return TexSurfaceB_AllocPixels(Adjust(self), nullptr, width, height, c, d);
 }
 
+u32 __fastcall Wrap_TexSurfaceB_Blit_58c930(u8 *self, void *, u8 *texture, s32 x, s32 y) {
+    return TexSurfaceB_Blit(Adjust(self), nullptr, texture, x, y);
+}
+
 u32 __fastcall Wrap_TexSurfaceB_FreePixels_58c8f0(u8 *self) {
     return TexSurfaceB_FreePixels(Adjust(self));
 }
@@ -305,7 +311,17 @@ float __fastcall Wrap_TexSurfaceB_Zero_58c940(const u8 *self) {
     return TexSurfaceB_Zero(Adjust(self));
 }
 
+u8 *__fastcall Wrap_TexSurfaceB_DeletingDtor_58c950(u8 *self, void *, u32 flags) {
+    return TexSurfaceB_DeletingDtor(Adjust(self), nullptr, flags);
+}
+
 u32 __fastcall Wrap_Texture_Release_590a70(u8 *self) { return Texture_Release(self); }
+
+u8 *__fastcall Wrap_LiveObject7019f8_DeletingDtor_57abe0(u8 *self, void *, u32 flags) {
+    return LiveObject7019f8_DeletingDtor(Adjust(self), nullptr, flags);
+}
+
+u32 __fastcall Wrap_TerrainTexCache_Dtor_572100(u8 *self) { return TerrainTexCache_Dtor(self); }
 
 u32 __fastcall Wrap_Obj_IncBefore4c_5987c0(u8 *self) {
     return Obj_IncBefore4c(Adjust(self));

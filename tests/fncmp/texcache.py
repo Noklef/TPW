@@ -1,7 +1,10 @@
-# The terrain texture tile cache's constructor and destructor (src/game/terrain/texcache: 0x5720d0, 0x572350) against the originals: any
+# The terrain texture tile cache's constructor and destructor (src/game/terrain/texcache: 0x5720d0, 0x572350; its jump 0x572100,
+# core/thunks) against the originals: any
 # bytes before; for the destructor 0-3 tiles in use (or a negative count) whose texture arrays (as texturemem.py) are set or not, the
 # landscape at +0 set (as land_levels.py's destructor) or not.
-# usage: texcache.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,Dtor)
+# The procedural texture object's unload (src/game/terrain/procedural: 0x56e4e0): its cache as the destructor's or none, a tracked
+# block at +0x12970 or none (the tracked blocks' table as in spritesfree.py).
+# usage: texcache.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,Dtor,Jump,Unload)
 import os
 import struct
 import sys
@@ -11,10 +14,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import texturemem  # noqa: E402
 from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put  # noqa: E402
 
-CALLS = {'Ctor': 0x5720d0, 'Dtor': 0x572350}
-B = Bench([(0x5720d0, 0x572100), (0x572350, 0x5723ef), (0x55f1e0, 0x55f730), (0x5c4f60, 0x5c4f90), (0x5d3860, 0x5d38a0), (0x590a70, 0x590a75),
-           (0x590b90, 0x590c39), (0x579b40, 0x579c13), (0x58dc50, 0x58dd5e), (0x67afa0, 0x67b0d0), (0x67acb0, 0x67acb1)])
+CALLS = {'Ctor': 0x5720d0, 'Dtor': 0x572350, 'Jump': 0x572100, 'Unload': 0x56e4e0}
+B = Bench([(0x5720d0, 0x572105), (0x572350, 0x5723ef), (0x55f1e0, 0x55f730), (0x5c4f60, 0x5c4f90), (0x5d3860, 0x5d38a0), (0x590a70, 0x590a75),
+           (0x590b90, 0x590c39), (0x579b40, 0x579c13), (0x58dc50, 0x58dd5e), (0x67afa0, 0x67b0d0), (0x67acb0, 0x67acb1),
+           (0x56e4e0, 0x56e549)])
 CACHE, LND, TILES, ARRAYS = RAM + 0x10000, RAM + 0x4000, RAM + 0x4400, RAM + 0x5000   # (texturemem.py's regions below RAM + 0x4000)
+TEX, COUNT, TABLE = RAM + 0x20100, 0x8bb214, 0x87b1f8
 
 
 def dtor(r):
@@ -50,8 +55,24 @@ def dtor(r):
 
 
 def case(r):
-    if r.choice(OPS) == 'Dtor':
-        return dtor(r)
+    op = r.deal(OPS)
+    if op == 'Unload':
+        c = dtor(r)
+        blocks = [HEAP + 0x20, HEAP + 0x40, HEAP + 0x3c]
+        table = bytearray(8 * 8)
+        for k in range(8):
+            b = r.choice(blocks + [r.getrandbits(32) | 0x80000000])
+            put(table, 8 * k, '2I', b, r.choice([b, b, b + 4]) & 0xffffffff)
+        tex = bytearray(r.bytes(0x234))
+        put(tex, 0x230, 'I', r.choice([CACHE, CACHE, CACHE, 0]))
+        c.regions.update({TEX: tex, TEX + 0x12970: struct.pack('<I', r.choice([0] + blocks + [r.getrandbits(32) | 0x80000000])),
+                          TABLE: table, COUNT: struct.pack('<I', r.choice([0, 1, 2, 3, 5]))})
+        c.address, c.args = 0x56e4e0, [TEX]
+        return c
+    if op != 'Ctor':
+        c = dtor(r)
+        c.address = CALLS[op]
+        return c
     return Call(0x5720d0, [RAM], {RAM: r.bytes(0x10018)}, conv='t', ret='a')
 
 
