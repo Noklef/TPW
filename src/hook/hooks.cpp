@@ -162,6 +162,7 @@
 #include "../game/core/gameerror.h"
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
+#include "../game/core/soundplay.h"
 #include "../game/core/stringmapsrecord.h"
 #include "../game/core/wscanner.h"
 #include "../game/core/wtraits.h"
@@ -3783,6 +3784,9 @@ const Hook kHooks[] = {
     {"CommandLine_Parse",         0x0040f000, (void *)&CommandLine_Parse, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"WScanner_SetText",          0x005e6b30, (void *)&WScanner_SetText, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"WKeywordPair_Ctor",         0x005e73f0, (void *)&WKeywordPair_Ctor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Sound_PlayAt",              0x0051bfc0, (void *)&Sound_PlayAt, {0xa1, 0xc8, 0x2b, 0x80, 0x00}},
+    {"Sound_PlayAtRange",         0x0051c130, (void *)&Sound_PlayAtRange, {0xa1, 0xc8, 0x2b, 0x80, 0x00}},
+    {"SoundUi_Play",              0x00485aa0, (void *)&SoundUi_Play, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
