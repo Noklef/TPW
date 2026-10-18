@@ -1,4 +1,5 @@
-// The help background (f_helpbg; vtable 0x6ff598, base 0x705a80): a frame-library window behind the help text. Reimplementation of 0x492320 and 0x4922d0.
+// The help background (f_helpbg; vtable 0x6ff598, base 0x705a80): a frame-library window behind the help text. Reimplementation of 0x492320, 0x4922d0
+// and 0x491fe0.
 #pragma once
 
 #include "../../../re/types.h"
@@ -10,4 +11,9 @@ void __fastcall HelpBg_Refresh(u8 *self);
 
 // 0x4922d0 (thiscall; slot 15 of the help background's vtable 0x6ff598): +0x18 = 0 and the word +0xc = 0; returns 0.
 u32 __fastcall Obj_Clear18_0c(u8 *object);
+
+// 0x491fe0 (cdecl (window, message, a, b); the handler of the help background's window, installed at 0x4922b0; name unconfirmed): on message 0x14
+// the window's object (Window_DwordA0 0, the help background) gets its slot 15 (Obj_Clear18_0c); then Window_CallDefault with the message,
+// its result returned.
+s32 __cdecl HelpBg_WindowHandler(u8 *window, u32 message, u32 a, u32 b);
 }  // extern "C"
