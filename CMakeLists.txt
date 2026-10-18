@@ -321,6 +321,11 @@ add_library(tpw_game STATIC
     src/game/ui/window.cpp
     src/game/ui/dialogs.cpp
     src/game/ui/guimanager.cpp
+    src/game/ui/guirect.cpp
+    src/game/ui/guidialog.cpp
+    src/game/ui/msgqueue.cpp
+    src/game/ui/textpool.cpp
+    src/game/ui/guitimers.cpp
 )
 
 # Proxy dinput.dll that loads into tp.exe and installs the hooks.
