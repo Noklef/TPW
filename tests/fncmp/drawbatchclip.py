@@ -52,7 +52,7 @@ def poly(r):
     codes = 0
     if given:
         codes = CODES
-        regions[CODES] = bytes([0 if r.random() < 0.8 else r.getrandbits(8), r.choice([0, r.randrange(64), r.getrandbits(8), 1 << r.randrange(6)])])
+        regions[CODES] = bytes([0 if r.random() < 0.75 else r.choice([r.getrandbits(8), 0x40, 0x80, 1 << r.randrange(6)]),r.choice([0, r.randrange(64), r.getrandbits(8), 1 << r.randrange(6)])])
     flags = r.getrandbits(32) & ~2 | r.choice([0, 2])
     return Call(0x565bb0, [OBJ, SRC, n, stride, codes, flags], regions, conv='t', ret='a')
 
