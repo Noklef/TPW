@@ -23,15 +23,17 @@ def grid(r):
     span = 12 * 19 * (max(rows, 0) + 2)
     pos, col_bytes = bytearray(span), bytearray(span)
     scale = r.choice([1, 100, 5000])
+    nans = r.random() < 0.2   # (NaN offsets and positions now and then: of two NaNs the x87 keeps the larger significand)
+    nan = lambda: r.getrandbits(1) << 31 | 0x7f800000 | r.randrange(1, 1 << 23)  # noqa: E731
     for k in range(0, span, 4):
-        struct.pack_into('<I', pos, k, r.f(scale))
+        struct.pack_into('<I', pos, k, nan() if nans and r.random() < 0.5 else r.f(scale))
         struct.pack_into('<I', col_bytes, k, r.f(1))
     regions = {0x874180 + 12 * 19 * row: pos, 0x870ed8 + 12 * 19 * row: col_bytes, 0x871d18: r.bytes(4 * 16 + 4),
                0x871ee0: struct.pack('<I', n)}
     if n < 0x806:
         regions[0x820b00 + 0xa0 * n] = r.bytes(0xa0 * min(faces, 0x806 - n) or 4)
         regions[0x872168 + 4 * n] = r.bytes(4 * min(faces, 0x806 - n) or 4)
-    args = [r.f(scale), r.f(scale), r.f(scale), rows & 0xffffffff, cols & 0xffffffff, row, col, 0x10, 0x13]
+    args = [nan() if nans and r.random() < 0.7 else r.f(scale) for _ in range(3)] + [rows & 0xffffffff, cols & 0xffffffff, row, col, 0x10, 0x13]
     return Call(CALLS['Grid'], args, regions, ret='v')
 
 
