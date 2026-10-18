@@ -152,7 +152,6 @@
 #include "../game/core/sync.h"
 #include "../game/core/balancefile.h"
 #include "../game/core/timesig.h"
-#include "../game/core/wstdstring.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"

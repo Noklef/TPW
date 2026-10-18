@@ -3899,10 +3899,10 @@ address,name,kind,confidence,notes
 0x005c8bd0,SyncEvent_Ctor,function,low,"reimplemented (src/game/core/sync); CreateEventA(0,0,0,0) into the object's handle; returns the object"
 0x005c8bf0,SyncEvent_Wait,function,low,reimplemented (src/game/core/sync); WaitForSingleObject on the handle (INFINITE for a negative timeout); whether it answered WAIT_OBJECT_0
 0x005c8c20,SyncEvent_Set,function,low,reimplemented (src/game/core/sync); SetEvent on the handle; returns 0
-0x004f21d0,WStdString_AssignSub,function,high,"reimplemented (src/game/core/wstdstring); std::wstring::assign(const wstring &x, pos, n): shares x's block when it is all of x, erases in place when x is itself"
-0x004f39e0,WStdString_Grow,function,high,"reimplemented (src/game/core/wstdstring); std::wstring::_Grow(n, trim): room for n characters in a block s owns alone"
-0x004f6090,WStdString_Copy,function,high,reimplemented (src/game/core/wstdstring); std::wstring::_Copy(n): a new block of n | 31 characters keeping the old ones
-0x004f6190,WStdString_Split,function,high,reimplemented (src/game/core/wstdstring); std::wstring::_Split(): a shared string gets its own copy
+0x004f21d0,WStdString_AssignSub,function,high,"reimplemented (src/game/core/stdwstring); std::wstring::assign(const wstring &x, pos, n): shares x's block when it is all of x, erases in place when x is itself"
+0x004f39e0,WStdString_Grow,function,high,"reimplemented (src/game/core/stdwstring); std::wstring::_Grow(n, trim): room for n characters in a block s owns alone"
+0x004f6090,WStdString_Copy,function,high,reimplemented (src/game/core/stdwstring); std::wstring::_Copy(n): a new block of n | 31 characters keeping the old ones
+0x004f6190,WStdString_Split,function,high,reimplemented (src/game/core/stdwstring); std::wstring::_Split(): a shared string gets its own copy
 0x00405280,StdWString_Copy,function,low,"reimplemented (src/game/core/stdwstring); thiscall (n, pops 4): std::wstring::_Copy(n): a new block of (n | 31) + 2 characters keeping all len old ones (sic: not clamped), the old block released (name unconfirmed)"
 0x0047b750,StdWString_AssignSub,function,low,"reimplemented (src/game/core/stdwstring); thiscall (x, pos, n; pops 12): std::wstring::assign(const wstring &x, pos, n): shares x's block when it is all of x, erases in place when x is this; returns this (name unconfirmed)"
 0x0047b970,StdWString_AssignFill,function,low,"reimplemented (src/game/core/stdwstring); thiscall (n, ch; pops 8): std::wstring::assign(n, ch); returns this (name unconfirmed)"

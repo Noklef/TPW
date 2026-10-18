@@ -1,4 +1,4 @@
-# The game's MSVC6 std::wstring members (src/game/core/wstdstring: assign 0x4f21d0, _Grow 0x4f39e0, _Copy 0x4f6090, _Split 0x4f6190) against
+# The game's second copy of the MSVC6 std::wstring members (src/game/core/stdwstring: assign 0x4f21d0, _Grow 0x4f39e0, _Copy 0x4f6090, _Split 0x4f6190) against
 # the originals, as stdstring.py's narrow ones: a string under test and a second one, each null or a block (a byte, the count byte, up to
 # 0x7c characters, usually a terminator) with counts about 0 and 0xff, at times sharing one block; Mem_Alloc / Mem_Free on the heap region.
 # _Grow also on strings left unterminated (some empty), assign also for exactly the room s has.
