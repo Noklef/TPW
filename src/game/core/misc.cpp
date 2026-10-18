@@ -275,13 +275,6 @@ u32 __cdecl Rsse_TakeFinished(u8 *vm) {
     return 0;
 }
 
-u8 __cdecl Flag54dcc0_Test() {
-    if (global<u32>(0x0078d968))
-        return (u8)((global<u32>(0x0079d86c) >> 11) & 1);
-    const u32 mode = global<u32>(0x00785874);
-    return mode == 0 || mode == 1 ? 1 : 0;
-}
-
 u32 __cdecl Rsse_GetVector(const u8 *frame, u32 *x, u32 *y, u32 *z) {
     const u8 *record = at<const u8 *>(at<const u8 *>(at<const u8 *>(frame, 8), 4), 0x78) + 0x10;
     *x = at<u32>(record, 0x30);

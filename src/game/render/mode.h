@@ -1,5 +1,5 @@
 // The render mode word (0x79d86c, set at 0x449e7d) and two scale globals set next to it:
-// reimplementation of 0x44a590-0x44a632.
+// reimplementation of 0x44a590-0x44a632, and the flag test 0x54dcc0 on it.
 #pragma once
 
 #include "../../../re/types.h"
@@ -21,4 +21,7 @@ void __cdecl RenderMode_InitEpsilon();
 // 0x6fe268 / 0x6fe238), static initialisers too; nothing reads either.
 void __cdecl RenderMode_InitUnusedOne();
 void __cdecl RenderMode_InitUnusedEpsilon();
+
+// 0x54dcc0 (cdecl): AL only. With 0x78d968 set bit 11 of 0x79d86c; else 1 when 0x785874 is 0 or 1.
+u8 __cdecl Flag54dcc0_Test();
 }

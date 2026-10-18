@@ -1,8 +1,11 @@
 #include "mode.h"
 
+#include <cstdint>
+
 namespace {
 
 u32 mode() { return *reinterpret_cast<const u32 *>(0x0079d86c); }
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 }  // namespace
 
@@ -30,4 +33,11 @@ void __cdecl RenderMode_InitEpsilon() { *reinterpret_cast<float *>(0x0079d9e8) =
 void __cdecl RenderMode_InitUnusedOne() { *reinterpret_cast<float *>(0x0079d9c4) = 1.0f; }
 
 void __cdecl RenderMode_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x0079d9cc) = 1.0f / 8388608.0f; }
+
+u8 __cdecl Flag54dcc0_Test() {
+    if (global<u32>(0x0078d968))
+        return (u8)((global<u32>(0x0079d86c) >> 11) & 1);
+    const u32 mode = global<u32>(0x00785874);
+    return mode == 0 || mode == 1 ? 1 : 0;
+}
 }

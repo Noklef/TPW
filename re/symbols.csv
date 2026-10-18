@@ -2752,7 +2752,7 @@ address,name,kind,confidence,notes
 0x00409260,Flags7a1a14_Update,function,high,reimplemented (src/game/core/misc); a flag word updated from another and an object's advance
 0x00486610,Global7c24d8_CopyScript,function,high,reimplemented (src/game/core/misc); a sprite script slot made a copy of another
 0x00557110,Rsse_TakeFinished,function,high,"reimplemented (src/game/core/misc); the value of the first finished entry, which is cleared"
-0x0054dcc0,Flag54dcc0_Test,function,high,reimplemented (src/game/core/misc); a flag test on two settings
+0x0054dcc0,Flag54dcc0_Test,function,high,reimplemented (src/game/render/mode); a flag test on two settings
 0x00556a80,Rsse_GetVector,function,high,reimplemented (src/game/core/misc); three dwords of a frame's record written through pointers
 0x00569f30,Setting569f30_Set,function,high,"reimplemented (src/game/core/misc); a setting stored, or a default restored"
 0x005c7d20,Records24_Field14,function,high,reimplemented (src/game/core/misc); the dword at +0x14 of a 24-byte record
