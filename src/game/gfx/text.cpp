@@ -68,6 +68,19 @@ s32 *__cdecl Text_SetDriver(s32 *out, const TextDriver *driver, u32 param) {
     return out;
 }
 
+u32 __cdecl Text_SelectFont(u32 index, u32 mode) {
+    const u8 *const table = *at<const u8 *const *>(0x007b059c);
+    if (!table) return 0;
+    const u32 font = *reinterpret_cast<const u32 *>(table + index * 0x18 + 0xc);
+    if (!font) return 0;
+    s32 result;
+    if (mode == 1)
+        Text_SetDriver(&result, at<const TextDriver *>(0x007031b0), font);
+    else if (mode == 0)
+        Text_SetDriver(&result, at<const TextDriver *>(0x007031c0), font);
+    return 1;
+}
+
 u32 __cdecl Text_LineHeight(u32 ch) {
     TextSize size = {0, 0};
     (*g_env->driver)->measure(*g_env->context, &size, ch);

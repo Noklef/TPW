@@ -42,6 +42,10 @@ void __cdecl Text_Draw(s32 x, s32 y, const char *text, DrawColour colour);
 s32 *__cdecl Text_SetDriver(s32 *out, const TextDriver *driver, u32 param);
 // The height of ch, as the driver measures it (its return is ignored).
 u32 __cdecl Text_LineHeight(u32 ch);
+// 0x46c010 (cdecl; index, mode; name unconfirmed): with a font table (0x7b059c, 0x18-byte entries) and a font in its entry index (+0xc), the
+// font made the text driver's parameter: mode 1 the plain glyph driver (0x7031b0), mode 0 the shape driver (0x7031c0), any other mode
+// nothing; 1. 0 with no table or font.
+u32 __cdecl Text_SelectFont(u32 index, u32 mode);
 // The fonts' glyph callbacks: the glyph drawn, its width the advance.
 u32 __cdecl Font_DrawGlyph(const RleSprite *font, s32 x, s32 y, u32 ch, DrawColour colour);
 u32 __cdecl Font_DrawGlyphShape(const RleSprite *font, s32 x, s32 y, u32 ch, DrawColour colour);
