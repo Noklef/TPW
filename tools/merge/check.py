@@ -11,7 +11,8 @@ In order:
      it); a bench range end that a widened range covers is not lost. Duplicates in the tables, CRs not ending a line in hooks.cpp, and a
      module-level name bound twice in a bench (the merge of two sides' constants, which git does not see as a conflict) also fail.
      --moved BENCH (repeatable): a bench the branch empties by moving its cases to other benches (a bucket clean-up); its op names
-     are not checked, and an address it lost is kept when another bench has it (or, for a range's end, the range's start);
+     are not checked, and an address it lost is kept when another bench has it (or, for a range's end, the range's start).
+     --accept-lost PATH:ITEM (repeatable): one lost item checked by hand; printed, and to be named in the merge commit;
   3. hooks: rows the branch added (its own count, for checking an agent's report against);
   4. build, tpw_tests, retcheck, convcheck;
   5. each bench the merge touches, at N cases (default 1000) seed 5, --both: every run must show 0 differ.
@@ -144,6 +145,19 @@ def main():
     moved = {m.replace('\\', '/') for i, m in enumerate(a) if i and a[i - 1] == '--moved'}
     for f in benches:
         problems += kept(f, BENCH, base, branch, False, f in moved)
+    # --accept-lost PATH:ITEM: one item the merger checked by hand (say, a moved case's region now starting a few bytes later); printed,
+    # and to be named in the merge commit.
+    accepted = [m for i, m in enumerate(a) if i and a[i - 1] == '--accept-lost']
+    for acc in accepted:
+        path, item = acc.split(':', 1)
+        hit = [p for p in problems if p.startswith(path + ' lost ') and item in p.split(' lost ', 1)[1].split(', ')]
+        if not hit:
+            fail('--accept-lost %s: nothing like that was lost' % acc)
+        for p in hit:
+            rest = [x for x in p.split(' lost ', 1)[1].split(', ') if x != item]
+            problems[problems.index(p)] = '%s lost %s' % (path, ', '.join(rest)) if rest else None
+        problems = [p for p in problems if p]
+        print('kept: ACCEPTED as lost by hand: %s' % acc)
     for f, pats in TABLES:
         problems += kept(f, pats, base, branch, True)
     lone = len(re.findall(rb'\r(?!\n)', open(os.path.join(ROOT, HOOKS), 'rb').read()))
