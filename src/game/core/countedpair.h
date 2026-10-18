@@ -1,6 +1,6 @@
 // The 0x24-byte element of counted strings whose clears and deleters are in buffers.h (CountedPair_*): a narrow std::string at +0, a wide one at
 // +0x10 and a dword at +0x20 (what it holds is not known yet; the code at 0x4ea5xx-0x4ebaxx builds them and hands them to container inserts).
-// Reimplementation of its constructors 0x4ea740 and 0x4e6410 and its assignment 0x4f5860.
+// Reimplementation of its constructors 0x4ea740 and 0x4e6410, its assignment 0x4f5860 and the insert of a vector of them, 0x4f5560.
 #pragma once
 
 #include "../../../re/types.h"
@@ -30,4 +30,11 @@ CountedPair *__fastcall CountedPair_CopyCtor(CountedPair *p, void *edx, const Co
 // string; the wide one's _Grow inlined: a shared block loses a count and, with characters to write, gets a fresh copy; an own block above 31
 // or below the length is replaced), value = x's. Returns the pair.
 CountedPair *__fastcall CountedPair_Assign(CountedPair *p, void *edx, const CountedPair *x);
+
+// 0x4f5560 (thiscall on a vector of pairs {+4 first, +8 last, +0xc end}; where, n, x, pops 12; name unconfirmed): insert(where, n, x), MSVC6's:
+// without room for n more, a block of size + max(n, size) pairs (a negative count allocates 0) gets the head, n copies of x and the tail
+// (copy-constructed; a null slot skipped), the old pairs are destroyed (CountedPair_Clear) and their block freed; else with fewer than n after
+// where, the tail is copied n up, the copies of x past the old end constructed and the old tail's slots assigned x; else the last n are copied up,
+// the rest shifted back (assignment) and the n slots from where assigned x. x may be one of the vector's own pairs (read after the moves, sic).
+void __fastcall CountedPairVector_InsertN(u8 *v, void *edx, u32 where, u32 n, const CountedPair *x);
 }

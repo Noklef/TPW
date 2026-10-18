@@ -3923,6 +3923,7 @@ address,name,kind,confidence,notes
 0x004ea740,CountedPair_CtorWide,function,low,"reimplemented (src/game/core/countedpair); thiscall (std::wstring by value, pops 16): the 0x24-byte pair of a narrow and a wide string and a dword: the narrow one empty, the wide one assigned the string, the dword 0; the string destroyed"
 0x004e6410,CountedPair_CopyCtor,function,low,"reimplemented (src/game/core/countedpair); thiscall (x, pops 4): the copy constructor: both strings empty (allocator byte = the low byte of x's address, sic), assigned x's characters as C strings; value = x's"
 0x004f5860,CountedPair_Assign,function,low,"reimplemented (src/game/core/countedpair); thiscall (x, pops 4): the assignment: each string assigned x's characters as a C string (the wide _Grow inlined); value = x's"
+0x004f5560,CountedPairVector_InsertN,function,low,"reimplemented (src/game/core/countedpair); thiscall (where, n, x, pops 12): vector<CountedPair>::insert(where, n, x) (MSVC6): a new block of size + max(n, size) when there is no room, else the tail moved up and the slots filled"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

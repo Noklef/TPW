@@ -64,6 +64,27 @@ void assignWide(StdWString *s, const u16 *from, u32 n) {
     s->ptr[n] = 0;
 }
 
+// The vector's counts: (a - b) / 0x24, signed (the compiler's size() and capacity arithmetic).
+s32 count36(u32 a, u32 b) { return (s32)(a - b) / 0x24; }
+
+CountedPair *pairAt(u32 address) { return reinterpret_cast<CountedPair *>((uintptr_t)address); }
+
+// _Ucopy: [first, last) copy-constructed from to on (a null slot skipped: placement new's check). Returns the end.
+u32 ucopy(u32 first, u32 last, u32 to) {
+    for (; first != last; first += 0x24, to += 0x24)
+        if (to)
+            CountedPair_CopyCtor(pairAt(to), nullptr, pairAt(first));
+    return to;
+}
+
+// _Ufill: n copies of x constructed from to on (null slots skipped). Returns the end.
+u32 ufill(u32 to, u32 n, const CountedPair *x) {
+    for (; n; --n, to += 0x24)
+        if (to)
+            CountedPair_CopyCtor(pairAt(to), nullptr, x);
+    return to;
+}
+
 }  // namespace
 
 extern "C" {
@@ -119,5 +140,44 @@ CountedPair *__fastcall CountedPair_Assign(CountedPair *p, void *, const Counted
     assignWide(&p->wide, wide, n);
     p->value = x->value;
     return p;
+}
+
+void __fastcall CountedPairVector_InsertN(u8 *v, void *, u32 p, u32 m, const CountedPair *x) {
+    u32 &first = *reinterpret_cast<u32 *>(v + 4), &last = *reinterpret_cast<u32 *>(v + 8), &end = *reinterpret_cast<u32 *>(v + 0xc);
+    if ((u32)count36(end, last) < m) {  // a new block: the head, the copies, the tail; the old elements destroyed and their block freed
+        const u32 size = first ? (u32)count36(last, first) : 0;
+        const s32 n = (s32)(size + (m < size ? size : m));
+        const u32 s = (u32)(uintptr_t)GameHeap_Alloc((u32)(n < 0 ? 0 : n) * 0x24);
+        const u32 q = ufill(ucopy(first, p, s), m, x);
+        ucopy(p, last, q);
+        for (u32 e = first; e != last; e += 0x24)
+            CountedPair_Clear(reinterpret_cast<u8 *>((uintptr_t)e));
+        GameHeap_Free(reinterpret_cast<void *>((uintptr_t)first));
+        end = s + (u32)n * 0x24;
+        const u32 old = first ? (u32)count36(last, first) : 0;
+        first = s;
+        last = s + (m + old) * 0x24;
+        return;
+    }
+    const u32 bytes = m * 0x24;
+    if ((u32)count36(last, p) < m) {  // past the end: the tail moved up, the copies beyond it, then the old tail's slots assigned
+        ucopy(p, last, p + bytes);
+        ufill(last, m - (u32)count36(last, p), x);
+        for (u32 e = p; e != last; e += 0x24)
+            CountedPair_Assign(pairAt(e), nullptr, x);
+        last += bytes;
+        return;
+    }
+    if (m == 0)
+        return;
+    ucopy(last - bytes, last, last);  // the last m moved up, the rest shifted back (copy_backward), the gap assigned
+    for (u32 from = last - bytes, to = last; from != p;) {
+        from -= 0x24;
+        to -= 0x24;
+        CountedPair_Assign(pairAt(to), nullptr, pairAt(from));
+    }
+    for (u32 e = p; e != p + bytes; e += 0x24)
+        CountedPair_Assign(pairAt(e), nullptr, x);
+    last += bytes;
 }
 }
