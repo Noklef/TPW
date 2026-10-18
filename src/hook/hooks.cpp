@@ -139,6 +139,7 @@
 #include "../game/core/voices.h"
 #include "../game/world/litter.h"
 #include "../game/core/stdlist.h"
+#include "../game/core/codecvt.h"
 #include "../game/core/stdtree.h"
 #include "../game/core/vanillatime.h"
 #include "../game/core/vdel.h"

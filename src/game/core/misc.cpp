@@ -157,11 +157,6 @@ void __cdecl Global7c24d8_CopyScript() {
         SpriteScript_CopyFrom((s32)global<u32>(0x007c24a0), (s32)at<u32>(object, 0xc));
 }
 
-u32 __stdcall Span_Limited(u32, u32 from, u32 to, u32 limit) {
-    const u32 span = to - from;
-    return limit < span ? limit : span;
-}
-
 u32 __stdcall Obj_Positive40(const u8 *object) { return at<s32>(object, 0x40) > 0 ? 1 : 0; }
 
 void __fastcall Obj_SetOrKeepC(u8 *object, void *, u32 value) {

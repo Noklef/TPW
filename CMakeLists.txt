@@ -108,6 +108,7 @@ add_library(tpw_game STATIC
     src/game/core/vobj3.cpp
     src/game/core/vdel.cpp
     src/game/core/stdlist.cpp
+    src/game/core/codecvt.cpp
     src/game/core/savemods.cpp
     src/game/core/idmaps.cpp
     src/game/core/stdtree.cpp
