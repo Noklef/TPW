@@ -1,10 +1,13 @@
 #include "texcache.h"
 
+#include "animtex.h"
+#include "surfacepool.h"
 #include "texture.h"
 
 #include <cstdint>
 #include <initializer_list>
 
+#include "../core/gameheap.h"
 #include "../math/x87.h"
 
 namespace {
@@ -243,5 +246,43 @@ void __fastcall TexCache_Evict(u8 *cache) {
             TexCacheItem_SetFlags(owner, nullptr, 0);
         }
     }
+}
+
+u32 __fastcall TexCache_AddSurfaces(u8 *cache, void *, s32 side, s32 *made, u32 format, s32 levels) {
+    s32 count = 0;
+    bool failed = false;
+    const s32 index = SurfacePool_SideIndex(side);
+    s32 area = (s32)(at<u32>(nullptr, 0x007022d8 + 4 * at<u32>(nullptr, 0x008bd554)) * (u32)side * (u32)side);
+    if (levels > 1)
+        area = (s32)((u32)area * 4) / 3;
+    s32 &step = at<s32>(nullptr, 0x008c4898);
+    step = area;
+    s32 &budget = at<s32>(cache, 0x1860 + 4 * index);
+    s32 &entries = at<s32>(cache, 0x1800 + 4 * index);
+    if (budget >= area) {
+        do {
+            if (failed || entries >= 0x100)
+                break;
+            u8 *const device = at<u8 *>(nullptr, 0x008bd52c);
+            u8 *const surface = reinterpret_cast<u8 *(__fastcall *)(u8 *)>(at<void **>(device, 0)[4])(device);
+            if (surface) {
+                void **const slots = at<void **>(surface, 0);
+                if (!reinterpret_cast<s32(__fastcall *)(u8 *, void *, s32, s32, u32, s32)>(slots[0])(surface, nullptr, side, side, format, levels)) {
+                    reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>(slots[9])(surface, nullptr, 1);
+                    failed = true;
+                } else {
+                    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x20));
+                    at<u8 *>(cache, 4 * (entries + (index << 8))) = block ? TexCacheEntry_Ctor(block) : nullptr;
+                    at<u8 *>(at<u8 *>(cache, 4 * (entries + (index << 8))), 0) = surface;
+                    ++entries;
+                    ++count;
+                }
+            }
+            budget -= step ? step : area;
+        } while (budget >= step);
+    }
+    *made = count;
+    AnimTextures_Set(reinterpret_cast<const u32 *>(cache), reinterpret_cast<const u32 *>(cache + 0x1800));
+    return count > 0;
 }
 }

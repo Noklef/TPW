@@ -77,4 +77,14 @@ void __fastcall TexCacheItem_SetKey(u8 *item);
 // (Texture_ClearCacheFlags) and +0x1c = 0, and one with flag 0x40000000 (+8) gets 0x2000 (and 0x4000 when it had that) and goes onto
 // the cache's list at +0x18c4; then the entry's +0 has its flags set to 0 (TexCacheItem_SetFlags).
 void __fastcall TexCache_Evict(u8 *cache);
+
+// 0x58d1d0 (thiscall on the cache; side, made, format, levels; pops 0x10; name unconfirmed): new surfaces of the side while its budget
+// (+0x1860 + 4 * index, index SurfacePool_SideIndex) covers their area: the format size (0x7022d8 indexed by [0x8bd554]) * side *
+// side (32-bit), * 4 / 3 (signed) when levels > 1, kept at 0x8c4898. Each turn, unless one failed or the side has 0x100 entries
+// (+0x1800 + 4 * index): slot 4 of the render device ([0x8bd52c]) makes a surface; one made has its slot 0 (side, side, format,
+// levels) set it up: failing, its slot 9 (1) deletes it and the turns end; else a new entry (Mem_Alloc 0x20, TexCacheEntry_Ctor)
+// holding it at +0 goes at +0x400 * index + 4 * count and the count rises. The budget then loses [0x8c4898] (or the area when
+// that is 0) and the turns go on while it is at least [0x8c4898]. *made = the entries made; AnimTextures_Set(cache, cache +
+// 0x1800); returns made > 0.
+u32 __fastcall TexCache_AddSurfaces(u8 *cache, void *, s32 side, s32 *made, u32 format, s32 levels);
 }
