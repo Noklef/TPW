@@ -4484,6 +4484,7 @@ address,name,kind,confidence,notes
 0x0053c9c0,DynFaces_AddPoly,function,high,reimplemented (src/game/render/dynfaces); queues a four corner polygon dynamic face
 0x0053c1f0,DynFaces_SortTags,function,high,reimplemented (src/game/render/dynfaces); Sorts the dynamic faces' tag words by tag: quicksort with insertion runs under 7 (name unconfirmed)
 0x0053c810,DynFaces_ReleaseModels,function,low,"reimplemented (src/game/render/dynfaces); cdecl (): with 0x874fcc set, each of the three model objects (0x871f64, 0x871ee4, 0x871ed8) has its animator +0x54 slept and disposed and is freed; Dword_ClearBit0(0x763c78); the flag cleared"
+0x0053cab0,DynFaces_AddGrid,function,low,"reimplemented (src/game/render/dynfaces); cdecl (dx, dy, dz, rows, cols, row, col): the quads of the 19-wide vertex grid (0x874180 positions, 0x870ed8 colours) queued as polygon faces, offset by (dx, dy, dz), tags from 0x871d18"
 0x00458400,LightSource_Destroy,function,low,"reimplemented (src/game/render/lightsource); cdecl (light): by kind: 0 the data error box; 1 the ambient colour reset, then 2: the part +4 out of the renderer tag 0x70 list and deleted, then 3: the same for +0xc"
 0x00458580,LightSource_DestroyMain,function,low,reimplemented (src/game/render/lightsource); The main light (0x7a0b40) destroyed
 0x00458890,LightSource_SetColour,function,low,"reimplemented (src/game/render/lightsource); a light's part colour from r, g, b"

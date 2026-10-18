@@ -4,6 +4,7 @@
 
 #include "../core/gameheap.h"
 #include "../core/misc.h"
+#include "../math/x87.h"
 #include "../model/holder.h"
 
 namespace {
@@ -17,6 +18,9 @@ void Finish(u32 n, u32 tag) {
     global<u32>(kTags + 4 * n) = (n << 5) | (tag & 0x1f);
     global<u32>(kCount) = n + 1;
 }
+
+// a + b on the x87, stored as a float.
+float Sum(float a, float b) { return static_cast<float>(X87Reg(a) + X87Reg(b)); }
 
 }  // namespace
 
@@ -113,6 +117,27 @@ void __cdecl DynFaces_SortTags(u32 *tags, u32 count) {
             stack[sp] = j - 1;
             stack[sp - 1] = l;
             l = i;
+        }
+    }
+}
+
+void __cdecl DynFaces_AddGrid(float dx, float dy, float dz, s32 rows, s32 cols, s32 row, s32 col) {
+    u32 uvs[12] = {0, 0, 0, 0x3f800000, 0, 0, 0, 0x3f800000, 0, 0x3f800000, 0x3f800000, 0};  // (0, 0) (1, 0) (0, 1) (1, 1), stride 12
+    u32 face = 0;
+    for (s32 i = 0; i < cols; i++) {
+        if (rows <= 0) continue;
+        u32 offset = static_cast<u32>(i + row * 19 + col) * 12;
+        for (s32 j = rows; j != 0; j--, offset += 0xe4) {
+            const float *const p0 = reinterpret_cast<const float *>((uintptr_t)(0x00874180 + offset));
+            const float *const p1 = p0 + 3, *const p2 = p0 + 57, *const p3 = p0 + 60;
+            const float corners[12] = {Sum(p0[0], dx), Sum(p0[1], dy), Sum(dz, p0[2]), Sum(p2[0], dx), Sum(p2[1], dy), Sum(p2[2], dz),
+                                       Sum(p1[0], dx), Sum(p1[1], dy), Sum(p1[2], dz), Sum(dx, p3[0]), Sum(p3[1], dy), Sum(p3[2], dz)};
+            const u32 *const c0 = reinterpret_cast<const u32 *>((uintptr_t)(0x00870ed8 + offset));
+            const u32 *const order[4] = {c0, c0 + 57, c0 + 3, c0 + 60};
+            u32 colours[12];
+            for (int k = 0; k < 12; k++) colours[k] = X87_FloatThrough(order[k / 3][k % 3]);
+            const u32 tag = global<u32>(0x00871d18 + 4 * face++);
+            DynFaces_AddPoly(reinterpret_cast<const u32 *>(corners), tag, uvs, colours, 1);
         }
     }
 }
