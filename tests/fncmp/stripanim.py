@@ -4,7 +4,7 @@
 # FitGround: strips (count, divisors 0-8, ends of random halves mostly up to the divisors) on a footprint of up to 6 by 6 cells at a cell
 # 0-10, turned by the holder's right angle (now and then another), over a grid 24 cells wide of heights about -50..50 (now and then
 # infinite or NaN); sometimes no map or grid, or flag 2 clear.
-# Show (0x454670): shown (any nonzero) with holder.py's animator joining the grid, or hidden with misc.py's RemRect14 object leaving it,
+# Show (0x454670): shown (any nonzero) with holder.py's animator joining the grid, or hidden with holder.py's RemRect14 object leaving it,
 # as the strip owner; the holder's turn in degrees of any value, the root's translation and the model's 0x18 bytes random.
 # Grow (0x454550, frames 1, 2, 4, 8 and others) and Refresh (0x4547f0): Show's shown environment with strips for StripAnim_Apply
 # (0-3, or none at all), flags of any frame (several, none), growing or not, either direction.
@@ -17,7 +17,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 import holder  # noqa: E402
-import misc  # noqa: E402
 
 B = Bench([(0x454050, 0x45453b), (0x4547c0, 0x4547e7), (0x454670, 0x4547b6), (0x46f150, 0x475010), (0x454550, 0x454661), (0x4547f0, 0x4548eb)] + holder.RANGES, sines=256,
           hooks=holder.HOOKS)
@@ -71,8 +70,7 @@ def show_case(r, shown=None):
     if shown:
         c = holder.animator_grid(r)
     else:
-        misc.OPS = ['RemRect14']
-        c = misc.case(r)
+        c = holder.rem_rect(r, 'RemRect14')
     owner, a, b = c.args
     regions = dict(c.regions)
     regions[owner] = put(bytearray(regions[owner]), 8, 'I', SA8)

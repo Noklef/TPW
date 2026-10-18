@@ -107,4 +107,17 @@ void __cdecl Instance_Free(u8 *instance, u32 kept);
 // +0xd0 of each, when there is one, freed with its +0xcc block kept (Instance_Free) and cleared; the holder's block (Instance_FreeHolderBlock)
 // and the record block (Instance_FreeRecordBlock) freed, then the instance (Instance_Free). The count is then 0.
 void __cdecl InstanceTypes_FreeAll();
+
+// 0x45be80 (cdecl; holder, from, to): the part at the holder's +0x1c (a virtual base: the pointer plus the offset at +4 of its vtable; 0
+// for none) is removed from the renderer's grid ([0x87a6d0]) over the rectangle from.hi, from.lo to to.hi, to.lo (the positions' high
+// and low words as x and y of the corners: Renderer_RemoveInRect); then bit 0 (awake) of the holder's first dword is cleared. Returns
+// that dword.
+u32 __cdecl Obj_RemoveFromRect(u8 *object, u32 from, u32 to);
+
+// 0x4254e0 (cdecl; animator, from, to): Obj_RemoveFromRect of the animator's holder at +0x24 (from, to); then bit 14 (0x4000, in the
+// grid) of the animator's flags at +0 is cleared. Returns 1.
+u32 __cdecl Obj_RemoveRectAndClear14(u8 *object, u32 from, u32 to);
+
+// 0x424ed0 (cdecl; pointer): bit 0 of the dword (a holder's awake flag) cleared; returns 1.
+u32 __cdecl Dword_ClearBit0(u32 *p);
 }

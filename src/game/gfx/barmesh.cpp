@@ -4,7 +4,6 @@
 #include <cstring>
 
 #include "../core/gameheap.h"
-#include "../core/misc.h"
 #include "../math/x87.h"
 #include "../model/holder.h"
 #include "../ui/guidialog.h"

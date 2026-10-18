@@ -85,12 +85,6 @@ s32 __cdecl PairTable_Commit();
 // for the id; the dword at +0x1c of the entry found, or 0x17f for none.
 u32 __cdecl Table768fb8_Lookup(u32 id);
 
-// 0x45be80 (cdecl; object, from, to): the part at the object's +0x1c (a virtual base: the pointer plus the
-// offset at +4 of its vtable; 0 for none) is removed from the renderer's grid ([0x87a6d0]) over the
-// rectangle from.hi, from.lo to to.hi, to.lo (the positions' high and low words as x and y
-// of the corners: Renderer_RemoveInRect); then bit 0 of the object's first dword is cleared. Returns that dword.
-u32 __cdecl Obj_RemoveFromRect(u8 *object, u32 from, u32 to);
-
 // 0x486610 (cdecl): when the object at [0x7c24d8] has its +0xc set the sprite script slot [0x7c24a0] is
 // made a copy of that script slot (SpriteScript_CopyFrom).
 void __cdecl Global7c24d8_CopyScript();
@@ -184,9 +178,6 @@ void __fastcall Obj_KillSlot(u8 *object);
 u32 __fastcall Obj_StampAt30(u8 *object, void *, u32 word);
 u32 __fastcall Obj_StampAt5e(u8 *object, void *, u32 word);
 
-// 0x424ed0 (cdecl; pointer): bit 0 of the dword cleared; returns 1.
-u32 __cdecl Dword_ClearBit0(u32 *p);
-
 // 0x4922d0 (thiscall): +0x18 = 0 and the word +0xc = 0; returns 0.
 u32 __fastcall Obj_Clear18_0c(u8 *object);
 
@@ -239,8 +230,4 @@ u8 *__cdecl Codec631280_Init(u8 *object);
 u8 *__fastcall Class7035d8_Ctor(u8 *object);
 
 u8 *__cdecl Class7035d8_InitGlobal();
-
-// 0x4254e0 (cdecl; object, from, to): Obj_RemoveFromRect of the object at +0x24 (from, to); then bit 14 of the dword at +0 is cleared.
-// Returns 1.
-u32 __cdecl Obj_RemoveRectAndClear14(u8 *object, u32 from, u32 to);
 }

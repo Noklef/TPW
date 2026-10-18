@@ -239,16 +239,6 @@ u32 __cdecl Table768fb8_Lookup(u32 id) {
     return 0x17f;
 }
 
-u32 __cdecl Obj_RemoveFromRect(u8 *object, u32 from, u32 to) {
-    u8 *part = at<u8 *>(object, 0x1c);
-    if (part)
-        part += at<u32>(at<u8 *>(part, 0), 4);
-    Renderer_RemoveInRect(global<u8 *>(0x0087a6d0), nullptr, (s32)(from >> 16), (s32)(from & 0xffff), (s32)(to >> 16),
-                          (s32)(to & 0xffff), (u32)(uintptr_t)part);
-    at<u32>(object, 0) &= 0xfffffffe;
-    return at<u32>(object, 0);
-}
-
 void __cdecl Global7c24d8_CopyScript() {
     u8 *object = global<u8 *>(0x007c24d8);
     if (object && at<u32>(object, 0xc))
@@ -448,11 +438,6 @@ u32 __fastcall Obj_StampAt5e(u8 *object, void *, u32 word) {
     return stamp;
 }
 
-u32 __cdecl Dword_ClearBit0(u32 *p) {
-    *p &= 0xfffffffe;
-    return 1;
-}
-
 u32 __fastcall Obj_Clear18_0c(u8 *object) {
     at<u32>(object, 0x18) = 0;
     at<u16>(object, 0xc) = 0;
@@ -573,10 +558,4 @@ u8 *__fastcall Class7035d8_Ctor(u8 *object) {
 }
 
 u8 *__cdecl Class7035d8_InitGlobal() { return Class7035d8_Ctor(reinterpret_cast<u8 *>(0x00fa78e8)); }
-
-u32 __cdecl Obj_RemoveRectAndClear14(u8 *object, u32 from, u32 to) {
-    Obj_RemoveFromRect(at<u8 *>(object, 0x24), from, to);
-    at<u32>(object, 0) &= ~0x4000u;
-    return 1;
-}
 }

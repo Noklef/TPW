@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "../core/globalmem.h"
-#include "../core/misc.h"
 #include "../math/x87.h"
 #include "../model/holder.h"
 #include "queue.h"

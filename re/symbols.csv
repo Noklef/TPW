@@ -510,7 +510,7 @@ address,name,kind,confidence,notes
 0x0044ab30,PartStates_Update,function,high,"reimplemented (src/game/model/partstate); cdecl (instance): when the instance (flag 1) and its part states (+0x28, flag 1) are awake, walks the model's node tree (+0x78; 0x44ab90) from the identity matrix, filling the part entries' matrix slots"
 0x0045bdc0,Holder_IsAwake,function,high,reimplemented (src/game/model/holder); holder flag 1 (awake)
 0x0045bdd0,Holder_Sleep,function,high,reimplemented (src/game/model/holder); a holder's part leaves the renderer's slot
-0x0045be80,Obj_RemoveFromRect,function,high,reimplemented (src/game/core/misc); an object's part removed from the renderer's grid over a rectangle
+0x0045be80,Obj_RemoveFromRect,function,high,reimplemented (src/game/model/holder); an object's part removed from the renderer's grid over a rectangle
 0x008bd508,gSceneFlags,data,low,"u32; Animator_RefreshNodes sets 0x80000000 when nodes flagged 0x100 changed"
 0x00472f60,Layer_Play,function,high,"reimplemented (src/game/motion/animator); (animator, bank, entry, layer, mode, speed): switch a layer to a bank entry (0xd/0xe stop it, 0xc or unloaded empties it), resetting the channels the old block drove, carrying the overrun; returns the motion length in ms"
 0x00473270,Layer_ClearQueue,function,high,"reimplemented (src/game/motion/animator); (animator, layer index): queued bank (+0x24) = 0xc; 1 if one was queued"
@@ -2714,7 +2714,7 @@ address,name,kind,confidence,notes
 0x006d27a0,StoreThrough_ffffffff_6d27a0,function,high,reimplemented (src/game/core/fieldops); *first argument = 0xffffffff; returns that pointer
 0x006d29e0,StoreThrough_ffffffff_6d29e0,function,high,reimplemented (src/game/core/fieldops); *first argument = 0xffffffff; returns that pointer
 0x006d6c50,Init_6d6c50,function,high,"reimplemented (src/game/core/initializers); sets +0x4, +0x8, +0xc, +0x10, +0x0; returns the object"
-0x00424ed0,Dword_ClearBit0,function,high,reimplemented (src/game/core/misc); bit 0 of the dword cleared; returns 1
+0x00424ed0,Dword_ClearBit0,function,high,reimplemented (src/game/model/holder); bit 0 of the dword cleared; returns 1
 0x004922d0,Obj_Clear18_0c,function,high,reimplemented (src/game/core/misc); +0x18 and the word +0xc cleared
 0x004e1c60,Obj_Diff180_184,function,high,reimplemented (src/game/core/misc); the dword at +0x180 minus the one at +0x184
 0x004f00f0,Vtbl7099ec_SetVirtual,function,high,reimplemented (src/game/core/misc); the virtual base's vtable pointer = 0x7099ec
@@ -3308,7 +3308,7 @@ address,name,kind,confidence,notes
 0x005d3830,Array3D_Init,function,high,reimplemented (src/game/gfx/array3d); dimensions and a block of their product
 0x005d3860,Array3D_Free,function,high,reimplemented (src/game/gfx/array3d); clears the dimensions and frees the block
 0x00569c80,Deleter_Minus2c_569c80,function,high,reimplemented (src/game/core/vdel); deleting destructor of the object 0x2c bytes in
-0x004254e0,Obj_RemoveRectAndClear14,function,high,"reimplemented (src/game/core/misc); the part of the object at +0x24 removed from the grid, bit 14 cleared"
+0x004254e0,Obj_RemoveRectAndClear14,function,high,"reimplemented (src/game/model/holder); the part of the object at +0x24 removed from the grid, bit 14 cleared"
 0x0047b5b0,CountedEntries_Release,function,high,reimplemented (src/game/core/buffers); releases the counted buffers of a range of 16-byte entries
 0x004f23f0,CountedBuf_Reset,function,high,reimplemented (src/game/core/buffers); releases the counted buffer at +4 on request and clears the fields
 0x0047db20,CountedBuf_Deleter,function,high,"reimplemented (src/game/core/buffers); releases the counted buffer, clears the fields, optionally frees the object"

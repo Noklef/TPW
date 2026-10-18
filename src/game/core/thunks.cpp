@@ -16,6 +16,7 @@
 #include "../render/softrender.h"
 #include "../render/spritequeue.h"
 #include "../world/thingmsg.h"
+#include "../model/holder.h"
 #include "selectors.h"
 #include "trivial.h"
 #include "../gfx/wavelet.h"

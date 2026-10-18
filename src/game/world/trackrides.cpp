@@ -2,7 +2,6 @@
 
 #include <cstdint>
 
-#include "../core/misc.h"
 #include "../model/holder.h"
 #include "../model/partstate.h"
 #include "../motion/animator.h"
