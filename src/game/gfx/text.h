@@ -67,4 +67,9 @@ s32 __fastcall TextMetrics_FitIndex(u8 *object, void *, const u16 *text, u32 sta
 
 // 0x47f990 (thiscall; name unconfirmed): the object at +0x14, when set, answers with its virtual call 8 (a 16-bit value); 0 (AX only) when it is not set.
 u32 __fastcall TextMetrics_ForwardSlot8(u8 *object);
+
+// 0x47f940 (thiscall; value, pops 4): the text metrics' constructor: Fn_657d30 on the object (its base), then the vtable 0x6ff058
+// (0x47f990, TextMetrics_Width, 0x47fa40, TextMetrics_FitIndex) and +0x14 = value (the inner object TextMetrics_ForwardSlot8 asks).
+// Returns the object.
+u8 *__fastcall Obj_CtorValue(u8 *object, void *, u32 value);
 }

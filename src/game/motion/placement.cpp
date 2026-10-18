@@ -1,7 +1,6 @@
 // An animated object put down on the park grid: reimplementation of 0x467030 and 0x4671f0.
 #include "placement.h"
 
-#include "../core/misc.h"
 #include "../math/matrix.h"
 #include "../math/sintable.h"
 #include "../math/x87.h"

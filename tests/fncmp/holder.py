@@ -1,8 +1,8 @@
 # (With terrain/land's 0x450a80, which frees the instance behind [0x79fcb4].)
 # The holder functions of src/game/model/holder that go through the renderer (0x45bdd0 Holder_Sleep, 0x4254c0 Animator_Sleep, 0x45bc60 Holder_Destroy, 0x45bac0 Holder_Free) against the originals: a
 # holder whose part sits in a renderer's slot lists (tags 0x10, 0x20, 0x70) or not; an animator holding such a holder; and a holder whose part has a vtable (a recorder) giving the
-# virtual base offset; a holder disposed of (and the owner that holds it); a holder added to the renderer's grid (grid_masks.py's environment, the part reached through its virtual base offset); a user of the holder behind [0x79fcb4] taking it out by its rectangle (misc.py's grid) or by sleeping, and putting it back (Wake: the slot list; Acquire / RideAcquire: the grid rectangle or Wake).
-# usage: holder.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Sleep,Animator,Destroy,Release,Grid,Dispose,Owner,AnimGrid,Children,Wake,Acquire,RideAcquire,AddObj,SetPart,Unlink,AnimDispose,InstDispose,Free,InstFree,FreeAll,TerrainFree)
+# virtual base offset; a holder disposed of (and the owner that holds it); a holder added to the renderer's grid (grid_masks.py's environment, the part reached through its virtual base offset); a user of the holder behind [0x79fcb4] taking it out by its rectangle (rem_rect()'s grid) or by sleeping, and putting it back (Wake: the slot list; Acquire / RideAcquire: the grid rectangle or Wake).
+# usage: holder.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Sleep,Animator,Destroy,Release,Grid,Dispose,Owner,AnimGrid,Children,Wake,Acquire,RideAcquire,AddObj,SetPart,Unlink,AnimDispose,InstDispose,Free,InstFree,FreeAll,TerrainFree,RemRect,RemRect14,Clear0)
 import os
 import struct
 import sys
@@ -11,11 +11,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import grid_masks  # noqa: E402
-import misc  # noqa: E402
 import vobj3  # noqa: E402
 from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put, vtable  # noqa: E402
 
-RANGES = [(0x425490, 0x4254c0), (0x43eac0, 0x43eb00), (0x455a50, 0x455ae0), (0x45ba00, 0x45ba30), (0x4254c0, 0x4254f0), (0x45bc60, 0x45bcb0), (0x45bdd0, 0x45be90), (0x45be80, 0x45bed0), (0x576540, 0x5765d0), (0x5766e0, 0x57681a), (0x5d8820, 0x5d8870), (0x45bcb0, 0x45bd10), (0x576620, 0x5766f0), (0x576270, 0x576320), (0x5e2a80, 0x5e2b80), (0x67acb0, 0x67acb1), (0x590730, 0x590750), (0x5da3c0, 0x5da3c1), (0x45bd00, 0x45bd30), (0x576410, 0x576550), (0x5d8130, 0x5d8190), (0x5d87d0, 0x5d8820), (0x56b2f0, 0x56b340), (0x48f5c0, 0x48f650),
+RANGES = [(0x424ed0, 0x424ee9), (0x425490, 0x4254c0), (0x43eac0, 0x43eb00), (0x455a50, 0x455ae0), (0x45ba00, 0x45ba30), (0x4254c0, 0x4254f0), (0x45bc60, 0x45bcb0), (0x45bdd0, 0x45be90), (0x45be80, 0x45bed0), (0x576540, 0x5765d0), (0x5766e0, 0x57681a), (0x5d8820, 0x5d8870), (0x45bcb0, 0x45bd10), (0x576620, 0x5766f0), (0x576270, 0x576320), (0x5e2a80, 0x5e2b80), (0x67acb0, 0x67acb1), (0x590730, 0x590750), (0x5da3c0, 0x5da3c1), (0x45bd00, 0x45bd30), (0x576410, 0x576550), (0x5d8130, 0x5d8190), (0x5d87d0, 0x5d8820), (0x56b2f0, 0x56b340), (0x48f5c0, 0x48f650),
            (0x43bd20, 0x43bdc0), (0x44b270, 0x44b2c0), (0x44b4c0, 0x44b520), (0x475550, 0x4755a0), (0x5f5680, 0x5f56a0), (0x4254f0, 0x4255c0), (0x455ae0, 0x455c00),
            (0x45bac0, 0x45bbbc), (0x57a100, 0x57a258), (0x44aae0, 0x44ab30),
            (0x463db0, 0x463ec5), (0x463ed0, 0x464140), (0x452540, 0x452560), (0x46b3b0, 0x46b3d0), (0x468200, 0x468246), (0x45baa0, 0x45bab4),
@@ -67,9 +66,8 @@ def destroy(r):
 
 
 def release(r):
-    if r.random() < 0.5:   # the rectangle path: misc.py's renderer grid
-        misc.OPS = ['RemRect']
-        c = misc.case(r)
+    if r.random() < 0.5:   # the rectangle path: rem_rect()'s renderer grid
+        c = rem_rect(r, 'RemRect')
         regions, lo, hi, flags = dict(c.regions), c.args[1], c.args[2], 0x4000 | r.getrandbits(32)
     else:                  # the sleep path: a holder in the renderer's slot lists
         c = sleep(r)
@@ -247,7 +245,7 @@ def holder_at(r, base, owner):   # a holder as destroy()'s at base (its owner at
     return obj, base + 0x100 + offset
 
 
-def renderer_env(r, parts):   # [0x87a6d0]'s renderer with both a grid (misc.py's RemRect) and the slot lists of tags 0x10, 0x20, 0x70 (sleep()'s), their nodes the given parts or others
+def renderer_env(r, parts):   # [0x87a6d0]'s renderer with both a grid (rem_rect()'s) and the slot lists of tags 0x10, 0x20, 0x70 (sleep()'s), their nodes the given parts or others
     width, height = r.choice([(4, 3), (3, 3), (2, 5), (6, 2)])
     renderer = bytearray(r.bytes(0x100))
     put(renderer, 0x38, 'ii', width, height)
@@ -411,7 +409,41 @@ def terrain_free(r):   # 0x450a80: InstFree's instance behind [0x79fcb4] or none
     return Call(0x450a80, [], regions, conv='c', ret='v')
 
 
-CASES = {'Sleep': sleep, 'Animator': animator, 'Destroy': destroy, 'Release': release, 'Grid': add_to_grid, 'Dispose': dispose, 'Owner': dispose_owner, 'AnimGrid': animator_grid, 'Children': children, 'Wake': wake, 'Acquire': lambda r: acquire(r, False), 'RideAcquire': lambda r: acquire(r, True), 'AddObj': add_obj, 'SetPart': set_part, 'Unlink': unlink, 'AnimDispose': animator_dispose, 'InstDispose': instance_dispose, 'Free': holder_free, 'InstFree': instance_free, 'FreeAll': free_all, 'TerrainFree': terrain_free}
+def rem_rect(r, op):   # 0x45be80 (RemRect) / 0x4254e0 (RemRect14): a holder in the renderer's grid (its part behind a virtual base offset) leaving it by a rectangle
+    obj = bytearray(r.bytes(0x400))
+    regions = {RAM: obj}
+    width, height = r.choice([(4, 3), (3, 3), (2, 5), (6, 2)])
+    off = r.choice([0, 0x10, 0x20])
+    put(obj, 0, 'I', r.choice([0, 1, 1, 0xffffffff, r.getrandbits(32)]))
+    put(obj, 0x1c, 'I', r.choice([0, RAM + 0x100, RAM + 0x100]))
+    put(obj, 0x100, 'I', RAM + 0x300)
+    put(obj, 0x304, 'I', off)
+    renderer = bytearray(r.bytes(0x100))
+    put(renderer, 0x38, 'ii', width, height)
+    put(renderer, 0x10, 'I', RAM + 0x1200)
+    put(renderer, 4, 'I', 0)
+    put(renderer, 0xc, 'I', 7)
+    grid, nodes = bytearray(4 * width * height + 16), bytearray(0x100)
+    part = RAM + 0x100 + off
+    for c in range(width * height):
+        if r.random() < 0.6:
+            put(nodes, 8 * c, 'II', part if r.random() < 0.7 else r.getrandbits(32), 0)
+            put(grid, 4 * c, 'I', RAM + 0x1400 + 8 * c)
+    regions.update({0x87a6d0: put(bytearray(r.bytes(0x10)), 0, 'I', RAM + 0x1000), RAM + 0x1000: renderer,
+                    RAM + 0x1200: grid, RAM + 0x1400: nodes, 0x8bd500: r.bytes(0x20)})
+    pos = lambda: (r.randrange(-1, 7) & 0xffff) << 16 | (r.randrange(-1, 6) & 0xffff)
+    if op == 'RemRect14':  # the object whose part at +0x24 is taken out of the grid
+        regions[RAM + 0x1800] = put(put(bytearray(r.bytes(0x40)), 0x24, 'I', RAM), 0, 'I', r.choice([0, 0x4000, 0xffffffff, r.getrandbits(32)]))
+        return Call(0x4254e0, [RAM + 0x1800, pos(), pos()], regions, ret='a')
+    return Call(0x45be80, [RAM, pos(), pos()], regions, ret='a')
+
+
+def clear0(r):   # 0x424ed0: bit 0 of a dword cleared
+    return Call(0x424ed0, [RAM + 0x10], {RAM: r.bytes(0x400)}, ret='a')
+
+
+CASES = {'Sleep': sleep, 'Animator': animator, 'Destroy': destroy, 'Release': release, 'Grid': add_to_grid, 'Dispose': dispose, 'Owner': dispose_owner, 'AnimGrid': animator_grid, 'Children': children, 'Wake': wake, 'Acquire': lambda r: acquire(r, False), 'RideAcquire': lambda r: acquire(r, True), 'AddObj': add_obj, 'SetPart': set_part, 'Unlink': unlink, 'AnimDispose': animator_dispose, 'InstDispose': instance_dispose, 'Free': holder_free, 'InstFree': instance_free, 'FreeAll': free_all, 'TerrainFree': terrain_free,
+         'RemRect': lambda r: rem_rect(r, 'RemRect'), 'RemRect14': lambda r: rem_rect(r, 'RemRect14'), 'Clear0': clear0}
 
 
 def case(r):

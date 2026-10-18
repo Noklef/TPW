@@ -32,6 +32,14 @@ void __cdecl CoasterTypes_FreeAll();
 // 0x100 in +0; then 0xa0, 0x10 unless +0x3af8, and 8 (clearing 0x10) when +0x3af4. Then 1.
 u32 __cdecl CoasterType_Setup(u8 *coaster, u32 id, const u8 *source);
 
+// 0x42fd90 (cdecl (holder, unused, id, source); name unconfirmed; CoasterType_Load 0x42fad0 calls it): a new coaster type, a
+// zeroed GlobalMem block of 0x35c bytes added to the table 0x790b08 (count 0x790fe8), with the holder (+4), its defaults (floats
+// and counts across +8..+0x358, the two sets of five {0, 1, 1, 0} at +0x178 and +0x298, +0x9c / +0xa0 from 0x74cac8, the roots
+// of the doubles 0x6fde80 (+0x14c, +0x26c), 0x6fde88 (+0x150) and 0x6fde90 (+0x270), flags +0x1c8 0x4004), then CoasterType_Setup
+// from the source (its result unused) and c's (+0x1c) texture path +0xc the string 0x74cb98. A track type balance file (vtable
+// 0x6fd8b0) is laid out on the stack first and released at the end, used for nothing (sic). Returns the type.
+u8 *__cdecl CoasterType_Create(u32 holder, u32 unused, u32 id, const u8 *source);
+
 // 0x42eb70: for each of source + 0x3a20 descriptions (0xbc bytes at source + 0x38a8; two fit
 // before the count; the first fills the control at coaster + 0xa8, every later one the one at
 // coaster + 0x1c8): 0 unless the description has a name (+0), +4 and a float +0xc that are

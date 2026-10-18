@@ -4,6 +4,8 @@
 
 #include "../files/file.h"
 #include "../math/x87.h"
+#include "accessors.h"
+#include "initializers.h"
 #include "thunks.h"
 
 namespace {
@@ -189,5 +191,21 @@ u32 __cdecl Clocks_RealNowLessPauses() {
         pausedFor += now - pauseStart;
     }
     return now - pausedFor;
+}
+
+u32 __fastcall Obj_AdvanceUnless30(u8 *object) {
+    u32 result = Obj_Get30(object);
+    if (!result) {
+        result = u32_at(object, 0x40);
+        u32_at(object, 0x3c) += result;
+    }
+    return result;
+}
+
+u8 *__fastcall Obj_CtorOne(u8 *object) {
+    Init_402f30(object);
+    u32_at(object, 0x20) = 0;
+    u32_at(object, 0x24) = 0x3ff00000;
+    return object;
 }
 }

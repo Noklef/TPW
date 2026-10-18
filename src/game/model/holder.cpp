@@ -5,7 +5,6 @@
 #include "../math/matrix.h"
 #include "../render/renderer.h"
 #include "../core/vcall.h"
-#include "../core/misc.h"
 #include "../core/globalmem.h"
 #include "objmodel.h"
 #include "partstate.h"
@@ -282,5 +281,26 @@ void __cdecl InstanceTypes_FreeAll() {
         Instance_Free(instance, 0);
     }
     global<u32>(0x007a439c) = 0;
+}
+
+u32 __cdecl Obj_RemoveFromRect(u8 *object, u32 from, u32 to) {
+    u8 *part = at<u8 *>(object, 0x1c);
+    if (part)
+        part += at<u32>(at<u8 *>(part, 0), 4);
+    Renderer_RemoveInRect(global<u8 *>(0x0087a6d0), nullptr, (s32)(from >> 16), (s32)(from & 0xffff), (s32)(to >> 16),
+                          (s32)(to & 0xffff), (u32)(uintptr_t)part);
+    at<u32>(object, 0) &= 0xfffffffe;
+    return at<u32>(object, 0);
+}
+
+u32 __cdecl Obj_RemoveRectAndClear14(u8 *object, u32 from, u32 to) {
+    Obj_RemoveFromRect(at<u8 *>(object, 0x24), from, to);
+    at<u32>(object, 0) &= ~0x4000u;
+    return 1;
+}
+
+u32 __cdecl Dword_ClearBit0(u32 *p) {
+    *p &= 0xfffffffe;
+    return 1;
 }
 }

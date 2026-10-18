@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "gameclock.h"
 #include "gameheap.h"
 #include "stdlist.h"
 #include "initializers.h"
@@ -146,4 +147,15 @@ void __fastcall NamedObjects_AddName(u8 *self, void *, const String *name) {
 }
 
 void __cdecl NamedObjects_StaticDtor() { NamedObjects_Dtor(reinterpret_cast<u8 *>(0x00786b68)); }
+
+u32 __fastcall Flags7a1a14_Update(const u8 *object) {
+    u32 &flags = *reinterpret_cast<u32 *>((uintptr_t)0x007a1a14);
+    const u32 bit = (flags >> 3) & 1;
+    Obj_AdvanceUnless30(reinterpret_cast<u8 *>(0x00785970));
+    *reinterpret_cast<u32 *>((uintptr_t)0x007477e4) = bit;
+    if (!at<u32>(object, 0x18))
+        return 0;
+    flags |= 2;
+    return flags;
+}
 }

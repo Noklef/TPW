@@ -34,4 +34,9 @@ void __cdecl NamedObjects_StaticDtor();
 // sic: the head's object is read before the head is tested, so a count with no head faults.
 struct String;
 void __fastcall NamedObjects_AddName(u8 *self, void *, const String *name);
+
+// 0x409260 (thiscall on the registry's owner 0x786b68, through 0x40f220, once a frame): Obj_AdvanceUnless30 on the game clock 0x785970;
+// 0x7477e4 = bit 3 of the flags 0x7a1a14; and when the owner's dword at +0x18 is set bit 1 of the flags is set. Returns the flags then,
+// else 0.
+u32 __fastcall Flags7a1a14_Update(const u8 *object);
 }

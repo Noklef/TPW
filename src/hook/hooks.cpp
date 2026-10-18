@@ -266,6 +266,7 @@
 #include "../game/model/scratch.h"
 #include "../game/model/slots.h"
 #include "../game/model/bounds.h"
+#include "../game/model/heightmap.h"
 #include "../game/model/m3d2.h"
 #include "../game/model/objmodel.h"
 #include "../game/model/stripanim.h"
@@ -1459,6 +1460,7 @@ const Hook kHooks[] = {
     {"Coaster_IsPastEnd",         0x0043c080, (void *)&Coaster_IsPastEnd, {0x8b, 0x44, 0x24, 0x04, 0xd9}},
     {"Coaster_FindZone",          0x0043e9c0, (void *)&Coaster_FindZone, {0x51, 0x8b, 0x44, 0x24, 0x08}},
     {"CoasterSearch_Reset",       0x0043ea90, (void *)&CoasterSearch_Reset, {0x8b, 0x44, 0x24, 0x04, 0x33}},
+    {"Coaster_BuildNodes",        0x00440c10, (void *)&Coaster_BuildNodes, {0x55, 0x8b, 0xec, 0x81, 0xec}},
     {"Keys_MergeSamples",         0x0043f030, (void *)&Keys_MergeSamples, {0x8b, 0x54, 0x24, 0x0c, 0x83}},
     {"CoasterList_Append",        0x0043fcd0, (void *)&CoasterList_Append, {0xa1, 0x18, 0x22, 0x79, 0x00}},
     {"CoasterLink_Find",          0x0043b050, (void *)&CoasterLink_Find, {0xa1, 0xe0, 0x0f, 0x79, 0x00}},
@@ -3340,8 +3342,12 @@ const Hook kHooks[] = {
     {"Options_LoadFile",          0x00424930, (void *)&Options_LoadFile, {0x83, 0xec, 0x0c, 0x56, 0x57}},
     {"Graphics_Tier",             0x0041aa40, (void *)&Graphics_Tier, {0xe8, 0x4b, 0xfb, 0x02, 0x00}},
     {"Options_LoadMiscFile",      0x00424a60, (void *)&Options_LoadMiscFile, {0x83, 0xec, 0x0c, 0x8d, 0x54}},
+    {"Options_CheckGraphicsMode", 0x00423bc0, (void *)&Options_CheckGraphicsMode, {0x6a, 0xff, 0x68, 0xf6, 0x86}},
+    {"Options_LoadBalanceFiles",  0x0045b1f0, (void *)&Options_LoadBalanceFiles, {0x6a, 0xff, 0x68, 0x30, 0x89}},
+    {"Options_NoteChanges",       0x00423740, (void *)&Options_NoteChanges, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"Coaster_SetTrainCount",     0x0043ba20, (void *)&Coaster_SetTrainCount, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
     {"CoasterTypes_FreeAll",      0x00430ad0, (void *)&CoasterTypes_FreeAll, {0x83, 0xec, 0x0c, 0xa1, 0xe8}},
+    {"CoasterType_Create",        0x0042fd90, (void *)&CoasterType_Create, {0x6a, 0xff, 0x64, 0xa1, 0x00}},
     {"Class6fd9d8_Dtor",          0x0041c8b0, (void *)&Class6fd9d8_Dtor, {0x6a, 0xff, 0x68, 0x56, 0x80}},
     {"Wstreambuf_Read",           0x004f0700, (void *)&Wstreambuf_Read, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
     {"Wstreambuf_Write",          0x004f07c0, (void *)&Wstreambuf_Write, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
@@ -3572,6 +3578,7 @@ const Hook kHooks[] = {
     {"CoasterEdit_ToggleAdjustE0", 0x00441e80, (void *)&CoasterEdit_ToggleAdjustE0, {0xa1, 0xec, 0x0f, 0x79, 0x00}},
     {"CoasterEdit_ToggleAdjustAngles", 0x00442010, (void *)&CoasterEdit_ToggleAdjustAngles, {0x8b, 0x15, 0x58, 0xc6, 0x79}},
     {"CoasterEdit_ToggleAdjust",  0x004421e0, (void *)&CoasterEdit_ToggleAdjust, {0xa1, 0xec, 0x0f, 0x79, 0x00}},
+    {"CoasterEdit_ToggleDrag",    0x00441a00, (void *)&CoasterEdit_ToggleDrag, {0x51, 0x56, 0x8b, 0x35, 0xec}},
     {"Thing_SpriteChoice",        0x004fcac0, (void *)&Thing_SpriteChoice, {0x51, 0x56, 0x8b, 0xf1, 0x6a}},
     {"Thing_IngredientRecord",    0x004e2200, (void *)&Thing_IngredientRecord, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
     {"Class701378_Ctor",          0x005667d0, (void *)&Class701378_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},
@@ -4049,6 +4056,8 @@ const Hook kHooks[] = {
     {"LightSource_SetColour",     0x00458890, (void *)&LightSource_SetColour, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"LightPart_SetColour",       0x00458350, (void *)&LightPart_SetColour, {0x56, 0x8b, 0xf1, 0x57, 0xb9}},
     {"LightSource_SetColourScaled", 0x004587e0, (void *)&LightSource_SetColourScaled, {0x51, 0x8b, 0x4c, 0x24, 0x08}},
+    {"LightSource_Create",        0x00457e70, (void *)&LightSource_Create, {0x6a, 0xff, 0x68, 0x1e, 0x88}},
+    {"LightSource_CreateMain",    0x004584d0, (void *)&LightSource_CreateMain, {0x51, 0xd9, 0x05, 0x30, 0x0b}},
     {"ClipCodes_Compute",         0x00561bc0, (void *)&ClipCodes_Compute, {0x55, 0x8b, 0xec, 0x51, 0x53}},
     {"ClipCodes_Run",             0x00570d60, (void *)&ClipCodes_Run, {0x8b, 0x44, 0x24, 0x18, 0x8b}},
     {"ClipCodes_InitTable",       0x00561840, (void *)&ClipCodes_InitTable, {0xa1, 0x20, 0x9a, 0x87, 0x00}},
@@ -4071,6 +4080,8 @@ const Hook kHooks[] = {
     {"Model_TexCoords",           0x00581410, (void *)&Model_TexCoords, {0x83, 0xec, 0x40, 0x8b, 0x44}},
     {"Vertex_SetTexCoords",       0x00566690, (void *)&Vertex_SetTexCoords, {0xd9, 0x44, 0x24, 0x08, 0x8b}},
     {"GraphicsSettings_Apply",    0x0044d8f0, (void *)&GraphicsSettings_Apply, {0xa1, 0x78, 0x58, 0x78, 0x00}},
+    {"GraphicsSettings_Load",     0x0044dc60, (void *)&GraphicsSettings_Load, {0x6a, 0xff, 0x68, 0x88, 0x87}},
+    {"GraphicsSettings_LoadForOptions", 0x0044de20, (void *)&GraphicsSettings_LoadForOptions, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"TextPart_Ctor",             0x0048f6a0, (void *)&TextPart_Ctor, {0x6a, 0xff, 0x68, 0xf8, 0x97}},
     {"TextPart_Dtor",             0x0048f760, (void *)&TextPart_Dtor, {0x6a, 0xff, 0x68, 0x2e, 0x98}},
     {"TextPart_DeletingDtor",     0x0048f740, (void *)&TextPart_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
@@ -4225,6 +4236,7 @@ const Hook kHooks[] = {
     {"View_FloorAt",              0x004511a0, (void *)&View_FloorAt, {0xa1, 0x18, 0xfb, 0x79, 0x00}},
     {"M3D2_DataErrorBox",         0x0046f100, (void *)&M3D2_DataErrorBox, {0x8b, 0x44, 0x24, 0x04, 0x6a}},
     {"ObjModel_Unload",           0x0057a100, (void *)&ObjModel_Unload, {0x53, 0x55, 0x56, 0x57, 0x8b}},
+    {"HeightMap_Rasterize",       0x00451e20, (void *)&HeightMap_Rasterize, {0x83, 0xec, 0x70, 0x53, 0x55}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},

@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "../core/initializers.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -134,4 +136,12 @@ THINGMSG_TYPE(1a)
 THINGMSG_TYPE(1b)
 THINGMSG_TYPE(1c)
 #undef THINGMSG_TYPE
+
+u8 *__fastcall Obj_CtorPart8(u8 *object, void *, u32 value) {
+    at<u32>(object, 4) = 0;
+    at<u32>(object, 0) = 0x006fd7b8;
+    Fn_59b550(object + 8, nullptr, value);
+    at<u32>(object, 0) = 0x006fd7b0;
+    return object;
+}
 }

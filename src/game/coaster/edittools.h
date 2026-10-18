@@ -32,4 +32,15 @@ u32 __cdecl CoasterEdit_ToggleAdjustAngles();
 // 0x4421e0 (cdecl; name unconfirmed): only with a game whose +0x40 is set and a piece whose definition lacks flag 2 (else 1):
 // CoasterEdit_ToggleAdjustF8 when the piece's +8 has flag 0x40, else CoasterEdit_ToggleAdjustAngles.
 u32 __cdecl CoasterEdit_ToggleAdjust();
+
+// 0x441a00 (cdecl; name unconfirmed): the drag tool (tool 1), only with a game whose +0x40 is set, for type byte flag 0x20 (or with the
+// tool on: then a missing piece faults, sic). Taken off, the piece's +0xe8 is recorded (0x39 with the handle), and when the piece's +8
+// has 0x40 so is that of its neighbour (+0x64 with 0x80, else +0x68) when it has a definition (the word's high half that definition's,
+// sic). With the tool on: 0x79c630 / 0x79c634 as the adjusters', the piece's Car_TravelCost (the game, no base, no positions) kept at
+// 0x79c698, the value +0xe8 at 0x79c6fc / 0x79c6d4, its range from CarType_Unlerp of the type's +0x68 (0 when not above 0) to +0xe8 plus
+// CarType_Scale of the type's +0x6c less the train's length (Car_TrainLength of the definition's car +0x30 + 4 * [+0x30]), its step
+// 0.005, flag 0x400 and the highlight shown. With the tool off (or another tool on) and 0x785a2c clear, the money of [0x7cf83c] is
+// credited the kept cost (__ftol) and debited Float_RoundUp of the cost now, and the kept cost cleared; then flags 0x1e00 are cleared
+// and the highlight hidden. Returns 1.
+u32 __cdecl CoasterEdit_ToggleDrag();
 }

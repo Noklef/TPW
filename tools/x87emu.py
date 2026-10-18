@@ -586,6 +586,8 @@ class Emu:
                     break
         elif mn in ('STD', 'CLD'):
             self.df = mn == 'STD'
+        elif mn == 'NOP':   # (padding some code jumps through: 0x4417eb)
+            pass
         elif mn == 'XCHG':
             a, b = self.get(o[0]), self.get(o[1])
             self.put(o[0], b)

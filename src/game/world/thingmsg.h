@@ -33,6 +33,9 @@ u8 *__fastcall ThingMsg19_Ctor(u8 *msg, void *, u32 a, u32 b, u8 c, u32 d, u32 e
 u8 *__fastcall ThingMsg1a_Ctor(u8 *msg, void *, u32 a, u32 b, u16 c, u16 d);  // 0x40f840, 0x6fd838
 u8 *__fastcall ThingMsg1b_Ctor(u8 *msg, void *, u16 a);                    // 0x40f900, 0x6fd848
 u8 *__fastcall ThingMsg1c_Ctor(u8 *msg, void *, u16 a);                    // 0x40f8b0, 0x6fd840
+// 0x40f300 (value, pops 4): message 05 (Type 0x40f2d0): +4 = 0 and the base vtable 0x6fd7b8, then the record at +8 copied from the one
+// the value points at (Fn_59b550), then the vtable 0x6fd7b0. Returns msg.
+u8 *__fastcall Obj_CtorPart8(u8 *object, void *, u32 value);
 
 // The Type functions (thiscall, this unused): the message's number.
 u32 __fastcall ThingMsg02_Type(const u8 *msg);  // 0x40f260

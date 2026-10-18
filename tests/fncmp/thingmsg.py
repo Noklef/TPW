@@ -1,5 +1,5 @@
 # The thing messages' constructors and Type functions (src/game/world/thingmsg: 0x40f240-0x40f920)
-# against the originals, each built over junk with junk arguments (the narrow ones' high bits too).
+# against the originals, each built over junk with junk arguments (the narrow ones' high bits too); message 05's 0x40f300 with a record to copy.
 # usage: thingmsg.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import sys
@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM  # noqa: E402
 
-B = Bench([(0x40f240, 0x40f926)])
+B = Bench([(0x40f240, 0x40f926), (0x59b550, 0x59b590)])
 MSG = RAM + 0x100
 # address: argument count
 CTORS = {0x40f290: 1, 0x40f240: 2, 0x40f330: 1, 0x40f380: 1, 0x40f3d0: 1, 0x40f420: 1, 0x40f470: 1, 0x40f4c0: 0,
@@ -18,6 +18,8 @@ TYPES = [0x40f260, 0x40f2d0, 0x40f350, 0x40f3a0, 0x40f3f0, 0x40f440, 0x40f490, 0
 
 
 def case(r):
+    if r.random() < 0.08:   # 0x40f300: message 05, its record at +8 copied from the one the argument points at
+        return Call(0x40f300, [MSG, RAM + 0x200 + r.choice([0, 4, 0x20])], {RAM: r.bytes(0x400)}, conv='t', ret='a')
     if r.random() < 0.3:
         return Call(r.choice(TYPES), [MSG], {RAM: r.bytes(0x400)}, conv='t', ret='a')
     at = r.choice(list(CTORS))

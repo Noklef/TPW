@@ -343,7 +343,7 @@ address,name,kind,confidence,notes
 0x005b0d60,BalanceFile_GetValues,function,high,reimplemented (src/game/core/accessors); the address of the part at 0x8
 0x00451640,HeightMap_LoadOrBuild,function,high,"loads <model>.hmp (magic 0xab1e0003, 0x00640005), rebuilds and rewrites it when missing or the footprint differs; result at model+0xcc"
 0x00451880,HeightMap_Build,function,high,"allocates header + w*h*0x1b bytes; 5x5 cells per tile, tile max heights, footprint flags"
-0x00451e20,HeightMap_Rasterize,function,medium,"rasterises model triangles into the cell grid; height byte = y*2.55, y clamped to [0,100)"
+0x00451e20,HeightMap_Rasterize,function,medium,"reimplemented (src/game/model/heightmap); cdecl (node, unused, matrix by value, grid, hit, unused, unused, clipped): the model tree's vertices clamped into the grid and its faces rasterised as heights (y*2.55) into the grid's cells; 1 when nothing went past the grid"
 0x00550e00,Scape_LoadObjects,function,high,"reads Scape.omp OBJ_ records: type 1 point sound, 2 particle effect, 3 area sound; coords /1024"
 0x0051bfc0,Sound_PlayAt,function,medium,"(owner, category, sound, x, y, z): posts a positional play command via the sound manager vtable +8"
 0x0051c130,Sound_PlayAtRange,function,medium,"Sound_PlayAt with an extra range float"
@@ -510,7 +510,7 @@ address,name,kind,confidence,notes
 0x0044ab30,PartStates_Update,function,high,"reimplemented (src/game/model/partstate); cdecl (instance): when the instance (flag 1) and its part states (+0x28, flag 1) are awake, walks the model's node tree (+0x78; 0x44ab90) from the identity matrix, filling the part entries' matrix slots"
 0x0045bdc0,Holder_IsAwake,function,high,reimplemented (src/game/model/holder); holder flag 1 (awake)
 0x0045bdd0,Holder_Sleep,function,high,reimplemented (src/game/model/holder); a holder's part leaves the renderer's slot
-0x0045be80,Obj_RemoveFromRect,function,high,reimplemented (src/game/core/misc); an object's part removed from the renderer's grid over a rectangle
+0x0045be80,Obj_RemoveFromRect,function,high,reimplemented (src/game/model/holder); an object's part removed from the renderer's grid over a rectangle
 0x008bd508,gSceneFlags,data,low,"u32; Animator_RefreshNodes sets 0x80000000 when nodes flagged 0x100 changed"
 0x00472f60,Layer_Play,function,high,"reimplemented (src/game/motion/animator); (animator, bank, entry, layer, mode, speed): switch a layer to a bank entry (0xd/0xe stop it, 0xc or unloaded empties it), resetting the channels the old block drove, carrying the overrun; returns the motion length in ms"
 0x00473270,Layer_ClearQueue,function,high,"reimplemented (src/game/motion/animator); (animator, layer index): queued bank (+0x24) = 0xc; 1 if one was queued"
@@ -1810,6 +1810,7 @@ address,name,kind,confidence,notes
 0x0043c080,Coaster_IsPastEnd,function,high,"reimplemented (src/game/coaster/nodes); cdecl (coaster, x): x >= the track length (+0xa8), 0 for NaN"
 0x0043e9c0,Coaster_FindZone,function,high,"reimplemented (src/game/coaster/nodes); cdecl (owner, unused, pos, t): +0x20 of the first of the first count-1 boxes (0x2c bytes at +0x78) holding t and pos[1..3], else the last box's"
 0x0043ea90,CoasterSearch_Reset,function,high,"reimplemented (src/game/coaster/nodes); cdecl (search): seven zeros, then FLT_MAX at +0x1c"
+0x00440c10,Coaster_BuildNodes,function,low,"reimplemented (src/game/coaster/nodes); cdecl (coaster): the coaster's 0x38-byte nodes (+0x9c, count +0xa4) sampled every +0xac along the track's spline, with their angles; sized first (+0x98, GlobalMem)"
 0x0043f030,Keys_MergeSamples,function,high,"reimplemented (src/game/coaster/keys); cdecl (a, b, keys, out, span): n samples start + i/(n-1)*span (start at 0x79240c; n = **(b+0x90) when a == b, else 11) with the key times (0x10-byte keys) between them; returns the count written"
 0x0043fcd0,CoasterList_Append,function,high,"reimplemented (src/game/coaster/lists); cdecl (list): links the next 0x10-byte pool item (0x79c604) at the list tail, giving the list a mesh slot (counter 0x7925c8) first if it has none; returns the item"
 0x0062fe00,RowReader_Decode,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); rows read ahead (vtable +0 Begin, +4 ReadRow), converted if the formats differ, copied top down or bottom up; a failed row read ends it as success"
@@ -2717,7 +2718,7 @@ address,name,kind,confidence,notes
 0x006d27a0,StoreThrough_ffffffff_6d27a0,function,high,reimplemented (src/game/core/fieldops); *first argument = 0xffffffff; returns that pointer
 0x006d29e0,StoreThrough_ffffffff_6d29e0,function,high,reimplemented (src/game/core/fieldops); *first argument = 0xffffffff; returns that pointer
 0x006d6c50,Init_6d6c50,function,high,"reimplemented (src/game/core/initializers); sets +0x4, +0x8, +0xc, +0x10, +0x0; returns the object"
-0x00424ed0,Dword_ClearBit0,function,high,reimplemented (src/game/core/misc); bit 0 of the dword cleared; returns 1
+0x00424ed0,Dword_ClearBit0,function,high,reimplemented (src/game/model/holder); bit 0 of the dword cleared; returns 1
 0x004922d0,Obj_Clear18_0c,function,high,reimplemented (src/game/frontend/helpbg); +0x18 and the word +0xc cleared
 0x004e1c60,Obj_Diff180_184,function,high,reimplemented (src/game/world/object); the dword at +0x180 minus the one at +0x184
 0x004f00f0,Vtbl7099ec_SetVirtual,function,high,reimplemented (src/game/core/vtables); the virtual base's vtable pointer = 0x7099ec
@@ -2727,22 +2728,22 @@ address,name,kind,confidence,notes
 0x0056b630,Table879d08_Fill,function,high,reimplemented (src/game/core/globals); the sixteen dwords at 0x879d08 = 16 down to 1
 0x0056b830,Obj_Set30_34,function,high,reimplemented (src/game/render/worldview); +0x30 = a and +0x34 = b
 0x004f6020,Wstreambuf_InitPointers,function,high,"reimplemented (src/game/core/streambuf); the wide streambuf pointer slots pointed at its own fields, which are zeroed"
-0x00402ef0,Obj_AdvanceUnless30,function,high,reimplemented (src/game/core/misc); +0x3c advances by +0x40 unless +0x30 is set
-0x004032b0,Obj_CtorOne,function,high,reimplemented (src/game/core/misc); Init_402f30 then the double 1.0 at +0x20
-0x0047f940,Obj_CtorValue,function,high,"reimplemented (src/game/core/misc); Fn_657d30, vtable 0x6ff058 and +0x14 = value"
+0x00402ef0,Obj_AdvanceUnless30,function,high,reimplemented (src/game/core/gameclock); +0x3c advances by +0x40 unless +0x30 is set
+0x004032b0,Obj_CtorOne,function,high,reimplemented (src/game/core/gameclock); Init_402f30 then the double 1.0 at +0x20
+0x0047f940,Obj_CtorValue,function,high,"reimplemented (src/game/gfx/text); Fn_657d30, vtable 0x6ff058 and +0x14 = value"
 0x004d4170,Obj_KillSlot,function,high,reimplemented (src/game/sprite/scriptref); the script slot at +0 killed and cleared
 0x004d9600,Obj_StampAt30,function,high,reimplemented (src/game/world/litter); a word at +0x30 and the world's stamp at +0x34
 0x004e01f0,Obj_StampAt5e,function,high,reimplemented (src/game/world/object); a word at +0x5e and the world's stamp at +0x60
-0x0040f300,Obj_CtorPart8,function,high,"reimplemented (src/game/core/misc); vtable 0x6fd7b8, a part built at +8, vtable 0x6fd7b0"
-0x00458910,MeshRef_ClearFlag10000000,function,high,reimplemented (src/game/core/misc); flag 0x10000000 of the referenced part cleared
-0x00458940,MeshRef_SetFlag10000000,function,high,reimplemented (src/game/core/misc); flag 0x10000000 of the referenced part set
+0x0040f300,Obj_CtorPart8,function,high,"reimplemented (src/game/world/thingmsg); vtable 0x6fd7b8, a part built at +8, vtable 0x6fd7b0"
+0x00458910,MeshRef_ClearFlag10000000,function,high,reimplemented (src/game/render/lightsource); flag 0x10000000 of the referenced part cleared
+0x00458940,MeshRef_SetFlag10000000,function,high,reimplemented (src/game/render/lightsource); flag 0x10000000 of the referenced part set
 0x004a9350,Countdown7cc150_Step,function,high,reimplemented (src/game/core/framecountdown); a counter stepped down; 1 at zero when another global is set
 0x004b4670,Obj_KillSlot24,function,high,reimplemented (src/game/ui/panel7cc328); the script slot at +0x24 killed and the slot fields cleared
 0x004bcec0,Global7cc698_Choose,function,high,reimplemented (src/game/ui/dialogs); a global set from the first of three sources that applies
 0x0052fbf0,PairTable_Add,function,high,reimplemented (src/game/world/cellrun); a pair appended to the 8-byte entry table unless it is past 0x400
 0x004d09a0,Obj_SmallestEntry,function,high,"reimplemented (src/game/world/money); the index of the smallest non-zero entry size of eight, or -1"
-0x00458310,Obj_CtorVirtual,function,high,reimplemented (src/game/core/misc); a class with a virtual base: vtables and the offset word
-0x004583d0,Obj_SetVectorAt2c,function,high,"reimplemented (src/game/core/misc); the scene flags touched, then three dwords at +0x2c"
+0x00458310,Obj_CtorVirtual,function,high,reimplemented (src/game/render/lightsource); a class with a virtual base: vtables and the offset word
+0x004583d0,Obj_SetVectorAt2c,function,high,"reimplemented (src/game/render/lightsource); the scene flags touched, then three dwords at +0x2c"
 0x005651c0,Class701260_Ctor,function,high,"reimplemented (src/game/render/device); vtable 0x701260 and its defaults, plus a driver quirk flag"
 0x005646c0,Obj_CtorVirtual5646c0,function,high,"reimplemented (src/game/gfx/rleimage); a class with a virtual base (vtables 0x701188, 0x701178, 0x701168)"
 0x00564ba0,Obj_CtorVirtual564ba0,function,high,"reimplemented (src/game/gfx/wctimage); a class with a virtual base (vtables 0x7011d8, 0x701178, 0x7011c8)"
@@ -2754,7 +2755,7 @@ address,name,kind,confidence,notes
 0x004f36c0,Vector36_Size,function,high,reimplemented (src/game/core/countedpair); the number of 36-byte elements between a vector's pointers
 0x0052fc30,PairTable_Commit,function,high,reimplemented (src/game/world/cellrun); the pair table copied to its committed copy
 0x005997b0,Table768fb8_Lookup,function,high,reimplemented (src/game/world/advisor); a value looked up by id in the 0x20-byte table at 0x768fb8
-0x00409260,Flags7a1a14_Update,function,high,reimplemented (src/game/core/misc); a flag word updated from another and an object's advance
+0x00409260,Flags7a1a14_Update,function,high,reimplemented (src/game/core/namedobjects); a flag word updated from another and an object's advance
 0x00486610,Global7c24d8_CopyScript,function,high,reimplemented (src/game/ui/thingpreview); a sprite script slot made a copy of another
 0x00557110,Rsse_TakeFinished,function,high,"reimplemented (src/game/rsse/rsse_vm); the value of the first finished entry, which is cleared"
 0x0054dcc0,Flag54dcc0_Test,function,high,reimplemented (src/game/render/mode); a flag test on two settings
@@ -3313,7 +3314,7 @@ address,name,kind,confidence,notes
 0x005d3830,Array3D_Init,function,high,reimplemented (src/game/gfx/array3d); dimensions and a block of their product
 0x005d3860,Array3D_Free,function,high,reimplemented (src/game/gfx/array3d); clears the dimensions and frees the block
 0x00569c80,Deleter_Minus2c_569c80,function,high,reimplemented (src/game/core/vdel); deleting destructor of the object 0x2c bytes in
-0x004254e0,Obj_RemoveRectAndClear14,function,high,"reimplemented (src/game/core/misc); the part of the object at +0x24 removed from the grid, bit 14 cleared"
+0x004254e0,Obj_RemoveRectAndClear14,function,high,"reimplemented (src/game/model/holder); the part of the object at +0x24 removed from the grid, bit 14 cleared"
 0x0047b5b0,CountedEntries_Release,function,high,reimplemented (src/game/core/buffers); releases the counted buffers of a range of 16-byte entries
 0x004f23f0,CountedBuf_Reset,function,high,reimplemented (src/game/core/buffers); releases the counted buffer at +4 on request and clears the fields
 0x0047db20,CountedBuf_Deleter,function,high,"reimplemented (src/game/core/buffers); releases the counted buffer, clears the fields, optionally frees the object"
@@ -3693,6 +3694,9 @@ address,name,kind,confidence,notes
 0x00424930,Options_LoadFile,function,low,"reimplemented (src/game/core/options); thiscall (path String): the defaults, opened for reading (0x80000001), the version read (0 refused), then Options_SerializeDisplay (loading); closed; 1 when it went through, else 0 (name unconfirmed)"
 0x0041aa40,Graphics_Tier,function,low,reimplemented (src/game/core/options); the graphics tier from the render mode or balance level
 0x00424a60,Options_LoadMiscFile,function,low,"reimplemented (src/game/core/options); thiscall (path String), pops 4: the other fields defaulted, then loaded from the file (version 2 or more)"
+0x00423bc0,Options_CheckGraphicsMode,function,low,"reimplemented (src/game/core/options); thiscall (mode), pops 4: the mode's graphics balance file loaded on the stack and compared with gBalanceGraphics, each of six keys that differs raising the change level +0x94 to 2; AL 1 when it loaded"
+0x0045b1f0,Options_LoadBalanceFiles,function,low,"reimplemented (src/game/core/options); cdecl: gBalanceSound loaded, then the options' defaults and gBalanceOnline, then Online_ApplyBalance and gBalanceResolution when its file exists"
+0x00423740,Options_NoteChanges,function,low,"reimplemented (src/game/core/options); thiscall: the options against their copy: the graphics mode checked when it changed (Options_CheckGraphicsMode), the change level raised to 1 (and bit 0 of +0x98) when +0x6c and +0x30 lie either side of 0x785910, to 2 when +0, +4 or +0xc changed"
 0x0043ba20,Coaster_SetTrainCount,function,high,"reimplemented (src/game/coaster/setup); sets the car count, unloading the cars cut off"
 0x0041c8b0,Class6fd9d8_Dtor,function,high,"reimplemented (src/game/core/class6fd9d8); destructor: deletes its member and the held objects of its list, frees two strings"
 0x004f0700,Wstreambuf_Read,function,high,"reimplemented (src/game/core/streambuf); reads wide characters from the get area, else through the underflow slot"
@@ -4417,6 +4421,7 @@ address,name,kind,confidence,notes
 0x0042f1a0,CoasterTrains_Setup,function,high,reimplemented (src/game/coaster/setup); a coaster's cars and trains from its description
 0x0042f390,CoasterType_Setup,function,high,"reimplemented (src/game/coaster/setup); a coaster type from its description: track entries, cross sections, pylons, trains and fields"
 0x00430ad0,CoasterTypes_FreeAll,function,low,"reimplemented (src/game/coaster/setup); cdecl: every coaster type of the table 0x790b08 freed (its pieces, names, animator, blocks), the slots and the count 0x790fe8 cleared"
+0x0042fd90,CoasterType_Create,function,low,"reimplemented (src/game/coaster/setup); cdecl (holder, unused, id, source): a new coaster type (GlobalMem 0x35c) added to the table 0x790b08 (count 0x790fe8), its defaults, then CoasterType_Setup; a track type balance file laid out and released on the stack for nothing (sic)"
 0x00466b70,Ride_Bounds,function,high,reimplemented (src/game/coaster/ridebounds); a ride's box in the world
 0x00556af0,Ride_Centre,function,low,"reimplemented (src/game/coaster/ridebounds); cdecl (handle, x, y, z): the middle of the ride box's x and z extents and the root's y, 0; zeros and 1 for no ride or box"
 0x00556b90,Ride_PartPlace,function,low,"reimplemented (src/game/coaster/ridebounds); cdecl (obj, pos, dir, key, mask): a ride part's node position and unit direction times 1024, else the ride box's centre; returns 1 (0 for no part)"
@@ -4425,6 +4430,7 @@ address,name,kind,confidence,notes
 0x00441e80,CoasterEdit_ToggleAdjustE0,function,low,"reimplemented (src/game/coaster/edittools); cdecl: with a game whose +0x40 is set, tool 2 for the value at +0xe0 (type flag 0x40) toggled; recorded (0x3a); range +0xd4 -/+ the type's +0x94 (name unconfirmed)"
 0x00442010,CoasterEdit_ToggleAdjustAngles,function,low,reimplemented (src/game/coaster/edittools); cdecl: tool 4 for the angles at +0xd8 / +0xdc (type flags 0x100 / 0x80) toggled; recorded (0x3b); ranges -pi..pi (name unconfirmed)
 0x004421e0,CoasterEdit_ToggleAdjust,function,low,"reimplemented (src/game/coaster/edittools); cdecl: with a game (+0x40 set) and a piece whose definition lacks flag 2, CoasterEdit_ToggleAdjustF8 for the piece's flag 0x40, else CoasterEdit_ToggleAdjustAngles; else 1 (name unconfirmed)"
+0x00441a00,CoasterEdit_ToggleDrag,function,low,"reimplemented (src/game/coaster/edittools); cdecl: the coaster editor's drag tool (tool 1): its value +0xe8, range and cost, the money on putting it down"
 0x0044a590,RenderMode_Size,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 0x2000/0x1000/0x800 in 0x79d86c, else 0x4000 if set, else 0x1000"
 0x0044a5d0,RenderMode_Depth,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 8/0x10 in 0x79d86c, else 0x20 if set, else 8"
 0x0044a600,RenderMode_ResetScale,function,high,reimplemented (src/game/render/mode); cdecl (): 0x79d9e4 = 1.0f
@@ -4531,6 +4537,8 @@ address,name,kind,confidence,notes
 0x00458890,LightSource_SetColour,function,low,"reimplemented (src/game/render/lightsource); a light's part colour from r, g, b"
 0x00458350,LightPart_SetColour,function,low,"reimplemented (src/game/render/lightsource); a light part's colour from a, r, g, b"
 0x004587e0,LightSource_SetColourScaled,function,low,"reimplemented (src/game/render/lightsource); cdecl (light, scale): LightSource_SetColour of the light's object with its colour times scale"
+0x00457e70,LightSource_Create,function,low,"reimplemented (src/game/render/lightsource); cdecl (kind, colour, point, direction): a light {kind, part, 0, part, colour} by kind: 0 the data error box and 0, 1 the ambient colour 0x879dd8, 2 / 3 a part built in place, coloured, given the direction / point and added to the renderer's tag 0x70 list"
+0x004584d0,LightSource_CreateMain,function,low,"reimplemented (src/game/render/lightsource); cdecl: the direction 0x7a0b30 normalised, the directional light of colour 0x7a0b3c made in it (LightSource_Create 2) and kept at 0x7a0b40, its part's flag 0x20 set"
 0x00561bc0,ClipCodes_Compute,function,low,"reimplemented (src/game/render/clipcodes); fastcall-shaped (caller's ECX, EDX; out, codes, points, count, stride, mask), pops 24: each point's 7-bit sign/magnitude index into the table at 0x879970, masked, stored; out = AND | OR << 8 | ECX's high half"
 0x00570d60,ClipCodes_Run,function,low,reimplemented (src/game/render/clipcodes); the caller ECX and six arguments on to ClipCodes_Compute; returns out (name unconfirmed)
 0x00561840,ClipCodes_InitTable,function,low,"reimplemented (src/game/render/clipcodes); cdecl: the clip code table at 0x879970 built and the 8-byte block at 0x879a20 allocated, unless the block is there"
@@ -4553,6 +4561,8 @@ address,name,kind,confidence,notes
 0x00581410,Model_TexCoords,function,low,"reimplemented (src/game/render/texcoords); cdecl (out, settings, index, texture, stride, mode, two ignored): the texture coordinates of a model entry's vertices into a batch (zeros, normals by the view, or the stored ones, shifted by the light with mode bit 2), x87"
 0x00566690,Vertex_SetTexCoords,function,low,"reimplemented (src/game/render/texcoords); thiscall (stage, u, v): a transformed vertex's (u, v) for the stage at +0x18 + 8 * stage, through the x87"
 0x0044d8f0,GraphicsSettings_Apply,function,low,"reimplemented (src/game/render/graphicssettings); cdecl: the graphics settings (0x785878..0x7858b8) applied to the render flags, view depth range and landscape detail"
+0x0044dc60,GraphicsSettings_Load,function,low,"reimplemented (src/game/render/graphicssettings); cdecl (flags): the data folder and the name for the first of flags 0x800 / 0x1000 / 0x2000 loaded into gBalanceGraphics; 0 when that fails, else the settings applied and 1"
+0x0044de20,GraphicsSettings_LoadForOptions,function,low,"reimplemented (src/game/render/graphicssettings); cdecl: the flag words' graphics bits reset, the file for the game options' graphics mode loaded (GraphicsSettings_Load; mode 2 without procedural terrain falls back to 1), then the bits for the options' +0xc and procedural terrain; 0 when the load fails, else 1"
 0x0048f6a0,TextPart_Ctor,function,low,"reimplemented (src/game/render/textparts); thiscall (value): RendererPart_Ctor, TextLayout_Ctor(+0xe4), the text fields set, vtable 0x6ff320; returns this"
 0x0048f760,TextPart_Dtor,function,low,"reimplemented (src/game/render/textparts); thiscall: vtable 0x6ff320, TextLayout_Dtor(+0xe4), then the RendererPart destroyed (inlined)"
 0x0048f740,TextPart_DeletingDtor,function,low,"reimplemented (src/game/render/textparts); thiscall (flags): TextPart_Dtor, freed for flags bit 0; returns this"

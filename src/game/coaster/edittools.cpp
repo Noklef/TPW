@@ -3,8 +3,13 @@
 #include <cstdint>
 
 #include "../core/actionrec.h"
+#include "../files/wrapsources.h"
 #include "../math/x87.h"
 #include "../model/highlight.h"
+#include "../world/money.h"
+#include "../world/world.h"
+#include "helpers.h"
+#include "train.h"
 
 namespace {
 
@@ -191,5 +196,75 @@ u32 __cdecl CoasterEdit_ToggleAdjust() {
     if (!piece || (at<u8>(Def(piece), 4) & 2))
         return 1;
     return (at<u8>(piece, 8) & 0x40) ? CoasterEdit_ToggleAdjustF8() : CoasterEdit_ToggleAdjustAngles();
+}
+
+u32 __cdecl CoasterEdit_ToggleDrag() {
+    const u8 *game = g<const u8 *>(0x00790fec);
+    if (!game || !at<u32>(game, 0x40))
+        return 1;
+    u32 flags = Flags();
+    u8 *piece = Piece();
+    if (!(flags & 1) && (!piece || !(at<u8>(Type(piece), 0) & 0x20)))
+        return 1;
+    if (at<u8>(Def(piece), 4) & 2)   // (sic: with the tool on and no piece this faults)
+        return 1;
+    if (!(flags & 0x3f)) {
+        flags |= 1;
+        Flags() = flags;
+    } else if (flags & 1) {
+        ActionRec_WriteFW(Recorder(), nullptr, 0x39, at<u32>(piece, 0xe8), at<u16>(piece, 0));
+        const u8 *const selected = Piece();
+        const u32 pieceFlags = at<u32>(selected, 8);
+        if (pieceFlags & 0x40) {
+            const u8 *const other = at<const u8 *>(selected, (pieceFlags & 0x80) ? 0x64 : 0x68);
+            if (other && at<u32>(other, 0x100))   // (the word's high half what ECX held: the other's +0x100)
+                ActionRec_WriteFW(Recorder(), nullptr, 0x39, at<u32>(other, 0xe8), (at<u32>(other, 0x100) & 0xffff0000u) | at<u16>(other, 0));
+        }
+        ClearChanged();
+        flags = Flags() & ~1u;
+        game = g<const u8 *>(0x00790fec);
+        piece = Piece();
+        Flags() = flags;
+    }
+    if (flags & 1) {
+        g<u32>(0x0079c618) = 0;
+        g<u32>(0x0079c630) = g<u32>(0x00790ac8);
+        g<u32>(0x0079c634) = g<u32>(0x00790acc);
+        if (!piece)
+            return NoPiece(flags, 1);
+        const double cost = Car_TravelCost(game, 0, piece, nullptr, nullptr, nullptr, nullptr);
+        piece = Piece();
+        g<u32>(0x0079c6f8) = 0;
+        g<float>(0x0079c698) = static_cast<float>(cost);
+        g<u32>(0x0079c614) = 0;
+        g<u8 *>(0x0079c6fc) = piece + 0xe8;
+        g<u32>(0x0079c610) = 0;
+        g<u32>(0x0079c6d4) = at<u32>(piece, 0xe8);
+        const u8 *type = Type(piece);
+        double low = CarType_Unlerp(at<float>(type, 0x68), type);
+        if (!(low > 0.0))   // (fcom 0x6fe1b4: below, equal or unordered)
+            low = 0.0;
+        u8 *const selected = Piece();
+        g<float>(0x0079c6e4) = static_cast<float>(low);
+        const u8 *const def = Def(selected);
+        const float length = static_cast<float>(Car_TrainLength(at<const u8 *>(def, 0x30 + 4 * at<u32>(def, 0x30))));
+        type = at<const u8 *>(def, 0x18);
+        const float scale = static_cast<float>(CarType_Scale(static_cast<float>(X87Reg(at<float>(type, 0x6c)) - X87Reg(length)), type));
+        g<float>(0x0079c66c) = static_cast<float>(X87Reg(at<float>(selected, 0xe8)) + X87Reg(scale));
+        g<u32>(0x0079c6d0) = 0;            // 0.0f (0x6fe1b4)
+        g<u32>(0x0079c6a8) = 0x3ba3d70a;   // 0.005f (0x6fe1b8)
+        Flags() = Flags() | 0x400;
+        Highlight_SetShown(1);
+        return 1;
+    }
+    if (!g<u32>(0x00785a2c)) {
+        const s32 steps = Float_RoundUp(static_cast<float>(Car_TravelCost(game, 0, piece, nullptr, nullptr, nullptr, nullptr)));
+        u8 *const money = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(g<u8 *>(0x007cf83c)));
+        Money_Credit(money, nullptr, (s32)(long long)g<float>(0x0079c698));   // __ftol
+        Source_Field0c(reinterpret_cast<const TrackedSource *>(money));   // (its result unused)
+        Money_Debit(money, nullptr, steps);
+        g<u32>(0x0079c698) = 0;
+    }
+    return Off(Flags());
 }
 }

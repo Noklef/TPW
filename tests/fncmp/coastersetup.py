@@ -5,7 +5,9 @@
 # whole setup also runs the cross sections (xsection.py's coherent descriptions) and appends
 # the static track entries at 0x74cde0 (varied here). Also the other allocating helpers: a
 # car's coupling set up / freed (0x4344c0 / 0x433240), the queue rings' init / free (0x43b080 /
-# 0x43b0c0), the coaster tables (0x43e980) and their setup with the id table (0x435500).
+# 0x43b0c0), the coaster tables (0x43e980) and their setup with the id table (0x435500). A new type
+# (0x42fd90): its block from the GlobalMem heap, added to the table 0x790b08 (a few there already),
+# its defaults, then the whole setup as above (its track type balance file on the stack, without values: its block is the heap's first, made to fail).
 # usage: coastersetup.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import sys
@@ -18,7 +20,9 @@ import xsection  # noqa: E402
 B = Bench([(0x42d130, 0x42eb68), (0x42eb70, 0x42fad0), (0x45b9d0, 0x45ba15), (0x45ba00, 0x45ba30),
            (0x5da3c0, 0x5da3d0), (0x4344c0, 0x434566), (0x44b140, 0x44b2e0),
            (0x43b080, 0x43b0d1), (0x433240, 0x433277), (0x43e980, 0x43e9bb), (0x435500, 0x43552d),
-           (0x468750, 0x46875b)])
+           (0x468750, 0x46875b), (0x42fd90, 0x430123), (0x401030, 0x401212), (0x401250, 0x40127a), (0x401280, 0x4013dc),
+           (0x4013e0, 0x40161d), (0x4143f0, 0x414402), (0x5b0d60, 0x5b0d64), (0x5f5660, 0x5f5680), (0x5f5680, 0x5f5690),
+           (0x67b110, 0x67b13f)])
 COASTER, NAMES, SOURCE, HOLDER = RAM, RAM + 0x1000, RAM + 0x10000, RAM + 0x20000
 ZEROS = [0, 0x80000000, 0x7fc00000, 0xffc00000, 0x7f800001]  # zero, -0 and NaNs: all count as zero
 
@@ -131,7 +135,14 @@ def case(r):
                         0x791cfc: put(r.bytes(4), 0, 'I', r.choice([0, 1, r.randrange(300)])),
                         0x790b00: r.bytes(8), 0x791ce0: r.bytes(4)})
         return Call(0x435500, [], regions)
-    if op == 'Type':
+    if op == 'Create':
+        src = xsection.source(r, 'Setup')
+        setup(r, src, names, regions)
+        count = r.choice([0, 1, 5, r.randrange(300)])
+        regions[0x790b08] = put(bytearray(r.bytes(0x4e4)), 0x4e0, 'I', count)
+        regions[HEAP] = heap(0x10000, 1)   # (the stack balance file's values block, its entries the stack's addresses unlike between the sides: none)
+        args, at = [r.getrandbits(32), r.getrandbits(32), r.getrandbits(32), SOURCE], 0x42fd90
+    elif op == 'Type':
         src = xsection.source(r, 'Setup')
         setup(r, src, names, regions)
         put(regions[COASTER], 0x1c8, 'I', r.choice([0x4004, r.getrandbits(32)]))
@@ -144,7 +155,7 @@ def case(r):
     return Call(at, args, regions, ret='a')
 
 
-OPS_ALL = ['Pylons', 'Trains', 'Type', 'Type', 'Coupling', 'RingInit', 'RingFree', 'CouplingFree', 'Tables', 'InitTables']
+OPS_ALL = ['Pylons', 'Trains', 'Type', 'Type', 'Create', 'Coupling', 'RingInit', 'RingFree', 'CouplingFree', 'Tables', 'InitTables']
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

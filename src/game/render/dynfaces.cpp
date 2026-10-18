@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "../core/gameheap.h"
-#include "../core/misc.h"
 #include "../math/sintable.h"
 #include "../math/x87.h"
 #include "../model/holder.h"
