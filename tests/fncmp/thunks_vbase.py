@@ -6,7 +6,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, put  # noqa: E402
+from fncmp import HEAP, Bench, Call, RAM, global_heap, heap, put  # noqa: E402
 
 # (address, convention, stack arguments, globals the target touches, arguments used as pointers)
 FUNCS = [
@@ -28,12 +28,15 @@ FUNCS = [
     (0x5738a0, 't', 0, [], ()),
     (0x5738b0, 't', 0, [0x879a24], ()),
     (0x573ef0, 't', 0, [0x8bd520, 0x8c1620], ()),
+    (0x573f00, 't', 0, [], ()),
     (0x57ac70, 't', 0, [], ()),
     (0x57ac80, 't', 0, [0x701a10, 0x701a60, 0x8bb628, 0x8bb62c], ()),
     (0x57ca70, 't', 0, [], ()),
     (0x58c2b0, 't', 0, [], ()),
     (0x58c2d0, 't', 0, [], ()),
     (0x58c320, 't', 0, [], ()),
+    (0x58c8e0, 't', 4, [], ()),
+    (0x58c8f0, 't', 0, [], ()),
     (0x58c900, 't', 0, [0x702248], ()),
     (0x58c910, 't', 0, [0x702248], ()),
     (0x58c920, 't', 0, [], ()),
@@ -49,7 +52,8 @@ B = Bench([
            (0x5738b0, 0x5738d0), (0x573e30, 0x573e80), (0x573ef0, 0x573f10), (0x57ac70, 0x57acb0), (0x57ca70, 0x57ca90), (0x58a550, 0x58a5d0),
            (0x58c2b0, 0x58c310), (0x58c320, 0x58c350), (0x58c8a0, 0x58c8e0), (0x58c900, 0x58c948), (0x591a60, 0x591a80), (0x591a70, 0x591a90),
            (0x5987c0, 0x5987e0), (0x5987d0, 0x5987f0), (0x5cec60, 0x5cec80), (0x5d1410, 0x5d1430), (0x5d60c0, 0x5d60e0), (0x6b71c0, 0x6b71e0),
-           (0x6bd790, 0x6bd7b0),
+           (0x6bd790, 0x6bd7b0), (0x573e70, 0x573f20), (0x58c3c0, 0x58c760), (0x58c8e0, 0x58c900), (0x579b80, 0x579c13), (0x58b300, 0x58b320),
+           (0x67acb0, 0x67acb1),
 ])
 THIS = RAM + 0x300
 FLOAT = {0x58c940}   # the thunks whose target returns a float (ST0)
@@ -59,10 +63,20 @@ PICK = [f for f in FUNCS if not os.environ.get('ONLY') or f[0] in [int(x, 16) fo
 def fixups(r, address, regions, args):
     """Shapes the objects the targets read through pointers, so that the comparison reaches their arithmetic."""
     obj = regions[RAM]
-    if address in (0x58c2d0, 0x58c910):   # the virtual base offset behind the vbtable pointer at this - 0x3c / - 0x10, the two dwords it leads to
+    if address in (0x58c2d0, 0x58c910, 0x58c8e0, 0x58c8f0):   # the virtual base offset behind the vbtable pointer at this - 0x3c / - 0x10, the two dwords it leads to
         at = 0x300 - struct.unpack_from('<I', obj, 0x2fc)[0] - (0x3c if address == 0x58c2d0 else 0x10)   # (this lowered by the offset the thunk takes off)
         put(obj, at, 'I', RAM + 0x220)
         put(regions[RAM], 0x224, 'I', r.choice([0, 4, 0x10, 0x20, 0x30]))
+        if address == 0x58c8e0:   # pixels already: 0 (TexAtlas_Alloc is not reached)
+            put(obj, at + 4, 'I', r.getrandbits(32) | 1)
+        if address == 0x58c8f0:   # the pixels 0, tracked or not (the table at 0x87b1f8, its count 0-4 at 0x8bb214)
+            pairs = [r.getrandbits(32) | 0x80000000 for _ in range(10)]
+            put(obj, at + 4, 'I', r.choice([0, pairs[1], pairs[3], (pairs[5] - 4) & 0xffffffff, r.getrandbits(32)]))
+            regions[0x87b1f8] = b''.join(p.to_bytes(4, 'little') for p in pairs)
+            regions[0x8bb214] = struct.pack('<I', r.randrange(5))
+            regions.update({HEAP: heap(0x100), **global_heap()})
+    elif address == 0x573f00:             # a new class B surface on the heap, now and then not got
+        regions[HEAP] = heap(0x100, r.choice([0, 0, 0, 1]))
     elif address == 0x491f80:             # the scene's table: a count below and above 0x80, the slots after it
         put(obj, 0x2ec, 'II', r.choice([0, 1, 0x1234, r.getrandbits(32)]), r.choice([0, 1, 0x1234, r.getrandbits(32)]))
         scene = RAM + 0x1000

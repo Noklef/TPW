@@ -249,6 +249,18 @@ u32 __fastcall Wrap_SoftRenderer_TextureMemory_573ef0(u8 *self) {
     return SoftRenderer_TextureMemory(Adjust(self));
 }
 
+u8 *__fastcall Wrap_SoftRenderer_NewSurfaceB_573f00(u8 *self) {
+    return SoftRenderer_NewSurfaceB(Adjust(self));
+}
+
+u32 __fastcall Wrap_TexSurfaceB_AllocPixels_58c8e0(u8 *self, void *, u32 width, u32 height, u32 c, u32 d) {
+    return TexSurfaceB_AllocPixels(Adjust(self), nullptr, width, height, c, d);
+}
+
+u32 __fastcall Wrap_TexSurfaceB_FreePixels_58c8f0(u8 *self) {
+    return TexSurfaceB_FreePixels(Adjust(self));
+}
+
 u32 __fastcall Wrap_ThingMsg02_Type_57ac70(const u8 *self) {
     return ThingMsg02_Type(Adjust(self));
 }
