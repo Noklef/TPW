@@ -290,6 +290,7 @@
 #include "../game/online/itemlist.h"
 #include "../game/online/items.h"
 #include "../game/online/onlinelist.h"
+#include "../game/online/chatavatar.h"
 #include "../game/online/session.h"
 
 namespace tpw::hook {
@@ -4005,6 +4006,9 @@ const Hook kHooks[] = {
     {"OnlineList_GetTop10Parks",  0x005bcb90, (void *)&OnlineList_GetTop10Parks, {0x56, 0x8b, 0xf1, 0x68, 0xd8}},
     {"OnlineList_GetParkByName",  0x005bcce0, (void *)&OnlineList_GetParkByName, {0x56, 0x8b, 0xf1, 0x68, 0x08}},
     {"OnlineList_GetParkById",    0x005bce30, (void *)&OnlineList_GetParkById, {0x56, 0x8b, 0xf1, 0x68, 0x3c}},
+    {"ChatAvatar_MoveTo",         0x004ea370, (void *)&ChatAvatar_MoveTo, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"ChatAvatar_MoveTo3",        0x004ea410, (void *)&ChatAvatar_MoveTo3, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"ChatAvatar_PlaceAtCell",    0x004ebfb0, (void *)&ChatAvatar_PlaceAtCell, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},

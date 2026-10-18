@@ -1,0 +1,22 @@
+// The player's avatar in an online chat room (the WEACHATR library's Chat): an object { +0 the Chat, +4 the park thing standing for the player,
+// +0xeb1 a byte cleared when the player acts }. Reimplementation of the moves that tell the room (Chat::MovePlayer, import 0x6fd4cc, with a
+// mode and the avatar as its context) and place the thing (Thing_ResetPlaceAt, only for a thing of kind 0x12): 0x4ea370, 0x4ea410 and
+// 0x4ebfb0. Names unconfirmed (the modes' meanings are not known).
+#pragma once
+
+#include "../../../re/types.h"
+
+extern "C" {
+
+// 0x4ea370 (thiscall; x, y, pops 8): Chat::MovePlayer(x, y as 16-bit values, mode 0, the avatar); then the thing in the thing table's slot
+// (0x7cfb90) for the avatar's thing's handle, when of kind 0x12 (the byte +2), is placed at (x, y) (Thing_ResetPlaceAt).
+void __fastcall ChatAvatar_MoveTo(u8 *avatar, void *, u32 x, u32 y);
+
+// 0x4ea410 (thiscall; x, y, pops 8): ChatAvatar_MoveTo's moves with mode 3.
+void __fastcall ChatAvatar_MoveTo3(u8 *avatar, void *, u32 x, u32 y);
+
+// 0x4ebfb0 (thiscall, the object not used but for ECX's high word in x (sic); handle, cell, pops 8): the thing in the thing table's slot for
+// the handle's low word, when of kind 0x12, placed at the centre of the map cell (1-based: column (cell - 1) & 0x7f, row (cell - 1) >> 7; x
+// and y the column / row in the high byte and 0x80 in the low one, their high words ECX's and the cell's). Returns 1 when placed, else 0 (AL).
+u8 __fastcall ChatAvatar_PlaceAtCell(u8 *self, void *, u32 handle, u32 cell);
+}
