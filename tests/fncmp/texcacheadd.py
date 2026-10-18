@@ -1,5 +1,5 @@
 # The texture cache's new surfaces (src/game/gfx/texcache: 0x58d1d0) against the original: sides of the pool's nine (and a few others,
-# index -1), formats 0-7, levels -1-3 (and any); the side's count 0-0x100 (a few negative) and its budget 0-30 areas give or take (or
+# index -1; some with areas of 2^29-2^31, past 2^31 times 4), formats 0-7, levels -1-3 (and any); the side's count 0-0x100 (a few negative) and its budget 0-30 areas give or take (or
 # any, only when a surface is made); the render device's slot 4 (a recorder) answering a surface or 0 (only when the area is positive: else the turns never end), the
 # surface's slot 0 succeeding or failing (slot 9 deleting it). The entries come from the bench heap; AnimTextures_Set copies the result.
 # usage: texcacheadd.py [CASES [SEED]] [--wild|--both] [--show N]
@@ -23,10 +23,13 @@ def s32(x):
 
 def case(r):
     log = log_region()
-    side = r.choice(SIDES) if r.random() > 0.05 else r.choice([0, 3, 0x30, 0x200, -4])
-    index = SIDES.index(side) if side in SIDES else -1
+    side = r.choice(SIDES) if r.random() > 0.05 else r.choice([0, 3, 0x30, 0x200, -4, 0xb505, 0x10001])
     fmt = r.randrange(8)
     levels = r.choice([0, 1, 2, 3, -1, r.getrandbits(32) - (1 << 31)])
+    if r.random() < 0.05:   # (areas of 2^29 - 2^31: times 4 past 2^31)
+        side, fmt = r.choice([(0x4000, r.randrange(3)), (0x3000, 3), (0x600, 4)])
+        levels = r.choice([2, 3, levels])
+    index = SIDES.index(side) if side in SIDES else -1
     area = s32(SIZES[fmt] * side * side)
     if levels > 1:
         area = s32(area * 4) // 3 if s32(area * 4) >= 0 else -(-s32(area * 4) // 3)
