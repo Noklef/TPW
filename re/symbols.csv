@@ -3918,6 +3918,8 @@ address,name,kind,confidence,notes
 0x005e3fc0,Class702e70_Dtor,function,high,"reimplemented (src/game/core/vdtor); thiscall destructor: vtable pointer 0x702e70, then Class702bc8_Dtor"
 0x005e3ff0,Class702e20_Dtor,function,high,"reimplemented (src/game/core/vdtor); thiscall destructor: vtable pointer 0x702e20, then Class702bc8_Dtor"
 0x005b57a0,Class702828_Dtor,function,low,"reimplemented (src/game/core/vdtor); thiscall: vtable 0x702828, the wide string at +0x34 destroyed, then the 0x702890 destructor's steps"
+0x005d8690,Class702a60_Dtor,function,low,"reimplemented (src/game/core/vdtor); thiscall destructor: vtable 0x702a60; the list at +0xc drained (items deleted); the list at +8 drained, its records told to [0xf83774] (slot 0x24), their Strings at +0x18 and +4 destroyed and freed; then InstanceTypes_FreeAll, Terrain_FreeLoaded and Class7029d0_Release"
+0x005d85b0,Class702a60_DeletingDtor,function,low,"reimplemented (src/game/core/vdtor); thiscall (flags; pops 4): Class702a60_Dtor, then frees the object when bit 0 is set; returns it"
 0x00617ff0,Class7037c0_Create,function,high,reimplemented (src/game/core/factories); object factory with a result code
 0x00617970,Class703750_Create,function,high,reimplemented (src/game/core/factories); Allocates and constructs the 0x703750 class object
 0x00403be0,ActionRec_Write,function,low,"reimplemented (src/game/core/actionrec); thiscall (code): the action recorder's code byte, while recording and not playing back"

@@ -10,6 +10,8 @@
 #include "misc.h"
 #include "string.h"
 #include "vcall.h"
+#include "../model/holder.h"
+#include "../terrain/land.h"
 
 namespace {
 
@@ -640,6 +642,44 @@ void __fastcall Class702ca8_Dtor(u8 *object) {
 
 u8 *__fastcall Class702ca8_DeletingDtor(u8 *object, void *, u32 flags) {
     Class702ca8_Dtor(object);
+    return Finish(object, flags);
+}
+
+void __fastcall Class702a60_Dtor(u8 *object) {
+    at<u32>(object, 0) = 0x00702a60;
+    DrainMemberList(object, 0xc);
+    for (u8 *list = at<u8 *>(object, 8); at<u32>(list, 0xc) != 0; list = at<u8 *>(object, 8)) {
+        u8 *node = at<u8 *>(list, 4);
+        u8 *item = nullptr;
+        if (node) {
+            u8 *next = at<u8 *>(node, 4);
+            at<u8 *>(list, 4) = next;
+            if (next)
+                at<u32>(next, 8) = 0;
+            else
+                at<u32>(list, 8) = 0;  // (the tail)
+            const u32 left = at<u32>(list, 0xc) - 1;
+            item = at<u8 *>(node, 0);
+            at<u32>(list, 0xc) = left;
+            GameHeap_Free(node);
+        }
+        if (item) {
+            vcall<u32>(global<u8 *>(0x00f83774), 0x24, item);
+            String_Dtor(reinterpret_cast<String *>(item + 0x18));
+            String_Dtor(reinterpret_cast<String *>(item + 4));
+            GameHeap_Free(item);
+        }
+    }
+    if (u8 *list = at<u8 *>(object, 8))
+        vcall<u32>(list, 0, 1u);
+    at<u32>(object, 8) = 0;
+    InstanceTypes_FreeAll();
+    Terrain_FreeLoaded();
+    Class7029d0_Release(object);
+}
+
+u8 *__fastcall Class702a60_DeletingDtor(u8 *object, void *, u32 flags) {
+    Class702a60_Dtor(object);
     return Finish(object, flags);
 }
 
