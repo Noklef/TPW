@@ -23,7 +23,7 @@ def collect(r):
     lo = r.choice([-1, 0, 0, 1, 2])
     put(obj, 0, '2I', MAP, SETS)
     put(obj, 0x128, '2i', lo, lo + r.choice([-1, 0, 1, 2, 4, 6]))
-    for row in range(-1, 8):
+    for row in range(8):   # (row -1's start is +0x12c's high byte)
         start = r.choice([0, 0, 1, 2, 3, 8, 0xff])
         obj[0x130 + row] = start
         obj[0x1b0 + row] = r.choice([0, 1, 2, 4, 6, 8, 0xff]) if r.random() < 0.3 else min(8, (start + r.randrange(6)) & 0xff)
@@ -35,8 +35,8 @@ def collect(r):
     width = r.choice([8, 9, 16])
     mp = put(bytearray(r.bytes(0x30)), 0x18, 'I', width)
     put(mp, 0x2c, 'I', CELLS)
-    cells = bytearray(r.bytes(0x400))
-    for k in range(0x100):
+    cells = bytearray(r.bytes(0x480))   # (from 0x80 bytes before the map: row -1 and column -1)
+    for k in range(0x120):
         cells[4 * k] = r.getrandbits(8) & r.choice([0xfe, 0xfe, 0xff])
         put(cells, 4 * k + 2, 'H', r.randrange(8))
     sets, texsets, arrays = bytearray(r.bytes(0x40)), bytearray(r.bytes(0x80)), bytearray(r.bytes(0x20))
@@ -50,7 +50,7 @@ def collect(r):
         put(tex, 0x20 * k + 8, 'I', r.getrandbits(32) ^ r.choice([0, 0x1000]))
         put(tex, 0x20 * k + 0x1c, 'I', r.choice(pool) if r.random() < 0.9 else r.getrandbits(32))
     regions = {RAM: obj, MAP: mp, SETS: sets, TEXSETS: texsets, ARRAYS: arrays, TEXTURES: tex, IDS: r.bytes(0x100), COUNT: r.bytes(8),
-               OUT: r.bytes(0x100), CELLS: cells, 0x8bd550: r.bytes(1)}
+               OUT: r.bytes(0x100), CELLS - 0x80: cells, 0x8bd550: r.bytes(1)}
     return Call(0x56f380, [RAM, IDS, COUNT, OUT], regions, conv='t')
 SRC, DST = RAM, RAM + 0x200
 
