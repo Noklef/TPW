@@ -120,7 +120,8 @@
 #include "../game/gfx/imageops.h"
 #include "../game/gfx/statsgraph.h"
 #include "../game/gfx/texsprite.h"
-#include "../game/gfx/texatlas.h"
+#include "../game/gfx/texatlas.h"
+#include "../game/gfx/tvstatic.h"
 #include "../game/gfx/wctimage.h"
 #include "../game/core/crt.h"
 #include "../game/core/gameheap.h"
@@ -3584,6 +3585,9 @@ const Hook kHooks[] = {
     {"TexAtlas_Alloc",            0x0058c3c0, (void *)&TexAtlas_Alloc, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"WctImage_DeletingDtor",     0x00565000, (void *)&WctImage_DeletingDtor, {0x8b, 0x41, 0xd4, 0x56, 0x8d}},
     {"ScreenGrab_ToRgb24",        0x00561460, (void *)&ScreenGrab_ToRgb24, {0xa1, 0xe4, 0xcb, 0x8b, 0x00}},
+    {"TvStatic_CreateSurface",    0x0053e650, (void *)&TvStatic_CreateSurface, {0x6a, 0xff, 0x68, 0xbb, 0xea}},
+    {"TvStatic_Init",             0x0053e920, (void *)&TvStatic_Init, {0xe8, 0x2b, 0xfd, 0xff, 0xff}},
+    {"TvStatic_Free",             0x0053e930, (void *)&TvStatic_Free, {0xa1, 0xd0, 0x4f, 0x87, 0x00}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
