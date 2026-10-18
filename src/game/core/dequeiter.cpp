@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <initializer_list>
 #include "gameheap.h"
+#include "seqs.h"
+#include "sync.h"
 
 namespace {
 
@@ -92,5 +94,69 @@ void __fastcall Deque8_Clear(u8 *deque) {
             at<u32>(deque, 0xc) = first;
         }
     }
+}
+
+u32 __cdecl CommandQueue_Post(u32 code, u32 param) {
+    if (!param) param = *reinterpret_cast<const u32 *>(0x0078ba88);
+    u8 *const q = reinterpret_cast<u8 *>(0x007b4ba8);  // the begin iterator at +4, the end one at +0x14, the map +0x24, its size +0x28, the count +0x2c
+    CritSec_Enter(reinterpret_cast<u8 *>(0x007b4bd8));
+    u32 cur;
+    if (at<u32>(q, 0x2c) != 0 && at<u32>(q, 0x1c) != at<u32>(q, 0x18)) {
+        cur = at<u32>(q, 0x1c);
+    } else {
+        const u32 block = (u32)(uintptr_t)GameHeap_Alloc(0x1000);
+        cur = block;
+        if (at<u32>(q, 0x2c) == 0) {
+            at<u32>(q, 0x28) = 2;
+            at<u32 *>(q, 0x24) = static_cast<u32 *>(GameHeap_Alloc(8));
+            at<u32 *>(q, 0x24)[1] = block;
+            u32 *const node = at<u32 *>(q, 0x24) + 1;
+            const u32 first = *node;
+            cur = block + 0x800;
+            at<u32>(q, 0xc) = cur;
+            at<u32>(q, 4) = first;
+            at<u32 *>(q, 0x10) = node;
+            at<u32>(q, 0x14) = first;
+            at<u32>(q, 8) = first + 0x1000;
+            at<u32>(q, 0x18) = first + 0x1000;
+            at<u32 *>(q, 0x20) = node;
+        } else if (at<u32>(q, 0x20) < at<u32>(q, 0x24) + at<u32>(q, 0x28) * 4 - 4) {
+            u32 *const node = at<u32 *>(q, 0x20) + 1;
+            at<u32 *>(q, 0x20) = node;
+            *node = block;
+            const u32 first = *at<u32 *>(q, 0x20);
+            at<u32>(q, 0x14) = first;
+            at<u32>(q, 0x18) = first + 0x1000;
+        } else {  // the map grown to twice the blocks in use, they in its middle
+            const s32 count = ((s32)(at<u32>(q, 0x20) - at<u32>(q, 0x10)) >> 2) + 1;
+            const u32 size = (u32)count * 2;
+            s32 bytes = (s32)(size * 4);
+            if (bytes < 0) bytes = 0;
+            u32 *const map = static_cast<u32 *>(GameHeap_Alloc((u32)bytes));
+            u32 *const from = map + (size >> 2);
+            Dwords_Copy(at<u32 *>(q, 0x10), at<u32 *>(q, 0x20) + 1, from);
+            GameHeap_Free(at<void *>(q, 0x24));
+            at<u32 *>(q, 0x24) = map;
+            at<u32>(q, 0x28) = size;
+            u32 *const node = from + count;
+            *node = block;
+            u32 it[4];
+            DequeIter_Set(it, nullptr, at<u32>(q, 0xc), from);
+            for (u32 i = 0; i < 4; ++i) at<u32>(q, 4 + 4 * i) = it[i];
+            DequeIter_Set(it, nullptr, block, node);
+            at<u32>(q, 0x14) = it[0];
+            at<u32>(q, 0x18) = it[1];
+            cur = it[2];
+            at<u32>(q, 0x1c) = cur;
+            at<u32>(q, 0x20) = it[3];
+        }
+    }
+    at<u32>(q, 0x1c) = cur + 8;
+    if (cur) {
+        at<u32>((void *)(uintptr_t)cur, 0) = param;
+        at<u32>((void *)(uintptr_t)cur, 4) = code;
+    }
+    ++at<u32>(q, 0x2c);
+    return CritSec_Leave(reinterpret_cast<u8 *>(0x007b4bd8));
 }
 }
