@@ -4247,6 +4247,8 @@ const Hook kHooks[] = {
     {"GuiWindows_FindByHash",     0x00659c42, (void *)&GuiWindows_FindByHash, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiWindows_FindByName",     0x00659bc9, (void *)&GuiWindows_FindByName, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Gui_HashName",              0x006588b6, (void *)&Gui_HashName, {0x55, 0x8b, 0xec, 0x51, 0xc7}},
+    {"GuiWindows_Clear",          0x00659b52, (void *)&GuiWindows_Clear, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiWindows_Register",       0x00659a58, (void *)&GuiWindows_Register, {0x55, 0x8b, 0xec, 0x83, 0xec}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

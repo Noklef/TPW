@@ -4691,3 +4691,5 @@ address,name,kind,confidence,notes
 0x006588b6,Gui_HashName,function,low,"reimplemented (src/game/ui/windowreg); cdecl (text, multiplier): h = (signed char ^ h) * multiplier over the characters; returns h"
 0x00659bc9,GuiWindows_FindByName,function,low,"reimplemented (src/game/ui/windowreg); cdecl (name): the first node with the name's hash (0x2f): its window's slot 0x20, else 0"
 0x00659c42,GuiWindows_FindByHash,function,low,"reimplemented (src/game/ui/windowreg); cdecl (hash): the first node with the hash: its window's slot 0x20, else 0"
+0x00659a58,GuiWindows_Register,function,low,"reimplemented (src/game/ui/windowreg); cdecl (window, name): unless a node before the last has the name's hash, a node added at the end (window +0x10 = 1, strncpy 12, the hash); 1 in AX, else 0"
+0x00659b52,GuiWindows_Clear,function,low,"reimplemented (src/game/ui/windowreg); cdecl (word): every node freed (the head kept, sic), the windows deleted (slot 0 (1)) first when the word is set"
