@@ -71,6 +71,18 @@ u32 __cdecl Window_CancelPostedFirst(u8 *window);
 // 0x65903b (cdecl (window); name unconfirmed): likewise the window's timed messages in [0xfaa5f8] (GuiTimers_Cancel).
 u32 __cdecl Window_CancelTimed(u8 *window);
 
+// 0x65c025 (thiscall; name unconfirmed): the destructor. The vtable 0x705980; Window_Destroying unless the byte +4 is set; the manager
+// [0x77c48c] told (slot 13 (window)); each object +0x98 / +0x9c let go (WindowImpl_Release) and, when that answers -1 (as a word),
+// deleted (slot 0 (1)) as read again; the timer of each set dword +0x120-+0x12c killed (WindowTimers_Kill, ids 0x80080-0x80083); the
+// rectangle +0x44 deleted (slot 4 (1)) when it is not its own +8; Window_ForgetGlobals and the three cancels; unlinked from its parent
+// (+0x60, when first: the parent's +0x5c) and siblings (+0x58 / +0x54); each child deleted (slot 2 (1)) until +0x5c is 0 (each child
+// unlinks itself); the hover updated; the five rectangles destroyed (GuiRect_Dtor, the last's EAX left).
+u32 __fastcall Window_Dtor(u8 *window);
+
+// 0x661680 (thiscall (flags), pops 4; slot 2; name unconfirmed): the scalar deleting destructor: Window_Dtor, then with flag 1 freed
+// (Mem_Free). Returns the window.
+u8 *__fastcall Window_DeletingDtor(u8 *window, void *, u32 flags);
+
 // 0x65e705 (thiscall (index: a word), pops 4; name unconfirmed): the dword +0xa0 + 4 * index (signed) for an index below 16, else 0.
 u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index);
 

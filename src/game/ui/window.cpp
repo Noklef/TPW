@@ -5,9 +5,11 @@
 #include <initializer_list>
 
 #include "../core/accessors.h"
+#include "../core/gameheap.h"
 #include "guirect.h"
 #include "guitimers.h"
 #include "msgqueue.h"
+#include "windowtimers.h"
 
 namespace {
 
@@ -176,6 +178,42 @@ u32 __cdecl Window_CancelTimed(u8 *window) {
     u8 *const table = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f8);
     if (!table || !window) return 0xffff;  // only AX is set
     return GuiTimers_Cancel(table, nullptr, (u32)(uintptr_t)window);
+}
+
+u32 __fastcall Window_Dtor(u8 *window) {
+    at<u32>(window, 0) = 0x705980;
+    if (!window[4]) Window_Destroying(window);
+    u8 *const manager = *reinterpret_cast<u8 **>((uintptr_t)0x0077c48c);
+    reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>(at<void **>(manager, 0)[13])(manager, nullptr, window);
+    for (const u32 off : {0x98u, 0x9cu}) {
+        if (!at<u8 *>(window, off) || (s16)WindowImpl_Release(at<u8 *>(window, off)) != -1) continue;
+        u8 *const impl = at<u8 *>(window, off);  // read again
+        if (impl) reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>(at<void **>(impl, 0)[0])(impl, nullptr, 1);
+    }
+    for (u32 i = 0; i < 4; ++i)
+        if (at<u32>(window, 0x120 + 4 * i)) WindowTimers_Kill((u32)(uintptr_t)window, 0x80080 + i);
+    u8 *const rect = at<u8 *>(window, 0x44);
+    if (rect && rect != window + 8) reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>(at<void **>(rect, 0)[4])(rect, nullptr, 1);
+    Window_ForgetGlobals(window);
+    Window_CancelPosted(window);
+    Window_CancelPostedFirst(window);
+    Window_CancelTimed(window);
+    if (at<u8 *>(window, 0x60) && !at<u8 *>(window, 0x58)) at<u8 *>(at<u8 *>(window, 0x60), 0x5c) = at<u8 *>(window, 0x54);
+    if (at<u8 *>(window, 0x58)) at<u8 *>(at<u8 *>(window, 0x58), 0x54) = at<u8 *>(window, 0x54);
+    if (at<u8 *>(window, 0x54)) at<u8 *>(at<u8 *>(window, 0x54), 0x58) = at<u8 *>(window, 0x58);
+    at<u8 *>(window, 0x60) = nullptr;
+    while (u8 *const child = at<u8 *>(window, 0x5c))  // each child's deleting destructor unlinks it
+        reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>(at<void **>(child, 0)[2])(child, nullptr, 1);
+    Window_UpdateHover();
+    for (u32 off = 0x38; off > 8; off -= 0xc)
+        GuiRect_Dtor(window + off);
+    return GuiRect_Dtor(window + 8);
+}
+
+u8 *__fastcall Window_DeletingDtor(u8 *window, void *, u32 flags) {
+    Window_Dtor(window);
+    if (flags & 1) GameHeap_Free(window);
+    return window;
 }
 
 u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index) {

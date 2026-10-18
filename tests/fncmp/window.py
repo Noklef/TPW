@@ -15,7 +15,11 @@
 # ForgetGlobals / DropModal / Destroying (0x6592b6, 0x65e672, 0x65c2d8): the globals the window (or one in its tree) or others (upper
 # halves too); Destroying on a tree as HitTest's, the handlers fncmp's logger or 0, the hook [0xfaa5fc] set or not.
 # CancelPosted / CancelPostedFirst / CancelTimed (0x658fe9, 0x659012, 0x65903b): the queues as above and the timed table [0xfaa5f8]
-# (0-4 entries or none) or 0, entries the window's now and then; the window or 0.
+# (0-4 entries or none) or 0, entries the window's now and then; the window or 0. Dtor / DeletingDtor (0x65c025, 0x661680): a window
+# (going or not) with its objects +0x98 / +0x9c recorders (their counts near letting go) or 0, its timer flags set or not over a timer
+# list [0xfaa634] with its and others' nodes, its rectangle +0x44 its own, a recorder or 0, a parent and siblings or none, 0-3 real
+# child windows (vtable 0x705980: their own deleting destructors unlink them), the manager [0x77c48c] a recorder, the globals, queues and
+# timed table as above, the hover's root a tree's or none.
 # usage: window.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FindChild,SetChecks,SetChecksIfUp)
 import os
 import struct
@@ -37,7 +41,8 @@ CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50
          'HitTest': 0x65db25, 'UpdateHover': 0x6589f9, 'ImplRelease': 0x6616b0, 'IsShown': 0x65d773,
          'RectAssign': 0x65aa20, 'SaveRect': 0x65bc90, 'OffsetByParents': 0x65c979,
          'Ctor': 0x65bcad, 'ForgetGlobals': 0x6592b6, 'DropModal': 0x65e672, 'Destroying': 0x65c2d8,
-         'CancelPosted': 0x658fe9, 'CancelPostedFirst': 0x659012, 'CancelTimed': 0x65903b}
+         'CancelPosted': 0x658fe9, 'CancelPostedFirst': 0x659012, 'CancelTimed': 0x65903b,
+         'Dtor': 0x65c025, 'DeletingDtor': 0x661680}
 SENDS = {k: int(k[6:12], 16) for k in CALLS if k.startswith('Dialog7')}   # the window's global
 B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6d1), (0x658d9f, 0x658df4), (0x659710, 0x659721),
            (0x4b87f0, 0x4b8850), (0x4b8e80, 0x4b8ea0), (0x4b8ec0, 0x4b8ee0), (0x4b9c00, 0x4b9c40),
@@ -51,9 +56,12 @@ B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x
            (0x65aa20, 0x65aa90), (0x65bc90, 0x65bcad), (0x65c979, 0x65c9bd),
            (0x65bcad, 0x65c025), (0x659d00, 0x659d43), (0x65a9d0, 0x65aa00), (0x65a3e9, 0x65a43e), (0x67fff0, 0x680048),
            (0x6592b6, 0x659333), (0x65e672, 0x65e6a4), (0x65c2d8, 0x65c357),
-           (0x658fe9, 0x659064), (0x669b3e, 0x669bdb), (0x669e3a, 0x669eb3)])
+           (0x658fe9, 0x659064), (0x669b3e, 0x669bdb), (0x669e3a, 0x669eb3),
+           (0x65c025, 0x65c2c8), (0x661680, 0x6616b0), (0x659d90, 0x659dbc), (0x66bff7, 0x66c00b), (0x661f9b, 0x661fe5),
+           (0x6620e2, 0x66213e), (0x662306, 0x662384), (0x662500, 0x66252c)])
 WINDOW, NODES, VTABLE, MISC, KIDS, HOLDER, WINDOW2 = RAM, RAM + 0x100, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200, RAM + 0x1600, RAM + 0x1800
 QUEUES, TREE, RECTS, TIMED = RAM + 0x2000, RAM + 0x3000, RAM + 0x4000, RAM + 0x5000
+MANAGER, TNODES, RECT, PARENT, CHILDREN = RAM + 0x5400, RAM + 0x5600, RAM + 0x5800, RAM + 0x6000, RAM + 0x7000
 NODE = 0x90
 BUTTONS = list(range(0x18, 0x22))
 
@@ -105,6 +113,82 @@ def timers(r, regions, window):
         regions[TIMED + 0x20] = entries
     regions[TIMED] = struct.pack('<II', n, r.choice([TIMED + 0x20] * 5 + [0]))
     regions[0xfaa5f8] = struct.pack('<I', r.choice([TIMED] * 5 + [0]))
+
+
+def destructor(r, regions, op):
+    regions[HEAP] = heap()
+    wins = tree(r, regions)
+    x, y = point(r, regions, wins)
+    regions[0xfaa540] = struct.pack('<II', x, y)
+    win = bytearray(r.bytes(0x140))
+    win[4] = 0 if r.random() < 0.7 else 1
+    put(win, 0x114, 'I', r.choice([CDECL_LOG4, 0]))
+    regions[0xfaa5fc] = struct.pack('<I', r.choice([0, CDECL_LOG4]))
+    regions[0x77c48c] = struct.pack('<I', MANAGER)
+    regions[MANAGER] = struct.pack('<I', MANAGER + 0x40)
+    regions[MANAGER + 0x40] = vtable({13: 1})
+    regions[VTABLE] = vtable({0: 1, 5: 1})
+    for k, off in enumerate((0x98, 0x9c)):
+        impl = bytearray(r.bytes(0x20))
+        put(impl, 0, 'I', VTABLE)
+        put(impl, 0x10, 'H', r.choice([0, 1, 1, 2, 0xffff]))
+        put(impl, 0x12, 'H', r.choice([0, 1, 1, 2, 3]))
+        regions[MISC + 0x40 * k] = impl
+        put(win, off, 'I', r.choice([MISC + 0x40 * k, MISC + 0x40 * k, 0]))
+    for i in range(4):
+        put(win, 0x120 + 4 * i, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
+    nodes = []   # the timer list: the window's ids and others, linked both ways
+    for i in range(r.choice([0, 1, 3, 5])):
+        node = bytearray(r.bytes(0x20))
+        put(node, 0, 'I', r.choice([WINDOW2, WINDOW2, wins[0]]))
+        put(node, 0xc, 'I', r.choice([0x80080, 0x80081, 0x80082, 0x80083, 0x10]))
+        put(node, 0x18, 'I', 0)
+        put(node, 0x1c, 'I', TNODES + 0x20 * (i - 1) if i else 0)
+        if i:
+            put(nodes[-1], 0x18, 'I', TNODES + 0x20 * i)
+        nodes.append(node)
+    if nodes:
+        regions[TNODES] = b''.join(nodes)
+    regions[0xfaa634] = struct.pack('<I', TNODES if nodes and r.random() < 0.9 else 0)
+    put(win, 0x44, 'I', r.choice([WINDOW2 + 8] * 3 + [RECT, 0]))
+    regions[RECT] = struct.pack('<I', RECT + 0x40) + r.bytes(0xc)
+    regions[RECT + 0x40] = vtable({4: 1})
+    parent = r.choice([PARENT, 0])
+    put(win, 0x60, 'I', parent)
+    put(win, 0x58, 'I', r.choice([PARENT + 0x100, 0]))
+    put(win, 0x54, 'I', r.choice([PARENT + 0x200, 0]))
+    for k in range(3):
+        regions[PARENT + 0x100 * k] = r.bytes(0x70)
+    n = r.choice([0, 0, 1, 2, 3])
+    kids = [CHILDREN + 0x140 * i for i in range(n)]
+    put(win, 0x5c, 'I', kids[0] if n else 0)
+    for i, a in enumerate(kids):
+        kid = bytearray(r.bytes(0x140))
+        put(kid, 0, 'I', 0x705980)
+        kid[4] = r.choice([0, 1])
+        put(kid, 0x114, 'I', r.choice([CDECL_LOG4, 0]))
+        put(kid, 0x60, 'I', WINDOW2)
+        put(kid, 0x58, 'I', kids[i - 1] if i else 0)
+        put(kid, 0x54, 'I', kids[i + 1] if i + 1 < n else 0)
+        put(kid, 0x5c, 'I', 0)
+        put(kid, 0x98, 'I', 0)
+        put(kid, 0x9c, 'I', 0)
+        for j in range(4):
+            put(kid, 0x120 + 4 * j, 'I', 0)
+        put(kid, 0x44, 'I', a + 8)
+        regions[a] = kid
+    regions[WINDOW2] = win
+    timers(r, regions, WINDOW2)
+
+    def some():
+        return r.choice([WINDOW2, WINDOW2, wins[0], 0, r.getrandbits(32)] + kids)
+    regions[0xfaa578] = struct.pack('<II', r.getrandbits(32), some())
+    regions[0xfaa588] = struct.pack('<3I', some(), some(), some())
+    regions[0xfaa5d8] = struct.pack('<5I', r.choice([wins[0], 0, 0]), some(), some(), r.getrandbits(32), r.choice([0, 0, 0, some()]))
+    regions[0xfaa5ec] = struct.pack('<I', some())
+    if op == 'Dtor':
+        return Call(CALLS[op], [WINDOW2], regions, conv='t', ret='a')
+    return Call(CALLS[op], [WINDOW2, r.choice([0, 1, 1, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
 
 
 def tree(r, regions):
@@ -241,6 +325,8 @@ def case(r):
     if op.startswith('Cancel'):
         timers(r, regions, WINDOW)
         return Call(CALLS[op], [r.choice([WINDOW] * 5 + [0])], regions, ret='w')
+    if op in ('Dtor', 'DeletingDtor'):
+        return destructor(r, regions, op)
     if op == 'HitTest':
         wins = tree(r, regions)
         return Call(CALLS[op], [r.choice(wins[:1] * 3 + wins)] + list(point(r, regions, wins)), regions, conv='t', ret='a')

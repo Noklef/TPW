@@ -446,7 +446,8 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006fd958, 2},   // AdvisorScoring,
                                    {0x00702800, 2},   // a theme's (Table73f8a8_At, BalanceFile_GetValues)
                                    {0x00702250, 10},   // the texture surface B's virtual base (its thunks; slot 1 FreePixels' the destructor calls)
-                                   {0x00705920, 4}};  // the GUI rectangle (GuiRect_Contains, _Centre, _Offset, _Adjust)
+                                   {0x00705920, 4},   // the GUI rectangle (GuiRect_Contains, _Centre, _Offset, _Adjust)
+                                   {0x00705980, 3}};  // the GUI window (Debug_Printf, Window_SaveRect, Window_DeletingDtor)
 
 void __cdecl debug_printf(const char *, ...) {}  // Debug_Printf 0x5da3c0 (RefObject's teardown slot among others)
 
