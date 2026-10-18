@@ -299,6 +299,7 @@
 #include "../game/ui/guidialog.h"
 #include "../game/ui/guimanager.h"
 #include "../game/ui/guirect.h"
+#include "../game/ui/msgqueue.h"
 #include "../game/ui/window.h"
 
 namespace tpw::hook {
@@ -4114,6 +4115,8 @@ const Hook kHooks[] = {
     {"GuiDialog_ScalarDtor",      0x00659cb0, (void *)&GuiDialog_ScalarDtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"GuiDialog_Dtor",            0x00659886, (void *)&GuiDialog_Dtor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"GuiDialog_Ctor",            0x006597b0, (void *)&GuiDialog_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"MsgQueue_Push",             0x006697e3, (void *)&MsgQueue_Push, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"MsgQueue_Free",             0x00669735, (void *)&MsgQueue_Free, {0x55, 0x8b, 0xec, 0x83, 0xec}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

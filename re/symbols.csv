@@ -4571,3 +4571,5 @@ address,name,kind,confidence,notes
 0x006597b0,GuiDialog_Ctor,function,low,"reimplemented (src/game/ui/guidialog); thiscall (value), pops 4: rects +0x14/+0x20 constructed, vtable 0x7058f8, +4 = value, words +0x10 +0x12 +0xa +0xc +8 +0x2c..+0x36 = 0, Fn_659994(0); returns this"
 0x00659886,GuiDialog_Dtor,function,low,"reimplemented (src/game/ui/guidialog); thiscall: vtable 0x7058f8, rects +0x20 and +0x14 destroyed"
 0x00659cb0,GuiDialog_ScalarDtor,function,low,"reimplemented (src/game/ui/guidialog); thiscall (flags), pops 4, slot 0: GuiDialog_Dtor, freed for flags bit 0; returns this"
+0x00669735,MsgQueue_Free,function,low,reimplemented (src/game/ui/msgqueue); thiscall: the entries (when set) freed (Mem_Free) and +0 cleared
+0x006697e3,MsgQueue_Push,function,low,"reimplemented (src/game/ui/msgqueue); thiscall (window, message, a, b), pops 16: into the entry +0xc when it is free and window != 0: count up, index down (wrapping to cap - 1); 1 / 0 in AX"
