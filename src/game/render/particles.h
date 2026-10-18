@@ -1,5 +1,5 @@
 // The particle systems' handle accessors: reimplementation of 0x51fa80, 0x51fd80, 0x51fe30, 0x51fd90, 0x51feb0,
-// 0x520030, 0x5200b0, 0x5204c0, 0x521810, 0x521850, 0x51ff10, 0x51ff70, 0x51ffd0, 0x520470, 0x5222e0, 0x522320, 0x520e00, 0x520560, 0x521e60, 0x5214a0, 0x521930, 0x520f10 and 0x520130. Nothing works before the
+// 0x520030, 0x5200b0, 0x5204c0, 0x521810, 0x521850, 0x51ff10, 0x51ff70, 0x51ffd0, 0x520470, 0x5222e0, 0x522320, 0x520e00, 0x520560, 0x521e60, 0x5214a0, 0x521930, 0x520f10, 0x520130 and 0x486b90. Nothing works before the
 // particles are set up (0x816d40 set). A system handle is serial << 16 | slot: slot (u16) below
 // 0x78 in gParticleSystems (0x80cefc, 0x140 bytes each, copies of an effect definition), its
 // serial the system's u16 +0xa; 0 is none. A system's +0x20 is its age (-2 ends it) and +0xd4 its
@@ -117,6 +117,12 @@ void __cdecl ParticlePool_Move(s32 pool, s32 jump, float x, float y, float t);
 // 0x521930 (cdecl; effect, x, y, z, vx, vy, vz; name unconfirmed): Particle_Spawn with a velocity: the system's +0x38/+0x3c/+0x40 = vx, vy, vz times its
 // +0xb0 over 1024 (truncated toward 0) in place of the jitter of +0x2c. (Its linked effect is started by Particle_Spawn.)
 s32 __cdecl Particle_SpawnWithVelocity(s32 effect, s32 x, s32 y, s32 z, s32 vx, s32 vy, s32 vz);
+
+// 0x486b90 (cdecl; effect, window; called from 0x48dfbe with 0x5a; name unconfirmed): when the window is shown (Window_IsShown) and the dword
+// [0x786b84] is 0, the effect spawned (Particle_Spawn) at the centre of its inner rectangle (Window_GetRect(rect, 1) into a GUI rectangle on the
+// stack): x = centre x * 100000 / 2048, y 0, z = centre y * 75000 / 1536 (the centres (low + high) >> 1 rounded down from the low edge, 32-bit
+// products, signed divisions truncated). EAX (the rectangle's destructor's) is left out.
+void __cdecl Particle_SpawnAtWindow(s32 effect, u8 *window);
 
 // 0x5214a0: one step of every particle of each live system (from 0x816d1c, next in the word +0xd0) whose word +2 is 0, along its record list (the word +6,
 // next in the record's +0x30). Each record's age +0x20 counts down; below 0 it ends: the emit count 0x80ced0 and its system's (the record's +0x26) word +8

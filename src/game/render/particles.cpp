@@ -6,6 +6,8 @@
 #include "../core/voices.h"
 #include "../math/intsin.h"
 #include "../math/x87.h"
+#include "../ui/guirect.h"
+#include "../ui/window.h"
 
 namespace {
 
@@ -382,6 +384,20 @@ s32 __cdecl Particle_Spawn(s32 effect, s32 x, s32 y, s32 z) { return StartSystem
 s32 __cdecl Particle_SpawnWithVelocity(s32 effect, s32 x, s32 y, s32 z, s32 vx, s32 vy, s32 vz) {
     const s32 velocity[3] = {vx, vy, vz};
     return StartSystem(effect, x, y, z, velocity);
+}
+
+void __cdecl Particle_SpawnAtWindow(s32 effect, u8 *window) {
+    u8 rect[12];
+    GuiRect_Ctor(rect);
+    if (Window_IsShown(window) != 0 && global<u32>(0x00786b84) == 0) {
+        Window_GetRect(window, nullptr, rect, 1);
+        const s32 left = *reinterpret_cast<s16 *>(rect + 4), top = *reinterpret_cast<s16 *>(rect + 6);
+        const s32 right = *reinterpret_cast<s16 *>(rect + 8), bottom = *reinterpret_cast<s16 *>(rect + 0xa);
+        const s32 cy = ((bottom - top) >> 1) + top;
+        const s32 cx = ((right - left) >> 1) + left;
+        Particle_Spawn(effect, (s32)((u32)cx * 100000u) / 2048, 0, (s32)((u32)cy * 75000u) / 1536);
+    }
+    GuiRect_Dtor(rect);
 }
 
 s32 __cdecl ParticlePool_Resize(s32 pool, s32 count, s32 effect) {
