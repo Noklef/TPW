@@ -1,0 +1,11 @@
+# Source is text, stored with LF (core.autocrlf gives CRLF in the working tree). Said outright so that a stray CR (a CR CR LF a script
+# wrote) cannot make git take a file for binary, as it did hooks.cpp: no text diff, and every merge a whole-file conflict.
+*.cpp text
+*.h text
+*.py text
+*.java text
+*.csv text
+*.md text
+*.txt text
+*.def text
+*.bat text eol=crlf

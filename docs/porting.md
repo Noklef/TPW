@@ -30,9 +30,10 @@ range, open items, known skips and the paths of the two memory files it should r
   in symbols.csv (pass `--low NAME...` to port.py), and you say "unconfirmed" in your report.
 - Leave out Debug_Printf asserts/prints.
 - Tooling and test code live only in tools/ or src/testing (or tests/fncmp benches).
-- **Never `sed -i` a tracked file from Git Bash.** It strips CRs; src/hook/hooks.cpp mixes CR LF and CR CR LF, and with core.autocrlf the
-  commit becomes a 7000-line rewrite that conflicts with every branch. Use Edit/Write or integrate.py. If a one-line change shows thousands of
-  lines in `git diff --stat`, stop and fix the endings before committing.
+- **Never `sed -i` a tracked file from Git Bash**; use Edit/Write or integrate.py. Files are stored with LF and checked out CR LF
+  (core.autocrlf, .gitattributes). A script that writes lines must keep exactly one CR LF per line: a CR CR LF once made git treat
+  src/hook/hooks.cpp as binary, so every merge of it was a whole-file conflict. If a one-line change shows thousands of lines in
+  `git diff --stat`, stop and fix the endings before committing.
 - **No backslash escapes through heredoc Python** (`\r\n`, `\x10`): they get mangled. Use Edit/Write, or chr(13)/chr(10).
 - **Killing a stuck run:** stop only your own processes, matched by your full worktree path in the command line, never by a short substring.
   All agents share the scratchpad path, so a short match once killed another agent's port.py.
