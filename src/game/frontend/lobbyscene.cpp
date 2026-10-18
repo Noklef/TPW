@@ -2,6 +2,9 @@
 
 #include <cstdint>
 
+#include "../core/gameheap.h"
+#include "../core/string.h"
+#include "../core/vcall.h"
 #include "../model/holder.h"
 #include "lobbymodel.h"
 
@@ -43,5 +46,41 @@ u32 __fastcall Class702cb0_StartPendingPlay(u8 *object) {
         LobbyModel_Play(at<u8 *>(at<u8 *>(object, 0xc), 8), nullptr, 1, 0);
     at<u32>(object, 0x14) = 0;
     return 1;
+}
+
+u8 *__fastcall Class702af0_Ctor(u8 *object, void *, s32 count, const char *name, const char *name2, const u32 *first, const u32 *second, u32 a,
+                                u32 b) {
+    String_Ctor(reinterpret_cast<String *>(object + 0x10));
+    String_Ctor(reinterpret_cast<String *>(object + 0x24));
+    at<u32>(object, 0) = 0x00702af0;
+    u32 *list = static_cast<u32 *>(GameHeap_Alloc(0x10));
+    if (list) {
+        list[1] = 0;
+        list[2] = 0;
+        list[3] = 0;
+        list[0] = 0x00702aec;
+    }
+    at<u32>(object, 4) = 0;
+    at<u32 *>(object, 0x58) = list;
+    s32 share = (s32)((u32)count * *reinterpret_cast<u32 *>((uintptr_t)0x007858dc)) / 100;
+    if (share < 1)
+        share = 1;
+    else if (share > count)
+        share = count;
+    at<s32>(object, 8) = share;
+    at<u32>(object, 0xc) = 0;
+    vcall<void>(object + 0x10, 0x14, name);
+    vcall<void>(object + 0x24, 0x14, name2);
+    at<u32>(object, 0x38) = first[0];
+    at<u32>(object, 0x3c) = first[1];
+    at<u32>(object, 0x40) = first[2];
+    at<u32>(object, 0x44) = second[0];
+    at<u32>(object, 0x48) = second[1];
+    const u32 last = second[2];
+    at<u32>(object, 0x50) = a;
+    at<u32>(object, 0x4c) = last;
+    at<u32>(object, 0x54) = b;
+    vcall<void>(*reinterpret_cast<u8 **>((uintptr_t)0x00f83784), 0x18, object);
+    return object;
 }
 }
