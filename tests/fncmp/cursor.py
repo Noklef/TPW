@@ -3,8 +3,8 @@
 # its entries cursor objects (slots 4 and 2 recorders, the byte +4 zero or not) or 0, the current id 0x77c484 and the default id 0xfaa600
 # in and out of it, -1 or not, the id passed one of those (some out only by the high byte; upper words random). WindowSetCursor: that, the
 # window the hovered one [0xfaa5e0] or not. ApplyCursor (0x65f150): the same with the window's word +0x50 the id. Set / ObjSet (0x4a2aa0,
-# 0x4814a0): the windows [0x7cb2ac], [0x7cc8c0] and [0x7cc8bc] each set or not (one of them now and then the hovered one). Update
-# (0x52f950): that, the game mode 0x81ae2c each of the switch's (others too) and the dwords 0x816d48, 0x816d4c, 0x816d5c, 0x816d60 0 or not.
+# 0x4814a0): the windows [0x7cb2ac] (mostly), [0x7cc8c0] and [0x7cc8bc] each set or not (one of them now and then the hovered one). Update
+# (0x52f950): that, the game mode 0x81ae2c each of the switch's (others too) and the dwords 0x816d48, 0x816d4c, 0x816d5c, 0x816d60 0 (mostly) or not.
 # usage: cursor.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Get,SetCursor,WindowSetCursor,ApplyCursor,Set,ObjSet,Update)
 import os
 import struct
@@ -74,7 +74,7 @@ def case(r):
             regions[w] = bytearray(r.bytes(0x60))
         put(regions[0xfaa5e0], 0, 'I', r.choice(wins + [0]))
         game = bytearray(r.bytes(0x38))   # 0x7cb2a8..0x7cb2df
-        put(game, 4, 'I', r.choice([wins[0], 0]))
+        put(game, 4, 'I', r.choice([wins[0], wins[0], wins[0], 0]))
         regions[0x7cb2a8] = game
         regions[0x7cc8bc] = put(bytearray(8), 0, 'II', r.choice([wins[1], 0]), r.choice([wins[2], 0]))
         if op == 'Update':
@@ -82,7 +82,7 @@ def case(r):
                                                              r.getrandbits(32)]))
             regions[0x816d48] = bytearray(r.bytes(0x1c))
             for off in (0, 4, 0x14, 0x18):
-                put(regions[0x816d48], off, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
+                put(regions[0x816d48], off, 'I', r.choice([0, 0, 0, 1, r.getrandbits(32)]))
             return Call(CALLS[op], [], regions, ret='v')
         args = [ident(r, n, current, default)]
         return Call(CALLS[op], ([RAM] if op == 'ObjSet' else []) + args, regions, conv='t' if op == 'ObjSet' else 'c', ret='v')
