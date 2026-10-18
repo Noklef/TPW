@@ -111,4 +111,13 @@ void __cdecl Terrain_FootprintCell(s32 angle, float x0, float y0, float x1, floa
 // 0xa0 j). The extremes start at -10000 and 10000; a NaN height becomes the lowest, and stays so. With an angle Terrain_FootprintCell
 // does not take the corner read is at the float bits of x and y (sic).
 double __cdecl Terrain_FootprintHeight(s32 x, s32 y, const u8 *cells, s32 width, s32 depth, u32 flags, s32 angle);
+
+// 0x452ae0 (cdecl; x, y, slot; name unconfirmed): the height of the surface at cell (x, y), in st0. The ride is *slot when slot and *slot are
+// set, else the one at the cell (Map_RideIndexAt inline, its debug check left out). The position is x * 10, y * 10 (fild, as floats). With a
+// ride (to *slot when given) whose record (0x7a4610) has a height map (+0xcc): from the origin (+0x40 of the +0x78 of the +4 of the record's
+// +8, whose +0x10 is the angle) dx = x - +0x40 (a float), dy = y - +0x48 (kept on the x87), turned (90: u = -dy - 10, v = dx; 180: u =
+// -dx - 10, v = -dy - 10; 270: u = dy, v = -dx - 10; any other: u = dx, v = dy), then the byte at the map's +0x10 less its width (u16 +8)
+// times __ftol(v -0.1) less __ftol(u -0.1), times 100 / 255 plus the origin's +0x44. Otherwise *slot = 0 and 0 when slot is given, else
+// Terrain_HeightAt of the position.
+double __cdecl Terrain_SurfaceHeight(s32 x, s32 y, u32 *slot);
 }

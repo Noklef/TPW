@@ -4,16 +4,21 @@
 # 0, their types often 0xc / 0x11 with a parent; the 0x44-byte cells' types often 4 / 9 / 0xa, parents and object chains), the entrance's
 # row and columns about the cell, and a thing table whose things are rides (kind 3) or not, one slot empty; the terrain grid (0x7a0854
 # +0x6c) small or wide, the cell beyond it or not.
+# Surface (Terrain_SurfaceHeight 0x452ae0, over Terrain_HeightAt 0x4527f0): that world with a slot (null, 0, a ride or a bad index), the
+# rides' records present or not, with height maps or not, their origins about the cell's position (now and then NaN or off by a little
+# more), turned 0, 90, 180, 270 or otherwise; the ground a 16 x 8 grid of 10-unit cells.
 # usage: rideat.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fncmp import RAM, Bench, Call, put  # noqa: E402
 
 B = Bench([(0x452a60, 0x452ad7), (0x450ac0, 0x450b00), (0x53bf30, 0x53bfa0), (0x527e80, 0x527ed8), (0x527d60, 0x527e76),
-           (0x4d99e0, 0x4d9a5b), (0x4d8300, 0x4d8328), (0x5da3c0, 0x5da3c1)])
+           (0x4d99e0, 0x4d9a5b), (0x4d8300, 0x4d8328), (0x5da3c0, 0x5da3c1), (0x452ae0, 0x452c97),
+           (0x4527f0, 0x452a70)])
 WORLD = 0x32000000
 IDS = 0x220   # cell ids 0 - 0x21f: rows 0 - 3 and a little past
 THINGS, MAP, GRID = RAM, RAM + 0x4000, RAM + 0x4100
@@ -80,7 +85,48 @@ def ride_at(r):
     return Call(0x450ac0, [x, y], regions, ret='a')
 
 
-CASES = {'Index': ride_index, 'At': ride_at}
+def surface(r):
+    import terrainheight  # noqa: E402  (its heights; its bench is its own)
+    x, y = cell(r)
+    regions = world(r, False)
+    entrance(r, regions, x, y)
+    SLOT, RIDES, HMAPS, LEVELS, GROUND = RAM + 0x5000, RAM + 0x5100, RAM + 0x7000, RAM + 0x8000, RAM + 0x10000
+    table = bytearray(4 * 0x10)
+    for i in range(1, 0x10):
+        if r.random() < 0.15:
+            continue
+        rec = RIDES + 0x100 * i
+        put(table, 4 * i, 'I', rec)
+        place, obj = rec + 0xd0, rec + 0x80   # (the record's +8 -> place (+0x10 the angle), place +4 -> obj, obj +0x78 -> rec: origin +0x40)
+        hmap = HMAPS + 0x20 * i if r.random() < 0.85 else 0
+        record = put(put(bytearray(r.bytes(0x100)), 8, 'I', place), 0xcc, 'I', hmap)
+        put(record, 0xd4, 'I', obj)
+        put(record, 0xe0, 'I', r.choice([0, 90, 180, 270, 90, 180, 270, 45, r.getrandbits(32)]))
+        put(record, 0x80 + 0x78, 'I', rec)
+        regions[rec] = record
+        regions.setdefault(HMAPS, bytearray(r.bytes(0x20 * 0x10)))
+        if hmap:
+            put(regions[HMAPS], 0x20 * i + 8, 'H', r.choice([1, 4, 16, 16, r.randrange(1, 20)]))
+            put(regions[HMAPS], 0x20 * i + 0x10, 'I', LEVELS + 0x1000)
+    # origins: about the position, so that the offsets stay within the levels
+    for i in range(1, 0x10):
+        if RIDES + 0x100 * i in regions:
+            ox, oz = (v * 10 + r.uniform(-60, 60) if r.random() < 0.95 else r.choice([float('nan'), v * 10 + 150.0]) for v in (x, y))
+            put(regions[RIDES + 0x100 * i], 0x40, '3f', ox, r.uniform(-20, 20), oz)
+    regions[0x7a4610] = table
+    regions[LEVELS] = r.bytes(0x2000)
+    slot = r.choice([0, SLOT, SLOT, SLOT])
+    regions[SLOT] = struct.pack('<I', r.choice([0, 0, r.randrange(1, 0x10), r.randrange(1, 0x10)]))
+    grid = put(put(put(bytearray(r.bytes(0x30)), 0x10, '2f', 10.0, 10.0), 0x18, '2I', 16, 8), 0x28, '2I', GROUND, GROUND + 0x1000)
+    heights = bytearray(4 * 17 * 9)
+    for i in range(17 * 9):
+        put(heights, 4 * i, 'f', terrainheight.height(r))
+    regions.update({0x7a0854: struct.pack('<I', MAP), MAP: put(bytearray(r.bytes(0x70)), 0x6c, 'I', GRID), GRID: grid, GROUND: heights,
+                    GROUND + 0x1000: r.bytes(0x400)})
+    return Call(0x452ae0, [x & 0xffffffff, y, slot], regions, ret='d')
+
+
+CASES = {'Index': ride_index, 'At': ride_at, 'Surface': surface}
 
 
 def case(r):

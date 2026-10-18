@@ -3804,6 +3804,7 @@ address,name,kind,confidence,notes
 0x00450a80,Terrain_FreeLoaded,function,low,"reimplemented (src/game/terrain/land); cdecl: the loaded grid and the instance at 0x79fcb4 freed, then GlobalMem_FreeThree_427bb0"
 0x00452a60,Map_RideIndexAt,function,low,"reimplemented (src/game/terrain/land); cdecl (x, y): the ride index of a map cell, from its dword or the ride object there"
 0x00450ac0,Terrain_RideAt,function,low,"reimplemented (src/game/terrain/land); cdecl (x, y): the ride at the grid cell, clamped to the grid"
+0x00452ae0,Terrain_SurfaceHeight,function,low,"reimplemented (src/game/terrain/land); cdecl (x, y, slot): the height at cell (x, y): the ride height map there (by its origin and angle) or the ground"
 0x005ea510,Image_Dilate,function,high,reimplemented (src/game/gfx/imageops); separable maximum filter of an image
 0x005ea6d0,Image_Erode,function,high,reimplemented (src/game/gfx/imageops); separable minimum filter of an image
 0x005ea1f0,Image_MinMark,function,high,"reimplemented (src/game/gfx/imageops); 3 x 3 minimum of a two byte per pixel image, marking the changed pixels"
