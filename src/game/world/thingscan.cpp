@@ -503,6 +503,18 @@ u16 *__fastcall Things_HeadForNearestFlag40(u8 *sprite, void *, u16 *out, u32 ra
     *out = best;
     return out;
 }
+
+u16 *__fastcall Cell_FirstObject(const u8 *cell, void *, u16 *out) {
+    u16 handle = at<u16>(cell, 0x24);
+    while (handle != 0) {
+        const u8 *thing = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
+        if (thing[2] == 3)
+            break;
+        handle = at<u16>(thing, 0xa);
+    }
+    *out = handle;
+    return out;
+}
 }  // extern "C"
 
 namespace {

@@ -131,6 +131,10 @@ void __fastcall Things_NearestFlag80Close(const u8 *thing, void *, u16 *out);
 // +0x36) the person can be sent to (Sprite_SetDestinationCell, which is left set), becomes the best; its handle goes to out (0 for none). Returns out.
 u16 *__fastcall Things_HeadForNearestFlag40(u8 *sprite, void *, u16 *out, u32 radius);
 
+// 0x4d99e0 (thiscall on a 0x44-byte map cell; out word, pops 4; name unconfirmed; an assert on the thing table is left out): the first thing of kind
+// 3 (an object; the byte at +2) in the cell's chain (the head word at +0x24, the links the words at +0xa of each); its handle to out, 0 for none. Returns out.
+u16 *__fastcall Cell_FirstObject(const u8 *cell, void *, u16 *out);
+
 // 0x4824d0 (cdecl; category, previous; name unconfirmed): the next thing of a category (one bit) after the previous one (from the first when 0), each by
 // its own finder: 1 a staff member (Thing_IsStaff) in the in-use list (World_FirstThing / World_NextThing); 2, 4, 8, 0x10, 0x20 the next in a staff
 // list: the head (the handymen's word world +0x1da73c read inline, World_FirstMechanic, World_FirstGuard, World_FirstEntertainer,

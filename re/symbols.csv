@@ -972,6 +972,7 @@ address,name,kind,confidence,notes
 0x004824d0,Things_FindNextOfCategory,function,low,"reimplemented (src/game/world/thingscan); The next thing of a category bit after a thing: staff, a staff list, kind 1 or one of the object finders"
 0x00482da0,Things_FindPrevOfCategory,function,low,"reimplemented (src/game/world/thingscan); The previous thing of a category bit before a thing: staff, kind 1, shops or one of the object finders"
 0x00500dc0,Things_HeadForNearestFlag40,function,low,"reimplemented (src/game/world/thingscan); thiscall (out, radius): the nearest thing with flag 0x40 in the game's list within the radius that the person can be sent to (its cell +0x36), its handle to out"
+0x004d99e0,Cell_FirstObject,function,low,"reimplemented (src/game/world/thingscan); thiscall on a map cell (out): the first thing of kind 3 in the cell chain at +0x24 (links +0xa); its handle to out, 0 for none"
 0x0054b130,Buoy_FindFree,function,high,"reimplemented (src/game/world/trackpools); the first free buoy record, its index stored in it"
 0x0054b170,Buoy_Alloc,function,high,reimplemented (src/game/world/trackpools); takes the first free buoy record
 0x0054b1e0,CollNode_FindFree,function,high,reimplemented (src/game/world/trackpools); the first free collision node

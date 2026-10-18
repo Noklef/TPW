@@ -1,6 +1,7 @@
-# The thing counts of src/game/world/thingscan (Things_TopThreeValues 0x4c8430, Things_CountOfKindAround 0x4c8d30) against the originals: a park of up to six things
+# The thing counts of src/game/world/thingscan (Things_TopThreeValues 0x4c8430, Things_CountOfKindAround 0x4c8d30, Cell_FirstObject 0x4d99e0) against the originals: a park of up to six things
 # (thingenv.py) of kinds 1 to 3 on analyser cells of every type, with values at +0x30 from 0 to 22; or things chained in the per-cell lists around a cell id, searched for a
-# kind with radius 0 to 3 (to the corner of the map too), counting or stopping at the first.
+# kind with radius 0 to 3 (to the corner of the map too), counting or stopping at the first; or some of them chained (+0xa) from a cell's
+# word at +0x24, of kinds 1, 2, 3 and 0xff, for the first of kind 3.
 # usage: thingcount.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Top,Area)
 import os
 import struct
@@ -12,8 +13,8 @@ sys.path.insert(0, HERE)
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 from thingenv import CELLS, POOL, THING, park  # noqa: E402
 
-CALLS = {'Top': 0x4c8430, 'Area': 0x4c8d30, 'Near': 0x4c8ed0, 'Unlink': 0x4d9280, 'Any': 0x4c8eb0}
-B = Bench([(0x4c8430, 0x4c85a8), (0x4c8d30, 0x4c8ea0), (0x4c8ed0, 0x4c9040), (0x4d9280, 0x4d93b0), (0x4c8eb0, 0x4c8ed0), (0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x5da3c0, 0x5da3c1), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c)])
+CALLS = {'Top': 0x4c8430, 'Area': 0x4c8d30, 'Near': 0x4c8ed0, 'Unlink': 0x4d9280, 'Any': 0x4c8eb0, 'First': 0x4d99e0}
+B = Bench([(0x4c8430, 0x4c85a8), (0x4c8d30, 0x4c8ea0), (0x4c8ed0, 0x4c9040), (0x4d9280, 0x4d93b0), (0x4c8eb0, 0x4c8ed0), (0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x5da3c0, 0x5da3c1), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c), (0x4d99e0, 0x4d9a5b)])
 OUT = RAM + 0x1000
 
 
@@ -31,6 +32,19 @@ def case(r):
             cell = cell & 0x7f or 1
         regions = {CELLS: cells, 0x8023a0: struct.pack('<I', CELLS), RAM + 0x20000 + 0x1f000: r.bytes(0x400), OUT: r.bytes(8)}
         return Call(CALLS[name], [RAM + 0x20000, OUT, r.choice([0, 1, 2, 5, 0x8000, 0xffff, 0x10001]), cell, radius], regions, conv='t', ret='a')
+    if name == 'First':
+        count = r.choice([0, 1, 2, 3, 4, 6])
+        regions, handles, things = park(r, count=count, kinds=(1, 2, 3, 3, 0xff), defs=False)
+        pool = bytearray(regions[POOL])
+        order = r.sample(range(count), r.randrange(count + 1))
+        for k, i in enumerate(order):
+            put(pool, THING * i + 0xa, 'H', handles[order[k + 1]] if k + 1 < len(order) else 0)
+        regions[POOL] = pool
+        cell = bytearray(r.bytes(0x44))
+        put(cell, 0x24, 'H', handles[order[0]] if order else 0)
+        regions[RAM + 0x20000] = cell
+        regions[OUT] = r.bytes(4)
+        return Call(CALLS[name], [RAM + 0x20000, OUT], regions, conv='t', ret='a')
     if name == 'Unlink':
         count = r.choice([1, 2, 3, 4, 6])
         regions, handles, things = park(r, count=count, kinds=(1,), defs=False)
