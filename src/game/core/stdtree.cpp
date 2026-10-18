@@ -652,6 +652,14 @@ u32 *__fastcall StdMapG_InsertCopy(u8 *tree, void *, u32 *out, const u16 *value)
     return out;
 }
 
+u32 *__fastcall StdMapD_InsertCopy(u8 *tree, void *, u32 *out, const StdWString *value) {
+    u32 result[2];
+    StdMapD_Insert(tree, nullptr, reinterpret_cast<u8 **>(result), value);
+    at<u32>(out, 0) = result[0];
+    at<u8>(out, 4) = (u8)result[1];
+    return out;
+}
+
 u8 __fastcall Object_AddKeyed(u8 *object, void *, u32 key, s32 amount) {
     u32 result[2];
     u16 value = (u16)key;

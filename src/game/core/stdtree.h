@@ -134,6 +134,9 @@ u8 **__fastcall StdTreeF_FindLower(u8 *tree, void *, u8 **out, const u8 *key);
 // 0x5b1650 (thiscall on the tree; out, value, pops 8): StdMapG_Insert's result {iterator, inserted byte} copied to out. Returns out.
 u32 *__fastcall StdMapG_InsertCopy(u8 *tree, void *, u32 *out, const u16 *value);
 
+// 0x4f0390: the same for tree D (StdMapD_Insert).
+u32 *__fastcall StdMapD_InsertCopy(u8 *tree, void *, u32 *out, const StdWString *value);
+
 // 0x5af740 (thiscall on an object whose tree is at +0x28; key (a 16-bit value passed on the stack), amount, pops 8): inserts the key; true (and +0x1c grows by the amount)
 // when it was new, else false.
 u8 __fastcall Object_AddKeyed(u8 *object, void *, u32 key, s32 amount);

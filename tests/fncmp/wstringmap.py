@@ -2,9 +2,9 @@
 # strings are wide characters from a small alphabet in ascending order (some empty, some with a null character pointer; their blocks counted or not), searched (or erased) with
 # keys equal to a node's or not.
 # Tree D's node insert (0x4f4c20): the key under the node it belongs below (the head for an empty tree; now and then a node off its place, or a non-nil x),
-# copied into the new node (StdWString_Construct). The set insert (0x4f2810; the tree's multi flag now and then set) with keys equal to a node's or not, and the
+# copied into the new node (StdWString_Construct). The set insert (0x4f2810, and 0x4f0390 copying its result; the tree's multi flag now and then set) with keys equal to a node's or not, and the
 # wide string compare(pos, n, other, count) (0x4f7870): pos within the length (past it is std::_Xran), n and count anything.
-# usage: wstringmap.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Lower,Upper,Find,Erase,Insert,MapInsert,CmpSub)
+# usage: wstringmap.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Lower,Upper,Find,Erase,Insert,MapInsert,CmpSub,InsertCopy)
 import os
 import struct
 import sys
@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import stdtree  # noqa: E402
 from fncmp import Bench, Call, HEAP, RAM, heap  # noqa: E402
 
-CALLS = {'Lower': 0x4f6400, 'Upper': 0x4f6940, 'Find': 0x4f2b40, 'Erase': 0x4f2ad0, 'Insert': 0x4f4c20, 'MapInsert': 0x4f2810, 'CmpSub': 0x4f7870}
+CALLS = {'Lower': 0x4f6400, 'Upper': 0x4f6940, 'Find': 0x4f2b40, 'Erase': 0x4f2ad0, 'Insert': 0x4f4c20, 'MapInsert': 0x4f2810, 'CmpSub': 0x4f7870, 'InsertCopy': 0x4f0390}
 B = Bench([(a, a + 0x100) for a in CALLS.values()] + [(0x4f4f20, 0x4f4fd0), (0x4f4580, 0x4f4ae0), (0x4f4ac0, 0x4f4b70), (0x4f2960, 0x4f2ac8),
                                                         (0x4f23f0, 0x4f2450), (0x67acb0, 0x67acb1), (0x4f4c20, 0x4f4f20), (0x4f76b0, 0x4f7720), (0x4f2810, 0x4f2960), (0x4f7870, 0x4f7900), (0x4f64f0, 0x4f65b0), (0x5e7720, 0x5e7738), (0x47d9d0, 0x47db00), (0x47b750, 0x47bcf0),
                                                         (0x67acd0, 0x67ad00), (0x47ae60, 0x47b060), (0x47b600, 0x47b750), (0x479230, 0x479256), (0x47cc10, 0x47cd00),
@@ -89,7 +89,7 @@ def case(r):
         regions[HEAP] = heap()
         regions[OUT] = r.bytes(4)
         return Call(CALLS[name], [stdtree.TREE, OUT, x, y, KEY], regions, conv='t', ret='a')
-    if name == 'MapInsert':  # (the result's 8 bytes given; the multi flag at +8 now and then set)
+    if name in ('MapInsert', 'InsertCopy'):  # (the result's 8 bytes given; the multi flag at +8 now and then set)
         tree[8] = r.choice([0, 0, 0, 1, 0xff])
         regions[HEAP] = heap()
         regions[OUT] = r.bytes(8)
