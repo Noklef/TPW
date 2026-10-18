@@ -110,4 +110,52 @@ void __fastcall MapLine_LinkCell(u8 *cell, void *, u32 kind, s32 stepX, s32 step
     global<s32>(0x00763b04) = stepY;
 }
 
+u32 __cdecl MapCell_PathLines(s32 x, s32 y) {
+    const u32 id = ((u32)y * 0x80 + (u32)x + 1) & 0xffff;
+    const u8 *here = global<u8 *>(0x007cf83c) + id * 0x44 + 0x294;
+    const u8 *entry = MapHandle_Entry28(reinterpret_cast<const u16 *>(here));
+    s32 dx = 0, dy = 0;
+    if (MapCell_IsTypeCOr11(entry)) {
+        entry = global<u8 *>(0x007cf83c) + ((u32)*reinterpret_cast<const u16 *>(entry + 0x10) + 0x6cde) * 0x28;
+        here = MapHandle_Cell44(reinterpret_cast<const u16 *>(entry));
+        const u32 index = (u32)*reinterpret_cast<const u16 *>(here) - 1;
+        x = (s32)(index & 0x7f);
+        y = (s32)(index >> 7);
+    }
+    if (MapCell_HasFlags(entry, nullptr, 0x10)) {
+        const u16 group = *reinterpret_cast<const u16 *>(here + 0x10);
+        const u32 pairs[4] = {0x007cdba0, 0x007cdbc8, 0x007cdba8, 0x007cdbd0};
+        s32 *const sides[4] = {&dy, &dx, &dy, &dx};
+        const s32 steps[4] = {-2, 2, 2, -2};
+        for (u32 k = 0; k < 4; ++k) {
+            const s32 *pair = reinterpret_cast<const s32 *>((uintptr_t)pairs[k]);
+            const u8 *next = Map_StepCell28(reinterpret_cast<const u16 *>(entry), nullptr, pair[0], pair[1], 2);
+            if (!next)
+                continue;
+            const u8 *nextCell = MapHandle_Cell44(reinterpret_cast<const u16 *>(next));
+            if (MapCell_HasFlags(next, nullptr, 0x10) && *reinterpret_cast<const u16 *>(nextCell + 0x10) == group && MapCell_IsTypeBDOr10Or12Or19(next))
+                *sides[k] = steps[k];
+        }
+    }
+    s32 xEnd = (s32)((u32)x + (u32)dx), yEnd = (s32)((u32)y + (u32)dy);
+    s32 sx = x, sy = y;
+    if (x > xEnd) {
+        sx = (s32)((u32)x + 2);
+        xEnd = (s32)((u32)xEnd - 2);
+    } else if (x < xEnd) {
+        sx = (s32)((u32)x - 2);
+        xEnd = (s32)((u32)xEnd + 2);
+    }
+    if (y > yEnd) {
+        sy = (s32)((u32)y + 2);
+        yEnd = (s32)((u32)yEnd - 2);
+    } else if (y < yEnd) {
+        sy = (s32)((u32)y - 2);
+        yEnd = (s32)((u32)yEnd + 2);
+    }
+    Map_ApplyLine(0x85, sx, sy, &xEnd, &yEnd);
+    Map_ApplyLine(0x86, sx, sy, &xEnd, &yEnd);
+    return Map_ApplyLine(0x81, sx, sy, &xEnd, &yEnd);
+}
+
 }  // extern "C"

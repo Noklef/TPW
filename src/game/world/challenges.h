@@ -1,6 +1,6 @@
 // The challenges (thing model 19: 0x14 challenges of 0x30 bytes from +0xc, the current one's
 // index at +0x3cc) and the BalanceChallenges file they load from (vtable 0x700398):
-// reimplementation of 0x4d1c80, 0x4d1e60 and 0x4d2840 (thiscall).
+// reimplementation of 0x4d1c80, 0x4d1e60, 0x4d2840 and the offer's answers 0x4d2df0 / 0x4d2ec0 (thiscall).
 #pragma once
 
 #include "../../../re/types.h"
@@ -14,6 +14,16 @@ void __fastcall Challenges_DropOrphans(u8 *challenges);
 
 // 0x4d2840: the current challenge (index +0x3cc, 0-19 signed), or null.
 u8 *__fastcall Challenges_Current(u8 *challenges);
+
+// 0x4d2df0: an offer accepted: when waiting for the reply (+0x3da) and there is a current challenge, the wait ends, the challenge is on
+// (+0x3d9 = 1) and mNextChallengeEventTime (+0x3d0, 8 bytes) = the world's funny time now (FunnyTime_Now) + its mTargetTime (+4) days.
+void __fastcall Challenges_AcceptOffer(u8 *challenges);
+
+// 0x4d2ec0: an offer declined: when waiting for the reply, the wait ends and the challenge is off; unless the current challenge is
+// independent (+0x1d; an index out of range reads it from 0, a fault), the money record (the world's handle +0x1da726) is credited
+// half its mPrize (+0x14, signed, toward 0; Money_Credit) and mActualThing (+0x3e0, a word) = 0; then the next event time = now + the
+// days of gBalanceLevel.mDaysAfterDeclinedChallenge (0x7857c4).
+void __fastcall Challenges_DeclineOffer(u8 *challenges);
 
 // 0x4d1e60 (the vtable's first slot; index): the schema of a field, 0x739b98 + index * 0x3c;
 // this is unused.

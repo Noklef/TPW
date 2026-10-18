@@ -126,6 +126,25 @@ void __fastcall Things_NearestRestArea(const u8 *thing, void *, u16 *out);
 // (Rides_GetElement), and only within a squared distance of 4.
 void __fastcall Things_NearestFlag80Close(const u8 *thing, void *, u16 *out);
 
+// 0x500dc0 (thiscall on a moving person; out word, radius, pops 8; name unconfirmed; an assert on the thing table is left out): over the same list, each
+// thing with bit 0x40 in the flags closer than the radius (squared, unsigned, as both squares wrap) and than the best so far, whose cell (the word at
+// +0x36) the person can be sent to (Sprite_SetDestinationCell, which is left set), becomes the best; its handle goes to out (0 for none). Returns out.
+u16 *__fastcall Things_HeadForNearestFlag40(u8 *sprite, void *, u16 *out, u32 radius);
+
+// 0x4d99e0 (thiscall on a 0x44-byte map cell; out word, pops 4; name unconfirmed; an assert on the thing table is left out): the first thing of kind
+// 3 (an object; the byte at +2) in the cell's chain (the head word at +0x24, the links the words at +0xa of each); its handle to out, 0 for none. Returns out.
+u16 *__fastcall Cell_FirstObject(const u8 *cell, void *, u16 *out);
+
+// 0x527d60 (cdecl; out word, &x, &y; name unconfirmed; an assert on the thing table is left out): the object on a map cell. Outside the map
+// (Map_InBounds) or for a cell (of [0x7cf83c], id (y << 7) + x + 1 cut to 16 bits) not of type 4, 9 or 0xa: 0 to out, x and y left. Else from
+// the cell, or its parent (the word at +0x10) when that is another, Cell_FirstObject's handle goes to out, and x and y become the cell of that
+// object (its word at +0x34) or, with none, of the cell looked in: (id - 1) & 0x7f and (id - 1) >> 7. Returns out.
+u16 *__cdecl Map_ObjectAtCell(u16 *out, s32 *x, s32 *y);
+
+// 0x527e80 (cdecl; out word, x, y; name unconfirmed): on the entrance's row (the dword at 0x7855c0) from a cell before its first column (0x7855bc)
+// to one after its last (0x7855c4; signed), the word at +0x1da732 of [0x7cf83c] (the entrance's thing); elsewhere Map_ObjectAtCell. Returns out.
+u16 *__cdecl Map_ObjectOrEntranceAt(u16 *out, s32 x, s32 y);
+
 // 0x4824d0 (cdecl; category, previous; name unconfirmed): the next thing of a category (one bit) after the previous one (from the first when 0), each by
 // its own finder: 1 a staff member (Thing_IsStaff) in the in-use list (World_FirstThing / World_NextThing); 2, 4, 8, 0x10, 0x20 the next in a staff
 // list: the head (the handymen's word world +0x1da73c read inline, World_FirstMechanic, World_FirstGuard, World_FirstEntertainer,

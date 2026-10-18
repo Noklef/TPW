@@ -4,8 +4,10 @@
 
 #include "../core/indexed.h"
 #include "analysercell.h"
+#include "mapcell.h"
 #include "object.h"
 #include "objectdefs.h"
+#include "person.h"
 #include "things.h"
 #include "ridelist.h"
 #include "staff.h"
@@ -483,6 +485,76 @@ void __fastcall Things_NearestFlag80Close(const u8 *thing, void *, u16 *out) {
         handle = at<u16>(other, 0xc);
     }
     *out = best;
+}
+
+u16 *__fastcall Things_HeadForNearestFlag40(u8 *sprite, void *, u16 *out, u32 radius) {
+    u16 best = 0;
+    u32 bestDistance = 0xffffffff;
+    for (u16 handle = at<u16>(global<u8 *>(0x0080239c), 0x1da746); handle != 0;) {
+        const u8 *other = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
+        if (other[0x32] & 0x40) {
+            const u32 distance = CellDistanceSquared(other, sprite);
+            if (distance < radius * radius && distance < bestDistance && Sprite_SetDestinationCell(sprite, nullptr, at<u16>(other, 0x36)) != 0) {
+                bestDistance = distance;
+                best = handle;
+            }
+        }
+        handle = at<u16>(other, 0xc);
+    }
+    *out = best;
+    return out;
+}
+
+u16 *__fastcall Cell_FirstObject(const u8 *cell, void *, u16 *out) {
+    u16 handle = at<u16>(cell, 0x24);
+    while (handle != 0) {
+        const u8 *thing = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
+        if (thing[2] == 3)
+            break;
+        handle = at<u16>(thing, 0xa);
+    }
+    *out = handle;
+    return out;
+}
+
+u16 *__cdecl Map_ObjectAtCell(u16 *out, s32 *x, s32 *y) {
+    if (!Map_InBounds(*x, *y)) {
+        *out = 0;
+        return out;
+    }
+    const u16 id = (u16)(((u32)*y << 7) + (u32)*x + 1);
+    u8 *const world = global<u8 *>(0x007cf83c);
+    const u8 *cell = world + (u32)id * 0x44 + 0x294;
+    const u32 type = at<u32>(cell, 8);
+    if (type != 4 && type != 9 && type != 0xa) {
+        *out = 0;
+        return out;
+    }
+    u16 where = id;
+    const u16 parent = at<u16>(cell, 0x10);
+    if (parent != id) {
+        where = parent;
+        cell = world + (u32)parent * 0x44 + 0x294;
+    }
+    u16 handle;
+    Cell_FirstObject(cell, nullptr, &handle);
+    if (handle != 0)
+        where = at<u16>(global<u8 *>(0x007cfb90 + 20 * (u32)handle), 0x34);
+    const u32 index = (u32)where - 1;
+    *x = (s32)(index & 0x7f);
+    *y = (s32)(index >> 7);
+    *out = handle;
+    return out;
+}
+
+u16 *__cdecl Map_ObjectOrEntranceAt(u16 *out, s32 x, s32 y) {
+    const s32 first = (s32)(global<u32>(0x007855bc) - 1), last = (s32)(global<u32>(0x007855c4) + 1);  // (wrapping)
+    if (x >= first && x <= last && y == global<s32>(0x007855c0)) {
+        *out = at<u16>(global<u8 *>(0x007cf83c), 0x1da732);
+        return out;
+    }
+    Map_ObjectAtCell(out, &x, &y);
+    return out;
 }
 }  // extern "C"
 

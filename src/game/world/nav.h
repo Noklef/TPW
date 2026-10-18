@@ -61,4 +61,14 @@ u32 __fastcall Nav_Serialize(u8 *nav, void *, Stream *stream, u32 save, s32 vers
 
 // 0x4f9440 (thiscall; the same arguments; the sprite's call on its nav at +0xd4): Nav_Serialize, its result returned.
 u32 __fastcall Nav_SerializeFwd(u8 *nav, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x50f8e0 (thiscall; &target, prepend; name unconfirmed): a path to the target point (16.16) found on the route at 0x7cf108 (Route_Find from the
+// nav's cell, the mode +0xb4). None: +0x4c the target, its counts, distances and +0x5c zeroed, the byte +0x60 1 and +0xb8 1; 0. Else (with
+// prepend 1 the nav's own cell put first, the count kept to 0xfc): +0x4c the target, +0x54 the route's count and +0x58 it at most 5, +0x64 the
+// centres of that many first cells, +0x8c the octagonal lengths between them (+0xa4 their sum), +0xa8 the lengths along the rest of the route,
+// +0xa0 all of it from the position; +0xac, +0xb0, +0x5c, +0xb8 and the byte +0x60 zeroed, +0x48 the next count of 0x7cdb98; 1.
+u32 __fastcall Nav_PathTo(u8 *nav, void *, const s32 *target, u32 prepend);
+
+// 0x510100 (thiscall; x, y; name unconfirmed): Nav_PathTo the point, not prepending.
+u32 __fastcall Nav_PathToPoint(u8 *nav, void *, s32 x, s32 y);
 }

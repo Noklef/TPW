@@ -168,6 +168,11 @@ address,name,kind,confidence,notes
 0x00507850,StaffPool_Serialize,function,high,"reimplemented (src/game/world/staff); 0x20 x StaffPoolEntry + 5 categories, a time stamp, a byte"
 0x005070a0,StaffPoolEntry_Serialize,function,high,"reimplemented (src/game/world/staff); 6 fields, a time stamp at +0xc (TimeSig_Serialize), the dword at +0x10"
 0x004f7f30,GameClock_Serialize,function,high,"reimplemented (src/game/core/funnytime); thiscall (stream, save, version, unused): the calendar clock's five fields"
+0x004f7e80,FunnyTime_Construct,function,low,"reimplemented (src/game/core/funnytime); thiscall: the calendar clock constructed: 2000-01-01 start, the local time as the session start, 15000 funny seconds a second"
+0x004f8690,FunnyTime_Now,function,low,"reimplemented (src/game/core/funnytime); thiscall (out, 8 field outs): the funny time now (start + rate * world ticks / 4 seconds) and its fields"
+0x004f8730,FunnyTime_SpanOf,function,low,"reimplemented (src/game/core/funnytime); thiscall (out, ticks): the funny time span of quarter seconds at the clock's rate"
+0x004f8800,FunnyTime_Elapsed,function,low,reimplemented (src/game/core/funnytime); thiscall (out): the funny time now less its start
+0x004f88b0,FunnyTime_SpanSince,function,low,"reimplemented (src/game/core/funnytime); thiscall (out, ticks): the funny time span of the world's ticks since ticks"
 0x004cf050,ParkGates_Serialize,function,high,"arrival rate, bus capacity, gates open"
 0x004d3aa0,ObjectControls_Serialize,function,high,"reimplemented (src/game/world/objectdefs); thiscall (stream, save, version, unused): the 0x96 object control records, their count and the search key saved or loaded; a full load clears the key and +0x12c8"
 0x004d7ea0,Map_Serialize,function,high,"128x128 cells; per-cell status byte: bit0 map cell, bit1 track cell, bit2 RE cell"
@@ -175,7 +180,7 @@ address,name,kind,confidence,notes
 0x004d8dd0,MapCell_Serialize,function,high,reimplemented (src/game/world/mapcell); base + litter fields
 0x0050c200,TrackCell_Serialize,function,high,reimplemented (src/game/world/mapcell); base + mSegmentNumber
 0x00502490,RECell_Serialize,function,high,"reimplemented (src/game/world/mapcell); thiscall (stream, save, version, unused): the RE cell's five words saved or loaded"
-0x004f8b10,Sprite_Serialize,function,high,"moving-person base (anim, speeds, nav, thoughts)"
+0x004f8b10,Sprite_Serialize,function,high,"reimplemented (src/game/world/person); thiscall (stream, save, version, unused): the thing, the script reference, then for versions 0..1 the moving person's fields, its nav and thoughts saved or loaded (a load wraps the frame +0x20 to the folder's count); the destination set again (Sprite_SetDestination) unless a part failed"
 0x004d3ee0,SpriteAnim_Serialize,function,high,"reimplemented (src/game/sprite/scriptref); thiscall (stream, save, version, unused): the script reference's three dwords saved or loaded"
 0x0050d150,Nav_Serialize,function,high,reimplemented (src/game/world/nav); steering/pathing state (float vectors); loading clears +0x34 and +0x30
 0x0050bad0,Thoughts_Serialize,function,high,"reimplemented (src/game/world/person); thiscall (stream, save, version, unused): a person's thoughts (history index, 32 history pairs, +0, script, bubble time) saved or loaded"
@@ -853,6 +858,8 @@ address,name,kind,confidence,notes
 0x004d1c80,Challenges_DropOrphans,function,high,reimplemented (src/game/world/challenges); thiscall: each challenge in use (+0) naming another (+0x18) is dropped (+0 = 0) unless another in use has that id (from Challenges_LoadSam)
 0x004d2840,Challenges_Current,function,high,"reimplemented (src/game/world/challenges); thiscall: &challenges[+0x3cc] (0x30 bytes from +0xc) for an index 0-19, else null"
 0x004d1e60,BalanceChallenges_GetSchema,function,high,"reimplemented (src/game/world/challenges); thiscall (index), vtable 0x700398 slot 0: 0x739b98 + index * 0x3c"
+0x004d2df0,Challenges_AcceptOffer,function,low,"reimplemented (src/game/world/challenges); thiscall: the offered challenge accepted: on, next event at now + its target days"
+0x004d2ec0,Challenges_DeclineOffer,function,low,"reimplemented (src/game/world/challenges); thiscall: the offered challenge declined: half the prize credited unless independent, next event after the declined wait"
 0x004e2650,Thing_MapId,function,high,reimplemented (src/game/world/person); thiscall (&out): the thing's map id ((mY >> 8) * 128 + (mX >> 8) + 1)
 0x004f9460,Sprite_RecordMapId,function,high,"reimplemented (src/game/world/person); thiscall (&out): the old mLastRecordedMapId (+0xcc) out, the current map id recorded"
 0x004fd950,Visitor_TimeInPark,function,high,reimplemented (src/game/world/person); thiscall: (gWorld tick +0x1da70c - mArrivalDate +0x1d4) >> 2
@@ -976,6 +983,10 @@ address,name,kind,confidence,notes
 0x0059ef10,Staff_SurplusKind8,function,high,reimplemented (src/game/world/thingscan); a value when the staff of kind 8 outnumber the objects and a limit
 0x004824d0,Things_FindNextOfCategory,function,low,"reimplemented (src/game/world/thingscan); The next thing of a category bit after a thing: staff, a staff list, kind 1 or one of the object finders"
 0x00482da0,Things_FindPrevOfCategory,function,low,"reimplemented (src/game/world/thingscan); The previous thing of a category bit before a thing: staff, kind 1, shops or one of the object finders"
+0x00500dc0,Things_HeadForNearestFlag40,function,low,"reimplemented (src/game/world/thingscan); thiscall (out, radius): the nearest thing with flag 0x40 in the game's list within the radius that the person can be sent to (its cell +0x36), its handle to out"
+0x004d99e0,Cell_FirstObject,function,low,"reimplemented (src/game/world/thingscan); thiscall on a map cell (out): the first thing of kind 3 in the cell chain at +0x24 (links +0xa); its handle to out, 0 for none"
+0x00527d60,Map_ObjectAtCell,function,low,"reimplemented (src/game/world/thingscan); cdecl (out, &x, &y): the object on a map cell of type 4, 9 or 0xa (or its parent): its handle, and x, y moved to its cell"
+0x00527e80,Map_ObjectOrEntranceAt,function,low,"reimplemented (src/game/world/thingscan); cdecl (out, x, y): the entrance thing (+0x1da732) on the entrance row about its columns, else Map_ObjectAtCell"
 0x0054b130,Buoy_FindFree,function,high,"reimplemented (src/game/world/trackpools); the first free buoy record, its index stored in it"
 0x0054b170,Buoy_Alloc,function,high,reimplemented (src/game/world/trackpools); takes the first free buoy record
 0x0054b1e0,CollNode_FindFree,function,high,reimplemented (src/game/world/trackpools); the first free collision node
@@ -985,6 +996,7 @@ address,name,kind,confidence,notes
 0x004d0750,Money_TakeLoan,function,high,reimplemented (src/game/world/money); takes out a loan
 0x004d0850,Money_PayOffLoan,function,high,reimplemented (src/game/world/money); pays a loan off
 0x004d09f0,Money_Total,function,low,reimplemented (src/game/world/money); the money record's total: the dword at +0x124
+0x004d0260,Money_TimeInRed,function,low,"reimplemented (src/game/world/money); thiscall (out): the funny time span since the balance went below 0, or 0"
 0x004cc4b0,Rides_BestKind11Count,function,high,reimplemented (src/game/world/ridesearch); finds the track ride with the most kind 11 pieces
 0x004cc5d0,Rides_BestPiecesOfKinds,function,high,reimplemented (src/game/world/ridesearch); finds the track ride of kind 1 to 3 with the most pieces
 0x004cc6f0,Rides_BestPiecesOfKind,function,high,reimplemented (src/game/world/ridesearch); finds the track ride of a kind with the most pieces
@@ -3279,6 +3291,10 @@ address,name,kind,confidence,notes
 0x005065d0,Person_HasWordInState,function,high,reimplemented (src/game/world/person); whether a person has a word and is in the matching state
 0x00518e20,Person_BaseCtor,function,high,"reimplemented (src/game/world/person); thoughts, the navigation block and four cleared dwords"
 0x00518e00,Person_PartsCtor,function,high,"reimplemented (src/game/world/person); thiscall; one stack argument, unused; the thoughts (+0x30) and the navigation block (+0xd4) constructed (Person_BaseCtor without the four cleared dwords); name unconfirmed"
+0x004fa5f0,Sprite_SetDestination,function,low,"reimplemented (src/game/world/person); thiscall (x, y in 1/256 cells): unless held by Obj_BlockValuesBelowLimit (+0x198 still set), the destination words +0x18/+0x1a set and Nav_PathToPoint of the nav at +0xd4"
+0x004fa530,Sprite_SetDestinationCell,function,low,reimplemented (src/game/world/person); thiscall (cell id): Sprite_SetDestination to the centre of the cell
+0x004f7de0,Sprite_SetDestinationMarked,function,low,"reimplemented (src/game/world/person); thiscall (x, y): Sprite_SetDestination; when it succeeds the dwords +0x39c and +0x10 set to 1"
+0x004f7da0,Sprite_SetDestinationCellMarked,function,low,"reimplemented (src/game/world/person); thiscall (cell): Sprite_SetDestinationCell; when it answers nonzero +0x39c and +0xc's Set4_4217f0 set to 1, and 1; else 0"
 0x00550d80,Setting_SetMode,function,high,reimplemented (src/game/core/options); stores a mode and sets its flag bits
 0x005633e0,Quad_Push,function,high,reimplemented (src/game/core/seqs); pushes four dwords into the next of four slots
 0x0059c390,Table76e300_GetObjectDword,function,high,reimplemented (src/game/world/objectdefs); a dword of the object indexed through a record of the table
@@ -3311,6 +3327,9 @@ address,name,kind,confidence,notes
 0x004fa770,Obj_BlockValuesBelowLimit,function,low,reimplemented (src/game/world/object); thiscall: whether the block values at nine offsets from the object's cell (or the end of its facing chain) stay below +0x198
 0x004daa90,Objects_NearestFreeFor,function,low,"reimplemented (src/game/world/object); thiscall (out, person handle): one round of the world's object list from the cursor for the nearest free object the person may take"
 0x004de5a0,Object_ExitOpen,function,low,reimplemented (src/game/world/object); thiscall: whether any step but the one back is open from the cell beyond the exit (turned round when the exit is the entrance)
+0x004e2290,Object_ScrapValue,function,low,reimplemented (src/game/world/object); thiscall: the scrap value by the age in funny time (years of 365 days; 100 when new without customers)
+0x004e2400,Object_ScrapRefund,function,low,reimplemented (src/game/world/object); thiscall: the scrap value percentage of the first level's cost (32-bit product / 100)
+0x004dd670,Object_AgeDays,function,low,reimplemented (src/game/world/object); thiscall: the object's age in whole funny-time days from its date at +0x18
 0x005d46d0,Blocks7_Free,function,high,reimplemented (src/game/core/buffers); frees the seven blocks of an object and clears its groups
 0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/string); whether the first name is after the second, case blind"
 0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/string); whether two names are equal, case blind"
@@ -3604,6 +3623,7 @@ address,name,kind,confidence,notes
 0x00505a10,Staff_Train,function,low,"reimplemented (src/game/world/staff); thiscall (amount): pay for training: debit the money, add to the park's spend, add amount / cost points of progress, raise the grade at 100"
 0x00508000,Staff_CountTypes,function,low,"reimplemented (src/game/world/staff); thiscall: count the world's staff by type, flagging the types that reached their limits"
 0x0050c800,Staff_TrainAll,function,low,"reimplemented (src/game/world/staff); thiscall (amounts[5]): count the staff by type, then train each with its type's amount divided by the count"
+0x00505b70,Staff_AgeDays,function,low,reimplemented (src/game/world/staff); thiscall: the staff member's age in whole funny-time days from the date at +0x1f0
 0x00520d60,FreeList_Take,function,high,reimplemented (src/game/core/voices); takes a record off the free list into a table entry
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/voices); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/voices); scales a voice's levels by the factor over 1024
@@ -3847,6 +3867,10 @@ address,name,kind,confidence,notes
 0x005c8bd0,SyncEvent_Ctor,function,low,"reimplemented (src/game/core/sync); CreateEventA(0,0,0,0) into the object's handle; returns the object"
 0x005c8bf0,SyncEvent_Wait,function,low,reimplemented (src/game/core/sync); WaitForSingleObject on the handle (INFINITE for a negative timeout); whether it answered WAIT_OBJECT_0
 0x005c8c20,SyncEvent_Set,function,low,reimplemented (src/game/core/sync); SetEvent on the handle; returns 0
+0x004f21d0,WStdString_AssignSub,function,high,"reimplemented (src/game/core/wstdstring); std::wstring::assign(const wstring &x, pos, n): shares x's block when it is all of x, erases in place when x is itself"
+0x004f39e0,WStdString_Grow,function,high,"reimplemented (src/game/core/wstdstring); std::wstring::_Grow(n, trim): room for n characters in a block s owns alone"
+0x004f6090,WStdString_Copy,function,high,reimplemented (src/game/core/wstdstring); std::wstring::_Copy(n): a new block of n | 31 characters keeping the old ones
+0x004f6190,WStdString_Split,function,high,reimplemented (src/game/core/wstdstring); std::wstring::_Split(): a shared string gets its own copy
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
@@ -3856,6 +3880,8 @@ address,name,kind,confidence,notes
 0x005102f0,Nav_VisitNeighbours,function,low,"reimplemented (src/game/world/nav); cdecl (nav, radius, visit): visits the people in the map cells within radius whose kind counts and whose distance (pos >> 8, squared) is under (radius >> 8) squared, at most five"
 0x0050f3b0,Nav_Update,function,low,"reimplemented (src/game/world/nav); thiscall: one step of the nav: the weighted behaviour forces, vel and pos (when the move test passes), the local axes and the path progress history"
 0x004f9440,Nav_SerializeFwd,function,low,reimplemented (src/game/world/nav); thiscall: Nav_Serialize with the same arguments (the sprite's call on its nav)
+0x0050f8e0,Nav_PathTo,function,low,"reimplemented (src/game/world/nav); thiscall (&target, prepend): Route_Find from the nav's cell to the target's on the route at 0x7cf108, then the nav's waypoints (up to 5 cell centres), their octagonal lengths and the route's; 0 (and the nav stopped) when none"
+0x00510100,Nav_PathToPoint,function,low,"reimplemented (src/game/world/nav); thiscall (x, y): Nav_PathTo the point, not prepending the nav's cell"
 0x0052a050,Cell_ExtendPath,function,high,reimplemented (src/game/world/mapcell); one step of a path across the map's cells
 0x0052c420,MapGrid_MarkEdges,function,high,"reimplemented (src/game/world/mapcell); edge cells of a map grid of types 4, 9, 0x17 and 0xa"
 0x0052c5b0,MapGrid_ClassifyTypes,function,high,reimplemented (src/game/world/mapcell); a map grid's cell types as codes 1 to 4
@@ -3903,10 +3929,12 @@ address,name,kind,confidence,notes
 0x00511ef0,Route_SearchFrom,function,low,"reimplemented (src/game/world/route); cdecl (route, mode): sets the mode, empties the route, zeroes the steps, then Route_Search from the route's start with the limit 60000"
 0x005108a0,Route_Refine,function,low,"reimplemented (src/game/world/route); cdecl (route, result): straightens, up to 9 times replaces a cell (and the next) with a fresh Route_Search round it, then puts corner cells before blocked diagonal steps; returns result"
 0x00511420,Route_Find,function,low,"reimplemented (src/game/world/route); cdecl (route, mode): Route_SearchFrom's setup and search, then Route_Refine with its result"
+0x004d8b40,Route_CellDistance,function,low,"reimplemented (src/game/world/route); cdecl (from, to, mode): Route_SearchFrom between two cell ids on a route of its own; -1 when none, else the sum of its Manhattan steps"
 0x005276d0,FocusCell_Update,function,low,"reimplemented (src/game/world/focuscell); cdecl (record): the focus cell from the set cell (game modes 0x19 / 0x1a) or the selected object (or the thing its handle names), stepped both ways; the move recorded (action 0x32)"
 0x00532960,HoardingGrid_Fill,function,low,"reimplemented (src/game/world/hoardinggrid); cdecl: the coarse char grid at 0x81eeb0 (rows of 0x43, one char per 2 x 2 cells) of the width x depth area (0x81d740 / 0x81b1b0): space, @ for a type 0x19 cell, # for a cell whose 0x44-byte cell lacks flag 0x40"
 0x0053aac0,Map_ApplyLine,function,low,"reimplemented (src/game/world/mapline); cdecl (arg, x, y, &xEnd, &yEnd): the cell operation 0x5370e0 on every second map cell from (x, y) along the longer axis to the end (pulled in to an even distance); 0 when one answers 0"
 0x00539220,MapLine_LinkCell,function,low,"reimplemented (src/game/world/mapline); thiscall (cell; kind, stepX, stepY), pops 12: a line's cell of a track kind or 0x19 linked by neighbour bits to the one two back along the step (the last step on the first cell), when both are of a linking type with fewer than 4 neighbours and the other is unowned or the focus cell's; the step kept at 0x763b00"
+0x00523230,MapCell_PathLines,function,low,"reimplemented (src/game/world/mapline); cdecl (x, y): the path cell (or its parent) and its matching neighbours two cells away give a run; Map_ApplyLine over it with 0x85, 0x86 and 0x81"
 0x00531040,CellRun_Mark,function,low,"reimplemented (src/game/world/cellrun); cdecl (set): flag 0x20 set or cleared on a run of type 0x19 map cells from the cell at 0x7639f0, two cells a step, turning at corners"
 0x00530e80,CellRun_Corners,function,low,"reimplemented (src/game/world/cellrun); cdecl: the run of CellRun_Mark listing its start, each corner it turns at and its end in the point list at 0x81b740 (count 0x820a8c, at most 0x401), the end also at 0x81ede4"
 0x00530830,TrackRun_TraceA,function,low,"reimplemented (src/game/world/cellrun); cdecl (thing): from the thing's cell stepped by Position_StepA, a run over track cells (0xb / 0x10) two a step, setting their overlap counters and listing corners in the point list at 0x81b740, to an end of the same +0x10 or a dead end"

@@ -2,9 +2,14 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "../core/savegame.h"
+#include "../sprite/script.h"
+#include "../sprite/scriptref.h"
 #include "nav.h"
+#include "object.h"
+#include "things.h"
 
 namespace {
 
@@ -110,6 +115,84 @@ u32 __fastcall Thoughts_Serialize(u8 *thoughts, void *, Stream *stream, u32 save
     if (!Save_Field(stream, save, thoughts, 4, 0x00761dc4) || !Save_Field(stream, save, thoughts + 0x84, 4, 0x00761db4) ||
         !Save_Field(stream, save, thoughts + 0x8c, 4, 0x00761da0))
         return 1;
+    return 0;
+}
+
+u32 __fastcall Sprite_SetDestination(u8 *sprite, void *, s32 x, s32 y) {
+    if (Counter7cdb98_Inc() < at<u32>(sprite, 0x198))
+        at<u32>(sprite, 0x198) = 0;
+    if (at<u32>(sprite, 0x198) != 0 && Obj_BlockValuesBelowLimit(sprite))
+        return 0;
+    at<u16>(sprite, 0x1a) = (u16)y;
+    at<u32>(sprite, 0x198) = 0;
+    at<u16>(sprite, 0x18) = (u16)x;
+    return Nav_PathToPoint(sprite + 0xd4, nullptr, (s32)((u32)(s32)(s16)x << 8), (s32)((u32)(s32)(s16)y << 8));
+}
+
+u32 __fastcall Sprite_SetDestinationCell(u8 *sprite, void *, u32 cell) {
+    const u32 index = cell - 1;
+    const u32 x = (index & 0x7f) << 8 | 0x80;
+    const u32 y = (index >> 7 & 0xff) << 8 | 0x80;
+    return Sprite_SetDestination(sprite, nullptr, (s32)x, (s32)y);
+}
+
+u32 __fastcall Sprite_SetDestinationMarked(u8 *sprite, void *, s32 x, s32 y) {
+    if (Sprite_SetDestination(sprite, nullptr, x, y) == 0)
+        return 0;
+    at<u32>(sprite, 0x39c) = 1;
+    Set4_4217f0(sprite + 0xc, nullptr, 1);
+    return 1;
+}
+
+u32 __fastcall Sprite_SetDestinationCellMarked(u8 *sprite, void *, u32 cell) {
+    if (Sprite_SetDestinationCell(sprite, nullptr, cell) == 0)
+        return 0;
+    at<u32>(sprite, 0x39c) = 1;
+    Set4_4217f0(sprite + 0xc, nullptr, 1);
+    return 1;
+}
+
+u32 __fastcall Sprite_Serialize(u8 *sprite, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    if (Thing_Serialize(sprite, nullptr, stream, save, version, unused) != 0)
+        return 1;
+    if (SpriteAnim_Serialize(sprite + 0xc, nullptr, stream, save, version, unused) != 0)
+        return 1;
+    if (version >= 0 && version <= 1) {
+        static const SaveSpec kHead[] = {{0x18, 2, 0x0075ca24}, {0x1a, 2, 0x0075ca14}, {0xc4, 2, 0x0075ca04}, {0xc0, 2, 0x0075c9f8},
+                                         {0x2c, 1, 0x0075c9f0}, {0x24, 4, 0x0075c9e4}, {0xcc, 2, 0x0075c9d0}};
+        static const SaveSpec kTail[] = {{0xc8, 4, 0x0075c9c0},  {0x190, 4, 0x0075c9b4}, {0x194, 4, 0x0075c9a8}, {0x198, 4, 0x0075c998},
+                                         {0xc2, 2, 0x0075c988},  {0xd0, 4, 0x0075c970},  {0x1c, 4, 0x0075c960},  {0x20, 4, 0x0075c954},
+                                         {0x28, 4, 0x0075c93c}};
+        if (save != 0) {
+            if (!Save_Fields(stream, save, sprite, kHead, 7))
+                return 1;
+            if (Nav_Serialize(sprite + 0xd4, nullptr, stream, save, version, unused) != 0)
+                return 1;
+            if (!Save_Fields(stream, save, sprite, kTail, 9))
+                return 1;
+        } else {
+            if (!Save_Fields(stream, 0, sprite, kHead, 4))
+                return 1;
+            if (Save_ReadU8(stream, sprite + 0x2c, reinterpret_cast<const char *>(0x0075c9f0), 0) ||
+                Save_ReadU32(stream, sprite + 0x24, reinterpret_cast<const char *>(0x0075c9e4), 0) ||
+                Save_ReadU16(stream, sprite + 0xcc, reinterpret_cast<const char *>(0x0075c9d0), 0))
+                return 1;
+            if (Nav_SerializeFwd(sprite + 0xd4, nullptr, stream, 0, version, unused) != 0)
+                return 1;
+            for (u32 i = 0; i < 8; ++i) {
+                const SaveSpec &f = kTail[i];
+                const char *name = reinterpret_cast<const char *>(f.name);
+                if (f.size == 2 ? Save_ReadU16(stream, sprite + f.at, name, 0) : Save_ReadU32(stream, sprite + f.at, name, 0))
+                    return 1;
+            }
+            at<u32>(sprite, 0x20) %= (u32)SpriteFolder_Count(at<u32>(sprite, 0x24));  // (DIV: faults on a count of 0)
+            if (Save_ReadU32(stream, sprite + 0x28, reinterpret_cast<const char *>(0x0075c93c), 0))
+                return 1;
+        }
+        if (Thoughts_Serialize(sprite + 0x30, nullptr, stream, save, version, unused) != 0)
+            return 1;
+    }
+    Sprite_SetDestination(sprite, nullptr, at<u16>(sprite, 0x18), at<u16>(sprite, 0x1a));
     return 0;
 }
 }

@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "../core/filetime.h"
+#include "../core/funnytime.h"
 #include "../core/savegame.h"
 #include "../core/timesig.h"
 #include "../core/selectors.h"
@@ -218,6 +220,8 @@ u16 *__fastcall Guard_NearestFree(const u8 *object, void *, u16 *out, u32) {
 }
 
 s32 __fastcall Staff_WageForRecord(const u8 *record) { return Staff_WageFor(at<u32>(record, 0), at<u8>(record, 8)); }
+
+s32 __fastcall Staff_AgeDays(const u8 *staff) { return FunnyTime_DaysSince(reinterpret_cast<const FileTime *>(staff + 0x1f0)); }
 
 void __fastcall Staff_Train(u8 *staff, void *, s32 amount) {
     if (at<s32>(staff, 0x1e4) == 4) return;

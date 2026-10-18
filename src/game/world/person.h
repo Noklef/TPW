@@ -56,4 +56,27 @@ u8 *__fastcall Person_BaseCtor(u8 *object, void *, u32 unused);
 // 0x518e00 (thiscall; one stack argument, unused; name unconfirmed): Person_BaseCtor without its four cleared dwords: the thoughts (+0x30) and the navigation block (+0xd4)
 // constructed; returns the object. Its one caller builds a 0x22c-byte object with it.
 u8 *__fastcall Person_PartsCtor(u8 *object, void *, u32);
+
+// 0x4fa5f0 (thiscall; x, y in 1/256 cells, their low words; name unconfirmed): a moving person sent to the point. The dword +0x198 zeroed when
+// above the next count of 0x7cdb98; when still set and Obj_BlockValuesBelowLimit, 0. Else the words +0x18 and +0x1a the point, +0x198 zeroed,
+// and Nav_PathToPoint of the nav at +0xd4 to it (16.16, each << 8); its result.
+u32 __fastcall Sprite_SetDestination(u8 *sprite, void *, s32 x, s32 y);
+
+// 0x4fa530 (thiscall; a cell id; name unconfirmed): Sprite_SetDestination to the cell's centre: x (id - 1) & 0x7f and y its bits 7-14, each the
+// high byte of a word whose low byte is 0x80.
+u32 __fastcall Sprite_SetDestinationCell(u8 *sprite, void *, u32 cell);
+
+// 0x4f7de0 (thiscall; x, y; name unconfirmed): Sprite_SetDestination; when it answers nonzero the dword +0x39c and the dword +0x10 (+0xc's
+// second, Set4_4217f0) set to 1, and 1; else 0.
+u32 __fastcall Sprite_SetDestinationMarked(u8 *sprite, void *, s32 x, s32 y);
+// 0x4f7da0 (thiscall; a cell id; name unconfirmed): the same with Sprite_SetDestinationCell.
+u32 __fastcall Sprite_SetDestinationCellMarked(u8 *sprite, void *, u32 cell);
+
+// 0x4f8b10 (thiscall; stream, save, version, unused): a moving person: 1 when the thing (Thing_Serialize) or the script reference (+0xc,
+// SpriteAnim_Serialize) fails. Then, for a version of 0..1, saved (save nonzero) or loaded: the words +0x18, +0x1a, +0xc4, +0xc0, the byte +0x2c,
+// the dword +0x24, the word +0xcc, the nav (+0xd4: Nav_Serialize; loading Nav_SerializeFwd with save 0), the dwords +0xc8, +0x190, +0x194, +0x198,
+// the word +0xc2, the dwords +0xd0, +0x1c, +0x20 (loaded: then taken modulo the folder +0x24's count, SpriteFolder_Count, an unsigned divide that
+// faults on 0) and +0x28, and the thoughts (+0x30, Thoughts_Serialize); 1 at the first that fails (the load's first four fields through Save_Field,
+// the rest through the readers, not quiet). Else (or a version outside 0..1) Sprite_SetDestination to the words +0x18 / +0x1a, and 0.
+u32 __fastcall Sprite_Serialize(u8 *sprite, void *, Stream *stream, u32 save, s32 version, u32 unused);
 }

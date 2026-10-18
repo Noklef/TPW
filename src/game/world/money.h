@@ -1,8 +1,10 @@
-// The money record's changes (the object at 0x7cdb30 is one): reimplementation of 0x4d0190 and 0x4d01f0. Named by what they do until
+// The money record's changes (the object at 0x7cdb30 is one): reimplementation of 0x4d0190, 0x4d01f0, 0x4d0260 and others. Named by what they do until
 // the class is known.
 #pragma once
 
 #include "../../../re/types.h"
+
+struct FileTime;
 
 extern "C" {
 
@@ -27,5 +29,9 @@ u32 __fastcall Money_PayOffLoan(u8 *money, void *, u32 index);
 
 // 0x4d09f0 (thiscall): the total at +0x124.
 u32 __fastcall Money_Total(const u8 *money);
+
+// 0x4d0260 (thiscall; out, pops 4): how long the balance has been in the red: 0 unless the balance copy at +0x11c is below 0, else the
+// world's funny time span since the time it went below (+0x120, the world's ticks then; FunnyTime_SpanSince). Returns out.
+FileTime *__fastcall Money_TimeInRed(const u8 *money, void *edx, FileTime *out);
 
 }  // extern "C"

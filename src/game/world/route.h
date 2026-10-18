@@ -42,4 +42,9 @@ u32 __cdecl Route_Refine(u8 *route, u32 result);
 
 // 0x511420 (cdecl; route, mode; name unconfirmed): as Route_SearchFrom, then Route_Refine with its result; that result.
 u32 __cdecl Route_Find(u8 *route, u32 mode);
+
+// 0x4d8b40 (cdecl; from, to, mode; name unconfirmed): the length of a route between two cell ids: Route_SearchFrom on a route of its own (the
+// start (from - 1) & 0x7f and (from - 1) >> 7, the target the same of to) with the mode; -1 when none (0x70000000), else the sum of the
+// Manhattan steps between its cells.
+s32 __cdecl Route_CellDistance(u32 from, u32 to, u32 mode);
 }

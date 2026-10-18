@@ -4,6 +4,8 @@
 #include <cstring>
 
 #include "../core/accessors.h"
+#include "../core/filetime.h"
+#include "../core/funnytime.h"
 #include "../core/gameheap.h"
 #include "../core/initializers.h"
 #include "objectdefs.h"
@@ -50,6 +52,35 @@ u16 *__fastcall Object_DefWord284(const u8 *object, void *, u16 *out) {
 }
 
 u32 __fastcall Object_DefIsKind3(const u8 *object) { return at<u32>(Object_GetDef(object), 0x9c) == 3; }
+
+u32 __fastcall Object_ScrapValue(const u8 *object) {
+    FileTime now, age;
+    FunnyTime_Now(global<u8 *>(0x0080239c) + 0x2a0, nullptr, &now, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+                  nullptr);
+    FileTime_Sub(&now, nullptr, &age, reinterpret_cast<const FileTime *>(object + 0x18));
+    const long long ticks = (long long)((unsigned long long)age.high << 32 | age.low);
+    const u32 years = (u32)(ticks / 315360000000000LL);  // (_alldiv by 365 days; only the quotient's low dword is looked at)
+    u32 column;
+    if (years == 0) {
+        if ((u32)(ticks / 25920000000000LL) == 0 && at<u32>(object, 0x1a0) == 0 && at<s32>(Object_GetDef(object), 0x188) > 0)
+            return 100;  // (under 30 days old with no customer yet, and the first level's first-year value positive)
+        column = 0x188;
+    } else if (years == 1) {
+        column = 0x18c;
+    } else if (years == 2) {
+        column = 0x190;
+    } else {
+        column = 0x194;
+    }
+    return at<u32>(Object_GetDef(object), column + at<u8>(object, 0x50) * 0x40);
+}
+
+s32 __fastcall Object_AgeDays(const u8 *object) { return FunnyTime_DaysSince(reinterpret_cast<const FileTime *>(object + 0x18)); }
+
+u32 __fastcall Object_ScrapRefund(const u8 *object) {
+    const u8 *const def = Object_GetDef(object);
+    return Object_ScrapValue(object) * at<u32>(def, 0x1b8) / 100;
+}
 
 u32 __fastcall Kinds_Compatible(const u8 *object, void *, u32 kind) {
     if (kind == 0)

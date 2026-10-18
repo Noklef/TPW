@@ -1,4 +1,4 @@
-# The route search (src/game/world/route: 0x511470, 0x511ef0 that starts it, 0x5108a0 that refines a route, 0x511420 that does both) against
+# The route search (src/game/world/route: 0x511470, 0x511ef0 that starts it, 0x5108a0 that refines a route, 0x511420 that does both, 0x4d8b40 a route's length between two cell ids) against
 # the original, with LineStep_Init, the wall follower's step, the straightening and MapCell_StepBlocked (and its callees) run on cellstep.py's
 # cells: a box of cells (at times on the map's right and bottom edges) with the start, the target and the route's cells in it, every step from
 # it set up as cellstep.py's; round it two rings of cells of type 4 (the steps into the first blocked, along and between the rings open) so the
@@ -16,10 +16,11 @@ sys.path.insert(0, HERE)
 import cellstep  # noqa: E402
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x511470, 0x511c8c), (0x511ef0, 0x511f2f), (0x5108a0, 0x5110cd), (0x511420, 0x51146a), (0x5110d0, 0x51134f), (0x511350, 0x511412), (0x511c90, 0x511ec7), (0x4d8750, 0x4d8b29),
-           (0x4d0af0, 0x4d0b06), (0x522700, 0x5228b5), (0x536300, 0x536484), (0x53ad20, 0x53aefc), (0x4dd4e0, 0x4dd510), (0x412e90, 0x412f00),
-           (0x42a440, 0x42a4f0), (0x436840, 0x436870), (0x436880, 0x4368d0), (0x44b220, 0x44b280), (0x549d30, 0x549dc0), (0x55a070, 0x55a0c0),
-           (0x55a360, 0x55a3a0), (0x55a570, 0x55a5b0), (0x5da3c0, 0x5da3c1)])  # (cellstep.py's)
+RANGES = [(0x511470, 0x511c8c), (0x511ef0, 0x511f2f), (0x5108a0, 0x5110cd), (0x511420, 0x51146a), (0x5110d0, 0x51134f), (0x511350, 0x511412), (0x511c90, 0x511ec7), (0x4d8750, 0x4d8b29),
+          (0x4d0af0, 0x4d0b06), (0x522700, 0x5228b5), (0x536300, 0x536484), (0x53ad20, 0x53aefc), (0x4dd4e0, 0x4dd510), (0x412e90, 0x412f00),
+          (0x42a440, 0x42a4f0), (0x436840, 0x436870), (0x436880, 0x4368d0), (0x44b220, 0x44b280), (0x549d30, 0x549dc0), (0x55a070, 0x55a0c0),
+          (0x55a360, 0x55a3a0), (0x55a570, 0x55a5b0), (0x5da3c0, 0x5da3c1), (0x4d8b40, 0x4d8bf5)]
+B = Bench(RANGES)  # (cellstep.py's)
 ROUTE = RAM + 0x40000
 GLOBALS = 0x7cf398  # to 0x7cf3cc: LineStep_Init's sums, distances and directions, the steps, the mode, the notes and their flag 0x7cf3c8
 NEIGHBOURS = [(0, -1), (1, 0), (0, 1), (-1, 0)]
@@ -47,10 +48,9 @@ def get_type(regions, r, handle):
     return struct.unpack('<I', bytes(regions[(a + i) & ~0xfff][(a + i) & 0xfff] for i in range(4)))[0]
 
 
-def case(r):
-    op = r.deal(OPS or [0x511470, 0x511ef0, 0x5108a0, 0x511420])
-    mode = r.choice([0, 1, 2, 2, 2, 3])
-    size = r.choice([3, 4, 5, 6, 8])
+def boxed(r, mode, size=None):
+    """cellstep.py's world for a box of cells (of the size given, else 3 to 8 square) ringed by cells of type 4: (regions, box, ring, bx, by, size)."""
+    size = size or r.choice([3, 4, 5, 6, 8])
     bx = r.choice([2, 0x80 - size, r.randrange(2, 0x7f - size)])
     by = r.choice([2, 0x80 - size, r.randrange(2, 0x7f - size)])
     box = {(x, y) for x in range(bx, bx + size) for y in range(by, by + size)}
@@ -68,6 +68,13 @@ def case(r):
             rings |= {t, s}
     for h in sorted(rings - inside):
         set_type(regions, r, h, 4)
+    return regions, box, ring, bx, by, size
+
+
+def case(r):
+    op = r.deal(OPS or [0x511470, 0x511ef0, 0x5108a0, 0x511420, 0x4d8b40])
+    mode = r.choice([0, 1, 2, 2, 2, 3])
+    regions, box, ring, bx, by, size = boxed(r, mode)
     route = bytearray(r.bytes(6 + 2 * 0x100))
     route[0] = r.choice([0, 0, 0, 1, 5, r.randrange(0x100), r.randrange(0xf0, 0xfd), r.randrange(0xf5, 0xfc), r.randrange(0xf8, 0xfb)])
     for i in range(route[0]):  # (the cells already in the route are the box's: the straightening walks from them)
@@ -93,6 +100,9 @@ def case(r):
     put(g, 0x7cf3c0 - GLOBALS, 'I', mode)
     put(g, 0x7cf3c8 - GLOBALS, 'I', r.choice([0, 1, r.getrandbits(32)]))
     regions[GLOBALS] = bytes(g)
+    if op == 0x4d8b40:  # (the route's own: the start and target as cell ids, at times with high bits)
+        ids = [(y << 7) + x + 1 | (r.getrandbits(16) << 16 if r.random() < 0.1 else 0) for x, y in ((sx, sy), (tx, ty))]
+        return Call(op, [*ids, mode], regions, ret='a')
     if op in (0x511ef0, 0x511420):
         return Call(op, [ROUTE, mode], regions, ret='a')
     if op == 0x5108a0:
