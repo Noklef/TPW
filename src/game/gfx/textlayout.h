@@ -87,4 +87,12 @@ u8 *__fastcall Vector12_Erase(u8 *vector, void *, u8 *first, u8 *last);
 void __fastcall Vector8_InsertN(u8 *vector, void *, u8 *position, u32 count, const u8 *value);
 void __fastcall Vector16_InsertN(u8 *vector, void *, u8 *position, u32 count, const u8 *value);
 
+// 0x6af3b0 (thiscall (position, count, value), pops 0xc): the same for a 12-byte T (its counts a signed division by 12).
+void __fastcall Vector12_InsertN(u8 *vector, void *, u8 *position, u32 count, const u8 *value);
+
+// 0x6add90 (thiscall (first, shown, next, width), pops 0x10) on the layout's lines (+0x70: a 12-byte vector at +4, the widest line at
+// +0x10): the line {first, next, width} appended (Vector12_InsertN at the end), +0x10 raised to width (unsigned), and the 16-byte character
+// records from shown up to next (a do-while) get flag 0x40 in their byte +4.
+void __fastcall TextLines_Append(u8 *lines, void *, u8 *first, u8 *shown, u8 *next, u32 width);
+
 }

@@ -26,9 +26,10 @@ template <u32 N> void CopyElement(u8 *to, const u8 *from) {
     for (u32 i = 0; i < N; i += 4) at<u32>(to, i) = at<u32>(const_cast<u8 *>(from), i);
 }
 
-// the signed element count between two pointers (SUB, SAR: rounded down); N is 8 or 16
+// the signed element count between two pointers: 8 and 16 by SAR (rounded down), 12 by a signed division (rounded towards 0)
 template <u32 N> s32 Elements(const u8 *a, const u8 *b) {
-    return (s32)((u32)(uintptr_t)a - (u32)(uintptr_t)b) >> (N == 8 ? 3 : 4);
+    const s32 bytes = (s32)((u32)(uintptr_t)a - (u32)(uintptr_t)b);
+    return N == 12 ? bytes / 12 : bytes >> (N == 8 ? 3 : 4);
 }
 
 // MSVC6's vector<T>::insert(position, count, value) for an N-byte T (first +4, last +8, end +0xc): every copy into new room skips a null
@@ -262,6 +263,23 @@ void __fastcall Vector8_InsertN(u8 *vector, void *, u8 *position, u32 count, con
 
 void __fastcall Vector16_InsertN(u8 *vector, void *, u8 *position, u32 count, const u8 *value) {
     InsertN<16>(vector, position, count, value);
+}
+
+void __fastcall Vector12_InsertN(u8 *vector, void *, u8 *position, u32 count, const u8 *value) {
+    InsertN<12>(vector, position, count, value);
+}
+
+void __fastcall TextLines_Append(u8 *lines, void *, u8 *first, u8 *shown, u8 *next, u32 width) {
+    const u32 line[3] = {(u32)(uintptr_t)first, (u32)(uintptr_t)next, width};
+    Vector12_InsertN(lines, nullptr, at<u8 *>(lines, 8), 1, reinterpret_cast<const u8 *>(line));
+    if (at<u32>(lines, 0x10) < width) at<u32>(lines, 0x10) = width;
+    if (shown != next) {
+        u8 *record = shown;
+        do {
+            at<u8>(record, 4) |= 0x40;
+            record += 0x10;
+        } while (record != next);
+    }
 }
 
 u8 *__fastcall TextLayout_Ctor(u8 *layout) {
