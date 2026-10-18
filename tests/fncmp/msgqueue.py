@@ -3,8 +3,10 @@
 # entries set or not (the heap region given: its free count and hash). Contains: 0-4 word pairs (then the end), the pair asked for one of
 # them or random (upper halves random). DispatchOne: the entries' windows among 4 (flags bit 0 and the handler, a logger, set or not),
 # their messages mostly 0x1000a-0x1000c, now and then a value 0x80808080, the pairs [0xfaa578] and the windows [0xfaa57c], [0xfaa5dc],
-# [0xfaa5ec] set or not, the pair asked for in the list half the time; the entries now and then missing.
-# usage: msgqueue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Free,Push,Contains,DispatchOne)
+# [0xfaa5ec] set or not, the pair asked for in the list half the time; the entries now and then missing. Init: the entries set or not,
+# the capacity 0-8, the allocation failing now and then. Peek / Cancel / Clear: the queue as for Push, now and then a value 0x80808080,
+# the windows among two (and 0), the entries now and then missing.
+# usage: msgqueue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Free,Push,Contains,DispatchOne,Init,Peek,Cancel,Clear)
 import os
 import struct
 import sys
@@ -12,9 +14,10 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, heap, log_region, put  # noqa: E402
 
-CALLS = {'Free': 0x669735, 'Push': 0x6697e3, 'Contains': 0x6698a4, 'DispatchOne': 0x6698e6}
+CALLS = {'Free': 0x669735, 'Push': 0x6697e3, 'Contains': 0x6698a4, 'DispatchOne': 0x6698e6, 'Init': 0x669767, 'Peek': 0x669ad7,
+         'Cancel': 0x669b3e, 'Clear': 0x669bdb}
 B = Bench([(0x669735, 0x669767), (0x6697e3, 0x6698a4), (0x6698a4, 0x6698e6), (0x6698e6, 0x669ad7), (0x65d57c, 0x65d58d),
-           (0x65f697, 0x65f6d1)])
+           (0x65f697, 0x65f6d1), (0x669767, 0x6697e3), (0x669ad7, 0x669bdb), (0x669bdb, 0x669c30), (0x67fff0, 0x680048)])
 QUEUE, ENTRIES, WINDOWS, PAIRS = RAM, RAM + 0x100, RAM + 0x400, RAM + 0x1000
 WINDOW = 0x120
 
@@ -84,6 +87,22 @@ def case(r):
         if r.random() < 0.08:
             put(regions[QUEUE], 0, 'I', 0)
         return Call(CALLS[op], [QUEUE], regions, conv='t', ret='w')
+    if op == 'Init':
+        regions[HEAP] = heap(0x100, r.choice([0] * 6 + [1]))
+        put(regions[QUEUE], 0, 'I', r.choice([0] * 6 + [ENTRIES]))
+        return Call(CALLS[op], [QUEUE, r.choice([0, 1, 2, 3, 4, 8])], regions, conv='t', ret='w')
+    if op in ('Peek', 'Cancel', 'Clear'):
+        entry = regions[ENTRIES]
+        for k in range(cap):
+            if struct.unpack_from('<I', entry, 16 * k)[0]:
+                put(entry, 16 * k, 'I', r.choice([0x1234, 0x5678, 0x5678, r.getrandbits(32)]))
+                if r.random() < 0.3:
+                    put(entry, 16 * k + r.choice([4, 8, 0xc]), 'I', 0x80808080)
+        if r.random() < 0.1:
+            put(regions[QUEUE], 0, 'I', 0)
+        if op == 'Cancel':
+            return Call(CALLS[op], [QUEUE, r.choice([0x1234, 0x5678, 0])], regions, conv='t', ret='w')
+        return Call(CALLS[op], [QUEUE], regions, conv='t', ret='a' if op == 'Peek' else 'v')
     window = r.choice([0x1234, r.getrandbits(32), r.getrandbits(32), 0])
     return Call(CALLS[op], [QUEUE, window] + [r.getrandbits(32) for _ in range(3)], regions, conv='t', ret='w')
 

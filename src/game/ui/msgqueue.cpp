@@ -1,6 +1,7 @@
 #include "msgqueue.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "../core/accessors.h"
 #include "../core/gameheap.h"
@@ -65,5 +66,44 @@ u32 __fastcall MsgQueue_DispatchOne(u8 *queue) {
     at<s32>(queue, 8) -= 1;
     if (at<s32>(queue, 8) < 0) at<s32>(queue, 8) = at<s32>(queue, 4) - 1;
     return 1;
+}
+u32 __fastcall MsgQueue_Init(u8 *queue, void *, u32 capacity) {
+    if (at<u8 *>(queue, 0)) return 0;
+    at<u8 *>(queue, 0) = static_cast<u8 *>(GameHeap_Alloc(capacity << 4));
+    if (!at<u8 *>(queue, 0)) return 0;
+    at<u32>(queue, 8) = capacity - 1;
+    at<u32>(queue, 0xc) = capacity - 1;
+    at<u32>(queue, 4) = capacity;
+    at<u32>(queue, 0x10) = 0;
+    std::memset(at<u8 *>(queue, 0), 0, capacity << 4);
+    return 1;
+}
+
+u32 *__fastcall MsgQueue_Peek(u8 *queue) {
+    if (!at<u8 *>(queue, 0)) return nullptr;
+    u32 *const entry = reinterpret_cast<u32 *>(at<u8 *>(queue, 0) + (at<u32>(queue, 8) << 4));
+    if (!entry[0] || entry[1] == 0x80808080 || entry[2] == 0x80808080 || entry[3] == 0x80808080) return nullptr;
+    return entry;
+}
+
+u32 __fastcall MsgQueue_Cancel(u8 *queue, void *, u32 window) {
+    s32 cancelled = -1;
+    if (!at<u8 *>(queue, 0)) return (u32)cancelled;
+    cancelled = 0;
+    for (s32 i = 0; i < at<s32>(queue, 4); ++i) {
+        u32 *const entry = reinterpret_cast<u32 *>(at<u8 *>(queue, 0) + (i << 4));
+        if (entry[0] != window) continue;
+        entry[1] = entry[2] = entry[3] = 0x80808080;
+        ++cancelled;
+    }
+    return (u32)cancelled;
+}
+
+void __fastcall MsgQueue_Clear(u8 *queue) {
+    if (!at<u8 *>(queue, 0)) return;
+    at<u32>(queue, 8) = at<u32>(queue, 4) - 1;
+    at<u32>(queue, 0xc) = at<u32>(queue, 4) - 1;
+    at<u32>(queue, 0x10) = 0;
+    std::memset(at<u8 *>(queue, 0), 0, at<u32>(queue, 4) << 4);
 }
 }
