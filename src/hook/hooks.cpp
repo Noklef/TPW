@@ -153,6 +153,7 @@
 #include "../game/core/stdwstring.h"
 #include "../game/core/sync.h"
 #include "../game/core/balancefile.h"
+#include "../game/core/cmdline.h"
 #include "../game/core/gameerror.h"
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
@@ -288,6 +289,7 @@
 #include "../game/render/d3dprobe.h"
 #include "../game/render/engineerrors.h"
 #include "../game/render/texcoords.h"
+#include "../game/render/graphicssettings.h"
 #include "../game/render/weatherfx.h"
 #include "../game/online/servers.h"
 #include "../game/frontend/helpbg.h"
@@ -517,6 +519,8 @@ const Hook kHooks[] = {
     {"MouseModes_InitTile",       0x0046c0b0, (void *)&MouseModes_InitTile, {0x66, 0xc7, 0x05, 0xcc, 0x05}},
     {"MouseState_NewFrame",       0x0046c100, (void *)&MouseState_NewFrame, {0x8b, 0x41, 0x0c, 0xc7, 0x01}},
     {"MouseState_SetTileFromPosition", 0x0045d560, (void *)&MouseState_SetTileFromPosition, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
+    {"MouseState_ResolvePick",    0x0046c110, (void *)&MouseState_ResolvePick, {0x83, 0xec, 0x08, 0x56, 0x8b}},
+    {"MMPlaceStaff_Hover",        0x0046c480, (void *)&MMPlaceStaff_Hover, {0x83, 0xec, 0x10, 0x56, 0x57}},
     {"ObjectDefs_Find",           0x00412e90, (void *)&ObjectDefs_Find, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"ObjectDefs_FindAt390",      0x00412ef0, (void *)&ObjectDefs_FindAt390, {0x53, 0x66, 0x8b, 0x5c, 0x24}},
     {"ObjectDefs_FindAt410",      0x00412f50, (void *)&ObjectDefs_FindAt410, {0x53, 0x66, 0x8b, 0x5c, 0x24}},
@@ -955,6 +959,7 @@ const Hook kHooks[] = {
     {"Palette_ExpandRgb",       0x005f7360, (void *)&Palette_ExpandRgb, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"Palette_Nearest",         0x005f73a0, (void *)&Palette_Nearest, {0x81, 0xec, 0x1c, 0x02, 0x00}},
     {"PalColour_Set",             0x0047ddc0, (void *)&PalColour_Set, {0x8b, 0x54, 0x24, 0x0c, 0x8b}},
+    {"ColourRamps_SetFromPalette", 0x00409db0, (void *)&ColourRamps_SetFromPalette, {0x83, 0xec, 0x08, 0xa0, 0x0c}},
     {"Lib_StrLen",              0x005f76c0, (void *)&Lib_StrLen, {0x57, 0x8b, 0x7c, 0x24, 0x08}},
     {"Lib_StrCpy",              0x005f76e0, (void *)&Lib_StrCpy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"Lib_StrNCpy",             0x005f7710, (void *)&Lib_StrNCpy, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
@@ -1494,6 +1499,7 @@ const Hook kHooks[] = {
     {"Car_TravelCost",            0x00447830, (void *)&Car_TravelCost, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"Car_SetupCoupling",         0x004344c0, (void *)&Car_SetupCoupling, {0x8b, 0x44, 0x24, 0x0c, 0x55}},
     {"Car_FreeCoupling",          0x00433240, (void *)&Car_FreeCoupling, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"Car_SetMoveCostChange",     0x00443df0, (void *)&Car_SetMoveCostChange, {0x53, 0x55, 0x56, 0x8b, 0x35}},
     {"Coasters_Save",             0x00437300, (void *)&Coasters_Save, {0x81, 0xec, 0xa0, 0x00, 0x00}},
     {"CrossSection_BuildIndices", 0x0042e200, (void *)&CrossSection_BuildIndices, {0x51, 0x53, 0x55, 0x56, 0x8b}},
     {"CrossSection_BuildPoints",  0x0042d6d0, (void *)&CrossSection_BuildPoints, {0x8b, 0x44, 0x24, 0x10, 0x83}},
@@ -2025,6 +2031,7 @@ const Hook kHooks[] = {
     {"DequeIter_Prev",            0x00632310, (void *)&DequeIter_Prev, {0x8b, 0xc1, 0x56, 0xba, 0xfc}},
     {"Class703c14_Ctor",          0x00632380, (void *)&Class703c14_Ctor, {0x51, 0x8a, 0x54, 0x24, 0x03}},
     {"Deque8_Clear",              0x0047f340, (void *)&Deque8_Clear, {0x56, 0x8b, 0xf1, 0x33, 0xc9}},
+    {"CommandQueue_Post",         0x0047f410, (void *)&CommandQueue_Post, {0x8b, 0x44, 0x24, 0x08, 0x83}},
     {"Obj_Get24",                 0x00423720, (void *)&Obj_Get24, {0x8b, 0x41, 0x24, 0xc3, 0x90}},
     {"Obj_Get2c",                 0x00423730, (void *)&Obj_Get2c, {0x8b, 0x41, 0x2c, 0xc3, 0x90}},
     {"Obj_Get30",                 0x004030c0, (void *)&Obj_Get30, {0x8b, 0x41, 0x30, 0xc3, 0x90}},
@@ -3252,6 +3259,7 @@ const Hook kHooks[] = {
     {"Options_SaveFile",          0x00424820, (void *)&Options_SaveFile, {0x83, 0xec, 0x0c, 0x8d, 0x54}},
     {"Options_LoadFile",          0x00424930, (void *)&Options_LoadFile, {0x83, 0xec, 0x0c, 0x56, 0x57}},
     {"Graphics_Tier",             0x0041aa40, (void *)&Graphics_Tier, {0xe8, 0x4b, 0xfb, 0x02, 0x00}},
+    {"Options_LoadMiscFile",      0x00424a60, (void *)&Options_LoadMiscFile, {0x83, 0xec, 0x0c, 0x8d, 0x54}},
     {"Coaster_SetTrainCount",     0x0043ba20, (void *)&Coaster_SetTrainCount, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
     {"CoasterTypes_FreeAll",      0x00430ad0, (void *)&CoasterTypes_FreeAll, {0x83, 0xec, 0x0c, 0xa1, 0xe8}},
     {"Class6fd9d8_Dtor",          0x0041c8b0, (void *)&Class6fd9d8_Dtor, {0x6a, 0xff, 0x68, 0x56, 0x80}},
@@ -3546,6 +3554,7 @@ const Hook kHooks[] = {
     {"BalanceFile_FindKey",       0x00401280, (void *)&BalanceFile_FindKey, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"AdvisorScoringFile_Dtor",   0x0059bf10, (void *)&AdvisorScoringFile_Dtor, {0xc7, 0x01, 0x58, 0xd9, 0x6f}},
     {"ThemeRecord_Dtor",          0x005b0cd0, (void *)&ThemeRecord_Dtor, {0x6a, 0xff, 0x68, 0x1b, 0xf9}},
+    {"BalanceFile_ParseMap",      0x00402720, (void *)&BalanceFile_ParseMap, {0x8b, 0x44, 0x24, 0x04, 0x81}},
     {"TimeSig_Serialize",         0x0041a860, (void *)&TimeSig_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x56}},
     {"FloatConsts_InitOne_407b20", 0x00407b20, (void *)&FloatConsts_InitOne_407b20, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"FloatConsts_InitEpsilon_407b40", 0x00407b40, (void *)&FloatConsts_InitEpsilon_407b40, {0xd9, 0x05, 0x00, 0xd7, 0x6f}},
@@ -3640,6 +3649,7 @@ const Hook kHooks[] = {
     {"StdWString_Grow",           0x0047bad0, (void *)&StdWString_Grow, {0x53, 0x56, 0x57, 0x8b, 0x7c}},
     {"StdWString_Split",          0x0047bc00, (void *)&StdWString_Split, {0x55, 0x56, 0x8b, 0xf1, 0x57}},
     {"GameError_IndexOfCode",     0x00405b90, (void *)&GameError_IndexOfCode, {0x8b, 0x44, 0x24, 0x04, 0x3d}},
+    {"GameError_Set",             0x00405710, (void *)&GameError_Set, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"CountedPair_CtorWide",      0x004ea740, (void *)&CountedPair_CtorWide,{0x6a, 0xff, 0x68, 0x40, 0xcd}},
     {"CountedPair_CopyCtor",      0x004e6410, (void *)&CountedPair_CopyCtor, {0x6a, 0xff, 0x68, 0xc8, 0xc6}},
     {"CountedPair_Assign",        0x004f5860, (void *)&CountedPair_Assign, {0x8b, 0x44, 0x24, 0x04, 0x53}},
@@ -3649,6 +3659,7 @@ const Hook kHooks[] = {
     {"CountedPair_Construct",     0x004f7410, (void *)&CountedPair_Construct, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
     {"CountedPairVector_Construct", 0x004f6e70, (void *)&CountedPairVector_Construct, {0x55, 0x8b, 0x6c, 0x24, 0x08}},
     {"StringMapsRecord_Dtor",     0x004e54c0, (void *)&StringMapsRecord_Dtor, {0x6a, 0xff, 0x68, 0x64, 0xc5}},
+    {"CommandLine_Parse",         0x0040f000, (void *)&CommandLine_Parse, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -3898,6 +3909,7 @@ const Hook kHooks[] = {
     {"D3dProbe_SetTextureStages", 0x005686d0, (void *)&D3dProbe_SetTextureStages, {0x56, 0x8b, 0xf1, 0x57, 0x83}},
     {"EngineErrors_Push",         0x0056af20, (void *)&EngineErrors_Push, {0x83, 0xec, 0x64, 0x56, 0x8b}},
     {"Model_TexCoords",           0x00581410, (void *)&Model_TexCoords, {0x83, 0xec, 0x40, 0x8b, 0x44}},
+    {"GraphicsSettings_Apply",    0x0044d8f0, (void *)&GraphicsSettings_Apply, {0xa1, 0x78, 0x58, 0x78, 0x00}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
@@ -3928,6 +3940,7 @@ const Hook kHooks[] = {
     {"Instance_InitUnusedOne",    0x00455bf0, (void *)&Instance_InitUnusedOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"Instance_InitUnusedEpsilon", 0x00455c10, (void *)&Instance_InitUnusedEpsilon, {0xd9, 0x05, 0x00, 0xe5, 0x6f}},
     {"Model_RemapTextures",       0x0046de00, (void *)&Model_RemapTextures, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"Model_AddTerrainSets",      0x0046e130, (void *)&Model_AddTerrainSets, {0x83, 0xec, 0x28, 0x53, 0x8b}},
     {"Highlight_Update",          0x00469180, (void *)&Highlight_Update, {0x51, 0x53, 0x55, 0x56, 0x8b}},
     {"Highlight_SetTarget",       0x00469340, (void *)&Highlight_SetTarget, {0x8b, 0x44, 0x24, 0x04, 0xa3}},
     {"Highlight_ResetTints",      0x00469350, (void *)&Highlight_ResetTints, {0xc7, 0x05, 0xb0, 0xfd, 0x7a}},
@@ -3988,8 +4001,12 @@ const Hook kHooks[] = {
     {"StripAnim_Apply",           0x004543c0, (void *)&StripAnim_Apply, {0x8b, 0x44, 0x24, 0x04, 0x83}},
     {"StripAnim_StartShrink",     0x004547c0, (void *)&StripAnim_StartShrink, {0x8b, 0x4c, 0x24, 0x04, 0x8b}},
     {"StripAnim_FitGround",       0x00454190, (void *)&StripAnim_FitGround, {0x83, 0xec, 0x4c, 0x55, 0x56}},
+    {"StripAnim_Show",            0x00454670, (void *)&StripAnim_Show, {0x55, 0x8b, 0xec, 0x51, 0x53}},
+    {"StripAnim_StartGrow",       0x00454550, (void *)&StripAnim_StartGrow, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"StripAnim_Refresh",         0x004547f0, (void *)&StripAnim_Refresh, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Model_HeightAt",            0x00451390, (void *)&Model_HeightAt, {0x83, 0xec, 0x50, 0x8b, 0x4c}},
     {"Model_FloorHeight",         0x00451290, (void *)&Model_FloorHeight, {0x51, 0x8b, 0x0d, 0x18, 0xfb}},
+    {"View_FloorAt",              0x004511a0, (void *)&View_FloorAt, {0xa1, 0x18, 0xfb, 0x79, 0x00}},
     {"M3D2_DataErrorBox",         0x0046f100, (void *)&M3D2_DataErrorBox, {0x8b, 0x44, 0x24, 0x04, 0x6a}},
     {"ObjModel_Unload",           0x0057a100, (void *)&ObjModel_Unload, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},

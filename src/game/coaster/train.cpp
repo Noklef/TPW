@@ -5,12 +5,15 @@
 #include "../core/globalmem.h"
 #include "../math/x87.h"
 #include "../model/parts.h"
+#include "helpers.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) {
     return *reinterpret_cast<T *>((uintptr_t)p + offset);
 }
+
+template <typename T> T &global(uintptr_t address) { return *reinterpret_cast<T *>(address); }
 
 }  // namespace
 
@@ -137,6 +140,21 @@ double __cdecl Car_TravelCost(const u8 *ride, u32 withBase, const u8 *car, const
         if ((at<u32>(s, 0) & 0x4000) && !(at<u8>(at<const u8 *>(car, 0x68), 8) & 0x80)) s = fallback;
     }
     return ((X87Reg(at<float>(s, 0x60)) * dist + base) + X87Reg(at<float>(s, 0x64)) * speed).v;
+}
+
+void __cdecl Car_SetMoveCostChange(const u8 *car, const float *cost, const float *extra, const float *x, const float *z, u32 a, u32 b) {
+    const u8 *const ride = global<const u8 *>(0x00790fec);
+    if (!ride || !global<u32>(0x0079c640) || global<u32>(0x00785a2c)) return;
+    s32 before = (s32)(long long)*cost;   // __ftol
+    if (extra) before += (s32)(long long)*extra;
+    s32 after = Float_RoundUp((float)Car_TravelCost(ride, 0, car, x, z, nullptr, nullptr));
+    if (extra)
+        after += Float_RoundUp((float)Car_TravelCost(global<const u8 *>(0x00790fec), 0, at<const u8 *>(car, 0x64), nullptr, nullptr, x, z));
+    if (global<u32>(0x0079c6d8) == a && global<u32>(0x0079c6a0) == b) {
+        global<s32>(0x0079c69c) = 0;
+        return;
+    }
+    global<s32>(0x0079c69c) = after - before;
 }
 
 void __cdecl Car_SetupCoupling(u8 *car, u32 *coupling, const u8 *spec, const u8 *type) {

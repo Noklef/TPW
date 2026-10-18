@@ -66,6 +66,12 @@ void __cdecl Object_GetPosition(const u8 *object, u32 *out);
 double __cdecl Car_TravelCost(const u8 *ride, u32 withBase, const u8 *car, const float *x, const float *z,
                               const float *fromX, const float *fromZ);
 
+// 0x443df0 (cdecl (car, &cost, &extra or null, x, z, a, b); name unconfirmed; the edit passes 0x79c698 and 0x79c64c): with a current
+// link (0x790fec), a selected car (0x79c640) and 0x785a2c clear, the change in cost of moving the car to (x, z): the new cost is
+// Float_RoundUp of its Car_TravelCost (link, without the base, from its piece) to x, z, plus, with extra, that of its follower (+0x64)
+// from x, z to its own place; the old one cost __ftol'd plus extra's. 0x79c69c = new - old, or 0 when (a, b) is (0x79c6d8, 0x79c6a0).
+void __cdecl Car_SetMoveCostChange(const u8 *car, const float *cost, const float *extra, const float *x, const float *z, u32 a, u32 b);
+
 // 0x4344c0: sets up a coupling {count, two arrays of 0x58-byte seats}: count from spec+0xc,
 // both arrays allocated zeroed, and each seat i (in both) given the part with key
 // spec+0x10 + i and flag 0x400000 of holder 0x7ae6a8[type+0x14] (+4) and the car (+0x10).

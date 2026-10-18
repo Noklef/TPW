@@ -1,4 +1,4 @@
-# The thing counts of src/game/world/thingscan (Things_TopThreeValues 0x4c8430, Things_CountOfKindAround 0x4c8d30, Cell_FirstObject 0x4d99e0, Map_ObjectAtCell 0x527d60 and 0x527e80 by the entrance) against the originals: a park of up to six things
+# The thing counts of src/game/world/thingscan (Things_TopThreeValues 0x4c8430, Things_CountOfKindAround 0x4c8d30, Cell_FirstObject 0x4d99e0, Map_ObjectAtCell 0x527d60 and 0x527e80 by the entrance; and world/mousemode's MouseState_ResolvePick 0x46c110 over it) against the originals: a park of up to six things
 # (thingenv.py) of kinds 1 to 3 on analyser cells of every type, with values at +0x30 from 0 to 22; or things chained in the per-cell lists around a cell id, searched for a
 # kind with radius 0 to 3 (to the corner of the map too), counting or stopping at the first; or some of them chained (+0xa) from a cell's
 # word at +0x24, of kinds 1, 2, 3 and 0xff, for the first of kind 3; that from a cell (in and out of the map) of type 4, 9, 0xa or another,
@@ -14,13 +14,13 @@ sys.path.insert(0, HERE)
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 from thingenv import CELLS, POOL, THING, park  # noqa: E402
 
-CALLS = {'Top': 0x4c8430, 'Area': 0x4c8d30, 'Near': 0x4c8ed0, 'Unlink': 0x4d9280, 'Any': 0x4c8eb0, 'First': 0x4d99e0, 'At': 0x527d60, 'Entrance': 0x527e80}
-B = Bench([(0x4c8430, 0x4c85a8), (0x4c8d30, 0x4c8ea0), (0x4c8ed0, 0x4c9040), (0x4d9280, 0x4d93b0), (0x4c8eb0, 0x4c8ed0), (0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x5da3c0, 0x5da3c1), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c), (0x4d99e0, 0x4d9a5b), (0x527d60, 0x527e76), (0x527e80, 0x527ed8), (0x4d8300, 0x4d8328)])
+CALLS = {'Top': 0x4c8430, 'Area': 0x4c8d30, 'Near': 0x4c8ed0, 'Unlink': 0x4d9280, 'Any': 0x4c8eb0, 'First': 0x4d99e0, 'At': 0x527d60, 'Entrance': 0x527e80, 'Hover': 0x46c110}
+B = Bench([(0x4c8430, 0x4c85a8), (0x4c8d30, 0x4c8ea0), (0x4c8ed0, 0x4c9040), (0x4d9280, 0x4d93b0), (0x4c8eb0, 0x4c8ed0), (0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x5da3c0, 0x5da3c1), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c), (0x4d99e0, 0x4d9a5b), (0x527d60, 0x527e76), (0x527e80, 0x527ed8), (0x4d8300, 0x4d8328), (0x46c110, 0x46c1c4)])
 OUT = RAM + 0x1000
 
 
 def case(r):
-    name = r.choice(OPS)
+    name = r.deal(OPS)
     if name == 'Near':
         cells = bytearray(r.bytes(0x44 * 0x302))
         for idx in range(0x301):
@@ -33,7 +33,7 @@ def case(r):
             cell = cell & 0x7f or 1
         regions = {CELLS: cells, 0x8023a0: struct.pack('<I', CELLS), RAM + 0x20000 + 0x1f000: r.bytes(0x400), OUT: r.bytes(8)}
         return Call(CALLS[name], [RAM + 0x20000, OUT, r.choice([0, 1, 2, 5, 0x8000, 0xffff, 0x10001]), cell, radius], regions, conv='t', ret='a')
-    if name in ('First', 'At', 'Entrance'):
+    if name in ('First', 'At', 'Entrance', 'Hover'):
         count = r.choice([0, 1, 2, 3, 4, 6])
         regions, handles, things = park(r, count=count, kinds=(1, 2, 3, 3, 0xff), defs=False)
         pool = bytearray(regions[POOL])
@@ -49,6 +49,9 @@ def case(r):
             regions[RAM + 0x20000] = cell
             return Call(CALLS[name], [RAM + 0x20000, OUT], regions, conv='t', ret='a')
         x, y = (r.choice([0, 1, 5, 126, 127, r.randrange(128), r.randrange(128), r.randrange(128), -1, 128, r.getrandbits(32) - (1 << 31)]) for _ in range(2))
+        if name == 'Hover':  # the pointer state's tile: column (tile - 1) & 0x7f, row (tile - 1) >> 7
+            tile = r.choice([0, 1, 2, 0x80, 0x81, 0x3fff, 0x4000, 0x4001, 0xffff, r.randrange(1, 0x4001), r.randrange(1, 0x4001), r.getrandbits(16)])
+            x, y = (tile - 1) & 0x7f, ((tile - 1) & 0xffffffff) >> 7
         world = 0x32000000
         cid = ((y << 7) + x + 1) & 0xffff
         here = bytearray(r.bytes(0x44))
@@ -67,6 +70,16 @@ def case(r):
             first, last = sorted([near(x), near(x)]) if r.random() < 0.8 else (near(x), near(x))
             regions[0x7855bc] = struct.pack('<3I', first & 0xffffffff, (y if r.random() < 0.6 else near(y)) & 0xffffffff, last & 0xffffffff)
             regions[world + 0x1da732] = r.bytes(2)
+        if name == 'Hover':  # (the entrance's columns about the tile's, its row the tile's half the time)
+            first, last = sorted([x + r.randrange(-2, 3), x + r.randrange(-2, 3)])
+            regions[0x7855bc] = struct.pack('<3I', first & 0xffffffff, y if r.random() < 0.5 else r.randrange(128), last & 0xffffffff)
+            regions[world + 0x1da732] = r.bytes(2)
+            state = bytearray(r.bytes(0x28))
+            put(state, 0, 'I', r.choice([0, 0, RAM + 0x21000]))
+            put(state, 0x24, 'H', tile)
+            regions[RAM + 0x20000] = state
+            regions[RAM + 0x21000] = bytes([r.getrandbits(8), r.getrandbits(8), r.choice([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0x11, 0x12, 0x13, 0xff])]) + r.bytes(5)
+            return Call(CALLS[name], [RAM + 0x20000], regions, conv='t', ret='v')
             return Call(CALLS[name], [OUT, x & 0xffffffff, y & 0xffffffff], regions, conv='c', ret='a')
         regions[RAM + 0x20000] = struct.pack('<ii', x, y)
         return Call(CALLS[name], [OUT, RAM + 0x20000, RAM + 0x20004], regions, conv='c', ret='a')

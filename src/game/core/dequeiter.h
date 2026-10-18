@@ -33,4 +33,13 @@ u8 *__fastcall Class703c14_Ctor(u8 *object);
 // map at +0x24, the count at +0x2c): while the count is not 0 the cursor (+0xc) moves on by 8 and the count falls; at the end of a block, or the last element, the block (the map slot's, which moves
 // on) is freed and, with the count at 0, both iterators are cleared and the map freed, else the begin iterator is set to the next block.
 void __fastcall Deque8_Clear(u8 *deque);
+
+// 0x47f410 (cdecl; code, param; name unconfirmed): posts (param, code) to the global deque of 8-byte elements at 0x7b4ba8 (laid out as above,
+// the map's size at +0x28) inside its critical section (0x7b4bd8, CritSec_Enter / CritSec_Leave, whose result is returned); a param of 0 is the
+// dword at 0x78ba88. With elements and room in the last block the element goes at the end cursor. Else a block of 0x1000 is allocated: with
+// none, a map of 2 (size 2) whose second slot it is, both iterators on it and the element in its middle (+0x800); with a slot left after the
+// end's, it goes there; else a map of twice the blocks in use (bytes 8 * count, 0 when negative) with them copied (Dwords_Copy) from its
+// (2 * count) / 4th slot, the old one freed, the block after them, the iterators set again (DequeIter_Set). The element (unless at 0) is
+// written, the end cursor moves 8 on and the count is stepped.
+u32 __cdecl CommandQueue_Post(u32 code, u32 param);
 }

@@ -39,9 +39,21 @@ void __cdecl MouseState_SetTileFromPosition(const float *position);
 // picked thing (+0) cleared.
 void __fastcall MouseState_NewFrame(u8 *self);
 
+// 0x46c110 (thiscall; name unconfirmed): the pointer state's picks resolved. +4 becomes its picked thing (+0) when that is of kind (+2) 1, 4,
+// 5, 6, 7, 8 or 0x12, else 0; +8 the thing (the dword of 0x7cfb90's 20-byte slot) of the handle Map_ObjectOrEntranceAt gives for its tile
+// (+0x24: column (tile - 1) & 0x7f, row (tile - 1) >> 7, unsigned), else 0; and a picked thing of 0 becomes that +8.
+void __fastcall MouseState_ResolvePick(u8 *self);
+
 // 0x46c450 / 0x46c650: empty methods (taking 4 and 2 arguments).
 void __fastcall MouseMode_Nop4(void *self, void *edx, u32, u32, u32, u32);
 void __fastcall MouseMode_Nop2(void *self, void *edx, u32, u32);
+
+// 0x46c480 (thiscall, 4 arguments unused; slot 6 of CMMPlaceStaff (0x6fea40) and the 0x6fea70 mode; name unconfirmed): with a sprite
+// script slot at +8, the script moves to the highlight point (Highlight_Point) 5 up (y - -5) with r15 4. The cell under the pointer
+// ([0x7cf83c] + 0x294 + the tile (0x7b05cc) * 0x44, its first word taken as a handle) gets a square face (DynFaces_AddSquare: x - 5, 1,
+// z - 5, 0, tag 1, 0, 1, 0, 0, 0, 0) when MapHandle_IsTypeBDOr10Or12Or19, MapCell_HasFlags(0x40) or MapHandle_ParentIsType19, or else
+// when it is not MapCell_IsType0, MapCell_IsType1 or MapCell_IsType3Or9.
+void __fastcall MMPlaceStaff_Hover(u8 *self, void *edx, u32, u32, u32, u32);
 
 // 0x46ced0: the base destructor: the base vtable.
 void __fastcall MouseMode_Dtor(u8 *self);

@@ -237,4 +237,24 @@ u32 __fastcall Options_LoadFile(u8 *options, void *, const u8 *path) {
     Stream_Close(&result, stream);
     return ok ? 1 : 0;
 }
+
+u32 __fastcall Options_LoadMiscFile(u8 *options, void *, const u8 *path) {
+    at<u32>(options, 0x78) = 0;
+    at<u32>(options, 0x7c) = 0;
+    at<u32>(options, 0x80) = 0;
+    at<u32>(options, 0x84) = 1;
+    at<u32>(options, 0x88) = 0;
+    at<u32>(options, 0x8c) = 0;
+    at<u32>(options, 0x90) = 0;
+    s32 result;
+    Stream *stream;
+    if (*FileStream_Open(&result, &stream, at<const char *>(path, 8), 0x80000001) < 0)
+        return 0;
+    u32 version;
+    s32 done = 0;
+    const bool ok = *Stream_Read(&result, stream, &version, 4, &done) >= 0 && done == 4 && version >= 2 &&
+                    Options_SerializeMisc(options, nullptr, stream, 0, version) == 0;
+    Stream_Close(&result, stream);
+    return ok ? 1 : 0;
+}
 }

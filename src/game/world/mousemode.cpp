@@ -1,13 +1,24 @@
 #include "mousemode.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "../math/x87.h"
+#include "../model/highlight.h"
+#include "../render/dynfaces.h"
+#include "../sprite/script.h"
 #include "mapcell.h"
+#include "thingscan.h"
 
 namespace {
 
 template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+u32 bits(float f) {
+    u32 u;
+    std::memcpy(&u, &f, 4);
+    return u;
+}
 
 const MouseModeEnv kGameEnv = {reinterpret_cast<void(__cdecl *)(void *)>(0x0067acb0)};
 const MouseModeEnv *g_env = &kGameEnv;
@@ -52,7 +63,35 @@ void __fastcall MouseState_NewFrame(u8 *self) {
     at<u32>(self, 0xc) = count + 1;
 }
 
+void __fastcall MouseState_ResolvePick(u8 *self) {
+    u8 *const picked = at<u8 *>(self, 0);
+    at<u32>(self, 4) = 0;
+    at<u32>(self, 8) = 0;
+    if (picked) {
+        const u8 kind = picked[2];
+        if (kind == 1 || kind == 4 || kind == 5 || kind == 6 || kind == 8 || kind == 7 || kind == 0x12) at<u8 *>(self, 4) = picked;
+    }
+    const u32 tile = at<u16>(self, 0x24);
+    u16 handle = (u16)tile;
+    Map_ObjectOrEntranceAt(&handle, (s32)((tile - 1) & 0x7f), (s32)((tile - 1) >> 7));
+    if (handle) at<u32>(self, 8) = *reinterpret_cast<u32 *>(0x007cfb90 + 20 * (u32)handle);  // (an assert on the thing table left out)
+    if (!at<u32>(self, 0)) at<u32>(self, 0) = at<u32>(self, 8);
+}
+
 void __fastcall MouseMode_Nop4(void *, void *, u32, u32, u32, u32) {}
+
+void __fastcall MMPlaceStaff_Hover(u8 *self, void *, u32, u32, u32, u32) {
+    if (!at<s32>(self, 8)) return;
+    const float *const point = Highlight_Point();
+    const float x = point[0], y = point[1], z = point[2];
+    u8 *const cell = *reinterpret_cast<u8 **>(0x007cf83c) + 0x294 + *reinterpret_cast<const u16 *>(0x007b05cc) * 0x44;
+    SpriteScript_SetPosition(at<s32>(self, 8), bits(x), bits(y - -5.0f), bits(z), 4);
+    const u16 *const handle = reinterpret_cast<const u16 *>(cell);
+    if (!MapHandle_IsTypeBDOr10Or12Or19(handle) && !MapCell_HasFlags(cell, nullptr, 0x40) && !MapHandle_ParentIsType19(handle) &&
+        (MapCell_IsType0(cell) || MapCell_IsType1(cell) || MapCell_IsType3Or9(cell)))
+        return;
+    DynFaces_AddSquare(bits(x - 5.0f), 0x3f800000, bits(z - 5.0f), 0, 1, 0, 0x3f800000, 0, 0, 0, 0);
+}
 
 void __fastcall MouseMode_Nop2(void *, void *, u32, u32) {}
 

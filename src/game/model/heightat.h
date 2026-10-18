@@ -26,4 +26,10 @@ float __cdecl Model_HeightAt(const u8 *model, const u8 *instance, float x, float
 // taken as big nodes, 0xa0 bytes apart, sic; instances holder +4) whose flags have 4 ends it
 // with that height (first found) when it is higher. -100 when nothing is found.
 float __cdecl Model_FloorHeight(float x, float z, s32 noParts, s32 noMain);
+
+// 0x4511a0 (cdecl (x, z, &out); name unconfirmed): the floor under (x, z) by the view's way of finding it (0x79fb10, as
+// Model_BeginView picks it). A NaN offset (the view's model +4 -> +0xa0) becomes 0 first. Bit 1: the ground (Terrain_HeightAt);
+// else bit 8: the offset alone; else bit 2: Model_FloorHeight of the parts only, bit 4: of the main node only; each of those plus the offset
+// (x87, read again after the call). Else 0.
+void __cdecl View_FloorAt(float x, float z, float *out);
 }

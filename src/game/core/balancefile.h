@@ -74,4 +74,16 @@ void __fastcall AdvisorScoringFile_Dtor(u8 *self);
 
 // 0x415e70 (cdecl, at exit; name unconfirmed): AdvisorScoring_Dtor of gAdvisorScoring (0xfb3540).
 void __cdecl AdvisorScoring_StaticDtor();
+
+// 0x402720 (cdecl; &text, &map, &error, symbols, count; name unconfirmed): a map description read from the text. *error = 0; the text's
+// leading white space (the CRT's iswspace of each char sign-extended to 16 bits) and the rest of that line are passed over; then a line of
+// "---" (at least), then rows up to a line starting "---": each character but spaces is looked up among the count symbols (0xc bytes: +0
+// the char, +4 a dword, +8 a byte; a count below 0 takes the first, sic) and becomes the next cell (+4's dword and +8's byte) of the row;
+// the width is the longest row. Errors (to *error, 0 returned): no line end "Missing map description" (0x739b80), no "---" "...initial
+// marker" (0x739b08), the text's end before the closing marker "Missing map delimter" (0x739b68), a char in the 21st row "Map too high"
+// (0x739b58; blank rows past the 20th go unchecked and overrun the grid, sic), an
+// unknown char "Illegal map character" (0x739b40), a 21st cell "Map too wide" (0x739b30). Done, the rows are turned upside down and the
+// 0xc88-byte map (+0 width, +4 height, +8 20 x 20 cells of 8 bytes, zeros elsewhere) copied into a Mem_GlobalAlloc block (none:
+// GameError_Set(0x785de8, 8, 0, 0), 0) that goes to *map; *text moves past the closing marker's line; 1.
+u32 __cdecl BalanceFile_ParseMap(const char **text, u8 **map, const char **error, const u8 *symbols, s32 count);
 }

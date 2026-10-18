@@ -1,6 +1,8 @@
 // Palette helpers: see palette.h.
 #include "palette.h"
 
+#include <cstdint>
+
 namespace {
 
 s32 square(s32 v) { return v * v; }
@@ -78,6 +80,20 @@ void __fastcall PalColour_Set(u8 *colour, void *, u32 red, u32 green, u32 blue) 
     colour[0] = (u8)blue;
     colour[3] = 0xff;
     colour[4] = Palette_Nearest(reinterpret_cast<const u8 *>(0x00fa71f8), red, green, blue);
+}
+
+void __cdecl ColourRamps_SetFromPalette() {
+    static const u32 kColours[][2] = {{0x007b0550, 0x85}, {0x007b0546, 0x87}, {0x007b053c, 0x89}, {0x007b0532, 0x8b},
+                                      {0x007b04e0, 0xa7}, {0x007b04d6, 0xa9}, {0x007b04cc, 0xab}, {0x007b04c2, 0xad}};
+    for (const auto &c : kColours) {
+        const u8 *const e = reinterpret_cast<const u8 *>(0x00fa71f8) + 4 * c[1];
+        u8 *const colour = reinterpret_cast<u8 *>((uintptr_t)c[0]);
+        colour[0] = e[2];
+        colour[1] = e[1];
+        colour[2] = e[0];
+        colour[3] = 0xff;
+        colour[4] = (u8)c[1];
+    }
 }
 
 }  // extern "C"

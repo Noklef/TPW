@@ -1,16 +1,19 @@
 # The deque-of-dwords iterator (src/game/core/dequeiter: 0x632200, 0x632230, 0x632290, 0x632310)
 # and the object constructor 0x632380 (and the deque of 8-byte elements emptied by 0x47f340) against the originals: five blocks of 0x1000 bytes behind a
-# map, iterators anywhere in them, steps that stay inside, cross one block or several, either way.
+# map, iterators anywhere in them, steps that stay inside, cross one block or several, either way. The command queue's post (0x47f410): the global deque
+# (0x7b4ba8) empty, or its last block with room, full, or full at the map's end (the map grown), its critical section's calls recorded.
 # usage: dequeiter.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
+from fncmp import IMPORT_TABLE, LOG, Bench, Call, HEAP, RAM, heap, import_table, log_region, put, set_return  # noqa: E402
 
-B = Bench([(0x632200, 0x632222), (0x632230, 0x632290), (0x632290, 0x6322dc), (0x632310, 0x632343), (0x632380, 0x6323bd), (0x47f340, 0x47f420), (0x67acb0, 0x67acb1)])
-CALLS = ['Set', 'Plus', 'Diff', 'Prev', 'Ctor', 'Clear']
+B = Bench([(0x632200, 0x632222), (0x632230, 0x632290), (0x632290, 0x6322dc), (0x632310, 0x632343), (0x632380, 0x6323bd), (0x47f340, 0x47f420), (0x67acb0, 0x67acb1), (0x47f410, 0x47f61e), (0x5c8bb0, 0x5c8bd0), (0x6322e0, 0x632310)])
+CALLS = ['Set', 'Plus', 'Diff', 'Prev', 'Ctor', 'Clear', 'Post']
+IMPORTS = {'EnterCriticalSection': (1, 0x6fd140, 1, 0, 0), 'LeaveCriticalSection': (2, 0x6fd130, 1, 0, 0)}
+QUEUE = 0x7b4ba8
 IT, IT2, OUT, MAP, BLOCKS = RAM, RAM + 0x20, RAM + 0x40, RAM + 0x100, RAM + 0x2000
 
 
@@ -20,7 +23,7 @@ def iterator(block, off):
 
 
 def case(r):
-    op = r.choice(CALLS)
+    op = r.deal(OPS)
     kb, off = r.randrange(5), r.choice([0, 1, 1023, r.randrange(1024)])
     regions = {RAM: bytearray(r.bytes(0x90)), MAP: struct.pack('<5I', *[BLOCKS + 0x1000 * i for i in range(5)]),
                BLOCKS: r.bytes(0x5000), OUT: r.bytes(0x10)}
@@ -34,6 +37,21 @@ def case(r):
         regions[RAM] = obj
         regions[HEAP] = heap()
         return Call(0x47f340, [RAM], regions, conv='t', ret='v')
+    if op == 'Post':   # the queue: +4 the begin iterator, +0x14 the end one {first, end, cursor, map slot}, +0x24 the map, +0x28 its size, +0x2c the count
+        log = log_region()
+        table = import_table(log, IMPORTS)
+        set_return(log, 1, r.getrandbits(32))
+        set_return(log, 2, r.getrandbits(32))
+        q = bytearray(r.bytes(0x48))
+        size = r.choice([2, 3, 5])
+        a = r.randrange(size)
+        b = r.choice([a, size - 1, r.randrange(a, size)])
+        cursor = r.choice([0, 1, 2, 511, 512, 512, 512, r.randrange(1, 513)])
+        put(q, 4, 'IIII', BLOCKS + 0x1000 * a, BLOCKS + 0x1000 * a + 0x1000, BLOCKS + 0x1000 * a + 8 * r.randrange(512), MAP + 4 * a)
+        put(q, 0x14, 'IIII', BLOCKS + 0x1000 * b, BLOCKS + 0x1000 * b + 0x1000, BLOCKS + 0x1000 * b + 8 * cursor, MAP + 4 * b)
+        put(q, 0x24, 'III', MAP, size, r.choice([0, 0, 1, 2, 3, 700, r.getrandbits(32)]))
+        regions.update({QUEUE: q, LOG: log, IMPORT_TABLE: table, HEAP: heap(fail=r.choice([0] * 12 + [1, 2])), 0x78ba88: r.bytes(4)})
+        return Call(0x47f410, [r.getrandbits(32), r.choice([0, 0, 1, r.getrandbits(32)])], regions, conv='c', ret='a')
     if op == 'Set':
         return Call(0x632200, [IT, BLOCKS + 0x1000 * kb + 4 * off, MAP + 4 * r.randrange(5)], regions, conv='t', ret='a')
     if op == 'Plus':

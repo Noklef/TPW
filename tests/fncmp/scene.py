@@ -1,5 +1,6 @@
 # 0x448000-0x470000 (render mode, model part tables, frame globals, model holders, the terrain
-# attribute grid, procedural terrain textures, painting cells, texture remaps, the highlight,
+# attribute grid, procedural terrain textures, painting cells, texture remaps and the terrain
+# sets added to a model, the highlight,
 # flashing holders, the GlobalAlloc wrappers, id tables, part states and their matrices, with
 # the matrix helpers they use)
 # against the originals.
@@ -17,7 +18,7 @@ B = Bench([(0x44a590, 0x44b140), (0x44b140, 0x44b2e0), (0x44ba60, 0x44bad5), (0x
            (0x45d620, 0x45d68c), (0x441840, 0x4418cb), (0x469180, 0x469405), (0x469470, 0x4698ef), (0x469410, 0x46946a),
            (0x45b9d0, 0x45ba15), (0x468760, 0x4688a7), (0x44b4c0, 0x44b505),
            (0x475550, 0x47558b), (0x46f150, 0x46f180), (0x46f240, 0x46f350), (0x46f420, 0x46f5c0),
-           (0x4702d0, 0x470630), (0x473a40, 0x473c30), (0x67b410, 0x67b440), (0x450e60, 0x450e99),
+           (0x4702d0, 0x470630), (0x473a40, 0x473c30), (0x67a400, 0x690000), (0x450e60, 0x450e99), (0x46e130, 0x46e4dc),
            (0x45ba70, 0x45ba92), (0x45bdc0, 0x45bdca), (0x44e510, 0x44e531), (0x473c70, 0x473e30),
            (0x429ee0, 0x429fd4), (0x429fe0, 0x429ff4), (0x45bf20, 0x45bf46), (0x45bf50, 0x45bf83),
            (0x46fad0, 0x46fb41), (0x457e10, 0x457e26), (0x457e30, 0x457e63), (0x452e10, 0x452e63),
@@ -29,6 +30,7 @@ HL, VERTS, HLBUF, SAVED, IDS = (RAM + k * 0x1000 for k in range(22, 27))
 PSA, PSF, PSN, PSM = (RAM + k * 0x1000 for k in range(27, 31))
 PMA, PMN, PMG, PMS = (RAM + k * 0x1000 for k in range(31, 35))
 LA, LH, VEC = (RAM + k * 0x1000 for k in range(35, 38))
+SETS2, GROUPS, TILES2, STRS, MTEX, MENT = (RAM + k * 0x1000 for k in range(38, 44))
 
 
 def partstates(r, op):
@@ -393,6 +395,60 @@ def remap(r, op):
     return Call(0x46de00, [MDL, REMAP, r.getrandbits(32), r.choice([0, 1, r.randrange(1000), -5]), r.getrandbits(32)], regs)
 
 
+TEXNAMES = [b'grass', b'GRASS', b'Grass', b'path1', b'PATH1', b'queue', b'water', b'rock', b'x', b'', b'abcdefghijklmnopqrstuvw']
+
+
+def addsets(r, op):
+    """0x46e130: a model MDL with 1-8 textures at MTEX (their names, +0xc, from TEXNAMES) and entries at MENT, remap()'s
+    meshes with faces into those entries and the terrain grid's cells numbering them; sets SETS2 with 0-3 groups at
+    GROUPS (0-4 tiles each at TILES2 + 0x100 * g, named from TEXNAMES too, so some of either case match), room for the
+    tiles (+8, +0x14) or more; a directory (the strings at STRS). The heap for GlobalAlloc."""
+    strs = bytearray()
+
+    def s(b):
+        strs.extend(b + b'\0')
+        return STRS + len(strs) - len(b) - 1
+
+    n = r.choice([1, 1, 2, 3, 5, 8])
+    model = bytearray(r.bytes(0x80))
+    put(model, 0x36, 'H', n)
+    put(model, 0x50, 'I', MENT)
+    put(model, 0x54, 'I', MTEX)
+    put(model, 0x44, 'H', r.choice([0, 1, 2, 3]))
+    put(model, 0x6c, 'I', r.choice([GRID, 0]))
+    put(model, 0x70, 'I', MESHES)
+    tex = bytearray(r.bytes(0x10 * n))
+    for i in range(n):
+        put(tex, 0x10 * i + 0xc, 'I', s(r.choice(TEXNAMES)))
+    meshes, faces = bytearray(r.bytes(3 * 0xa0)), bytearray(r.bytes(0x300))
+    for k in range(3):
+        put(meshes, 0xa0 * k + 0x5a, 'H', r.choice([0, 1, r.randrange(9)]))
+        put(meshes, 0xa0 * k + 0x6c, 'I', MFACES + 0x100 * k)
+        for j in range(8):
+            put(faces, 0x100 * k + 0x10 * j, 'I', r.choice([0, MENT + 8 * r.randrange(n)]))
+    regs = terrain(r)
+    count = r.choice([0, 1, r.randrange(64)])
+    put(regs[GRID], 6, 'H', count)
+    for i in range(count):
+        put(regs[CELLS], 4 * i + 2, 'H', r.randrange(n))
+    groups, tiles, total = bytearray(r.bytes(0x30)), bytearray(r.bytes(0x400)), 0
+    g_count = r.choice([0, 1, 2, 2, 3])
+    for g in range(g_count):
+        k = r.choice([0, 1, 2, 4])
+        total += k
+        put(groups, 0xc * g, '3I', s(r.choice([b'PathTex', b'QueueTex', b''])), k, TILES2 + 0x100 * g)
+        for j in range(k):
+            put(tiles, 0x100 * g + 0xc * j + 4, 'I', s(r.choice(TEXNAMES)))
+    sets = bytearray(r.bytes(0x30))
+    put(sets, 0, '2I', g_count, GROUPS)
+    put(sets, 8, 'I', total + r.choice([0, 0, 1, 5]))
+    put(sets, 0x14, 'I', total + r.choice([0, 0, 1, 5]))
+    directory = s(r.choice([b'data\\levels\\park\\Terrain\\', b'', b'd\\']))
+    regs.update({MDL: model, MTEX: tex, MENT: r.bytes(8 * n), MESHES: meshes, MFACES: faces, SETS2: sets, GROUPS: groups,
+                 TILES2: tiles, STRS: bytes(strs), HEAP: heap(), **global_heap()})
+    return Call(0x46e130, [MDL, SETS2, directory], regs, ret='a')
+
+
 def ids(r, op):
     """An id table at IDS + 0x10 (0x100 entries; ids from 1) and its counters used, holes, next at
     IDS: consistent (ids 1..used + holes taken but for the holes, next the first free) or not."""
@@ -547,7 +603,7 @@ KINDS = {'Size': mode, 'Depth': mode, 'ResetScale': mode, 'Epsilon': mode, 'Mark
          'ScratchOne': mode, 'ScratchEps': mode, 'GmFlag': mode, 'GmOne': mode, 'GmEps': mode, 'RestoreCells': land, 'IsParkLand': land,
          'Cross': land, 'CopyAttrs': land, 'CloneAttrs': land, 'Footprint': land, 'GridSize': land, 'TexEnable': procedural, 'TexDisable': procedural,
          'ProcEnter': procedural, 'ProcLeave': procedural, 'ProcOn': procedural, 'ProcCells': procedural,
-         'PaintCell': paint, 'PaintCell2': paint, 'PaintAt': paint, 'Remap': remap, 'HlUpdate': highlight, 'HlUpdate2': highlight,
+         'PaintCell': paint, 'PaintCell2': paint, 'PaintAt': paint, 'Remap': remap, 'AddSets': addsets, 'AddSets2': addsets, 'HlUpdate': highlight, 'HlUpdate2': highlight,
          'HlTarget': highlight, 'HlCar': highlight, 'HlTints': highlight, 'HlClear': highlight, 'HlCurrent': highlight,
          'HlShown': highlight, 'HlSuspend': highlight, 'HlAlloc': highlight, 'HlFree': highlight,
          'HlFlash': highlight, 'HlFlash2': highlight, 'HlUnflash': highlight, 'HlUnflash2': highlight,
