@@ -342,7 +342,7 @@ def free_shared(r):   # free_holder's shared regions: the model (its records at 
     for k in range(5):
         put(parts, 0xa0 * k, 'I', r.getrandbits(32) & ~0x1000 | r.choice([0, 0x1000]))
     offset = r.choice([0, 0x10, 0x20])
-    vt = vtable({0: 2})
+    vt = vtable({0: 1})   # (the deleting destructor: thiscall, the flag)
     put(vt, 4, 'I', offset)
     obj = bytearray(r.bytes(0x80))
     put(obj, 8, 'I', 0)
