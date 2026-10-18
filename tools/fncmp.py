@@ -74,7 +74,7 @@ def hooked_addresses():
     """The addresses src/hook/hooks.cpp hooks."""
     return set(int(x, 16) for x in re.findall(r'0x00([0-9a-fA-F]{6}), \(void', open(os.path.join(ROOT, 'src', 'hook', 'hooks.cpp')).read()))
 MUT = os.path.join(ROOT, 'build', 'mut')  # mutants: a copy of the sources (tree) and its build (out)
-MIRRORED = ('CMakeLists.txt', 'src', 're', 'tests', os.path.join('tools', 'fncmp'))
+MIRRORED = ('CMakeLists.txt', 'src', 're', 'tests', 'third_party', os.path.join('tools', 'fncmp'))
 LISTING = os.path.join(ROOT, '_re', 'text.asm')
 RAM = 0x30000000  # free addresses for case regions: RAM, RAM + 0x1000, ...
 STUBS = 0x2f000000  # the record stream's read and write (driver.cpp's kStubs)
