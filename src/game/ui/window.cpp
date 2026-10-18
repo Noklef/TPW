@@ -6,6 +6,7 @@
 
 #include "../core/accessors.h"
 #include "guirect.h"
+#include "guitimers.h"
 #include "msgqueue.h"
 
 namespace {
@@ -157,6 +158,24 @@ u32 __fastcall Window_Destroying(u8 *window) {
     u8 *&other = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5dc);
     if (other == window) other = nullptr;
     return (u32)(uintptr_t)old;  // EAX is left as [0xfaa5ec] as read
+}
+
+u32 __cdecl Window_CancelPosted(u8 *window) {
+    u8 *const queue = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f0);
+    if (!queue || !window) return 0xffff;  // only AX is set
+    return MsgQueue_Cancel(queue, nullptr, (u32)(uintptr_t)window);
+}
+
+u32 __cdecl Window_CancelPostedFirst(u8 *window) {
+    u8 *const queue = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f4);
+    if (!queue || !window) return 0xffff;  // only AX is set
+    return MsgQueue_Cancel(queue, nullptr, (u32)(uintptr_t)window);
+}
+
+u32 __cdecl Window_CancelTimed(u8 *window) {
+    u8 *const table = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f8);
+    if (!table || !window) return 0xffff;  // only AX is set
+    return GuiTimers_Cancel(table, nullptr, (u32)(uintptr_t)window);
 }
 
 u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index) {

@@ -4651,6 +4651,9 @@ address,name,kind,confidence,notes
 0x006592b6,Window_ForgetGlobals,function,low,"reimplemented (src/game/ui/window); cdecl (window): the hovered [0xfaa5e0], [0xfaa5dc], [0xfaa5e8] and the three at 0xfaa588 cleared when they are the window; EAX 3"
 0x0065e672,Window_DropModal,function,low,"reimplemented (src/game/ui/window); thiscall: the modal window [0xfaa57c] and its pairs [0xfaa578] cleared when it is this one: AX 1, else 0 (EAX's top [0xfaa57c]'s)"
 0x0065c2d8,Window_Destroying,function,low,"reimplemented (src/game/ui/window); thiscall: sent 0x14, byte +4 set, each child likewise (recursive), the modal dropped, [0xfaa5ec] / [0xfaa5dc] cleared when this"
+0x00658fe9,Window_CancelPosted,function,low,reimplemented (src/game/ui/window); cdecl (window): the window's messages in the queue [0xfaa5f0] cancelled (MsgQueue_Cancel); AX 0xffff without the queue or window
+0x00659012,Window_CancelPostedFirst,function,low,reimplemented (src/game/ui/window); cdecl (window): likewise for the queue [0xfaa5f4]
+0x0065903b,Window_CancelTimed,function,low,reimplemented (src/game/ui/window); cdecl (window): likewise for the timed messages [0xfaa5f8] (GuiTimers_Cancel)
 0x00498090,Dialog7ca1c8_SetChecks,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): the nine check buttons of the 0x7ca1c8 dialog's child 0x18 set (vtable slot 5, bool) from flags bits 0-8 (0x20's also needs [0x7ca1d0]+0x50)"
 0x00498a50,Dialog7ca1c8_SetChecksIfUp,function,low,reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): Dialog7ca1c8_SetChecks when [0x7ca1c8] and [0x7ca1cc] are not 0
 0x00481a00,Dialog7ca1c8_SetChecksIfUpThis,function,low,"reimplemented (src/game/ui/dialog7ca1c8); thiscall (flags), pops 4, this unused: Dialog7ca1c8_SetChecksIfUp(flags)"

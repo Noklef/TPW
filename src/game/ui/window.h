@@ -63,6 +63,14 @@ u32 __fastcall Window_DropModal(u8 *window);
 // they are the window. EAX is left as [0xfaa5ec] as it was read.
 u32 __fastcall Window_Destroying(u8 *window);
 
+// 0x658fe9 / 0x659012 (cdecl (window); names unconfirmed): the window's messages in the queue [0xfaa5f0] / [0xfaa5f4] cancelled
+// (MsgQueue_Cancel), its result; 0xffff without the queue or a window. Only AX is set.
+u32 __cdecl Window_CancelPosted(u8 *window);
+u32 __cdecl Window_CancelPostedFirst(u8 *window);
+
+// 0x65903b (cdecl (window); name unconfirmed): likewise the window's timed messages in [0xfaa5f8] (GuiTimers_Cancel).
+u32 __cdecl Window_CancelTimed(u8 *window);
+
 // 0x65e705 (thiscall (index: a word), pops 4; name unconfirmed): the dword +0xa0 + 4 * index (signed) for an index below 16, else 0.
 u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index);
 

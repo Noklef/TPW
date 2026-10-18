@@ -14,6 +14,8 @@
 # set or not, words edges or near (upper halves random); the root the new window, the tree's or none, the queues as above.
 # ForgetGlobals / DropModal / Destroying (0x6592b6, 0x65e672, 0x65c2d8): the globals the window (or one in its tree) or others (upper
 # halves too); Destroying on a tree as HitTest's, the handlers fncmp's logger or 0, the hook [0xfaa5fc] set or not.
+# CancelPosted / CancelPostedFirst / CancelTimed (0x658fe9, 0x659012, 0x65903b): the queues as above and the timed table [0xfaa5f8]
+# (0-4 entries or none) or 0, entries the window's now and then; the window or 0.
 # usage: window.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FindChild,SetChecks,SetChecksIfUp)
 import os
 import struct
@@ -34,7 +36,8 @@ CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50
          'PostMessage': 0x658ccc, 'Dialog7cb2b8_Child21Post': 0x4a2590,
          'HitTest': 0x65db25, 'UpdateHover': 0x6589f9, 'ImplRelease': 0x6616b0, 'IsShown': 0x65d773,
          'RectAssign': 0x65aa20, 'SaveRect': 0x65bc90, 'OffsetByParents': 0x65c979,
-         'Ctor': 0x65bcad, 'ForgetGlobals': 0x6592b6, 'DropModal': 0x65e672, 'Destroying': 0x65c2d8}
+         'Ctor': 0x65bcad, 'ForgetGlobals': 0x6592b6, 'DropModal': 0x65e672, 'Destroying': 0x65c2d8,
+         'CancelPosted': 0x658fe9, 'CancelPostedFirst': 0x659012, 'CancelTimed': 0x65903b}
 SENDS = {k: int(k[6:12], 16) for k in CALLS if k.startswith('Dialog7')}   # the window's global
 B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6d1), (0x658d9f, 0x658df4), (0x659710, 0x659721),
            (0x4b87f0, 0x4b8850), (0x4b8e80, 0x4b8ea0), (0x4b8ec0, 0x4b8ee0), (0x4b9c00, 0x4b9c40),
@@ -47,9 +50,10 @@ B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x
            (0x6616b0, 0x6616f1), (0x65d773, 0x65d7bc),
            (0x65aa20, 0x65aa90), (0x65bc90, 0x65bcad), (0x65c979, 0x65c9bd),
            (0x65bcad, 0x65c025), (0x659d00, 0x659d43), (0x65a9d0, 0x65aa00), (0x65a3e9, 0x65a43e), (0x67fff0, 0x680048),
-           (0x6592b6, 0x659333), (0x65e672, 0x65e6a4), (0x65c2d8, 0x65c357)])
+           (0x6592b6, 0x659333), (0x65e672, 0x65e6a4), (0x65c2d8, 0x65c357),
+           (0x658fe9, 0x659064), (0x669b3e, 0x669bdb), (0x669e3a, 0x669eb3)])
 WINDOW, NODES, VTABLE, MISC, KIDS, HOLDER, WINDOW2 = RAM, RAM + 0x100, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200, RAM + 0x1600, RAM + 0x1800
-QUEUES, TREE, RECTS = RAM + 0x2000, RAM + 0x3000, RAM + 0x4000
+QUEUES, TREE, RECTS, TIMED = RAM + 0x2000, RAM + 0x3000, RAM + 0x4000, RAM + 0x5000
 NODE = 0x90
 BUTTONS = list(range(0x18, 0x22))
 
@@ -82,6 +86,25 @@ def queues(r, regions):
         regions[q + 0x40] = entries
         regions[q] = struct.pack('<5I', q + 0x40, cap, 0, r.randrange(cap), r.getrandbits(8))
         regions[0xfaa5f4 - 4 * k] = struct.pack('<I', q if r.random() < 0.85 else 0)
+
+
+def timers(r, regions, window):
+    """the queues (queues()) and the timed table [0xfaa5f8] (0-4 entries of 0x14 bytes or none) or 0, entries now and then the window's"""
+    queues(r, regions)
+    for q in (QUEUES, QUEUES + 0x100):
+        entries = regions[q + 0x40]
+        for i in range(len(entries) // 16):
+            if r.random() < 0.4:
+                put(entries, 16 * i, 'I', window)
+    n = r.choice([0, 1, 2, 4])
+    entries = bytearray(r.bytes(0x14 * n))
+    for i in range(n):
+        if r.random() < 0.5:
+            put(entries, 0x14 * i, 'I', window)
+    if n:
+        regions[TIMED + 0x20] = entries
+    regions[TIMED] = struct.pack('<II', n, r.choice([TIMED + 0x20] * 5 + [0]))
+    regions[0xfaa5f8] = struct.pack('<I', r.choice([TIMED] * 5 + [0]))
 
 
 def tree(r, regions):
@@ -215,6 +238,9 @@ def case(r):
         if op == 'ForgetGlobals':
             return Call(CALLS[op], [r.choice([WINDOW] * 5 + [0])], regions, ret='a')
         return Call(CALLS[op], [r.choice(wins[:1] * 3 + wins)], regions, conv='t', ret='a')
+    if op.startswith('Cancel'):
+        timers(r, regions, WINDOW)
+        return Call(CALLS[op], [r.choice([WINDOW] * 5 + [0])], regions, ret='w')
     if op == 'HitTest':
         wins = tree(r, regions)
         return Call(CALLS[op], [r.choice(wins[:1] * 3 + wins)] + list(point(r, regions, wins)), regions, conv='t', ret='a')
