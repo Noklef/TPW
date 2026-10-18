@@ -2,7 +2,6 @@
 
 #include <cstdint>
 
-#include "../core/misc.h"
 #include "../core/vcall.h"
 #include "../ui/dialogs.h"
 #include "lobbymodel.h"
@@ -66,5 +65,26 @@ s32 __cdecl Scene702dd0_DialogDone(s32 accepted, u8 *self) {
         at<u32>(self, 0x14) = 0;
     }
     return Dialog7cc47c_Message6On();
+}
+
+void __fastcall Obj_ChooseVector(u8 *object) {
+    const u32 base = at<u32>(object, 0x58) ? 0x28 : 0x1c;
+    const u32 x = at<u32>(object, base), y = at<u32>(object, base + 4), z = at<u32>(object, base + 8);
+    at<u32>(object, 0x10) = x;
+    at<u32>(object, 0x14) = y;
+    at<u32>(object, 0x18) = z;
+}
+
+u32 __stdcall Obj_Positive40(const u8 *object) { return at<s32>(object, 0x40) > 0 ? 1 : 0; }
+
+u32 __stdcall Obj_Pending(const u8 *object) {
+    return at<u32>(object, 0x60) == 0 && at<s32>(object, 0x40) < at<s32>(object, 0x64) ? 1 : 0;
+}
+
+void __fastcall Obj_SetOrKeepC(u8 *object, void *, u32 value) {
+    if (value) {
+        at<u32>(object, 0xc) = value;
+        at<u32>(object, 0x14) = 0;
+    }
 }
 }  // extern "C"

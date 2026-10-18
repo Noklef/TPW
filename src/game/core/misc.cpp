@@ -12,9 +12,6 @@
 
 namespace {
 
-// The virtual base offset: the word at +4 of the object's vtable.
-s32 BaseOffset(const u8 *object) { return *reinterpret_cast<const s32 *>(*reinterpret_cast<const uintptr_t *>(object) + 4); }
-
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
@@ -68,120 +65,6 @@ u32 __fastcall Obj_SetVectorAt2c(u8 *object, void *, u32 a, u32 b, u32 c) {
     return a;
 }
 
-u8 *__fastcall Class701260_Ctor(u8 *object) {
-    at<u32>(object, 0) = 0x00701260;
-    at<u32>(object, 4) = 0;
-    at<u32>(object, 0x14) = 0xffffffff;
-    at<u32>(object, 0x18) = 0;
-    at<u32>(object, 0x1c) = 0;
-    at<u32>(object, 0x20) = 0;
-    at<u32>(object, 8) = 0;
-    at<u32>(object, 0x24) = 0;
-    if (at<u32>(global<u8 *>(0x00879a24), 0x428) == 0x10de && global<u32>(0x008bd524) == 1)
-        global<u32>(0x00879ab4) = 1;
-    return object;
-}
-
-u8 *__fastcall Obj_CtorVirtual5646c0(u8 *object, void *, u32 mostDerived) {
-    if (mostDerived) {
-        at<u32>(object, 0) = 0x00701188;
-        at<u32>(object, 0x18) = 0x00701178;
-    }
-    at<u32>(object, at<u32>(at<u8 *>(object, 0), 4)) = 0x00701168;
-    const u32 base = at<u32>(at<u8 *>(object, 0), 4);
-    at<u32>(object, base - 4) = base - 0x18;
-    for (u32 offset : {0xcu, 0x10u, 0x8u, 0x4u})
-        at<u32>(object, offset) = 0;
-    return object;
-}
-
-u8 *__fastcall Obj_CtorVirtual564ba0(u8 *object, void *, u32 mostDerived) {
-    if (mostDerived) {
-        at<u32>(object, 0) = 0x007011d8;
-        at<u32>(object, 0x2c) = 0x00701178;
-    }
-    at<u32>(object, at<u32>(at<u8 *>(object, 0), 4)) = 0x007011c8;
-    const u32 base = at<u32>(at<u8 *>(object, 0), 4);
-    at<u32>(object, base - 4) = base - 0x2c;
-    for (u32 i = 0; i < 7; i++)
-        at<u32>(object, 4 + 4 * i) = 0;
-    at<u32>(object, 0x24) = 0;
-    at<u32>(object, 0x20) = 0;
-    return object;
-}
-
-u32 __fastcall PtrArray_SetVectorOf(const u8 *list, void *, u8 *key, u32 a, u32 b, u32 c) {
-    const u32 *items = at<const u32 *>(list, 8);
-    s32 index = (s32)at<u32>(list, 0x1c) - 1;
-    if (index >= 0) {
-        while (items[index] != (u32)(uintptr_t)key) {
-            index--;
-            if (index < 0)
-                break;
-        }
-    }
-    if (index < 0)
-        return 0;
-    at<u32>(key, 0x14) = a;
-    at<u32>(key, 0x18) = b;
-    at<u32>(key, 0x1c) = c;
-    return 1;
-}
-
-void __fastcall Extents_Include(u8 *extents, void *, s32 low, s32 first, s32 high, s32 last) {
-    if (at<s32>(extents, 0x20) > first)
-        at<s32>(extents, 0x20) = first;
-    if (at<s32>(extents, 0x24) < last)
-        at<s32>(extents, 0x24) = last;
-    for (s32 column = first; column <= last; column++) {
-        s8 &lowest = at<s8>(extents, 0x28 + (u32)column);
-        s8 &highest = at<s8>(extents, 0xa8 + (u32)column);
-        if (lowest > low)
-            lowest = (s8)low;
-        if (highest < high)
-            highest = (s8)high;
-    }
-}
-
-void __cdecl Pool_FreeAll(u8 *owner) {
-    while (u8 *chunk = at<u8 *>(owner, 0xbc)) {
-        while (u8 *node = at<u8 *>(chunk, 0x1c)) {
-            at<u32>(chunk, 0x1c) = at<u32>(node, 0x14);
-            global<u32>(0x00877b74)--;
-            at<u32>(node, 0) &= 0xfffffffe;
-        }
-        at<u32>(owner, 0xbc) = at<u32>(chunk, 0x24);
-        at<u32>(chunk, 0) &= 0xfffffffe;
-        global<u32>(0x00877b84)--;
-    }
-}
-
-
-u32 __fastcall Masks_TopBits(u8 *object) {
-    auto top = [](u32 mask) {
-        u32 bit = 0x80000000;
-        while (!(mask & bit) && (bit >>= 1)) {
-        }
-        return bit;
-    };
-    const u32 red = top(at<u32>(object, 0x8fc));
-    at<u32>(object, 0x900) = red;
-    const u32 green = top(at<u32>(object, 0x904));
-    at<u32>(object, 0x908) = green;
-    const u32 blue = top(at<u32>(object, 0x90c));
-    at<u32>(object, 0x910) = blue;
-    at<u32>(object, 0x918) = blue | green | red;
-    return blue | green | red;
-}
-
-u32 __cdecl Table768fb8_Lookup(u32 id) {
-    for (u32 entry = 0x00768fb8; global<u32>(entry) != 0x270f; entry += 0x20) {
-        if (global<u32>(entry) == id)
-            return global<u32>(entry + 0x1c);
-    }
-    return 0x17f;
-}
-
 u32 __fastcall Flags7a1a14_Update(const u8 *object) {
     const u32 bit = (global<u32>(0x007a1a14) >> 3) & 1;
     Obj_AdvanceUnless30(reinterpret_cast<u8 *>(0x00785970));
@@ -202,134 +85,12 @@ u32 __cdecl Obj_RemoveFromRect(u8 *object, u32 from, u32 to) {
     return at<u32>(object, 0);
 }
 
-u32 __cdecl Rsse_TakeFinished(u8 *vm) {
-    const s32 count = at<s32>(vm, 0x7c);
-    u8 *entries = at<u8 *>(vm, 0x2c);
-    for (s32 i = 0; i < count; i++) {
-        u8 *entry = entries + 0x20 * (u32)i;
-        if (at<u16>(entry, 0x18) == 4) {
-            const u32 value = at<u32>(entry, 0x10);
-            at<u16>(entry, 0x18) = 0;
-            at<u32>(at<u8 *>(vm, 0x2c), 0x20 * (u32)i + 0x10) = 0;
-            return value;
-        }
-    }
-    return 0;
-}
-
-u8 __cdecl Flag54dcc0_Test() {
-    if (global<u32>(0x0078d968))
-        return (u8)((global<u32>(0x0079d86c) >> 11) & 1);
-    const u32 mode = global<u32>(0x00785874);
-    return mode == 0 || mode == 1 ? 1 : 0;
-}
-
-u32 __cdecl Rsse_GetVector(const u8 *frame, u32 *x, u32 *y, u32 *z) {
-    const u8 *record = at<const u8 *>(at<const u8 *>(at<const u8 *>(frame, 8), 4), 0x78) + 0x10;
-    *x = at<u32>(record, 0x30);
-    *y = at<u32>(record, 0x34);
-    *z = at<u32>(record, 0x38);
-    return *z;
-}
-
-u32 __stdcall Setting569f30_Set(u32, u32 value) {
-    if (value)
-        global<u32>(0x00fbe038) = value;
-    else
-        global<u32>(0x00fbe044) = global<u32>(0x006f1a10);
-    return 1;
-}
-
-u32 __fastcall Records24_Field14(const u8 *records, void *, u32 i) { return at<u32>(records, 24 * i + 0x14); }
-
-u8 *__fastcall Records24_IfUsed(u8 *records, void *, u32 i) {
-    u8 *record = records + 24 * i;
-    return at<u32>(record, 4) != 0 ? record : nullptr;
-}
-
-u32 __fastcall Records24_CountUsed(const u8 *records) {
-    u32 count = 0;
-    for (u32 i = 0; i < 4; i++)
-        count += at<u32>(records, 4 + 24 * i) != 0 ? 1 : 0;
-    return count;
-}
-
-u32 __stdcall Table73f8a8_At(u32 i) { return 0x0073f8a8 + 60 * i; }
-
-u32 __fastcall Obj_Flags1cAnd(const u8 *object, void *, u32 mask) { return at<u32>(object, 0x1c) & mask; }
-
-u32 __stdcall Span_Limited(u32, u32 from, u32 to, u32 limit) {
-    const u32 span = to - from;
-    return limit < span ? limit : span;
-}
-
-u32 __stdcall Obj_Positive40(const u8 *object) { return at<s32>(object, 0x40) > 0 ? 1 : 0; }
-
-void __fastcall Obj_SetOrKeepC(u8 *object, void *, u32 value) {
-    if (value) {
-        at<u32>(object, 0xc) = value;
-        at<u32>(object, 0x14) = 0;
-    }
-}
-
 u8 *__fastcall Class703c18_Ctor(u8 *object) {
     Class703770_Ctor(object);
     at<u32>(object, 0) = 0x00703c18;
     at<u32>(object, 8) = 0;
     at<u32>(object, 0xc) = 0;
     return object;
-}
-
-u8 *__fastcall WString_CtorReturning(u8 *string) {
-    WString_Ctor(reinterpret_cast<WString *>(string));
-    return string;
-}
-
-u32 __cdecl DirEntry_IsRealDir(const u8 *entry) {
-    if (at<u8>(entry, 4) & 0x10) {
-        if (*at<const char *>(entry, 0x20) != '.')
-            return 1;
-    }
-    return 0;
-}
-
-u8 *__fastcall Class70295c_Ctor(u8 *object) {
-    Init_5d36c0(object);
-    at<u32>(object, 0) = 0x0070295c;
-    for (u32 offset : {0x8u, 0xcu, 0x10u, 0x14u})
-        at<u32>(object, offset) = 0;
-    return object;
-}
-
-void __fastcall Obj_SwapPair(u8 *object, void *, u8 *other) {
-    const u32 first = at<u32>(object, 4);
-    at<u32>(object, 4) = at<u32>(other, 4);
-    at<u32>(other, 4) = first;
-    const u32 second = at<u32>(other, 8);
-    const u32 own = at<u32>(object, 8);
-    at<u32>(object, 8) = second;
-    at<u32>(other, 8) = own;
-}
-
-void __fastcall Obj_ChooseVector(u8 *object) {
-    const u32 base = at<u32>(object, 0x58) ? 0x28 : 0x1c;
-    const u32 x = at<u32>(object, base), y = at<u32>(object, base + 4), z = at<u32>(object, base + 8);
-    at<u32>(object, 0x10) = x;
-    at<u32>(object, 0x14) = y;
-    at<u32>(object, 0x18) = z;
-}
-
-u32 __stdcall Obj_Pending(const u8 *object) {
-    return at<u32>(object, 0x60) == 0 && at<s32>(object, 0x40) < at<s32>(object, 0x64) ? 1 : 0;
-}
-
-u32 __fastcall Obj_SetShown(u8 *object, void *, u32 value) {
-    if (at<u32>(object, 0x2c) == value)
-        return value;
-    at<u32>(object, 0x2c) = value;
-    u8 *target = reinterpret_cast<u8 *>(Fn_56b620(at<u32>(object, 0x28)));
-    at<u32>(target, 0x10) = value ? at<u32>(target, 0x10) & 0xfffffffe : at<u32>(target, 0x10) | 1;
-    return (u32)(uintptr_t)target;
 }
 
 u8 *__fastcall Class703ca0_Ctor(u8 *object) {
@@ -387,43 +148,6 @@ u32 __cdecl Dword_ClearBit0(u32 *p) {
     return 1;
 }
 
-u32 __stdcall SoftRenderer_PixelAt(s32 x, s32 y, u32 *out) {
-    const u32 *buffer = at<const u32 *>(global<u8 *>(0x00879dac), 8);
-    *out = buffer[(u32)y * global<u32>(0x008bcbd0) + (u32)x];
-    return 1;
-}
-
-u32 __cdecl Table879d08_Fill() {
-    for (u32 i = 0; i < 16; i++)
-        global<u32>(0x00879d08 + 4 * i) = 16 - i;
-    return 0;
-}
-
-u32 __fastcall Obj_Set30_34(u8 *object, void *, u32 a, u32 b) {
-    at<u32>(object, 0x30) = a;
-    at<u32>(object, 0x34) = b;
-    return a;
-}
-
-u8 *__fastcall Class701378_Ctor(u8 *object, void *, u32 mostDerived) {
-    if (mostDerived != 0) {
-        at<u32>(object, 0) = 0x00701378;
-        Class701260_Ctor(object + 0x2c);
-    }
-    at<u32>(object, BaseOffset(object)) = 0x00701330;
-    const s32 offset = BaseOffset(object);
-    at<s32>(object, offset - 4) = offset - 0x2c;
-    const u8 *vtable = at<const u8 *>(object, 0);
-    at<u32>(object, 8) = 0;
-    at<u32>(object, 0x10) = 2;
-    at<u32>(object, 0x14) = 1;
-    at<u32>(object, 0x18) = 0;
-    at<u32>(object, 4) = 0;
-    at<u32>(object, 0x20) = 0xffffffff;
-    at<u32>(object, at<s32>(vtable, 4) + 0xc) = 0x3000;
-    return object;
-}
-
 u8 *__fastcall Class703770_Ctor(u8 *object) {
     at<u32>(object, 0) = 0x00703770;
     at<u32>(object, 4) = 1;
@@ -458,17 +182,6 @@ u8 *__cdecl Codec631280_Init(u8 *object) {
     at<u32>(object, 0x80) = 0;
     return object;
 }
-
-u8 *__fastcall Class7035d8_Ctor(u8 *object) {
-    at<u32>(object, 4) = 0x007035d8;
-    at<u8>(object, 0) = 0;
-    at<u16>(object, 8) = 0;
-    at<u16>(object, 0xa) = 0;
-    at<u16>(object, 0xc) = 0;
-    return object;
-}
-
-u8 *__cdecl Class7035d8_InitGlobal() { return Class7035d8_Ctor(reinterpret_cast<u8 *>(0x00fa78e8)); }
 
 u32 __cdecl Obj_RemoveRectAndClear14(u8 *object, u32 from, u32 to) {
     Obj_RemoveFromRect(at<u8 *>(object, 0x24), from, to);

@@ -35,6 +35,7 @@
 #include "../game/files/direntry.h"
 #include "../game/files/filestream.h"
 #include "../game/files/gamepaths.h"
+#include "../game/files/userslots.h"
 #include "../game/files/quickload.h"
 #include "../game/files/textscan.h"
 #include "../game/files/wtext.h"
@@ -139,6 +140,7 @@
 #include "../game/core/voices.h"
 #include "../game/world/litter.h"
 #include "../game/core/stdlist.h"
+#include "../game/core/codecvt.h"
 #include "../game/core/stdtree.h"
 #include "../game/core/vanillatime.h"
 #include "../game/core/vdel.h"
@@ -160,6 +162,7 @@
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
 #include "../game/core/stringmapsrecord.h"
+#include "../game/core/wscanner.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -209,6 +212,7 @@
 #include "../game/world/objectdefs.h"
 #include "../game/world/staff.h"
 #include "../game/world/thingmsg.h"
+#include "../game/world/advisor.h"
 #include "../game/world/analyser.h"
 #include "../game/world/challenges.h"
 #include "../game/world/collobj.h"
@@ -292,12 +296,15 @@
 #include "../game/render/heightgrid.h"
 #include "../game/render/vertexfog.h"
 #include "../game/render/d3dprobe.h"
+#include "../game/render/depthsort.h"
+#include "../game/render/device.h"
 #include "../game/render/engineerrors.h"
 #include "../game/render/fixedverts.h"
 #include "../game/render/texcoords.h"
 #include "../game/render/graphicssettings.h"
 #include "../game/render/textparts.h"
 #include "../game/render/vertexblock.h"
+#include "../game/render/viewquad.h"
 #include "../game/render/weatherfx.h"
 #include "../game/render/worldview.h"
 #include "../game/online/servers.h"
@@ -309,6 +316,7 @@
 #include "../game/online/items.h"
 #include "../game/online/onlinelist.h"
 #include "../game/online/chatavatar.h"
+#include "../game/online/ftp.h"
 #include "../game/online/session.h"
 #include "../game/ui/dialog7ca1c8.h"
 #include "../game/ui/dialogs.h"
@@ -3768,6 +3776,8 @@ const Hook kHooks[] = {
     {"CountedPairVector_Construct", 0x004f6e70, (void *)&CountedPairVector_Construct, {0x55, 0x8b, 0x6c, 0x24, 0x08}},
     {"StringMapsRecord_Dtor",     0x004e54c0, (void *)&StringMapsRecord_Dtor, {0x6a, 0xff, 0x68, 0x64, 0xc5}},
     {"CommandLine_Parse",         0x0040f000, (void *)&CommandLine_Parse, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"WScanner_SetText",          0x005e6b30, (void *)&WScanner_SetText, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"WKeywordPair_Ctor",         0x005e73f0, (void *)&WKeywordPair_Ctor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -3841,6 +3851,7 @@ const Hook kHooks[] = {
     {"Route_CellDistance",        0x004d8b40, (void *)&Route_CellDistance, {0x81, 0xec, 0x00, 0x02, 0x00}},
     {"FocusCell_Update",          0x005276d0, (void *)&FocusCell_Update, {0x66, 0xa1, 0x98, 0x86, 0x81}},
     {"HoardingGrid_Fill",         0x00532960, (void *)&HoardingGrid_Fill, {0xa1, 0xb0, 0xb1, 0x81, 0x00}},
+    {"HoardingGrid_Flood",        0x005328e0, (void *)&HoardingGrid_Flood, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"Map_ApplyLine",             0x0053aac0, (void *)&Map_ApplyLine, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
     {"MapLine_LinkCell",          0x00539220, (void *)&MapLine_LinkCell, {0xa1, 0xc8, 0x0a, 0x82, 0x00}},
     {"MapCell_PathLines",         0x00523230, (void *)&MapCell_PathLines, {0x83, 0xec, 0x10, 0x53, 0x55}},
@@ -3849,6 +3860,7 @@ const Hook kHooks[] = {
     {"TrackRun_TraceA",           0x00530830, (void *)&TrackRun_TraceA, {0x83, 0xec, 0x18, 0x8b, 0x4c}},
     {"TrackRun_TraceB",           0x00530b70, (void *)&TrackRun_TraceB, {0x83, 0xec, 0x1c, 0x8b, 0x4c}},
     {"ParkMap_Classify",          0x005f2050, (void *)&ParkMap_Classify, {0x83, 0xec, 0x28, 0xa1, 0x3c}},
+    {"ParkMap_PlaceSprite",       0x005f4180, (void *)&ParkMap_PlaceSprite, {0x83, 0xec, 0x14, 0x56, 0x8b}},
     {"MapCell_PickModel",         0x0053a540, (void *)&MapCell_PickModel, {0x83, 0xec, 0x1c, 0x53, 0x55}},
     {"Weather_Serialize",         0x00512010, (void *)&Weather_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x53}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
@@ -4029,6 +4041,9 @@ const Hook kHooks[] = {
     {"DynFaces_AddPoly",          0x0053c9c0, (void *)&DynFaces_AddPoly, {0xa1, 0xe0, 0x1e, 0x87, 0x00}},
     {"DynFaces_SortTags",         0x0053c1f0, (void *)&DynFaces_SortTags, {0x81, 0xec, 0xdc, 0x00, 0x00}},
     {"DynFaces_ReleaseModels",    0x0053c810, (void *)&DynFaces_ReleaseModels, {0xa1, 0xcc, 0x4f, 0x87, 0x00}},
+    {"DynFaces_AddGrid",          0x0053cab0, (void *)&DynFaces_AddGrid, {0x81, 0xec, 0xa4, 0x00, 0x00}},
+    {"DynFaces_WaveGrid",         0x0053d380, (void *)&DynFaces_WaveGrid, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"DynFaces_RippleGrid",       0x0053d570, (void *)&DynFaces_RippleGrid, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"LightSource_Destroy",       0x00458400, (void *)&LightSource_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"LightSource_DestroyMain",   0x00458580, (void *)&LightSource_DestroyMain, {0xa1, 0x40, 0x0b, 0x7a, 0x00}},
     {"LightSource_SetColour",     0x00458890, (void *)&LightSource_SetColour, {0x8b, 0x44, 0x24, 0x04, 0x56}},
@@ -4098,12 +4113,15 @@ const Hook kHooks[] = {
     {"FixedVerts_Pack",           0x00563220, (void *)&FixedVerts_Pack, {0x8b, 0x44, 0x24, 0x08, 0x85}},
     {"FixedVerts_PackRounded",    0x00563130, (void *)&FixedVerts_PackRounded, {0x55, 0x8b, 0xec, 0x51, 0xa1}},
     {"VertexBlock_Add",           0x0053ddd0, (void *)&VertexBlock_Add, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"VertexBlock_AddQuad",       0x0053e530, (void *)&VertexBlock_AddQuad, {0x51, 0x53, 0x55, 0x56, 0x57}},
     {"ClipEdge_YW",               0x00561c40, (void *)&ClipEdge_YW, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
     {"ClipEdge_YNegW",            0x00561ea0, (void *)&ClipEdge_YNegW, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
     {"ClipEdge_XW",               0x00562100, (void *)&ClipEdge_XW, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
     {"ClipEdge_XNegW",            0x00562360, (void *)&ClipEdge_XNegW, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
     {"ClipEdge_ZW",               0x005625c0, (void *)&ClipEdge_ZW, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
     {"ClipEdge_Z0",               0x00562820, (void *)&ClipEdge_Z0, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
+    {"ViewQuad_SetFov",           0x0056b790, (void *)&ViewQuad_SetFov, {0xd9, 0x44, 0x24, 0x04, 0xd8}},
+    {"DepthSort_Triangles",       0x005653d0, (void *)&DepthSort_Triangles, {0x8b, 0x54, 0x24, 0x0c, 0x53}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
@@ -4313,6 +4331,7 @@ const Hook kHooks[] = {
     {"ChatAvatar_Arrive",         0x004ea240, (void *)&ChatAvatar_Arrive, {0x83, 0xec, 0x08, 0x53, 0x56}},
     {"ChatPlayer_NameIs",         0x004f7d70, (void *)&ChatPlayer_NameIs, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"ChatPlayers_FindByName",    0x004ebf00, (void *)&ChatPlayers_FindByName, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
+    {"Ftp_ListLineSize",          0x005d2720, (void *)&Ftp_ListLineSize, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},

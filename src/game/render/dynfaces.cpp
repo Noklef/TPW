@@ -4,6 +4,8 @@
 
 #include "../core/gameheap.h"
 #include "../core/misc.h"
+#include "../math/sintable.h"
+#include "../math/x87.h"
 #include "../model/holder.h"
 
 namespace {
@@ -17,6 +19,9 @@ void Finish(u32 n, u32 tag) {
     global<u32>(kTags + 4 * n) = (n << 5) | (tag & 0x1f);
     global<u32>(kCount) = n + 1;
 }
+
+// a + b on the x87, stored as a float.
+float Sum(float a, float b) { return static_cast<float>(X87Reg(a) + X87Reg(b)); }
 
 }  // namespace
 
@@ -114,6 +119,112 @@ void __cdecl DynFaces_SortTags(u32 *tags, u32 count) {
             stack[sp - 1] = l;
             l = i;
         }
+    }
+}
+
+void __cdecl DynFaces_AddGrid(float dx, float dy, float dz, s32 rows, s32 cols, s32 row, s32 col) {
+    u32 uvs[12] = {0, 0, 0, 0x3f800000, 0, 0, 0, 0x3f800000, 0, 0x3f800000, 0x3f800000, 0};  // (0, 0) (1, 0) (0, 1) (1, 1), stride 12
+    u32 face = 0;
+    for (s32 i = 0; i < cols; i++) {
+        if (rows <= 0) continue;
+        u32 offset = static_cast<u32>(i + row * 19 + col) * 12;
+        for (s32 j = rows; j != 0; j--, offset += 0xe4) {
+            const float *const p0 = reinterpret_cast<const float *>((uintptr_t)(0x00874180 + offset));
+            const float *const p1 = p0 + 3, *const p2 = p0 + 57, *const p3 = p0 + 60;
+            const float corners[12] = {Sum(p0[0], dx), Sum(p0[1], dy), Sum(dz, p0[2]), Sum(p2[0], dx), Sum(p2[1], dy), Sum(p2[2], dz),
+                                       Sum(p1[0], dx), Sum(p1[1], dy), Sum(p1[2], dz), Sum(dx, p3[0]), Sum(p3[1], dy), Sum(p3[2], dz)};
+            const u32 *const c0 = reinterpret_cast<const u32 *>((uintptr_t)(0x00870ed8 + offset));
+            const u32 *const order[4] = {c0, c0 + 57, c0 + 3, c0 + 60};
+            u32 colours[12];
+            for (int k = 0; k < 12; k++) colours[k] = X87_FloatThrough(order[k / 3][k % 3]);
+            const u32 tag = global<u32>(0x00871d18 + 4 * face++);
+            DynFaces_AddPoly(reinterpret_cast<const u32 *>(corners), tag, uvs, colours, 1);
+        }
+    }
+}
+
+void __cdecl DynFaces_WaveGrid(s32 rows, s32 cols, float step, float phase) {
+    const SinTable sines = SinTable_Game();
+    const float k = static_cast<float>(X87Reg(6.28318501f) * 0.333333343f);
+    const float a = static_cast<float>(X87Reg(0.0174532998f) * 10.0f);
+    const float sinA = SinTable_At(sines, static_cast<float>(X87Reg(sines.scale) * a));
+    const float cosA = SinTable_At(sines, static_cast<float>((X87Reg(a) - -1.57079637f) * sines.scale));
+    const float alongX = static_cast<float>(X87Reg(cosA) * k);
+    const float alongZ = static_cast<float>(-(X87Reg(k) * sinA).v);
+    if (cols <= 0) return;
+    float z = 0;
+    u32 column = 0;
+    for (s32 c = cols; c != 0; c--, column += 0xc) {
+        if (rows > 0) {
+            float x = 0;
+            const float base = static_cast<float>(X87Reg(z) * alongZ);
+            const float half = static_cast<float>(X87Reg(phase) * 0.5f);
+            u32 offset = column;
+            for (s32 r = rows; r != 0; r--, offset += 0xe4) {
+                float *const p = reinterpret_cast<float *>((uintptr_t)(0x00874180 + offset));
+                float *const n = reinterpret_cast<float *>((uintptr_t)(0x00870ed8 + offset));
+                const float h = static_cast<float>(X87Reg(x) * alongX + base - half);
+                p[0] = x;
+                p[1] = static_cast<float>(X87Reg(SinTable_At(sines, static_cast<float>((X87Reg(h) - -1.57079637f) * sines.scale))) * 1.70000005f);
+                p[2] = z;
+                const float t = X87_Through(SinTable_At(sines, static_cast<float>(X87Reg(sines.scale) * h)));
+                n[1] = 1.0f;
+                n[0] = t;
+                n[2] = t;
+                const X87Reg nx = n[0], ny = n[1], nz = n[2];
+                const X87Reg length = X87_Sqrt(nx * nx + ny * ny + nz * nz);
+                n[0] = static_cast<float>(X87Reg(n[0]) / length);
+                n[1] = static_cast<float>(X87Reg(n[1]) / length);
+                n[2] = static_cast<float>(X87Reg(n[2]) / length);
+                x = static_cast<float>(X87Reg(x) + step);
+            }
+        }
+        z = static_cast<float>(X87Reg(z) + step);
+    }
+}
+
+void __cdecl DynFaces_RippleGrid(s32 rows, s32 cols, float step, float phase) {
+    const SinTable sines = SinTable_Game();
+    const float k = static_cast<float>(X87Reg(6.28318501f) * 0.333333343f);
+    float z = 0;
+    const float depth = static_cast<float>(X87Reg(X87_MulIntDouble(cols, step)));
+    if (cols <= 0) return;
+    u32 column = 0;
+    for (s32 c = cols; c != 0; c--, column += 0xc) {
+        if (rows > 0) {
+            float x = 0;
+            const X87Reg dz = X87Reg(z) - depth;
+            const float dz2 = static_cast<float>(dz * dz);
+            const float lift = static_cast<float>(X87Reg(phase) * 0.600000024f);
+            const float reach = static_cast<float>(X87Reg(X87_MulIntDouble(rows - 4, step)));
+            u32 offset = column;
+            for (s32 r = rows; r != 0; r--, offset += 0xe4) {
+                float *const p = reinterpret_cast<float *>((uintptr_t)(0x00874180 + offset));
+                float *const n = reinterpret_cast<float *>((uintptr_t)(0x00870ed8 + offset));
+                const X87Reg d = X87_Sqrt(X87Reg(x) * x + dz2) - lift;
+                const float angle = static_cast<float>(X87Reg(k) * d);
+                const float quarter = static_cast<float>(X87Reg(6.28318501f) * d * 0.25f);
+                const X87Reg q = X87Reg(x) / reach;
+                const float fall = q.v >= 1.0 ? 1.0f : static_cast<float>(q);  // (a NaN is kept)
+                const float across = static_cast<float>(
+                    X87Reg(SinTable_At(sines, static_cast<float>((X87Reg(angle) - -1.57079637f) * sines.scale))) * fall * 0.300000012f);
+                const float up = SinTable_At(sines, static_cast<float>((X87Reg(quarter) - -1.57079637f) * sines.scale));
+                p[0] = x;
+                p[1] = static_cast<float>(X87Reg(up) * (X87Reg(fall) + fall) * 0.300000012f + z - X87Reg(x) * x * 0.0199999996f);
+                p[2] = across;
+                n[2] = 1.0f;
+                const float t = static_cast<float>(X87Reg(SinTable_At(sines, static_cast<float>(X87Reg(sines.scale) * angle))) * fall);
+                n[0] = t;
+                n[1] = t;
+                const X87Reg nx = n[0], ny = n[1], nz = n[2];
+                const X87Reg length = X87_Sqrt(nx * nx + ny * ny + nz * nz);
+                n[0] = static_cast<float>(X87Reg(n[0]) / length);
+                n[1] = static_cast<float>(X87Reg(n[1]) / length);
+                n[2] = static_cast<float>(X87Reg(n[2]) / length);
+                x = static_cast<float>(X87Reg(x) + step);
+            }
+        }
+        z = static_cast<float>(X87Reg(z) - step);
     }
 }
 

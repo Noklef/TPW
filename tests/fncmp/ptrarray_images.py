@@ -2,8 +2,9 @@
 # 0-4 images (an empty texture array or none, a tracked pixel block or none) in a tracked array at +0xc (count +0x18), the one to remove
 # among them, not or (now and then) a stray; the release with bit 0 of +0 set or not, the renderer at 0x87a6d0 or none (the part in its tag
 # 0x60 list or not, as holder.py), 0-3 frames at +8 (count +0x1c) and the virtual base object at +4 (its deleting destructor a recorder) or
-# none (the tracked blocks' table as in trackedglobal.py).
-# usage: ptrarray_images.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Remove,Release)
+# none (the tracked blocks' table as in trackedglobal.py); a key's vector set (0x56b570) in an array of 0-6 of four keys, the key one of them,
+# a fifth or none, the count negative now and then.
+# usage: ptrarray_images.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Remove,Release,FindSet)
 import os
 import struct
 import sys
@@ -12,7 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import HEAP, LOG, RAM, Bench, Call, global_heap, heap, log_region, put, vtable  # noqa: E402
 
 B = Bench([(0x56b210, 0x56b2e4), (0x56b450, 0x56b4b3), (0x588ca0, 0x588d6e), (0x588350, 0x588410), (0x590a70, 0x590a75),
-           (0x590b90, 0x590c39), (0x67afa0, 0x67b0d0), (0x579b80, 0x579c13), (0x576540, 0x5765d0)])
+           (0x590b90, 0x590c39), (0x67afa0, 0x67b0d0), (0x579b80, 0x579c13), (0x576540, 0x5765d0), (0x56b570, 0x56b5b2)])
 COUNT, TABLE = 0x8bb214, 0x87b1f8   # the tracked blocks: their count and (block, block) pairs
 OBJ, IMAGES, ARRAY, EMPTY, BASE, VBT, VT, RENDERER, NODES, FRAMES = (RAM + 0x100 * k for k in range(10))
 BLOCKS = [HEAP + 0x20, HEAP + 0x40, HEAP + 0x3c]
@@ -77,11 +78,23 @@ def release(r):
     return Call(0x56b210, [OBJ], regions, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Remove,Release').split(',') if k]
+def find_set(r):
+    obj = bytearray(r.bytes(0x400))
+    n = r.choice([0, 1, 2, 3, 6])
+    keys = [RAM + 0x100 + 0x40 * i for i in range(6)]
+    put(obj, 0x1c, 'I', r.choice([n, n, 0xffffffff]))
+    put(obj, 8, 'I', RAM + 0x300)
+    for i in range(6):
+        put(obj, 0x300 + 4 * i, 'I', r.choice(keys[:4]))
+    key = r.choice(keys[:5] + [RAM + 0x3c0])
+    return Call(0x56b570, [RAM, key, r.getrandbits(32), r.getrandbits(32), r.getrandbits(32)], {RAM: obj}, conv='t', ret='a')
+
+
+OPS = [k for k in os.environ.get('OPS', 'Remove,Release,FindSet').split(',') if k]
 
 
 def case(r):
-    return {'Remove': remove, 'Release': release}[r.deal(OPS)](r)
+    return {'Remove': remove, 'Release': release, 'FindSet': find_set}[r.deal(OPS)](r)
 
 
 if __name__ == '__main__':

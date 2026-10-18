@@ -554,4 +554,6 @@ u32 __fastcall BalanceFile_LoadStream(u8 *self, void *, const char *name, Stream
     Mem_GlobalFree(text);
     return ok;
 }
+
+u32 __stdcall Table73f8a8_At(u32 i) { return 0x0073f8a8 + 60 * i; }
 }

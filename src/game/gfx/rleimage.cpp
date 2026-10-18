@@ -1,6 +1,7 @@
 #include "rleimage.h"
 
 #include <cstdint>
+#include <initializer_list>
 #include "../core/gameheap.h"
 #include "../core/vwrap.h"
 
@@ -129,5 +130,18 @@ u8 *__fastcall RleImage_DeletingDtor(u8 *part, void *, u32 flags) {
     at<u32>(image, 0x18) = 0x00701178;
     if (flags & 1) GameHeap_Free(image);
     return image;
+}
+
+u8 *__fastcall Obj_CtorVirtual5646c0(u8 *object, void *, u32 mostDerived) {
+    if (mostDerived) {
+        at<u32>(object, 0) = 0x00701188;
+        at<u32>(object, 0x18) = 0x00701178;
+    }
+    at<u32>(object, at<u32>(at<u8 *>(object, 0), 4)) = 0x00701168;
+    const u32 base = at<u32>(at<u8 *>(object, 0), 4);
+    at<u32>(object, base - 4) = base - 0x18;
+    for (u32 offset : {0xcu, 0x10u, 0x8u, 0x4u})
+        at<u32>(object, offset) = 0;
+    return object;
 }
 }

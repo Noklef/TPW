@@ -1,5 +1,5 @@
 // The game's string classes: reimplementation of 0x5f5fc0-0x5f6c50, 0x5f7120/0x5f7150 and
-// 0x5f78e0-0x5f7e60.
+// 0x5f78e0-0x5f7e60, and of 0x5c7490 (an empty WString, returned).
 //
 // String (vtable 0x703090) holds chars and WString (vtable 0x7030c8) UTF-16 units, both
 // NUL-terminated in a heap block (Mem_Alloc, 0x67acc0) sized in steps of 8:
@@ -248,5 +248,8 @@ u16 *__cdecl String_AnsiToWide(const char *text, u16 *buffer, s32 size);
 // vtable's +0x24, String_AppendChar) to a new string; *cursor is left past the delimiter and out is constructed as a copy of the string (String_CtorCopy)
 // and returned.
 String *__cdecl String_ReadToken(String *out, const char **cursor, u32 delimiter);
+
+// 0x5c7490 (thiscall): WString_Ctor on the object (an empty wide string). Returns it.
+u8 *__fastcall WString_CtorReturning(u8 *string);
 
 }  // extern "C"

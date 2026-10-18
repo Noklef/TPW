@@ -1,6 +1,6 @@
 # The list<string> and list<dword> members of src/game/core/stdlist against the originals: lists of 0 to 3 nodes around a sentinel, strings of the std::string bench
 # (null, shared, frozen, short and long), the new nodes from the heap region. A record's destructor (0x5caf20): three such strings and a list of
-# counted-buffer nodes (as Pair's). Chars (0x4a8ad0): a list at +0x10 of the owner, given characters (none to 0x7e, at any address: its low byte
+# counted-buffer nodes (as Pair's). Swap (0x5d03b0): two lists' head and size exchanged. Chars (0x4a8ad0): a list at +0x10 of the owner, given characters (none to 0x7e, at any address: its low byte
 # becomes the allocator byte) made into a string and pushed.
 # usage: stdlist.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
@@ -14,7 +14,7 @@ from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 # name: (address, convention, returns, size)
 CALLS = {'Clear': (0x5cde80, 't', 'v', 0x80), 'Push': (0x5cdf00, 't', 'v', 0x70), 'Insert': (0x5d0330, 't', 'v', 0x80), 'Dword': (0x618160, 't', 'v', 0x50),
          'Pair': (0x5af0e0, 't', 'v', 0xf4), 'Record': (0x5caf20, 't', 'v', 0x110),
-         'Chars': (0x4a8ad0, 't', 'v', 0xfc)}
+         'Chars': (0x4a8ad0, 't', 'v', 0xfc), 'Swap': (0x5d03b0, 't', 'v', 0x1f)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()] + [(0x45b340, 0x45b9a0), (0x67acb0, 0x67acb1), (0x4f54e0, 0x4f5560), (0x47db20, 0x47db80),
                                                                 (0x5cdf70, 0x5cdfdd), (0x4a9420, 0x4a953c)])
 NODES, LIST, X = RAM + 0x3000, RAM, RAM + 0x2000
@@ -67,6 +67,8 @@ def case(r):
         return pair(r)
     if name == 'Record':
         return record(r)
+    if name == 'Swap':  # the head pointer and size swapped with another list's, an overlapping one's or its own
+        return Call(0x5d03b0, [RAM + 0x40, RAM + r.choice([0x40, 0x80, 0x44])], {RAM: r.bytes(0x100)}, conv='t')
     address, conv, ret, _n = CALLS[name]
     blocks = bytearray(r.bytes(6 * stdstring.SLOT))
     n = r.choice([0, 1, 2, 3])

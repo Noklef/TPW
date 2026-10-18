@@ -2723,9 +2723,9 @@ address,name,kind,confidence,notes
 0x004f00f0,Vtbl7099ec_SetVirtual,function,high,reimplemented (src/game/core/vtables); the virtual base's vtable pointer = 0x7099ec
 0x004f6820,Wstreambuf_Setg,function,high,"reimplemented (src/game/core/streambuf); the get area pointers: first, next and (last - next) / 2"
 0x004f6850,Wstreambuf_Setp,function,high,"reimplemented (src/game/core/streambuf); the put area pointers: first, first and (last - first) / 2"
-0x0056a510,SoftRenderer_PixelAt,function,high,"reimplemented (src/game/core/misc); a dword of the software renderer's buffer at x, y"
-0x0056b630,Table879d08_Fill,function,high,reimplemented (src/game/core/misc); the sixteen dwords at 0x879d08 = 16 down to 1
-0x0056b830,Obj_Set30_34,function,high,reimplemented (src/game/core/misc); +0x30 = a and +0x34 = b
+0x0056a510,SoftRenderer_PixelAt,function,high,"reimplemented (src/game/render/rasteriser); a dword of the software renderer's buffer at x, y"
+0x0056b630,Table879d08_Fill,function,high,reimplemented (src/game/core/globals); the sixteen dwords at 0x879d08 = 16 down to 1
+0x0056b830,Obj_Set30_34,function,high,reimplemented (src/game/render/worldview); +0x30 = a and +0x34 = b
 0x004f6020,Wstreambuf_InitPointers,function,high,"reimplemented (src/game/core/streambuf); the wide streambuf pointer slots pointed at its own fields, which are zeroed"
 0x00402ef0,Obj_AdvanceUnless30,function,high,reimplemented (src/game/core/misc); +0x3c advances by +0x40 unless +0x30 is set
 0x004032b0,Obj_CtorOne,function,high,reimplemented (src/game/core/misc); Init_402f30 then the double 1.0 at +0x20
@@ -2743,39 +2743,39 @@ address,name,kind,confidence,notes
 0x004d09a0,Obj_SmallestEntry,function,high,"reimplemented (src/game/world/money); the index of the smallest non-zero entry size of eight, or -1"
 0x00458310,Obj_CtorVirtual,function,high,reimplemented (src/game/core/misc); a class with a virtual base: vtables and the offset word
 0x004583d0,Obj_SetVectorAt2c,function,high,"reimplemented (src/game/core/misc); the scene flags touched, then three dwords at +0x2c"
-0x005651c0,Class701260_Ctor,function,high,"reimplemented (src/game/core/misc); vtable 0x701260 and its defaults, plus a driver quirk flag"
-0x005646c0,Obj_CtorVirtual5646c0,function,high,"reimplemented (src/game/core/misc); a class with a virtual base (vtables 0x701188, 0x701178, 0x701168)"
-0x00564ba0,Obj_CtorVirtual564ba0,function,high,"reimplemented (src/game/core/misc); a class with a virtual base (vtables 0x7011d8, 0x701178, 0x7011c8)"
-0x0056b570,PtrArray_SetVectorOf,function,high,reimplemented (src/game/core/misc); a pointer array searched for a key; its three dwords at +0x14 set
-0x0056e780,Extents_Include,function,high,reimplemented (src/game/core/misc); a column range's lowest and highest bytes extended
-0x0054b290,Pool_FreeAll,function,high,"reimplemented (src/game/core/misc); every chunk of an owner's list freed, with its nodes"
-0x0056b340,Obj_ReleaseFromRenderer,function,high,reimplemented (src/game/core/misc); bit 0 cleared and the part removed from the renderer's tag 0x60 list
-0x00583360,Masks_TopBits,function,high,"reimplemented (src/game/core/misc); the highest set bit of three masks stored, and their union"
+0x005651c0,Class701260_Ctor,function,high,"reimplemented (src/game/render/device); vtable 0x701260 and its defaults, plus a driver quirk flag"
+0x005646c0,Obj_CtorVirtual5646c0,function,high,"reimplemented (src/game/gfx/rleimage); a class with a virtual base (vtables 0x701188, 0x701178, 0x701168)"
+0x00564ba0,Obj_CtorVirtual564ba0,function,high,"reimplemented (src/game/gfx/wctimage); a class with a virtual base (vtables 0x7011d8, 0x701178, 0x7011c8)"
+0x0056b570,PtrArray_SetVectorOf,function,high,reimplemented (src/game/core/ptrlist); a pointer array searched for a key; its three dwords at +0x14 set
+0x0056e780,Extents_Include,function,high,reimplemented (src/game/terrain/procedural); a column range's lowest and highest bytes extended
+0x0054b290,Pool_FreeAll,function,high,"reimplemented (src/game/world/collobj); every chunk of an owner's list freed, with its nodes"
+0x0056b340,Obj_ReleaseFromRenderer,function,high,reimplemented (src/game/render/renderer); bit 0 cleared and the part removed from the renderer's tag 0x60 list
+0x00583360,Masks_TopBits,function,high,"reimplemented (src/game/render/texformat); the highest set bit of three masks stored, and their union"
 0x004f36c0,Vector36_Size,function,high,reimplemented (src/game/core/countedpair); the number of 36-byte elements between a vector's pointers
 0x0052fc30,PairTable_Commit,function,high,reimplemented (src/game/world/cellrun); the pair table copied to its committed copy
-0x005997b0,Table768fb8_Lookup,function,high,reimplemented (src/game/core/misc); a value looked up by id in the 0x20-byte table at 0x768fb8
+0x005997b0,Table768fb8_Lookup,function,high,reimplemented (src/game/world/advisor); a value looked up by id in the 0x20-byte table at 0x768fb8
 0x00409260,Flags7a1a14_Update,function,high,reimplemented (src/game/core/misc); a flag word updated from another and an object's advance
 0x00486610,Global7c24d8_CopyScript,function,high,reimplemented (src/game/ui/thingpreview); a sprite script slot made a copy of another
-0x00557110,Rsse_TakeFinished,function,high,"reimplemented (src/game/core/misc); the value of the first finished entry, which is cleared"
-0x0054dcc0,Flag54dcc0_Test,function,high,reimplemented (src/game/core/misc); a flag test on two settings
-0x00556a80,Rsse_GetVector,function,high,reimplemented (src/game/core/misc); three dwords of a frame's record written through pointers
-0x00569f30,Setting569f30_Set,function,high,"reimplemented (src/game/core/misc); a setting stored, or a default restored"
-0x005c7d20,Records24_Field14,function,high,reimplemented (src/game/core/misc); the dword at +0x14 of a 24-byte record
-0x005c7d00,Records24_IfUsed,function,high,reimplemented (src/game/core/misc); a 24-byte record's address when its dword at +4 is set
-0x005c7bb0,Records24_CountUsed,function,high,reimplemented (src/game/core/misc); how many of four 24-byte records are in use
-0x005b0d40,Table73f8a8_At,function,high,reimplemented (src/game/core/misc); the address of a 60-byte record of the table at 0x73f8a8
-0x005d5ee0,Obj_Flags1cAnd,function,high,reimplemented (src/game/core/misc); the dword at +0x1c masked
-0x005d1440,Span_Limited,function,high,"reimplemented (src/game/core/misc); to - from, at most a limit"
-0x005dd810,Obj_Positive40,function,high,reimplemented (src/game/core/misc); 1 when the signed dword at +0x40 is above 0
-0x005e2750,Obj_SetOrKeepC,function,high,reimplemented (src/game/core/misc); +0xc = value and +0x14 = 0 for a non-zero value
+0x00557110,Rsse_TakeFinished,function,high,"reimplemented (src/game/rsse/rsse_vm); the value of the first finished entry, which is cleared"
+0x0054dcc0,Flag54dcc0_Test,function,high,reimplemented (src/game/render/mode); a flag test on two settings
+0x00556a80,Rsse_GetVector,function,high,reimplemented (src/game/rsse/rsse_vm); three dwords of a frame's record written through pointers
+0x00569f30,Setting569f30_Set,function,high,"reimplemented (src/game/render/rasteriser); a setting stored, or a default restored"
+0x005c7d20,Records24_Field14,function,high,reimplemented (src/game/files/userslots); the dword at +0x14 of a 24-byte record
+0x005c7d00,Records24_IfUsed,function,high,reimplemented (src/game/files/userslots); a 24-byte record's address when its dword at +4 is set
+0x005c7bb0,Records24_CountUsed,function,high,reimplemented (src/game/files/userslots); how many of four 24-byte records are in use
+0x005b0d40,Table73f8a8_At,function,high,reimplemented (src/game/core/balancefile); the address of a 60-byte record of the table at 0x73f8a8
+0x005d5ee0,Obj_Flags1cAnd,function,high,reimplemented (src/game/core/globals); the dword at +0x1c masked
+0x005d1440,Span_Limited,function,high,"reimplemented (src/game/core/codecvt); to - from, at most a limit"
+0x005dd810,Obj_Positive40,function,high,reimplemented (src/game/frontend/viewcontrols); 1 when the signed dword at +0x40 is above 0
+0x005e2750,Obj_SetOrKeepC,function,high,reimplemented (src/game/frontend/viewcontrols); +0xc = value and +0x14 = 0 for a non-zero value
 0x00633120,Class703c18_Ctor,function,high,"reimplemented (src/game/core/misc); Class703770_Ctor, vtable 0x703c18 and two zeroed dwords"
-0x005c7490,WString_CtorReturning,function,high,"reimplemented (src/game/core/misc); an empty wide string, returned"
-0x005c5230,DirEntry_IsRealDir,function,high,reimplemented (src/game/core/misc); a directory entry whose name does not start with a full stop
-0x005c9040,Class70295c_Ctor,function,high,"reimplemented (src/game/core/misc); Init_5d36c0, vtable 0x70295c and four zeroed dwords"
-0x005d03b0,Obj_SwapPair,function,high,reimplemented (src/game/core/misc); the dwords at +4 and +8 swapped with another object's
-0x005dd3d0,Obj_ChooseVector,function,high,reimplemented (src/game/core/misc); the vector at +0x10 taken from one of two others
-0x005ddac0,Obj_Pending,function,high,reimplemented (src/game/core/misc); +0x60 is 0 and +0x40 is below +0x64
-0x005f4490,Obj_SetShown,function,high,"reimplemented (src/game/core/misc); a shown value kept, and bit 0 of the object at +0x28 flipped to match"
+0x005c7490,WString_CtorReturning,function,high,"reimplemented (src/game/core/string); an empty wide string, returned"
+0x005c5230,DirEntry_IsRealDir,function,high,reimplemented (src/game/files/direntry); a directory entry whose name does not start with a full stop
+0x005c9040,Class70295c_Ctor,function,high,"reimplemented (src/game/core/vdtor); Init_5d36c0, vtable 0x70295c and four zeroed dwords"
+0x005d03b0,Obj_SwapPair,function,high,reimplemented (src/game/core/stdlist); the dwords at +4 and +8 swapped with another object's
+0x005dd3d0,Obj_ChooseVector,function,high,reimplemented (src/game/frontend/viewcontrols); the vector at +0x10 taken from one of two others
+0x005ddac0,Obj_Pending,function,high,reimplemented (src/game/frontend/viewcontrols); +0x60 is 0 and +0x40 is below +0x64
+0x005f4490,Obj_SetShown,function,high,"reimplemented (src/game/gfx/texsprite); a shown value kept, and bit 0 of the object at +0x28 flipped to match"
 0x00633dc0,Class703ca0_Ctor,function,high,"reimplemented (src/game/core/misc); Class703770_Ctor, vtables 0x703ca0 and 0x703c98 and zeroed fields"
 0x006486e0,Records32_MaxWeight,function,high,reimplemented (src/game/core/misc); the 0x20-byte record with the greatest positive weight
 0x0047f910,Fn_47f910,function,high,"reimplemented (src/game/core/initializers); stores +0x0 = a value, +0x4 = 0x0, +0x8 = 0x0, +0xc = 0x0, +0x10 = 0x0, +0x14 = 0x0, +0x18 = 0x0, +0x1c = 0x0, +0x20 = 0x0, +0x24 = 0x0, +0x28 = 0x0, +0x2c = 0x0"
@@ -3634,8 +3634,8 @@ address,name,kind,confidence,notes
 0x004f08a0,Obj_InitMinus1B,function,high,reimplemented (src/game/core/accessors); initialises an object with -1 ignoring seven arguments
 0x0048c980,Globals7c264c_Clear,function,low,"reimplemented (src/game/core/accessors); cdecl static initialiser: 0x7c264c, 0x7c2650, 0x7c2654 = 0; returns 0"
 0x00421680,Obj_SetAt8AndAdd,function,high,reimplemented (src/game/core/observers); records an item and adds it to the observer list
-0x005f9f80,Class7035d8_Ctor,function,high,reimplemented (src/game/core/misc); constructor of the class with vtable pointer 0x7035d8
-0x005f9f70,Class7035d8_InitGlobal,function,high,reimplemented (src/game/core/misc); constructs the global object at 0xfa78e8
+0x005f9f80,Class7035d8_Ctor,function,high,reimplemented (src/game/core/fpu); constructor of the class with vtable pointer 0x7035d8
+0x005f9f70,Class7035d8_InitGlobal,function,high,reimplemented (src/game/core/fpu); constructs the global object at 0xfa78e8
 0x005ed490,Strings_CopyRange,function,high,reimplemented (src/game/core/string); copy-constructs a range of strings
 0x005ed4d0,Strings_FillCopy,function,high,reimplemented (src/game/core/string); copy-constructs one string into several
 0x005ed560,String_PlacementCopy,function,high,reimplemented (src/game/core/string); copy-constructs a string in place
@@ -3898,7 +3898,7 @@ address,name,kind,confidence,notes
 0x0051fa20,TrackTypeSlot_ReadIntoFree,function,high,reimplemented (src/game/coaster/tracktypes); a stream read into the first free 0x140-byte slot
 0x004fcac0,Thing_SpriteChoice,function,high,"reimplemented (src/game/world/things); the flags of a sprite, or a random sprite of folder 1"
 0x004e2200,Thing_IngredientRecord,function,high,reimplemented (src/game/world/things); the record of the definition's special ingredient
-0x005667d0,Class701378_Ctor,function,high,reimplemented (src/game/core/misc); stream class constructor with a virtual base
+0x005667d0,Class701378_Ctor,function,high,reimplemented (src/game/render/device); stream class constructor with a virtual base
 0x0050afe0,Thing_Construct,function,high,"reimplemented (src/game/world/things); a thing's constructor: slot, handle, cell and chain"
 0x00502d20,ThingKindE_Ctor,function,high,reimplemented (src/game/world/things); a thing of kind 0xe with five records
 0x004f7e20,Thing_ResetPlaceAt,function,high,"reimplemented (src/game/world/things); thiscall (x, y, pops 8): +0x39c = 0, +0x10 = 3 (Set4_4217f0 on +0xc), then Thing_PlaceAt(x, y)"
@@ -4050,6 +4050,8 @@ address,name,kind,confidence,notes
 0x004f6e70,CountedPairVector_Construct,function,high,"reimplemented (src/game/core/countedpair); cdecl (v, x): construct(v, x) for a vector of pairs: the allocator byte, a block of x's size, x's pairs copy-constructed, last = end past them"
 0x004e54c0,StringMapsRecord_Dtor,function,high,"reimplemented (src/game/core/stringmapsrecord); thiscall: the string maps record's destructor: the list at +0x54 erased and its sentinel freed, the maps at +0x40 / +0x30 / +0x20 (kinds E, C, D) destroyed, the wide strings at +0x10 and +0 tidied"
 0x0040f000,CommandLine_Parse,function,low,"reimplemented (src/game/core/cmdline); cdecl (argc, argv): the switches v/version (0), flmouse, bwcursor and the skipped ones; the park file with the extension into 0x788164, else GameError_Set(2); 1 without an error"
+0x005e6b30,WScanner_SetText,function,low,"reimplemented (src/game/core/wscanner); thiscall (text by value, context, flags; pops 0x18): flag bytes +0x3d-+0x3f and +0x40 set, the wstring at +4 assigned the text and frozen, +0x34/+0x38 its characters and 0, the text destroyed"
+0x005e73f0,WKeywordPair_Ctor,function,low,"reimplemented (src/game/core/wscanner); thiscall (key by value, 16-byte value by value; pops 0x20): the wstring at +0 made empty and assigned the key, +0x10..+0x1c the value, the key destroyed; returns the pair"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
@@ -4113,6 +4115,7 @@ address,name,kind,confidence,notes
 0x004d8b40,Route_CellDistance,function,low,"reimplemented (src/game/world/route); cdecl (from, to, mode): Route_SearchFrom between two cell ids on a route of its own; -1 when none, else the sum of its Manhattan steps"
 0x005276d0,FocusCell_Update,function,low,"reimplemented (src/game/world/focuscell); cdecl (record): the focus cell from the set cell (game modes 0x19 / 0x1a) or the selected object (or the thing its handle names), stepped both ways; the move recorded (action 0x32)"
 0x00532960,HoardingGrid_Fill,function,low,"reimplemented (src/game/world/hoardinggrid); cdecl: the coarse char grid at 0x81eeb0 (rows of 0x43, one char per 2 x 2 cells) of the width x depth area (0x81d740 / 0x81b1b0): space, @ for a type 0x19 cell, # for a cell whose 0x44-byte cell lacks flag 0x40"
+0x005328e0,HoardingGrid_Flood,function,low,"reimplemented (src/game/world/hoardinggrid); cdecl (row, col, pass, fill): flood fill of ' ' / '@' chars in the 0x42 x 0x42 grid copy at 0x81d7c8 (rows of 0x43) with the fill byte"
 0x0053aac0,Map_ApplyLine,function,low,"reimplemented (src/game/world/mapline); cdecl (arg, x, y, &xEnd, &yEnd): the cell operation 0x5370e0 on every second map cell from (x, y) along the longer axis to the end (pulled in to an even distance); 0 when one answers 0"
 0x00539220,MapLine_LinkCell,function,low,"reimplemented (src/game/world/mapline); thiscall (cell; kind, stepX, stepY), pops 12: a line's cell of a track kind or 0x19 linked by neighbour bits to the one two back along the step (the last step on the first cell), when both are of a linking type with fewer than 4 neighbours and the other is unowned or the focus cell's; the step kept at 0x763b00"
 0x00523230,MapCell_PathLines,function,low,"reimplemented (src/game/world/mapline); cdecl (x, y): the path cell (or its parent) and its matching neighbours two cells away give a run; Map_ApplyLine over it with 0x85, 0x86 and 0x81"
@@ -4121,6 +4124,7 @@ address,name,kind,confidence,notes
 0x00530830,TrackRun_TraceA,function,low,"reimplemented (src/game/world/cellrun); cdecl (thing): from the thing's cell stepped by Position_StepA, a run over track cells (0xb / 0x10) two a step, setting their overlap counters and listing corners in the point list at 0x81b740, to an end of the same +0x10 or a dead end"
 0x00530b70,TrackRun_TraceB,function,low,"reimplemented (src/game/world/cellrun); cdecl (thing): TraceA's run from the cell stepped by Position_StepB, not moving onto the end, the cell at 0x7639e0 reset to overlap 0, stopping at once on a start of no track type"
 0x005f2050,ParkMap_Classify,function,low,"reimplemented (src/game/world/parkmap); thiscall (map): each square of the map's width x height gets a kind (9 path, 1-8 by the owner's first thing's definition map kind and flags, 0xa / 0xb / 0xc by cell type 1 / 3 / flag 0x40) and the thing's handle in its 8-byte entry at +0x60"
+0x005f4180,ParkMap_PlaceSprite,function,low,"reimplemented (src/game/world/parkmap); thiscall on the park map (sprite; pops 4): the sprite's screen position from its map position, its frame's vector in the array at 0x879ce0 and the frame's +0x2c size"
 0x0053a540,MapCell_PickModel,function,low,"reimplemented (src/game/world/cellmodel); thiscall (cell; angle out), pops 4: the cell's model (group << 16 | index) from the table for its type by its neighbour bits (exact, else a subset), *angle the row's plus 180 for straight cells facing 0x40 / 0x10, then adjusted by flags, corners, junctions and for type 0x19 a random variant; 8 for types 4, 5, 7, 9, 0xa, 0xc, 0x11"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
@@ -4519,6 +4523,9 @@ address,name,kind,confidence,notes
 0x0053c9c0,DynFaces_AddPoly,function,high,reimplemented (src/game/render/dynfaces); queues a four corner polygon dynamic face
 0x0053c1f0,DynFaces_SortTags,function,high,reimplemented (src/game/render/dynfaces); Sorts the dynamic faces' tag words by tag: quicksort with insertion runs under 7 (name unconfirmed)
 0x0053c810,DynFaces_ReleaseModels,function,low,"reimplemented (src/game/render/dynfaces); cdecl (): with 0x874fcc set, each of the three model objects (0x871f64, 0x871ee4, 0x871ed8) has its animator +0x54 slept and disposed and is freed; Dword_ClearBit0(0x763c78); the flag cleared"
+0x0053cab0,DynFaces_AddGrid,function,low,"reimplemented (src/game/render/dynfaces); cdecl (dx, dy, dz, rows, cols, row, col): the quads of the 19-wide vertex grid (0x874180 positions, 0x870ed8 colours) queued as polygon faces, offset by (dx, dy, dz), tags from 0x871d18"
+0x0053d380,DynFaces_WaveGrid,function,low,"reimplemented (src/game/render/dynfaces); cdecl (rows, cols, step, phase): the 19-wide grid filled as a wave, (x, 1.7 cos h, z) with h from x, z and the phase, normals (sin h, 1, sin h) normalised"
+0x0053d570,DynFaces_RippleGrid,function,low,"reimplemented (src/game/render/dynfaces); cdecl (rows, cols, step, phase): the 19-wide grid filled as a ripple from sqrt(x^2 + (z - cols step)^2) less 0.6 phase, its height fading in over the rows, normals (s, s, 1) normalised"
 0x00458400,LightSource_Destroy,function,low,"reimplemented (src/game/render/lightsource); cdecl (light): by kind: 0 the data error box; 1 the ambient colour reset, then 2: the part +4 out of the renderer tag 0x70 list and deleted, then 3: the same for +0xc"
 0x00458580,LightSource_DestroyMain,function,low,reimplemented (src/game/render/lightsource); The main light (0x7a0b40) destroyed
 0x00458890,LightSource_SetColour,function,low,"reimplemented (src/game/render/lightsource); a light's part colour from r, g, b"
@@ -4588,12 +4595,15 @@ address,name,kind,confidence,notes
 0x00563220,FixedVerts_Pack,function,low,"reimplemented (src/game/render/fixedverts); cdecl (verts, count, stride): transformed vertices packed in place to 0x18-byte fixed-point ones (x*32, y*16, z*65535, colour, u*16, v*16)"
 0x00563130,FixedVerts_PackRounded,function,low,"reimplemented (src/game/render/fixedverts); cdecl (verts, count, stride): FixedVerts_Pack's packing with x, y * 8 or 16 by the flags 0x8bd508, z * 32768, rounded to nearest through 0xfb34a0 / 0xfb34a4"
 0x0053ddd0,VertexBlock_Add,function,low,"reimplemented (src/game/render/vertexblock); thiscall (x, y, z, u, v, wave, normal; pops 0x1c): a vertex added four abreast, y raised by the ground and a sine ripple when waving, with its normal"
+0x0053e530,VertexBlock_AddQuad,function,low,"reimplemented (src/game/render/vertexblock); thiscall (positions, unused, uvs, normals; pops 0x10): four corners added (VertexBlock_Add, no wave), then two triangles of word indices into the index list at +0x94, its count +0x98 up by two; returns the new count"
 0x00561c40,ClipEdge_YW,function,low,"reimplemented (src/game/render/clipedge); cdecl (out, a, b, stride): the vertex where edge b-a crosses y = w: t = 0.9999 dB / (dB - dA), w, texture coordinates, colours lerped, y = w"
 0x00561ea0,ClipEdge_YNegW,function,low,"reimplemented (src/game/render/clipedge); cdecl (out, a, b, stride): as ClipEdge_YW for the plane y = -w (distance y + w), y = -w"
 0x00562100,ClipEdge_XW,function,low,"reimplemented (src/game/render/clipedge); cdecl (out, a, b, stride): as ClipEdge_YW for the plane x = w (distance w - x), x = w"
 0x00562360,ClipEdge_XNegW,function,low,"reimplemented (src/game/render/clipedge); cdecl (out, a, b, stride): as ClipEdge_YW for the plane x = -w (distance x + w), x = -w"
 0x005625c0,ClipEdge_ZW,function,low,"reimplemented (src/game/render/clipedge); cdecl (out, a, b, stride): as ClipEdge_YW for the plane z = w (distance w - z), z = w"
 0x00562820,ClipEdge_Z0,function,low,"reimplemented (src/game/render/clipedge); cdecl (out, a, b, stride): as ClipEdge_YW for the plane z = 0 (distance z), z = 0"
+0x0056b790,ViewQuad_SetFov,function,low,"reimplemented (src/game/render/viewquad); thiscall (fov degrees): the 0x879d54 quad's corners (-w, h, 1), (w, h, 1), (w, -h, 1), (-w, -h, 1), h = tan(fov pi / 360) / 2 by fptan, w = h / the aspect at 0x8bcbcc"
+0x005653d0,DepthSort_Triangles,function,low,"reimplemented (src/game/render/depthsort); cdecl (keys, triangles, lo, hi): keys[lo..hi] quicksorted largest first (unsigned) with their 6-byte triangles; pivot at (lo + hi) >> 1, left recursed, right looped"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
@@ -4745,6 +4755,7 @@ address,name,kind,confidence,notes
 0x004ea240,ChatAvatar_Arrive,function,high,"reimplemented (src/game/online/chatavatar); thiscall (x, y, pops 8): the avatar thing's scripts released, its handle's slot thing placed at (x, y) when of kind 0x12, then Chat::MovePlayer(x, y, mode 1)"
 0x004f7d70,ChatPlayer_NameIs,function,high,"reimplemented (src/game/online/chatavatar); thiscall (name, pops 4): whether the std::wstring's characters (null: the empty string) equal the wide name at +0x19c (wcscmp == 0); AL"
 0x004ebf00,ChatPlayers_FindByName,function,high,"reimplemented (src/game/online/chatavatar); stdcall (name, pops 4): the first thing of the park (newest first) that is a chat player (kind 0x12) of that name, or 0"
+0x005d2720,Ftp_ListLineSize,function,low,"reimplemented (src/game/online/ftp); thiscall, this unused (line; pops 4): atoi of a directory listing line's fifth field (its size), past four runs of non-spaces and spaces (isspace; a NUL is not one, sic)"
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"

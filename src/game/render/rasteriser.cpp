@@ -5,6 +5,7 @@
 
 namespace {
 
+template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 }  // namespace
@@ -36,6 +37,20 @@ u32 __stdcall Rasteriser_ChooseSpan(u32 flags) {
 
 u32 __cdecl Rasteriser_ClearMmx() {
     _mm_empty();
+    return 1;
+}
+
+u32 __stdcall Setting569f30_Set(u32, u32 value) {
+    if (value)
+        global<u32>(0x00fbe038) = value;
+    else
+        global<u32>(0x00fbe044) = global<u32>(0x006f1a10);
+    return 1;
+}
+
+u32 __stdcall SoftRenderer_PixelAt(s32 x, s32 y, u32 *out) {
+    const u32 *buffer = at<const u32 *>(global<u8 *>(0x00879dac), 8);
+    *out = buffer[(u32)y * global<u32>(0x008bcbd0) + (u32)x];
     return 1;
 }
 }

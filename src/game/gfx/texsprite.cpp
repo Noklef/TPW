@@ -32,4 +32,13 @@ u8 *__fastcall TexSprite_Ctor(u8 *object, void *, u32 image, u32 a, u32 b, u32 c
     PtrList_Append(*reinterpret_cast<PtrList **>((uintptr_t)0x00fa6e38), nullptr, object);
     return object;
 }
+
+u32 __fastcall Obj_SetShown(u8 *object, void *, u32 value) {
+    if (at<u32>(object, 0x2c) == value)
+        return value;
+    at<u32>(object, 0x2c) = value;
+    u8 *target = reinterpret_cast<u8 *>(Fn_56b620(at<u32>(object, 0x28)));
+    at<u32>(target, 0x10) = value ? at<u32>(target, 0x10) & 0xfffffffe : at<u32>(target, 0x10) | 1;
+    return (u32)(uintptr_t)target;
+}
 }

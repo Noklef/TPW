@@ -15,4 +15,9 @@ extern "C" {
 // 0x19, else to '#' when the 0x44-byte cell named by that cell's first word lacks flag 0x40 (the
 // char is never '@' at that point, as it was just set to ' ').
 void __cdecl HoardingGrid_Fill();
+
+// 0x5328e0 (cdecl; row, col, pass, fill; name unconfirmed): a flood fill of the copy at 0x81d7c8 (0x42 x 0x42 chars, rows of 0x43) that
+// 0x5321d0 makes: from (row, col), while both are 0 to 0x41 and the char is ' ' or '@', it becomes the fill's low byte and the fill
+// recurses up, down and left, then steps right. pass is handed on unused. A fill of ' ' or '@' recurses until the stack runs out (sic).
+void __cdecl HoardingGrid_Flood(s32 row, s32 col, u32 pass, u32 fill);
 }

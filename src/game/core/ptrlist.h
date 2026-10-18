@@ -92,4 +92,9 @@ u32 __fastcall PtrArray_ReleaseAll(u8 *object, void *);
 // array of `frames` dwords (TrackedArray_Alloc), +0xc = a tracked block of `images` (0: `frames`) dwords (TrackedGlobal_Alloc); either
 // failing releases everything (PtrArray_ReleaseAll) and gives 0. Then +0x10 = frames, +0x14 = images and 1.
 u32 __fastcall PtrArray_Init(u8 *object, void *, u32 frames, u32 images);
+
+// 0x56b570 (thiscall; key, a, b, c, pops 16): the array of pointers at +8 (count +0x1c) searched
+// backwards for the key; when found the key's dwords at +0x14, +0x18, +0x1c = a, b, c and 1 is
+// returned, else 0.
+u32 __fastcall PtrArray_SetVectorOf(const u8 *list, void *, u8 *key, u32 a, u32 b, u32 c);
 }  // extern "C"

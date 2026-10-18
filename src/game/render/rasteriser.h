@@ -1,4 +1,5 @@
-// Choosing the software rasteriser's span routine: reimplementation of 0x569f60.
+// The software rasteriser device's methods (render/device: virtual base table 0x7013c8): reimplementation of the span routine choice
+// 0x569f60, the MMX clear 0x569f20, the setting 0x569f30 and the pixel read 0x56a510.
 #pragma once
 
 #include "../../../re/types.h"
@@ -13,4 +14,12 @@ u32 __stdcall Rasteriser_ChooseSpan(u32 flags);
 
 // 0x569f20 (cdecl; name unconfirmed): EMMS (the MMX state is cleared for the x87 unit); returns 1.
 u32 __cdecl Rasteriser_ClearMmx();
+
+// 0x569f30 (stdcall; _, value, pops 8): with a value, 0xfbe038 = value; else 0xfbe044 = the dword at 0x6f1a10;
+// returns 1.
+u32 __stdcall Setting569f30_Set(u32 unused, u32 value);
+
+// 0x56a510 (stdcall; x, y, out, pops 12): *out = the dword at (y * width + x) in the software
+// renderer's buffer (0x879dac: +8 the buffer; width 0x8bcbd0); returns 1.
+u32 __stdcall SoftRenderer_PixelAt(s32 x, s32 y, u32 *out);
 }

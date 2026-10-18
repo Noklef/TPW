@@ -1,6 +1,7 @@
 # The texture format helpers (src/game/render/texformat: 0x581790, 0x583ba0, 0x5839f0, 0x5839a0, 0x5839e0) against the originals:
 # any settings bytes, any current format; the driver flags over any bits, with and without a request or texture. The format record
-# lookup (0x573820): indexes -2 to 5 and far off, the records' first dwords 0 or not (the misses' error on the list at 0x879ad0).
+# lookup (0x573820): indexes -2 to 5 and far off, the records' first dwords 0 or not (the misses' error on the list at 0x879ad0). The masks'
+# top bits (0x583360, called on 0x8bcbc8: masks at 0x8bd4c4-0x8bd4d4): common masks, none and any.
 # usage: texformat.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetArgb32,Table,...)
 import os
 import struct
@@ -10,8 +11,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x5839f0, 0x583b97), (0x5911d0, 0x591210), (0x581790, 0x581880), (0x583ba0, 0x583cb2), (0x590c40, 0x590ca8), (0x590fb0, 0x590fcb), (0x5839a0, 0x5839ee),
-           (0x573820, 0x573860), (0x56af20, 0x56af9c)])
-CALLS = {'FillTables': 0x5839f0, 'Classify': 0x583ba0, 'DriverFlags': 0x581790, 'SetArgb32': 0x5839a0, 'Table': 0x5839e0, 'Record': 0x573820}
+           (0x573820, 0x573860), (0x56af20, 0x56af9c), (0x583360, 0x5833ba)])
+CALLS = {'FillTables': 0x5839f0, 'Classify': 0x583ba0, 'DriverFlags': 0x581790, 'SetArgb32': 0x5839a0, 'Table': 0x5839e0, 'Record': 0x573820, 'TopBits': 0x583360}
 
 
 def record(r):
@@ -30,6 +31,11 @@ def case(r):
     op = r.deal(OPS)
     if op == 'Record':
         return record(r)
+    if op == 'TopBits':  # the pixel format's masks: 16- and 24-bit ones, none, the top or bottom bit, any
+        obj = bytearray(r.bytes(0xa00))
+        for off in (0x8fc, 0x904, 0x90c):
+            put(obj, off, 'I', r.choice([0xff0000, 0xff00, 0xff, 0xf800, 0x7e0, 0x1f, 0, 0x80000000, 1, r.getrandbits(32)]))
+        return Call(CALLS[op], [RAM], {RAM: obj}, conv='t', ret='a')
     if op == 'FillTables':
         s = bytearray(r.bytes(0x40d0))
         menu = [0xff, 0xff00, 0xff0000, 0xff000000, 0xf800, 0x7e0, 0x1f, 0x8000, 0x7c00, 0x3e0, 0xf0, 0, 0xffffffff, 0x80000000]

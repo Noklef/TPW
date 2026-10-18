@@ -1,5 +1,5 @@
 // Procedural terrain textures on and off: reimplementation of 0x457a00-0x457a87, 0x457e10-0x457e50,
-// 0x46ded0 and 0x56dfb0 / 0x56dfd0.
+// 0x46ded0 and 0x56dfb0 / 0x56dfd0, and the column extents 0x56e780 its texture's rasterising (0x56e7e0-) widens.
 //
 // 0x7a1a8c bit 0x2000 says the procedural textures could be loaded (TerrainTex_Load 0x56dfe0),
 // 0x4000 that they are in use; the renderer's flags 0x8bd550 have them at bit 2 (unless bit
@@ -84,4 +84,10 @@ void __cdecl Terrain_RestoreCells();
 // 0x457e30, 0x457e50: the unit's unused statics, 0x7a0b28 = 1.0f and 0x7a0b48 = 1 / 2^23.
 void __cdecl Terrain_InitUnusedOne();
 void __cdecl Terrain_InitUnusedEpsilon();
+
+// 0x56e780 (thiscall; low, first, high, last, pops 16): the extents of a column range. +0x20 =
+// min(+0x20, first) and +0x24 = max(+0x24, last) (signed); then for each column from first to last
+// inclusive, the signed byte at +0x28 + column is lowered to the low byte of `low` when above it
+// (compared as a dword) and the byte at +0xa8 + column raised to the low byte of `high` when below.
+void __fastcall Extents_Include(u8 *extents, void *, s32 low, s32 first, s32 high, s32 last);
 }

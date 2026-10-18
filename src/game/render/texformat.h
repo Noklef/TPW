@@ -1,4 +1,4 @@
-// The renderer settings' texture format helpers: reimplementation of 0x573820, 0x581790, 0x583ba0, 0x5839a0, 0x5839e0 and 0x5839f0.
+// The renderer settings' texture format helpers: reimplementation of 0x573820, 0x581790, 0x583ba0, 0x5839a0, 0x5839e0, 0x5839f0 and 0x583360.
 //
 // The renderer settings are the object at 0x8bd550 (its +0 the renderer flags; +4 the current
 // texture format, read all over as 0x8bd554). 0x5839f0 fills its tables, 0x1000 bytes per format
@@ -54,4 +54,8 @@ u8 *__fastcall TexFormat_Table(u8 *settings);
 // the error (2, 0xb0754003). The 565's green is the top six bits at bit 6 (sic, its top bit added onto the red's lowest) and the 4444's fields are
 // green at bit 8, red at bit 4 and alpha at 0 (as the original lays them out).
 void __cdecl TexFormat_ConvertSquare(u16 *to, const u32 *from, u32 side);
+
+// 0x583360 (thiscall): the highest set bit of the masks at +0x8fc, +0x904 and +0x90c (0 for a zero mask)
+// stored at +0x900, +0x908 and +0x910, and their union at +0x918, which is returned.
+u32 __fastcall Masks_TopBits(u8 *object);
 }

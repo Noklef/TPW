@@ -68,6 +68,7 @@ add_library(tpw_game STATIC
     src/game/files/wtext.cpp
     src/game/files/gamepaths.cpp
     src/game/files/direntry.cpp
+    src/game/files/userslots.cpp
     src/game/core/regkey.cpp
     src/game/core/stdstring.cpp
     src/game/core/globalmem.cpp
@@ -107,6 +108,7 @@ add_library(tpw_game STATIC
     src/game/core/vobj3.cpp
     src/game/core/vdel.cpp
     src/game/core/stdlist.cpp
+    src/game/core/codecvt.cpp
     src/game/core/savemods.cpp
     src/game/core/idmaps.cpp
     src/game/core/stdtree.cpp
@@ -140,6 +142,7 @@ add_library(tpw_game STATIC
     src/game/core/cmdline.cpp
     src/game/core/framecountdown.cpp
     src/game/ui/panel7cc328.cpp
+    src/game/core/wscanner.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -201,6 +204,7 @@ add_library(tpw_game STATIC
     src/game/world/objectdefs.cpp
     src/game/world/thingmsg.cpp
     src/game/world/staff.cpp
+    src/game/world/advisor.cpp
     src/game/world/analyser.cpp
     src/game/world/mapcell.cpp
     src/game/world/challenges.cpp
@@ -309,6 +313,7 @@ add_library(tpw_game STATIC
     src/game/render/vertexfog.cpp
     src/game/render/quad.cpp
     src/game/render/d3dprobe.cpp
+    src/game/render/device.cpp
     src/game/render/engineerrors.cpp
     src/game/render/texcoords.cpp
     src/game/render/graphicssettings.cpp
@@ -317,12 +322,15 @@ add_library(tpw_game STATIC
     src/game/render/fixedverts.cpp
     src/game/render/vertexblock.cpp
     src/game/render/clipedge.cpp
+    src/game/render/viewquad.cpp
+    src/game/render/depthsort.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/online/itemlist.cpp
     src/game/online/items.cpp
     src/game/online/onlinelist.cpp
     src/game/online/chatavatar.cpp
+    src/game/online/ftp.cpp
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
     src/game/frontend/lobbyscene.cpp

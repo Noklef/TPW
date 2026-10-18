@@ -7,7 +7,7 @@
 # high (the 21st with a char), the closing marker or none; symbol tables of 0-8 entries (or a negative count); the map's block from heap() (or none).
 # A balance file's text parsed (0x4017a0): a schema of 1-3 sections (grouped or not) of keys of the value types, and lines naming them (near
 # misses, rows in and out of range, 1-17 fields, 64-char names) with values near the keys' bounds and malformed ones, strings, maps, comments.
-# usage: balancefile.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Defaults,Release,Schema,Dtor,Init,ObjCtor,Advisor,Find,Theme,Map,Parse,Load)
+# usage: balancefile.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Defaults,Release,Schema,Dtor,Init,ObjCtor,Advisor,Find,Theme,Map,Parse,Load,Tab73)
 import os
 import struct
 import sys
@@ -337,12 +337,14 @@ def case(r):
         return parse_map(r)
     if op == 'Parse':
         return parse(r)
+    if op == 'Tab73':   # the theme balance file's schema getter (0x5b0d40, stdcall): any index
+        return Call(0x5b0d40, [r.choice([0, 1, 5, 100, 0xffffffff, r.getrandbits(32)])], {}, conv='s', ret='a')
     if op == 'Load':
         return load(r)
     return Call(r.deal(list(GETTERS)), [r.getrandbits(32), r.choice([0, 1, r.randrange(64), r.getrandbits(32)])], {}, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Defaults,Release,Schema,Dtor,Init,ObjCtor,Advisor,Find,Theme,Map,Parse,Load').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Defaults,Release,Schema,Dtor,Init,ObjCtor,Advisor,Find,Theme,Map,Parse,Load,Tab73').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

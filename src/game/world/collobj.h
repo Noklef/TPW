@@ -1,5 +1,5 @@
 // The track rides' collision objects (the module that reports "Out of Collision Objects"):
-// reimplementation of the pool reset 0x544330 and the list releases 0x5457e0 / 0x545810. The
+// reimplementation of the pool reset 0x544330, the list releases 0x5457e0 / 0x545810 and the chunk list release 0x54b290. The
 // pool [0x877b88] holds 0x400 objects of 0x14 bytes, free ones chained by +0x10 from the head
 // [0x877b8c]. A collider's lists chain their nodes by +0x14; bit 0 of a node's +0 marks it in
 // use; [0x877b74] and [0x877b7c] count the nodes in use of the two kinds.
@@ -21,4 +21,9 @@ void __cdecl Collider_ReleaseC0(u8 *collider);
 // order; each other node taken off the collider's count (+0xac) and [0x877b7c] and its bit 0
 // cleared; every node's link (+0x14) cleared before it is relinked.
 void __cdecl Collider_KeepA8(u8 *collider, u32 mask);
+
+// 0x54b290 (cdecl; owner): every chunk on the list at owner +0xbc is freed: its nodes (the list at
+// chunk +0x1c, next at node +0x14) have bit 0 of their first dword cleared and 0x877b74 stepped down,
+// then the owner's head = chunk +0x24, bit 0 of the chunk's first dword cleared and 0x877b84 stepped down.
+void __cdecl Pool_FreeAll(u8 *owner);
 }

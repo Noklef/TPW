@@ -472,4 +472,14 @@ void __fastcall CountedListPair_Dtor(u8 *pair) {
     at<u32>(pair, 4) = 0;
     at<u32>(pair, 8) = 0;
 }
+
+void __fastcall Obj_SwapPair(u8 *object, void *, u8 *other) {
+    const u32 first = at<u32>(object, 4);
+    at<u32>(object, 4) = at<u32>(other, 4);
+    at<u32>(other, 4) = first;
+    const u32 second = at<u32>(other, 8);
+    const u32 own = at<u32>(object, 8);
+    at<u32>(object, 8) = second;
+    at<u32>(other, 8) = own;
+}
 }  // extern "C"

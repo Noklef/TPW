@@ -51,4 +51,10 @@ void __fastcall WorldView_SetRangeY(u8 *view, void *, float start, float end, fl
         }
     }
 }
+
+u32 __fastcall Obj_Set30_34(u8 *object, void *, u32 a, u32 b) {
+    at<u32>(object, 0x30) = a;
+    at<u32>(object, 0x34) = b;
+    return a;
+}
 }  // extern "C"

@@ -35,4 +35,12 @@ const char *__cdecl RsseScript_EventName(const u8 *script, u32 index, u32 *group
 // words +0x88 and +0x8a the low halves of the other two. Its one caller (0x555bc5, an opcode taking seconds) passes seconds * 1000. Returns EAX as the
 // original leaves it: ms's high half with the last word.
 u32 __cdecl RSSE_StartTimer(RsseContext *ctx, u32 ms, u32 a, u32 b);
+
+// 0x556a80 (cdecl; frame, x, y, z): the three dwords at +0x30, +0x34 and +0x38 of the record that the
+// frame's +8 object's +4 object's +0x78 points to, plus 0x10, written through the pointers; returns the third.
+u32 __cdecl Rsse_GetVector(const u8 *frame, u32 *x, u32 *y, u32 *z);
+
+// 0x557110 (cdecl; vm): over the +0x7c entries of 0x20 bytes at +0x2c, the dword at +0x10 of the first whose
+// word at +0x18 is 4 is returned and the entry's word +0x18 and dword +0x10 are cleared; 0 for none.
+u32 __cdecl Rsse_TakeFinished(u8 *vm);
 }

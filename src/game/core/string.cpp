@@ -928,4 +928,9 @@ String *__cdecl String_ReadToken(String *out, const char **cursor, u32 delimiter
     return out;
 }
 
+u8 *__fastcall WString_CtorReturning(u8 *string) {
+    WString_Ctor(reinterpret_cast<WString *>(string));
+    return string;
+}
+
 }  // extern "C"

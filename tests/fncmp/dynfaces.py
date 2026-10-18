@@ -1,20 +1,63 @@
 # The dynamic face queue writers and the tag sort of src/game/render/dynfaces (0x53c8d0, 0x53c9c0, 0x53c1f0) against the originals: counts of faces from none to full (the 0x806 limit too), tags
 # including 1 with the flag byte either way, the square's arguments and the polygon's four corners / uvs / colours; tag words of few or all 32 tags to sort,
-# from none (which the original's unsigned compares send to the partition) to 300 (runs of all sizes).
-# usage: dynfaces.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Square,Poly,Sort)
+# from none (which the original's unsigned compares send to the partition) to 300 (runs of all sizes). Grid (0x53cab0): up to 4 x 4 quads
+# (none and negative counts too) from rows and columns 0 to 17 of the 19-wide position and colour tables (only the rows read laid out),
+# float offsets and table values, the queue empty, part full, just full or past it. Wave (0x53d380): up to 5 x 5 vertices (none and negative
+# counts too), steps and phases floats, a sine table of 64 or 256 entries, sometimes with a huge scale. Ripple (0x53d570):
+# the same with up to 6 rows (the fall's reach 4 rows short: none or negative too) and zero steps.
+# usage: dynfaces.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Square,Poly,Sort,Grid,Wave,Ripple)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM  # noqa: E402
+from fncmp import Bench, Call, RAM, sine_table  # noqa: E402
 
-CALLS = {'Square': 0x53c8d0, 'Poly': 0x53c9c0, 'Sort': 0x53c1f0}
-B = Bench([(0x53c8d0, 0x53c9c0), (0x53c9c0, 0x53cab0), (0x5da3c0, 0x5da3c1), (0x53c1f0, 0x53c3e4)])
+CALLS = {'Square': 0x53c8d0, 'Poly': 0x53c9c0, 'Sort': 0x53c1f0, 'Grid': 0x53cab0, 'Wave': 0x53d380, 'Ripple': 0x53d570}
+B = Bench([(0x53c8d0, 0x53c9c0), (0x53c9c0, 0x53cab0), (0x5da3c0, 0x5da3c1), (0x53c1f0, 0x53c3e4), (0x53cab0, 0x53cd9a), (0x53d380, 0x53d567),
+           (0x53d570, 0x53d78e)])
+
+
+def wave(r, name):
+    rows = r.choice([1, 2, 3, 5, 5, 0, -1] if name == 'Wave' else [1, 3, 4, 5, 6, 6, 0, -1])
+    cols = r.choice([1, 2, 3, 5, 5, 0, -3])
+    span = 0xe4 * max(rows, 1) + 12 * max(cols, 1)
+    sines = sine_table(r.choice([64, 256]))
+    if r.random() < 0.4:   # (a scale large enough that an ulp of an angle moves the index)
+        sines[0:4] = struct.pack('<f', r.choice([2.0 ** 20, 2.0 ** 23, 3.0 * 2 ** 22, 2.0 ** 26]))
+    regions = {0x874180: r.bytes(span), 0x870ed8: r.bytes(span), 0x7b095c: sines}
+    step = r.choice([r.pos(2), r.f(), r.f(50), 0x3f800000] + ([0, 0x80000000] if name == 'Ripple' else []))
+    return Call(CALLS[name], [rows & 0xffffffff, cols & 0xffffffff, step, r.f(r.choice([1, 20]))], regions, ret='v')
+
+
+def grid(r):
+    rows, cols = r.choice([1, 2, 3, 4, 4, 0, -1]), r.choice([1, 2, 3, 4, 4, 0, -2])
+    row, col = r.choice([0, 3, 0xa, r.randrange(18)]), r.choice([0, 5, 0x10, 17, r.randrange(18)])
+    faces = max(rows, 0) * max(cols, 0)
+    n = r.choice([0, 3, 0x806 - faces // 2, 0x806, 0x807])
+    span = 12 * 19 * (max(rows, 0) + 2)
+    pos, col_bytes = bytearray(span), bytearray(span)
+    scale = r.choice([1, 100, 5000])
+    nans = r.random() < 0.2   # (NaN offsets and positions now and then: of two NaNs the x87 keeps the larger significand)
+    nan = lambda: r.getrandbits(1) << 31 | 0x7f800000 | r.randrange(1, 1 << 23)  # noqa: E731
+    for k in range(0, span, 4):
+        struct.pack_into('<I', pos, k, nan() if nans and r.random() < 0.5 else r.f(scale))
+        struct.pack_into('<I', col_bytes, k, r.f(1))
+    regions = {0x874180 + 12 * 19 * row: pos, 0x870ed8 + 12 * 19 * row: col_bytes, 0x871d18: r.bytes(4 * 16 + 4),
+               0x871ee0: struct.pack('<I', n)}
+    if n < 0x806:
+        regions[0x820b00 + 0xa0 * n] = r.bytes(0xa0 * min(faces, 0x806 - n) or 4)
+        regions[0x872168 + 4 * n] = r.bytes(4 * min(faces, 0x806 - n) or 4)
+    args = [nan() if nans and r.random() < 0.7 else r.f(scale) for _ in range(3)] + [rows & 0xffffffff, cols & 0xffffffff, row, col, 0x10, 0x13]
+    return Call(CALLS['Grid'], args, regions, ret='v')
 
 
 def case(r):
-    name = r.choice(OPS)
+    name = r.deal(OPS)
+    if name == 'Grid':
+        return grid(r)
+    if name in ('Wave', 'Ripple'):
+        return wave(r, name)
     if name == 'Sort':
         n = r.choice([0, 1, 2, 3, 6, 7, 8, 9, 15, 40, 300]) if r.random() < 0.6 else r.randrange(0, 120)
         kinds = r.choice([1, 2, 3, 5, 32])

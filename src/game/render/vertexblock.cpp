@@ -55,4 +55,29 @@ void __fastcall VertexBlock_Add(u8 *block, void *, float x, float y, float z, fl
     t[4] = X87_Through(v);
     at<u32>(block, 0x9c) = at<u32>(block, 0x9c) + 1;
 }
+
+u32 __fastcall VertexBlock_AddQuad(u8 *block, void *, const u32 *positions, u32, const u32 *uvs, const u8 *normals) {
+    // the floats go over as their bits, as the original pushes them (no x87 load to quieten a signalling NaN)
+    using AddBits = void(__fastcall *)(u8 *, void *, u32, u32, u32, u32, u32, u32, const u8 *);
+    const AddBits add = reinterpret_cast<AddBits>(&VertexBlock_Add);
+    const u32 base = at<u32>(block, 0x9c);
+    for (u32 i = 0; i < 4; i++)
+        add(block, nullptr, positions[3 * i], positions[3 * i + 1], positions[3 * i + 2], uvs[3 * i], uvs[3 * i + 1], 0, normals + 0xc * i);
+    u8 *list = at<u8 *>(block, 0x94);
+    at<u16>(list, 2) = (u16)(base + 2);
+    at<u16>(at<u8 *>(block, 0x94), 4) = (u16)(base + 1);
+    at<u16>(at<u8 *>(block, 0x94), 6) = (u16)base;
+    list = at<u8 *>(block, 0x94) + 8;
+    u32 triangles = at<u32>(block, 0x98) + 1;
+    at<u8 *>(block, 0x94) = list;
+    at<u32>(block, 0x98) = triangles;
+    at<u16>(list, 2) = (u16)(base + 1);
+    at<u16>(at<u8 *>(block, 0x94), 4) = (u16)(base + 2);
+    at<u16>(at<u8 *>(block, 0x94), 6) = (u16)(base + 3);
+    list = at<u8 *>(block, 0x94) + 8;
+    triangles = at<u32>(block, 0x98) + 1;
+    at<u8 *>(block, 0x94) = list;
+    at<u32>(block, 0x98) = triangles;
+    return triangles;
+}
 }

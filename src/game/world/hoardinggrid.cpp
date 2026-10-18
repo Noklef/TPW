@@ -32,4 +32,15 @@ void __cdecl HoardingGrid_Fill() {
         }
     }
 }
+
+void __cdecl HoardingGrid_Flood(s32 row, s32 col, u32 pass, u32 fill) {
+    for (; row >= 0 && row <= 0x41 && col >= 0 && col <= 0x41; col++) {
+        u8 *const c = reinterpret_cast<u8 *>((uintptr_t)(0x0081d7c8 + row * 0x43 + col));
+        if (*c != ' ' && *c != '@') return;
+        *c = static_cast<u8>(fill);
+        HoardingGrid_Flood(row - 1, col, pass, fill);
+        HoardingGrid_Flood(row + 1, col, pass, fill);
+        HoardingGrid_Flood(row, col - 1, pass, fill);
+    }
+}
 }

@@ -296,4 +296,12 @@ u32 __cdecl Table879d08_FillFrom() {
         global<u32>(0x00879d08 + 4 * ((i + start) & 0xf)) = 16 - i;
     return 0;
 }
+
+u32 __cdecl Table879d08_Fill() {
+    for (u32 i = 0; i < 16; i++)
+        global<u32>(0x00879d08 + 4 * i) = 16 - i;
+    return 0;
+}
+
+u32 __fastcall Obj_Flags1cAnd(const u8 *object, void *, u32 mask) { return at<u32>(object, 0x1c) & mask; }
 }  // extern "C"

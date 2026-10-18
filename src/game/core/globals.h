@@ -1,4 +1,4 @@
-// Getters, setters and releases of the game's globals. Reimplementation of 0x47eaa0, 0x4b0aa0, 0x4f21a0, 0x4f7970, 0x4fe980, 0x519410, 0x519420, 0x519430, 0x519440, 0x51fd20, 0x52f1f0, 0x52f840, 0x52f850, 0x52f860 and others. Named by what they do until the classes are known.
+// Getters, setters and releases of the game's globals. Reimplementation of 0x47eaa0, 0x4b0aa0, 0x4f21a0, 0x4f7970, 0x4fe980, 0x519410, 0x519420, 0x519430, 0x519440, 0x51fd20, 0x52f1f0, 0x52f840, 0x52f850, 0x52f860, 0x56b630, 0x5d5ee0 and others. Named by what they do until the classes are known.
 #pragma once
 
 #include "../../../re/types.h"
@@ -157,4 +157,10 @@ u32 __cdecl CreateGlobal8c47d4_58aff0();
 // 0x56b650 (cdecl; name unconfirmed): the start [0x8bcc40] & 0xf kept at 0x879d48, then the sixteen dwords at 0x879d08 = 16 down to 1 from
 // that index on (wrapping at 16): Table879d08_Fill turned by the start. Returns 0 (the count left in EAX).
 u32 __cdecl Table879d08_FillFrom();
+
+// 0x56b630 (cdecl): the sixteen dwords at 0x879d08 = 16, 15 ... 1; returns 0.
+u32 __cdecl Table879d08_Fill();
+
+// 0x5d5ee0 (thiscall; mask, pops 4): the dword at +0x1c masked.
+u32 __fastcall Obj_Flags1cAnd(const u8 *object, void *, u32 mask);
 }  // extern "C"

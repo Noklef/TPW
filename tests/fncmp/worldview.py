@@ -1,15 +1,15 @@
-# The world view object's ranges of src/game/render/worldview (0x56b850-0x56b93d) against the originals: an object of random bytes, its
+# The world view object's ranges and the pair set at +0x30 of src/game/render/worldview (0x56b830-0x56b93d) against the originals: an object of random bytes, its
 # range floats (+0x3c-+0x48) now and then ordinary floats or fncmp's specials; the arguments ordinary floats, specials (zeros, NaNs,
 # signalling ones too, infinities) or steps that make the count tiny, huge (past 32 and 63 bits) or negative.
-# usage: worldview.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Diagonal,RangeX,RangeY)
+# usage: worldview.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Diagonal,RangeX,RangeY,Set3034)
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, Bench, Call, fb, put  # noqa: E402
 
-CALLS = {'Diagonal': 0x56b850, 'RangeX': 0x56b880, 'RangeY': 0x56b8d0}
-B = Bench([(0x56b850, 0x56b93e)])
+CALLS = {'Diagonal': 0x56b850, 'RangeX': 0x56b880, 'RangeY': 0x56b8d0, 'Set3034': 0x56b830}
+B = Bench([(0x56b830, 0x56b93e)])
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 
 
@@ -27,6 +27,8 @@ def case(r):
     for off in (0x3c, 0x40, 0x44, 0x48):
         if r.random() < 0.85:
             put(obj, off, 'I', value(r))
+    if op == 'Set3034':
+        return Call(CALLS[op], [RAM, r.getrandbits(32), r.getrandbits(32)], {RAM: obj}, conv='t', ret='a')
     if op == 'Diagonal':
         return Call(CALLS[op], [RAM], {RAM: obj}, conv='t')
     start, end = value(r), value(r)

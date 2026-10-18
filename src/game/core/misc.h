@@ -1,5 +1,5 @@
-// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x409260, 0x45be80, 0x5f4490, 0x633dc0, 0x6486e0, 0x458310, 0x4583d0, 0x5c9040, 0x5d03b0, 0x5dd3d0, 0x5ddac0, 0x5c5230, 0x5c7490, 0x5dd810, 0x5e2750, 0x633120, 0x5b0d40, 0x5c7bb0, 0x5c7d00, 0x5c7d20, 0x5d1440, 0x5d5ee0, 0x54dcc0, 0x556a80, 0x569f30, 0x557110, 0x5997b0, 0x54b290, 0x56b340, 0x56e780, 0x583360, 0x5646c0, 0x564ba0, 0x56b570, 0x5651c0, 0x424ed0, 0x47f940,
-// 0x56a510, 0x56b630 and 0x56b830.
+// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x409260,
+// 0x45be80, 0x633dc0, 0x6486e0, 0x458310, 0x4583d0, 0x633120, 0x424ed0 and 0x47f940.
 #pragma once
 
 #include "../../../re/types.h"
@@ -24,46 +24,7 @@ u8 *__fastcall Obj_CtorVirtual(u8 *object, void *, u32 mostDerived);
 // +0x2c = a, +0x30 = b, +0x34 = c. Returns a.
 u32 __fastcall Obj_SetVectorAt2c(u8 *object, void *, u32 a, u32 b, u32 c);
 
-// 0x5651c0 (thiscall): vtable 0x701260, +4 = +8 = +0x18 = +0x1c = +0x20 = +0x24 = 0, +0x14 = -1; and
-// 0x879ab4 = 1 when the display adapter record at [0x879a24] has vendor +0x428 = 0x10de and the driver
-// kind 0x8bd524 is 1. Returns the object.
-u8 *__fastcall Class701260_Ctor(u8 *object);
 
-// 0x5646c0 (thiscall; mostDerived, pops 4): a class with a virtual base like 0x458310. When most derived:
-// vtable 0x701188 and the part at +0x18 gets vtable 0x701178. Always: the virtual base (the vtable's
-// +4) gets vtable 0x701168, the dword before it = its offset - 0x18, and +4, +8, +0xc and +0x10 = 0.
-// Returns the object.
-u8 *__fastcall Obj_CtorVirtual5646c0(u8 *object, void *, u32 mostDerived);
-
-// 0x564ba0 (thiscall; mostDerived, pops 4): the same for vtable 0x7011d8 (part at +0x2c: 0x701178), the
-// base's vtable 0x7011c8, the dword before it = its offset - 0x2c, and +4 to +0x24 zeroed (+4-+0x1c,
-// then +0x24 and +0x20). Returns the object.
-u8 *__fastcall Obj_CtorVirtual564ba0(u8 *object, void *, u32 mostDerived);
-
-// 0x56b570 (thiscall; key, a, b, c, pops 16): the array of pointers at +8 (count +0x1c) searched
-// backwards for the key; when found the key's dwords at +0x14, +0x18, +0x1c = a, b, c and 1 is
-// returned, else 0.
-u32 __fastcall PtrArray_SetVectorOf(const u8 *list, void *, u8 *key, u32 a, u32 b, u32 c);
-
-// 0x56e780 (thiscall; low, first, high, last, pops 16): the extents of a column range. +0x20 =
-// min(+0x20, first) and +0x24 = max(+0x24, last) (signed); then for each column from first to last
-// inclusive, the signed byte at +0x28 + column is lowered to the low byte of `low` when above it
-// (compared as a dword) and the byte at +0xa8 + column raised to the low byte of `high` when below.
-void __fastcall Extents_Include(u8 *extents, void *, s32 low, s32 first, s32 high, s32 last);
-
-// 0x54b290 (cdecl; owner): every chunk on the list at owner +0xbc is freed: its nodes (the list at
-// chunk +0x1c, next at node +0x14) have bit 0 of their first dword cleared and 0x877b74 stepped down,
-// then the owner's head = chunk +0x24, bit 0 of the chunk's first dword cleared and 0x877b84 stepped down.
-void __cdecl Pool_FreeAll(u8 *owner);
-
-
-// 0x583360 (thiscall): the highest set bit of the masks at +0x8fc, +0x904 and +0x90c (0 for a zero mask)
-// stored at +0x900, +0x908 and +0x910, and their union at +0x918, which is returned.
-u32 __fastcall Masks_TopBits(u8 *object);
-
-// 0x5997b0 (cdecl; id): the table of 0x20-byte entries at 0x768fb8, ended by an id of 0x270f, searched
-// for the id; the dword at +0x1c of the entry found, or 0x17f for none.
-u32 __cdecl Table768fb8_Lookup(u32 id);
 
 // 0x409260 (thiscall): Obj_AdvanceUnless30 on the object at 0x785970; 0x7477e4 = bit 3 of the flags
 // 0x7a1a14; and when the dword at +0x18 is set bit 1 of the flags is set. Returns the flags then, else 0.
@@ -75,71 +36,8 @@ u32 __fastcall Flags7a1a14_Update(const u8 *object);
 // of the corners: Renderer_RemoveInRect); then bit 0 of the object's first dword is cleared. Returns that dword.
 u32 __cdecl Obj_RemoveFromRect(u8 *object, u32 from, u32 to);
 
-// 0x557110 (cdecl; vm): over the +0x7c entries of 0x20 bytes at +0x2c, the dword at +0x10 of the first whose
-// word at +0x18 is 4 is returned and the entry's word +0x18 and dword +0x10 are cleared; 0 for none.
-u32 __cdecl Rsse_TakeFinished(u8 *vm);
-
-// 0x54dcc0 (cdecl): AL only. With 0x78d968 set bit 11 of 0x79d86c; else 1 when 0x785874 is 0 or 1.
-u8 __cdecl Flag54dcc0_Test();
-
-// 0x556a80 (cdecl; frame, x, y, z): the three dwords at +0x30, +0x34 and +0x38 of the record that the
-// frame's +8 object's +4 object's +0x78 points to, plus 0x10, written through the pointers; returns the third.
-u32 __cdecl Rsse_GetVector(const u8 *frame, u32 *x, u32 *y, u32 *z);
-
-// 0x569f30 (stdcall; _, value, pops 8): with a value, 0xfbe038 = value; else 0xfbe044 = the dword at 0x6f1a10;
-// returns 1.
-u32 __stdcall Setting569f30_Set(u32 unused, u32 value);
-
-// 0x5c7d20 (thiscall; i, pops 4): the dword at +0x14 of record i of 24 bytes.
-u32 __fastcall Records24_Field14(const u8 *records, void *, u32 i);
-
-// 0x5c7d00 (thiscall; i, pops 4): the address of record i of 24 bytes when its dword at +4 is not 0, else 0.
-u8 *__fastcall Records24_IfUsed(u8 *records, void *, u32 i);
-
-// 0x5c7bb0 (thiscall): how many of the four 24-byte records have a non-zero dword at +4.
-u32 __fastcall Records24_CountUsed(const u8 *records);
-
-// 0x5b0d40 (stdcall; i): the address of 60-byte record i of the table at 0x73f8a8.
-u32 __stdcall Table73f8a8_At(u32 i);
-
-// 0x5d5ee0 (thiscall; mask, pops 4): the dword at +0x1c masked.
-u32 __fastcall Obj_Flags1cAnd(const u8 *object, void *, u32 mask);
-
-// 0x5d1440 (stdcall; _, from, to, limit, pops 16): to - from, at most limit (unsigned).
-u32 __stdcall Span_Limited(u32 unused, u32 from, u32 to, u32 limit);
-
-// 0x5dd810 (stdcall; object, pops 4): 1 when the signed dword at +0x40 is above 0, else 0.
-u32 __stdcall Obj_Positive40(const u8 *object);
-
-// 0x5e2750 (thiscall; value, pops 4): with a value, +0xc = value and +0x14 = 0.
-void __fastcall Obj_SetOrKeepC(u8 *object, void *, u32 value);
-
 // 0x633120 (thiscall): Class703770_Ctor, then vtable 0x703c18 and +8 = +0xc = 0. Returns the object.
 u8 *__fastcall Class703c18_Ctor(u8 *object);
-
-// 0x5c7490 (thiscall): WString_Ctor on the object (an empty wide string). Returns it.
-u8 *__fastcall WString_CtorReturning(u8 *string);
-
-// 0x5c5230 (cdecl; entry): 1 for a directory entry (bit 0x10 of the byte at +4) whose name (the string at +0x20)
-// does not start with a full stop, else 0.
-u32 __cdecl DirEntry_IsRealDir(const u8 *entry);
-
-// 0x5c9040 (thiscall): Init_5d36c0, vtable 0x70295c and the four dwords from +8 zeroed. Returns the object.
-u8 *__fastcall Class70295c_Ctor(u8 *object);
-
-// 0x5d03b0 (thiscall; other, pops 4): the dwords at +4 and +8 swapped with the other object's.
-void __fastcall Obj_SwapPair(u8 *object, void *, u8 *other);
-
-// 0x5dd3d0 (thiscall): the three dwords at +0x10 take those at +0x28 when +0x58 is set, else those at +0x1c.
-void __fastcall Obj_ChooseVector(u8 *object);
-
-// 0x5ddac0 (stdcall; object, pops 4): 1 when the dword at +0x60 is 0 and the signed +0x40 is below +0x64.
-u32 __stdcall Obj_Pending(const u8 *object);
-
-// 0x5f4490 (thiscall; value, pops 4): when the dword at +0x2c differs from the value it is set, and the object
-// at +0x28 (through Fn_56b620, which returns it unchanged) has bit 0 of its dword at +0x10 cleared for a
-// non-zero value, set for 0. Returns that object, or the value when nothing changed.
-u32 __fastcall Obj_SetShown(u8 *object, void *, u32 value);
 
 // 0x633dc0 (thiscall): Class703770_Ctor, then +8, +0x14, +0x18, +0x1c, +0x20 = 0, +0x10 = 0x703744 and the
 // vtables 0x703ca0 (+0) and 0x703c98 (+0xc). Returns the object.
@@ -161,21 +59,6 @@ u8 *__fastcall Obj_CtorValue(u8 *object, void *, u32 value);
 // 0x424ed0 (cdecl; pointer): bit 0 of the dword cleared; returns 1.
 u32 __cdecl Dword_ClearBit0(u32 *p);
 
-// 0x56a510 (stdcall; x, y, out, pops 12): *out = the dword at (y * width + x) in the software
-// renderer's buffer (0x879dac: +8 the buffer; width 0x8bcbd0); returns 1.
-u32 __stdcall SoftRenderer_PixelAt(s32 x, s32 y, u32 *out);
-
-// 0x56b630 (cdecl): the sixteen dwords at 0x879d08 = 16, 15 ... 1; returns 0.
-u32 __cdecl Table879d08_Fill();
-
-// 0x56b830 (thiscall; a, b, pops 8): +0x30 = a and +0x34 = b; returns a.
-u32 __fastcall Obj_Set30_34(u8 *object, void *, u32 a, u32 b);
-
-// 0x5667d0 (thiscall; most derived flag, pops 4): with the flag set the vtable 0x701378 is stored and the base class constructor (Class701260_Ctor) runs on the part at +0x2c;
-// then the virtual base (offset from the word at +4 of the vtable) gets the vtable 0x701330, the word before it the distance to that base less 0x2c, and the fields +8, +0x18, +4 are
-// cleared, +0x10 is 2, +0x14 is 1, +0x20 is -1 and the word at the virtual base + 0xc is 0x3000. Returns the object.
-u8 *__fastcall Class701378_Ctor(u8 *object, void *, u32 mostDerived);
-
 u8 *__fastcall Class703770_Ctor(u8 *object);
 
 // 0x633a00 (thiscall): vtable 0x703c80, +4 = +8 = 5, +0xc = 0, +0x10 = 1, +0x14 = +0x18 = +0x1c = -1.
@@ -185,12 +68,6 @@ u8 *__fastcall Class703c80_Ctor(u8 *object);
 // 0x631380, 0x631440 at +0 to +0x10) and fields (+0x14, +0x68, +0x6c, +0x78-+0x80 = 0, +0x70 =
 // 0x7039d0, +0x74 = 0x7b). Returns the object.
 u8 *__cdecl Codec631280_Init(u8 *object);
-
-// 0x5f9f80 (thiscall): the vtable pointer 0x7035d8 at +4, the byte at +0 and the words at +8, +0xa, +0xc cleared. Returns the object. 0x5f9f70 (cdecl): that for the global
-// object at 0xfa78e8 (its static initialiser).
-u8 *__fastcall Class7035d8_Ctor(u8 *object);
-
-u8 *__cdecl Class7035d8_InitGlobal();
 
 // 0x4254e0 (cdecl; object, from, to): Obj_RemoveFromRect of the object at +0x24 (from, to); then bit 14 of the dword at +0 is cleared.
 // Returns 1.
