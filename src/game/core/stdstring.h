@@ -32,6 +32,9 @@ struct StdStringEnv {
 };
 // The strings' calls go to env (nullptr: the game's).
 void StdStrings_SetEnv(const StdStringEnv *env);
+// The env's throws, for the wide strings (stdwstring.h), which share them.
+void StdStrings_Xlen();
+void StdStrings_Xran();
 
 // All __thiscall (self in ECX), written as __fastcall with an unused EDX.
 extern "C" {

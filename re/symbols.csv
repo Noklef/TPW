@@ -3859,6 +3859,12 @@ address,name,kind,confidence,notes
 0x005c8bd0,SyncEvent_Ctor,function,low,"reimplemented (src/game/core/sync); CreateEventA(0,0,0,0) into the object's handle; returns the object"
 0x005c8bf0,SyncEvent_Wait,function,low,reimplemented (src/game/core/sync); WaitForSingleObject on the handle (INFINITE for a negative timeout); whether it answered WAIT_OBJECT_0
 0x005c8c20,SyncEvent_Set,function,low,reimplemented (src/game/core/sync); SetEvent on the handle; returns 0
+0x00405280,StdWString_Copy,function,low,"reimplemented (src/game/core/stdwstring); thiscall (n, pops 4): std::wstring::_Copy(n): a new block of (n | 31) + 2 characters keeping all len old ones (sic: not clamped), the old block released (name unconfirmed)"
+0x0047b750,StdWString_AssignSub,function,low,"reimplemented (src/game/core/stdwstring); thiscall (x, pos, n; pops 12): std::wstring::assign(const wstring &x, pos, n): shares x's block when it is all of x, erases in place when x is this; returns this (name unconfirmed)"
+0x0047b970,StdWString_AssignFill,function,low,"reimplemented (src/game/core/stdwstring); thiscall (n, ch; pops 8): std::wstring::assign(n, ch); returns this (name unconfirmed)"
+0x0047ba50,StdWString_Freeze,function,low,"reimplemented (src/game/core/stdwstring); thiscall: std::wstring::_Freeze(): a shared string's own copy, then its block's count byte 0xff (name unconfirmed)"
+0x0047bad0,StdWString_Grow,function,low,"reimplemented (src/game/core/stdwstring); thiscall (n, trim; pops 8): std::wstring::_Grow(n, trim): AL = characters to write (name unconfirmed)"
+0x0047bc00,StdWString_Split,function,low,reimplemented (src/game/core/stdwstring); thiscall: std::wstring::_Split(): a shared string's own copy (wcslen of the shared characters) (name unconfirmed)
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
