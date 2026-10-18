@@ -11,7 +11,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import CDECL_LOG4, LOG, LOG_BYTES, Bench, Call, RAM, log_region, put, set_return, vtable  # noqa: E402
+from fncmp import CDECL_LOG4, HEAP, LOG, LOG_BYTES, Bench, Call, RAM, heap, log_region, put, set_return, vtable  # noqa: E402
 
 CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50, 'CallHandler': 0x65f697, 'SendMessage': 0x658d9f,
          'Dialog7cc47c_Message4': 0x4b87f0, 'Dialog7cc47c_Message6On': 0x4b8810, 'Dialog7cc47c_Message6Off': 0x4b8830,
@@ -19,12 +19,14 @@ CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50
          'Dialog7cdb0c_Message4': 0x4c5780, 'Dialog7cdb0c_Message6On': 0x4c57a0, 'Dialog7cdb0c_Message6Off': 0x4c57c0,
          'Dialog7cdb0c_Child16007Message6On': 0x4c57e0, 'Dialog7cdb0c_Child16007Message6Off': 0x4c5800,
          'Dialog7ca098_Message4IfUp': 0x48d990, 'Dialog7cca94_Message4IfUp': 0x4c25e0, 'WindowAt10_Message4': 0x48cf70,
-         'WindowAt10_Message4IfAny': 0x492e60, 'Windows7c26b0_Message5': 0x48ee20}
+         'WindowAt10_Message4IfAny': 0x492e60, 'Windows7c26b0_Message5': 0x48ee20,
+         'WindowAt10_ScalarDtor': 0x48c8b0, 'SetChecksIfUpThis': 0x481a00}
 SENDS = {k: int(k[6:12], 16) for k in CALLS if k.startswith('Dialog7')}   # the window's global
 B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6d1), (0x658d9f, 0x658df4), (0x659710, 0x659721),
            (0x4b87f0, 0x4b8850), (0x4b8e80, 0x4b8ea0), (0x4b8ec0, 0x4b8ee0), (0x4b9c00, 0x4b9c40),
            (0x4c5780, 0x4c5820),
-           (0x48d990, 0x48d9b3), (0x4c25e0, 0x4c25f9), (0x48cf70, 0x48cf83), (0x492e60, 0x492e77), (0x48ee20, 0x48ee4e)])
+           (0x48d990, 0x48d9b3), (0x4c25e0, 0x4c25f9), (0x48cf70, 0x48cf83), (0x492e60, 0x492e77), (0x48ee20, 0x48ee4e),
+           (0x48c8b0, 0x48c8ce), (0x481a00, 0x481a10)])
 WINDOW, NODES, VTABLE, MISC, KIDS, HOLDER, WINDOW2 = RAM, RAM + 0x100, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200, RAM + 0x1600, RAM + 0x1800
 NODE = 0x90
 BUTTONS = list(range(0x18, 0x22))
@@ -69,6 +71,9 @@ def case(r):
             holder = bytearray(r.bytes(0x20))
             put(holder, 0x10, 'I', window)
             regions[HOLDER] = holder
+            if op == 'WindowAt10_ScalarDtor':   # (freed for flags bit 0: the heap's free count and hash)
+                regions[HEAP] = heap(0x20)
+                return Call(CALLS[op], [HOLDER, r.choice([0, 1, 2, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
             return Call(CALLS[op], [HOLDER], regions, conv='t', ret='a')
         if op == 'Windows7c26b0_Message5':   # ten entries of 0x208: +0 the window, +4 a word (0: skipped)
             other = bytearray(r.bytes(0x120))
@@ -125,6 +130,8 @@ def case(r):
     regions[0x7ca1d0] = struct.pack('<I', MISC)
     regions[0x7ca1c8] = struct.pack('<II', WINDOW if op == 'SetChecks' or r.random() < 0.8 else 0, r.choice([0, 1, 1, 1, 0x100]))
     flags = r.choice([0, 1, 2, 3, 0x100, 0x1ff, 0xffff, r.getrandbits(9), r.getrandbits(32)])
+    if op == 'SetChecksIfUpThis':
+        return Call(CALLS[op], [r.getrandbits(32), flags], regions, conv='t')
     return Call(CALLS[op], [flags], regions)
 
 

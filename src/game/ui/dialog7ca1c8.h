@@ -13,4 +13,7 @@ void __cdecl Dialog7ca1c8_SetChecks(u32 flags);
 
 // 0x498a50 (cdecl (flags); name unconfirmed): Dialog7ca1c8_SetChecks when [0x7ca1c8] and [0x7ca1cc] are both not 0.
 void __cdecl Dialog7ca1c8_SetChecksIfUp(u32 flags);
+
+// 0x481a00 (thiscall (flags), pops 4; name unconfirmed; `this` unused): Dialog7ca1c8_SetChecksIfUp(flags).
+void __fastcall Dialog7ca1c8_SetChecksIfUpThis(void *self, void *, u32 flags);
 }

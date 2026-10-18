@@ -4529,6 +4529,7 @@ address,name,kind,confidence,notes
 0x00658d9f,Window_SendMessage,function,low,"reimplemented (src/game/ui/window); cdecl (window, message, a, b): -1 for no window or byte +4 set; else the hook [0xfaa5fc] (if set) then Window_CallHandler"
 0x00498090,Dialog7ca1c8_SetChecks,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): the nine check buttons of the 0x7ca1c8 dialog's child 0x18 set (vtable slot 5, bool) from flags bits 0-8 (0x20's also needs [0x7ca1d0]+0x50)"
 0x00498a50,Dialog7ca1c8_SetChecksIfUp,function,low,reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): Dialog7ca1c8_SetChecks when [0x7ca1c8] and [0x7ca1cc] are not 0
+0x00481a00,Dialog7ca1c8_SetChecksIfUpThis,function,low,"reimplemented (src/game/ui/dialog7ca1c8); thiscall (flags), pops 4, this unused: Dialog7ca1c8_SetChecksIfUp(flags)"
 0x004b87f0,Dialog7cc47c_Message4,function,low,"reimplemented (src/game/ui/dialogs); cdecl: Window_SendMessage([0x7cc47c], 4, 0, 0)"
 0x004b8810,Dialog7cc47c_Message6On,function,low,"reimplemented (src/game/ui/dialogs); cdecl: Window_SendMessage([0x7cc47c], 6, 1, 0)"
 0x004b8830,Dialog7cc47c_Message6Off,function,low,"reimplemented (src/game/ui/dialogs); cdecl: Window_SendMessage([0x7cc47c], 6, 0, 0)"
@@ -4546,3 +4547,4 @@ address,name,kind,confidence,notes
 0x0048cf70,WindowAt10_Message4,function,low,"reimplemented (src/game/ui/dialogs); thiscall: Window_SendMessage(+0x10, 4, 0, 0)"
 0x00492e60,WindowAt10_Message4IfAny,function,low,"reimplemented (src/game/ui/dialogs); thiscall: Window_SendMessage(+0x10, 4, 0, 0) when +0x10 is not 0 (0 without)"
 0x0048ee20,Windows7c26b0_Message5,function,low,"reimplemented (src/game/ui/dialogs); cdecl: message 5 (0, 0) to the window of each of the ten 0x208-byte entries from 0x7c26b0 whose word +4 is set"
+0x0048c8b0,WindowAt10_ScalarDtor,function,low,"reimplemented (src/game/ui/dialogs); thiscall (flags), pops 4: WindowAt10_Message4IfAny, then freed for flags bit 0; returns this"

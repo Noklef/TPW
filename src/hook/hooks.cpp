@@ -4069,6 +4069,7 @@ const Hook kHooks[] = {
     {"Window_SendMessage",        0x00658d9f, (void *)&Window_SendMessage, {0x55, 0x8b, 0xec, 0x83, 0x7d}},
     {"Dialog7ca1c8_SetChecks",    0x00498090, (void *)&Dialog7ca1c8_SetChecks, {0x8b, 0x0d, 0xc8, 0xa1, 0x7c}},
     {"Dialog7ca1c8_SetChecksIfUp", 0x00498a50, (void *)&Dialog7ca1c8_SetChecksIfUp, {0xa1, 0xc8, 0xa1, 0x7c, 0x00}},
+    {"Dialog7ca1c8_SetChecksIfUpThis", 0x00481a00, (void *)&Dialog7ca1c8_SetChecksIfUpThis, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dialog7cc47c_Message6Off",  0x004b8830, (void *)&Dialog7cc47c_Message6Off, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
     {"Dialog7cc47c_Message6On",   0x004b8810, (void *)&Dialog7cc47c_Message6On, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
     {"Dialog7cc47c_Message4",     0x004b87f0, (void *)&Dialog7cc47c_Message4, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
@@ -4086,6 +4087,7 @@ const Hook kHooks[] = {
     {"WindowAt10_Message4",       0x0048cf70, (void *)&WindowAt10_Message4, {0x8b, 0x41, 0x10, 0x6a, 0x00}},
     {"Dialog7cca94_Message4IfUp", 0x004c25e0, (void *)&Dialog7cca94_Message4IfUp, {0xa1, 0x94, 0xca, 0x7c, 0x00}},
     {"Dialog7ca098_Message4IfUp", 0x0048d990, (void *)&Dialog7ca098_Message4IfUp, {0xa1, 0x98, 0xa0, 0x7c, 0x00}},
+    {"WindowAt10_ScalarDtor",     0x0048c8b0, (void *)&WindowAt10_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0xa8}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

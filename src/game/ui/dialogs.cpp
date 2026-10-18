@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/gameheap.h"
 #include "window.h"
 
 namespace {
@@ -56,6 +57,12 @@ s32 __fastcall WindowAt10_Message4(u8 *object) { return Window_SendMessage(*rein
 s32 __fastcall WindowAt10_Message4IfAny(u8 *object) {
     u8 *const w = *reinterpret_cast<u8 **>(object + 0x10);
     return w ? Window_SendMessage(w, 4, 0, 0) : 0;
+}
+
+u8 *__fastcall WindowAt10_ScalarDtor(u8 *object, void *, u32 flags) {
+    WindowAt10_Message4IfAny(object);
+    if (flags & 1) GameHeap_Free(object);
+    return object;
 }
 
 void __cdecl Windows7c26b0_Message5() {

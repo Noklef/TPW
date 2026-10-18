@@ -44,6 +44,10 @@ s32 __cdecl Dialog7cca94_Message4IfUp();
 s32 __fastcall WindowAt10_Message4(u8 *object);
 s32 __fastcall WindowAt10_Message4IfAny(u8 *object);
 
+// 0x48c8b0 (thiscall (flags), pops 4; name unconfirmed): the scalar deleting destructor: WindowAt10_Message4IfAny, then the object freed
+// (GameHeap_Free) for flags bit 0; returns the object.
+u8 *__fastcall WindowAt10_ScalarDtor(u8 *object, void *, u32 flags);
+
 // 0x48ee20 (cdecl; name unconfirmed): message 5 (0, 0) sent (Window_SendMessage) to the window (+0) of each of the ten entries of 0x208 bytes
 // from 0x7c26b0 whose word +4 is not 0.
 void __cdecl Windows7c26b0_Message5();

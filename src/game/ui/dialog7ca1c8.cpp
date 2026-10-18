@@ -37,4 +37,6 @@ void __cdecl Dialog7ca1c8_SetChecks(u32 flags) {
 void __cdecl Dialog7ca1c8_SetChecksIfUp(u32 flags) {
     if (global<u8 *>(0x007ca1c8) && global<u32>(0x007ca1cc)) Dialog7ca1c8_SetChecks(flags);
 }
+
+void __fastcall Dialog7ca1c8_SetChecksIfUpThis(void *, void *, u32 flags) { Dialog7ca1c8_SetChecksIfUp(flags); }
 }
