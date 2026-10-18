@@ -7,6 +7,7 @@
 #include "../render/engineerrors.h"
 #include "../render/renderer.h"
 #include "gameheap.h"
+#include "liveobjects.h"
 #include "stdlist.h"
 #include "vcall.h"
 
@@ -211,6 +212,52 @@ u32 __fastcall PtrArray_ReleaseAll(u8 *object, void *) {
     }
     at<u32>(object, 8) = 0;
     at<u32>(object, 0x10) = 0;
+    return 1;
+}
+
+u32 __fastcall PtrArray_Init(u8 *object, void *, u32 frames, u32 images) {
+    u8 *const errors = reinterpret_cast<u8 *>((uintptr_t)0x00879ad0);
+    if (at<u32>(object, 0x10)) {
+        EngineErrors_Push(errors, nullptr, 2, 0xb0754015);
+        return 0;
+    }
+    u8 *set = static_cast<u8 *>(GameHeap_Alloc(0x24));
+    if (set) {   // (the sprite set's construction, inlined as in RendererPart_Ctor)
+        at<u32>(set, 0) = 0x006ff318;
+        at<u32>(set, 0x20) = 0x006fdce8;
+        at<u32>(set, at<s32>(at<u8 *>(set, 0), 4)) = 0x006ff308;
+        const s32 base = at<s32>(at<u8 *>(set, 0), 4);
+        at<s32>(set, base - 4) = base - 0x20;
+        u8 *const table = at<u8 *>(set, 0);
+        at<u32>(set, 4) = 0;
+        at<u32>(set, 8) = 0;
+        at<u32>(set, 0x10) = 0;
+        at<u32>(set, 0xc) = 0xffffffff;
+        at<u32>(set, 0x14) = 0;
+        at<u32>(set, 0x18) = 0;
+        LiveObjects_Add(set + at<s32>(table, 4));
+    }
+    at<u8 *>(object, 4) = set;
+    if (!set) {
+        EngineErrors_Push(errors, nullptr, 2, 0xb0754000);
+        return 0;
+    }
+    at<u32>(set, 4) = 0;
+    const u32 array = TrackedArray_Alloc(at<u8 *>(object, 4), nullptr, frames);
+    at<u32>(object, 8) = array;
+    if (!array) {
+        PtrArray_ReleaseAll(object, nullptr);
+        return 0;
+    }
+    if (!images) images = frames;
+    const u32 block = TrackedGlobal_Alloc(images * 4);
+    at<u32>(object, 0xc) = block;
+    if (!block) {
+        PtrArray_ReleaseAll(object, nullptr);
+        return 0;
+    }
+    at<u32>(object, 0x10) = frames;
+    at<u32>(object, 0x14) = images;
     return 1;
 }
 }  // extern "C"
