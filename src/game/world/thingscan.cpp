@@ -618,4 +618,16 @@ u8 *__cdecl Things_FindNextOfCategoryWrap(s32 category, const u8 *previous) {
     u8 *const next = Things_FindNextOfCategory(category, previous);
     return next ? next : Things_FindNextOfCategory(category, nullptr);
 }
+
+void __cdecl ThingBrowser_Step() {
+    const u8 *&current = *reinterpret_cast<const u8 **>(0x007cc308);
+    const u32 choice = *reinterpret_cast<const u32 *>(0x007cc30c) - 1;
+    if (choice > 5) {
+        current = nullptr;
+        return;
+    }
+    const s32 category = 2 << choice;
+    current = Things_FindNextOfCategory(category, current);
+    if (!current) current = Things_FindNextOfCategory(category, nullptr);
+}
 }  // extern "C"
