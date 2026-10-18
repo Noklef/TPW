@@ -3,7 +3,8 @@
 # items 0-3 (flags any, 0x2000 and 0x40000000 often), each item's virtual base at an offset of its own (past the item, inside it, or
 # overlapping its fields) with the slot bytes, +0x10 and +0x14 (negative often) random; the list at +0x18c4 of 0-3 items or none.
 # Requeue: items put back (0x58e8d0), see requeue(). Shrink: items halved under a budget (0x58e1d0), see shrink().
-# usage: texcacheframe.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Frame,Requeue,Shrink)
+# Release: every entry's items reset (0x58dd60), see release().
+# usage: texcacheframe.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Frame,Requeue,Shrink,Release)
 import os
 import struct
 import sys
@@ -11,9 +12,10 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, Bench, Call, put  # noqa: E402
 
-B = Bench([(0x58d8e0, 0x58da38), (0x56b650, 0x56b690), (0x58b390, 0x58b3a0), (0x590f80, 0x590fe0), (0x58e8d0, 0x58ea1b), (0x58e1d0, 0x58e3a0), (0x67a830, 0x67a860)])
+B = Bench([(0x58d8e0, 0x58da38), (0x56b650, 0x56b690), (0x58b390, 0x58b3a0), (0x590f80, 0x590fe0), (0x58e8d0, 0x58ea1b), (0x58e1d0, 0x58e3a0), (0x58dd60, 0x58e020), (0x58b330, 0x58b360),
+           (0x58cb40, 0x58cbb0), (0x67a830, 0x67a860)])
 TIERS = [(0xc0, 3), (0xc0, 2), (0x80, 3), (0xc0, 1), (0x80, 2), (0x40, 3), (0xc0, 0), (0x80, 1), (0x40, 2)]   # 0x702360
-CACHE, ENTRIES, ITEMS, VBT, LIST = RAM, RAM + 0x2000, RAM + 0x3000, RAM + 0x6000, RAM + 0x6800
+CACHE, ENTRIES, ITEMS, VBT, LIST, OBJS = RAM, RAM + 0x2000, RAM + 0x3000, RAM + 0x6000, RAM + 0x6800, RAM + 0x6900
 
 
 def flags(r):
@@ -89,8 +91,39 @@ def shrink(r):
     return Call(0x58e1d0, [CACHE, LIST, count, tier, limit], regions, conv='t', ret='v')
 
 
+def release(r):
+    """0x58dd60: modes 0-3 (high bits any), the cache's rounding mask 7 mostly; six sizes of 0-4 entries (a few counts negative), each
+    entry's flag object (+0) and 0-4 items (flag 0x200000 half the time, sizes around multiples of 8, the float +0x30 about 0..1.5, each
+    virtual base at an offset of its own, inside the item now and then)."""
+    cache, entries = bytearray(r.bytes(0x1900)), bytearray(r.bytes(0x20 * 30))
+    items, vbt, objs = bytearray(r.bytes(0x80 * 0x50)), bytearray(r.bytes(8 * 0x50)), bytearray(r.bytes(8 * 30))
+    put(cache, 0x18e4, 'I', r.choice([7, 7, 7, 3, 0, 1, 0xf, r.getrandbits(16), 0xffffffff]))
+    ni = ne = 0
+    for size in range(6):
+        count = r.choice([0, 1, 2, 3, 4]) if r.random() > 0.04 else r.choice([-1, -0x80000000])
+        put(cache, 0x1800 + 4 * size, 'i', count)
+        for i in range(max(count, 0)):
+            link = 0
+            for _ in range(min(r.choice([0, 1, 2, 3, 4]), 0x50 - ni)):
+                at = 0x80 * ni
+                put(items, at, 'II', VBT + 8 * ni, link)
+                put(items, at + 8, 'I', r.getrandbits(32) & ~0x200000 | r.choice([0, 0x200000]))
+                put(items, at + 0x10, 'hh', *(r.choice([0, 1, 7, 8, 9, 16, -1, -8, 0x7ff9, r.randrange(-0x8000, 0x8000)]) for _ in range(2)))
+                put(items, at + 0x30, 'f', r.choice([r.uniform(0, 1.5), 0.0, 1.5, -1.0]))
+                put(vbt, 8 * ni + 4, 'i', r.choice([0x40, 0x40, 0x48, 0x60, 0x30, 8, 0]))
+                link = ITEMS + at
+                ni += 1
+            put(entries, 0x20 * ne, 'II', OBJS + 8 * ne, link)
+            put(cache, 0x400 * size + 4 * i, 'I', ENTRIES + 0x20 * ne)
+            ne += 1
+    regions = {CACHE: cache, ENTRIES: entries, ITEMS: items, VBT: vbt, OBJS: objs}
+    return Call(0x58dd60, [CACHE, r.randrange(4) | (r.getrandbits(32) & ~3 if r.random() < 0.2 else 0)], regions, conv='t', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'Release':
+        return release(r)
     if op == 'Requeue':
         return requeue(r)
     if op == 'Shrink':
@@ -138,7 +171,7 @@ def case(r):
     return Call(0x58d8e0, [CACHE], regions, conv='t', ret='v')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Frame,Requeue,Shrink').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Frame,Requeue,Shrink,Release').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

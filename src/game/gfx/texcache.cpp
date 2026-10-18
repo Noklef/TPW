@@ -28,6 +28,22 @@ void DecaySlot(u8 *item) {
     at<s32>(base, 0x14) >>= 1;
 }
 
+// TexCache_ReleaseItems' reset: flags 0x7000 and 0x30 cleared and bits 6 and 7 copied to 4 and 5, the sizes (+0x10, +0x12) rounded
+// up by the cache's mask (+0x18e4) to +0x14 / +0x16, the key set; with clear, the virtual base's first six dwords zeroed.
+void ResetItem(const u8 *cache, u8 *item, bool clear) {
+    const u32 masked = at<u32>(item, 8) & ~0x7030u;
+    at<u32>(item, 8) = ((u32)((s32)masked >> 2) & 0x30) | masked;
+    const u32 mask = at<u32>(cache, 0x18e4);
+    at<u16>(item, 0x14) = (u16)((at<u16>(item, 0x10) + mask) & ~mask);
+    at<u16>(item, 0x16) = (u16)((at<u16>(item, 0x12) + mask) & ~mask);
+    TexCacheItem_SetKey(item);   // (inlined in the second loop, with 0x70232c's copies of its constants)
+    if (clear) {
+        u8 *const base = item + at<s32>(at<u8 *>(item, 0), 4);
+        for (u32 offset = 0; offset < 0x18; offset += 4)
+            at<u32>(base, offset) = 0;
+    }
+}
+
 // Puts the item in the output and adds its area.
 void Put(u32 *&out, u32 &area, const u8 *item) {
     *out++ = (u32)(uintptr_t)item;
@@ -317,6 +333,34 @@ void __fastcall TexCache_RequeueItems(u8 *, void *, u8 **list, u8 *item) {
         TexCacheItem_SetKey(item);   // (inlined; its constants are 0x702460's copies)
         DecaySlot(item);
         item = at<u8 *>(item, 4);
+    }
+}
+
+void __fastcall TexCache_ReleaseItems(u8 *cache, void *, u32 mode) {
+    for (u32 size = 0; size < 6; size++) {
+        u8 **const entries = reinterpret_cast<u8 **>(cache + 0x400 * size);
+        const s32 *const count = &at<s32>(cache, 0x1800 + 4 * size);
+        for (s32 i = 0; i < *count; i++) {
+            u8 *item = at<u8 *>(entries[i], 4);
+            at<u8 *>(entries[i], 4) = nullptr;
+            if (!(mode & 2)) {
+                for (; item; item = at<u8 *>(item, 4))
+                    ResetItem(cache, item, (mode & 1) != 0);
+                continue;
+            }
+            TexCacheItem_SetFlags(at<u8 *>(entries[i], 0), nullptr, 0);
+            while (item) {
+                if (at<u32>(item, 8) & 0x200000) {
+                    ResetItem(cache, item, (mode & 1) != 0);
+                    item = at<u8 *>(item, 4);
+                } else {
+                    u8 *const next = at<u8 *>(item, 4);
+                    at<u8 *>(item, 4) = at<u8 *>(entries[i], 4);
+                    at<u8 *>(entries[i], 4) = item;
+                    item = next;
+                }
+            }
+        }
     }
 }
 

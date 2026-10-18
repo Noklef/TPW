@@ -96,6 +96,14 @@ void __fastcall TexCache_BeginFrame(u8 *cache);
 // TexCacheItem_SetKey does (inlined) and its virtual base's frame slot decayed as TexCache_BeginFrame does.
 void __fastcall TexCache_RequeueItems(u8 *cache, void *, u8 **list, u8 *item);
 
+// 0x58dd60 (thiscall on the cache; mode, pops 4; name unconfirmed; called from a dozen places, 0x46b6f0 the first): for each of the six
+// entry sizes, each entry (the signed count at +0x1800 + 4 * size, re-read per entry) has its item list (+4) taken off. Mode bit 2:
+// the entry's +0 gets TexCacheItem_SetFlags(0), then items with flag 0x200000 are reset and dropped, the others pushed back on the
+// entry's list (so reversed). Without it every item is reset and dropped. A reset clears flags 0x7000 and 0x30, copies bits 6 and 7
+// to 4 and 5, rounds the sizes +0x10 / +0x12 up by the cache's mask (+0x18e4) into +0x14 / +0x16 and sets the key as
+// TexCacheItem_SetKey does (inlined without bit 2); mode bit 1 also zeroes the first six dwords of its virtual base.
+void __fastcall TexCache_ReleaseItems(u8 *cache, void *, u32 mode);
+
 // 0x58e1d0 (thiscall on the cache; items, count, tier, limit; pops 0x10; name unconfirmed; called at 0x58e529 and 0x58e5a8): the items
 // halved while the cache's total area (s32 +0x18dc) stays at or above limit. The tier picks a pair at 0x702360: the least flags & 0xc0
 // (signed) and a band, whose floats at +0x1904 and +0x1908 + 4 * band bound the item's float +0x30 (above the first, not above the second).
