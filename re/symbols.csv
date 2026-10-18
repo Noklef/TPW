@@ -545,7 +545,7 @@ address,name,kind,confidence,notes
 0x004714a0,Motion_UnpackVertices,function,high,"reimplemented (src/game/motion/vertexanim); (node, block, frame, unused, add): group 0 lerped into the node box (+0x78), raw group 1 once (block flag 2), the rest into the positions (+0x60); node flags 0x800000 (unpacked once), 0x10000"
 0x004745c0,Motion_ApplyUVs,function,high,"reimplemented (src/game/motion/uvanim); (state, track, add): per-UV keys around the whole frame lerped, set or added into the node's {u[4], v[4]} blocks (node +0x68)"
 0x00fb3540,gAdvisorScoring,data,high,"AdvisorScoring: advisor.sam values (mMinScoreForConsideration at 0xfb3560); guard bit 0xfb2766 & 1"
-0x004d1ce0,Challenges_LoadSam,function,medium,"reads data/challenges.sam into a stack BalanceChallenges (vtable 0x700398) and copies the challenges out"
+0x004d1ce0,Challenges_LoadSam,function,medium,"reimplemented (src/game/world/challenges); thiscall: the list emptied, data/challenges.sam read into a stack BalanceChallenges, gBalanceLevel's indices (0x7857d4) rows copied into the free slots, orphans dropped"
 0x00414410,TrackTypeBalance_Dtor,function,low,"reimplemented (src/game/core/balancefile); thiscall: vtable 0x6fd8b0 back, then BalanceFile_Release"
 0x00423dc0,BalanceGraphics_Dtor,function,low,"reimplemented (src/game/core/balancefile); thiscall: vtable 0x6fd630 back, then BalanceFile_Release"
 0x00415e90,AdvisorScoring_GetSchema,function,low,"reimplemented (src/game/core/balancefile); thiscall (i), this unused: &key record i of the advisor scoring schema (0x72e120)"
@@ -891,6 +891,7 @@ address,name,kind,confidence,notes
 0x004d1e60,BalanceChallenges_GetSchema,function,high,"reimplemented (src/game/world/challenges); thiscall (index), vtable 0x700398 slot 0: 0x739b98 + index * 0x3c"
 0x004d2df0,Challenges_AcceptOffer,function,low,"reimplemented (src/game/world/challenges); thiscall: the offered challenge accepted: on, next event at now + its target days"
 0x004d2ec0,Challenges_DeclineOffer,function,low,"reimplemented (src/game/world/challenges); thiscall: the offered challenge declined: half the prize credited unless independent, next event after the declined wait"
+0x004d1e80,BalanceChallenges_Dtor,function,low,"reimplemented (src/game/world/challenges); thiscall: vtable 0x700398 back, then BalanceFile_Release"
 0x004e2650,Thing_MapId,function,high,reimplemented (src/game/world/person); thiscall (&out): the thing's map id ((mY >> 8) * 128 + (mX >> 8) + 1)
 0x004f9460,Sprite_RecordMapId,function,high,"reimplemented (src/game/world/person); thiscall (&out): the old mLastRecordedMapId (+0xcc) out, the current map id recorded"
 0x004fd950,Visitor_TimeInPark,function,high,reimplemented (src/game/world/person); thiscall: (gWorld tick +0x1da70c - mArrivalDate +0x1d4) >> 2

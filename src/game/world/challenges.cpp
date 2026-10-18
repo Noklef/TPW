@@ -1,7 +1,9 @@
 #include "challenges.h"
 
 #include <cstdint>
+#include <cstring>
 
+#include "../core/balancefile.h"
 #include "../core/filetime.h"
 #include "../core/funnytime.h"
 #include "../core/savegame.h"
@@ -27,6 +29,44 @@ void scheduleIn(u8 *challenges, s32 days) {
 }  // namespace
 
 extern "C" {
+
+void __fastcall BalanceChallenges_Dtor(u8 *file) {
+    at<u32>(file, 0) = 0x00700398;
+    BalanceFile_Release(file);
+}
+
+void __fastcall Challenges_LoadSam(u8 *challenges) {
+    u8 *const list = challenges + 0xc;
+    for (s32 i = 0; i < 0x14; ++i) at<u32>(list, i * 0x30) = 0;
+    u8 file[0x970];
+    at<u32>(file, 0) = 0x00700398;
+    BalanceFile_Init(file);
+    BalanceFile_Load(file, nullptr, reinterpret_cast<const char *>(0x0075a1f4), 0);  // "data/challenges.sam" (a failure only asserts)
+    for (const s32 *index = reinterpret_cast<const s32 *>(0x007857d4); index < reinterpret_cast<const s32 *>(0x00785824); ++index) {
+        const s32 k = *index;
+        if (k <= 0) continue;
+        const u8 *const row = file + 0xc + (u32)k * 0x28;
+        u8 rec[0x30] = {};  // (sic: +0x1e, +0x1f and +0x2d are uninitialised stack in the original)
+        at<u8>(rec, 0x1d) = at<u32>(row, 0x24) != 0;  // mIndependent
+        at<u32>(rec, 0) = at<u32>(row, 0);            // mType
+        at<u32>(rec, 4) = at<u32>(row, 8);            // mTargetTime
+        at<u32>(rec, 8) = at<u32>(row, 0xc);          // mTargetVal
+        at<u16>(rec, 0xc) = at<u16>(row, 0x10);       // mTargetObj
+        at<u16>(rec, 0xe) = at<u16>(row, 0x14);       // mTargetObj2
+        at<u32>(rec, 0x10) = at<u32>(row, 0x18);      // mTargetStaffType
+        at<u32>(rec, 0x14) = at<u32>(row, 0x1c);      // mPrize
+        at<u32>(rec, 0x18) = at<u32>(row, 4);         // mDoubleOrNothingFollowup
+        at<u8>(rec, 0x1c) = at<u32>(row, 0x20) != 0;  // mCheckAtEndOnly
+        s32 slot = 0;
+        while (at<u32>(list, slot * 0x30) != 0) {
+            if (++slot >= 0x14) break;
+        }
+        if (slot >= 0x14) continue;
+        memcpy(list + slot * 0x30, rec, 0x30);
+    }
+    Challenges_DropOrphans(challenges);
+    BalanceChallenges_Dtor(file);
+}
 
 void __fastcall Challenges_DropOrphans(u8 *challenges) {
     u8 *const list = challenges + 0xc;
