@@ -1,7 +1,8 @@
 # The GUI library's registry of named windows (src/game/ui/windowreg: 0x6588b6, 0x659a58, 0x659b52, 0x659bc9, 0x659c42) against the
-# originals: a list at 0xfaa610 of 0-5 nodes (or none) whose hashes are mostly those of a few short names, their windows two objects with
-# a recorder vtable (slot 0x20 answering a value now and then) or 0; names of 0-15 characters (high bytes too) from the same few or random;
-# the heap now and then failing the node's allocation; Clear's word 0, 1, or set only in the high half.
+# originals: a list at 0xfaa610 of 0-5 nodes (or none) whose hashes are mostly those of a few short names (often the same three, so
+# that several nodes match), their windows two objects with a recorder vtable (slot 0x20 answering a value now and then) or 0; names
+# of 0-15 characters (high bytes too) from the same few or random; the heap now and then failing the node's allocation; Clear's word
+# 0, 1, or set only in the high half.
 # usage: windowreg.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Hash,Register,Clear,FindName,FindHash)
 import os
 import struct
@@ -26,7 +27,7 @@ def hash_(text, mul):
 
 def name(r):
     if r.random() < 0.7:
-        return r.choice(WORDS)
+        return r.choice(WORDS[:3] if r.random() < 0.5 else WORDS)
     return bytes(r.randrange(1, 256) for _ in range(r.choice([0, 1, 3, r.randrange(16)])))
 
 
@@ -39,7 +40,7 @@ def case(r):
     nodes = bytearray(r.bytes(0x18 * 5))
     for i in range(n):
         put(nodes, 0x18 * i, 'I', r.choice(WINS + WINS + [0]))
-        put(nodes, 0x18 * i + 0x10, 'I', hash_(r.choice(WORDS), 0x2f) if r.random() < 0.8 else r.getrandbits(32))
+        put(nodes, 0x18 * i + 0x10, 'I', hash_(r.choice(WORDS[:3] if r.random() < 0.5 else WORDS), 0x2f) if r.random() < 0.8 else r.getrandbits(32))
         put(nodes, 0x18 * i + 0x14, 'I', NODES + 0x18 * (i + 1) if i + 1 < n else 0)
     regions = {LOG: log, VTABLE: vtable({0: 1}), NODES: nodes, 0xfaa610: struct.pack('<I', NODES if n else 0),
                WINDOWS: b''.join(struct.pack('<I', VTABLE) + r.bytes(0x3c) for _ in WINS), NAME: name(r) + b'\0' + r.bytes(0x10)}
