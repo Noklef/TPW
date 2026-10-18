@@ -290,6 +290,7 @@
 #include "../game/render/lightsource.h"
 #include "../game/render/clipcodes.h"
 #include "../game/render/clipedge.h"
+#include "../game/render/clippoly.h"
 #include "../game/render/dxerrors.h"
 #include "../game/render/quad.h"
 #include "../game/render/viewport.h"
@@ -4122,6 +4123,8 @@ const Hook kHooks[] = {
     {"ClipEdge_Z0",               0x00562820, (void *)&ClipEdge_Z0, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
     {"ViewQuad_SetFov",           0x0056b790, (void *)&ViewQuad_SetFov, {0xd9, 0x44, 0x24, 0x04, 0xd8}},
     {"DepthSort_Triangles",       0x005653d0, (void *)&DepthSort_Triangles, {0x8b, 0x54, 0x24, 0x0c, 0x53}},
+    {"ClipPoly_Indexed",          0x00562c90, (void *)&ClipPoly_Indexed, {0x83, 0xec, 0x34, 0x8d, 0x44}},
+    {"ClipPoly_TriangleFan",      0x00562ed0, (void *)&ClipPoly_TriangleFan, {0x83, 0xec, 0x08, 0x8b, 0x44}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
