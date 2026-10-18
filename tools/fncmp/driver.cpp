@@ -254,7 +254,7 @@ const WrapSourcesEnv kWrapSourcesEnv = {&heap_alloc, &heap_free, reinterpret_cas
                                         reinterpret_cast<ZlibCodec *>((uintptr_t)0x00fa75fc)};
 
 // The recorders (tools/fncmp.py recorder(k, n)): thunks at kStubs + 0x1000 + 0x400 * n + 0x20 * k, thiscall with n stack arguments (popped by the thunk), that
-// log (k, n, this, the arguments) at kLog and return a hash of them. The log is a count, then 12 dwords an entry; room for 80.
+// log (k, n, this, the arguments) at kLog and return a hash of them, ECX left as this. The log is a count, then 12 dwords an entry; room for 80.
 const u32 kLog = kStubs + 0x100000;  // (the case maps it)
 constexpr u32 recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x400 * n + 0x20 * k; }
 
@@ -346,6 +346,8 @@ void map_recorders(u8 *page) {
             const u32 rel = (u32)(uintptr_t)&record_call - ((u32)(uintptr_t)at + sizeof head + 4);
             std::memcpy(at + sizeof head, &rel, 4);
             u8 *tail = at + sizeof head + 4;
+            tail[0] = 0x8b, tail[1] = 0x4c, tail[2] = 0x24, tail[3] = 0x08;  // mov ecx,[esp+8]: ECX left as this, as the emulator's recorders leave it
+            tail += 4;
             tail[0] = 0x83, tail[1] = 0xc4, tail[2] = 0x10;  // add esp,16
             if (n) {
                 tail[3] = 0xc2, tail[4] = (u8)(4 * n), tail[5] = 0;  // ret 4n
