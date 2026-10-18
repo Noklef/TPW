@@ -4,6 +4,7 @@
 
 #include "../core/indexed.h"
 #include "analysercell.h"
+#include "mapcell.h"
 #include "object.h"
 #include "objectdefs.h"
 #include "person.h"
@@ -512,6 +513,36 @@ u16 *__fastcall Cell_FirstObject(const u8 *cell, void *, u16 *out) {
             break;
         handle = at<u16>(thing, 0xa);
     }
+    *out = handle;
+    return out;
+}
+
+u16 *__cdecl Map_ObjectAtCell(u16 *out, s32 *x, s32 *y) {
+    if (!Map_InBounds(*x, *y)) {
+        *out = 0;
+        return out;
+    }
+    const u16 id = (u16)(((u32)*y << 7) + (u32)*x + 1);
+    u8 *const world = global<u8 *>(0x007cf83c);
+    const u8 *cell = world + (u32)id * 0x44 + 0x294;
+    const u32 type = at<u32>(cell, 8);
+    if (type != 4 && type != 9 && type != 0xa) {
+        *out = 0;
+        return out;
+    }
+    u16 where = id;
+    const u16 parent = at<u16>(cell, 0x10);
+    if (parent != id) {
+        where = parent;
+        cell = world + (u32)parent * 0x44 + 0x294;
+    }
+    u16 handle;
+    Cell_FirstObject(cell, nullptr, &handle);
+    if (handle != 0)
+        where = at<u16>(global<u8 *>(0x007cfb90 + 20 * (u32)handle), 0x34);
+    const u32 index = (u32)where - 1;
+    *x = (s32)(index & 0x7f);
+    *y = (s32)(index >> 7);
     *out = handle;
     return out;
 }

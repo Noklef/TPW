@@ -135,6 +135,12 @@ u16 *__fastcall Things_HeadForNearestFlag40(u8 *sprite, void *, u16 *out, u32 ra
 // 3 (an object; the byte at +2) in the cell's chain (the head word at +0x24, the links the words at +0xa of each); its handle to out, 0 for none. Returns out.
 u16 *__fastcall Cell_FirstObject(const u8 *cell, void *, u16 *out);
 
+// 0x527d60 (cdecl; out word, &x, &y; name unconfirmed; an assert on the thing table is left out): the object on a map cell. Outside the map
+// (Map_InBounds) or for a cell (of [0x7cf83c], id (y << 7) + x + 1 cut to 16 bits) not of type 4, 9 or 0xa: 0 to out, x and y left. Else from
+// the cell, or its parent (the word at +0x10) when that is another, Cell_FirstObject's handle goes to out, and x and y become the cell of that
+// object (its word at +0x34) or, with none, of the cell looked in: (id - 1) & 0x7f and (id - 1) >> 7. Returns out.
+u16 *__cdecl Map_ObjectAtCell(u16 *out, s32 *x, s32 *y);
+
 // 0x4824d0 (cdecl; category, previous; name unconfirmed): the next thing of a category (one bit) after the previous one (from the first when 0), each by
 // its own finder: 1 a staff member (Thing_IsStaff) in the in-use list (World_FirstThing / World_NextThing); 2, 4, 8, 0x10, 0x20 the next in a staff
 // list: the head (the handymen's word world +0x1da73c read inline, World_FirstMechanic, World_FirstGuard, World_FirstEntertainer,
