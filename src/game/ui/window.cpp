@@ -44,6 +44,19 @@ u32 __fastcall Window_ImplSlot6(u8 *window) {
     return reinterpret_cast<u32(__fastcall *)(u8 *, void *)>(at<void **>(impl, 0)[6])(impl, nullptr);
 }
 
+s32 __fastcall WindowImpl_Release(u8 *impl) {
+    at<s16>(impl, 0x12) = (s16)(at<s16>(impl, 0x12) - 1);
+    reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>(at<void **>(impl, 0)[5])(impl, nullptr, 0);
+    return (s32)at<s16>(impl, 0x12) - (1 - (s32)at<s16>(impl, 0x10));
+}
+
+u16 __fastcall Window_IsShown(u8 *window) {
+    u16 shown = 1;
+    for (u8 *w = window; w && shown; w = at<u8 *>(w, 0x60))
+        if (!(at<u32>(w, 0x48) & 1)) shown = 0;
+    return shown;
+}
+
 u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index) {
     const s32 i = static_cast<s16>(index);
     return i < 16 ? at<u32>(window, 0xa0 + 4 * i) : 0;

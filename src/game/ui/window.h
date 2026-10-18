@@ -25,6 +25,14 @@ u32 __fastcall Window_ImplSlot7(u8 *window, void *, u32 a, u32 b);
 // there is none (sic: EAX still holds it).
 u32 __fastcall Window_ImplSlot6(u8 *window);
 
+// 0x6616b0 (thiscall; name unconfirmed): a window's object (+0x98) let go: its word count +0x12 decremented, its slot 5 called with
+// (0), then the count less (1 - the word +0x10) (both signed) returned; -1 tells the caller to delete it.
+s32 __fastcall WindowImpl_Release(u8 *impl);
+
+// 0x65d773 (thiscall; name unconfirmed): 1 in AX when the window and every parent (+0x60) up the chain has flag 0 of +0x48, else 0
+// (1 for no window). Only AX is set.
+u16 __fastcall Window_IsShown(u8 *window);
+
 // 0x65e705 (thiscall (index: a word), pops 4; name unconfirmed): the dword +0xa0 + 4 * index (signed) for an index below 16, else 0.
 u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index);
 
