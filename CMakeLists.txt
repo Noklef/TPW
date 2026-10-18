@@ -298,6 +298,7 @@ add_library(tpw_game STATIC
     src/game/render/quad.cpp
     src/game/render/d3dprobe.cpp
     src/game/render/engineerrors.cpp
+    src/game/render/graphicssettings.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/online/itemlist.cpp
