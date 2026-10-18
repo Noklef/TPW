@@ -204,6 +204,44 @@ StdWString *__fastcall StdWStrings_UninitCopy(void *, void *, const StdWString *
         if (dest) StdWString_CtorCopy(dest, nullptr, first);
     return dest;
 }
+
+StdWString *__fastcall StdWString_AppendSub(StdWString *s, void *, const StdWString *x, u32 pos, u32 n) {
+    if (x->len < pos) StdStrings_Xran();
+    const u32 rest = x->len - pos;
+    if (rest < n) n = rest;
+    if (kNpos - s->len <= n) StdStrings_Xlen();
+    if (!n) return s;
+    const u32 total = s->len + n;
+    if (StdWString_Grow(s, nullptr, total, 0)) {  // (inlined)
+        const u16 *src = c_str(x) + pos;
+        for (u32 i = 0; i < n; ++i) s->ptr[s->len + i] = src[i];
+        s->len = total;
+        s->ptr[total] = 0;
+    }
+    return s;
+}
+
+StdWString *__fastcall StdWString_Erase(StdWString *s, void *, u32 pos, u32 n) {
+    erase(s, pos, n, true);
+    return s;
+}
+
+void __cdecl StdWString_Construct(StdWString *p, const StdWString *x) {
+    if (p) StdWString_CtorCopy(p, nullptr, x);
+}
+
+StdWString *__cdecl StdWStrings_Copy(const StdWString *first, const StdWString *last, StdWString *dest) {
+    for (; first != last; ++first, ++dest) StdWString_AssignSub(dest, nullptr, first, 0, kNpos);
+    return dest;
+}
+
+StdWString *__fastcall StdWStringVector_Erase(u8 *vector, void *, StdWString *first, const StdWString *last) {
+    StdWString *const end = *reinterpret_cast<StdWString **>(vector + 8);
+    StdWString *dest = StdWStrings_Copy(last, end, first);
+    for (StdWString *p = dest; p != end; ++p) tidy(p);
+    *reinterpret_cast<StdWString **>(vector + 8) = dest;
+    return first;
+}
 }
 
 // The second copy (_Nullstr 0x700624, npos 0x700628): its own helpers, as its code inlines them.

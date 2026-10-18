@@ -3972,6 +3972,11 @@ address,name,kind,confidence,notes
 0x0047ae60,StdWString_CtorCopy,function,low,"reimplemented (src/game/core/stdwstring); thiscall (x), pops 4: the copy constructor"
 0x0047af80,StdWString_CtorFill,function,low,"reimplemented (src/game/core/stdwstring); thiscall (n, ch, allocator), pops 12: n copies of ch"
 0x0047b600,StdWStrings_UninitCopy,function,low,"reimplemented (src/game/core/stdwstring); thiscall (first, last, dest), pops 12: _Ucopy"
+0x0047cc10,StdWString_AppendSub,function,low,"reimplemented (src/game/core/stdwstring); thiscall (x, pos, n), pops 12: append"
+0x0047b460,StdWString_Erase,function,low,"reimplemented (src/game/core/stdwstring); thiscall (pos, n), pops 8: erase"
+0x0047d9d0,StdWString_Construct,function,low,"reimplemented (src/game/core/stdwstring); cdecl (p, x): _Construct"
+0x0047d620,StdWStrings_Copy,function,low,"reimplemented (src/game/core/stdwstring); cdecl (first, last, dest): std::copy"
+0x0047b320,StdWStringVector_Erase,function,low,"reimplemented (src/game/core/stdwstring); thiscall (first, last), pops 8: vector erase"
 0x00405b90,GameError_IndexOfCode,function,low,reimplemented (src/game/core/gameerror); the error index of a library code
 0x00405710,GameError_Set,function,low,"reimplemented (src/game/core/gameerror); thiscall (index, arg, text), pops 12: +4 index, +8 arg, text strncpy into +0xc (0x50), +0 = 1"
 0x004ea740,CountedPair_CtorWide,function,low,"reimplemented (src/game/core/countedpair); thiscall (std::wstring by value, pops 16): the 0x24-byte pair of a narrow and a wide string and a dword: the narrow one empty, the wide one assigned the string, the dword 0; the string destroyed"

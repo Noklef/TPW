@@ -68,6 +68,25 @@ StdWString *__fastcall StdWString_CtorFill(StdWString *s, void *edx, u32 n, u32 
 // (CtorCopy, inlined) to the next 16 bytes from dest, unless dest is null (only skipped: the next is 0x10 on, sic). Returns the end.
 StdWString *__fastcall StdWStrings_UninitCopy(void *vector, void *edx, const StdWString *first, const StdWString *last, StdWString *dest);
 
+// 0x47cc10: append(const wstring &x, pos, n): x's characters from pos (past x's length: _Xran), at most n, after s's (n of npos less
+// s's length or more: _Xlen); _Grow(length, false) inlined. Returns s.
+StdWString *__fastcall StdWString_AppendSub(StdWString *s, void *edx, const StdWString *x, u32 pos, u32 n);
+
+// 0x47b460: erase(pos, n): (past the length: _Xran) s split, then at most n characters from pos removed. Returns s.
+StdWString *__fastcall StdWString_Erase(StdWString *s, void *edx, u32 pos, u32 n);
+
+// 0x47d9d0 (cdecl; p, x): std::_Construct: a copy of x made at p (CtorCopy, inlined) unless p is null.
+void __cdecl StdWString_Construct(StdWString *p, const StdWString *x);
+
+// 0x47d620 (cdecl; first, last, dest): std::copy: each string of [first, last) assigned (assign(x, 0, npos), inlined) to the next
+// from dest. Returns the end.
+StdWString *__cdecl StdWStrings_Copy(const StdWString *first, const StdWString *last, StdWString *dest);
+
+// 0x47b320 (thiscall on a vector<wstring> {allocator, first +4, last +8, end +0xc}; first, last, pops 8): erase(first, last): the
+// strings from last on assigned down from first (as StdWStrings_Copy), those after the new last released and emptied (_Tidy). Returns
+// first.
+StdWString *__fastcall StdWStringVector_Erase(u8 *vector, void *edx, StdWString *first, const StdWString *last);
+
 // The second copy (_Nullstr 0x700624):
 
 // 0x4f21d0: assign(const wstring &x, pos, n): x's characters from pos (past x's length: _Xran), at most n. Shares x's block (its count
