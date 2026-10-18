@@ -28,8 +28,9 @@ def move(r):   # 0x5ed660 (pool, jump, x, y, t): +0 the old position (x, y if ju
     index = r.choice([0, 1, 2, 3])
     regions = dict(c.regions)
     regions[0xf86900] = bytes(r.floats(bytearray(r.bytes(0x44 * 4 + 0x20)), range(0, 0x44 * 4, 4)))
-    t = r.choice([0, 0, 0x80000000, r.f(), r.f()])
-    return Call(0x5ed660, [index, r.choice([0, 1, r.getrandbits(32)]), r.f(), r.f(), t], regions, ret='v')
+    odd = lambda: r.choice([0x7fc00000, 0xffc00000, 0x7f800001, 0xff812345, 0x7f800000])  # noqa: E731   (NaNs quiet and signalling)
+    t = r.choice([0, 0, 0x80000000, odd(), r.f(), r.f()])
+    return Call(0x5ed660, [index, r.choice([0, 1, r.getrandbits(32)]), r.choice([r.f(), r.f(), odd()]), r.choice([r.f(), r.f(), odd()]), t], regions, ret='v')
 
 
 def case(r):
