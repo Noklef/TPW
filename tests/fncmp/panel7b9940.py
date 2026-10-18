@@ -3,18 +3,24 @@
 # [0x87a6d0] whose tag 0x20 list (+0x18) holds 0-4 nodes keyed by that base or not, its free list and count, the scene flags 0x8bd508.
 # Ctor (0x4855d0): a random object, complete (the real vbtables) or not (its +0 the real vbtable or one with other offsets, the
 # second base's now and then over the first's fields), the scene flags and the device generation 0x8bcc40.
-# usage: panel7b9940.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Detach,Jump,Ctor)
+# Close (0x48a290, and the jump 0x4813f0 to it): the same, with the ten 0x7c26b0 records, the released globals, the dialog [0x7ca098]
+# and the windows [0x7cb2ac] / [0x7cb2b0] each 0, a window (recorder vtable, closed or not, fncmp's logger the handler) or an object;
+# the message hook [0xfaa5fc] set or not.
+# usage: panel7b9940.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Detach,Jump,Ctor,Close,CloseJump)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, RAM, Bench, Call, log_region, put, set_return, vtable  # noqa: E402
+from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, log_region, put, set_return, vtable  # noqa: E402
 
-CALLS = {'Detach': 0x48a3d0, 'Jump': 0x481410, 'Ctor': 0x4855d0}
+CALLS = {'Detach': 0x48a3d0, 'Jump': 0x481410, 'Ctor': 0x4855d0, 'Close': 0x48a290, 'CloseJump': 0x4813f0}
 B = Bench([(0x481410, 0x481415), (0x48a3d0, 0x48a40a), (0x659607, 0x65961c), (0x576540, 0x5765d0), (0x4855d0, 0x4856bf),
-           (0x5836b0, 0x5836c2)])
+           (0x5836b0, 0x5836c2), (0x4813f0, 0x4813f5), (0x48a290, 0x48a310), (0x48ee20, 0x48ee4e), (0x498b90, 0x498ba2),
+           (0x4b3f20, 0x4b3f54), (0x497b60, 0x497b72), (0x48d990, 0x48d9b3), (0x4987d0, 0x4987e2), (0x658d9f, 0x658df4),
+           (0x659710, 0x659721), (0x65f697, 0x65f6d1), (0x48eaf0, 0x48eb20), (0x5da3c0, 0x5da3c1)])
 MANAGER, VTABLE, TABLE, RENDERER, NODES, SELF = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500
+WINDOW, WINDOW2, THING = RAM + 0x600, RAM + 0x800, RAM + 0xa00
 OBJECT = 0x7b9940
 
 
@@ -49,6 +55,24 @@ def case(r):
                0x77c48c: struct.pack('<II', MANAGER, MANAGER), TABLE: struct.pack('<II', r.getrandbits(32), d),
                OBJECT: put(bytearray(r.bytes(0x30)), 0, 'I', TABLE), RENDERER: renderer, NODES: nodes,
                0x87a6d0: struct.pack('<I', RENDERER), 0x8bd508: r.bytes(8)}
+    if op in ('Close', 'CloseJump'):   # the windows (+0 the recorder vtable, byte +4 the closed flag, +0x114 fncmp's logger) and the objects
+        regions[VTABLE] = vtable({2: 1})
+        for w in (WINDOW, WINDOW2):
+            win = bytearray(r.bytes(0x120))
+            put(win, 0, 'I', VTABLE)
+            win[4] = r.choice([0, 0, 1])
+            put(win, 0x114, 'I', CDECL_LOG4)
+            regions[w] = win
+        regions[THING] = put(bytearray(r.bytes(0x10)), 0, 'I', VTABLE)
+        some = [0, WINDOW, WINDOW2, THING]
+        for i in range(10):
+            regions[0x7c26b0 + 0x208 * i] = struct.pack('<IH', r.choice(some), r.choice([0, 0, 1, 0x100]))
+        for g in (0x7ca1e0, 0x7cc2fc, 0x7cc300, 0x7cc304, 0x7ca1bc, 0x7ca1c8, 0x7ca098, 0x7ca090, 0x7cb2ac, 0x7cb2b0):
+            regions[g] = struct.pack('<I', r.choice(some + [0]))
+        regions[0xfaa5fc] = struct.pack('<I', r.choice([0, CDECL_LOG4]))
+        if r.random() < 0.5:
+            set_return(log, 0x3d, r.getrandbits(32))
+        return Call(CALLS[op], [], regions, ret='v')
     return Call(CALLS[op], [], regions, ret='a')
 
 

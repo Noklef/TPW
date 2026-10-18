@@ -583,4 +583,6 @@ void __cdecl Wrap_StringList_Dtor_6d8990() {
 }
 
 u32 __cdecl Wrap_Panel7b9940_Detach_481410() { return Panel7b9940_Detach(); }
+
+void __cdecl Wrap_Panel7b9940_Close_4813f0() { Panel7b9940_Close(); }
 }  // extern "C"

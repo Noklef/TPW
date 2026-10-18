@@ -2,9 +2,12 @@
 
 #include <cstdint>
 
+#include "../core/vwrap.h"
 #include "../render/renderer.h"
 #include "../render/state.h"
+#include "dialogs.h"
 #include "guimanager.h"
+#include "window.h"
 
 namespace {
 
@@ -52,5 +55,21 @@ u32 __cdecl Panel7b9940_Detach() {
     const u8 *const table = global<const u8 *>(0x007b9940);
     const u32 base = 0x007b9940 + *reinterpret_cast<const u32 *>(table + 4);
     return Renderer_RemoveFromSlot(global<u8 *>(0x0087a6d0), nullptr, base, 0x20);
+}
+
+void __cdecl Panel7b9940_Close() {
+    Windows7c26b0_Message5();
+    const u8 *const table = global<const u8 *>(0x007b9940);
+    const u32 base = 0x007b9940 + *reinterpret_cast<const u32 *>(table + 4);
+    Renderer_RemoveFromSlot(global<u8 *>(0x0087a6d0), nullptr, base, 0x20);
+    GuiManager_CallSlot4();
+    Global7ca1e0_Release();
+    Globals7cc2fc_Release();
+    Global7ca1bc_Release();
+    Dialog7ca098_Message4IfUp();
+    Global7ca1c8_Release();
+    Window_SendMessage(global<u8 *>(0x007cb2ac), 4, 0, 0);
+    Window_SendMessage(global<u8 *>(0x007cb2b0), 4, 0, 0);
+    Table7c26b0_ReleaseIdle();
 }
 }

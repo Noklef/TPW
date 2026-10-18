@@ -1,6 +1,6 @@
 // The game object at 0x7b9940 (built by 0x4855d0): a renderable with a virtual base (its vtable pointer +0, the base's offset at the
 // vtable's +4) that the renderer holds in its tag 0x20 list while it is shown (0x48a410 adds it, 0x48a520 and 0x48a3d0 take it out).
-// Reimplementation of 0x4855d0 and 0x48a3d0. The names are unconfirmed.
+// Reimplementation of 0x4855d0, 0x48a290 and 0x48a3d0. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -18,5 +18,12 @@ u32 __cdecl Panel7b9940_Detach();
 // displacement (offset - 8) before it, and in the second base: +0x50 2, the scene flags touched (SceneFlags_Touch on 0x8bd508),
 // +0x2c and +0x30 0, +0x34 1.0f, touched again, +4..+0x10 1.0f and +0x54 -1. Returns the object.
 u8 *__fastcall Panel7b9940_Ctor(u8 *self, void *edx, u32 complete);
+
+// 0x48a290 (no arguments; also reached through the jump 0x4813f0, called with ECX 0x7b51f0 it ignores): the front end's panels closed:
+// message 5 to the windows of the 0x7c26b0 records (Windows7c26b0_Message5), the object's virtual base taken out of the renderer's tag
+// 0x20 list (as Panel7b9940_Detach, but before the GUI manager's slot 4), GuiManager_CallSlot4, the objects at 0x7ca1e0, 0x7cc2fc..0x7cc304
+// and 0x7ca1bc released, Dialog7ca098_Message4IfUp, the one at 0x7ca1c8 released, message 4 (0, 0) to the windows [0x7cb2ac] and
+// [0x7cb2b0], and the idle 0x7c26b0 records released (Table7c26b0_ReleaseIdle). The original ends in a jump to the empty 0x5da3c0.
+void __cdecl Panel7b9940_Close();
 
 }

@@ -407,4 +407,7 @@ void __cdecl Wrap_StringList_Dtor_6d8990();
 
 // 0x481410: jumps to Panel7b9940_Detach.
 u32 __cdecl Wrap_Panel7b9940_Detach_481410();
+
+// 0x4813f0: jumps to 0x48a290 (ui/panel7b9940).
+void __cdecl Wrap_Panel7b9940_Close_4813f0();
 }  // extern "C"
