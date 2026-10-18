@@ -1,4 +1,4 @@
-// A run-length image's scaled draw (0x564790, reached through the virtual base thunk 0x564b00): reimplementation. The image's fields lie before the
+// A run-length image's scaled draw (0x564790, reached through the virtual base thunk 0x564b00) and constructor (0x5646c0): reimplementation. The image's fields lie before the
 // pointer the thunk hands over: -0x14 its rows of codes, -0x10 its palette, -0xc its width, -8 its height.
 #pragma once
 
@@ -16,7 +16,7 @@ extern "C" {
 // 16 bits. (A row wider than the local overruns it, sic.) Returns 1.
 u32 __fastcall RleImage_DrawScaled(const u8 *image, void *, const u32 *dest);
 
-// The image object itself (constructed by Obj_CtorVirtual5646c0, core/misc): +0 its virtual base table (0x701188), +4 its codes (a tracked
+// The image object itself (constructed by Obj_CtorVirtual5646c0, below): +0 its virtual base table (0x701188), +4 its codes (a tracked
 // global block), +8 its palette, +0xc its width, +0x10 its height, the part at +0x18 (vtable 0x701178) and the virtual base (vtable 0x701168).
 
 // 0x564750 (thiscall; stream, size, pops 8; name unconfirmed): +4 = a tracked block of size bytes (TrackedGlobal_Alloc); 0 when that failed, else
@@ -27,4 +27,10 @@ u32 __fastcall RleImage_ReadCodes(u8 *image, void *, u8 *stream, u32 size);
 // vtable 0x701168 and the dword before it (its offset - 0x18) set back, the codes (when set) freed (TrackedGlobal_Free) and cleared, +0x10 and +0xc
 // cleared, the part's vtable 0x701178; the image freed (GameHeap_Free) when bit 0 of the flags is set. Returns the image.
 u8 *__fastcall RleImage_DeletingDtor(u8 *part, void *, u32 flags);
+
+// 0x5646c0 (thiscall; mostDerived, pops 4): a class with a virtual base like 0x458310. When most derived:
+// vtable 0x701188 and the part at +0x18 gets vtable 0x701178. Always: the virtual base (the vtable's
+// +4) gets vtable 0x701168, the dword before it = its offset - 0x18, and +4, +8, +0xc and +0x10 = 0.
+// Returns the object.
+u8 *__fastcall Obj_CtorVirtual5646c0(u8 *object, void *, u32 mostDerived);
 }

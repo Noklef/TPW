@@ -3,8 +3,8 @@
 # (0x8bd554 indexing pixel sizes 2, 4 and 3 at 0x701158), and destinations the same size or narrower, wider, shorter and taller, with a pitch that
 # fits the row, exceeds it or is 0. The codes' read (0x564750: the tracked blocks' table as in trackedglobal.py, GlobalAlloc failing now and then,
 # a recorder stream) and the deleting destructor (0x564a90 on the part at +0x18: virtual base offsets 0x18 and others, codes tracked, untracked or
-# none, flags with and without bit 0).
-# usage: rleimage.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Draw,Read,Dtor)
+# none, flags with and without bit 0); the constructor (0x5646c0: most derived or not, virtual base offsets 0x18 and others).
+# usage: rleimage.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Draw,Read,Dtor,Ctor)
 import os
 import struct
 import sys
@@ -12,7 +12,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, LOG, Bench, Call, RAM, global_heap, heap, log_region, put, vtable  # noqa: E402
 
-B = Bench([(0x564790, 0x564a45), (0x5da3c0, 0x5da3c1), (0x564750, 0x564790), (0x564a90, 0x564af0), (0x579b40, 0x579c13), (0x5c4f60, 0x5c4f7c)])
+B = Bench([(0x564790, 0x564a45), (0x5da3c0, 0x5da3c1), (0x564750, 0x564790), (0x564a90, 0x564af0), (0x579b40, 0x579c13), (0x5c4f60, 0x5c4f7c), (0x5646c0, 0x564708)])
 OBJ, CODES, PALETTE, DEST, OUT = RAM, RAM + 0x100, RAM + 0x2000, RAM + 0x3000, RAM + 0x4000
 
 
@@ -88,11 +88,18 @@ def dtor(r):
     return Call(0x564a90, [image + 0x18, flags], regions, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Draw,Read,Dtor').split(',') if k]
+def ctor(r):
+    obj = bytearray(r.bytes(0x400))
+    put(obj, 0, 'I', RAM + 0x300)  # the vtable it starts with (when not most derived): +4 the virtual base offset
+    put(obj, 0x304, 'I', r.choice([0x18, 0x18, 0x1c, 0x20]))
+    return Call(0x5646c0, [RAM, r.choice([0, 1, 1])], {RAM: obj}, conv='t', ret='a')
+
+
+OPS = [k for k in os.environ.get('OPS', 'Draw,Read,Dtor,Ctor').split(',') if k]
 
 
 def case(r):
-    return {'Draw': draw, 'Read': read, 'Dtor': dtor}[r.deal(OPS)](r)
+    return {'Draw': draw, 'Read': read, 'Dtor': dtor, 'Ctor': ctor}[r.deal(OPS)](r)
 
 
 if __name__ == '__main__':
