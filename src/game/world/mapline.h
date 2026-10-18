@@ -39,4 +39,11 @@ extern "C" {
 u32 __cdecl Map_ApplyLine(u32 arg, s32 x, s32 y, s32 *xEnd, s32 *yEnd);
 // 0x539220 (thiscall on the cell; kind, step, pops 12): see above.
 void __fastcall MapLine_LinkCell(u8 *cell, void *, u32 kind, s32 stepX, s32 stepY);
+
+// 0x523230 (cdecl; x, y; name unconfirmed): three lines over a path cell and its run. The cell at (x, y) and its entry as MapCell_PathNudge's
+// (for an entry of type 0xc or 0x11 the parent's, x and y then the parent cell's (u16 +0 - 1) & 0x7f and >> 7). With flag 0x10 on the entry,
+// each matching entry two cells away (as MapCell_PathNudge's; north, east, south, west in turn, a later one overriding) sets the end's offset:
+// y -2, x +2, y +2, x -2. The start and the end are then each pushed two cells further apart on each axis where they differ, and
+// Map_ApplyLine runs from the start to the end with 0x85, 0x86 and 0x81 (the ends as the lines leave them); the last one's answer.
+u32 __cdecl MapCell_PathLines(s32 x, s32 y);
 }
