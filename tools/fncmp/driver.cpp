@@ -29,6 +29,7 @@
 #include "../../src/game/core/cpuinfo.h"
 #include "../../src/game/core/gameheap.h"
 #include "../../src/game/core/ptrlist.h"
+#include "../../src/game/core/regkey.h"
 #include "../../src/game/core/stdstring.h"
 #include "../../src/game/core/textarg.h"
 #include "../../src/game/files/bufsource.h"
@@ -612,6 +613,15 @@ int main(int argc, char **argv) {
     Drives_SetEnv(&drives);
     static const CpuInfoEnv cpu = {&stub_has_cpuid, &stub_cpuid};  // the case's fake CPU, as the emulator's
     CpuInfo_SetEnv(&cpu);
+    // The registry key's constructor (0x581da0) resolved to its hook; the registry imports stay the import table's slots, which a case maps
+    // (import_table(): recorders).
+    static const RegKeyEnv regKey = {reinterpret_cast<void(__fastcall *)(RegKey *)>(hooked(0x00581da0)),
+                                     reinterpret_cast<s32(__stdcall *const *)(u32)>((uintptr_t)0x006fd000),
+                                     reinterpret_cast<s32(__stdcall *const *)(u32, const char *, u32 *)>((uintptr_t)0x006fd004),
+                                     reinterpret_cast<s32(__stdcall *const *)(u32, const char *, u32 *, u32 *, void *, u32 *)>((uintptr_t)0x006fd008),
+                                     reinterpret_cast<s32(__stdcall *const *)(u32, const char *, u32, char *, u32, u32, void *, u32 *, u32 *)>((uintptr_t)0x006fd00c),
+                                     reinterpret_cast<const char *>((uintptr_t)0x00775748)};
+    RegKey_SetEnv(&regKey);
     // Game code a port calls directly that is not hooked (yet): a recorder, as the bench's hooks= has it in the emulator.
     static const MapLineEnv mapLine = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32, s32, s32)>((uintptr_t)recorder(20, 3))};  // 0x5370e0: tests/fncmp/mapline.py
     MapLine_SetEnv(&mapLine);
