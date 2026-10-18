@@ -10,6 +10,8 @@
 # (0x65db25, 0x6589f9): a tree of 1-7 windows with real GUI rectangles (the driver resolves vtable 0x705920 to the ports), points near
 # them or anywhere (upper halves random), the root, the hovered window and the queues set or not. ImplRelease / IsShown / OffsetByParents
 # (0x6616b0, 0x65d773, 0x65c979): recorder objects, chains of 0-4 windows by +0x60. RectAssign / SaveRect (0x65aa20, 0x65bc90): random.
+# Ctor (0x65bcad): a random window built with a parent from a tree (its +0x60 chain and word +0xe0 near 0x100) or none, flags 0x400 and 1
+# set or not, words edges or near (upper halves random); the root the new window, the tree's or none, the queues as above.
 # usage: window.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FindChild,SetChecks,SetChecksIfUp)
 import os
 import struct
@@ -29,7 +31,8 @@ CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50
          'Windows7cc8bc_Message6Pair': 0x4bcef0, 'ImplSlot7': 0x65d6db, 'ImplSlot6': 0x65d745, 'DwordA0': 0x65e705,
          'PostMessage': 0x658ccc, 'Dialog7cb2b8_Child21Post': 0x4a2590,
          'HitTest': 0x65db25, 'UpdateHover': 0x6589f9, 'ImplRelease': 0x6616b0, 'IsShown': 0x65d773,
-         'RectAssign': 0x65aa20, 'SaveRect': 0x65bc90, 'OffsetByParents': 0x65c979}
+         'RectAssign': 0x65aa20, 'SaveRect': 0x65bc90, 'OffsetByParents': 0x65c979,
+         'Ctor': 0x65bcad}
 SENDS = {k: int(k[6:12], 16) for k in CALLS if k.startswith('Dialog7')}   # the window's global
 B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6d1), (0x658d9f, 0x658df4), (0x659710, 0x659721),
            (0x4b87f0, 0x4b8850), (0x4b8e80, 0x4b8ea0), (0x4b8ec0, 0x4b8ee0), (0x4b9c00, 0x4b9c40),
@@ -40,7 +43,8 @@ B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x
            (0x658ccc, 0x658d9f), (0x6697e3, 0x6698a4), (0x4a2590, 0x4a25e5),
            (0x65db25, 0x65dbee), (0x6589f9, 0x658aab), (0x659e83, 0x659ee2),
            (0x6616b0, 0x6616f1), (0x65d773, 0x65d7bc),
-           (0x65aa20, 0x65aa90), (0x65bc90, 0x65bcad), (0x65c979, 0x65c9bd)])
+           (0x65aa20, 0x65aa90), (0x65bc90, 0x65bcad), (0x65c979, 0x65c9bd),
+           (0x65bcad, 0x65c025), (0x659d00, 0x659d43), (0x65a9d0, 0x65aa00), (0x65a3e9, 0x65a43e), (0x67fff0, 0x680048)])
 WINDOW, NODES, VTABLE, MISC, KIDS, HOLDER, WINDOW2 = RAM, RAM + 0x100, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200, RAM + 0x1600, RAM + 0x1800
 QUEUES, TREE, RECTS = RAM + 0x2000, RAM + 0x3000, RAM + 0x4000
 NODE = 0x90
@@ -171,6 +175,25 @@ def case(r):
         regions[MISC] = struct.pack('<I', VTABLE) + r.bytes(0xc)
         regions[VTABLE] = vtable({2: 2})
         return Call(CALLS[op], [WINDOW, MISC], regions, conv='t', ret='a')
+    if op == 'Ctor':
+        wins = tree(r, regions)
+        for i, w in enumerate(wins):
+            put(regions[w], 0x60, 'I', r.choice([wins[i - 1], 0]) if i else 0)
+            put(regions[w], 0xe0, 'H', r.choice([0, 1, 0xfe, 0xff, 0x100, 0x7fff, 0x8000, 0xffff, r.getrandbits(16)]))
+        regions[WINDOW2] = r.bytes(0x140)
+        queues(r, regions)
+        words = []
+        for _ in range(4):
+            w = r.choice([r.randrange(-40, 60) & 0xffff] * 4 + [0, 0x7fff, 0x8000, 0xffff, r.getrandbits(16)])
+            words.append(w | (r.getrandbits(16) << 16 if r.random() < 0.5 else 0))
+        x, y = point(r, regions, wins)
+        if r.random() < 0.4:
+            x, y = words[0] + r.randrange(-2, 30), words[1] + r.randrange(-2, 30)
+        regions[0xfaa540] = struct.pack('<II', x & 0xffffffff, y & 0xffffffff)
+        regions[0xfaa5d8] = struct.pack('<5I', r.choice([wins[0], WINDOW2, WINDOW2, 0]), r.getrandbits(32), r.choice(wins + [0, 0]),
+                                        r.getrandbits(32), r.choice([0] * 6 + [1]))
+        flags = r.choice([1, 0x401, 0x400, 0, 0x10000001, r.getrandbits(32)]) | (r.getrandbits(32) & 0x0ffff800 if r.random() < 0.3 else 0)
+        return Call(CALLS[op], [WINDOW2, r.choice(wins + [0, 0]), flags, r.getrandbits(32)] + words, regions, conv='t', ret='a')
     if op == 'HitTest':
         wins = tree(r, regions)
         return Call(CALLS[op], [r.choice(wins[:1] * 3 + wins)] + list(point(r, regions, wins)), regions, conv='t', ret='a')

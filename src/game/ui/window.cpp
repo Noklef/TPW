@@ -1,6 +1,8 @@
 #include "window.h"
 
 #include <cstdint>
+#include <cstring>
+#include <initializer_list>
 
 #include "../core/accessors.h"
 #include "guirect.h"
@@ -69,6 +71,61 @@ u8 *__fastcall Window_OffsetByParents(u8 *window, void *, u8 *rect) {
         previous = p;
     }
     return previous;
+}
+
+u8 *__fastcall Window_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom) {
+    for (u32 off = 8; off <= 0x38; off += 0xc)
+        GuiRect_Ctor(window + off);
+    at<u32>(window, 0) = 0x705980;
+    window[4] = 0;
+    at<u32>(window, 0x48) = flags;
+    at<u32>(window, 0x114) = 0x65f6d1;
+    at<u32>(window, 0x118) = 0x65f6d1;
+    at<u8 *>(window, 0x60) = parent;
+    for (const u32 off : {0x54u, 0x5cu, 0x58u, 0x64u, 0x68u, 0xe8u})
+        at<u32>(window, off) = 0;
+    window[0x135] = 0;
+    for (const u32 off : {0xecu, 0xfeu, 0xfcu, 0xfau, 0xf8u})
+        at<u16>(window, off) = 0;
+    at<u32>(window, 0x100) = 0;
+    at<s32>(window, 0x90) = -1;
+    at<s32>(window, 0x94) = -1;
+    for (u32 i = 0; i < 4; ++i)
+        at<u32>(window, 0x120 + 4 * i) = 0;
+    window[0x134] = 0;
+    at<u32>(window, 0x130) = 0;
+    at<u16>(window, 0x50) = 0xffff;
+    at<u32>(window, 0x8c) = id;
+    at<u32>(window, 0x11c) = 0;
+    at<u16>(window, 0xc) = (u16)left;
+    at<u16>(window, 0xe) = (u16)top;
+    at<u16>(window, 0x10) = (u16)right;
+    at<u16>(window, 0x12) = (u16)bottom;
+    if ((flags & 0x400) == 0x400) Window_OffsetByParents(window, nullptr, window + 8);
+    Window_SaveRect(window);
+    *reinterpret_cast<u8 **>((uintptr_t)0x00faa5e4) = window;
+    at<u32>(window, 0x4c) = 0;
+    at<u32>(window, 0x98) = 0;
+    at<u32>(window, 0x9c) = 0;
+    at<u8 *>(window, 0x44) = window + 8;
+    GuiRect_Assign(window + 0x14, nullptr, window + 8);
+    if (parent) {
+        at<s16>(window, 0xe0) = (s16)(at<s16>(parent, 0xe0) + 2);
+        at<u16>(window, 0xe4) = at<u16>(parent, 0xe4);
+        at<u16>(window, 0xe6) = at<u16>(parent, 0xe6);
+    } else {
+        at<s16>(window, 0xe0) = 1;
+        at<u16>(window, 0xe4) = (u16)left;    // sic: both overwritten below
+        at<u16>(window, 0xe6) = (u16)bottom;
+    }
+    at<u16>(window, 0xe4) = (u16)((s16)left + (((s32)(s16)right - (s16)left) >> 1));
+    at<u16>(window, 0xe6) = (u16)((s16)top + (((s32)(s16)bottom - (s16)top) >> 1));
+    if (at<s16>(window, 0xe0) > 0x100) at<s16>(window, 0xe0) = 0x100;
+    at<u16>(window, 0xe2) = 0;
+    std::memset(window + 0xa0, 0, 0x40);
+    if (flags & 1) Window_UpdateHover();
+    Window_PostMessage(window, 0x15, 0, 0);
+    return window;
 }
 
 u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index) {

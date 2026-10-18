@@ -41,6 +41,15 @@ u8 *__fastcall Window_SaveRect(u8 *window);
 // previous one's, the window's at first, for the second). EAX is left as the last parent, or the window when there is none.
 u8 *__fastcall Window_OffsetByParents(u8 *window, void *, u8 *rect);
 
+// 0x65bcad (thiscall (parent, flags, id, left, top, right, bottom: words), pops 28; name unconfirmed): the constructor: five rectangles
+// (+8, +0x14, +0x20, +0x2c, +0x38; GuiRect_Ctor), the vtable 0x705980, the flags at +0x48, the parent at +0x60, the id at +0x8c, the
+// handlers +0x114 / +0x118 0x65f6d1 and most fields cleared (+0x90 / +0x94 -1, the word +0x50 0xffff). The rectangle +8 is set from the
+// four words (offset by the parents when flag 0x400 is set: Window_OffsetByParents), saved to +0x2c (Window_SaveRect) and +0x14, and +0x44
+// points to it; [0xfaa5e4] becomes the window. The depth word +0xe0 is the parent's + 2 (1 with none, at most 0x100); +0xe4 / +0xe6 the
+// rectangle's centre from the words (sic: the parent's, or left and bottom, are stored first and overwritten). +0xa0 cleared for 0x40 bytes;
+// with flag 1 the hover is updated (Window_UpdateHover); then the window is posted 0x15 (0, 0). Returns the window.
+u8 *__fastcall Window_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom);
+
 // 0x65e705 (thiscall (index: a word), pops 4; name unconfirmed): the dword +0xa0 + 4 * index (signed) for an index below 16, else 0.
 u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index);
 
