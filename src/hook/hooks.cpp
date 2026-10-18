@@ -312,6 +312,7 @@
 #include "../game/ui/panel7b9940.h"
 #include "../game/ui/textpool.h"
 #include "../game/ui/window.h"
+#include "../game/ui/windowreg.h"
 
 namespace tpw::hook {
 
@@ -4243,6 +4244,9 @@ const Hook kHooks[] = {
     {"GuiTimers_Free",            0x00669c62, (void *)&GuiTimers_Free, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiTimers_Init",            0x00669efb, (void *)&GuiTimers_Init, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Panel7b9940_Detach",        0x0048a3d0, (void *)&Panel7b9940_Detach, {0xe8, 0x32, 0xf2, 0x1c, 0x00}},
+    {"GuiWindows_FindByHash",     0x00659c42, (void *)&GuiWindows_FindByHash, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiWindows_FindByName",     0x00659bc9, (void *)&GuiWindows_FindByName, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Gui_HashName",              0x006588b6, (void *)&Gui_HashName, {0x55, 0x8b, 0xec, 0x51, 0xc7}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
