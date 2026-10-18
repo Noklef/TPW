@@ -3,8 +3,9 @@
 # of 0-4 textures (as texturemem.py: flags, cache items, tracked blocks), the u16 count at +0x16 the array's, fewer, 0 or more than there
 # are (reading on into the array's tail), pixels at +4 or none; frames with or without an image, their sizes the ones given (as s16, or
 # only by the low words) or not; frame sets with or without a texture array, 0-3 images (the set's count theirs, fewer, one more, 0 or
-# negative) and a tracked block or none.
-# usage: spritetextures.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Free,FreeIfSet,Release,Dtor,FramesFree,SetSize,SetSize30)
+# negative) and a tracked block or none. Also the renderer part's thunks to 0x588c20 for its image at +0x9c (0x48f3c0, 0x48f410).
+# usage: spritetextures.py [CASES [SEED]] [--wild|--both] [--show N]
+#        (env OPS=Free,FreeIfSet,Release,Dtor,FramesFree,SetSize,SetSize30,PartFree,PartFree2)
 import os
 import struct
 import sys
@@ -15,8 +16,8 @@ import texturemem  # noqa: E402
 from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put  # noqa: E402
 
 CALLS = {'Free': 0x588ba0, 'FreeIfSet': 0x588c20, 'Release': 0x588ca0, 'Dtor': 0x588350, 'FramesFree': 0x588230, 'SetSize': 0x588d90,
-         'SetSize30': 0x588e40}
-B = Bench([(0x588ba0, 0x588d6e), (0x588d90, 0x588ee8), (0x588230, 0x5882d4), (0x588350, 0x588410), (0x590a70, 0x590a75),
+         'SetSize30': 0x588e40, 'PartFree': 0x48f3c0, 'PartFree2': 0x48f410}
+B = Bench([(0x48f3c0, 0x48f3ce), (0x48f410, 0x48f41c), (0x588ba0, 0x588d6e),(0x588d90, 0x588ee8), (0x588230, 0x5882d4), (0x588350, 0x588410), (0x590a70, 0x590a75),
            (0x590b90, 0x590c39), (0x579b40, 0x579c13), (0x58dc50, 0x58dd5e), (0x67afa0, 0x67b0d0), (0x67acb0, 0x67acb1)])
 FRAME, IMAGE, ARRAY, IMAGES = RAM + 0x4000, RAM + 0x4100, RAM + 0x5000, RAM + 0x6000   # (the textures' own regions below RAM + 0x4000)
 SIZES = [0, 1, 5, 0x40, 0x7fff, 0x8000, 0xffff, 0x10005, 0xffff8000, 0xffffffff]
@@ -65,6 +66,10 @@ def case(r):
     image(r, regions)
     if name in ('Free', 'FreeIfSet', 'Release', 'Dtor'):
         return Call(CALLS[name], [IMAGE], regions, conv='t', ret='v' if name == 'Dtor' else 'a')
+    if name == 'PartFree':   # (the renderer part 0x6ff2d8 with its image at +0x9c; one unused argument)
+        return Call(CALLS[name], [IMAGE - 0x9c, r.getrandbits(32)], regions, conv='t', ret='a')
+    if name == 'PartFree2':
+        return Call(CALLS[name], [IMAGE - 0x9c], regions, conv='t', ret='a')
     frame = bytearray(r.bytes(0x48))
     put(frame, 0x28, 'I', IMAGE if r.random() < 0.85 else 0)
     w, h = r.choice(SIZES), r.choice(SIZES)

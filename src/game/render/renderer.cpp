@@ -7,6 +7,7 @@
 #include "../core/vcall.h"
 #include "../core/vobj3.h"
 #include "../gfx/array3d.h"
+#include "../gfx/spriteframe.h"
 
 namespace {
 
@@ -261,5 +262,13 @@ void __fastcall Obj_SetRendererPart30(u8 *object, void *, u32 value) {
         Renderer_RemoveFromSlot(global<u8 *>(0x0087a6d0), nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(part)), 0x30);
     }
     at<u16>(object, 8) = id;
+}
+
+u32 __fastcall RendererPart_FreeTextures(u8 *object, void *, u32) {
+    return SpriteImage_FreeTexturesIfSet(object + 0x9c);
+}
+
+u32 __fastcall RendererPart_FreeTextures2(u8 *object) {
+    return SpriteImage_FreeTexturesIfSet(object + 0x9c);
 }
 }
