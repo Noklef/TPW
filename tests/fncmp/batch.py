@@ -1,8 +1,10 @@
 # Starting a draw batch (src/game/render/batch: 0x565240) against the original, over the draw buffer
 # of tests/fncmp/drawbuffer.py (streams, batch slots in and around the table): modes with and
 # without 2 and 4, masks that meet the flags or not, the scene flag set or not, the primitive kinds
-# 0xc4, 0x1c4, 0x2c4, 0x3c4 and others.
-# usage: batch.py [CASES [SEED]] [--wild|--both] [--show N]
+# 0xc4, 0x1c4, 0x2c4, 0x3c4 and others. A model's material batch (0x581880) over the same buffer, the batch object at [0x879ab0]: settings
+# flags with and without 0xc0000 and 0x2000000, material entries 0-3 with a material or none, a texture set or none, the texture's index
+# used or not (0x8bd550), textures 0 or with flags 0x400, 0x1000 and others, +0x3c 0 or not (as texformat.py's driver flags cases).
+# usage: batch.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Begin,Model)
 import os
 import struct
 import sys
@@ -10,11 +12,12 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x565240, 0x56530d), (0x582640, 0x582804)])
+B = Bench([(0x565240, 0x56530d), (0x582640, 0x582804), (0x581880, 0x5819fd), (0x575f90, 0x575f9d), (0x5911d0, 0x591210), (0x581790, 0x581880),
+           (0x590c40, 0x590ca8), (0x590fb0, 0x590fcb)])
 BUF, BATCHES, OBJECT = RAM + 0x20, RAM + 0x100, RAM + 0x1000
 
 
-def case(r):
+def buffer(r):
     mem = bytearray(r.bytes(0x100 + 16 * 0x38))
     b = 0x20
     put(mem, b + 0, 'I', r.choice([0, 1, 2, 3, 4, 5, 6, 7, r.getrandbits(32)]))
@@ -30,12 +33,56 @@ def case(r):
     put(obj, 0xc, 'I', r.choice([0, 0xffffffff, r.getrandbits(32)]))
     scene = bytearray(r.bytes(0x20))
     put(scene, 8, 'I', r.choice([0, 0x4000000, r.getrandbits(32)]))
-    regions = {RAM: mem, OBJECT: obj, 0x8bcbc0: put(bytearray(r.bytes(8)), 4, 'I', BUF), 0x8bd500: scene}
+    regions = {RAM: mem, OBJECT: obj, 0x8bcbc0: put(bytearray(r.bytes(0x10)), 4, 'I', BUF), 0x8bd500: scene}
+    return regions
+
+
+MODEL, SETTINGS, ENTRIES, MATERIAL, SET, TEXTURES, TEXTURE = (RAM + 0x2000 + 0x100 * k for k in range(7))
+
+
+def model(r):
+    regions = buffer(r)
+    scene = bytearray(regions[0x8bd500]) + r.bytes(0x40)
+    put(scene, 0x50, 'B', r.choice([0, 0x40, r.getrandbits(8)]))   # (0x8bd550)
+    put(scene, 0x24, 'I', r.choice([1, 1, 0, 4]))   # (0x8bd524, as texformat.py)
+    regions[0x8bd500] = scene
+    regions[0x879ab0] = struct.pack('<I', OBJECT)
+    m = bytearray(r.bytes(0x10))
+    put(m, 4, 'I', SETTINGS)
+    regions[MODEL] = m
+    settings = bytearray(r.bytes(0x70))
+    put(settings, 0, 'I', r.getrandbits(32) & r.choice([0, 0xc0000, 0x2000000, 0x40000, 0xffffffff]))
+    put(settings, 0x6c, 'I', ENTRIES)
+    regions[SETTINGS] = settings
+    entries = bytearray(r.bytes(0x40))
+    for k in range(4):
+        put(entries, 0x10 * k, 'I', r.choice([MATERIAL, MATERIAL, MATERIAL, 0]))
+    regions[ENTRIES] = entries
+    material = bytearray(r.bytes(8))
+    put(material, 2, 'H', r.randrange(4))
+    put(material, 4, 'I', r.choice([SET, SET, SET, 0]))
+    regions[MATERIAL] = material
+    regions[SET] = put(bytearray(r.bytes(0x10)), 8, 'I', TEXTURES)
+    regions[TEXTURES] = b''.join(struct.pack('<I', r.choice([TEXTURE, TEXTURE, 0])) for _ in range(4))
+    t = bytearray(r.bytes(0x60))
+    put(t, 8, 'I', r.getrandbits(32) & r.choice([0, 0x400, 0x1000, 0x1400, 0x30000, 0x100000, 0xffffffff]))
+    put(t, 0x3c, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
+    regions[TEXTURE] = t
+    regions[RAM + 0x2800] = r.bytes(4)
+    return Call(0x581880, [MODEL, r.randrange(4), RAM + 0x2800], regions, conv='t', ret='a')
+
+
+def case(r):
+    if r.deal(OPS) == 'Model':
+        return model(r)
+    regions = buffer(r)
     mode = r.choice([0, 1, 2, 3, 4, 6, r.getrandbits(32)])
     kind = r.choice([0xc4, 0x1c4, 0x2c4, 0x3c4, 0, 0x1c3, 0x1c5, 0x4c4, 0xffffffc4, r.getrandbits(32)])
     flags = r.choice([0, 1, 0xff, 0xffffffff, r.getrandbits(32)])
     return Call(0x565240, [OBJECT, mode, r.getrandbits(32), kind, flags, r.getrandbits(32)], regions, conv='t', ret='a')
 
+
+OPS = [k for k in os.environ.get('OPS', 'Begin,Model').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
