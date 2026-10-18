@@ -1,5 +1,5 @@
 // The objects (thing model 3: rides, shops, facilities; serialized at 0x4db7d0): reimplementation
-// of 0x4dd4e0, 0x4dd670, 0x4e1670, 0x4e1690, 0x4e1e00, 0x4e2190, 0x4e21c0, 0x4e2290, 0x4e2400, 0x4e2710 and 0x4e2b50 (thiscall).
+// of 0x4dd4e0, 0x4dd670, 0x4e01f0, 0x4e1670, 0x4e1690, 0x4e1c60, 0x4e1e00, 0x4e2190, 0x4e21c0, 0x4e2290, 0x4e2400, 0x4e2710 and 0x4e2b50 (thiscall).
 // +0xe the definition's id; +0x18c mQualityOfGoods, +0x190 mChanceOfWinning; +0x1a0 mNumCustomers,
 // +0x1a4 mNumWalkAways, and their histories, CircBufU32s of 30 at +0x1a8 and +0x230 (mTemp first,
 // the count so far); +0x340 a running average of the customers' happiness changes.
@@ -65,6 +65,14 @@ u32 __fastcall Obj_HasActivity(const u8 *object);
 // [0x80239c]) is past the stamp at +0x60 plus 100 the handle is kept only if the thing it names (the table at 0x7cfb90) passes Person_HasWord (world/person) with
 // this object's own handle (the word at +0); otherwise +0x5e and +0x60 are cleared and 0 is stored. Returns out.
 u16 *__fastcall Obj_GetTrackedHandle(u8 *object, void *, u16 *out);
+
+// 0x4e01f0 (thiscall; word, pops 4; the mechanic's 0x4da490 and 0x4d7a50 call it with a thing's handle): the tracked handle (the word at
+// +0x5e that Obj_GetTrackedHandle reads) = word and its stamp, the dword +0x60, = the dword at +0x1da70c of the object at [0x80239c] (the
+// world's clock); returns that dword.
+u32 __fastcall Obj_StampAt5e(u8 *object, void *, u32 word);
+
+// 0x4e1c60 (thiscall): the dword at +0x180 minus the one at +0x184.
+u32 __fastcall Obj_Diff180_184(const u8 *object);
 
 // 0x4e0370: 1 when the dword at 0x19c is 0x1, else 0.
 u32 __fastcall Is19c_Eq1_4e0370(const u8 *o);

@@ -2710,7 +2710,7 @@ address,name,kind,confidence,notes
 0x006d6c50,Init_6d6c50,function,high,"reimplemented (src/game/core/initializers); sets +0x4, +0x8, +0xc, +0x10, +0x0; returns the object"
 0x00424ed0,Dword_ClearBit0,function,high,reimplemented (src/game/core/misc); bit 0 of the dword cleared; returns 1
 0x004922d0,Obj_Clear18_0c,function,high,reimplemented (src/game/frontend/helpbg); +0x18 and the word +0xc cleared
-0x004e1c60,Obj_Diff180_184,function,high,reimplemented (src/game/core/misc); the dword at +0x180 minus the one at +0x184
+0x004e1c60,Obj_Diff180_184,function,high,reimplemented (src/game/world/object); the dword at +0x180 minus the one at +0x184
 0x004f00f0,Vtbl7099ec_SetVirtual,function,high,reimplemented (src/game/core/misc); the virtual base's vtable pointer = 0x7099ec
 0x004f6820,Wstreambuf_Setg,function,high,"reimplemented (src/game/core/misc); the get area pointers: first, next and (last - next) / 2"
 0x004f6850,Wstreambuf_Setp,function,high,"reimplemented (src/game/core/misc); the put area pointers: first, first and (last - first) / 2"
@@ -2723,7 +2723,7 @@ address,name,kind,confidence,notes
 0x0047f940,Obj_CtorValue,function,high,"reimplemented (src/game/core/misc); Fn_657d30, vtable 0x6ff058 and +0x14 = value"
 0x004d4170,Obj_KillSlot,function,high,reimplemented (src/game/sprite/scriptref); the script slot at +0 killed and cleared
 0x004d9600,Obj_StampAt30,function,high,reimplemented (src/game/world/litter); a word at +0x30 and the world's stamp at +0x34
-0x004e01f0,Obj_StampAt5e,function,high,reimplemented (src/game/core/misc); a word at +0x5e and the world's stamp at +0x60
+0x004e01f0,Obj_StampAt5e,function,high,reimplemented (src/game/world/object); a word at +0x5e and the world's stamp at +0x60
 0x0040f300,Obj_CtorPart8,function,high,"reimplemented (src/game/core/misc); vtable 0x6fd7b8, a part built at +8, vtable 0x6fd7b0"
 0x00458910,MeshRef_ClearFlag10000000,function,high,reimplemented (src/game/core/misc); flag 0x10000000 of the referenced part cleared
 0x00458940,MeshRef_SetFlag10000000,function,high,reimplemented (src/game/core/misc); flag 0x10000000 of the referenced part set

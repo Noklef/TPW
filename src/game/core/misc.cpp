@@ -410,19 +410,10 @@ u8 *__fastcall Obj_CtorValue(u8 *object, void *, u32 value) {
     return object;
 }
 
-u32 __fastcall Obj_StampAt5e(u8 *object, void *, u32 word) {
-    at<u16>(object, 0x5e) = (u16)word;
-    const u32 stamp = at<u32>(global<u8 *>(0x0080239c), 0x1da70c);
-    at<u32>(object, 0x60) = stamp;
-    return stamp;
-}
-
 u32 __cdecl Dword_ClearBit0(u32 *p) {
     *p &= 0xfffffffe;
     return 1;
 }
-
-u32 __fastcall Obj_Diff180_184(const u8 *object) { return at<u32>(object, 0x180) - at<u32>(object, 0x184); }
 
 void __fastcall Vtbl7099ec_SetVirtual(u8 *sub) {
     const u32 base = at<u32>(at<u8 *>(sub, (u32)-4), 4);
