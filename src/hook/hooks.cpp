@@ -35,6 +35,7 @@
 #include "../game/files/direntry.h"
 #include "../game/files/filestream.h"
 #include "../game/files/gamepaths.h"
+#include "../game/files/userslots.h"
 #include "../game/files/quickload.h"
 #include "../game/files/textscan.h"
 #include "../game/files/wtext.h"

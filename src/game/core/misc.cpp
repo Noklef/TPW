@@ -157,20 +157,6 @@ void __cdecl Global7c24d8_CopyScript() {
         SpriteScript_CopyFrom((s32)global<u32>(0x007c24a0), (s32)at<u32>(object, 0xc));
 }
 
-u32 __fastcall Records24_Field14(const u8 *records, void *, u32 i) { return at<u32>(records, 24 * i + 0x14); }
-
-u8 *__fastcall Records24_IfUsed(u8 *records, void *, u32 i) {
-    u8 *record = records + 24 * i;
-    return at<u32>(record, 4) != 0 ? record : nullptr;
-}
-
-u32 __fastcall Records24_CountUsed(const u8 *records) {
-    u32 count = 0;
-    for (u32 i = 0; i < 4; i++)
-        count += at<u32>(records, 4 + 24 * i) != 0 ? 1 : 0;
-    return count;
-}
-
 u32 __stdcall Span_Limited(u32, u32 from, u32 to, u32 limit) {
     const u32 span = to - from;
     return limit < span ? limit : span;

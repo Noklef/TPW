@@ -1,4 +1,4 @@
-// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x409260, 0x45be80, 0x5f4490, 0x633dc0, 0x6486e0, 0x458310, 0x4583d0, 0x4bcec0, 0x486610, 0x4f36c0, 0x5c9040, 0x5d03b0, 0x5dd3d0, 0x5ddac0, 0x5dd810, 0x5e2750, 0x633120, 0x5c7bb0, 0x5c7d00, 0x5c7d20, 0x5d1440, 0x52fc30, 0x56b340, 0x4d09a0, 0x52fbf0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
+// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x4a9350, 0x4b4670, 0x409260, 0x45be80, 0x5f4490, 0x633dc0, 0x6486e0, 0x458310, 0x4583d0, 0x4bcec0, 0x486610, 0x4f36c0, 0x5c9040, 0x5d03b0, 0x5dd3d0, 0x5ddac0, 0x5dd810, 0x5e2750, 0x633120, 0x5d1440, 0x52fc30, 0x56b340, 0x4d09a0, 0x52fbf0, 0x424ed0, 0x47f940, 0x4922d0, 0x4d4170, 0x4d9600, 0x4e01f0,
 // 0x4e1c60, 0x4f00f0, 0x4f6020, 0x4f6820, 0x4f6850.
 #pragma once
 
@@ -62,15 +62,6 @@ u32 __cdecl Obj_RemoveFromRect(u8 *object, u32 from, u32 to);
 // 0x486610 (cdecl): when the object at [0x7c24d8] has its +0xc set the sprite script slot [0x7c24a0] is
 // made a copy of that script slot (SpriteScript_CopyFrom).
 void __cdecl Global7c24d8_CopyScript();
-
-// 0x5c7d20 (thiscall; i, pops 4): the dword at +0x14 of record i of 24 bytes.
-u32 __fastcall Records24_Field14(const u8 *records, void *, u32 i);
-
-// 0x5c7d00 (thiscall; i, pops 4): the address of record i of 24 bytes when its dword at +4 is not 0, else 0.
-u8 *__fastcall Records24_IfUsed(u8 *records, void *, u32 i);
-
-// 0x5c7bb0 (thiscall): how many of the four 24-byte records have a non-zero dword at +4.
-u32 __fastcall Records24_CountUsed(const u8 *records);
 
 // 0x5d1440 (stdcall; _, from, to, limit, pops 16): to - from, at most limit (unsigned).
 u32 __stdcall Span_Limited(u32 unused, u32 from, u32 to, u32 limit);
