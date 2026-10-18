@@ -80,4 +80,16 @@ void __cdecl Car_SetupCoupling(u8 *car, u32 *coupling, const u8 *spec, const u8 
 // 0x433240: frees a coupling's seat arrays - the first only when the car's part (+0x100)
 // lacks flag 1 at +4 - and clears both pointers.
 void __cdecl Car_FreeCoupling(const u8 *car, u32 *coupling);
+
+// 0x433300: picks the level of a pylon (a train: +0x18 its type with base +0x68, top +0x6c and
+// gap +0xc4; cars counted at +0x30, from +0x34) for a brace at height wanted (first lowered to
+// the top), returning 1 with the level and height out. Unless 0x79c658 has flag 0x100, a pylon
+// whose first car has flag 0x40 (+8) is tried at its top first: when the last car's train length
+// plus base and gap stays below the top, the level is the count. Otherwise each car is tried in
+// turn (its train length as Car_TrainLength works it out): one with room for a brace (gaps and
+// base, 0.01 slack) takes it there unless wanted lies below its space - then the level is the
+// car's +4 and the height wanted. Past the last car the top is tried again (the height capped at
+// the top); failing that, the last car that took it, or the count and gap + last length + base.
+// The last argument only silences the original's Debug_Printf lines.
+u32 __cdecl Pylon_FindBraceLevel(float wanted, const u8 *train, u32 *level, float *height, u32 quiet);
 }

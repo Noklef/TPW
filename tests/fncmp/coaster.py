@@ -6,9 +6,11 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, fb, put, record_stream  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fncmp import Bench, Call, RAM, bf, f32, fb, put, record_stream  # noqa: E402
 
-B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b5ff), (0x44b4c0, 0x44b505), (0x475550, 0x47558b), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060), (0x433f70, 0x433ffd), (0x442d10, 0x442d70), (0x443ee0, 0x443f40), (0x444c00, 0x444c50), (0x444040, 0x444090), (0x444700, 0x444740), (0x447790, 0x447830), (0x442cd0, 0x442d10), (0x436820, 0x4368f0), (0x436150, 0x436190), (0x432bd0, 0x432c10), (0x444c50, 0x444cb0), (0x43af70, 0x43afa0), (0x4418d0, 0x4419b0), (0x434650, 0x434740), (0x5da3c0, 0x5da3d0), (0x447990, 0x4479a0), (0x430ac0, 0x430ad0), (0x433220, 0x433240), (0x435710, 0x435730), (0x439920, 0x439ab0), (0x43a060, 0x43a2b0), (0x43d8f0, 0x43dbb0), (0x46f150, 0x46f180), (0x46f350, 0x46f420), (0x46f5c0, 0x46f6f0), (0x444090, 0x444150), (0x445f30, 0x446042), (0x45d630, 0x45d660), (0x436190, 0x436230), (0x445910, 0x445a70), (0x4367a0, 0x436820), (0x447830, 0x447990), (0x432840, 0x432b50), (0x437300, 0x4379a0), (0x5f5e50, 0x5f5e80), (0x463ab0, 0x463c7a), (0x412e90, 0x412eea), (0x443df0, 0x443ed4)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b5ff), (0x44b4c0, 0x44b505), (0x475550, 0x47558b), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060), (0x433f70, 0x433ffd), (0x442d10, 0x442d70), (0x443ee0, 0x443f40), (0x444c00, 0x444c50), (0x444040, 0x444090), (0x444700, 0x444740), (0x447790, 0x447830), (0x442cd0, 0x442d10), (0x436820, 0x4368f0), (0x436150, 0x436190), (0x432bd0, 0x432c10), (0x444c50, 0x444cb0), (0x43af70, 0x43afa0), (0x4418d0, 0x4419b0), (0x434650, 0x434740), (0x5da3c0, 0x5da3d0), (0x447990, 0x4479a0), (0x430ac0, 0x430ad0), (0x433220, 0x433240), (0x435710, 0x435730), (0x439920, 0x439ab0), (0x43a060, 0x43a2b0), (0x43d8f0, 0x43dbb0), (0x46f150, 0x46f180), (0x46f350, 0x46f420), (0x46f5c0, 0x46f6f0), (0x444090, 0x444150), (0x445f30, 0x446042), (0x45d630, 0x45d660), (0x436190, 0x436230), (0x445910, 0x445a70), (0x4367a0, 0x436820), (0x447830, 0x447990), (0x432840, 0x432b50), (0x437300, 0x4379a0), (0x5f5e50, 0x5f5e80), (0x463ab0, 0x463c7a), (0x412e90, 0x412eea), (0x443df0, 0x443ed4), (0x433300, 0x433790), (0x434f10, 0x43501c), (0x4479a0, 0x447a03), (0x447a10, 0x447ad2), (0x403be0, 0x403c13), (0x4445b0, 0x4446f4),
+           (0x432c10, 0x432d4b), (0x466d70, 0x466fa0), (0x469930, 0x469950), (0x454050, 0x4541a0), (0x45b9d0, 0x45ba15)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -728,8 +730,8 @@ def ride_train(r, op):
 
 def by_id(r, op):
     """Links at 0x790fe0 (next +0x18, id +0x10, flags +0, +0x124 -> +0x34 -> +0xc)."""
-    if op == 'Bit18':
-        table = r.choice([0x7ae6a8, 0x7a4610])
+    if op in ('Bit18', 'Bit18Ride'):  # (one op each: dealt, both get cases in the gate's 400)
+        table = 0x7ae6a8 if op == 'Bit18' else 0x7a4610
         return Call(0x436820 if table == 0x7ae6a8 else 0x436840, [r.randrange(2)],
                     {TYPE: r.bytes(8), table: struct.pack('<2I', TYPE, TYPE + 4)}, ret='a')
     n = r.randrange(0, 5)
@@ -1080,7 +1082,7 @@ KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 
          'Link': queue, 'Unload': queue, 'QPush': queue, 'QAdd': queue, 'QRoom': queue, 'QPop': queue, 'QAdvance': queue,
          'CNext': cursor, 'CPrev': cursor, 'CPoint': cursor,
          'Count': registry, 'LinkNodes': registry, 'Pair': registry, 'EntryPos': registry, 'SearchReset': registry,
-         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Pick': train, 'Tile': tiles, 'End': current, 'OnRide': current, 'Marked': current, 'Select': pieces, 'Renumber': pieces, 'RideTrain': ride_train, 'CarValue': ride_train, 'BeginEnd': current, 'Bit18': by_id, 'ById': by_id, 'IdValue': by_id, 'SetById': by_id, 'Key': tiles, 'Focus': tiles, 'Event': event, 'SetEnd': current, 'ClearEnd': current, 'ClearPair': contacts, 'ObjLink': by_id, 'ObjOpen': by_id, 'ObjBare': by_id, 'SelGet': small, 'SelSet': small, 'State': small, 'Changed': small, 'LostPair': small, 'Unlerp': small, 'Scale': small, 'Lerp': small, 'Flag1': small, 'SetCur': small, 'Moved': small, 'Position': small, 'Bounds': bounds, 'Segments': segments, 'RideOrient': ride_orient, 'SetFirst': pieces, 'Append': pieces, 'ClearSel': pieces, 'EndSel': pieces, 'Tools': current, 'Remove': pieces, 'ObjOther': by_id, 'ObjParams': by_id, 'Cost': cost, 'Gaps': gaps, 'Save': save, 'Claim': claim}
+         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Pick': train, 'Tile': tiles, 'End': current, 'OnRide': current, 'Marked': current, 'Select': pieces, 'Renumber': pieces, 'RideTrain': ride_train, 'CarValue': ride_train, 'BeginEnd': current, 'Bit18': by_id, 'Bit18Ride': by_id, 'ById': by_id, 'IdValue': by_id, 'SetById': by_id, 'Key': tiles, 'Focus': tiles, 'Event': event, 'SetEnd': current, 'ClearEnd': current, 'ClearPair': contacts, 'ObjLink': by_id, 'ObjOpen': by_id, 'ObjBare': by_id, 'SelGet': small, 'SelSet': small, 'State': small, 'Changed': small, 'LostPair': small, 'Unlerp': small, 'Scale': small, 'Lerp': small, 'Flag1': small, 'SetCur': small, 'Moved': small, 'Position': small, 'Bounds': bounds, 'Segments': segments, 'RideOrient': ride_orient, 'SetFirst': pieces, 'Append': pieces, 'ClearSel': pieces, 'EndSel': pieces, 'Tools': current, 'Remove': pieces, 'ObjOther': by_id, 'ObjParams': by_id, 'Cost': cost, 'Gaps': gaps, 'Save': save, 'Claim': claim}
 OPS = [k for k in os.environ.get('OPS', ','.join(list(KINDS) + ['Focus'] * 5)).split(',') if k]   # (Focus weighted: the gate's 400 cases)
 
 
@@ -1105,6 +1107,172 @@ def cost_change(r, op):
 
 KINDS['CostChange'] = cost_change
 OPS += ['CostChange'] if 'OPS' not in os.environ else []
+
+
+def brace(r, op):
+    """0x433300: a pylon (COAST: +0x18 its type, +0x30 count, +0x34 cars) with base / top / gap at TYPE +0x68 / +0x6c / +0xc4, up to six
+    cars (CARS, 0x110 apart: +4 count, +8 flags, +0xe8, +0x100 one of two car trains at SPL, whose +0x18 types at FORCE have bc / c0 / c4
+    and whose +0x34 slots are cars again), the flag 0x100 at 0x79c658 either way and a wanted height around the pylon's."""
+    n = r.choice([0, 1, 2, 3, 4, 5, 6])
+    pylon, ptype, cars, trains, types = r.bytes(0x50), r.bytes(0xc8), r.bytes(6 * 0x110), r.bytes(0xc0), r.bytes(0x1a0)
+    small, grid = r.random() < 0.4, r.random() < 0.4
+    def u(lo, hi):  # (on a grid of 1/64 for a grid case: sums that meet the 0.01 slack's edges and ties)
+        return round(r.uniform(lo, hi) * 64) / 64 if grid else r.uniform(lo, hi)
+
+    put(ptype, 0x68, 'f', u(0, 0.4 if small else 3))
+    put(ptype, 0x6c, 'f', u(1, 40))
+    put(ptype, 0xc4, 'f', u(0, 0.3 if small else 2))
+    put(pylon, 0x18, 'I', TYPE)
+    put(pylon, 0x30, 'I', n)
+    for k in range(n):
+        put(pylon, 0x34 + 4 * k, 'I', r.choice([CARS + k * 0x110] * 12 + [CARS + r.randrange(6) * 0x110, 0]))
+    for k in range(6):
+        c = k * 0x110
+        put(cars, c + 4, 'I', r.choice([0, 1, 2, 3, 4, 6]))
+        cars[c + 8] = r.choice([0x40, 0, r.getrandbits(8)])
+        put(cars, c + 0xe8, 'f', r.choice([0, 0.5, 1]) if grid else r.uniform(0, 1))
+        put(cars, c + 0x100, 'I', SPL + r.randrange(2) * 0x60)
+    for t in range(2):
+        put(trains, t * 0x60 + 0x18, 'I', FORCE + t * 0xd0)
+        for k in range(6):
+            put(trains, t * 0x60 + 0x34 + 4 * k, 'I', r.choice([CARS + r.randrange(6) * 0x110] * 4 + [0]))
+        shortest = u(0, 4 if small else 2)
+        put(types, t * 0xd0 + 0xbc, 'ff', shortest, shortest + 2 * u(0, 1.5))
+        put(types, t * 0xd0 + 0xc4, 'f', u(0, 1))
+    if r.random() < 0.15:
+        r.floats(ptype, (0x68, 0x6c, 0xc4))
+        r.floats(types, (0xbc, 0xc0, 0xc4, 0x18c, 0x190, 0x194))
+        r.floats(cars, range(0xe8, len(cars), 0x110))
+    if r.random() < 0.3:
+        nan_pair(r, cars, range(0xe8, len(cars), 0x110), 1)
+    if r.random() < 0.05:
+        nan_pair(r, types, (0xbc, 0xc0, 0xc4), 1)
+    if r.random() < 0.05:
+        put(ptype, r.choice((0x68, 0x6c, 0xc4)), 'I', r.choice([0x7fc00000, 0xffc00000, 0x7f800001]))
+    wanted = r.choice([fb(r.uniform(-2, 45)), fb(r.uniform(-2, 45)), fb(r.uniform(-2, 45)), r.f(), 0x7fa00000])
+    if r.random() < 0.04:  # top 0, wanted -0: lowered to the top only when not above it
+        put(ptype, 0x6c, 'I', r.choice([0, 0x80000000]))
+        wanted = r.choice([0, 0x80000000])
+    if r.random() < 0.2:  # tight: each car's length its train type's bc, near the room a brace needs (the 0.01 slack's edges), wanted on a car's limit
+        base, gap = r.randrange(4) / 64, r.randrange(4) / 64
+        put(ptype, 0x68, 'f', base)
+        put(ptype, 0xc4, 'f', gap)
+        for k in range(6):
+            put(cars, k * 0x110 + 4, 'I', 0)
+            put(cars, k * 0x110 + 0xe8, 'f', 0.0)
+        bc = [gap * r.choice([1, 2]) + 2 * base + r.randrange(-2, 3) / 64 for t in range(2)]
+        for t in range(2):
+            put(types, t * 0xd0 + 0xbc, 'f', bc[t])
+        if r.random() < 0.5:
+            wanted = fb(f32(f32(f32(r.choice(bc) - gap) - base) + bf(0x3c23d70a)))
+    regions = {COAST: pylon, TYPE: ptype, CARS: cars, SPL: trains, FORCE: types, OUT: r.bytes(8),
+               0x79c658: put(bytearray(4), 0, 'I', r.choice([0, 0, 0x100, r.getrandbits(32)]))}
+    return Call(0x433300, [wanted, COAST, OUT, OUT + 4, r.choice([0, 1])], regions, ret='a')
+
+
+KINDS['Brace'] = brace
+OPS += ['Brace'] if 'OPS' not in os.environ else []
+
+
+def edit_bounds(r, op):
+    """0x434f10: the current link (flag 2 or not; its type's squared reaches at +0x148 / +0x268) with its +0x58 chain of four pieces
+    (flag 0x2000 on some, all on a few: no piece, a fault in both) and +0x60, the selection's +0x64 / +0x68 (flag 0x10000 or not), the
+    edit flags 0x40 / 0x100 either way, the pieces' cells (+0x100) about the map's origins and sizes or near the int range's ends."""
+    base = RAM + 0x6000
+    link, ltype, sel, pieces, cells = base, base + 0x100, base + 0x400, base + 0x800, base + 0x1000
+    lk = put(bytearray(r.bytes(0x80)), 4, 'I', ltype)
+    lk[0x3c] = r.choice([0, 2, 3, 0xfd, r.getrandbits(8)])
+    put(lk, 0x58, 'I', pieces)
+    put(lk, 0x60, 'I', pieces + 0x200 * r.randrange(4))
+    lt = bytearray(r.bytes(0x280))
+    for o in (0x148, 0x268):
+        put(lt, o, 'I', r.choice([0, 1, 2, 3, 4, 8, 9, 15, 16, 24, 25, 99, 100, 0xffffffff, 0x7fffffff, r.randrange(400), r.getrandbits(32)]))
+    edge = r.random() < 0.3   # (a perfect square for both reaches, the cells on a bound: reach exactly to it, one short or one past)
+    if edge:
+        root = r.choice([0, 1, 2, 3, 5, 10])
+        put(lt, 0x148, 'I', root * root)
+        put(lt, 0x268, 'I', root * root)
+    sl = put(bytearray(r.bytes(0x80)), 0x64, 'II', pieces + 0x200 * r.randrange(4), pieces + 0x200 * r.randrange(4))
+    ps, cs = bytearray(r.bytes(0x800)), bytearray(r.bytes(0x80))
+    every = r.random() < 0.05
+    near = lambda: r.choice([r.randrange(-4, 0x84), r.randrange(-4, 0x84), 0x7ffffffe, -0x7fffffff, r.getrandbits(32) - (1 << 31)])  # noqa: E731
+    for k in range(4):
+        put(ps, 0x200 * k + 8, 'I', r.getrandbits(32) & ~0x12000 | r.choice([0, 0x2000, 0x10000, 0x12000]) | (0x2000 if every else 0))
+        put(ps, 0x200 * k + 0x68, 'I', pieces + 0x200 * (k + 1) if k < 3 else 0)
+        put(ps, 0x200 * k + 0x100, 'I', cells + 0x20 * k)
+        put(cs, 0x20 * k + 0xc, 'ii', near(), near())
+    small = lambda: r.choice([0, 0, 1, -1, 4, r.randrange(-8, 9), r.getrandbits(32) - (1 << 31)])  # noqa: E731
+    size = lambda: r.choice([0x80, 0x80, 0x40, 0, 1, r.randrange(0x100), 0x7fffffff])  # noqa: E731
+    ox, oz, wx, wz = small(), small(), size(), size()
+    if edge:
+        ox, oz, wx, wz = r.randrange(-4, 5), r.randrange(-4, 5), r.choice([0x40, 0x80]), r.choice([0x40, 0x80])
+        reach = root + 1
+        for k in range(4):
+            d = lambda: r.choice([-1, 0, 0, 1])  # noqa: E731
+            x = r.choice([ox + wx - reach, ox + reach]) + d()
+            z = r.choice([oz + wz - reach, ox + reach, oz + reach]) + d()
+            put(cs, 0x20 * k + 0xc, 'ii', x, z)
+    regions = {link: lk, ltype: lt, sel: sl, pieces: ps, cells: cs, 0x790fec: struct.pack('<I', link), 0x79c6a4: struct.pack('<I', sel),
+               0x79c658: struct.pack('<I', r.getrandbits(32) & ~0x140 | r.choice([0, 0x40, 0x100, 0x140])),
+               0x7a01bc: struct.pack('<i', ox), 0x7a029c: struct.pack('<i', oz), 0x7a0314: struct.pack('<I', wx), 0x7a0374: struct.pack('<I', wz)}
+    for g in (0x791cf8, 0x79104c, 0x79221c, 0x790fd8):
+        regions[g] = r.bytes(4)
+    return Call(0x434f10, [], regions, ret='v')
+
+
+KINDS['EditBounds'] = edit_bounds
+OPS += ['EditBounds'] if 'OPS' not in os.environ else []
+
+
+def edit_tool(r, op):
+    """0x4479a0 / 0x447a10 / 0x4445b0 (any tool): EditBounds' edit, recorded or not (recorded_actions.py's recorder), the tool and mode before about 1 and 2, the
+    end pieces' flag 0x80 either way."""
+    import recorded_actions  # noqa: E402  (its recorder; imported here, its bench is its own)
+    c = edit_bounds(r, op)
+    regions = dict(c.regions)
+    regions.update(recorded_actions.recorder(r))
+    regions[0x79c644] = struct.pack('<I', r.choice([1, 2, 2, 0, r.getrandbits(32)]))
+    regions[0x79c664] = struct.pack('<I', r.choice([0, 1, 2, 2, r.getrandbits(32)]))
+    if op == 'SetTool':   # 0x4445b0: tool 2, 1 or another
+        return Call(0x4445b0, [r.choice([2, 2, 1, 0, 3, r.getrandbits(32)])], regions, ret='v')
+    return Call(0x4479a0 if op == 'Tool1' else 0x447a10, [], regions, ret='v')
+
+
+KINDS['Tool1'] = KINDS['Tool2'] = KINDS['SetTool'] = edit_tool
+OPS += ['Tool1', 'Tool2', 'SetTool'] if 'OPS' not in os.environ else []
+
+
+def add_entry(r, op):
+    """0x432c10: the current link's (0x790fec) chain empty, one entry, a first without a last or two; flags with 4 (its +0x68 entry) or not; a
+    position (about the map's cells, negative, huge or NaN; the map 1 - 200 cells either way) or none: then a cell 0 - 10 on footprint.py's
+    ground (24 cells wide)."""
+    import footprint  # noqa: E402  (its heights; its bench is its own)
+    from fncmp import HEAP, global_heap, heap  # noqa: E402
+    LINK, ONE, TWO, POS, MAP, GRID, HEIGHTS = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500, RAM + 0x600
+    head, tail = r.choice([(0, 0), (ONE, ONE), (TWO, ONE), (ONE, 0)])
+    link = put(bytearray(r.bytes(0x70)), 0x4c, 'II', head, tail)
+    put(link, 0x40, 'I', r.choice([0, 1, 2, r.getrandbits(32)]))
+    grid = put(put(bytearray(r.bytes(0x30)), 0x18, 'I', footprint.GW), 0x28, 'I', HEIGHTS)
+    heights = bytearray(4 * (footprint.GW + 1) * 20)
+    for i in range(len(heights) // 4):
+        put(heights, 4 * i, 'f', footprint.height(r))
+    regions = {0x790fec: struct.pack('<I', LINK), LINK: link, ONE: r.bytes(0x48), TWO: r.bytes(0x48), HEAP: heap(0x400), **global_heap(),
+               0x7a0854: struct.pack('<I', MAP), MAP: put(bytearray(r.bytes(0x70)), 0x6c, 'I', GRID), GRID: grid, HEIGHTS: heights,
+               0x7a0314: struct.pack('<i', r.choice([24, 11, 1, 200])), 0x7a0374: struct.pack('<i', r.choice([20, 11, 1, 200]))}
+    flags = r.getrandbits(32) & ~4 | r.choice([0, 0, 4])
+    position = 0
+    if r.random() < 0.5:
+        position = POS
+        regions[POS] = struct.pack('<3f', *(r.choice([r.randrange(30) * 10 + r.uniform(0, 10)] * 4 + [-0.5, -25.0, 1e12, float('nan')])
+                                            for _ in range(3)))
+        x, y = r.getrandbits(32), r.getrandbits(32)
+    else:
+        x, y = r.randrange(11), r.randrange(11)
+    return Call(0x432c10, [x, y, flags, r.getrandbits(32), r.getrandbits(32), position], regions, ret='a')
+
+
+KINDS['AddEntry'] = add_entry
+OPS += ['AddEntry'] if 'OPS' not in os.environ else []
 
 
 def case(r):

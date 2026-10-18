@@ -180,3 +180,82 @@ void __cdecl Car_FreeCoupling(const u8 *car, u32 *coupling) {
     coupling[2] = 0;
 }
 }
+
+namespace {
+
+// A car's train length stored as a float (0 for no car). 0x433300 has Car_TrainLength inline,
+// adding the car's own length to the sum the other way round (fadd st0, st1, not faddp): only
+// a NaN pair tells the two apart, and a NaN length only ever reaches comparisons there.
+float CarLength(const u8 *car) { return (float)Car_TrainLength(car); }
+
+}  // namespace
+
+extern "C" {
+
+u32 __cdecl Pylon_FindBraceLevel(float wanted, const u8 *train, u32 *level, float *height, u32) {
+    const u8 *type = at<const u8 *>(train, 0x18);
+    const float base = at<float>(type, 0x68), top = at<float>(type, 0x6c), gap = at<float>(type, 0xc4);
+    u32 wantBits;
+    std::memcpy(&wantBits, &wanted, 4);
+    if (!(top > wanted)) {  // (fld; fstp: a signalling NaN comes out quiet)
+        u32 topBits;
+        std::memcpy(&topBits, &top, 4);
+        wantBits = X87_FloatThrough(topBits);
+    }
+    float want;
+    std::memcpy(&want, &wantBits, 4);
+    const u32 count = at<u32>(train, 0x30);
+    if (!(global<u32>(0x0079c658) & 0x100) && count && (at<u8>(at<const u8 *>(train, 0x34), 8) & 0x40)) {
+        const float length = CarLength(at<const u8 *>(train, 0x30 + 4 * count));
+        if (!(((X87Reg(length) + base) + gap).v >= top)) {  // below the top, or unordered
+            *level = count;
+            const X87Reg spare = at<u32>(train, 0x30) ? X87Reg(gap) : X87Reg(0.0f);
+            const X87Reg start = X87Reg(length) + base;
+            const float stored = (float)start;
+            const X87Reg h = (start + spare).v > want ? spare + stored : X87Reg(want);
+            *height = (float)h;
+            return 1;
+        }
+    }
+    u32 found = 0, foundLevel = 0;
+    float prev = 0.0f;
+    for (u32 i = 0; i < at<u32>(train, 0x30); ++i) {
+        const u8 *car = at<const u8 *>(train, 0x34 + 4 * i);
+        const X87Reg k = i ? 1.0 : 0.0;
+        const float cur = CarLength(car);
+        const X87Reg need = (k - X87Reg(-1.0f)) * gap - X87Reg(base) * -2.0f;
+        const X87Reg room = (X87Reg(cur) - prev) - X87Reg(-0.01f);
+        if (!(need.v > room.v)) {
+            const X87Reg limit = ((X87Reg(cur) - gap) - base) - X87Reg(-0.01f);
+            if (!(want >= limit.v)) {  // below, or unordered: wanted as it is (an integer copy)
+                *level = at<u32>(car, 4);  // sic: the car's +4, and a fault for an empty slot
+                std::memcpy(height, &wantBits, 4);
+                return 1;
+            }
+            foundLevel = i;
+            found = 1;
+            *height = (float)((k * gap + prev) + base);
+        }
+        prev = cur;
+    }
+    const u32 n = at<u32>(train, 0x30);
+    if (!(((X87Reg(prev) + base) + (n ? X87Reg(gap) : X87Reg(0.0f))).v >= top)) {
+        *level = n;
+        const X87Reg spare = at<u32>(train, 0x30) ? X87Reg(gap) : X87Reg(0.0f);
+        const X87Reg start = X87Reg(prev) + base;
+        const float stored = (float)start;
+        X87Reg h = (start + spare).v > want ? spare + stored : X87Reg(want);
+        *height = (float)h;
+        if (!(top >= h.v)) h = top;
+        *height = (float)h;
+        return 1;
+    }
+    if (found) {
+        *level = foundLevel;
+        return 1;
+    }
+    *level = n;
+    *height = (float)((X87Reg(gap) + prev) + base);
+    return 1;
+}
+}

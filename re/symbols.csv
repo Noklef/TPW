@@ -741,6 +741,7 @@ address,name,kind,confidence,notes
 0x0048ce80,Camera_CentreOnGlobalThing,function,low,reimplemented (src/game/world/camera); cdecl: the camera centred on the thing [0x7c2658] points to (Camera_CentreOnThing with its handle) (name unconfirmed)
 0x0042cd80,Camera_CellOf,function,low,reimplemented (src/game/world/camera); the cell of a position
 0x004bd020,Camera_PackCellFractions,function,low,reimplemented (src/game/world/camera); a position's tenths as cell and fraction bytes
+0x0042a1d0,Camera_SnapToRide,function,low,"reimplemented (src/game/world/camera); cdecl: the camera point moved to the centre of the ride object in its cell, the yaw by that cell direction"
 0x0046c450,MouseMode_Nop4,function,high,reimplemented (src/game/world/mousemode); an empty mouse-mode method (4 arguments)
 0x0046c460,MouseMode_DeletingDtor,function,high,reimplemented (src/game/world/mousemode); the base mouse mode's deleting destructor
 0x0046c580,MouseModeTile_Ctor,function,high,reimplemented (src/game/world/mousemode); the 0x6fe9e0 tile mode's constructor
@@ -1717,6 +1718,7 @@ address,name,kind,confidence,notes
 0x005f8d40,RegKey_TypeOf,function,high,"reimplemented (src/game/core/regkey); thiscall (name) -> the REG_ type, -2 for a subkey, -1 for neither"
 0x005f8da0,RegKey_Ctor,function,high,reimplemented (src/game/core/regkey); thiscall; the handle zeroed (0x581da0)
 0x00581da0,Ptr_Ctor,function,high,reimplemented (src/game/core/regkey); the first dword zeroed
+0x0045f6b0,Registry_GameInstalled,function,low,reimplemented (src/game/core/regkey); cdecl u8 (): 1 when the subkey [0x7a2b08] of the company key opens in HKLM and its value [0x7a2358] reads as a u32; the startup install check
 0x00775748,gCompanyRegPath,data,high,"""software\Bullfrog Productions Ltd"", RegKey_Open's root key path"
 0x005f8db0,Text_Draw,function,high,"reimplemented (src/game/gfx/text); cdecl (x, y, text, DrawColour); each character through the text driver's draw (+0xc), '\n' a line down (Text_LineHeight(' '))"
 0x005f8e20,Font_DrawGlyph,function,high,"reimplemented (src/game/gfx/text); cdecl (font, x, y, ch, colour) -> width; font[ch - ' '] through Draw_Sprite; TextDriver_Font's draw (not in the Ghidra listing)"
@@ -3673,6 +3675,7 @@ address,name,kind,confidence,notes
 0x0046b420,KeyMap_Modifiers,function,low,"reimplemented (src/game/core/keymap); cdecl: the modifier keys held from GetKeyState: 3 shift, 0xc control, 0x30 alt"
 0x00486aa0,KeyMap_AsyncModifiers,function,low,reimplemented (src/game/core/keymap); cdecl: the same from GetAsyncKeyState
 0x0040d070,KeyMaps_FreeAll,function,low,reimplemented (src/game/core/keymap); the keyboard maps' blocks freed
+0x0040caa0,KeyMap_SetKeyFromText,function,low,"reimplemented (src/game/core/keymap); thiscall (action, text), pops 8: the action entry's key set from the first character of a text"
 0x0041a9d0,Graphics_Level,function,high,reimplemented (src/game/core/options); level 2 to 8 from the render mode or the graphics balance
 0x00423dd0,Options_ApplySound,function,low,"reimplemented (src/game/core/options); cdecl: the options sound switches and volumes applied (Sound_Set803adc/ac0, ae0/ac4, ad8/abc; Global802ba8_SetMasked(+0x2c * 1023 / 100))"
 0x00423690,Options_Defaults,function,low,"reimplemented (src/game/core/options); thiscall; the option defaults (+0..+0x3a, volumes from 0x785928-34, switches when 0x785924), the copy at +0x3c, then Options_ApplySound"
@@ -3811,6 +3814,13 @@ address,name,kind,confidence,notes
 0x00454050,Terrain_FootprintCell,function,low,"reimplemented (src/game/terrain/land); (angle, x0, y0, x1, y1, u, v, &cellX, &cellY): the cell at fractions (u, v) of a footprint turned by a right angle"
 0x00466d70,Terrain_FootprintHeight,function,low,"reimplemented (src/game/terrain/land); (x, y, cells, width, depth, flags, angle): (lowest + highest) / 2 of the grid heights at the corners of a footprint's cells, in st0"
 0x00450a80,Terrain_FreeLoaded,function,low,"reimplemented (src/game/terrain/land); cdecl: the loaded grid and the instance at 0x79fcb4 freed, then GlobalMem_FreeThree_427bb0"
+0x00452a60,Map_RideIndexAt,function,low,"reimplemented (src/game/terrain/land); cdecl (x, y): the ride index of a map cell, from its dword or the ride object there"
+0x00450ac0,Terrain_RideAt,function,low,"reimplemented (src/game/terrain/land); cdecl (x, y): the ride at the grid cell, clamped to the grid"
+0x00452ae0,Terrain_SurfaceHeight,function,low,"reimplemented (src/game/terrain/land); cdecl (x, y, slot): the height at cell (x, y): the ride height map there (by its origin and angle) or the ground"
+0x00450b30,Terrain_ScaleNormals,function,low,"reimplemented (src/game/terrain/normals); cdecl (node, matrix by value): the node's matrix applied; its normals scaled to 0.225 or 1 by the grid flag 0x400 under their vertices; then its children"
+0x00450d10,Terrain_ShadeNormals,function,low,"reimplemented (src/game/terrain/normals); cdecl: grid flag 0x400 from each map cell's flags 0x40 / 0x80, then Terrain_ScaleNormals from the map's model with the identity"
+0x0046eeb0,Terrain_NodeCells,function,low,"reimplemented (src/game/terrain/nodecells); cdecl (node, grid, matrix by value): the node box through its matrix to the cells it covers (+0x90), flags 0x2000 / 0x4000000; then its children"
+0x0046f0c0,Terrain_ModelCells,function,low,reimplemented (src/game/terrain/nodecells); cdecl (map): Terrain_NodeCells for the map model on its grid with the identity
 0x005ea510,Image_Dilate,function,high,reimplemented (src/game/gfx/imageops); separable maximum filter of an image
 0x005ea6d0,Image_Erode,function,high,reimplemented (src/game/gfx/imageops); separable minimum filter of an image
 0x005ea1f0,Image_MinMark,function,high,"reimplemented (src/game/gfx/imageops); 3 x 3 minimum of a two byte per pixel image, marking the changed pixels"
@@ -4127,7 +4137,17 @@ address,name,kind,confidence,notes
 0x00477cc0,BarMesh_SetTopVertices,function,high,reimplemented (src/game/gfx/barmesh); virtual: the bar's top edge vertices at its level (+0x120)
 0x00477d20,BarMesh_SetTopTexCoords,function,high,reimplemented (src/game/gfx/barmesh); virtual: the bar's top edge texture v = level * 0.01
 0x004786f0,BarMesh_SetTexCoord,function,high,reimplemented (src/game/gfx/barmesh); texture coordinate i of a 4-lane u/v block array
+0x00477c50,BarMesh_Dtor,function,low,"reimplemented (src/game/gfx/barmesh); thiscall: the bar mesh's destructor (flag bit cleared, animator disposed of, then the GUI dialog base's)"
+0x00477c30,BarMesh_ScalarDtor,function,low,"reimplemented (src/game/gfx/barmesh); thiscall (flags), pops 4: BarMesh_Dtor, freed for flags bit 0"
+0x00478390,MeshOverlay_Dtor,function,low,"reimplemented (src/game/gfx/barmesh); thiscall: the sibling mesh overlay's (0x6feeb8) destructor, as BarMesh_Dtor"
+0x00478370,MeshOverlay_ScalarDtor,function,low,"reimplemented (src/game/gfx/barmesh); thiscall (flags), pops 4: its scalar deleting destructor"
 0x00476e80,Overlay_ShowFrame,function,high,"reimplemented (src/game/gfx/overlay); shows node base + frame of the holder model list; old node 0x8010 set, new cleared"
+0x00476b70,Overlay_Dtor,function,low,"reimplemented (src/game/gfx/overlay); thiscall: the overlay base's destructor (holder disposed of or destroyed, then the GUI dialog base's)"
+0x00476b50,Overlay_ScalarDtor,function,low,"reimplemented (src/game/gfx/overlay); thiscall (flags), pops 4: Overlay_Dtor, freed for flags bit 0"
+0x00477290,Overlay_Dtor_477290,function,low,"reimplemented (src/game/gfx/overlay); thiscall: the 0x6fee38 overlay's destructor, as Overlay_Dtor"
+0x00477270,Overlay_ScalarDtor_477270,function,low,"reimplemented (src/game/gfx/overlay); thiscall (flags), pops 4: its scalar deleting destructor"
+0x004775c0,Overlay_Dtor_4775c0,function,low,"reimplemented (src/game/gfx/overlay); thiscall: the 0x6fee60 overlay's destructor, as Overlay_Dtor"
+0x004775a0,Overlay_ScalarDtor_4775a0,function,low,"reimplemented (src/game/gfx/overlay); thiscall (flags), pops 4: its scalar deleting destructor"
 0x0047e2f0,ScreenSurfaces_Ctor,function,high,reimplemented (src/game/gfx/screensurfaces); the screen surfaces source: both Surfaces cleared and their infos constructed
 0x0047e390,SurfaceSource_Dtor,function,high,reimplemented (src/game/gfx/screensurfaces); the abstract surface source's destructor (vtable 0x6fef90 back)
 0x0047e570,ScreenSurfaces_Bounds,function,high,"reimplemented (src/game/gfx/screensurfaces); virtual: out = {0, 0, width - 1, height - 1}"
@@ -4321,6 +4341,11 @@ address,name,kind,confidence,notes
 0x00463ab0,Ride_Claim,function,high,"reimplemented (src/game/coaster/registry); cdecl (index, type, key, desc, unused, value, a, b): claims ride index or the first unclaimed (+4 flag 0x10000) ride of type with key and, given desc, its fields; sets value on its link when +4 has 0x40000; returns index or 0"
 0x00435500,Coasters_InitTables,function,high,"reimplemented (src/game/coaster/registry); cdecl: Coasters_AllocTables([0x790fd0], [0x791cfc]), then IdTable_Init(0x790b04, 0x790b00, 0x791ce0)"
 0x00433f70,CoasterLinks_FindAtFocus,function,low,reimplemented (src/game/coaster/registry); the coaster entry at the cell of the focus point
+0x00434f10,CoasterEdit_SetBounds,function,low,"reimplemented (src/game/coaster/registry); cdecl: the edit bounds (0x79221c, 0x790fd8, 0x79104c, 0x791cf8) as the cells within reach of the edited piece, clamped to the map"
+0x004479a0,CoasterEdit_Tool1,function,low,"reimplemented (src/game/coaster/registry); cdecl: the edit's tool 1 (recorded 0x37; flag 0x40 cleared after tool 2 mode 2), then CoasterEdit_SetBounds"
+0x00447a10,CoasterEdit_Tool2,function,low,"reimplemented (src/game/coaster/registry); cdecl: the edit's tool 2 (recorded 0x38; mode 1 or 2 and flag 0x40 by the end piece), then CoasterEdit_SetBounds"
+0x004445b0,CoasterEdit_SetTool,function,low,"reimplemented (src/game/coaster/registry); cdecl (tool): CoasterEdit_Tool2 for tool 2, else CoasterEdit_Tool1 with 0x79c644 = tool"
+0x00432c10,CoasterLink_AddEntry,function,low,"reimplemented (src/game/coaster/registry); cdecl (x, y, flags, unused, value, position): a new 0x48-byte entry for the current link, its cell and position from position or (x, y)"
 0x0043b0e0,Coaster_QueuePush,function,high,"reimplemented (src/game/coaster/queue); cdecl (index, peep): appends the peep to the queue ring (+0xb0) of coaster index (table 0x790bd0) when it has room"
 0x0043b130,CoasterQueue_Add,function,high,"reimplemented (src/game/coaster/queue); cdecl (coaster, peep): appends the peep to the queue ring (+0xb0), else to the boarding ring (+0xd0), whichever has room"
 0x0043b1f0,Coaster_QueueRoom,function,high,"reimplemented (src/game/coaster/queue); cdecl (index): the queue ring's limit - reserved - count, at least 0"
@@ -4363,6 +4388,7 @@ address,name,kind,confidence,notes
 0x004344c0,Car_SetupCoupling,function,high,"reimplemented (src/game/coaster/train); sets up a coupling {count, two zeroed 0x58-byte seat arrays}: each seat's part (key spec+0x10 + i, flag 0x400000) and the car"
 0x00433240,Car_FreeCoupling,function,high,reimplemented (src/game/coaster/train); frees a coupling's seat arrays (the first only without the car part's flag 1 at +4) and clears both
 0x00443df0,Car_SetMoveCostChange,function,low,"reimplemented (src/game/coaster/train); cdecl (car, &cost, &extra, x, z, a, b): 0x79c69c = the rounded-up travel costs of the car (and its follower) to x, z less the old costs, or 0 at (0x79c6d8, 0x79c6a0)"
+0x00433300,Pylon_FindBraceLevel,function,low,"reimplemented (src/game/coaster/train); cdecl u32 (float wanted, train*, u32* level, float* height, quiet): a brace level and height on a pylon (the top first unless 0x79c658 & 0x100, then each car, then the top again); returns 1"
 0x0042e200,CrossSection_BuildIndices,function,high,"reimplemented (src/game/coaster/xsection); cdecl (coaster, sections, source): 20 buckets (0xf4 at source+0x2090, count +0xf0) of u16 triples packed into coaster+0x94 (12 each, at +4/+6/+8); sections (source+0x3530 of source+0x33a4 records, bucket from 1) get +0xc pointer, +4 count from the packed lists (sic: bucket numbers index the packed lists); 0 on empty or bucket 0 (sic: lists leak)"
 0x0042d6d0,CrossSection_BuildPoints,function,high,"reimplemented (src/game/coaster/xsection); cdecl (coaster, sections, source, &shared): 20 buckets (0x194 at source+0x100, count +0x190) of 20-byte points packed into coaster+0x90, +4 += coaster+0x40 (x87); sections (source+0x3530 of source+0x33a0 records) get +8 pointer, +0 count, and a second bucket's pointer +0x10 / value +0x14 (shared = 1; counts must match); 0 on empty, bucket 0 or mismatch (sic: lists leak)"
 0x0042d130,CrossSection_BuildPieces,function,high,"reimplemented (src/game/coaster/xsection); cdecl (coaster, sections, n, source, flag): source+0x38a4 pieces of 0x2c (coaster+0x78/+0x7c): four degree ranges from source+0x3534 as radians (both 0/NaN: -FLT_MAX..FLT_MAX), up to three section links (first required, <= n); coaster+0x84 link from source+0x3b04 (|0x40), +0x80 sections end, flag: +0x74 |= 1; 0 on none or out of range"
@@ -4484,6 +4510,7 @@ address,name,kind,confidence,notes
 0x00458580,LightSource_DestroyMain,function,low,reimplemented (src/game/render/lightsource); The main light (0x7a0b40) destroyed
 0x00458890,LightSource_SetColour,function,low,"reimplemented (src/game/render/lightsource); a light's part colour from r, g, b"
 0x00458350,LightPart_SetColour,function,low,"reimplemented (src/game/render/lightsource); a light part's colour from a, r, g, b"
+0x004587e0,LightSource_SetColourScaled,function,low,"reimplemented (src/game/render/lightsource); cdecl (light, scale): LightSource_SetColour of the light's object with its colour times scale"
 0x00561bc0,ClipCodes_Compute,function,low,"reimplemented (src/game/render/clipcodes); fastcall-shaped (caller's ECX, EDX; out, codes, points, count, stride, mask), pops 24: each point's 7-bit sign/magnitude index into the table at 0x879970, masked, stored; out = AND | OR << 8 | ECX's high half"
 0x00570d60,ClipCodes_Run,function,low,reimplemented (src/game/render/clipcodes); the caller ECX and six arguments on to ClipCodes_Compute; returns out (name unconfirmed)
 0x00561840,ClipCodes_InitTable,function,low,"reimplemented (src/game/render/clipcodes); cdecl: the clip code table at 0x879970 built and the 8-byte block at 0x879a20 allocated, unless the block is there"
@@ -4627,6 +4654,7 @@ address,name,kind,confidence,notes
 0x00429a60,ModelSlot_Ctor,function,low,"reimplemented (src/game/model/slots); the model slot table element constructor: its part at +0x48 with virtual bases built, the scene flags touched twice"
 0x00429d60,ModelSlot_KillAdvisor,function,low,"reimplemented (src/game/model/slots); cdecl (slot): ""Kill advisor"": an awake holder plays bank 0xc and leaves the renderer (rectangle with flag 0x4000, else Holder_Sleep)"
 0x00429e90,ModelSlot_CallAdvisor,function,low,"reimplemented (src/game/model/slots); cdecl (entry, slot): ""Initial advisor call"": Animator_Play(holder, 5, entry - 1, 0x10, 1.0f, 0), or 1000 without a holder"
+0x00429e20,ModelSlot_Free,function,low,"reimplemented (src/game/model/slots); cdecl (slot): the slot model (+4) leaves the renderer (its +0x48 part through the virtual base, tag 0x10), is disposed, the +0 instance freed; both cleared"
 0x00462870,WorldVerts_Alloc,function,high,reimplemented (src/game/model/worldverts); 0x7aecd4 = a zeroed block of 12 bytes for each of 0x400 entries (large) or [0x7a42ac]
 0x004628a0,WorldVerts_Free,function,high,reimplemented (src/game/model/worldverts); frees the block at 0x7aecd4 (pointer left)
 0x004628b0,WorldVerts_TransformFrame,function,high,reimplemented (src/game/model/worldverts); the frame's vertices in world space (its matrix times its parents') into the 0x7aecd4 block

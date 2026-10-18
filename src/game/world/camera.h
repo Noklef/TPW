@@ -68,4 +68,10 @@ void __cdecl Camera_PackCellFractions(u32 x, u32 z, u8 *outX, u8 *outZ);
 
 // 0x48ce80 (cdecl; name unconfirmed): the camera centred on the thing [0x7c2658] points to (Camera_CentreOnThing with its handle).
 void __cdecl Camera_CentreOnGlobalThing();
+
+// 0x42a1d0 (cdecl; name unconfirmed): the cell under the camera's point (x, z = __ftol(0x7908f0 / 0x7908f8 * 0.1), each held in [0, 0x7a0314 - 1] /
+// [0, 0x7a0374 - 1], below 0 first); for the ride object there (Cell_FindRideableObject) the point moves to the centre of the object's cell (its
+// u16 at +0x38, less 1 as a dword: x = 5 - (low 7 bits) * -10, z = 5 - (the rest) * -10) and, when that cell's direction (MapCell_Direction of the
+// world [[0x7cf6ec]]'s cell) has exactly one of the bits 1 / 4 / 0x10 / 0x40 among 0x55, the yaw (0x790a38) = pi, pi / 2, 0 or 3 pi / 2.
+void __cdecl Camera_SnapToRide();
 }

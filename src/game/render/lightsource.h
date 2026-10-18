@@ -20,6 +20,10 @@ void __cdecl LightSource_DestroyMain();
 // = r, g, b; +0x54 = 0xff << 24 | __ftol(r 255) << 16 | __ftol(g 255) << 8 | __ftol(b 255) (ORed whole, after the shifts).
 void __cdecl LightSource_SetColour(u8 *const *holder, u32 r, u32 g, u32 b);
 
+// 0x4587e0 (cdecl; light, scale; name unconfirmed): LightSource_SetColour of light's object (+0) with its colour (+4 -> three floats)
+// times scale, each product rounded to a float first (the bytes of +0x54 from those floats).
+void __cdecl LightSource_SetColourScaled(u8 *const *light, float scale);
+
 // 0x458350 (thiscall; a, r, g, b as float bits, pops 0x10; name unconfirmed): the same on the part itself, with alpha: +4 = a, +8 / +0xc /
 // +0x10 = r, g, b; +0x54 = __ftol(a 255) << 24 | __ftol(r 255) << 16 | __ftol(g 255) << 8 | __ftol(b 255) (ORed whole, after the shifts).
 void __fastcall LightPart_SetColour(u8 *part, void *, u32 a, u32 r, u32 g, u32 b);

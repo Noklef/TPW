@@ -411,32 +411,40 @@ def vhash(k, n, this, args):
     return h
 
 
+def _log_args(e, k, raw):
+    """A recorder's arguments as driver.cpp's record_call logs them: slot k's fills written through them (fill(), fill_arg()), then each turned into a
+    blob's hash (blob()), a string's hash or 0 for an out argument (strings()), or its low byte (LOG_BYTES)."""
+    n = len(raw)
+    args = list(raw)
+    mask = e.u32(LOG + LOG_STRINGS + 4 * (k & 63))
+    low = e.u32(LOG + LOG_BYTES + 4 * (k & 63))
+    fills = [(LOG + LOG_FILL + 0x80 * f,) + struct.unpack('<3I', e.read(LOG + LOG_FILL + 0x80 * f, 12)) for f in range(2)]
+    blob_arg, blob_mask = struct.unpack('<2I', e.read(LOG + LOG_BLOBS + 8 * (k & 63), 8))
+    for i in range(n):
+        for at, fk, fa, fn in fills:
+            if fk == (k & 63) | 0x80000000 and fa == i and args[i]:
+                if fn & 0x80000000:   # (fill_arg())
+                    e.write(args[i], struct.pack('<I', raw[fn & 0xff] if (fn & 0xff) < n else 0))
+                else:
+                    e.write(args[i], e.read(at + 0x10, min(fn, 0x70)))
+        if blob_arg == i + 1 and args[i]:
+            args[i] = blob_hash(e.read, args[i], blob_mask)
+        if mask >> i & 1:
+            args[i] = string_hash(e.read, args[i])
+        if mask >> (16 + i) & 1:
+            args[i] = 0
+        if low >> i & 1:
+            args[i] &= 0xff
+    return args
+
+
 def _recorder(k, n, com=False):
     def hook(e):
         sp = e.r['ESP'] + (4 if e.tail else 0)
-        args = [e.u32(sp + 4 * i) for i in range(n)]
-        raw = list(args)
+        raw = [e.u32(sp + 4 * i) for i in range(n)]
         this = 0 if com else e.r['ECX']
         kk = k | 0x100 if com else k
-        mask = e.u32(LOG + LOG_STRINGS + 4 * (k & 63))
-        low = e.u32(LOG + LOG_BYTES + 4 * (k & 63))
-        fills = [(LOG + LOG_FILL + 0x80 * f,) + struct.unpack('<3I', e.read(LOG + LOG_FILL + 0x80 * f, 12)) for f in range(2)]
-        blob_arg, blob_mask = struct.unpack('<2I', e.read(LOG + LOG_BLOBS + 8 * (k & 63), 8))
-        for i in range(n):
-            for at, fk, fa, fn in fills:
-                if fk == (k & 63) | 0x80000000 and fa == i and args[i]:
-                    if fn & 0x80000000:   # (fill_arg())
-                        e.write(args[i], struct.pack('<I', raw[fn & 0xff] if (fn & 0xff) < n else 0))
-                    else:
-                        e.write(args[i], e.read(at + 0x10, min(fn, 0x70)))
-            if blob_arg == i + 1 and args[i]:
-                args[i] = blob_hash(e.read, args[i], blob_mask)
-            if mask >> i & 1:
-                args[i] = string_hash(e.read, args[i])
-            if mask >> (16 + i) & 1:
-                args[i] = 0
-            if low >> i & 1:
-                args[i] &= 0xff
+        args = _log_args(e, k, raw)
         count = e.u32(LOG)
         if count < LOG_ENTRIES:
             entry = LOG + 4 + 4 * LOG_ENTRY * count
@@ -490,14 +498,14 @@ def _cdecl_log2(e):  # (driver.cpp stub_cdecl_log2)
     e.r['EAX'] = e.u32(LOG + LOG_RETURNS + 8 * 0x3e + 4) if e.u32(LOG + LOG_RETURNS + 8 * 0x3e) else vhash(0x13e, 2, 0, args)
 
 
-CDECL_LOG4 = STUBS + 0x90  # a callback of four cdecl arguments that logs them (the entry k 0x13d, n 4, this 0; LOG_BYTES / LOG_RETURNS of 0x3d apply)
+CDECL_LOG4 = STUBS + 0x90  # a callback of four cdecl arguments that logs them (the entry k 0x13d, n 4, this 0; slot 0x3d's settings apply as a recorder's:
+# fills, strings / out arguments, blobs, LOG_BYTES, LOG_RETURNS)
 
 
 def _cdecl_log4(e):  # (driver.cpp stub_cdecl_log4)
     sp = e.r['ESP'] + (4 if e.tail else 0)
     raw = [e.u32(sp + 4 * i) for i in range(4)]
-    low = e.u32(LOG + LOG_BYTES + 4 * 0x3d)
-    args = [a & 0xff if low >> i & 1 else a for i, a in enumerate(raw)]
+    args = _log_args(e, 0x3d, raw)
     count = e.u32(LOG)
     if count < LOG_ENTRIES:
         e.write(LOG + 4 + 4 * LOG_ENTRY * count, struct.pack('<%dI' % LOG_ENTRY, 0x13d, 4, 0, *args, *([0] * 5)))

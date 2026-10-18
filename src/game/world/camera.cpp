@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "../math/x87.h"
+#include "mapcell.h"
 #include "things.h"
 
 namespace {
@@ -120,5 +121,30 @@ void __cdecl Camera_CentreOnGlobalThing() {
     Thing_GetHandle(thing, nullptr, &handle);
     // (the high word what ECX held: the thing pointer's)
     Camera_CentreOnThing((static_cast<u32>(reinterpret_cast<uintptr_t>(thing)) & 0xffff0000u) | handle);
+}
+
+void __cdecl Camera_SnapToRide() {
+    float &x = global<float>(0x007908f0);
+    float &z = global<float>(0x007908f8);
+    s32 cx = (s32)(long long)(X87Reg(x) * 0.100000001f).v;  // 0x6fdd58, __ftol
+    s32 cz = (s32)(long long)(X87Reg(z) * 0.100000001f).v;
+    if (cx < 0) cx = 0;
+    if (cz < 0) cz = 0;
+    if (cx >= global<s32>(0x007a0314)) cx = global<s32>(0x007a0314) - 1;
+    if (cz >= global<s32>(0x007a0374)) cz = global<s32>(0x007a0374) - 1;
+    const u8 *const thing = Cell_FindRideableObject(cx, cz);
+    if (!thing) return;
+    const u32 id = *reinterpret_cast<const u16 *>(thing + 0x38);
+    const u32 v = id - 1;
+    x = (float)X87_SubR(X87_MulInt(v & 0x7f, -10.0f), 5.0f);  // 0x6fdd5c, 0x6fdd60
+    z = (float)X87_SubR(X87_MulInt(v >> 7, -10.0f), 5.0f);
+    const u8 *const world = **reinterpret_cast<u8 *const *const *>(0x007cf6ec);
+    u32 &yaw = global(0x00790a38);
+    switch (MapCell_Direction(world + 0x294 + id * 0x44) & 0x55) {
+    case 1: yaw = 0x40490fdb; break;   // pi
+    case 4: yaw = 0x3fc90fdb; break;   // pi / 2
+    case 0x10: yaw = 0; break;
+    case 0x40: yaw = 0x4096cbe4; break;   // 3 pi / 2
+    }
 }
 }

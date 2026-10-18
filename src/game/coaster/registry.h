@@ -95,6 +95,29 @@ u32 __cdecl Object_LinkBare(const u8 *object);
 // 0x434710: copies 0x79221c, 0x790fd8, 0x79104c and 0x791cf8 to *a, *b, *c and *d.
 void __cdecl Coasters_GetState(u32 *a, u32 *b, u32 *c, u32 *d);
 
+// 0x434f10 (cdecl; name unconfirmed): those four as the cells within reach of the edited piece: the piece is, for the current link
+// (0x790fec) with flag 2 (byte +0x3c), the selection's (0x79c6a4) +0x68 - or its +0x64 when that has flag 0x10000 (+8) - with edit
+// flag 0x100 (0x79c658), else the link's +0x60; without flag 2, the selection's +0x68 with flag 0x100, else the first of the link's
+// +0x58 chain (through +0x68) without flag 0x2000 (none: the piece is null, and its +0x100 read faults, as the original). Its cell
+// (+0x100 -> +0xc, +0x10) +/- reach, reach = __ftol(fsqrt of the dword +0xa0 of the link's type (+4) at +0x1c8 with edit flag 0x40,
+// else +0xa8)) + 1; the lows raised to 0x7a01bc, the highs held below 0x7a01bc + 0x7a0314 and 0x7a029c + 0x7a0374 (all signed).
+// sic: the z low is raised to 0x7a01bc, the x origin, as the x low is.
+void __cdecl CoasterEdit_SetBounds();
+
+// 0x4479a0 / 0x447a10 (cdecl; names unconfirmed): the edit's two tools (0x79c644 = 1 / 2), each recorded (ActionRec_Write of the
+// recorder 0x785a08, code 0x37 / 0x38) and ending in CoasterEdit_SetBounds; flag 0x2000 of the current link (0x790fec, +0; there
+// must be one) cleared first. Tool 1 clears edit flag 0x40 (0x79c658) when tool 2 was on with 0x79c664 2 and the link's type (+4)
+// has flag 2 (its first byte); 0x79c664 = 0. Tool 2, for a link whose type has flag 2: with the end piece flagged 0x80 (+8; the
+// link's +0x58 without its flag 1 at +0x3c, else its +0x60 when it has flag 2) 0x79c664 = 1, else, unless flag 0x40 is on, 0x79c664
+// = 2; either way flag 0x40 set.
+void __cdecl CoasterEdit_Tool1();
+
+void __cdecl CoasterEdit_Tool2();
+
+// 0x4445b0 (cdecl; tool; name unconfirmed): CoasterEdit_Tool2 for tool 2; for any other, CoasterEdit_Tool1 with 0x79c644 = tool.
+// (Tool1 and Tool2 are this with 1 and 2.)
+void __cdecl CoasterEdit_SetTool(u32 tool);
+
 // 0x447990: flag 1 of 0x79c658.
 u32 __cdecl CoasterEdit_Flag1();
 
@@ -144,4 +167,12 @@ void __cdecl Coaster_FlashCar(u8 *coaster, u32 which);
 // words when 0). Sets value on its coaster link (by index) when it has +4 flag 0x40000, flags it
 // claimed and returns index, else 0. The fifth argument is unused.
 u32 __cdecl Ride_Claim(u32 index, u32 type, u32 key, const u32 *desc, u32, u32 value, u32 a, u32 b);
+
+// 0x432c10 (cdecl; x, y, flags, unused, value, position; name unconfirmed): a new entry (0x48 bytes, GlobalMem_Alloc zeroed) for the current
+// link (0x790fec): with flags 4 its +0x68; otherwise appended to its chain (+0x4c first, +0x50 last, entries' next +0x28 and previous +0x2c),
+// +0 the link's count (+0x40), which then counts it. +4 = flags. With a position its three floats go to +0x1c (copied as dwords) and its cell
+// (__ftol of a tenth of +0 and +8, each held in [0, 0x7a0314 - 1] / [0, 0x7a0374 - 1], below 0 first) to +0xc / +0x10; otherwise +0xc / +0x10
+// = x / y, +0x1c / +0x24 = x * 10 / y * 10 (each as an unsigned dword), +0x20 = Terrain_FootprintHeight(x, y, null, 1, 1, 0, 0) and +8 the
+// tile, x + y * the map width (0x7a0854 -> +0x6c -> +0x18). Then +0x14 = the link, +0x18 = value. Returns the entry.
+u8 *__cdecl CoasterLink_AddEntry(s32 x, s32 y, u32 flags, u32 unused, u32 value, const float *position);
 }

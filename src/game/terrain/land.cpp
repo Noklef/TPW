@@ -13,6 +13,8 @@
 #include "../model/faces.h"
 #include "../model/holder.h"
 #include "../render/frame.h"
+#include "../world/mapcell.h"
+#include "../world/thingscan.h"
 
 namespace {
 
@@ -361,5 +363,78 @@ double __cdecl Terrain_FootprintHeight(s32 x, s32 y, const u8 *cells, s32 width,
         }
     }
     return ((X87Reg(lowest) + highest) * 0.5f).v;  // 0x6fe770
+}
+
+u32 __cdecl Map_RideIndexAt(s32 x, s32 y) {
+    const u32 ride = MapCell_Dword4At(x, y);
+    if (ride) return ride;
+    u16 handle;
+    handle = *Map_ObjectOrEntranceAt(&handle, x, y);
+    if (!handle) return 0;
+    const u8 *const thing = global<const u8 *>(0x007cfb90 + 20 * (u32)handle);
+    return thing && thing[2] == 3 ? at<u32>(thing, 0x20) : 0;
+}
+
+u8 *__cdecl Terrain_RideAt(u32 x, u32 y) {
+    const u8 *const grid = at<const u8 *>(map(), 0x6c);
+    const u32 width = at<u32>(grid, 0x18);
+    if (x >= width) x = width - 1;
+    const u32 height = at<u32>(grid, 0x1c);
+    if (y >= height) y = height - 1;
+    const u32 ride = Map_RideIndexAt((s32)x, (s32)y);
+    return ride ? global<u8 *>(0x007a4610 + 4 * ride) : nullptr;
+}
+
+double __cdecl Terrain_SurfaceHeight(s32 x, s32 y, u32 *slot) {
+    u32 ride;
+    if (slot && *slot) {
+        ride = *slot;
+    } else {
+        ride = MapCell_Dword4At(x, y);
+        if (!ride) {   // (Map_RideIndexAt inline)
+            u16 word;   // (the original's out word is slot's own argument slot, read no more)
+            const u16 handle = *Map_ObjectOrEntranceAt(&word, x, y);
+            if (handle) {
+                const u8 *const thing = global<const u8 *>(0x007cfb90 + 20 * (u32)handle);
+                if (thing && thing[2] == 3) ride = at<u32>(thing, 0x20);
+            }
+        }
+    }
+    const float fx = (float)X87_MulIntDouble(x, 10.0);   // 0x6fe3e4
+    const float fy = (float)X87_MulIntDouble(y, 10.0);
+    if (ride) {
+        if (slot) *slot = ride;
+        const u8 *const record = global<const u8 *>(0x007a4610 + 4 * ride);
+        const u8 *const heights = record ? at<const u8 *>(record, 0xcc) : nullptr;
+        if (heights) {
+            const u8 *const placed = at<const u8 *>(record, 8);
+            const s32 angle = at<s32>(placed, 0x10);
+            const float *const origin = reinterpret_cast<const float *>(at<const u8 *>(at<const u8 *>(placed, 4), 0x78) + 0x40);
+            const float dx = (float)(X87Reg(fx) - X87Reg(origin[0]));   // (stored; dy stays in the register)
+            const X87Reg dy = X87Reg(fy) - X87Reg(origin[2]);
+            float u = dx;
+            X87Reg v = dy;
+            if (angle == 90) {
+                u = (float)(X87Reg(-dy.v) - X87Reg(10.0f));
+                v = X87Reg(dx);
+            } else if (angle == 180) {
+                u = (float)(X87Reg(-(double)dx) - X87Reg(10.0f));
+                v = X87Reg(-dy.v) - X87Reg(10.0f);
+            } else if (angle == 270) {
+                u = (float)dy;
+                v = X87Reg(-(double)dx) - X87Reg(10.0f);
+            }
+            const u32 width = at<u16>(heights, 8);
+            const s32 row = (s32)(long long)(v * X87Reg(-0.100000001f)).v;   // 0x6fe404, __ftol
+            const s32 col = (s32)(long long)(X87Reg(u) * X87Reg(-0.100000001f)).v;
+            const u8 level = *reinterpret_cast<const u8 *>(at<uintptr_t>(heights, 0x10) - width * (u32)row - (u32)col);
+            return (X87Reg(X87_MulInt(level, 0.392156869f)) + X87Reg(origin[1])).v;   // 0x6fe408
+        }
+    }
+    if (slot) {
+        *slot = 0;
+        return 0.0;   // 0x6fe3dc
+    }
+    return Terrain_HeightAt(fx, fy);
 }
 }
