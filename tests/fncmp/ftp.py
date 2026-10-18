@@ -11,7 +11,7 @@ from fncmp import Bench, Call, RAM  # noqa: E402
 B = Bench([(0x5d2720, 0x5d2842), (0x67a400, 0x6902c0)])
 LINE = RAM + 0x100
 SPACES = [b' ', b' ', b'  ', b'\t', b' \t ', b'\r\n', b'\x0b\x0c']
-WORD = b'rwx-dlAZaz019+.\x80\xa0\xff'
+WORD = b'rwx-dlAZaz019+.\x80\xa0\xfb\xfd\xff'  # (0xfb and 0xfd sign-extended read words before _pctype that have the space bit)
 
 
 def field(r, size=False):
