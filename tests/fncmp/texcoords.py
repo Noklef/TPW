@@ -1,7 +1,8 @@
 # A model's texture coordinates (src/game/render/texcoords: 0x581410) against the original: entries of 0-12 vertices from 0-20,
 # strides 8-0x28; no texture, one without flag 0x1000 or +0x1c, or one with any scales and offsets (widths and heights 0, negative or
 # any); modes 1 (normals by the view), with bit 2 (shifted by the light's dots, the limit any, 0 or a NaN now and then) or neither;
-# floats any (special values now and then).
+# floats any (special values now and then). And a transformed vertex's texture coordinates for a stage (0x566690): stages 0-7, floats any
+# or NaNs (signalling ones quietened).
 # usage: texcoords.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -10,7 +11,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, SPECIAL, Bench, Call, fb, put  # noqa: E402
 
-B = Bench([(0x581410, 0x581781)])
+B = Bench([(0x581410, 0x581781), (0x566690, 0x5666a7)])
 SETTINGS, ENTRIES, ORDER, NORMALS, TEX, VIEW, BLOCK, LIGHT = (RAM + 0x100 * k for k in range(8))
 PACKS, EDGES, OUT = RAM + 0x1000, RAM + 0x2000, RAM + 0x3000
 
@@ -19,7 +20,18 @@ def floats(r, n, scale=None):
     return b''.join(struct.pack('<I', r.f(scale)) for _ in range(n))
 
 
+def vertex_uv(r):   # 0x566690 (thiscall; stage, u, v): the floats through the x87 to +0x18 + 8 * stage / +0x1c + 8 * stage
+    stage = r.choice([0, 0, 1, 2, 3, r.randrange(8)])
+    odd = r.choice([0x7f800001, 0xff812345, 0x7fc00000, 0x80000000])
+    u, v = (r.choice([r.f(), r.f(), odd]) for _ in range(2))
+    return Call(0x566690, [OUT, stage, u, v], {OUT: r.bytes(0x60)}, conv='t', ret='v')
+
+
 def case(r):
+    return model(r) if r.deal([0, 0, 1]) else vertex_uv(r)
+
+
+def model(r):
     index = r.randrange(4)
     entries = bytearray(r.bytes(0x40))
     count = r.choice([0, 1, 2, 3, 4, 5, 8, 12])
