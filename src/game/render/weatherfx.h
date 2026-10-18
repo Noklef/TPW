@@ -1,5 +1,5 @@
-// The weather renderer's small setters, texture release and deletion: reimplementation of 0x57d910, 0x57dc40, 0x57dc70, 0x57d720 and
-// 0x57d1a0.
+// The weather renderer's small setters, wind, texture release and deletion: reimplementation of 0x57d910, 0x57d920, 0x57dc40, 0x57dc70,
+// 0x57d720 and 0x57d1a0.
 //
 // The renderer is the object at [0x8bcbac] (allocated at 0x57d120, built by 0x57d1d0). Its +0 is
 // the kinds of weather showing (bit 1 and bit 2; the constructor sets 1), +4 asks for its
@@ -29,4 +29,11 @@ u32 __fastcall WeatherFx_FreeTextures(u8 *fx);
 // 0x57d1a0 (cdecl; name unconfirmed): with a renderer at [0x8bcbac], its textures freed (WeatherFx_FreeTextures), it freed (GameHeap_Free)
 // and [0x8bcbac] cleared: 1. Without one 0.
 u32 __cdecl WeatherFx_Delete();
+
+// 0x57d920 (thiscall; angle in degrees, strength: floats; pops 8; name unconfirmed; the game passes 0 and 0.3 at 0x572aa3): x87 in
+// the original's order. +0x331c = the direction (x, -1, z) made unit length (unless its length is 0 or a NaN: then as it is), x and z
+// cos and sin of the angle times the strength. Then the landscape's points 0-3 (Landscape_SetPoint on 0x8c1828) at (sin a * s, -1,
+// cos b * s), s the strength * 0.0017 and a, b the angle + 270 less 0 and 0 (point 0), 1.9 and 2.3, 1.2 and -1.7, -1.8 and -2.9 degrees,
+// and +0x331c again from point 3's x and z * 0.2.
+void __fastcall WeatherFx_SetWind(u8 *fx, void *, float angle, float strength);
 }
