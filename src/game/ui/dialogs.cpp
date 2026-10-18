@@ -80,6 +80,13 @@ s32 __fastcall WindowAt10_Message4IfAny(u8 *object) {
     return w ? Window_SendMessage(w, 4, 0, 0) : 0;
 }
 
+s32 __cdecl Dialog7cb2b8_Handler(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 0x14) *reinterpret_cast<u32 *>(0x007cb2b8) = 0;
+    return Window_CallDefault(window, nullptr, message, a, b);
+}
+
+s32 __cdecl Window_DefaultHandler(u8 *window, u32 message, u32 a, u32 b) { return Window_CallDefault(window, nullptr, message, a, b); }
+
 s32 __cdecl WindowAt10_Handler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x14) *reinterpret_cast<u32 *>(Window_DwordA0(window, nullptr, 0) + 0x10) = 0;
     return Window_CallDefault(window, nullptr, message, a, b);
