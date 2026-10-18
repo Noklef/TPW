@@ -1,6 +1,6 @@
 // The player's avatar in an online chat room (the WEACHATR library's Chat): an object { +0 the Chat, +4 the park thing standing for the player,
 // +0xeb1 a byte cleared when the player acts }. Reimplementation of the moves that tell the room (Chat::MovePlayer, import 0x6fd4cc, with a
-// mode and the avatar as its context) and place the thing (Thing_ResetPlaceAt, only for a thing of kind 0x12): 0x4ea370, 0x4ea3f0,
+// mode and the avatar as its context) and place the thing (Thing_ResetPlaceAt, only for a thing of kind 0x12): 0x4ea240, 0x4ea370, 0x4ea3f0,
 // 0x4ea410, 0x4ebfb0, 0x4eab40 and 0x4eac30. Names unconfirmed (the modes' meanings are not known).
 #pragma once
 
@@ -11,6 +11,10 @@ extern "C" {
 // 0x4ea370 (thiscall; x, y, pops 8): Chat::MovePlayer(x, y as 16-bit values, mode 0, the avatar); then the thing in the thing table's slot
 // (0x7cfb90) for the avatar's thing's handle, when of kind 0x12 (the byte +2), is placed at (x, y) (Thing_ResetPlaceAt).
 void __fastcall ChatAvatar_MoveTo(u8 *avatar, void *, u32 x, u32 y);
+
+// 0x4ea240 (thiscall; x, y, pops 8): the avatar's thing's scripts released (Person_ReleaseScripts); the slot thing of its handle, when of
+// kind 0x12, placed at (x, y); then Chat::MovePlayer(x, y as 16-bit values, mode 1, the avatar).
+void __fastcall ChatAvatar_Arrive(u8 *avatar, void *, u32 x, u32 y);
 
 // 0x4ea3f0 (thiscall): Chat::MovePlayer(the avatar's thing's position: the words at +4 and +6, mode 2, the avatar). Returns its result.
 u32 __fastcall ChatAvatar_SayPosition(u8 *avatar);

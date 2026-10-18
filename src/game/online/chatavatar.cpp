@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../world/person.h"
+#include "../world/personscripts.h"
 #include "../world/things.h"
 
 namespace {
@@ -45,6 +46,14 @@ void moveTo(u8 *avatar, u32 x, u32 y, s32 mode) {
 extern "C" {
 
 void __fastcall ChatAvatar_MoveTo(u8 *avatar, void *, u32 x, u32 y) { moveTo(avatar, x, y, 0); }
+
+void __fastcall ChatAvatar_Arrive(u8 *avatar, void *, u32 x, u32 y) {
+    Person_ReleaseScripts(at<u8 *>(avatar, 4));
+    u16 handle;
+    const u16 got = *Thing_GetHandle(at<u8 *>(avatar, 4), nullptr, &handle);
+    placeThing(slotThing(got), x, y);
+    movePlayer(avatar, (s16)x, (s16)y, 1);
+}
 
 u32 __fastcall ChatAvatar_SayPosition(u8 *avatar) {
     const u8 *const thing = at<u8 *>(avatar, 4);
