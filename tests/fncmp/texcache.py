@@ -6,9 +6,10 @@
 # block at +0x12970 or none (the tracked blocks' table as in spritesfree.py). Destroy (0x56de90): the same object at [0x879d60], or none.
 # AddRect (0x56e030): a header of width / height 0-6 (or past the grid), a grid of random floats, a rectangle around and past it, any delta.
 # Stamp (0x56e0a0): widths and heights about the fixed rectangles' edges (0x1c-0x50 by 0-0x11), the grid as AddRect's.
-# SetView (0x56e6c0) / Setup (0x56e3f0): a header of floats (ordinary or specials) and sizes 0-24 (wrapping ones now and then), the world
-# view [0x879d54] random, the renderer [0x87a6d0] as trackedglobal.py's frame buffer case; Setup's land holds the header, the render
-# flag 0x10000 set or not, the old block tracked or none, the new one's word count (+4) the grid's or not, and its source at +0x28.
+# SetView (0x56e6c0) / Setup (0x56e3f0): a header of floats (ordinary or specials; the span +0x20..+0x24 zero or a NaN now and then) and
+# sizes 0-24 or the stamps' (wrapping ones now and then), the world view [0x879d54] random, the renderer [0x87a6d0] as trackedglobal.py's
+# frame buffer case; Setup's land holds the header, the render flag 0x10000 set or not, the old block tracked or none, the new one's word
+# count (+4) the grid's or not, and its source at +0x28.
 # usage: texcache.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,Dtor,Jump,Unload,Destroy,AddRect,Stamp,SetView,Setup)
 import os
 import struct
@@ -80,7 +81,14 @@ def view_case(r, op):
     hdr = bytearray(r.bytes(0x30))
     for off in (8, 0xc, 0x10, 0x14, 0x20, 0x24):
         put(hdr, off, 'I', fl(r))
+    roll = r.random()
+    if roll < 0.1:
+        put(hdr, 0x24, 'I', struct.unpack_from('<I', hdr, 0x20)[0])
+    elif roll < 0.2:
+        put(hdr, r.choice([0x20, 0x24]), 'I', r.choice([0x7fc00000, 0xffc00000, 0x7fa00000, 0xff812345]))
     w, h = r.randrange(25), r.randrange(25)
+    if r.random() < 0.4:
+        w, h = r.choice([0x1d, 0x2c, 0x30, 0x34, 0x45, 0x50]), r.choice([0xb, 0xc, 0x10, 0x11])
     if r.random() < 0.05:
         w, h = r.choice([(0x40000001, 3), (0xffffffff, 2), (3, 0x80000000)])
     put(hdr, 0x18, '2I', w, h)
@@ -113,10 +121,10 @@ def view_case(r, op):
         return Call(0x56e6c0, [RAM], regions, conv='t', ret='a')
     regions[RAM + 0x12968] = put(bytearray(r.bytes(0xc)), 8, 'I', r.choice([0, HEAP + 0x7000, HEAP + 0x7100]))
     regions[0x8bcbc8] = struct.pack('<I', r.getrandbits(32) ^ r.choice([0, 0x10000]))
-    cells = (w + 1) * (h + 1) if w < 25 and h < 25 else 4
+    cells = (w + 1) * (h + 1) if w < 0x100 and h < 0x100 else 4
     put(hdr, 4, 'H', r.choice([cells, cells, cells, 0, 1, r.randrange(0x400)]))
     put(hdr, 0x28, 'I', SOURCE)
-    regions[SOURCE] = grid_floats(r, 0x400)
+    regions[SOURCE] = grid_floats(r, 0x800)
     land = bytearray(r.bytes(0x80))
     put(land, 0x6c, 'I', HDR)
     regions[LANDOBJ] = land
