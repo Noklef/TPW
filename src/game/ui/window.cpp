@@ -316,4 +316,26 @@ u32 __fastcall Window_KillFocus(u8 *window, void *, u32 a) {
     focus = nullptr;
     return (Window_UpdateHover() & 0xffff0000u) | 1;
 }
+
+u32 __cdecl Gui_MouseDown(u32 button, u32 x, u32 y) {
+    if (*reinterpret_cast<const u32 *>((uintptr_t)0x0077c488) == 0) return 0;  // only AX is set
+    const s32 b = (s16)button;
+    u8 *const *const hovered = reinterpret_cast<u8 *const *>((uintptr_t)0x00faa5e0);
+    Window_PostMessage(*hovered, 0x10005, (u32)b, ((u32)(s32)(s16)x << 16) | (u32)(s32)(s16)y);
+    reinterpret_cast<u8 **>((uintptr_t)0x00faa588)[b] = *hovered;
+    const u32 bit = 1u << (b & 31);
+    *reinterpret_cast<u16 *>((uintptr_t)0x00faa5bc) |= (u16)bit;
+    return (bit & 0xffff0000u) | 1;
+}
+
+u32 __cdecl Gui_MouseUp(u32 button, u32 x, u32 y) {
+    if (*reinterpret_cast<const u32 *>((uintptr_t)0x0077c488) == 0) return 0;  // only AX is set
+    const s32 b = (s16)button;
+    u8 **const windows = reinterpret_cast<u8 **>((uintptr_t)0x00faa588);
+    Window_PostMessage(windows[b], 0x10004, (u32)b, ((u32)(s32)(s16)x << 16) | (u32)(s32)(s16)y);
+    windows[b] = nullptr;
+    const u32 mask = ~(1u << (b & 31));
+    *reinterpret_cast<u16 *>((uintptr_t)0x00faa5bc) &= (u16)mask;
+    return (mask & 0xffff0000u) | 1;
+}
 }

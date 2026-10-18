@@ -134,4 +134,14 @@ u32 __fastcall Window_SetFocus(u8 *window, void *, u32 a);
 // 0x65e5fa (thiscall (a), pops 4; name unconfirmed): when the window has the focus [0xfaa5ec] it is posted 0x20 (a, 0), the focus
 // cleared and the hover updated (Window_UpdateHover), 1 in AX (the rest of EAX the update's); otherwise 0 in AX (the rest the focus's).
 u32 __fastcall Window_KillFocus(u8 *window, void *, u32 a);
+
+// 0x658af1 (cdecl (button, x, y: words); name unconfirmed): a mouse button pressed. 0 in AX while [0x77c488] is 0 (the rest of EAX not
+// set: 0 here). Else the hovered window [0xfaa5e0] is posted 0x10005 (button, x << 16 | y; all three signed: sic, a negative y fills the
+// top half) (Window_PostMessage), becomes the button's window (0xfaa588 + 4 * button, signed) and the button's bit (1 << button, the
+// shift taken mod 32) is set in the word [0xfaa5bc]; 1 in AX (the rest of EAX the bit's).
+u32 __cdecl Gui_MouseDown(u32 button, u32 x, u32 y);
+
+// 0x658b5b (cdecl (button, x, y: words); name unconfirmed): a mouse button released: the same, the button's window posted 0x10004 and
+// cleared, its bit cleared in [0xfaa5bc]; 1 in AX (the rest of EAX the inverted bit's).
+u32 __cdecl Gui_MouseUp(u32 button, u32 x, u32 y);
 }
