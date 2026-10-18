@@ -293,6 +293,7 @@
 #include "../game/render/texcoords.h"
 #include "../game/render/graphicssettings.h"
 #include "../game/render/textparts.h"
+#include "../game/render/vertexblock.h"
 #include "../game/render/weatherfx.h"
 #include "../game/render/worldview.h"
 #include "../game/online/servers.h"
@@ -4009,6 +4010,7 @@ const Hook kHooks[] = {
     {"WorldView_SetRangeY",       0x0056b8d0, (void *)&WorldView_SetRangeY, {0xd9, 0x44, 0x24, 0x0c, 0xd8}},
     {"FixedVerts_Pack",           0x00563220, (void *)&FixedVerts_Pack, {0x8b, 0x44, 0x24, 0x08, 0x85}},
     {"FixedVerts_PackRounded",    0x00563130, (void *)&FixedVerts_PackRounded, {0x55, 0x8b, 0xec, 0x51, 0xa1}},
+    {"VertexBlock_Add",           0x0053ddd0, (void *)&VertexBlock_Add, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
