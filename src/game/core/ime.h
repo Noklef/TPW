@@ -28,6 +28,11 @@ u32 __fastcall ImeVector16_Capacity(const u8 *vec);
 
 // 0x47a960: the current entry (+0x54) of the 0x24-byte list (first at +0x3c), or null for -1.
 u8 *__fastcall Ime_Current(const u8 *ime);
+// 0x47a9b0: the current entry cached at +0x160 (a 0x24-byte entry: its dwords, the strings at +0x170 and +0x180): with none, +0x188
+// and byte +0x184 cleared; else unless cached (byte +0x184) with the same first dword it is assigned over the cache
+// (CountedVector14_Assign, core/buffers, inlined), +0x188 set to +0x180 when 0, and marked cached. Returns the cached strings' count
+// (0 when none is cached).
+u32 __fastcall Ime_CacheCurrent(u8 *ime);
 // 0x47a980: +0x58 = limit, at most the constant at 0x6feee0 (12).
 void __fastcall Ime_SetLimit(u8 *ime, void *, u32 limit);
 // 0x480e70: the constructor of the global at 0x7b4e38, which holds an IME at +0x1c: that

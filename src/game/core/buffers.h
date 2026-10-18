@@ -127,4 +127,16 @@ void __fastcall CountedVector14_Clear(u8 *object);
 
 // 0x47aba0 (thiscall): the same with the entries from [+4] up to [+8] and the fields +4, +8 and +0xc.
 void __fastcall CountedVector4_Clear(u8 *object);
+
+// 0x479490 (thiscall; x, pops 4; name unconfirmed): operator= of the 0x24-byte object whose vector<wstring> is at +0x10 (first +0x14,
+// last +0x18, end +0x1c): the dwords +0 to +0xc and +0x20 copied, and unless the vectors are one the strings assigned in place
+// (StdWString_AssignSub of all of each) as far as both go, then the rest of x's constructed after the end (StdWString_Construct) or the
+// object's left over destroyed (CountedBuf_Deleter); when x has more than the capacity, the strings destroyed, the block freed and a new
+// one of x's size (Mem_Alloc; a negative size 0) built (StdWStrings_UninitCopy). The sizes are the byte spans shifted signed. Returns
+// the object.
+u8 *__fastcall CountedVector14_Assign(u8 *object, void *, const u8 *x);
+
+// 0x47d780 (cdecl; first, last, dest; name unconfirmed): std::copy of 0x24-byte objects: each from [first, last) assigned to the next
+// from dest (CountedVector14_Assign, inlined with CountedEntries_Release for the destroying). Returns the end.
+u8 *__cdecl CountedVector14s_Copy(const u8 *first, const u8 *last, u8 *dest);
 }  // extern "C"

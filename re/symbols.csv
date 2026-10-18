@@ -3672,6 +3672,7 @@ address,name,kind,confidence,notes
 0x005b1930,StdMapG_Insert,function,high,reimplemented (src/game/core/stdtree); map insert of a 16-bit key with the sentinel at 0xf7c970
 0x0047c740,ImeVector_InsertOne,function,high,reimplemented (src/game/core/ime); inserts one dword into the IME vector
 0x0047cf20,ImeVector_InsertN,function,high,reimplemented (src/game/core/ime); inserts count copies of a dword into the IME vector
+0x0047a9b0,Ime_CacheCurrent,function,low,reimplemented (src/game/core/ime); thiscall: the current entry cached at +0x160; returns its string count
 0x0047f9a0,TextMetrics_Width,function,high,reimplemented (src/game/gfx/text); width of a run of characters by the glyph width slot
 0x0047fa00,TextMetrics_FitIndex,function,high,reimplemented (src/game/gfx/text); index at which the width runs out
 0x0047f990,TextMetrics_ForwardSlot8,function,high,reimplemented (src/game/gfx/text); Forwards to virtual call 8 of the inner object (name unconfirmed)
@@ -3703,6 +3704,8 @@ address,name,kind,confidence,notes
 0x004f7480,CountedPair_Deleter,function,low,"reimplemented (src/game/core/buffers); thiscall: clear the pair, free the object when flags bit 0 is set"
 0x004f7170,CountedPair_Destroy,function,low,reimplemented (src/game/core/buffers); cdecl (element): CountedPair_Clear of the element (std::_Destroy)
 0x004e5700,CountedPairVectorDeque_Clear,function,low,"reimplemented (src/game/core/buffers); thiscall: empties a deque of CountedPair vectors (0x10-byte elements, 0x1000-byte blocks): each vector's pairs destroyed and its block freed, finished blocks and at the end the map freed"
+0x00479490,CountedVector14_Assign,function,low,"reimplemented (src/game/core/buffers); thiscall (x), pops 4: the 0x24-byte entry's operator="
+0x0047d780,CountedVector14s_Copy,function,low,"reimplemented (src/game/core/buffers); cdecl (first, last, dest): std::copy of the entries"
 0x005b2f40,StdTreeF_LowerBound,function,high,reimplemented (src/game/core/stdtree); lower bound of a string key in the string map
 0x005b0c40,StdTreeF_AllFlagged,function,high,reimplemented (src/game/core/stdtree); whether every mapped object has the byte at +0xb9 set
 0x005b20c0,StdTreeF_FindLower,function,high,reimplemented (src/game/core/stdtree); stores the lower bound of a string key
