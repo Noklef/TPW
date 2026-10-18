@@ -7,7 +7,8 @@
 # for a case, InterlockedDecrement now and then 0 (the object freed). The stream or handle at THIS has a source / object or not; its vtable is the
 # game's or recorders. AddFolder / AddWad (src/game/core/class6fd9d8) open a new folder / WAD handle on a path String and append it to a list of 0-2 nodes; AddBoth
 # (0x41cc40) adds the path as a folder and, with the game's ".wad" string (0x78bb08) appended, as a WAD; AddIn (0x41cd50) the same under the game's
-# second root (the String at 0xf816d4: empty, ending in a backslash or not), the global backslash String (0xf80be0) put between.
+# second root (the String at 0xf816d4: empty, ending in a backslash or not), the global backslash String (0xf80be0) put between; AddBothIn (0x41cc20)
+# AddBoth and then AddIn.
 # usage: fileopen.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Open28,...)
 import os
 import struct
@@ -53,7 +54,7 @@ OPS = {
     'OpenPath': (0x5f7ed0, 's', 'RNm', 'a'), 'OpenIn': (0x62fa40, 's', 'RNC', 'a'), 'OpenBuffered': (0x62fd30, 's', 'ROc', 'a'),
     'RefObject2Ctor': (0x619730, 'x', '', 'a'), 'RefObject2DeletingDtor': (0x619790, 'o', 'F', 'a'), 'RefObject2Dtor': (0x6197b0, 'o', '', 'v'),
     'RefObject2Vfn5': (0x6198b0, 'o', 'RBTc', 'a'), 'AddFolder': (0x41c9e0, 'l', 'P', 'v'), 'AddWad': (0x41cb10, 'l', 'P', 'v'),
-    'AddBoth': (0x41cc40, 'l', 'P', 'v'), 'AddIn': (0x41cd50, 'l', 'P', 'v'),
+    'AddBoth': (0x41cc40, 'l', 'P', 'v'), 'AddIn': (0x41cd50, 'l', 'P', 'v'), 'AddBothIn': (0x41cc20, 'l', 'P', 'v'),
 }
 
 
@@ -149,7 +150,7 @@ def case(r):
             regions[PATHSTR] = struct.pack('<5I', STRING_VTABLE, len(p), NAME, len(p) + 8, 8)
             regions[WAD_EXT] = struct.pack('<5I', STRING_VTABLE, 4, PATHSTR + 0x40, 8, 8)   # (the game's ".wad" string; AddBoth appends it)
             regions[PATHSTR + 0x40] = b'.wad\0' + r.bytes(8)
-            if op == 'AddIn':   # (the root: a String; the backslash a String)
+            if op in ('AddIn', 'AddBothIn'):   # (the root: a String; the backslash a String)
                 root = r.choice([b'', b'C:\\tp', b'C:\\tp\\', b'data', b'\\'])
                 regions[ROOT] = struct.pack('<5I', STRING_VTABLE, len(root), ROOT + 0x20, len(root) + 8, 8) + bytes(0xc) + root + b'\0' + r.bytes(8)
                 regions[SLASH] = struct.pack('<5I', STRING_VTABLE, 1, SLASH + 0x20, 8, 8) + bytes(0xc) + r.choice([b'\\', b'\\', b'/']) + b'\0' + r.bytes(8)

@@ -76,6 +76,9 @@ void __fastcall Class6fd9d8_AddFolderAndWad(u8 *object, void *, const StringView
 // appended (the vtable's +0x28), added as a folder, then with ".wad" (0x78bb08) appended as a WAD; the copy destroyed.
 void __fastcall Class6fd9d8_AddFolderAndWadIn(u8 *object, void *, const StringView *path);
 
+// 0x41cc20 (thiscall; path, pops 4; name unconfirmed): Class6fd9d8_AddFolderAndWad, then Class6fd9d8_AddFolderAndWadIn, on the path.
+void __fastcall Class6fd9d8_AddFolderAndWadBoth(u8 *object, void *, const StringView *path);
+
 // 0x41d710 (thiscall; key, pops 4): with no current object (+0x34) 0. Else 1 when its slot 2 (&result, key) gives a result >= 0; otherwise the list (+0x2c -> +4,
 // nodes {object, next}) is searched for the node of the current object (none: the null node is read through) and each later node's object is tried through its slot 1
 // (&result, the member's (+0x3c) dword +8, key): the first with a result >= 0 becomes +0x34 and +0x38, 1. None: the member is deleted through its slot 3 (1) when there

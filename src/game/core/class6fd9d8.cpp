@@ -283,6 +283,11 @@ void __fastcall Class6fd9d8_AddFolderAndWad(u8 *object, void *, const StringView
     String_Dtor(&name);
 }
 
+void __fastcall Class6fd9d8_AddFolderAndWadBoth(u8 *object, void *, const StringView *path) {
+    Class6fd9d8_AddFolderAndWad(object, nullptr, path);
+    Class6fd9d8_AddFolderAndWadIn(object, nullptr, path);
+}
+
 void __fastcall Class6fd9d8_AddFolderAndWadIn(u8 *object, void *, const StringView *path) {
     String name;
     String_CtorCopy(&name, nullptr, reinterpret_cast<const StringView *>((uintptr_t)0x00f816d4));   // (Obj_Part14 of 0xf816c0)
