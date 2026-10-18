@@ -3127,6 +3127,7 @@ address,name,kind,confidence,notes
 0x0047a9a0,Obj_GetCOr6fd6c4,function,high,reimplemented (src/game/core/accessors); the dword at +0xc or 0x6fd6c4 when it is 0
 0x005cea30,VirtualBase_SetVtbl70994c,function,high,reimplemented (src/game/core/vtables); sets a virtual base's vtable pointer to 0x70994c
 0x004f04c0,Array36_At,function,high,reimplemented (src/game/core/indexed); the address of an element of 36 bytes
+0x0041a990,Game1da70c_MinusAt0Quarters,function,low,"reimplemented (src/game/core/indexed); the game's dword 0x1da70c and the object's +0 in quarters, subtracted"
 0x00564a50,Const_MinusOne_564a50,function,high,reimplemented (src/game/core/trivial); returns -1
 0x005ceaa0,Const_MinusOne_5ceaa0,function,high,reimplemented (src/game/core/trivial); returns -1
 0x005cea90,Const_MinusOne_5cea90,function,high,reimplemented (src/game/core/trivial); returns -1 and pops one argument

@@ -12,6 +12,9 @@ u32 __fastcall Out_SetFromGame1da70c(u32 *out);
 // 0x41a970 (thiscall): that dword minus the dword at +0.
 u32 __fastcall Game1da70c_MinusAt0(const u32 *object);
 
+// 0x41a990 (thiscall; name unconfirmed): that dword shifted right by 2 minus the dword at +0 shifted right by 2.
+u32 __fastcall Game1da70c_MinusAt0Quarters(const u32 *object);
+
 // 0x4145d0 (thiscall; index, pops 4): the dword at 0x4e0 + 4 * index.
 u32 __fastcall Obj_GetIndexed4e0(const u8 *object, void *, u32 index);
 
