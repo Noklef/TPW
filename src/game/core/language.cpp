@@ -2,10 +2,22 @@
 
 #include <cstdint>
 
+#include "methods.h"
+#include "vcall.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
+u16 *const kWideBuffer = reinterpret_cast<u16 *>(0x007ba058);
+
+// The text widened into the static buffer while the converter is on; status is the caller's argument slot (as the originals use it).
+u16 *widen(const u8 *text, u32 *status) {
+    if (global<u32>(0x0078ba80) != 0)
+        Wide_FromNarrow(global<const u8 *>(0x0078ba7c), nullptr, status, kWideBuffer, text, 0x200);
+    return kWideBuffer;
+}
 }  // namespace
 
 extern "C" {
@@ -35,5 +47,17 @@ void __cdecl Language_MirrorAlign(u32 *align) {
     } else if (*align == 2) {
         *align = 0;
     }
+}
+
+u16 *__cdecl Language_Widen(const u8 *text) { return text ? widen(text, reinterpret_cast<u32 *>(&text)) : nullptr; }
+
+u16 *__cdecl Language_WideText(u32 index) {
+    const u8 *const text = Records_DataIfTerminated(global<const u8 *>(0x0078ba94), nullptr, index);
+    return text ? widen(text, &index) : nullptr;
+}
+
+u32 __cdecl Language_SetObjectText(u8 *object, u32 index) {
+    const u8 *const text = Records_DataIfTerminated(global<const u8 *>(0x0078baa4), nullptr, index);
+    return vcall<u32>(object, 0x24, text ? widen(text, &index) : nullptr);
 }
 }

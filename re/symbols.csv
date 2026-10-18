@@ -2337,6 +2337,9 @@ address,name,kind,confidence,notes
 0x0041a850,Language_IsHebrew,function,high,reimplemented (src/game/core/language); thiscall; +8 == 0x40d
 0x00485a70,Language_Font,function,high,"reimplemented (src/game/core/language); cdecl (index): &fonts[set +4][index] (0x18-byte entries, 13 a set, from 0x78b54c); null from 13"
 0x004925a0,Language_MirrorAlign,function,high,reimplemented (src/game/core/language); cdecl (&align): in Hebrew 0 becomes 2 and 2 becomes 0
+0x00485ac0,Language_Widen,function,low,"reimplemented (src/game/core/language); cdecl (text): 0 for none; else the static wide buffer 0x7ba058, filled (Wide_FromNarrow by [0x78ba7c]) while [0x78ba80] is set"
+0x00485b00,Language_WideText,function,low,reimplemented (src/game/core/language); cdecl (index): the record table [0x78ba94]'s text at the index widened as Language_Widen; 0 for none
+0x00485f00,Language_SetObjectText,function,low,"reimplemented (src/game/core/language); cdecl (object, index): the text of [0x78baa4] at the index widened (or 0) to the object's slot 9"
 0x00423ad0,Options_Revert,function,high,"reimplemented (src/game/core/options); thiscall; the copy +0x3c..+0x78 back over +0..+0x3c, +0x94 = 0, +0x98 &= ~7"
 0x00423b00,Options_Keep,function,high,"reimplemented (src/game/core/options); thiscall; +0..+0x3c over the copy at +0x3c, +0x94 raised to 0 when negative, +0x98 &= ~7"
 0x00423b40,Options_Set30,function,high,reimplemented (src/game/core/options); thiscall (value); +0x30 = value
