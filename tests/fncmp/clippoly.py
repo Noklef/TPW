@@ -1,5 +1,5 @@
 # The clipper of a polygon of vertex indices (src/game/render/clippoly: 0x562c90, 0x562ed0) against the originals: triangles of any vertices
-# and convex flat polygons of 4-5 (now and then 0-2 indices, repeated indices, NaNs), mostly near the view volume, any flags (0, the six bits,
+# and convex flat polygons of 4-5 (now and then 0-2 indices, repeated indices, NaNs, vertices on a plane), mostly near the view volume, any flags (0, the six bits,
 # negative), strides 0x18-0x28, the vertex count past the vertices or further, the clip edges' globals of any bytes.
 # usage: clippoly.py [CASES [SEED]] [--wild|--both] [--show N]
 import math
@@ -35,6 +35,9 @@ def vertex(r, p, stride):
         put(v, 4 * k, 'I', fb(p[k]))
     if r.random() < 0.03:
         put(v, 4 * r.randrange(4), 'I', r.f(special=1))
+    elif r.random() < 0.1:   # on a plane: z = 0, or x, y or z = +-w
+        k = r.randrange(3)
+        put(v, 4 * k, 'f', 0.0 if k == 2 and r.random() < 0.4 else r.choice([1, -1]) * p[3])
     if r.random() < 0.3:
         v[0x14:0x18] = v[0x10:0x14]
     return v
