@@ -264,7 +264,8 @@ constexpr u32 recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x400 * n + 0x20
 // length; the bytes from + 0x10, at most 0x70; length bit 31: argument length & 0xff's value, fncmp.fill_arg()) written through that argument before the
 // recorder returns (an out structure, FindFirstFile's); at + 0xc00 a mask per slot of BYTE arguments, logged as their low byte (fncmp.LOG_BYTES); at + 0xd00
 // two dwords per slot, an argument + 1 and a dword mask: that argument (unless null) logged as a hash of the dwords it points to that the mask selects, a
-// structure only partly set (fncmp.blob()).
+// structure only partly set (fncmp.blob()); with bit 31 of the first dword the mask selects bytes (0-31) instead, and bits 8-15 (an offset + 1) name a
+// pointer in the structure to a second one whose bytes 0-14 bits 16-30 select (unless that pointer is null; fncmp.blob_bytes()).
 u32 string_hash(const u8 *s) {
     if (!s) return 0;
     u32 h = 0x811c9dc5u;
@@ -277,6 +278,22 @@ u32 blob_hash(const u8 *p, u32 mask) {
     for (u32 i = 0; i < 32; ++i)
         if (mask >> i & 1)
             for (u32 b = 0; b < 4; ++b) h = (h ^ p[4 * i + b]) * 0x01000193u;
+    return h;
+}
+
+u32 bytes_hash(u32 h, const u8 *p, u32 mask) {
+    for (u32 i = 0; i < 32; ++i)
+        if (mask >> i & 1) h = (h ^ p[i]) * 0x01000193u;
+    return h;
+}
+
+u32 blob_bytes_hash(const u8 *p, u32 how, u32 mask) {
+    u32 h = bytes_hash(0x811c9dc5u, p, mask);
+    if (const u32 at = how >> 8 & 0xff) {
+        const u8 *inner;
+        std::memcpy(&inner, p + at - 1, 4);
+        if (inner) h = bytes_hash(h, inner, how >> 16 & 0x7fff);
+    }
     return h;
 }
 
@@ -297,7 +314,10 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
             }
         }
         const u32 *blob = log + 0x340 + 2 * (k & 63);  // (LOG_BLOBS)
-        if (blob[0] == i + 1 && args[i]) args[i] = blob_hash(reinterpret_cast<const u8 *>((uintptr_t)args[i]), blob[1]);
+        if ((blob[0] & 0xff) == i + 1 && args[i]) {
+            const u8 *const p = reinterpret_cast<const u8 *>((uintptr_t)args[i]);
+            args[i] = blob[0] & 0x80000000u ? blob_bytes_hash(p, blob[0], blob[1]) : blob_hash(p, blob[1]);
+        }
         if (mask >> i & 1) args[i] = string_hash(reinterpret_cast<const u8 *>((uintptr_t)args[i]));
         if (mask >> (16 + i) & 1) args[i] = 0;
         if (log[0x300 + (k & 63)] >> i & 1) args[i] &= 0xff;
