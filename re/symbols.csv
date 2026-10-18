@@ -2748,7 +2748,7 @@ address,name,kind,confidence,notes
 0x00583360,Masks_TopBits,function,high,"reimplemented (src/game/render/texformat); the highest set bit of three masks stored, and their union"
 0x004f36c0,Vector36_Size,function,high,reimplemented (src/game/core/misc); the number of 36-byte elements between a vector's pointers
 0x0052fc30,PairTable_Commit,function,high,reimplemented (src/game/core/misc); the pair table copied to its committed copy
-0x005997b0,Table768fb8_Lookup,function,high,reimplemented (src/game/core/misc); a value looked up by id in the 0x20-byte table at 0x768fb8
+0x005997b0,Table768fb8_Lookup,function,high,reimplemented (src/game/world/advisor); a value looked up by id in the 0x20-byte table at 0x768fb8
 0x00409260,Flags7a1a14_Update,function,high,reimplemented (src/game/core/misc); a flag word updated from another and an object's advance
 0x00486610,Global7c24d8_CopyScript,function,high,reimplemented (src/game/core/misc); a sprite script slot made a copy of another
 0x00557110,Rsse_TakeFinished,function,high,"reimplemented (src/game/rsse/rsse_vm); the value of the first finished entry, which is cleared"

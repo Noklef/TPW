@@ -131,14 +131,6 @@ s32 __cdecl PairTable_Commit() {
     return count > 0 ? count : 0;
 }
 
-u32 __cdecl Table768fb8_Lookup(u32 id) {
-    for (u32 entry = 0x00768fb8; global<u32>(entry) != 0x270f; entry += 0x20) {
-        if (global<u32>(entry) == id)
-            return global<u32>(entry + 0x1c);
-    }
-    return 0x17f;
-}
-
 u32 __fastcall Flags7a1a14_Update(const u8 *object) {
     const u32 bit = (global<u32>(0x007a1a14) >> 3) & 1;
     Obj_AdvanceUnless30(reinterpret_cast<u8 *>(0x00785970));

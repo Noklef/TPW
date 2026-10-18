@@ -206,6 +206,7 @@
 #include "../game/world/objectdefs.h"
 #include "../game/world/staff.h"
 #include "../game/world/thingmsg.h"
+#include "../game/world/advisor.h"
 #include "../game/world/analyser.h"
 #include "../game/world/challenges.h"
 #include "../game/world/collobj.h"

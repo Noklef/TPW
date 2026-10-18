@@ -199,6 +199,7 @@ add_library(tpw_game STATIC
     src/game/world/objectdefs.cpp
     src/game/world/thingmsg.cpp
     src/game/world/staff.cpp
+    src/game/world/advisor.cpp
     src/game/world/analyser.cpp
     src/game/world/mapcell.cpp
     src/game/world/challenges.cpp
