@@ -21,6 +21,22 @@ u8 *Finish(u8 *object, u32 flags) {
     return object;
 }
 
+// A linked list's scalar deleting destructor: the vtable pointer set, +4 (the first node) and +8 cleared, each node (next at +4) freed,
+// +0xc cleared, then the list itself freed for flags bit 0.
+u8 *ListScalarDelete(u8 *o, u32 vtable, u32 flags) {
+    const u32 first = *reinterpret_cast<u32 *>(o + 4);
+    *reinterpret_cast<u32 *>(o) = vtable;
+    *reinterpret_cast<u32 *>(o + 8) = 0;
+    *reinterpret_cast<u32 *>(o + 4) = 0;
+    for (u32 node = first; node;) {
+        const u32 next = *reinterpret_cast<const u32 *>((uintptr_t)node + 4);
+        GameHeap_Free(reinterpret_cast<void *>((uintptr_t)node));
+        node = next;
+    }
+    *reinterpret_cast<u32 *>(o + 0xc) = 0;
+    return Finish(o, flags);
+}
+
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 u8 *VBase_Deleter(u8 *object, u32 flags, u32 vtable) {
@@ -530,21 +546,11 @@ u8 * __fastcall ListScalarDelete702c0c_5ddaf0(u8 *o, void *, u32 v0) {
     const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x00702c0c; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
-u8 * __fastcall ListScalarDelete702a8c_5d97a0(u8 *o, void *, u32 v0) {
-    const u32 first = at<u32>(o, 4);
-    at<u32>(o, 0) = 0x00702a8c;
-    at<u32>(o, 8) = 0;
-    at<u32>(o, 4) = 0;
-    for (u32 node = first; node;) {
-        const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4);
-        GameHeap_Free(reinterpret_cast<void *>(node));
-        node = next;
-    }
-    at<u32>(o, 0xc) = 0;
-    if (v0 & 1)
-        GameHeap_Free(o);
-    return o;
-}
+u8 * __fastcall ListScalarDelete702a8c_5d97a0(u8 *o, void *, u32 v0) { return ListScalarDelete(o, 0x00702a8c, v0); }
+
+u8 *__fastcall ListScalarDelete702d98_5e4370(u8 *o, void *, u32 flags) { return ListScalarDelete(o, 0x00702d98, flags); }
+
+u8 *__fastcall ListScalarDelete7029f8_5d5ef0(u8 *o, void *, u32 flags) { return ListScalarDelete(o, 0x007029f8, flags); }
 
 u8 * __fastcall ListScalarDelete702f10_5e4320(u8 *o, void *, u32 v0) {
     const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x00702f10; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0; if (v0 & 1) GameHeap_Free(o); return o;

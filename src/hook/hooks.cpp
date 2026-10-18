@@ -3388,6 +3388,8 @@ const Hook kHooks[] = {
     {"ScalarDeleteList6fdb10_421800", 0x00421800, (void *)&ScalarDeleteList6fdb10_421800, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"Class702828_ScalarDtor",    0x005b5780, (void *)&Class702828_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"ListScalarDelete702a8c_5d97a0", 0x005d97a0, (void *)&ListScalarDelete702a8c_5d97a0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListScalarDelete702d98_5e4370", 0x005e4370, (void *)&ListScalarDelete702d98_5e4370, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ListScalarDelete7029f8_5d5ef0", 0x005d5ef0, (void *)&ListScalarDelete7029f8_5d5ef0, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"Object_QueueHasRoom",       0x004dda20, (void *)&Object_QueueHasRoom, {0x56, 0x8b, 0xf1, 0x51, 0x8b}},
     {"ArrayHolder_Clear",         0x005eb090, (void *)&ArrayHolder_Clear, {0x6a, 0xff, 0x68, 0xcc, 0x1d}},
     {"Array3D_Read",              0x005e78b0, (void *)&Array3D_Read, {0x83, 0xec, 0x14, 0x53, 0x55}},
