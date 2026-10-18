@@ -4555,3 +4555,6 @@ address,name,kind,confidence,notes
 0x00659607,GuiManager_CallSlot4,function,low,"reimplemented (src/game/ui/guimanager); cdecl: slot 4 (thiscall, no arguments) of the GUI manager [0x77c48c], its result"
 0x0065961c,GuiManager_CallSlot3,function,low,"reimplemented (src/game/ui/guimanager); cdecl: slot 3 (thiscall, no arguments) of the GUI manager [0x77c48c], its result"
 0x00659631,GuiManager_Word4Set,function,low,"reimplemented (src/game/ui/guimanager); cdecl: 1 when the GUI manager's word +4 (Fn_659790) is not 0, else 0"
+0x00659d00,GuiRect_Ctor,function,low,"reimplemented (src/game/ui/guirect); thiscall: base ctor 0x65a9d0, vtable 0x705920, the four words 0; returns this"
+0x00659d43,GuiRect_CtorWith,function,low,"reimplemented (src/game/ui/guirect); thiscall (left, top, right, bottom words), pops 16: as GuiRect_Ctor with the words given; returns this"
+0x00659d90,GuiRect_Dtor,function,low,"reimplemented (src/game/ui/guirect); thiscall: vtable 0x705920, then the base dtor 0x66bff7 (its EAX)"
