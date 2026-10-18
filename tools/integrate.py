@@ -129,7 +129,8 @@ def add_hooks(spec, names_by_unit):
         header = header_of(unit)
         inc = '#include "../game/%s.h"' % header
         if inc not in text:
-            incs = [m for m in re.finditer(r'^#include "\.\./game/([^"]+)\.h"\r?$', text, re.M)]
+            # (the CR only looked at, not matched: an insert at a match's end must land before the line's CR, or that line gets CR CR LF)
+            incs = [m for m in re.finditer(r'^#include "\.\./game/([^"]+)\.h"(?=\r?$)', text, re.M)]
             after = [m for m in incs if m.group(1).split('/')[0] == header.split('/')[0] and m.group(1) < header]
             same = [m for m in incs if m.group(1).split('/')[0] == header.split('/')[0]]
             anchor = (after or same or incs)[-1]

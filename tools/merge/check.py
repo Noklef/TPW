@@ -8,7 +8,7 @@ In order:
   2. kept: nothing the branch or main had is lost in the result. Per file: bench op names ('Name':) and hex addresses in
      tests/fncmp, hooks.cpp rows and includes, symbols.csv addresses, CMakeLists src/game entries. An item counts as lost when
      the branch dropped it from the merge base, or when either side has it and the result does not (unless main itself removed
-     it); a bench range end that a widened range covers is not lost. Duplicates in the tables, lone CRs in hooks.cpp, and a
+     it); a bench range end that a widened range covers is not lost. Duplicates in the tables, CRs not ending a line in hooks.cpp, and a
      module-level name bound twice in a bench (the merge of two sides' constants, which git does not see as a conflict) also fail;
   3. hooks: rows the branch added (its own count, for checking an agent's report against);
   4. build, tpw_tests, retcheck, convcheck;
@@ -125,9 +125,14 @@ def main():
         problems += kept(f, BENCH, base, branch, False)
     for f, pats in TABLES:
         problems += kept(f, pats, base, branch, True)
-    lone = len(re.findall(rb'\r(?![\r\n])', open(os.path.join(ROOT, HOOKS), 'rb').read()))
+    lone = len(re.findall(rb'\r(?!\n)', open(os.path.join(ROOT, HOOKS), 'rb').read()))
     if lone:
-        problems.append('%s has %d lone CRs (a line split or joined)' % (HOOKS, lone))
+        problems.append('%s has %d CRs not ending a line (CR CR LF, or a line split or joined)' % (HOOKS, lone))
+    # The index stores text with LF only (.gitattributes); a CR there is a CR CR LF a branch committed, which the checkout shows as a
+    # plain CR LF line, so the working file cannot show it.
+    stored = subprocess.run(['git', 'show', ':' + HOOKS], capture_output=True, stdin=subprocess.DEVNULL, cwd=ROOT).stdout.count(b'\r')
+    if stored:
+        problems.append('%s has %d CRs in the index (stored lines must end in LF; git add the file to renormalise it)' % (HOOKS, stored))
     if problems:
         fail('kept:\n  ' + '\n  '.join(problems))
     print('kept: %d benches, 3 tables, nothing lost' % len(benches))
