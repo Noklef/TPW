@@ -1,11 +1,12 @@
 // The global save info: the singleton at 0xf7c58c (made by 0x409410, 0x50 bytes, constructed by
 // 0x5aef50) that keeps a record for each theme ("Global save info for a theme", 0x5b0a70) and
 // the swear filter's word lists (0x5afd70). Reimplementation of its byte accessors 0x5af7f0-
-// 0x5b0cc0 (thiscall) and a theme record's save and load (0x5b0d70).
+// 0x5b0cc0 (thiscall), the sign names' setters (0x5b0940,
+// 0x5b0970) and a theme record's save and load (0x5b0d70).
 //
 // Fields as 0x5aef50 sets them: +0x20 a counter (0), +0x24 a byte (0), +0x25 a byte (1), +0x26
 // a byte array (its first u16 0), +0x48 the current theme's record, +0x4c a byte (1). A theme
-// record's fields as 0x5b0d70 saves them: +6 mSignNameA, +0x76 mSignNameB, +0xb8 mNameChanged,
+// record's fields as 0x5b0d70 saves them: +0x34 mSignNameA, +0x76 mSignNameB, +0xb8 mNameChanged,
 // +0xb9 mAllResearchCompleted.
 #pragma once
 
@@ -36,6 +37,12 @@ u8 __fastcall GlobalSave_Byte24(const u8 *info);
 void __fastcall GlobalSave_SetByte24(u8 *info, void *, u32 value);
 u8 __fastcall GlobalSave_Byte25(const u8 *info);
 void __fastcall GlobalSave_SetByte25(u8 *info, void *, u32 value);
+
+// 0x5b0940 / 0x5b0970 (name; pops 4; names unconfirmed): with a current theme, its mSignNameA (+0x34) / mSignNameB (+0x76) given (the
+// CRT's wcsncpy of 0x21 units: up to and with the NUL, the rest zeros; no NUL of its own when the name is as long) and its
+// mNameChanged (+0xb8) set.
+void __fastcall GlobalSave_SetSignNameA(u8 *info, void *, const u16 *name);
+void __fastcall GlobalSave_SetSignNameB(u8 *info, void *, const u16 *name);
 
 // 0x5b0ca0: the current theme's mAllResearchCompleted set, when there is a current theme.
 void __fastcall GlobalSave_SetAllResearchCompleted(u8 *info);

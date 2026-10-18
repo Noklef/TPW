@@ -16,6 +16,22 @@ bool Field(Stream *stream, u8 *at, s32 count, bool save) {
     return got >= 0 && done == count;   // sic: the result is 0 or 1, never negative
 }
 
+// The current theme's sign name at +at given (the CRT's wcsncpy, 0x67b0d0, of 0x21 units: up to and with the NUL, then zeros) and
+// mNameChanged set; nothing without a current theme.
+void SetSignName(u8 *info, u32 at, const u16 *name) {
+    u8 *const theme = ::at<u8 *>(info, 0x48);
+    if (!theme)
+        return;
+    u16 *to = reinterpret_cast<u16 *>(theme + at);
+    u32 count = 0x21;
+    while (count && (*to++ = *name++) != 0)
+        --count;
+    if (count)
+        while (--count)
+            *to++ = 0;
+    theme[0xb8] = 1;
+}
+
 }  // namespace
 
 extern "C" {
@@ -67,6 +83,10 @@ void __fastcall GlobalSave_SetByte24(u8 *info, void *, u32 value) { info[0x24] =
 u8 __fastcall GlobalSave_Byte25(const u8 *info) { return info[0x25]; }
 
 void __fastcall GlobalSave_SetByte25(u8 *info, void *, u32 value) { info[0x25] = (u8)value; }
+
+void __fastcall GlobalSave_SetSignNameA(u8 *info, void *, const u16 *name) { SetSignName(info, 0x34, name); }
+
+void __fastcall GlobalSave_SetSignNameB(u8 *info, void *, const u16 *name) { SetSignName(info, 0x76, name); }
 
 void __fastcall GlobalSave_SetAllResearchCompleted(u8 *info) {
     u8 *const theme = at<u8 *>(info, 0x48);
