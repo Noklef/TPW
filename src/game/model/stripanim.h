@@ -18,4 +18,12 @@ void __cdecl StripAnim_Apply(const u8 *object, float t);
 
 // 0x4547c0: when it has strips (+0xb0), the step (+0xbc) = -0.3, and flags 0x20 trade 0x40 for 0x80.
 void __cdecl StripAnim_StartShrink(u8 *object);
+
+// 0x454190 (name unconfirmed): when the object's flags (+4) have 2 and there is a map grid (0x7a0854 +0x6c), the strips' ground
+// heights: for each strip i (count [+0xb0]) and k = 0, 1, the end (+0xb0 -> +0xc)[2 i + k] packs (hi << 16 | lo); the cell
+// Terrain_FootprintCell gives for the holder's turn (+8 -> +0x10), the footprint from (+0xc0 high word, low word) to (+0xc4 high, low)
+// and the fractions hi / [+0xb0 +4], lo / [+0xb0 +8] (the cell left at (hi, lo) for an odd turn); y = (its grid height - the model's
+// y (+8 -> +4 -> +0x78 -> +0x44)) * 0.5, and vertex 4 i + k of the shape at +0xb4 (y as StripAnim_Apply has it) gets y + 10, vertex
+// 4 i + k + 2 gets y. The strip count and the model's y are read before the map.
+void __cdecl StripAnim_FitGround(const u8 *object);
 }
