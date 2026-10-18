@@ -43,6 +43,12 @@ def hover(r):
         put(c, k + 0xe, 'H', r.choice([0, 0, 0x40, 0x400, 0x8, r.getrandbits(16)]))
         put(c, k + 0x10, 'H', r.choice([0, 1, 2, 5, r.randrange(6)]))
     put(cells, tile * 0x44, 'H', r.randrange(6))
+    if r.random() < 0.3:   # a parented entry (parent 0 too, which only the type-0x19 test follows) of a parent of type 0x19 or not
+        h, p = r.randrange(1, 6), r.choice([0, 0, r.randrange(6)])
+        put(entries, h * 0x28 + 8, 'I', r.choice([0xc, 0x11]))
+        put(entries, h * 0x28 + 0x10, 'H', p)
+        put(entries, p * 0x28 + 8, 'I', r.choice([0x19, 0x19, 0xd, 1]))
+        put(cells, tile * 0x44, 'H', h)
     n = r.choice([0, 1, 2, 5, 0x806])
     tile_word = put(bytearray(r.bytes(4)), 0, 'H', tile)
     regions = {RAM: self, 0x7b49f0: g, RAM + 0x400: struct.pack('<5I', 0, RAM + 0x500, RAM + 0x600, RAM + 0x700, RAM + 0x800),
