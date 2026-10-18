@@ -4909,3 +4909,4 @@ address,name,kind,confidence,notes
 0x0066a084,Frame_SetInterval,function,low,"reimplemented (src/game/ui/frame); thiscall (value): +0x14 = value; with the words +4 and +0xc set, +0x10 = GuiClock_Now"
 0x0066a016,Frame_Stop,function,low,"reimplemented (src/game/ui/frame); thiscall: the word +4 = 0, then with the word +6 set slot 1 (its result returned, else the frame)"
 0x004a4ab0,Dialog7cb398_ShowTopThree,function,low,"reimplemented (src/game/ui/dialog7cb398); cdecl: the window [0x7cb398]'s child 0x4a68d1, then Things_TopThreeValues shown by its children 0x4a68d4/d3/d2 (1..0x16: slot 7 with value - 1, else hidden)"
+0x00499b40,Panel7ca228_Update,function,low,"reimplemented (src/game/ui/panel7ca228); thiscall, slot 1 of 0x6ff8d0: +0x20's slot 9 (panel slot 13), the window +0x10's child 0x1581 shown by bit 4 of [0x7c2658]+0x32, then slots 6 and 5"

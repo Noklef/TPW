@@ -330,6 +330,7 @@
 #include "../game/ui/listrows.h"
 #include "../game/ui/msgqueue.h"
 #include "../game/ui/panel7b9940.h"
+#include "../game/ui/panel7ca228.h"
 #include "../game/ui/panel7cc328.h"
 #include "../game/ui/textpool.h"
 #include "../game/ui/thingpreview.h"
@@ -4490,6 +4491,7 @@ const Hook kHooks[] = {
     {"Frame_SetInterval",         0x0066a084, (void *)&Frame_SetInterval, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Frame_Stop",                0x0066a016, (void *)&Frame_Stop, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Dialog7cb398_ShowTopThree", 0x004a4ab0, (void *)&Dialog7cb398_ShowTopThree, {0x8b, 0x0d, 0x98, 0xb3, 0x7c}},
+    {"Panel7ca228_Update",        0x00499b40, (void *)&Panel7ca228_Update, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
