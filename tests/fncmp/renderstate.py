@@ -1,5 +1,6 @@
 # The render state setters (src/game/render/state: 0x4080e0, 0x5836b0, 0x5d9680-0x5d96c0) against the
 # originals: flags words in any state, fog settings of any bits; and 0x583720's call through the object at 0x8bd52c (a recorder vtable, any result).
+# The ambient colour's setter (0x5d9230): on (any dword, 0 a third of the time) with a 0xRRGGBB dword of any bits, or off.
 # usage: renderstate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Touch,FogOn,...)
 import os
 import struct
@@ -8,12 +9,12 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import LOG, Bench, Call, RAM, log_region, put, set_return, vtable  # noqa: E402
 
-B = Bench([(0x44dd50, 0x44de16), (0x423b50, 0x423b58), (0x4080e0, 0x4081e0), (0x52fb10, 0x52fb20), (0x52fb30, 0x52fb40), (0x52fb50, 0x52fb60), (0x52fb70, 0x52fb80), (0x5836b0, 0x5836c2), (0x583720, 0x58372a), (0x5d9680, 0x5d96c4), (0x5d96c0, 0x5d974f)])
-CALLS = ['Device0', 'Touch', 'FogOn', 'FogOff', 'SetFog', 'FadeFog', 'Apply', 'Options']
+B = Bench([(0x44dd50, 0x44de16), (0x423b50, 0x423b58), (0x4080e0, 0x4081e0), (0x52fb10, 0x52fb20), (0x52fb30, 0x52fb40), (0x52fb50, 0x52fb60), (0x52fb70, 0x52fb80), (0x5836b0, 0x5836c2), (0x583720, 0x58372a), (0x5d9680, 0x5d96c4), (0x5d96c0, 0x5d974f), (0x5d9230, 0x5d92d8)])
+CALLS = ['Device0', 'Touch', 'FogOn', 'FogOff', 'SetFog', 'FadeFog', 'Apply', 'Options', 'Ambient']
 
 
 def case(r):
-    op = r.choice(OPS)
+    op = r.deal(OPS)
     regions = {RAM: r.bytes(0x10), 0x8bcbc0: r.bytes(0x10), 0x8bcc40: r.bytes(8), 0x8bd470: r.bytes(0x30)}
     if op == 'Options':
         flag = lambda: r.choice([0, 0xffffffff, r.getrandbits(32), r.getrandbits(32) & ~0x40, r.getrandbits(32) | 0x40])
@@ -47,6 +48,10 @@ def case(r):
         regions = {0x8bd520: put(bytearray(r.bytes(0x10)), 0xc, 'I', RAM + 0x100), RAM + 0x100: struct.pack('<I', RAM + 0x200) + r.bytes(0xc),
                    RAM + 0x200: vtable({}), LOG: log}
         return Call(0x583720, [], regions, ret='a')
+    if op == 'Ambient':   # (thiscall on [0xf83778] in its callers, unused; on, colour)
+        regions[0x879dd8] = r.bytes(0x10)
+        return Call(0x5d9230, [RAM, r.choice([0, r.getrandbits(32), 1]), r.choice([r.getrandbits(32), r.getrandbits(24), 0xffffff, 0])], regions, conv='t',
+                    ret='v')
     if op == 'Touch':
         return Call(0x5836b0, [RAM], regions, conv='t')
     if op == 'SetFog':

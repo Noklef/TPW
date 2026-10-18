@@ -4355,6 +4355,7 @@ address,name,kind,confidence,notes
 0x004080e0,Environment_Apply,function,high,reimplemented (src/game/render/state); the environment settings copied to where they are used
 0x0044dd50,Options_Apply,function,high,"reimplemented (src/game/render/state); the video options applied to the render, settings and scene flags"
 0x00583720,RenderDevice_Call0,function,low,reimplemented (src/game/render/state); no arguments: tail call of slot 0 of the object at 0x8bd52c (name unconfirmed)
+0x005d9230,Render_SetAmbient,function,low,"reimplemented (src/game/render/state); thiscall (object unused; on, colour): the ambient colour 0x879dd8 = {1, r, g, b} from the 0xRRGGBB colour over 255, or {1, 0, 0, 0} when off"
 0x0057d910,WeatherFx_SetDropCount,function,high,"reimplemented (src/game/render/weatherfx); thiscall (the weather renderer, [0x8bcbac]; count): +0x3318 = how many drops fall"
 0x0057dc40,WeatherFx_SetFallSpeed,function,high,"reimplemented (src/game/render/weatherfx); thiscall (speed): the fall speed of each kind showing (+0x3338 when bit 1 of +0, +0x333c when bit 2)"
 0x0057dc70,WeatherFx_RequestReload,function,high,"reimplemented (src/game/render/weatherfx); thiscall: +4 = 1, the textures to be reloaded (0x57d850 clears it)"

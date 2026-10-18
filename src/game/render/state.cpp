@@ -5,6 +5,7 @@
 #include "../core/accessors.h"
 #include "../core/globals.h"
 #include "../core/vcall.h"
+#include "../math/x87.h"
 
 namespace {
 
@@ -31,6 +32,20 @@ void __fastcall Render_SetFog(void *, void *, u32 colour, u32 start, u32 end) {
     global<u32>(0x008bd47c) = colour;
     global<u32>(0x008bd490) = start;
     global<u32>(0x008bd494) = end;
+}
+
+void __fastcall Render_SetAmbient(void *, void *, u32 on, u32 colour) {
+    global<u32>(0x00879dd8) = 0x3f800000;  // 1.0f
+    if (on == 0) {
+        global<u32>(0x00879ddc) = 0;
+        global<u32>(0x00879de0) = 0;
+        global<u32>(0x00879de4) = 0;
+        return;
+    }
+    const float scale = 1.0f / 255.0f;  // 0x702a4c; fild qword of each byte, fmul
+    global<float>(0x00879ddc) = (float)(X87Reg((double)(colour >> 16 & 0xff)) * scale);
+    global<float>(0x00879de0) = (float)(X87Reg((double)(colour >> 8 & 0xff)) * scale);
+    global<float>(0x00879de4) = (float)(X87Reg((double)(colour & 0xff)) * scale);
 }
 
 u32 __cdecl Options_Apply() {
