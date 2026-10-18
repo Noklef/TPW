@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put, record_stream  # noqa: E402
 
-B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b5ff), (0x44b4c0, 0x44b505), (0x475550, 0x47558b), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060), (0x433f70, 0x433ffd), (0x442d10, 0x442d70), (0x443ee0, 0x443f40), (0x444c00, 0x444c50), (0x444040, 0x444090), (0x444700, 0x444740), (0x447790, 0x447830), (0x442cd0, 0x442d10), (0x436820, 0x4368f0), (0x436150, 0x436190), (0x432bd0, 0x432c10), (0x444c50, 0x444cb0), (0x43af70, 0x43afa0), (0x4418d0, 0x4419b0), (0x434650, 0x434740), (0x5da3c0, 0x5da3d0), (0x447990, 0x4479a0), (0x430ac0, 0x430ad0), (0x433220, 0x433240), (0x435710, 0x435730), (0x439920, 0x439ab0), (0x43a060, 0x43a2b0), (0x43d8f0, 0x43dbb0), (0x46f150, 0x46f180), (0x46f350, 0x46f420), (0x46f5c0, 0x46f6f0), (0x444090, 0x444150), (0x445f30, 0x446042), (0x45d630, 0x45d660), (0x436190, 0x436230), (0x445910, 0x445a70), (0x4367a0, 0x436820), (0x447830, 0x447990), (0x432840, 0x432b50), (0x437300, 0x4379a0), (0x5f5e50, 0x5f5e80), (0x463ab0, 0x463c7a), (0x412e90, 0x412eea), (0x443df0, 0x443ed4)], sines=256)
+B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b5ff), (0x44b4c0, 0x44b505), (0x475550, 0x47558b), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060), (0x433f70, 0x433ffd), (0x442d10, 0x442d70), (0x443ee0, 0x443f40), (0x444c00, 0x444c50), (0x444040, 0x444090), (0x444700, 0x444740), (0x447790, 0x447830), (0x442cd0, 0x442d10), (0x436820, 0x4368f0), (0x436150, 0x436190), (0x432bd0, 0x432c10), (0x444c50, 0x444cb0), (0x43af70, 0x43afa0), (0x4418d0, 0x4419b0), (0x434650, 0x434740), (0x5da3c0, 0x5da3d0), (0x447990, 0x4479a0), (0x430ac0, 0x430ad0), (0x433220, 0x433240), (0x435710, 0x435730), (0x439920, 0x439ab0), (0x43a060, 0x43a2b0), (0x43d8f0, 0x43dbb0), (0x46f150, 0x46f180), (0x46f350, 0x46f420), (0x46f5c0, 0x46f6f0), (0x444090, 0x444150), (0x445f30, 0x446042), (0x45d630, 0x45d660), (0x436190, 0x436230), (0x445910, 0x445a70), (0x4367a0, 0x436820), (0x447830, 0x447990), (0x432840, 0x432b50), (0x437300, 0x4379a0), (0x5f5e50, 0x5f5e80), (0x463ab0, 0x463c7a), (0x412e90, 0x412eea), (0x443df0, 0x443ed4), (0x433300, 0x433790)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 RING = 10
@@ -728,8 +728,8 @@ def ride_train(r, op):
 
 def by_id(r, op):
     """Links at 0x790fe0 (next +0x18, id +0x10, flags +0, +0x124 -> +0x34 -> +0xc)."""
-    if op == 'Bit18':
-        table = r.choice([0x7ae6a8, 0x7a4610])
+    if op in ('Bit18', 'Bit18Ride'):  # (one op each: dealt, both get cases in the gate's 400)
+        table = 0x7ae6a8 if op == 'Bit18' else 0x7a4610
         return Call(0x436820 if table == 0x7ae6a8 else 0x436840, [r.randrange(2)],
                     {TYPE: r.bytes(8), table: struct.pack('<2I', TYPE, TYPE + 4)}, ret='a')
     n = r.randrange(0, 5)
@@ -1080,7 +1080,7 @@ KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 
          'Link': queue, 'Unload': queue, 'QPush': queue, 'QAdd': queue, 'QRoom': queue, 'QPop': queue, 'QAdvance': queue,
          'CNext': cursor, 'CPrev': cursor, 'CPoint': cursor,
          'Count': registry, 'LinkNodes': registry, 'Pair': registry, 'EntryPos': registry, 'SearchReset': registry,
-         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Pick': train, 'Tile': tiles, 'End': current, 'OnRide': current, 'Marked': current, 'Select': pieces, 'Renumber': pieces, 'RideTrain': ride_train, 'CarValue': ride_train, 'BeginEnd': current, 'Bit18': by_id, 'ById': by_id, 'IdValue': by_id, 'SetById': by_id, 'Key': tiles, 'Focus': tiles, 'Event': event, 'SetEnd': current, 'ClearEnd': current, 'ClearPair': contacts, 'ObjLink': by_id, 'ObjOpen': by_id, 'ObjBare': by_id, 'SelGet': small, 'SelSet': small, 'State': small, 'Changed': small, 'LostPair': small, 'Unlerp': small, 'Scale': small, 'Lerp': small, 'Flag1': small, 'SetCur': small, 'Moved': small, 'Position': small, 'Bounds': bounds, 'Segments': segments, 'RideOrient': ride_orient, 'SetFirst': pieces, 'Append': pieces, 'ClearSel': pieces, 'EndSel': pieces, 'Tools': current, 'Remove': pieces, 'ObjOther': by_id, 'ObjParams': by_id, 'Cost': cost, 'Gaps': gaps, 'Save': save, 'Claim': claim}
+         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Pick': train, 'Tile': tiles, 'End': current, 'OnRide': current, 'Marked': current, 'Select': pieces, 'Renumber': pieces, 'RideTrain': ride_train, 'CarValue': ride_train, 'BeginEnd': current, 'Bit18': by_id, 'Bit18Ride': by_id, 'ById': by_id, 'IdValue': by_id, 'SetById': by_id, 'Key': tiles, 'Focus': tiles, 'Event': event, 'SetEnd': current, 'ClearEnd': current, 'ClearPair': contacts, 'ObjLink': by_id, 'ObjOpen': by_id, 'ObjBare': by_id, 'SelGet': small, 'SelSet': small, 'State': small, 'Changed': small, 'LostPair': small, 'Unlerp': small, 'Scale': small, 'Lerp': small, 'Flag1': small, 'SetCur': small, 'Moved': small, 'Position': small, 'Bounds': bounds, 'Segments': segments, 'RideOrient': ride_orient, 'SetFirst': pieces, 'Append': pieces, 'ClearSel': pieces, 'EndSel': pieces, 'Tools': current, 'Remove': pieces, 'ObjOther': by_id, 'ObjParams': by_id, 'Cost': cost, 'Gaps': gaps, 'Save': save, 'Claim': claim}
 OPS = [k for k in os.environ.get('OPS', ','.join(list(KINDS) + ['Focus'] * 5)).split(',') if k]   # (Focus weighted: the gate's 400 cases)
 
 
@@ -1105,6 +1105,53 @@ def cost_change(r, op):
 
 KINDS['CostChange'] = cost_change
 OPS += ['CostChange'] if 'OPS' not in os.environ else []
+
+
+def brace(r, op):
+    """0x433300: a pylon (COAST: +0x18 its type, +0x30 count, +0x34 cars) with base / top / gap at TYPE +0x68 / +0x6c / +0xc4, up to six
+    cars (CARS, 0x110 apart: +4 count, +8 flags, +0xe8, +0x100 one of two car trains at SPL, whose +0x18 types at FORCE have bc / c0 / c4
+    and whose +0x34 slots are cars again), the flag 0x100 at 0x79c658 either way and a wanted height around the pylon's."""
+    n = r.choice([0, 1, 2, 3, 4, 5, 6])
+    pylon, ptype, cars, trains, types = r.bytes(0x50), r.bytes(0xc8), r.bytes(6 * 0x110), r.bytes(0xc0), r.bytes(0x1a0)
+    small = r.random() < 0.4
+    put(ptype, 0x68, 'f', r.uniform(0, 0.4 if small else 3))
+    put(ptype, 0x6c, 'f', r.uniform(1, 40))
+    put(ptype, 0xc4, 'f', r.uniform(0, 0.3 if small else 2))
+    put(pylon, 0x18, 'I', TYPE)
+    put(pylon, 0x30, 'I', n)
+    for k in range(n):
+        put(pylon, 0x34 + 4 * k, 'I', r.choice([CARS + k * 0x110] * 12 + [CARS + r.randrange(6) * 0x110, 0]))
+    for k in range(6):
+        c = k * 0x110
+        put(cars, c + 4, 'I', r.choice([0, 1, 2, 3, 4, 6]))
+        cars[c + 8] = r.choice([0x40, 0, r.getrandbits(8)])
+        put(cars, c + 0xe8, 'f', r.uniform(0, 1))
+        put(cars, c + 0x100, 'I', SPL + r.randrange(2) * 0x60)
+    for t in range(2):
+        put(trains, t * 0x60 + 0x18, 'I', FORCE + t * 0xd0)
+        for k in range(6):
+            put(trains, t * 0x60 + 0x34 + 4 * k, 'I', r.choice([CARS + r.randrange(6) * 0x110] * 4 + [0]))
+        shortest = r.uniform(0, 4 if small else 2)
+        put(types, t * 0xd0 + 0xbc, 'ff', shortest, shortest + r.uniform(0, 3))
+        put(types, t * 0xd0 + 0xc4, 'f', r.uniform(0, 1))
+    if r.random() < 0.15:
+        r.floats(ptype, (0x68, 0x6c, 0xc4))
+        r.floats(types, (0xbc, 0xc0, 0xc4, 0x18c, 0x190, 0x194))
+        r.floats(cars, range(0xe8, len(cars), 0x110))
+    if r.random() < 0.15:
+        nan_pair(r, cars, range(0xe8, len(cars), 0x110), 1)
+    if r.random() < 0.05:
+        nan_pair(r, types, (0xbc, 0xc0, 0xc4), 1)
+    if r.random() < 0.05:
+        put(ptype, r.choice((0x68, 0x6c, 0xc4)), 'I', r.choice([0x7fc00000, 0xffc00000, 0x7f800001]))
+    wanted = r.choice([fb(r.uniform(-2, 45)), fb(r.uniform(-2, 45)), fb(r.uniform(-2, 45)), r.f(), 0x7fa00000])
+    regions = {COAST: pylon, TYPE: ptype, CARS: cars, SPL: trains, FORCE: types, OUT: r.bytes(8),
+               0x79c658: put(bytearray(4), 0, 'I', r.choice([0, 0, 0x100, r.getrandbits(32)]))}
+    return Call(0x433300, [wanted, COAST, OUT, OUT + 4, r.choice([0, 1])], regions, ret='a')
+
+
+KINDS['Brace'] = brace
+OPS += ['Brace'] if 'OPS' not in os.environ else []
 
 
 def case(r):
