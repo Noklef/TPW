@@ -239,4 +239,31 @@ u32 __cdecl Dwords_Zero(u32 *to, u32 count) {
         to[i] = 0;
     return 0;
 }
+
+void __fastcall Bands_SortValues(const u8 *object, void *, u32 *values, s32 lo, s32 hi) {
+    for (;;) {
+        const u32 pivot = values[(s32)((u32)lo + (u32)hi) >> 1];
+        s32 i = lo, j = hi;
+        do {
+            while (i <= hi && values[i] < pivot)
+                ++i;
+            if (i > lo) {  // (the original tests i, not j, against lo, sic)
+                while (values[j] > pivot)
+                    --j;
+            }
+            if (i > j)
+                break;
+            const u32 swap = values[i];
+            values[i] = values[j];
+            values[j] = swap;
+            ++i;
+            --j;
+        } while (i <= j);
+        if (lo < j)
+            Bands_SortValues(object, nullptr, values, lo, j);
+        if (i >= hi)
+            return;
+        lo = i;
+    }
+}
 }  // extern "C"

@@ -74,4 +74,11 @@ void __stdcall Bytes4_Permute(u8 *bytes, const u16 *flags);
 
 // 0x598770 (cdecl; pointer, count): count dwords from the pointer are set to 0. Returns 0.
 u32 __cdecl Dwords_Zero(u32 *to, u32 count);
+
+// 0x56f2f0 (thiscall on the bands object, unused but passed on; values, lo, hi; pops 0xc; name unconfirmed; 0x56f380 asks it for
+// 0..count-1): a quicksort of the dwords values[lo..hi], ascending (unsigned). The pivot is values[(lo + hi) >> 1] (32-bit sum, signed
+// shift); i runs up from lo while at most hi and below the pivot; then, only when i is past lo (sic), j runs down from hi while above it,
+// unbounded; i <= j swaps the two and moves both on, again while i <= j. The left part (lo, j) recurses when lo < j and the right
+// (i, hi) loops when i < hi (all signed).
+void __fastcall Bands_SortValues(const u8 *object, void *, u32 *values, s32 lo, s32 hi);
 }  // extern "C"
