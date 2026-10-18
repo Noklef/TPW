@@ -31,7 +31,15 @@ def case(r):
         put(defs, 0, 'I', DEF)
         put(defs, 0x730, 'HxxI', 0xffff, 0)
     regions[0x7890a0] = defs
-    regions[DEF] = put(put(bytearray(r.bytes(0x4c0)), 0, 'H', ids[0]), 0x4bc, 'I', r.randrange(m + 1))
+    type_ = r.randrange(m + 1)
+    regions[DEF] = put(put(bytearray(r.bytes(0x4c0)), 0, 'H', ids[0]), 0x4bc, 'I', type_)
+    types = struct.unpack('<%dI' % (m + 1), regions[0x7ae6a8])
+    cars = bytearray(regions[coaster.CARS])
+    for k in range(len(cars) // 0x100):   # some rides of the definition's type with the claims' key 0x101 (or one off it)
+        if r.random() < 0.4:
+            put(cars, 0x100 * k, 'I', types[type_])
+            put(cars, 0x100 * k + 0xe4, 'I', r.choice([0x101, 0x101, 0x100]))
+    regions[coaster.CARS] = cars
     table = bytearray(99 * 4)
     records = bytearray(0x1240 * 3)
     things = bytearray(r.bytes(0x60))
@@ -40,11 +48,11 @@ def case(r):
     regions[THINGS] = things
     regions[SLOTS] = b''.join(struct.pack('<I16x', THINGS + 0x20 * k) for k in range(3))
     for k in range(r.choice([0, 1, 1, 2, 3])):
-        put(table, 4 * r.randrange(99), 'I', RECORDS + 0x1240 * k)
+        put(table, 4 * r.choice([0, 0, 98, r.randrange(99)]), 'I', RECORDS + 0x1240 * k)   # (the ends often: indices 1 and 99)
         rec = bytearray(r.bytes(0x1240))
         put(rec, 0x58, 'H', r.randrange(3))
         for s in range(20):
-            put(rec, 0x5c + 0xe4 * s + 0x80, 'I', r.choice([0, 0, 0, 1, 2, r.getrandbits(32)]))
+            put(rec, 0x5c + 0xe4 * s + 0x80, 'I', r.choice([0, 0, 0, 1, 2, 0x100, 0x10000, r.getrandbits(32)]))
             put(rec, 0x5c + 0xe4 * s + 0xc0, 'I', r.choice([0] + rides) if rides else 0)
         records[0x1240 * k:0x1240 * (k + 1)] = rec
     regions[TABLE] = table
