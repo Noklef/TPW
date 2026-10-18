@@ -99,6 +99,19 @@ u32 __fastcall TexSurfaceB_FreePixels(u8 *sub) {
     return 1;
 }
 
+u8 *__fastcall TexSurfaceB_DeletingDtor(u8 *sub, void *, u32 flags) {
+    u8 *const surface = sub - 0x10;
+    at<u32>(surface, BaseOffset(surface)) = 0x00702250;
+    const u32 offset = BaseOffset(surface);
+    at<u32>(surface, offset - 4) = offset - 0x10;
+    u8 *const base = surface + BaseOffset(surface);
+    reinterpret_cast<u32(__fastcall *)(u8 *)>(at<void **>(base, 0)[1])(base);
+    at<u32>(surface, 0x10) = 0x00702198;
+    if (flags & 1)
+        GameHeap_Free(surface);
+    return surface;
+}
+
 u32 __fastcall TexSurfaceB_AllocPixels(u8 *sub, void *, u32 width, u32 height, u32, u32) {
     if (back<u32>(sub, 0xc))
         return 0;

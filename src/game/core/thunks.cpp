@@ -310,6 +310,10 @@ float __fastcall Wrap_TexSurfaceB_Zero_58c940(const u8 *self) {
     return TexSurfaceB_Zero(Adjust(self));
 }
 
+u8 *__fastcall Wrap_TexSurfaceB_DeletingDtor_58c950(u8 *self, void *, u32 flags) {
+    return TexSurfaceB_DeletingDtor(Adjust(self), nullptr, flags);
+}
+
 u32 __fastcall Wrap_Texture_Release_590a70(u8 *self) { return Texture_Release(self); }
 
 u32 __fastcall Wrap_TerrainTexCache_Dtor_572100(u8 *self) { return TerrainTexCache_Dtor(self); }
