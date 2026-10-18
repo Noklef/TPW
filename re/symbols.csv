@@ -4179,6 +4179,8 @@ address,name,kind,confidence,notes
 0x006ad5d0,TextStyle_Ctor,function,low,"reimplemented (src/game/gfx/textlayout); thiscall: the text style's fields cleared (state 3, +0x10 1, its SurfaceInfo constructed), vtable 0x70a0d8; returns this"
 0x006ad640,TextStyle_Dtor,function,low,reimplemented (src/game/gfx/textlayout); thiscall: vtable 0x70a0d8; the font (+4) released (slot 0) and cleared
 0x006ad620,TextStyle_DeletingDtor,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (flags): TextStyle_Dtor, freed for flags bit 0; returns this"
+0x006ad7c0,TextStyle_SetFont,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (status, font): state 3, the old font released, the new one stored (a reference added, its flags at +8); *status 0, returns status"
+0x006ad6e0,TextStyle_SetColour,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (status, colour): with a font whose flags have bit 1, the colour's 5 bytes at +0x44 and state 1, *status 0; else -1; returns status"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
