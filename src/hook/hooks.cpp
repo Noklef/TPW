@@ -4344,6 +4344,9 @@ const Hook kHooks[] = {
     {"HelpBg_Refresh",            0x00492320, (void *)&HelpBg_Refresh, {0x66, 0x83, 0x79, 0x04, 0x00}},
     {"HelpBg_WindowHandler",      0x00491fe0, (void *)&HelpBg_WindowHandler, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"HelpBg_SetInterval",        0x00492160, (void *)&HelpBg_SetInterval, {0x56, 0x8b, 0xf1, 0x66, 0x83}},
+    {"HelpBg_Close",              0x00492130, (void *)&HelpBg_Close, {0x56, 0x8b, 0xf1, 0x66, 0x83}},
+    {"HelpBg_Show",               0x004922e0, (void *)&HelpBg_Show, {0x56, 0x8b, 0xf1, 0x66, 0x83}},
+    {"HelpBg_Hide",               0x00492300, (void *)&HelpBg_Hide, {0x56, 0x8b, 0xf1, 0x66, 0x83}},
     {"Class702af0_AcquireModels", 0x005da120, (void *)&Class702af0_AcquireModels, {0x53, 0x8b, 0xd9, 0x8b, 0x43}},
     {"Class702ca8_AcquireModels", 0x005dfca0, (void *)&Class702ca8_AcquireModels, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"Class702cb0_StartPendingPlay", 0x005e1350, (void *)&Class702cb0_StartPendingPlay, {0x56, 0x8b, 0xf1, 0x33, 0xc0}},
@@ -4484,6 +4487,7 @@ const Hook kHooks[] = {
     {"List7cc188_NewRow",         0x004a8380, (void *)&List7cc188_NewRow, {0x6a, 0xff, 0x68, 0xdb, 0xa7}},
     {"HilightList_NewRow",        0x00480d30, (void *)&HilightList_NewRow, {0x6a, 0xff, 0x68, 0xcb, 0x90}},
     {"Frame_SetInterval",         0x0066a084, (void *)&Frame_SetInterval, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Frame_Stop",                0x0066a016, (void *)&Frame_Stop, {0x55, 0x8b, 0xec, 0x51, 0x89}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

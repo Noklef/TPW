@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
 #include "../core/vcall.h"
 #include "../ui/frame.h"
 #include "../ui/window.h"
@@ -29,6 +30,24 @@ void __fastcall HelpBg_SetInterval(u8 *self, void *, u32 value) {
     if (at<u16>(self, 0xc) == 0) return;
     Frame_SetInterval(self, nullptr, value);
     vcall<void>(self, 0);
+}
+
+void __fastcall HelpBg_Close(u8 *self) {
+    if (at<u16>(self, 0xc) == 0) return;
+    if (u8 *const window = at<u8 *>(self, 0x18)) Window_SetShown(window, nullptr, 0);
+    Fn_669f94(self);
+}
+
+void __fastcall HelpBg_Show(u8 *self) {
+    if (at<u16>(self, 0xc) == 0) return;
+    Fn_66a002(self);
+    Window_SetShown(at<u8 *>(self, 0x18), nullptr, 1);
+}
+
+void __fastcall HelpBg_Hide(u8 *self) {
+    if (at<u16>(self, 0xc) == 0) return;
+    Frame_Stop(self);
+    Window_SetShown(at<u8 *>(self, 0x18), nullptr, 0);
 }
 
 s32 __cdecl HelpBg_WindowHandler(u8 *window, u32 message, u32 a, u32 b) {

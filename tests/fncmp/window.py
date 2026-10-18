@@ -59,7 +59,7 @@ CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50
          'Dialog7cb2b8_Handler': 0x4a0a20, 'DefaultHandler': 0x4a0a90, 'ResetQueues': 0x659064, 'SetFocus': 0x65e59b, 'KillFocus': 0x65e5fa,
          'MouseDown': 0x658af1, 'MouseUp': 0x658b5b}
 SENDS = {k: int(k[6:12], 16) for k in CALLS if k.startswith('Dialog7')}   # the window's global
-B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6d1), (0x658d9f, 0x658df4), (0x659710, 0x659721),
+RANGES = [(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6d1), (0x658d9f, 0x658df4), (0x659710, 0x659721),
            (0x4b87f0, 0x4b8850), (0x4b8e80, 0x4b8ea0), (0x4b8ec0, 0x4b8ee0), (0x4b9c00, 0x4b9c40),
            (0x4c5780, 0x4c5820),
            (0x48d990, 0x48d9b3), (0x4c25e0, 0x4c25f9), (0x48cf70, 0x48cf83), (0x492e60, 0x492e77), (0x48ee20, 0x48ee4e),
@@ -77,7 +77,8 @@ B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x
            (0x66969e, 0x6696b4), (0x480d30, 0x480dc3), (0x4a8380, 0x4a8413), (0x485a70, 0x485a94),
            (0x65f66e, 0x65f697), (0x492e00, 0x492e34), (0x65d42e, 0x65d49e), (0x65cfd4, 0x65cffd), (0x65a43e, 0x65a493), (0x485e30, 0x485eb6), (0x4a0a20, 0x4a0aa9),
            (0x659064, 0x6590a5), (0x669eb3, 0x669efb), (0x669c62, 0x669c8d), (0x669bdb, 0x669c30),
-           (0x65e59b, 0x65e5fa), (0x65e5fa, 0x65e640), (0x658af1, 0x658b5b), (0x658b5b, 0x658bcb)])
+           (0x65e59b, 0x65e5fa), (0x65e5fa, 0x65e640), (0x658af1, 0x658b5b), (0x658b5b, 0x658bcb)]
+B = Bench(RANGES)
 WINDOW, NODES, VTABLE, MISC, KIDS, HOLDER, WINDOW2 = RAM, RAM + 0x100, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200, RAM + 0x1600, RAM + 0x1800
 QUEUES, TREE, RECTS, TIMED = RAM + 0x2000, RAM + 0x3000, RAM + 0x4000, RAM + 0x5000
 MANAGER, TNODES, RECT, ROWS, PARENT, CHILDREN = RAM + 0x5400, RAM + 0x5600, RAM + 0x5800, RAM + 0x5c00, RAM + 0x6000, RAM + 0x7000
@@ -254,6 +255,53 @@ def point(r, regions, wins):
     return (r.randrange(-45, 60) & 0xffff) | (r.getrandbits(16) << 16), (r.randrange(-45, 60) & 0xffff) | (r.getrandbits(16) << 16)
 
 
+OBJECT98 = 0x31230000
+
+
+def shown_env(r, regions, log):
+    """For Window_SetShown (0x65d9dd): UpdateHover's tree, some of its windows moved to addresses with other upper halves, with parents +0x60, flag 0
+    of +0x48 either way, objects +0x98 / +0x9c (recorders; the first at another upper half too) and handlers set or not, the queues; the manager a
+    recorder (its result now and then set). Returns the windows."""
+    wins = tree(r, regions)
+    moved = [w if i == 0 or r.random() < 0.5 else 0x32000000 + 0x10000 * r.randrange(1, 0x100) + 0x120 * i for i, w in enumerate(wins)]
+    where = dict(zip(wins, moved))
+    bufs = [regions.pop(w) for w in wins]
+    for w, buf in zip(moved, bufs):
+        for off in (0x54, 0x5c):
+            v = struct.unpack_from('<I', buf, off)[0]
+            put(buf, off, 'I', where.get(v, v))
+        regions[w] = buf
+    wins = moved
+    queues(r, regions)
+    x, y = point(r, regions, wins)
+    regions[0xfaa540] = struct.pack('<II', x, y)
+    regions[0xfaa5d8] = struct.pack('<5I', r.choice([wins[0]] * 6 + [0]), r.getrandbits(32), r.choice(wins + [0, 0]),
+                                    r.getrandbits(32), r.choice([0] * 6 + [1, r.getrandbits(32)]))
+    for w in wins:
+        put(regions[w], 0x60, 'I', 0)
+    for w in wins:
+        c = struct.unpack_from('<I', regions[w], 0x5c)[0]
+        while c:
+            put(regions[c], 0x60, 'I', w)
+            c = struct.unpack_from('<I', regions[c], 0x54)[0]
+    for w in wins:
+        buf = regions[w]
+        buf[0x48] = (buf[0x48] & 0xfe) | r.choice([0, 1, 1])
+        put(buf, 0x98, 'I', r.choice([OBJECT98, OBJECT98, 0]))
+        put(buf, 0x9c, 'I', r.choice([MISC + 0x40, MISC + 0x40, 0]))
+        put(buf, 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
+    regions[OBJECT98] = struct.pack('<I', VTABLE)
+    regions[VTABLE] = vtable({5: 1})
+    regions[MISC + 0x40] = struct.pack('<I', MISC + 0x80)
+    regions[MISC + 0x80] = put(vtable({}, size=8), 0x14, 'I', recorder(21, 1))
+    regions[0x77c48c] = struct.pack('<I', MANAGER)
+    regions[MANAGER] = struct.pack('<I', MANAGER + 0x40)
+    regions[MANAGER + 0x40] = vtable({13: 1})
+    if r.random() < 0.5:
+        set_return(log, 13, r.choice([0, 1, -1, r.getrandbits(32)]))
+    return wins
+
+
 def case(r):
     op = r.deal(OPS)
     log = log_region()
@@ -427,35 +475,8 @@ def case(r):
                 set_return(log, 0x3d, r.choice([0, 1, -1, r.getrandbits(32)]))
             return Call(CALLS[op], [], regions, ret='a')
         return Call(CALLS[op], [window, r.getrandbits(32)], regions, conv='t', ret='w')
-    if op in ('NotifyShown', 'SetShown'):   # UpdateHover's tree with its parents +0x60, flag 0 of +0x48 either way, objects +0x98 / +0x9c and handlers
-        wins = tree(r, regions)  # set or not; the manager a recorder (its result now and then set); EDX the window's upper half or random
-        queues(r, regions)
-        x, y = point(r, regions, wins)
-        regions[0xfaa540] = struct.pack('<II', x, y)
-        regions[0xfaa5d8] = struct.pack('<5I', r.choice([wins[0]] * 6 + [0]), r.getrandbits(32), r.choice(wins + [0, 0]),
-                                        r.getrandbits(32), r.choice([0] * 6 + [1, r.getrandbits(32)]))
-        for w in wins:
-            put(regions[w], 0x60, 'I', 0)
-        for w in wins:
-            c = struct.unpack_from('<I', regions[w], 0x5c)[0]
-            while c:
-                put(regions[c], 0x60, 'I', w)
-                c = struct.unpack_from('<I', regions[c], 0x54)[0]
-        for w in wins:
-            buf = regions[w]
-            buf[0x48] = (buf[0x48] & 0xfe) | r.choice([0, 1, 1])
-            put(buf, 0x98, 'I', r.choice([MISC, MISC, 0]))
-            put(buf, 0x9c, 'I', r.choice([MISC + 0x40, MISC + 0x40, 0]))
-            put(buf, 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
-        regions[MISC] = struct.pack('<I', VTABLE)
-        regions[VTABLE] = vtable({5: 1})
-        regions[MISC + 0x40] = struct.pack('<I', MISC + 0x80)
-        regions[MISC + 0x80] = put(vtable({}, size=8), 0x14, 'I', recorder(21, 1))
-        regions[0x77c48c] = struct.pack('<I', MANAGER)
-        regions[MANAGER] = struct.pack('<I', MANAGER + 0x40)
-        regions[MANAGER + 0x40] = vtable({13: 1})
-        if r.random() < 0.5:
-            set_return(log, 13, r.choice([0, 1, -1, r.getrandbits(32)]))
+    if op in ('NotifyShown', 'SetShown'):   # see shown_env(); EDX the window's upper half or random
+        wins = shown_env(r, regions, log)
         window = r.choice(wins)
         shown = r.choice([0, 0, 1, 1, 2, 0x10000, 0xffff0000, 0x8000, r.getrandbits(32)])
         if op == 'NotifyShown':
