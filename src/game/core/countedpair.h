@@ -1,7 +1,7 @@
 // The 0x24-byte element of counted strings whose clears and deleters are in buffers.h (CountedPair_*): a narrow std::string at +0, a wide one at
 // +0x10 and a dword at +0x20 (what it holds is not known yet; the code at 0x4ea5xx-0x4ebaxx builds them and hands them to container inserts).
 // Reimplementation of its constructors 0x4ea740 and 0x4e6410, its assignment 0x4f5860, the insert of a vector of them, 0x4f5560, and their
-// uninitialised copy / fill and construct helpers (0x4f67b0, 0x4f67f0, 0x4f7410).
+// uninitialised copy / fill and construct helpers (0x4f67b0, 0x4f67f0, 0x4f7410, 0x4f6e70).
 #pragma once
 
 #include "../../../re/types.h"
@@ -48,4 +48,9 @@ void __stdcall CountedPair_UninitFill(u32 to, u32 n, const CountedPair *x);
 
 // 0x4f7410 (cdecl; name unconfirmed): the allocator's construct(p, x): x copy-constructed at p unless p is null.
 void __cdecl CountedPair_Construct(CountedPair *p, const CountedPair *x);
+
+// 0x4f6e70 (cdecl; name unconfirmed): construct(v, x) for a vector of pairs {+0 allocator byte, +4 first, +8 last, +0xc end}: nothing when v is
+// null; else the allocator byte copied, a block of x's size (0 with no block or a negative count) got, x's pairs copy-constructed into it, and
+// last = end = past them (the copy's capacity is its size).
+void __cdecl CountedPairVector_Construct(u8 *v, const u8 *x);
 }

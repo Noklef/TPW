@@ -189,4 +189,19 @@ void __cdecl CountedPair_Construct(CountedPair *p, const CountedPair *x) {
     if (p)
         CountedPair_CopyCtor(p, nullptr, x);
 }
+
+void __cdecl CountedPairVector_Construct(u8 *v, const u8 *x) {
+    if (!v)
+        return;
+    v[0] = x[0];
+    const u32 xFirst = *reinterpret_cast<const u32 *>(x + 4);
+    s32 n = xFirst ? count36(*reinterpret_cast<const u32 *>(x + 8), xFirst) : 0;
+    if (n < 0)
+        n = 0;
+    const u32 s = (u32)(uintptr_t)GameHeap_Alloc((u32)n * 0x24);
+    *reinterpret_cast<u32 *>(v + 4) = s;
+    const u32 e = ucopy(*reinterpret_cast<const u32 *>(x + 4), *reinterpret_cast<const u32 *>(x + 8), s);  // (x's ends read again, sic)
+    *reinterpret_cast<u32 *>(v + 8) = e;
+    *reinterpret_cast<u32 *>(v + 0xc) = e;
+}
 }
