@@ -120,4 +120,36 @@ void __fastcall Mat4_SetFar(float *m, void *, u32 far_) {
     const X87Reg a = d * m[10] + m[14];
     View_SetProjection(reinterpret_cast<u8 *>(0x008bcbc8), nullptr, far_, (float)a, (float)b);
 }
+
+void __fastcall Mat4_Transform(const float *m, void *, float *out, const float *in, u32 mode) {
+    if (mode > 4) return;
+    // The vector is read first (the output may overlap it); each component reads its matrix entries after the one before is stored
+    // (the output may overlap the matrix). The sums go in the original's order, the destination on the left.
+    const X87Reg x = in[0], y = in[1], z = in[2];
+    if (mode == 4) {  // the 3x3 transposed
+        out[0] = (float)((X87Reg(m[0]) * x + X87Reg(m[2]) * z) + X87Reg(m[1]) * y);
+        out[1] = (float)((X87Reg(m[6]) * z + X87Reg(m[5]) * y) + X87Reg(m[4]) * x);
+        out[2] = (float)((X87Reg(m[9]) * y + X87Reg(m[8]) * x) + X87Reg(m[10]) * z);
+        return;
+    }
+    if (mode == 1) {  // with the vector's w against the last row
+        const X87Reg w = in[3];
+        out[0] = (float)(((X87Reg(m[0]) * x + X87Reg(m[8]) * z) + X87Reg(m[4]) * y) + X87Reg(m[12]) * w);
+        out[1] = (float)(((X87Reg(m[9]) * z + X87Reg(m[5]) * y) + X87Reg(m[13]) * w) + X87Reg(m[1]) * x);
+        for (int c = 2; c < 4; ++c)
+            out[c] = (float)(((X87Reg(m[4 + c]) * y + X87Reg(m[8 + c]) * z) + X87Reg(m[c]) * x) + X87Reg(m[12 + c]) * w);
+        return;
+    }
+    // 0: four components plus the last row; 2: three of them; 3: three without the last row
+    const int n = mode == 0 ? 4 : 3;
+    const bool move = mode != 3;
+    X87Reg s = X87Reg(m[0]) * x + X87Reg(m[8]) * z + X87Reg(m[4]) * y;
+    out[0] = (float)(move ? s + m[12] : s);
+    s = X87Reg(m[9]) * z + X87Reg(m[5]) * y + X87Reg(m[1]) * x;
+    out[1] = (float)(move ? s + m[13] : s);
+    for (int c = 2; c < n; ++c) {
+        s = X87Reg(m[4 + c]) * y + X87Reg(m[8 + c]) * z + X87Reg(m[c]) * x;
+        out[c] = (float)(move ? s + m[12 + c] : s);
+    }
+}
 }

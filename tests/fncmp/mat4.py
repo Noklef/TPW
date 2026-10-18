@@ -1,8 +1,9 @@
-# The matrix object methods (src/game/math/mat4: 0x5780a0, 0x578800, 0x578bc0, 0x577460, 0x578820, 0x578be0, 0x578ca0) against the
-# originals: any matrix bits, overlapping copies included; the LU back substitution with any row indices 0-3 and right-hand sides
+# The matrix object methods (src/game/math/mat4: 0x5780a0, 0x578800, 0x578bc0, 0x577460, 0x578820, 0x578be0, 0x578ca0, 0x578d20)
+# against the originals: any matrix bits, overlapping copies included; the LU back substitution with any row indices 0-3 and right-hand sides
 # with leading zeros (and NaNs); the perspective with camera-like and any floats, the render flag 0x200 either way; the far set
-# beyond, at or before the kept near (a signalling NaN one too) with any render view.
-# usage: mat4.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=InitGlobals,Identity,Assign,MoveAlongX,LuBackSubstitute,Perspective,SetFar)
+# beyond, at or before the kept near (a signalling NaN one too) with any render view; the transform's modes 0-4 and others (unsigned)
+# with the output apart from, over the vector or over the matrix.
+# usage: mat4.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=InitGlobals,Identity,Assign,MoveAlongX,LuBackSubstitute,Perspective,SetFar,Transform)
 import os
 import struct
 import sys
@@ -11,9 +12,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, bf, fb  # noqa: E402
 
 B = Bench([(0x5780a0, 0x578190), (0x578800, 0x578820), (0x578bc0, 0x578bd4), (0x577460, 0x5774d0), (0x578820, 0x578910),
-           (0x578be0, 0x578d20), (0x583220, 0x583280)])
+           (0x578be0, 0x578d20), (0x583220, 0x583280), (0x578d20, 0x579004)])
 CALLS = {'InitGlobals': 0x5780a0, 'Identity': 0x578800, 'Assign': 0x578bc0, 'MoveAlongX': 0x577460, 'LuBackSubstitute': 0x578820,
-         'Perspective': 0x578be0, 'SetFar': 0x578ca0}
+         'Perspective': 0x578be0, 'SetFar': 0x578ca0, 'Transform': 0x578d20}
 
 
 def matrix(r):
@@ -27,6 +28,11 @@ def case(r):
         return Call(0x5780a0, [], {0x87af00: r.bytes(0x300)})
     if op == 'Identity':
         return Call(0x578800, [RAM + r.choice([0, 0x40])], regions, conv='t')
+    if op == 'Transform':  # the output apart, over the vector or over the matrix
+        data = matrix(r) + r.floats(bytearray(0x10), range(0, 0x10, 4), r.choice([1, 100, None])) + r.bytes(0xb0)
+        out = RAM + r.choice([0x60, 0x60, 0x60, 0x40, 0x44, 0x3c, 0x0, 0x10, 0x20])
+        mode = r.choice([0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 5, 0xffffffff, r.getrandbits(32)])
+        return Call(0x578d20, [RAM, out, RAM + 0x40, mode], {RAM: data}, conv='t')
     if op == 'MoveAlongX':
         return Call(0x577460, [RAM, r.f()], {RAM: matrix(r)}, conv='t')
     if op == 'LuBackSubstitute':

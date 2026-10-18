@@ -37,4 +37,10 @@ void __fastcall Mat4_Perspective(float *m, void *, float near_, float far_, floa
 // then the depth d = ((far - m[14]) / m[10]) * the render view's +0x44, raised to the near when below it (or a NaN), handed to
 // View_SetProjection (0x583220) as (far's bits, d * m[10] + m[14], m[11] * d + m[15]) (the name is unconfirmed).
 void __fastcall Mat4_SetFar(float *m, void *, u32 far_);
+
+// 0x578d20 (thiscall; out, in, mode; pops 0xc; x87): the vector in (x, y, z, w; row vector times the matrix) into out by mode: 0 the
+// point (four components with the last row added), 1 the 4D vector (w times the last row), 2 the point's first three, 3 the
+// direction (three, no last row), 4 the direction through the transposed 3x3 (the inverse rotation); other modes (unsigned) do
+// nothing (the name is unconfirmed).
+void __fastcall Mat4_Transform(const float *m, void *, float *out, const float *in, u32 mode);
 }

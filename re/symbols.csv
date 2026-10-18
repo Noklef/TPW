@@ -1641,6 +1641,7 @@ address,name,kind,confidence,notes
 0x00578820,Mat4_LuBackSubstitute,function,low,"reimplemented (src/game/math/mat4); cdecl (lu, index, b): Numerical Recipes' lubksb for n = 4, b solved in place"
 0x00578be0,Mat4_Perspective,function,low,"reimplemented (src/game/math/mat4); thiscall (near, far, fov degrees): the perspective matrix scaled by sin(fov / 2); the arguments kept in globals"
 0x00578ca0,Mat4_SetFar,function,low,"reimplemented (src/game/math/mat4); thiscall (far): the perspective remade with the kept near and field of view, and the depth at far (at least the near) handed to the render view's projection"
+0x00578d20,Mat4_Transform,function,high,"reimplemented (src/game/math/mat4); thiscall (out, in, mode; pops 0xc): the vector through the matrix by mode (point, 4D, point xyz, direction, transposed direction), x87"
 0x005911d0,Bits_Count,function,high,reimplemented (src/game/math/bits); cdecl (mask): how many bits are set (a colour mask's width)
 0x005911f0,Bits_Shift,function,high,"reimplemented (src/game/math/bits); cdecl (mask): the clear bits below the lowest set one, 0 for 0 (a colour mask's shift)"
 0x005913f0,SinTable256_Build,function,high,reimplemented (src/game/math/sintable); fills the renderer sine table at 0x8c63d8
