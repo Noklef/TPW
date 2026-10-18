@@ -1,17 +1,20 @@
-# The game's calendar clock's constructor 0x4f7e80 and its funny time now 0x4f8690 (src/game/core/funnytime) against the originals, through the
-# file time helpers (0x5fc530, 0x5fc5c0, 0x5fc660) and the CRT's 64-bit _allmul / _alldiv: GetLocalTime, SystemTimeToFileTime and
-# FileTimeToSystemTime as recorders filling their outs, with results 0, 1 or their hash. The SYSTEMTIME SystemTimeToFileTime is handed is logged as
-# the hash of its bytes up to the first 0, put within its year and month (its day of the week is the stack's on the original side). Now: rates and
-# the world's ticks (+0x1da70c) about 0, 2^32 and products past 2^63; each field out null or a slot (at times the same one).
-# usage: funnytime.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Init,Now to pick)
+# The game's calendar clock's constructor 0x4f7e80, its funny time now 0x4f8690 and spans 0x4f8730, 0x4f8800, 0x4f88b0
+# (src/game/core/funnytime) against the originals, through the file time helpers (0x5fc530, 0x5fc5c0, 0x5fc660) and the CRT's 64-bit
+# _allmul / _alldiv: GetLocalTime, SystemTimeToFileTime and FileTimeToSystemTime as recorders filling their outs, with results 0, 1 or
+# their hash. The SYSTEMTIME SystemTimeToFileTime is handed is logged as the hash of its bytes up to the first 0, put within its year and
+# month (its day of the week is the stack's on the original side). Now: rates and the world's ticks (+0x1da70c) about 0, 2^32 and
+# products past 2^63; each field out null or a slot (at times the same one). The spans: of ticks about the same, and since ticks about
+# the world's.
+# usage: funnytime.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Init,Now,SpanOf,Elapsed,SpanSince to pick)
 import os
+import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import IMPORT_TABLE as IAT, LOG, Bench, Call, RAM, fill, import_table, log_region, put, set_return  # noqa: E402
 
-RANGES = [(0x4f7e80, 0x4f7f2d), (0x4f8690, 0x4f8730), (0x5fc530, 0x5fc550), (0x5fc5c0, 0x5fc65e), (0x5fc660, 0x5fc733),
-          (0x67c320, 0x67c3ca), (0x67c7f0, 0x67c824)]
+RANGES = [(0x4f7e80, 0x4f7f2d), (0x4f8690, 0x4f8730), (0x4f8730, 0x4f8769), (0x4f8800, 0x4f88a6), (0x4f88b0, 0x4f88f6),
+          (0x5fc530, 0x5fc550), (0x5fc550, 0x5fc570), (0x5fc5c0, 0x5fc65e), (0x5fc660, 0x5fc733), (0x67c320, 0x67c3ca), (0x67c7f0, 0x67c824)]
 B = Bench(RANGES)
 CLOCK, OUT, TICKS = RAM, RAM + 0x100, RAM + 0x200
 WORLD = TICKS - 0x1da70c   # (only its ticks are read)
@@ -58,11 +61,19 @@ def case(r):
     if r.random() < 0.3:
         put(clock, 0, 'I', r.choice([0, 0xffffffff]))
         put(clock, 4, 'I', r.choice([0, 0x01bf53eb, 0x7fffffff, 0xffffffff]))
+    if op == 'SpanOf':
+        return Call(0x4f8730, [CLOCK, OUT + 0x20, u32(r)], regions, conv='t', ret='a')
+    if op == 'Elapsed':
+        return Call(0x4f8800, [CLOCK, r.choice([OUT + 0x20, OUT + 0x20, CLOCK])], regions, conv='t', ret='a')
+    if op == 'SpanSince':
+        ticks = struct.unpack_from('<I', regions[TICKS])[0]
+        return Call(0x4f88b0, [CLOCK, OUT + 0x20, r.choice([u32(r), ticks, ticks - 1 & 0xffffffff, ticks + 1 & 0xffffffff, ticks - r.randrange(1 << 16) & 0xffffffff])],
+                    regions, conv='t', ret='a')
     outs = [0 if r.random() < 0.3 else OUT + 4 * r.choice([i, i, r.randrange(8)]) for i in range(8)]
     return Call(0x4f8690, [CLOCK, OUT + 0x20] + outs, regions, conv='t', ret='a')
 
 
-KINDS = ['Init', 'Now', 'Now']
+KINDS = ['Init', 'Now', 'Now', 'SpanOf', 'Elapsed', 'SpanSince']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':

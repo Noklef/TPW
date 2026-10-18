@@ -13,6 +13,16 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 const u32 kSecsPerRealSec = 15000;  // mFunnySecsPerRealSec's start
 const unsigned long long kTicksPerSecond = 10000000;  // a FILETIME's 100 ns ticks
 
+u32 worldTicks() { return at<u32>(global<const u8 *>(0x0080239c), 0x1da70c); }  // the world's quarter seconds
+
+// The funny time span of `ticks` quarter seconds at the clock's rate: the 64-bit product / 4 (_alldiv: signed, so a product past 2^63
+// counts back) seconds, wrapping.
+FileTime funnySpan(const u8 *clock, u32 ticks) {
+    const long long seconds = (long long)((unsigned long long)at<u32>(clock, 0x1c) * ticks) / 4;
+    const unsigned long long span = (unsigned long long)seconds * kTicksPerSecond;
+    return {(u32)span, (u32)(span >> 32)};
+}
+
 }  // namespace
 
 extern "C" {
@@ -36,15 +46,29 @@ u8 *__fastcall FunnyTime_Construct(u8 *clock) {
 
 FileTime *__fastcall FunnyTime_Now(const u8 *clock, void *, FileTime *out, u32 *year, u32 *month, u32 *day,
                                    u32 *dayOfWeek, u32 *hour, u32 *minute, u32 *second, u32 *ms) {
-    const u32 ticks = at<u32>(global<const u8 *>(0x0080239c), 0x1da70c);  // the world's quarter seconds
-    const long long seconds = (long long)((unsigned long long)at<u32>(clock, 0x1c) * ticks) / 4;  // (_alldiv: signed, so a product past 2^63 counts back)
-    const unsigned long long span64 = (unsigned long long)seconds * kTicksPerSecond;  // (wrapping)
-    const FileTime span = {(u32)span64, (u32)(span64 >> 32)};
+    const FileTime span = funnySpan(clock, worldTicks());
     FileTime now;
     FileTime_Add(reinterpret_cast<const FileTime *>(clock), nullptr, &now, &span);
     s32 result;  // (the original has it written over the stack slot of its argument `second`: no matter)
     FileTime_ToSystemTime(&now, nullptr, &result, year, month, day, dayOfWeek, hour, minute, second, ms);
     *out = now;
+    return out;
+}
+
+FileTime *__fastcall FunnyTime_SpanOf(const u8 *clock, void *, FileTime *out, u32 ticks) {
+    *out = funnySpan(clock, ticks);
+    return out;
+}
+
+FileTime *__fastcall FunnyTime_Elapsed(const u8 *clock, void *, FileTime *out) {
+    FileTime now;
+    FunnyTime_Now(clock, nullptr, &now, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+    FileTime_Sub(&now, nullptr, out, reinterpret_cast<const FileTime *>(clock));
+    return out;
+}
+
+FileTime *__fastcall FunnyTime_SpanSince(const u8 *clock, void *, FileTime *out, u32 ticks) {
+    *out = funnySpan(clock, worldTicks() - ticks);
     return out;
 }
 
