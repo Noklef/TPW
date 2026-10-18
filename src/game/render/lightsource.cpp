@@ -63,6 +63,22 @@ void __cdecl LightSource_SetColour(u8 *const *holder, u32 r, u32 g, u32 b) {
     at<u32>(part, 0x54) = ((red | 0xffffff00u) << 8 | green) << 8 | byte(b);
 }
 
+void __cdecl LightSource_SetColourScaled(u8 *const *light, float scale) {
+    const float *const colour = reinterpret_cast<const float *>(light[1]);
+    const float r = (float)(X87Reg(colour[0]) * scale), g = (float)(X87Reg(colour[1]) * scale), b = (float)(X87Reg(colour[2]) * scale);
+    u8 *const object = light[0];
+    u8 *const part = object + at<s32>(at<const u8 *>(object, 0), 8);
+    SceneFlags_Touch(reinterpret_cast<u32 *>(0x008bd508));
+    at<float>(part, 8) = r;
+    at<u32>(part, 4) = 0x3f800000;  // 1.0f
+    at<float>(part, 0xc) = g;
+    at<float>(part, 0x10) = b;
+    const auto byte = [](float c) { return (u32)(long long)(X87Reg(c) * 255.0f).v; };  // 0x6fe540, __ftol
+    const u32 red = byte(r);
+    const u32 green = byte(g);
+    at<u32>(part, 0x54) = ((red | 0xffffff00u) << 8 | green) << 8 | byte(b);
+}
+
 void __fastcall LightPart_SetColour(u8 *part, void *, u32 a, u32 r, u32 g, u32 b) {
     SceneFlags_Touch(reinterpret_cast<u32 *>(0x008bd508));
     at<u32>(part, 4) = a;
