@@ -74,4 +74,10 @@ void __cdecl FlyingRide_Set24(s32 index, u32 value);
 
 // 0x55de30 (index): 0 when +0x48 is 0, +0x3c set and +0xc 1 (or for no record); else 1.
 u32 __cdecl FlyingRide_Busy(s32 index);
+
+// 0x55e3b0 (cdecl; name unconfirmed; called by 0x415100 after a load): for each record of the table (indices 1-99) each slot in use (+0x80
+// set) claims its ride (+0xc0) again: Ride_Claim(ride, the +0x4bc of the object definition (ObjectDefs_Find on 0x7890a0) for the id at +0xe
+// of the record's thing (the u16 slot at +0x58 in gThingSlots), key 0x101, no description, the rest 0), the result kept as the slot's ride.
+// (A Debug_Printf is left out.)
+void __cdecl FlyingRides_ReclaimRides();
 }
