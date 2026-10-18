@@ -3,9 +3,12 @@
 #include <cmath>
 #include <cstdint>
 
+#include "../core/actionrec.h"
 #include "../math/matrix.h"
 #include "../math/x87.h"
 #include "../model/partstate.h"
+#include "contacts.h"
+#include "train.h"
 
 namespace {
 
@@ -183,6 +186,24 @@ void __cdecl Coaster_SetRiders(u32 index, s32 n) {
     const s32 seats = at<s32>(at<const u8 *>(at<const u8 *>(coaster, 0x128), 4), 8);
     if (seats < n) n = seats;
     if ((u32)n != at<u32>(coaster, 0xf0)) Coaster_SetupCars(coaster, (u32)n, 0, 1);
+}
+
+void __cdecl Coaster_SetMix(u8 *coaster, u32 value, u32 quiet) {
+    if (!quiet) ActionRec_RecordCoaster45(coaster, value);
+    const u8 *type = at<const u8 *>(coaster, 4);
+    const X87Reg p = X87_MulInt(value, 0.01f);  // (0x6fe034)
+    const X87Reg mix = (X87Reg(1.0f) - p) * X87Reg(at<const float>(type, 0x4c)) + X87Reg(at<const float>(type, 0x50)) * p;
+    at<u32>(coaster, 0x30) = value;
+    at<float>(coaster, 0x34) = (float)mix;
+    Flags_SetChanged(reinterpret_cast<u32 *>(coaster), 1);
+    if (at<const u8>(at<const u8 *>(coaster, 4), 0) & 8) Contacts_ClearAll(coaster);
+}
+
+void __cdecl Coaster_SetMixAt(u32 index, u32 value) {
+    u8 *coaster = reinterpret_cast<u8 **>(0x00790bd0)[index];
+    if (!coaster || value == at<u32>(coaster, 0x30)) return;
+    if (!*reinterpret_cast<const u32 *>(0x00785a2c) && (at<u32>(coaster, 0) & 0x8000)) return;
+    Coaster_SetMix(coaster, value, 0);
 }
 
 void __cdecl Coaster_BoardRiders(u8 *queue, u8 *coaster, u32 first, u32 count) {
