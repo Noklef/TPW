@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "guirect.h"
 #include "msgqueue.h"
 
 namespace {
@@ -55,6 +56,19 @@ u16 __fastcall Window_IsShown(u8 *window) {
     for (u8 *w = window; w && shown; w = at<u8 *>(w, 0x60))
         if (!(at<u32>(w, 0x48) & 1)) shown = 0;
     return shown;
+}
+
+u8 *__fastcall Window_SaveRect(u8 *window) { return GuiRect_Assign(window + 0x2c, nullptr, window + 8); }
+
+u8 *__fastcall Window_OffsetByParents(u8 *window, void *, u8 *rect) {
+    u8 *previous = window;  // the pushed words' upper halves: dy's from EAX (the window, then the last parent), dx's from the parent
+    for (u8 *p = at<u8 *>(window, 0x60); p; p = at<u8 *>(p, 0x60)) {
+        const u32 dy = ((u32)(uintptr_t)previous & 0xffff0000u) | at<u16>(p, 0xe);  // sic
+        const u32 dx = ((u32)(uintptr_t)p & 0xffff0000u) | at<u16>(p, 0xc);         // sic
+        reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32)>(at<void **>(rect, 0)[2])(rect, nullptr, dx, dy);
+        previous = p;
+    }
+    return previous;
 }
 
 u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index) {

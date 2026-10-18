@@ -33,6 +33,14 @@ s32 __fastcall WindowImpl_Release(u8 *impl);
 // (1 for no window). Only AX is set.
 u16 __fastcall Window_IsShown(u8 *window);
 
+// 0x65bc90 (thiscall; name unconfirmed): the rectangle at +8 copied to the one at +0x2c (GuiRect_Assign); returns +0x2c.
+u8 *__fastcall Window_SaveRect(u8 *window);
+
+// 0x65c979 (thiscall (rect), pops 4; name unconfirmed): for each parent up the chain (+0x60), the rectangle's slot 2 (GuiRect_Offset)
+// called with the parent's words +0xc and +0xe (sic: pushed as dwords whose upper halves are the parent's address for the first and the
+// previous one's, the window's at first, for the second). EAX is left as the last parent, or the window when there is none.
+u8 *__fastcall Window_OffsetByParents(u8 *window, void *, u8 *rect);
+
 // 0x65e705 (thiscall (index: a word), pops 4; name unconfirmed): the dword +0xa0 + 4 * index (signed) for an index below 16, else 0.
 u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index);
 

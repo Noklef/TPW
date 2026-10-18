@@ -1,5 +1,5 @@
 // The GUI library's rectangle (vtable 0x705920, over the base 0x705938): four words, left +4, top +6, right +8 and bottom +0xa (right and
-// bottom exclusive). Dialogs (0x7058f8) hold two at +0x14 and +0x20. Reimplementation of 0x659d00-0x65a43e.
+// bottom exclusive). Dialogs (0x7058f8) hold two at +0x14 and +0x20. Reimplementation of 0x659d00-0x65aa20.
 #pragma once
 
 #include "../../../re/types.h"
@@ -29,4 +29,8 @@ void __fastcall GuiRect_Offset(u8 *rect, void *, u32 dx, u32 dy);
 
 // 0x65a43e (thiscall (dl, dt, dr, db: words), pops 16; slot 3; name unconfirmed): adds each to left, top, right and bottom.
 void __fastcall GuiRect_Adjust(u8 *rect, void *, u32 dl, u32 dt, u32 dr, u32 db);
+
+// 0x65aa20 (thiscall (source), pops 4; name unconfirmed): the assignment: the base's (Fn_65aa80, which does nothing), then the four words
+// copied from the source; returns the rectangle.
+u8 *__fastcall GuiRect_Assign(u8 *rect, void *, const u8 *source);
 }

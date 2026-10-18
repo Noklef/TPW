@@ -4645,6 +4645,8 @@ address,name,kind,confidence,notes
 0x006589f9,Window_UpdateHover,function,low,"reimplemented (src/game/ui/window); cdecl: 0 (AX) without root [0xfaa5d8] or with [0xfaa5e8]; the hit under (0xfaa540, 0xfaa544) replaces [0xfaa5e0] (0x10002 posted to the old, 0x10001 (x << 16 | y signed) to the new); 1 (AX)"
 0x006616b0,WindowImpl_Release,function,low,"reimplemented (src/game/ui/window); thiscall: the window object's word count +0x12 decremented, its slot 5 (0) called; returns the count less (1 - word +0x10), -1 meaning delete"
 0x0065d773,Window_IsShown,function,low,"reimplemented (src/game/ui/window); thiscall: 1 in AX when the window and all its parents (+0x60) have flag 0 of +0x48, else 0"
+0x0065bc90,Window_SaveRect,function,low,reimplemented (src/game/ui/window); thiscall: the rectangle +8 assigned to +0x2c; returns +0x2c
+0x0065c979,Window_OffsetByParents,function,low,"reimplemented (src/game/ui/window); thiscall (rect): the rectangle's slot 2 called with each parent's words +0xc / +0xe (upper halves garbage, sic)"
 0x00498090,Dialog7ca1c8_SetChecks,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): the nine check buttons of the 0x7ca1c8 dialog's child 0x18 set (vtable slot 5, bool) from flags bits 0-8 (0x20's also needs [0x7ca1d0]+0x50)"
 0x00498a50,Dialog7ca1c8_SetChecksIfUp,function,low,reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): Dialog7ca1c8_SetChecks when [0x7ca1c8] and [0x7ca1cc] are not 0
 0x00481a00,Dialog7ca1c8_SetChecksIfUpThis,function,low,"reimplemented (src/game/ui/dialog7ca1c8); thiscall (flags), pops 4, this unused: Dialog7ca1c8_SetChecksIfUp(flags)"
@@ -4679,6 +4681,7 @@ address,name,kind,confidence,notes
 0x00659ee2,GuiRect_Centre,function,low,"reimplemented (src/game/ui/guirect); thiscall (x, y word pointers or 0), pops 8, slot 1: left + (right - left) >> 1 and the same for top/bottom stored through each"
 0x0065a3e9,GuiRect_Offset,function,low,"reimplemented (src/game/ui/guirect); thiscall (dx, dy words), pops 8, slot 2: dx added to left and right, dy to top and bottom"
 0x0065a43e,GuiRect_Adjust,function,low,"reimplemented (src/game/ui/guirect); thiscall (dl, dt, dr, db words), pops 16, slot 3: each added to left, top, right and bottom"
+0x0065aa20,GuiRect_Assign,function,low,"reimplemented (src/game/ui/guirect); thiscall (source): the base's assignment (Fn_65aa80), the four words copied; returns the rectangle"
 0x006599f2,GuiDialog_SetA,function,low,"reimplemented (src/game/ui/guidialog); thiscall (word), pops 4: +0xa = value when value < the word +0xe (signed)"
 0x00659a19,GuiDialog_SetC,function,low,"reimplemented (src/game/ui/guidialog); thiscall (word), pops 4: +0xc = value when value < the word +0xe (signed)"
 0x006598f7,GuiDialog_Apply,function,low,"reimplemented (src/game/ui/guidialog); thiscall (flags, source), pops 8, slot 3: bit 0 SetC(src+4), bit 2 +0x30 = src+8, bit 19 SetA(src+0xa), bit 6 +0x34/+0x36 = src+0xc/+0xe; nothing for flags 0 or no source"

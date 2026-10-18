@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
 #include "../core/initializers.h"
 
 namespace {
@@ -61,5 +62,12 @@ void __fastcall GuiRect_Adjust(u8 *rect, void *, u32 dl, u32 dt, u32 dr, u32 db)
     at<u16>(rect, 8) += (u16)dr;
     at<u16>(rect, 6) += (u16)dt;
     at<u16>(rect, 0xa) += (u16)db;
+}
+
+u8 *__fastcall GuiRect_Assign(u8 *rect, void *, const u8 *source) {
+    Fn_65aa80(rect, nullptr, (u32)(uintptr_t)source);
+    for (u32 off = 4; off < 0xc; off += 2)
+        at<u16>(rect, off) = at<u16>(const_cast<u8 *>(source), off);
+    return rect;
 }
 }
