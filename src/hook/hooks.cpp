@@ -32,6 +32,7 @@
 #include "../game/files/wrapsources.h"
 #include "../game/files/wadsource.h"
 #include "../game/files/bufsource.h"
+#include "../game/files/chunkfile.h"
 #include "../game/files/direntry.h"
 #include "../game/files/filestream.h"
 #include "../game/files/gamepaths.h"
@@ -2406,6 +2407,7 @@ const Hook kHooks[] = {
     {"Class703c18_Ctor",          0x00633120, (void *)&Class703c18_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0x88}},
     {"WString_CtorReturning",     0x005c7490, (void *)&WString_CtorReturning, {0x56, 0x8b, 0xf1, 0xe8, 0x88}},
     {"DirEntry_IsRealDir",        0x005c5230, (void *)&DirEntry_IsRealDir, {0x8b, 0x44, 0x24, 0x04, 0xf6}},
+    {"ChunkFile_ReadStream",      0x004d3860, (void *)&ChunkFile_ReadStream, {0x83, 0xec, 0x18, 0x53, 0x55}},
     {"Class70295c_Ctor",          0x005c9040, (void *)&Class70295c_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0x78}},
     {"Obj_SwapPair",              0x005d03b0, (void *)&Obj_SwapPair, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Obj_ChooseVector",          0x005dd3d0, (void *)&Obj_ChooseVector, {0x8b, 0x41, 0x58, 0x85, 0xc0}},
