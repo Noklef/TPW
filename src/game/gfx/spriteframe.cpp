@@ -4,6 +4,7 @@
 
 #include "../core/crt.h"
 #include "../core/gameheap.h"
+#include "../render/engineerrors.h"
 #include "texcache.h"
 #include "texture.h"
 
@@ -50,6 +51,18 @@ u8 *__fastcall SpriteFrame_Init(u8 *frame) {
     at<u32>(frame, 0x30) = 0;
     at<u32>(frame, 0x34) = 0;
     return frame;
+}
+
+u32 __fastcall SpriteImage_AllocPixels(u8 *image, void *, u32 width, u32 height) {
+    const u32 pixel = reinterpret_cast<const u32 *>((uintptr_t)0x00701fe0)[*reinterpret_cast<const u32 *>((uintptr_t)0x008bd554)];
+    at<u16>(image, 0xe) = (u16)height;
+    at<u16>(image, 0xc) = (u16)width;
+    at<u32>(image, 4) = TrackedGlobal_Alloc(pixel * (height & 0xffff) * (width & 0xffff));
+    if (!at<u32>(image, 4)) {
+        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
+        return 0;
+    }
+    return 1;
 }
 
 u8 *__fastcall SpriteImage_Init(u8 *image) {

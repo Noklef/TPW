@@ -3,6 +3,8 @@
 #include <cstdint>
 
 #include "../core/gameheap.h"
+#include "../core/liveobjects.h"
+#include "../render/engineerrors.h"
 #include "../gfx/texture.h"
 
 namespace {
@@ -59,6 +61,39 @@ u32 __cdecl SpriteQueue_Free() {
     }
     GameHeap_Free(queue);
     *reinterpret_cast<u8 **>(0x008c47a0) = nullptr;
+    return 1;
+}
+
+u8 *__fastcall SpriteSet_DeletingDtor(u8 *plus20, void *, u32 flags) {
+    u8 *const set = plus20 - 0x20;
+    const s32 base = at<s32>(at<u8 *>(set, 0), 4);
+    at<u32>(set, base) = 0x006ff308;
+    const s32 again = at<s32>(at<u8 *>(set, 0), 4);
+    at<s32>(set, again - 4) = again - 0x20;
+    TrackedArray_Free(set);
+    LiveObjects_Remove(set ? set + at<s32>(at<u8 *>(set, 0), 4) : nullptr);   // (the base read again after the release)
+    at<u32>(set, 0x20) = 0x006fdce8;
+    if (flags & 1)
+        GameHeap_Free(set);
+    return set;
+}
+
+u32 __cdecl SpriteQueue_Create() {
+    u8 *&slot = *reinterpret_cast<u8 **>(0x008c47a0);
+    if (slot)
+        return 0;
+    u8 *const queue = static_cast<u8 *>(GameHeap_Alloc(0x2410));
+    if (queue) {
+        at<u32>(queue, 0x2404) = 0;
+        at<u32>(queue, 0x2408) = 0;
+        at<u32>(queue, 0x2400) = 0;
+        at<u32>(queue, 0x240c) = 0;
+    }
+    slot = queue;
+    if (!queue) {
+        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+        return 0;
+    }
     return 1;
 }
 }

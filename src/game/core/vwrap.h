@@ -79,6 +79,13 @@ void __cdecl Globals7cc2fc_Release();
 // 1) and the dword cleared.
 void __cdecl Table7c26b0_ReleaseIdle();
 
+// 0x57c360 (cdecl; name unconfirmed): without an object at [0x8bba48], a new one of 0xa8 bytes (the game's heap) there: vbtable 0x701b40 at +0,
+// its virtual base (at the vbtable's +4 offset, +0xa4) given vtable 0x701b30 over the 0x6fdce8 first written there and its displacement
+// (the dword before it, offset - 0xa4), +4 and +8 = -1, the function pointers 0x51f280 / 0x51faa0 / 0x51fd20 / 0x51f370 / 0x51ef30 /
+// 0x51f2f0 / 0x51f240 at +0x84 to +0x9c, and the virtual base added to the live objects (LiveObjects_Add). 1; 0 when there was one, or when
+// the allocation failed (the error (3, 0xb0754000) pushed onto the engine's list, EngineErrors_Push).
+u32 __cdecl Global8bba48_Create();
+
 // 0x57c4a0 (cdecl): when the dword at 0x8bba48 is not 0 the virtual base of the object it points to (the offset in dword +4 of its vtable) is deleted (its slot 0
 // with 1) and the dword cleared. Returns 1 when there was one, otherwise 0.
 u32 __cdecl Global8bba48_DeleteVBase();

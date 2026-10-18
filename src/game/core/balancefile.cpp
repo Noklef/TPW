@@ -4,6 +4,8 @@
 
 #include "vcall.h"
 #include "../files/file.h"
+#include "gameheap.h"
+#include "string.h"
 
 namespace {
 
@@ -218,6 +220,15 @@ void __fastcall BalanceGraphics_Dtor(u8 *self) {
 }
 
 const u8 *__fastcall AdvisorScoring_GetSchema(const void *, void *, u32 index) { return reinterpret_cast<const u8 *>(0x0072e120) + index * 0x3c; }
+
+void __fastcall ThemeRecord_Dtor(u8 *self) {
+    if (u8 *const file = at<u8 *>(self, 0x1c)) {
+        at<u32>(file, 0) = 0x00702800;
+        BalanceFile_Release(file);
+        GameHeap_Free(file);
+    }
+    String_Dtor(reinterpret_cast<String *>(self + 0x20));
+}
 
 void __fastcall AdvisorScoring_Dtor(u8 *self) {
     at<u32>(self, 0xc) = 0x006fd958;

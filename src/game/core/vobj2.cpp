@@ -8,6 +8,7 @@
 #include "vcall.h"
 #include "vobj3.h"
 #include "../gfx/texture.h"
+#include "../render/engineerrors.h"
 
 namespace {
 
@@ -182,6 +183,31 @@ void __fastcall Class702da0_Dtor(u8 *object) {
     vcall<u32>(global<u8 *>(0x00f85614), 0x1c, object);
 }
 
+u32 __fastcall Object_MakeBlock13c(u8 *object) {
+    if (at<u32>(object, 0x13c))
+        return 0;   // (one already: 0, sic)
+    at<u32>(object, 0x13c) = TrackedGlobal_Alloc(0x38);
+    if (at<u32>(object, 0x13c)) {
+        u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x60));
+        at<u8 *>(at<u8 *>(object, 0x13c), 0x18) = memory ? Texture_Ctor(memory, nullptr, 1) : nullptr;
+        u8 *const block = at<u8 *>(object, 0x13c);
+        if (u8 *const texture = at<u8 *>(block, 0x18)) {
+            if (Texture_Alloc(texture, nullptr, global<u32>(0x008bd4b0), 0))
+                return 1;
+            if (u8 *const again = at<u8 *>(at<u8 *>(object, 0x13c), 0x18)) {
+                Texture_Release(again);   // (through its jump 0x590a70)
+                GameHeap_Free(again);   // (the new one)
+            }
+            TrackedGlobal_Free(at<u32>(object, 0x13c));
+        } else {
+            TrackedGlobal_Free(reinterpret_cast<u32>(block));
+        }
+        at<u32>(object, 0x13c) = 0;
+    }
+    EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
+    return 0;
+}
+
 u32 __fastcall Object_FreeBlock13c(u8 *object) {
     if (!at<u32>(object, 0x13c))
         return 1;
@@ -214,6 +240,28 @@ u32 __fastcall Object_ReleaseSavedPairs(u8 *object) {
         at<u32>(object, 4) = at<u32>(object, 4) & 0xdfffffff;
     }
     at<u32>(object, 0x12c) = 0;
+    return 1;
+}
+
+u32 __fastcall Object_ReleaseSavedPairs130(u8 *object) {
+    if (!(at<u32>(object, 4) & 0x40000000) || at<s32>(object, 0x138) <= 0)
+        return 1;   // (the count left as it is)
+    for (s32 i = 0; i < at<s32>(object, 0x138); i++) {
+        const u32 *const pair = reinterpret_cast<const u32 *>(at<u8 *>(object, 0x130) + i * 8);
+        if (pair[0])
+            *reinterpret_cast<u32 *>((uintptr_t)pair[1]) = pair[0];
+    }
+    at<u32>(object, 4) &= 0xbfffffff;
+    if (at<u8 *>(object, 0x130)) {
+        GameHeap_Free(at<u8 *>(object, 0x130));
+        at<u32>(object, 0x130) = 0;
+    }
+    if (u8 *elements = at<u8 *>(object, 0x134)) {
+        CRT_VectorDtorIterator(elements, 0x10, at<s32>(elements - 4, 0), reinterpret_cast<void(__fastcall *)(void *)>(0x00575bf0));
+        GameHeap_Free(elements - 4);
+        at<u32>(object, 0x134) = 0;
+    }
+    at<u32>(object, 0x138) = 0;
     return 1;
 }
 

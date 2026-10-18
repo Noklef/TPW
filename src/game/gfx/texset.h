@@ -10,6 +10,11 @@
 
 extern "C" {
 
+// 0x575c00 (thiscall; array; name unconfirmed): all zero, then a list of one (TrackedGlobal_Alloc, core/gameheap) at +8 holding the shared
+// texture array, +0xc = 0x8000 (shared) and one user: 1. When the list was not got, the error (2, 0xb0754000) pushed (EngineErrors_Push)
+// and 0.
+u32 __fastcall TexSet_InitShared(u8 *set, void *, u32 array);
+
 // 0x575bd0 (thiscall): all zero; returns the set.
 u8 *__fastcall TexSet_Ctor(u8 *set);
 

@@ -271,4 +271,22 @@ u32 __cdecl FreeGlobal8bcbb8_580500() {
 u32 __cdecl FreeGlobal8c47d4_58b040() {
     const u32 p = global<u32>(0x008c47d4); if (!p) return 0; GameHeap_Free(reinterpret_cast<void *>(p)); global<u32>(0x008c47d4) = 0; return 1;
 }
+
+// The blocks at 0x8bcbb8 and 0x8c47d4 made by the engine's start-up: a first dword set (to fill) when the allocation worked.
+static u32 CreateGlobal(u32 slot, u32 size, u32 fill) {
+    u32 &block = global<u32>(slot);
+    if (block) return 0;
+    u32 *const p = static_cast<u32 *>(GameHeap_Alloc(size));
+    if (p) *p = fill;
+    block = (u32)(uintptr_t)p;
+    if (!p) {
+        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+        return 0;
+    }
+    return 1;
+}
+
+u32 __cdecl CreateGlobal8bcbb8_5804b0() { return CreateGlobal(0x008bcbb8, 0x14004, 0); }
+
+u32 __cdecl CreateGlobal8c47d4_58aff0() { return CreateGlobal(0x008c47d4, 0xc, 0xffffffff); }
 }  // extern "C"

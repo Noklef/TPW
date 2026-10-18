@@ -4,7 +4,10 @@
 # 0xc4, 0x1c4, 0x2c4, 0x3c4 and others. And the fog of a batch's vertices (0x565e70 on given vertices,
 # 0x565ee0 on the batch's own): the render flags (0x8bcbc8) with and without fog (0x2000), colour fog (0x4000)
 # and alpha fog (0x8000), the driver kind (0x8bd524) 1 or not, the fog and 0-4 vertices as vertexfog.py's.
-# usage: batch.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Begin,Fog,FogBatch)
+# A model's material batch (0x581880) over the same buffer, the batch object at [0x879ab0]: settings
+# flags with and without 0xc0000 and 0x2000000, material entries 0-3 with a material or none, a texture set or none, the texture's index
+# used or not (0x8bd550), textures 0 or with flags 0x400, 0x1000 and others, +0x3c 0 or not (as texformat.py's driver flags cases).
+# usage: batch.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Begin,Model,Fog,FogBatch)
 import os
 import struct
 import sys
@@ -12,13 +15,15 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, bf, fb, put  # noqa: E402
 
-B = Bench([(0x565240, 0x56530d), (0x582640, 0x582804), (0x565e70, 0x565f4d), (0x5747d0, 0x5749db)])
+B = Bench([(0x565240, 0x56530d), (0x582640, 0x582804), (0x581880, 0x5819fd), (0x575f90, 0x575f9d), (0x5911d0, 0x591210), (0x581790, 0x581880),
+           (0x590c40, 0x590ca8), (0x590fb0, 0x590fcb),
+           (0x565e70, 0x565f4d), (0x5747d0, 0x5749db)])
 BUF, BATCHES, OBJECT = RAM + 0x20, RAM + 0x100, RAM + 0x1000
 VERTICES, BATCH = RAM + 0x2000, RAM + 0x2400
 FOG, SCRATCH = 0x8bd47c, 0xfb34a4
 
 
-def begin(r):
+def buffer(r):
     mem = bytearray(r.bytes(0x100 + 16 * 0x38))
     b = 0x20
     put(mem, b + 0, 'I', r.choice([0, 1, 2, 3, 4, 5, 6, 7, r.getrandbits(32)]))
@@ -34,7 +39,47 @@ def begin(r):
     put(obj, 0xc, 'I', r.choice([0, 0xffffffff, r.getrandbits(32)]))
     scene = bytearray(r.bytes(0x20))
     put(scene, 8, 'I', r.choice([0, 0x4000000, r.getrandbits(32)]))
-    regions = {RAM: mem, OBJECT: obj, 0x8bcbc0: put(bytearray(r.bytes(8)), 4, 'I', BUF), 0x8bd500: scene}
+    regions = {RAM: mem, OBJECT: obj, 0x8bcbc0: put(bytearray(r.bytes(0x10)), 4, 'I', BUF), 0x8bd500: scene}
+    return regions
+
+
+MODEL, SETTINGS, ENTRIES, MATERIAL, SET, TEXTURES, TEXTURE = (RAM + 0x2000 + 0x100 * k for k in range(7))
+
+
+def model(r):
+    regions = buffer(r)
+    scene = bytearray(regions[0x8bd500]) + r.bytes(0x40)
+    put(scene, 0x50, 'B', r.choice([0, 0x40, r.getrandbits(8)]))   # (0x8bd550)
+    put(scene, 0x24, 'I', r.choice([1, 1, 0, 4]))   # (0x8bd524, as texformat.py)
+    regions[0x8bd500] = scene
+    regions[0x879ab0] = struct.pack('<I', OBJECT)
+    m = bytearray(r.bytes(0x10))
+    put(m, 4, 'I', SETTINGS)
+    regions[MODEL] = m
+    settings = bytearray(r.bytes(0x70))
+    put(settings, 0, 'I', r.getrandbits(32) & r.choice([0, 0xc0000, 0x2000000, 0x40000, 0xffffffff]))
+    put(settings, 0x6c, 'I', ENTRIES)
+    regions[SETTINGS] = settings
+    entries = bytearray(r.bytes(0x40))
+    for k in range(4):
+        put(entries, 0x10 * k, 'I', r.choice([MATERIAL, MATERIAL, MATERIAL, 0]))
+    regions[ENTRIES] = entries
+    material = bytearray(r.bytes(8))
+    put(material, 2, 'H', r.randrange(4))
+    put(material, 4, 'I', r.choice([SET, SET, SET, 0]))
+    regions[MATERIAL] = material
+    regions[SET] = put(bytearray(r.bytes(0x10)), 8, 'I', TEXTURES)
+    regions[TEXTURES] = b''.join(struct.pack('<I', r.choice([TEXTURE, TEXTURE, 0])) for _ in range(4))
+    t = bytearray(r.bytes(0x60))
+    put(t, 8, 'I', r.getrandbits(32) & r.choice([0, 0x400, 0x1000, 0x1400, 0x30000, 0x100000, 0xffffffff]))
+    put(t, 0x3c, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
+    regions[TEXTURE] = t
+    regions[RAM + 0x2800] = r.bytes(4)
+    return Call(0x581880, [MODEL, r.randrange(4), RAM + 0x2800], regions, conv='t', ret='a')
+
+
+def begin(r):
+    regions = buffer(r)
     mode = r.choice([0, 1, 2, 3, 4, 6, r.getrandbits(32)])
     kind = r.choice([0xc4, 0x1c4, 0x2c4, 0x3c4, 0, 0x1c3, 0x1c5, 0x4c4, 0xffffffc4, r.getrandbits(32)])
     flags = r.choice([0, 1, 0xff, 0xffffffff, r.getrandbits(32)])
@@ -68,12 +113,16 @@ def fog(r, op):
     return Call(0x565ee0, [OBJECT], regions, conv='t')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Begin,Fog,FogBatch').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Begin,Model,Fog,FogBatch').split(',') if k]
 
 
 def case(r):
     op = r.deal(OPS)
-    return begin(r) if op == 'Begin' else fog(r, op)
+    if op == 'Begin':
+        return begin(r)
+    if op == 'Model':
+        return model(r)
+    return fog(r, op)
 
 
 if __name__ == '__main__':

@@ -60,6 +60,11 @@ void __fastcall BalanceGraphics_Dtor(u8 *self);
 // 0x415e90 (thiscall (i), this unused): &key record i of the advisor scoring schema at 0x72e120.
 const u8 *__fastcall AdvisorScoring_GetSchema(const void *, void *, u32 index);
 
+// 0x5b0cd0 (thiscall; name unconfirmed): a theme's record (the global save's theme map holds them; 0x5af290 and 0x5b0bc0 delete
+// them): its theme balance file (+0x1c, a heap object, vtable 0x702800 its schema getter Table73f8a8_At), when there is one, gets
+// its vtable back, is released (BalanceFile_Release) and freed (Mem_Free); then its name (a String at +0x20) is destroyed.
+void __fastcall ThemeRecord_Dtor(u8 *self);
+
 // 0x415e80 (thiscall; name unconfirmed): the balance file at +0xc gets vtable 0x6fd958 back and is released (BalanceFile_Release).
 void __fastcall AdvisorScoring_Dtor(u8 *self);
 

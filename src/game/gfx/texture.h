@@ -12,6 +12,13 @@
 
 extern "C" {
 
+// 0x590a80 (thiscall; size, flags; pops 8; name unconfirmed): the pixels, a tracked block (TrackedGlobal_Alloc, core/gameheap) of the
+// format's pixel size (0x7024e0 indexed by [0x8bd554]) times size squared, at +0x40; not got: the error (2, 0xb0754000) pushed
+// (EngineErrors_Push) and 0. Got: the words +0x10 to +0x16 and +0x34 = size, +8 = flags << 6 | 0x1000000 | the level (0 above 0x80, 1
+// above 0x40, 2 above 0x20, 3 above 0x10, else 4, 5 from 8 down; signed), +0x38 = (__ftol((1.5 - the float at +0x30) * 2047) & 0xfff)
+// << 16 plus the s16 size * 0x101, with 0x20000000 for flag 0x4000 and 0x40000000 for 0x80000. Returns 1.
+u32 __fastcall Texture_Alloc(u8 *texture, void *, u32 size, u32 flags);
+
 // 0x590a00 (thiscall): the constructor. When most derived, the vbtable pointer and the virtual
 // base's six dwords (+0x48-+0x5c) first; then +0xc = -1 and the other fields to +0x40 zeroed.
 // Returns the texture.

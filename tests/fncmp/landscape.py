@@ -2,8 +2,9 @@
 # 0x585f00) against the originals: points 0 to 3 (and a little either side), any values. Its texture
 # arrays' release (0x585e20: the three at +0x1fd0..+0x1fd8, as texturemem.py, counts 0-3, set or not) and one
 # array's removal (0x5851d0: 0-4 entries of 0x20 bytes from +0x1fdc, the count at +0x21dc theirs, one less,
-# 0 or negative; the array asked for one of theirs, the one past the last, 0 or another).
-# usage: landscape.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetPoint,SetDetail,List,Point,FreeTextures,RemoveTexture)
+# 0 or negative; the array asked for one of theirs, the one past the last, 0 or another). Its constructor (0x584ef0): the whole object
+# (0x2f20 bytes) of any bytes, [0x8bd524] 4 or not.
+# usage: landscape.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetPoint,SetDetail,List,Point,FreeTextures,RemoveTexture,Init)
 import os
 import struct
 import sys
@@ -14,8 +15,9 @@ import texturemem  # noqa: E402
 from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put  # noqa: E402
 
 B = Bench([(0x5856e0, 0x585705), (0x585710, 0x58571d), (0x585ef0, 0x585ef7), (0x585f00, 0x585f07), (0x585e20, 0x585eed), (0x5851d0, 0x5852af),
-           (0x590a70, 0x590a75), (0x590b90, 0x590c39), (0x579b40, 0x579c13), (0x58dc50, 0x58dd5e), (0x67afa0, 0x67b0d0), (0x67acb0, 0x67acb1)])
-CALLS = {'SetPoint': 0x5856e0, 'SetDetail': 0x585710, 'List': 0x585ef0, 'Point': 0x585f00, 'FreeTextures': 0x585e20, 'RemoveTexture': 0x5851d0}
+           (0x590a70, 0x590a75), (0x590b90, 0x590c39), (0x579b40, 0x579c13), (0x58dc50, 0x58dd5e), (0x67afa0, 0x67b0d0), (0x67acb0, 0x67acb1),
+           (0x584ef0, 0x5850b4)])
+CALLS = {'Init': 0x584ef0, 'SetPoint': 0x5856e0, 'SetDetail': 0x585710, 'List': 0x585ef0, 'Point': 0x585f00, 'FreeTextures': 0x585e20, 'RemoveTexture': 0x5851d0}
 LAND, ARRAYS = RAM + 0x10000, RAM + 0x5000   # (texturemem.py's regions below RAM + 0x4000)
 
 
@@ -51,6 +53,9 @@ def case(r):
     op = r.deal(OPS)
     if op in ('FreeTextures', 'RemoveTexture'):
         return textures(r, op)
+    if op == 'Init':
+        regions = {RAM: r.bytes(0x2f20), 0x8bd524: struct.pack('<I', r.choice([4, 4, 0, 1, 2, 3, 5, r.getrandbits(32)]))}
+        return Call(0x584ef0, [RAM], regions, conv='t', ret='a')
     regions = {RAM + 0x1f00: r.bytes(0x100), RAM + 0x2ec0: r.bytes(0x10)}
     if op == 'SetPoint':
         args = [RAM, r.choice([0, 1, 2, 3, -1, 4, 5])] + [r.getrandbits(32) for _ in range(3)]

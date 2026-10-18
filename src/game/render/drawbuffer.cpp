@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/gameheap.h"
+#include "engineerrors.h"
 
 namespace {
 
@@ -12,6 +13,52 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 // Stream n's record: {vertices, used, room, indices, used, room}.
 u32 *stream(const u8 *buffer, u32 n) { return reinterpret_cast<u32 *>((uintptr_t)buffer + n * 24 - 0x10); }
 u32 *current(const u8 *buffer) { return stream(buffer, at<u32>(buffer, 4)); }
+
+void PushError() { EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000); }
+
+// A stream's record made (inlined twice in 0x5823f0): 1 MB of vertices and 0x20000 bytes of indices. On a failure the error is
+// pushed (and what was got freed); the caller pushes it again.
+bool MakeStream(u8 *s) {
+    at<u32>(s, 0) = TrackedGlobal_Alloc(0x100000);
+    if (!at<u32>(s, 0)) {
+        PushError();
+        return false;
+    }
+    at<u32>(s, 8) = 0x100000;
+    at<u32>(s, 0xc) = TrackedGlobal_Alloc(0x20000);
+    if (!at<u32>(s, 0xc)) {
+        PushError();
+        if (at<u32>(s, 0xc)) {
+            TrackedGlobal_Free(at<u32>(s, 0xc));
+            at<u32>(s, 0xc) = 0;
+        }
+        if (at<u32>(s, 0)) {
+            TrackedGlobal_Free(at<u32>(s, 0));
+            at<u32>(s, 0) = 0;
+        }
+        at<u32>(s, 8) = 0;
+        at<u32>(s, 0x14) = 0;
+        return false;
+    }
+    at<u32>(s, 0x14) = 0x10000;
+    at<u32>(s, 4) = 0;
+    at<u32>(s, 0x10) = 0;
+    return true;
+}
+
+// The batches (+0x44) and the scratch block (+0x60, with +0x58) freed when set, after a failure in 0x5823f0.
+u32 FreeBlocks(u8 *buffer) {
+    if (at<u32>(buffer, 0x44)) {
+        TrackedGlobal_Free(at<u32>(buffer, 0x44));
+        at<u32>(buffer, 0x44) = 0;
+    }
+    if (at<u32>(buffer, 0x60)) {
+        TrackedGlobal_Free(at<u32>(buffer, 0x60));
+        at<u32>(buffer, 0x60) = 0;
+        at<u32>(buffer, 0x58) = 0;
+    }
+    return 0;
+}
 
 }  // namespace
 
@@ -29,6 +76,71 @@ u32 __fastcall DrawStream_Free(u8 *stream) {
     at<u32>(stream, 8) = 0;
     at<u32>(stream, 0x14) = 0;
     return 1;
+}
+
+u32 __fastcall DrawBuffer_Create(u8 *buffer) {
+    u8 *const two = buffer + 0x20, *const one = buffer + 8;
+    if (!MakeStream(two)) {
+        PushError();
+        return 0;
+    }
+    if (!MakeStream(one)) {
+        PushError();
+        DrawStream_Free(two);   // (inlined)
+        DrawStream_Free(one);
+        return FreeBlocks(buffer);
+    }
+    at<u32>(buffer, 0x44) = TrackedGlobal_Alloc(0x38000);
+    if (at<u32>(buffer, 0x44)) {
+        at<u32>(buffer, 0x48) = 0x1000;
+        at<u32>(buffer, 0x60) = TrackedGlobal_Alloc(0x10000f);
+        if (u32 scratch = at<u32>(buffer, 0x60)) {
+            while (scratch & 0xf)
+                ++scratch;
+            at<u32>(buffer, 0x58) = scratch;
+            at<u32>(buffer, 0x3c) = scratch + 0x100000;
+            DrawBuffer_Reset(buffer, nullptr, 0xffffffff);
+            return 1;
+        }
+    }
+    PushError();
+    DrawStream_Free(two);
+    DrawStream_Free(one);
+    return FreeBlocks(buffer);
+}
+
+u32 __cdecl DrawBuffer_Init() {
+    if (global<u8 *>(0x008bcbc4))
+        return 0;   // (one already: 0, sic)
+    u8 *buffer = static_cast<u8 *>(GameHeap_Alloc(0x64));
+    if (buffer) {
+        for (u8 *s = buffer + 8; s != buffer + 0x38; s += 0x18) {
+            at<u32>(s, 0) = 0;
+            at<u32>(s, 0xc) = 0;
+            at<u32>(s, 8) = 0;
+            at<u32>(s, 4) = 0;
+            at<u32>(s, 0x14) = 0;
+            at<u32>(s, 0x10) = 0;
+        }
+        at<u32>(buffer, 0) = 0;
+        at<u32>(buffer, 0x44) = 0;
+        at<u32>(buffer, 0x48) = 0;
+        at<u32>(buffer, 0x4c) = 0;
+        at<u32>(buffer, 0x60) = 0;
+        at<u32>(buffer, 0x5c) = 0;
+        at<u32>(buffer, 0x58) = 0;
+        at<u32>(buffer, 0x50) = 0;
+        at<u32>(buffer, 0x54) = 0;
+    }
+    global<u8 *>(0x008bcbc4) = buffer;
+    if (!buffer)
+        return 0;
+    if (DrawBuffer_Create(buffer))
+        return 1;
+    GameHeap_Free(global<u8 *>(0x008bcbc4));   // (the new one)
+    global<u8 *>(0x008bcbc4) = nullptr;
+    PushError();   // (the creation's own pushed too)
+    return 0;
 }
 
 u32 __cdecl DrawBuffer_Destroy() {

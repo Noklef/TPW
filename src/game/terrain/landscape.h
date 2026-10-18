@@ -1,4 +1,4 @@
-// The landscape renderer's accessors and texture releases: reimplementation of 0x5856e0, 0x585710, 0x585ef0, 0x585f00, 0x585e20
+// The landscape renderer's constructor (0x584ef0), accessors and texture releases: reimplementation of 0x5856e0, 0x585710, 0x585ef0, 0x585f00, 0x585e20
 // and 0x5851d0.
 //
 // The landscape renderer is the object at 0x8c1828 (its grids from +0x360 and +0x1760, the size
@@ -11,6 +11,15 @@
 #include "../../../re/types.h"
 
 extern "C" {
+
+// 0x584ef0 (thiscall; the constructor of 0x8c1828, run by the static initializer 0x584ec0; name unconfirmed): +0x2ecc an identity
+// matrix, +0x21e8 = 24000.0, the size +0x21e0 / +0x21e4 = 0x960, +0x1f68 = 300.0, the detail level +0x2ec8 = 1 when [0x8bd524] is 4,
+// else 4, +0x1f64 and +0x1f6c = 0; for i 0-3 the point at +0x1fa0 + 12 i zeroed and the weather's at +0x1f70 + 12 i = (0.0008 +
+// 0.0005 i, 0, 0.00009 - 0.00003 i) and +0x21ec + 4 i = (7 - i) * pi * 0.00893 (x87, the constants at 0x701f38-0x701f48 and
+// 0x701ee0); the texture arrays +0x1fd0-+0x1fd8 = 0; from +0x2c88 and +0x2da8 the index words of 8 x 3 cells (two triangles each:
+// a, a + 5, a + 4, a, a + 1, a + 5 with a = 4 row + column, 0x24 more in the second); +0x21dc = 0, +0x2f0c = 0xcfffffff and +0x2f10 =
+// 0x38000000. Returns the landscape.
+u8 *__fastcall Landscape_Init(u8 *landscape);
 
 // 0x5856e0 (thiscall; i, x, y, z, floats moved as dwords): point i at +0x1f70 + 12 i.
 void __fastcall Landscape_SetPoint(u8 *landscape, void *, s32 i, u32 x, u32 y, u32 z);

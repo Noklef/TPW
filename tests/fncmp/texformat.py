@@ -1,6 +1,7 @@
 # The texture format helpers (src/game/render/texformat: 0x581790, 0x583ba0, 0x5839f0, 0x5839a0, 0x5839e0) against the originals:
-# any settings bytes, any current format; the driver flags over any bits, with and without a request or texture.
-# usage: texformat.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetArgb32,Table)
+# any settings bytes, any current format; the driver flags over any bits, with and without a request or texture. The format record
+# lookup (0x573820): indexes -2 to 5 and far off, the records' first dwords 0 or not (the misses' error on the list at 0x879ad0).
+# usage: texformat.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetArgb32,Table,...)
 import os
 import struct
 import sys
@@ -8,12 +9,27 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x5839f0, 0x583b97), (0x5911d0, 0x591210), (0x581790, 0x581880), (0x583ba0, 0x583cb2), (0x590c40, 0x590ca8), (0x590fb0, 0x590fcb), (0x5839a0, 0x5839ee)])
-CALLS = {'FillTables': 0x5839f0, 'Classify': 0x583ba0, 'DriverFlags': 0x581790, 'SetArgb32': 0x5839a0, 'Table': 0x5839e0}
+B = Bench([(0x5839f0, 0x583b97), (0x5911d0, 0x591210), (0x581790, 0x581880), (0x583ba0, 0x583cb2), (0x590c40, 0x590ca8), (0x590fb0, 0x590fcb), (0x5839a0, 0x5839ee),
+           (0x573820, 0x573860), (0x56af20, 0x56af9c)])
+CALLS = {'FillTables': 0x5839f0, 'Classify': 0x583ba0, 'DriverFlags': 0x581790, 'SetArgb32': 0x5839a0, 'Table': 0x5839e0, 'Record': 0x573820}
+
+
+def record(r):
+    records = bytearray(r.bytes(0x100))   # (from 0x8bd518: index -2's record at 0x8bd518, index 3's at 0x8bd5b8, 5's at 0x8bd5f8)
+    for k in range(8):
+        if r.random() < 0.3:
+            put(records, 0x20 * k, 'I', 0)
+    errors = bytearray(r.bytes(0x204))
+    put(errors, 0x200, 'i', r.choice([r.randrange(0x40), 0, 0x3f, 0x40]))
+    regions = {0x8bd518: records, RAM: r.bytes(8), 0x879ad0: errors}
+    index = r.choice([-2, -1, 0, 1, 2, 3, 3, 4, 5, 0x7fffffff, -0x80000000, r.randrange(4)])
+    return Call(0x573820, [r.getrandbits(32), RAM, index & 0xffffffff], regions, conv='t', ret='a')
 
 
 def case(r):
-    op = r.choice(OPS)
+    op = r.deal(OPS)
+    if op == 'Record':
+        return record(r)
     if op == 'FillTables':
         s = bytearray(r.bytes(0x40d0))
         menu = [0xff, 0xff00, 0xff0000, 0xff000000, 0xf800, 0x7e0, 0x1f, 0x8000, 0x7c00, 0x3e0, 0xf0, 0, 0xffffffff, 0x80000000]

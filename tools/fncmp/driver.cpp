@@ -437,7 +437,8 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006fd8b0, 2},   // TrackType,
                                    {0x00700398, 2},   // Challenges,
                                    {0x007034d8, 16},  // the 8-bit draw primitives (DrawDriver table; 14, the sprite blitter, is not hooked)
-                                   {0x006fd958, 2}};  // AdvisorScoring
+                                   {0x006fd958, 2},   // AdvisorScoring,
+                                   {0x00702800, 2}};  // a theme's (Table73f8a8_At, BalanceFile_GetValues)
 
 void __cdecl debug_printf(const char *, ...) {}  // Debug_Printf 0x5da3c0 (RefObject's teardown slot among others)
 
@@ -654,7 +655,7 @@ int main(int argc, char **argv) {
                                             reinterpret_cast<void(__cdecl *)(u32 *, void *, const void *, u32, u32)>(hooked(0x005f5e50)),
                                             reinterpret_cast<void(__cdecl *)(u32 *, void *, void *, u32, u32)>(hooked(0x005f5e20))};
     SpriteScripts_SetEnv(&sprites);
-    static char token[1 << 22];
+    static char token[1 << 24];   // (a region of up to 8 MB)
     for (;;) {
         u32 address, count;
         char conv[8], ret[8];
@@ -667,7 +668,7 @@ int main(int argc, char **argv) {
         std::vector<std::pair<u32, u32>> spans;
         for (u32 i = 0; i < regions; ++i) {
             u32 at;
-            std::scanf("%x %4194303s", &at, token);
+            std::scanf("%x %16777215s", &at, token);
             std::vector<u8> bytes = unhex(token);
             map(at, (u32)bytes.size());
             std::memcpy(reinterpret_cast<void *>((uintptr_t)at), bytes.data(), bytes.size());

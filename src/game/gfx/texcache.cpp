@@ -179,4 +179,15 @@ u32 __fastcall TexCache_UnlinkItem(u8 *cache, void *, u8 *item) {
         at<u32>(item, 0x38) |= 0x40000000;
     return 1;
 }
+
+void __fastcall TexCacheItem_SetKey(u8 *item) {
+    const X87Reg lod = (X87Reg(1.5f) - at<float>(item, 0x30)) * 2047.0f;  // 0x7022d0, 0x7022d4
+    const u32 key = ((((u32)(long long)lod.v & 0xfff) << 8) + (u32)(s32)at<s16>(item, 0x14) << 8) + (u32)(s32)at<s16>(item, 0x16);
+    const u32 flags = at<u32>(item, 8);
+    at<u32>(item, 0x38) = key;
+    if (flags & 0x4000)
+        at<u32>(item, 0x38) = key | 0x20000000;   // (the flags as they are)
+    if (flags & 0x80000)
+        at<u32>(item, 0x38) |= 0x40000000;   // (in memory)
+}
 }

@@ -16,6 +16,11 @@ extern "C" {
 // frame.
 u8 *__fastcall SpriteFrame_Init(u8 *frame);
 
+// 0x588940 (thiscall; width, height; name unconfirmed): +0xc / +0xe = the sizes' low words; +4 = a tracked block (TrackedGlobal_Alloc,
+// core/gameheap) of the current format's pixel size (0x701fe0 indexed by [0x8bd554]) times both: 1. Not got: the error (2, 0xb0754000)
+// pushed (EngineErrors_Push), 0.
+u32 __fastcall SpriteImage_AllocPixels(u8 *image, void *, u32 width, u32 height);
+
 // 0x588320 (thiscall): all 0x18 bytes but +8 cleared; returns the image.
 u8 *__fastcall SpriteImage_Init(u8 *image);
 

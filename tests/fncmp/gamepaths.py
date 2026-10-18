@@ -33,7 +33,7 @@ def save_folder(r, address=0x5c7bd0):
         table[at - IMPORT_TABLE:at - IMPORT_TABLE + 4] = stub
     n = r.choice([0, 1, 3, 8, 20])
     root = bytes(r.choice(CHARS) for _ in range(n))
-    wide = struct.pack('<%dH' % n, *root) + (bytes(2) if r.random() < 0.9 else b'a\0b\0')
+    wide = struct.pack('<%dH' % n, *root) + (bytes(2) if r.random() < 0.9 else b'a\0b\0\0\0')   # (the NUL 2 past the text)
     size = n + 1 if address != 0x5c7bd0 or r.random() < 0.8 else r.choice([0, 1, n, n + 4])
     set_return(log, MB2WC, size)
     fill(log, MB2WC, 4, wide[:0x70])

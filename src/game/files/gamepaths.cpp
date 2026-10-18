@@ -7,6 +7,8 @@
 #include "../core/string.h"
 #include "../core/trivial.h"
 #include "../core/vcall.h"
+#include "file.h"
+#include "handles.h"
 
 namespace {
 
@@ -17,6 +19,28 @@ T at(u32 address) {
 }  // namespace
 
 extern "C" {
+
+void __fastcall GamePaths_MakeFolders(void *, void *, const WString *root) {
+    for (const u32 *node = *at<const u32 *const *>(0x00786b90); node;) {
+        const StringView *const name = reinterpret_cast<const StringView *>((uintptr_t)node[0]);
+        node = reinterpret_cast<const u32 *>((uintptr_t)node[1]);
+        String path;
+        String_Ctor(&path);
+        String_AssignFromWide(&path, root);
+        String_Append(&path, nullptr, at<const StringView *>(0x00f81b48));   // (both through the String's vtable +0x28)
+        String_Append(&path, nullptr, name);
+        Handle folder;
+        Handle_Ctor(&folder);
+        folder.vtable = at<void *const *>(0x006fd9e8);
+        s32 status;
+        if (*Handle_Open28(&folder, nullptr, &status, reinterpret_cast<u32>(path.data)) < 0) {
+            s32 made;
+            Dir_Create(&made, path.data);
+        }
+        Handle_Dtor(&folder);
+        String_Dtor(&path);
+    }
+}
 
 u32 __cdecl GamePaths_FontsFolder(char *out) {
     const char *const root = *reinterpret_cast<const char *const *>(Obj_Self(at<u8 *>(0x00f816c0)) + 8);

@@ -472,6 +472,7 @@ address,name,kind,confidence,notes
 0x00585f00,Landscape_Point,function,high,reimplemented (src/game/terrain/landscape); thiscall: the point at +0x1fa0
 0x00585e20,Landscape_FreeTextures,function,low,"reimplemented (src/game/terrain/landscape); thiscall: the three texture arrays at +0x1fd0..+0x1fd8 released, destroyed and cleared; returns 1 (name unconfirmed)"
 0x005851d0,Landscape_RemoveTexture,function,low,"reimplemented (src/game/terrain/landscape); thiscall (textures): the entry holding the array found (from one past the last), the array released and destroyed, the last entry swapped in (name unconfirmed)"
+0x00584ef0,Landscape_Init,function,low,"reimplemented (src/game/terrain/landscape); thiscall: the landscape renderer (0x8c1828) set up: identity matrix +0x2ecc, sizes, 300.0, the detail level from [0x8bd524], the weather points and +0x21ec factors (x87), the cells' index words, returns it"
 0x005720d0,TerrainTexCache_Ctor,function,high,"reimplemented (src/game/terrain/texcache); the tile cache cleared, 0x40 tiles"
 0x00572350,TerrainTexCache_Dtor,function,low,"reimplemented (src/game/terrain/texcache); thiscall: the tiles' texture arrays, the tiles and the landscape freed (name unconfirmed)"
 0x00536490,MapCell_Reset,function,high,"default type/flags from the attribute byte: outside park 2/0x1e/7, inside 1 (path, bit 0x08) or 0; 0x10 -> flags 0x80, 0x04 -> flags 0x400"
@@ -536,6 +537,7 @@ address,name,kind,confidence,notes
 0x00415e70,AdvisorScoring_StaticDtor,function,low,"reimplemented (src/game/core/balancefile); cdecl, at exit: AdvisorScoring_Dtor of gAdvisorScoring (0xfb3540)"
 0x00401280,BalanceFile_FindKey,function,low,"reimplemented (src/game/core/balancefile); thiscall (group, name, &index, grouped, row): the section (type 1, or 3 when grouped, row below its count) named group, then the key named name before it"
 0x0059bf10,AdvisorScoringFile_Dtor,function,low,"reimplemented (src/game/core/balancefile); thiscall: vtable 0x6fd958 back, BalanceFile_Release (name unconfirmed)"
+0x005b0cd0,ThemeRecord_Dtor,function,low,"reimplemented (src/game/core/balancefile); thiscall: a theme's record destroyed: its theme balance file (+0x1c, vtable 0x702800) when there is one released and freed, then its name (String at +0x20)"
 0x00470c90,Motion_ApplyMaterial,function,high,"reimplemented (src/game/motion/keys); (model, table, state): last (frame, value) key at or before the frame set into the material record (+2), flagged +1 |= 4 on change"
 0x00470d10,Matrix_PreMul33,function,high,"reimplemented (src/game/math/matrix); m = r * m on the rotation part, r a packed row-major 3x3"
 0x00470e90,Motion_LerpPackedVertices,function,high,"reimplemented (src/game/motion/vertexanim); (block, positions, group, t, add): 10:10:10 keys * scale (+0x20) + offset (+0x14), lerped key -> key+1 into slot (12 * (slot >> 2) + (slot & 3)), axes 4 floats apart"
@@ -1666,6 +1668,7 @@ address,name,kind,confidence,notes
 0x005c7bd0,GamePaths_SaveFolder,function,low,"reimplemented (src/game/files/gamepaths); stdcall (out); out = the root folder (wide) + the global wide ""save"" (0xf818d8); returns out"
 0x005c7c70,GamePaths_UsersFolder,function,low,"reimplemented (src/game/files/gamepaths); stdcall (out): the save folder with ""\"" and ""users"" appended, copied into out; returns out (name unconfirmed)"
 0x005c8980,GamePaths_OnlineFolder,function,low,"reimplemented (src/game/files/gamepaths); stdcall (out): the save folder with ""\"" and ""online"" appended, copied into out; returns out (name unconfirmed)"
+0x005c7ac0,GamePaths_MakeFolders,function,low,"reimplemented (src/game/files/gamepaths); thiscall, this unused (root wide String): for each name listed at [0x786b90], root + the String at 0xf81b48 + the name; when that folder does not open (Handle_Open28) it is created (Dir_Create)"
 0x005c53c0,DirEntry_IsWad,function,low,"reimplemented (src/game/files/direntry); cdecl (entry); whether the entry's name ends in the global "".wad"" String (0xf80808, Names_Equal)"
 0x0055e470,CpuInfo_Ctor,function,high,"reimplemented (src/game/core/cpuinfo); thiscall; CPUID probe (EFLAGS.ID test, then the vendor string and features); SystemInfo's base"
 0x0067df40,CRT_stricmp,function,high,"MSVC CRT _stricmp: A-Z folded, or the locale's tolower when one is set"
@@ -2374,6 +2377,9 @@ address,name,kind,confidence,notes
 0x005b0ca0,GlobalSave_SetAllResearchCompleted,function,high,"reimplemented (src/game/core/globalsave); thiscall: the current theme record's (+0x48) mAllResearchCompleted (+0xb9) = 1, when there is one"
 0x005b0cb0,GlobalSave_Byte4c,function,high,reimplemented (src/game/core/globalsave); thiscall u8: the global save info's byte +0x4c
 0x005b0cc0,GlobalSave_ClearByte4c,function,high,reimplemented (src/game/core/globalsave); thiscall: the global save info's byte +0x4c = 0
+0x005b0d70,ThemeSaveRecord_Serialize,function,low,"reimplemented (src/game/core/globalsave); thiscall (stream, save, unused): a theme's save record written or read field by field (6 bytes, 4 x byte+dword, 0x21 x mSignNameA/B u16s, mNameChanged, mAllResearchCompleted); 1 at the first short field, else 0"
+0x005b0940,GlobalSave_SetSignNameA,function,low,"reimplemented (src/game/core/globalsave); thiscall (name): with a current theme (+0x48), its mSignNameA (+0x34) given (wcsncpy of 0x21 units) and mNameChanged (+0xb8) set"
+0x005b0970,GlobalSave_SetSignNameB,function,low,"reimplemented (src/game/core/globalsave); thiscall (name): with a current theme (+0x48), its mSignNameB (+0x76) given (wcsncpy of 0x21 units) and mNameChanged (+0xb8) set"
 0x005775d0,LiveObjects_Add,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): appended to the live objects list (0x87a6d8, count 0x87aed8, room for 0x200; the rest dropped); 1 either way"
 0x00577600,LiveObjects_Remove,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): the last match is replaced by the last entry and the count drops; 1, or 0 when not there"
 0x00579cd0,LiveObject7019f8_Construct,function,low,"reimplemented (src/game/core/liveobjects); thiscall (most derived): two identity matrices, fields cleared, the virtual base's vtable 0x7019f8 set and the base added to the live objects"
@@ -3063,6 +3069,10 @@ address,name,kind,confidence,notes
 0x005790a0,Wrap_Transform_Concatenate_5790a0,function,low,"reimplemented (src/game/core/thunks); cdecl: the first stack argument lowered by the dword before it, then Transform_Concatenate"
 0x0058c940,Wrap_TexSurfaceB_Zero_58c940,function,high,"reimplemented (src/game/core/thunks); thiscall: this lowered by the dword before it, then TexSurfaceB_Zero"
 0x00590a70,Wrap_Texture_Release_590a70,function,high,reimplemented (src/game/core/thunks); thiscall: jumps to Texture_Release
+0x00491f10,Wrap_SpriteSet_DeletingDtor_491f10,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls SpriteSet_DeletingDtor
+0x00573f00,Wrap_SoftRenderer_NewSurfaceB_573f00,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls SoftRenderer_NewSurfaceB
+0x0058c8e0,Wrap_TexSurfaceB_AllocPixels_58c8e0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls TexSurfaceB_AllocPixels
+0x0058c8f0,Wrap_TexSurfaceB_FreePixels_58c8f0,function,high,reimplemented (src/game/core/thunks); Adjusts this by the virtual base offset and calls TexSurfaceB_FreePixels
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value
@@ -3371,6 +3381,7 @@ address,name,kind,confidence,notes
 0x00569e10,Global879acc_Create,function,low,"reimplemented (src/game/core/vwrap); cdecl: when [0x879acc] is 0, a new 0x38-byte object (vbtable 0x701410, its virtual base Class701260 at +8 with the vtable 0x7013c8 and 0x1000 at +0xc) whose base part is stored there and has slot 1 called, 1; 0 when there was one or the allocation failed (the error (3, 0xb0754000) pushed)"
 0x005666f0,Global879ac0_Create,function,low,"reimplemented (src/game/core/vwrap); cdecl: when [0x879ac0] is 0, a new 0x5c-byte Class701378 (most derived) whose virtual base part is stored there and has slot 1 called, 1; 0 when there was one or the allocation failed (the error (3, 0xb0754000) pushed)"
 0x005c5000,Object_CallSlot14,function,low,reimplemented (src/game/core/vwrap); cdecl (object): a jump to the object's slot 0x14; returns what it returns (name unconfirmed)
+0x0057c360,Global8bba48_Create,function,low,"reimplemented (src/game/core/vwrap); cdecl: without an object at [0x8bba48] a new one (0xa8 bytes, vbtable 0x701b40, virtual base vtable 0x701b30, function pointers at +0x84..+0x9c) added to the live objects, 1; 0 when there was one or the allocation failed (error 3 pushed)"
 0x005e3b90,Class702d48_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor that registers the object with a global one
 0x005e3c00,Class702d48_Release,function,high,reimplemented (src/game/core/vdtor); releases the object from a global one
 0x005e3bd0,Class702d48_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor that releases the object from a global one
@@ -3540,6 +3551,8 @@ address,name,kind,confidence,notes
 0x004b4480,Global7cc2f0_Get_4b4480,function,low,reimplemented (src/game/core/globals); The dword at 0x7cc2f0
 0x0058b040,FreeGlobal8c47d4_58b040,function,high,"reimplemented (src/game/core/globals); cdecl: frees the block at [0x8c47d4] (if any), clears it, returns 1 (0 when there was none)"
 0x0056b6c0,CreateGlobal879d54_56b6c0,function,low,"reimplemented (src/game/core/globals); cdecl: when [0x879d54] is null, a new 0x2d8-byte block there with its fields from +0x30 cleared, 1; 0 when there was one or the allocation failed (the error (3, 0xb0754000) pushed)"
+0x005804b0,CreateGlobal8bcbb8_5804b0,function,low,"reimplemented (src/game/core/globals); cdecl: when the dword at 0x8bcbb8 is null a new block of 0x14004 bytes (first dword 0) there, 1; 0 when there was one or the allocation failed (error 3 pushed, EngineErrors_Push)"
+0x0058aff0,CreateGlobal8c47d4_58aff0,function,low,"reimplemented (src/game/core/globals); cdecl: when the dword at 0x8c47d4 is null a new block of 0xc bytes (first dword -1) there, 1; 0 when there was one or the allocation failed (error 3 pushed, EngineErrors_Push)"
 0x004f0370,StdTreeC_PostInc,function,high,reimplemented (src/game/core/stdtree); post-increment of a std::map iterator
 0x004f0460,StdTreeE_PostInc,function,high,reimplemented (src/game/core/stdtree); post-increment of a std::map iterator
 0x004f0880,Obj_InitMinus1A,function,high,reimplemented (src/game/core/accessors); initialises an object with -1 ignoring three arguments
@@ -3640,6 +3653,8 @@ address,name,kind,confidence,notes
 0x005b20c0,StdTreeF_FindLower,function,high,reimplemented (src/game/core/stdtree); stores the lower bound of a string key
 0x005ce080,StdListString_Unique,function,high,reimplemented (src/game/core/stdlist); removes elements equal to the one before from a list of counted strings
 0x005d0590,StdListDword_Merge,function,high,reimplemented (src/game/core/stdlist); merges a sorted list of dwords into another
+0x005af0e0,CountedListPair_Dtor,function,low,"reimplemented (src/game/core/stdlist); thiscall: two lists of 0x18-byte nodes with counted buffers destroyed (+0xc's erased with List_EraseNodeCounted2, +0's by hand with CountedBuf_Deleter), sentinels freed, heads and counts cleared"
+0x005caf20,StringsListRecord_Dtor,function,low,"reimplemented (src/game/core/stdlist); thiscall (unwinds only): a record's std::strings (+0x2c, then +0x10, +0) tidied and its list of counted-buffer nodes at +0x20 erased (List_EraseNodeCounted), its sentinel freed"
 0x0041e2c0,Class6fda48_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
 0x0041e320,Class6fda68_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
 0x0041e4d0,Class6fdaa8_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
@@ -3757,6 +3772,8 @@ address,name,kind,confidence,notes
 0x00565310,DrawBatch_Open,function,high,reimplemented (src/game/render/drawbuffer); a draw batch resumed and tagged
 0x0057b070,Object_ReleaseSavedPairs,function,high,reimplemented (src/game/core/vobj2); saved pairs written back and their arrays freed
 0x0057b5b0,Object_FreeBlock13c,function,low,reimplemented (src/game/core/vobj2); thiscall: the tracked block at +0x13c freed after its texture at +0x18 is released twice (sic) and freed (name unconfirmed)
+0x0057b490,Object_MakeBlock13c,function,low,"reimplemented (src/game/core/vobj2); thiscall: with a block at +0x13c already 0; else a tracked 0x38-byte block there with a new texture at +0x18 whose pixels are allocated (size [0x8bd4b0]): 1, or on a failure all freed, an error pushed and 0"
+0x0057b2e0,Object_ReleaseSavedPairs130,function,low,"reimplemented (src/game/core/vobj2); thiscall: with flag 0x40000000 (+4) and a positive count (+0x138) the saved pairs at +0x130 written back (non-zero values), the flag cleared, the pairs and the elements at +0x134 freed, the count cleared; returns 1"
 0x005dc580,Class702bc8_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor with two helper objects and tuning floats
 0x005be9b0,Class702920_DeletingDtor,function,high,"reimplemented (src/game/core/vdtor); thiscall (flags); the 0x702920 destructor (Class7028_Dtor), then the object freed when bit 0 of the flags is set; returns the object"
 0x005d9f50,Class702af0_Dtor,function,low,reimplemented (src/game/core/vdtor); thiscall: vtable pointer 0x702af0; [0xf83784] told (slot 0x1c); the member list at +0x58 drained and deleted; the strings at +0x24 and +0x10 destroyed
@@ -3987,10 +4004,12 @@ address,name,kind,confidence,notes
 0x0058eae0,TexCache_MergeItems,function,high,reimplemented (src/game/gfx/texcache); merges two item lists into an array by position; returns the area sum
 0x0058b890,TexCache_Halve,function,high,reimplemented (src/game/gfx/texcache); 2x2 box filter to the next mip level (32-bit and 4444 pixels)
 0x0058dc50,TexCache_UnlinkItem,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache (item): unlinks a cache item from its owner list, rounds its size, rebuilds its key (name unconfirmed)"
+0x0058cb40,TexCacheItem_SetKey,function,low,"reimplemented (src/game/gfx/texcache); thiscall: the item's key +0x38 = ((ftol((1.5 - f30) * 2047) & 0xfff) << 8 + s16 +0x14) << 8 + s16 +0x16, with 0x20000000 for flag 0x4000 and 0x40000000 for 0x80000"
 0x00575bd0,TexSet_Ctor,function,high,"reimplemented (src/game/gfx/texset); thiscall (a texture set, 16 bytes): all zero; returns the set"
 0x00575f90,TexSet_Texture,function,high,"reimplemented (src/game/gfx/texset); thiscall (i): texture i, [+8][i]"
 0x00575fa0,TexSet_TextureSlot,function,high,reimplemented (src/game/gfx/texset); thiscall (i): &[+8][i]
 0x00575f00,TexSet_Release,function,low,"reimplemented (src/game/gfx/texset); thiscall: one user less; the last frees the textures (a shared array released and destroyed, else each released from the texture manager) and the list; returns 1 then, else 0 (name unconfirmed)"
+0x00575c00,TexSet_InitShared,function,low,"reimplemented (src/game/gfx/texset); thiscall (array): all zero, then a tracked list of one at +8 holding the shared texture array, +0xc = 0x8000, +0xe = 1: 1; the list not got: error 2 pushed (EngineErrors_Push), 0"
 0x00575b80,TexManager_SetLoadFlags,function,high,"reimplemented (src/game/gfx/texman); thiscall (the texture manager, [0x87a268]; flags): +0x10008 = flags for the next load (2: mip levels), replacing the old ones"
 0x00574b10,TexManager_Destroy,function,low,"reimplemented (src/game/gfx/texman); cdecl: the texture manager at [0x87a268] (0 without one): each slot's texture array released then destroyed (released twice, sic), the manager freed and the global cleared; returns 1 (name unconfirmed)"
 0x00575ad0,TexManager_ReleaseTexture,function,low,"reimplemented (src/game/gfx/texman); thiscall (textures): the slot holding the array found from the last, its users decremented; at 0 the array released and the last slot moved over it, 1; else 0 (name unconfirmed)"
@@ -4004,6 +4023,7 @@ address,name,kind,confidence,notes
 0x00590c40,Texture_FormatBits,function,high,"reimplemented (src/game/gfx/texture); the format word for the driver from the flags (0x300, 0x4000000, driver filter)"
 0x00590ff0,Texture_Reload,function,high,"reimplemented (src/game/gfx/texture); Raises the counter, stores the device generation and forwards to call 5 (name unconfirmed)"
 0x00590b90,Texture_Release,function,low,"reimplemented (src/game/gfx/texture); thiscall: the pixels / owned object freed, the cache item unlinked, the texture reset (name unconfirmed)"
+0x00590a80,Texture_Alloc,function,low,"reimplemented (src/game/gfx/texture); thiscall (size, flags; pops 8): the pixels (a tracked block of the format's pixel size times size squared) at +0x40; got: the sizes, flags << 6 | 0x1000000 | the level by size, and the cache key from the LOD float at +0x30 (x87, __ftol) at +0x38: 1; not got: error 2 pushed, 0"
 0x00588d70,SpriteFrame_Init,function,high,"reimplemented (src/game/gfx/spriteframe); thiscall (a sprite frame, 0x48 bytes): +0x10/+0x28/+0x30/+0x34 = 0, +0x24 = -1, +0x2c = 1.0f; returns the frame"
 0x00588320,SpriteImage_Init,function,high,"reimplemented (src/game/gfx/spriteframe); thiscall (a sprite image, 0x18 bytes): +0, +4 and the u16 sizes +0xc..+0x16 cleared; returns the image"
 0x005882e0,SpriteFrames_MarkTextures,function,high,"reimplemented (src/game/gfx/spriteframe); each image texture: flag 0x200 set, 0x100 cleared"
@@ -4014,6 +4034,7 @@ address,name,kind,confidence,notes
 0x00588e40,SpriteFrame_SetSize30,function,low,"reimplemented (src/game/gfx/spriteframe); thiscall (width, height): the same for the size at +0x30 (name unconfirmed)"
 0x00588350,SpriteImage_Dtor,function,low,reimplemented (src/game/gfx/spriteframe); thiscall: as SpriteImage_Release (0x588ca0) without the return value; the image array's destructor (name unconfirmed)
 0x00588230,SpriteFrames_Free,function,low,"reimplemented (src/game/gfx/spriteframe); thiscall: a frame set's texture array, images (each +0 cleared first) and tracked block freed, its count cleared; returns 1 (name unconfirmed)"
+0x00588940,SpriteImage_AllocPixels,function,low,"reimplemented (src/game/gfx/spriteframe); thiscall (width, height): +0xc/+0xe the sizes' low words, +4 a tracked block of the format's pixel size (0x701fe0[[0x8bd554]]) times both: 1; not got: error 2 pushed, 0"
 0x005906e0,AnimTextures_Set,function,high,"reimplemented (src/game/gfx/animtex); cdecl (frames 6 x 256, counts 6): the six animated textures' frames (0x8c4b98) and frame counts (0x8c4b80) copied in"
 0x00590730,AnimTextures_Clear,function,high,reimplemented (src/game/gfx/animtex); the six animated textures' frame counts (0x8c4b80) cleared
 0x00591d30,WaveletCodec_PutCoefficient,function,high,reimplemented (src/game/gfx/wavelet); writes a coefficient as a byte or 0x80 and a word
@@ -4188,6 +4209,7 @@ address,name,kind,confidence,notes
 0x0057dc40,WeatherFx_SetFallSpeed,function,high,"reimplemented (src/game/render/weatherfx); thiscall (speed): the fall speed of each kind showing (+0x3338 when bit 1 of +0, +0x333c when bit 2)"
 0x0057dc70,WeatherFx_RequestReload,function,high,"reimplemented (src/game/render/weatherfx); thiscall: +4 = 1, the textures to be reloaded (0x57d850 clears it)"
 0x0057d720,WeatherFx_FreeTextures,function,low,"reimplemented (src/game/render/weatherfx); thiscall: the three texture arrays at +0x3348..+0x3350 released, destroyed and cleared; returns 1 (name unconfirmed)"
+0x0057d1a0,WeatherFx_Delete,function,low,"reimplemented (src/game/render/weatherfx); cdecl: with a weather renderer at [0x8bcbac] its textures freed (WeatherFx_FreeTextures), it freed and the global cleared: 1; without one 0"
 0x00576260,Renderer_SetRestoreCallback,function,high,"reimplemented (src/game/render/renderer); thiscall (the renderer, [0x87a6d0]; fn): +0x78 = fn, called when the display device generation moves on (0x576c26)"
 0x005763f0,Renderer_SetStateFlags,function,high,"reimplemented (src/game/render/renderer); thiscall (flags): +0x48, the render state flags (0x1f31 by default)"
 0x00576400,Renderer_StateFlags,function,high,"reimplemented (src/game/render/renderer); thiscall: +0x48, the render state flags"
@@ -4199,6 +4221,8 @@ address,name,kind,confidence,notes
 0x0056b2f0,Obj_AddToRenderer,function,high,reimplemented (src/game/render/renderer); Adds the object part to the renderer tag 0x60 list (name unconfirmed)
 0x0048f5c0,Obj_SetRendererPart30,function,high,reimplemented (src/game/render/renderer); Adds or removes the part at +0xb4 in the renderer tag 0x30 list (name unconfirmed)
 0x005761b0,Renderer_Destroy,function,low,"reimplemented (src/game/render/renderer); cdecl: the renderer at [0x87a6d0] (0 without one): frame buffer (+0x10) and pool (+0) freed (TrackedGlobal_Free; +0 kept, +8/+0xc cleared), the renderer freed and the global cleared; returns 1 (name unconfirmed)"
+0x005760a0,Renderer_Create,function,low,"reimplemented (src/game/render/renderer); cdecl: without a renderer at [0x87a6d0] a new one (0x7c bytes) with its pool of 0x4800 nodes on the free list, 1 (also without the pool, sic); 0 when there was one or its allocation failed (error 3 pushed)"
+0x00576310,Renderer_MakeFrameBuffer,function,low,"reimplemented (src/game/render/renderer); thiscall (width, height): the old frame buffer freed, a zeroed tracked one of width*height*4 at +0x10, the render state at +0x48 reset and pushed on the state stack (+0x60, count set to 1 after, sic): 1; not got: error 3 pushed, 0"
 0x005777a0,Backdrop_Clear5c,function,high,"reimplemented (src/game/render/backdrop); thiscall (the tiled backdrop, 0x87aee8): +0x5c = 0"
 0x00577940,Backdrop_SetRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the rectangle drawn into, +0x20..+0x2c, and flag 2 in +0"
 0x00577970,Backdrop_SetSourceRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the part of the image drawn, +0x30..+0x3c"
@@ -4211,6 +4235,8 @@ address,name,kind,confidence,notes
 0x0058a6e0,SpriteQueue_Add2,function,high,"reimplemented (src/game/render/spritequeue); thiscall (frame): appended to the list at +0x2000 (count +0x2408); limit 0x800 but room for 0x80, then it overruns the frame sets and counts (sic)"
 0x0058a550,SpriteQueue_Ready,function,high,reimplemented (src/game/render/spritequeue); a frame set is queued once per stamp (room for 0x80)
 0x0058a490,SpriteQueue_Free,function,low,reimplemented (src/game/render/spritequeue); cdecl: the sprite queue's texture array destroyed and the queue freed (name unconfirmed)
+0x0058a430,SpriteQueue_Create,function,low,"reimplemented (src/game/render/spritequeue); cdecl: without a sprite queue at [0x8c47a0] a new one (0x2410 bytes, counts and texture array cleared), 1; 0 when there was one or the allocation failed (error 3 pushed)"
+0x00491f20,SpriteSet_DeletingDtor,function,low,"reimplemented (src/game/render/spritequeue); thiscall on a sprite set's +0x20 (flags): the 0x6ff308 class's deleting destructor: vbase vtable 0x6ff308 and displacement, TrackedArray_Free, LiveObjects_Remove(vbase), +0x20 = 0x6fdce8, flags bit 0 frees; returns the set"
 0x00582390,DrawBuffer_Reset,function,high,"reimplemented (src/game/render/drawbuffer); thiscall (the draw buffer, [0x8bcbc4]; streams byte 1/2): streams emptied, stream 1's batches from the top again (else the batches above +0x54 cleared), the scratch area emptied"
 0x00582640,DrawBuffer_Alloc,function,high,"reimplemented (src/game/render/drawbuffer); thiscall (n): n * 16 bytes from the scratch area (+0x5c up to +0x3c), or 0"
 0x00582670,DrawBuffer_Begin,function,high,"reimplemented (src/game/render/drawbuffer); thiscall (mode): the stream's next batch begun, cleared and pointed at the free vertices and indices; returns it"
@@ -4221,12 +4247,15 @@ address,name,kind,confidence,notes
 0x005827f0,DrawBuffer_IndexLimit,function,high,reimplemented (src/game/render/drawbuffer); thiscall: the end of the current stream's index room
 0x00582340,DrawStream_Free,function,low,"reimplemented (src/game/render/drawbuffer); thiscall on a stream's record: indices (+0xc) and vertices (+0) freed (TrackedGlobal_Free) and cleared, the rooms (+8, +0x14) = 0; returns 1 (name unconfirmed)"
 0x00582280,DrawBuffer_Destroy,function,low,"reimplemented (src/game/render/drawbuffer); cdecl: the draw buffer at [0x8bcbc4] (0 without one): both streams, the batches and the scratch block freed, the buffer freed and the global cleared; returns 1 (name unconfirmed)"
+0x005823f0,DrawBuffer_Create,function,low,"reimplemented (src/game/render/drawbuffer); thiscall: the draw buffer's tracked blocks made (streams 2 and 1: 1 MB vertices, 0x20000 indices each; batches 0x38000; scratch 1 MB + 0xf aligned to 16) then DrawBuffer_Reset: 1; a failure pushes error (3, 0xb0754000), frees what was got: 0"
+0x005821e0,DrawBuffer_Init,function,low,"reimplemented (src/game/render/drawbuffer); cdecl: with a draw buffer at [0x8bcbc4] already 0; else a new 0x64-byte one there (its fields cleared) and DrawBuffer_Create: 1, or on its failure freed, cleared, an error pushed and 0"
 0x005839a0,TexFormat_SetArgb32,function,high,"reimplemented (src/game/render/texformat); thiscall (the renderer settings, 0x8bd550): the DDPIXELFORMAT at +0x68 made 32-bit ARGB (software driver)"
 0x005839e0,TexFormat_Table,function,high,"reimplemented (src/game/render/texformat); thiscall: the current texture format's table, +0x88 + 0x1000 * (+4)"
 0x00581790,TexLoad_DriverFlags,function,high,reimplemented (src/game/render/texformat); the word for the driver to load a texture with
 0x00583ba0,TexFormat_Classify,function,high,reimplemented (src/game/render/texformat); classifies 60 test pixels by the colour masks; sets 0x8c1644
 0x005839f0,TexFormat_FillTables,function,high,reimplemented (src/game/render/texformat); the settings colour tables from the four formats masks
 0x00562f70,TexFormat_ConvertSquare,function,low,"reimplemented (src/game/render/texformat); cdecl (to, from, side): side * side ARGB pixels put into the current texture format 0x8bd554 (565, 1555, 4444 as the original lays them out, or a copy of only side dwords); another format pushes the error (2, 0xb0754003)"
+0x00573820,TexFormat_Record,function,low,"reimplemented (src/game/render/texformat); thiscall (out, index), this unused: for an index below 4 whose format record (0x20 bytes each from 0x8bd558) has a non-zero first dword, *out = the record, 1; else error (2, 0xb0754003) pushed, 0"
 0x00584b10,LightList_Clear,function,high,reimplemented (src/game/render/lightlist); count and cursor = 0
 0x00584e30,LightList_First,function,high,reimplemented (src/game/render/lightlist); cursor = 0; the first entry or null
 0x00584e50,LightList_Next,function,high,reimplemented (src/game/render/lightlist); the next entry or null
@@ -4237,6 +4266,7 @@ address,name,kind,confidence,notes
 0x00565240,Batch_Begin,function,high,"reimplemented (src/game/render/batch); a draw batch begun for a primitive kind, its fields filled"
 0x00565e70,Batch_FogVertices,function,low,"reimplemented (src/game/render/batch); thiscall (vertices, count; pops 8): with fog (0x8bcbc8 bit 0x2000), colour fog (0x4000: VertexFog_Colour at the vertex size +0x1c, the batch's flags lose 0x100000 and gain 0x80000) or alpha fog (0x8000: VertexFog_Alpha) (name unconfirmed)"
 0x00565ee0,Batch_Fog,function,low,"reimplemented (src/game/render/batch); thiscall: with the driver kind 0x8bd524 1, the same on the batch's vertices (+0x28) and count (+0x20), no fog bit test (name unconfirmed)"
+0x00581880,Model_BeginBatch,function,low,"reimplemented (src/game/render/batch); thiscall on a model (index, &size): a draw batch for its material entry index (settings +0x6c), its set's texture, kind 0x1c4 or 0x2c4, TexLoad_DriverFlags; batch +0 and +0x34 set, *size the vertex size; returns the batch or 0"
 0x00569f60,Rasteriser_ChooseSpan,function,high,reimplemented (src/game/render/rasteriser); the span routine chosen by the render flags
 0x00569f20,Rasteriser_ClearMmx,function,high,"reimplemented (src/game/render/rasteriser); EMMS, returns 1 (name unconfirmed)"
 0x0053c8d0,DynFaces_AddSquare,function,high,reimplemented (src/game/render/dynfaces); queues a square dynamic face

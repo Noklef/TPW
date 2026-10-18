@@ -1,11 +1,13 @@
 #include "renderer.h"
 
 #include <cstdint>
+#include <initializer_list>
 
 #include "../core/buffers.h"
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
 #include "../core/vobj3.h"
+#include "../render/engineerrors.h"
 #include "../gfx/array3d.h"
 
 namespace {
@@ -72,6 +74,36 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 extern "C" {
 
+u32 __cdecl Renderer_Create() {
+    if (global<u32>(0x0087a6d0))
+        return 0;
+    u8 *const renderer = static_cast<u8 *>(GameHeap_Alloc(0x7c));
+    if (renderer) {
+        for (const u32 offset : {0x0u, 0x4u, 0x8u, 0xcu, 0x3cu, 0x38u, 0x70u, 0x30u, 0x10u, 0x34u, 0x78u})
+            at<u32>(renderer, offset) = 0;
+        at<u32>(renderer, 0x40) = 0x30;
+        at<u32>(renderer, 0x74) = 0xffffffff;
+        for (u32 offset = 0x14; offset < 0x30; offset += 4)
+            at<u32>(renderer, offset) = 0;
+        at<u32>(renderer, 0) = TrackedGlobal_Alloc(0x24000);
+        if (at<u32>(renderer, 0)) {
+            for (u32 i = 0; i < 0x24000; i += 8) {
+                at<u32>(reinterpret_cast<u8 *>((uintptr_t)at<u32>(renderer, 0)), i + 4) = at<u32>(renderer, 4);
+                at<u32>(renderer, 4) = at<u32>(renderer, 0) + i;
+            }
+            at<u32>(renderer, 8) = 0x4800;
+            at<u32>(renderer, 0xc) = 0;
+        }
+        // (a renderer without its pool is kept and counts as made, sic)
+    }
+    global<u8 *>(0x0087a6d0) = renderer;
+    if (!renderer) {
+        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+        return 0;
+    }
+    return 1;
+}
+
 u32 __cdecl Renderer_Destroy() {
     u8 *renderer = global<u8 *>(0x0087a6d0);
     if (!renderer)
@@ -94,6 +126,43 @@ u32 __cdecl Renderer_Destroy() {
         GameHeap_Free(renderer);
     }
     global<u32>(0x0087a6d0) = 0;
+    return 1;
+}
+
+u32 __fastcall Renderer_MakeFrameBuffer(u8 *renderer, void *, s32 width, s32 height) {
+    if (const u32 frame = at<u32>(renderer, 0x10)) {
+        TrackedGlobal_Free(frame);
+        at<u32>(renderer, 0x10) = 0;
+    }
+    at<s32>(renderer, 0x38) = width;
+    const u32 size = (u32)width * (u32)height << 2;
+    at<s32>(renderer, 0x3c) = height;
+    at<u32>(renderer, 0x10) = TrackedGlobal_Alloc(size);
+    u8 *const frame = reinterpret_cast<u8 *>((uintptr_t)at<u32>(renderer, 0x10));
+    if (!frame) {
+        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+        return 0;
+    }
+    for (u32 i = 0; i < size; ++i)
+        frame[i] = 0;
+    const u32 state = (u32)(uintptr_t)(renderer + 0x48);
+    at<u32>(renderer, 0x50) = 0xbf800000;   // -1.0f
+    at<u32>(renderer, 0x4c) = 0xbf800000;
+    at<u32>(renderer, 0x48) = 0x1f31;
+    at<u32>(renderer, 0x58) = 0x40000000;   // 2.0f
+    at<u32>(renderer, 0x54) = 0x40000000;
+    at<u32>(renderer, 0x5c) = global<u32>(0x0087afe8);
+    const s32 count = at<s32>(renderer, 0x70);
+    if (count < 4) {
+        s32 i = 0;
+        while (i < count && at<u32>(renderer, 0x60 + 4 * i) != state)
+            ++i;
+        if (i == count) {
+            at<u32>(renderer, 0x60 + 4 * count) = state;
+            at<s32>(renderer, 0x70) += 1;
+        }
+    }
+    at<u32>(renderer, 0x70) = 1;   // (whatever the stack held, sic)
     return 1;
 }
 
