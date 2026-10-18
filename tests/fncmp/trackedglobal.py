@@ -6,19 +6,20 @@
 # Their users: a texture set's shared list (src/game/gfx/texset: 0x575c00) over any bytes with any array; the renderer's frame buffer
 # (render/renderer: 0x576310) with an old one tracked, another or none, sizes up to 24 by 24 (and wrapping ones), the render state stack's
 # count -1 to 5 holding the state's address or not; a sprite image's pixels (gfx/spriteframe: 0x588940), the format 0-3 indexing pixel sizes
-# 2, 4, 3 and 1 at 0x701fe0, sizes with any high bits. (The allocations' errors go onto the engine's list at 0x879ad0, its count 0 to 0x40.)
+# 2, 4, 3 and 1 at 0x701fe0, sizes with any high bits; a texture's pixels (gfx/texture: 0x590a80) for sides around the level steps and
+# wrapping ones (0x8000, 0x10000; a block too big for the bench's heap fails), any flags, the float at +0x30 around 0..1.5 or any bits. (The allocations' errors go onto the engine's list at 0x879ad0, its count 0 to 0x40.)
 # usage: trackedglobal.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Alloc,Free,ArrayAlloc,ArrayFree,Holder,HolderFree,TexSetShared,FrameBuffer,ImagePixels)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, HEAP, RAM, global_heap, heap, put  # noqa: E402
+from fncmp import Bench, Call, HEAP, RAM, fb, global_heap, heap, put  # noqa: E402
 
 CALLS = {'Alloc': 0x579b40, 'Free': 0x579b80, 'ArrayAlloc': 0x58a4f0, 'ArrayFree': 0x58a520, 'Holder': 0x586e20, 'HolderFree': 0x587110,
-         'TexSetShared': 0x575c00, 'FrameBuffer': 0x576310, 'ImagePixels': 0x588940}
+         'TexSetShared': 0x575c00, 'FrameBuffer': 0x576310, 'ImagePixels': 0x588940, 'TextureAlloc': 0x590a80}
 B = Bench([(0x579b40, 0x579c13), (0x58a4f0, 0x58a548), (0x586e20, 0x586e3a), (0x587110, 0x58712f), (0x575c00, 0x575c5b), (0x576310, 0x5763e1),
-           (0x588940, 0x5889a1), (0x56af20, 0x56af9c)])
+           (0x588940, 0x5889a1), (0x56af20, 0x56af9c), (0x590a80, 0x590b88)])
 COUNT, TABLE, LOW = 0x8bb214, 0x87b1f8, 0x87b1e0   # (the pairs from index -3, for the counts of -1 and below)
 BLOCKS = [HEAP + 0x40, HEAP + 0x44, HEAP + 0x80, HEAP + 0x84, HEAP + 0x100, 0, 4]
 
@@ -35,7 +36,7 @@ def user(r, name, regions):
     if name == 'FrameBuffer':
         obj = bytearray(r.bytes(0x80))
         put(obj, 0x10, 'I', r.choice(BLOCKS + [r.getrandbits(32) | 0x80000000]))
-        count = r.choice([-1, 0, 1, 2, 3, 4, 5, r.randrange(4)])
+        count = r.choice([-1, 0, 1, 2, 3, 3, 4, 5, r.randrange(4)])
         put(obj, 0x70, 'i', count)
         for k in range(4):
             if r.random() < 0.3:
@@ -44,6 +45,15 @@ def user(r, name, regions):
         regions[0x87afe8] = r.bytes(4)
         w, h = r.choice([(r.randrange(25), r.randrange(25)), (0, 5), (1, 1), (0x40000001, 3), (0x80000002, 0xc0000001), (-1, -2), (3, 0x80000000)])
         return Call(CALLS[name], [RAM, w & 0xffffffff, h & 0xffffffff], regions, conv='t', ret='a')
+    if name == 'TextureAlloc':
+        tex = bytearray(r.bytes(0x60))
+        put(tex, 0x30, 'I', r.choice([fb(r.uniform(0, 1.5)), fb(r.choice([0.0, 1.5, 1.0, -1.0, 3.0, 1e9])), r.getrandbits(32)]))
+        mode = r.randrange(4)
+        side = r.choice([0, 1, 7, 8, 9, 15, 16, 17, 31, 32, 33, 63, 64, 65, 127, 128, 129, r.randrange(40), 0x8000, 0x10000, 0x18000])
+        need = [2, 2, 2, 4][mode] * side * side & 0xffffffff   # (the pixel sizes at 0x7024e0)
+        regions[HEAP] = heap(need + 0x200, r.choice([0] * 7 + [1])) if need < 0x80000 else heap(0x400, 1)   # (a too-big block fails, as it would)
+        regions[0x8bd554] = struct.pack('<I', mode)
+        return Call(CALLS[name], [RAM, side, r.getrandbits(32) & r.choice([0xffffffff, 0x2100, 0])], {**regions, RAM: tex}, conv='t', ret='a')
     regions[RAM] = r.bytes(0x18)
     regions[0x701fe0] = struct.pack('<4I', 2, 4, 3, 1)
     regions[0x8bd554] = struct.pack('<I', r.randrange(4))
@@ -81,7 +91,7 @@ def case(r):
     return Call(CALLS[name], [arg], regions, conv='c', ret='a')
 
 
-USERS = ('TexSetShared', 'FrameBuffer', 'ImagePixels')
+USERS = ('TexSetShared', 'FrameBuffer', 'ImagePixels', 'TextureAlloc')
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 
 if __name__ == '__main__':

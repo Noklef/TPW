@@ -6,6 +6,7 @@
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
 #include "../math/x87.h"
+#include "../render/engineerrors.h"
 #include "texcache.h"
 
 namespace {
@@ -18,6 +19,35 @@ void __fastcall ReleaseElement(void *texture) { Texture_Release(static_cast<u8 *
 }  // namespace
 
 extern "C" {
+
+u32 __fastcall Texture_Alloc(u8 *texture, void *, u32 size, u32 flags) {
+    const u32 pixel = reinterpret_cast<const u32 *>((uintptr_t)0x007024e0)[*reinterpret_cast<const u32 *>((uintptr_t)0x008bd554)];
+    at<u32>(texture, 0x40) = TrackedGlobal_Alloc(pixel * size * size);
+    if (!at<u32>(texture, 0x40)) {
+        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
+        return 0;
+    }
+    const s16 side = (s16)size;
+    const s32 wide = side;
+    at<s16>(texture, 0x14) = side;
+    const u32 shifted = (flags << 6) | 0x1000000;   // (its AND AL,0xf8 clears nothing)
+    at<s16>(texture, 0x10) = side;
+    at<s16>(texture, 0x16) = side;
+    at<s16>(texture, 0x12) = side;
+    at<u32>(texture, 8) = shifted;
+    const u32 level = wide > 0x80 ? 0 : wide > 0x40 ? 1 : wide > 0x20 ? 2 : wide > 0x10 ? 3 : wide <= 8 ? 5 : 4;
+    const X87Reg lod = (X87Reg(1.5f) - at<float>(texture, 0x30)) * 2047.0f;  // 0x702530, 0x702534
+    const u32 all = level | shifted;
+    at<u32>(texture, 8) = all;
+    const u32 key = (((u32)(long long)lod.v & 0xfff) << 16) + ((u32)wide << 8) + (u32)wide;
+    at<u32>(texture, 0x38) = key;
+    if (all & 0x4000)
+        at<u32>(texture, 0x38) = key | 0x20000000;
+    if (all & 0x80000)
+        at<u32>(texture, 0x38) |= 0x40000000;
+    at<s16>(texture, 0x34) = side;
+    return 1;
+}
 
 u8 *__fastcall Texture_Ctor(u8 *texture, void *, u32 mostDerived) {
     if (mostDerived) {
