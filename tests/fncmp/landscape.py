@@ -2,8 +2,10 @@
 # 0x585f00) against the originals: points 0 to 3 (and a little either side), any values. Its texture
 # arrays' release (0x585e20: the three at +0x1fd0..+0x1fd8, as texturemem.py, counts 0-3, set or not) and one
 # array's removal (0x5851d0: 0-4 entries of 0x20 bytes from +0x1fdc, the count at +0x21dc theirs, one less,
-# 0 or negative; the array asked for one of theirs, the one past the last, 0 or another).
-# usage: landscape.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetPoint,SetDetail,List,Point,FreeTextures,RemoveTexture)
+# 0 or negative; the array asked for one of theirs, the one past the last, 0 or another), and a list's removal from the landscape at
+# 0x8c1828 (0x418d70: 0-4 of those, the count at 0x785724 theirs, one less, 0 or -1).
+# usage: landscape.py [CASES [SEED]] [--wild|--both] [--show N]
+#        (env OPS=SetPoint,SetDetail,List,Point,FreeTextures,RemoveTexture,RemoveList)
 import os
 import struct
 import sys
@@ -13,9 +15,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import texturemem  # noqa: E402
 from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put  # noqa: E402
 
-B = Bench([(0x5856e0, 0x585705), (0x585710, 0x58571d), (0x585ef0, 0x585ef7), (0x585f00, 0x585f07), (0x585e20, 0x585eed), (0x5851d0, 0x5852af),
+B = Bench([(0x418d70, 0x418d9c), (0x5856e0, 0x585705), (0x585710, 0x58571d), (0x585ef0, 0x585ef7), (0x585f00, 0x585f07), (0x585e20, 0x585eed), (0x5851d0, 0x5852af),
            (0x590a70, 0x590a75), (0x590b90, 0x590c39), (0x579b40, 0x579c13), (0x58dc50, 0x58dd5e), (0x67afa0, 0x67b0d0), (0x67acb0, 0x67acb1)])
-CALLS = {'SetPoint': 0x5856e0, 'SetDetail': 0x585710, 'List': 0x585ef0, 'Point': 0x585f00, 'FreeTextures': 0x585e20, 'RemoveTexture': 0x5851d0}
+CALLS = {'SetPoint': 0x5856e0, 'SetDetail': 0x585710, 'List': 0x585ef0, 'Point': 0x585f00, 'FreeTextures': 0x585e20, 'RemoveTexture': 0x5851d0, 'RemoveList': 0x418d70}
 LAND, ARRAYS = RAM + 0x10000, RAM + 0x5000   # (texturemem.py's regions below RAM + 0x4000)
 
 
@@ -42,6 +44,13 @@ def textures(r, op):
         arrays.append(p)
         put(land, 0x2c + 0x20 * k, 'I', p)
     put(land, 0x22c, 'I', r.choice([n, n, n, max(n - 1, 0), 0, 0xffffffff]))
+    if op == 'RemoveList':   # (0x418d70: a list of 0-4 of the arrays (or others) removed in turn from the landscape at 0x8c1828)
+        regions[0x8c1828 + 0x1fb0] = land
+        m = r.choice([0, 1, 2, 3, 4])
+        pick = [r.choice(arrays) if r.random() < 0.85 else r.choice([0, ARRAYS + 0x2004]) for _ in range(m)]
+        regions[RAM + 0x100] = struct.pack('<%dI' % (m + 1), *pick, 0)
+        regions[0x785724] = struct.pack('<i', r.choice([m, m, m, max(m - 1, 0), 0, -1]))
+        return Call(0x418d70, [RAM + 0x100], regions, conv='t', ret='a')
     regions[LAND + 0x1fb0] = land
     arg = r.choice(arrays) if r.random() < 0.85 else r.choice([0, ARRAYS + 0x2004])
     return Call(0x5851d0, [LAND, arg], regions, conv='t', ret='a')
@@ -49,7 +58,7 @@ def textures(r, op):
 
 def case(r):
     op = r.deal(OPS)
-    if op in ('FreeTextures', 'RemoveTexture'):
+    if op in ('FreeTextures', 'RemoveTexture', 'RemoveList'):
         return textures(r, op)
     regions = {RAM + 0x1f00: r.bytes(0x100), RAM + 0x2ec0: r.bytes(0x10)}
     if op == 'SetPoint':
