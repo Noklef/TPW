@@ -11,7 +11,7 @@ from fncmp import Bench, Call, RAM  # noqa: E402
 # name: (address, convention, size)
 CALLS = {'Eq': (0x52f860, 'c', 0x14), 'If1': (0x52fab0, 'c', 0x14), 'If2': (0x52faf0, 'c', 0x14), 'Add': (0x52fba0, 'c', 0x14),
          'Rd': (0x557d60, 'c', 0x20), 'G879': (0x573860, 'c', 0x10), 'V8': (0x4f0140, 't', 0x10), 'V4': (0x5cde30, 't', 0x10),
-         'Next': (0x5ce910, 't', 0x10)}
+         'Next': (0x5ce910, 't', 0x10), 'V4ec': (0x4f00f0, 't', 0x10)}
 B = Bench([(a, a + n) for (a, _c, n) in CALLS.values()])
 POOL = RAM + 0x3000
 VALUES = [0, 1, 2, 5, 0x7f, 0x80, 0xff, 0x100, 0x7fffffff, 0x80000000, 0xffffffff]
@@ -36,7 +36,7 @@ def case(r):
         args = [RAM, RAM + 0x800, RAM + 0x804, RAM + 0x808 if r.random() < 0.8 else RAM + 0x804]
     elif name == 'G879':
         regions[0x879a24] = struct.pack('<I', POOL - 0x4c4 + 0x40)
-    elif name in ('V8', 'V4'):
+    elif name in ('V8', 'V4', 'V4ec'):
         d = 8 if name == 'V8' else 4
         this = RAM + 0x100
         struct.pack_into('<I', obj, 0x100 - d, POOL)           # the vtable pointer

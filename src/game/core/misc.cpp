@@ -415,11 +415,6 @@ u32 __cdecl Dword_ClearBit0(u32 *p) {
     return 1;
 }
 
-void __fastcall Vtbl7099ec_SetVirtual(u8 *sub) {
-    const u32 base = at<u32>(at<u8 *>(sub, (u32)-4), 4);
-    at<u32>(sub, base - 4) = 0x007099ec;
-}
-
 u32 __fastcall Wstreambuf_InitPointers(u8 *object) {
     static const u32 kSlots[6][2] = {{0xc, 0x4}, {0x10, 0x8}, {0x1c, 0x14}, {0x20, 0x18}, {0x2c, 0x24}, {0x30, 0x28}};
     for (const auto &slot : kSlots)

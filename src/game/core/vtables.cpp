@@ -26,6 +26,12 @@ u32 __fastcall VirtualBase_SetVtbl70995c(u8 *object) {
     return vtable;
 }
 
+u32 __fastcall Vtbl7099ec_SetVirtual(u8 *sub) {
+    const u32 vtable = at<u32>(sub, (u32)-4);
+    at<u32>(sub, at<u32>(reinterpret_cast<const u8 *>(vtable), 4) - 4) = 0x007099ec;
+    return vtable;
+}
+
 void __fastcall Vtbl6fd800_Set(u8 *object) { at<u32>(object, 0) = 0x006fd800; }
 
 void __fastcall Vtbl6fdce8_At60_Set(u8 *object) { at<u32>(object, 0x60) = 0x006fdce8; }
