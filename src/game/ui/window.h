@@ -37,6 +37,19 @@ s32 __fastcall WindowImpl_Release(u8 *impl);
 // (1 for no window). Only AX is set.
 u16 __fastcall Window_IsShown(u8 *window);
 
+// 0x65d90b (thiscall (shown: a word), pops 4; recursive; name unconfirmed): a window told it is shown or hidden: unless it is hidden (flag 0
+// of +0x48 clear) and shown is not 0, its object +0x98's slot 5 and then +0x9c's (when set) get shown, the handler +0x114 (when set) gets
+// (window, 0x11, shown, 0), then each child (+0x5c, next +0x54 read after its call) in turn. The objects' arguments are pushed as dwords
+// whose upper halves are left over (sic): +0x98's from EDX (the caller's, here `edx`, when the window is hidden; else shown's sign), +0x9c's
+// from ECX (the window, or what +0x98's slot left in it). Each child is entered with EDX the window (the first) or the previous child.
+void __fastcall Window_NotifyShown(u8 *window, void *edx, u32 shown);
+
+// 0x65d9dd (thiscall (shown: a word, any non-zero 1), pops 4; name unconfirmed): nothing when flag 0 of +0x48 already says so; else the flag
+// set or cleared, the window told (Window_NotifyShown, EDX the window's upper half and shown) when hiding or when it and its parents are now
+// shown (Window_IsShown), the hover updated (Window_UpdateHover), and on hiding the manager [0x77c48c]'s slot 13 (window). Returns 1 in AX,
+// the upper half of EAX the manager slot's result when hiding, else 0.
+u32 __fastcall Window_SetShown(u8 *window, void *, u32 shown);
+
 // 0x65bc90 (thiscall; name unconfirmed): the rectangle at +8 copied to the one at +0x2c (GuiRect_Assign); returns +0x2c.
 u8 *__fastcall Window_SaveRect(u8 *window);
 

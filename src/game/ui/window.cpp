@@ -15,6 +15,19 @@
 namespace {
 
 template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+// Slot 5 (thiscall, one argument) of `object`; returns the ECX the slot left (Window_NotifyShown pushes its upper half next).
+u32 Slot5LeavingEcx(u8 *object, u32 arg) {
+    u32 left;
+    __asm {
+        push arg
+        mov ecx, object
+        mov eax, [ecx]
+        call dword ptr [eax + 0x14]
+        mov left, ecx
+    }
+    return left;
+}
 }
 
 extern "C" {
@@ -67,6 +80,36 @@ u16 __fastcall Window_IsShown(u8 *window) {
     for (u8 *w = window; w && shown; w = at<u8 *>(w, 0x60))
         if (!(at<u32>(w, 0x48) & 1)) shown = 0;
     return shown;
+}
+
+void __fastcall Window_NotifyShown(u8 *window, void *edx, u32 shown) {
+    const s16 s = (s16)shown;
+    u32 dx = (u32)(uintptr_t)edx;
+    if (at<u32>(window, 0x48) & 1) dx = (u32)(s32)s;
+    else if (s != 0) return;
+    u32 cx = (u32)(uintptr_t)window;
+    if (u8 *const object = at<u8 *>(window, 0x98)) cx = Slot5LeavingEcx(object, (dx & 0xffff0000u) | (u16)s);  // sic
+    if (u8 *const object = at<u8 *>(window, 0x9c)) vcall<void>(object, 0x14, (cx & 0xffff0000u) | (u16)s);   // sic
+    using Handler = s32(__cdecl *)(u8 *, u32, s32, u32);
+    if (const Handler handler = at<Handler>(window, 0x114)) handler(window, 0x11, s, 0);
+    u8 *previous = window;
+    for (u8 *child = at<u8 *>(window, 0x5c); child; child = at<u8 *>(child, 0x54)) {
+        Window_NotifyShown(child, previous, (u16)s);
+        previous = child;
+    }
+}
+
+u32 __fastcall Window_SetShown(u8 *window, void *, u32 shown) {
+    const u16 s = (s16)shown != 0 ? 1 : 0;
+    if (s == (at<u32>(window, 0x48) & 1)) return 1;
+    if (s == 0) at<u32>(window, 0x48) &= ~1u;
+    else at<u32>(window, 0x48) |= 1;
+    if (s == 0 || Window_IsShown(window) != 0)
+        Window_NotifyShown(window, reinterpret_cast<void *>(((uintptr_t)window & 0xffff0000u) | s), s);
+    Window_UpdateHover();
+    if (s != 0) return 1;
+    u8 *const manager = *reinterpret_cast<u8 **>((uintptr_t)0x0077c48c);
+    return (vcall<u32>(manager, 0x34, window) & 0xffff0000u) | 1;
 }
 
 u8 *__fastcall Window_SaveRect(u8 *window) { return GuiRect_Assign(window + 0x2c, nullptr, window + 8); }

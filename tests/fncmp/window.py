@@ -8,7 +8,8 @@
 # window or none (its byte +4 now and then set), the two queues 1-4 entries (free or not) or none. Dialog7cb2b8_Child21Post (0x4a2590):
 # the dialog or none, its child 0x21 or none among others, the child's dword +0xa8 set or not, the value 0 or not. HitTest / UpdateHover
 # (0x65db25, 0x6589f9): a tree of 1-7 windows with real GUI rectangles (the driver resolves vtable 0x705920 to the ports), points near
-# them or anywhere (upper halves random), the root, the hovered window and the queues set or not. ImplRelease / IsShown / OffsetByParents
+# them or anywhere (upper halves random), the root, the hovered window and the queues set or not. NotifyShown / SetShown (0x65d90b,
+# 0x65d9dd): UpdateHover's tree with parents, shown or hidden, recorder objects +0x98 / +0x9c, handlers, the manager. ImplRelease / IsShown / OffsetByParents
 # (0x6616b0, 0x65d773, 0x65c979): recorder objects, chains of 0-4 windows by +0x60. RectAssign / SaveRect (0x65aa20, 0x65bc90): random.
 # Ctor (0x65bcad): a random window built with a parent from a tree (its +0x60 chain and word +0xe0 near 0x100) or none, flags 0x400 and 1
 # set or not, words edges or near (upper halves random); the root the new window, the tree's or none, the queues as above.
@@ -36,7 +37,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import CDECL_LOG4, HEAP, LOG, LOG_BYTES, Bench, Call, RAM, heap, log_region, put, set_return, vtable  # noqa: E402
+from fncmp import CDECL_LOG4, HEAP, LOG, LOG_BYTES, Bench, Call, RAM, heap, log_region, put, recorder, set_return, vtable  # noqa: E402
 
 CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50, 'CallHandler': 0x65f697, 'SendMessage': 0x658d9f,
          'Dialog7cc47c_Message4': 0x4b87f0, 'Dialog7cc47c_Message6On': 0x4b8810, 'Dialog7cc47c_Message6Off': 0x4b8830,
@@ -48,7 +49,7 @@ CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50
          'WindowAt10_ScalarDtor': 0x48c8b0, 'SetChecksIfUpThis': 0x481a00,
          'Windows7cc8bc_Message6Pair': 0x4bcef0, 'Windows7cc8bc_SelectSecond': 0x4bce80, 'Global7cc698_Choose': 0x4bcec0, 'ImplSlot7': 0x65d6db, 'ImplSlot6': 0x65d745, 'DwordA0': 0x65e705,
          'PostMessage': 0x658ccc, 'Dialog7cb2b8_Child21Post': 0x4a2590,
-         'HitTest': 0x65db25, 'UpdateHover': 0x6589f9, 'ImplRelease': 0x6616b0, 'IsShown': 0x65d773,
+         'HitTest': 0x65db25, 'UpdateHover': 0x6589f9, 'NotifyShown': 0x65d90b, 'SetShown': 0x65d9dd, 'ImplRelease': 0x6616b0, 'IsShown': 0x65d773,
          'RectAssign': 0x65aa20, 'SaveRect': 0x65bc90, 'OffsetByParents': 0x65c979,
          'Ctor': 0x65bcad, 'ForgetGlobals': 0x6592b6, 'DropModal': 0x65e672, 'Destroying': 0x65c2d8,
          'CancelPosted': 0x658fe9, 'CancelPostedFirst': 0x659012, 'CancelTimed': 0x65903b,
@@ -63,7 +64,7 @@ B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x
            (0x4c5780, 0x4c5820),
            (0x48d990, 0x48d9b3), (0x4c25e0, 0x4c25f9), (0x48cf70, 0x48cf83), (0x492e60, 0x492e77), (0x48ee20, 0x48ee4e),
            (0x48c8b0, 0x48c8ce), (0x481a00, 0x481a10),
-           (0x4bcef0, 0x4bcf60), (0x4bcec0, 0x4bcef0), (0x4bce80, 0x4bcec0), (0x65d6db, 0x65d727), (0x65d745, 0x65d783), (0x65e705, 0x65e73d),
+           (0x4bcef0, 0x4bcf60), (0x4bcec0, 0x4bcef0), (0x4bce80, 0x4bcec0), (0x65d90b, 0x65d9dd), (0x65d9dd, 0x65da8d), (0x65d6db, 0x65d727), (0x65d745, 0x65d783), (0x65e705, 0x65e73d),
            (0x658ccc, 0x658d9f), (0x6697e3, 0x6698a4), (0x4a2590, 0x4a25e5),
            (0x65db25, 0x65dbee), (0x6589f9, 0x658aab), (0x659e83, 0x659ee2),
            (0x6616b0, 0x6616f1), (0x65d773, 0x65d7bc),
@@ -426,6 +427,41 @@ def case(r):
                 set_return(log, 0x3d, r.choice([0, 1, -1, r.getrandbits(32)]))
             return Call(CALLS[op], [], regions, ret='a')
         return Call(CALLS[op], [window, r.getrandbits(32)], regions, conv='t', ret='w')
+    if op in ('NotifyShown', 'SetShown'):   # UpdateHover's tree with its parents +0x60, flag 0 of +0x48 either way, objects +0x98 / +0x9c and handlers
+        wins = tree(r, regions)  # set or not; the manager a recorder (its result now and then set); EDX the window's upper half or random
+        queues(r, regions)
+        x, y = point(r, regions, wins)
+        regions[0xfaa540] = struct.pack('<II', x, y)
+        regions[0xfaa5d8] = struct.pack('<5I', r.choice([wins[0]] * 6 + [0]), r.getrandbits(32), r.choice(wins + [0, 0]),
+                                        r.getrandbits(32), r.choice([0] * 6 + [1, r.getrandbits(32)]))
+        for w in wins:
+            put(regions[w], 0x60, 'I', 0)
+        for w in wins:
+            c = struct.unpack_from('<I', regions[w], 0x5c)[0]
+            while c:
+                put(regions[c], 0x60, 'I', w)
+                c = struct.unpack_from('<I', regions[c], 0x54)[0]
+        for w in wins:
+            buf = regions[w]
+            buf[0x48] = (buf[0x48] & 0xfe) | r.choice([0, 1, 1])
+            put(buf, 0x98, 'I', r.choice([MISC, MISC, 0]))
+            put(buf, 0x9c, 'I', r.choice([MISC + 0x40, MISC + 0x40, 0]))
+            put(buf, 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
+        regions[MISC] = struct.pack('<I', VTABLE)
+        regions[VTABLE] = vtable({5: 1})
+        regions[MISC + 0x40] = struct.pack('<I', MISC + 0x80)
+        regions[MISC + 0x80] = put(vtable({}, size=8), 0x14, 'I', recorder(21, 1))
+        regions[0x77c48c] = struct.pack('<I', MANAGER)
+        regions[MANAGER] = struct.pack('<I', MANAGER + 0x40)
+        regions[MANAGER + 0x40] = vtable({13: 1})
+        if r.random() < 0.5:
+            set_return(log, 13, r.choice([0, 1, -1, r.getrandbits(32)]))
+        window = r.choice(wins)
+        shown = r.choice([0, 0, 1, 1, 2, 0x10000, 0xffff0000, 0x8000, r.getrandbits(32)])
+        if op == 'NotifyShown':
+            edx = r.choice([window & 0xffff0000, r.getrandbits(32)])
+            return Call(CALLS[op], [window, edx, shown], regions, conv='f', ret='v')
+        return Call(CALLS[op], [window, shown], regions, conv='t', ret='a')
     if op == 'UpdateHover':   # the root [0xfaa5d8] or none, [0xfaa5e8] mostly 0, the hovered window [0xfaa5e0] one of them or none
         wins = tree(r, regions)
         queues(r, regions)

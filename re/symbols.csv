@@ -4815,6 +4815,8 @@ address,name,kind,confidence,notes
 0x0065e5fa,Window_KillFocus,function,low,"reimplemented (src/game/ui/window); thiscall (a): the focus window posted 0x20, the focus cleared and the hover updated"
 0x00658af1,Gui_MouseDown,function,low,"reimplemented (src/game/ui/window); cdecl (button, x, y): the hovered window posted 0x10005 and kept as the button window, its bit set"
 0x00658b5b,Gui_MouseUp,function,low,"reimplemented (src/game/ui/window); cdecl (button, x, y): the button window posted 0x10004 and cleared, its bit cleared"
+0x0065d90b,Window_NotifyShown,function,low,"reimplemented (src/game/ui/window); thiscall (shown word), pops 4, recursive: unless hidden and shown, the objects +0x98 / +0x9c slot 5 (upper halves left over, sic), the handler +0x114 (0x11), then each child"
+0x0065d9dd,Window_SetShown,function,low,"reimplemented (src/game/ui/window); thiscall (shown word), pops 4: flag 0 of +0x48 set or cleared, the window told (NotifyShown) when hiding or now shown, the hover updated, the manager's slot 13 on hiding; 1 in AX"
 0x00498090,Dialog7ca1c8_SetChecks,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): the nine check buttons of the 0x7ca1c8 dialog's child 0x18 set (vtable slot 5, bool) from flags bits 0-8 (0x20's also needs [0x7ca1d0]+0x50)"
 0x00498a50,Dialog7ca1c8_SetChecksIfUp,function,low,reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): Dialog7ca1c8_SetChecks when [0x7ca1c8] and [0x7ca1cc] are not 0
 0x00481a00,Dialog7ca1c8_SetChecksIfUpThis,function,low,"reimplemented (src/game/ui/dialog7ca1c8); thiscall (flags), pops 4, this unused: Dialog7ca1c8_SetChecksIfUp(flags)"
