@@ -356,4 +356,6 @@ add_executable(tpw_fncmp
     src/hook/patch.cpp
 )
 target_link_libraries(tpw_fncmp PRIVATE tpw_game)
-target_link_options(tpw_fncmp PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x400000 /MAP)  # (the map names where FNCMP_CRASHAT's crashes are)
+# Not incremental: an incremental link keeps an old, larger .bss when a static shrinks, and a case's wild pointer reads the driver's own
+# memory natively where the emulator has none, so the layout has to follow the source.
+target_link_options(tpw_fncmp PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x400000 /MAP /INCREMENTAL:NO)  # (the map names where FNCMP_CRASHAT's crashes are)

@@ -655,7 +655,10 @@ int main(int argc, char **argv) {
                                             reinterpret_cast<void(__cdecl *)(u32 *, void *, const void *, u32, u32)>(hooked(0x005f5e50)),
                                             reinterpret_cast<void(__cdecl *)(u32 *, void *, void *, u32, u32)>(hooked(0x005f5e20))};
     SpriteScripts_SetEnv(&sprites);
-    static char token[1 << 24];   // (a region of up to 8 MB)
+    // A region of up to 8 MB, as hex. Mapped top-down rather than static: a static this size grew the driver's .bss by 12 MB past the
+    // game's addresses, where a case's wild pointer read memory natively that the emulator (the original's side) does not have.
+    char *const token = static_cast<char *>(VirtualAlloc(nullptr, 1 << 24, MEM_RESERVE | MEM_COMMIT | MEM_TOP_DOWN, PAGE_READWRITE));
+    if (!token) fail("cannot map the token buffer", 0);
     for (;;) {
         u32 address, count;
         char conv[8], ret[8];
