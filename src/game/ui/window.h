@@ -27,4 +27,10 @@ u32 __fastcall Window_ImplSlot6(u8 *window);
 
 // 0x65e705 (thiscall (index: a word), pops 4; name unconfirmed): the dword +0xa0 + 4 * index (signed) for an index below 16, else 0.
 u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index);
+
+// 0x658ccc (cdecl (window, message, a, b); name unconfirmed): queues the message (MsgQueue_Push, ui/msgqueue). Messages 1-3 go to the
+// queue [0xfaa5f4] and 0x1000a-0x1000c to [0xfaa5f0] without any check (sic: no queue faults) and 0 returned; the others to [0xfaa5f0].
+// Messages 1-3 and the others need the queue, a window and its byte +4 (Fn_659710) clear: then 1, else 0 (the push's own result is
+// dropped).
+u32 __cdecl Window_PostMessage(u8 *window, u32 message, u32 a, u32 b);
 }

@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "msgqueue.h"
 
 namespace {
 
@@ -46,5 +47,22 @@ u32 __fastcall Window_ImplSlot6(u8 *window) {
 u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index) {
     const s32 i = static_cast<s16>(index);
     return i < 16 ? at<u32>(window, 0xa0 + 4 * i) : 0;
+}
+
+u32 __cdecl Window_PostMessage(u8 *window, u32 message, u32 a, u32 b) {
+    u8 *const input = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f4);
+    u8 *const queue = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f0);
+    if (message == 1 || message == 3 || message == 2) {
+        if (!input || !window || Fn_659710(window)) return 0;
+        MsgQueue_Push(input, nullptr, (u32)(uintptr_t)window, message, a, b);
+        return 1;
+    }
+    if (message == 0x1000a || message == 0x1000b || message == 0x1000c) {
+        MsgQueue_Push(queue, nullptr, (u32)(uintptr_t)window, message, a, b);
+        return 0;
+    }
+    if (!queue || !window || Fn_659710(window)) return 0;
+    MsgQueue_Push(queue, nullptr, (u32)(uintptr_t)window, message, a, b);
+    return 1;
 }
 }
