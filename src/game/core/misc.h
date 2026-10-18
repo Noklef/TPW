@@ -1,4 +1,4 @@
-// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x409260, 0x45be80, 0x5f4490, 0x633dc0, 0x6486e0, 0x458310, 0x4583d0, 0x5c9040, 0x5d03b0, 0x5dd3d0, 0x5ddac0, 0x5c5230, 0x5c7490, 0x5dd810, 0x5e2750, 0x633120, 0x5b0d40, 0x5c7bb0, 0x5c7d00, 0x5c7d20, 0x5d1440, 0x5d5ee0, 0x54dcc0, 0x556a80, 0x569f30, 0x52fc30, 0x557110, 0x5997b0, 0x54b290, 0x56b340, 0x56e780, 0x583360, 0x5646c0, 0x564ba0, 0x56b570, 0x5651c0, 0x52fbf0, 0x424ed0, 0x47f940,
+// A few small functions that belong to no known unit yet: reimplementation of 0x402ef0, 0x4032b0, 0x40f300, 0x458910, 0x458940, 0x409260, 0x45be80, 0x5f4490, 0x633dc0, 0x6486e0, 0x458310, 0x4583d0, 0x5c9040, 0x5d03b0, 0x5dd3d0, 0x5ddac0, 0x5c5230, 0x5c7490, 0x5dd810, 0x5e2750, 0x633120, 0x5b0d40, 0x5c7bb0, 0x5c7d00, 0x5c7d20, 0x5d1440, 0x5d5ee0, 0x54dcc0, 0x556a80, 0x569f30, 0x557110, 0x5997b0, 0x54b290, 0x56b340, 0x56e780, 0x583360, 0x5646c0, 0x564ba0, 0x56b570, 0x5651c0, 0x424ed0, 0x47f940,
 // 0x56a510, 0x56b630 and 0x56b830.
 #pragma once
 
@@ -60,10 +60,6 @@ void __cdecl Pool_FreeAll(u8 *owner);
 // 0x583360 (thiscall): the highest set bit of the masks at +0x8fc, +0x904 and +0x90c (0 for a zero mask)
 // stored at +0x900, +0x908 and +0x910, and their union at +0x918, which is returned.
 u32 __fastcall Masks_TopBits(u8 *object);
-
-// 0x52fc30 (cdecl): the pair table at 0x81b740 (count 0x820a8c) copied to 0x818d98; then 0x820a90 = the
-// count and 0x820a94 = 0. Returns the count when above 0, else 0.
-s32 __cdecl PairTable_Commit();
 
 // 0x5997b0 (cdecl; id): the table of 0x20-byte entries at 0x768fb8, ended by an id of 0x270f, searched
 // for the id; the dword at +0x1c of the entry found, or 0x17f for none.
@@ -152,10 +148,6 @@ u8 *__fastcall Class703ca0_Ctor(u8 *object);
 // 0x6486e0 (cdecl; records, count): over the 0x20-byte records, the first with the greatest signed dword at
 // +0x1c among those where that and the dword at +0x18 are above 0; 0 for none.
 u8 *__cdecl Records32_MaxWeight(u8 *records, s32 count);
-
-// 0x52fbf0 (cdecl; a, b): appends the pair to the table of 8-byte entries at 0x81b740 (count at
-// 0x820a8c), unless the count is above 0x400 (signed): 0 then, else 1.
-u32 __cdecl PairTable_Add(u32 a, u32 b);
 
 // 0x402ef0 (thiscall): when Obj_Get30 is 0, +0x3c += +0x40. Returns +0x30 if set, else +0x40.
 u32 __fastcall Obj_AdvanceUnless30(u8 *object);

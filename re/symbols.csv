@@ -2730,7 +2730,7 @@ address,name,kind,confidence,notes
 0x004a9350,Countdown7cc150_Step,function,high,reimplemented (src/game/core/framecountdown); a counter stepped down; 1 at zero when another global is set
 0x004b4670,Obj_KillSlot24,function,high,reimplemented (src/game/ui/panel7cc328); the script slot at +0x24 killed and the slot fields cleared
 0x004bcec0,Global7cc698_Choose,function,high,reimplemented (src/game/ui/dialogs); a global set from the first of three sources that applies
-0x0052fbf0,PairTable_Add,function,high,reimplemented (src/game/core/misc); a pair appended to the 8-byte entry table unless it is past 0x400
+0x0052fbf0,PairTable_Add,function,high,reimplemented (src/game/world/cellrun); a pair appended to the 8-byte entry table unless it is past 0x400
 0x004d09a0,Obj_SmallestEntry,function,high,"reimplemented (src/game/world/money); the index of the smallest non-zero entry size of eight, or -1"
 0x00458310,Obj_CtorVirtual,function,high,reimplemented (src/game/core/misc); a class with a virtual base: vtables and the offset word
 0x004583d0,Obj_SetVectorAt2c,function,high,"reimplemented (src/game/core/misc); the scene flags touched, then three dwords at +0x2c"
@@ -2743,7 +2743,7 @@ address,name,kind,confidence,notes
 0x0056b340,Obj_ReleaseFromRenderer,function,high,reimplemented (src/game/core/misc); bit 0 cleared and the part removed from the renderer's tag 0x60 list
 0x00583360,Masks_TopBits,function,high,"reimplemented (src/game/core/misc); the highest set bit of three masks stored, and their union"
 0x004f36c0,Vector36_Size,function,high,reimplemented (src/game/core/countedpair); the number of 36-byte elements between a vector's pointers
-0x0052fc30,PairTable_Commit,function,high,reimplemented (src/game/core/misc); the pair table copied to its committed copy
+0x0052fc30,PairTable_Commit,function,high,reimplemented (src/game/world/cellrun); the pair table copied to its committed copy
 0x005997b0,Table768fb8_Lookup,function,high,reimplemented (src/game/core/misc); a value looked up by id in the 0x20-byte table at 0x768fb8
 0x00409260,Flags7a1a14_Update,function,high,reimplemented (src/game/core/misc); a flag word updated from another and an object's advance
 0x00486610,Global7c24d8_CopyScript,function,high,reimplemented (src/game/ui/thingpreview); a sprite script slot made a copy of another

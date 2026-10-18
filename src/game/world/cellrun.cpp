@@ -140,4 +140,25 @@ void __cdecl CellRun_Corners() {
     global<s32>(0x0081ede8) = y;
 }
 
+u32 __cdecl PairTable_Add(u32 a, u32 b) {
+    const s32 count = global<s32>(0x00820a8c);
+    if (count > 0x400)
+        return 0;
+    global<u32>(0x0081b740 + 8 * count) = a;
+    global<u32>(0x0081b744 + 8 * count) = b;
+    global<s32>(0x00820a8c) = count + 1;
+    return 1;
+}
+
+s32 __cdecl PairTable_Commit() {
+    const s32 count = global<s32>(0x00820a8c);
+    for (s32 i = 0; i < count; i++) {
+        global<u32>(0x00818d98 + 8 * (u32)i) = global<u32>(0x0081b740 + 8 * (u32)i);
+        global<u32>(0x00818d9c + 8 * (u32)i) = global<u32>(0x0081b744 + 8 * (u32)i);
+    }
+    global<s32>(0x00820a90) = count;
+    global<u32>(0x00820a94) = 0;
+    return count > 0 ? count : 0;
+}
+
 }  // extern "C"
