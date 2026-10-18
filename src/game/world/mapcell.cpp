@@ -417,6 +417,8 @@ u16 __fastcall MapCell_Flags(const u8 *cell) { return at<u16>(cell, 0xe); }
 
 void __fastcall MapCell_ClearFlags(u8 *cell, void *, u32 bits) { at<u16>(cell, 0xe) &= (u16)~bits; }
 
+u16 __fastcall MapCell_Word40(const u8 *cell) { return at<u16>(cell, 0x40); }
+
 u32 __fastcall MapCell_HasLowFlags(const u8 *cell) { return (cell[0xe] & 0xf) != 0 ? 1 : 0; }
 
 u8 __fastcall MapCell_CornerNeighbours(const u8 *cell) {

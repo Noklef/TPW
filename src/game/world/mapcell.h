@@ -205,6 +205,10 @@ u16 __fastcall MapCell_Flags(const u8 *cell);
 void __fastcall MapCell_ClearFlags(u8 *cell, void *, u32 bits);
 u32 __fastcall MapCell_HasLowFlags(const u8 *cell);
 
+// 0x536c50 (name unconfirmed): the u16 +0x40 of a 0x44-byte cell (in AX only; its one caller, 0x5242e4, reads the cell for a position
+// handle from [0x7cf83c] + 0x294 and sign-extends the word).
+u16 __fastcall MapCell_Word40(const u8 *cell);
+
 // 0x53ae00 / 0x53ae50: the neighbour bits when exactly 2 of the sides are set and they make a
 // corner (one of 1 / 0x10 with one of 4 / 0x40) / a straight (1 and 0x10, or 4 and 0x40), else 0.
 // 0x53ae90: the neighbour bits when more than 2 sides are set, else 0. All in AL only.
