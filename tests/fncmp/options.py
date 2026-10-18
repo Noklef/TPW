@@ -1,7 +1,7 @@
 # The game options' revert / keep and setters (src/game/core/options: 0x423ad0-0x423ba0) against the
 # originals, over junk with +0x94 either sign and values equal to the field or not; the sound settings applied (0x423dd0); the defaults (0x423690);
 # the save and load of their sound (0x423e90), display (0x4242c0) and other (0x424560) fields through a record stream; the options file's save
-# (0x424820) and load (0x424930): a file stream (vtable 0x6fd930) of recorders, its open's result, its reads all or part asked for (a version, then
+# (0x424820), load (0x424930) and the other fields' load (0x424a60): a file stream (vtable 0x6fd930) of recorders, its open's result, its reads all or part asked for (a version, then
 # its bytes again for each field), its writes logged by their first dword, made in the bench heap.
 # usage: options.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
@@ -13,7 +13,7 @@ from fncmp import HEAP, LOG, Bench, Call, RAM, blob, echo, fill, heap, log_regio
 
 B = Bench([(0x423690, 0x423714), (0x423ad0, 0x423afc), (0x423b00, 0x423b36), (0x423b40, 0x423b4a), (0x423b60, 0x423b71),
            (0x423b80, 0x423b91), (0x423ba0, 0x423bb1), (0x423dd0, 0x423e89), (0x51b3c0, 0x51b3e0), (0x51bb80, 0x51bc50),
-           (0x423e90, 0x424a60), (0x416e10, 0x416e30), (0x424c20, 0x424ca0), (0x4fae10, 0x4fae90), (0x510240, 0x5102c0), (0x5f5e20, 0x5f5e90),
+           (0x423e90, 0x424bac), (0x416e10, 0x416e30), (0x424c20, 0x424ca0), (0x4fae10, 0x4fae90), (0x510240, 0x5102c0), (0x5f5e20, 0x5f5e90),
            (0x5da3c0, 0x5da3c1), (0x5f5660, 0x5f5fc0), (0x5f7180, 0x5f7190), (0x67a400, 0x690000)])
 OPT = RAM + 0x100
 SETS = {0x423b40: 0x30, 0x423b60: 4, 0x423ba0: 8, 0x423b80: 0xc}
@@ -63,14 +63,14 @@ def serialize(r):
 
 
 def options_file(r):
-    """0x424820 / 0x424930: the game's options or others; the open's result 0, negative or positive; reads of all asked for (mostly) or a count,
+    """0x424820 / 0x424930 / 0x424a60: the game's options or others; the open's result 0, negative or positive; reads of all asked for (mostly) or a count,
     filled with a version (0, 1, 2 or junk) and its bytes for each field; writes of all asked for (mostly) or a count; the sound globals as apply_sound's."""
-    at = r.choice([0x424820, 0x424930])
+    at = r.deal([0x424820, 0x424930, 0x424a60])
     obj = r.choice([OPTIONS, OPT])
     log = log_region()
     fill(log, 9, 0, struct.pack('<i', r.choice([0, 0, 0, 0, -1, 1, -0x80000000])), 1)
     strings(log, 9, 2, 1)   # (the open: the path as text, the result's address 0)
-    fill(log, 2, 0, struct.pack('<I', r.choice([1, 1, 1, 0, 2, r.getrandbits(32)])))
+    fill(log, 2, 0, struct.pack('<I', r.choice([1, 1, 1, 0, 2, 2, 3, r.getrandbits(32)])))
     strings(log, 2, 0, 1)   # (the reads' buffers: a stack one first)
     blob(log, 3, 0, 1)   # (the writes' buffers: their first dword)
     for slot in (2, 3):

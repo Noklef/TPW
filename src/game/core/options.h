@@ -69,4 +69,7 @@ u32 __fastcall Options_SaveFile(u8 *options, void *, const u8 *path);
 // 0x424930: the defaults first (Options_Defaults); opened for reading (mode 0x80000001), the version read (4 bytes; 0 is refused), then
 // Options_SerializeDisplay (loading, the version); closed after the stream was used.
 u32 __fastcall Options_LoadFile(u8 *options, void *, const u8 *path);
+// 0x424a60: +0x78, +0x7c, +0x80 = 0, +0x84 = 1, +0x88..+0x90 = 0 first; opened for reading (mode 0x80000001), the version read (4 bytes; below 2,
+// unsigned, is refused), then Options_SerializeMisc (loading, the version); closed after the stream was used.
+u32 __fastcall Options_LoadMiscFile(u8 *options, void *, const u8 *path);
 }
