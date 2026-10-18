@@ -296,6 +296,7 @@
 #include "../game/online/session.h"
 #include "../game/ui/dialog7ca1c8.h"
 #include "../game/ui/dialogs.h"
+#include "../game/ui/guimanager.h"
 #include "../game/ui/window.h"
 
 namespace tpw::hook {
@@ -4088,6 +4089,9 @@ const Hook kHooks[] = {
     {"Dialog7cca94_Message4IfUp", 0x004c25e0, (void *)&Dialog7cca94_Message4IfUp, {0xa1, 0x94, 0xca, 0x7c, 0x00}},
     {"Dialog7ca098_Message4IfUp", 0x0048d990, (void *)&Dialog7ca098_Message4IfUp, {0xa1, 0x98, 0xa0, 0x7c, 0x00}},
     {"WindowAt10_ScalarDtor",     0x0048c8b0, (void *)&WindowAt10_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0xa8}},
+    {"GuiManager_Word4Set",       0x00659631, (void *)&GuiManager_Word4Set, {0x55, 0x8b, 0xec, 0x8b, 0x0d}},
+    {"GuiManager_CallSlot3",      0x0065961c, (void *)&GuiManager_CallSlot3, {0x55, 0x8b, 0xec, 0xa1, 0x8c}},
+    {"GuiManager_CallSlot4",      0x00659607, (void *)&GuiManager_CallSlot4, {0x55, 0x8b, 0xec, 0xa1, 0x8c}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
