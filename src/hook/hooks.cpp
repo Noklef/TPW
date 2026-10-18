@@ -152,6 +152,7 @@
 #include "../game/core/sync.h"
 #include "../game/core/balancefile.h"
 #include "../game/core/timesig.h"
+#include "../game/core/wstringentry.h"
 #include "../game/core/wtraits.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
@@ -3576,6 +3577,7 @@ const Hook kHooks[] = {
     {"StdWString_Freeze",         0x0047ba50, (void *)&StdWString_Freeze, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
     {"StdWString_Grow",           0x0047bad0, (void *)&StdWString_Grow, {0x53, 0x56, 0x57, 0x8b, 0x7c}},
     {"StdWString_Split",          0x0047bc00, (void *)&StdWString_Split, {0x55, 0x56, 0x8b, 0xf1, 0x57}},
+    {"WStringEntry_Ctor",         0x004ea740, (void *)&WStringEntry_Ctor, {0x6a, 0xff, 0x68, 0x40, 0xcd}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
