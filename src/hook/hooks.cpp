@@ -151,6 +151,7 @@
 #include "../game/core/stdwstring.h"
 #include "../game/core/sync.h"
 #include "../game/core/balancefile.h"
+#include "../game/core/cmdline.h"
 #include "../game/core/gameerror.h"
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
@@ -3632,6 +3633,7 @@ const Hook kHooks[] = {
     {"CountedPair_Construct",     0x004f7410, (void *)&CountedPair_Construct, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
     {"CountedPairVector_Construct", 0x004f6e70, (void *)&CountedPairVector_Construct, {0x55, 0x8b, 0x6c, 0x24, 0x08}},
     {"StringMapsRecord_Dtor",     0x004e54c0, (void *)&StringMapsRecord_Dtor, {0x6a, 0xff, 0x68, 0x64, 0xc5}},
+    {"CommandLine_Parse",         0x0040f000, (void *)&CommandLine_Parse, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

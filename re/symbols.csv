@@ -3959,6 +3959,7 @@ address,name,kind,confidence,notes
 0x004f7410,CountedPair_Construct,function,high,"reimplemented (src/game/core/countedpair); cdecl (p, x): construct(p, x): x copy-constructed at p unless p is null"
 0x004f6e70,CountedPairVector_Construct,function,high,"reimplemented (src/game/core/countedpair); cdecl (v, x): construct(v, x) for a vector of pairs: the allocator byte, a block of x's size, x's pairs copy-constructed, last = end past them"
 0x004e54c0,StringMapsRecord_Dtor,function,high,"reimplemented (src/game/core/stringmapsrecord); thiscall: the string maps record's destructor: the list at +0x54 erased and its sentinel freed, the maps at +0x40 / +0x30 / +0x20 (kinds E, C, D) destroyed, the wide strings at +0x10 and +0 tidied"
+0x0040f000,CommandLine_Parse,function,low,"reimplemented (src/game/core/cmdline); cdecl (argc, argv): the switches v/version (0), flmouse, bwcursor and the skipped ones; the park file with the extension into 0x788164, else GameError_Set(2); 1 without an error"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
