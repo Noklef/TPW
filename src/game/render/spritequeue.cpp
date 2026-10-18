@@ -78,6 +78,16 @@ u8 *__fastcall SpriteSet_DeletingDtor(u8 *plus20, void *, u32 flags) {
     return set;
 }
 
+void __fastcall SpriteSet_Dtor(u8 *set) {
+    const s32 base = at<s32>(at<u8 *>(set, 0), 4);
+    at<u32>(set, base) = 0x006ff308;
+    const s32 again = at<s32>(at<u8 *>(set, 0), 4);
+    at<s32>(set, again - 4) = again - 0x20;
+    TrackedArray_Free(set);
+    LiveObjects_Remove(set ? set + at<s32>(at<u8 *>(set, 0), 4) : nullptr);   // (the base read again after the release)
+    at<u32>(set, 0x20) = 0x006fdce8;
+}
+
 u32 __cdecl SpriteQueue_Create() {
     u8 *&slot = *reinterpret_cast<u8 **>(0x008c47a0);
     if (slot)

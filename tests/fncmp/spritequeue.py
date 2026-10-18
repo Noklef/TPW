@@ -2,8 +2,8 @@
 # originals: lists and frame sets from empty to full, stamps matching or not, the second one's counts overrun included (0x101, 0x102); no
 # queue, or one whose texture array (as texturemem.py) is set or not. A sprite set's deleting destructor (0x491f20, and through its thunk
 # 0x491f10): virtual base offsets inside the set, its tracked array's block tracked or not, the virtual base among the live objects or not,
-# flags 0, 1 and others.
-# usage: spritequeue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ready,Add,Add2,Free,SetDelete,SetDeleteThunk)
+# flags 0, 1 and others. Its destructor (0x48f280) likewise.
+# usage: spritequeue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ready,Add,Add2,Free,SetDelete,SetDeleteThunk,SetDtor)
 import os
 import struct
 import sys
@@ -15,8 +15,8 @@ from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, pu
 
 B = Bench([(0x58a550, 0x58a5b9), (0x58a6b0, 0x58a6de), (0x58a6e0, 0x58a712), (0x58a490, 0x58a4ec), (0x590a70, 0x590a75), (0x590b90, 0x590c39),
            (0x579b40, 0x579c13), (0x58dc50, 0x58dd5e), (0x67afa0, 0x67b060), (0x67acb0, 0x67acb1),
-           (0x491f10, 0x491f7d), (0x58a520, 0x58a548), (0x577600, 0x57764b)])
-CALLS = {'Ready': 0x58a550, 'Add': 0x58a6b0, 'Add2': 0x58a6e0, 'Free': 0x58a490, 'SetDelete': 0x491f20, 'SetDeleteThunk': 0x491f10}
+           (0x491f10, 0x491f7d), (0x58a520, 0x58a548), (0x577600, 0x57764b), (0x48f280, 0x48f2d8)])
+CALLS = {'Ready': 0x58a550, 'Add': 0x58a6b0, 'Add2': 0x58a6e0, 'Free': 0x58a490, 'SetDelete': 0x491f20, 'SetDeleteThunk': 0x491f10, 'SetDtor': 0x48f280}
 QUEUE, ARRAY = RAM + 0x8000, RAM + 0x6000   # (texturemem.py's regions below RAM + 0x4000)
 
 
@@ -61,6 +61,8 @@ def set_delete(r, op):
     regions[LIVE] = live
     regions[LIVE_COUNT] = struct.pack('<I', live_count)
     flags = r.choice([0, 1, 1, 2, 3, 0xffffffff])
+    if op == 'SetDtor':
+        return Call(0x48f280, [SET], regions, conv='t')
     if op == 'SetDeleteThunk':   # (this lowered by the dword before it, to the set's +0x20)
         regions[RAM + 0x1fc] = struct.pack('<I', (RAM + 0x200 - SET - 0x20) & 0xffffffff)
         return Call(0x491f10, [RAM + 0x200, flags], regions, conv='t', ret='a')
@@ -71,7 +73,7 @@ def case(r):
     op = r.deal(OPS)
     if op == 'Free':
         return free(r)
-    if op.startswith('SetDelete'):
+    if op.startswith('Set'):
         return set_delete(r, op)
     queue = bytearray(r.bytes(0x4010))
     if op == 'Ready':

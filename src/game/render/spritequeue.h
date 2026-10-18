@@ -35,6 +35,10 @@ u32 __cdecl SpriteQueue_Free();
 // 0x6fdce8 back; flags bit 0 frees the set (Mem_Free). Returns the set.
 u8 *__fastcall SpriteSet_DeletingDtor(u8 *plus20, void *, u32 flags);
 
+// 0x48f280 (thiscall on the set; name unconfirmed): the set's destructor (as SpriteSet_DeletingDtor without the free), run by an
+// exception unwind (0x6d97b9).
+void __fastcall SpriteSet_Dtor(u8 *set);
+
 // 0x58a430 (cdecl; name unconfirmed): without a queue at [0x8c47a0], a new one of 0x2410 bytes (the game's heap) there, its counts
 // (+0x2404, +0x2408, +0x240c) and texture array (+0x2400) cleared: 1. 0 when there was one, or when the allocation failed (left null, the
 // error (3, 0xb0754000) pushed onto the engine's list, EngineErrors_Push).
