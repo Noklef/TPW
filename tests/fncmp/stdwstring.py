@@ -28,7 +28,7 @@ def string(r, blocks, k):
     at = k * SLOT
     blocks[at + 1] = r.choice([0, 0, 1, 2, 0xfd, 0xfe, 0xff])
     blocks[at + 2:at + 2 + 2 * n] = chars(r, n)
-    if r.random() < 0.9:
+    if r.random() < (0.5 if n == 0 else 0.9):  # (an empty string left unterminated: _Grow(0, false) ends it)
         blocks[at + 2 + 2 * n:at + 4 + 2 * n] = bytes(2)
     if r.random() < 0.05 and n:
         i = r.randrange(n)
