@@ -115,4 +115,7 @@ u32 __fastcall BalanceFile_Load(u8 *self, void *, const char *path, u32 keep);
 // allocation fails) and 0, the read block not freed (sic).
 struct Stream;
 u32 __fastcall BalanceFile_LoadStream(u8 *self, void *, const char *name, Stream *stream, u32 keep);
+
+// 0x5b0d40 (stdcall; i): the address of 60-byte record i of the table at 0x73f8a8.
+u32 __stdcall Table73f8a8_At(u32 i);
 }

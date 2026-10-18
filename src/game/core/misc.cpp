@@ -171,8 +171,6 @@ u32 __fastcall Records24_CountUsed(const u8 *records) {
     return count;
 }
 
-u32 __stdcall Table73f8a8_At(u32 i) { return 0x0073f8a8 + 60 * i; }
-
 u32 __stdcall Span_Limited(u32, u32 from, u32 to, u32 limit) {
     const u32 span = to - from;
     return limit < span ? limit : span;

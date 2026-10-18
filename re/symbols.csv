@@ -2758,7 +2758,7 @@ address,name,kind,confidence,notes
 0x005c7d20,Records24_Field14,function,high,reimplemented (src/game/core/misc); the dword at +0x14 of a 24-byte record
 0x005c7d00,Records24_IfUsed,function,high,reimplemented (src/game/core/misc); a 24-byte record's address when its dword at +4 is set
 0x005c7bb0,Records24_CountUsed,function,high,reimplemented (src/game/core/misc); how many of four 24-byte records are in use
-0x005b0d40,Table73f8a8_At,function,high,reimplemented (src/game/core/misc); the address of a 60-byte record of the table at 0x73f8a8
+0x005b0d40,Table73f8a8_At,function,high,reimplemented (src/game/core/balancefile); the address of a 60-byte record of the table at 0x73f8a8
 0x005d5ee0,Obj_Flags1cAnd,function,high,reimplemented (src/game/core/globals); the dword at +0x1c masked
 0x005d1440,Span_Limited,function,high,"reimplemented (src/game/core/misc); to - from, at most a limit"
 0x005dd810,Obj_Positive40,function,high,reimplemented (src/game/core/misc); 1 when the signed dword at +0x40 is above 0
