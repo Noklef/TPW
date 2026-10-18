@@ -1,7 +1,7 @@
 """One porting cycle: integrate a spec, bench it, commit it, then run its mutants.
 
   python -I tools/port.py SPEC --bench SUITE.py [suite args...] [--msg FILE] [--mut FILE] [--also PATH...] [--unverified REASON]
-                          [--known NAME...] [--low NAME...]
+                          [--known NAME...] [--low NAME...] [--crashy REASON]
 
 Names are unconfirmed by default: integrate.py writes a new or renamed symbols.csv row as "low" (a row that already had the name keeps
 its confidence). --known NAME...: names confirmed by the binary (RTTI, a string, a library's own name) get "high". --low NAME...: force
@@ -22,6 +22,10 @@ the C++ without a crash in either (fncmp's FNCMP_COVER records them), or nothing
 includes the list, and tools/coverage.py --check accepts it. The bench is also run as the coverage gate runs it (10 cases seed 5, 400
 seed 6): a function the bench compares that gets no case there fails the port (deal the bench's ops: Rand.deal in tools/fncmp.py).
 
+A bench run where more than a quarter of the cases crash in both fails the port: those cases test nothing past the fault (often an
+unmapped region or import the bench should serve). --crashy "REASON" accepts it when the crashes are the behaviour under test (a modelled
+stack overrun, say); the reason goes into the commit message.
+
 Mutants come after the commit (a surviving equivalent mutant shouldn't hold up a verified port).
 The --mut file is Python defining MUTANTS = [(path, old, new), ...] and optionally OPS (the suite's
 OPS environment filter) and N (cases per mutant, default 300).
@@ -41,7 +45,7 @@ import time
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 AUTHOR = ['-c', 'user.name=Noklef', '-c', 'user.email=281545466+Noklef@users.noreply.github.com']
 TRAILER = 'Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>'
-FLAGS = ('--msg', '--mut', '--also', '--unverified', '--low', '--known')
+FLAGS = ('--msg', '--mut', '--also', '--unverified', '--low', '--known', '--crashy')
 MIN_CASES = 10
 TABLES = ['src/hook/hooks.cpp', 're/symbols.csv', 'CMakeLists.txt', 're/unverified.csv']  # (integrate.py's and this script's edits)
 saved = {}
@@ -95,6 +99,7 @@ def main():
     if len(a) < 3 or '--bench' not in a:
         sys.exit(__doc__)
     msg, mut, also, unverified = take(a, '--msg'), take(a, '--mut'), take(a, '--also'), ' '.join(take(a, '--unverified'))
+    crashy = ' '.join(take(a, '--crashy'))
     low, known = set(take(a, '--low')), set(take(a, '--known'))
     spec = a[0]
     bench = a[a.index('--bench') + 1:]
@@ -105,6 +110,8 @@ def main():
             rows.append((f[0], int(f[1], 16), f[2].replace('\\', '/').removesuffix('.cpp')))
     if unverified and (unverified.lower().startswith('todo') or len(unverified) < 12):
         sys.exit('port: --unverified needs the reason the functions cannot be compared, not a placeholder')
+    if '--crashy' in sys.argv and (crashy.lower().startswith('todo') or len(crashy) < 12):
+        sys.exit('port: --crashy needs the reason the bench\'s cases crash, not a placeholder')
 
     for path in TABLES:
         if os.path.exists(os.path.join(ROOT, path)):
@@ -126,9 +133,14 @@ def main():
         fail('port: integrate FAILED')
     keep = [l for l in out.splitlines() if l.startswith(('tests:', 'retcheck:')) or 'differ' in l or 'hook rows' in l]
     print(' | '.join(keep) + ' | %d s' % (time.time() - started))
-    # A bench whose cases mostly fault in the original too tests little: say so (the commit still goes ahead, the decision is the porter's).
+    # A bench whose cases often fault in the original too tests little: from a tenth, say so; from a quarter, stop unless --crashy gives
+    # the reason the crashes are the point (a modelled overrun) or unavoidable. (A preview's x offset -1000 for -1016 got through a bench
+    # half of whose cases crashed before reaching it, on an unmapped import.)
     for l in keep:
         m = re.match(r'(\d+) cases.*\((\d+) crash in both\)', l)
+        if m and int(m.group(2)) * 4 > int(m.group(1)) and not crashy:
+            fail('port: %s of %s cases crash in both: the bench barely exercises the port. Find what they fault on (an unmapped region or '
+                 'import?) and serve it, or --crashy "REASON" if the crashes are the behaviour under test' % (m.group(2), m.group(1)))
         if m and int(m.group(2)) * 10 > int(m.group(1)):
             print('WARNING: %s of %s cases crash in both: the bench barely exercises the port' % (m.group(2), m.group(1)))
 
@@ -189,6 +201,8 @@ def main():
         if bad:
             fail('port: refusing to commit %s' % bad)
         text = open(msg[0], encoding='utf-8').read().rstrip('\n')
+        if crashy:   # (before the trailer, so a reviewer sees why the bench's crashes were accepted)
+            text = text.replace(TRAILER, '').rstrip('\n') + '\n\nCrashes in both accepted: ' + crashy
         if TRAILER not in text:
             text += '\n\n' + TRAILER
         text += '\n'
