@@ -4103,6 +4103,7 @@ const Hook kHooks[] = {
     {"GuiRect_Offset",            0x0065a3e9, (void *)&GuiRect_Offset, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"GuiRect_Centre",            0x00659ee2, (void *)&GuiRect_Centre, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"GuiRect_Contains",          0x00659e83, (void *)&GuiRect_Contains, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiRect_Adjust",            0x0065a43e, (void *)&GuiRect_Adjust, {0x55, 0x8b, 0xec, 0x51, 0x89}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

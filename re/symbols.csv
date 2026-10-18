@@ -4561,3 +4561,4 @@ address,name,kind,confidence,notes
 0x00659e83,GuiRect_Contains,function,low,"reimplemented (src/game/ui/guirect); thiscall (x, y words), pops 8, slot 0: 1 in AX when left <= x < right and top <= y < bottom (signed), else 0"
 0x00659ee2,GuiRect_Centre,function,low,"reimplemented (src/game/ui/guirect); thiscall (x, y word pointers or 0), pops 8, slot 1: left + (right - left) >> 1 and the same for top/bottom stored through each"
 0x0065a3e9,GuiRect_Offset,function,low,"reimplemented (src/game/ui/guirect); thiscall (dx, dy words), pops 8, slot 2: dx added to left and right, dy to top and bottom"
+0x0065a43e,GuiRect_Adjust,function,low,"reimplemented (src/game/ui/guirect); thiscall (dl, dt, dr, db words), pops 16, slot 3: each added to left, top, right and bottom"
