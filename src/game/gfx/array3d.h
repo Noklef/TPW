@@ -49,4 +49,16 @@ void __fastcall Array3Ds_Free4(u8 *object);
 // a * b * c bytes; when that was made it is cleared and a, b, c go to +0, +4, +8. Then a * b * c bytes are read into the block (sic: also when it is null).
 // Returns 1 in AL over the upper bytes of the last read's return.
 u32 __fastcall Array3D_Read(u8 *object, void *, u8 *stream);
+
+// 0x5e7990 (thiscall; stream, codec, pops 8): +0, +4, +8 cleared and the block at +0xc freed; three u32s read (a, b, c: width, height,
+// depth; the reads as Array3D_Read's), a new block of a * b * c bytes, when made cleared and a, b, c kept. Then by the depth read (other
+// depths: nothing more), each part read into a new block that is freed after the codec's slot 3 (thiscall; width, height, flag, data,
+// out, three dwords) has decoded it:
+//   1: a size and the bytes to read; decoded (flag 0) into the array's block, the size and two 0s after.
+//   3: three quantisers and the bytes to read; decoded (flag 1) into the array's block with the quantisers.
+//   4: three quantisers, a size and two byte counts, both parts read; the first decoded (flag 1, the quantisers) into a new block of
+//      width * height * 3 bytes, the second (flag 0, the size, two 0s) into one of width * height bytes (neither checked); then each pixel
+//      of the array's block (the count re-read each time) becomes the second's byte then the first's three; the four blocks freed.
+// Returns 0 in AL when a part's block could not be made (the ones already made are not freed), else 1.
+u8 __fastcall Array3D_ReadCompressed(u8 *object, void *, u8 *stream, u8 *codec);
 }

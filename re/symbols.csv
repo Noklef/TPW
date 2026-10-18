@@ -379,7 +379,7 @@ address,name,kind,confidence,notes
 0x005ec3a0,SignStyle_Load,function,high,".sgn: version >= 100, 2 line styles (font, ttf, x, y, LOGFONTA, layout), effects, 2 fill strips, background"
 0x005eb1a0,Eleven_Read,function,high,reimplemented (src/game/core/streambuf); reads eleven dwords from a stream
 0x005ecb40,SignStyle_Render,function,medium,"(HDC, text lines + target textures)"
-0x005e7990,Array3D_ReadCompressed,function,high,"u32 w, h, bpp + float quantisers + BILZ wavelet streams, decoded via IWaveletCodec slot 3"
+0x005e7990,Array3D_ReadCompressed,function,high,"reimplemented (src/game/gfx/array3d); thiscall (stream, codec; pops 8): width, height, depth read and a cleared block made; by the depth (1, 3, 4) the parts read and decoded through the codec's slot 3, the depth 4 alpha and colour interleaved; AL 0 when a part's block is not made, else 1"
 0x005987b0,WaveletCodec_DecodePlanes,function,high,"vtable slot 3: colour -> 0x592730, grey -> 0x592e60; takes float quantiser steps"
 0x00592730,WaveletCodec_DecodeColourStream,function,high,"Buffer_Decompress, then Y (q1), Cb (q2), Cr (q3) planes, inverse D4, YUV->RGB"
 0x00592e60,WaveletCodec_DecodeGrey,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (width, height, packed source, pixels, q): the grey decoder, rows through the coefficient reader and inverse D4, then the columns, then clamped bytes (name unconfirmed)"
