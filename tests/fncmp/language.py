@@ -2,7 +2,7 @@
 # its font lookup and Hebrew alignment (0x485a70, 0x4925a0, on the object at 0x78b530) against
 # the originals: widths about the 512 / 640 / 800 steps and negative, ids Hebrew or not, font
 # indexes about 13 and font sets beyond 3, alignments 0-3 and wild. Its texts widened (0x485ac0, 0x485b00, 0x485f00): the converter
-# [0x78ba7c] (lead byte, table size and words as methods.py's Widen) on or off ([0x78ba80]), texts of 0-12 bytes or none, record
+# [0x78ba7c] (lead byte, table size and words as methods.py's Widen) on or off ([0x78ba80]), texts of 0-12 bytes (0x485ac0's about 0x200 too) or none, record
 # tables [0x78ba94] / [0x78baa4] of 0-4 records (some not text records or unterminated) and indexes about them, the object a recorder.
 # usage: language.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
@@ -51,7 +51,8 @@ def texts(r, op):
     log = log_region()
     regions = {0x78b530: lang, RAM + 0x800: conv, RAM + 0x4000: r.bytes(0x1000), 0x7ba058: bytes([0x55]) * 0x404, LOG: log}
     if op == 7:
-        regions[RAM + 0x1800] = text(r) + bytes(0x40)
+        long = bytes(r.randrange(1, 0x80 if r.random() < 0.7 else 256) for _ in range(r.choice([0x1ff, 0x200, 0x201, r.randrange(0x20, 0x210)])))   # (about the 0x200 limit)
+        regions[RAM + 0x1800] = (text(r) if r.random() < 0.8 else long) + bytes(0x40)
         return Call(0x485ac0, [r.choice([RAM + 0x1800] * 5 + [0])], regions, ret='a')
     count = r.randrange(0, 5)
     table = bytearray(r.bytes(0x20))
