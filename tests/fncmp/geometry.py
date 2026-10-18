@@ -1,6 +1,7 @@
 # The mesh builder's geometry helpers (src/game/math/geometry: 0x5812f0, 0x581320) against the originals: any floats (special values
 # now and then), points sharing coordinates so the winding products tie, and NaNs. AtX / AtZ (0x56d520, 0x56d590): two points and a
-# plane of ordinary floats or fncmp's (signalling NaNs too), coordinates shared so the span or the distance is zero.
+# plane of ordinary floats or fncmp's (signalling NaNs too, and quiet ones of either sign, whose ties show the operand order),
+# coordinates shared so the span or the distance is zero.
 # usage: geometry.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Dot,Winding,BoxExtend,AtX,AtZ)
 import os
 import struct
@@ -23,7 +24,7 @@ def point(r, shared):
 
 def coordinate(r):
     return r.choice([fb(r.uniform(-1000.0, 1000.0)), fb(float(r.randrange(-64, 65))), fb(r.uniform(-1e-3, 1e-3)), r.f(), 0x7fa00000,
-                     0xff800001])
+                     0xff800001, 0x7fc00000, 0xffc00000])
 
 
 def case(r):
