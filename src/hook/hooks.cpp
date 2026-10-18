@@ -123,6 +123,7 @@
 #include "../game/gfx/surfacepool.h"
 #include "../game/gfx/texsprite.h"
 #include "../game/gfx/texatlas.h"
+#include "../game/gfx/textlayout.h"
 #include "../game/gfx/tvstatic.h"
 #include "../game/gfx/wctimage.h"
 #include "../game/core/crt.h"
@@ -3771,6 +3772,9 @@ const Hook kHooks[] = {
     {"LoadScreen_ShowImage",      0x00587130, (void *)&LoadScreen_ShowImage, {0x81, 0xec, 0x8c, 0x00, 0x00}},
     {"SurfacePool_SideIndex",     0x005848b0, (void *)&SurfacePool_SideIndex, {0x8b, 0x44, 0x24, 0x04, 0x83}},
     {"SurfacePool_Next",          0x0058b1f0, (void *)&SurfacePool_Next, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"TextStyle_Ctor",            0x006ad5d0, (void *)&TextStyle_Ctor, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
+    {"TextStyle_Dtor",            0x006ad640, (void *)&TextStyle_Dtor, {0x56, 0x8b, 0xf1, 0xc7, 0x06}},
+    {"TextStyle_DeletingDtor",    0x006ad620, (void *)&TextStyle_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

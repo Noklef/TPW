@@ -4176,6 +4176,9 @@ address,name,kind,confidence,notes
 0x00587130,LoadScreen_ShowImage,function,low,"reimplemented (src/game/gfx/loadscreen); thiscall on an image (pixels, width, height, bytes a pixel): stretched upside down into the locked display surface (driver kind 1, u16 or u32) or the renderer's buffer (kind 4); returns 1"
 0x005848b0,SurfacePool_SideIndex,function,low,"reimplemented (src/game/gfx/surfacepool); cdecl (side): a power-of-two side's index, 0x100 -> 0 down to 1 -> 8, else -1"
 0x0058b1f0,SurfacePool_Next,function,low,"reimplemented (src/game/gfx/surfacepool); thiscall on the surface pool 0x8c47d8 (side, unused; pops 8): the side's turn (+0x80) flipped, the surface of the old turn returned"
+0x006ad5d0,TextStyle_Ctor,function,low,"reimplemented (src/game/gfx/textlayout); thiscall: the text style's fields cleared (state 3, +0x10 1, its SurfaceInfo constructed), vtable 0x70a0d8; returns this"
+0x006ad640,TextStyle_Dtor,function,low,reimplemented (src/game/gfx/textlayout); thiscall: vtable 0x70a0d8; the font (+4) released (slot 0) and cleared
+0x006ad620,TextStyle_DeletingDtor,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (flags): TextStyle_Dtor, freed for flags bit 0; returns this"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
