@@ -180,4 +180,13 @@ void __fastcall CountedPairVector_InsertN(u8 *v, void *, u32 p, u32 m, const Cou
         CountedPair_Assign(pairAt(e), nullptr, x);
     last += bytes;
 }
+
+u32 __stdcall CountedPair_UninitCopy(u32 first, u32 last, u32 to) { return ucopy(first, last, to); }
+
+void __stdcall CountedPair_UninitFill(u32 to, u32 n, const CountedPair *x) { ufill(to, n, x); }
+
+void __cdecl CountedPair_Construct(CountedPair *p, const CountedPair *x) {
+    if (p)
+        CountedPair_CopyCtor(p, nullptr, x);
+}
 }

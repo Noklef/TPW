@@ -1,6 +1,7 @@
 // The 0x24-byte element of counted strings whose clears and deleters are in buffers.h (CountedPair_*): a narrow std::string at +0, a wide one at
 // +0x10 and a dword at +0x20 (what it holds is not known yet; the code at 0x4ea5xx-0x4ebaxx builds them and hands them to container inserts).
-// Reimplementation of its constructors 0x4ea740 and 0x4e6410, its assignment 0x4f5860 and the insert of a vector of them, 0x4f5560.
+// Reimplementation of its constructors 0x4ea740 and 0x4e6410, its assignment 0x4f5860, the insert of a vector of them, 0x4f5560, and their
+// uninitialised copy / fill and construct helpers (0x4f67b0, 0x4f67f0, 0x4f7410).
 #pragma once
 
 #include "../../../re/types.h"
@@ -37,4 +38,14 @@ CountedPair *__fastcall CountedPair_Assign(CountedPair *p, void *edx, const Coun
 // where, the tail is copied n up, the copies of x past the old end constructed and the old tail's slots assigned x; else the last n are copied up,
 // the rest shifted back (assignment) and the n slots from where assigned x. x may be one of the vector's own pairs (read after the moves, sic).
 void __fastcall CountedPairVector_InsertN(u8 *v, void *edx, u32 where, u32 n, const CountedPair *x);
+
+// 0x4f67b0 (stdcall, pops 12; name unconfirmed): _Ucopy: the pairs of [first, last) copy-constructed from to on, a null slot skipped (placement
+// new's check). Returns the end.
+u32 __stdcall CountedPair_UninitCopy(u32 first, u32 last, u32 to);
+
+// 0x4f67f0 (stdcall, pops 12; name unconfirmed): _Ufill: n copies of x constructed from to on, null slots skipped.
+void __stdcall CountedPair_UninitFill(u32 to, u32 n, const CountedPair *x);
+
+// 0x4f7410 (cdecl; name unconfirmed): the allocator's construct(p, x): x copy-constructed at p unless p is null.
+void __cdecl CountedPair_Construct(CountedPair *p, const CountedPair *x);
 }

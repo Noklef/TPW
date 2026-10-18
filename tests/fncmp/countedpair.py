@@ -1,6 +1,7 @@
 # The CountedPair members of src/game/core/countedpair (0x4e6410 the copy constructor, 0x4f5860 the assignment) against the originals: pairs of a
 # narrow and a wide std::string (null, empty, short, past 31 characters, shared, frozen, now and then unterminated or cut short by a 0) and a dword;
-# the assignment also from a pair sharing the target's blocks, or from the target itself; and a vector of them's insert(where, n, x) (0x4f5560).
+# the assignment also from a pair sharing the target's blocks, or from the target itself; a vector of them's insert(where, n, x) (0x4f5560); _Ucopy, _Ufill and construct (0x4f67b0, 0x4f67f0, 0x4f7410) and a
+# vector's construct (0x4f6e70).
 # usage: countedpair.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
@@ -13,10 +14,12 @@ import stdwstring  # noqa: E402
 from fncmp import Bench, Call, HEAP, RAM, heap  # noqa: E402
 
 B = Bench([(0x405280, 0x405390), (0x45b380, 0x45b5f0), (0x45b680, 0x45b9b0), (0x479230, 0x479270), (0x4e6410, 0x4e6560), (0x4f23f0, 0x4f2450),
-           (0x4f5860, 0x4f5988), (0x4f6080, 0x4f60a0), (0x67acd0, 0x67ad00), (0x4f5560, 0x4f5852), (0x4e51a0, 0x4e520e)])
+           (0x4f5860, 0x4f5988), (0x4f6080, 0x4f60a0), (0x67acd0, 0x67ad00), (0x4f5560, 0x4f5852), (0x4e51a0, 0x4e520e),
+           (0x4f67b0, 0x4f67e1), (0x4f67f0, 0x4f6819), (0x4f7410, 0x4f7423), (0x4f6e70, 0x4f6ee9)])
 P, X, NB, WB = RAM, RAM + 0x40, RAM + 0x1000, RAM + 0x2000   # the pair under test, the source, the narrow and the wide strings' blocks
-V, ARR = RAM + 0x80, RAM + 0x3000   # the vector of pairs, its block
-CALLS = {'Copy': 0x4e6410, 'Assign': 0x4f5860, 'Insert': 0x4f5560}
+V, V2, ARR, DST = RAM + 0x80, RAM + 0xa0, RAM + 0x3000, RAM + 0x4000   # the vectors of pairs, the block, a block constructed into
+CALLS = {'Copy': 0x4e6410, 'Assign': 0x4f5860, 'Insert': 0x4f5560, 'Ucopy': 0x4f67b0, 'Ufill': 0x4f67f0, 'Construct': 0x4f7410,
+         'VConstruct': 0x4f6e70}
 
 
 def strings(r, nb, wb, k):
@@ -49,10 +52,37 @@ def insert_case(r):
     return Call(CALLS['Insert'], [V, where, n, x], regions, conv='t', ret='v')
 
 
+def helper_case(r, op):
+    """_Ucopy / _Ufill / construct of 0-4 pairs (at ARR, or the one at X) to DST or a null slot; a vector's construct from one at V2 (no block,
+    empty or 1-4 pairs) into V or null, the new block now and then not got."""
+    nb, wb = bytearray(r.bytes(8 * stdstring.SLOT)), bytearray(r.bytes(8 * stdwstring.SLOT))
+    k = r.choice([0, 1, 1, 2, 3, 4])
+    arr = bytearray(r.bytes(0x24 * max(k, 1)))
+    for i in range(k):
+        arr[0x24 * i:0x24 * i + 0x24] = pair(r, *strings(r, nb, wb, i + 1))
+    to = 0 if r.random() < 0.15 else DST
+    fail = r.random() < 0.1
+    regions = {X: pair(r, *strings(r, nb, wb, 0)), NB: nb, WB: wb, ARR: arr, DST: r.bytes(0x24 * 5), HEAP: heap(fail=1 if fail else 0)}
+    if op == 'Ucopy':
+        lo = r.randrange(k + 1)
+        return Call(CALLS[op], [ARR + 0x24 * lo, ARR + 0x24 * r.randrange(lo, k + 1), to], regions, conv='s', ret='a')
+    if op == 'Ufill':
+        return Call(CALLS[op], [to, r.choice([0, 1, 1, 2, 3, 5]), X], regions, conv='s', ret='v')
+    if op == 'Construct':
+        return Call(CALLS[op], [to and DST, X], regions, conv='c', ret='v')
+    first = 0 if r.random() < 0.15 else ARR
+    last = first + 0x24 * k if first else r.choice([0, 0, 0, ARR])
+    regions[V2] = struct.pack('<IIII', r.getrandbits(32), first, last, first + 0x24 * (k + r.choice([0, 0, 2])))
+    regions[V] = r.bytes(0x10)
+    return Call(CALLS[op], [0 if r.random() < 0.1 else V, V2], regions, conv='c', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
     if op == 'Insert':
         return insert_case(r)
+    if op in ('Ucopy', 'Ufill', 'Construct', 'VConstruct'):
+        return helper_case(r, op)
     nb, wb = bytearray(r.bytes(4 * stdstring.SLOT)), bytearray(r.bytes(4 * stdwstring.SLOT))
     xn, xw = strings(r, nb, wb, 0)
     pn, pw = strings(r, nb, wb, 1)

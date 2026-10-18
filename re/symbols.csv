@@ -3924,6 +3924,9 @@ address,name,kind,confidence,notes
 0x004e6410,CountedPair_CopyCtor,function,low,"reimplemented (src/game/core/countedpair); thiscall (x, pops 4): the copy constructor: both strings empty (allocator byte = the low byte of x's address, sic), assigned x's characters as C strings; value = x's"
 0x004f5860,CountedPair_Assign,function,low,"reimplemented (src/game/core/countedpair); thiscall (x, pops 4): the assignment: each string assigned x's characters as a C string (the wide _Grow inlined); value = x's"
 0x004f5560,CountedPairVector_InsertN,function,low,"reimplemented (src/game/core/countedpair); thiscall (where, n, x, pops 12): vector<CountedPair>::insert(where, n, x) (MSVC6): a new block of size + max(n, size) when there is no room, else the tail moved up and the slots filled"
+0x004f67b0,CountedPair_UninitCopy,function,high,"reimplemented (src/game/core/countedpair); stdcall (first, last, to, pops 12): _Ucopy for pairs: [first, last) copy-constructed from to on, null slots skipped; returns the end"
+0x004f67f0,CountedPair_UninitFill,function,high,"reimplemented (src/game/core/countedpair); stdcall (to, n, x, pops 12): _Ufill for pairs: n copies of x constructed from to on, null slots skipped"
+0x004f7410,CountedPair_Construct,function,high,"reimplemented (src/game/core/countedpair); cdecl (p, x): construct(p, x): x copy-constructed at p unless p is null"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
