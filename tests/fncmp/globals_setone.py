@@ -1,5 +1,5 @@
 # The tiny functions of src/game/core/globals_setone against the originals: any object bytes, any globals, any arguments
-# (the colour with each byte anywhere in 0-255).
+# (the colour with each byte anywhere in 0-255). FillFrom: the table 0x879d08 and its start 0x879d48 random before, the start [0x8bcc40] any.
 # usage: globals_setone.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Get,...)
 import os
 import struct
@@ -10,7 +10,8 @@ from fncmp import Bench, Call, RAM  # noqa: E402
 
 # name: (address, convention, stack arguments, size)
 CALLS = {'Get': (0x57ac90, 't', 0, 8), 'One1': (0x57aca0, 'c', 0, 0x14), 'Set3': (0x57cb10, 't', 3, 0x18),
-         'One2': (0x57cb30, 'c', 0, 0x14), 'Ones': (0x57cb70, 'c', 0, 0x20), 'Colour': (0x5832e0, 't', 1, 0x84)}
+         'One2': (0x57cb30, 'c', 0, 0x14), 'Ones': (0x57cb70, 'c', 0, 0x20), 'Colour': (0x5832e0, 't', 1, 0x84),
+         'FillFrom': (0x56b650, 'c', 0, 0x2c)}
 B = Bench([(a, a + n) for (a, _c, _s, n) in CALLS.values()])
 VALUES = [0, 1, 0x7f, 0x80, 0xff, 0x100, 0xff00, 0xff0000, 0xff000000, 0x80000000, 0x7fffffff, 0xffffffff]
 
@@ -18,8 +19,8 @@ VALUES = [0, 1, 0x7f, 0x80, 0xff, 0x100, 0xff00, 0xff0000, 0xff000000, 0x8000000
 def case(r):
     name = r.choice(OPS)
     address, conv, nargs, _n = CALLS[name]
-    regions = {RAM: r.bytes(0x1000)}
-    for g in (0x8bb628, 0x8bba78, 0x8bcb80, 0x8bcb84, 0x8bcb88, 0x8bcb8c):
+    regions = {RAM: r.bytes(0x1000), 0x879d08: r.bytes(0x44)}
+    for g in (0x8bb628, 0x8bba78, 0x8bcb80, 0x8bcb84, 0x8bcb88, 0x8bcb8c, 0x8bcc40):
         regions[g] = struct.pack('<I', r.choice(VALUES))
     this = RAM + (0x200 if name == 'Get' else 0)
     args = [] if conv == 'c' else [this]
