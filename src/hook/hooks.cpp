@@ -3342,6 +3342,8 @@ const Hook kHooks[] = {
     {"CountedPairVectorDeque_Clear", 0x004e5700, (void *)&CountedPairVectorDeque_Clear, {0x56, 0x8b, 0xf1, 0x33, 0xc0}},
     {"CountedVector14_Assign",    0x00479490, (void *)&CountedVector14_Assign, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
     {"CountedVector14s_Copy",     0x0047d780, (void *)&CountedVector14s_Copy, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"CountedVector14_CtorCopy",  0x0047dba0, (void *)&CountedVector14_CtorCopy, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"CountedVector14Vector_InsertN", 0x0047bce0, (void *)&CountedVector14Vector_InsertN, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"StdTreeF_LowerBound",       0x005b2f40, (void *)&StdTreeF_LowerBound, {0x6a, 0xff, 0x68, 0xd8, 0xfa}},
     {"StdTreeF_AllFlagged",       0x005b0c40, (void *)&StdTreeF_AllFlagged, {0x51, 0x56, 0x8b, 0xf1, 0x33}},
     {"StdTreeF_FindLower",        0x005b20c0, (void *)&StdTreeF_FindLower, {0x8b, 0x44, 0x24, 0x08, 0x50}},

@@ -3706,6 +3706,8 @@ address,name,kind,confidence,notes
 0x004e5700,CountedPairVectorDeque_Clear,function,low,"reimplemented (src/game/core/buffers); thiscall: empties a deque of CountedPair vectors (0x10-byte elements, 0x1000-byte blocks): each vector's pairs destroyed and its block freed, finished blocks and at the end the map freed"
 0x00479490,CountedVector14_Assign,function,low,"reimplemented (src/game/core/buffers); thiscall (x), pops 4: the 0x24-byte entry's operator="
 0x0047d780,CountedVector14s_Copy,function,low,"reimplemented (src/game/core/buffers); cdecl (first, last, dest): std::copy of the entries"
+0x0047dba0,CountedVector14_CtorCopy,function,low,"reimplemented (src/game/core/buffers); thiscall (x), pops 4: the 0x24-byte entry's copy constructor"
+0x0047bce0,CountedVector14Vector_InsertN,function,low,"reimplemented (src/game/core/buffers); thiscall (position, n, x), pops 12: insert(position, n, x) on a vector of the entries"
 0x005b2f40,StdTreeF_LowerBound,function,high,reimplemented (src/game/core/stdtree); lower bound of a string key in the string map
 0x005b0c40,StdTreeF_AllFlagged,function,high,reimplemented (src/game/core/stdtree); whether every mapped object has the byte at +0xb9 set
 0x005b20c0,StdTreeF_FindLower,function,high,reimplemented (src/game/core/stdtree); stores the lower bound of a string key

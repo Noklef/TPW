@@ -140,4 +140,14 @@ u8 *__fastcall CountedVector14_Assign(u8 *object, void *, const u8 *x);
 // 0x47d780 (cdecl; first, last, dest; name unconfirmed): std::copy of 0x24-byte objects: each from [first, last) assigned to the next
 // from dest (CountedVector14_Assign, inlined with CountedEntries_Release for the destroying). Returns the end.
 u8 *__cdecl CountedVector14s_Copy(const u8 *first, const u8 *last, u8 *dest);
+
+// 0x47dba0 (thiscall; x, pops 4; name unconfirmed): the 0x24-byte object's copy constructor: x's dwords +0 to +0xc, the allocator byte
+// +0x10 and +0x20 copied, and a block of x's string count (a negative one 0) made with copies of x's strings (StdWStrings_UninitCopy,
+// inlined), last = end = after them. Returns the object.
+u8 *__fastcall CountedVector14_CtorCopy(u8 *object, void *, const u8 *x);
+
+// 0x47bce0 (thiscall on a vector of the 0x24-byte objects {allocator, first +4, last +8, end +0xc}; position, n, x, pops 12; name
+// unconfirmed): insert(position, n, x), as StdWStringVector_InsertN (core/stdwstring) with the copy constructor above, operator=
+// (CountedVector14_Assign) and CountedVector14_Clear for the strings', the counts the byte spans divided by 0x24 (signed, truncating).
+void __fastcall CountedVector14Vector_InsertN(u8 *vector, void *, u8 *position, u32 n, const u8 *x);
 }  // extern "C"

@@ -1,5 +1,5 @@
 # The IME's 0x24-byte entries (four dwords, a vector<wstring> at +0x10, a dword at +0x20) assigned (src/game/core/buffers: 0x479490, and
-# std::copy of them 0x47d780; the vector's own operator= and insert(position, n, x) in core/stdwstring: 0x47ac10, 0x47c970) and the current one cached (core/ime: 0x47a9b0)
+# std::copy of them 0x47d780; their copy constructor 0x47dba0 and a vector of them's insert(position, n, x) 0x47bce0; the vector's own operator= and insert(position, n, x) in core/stdwstring: 0x47ac10, 0x47c970) and the current one cached (core/ime: 0x47a9b0)
 # against the originals: the vectors null, smaller, within
 # the capacity or past it (a new block); assigned onto itself; the cache marked or not, matching the current entry's first dword or not.
 # usage: ime_cache.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
@@ -16,7 +16,7 @@ B = Bench([(0x479490, 0x4796a8), (0x47d780, 0x47d9cc), (0x47a9b0, 0x47ab92), (0x
            (0x47db20, 0x47db74), (0x47ae40, 0x47ae53), (0x47b300, 0x47b313), (0x405280, 0x405390), (0x479150, 0x4791b0),
            (0x47b750, 0x47bcf0), (0x4f23f0, 0x4f2450), (0x4f6080, 0x4f60a0), (0x67acd0, 0x67ad00), (0x47ae60, 0x47b060),
            (0x47b600, 0x47b750), (0x479230, 0x479256), (0x47d9d0, 0x47db00), (0x47d620, 0x47d780), (0x47ac10, 0x47ae3d),
-           (0x47c970, 0x47cc0c)])
+           (0x47c970, 0x47cc0c), (0x47dba0, 0x47dd47), (0x47bce0, 0x47bfd7), (0x4791c0, 0x479221)])
 ENTS = RAM            # entries: the object +0x40, x +0x80; std::copy's sources +0x100 on, destinations +0x200 on; the IME's list +0x300 on
 ARRS = RAM + 0x400    # a vector's strings: 0x80 (eight) each
 IME = RAM + 0xc00     # the IME (0x190 bytes)
@@ -94,6 +94,22 @@ def case(r):
         x = r.choice([ENTS + 0xe0] * 3 + ([first + 0x10 * r.randrange((last - first) // 0x10)] if last != first else []))
         n = r.choice([0, 1, 1, 2, 3, r.randrange(4, 9)])
         return Call(0x47c970, [ENTS + 0x50, position, n, x], m.regions(), conv='t', ret='v')
+    if op == 'CtorCopy':   # x's copy made over random bytes
+        m.entry(ENTS + 0x80)
+        return Call(0x47dba0, [ENTS + 0x40, ENTS + 0x80], m.regions(), conv='t', ret='a')
+    if op == 'EntInsert':   # a vector (at +0x30) of 0-5 entries from +0x100 (room for up to 8) or null; n copies of x (an entry of its own or one of them)
+        k = r.choice([0, 1, 2, 3, 5])
+        cap = 0 if r.random() < 0.1 else min(8, k + r.choice([0, 0, 1, 2, 4]))
+        k = min(k, cap)
+        first = ENTS + 0x100 if cap else 0
+        for i in range(k):
+            m.entry(first + 0x24 * i)
+        put(m.ram, 0x30, '4I', r.getrandbits(32), first, first + 0x24 * k, first + 0x24 * cap)
+        m.entry(ENTS + 0x80)
+        position = first + 0x24 * r.randrange(k + 1)
+        x = r.choice([ENTS + 0x80] * 3 + ([first + 0x24 * r.randrange(k)] if k else []))
+        n = r.choice([0, 1, 1, 2, 3, r.randrange(4, 7)])
+        return Call(0x47bce0, [ENTS + 0x30, position, n, x], m.regions(), conv='t', ret='v')
     if op == 'Copy':   # 0-3 entries to the destinations (or onto themselves)
         k = r.choice([0, 1, 2, 3, 3])
         for i in range(3):
@@ -112,7 +128,7 @@ def case(r):
     return Call(0x47a9b0, [IME], m.regions(), conv='t', ret='a')
 
 
-KINDS = ['Assign', 'Copy', 'Cache', 'VecAssign', 'Insert']
+KINDS = ['Assign', 'Copy', 'Cache', 'VecAssign', 'Insert', 'CtorCopy', 'EntInsert']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':
