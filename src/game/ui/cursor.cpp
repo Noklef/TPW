@@ -61,4 +61,26 @@ void __fastcall Obj7b51f0_SetCursor(void *, void *, u32 id) {
     if (u8 *const window = global<u8 *>(0x007cc8bc)) Window_SetCursor(window, nullptr, id);
 }
 
+void __cdecl GameCursor_Update() {
+    const auto pick = [](u32 otherwise) -> u32 {
+        if (global<u32>(0x00816d60)) return 5;
+        if (global<u32>(0x00816d4c)) return 0x12;
+        return otherwise;
+    };
+    switch (global<u32>(0x0081ae2c)) {
+    case 0x01: GameCursor_Set(pick(3)); break;
+    case 0x03: GameCursor_Set(pick(4)); break;
+    case 0x0b:
+    case 0x10: GameCursor_Set(pick(6)); break;
+    case 0x15: GameCursor_Set(global<u32>(0x00816d4c) ? 0x12 : 0xb); break;
+    case 0x16: GameCursor_Set(global<u32>(0x00816d4c) ? 0x12 : 0x11); break;
+    case 0x04:
+    case 0x3b: GameCursor_Set(7); break;
+    case 0x39: GameCursor_Set(3); break;
+    default: break;
+    }
+    if (Global816d48_Get()) GameCursor_Set(8);
+    if (global<u32>(0x00816d5c)) GameCursor_Set(0x14);
+}
+
 }

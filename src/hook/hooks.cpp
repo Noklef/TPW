@@ -4506,6 +4506,7 @@ const Hook kHooks[] = {
     {"Obj7b51f0_SetCursor",       0x004814a0, (void *)&Obj7b51f0_SetCursor, {0xa1, 0xac, 0xb2, 0x7c, 0x00}},
     {"GameCursor_Set",            0x004a2aa0, (void *)&GameCursor_Set, {0x8b, 0x0d, 0xac, 0xb2, 0x7c}},
     {"Window_ApplyCursor",        0x0065f150, (void *)&Window_ApplyCursor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GameCursor_Update",         0x0052f950, (void *)&GameCursor_Update, {0xa1, 0x2c, 0xae, 0x81, 0x00}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
