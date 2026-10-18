@@ -22,6 +22,8 @@
 # timed table as above, the hover's root a tree's or none; now and then an object's counts both -0x8000 (its release's 16-bit result
 # 0xffff, the 32-bit one not -1). Dtor705a50 / DeletingDtor705a50 (0x6689bc, 0x6693a0): the same, with the text row +0x148 or 0; the
 # children of either window class (the driver resolves both vtables).
+# HilightList_NewRow / List7cc188_NewRow (0x480d30 / 0x4a8380, src/game/ui/listrows): the Ctor's surroundings, the heap failing now and then,
+# font 7 (Language_Font, of group 0-2) a recorder whose slot 1 gives its height (edges too), the divisor word [0xfaa5c0] any but 0.
 # usage: window.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FindChild,SetChecks,SetChecksIfUp)
 import os
 import struct
@@ -44,7 +46,8 @@ CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50
          'RectAssign': 0x65aa20, 'SaveRect': 0x65bc90, 'OffsetByParents': 0x65c979,
          'Ctor': 0x65bcad, 'ForgetGlobals': 0x6592b6, 'DropModal': 0x65e672, 'Destroying': 0x65c2d8,
          'CancelPosted': 0x658fe9, 'CancelPostedFirst': 0x659012, 'CancelTimed': 0x65903b,
-         'Dtor': 0x65c025, 'DeletingDtor': 0x661680, 'Dtor705a50': 0x6689bc, 'DeletingDtor705a50': 0x6693a0}
+         'Dtor': 0x65c025, 'DeletingDtor': 0x661680, 'Dtor705a50': 0x6689bc, 'DeletingDtor705a50': 0x6693a0,
+         'HilightList_NewRow': 0x480d30, 'List7cc188_NewRow': 0x4a8380}
 SENDS = {k: int(k[6:12], 16) for k in CALLS if k.startswith('Dialog7')}   # the window's global
 B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6d1), (0x658d9f, 0x658df4), (0x659710, 0x659721),
            (0x4b87f0, 0x4b8850), (0x4b8e80, 0x4b8ea0), (0x4b8ec0, 0x4b8ee0), (0x4b9c00, 0x4b9c40),
@@ -61,7 +64,7 @@ B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x
            (0x658fe9, 0x659064), (0x669b3e, 0x669bdb), (0x669e3a, 0x669eb3),
            (0x65c025, 0x65c2c8), (0x661680, 0x6616b0), (0x659d90, 0x659dbc), (0x66bff7, 0x66c00b), (0x661f9b, 0x661fe5),
            (0x6620e2, 0x66213e), (0x662306, 0x662384), (0x662500, 0x66252c), (0x6689bc, 0x668a23), (0x6693a0, 0x6693cc),
-           (0x66969e, 0x6696b4)])
+           (0x66969e, 0x6696b4), (0x480d30, 0x480dc3), (0x4a8380, 0x4a8413), (0x485a70, 0x485a94)])
 WINDOW, NODES, VTABLE, MISC, KIDS, HOLDER, WINDOW2 = RAM, RAM + 0x100, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200, RAM + 0x1600, RAM + 0x1800
 QUEUES, TREE, RECTS, TIMED = RAM + 0x2000, RAM + 0x3000, RAM + 0x4000, RAM + 0x5000
 MANAGER, TNODES, RECT, ROWS, PARENT, CHILDREN = RAM + 0x5400, RAM + 0x5600, RAM + 0x5800, RAM + 0x5c00, RAM + 0x6000, RAM + 0x7000
@@ -316,6 +319,22 @@ def case(r):
                                         r.getrandbits(32), r.choice([0] * 6 + [1]))
         flags = r.choice([1, 0x401, 0x400, 0, 0x10000001, r.getrandbits(32)]) | (r.getrandbits(32) & 0x0ffff800 if r.random() < 0.3 else 0)
         return Call(CALLS[op], [WINDOW2, r.choice(wins + [0, 0]), flags, r.getrandbits(32)] + words, regions, conv='t', ret='a')
+    if op in ('HilightList_NewRow', 'List7cc188_NewRow'):   # the Ctor's surroundings for a window from the heap (or none), font 7's height
+        wins = tree(r, regions)
+        queues(r, regions)
+        regions[HEAP] = heap(0x400, r.choice([0] * 5 + [1]))
+        regions[0xfaa540] = struct.pack('<II', r.randrange(-10, 120) & 0xffffffff, r.randrange(-10, 40) & 0xffffffff)
+        regions[0xfaa5d8] = struct.pack('<5I', r.choice([wins[0], 0]), r.getrandbits(32), r.choice(wins + [0, 0]), r.getrandbits(32),
+                                        r.choice([0] * 6 + [1]))
+        regions[0xfaa5c0] = struct.pack('<H', r.choice([1, 2, 3, 0x600, 0x7fff, 0x8000, 0xffff, 0xfffd, r.randrange(1, 0x10000)]))
+        lang = bytearray(r.bytes(0x400))
+        group = r.choice([0, 1, 2])
+        put(lang, 4, 'I', group)
+        put(lang, 0x1c + (7 + 13 * group) * 0x18, 'I', VTABLE)
+        regions[0x78b530] = lang
+        regions[VTABLE] = vtable({})
+        set_return(log, 1, r.choice([r.randrange(0, 40), 0x7fff, 0x8000, 0xffff, r.getrandbits(16)]) | (r.getrandbits(16) << 16 if r.random() < 0.5 else 0))
+        return Call(CALLS[op], [], regions, ret='a')
     if op in ('ForgetGlobals', 'DropModal', 'Destroying'):
         wins = tree(r, regions) if op == 'Destroying' else [WINDOW]
         if op != 'Destroying':

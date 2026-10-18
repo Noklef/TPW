@@ -311,6 +311,7 @@
 #include "../game/ui/guimanager.h"
 #include "../game/ui/guirect.h"
 #include "../game/ui/guitimers.h"
+#include "../game/ui/listrows.h"
 #include "../game/ui/msgqueue.h"
 #include "../game/ui/panel7b9940.h"
 #include "../game/ui/panel7cc328.h"
@@ -4365,6 +4366,8 @@ const Hook kHooks[] = {
     {"Window705a50_Dtor",         0x006689bc, (void *)&Window705a50_Dtor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"ThingPreview_Hide",         0x00486630, (void *)&ThingPreview_Hide, {0xa1, 0xd8, 0x24, 0x7c, 0x00}},
     {"ThingPreview_Show",         0x00486530, (void *)&ThingPreview_Show, {0x51, 0xa1, 0xd8, 0x24, 0x7c}},
+    {"List7cc188_NewRow",         0x004a8380, (void *)&List7cc188_NewRow, {0x6a, 0xff, 0x68, 0xdb, 0xa7}},
+    {"HilightList_NewRow",        0x00480d30, (void *)&HilightList_NewRow, {0x6a, 0xff, 0x68, 0xcb, 0x90}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
