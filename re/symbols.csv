@@ -349,6 +349,8 @@ address,name,kind,confidence,notes
 0x0051c130,Sound_PlayAtRange,function,medium,"reimplemented (src/game/core/soundplay); cdecl (owner, category, sound, x, y, z, range): Sound_PlayAt with the range as a float at +0x18"
 0x00485aa0,SoundUi_Play,function,low,"reimplemented (src/game/core/soundplay); cdecl (sound): Sound_PlayAt(0, gSndCatUi [0x803a2c], sound, 0, 0, 0)"
 0x00486ae0,SoundUi_Play1d,function,low,"reimplemented (src/game/core/soundplay); cdecl: Sound_PlayAt(0, gSndCatUi [0x803a2c], 0x1d, 0, 0, 0)"
+0x00551560,KidSound_Play,function,low,"reimplemented (src/game/core/soundplay); cdecl (level, x, y, z): a kids' sound for a level (0x69 / 0x6a / 0x6c / 0x6d by level 1, < 4, < 8, else; nothing for 0) played at a position in gSndCatKids"
+0x00551320,KidSound_PlayGraded,function,low,"reimplemented (src/game/core/soundplay); cdecl (level, a, b, x, y, z): a kids' sound for a level (base 0x4b / 0x4f / 0x53 / 0x57) graded by (a + b) / 50 (at most 3; nothing for level 0 or a negative grade) played at a position in gSndCatKids"
 0x0051c5d0,Sound_SetArea,function,medium,"(sound, x, z, w, d): spreads an emitter over the rect (x, z)..(x+w, z+d)"
 0x00521e60,Particle_Spawn,function,high,"reimplemented (src/game/render/particles); cdecl (effect, x, y, z): starts a particle system from the effect definition: a free system to the live list, the definition copied, its first burst emitted, its linked voice or effect started; returns its handle, 0 for an optional effect while reduced, -1 when none"
 0x0051b530,SoundCategory_Register,function,medium,"loads a cat_<name> sound category (bank + map)"
