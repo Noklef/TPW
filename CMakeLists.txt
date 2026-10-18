@@ -175,6 +175,7 @@ add_library(tpw_game STATIC
     src/game/motion/track.cpp
     src/game/motion/animator.cpp
     src/game/motion/normals.cpp
+    src/game/motion/placement.cpp
     src/game/sprite/script.cpp
     src/game/sprite/draw.cpp
     src/game/sprite/sprite.cpp

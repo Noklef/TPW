@@ -157,6 +157,7 @@
 #include "../game/motion/normals.h"
 #include "../game/motion/curve.h"
 #include "../game/motion/keys.h"
+#include "../game/motion/placement.h"
 #include "../game/motion/quat.h"
 #include "../game/motion/track.h"
 #include "../game/motion/uvanim.h"
@@ -385,6 +386,7 @@ const Hook kHooks[] = {
     {"Motion_SetFlags", 0x004740d0, (void *)&Motion_SetFlags, {0x8b, 0x44, 0x24, 0x04, 0xa3}},
     {"Motion_SetTime",            0x004709d0, (void *)&Motion_SetTime, {0x8b, 0x44, 0x24, 0x04, 0xa3}},
     {"Motion_Time",               0x004709e0, (void *)&Motion_Time, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"Animator_Place",            0x00467030, (void *)&Animator_Place, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"SpriteScript_Run", 0x00475010, (void *)&SpriteScript_Run, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"SpriteScript_SkipBlock", 0x004750c0, (void *)&SpriteScript_SkipBlock, {0xa1, 0x18, 0x4a, 0x7b, 0x00}},
     {"SpriteScript_SkipToElse", 0x00475130, (void *)&SpriteScript_SkipToElse, {0xa1, 0x18, 0x4a, 0x7b, 0x00}},
