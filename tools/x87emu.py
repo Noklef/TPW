@@ -4,7 +4,7 @@ exe runs: the listing text is interpreted, and constants are read from the file 
 
 The x87 unit runs as the game leaves it, at single precision (Direct3D): every FADD/FSUB/
 FMUL/FDIV/FSQRT (and FIADD...) result is the exact result rounded once to a 24-bit
-significand, with the register's wide exponent (it becomes a float only when stored). FSIN/FCOS/FPATAN are exempt from precision
+significand, with the register's wide exponent (it becomes a float only when stored). FSIN/FCOS/FPTAN/FPATAN are exempt from precision
 control on real hardware; here they are evaluated in double, standing in for 64-bit
 extended. Integer flags cover what compiled MSVC 6 code tests.
 
@@ -397,6 +397,8 @@ class Emu:
                 self.st.pop(0)
         elif mn == 'FXCH':
             i = int(o[0][2]) if o else 1
+            # an empty register (stack underflow, masked) takes the indefinite first
+            self.st += [INDEFINITE] * (i + 1 - len(self.st))
             self.st[0], self.st[i] = self.st[i], self.st[0]
         elif mn == 'FCHS':
             self.st[0] = -self.st[0]
@@ -413,6 +415,13 @@ class Emu:
                 self.st[0] = INDEFINITE
             elif not math.isnan(v) and not self.c2:
                 self.st[0] = (math.sin if mn == 'FSIN' else math.cos)(v)
+        elif mn == 'FPTAN':
+            v = self.st[0]
+            # as fsin; then 1.0 pushed (a NaN or the indefinite for a NaN or infinity), nothing beyond 2^63
+            self.c2 = not math.isnan(v) and math.inf > abs(v) >= 2.0 ** 63
+            if not self.c2:
+                self.st[0] = INDEFINITE if math.isinf(v) else v if math.isnan(v) else math.tan(v)
+                self.st.insert(0, self.st[0] if math.isnan(self.st[0]) else 1.0)
         elif mn == 'FPATAN':
             x, y = self.st.pop(0), self.st[0]
             # a NaN operand comes through (Python's atan2 would give its own NaN)
