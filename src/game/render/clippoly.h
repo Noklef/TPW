@@ -26,4 +26,11 @@ s32 __fastcall ClipPoly_Indexed(void *self, void *edx, s32 flags, u8 *vertices, 
 // its this), then fanned out in place from end - 3 into count - 2 triangles (0, j - 1, j), the last first. Returns the end of the triangles
 // (end - 3 + count when the result has 3 or fewer indices).
 u16 *__stdcall ClipPoly_TriangleFan(s32 flags, u16 *end, u8 *vertices, u32 *vertexCount, s32 stride);
+
+// 0x562a70 (stdcall; flags, dest, source, count pointer, stride; name unconfirmed): ClipPoly_Indexed's clipping on a polygon of *count vertices
+// themselves, read from source: each pass writes the kept vertices (copied, rep movsd / movsb) and the new ones into the other buffer (dest
+// first, then source, alternating), *count its count; the distances are summed in other orders (the vertex reached w pw + ((pz z + x px) +
+// y py), the one before it x px + ((z pz + y py) + w pw)). 0 as soon as a pass leaves 2 or fewer (or the count was 0); else 1, the result
+// copied to dest when it ended in source.
+s32 __stdcall ClipPoly_Vertices(s32 flags, u8 *dest, u8 *source, u32 *count, s32 stride);
 }

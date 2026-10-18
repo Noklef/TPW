@@ -1,6 +1,7 @@
 # The clipper of a polygon of vertex indices (src/game/render/clippoly: 0x562c90, 0x562ed0) against the originals: triangles of any vertices
 # and convex flat polygons of 4-5 (now and then 0-2 indices, repeated indices, NaNs, vertices on a plane), mostly near the view volume, any flags (0, the six bits,
-# negative), strides 0x18-0x28, the vertex count past the vertices or further, the clip edges' globals of any bytes.
+# negative), strides 0x18-0x28, the vertex count past the vertices or further, the clip edges' globals of any bytes. The vertex clipper
+# (0x562a70): the same polygons as vertices, 0-5 of them.
 # usage: clippoly.py [CASES [SEED]] [--wild|--both] [--show N]
 import math
 import os
@@ -10,8 +11,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, Bench, Call, fb, put  # noqa: E402
 
-B = Bench([(0x561c40, 0x562a6d), (0x562c90, 0x562f80)])
-OPS = [0x562c90, 0x562ed0]
+B = Bench([(0x561c40, 0x562f80)])
+OPS = [0x562c90, 0x562ed0, 0x562a70]
 VERTS, POLY, COUNT, IDX = RAM, RAM + 0x1000, RAM + 0x1010, RAM + 0x1100
 
 
@@ -43,9 +44,25 @@ def vertex(r, p, stride):
     return v
 
 
+def vertices(r, stride):
+    """The vertex clipper (0x562a70): a polygon of 0-5 vertices (as the indexed one's) copied in, the count pointer, two buffers of room."""
+    k = r.random()
+    n = 3 if k < 0.6 else (r.choice([4, 5]) if k < 0.93 else r.randrange(3))
+    src = bytearray()
+    for p in polygon(r, max(n, 3))[:n]:
+        src += vertex(r, p, stride)
+    src += r.bytes(0x800 - len(src))
+    flags = r.choice([r.randrange(64), r.randrange(64), 63, r.randrange(1 << 32), r.randrange(1 << 31, 1 << 32), 0, 1 << r.randrange(6)])
+    dest = RAM + 0x2000
+    regions = {RAM + 0x1800: src, dest: r.bytes(0x800), COUNT: struct.pack('<I', n), 0x879960: r.bytes(0xc4), 0xfb34a0: r.bytes(8)}
+    return Call(0x562a70, [flags, dest, RAM + 0x1800, COUNT, stride], regions, conv='s', ret='a')
+
+
 def case(r):
     op = r.deal(OPS)
     stride = r.choice([0x18, 0x20, 0x28])
+    if op == 0x562a70:
+        return vertices(r, stride)
     k = r.random()
     n = 3 if op == 0x562ed0 or k < 0.6 else (r.choice([4, 5]) if k < 0.95 else r.randrange(3))
     pts = polygon(r, max(n, 3))

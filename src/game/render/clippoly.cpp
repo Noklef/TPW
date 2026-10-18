@@ -23,6 +23,28 @@ bool outside(const float *p, const u8 *v) {
     return !(d.v >= 0);
 }
 
+// The vertex clipper's (0x562a70) sums, in its orders: the vertex reached w pw + ((pz z + x px) + y py), the one before it
+// x px + ((z pz + y py) + w pw); fcomp 0, C0.
+bool OutsideReached(const float *p, const u8 *v) {
+    const float *f = reinterpret_cast<const float *>(v);
+    const X87Reg d = X87Reg(f[3]) * p[3] + ((X87Reg(p[2]) * f[2] + X87Reg(f[0]) * p[0]) + X87Reg(f[1]) * p[1]);
+    return !(d.v >= 0);
+}
+
+bool OutsideBefore(const float *p, const u8 *v) {
+    const float *f = reinterpret_cast<const float *>(v);
+    const X87Reg d = X87Reg(f[0]) * p[0] + ((X87Reg(f[2]) * p[2] + X87Reg(f[1]) * p[1]) + X87Reg(f[3]) * p[3]);
+    return !(d.v >= 0);
+}
+
+// rep movsd, then rep movsb: n bytes forward, a dword at a time.
+void Movs(u8 *d, const u8 *s, u32 n) {
+    for (u32 k = n >> 2; k != 0; k--, d += 4, s += 4)
+        memcpy(d, s, 4);
+    for (u32 k = n & 3; k != 0; k--)
+        *d++ = *s++;
+}
+
 }  // namespace
 
 extern "C" {
@@ -84,5 +106,46 @@ u16 *__stdcall ClipPoly_TriangleFan(s32 flags, u16 *end, u8 *vertices, u32 *vert
         *--w = idx[0];
     }
     return idx + (n - 2) * 3;
+}
+
+s32 __stdcall ClipPoly_Vertices(s32 flags, u8 *dest, u8 *source, u32 *count, s32 stride) {
+    u8 *const first = dest;
+    u8 *out0 = dest;   // where this pass writes
+    u8 *in = source;   // what it reads
+    for (int plane = 0; plane < 6 && flags != 0; plane++, flags >>= 1) {
+        if (!(flags & 1))
+            continue;
+        u8 *out = out0;
+        s32 n = 0;
+        const u8 *v = in;
+        const u8 *prev = in + (*count - 1) * (u32)stride;
+        for (u32 k = *count; k != 0; k--) {
+            const int code = OutsideReached(kPlanes[plane], v) + 2 * OutsideBefore(kPlanes[plane], prev);
+            if (code == 1 || code == 2) {
+                if (code == 1)
+                    kEdges[plane](out, v, prev, stride);
+                else
+                    kEdges[plane](out, prev, v, stride);
+                out += stride;
+                n++;
+            }
+            if (code == 0 || code == 2) {
+                Movs(out, v, (u32)stride);
+                out += stride;
+                n++;
+            }
+            prev = v;
+            v += stride;
+        }
+        *count = (u32)n;
+        if (n <= 2)
+            return 0;
+        u8 *const t = in;
+        in = out0;
+        out0 = t;
+    }
+    if (out0 == first)   // the result is in the source: copied to dest
+        Movs(out0, in, *count * (u32)stride);
+    return 1;
 }
 }
