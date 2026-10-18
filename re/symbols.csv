@@ -138,6 +138,7 @@ address,name,kind,confidence,notes
 0x004e0ac0,Obj_ReleaseRideElement0,function,low,reimplemented (src/game/world/ridelist); thiscall (handle): clear the word at +0x6c; element 0 of the ride record = 0 when it holds the handle
 0x004e0900,Obj_ClaimRideElement0,function,low,reimplemented (src/game/world/ridelist); thiscall (handle): claim element 0 of the ride record for the handle when the object is open and the element is free
 0x0051a760,Game_PollRideElement1,function,low,"reimplemented (src/game/world/ridelist); thiscall on the game object: 0 when the taken ride element 1 is 3, then (count at +0x2d0 under 10) 1, then 2; else 1"
+0x0055a4e0,Rides_GetE0ById,function,low,reimplemented (src/game/world/ridelist); cdecl (id): the dword +0xe0 of the ride record with the id; 0 without the system or the record
 0x00516330,World_Rand,function,high,"reimplemented (src/game/world/random); thiscall; LCG x*0x19660d+0x3c6ef35f, rotr 13, abs; state at world+0x1da708. Must be bit-exact for determinism"
 0x008791b0,RSSE_ScriptList,data,high,head of doubly linked list of live script contexts (0xF4 bytes each)
 0x008791ac,RSSE_ScriptCount,data,high,
