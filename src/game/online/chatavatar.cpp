@@ -38,6 +38,11 @@ extern "C" {
 
 void __fastcall ChatAvatar_MoveTo(u8 *avatar, void *, u32 x, u32 y) { moveTo(avatar, x, y, 0); }
 
+u32 __fastcall ChatAvatar_SayPosition(u8 *avatar) {
+    const u8 *const thing = at<u8 *>(avatar, 4);
+    return movePlayer(avatar, at<s16>(thing, 4), at<s16>(thing, 6), 2);
+}
+
 void __fastcall ChatAvatar_MoveTo3(u8 *avatar, void *, u32 x, u32 y) { moveTo(avatar, x, y, 3); }
 
 u8 __fastcall ChatAvatar_PlaceAtCell(u8 *self, void *, u32 handle, u32 cell) {
