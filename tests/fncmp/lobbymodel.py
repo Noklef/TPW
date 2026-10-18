@@ -38,7 +38,7 @@ def case(r):
             put(vec, 0, 'I', r.choice([0, 0x80000000]))
             put(vec, 8, 'I', r.choice([0, 0x80000000]))
         else:
-            mag = 3.4e38 if k < 0.7 else 2e-38
+            mag = 3.4e38 if k < 0.6 else 2e-38 if k < 0.8 else 2e-40   # (lengths and crosses out of the float range, or denormal)
             put(vec, 0, '3f', *(r.uniform(-mag, mag) for _ in range(3)))
     regs.update({RIDES: rides, OBJ: obj, MATRIX: matrix, VEC: vec})
     if op == 'Position':
