@@ -3947,6 +3947,7 @@ address,name,kind,confidence,notes
 0x0047bad0,StdWString_Grow,function,low,"reimplemented (src/game/core/stdwstring); thiscall (n, trim; pops 8): std::wstring::_Grow(n, trim): AL = characters to write (name unconfirmed)"
 0x0047bc00,StdWString_Split,function,low,reimplemented (src/game/core/stdwstring); thiscall: std::wstring::_Split(): a shared string's own copy (wcslen of the shared characters) (name unconfirmed)
 0x00405b90,GameError_IndexOfCode,function,low,reimplemented (src/game/core/gameerror); the error index of a library code
+0x00405710,GameError_Set,function,low,"reimplemented (src/game/core/gameerror); thiscall (index, arg, text), pops 12: +4 index, +8 arg, text strncpy into +0xc (0x50), +0 = 1"
 0x004ea740,CountedPair_CtorWide,function,low,"reimplemented (src/game/core/countedpair); thiscall (std::wstring by value, pops 16): the 0x24-byte pair of a narrow and a wide string and a dword: the narrow one empty, the wide one assigned the string, the dword 0; the string destroyed"
 0x004e6410,CountedPair_CopyCtor,function,low,"reimplemented (src/game/core/countedpair); thiscall (x, pops 4): the copy constructor: both strings empty (allocator byte = the low byte of x's address, sic), assigned x's characters as C strings; value = x's"
 0x004f5860,CountedPair_Assign,function,low,"reimplemented (src/game/core/countedpair); thiscall (x, pops 4): the assignment: each string assigned x's characters as a C string (the wide _Grow inlined); value = x's"
