@@ -67,4 +67,14 @@ u32 __fastcall DrawBuffer_IndexLimit(const u8 *buffer);
 // 0x3c4 and 0 for anything else. Returns the batch.
 u8 *__fastcall DrawBatch_Open(u8 *object, void *, u32 mode, u32 a, u32 kind, u32 b, u32 c);
 
+// 0x565960 (thiscall on the object DrawBatch_Open keeps its batch in (+0x20; vertex size +0x1c, vertex end +0x28, index end +0x2c);
+// vertex count pointer, indices, count, mask; pops 16; name unconfirmed): 0 when the batch's vertices (+0x28, its count +0x20 plus *the
+// vertex count, of the object's size) or indices (+0x2c, its count +0x24 plus count) pass the ends (unsigned). The clip codes of the
+// vertices from the batch's +0x28 (*the vertex count of them, stride 0x20; ClipCodes_Compute, the caller's ECX [0x879a20]) into a 0x400-byte
+// local (an index past it reads the original's stack); 0 when all share a code. Then the triangles of the indices (count read 3 at a time)
+// written from the batch's +0x2c on: one whose codes share a bit outside the mask is skipped; the list stops once the write position passes
+// the index end - 0x18 or the vertices (32 bytes each, *the vertex count re-read) the vertex end - 0x140. A triangle with a code outside the
+// mask is clipped into a fan (ClipPoly_TriangleFan with those codes, stride 0x20; it may add vertices). Returns the indices written.
+s32 __fastcall DrawBatch_AddClippedTriangles(u8 *object, void *, u32 *vertexCount, const u16 *indices, s32 count, u32 mask);
+
 }
