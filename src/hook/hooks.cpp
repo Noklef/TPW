@@ -307,6 +307,7 @@
 #include "../game/online/session.h"
 #include "../game/ui/dialog7ca1c8.h"
 #include "../game/ui/dialogs.h"
+#include "../game/ui/frame.h"
 #include "../game/ui/guidialog.h"
 #include "../game/ui/guimanager.h"
 #include "../game/ui/guirect.h"
@@ -4255,6 +4256,7 @@ const Hook kHooks[] = {
     {"LobbyModel_TimeLeft",       0x005d8440, (void *)&LobbyModel_TimeLeft, {0x8b, 0x41, 0x04, 0x85, 0xc0}},
     {"HelpBg_Refresh",            0x00492320, (void *)&HelpBg_Refresh, {0x66, 0x83, 0x79, 0x04, 0x00}},
     {"HelpBg_WindowHandler",      0x00491fe0, (void *)&HelpBg_WindowHandler, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"HelpBg_SetInterval",        0x00492160, (void *)&HelpBg_SetInterval, {0x56, 0x8b, 0xf1, 0x66, 0x83}},
     {"Class702af0_AcquireModels", 0x005da120, (void *)&Class702af0_AcquireModels, {0x53, 0x8b, 0xd9, 0x8b, 0x43}},
     {"Class702ca8_AcquireModels", 0x005dfca0, (void *)&Class702ca8_AcquireModels, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"Class702cb0_StartPendingPlay", 0x005e1350, (void *)&Class702cb0_StartPendingPlay, {0x56, 0x8b, 0xf1, 0x33, 0xc0}},
@@ -4382,6 +4384,7 @@ const Hook kHooks[] = {
     {"ThingPreview_Show",         0x00486530, (void *)&ThingPreview_Show, {0x51, 0xa1, 0xd8, 0x24, 0x7c}},
     {"List7cc188_NewRow",         0x004a8380, (void *)&List7cc188_NewRow, {0x6a, 0xff, 0x68, 0xdb, 0xa7}},
     {"HilightList_NewRow",        0x00480d30, (void *)&HilightList_NewRow, {0x6a, 0xff, 0x68, 0xcb, 0x90}},
+    {"Frame_SetInterval",         0x0066a084, (void *)&Frame_SetInterval, {0x55, 0x8b, 0xec, 0x51, 0x89}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

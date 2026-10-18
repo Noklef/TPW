@@ -4693,6 +4693,7 @@ address,name,kind,confidence,notes
 0x005d8440,LobbyModel_TimeLeft,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall u32: when the lobby model is set, Layer_GetPlayback(entry, 0, 0, 0, layer 0) (ms left); else 0"
 0x00492320,HelpBg_Refresh,function,high,"reimplemented (src/game/frontend/helpbg); thiscall; slot 7 of the help background vtable 0x6ff598: when the word at +4 is set, the object virtual method 0 (a tail call); name unconfirmed"
 0x00491fe0,HelpBg_WindowHandler,function,low,"reimplemented (src/game/frontend/helpbg); cdecl (window, message, a, b): on 0x14 slot 15 of the window's object (the help background); then Window_CallDefault"
+0x00492160,HelpBg_SetInterval,function,low,"reimplemented (src/game/frontend/helpbg); thiscall (value): with the word +0xc set, Frame_SetInterval then slot 0"
 0x005da120,Class702af0_AcquireModels,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall: once (+4), each list item (+0x58) not yet set up (+0xc) has its lobby model (+8) set up by RideUser_Acquire"
 0x005dfca0,Class702ca8_AcquireModels,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall: once (+0x10), the lobby models at +4 and +8 set up by RideUser_Acquire"
 0x005e1350,Class702cb0_StartPendingPlay,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall, vtable 0x702cb0 slot 6: a pending play (state +0x14 == 2) started with LobbyModel_Play(entry 1); 0 when the state is 0, else 1 and the state cleared"
@@ -4817,3 +4818,4 @@ address,name,kind,confidence,notes
 0x00486630,ThingPreview_Hide,function,low,reimplemented (src/game/ui/thingpreview); cdecl: with [0x7c24d8] set the copy (slot [0x7c24a0]) killed and [0x7c24d8] cleared
 0x00480d30,HilightList_NewRow,function,low,"reimplemented (src/game/ui/listrows); cdecl: the ""hilight"" list's row window (0x138 bytes, Window_Ctor (0, 0, 100, font 7's height * 0x600 / [0xfaa5c0] + 6)), the height first"
 0x004a8380,List7cc188_NewRow,function,low,"reimplemented (src/game/ui/listrows); cdecl: the same for the list of the window [0x7cc188], the height once allocated"
+0x0066a084,Frame_SetInterval,function,low,"reimplemented (src/game/ui/frame); thiscall (value): +0x14 = value; with the words +4 and +0xc set, +0x10 = GuiClock_Now"
