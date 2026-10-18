@@ -546,6 +546,16 @@ u16 *__cdecl Map_ObjectAtCell(u16 *out, s32 *x, s32 *y) {
     *out = handle;
     return out;
 }
+
+u16 *__cdecl Map_ObjectOrEntranceAt(u16 *out, s32 x, s32 y) {
+    const s32 first = (s32)(global<u32>(0x007855bc) - 1), last = (s32)(global<u32>(0x007855c4) + 1);  // (wrapping)
+    if (x >= first && x <= last && y == global<s32>(0x007855c0)) {
+        *out = at<u16>(global<u8 *>(0x007cf83c), 0x1da732);
+        return out;
+    }
+    Map_ObjectAtCell(out, &x, &y);
+    return out;
+}
 }  // extern "C"
 
 namespace {
