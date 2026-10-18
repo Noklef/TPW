@@ -88,4 +88,11 @@ void __cdecl Animator_InitUnusedEpsilon();
 // camera's).
 void __cdecl Instance_InitUnusedOne();
 void __cdecl Instance_InitUnusedEpsilon();
+
+// 0x45bac0 (cdecl; the holder; name unconfirmed): the holder freed: Holder_Sleep with flag 1, Holder_Destroy when it has a part (+0x1c);
+// the object model at +0x20, when the count at +0x34 is then 0, unloaded (ObjModel_Unload) and deleted through its slot 0 (with 1, the
+// pointer adjusted by the virtual base offset in the word at +4 of its vtable; +0x20 kept); the blocks at +0x98 of the model's (+4)
+// parts (+0x70, 0xa0 bytes each, the u16 count at +0x44) with flag 0x1000 freed but for the part at +0x2c; the block at +0x14 freed and
+// cleared, the part states (PartStates_Free), the model's block at +0xb0, +4 cleared and the holder itself (GlobalMem_Free each).
+void __cdecl Holder_Free(u8 *holder);
 }

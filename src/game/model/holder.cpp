@@ -7,6 +7,8 @@
 #include "../core/vcall.h"
 #include "../core/misc.h"
 #include "../core/globalmem.h"
+#include "objmodel.h"
+#include "partstate.h"
 
 namespace {
 
@@ -212,4 +214,29 @@ void __cdecl Animator_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x0078f47
 void __cdecl Instance_InitUnusedOne() { *reinterpret_cast<float *>(0x007a0174) = 1.0f; }
 
 void __cdecl Instance_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x007a086c) = 1.0f / 8388608.0f; }
+
+void __cdecl Holder_Free(u8 *holder) {
+    if (at<u32>(holder, 0) & 1)
+        Holder_Sleep(holder);
+    if (at<u8 *>(holder, 0x1c))
+        Holder_Destroy(holder);
+    if (at<u8 *>(holder, 0x20) && at<s32>(holder, 0x34) == 0) {
+        ObjModel_Unload(at<u8 *>(holder, 0x20));
+        if (u8 *object = at<u8 *>(holder, 0x20)) {
+            u8 *adjusted = object + at<s32>(at<u8 *>(object, 0), 4);
+            vcall<u32>(adjusted, 0, 1u);
+        }
+    }
+    const u8 *model = at<u8 *>(holder, 4);
+    u8 *part = at<u8 *>(model, 0x70);
+    for (u32 n = at<u16>(model, 0x44); n; --n, part += 0xa0)
+        if (part != at<u8 *>(holder, 0x2c) && (at<u32>(part, 0) & 0x1000))
+            GlobalMem_Free(at<void *>(part, 0x98));
+    GlobalMem_Free(at<void *>(holder, 0x14));
+    at<u32>(holder, 0x14) = 0;
+    PartStates_Free(holder);
+    GlobalMem_Free(at<void *>(at<u8 *>(holder, 4), 0xb0));
+    at<u32>(holder, 4) = 0;
+    GlobalMem_Free(holder);
+}
 }
