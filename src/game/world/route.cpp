@@ -307,4 +307,21 @@ u32 __cdecl Route_Find(u8 *route, u32 mode) {
         global<u8>(0x007cf3a0) = 0xff;
     return Route_Refine(route, Route_Search(route, at<u16>(route, 2), 60000));
 }
+
+s32 __cdecl Route_CellDistance(u32 from, u32 to, u32 mode) {
+    u8 route[0x200];  // (only the start, the target and what the search writes are read)
+    route[2] = (u8)((from - 1) & 0x7f);
+    route[3] = (u8)((from - 1) >> 7);
+    route[4] = (u8)((to - 1) & 0x7f);
+    route[5] = (u8)((to - 1) >> 7);
+    if (Route_SearchFrom(route, mode) == 0x70000000)
+        return -1;
+    s32 total = 0;
+    for (s32 k = 0; k < (s32)route[0] - 1; ++k) {
+        const s32 dy = (s32)route[7 + 2 * k] - (s32)route[9 + 2 * k];
+        const s32 dx = (s32)route[6 + 2 * k] - (s32)route[8 + 2 * k];
+        total += (dx < 0 ? -dx : dx) + (dy < 0 ? -dy : dy);
+    }
+    return total;
+}
 }
