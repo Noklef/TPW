@@ -95,4 +95,16 @@ void __cdecl Instance_InitUnusedEpsilon();
 // parts (+0x70, 0xa0 bytes each, the u16 count at +0x44) with flag 0x1000 freed but for the part at +0x2c; the block at +0x14 freed and
 // cleared, the part states (PartStates_Free), the model's block at +0xb0, +4 cleared and the holder itself (GlobalMem_Free each).
 void __cdecl Holder_Free(u8 *holder);
+
+// 0x463db0 (cdecl; the instance, kept; name unconfirmed): the instance freed: the +0xb0 blocks (GlobalMem_FreeAtB0) of the +0xa8 objects
+// of the array at +0xdc; the blocks at +0xac, +0xdc and +0xd8, each cleared; the animator at +0xb4, when there is one, disposed of
+// (Animator_Dispose), its block +8 and itself freed and cleared; the object at +0xb0, when there is one, its block +0xc and itself freed
+// and cleared; when kept is 0 the block at +0xcc freed (Instance_FreeBlockCC), else +0xcc cleared; the holder at +8 (Holder_Free) and
+// the instance itself freed.
+void __cdecl Instance_Free(u8 *instance, u32 kept);
+
+// 0x463ed0 (cdecl; name unconfirmed): the instances of the type table at 0x7ae6a8 (entries [0x7a439c] down to 1) freed: the one at
+// +0xd0 of each, when there is one, freed with its +0xcc block kept (Instance_Free) and cleared; the holder's block (Instance_FreeHolderBlock)
+// and the record block (Instance_FreeRecordBlock) freed, then the instance (Instance_Free). The count is then 0.
+void __cdecl InstanceTypes_FreeAll();
 }

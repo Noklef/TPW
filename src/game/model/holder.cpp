@@ -9,6 +9,7 @@
 #include "../core/globalmem.h"
 #include "objmodel.h"
 #include "partstate.h"
+#include "release.h"
 
 namespace {
 
@@ -238,5 +239,48 @@ void __cdecl Holder_Free(u8 *holder) {
     GlobalMem_Free(at<void *>(at<u8 *>(holder, 4), 0xb0));
     at<u32>(holder, 4) = 0;
     GlobalMem_Free(holder);
+}
+
+void __cdecl Instance_Free(u8 *instance, u32 kept) {
+    for (u32 i = 0; i < at<u32>(instance, 0xa8); ++i) GlobalMem_FreeAtB0(at<u8 **>(instance, 0xdc)[i]);
+    GlobalMem_Free(at<void *>(instance, 0xac));
+    at<u32>(instance, 0xac) = 0;
+    GlobalMem_Free(at<void *>(instance, 0xdc));
+    at<u32>(instance, 0xdc) = 0;
+    GlobalMem_Free(at<void *>(instance, 0xd8));
+    at<u32>(instance, 0xd8) = 0;
+    if (at<u8 *>(instance, 0xb4)) {
+        Animator_Dispose(at<u8 *>(instance, 0xb4));
+        GlobalMem_Free(at<void *>(at<u8 *>(instance, 0xb4), 8));
+        at<u32>(at<u8 *>(instance, 0xb4), 8) = 0;
+        GlobalMem_Free(at<void *>(instance, 0xb4));
+        at<u32>(instance, 0xb4) = 0;
+    }
+    if (at<u8 *>(instance, 0xb0)) {
+        GlobalMem_Free(at<void *>(at<u8 *>(instance, 0xb0), 0xc));
+        at<u32>(at<u8 *>(instance, 0xb0), 0xc) = 0;
+        GlobalMem_Free(at<void *>(instance, 0xb0));
+        at<u32>(instance, 0xb0) = 0;
+    }
+    if (kept)
+        at<u32>(instance, 0xcc) = 0;
+    else
+        Instance_FreeBlockCC(instance);
+    Holder_Free(at<u8 *>(instance, 8));
+    GlobalMem_Free(instance);
+}
+
+void __cdecl InstanceTypes_FreeAll() {
+    for (u32 n = global<u32>(0x007a439c); n; --n) {
+        u8 *const instance = global<u8 *>(0x007ae6a8 + 4 * n);
+        if (at<u8 *>(instance, 0xd0)) {
+            Instance_Free(at<u8 *>(instance, 0xd0), 1);
+            at<u32>(instance, 0xd0) = 0;
+        }
+        Instance_FreeHolderBlock(instance);
+        Instance_FreeRecordBlock(instance);
+        Instance_Free(instance, 0);
+    }
+    global<u32>(0x007a439c) = 0;
 }
 }

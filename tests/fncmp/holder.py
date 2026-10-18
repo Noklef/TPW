@@ -1,7 +1,7 @@
 # The holder functions of src/game/model/holder that go through the renderer (0x45bdd0 Holder_Sleep, 0x4254c0 Animator_Sleep, 0x45bc60 Holder_Destroy, 0x45bac0 Holder_Free) against the originals: a
 # holder whose part sits in a renderer's slot lists (tags 0x10, 0x20, 0x70) or not; an animator holding such a holder; and a holder whose part has a vtable (a recorder) giving the
 # virtual base offset; a holder disposed of (and the owner that holds it); a holder added to the renderer's grid (grid_masks.py's environment, the part reached through its virtual base offset); a user of the holder behind [0x79fcb4] taking it out by its rectangle (misc.py's grid) or by sleeping, and putting it back (Wake: the slot list; Acquire / RideAcquire: the grid rectangle or Wake).
-# usage: holder.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Sleep,Animator,Destroy,Release,Grid,Dispose,Owner,AnimGrid,Children,Wake,Acquire,RideAcquire,AddObj,SetPart,Unlink,AnimDispose,InstDispose,Free)
+# usage: holder.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Sleep,Animator,Destroy,Release,Grid,Dispose,Owner,AnimGrid,Children,Wake,Acquire,RideAcquire,AddObj,SetPart,Unlink,AnimDispose,InstDispose,Free,InstFree,FreeAll)
 import os
 import struct
 import sys
@@ -16,7 +16,8 @@ from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, pu
 
 RANGES = [(0x425490, 0x4254c0), (0x43eac0, 0x43eb00), (0x455a50, 0x455ae0), (0x45ba00, 0x45ba30), (0x4254c0, 0x4254f0), (0x45bc60, 0x45bcb0), (0x45bdd0, 0x45be90), (0x45be80, 0x45bed0), (0x576540, 0x5765d0), (0x5766e0, 0x57681a), (0x5d8820, 0x5d8870), (0x45bcb0, 0x45bd10), (0x576620, 0x5766f0), (0x576270, 0x576320), (0x5e2a80, 0x5e2b80), (0x67acb0, 0x67acb1), (0x590730, 0x590750), (0x5da3c0, 0x5da3c1), (0x45bd00, 0x45bd30), (0x576410, 0x576550), (0x5d8130, 0x5d8190), (0x5d87d0, 0x5d8820), (0x56b2f0, 0x56b340), (0x48f5c0, 0x48f650),
            (0x43bd20, 0x43bdc0), (0x44b270, 0x44b2c0), (0x44b4c0, 0x44b520), (0x475550, 0x4755a0), (0x5f5680, 0x5f56a0), (0x4254f0, 0x4255c0), (0x455ae0, 0x455c00),
-           (0x45bac0, 0x45bbbc), (0x57a100, 0x57a258), (0x44aae0, 0x44ab30)]
+           (0x45bac0, 0x45bbbc), (0x57a100, 0x57a258), (0x44aae0, 0x44ab30),
+           (0x463db0, 0x463ec5), (0x463ed0, 0x464140), (0x452540, 0x452560), (0x46b3b0, 0x46b3d0), (0x468200, 0x468246), (0x45baa0, 0x45bab4)]
 HOOKS = {0x691de0: vobj3.lock, 0x691ea0: lambda e: None}
 B = Bench(RANGES, hooks=HOOKS)
 ANIM, OWNER, TARGET, USER = RAM + 0x2000, RAM + 0x2500, RAM + 0x3000, RAM + 0x3200
@@ -276,13 +277,18 @@ def animator_dispose(r):   # 0x425510: the animator's holder (sleeping when flag
 
 
 def animator_env(r):   # the regions of an animator at IANIM for its disposal (animator_dispose's)
-    hold, part = holder_at(r, IHOLD, OWNER)
+    anim, part = animator_parts(r)
     regions = renderer_env(r, [part])
+    regions.update(anim)
+    return regions
+
+
+def animator_parts(r):   # animator_env's regions but the renderer, and the animator's holder's part
+    hold, part = holder_at(r, IHOLD, OWNER)
     model = put(put(bytearray(r.bytes(0x60)), 0x36, 'H', r.choice([0, 1, 3, 5])), 0x54, 'I', IRECS)
     put(hold, 4, 'I', IMODEL)
-    regions.update({IHOLD: hold, OWNER: r.bytes(0x40), IANIM: animator_at(r), ICOUNT: put(bytearray(r.bytes(0x20)), 0x1c, 'i', r.choice([1, 1, 2, 0, -1])),
-                    IMODEL: model, IRECS: r.bytes(0x50)})
-    return regions
+    return {IHOLD: hold, OWNER: r.bytes(0x40), IANIM: animator_at(r), ICOUNT: put(bytearray(r.bytes(0x20)), 0x1c, 'i', r.choice([1, 1, 2, 0, -1])),
+            IMODEL: model, IRECS: r.bytes(0x50)}, part
 
 
 def instance_dispose(r):   # 0x455ad0: an instance with an animator (or none) at +0xb4, parts at +0xac and its holder at +8 (RAM), both holders' parts in the renderer
@@ -304,22 +310,34 @@ def instance_dispose(r):   # 0x455ad0: an instance with an animator (or none) at
     return Call(0x455ad0, [INST], regions, conv='c', ret='a')
 
 
-FMODEL, FPARTS, FOBJ, FSTATES = RAM + 0xb000, RAM + 0xb100, RAM + 0xb800, RAM + 0xb900
+FMODEL, FPARTS, FOBJ, FSTATES, FRECS = RAM + 0xb000, RAM + 0xb100, RAM + 0xb800, RAM + 0xb900, RAM + 0xb940
 
 
 def holder_free(r):   # 0x45bac0: a holder (destroy()'s, its part in the renderer) with an object model at +0x20 (no model at its +8: ObjModel_Unload's short
     # path) behind a virtual base like the part's, the count +0x34 that Destroy may bring to 0, a model of 0-5 parts some with flag 0x1000 (+0x2c one of them or not), part states or none
-    hold, part = holder_at(r, RAM, OWNER)
+    hold, part = free_holder(r, RAM)
     regions = renderer_env(r, [part])
+    regions.update({RAM: hold, **free_shared(r)})
+    return Call(0x45bac0, [RAM], regions, conv='c', ret='v')
+
+
+def free_holder(r, base):   # holder_free's holder at base (sharing free_shared's model, object model and part states); returns it and its part
+    hold, part = holder_at(r, base, OWNER)
     put(hold, 0x34, 'i', r.choice([0, 0, 1, 1, 2, -1]))
-    put(hold, 0x1c, 'I', r.choice([0, struct.unpack_from('<I', hold, 0x1c)[0] or RAM + 0x100]))
+    put(hold, 0x1c, 'I', r.choice([0, struct.unpack_from('<I', hold, 0x1c)[0] or base + 0x100]))
     put(hold, 4, 'I', FMODEL)
     put(hold, 0x14, 'I', r.choice([0, r.getrandbits(32)]))
     put(hold, 0x20, 'I', r.choice([0, FOBJ, FOBJ]))
     put(hold, 0x28, 'I', r.choice([0, FSTATES]))
     put(hold, 0x2c, 'I', r.choice([0, FPARTS, FPARTS + 0xa0, FPARTS + 0x1e0, r.getrandbits(32)]))
+    return hold, part
+
+
+def free_shared(r):   # free_holder's shared regions: the model (its records at FRECS for Instance_FreeRecordBlock), its parts, the object model, part states
     n = r.choice([0, 1, 2, 3, 5])
     model = put(put(put(bytearray(r.bytes(0xc0)), 0x44, 'H', n), 0x70, 'I', FPARTS), 0xb0, 'I', r.choice([0, r.getrandbits(32)]))
+    put(model, 0x36, 'H', r.choice([0, 1, 3]))
+    put(model, 0x54, 'I', FRECS)
     parts = bytearray(r.bytes(0xa0 * 5))
     for k in range(5):
         put(parts, 0xa0 * k, 'I', r.getrandbits(32) & ~0x1000 | r.choice([0, 0x1000]))
@@ -330,11 +348,59 @@ def holder_free(r):   # 0x45bac0: a holder (destroy()'s, its part in the rendere
     put(obj, 8, 'I', 0)
     put(obj, 0, 'I', FOBJ + 0x80)
     put(obj, offset, 'I', FOBJ + 0x80)
-    regions.update({RAM: hold, OWNER: r.bytes(0x40), FMODEL: model, FPARTS: parts, FOBJ: bytes(obj) + bytes(vt), FSTATES: r.bytes(0x20)})
-    return Call(0x45bac0, [RAM], regions, conv='c', ret='v')
+    return {OWNER: r.bytes(0x40), FMODEL: model, FPARTS: parts, FOBJ: bytes(obj) + bytes(vt), FSTATES: r.bytes(0x20), FRECS: r.bytes(0x30)}
 
 
-CASES = {'Sleep': sleep, 'Animator': animator, 'Destroy': destroy, 'Release': release, 'Grid': add_to_grid, 'Dispose': dispose, 'Owner': dispose_owner, 'AnimGrid': animator_grid, 'Children': children, 'Wake': wake, 'Acquire': lambda r: acquire(r, False), 'RideAcquire': lambda r: acquire(r, True), 'AddObj': add_obj, 'SetPart': set_part, 'Unlink': unlink, 'AnimDispose': animator_dispose, 'InstDispose': instance_dispose, 'Free': holder_free}
+INSTS, IHOLDS = RAM + 0xc000, RAM + 0x10000   # (InstFree / FreeAll: instances 0x200 apart, their holders 0x400 apart)
+
+
+def instance_at(r, base, holder, animator):   # an instance for Instance_Free at base: 0-4 objects (+0xa8) in an array at +0x100 (+0xdc), each
+    # pointing into the instance (+0xb0 read there), the object +0xb0 (its +0xc) at +0x180 or none, the animator given or none, blocks or none
+    inst = bytearray(r.bytes(0x200))
+    put(inst, 8, 'I', holder)
+    put(inst, 0xa8, 'I', r.choice([0, 1, 2, 4]))
+    put(inst, 0xdc, 'I', base + 0x100)
+    for k in range(4):
+        put(inst, 0x100 + 4 * k, 'I', base + r.randrange(0, 0x140, 4))
+    put(inst, 0xb0, 'I', r.choice([0, base + 0x180]))
+    put(inst, 0xb4, 'I', animator)
+    for off in (0xac, 0xd8, 0xcc):
+        put(inst, off, 'I', r.choice([0, r.getrandbits(32)]))
+    put(inst, 0xd0, 'I', 0)
+    return inst
+
+
+def instance_free(r):   # 0x463db0: an instance with its holder (free_holder's) and an animator (animator_parts') or none, kept or not
+    hold, part = free_holder(r, RAM)
+    anim, apart = animator_parts(r)
+    regions = renderer_env(r, [part, apart])
+    regions.update({**anim, RAM: hold, **free_shared(r)})
+    regions[INSTS] = instance_at(r, INSTS, RAM, r.choice([0, IANIM, IANIM]))
+    return Call(0x463db0, [INSTS, r.choice([0, 0, 1, 0x100, 0xffffffff])], regions, conv='c', ret='v')
+
+
+def free_all(r):   # 0x463ed0: 0-3 types in the table, each with its holder and an instance at +0xd0 (its own holder) or none; one animator at most
+    count = r.choice([0, 1, 2, 3, 3])
+    anim, apart = animator_parts(r)
+    owner = r.randrange(2 * count) if count and r.random() < 0.6 else -1
+    regions, parts, table = {}, [apart], bytearray(r.bytes(0x10))
+    for k in range(2 * count):   # types at INSTS + 0x200 * k for even k, their instances after them
+        if k % 2 and r.random() < 0.4:
+            continue
+        hold, part = free_holder(r, IHOLDS + 0x400 * k)
+        parts.append(part)
+        regions[IHOLDS + 0x400 * k] = hold
+        regions[INSTS + 0x200 * k] = instance_at(r, INSTS + 0x200 * k, IHOLDS + 0x400 * k, IANIM if k == owner else 0)
+        if k % 2:
+            put(regions[INSTS + 0x200 * (k - 1)], 0xd0, 'I', INSTS + 0x200 * k)
+        else:
+            put(table, 4 * (k // 2), 'I', INSTS + 0x200 * k)
+    regions.update(renderer_env(r, parts))
+    regions.update({**anim, **free_shared(r), 0x7ae6ac: table, 0x7a439c: struct.pack('<I', count)})
+    return Call(0x463ed0, [], regions, conv='c', ret='v')
+
+
+CASES = {'Sleep': sleep, 'Animator': animator, 'Destroy': destroy, 'Release': release, 'Grid': add_to_grid, 'Dispose': dispose, 'Owner': dispose_owner, 'AnimGrid': animator_grid, 'Children': children, 'Wake': wake, 'Acquire': lambda r: acquire(r, False), 'RideAcquire': lambda r: acquire(r, True), 'AddObj': add_obj, 'SetPart': set_part, 'Unlink': unlink, 'AnimDispose': animator_dispose, 'InstDispose': instance_dispose, 'Free': holder_free, 'InstFree': instance_free, 'FreeAll': free_all}
 
 
 def case(r):
