@@ -4195,6 +4195,8 @@ address,name,kind,confidence,notes
 0x005744d0,Meshes_Ready,function,high,reimplemented (src/game/render/meshlist); a zero-ended array of meshes readied (flag 0x20: object +0x30; no 0x10000000: pushed on 0x879dec)
 0x00574110,Meshes_SetDirection,function,low,"reimplemented (src/game/render/meshlist); thiscall on [0x87a248] (x, y, z): +0x34-+0x3c = the vector made unit length, or as it is when its length is 0 or NaN"
 0x00565240,Batch_Begin,function,high,"reimplemented (src/game/render/batch); a draw batch begun for a primitive kind, its fields filled"
+0x00565e70,Batch_FogVertices,function,low,"reimplemented (src/game/render/batch); thiscall (vertices, count; pops 8): with fog (0x8bcbc8 bit 0x2000), colour fog (0x4000: VertexFog_Colour at the vertex size +0x1c, the batch's flags lose 0x100000 and gain 0x80000) or alpha fog (0x8000: VertexFog_Alpha) (name unconfirmed)"
+0x00565ee0,Batch_Fog,function,low,"reimplemented (src/game/render/batch); thiscall: with the driver kind 0x8bd524 1, the same on the batch's vertices (+0x28) and count (+0x20), no fog bit test (name unconfirmed)"
 0x00569f60,Rasteriser_ChooseSpan,function,high,reimplemented (src/game/render/rasteriser); the span routine chosen by the render flags
 0x00569f20,Rasteriser_ClearMmx,function,high,"reimplemented (src/game/render/rasteriser); EMMS, returns 1 (name unconfirmed)"
 0x0053c8d0,DynFaces_AddSquare,function,high,reimplemented (src/game/render/dynfaces); queues a square dynamic face

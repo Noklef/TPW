@@ -12,4 +12,13 @@ extern "C" {
 // +0x34 = -1. The object's +0x1c is the vertex size for the kind (0xc4: 0x18, 0x1c4: 0x20, 0x2c4: 0x28,
 // 0x3c4: 0x30, else 0), +0x28 and +0x2c the buffer's vertex and index limits. Returns the batch.
 u8 *__fastcall Batch_Begin(u8 *object, void *, u32 mode, u32 texture, u32 kind, u32 flags, u32 extra);
+
+// 0x565e70 (thiscall on the same object; vertices, count, pops 8; name unconfirmed): with fog in the render flags (0x8bcbc8 bit
+// 0x2000): colour fog (bit 0x4000) is applied to the vertices (VertexFog_Colour, the object's vertex size +0x1c as the stride) and
+// the batch's (+0x20) flags at +4 lose 0x100000 and gain 0x80000; else alpha fog (bit 0x8000) is applied (VertexFog_Alpha).
+void __fastcall Batch_FogVertices(u8 *object, void *, u8 *vertices, u32 count);
+
+// 0x565ee0 (thiscall on the same object; name unconfirmed): with the driver kind (0x8bd524) 1, the same on the batch's own vertices
+// (+0x28) and count (+0x20), without the fog bit's test.
+void __fastcall Batch_Fog(u8 *object, void *);
 }
