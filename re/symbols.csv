@@ -1713,6 +1713,7 @@ address,name,kind,confidence,notes
 0x005f8d40,RegKey_TypeOf,function,high,"reimplemented (src/game/core/regkey); thiscall (name) -> the REG_ type, -2 for a subkey, -1 for neither"
 0x005f8da0,RegKey_Ctor,function,high,reimplemented (src/game/core/regkey); thiscall; the handle zeroed (0x581da0)
 0x00581da0,Ptr_Ctor,function,high,reimplemented (src/game/core/regkey); the first dword zeroed
+0x0045f6b0,Registry_GameInstalled,function,low,reimplemented (src/game/core/regkey); cdecl u8 (): 1 when the subkey [0x7a2b08] of the company key opens in HKLM and its value [0x7a2358] reads as a u32; the startup install check
 0x00775748,gCompanyRegPath,data,high,"""software\Bullfrog Productions Ltd"", RegKey_Open's root key path"
 0x005f8db0,Text_Draw,function,high,"reimplemented (src/game/gfx/text); cdecl (x, y, text, DrawColour); each character through the text driver's draw (+0xc), '\n' a line down (Text_LineHeight(' '))"
 0x005f8e20,Font_DrawGlyph,function,high,"reimplemented (src/game/gfx/text); cdecl (font, x, y, ch, colour) -> width; font[ch - ' '] through Draw_Sprite; TextDriver_Font's draw (not in the Ghidra listing)"

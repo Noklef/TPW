@@ -134,4 +134,17 @@ s32 __fastcall RegKey_TypeOf(RegKey *k, void *, const char *name) {
 
 void __fastcall Ptr_Ctor(u32 *p) { *p = 0; }
 
+u8 __cdecl Registry_GameInstalled() {
+    RegKey key, unused;  // (the second is only made and closed)
+    RegKey_Ctor(&key);
+    RegKey_Ctor(&unused);
+    s32 result;
+    u32 value;
+    const bool ok = *RegKey_Open(&key, nullptr, &result, *reinterpret_cast<const char *const *>(0x007a2b08), 0) >= 0 &&
+                    *RegKey_GetU32(&key, nullptr, &result, *reinterpret_cast<const char *const *>(0x007a2358), &value) >= 0;
+    RegKey_Dtor(&unused);
+    RegKey_Dtor(&key);
+    return ok ? 1 : 0;
+}
+
 }  // extern "C"

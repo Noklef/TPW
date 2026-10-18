@@ -53,4 +53,8 @@ s32 __fastcall RegKey_TypeOf(RegKey *k, void *edx, const char *name);
 // 0x581da0 (thiscall): the shared trivial constructor RegKey's calls (and the renderer's, 0x576b01):
 // the first dword zeroed.
 void __fastcall Ptr_Ctor(u32 *p);
+// 0x45f6b0: 1 when the company key's subkey named at [0x7a2b08] opens in HKEY_LOCAL_MACHINE
+// and its value named at [0x7a2358] reads as a u32 (which is dropped), else 0; the startup's
+// check (0x45f640) that the game is installed. (A second key is made and closed, unused.)
+u8 __cdecl Registry_GameInstalled();
 }
