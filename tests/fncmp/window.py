@@ -6,7 +6,9 @@
 # wrappers that send to [0x7cc47c] (src/game/ui/dialogs): the window (or none) with its byte +4 now and then set, its handler +0x114 and the
 # hook [0xfaa5fc] fncmp's four-argument cdecl logger or 0 (its result now and then set). PostMessage (0x658ccc): each message kind, the
 # window or none (its byte +4 now and then set), the two queues 1-4 entries (free or not) or none. Dialog7cb2b8_Child21Post (0x4a2590):
-# the dialog or none, its child 0x21 or none among others, the child's dword +0xa8 set or not, the value 0 or not.
+# the dialog or none, its child 0x21 or none among others, the child's dword +0xa8 set or not, the value 0 or not. HitTest / UpdateHover
+# (0x65db25, 0x6589f9): a tree of 1-7 windows with real GUI rectangles (the driver resolves vtable 0x705920 to the ports), points near
+# them or anywhere (upper halves random), the root, the hovered window and the queues set or not.
 # usage: window.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FindChild,SetChecks,SetChecksIfUp)
 import os
 import struct
@@ -24,7 +26,8 @@ CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50
          'WindowAt10_Message4IfAny': 0x492e60, 'Windows7c26b0_Message5': 0x48ee20,
          'WindowAt10_ScalarDtor': 0x48c8b0, 'SetChecksIfUpThis': 0x481a00,
          'Windows7cc8bc_Message6Pair': 0x4bcef0, 'ImplSlot7': 0x65d6db, 'ImplSlot6': 0x65d745, 'DwordA0': 0x65e705,
-         'PostMessage': 0x658ccc, 'Dialog7cb2b8_Child21Post': 0x4a2590}
+         'PostMessage': 0x658ccc, 'Dialog7cb2b8_Child21Post': 0x4a2590,
+         'HitTest': 0x65db25, 'UpdateHover': 0x6589f9}
 SENDS = {k: int(k[6:12], 16) for k in CALLS if k.startswith('Dialog7')}   # the window's global
 B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6d1), (0x658d9f, 0x658df4), (0x659710, 0x659721),
            (0x4b87f0, 0x4b8850), (0x4b8e80, 0x4b8ea0), (0x4b8ec0, 0x4b8ee0), (0x4b9c00, 0x4b9c40),
@@ -32,9 +35,10 @@ B = Bench([(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x
            (0x48d990, 0x48d9b3), (0x4c25e0, 0x4c25f9), (0x48cf70, 0x48cf83), (0x492e60, 0x492e77), (0x48ee20, 0x48ee4e),
            (0x48c8b0, 0x48c8ce), (0x481a00, 0x481a10),
            (0x4bcef0, 0x4bcf60), (0x65d6db, 0x65d727), (0x65d745, 0x65d783), (0x65e705, 0x65e73d),
-           (0x658ccc, 0x658d9f), (0x6697e3, 0x6698a4), (0x4a2590, 0x4a25e5)])
+           (0x658ccc, 0x658d9f), (0x6697e3, 0x6698a4), (0x4a2590, 0x4a25e5),
+           (0x65db25, 0x65dbee), (0x6589f9, 0x658aab), (0x659e83, 0x659ee2)])
 WINDOW, NODES, VTABLE, MISC, KIDS, HOLDER, WINDOW2 = RAM, RAM + 0x100, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200, RAM + 0x1600, RAM + 0x1800
-QUEUES = RAM + 0x2000
+QUEUES, TREE, RECTS = RAM + 0x2000, RAM + 0x3000, RAM + 0x4000
 NODE = 0x90
 BUTTONS = list(range(0x18, 0x22))
 
@@ -69,6 +73,39 @@ def queues(r, regions):
         regions[0xfaa5f4 - 4 * k] = struct.pack('<I', q if r.random() < 0.85 else 0)
 
 
+def tree(r, regions):
+    """1-7 windows (the first the root, each other a child of an earlier one), their flags +0x48 and byte +4 mostly letting them be hit,
+    each with a GUI rectangle (vtable 0x705920) at +0x44 near the points used. Returns the windows."""
+    n = r.choice([1, 2, 3, 4, 7])
+    wins = [TREE + 0x120 * i for i in range(n)]
+    bufs = [bytearray(r.bytes(0x120)) for _ in range(n)]
+    for i, buf in enumerate(bufs):
+        buf[4] = r.choice([0] * 8 + [1, 0x80])
+        put(buf, 0x48, 'I', r.choice([1, 1, 1, 0x10000001, 0x40000000, 0, 2, 3, r.getrandbits(32)]))
+        put(buf, 0x5c, 'I', 0)
+        put(buf, 0x54, 'I', 0)
+        put(buf, 0x44, 'I', RECTS + 0x10 * i)
+        left, top = r.randrange(-10, 40), r.randrange(-10, 40)
+        regions[RECTS + 0x10 * i] = struct.pack('<Ihhhh', 0x705920, left, top, left + r.randrange(0, 40), top + r.randrange(0, 40)) + r.bytes(4)
+    last = {}
+    for i in range(1, n):
+        parent = r.randrange(i)
+        if parent in last:
+            put(bufs[last[parent]], 0x54, 'I', wins[i])
+        else:
+            put(bufs[parent], 0x5c, 'I', wins[i])
+        last[parent] = i
+    for w, buf in zip(wins, bufs):
+        regions[w] = buf
+    return wins
+
+
+def point(r):
+    if r.random() < 0.1:
+        return r.getrandbits(32), r.getrandbits(32)
+    return (r.randrange(-15, 70) & 0xffff) | (r.getrandbits(16) << 16), (r.randrange(-15, 70) & 0xffff) | (r.getrandbits(16) << 16)
+
+
 def case(r):
     op = r.deal(OPS)
     log = log_region()
@@ -88,6 +125,17 @@ def case(r):
             return Call(CALLS[op], [WINDOW], regions, conv='t', ret='a')
         index = r.choice([0, 1, 7, 15, 16, 17, 0x7fff, 0xffff, 0xffe8, 0x10005, 0xfffe000f, r.getrandbits(32) & 0xffff000f, r.getrandbits(32)])
         return Call(CALLS[op], [WINDOW, index], regions, conv='t', ret='a')
+    if op == 'HitTest':
+        wins = tree(r, regions)
+        return Call(CALLS[op], [r.choice(wins[:1] * 3 + wins)] + list(point(r)), regions, conv='t', ret='a')
+    if op == 'UpdateHover':   # the root [0xfaa5d8] or none, [0xfaa5e8] mostly 0, the hovered window [0xfaa5e0] one of them or none
+        wins = tree(r, regions)
+        queues(r, regions)
+        x, y = point(r)
+        regions[0xfaa540] = struct.pack('<II', x, y)
+        regions[0xfaa5d8] = struct.pack('<IIII', r.choice([wins[0]] * 6 + [0]), r.getrandbits(32), r.choice(wins + [0, 0]),
+                                        r.choice([0] * 6 + [1, r.getrandbits(32)]))
+        return Call(CALLS[op], [], regions, ret='w')
     if op == 'Dialog7cb2b8_Child21Post':   # the dialog [0x7cb2b8] or none; its child 0x21 among 0-2 others (or missing), its dword +0xa8 0 or not
         regions[0xfaa5fc] = struct.pack('<I', r.choice([0, CDECL_LOG4]))
         queues(r, regions)

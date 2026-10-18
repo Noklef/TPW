@@ -65,4 +65,31 @@ u32 __cdecl Window_PostMessage(u8 *window, u32 message, u32 a, u32 b) {
     MsgQueue_Push(queue, nullptr, (u32)(uintptr_t)window, message, a, b);
     return 1;
 }
+
+u8 *__fastcall Window_HitTest(u8 *window, void *, u32 x, u32 y) {
+    u8 *found = nullptr;
+    if (at<u32>(window, 0x48) & 2 || at<s8>(window, 4)) return found;
+    if (!(at<u32>(window, 0x48) & 1) && !(at<u32>(window, 0x48) & 0xf0000000)) return found;
+    for (u8 *child = at<u8 *>(window, 0x5c); child; child = at<u8 *>(child, 0x54))
+        if (u8 *const hit = Window_HitTest(child, nullptr, (u16)x, (u16)y)) found = hit;
+    u8 *const rect = at<u8 *>(window, 0x44);
+    using Contains = u32(__fastcall *)(u8 *, void *, u32, u32);
+    if ((s16)reinterpret_cast<Contains>(at<void **>(rect, 0)[0])(rect, nullptr, (u16)x, (u16)y) && !found) found = window;
+    return found;
+}
+
+u32 __cdecl Window_UpdateHover() {
+    const s16 x = *reinterpret_cast<s16 *>((uintptr_t)0x00faa540);
+    const s16 y = *reinterpret_cast<s16 *>((uintptr_t)0x00faa544);
+    u8 *const root = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5d8);
+    if (!root || *reinterpret_cast<u32 *>((uintptr_t)0x00faa5e8)) return 0;
+    u8 *const hit = Window_HitTest(root, nullptr, (u16)x, (u16)y);
+    u8 *&hovered = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5e0);
+    if (hit != hovered) {
+        if (hovered) Window_PostMessage(hovered, 0x10002, 0, 0);
+        hovered = hit;
+        Window_PostMessage(hovered, 0x10001, (u32)(s32)x << 16 | (u32)(s32)y, 0);
+    }
+    return 1;
+}
 }

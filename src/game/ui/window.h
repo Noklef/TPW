@@ -33,4 +33,16 @@ u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index);
 // Messages 1-3 and the others need the queue, a window and its byte +4 (Fn_659710) clear: then 1, else 0 (the push's own result is
 // dropped).
 u32 __cdecl Window_PostMessage(u8 *window, u32 message, u32 a, u32 b);
+
+// 0x65db25 (thiscall (x, y: words), pops 8; name unconfirmed): the deepest window under the point. 0 for a window with flag 2 of +0x48 or
+// its byte +4 set, or with neither flag 0 nor any of the top four. Otherwise each child (from +0x5c by +0x54) is searched in turn, the
+// last one found kept; then slot 0 (x, y) of the rectangle at +0x44 (GuiRect_Contains) is always asked, and the window itself is the
+// answer when that holds and no child was found.
+u8 *__fastcall Window_HitTest(u8 *window, void *, u32 x, u32 y);
+
+// 0x6589f9 (cdecl; name unconfirmed): the hover update: 0 in AX without the root window [0xfaa5d8] or with [0xfaa5e8] set. Else the
+// window under the mouse (the words 0xfaa540, 0xfaa544; Window_HitTest on the root): when it is not the hovered one [0xfaa5e0], that
+// one (when set) is posted 0x10002 (0, 0), the new one becomes it and is posted 0x10001 (x << 16 | y, both signed: sic, a negative y
+// fills the top half, 0) (Window_PostMessage). 1 in AX. Only AX is set.
+u32 __cdecl Window_UpdateHover();
 }
