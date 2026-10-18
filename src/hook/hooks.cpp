@@ -261,6 +261,7 @@
 #include "../game/model/scratch.h"
 #include "../game/model/slots.h"
 #include "../game/model/bounds.h"
+#include "../game/model/heightmap.h"
 #include "../game/model/m3d2.h"
 #include "../game/model/objmodel.h"
 #include "../game/model/stripanim.h"
@@ -4192,6 +4193,7 @@ const Hook kHooks[] = {
     {"View_FloorAt",              0x004511a0, (void *)&View_FloorAt, {0xa1, 0x18, 0xfb, 0x79, 0x00}},
     {"M3D2_DataErrorBox",         0x0046f100, (void *)&M3D2_DataErrorBox, {0x8b, 0x44, 0x24, 0x04, 0x6a}},
     {"ObjModel_Unload",           0x0057a100, (void *)&ObjModel_Unload, {0x53, 0x55, 0x56, 0x57, 0x8b}},
+    {"HeightMap_Rasterize",       0x00451e20, (void *)&HeightMap_Rasterize, {0x83, 0xec, 0x70, 0x53, 0x55}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
