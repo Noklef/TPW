@@ -51,6 +51,15 @@ void __fastcall TextStyleHolder_Dtor(u8 *holder);
 // 0x6b0250 (thiscall (flags), pops 4): TextStyleHolder_Dtor, then the object freed (Mem_Free) for flags bit 0. Returns this.
 u8 *__fastcall TextStyleHolder_DeletingDtor(u8 *holder, void *, u32 flags);
 
+// 0x6b0280 (thiscall (status, style), pops 8): +0x54 cleared; a style whose state (+0xc, Source_Field0c) is 3 or more or whose font kind is
+// 5 or more (signed) gives *status = -1. Otherwise the style is copied in (TextStyle_Assign) and +0x54 becomes the renderer from the table at
+// 0x782d38, indexed ((+0x10 * 5 + font kind) * 3 + state) of the copy (no bounds, sic); *status 0 when it is not 0, else -1. Returns status.
+s32 *__fastcall TextStyleHolder_SetStyle(u8 *holder, void *, s32 *status, const u8 *style);
+
+// 0x6b0300 (thiscall (status, a, b, c), pops 0x10): without a renderer (+0x54) *status = -1; otherwise its slot 1 is called with
+// (status, a, b, c, the style at +4). Returns status.
+s32 *__fastcall TextStyleHolder_Render(u8 *holder, void *, s32 *status, u32 a, u32 b, u32 c);
+
 // 0x6ade00 (thiscall): the holder at +4 constructed; +0x5c, +0x70 and +0x84 get the top byte of `this` (the byte the original reads from its
 // pushed ECX, sic: an allocator temporary that was never set); the vectors at +0x60, +0x74, +0x88, the word +0x6c, the byte +0x94 and the
 // dwords +0x98, +0x9c, +0xac-+0xb8 cleared (+0xa0-+0xa8 are left); the vtable 0x70a10c. Returns this.

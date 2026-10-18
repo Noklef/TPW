@@ -11,17 +11,21 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import HEAP, LOG, RAM, Bench, Call, heap, log_region, put, set_return, vtable  # noqa: E402
 
 B = Bench([(0x5fa680, 0x5fa6b0), (0x6ad5d0, 0x6ad740), (0x6ad7c0, 0x6ad860), (0x6ade00, 0x6adf30),
-           (0x6b0230, 0x6b0290)])
-SOURCE = RAM + 0x400   # Assign's source style
+           (0x6b0230, 0x6b0340)])
+SOURCE = RAM + 0x400   # Assign's and SetStyle's source style
+TABLE = 0x782d18       # SetStyle's renderers (0x782d38) and the dwords before them
+RENDERER, VTABLE2 = RAM + 0x500, RAM + 0x480   # Render's renderer: slot 1 takes 5 arguments
 DATA = 0x7d0000   # an object in the game's data (top byte 0)
 FONTS, VTABLE, COLOUR, STATUS = RAM + 0x200, RAM + 0x300, RAM + 0x380, RAM + 0x3c0
 # op: (address, the style's offset in the object, extra arguments)
 CALLS = {'StyleCtor': (0x6ad5d0, 0), 'StyleDtor': (0x6ad640, 0), 'StyleDel': (0x6ad620, 0), 'SetFont': (0x6ad7c0, 0),
          'SetColour': (0x6ad6e0, 0), 'HolderCtor': (0x6b0230, 4), 'HolderDtor': (0x6b0270, 4), 'HolderDel': (0x6b0250, 4),
          'LayoutCtor': (0x6ade00, 8), 'LayoutDtor': (0x6adeb0, 8), 'LayoutDel': (0x6ade90, 8),
-         'Assign': (0x6ad660, 0), 'GetFont': (0x6ad820, 0), 'FontKind': (0x6ad840, 0)}
+         'Assign': (0x6ad660, 0), 'GetFont': (0x6ad820, 0), 'FontKind': (0x6ad840, 0),
+         'SetStyle': (0x6b0280, 4), 'Render': (0x6b0300, 4)}
 RET = {'StyleCtor': 'a', 'StyleDel': 'a', 'SetFont': 'a', 'SetColour': 'a', 'HolderCtor': 'a', 'HolderDel': 'a', 'LayoutCtor': 'a',
-       'LayoutDel': 'a', 'Assign': 'a', 'GetFont': 'a', 'FontKind': 'a'}
+       'LayoutDel': 'a', 'Assign': 'a', 'GetFont': 'a', 'FontKind': 'a',
+       'SetStyle': 'a', 'Render': 'a'}
 
 
 def case(r):
@@ -52,6 +56,19 @@ def case(r):
         put(source, 4, 'I', r.choice(fonts * 6 + [0]))   # a source without a font crashes in both
         regions[SOURCE] = source
         args.append(r.choice([SOURCE] * 5 + [obj]))
+    elif op == 'SetStyle':
+        source = bytearray(r.bytes(0x50))
+        put(source, 4, 'I', r.choice(fonts * 6 + [0]))
+        put(source, 0xc, 'i', r.choice([0, 1, 2, 0, 1, 2, -1, 3, r.getrandbits(31)]))
+        put(source, 0x10, 'I', r.choice([0, 1, 2]))
+        regions[SOURCE] = source
+        regions[TABLE] = b''.join(struct.pack('<I', r.choice([0, r.getrandbits(32)])) for _ in range(0x40))
+        args += [STATUS, SOURCE]
+    elif op == 'Render':
+        put(body, 0x54, 'I', r.choice([0, RENDERER, RENDERER]))
+        regions[VTABLE2] = vtable({1: 5})
+        regions[RENDERER] = struct.pack('<I', VTABLE2)
+        args += [STATUS, r.getrandbits(32), r.getrandbits(32), r.getrandbits(32)]
     return Call(address, args, regions, conv='t', ret=RET.get(op, 'v'))
 
 

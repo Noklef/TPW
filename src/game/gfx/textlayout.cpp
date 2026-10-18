@@ -4,6 +4,7 @@
 
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
+#include "../files/wrapsources.h"
 #include "surface.h"
 
 namespace {
@@ -121,6 +122,34 @@ u8 *__fastcall TextStyleHolder_DeletingDtor(u8 *holder, void *, u32 flags) {
     TextStyleHolder_Dtor(holder);
     if (flags & 1) GameHeap_Free(holder);
     return holder;
+}
+
+s32 *__fastcall TextStyleHolder_SetStyle(u8 *holder, void *, s32 *status, const u8 *style) {
+    at<u32>(holder, 0x54) = 0;
+    if ((s32)Source_Field0c(reinterpret_cast<const TrackedSource *>(style)) >= 3 ||
+        TextStyle_FontKind(const_cast<u8 *>(style)) >= 5) {
+        *status = -1;
+        return status;
+    }
+    u8 *own = holder + 4;
+    TextStyle_Assign(own, nullptr, style);
+    const u32 f10 = at<u32>(holder, 0x14);
+    const u32 kind = (u32)TextStyle_FontKind(own);
+    const u32 index = (f10 * 5 + kind) * 3 + Source_Field0c(reinterpret_cast<const TrackedSource *>(own));  // sic: no bounds
+    const u32 renderer = *reinterpret_cast<const u32 *>((uintptr_t)(0x00782d38u + index * 4));
+    at<u32>(holder, 0x54) = renderer;
+    *status = renderer ? 0 : -1;
+    return status;
+}
+
+s32 *__fastcall TextStyleHolder_Render(u8 *holder, void *, s32 *status, u32 a, u32 b, u32 c) {
+    u8 *renderer = at<u8 *>(holder, 0x54);
+    if (!renderer) {
+        *status = -1;
+        return status;
+    }
+    vcall<void>(renderer, 4, status, a, b, c, holder + 4);
+    return status;
 }
 
 u8 *__fastcall TextLayout_Ctor(u8 *layout) {
