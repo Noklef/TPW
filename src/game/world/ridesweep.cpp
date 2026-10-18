@@ -149,4 +149,14 @@ void __fastcall Things_StepGroup(u8 *owner) {
     }
 }
 
+void __fastcall Things_StepGroupBack(u8 *owner) {
+    vcall<void>(owner, 0x3c);
+    const u32 category = groupMask(at<s32>(owner, 4));
+    u8 *const back = category ? Things_FindPrevOfCategoryWrap(category, global<const u8 *>(0x007c2658)) : nullptr;
+    if (back && back != global<u8 *>(0x007c2658)) {
+        global<u8 *>(0x007c2658) = back;
+        vcall<void>(owner, 4);
+    }
+}
+
 }  // extern "C"

@@ -1027,6 +1027,7 @@ address,name,kind,confidence,notes
 0x0048ca00,Things_CountGroup,function,low,"reimplemented (src/game/world/ridesweep); thiscall (value): the things of the group the owner +4 picks counted into 0x7c2660 (Things_ForEachSelected), 0x7c2658 = value; the count"
 0x0048cad0,Things_CountOne,function,low,"reimplemented (src/game/world/ridesweep); cdecl (thing, unused): the count 0x7c2660 raised; 1"
 0x0048caf0,Things_StepGroup,function,low,"reimplemented (src/game/world/ridesweep); thiscall: the owner's slot 0x3c, then the next thing of the group its +4 picks after 0x7c2658, wrapping round (Things_FindNextOfCategoryWrap); a new one stored at 0x7c2658 and the owner's slot 4 called (name unconfirmed)"
+0x0048cbe0,Things_StepGroupBack,function,low,"reimplemented (src/game/world/ridesweep); thiscall: the owner's slot 0x3c, then the previous thing of the group its +4 picks before 0x7c2658, wrapping round (Things_FindPrevOfCategoryWrap); a new one stored at 0x7c2658 and the owner's slot 4 called"
 0x0050b780,Thing_Delete,function,medium,"thiscall on a thing; the base deletion, queues its handle (World_QueueDelete)"
 0x00801f38,gThingsToDelete,data,high,"HandleQueue: +4 head, +8 tail, +0xc count; handles whose slots DeleteAll releases"
 0x005f5fc0,String_Alloc,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +8: a new block for length units, terminated; the old block is not freed"

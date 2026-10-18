@@ -46,4 +46,8 @@ s32 __cdecl Things_CountOne(u8 *thing);
 // when there is one and it is not 0x7c2658 already, 0x7c2658 = it and the owner's slot 4 called.
 void __fastcall Things_StepGroup(u8 *owner);
 
+// 0x48cbe0 (thiscall; name unconfirmed): the same backwards -- the previous thing of the group before 0x7c2658, from the end past the
+// first (Things_FindPrevOfCategoryWrap).
+void __fastcall Things_StepGroupBack(u8 *owner);
+
 }  // extern "C"
