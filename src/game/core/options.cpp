@@ -86,6 +86,15 @@ u8 *__fastcall Setting_ReadMode(u8 *object) {
     return object;
 }
 
+u32 __cdecl Graphics_Tier() {
+    if (RenderMode_Size() == 0x4000) {
+        const u32 depth = RenderMode_Depth();
+        if (depth == 8 || depth == 0x10) return 2;
+        return depth == 0x20 ? 1 : 0;
+    }
+    return *reinterpret_cast<u32 *>(0x007858d0) == 0 ? 1 : 2;  // (a jump table: 0 -> 1, 1..3 -> 2; above 3 -> 2)
+}
+
 u32 __cdecl Graphics_Level() {
     if (RenderMode_Size() == 0x4000) {
         const u32 depth = RenderMode_Depth();

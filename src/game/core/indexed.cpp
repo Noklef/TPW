@@ -21,6 +21,10 @@ u32 __fastcall Game1da70c_MinusAt0(const u32 *object) {
     return at<u32>(reinterpret_cast<const u8 *>(global<u32>(0x0080239c)), 0x1da70c) - *object;
 }
 
+u32 __fastcall Game1da70c_MinusAt0Quarters(const u32 *object) {
+    return (at<u32>(reinterpret_cast<const u8 *>(global<u32>(0x0080239c)), 0x1da70c) >> 2) - (*object >> 2);
+}
+
 u32 __fastcall Obj_GetIndexed4e0(const u8 *object, void *, u32 index) { return at<u32>(object, 0x4e0 + 4 * index); }
 
 u32 __fastcall Obj_Word6cEquals(const u8 *object, void *, u32 value) { return (u16)value == at<u16>(object, 0x6c); }

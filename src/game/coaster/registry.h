@@ -33,6 +33,10 @@ u8 *__cdecl CoasterLinks_FindKey(u32 tile);
 // -> +0x18), the key to *key when key is not null.
 u8 *__cdecl CoasterLinks_FindTile(u32 x, u32 y, u32 *key);
 
+// 0x433f70 (cdecl; x, z, key, each may be null; name unconfirmed): CoasterLinks_FindTile for the cell of the point at 0x7a1c70 (x =
+// __ftol(+0 0.1), z = __ftol(+8 0.1)), the cell to *x / *z as well.
+u8 *__cdecl CoasterLinks_FindAtFocus(s32 *x, s32 *z, u32 *key);
+
 // 0x444c00: whether the current link (0x790fec) has type (+4) flag 2 and its end piece is
 // marked 0x80 (+8): the +0x60 piece when +0x3c has 1 (then only with 2 too), else the
 // +0x58 one.

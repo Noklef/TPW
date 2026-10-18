@@ -9,10 +9,10 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, put  # noqa: E402
+from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
 B = Bench([(0x42a0f0, 0x42a183), (0x42a410, 0x42a43a), (0x42a4e0, 0x42a4fb), (0x42a720, 0x42a75f), (0x42aab0, 0x42ab1d),
-           (0x42afd0, 0x42afed), (0x42b070, 0x42b1b6), (0x42cd40, 0x42cd7f), (0x4867b0, 0x486858), (0x4868d0, 0x48691f), (0x48ce80, 0x48ce9f), (0x50b350, 0x50b35d),
+           (0x42afd0, 0x42afed), (0x42b070, 0x42b1b6), (0x42cd40, 0x42cd7f), (0x42cd80, 0x42cdb8), (0x4bd020, 0x4bd08f), (0x4867b0, 0x486858), (0x4868d0, 0x48691f), (0x48ce80, 0x48ce9f), (0x50b350, 0x50b35d),
            (0x5da3c0, 0x5da3c1)])
 INITS = {'One': (0x42a0f0, 0x7909e8, 4), 'Epsilon': (0x42a110, 0x790a94, 4), 'Zoom': (0x42a130, 0x7909ec, 4),
          'Yaw': (0x42a140, 0x790a38, 4), 'E0': (0x42a150, 0x7909e0, 4), 'Point': (0x42a160, 0x7908f0, 12)}
@@ -64,6 +64,15 @@ def case(r):
         return Call(0x42aab0, [x, z] + [r.choice([0, RAM + 8 + 4 * i]) for i in range(3)], regions)
     if op == 'Flag80':
         return Call(0x42afd0, [r.choice([0, 1, r.getrandbits(32)])], {0x790ab0: bytearray(r.bytes(4))})
+    if op == 'Pack':   # coordinates about the map, negative, huge or not numbers; the outputs apart or the same
+        cs = [fb(r.choice([0.0, 5.0, 10.0, 12.75, -3.0, r.uniform(0, 2560), r.uniform(0, 2560), r.uniform(-1e3, 1e4), 1e12, float('nan')]))
+              for _ in range(2)]
+        return Call(0x4bd020, cs + [RAM + 0x10, r.choice([RAM + 0x14, RAM + 0x14, RAM + 0x10])], {RAM: r.bytes(0x20)})
+    if op == 'CellOf':   # positions about the map's cells, negative, huge or not numbers; either output left out
+        pos = [fb(r.choice([0.0, 5.0, 9.99, 10.0, -0.5, -10.0, r.uniform(0, 2560), r.uniform(-1e3, 1e3), 3e9, -3e10, 1e30, float('nan')]))
+               for _ in range(3)]
+        return Call(0x42cd80, [RAM, r.choice([RAM + 0x10, RAM + 0x10, 0]), r.choice([RAM + 0x14, RAM + 0x14, 0])],
+                    {RAM: struct.pack('<3I', *pos) + r.bytes(0x10)})
     if op == 'Clamp':  # signed cells against the map size; a size of 0 or less clamps to it - 1
         def size():
             return r.choice([0, 1, 64, 128, 256, r.getrandbits(32)])
@@ -89,7 +98,7 @@ def case(r):
     return Call(0x42a410, [thing], regions, ret='a')
 
 
-OPS_ALL = list(INITS) + ['Follow'] * 6 + ['Close'] * 6 + ['Followed'] * 3 + ['Face', 'View', 'Clamp'] * 4 + ['Flag80'] * 2 + ['CentreCell', 'CentreThing', 'CentreGlobal'] * 3
+OPS_ALL = list(INITS) + ['Follow'] * 6 + ['Close'] * 6 + ['Followed'] * 3 + ['Face', 'View', 'Clamp', 'CellOf', 'Pack'] * 4 + ['Flag80'] * 2 + ['CentreCell', 'CentreThing', 'CentreGlobal'] * 3
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

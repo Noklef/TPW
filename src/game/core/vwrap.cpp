@@ -111,6 +111,11 @@ u32 __fastcall Obj_CallSlot2cIfGlobal(u8 *object, void *, u32 a) {
     return a;
 }
 
+u32 __fastcall Obj_CallSlot2cIfGlobalIf10(u8 *object, void *, u32 a) {
+    if (!at<u32>(object, 0x10)) return 0;
+    return Obj_CallSlot2cIfGlobal(object, nullptr, a);
+}
+
 u32 __cdecl Global879acc_Delete() {
     if (u8 *object = global<u8 *>(0x00879acc)) {
         vcall<u32>(object, 0, 1u);

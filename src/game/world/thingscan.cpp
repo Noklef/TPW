@@ -691,6 +691,11 @@ u8 *__cdecl Things_FindNextOfCategoryWrap(s32 category, const u8 *previous) {
     return next ? next : Things_FindNextOfCategory(category, nullptr);
 }
 
+u8 *__cdecl Things_FindPrevOfCategoryWrap(s32 category, const u8 *previous) {
+    u8 *const found = Things_FindPrevOfCategory(category, previous);
+    return found ? found : Things_FindPrevOfCategory(category, nullptr);
+}
+
 void __cdecl ThingBrowser_Step() {
     const u8 *&current = *reinterpret_cast<const u8 **>(0x007cc308);
     const u32 choice = *reinterpret_cast<const u32 *>(0x007cc30c) - 1;

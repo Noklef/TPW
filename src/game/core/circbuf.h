@@ -19,6 +19,11 @@ extern "C" {
 void __cdecl CircBufU32_144_MaxInWindow(const u8 *buffer, s32 *out, u32 kind);
 void __cdecl CircBufU32_144_MinInWindow(const u8 *buffer, s32 *out, u32 kind);
 
+// 0x4802a0 (cdecl; buffer, out, kind; name unconfirmed): CircBufU32_144_MaxInWindow for a buffer of 144 floats: the greatest sample
+// above 0.0 (not a NaN) is read again as there, or when it cannot be (none chosen past the count, or not there) the greatest
+// itself (0.0 for none); *out is raised to its __ftol.
+void __cdecl CircBufF32_144_MaxInWindow(const u8 *buffer, s32 *out, u32 kind);
+
 // 0x4cdb60: a CircBufU16 of 3 (cursor +8, size +0xc, wrapped +0x10): u16 +0 = 0, cursor -1,
 // size 3, not wrapped.
 u8 *__fastcall CircBufU16_3_Ctor(u8 *buf);
@@ -42,6 +47,9 @@ void __fastcall CircBufU32_144_Push(u8 *buf, void *, u32 value);
 // wrapped +0x84): the value back entries before the cursor (signed compares; past the start
 // only once wrapped) to *out, and 1; 0 (out untouched) when there is none. Returns in AL only.
 u8 __fastcall CircBufU32_30_Get(const u8 *buf, void *, u32 *out, s32 back);
+
+// 0x495d40 (thiscall; name unconfirmed): the entries it holds: the size (+0x80) once wrapped (the byte +0x84), else the cursor (+0x7c) + 1.
+u32 __fastcall CircBufU32_30_Count(const u8 *buf);
 
 // 0x495c20 (&sum, count; pops 8; name unconfirmed): the CHistory sum: *sum (a double) = 0, then each of the newest count entries (at most the
 // size once wrapped, else the cursor + 1; signed) that CircBufU32_30_Get finds (inlined) added to it on the x87 (fild of the unsigned value,

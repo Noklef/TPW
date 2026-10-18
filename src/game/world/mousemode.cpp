@@ -2,6 +2,9 @@
 
 #include <cstdint>
 
+#include "../math/x87.h"
+#include "mapcell.h"
+
 namespace {
 
 template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -22,6 +25,25 @@ void __cdecl MouseModes_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x007b0
 void __cdecl MouseModes_InitTile() {
     *reinterpret_cast<u16 *>(0x007b05cc) = 1;
     *reinterpret_cast<u32 *>(0x007b05d0) = 0;
+}
+
+void __cdecl MouseState_SetTileFromPosition(const float *position) {
+    u8 *const map = *reinterpret_cast<u8 **>(0x007a0854);
+    if (!map) return;
+    u8 *const grid = at<u8 *>(map, 0x6c);
+    if (!grid) return;
+    s32 x = (s32)(long long)((X87Reg(position[0]) - at<float>(grid, 8)) / at<float>(grid, 0x10)).v;  // __ftol
+    s32 z = (s32)(long long)((X87Reg(position[2]) - at<float>(grid, 0xc)) / at<float>(grid, 0x14)).v;
+    if (x < 0) x = 0;
+    if (z < 0) z = 0;
+    if ((u32)x >= at<u32>(grid, 0x18)) x = at<u32>(grid, 0x18) - 1;
+    if ((u32)z >= at<u32>(grid, 0x1c)) z = at<u32>(grid, 0x1c) - 1;
+    if (x < 0) x = 0;
+    if (z < 0) z = 0;
+    const s32 width = *reinterpret_cast<const s32 *>(0x007a0314), depth = *reinterpret_cast<const s32 *>(0x007a0374);
+    if (x >= width) x = width - 1;
+    if (z >= depth) z = depth - 1;
+    *reinterpret_cast<u16 *>(0x007b05cc) = Map_InBounds(x, z) ? (u16)((z << 7) + x + 1) : 0;
 }
 
 void __fastcall MouseState_NewFrame(u8 *self) {

@@ -14,4 +14,13 @@ void __cdecl LightSource_Destroy(u8 *light);
 
 // 0x458580 (cdecl; name unconfirmed): LightSource_Destroy of the light 0x7a0b40 points at (the one 0x4584d0 creates from the normalised direction at 0x7a0b30).
 void __cdecl LightSource_DestroyMain();
+
+// 0x458890 (cdecl; holder, r, g, b as float bits; name unconfirmed): the colour of the part *holder points at (a virtual base: the
+// pointer plus the offset at +8 of its vtable): the scene's flags touched (SceneFlags_Touch of 0x8bd508); +4 = 1.0f, +8 / +0xc / +0x10
+// = r, g, b; +0x54 = 0xff << 24 | __ftol(r 255) << 16 | __ftol(g 255) << 8 | __ftol(b 255) (ORed whole, after the shifts).
+void __cdecl LightSource_SetColour(u8 *const *holder, u32 r, u32 g, u32 b);
+
+// 0x458350 (thiscall; a, r, g, b as float bits, pops 0x10; name unconfirmed): the same on the part itself, with alpha: +4 = a, +8 / +0xc /
+// +0x10 = r, g, b; +0x54 = __ftol(a 255) << 24 | __ftol(r 255) << 16 | __ftol(g 255) << 8 | __ftol(b 255) (ORed whole, after the shifts).
+void __fastcall LightPart_SetColour(u8 *part, void *, u32 a, u32 r, u32 g, u32 b);
 }

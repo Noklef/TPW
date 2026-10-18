@@ -27,4 +27,7 @@ void __cdecl GlobalMem_InitUnusedFlag();
 // 0x45ba30, 0x45ba50: the unit's unused statics, 0x7a1c64 = 1.0f and 0x7a1c68 = 1 / 2^23.
 void __cdecl GlobalMem_InitUnusedOne();
 void __cdecl GlobalMem_InitUnusedEpsilon();
+
+// 0x427bb0 (cdecl; name unconfirmed): GlobalMem_Free of the blocks at 0x74c8d4, 0x74c8c0 and 0x74c8b8 in turn, each pointer then cleared.
+void __cdecl GlobalMem_FreeThree_427bb0();
 }

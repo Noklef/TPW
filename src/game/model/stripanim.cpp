@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../math/x87.h"
+#include "../terrain/land.h"
 
 namespace {
 
@@ -49,5 +50,33 @@ void __cdecl StripAnim_StartShrink(u8 *object) {
     u32 &flags = at<u32>(object, 4);
     at<u32>(object, 0xbc) = 0xbe99999a;  // -0.3f
     if (flags & 0x20) flags = (flags & ~0x40u) | 0x80;
+}
+
+void __cdecl StripAnim_FitGround(const u8 *object) {
+    if (!(at<u8>(object, 4) & 2)) return;
+    const s32 count = *at<const s32 *>(object, 0xb0);
+    const float base = at<float>(at<const u8 *>(at<const u8 *>(at<const u8 *>(object, 8), 4), 0x78), 0x44);
+    const u8 *map = *reinterpret_cast<const u8 *const *>(0x007a0854);
+    if (!map || !at<const u8 *>(map, 0x6c)) return;
+    const u32 from = at<u32>(object, 0xc0), to = at<u32>(object, 0xc4);
+    const float x0 = (float)(from >> 16), x1 = (float)(to >> 16), y0 = (float)(from & 0xffff), y1 = (float)(to & 0xffff);
+    if (count <= 0) return;
+    s32 i = 0;
+    do {
+        for (u32 k = 0; k < 2; ++k) {
+            const u8 *strips = at<const u8 *>(object, 0xb0);
+            const u32 end = at<const u32 *>(strips, 0xc)[2 * i + k];
+            s32 cell[2] = {(s32)(end >> 16), (s32)(end & 0xffff)};
+            const float v = (float)(X87Reg((double)(end & 0xffff)) / X87Reg((double)at<s32>(strips, 8)));
+            const float u = (float)(X87Reg((double)(end >> 16)) / X87Reg((double)at<s32>(strips, 4)));
+            Terrain_FootprintCell(at<s32>(at<const u8 *>(object, 8), 0x10), x0, y0, x1, y1, u, v, &cell[0], &cell[1]);
+            const u8 *grid = at<const u8 *>(*reinterpret_cast<const u8 *const *>(0x007a0854), 0x6c);
+            const X87Reg y = (X87Reg(at<const float *>(grid, 0x28)[(at<s32>(grid, 0x18) + 1) * cell[1] + cell[0]]) - base) * 0.5f;  // 0x6fe444
+            const X87Reg top = y - -10.0f;                                                                                           // 0x6fe460
+            const u32 low = 4 * (u32)i + k, high = low + 2;
+            at<float *>(at<const u8 *>(object, 0xb4), 0x10)[(low & 3) + (low >> 2) * 12 + 4] = (float)top;
+            at<float *>(at<const u8 *>(object, 0xb4), 0x10)[(high & 3) + (high >> 2) * 12 + 4] = (float)y;
+        }
+    } while (++i < count);
 }
 }

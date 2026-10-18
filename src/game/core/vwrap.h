@@ -57,6 +57,9 @@ u32 __fastcall Obj_ApplyIfShared(u8 *object, void *, u8 *a);
 // 0x48ccd0 (thiscall; a, pops 4): the object's slot 0x2c when a is the dword at 0x7c2658, otherwise a.
 u32 __fastcall Obj_CallSlot2cIfGlobal(u8 *object, void *, u32 a);
 
+// 0x4b7a00 (thiscall; a, pops 4; name unconfirmed): 0 when the dword at +0x10 is 0, else Obj_CallSlot2cIfGlobal(object, a).
+u32 __fastcall Obj_CallSlot2cIfGlobalIf10(u8 *object, void *, u32 a);
+
 // 0x569ef0 / 0x5667a0 (cdecl): when the dword at 0x879acc / 0x879ac0 is not 0 the object it points to is deleted (slot 0 with 1) and the dword cleared. Returns 1
 // when there was one, otherwise 0.
 u32 __cdecl Global879acc_Delete();

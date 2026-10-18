@@ -571,6 +571,8 @@ address,name,kind,confidence,notes
 0x004740d0,Motion_SetFlags,function,high,"reimplemented (src/game/motion/animator); (flags): gMotionFlags = flags"
 0x004709d0,Motion_SetTime,function,high,reimplemented (src/game/motion/animator); cdecl (time): gMotionTime (0x7b496c) = time
 0x004709e0,Motion_Time,function,high,"reimplemented (src/game/motion/animator); cdecl (real): gMotionRealTime (0x7b4974) when real, else gMotionTime (0x7b496c)"
+0x00467030,Animator_Place,function,high,"reimplemented (src/game/motion/placement); (animator, x, y, cellX, cellY, angle, height, flags, w, d): flag 2 the footprint (turned by angle), flag 0x20 the turn and the grid position"
+0x004671f0,Animator_PlaceOnGround,function,low,"reimplemented (src/game/motion/placement); the animator moved to a cell on the ground, out of and back into the renderer"
 0x00449eb0,SinTable_Init,function,high,"SinTable_Build(4096); called once from the main loop before the Direct3D setup (0x44e080)"
 0x0046f150,Matrix_Identity,function,high,"reimplemented (src/game/math); (m): 4x4 identity"
 0x0046f180,Matrix_ResetRotation,function,high,"reimplemented (src/game/math); (m): identity axes and m[15]; the translation m[12..14] is kept"
@@ -722,6 +724,8 @@ address,name,kind,confidence,notes
 0x004868d0,Camera_CentreOnCell,function,low,reimplemented (src/game/world/camera); The view's point set to a cell's centre from its id
 0x004867b0,Camera_CentreOnThing,function,low,reimplemented (src/game/world/camera); The view's point set to a thing's cell
 0x0048ce80,Camera_CentreOnGlobalThing,function,low,reimplemented (src/game/world/camera); cdecl: the camera centred on the thing [0x7c2658] points to (Camera_CentreOnThing with its handle) (name unconfirmed)
+0x0042cd80,Camera_CellOf,function,low,reimplemented (src/game/world/camera); the cell of a position
+0x004bd020,Camera_PackCellFractions,function,low,reimplemented (src/game/world/camera); a position's tenths as cell and fraction bytes
 0x0046c450,MouseMode_Nop4,function,high,reimplemented (src/game/world/mousemode); an empty mouse-mode method (4 arguments)
 0x0046c460,MouseMode_DeletingDtor,function,high,reimplemented (src/game/world/mousemode); the base mouse mode's deleting destructor
 0x0046c580,MouseModeTile_Ctor,function,high,reimplemented (src/game/world/mousemode); the 0x6fe9e0 tile mode's constructor
@@ -738,6 +742,7 @@ address,name,kind,confidence,notes
 0x0046c090,MouseModes_InitUnusedEpsilon,function,high,reimplemented (src/game/world/mousemode); static initialiser: 0x7b05a4 = 2^-23
 0x0046c0b0,MouseModes_InitTile,function,high,"reimplemented (src/game/world/mousemode); static initialiser: 0x7b05cc = 1, 0x7b05d0 = 0"
 0x0046c100,MouseState_NewFrame,function,high,reimplemented (src/game/world/mousemode); steps the pointer state's frame count and clears its picked thing
+0x0045d560,MouseState_SetTileFromPosition,function,low,reimplemented (src/game/world/mousemode); the pointer state's tile from a position on the terrain grid
 0x0040f290,ThingMsg01_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (a): +8 a; vtable set, +4 cleared; returns this"
 0x0040f240,ThingMsg02_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (c, b): +8 b, +0xc c; vtable set, +4 cleared; returns this"
 0x0040f330,ThingMsg06_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (u16 a): +8 a; vtable set, +4 cleared; returns this"
@@ -993,6 +998,7 @@ address,name,kind,confidence,notes
 0x00527e80,Map_ObjectOrEntranceAt,function,low,"reimplemented (src/game/world/thingscan); cdecl (out, x, y): the entrance thing (+0x1da732) on the entrance row about its columns, else Map_ObjectAtCell"
 0x00483740,Things_FindNextOfCategoryWrap,function,low,"reimplemented (src/game/world/thingscan); cdecl (category, previous): Things_FindNextOfCategory, again from the start (previous 0) past the last (name unconfirmed)"
 0x004b3340,ThingBrowser_Step,function,low,"reimplemented (src/game/world/thingscan); cdecl: the thing browser's (MFC dialog 0x7cc304) step: its choice (0x7cc30c) 1..6 picks the category 2..0x40, the thing at 0x7cc308 the next of it, wrapping round; another choice: 0 (name unconfirmed)"
+0x00483770,Things_FindPrevOfCategoryWrap,function,low,"reimplemented (src/game/world/thingscan); the category finder backwards, again from the end past the first"
 0x0054b130,Buoy_FindFree,function,high,"reimplemented (src/game/world/trackpools); the first free buoy record, its index stored in it"
 0x0054b170,Buoy_Alloc,function,high,reimplemented (src/game/world/trackpools); takes the first free buoy record
 0x0054b1e0,CollNode_FindFree,function,high,reimplemented (src/game/world/trackpools); the first free collision node
@@ -2276,6 +2282,7 @@ address,name,kind,confidence,notes
 0x0045ba20,GlobalMem_InitUnusedFlag,function,high,reimplemented (src/game/core/globalmem); unused static 0x7a1c60 = 1
 0x0045ba30,GlobalMem_InitUnusedOne,function,high,reimplemented (src/game/core/globalmem); unused static 0x7a1c64 = 1.0f
 0x0045ba50,GlobalMem_InitUnusedEpsilon,function,high,reimplemented (src/game/core/globalmem); unused static 0x7a1c68 = 1 / 2^23
+0x00427bb0,GlobalMem_FreeThree_427bb0,function,low,reimplemented (src/game/core/globalmem); three global blocks freed and cleared
 0x00468760,IdTable_Add,function,high,reimplemented (src/game/core/idtable); stores a value under a new or given id (used/holes/next counters)
 0x00468810,IdTable_Remove,function,high,"reimplemented (src/game/core/idtable); frees an id, fixing the used/holes/next counters"
 0x00468750,IdTable_Init,function,high,reimplemented (src/game/core/idtable); next = 1
@@ -2356,6 +2363,8 @@ address,name,kind,confidence,notes
 0x004801d0,CircBufU32_144_MaxInWindow,function,high,reimplemented (src/game/core/circbuf); the greatest positive sample in a window of the newest raises an output
 0x00480380,CircBufU32_144_MinInWindow,function,high,reimplemented (src/game/core/circbuf); the least negative sample in a window of the newest lowers an output
 0x00495c20,CircBufU32_30_Sum,function,low,"reimplemented (src/game/core/circbuf); thiscall (&sum, count): the CHistory sum of the newest count entries (at most size once wrapped, else cursor + 1) into a double, added on the x87 at 24 bits (name unconfirmed)"
+0x00495d40,CircBufU32_30_Count,function,low,reimplemented (src/game/core/circbuf); the entries a circular buffer holds
+0x004802a0,CircBufF32_144_MaxInWindow,function,low,"reimplemented (src/game/core/circbuf); the greatest of the newest float samples, out raised to its __ftol"
 0x004a77a0,TextArg_Ctor,function,high,"reimplemented (src/game/core/textarg); thiscall (n): the abstract format argument (vtable 0x6ffb34: _purecall, tag 'MRAV', number +8)"
 0x004ea220,TextArgString_Ctor,function,high,"reimplemented (src/game/core/textarg); thiscall (n, string): a string format argument (vtable 0x6ff174)"
 0x0050aef0,TextArgInt_Ctor,function,high,"reimplemented (src/game/core/textarg); thiscall (n, value, isSigned): a number format argument (vtable 0x6ff170, L""%d""); signed negatives as magnitude + flag (+0x10)"
@@ -3125,6 +3134,7 @@ address,name,kind,confidence,notes
 0x0047a9a0,Obj_GetCOr6fd6c4,function,high,reimplemented (src/game/core/accessors); the dword at +0xc or 0x6fd6c4 when it is 0
 0x005cea30,VirtualBase_SetVtbl70994c,function,high,reimplemented (src/game/core/vtables); sets a virtual base's vtable pointer to 0x70994c
 0x004f04c0,Array36_At,function,high,reimplemented (src/game/core/indexed); the address of an element of 36 bytes
+0x0041a990,Game1da70c_MinusAt0Quarters,function,low,"reimplemented (src/game/core/indexed); the game's dword 0x1da70c and the object's +0 in quarters, subtracted"
 0x00564a50,Const_MinusOne_564a50,function,high,reimplemented (src/game/core/trivial); returns -1
 0x005ceaa0,Const_MinusOne_5ceaa0,function,high,reimplemented (src/game/core/trivial); returns -1
 0x005cea90,Const_MinusOne_5cea90,function,high,reimplemented (src/game/core/trivial); returns -1 and pops one argument
@@ -3389,6 +3399,7 @@ address,name,kind,confidence,notes
 0x005c5000,Object_CallSlot14,function,low,reimplemented (src/game/core/vwrap); cdecl (object): a jump to the object's slot 0x14; returns what it returns (name unconfirmed)
 0x0057c360,Global8bba48_Create,function,low,"reimplemented (src/game/core/vwrap); cdecl: without an object at [0x8bba48] a new one (0xa8 bytes, vbtable 0x701b40, virtual base vtable 0x701b30, function pointers at +0x84..+0x9c) added to the live objects, 1; 0 when there was one or the allocation failed (error 3 pushed)"
 0x00481530,Obj7b51f0_PassThingTo7cc218,function,low,"reimplemented (src/game/core/vwrap); thiscall on the object at 0x7b51f0, this not used (handle, pops 4): Obj_CallSlot14IfGlobalThing on the object at 0x7cc218 (name unconfirmed)"
+0x004b7a00,Obj_CallSlot2cIfGlobalIf10,function,low,"reimplemented (src/game/core/vwrap); the slot 0x2c call when the global, for an object with a +0x10"
 0x005e3b90,Class702d48_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor that registers the object with a global one
 0x005e3c00,Class702d48_Release,function,high,reimplemented (src/game/core/vdtor); releases the object from a global one
 0x005e3bd0,Class702d48_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor that releases the object from a global one
@@ -3478,6 +3489,8 @@ address,name,kind,confidence,notes
 0x00598760,Ptr_FreeIfSet,function,high,reimplemented (src/game/core/buffers); frees the block a pointer variable points to
 0x00598770,Dwords_Zero,function,high,reimplemented (src/game/core/seqs); zeroes a run of dwords
 0x005f4ea0,ReturnOne,function,high,reimplemented (src/game/core/trivial); returns 1
+0x00414670,Low16_414670,function,low,reimplemented (src/game/core/trivial); the low word of a value
+0x0044e600,OutOne_44e600,function,low,"reimplemented (src/game/core/trivial); an init step's answer: *out = 1, returns 1"
 0x00486b60,KeyMaps_EnableAllAndClearFlag,function,high,reimplemented (src/game/core/keymap); enables all keyboard maps and clears a flag
 0x00486b70,KeyMaps_ResetAllAndSetFlag,function,high,reimplemented (src/game/core/keymap); resets all keyboard maps and sets a flag
 0x0051b4a0,Sound_Alloc,function,high,reimplemented (src/game/core/gameheap); counted global allocation
@@ -3611,6 +3624,7 @@ address,name,kind,confidence,notes
 0x0040c990,Actions_FireUp,function,high,reimplemented (src/game/core/keymap); fires the up handler of an action entry
 0x0046b420,KeyMap_Modifiers,function,low,"reimplemented (src/game/core/keymap); cdecl: the modifier keys held from GetKeyState: 3 shift, 0xc control, 0x30 alt"
 0x00486aa0,KeyMap_AsyncModifiers,function,low,reimplemented (src/game/core/keymap); cdecl: the same from GetAsyncKeyState
+0x0040d070,KeyMaps_FreeAll,function,low,reimplemented (src/game/core/keymap); the keyboard maps' blocks freed
 0x0041a9d0,Graphics_Level,function,high,reimplemented (src/game/core/options); level 2 to 8 from the render mode or the graphics balance
 0x00423dd0,Options_ApplySound,function,low,"reimplemented (src/game/core/options); cdecl: the options sound switches and volumes applied (Sound_Set803adc/ac0, ae0/ac4, ad8/abc; Global802ba8_SetMasked(+0x2c * 1023 / 100))"
 0x00423690,Options_Defaults,function,low,"reimplemented (src/game/core/options); thiscall; the option defaults (+0..+0x3a, volumes from 0x785928-34, switches when 0x785924), the copy at +0x3c, then Options_ApplySound"
@@ -3619,6 +3633,7 @@ address,name,kind,confidence,notes
 0x00424560,Options_SerializeMisc,function,low,"reimplemented (src/game/core/options); thiscall (stream, saving, an unused dword): +0x78..+0x8c (CURRENTTheme, DEBUGGuardUInts, TextureCacheSize) saved or loaded; 1 on a failure, else 0 (name unconfirmed)"
 0x00424820,Options_SaveFile,function,low,"reimplemented (src/game/core/options); thiscall (path String): opened for writing (0xc0000010), the version 1 written, then Options_SerializeDisplay (saving); closed; 1 when it went through, else 0 (name unconfirmed)"
 0x00424930,Options_LoadFile,function,low,"reimplemented (src/game/core/options); thiscall (path String): the defaults, opened for reading (0x80000001), the version read (0 refused), then Options_SerializeDisplay (loading); closed; 1 when it went through, else 0 (name unconfirmed)"
+0x0041aa40,Graphics_Tier,function,low,reimplemented (src/game/core/options); the graphics tier from the render mode or balance level
 0x0043ba20,Coaster_SetTrainCount,function,high,"reimplemented (src/game/coaster/setup); sets the car count, unloading the cars cut off"
 0x0041c8b0,Class6fd9d8_Dtor,function,high,"reimplemented (src/game/core/class6fd9d8); destructor: deletes its member and the held objects of its list, frees two strings"
 0x004f0700,Wstreambuf_Read,function,high,"reimplemented (src/game/core/streambuf); reads wide characters from the get area, else through the underflow slot"
@@ -3710,6 +3725,9 @@ address,name,kind,confidence,notes
 0x0051af00,ListScalarDelete700aa0_51af00,function,low,"reimplemented (src/game/core/vdel); a linked list scalar deleting destructor: sets the vtable pointer 0x700aa0, frees every node and, when bit 0 of the flags is set, the list"
 0x005e3fa0,Class702e70_ScalarDtor,function,high,"reimplemented (src/game/core/vdel); thiscall (flags, pops 4): Class702e70_Dtor, the object freed on flag bit 0; returns it"
 0x005e3fd0,Class702e20_ScalarDtor,function,high,"reimplemented (src/game/core/vdel); thiscall (flags, pops 4): Class702e20_Dtor, the object freed on flag bit 0; returns it"
+0x00409cf0,ScalarDeleteList6fd708_409cf0,function,low,reimplemented (src/game/core/vdel); the list deleting destructor with the list destructor inlined
+0x00458970,Deleter_Minus8_458970,function,low,reimplemented (src/game/core/vdel); the deleting destructor of a part 8 bytes into its block
+0x00421800,ScalarDeleteList6fdb10_421800,function,low,reimplemented (src/game/core/vdel); the list deleting destructor of vtable 0x6fdb10 with the list destructor inlined
 0x004dda20,Object_QueueHasRoom,function,high,reimplemented (src/game/world/objectmsg); whether the person queue is shorter than four times the limit
 0x005eb090,ArrayHolder_Clear,function,high,reimplemented (src/game/gfx/array3d); frees the four arrays of the holder
 0x005ea3f0,Image_CropInto,function,high,reimplemented (src/game/gfx/imageops); copies the part of an image that is left once moved into a fresh destination
@@ -3717,6 +3735,8 @@ address,name,kind,confidence,notes
 0x0055f040,TileSet_Ctor,function,high,reimplemented (src/game/terrain/land); A landscape level's constructor: clears it and its thirteen arrays (name unconfirmed)
 0x0055f530,Lnd_Ctor,function,high,"reimplemented (src/game/terrain/land); The landscape's constructor: three levels made, then Lnd_Clear (name unconfirmed)"
 0x0055f5a0,Lnd_Dtor,function,high,"reimplemented (src/game/terrain/land); The landscape's destructor: Lnd_Clear, the tile buffer freed, the levels cleared (name unconfirmed)"
+0x00454050,Terrain_FootprintCell,function,high,"reimplemented (src/game/terrain/land); (angle, x0, y0, x1, y1, u, v, &cellX, &cellY): the cell at fractions (u, v) of a footprint turned by a right angle"
+0x00466d70,Terrain_FootprintHeight,function,high,"reimplemented (src/game/terrain/land); (x, y, cells, width, depth, flags, angle): (lowest + highest) / 2 of the grid heights at the corners of a footprint's cells, in st0"
 0x005ea510,Image_Dilate,function,high,reimplemented (src/game/gfx/imageops); separable maximum filter of an image
 0x005ea6d0,Image_Erode,function,high,reimplemented (src/game/gfx/imageops); separable minimum filter of an image
 0x005ea1f0,Image_MinMark,function,high,"reimplemented (src/game/gfx/imageops); 3 x 3 minimum of a two byte per pixel image, marking the changed pixels"
@@ -3909,6 +3929,7 @@ address,name,kind,confidence,notes
 0x0047ba50,StdWString_Freeze,function,low,"reimplemented (src/game/core/stdwstring); thiscall: std::wstring::_Freeze(): a shared string's own copy, then its block's count byte 0xff (name unconfirmed)"
 0x0047bad0,StdWString_Grow,function,low,"reimplemented (src/game/core/stdwstring); thiscall (n, trim; pops 8): std::wstring::_Grow(n, trim): AL = characters to write (name unconfirmed)"
 0x0047bc00,StdWString_Split,function,low,reimplemented (src/game/core/stdwstring); thiscall: std::wstring::_Split(): a shared string's own copy (wcslen of the shared characters) (name unconfirmed)
+0x00405b90,GameError_IndexOfCode,function,low,reimplemented (src/game/core/gameerror); the error index of a library code
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
@@ -4120,6 +4141,8 @@ address,name,kind,confidence,notes
 0x0043b600,Coaster_BoardRiders,function,low,"reimplemented (src/game/coaster/cars); cdecl (queue, coaster, first, count): riders taken from the queue ring seated in a random car with room from first on, each part activated"
 0x0043c3d0,Coaster_SetMix,function,low,"reimplemented (src/game/coaster/cars); cdecl (coaster, value, quiet): unless quiet the record 0x45; +0x30 = value, +0x34 = the type's +0x4c/+0x50 mixed value percent of the way (x87); flags changed; contacts cleared on type flag 8 (name unconfirmed)"
 0x0043b2b0,Coaster_SetMixAt,function,low,"reimplemented (src/game/coaster/cars); cdecl (index, value): table 0x790bd0's coaster's Coaster_SetMix (recorded) when value differs, unless flag 0x8000 and not playing back (name unconfirmed)"
+0x00447e30,Coaster_SetMixAtPinned,function,low,"reimplemented (src/game/coaster/cars); the recorded mix replayed, the coaster then pinned (flag 0x8000)"
+0x0043b8b0,CoasterTrain_AtStation,function,low,"reimplemented (src/game/coaster/cars); the train at the station: riders off, boarding over the cars in the window, the window kept"
 0x0043b050,CoasterLink_Find,function,high,"reimplemented (src/game/coaster/registry); cdecl (key): +0x14 of the first entry of the list at 0x790fe0 (next +0x18) whose +0x24 is key, else 0"
 0x00438720,Coaster_Count,function,high,reimplemented (src/game/coaster/registry); cdecl (): the coaster count (0x792214)
 0x00438730,CoasterLink_Nodes,function,high,"reimplemented (src/game/coaster/registry); cdecl (n, value or null): link n of the list at 0x790fe0: its +0x28 to *value, returns its +0x54 -> +0x90 -> +4 node list"
@@ -4155,6 +4178,7 @@ address,name,kind,confidence,notes
 0x00441840,Coaster_FlashCar,function,high,"reimplemented (src/game/coaster/registry); stops the coaster's flashing car (+0x144) and flashes the one which picks (1: +0x58/+0x60, 2: +0x54/+0x64 by +0x3c bit 2)"
 0x00463ab0,Ride_Claim,function,high,"reimplemented (src/game/coaster/registry); cdecl (index, type, key, desc, unused, value, a, b): claims ride index or the first unclaimed (+4 flag 0x10000) ride of type with key and, given desc, its fields; sets value on its link when +4 has 0x40000; returns index or 0"
 0x00435500,Coasters_InitTables,function,high,"reimplemented (src/game/coaster/registry); cdecl: Coasters_AllocTables([0x790fd0], [0x791cfc]), then IdTable_Init(0x790b04, 0x790b00, 0x791ce0)"
+0x00433f70,CoasterLinks_FindAtFocus,function,low,reimplemented (src/game/coaster/registry); the coaster entry at the cell of the focus point
 0x0043b0e0,Coaster_QueuePush,function,high,"reimplemented (src/game/coaster/queue); cdecl (index, peep): appends the peep to the queue ring (+0xb0) of coaster index (table 0x790bd0) when it has room"
 0x0043b130,CoasterQueue_Add,function,high,"reimplemented (src/game/coaster/queue); cdecl (coaster, peep): appends the peep to the queue ring (+0xb0), else to the boarding ring (+0xd0), whichever has room"
 0x0043b1f0,Coaster_QueueRoom,function,high,"reimplemented (src/game/coaster/queue); cdecl (index): the queue ring's limit - reserved - count, at least 0"
@@ -4252,6 +4276,7 @@ address,name,kind,confidence,notes
 0x00576310,Renderer_MakeFrameBuffer,function,low,"reimplemented (src/game/render/renderer); thiscall (width, height): the old frame buffer freed, a zeroed tracked one of width*height*4 at +0x10, the render state at +0x48 reset and pushed on the state stack (+0x60, count set to 1 after, sic): 1; not got: error 3 pushed, 0"
 0x0048f3c0,RendererPart_FreeTextures,function,low,"reimplemented (src/game/render/renderer); thiscall (one unused argument, pops 4): the image at +0x9c's textures freed (SpriteImage_FreeTexturesIfSet); slot 9 of vtable 0x6ff2d8 (name unconfirmed)"
 0x0048f410,RendererPart_FreeTextures2,function,low,reimplemented (src/game/render/renderer); thiscall: the same with no argument; slot 6 of vtable 0x6ff2d8 (name unconfirmed)
+0x0048f3d0,RendererPart_AllocPixels,function,low,"reimplemented (src/game/render/renderer); thiscall (unused, pops 4): unless +0x44, the image at +0x9c gets pixels and the frame at +0x54 its size, of the s16 sizes at +0x3c / +0x3e; +0x44 = 1"
 0x005777a0,Backdrop_Clear5c,function,high,"reimplemented (src/game/render/backdrop); thiscall (the tiled backdrop, 0x87aee8): +0x5c = 0"
 0x00577940,Backdrop_SetRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the rectangle drawn into, +0x20..+0x2c, and flag 2 in +0"
 0x00577970,Backdrop_SetSourceRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the part of the image drawn, +0x30..+0x3c"
@@ -4266,6 +4291,7 @@ address,name,kind,confidence,notes
 0x0058a490,SpriteQueue_Free,function,low,reimplemented (src/game/render/spritequeue); cdecl: the sprite queue's texture array destroyed and the queue freed (name unconfirmed)
 0x0058a430,SpriteQueue_Create,function,low,"reimplemented (src/game/render/spritequeue); cdecl: without a sprite queue at [0x8c47a0] a new one (0x2410 bytes, counts and texture array cleared), 1; 0 when there was one or the allocation failed (error 3 pushed)"
 0x00491f20,SpriteSet_DeletingDtor,function,low,"reimplemented (src/game/render/spritequeue); thiscall on a sprite set's +0x20 (flags): the 0x6ff308 class's deleting destructor: vbase vtable 0x6ff308 and displacement, TrackedArray_Free, LiveObjects_Remove(vbase), +0x20 = 0x6fdce8, flags bit 0 frees; returns the set"
+0x0048f280,SpriteSet_Dtor,function,low,"reimplemented (src/game/render/spritequeue); thiscall: the sprite set's destructor (SpriteSet_DeletingDtor without the free), run by an exception unwind"
 0x00582390,DrawBuffer_Reset,function,high,"reimplemented (src/game/render/drawbuffer); thiscall (the draw buffer, [0x8bcbc4]; streams byte 1/2): streams emptied, stream 1's batches from the top again (else the batches above +0x54 cleared), the scratch area emptied"
 0x00582640,DrawBuffer_Alloc,function,high,"reimplemented (src/game/render/drawbuffer); thiscall (n): n * 16 bytes from the scratch area (+0x5c up to +0x3c), or 0"
 0x00582670,DrawBuffer_Begin,function,high,"reimplemented (src/game/render/drawbuffer); thiscall (mode): the stream's next batch begun, cleared and pointed at the free vertices and indices; returns it"
@@ -4304,6 +4330,8 @@ address,name,kind,confidence,notes
 0x0053c810,DynFaces_ReleaseModels,function,low,"reimplemented (src/game/render/dynfaces); cdecl (): with 0x874fcc set, each of the three model objects (0x871f64, 0x871ee4, 0x871ed8) has its animator +0x54 slept and disposed and is freed; Dword_ClearBit0(0x763c78); the flag cleared"
 0x00458400,LightSource_Destroy,function,low,"reimplemented (src/game/render/lightsource); cdecl (light): by kind: 0 the data error box; 1 the ambient colour reset, then 2: the part +4 out of the renderer tag 0x70 list and deleted, then 3: the same for +0xc"
 0x00458580,LightSource_DestroyMain,function,low,reimplemented (src/game/render/lightsource); The main light (0x7a0b40) destroyed
+0x00458890,LightSource_SetColour,function,low,"reimplemented (src/game/render/lightsource); a light's part colour from r, g, b"
+0x00458350,LightPart_SetColour,function,low,"reimplemented (src/game/render/lightsource); a light part's colour from a, r, g, b"
 0x00561bc0,ClipCodes_Compute,function,low,"reimplemented (src/game/render/clipcodes); fastcall-shaped (caller's ECX, EDX; out, codes, points, count, stride, mask), pops 24: each point's 7-bit sign/magnitude index into the table at 0x879970, masked, stored; out = AND | OR << 8 | ECX's high half"
 0x00570d60,ClipCodes_Run,function,low,reimplemented (src/game/render/clipcodes); the caller ECX and six arguments on to ClipCodes_Compute; returns out (name unconfirmed)
 0x0056a770,DxResult_Message,function,low,"reimplemented (src/game/render/dxerrors); cdecl (HRESULT): the exe's message string for a DirectDraw / Direct3D / renderer result (142 codes), else 0x7663a8"
@@ -4328,6 +4356,7 @@ address,name,kind,confidence,notes
 0x0044b270,Model_NthPart,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, nth): the nth part (from 1) with flags & mask, or -1"
 0x0044b2b0,Model_CountParts,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask): parts with flags & mask"
 0x0044b3c0,Model_FindPartByKey8,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +8 == key and flags & mask (mask defaults 1), or -1"
+0x0044ba60,Model_MarkFlag80Faces,function,low,reimplemented (src/game/model/parts); the faces of the parts with flag 0x80 marked
 0x0045bed0,Holder_FlagModel,function,high,reimplemented (src/game/model/holder); cdecl (holder**): model (+4) +0x30 |= 0x200
 0x0045bef0,Holder_SetPosition,function,high,"reimplemented (src/game/model/holder); cdecl (holder, x, y, z): model (+4) matrix (+0x78, +0x10) translation = x, y, z"
 0x004587b0,Ride_SlotKey,function,high,"reimplemented (src/game/model/holder); cdecl u32 (ride, i): slot i's +8 of the ride's holder (0x7a4610), 0 for a null slot"
@@ -4408,6 +4437,7 @@ address,name,kind,confidence,notes
 0x0046ed80,Model_TransformBounds,function,high,reimplemented (src/game/model/bounds); puts the model's bounds through its root's matrix
 0x004543c0,StripAnim_Apply,function,high,reimplemented (src/game/model/stripanim); the strip animation of a growing object
 0x004547c0,StripAnim_StartShrink,function,high,"reimplemented (src/game/model/stripanim); cdecl (object): when +0xb0 is set, +0xbc = -0.3f and, with flags (+4) 0x20, flag 0x40 traded for 0x80"
+0x00454190,StripAnim_FitGround,function,low,"reimplemented (src/game/model/stripanim); (object): the strips' vertex heights from the grid under their ends (Terrain_FootprintCell), less the model's y, halved (+10 for the upper)"
 0x00451390,Model_HeightAt,function,high,reimplemented (src/game/model/heightat); the height of a model's floor under a point
 0x00451290,Model_FloorHeight,function,high,reimplemented (src/game/model/heightat); the view's floor height under a point
 0x0046f100,M3D2_DataErrorBox,function,low,"reimplemented (src/game/model/m3d2); cdecl (text): MessageBoxA(0, text, ""M3D2 Exporter - Data Error"", 0x31) != IDCANCEL"

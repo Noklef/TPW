@@ -6,9 +6,10 @@
 # Their users: a texture set's shared list (src/game/gfx/texset: 0x575c00) over any bytes with any array; the renderer's frame buffer
 # (render/renderer: 0x576310) with an old one tracked, another or none, sizes up to 24 by 24 (and wrapping ones), the render state stack's
 # count -1 to 5 holding the state's address or not; a sprite image's pixels (gfx/spriteframe: 0x588940), the format 0-3 indexing pixel sizes
-# 2, 4, 3 and 1 at 0x701fe0, sizes with any high bits; a texture's pixels (gfx/texture: 0x590a80) for sides around the level steps and
+# 2, 4, 3 and 1 at 0x701fe0, sizes with any high bits, and a renderer part's (render/renderer: 0x48f3d0) for its image at +0x9c
+# of its s16 sizes (small, negative or wide), done (+0x44) or not, its frame (+0x54) holding no image or the part's own with no textures; a texture's pixels (gfx/texture: 0x590a80) for sides around the level steps and
 # wrapping ones (0x8000, 0x10000; a block too big for the bench's heap fails), any flags, the float at +0x30 around 0..1.5 or any bits. (The allocations' errors go onto the engine's list at 0x879ad0, its count 0 to 0x40.)
-# usage: trackedglobal.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Alloc,Free,ArrayAlloc,ArrayFree,Holder,HolderFree,TexSetShared,FrameBuffer,ImagePixels)
+# usage: trackedglobal.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Alloc,Free,ArrayAlloc,ArrayFree,Holder,HolderFree,TexSetShared,FrameBuffer,ImagePixels,PartPixels)
 import os
 import struct
 import sys
@@ -17,9 +18,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, HEAP, RAM, fb, global_heap, heap, put  # noqa: E402
 
 CALLS = {'Alloc': 0x579b40, 'Free': 0x579b80, 'ArrayAlloc': 0x58a4f0, 'ArrayFree': 0x58a520, 'Holder': 0x586e20, 'HolderFree': 0x587110,
-         'TexSetShared': 0x575c00, 'FrameBuffer': 0x576310, 'ImagePixels': 0x588940, 'TextureAlloc': 0x590a80}
+         'TexSetShared': 0x575c00, 'FrameBuffer': 0x576310, 'ImagePixels': 0x588940, 'TextureAlloc': 0x590a80,
+         'PartPixels': 0x48f3d0}
 B = Bench([(0x579b40, 0x579c13), (0x58a4f0, 0x58a548), (0x586e20, 0x586e3a), (0x587110, 0x58712f), (0x575c00, 0x575c5b), (0x576310, 0x5763e1),
-           (0x588940, 0x5889a1), (0x56af20, 0x56af9c), (0x590a80, 0x590b88)])
+           (0x588940, 0x5889a1), (0x56af20, 0x56af9c), (0x590a80, 0x590b88), (0x48f3d0, 0x48f409), (0x588e40, 0x588ee8)])
 COUNT, TABLE, LOW = 0x8bb214, 0x87b1f8, 0x87b1e0   # (the pairs from index -3, for the counts of -1 and below)
 BLOCKS = [HEAP + 0x40, HEAP + 0x44, HEAP + 0x80, HEAP + 0x84, HEAP + 0x100, 0, 4]
 
@@ -55,9 +57,21 @@ def user(r, name, regions):
         regions[0x8bd554] = struct.pack('<I', mode)
         return Call(CALLS[name], [RAM, side, r.getrandbits(32) & r.choice([0xffffffff, 0x2100, 0])], {**regions, RAM: tex}, conv='t', ret='a')
     regions[RAM] = r.bytes(0x18)
+    if name == 'PartPixels':
+        part = bytearray(r.bytes(0xb4))
+        w, h = (r.choice([0, 1, 5, 16, r.randrange(40), -1, -0x8000, 0x7fff]) for _ in range(2))
+        if (w & 0xffff) * (h & 0xffff) * 4 > 0xf000:   # (the block, of the sizes taken as words, zeroed within the heap's 64 KB)
+            h = r.choice([0, r.randrange(40) if (w & 0xffff) < 0x180 else 0])
+        put(part, 0x3c, '2h', w, h)
+        put(part, 0x44, 'H', r.choice([0, 0, 0, 1, r.getrandbits(16)]))
+        put(part, 0x7c, 'I', r.choice([0, RAM + 0x9c]))
+        put(part, 0xb2, 'H', 0)
+        regions[RAM] = part
     regions[0x701fe0] = struct.pack('<4I', 2, 4, 3, 1)
     regions[0x8bd554] = struct.pack('<I', r.randrange(4))
     w, h = (r.randrange(40) | r.choice([0, 0, 0x10000, 0xffff0000]) for _ in range(2))
+    if name == 'PartPixels':
+        return Call(CALLS[name], [RAM, r.getrandbits(32)], regions, conv='t')
     return Call(CALLS[name], [RAM, w, h], regions, conv='t', ret='a')
 
 
@@ -91,7 +105,7 @@ def case(r):
     return Call(CALLS[name], [arg], regions, conv='c', ret='a')
 
 
-USERS = ('TexSetShared', 'FrameBuffer', 'ImagePixels', 'TextureAlloc')
+USERS = ('TexSetShared', 'FrameBuffer', 'ImagePixels', 'TextureAlloc', 'PartPixels')
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 
 if __name__ == '__main__':

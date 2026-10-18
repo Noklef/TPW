@@ -340,4 +340,11 @@ u32 __fastcall RendererPart_FreeTextures(u8 *object, void *, u32) {
 u32 __fastcall RendererPart_FreeTextures2(u8 *object) {
     return SpriteImage_FreeTexturesIfSet(object + 0x9c);
 }
+
+void __fastcall RendererPart_AllocPixels(u8 *object, void *, u32) {
+    if (at<u16>(object, 0x44)) return;
+    SpriteImage_AllocPixels(object + 0x9c, nullptr, (u32)(s32)at<s16>(object, 0x3c), (u32)(s32)at<s16>(object, 0x3e));
+    SpriteFrame_SetSize30(object + 0x54, nullptr, at<s16>(object, 0x3c), at<s16>(object, 0x3e));
+    at<u16>(object, 0x44) = 1;
+}
 }

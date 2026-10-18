@@ -10,6 +10,7 @@
 #include "../core/globalmem.h"
 #include "../gfx/array3d.h"
 #include "../math/x87.h"
+#include "../model/faces.h"
 #include "../render/frame.h"
 
 namespace {
@@ -269,5 +270,83 @@ double __cdecl Terrain_HeightAt(float x, float y) {
     if (!(fx >= fy))
         return (((X87Reg(h[b + 1]) * fx) + u * h[b]) + X87Reg(-(X87Reg(h[b]) - h[a]).v) * (X87Reg(1.0f) - fy)).v;
     return (((u * h[a]) + X87Reg(fx) * h[a + 1]) + (X87Reg(h[b + 1]) - h[a + 1]) * fy).v;
+}
+
+}  // extern "C"
+
+namespace {
+
+// __ftol((t b + (1 - t) a) - -0.1f), the low half.
+s32 footprint_step(float t, float a, float b) {
+    const X87Reg sum = X87Reg(t) * b + (X87Reg(1.0f) - t) * a;   // 0x6fe440
+    return (s32)(long long)(sum - -0.100000001f).v;                // 0x6fe47c
+}
+
+}  // namespace
+
+extern "C" {
+
+void __cdecl Terrain_FootprintCell(s32 angle, float x0, float y0, float x1, float y1, float u, float v, s32 *cellX, s32 *cellY) {
+    s32 cx, cy;
+    switch (angle) {
+    case 0:
+        cx = footprint_step(u, x0, x1);
+        cy = footprint_step(v, y0, y1);
+        break;
+    case 0x5a:
+        cx = footprint_step(v, x0, x1);
+        cy = footprint_step(u, y1, y0);
+        break;
+    case 0xb4:
+        cx = footprint_step(u, x1, x0);
+        cy = footprint_step(v, y1, y0);
+        break;
+    case 0x10e:
+        cx = footprint_step(v, x1, x0);
+        cy = footprint_step(u, y0, y1);
+        break;
+    default:
+        return;
+    }
+    *cellX = cx;
+    *cellY = cy;
+}
+
+double __cdecl Terrain_FootprintHeight(s32 x, s32 y, const u8 *cells, s32 width, s32 depth, u32 flags, s32 angle) {
+    const float fx = (float)x, fy = (float)y, fd = (float)depth;
+    const bool straight = angle == 0 || angle == 0xb4;
+    const float x1 = (float)(X87Reg((double)(straight ? width : depth)) + fx);
+    const float y1 = (float)(X87Reg((double)(straight ? depth : width)) + fy);
+    const float stepU = (float)(X87Reg(1.0f) / X87Reg((double)width)), stepV = (float)(X87Reg(1.0f) / fd);  // 0x6fe758
+    float u = 0, lowest = 10000.0f, highest = -10000.0f;                                                       // 0x6fe768, 0x6fe764
+    s32 cell[2];  // the corner's cell: where the original keeps x and y as floats until the first corner (sic)
+    std::memcpy(&cell[0], &fx, 4);
+    std::memcpy(&cell[1], &fy, 4);
+    if (width > 0) {
+        const u8 *row = cells + 8;
+        for (s32 i = width; i; --i) {
+            float v = 0;
+            if (depth > 0) {
+                const u8 *at_cell = row;
+                for (s32 j = depth; j; --j) {
+                    if (!cells || Flags_AnyLow4(at<u32>(at_cell, 0)) || (flags & 0x10)) {
+                        for (u32 corner = 0; corner < 4; ++corner) {
+                            const float dv = corner & 2 ? stepV : 0.0f, du = corner & 1 ? stepU : 0.0f;  // (0x6fe76c)
+                            Terrain_FootprintCell(angle, fx, fy, x1, y1, (float)(X87Reg(u) + du), (float)(X87Reg(v) + dv), &cell[0], &cell[1]);
+                            const u8 *grid = at<const u8 *>(map(), 0x6c);
+                            const float h = at<const float *>(grid, 0x28)[(at<s32>(grid, 0x18) + 1) * cell[1] + cell[0]];
+                            if (h > highest) highest = h;
+                            if (!(h >= lowest)) lowest = X87_Through(h);
+                        }
+                    }
+                    v = (float)(X87Reg(stepV) + v);
+                    at_cell += 0xa0;
+                }
+            }
+            u = (float)(X87Reg(stepU) + u);
+            row += 8;
+        }
+    }
+    return ((X87Reg(lowest) + highest) * 0.5f).v;  // 0x6fe770
 }
 }

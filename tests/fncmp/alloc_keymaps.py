@@ -1,5 +1,6 @@
 # The small helpers of src/game/core/alloc_keymaps against the originals: a pointer variable freed when set, a dword fill, the two keyboard-map wrappers (the five maps of
-# keymap.py) and the global-memory wrappers (the heap region serves GlobalAlloc / GlobalFree).
+# keymap.py; KeyF 0x40d070 frees them) and the global-memory wrappers (the heap region serves GlobalAlloc / GlobalFree; G3 0x427bb0 frees three
+# global blocks).
 # usage: alloc_keymaps.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import sys
@@ -12,8 +13,8 @@ from fncmp import Bench, Call, HEAP, RAM, global_heap, heap, put  # noqa: E402
 # name: (address, convention, returns, size)
 CALLS = {'Pfree': (0x598760, 't', 'v', 0x10), 'Zero': (0x598770, 'c', 'a', 0x10), 'One': (0x5f4ea0, 'c', 'a', 0x10), 'KeyE': (0x486b60, 'c', 'v', 0x10),
          'KeyR': (0x486b70, 'c', 'v', 0x10), 'Salloc': (0x51b4a0, 'c', 'a', 0x30), 'Sfree': (0x51b4d0, 'c', 'a', 0x20), 'Chk': (0x51f630, 'c', 'a', 0x30),
-         'Flog': (0x556ab0, 'c', 'a', 0x40), 'Fchk': (0x51f660, 'c', 'a', 0x20)}
-B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()] + [(0x40c870, 0x40d06a), (0x5f5660, 0x5f5690), (0x5da3c0, 0x5da3c1), (0x67acb0, 0x67acb1)])
+         'Flog': (0x556ab0, 'c', 'a', 0x40), 'Fchk': (0x51f660, 'c', 'a', 0x20), 'KeyF': (0x40d070, 'c', 'v', 0x6d), 'G3': (0x427bb0, 'c', 'v', 0x4b)}
+B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()] + [(0x40c870, 0x40d06a), (0x5f5660, 0x5f5690), (0x5da3c0, 0x5da3c1), (0x67acb0, 0x67acb1), (0x45ba00, 0x45ba1c)])
 
 
 def case(r):
@@ -28,6 +29,10 @@ def case(r):
     if name == 'Zero':
         regions[RAM + 0x100] = r.bytes(0x60)
         return Call(address, [RAM + 0x100 + r.choice([0, 4, 8]), r.choice([0, 1, 2, 5, 8])], regions, conv=conv, ret=ret)
+    if name in ('KeyF', 'G3'):   # the maps' pointers (and 0x787294) / the three global blocks: set or not
+        for g in (keymap.GLOBALS + (0x787294,) if name == 'KeyF' else (0x74c8d4, 0x74c8c0, 0x74c8b8)):
+            regions[g] = r.choice([0, 0, HEAP + 0x40, HEAP + 0x80, RAM + 0x100, r.getrandbits(32)]).to_bytes(4, 'little')
+        return Call(address, [], regions, conv=conv, ret=ret)
     if name == 'One':
         return Call(address, [], regions, conv=conv, ret=ret)
     if name in ('KeyE', 'KeyR'):

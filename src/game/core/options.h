@@ -34,6 +34,10 @@ u8 *__fastcall Setting_ReadMode(u8 *object);
 // 8, and 8 for any larger.
 u32 __cdecl Graphics_Level();
 
+// 0x41aa40 (no arguments; name unconfirmed): in the 0x4000 render size, 2 for a 8 or 16 bit depth, 1 for 32 and else 0; otherwise 1 for
+// gBalanceGraphics (0x7858d0) 0, else 2.
+u32 __cdecl Graphics_Tier();
+
 // 0x423dd0 (cdecl): the game options' (0x78d8d8) sound settings applied: for each switch (the bytes +0x18, +0x20, +0x10)
 // its sound flag (Sound_Set803adc / ae0 / ad8) set 1 and its volume (+0x1c / +0x24 / +0x14: Sound_Set803ac0 / ac4 /
 // abc) passed on, or the flag set 0; then Global802ba8_SetMasked(the dword +0x2c * 1023 / 100, truncated) when the

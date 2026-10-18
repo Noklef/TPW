@@ -131,6 +131,7 @@ add_library(tpw_game STATIC
     src/game/core/sync.cpp
     src/game/core/cpuinfo.cpp
     src/game/core/stdwstring.cpp
+    src/game/core/gameerror.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -175,6 +176,7 @@ add_library(tpw_game STATIC
     src/game/motion/track.cpp
     src/game/motion/animator.cpp
     src/game/motion/normals.cpp
+    src/game/motion/placement.cpp
     src/game/sprite/script.cpp
     src/game/sprite/draw.cpp
     src/game/sprite/sprite.cpp

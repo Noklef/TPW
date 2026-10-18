@@ -8,6 +8,7 @@
 #include "../math/x87.h"
 #include "../model/partstate.h"
 #include "contacts.h"
+#include "queue.h"
 #include "train.h"
 
 namespace {
@@ -206,6 +207,11 @@ void __cdecl Coaster_SetMixAt(u32 index, u32 value) {
     Coaster_SetMix(coaster, value, 0);
 }
 
+void __cdecl Coaster_SetMixAtPinned(u32 index, u32 value) {
+    Coaster_SetMixAt(index, value);
+    if (u32 *const pinned = reinterpret_cast<u32 **>(0x00790bd0)[index]) *pinned |= 0x8000;
+}
+
 void __cdecl Coaster_BoardRiders(u8 *queue, u8 *coaster, u32 first, u32 count) {
     while (at<u32>(coaster, 0x14) && count) {
         if (!at<u32>(queue, 0xbc)) return;
@@ -233,6 +239,47 @@ void __cdecl Coaster_BoardRiders(u8 *queue, u8 *coaster, u32 first, u32 count) {
         }
         --at<u32>(coaster, 0x14);
     }
+}
+
+void __cdecl CoasterTrain_AtStation(u8 *coaster, u8 *train) {
+    const auto seats = [train](u32 first, u32 count) {   // the seats free in the cars from first
+        at<u32>(train, 0x14) = 0;
+        const u8 *car = at<u8 *>(train, 0x28) + first * 0x60;
+        for (u32 i = 0; i < count; ++i, car += 0x60) at<u32>(train, 0x14) += at<u32>(car, 0x44) - at<u32>(car, 0x34);
+    };
+    const bool there = at<float>(train, 0x20) >= at<float>(coaster, 0xf8) && !(at<float>(train, 0x24) > at<float>(coaster, 0xfc));
+    if (!there) {
+        if (!(at<u8>(train, 0) & 0x20)) return;
+        if (at<u8>(coaster, 8) & 4) {
+            const u32 first = at<u32>(train, 0x18), count = at<u32>(train, 0xc) - first;
+            seats(first, count);
+            Coaster_BoardRiders(coaster, train, first, count);
+        }
+        at<u32>(train, 0x18) = 0;
+        at<u32>(train, 0x1c) = 0;
+        u8 *car = at<u8 *>(train, 0x28) + at<u32>(train, 8) * 0x60;
+        for (u32 i = 0; i < at<u32>(train, 0xc); ++i, car += 0x60) {
+            const u32 off = at<u32>(car, 0x28);
+            at<u32>(car, 0x28) = at<u32>(car, 0x2c);
+            at<u32>(car, 0x2c) = off;
+            at<u32>(car, 0x30) = at<u32>(car, 0x34);
+            at<u32>(car, 0x34) = 0;
+        }
+        at<u32>(train, 0) &= ~0x20u;
+        return;
+    }
+    if (!(at<u8>(train, 0) & 0x20)) CoasterTrain_Unload(coaster, train, 1);
+    if (at<u8>(coaster, 8) & 4) {
+        s32 first, last;
+        CoasterCar_FindSegmentsInWindow(coaster, train, &first, &last);
+        const u32 from = (u32)first < at<u32>(train, 0x18) ? (u32)first : at<u32>(train, 0x18);
+        const u32 to = (u32)last > at<u32>(train, 0x1c) ? (u32)last : at<u32>(train, 0x1c);
+        seats(from, to - from + 1);
+        Coaster_BoardRiders(coaster, train, from, to - from + 1);
+        at<s32>(train, 0x18) = first;
+        at<s32>(train, 0x1c) = last;
+    }
+    at<u32>(train, 0) |= 0x20;
 }
 
 void __cdecl CoasterCars_InitUnusedOne() { *reinterpret_cast<float *>(0x007923a0) = 1.0f; }

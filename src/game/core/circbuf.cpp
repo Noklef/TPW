@@ -27,6 +27,21 @@ static bool Sample(const u8 *buffer, s32 back, s32 &value) {
     return true;
 }
 
+// The same for a buffer of floats.
+static bool SampleF(const u8 *buffer, s32 back, float &value) {
+    const s32 count = at<s32>(buffer, 0x248), head = at<s32>(buffer, 0x244);
+    if (back >= count)
+        return false;
+    if (back <= head) {
+        value = at<float>(buffer, 4 + 4 * (u32)(head - back));
+        return true;
+    }
+    if (at<u8>(buffer, 0x24c) == 0)
+        return false;
+    value = at<float>(buffer, 4 + 4 * (u32)(head - back + count));
+    return true;
+}
+
 static s32 Window(u32 kind) { return kind == 0 ? 0xc : kind == 1 ? 0x24 : kind == 2 ? 0x90 : 0; }
 
 extern "C" {
@@ -50,6 +65,29 @@ void __cdecl CircBufU32_144_MaxInWindow(const u8 *buffer, s32 *out, u32 kind) {
         Sample(buffer, bestAt, result);
     if (result > *out)
         *out = result;
+}
+
+void __cdecl CircBufF32_144_MaxInWindow(const u8 *buffer, s32 *out, u32 kind) {
+    const s32 window = Window(kind), count = at<s32>(buffer, 0x248);
+    float best = 0.0f;
+    s32 bestAt = -1;
+    for (s32 i = 0; count > 0 && i <= window; i++) {
+        float value;
+        if (!SampleF(buffer, i, value))
+            break;
+        if (value > best) {
+            best = value;
+            bestAt = i;
+        }
+        if (i + 1 >= count)
+            break;
+    }
+    float result = best;
+    if (bestAt < count)
+        SampleF(buffer, bestAt, result);
+    const s32 whole = (s32)(long long)X87Reg(result).v;  // __ftol
+    if (whole > *out)
+        *out = whole;
 }
 
 void __cdecl CircBufU32_144_MinInWindow(const u8 *buffer, s32 *out, u32 kind) {
@@ -117,6 +155,10 @@ void __fastcall CircBufU32_144_Push(u8 *buf, void *, u32 value) {
         at<u8>(buf, 0x24c) = 1;
     }
     at<u32>(buf, 4 + (u32)at<s32>(buf, 0x244) * 4) = value;
+}
+
+u32 __fastcall CircBufU32_30_Count(const u8 *buf) {
+    return at<u8>(buf, 0x84) ? at<u32>(buf, 0x80) : at<u32>(buf, 0x7c) + 1;
 }
 
 u8 __fastcall CircBufU32_30_Get(const u8 *buf, void *, u32 *out, s32 back) {

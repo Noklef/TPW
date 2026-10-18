@@ -11,7 +11,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, LOG, Bench, Call, RAM, fb, global_heap, heap, log_region, put, recorder, set_return  # noqa: E402
 
-B = Bench([(0x44a590, 0x44b140), (0x44b140, 0x44b2e0), (0x44b3c0, 0x44b410), (0x44e570, 0x44e5fc),
+B = Bench([(0x44a590, 0x44b140), (0x44b140, 0x44b2e0), (0x44ba60, 0x44bad5), (0x44b3c0, 0x44b410), (0x44e570, 0x44e5fc),
            (0x4587b0, 0x4587d9), (0x45bed0, 0x45bf13), (0x450420, 0x45046d), (0x4508b0, 0x4508f1), (0x450950, 0x450a24), (0x450a30, 0x450a78), (0x466f90, 0x46702f),
            (0x450b00, 0x450b24), (0x457a00, 0x457a88), (0x46de00, 0x46e125), (0x56dfb0, 0x56dfdd),
            (0x45d620, 0x45d68c), (0x441840, 0x4418cb), (0x469180, 0x469405), (0x469470, 0x4698ef), (0x469410, 0x46946a),
@@ -183,10 +183,11 @@ def parts(r, op):
     """A holder (HOLDER: +0 -> HOLDER + 0x20, +8 -> HOLDER + 0x20, whose +4 is MODEL) and a model with
     +0x48 parts at +0x7c (PARTS) and faces at +0x70 (FACES, 0xa0 each) and +0x74 (FACES2, 0x58 each)."""
     n = r.choice([0, 1, r.randrange(1, 12)])
-    holder, model, ps = r.bytes(0x40), r.bytes(0x80), r.bytes(12 * 0x14)
+    holder, model, ps = r.bytes(0x80), r.bytes(0x80), r.bytes(12 * 0x14)
     put(holder, 0, 'I', HOLDER + 0x20)
     put(holder, 8, 'I', HOLDER + 0x20)
     put(holder, 0x24, 'I', MODEL)
+    put(holder, 0x48, 'I', HOLDER + 0x60)   # (the holder's slot word, *holder + 0x28)
     first, base = r.randrange(0, 13), r.randrange(0, 4)
     put(model, 0x44, '3H', first, base, n)
     put(model, 0x70, 'I', FACES)
@@ -201,6 +202,8 @@ def parts(r, op):
                      r.getrandbits(32) & ~0x3da1f82 | 1])
     key = r.choice(keys + [r.getrandbits(32)])
     regs = {HOLDER: holder, MODEL: model, PARTS: ps, FACES: r.bytes(16 * 0xa0), FACES2: r.bytes(16 * 0x58)}
+    if op == 'Mark80':   # (the parts' flags with 0x80 or not)
+        return Call(0x44ba60, [HOLDER], regs)
     if op in ('MarkMask', 'MarkValue'):
         return Call({'MarkMask': 0x44b140, 'MarkValue': 0x44b1b0}[op], [HOLDER, mask if op == 'MarkMask' else key], regs)
     if op == 'Count':
@@ -537,7 +540,7 @@ def highlight(r, op):
     return Call(address, args, regs, ret='a' if op == 'HlCurrent' else 'v')
 
 
-KINDS = {'Size': mode, 'Depth': mode, 'ResetScale': mode, 'Epsilon': mode, 'MarkMask': parts, 'MarkValue': parts,
+KINDS = {'Size': mode, 'Depth': mode, 'ResetScale': mode, 'Epsilon': mode, 'MarkMask': parts, 'MarkValue': parts, 'Mark80': parts,
          'Count': parts, 'Nth': parts, 'Key4': parts, 'Key8': parts, 'SlotClear': parts, 'SlotSet': parts, 'SlotHolder': parts, 'ResetBounds': frame, 'AddFlags': frame,
          'SetPoint': frame, 'FlagModel': holder, 'SetPosition': holder, 'SetScale': holder, 'SlotKey': holder,
          'HolderOne': mode, 'HolderEps': mode, 'TerrOne': mode, 'TerrEps': mode, 'Tolerances': mode,

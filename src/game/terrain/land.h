@@ -84,4 +84,18 @@ void __fastcall Lnd_Dtor(u8 *object);
 // (1 - fy); 0x800 alone with fx < fy (or NaN) (h11 fx + (1 - fx) h01) - (h01 - h00)(1 - fy), else ((1 - fx) h00 + fx h10) + (h11 - h10) fy;
 // on the x87, in that order. The grid is read first, whatever x and y are.
 double __cdecl Terrain_HeightAt(float x, float y);
+
+// 0x454050 (cdecl; angle, x0, y0, x1, y1, u, v, &cellX, &cellY): the cell under the point at fractions (u, v) of a footprint from
+// (x0, y0) to (x1, y1) turned by angle, each __ftol((t b + (1 - t) a) + 0.1) on the x87: angle 0 cellX from u over x0..x1 and cellY
+// from v over y0..y1; 90 cellX from v over x0..x1, cellY from u over y1..y0; 180 u over x1..x0, v over y1..y0; 270 v over x1..x0, u over
+// y0..y1. Any other angle writes nothing.
+void __cdecl Terrain_FootprintCell(s32 angle, float x0, float y0, float x1, float y1, float u, float v, s32 *cellX, s32 *cellY);
+
+// 0x466d70 (cdecl; x, y, cells, width, depth, flags, angle): the ground height under a width x depth footprint at cell (x, y), in st0:
+// (lowest + highest) / 2 of the grid heights (as Terrain_HeightAt reads them, row width + 1) at the corners Terrain_FootprintCell gives
+// for each of its cells (the footprint's far corner (x + w, y + d), or (x + d, y + w) unless angle is 0 or 180; fractions stepped by
+// 1 / w and 1 / (float)d as floats). A cell counts when cells is null, flags has 0x10, or Flags_AnyLow4 of its dword (cells + 8 + 8 i +
+// 0xa0 j). The extremes start at -10000 and 10000; a NaN height becomes the lowest, and stays so. With an angle Terrain_FootprintCell
+// does not take the corner read is at the float bits of x and y (sic).
+double __cdecl Terrain_FootprintHeight(s32 x, s32 y, const u8 *cells, s32 width, s32 depth, u32 flags, s32 angle);
 }
