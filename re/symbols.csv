@@ -3718,6 +3718,8 @@ address,name,kind,confidence,notes
 0x0055f040,TileSet_Ctor,function,high,reimplemented (src/game/terrain/land); A landscape level's constructor: clears it and its thirteen arrays (name unconfirmed)
 0x0055f530,Lnd_Ctor,function,high,"reimplemented (src/game/terrain/land); The landscape's constructor: three levels made, then Lnd_Clear (name unconfirmed)"
 0x0055f5a0,Lnd_Dtor,function,high,"reimplemented (src/game/terrain/land); The landscape's destructor: Lnd_Clear, the tile buffer freed, the levels cleared (name unconfirmed)"
+0x00454050,Terrain_FootprintCell,function,high,"reimplemented (src/game/terrain/land); (angle, x0, y0, x1, y1, u, v, &cellX, &cellY): the cell at fractions (u, v) of a footprint turned by a right angle"
+0x00466d70,Terrain_FootprintHeight,function,high,"reimplemented (src/game/terrain/land); (x, y, cells, width, depth, flags, angle): (lowest + highest) / 2 of the grid heights at the corners of a footprint's cells, in st0"
 0x005ea510,Image_Dilate,function,high,reimplemented (src/game/gfx/imageops); separable maximum filter of an image
 0x005ea6d0,Image_Erode,function,high,reimplemented (src/game/gfx/imageops); separable minimum filter of an image
 0x005ea1f0,Image_MinMark,function,high,"reimplemented (src/game/gfx/imageops); 3 x 3 minimum of a two byte per pixel image, marking the changed pixels"
