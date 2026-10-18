@@ -89,6 +89,13 @@ void __fastcall TexCache_Evict(u8 *cache);
 // +0x18c4 has every flag 0x2000 cleared, and +0x18c4 is cleared.
 void __fastcall TexCache_BeginFrame(u8 *cache);
 
+// 0x58e8d0 (thiscall on the cache, not used; list head pointer, item, pops 8; name unconfirmed; called at 0x58f416 and 0x58f705): each item of
+// the chain from item (next +4) has its cache flags cleared (Texture_ClearCacheFlags) and +0x1c = 0. One with flag 0x40000000 gets flag
+// 0x2000 and goes into the list in front of the first whose key (s32 +0x38) is not above its own (the end otherwise). Any other has flags
+// 0xf030 cleared and bits 6 and 7 copied to 4 and 5, its size (+0x10, +0x12) rounded up to 8 at +0x14 / +0x16 (16-bit), its key set as
+// TexCacheItem_SetKey does (inlined) and its virtual base's frame slot decayed as TexCache_BeginFrame does.
+void __fastcall TexCache_RequeueItems(u8 *cache, void *, u8 **list, u8 *item);
+
 // 0x58d1d0 (thiscall on the cache; side, made, format, levels; pops 0x10; name unconfirmed): new surfaces of the side while its budget
 // (+0x1860 + 4 * index, index SurfacePool_SideIndex) covers their area: the format size (0x7022d8 indexed by [0x8bd554]) * side *
 // side (32-bit), * 4 / 3 (signed) when levels > 1, kept at 0x8c4898. Each turn, unless one failed or the side has 0x100 entries
