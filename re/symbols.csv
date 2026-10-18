@@ -2726,7 +2726,7 @@ address,name,kind,confidence,notes
 0x004f6020,Wstreambuf_InitPointers,function,high,"reimplemented (src/game/core/misc); the wide streambuf pointer slots pointed at its own fields, which are zeroed"
 0x00402ef0,Obj_AdvanceUnless30,function,high,reimplemented (src/game/core/gameclock); +0x3c advances by +0x40 unless +0x30 is set
 0x004032b0,Obj_CtorOne,function,high,reimplemented (src/game/core/gameclock); Init_402f30 then the double 1.0 at +0x20
-0x0047f940,Obj_CtorValue,function,high,"reimplemented (src/game/core/misc); Fn_657d30, vtable 0x6ff058 and +0x14 = value"
+0x0047f940,Obj_CtorValue,function,high,"reimplemented (src/game/gfx/text); Fn_657d30, vtable 0x6ff058 and +0x14 = value"
 0x004d4170,Obj_KillSlot,function,high,reimplemented (src/game/core/misc); the script slot at +0 killed and cleared
 0x004d9600,Obj_StampAt30,function,high,reimplemented (src/game/core/misc); a word at +0x30 and the world's stamp at +0x34
 0x004e01f0,Obj_StampAt5e,function,high,reimplemented (src/game/core/misc); a word at +0x5e and the world's stamp at +0x60

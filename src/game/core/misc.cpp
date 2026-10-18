@@ -374,13 +374,6 @@ u32 __cdecl PairTable_Add(u32 a, u32 b) {
     return 1;
 }
 
-u8 *__fastcall Obj_CtorValue(u8 *object, void *, u32 value) {
-    Fn_657d30(object);
-    at<u32>(object, 0) = 0x006ff058;
-    at<u32>(object, 0x14) = value;
-    return object;
-}
-
 void __fastcall Obj_KillSlot(u8 *object) {
     SpriteScript_Kill((s32)at<u32>(object, 0));
     at<u32>(object, 0) = 0;

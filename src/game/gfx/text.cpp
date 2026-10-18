@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "../core/gameheap.h"
+#include "../core/initializers.h"
 #include "../core/vcall.h"
 
 namespace {
@@ -169,5 +170,12 @@ u32 __fastcall TextMetrics_ForwardSlot8(u8 *object) {
     if (!inner)
         return 0;
     return vcall<u16>(inner, 0x20);
+}
+
+u8 *__fastcall Obj_CtorValue(u8 *object, void *, u32 value) {
+    Fn_657d30(object);
+    at<u32>(object, 0) = 0x006ff058;
+    at<u32>(object, 0x14) = value;
+    return object;
 }
 }  // extern "C"

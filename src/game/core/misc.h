@@ -153,9 +153,6 @@ u8 *__cdecl Records32_MaxWeight(u8 *records, s32 count);
 // 0x820a8c), unless the count is above 0x400 (signed): 0 then, else 1.
 u32 __cdecl PairTable_Add(u32 a, u32 b);
 
-// 0x47f940 (thiscall; value, pops 4): Fn_657d30 on the object, then vtable +0 = 0x6ff058 and +0x14 = value.
-u8 *__fastcall Obj_CtorValue(u8 *object, void *, u32 value);
-
 // 0x4d4170 (thiscall): the script slot at +0 killed (SpriteScript_Kill) and +0 = 0.
 void __fastcall Obj_KillSlot(u8 *object);
 
