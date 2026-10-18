@@ -2,16 +2,17 @@
 # parts at +4 and +0xc or none (each a virtual base at an offset 0, 8 or 0x20 whose slot 0 is a recorder), a renderer (0x87a6d0) whose
 # tag 0x70 list holds nodes keyed by those parts or not and whose free list takes the removed nodes, the ambient colour 0x879dd8, and
 # MessageBoxA (m3d2.py's import recorder) for kind 0. Main (0x458580) destroys the light 0x7a0b40 points at.
-# usage: lightsource.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Destroy,Main)
+# Colour (0x458890, or half the time 0x458350 on the part with an alpha): a part at an offset of 0 to 0x40 given channels about 0..1, beyond, huge, NaN or any bits.
+# usage: lightsource.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Destroy,Main,Colour)
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from fncmp import IMPORT_TABLE, LOG, Bench, Call, RAM, import_table, log_region, put, recorder, set_return  # noqa: E402
+from fncmp import IMPORT_TABLE, LOG, Bench, Call, RAM, fb, import_table, log_region, put, recorder, set_return  # noqa: E402
 import m3d2  # noqa: E402
 
-B = Bench([(0x458400, 0x4584bc), (0x46f100, 0x46f11f), (0x576540, 0x5765b8), (0x458580, 0x45858f)])
+B = Bench([(0x458400, 0x4584bc), (0x46f100, 0x46f11f), (0x576540, 0x5765b8), (0x458580, 0x45858f), (0x458890, 0x458909), (0x458350, 0x4583cf), (0x5836b0, 0x5836c2)])
 LIGHT, PARTS, TABLES, RENDERER, NODES = RAM, RAM + 0x100, RAM + 0x800, RAM + 0x1000, RAM + 0x1100
 
 
@@ -45,13 +46,23 @@ def case(r):
     put(renderer, 0xc, 'I', r.randrange(8))
     regions = {LOG: log, IMPORT_TABLE: import_table(log, m3d2.IMPORTS), LIGHT: light, PARTS: parts, TABLES: tables, RENDERER: renderer,
                NODES: nodes, 0x87a6d0: put(bytearray(4), 0, 'I', RENDERER), 0x8bd508: r.bytes(8), 0x879dd8: r.bytes(0x10)}
-    if r.deal(OPS) == 'Main':
+    op = r.deal(OPS)
+    if op == 'Colour':   # a part at an offset of the object (its vtable's +8); channels about 0..1, beyond, huge or not numbers
+        d = r.choice([0, 8, 0x20, 0x40])
+        obj = put(bytearray(r.bytes(0xa0)), 0, 'I', TABLES)
+        regions.update({TABLES: put(bytearray(r.bytes(0x10)), 8, 'i', d), PARTS: obj, RAM + 0x1800: put(bytearray(4), 0, 'I', PARTS)})
+        chans = [fb(r.choice([0.0, 1.0, 0.5, r.random(), r.random(), r.uniform(-1, 2), 1e10, -1e10, float('nan')])) if r.random() < 0.9 else r.getrandbits(32)
+                 for _ in range(3)]
+        if r.random() < 0.5:   # (0x458350: the part itself, alpha first)
+            return Call(0x458350, [PARTS + d, fb(r.choice([0.0, 1.0, 0.5, r.random(), 2.0, float('nan')]))] + chans, regions, conv='t', ret='v')
+        return Call(0x458890, [RAM + 0x1800] + chans, regions, ret='v')
+    if op == 'Main':
         regions[0x7a0b40] = put(bytearray(4), 0, 'I', LIGHT)
         return Call(0x458580, [], regions, ret='v')
     return Call(0x458400, [LIGHT], regions, ret='v')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Destroy,Main').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Destroy,Main,Colour').split(',') if k]
 
 
 if __name__ == '__main__':

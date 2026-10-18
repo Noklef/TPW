@@ -4322,6 +4322,8 @@ address,name,kind,confidence,notes
 0x0053c810,DynFaces_ReleaseModels,function,low,"reimplemented (src/game/render/dynfaces); cdecl (): with 0x874fcc set, each of the three model objects (0x871f64, 0x871ee4, 0x871ed8) has its animator +0x54 slept and disposed and is freed; Dword_ClearBit0(0x763c78); the flag cleared"
 0x00458400,LightSource_Destroy,function,low,"reimplemented (src/game/render/lightsource); cdecl (light): by kind: 0 the data error box; 1 the ambient colour reset, then 2: the part +4 out of the renderer tag 0x70 list and deleted, then 3: the same for +0xc"
 0x00458580,LightSource_DestroyMain,function,low,reimplemented (src/game/render/lightsource); The main light (0x7a0b40) destroyed
+0x00458890,LightSource_SetColour,function,low,"reimplemented (src/game/render/lightsource); a light's part colour from r, g, b"
+0x00458350,LightPart_SetColour,function,low,"reimplemented (src/game/render/lightsource); a light part's colour from a, r, g, b"
 0x00561bc0,ClipCodes_Compute,function,low,"reimplemented (src/game/render/clipcodes); fastcall-shaped (caller's ECX, EDX; out, codes, points, count, stride, mask), pops 24: each point's 7-bit sign/magnitude index into the table at 0x879970, masked, stored; out = AND | OR << 8 | ECX's high half"
 0x00570d60,ClipCodes_Run,function,low,reimplemented (src/game/render/clipcodes); the caller ECX and six arguments on to ClipCodes_Compute; returns out (name unconfirmed)
 0x0056a770,DxResult_Message,function,low,"reimplemented (src/game/render/dxerrors); cdecl (HRESULT): the exe's message string for a DirectDraw / Direct3D / renderer result (142 codes), else 0x7663a8"
