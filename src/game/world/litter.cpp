@@ -30,4 +30,11 @@ void __fastcall Litter_Remove(u8 *litter) {
     at<u16>(litter, 0x30) = 0;
     at<u32>(litter, 0x2c) = 0;
 }
+
+u32 __fastcall Obj_StampAt30(u8 *object, void *, u32 word) {
+    at<u16>(object, 0x30) = (u16)word;
+    const u32 stamp = at<u32>(global<u8 *>(0x0080239c), 0x1da70c);
+    at<u32>(object, 0x34) = stamp;
+    return stamp;
+}
 }  // extern "C"

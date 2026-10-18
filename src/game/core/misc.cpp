@@ -410,13 +410,6 @@ u8 *__fastcall Obj_CtorValue(u8 *object, void *, u32 value) {
     return object;
 }
 
-u32 __fastcall Obj_StampAt30(u8 *object, void *, u32 word) {
-    at<u16>(object, 0x30) = (u16)word;
-    const u32 stamp = at<u32>(global<u8 *>(0x0080239c), 0x1da70c);
-    at<u32>(object, 0x34) = stamp;
-    return stamp;
-}
-
 u32 __fastcall Obj_StampAt5e(u8 *object, void *, u32 word) {
     at<u16>(object, 0x5e) = (u16)word;
     const u32 stamp = at<u32>(global<u8 *>(0x0080239c), 0x1da70c);
