@@ -1,6 +1,6 @@
 // The terrain attribute grid (TerrainAttrMap_Load 0x450900; the map 0x7a0854 +0x6c): width
 // +0x18, height +0x1c, a dword per cell from +0x2c, and a cell count at +6 (u16) for copies.
-// Reimplementation of 0x450420, 0x450470, 0x450a30, 0x450b00 and 0x46df50; 0x4508b0, a vector
+// Reimplementation of 0x450420, 0x450470, 0x450a30, 0x450a80, 0x450b00 and 0x46df50; 0x4508b0, a vector
 // helper.
 #pragma once
 
@@ -15,6 +15,10 @@ u32 __cdecl Terrain_IsParkLand(u32 x, u32 y);
 // 0x450a30: copies grid's cells (+0x2c) over map's own grid (+0x6c) cells, as many dwords as
 // map's grid counts (+6), when map, its grid, both cell arrays and the count are all there.
 void __cdecl Terrain_CopyAttrs(const u8 *map, const u8 *grid);
+
+// 0x450a80 (name unconfirmed): the loaded grid (0x79fc54, Terrain_CloneAttrs's) given back (GlobalMem_Free) and the instance at
+// 0x79fcb4 freed (Instance_Free, not kept), each when there and then cleared; then GlobalMem_FreeThree_427bb0.
+void __cdecl Terrain_FreeLoaded();
 
 // 0x450b00: the grid's width and height (the map and grid must be there).
 void __cdecl Terrain_GridSize(u32 *width, u32 *height);

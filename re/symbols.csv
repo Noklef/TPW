@@ -3779,6 +3779,7 @@ address,name,kind,confidence,notes
 0x0055f5a0,Lnd_Dtor,function,high,"reimplemented (src/game/terrain/land); The landscape's destructor: Lnd_Clear, the tile buffer freed, the levels cleared (name unconfirmed)"
 0x00454050,Terrain_FootprintCell,function,low,"reimplemented (src/game/terrain/land); (angle, x0, y0, x1, y1, u, v, &cellX, &cellY): the cell at fractions (u, v) of a footprint turned by a right angle"
 0x00466d70,Terrain_FootprintHeight,function,low,"reimplemented (src/game/terrain/land); (x, y, cells, width, depth, flags, angle): (lowest + highest) / 2 of the grid heights at the corners of a footprint's cells, in st0"
+0x00450a80,Terrain_FreeLoaded,function,low,"reimplemented (src/game/terrain/land); cdecl: the loaded grid and the instance at 0x79fcb4 freed, then GlobalMem_FreeThree_427bb0"
 0x005ea510,Image_Dilate,function,high,reimplemented (src/game/gfx/imageops); separable maximum filter of an image
 0x005ea6d0,Image_Erode,function,high,reimplemented (src/game/gfx/imageops); separable minimum filter of an image
 0x005ea1f0,Image_MinMark,function,high,"reimplemented (src/game/gfx/imageops); 3 x 3 minimum of a two byte per pixel image, marking the changed pixels"
