@@ -90,4 +90,18 @@ u32 __cdecl Dialog7cb2b8_Child21Post(u32 value) {
     Window_PostMessage(child, 0xa, value, 0);
     return value;
 }
+
+u32 __cdecl Global7cc698_Choose() {
+    u32 &chosen = *reinterpret_cast<u32 *>((uintptr_t)0x007cc698);
+    if (*reinterpret_cast<const u32 *>((uintptr_t)0x007cc8b8)) {
+        chosen = *reinterpret_cast<const u32 *>((uintptr_t)0x007cc8b8);
+        return chosen;
+    }
+    if (*reinterpret_cast<const u8 *>((uintptr_t)0x007cc8b4)) {
+        chosen = *reinterpret_cast<const u32 *>((uintptr_t)0x007cc8bc);
+        return chosen;
+    }
+    chosen = *reinterpret_cast<const u32 *>((uintptr_t)0x007cc8c0);
+    return 0;
+}
 }

@@ -1,5 +1,5 @@
 // The game's dialog windows (each a global window pointer) sent their messages: Window_SendMessage wrappers. Reimplementation of 0x4b87f0,
-// 0x4b8810 and 0x4b8830.
+// 0x4b8810 and 0x4b8830 and others (0x4bcec0 chooses the window 0x7cc698).
 #pragma once
 
 #include "../../../re/types.h"
@@ -55,6 +55,10 @@ void __cdecl Windows7c26b0_Message5();
 // 0x4bcef0 (cdecl; name unconfirmed): with `same` = (the dword 0x7cc698 == the window [0x7cc8bc]), message 6 (same, 0) to [0x7cc8bc] and
 // message 6 (!same, 0) to [0x7cc8c0] (Window_SendMessage; the second's result returned); then 0x7cc698 = 0.
 s32 __cdecl Windows7cc8bc_Message6Pair();
+
+// 0x4bcec0 (cdecl): the window 0x7cc698 (that Windows7cc8bc_Message6Pair compares) = [0x7cc8b8] if set, else [0x7cc8bc] if the byte
+// 0x7cc8b4 is set, else [0x7cc8c0]. Returns the value stored in the first two cases, else 0.
+u32 __cdecl Global7cc698_Choose();
 
 // 0x4a2590 (cdecl (value); name unconfirmed): with the dialog [0x7cb2b8] and a value not 0, its child 0x21 (Window_FindChild): 0 when that
 // child's dword +0xa0 slot 2 (Window_DwordA0) is set; else message 0xb (0, 0) sent to it (Window_SendMessage) and message 0xa (value, 0)

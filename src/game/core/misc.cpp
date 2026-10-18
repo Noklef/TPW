@@ -49,19 +49,6 @@ void __cdecl MeshRef_SetFlag10000000(u8 *const *ref) {
     at<u32>(part, 0x50) |= 0x10000000;
 }
 
-u32 __cdecl Global7cc698_Choose() {
-    if (global<u32>(0x007cc8b8)) {
-        global<u32>(0x007cc698) = global<u32>(0x007cc8b8);
-        return global<u32>(0x007cc698);
-    }
-    if (global<u8>(0x007cc8b4)) {
-        global<u32>(0x007cc698) = global<u32>(0x007cc8bc);
-        return global<u32>(0x007cc698);
-    }
-    global<u32>(0x007cc698) = global<u32>(0x007cc8c0);
-    return 0;
-}
-
 s32 __fastcall Obj_SmallestEntry(const u8 *object) {
     s32 best = -1;
     u32 smallest = 0;

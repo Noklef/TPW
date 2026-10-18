@@ -2729,7 +2729,7 @@ address,name,kind,confidence,notes
 0x00458940,MeshRef_SetFlag10000000,function,high,reimplemented (src/game/core/misc); flag 0x10000000 of the referenced part set
 0x004a9350,Countdown7cc150_Step,function,high,reimplemented (src/game/core/framecountdown); a counter stepped down; 1 at zero when another global is set
 0x004b4670,Obj_KillSlot24,function,high,reimplemented (src/game/ui/panel7cc328); the script slot at +0x24 killed and the slot fields cleared
-0x004bcec0,Global7cc698_Choose,function,high,reimplemented (src/game/core/misc); a global set from the first of three sources that applies
+0x004bcec0,Global7cc698_Choose,function,high,reimplemented (src/game/ui/dialogs); a global set from the first of three sources that applies
 0x0052fbf0,PairTable_Add,function,high,reimplemented (src/game/core/misc); a pair appended to the 8-byte entry table unless it is past 0x400
 0x004d09a0,Obj_SmallestEntry,function,high,"reimplemented (src/game/core/misc); the index of the smallest non-zero entry size of eight, or -1"
 0x00458310,Obj_CtorVirtual,function,high,reimplemented (src/game/core/misc); a class with a virtual base: vtables and the offset word
