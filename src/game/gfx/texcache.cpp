@@ -320,6 +320,38 @@ void __fastcall TexCache_RequeueItems(u8 *, void *, u8 **list, u8 *item) {
     }
 }
 
+void __fastcall TexCache_ShrinkItems(u8 *cache, void *, u8 **items, s32 count, s32 tier, s32 limit) {
+    const s32 *const tiers = reinterpret_cast<const s32 *>((uintptr_t)0x00702360);
+    const s32 smallest = global<s32>(0x0070235c);
+    for (s32 i = 0; i < count; i = (s32)((u32)i + 1)) {
+        u8 *const item = items[i];
+        if ((s32)(at<u32>(item, 8) & 0xc0) < tiers[tier * 2])
+            continue;
+        const s32 band = tiers[tier * 2 + 1];
+        const float lod = at<float>(item, 0x30);
+        if (!(lod > at<float>(cache, 0x1904 + band * 4)) || lod > at<float>(cache, 0x1908 + band * 4))
+            continue;
+        const bool filter = Texture_UsesDriverFilter(item) != 0;
+        if (!(at<u8>(item, 8) & 0x30) || (filter && !(at<s16>(item, 0x14) > smallest)))
+            continue;
+        const s32 before = (s32)at<s16>(item, 0x16) * at<s16>(item, 0x14);
+        if (at<u32>(item, 8) & 0x80000)
+            continue;
+        if (Texture_UsesDriverFilter(item) && at<s16>(item, 0x14) == smallest)
+            continue;
+        const s32 width = ((s32)at<s16>(item, 0x14) + 1) >> 1;
+        const s32 height = ((s32)at<s16>(item, 0x16) + 1) >> 1;
+        at<u32>(item, 8) -= 0x10;
+        at<u16>(item, 0x14) = (u16)width;
+        at<u16>(item, 0x16) = (u16)height;
+        TexCacheItem_SetKey(item);   // (inlined; its constants are 0x7023f0's copies)
+        const s32 after = (s32)at<s16>(items[i], 0x16) * at<s16>(items[i], 0x14);
+        at<u32>(cache, 0x18dc) += (u32)(after - before);
+        if (at<s32>(cache, 0x18dc) < limit)
+            i = count;
+    }
+}
+
 void __fastcall TexCache_BeginFrame(u8 *cache) {
     if (global<u32>(0x008bd508) & 0xc0000000)
         at<u32>(cache, 0x18cc) |= 1;

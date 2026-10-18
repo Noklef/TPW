@@ -96,6 +96,15 @@ void __fastcall TexCache_BeginFrame(u8 *cache);
 // TexCacheItem_SetKey does (inlined) and its virtual base's frame slot decayed as TexCache_BeginFrame does.
 void __fastcall TexCache_RequeueItems(u8 *cache, void *, u8 **list, u8 *item);
 
+// 0x58e1d0 (thiscall on the cache; items, count, tier, limit; pops 0x10; name unconfirmed; called at 0x58e529 and 0x58e5a8): the items
+// halved while the cache's total area (s32 +0x18dc) stays at or above limit. The tier picks a pair at 0x702360: the least flags & 0xc0
+// (signed) and a band, whose floats at +0x1904 and +0x1908 + 4 * band bound the item's float +0x30 (above the first, not above the second).
+// An item also needs flags 0x30 (with the driver filter, Texture_UsesDriverFilter, a width (s16 +0x14) above the s32 at 0x70235c, 8)
+// and not flag 0x80000, nor the driver filter and that width exactly. Then its flags lose 0x10, its s16 sizes +0x14 / +0x16 are
+// (side + 1) >> 1 (arithmetic), its key is set as TexCacheItem_SetKey does (inlined) and +0x18dc takes the area's change (s16 by
+// s16); below limit the loop ends.
+void __fastcall TexCache_ShrinkItems(u8 *cache, void *, u8 **items, s32 count, s32 tier, s32 limit);
+
 // 0x58d1d0 (thiscall on the cache; side, made, format, levels; pops 0x10; name unconfirmed): new surfaces of the side while its budget
 // (+0x1860 + 4 * index, index SurfacePool_SideIndex) covers their area: the format size (0x7022d8 indexed by [0x8bd554]) * side *
 // side (32-bit), * 4 / 3 (signed) when levels > 1, kept at 0x8c4898. Each turn, unless one failed or the side has 0x100 entries
