@@ -4189,6 +4189,9 @@ address,name,kind,confidence,notes
 0x006ade00,TextLayout_Ctor,function,low,"reimplemented (src/game/gfx/textlayout); thiscall: the holder at +4 constructed, the vectors and fields cleared, +0x5c/+0x70/+0x84 the top byte of this (sic), vtable 0x70a10c; returns this"
 0x006adeb0,TextLayout_Dtor,function,low,"reimplemented (src/game/gfx/textlayout); thiscall: vtable 0x70a10c, the vectors at +0x88, +0x74, +0x60 freed and cleared, the holder at +4 destroyed"
 0x006ade90,TextLayout_DeletingDtor,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (flags): TextLayout_Dtor, freed for flags bit 0; returns this"
+0x006ad660,TextStyle_Assign,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (source): the text style copied from source unless the same, the font given a reference (no null check, old font not released, sic); returns this"
+0x006ad820,TextStyle_GetFont,function,low,"reimplemented (src/game/gfx/textlayout); thiscall: the font (+4), given a reference (slot 1) when not 0"
+0x006ad840,TextStyle_FontKind,function,low,"reimplemented (src/game/gfx/textlayout); thiscall: the font's kind (its slot 10, tail call), or 5 without a font"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"

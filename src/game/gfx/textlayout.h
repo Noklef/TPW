@@ -31,6 +31,17 @@ s32 *__fastcall TextStyle_SetFont(u8 *style, void *, s32 *status, u8 *font);
 // (+0xc) becomes 1 and *status = 0; otherwise *status = -1. Returns status.
 s32 *__fastcall TextStyle_SetColour(u8 *style, void *, s32 *status, const u8 *colour);
 
+// 0x6ad660 (thiscall (source), pops 4): unless source is this, +0x10, the colour (+0x44, 5 bytes) and the font (+4) copied, the font given a
+// reference (slot 1; no null check and the old font is not released, sic), then +8, +0xc, the SurfaceInfo (+0x14, 0x28 bytes), +0x3c, +0x40
+// and +0x4c copied. Returns this.
+u8 *__fastcall TextStyle_Assign(u8 *style, void *, const u8 *source);
+
+// 0x6ad820 (thiscall): the font (+4), given a reference (slot 1) when it is not 0.
+u8 *__fastcall TextStyle_GetFont(u8 *style);
+
+// 0x6ad840 (thiscall): the font's kind (its slot 10, a tail call), or 5 without a font.
+s32 __fastcall TextStyle_FontKind(u8 *style);
+
 // 0x6b0230 (thiscall): the style at +4 constructed, the vtable 0x70a13c, +0x54 cleared. Returns this.
 u8 *__fastcall TextStyleHolder_Ctor(u8 *holder);
 

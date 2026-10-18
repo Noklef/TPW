@@ -78,6 +78,33 @@ s32 *__fastcall TextStyle_SetColour(u8 *style, void *, s32 *status, const u8 *co
     return status;
 }
 
+u8 *__fastcall TextStyle_Assign(u8 *style, void *, const u8 *source) {
+    if (source == style) return style;
+    at<u32>(style, 0x10) = at<u32>(const_cast<u8 *>(source), 0x10);
+    at<u32>(style, 0x44) = at<u32>(const_cast<u8 *>(source), 0x44);
+    at<u8>(style, 0x48) = at<u8>(const_cast<u8 *>(source), 0x48);
+    u8 *f = at<u8 *>(const_cast<u8 *>(source), 4);
+    font(style) = f;
+    vcall<void>(f, 4);  // sic: no null check, and the old font keeps its reference
+    at<u32>(style, 8) = at<u32>(const_cast<u8 *>(source), 8);
+    at<u32>(style, 0xc) = at<u32>(const_cast<u8 *>(source), 0xc);
+    for (u32 i = 0x14; i < 0x3c; i += 4) at<u32>(style, i) = at<u32>(const_cast<u8 *>(source), i);  // forward, as REP MOVSD
+    at<u32>(style, 0x3c) = at<u32>(const_cast<u8 *>(source), 0x3c);
+    at<u32>(style, 0x40) = at<u32>(const_cast<u8 *>(source), 0x40);
+    at<u32>(style, 0x4c) = at<u32>(const_cast<u8 *>(source), 0x4c);
+    return style;
+}
+
+u8 *__fastcall TextStyle_GetFont(u8 *style) {
+    if (font(style)) vcall<void>(font(style), 4);
+    return font(style);
+}
+
+s32 __fastcall TextStyle_FontKind(u8 *style) {
+    if (!font(style)) return 5;
+    return vcall<s32>(font(style), 0x28);
+}
+
 u8 *__fastcall TextStyleHolder_Ctor(u8 *holder) {
     TextStyle_Ctor(holder + 4);
     at<u32>(holder, 0) = 0x0070a13c;
