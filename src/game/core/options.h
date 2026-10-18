@@ -72,4 +72,23 @@ u32 __fastcall Options_LoadFile(u8 *options, void *, const u8 *path);
 // 0x424a60: +0x78, +0x7c, +0x80 = 0, +0x84 = 1, +0x88..+0x90 = 0 first; opened for reading (mode 0x80000001), the version read (4 bytes; below 2,
 // unsigned, is refused), then Options_SerializeMisc (loading, the version); closed after the stream was used.
 u32 __fastcall Options_LoadMiscFile(u8 *options, void *, const u8 *path);
+
+// 0x423bc0 (thiscall (mode), pops 4; name unconfirmed; 0x423740 calls it when the graphics mode +8 differs from its copy +0x44): a graphics balance file
+// (vtable 0x6fd630) laid out on the stack (BalanceFile_Init) and loaded (keep 0) from the data folder (the wide string of 0xf816c0, through String's
+// AssignWide, ending in "\") and the name for the mode (0 / 1 / 2: the Strings 0x78e338 / 0x78e368 / 0x78e5c0; others: the folder alone). Then, when it
+// loaded, its +0xc, +0x68, +0x34, +0x3c, +0x40 and +0x44 against gBalanceGraphics' (0x785874, 0x7858d0, 0x78589c, 0x7858a4, 0x7858a8, 0x7858ac): each
+// that differs raises the change level +0x94 to 2. The file gets its vtable back and is released either way. Returns 1 (AL) when it loaded, else 0.
+u8 __fastcall Options_CheckGraphicsMode(u8 *options, void *, u32 mode);
+
+// 0x45b1f0 (cdecl; name unconfirmed; called from 0x45aa17): the data folder (the wide string of 0xf816c0, through String's AssignWide, ending in "\") and
+// in turn the names 0x7a1c28, 0x7a0c58 and 0x7a17c8 (Strings): gBalanceSound (0x7858f0) loaded (keep 0); when that gives 1, the game options' defaults
+// (Options_Defaults on 0x78d8d8) and gBalanceOnline (0x785828) loaded; when that gives 1, Online_ApplyBalance and, when the third file exists
+// (File_Exists gives 1), gBalanceResolution (0x7858e0) loaded, its result unused.
+void __cdecl Options_LoadBalanceFiles();
+
+// 0x423740 (thiscall; name unconfirmed; 0x4237f0 calls it): the options' changes against their copy: a graphics mode (+8) other than the copy's
+// (+0x44) checked (Options_CheckGraphicsMode); when +0x6c and +0x30 lie on different sides of the dword 0x785910 (signed: one above it, the other
+// not), the change level +0x94 at least 1 and bit 0 of +0x98 set; then +0, +4 and +0xc each unlike its copy (+0x3c, +0x40, +0x48) raises the level
+// to 2.
+void __fastcall Options_NoteChanges(u8 *options);
 }

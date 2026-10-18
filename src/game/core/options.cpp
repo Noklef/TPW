@@ -1,17 +1,25 @@
 #include "options.h"
 
 #include <cstdint>
+#include <initializer_list>
 
 #include "../render/mode.h"
 #include "accessors.h"
+#include "balancefile.h"
 #include "../files/file.h"
 #include "gameheap.h"
 #include "savegame.h"
 #include "soundset.h"
+#include "string.h"
+#include "vcall.h"
+#include "../files/memsource.h"
+#include "../online/servers.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+u32 global(u32 address) { return *reinterpret_cast<const u32 *>(static_cast<uintptr_t>(address)); }
 
 const char *name(u32 address) { return reinterpret_cast<const char *>(static_cast<uintptr_t>(address)); }
 
@@ -256,5 +264,80 @@ u32 __fastcall Options_LoadMiscFile(u8 *options, void *, const u8 *path) {
                     Options_SerializeMisc(options, nullptr, stream, 0, version) == 0;
     Stream_Close(&result, stream);
     return ok ? 1 : 0;
+}
+
+u8 __fastcall Options_CheckGraphicsMode(u8 *options, void *, u32 mode) {
+    u8 file[0x78];   // (a graphics balance file on the stack)
+    at<u32>(file, 0) = 0x006fd630;
+    BalanceFile_Init(file);
+    String path;
+    String_Ctor(&path);
+    vcall<void>(&path, 0x18, MemorySource_GetLock(reinterpret_cast<MemorySource *>((uintptr_t)0x00f816c0)));   // (String's AssignWide)
+    String_EnsureTrailingBackslash(&path);
+    if (mode == 0)
+        vcall<void>(&path, 0x28, 0x0078e338u);
+    else if (mode == 1)
+        vcall<void>(&path, 0x28, 0x0078e368u);
+    else if (mode == 2)
+        vcall<void>(&path, 0x28, 0x0078e5c0u);
+    if (!BalanceFile_Load(file, nullptr, path.data, 0)) {
+        String_Dtor(&path);
+        at<u32>(file, 0) = 0x006fd630;
+        BalanceFile_Release(file);
+        return 0;
+    }
+    const auto differs = [options](u32 current, u32 loaded) {
+        if (current != loaded && at<s32>(options, 0x94) < 2)
+            at<s32>(options, 0x94) = 2;
+    };
+    differs(global(0x00785874), at<u32>(file, 0xc));
+    differs(global(0x007858d0), at<u32>(file, 0x68));
+    differs(global(0x0078589c), at<u32>(file, 0x34));
+    differs(global(0x007858a4), at<u32>(file, 0x3c));
+    differs(global(0x007858a8), at<u32>(file, 0x40));
+    differs(global(0x007858ac), at<u32>(file, 0x44));
+    String_Dtor(&path);
+    at<u32>(file, 0) = 0x006fd630;
+    BalanceFile_Release(file);
+    return 1;
+}
+
+void __cdecl Options_LoadBalanceFiles() {
+    String folder, path;
+    String_Ctor(&folder);
+    String_Ctor(&path);
+    vcall<void>(&folder, 0x18, MemorySource_GetLock(reinterpret_cast<MemorySource *>((uintptr_t)0x00f816c0)));   // (String's AssignWide)
+    String_EnsureTrailingBackslash(&folder);
+    vcall<void>(&path, 0x18, &folder);
+    vcall<void>(&path, 0x28, 0x007a1c28u);
+    if (BalanceFile_Load(reinterpret_cast<u8 *>((uintptr_t)0x007858f0), nullptr, path.data, 0) == 1) {   // gBalanceSound
+        Options_Defaults(reinterpret_cast<u8 *>((uintptr_t)0x0078d8d8));
+        vcall<void>(&path, 0x18, &folder);
+        vcall<void>(&path, 0x28, 0x007a0c58u);
+        if (BalanceFile_Load(reinterpret_cast<u8 *>((uintptr_t)0x00785828), nullptr, path.data, 0) == 1) {   // gBalanceOnline
+            Online_ApplyBalance();
+            vcall<void>(&path, 0x18, &folder);
+            vcall<void>(&path, 0x28, 0x007a17c8u);
+            if (File_Exists(path.data) == 1)
+                BalanceFile_Load(reinterpret_cast<u8 *>((uintptr_t)0x007858e0), nullptr, path.data, 0);   // gBalanceResolution
+        }
+    }
+    String_Dtor(&path);
+    String_Dtor(&folder);
+}
+
+void __fastcall Options_NoteChanges(u8 *options) {
+    if (at<u32>(options, 8) != at<u32>(options, 0x44))
+        Options_CheckGraphicsMode(options, nullptr, at<u32>(options, 8));
+    const s32 limit = (s32)global(0x00785910);
+    if ((at<s32>(options, 0x6c) > limit) != (at<s32>(options, 0x30) > limit)) {   // (across gBalanceSound's +0x20 one way or the other)
+        if (at<s32>(options, 0x94) < 1)
+            at<s32>(options, 0x94) = 1;
+        at<u32>(options, 0x98) |= 1;
+    }
+    for (u32 offset : {0u, 4u, 0xcu}) {
+        if (at<u32>(options, offset) != at<u32>(options, offset + 0x3c) && at<s32>(options, 0x94) < 2)
+            at<s32>(options, 0x94) = 2;
+    }
 }
 }

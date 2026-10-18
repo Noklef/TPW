@@ -15,4 +15,17 @@ extern "C" {
 //   0x7858b4: 0 / 1 / 2 / 3: the view 0x8bcbc8's depth range (View_SetDepthRange) 50-60 / 100-110 / 135-150 / 230-250 and the float 0x8bd4c0
 //   = 200 / 325 / 450 / 700;   0x7858b8: 0 sets bits 11-12 of 0x8bcbc8, 1 clears them.
 void __cdecl GraphicsSettings_Apply();
+
+// 0x44dc60 (cdecl (flags); name unconfirmed; called from 0x44de8b and 0x44e1cc): the data folder (the wide string of 0xf816c0, MemorySource_GetLock, through
+// String's AssignWide) ending in "\", then the name for the first of the flags 0x800 / 0x1000 / 0x2000 (the Strings 0x79e3d8 / 0x79e408 / 0x79e660; none:
+// the folder alone), loaded into gBalanceGraphics (0x785868, BalanceFile_Load, keep 0). 0 when that fails; else the settings applied
+// (GraphicsSettings_Apply) and 1.
+u32 __cdecl GraphicsSettings_Load(u32 flags);
+
+// 0x44de20 (cdecl; name unconfirmed; 0x44e1e6 calls it): the graphics settings for the game options (0x78d8d8): bit 10 of the mode word 0x79d86c
+// cleared, 0x8c1620 = 0, bits 0x40604 of 0x7a1a8c set; then the graphics mode (+8) 0 / 1 / 2 loads the file of flags 0x800 / 0x1000 / 0x2000
+// (GraphicsSettings_Load; mode 2 without procedural terrain (+0 zero) sets the mode to 1 (Options_Set8) and takes 0x1000; other modes load
+// nothing), 0 when that fails. Then bit 12 of 0x7a1a8c is +0xc == 1; without procedural terrain bits 0 and 16 of 0x8bcbc8, bit 1 of 0x8bd550,
+// bit 9 of the mode word and bits 13-15, 17 and 20 of 0x7a1a8c are cleared and 0x8bd524 = 4, else 0x8bd524 = 1. Returns 1.
+u32 __cdecl GraphicsSettings_LoadForOptions();
 }

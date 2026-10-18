@@ -1,5 +1,12 @@
 #include "graphicssettings.h"
 
+#include <cstdint>
+
+#include "../core/balancefile.h"
+#include "../core/options.h"
+#include "../core/string.h"
+#include "../core/vcall.h"
+#include "../files/memsource.h"
 #include "../terrain/landscape.h"
 #include "viewport.h"
 
@@ -68,5 +75,62 @@ void __cdecl GraphicsSettings_Apply() {
         global(kView) |= 0x1800;
     else if (v == 1)
         global(kView) &= ~0x1800u;
+}
+
+u32 __cdecl GraphicsSettings_Load(u32 flags) {
+    String path;
+    String_Ctor(&path);
+    vcall<void>(&path, 0x18, MemorySource_GetLock(reinterpret_cast<MemorySource *>((uintptr_t)0x00f816c0)));   // (String's AssignWide)
+    String_EnsureTrailingBackslash(&path);
+    if (flags & 0x800)
+        vcall<void>(&path, 0x28, 0x0079e3d8u);
+    else if (flags & 0x1000)
+        vcall<void>(&path, 0x28, 0x0079e408u);
+    else if (flags & 0x2000)
+        vcall<void>(&path, 0x28, 0x0079e660u);
+    if (!BalanceFile_Load(reinterpret_cast<u8 *>((uintptr_t)0x00785868), nullptr, path.data, 0)) {
+        String_Dtor(&path);
+        return 0;
+    }
+    GraphicsSettings_Apply();
+    String_Dtor(&path);
+    return 1;
+}
+
+u32 __cdecl GraphicsSettings_LoadForOptions() {
+    u8 *const options = reinterpret_cast<u8 *>((uintptr_t)0x0078d8d8);
+    global(0x0079d86c) &= ~0x400u;
+    global(0x008c1620) = 0;
+    global(0x007a1a8c) |= 0x40604;
+    const u32 mode = *reinterpret_cast<u32 *>(options + 8);
+    u32 flags = 0;
+    if (mode == 0) {
+        flags = 0x800;
+    } else if (mode == 1) {
+        flags = 0x1000;
+    } else if (mode == 2) {
+        if (*reinterpret_cast<u32 *>(options) == 0) {   // (no procedural terrain: the medium mode instead)
+            Options_Set8(options, nullptr, 1);
+            flags = 0x1000;
+        } else {
+            flags = 0x2000;
+        }
+    }
+    if (flags && !GraphicsSettings_Load(flags))
+        return 0;
+    if (*reinterpret_cast<u32 *>(options + 0xc) == 1)
+        global(0x007a1a8c) |= 0x1000;
+    else
+        global(0x007a1a8c) &= ~0x1000u;
+    if (*reinterpret_cast<u32 *>(options) == 0) {
+        global(0x008bcbc8) &= 0xfffefffe;
+        global(0x008bd524) = 4;
+        global(0x007a1a8c) &= 0xffed1fff;
+        global(0x008bd550) &= ~2u;
+        global(0x0079d86c) &= ~0x200u;
+        return 1;
+    }
+    global(0x008bd524) = 1;
+    return 1;
 }
 }
