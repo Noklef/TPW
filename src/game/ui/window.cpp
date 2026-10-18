@@ -300,4 +300,20 @@ void __cdecl Window_SaveInsetRect(u8 *window, s32 dx, s32 dy) {
     Window_SetSavedRect(window, nullptr, rect);
     GuiRect_Dtor(rect);
 }
+
+u32 __fastcall Window_SetFocus(u8 *window, void *, u32 a) {
+    u8 *&focus = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5ec);
+    if (focus == window) return (u32)(uintptr_t)focus & 0xffff0000u;  // only AX is set
+    if (focus) Window_PostMessage(focus, 0x20, a, 0);
+    focus = window;
+    return (Window_PostMessage(focus, 0x1f, a, 0) & 0xffff0000u) | 1;
+}
+
+u32 __fastcall Window_KillFocus(u8 *window, void *, u32 a) {
+    u8 *&focus = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5ec);
+    if (focus != window) return (u32)(uintptr_t)focus & 0xffff0000u;  // only AX is set
+    Window_PostMessage(focus, 0x20, a, 0);
+    focus = nullptr;
+    return (Window_UpdateHover() & 0xffff0000u) | 1;
+}
 }

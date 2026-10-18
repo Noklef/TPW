@@ -125,4 +125,13 @@ u8 *__fastcall Window_HitTest(u8 *window, void *, u32 x, u32 y);
 // one (when set) is posted 0x10002 (0, 0), the new one becomes it and is posted 0x10001 (x << 16 | y, both signed: sic, a negative y
 // fills the top half, 0) (Window_PostMessage). 1 in AX. Only AX is set.
 u32 __cdecl Window_UpdateHover();
+
+// 0x65e59b (thiscall (a), pops 4; name unconfirmed): the window takes the focus [0xfaa5ec]: nothing and 0 in AX when it has it already
+// (the rest of EAX the focus's); else the old focus (when set) is posted 0x20 (a, 0), the window becomes the focus and is posted 0x1f
+// (a, 0) (Window_PostMessage), and 1 in AX (the rest of EAX the post's).
+u32 __fastcall Window_SetFocus(u8 *window, void *, u32 a);
+
+// 0x65e5fa (thiscall (a), pops 4; name unconfirmed): when the window has the focus [0xfaa5ec] it is posted 0x20 (a, 0), the focus
+// cleared and the hover updated (Window_UpdateHover), 1 in AX (the rest of EAX the update's); otherwise 0 in AX (the rest the focus's).
+u32 __fastcall Window_KillFocus(u8 *window, void *, u32 a);
 }
