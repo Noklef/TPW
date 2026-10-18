@@ -80,13 +80,14 @@ def tree(r, regions):
     wins = [TREE + 0x120 * i for i in range(n)]
     bufs = [bytearray(r.bytes(0x120)) for _ in range(n)]
     for i, buf in enumerate(bufs):
-        buf[4] = r.choice([0] * 8 + [1, 0x80])
-        put(buf, 0x48, 'I', r.choice([1, 1, 1, 0x10000001, 0x40000000, 0, 2, 3, r.getrandbits(32)]))
+        buf[4] = 0 if r.random() < 0.9 else r.choice([1, 0x80])
+        put(buf, 0x48, 'I', 1 if r.random() < 0.7 else r.choice([0x10000001, 0x80000000, 0x40000000, 0, 2, 3, r.getrandbits(32)]))
         put(buf, 0x5c, 'I', 0)
         put(buf, 0x54, 'I', 0)
         put(buf, 0x44, 'I', RECTS + 0x10 * i)
-        left, top = r.randrange(-10, 40), r.randrange(-10, 40)
-        regions[RECTS + 0x10 * i] = struct.pack('<Ihhhh', 0x705920, left, top, left + r.randrange(0, 40), top + r.randrange(0, 40)) + r.bytes(4)
+        left, top = r.randrange(-40, 25), r.randrange(-40, 25)
+        regions[RECTS + 0x10 * i] = struct.pack('<Ihhhh', 0x705920, left, top, left + r.choice([0, 1] + [r.randrange(10, 60)] * 14),
+                                                top + r.choice([0, 1] + [r.randrange(10, 60)] * 14)) + r.bytes(4)
     last = {}
     for i in range(1, n):
         parent = r.randrange(i)
@@ -100,10 +101,16 @@ def tree(r, regions):
     return wins
 
 
-def point(r):
+def point(r, regions, wins):
+    """a point inside one of the windows' rectangles (most often), near them, or anywhere; upper halves random"""
+    if r.random() < 0.6:
+        left, top, right, bottom = struct.unpack_from('<hhhh', regions[RECTS + 0x10 * r.randrange(len(wins))], 4)
+        x = r.choice([left, right - 1, r.randrange(left, right)]) if left < right else left
+        y = r.choice([top, bottom - 1, r.randrange(top, bottom)]) if top < bottom else top
+        return (x & 0xffff) | (r.getrandbits(16) << 16), (y & 0xffff) | (r.getrandbits(16) << 16)
     if r.random() < 0.1:
         return r.getrandbits(32), r.getrandbits(32)
-    return (r.randrange(-15, 70) & 0xffff) | (r.getrandbits(16) << 16), (r.randrange(-15, 70) & 0xffff) | (r.getrandbits(16) << 16)
+    return (r.randrange(-45, 60) & 0xffff) | (r.getrandbits(16) << 16), (r.randrange(-45, 60) & 0xffff) | (r.getrandbits(16) << 16)
 
 
 def case(r):
@@ -127,14 +134,14 @@ def case(r):
         return Call(CALLS[op], [WINDOW, index], regions, conv='t', ret='a')
     if op == 'HitTest':
         wins = tree(r, regions)
-        return Call(CALLS[op], [r.choice(wins[:1] * 3 + wins)] + list(point(r)), regions, conv='t', ret='a')
+        return Call(CALLS[op], [r.choice(wins[:1] * 3 + wins)] + list(point(r, regions, wins)), regions, conv='t', ret='a')
     if op == 'UpdateHover':   # the root [0xfaa5d8] or none, [0xfaa5e8] mostly 0, the hovered window [0xfaa5e0] one of them or none
         wins = tree(r, regions)
         queues(r, regions)
-        x, y = point(r)
+        x, y = point(r, regions, wins)
         regions[0xfaa540] = struct.pack('<II', x, y)
-        regions[0xfaa5d8] = struct.pack('<IIII', r.choice([wins[0]] * 6 + [0]), r.getrandbits(32), r.choice(wins + [0, 0]),
-                                        r.choice([0] * 6 + [1, r.getrandbits(32)]))
+        regions[0xfaa5d8] = struct.pack('<5I', r.choice([wins[0]] * 6 + [0]), r.getrandbits(32), r.choice(wins + [0, 0]),
+                                        r.getrandbits(32), r.choice([0] * 6 + [1, r.getrandbits(32)]))
         return Call(CALLS[op], [], regions, ret='w')
     if op == 'Dialog7cb2b8_Child21Post':   # the dialog [0x7cb2b8] or none; its child 0x21 among 0-2 others (or missing), its dword +0xa8 0 or not
         regions[0xfaa5fc] = struct.pack('<I', r.choice([0, CDECL_LOG4]))
