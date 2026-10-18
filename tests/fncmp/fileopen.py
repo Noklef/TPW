@@ -6,18 +6,21 @@
 # a WAD header (DWFB, versions 0-3, mostly no entries and no name block) and reporting all it was asked for read (fill_arg()), IsDBCSLeadByte one answer
 # for a case, InterlockedDecrement now and then 0 (the object freed). The stream or handle at THIS has a source / object or not; its vtable is the
 # game's or recorders. AddFolder / AddWad (src/game/core/class6fd9d8) open a new folder / WAD handle on a path String and append it to a list of 0-2 nodes; AddBoth
-# (0x41cc40) adds the path as a folder and, with the game's ".wad" string (0x78bb08) appended, as a WAD.
+# (0x41cc40) adds the path as a folder and, with the game's ".wad" string (0x78bb08) appended, as a WAD. MakeFolders (0x5c7ac0, files/gamepaths): a
+# root (a wide String; WideCharToMultiByte a recorder answering one path, the GlobalAlloc / GlobalFree stubs) with the String at 0xf81b48 ("\"
+# mostly) and each of 0-3 listed names (0x786b90) appended, opened as a folder and, when that fails, created (CreateDirectoryA a recorder).
 # usage: fileopen.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Open28,...)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import IMPORT_TABLE, LOG, Bench, Call, HEAP, RAM, echo, fill, fill_arg, heap, import_table, log_region, set_return, vtable  # noqa: E402
+from fncmp import IMPORT_TABLE, LOG, Bench, Call, HEAP, RAM, echo, fill, fill_arg, global_heap, heap, import_table, log_region, set_return, vtable  # noqa: E402
 
 B = Bench([(0x41c9e0, 0x41cd60), (0x5c5550, 0x5c5560), (0x4036a0, 0x4036c0), (0x5da3c0, 0x5da3d0), (0x638ef0, 0x639230), (0x62fa40, 0x630000), (0x636e40, 0x637460), (0x45f940, 0x45fa40), (0x61a060, 0x61af40), (0x45d820, 0x45d880),
            (0x4217e0, 0x421800), (0x637460, 0x638f00), (0x641500, 0x642400), (0x5f5660, 0x5f9000), (0x618000, 0x61a060), (0x6307c0, 0x630900),
-           (0x6ad800, 0x6ad820), (0x67a400, 0x690000), (0x405000, 0x406000), (0x5e4000, 0x5e5000), (0x636b00, 0x636e40)])
+           (0x6ad800, 0x6ad820), (0x67a400, 0x690000), (0x405000, 0x406000), (0x5e4000, 0x5e5000), (0x636b00, 0x636e40),
+           (0x5c7ac0, 0x5c7ba6), (0x424db0, 0x424e10)])
 THIS, RESULT, OTHER, OBJ, SRC = RAM, RAM + 0x40, RAM + 0x80, RAM + 0xc0, RAM + 0x100
 VT_THIS, VT_OBJ, VT_SRC = RAM + 0x200, RAM + 0x280, RAM + 0x300
 NAME, CONTAINER, TEXT, BUF = RAM + 0x400, RAM + 0x500, RAM + 0x600, RAM + 0x700
@@ -39,7 +42,7 @@ IMPORTS = {'CreateFileA': (40, 0x6fd0d8, 7, 1, 0), 'GetFileSize': (41, 0x6fd0e8,
            'GetCommandLineA': (52, 0x6fd1e4, 0, 0, 0), 'SetFilePointer': (53, 0x6fd0e4, 4, 0, 4), 'ReadFile': (54, 0x6fd0dc, 5, 0, 0xa),
            'WaitForSingleObject': (55, 0x6fd128, 2, 0, 0), 'ReleaseSemaphore': (56, 0x6fd170, 3, 0, 4), 'IsDBCSLeadByte': (57, 0x6fd154, 1, 0, 0, 1),
            'WriteFile': (58, 0x6fd0e0, 5, 0, 8), 'FlushFileBuffers': (59, 0x6fd0fc, 1, 0, 0), 'mmioRead': (60, 0x6fd3e0, 3, 0, 0),
-           'mmioSeek': (61, 0x6fd3d8, 3, 0, 0)}
+           'mmioSeek': (61, 0x6fd3d8, 3, 0, 0), 'WideCharToMultiByte': (62, 0x6fd1dc, 8, 0, 0), 'CreateDirectoryA': (63, 0x6fd120, 2, 1, 0)}
 K = {name: v[0] for name, v in IMPORTS.items()}
 PATHS_GIVEN = [b'x.wad', b'data\\x.wad', b'C:\\tp\\data\\x.wad', b'data/x.wad', b'\\x.wad', b'/x', b'a\\b/c.bin', b'', b'x.wad*\\data', b'C:\\tp\\',
                b'\x81\\x.bin', b'a\x81\\b', b'data\\', b'D:/y/z.txt']
@@ -51,8 +54,9 @@ OPS = {
     'OpenPath': (0x5f7ed0, 's', 'RNm', 'a'), 'OpenIn': (0x62fa40, 's', 'RNC', 'a'), 'OpenBuffered': (0x62fd30, 's', 'ROc', 'a'),
     'RefObject2Ctor': (0x619730, 'x', '', 'a'), 'RefObject2DeletingDtor': (0x619790, 'o', 'F', 'a'), 'RefObject2Dtor': (0x6197b0, 'o', '', 'v'),
     'RefObject2Vfn5': (0x6198b0, 'o', 'RBTc', 'a'), 'AddFolder': (0x41c9e0, 'l', 'P', 'v'), 'AddWad': (0x41cb10, 'l', 'P', 'v'),
-    'AddBoth': (0x41cc40, 'l', 'P', 'v'),
+    'AddBoth': (0x41cc40, 'l', 'P', 'v'), 'MakeFolders': (0x5c7ac0, 'x', 'W', 'v'),
 }
+ROOT, FOLDERS, SEP = RAM + 0x900, RAM + 0xa00, 0xf81b48   # MakeFolders: the root, the list's nodes and names, the separator String
 
 
 def wad_header(r):
@@ -148,6 +152,26 @@ def case(r):
             regions[WAD_EXT] = struct.pack('<5I', STRING_VTABLE, 4, PATHSTR + 0x40, 8, 8)   # (the game's ".wad" string; AddBoth appends it)
             regions[PATHSTR + 0x40] = b'.wad\0' + r.bytes(8)
             stack.append(PATHSTR)
+        elif x == 'W':   # MakeFolders' root and list
+            root = r.choice([b'C:\\tp\\save', b'D:', b'', b'C:\\tp\\'])
+            set_return(log, K['WideCharToMultiByte'], len(root) + 1 if r.random() < 0.9 else r.choice([0, 1]))
+            fill(log, K['WideCharToMultiByte'], 4, root + bytes(1))
+            regions[ROOT] = struct.pack('<5I', 0x7030c8, len(root), ROOT + 0x20, len(root) + 8, 8) + bytes(0xc) + root.decode().encode('utf-16-le') + bytes(2)
+            table = regions[IMPORT_TABLE]
+            for at, stub in global_heap().items():
+                table[at - IMPORT_TABLE:at - IMPORT_TABLE + 4] = stub
+            sep = r.choice([b'\\', b'\\', b'\\', b'', b'/x\\'])
+            regions[SEP] = struct.pack('<5I', STRING_VTABLE, len(sep), SEP + 0x20, len(sep) + 8, 8) + bytes(0xc) + sep + bytes(8)
+            n = r.choice([0, 1, 1, 2, 3])
+            folders = bytearray(r.bytes(0x100))
+            for k in range(n):   # node k at +0x10 * k {name, next}; name k's String at +0x40 + 0x14 * k, its text at +0xc0 + 0x10 * k
+                struct.pack_into('<2I', folders, 0x10 * k, FOLDERS + 0x40 + 0x14 * k, FOLDERS + 0x10 * (k + 1) if k + 1 < n else 0)
+                name = r.choice([b'users', b'online', b'', b'a\\b'])
+                struct.pack_into('<5I', folders, 0x40 + 0x14 * k, STRING_VTABLE, len(name), FOLDERS + 0xc0 + 0x10 * k, len(name) + 8, 8)
+                folders[0xc0 + 0x10 * k:0xc0 + 0x10 * k + len(name) + 1] = name + bytes(1)
+            regions[FOLDERS] = bytes(folders)
+            regions[0x786b90] = struct.pack('<I', FOLDERS if n else 0)
+            stack.append(ROOT)
         elif x == 'T':
             stack.append(0 if r.random() < 0.2 else text(r, NAME, regions, r.choice([b'', b'x.wad', b'data\\*.bin'])))
     return Call(address, [THIS] + stack, regions, conv='t', ret=ret)

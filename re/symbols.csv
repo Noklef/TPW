@@ -1650,6 +1650,7 @@ address,name,kind,confidence,notes
 0x005c7bd0,GamePaths_SaveFolder,function,low,"reimplemented (src/game/files/gamepaths); stdcall (out); out = the root folder (wide) + the global wide ""save"" (0xf818d8); returns out"
 0x005c7c70,GamePaths_UsersFolder,function,low,"reimplemented (src/game/files/gamepaths); stdcall (out): the save folder with ""\"" and ""users"" appended, copied into out; returns out (name unconfirmed)"
 0x005c8980,GamePaths_OnlineFolder,function,low,"reimplemented (src/game/files/gamepaths); stdcall (out): the save folder with ""\"" and ""online"" appended, copied into out; returns out (name unconfirmed)"
+0x005c7ac0,GamePaths_MakeFolders,function,low,"reimplemented (src/game/files/gamepaths); thiscall, this unused (root wide String): for each name listed at [0x786b90], root + the String at 0xf81b48 + the name; when that folder does not open (Handle_Open28) it is created (Dir_Create)"
 0x005c53c0,DirEntry_IsWad,function,low,"reimplemented (src/game/files/direntry); cdecl (entry); whether the entry's name ends in the global "".wad"" String (0xf80808, Names_Equal)"
 0x0055e470,CpuInfo_Ctor,function,high,"reimplemented (src/game/core/cpuinfo); thiscall; CPUID probe (EFLAGS.ID test, then the vendor string and features); SystemInfo's base"
 0x0067df40,CRT_stricmp,function,high,"MSVC CRT _stricmp: A-Z folded, or the locale's tolower when one is set"

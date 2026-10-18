@@ -1,5 +1,6 @@
 // The game's folder paths, built from the five path strings of the object at 0xf816c0 (Strings5; the first is the game's root folder):
-// reimplementation of the fonts folder's path (0x468250), the save folder's (0x5c7bd0) and its users and online folders' (0x5c7c70, 0x5c8980).
+// reimplementation of the fonts folder's path (0x468250), the save folder's (0x5c7bd0) and its users and online folders' (0x5c7c70, 0x5c8980),
+// and the folders made under a root (0x5c7ac0).
 #pragma once
 
 #include "../../../re/types.h"
@@ -7,6 +8,11 @@
 struct WString;
 
 extern "C" {
+
+// 0x5c7ac0 (thiscall, this unused; root; pops 4; name unconfirmed): for each node of the list at [0x786b90] (+0 a name String, +4 the next),
+// the root (a wide String, String_AssignFromWide), the String at 0xf81b48 and the name appended (String_Append): when that folder does
+// not open (a folder handle, vtable 0x6fd9e8, Handle_Open28) it is created (Dir_Create).
+void __fastcall GamePaths_MakeFolders(void *, void *, const WString *root);
 
 // 0x468250 (cdecl; out): with no text in the root folder's string (Obj_Self of 0xf816c0, its data at +8) 0; else out = the root and "Data\Fonts"
 // (0x74d6c0) by sprintf, "%s%s" (0x74d320) when the root's last char is "\" and "%s\%s" (0x7488ac) when not (an empty root: the byte before its
