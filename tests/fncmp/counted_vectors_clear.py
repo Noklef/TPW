@@ -111,15 +111,19 @@ def case(r):
 def deque_case(r, obj, regions, address, ret):
     """A deque of 16-byte CountedPair vectors (+4 begin, +8 end) in blocks of 0x1000 bytes: the begin iterator at +4 {first, end, cursor, map slot}
     a few elements before the end of block k, the map at +0x24, the count at +0x2c; only the visited elements (the block's tail, the next one's
-    head) are laid out, each an empty vector (begin == end, 0 or not) or up to two pairs at ARR."""
+    head) are laid out, each an empty vector (begin == end, 0 or not) or up to two pairs at ARR. Now and then the next block is walked whole (its
+    elements empty) into the head of the one after."""
     k, left = r.choice([0, 1]), r.choice([1, 2, 3, 4])
     count = r.choice([0, 1, 2, left, left, left + 1, left + 2, left + 4])
+    whole = r.random() < 0.15
+    if whole:
+        count = left + 0x100 + r.choice([0, 1, 4])
     first = BLOCKS + 0x1000 * k
-    tail, head = bytearray(r.bytes(0x40)), bytearray(r.bytes(0x40))
+    tail, head = bytearray(r.bytes(0x40)), bytearray(r.bytes(0x1040 if whole else 0x40))
     elements, bufs = bytearray(r.bytes(0x48 * 8)), bytearray(r.bytes(0x400))
-    for i in range(min(count, left + 4)):
+    for i in range(min(count, left + (0x104 if whole else 4))):
         data, at = (tail, 0x40 - 0x10 * (left - i)) if i < left else (head, 0x10 * (i - left))
-        n = r.choice([0, 0, 1, 2])
+        n = r.choice([0, 0, 1, 2]) if i < 8 else 0
         begin = ARR + 0x48 * i if n or r.random() < 0.5 else 0
         for j in range(n):
             pair(r, elements, 0x48 * i + 0x24 * j, bufs, 2 * i + j)
@@ -127,8 +131,8 @@ def deque_case(r, obj, regions, address, ret):
     put(obj, 0x80 + 4, 'IIII', first, first + 0x1000, first + 0x1000 - 0x10 * left, MAP + 4 * k)
     put(obj, 0x80 + 0x24, 'I', MAP)
     put(obj, 0x80 + 0x2c, 'I', count)
-    regions.update({MAP: struct.pack('<3I', BLOCKS, BLOCKS + 0x1000, BLOCKS + 0x2000), first + 0x1000 - 0x40: tail, first + 0x1000: head,
-                    ARR: elements, BUFS: bufs})
+    regions.update({MAP: struct.pack('<4I', BLOCKS, BLOCKS + 0x1000, BLOCKS + 0x2000, BLOCKS + 0x3000), first + 0x1000 - 0x40: tail,
+                    first + 0x1000: head, ARR: elements, BUFS: bufs})
     return Call(address, [RAM + 0x80], regions, conv='t', ret=ret)
 
 
