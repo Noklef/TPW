@@ -1,6 +1,7 @@
 // The GUI library's mouse cursors: a table [0xfaa604] of +0 the cursor objects and +4 the word count, the current cursor id the word
 // 0x77c484 (its object [0xfaa608]), the default id the word 0xfaa600, and each window's id at its word +0x50 (applied while it is the
-// hovered window [0xfaa5e0]). Reimplementation of 0x661d96, 0x6590f7 and 0x65f11d. The names are unconfirmed.
+// hovered window [0xfaa5e0]). The game sets its cursor on the window [0x7cb2ac], or with none on the two at 0x7cc8c0 and 0x7cc8bc.
+// Reimplementation of 0x661d96, 0x6590f7, 0x65f11d, 0x65f150, 0x4a2aa0 and 0x4814a0. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -18,5 +19,15 @@ void __cdecl Gui_SetCursor(u32 id);
 
 // 0x65f11d (thiscall (id), pops 4): the word +0x50 = id; when the window is the hovered one [0xfaa5e0], Gui_SetCursor(word +0x50).
 void __fastcall Window_SetCursor(u8 *window, void *, u32 id);
+
+// 0x65f150 (thiscall): Gui_SetCursor(word +0x50).
+void __fastcall Window_ApplyCursor(const u8 *window);
+
+// 0x4a2aa0 (cdecl (id)): with the window [0x7cb2ac] set, Window_SetCursor on it, then the dword 0x7cb2d8 = the id's low word sign-extended.
+void __cdecl GameCursor_Set(u32 id);
+
+// 0x4814a0 (thiscall on the object at 0x7b51f0, this not used (id), pops 4): GameCursor_Set with the window [0x7cb2ac] set; otherwise
+// Window_SetCursor on each of the windows [0x7cc8c0] and [0x7cc8bc] that is set.
+void __fastcall Obj7b51f0_SetCursor(void *self, void *, u32 id);
 
 }

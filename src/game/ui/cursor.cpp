@@ -43,4 +43,22 @@ void __fastcall Window_SetCursor(u8 *window, void *, u32 id) {
     if (window == global<u8 *>(0x00faa5e0)) Gui_SetCursor(at<u16>(window, 0x50));
 }
 
+void __fastcall Window_ApplyCursor(const u8 *window) { Gui_SetCursor(at<u16>(window, 0x50)); }
+
+void __cdecl GameCursor_Set(u32 id) {
+    u8 *const window = global<u8 *>(0x007cb2ac);
+    if (!window) return;
+    Window_SetCursor(window, nullptr, id);
+    global<s32>(0x007cb2d8) = (s16)id;
+}
+
+void __fastcall Obj7b51f0_SetCursor(void *, void *, u32 id) {
+    if (global<u8 *>(0x007cb2ac)) {
+        GameCursor_Set(id);
+        return;
+    }
+    if (u8 *const window = global<u8 *>(0x007cc8c0)) Window_SetCursor(window, nullptr, id);
+    if (u8 *const window = global<u8 *>(0x007cc8bc)) Window_SetCursor(window, nullptr, id);
+}
+
 }

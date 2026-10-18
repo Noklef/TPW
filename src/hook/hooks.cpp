@@ -4503,6 +4503,9 @@ const Hook kHooks[] = {
     {"Window_SetCursor",          0x0065f11d, (void *)&Window_SetCursor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Gui_SetCursor",             0x006590f7, (void *)&Gui_SetCursor, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"CursorTable_Get",           0x00661d96, (void *)&CursorTable_Get, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Obj7b51f0_SetCursor",       0x004814a0, (void *)&Obj7b51f0_SetCursor, {0xa1, 0xac, 0xb2, 0x7c, 0x00}},
+    {"GameCursor_Set",            0x004a2aa0, (void *)&GameCursor_Set, {0x8b, 0x0d, 0xac, 0xb2, 0x7c}},
+    {"Window_ApplyCursor",        0x0065f150, (void *)&Window_ApplyCursor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

@@ -4920,3 +4920,6 @@ address,name,kind,confidence,notes
 0x00661d96,CursorTable_Get,function,low,"reimplemented (src/game/ui/cursor); thiscall (index), pops 4: the entry at the index's low word when below the word count +4, else 0"
 0x006590f7,Gui_SetCursor,function,low,"reimplemented (src/game/ui/cursor); cdecl (id word): the current cursor's slot 4 (0), the new one (or the default) stored at 0xfaa608 and its id at 0x77c484, its slot 4 (1) and slot 2"
 0x0065f11d,Window_SetCursor,function,low,"reimplemented (src/game/ui/cursor); thiscall (id), pops 4: the word +0x50 = id; Gui_SetCursor when the window is the hovered one [0xfaa5e0]"
+0x0065f150,Window_ApplyCursor,function,low,reimplemented (src/game/ui/cursor); thiscall: Gui_SetCursor(word +0x50)
+0x004a2aa0,GameCursor_Set,function,low,"reimplemented (src/game/ui/cursor); cdecl (id): with the window [0x7cb2ac] set, Window_SetCursor on it and 0x7cb2d8 = the id's word sign-extended"
+0x004814a0,Obj7b51f0_SetCursor,function,low,"reimplemented (src/game/ui/cursor); thiscall on 0x7b51f0, this not used (id), pops 4: GameCursor_Set with [0x7cb2ac] set, else Window_SetCursor on [0x7cc8c0] and [0x7cc8bc] when set"
