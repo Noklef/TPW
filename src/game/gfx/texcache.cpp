@@ -198,11 +198,15 @@ void __fastcall TexCache_Evict(u8 *cache) {
     s32 limit = at<s32>(cache, 0x1878);
     if (limit > 0x10)
         limit = 0x10;
+    // The original's frame: keys[16] at ESP+0x38, entries[16] right after them at ESP+0x78, then (+0xb8) the return address. A 17th
+    // qualifying entry with 16 kept writes one past each (sic): keys[16] is entries[0] and entries[16] the return address.
+    u32 frame[0x21];
+    s32 *const keys = reinterpret_cast<s32 *>(frame);
+    u32 *const entries = frame + 0x10;
+    bool returnClobbered = false;
     for (u32 size = 0; size < 6; ++size) {
         const s32 side = at<s32>(reinterpret_cast<const void *>((uintptr_t)0x00702420), 4 * size);
         const s32 area = side * side;
-        s32 keys[0x11];   // (one past for the full insertions)
-        u8 *entries[0x11];
         s32 kept = 0;
         const s32 count = at<s32>(cache, 0x1800 + 4 * size);
         for (s32 i = 0; i < count; ++i) {
@@ -219,14 +223,18 @@ void __fastcall TexCache_Evict(u8 *cache) {
             for (s32 j = place; j < kept; ++j)   // forward over the overlap (sic)
                 entries[j + 1] = entries[j];
             for (s32 j = place; j < kept; ++j)
-                keys[j + 1] = keys[j];
+                keys[j + 1] = keys[j];   // (keys[16]: entries[0], sic)
+            if (kept == 0x10 && place < kept)
+                returnClobbered = true;   // (entries[16], sic)
             if (kept < limit)
                 ++kept;
-            entries[place] = entry;
+            entries[place] = (u32)(uintptr_t)entry;
             keys[place] = key;
+            if (place == 0x10)
+                returnClobbered = true;
         }
         for (s32 i = kept - 1; i >= 0; --i) {
-            u8 *const entry = entries[i];
+            u8 *const entry = reinterpret_cast<u8 *>((uintptr_t)entries[i]);
             u8 *const owner = at<u8 *>(entry, 0);
             u8 *item = at<u8 *>(entry, 4);
             at<u8 *>(entry, 4) = nullptr;
@@ -246,6 +254,8 @@ void __fastcall TexCache_Evict(u8 *cache) {
             TexCacheItem_SetFlags(owner, nullptr, 0);
         }
     }
+    if (returnClobbered)   // the original's RET goes to the entry pointer written over its return address (sic)
+        reinterpret_cast<void(__cdecl *)()>((uintptr_t)entries[0x10])();
 }
 
 u32 __fastcall TexCache_AddSurfaces(u8 *cache, void *, s32 side, s32 *made, u32 format, s32 levels) {

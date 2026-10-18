@@ -72,7 +72,9 @@ void __fastcall TexCacheItem_SetKey(u8 *item);
 // area the side squared), the entries at +0x400 * size (the signed count at +0x1800 + 4 * size) with items (+4) whose s32 +0x1c is
 // over 0 and its << 2 (s32) under the area and whose key (s32 +0xc) * 2 under it too are sorted by key, ascending, keeping
 // min(s32 +0x1878, 16) of them: each is inserted after the keys not above its own, those past it moved up one by a forward copy, so
-// what was at its place fills the rest (sic), and the last falls off when full. (A 17th with 16 kept writes over the return address.)
+// what was at its place fills the rest (sic), and the last falls off when full. A 17th with 16 kept writes one past both arrays (sic):
+// keys[16] is entries[0] (the frame is modelled), and entries[16] is the return address, so the function ends by jumping to that entry
+// pointer (a fault; the eviction may fault first on entries[0], now a key).
 // From the last kept down: the entry's items (+4, next at +4) are taken off it (+4 = 0), each with its cache flags cleared
 // (Texture_ClearCacheFlags) and +0x1c = 0, and one with flag 0x40000000 (+8) gets 0x2000 (and 0x4000 when it had that) and goes onto
 // the cache's list at +0x18c4; then the entry's +0 has its flags set to 0 (TexCacheItem_SetFlags).
