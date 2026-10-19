@@ -64,8 +64,16 @@ def overlaps(r):
         dx, dy = r.choice([0x80000000, r.getrandbits(32)]), r.choice([0x80000000, r.getrandbits(32), 0])
     else:
         dx, dy = r.randrange(-0x30000, 0x30000), r.randrange(-0x30000, 0x30000)
-    a = struct.pack('<Iiiii', flags(), ax, ay, radius(), radius()) + r.bytes(0xc)
-    b = struct.pack('<IIIii', flags(), (ax + dx) & 0xffffffff, (ay + dy) & 0xffffffff, radius(), radius()) + r.bytes(0xc)
+    ra, rb = [radius(), radius()], [radius(), radius()]
+    if r.random() < 0.25:   # touching: the larger radii summing to the distance (a 3-4-5 multiple or on an axis), or one off
+        m = r.randrange(1, 0x800)
+        dx, dy = r.choice([(3 * m, 4 * m), (-4 * m, 3 * m), (5 * m, 0), (0, -5 * m)])
+        big = r.randrange(5 * m + 1) + r.choice([0, 0, 1, -1])
+        ra, rb = [big, r.randrange(-5, big + 1)], [5 * m - big, r.randrange(-5, max(5 * m - big, -4) + 1)]
+        r.shuffle(ra)
+        r.shuffle(rb)
+    a = struct.pack('<Iiiii', flags(), ax, ay, *ra) + r.bytes(0xc)
+    b = struct.pack('<IIIii', flags(), (ax + dx) & 0xffffffff, (ay + dy) & 0xffffffff, *rb) + r.bytes(0xc)
     first, second = (RAM, RAM + 0x20) if r.random() < 0.5 else (RAM + 0x20, RAM)
     if r.random() < 0.04:
         second = first
