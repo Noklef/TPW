@@ -345,6 +345,7 @@
 #include "../game/ui/window705a50.h"
 #include "../game/ui/windowreg.h"
 #include "../game/ui/cursor.h"
+#include "../game/ui/dialogbase.h"
 #include "../game/ui/focus.h"
 #include "../game/ui/textbutton.h"
 #include "../game/ui/windowtimers.h"
@@ -4637,6 +4638,7 @@ const Hook kHooks[] = {
     {"TextButton_Handler",        0x00492d80, (void *)&TextButton_Handler, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
     {"Focus_Restore",             0x004862a0, (void *)&Focus_Restore, {0xe8, 0x2b, 0x66, 0x00, 0x00}},
     {"Global7c2534_HasSource",    0x0048c8d0, (void *)&Global7c2534_HasSource, {0x8b, 0x0d, 0x34, 0x25, 0x7c}},
+    {"Dialog_BaseHandler",        0x0047ee90, (void *)&Dialog_BaseHandler, {0x56, 0x8b, 0x74, 0x24, 0x08}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

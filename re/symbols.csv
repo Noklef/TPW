@@ -5034,3 +5034,4 @@ address,name,kind,confidence,notes
 0x00492d80,TextButton_Handler,function,low,"reimplemented (src/game/ui/textbutton); cdecl (window, message, a, b): 0x10006 plays the interface sound 0xc1 and sends the parent 0x100001 (id +0x8c, 0), 0; 0x14 releases the text row (Window_DwordA0 1); else Window_CallDefault"
 0x0048c8d0,Global7c2534_HasSource,function,low,reimplemented (src/game/ui/focus); whether the object at 0x7c2534 has its +0xc set (name unconfirmed)
 0x004862a0,Focus_Restore,function,low,reimplemented (src/game/ui/focus); the focus given back to the first shown of the game's windows (name unconfirmed)
+0x0047ee90,Dialog_BaseHandler,function,low,"reimplemented (src/game/ui/dialogbase); cdecl (window, message, a, b): on 0x14 the parent (+0x60) posted 4 and the focus given back; then the default handler; name unconfirmed"
