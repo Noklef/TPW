@@ -8,15 +8,16 @@ In order:
   2. kept: nothing the branch or main had is lost in the result. Per file: bench op names ('Name':) and hex addresses in
      tests/fncmp, hooks.cpp rows and includes, symbols.csv addresses, CMakeLists src/game entries. An item counts as lost when
      the branch dropped it from the merge base, or when either side has it and the result does not (unless main itself removed
-     it); a bench range end that a widened range covers is not lost. Duplicates in the tables, CRs not ending a line in hooks.cpp, and a
-     module-level name bound twice in a bench (the merge of two sides' constants, which git does not see as a conflict) also fail.
+     it); a bench range end that a widened range covers is not lost. Duplicates in the tables, CRs not ending a line in hooks.cpp, a
+     module-level name bound twice in a bench (the merge of two sides' constants, which git does not see as a conflict) and an op name
+     twice in a bench's table (a dict literal's key, or KINDS['x'] = for a key it has: the first op's cases are never made) also fail.
      --moved BENCH (repeatable): a bench the branch empties by moving its cases to other benches (a bucket clean-up); its op names
      are not checked, and an address it lost is kept when another bench has it (or, for a range's end, the range's start).
      --accept-lost PATH:ITEM (repeatable): one lost item checked by hand; printed, and to be named in the merge commit;
   3. hooks: rows the branch added (its own count, for checking an agent's report against);
   4. build, tpw_tests, retcheck, convcheck;
-  5. each bench the merge touches, at N cases (default 1000) seed 5, --both: every run must show 0 differ. A touched helper module
-     (no main, e.g. thingenv.py) runs as every bench that imports it.
+  5. each bench the merge touches, at N cases (default 1000) seed 5, --both: every run must show 0 differ. Every bench importing a
+     touched module runs too (a bench's case() reused by another, or a helper module with no main, e.g. thingenv.py, which needs one).
 """
 import collections
 import glob
@@ -81,6 +82,35 @@ def top_names(text):
     return {k for k, v in c.items() if v > 1}
 
 
+def doubled_keys(text):
+    """Op names a bench's table holds twice: a key repeated in a dict literal, or NAME['k'] = ... at module level for a key NAME already
+    has. Python keeps the last silently, so the first op's cases are never made (two sides, or one branch, reusing a name)."""
+    import ast
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return []
+    out, tables = [], {}
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Dict):
+            seen = set()
+            for k in n.keys:
+                if isinstance(k, ast.Constant):
+                    if k.value in seen:
+                        out.append('%r (line %d)' % (k.value, k.lineno))
+                    seen.add(k.value)
+    for n in tree.body:
+        if isinstance(n, ast.Assign) and len(n.targets) == 1:
+            tg = n.targets[0]
+            if isinstance(tg, ast.Name) and isinstance(n.value, ast.Dict):
+                tables[tg.id] = {k.value for k in n.value.keys if isinstance(k, ast.Constant)}
+            elif isinstance(tg, ast.Subscript) and isinstance(tg.value, ast.Name) and isinstance(tg.slice, ast.Constant) and tg.value.id in tables:
+                if tg.slice.value in tables[tg.value.id]:
+                    out.append('%s[%r] (line %d)' % (tg.value.id, tg.slice.value, n.lineno))
+                tables[tg.value.id].add(tg.slice.value)
+    return out
+
+
 def elsewhere(path):
     """Every hex address the working tree's other benches mention."""
     out = set()
@@ -99,6 +129,9 @@ def kept(path, pats, base, branch, table, moved=False):
         twice = top_names(result) - top_names(texts[1]) - top_names(texts[2])
         if twice:
             problems.append('%s binds %s twice at module level (one side redefines the other\'s)' % (path, sorted(twice)))
+        doubled = doubled_keys(result)
+        if doubled:
+            problems.append('%s has op names twice in a table (the last wins, the first op never runs): %s' % (path, ', '.join(doubled[:8])))
     # A bench range's end that a widened range now covers is not lost (a branch that grows (lo, x) to (lo, y) drops x as text only).
     bounds = {x for t in texts for r in ranges(t) for x in r} if bench else set()
     spans = ranges(result) if bench else []
@@ -195,21 +228,27 @@ def main():
     if '--no-bench' in a:
         print('benches: skipped (--no-bench)')
         return
-    # A changed helper module (no main of its own, e.g. thingenv.py) is checked through every bench that imports it.
-    runs = []
-    for f in benches:
-        if not os.path.exists(os.path.join(ROOT, f)):
-            continue
-        if '.main(' in worktree(f):
-            runs.append(f)
+    # A changed module also runs as every bench that imports it (a bench's case() reused as another's world, or a helper module with
+    # no main of its own, e.g. thingenv.py, which must have one), and so on for theirs.
+    runs, todo = [], [f for f in benches if os.path.exists(os.path.join(ROOT, f))]
+    while todo:
+        f = todo.pop()
+        if f in runs:
             continue
         name = os.path.basename(f)[:-3]
         users = sorted(os.path.relpath(u, ROOT).replace('\\', '/') for u in glob.glob(os.path.join(ROOT, 'tests', 'fncmp', '*.py'))
                        if re.search(r'^\s*(from %s import|import %s\b)' % (name, name), open(u, encoding='utf-8', errors='replace').read(), re.M))
-        print('helper %s: through %s' % (name, ', '.join(os.path.basename(u)[:-3] for u in users) or 'no bench (FAILED)'))
-        if not users:
-            fail('helper %s has no bench importing it' % name)
-        runs += users
+        if '.main(' in worktree(f):
+            runs.append(f)
+            if users:
+                print('bench %s: also through %s' % (name, ', '.join(os.path.basename(u)[:-3] for u in users)))
+        else:
+            print('helper %s: through %s' % (name, ', '.join(os.path.basename(u)[:-3] for u in users) or 'no bench (FAILED)'))
+            if not users:
+                fail('helper %s has no bench importing it' % name)
+            runs.append(f)   # (seen; not run itself)
+        todo += users
+    runs = [f for f in runs if '.main(' in worktree(f)]
     for f in sorted(set(runs)):
         p = run([sys.executable, '-I', f, cases, '5', '--both'])
         res = [l.strip() for l in p.stdout.splitlines() if 'differ' in l]
