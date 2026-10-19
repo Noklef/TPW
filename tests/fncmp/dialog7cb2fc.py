@@ -2,8 +2,9 @@
 # `row` (one of a few ids, among dialog7cb398.py's decoys; now and then missing: a fault in both) whose child 0x1d4c9 has slot 9 a recorder,
 # and the 0x705a50 button `button` (as in window705a50.py, its +0x98 / +0x9c objects recorders k 23 / 24 masked as that bench says by the look
 # it gets, [0xfaa5d4] set or not; now and then missing: a fault in both once selected); the label one of 0x145-0x148 or another, on / other
-# / select any bytes (the pushed registers' upper bytes random). The texts as panel7cc298.py's (language.py's records of up to 12 bytes, so
-# the stack copy of 31 units always ends in a terminator), the wide buffer 0x7ba058 a short wide string first (what the converter off
+# / select any bytes (the pushed registers' upper bytes random). The texts as panel7cc298.py's (language.py's records), mostly with the
+# on / off texts 0x14c-0x14f there as text records of up to 12 bytes or 29 / 30 (not 31 or more: the stack copy of 31 units would
+# end without a terminator, in stack garbage); the wide buffer 0x7ba058 a wide string of up to 30 units first (what the converter off
 # leaves there).
 # usage: dialog7cb2fc.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetToggle)
 import os
@@ -50,13 +51,14 @@ def case(r):
     window(r, regions, DIALOG, 0, 0)
     put(regions[DIALOG], 0x5c, 'I', children(r, regions, kids, DIALOG, DECOYS, [0, 0x1d4c9, 0x1d4ca, 0x1d4ce]))
     regions[0x7cb2fc] = struct.pack('<I', DIALOG)
-    first = b''.join(r.randrange(0x20, 0x7f).to_bytes(2, 'little') for _ in range(r.choice([0, 1, 4, r.randrange(12)])))
+    first = b''.join(r.randrange(0x20, 0x7f).to_bytes(2, 'little') for _ in range(r.choice([0, 1, 4, r.randrange(12), 29, 30])))
     texts(r, regions, 0x145, 11, first + b'\0\0' + r.bytes(0x400 - len(first)))
     if r.random() < 0.9:   # (mostly all eleven there and the on / off texts 0x14c-0x14f text records: none faults in both)
         put(regions[TEXTS + 0xa00], 8, 'I', 0x150)
         pool = bytearray(regions[TEXTS + 0xc00])
         for i in range(7, 11):
-            body = text(r) + bytes([0]) * r.choice([1, 1, 2])
+            long = bytes(r.randrange(0x20, 0x7f) for _ in range(r.choice([29, 30])))   # (about the copy's 31: 30 units still end in a 0)
+            body = (long if r.random() < 0.3 else text(r)) + bytes([0]) * r.choice([1, 1, 2])
             pool[0x40 * i:0x40 * (i + 1)] = struct.pack('<I', 1 | len(body) << 8) + body + bytes(0x3c - len(body))
         regions[TEXTS + 0xc00] = bytes(pool)
     queues(r, regions)
