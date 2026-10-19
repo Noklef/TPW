@@ -445,6 +445,7 @@ address,name,kind,confidence,notes
 0x005ed580,ParticlePools_Reset,function,low,"reimplemented (src/game/render/particles); cdecl: the 0x33 dwords from 0xf86900 (the particle pools' block) zeroed, then IntSin_BuildTable"
 0x005ed660,ParticlePool_Move,function,low,"reimplemented (src/game/render/particles); cdecl (pool, jump, x, y, t): the pool block's old and new positions set; for t not 0 or NaN the clock time and t"
 0x00486b90,Particle_SpawnAtWindow,function,low,"reimplemented (src/game/render/particles); cdecl (effect, window): with the window shown and [0x786b84] 0, the effect spawned at the centre of its inner rectangle (x * 100000 / 2048, 0, y * 75000 / 1536)"
+0x005ed920,ParticlePool2_Setup,function,low,"reimplemented (src/game/render/particles); cdecl (x, y, width, height): pool 2 resized to 2 - (width * height - 0.0016) / 0.0051 * -3 kept to 2-5 (effect 0x23), its position block moved to (x, y) with the clock and 400, then 0.4, the sizes over 3 and the sizes"
 0x00804370,gParticleEffects,data,high,0x69 x 0x140-byte effect definitions from Tp2.plb
 0x0080c6b0,gParticleEffectors,data,high,20 x 0x68-byte effector definitions
 0x0080cefc,gParticleSystems,data,high,live systems: 0x140-byte copies of an effect definition

@@ -3,7 +3,7 @@
 # shrunk (each handle past the new count ended, ParticleSystem_End, and cleared when there is one), or left; handles of the six systems (their serials
 # right or not), none or random. Also pool 2's emptying (0x5edac0) and its marking then emptying (0x5eda70). And a pool's move (0x5ed660:
 # the position blocks at 0xf86900, 0x44 apart, of random floats; the old position kept or jumped; a third float 0, -0 or not, with the game
-# clock's real time less its pauses as gameclock.py's less_pauses() sets it up).
+# clock's real time less its pauses as gameclock.py's less_pauses() sets it up). Pool 2's set-up for an area (0x5ed920): see case().
 # usage: particlepools.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -13,14 +13,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import particles  # noqa: E402
-from fncmp import Bench, Call, put  # noqa: E402
+from fncmp import Bench, Call, fb, put  # noqa: E402
 from gameclock import less_pauses  # noqa: E402
 
 B = Bench([(0x51feb0, 0x51ff70), (0x520560, 0x520e10), (0x521d60, 0x5222f0), (0x522360, 0x522500), (0x5ed5a0, 0x5ed670), (0x5eda70, 0x5edad0), (0x5da3c0, 0x5da3c1),
            (0x5ed660, 0x5ed6f1), (0x402d70, 0x402e00), (0x402e60, 0x4030f0), (0x403150, 0x403172), (0x4031e0, 0x403202), (0x4033a0, 0x4033f0),
-           (0x5f5e20, 0x5f5e80), (0x5f5f10, 0x5f5fc0), (0x5988e0, 0x598955)])
+           (0x5f5e20, 0x5f5e80), (0x5f5f10, 0x5f5fc0), (0x5988e0, 0x598955), (0x5ed920, 0x5eda36), (0x67a830, 0x67a860)])
 POOLS = 0xf8692c
-OPS = [k for k in os.environ.get('OPS', 'Resize,Finish,Empty,Move').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Resize,Finish,Empty,Move,Setup').split(',') if k]
 
 
 def move(r):   # 0x5ed660 (pool, jump, x, y, t): +0 the old position (x, y if jumping, else the last), +8 the new; when t is not 0 the clock's time at
@@ -59,6 +59,14 @@ def case(r):
     for k in range(16):
         put(pools, 0x44 * index + 4 + 4 * k, 'I', handle())
     regions[POOLS] = pools
+    if op == 'Setup':  # pool 2's count from the area width * height: sizes about the counts' steps (0.0016 + 0.0051 / 3 apart) or anything; the
+        # position block (0xf86900 on) random under the pools, the clock as for a move
+        regions.update(less_pauses(r).regions)
+        regions[0xf86900] = bytes(r.bytes(0x2c)) + bytes(regions.pop(POOLS))
+        side = lambda: r.choice([fb(r.uniform(0.03, 0.1)), fb(r.uniform(0, 0.2)), fb(r.uniform(-0.1, 0.1)), r.f(), fb(0.0), fb(-0.0)])  # noqa: E731
+        w = side()
+        h = r.choice([side(), w])
+        return Call(0x5ed920, [r.f(), r.f(), w, h], regions, ret='v')
     effect = c.args[0] if r.random() < 0.9 else r.choice([0, 1, 0x68])
     if op != 'Resize':  # pool 2 emptied, the first marking its systems (ParticleSystem_Set2a) first
         return Call({'Finish': 0x5eda70, 'Empty': 0x5edac0}[op], [], regions, ret='a')

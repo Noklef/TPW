@@ -459,6 +459,28 @@ void __cdecl ParticlePool_Move(s32 pool, s32 jump, float x, float y, float t) {
     field<float>(p, 0x14) = X87_Through(t);
 }
 
+void __cdecl ParticlePool2_Setup(u32 x, u32 y, float width, float height) {
+    const X87Reg size = X87Reg(height) * width;
+    const X87Reg steps = (size - global<float>(0x00774d8c)) / global<float>(0x00774d90) * -3.0f;
+    s32 count = (s32)(2u - (u32)(s32)(long long)steps.v);  // __ftol
+    if (count < 2)
+        count = 2;
+    else if (count > 5)
+        count = 5;
+    ParticlePool_Resize(2, count, 0x23);
+    global<u32>(0x00f86988) = x;
+    global<u32>(0x00f8698c) = y;
+    global<u32>(0x00f86990) = x;
+    global<u32>(0x00f86994) = y;
+    global<u32>(0x00f8699c) = 0x43c80000;  // 400.0f
+    global<float>(0x00f86998) = (float)(s32)Clocks_RealNowLessPauses();  // fild
+    global<u32>(0x00f869a0) = 0x3ecccccd;  // 0.4f
+    global<float>(0x00f869a4) = (float)(X87Reg(width) * global<float>(0x00702f98));
+    global<float>(0x00f869a8) = (float)(X87Reg(height) * global<float>(0x00702f98));
+    global<float>(0x00f869ac) = X87_Through(width);
+    global<float>(0x00f869b0) = X87_Through(height);
+}
+
 void __cdecl ParticleEffectors_Update() {
     u8 *const records = global<u8 *>(0x0080cef8);  // (read once)
     for (s32 index = global<s16>(0x00816d1e), next; index >= 0; index = next) {
