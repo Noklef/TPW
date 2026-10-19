@@ -69,6 +69,10 @@ def case(r):
         for i in range(0x800):
             put(cells, 4 * i, 'H', r.getrandbits(16) & ~5 | r.choice([0, 0, 4, 4, 1, 5]))
         x, y = (v + o if o == o and r.random() < 0.9 else v for v, o in ((x, ox), (y, oy)))
+        if r.random() < 0.15 and w < 64 and h < 64:   # exactly the far edge in cells (inside the 10-per-cell bound with a negative origin)
+            put(grid, 8, '2f', -10.0, -10.0)
+            put(grid, 0x10, '2f', 10.0, 10.0)
+            x, y = r.choice([(w * 10.0 - 10, y), (x, h * 10.0 - 10), (w * 10.0 - 10, h * 10.0 - 10)])
         return Call(0x452560, [fb(x), fb(y), r.choice([0, 0, 1, 7])], regions, ret='d')
     return Call(0x4527f0, [fb(x), fb(y)], regions, ret='d')
 
