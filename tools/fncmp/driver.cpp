@@ -46,6 +46,7 @@
 #include "../../src/game/gfx/canvas.h"
 #include "../../src/game/gfx/pixconv.h"
 #include "../../src/game/gfx/surfbuf.h"
+#include "../../src/game/gfx/tga.h"
 #include "../../src/game/render/engineerrors.h"
 #include "../../src/game/sprite/script.h"
 #include "../../src/game/world/mapline.h"
@@ -497,6 +498,11 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x00702800, 2},   // a theme's (Table73f8a8_At, BalanceFile_GetValues)
                                    {0x00702250, 10},   // the texture surface B's virtual base (its thunks; slot 1 FreePixels' the destructor calls)
                                    {0x00705920, 4},   // the GUI rectangle (GuiRect_Contains, _Centre, _Offset, _Adjust)
+                                   {0x00703630, 4},   // the TGA reader (Begin, ReadRow, RowBytes, RowReader_CopyRow)
+                                   {0x007039a0, 3},   // the pixel converters (deleting destructor, forwards, backwards): palette,
+                                   {0x007039b0, 3},   // RGB,
+                                   {0x00703fa8, 3},   // index,
+                                   {0x00703fb8, 3},   // 16-bit (slot 2 the empty 0x5da3d0)
                                    {0x00705980, 3},   // the GUI window (Debug_Printf, Window_SaveRect, Window_DeletingDtor)
                                    {0x00705a50, 3},   // its subclass (the same, but Window705a50_DeletingDtor)
                                    {0x006ff308, 3},   // the sprite set's virtual base (its deleting destructor's thunk, PtrArray_ReleaseAll's)
@@ -762,6 +768,13 @@ int main(int argc, char **argv) {
                                        reinterpret_cast<void(__fastcall *)(void *, void *)>(hooked(0x00642180)), reinterpret_cast<const u32 *>((uintptr_t)0x00faa268),
                                        reinterpret_cast<const u32 *>((uintptr_t)0x00faa280), &heap_alloc};
     PixConv_SetEnv(&pixConv);
+    // The TGA reader's: the hooked Mem_GlobalAlloc / Free (the GlobalAlloc import slots the case maps) and Palette_ExpandRgb, the pixel conversion's ports.
+    static const TgaEnv tga = {reinterpret_cast<void *(__cdecl *)(u32)>(hooked(0x005f5660)), reinterpret_cast<void *(__cdecl *)(void *)>(hooked(0x005f5680)),
+                               reinterpret_cast<void(__cdecl *)(u8 *, const u8 *, u32)>(hooked(0x005f7360)), &PixelConversion_Ctor, &PixelConversion_Setup,
+                               &PixelConversion_Row, &PixelConversion_Dtor, reinterpret_cast<const u32 *>((uintptr_t)0x00faa298),
+                               reinterpret_cast<const u32 *>((uintptr_t)0x00faa2b0), reinterpret_cast<const u32 *>((uintptr_t)0x00faa268),
+                               reinterpret_cast<const u32 *>((uintptr_t)0x00faa280)};
+    Tga_SetEnv(&tga);
     // A region of up to 8 MB, as hex. Mapped top-down rather than static: a static this size grew the driver's .bss by 12 MB past the
     // game's addresses, where a case's wild pointer read memory natively that the emulator (the original's side) does not have.
     char *const token = static_cast<char *>(VirtualAlloc(nullptr, 1 << 24, MEM_RESERVE | MEM_COMMIT | MEM_TOP_DOWN, PAGE_READWRITE));
