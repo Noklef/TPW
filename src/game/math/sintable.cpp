@@ -6,7 +6,7 @@
 
 #include "x87.h"
 
-void SinTable_Build(float *values, u32 n, u32 *mask, float *scale) {
+void SinTable_Fill(float *values, u32 n, u32 *mask, float *scale) {
     const float nf = (float)n;
     *mask = n - 1;
     *scale = nf * 0.159154937f;  // 0x6feb9c; exact in double, so one rounding to float
@@ -25,6 +25,19 @@ float SinTable_At(const SinTable &sines, float scaled) {
 }
 
 extern "C" {
+
+void __cdecl SinTable_Build(u32 n) {
+    u16 cw;
+    __asm fnstcw cw
+    const bool single = (cw & 0x300) == 0;  // (24-bit precision; else 53, as double arithmetic rounds)
+    float *const values = reinterpret_cast<float *>(0x007b0968);
+    *reinterpret_cast<u32 *>(0x007b0960) = n - 1;
+    *reinterpret_cast<u32 *>(0x007b4968) = n;
+    const float nf = (float)(double)n;  // (fild qword n, exact; fst float)
+    *reinterpret_cast<float *>(0x007b095c) = single ? (float)X87_MulInt(n, 0.159154937f) : (float)((double)n * (double)0.159154937f);
+    for (u32 i = 0; i < n; ++i)
+        values[i] = (float)X87_Sin(single ? (X87Reg((double)i) / X87Reg(nf) * X87Reg(6.28318548f)).v : (double)i / nf * (double)6.28318548f);
+}
 
 void __cdecl SinTable256_Build() {
     float *values = reinterpret_cast<float *>(0x008c63d8);

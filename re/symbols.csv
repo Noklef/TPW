@@ -581,7 +581,7 @@ address,name,kind,confidence,notes
 0x007b49e8,gCurvePointCount,data,high,"u32; set by Track_Apply from the curve (u16 at +4) before calling the Curve_* functions, which wrap indices by it"
 0x00474120,Quat_ToMatrix,function,high,"reimplemented; (q = x,y,z,w; m 3x3 row major), scaled by 2/|q|^2"
 0x004742a0,Quat_Slerp,function,high,"reimplemented; (a, b, t, out) through gSinTable and the CRT acos; lerps when 1 - dot <= 0.001; when dot + 1 <= 0.001 turns through (-y, x, -w, z) and never blends w (as in Graphics Gems)"
-0x004708d0,SinTable_Build,function,high,"(n): gSinTable[i] = (float)fsin(i / n * 2pi_f), mask n - 1, scale n / 2pi; run with n = 4096 at startup (53-bit precision, before Direct3D) and again at shutdown (24-bit; that copy differs)"
+0x004708d0,SinTable_Build,function,high,"reimplemented (src/game/math/sintable); cdecl (n): gSinTable[i] = (float)fsin(i / n * 2pi_f), mask n - 1, count n, scale n / 2pi; at the x87 precision set (24 bits: the shutdown run; else 53, the startup run)"
 0x007b0968,gSinTable,data,high,"float[4096]; sin of 2 pi i / 4096; an angle is looked up as gSinTable[fistp(a * gSinTableScale) & gSinTableMask]"
 0x007b0960,gSinTableMask,data,high,"u32; table size - 1 (0xfff)"
 0x007b095c,gSinTableScale,data,high,"float; table size / 2 pi"

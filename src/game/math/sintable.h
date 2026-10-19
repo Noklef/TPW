@@ -11,10 +11,18 @@ struct SinTable {
     float scale;  // n / (2 pi) (0x7b095c)
 };
 
-// 0x4708d0 (n = 4096) as the game first runs it: at the x87's default 53-bit precision,
-// before Direct3D exists. values must hold n floats. Not hooked: the game builds the table
-// again at shutdown, after Direct3D has lowered the precision, and that copy differs.
-void SinTable_Build(float *values, u32 n, u32 *mask, float *scale);
+// 0x4708d0's table (n = 4096) as the game first runs it: at the x87's default 53-bit precision,
+// before Direct3D exists. values must hold n floats. The game builds the table again at
+// shutdown, after Direct3D has lowered the precision, and that copy differs.
+void SinTable_Fill(float *values, u32 n, u32 *mask, float *scale);
+
+extern "C" {
+// 0x4708d0 (cdecl; n): the game's table (0x7b0968) of n entries, its mask n - 1 (0x7b0960), its count n (0x7b4968, stored first: n
+// above 4096 runs the values over it, sic) and its scale n / 2pi (0x7b095c), at the precision the x87 is set to: 24 bits (from
+// Direct3D on: Screen_Shutdown's run) as the x87 rounds, else at 53 bits, as double arithmetic rounds (the startup run; 64 bits,
+// which the game never sets, is not modelled).
+void __cdecl SinTable_Build(u32 n);
+}
 
 // The live table inside the game process (hook entries only).
 SinTable SinTable_Game();
