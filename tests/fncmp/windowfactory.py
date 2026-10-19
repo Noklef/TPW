@@ -9,7 +9,10 @@
 # which faults in both (sic). Not given: flag 0x1000 to kinds 4 and 7 (their scroll bar's disable calls its handler 0x66ba22, and flag 0
 # with 0x80 to kind 3 (its arrows' showing would call theirs, 0x668f9c): game code the driver cannot run natively (both end in the
 # unported default handler 0x65f6d1), so those branches are not compared here. Layout705950 / Layout7059f0 (0x65aac0, 0x662530): random
-# windows.
+# windows. Ctor705b20 / Ctor705950 / Ctor7059f0 (kinds 3, 4, 7: 0x66acf9, 0x65ab64, 0x662562): the constructors' set-up with CreateChild's
+# heap and flags (the same left out). Layout705b20 (0x66ac00): a random window, the bits 2 / 4 of its word +0x14c either way. AddArrow1 /
+# AddArrow2 / AddThumb (0x66b557, 0x66b604, 0x66b6b1): the parent one of the tree's (0x180 bytes; +0x14c's bit 2 either way; flag 0 of
+# +0x48 clear, as above), CreateChild's heap.
 # usage: windowfactory.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor705a50,...)
 import os
 import struct
@@ -30,7 +33,9 @@ HANDLERS = [(0x658ccc, 0x658e04), (0x65968e, 0x6596c0), (0x659d00, 0x659d53), (0
             (0x66af19, 0x66b479), (0x66b771, 0x66bfa0)]
 CALLS = {'Ctor705a50': 0x6688b3, 'RadioGroupCtor': 0x66a1e8, 'Ctor705c58': 0x66d9e0, 'Ctor705b98': 0x66c7e0,
          'Ctor705c28': 0x66d750, 'Ctor705bf8': 0x66d0c0, 'Ctor705bc8': 0x66c970, 'Ctor705af0': 0x66a4c0, 'Ctor705a20': 0x665fcd,
-         'SaveRect705a20': 0x665fb0, 'CreateChild': 0x65dd7b, 'Layout705950': 0x65aac0, 'Layout7059f0': 0x662530}
+         'SaveRect705a20': 0x665fb0, 'CreateChild': 0x65dd7b, 'Layout705950': 0x65aac0, 'Layout7059f0': 0x662530,
+         'Ctor705b20': 0x66acf9, 'Ctor705950': 0x65ab64, 'Ctor7059f0': 0x662562, 'Layout705b20': 0x66ac00, 'AddArrow1': 0x66b557,
+         'AddArrow2': 0x66b604, 'AddThumb': 0x66b6b1}
 B = Bench(RANGES + [(0x6688b3, 0x6689bc), (0x66a1e8, 0x66a255), (0x66d9e0, 0x66da21), (0x66c7e0, 0x66c82e), (0x65e526, 0x65e549),
                        (0x66d750, 0x66d82e), (0x66d0c0, 0x66d1b6), (0x66c970, 0x66cab7), (0x66a4c0, 0x66a5a8), (0x665fb0, 0x665fcd),
                        (0x665fcd, 0x6661bc), (0x661ece, 0x661f2b), (0x661f2b, 0x661f9b), (0x66220d, 0x6622d2), (0x65968e, 0x6596a2),
@@ -98,8 +103,10 @@ def case(r):
     op = r.deal(OPS)
     log = log_region()
     regions = {LOG: log, VTABLE: vtable({5: 1})}
-    if op in ('SaveRect705a20', 'Layout705950', 'Layout7059f0'):
+    if op in ('SaveRect705a20', 'Layout705950', 'Layout7059f0', 'Layout705b20'):
         regions[WINDOW2] = r.bytes(0x180)
+        if op == 'Layout705b20':
+            regions[WINDOW2] = put(bytearray(regions[WINDOW2]), 0x14c, 'H', r.choice([0, 1, 2, 4, 6, 0xffff, r.getrandbits(16)]))
         return Call(CALLS[op], [WINDOW2], regions, conv='t', ret='v')
     args = ctor_args(r, regions)
     if op == 'CreateChild':
@@ -110,6 +117,18 @@ def case(r):
         flags = r.choice([0, 0x10, 0x40, 0x80, 0x100, 0x101, 0x1000, 0x1010, 0x1040, 0x1050, 0x90, 0xd0, 0x50, 0x1001, args[1]])
         flags = no_handlers(kind, flags)
         return Call(CALLS[op], [args[0] or TREE, kind, flags] + args[2:], regions, conv='t', ret='a')
+    if op in ('Ctor705b20', 'Ctor705950', 'Ctor7059f0'):
+        regions[HEAP] = heap(0x2000, r.choice([0] * 20 + [1, 2, 3, 4]))
+        flags = r.choice([0, 0x10, 0x40, 0x80, 0x100, 0x101, 0x1000, 0x1010, 0x1040, 0x1050, 0x90, 0xd0, 0x50, 0x1001, args[1]])
+        flags = no_handlers({'Ctor705b20': 3, 'Ctor705950': 4, 'Ctor7059f0': 7}[op], flags)
+        return Call(CALLS[op], [WINDOW2, args[0], flags] + args[2:], regions, conv='t', ret='a')
+    if op in ('AddArrow1', 'AddArrow2', 'AddThumb'):
+        regions[HEAP] = heap(0x2000, r.choice([0] * 20 + [1, 2]))
+        parent = args[0] or TREE
+        buf = regions[parent] = bytearray(regions[parent]) + bytearray(r.bytes(0x180 - len(regions[parent])))
+        put(buf, 0x14c, 'H', r.choice([0, 2, 1, 3, 0xffff, r.getrandbits(16)]))
+        buf[0x48] &= 0xfe
+        return Call(CALLS[op], [parent], regions, conv='t', ret='v')
     if op == 'Ctor705a20':
         timer_env(r, regions, log)
         regions[0xfaa5ec] = struct.pack('<I', r.choice([WINDOW2, args[0], 0, 0]))
