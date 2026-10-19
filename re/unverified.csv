@@ -305,9 +305,6 @@ address,name,module,reason
 62dc10,Draw16_TextW,gfx/drawrgb,todo
 62dff0,Draw16_Sprite,gfx/drawrgb,todo
 62ed00,Draw16_SpriteShape,gfx/drawrgb,todo
-62f9e0,List_Init,core/list,todo
-62fa00,List_InsertAfter,core/list,todo
-62fa20,List_First,core/list,todo
 62fe00,RowReader_Decode,gfx/tga,todo
 6300c0,RowReader_CopyRow,gfx/tga,todo
 6300f0,TgaReader_Load,gfx/tga,todo
