@@ -907,6 +907,8 @@ address,name,kind,confidence,notes
 0x00503b30,ResearchLab_CountNotDone,function,high,reimplemented (src/game/world/research); thiscall (cat): projects of the category (5: any) with !(mResearchDone >= mCost)
 0x00504040,ResearchLab_CurrentNotDone,function,high,reimplemented (src/game/world/research); thiscall (group): (u8) the group's current project exists and is not done
 0x00504750,ResearchGroup_Ctor,function,high,"reimplemented (src/game/world/research); thiscall: currentProject -1, highestGroupAvailable 1"
+0x00504580,ResearchProject_SetNextUpgrade,function,low,reimplemented (src/game/world/research); a project made from an object definition's next upgrade (name unconfirmed)
+0x005031a0,ResearchLab_FillProjects,function,low,reimplemented (src/game/world/research); the lab's projects from the object definitions and its groups' outputs (name unconfirmed)
 0x005100e0,Nav_SetPosVel,function,high,"reimplemented (src/game/world/nav); thiscall (x, y, vx, vy): pos (+8) and vel (+0x10) set"
 0x00510160,Nav_GetPos,function,high,"reimplemented (src/game/world/nav); thiscall (&x, &y): pos (+8, +0xc) read"
 0x0051aad0,World_ArrivalVehicleNotSize1,function,high,reimplemented (src/game/world/world); thiscall: 1 when mCurrentArrivalVehicle (+0x1da72a) is set and is not mArrivalVehicle_Size1 (+0x1da72c)
