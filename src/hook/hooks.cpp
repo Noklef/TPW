@@ -350,6 +350,7 @@
 #include "../game/ui/panel7cc298.h"
 #include "../game/ui/radiogroup.h"
 #include "../game/ui/textbutton.h"
+#include "../game/ui/window705b20.h"
 #include "../game/ui/windowtimers.h"
 
 namespace tpw::hook {
@@ -4658,6 +4659,7 @@ const Hook kHooks[] = {
     {"RadioGroup_SetSelectedState", 0x0066a1b0, (void *)&RadioGroup_SetSelectedState, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Panel7cc298_Update",        0x004b1ee0, (void *)&Panel7cc298_Update, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
     {"Dialog7cb2fc_SetToggle",    0x004a3960, (void *)&Dialog7cb2fc_SetToggle, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Window705b20_SetRange",     0x0066b47d, (void *)&Window705b20_SetRange, {0x55, 0x8b, 0xec, 0x51, 0x89}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
