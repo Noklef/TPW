@@ -40,6 +40,8 @@ u32 __cdecl Save_WriteU16(Stream *stream, const void *src, const char *name, u32
 
 u32 __cdecl Save_WriteU32(Stream *stream, const void *src, const char *name, u32 quiet) { return write_field(stream, src, name, quiet, 4); }
 
+u32 __cdecl Save_Write8Bytes(Stream *stream, const void *src, const char *name, u32 quiet) { return write_field(stream, src, name, quiet, 8); }
+
 void __cdecl Save_InitUnusedOne() { *reinterpret_cast<float *>(0x0078aa2c) = 1.0f; }
 
 void __cdecl Save_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x0078b11c) = 1.0f / 8388608.0f; }

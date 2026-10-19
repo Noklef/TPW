@@ -18,12 +18,13 @@ u32 __cdecl Save_ReadU32(Stream *stream, void *dst, const char *name, u32 quiet)
 u32 __cdecl Save_Read8Bytes(Stream *stream, void *dst, const char *name, u32 quiet);
 u32 __cdecl Save_Read12Bytes(Stream *stream, void *dst, const char *name, u32 quiet);
 
-// 0x4cee50 / 0x4ceec0 / 0x4ced70 (cdecl; stream, source, name, quiet; names unconfirmed): the writers to match: a field of 1, 2
-// or 4 bytes written to the stream (Stream_Write), announced (Save_FieldName, saving) unless quiet; 0 when the whole field went, else 1
+// 0x4cee50 / 0x4ceec0 / 0x4ced70 / 0x4cede0 (cdecl; stream, source, name, quiet; names unconfirmed): the writers to match: a field of 1, 2,
+// 4 or 8 bytes written to the stream (Stream_Write), announced (Save_FieldName, saving) unless quiet; 0 when the whole field went, else 1
 // (reported to the empty Debug_Printf).
 u32 __cdecl Save_WriteU8(Stream *stream, const void *src, const char *name, u32 quiet);
 u32 __cdecl Save_WriteU16(Stream *stream, const void *src, const char *name, u32 quiet);
 u32 __cdecl Save_WriteU32(Stream *stream, const void *src, const char *name, u32 quiet);
+u32 __cdecl Save_Write8Bytes(Stream *stream, const void *src, const char *name, u32 quiet);
 
 // 0x416e20 / 0x416e40 (cdecl; names unconfirmed): static initialisers of two floats nothing reads: 0x78aa2c = 1 and 0x78b11c = 1 / 2^23 (as
 // camera's).
