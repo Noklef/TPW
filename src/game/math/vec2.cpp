@@ -46,4 +46,38 @@ u32 __cdecl IntArea_Contains(s32 x, s32 y, const s32 *area) {
     }
     return IntVec2_Length(dx, dy) <= area[3] ? 1 : 0;
 }
+
+static u32 circles_meet(const s32 *p, const s32 *q) {
+    const s32 rp = p[3] > p[4] ? p[3] : p[4];
+    const s32 rq = q[3] > q[4] ? q[3] : q[4];
+    const s32 length = IntVec2_Length((s32)((u32)p[1] - (u32)q[1]), (s32)((u32)p[2] - (u32)q[2]));
+    return length < (s32)((u32)rq + (u32)rp) ? 1 : 0;
+}
+
+u32 __cdecl IntArea_Overlaps(const s32 *a, const s32 *b) {
+    if (a == b)
+        return 1;
+    const u32 fa = (u32)a[0] & 0x1e;
+    if (fa == 0x1e && ((u32)b[0] & 0x1e) == 0x1e)
+        return circles_meet(a, b);
+    if ((((u32)b[0] | (u32)a[0]) & 0x1e) != 0x1e)
+        return a[2] == b[2] && a[1] == b[1] ? 1 : 0;
+    const s32 *p = a, *q = b;
+    bool both = false;
+    if (fa == 0x1e) {
+        p = b;
+        q = a;
+    } else {
+        both = ((u32)b[0] & 0x1e) != 0x1e;
+    }
+    const u32 flags = (u32)p[0];
+    if (!((flags & 2) && q[1] < p[1]) && !((flags & 4) && q[1] > p[1]) && !((flags & 8) && q[2] > p[2]) && !((flags & 0x10) && q[2] < p[2]))
+        return 0;
+    if (both) {
+        const s32 dx = (s32)((u32)p[1] - (u32)q[1]), dy = (s32)((u32)p[2] - (u32)q[2]);
+        const u32 ax = ((u32)dx ^ (u32)(dx >> 31)) - (u32)(dx >> 31), ay = ((u32)dy ^ (u32)(dy >> 31)) - (u32)(dy >> 31);
+        return ax + ay == 0x1800 ? 1 : 0;
+    }
+    return circles_meet(p, q);
+}
 }
