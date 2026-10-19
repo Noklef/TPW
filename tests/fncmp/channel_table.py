@@ -26,8 +26,13 @@ def convert(r):
     bpp = r.choice([4, 4, 3, 3, 2])
     n = max(0, w * h)
     src = bytearray(r.bytes(n * 4 + 8))
-    for i in range(3, len(src), 4 if bpp == 4 else 3):
-        src[i] = r.choice([0, 0xff, 0xff, 0xf0, 0xef, 1, r.getrandbits(8)])
+    alphas = range(3, len(src), 4 if bpp == 4 else 3)
+    edge = r.random() < 0.4   # (opaque or clear but for a few about the 0xf0 / 1 limits: the count * 0.05 test at its edge)
+    for i in alphas:
+        src[i] = r.choice([0, 0xff]) if edge else r.choice([0, 0xff, 0xff, 0xf0, 0xef, 1, r.getrandbits(8)])
+    if edge:
+        for i in r.sample(list(alphas), min(len(alphas), r.choice([1, 1, 2, 3]))):
+            src[i] = r.choice([0xf0, 0xef, 1, 0xf1])
     step = r.choice([4, 4, 2, 3, 0, -4])
     DST, SRC, TABLE = RAM + 0x200, RAM + 0x400, RAM + 0x1000
     regions = {RAM: r.bytes(0x400), SRC: bytes(src), TABLE: r.bytes(0x1000), 0x87a25c: r.bytes(4)}
