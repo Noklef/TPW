@@ -42,6 +42,7 @@
 #include "string.h"
 #include "../terrain/texcache.h"
 #include "../ui/panel7b9940.h"
+#include "../world/nav.h"
 
 namespace {
 
@@ -613,4 +614,8 @@ u32 __fastcall Wrap_D3dProbe_SetFlags_569cc0(u8 *self, void *, u32 flags) {
 
 u8 *__fastcall Wrap_Renderer_NewSurfaceA_5738c0(void *self) { return Renderer_NewSurfaceA(Adjust(self)); }
 void __cdecl Wrap_Panel7b9940_Close_4813f0() { Panel7b9940_Close(); }
+u32 __cdecl Wrap_Panel7b9940_Show_481400() { return Panel7b9940_Show(); }
+void __fastcall Wrap_Nav_Dtor_4f8ad0(u8 *nav) { Nav_Dtor(nav); }
+void __fastcall Wrap_Nav_Update_510150(u8 *nav) { Nav_Update(nav); }
+s32 __fastcall Wrap_Nav_PathProgress_510180(const u8 *nav) { return Nav_PathProgress(nav); }
 }  // extern "C"

@@ -2796,6 +2796,7 @@ const Hook kHooks[] = {
     {"Wrap_Panel7b9940_Close_4813f0", 0x004813f0, (void *)&Wrap_Panel7b9940_Close_4813f0, {0xe9, 0x9b, 0x8e, 0x00, 0x00}},
     {"Wrap_Texture_DecodeWct_565090", 0x00565090, (void *)&Wrap_Texture_DecodeWct_565090, {0x2b, 0x49, 0xfc, 0xe9, 0x88}},
     {"Wrap_Texture_DecodeWctInto_565080", 0x00565080, (void *)&Wrap_Texture_DecodeWctInto_565080, {0x2b, 0x49, 0xfc, 0xe9, 0x68}},
+    {"Wrap_Panel7b9940_Show_481400", 0x00481400, (void *)&Wrap_Panel7b9940_Show_481400, {0xe9, 0x0b, 0x8f, 0x00, 0x00}},
     {"Table_AddressPlus18",       0x006b0620, (void *)&Table_AddressPlus18, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Table_Address",             0x006b0650, (void *)&Table_Address, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Packed_Read",               0x006b0510, (void *)&Packed_Read, {0x56, 0x8b, 0x74, 0x24, 0x08}},
