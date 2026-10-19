@@ -149,6 +149,14 @@ u32 __fastcall Window_Dtor(u8 *window);
 // (Mem_Free). Returns the window.
 u8 *__fastcall Window_DeletingDtor(u8 *window, void *, u32 flags);
 
+// 0x65f538 (thiscall; name unconfirmed): the window taken out of its parent's child list as the destructor does: with a parent (+0x60)
+// and no previous sibling (+0x58) the parent's first child +0x5c becomes the next sibling (+0x54); the previous one's next and the next
+// one's previous are joined; +0x54, +0x58 and +0x60 cleared; then the hover updated (Window_UpdateHover, its AX returned).
+u16 __fastcall Window_Unlink(u8 *window);
+
+// 0x65e526 (thiscall (handler), pops 4; name unconfirmed): a handler not 0 becomes the window's (+0x114); 1 in AX either way.
+u16 __fastcall Window_SetHandler(u8 *window, void *, u32 handler);
+
 // 0x65e705 (thiscall (index: a word), pops 4; name unconfirmed): the dword +0xa0 + 4 * index (signed) for an index below 16, else 0.
 u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index);
 

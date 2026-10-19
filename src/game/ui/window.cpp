@@ -474,3 +474,21 @@ u32 __cdecl Gui_MouseUp(u32 button, u32 x, u32 y) {
     return (mask & 0xffff0000u) | 1;
 }
 }
+
+extern "C" {
+
+u16 __fastcall Window_Unlink(u8 *window) {
+    if (at<u8 *>(window, 0x60) && !at<u8 *>(window, 0x58)) at<u8 *>(at<u8 *>(window, 0x60), 0x5c) = at<u8 *>(window, 0x54);
+    if (at<u8 *>(window, 0x58)) at<u8 *>(at<u8 *>(window, 0x58), 0x54) = at<u8 *>(window, 0x54);
+    if (at<u8 *>(window, 0x54)) at<u8 *>(at<u8 *>(window, 0x54), 0x58) = at<u8 *>(window, 0x58);
+    at<u8 *>(window, 0x54) = nullptr;
+    at<u8 *>(window, 0x58) = nullptr;
+    at<u8 *>(window, 0x60) = nullptr;
+    return (u16)Window_UpdateHover();
+}
+
+u16 __fastcall Window_SetHandler(u8 *window, void *, u32 handler) {
+    if (handler) at<u32>(window, 0x114) = handler;
+    return 1;
+}
+}
