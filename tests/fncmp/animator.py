@@ -9,8 +9,12 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from thunks_static import clock as timer  # noqa: E402
 
-B = Bench([(0x46f150, 0x475010), (0x67a400, 0x690000)], sines=256)
+B = Bench([(0x46f150, 0x475010), (0x67a400, 0x690000), (0x402d70, 0x402e00), (0x402e60, 0x4030f0), (0x403150, 0x403172), (0x4031e0, 0x403202),
+           (0x4033a0, 0x4033f0), (0x5f5f10, 0x5f5fc0)], sines=256)
+GCLOCK = 0x785970      # the game clock (Motion_UpdateClocks reads its time and real time)
 ANIM, LAYERS, HOLDER, MODEL, NODES, REST, RNODES, DATA, TFLAGS, OUT = (RAM + 0x1000 * k for k in range(10))
 CLOCKS = 0x7b4960     # gMotionTime (+0xc), gMotionRealTime (+0x14), step (+0x1c), gMotionFlags (+0x20), ...
 TRACKFLAGS = 0x7aecd0  # gTrackFlags (+4)
@@ -278,6 +282,17 @@ def case(r):
         return Call(0x473ff0, [ANIM, r.choice([OUT, 0]), r.choice([OUT + 4, 0]), index], regs)
     if op == 'SetFlags':
         return Call(0x4740d0, [r.getrandbits(32)], regs)
+    if op == 'UpdateClocks':  # the game clock as gameclock.py makes it: paused, frozen or not, on the game's Timer and its imports
+        timer(r, regs, True)
+        c = bytearray(r.bytes(0xa0))
+        put(c, 0x30, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
+        put(c, 0x68, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
+        put(c, 0x38, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
+        for o in (0x18, 0x58):
+            put(c, o, 'd', r.choice([0.0, 1.0, 1000.5, float(r.getrandbits(32)), r.uniform(0, 2 ** 31)]))
+        put(c, 0x20, 'd', r.choice([1.0, 1.0, 0.5, 2.0, 0.0, r.uniform(0, 4)]))
+        regs[GCLOCK] = c
+        return Call(0x473440, [], regs)
     if op == 'BindNodes':
         return Call(0x470a00, [HOLDER, r.choice(blocks), r.choice([0, 1])], regs)
     if op == 'ResetChannels':
@@ -298,7 +313,7 @@ def case(r):
 OPS_ALL = ['Start', 'Advance', 'SetBlock', 'TimeLeft', 'Play', 'AnimPlay', 'IsIdle', 'Update', 'AnimUpdate', 'Reset',
            'ResetLayers', 'QSpeed', 'SetSpeed', 'EndMs', 'Playback', 'SetTime', 'Time', 'HasMotion', 'MarkNodes', 'CountLayers',
            'SetPlaying', 'ClearQueue', 'RefreshNodes', 'GetFlags', 'GetQueued', 'SetFlags', 'BindNodes', 'ResetChannels',
-           'MotionApply', 'CopyVertices']
+           'MotionApply', 'CopyVertices', 'UpdateClocks']
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

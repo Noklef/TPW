@@ -2,7 +2,6 @@ address,name,module,reason
 429df0,ModelSlot_Animate,model/slots,todo
 44a1d0,Screen_Shutdown,render/screen,todo
 46c580,MouseModeTile_Ctor,world/mousemode,todo
-473440,Motion_UpdateClocks,motion/animator,todo
 475430,SpriteScripts_Draw,sprite/script,todo
 4d7bb0,World_InitBlock,world/mapcell,todo
 50b350,Thing_GetHandle,world/things,todo: indirect only

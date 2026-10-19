@@ -5,6 +5,7 @@
 
 #include <cstring>
 
+#include "../core/gameclock.h"
 #include "../math/x87.h"
 #include "keys.h"
 #include "normals.h"
@@ -557,11 +558,9 @@ void Motion_UpdateClocksWith(u32 *time, float *step, u32 now) {
 }
 
 extern "C" void __cdecl Motion_UpdateClocks() {
-    using Clock = u32(__fastcall *)(void *self, void *unused);  // thiscall without arguments
-    void *const clocks = reinterpret_cast<void *>(0x00785970);
-    Motion_UpdateClocksWith(reinterpret_cast<u32 *>(0x007b496c), reinterpret_cast<float *>(0x007b497c),
-                            reinterpret_cast<Clock>(0x00402d70)(clocks, nullptr));
-    *reinterpret_cast<u32 *>(0x007b4974) = reinterpret_cast<Clock>(0x00402d80)(clocks, nullptr);
+    u8 *const clocks = reinterpret_cast<u8 *>(0x00785970);  // the game clock: 0x402d70 and 0x402d80 are its ports
+    Motion_UpdateClocksWith(reinterpret_cast<u32 *>(0x007b496c), reinterpret_cast<float *>(0x007b497c), Clocks_Now(clocks));
+    *reinterpret_cast<u32 *>(0x007b4974) = Clocks_RealNow(clocks);
 }
 
 extern "C" s32 __cdecl Animator_Reset(u8 *animator, s32 clear, s32 realTime, s32 keepNodes) {
