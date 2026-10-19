@@ -2,8 +2,9 @@
 # 0x503b30, 0x504040, 0x504750) against the originals: current projects none or any, categories
 # matching or 5, mResearchDone about mCost (equal, NaNs, infinities), project counts 0 to 0x100 and
 # negative. Next (0x504580) and Fill (0x5031a0): see defs() below; Fill's project counts also past 0x100, where the projects run into
-# the groups and mNumProjects.
-# usage: research.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Effort,ObjId,Count,NotDone,Ctor,Next,Fill)
+# the groups and mNumProjects. AllDone (0x4ca6b0): the lab (through the table at 0x7cfb90) with none to a few projects, done or not,
+# then defs()'s definitions and records.
+# usage: research.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Effort,ObjId,Count,NotDone,Ctor,Next,Fill,AllDone)
 import os
 import struct
 import sys
@@ -13,9 +14,9 @@ from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x503850, 0x503861), (0x5039f0, 0x503a20), (0x503b30, 0x503b79), (0x504040, 0x504081),
            (0x504750, 0x50475e), (0x504580, 0x504627), (0x5031a0, 0x503325), (0x412e60, 0x412e6d), (0x412e70, 0x412e8f),
-           (0x4d3d10, 0x4d3d80), (0x5da3c0, 0x5da3c1)])
+           (0x4d3d10, 0x4d3d80), (0x5da3c0, 0x5da3c1), (0x4ca6b0, 0x4ca733), (0x4d3d80, 0x4d3df0), (0x519550, 0x51958d)])
 LAB = RAM
-CALLS = {'Effort': 0x503850, 'ObjId': 0x5039f0, 'Count': 0x503b30, 'NotDone': 0x504040, 'Ctor': 0x504750, 'Next': 0x504580, 'Fill': 0x5031a0}
+CALLS = {'Effort': 0x503850, 'ObjId': 0x5039f0, 'Count': 0x503b30, 'NotDone': 0x504040, 'Ctor': 0x504750, 'Next': 0x504580, 'Fill': 0x5031a0, 'AllDone': 0x4ca6b0}
 TABLE, ITEMS, DEFS = RAM + 0x2000, RAM + 0x4000, 0x7890a0   # (the game's object control table, the object definitions and their list)
 IDS = [1, 2, 3, 4, 5, 9]
 FLOATS = [0.0, -0.0, 1.0, 100.0, 1e30, float('inf'), float('-inf'), float('nan')]
@@ -41,6 +42,7 @@ def defs(r, regions):
         for off in (0x180, 0x1c0, 0x200):
             put(items, d + off, 'I', r.choice([0, 0, 0xffffffff, 1, 250, 1000, 0x7fffffff, r.getrandbits(32)]))
         put(items, d + 0x4ac, 'i', r.choice([0, 1, 3, 3, 4, 5, -1]))
+        put(items, d + 0xc4, 'i', r.choice([0, 0, 1, 5, -1]))
         put(items, d + 0x508, 'I', r.choice([0, 0, 0, 1, r.getrandbits(32)]))
     table = bytearray(r.bytes(0x1400))
     have = r.choice([6, 6, 6, 4])
@@ -48,6 +50,7 @@ def defs(r, regions):
     for k, i in enumerate(r.sample(IDS, 6)[:have]):
         put(table, 0x20 * k, 'H', i)
         put(table, 0x20 * k + 0x14, 'I', r.choice([0xffffffff, 0, 0, 1, 2, 3, r.getrandbits(32)]))
+        put(table, 0x20 * k + 0x18, 'i', r.choice([0, 0, 1, -1, 7]))
     put(table, 0x12c4, 'H', r.choice([0, 0, 1, 9]))
     put(table, 0x12c8, 'I', TABLE + 0x20 * r.randrange(have))
     regions.update({DEFS: lst, ITEMS: items, TABLE: table, 0x80239c: struct.pack('<I', TABLE - 0x1d943c)})
@@ -66,9 +69,15 @@ def case(r):
         put(lab, 0x140c + g * 16 + 8, 'i', r.choice([-1, -2, 0, r.randrange(0x100), r.randrange(0x100)]))
     put(lab, 0x145c, 'i', r.choice([0, 1, 2, r.randrange(0x101), 0x100, -1, -5]))
     group = r.choice([0, 1, 2, 3, 4, r.randrange(5)])
-    if op in ('Next', 'Fill'):
+    if op in ('Next', 'Fill', 'AllDone'):
         regions = {LAB: lab}
         items = defs(r, regions)
+        if op == 'AllDone':   # (the game object's word +0x1da722, in the table's region, picks the lab's entry)
+            k = r.randrange(4)
+            put(regions[TABLE], 0x1da722 - 0x1d943c, 'H', k)
+            regions[0x7cfb90] = put(bytearray(r.bytes(80)), 20 * k, 'I', LAB)
+            put(lab, 0x145c, 'i', r.choice([0, 0, 0, 1, 2, 5, -1]))
+            return Call(0x4ca6b0, [], regions, conv='c', ret='b')
         if op == 'Next':
             return Call(0x504580, [LAB + 0xc + 20 * r.randrange(0x100), r.choice(items)], regions, conv='t', ret='b')
         n = r.choice([0, 1, 5, r.randrange(0x100), 0xfc, 0xff, 0x100, 0x101, 0x102, 0x103, 0x104])

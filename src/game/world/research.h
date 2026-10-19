@@ -55,4 +55,10 @@ u8 __fastcall ResearchProject_SetNextUpgrade(u8 *project, void *, const u8 *def)
 // output (+4) = its share of the 5 groups' summed effort (effort * 100 / sum, unsigned, 32-bit) times mWorkLoad (+0x1460) / 100 (unsigned,
 // the product 32-bit), 0 for a sum of 0.
 void __fastcall ResearchLab_FillProjects(u8 *lab);
+
+// 0x4ca6b0 (cdecl; name unconfirmed): 1 when nothing is left to research: no project of the lab (GameTable7cfb90_Get1da722_519550 of the game
+// object) not done (ResearchLab_CountNotDone of category 5 not above 0, signed), and each object definition (0x7890a0, First / Next) with
+// +0x4ac not 4 has its control record's dword +0x18 (ObjectControls_FindUncached, not quiet, in the game's table) or its own +0xc4 set.
+// Else 0 (in AL only).
+u8 __cdecl Research_AllDone();
 }

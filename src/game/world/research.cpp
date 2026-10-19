@@ -5,6 +5,7 @@
 #include "../core/savegame.h"
 #include "objectdefs.h"
 #include "things.h"
+#include "world.h"
 
 namespace {
 
@@ -123,5 +124,18 @@ void __fastcall ResearchLab_FillProjects(u8 *lab) {
     for (u32 g = 0; g < 5; ++g) effort += at<u32>(group_of(lab, g), 0);
     for (u32 g = 0; g < 5; ++g)
         at<u32>(lab, 0x1410 + g * 16) = effort ? at<u32>(group_of(lab, g), 0) * 100u / effort * at<u32>(lab, 0x1460) / 100u : 0;
+}
+
+u8 __cdecl Research_AllDone() {
+    u8 *const world = *reinterpret_cast<u8 *const *>(0x0080239c);
+    const u8 *const lab = reinterpret_cast<const u8 *>(GameTable7cfb90_Get1da722_519550(world));
+    if ((s32)ResearchLab_CountNotDone(lab, nullptr, 5) > 0) return 0;
+    u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
+    for (u8 *def = ObjectDefs_First(defs); def; def = ObjectDefs_Next(defs)) {
+        if (at<s32>(def, 0x4ac) == 4) continue;
+        u8 *const table = *reinterpret_cast<u8 *const *>(0x0080239c) + 0x1d943c;
+        if (at<u32>(ObjectControls_FindUncached(table, nullptr, at<u16>(def, 0), 0), 0x18) == 0 && at<u32>(def, 0xc4) == 0) return 0;
+    }
+    return 1;
 }
 }
