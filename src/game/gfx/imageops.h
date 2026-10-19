@@ -55,4 +55,10 @@ void __fastcall Pixels_Stamp(u8 *source, void *, u8 *destination, s32 x, s32 y);
 // 0x5e7f60 (thiscall on a one byte per pixel mask; destination image, scale, c1, c2, c3, pops 20; nothing when the mask has no data): for each mask pixel a = mask * scale >> 8:
 // destination byte 0 becomes the larger of it and a, and bytes 1 to 3 blend by a / 256 towards c1, c2, c3 each multiplied by scale / 256.
 void __fastcall Mask_Tint(u8 *mask, void *, u8 *destination, u32 scale, u32 c1, u32 c2, u32 c3);
+// 0x5eb270 (thiscall, the object unused; image a, count, image b; pops 12; name unconfirmed): a work image of a's size at two bytes per pixel
+// (GameHeap_Alloc) gets 0xff, 0xff where a's byte is set, else 0, 0, and b's bytes are cleared (a's width * height read again each pixel).
+// Then count times (unsigned) the work image goes through Image_MinMark (a as its unused pointer, b the mask) with the mark the low byte of
+// __ftol((2t^3 - 3t^2) * 256) for t = 1 - i / (float)count (x87, at 24 bits). Last b's bytes are ORed with the work values (the size read
+// at the start) and the work image freed.
+void __fastcall Image_ErosionRamp(void *object, void *, const u32 *a, u32 count, const u32 *b);
 }  // extern "C"
