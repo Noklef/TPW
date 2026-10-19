@@ -85,6 +85,12 @@ void __fastcall Class6fd9d8_AddFolderAndWadBoth(u8 *object, void *, const String
 // is one, +0x3c and +0x34 cleared, 0.
 u32 __fastcall Class6fd9d8_Find(u8 *object, void *, u32 key);
 
+// 0x41e8e0 (thiscall; base, arg, pops 8; name unconfirmed): the pattern base + "*" (a copy of base, the global String 0x78c948 appended through the vtable's +0x28).
+// With a list (+0x2c -> +4, nodes {object, next}) each node's object is tried through its slot 1 (&result, the pattern's text, a 0x128-byte record: eight dwords,
+// a cursor at +0x20 and a text from +0x24, copied before each call from a blank one whose cursor points at its empty text and whose eight dwords are never set, sic);
+// the first whose result is >= 0 gets its slot 4 (&result, arg, the global String 0x78be50) and 1 is returned (in AL only); none (or no list): 0.
+u8 __fastcall Class6fd9d8_FindFirstMatch(u8 *object, void *, const StringView *base, u32 arg);
+
 // 0x41e3a0 (thiscall destructor): the vtable 0x6fda98; when there is a list at +0x4c it is emptied (each node popped from the head and freed, its object deleted through
 // slot 0 with 1; a node without a link pops nothing), the list deleted through its slot 0 (1) and +0x4c, +0x48 cleared; then the vtable 0x6fda58, the handle at +0x40
 // destroyed (Handle_Dtor) and Class6fd9d8_Dtor.

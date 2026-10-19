@@ -326,6 +326,45 @@ u32 __fastcall Class6fd9d8_Find(u8 *object, void *, u32 key) {
     return 0;
 }
 
+u8 __fastcall Class6fd9d8_FindFirstMatch(u8 *object, void *, const StringView *base, u32 arg) {
+    struct Record {
+        u32 head[8];
+        char *cursor;
+        char text[0x104];
+    };
+    String pattern;
+    String_CtorCopy(&pattern, nullptr, base);
+    String_Append(&pattern, nullptr, reinterpret_cast<const StringView *>((uintptr_t)0x0078c948));
+    u8 found = 0;
+    if (u8 *const list = at<u8 *>(object, 0x2c)) {
+        Record blank;  // (its eight dwords are never set, sic: each copy gets the stack's bytes)
+        Record record;
+        record.cursor = record.text;
+        record.text[0] = 0;
+        blank.cursor = blank.text;
+        blank.text[0] = 0;
+        for (u8 *node = at<u8 *>(list, 4); node;) {
+            u8 *const held = at<u8 *>(node, 0);
+            node = at<u8 *>(node, 4);
+            for (u32 k = 0; k < 8; ++k)
+                record.head[k] = blank.head[k];
+            u32 n = 0;
+            do
+                record.text[n] = blank.text[n];
+            while (blank.text[n++]);
+            record.cursor = record.text + (blank.cursor - blank.text);
+            s32 result;
+            if (*vcall<s32 *>(held, 4, &result, static_cast<const char *>(pattern.data), &record) >= 0) {
+                vcall<s32 *>(held, 0x10, &result, arg, (uintptr_t)0x0078be50);
+                found = 1;
+                break;
+            }
+        }
+    }
+    String_Dtor(&pattern);
+    return found;
+}
+
 void __fastcall Class6fda98_Dtor(u8 *object) {
     at<u32>(object, 0) = 0x006fda98;
     if (u8 *list = at<u8 *>(object, 0x4c)) {

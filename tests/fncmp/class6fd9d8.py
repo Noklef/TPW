@@ -15,7 +15,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import gamestring  # noqa: E402
-from fncmp import Bench, Call, HEAP, LOG, RAM, echo, fill, heap, log_region, put, strings, vtable  # noqa: E402
+from fncmp import Bench, Call, HEAP, LOG, RAM, echo, fill, heap, log_region, put, recorder, strings, vtable  # noqa: E402
 
 # name: (address, flags argument?, kind: s a stub or wrapper, h a complete destructor with the handle at +0x40 / +0x48, g with the handle at +0x2c)
 CALLS = {'Base': (0x41c8b0, 0, 'b'), 'S48': (0x41e2c0, 0, 's'), 'S68': (0x41e320, 0, 's'), 'Sa8': (0x41e4d0, 0, 's'), 'Sb8': (0x41e4e0, 0, 's'), 'Se8': (0x41e5b0, 0, 's'), 'Sf8': (0x41e5c0, 0, 's'),
@@ -28,7 +28,7 @@ CTORS = {'C48': 0x41d7c0, 'C58': 0x41d8a0, 'C68': 0x41d990, 'C88': 0x41da70, 'C9
 RANGES = [(0x41c8b0, 0x41c990), (0x41e3a0, 0x41e470), (0x41d710, 0x41d7c0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000), (0x5f61e0, 0x5f6210), (0x5f82a0, 0x5f8310), (0x5f8420, 0x5f8460), (0x619800, 0x619870)]
 RANGES += [(a, a + 0x80) for (a, _f, _k) in CALLS.values()]
 CTOR_ENDS = [0x41d880, 0x41d970, 0x41da50, 0x41db50, 0x41dc40, 0x41ddc0, 0x41dea0, 0x41dfa0, 0x41e090, 0x41e170, 0x41e250]
-RANGES += list(zip(CTORS.values(), CTOR_ENDS)) + [(0x5c5480, 0x5c5510), (0x424cf0, 0x424d30), (0x5f8240, 0x5f8250)]
+RANGES += list(zip(CTORS.values(), CTOR_ENDS)) + [(0x5c5480, 0x5c5510), (0x424cf0, 0x424d30), (0x5f8240, 0x5f8250), (0x41e8e0, 0x41eaa0)]
 B = Bench(RANGES)
 OBJ, LST, NODES, OBJS, VT, VTL, VTM, MEMBER = RAM, RAM + 0x1000, RAM + 0x1100, RAM + 0x2000, RAM + 0x3000, RAM + 0x3100, RAM + 0x3200, RAM + 0x3300
 LST2, NODES2 = RAM + 0x1080, RAM + 0x1180   # Class6fda98's list at +0x4c and its nodes
@@ -77,8 +77,43 @@ def construct(r, address):
     return Call(address, [OBJ] + args, regions, conv='t', ret='a')
 
 
+STAR = 0x78c948      # the global String "*"
+
+
+def match(r):
+    """0x41e8e0 (base, arg): base of any length, a list of 0 to 4 objects (now and then none at all) of two kinds: slot 1 finds (results >= 0, written through its
+    first argument) or does not (results < 0); the record and the result's address are stack addresses (logged as 0), the pattern by its text."""
+    log = log_region()
+    regions = {OBJ: bytearray(r.bytes(0x60)), LOG: log, HEAP: heap()}
+    for k, which, values in ((1, 0, [0, 1, 0x7fffffff]), (5, 1, [-1, -0x80000000])):
+        strings(log, k, 2, 5)
+        fill(log, k, 0, struct.pack('<i', r.choice(values)), which)
+        echo(log, k, 0)
+    strings(log, 4, 0, 1)
+    vts = [VT, VT + 0x80]
+    for k, vt in zip((1, 5), vts):
+        table = vtable({4: 3})
+        put(table, 4, 'I', recorder(k, 3))
+        regions[vt] = table
+    n = r.choice([0, 1, 2, 3, 4])
+    lst = bytearray(r.bytes(0x20))
+    put(lst, 4, 'I', NODES if n else 0)
+    nodes = bytearray(r.bytes(0x60))
+    for k in range(n):
+        held = OBJS + 0x40 * k
+        put(nodes, 0x10 * k, 'II', held, NODES + 0x10 * (k + 1) if k + 1 < n else 0)
+        regions[held] = struct.pack('<I', r.choice(vts) if r.random() < 0.8 else vts[1]) + r.bytes(0x20)
+    regions[LST], regions[NODES] = lst, nodes
+    put(regions[OBJ], 0x2c, 'I', LST if r.random() < 0.9 else 0)
+    gamestring.string(r, 0, RAM + 0x4000, RAM + 0x6000, regions)
+    gamestring.string(r, 0, STAR, RAM + 0x6200, regions, b'*')
+    return Call(0x41e8e0, [OBJ, RAM + 0x4000, r.getrandbits(32)], regions, conv='t', ret='b')
+
+
 def case(r):
     name = OPS[r.deal(range(len(OPS)))]
+    if name == 'Match':
+        return match(r)
     if name in CTORS:
         return construct(r, CTORS[name])
     address, flags, kind = CALLS[name]
@@ -123,7 +158,7 @@ def case(r):
     return c
 
 
-OPS = [k for k in os.environ.get('OPS', ','.join(list(CALLS) + list(CTORS))).split(',') if k]
+OPS = [k for k in os.environ.get('OPS', ','.join(list(CALLS) + list(CTORS) + ['Match'])).split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
