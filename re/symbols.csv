@@ -3144,6 +3144,7 @@ address,name,kind,confidence,notes
 0x00565090,Wrap_Texture_DecodeWct_565090,function,low,"reimplemented (src/game/core/thunks); thiscall (pixels; pops 4): this lowered by the dword before it (a virtual base offset), then Texture_DecodeWct"
 0x00565080,Wrap_Texture_DecodeWctInto_565080,function,low,"reimplemented (src/game/core/thunks); thiscall (surface, flip; pops 8): this lowered by the dword before it (a virtual base offset), then Texture_DecodeWctInto"
 0x00481400,Wrap_Panel7b9940_Show_481400,function,low,reimplemented (src/game/core/thunks); jump to 0x48a310
+0x004f8ad0,Wrap_Nav_Dtor_4f8ad0,function,low,reimplemented (src/game/core/thunks); jump to 0x50f200
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value
