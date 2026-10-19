@@ -77,10 +77,7 @@ address,name,module,reason
 5f8f40,Text_LineHeight,gfx/text,todo
 5f8f80,Surface_SetDirectDraw,gfx/surface,todo
 5f8f90,Surface_Attach,gfx/surface,todo
-5f9000,Surface_InitHeader,gfx/surface,todo
 5f9040,Surface_Restore,gfx/surface,todo
-5f9070,Surface_Create,gfx/surface,todo
-5f9130,Surface_Release,gfx/surface,todo
 5f9160,Surface_BltFast,gfx/surface,todo
 5f92e0,Surface_Blt,gfx/surface,todo
 5f9550,Surface_Lock,gfx/surface,todo
@@ -314,11 +311,6 @@ address,name,module,reason
 630500,TgaReader_MirrorRow,gfx/tga,todo
 630580,TgaReader_ReadRunRow,gfx/tga,todo
 6306a0,TgaReader_RowBytes,gfx/tga,todo
-6306c0,SurfaceBuffer_Ctor,gfx/surfbuf,todo
-630700,SurfaceBuffer_DeletingDtor,gfx/surfbuf,todo
-630720,SurfaceBuffer_Dtor,gfx/surfbuf,todo
-630730,SurfaceBuffer_Create,gfx/surfbuf,todo
-630790,SurfaceBuffer_Release,gfx/surfbuf,todo
 630880,PixelConversion_Ctor,gfx/pixconv,todo
 630890,PixelConversion_Setup,gfx/pixconv,todo
 630b70,PixelConversion_Row,gfx/pixconv,todo
