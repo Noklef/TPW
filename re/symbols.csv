@@ -4933,6 +4933,7 @@ address,name,kind,confidence,notes
 0x0065f538,Window_Unlink,function,low,"reimplemented (src/game/ui/window); thiscall: out of the parent's child list (+0x5c / +0x54 / +0x58), +0x54 / +0x58 / +0x60 cleared, the hover updated (AX)"
 0x0065e526,Window_SetHandler,function,low,reimplemented (src/game/ui/window); thiscall (handler): a handler not 0 to +0x114; 1 in AX
 0x00658df4,Window_PostTimed,function,low,"reimplemented (src/game/ui/window); cdecl (window, message, a, b, delay): with [0xfaa5f8], a window and a message not 1-3, GuiTimers_Add and 1; else 0"
+0x0065da8d,Window_SetEnabled,function,low,"reimplemented (src/game/ui/window); thiscall (enabled: a word), pops 4, slot 5 of the vtable 0x705980: flag 2 of +0x48 cleared (enabled) or set; on a change the handler +0x114 gets 0x17 and the hover is updated, 1 in AX; unchanged 0 in AX"
 0x00498090,Dialog7ca1c8_SetChecks,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): the nine check buttons of the 0x7ca1c8 dialog's child 0x18 set (vtable slot 5, bool) from flags bits 0-8 (0x20's also needs [0x7ca1d0]+0x50)"
 0x00498a50,Dialog7ca1c8_SetChecksIfUp,function,low,reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): Dialog7ca1c8_SetChecks when [0x7ca1c8] and [0x7ca1cc] are not 0
 0x00481a00,Dialog7ca1c8_SetChecksIfUpThis,function,low,"reimplemented (src/game/ui/dialog7ca1c8); thiscall (flags), pops 4, this unused: Dialog7ca1c8_SetChecksIfUp(flags)"

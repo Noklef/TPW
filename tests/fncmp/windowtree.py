@@ -3,7 +3,7 @@
 # some at addresses with other upper halves; the rectangle a recorder. HitTest / UpdateHover (0x65db25, 0x6589f9): a tree of 1-7 windows with
 # real GUI rectangles (window.py's tree()), points near them or anywhere (upper halves random), the root, the hovered window and the queues set
 # or not. NotifyShown / SetShown (0x65d90b, 0x65d9dd): window.py's shown_env. Offset (0x65c7fe): window.py's offset_env, moved by words 0 or
-# not (upper halves random).
+# not (upper halves random). SetEnabled (0x65da8d): shown_env's, flag 2 of each window's +0x48 either way; AX compared (only AX is set).
 # usage: windowtree.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FindChild,IsShown,...)
 import os
 import struct
@@ -16,8 +16,8 @@ from fncmp import LOG, Bench, Call, log_region, put, vtable  # noqa: E402
 from window import MISC, NODES, RANGES, TREE, VTABLE, WINDOW, chain, hover, offset_env, point, shown_env, tree, word  # noqa: E402
 
 CALLS = {'FindChild': 0x65d7d0, 'IsShown': 0x65d773, 'OffsetByParents': 0x65c979, 'HitTest': 0x65db25, 'UpdateHover': 0x6589f9,
-         'NotifyShown': 0x65d90b, 'SetShown': 0x65d9dd, 'Offset': 0x65c7fe}
-B = Bench(RANGES)
+         'NotifyShown': 0x65d90b, 'SetShown': 0x65d9dd, 'Offset': 0x65c7fe, 'SetEnabled': 0x65da8d}
+B = Bench(RANGES + [(0x65da8d, 0x65db25)])
 
 
 def case(r):
@@ -63,11 +63,14 @@ def case(r):
         return Call(CALLS[op], [r.choice(wins), word(r), word(r)], regions, conv='t', ret='a')
     wins = shown_env(r, regions, log)   # NotifyShown / SetShown: EDX the window's upper half or random
     window = r.choice(wins)
+    if op == 'SetEnabled':
+        for w in wins:
+            regions[w][0x48] = (regions[w][0x48] & 0xfd) | r.choice([0, 2])
     shown = r.choice([0, 0, 1, 1, 2, 0x10000, 0xffff0000, 0x8000, r.getrandbits(32)])
     if op == 'NotifyShown':
         edx = r.choice([window & 0xffff0000, r.getrandbits(32)])
         return Call(CALLS[op], [window, edx, shown], regions, conv='f', ret='v')
-    return Call(CALLS[op], [window, shown], regions, conv='t', ret='a')
+    return Call(CALLS[op], [window, shown], regions, conv='t', ret='w' if op == 'SetEnabled' else 'a')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]

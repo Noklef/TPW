@@ -50,6 +50,11 @@ void __fastcall Window_NotifyShown(u8 *window, void *edx, u32 shown);
 // the upper half of EAX the manager slot's result when hiding, else 0.
 u32 __fastcall Window_SetShown(u8 *window, void *, u32 shown);
 
+// 0x65da8d (thiscall (enabled: a word), pops 4; slot 5 of the vtable 0x705980; name unconfirmed): flag 2 of +0x48 (disabled) cleared when
+// enabled is non-zero, set when it is 0; when that changes it, the handler +0x114 (when set) gets (window, 0x17, enabled sign-extended, 0)
+// and the hover is updated (Window_UpdateHover), 1 in AX; unchanged, 0 in AX. Only AX is set.
+u32 __fastcall Window_SetEnabled(u8 *window, void *, u32 enabled);
+
 // 0x65bc90 (thiscall; name unconfirmed): the rectangle at +8 copied to the one at +0x2c (GuiRect_Assign); returns +0x2c.
 u8 *__fastcall Window_SaveRect(u8 *window);
 

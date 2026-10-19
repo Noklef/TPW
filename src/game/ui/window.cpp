@@ -112,6 +112,21 @@ u32 __fastcall Window_SetShown(u8 *window, void *, u32 shown) {
     return (vcall<u32>(manager, 0x34, window) & 0xffff0000u) | 1;
 }
 
+u32 __fastcall Window_SetEnabled(u8 *window, void *, u32 enabled) {
+    const s16 e = (s16)enabled;
+    if (e != 0) {
+        if (!(at<u32>(window, 0x48) & 2)) return 0;
+        at<u32>(window, 0x48) &= ~2u;
+    } else {
+        if (at<u32>(window, 0x48) & 2) return 0;
+        at<u32>(window, 0x48) |= 2;
+    }
+    using Handler = s32(__cdecl *)(u8 *, u32, s32, u32);
+    if (const Handler handler = at<Handler>(window, 0x114)) handler(window, 0x17, e, 0);
+    Window_UpdateHover();
+    return 1;
+}
+
 u8 *__fastcall Window_SaveRect(u8 *window) { return GuiRect_Assign(window + 0x2c, nullptr, window + 8); }
 
 u16 __fastcall Window_GetRect(u8 *window, void *, u8 *rect, u32 inner) {
