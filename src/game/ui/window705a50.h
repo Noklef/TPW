@@ -1,6 +1,7 @@
 // The GUI library's window subclass with the vtable 0x705a50 (built by 0x6688b3 over Window_Ctor: the handlers 0x668f9c, a text row
 // (ui/textpool) at +0x148, the dwords +0x13c 500 and +0x140 125, colour-like bytes +0x14c-+0x14f 0xff; what it is is unconfirmed).
-// Reimplementation of 0x6689bc, 0x6693a0 and 0x66852b. +0x138 its wide text, +0x13c the text's limit.
+// Reimplementation of 0x6689bc, 0x6693a0, 0x66852b, 0x668820, 0x668ad3 and 0x668bec. 0x66852b reads a wide text at +0x138 (it may be a
+// sibling class's); the constructor and 0x668bec keep a state byte there, +0x139 a byte, +0x13c a limit.
 #pragma once
 
 #include "../../../re/types.h"
@@ -17,4 +18,20 @@ u16 __fastcall Window705a50_TextLength(const u8 *window);
 // 0x6693a0 (thiscall (flags), pops 4; slot 2; name unconfirmed): the scalar deleting destructor: Window705a50_Dtor, then with flag 1
 // freed (Mem_Free). Returns the window.
 u8 *__fastcall Window705a50_DeletingDtor(u8 *window, void *, u32 flags);
+
+// 0x668820 (thiscall; name unconfirmed): the window's look (AX): 1 with flag 2 of +0x48; else with the byte +0x139 set 3 or 2 by bit 0
+// of the state +0x138; else 4 for its bit 1, 5 for its bit 0, 0 for neither.
+u16 __fastcall Window705a50_Look(const u8 *window);
+
+// 0x668ad3 (thiscall; name unconfirmed): with an object at +0x9c, its slot 3 called with (code, event): the event (on the stack, only
+// partly set) points (+0x10) to a second one whose words +0xa / +0xc and dword +0x10 are, by the look (Window705a50_Look): 4 the byte
+// +0x158 + 1, the byte +0x159 (both signed) and +0x14c; 3 or 5 the bytes +0x158 / +0x159 and +0x154; 0 or 2 zero, zero and +0x14c;
+// with these the code is 0x4c000, for look 1 it is 0 and nothing is set. The event's dword +0x18 is the code too.
+void __fastcall Window705a50_NotifyLook(u8 *window);
+
+// 0x668bec (thiscall (state, notify: bytes), pops 8; name unconfirmed): 0 (AX) when the state +0x138 is `state` already. Otherwise the
+// state is set; with `notify` and the dword [0xfaa5d4] set the window is posted 1 (0, 0) (Window_PostMessage); the object +0x98 (when
+// set) gets slot 3 (1, event), the event's word +4 the look (Window705a50_Look) and its dword +0x18 1 (the rest unset); then
+// Window705a50_NotifyLook, and 1 (AX).
+u16 __fastcall Window705a50_SetState(u8 *window, void *, u8 state, u8 notify);
 }
