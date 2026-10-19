@@ -373,10 +373,12 @@ def blob(log, k, arg, mask):
 
 
 def blob_bytes(log, k, arg, mask, inner=None):
-    """As blob(), but `mask` selects bytes 0-31 (bit i: byte i), and inner = (offset, mask) also hashes bytes 0-14 of the structure that the pointer at that
-    offset points to (unless null): an event on the stack that points to a second one, both only partly set."""
-    at, inner_mask = inner or (-1, 0)
-    struct.pack_into('<II', log, LOG_BLOBS + 8 * (k & 63), 0x80000000 | (arg + 1) | (at + 1) << 8 | (inner_mask & 0x7fff) << 16, mask)
+    """As blob(), but `mask` selects bytes 0-31 (bit i: byte i), and inner = (offset, mask[, base]) also hashes bytes base to base + 14 of the structure
+    that the pointer at that offset points to (unless null; base a multiple of 4 up to 28, default 0): an event on the stack that points to a second one,
+    both only partly set."""
+    at, inner_mask, base = (tuple(inner) + (0,))[:3] if inner else (-1, 0, 0)
+    assert arg < 31 and base % 4 == 0 and 0 <= base <= 28
+    struct.pack_into('<II', log, LOG_BLOBS + 8 * (k & 63), 0x80000000 | (arg + 1) | base // 4 << 5 | (at + 1) << 8 | (inner_mask & 0x7fff) << 16, mask)
 
 
 def bytes_hash(h, data, mask):
@@ -392,7 +394,7 @@ def blob_bytes_hash(read, p, how, mask):
     if at:
         inner = struct.unpack('<I', read(p + at - 1, 4))[0]
         if inner:
-            h = bytes_hash(h, read(inner, 15), how >> 16 & 0x7fff)
+            h = bytes_hash(h, read(inner + 4 * (how >> 5 & 7), 15), how >> 16 & 0x7fff)
     return h
 
 
@@ -455,7 +457,7 @@ def _log_args(e, k, raw):
                     e.write(args[i], struct.pack('<I', raw[fn & 0xff] if (fn & 0xff) < n else 0))
                 else:
                     e.write(args[i], e.read(at + 0x10, min(fn, 0x70)))
-        if (blob_arg & 0xff) == i + 1 and args[i]:
+        if (blob_arg & 0x1f) == i + 1 and args[i]:
             args[i] = blob_bytes_hash(e.read, args[i], blob_arg, blob_mask) if blob_arg & 0x80000000 else blob_hash(e.read, args[i], blob_mask)
         if mask >> i & 1:
             args[i] = string_hash(e.read, args[i])
