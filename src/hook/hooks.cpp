@@ -4681,6 +4681,8 @@ const Hook kHooks[] = {
     {"Window705b20_Layout",       0x0066ac00, (void *)&Window705b20_Layout, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window705b20_AddArrow1",    0x0066b557, (void *)&Window705b20_AddArrow1, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window705b20_AddArrow2",    0x0066b604, (void *)&Window705b20_AddArrow2, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705b20_AddThumb",     0x0066b6b1, (void *)&Window705b20_AddThumb, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705b20_Ctor",         0x0066acf9, (void *)&Window705b20_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window705b98_Ctor",         0x0066c7e0, (void *)&Window705b98_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705c58_Ctor",         0x0066d9e0, (void *)&Window705c58_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705bf8_Ctor",         0x0066d0c0, (void *)&Window705bf8_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
@@ -4691,6 +4693,7 @@ const Hook kHooks[] = {
     {"Window705a20_SaveRect",     0x00665fb0, (void *)&Window705a20_SaveRect, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window7059f0_Layout",       0x00662530, (void *)&Window7059f0_Layout, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705950_Layout",       0x0065aac0, (void *)&Window705950_Layout, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705950_Ctor",         0x0065ab64, (void *)&Window705950_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window_CreateChild",        0x0065dd7b, (void *)&Window_CreateChild, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
