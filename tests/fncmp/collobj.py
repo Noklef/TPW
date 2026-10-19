@@ -4,6 +4,7 @@
 # (0x549070): see nearest().
 # usage: collobj.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
+import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
@@ -37,7 +38,7 @@ def free_all(r):
 def nearest(r):
     """0x549070: up to 10 area nodes {flags, centre x, y, radii} at NODES (bit 0 mostly set, blockers 0x40 now and then, the side bits all
     four, some or any, now and then the box flag 0x20), centres on a 0x400 grid (so the 0x87c moves and the 0x1800 diagonal meet) or
-    anywhere near; the count the nodes in use, now and then fewer, 0 or no table; the area one of the nodes (self 0 or 1) or apart."""
+    anywhere near, the blockers now and then on another's moved centre's edge; the count the nodes in use, now and then fewer, 0 or no table; the area one of the nodes (self 0 or 1) or apart."""
     n = r.randrange(11)
     nodes = bytearray(r.bytes(0x20 * 11))
     live = 0
@@ -50,6 +51,19 @@ def nearest(r):
         live += flags & 1
         grid = lambda: r.choice([r.randrange(-6, 7) * 0x400, r.randrange(-6, 7) * 0x400 + r.choice([0x87c, -0x87c]), r.randrange(-0x2000, 0x2000)])
         put(nodes, 0x20 * i, 'IiiII', flags, grid(), grid(), r.choice([0, 0x400, 0x800, 0x87c, 0x1000, r.randrange(0x2000)]), r.choice([0, 0x400, 0x900, r.randrange(0x2000)]))
+    # blockers set on another node's moved centre's edge: its radius (half width) or one past it away along x or y
+    for i in range(n):
+        flags = struct.unpack_from('<I', nodes, 0x20 * i)[0]
+        others = [j for j in range(n) if j != i and struct.unpack_from('<I', nodes, 0x20 * j)[0] & 0x41 == 1]
+        if flags & 0x41 != 0x41 or not others or r.random() < 0.3:
+            continue
+        f, x, y = struct.unpack_from('<Iii', nodes, 0x20 * r.choice(others))
+        y += 0 if f & 0x18 == 0x18 else -0x87c if not f & 8 else 0x87c
+        x += 0 if f & 6 == 6 else 0x87c if not f & 2 else -0x87c
+        k = r.choice([0, 0x400, 0x87c, r.randrange(0x1000)])
+        d = r.choice([k, k + 1, -k, -k - 1])
+        x, y = (x + d, y) if r.random() < 0.5 else (x, y + d)
+        put(nodes, 0x20 * i, 'IiiII', 0x5f | (flags & 0x20), x, y, k, k)
     count = r.choice([live, live, live, live, max(live - 1, 0), 0])
     other = RAM + 0x100
     area = bytearray(r.bytes(0x20))
