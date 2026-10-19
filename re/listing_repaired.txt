@@ -1,0 +1,13 @@
+# Mis-decodes repaired in the Ghidra project on 2026-10-20 with tools/Redisassemble.java, found by tools/FlowGaps.java (control flow
+# into an address with no instruction) and checked against the exe's bytes. Each line: the address decoding now starts at, what the
+# listing held before, and what the bytes are.
+0x5a5955  # ADC ESI,[EDI] at 5a5958; 89 2d dc 13 77 00 is MOV [0x7713dc],EBP after XOR EBP,EBP
+0x5ab22a  # ADD / MOV DL / XCHG / CMC from 5ab22e; e8 51 b7 04 00 is the static initialiser's CALL 0x5f6980
+0x5b68fd  # ADD [EAX],AL x3 from 5b6900; c7 86 d0 00 00 00 4b 00 00 00 is a switch case's MOV [ESI+0xd0],0x4b
+0x5c277a  # XOR [ECX],EDI at 5c277b; e8 31 39 03 00 is the static initialiser's CALL 0x5f60b0
+0x5c2790  # the atexit destructor (only reached through PUSH 0x5c2790), lost by the clear around 5c277a and decoded again
+0x616773  # IRETD at 616774; 2b cf is SUB ECX,EDI, then LEA / TEST / JG / JMP (in Canvas32_Mask, 0x616340)
+0x64496c  # LEAVE at 64496d; 85 c9 is TEST ECX,ECX
+0x646e42  # INC EAX at 646e45; 89 5c 24 40 is MOV [ESP+0x40],EBX
+0x6b8363  # AND AL,0x8 at 6b8365; 8b 54 24 08 is MOV EDX,[ESP+0x8]
+# Jump targets inside the cleared ranges, decoded again: 0x5b690d, 0x5b6917, 0x61677f, 0x61678b, 0x6b8380.
