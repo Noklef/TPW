@@ -7,6 +7,8 @@
 #include "../core/accessors.h"
 #include "../core/ptrlist.h"
 #include "../math/x87.h"
+#include "../ui/window.h"
+#include "camera.h"
 #include "mapcell.h"
 #include "object.h"
 
@@ -101,6 +103,28 @@ void __fastcall ParkMap_PlaceSprite(const u8 *map, void *, u8 *sprite) {
     const float scale = static_cast<float>(X87Reg(at<float>(sprite, 0x24)) * at<float>(map, 0x5c) * 0.5);
     u8 *const frame = reinterpret_cast<u8 *>(static_cast<uintptr_t>(Fn_56b620(at<u32>(sprite, 0x28))));
     at<float>(frame, 0x2c) = static_cast<float>(X87Reg(at<u16>(at<u8 *>(frame, 0x28), 0xc)) * scale * 0.0625);
+}
+
+// One coordinate of the view origin kept to 0 to count - 1 (the limit as the integer the x87 holds). A zero keeps its sign (the
+// compiler's max / min would not), a negative one or NaN gives 0.
+static double clamp_view(float v, u32 count) {
+    const double limit = (double)(s32)(count - 1);
+    if (v == 0.0f)
+        return limit >= 0.0 ? (double)v : limit;
+    if (!(v > 0.0f))
+        return 0.0;
+    return (double)v <= limit ? (double)v : limit;
+}
+
+s32 __fastcall ParkMap_ApplyView(u8 *map) {
+    const double x = clamp_view(at<float>(map, 0x54), at<u32>(map, 0x24));
+    at<float>(map, 0x54) = (float)x;
+    const double z = clamp_view(at<float>(map, 0x58), at<u32>(map, 0x28));
+    at<float>(map, 0x58) = (float)z;
+    const float fx = (float)(s32)((u32)(s32)(long long)x * 10u);  // __ftol
+    const float fz = (float)(s32)((u32)(s32)(long long)z * 10u);
+    Camera_SetView(reinterpret_cast<const u32 *>(&fx), reinterpret_cast<const u32 *>(&fz), nullptr, nullptr, nullptr);
+    return Window_SendMessage(at<u8 *>(map, 4), 4, 0, 0);
 }
 
 }  // extern "C"

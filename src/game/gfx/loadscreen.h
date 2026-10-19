@@ -27,4 +27,14 @@ u32 __fastcall LoadScreen_Close(u8 *screen);
 // 0x586d70 (cdecl; the atexit destructor of the loading screen at 0x8c4748; name unconfirmed): LoadScreen_Close's steps on it, but
 // returning nothing.
 void __cdecl LoadScreen_StaticDtor();
+
+// 0x587a70 (thiscall on the loading screen; name unconfirmed; 0x587d4d after counting a step at +0): the progress bar drawn. The percentage is
+// the step count (+0, s32) times +0x18 (x87, at the game's precision) truncated; the bar 318 wide past 100, else percentage * 318 / 100. With the
+// screen's width W (0x8bcbd0) and height H (0x8bcbd4), each scaled with signed 32-bit wrapping divisions: scale (W << 16) / 640, b 11H / 480,
+// left 14W / 640, top 446H / 480, e b / 5, f 4b / 5, right ((bar + 1) * scale >> 16) + left. The renderer ([0x879ab0]) is begun (slot 0x1c),
+// then three rectangles (slot 0x28: x0, y0, x1, y1 as floats, colour, 0): (left, top, right, top + e) 0xff800000, (left, e + top, right,
+// f + top) 0xffff0000, (left, f + top, right, top + b) 0xff800000, where e + top and f + top are the integer added to top as a float on the x87
+// in the second's and third's y0 and integers added elsewhere. A rectangle refused (0) returns 0 at once; else the renderer is ended (slot
+// 0x20), +4 and +0xc = bar and 1 returned.
+u32 __fastcall LoadScreen_DrawBar(u8 *screen);
 }

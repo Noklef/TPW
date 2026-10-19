@@ -4,17 +4,17 @@
 # blocks at +0x10 / +0x14 set or not, their handles 0 or set and in the tracked table (as texturemem.py) or not. ShowImage: images of
 # 0-24 x 0-24 (pixels null now and then), 2 or 4 bytes a pixel (or 0, 1, 3 / other: 4); driver kind 1 (the surface's Lock a COM recorder
 # filling the description: rows / columns -2-20, pitch at or past the row; the rest of the description logged as a hash; failing or
-# not), 4 (rows / columns -2-20 into a packed buffer) or another.
-# usage: loadscreen.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Close,StaticDtor,ShowImage)
+# not), 4 (rows / columns -2-20 into a packed buffer) or another. The progress bar (0x587a70): see draw_bar().
+# usage: loadscreen.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Close,StaticDtor,ShowImage,DrawBar)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, LOG, RAM, Bench, Call, blob, fill, global_heap, heap, log_region, put, recorder, set_return, vtable  # noqa: E402
+from fncmp import HEAP, LOG, RAM, Bench, Call, blob, echo, fb, fill, global_heap, heap, log_region, put, recorder, set_return, vtable  # noqa: E402
 
-B = Bench([(0x5879c0, 0x587a64), (0x586d70, 0x586e17), (0x579b40, 0x579c13), (0x67acb0, 0x67acb1), (0x587130, 0x587372)])
-CALLS = {'Close': 0x5879c0, 'StaticDtor': 0x586d70, 'ShowImage': 0x587130}
+B = Bench([(0x5879c0, 0x587a64), (0x586d70, 0x586e17), (0x579b40, 0x579c13), (0x67acb0, 0x67acb1), (0x587130, 0x587372), (0x587a70, 0x587c77), (0x67a830, 0x67a860)])
+CALLS = {'Close': 0x5879c0, 'StaticDtor': 0x586d70, 'ShowImage': 0x587130, 'DrawBar': 0x587a70}
 SCREEN, BLOCKS, COUNT, PAIRS, TIME = 0x8c4748, RAM + 0x100, 0x8bb214, 0x87b1f8, 40
 IMAGE, DISP, SURF, VT, RENDER, PIX, OUT = RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500, RAM + 0x600, RAM + 0x1000, RAM + 0x3000
 
@@ -47,10 +47,38 @@ def show_image(r):
     return Call(0x587130, [IMAGE], regions, conv='t', ret='a')
 
 
+# screen heights whose second (EDGE2) or third (EDGE3) rectangle's y0 is 0.0 with the earlier ones' not (446H / 480 = -(11H / 480 / 5), or
+# -(4 * (11H / 480) / 5), found by search): a renderer echoing y0 refuses that one only
+EDGE2 = [0xd181a80a, 0xa3035014, 0x7484f81e, 0x4606a028]
+EDGE3 = [0xd18176a8, 0xa302ed50, 0x5cfd12b0, 0x2e7e8958]
+
+
+def draw_bar(r):
+    """0x587a70: the step count (+0) and its scale (+0x18) about 100 % or anything; the screen the usual sizes, small, anything or an EDGE
+    height; the renderer's rectangle (slot 0x28) taking (its hash), refusing (0), or answering its y0 (refusing on an EDGE height's)."""
+    log = log_region()
+    screen = bytearray(r.bytes(0x20))
+    put(screen, 0, 'i', r.choice([0, 1, 50, 99, 100, 101, 200, r.randrange(-50, 300), r.getrandbits(32) - (1 << 31)]))
+    put(screen, 0x18, 'I', r.choice([fb(1.0), fb(0.5), fb(1.01), fb(0.99), r.f(), r.pos(3)]))
+    w, h = r.choice([(640, 480), (800, 600), (1024, 768), (r.randrange(-5, 2000), r.randrange(-5, 2000)), (r.getrandbits(32), r.getrandbits(32))])
+    answer = r.choice(['hash', 'hash', 'zero', 'echo'])
+    if answer == 'echo' and r.random() < 0.7:
+        h = r.choice(EDGE2 + EDGE3)
+    if answer == 'zero':
+        set_return(log, 10, 0)
+    elif answer == 'echo':
+        echo(log, 10, 1)
+    regions = {RAM + 0x800: screen, 0x8bcbd0: struct.pack('<II', w & 0xffffffff, h & 0xffffffff), LOG: log, 0x879ab0: struct.pack('<I', RENDER),
+               RENDER: put(bytearray(r.bytes(0x10)), 0, 'I', VT), VT: vtable({7: 0, 10: 6, 8: 0})}
+    return Call(0x587a70, [RAM + 0x800], regions, conv='t', ret='a')
+
+
 def case(r):
     op = r.deal(OPS)
     if op == 'ShowImage':
         return show_image(r)
+    if op == 'DrawBar':
+        return draw_bar(r)
     log = log_region()
     regions = {HEAP: heap(), **global_heap(), LOG: log, 0x6fd3ec: struct.pack('<I', recorder(TIME, 0, True)), 0x8bcbc8: r.bytes(4)}
     now = r.getrandbits(32)

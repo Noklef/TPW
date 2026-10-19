@@ -445,6 +445,7 @@ address,name,kind,confidence,notes
 0x005ed580,ParticlePools_Reset,function,low,"reimplemented (src/game/render/particles); cdecl: the 0x33 dwords from 0xf86900 (the particle pools' block) zeroed, then IntSin_BuildTable"
 0x005ed660,ParticlePool_Move,function,low,"reimplemented (src/game/render/particles); cdecl (pool, jump, x, y, t): the pool block's old and new positions set; for t not 0 or NaN the clock time and t"
 0x00486b90,Particle_SpawnAtWindow,function,low,"reimplemented (src/game/render/particles); cdecl (effect, window): with the window shown and [0x786b84] 0, the effect spawned at the centre of its inner rectangle (x * 100000 / 2048, 0, y * 75000 / 1536)"
+0x005ed920,ParticlePool2_Setup,function,low,"reimplemented (src/game/render/particles); cdecl (x, y, width, height): pool 2 resized to 2 - (width * height - 0.0016) / 0.0051 * -3 kept to 2-5 (effect 0x23), its position block moved to (x, y) with the clock and 400, then 0.4, the sizes over 3 and the sizes"
 0x00804370,gParticleEffects,data,high,0x69 x 0x140-byte effect definitions from Tp2.plb
 0x0080c6b0,gParticleEffectors,data,high,20 x 0x68-byte effector definitions
 0x0080cefc,gParticleSystems,data,high,live systems: 0x140-byte copies of an effect definition
@@ -2758,6 +2759,7 @@ address,name,kind,confidence,notes
 0x0056b570,PtrArray_SetVectorOf,function,high,reimplemented (src/game/core/ptrlist); a pointer array searched for a key; its three dwords at +0x14 set
 0x0056e780,Extents_Include,function,high,reimplemented (src/game/terrain/procedural); a column range's lowest and highest bytes extended
 0x0054b290,Pool_FreeAll,function,high,"reimplemented (src/game/world/collobj); every chunk of an owner's list freed, with its nodes"
+0x00549070,CollArea_FindNearest,function,low,"reimplemented (src/game/world/collobj); cdecl (area, x, y, self): of the area nodes in use, the nearest (x, y) that is no blocker (0x40), is not area unless self, meets area and whose centre moved 0x87c towards its closed side is in no blocker; 0 for none"
 0x0056b340,Obj_ReleaseFromRenderer,function,high,reimplemented (src/game/render/renderer); bit 0 cleared and the part removed from the renderer's tag 0x60 list
 0x00583360,Masks_TopBits,function,high,"reimplemented (src/game/render/texformat); the highest set bit of three masks stored, and their union"
 0x004f36c0,Vector36_Size,function,high,reimplemented (src/game/core/countedpair); the number of 36-byte elements between a vector's pointers
@@ -3733,6 +3735,7 @@ address,name,kind,confidence,notes
 0x005787b0,Vec2_Normalize,function,low,reimplemented (src/game/math/vec2); thiscall (x87): the float pair over its length; a zero or NaN length squared taken as 1
 0x00549020,IntVec2_Length,function,low,"reimplemented (src/game/math/vec2); cdecl (x, y): the integer pair's length, both halved while too big for the squares, the root shifted back"
 0x005493f0,IntArea_Contains,function,low,"reimplemented (src/game/math/vec2); cdecl (x, y, area {flags, cx, cy, rx, ry}): 0 without an area, 1 on the centre; the centre's side must be allowed (flags 2/4 for x, 0x10/8 for y); flag 0x20 a box (|dx| <= rx, |dy| <= ry), else a circle (IntVec2_Length(dx, dy) <= rx)"
+0x005491e0,IntArea_Overlaps,function,low,"reimplemented (src/game/math/vec2); cdecl (a, b): whether two integer areas {flags, cx, cy, rx, ry} meet: full circles by IntVec2_Length against the larger radii summed, side-limited ones by the side flags then the circles or |dx| + |dy| == 0x1800"
 0x005812f0,Vec3_DotByValue,function,low,"reimplemented (src/game/math/geometry); cdecl (ax, ay, az, bx, by, bz by value): the dot product in st0"
 0x00581320,Tri_WindingTest,function,low,"reimplemented (src/game/math/geometry); cdecl (a, b, c): x, y, w copied to 0x8c63b0-0x8c63d0; 1 when the homogeneous winding compare is below or unordered"
 0x0057b410,Box_Extend,function,low,"reimplemented (src/game/math/geometry); thiscall (x, y, z): the box (min +0, max +0xc) grown to take the point; a NaN goes into the minimum"
@@ -3859,8 +3862,10 @@ address,name,kind,confidence,notes
 0x005e7f60,Mask_Tint,function,high,reimplemented (src/game/gfx/imageops); tints a four byte per pixel image through a mask
 0x005d4260,Image_ShrinkInto,function,low,"reimplemented (src/game/gfx/imageops); thiscall (image; dest, width, height, format), pops 16: box-average shrink through three scratch blocks; format 1 writes bytes 3,2,1,0xff, format 2 a u16 0xf000 | nibbles; returns 1 (0 when a block fails)"
 0x005d4970,Panel_ShrinkInto,function,low,"reimplemented (src/game/gfx/imageops); thiscall on a panel (dest, width, height, format; pops 16): its image (+0x50) shrunk into dest, after a panel reset when its pixels are null"
+0x005eb270,Image_ErosionRamp,function,low,"reimplemented (src/game/gfx/imageops); thiscall, object unused (image a, count, image b; pops 12): a 2-byte work image of a set or not, b cleared; count Image_MinMark passes marking b with the low byte of (2t^3 - 3t^2) * 256, t = 1 - i / count; b ORed with the result"
 0x005f09a0,Colour_Blend3,function,high,reimplemented (src/game/gfx/color); blends between three colour records by a position of 0 to 100
 0x00591270,Format_BuildChannelTable,function,high,reimplemented (src/game/gfx/color); Builds the 256 level table of four channel masks (name unconfirmed)
+0x00575160,Format_ConvertPixels,function,low,"reimplemented (src/game/gfx/color); cdecl (dst, src, width, height, table, step, bytes, flags): 4- or 3-byte pixels through a channel table (alpha, red, green, blue records) to dwords step apart, flag 1 bottom-up; averages packed into 0x87a25c; returns 1 for 4 bytes, 2 when enough pixels are translucent"
 0x00598ca0,ModelSlot_ApplySelection,function,high,reimplemented (src/game/model/slots); sets or clears the part flags of the selection kind
 0x004d9620,Litter_Remove,function,high,reimplemented (src/game/world/litter); takes a piece of litter off its cell
 0x004f2b40,WStringMap_Find,function,high,reimplemented (src/game/core/wstringmap); a wide string map lookup
@@ -3926,6 +3931,7 @@ address,name,kind,confidence,notes
 0x0057b5b0,Object_FreeBlock13c,function,low,reimplemented (src/game/core/vobj2); thiscall: the tracked block at +0x13c freed after its texture at +0x18 is released twice (sic) and freed (name unconfirmed)
 0x0057b490,Object_MakeBlock13c,function,low,"reimplemented (src/game/core/vobj2); thiscall: with a block at +0x13c already 0; else a tracked 0x38-byte block there with a new texture at +0x18 whose pixels are allocated (size [0x8bd4b0]): 1, or on a failure all freed, an error pushed and 0"
 0x0057b2e0,Object_ReleaseSavedPairs130,function,low,"reimplemented (src/game/core/vobj2); thiscall: with flag 0x40000000 (+4) and a positive count (+0x138) the saved pairs at +0x130 written back (non-zero values), the flag cleared, the pairs and the elements at +0x134 freed, the count cleared; returns 1"
+0x0057b6e0,Object_RenderToBlock13c,function,low,"reimplemented (src/game/core/vobj2); thiscall (mesh; pops 4): the mesh packed, the soft renderer cleared and the mesh drawn ([0x879acc] +0x14); with format 2 the buffer averaged in square blocks (width / count) into grey 4444 words in the +0x13c block's texture; returns 1"
 0x005dc580,Class702bc8_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor with two helper objects and tuning floats
 0x005be9b0,Class702920_DeletingDtor,function,high,"reimplemented (src/game/core/vdtor); thiscall (flags); the 0x702920 destructor (Class7028_Dtor), then the object freed when bit 0 of the flags is set; returns the object"
 0x005d9f50,Class702af0_Dtor,function,low,reimplemented (src/game/core/vdtor); thiscall: vtable pointer 0x702af0; [0xf83784] told (slot 0x1c); the member list at +0x58 drained and deleted; the strings at +0x24 and +0x10 destroyed
@@ -4146,6 +4152,7 @@ address,name,kind,confidence,notes
 0x00530b70,TrackRun_TraceB,function,low,"reimplemented (src/game/world/cellrun); cdecl (thing): TraceA's run from the cell stepped by Position_StepB, not moving onto the end, the cell at 0x7639e0 reset to overlap 0, stopping at once on a start of no track type"
 0x005f2050,ParkMap_Classify,function,low,"reimplemented (src/game/world/parkmap); thiscall (map): each square of the map's width x height gets a kind (9 path, 1-8 by the owner's first thing's definition map kind and flags, 0xa / 0xb / 0xc by cell type 1 / 3 / flag 0x40) and the thing's handle in its 8-byte entry at +0x60"
 0x005f4180,ParkMap_PlaceSprite,function,low,"reimplemented (src/game/world/parkmap); thiscall on the park map (sprite; pops 4): the sprite's screen position from its map position, its frame's vector in the array at 0x879ce0 and the frame's +0x2c size"
+0x005f1050,ParkMap_ApplyView,function,low,"reimplemented (src/game/world/parkmap); thiscall on the map: the view origin (+0x54, +0x58) kept to 0 to width / height - 1, the camera put on it times 10 (Camera_SetView), the window (+4) sent message 4"
 0x0053a540,MapCell_PickModel,function,low,"reimplemented (src/game/world/cellmodel); thiscall (cell; angle out), pops 4: the cell's model (group << 16 | index) from the table for its type by its neighbour bits (exact, else a subset), *angle the row's plus 180 for straight cells facing 0x40 / 0x10, then adjusted by flags, corners, junctions and for type 0x19 a random variant; 8 for types 4, 5, 7, 9, 0xa, 0xc, 0x11"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
@@ -4301,6 +4308,7 @@ address,name,kind,confidence,notes
 0x005879c0,LoadScreen_Close,function,low,"reimplemented (src/game/gfx/loadscreen); thiscall: waits until 3 s after the screen was shown (timeGetTime), frees the blocks at +0x10 / +0x14 and clears bit 0x40000000 of 0x8bcbc8; returns 1"
 0x00586d70,LoadScreen_StaticDtor,function,low,reimplemented (src/game/gfx/loadscreen); cdecl: the atexit destructor of the loading screen at 0x8c4748 (the same steps)
 0x00587130,LoadScreen_ShowImage,function,low,"reimplemented (src/game/gfx/loadscreen); thiscall on an image (pixels, width, height, bytes a pixel): stretched upside down into the locked display surface (driver kind 1, u16 or u32) or the renderer's buffer (kind 4); returns 1"
+0x00587a70,LoadScreen_DrawBar,function,low,"reimplemented (src/game/gfx/loadscreen); thiscall on the loading screen: the progress bar (+0 steps times +0x18, 318 wide past 100 %) drawn as three rectangles scaled to the screen through the renderer [0x879ab0] (slots 0x1c, 0x28, 0x20); +4 / +0xc = the bar; 0 when a rectangle is refused, else 1"
 0x005848b0,SurfacePool_SideIndex,function,low,"reimplemented (src/game/gfx/surfacepool); cdecl (side): a power-of-two side's index, 0x100 -> 0 down to 1 -> 8, else -1"
 0x0058b1f0,SurfacePool_Next,function,low,"reimplemented (src/game/gfx/surfacepool); thiscall on the surface pool 0x8c47d8 (side, unused; pops 8): the side's turn (+0x80) flipped, the surface of the old turn returned"
 0x006ad5d0,TextStyle_Ctor,function,low,"reimplemented (src/game/gfx/textlayout); thiscall: the text style's fields cleared (state 3, +0x10 1, its SurfaceInfo constructed), vtable 0x70a0d8; returns this"
@@ -4763,6 +4771,9 @@ address,name,kind,confidence,notes
 0x005b9040,Online_ResetDownload,function,low,"reimplemented (src/game/online/session); thiscall: the download's object deleted, its block freed, its fields reset and string emptied (name unconfirmed)"
 0x005b7b80,Auth_DeletingDtor,function,low,"reimplemented (src/game/online/session); thiscall (flags): ~Auth (import), freed with flag 1; returns the Auth (name unconfirmed)"
 0x005b62e0,Online_LoginResult,function,low,"reimplemented (src/game/online/session); thiscall (status, -, -, record): on 60 the user's record copied in and logged in, else the error code set (name unconfirmed)"
+0x005b7430,Online_ResetCity,function,low,"reimplemented (src/game/online/session); thiscall: +0xd8 = Time_GetMs, +0xdc = 1; the City (+0xd4) released, destroyed and freed (""ONLINE CITY""); the lists +0xe0..+0x100 reset, their native lists released (ccCityList / ccParkList::Release) or shared records released"
+0x005b72f0,Online_OpenCity,function,low,"reimplemented (src/game/online/session); thiscall: unless +0xd4 is set, a City made (Mem_Alloc, City::City) and connected (City::Connect to [0x7a1524] or """", the pick, the port word, 0x5b72c0); not 1: released; 1: +0xd8 = Time_GetMs, City::SetSessionInfo(language, +0x34, +0x38, +0x28), +0xdc = 1; returns +0xd4"
+0x005b7960,Online_UnpublishPark,function,low,"reimplemented (src/game/online/session); thiscall (park; pops 4): with the city's connection open (Online_OpenCity), City::UnpublishPark(0, park, +0x34)'s answer, else 0"
 0x005bc9c0,Owner2c_FindByKey,function,high,reimplemented (src/game/online/itemlist); the last item of the owner's list whose +8 is the key
 0x005bcb60,Owner2c_At,function,high,reimplemented (src/game/online/itemlist); the index'th item of the owner's list
 0x005bd270,Owner2c_ValueByKey,function,high,reimplemented (src/game/online/itemlist); the +0x14 of the last item whose +8 is the key

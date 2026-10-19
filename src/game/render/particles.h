@@ -114,6 +114,13 @@ void __cdecl ParticlePools_Reset();
 // is neither 0 nor NaN, +0x10 is the game clock's real time less its pauses (Clocks_RealNowLessPauses) as a float and +0x14 is t.
 void __cdecl ParticlePool_Move(s32 pool, s32 jump, float x, float y, float t);
 
+// 0x5ed920 (cdecl; x, y, width, height; name unconfirmed; 0x485a21 asks it): pool 2 set up for an area: its size width * height (x87, at the
+// game's precision) less [0x774d8c] (0.0016), over [0x774d90] (0.0051), times -3, truncated, taken from 2 and kept to 2 to 5 (the size and
+// count go to the empty Debug_Printf) is the pool's count (ParticlePool_Resize(2, count, 0x23)); then ParticlePool_Move(2, jump, x, y, 400)
+// inlined (x and y moved as dwords, the time's test of its constants always passing): +0 and +8 = (x, y), +0x10 the game clock's real time
+// less its pauses as a float, +0x14 400; then +0x18 0.4, +0x1c / +0x20 width / height times [0x702f98] (1 / 3), +0x24 / +0x28 width / height.
+void __cdecl ParticlePool2_Setup(u32 x, u32 y, float width, float height);
+
 // 0x521930 (cdecl; effect, x, y, z, vx, vy, vz; name unconfirmed): Particle_Spawn with a velocity: the system's +0x38/+0x3c/+0x40 = vx, vy, vz times its
 // +0xb0 over 1024 (truncated toward 0) in place of the jitter of +0x2c. (Its linked effect is started by Particle_Spawn.)
 s32 __cdecl Particle_SpawnWithVelocity(s32 effect, s32 x, s32 y, s32 z, s32 vx, s32 vy, s32 vz);

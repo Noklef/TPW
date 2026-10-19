@@ -4,6 +4,7 @@
 
 #include "../core/gameheap.h"
 #include "array3d.h"
+#include "../math/x87.h"
 
 namespace {
 
@@ -286,5 +287,33 @@ void __fastcall Mask_Tint(u8 *mask, void *, u8 *destination, u32 scale, u32 c1, 
         }
         to += (at<s32>(destination, 0) - at<s32>(mask, 0)) * at<s32>(destination, 8);
     }
+}
+void __fastcall Image_ErosionRamp(void *, void *, const u32 *a, u32 count, const u32 *b) {
+    const u32 width = a[0], height = a[1];
+    u8 *const work = static_cast<u8 *>(GameHeap_Alloc(height * width * 2));
+    const u8 *from = reinterpret_cast<const u8 *>(a[3]);
+    u8 *mask = reinterpret_cast<u8 *>(b[3]);
+    u8 *to = work;
+    for (s32 i = 0; i < (s32)(a[0] * a[1]); i++) {
+        to[0] = from[i] ? 0xff : 0;
+        to[1] = from[i] ? 0xff : 0;
+        mask[i] = 0;
+        to += 2;
+    }
+    u32 image[4] = {width, height, 2, (u32)(uintptr_t)work};
+    if (count) {
+        const float total = (float)(double)count;
+        for (u32 i = 0; i < count; i++) {
+            const X87Reg t = X87_SubR(X87Reg((double)i) / total, 1.0f);   // 0x702f40
+            const X87Reg t2 = t * t, t3 = t * t2;
+            const X87Reg ramp = (t3 + t3 - t2 * 3.0f) * 256.0f;   // 0x702f48, 0x702f4c
+            Image_MinMark(image, a, (u8)(s32)(long long)ramp.v, b);   // (__ftol's low byte)
+        }
+    }
+    u8 *out = reinterpret_cast<u8 *>(b[3]);
+    for (s32 i = 0; i < (s32)(width * height); i++)
+        out[i] |= work[2 * i];
+    if (work)
+        GameHeap_Free(work);
 }
 }  // extern "C"
