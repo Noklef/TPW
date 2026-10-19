@@ -8,8 +8,9 @@
 # Create (0x457e70): a light of every kind and colour, its block from the GlobalAlloc heap and its part from Mem_Alloc (the part failing
 # now and then), a point and a direction, the renderer's tag 0x70 list empty or not (the entries' slot 8 answering 1) and its free list
 # with nodes or none. MainCreate (0x4584d0): the directional light from the direction at 0x7a0b30 (normalised first: any length, none,
-# huge) and the colour 0x7a0b3c, kept at 0x7a0b40.
-# usage: lightsource.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Destroy,Main,Colour,Scaled,CtorVirtual,SetVec,MeshClear,MeshSet)
+# huge) and the colour 0x7a0b3c, kept at 0x7a0b40. MainUpdate (0x458590): that light's direction normalised again and its colour and
+# the ambient colour (0x7a0b44) set again.
+# usage: lightsource.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Destroy,Main,Colour,Scaled,Create,MainCreate,MainUpdate,CtorVirtual,SetVec,MeshClear,MeshSet)
 import os
 import sys
 
@@ -19,7 +20,7 @@ from fncmp import HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, fb, global_heap, he
 import m3d2  # noqa: E402
 
 B = Bench([(0x458400, 0x4584bc), (0x46f100, 0x46f11f), (0x576540, 0x5765b8), (0x458580, 0x45858f), (0x458890, 0x458909), (0x458350, 0x4583cf), (0x5836b0, 0x5836c2), (0x4587e0, 0x45888f),
-           (0x458310, 0x45834d), (0x4583d0, 0x4583f6), (0x458910, 0x458935), (0x458940, 0x458965), (0x457e70, 0x458300), (0x45b9d0, 0x45ba15),
+           (0x458310, 0x45834d), (0x4583d0, 0x4583f6), (0x458910, 0x458935), (0x458940, 0x458965), (0x457e70, 0x458300), (0x458590, 0x4587a7), (0x45b9d0, 0x45ba15),
            (0x576410, 0x576550), (0x576270, 0x576320), (0x42a030, 0x42a03b), (0x5d1410, 0x5d1416), (0x4584d0, 0x458573)])
 LIGHT, PARTS, TABLES, RENDERER, NODES = RAM, RAM + 0x100, RAM + 0x800, RAM + 0x1000, RAM + 0x1100
 
@@ -95,6 +96,19 @@ def case(r):
         return Call(0x458890, [RAM + 0x1800] + chans, regions, ret='v')
     if op in ('Create', 'MainCreate'):
         return create(r, regions, renderer, nodes, op == 'MainCreate')
+    if op == 'MainUpdate':   # 0x458590 (any flag, mostly set): the direction as MainCreate's, its colour and the ambient 0x7a0b44 any;
+        # the light's part (+4) a virtual base at an offset 0-0x40; the numerator 0x74d0d8 mostly 1
+        d = r.choice([0, 8, 0x20, 0x40])
+        v = [r.choice([0.0, 1.0, -1.0, r.uniform(-2, 2), r.uniform(-1e3, 1e3)]) for _ in range(3)]
+        if r.random() < 0.05:
+            v = r.choice([[0.0, 0.0, 0.0], [1e30, 1e30, 0.0], [1e-30, 0.0, 0.0], [float('nan'), 1.0, 0.0]])
+        block = put(bytearray(r.bytes(0x18)), 0, '3f', *v)
+        put(block, 0xc, 'I', r.choice([0, 0xffffffff, 0xff808080, r.getrandbits(32), r.getrandbits(32)]))
+        put(block, 0x10, 'I', LIGHT)
+        regions.update({0x7a0b30: block, LIGHT: put(light, 4, 'I', PARTS), PARTS: put(bytearray(r.bytes(0xa0)), 0, 'I', TABLES),
+                        TABLES: put(bytearray(r.bytes(0x10)), 8, 'i', d), 0x8bcc40: r.bytes(8),
+                        0x74d0d8: put(bytearray(4), 0, 'f', r.choice([1.0, 1.0, 1.0, 0.5, 2.0, r.uniform(-3, 3)]))})
+        return Call(0x458590, [r.choice([0, 1, 1, 1, 2, 0x80000000])], regions, ret='v')
     if op == 'Main':
         regions[0x7a0b40] = put(bytearray(4), 0, 'I', LIGHT)
         return Call(0x458580, [], regions, ret='v')
@@ -135,7 +149,7 @@ def create(r, regions, renderer, nodes, main=False):   # 0x457e70 (kind, colour,
 
 
 PART_OPS = ['CtorVirtual', 'SetVec', 'MeshClear', 'MeshSet']
-OPS = [k for k in os.environ.get('OPS', ','.join(['Destroy', 'Main', 'Colour', 'Scaled', 'Create', 'MainCreate'] + PART_OPS)).split(',') if k]
+OPS = [k for k in os.environ.get('OPS', ','.join(['Destroy', 'Main', 'Colour', 'Scaled', 'Create', 'MainCreate', 'MainUpdate'] + PART_OPS)).split(',') if k]
 
 
 if __name__ == '__main__':
