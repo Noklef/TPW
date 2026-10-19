@@ -533,6 +533,7 @@ u8 **__fastcall StdTree_EraseRangeC(u8 *tree, void *, u8 **out, u8 *first, u8 *l
 u8 **__fastcall StdTree_EraseRangeD(u8 *tree, void *, u8 **out, u8 *first, u8 *last) { return TreeD::EraseRange(tree, out, first, last); }
 u8 **__fastcall StdTree_EraseRangeE(u8 *tree, void *, u8 **out, u8 *first, u8 *last) { return TreeE::EraseRange(tree, out, first, last); }
 void StdTree_DtorB(u8 *tree) { TreeB::Dtor(tree); }
+void StdTree_CtorB(u8 *tree) { TreeB::Ctor(tree); }
 void __fastcall StdTree_DtorC(u8 *tree) { TreeC::Dtor(tree); }
 void __fastcall StdTree_DtorD(u8 *tree) { TreeD::Dtor(tree); }
 void __fastcall StdTree_DtorE(u8 *tree) { TreeE::Dtor(tree); }

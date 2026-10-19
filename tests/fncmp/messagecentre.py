@@ -2,7 +2,8 @@
 # tree B (core/stdtree) whose trees are stdtree.py's valid red-black trees of 0 to 4 nodes, the map counter 0x785de0 from 1 up (the last map out frees the nil node 0x785de4).
 # Add (0x40f9e0) inserts a thing's handle into one slot's map (slots 0-28, or past them); Remove (0x40fa40) erases a thing's handle from the 29 maps; Save (0x40fc80) writes the maps' sizes and keys to a record stream.
 # Load (0x40fd60) empties the maps, then reads the counts and keys back from a record stream (whole, or cut anywhere), duplicates among them now and then.
-# usage: messagecentre.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Slot,Slots,Remove,Save,Add,Load)
+# Ctor (0x405460) constructs one slot over random bytes (the nil node made already or not); Instance (0x415e00) makes the centre (29 slots) or finds it made; an allocation now and then fails.
+# usage: messagecentre.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Slot,Slots,Remove,Save,Add,Load,Ctor,Instance)
 import os
 import struct
 import sys
@@ -14,11 +15,13 @@ import stdtree  # noqa: E402
 from fncmp import Bench, Call, HEAP, RAM, heap, record_stream  # noqa: E402
 
 B = Bench([(0x409250, 0x409260), (0x40f970, 0x40f9e0), (0x40fa40, 0x40fb03), (0x40f950, 0x40f961), (0x410ac0, 0x410b11), (0x50b350, 0x50b35d), (0x40fc80, 0x40fd5b), (0x5f5e50, 0x5f5e80), (0x5da3c0, 0x5da3c1), (0x40ff80, 0x4104e0), (0x4104b0, 0x410610), (0x410670, 0x410720), (0x410720, 0x4107a0), (0x67acb0, 0x67acb1),
-           (0x67afa0, 0x67b0d0), (0x40f9e0, 0x40fa40), (0x40fe60, 0x40ff80), (0x4107b0, 0x410ac0), (0x410b20, 0x410bf0), (0x5e7720, 0x5e7750), (0x40fd60, 0x40fe50), (0x5f5e20, 0x5f5e50)],
+           (0x67afa0, 0x67b0d0), (0x40f9e0, 0x40fa40), (0x40fe60, 0x40ff80), (0x4107b0, 0x410ac0), (0x410b20, 0x410bf0), (0x5e7720, 0x5e7750), (0x40fd60, 0x40fe50), (0x5f5e20, 0x5f5e50),
+           (0x405460, 0x405530), (0x415e00, 0x415e80), (0x67acf0, 0x67ada0)],
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})
 SLOTS, HEADS, NIL, NODES, THING = RAM, RAM + 0x400, RAM + 0x800, RAM + 0x1000, RAM + 0x3000
 CHUNK, STREAM, SINK = RAM + 0x3100, RAM + 0x3200, RAM + 0x3400
 COUNTER = 0x785de0   # (the nil node's pointer follows at 0x785de4)
+CENTRE = 0x788d3c   # the message centre (0x415e00 makes it)
 SLOT_COUNT, MAX_NODES = 0x1d, 4
 
 
@@ -46,8 +49,24 @@ def slot(r, k, slots, heads, nodes_blob):
     return keys
 
 
+def made(r, op):
+    """Ctor (0x405460): one slot over random bytes; Instance (0x415e00): the message centre made (29 slots) or already there. The nil node made already or not,
+    the map counter anything; an allocation now and then fails (the first: no centre)."""
+    nil = bytearray(0x20)
+    struct.pack_into('<I', nil, 0x10, stdtree.BLACK)
+    regions = {COUNTER: struct.pack('<II', r.choice([0, 1, 2, 0x7fffffff, 0xffffffff]), r.choice([0, NIL])), NIL: nil,
+               HEAP: heap(0x1000, r.choice([0] * 12 + [1, 1, 2, 3]) if op == 'Instance' else r.choice([0] * 14 + [1]))}
+    if op == 'Ctor':
+        regions[SLOTS] = r.bytes(0x14)
+        return Call(0x405460, [SLOTS], regions, conv='t', ret='a')
+    regions[CENTRE] = struct.pack('<I', 0 if r.random() < 0.8 else r.getrandbits(32))
+    return Call(0x415e00, [], regions, conv='c', ret='a')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op in ('Ctor', 'Instance'):
+        return made(r, op)
     count = SLOT_COUNT if op in ('Slots', 'Remove', 'Save', 'Add', 'Load') else 1
     slots, heads, nodes_blob = bytearray(0x14 * count), bytearray(0x20 * count), bytearray(r.bytes(0x20 * MAX_NODES * count))
     keys = []
@@ -89,7 +108,7 @@ def case(r):
     return Call(0x409250 if op == 'Slots' else 0x40f970, [SLOTS], regions, conv='t', ret='v')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Slot,Slots,Remove,Save,Add,Load').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Slot,Slots,Remove,Save,Add,Load,Ctor,Instance').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
