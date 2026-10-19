@@ -57,7 +57,7 @@ address,name,kind,confidence,notes
 0x0055de70,FlyingRides_Save,function,high,reimplemented (src/game/core/savemods); writes the flying rides module to the save game
 0x005597a0,RSSE_Load,function,high,module RSSE
 0x00559350,RSSE_Save,function,high,reimplemented (src/game/core/savemods); writes the script contexts to the save game
-0x0042cec0,Camera_Load,function,high,module KAME
+0x0042cec0,Camera_Load,function,high,"reimplemented (src/game/core/savemods); 0x42cec0 (stream): the mirror of Camera_Save, then the flags cleared, 0x7909e0 the yaw, and the yaw snapped to a quarter turn when 0x78d912 is set"
 0x0042cdc0,Camera_Save,function,high,reimplemented (src/game/core/savemods); writes the camera values to the save game
 0x00437b60,Coasters_Load,function,high,module COAS
 0x00437300,Coasters_Save,function,high,"reimplemented (src/game/coaster/save); cdecl u32 (stream): link count, three globals, per link a 0x20-byte record, its pieces' 0x22-byte records and word lists, its cars' 0x1b- and seats' 0xb-byte records and arrays; failed writes never stop it; returns 1"
@@ -748,6 +748,9 @@ address,name,kind,confidence,notes
 0x0042cd80,Camera_CellOf,function,low,reimplemented (src/game/world/camera); the cell of a position
 0x004bd020,Camera_PackCellFractions,function,low,reimplemented (src/game/world/camera); a position's tenths as cell and fraction bytes
 0x0042a1d0,Camera_SnapToRide,function,low,"reimplemented (src/game/world/camera); cdecl: the camera point moved to the centre of the ride object in its cell, the yaw by that cell direction"
+0x0042a990,Camera_Reset,function,low,"reimplemented (src/game/world/camera); cdecl: the camera's zoom, yaw and point from 0x6fdd40, matrices identity, the field of view to the perspective 0x87b110 and the view quad, flags reset, 0x7909e4 the real time"
+0x0042aff0,Camera_SnapYaw,function,low,"reimplemented (src/game/world/camera); cdecl: the yaw 0x790a38 snapped to the nearest quarter turn (fmod by pi / 2, x87)"
+0x0042a760,Camera_Input,function,low,"reimplemented (src/game/world/camera); cdecl (message, param): the camera's mouse input: the point from param's words scaled by the screen's height / 2048 and width / 1536; 0x1e turns the yaw by the point's x with button 2; 0x20 / 0x22 release; 0x10001 / 0x10003 set the point; 0x10004 / 0x10005 buttons; 0x1000d the wheel zoom"
 0x0046c450,MouseMode_Nop4,function,high,reimplemented (src/game/world/mousemode); an empty mouse-mode method (4 arguments)
 0x0046c460,MouseMode_DeletingDtor,function,high,reimplemented (src/game/world/mousemode); the base mouse mode's deleting destructor
 0x0046c580,MouseModeTile_Ctor,function,high,reimplemented (src/game/world/mousemode); the 0x6fe9e0 tile mode's constructor
@@ -768,6 +771,10 @@ address,name,kind,confidence,notes
 0x0046c110,MouseState_ResolvePick,function,low,"reimplemented (src/game/world/mousemode); thiscall; the pointer state's picks: +4 the picked thing of a pickable kind, +8 the thing at its tile, +0 that when none"
 0x0046c480,MMPlaceStaff_Hover,function,low,"reimplemented (src/game/world/mousemode); thiscall (4 unused): the staff modes' sprite to the highlight point 5 up, and a square face over a cell that is not plain ground"
 0x0046c0d0,MouseState_ShowFps,function,low,"reimplemented (src/game/world/mousemode); thiscall (fps), pops 4: ""FPS: %4g"" printed into +0x10 and handed to 0x8bba50"
+0x0046ce80,MMOnline_Ctor,function,low,"reimplemented (src/game/world/mousemode); CMMOnline (vtable 0x6fe980): +4 0, the cursor 0 (Obj7b51f0_SetCursor); returns self"
+0x0046d590,MouseMode6fead0_Assign,function,low,"reimplemented (src/game/world/mousemode); thiscall, slot 10 (Assign) of the 0x6fead0 mode: the cursor 0x13"
+0x0046c730,MMPlaceStaff_Assign,function,low,"reimplemented (src/game/world/mousemode); thiscall, slot 10 (Assign): the cursor 9; kinds 4-8 start a sprite script (0x74ed98, folder 6/5/4/7/8, sprite +0x11) into +8, the old one killed"
+0x0046cbf0,MMStaffDrop_Assign,function,low,"reimplemented (src/game/world/mousemode); thiscall, slot 10 (Assign) of the 0x6fea70 mode: the cursor 9, a sprite script (0x74ed98, folder +0xc, sprite +0x10) into +8, the old one killed"
 0x0040f290,ThingMsg01_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (a): +8 a; vtable set, +4 cleared; returns this"
 0x0040f240,ThingMsg02_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (c, b): +8 b, +0xc c; vtable set, +4 cleared; returns this"
 0x0040f330,ThingMsg06_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (u16 a): +8 a; vtable set, +4 cleared; returns this"
@@ -1813,6 +1820,7 @@ address,name,kind,confidence,notes
 0x0043a970,Vec3_Dot,function,high,"reimplemented (src/game/coaster/helpers); cdecl (a, b), double in st0: the dot product"
 0x0043a9a0,Vec3_Normalize,function,high,"reimplemented (src/game/coaster/helpers); cdecl (v): v over its length, in place; a zero vector gives NaNs"
 0x004387a0,Vec3_NormalizeXZ,function,high,"reimplemented (src/game/coaster/helpers); cdecl (v): v (y too) over the length of its x and z, in place"
+0x00438a70,Float_SplitWhole,function,low,"reimplemented (src/game/coaster/helpers); cdecl (x, whole or null): the CRT modf fraction in st0, the whole part through __ftol to *whole"
 0x0043c160,CoasterCar_SwingRate,function,high,"reimplemented (src/game/coaster/cars); cdecl (coaster, car, x), double in st0: (+-pi - angle +0x94) * x / type+0x10 / (d1 + d2) from the distances to the neighbour cars; 0 when the angle is 0 or flag 0x100"
 0x0043c1f0,Coaster_SpaceCars,function,high,"reimplemented (src/game/coaster/cars); cdecl (coaster): seeds each car position (+0x30) from its spline node, then puts each one gap (type+0x2ec / 1000) behind the one before along the coaster nodes; loops forever on NaN (sic)"
 0x0043c000,CoasterNode_Lerp,function,high,"reimplemented (src/game/coaster/nodes); cdecl (coaster, index, t, out): node index's +4 vector t of the way to node index+1's"
@@ -1820,6 +1828,7 @@ address,name,kind,confidence,notes
 0x0043e9c0,Coaster_FindZone,function,high,"reimplemented (src/game/coaster/nodes); cdecl (owner, unused, pos, t): +0x20 of the first of the first count-1 boxes (0x2c bytes at +0x78) holding t and pos[1..3], else the last box's"
 0x0043ea90,CoasterSearch_Reset,function,high,"reimplemented (src/game/coaster/nodes); cdecl (search): seven zeros, then FLT_MAX at +0x1c"
 0x00440c10,Coaster_BuildNodes,function,low,"reimplemented (src/game/coaster/nodes); cdecl (coaster): the coaster's 0x38-byte nodes (+0x9c, count +0xa4) sampled every +0xac along the track's spline, with their angles; sized first (+0x98, GlobalMem)"
+0x00440a30,CoasterNodes_SplineAt,function,low,"reimplemented (src/game/coaster/nodes); cdecl (nodes, at): the spline node at a node index and fraction (walked on from the node's +0x2c while the next value is below), its +0 plus the way to the next as a fraction (double in st0)"
 0x0043f030,Keys_MergeSamples,function,high,"reimplemented (src/game/coaster/keys); cdecl (a, b, keys, out, span): n samples start + i/(n-1)*span (start at 0x79240c; n = **(b+0x90) when a == b, else 11) with the key times (0x10-byte keys) between them; returns the count written"
 0x0043fcd0,CoasterList_Append,function,high,"reimplemented (src/game/coaster/lists); cdecl (list): links the next 0x10-byte pool item (0x79c604) at the list tail, giving the list a mesh slot (counter 0x7925c8) first if it has none; returns the item"
 0x0062fe00,RowReader_Decode,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); rows read ahead (vtable +0 Begin, +4 ReadRow), converted if the formats differ, copied top down or bottom up; a failed row read ends it as success"
@@ -3148,6 +3157,7 @@ address,name,kind,confidence,notes
 0x004813f0,Wrap_Panel7b9940_Close_4813f0,function,low,reimplemented (src/game/core/thunks); jump to 0x48a290
 0x00565090,Wrap_Texture_DecodeWct_565090,function,low,"reimplemented (src/game/core/thunks); thiscall (pixels; pops 4): this lowered by the dword before it (a virtual base offset), then Texture_DecodeWct"
 0x00565080,Wrap_Texture_DecodeWctInto_565080,function,low,"reimplemented (src/game/core/thunks); thiscall (surface, flip; pops 8): this lowered by the dword before it (a virtual base offset), then Texture_DecodeWctInto"
+0x0042a070,Wrap_Deleter_Minus8_458970_42a070,function,low,"reimplemented (src/game/core/thunks); thiscall (flags; pops 4): this lowered by the dword before it (a virtual base offset), then Deleter_Minus8_458970"
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value
@@ -3727,6 +3737,11 @@ address,name,kind,confidence,notes
 0x0047cf20,ImeVector_InsertN,function,high,reimplemented (src/game/core/ime); inserts count copies of a dword into the IME vector
 0x0047a9b0,Ime_CacheCurrent,function,low,reimplemented (src/game/core/ime); thiscall: the current entry cached at +0x160; returns its string count
 0x00480f90,ImeHost_OnWindow,function,low,"reimplemented (src/game/core/ime); thiscall (window): for the host's window (+4), +0x1a8 = 0, +0x1aa = 1 and the IME limit = the window's room (+0x13c less its text length)"
+0x00479260,Ime_OnChar,function,low,"reimplemented (src/game/core/ime); thiscall (window, character, lparam), pops 12: 0 unless IsDBCSLeadByte(character); up to 10 PeekMessageA(WM_CHAR, removed) for the trail byte (1 when none); MultiByteToWideChar of lead + trail (1 unless one character); message 0x410 with the character and lparam through the IME handler +0x50 or DefWindowProcA; 1"
+0x004791a0,ImeContext_Get,function,low,"reimplemented (src/game/core/ime); thiscall (window), pops 4: context { window, ImmGetContext(window) }; returns context"
+0x00478d20,ImeContext_Release,function,low,"reimplemented (src/game/core/ime); thiscall: with a context, ImmReleaseContext(window, context); returns EAX (that, else 0)"
+0x00478be0,Ime_Dtor,function,low,"reimplemented (src/game/core/ime); thiscall destructor: vtable 0x6fef04, ImmDestroyContext(+0x5c) when set, each 0x24 entry's strings cleared (CountedVector4_Clear +0x10), the entries' block freed and +0x3c-+0x44 0, then the wide strings +0x28 / +0x18 / +0x8 tidied (inlined)"
+0x00478bc0,Ime_DeletingDtor,function,low,"reimplemented (src/game/core/ime); thiscall (flags), pops 4: Ime_Dtor, then freed for flags bit 0; returns ime"
 0x0047f9a0,TextMetrics_Width,function,high,reimplemented (src/game/gfx/text); width of a run of characters by the glyph width slot
 0x0047fa00,TextMetrics_FitIndex,function,high,reimplemented (src/game/gfx/text); index at which the width runs out
 0x0047f990,TextMetrics_ForwardSlot8,function,high,reimplemented (src/game/gfx/text); Forwards to virtual call 8 of the inner object (name unconfirmed)
@@ -3851,6 +3866,7 @@ address,name,kind,confidence,notes
 0x00452a60,Map_RideIndexAt,function,low,"reimplemented (src/game/terrain/land); cdecl (x, y): the ride index of a map cell, from its dword or the ride object there"
 0x00450ac0,Terrain_RideAt,function,low,"reimplemented (src/game/terrain/land); cdecl (x, y): the ride at the grid cell, clamped to the grid"
 0x00452ae0,Terrain_SurfaceHeight,function,low,"reimplemented (src/game/terrain/land); cdecl (x, y, slot): the height at cell (x, y): the ride height map there (by its origin and angle) or the ground"
+0x00452560,Terrain_GridHeightAt,function,low,"reimplemented (src/game/terrain/land); cdecl (x, z, any): the ground height at a point by the map's grid (+0x6c) from its origin (+8/+0xc) and cell sizes, blended over the cell's triangle (flag 4 picks the diagonal); 0 off the grid, FLT_MAX in a flag-1 cell unless any (double in st0)"
 0x00450b30,Terrain_ScaleNormals,function,low,"reimplemented (src/game/terrain/normals); cdecl (node, matrix by value): the node's matrix applied; its normals scaled to 0.225 or 1 by the grid flag 0x400 under their vertices; then its children"
 0x00450d10,Terrain_ShadeNormals,function,low,"reimplemented (src/game/terrain/normals); cdecl: grid flag 0x400 from each map cell's flags 0x40 / 0x80, then Terrain_ScaleNormals from the map's model with the identity"
 0x0046eeb0,Terrain_NodeCells,function,low,"reimplemented (src/game/terrain/nodecells); cdecl (node, grid, matrix by value): the node box through its matrix to the cells it covers (+0x90), flags 0x2000 / 0x4000000; then its children"
@@ -3970,6 +3986,8 @@ address,name,kind,confidence,notes
 0x00407c90,NamedObjects_Dtor,function,low,"reimplemented (src/game/core/namedobjects); thiscall: owned objects deleted (slot 3), registry drained and freed, +0x38 freed, list vtable 0x6fd708 and nodes freed, String_Dtor"
 0x00407b80,NamedObjects_StaticDtor,function,low,"reimplemented (src/game/core/namedobjects); cdecl, at exit: NamedObjects_Dtor of the global 0x786b68"
 0x00409620,NamedObjects_AddName,function,low,reimplemented (src/game/core/namedobjects); thiscall (name String): a new String assigned the name goes into the owned list +0x24 sorted case blind; nothing when already held
+0x00409a30,NamedObjects_SetThemeLabel,function,low,"reimplemented (src/game/core/namedobjects); thiscall (theme WString, label; owner unused): fantasy/halloween/jungle/space -> the record table [0x78bad4]'s text 2/1/0/3 widened to the label's vtable +0x14"
+0x004099b0,NamedObjects_SetThemeLabelAnsi,function,low,"reimplemented (src/game/core/namedobjects); thiscall (theme String, label): the name widened (WString_AssignFromAnsi), then NamedObjects_SetThemeLabel when that converted anything"
 0x00407b20,FloatConsts_InitOne_407b20,function,low,reimplemented (src/game/core/floatconsts); cdecl static initialiser: unused 0x78639c = 1.0f (unit unknown)
 0x00407b40,FloatConsts_InitEpsilon_407b40,function,low,reimplemented (src/game/core/floatconsts); cdecl static initialiser: unused 0x786aec = 1 / 2^23 (unit unknown)
 0x00409f60,FloatConsts_InitOne_409f60,function,low,reimplemented (src/game/core/floatconsts); cdecl static initialiser: unused 0x78736c = 1.0f (unit unknown)
@@ -4079,6 +4097,7 @@ address,name,kind,confidence,notes
 0x0040f000,CommandLine_Parse,function,low,"reimplemented (src/game/core/cmdline); cdecl (argc, argv): the switches v/version (0), flmouse, bwcursor and the skipped ones; the park file with the extension into 0x788164, else GameError_Set(2); 1 without an error"
 0x005e6b30,WScanner_SetText,function,low,"reimplemented (src/game/core/wscanner); thiscall (text by value, context, flags; pops 0x18): flag bytes +0x3d-+0x3f and +0x40 set, the wstring at +4 assigned the text and frozen, +0x34/+0x38 its characters and 0, the text destroyed"
 0x005e73f0,WKeywordPair_Ctor,function,low,"reimplemented (src/game/core/wscanner); thiscall (key by value, 16-byte value by value; pops 0x20): the wstring at +0 made empty and assigned the key, +0x10..+0x1c the value, the key destroyed; returns the pair"
+0x0045f640,Startup_CheckCanRun,function,low,"reimplemented (src/game/core/startcheck); cdecl u8 (): 0 with game error 0 when not installed (Registry_GameInstalled); else CreateMutexA(0, 1, [0x7a2508]) kept at 0x7a267c, and when made with GetLastError 0xb7 (already exists) game error 1, CloseHandle, 0; else 1"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
@@ -4443,6 +4462,11 @@ address,name,kind,confidence,notes
 0x00433240,Car_FreeCoupling,function,high,reimplemented (src/game/coaster/train); frees a coupling's seat arrays (the first only without the car part's flag 1 at +4) and clears both
 0x00443df0,Car_SetMoveCostChange,function,low,"reimplemented (src/game/coaster/train); cdecl (car, &cost, &extra, x, z, a, b): 0x79c69c = the rounded-up travel costs of the car (and its follower) to x, z less the old costs, or 0 at (0x79c6d8, 0x79c6a0)"
 0x00433300,Pylon_FindBraceLevel,function,low,"reimplemented (src/game/coaster/train); cdecl u32 (float wanted, train*, u32* level, float* height, quiet): a brace level and height on a pylon (the top first unless 0x79c658 & 0x100, then each car, then the top again); returns 1"
+0x00430ca0,Car_SetChannelRates,function,low,"reimplemented (src/game/coaster/train); cdecl (unused, car): five channel rates of the car's ride from its +0xe8..+0xf8 values and its train type's ranges (+0xd0 on); x87, modf"
+0x00433790,Car_FitHeight,function,low,"reimplemented (src/game/coaster/train); cdecl (owner, car, type, height, free): the car's length fraction (+0xe8) for its top to reach height (less the train length below and the gap; held to +0x68..+0x6c unless free), then its channel rates"
+0x00433a90,Train_ShrinkToTop,function,low,"reimplemented (src/game/coaster/train); cdecl (owner, type, train): while the train's length is above the type's +0x6c, its cars from the last down take the length +0x68 (and their channel rates); 1 when any did"
+0x004338e0,Train_RestoreSaved,function,low,"reimplemented (src/game/coaster/train); cdecl (owner, train): the train's header from 0x790ff0 and its cars' fields from the saved copies at 0x791d00 (+0x50 from 0x791038), each car's channel rates; slots past the count cleared, 0x791cd8 = 0"
+0x00442d70,Train_RemoveCar,function,low,"reimplemented (src/game/coaster/train); cdecl (owner, car): the car taken out of its train (+0x100): count lowered, later cars moved down a slot (+4 lowered); the car taking its slot gets the ride value (+8,+4,+0x78,+0x44) of the car before and its +0xe8 unlerped from its train length less the length before plus the gap, held to 0..1, then Car_SetChannelRates"
 0x0042e200,CrossSection_BuildIndices,function,high,"reimplemented (src/game/coaster/xsection); cdecl (coaster, sections, source): 20 buckets (0xf4 at source+0x2090, count +0xf0) of u16 triples packed into coaster+0x94 (12 each, at +4/+6/+8); sections (source+0x3530 of source+0x33a4 records, bucket from 1) get +0xc pointer, +4 count from the packed lists (sic: bucket numbers index the packed lists); 0 on empty or bucket 0 (sic: lists leak)"
 0x0042d6d0,CrossSection_BuildPoints,function,high,"reimplemented (src/game/coaster/xsection); cdecl (coaster, sections, source, &shared): 20 buckets (0x194 at source+0x100, count +0x190) of 20-byte points packed into coaster+0x90, +4 += coaster+0x40 (x87); sections (source+0x3530 of source+0x33a0 records) get +8 pointer, +0 count, and a second bucket's pointer +0x10 / value +0x14 (shared = 1; counts must match); 0 on empty, bucket 0 or mismatch (sic: lists leak)"
 0x0042d130,CrossSection_BuildPieces,function,high,"reimplemented (src/game/coaster/xsection); cdecl (coaster, sections, n, source, flag): source+0x38a4 pieces of 0x2c (coaster+0x78/+0x7c): four degree ranges from source+0x3534 as radians (both 0/NaN: -FLT_MAX..FLT_MAX), up to three section links (first required, <= n); coaster+0x84 link from source+0x3b04 (|0x40), +0x80 sections end, flag: +0x74 |= 1; 0 on none or out of range"
@@ -4574,6 +4598,7 @@ address,name,kind,confidence,notes
 0x004587e0,LightSource_SetColourScaled,function,low,"reimplemented (src/game/render/lightsource); cdecl (light, scale): LightSource_SetColour of the light's object with its colour times scale"
 0x00457e70,LightSource_Create,function,low,"reimplemented (src/game/render/lightsource); cdecl (kind, colour, point, direction): a light {kind, part, 0, part, colour} by kind: 0 the data error box and 0, 1 the ambient colour 0x879dd8, 2 / 3 a part built in place, coloured, given the direction / point and added to the renderer's tag 0x70 list"
 0x004584d0,LightSource_CreateMain,function,low,"reimplemented (src/game/render/lightsource); cdecl: the direction 0x7a0b30 normalised, the directional light of colour 0x7a0b3c made in it (LightSource_Create 2) and kept at 0x7a0b40, its part's flag 0x20 set"
+0x00458590,LightSource_UpdateMain,function,low,"reimplemented (src/game/render/lightsource); cdecl (update): when nonzero, the ambient 0x879dd8 = {1, rgb of 0x7a0b44 / 255}; the direction 0x7a0b30 normalised (times 0x74d0d8 over its float length); the main light's part takes it (+0x2c) and the colour 0x7a0b3c (+0x54, channels times 0x6fe50c / 255), SceneFlags_Touch before each"
 0x00561bc0,ClipCodes_Compute,function,low,"reimplemented (src/game/render/clipcodes); fastcall-shaped (caller's ECX, EDX; out, codes, points, count, stride, mask), pops 24: each point's 7-bit sign/magnitude index into the table at 0x879970, masked, stored; out = AND | OR << 8 | ECX's high half"
 0x00570d60,ClipCodes_Run,function,low,reimplemented (src/game/render/clipcodes); the caller ECX and six arguments on to ClipCodes_Compute; returns out (name unconfirmed)
 0x00561840,ClipCodes_InitTable,function,low,"reimplemented (src/game/render/clipcodes); cdecl: the clip code table at 0x879970 built and the 8-byte block at 0x879a20 allocated, unless the block is there"
@@ -4750,6 +4775,7 @@ address,name,kind,confidence,notes
 0x00454670,StripAnim_Show,function,low,"reimplemented (src/game/model/stripanim); cdecl (object, shown): the strip owner placed at the holder (identity, translation, turned by its degrees), joining the grid, or hidden and out of it"
 0x00454550,StripAnim_StartGrow,function,low,"reimplemented (src/game/model/stripanim); cdecl (object, frame): with strips, the frame pointer and flags for frame 1/2/4/8 (when not already set), step 0.2, shown unless 0x20, flags 0x60 set and 0x80 cleared"
 0x004547f0,StripAnim_Refresh,function,low,"reimplemented (src/game/model/stripanim); cdecl (object): with strips, a growing object shown again with its step reset, StripAnim_Apply at +0xb8, the frame pointer from the frame flags (none: frame 1)"
+0x004548f0,StripAnim_Step,function,low,"reimplemented (src/game/model/stripanim); cdecl (object, dt): with a strip owner and strips, a growing or shrinking object (flags 0xc0) steps t (+0xb8) by +0xbc times dt, held to 0..1; changed: StripAnim_Apply; unchanged: shrinking at 0 loses 0xa0 and StripAnim_Show(0), growing at 1 loses 0x40"
 0x00451390,Model_HeightAt,function,high,reimplemented (src/game/model/heightat); the height of a model's floor under a point
 0x00451290,Model_FloorHeight,function,high,reimplemented (src/game/model/heightat); the view's floor height under a point
 0x004511a0,View_FloorAt,function,low,"reimplemented (src/game/model/heightat); cdecl (x, z, &out): the floor under a point by the view's way (0x79fb10): the ground, the offset, the parts or the main node, plus the model's offset (+0xa0, a NaN cleared)"

@@ -39,4 +39,15 @@ void __fastcall NamedObjects_AddName(u8 *self, void *, const String *name);
 // 0x7477e4 = bit 3 of the flags 0x7a1a14; and when the owner's dword at +0x18 is set bit 1 of the flags is set. Returns the flags then,
 // else 0.
 u32 __fastcall Flags7a1a14_Update(const u8 *object);
+
+// 0x409a30 (thiscall on the owner 0x786b68, which it does not use; theme, label; pops 8; name unconfirmed): the theme's wide name is compared
+// case blind (WNames_Equal) with the globals 0x786478 "fantasy", 0x786808 "halloween", 0x786970 "jungle" and 0x7869e8 "space"; for the first
+// that matches, the text of the record table [0x78bad4] at 2, 1, 0 or 3 (Records_DataIfTerminated), widened (Language_Widen), goes to the
+// label's vtable +0x14. No match: nothing. An unused String is constructed and destroyed around it.
+struct WString;
+void __fastcall NamedObjects_SetThemeLabel(u8 *self, void *, const WString *theme, u8 *label);
+
+// 0x4099b0 (thiscall; theme, a String, label; pops 8; name unconfirmed): the theme name widened into a local WString
+// (WString_AssignFromAnsi); when that converts anything, NamedObjects_SetThemeLabel with it.
+void __fastcall NamedObjects_SetThemeLabelAnsi(u8 *self, void *, const String *theme, u8 *label);
 }

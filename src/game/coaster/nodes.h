@@ -38,4 +38,10 @@ void __cdecl Coaster_BuildNodes(u8 *coaster);
 // 0x43ea90: resets a nearest-match search: seven zeros, then FLT_MAX as the best distance
 // so far (+0x1c).
 void __cdecl CoasterSearch_Reset(u32 *search);
+
+// 0x440a30 (cdecl; nodes, at; name unconfirmed): where at (a node index and fraction) lies on the spline: from the spline node (+0x2c) of
+// the 0x38-byte node __ftol(the whole part of at) (Float_SplitWhole, inlined), on along +0x18 while the next one's value (+8) is below at
+// (or a NaN); returns its +0 (a signed dword) plus (at - its value) / (the next's value - its value), or plus 0 with no next (fiadd at
+// the game's precision, so double in st0).
+double __cdecl CoasterNodes_SplineAt(const u8 *nodes, float at);
 }

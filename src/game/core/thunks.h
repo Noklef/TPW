@@ -224,6 +224,9 @@ u32 __fastcall Wrap_WaveletCodec_GetRefCount_5987d0(const u8 *self);
 // 0x42a080 (thiscall; 1 stack arguments): this lowered by the dword before it (a virtual base offset), then Deleter_Minus60_42a090.
 u8 *__fastcall Wrap_Deleter_Minus60_42a090_42a080(u8 *self, void *, u32 a2);
 
+// 0x42a070 (thiscall; 1 stack arguments): this lowered by the dword before it (a virtual base offset), then Deleter_Minus8_458970.
+u8 *__fastcall Wrap_Deleter_Minus8_458970_42a070(u8 *self, void *, u32 a2);
+
 // 0x564af0 (thiscall; 2 stack arguments): this lowered by the dword before it (a virtual base offset), then VBase_CallSlot8.
 u32 __fastcall Wrap_VBase_CallSlot8_564af0(u8 *self, void *, u32 a2, u32 a3);
 

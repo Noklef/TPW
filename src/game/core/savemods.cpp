@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "../world/camera.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -19,6 +21,11 @@ bool Write_Ok(Stream *stream, u32 address, u32 count) {
 
 void WriteValue(Stream *stream, u32 value) { Write(stream, &value, 4); }
 
+bool Read_Ok(Stream *stream, u32 address, u32 count) {
+    s32 result;
+    return *Stream_Read(&result, stream, reinterpret_cast<void *>((uintptr_t)address), (s32)count, nullptr) >= 0;
+}
+
 }  // namespace
 
 extern "C" {
@@ -26,6 +33,17 @@ extern "C" {
 u32 __cdecl Camera_Save(Stream *stream) {
     return Write_Ok(stream, 0x007909ec, 4) && Write_Ok(stream, 0x00790a38, 4) && Write_Ok(stream, 0x00790ab0, 4) && Write_Ok(stream, 0x007908f0, 0xc) &&
            Write_Ok(stream, 0x00790ad0, 0xc) && Write_Ok(stream, 0x00790a9c, 4);
+}
+
+u32 __cdecl Camera_Load(Stream *stream) {
+    if (!(Read_Ok(stream, 0x007909ec, 4) && Read_Ok(stream, 0x00790a38, 4) && Read_Ok(stream, 0x00790ab0, 4) && Read_Ok(stream, 0x007908f0, 0xc) &&
+          Read_Ok(stream, 0x00790ad0, 0xc) && Read_Ok(stream, 0x00790a9c, 4)))
+        return 0;
+    global<u32>(0x00790ab0) = 0;
+    global<u32>(0x007909e0) = global<u32>(0x00790a38);
+    if (global<u8>(0x0078d912))
+        Camera_SnapYaw();
+    return 1;
 }
 
 u32 __cdecl Particles_Save(Stream *stream, s32 full) {

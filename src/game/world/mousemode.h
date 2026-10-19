@@ -83,4 +83,17 @@ u8 *__fastcall MMStaffDrop_Ctor(u8 *self, void *edx, u32 a, u8 b);
 // 0x46cfc0 / 0x46cff0: the 0x6feaa0 / 0x6fead0 modes.
 u8 *__fastcall MouseMode6feaa0_Ctor(u8 *self);
 u8 *__fastcall MouseMode6fead0_Ctor(u8 *self);
+
+// 0x46ce80 (name unconfirmed; its vtable's slot 10 prints "Assigning CMMOnline"): CMMOnline (vtable 0x6fe980): +4 0, then the cursor
+// 0 (Obj7b51f0_SetCursor). Returns self.
+u8 *__fastcall MMOnline_Ctor(u8 *self);
+
+// Slot 10 of the modes (Assign, by CMMOnline's debug print; names unconfirmed). 0x46d590 (the 0x6fead0 mode): the cursor 0x13.
+void __fastcall MouseMode6fead0_Assign(u8 *self);
+// 0x46c730 (CMMPlaceStaff): the cursor 9, then for the kind +0xc 4, 5, 6, 7 or 8 a sprite script (SpriteScript_Start code 0x74ed98, folder
+// 6, 5, 4, 7 or 8, sprite the byte +0x11, the rest 0) goes to +8, the one there before (if any) killed after it starts. Other kinds: only
+// the cursor (and a debug print, left out).
+void __fastcall MMPlaceStaff_Assign(u8 *self);
+// 0x46cbf0 (the 0x6fea70 mode): the same with folder +0xc and sprite the byte +0x10.
+void __fastcall MMStaffDrop_Assign(u8 *self);
 }

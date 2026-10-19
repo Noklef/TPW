@@ -3,7 +3,8 @@
 # the originals: each on a random object (the destructors' frees through heap()); and TileAt, the pointer's tile from a position
 # (0x45d560) on a map's grid of random origins, cell sizes and dimensions; Hover (0x46c480): a sprite slot or none, ready or not, at a
 # highlight point of any floats, over a cell (and its handle's entry and parent) of any type and flags, with a face queue part full or full.
-# Fps (0x46c0d0): the FPS text printed into the pointer state and handed to 0x8bba50.
+# Fps (0x46c0d0): the FPS text printed into the pointer state and handed to 0x8bba50. CMMOnline's constructor and the modes' Assign
+# (0x46ce80, 0x46d590, 0x46c730, 0x46cbf0): see assign().
 # usage: mousemode.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import sys
@@ -11,7 +12,10 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 import struct
 
-from fncmp import HEAP, Bench, Call, RAM, fb, heap, put  # noqa: E402
+from fncmp import HEAP, LOG, Bench, Call, RAM, fb, global_heap, heap, log_region, put  # noqa: E402
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import cursor  # noqa: E402
 
 B = Bench([(0x46c450, 0x46c453), (0x46c460, 0x46c480), (0x46c580, 0x46c5c6), (0x46c650, 0x46c653),
            (0x46c6a0, 0x46c6b0), (0x46c6d0, 0x46c702), (0x46c710, 0x46c72e), (0x46cbc0, 0x46cbe1),
@@ -19,7 +23,10 @@ B = Bench([(0x46c450, 0x46c453), (0x46c460, 0x46c480), (0x46c580, 0x46c5c6), (0x
            (0x45d560, 0x45d60e), (0x4d8300, 0x4d8328), (0x46c480, 0x46c578), (0x45d610, 0x45d616), (0x475480, 0x4754d4),
            (0x535db0, 0x535dc3), (0x536300, 0x536484), (0x53ad20, 0x53aefc), (0x53c8d0, 0x53c9c0), (0x5da3c0, 0x5da3c1),
            (0x4d0a70, 0x4d0a86), (0x4d0a90, 0x4d0ab1), (0x4d0ac0, 0x4d0ae1), (0x4d0af0, 0x4d0b06), (0x4d0b10, 0x4d0b27), (0x522700, 0x5228b5),
-           (0x46c0d0, 0x46c0ff), (0x57cb10, 0x57cb28), (0x67a400, 0x6902c0)])
+           (0x46c0d0, 0x46c0ff), (0x57cb10, 0x57cb28), (0x67a400, 0x6902c0),
+           (0x46ce80, 0x46ceca), (0x46d590, 0x46d59d), (0x46c730, 0x46c87a), (0x46cbf0, 0x46cc37), (0x402d70, 0x403220), (0x4033a0, 0x4033f0),
+           (0x475550, 0x4755a0), (0x4758f0, 0x475b90), (0x540c60, 0x540da0), (0x5f5660, 0x5f56a0), (0x5f5e20, 0x5f5e90), (0x5f5fa0, 0x5f5fc0),
+           (0x4814a0, 0x4814e3), (0x4a2aa0, 0x4a2abf), (0x6590f7, 0x6591d4), (0x65f11d, 0x65f14e), (0x66190a, 0x66191b), (0x661d96, 0x661dca)])
 HTYPES = [0, 0, 1, 1, 3, 9, 2, 4, 0xb, 0xc, 0xd, 0x10, 0x11, 0x12, 0x19, 0x1e]
 CELLS = RAM + 0x1000   # the 0x44-byte cells: [0x7cf83c] + 0x294
 ENTRIES = CELLS - 0x294 + 0x1102b0   # the 0x28-byte entries of handles 0-5
@@ -63,8 +70,48 @@ def hover(r):
     return Call(0x46c480, [RAM] + [r.getrandbits(32) for _ in range(4)], regions, conv='t', ret='v')
 
 
+ASSIGNS = {'Online': 0x46ce80, 'AssignAd0': 0x46d590, 'AssignPlace': 0x46c730, 'AssignDrop': 0x46cbf0}
+SCRIPTS, STABLE, SPRITES = 0x7b49f0, RAM + 0x3000, RAM + 0x4000
+
+
+def assign(r, op):
+    """CMMOnline's constructor 0x46ce80 and the modes' Assign (slot 10): the cursor set through 0x4814a0 (the windows as cursor.py's ObjSet),
+    and for the staff modes a sprite script started (the list ready or not, its slot table full (then grown by 50) or not, scripts from the
+    heap, the clock frozen; folders 0-9 of 1-4 sprites, kinds about 4-8) with the slot at +8 (0, or one of the table's) killed."""
+    regions = {LOG: log_region(), HEAP: heap(), **global_heap()}
+    cursor.cursor_env(r, regions)
+    wins = [cursor.WINDOW + 0x80 * i for i in range(3)]
+    for w in wins:
+        regions[w] = bytearray(r.bytes(0x60))
+    put(regions[0xfaa5e0], 0, 'I', r.choice(wins + [0]))
+    regions[0x7cb2a8] = put(bytearray(r.bytes(0x38)), 4, 'I', r.choice([wins[0], wins[0], 0]))
+    regions[0x7cc8bc] = put(bytearray(8), 0, 'II', r.choice([wins[1], 0]), r.choice([wins[2], 0]))
+    self = bytearray(r.bytes(0x20))
+    n = r.choice([1, 2, 3, 4])
+    put(self, 8, 'I', r.choice([0, 0, 1, 2, 3, n - 1]))
+    put(self, 0x10, 'BB', *(r.choice([0, 1, 2, 3, 0, 1, r.getrandbits(8)]) for _ in range(2)))   # (the sprite: mostly one the folder has)
+    put(self, 0xc, 'I', r.choice([4, 5, 6, 7, 8, 4, 5, 6, 7, 8, 3, 9, 0, r.getrandbits(32)]) if op == 'AssignPlace' else r.randrange(10))
+    regions[RAM] = self
+    folders = bytearray(12 * 10)
+    for k in range(10):
+        put(folders, 12 * k + 4, 'II', r.randrange(8), r.choice([1, 2, 3, 4]))
+    regions[0x763f88] = folders
+    regions[SPRITES] = r.bytes(0x240 * 4)
+    regions[0x876b48] = b''.join(struct.pack('<I', SPRITES + 0x240 * r.randrange(4)) for _ in range(16))
+    table = bytearray(struct.pack('<4I', *[r.choice([0, RAM + 0x3800]) for _ in range(4)]))
+    if r.random() < 0.4:
+        table[4:] = struct.pack('<3I', RAM + 0x3800, RAM + 0x3800, RAM + 0x3800)
+    regions[STABLE] = table
+    regions[RAM + 0x3800] = r.bytes(0x120)
+    regions[SCRIPTS] = struct.pack('<11I', STABLE, n, 0, 0, 0, 0, 0, 0, 0, r.choice([1, 1, 1, 0]), 0)
+    regions[0x785970] = put(bytearray(r.bytes(0x80)), 0x38, 'I', 1)
+    return Call(ASSIGNS[op], [RAM], regions, conv='t', ret='a' if op == 'Online' else 'v')
+
+
 def case(r):
     op = r.choice(OPS)
+    if op in ASSIGNS:
+        return assign(r, op)
     if op == 'Hover':
         return hover(r)
     if op == 'TileAt':   # a map with a grid (or not): origins and cell sizes whole or odd (0, NaN), dims about 128 (0, 1 or huge)
@@ -96,7 +143,7 @@ def case(r):
     return Call(at, [RAM] + args, regions, conv='t', ret=ret)
 
 
-OPS_ALL = list(CALLS) + list(STATICS) + ['TileAt'] * 3 + ['Hover'] * 10 + ['Fps'] * 2
+OPS_ALL = list(CALLS) + list(STATICS) + ['TileAt'] * 3 + ['Hover'] * 10 + ['Fps'] * 2 + list(ASSIGNS) * 3
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

@@ -54,4 +54,25 @@ u32 *__fastcall ImeVector_InsertOne(u8 *vec, void *, u32 *position, const u32 *v
 // up past the end, the rest of the new room filled from the value and the position's span assigned; otherwise the last count are copied up, the rest shifted and the count
 // values assigned. Without: a new block of the larger of count and the size plus the size. Nothing for a count of 0 (with room).
 void __fastcall ImeVector_InsertN(u8 *vec, void *, u32 *position, u32 count, const u32 *value);
+
+// 0x479260 (thiscall; window, character, lparam, pops 12; name unconfirmed): 0 unless the character (the whole dword passed to
+// IsDBCSLeadByte, 0x6fd154) is a lead byte. Then up to 10 PeekMessageA (0x6fd354; the window's WM_CHAR, removed) for the trail byte: 1
+// when none comes. The two bytes (lead, then the message's wParam low byte) to one wide character (MultiByteToWideChar 0x6fd174, code
+// page 0): 1 unless exactly one. The character (its low word) sent as message 0x410 with lparam to the window through the IME's handler
+// +0x50 (stdcall) or, without one, DefWindowProcA (0x6fd340); 1.
+u32 __fastcall Ime_OnChar(u8 *ime, void *, u32 window, u32 character, u32 lparam);
+
+// A window's input context: { window, context }. 0x4791a0 (thiscall; window, pops 4; name unconfirmed): window stored, then the context
+// from ImmGetContext (0x6fd084, through its thunk 0x6b55a6); returns context. 0x478d20 (thiscall; name unconfirmed): with a context,
+// ImmReleaseContext (0x6fd080, thunk 0x6b55a0) of window and context; returns what EAX holds (the release's answer, else 0).
+u32 *__fastcall ImeContext_Get(u32 *context, void *, u32 window);
+u32 __fastcall ImeContext_Release(const u32 *context);
+
+// 0x478be0 (thiscall; the destructor): the vtable back to 0x6fef04, the context +0x5c (when set) destroyed (ImmDestroyContext 0x6fd07c,
+// thunk 0x6b559a); each 0x24-byte entry of the vector +0x38 (first +0x3c up to last +0x40, read once) has its strings' vector +0x10
+// cleared (CountedVector4_Clear), the block freed (null too) and +0x3c-+0x44 cleared; then the wide strings +0x28, +0x18 and +0x8 tidied
+// (inlined: released or their count lowered, emptied). 0x478bc0 (thiscall; flags, pops 4): that, then the IME freed for flags bit 0;
+// returns ime.
+void __fastcall Ime_Dtor(u8 *ime);
+u8 *__fastcall Ime_DeletingDtor(u8 *ime, void *, u32 flags);
 }

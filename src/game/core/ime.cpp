@@ -13,6 +13,28 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 // The difference of two pointers in dwords, shifted arithmetically as the compiled code does.
 s32 Dwords(const u32 *a, const u32 *b) { return (s32)((uintptr_t)a - (uintptr_t)b) >> 2; }
 
+template <typename F> F import(std::uintptr_t slot) { return *reinterpret_cast<const F *>(slot); }
+
+struct Message {   // (MSG)
+    u32 window, message, wparam, lparam, time, x, y;
+};
+
+// The wide string's _Tidy(true), inlined in the destructor: the block (two bytes before the characters) freed when the count byte before
+// them is 0 or 0xff (frozen), else that count lowered; then ptr, len and res 0. s is the string { allocator, ptr, len, res }.
+void TidyWide(u8 *s) {
+    u8 *const characters = at<u8 *>(s, 4);
+    if (characters) {
+        const u8 count = characters[-1];
+        if (count != 0 && count != 0xff)
+            characters[-1] = (u8)(count - 1);
+        else
+            GameHeap_Free(characters - 2);
+    }
+    at<u32>(s, 4) = 0;
+    at<u32>(s, 8) = 0;
+    at<u32>(s, 0xc) = 0;
+}
+
 }  // namespace
 
 extern "C" {
@@ -247,5 +269,58 @@ void __fastcall ImeHost_OnWindow(u8 *host, void *, u8 *window) {
     at<u16>(host, 0x1aa) = 1;
     const s32 room = at<s16>(window, 0x13c);
     Ime_SetLimit(host + 0x1c, nullptr, (u32)(room - (s16)Window705a50_TextLength(window)));
+}
+
+u32 __fastcall Ime_OnChar(u8 *ime, void *, u32 window, u32 character, u32 lparam) {
+    if (!import<u32(__stdcall *)(u32)>(0x006fd154)(character)) return 0;   // (IsDBCSLeadByte of the whole dword, as pushed)
+    const auto peek = import<u32(__stdcall *)(Message *, u32, u32, u32, u32)>(0x006fd354);
+    Message message;
+    s32 tries = 10;
+    while (!peek(&message, window, 0x102, 0x102, 1)) {
+        if (--tries == 0) return 1;
+    }
+    u32 bytes = (u8)character | (u32)(u8)message.wparam << 8;
+    u32 wide = 0;
+    if (import<s32(__stdcall *)(u32, u32, const u32 *, s32, u32 *, s32)>(0x006fd174)(0, 0, &bytes, 2, &wide, 1) != 1) return 1;
+    const auto handler = at<u32(__stdcall *)(u32, u32, u32, u32)>(ime, 0x50);
+    if (handler) {
+        handler(window, 0x410, wide & 0xffff, lparam);
+    } else {
+        import<u32(__stdcall *)(u32, u32, u32, u32)>(0x006fd340)(window, 0x410, wide & 0xffff, lparam);
+    }
+    return 1;
+}
+
+u32 *__fastcall ImeContext_Get(u32 *context, void *, u32 window) {
+    context[0] = window;
+    context[1] = import<u32(__stdcall *)(u32)>(0x006fd084)(window);
+    return context;
+}
+
+u32 __fastcall ImeContext_Release(const u32 *context) {
+    const u32 himc = context[1];
+    if (!himc) return 0;
+    return import<u32(__stdcall *)(u32, u32)>(0x006fd080)(context[0], himc);
+}
+
+void __fastcall Ime_Dtor(u8 *ime) {
+    at<u32>(ime, 0) = 0x006fef04;
+    const u32 context = at<u32>(ime, 0x5c);
+    if (context) import<u32(__stdcall *)(u32)>(0x006fd07c)(context);
+    u8 *const last = at<u8 *>(ime, 0x40);
+    for (u8 *entry = at<u8 *>(ime, 0x3c); entry != last; entry += 0x24) CountedVector4_Clear(entry + 0x10);
+    GameHeap_Free(at<void *>(ime, 0x3c));
+    at<u32>(ime, 0x3c) = 0;
+    at<u32>(ime, 0x40) = 0;
+    at<u32>(ime, 0x44) = 0;
+    TidyWide(ime + 0x28);
+    TidyWide(ime + 0x18);
+    TidyWide(ime + 8);
+}
+
+u8 *__fastcall Ime_DeletingDtor(u8 *ime, void *, u32 flags) {
+    Ime_Dtor(ime);
+    if (flags & 1) GameHeap_Free(ime);
+    return ime;
 }
 }

@@ -10,6 +10,7 @@
 #include "../math/x87.h"
 #include "cars.h"
 #include "cursor.h"
+#include "helpers.h"
 #include "orient.h"
 #include "spline.h"
 
@@ -293,5 +294,16 @@ void __cdecl Coaster_BuildNodes(u8 *coaster) {
 void __cdecl CoasterSearch_Reset(u32 *search) {
     for (int i = 0; i < 7; ++i) search[i] = 0;
     search[7] = 0x7f7fffff;
+}
+
+double __cdecl CoasterNodes_SplineAt(const u8 *nodes, float t) {
+    s32 index;
+    Float_SplitWhole(t, &index);
+    const u8 *node = at<const u8 *>(nodes, 0x2c + (u32)index * 0x38);
+    for (const u8 *next; (next = at<const u8 *>(node, 0x18)) && !(at<float>(next, 8) >= t);)   // (fcomp; test ah, 1: a NaN walks on)
+        node = next;
+    const u8 *const next = at<const u8 *>(node, 0x18);
+    const X87Reg way = next ? (X87Reg(t) - at<float>(node, 8)) / (X87Reg(at<float>(next, 8)) - at<float>(node, 8)) : X87Reg(0.0f);   // 0x6fe10c
+    return (way + X87Reg((double)at<s32>(node, 0))).v;   // fiadd
 }
 }

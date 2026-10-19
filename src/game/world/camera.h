@@ -74,4 +74,23 @@ void __cdecl Camera_CentreOnGlobalThing();
 // u16 at +0x38, less 1 as a dword: x = 5 - (low 7 bits) * -10, z = 5 - (the rest) * -10) and, when that cell's direction (MapCell_Direction of the
 // world [[0x7cf6ec]]'s cell) has exactly one of the bits 1 / 4 / 0x10 / 0x40 among 0x55, the yaw (0x790a38) = pi, pi / 2, 0 or 3 pi / 2.
 void __cdecl Camera_SnapToRide();
+
+// 0x42a990 (cdecl; name unconfirmed): the camera back to its defaults: 0x7909ec, the yaw 0x790a38 and the point 0x7908f0 from 0x6fdd40-0x6fdd50,
+// gCameraFlags 0x790ab0 cleared; the matrices 0x790990, 0x790a48 and 0x790948 the identity; 0x7909c0 a copy of the point (y and z through the
+// x87: a signalling NaN comes out quiet); [0x87afe8] assigned 0x790990 (Mat4_Assign); the field of view [0x74c9b8] [0x6fdd80] (x87, stored as
+// a float) to the perspective 0x87b110 (Mat4_Perspective 0.1, 1000) and the view quad [0x879d54] (ViewQuad_SetFov); 0x790aac and 0x7909d0 =
+// 0x790aac's bit 0x200 | 0x80; 0x7909e4 the game clock's real time (Clocks_RealNow); 0x790a88-0x790a90 and gCameraFlags 0, 0x7908e8 1.
+void __cdecl Camera_Reset();
+
+// 0x42aff0 (cdecl; name unconfirmed): the yaw 0x790a38 snapped to the nearest quarter turn: r = fmod(yaw, pi / 2) (_CIfmod); for r below
+// -pi / 4 (or a NaN) yaw - (r + pi / 2), for r above pi / 4 (pi / 2 - r) + yaw, else yaw - r (x87 at the game's precision, stored as a float).
+void __cdecl Camera_SnapYaw();
+
+// 0x42a760 (cdecl; message, param; name unconfirmed): the camera's mouse input. y = (param >> 16) * the screen height ([0xfaa5c4], a
+// signed word) / 2048 and x = (param & 0xffff) * the width ([0xfaa5c0]) / 1536 (truncated). 0x1e: with 0x790aac bit 2, the yaw 0x790a38
+// += ((0x790ac8 * 2048 / height) - 1024) * [0x74c9c0]. 0x20: 0x790aac loses bits 0x78; 0x22: loses 0x7f and gCameraFlags (0x790ab0) gets
+// 0x100. 0x10001: gCameraFlags loses 0x100, then as 0x10003: the point 0x790ac8 = y, 0x790acc = x. 0x10002: gCameraFlags gets 0x100.
+// 0x10004 / 0x10005: button param 0, 1 or 2 clears / sets 0x790aac bit 1, 4 or 2. 0x1000d: 0x7909ec less -10 for a negative param,
+// else less 10. Others nothing.
+void __cdecl Camera_Input(s32 message, u32 param);
 }
