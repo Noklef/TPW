@@ -107,6 +107,14 @@ u32 __fastcall RendererPart_FreeTextures2(u8 *object);
 // +0x3c / +0x3e; then +0x44 = 1.
 void __fastcall RendererPart_AllocPixels(u8 *object, void *, u32);
 
+// 0x48f420 (thiscall; flags, info, pops 8; slot 3 of vtable 0x6ff2d8; name unconfirmed): nothing for no flags or no info. Flag 0x10 with
+// the u16 at +0x44 clear: the rectangle (the words +4..+0xa of the record at the info's +0x14) copied to +0x18..+0x1e, the size in the
+// GUI's 2048 x 1536 to +0x3c / +0x3e (width * the s16 [0xfaa5c4] / 2048, height * the s16 [0xfaa5c0] / 1536: 32-bit products, signed
+// divisions) and slot 10 called (0; RendererPart_AllocPixels). Without flag 0x10 a clear +0x44 ends it. Then flag 0x10 copies the
+// rectangle again, flag 2 the info's s16 +6 to +0x38 (1 when not above 0), flag 4 its word +8 to +0x30; with any of these and a flag
+// of 0x12, +0x68 / +0x6c / +0x70 = left / 1024 - 1, 1 - bottom / 768, 1 - +0x38 / 40 (x87 at 24 bits, the float constants 0x6ff2b8..).
+void __fastcall RendererPart_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
+
 // 0x48f150 (thiscall (value), pops 4; name unconfirmed): the renderer part's constructor, over the GUI dialog base (GuiDialog_Ctor with
 // value): the sprite frame +0x54 and image +0x9c initialised, the sprite set +0xb4 built inline (its table 0x6ff318, the virtual base
 // at the offset that gives with vtable 0x6ff308, the displacement before it, +4..+0x18 cleared with +0xc = -1) and its virtual base added

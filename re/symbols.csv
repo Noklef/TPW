@@ -4518,6 +4518,7 @@ address,name,kind,confidence,notes
 0x0048f150,RendererPart_Ctor,function,low,"reimplemented (src/game/render/renderer); thiscall (value), pops 4: GuiDialog_Ctor, frame +0x54, image +0x9c, the sprite set +0xb4 inline (live objects), vtable 0x6ff2d8, its tracked array at +0x98 pointing at the frame; returns this"
 0x0048f300,RendererPart_Dtor,function,low,"reimplemented (src/game/render/renderer); thiscall: vtable 0x6ff2d8, SpriteSet_Dtor(+0xb4) inline, SpriteImage_Dtor(+0x9c), GuiDialog_Dtor"
 0x0048f2e0,RendererPart_ScalarDtor,function,low,"reimplemented (src/game/render/renderer); thiscall (flags), pops 4, slot 0 of 0x6ff2d8: RendererPart_Dtor, freed for flags bit 0; returns this"
+0x0048f420,RendererPart_SetLayout,function,low,"reimplemented (src/game/render/renderer); the renderer part's rectangle, size, depth and clip-space corner (name unconfirmed)"
 0x005777a0,Backdrop_Clear5c,function,high,"reimplemented (src/game/render/backdrop); thiscall (the tiled backdrop, 0x87aee8): +0x5c = 0"
 0x00577940,Backdrop_SetRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the rectangle drawn into, +0x20..+0x2c, and flag 2 in +0"
 0x00577970,Backdrop_SetSourceRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the part of the image drawn, +0x30..+0x3c"

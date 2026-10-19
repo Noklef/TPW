@@ -10,6 +10,7 @@
 #include "../render/engineerrors.h"
 #include "../gfx/array3d.h"
 #include "../gfx/spriteframe.h"
+#include "../math/x87.h"
 #include "../core/liveobjects.h"
 #include "../render/spritequeue.h"
 #include "../ui/guidialog.h"
@@ -19,6 +20,14 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
 u32 &SceneFlags() { return *reinterpret_cast<u32 *>(0x008bd508); }
+
+// The rectangle's words (left, top, right, bottom at +4..+0xa of the record at the info's +0x14) to the part's +0x18..+0x1e.
+void copy_rect(u8 *part, const u8 *info) {
+    const u8 *const rect = at<const u8 *>(info, 0x14);
+    for (u32 k = 0; k < 8; k += 2) at<u16>(part, 0x18 + k) = at<u16>(rect, 4 + k);
+}
+
+X87Reg f32(u32 bits) { return X87Reg((double)reinterpret_cast<const float &>(bits)); }
 
 // A node {key, next} goes on the front of the free list.
 void Free(u8 *renderer, u8 *node) {
@@ -349,6 +358,44 @@ void __fastcall RendererPart_AllocPixels(u8 *object, void *, u32) {
     SpriteImage_AllocPixels(object + 0x9c, nullptr, (u32)(s32)at<s16>(object, 0x3c), (u32)(s32)at<s16>(object, 0x3e));
     SpriteFrame_SetSize30(object + 0x54, nullptr, at<s16>(object, 0x3c), at<s16>(object, 0x3e));
     at<u16>(object, 0x44) = 1;
+}
+
+void __fastcall RendererPart_SetLayout(u8 *part, void *, u32 flags, const u8 *info) {
+    if (!info || !flags) return;
+    if (flags & 0x10) {
+        if (!at<u16>(part, 0x44)) {
+            copy_rect(part, info);
+            const s16 gw = *reinterpret_cast<const s16 *>(0x00faa5c4), gh = *reinterpret_cast<const s16 *>(0x00faa5c0);
+            at<s16>(part, 0x3c) = (s16)(static_cast<s32>((u32)(at<s16>(part, 0x1c) - at<s16>(part, 0x18)) * (u32)gw) / 2048);
+            at<s16>(part, 0x3e) = (s16)(static_cast<s32>((u32)(at<s16>(part, 0x1e) - at<s16>(part, 0x1a)) * (u32)gh) / 1536);
+            vcall<void>(part, 0x28, 0u);   // (RendererPart_AllocPixels in the part's own class)
+        }
+    } else if (!at<u16>(part, 0x44)) {
+        return;
+    }
+    bool changed = false;
+    if (flags & 0x10) {
+        changed = true;
+        copy_rect(part, info);
+    }
+    if (flags & 2) {
+        at<s16>(part, 0x38) = at<s16>(info, 6);
+        if (at<s16>(info, 6) <= 0) at<s16>(part, 0x38) = 1;
+        changed = true;
+    }
+    if (flags & 4) {
+        at<u16>(part, 0x30) = at<u16>(info, 8);
+        changed = true;
+    }
+    if (!changed) return;
+    const X87Reg one = f32(0x3f800000);
+    const X87Reg x = X87Reg((double)at<s16>(part, 0x18)) * f32(0x3a800000) - one;      // / 1024 - 1
+    const X87Reg y = X87_SubR(X87Reg((double)at<s16>(part, 0x1e)) * f32(0x3aaaaaab), one);   // 1 - / 768
+    const X87Reg z = X87_SubR(X87Reg((double)at<s16>(part, 0x38)) * f32(0x3ccccccd), one);   // 1 - / 40
+    if (!(flags & 0x12)) return;
+    at<float>(part, 0x68) = (float)x.v;
+    at<float>(part, 0x6c) = (float)y.v;
+    at<float>(part, 0x70) = (float)z.v;
 }
 
 u8 *__fastcall RendererPart_Ctor(u8 *object, void *, u32 value) {
