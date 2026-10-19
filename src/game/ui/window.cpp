@@ -336,6 +336,13 @@ u32 __cdecl Window_CancelTimed(u8 *window) {
     return GuiTimers_Cancel(table, nullptr, (u32)(uintptr_t)window);
 }
 
+u32 __cdecl Window_PostTimed(u8 *window, u32 message, u32 a, u32 b, u32 delay) {
+    u8 *const table = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f8);
+    if (!table || !window || message == 1 || message == 3 || message == 2) return 0;
+    GuiTimers_Add(table, nullptr, (u32)(uintptr_t)window, message, a, b, delay);
+    return 1;
+}
+
 void __cdecl Gui_ResetQueues() {
     if (u8 *const table = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f8)) GuiTimers_Reset(table);
     if (u8 *const first = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f4)) MsgQueue_Clear(first);

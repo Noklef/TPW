@@ -133,6 +133,10 @@ u32 __cdecl Window_CancelPostedFirst(u8 *window);
 // 0x65903b (cdecl (window); name unconfirmed): likewise the window's timed messages in [0xfaa5f8] (GuiTimers_Cancel).
 u32 __cdecl Window_CancelTimed(u8 *window);
 
+// 0x658df4 (cdecl (window, message, a, b, delay); name unconfirmed): with the timed table [0xfaa5f8], a window and a message other
+// than 1, 2 and 3, the four and the delay added to it (GuiTimers_Add; its result not used) and 1; else 0.
+u32 __cdecl Window_PostTimed(u8 *window, u32 message, u32 a, u32 b, u32 delay);
+
 // 0x659064 (cdecl; name unconfirmed): the timed table [0xfaa5f8] reset (GuiTimers_Reset), then the queues [0xfaa5f4] and [0xfaa5f0]
 // cleared (MsgQueue_Clear), each when set.
 void __cdecl Gui_ResetQueues();
