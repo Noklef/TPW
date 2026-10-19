@@ -210,6 +210,7 @@ address,name,kind,confidence,notes
 0x00504210,ResearchProject_Serialize,function,high,reimplemented (src/game/world/research); a project's 6 fields
 0x00504760,ResearchGroup_Serialize,function,high,reimplemented (src/game/world/research); a group's 4 fields
 0x00512010,Weather_Serialize,function,high,"reimplemented (src/game/world/weather); thing model 15: thing, fields, forecast at +0x20, fields"
+0x00512c50,Weather_RandomBolt,function,low,"reimplemented (src/game/world/weather); thiscall (&start, &end, unused): a lightning bolt's random ends, start on the ground inside the map, end 300 up and within 50 of it"
 0x005132a0,Forecast_Serialize,function,high,"reimplemented (src/game/world/forecast); thiscall (stream, save, version, unused): the forecast's time (8 bytes), quality and valid byte saved or loaded"
 0x004cf920,BankAccount_Serialize,function,high,"thing model 16: balance, admission fee, 8 loans"
 0x004d2320,Challenges_Serialize,function,high,"reimplemented (src/game/world/challenges); thing model 19: thing, 0x14 challenges, then 7 fields"
