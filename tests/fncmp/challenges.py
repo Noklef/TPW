@@ -28,30 +28,43 @@ B = Bench([(0x4d1c80, 0x4d1cdc), (0x4d1e60, 0x4d1e74), (0x4d2840, 0x4d285d), (0x
 VALUES = balanceload.VALUES
 LEVEL = 0x7857d4   # gBalanceLevel's challenge indices (20 dwords)
 SCHEMA = 12        # the BalanceChallenges schema's records: a group of 10 fields (60 rows) and its end
+FIELDS = ['Type', 'FollowupType', 'TargetTime', 'TargetVal', 'TargetObj', 'TargetObj2', 'TargetStaffType', 'Prize', 'CheckAtEndOnly', 'Independent']
 
 
 def load_sam(r, mem):
     """Challenges_LoadSam: the file as balanceload serves a stack file; its first heap block (the 12 values entries, 0x90 bytes) at VALUES
-    and the next from VALUES + 0x90; the text comment lines, or a Type line for one row; the level's indices rows mostly in range."""
+    and the next from VALUES + 0x90; the text comment lines, or lines setting a row's Type and a field; the level's indices rows in range,
+    the typed row's often or only, or none positive."""
     regions = balanceload.common(r, 'Check', True)
     log = regions[LOG]   # the file always read (found, a few bytes, opened, every allocation served): an unread one leaves the rows
-    size = r.choice([3, 16, 40, 40])   # uninitialised stack in the original, which only the emulator zeroes
+    size = r.choice([16, 40, 96, 96, 200])   # uninitialised stack in the original, which only the emulator zeroes
     set_return(log, balanceload.FIND_FIRST, 0x1234)
     fill(log, balanceload.FIND_FIRST, 1, bytes(0x20) + struct.pack('<I', size) + bytes(0x10), 0)
     fill(log, balanceload.OPEN, 0, struct.pack('<i', 0), 1)
     set_return(log, balanceload.ATTRIBUTES, 0x20)
     put(regions[HEAP], 0, 'I', VALUES)
     block = regions.pop(VALUES + 0x180)
-    if r.random() < 0.5:   # (the text a 32-byte line, a block starting at either half: "Challenges[row].Type n" sets that row's mType)
-        line = b'Challenges[%d].Type %d' % (r.choice([1, 2, 3, r.randrange(60)]), r.choice([1, 2, 3, 9, -1, r.randrange(100)]))
-        line = line + b' ' * (31 - len(line)) + b'\n'
-        block[:] = line * (len(block) // 32) + block[len(block) // 32 * 32:]
+    typed = None
+    if r.random() < 0.7:   # (the text two 48-byte lines in turn, the block starting at a line: "Challenges[row].Field value" sets a field of a
+        typed = r.choice([1, 2, 3, r.randrange(60)])   # row; the first line a Type, so that the row's records fill successive slots)
+        lines = []
+        for field in ('Type', r.choice(FIELDS + ['CheckAtEndOnly', 'Independent', 'TargetObj', 'TargetObj2', 'TargetObj2'])):
+            value = r.choice([1, 2, 3, 9, -1, 0x12345, r.randrange(100), r.getrandbits(31)])
+            line = b'Challenges[%d].%s %d' % (r.choice([typed, typed, r.randrange(60)]), field.encode(), value)
+            lines.append(line + b' ' * (47 - len(line)) + b'\n')
+        text = b''.join(lines)
+        block[:] = text * (len(block) // 96) + block[len(block) // 96 * 96:]
     regions[VALUES + 0x90] = block[:0x1000]
     rows = [r.randrange(1, 60) for _ in range(20)]
-    if r.random() < 0.7:
+    mode = r.random()
+    if typed is not None and mode < 0.3:
+        rows = [typed] * 20   # (every slot filled when the row's mType is set)
+    elif typed is not None and mode < 0.6:
+        rows = [r.choice([typed, typed, typed, r.randrange(1, 60), 0, -1]) for _ in range(20)]
+    elif mode < 0.7:
+        rows = [r.choice([0, 0, -1, -0x80000000]) for _ in range(20)]   # (none positive: nothing copied, a 0 not row 0)
+    elif mode < 0.85:
         rows[r.randrange(20)] = r.choice([0, -1, -0x80000000])
-    if r.random() < 0.5:
-        rows = [r.choice(rows[:3]) for _ in rows]   # (repeated rows: the same record into successive slots when its mType is set)
     regions[LEVEL] = struct.pack('<20i', *rows)
     regions[RAM] = mem
     return Call(0x4d1ce0, [C], regions, conv='t')
