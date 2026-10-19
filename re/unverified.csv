@@ -235,20 +235,6 @@ address,name,module,reason
 616de0,Canvas32_Text,gfx/canvasdraw,todo
 61b030,Draw_Sprite,gfx/text,not in the listing (_re/text.asm): the emulator cannot run it
 61b050,Draw_SpriteShape,gfx/text,not in the listing (_re/text.asm): the emulator cannot run it
-61b1e0,Draw8_Sprite,gfx/draw8,todo
-61b270,Draw8_SpriteShape,gfx/draw8,todo
-61baf0,Draw8_Pixel,gfx/draw8,todo
-61bc90,Draw_Box,gfx/draw8,todo
-61bce0,Draw8_Line,gfx/draw8,todo
-61c2e0,Draw8_HLine,gfx/draw8,todo
-61c490,Draw8_VLine,gfx/draw8,todo
-61c630,Draw8_CircleOutline,gfx/draw8,todo
-61e100,Draw8_CircleFill,gfx/draw8,todo
-61eab0,Draw_Triangle,gfx/draw8,todo
-61ee30,Draw8_Clear,gfx/draw8,todo
-61eed0,Draw8_BoxFill,gfx/draw8,todo
-61f0a0,Draw8_Text,gfx/draw8,todo
-61f220,Draw8_TextW,gfx/draw8,todo
 61f3a0,Draw24_Pixel,gfx/drawrgb,todo
 61f540,Draw24_Line,gfx/drawrgb,todo
 61fc20,Draw24_HLine,gfx/drawrgb,todo
@@ -274,11 +260,9 @@ address,name,module,reason
 627730,Draw32_Sprite,gfx/drawrgb,todo
 6280a0,Draw32_SpriteShape,gfx/drawrgb,todo
 628870,Draw16_Pixel,gfx/drawrgb,todo
-628aa0,Draw_BoxOutline,gfx/draw8,todo
 628b60,Draw16_Line,gfx/drawrgb,todo
 629650,Draw16_HLine,gfx/drawrgb,todo
 629910,Draw16_VLine,gfx/drawrgb,todo
-629bf0,Draw_Circle,gfx/draw8,todo
 629c50,Draw16_CircleOutline,gfx/drawrgb,todo
 62c7d0,Draw16_CircleFill,gfx/drawrgb,todo
 62d440,Draw16_Clear,gfx/drawrgb,todo
