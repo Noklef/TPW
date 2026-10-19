@@ -66,4 +66,12 @@ void __fastcall Online_LoginResult(u8 *session, void *, s32 status, u32, u32, u8
 // released by ccCityList::Release (0x6fd538), +0xe4 / +0xe8 / +0xec's by ccParkList::Release (0x6fd4e8), each +0x30 then cleared;
 // +0xf0 and +0xf4 Shared_Release66, +0xf8 Shared_Release10; +0xfc and +0x100 Obj_ResetAndRelease26 / 34 (0, 0).
 void __fastcall Online_ResetCity(u8 *session);
+
+// 0x5b72f0 (thiscall; name unconfirmed; six callers): the city's connection opened unless there is one (+0xd4). A City is made (Mem_Alloc
+// 0xc, City::City 0x6fd4e4; its result, or 0 when the block is not had, is +0xd4) and "About to connect" said; City::Connect (0x6fd534) to
+// the server name [0x7a1524] (when 0 the empty string at 0x6fe5b0), Global7cc53c_Pick7cc4f0, the port word [0x7a1556] (pushed as a dword
+// whose high half is the server name's, sic) and the callback 0x5b72c0. Not 1: "Could not connect" said and the City released as
+// Online_ResetCity does. 1: "Connected" said, +0xd8 = Time_GetMs, City::SetSessionInfo (0x6fd53c) with the language's id (0x78b530) and
+// +0x34, +0x38, +0x28; +0xdc = 1. Returns +0xd4. (The City::City call's unwind, freeing the block, is not kept.)
+u8 *__fastcall Online_OpenCity(u8 *session);
 }

@@ -5,6 +5,7 @@
 # recorders, OutputDebugStringA one logging its text, the members' string assigns (vtable +0x14) and the
 # download object's deleting destructor (vtable +0) recorders, the block at +0x39c a heap block or none. The login's answer (0x5b62e0):
 # statuses 60 (OK), -7..-1, 0, 59, 61 or any, the record's count 1, 2, 0 or -1. The city's reset (0x5b7430): see reset_city().
+# Its opening (0x5b72f0): see open_city().
 # usage: session.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=LoggedIn,...)
 import os
 import struct
@@ -16,11 +17,13 @@ from fncmp import HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, heap, log_region, p
 B = Bench([(0x5b6450, 0x5b64c4), (0x5b64d0, 0x5b650b), (0x5b6b20, 0x5b6b5e), (0x5b6980, 0x5b6a27), (0x5b83e0, 0x5b83ff), (0x5b8400, 0x5b8483),
            (0x5b9040, 0x5b90d7), (0x5b7b80, 0x5b7b9f), (0x5b62e0, 0x5b63f0), (0x67acb0, 0x67acb1),
            (0x5b7430, 0x5b75cc), (0x5f5fa0, 0x5f5faa), (0x5f5f10, 0x5f5f7d), (0x5b9fd0, 0x5ba02a), (0x5ba290, 0x5ba2ea), (0x5b97a0, 0x5b981c),
-           (0x5b9820, 0x5b989c), (0x67afa0, 0x67b0d0)])
+           (0x5b9820, 0x5b989c), (0x67afa0, 0x67b0d0),
+           (0x5b72f0, 0x5b742a), (0x4bae30, 0x4bae3f), (0x41a830, 0x41a834), (0x67acc0, 0x67acc1)])
 GETTERS = {'LoggedIn': 0x5b6450, 'Flag20': 0x5b6460, 'String14': 0x5b6480, 'String28': 0x5b6490,
            'UserName': 0x5b64a0, 'UserFlags': 0x5b64b0, 'User5c': 0x5b64c0}
 RELEASES = {'ReleaseLogin': 0x5b64d0, 'ReleaseNews': 0x5b6b20, 'ResetNews': 0x5b6980, 'ReleaseUpload': 0x5b83e0, 'ResetUpload': 0x5b8400,
-            'ResetDownload': 0x5b9040, 'AuthDelete': 0x5b7b80, 'LoginResult': 0x5b62e0, 'ResetCity': 0x5b7430}
+            'ResetDownload': 0x5b9040, 'AuthDelete': 0x5b7b80, 'LoginResult': 0x5b62e0, 'ResetCity': 0x5b7430,
+            'OpenCity': 0x5b72f0}
 CALLS = {**GETTERS, **RELEASES}
 # the imports: OutputDebugStringA (stdcall, its text logged), Auth::Release, Auth::~Auth, News::Release, News::~News, Upload::Release (thiscall)
 OUTPUT = 0x6fd1e0
@@ -90,10 +93,37 @@ def reset_city(r):
     return Call(0x5b7430, [SESSION], regions, conv='t', ret='v')
 
 
+def open_city(r):
+    """0x5b72f0: a City (+0xd4) already or not; the block had or not (heap() failing its first); City::City, Connect (answering 1 mostly, else 0
+    or its hash), SetSessionInfo, Release, ~City, timeGetTime and OutputDebugStringA recorders; the server name [0x7a1524] 0 or set (its high
+    half pushed with the port word [0x7a1556]), the pick's flag byte [0x7cc53c] and the language's id (0x78b530 +8) anything."""
+    log = log_region()
+    table = bytearray(0x600)
+    struct.pack_into('<I', table, OUTPUT - IMPORT_TABLE, recorder(1, 1, True))
+    strings(log, 1, 1)
+    for k, (slot, n) in enumerate([(0x6fd4e4, 0), (0x6fd534, 4), (0x6fd53c, 4), (0x6fd4f4, 0), (0x6fd540, 0)]):
+        struct.pack_into('<I', table, slot - IMPORT_TABLE, recorder(2 + k, n))
+    struct.pack_into('<I', table, 0x6fd3ec - IMPORT_TABLE, recorder(7, 0, True))
+    set_return(log, 7, r.getrandbits(32))
+    if r.random() < 0.5:
+        set_return(log, 2, r.choice([OBJ, OBJ + 0x40, 0]))
+    answer = r.choice([1, 1, 1, 0, None])
+    if answer is not None:
+        set_return(log, 3, answer)
+    s = bytearray(r.bytes(0x110))
+    put(s, 0xd4, 'I', r.choice([0, 0, 0, OBJ]))
+    regions = {LOG: log, IMPORT_TABLE: table, HEAP: heap(fail=r.choice([0, 0, 0, 1])), SESSION: s, OBJ: r.bytes(0xa0), 0xfa71e0: bytes(4),
+               0x7a1524: put(bytearray(r.bytes(4)), 0, 'I', r.choice([0, 0, OBJ, r.getrandbits(32)])), 0x7a1556: r.bytes(2),
+               0x7cc53c: bytes([r.choice([0, 1, 0x80])]), 0x78b530: r.bytes(0x10)}
+    return Call(0x5b72f0, [SESSION], regions, conv='t', ret='a')
+
+
 def case(r):
     op = r.deal(OPS)
     if op == 'ResetCity':
         return reset_city(r)
+    if op == 'OpenCity':
+        return open_city(r)
     if op in RELEASES:
         return release(r, op)
     s = bytearray(r.bytes(0x80))
