@@ -1,8 +1,8 @@
 # Screen_Init (src/game/render/screen: 0x449ec0) and the unused static initialisers 0x44a3d0 /
 # 0x44a3f0 (render/mode) against the original: the search path copy, the screen size from the
 # option flags, Resolution.sam or 0x78d8dc, its centre, then Frame_ResetBounds and
-# Quickload_Init (GlobalMem_Alloc from global_heap()). Screen_Shutdown calls the unhooked sine
-# table builder by address, which the driver cannot.
+# Quickload_Init (GlobalMem_Alloc from global_heap()). Screen_Shutdown (0x44a1d0): the sine table rebuilt (4096 entries, at the
+# 24 bits the emulator runs), the quick-load buffers (0x7a45dc / 0x7a3e5c) and the blocks 0x79d25c / 0x79cb4c freed (GlobalFree) or none.
 # usage: screen.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import HEAP, Bench, Call, RAM, global_heap, heap, put  # noqa: E402
 
 B = Bench([(0x449ec0, 0x44a1d0), (0x44a3d0, 0x44a403), (0x44e570, 0x44e5ad), (0x45b9d0, 0x45ba15),
-           (0x461790, 0x4617d1)])
+           (0x461790, 0x4617d1), (0x44a1d0, 0x44a230), (0x45ba00, 0x45ba30), (0x4617e0, 0x461830), (0x4708d0, 0x470950)])
 TEXT = RAM
 OPTION_BITS = (1, 8, 0x10, 0x20, 0x40, 0x80, 0x100, 0x20000000, 0x40000000, 0x80000000)
 
@@ -25,6 +25,11 @@ def case(r):
     op = r.choice(OPS)
     if op == 'One':
         return Call(0x44a3d0, [], {0x79d9c4: bytearray(r.bytes(4))})
+    if op == 'Shutdown':   # (each pointer a heap block, freed, or 0)
+        regions = {0x7b095c: r.bytes(0xc + 0x4000), 0x7b4968: r.bytes(4), 0x7a445c: r.bytes(4), 0x7a3d3c: r.bytes(4), HEAP: heap(0x1000), **global_heap()}
+        for at in (0x7a45dc, 0x7a3e5c, 0x79d25c, 0x79cb4c):
+            regions[at] = word(r.choice([0, HEAP + 0x10 + 0x20 * len(regions)]))
+        return Call(0x44a1d0, [], regions)
     if op == 'Epsilon':
         return Call(0x44a3f0, [], {0x79d9cc: bytearray(r.bytes(4))})
     n = r.choice([0, 1, 5, r.randrange(1, 300)])
@@ -50,7 +55,7 @@ def case(r):
     return Call(0x449ec0, [], regions)
 
 
-OPS_ALL = ['Init'] * 8 + ['One', 'Epsilon']
+OPS_ALL = ['Init'] * 8 + ['One', 'Epsilon', 'Shutdown', 'Shutdown']
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

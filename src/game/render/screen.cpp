@@ -2,6 +2,7 @@
 
 #include "../core/globalmem.h"
 #include "../files/quickload.h"
+#include "../math/sintable.h"
 #include "frame.h"
 
 namespace {
@@ -81,7 +82,7 @@ void __cdecl Screen_Init() {
 }
 
 void __cdecl Screen_Shutdown() {
-    reinterpret_cast<void(__cdecl *)(u32)>(0x004708d0)(0x1000);  // SinTable_Build, not hooked
+    SinTable_Build(0x1000);
     Quickload_Free();
     if (global(0x0079d25c)) {
         GlobalMem_Free(global<void *>(0x0079d25c));
