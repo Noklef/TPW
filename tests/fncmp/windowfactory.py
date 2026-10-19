@@ -13,8 +13,10 @@ sys.path.insert(0, HERE)
 from fncmp import LOG, Bench, Call, log_region, put, vtable  # noqa: E402
 from window import RANGES, VTABLE, WINDOW2, point, queues, tree  # noqa: E402
 
-CALLS = {'Ctor705a50': 0x6688b3, 'RadioGroupCtor': 0x66a1e8, 'Ctor705c58': 0x66d9e0, 'Ctor705b98': 0x66c7e0}
-B = Bench(RANGES + [(0x6688b3, 0x6689bc), (0x66a1e8, 0x66a255), (0x66d9e0, 0x66da21), (0x66c7e0, 0x66c82e), (0x65e526, 0x65e549)])
+CALLS = {'Ctor705a50': 0x6688b3, 'RadioGroupCtor': 0x66a1e8, 'Ctor705c58': 0x66d9e0, 'Ctor705b98': 0x66c7e0,
+         'Ctor705c28': 0x66d750, 'Ctor705bf8': 0x66d0c0, 'Ctor705bc8': 0x66c970, 'Ctor705af0': 0x66a4c0}
+B = Bench(RANGES + [(0x6688b3, 0x6689bc), (0x66a1e8, 0x66a255), (0x66d9e0, 0x66da21), (0x66c7e0, 0x66c82e), (0x65e526, 0x65e549),
+                       (0x66d750, 0x66d82e), (0x66d0c0, 0x66d1b6), (0x66c970, 0x66cab7), (0x66a4c0, 0x66a5a8)])
 
 
 def ctor_args(r, regions):
