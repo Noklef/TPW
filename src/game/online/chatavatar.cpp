@@ -5,6 +5,7 @@
 #include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../core/stdwstring.h"
+#include "../sprite/script.h"
 #include "../world/person.h"
 #include "../world/personscripts.h"
 #include "../world/things.h"
@@ -56,6 +57,12 @@ void __fastcall ChatAvatar_Arrive(u8 *avatar, void *, u32 x, u32 y) {
     const u16 got = *Thing_GetHandle(at<u8 *>(avatar, 4), nullptr, &handle);
     placeThing(slotThing(got), x, y);
     movePlayer(avatar, (s16)x, (s16)y, 1);
+}
+
+void __fastcall ChatAvatar_Enter(u8 *avatar, void *, u32 x, u32 y) {
+    Person_PlaceScript(at<u8 *>(avatar, 4), nullptr, 0, 0.0f, 0, 0, 3);
+    SpriteScript_SetRegF(at<s32>(at<u8 *>(avatar, 4), 0xc), 8, 0x3fc00000);   // 1.5f
+    moveTo(avatar, x, y, 1);
 }
 
 u32 __fastcall ChatAvatar_SayPosition(u8 *avatar) {
