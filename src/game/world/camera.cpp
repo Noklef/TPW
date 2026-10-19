@@ -195,4 +195,57 @@ void __cdecl Camera_SnapYaw() {
         yaw = (float)(X87Reg(yaw) - r);
     }
 }
+
+void __cdecl Camera_Input(s32 message, u32 param) {
+    const s32 height = global<s16>(0x00faa5c4), width = global<s16>(0x00faa5c0);
+    const s32 y = (s32)(param >> 16) * height / 2048;       // (idiv by shifts and a magic multiply: truncated)
+    const s32 x = (s32)(param & 0xffff) * width / 0x600;
+    u32 &flags = global(0x00790aac);
+    const auto set_point = [x, y] {
+        global<float>(0x00790ac8) = (float)y;
+        global<float>(0x00790acc) = (float)x;
+    };
+    const auto by_button = [param, &flags](bool on) {   // (buttons 0, 1, 2: bits 1, 4, 2)
+        const u32 bit = param == 0 ? 1 : param == 1 ? 4 : param == 2 ? 2 : 0;
+        flags = on ? flags | bit : flags & ~bit;
+    };
+    switch (message) {
+    case 0x1e:
+        if (flags & 2) {
+            float &yaw = global<float>(0x00790a38);
+            yaw = (float)((((X87Reg(global<float>(0x00790ac8)) * 2048.0f) / X87Reg((double)height)) - 1024.0f) * global<float>(0x0074c9c0) + yaw);
+        }
+        break;
+    case 0x20:
+        flags &= 0xffffff87;
+        break;
+    case 0x22:
+        flags &= 0xffffff80;
+        global(0x00790ab0) |= 0x100;
+        break;
+    case 0x10001:
+        global(0x00790ab0) &= ~0x100u;
+        set_point();
+        break;
+    case 0x10002:
+        global(0x00790ab0) |= 0x100;
+        break;
+    case 0x10003:
+        set_point();
+        break;
+    case 0x10004:
+        by_button(false);
+        break;
+    case 0x10005:
+        by_button(true);
+        break;
+    case 0x1000d: {   // (the wheel: 0x7909ec less -10 for a negative param, less 10 otherwise)
+        float &zoom = global<float>(0x007909ec);
+        zoom = (float)(X87Reg(zoom) - ((s32)param < 0 ? -10.0f : 10.0f));
+        break;
+    }
+    default:
+        break;
+    }
+}
 }
