@@ -593,6 +593,15 @@ s32 __cdecl script_now() {
     return now(reinterpret_cast<void *>(0x00785970), nullptr);
 }
 
+// SpriteScript_Run's opcode call (its env's op): the hooked opcode at that address; END (0x5da3c0, the empty Debug_Printf) returns at
+// once; any other address faults, as the code the emulator would run there (a stray word) is not the driver's.
+void __cdecl script_op(u32 address) {
+    if (address == 0x005da3c0) return;
+    void *const fn = find(address);
+    if (!fn) *reinterpret_cast<volatile u32 *>(static_cast<std::uintptr_t>(address & 0xfff)) = 0;  // (an access violation)
+    reinterpret_cast<void(__cdecl *)()>(fn)();
+}
+
 u8 nibble(char c) { return (u8)(c <= '9' ? c - '0' : (c | 0x20) - 'a' + 10); }
 
 // (by hand: sscanf("%2x") per byte measures the rest of the string each call, which made a 1 MB region cost seconds)
@@ -725,7 +734,7 @@ int main(int argc, char **argv) {
                                             reinterpret_cast<void(__cdecl *)()>(hooked(0x00540ab0)), reinterpret_cast<void(__cdecl *)(u8 *)>(hooked(0x00542010)),
                                             reinterpret_cast<void(__cdecl *)()>(hooked(0x00540b30)),
                                             reinterpret_cast<void(__cdecl *)(u32 *, void *, const void *, u32, u32)>(hooked(0x005f5e50)),
-                                            reinterpret_cast<void(__cdecl *)(u32 *, void *, void *, u32, u32)>(hooked(0x005f5e20))};
+                                            reinterpret_cast<void(__cdecl *)(u32 *, void *, void *, u32, u32)>(hooked(0x005f5e20)), &script_op};
     SpriteScripts_SetEnv(&sprites);
     // A region of up to 8 MB, as hex. Mapped top-down rather than static: a static this size grew the driver's .bss by 12 MB past the
     // game's addresses, where a case's wild pointer read memory natively that the emulator (the original's side) does not have.
