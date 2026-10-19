@@ -19,6 +19,24 @@ struct z_stream_s;            // z_stream (zlib.h), 0x38 bytes
 // 0x63ea00: the Adler-32 checksum of len bytes at buf, continuing adler (1 for a null buf).
 unsigned long __cdecl adler32(unsigned long adler, const unsigned char *buf, unsigned int len);
 
+// deflate.c
+// 0x635710: two bytes into the pending buffer, most significant first.
+void __cdecl putShortMSB(internal_state *s, unsigned int b);
+// 0x635740: as much of the pending output as fits into next_out.
+void __cdecl flush_pending(z_stream_s *strm);
+// 0x635870: a new stream's matching state (the level's parameters from configuration_table, the hash heads cleared).
+void __cdecl lm_init(internal_state *s);
+// 0x635910 / 0x635c20 / 0x636100: compress what fits (stored; fast, no lazy matching; lazy matching); a block_state.
+int __cdecl deflate_stored(internal_state *s, int flush);
+int __cdecl deflate_fast(internal_state *s, int flush);
+int __cdecl deflate_slow(internal_state *s, int flush);
+// 0x635a70: refills the window from the input, sliding it down (and the hash chains) when it is full.
+void __cdecl fill_window(internal_state *s);
+// 0x635ba0: up to size bytes of input into buf (with the adler32 of them unless noheader); the count.
+int __cdecl read_buf(z_stream_s *strm, unsigned char *buf, unsigned size);
+// 0x635f80: the longest match at strstart along the hash chain from cur_match (match_start set); its length.
+unsigned int __cdecl longest_match(internal_state *s, unsigned cur_match);
+
 // trees.c
 // 0x63eba0: zeroes the three trees' frequencies (END_BLOCK's is 1) and the block's counters.
 void __cdecl init_block(internal_state *s);

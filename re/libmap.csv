@@ -9,9 +9,9 @@ address,size,source_file,function,confidence,evidence,checked
 0x00635910,352,deflate.c,deflate_stored,high,"fill_window, FLUSH_BLOCK (_tr_flush_block), flush_pending, MIN_LOOKAHEAD 0x106",yes
 0x00635a70,304,deflate.c,fill_window,high,"slide window, read_buf, UPDATE_HASH",yes
 0x00635ba0,128,deflate.c,read_buf,high,"adler32 unless noheader, memcpy",yes
-0x00635c20,864,deflate.c,deflate_fast,high,"longest_match, _tr_tally_dist inline (_length_code/_dist_code tables), FLUSH_BLOCK",yes
+0x00635c20,864,deflate.c,deflate_fast,high,"longest_match, _tr_tally_dist inline (_length_code/_dist_code tables), FLUSH_BLOCK; prologue runs CPUID (leaf 0) inside PUSHAD/POPAD into bflush's slot, dead (written before read): not in the source",yes
 0x00635f80,384,deflate.c,longest_match,high,"MAX_MATCH 258 (0x102), nice_match/good_match chain loop",yes
-0x00636100,1120,deflate.c,deflate_slow,high,"lazy match, prev_match/prev_length, TOO_FAR 4096",yes
+0x00636100,1120,deflate.c,deflate_slow,high,"lazy match, prev_match/prev_length, TOO_FAR 4096; the same dead CPUID prologue as deflate_fast",yes
 0x00636560,80,inflate.c,inflateReset,high,"total_in/out=0, mode, inflate_blocks_reset",yes
 0x006365b0,80,inflate.c,inflateEnd,high,"inflate_blocks_free, ZFREE state",yes
 0x00636600,272,inflate.c,inflateInit2_,high,"version 1.1.3 / sizeof(z_stream) check, zcalloc/zcfree, windowBits, inflate_blocks_new with adler32",yes
