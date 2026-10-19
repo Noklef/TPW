@@ -31,6 +31,7 @@ struct CrtEnv {
     s32(__cdecl *swprintf)(u16 *to, const u16 *format, ...);       // 0x67af00: %s takes a wide string
     u16 *(__cdecl *wcsncpy)(u16 *to, const u16 *from, u32 n);      // 0x67b0d0: n chars, zeros after the end
     s32(__cdecl *wcsicmp)(const u16 *a, const u16 *b);             // 0x67b140: A-Z folded down, the difference of the last units
+    u16 *(__cdecl *wcscat)(u16 *to, const u16 *from);              // 0x67bed0
 };
 
 // The CRT ports call (the game's unless swapped).

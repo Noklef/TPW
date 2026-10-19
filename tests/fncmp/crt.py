@@ -98,6 +98,10 @@ def case(r):
         w = wide(r)
         n = r.choice([0, 1, 2, 3, len(w) // 2, len(w) // 2 + 1, len(w) // 2 + 4, r.randrange(0x40)])
         return Call(0x67b0d0, [OUT, A, n], {A: w + b'\0\0' + junk(), OUT: r.bytes(0x100)}, ret='a')
+    if op == 'wcscat':   # a short wide string after another (the output's junk after the terminator must stay)
+        head = wide(r)[:0x60]
+        out = head + b'\0\0' + r.bytes(0x100 - len(head) - 2)
+        return Call(0x67bed0, [OUT, A], {A: wide(r)[:0x60] + b'\0\0' + junk(), OUT: out}, ret='a')
     if op == 'wcsicmp':   # a wide string and a copy with case flips, a changed unit or a cut
         units = [r.choice([r.randrange(0x20, 0x7f), r.choice(b'@AZ[`az{'), 0xc9, 0xe9, 0x141, 0x161, 0xff21, 0xff41, 0xffff, r.randrange(1, 0x10000)])
                  for _ in range(r.choice([0, 1, r.randrange(8), r.randrange(30)]))]
@@ -136,7 +140,7 @@ def case(r):
 
 CLASSES = {'isalpha': 0x67a530, 'isdigit': 0x67a560, 'isspace': 0x67a590, 'isalnum': 0x67a5c0}
 KINDS = ['stricmp', 'strrchr', 'strchr', 'strncmp', 'strstr', 'toupper', 'tolower', 'atoi', 'wcslen', 'sprintf', 'strncpy', 'iswspace',
-         'isalpha', 'isdigit', 'isspace', 'isalnum', 'atof', 'swprintf', 'wcsncpy', 'wcsicmp', 'wcscpy']
+         'isalpha', 'isdigit', 'isspace', 'isalnum', 'atof', 'swprintf', 'wcsncpy', 'wcsicmp', 'wcscpy', 'wcscat']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':
