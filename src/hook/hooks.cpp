@@ -4479,6 +4479,7 @@ const Hook kHooks[] = {
     {"Dialog7ca1c8_SetChecks",    0x00498090, (void *)&Dialog7ca1c8_SetChecks, {0x8b, 0x0d, 0xc8, 0xa1, 0x7c}},
     {"Dialog7ca1c8_SetChecksIfUp", 0x00498a50, (void *)&Dialog7ca1c8_SetChecksIfUp, {0xa1, 0xc8, 0xa1, 0x7c, 0x00}},
     {"Dialog7ca1c8_SetChecksIfUpThis", 0x00481a00, (void *)&Dialog7ca1c8_SetChecksIfUpThis, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"Dialog7ca1c8_Focus",        0x00498a80, (void *)&Dialog7ca1c8_Focus, {0x8b, 0x0d, 0xc8, 0xa1, 0x7c}},
     {"Dialog7cc47c_Message6Off",  0x004b8830, (void *)&Dialog7cc47c_Message6Off, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
     {"Dialog7cc47c_Message6On",   0x004b8810, (void *)&Dialog7cc47c_Message6On, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
     {"Dialog7cc47c_Message4",     0x004b87f0, (void *)&Dialog7cc47c_Message4, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},

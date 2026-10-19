@@ -39,4 +39,6 @@ void __cdecl Dialog7ca1c8_SetChecksIfUp(u32 flags) {
 }
 
 void __fastcall Dialog7ca1c8_SetChecksIfUpThis(void *, void *, u32 flags) { Dialog7ca1c8_SetChecksIfUp(flags); }
+
+u32 __cdecl Dialog7ca1c8_Focus() { return Window_SetFocus(global<u8 *>(0x007ca1c8), nullptr, 0); }
 }
