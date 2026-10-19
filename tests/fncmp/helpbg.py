@@ -38,7 +38,9 @@ def case(r):
         put(bg, 0, 'I', BG_VTABLE)
         for off in (4, 0xc):
             put(bg, off, 'H', r.choice([0, 1, 1, 1, 0x100, 0x8000, r.getrandbits(16)]))
-        put(bg, 0x18, 'I', r.choice(wins))
+        window = r.choice(wins)
+        put(regions[window], 0, 'I', WINDOW_VTABLE)   # (the tree's windows' own vtable pointers are random)
+        put(bg, 0x18, 'I', window)
         regions[0x7ca0c0] = bg
         regions[BG_VTABLE] = vtable({}, size=8)
         n = r.choice([0, 0, 1, 2, 5, 20])
