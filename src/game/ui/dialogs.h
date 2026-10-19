@@ -1,5 +1,5 @@
 // The game's dialog windows (each a global window pointer) sent their messages: Window_SendMessage wrappers. Reimplementation of 0x4b87f0,
-// 0x4b8810 and 0x4b8830 and others (0x4bcec0 chooses the window 0x7cc698).
+// 0x4b8810 and 0x4b8830 and others (0x4bcec0 chooses the window 0x7cc698; 0x4bd400, 0x4bd450 and 0x49ab80 set their buttons).
 #pragma once
 
 #include "../../../re/types.h"
@@ -90,4 +90,15 @@ u32 __cdecl Global7cc698_Choose();
 // child's dword +0xa0 slot 2 (Window_DwordA0) is set; else message 0xb (0, 0) sent to it (Window_SendMessage) and message 0xa (value, 0)
 // posted (Window_PostMessage). Returns the value otherwise (no dialog, value 0 or no such child included).
 u32 __cdecl Dialog7cb2b8_Child21Post(u32 value);
+
+// 0x4bd400 / 0x4bd450 (cdecl (value: a byte); names unconfirmed): with the window [0x7cc8bc] set, its child 0xc3123's child 0xc3124's child
+// 0xc3128 / 0xc3129 (Window_FindChild three times, none checked): 0x4bd400 sets that 0x705a50 window's state to value == 1, notifying
+// (Window705a50_SetState(.., 1)); 0x4bd450 calls its slot 5 (thiscall) with value == 0.
+void __cdecl Window7cc8bc_SetC3128(u8 value);
+void __cdecl Window7cc8bc_SetC3129(u8 value);
+
+// 0x49ab80 (cdecl (mode); name unconfirmed): the window [0x7ca2e8]'s child 0x12272 (not checked), then the states of its 0x705a50 children
+// set to 0, notifying (Window705a50_SetState(0, 1)): with mode 3 the children 0x12277 and 0x1227b, else 0x12279, 0x12278, 0x1227c, 0x1227d,
+// 0x1227a and 0x1227e, in that order.
+void __cdecl Window7ca2e8_ClearButtons(u32 mode);
 }
