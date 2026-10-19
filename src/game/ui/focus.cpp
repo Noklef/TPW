@@ -64,4 +64,19 @@ u32 __cdecl Focus_Restore() {
     enable(0x00787c14);
     return focus(global<u8 *>(0x007cb2b4));
 }
+
+u32 __cdecl Window7c24c8_Close() {
+    u8 *const window = global<u8 *>(0x007c24c8);
+    if (!window) return 0;
+    Window_SendMessage(window, 5, 0, 0);
+    global<u8 *>(0x007c24c8) = nullptr;
+    Focus_Restore();
+    return 1;
+}
+
+u32 __cdecl Window7cb2cc_Close() {
+    if (u8 *const window = global<u8 *>(0x007cb2cc)) Window_SendMessage(window, 4, 0, 0);
+    global<u8 *>(0x007cb2cc) = nullptr;
+    return Focus_Restore();
+}
 }

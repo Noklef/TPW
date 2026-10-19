@@ -26,4 +26,9 @@ u32 __cdecl GuiClock_Now() {
     u8 *const clock = *reinterpret_cast<u8 **>((uintptr_t)0x0077c490);
     return reinterpret_cast<u32(__fastcall *)(u8 *, void *)>((*reinterpret_cast<void ***>(clock))[0])(clock, nullptr);
 }
+
+void __cdecl Gui_GetMousePos(u16 *x, u16 *y) {
+    *x = *reinterpret_cast<const u16 *>((uintptr_t)0x00faa540);
+    *y = *reinterpret_cast<const u16 *>((uintptr_t)0x00faa544);
+}
 }

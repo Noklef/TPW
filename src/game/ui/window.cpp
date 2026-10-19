@@ -336,6 +336,13 @@ u32 __cdecl Window_CancelTimed(u8 *window) {
     return GuiTimers_Cancel(table, nullptr, (u32)(uintptr_t)window);
 }
 
+u32 __cdecl Window_PostTimed(u8 *window, u32 message, u32 a, u32 b, u32 delay) {
+    u8 *const table = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f8);
+    if (!table || !window || message == 1 || message == 3 || message == 2) return 0;
+    GuiTimers_Add(table, nullptr, (u32)(uintptr_t)window, message, a, b, delay);
+    return 1;
+}
+
 void __cdecl Gui_ResetQueues() {
     if (u8 *const table = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f8)) GuiTimers_Reset(table);
     if (u8 *const first = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f4)) MsgQueue_Clear(first);
@@ -472,5 +479,23 @@ u32 __cdecl Gui_MouseUp(u32 button, u32 x, u32 y) {
     const u32 mask = ~(1u << (b & 31));
     *reinterpret_cast<u16 *>((uintptr_t)0x00faa5bc) &= (u16)mask;
     return (mask & 0xffff0000u) | 1;
+}
+}
+
+extern "C" {
+
+u16 __fastcall Window_Unlink(u8 *window) {
+    if (at<u8 *>(window, 0x60) && !at<u8 *>(window, 0x58)) at<u8 *>(at<u8 *>(window, 0x60), 0x5c) = at<u8 *>(window, 0x54);
+    if (at<u8 *>(window, 0x58)) at<u8 *>(at<u8 *>(window, 0x58), 0x54) = at<u8 *>(window, 0x54);
+    if (at<u8 *>(window, 0x54)) at<u8 *>(at<u8 *>(window, 0x54), 0x58) = at<u8 *>(window, 0x58);
+    at<u8 *>(window, 0x54) = nullptr;
+    at<u8 *>(window, 0x58) = nullptr;
+    at<u8 *>(window, 0x60) = nullptr;
+    return (u16)Window_UpdateHover();
+}
+
+u16 __fastcall Window_SetHandler(u8 *window, void *, u32 handler) {
+    if (handler) at<u32>(window, 0x114) = handler;
+    return 1;
 }
 }

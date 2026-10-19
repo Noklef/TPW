@@ -133,6 +133,10 @@ u32 __cdecl Window_CancelPostedFirst(u8 *window);
 // 0x65903b (cdecl (window); name unconfirmed): likewise the window's timed messages in [0xfaa5f8] (GuiTimers_Cancel).
 u32 __cdecl Window_CancelTimed(u8 *window);
 
+// 0x658df4 (cdecl (window, message, a, b, delay); name unconfirmed): with the timed table [0xfaa5f8], a window and a message other
+// than 1, 2 and 3, the four and the delay added to it (GuiTimers_Add; its result not used) and 1; else 0.
+u32 __cdecl Window_PostTimed(u8 *window, u32 message, u32 a, u32 b, u32 delay);
+
 // 0x659064 (cdecl; name unconfirmed): the timed table [0xfaa5f8] reset (GuiTimers_Reset), then the queues [0xfaa5f4] and [0xfaa5f0]
 // cleared (MsgQueue_Clear), each when set.
 void __cdecl Gui_ResetQueues();
@@ -148,6 +152,14 @@ u32 __fastcall Window_Dtor(u8 *window);
 // 0x661680 (thiscall (flags), pops 4; slot 2; name unconfirmed): the scalar deleting destructor: Window_Dtor, then with flag 1 freed
 // (Mem_Free). Returns the window.
 u8 *__fastcall Window_DeletingDtor(u8 *window, void *, u32 flags);
+
+// 0x65f538 (thiscall; name unconfirmed): the window taken out of its parent's child list as the destructor does: with a parent (+0x60)
+// and no previous sibling (+0x58) the parent's first child +0x5c becomes the next sibling (+0x54); the previous one's next and the next
+// one's previous are joined; +0x54, +0x58 and +0x60 cleared; then the hover updated (Window_UpdateHover, its AX returned).
+u16 __fastcall Window_Unlink(u8 *window);
+
+// 0x65e526 (thiscall (handler), pops 4; name unconfirmed): a handler not 0 becomes the window's (+0x114); 1 in AX either way.
+u16 __fastcall Window_SetHandler(u8 *window, void *, u32 handler);
 
 // 0x65e705 (thiscall (index: a word), pops 4; name unconfirmed): the dword +0xa0 + 4 * index (signed) for an index below 16, else 0.
 u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index);

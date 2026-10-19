@@ -8,6 +8,7 @@
 #include "../render/particles.h"
 #include "guirect.h"
 #include "window.h"
+#include "window705a50.h"
 
 namespace {
 
@@ -152,5 +153,29 @@ u32 __cdecl Global7cc698_Choose() {
     }
     chosen = *reinterpret_cast<const u32 *>((uintptr_t)0x007cc8c0);
     return 0;
+}
+
+void __cdecl Window7cc8bc_SetC3128(u8 value) {
+    if (u8 *const w = window(0x007cc8bc)) {
+        u8 *const child = Window_FindChild(Window_FindChild(Window_FindChild(w, nullptr, 0xc3123), nullptr, 0xc3124), nullptr, 0xc3128);
+        Window705a50_SetState(child, nullptr, value == 1 ? 1 : 0, 1);
+    }
+}
+
+void __cdecl Window7cc8bc_SetC3129(u8 value) {
+    if (u8 *const w = window(0x007cc8bc)) {
+        u8 *const child = Window_FindChild(Window_FindChild(Window_FindChild(w, nullptr, 0xc3123), nullptr, 0xc3124), nullptr, 0xc3129);
+        vcall<void>(child, 0x14, (u32)(value == 0 ? 1 : 0));
+    }
+}
+
+void __cdecl Window7ca2e8_ClearButtons(u32 mode) {
+    u8 *const panel = Window_FindChild(window(0x007ca2e8), nullptr, 0x12272);
+    static const u32 kThree[] = {0x12277, 0x1227b};
+    static const u32 kOther[] = {0x12279, 0x12278, 0x1227c, 0x1227d, 0x1227a, 0x1227e};
+    const u32 *const ids = mode == 3 ? kThree : kOther;
+    const u32 n = mode == 3 ? 2 : 6;
+    for (u32 i = 0; i < n; i++)
+        Window705a50_SetState(Window_FindChild(panel, nullptr, ids[i]), nullptr, 0, 1);
 }
 }

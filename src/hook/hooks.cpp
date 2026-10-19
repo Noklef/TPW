@@ -345,8 +345,12 @@
 #include "../game/ui/window705a50.h"
 #include "../game/ui/windowreg.h"
 #include "../game/ui/cursor.h"
+#include "../game/ui/dialog7cb2fc.h"
 #include "../game/ui/focus.h"
+#include "../game/ui/panel7cc298.h"
+#include "../game/ui/radiogroup.h"
 #include "../game/ui/textbutton.h"
+#include "../game/ui/window705b20.h"
 #include "../game/ui/windowtimers.h"
 
 namespace tpw::hook {
@@ -4532,10 +4536,16 @@ const Hook kHooks[] = {
     {"Window_SetImpl",            0x0065d1c8, (void *)&Window_SetImpl, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window_Notify3000",         0x0065c4b9, (void *)&Window_Notify3000, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window_Notify20000",        0x0065c54a, (void *)&Window_Notify20000, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window_Unlink",             0x0065f538, (void *)&Window_Unlink, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window_SetHandler",         0x0065e526, (void *)&Window_SetHandler, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window_PostTimed",          0x00658df4, (void *)&Window_PostTimed, {0x55, 0x8b, 0xec, 0x83, 0x3d}},
     {"Dialog7ca1c8_SetChecks",    0x00498090, (void *)&Dialog7ca1c8_SetChecks, {0x8b, 0x0d, 0xc8, 0xa1, 0x7c}},
     {"Dialog7ca1c8_SetChecksIfUp", 0x00498a50, (void *)&Dialog7ca1c8_SetChecksIfUp, {0xa1, 0xc8, 0xa1, 0x7c, 0x00}},
     {"Dialog7ca1c8_SetChecksIfUpThis", 0x00481a00, (void *)&Dialog7ca1c8_SetChecksIfUpThis, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dialog7ca1c8_Focus",        0x00498a80, (void *)&Dialog7ca1c8_Focus, {0x8b, 0x0d, 0xc8, 0xa1, 0x7c}},
+    {"Dialog7ca1c8_SelectButton", 0x004981d0, (void *)&Dialog7ca1c8_SelectButton, {0x8b, 0x0d, 0xc8, 0xa1, 0x7c}},
+    {"Dialog7ca1c8_SelectButtonIfUp", 0x00498a30, (void *)&Dialog7ca1c8_SelectButtonIfUp, {0xa1, 0xc8, 0xa1, 0x7c, 0x00}},
+    {"Dialog7ca1c8_SelectButtonIfUpThis", 0x004819f0, (void *)&Dialog7ca1c8_SelectButtonIfUpThis, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dialog7cc47c_Message6Off",  0x004b8830, (void *)&Dialog7cc47c_Message6Off, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
     {"Dialog7cc47c_Message6On",   0x004b8810, (void *)&Dialog7cc47c_Message6On, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
     {"Dialog7cc47c_Message4",     0x004b87f0, (void *)&Dialog7cc47c_Message4, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
@@ -4562,10 +4572,14 @@ const Hook kHooks[] = {
     {"Window_DefaultHandler",     0x004a0a90, (void *)&Window_DefaultHandler, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
     {"Dialog7ca168_ShowText",     0x00496570, (void *)&Dialog7ca168_ShowText, {0x8b, 0x0d, 0x68, 0xa1, 0x7c}},
     {"Windows7cc8bc_SelectSecond", 0x004bce80, (void *)&Windows7cc8bc_SelectSecond, {0xa1, 0xbc, 0xc8, 0x7c, 0x00}},
+    {"Window7cc8bc_SetC3128",     0x004bd400, (void *)&Window7cc8bc_SetC3128, {0x8b, 0x0d, 0xbc, 0xc8, 0x7c}},
+    {"Window7cc8bc_SetC3129",     0x004bd450, (void *)&Window7cc8bc_SetC3129, {0x8b, 0x0d, 0xbc, 0xc8, 0x7c}},
+    {"Window7ca2e8_ClearButtons", 0x0049ab80, (void *)&Window7ca2e8_ClearButtons, {0x8b, 0x0d, 0xe8, 0xa2, 0x7c}},
     {"GuiManager_Word4Set",       0x00659631, (void *)&GuiManager_Word4Set, {0x55, 0x8b, 0xec, 0x8b, 0x0d}},
     {"GuiManager_CallSlot3",      0x0065961c, (void *)&GuiManager_CallSlot3, {0x55, 0x8b, 0xec, 0xa1, 0x8c}},
     {"GuiManager_CallSlot4",      0x00659607, (void *)&GuiManager_CallSlot4, {0x55, 0x8b, 0xec, 0xa1, 0x8c}},
     {"GuiClock_Now",              0x0065968e, (void *)&GuiClock_Now, {0x55, 0x8b, 0xec, 0xa1, 0x90}},
+    {"Gui_GetMousePos",           0x0065958a, (void *)&Gui_GetMousePos, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
     {"GuiRect_Dtor",              0x00659d90, (void *)&GuiRect_Dtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"GuiRect_CtorWith",          0x00659d43, (void *)&GuiRect_CtorWith, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"GuiRect_Ctor",              0x00659d00, (void *)&GuiRect_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
@@ -4615,6 +4629,12 @@ const Hook kHooks[] = {
     {"Window705a50_DeletingDtor", 0x006693a0, (void *)&Window705a50_DeletingDtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705a50_Dtor",         0x006689bc, (void *)&Window705a50_Dtor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window705a50_TextLength",   0x0066852b, (void *)&Window705a50_TextLength, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705a50_Look",         0x00668820, (void *)&Window705a50_Look, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705a50_NotifyLook",   0x00668ad3, (void *)&Window705a50_NotifyLook, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705a50_SetState",     0x00668bec, (void *)&Window705a50_SetState, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705a50_SetPair",      0x00668f35, (void *)&Window705a50_SetPair, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705a50_Set14c",       0x00668f5a, (void *)&Window705a50_Set14c, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705a50_Set154",       0x00668f7b, (void *)&Window705a50_Set154, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"ThingPreview_Hide",         0x00486630, (void *)&ThingPreview_Hide, {0xa1, 0xd8, 0x24, 0x7c, 0x00}},
     {"ThingPreview_Show",         0x00486530, (void *)&ThingPreview_Show, {0x51, 0xa1, 0xd8, 0x24, 0x7c}},
     {"List7cc188_NewRow",         0x004a8380, (void *)&List7cc188_NewRow, {0x6a, 0xff, 0x68, 0xdb, 0xa7}},
@@ -4633,6 +4653,13 @@ const Hook kHooks[] = {
     {"TextButton_Handler",        0x00492d80, (void *)&TextButton_Handler, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
     {"Focus_Restore",             0x004862a0, (void *)&Focus_Restore, {0xe8, 0x2b, 0x66, 0x00, 0x00}},
     {"Global7c2534_HasSource",    0x0048c8d0, (void *)&Global7c2534_HasSource, {0x8b, 0x0d, 0x34, 0x25, 0x7c}},
+    {"Window7c24c8_Close",        0x00485b40, (void *)&Window7c24c8_Close, {0xa1, 0xc8, 0x24, 0x7c, 0x00}},
+    {"Window7cb2cc_Close",        0x004a27c0, (void *)&Window7cb2cc_Close, {0xa1, 0xcc, 0xb2, 0x7c, 0x00}},
+    {"RadioGroup_Select",         0x0066a295, (void *)&RadioGroup_Select, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"RadioGroup_SetSelectedState", 0x0066a1b0, (void *)&RadioGroup_SetSelectedState, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Panel7cc298_Update",        0x004b1ee0, (void *)&Panel7cc298_Update, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
+    {"Dialog7cb2fc_SetToggle",    0x004a3960, (void *)&Dialog7cb2fc_SetToggle, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Window705b20_SetRange",     0x0066b47d, (void *)&Window705b20_SetRange, {0x55, 0x8b, 0xec, 0x51, 0x89}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
