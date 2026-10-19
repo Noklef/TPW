@@ -44,6 +44,9 @@
 #include "../../src/game/files/wrapsources.h"
 #include "../../src/game/files/zlibcodec.h"
 #include "../../src/game/gfx/canvas.h"
+#include "../../src/game/gfx/pixconv.h"
+#include "../../src/game/gfx/surfbuf.h"
+#include "../../src/game/gfx/tga.h"
 #include "../../src/game/render/engineerrors.h"
 #include "../../src/game/sprite/script.h"
 #include "../../src/game/world/mapline.h"
@@ -247,6 +250,7 @@ const PtrListEnv kPtrListEnv = {&heap_alloc};
 const GameHeapEnv kGameHeapEnv = {&heap_alloc, &heap_free};
 const WadSourceEnv kWadSourceEnv = {&heap_alloc, &heap_free};
 const BufferedSourceEnv kBufferedSourceEnv = {&heap_alloc, &heap_free};
+const SurfaceBufferEnv kSurfaceBufferEnv = {0x00703998, &heap_free};
 // atexit is stub_cdecl_log (kStubs + 0x50; the benches hook 0x67a7d0 with fncmp._cdecl_log); the compressor's destructor stays the game's address, which is only
 // handed to atexit, never called here.
 const WrapSourcesEnv kWrapSourcesEnv = {&heap_alloc, &heap_free, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)),
@@ -494,6 +498,11 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x00702800, 2},   // a theme's (Table73f8a8_At, BalanceFile_GetValues)
                                    {0x00702250, 10},   // the texture surface B's virtual base (its thunks; slot 1 FreePixels' the destructor calls)
                                    {0x00705920, 4},   // the GUI rectangle (GuiRect_Contains, _Centre, _Offset, _Adjust)
+                                   {0x00703630, 4},   // the TGA reader (Begin, ReadRow, RowBytes, RowReader_CopyRow)
+                                   {0x007039a0, 3},   // the pixel converters (deleting destructor, forwards, backwards): palette,
+                                   {0x007039b0, 3},   // RGB,
+                                   {0x00703fa8, 3},   // index,
+                                   {0x00703fb8, 3},   // 16-bit (slot 2 the empty 0x5da3d0)
                                    {0x00705980, 3},   // the GUI window (Debug_Printf, Window_SaveRect, Window_DeletingDtor)
                                    {0x00705a50, 3},   // its subclass (the same, but Window705a50_DeletingDtor)
                                    {0x006ff308, 3},   // the sprite set's virtual base (its deleting destructor's thunk, PtrArray_ReleaseAll's)
@@ -593,6 +602,31 @@ s32 __cdecl script_now() {
     return now(reinterpret_cast<void *>(0x00785970), nullptr);
 }
 
+// SpriteScript_Run's opcode call (its env's op): the hooked opcode at that address; END (0x5da3c0, the empty Debug_Printf) returns at
+// once; any other address faults, as the code the emulator would run there (a stray word) is not the driver's.
+void __cdecl script_op(u32 address) {
+    if (address == 0x005da3c0) return;
+    void *const fn = find(address);
+    if (!fn) *reinterpret_cast<volatile u32 *>(static_cast<std::uintptr_t>(address & 0xfff)) = 0;  // (an access violation)
+    reinterpret_cast<void(__cdecl *)()>(fn)();
+}
+
+// Mem_AllocCounted / Mem_FreeCounted (0x642860 / 0x642880, stdcall, not ported): the hooked Mem_GlobalAlloc / Free (0x5f5660 / 0x5f5680, through the
+// GlobalAlloc import slots the case maps, global_heap()) and the count of blocks at 0xfaa534, as the originals keep it.
+void *__stdcall stub_alloc_counted(u32 size) {
+    static const auto alloc = reinterpret_cast<void *(__cdecl *)(u32)>(hooked(0x005f5660));
+    void *const p = alloc(size);
+    if (p) ++*reinterpret_cast<volatile u32 *>(static_cast<std::uintptr_t>(0x00faa534));
+    return p;
+}
+
+s32 __stdcall stub_free_counted(void *block) {
+    static const auto release = reinterpret_cast<void(__cdecl *)(void *)>(hooked(0x005f5680));
+    if (block) release(block);
+    --*reinterpret_cast<volatile u32 *>(static_cast<std::uintptr_t>(0x00faa534));
+    return 1;
+}
+
 u8 nibble(char c) { return (u8)(c <= '9' ? c - '0' : (c | 0x20) - 'a' + 10); }
 
 // (by hand: sscanf("%2x") per byte measures the rest of the string each call, which made a 1 MB region cost seconds)
@@ -631,6 +665,7 @@ int main(int argc, char **argv) {
     GameHeap_SetEnv(&kGameHeapEnv);
     WadSource_SetEnv(&kWadSourceEnv);
     BufferedSource_SetEnv(&kBufferedSourceEnv);
+    SurfaceBuffer_SetEnv(&kSurfaceBufferEnv);
     WrapSources_SetEnv(&kWrapSourcesEnv);
     static FileEnv files = *Files_GetEnv();  // (the import slots the case maps; Mem_Alloc is game code)
     files.alloc = &heap_alloc;
@@ -725,8 +760,21 @@ int main(int argc, char **argv) {
                                             reinterpret_cast<void(__cdecl *)()>(hooked(0x00540ab0)), reinterpret_cast<void(__cdecl *)(u8 *)>(hooked(0x00542010)),
                                             reinterpret_cast<void(__cdecl *)()>(hooked(0x00540b30)),
                                             reinterpret_cast<void(__cdecl *)(u32 *, void *, const void *, u32, u32)>(hooked(0x005f5e50)),
-                                            reinterpret_cast<void(__cdecl *)(u32 *, void *, void *, u32, u32)>(hooked(0x005f5e20))};
+                                            reinterpret_cast<void(__cdecl *)(u32 *, void *, void *, u32, u32)>(hooked(0x005f5e20)), &script_op};
     SpriteScripts_SetEnv(&sprites);
+    // The pixel conversion's: the heap, the counted allocations above, the inverse colour map's hooks; the game's two formats.
+    static const PixConvEnv pixConv = {&heap_free, &stub_alloc_counted, &stub_free_counted, reinterpret_cast<void *(__fastcall *)(void *, void *)>(hooked(0x00642150)),
+                                       reinterpret_cast<void(__fastcall *)(void *, void *, u32, u32, const u32 *, u32, u32 *, u8 *)>(hooked(0x00642190)),
+                                       reinterpret_cast<void(__fastcall *)(void *, void *)>(hooked(0x00642180)), reinterpret_cast<const u32 *>((uintptr_t)0x00faa268),
+                                       reinterpret_cast<const u32 *>((uintptr_t)0x00faa280), &heap_alloc};
+    PixConv_SetEnv(&pixConv);
+    // The TGA reader's: the hooked Mem_GlobalAlloc / Free (the GlobalAlloc import slots the case maps) and Palette_ExpandRgb, the pixel conversion's ports.
+    static const TgaEnv tga = {reinterpret_cast<void *(__cdecl *)(u32)>(hooked(0x005f5660)), reinterpret_cast<void *(__cdecl *)(void *)>(hooked(0x005f5680)),
+                               reinterpret_cast<void(__cdecl *)(u8 *, const u8 *, u32)>(hooked(0x005f7360)), &PixelConversion_Ctor, &PixelConversion_Setup,
+                               &PixelConversion_Row, &PixelConversion_Dtor, reinterpret_cast<const u32 *>((uintptr_t)0x00faa298),
+                               reinterpret_cast<const u32 *>((uintptr_t)0x00faa2b0), reinterpret_cast<const u32 *>((uintptr_t)0x00faa268),
+                               reinterpret_cast<const u32 *>((uintptr_t)0x00faa280)};
+    Tga_SetEnv(&tga);
     // A region of up to 8 MB, as hex. Mapped top-down rather than static: a static this size grew the driver's .bss by 12 MB past the
     // game's addresses, where a case's wild pointer read memory natively that the emulator (the original's side) does not have.
     char *const token = static_cast<char *>(VirtualAlloc(nullptr, 1 << 24, MEM_RESERVE | MEM_COMMIT | MEM_TOP_DOWN, PAGE_READWRITE));

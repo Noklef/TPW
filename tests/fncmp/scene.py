@@ -18,7 +18,7 @@ B = Bench([(0x44a590, 0x44b140), (0x44b140, 0x44b2e0), (0x44ba60, 0x44bad5), (0x
            (0x45d620, 0x45d68c), (0x441840, 0x4418cb), (0x469180, 0x469405), (0x469470, 0x4698ef), (0x469410, 0x46946a),
            (0x45b9d0, 0x45ba15), (0x468760, 0x4688a7), (0x44b4c0, 0x44b505),
            (0x475550, 0x47558b), (0x46f150, 0x46f180), (0x46f240, 0x46f350), (0x46f420, 0x46f5c0),
-           (0x4702d0, 0x470630), (0x473a40, 0x473c30), (0x67a400, 0x690000), (0x450e60, 0x450e99), (0x46e130, 0x46e4dc),
+           (0x4702d0, 0x470630), (0x473a40, 0x473c30), (0x473c30, 0x473c70), (0x67a400, 0x690000), (0x450e60, 0x450e99), (0x46e130, 0x46e4dc),
            (0x45ba70, 0x45ba92), (0x45bdc0, 0x45bdca), (0x44e510, 0x44e531), (0x473c70, 0x473e30),
            (0x429ee0, 0x429fd4), (0x429fe0, 0x429ff4), (0x45bf20, 0x45bf46), (0x45bf50, 0x45bf83),
            (0x46fad0, 0x46fb41), (0x457e10, 0x457e26), (0x457e30, 0x457e63), (0x452e10, 0x452e63),
@@ -162,7 +162,43 @@ def partmatrices(r, op):
         put(pmn, o + 0x60, '2I', PMG, PMG + 0x400)
         put(pmn, o + 0x70, 'I', PMG + 0x300)
         put(pmn, o + 0x94, 'I', PMG + 0x200)
-    return Call(0x44ab30, [PMA], {PMA: pma, PMN: pmn, PMG: pmg, PMS: r.bytes(0x400)})
+    regs = {PMA: pma, PMN: pmn, PMG: pmg, PMS: r.bytes(0x400)}
+    if op == 'PsNode':  # one node (and its children) from a matrix of its own, its copy at PMS + 0x380 the parent
+        m = [r.f(r.choice([1, 10, None])) for _ in range(16)] if r.random() < 0.7 else \
+            [fb(1.0 if k % 5 == 0 else 0.0) for k in range(16)]
+        regs[PMS] = bytearray(regs[PMS])
+        put(regs[PMS], 0x380, '16I', *m)
+        return Call(0x44ab90, [PMN + 0x100 * r.randrange(count), PMA + 0x100] + m + [PMS + 0x380, PMA + 0x400], regs)
+    return Call(0x44ab30, [PMA], regs)
+
+
+def normals(r, op):
+    """Normals: one node of PMN (0xa0 apart, the faces' geometry in PMG as for PsUpdate) whose vertices moved; ModelNormals: the model at
+    PMA with its primary nodes (count +0x44, at +0x70) flagged 0x10000 or not."""
+    pma, pmn, pmg = bytearray(r.bytes(0x100)), bytearray(r.bytes(0xa0 * 6)), bytearray(r.bytes(0x1000))
+    r.floats(pmg, range(0, 0x180, 4), r.choice([1, 10, None]))
+    for k in range(32):
+        put(pmg, 0x200 + 2 * k, 'H', r.randrange(32))
+    for k in range(16):
+        v = [r.randrange(32) for _ in range(3)]
+        if r.random() < 0.1:
+            v[1] = v[0]  # a degenerate face
+        put(pmg, 0x300 + 8 * k, '4H', r.randrange(16) | r.choice([0, 0x8000]), *v)
+    n = r.randrange(0, 7)
+    put(pma, 0x30, 'I', r.getrandbits(32))
+    put(pma, 0x44, 'H', n)
+    put(pma, 0x70, 'I', PMN)
+    for k in range(6):
+        o = 0xa0 * k
+        put(pmn, o, 'I', r.getrandbits(32) & ~0x10000 | r.choice([0, 0x10000]))
+        put(pmn, o + 0x5c, 'H', r.randrange(17))
+        put(pmn, o + 0x60, '2I', PMG, PMG + 0x400)
+        put(pmn, o + 0x70, 'I', PMG + 0x300)
+        put(pmn, o + 0x94, 'I', PMG + 0x200)
+    regs = {PMA: pma, PMN: pmn, PMG: pmg}
+    if op == 'Normals':
+        return Call(0x473a40, [PMN + 0xa0 * r.randrange(6)], regs)
+    return Call(0x473c30, [PMA], regs)
 
 
 STATICS = {'HolderOne': 0x45bf50, 'HolderEps': 0x45bf70, 'TerrOne': 0x457e30, 'TerrEps': 0x457e50,
@@ -611,7 +647,8 @@ KINDS = {'Size': mode, 'Depth': mode, 'ResetScale': mode, 'Epsilon': mode, 'Mark
          'VScratchFree': leaves, 'Awake': leaves, 'FrameBegin': leaves, 'IdAdd': ids, 'IdRemove': ids,
          'PsCreate': partstates, 'PsMark': partstates, 'PsFree': partstates, 'PsRelease': partstates,
          'PsUpdate': partmatrices, 'PsPoint': partmatrices, 'PsAim': partmatrices, 'MxPreMul': partmatrices,
-         'MxPreMul3': partmatrices, 'MxRotX4': partmatrices, 'MxRotY4': partmatrices, 'MxRotZ4': partmatrices}
+         'MxPreMul3': partmatrices, 'MxRotX4': partmatrices, 'MxRotY4': partmatrices, 'MxRotZ4': partmatrices, 'PsNode': partmatrices,
+         'Normals': normals, 'ModelNormals': normals}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 

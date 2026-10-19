@@ -35,7 +35,7 @@ CALLS = {'Nop4': (0x46c450, 4), 'Nop2': (0x46c650, 2), 'Dtor': (0x46ced0, 0), 'D
          'DerivedDelDtor': (0x46c710, 1), 'Tile': (0x46c580, 1), 'TileKind': (0x46c5a0, 2),
          'OnlineBase': (0x46c6a0, 0), 'PlaceStaff': (0x46c6d0, 4), 'StaffDrop': (0x46cbc0, 2),
          'Aa0': (0x46cfc0, 0), 'Ad0': (0x46cff0, 0), 'NewFrame': (0x46c100, 0)}
-STATICS = {'One': 0x46c070, 'Epsilon': 0x46c090, 'Tile': 0x46c0b0}  # 0x7b05a0-0x7b05d3
+STATICS = {'One': 0x46c070, 'Epsilon': 0x46c090, 'StaticTile': 0x46c0b0}  # ('Tile' is CALLS' 0x46c580)  # 0x7b05a0-0x7b05d3
 
 
 def hover(r):

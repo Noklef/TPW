@@ -9,7 +9,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x431480, 0x431660), (0x470b60, 0x470d10), (0x470e90, 0x471860), (0x474120, 0x4745c0), (0x474840, 0x475010), (0x46f650, 0x46f6f0),
+B = Bench([(0x431480, 0x431660), (0x470b60, 0x470d10), (0x470e90, 0x471860), (0x474120, 0x4745c0), (0x4745c0, 0x474840), (0x474840, 0x475010), (0x46f650, 0x46f6f0),
            (0x67a400, 0x690000)], sines=256)
 A, PTS, OUT = RAM, RAM + 0x1000, RAM + 0x2000  # small inputs, curve points / keys, outputs
 BLK, POS, GRP = RAM + 0x3000, RAM + 0x4000, RAM + 0x5000  # packed block, position blocks, groups
@@ -79,12 +79,44 @@ def packed(r, op, regs, t):
     return Call(0x4714a0, [A, BLK, struct.unpack('<I', struct.pack('<f', frame))[0], r.getrandbits(32), add], regs)
 
 
+def apply_uvs(r, regs):
+    """Motion_ApplyUVs: the state A (frame +0x20), the track at PTS (UV block +0x2c at PTS + 0x100, node +0x3c at PTS + 0x200 whose UV
+    blocks +0x68 are OUT): n UVs, each a range of keys (none, one: the key before is read) in the frames (PTS + 0x400, rising, repeats
+    too) and (u, v) pairs (PTS + 0x600)."""
+    pts = regs[PTS]
+    n = r.choice([1, 2, 4, 5, 8, r.randrange(1, 10)])
+    put(pts, 0x2c, 'I', PTS + 0x100)
+    put(pts, 0x3c, 'I', PTS + 0x200)
+    put(pts, 0x100, 'II', n, PTS + 0x300)
+    put(pts, 0x10c, 'II', PTS + 0x400, PTS + 0x600)
+    put(pts, 0x268, 'I', OUT)
+    nkeys = 40
+    f = r.randrange(3)
+    for k in range(nkeys):
+        put(pts, 0x400 + 2 * k, 'H', f)
+        f += r.choice([0, 1, 1, 2, 5, r.randrange(20)])
+    floats(r, pts, 0x600 - 0x20, 2 * nkeys + 8, r.choice([1, 1, 10, None]))
+    for i in range(n):
+        keys = r.choice([0, 1, 2, 3, 5, r.randrange(1, 8)])
+        put(pts, 0x300 + 4 * i, 'HH', r.randrange(nkeys - keys + 1), keys)
+    floats(r, regs[OUT], 0, 24)
+    frame = r.choice([fb(float(r.randrange(-2, f + 3))), fb(r.uniform(-2, f + 3)), fb(r.uniform(-2, f + 3)), r.f(), nan(r), fb(3e9), fb(-0.5)])
+    put(regs[A], 0x20, 'I', frame)
+    return Call(0x4745c0, [A, PTS, r.choice([0, 1])], regs)
+
+
+def fb(x):
+    return struct.unpack('<I', struct.pack('<f', x))[0]
+
+
 def case(r):
-    op = r.choice(OPS)
+    op = r.deal(OPS)
     a, pts, out = bytearray(r.bytes(0x100)), bytearray(r.bytes(0x1000)), bytearray(r.bytes(0x100))
     floats(r, a, 0, 16)
     regs = {A: a, PTS: pts, OUT: out}
     t = r.choice([r.pos(1), r.f(1), r.pos(r.choice([4, 12]))])
+    if op == 'ApplyUVs':
+        return apply_uvs(r, regs)
     if op == 'Modf':
         return Call(0x431480, [r.f(), OUT], regs, ret='d')
     if op == 'RotYCS':
@@ -160,7 +192,8 @@ def case(r):
 
 
 OPS_ALL = ['Modf', 'RotYCS', 'Vec3RotX', 'Vec3RotY', 'MatRotY', 'QuatToMatrix', 'Slerp', 'RotationAt', 'Percent',
-           'Bezier', 'BezierTan', 'Linear', 'LinearTan', 'CatmullRom', 'LerpVerts', 'LerpBox', 'Unpack', 'FindKeys', 'ApplyMaterial']
+           'Bezier', 'BezierTan', 'Linear', 'LinearTan', 'CatmullRom', 'LerpVerts', 'LerpBox', 'Unpack', 'FindKeys', 'ApplyMaterial',
+           'ApplyUVs']
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

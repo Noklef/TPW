@@ -141,7 +141,12 @@ u32 SpriteScript_RunWith(void(__cdecl *op)(u32 address), u8 *script) {
     }
 }
 
+namespace {
+const SpriteScriptEnv &env();  // (below, with the list)
+}  // namespace
+
 extern "C" u32 __cdecl SpriteScript_Run(u8 *script) {
+    if (env().op) return SpriteScript_RunWith(env().op, script);
     return SpriteScript_RunWith([](u32 address) { reinterpret_cast<void(__cdecl *)()>(address)(); }, script);
 }
 
@@ -337,6 +342,7 @@ const SpriteScriptEnv kGameEnv = {
     reinterpret_cast<void(__cdecl *)()>(0x00540b30),
     reinterpret_cast<void(__cdecl *)(u32 *, void *, const void *, u32, u32)>(0x005f5e50),
     reinterpret_cast<void(__cdecl *)(u32 *, void *, void *, u32, u32)>(0x005f5e20),
+    nullptr,
 };
 const SpriteScriptEnv *g_env = &kGameEnv;
 const SpriteScriptEnv &env() { return *g_env; }

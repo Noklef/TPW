@@ -9,8 +9,12 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from thunks_static import clock as timer  # noqa: E402
 
-B = Bench([(0x46f150, 0x475010), (0x67a400, 0x690000)], sines=256)
+B = Bench([(0x46f150, 0x475010), (0x67a400, 0x690000), (0x402d70, 0x402e00), (0x402e60, 0x4030f0), (0x403150, 0x403172), (0x4031e0, 0x403202),
+           (0x4033a0, 0x4033f0), (0x5f5f10, 0x5f5fc0), (0x429df0, 0x429e17)], sines=256)
+GCLOCK = 0x785970      # the game clock (Motion_UpdateClocks reads its time and real time)
 ANIM, LAYERS, HOLDER, MODEL, NODES, REST, RNODES, DATA, TFLAGS, OUT = (RAM + 0x1000 * k for k in range(10))
 CLOCKS = 0x7b4960     # gMotionTime (+0xc), gMotionRealTime (+0x14), step (+0x1c), gMotionFlags (+0x20), ...
 TRACKFLAGS = 0x7aecd0  # gTrackFlags (+4)
@@ -202,8 +206,22 @@ def world(r):
     return regs, nlayers, blocks
 
 
+def mark_tracks(r, regs, blocks):
+    """Motion_MarkNodes only reads the tracks' flags: add the vertex (0x1000), UV (0x10000) and matrix (1, 0x200) bits."""
+    data = regs[DATA]
+    for b in blocks:
+        o = b - DATA
+        n, tracks = struct.unpack_from('<H', data, o + 0x12)[0], struct.unpack_from('<I', data, o + 0x2c)[0] - DATA
+        for k in range(n):
+            flags = struct.unpack_from('<I', data, tracks + 0x40 * k + 4)[0]
+            for bit in (0x1000, 0x10000, 1, 0x200):
+                if r.random() < 0.3:
+                    flags |= bit
+            put(data, tracks + 0x40 * k + 4, 'I', flags)
+
+
 def case(r):
-    op = r.choice(OPS)
+    op = r.deal(OPS)
     regs, nlayers, blocks = world(r)
     layer = LAYERS + 0x38 * r.randrange(nlayers)
     blk = r.choice(blocks + [0])
@@ -243,11 +261,65 @@ def case(r):
         return Call(0x474050, [ANIM, speed, r.randrange(nlayers)], regs)
     if op == 'EndMs':
         return Call(0x474070, [ANIM, bank, entry], regs, ret='a')
+    index = r.randrange(nlayers)
+    if op == 'HasMotion':
+        put(regs[OUT], 0xc, 'I', ANIM)
+        return Call(0x472d10, [OUT + 0xc, bank, entry], regs, ret='a')
+    if op == 'MarkNodes':
+        mark_tracks(r, regs, blocks)
+        return Call(0x472d70, [r.choice(blocks), HOLDER], regs)
+    if op == 'CountLayers':
+        return Call(0x472ee0, [ANIM], regs)
+    if op == 'SetPlaying':
+        return Call(0x472f40, [ANIM], regs)
+    if op == 'ClearQueue':
+        return Call(0x473270, [ANIM, index], regs, ret='a')
+    if op == 'RefreshNodes':
+        return Call(0x473550, [ANIM], regs)
+    if op == 'GetFlags':
+        return Call(0x473fb0, [ANIM, r.choice([OUT, 0]), r.choice([OUT + 4, 0]), index], regs, ret='a')
+    if op == 'GetQueued':
+        return Call(0x473ff0, [ANIM, r.choice([OUT, 0]), r.choice([OUT + 4, 0]), index], regs)
+    if op == 'SetFlags':
+        return Call(0x4740d0, [r.getrandbits(32)], regs)
+    if op == 'UpdateClocks':  # the game clock as gameclock.py makes it: paused, frozen or not, on the game's Timer and its imports
+        timer(r, regs, True)
+        c = bytearray(r.bytes(0xa0))
+        put(c, 0x30, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
+        put(c, 0x68, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
+        put(c, 0x38, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
+        for o in (0x18, 0x58):
+            put(c, o, 'd', r.choice([0.0, 1.0, 1000.5, float(r.getrandbits(32)), r.uniform(0, 2 ** 31)]))
+        put(c, 0x20, 'd', r.choice([1.0, 1.0, 0.5, 2.0, 0.0, r.uniform(0, 4)]))
+        regs[GCLOCK] = c
+        return Call(0x473440, [], regs)
+    if op == 'SlotAnimate':  # the model slots (0x790398, 0xb0 bytes each): the animator at +4, or none
+        slots = bytearray(r.bytes(0xb0 * 4))
+        for k in range(4):
+            put(slots, 0xb0 * k + 4, 'I', r.choice([ANIM, ANIM, 0]))
+        regs[0x790398] = slots
+        return Call(0x429df0, [r.randrange(4)], regs)
+    if op == 'BindNodes':
+        return Call(0x470a00, [HOLDER, r.choice(blocks), r.choice([0, 1])], regs)
+    if op == 'ResetChannels':
+        return Call(0x472310, [ANIM, r.choice(blocks), r.choice(blocks + [0])], regs)
+    if op == 'MotionApply':
+        return Call(0x4721f0, [layer, HOLDER, blk], regs, ret='a')
+    if op == 'CopyVertices':  # from the rest holder (ANIM + 0x120: model REST) to HOLDER; the primary nodes get vertices
+        for nodes, base in ((regs[NODES], NODES), (regs[RNODES], RNODES)):
+            for k in range(NPRIMARY):
+                put(nodes, 0xa0 * k + 0x58, 'H', r.choice([0, 1, 3, 4, 5, 8]))
+                put(nodes, 0xa0 * k + 0x60, 'I', r.choice([base + 0x400 + 0x80 * k] * 4 + [0]))
+                if r.random() < 0.5:
+                    put(nodes, 0xa0 * k, 'I', struct.unpack_from('<I', nodes, 0xa0 * k)[0] ^ 0x200000)
+        return Call(0x472270, [ANIM + 0x120, HOLDER, r.choice([0, 1])], regs)
     return Call(0x473f50, [ANIM, OUT, r.choice([OUT + 4, 0]), OUT + 8, r.randrange(nlayers)], regs, ret='a')
 
 
 OPS_ALL = ['Start', 'Advance', 'SetBlock', 'TimeLeft', 'Play', 'AnimPlay', 'IsIdle', 'Update', 'AnimUpdate', 'Reset',
-           'ResetLayers', 'QSpeed', 'SetSpeed', 'EndMs', 'Playback', 'SetTime', 'Time']
+           'ResetLayers', 'QSpeed', 'SetSpeed', 'EndMs', 'Playback', 'SetTime', 'Time', 'HasMotion', 'MarkNodes', 'CountLayers',
+           'SetPlaying', 'ClearQueue', 'RefreshNodes', 'GetFlags', 'GetQueued', 'SetFlags', 'BindNodes', 'ResetChannels',
+           'MotionApply', 'CopyVertices', 'UpdateClocks', 'SlotAnimate']
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

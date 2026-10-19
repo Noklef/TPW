@@ -149,6 +149,8 @@ struct SpriteScriptEnv {
     // Stream_Write (0x5f5e50) / Stream_Read (0x5f5e20) (&result, stream, data, size, 0)
     void(__cdecl *write)(u32 *result, void *stream, const void *data, u32 size, u32 flags);
     void(__cdecl *read)(u32 *result, void *stream, void *data, u32 size, u32 flags);
+    // SpriteScript_Run's call of an opcode by its address (nullptr: call the address, as the game does)
+    void(__cdecl *op)(u32 address);
 };
 // The list's calls go to env (nullptr: the game's).
 void SpriteScripts_SetEnv(const SpriteScriptEnv *env);
