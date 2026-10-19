@@ -591,11 +591,11 @@ def pylon(r, op):
     and then) of up to six cars (+4 their slot, +0xe8 lengths about 0..1, rate values and flags as for Rates); the type's shortest +0xbc,
     longest +0xc0 (now and then the same), gap +0xc4, and +0x68 / +0x6c about the train's length (in either order, or a NaN)."""
     n = r.choice([0, 1, 2, 3, 4, 5, 6]) if op == 'Shrink' else r.randrange(1, 7)
-    whole = op in ('Shrink', 'Drop')
+    whole = op in ('Shrink', 'RemoveCar')
     tr, cars, types = bytearray(r.bytes(0x60)), r.bytes(6 * 0x200), r.bytes(0x200)
     tr[4] = tr[4] & ~1 | r.choice([0, 0, 0, 0, 1])
     put(tr, 0x18, 'I', TYPE)
-    put(tr, 0x30, 'I', n if r.random() < 0.97 or op == 'Drop' else 0x80000003)
+    put(tr, 0x30, 'I', n if r.random() < 0.97 or op == 'RemoveCar' else 0x80000003)
     for k in range(6):
         c = 0x200 * k
         put(cars, c + 4, 'I', k)
@@ -615,7 +615,7 @@ def pylon(r, op):
     regions = {COAST: r.bytes(0x10), CARS: cars, SPL: tr, TYPE: types, **rate_env(r, types)}
     if op == 'Shrink':
         return Call(0x433a90, [COAST, TYPE, SPL], regions, ret='a')
-    if op == 'Drop':   # 0x442d70: the rides' values (+8, +4, +0x78, +0x44) in a block each; the car dropped any of the n, its slot (+4) now and
+    if op == 'RemoveCar':   # 0x442d70: the rides' values (+8, +4, +0x78, +0x44) in a block each; the car dropped any of the n, its slot (+4) now and
         # then another (past the count too), now and then in a later slot as well (so that slot's car is the one moved again)
         holders, chain = bytearray(regions[NODES]), bytearray(r.bytes(0x400))
         for k in range(4):
@@ -663,7 +663,7 @@ def train(r, op):
         return restore(r)
     if op == 'Rates':
         return car_rates(r)
-    if op in ('Fit', 'Shrink', 'Drop'):
+    if op in ('Fit', 'Shrink', 'RemoveCar'):
         return pylon(r, op)
     if op == 'Refresh':  # pieces +8 flags, +0x64 next, +0x6c, +0x90 -> {count, 0x58-byte nodes}
         n = r.randrange(0, 5)
@@ -867,6 +867,8 @@ def ride_train(r, op):
 
 def by_id(r, op):
     """Links at 0x790fe0 (next +0x18, id +0x10, flags +0, +0x124 -> +0x34 -> +0xc)."""
+    if op in ('ResetUnit', 'InitEpsilon'):  # 0x43e120 / 0x43e140 (also behind ObjParams with no links, too rare for the gate's 400)
+        return Call(0x43e120 if op == 'ResetUnit' else 0x43e140, [], {0x792404: r.bytes(4), 0x7925e0: r.bytes(4)})
     if op in ('Bit18', 'Bit18Ride'):  # (one op each: dealt, both get cases in the gate's 400)
         table = 0x7ae6a8 if op == 'Bit18' else 0x7a4610
         return Call(0x436820 if table == 0x7ae6a8 else 0x436840, [r.randrange(2)],
@@ -1214,12 +1216,12 @@ def ride_orient(r, op):
 
 KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 'Tangent': spline, 'Set': orient,
          'Init': orient, 'Frame': frame, 'At': frame,
-         'RoundUp': helpers, 'Split': helpers, 'Lerp': helpers, 'Dot': helpers, 'Normalize': helpers, 'NormXZ': helpers, 'Swing': cars, 'Space': cars, 'Segs': cars, 'Setup': cars, 'Riders': cars, 'Extent': cars, 'Drop': cars, 'Window': cars, 'InWindow': cars, 'Dist': cars,
-         'NodeLerp': nodes, 'PastEnd': nodes, 'SplineAt': nodes, 'Zone': nodes, 'Merge': keys, 'Append': lists,
+         'RoundUp': helpers, 'Split': helpers, 'AngleLerp': helpers, 'Dot': helpers, 'Normalize': helpers, 'NormXZ': helpers, 'Swing': cars, 'Space': cars, 'Segs': cars, 'Setup': cars, 'Riders': cars, 'Extent': cars, 'Drop': cars, 'Window': cars, 'InWindow': cars, 'Dist': cars,
+         'NodeLerp': nodes, 'PastEnd': nodes, 'SplineAt': nodes, 'Zone': nodes, 'Merge': keys, 'ListPush': lists,
          'Link': queue, 'Unload': queue, 'QPush': queue, 'QAdd': queue, 'QRoom': queue, 'QPop': queue, 'QAdvance': queue,
          'CNext': cursor, 'CPrev': cursor, 'CPoint': cursor,
          'Count': registry, 'LinkNodes': registry, 'Pair': registry, 'EntryPos': registry, 'SearchReset': registry,
-         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Rates': train, 'Fit': train, 'Shrink': train, 'Drop': train, 'Restore': train, 'Pick': train, 'Tile': tiles, 'End': current, 'OnRide': current, 'Marked': current, 'Select': pieces, 'Renumber': pieces, 'RideTrain': ride_train, 'CarValue': ride_train, 'BeginEnd': current, 'Bit18': by_id, 'Bit18Ride': by_id, 'ById': by_id, 'IdValue': by_id, 'SetById': by_id, 'Key': tiles, 'Focus': tiles, 'Event': event, 'SetEnd': current, 'ClearEnd': current, 'ClearPair': contacts, 'ObjLink': by_id, 'ObjOpen': by_id, 'ObjBare': by_id, 'SelGet': small, 'SelSet': small, 'State': small, 'Changed': small, 'LostPair': small, 'Unlerp': small, 'Scale': small, 'Lerp': small, 'Flag1': small, 'SetCur': small, 'Moved': small, 'Position': small, 'Bounds': bounds, 'Segments': segments, 'RideOrient': ride_orient, 'SetFirst': pieces, 'Append': pieces, 'ClearSel': pieces, 'EndSel': pieces, 'Tools': current, 'Remove': pieces, 'ObjOther': by_id, 'ObjParams': by_id, 'Cost': cost, 'Gaps': gaps, 'Save': save, 'Claim': claim}
+         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Rates': train, 'Fit': train, 'Shrink': train, 'RemoveCar': train, 'Restore': train, 'Pick': train, 'Tile': tiles, 'End': current, 'OnRide': current, 'Marked': current, 'Select': pieces, 'Renumber': pieces, 'RideTrain': ride_train, 'CarValue': ride_train, 'BeginEnd': current, 'Bit18': by_id, 'Bit18Ride': by_id, 'ById': by_id, 'IdValue': by_id, 'SetById': by_id, 'Key': tiles, 'Focus': tiles, 'Event': event, 'SetEnd': current, 'ClearEnd': current, 'ClearPair': contacts, 'ObjLink': by_id, 'ObjOpen': by_id, 'ObjBare': by_id, 'SelGet': small, 'SelSet': small, 'State': small, 'Changed': small, 'LostPair': small, 'Unlerp': small, 'Scale': small, 'Lerp': small, 'Flag1': small, 'SetCur': small, 'Moved': small, 'Position': small, 'Bounds': bounds, 'Segments': segments, 'RideOrient': ride_orient, 'SetFirst': pieces, 'Append': pieces, 'ClearSel': pieces, 'EndSel': pieces, 'Tools': current, 'Remove': pieces, 'ObjOther': by_id, 'ObjParams': by_id, 'ResetUnit': by_id, 'InitEpsilon': by_id, 'Cost': cost, 'Gaps': gaps, 'Save': save, 'Claim': claim}
 OPS = [k for k in os.environ.get('OPS', ','.join(list(KINDS) + ['Focus'] * 5)).split(',') if k]   # (Focus weighted: the gate's 400 cases)
 
 

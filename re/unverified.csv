@@ -1,7 +1,5 @@
 address,name,module,reason
 429df0,ModelSlot_Animate,model/slots,todo
-43e480,Angle_Lerp,coaster/helpers,todo
-43fcd0,CoasterList_Append,coaster/lists,todo
 44a1d0,Screen_Shutdown,render/screen,todo
 44ab90,PartStates_UpdateNode,model/partstate,todo: indirect only
 46c580,MouseModeTile_Ctor,world/mousemode,todo
