@@ -311,14 +311,6 @@ address,name,module,reason
 630500,TgaReader_MirrorRow,gfx/tga,todo
 630580,TgaReader_ReadRunRow,gfx/tga,todo
 6306a0,TgaReader_RowBytes,gfx/tga,todo
-630880,PixelConversion_Ctor,gfx/pixconv,todo
-630890,PixelConversion_Setup,gfx/pixconv,todo
-630b70,PixelConversion_Row,gfx/pixconv,todo
-630ba0,PixelConversion_Rect,gfx/pixconv,todo
-630c30,PixelConversion_Dtor,gfx/pixconv,todo: indirect only
-630c50,PixelConverter_DeletingDtor,gfx/pixconv,todo
-630c70,PixelConverter_DeletingDtor2,gfx/pixconv,todo
-630c90,PixelConverter_Dtor,gfx/pixconv,todo
 63a7b0,IndexConverter_Ctor,gfx/pixconv,todo
 63a810,IndexConverter_DeletingDtor,gfx/pixconv,todo
 63a830,IndexConverter_Dtor,gfx/pixconv,todo
