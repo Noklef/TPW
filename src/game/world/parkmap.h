@@ -26,4 +26,8 @@ void __fastcall ParkMap_Classify(u8 *map);
 // 0.9999), and the frame's +0x2c = the word at +0xc of the frame's +0x28 times the sprite's size (+0x24) * zoom * 0.5 / 16. x87 at the
 // game's precision (X87Reg); x is reread as the float stored.
 void __fastcall ParkMap_PlaceSprite(const u8 *map, void *, u8 *sprite);
+// 0x5f1050 (thiscall on the map; name unconfirmed): the view origin (+0x54, +0x58) kept to 0 to width - 1 (height - 1; a NaN or negative
+// one to 0, one past the limit to the limit, compared as an integer) and stored back as floats; the camera put on it (Camera_SetView of x and z
+// each truncated (the limit unrounded) times 10 as floats), then the map's window (+4) sent message 4 (0, 0). Returns what that returns.
+s32 __fastcall ParkMap_ApplyView(u8 *map);
 }

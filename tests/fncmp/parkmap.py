@@ -2,22 +2,25 @@
 # high) over the map cells from (0, 0) laid out, their 0x44-byte cells (types 0 to 0x15 and a few others, ids mostly their own, owners among the
 # laid ids, flag 0x40 now and then) and 0x28-byte entries (track types, 0xc / 0x11 with parents among the laid ids, 0x19, others), the owners'
 # thing lists (heads at +0x24, linked by +0xa without cycles) over the park of thingenv (things of models 3 mostly, definitions found by id whose
-# map kind +0x4ac is 0 to 3 mostly) and the entries' old contents random. The sprite placed on it (0x5f4180): see place().
-# usage: parkmap.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Classify,PlaceSprite)
+# map kind +0x4ac is 0 to 3 mostly) and the entries' old contents random. The sprite placed on it (0x5f4180): see place(). The view
+# origin applied (0x5f1050): see view().
+# usage: parkmap.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Classify,PlaceSprite,ApplyView)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from fncmp import Bench, Call, RAM, put  # noqa: E402
+from fncmp import CDECL_LOG4, LOG, Bench, Call, RAM, fb, log_region, put  # noqa: E402
 from thingenv import ITEM, ITEMS, NITEMS, POOL, THING, park  # noqa: E402
 
 B = Bench([(0x5f2050, 0x5f2363), (0x536310, 0x536490), (0x535db0, 0x535dd0), (0x4d0af0, 0x4d0b10), (0x53ad30, 0x53adb0), (0x4dd4e0, 0x4dd510),
-           (0x412e90, 0x412f00), (0x5da3c0, 0x5da3c1), (0x5f4180, 0x5f42c6), (0x56b570, 0x56b5d0), (0x56b620, 0x56b628)])
+           (0x412e90, 0x412f00), (0x5da3c0, 0x5da3c1), (0x5f4180, 0x5f42c6), (0x56b570, 0x56b5d0), (0x56b620, 0x56b628),
+           (0x5f1050, 0x5f1123), (0x42aab0, 0x42ab1d), (0x658d9f, 0x658e04), (0x659710, 0x659740), (0x67a830, 0x67a860),
+           (0x65d7bc, 0x65d832), (0x65f697, 0x65f6e1)])
 MAP = RAM + 0x40000
-SPRITE, FRAME, ARRAY, KEYS = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300
-OPS = [k for k in os.environ.get('OPS', 'Classify,PlaceSprite').split(',') if k]
+SPRITE, FRAME, ARRAY, KEYS, WINDOW = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400
+OPS = [k for k in os.environ.get('OPS', 'Classify,PlaceSprite,ApplyView').split(',') if k]
 WORLD = RAM + 0x80000
 CELL_TYPES = [0, 1, 2, 3, 4, 9, 0xa, 0x15, 0xb, 0xd, 0x10, 0x19, 0xc, 0x5, 0x1e, 0x104]
 ENTRY_TYPES = [0xb, 0xd, 0x10, 0x12, 0x19, 0xc, 0x11, 0xc, 0x11, 0x19, 0, 1, 0xe, 0x10b]
@@ -52,9 +55,30 @@ def place(r):
     return Call(0x5f4180, [MAP, SPRITE], regions, conv='t', ret='v')
 
 
+def view(r):
+    # ApplyView: the map's width and height (+0x24, +0x28) small, 0, 2^24 + 3 (the limit unrounded) or anything; the origin (+0x54, +0x58)
+    # floats about them (below 0, on the limit, past it by a little or much, NaN, infinities); the camera's globals and the window anything,
+    # its handler (+0x114) the logging one mostly.
+    m = bytearray(r.bytes(0x60))
+    for off in (0x24, 0x28):
+        n = r.choice([r.randrange(1, 0x81), 0x80, 1, 0, 0x1000003, 0x80000000, r.getrandbits(32)])
+        put(m, off, 'I', n)
+        v = (n - 1 if n < 0x80000001 else n - 1 - (1 << 32))
+        put(m, off + 0x30, 'I', r.choice([fb(v), fb(v + 0.5), fb(v - 0.25), fb(v + 1), fb(r.uniform(-2, 0x90)), r.f(), fb(-0.0)]))
+    win = bytearray(r.bytes(0x120))
+    win[4] = r.choice([0, 0, 0, 1])
+    put(win, 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, CDECL_LOG4, 0]))
+    put(m, 4, 'I', WINDOW)
+    regions = {MAP: m, WINDOW: win, LOG: log_region(), 0x7908f0: r.bytes(0x1a0), 0x74c9bc: r.bytes(4)}
+    return Call(0x5f1050, [MAP], regions, conv='t', ret='a')
+
+
 def case(r):
-    if r.deal(OPS) == 'PlaceSprite':
+    op = r.deal(OPS)
+    if op == 'PlaceSprite':
         return place(r)
+    if op == 'ApplyView':
+        return view(r)
     w = r.choice([r.randrange(1, 9), r.randrange(1, 9), r.randrange(1, 4), 0])
     h = r.choice([r.randrange(1, 9), r.randrange(1, 9), r.randrange(1, 4), 0, -1])
     regions, handles, _addrs = park(r, count=r.choice([2, 3, 4, 6, 6]), kinds=(3, 3, 3, 3, 1, 2, 0))
