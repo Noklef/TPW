@@ -118,6 +118,13 @@ def strips_case(r, op):   # Grow / Refresh / Step (hidden when it ends a shrink:
         if r.random() < 0.05:
             put(obj, 0xb4, 'I', 0)
         dt = r.choice([fb(0.0), fb(0.1), fb(1.0), fb(5.0), fb(r.uniform(0, 2)), r.f()])
+        pick = r.random()
+        if pick < 0.06:   # t a NaN (so the held t is 0 and the old one unordered)
+            put(obj, 0xb8, 'I', r.choice([0x7fc00000, 0xffc00000]))
+        elif pick < 0.12:   # from 0 a step so small that the float sum is -0.0 (the unrounded sum below 0 gives +0)
+            put(obj, 0xb8, 'I', fb(0.0))
+            put(obj, 0xbc, 'I', fb(-1e-30))
+            dt = fb(1e-16)
         return Call(0x4548f0, [SOBJ, dt], regions, conv='c', ret='v')
     if op == 'grow':
         return Call(0x454550, [SOBJ, r.choice([1, 1, 2, 2, 4, 4, 8, 8, 0, 3, 0x10])], regions, conv='c', ret='v')
