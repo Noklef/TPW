@@ -1,7 +1,9 @@
 # The GUI window kinds' constructors (each over Window_Ctor, 0x65bcad) against the originals. Each: windowlife.py's Ctor set-up (a random
 # window built with a parent from window.py's tree (its +0x60 chain and word +0xe0 near 0x100) or none, flags 0x400 and 1 set or not, words
 # edges or near (upper halves random); the root the new window, the tree's or none, the queues as window.py's), the window's bytes past
-# Window_Ctor's random too.
+# Window_Ctor's random too. Ctor705a20 (0x665fcd) and its SaveRect705a20 (0x665fb0): also the heap (an allocation now and then failing),
+# the window timers' pool [0xfaa630] of 0-4 nodes (free or not; the count theirs or 0) and list [0xfaa634] (0-2 nodes or none), the GUI
+# clock [0x77c490] a recorder, the focus [0xfaa5ec] the tree's, the new window or none and the byte 0xfaa56c set or not.
 # usage: windowfactory.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor705a50,...)
 import os
 import struct
@@ -10,13 +12,16 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import LOG, Bench, Call, log_region, put, vtable  # noqa: E402
+from fncmp import HEAP, LOG, RAM, Bench, Call, heap, log_region, put, set_return, vtable  # noqa: E402
 from window import RANGES, VTABLE, WINDOW2, point, queues, tree  # noqa: E402
 
 CALLS = {'Ctor705a50': 0x6688b3, 'RadioGroupCtor': 0x66a1e8, 'Ctor705c58': 0x66d9e0, 'Ctor705b98': 0x66c7e0,
-         'Ctor705c28': 0x66d750, 'Ctor705bf8': 0x66d0c0, 'Ctor705bc8': 0x66c970, 'Ctor705af0': 0x66a4c0}
+         'Ctor705c28': 0x66d750, 'Ctor705bf8': 0x66d0c0, 'Ctor705bc8': 0x66c970, 'Ctor705af0': 0x66a4c0, 'Ctor705a20': 0x665fcd,
+         'SaveRect705a20': 0x665fb0}
 B = Bench(RANGES + [(0x6688b3, 0x6689bc), (0x66a1e8, 0x66a255), (0x66d9e0, 0x66da21), (0x66c7e0, 0x66c82e), (0x65e526, 0x65e549),
-                       (0x66d750, 0x66d82e), (0x66d0c0, 0x66d1b6), (0x66c970, 0x66cab7), (0x66a4c0, 0x66a5a8)])
+                       (0x66d750, 0x66d82e), (0x66d0c0, 0x66d1b6), (0x66c970, 0x66cab7), (0x66a4c0, 0x66a5a8), (0x665fb0, 0x665fcd),
+                       (0x665fcd, 0x6661bc), (0x661ece, 0x661f2b), (0x661f2b, 0x661f9b), (0x66220d, 0x6622d2), (0x65968e, 0x6596a2)])
+POOL, TLIST, CLOCK, CLOCKVT = RAM + 0x9000, RAM + 0x9800, RAM + 0x9c00, RAM + 0x9d00
 
 
 def ctor_args(r, regions):
@@ -41,11 +46,43 @@ def ctor_args(r, regions):
     return [r.choice(wins + [0, 0]), flags, r.getrandbits(32)] + words
 
 
+def timer_env(r, regions, log):
+    """the heap, the window timers' pool and list, the GUI clock, the focus and the byte 0xfaa56c (Ctor705a20's)"""
+    regions[HEAP] = heap(0x1000, r.choice([0] * 5 + [1]))
+    n = r.choice([0, 1, 2, 4])
+    pool = bytearray(r.bytes(0x20 * n))
+    for i in range(n):
+        put(pool, 0x20 * i + 0x14, 'I', r.choice([0, 1, 1, r.getrandbits(32)]))
+    if n:
+        regions[POOL] = pool
+    regions[0xfaa630] = struct.pack('<I', POOL)
+    regions[0xfaa62c] = struct.pack('<i', r.choice([n, n, n, 0]))
+    k = r.choice([0, 1, 2])
+    nodes = bytearray(r.bytes(0x20 * k))
+    for i in range(k):
+        put(nodes, 0x20 * i + 0x18, 'I', TLIST + 0x20 * (i + 1) if i + 1 < k else 0)
+    if k:
+        regions[TLIST] = nodes
+    regions[0xfaa634] = struct.pack('<I', TLIST if k else 0)
+    set_return(log, 0, r.getrandbits(32))
+    regions[CLOCKVT] = vtable({})
+    regions[CLOCK] = struct.pack('<I', CLOCKVT)
+    regions[0x77c490] = struct.pack('<I', CLOCK)
+    regions[0xfaa56c] = bytes([r.choice([0, 0, 1, r.getrandbits(8)])])
+
+
 def case(r):
     op = r.deal(OPS)
     log = log_region()
     regions = {LOG: log, VTABLE: vtable({5: 1})}
-    return Call(CALLS[op], [WINDOW2] + ctor_args(r, regions), regions, conv='t', ret='a')
+    if op == 'SaveRect705a20':
+        regions[WINDOW2] = r.bytes(0x180)
+        return Call(CALLS[op], [WINDOW2], regions, conv='t', ret='v')
+    args = ctor_args(r, regions)
+    if op == 'Ctor705a20':
+        timer_env(r, regions, log)
+        regions[0xfaa5ec] = struct.pack('<I', r.choice([WINDOW2, args[0], 0, 0]))
+    return Call(CALLS[op], [WINDOW2] + args, regions, conv='t', ret='a')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
