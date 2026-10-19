@@ -54,4 +54,11 @@ u32 *__fastcall ImeVector_InsertOne(u8 *vec, void *, u32 *position, const u32 *v
 // up past the end, the rest of the new room filled from the value and the position's span assigned; otherwise the last count are copied up, the rest shifted and the count
 // values assigned. Without: a new block of the larger of count and the size plus the size. Nothing for a count of 0 (with room).
 void __fastcall ImeVector_InsertN(u8 *vec, void *, u32 *position, u32 count, const u32 *value);
+
+// 0x479260 (thiscall; window, character, lparam, pops 12; name unconfirmed): 0 unless the character (the whole dword passed to
+// IsDBCSLeadByte, 0x6fd154) is a lead byte. Then up to 10 PeekMessageA (0x6fd354; the window's WM_CHAR, removed) for the trail byte: 1
+// when none comes. The two bytes (lead, then the message's wParam low byte) to one wide character (MultiByteToWideChar 0x6fd174, code
+// page 0): 1 unless exactly one. The character (its low word) sent as message 0x410 with lparam to the window through the IME's handler
+// +0x50 (stdcall) or, without one, DefWindowProcA (0x6fd340); 1.
+u32 __fastcall Ime_OnChar(u8 *ime, void *, u32 window, u32 character, u32 lparam);
 }

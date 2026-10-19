@@ -13,6 +13,12 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 // The difference of two pointers in dwords, shifted arithmetically as the compiled code does.
 s32 Dwords(const u32 *a, const u32 *b) { return (s32)((uintptr_t)a - (uintptr_t)b) >> 2; }
 
+template <typename F> F import(std::uintptr_t slot) { return *reinterpret_cast<const F *>(slot); }
+
+struct Message {   // (MSG)
+    u32 window, message, wparam, lparam, time, x, y;
+};
+
 }  // namespace
 
 extern "C" {
@@ -247,5 +253,25 @@ void __fastcall ImeHost_OnWindow(u8 *host, void *, u8 *window) {
     at<u16>(host, 0x1aa) = 1;
     const s32 room = at<s16>(window, 0x13c);
     Ime_SetLimit(host + 0x1c, nullptr, (u32)(room - (s16)Window705a50_TextLength(window)));
+}
+
+u32 __fastcall Ime_OnChar(u8 *ime, void *, u32 window, u32 character, u32 lparam) {
+    if (!import<u32(__stdcall *)(u32)>(0x006fd154)(character)) return 0;   // (IsDBCSLeadByte of the whole dword, as pushed)
+    const auto peek = import<u32(__stdcall *)(Message *, u32, u32, u32, u32)>(0x006fd354);
+    Message message;
+    s32 tries = 10;
+    while (!peek(&message, window, 0x102, 0x102, 1)) {
+        if (--tries == 0) return 1;
+    }
+    u32 bytes = (u8)character | (u32)(u8)message.wparam << 8;
+    u32 wide = 0;
+    if (import<s32(__stdcall *)(u32, u32, const u32 *, s32, u32 *, s32)>(0x006fd174)(0, 0, &bytes, 2, &wide, 1) != 1) return 1;
+    const auto handler = at<u32(__stdcall *)(u32, u32, u32, u32)>(ime, 0x50);
+    if (handler) {
+        handler(window, 0x410, wide & 0xffff, lparam);
+    } else {
+        import<u32(__stdcall *)(u32, u32, u32, u32)>(0x006fd340)(window, 0x410, wide & 0xffff, lparam);
+    }
+    return 1;
 }
 }

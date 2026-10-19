@@ -3735,6 +3735,7 @@ address,name,kind,confidence,notes
 0x0047cf20,ImeVector_InsertN,function,high,reimplemented (src/game/core/ime); inserts count copies of a dword into the IME vector
 0x0047a9b0,Ime_CacheCurrent,function,low,reimplemented (src/game/core/ime); thiscall: the current entry cached at +0x160; returns its string count
 0x00480f90,ImeHost_OnWindow,function,low,"reimplemented (src/game/core/ime); thiscall (window): for the host's window (+4), +0x1a8 = 0, +0x1aa = 1 and the IME limit = the window's room (+0x13c less its text length)"
+0x00479260,Ime_OnChar,function,low,"reimplemented (src/game/core/ime); thiscall (window, character, lparam), pops 12: 0 unless IsDBCSLeadByte(character); up to 10 PeekMessageA(WM_CHAR, removed) for the trail byte (1 when none); MultiByteToWideChar of lead + trail (1 unless one character); message 0x410 with the character and lparam through the IME handler +0x50 or DefWindowProcA; 1"
 0x0047f9a0,TextMetrics_Width,function,high,reimplemented (src/game/gfx/text); width of a run of characters by the glyph width slot
 0x0047fa00,TextMetrics_FitIndex,function,high,reimplemented (src/game/gfx/text); index at which the width runs out
 0x0047f990,TextMetrics_ForwardSlot8,function,high,reimplemented (src/game/gfx/text); Forwards to virtual call 8 of the inner object (name unconfirmed)
