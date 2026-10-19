@@ -217,6 +217,7 @@ void __fastcall Online_ResetCity(u8 *session) {
     Obj_ResetAndRelease34(at<u8 *>(session, 0x100), nullptr, 0, 0);
 }
 u8 *__fastcall Online_OpenCity(u8 *session) {
+    // The SEH frame is left out (it frees the block when City::City throws).
     if (at<u8 *>(session, 0xd4))
         return at<u8 *>(session, 0xd4);
     u8 *city = static_cast<u8 *>(GameHeap_Alloc(0xc));
