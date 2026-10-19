@@ -553,6 +553,9 @@ def case(r):
                     put(regions[w], 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
                 regions[0xfaa5fc] = struct.pack('<I', r.choice([0, 0, CDECL_LOG4]))
                 regions[0x7cb2cc] = struct.pack('<I', some(2))
+                ac, b0, b4 = struct.unpack('<3I', regions[0x7cb2ac])   # (FocusRestore faults on [0x7cb2b0] 0 with [0x7cb2ac]: mostly not)
+                if ac and not b0 and r.random() < 0.8:
+                    regions[0x7cb2ac] = struct.pack('<3I', ac, r.choice(wins), b4)
             return Call(CALLS[op], [], regions, ret='a')
         if op == 'Dialog7ca1c8_Focus':   # (the window [0x7ca1c8])
             regions[0x7ca1c8] = struct.pack('<I', window)
