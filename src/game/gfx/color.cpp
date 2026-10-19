@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+#include "../math/x87.h"
+
 namespace {
 
 template <typename T>
@@ -158,5 +160,89 @@ void __cdecl Format_BuildChannelTable(u32 *table, u32, u32, u32, u32, u32 red, u
         for (int k = 0; k < 4; k++)
             table[i * 4 + k] = static_cast<u32>(i >> ((8 - width[k]) & 0x1f)) << (shift[k] & 0x1f);
     }
+}
+}  // extern "C"
+
+namespace {
+struct PixelSums {
+    s32 partial, alpha, red, green, blue;
+};
+
+// One 4-byte pixel (bytes blue, green, red, alpha) through the table, stored as a dword; the sums read the bytes again after the store.
+void convert4(const u8 *p, u8 *dst, const u32 *table, PixelSums &s) {
+    const u8 a = p[3];
+    if (a < 0xf0 && a != 0)
+        s.partial++;
+    const u32 value = table[p[2] * 4 + 1] | table[p[1] * 4 + 2] | table[p[0] * 4 + 3] | table[a * 4];
+    *reinterpret_cast<u32 *>(dst) = value;
+    s.alpha += p[3];
+    s.red += p[2];
+    s.green += p[1];
+    s.blue += p[0];
+}
+
+// One 3-byte pixel (blue, green, red) with the alpha record of 0xff.
+void convert3(const u8 *p, u8 *dst, const u32 *table, PixelSums &s) {
+    const u32 value = table[p[2] * 4 + 1] | table[p[0] * 4 + 3] | table[p[1] * 4 + 2] | table[0xff * 4];
+    *reinterpret_cast<u32 *>(dst) = value;
+    s.red += p[2];
+    s.green += p[1];
+    s.blue += p[0];
+}
+
+const u8 *offset(const u8 *base, u32 bytes) { return reinterpret_cast<const u8 *>(static_cast<std::uintptr_t>(static_cast<u32>(reinterpret_cast<std::uintptr_t>(base)) + bytes)); }
+}  // namespace
+
+extern "C" {
+u32 __cdecl Format_ConvertPixels(u8 *dst, const u8 *src, s32 width, s32 height, const u32 *table, s32 step, s32 bytes, u32 flags) {
+    const s32 count = (s32)((u32)height * (u32)width);
+    PixelSums s = {0, 0, 0, 0, 0};
+    u32 result = 0;
+    if (bytes == 4) {
+        result = 1;
+        if (flags & 1) {
+            if (height > 0) {
+                u32 row = (u32)count * 4;
+                for (s32 rows = height; rows != 0; rows--) {
+                    if (width > 0) {
+                        const u8 *p = offset(src, row - (u32)width * 4);
+                        for (s32 n = width; n != 0; n--, p += 4, dst += step)
+                            convert4(p, dst, table, s);
+                    }
+                    row -= (u32)width * 4;
+                }
+            }
+        } else {
+            for (s32 i = 0; i < count; i++, dst += step)
+                convert4(offset(src, (u32)i * 4), dst, table, s);
+        }
+    } else if (flags & 1) {
+        if (height > 0) {
+            u32 row = (u32)count * 3;
+            for (s32 rows = height; rows != 0; rows--) {
+                if (width > 0) {
+                    const u8 *p = offset(src, row - (u32)width * 3);
+                    s.alpha = (s32)((u32)s.alpha + (u32)width * 255);
+                    for (s32 n = width; n != 0; n--, p += 3, dst += step)
+                        convert3(p, dst, table, s);
+                }
+                row -= (u32)width * 3;
+            }
+        }
+    } else if (count > 0) {
+        s.alpha = (s32)((u32)count * 255);
+        const u8 *p = src;
+        for (s32 n = count; n != 0; n--, p += 3, dst += step)
+            convert3(p, dst, table, s);
+    }
+    const X87Reg limit = X87Reg((double)count) * 0.05f;  // 0x701720
+    u32 average = (u32)(s.alpha / width) * (u32)height;
+    average = average << 8 | (u32)(s.red / width) * (u32)height;
+    average = average << 8 | (u32)(s.green / width) * (u32)height;
+    average = average << 8 | (u32)(s.blue / width) * (u32)height;
+    at<u32 *>(0x0087a25c)[0] = average;
+    if (s.partial >= (s32)(long long)limit.v)  // __ftol, the low half
+        result |= 2;
+    return result;
 }
 }  // extern "C"

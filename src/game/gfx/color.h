@@ -85,4 +85,13 @@ u32 *__cdecl Colour_Blend3(u32 *out, s32 position, const u32 *a, const u32 *b, c
 // (alpha, red, green, blue): for each level i and mask, i lowered to the mask's width (the shift is 8 - the count of its set bits, taken modulo 32) and moved up to the mask's lowest set bit
 // (0 for an empty mask).
 void __cdecl Format_BuildChannelTable(u32 *table, u32 size, u32 flags, u32 fourcc, u32 bits, u32 red, u32 green, u32 blue, u32 alpha);
+
+// 0x575160 (cdecl; name unconfirmed; the texture load's, 0x5750f5): width * height source pixels of 4 bytes (blue, green, red, alpha) or, for
+// any other byte count, 3 (no alpha: the record of 0xff) put through such a table (the records' alpha, red, green and blue ORed) and stored
+// as dwords at dst, step bytes apart; with flag 1 the rows are taken from the last up (each left to right). Each pixel's bytes are summed
+// as read again after its store (in place they are the converted ones); the 3-byte forms count 0xff per pixel for alpha, the flipped one
+// only for rows of a positive width. The averages (each sum / width (signed), times height, sic) packed alpha, red, green, blue into
+// [0x87a25c] (a width of 0 faults). Returns 1 for 4 bytes (else 0), with 2 when the pixels whose alpha is 1-0xef number at least
+// count * 0.05 (x87, truncated).
+u32 __cdecl Format_ConvertPixels(u8 *dst, const u8 *src, s32 width, s32 height, const u32 *table, s32 step, s32 bytes, u32 flags);
 }

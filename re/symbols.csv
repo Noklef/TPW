@@ -3862,6 +3862,7 @@ address,name,kind,confidence,notes
 0x005d4970,Panel_ShrinkInto,function,low,"reimplemented (src/game/gfx/imageops); thiscall on a panel (dest, width, height, format; pops 16): its image (+0x50) shrunk into dest, after a panel reset when its pixels are null"
 0x005f09a0,Colour_Blend3,function,high,reimplemented (src/game/gfx/color); blends between three colour records by a position of 0 to 100
 0x00591270,Format_BuildChannelTable,function,high,reimplemented (src/game/gfx/color); Builds the 256 level table of four channel masks (name unconfirmed)
+0x00575160,Format_ConvertPixels,function,low,"reimplemented (src/game/gfx/color); cdecl (dst, src, width, height, table, step, bytes, flags): 4- or 3-byte pixels through a channel table (alpha, red, green, blue records) to dwords step apart, flag 1 bottom-up; averages packed into 0x87a25c; returns 1 for 4 bytes, 2 when enough pixels are translucent"
 0x00598ca0,ModelSlot_ApplySelection,function,high,reimplemented (src/game/model/slots); sets or clears the part flags of the selection kind
 0x004d9620,Litter_Remove,function,high,reimplemented (src/game/world/litter); takes a piece of litter off its cell
 0x004f2b40,WStringMap_Find,function,high,reimplemented (src/game/core/wstringmap); a wide string map lookup
