@@ -278,12 +278,27 @@ def case(r):
         return Call(0x473ff0, [ANIM, r.choice([OUT, 0]), r.choice([OUT + 4, 0]), index], regs)
     if op == 'SetFlags':
         return Call(0x4740d0, [r.getrandbits(32)], regs)
+    if op == 'BindNodes':
+        return Call(0x470a00, [HOLDER, r.choice(blocks), r.choice([0, 1])], regs)
+    if op == 'ResetChannels':
+        return Call(0x472310, [ANIM, r.choice(blocks), r.choice(blocks + [0])], regs)
+    if op == 'MotionApply':
+        return Call(0x4721f0, [layer, HOLDER, blk], regs, ret='a')
+    if op == 'CopyVertices':  # from the rest holder (ANIM + 0x120: model REST) to HOLDER; the primary nodes get vertices
+        for nodes, base in ((regs[NODES], NODES), (regs[RNODES], RNODES)):
+            for k in range(NPRIMARY):
+                put(nodes, 0xa0 * k + 0x58, 'H', r.choice([0, 1, 3, 4, 5, 8]))
+                put(nodes, 0xa0 * k + 0x60, 'I', r.choice([base + 0x400 + 0x80 * k] * 4 + [0]))
+                if r.random() < 0.5:
+                    put(nodes, 0xa0 * k, 'I', struct.unpack_from('<I', nodes, 0xa0 * k)[0] ^ 0x200000)
+        return Call(0x472270, [ANIM + 0x120, HOLDER, r.choice([0, 1])], regs)
     return Call(0x473f50, [ANIM, OUT, r.choice([OUT + 4, 0]), OUT + 8, r.randrange(nlayers)], regs, ret='a')
 
 
 OPS_ALL = ['Start', 'Advance', 'SetBlock', 'TimeLeft', 'Play', 'AnimPlay', 'IsIdle', 'Update', 'AnimUpdate', 'Reset',
            'ResetLayers', 'QSpeed', 'SetSpeed', 'EndMs', 'Playback', 'SetTime', 'Time', 'HasMotion', 'MarkNodes', 'CountLayers',
-           'SetPlaying', 'ClearQueue', 'RefreshNodes', 'GetFlags', 'GetQueued', 'SetFlags']
+           'SetPlaying', 'ClearQueue', 'RefreshNodes', 'GetFlags', 'GetQueued', 'SetFlags', 'BindNodes', 'ResetChannels',
+           'MotionApply', 'CopyVertices']
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 
