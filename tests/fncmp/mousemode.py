@@ -89,6 +89,7 @@ def assign(r, op):
     self = bytearray(r.bytes(0x20))
     n = r.choice([1, 2, 3, 4])
     put(self, 8, 'I', r.choice([0, 0, 1, 2, 3, n - 1]))
+    put(self, 0x10, 'BB', *(r.choice([0, 1, 2, 3, 0, 1, r.getrandbits(8)]) for _ in range(2)))   # (the sprite: mostly one the folder has)
     put(self, 0xc, 'I', r.choice([4, 5, 6, 7, 8, 4, 5, 6, 7, 8, 3, 9, 0, r.getrandbits(32)]) if op == 'AssignPlace' else r.randrange(10))
     regions[RAM] = self
     folders = bytearray(12 * 10)
