@@ -5038,5 +5038,7 @@ address,name,kind,confidence,notes
 0x00492d80,TextButton_Handler,function,low,"reimplemented (src/game/ui/textbutton); cdecl (window, message, a, b): 0x10006 plays the interface sound 0xc1 and sends the parent 0x100001 (id +0x8c, 0), 0; 0x14 releases the text row (Window_DwordA0 1); else Window_CallDefault"
 0x0048c8d0,Global7c2534_HasSource,function,low,reimplemented (src/game/ui/focus); whether the object at 0x7c2534 has its +0xc set (name unconfirmed)
 0x004862a0,Focus_Restore,function,low,reimplemented (src/game/ui/focus); the focus given back to the first shown of the game's windows (name unconfirmed)
+0x00485b40,Window7c24c8_Close,function,low,"reimplemented (src/game/ui/focus); cdecl: with the window [0x7c24c8], sent 5 (Window_SendMessage), forgotten, Focus_Restore; 1, else 0"
+0x004a27c0,Window7cb2cc_Close,function,low,"reimplemented (src/game/ui/focus); cdecl: the window [0x7cb2cc] (when set) sent 4 (Window_SendMessage), forgotten; Focus_Restore's result"
 0x0066a1b0,RadioGroup_SetSelectedState,function,low,"reimplemented (src/game/ui/radiogroup); thiscall (state: a byte), pops 4: the child with the selected id (+0x138; Window_FindChild) gets Window705a50_SetState(state, 1)"
 0x0066a295,RadioGroup_Select,function,low,"reimplemented (src/game/ui/radiogroup); thiscall (id), pops 4: the selected child's state 0, id selected (+0x138), its state 1; the id before (AX), -1 for the same id, none found or -1 (none selected)"

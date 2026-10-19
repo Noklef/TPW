@@ -34,6 +34,8 @@
 # (0x498a80): SetFocus's, the window [0x7ca1c8]. FocusRestore (0x4862a0) and HasSource (0x48c8d0): SetFocus's set-up, the globals they
 # pick a window from (0x7c2534's +0x10 when its +0xc is set, 0x7cb2ac-0x7cb2b4, 0x7cc8bc / 0x7cc8c0, 0x7c24c8 / 0x7c24cc, [0xf82884] + 4,
 # 0x7ca1c8 / 0x7ca1cc) the tree's windows or none, and the three key maps it enables.
+# Close7c24c8 / Close7cb2cc (0x485b40 / 0x4a27c0, src/game/ui/focus): FocusRestore's, the window [0x7cb2cc] one of the tree or none, the tree's
+# handlers fncmp's logger or none, the hook [0xfaa5fc] too.
 # Windows7cc8bc_SelectSecond (0x4bce80): SetFocus's set-up, the two windows [0x7cc8bc] / [0x7cc8c0] of the tree with handlers the logger or none.
 # MouseDown / MouseUp (0x658af1, 0x658b5b): buttons 0-7, the windows the window or none, the queues as for PostMessage.
 # usage: window.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FindChild,SetChecks,SetChecksIfUp)
@@ -61,7 +63,7 @@ CALLS = {'FindChild': 0x65d7d0, 'SetChecks': 0x498090, 'SetChecksIfUp': 0x498a50
          'Dtor': 0x65c025, 'DeletingDtor': 0x661680, 'Dtor705a50': 0x6689bc, 'DeletingDtor705a50': 0x6693a0,
          'HilightList_NewRow': 0x480d30, 'List7cc188_NewRow': 0x4a8380, 'CallDefault': 0x65f66e, 'WindowAt10_Handler': 0x492e00,
          'GetRect': 0x65d42e, 'SetSavedRect': 0x65cfd4, 'SaveInsetRect': 0x485e30,
-         'Dialog7cb2b8_Handler': 0x4a0a20, 'DefaultHandler': 0x4a0a90, 'ResetQueues': 0x659064, 'SetFocus': 0x65e59b, 'KillFocus': 0x65e5fa, 'Dialog7ca1c8_Focus': 0x498a80, 'FocusRestore': 0x4862a0, 'HasSource': 0x48c8d0,
+         'Dialog7cb2b8_Handler': 0x4a0a20, 'DefaultHandler': 0x4a0a90, 'ResetQueues': 0x659064, 'SetFocus': 0x65e59b, 'KillFocus': 0x65e5fa, 'Dialog7ca1c8_Focus': 0x498a80, 'FocusRestore': 0x4862a0, 'HasSource': 0x48c8d0, 'Close7c24c8': 0x485b40, 'Close7cb2cc': 0x4a27c0,
          'MouseDown': 0x658af1, 'MouseUp': 0x658b5b}
 SENDS = {k: int(k[6:12], 16) for k in CALLS if k.startswith('Dialog7')}   # the window's global
 RANGES = [(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6d1), (0x658d9f, 0x658df4), (0x659710, 0x659721),
@@ -83,7 +85,7 @@ RANGES = [(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x6
            (0x65f66e, 0x65f697), (0x492e00, 0x492e34), (0x65d42e, 0x65d49e), (0x65cfd4, 0x65cffd), (0x65a43e, 0x65a493), (0x485e30, 0x485eb6), (0x4a0a20, 0x4a0aa9),
            (0x659064, 0x6590a5), (0x669eb3, 0x669efb), (0x669c62, 0x669c8d), (0x669bdb, 0x669c30),
            (0x65e59b, 0x65e5fa), (0x65e5fa, 0x65e640), (0x498a80, 0x498a8e), (0x658af1, 0x658b5b), (0x658b5b, 0x658bcb),
-           (0x4862a0, 0x486404), (0x48c8d0, 0x48c8ec), (0x6ad810, 0x6ad814), (0x65d57c, 0x65d58d), (0x40cb40, 0x40cb47)]
+           (0x4862a0, 0x486404), (0x48c8d0, 0x48c8ec), (0x485b40, 0x485b70), (0x4a27c0, 0x4a27e7), (0x6ad810, 0x6ad814), (0x65d57c, 0x65d58d), (0x40cb40, 0x40cb47)]
 B = Bench(RANGES)
 WINDOW, NODES, VTABLE, MISC, KIDS, HOLDER, WINDOW2 = RAM, RAM + 0x100, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200, RAM + 0x1600, RAM + 0x1800
 QUEUES, TREE, RECTS, TIMED = RAM + 0x2000, RAM + 0x3000, RAM + 0x4000, RAM + 0x5000
@@ -511,7 +513,7 @@ def case(r):
         regions[0xfaa5e0] = struct.pack('<I', r.choice([WINDOW, WINDOW, 0]))
         button = r.choice([0, 1, 2, 2, 7]) | r.choice([0, 0, 0x10000, 0xffff0000])
         return Call(CALLS[op], [button, r.getrandbits(32), r.choice([0, 5, 0x8000, r.getrandbits(32)])], regions, ret='w')
-    if op in ('SetFocus', 'KillFocus', 'Windows7cc8bc_SelectSecond', 'Dialog7ca1c8_Focus', 'FocusRestore', 'HasSource'):   # the hover as UpdateHover's; the focus [0xfaa5ec] the window, another of the tree or none
+    if op in ('SetFocus', 'KillFocus', 'Windows7cc8bc_SelectSecond', 'Dialog7ca1c8_Focus', 'FocusRestore', 'HasSource', 'Close7c24c8', 'Close7cb2cc'):   # the hover as UpdateHover's; the focus [0xfaa5ec] the window, another of the tree or none
         wins = tree(r, regions)
         queues(r, regions)
         x, y = point(r, regions, wins)
@@ -529,7 +531,7 @@ def case(r):
             if r.random() < 0.5:
                 set_return(log, 0x3d, r.choice([0, 1, -1, r.getrandbits(32)]))
             return Call(CALLS[op], [], regions, ret='a')
-        if op in ('FocusRestore', 'HasSource'):
+        if op in ('FocusRestore', 'HasSource', 'Close7c24c8', 'Close7cb2cc'):
             def some(none=3):
                 return r.choice(wins + [0] * none)
             src, frame, maps = FOCUS, FOCUS + 0x40, [FOCUS + 0x80 + 0x10 * k for k in range(3)]
@@ -546,6 +548,11 @@ def case(r):
                 regions[m] = r.bytes(8)
             for w in wins:   # (Fn_65d57c's flags: bit 0 half the time)
                 put(regions[w], 0x48, 'I', struct.unpack_from('<I', regions[w], 0x48)[0] & ~1 | r.choice([0, 1]))
+            if op in ('Close7c24c8', 'Close7cb2cc'):   # the window closed first (SendMessage): its handler fncmp's logger or none
+                for w in wins:
+                    put(regions[w], 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
+                regions[0xfaa5fc] = struct.pack('<I', r.choice([0, 0, CDECL_LOG4]))
+                regions[0x7cb2cc] = struct.pack('<I', some(2))
             return Call(CALLS[op], [], regions, ret='a')
         if op == 'Dialog7ca1c8_Focus':   # (the window [0x7ca1c8])
             regions[0x7ca1c8] = struct.pack('<I', window)
