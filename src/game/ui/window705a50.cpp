@@ -17,6 +17,28 @@ template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>
 
 extern "C" {
 
+u8 *__fastcall Window705a50_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom) {
+    Window_Ctor(window, nullptr, parent, flags, id, left, top, right, bottom);
+    at<u32>(window, 0) = 0x705a50;
+    window[0x138] = 0;
+    window[0x139] = 0;
+    at<u32>(window, 0x13c) = 500;
+    at<u32>(window, 0x140) = 125;
+    at<u32>(window, 0x114) = 0x668f9c;
+    at<u32>(window, 0x118) = at<u32>(window, 0x114);
+    window[0x15a] = 0;
+    at<u32>(window, 0x148) = 0;
+    for (u32 off = 0x14c; off < 0x150; ++off)
+        window[off] = 0xff;
+    window[0x154] = 0;
+    window[0x155] = 0;
+    window[0x156] = 0;
+    window[0x157] = 0xff;
+    window[0x158] = 1;
+    window[0x159] = 1;
+    return window;
+}
+
 u16 __fastcall Window705a50_TextLength(const u8 *window) {
     const u16 *const text = *reinterpret_cast<const u16 *const *>(window + 0x138);
     return text ? (u16)Crt().wcslen(text) : 0;

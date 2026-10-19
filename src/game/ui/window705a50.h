@@ -8,6 +8,11 @@
 
 extern "C" {
 
+// 0x6688b3 (thiscall (parent, flags, id, left, top, right, bottom: words), pops 28; kind 2 of the factory 0x65dd7b; name unconfirmed):
+// Window_Ctor, then the vtable 0x705a50, the bytes +0x138 / +0x139 0, +0x13c 500, +0x140 125, both handlers 0x668f9c, the byte +0x15a 0,
+// no text row (+0x148), the bytes +0x14c-+0x14f 0xff, +0x154-+0x156 0, +0x157 0xff, +0x158 / +0x159 1. Returns the window.
+u8 *__fastcall Window705a50_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom);
+
 // 0x6689bc (thiscall; name unconfirmed): the destructor: the vtable 0x705a50, the text row +0x148 (when set) released
 // (TextPool_Release), then Window_Dtor, whose EAX is left.
 u32 __fastcall Window705a50_Dtor(u8 *window);
