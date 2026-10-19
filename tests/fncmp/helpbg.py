@@ -4,7 +4,9 @@
 # benched with the virtual call forwarders in vcall_forwards.py.)
 # Close / Show / Hide / FrameStop (0x492130, 0x4922e0, 0x492300, ui/frame's 0x66a016): window.py's tree for Window_SetShown, the words set or not.
 # MoveTo (0x492330): window.py's tree for Window_Offset (offset_env), the window +0x18 one of it or none, x and y words 0xffff or not.
-# usage: helpbg.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Clear,Handler,SetInterval,FrameSetInterval,Close,Show,Hide,FrameStop,MoveTo)
+# SetText (0x4924b0): the background at 0x7ca0c0 (its words +4 / +0xc set or not, slot 1 a recorder), its window one of window.py's notify_env
+# tree (the window's slot 9 a recorder), a wide text of 0-20 characters, '\n' among them now and then.
+# usage: helpbg.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Clear,Handler,SetInterval,FrameSetInterval,Close,Show,Hide,FrameStop,MoveTo,SetText)
 import os
 import struct
 import sys
@@ -12,19 +14,37 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import CDECL_LOG4, LOG, Bench, Call, RAM, log_region, put, set_return, vtable  # noqa: E402
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from window import RANGES as WINDOW_RANGES, offset_env, shown_env, word  # noqa: E402
+from window import RANGES as WINDOW_RANGES, VTABLE as WINDOW_VTABLE, notify_blobs, notify_env, offset_env, shown_env, word  # noqa: E402
 
 CALLS = {'Clear': 0x4922d0, 'Handler': 0x491fe0, 'SetInterval': 0x492160, 'FrameSetInterval': 0x66a084, 'Close': 0x492130, 'Show': 0x4922e0,
-         'Hide': 0x492300, 'FrameStop': 0x66a016, 'MoveTo': 0x492330}
+         'Hide': 0x492300, 'FrameStop': 0x66a016, 'MoveTo': 0x492330, 'SetText': 0x4924b0}
 B = Bench([(0x4922d0, 0x4922e0), (0x491fe0, 0x492014), (0x65e705, 0x65e73d), (0x65f66e, 0x65f697), (0x492160, 0x49217c), (0x66a084, 0x66a0b9),
            (0x65968e, 0x6596a2), (0x492130, 0x492151), (0x4922e0, 0x492320), (0x66a016, 0x66a040), (0x669f94, 0x669fa8),
-           (0x66a002, 0x66a016), (0x492330, 0x4923c5)] + WINDOW_RANGES)
+           (0x66a002, 0x66a016), (0x492330, 0x4923c5), (0x4924b0, 0x492522), (0x67c2f0, 0x67c330), (0x67acd0, 0x67ad00)] + WINDOW_RANGES)
+BG_VTABLE, TEXT = 0x33400000, 0x33500000
 WINDOW, OBJECT, VTABLE = RAM + 0x100, RAM + 0x300, RAM + 0x400
 FRAME = 0x30008000
 
 
 def case(r):
     op = r.deal(OPS)
+    if op == 'SetText':
+        log = log_region()
+        regions = {LOG: log}
+        wins = notify_env(r, regions, log)
+        notify_blobs(log, 0, 0x30)   # (NotifyC00's bytes +4 / +5)
+        regions[WINDOW_VTABLE] = vtable({5: 1, 3: 2, 0: 1, 9: 1})
+        bg = bytearray(r.bytes(0x20))
+        put(bg, 0, 'I', BG_VTABLE)
+        for off in (4, 0xc):
+            put(bg, off, 'H', r.choice([0, 1, 1, 1, 0x100, 0x8000, r.getrandbits(16)]))
+        put(bg, 0x18, 'I', r.choice(wins))
+        regions[0x7ca0c0] = bg
+        regions[BG_VTABLE] = vtable({}, size=8)
+        n = r.choice([0, 0, 1, 2, 5, 20])
+        chars = [0x0a if r.random() < 0.12 else r.choice([0x41, 0x10a, 0xa00, r.getrandbits(16) | 1]) for _ in range(n)]
+        regions[TEXT] = struct.pack('<%dH' % (n + 1), *chars, 0)
+        return Call(CALLS[op], [TEXT], regions, ret='v')
     if op == 'MoveTo':
         log = log_region()
         regions = {LOG: log}

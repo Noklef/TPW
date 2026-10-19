@@ -4818,6 +4818,7 @@ address,name,kind,confidence,notes
 0x004922e0,HelpBg_Show,function,low,"reimplemented (src/game/frontend/helpbg); thiscall, slot 3 of 0x6ff598: with the word +0xc set, the word +4 = 1 and the window +0x18 shown"
 0x00492300,HelpBg_Hide,function,low,"reimplemented (src/game/frontend/helpbg); thiscall, slot 4 of 0x6ff598: with the word +0xc set, Frame_Stop and the window +0x18 hidden"
 0x00492330,HelpBg_MoveTo,function,low,"reimplemented (src/game/frontend/helpbg); thiscall (x, y), pops 8: with the window +0x18, Window_Offset by x, y less its inner rectangle's left, top (0xffff keeps one); the rect dtor's EAX or 0"
+0x004924b0,HelpBg_SetText,function,low,"reimplemented (src/game/frontend/helpbg); cdecl (text): the help background 0x7ca0c0 (words +0xc, +4 set) tells its window NotifyC00(1, no newline), then closes on an empty text or shows the window and hands it the text (slot 9)"
 0x005da120,Class702af0_AcquireModels,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall: once (+4), each list item (+0x58) not yet set up (+0xc) has its lobby model (+8) set up by RideUser_Acquire"
 0x005dfca0,Class702ca8_AcquireModels,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall: once (+0x10), the lobby models at +4 and +8 set up by RideUser_Acquire"
 0x005e1350,Class702cb0_StartPendingPlay,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall, vtable 0x702cb0 slot 6: a pending play (state +0x14 == 2) started with LobbyModel_Play(entry 1); 0 when the state is 0, else 1 and the state cleared"
