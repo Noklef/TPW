@@ -350,6 +350,8 @@
 #include "../game/ui/panel7cc298.h"
 #include "../game/ui/radiogroup.h"
 #include "../game/ui/textbutton.h"
+#include "../game/ui/window705950.h"
+#include "../game/ui/window7059f0.h"
 #include "../game/ui/window705a20.h"
 #include "../game/ui/window705af0.h"
 #include "../game/ui/window705b20.h"
@@ -358,6 +360,7 @@
 #include "../game/ui/window705bf8.h"
 #include "../game/ui/window705c28.h"
 #include "../game/ui/window705c58.h"
+#include "../game/ui/windowfactory.h"
 #include "../game/ui/windowtimers.h"
 
 namespace tpw::hook {
@@ -4683,6 +4686,9 @@ const Hook kHooks[] = {
     {"Window705bc8_Ctor",         0x0066c970, (void *)&Window705bc8_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window705a20_Ctor",         0x00665fcd, (void *)&Window705a20_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window705a20_SaveRect",     0x00665fb0, (void *)&Window705a20_SaveRect, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window7059f0_Layout",       0x00662530, (void *)&Window7059f0_Layout, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705950_Layout",       0x0065aac0, (void *)&Window705950_Layout, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window_CreateChild",        0x0065dd7b, (void *)&Window_CreateChild, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
