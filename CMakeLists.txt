@@ -373,6 +373,8 @@ add_library(tpw_game STATIC
     src/game/ui/window705c58.cpp
     src/game/ui/window705bf8.cpp
     src/game/ui/window705c28.cpp
+    src/game/ui/window705af0.cpp
+    src/game/ui/window705bc8.cpp
 )
 
 # Proxy dinput.dll that loads into tp.exe and installs the hooks.

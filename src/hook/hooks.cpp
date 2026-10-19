@@ -350,8 +350,10 @@
 #include "../game/ui/panel7cc298.h"
 #include "../game/ui/radiogroup.h"
 #include "../game/ui/textbutton.h"
+#include "../game/ui/window705af0.h"
 #include "../game/ui/window705b20.h"
 #include "../game/ui/window705b98.h"
+#include "../game/ui/window705bc8.h"
 #include "../game/ui/window705bf8.h"
 #include "../game/ui/window705c28.h"
 #include "../game/ui/window705c58.h"
@@ -4670,6 +4672,8 @@ const Hook kHooks[] = {
     {"Window705c58_Ctor",         0x0066d9e0, (void *)&Window705c58_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705bf8_Ctor",         0x0066d0c0, (void *)&Window705bf8_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window705c28_Ctor",         0x0066d750, (void *)&Window705c28_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Window705af0_Ctor",         0x0066a4c0, (void *)&Window705af0_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Window705bc8_Ctor",         0x0066c970, (void *)&Window705bc8_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
