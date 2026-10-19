@@ -22,6 +22,15 @@ u32 __fastcall ChatAvatar_SayPosition(u8 *avatar);
 // 0x4ea410 (thiscall; x, y, pops 8): ChatAvatar_MoveTo's moves with mode 3.
 void __fastcall ChatAvatar_MoveTo3(u8 *avatar, void *, u32 x, u32 y);
 
+// 0x4eace0 (thiscall; x, y, pops 8; name unconfirmed): Chat::MovePlayer(x, y as 16-bit values, mode 1, the avatar) alone. Returns its result.
+u32 __fastcall ChatAvatar_MovePlayer1(u8 *avatar, void *, u32 x, u32 y);
+
+// 0x4eeb50 (thiscall; name unconfirmed): the avatar's wide text at +0xf00 (null: the empty string at 0x6fd6c4) copied (wcslen,
+// StdWString_Grow(n, 1) when it gives room: the characters, a terminator and the length) into a std::wstring on the stack, which is told
+// to Chat::Goto(const wstring &, void *context) (import 0x6fd490, __thiscall on the Chat at +0) with the avatar; then the string is
+// released (_Tidy inlined: its block loses a count, or is freed when owned alone or frozen).
+void __fastcall ChatAvatar_GotoRoom(u8 *avatar);
+
 // 0x4ebfb0 (thiscall, the object not used but for ECX's high word in x (sic); handle, cell, pops 8): the thing in the thing table's slot for
 // the handle's low word, when of kind 0x12, placed at the centre of the map cell (1-based: column (cell - 1) & 0x7f, row (cell - 1) >> 7; x
 // and y the column / row in the high byte and 0x80 in the low one, their high words ECX's and the cell's). Returns 1 when placed, else 0 (AL).
