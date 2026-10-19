@@ -1,5 +1,6 @@
 #include "train.h"
 
+#include <cmath>
 #include <cstdint>
 
 #include "../core/globalmem.h"
@@ -53,6 +54,127 @@ double __cdecl Car_TrainLength(const u8 *car) {
         sum = sum + at<float>(type, 0xc4);
     }
     return ((sum + (X87Reg(longest) - shortest) * at<float>(car, 0xe8)) + shortest).v;
+}
+
+void __cdecl Car_SetChannelRates(u32, u8 *car) {
+    const u8 *const train = at<const u8 *>(car, 0x100);
+    if ((at<u8>(train, 4) & 1) || (at<u32>(car, 8) & 0x2000)) return;
+    constexpr float kMinusOne = -1.0f, kMinusHalf = -0.5f;   // 0x6fde9c, 0x6fdea0 (subtracted)
+    const u32 ride = at<u32>(car, 0x70);
+    const u8 *const ranges = at<const u8 *>(train, 0x18) + 0xd0;
+    const auto set = [ride, ranges](u32 channel, u32 range, X87Reg rate) {
+        if (!(rate.v >= at<float>(ranges, range))) rate = at<float>(ranges, range);   // (fcom; test ah, 1: a NaN too)
+        if (rate.v > at<float>(ranges, range + 4)) rate = at<float>(ranges, range + 4);
+        u8 *const block = at<u8 *>(reinterpret_cast<u8 *const *>(0x007a4610)[ride], 0x10) + channel;
+        at<float>(block, 0x20) = (float)(X87Reg(at<float>(block, 0x1c)) * rate);
+    };
+    float &t = at<float>(car, 0xe8);
+    if (t > 1.0f)   // 0x6fde70
+        t = 1.0f;
+    else if (!(t >= 0.0f))   // 0x6fde74
+        t = 0.0f;
+    double whole;
+    const double phase = std::modf((double)at<float>(car, 0xf8), &whole);   // CRT modf (0x67b280)
+    at<float>(car, 0xf8) = !(phase >= 0.0) ? (float)(X87Reg((float)phase) - kMinusOne) : (float)phase;
+    set(0, 0, X87Reg(t) * at<float>(ranges, 8) + at<float>(ranges, 0xc));
+    X87Reg pitch = at<float>(car, 0xec);
+    if (at<u32>(car, 8) & 0x10000000) pitch = std::modf((pitch - kMinusHalf).v, &whole);
+    set(0x38, 0x10, pitch * at<float>(ranges, 0x18) + at<float>(ranges, 0x1c));
+    set(0xe0, 0x40, X87Reg(at<float>(car, 0xf8)) * at<float>(ranges, 0x48) + at<float>(ranges, 0x4c));
+    set(0x70, 0x20, X87Reg(at<float>(car, 0xf0)) * at<float>(ranges, 0x28) + at<float>(ranges, 0x2c) - kMinusHalf);
+    set(0xa8, 0x30, X87Reg(at<float>(car, 0xf4)) * at<float>(ranges, 0x38) + at<float>(ranges, 0x3c) - kMinusHalf);
+}
+
+void __cdecl Car_FitHeight(const u8 *owner, u8 *car, const u8 *type, float height, u32 free) {
+    X87Reg v = height;
+    if (const u32 slot = at<u32>(car, 4)) {
+        const u8 *const before = at<const u8 *>(at<const u8 *>(car, 0x100), 0x30 + slot * 4);
+        const X87Reg below = before ? X87Reg(Car_TrainLength(before)) : X87Reg(0.0f);   // (inlined: the same sums)
+        v = X87_SubR(below + at<float>(type, 0xc4), X87Reg(height));   // fsubr
+    }
+    if (!free) {
+        if (!(v.v > at<float>(type, 0x68))) v = at<float>(type, 0x68);
+        if (v.v >= at<float>(type, 0x6c)) v = at<float>(type, 0x6c);   // (a NaN top keeps v)
+    }
+    X87Reg t = (v - at<float>(type, 0xbc)) / (X87Reg(at<float>(type, 0xc0)) - at<float>(type, 0xbc));
+    if (!(t.v > 0.0)) t = 0.0f;
+    if (!(t.v < 1.0)) t = 1.0f;
+    at<float>(car, 0xe8) = (float)t;
+    Car_SetChannelRates(at<u32>(owner, 4), car);
+}
+
+u32 __cdecl Train_ShrinkToTop(const u8 *owner, const u8 *type, const u8 *train) {
+    const u32 count = at<u32>(train, 0x30);
+    if (count <= 1) return 0;
+    u32 shrunk = 0;
+    const u8 *const last = at<const u8 *>(train, 0x30 + count * 4);
+    for (s32 i = (s32)(count - 1); i >= 0; --i) {
+        u8 *const car = at<u8 *>(train, 0x34 + 4 * (u32)i);
+        const X87Reg length = last ? X87Reg(Car_TrainLength(last)) : X87Reg(0.0f);   // (inlined: the same sums)
+        if (!(length.v > at<float>(type, 0x6c))) break;
+        X87Reg t = (X87Reg(at<float>(type, 0x68)) - at<float>(type, 0xbc)) / (X87Reg(at<float>(type, 0xc0)) - at<float>(type, 0xbc));
+        if (!(t.v > 0.0)) t = 0.0f;
+        if (!(t.v < 1.0)) t = 1.0f;
+        at<float>(car, 0xe8) = (float)t;
+        Car_SetChannelRates(at<u32>(owner, 4), car);
+        shrunk = 1;
+    }
+    return shrunk;
+}
+
+void __cdecl Train_RestoreSaved(const u8 *owner, u8 *train) {
+    for (u32 o = 0; o < 0x48; o += 4) at<u32>(train, o) = global<u32>(0x00790ff0 + o);   // (rep movsd)
+    u32 i = 0;
+    for (; i < global<u32>(0x00791020); ++i) {
+        const u8 *const saved = reinterpret_cast<const u8 *>((uintptr_t)(0x00791d00 + 0x104 * i));
+        u8 *const car = at<u8 *>(train, 0x34 + 4 * i);
+        at<u32>(car, 4) = at<u32>(saved, 4);
+        at<u32>(car, 8) = (at<u32>(car, 8) & 0x600000) | at<u32>(saved, 8);
+        constexpr u32 kRuns[][2] = {{0xc, 0x70}, {0x90, 0xb0}, {0xd4, 0x104}};
+        for (const auto &run : kRuns)
+            for (u32 o = run[0]; o < run[1]; o += 4) at<u32>(car, o) = at<u32>(saved, o);
+        at<u32>(car, 0x50) = global<u32>(0x00791038 + 4 * i);
+        Car_SetChannelRates(at<u32>(owner, 4), car);
+    }
+    for (; i < 5; ++i) at<u32>(train, 0x34 + 4 * i) = 0;
+    global<u32>(0x00791cd8) = 0;
+}
+
+void __cdecl Train_RemoveCar(const u8 *owner, const u8 *car) {
+    const auto ride_value = [](const u8 *c) -> float & {   // (the car's ride +8, +4, +0x78, +0x44)
+        const u8 *const ride = reinterpret_cast<const u8 *const *>(0x007a4610)[at<u32>(c, 0x70)];
+        return at<float>(at<const u8 *>(at<const u8 *>(at<const u8 *>(ride, 8), 4), 0x78), 0x44);
+    };
+    u8 *const train = at<u8 *>(car, 0x100);
+    const u32 n = --at<u32>(train, 0x30);
+    u32 i = at<u32>(car, 4);
+    if (i >= n) {
+        at<u32>(train, 0x34 + at<u32>(train, 0x30) * 4) = 0;
+        return;
+    }
+    do {
+        if (i == at<u32>(car, 4)) {   // (read again each time)
+            const float kept = ride_value(at<const u8 *>(train, 0x34 + 4 * i));
+            float below = 0.0f;
+            if (i)
+                below = (float)(X87Reg(Car_TrainLength(at<const u8 *>(train, 0x30 + 4 * i))) + at<float>(at<const u8 *>(train, 0x18), 0xc4));
+            const double length = Car_TrainLength(at<const u8 *>(train, 0x38 + 4 * i));
+            ride_value(at<const u8 *>(train, 0x38 + 4 * i)) = kept;
+            const double t = CarType_Unlerp((float)(X87Reg(length) - below), at<const u8 *>(train, 0x18));
+            u8 *const next = at<u8 *>(train, 0x38 + 4 * i);
+            at<float>(next, 0xe8) = (float)t;
+            if (!(t >= 0.0))   // (fcomp 0x6fe1b4 of the unrounded value: below or unordered)
+                at<float>(next, 0xe8) = 0.0f;
+            if (at<float>(next, 0xe8) > 1.0f)   // (0x6fe1a8)
+                at<float>(next, 0xe8) = 1.0f;
+            Car_SetChannelRates(at<u32>(owner, 4), at<u8 *>(train, 0x38 + 4 * i));
+        }
+        u8 *const next = at<u8 *>(train, 0x38 + 4 * i);
+        at<u8 *>(train, 0x34 + 4 * i) = next;
+        --at<u32>(next, 4);
+        ++i;
+    } while (i < at<u32>(train, 0x30));
+    at<u32>(train, 0x34 + at<u32>(train, 0x30) * 4) = 0;
 }
 
 u8 *__cdecl Ride_Train(u32 index, u32 *cars) {

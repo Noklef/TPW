@@ -86,6 +86,31 @@ void __cdecl StripAnim_Refresh(u8 *object) {
     }
 }
 
+void __cdecl StripAnim_Step(u8 *object, float dt) {
+    if (!at<u32>(object, 0xb4) || !at<u32>(object, 0xb0)) return;
+    const u32 flags = at<u32>(object, 4);
+    if (!(flags & 0xc0)) return;
+    const float before = at<float>(object, 0xb8);
+    const X87Reg sum = X87Reg(at<float>(object, 0xbc)) * dt + before;
+    at<float>(object, 0xb8) = (float)sum;
+    if (!(sum.v >= 0.0))   // (fcom 0x6fe470 of the unrounded sum: below or unordered)
+        at<float>(object, 0xb8) = 0.0f;
+    if (at<float>(object, 0xb8) > 1.0f)   // (0x6fe440)
+        at<float>(object, 0xb8) = 1.0f;
+    const float t = at<float>(object, 0xb8);
+    if (t < before || t > before) {   // (fcomp; test ah, 0x40: equal or unordered goes on below)
+        StripAnim_Apply(object, t);
+        return;
+    }
+    if (flags & 0x80) {
+        if (t > 0.0f) return;   // (test ah, 0x41: at most 0 or unordered hides)
+        at<u32>(object, 4) = flags & ~0xa0u;
+        StripAnim_Show(object, 0);
+    } else if (t >= 1.0f) {   // (test ah, 1: below or unordered keeps it)
+        at<u32>(object, 4) = flags & ~0x40u;
+    }
+}
+
 void __cdecl StripAnim_Apply(const u8 *object, float t) {
     if (!(at<u8>(object, 4) & 2)) return;
     const u8 *const shape = at<const u8 *>(object, 0xb4);

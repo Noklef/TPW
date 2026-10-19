@@ -3,6 +3,8 @@
 #include <cstdint>
 
 #include "../core/gameheap.h"
+#include "../core/vcall.h"
+#include "../math/x87.h"
 
 namespace {
 
@@ -86,4 +88,34 @@ u32 __fastcall LoadScreen_Close(u8 *screen) {
 }
 
 void __cdecl LoadScreen_StaticDtor() { close(reinterpret_cast<u8 *>((uintptr_t)0x008c4748)); }
+
+u32 __fastcall LoadScreen_DrawBar(u8 *screen) {
+    const s32 percent = (s32)(long long)(X87Reg((double)*reinterpret_cast<s32 *>(screen)) * *reinterpret_cast<float *>(screen + 0x18)).v;  // __ftol
+    const u32 w = global<u32>(0x008bcbd0), h = global<u32>(0x008bcbd4);
+    const s32 scale = (s32)(w << 16) / 640;
+    const s32 b = (s32)(h * 11) / 480;
+    const s32 left = (s32)(w * 14) / 640;
+    const s32 top = (s32)(h * 446) / 480;
+    u8 *renderer = global<u8 *>(0x00879ab0);
+    vcall<u32>(renderer, 0x1c);
+    const s32 bar = percent > 100 ? 0x13e : (s32)((u32)percent * 318) / 100;
+    const s32 e = b / 5;
+    const s32 right = (s32)((u32)((s32)((u32)(bar + 1) * (u32)scale) >> 16) + (u32)left);
+    const float x0 = (float)left, y0 = (float)top, x1 = (float)right;
+    renderer = global<u8 *>(0x00879ab0);
+    if (!vcall<u32>(renderer, 0x28, x0, y0, x1, (float)(s32)((u32)e + (u32)top), 0xff800000u, 0u))
+        return 0;
+    const s32 f = (s32)((u32)b * 4) / 5;
+    renderer = global<u8 *>(0x00879ab0);
+    if (!vcall<u32>(renderer, 0x28, x0, (float)(X87Reg((double)e) + y0), x1, (float)(s32)((u32)f + (u32)top), 0xffff0000u, 0u))
+        return 0;
+    renderer = global<u8 *>(0x00879ab0);
+    if (!vcall<u32>(renderer, 0x28, x0, (float)(X87Reg((double)f) + y0), x1, (float)(s32)((u32)top + (u32)b), 0xff800000u, 0u))
+        return 0;
+    renderer = global<u8 *>(0x00879ab0);
+    vcall<u32>(renderer, 0x20);
+    *reinterpret_cast<s32 *>(screen + 0xc) = bar;
+    *reinterpret_cast<s32 *>(screen + 4) = bar;
+    return 1;
+}
 }

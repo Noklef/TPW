@@ -38,6 +38,12 @@ void __cdecl StripAnim_StartGrow(u8 *object, u32 frame);
 // pointer from the first frame flag of 0x100, 0x200, 0x400, 0x800 (none: frame 1, and 0x100 set).
 void __cdecl StripAnim_Refresh(u8 *object);
 
+// 0x4548f0 (cdecl (object, dt); name unconfirmed): with a strip owner (+0xb4) and strips (+0xb0), an object growing or shrinking (flags
+// 0xc0) steps t (+0xb8) by its step (+0xbc) times dt, held to 0..1 (the unrounded sum below 0 or a NaN: 0). A changed t is applied
+// (StripAnim_Apply); an unchanged one (or a NaN) ends the change: shrinking (0x80) at 0 or less (or a NaN) the flags lose 0xa0 and
+// the strips are hidden (StripAnim_Show(0)); growing at 1 or more the flags lose 0x40. (The flags as read before the step.)
+void __cdecl StripAnim_Step(u8 *object, float dt);
+
 // 0x4547c0: when it has strips (+0xb0), the step (+0xbc) = -0.3, and flags 0x20 trade 0x40 for 0x80.
 void __cdecl StripAnim_StartShrink(u8 *object);
 

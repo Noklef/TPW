@@ -19,6 +19,42 @@ void __cdecl Train_SetCouplings(u32 unused, u8 *train);
 // sic: the count is car+4, not the train's +0x30; empty slots are skipped.
 double __cdecl Car_TrainLength(const u8 *car);
 
+// 0x430ca0 (cdecl; the first argument unused, car; name unconfirmed): unless the car's train (+0x100) has flag 1 (byte +4) or the car flag
+// 0x2000 (+8), the rates of five channels of its ride's (table 0x7a4610 [car+0x70]) +0x10 block (0x38 bytes each: +0x20 = +0x1c times
+// the rate) from the car's values, each as value * scale + offset with its range from the train's type (+0x18) +0xd0 on (min, max, scale,
+// offset; below min or a NaN gives min, then above max gives max), all on the x87:
+//   +0xe8 first clamped (above 1 gives 1, below 0 or a NaN 0), channel 0 from it (range +0xd0);
+//   +0xf8 first wrapped (its modf fraction, plus 1 when negative or a NaN, stored as a float), channel 0xe0 from it (range +0x110);
+//   channel 0x38 from +0xec (range +0xe0), first through modf(+0xec + 0.5) when the car has flag 0x10000000;
+//   channels 0x70 and 0xa8 from +0xf0 and +0xf4 (ranges +0xf0, +0x100), each plus 0.5 after the offset.
+void __cdecl Car_SetChannelRates(u32 unused, u8 *car);
+
+// 0x433790 (cdecl; owner, car, type, height, free; name unconfirmed): the car's length (+0xe8, a 0..1 fraction of the type's shortest +0xbc
+// to longest +0xc0) for its top to reach height: height less the train length of the car before it (its train's (+0x100) car car+4 - 1;
+// Car_TrainLength, inlined in the original) and the type's gap (+0xc4), or height less the gap alone when that slot is empty, or height
+// itself for the first car (+4 = 0); unless free, held to the type's +0x68..+0x6c (not above +0x68, or a NaN, gives +0x68; then from
+// +0x6c up +0x6c); unlerped and held to 0..1 (not above 0, or a NaN, 0). Then Car_SetChannelRates (owner +4, car). All on the x87.
+void __cdecl Car_FitHeight(const u8 *owner, u8 *car, const u8 *type, float height, u32 free);
+
+// 0x433a90 (cdecl; owner, type, train; name unconfirmed): while the train length of the train's last car (Car_TrainLength, inlined; 0 for an
+// empty slot) is above the type's +0x6c, its cars from the last down each take the length +0x68 (unlerped against the type's +0xbc..+0xc0,
+// held to 0..1 as Car_FitHeight does) and Car_SetChannelRates (owner +4, car). 1 when any car changed; 0 for a train of one car or none.
+// (The length is worked out again before each car: the whole train's, as the last car's slot counts them.)
+u32 __cdecl Train_ShrinkToTop(const u8 *owner, const u8 *type, const u8 *train);
+
+// 0x4338e0 (cdecl; owner, train; name unconfirmed): the train put back as 0x436230 saved it: its first 0x48 bytes from 0x790ff0 (so its
+// count +0x30 and car slots +0x34..+0x44 too), then for each of the saved count (0x791020) of its cars, from the saved copy (0x104 bytes
+// each from 0x791d00) at the same offsets: +4, +8 (keeping the car's bits 0x600000), +0xc..+0x6c, +0x90..+0xac and +0xd4..+0x100; +0x50
+// from 0x791038 (a dword each); and Car_SetChannelRates (owner +4, car). Slots from the count to 5 are cleared; 0x791cd8 = 0.
+void __cdecl Train_RestoreSaved(const u8 *owner, u8 *train);
+
+// 0x442d70 (cdecl; owner, car; name unconfirmed): the car taken out of its train (+0x100): the count (+0x30) lowered, and from the car's
+// slot (+4) on each later car moved down a slot (its +4 lowered). The car that takes the slot first (while its index is the car's +4) also
+// takes the ride value of the car before it (its ride's +8, +4, +0x78, +0x44), and its length +0xe8 becomes the unlerp (CarType_Unlerp
+// with the train's type +0x18) of its train length less the length up to the slot before plus the type's gap (+0xc4; 0 for slot 0),
+// held to 0..1 (below 0 or a NaN 0); then Car_SetChannelRates (owner +4, car). The slot past the new count is cleared.
+void __cdecl Train_RemoveCar(const u8 *owner, const u8 *car);
+
 // 0x436750: picks car's coupling as Train_SetCouplings does, without touching its flags.
 void __cdecl Car_PickCoupling(u8 *car);
 

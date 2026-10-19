@@ -2,8 +2,8 @@
 # 0-8 cells wide and high (now and then wide or random), its cell sizes mostly 10 (or 5, 2.5, 20, odd ones, 0, NaN), its heights about
 # -50..50 (whole, fractional, now and then huge, infinite or NaN) and its cells' flags any mix of 0x800 and 4; the point anywhere on the
 # grid, on cell borders and on the two diagonals (fx + fy = 1 and fx = fy, exact with size 10), at the edges, below 0 or past the far
-# edge, -0.0, NaN or infinite.
-# usage: terrainheight.py [CASES [SEED]] [--wild|--both] [--show N]
+# edge, -0.0, NaN or infinite. Grid: Terrain_GridHeightAt (0x452560) on the same grids, with an origin and the cells' flags 1 and 4.
+# usage: terrainheight.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Height,Grid)
 import os
 import struct
 import sys
@@ -11,7 +11,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, Bench, Call, fb, put  # noqa: E402
 
-B = Bench([(0x4527f0, 0x452a70)])
+B = Bench([(0x4527f0, 0x452a70), (0x452560, 0x4527f0)])
 MAP, GRID, HEIGHTS, CELLS = RAM, RAM + 0x100, RAM + 0x1000, RAM + 0x3000
 ODD = [float('nan'), float('inf'), float('-inf'), 3e38, -3e38, 1e-40]
 
@@ -36,6 +36,7 @@ def coordinate(r, n, size, other):
 
 
 def case(r):
+    op = r.deal(OPS)
     w, h = (r.choice([0, 1, 2, 3, 4, 5, 8, 8]) for _ in range(2))
     if r.random() < 0.03:
         w, h = r.getrandbits(32), r.getrandbits(32)
@@ -62,8 +63,21 @@ def case(r):
         a = (w + 1) * iy + ix
         put(heights, 4 * r.choice([a, a + 1, a + w + 1, a + w + 2]), 'f', r.choice([float('inf'), float('-inf'), 3e38, -3e38]))
     regions = {0x7a0854: struct.pack('<I', MAP), MAP: put(bytearray(r.bytes(0x70)), 0x6c, 'I', GRID), GRID: grid, HEIGHTS: heights, CELLS: cells}
+    if op == 'Grid':   # 0x452560: an origin (none mostly, whole cells, half a cell, any, NaN) added to the point; cell flags 1 and 4 any mix; any or not
+        ox, oy = (r.choice([0.0, 0.0, 0.0, 10.0, -10.0, 5.0, r.uniform(-20, 20), float('nan')]) for _ in range(2))
+        put(grid, 8, '2f', ox, oy)
+        for i in range(0x800):
+            put(cells, 4 * i, 'H', r.getrandbits(16) & ~5 | r.choice([0, 0, 4, 4, 1, 5]))
+        x, y = (v + o if o == o and r.random() < 0.9 else v for v, o in ((x, ox), (y, oy)))
+        if r.random() < 0.15 and w < 64 and h < 64:   # exactly the far edge in cells (inside the 10-per-cell bound with a negative origin)
+            put(grid, 8, '2f', -10.0, -10.0)
+            put(grid, 0x10, '2f', 10.0, 10.0)
+            x, y = r.choice([(w * 10.0 - 10, y), (x, h * 10.0 - 10), (w * 10.0 - 10, h * 10.0 - 10)])
+        return Call(0x452560, [fb(x), fb(y), r.choice([0, 0, 1, 7])], regions, ret='d')
     return Call(0x4527f0, [fb(x), fb(y)], regions, ret='d')
 
+
+OPS = [k for k in os.environ.get('OPS', 'Height,Grid').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

@@ -10,6 +10,10 @@ extern "C" {
 // 0x80000000_00000000's low dword (0), and a NaN fraction counts as none.
 int __cdecl Float_RoundUp(float x);
 
+// 0x438a70 (cdecl; x, whole or null; name unconfirmed): x split by the CRT's modf: the fraction is returned (st0, so double), the whole
+// part through __ftol to *whole when given (a NaN or a whole beyond the int64 range gives 0).
+double __cdecl Float_SplitWhole(float x, s32 *whole);
+
 // 0x43e480: the angle t of the way from a to b, both in radians. Within pi of each other it
 // is the plain lerp b*t + (1-t)*a. Further apart it goes the other way round, by
 // gap = 2pi - |a - b| (stored as a float): from b, (1-t)*gap + b when a < 0 (or NaN), else

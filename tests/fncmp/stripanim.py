@@ -8,9 +8,10 @@
 # as the strip owner; the holder's turn in degrees of any value, the root's translation and the model's 0x18 bytes random.
 # Grow (0x454550, frames 1, 2, 4, 8 and others) and Refresh (0x4547f0): Show's shown environment with strips for StripAnim_Apply
 # (0-3, or none at all), flags of any frame (several, none), growing or not, either direction.
+# Step (0x4548f0): Grow's environment (hidden mostly, for the shrink's end), t near 0 and 1, steps and dt reaching them or not.
 # Restart (0x4df300, src/game/world/object): Grow's environment as the ride at 0x7a4610[+0x20] (0-3) of an object of random bytes whose ride id
 # (+0x24) has a record in ridelist.py's list or not (the system flag set or not; arrays of 0-16 dwords, so element 6 is there or not).
-# usage: stripanim.py [CASES [SEED]] [--wild|--both] [--show N]
+# usage: stripanim.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=apply,shrink,fit,show,grow,refresh,restart,step)
 import os
 import struct
 import sys
@@ -20,7 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 import holder  # noqa: E402
 
-B = Bench([(0x454050, 0x45453b), (0x4547c0, 0x4547e7), (0x454670, 0x4547b6), (0x46f150, 0x475010), (0x454550, 0x454661), (0x4547f0, 0x4548eb),
+B = Bench([(0x454050, 0x45453b), (0x4547c0, 0x4547e7), (0x454670, 0x4547b6), (0x46f150, 0x475010), (0x454550, 0x454661), (0x4547f0, 0x4548eb), (0x4548f0, 0x4549d0),
            (0x4df300, 0x4df389), (0x50b350, 0x50b360), (0x55a070, 0x55a0b0), (0x55a0b0, 0x55a100)] + holder.RANGES, sines=256,
           hooks=holder.HOOKS)
 OBJECT, SHAPE, CHAIN, VERTS, COORDS = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x1000, RAM + 0x2000
@@ -95,8 +96,8 @@ def show_case(r, shown=None):
 SCOUNT, SVERTS, SROOT2, SCOORDS = (RAM + 0xd000 + 0x400 * i for i in range(4))
 
 
-def strips_case(r, op):   # Grow / Refresh
-    c = show_case(r, 1)
+def strips_case(r, op):   # Grow / Refresh / Step (hidden when it ends a shrink: Show's hidden environment mostly)
+    c = show_case(r, r.choice([0, 0, 1]) if op == 'step' else 1)
     regions = c.regions
     obj = regions[SOBJ]
     flags = r.getrandbits(32) & ~0xfe2 | r.choice([2, 2, 2, 0]) | r.choice([0x20, 0x20, 0]) | r.choice([0x40, 0x80, 0xc0, 0])
@@ -110,6 +111,21 @@ def strips_case(r, op):   # Grow / Refresh
     r.floats(verts, range(0, 0x200, 4), r.choice([1, 10, 100, None]))
     regions.update({SCOUNT: struct.pack('<i', r.choice([1, 2, 3, 0, -1])), SVERTS: verts,
                     SROOT2: put(bytearray(r.bytes(0x70)), 0x68, 'I', SCOORDS), SCOORDS: r.bytes(0x100)})
+    if op == 'step':   # t near the ends, steps that reach them or not, dt any; no owner now and then
+        put(obj, 4, 'I', flags | r.choice([0x40, 0x80, 0xc0, 0x40, 0x80]))
+        put(obj, 0xb8, 'I', r.choice([fb(0.0), fb(1.0), fb(r.uniform(0, 1)), fb(0.95), fb(0.05), r.f()]))
+        put(obj, 0xbc, 'I', r.choice([fb(0.2), fb(-0.3), fb(0.0), fb(r.uniform(-2, 2)), r.f()]))
+        if r.random() < 0.05:
+            put(obj, 0xb4, 'I', 0)
+        dt = r.choice([fb(0.0), fb(0.1), fb(1.0), fb(5.0), fb(r.uniform(0, 2)), r.f()])
+        pick = r.random()
+        if pick < 0.06:   # t a NaN (so the held t is 0 and the old one unordered)
+            put(obj, 0xb8, 'I', r.choice([0x7fc00000, 0xffc00000]))
+        elif pick < 0.12:   # from 0 a step so small that the float sum is -0.0 (the unrounded sum below 0 gives +0)
+            put(obj, 0xb8, 'I', fb(0.0))
+            put(obj, 0xbc, 'I', fb(-1e-30))
+            dt = fb(1e-16)
+        return Call(0x4548f0, [SOBJ, dt], regions, conv='c', ret='v')
     if op == 'grow':
         return Call(0x454550, [SOBJ, r.choice([1, 1, 2, 2, 4, 4, 8, 8, 0, 3, 0x10])], regions, conv='c', ret='v')
     return Call(0x4547f0, [SOBJ], regions, conv='c', ret='v')
@@ -141,14 +157,14 @@ def restart_case(r):
 
 
 def case(r):
-    op = r.deal(['apply', 'apply', 'shrink', 'fit', 'show', 'show', 'grow', 'grow', 'refresh', 'refresh', 'restart', 'restart'])
+    op = r.deal(OPS)
     if op == 'restart':
         return restart_case(r)
     if op == 'fit':
         return fit_case(r)
     if op == 'show':
         return show_case(r)
-    if op in ('grow', 'refresh'):
+    if op in ('grow', 'refresh', 'step'):
         return strips_case(r, op)
     ram = bytearray(r.bytes(0x3000))
     n = r.choice([0, 1, 2, 3, 8, r.randrange(-3, 40)])
@@ -167,6 +183,9 @@ def case(r):
         put(ram, 0xb0, 'I', r.choice([CHAIN + 0x80, 0]))
         return Call(0x4547c0, [OBJECT], {RAM: ram})
     return Call(0x4543c0, [OBJECT, t], {RAM: ram})
+
+
+OPS = [k for k in os.environ.get('OPS', 'apply,apply,shrink,fit,show,show,grow,grow,refresh,refresh,restart,restart,step,step').split(',') if k]
 
 
 if __name__ == '__main__':

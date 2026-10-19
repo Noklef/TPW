@@ -98,6 +98,15 @@ void __fastcall Lnd_Dtor(u8 *object);
 // on the x87, in that order. The grid is read first, whatever x and y are.
 double __cdecl Terrain_HeightAt(float x, float y);
 
+// 0x452560 (cdecl; x, z, any; name unconfirmed): the height at (x, z) on the same grid from its origin (+8, +0xc), in st0: 0 for x or z
+// below 0 (or NaN) or not below 10 times the width / height, or for a grid position gx = (x - +8) / +0x10 below 0 (or NaN, before its
+// rounding to a float) or above the width, or gz = (z - +0xc) / +0x14 below 0 (or NaN) or above the height. Unless any, FLT_MAX for a
+// cell (+0x2c, row width) with flag 1. Else the cell's column ix = __ftol(gx) (with fx its CRT modf fraction, as a float) and row iz (the
+// whole part of gz; fz its fraction) and the corners h00, h10, h01, h11 (row width + 1) blended over a triangle: with the cell's flag 4,
+// when fx >= 1 - fz ((1 - fx) h01 + h11 fx) + (1 - fz) -(h11 - h10), else ((1 - fx) h00 + h10 fx) + fz (h01 - h00); without, when fx < fz
+// (or NaN) ((1 - fx) h01 + h11 fx) + (1 - fz) -(h01 - h00), else ((1 - fx) h00 + h10 fx) + fz (h11 - h10). On the x87, in that order.
+double __cdecl Terrain_GridHeightAt(float x, float z, u32 any);
+
 // 0x454050 (cdecl; angle, x0, y0, x1, y1, u, v, &cellX, &cellY): the cell under the point at fractions (u, v) of a footprint from
 // (x0, y0) to (x1, y1) turned by angle, each __ftol((t b + (1 - t) a) + 0.1) on the x87: angle 0 cellX from u over x0..x1 and cellY
 // from v over y0..y1; 90 cellX from v over x0..x1, cellY from u over y1..y0; 180 u over x1..x0, v over y1..y0; 270 v over x1..x0, u over

@@ -9,6 +9,7 @@
 #include "../model/highlight.h"
 #include "../render/dynfaces.h"
 #include "../sprite/script.h"
+#include "../ui/cursor.h"
 #include "mapcell.h"
 #include "thingscan.h"
 
@@ -171,5 +172,35 @@ u8 *__fastcall MouseMode6fead0_Ctor(u8 *self) {
     at<u32>(self, 4) = 0;
     at<u32>(self, 0) = 0x006fead0;
     return self;
+}
+
+u8 *__fastcall MMOnline_Ctor(u8 *self) {
+    at<u32>(self, 4) = 0;
+    at<u32>(self, 0) = 0x006fe980;
+    Obj7b51f0_SetCursor(reinterpret_cast<void *>(0x007b51f0), nullptr, 0);
+    return self;
+}
+
+void __fastcall MouseMode6fead0_Assign(u8 *) { Obj7b51f0_SetCursor(reinterpret_cast<void *>(0x007b51f0), nullptr, 0x13); }
+
+// The sprite script of the staff being placed: started for the folder and sprite, the one at +8 before it killed.
+static void start_staff_script(u8 *self, u32 folder, u8 sprite) {
+    const s32 slot = SpriteScript_Start(0x0074ed98, folder, sprite, 0, 0, 0, 0);
+    if (const s32 old = at<s32>(self, 8))
+        SpriteScript_Kill(old);
+    at<s32>(self, 8) = slot;
+}
+
+void __fastcall MMPlaceStaff_Assign(u8 *self) {
+    Obj7b51f0_SetCursor(reinterpret_cast<void *>(0x007b51f0), nullptr, 9);
+    static constexpr u32 kFolders[] = {6, 5, 4, 7, 8};   // (kinds 4-8)
+    const u32 kind = at<u32>(self, 0xc) - 4;
+    if (kind <= 4)
+        start_staff_script(self, kFolders[kind], at<u8>(self, 0x11));
+}
+
+void __fastcall MMStaffDrop_Assign(u8 *self) {
+    Obj7b51f0_SetCursor(reinterpret_cast<void *>(0x007b51f0), nullptr, 9);
+    start_staff_script(self, at<u32>(self, 0xc), at<u8>(self, 0x10));
 }
 }

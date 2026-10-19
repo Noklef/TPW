@@ -217,4 +217,40 @@ void __cdecl LightSource_CreateMain() {
     u8 *const part = reinterpret_cast<u8 *>((uintptr_t)light[1]);
     at<u32>(part + at<s32>(at<u8 *>(part, 0), 8), 0x50) |= 0x20;
 }
+
+void __cdecl LightSource_UpdateMain(u32 update) {
+    if (!update) return;
+    float *const v = &global<float>(0x007a0b30);
+    const X87Reg sum = X87Reg(v[0]) * v[0] + X87Reg(v[1]) * v[1] + X87Reg(v[2]) * v[2];
+    const float length = (float)X87_Sqrt(sum);
+    const u32 ambient = global<u32>(0x007a0b44);
+    global<u32>(0x00879dd8) = 0x3f800000;   // 1.0f
+    const float scale = (float)(X87Reg(global<float>(0x0074d0d8)) / length);
+    const float k = global<float>(0x006fe53c);
+    global<float>(0x00879ddc) = (float)X87_MulInt(ambient >> 16 & 0xff, k);
+    global<float>(0x00879de0) = (float)X87_MulInt(ambient >> 8 & 0xff, k);
+    global<float>(0x00879de4) = (float)X87_MulInt(ambient & 0xff, k);
+    const float x = (float)(X87Reg(v[0]) * scale), y = (float)(X87Reg(v[1]) * scale), z = (float)(X87Reg(v[2]) * scale);
+    v[0] = x;
+    v[1] = y;
+    v[2] = z;
+    const auto base = [] {   // (the light's part, +4, at its virtual base)
+        u8 *const part = reinterpret_cast<u8 *>((uintptr_t)global<u32 *>(0x007a0b40)[1]);
+        return part + at<s32>(at<u8 *>(part, 0), 8);
+    };
+    u8 *b = base();
+    SceneFlags_Touch(reinterpret_cast<u32 *>(0x008bd508));
+    at<float>(b, 0x2c) = x;
+    at<float>(b, 0x30) = y;
+    at<float>(b, 0x34) = z;
+    const float factor = global<float>(0x006fe50c);
+    const u32 colour = global<u32>(0x007a0b3c);
+    b = base();
+    SceneFlags_Touch(reinterpret_cast<u32 *>(0x008bd508));
+    at<u32>(b, 0x54) = colour;
+    at<float>(b, 4) = (float)(X87Reg(X87_MulInt(colour >> 24, factor)) * k);
+    at<float>(b, 8) = (float)(X87Reg(X87_MulInt(colour >> 16 & 0xff, factor)) * k);
+    at<float>(b, 0xc) = (float)(X87Reg(X87_MulInt(colour >> 8 & 0xff, factor)) * k);
+    at<float>(b, 0x10) = (float)(X87Reg(X87_MulInt(colour & 0xff, factor)) * k);
+}
 }

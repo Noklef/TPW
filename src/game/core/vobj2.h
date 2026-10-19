@@ -73,4 +73,11 @@ u32 __fastcall Object_FreeBlock13c(u8 *object);
 
 // 0x564140 (thiscall; returns 1): Obj_ReleaseSevenComMembers on the object when the dword at 0x8bd524 is 1.
 u32 __fastcall Obj_ReleaseSevenIfMode1(u8 *object);
+// 0x57b6e0 (thiscall on the object; the mesh; pops 4; name unconfirmed): the mesh's vertices (+0x28, count +0x20) packed (FixedVerts_Pack,
+// stride 0x20), the software renderer's buffer ([0x879dac]) cleared and the mesh drawn ([0x879acc]'s virtual +0x14). With the pixel format
+// [0x8bd554] 2 the buffer's dwords (+8) are averaged into the block's texture (+0x13c, its +0x18, Texture_Lock): the width [0x8bd4ac]
+// over the count [0x8bd4b0] (a 0 count faults) is the side of each of count x count square blocks, read row by row; each block's mean of
+// its pixels' byte 2 (over side * side, signed; a side of 0 faults) becomes a grey 4444 word 0xf000 | hi << 8 | hi << 4 | hi (hi its
+// top four bits; from 0xf0 | 0xff00 shifted and ORed as the original does). The width and count are read again after each block. Returns 1.
+u32 __fastcall Object_RenderToBlock13c(u8 *object, void *, u8 *mesh);
 }  // extern "C"

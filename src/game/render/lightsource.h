@@ -57,4 +57,10 @@ u32 *__cdecl LightSource_Create(u32 kind, u32 colour, const u32 *point, const u3
 // directional light (LightSource_Create kind 2) of the colour 0x7a0b3c in that direction, kept at 0x7a0b40, its part's flag 0x20 (at
 // +0x50 of the part the vtable's +8 reaches) set.
 void __cdecl LightSource_CreateMain();
+
+// 0x458590 (cdecl; update; name unconfirmed): when update is nonzero, the ambient colour 0x879dd8 = {1, r, g, b} of 0x7a0b44's bytes
+// over 255; the direction at 0x7a0b30 normalised (times 0x74d0d8 over the float root of x x + y y + z z, rounded to a float); then
+// the main light's (0x7a0b40) part (+4, at the offset its vtable's +8 gives) takes that direction (+0x2c) and the colour 0x7a0b3c
+// as LightSource_Create sets it (+0x54, and the channels times 0x6fe50c over 255 at +4..+0x10), SceneFlags_Touch before each.
+void __cdecl LightSource_UpdateMain(u32 update);
 }

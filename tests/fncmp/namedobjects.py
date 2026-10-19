@@ -6,14 +6,14 @@
 # slot 3, a registry of 0 to 3 drained through ListRef_DrainAndDelete or none, frees hashed by heap()).
 # And its sorted add 0x409620: a name (a String) into an owned list of 0 to 5 named Strings (sorted or not, near misses, the count short of it
 # or not, now and then holding the block the new String will get, now and then a count with no head), allocations failing now and then.
-# And the owner's frame update 0x409260 (the game clock's step and the flags 0x7a1a14).
-# usage: namedobjects.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Remove,Ctor,Dtor,Static,Add,Flags)
+# And the owner's frame update 0x409260 (the game clock's step and the flags 0x7a1a14), and its theme labels 0x409a30 / 0x4099b0 (see theme()).
+# usage: namedobjects.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Remove,Ctor,Dtor,Static,Add,Flags,Theme,ThemeAnsi)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, LOG, Bench, Call, RAM, global_heap, heap, log_region, put, vtable  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, fill, global_heap, heap, import_table, log_region, put, set_return, vtable  # noqa: E402
 
 
 def lock(e):  # the STL lock (0x691de0, thiscall, returns its argument; 0x691ea0 releases): the port leaves them out
@@ -24,7 +24,8 @@ B = Bench([(0x408f00, 0x40914f), (0x421770, 0x4217e0), (0x421690, 0x421720), (0x
            (0x67faf0, 0x67fb20), (0x682720, 0x682780), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000),
            (0x407b80, 0x407b8a), (0x407b90, 0x407c2e), (0x407c90, 0x407d79), (0x421510, 0x421588), (0x5da3c0, 0x5da3c1),
            (0x409620, 0x40978d), (0x424cc0, 0x424ce2), (0x5e2a30, 0x5e2a7e),
-           (0x409260, 0x409296), (0x402ef0, 0x402f10), (0x4030c0, 0x4030c4)],
+           (0x409260, 0x409296), (0x402ef0, 0x402f10), (0x4030c0, 0x4030c4),
+           (0x4099b0, 0x409b0b), (0x424d10, 0x424d2e), (0x424e10, 0x424e6e), (0x485ac0, 0x485af4), (0x6ace60, 0x6acea0), (0x6adc80, 0x6add25), (0x5f5660, 0x5f5690)],
           hooks={0x691de0: lock, 0x691ea0: lambda e: None})
 NAMES = [0x786b68, 0x785e78, 0x785f98, 0x7862c8, 0x785f68, 0x7862f8, 0x786d10, 0x7866e8, 0x7862e0, 0x785ed8, 0x785f80, 0x786aa8, 0x786040, 0x7867d8]
 WORDS = [b'Font', b'Sky', b'Rides', b'Shops', b'Staff', b'Water', b'Lake', b'Paths', b'Fence', b'Trees', b'Rock', b'Hint', b'Map', b'Sound']
@@ -132,8 +133,63 @@ def add(r):
     return Call(0x409620, [OWNER, RAM + 0x4800], regions, conv='t', ret='v')
 
 
+THEMES = [(0x786478, b'fantasy'), (0x786808, b'halloween'), (0x786970, b'jungle'), (0x7869e8, b'space')]
+LABEL, NAME, THEMETEXT, RECS, CONV = RAM + 0x6a00, RAM + 0x6b00, RAM + 0x6c00, RAM + 0x6e00, RAM + 0x6f00
+
+
+def wide(s):
+    return b''.join(bytes([c, 0]) for c in s) + bytes(2)
+
+
+def theme(r, op):
+    """0x409a30 / 0x4099b0: a theme name (one of the four, case varied, cut short or not, or another) shown on a label (a recorder's slot 5) as
+    the text of the record table [0x78bad4] (0-5 records, some not terminated) widened by the converter [0x78ba7c] (on or off, as language.py)."""
+    log = log_region()
+    lang = bytearray(r.bytes(0x600))   # (0x78b530: the converter +0x54c, its switch +0x550, the table +0x5a4)
+    conv = bytearray(r.bytes(0x10))
+    put(conv, 8, 'BBHI', r.choice([0x80, 0x81, 0, 0xff]), r.getrandbits(8), r.choice([0, 3, 0x80, 0x400, r.randrange(0x800)]), RAM + 0x8000)
+    put(lang, 0x54c, 'II', CONV, r.choice([0, 1, 1, 1]))
+    put(lang, 0x5a4, 'I', RECS)
+    count = r.choice([0, 1, 2, 3, 4, 5, 5, 5])
+    recs = bytearray(r.bytes(0x100))
+    put(recs, 8, 'II', count, RECS + 0x40)
+    pool = bytearray()
+    for i in range(5):
+        body = bytes(r.randrange(1, 0x100) for _ in range(r.choice([0, 1, 3, 6, 9]))) + bytes([0]) * r.choice([1, 1, 2])
+        rec = bytearray(struct.pack('<I', r.choice([1] * 6 + [2, 0x101]) | len(body) << 8) + body + bytes(0x3c - len(body)))
+        if r.random() < 0.15:
+            rec[4 + ((len(body) + 3) & ~3)] = 1   # (not terminated)
+        pool += rec
+    struct.pack_into('<5I', recs, 0x40, *[RAM + 0x7000 + 0x40 * i for i in range(5)])
+    regions = {LOG: log, 0x78b530: lang, CONV: conv, RAM + 0x8000: r.bytes(0x1000), RECS: recs, RAM + 0x7000: bytes(pool),
+               0x7ba058: bytes([0x55]) * 0x404, HEAP: heap(fail=r.choice([0] * 12 + [1, 2, 3])), LABEL:struct.pack('<I', LABEL + 0x40) + bytes(0x3c) + vtable({5: 1})}
+    texts = bytearray(0x100)
+    for i, (at, word) in enumerate(THEMES):
+        regions[at] = struct.pack('<5I', 0x7030c8, len(word), THEMETEXT + 0x40 * i, len(word) + 1, 8)
+        texts[0x40 * i:0x40 * i + 2 * len(word) + 2] = wide(word)
+    regions[THEMETEXT] = bytes(texts)
+    word = bytes(c ^ 0x20 if r.random() < 0.3 else c for c in r.choice([w for _, w in THEMES] * 3 + [b'', b'spac', b'jungles', b'zoo']))
+    if r.random() < 0.1:
+        word = word[:r.randrange(len(word) + 1)]
+    if op == 'Theme':
+        regions[NAME] = struct.pack('<5I', 0x7030c8, len(word), NAME + 0x40, 0, 8) + bytes(0x2c) + wide(word) + bytes(0x10)
+        return Call(0x409a30, [0x786b68, NAME, LABEL], regions, conv='t', ret='v')
+    table = import_table(log, {'MultiByteToWideChar': (40, 0x6fd174, 6, 4, 0)})
+    for at, stub in global_heap().items():
+        table[at - IMPORT_TABLE:at - IMPORT_TABLE + 4] = stub
+    regions[IMPORT_TABLE] = table
+    text = wide(word)
+    units = r.choice([len(text) // 2] * 6 + [0, 0, 1, max(0, len(text) // 2 - 2)])
+    set_return(log, 40, units)
+    fill(log, 40, 4, text)
+    regions[NAME] = struct.pack('<5I', 0x703090, len(word), NAME + 0x40, 0, 8) + bytes(0x2c) + word + bytes(0x10)
+    return Call(0x4099b0, [0x786b68, NAME, LABEL], regions, conv='t', ret='v')
+
+
 def case(r):
     op = r.choice(OPS)
+    if op in ('Theme', 'ThemeAnsi'):
+        return theme(r, op)
     if op == 'Ctor':
         return ctor(r)
     if op == 'Dtor':
@@ -149,7 +205,7 @@ def case(r):
     return remove(r)
 
 
-OPS = [k for k in os.environ.get('OPS', 'Remove,Ctor,Dtor,Static,Add,Flags').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Remove,Ctor,Dtor,Static,Add,Flags,Theme,ThemeAnsi').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

@@ -10,9 +10,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fncmp import Bench, Call, RAM, bf, f32, fb, put, record_stream  # noqa: E402
 
 B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b5ff), (0x44b4c0, 0x44b505), (0x475550, 0x47558b), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060), (0x433f70, 0x433ffd), (0x442d10, 0x442d70), (0x443ee0, 0x443f40), (0x444c00, 0x444c50), (0x444040, 0x444090), (0x444700, 0x444740), (0x447790, 0x447830), (0x442cd0, 0x442d10), (0x436820, 0x4368f0), (0x436150, 0x436190), (0x432bd0, 0x432c10), (0x444c50, 0x444cb0), (0x43af70, 0x43afa0), (0x4418d0, 0x4419b0), (0x434650, 0x434740), (0x5da3c0, 0x5da3d0), (0x447990, 0x4479a0), (0x430ac0, 0x430ad0), (0x433220, 0x433240), (0x435710, 0x435730), (0x439920, 0x439ab0), (0x43a060, 0x43a2b0), (0x43d8f0, 0x43dbb0), (0x46f150, 0x46f180), (0x46f350, 0x46f420), (0x46f5c0, 0x46f6f0), (0x444090, 0x444150), (0x445f30, 0x446042), (0x45d630, 0x45d660), (0x436190, 0x436230), (0x445910, 0x445a70), (0x4367a0, 0x436820), (0x447830, 0x447990), (0x432840, 0x432b50), (0x437300, 0x4379a0), (0x5f5e50, 0x5f5e80), (0x463ab0, 0x463c7a), (0x412e90, 0x412eea), (0x443df0, 0x443ed4), (0x433300, 0x433790), (0x434f10, 0x43501c), (0x4479a0, 0x447a03), (0x447a10, 0x447ad2), (0x403be0, 0x403c13), (0x4445b0, 0x4446f4),
-           (0x432c10, 0x432d4b), (0x466d70, 0x466fa0), (0x469930, 0x469950), (0x454050, 0x4541a0), (0x45b9d0, 0x45ba15)], sines=256)
+           (0x432c10, 0x432d4b), (0x466d70, 0x466fa0), (0x469930, 0x469950), (0x454050, 0x4541a0), (0x45b9d0, 0x45ba15), (0x430ca0, 0x430ee0), (0x438a70, 0x438ac0), (0x433790, 0x4338e0), (0x433a90, 0x433bd0), (0x4338e0, 0x433a90), (0x440a30, 0x440ad0), (0x442d70, 0x442e94)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
+CHAIN = RAM + 0xc000
 RING = 10
 
 
@@ -132,6 +133,9 @@ def helpers(r, op):
     if op == 'RoundUp':
         x = r.choice([r.f(), fb(r.randrange(-50, 50) + r.choice([0, 0, 0.5, r.random()])), fb(-0.25), fb(2 ** 40)])
         return Call(0x43e160, [x], {}, ret='a')
+    if op == 'Split':  # 0x438a70: whole numbers, fractions either side of 0, past the int range, special; the whole's slot or none
+        x = r.choice([r.f(), r.f(1e4), fb(r.randrange(-50, 50) + r.choice([0, 0, 0.5, -0.75, r.random()])), fb(-0.25), fb(2 ** 40), fb(-3e9)])
+        return Call(0x438a70, [x, r.choice([OUT, OUT, 0])], {OUT: r.bytes(8)}, ret='d')
     a, b = (r.choice([r.f(4), r.f(), fb(r.uniform(-3.2, 3.2)), fb(r.uniform(-7, 7))]) for _ in range(2))
     t = r.choice([fb(r.random()), fb(0.0), fb(1.0), r.f()])
     return Call(0x43e480, [a, b, t], {}, ret='d')
@@ -320,6 +324,21 @@ def nodes(r, op):
         ns = r.floats(r.bytes(12 * 0x38), [k * 0x38 + o for k in range(12) for o in (4, 8, 0xc)])
         t = r.choice([fb(r.random()), fb(0.0), fb(1.0), r.f()])
         return Call(0x43c000, [COAST, r.randrange(11), t, OUT], {COAST: c, NODES: ns, OUT: r.bytes(12)})
+    if op == 'SplineAt':  # 0x440a30: twelve nodes into one chain of 16 spline nodes (values rising, repeats now and then, a NaN rarely;
+        # +0 small or any; the last without a next), each node at the last spline node at or below its index; at about 0..12, special
+        chain, ns = r.bytes(16 * 0x20), r.bytes(12 * 0x38)
+        values, v = [], r.uniform(-0.5, 0.2)
+        for k in range(16):
+            v += r.choice([r.uniform(0.1, 1.5), r.uniform(0.1, 1.5), 0.0])
+            values.append(v)
+            put(chain, 0x20 * k, 'I', r.choice([k, r.randrange(-5, 50) & 0xffffffff, r.getrandbits(32)]))
+            put(chain, 0x20 * k + 8, 'I', fb(v) if r.random() < 0.98 else 0x7fc00000)
+            put(chain, 0x20 * k + 0x18, 'I', SPL + 0x20 * (k + 1) if k < 15 else 0)
+        for j in range(12):
+            first = max([k for k in range(16) if values[k] <= j] or [0])
+            put(ns, 0x38 * j + 0x2c, 'I', SPL + 0x20 * r.choice([first, first, first, max(first - 1, 0), r.randrange(16)]))
+        t = r.choice([fb(r.uniform(0, 11.99)), fb(r.uniform(0, 11.99)), fb(float(r.randrange(12))), fb(r.uniform(0, 1)), r.choice([0x7fc00000, fb(-0.5), fb(12.5)])])
+        return Call(0x440a30, [NODES, t], {NODES: ns, SPL: chain}, ret='d')
     if op == 'PastEnd':
         put(c, 0xa8, 'I', r.f(10))
         x = r.choice([r.f(10), struct.unpack('<I', c[0xa8:0xac])[0]])
@@ -527,7 +546,125 @@ def contacts(r, op):
     return Call(0x43ad50, [COAST, ptrs[x]], {COAST: owner, NODES: nodes})
 
 
+def car_rates(r):
+    """0x430ca0: the car (+8 flags 0x2000 / 0x10000000 or not, +0x70 a ride of four, +0x100 its train with flag 1 or not) with its values
+    +0xe8..+0xf8 about 0..1 (either side, phases past whole numbers, special); the train's type's five ranges (+0xd0 on: min below max
+    mostly, scales and offsets that push past either end); the rides' +0x10 blocks with their +0x1c bases."""
+    car, tr, types = r.bytes(0x200), bytearray(r.bytes(0x40)), r.bytes(0x200)
+    flags = r.getrandbits(32) & ~0x12002000 | r.choice([0, 0, 0, 0x2000]) | r.choice([0, 0x10000000])
+    put(car, 8, 'I', flags)
+    put(car, 0x70, 'I', r.randrange(4))
+    put(car, 0x100, 'I', SPL)
+    tr[4] = tr[4] & ~1 | r.choice([0, 0, 0, 0, 1])
+    put(tr, 0x18, 'I', TYPE)
+    rate_values(r, car)
+    return Call(0x430ca0, [r.getrandbits(32), COAST], {COAST: car, SPL: tr, TYPE: types, **rate_env(r, types)})
+
+
+def rate_values(r, car, at=0):
+    """A car's rate values +0xe8..+0xf8: about 0..1 (either side, phases past whole numbers, special)."""
+    for o in range(at + 0xe8, at + 0xfc, 4):
+        put(car, o, 'I', r.choice([fb(r.uniform(-0.5, 1.5)), fb(r.uniform(-3, 3)), fb(r.randrange(-3, 4) + r.choice([0, -1e-8, 1e-7])), r.f(), r.f(1e4)]))
+
+
+def rate_env(r, types):
+    """The type's five rate ranges (+0xd0 on) written into types; the regions of the rides (0x7a4610, four), their holders and their +0x10 blocks."""
+    rides, blocks = r.bytes(0x100), r.bytes(4 * 0x200)
+    for k in range(5):
+        b = 0xd0 + 0x10 * k
+        lo = r.uniform(-3, 1)
+        put(types, b, 'ff', lo, lo + r.choice([r.uniform(1, 6), r.uniform(1, 6), r.uniform(0, 1), 0.0, -1.0]))   # (mostly room inside)
+        put(types, b + 8, 'II', r.choice([fb(r.uniform(-2, 2)), fb(r.uniform(-2, 2)), r.f()]), r.choice([fb(r.uniform(-1, 1)), fb(r.uniform(-1, 1)), r.f()]))
+        if r.random() < 0.05:
+            put(types, b + r.choice([0, 4]), 'I', r.choice([0x7fc00000, 0xffc00000]))
+    for k in range(4):
+        put(rides, 4 * k, 'I', NODES + 0x20 * k)
+    holders = r.bytes(0x80)
+    for k in range(4):
+        put(holders, 0x20 * k + 0x10, 'I', FORCE + 0x200 * k)
+    r.floats(blocks, [0x200 * k + 0x38 * c + 0x1c for k in range(4) for c in range(5)])
+    return {0x7a4610: rides, NODES: holders, FORCE: blocks}
+
+
+def pylon(r, op):
+    """0x433790 (Fit) / 0x433a90 (Shrink): a train (+4 flag 1 or not, +0x18 its type, +0x30 count, +0x34 cars; for Fit a slot empty now
+    and then) of up to six cars (+4 their slot, +0xe8 lengths about 0..1, rate values and flags as for Rates); the type's shortest +0xbc,
+    longest +0xc0 (now and then the same), gap +0xc4, and +0x68 / +0x6c about the train's length (in either order, or a NaN)."""
+    n = r.choice([0, 1, 2, 3, 4, 5, 6]) if op == 'Shrink' else r.randrange(1, 7)
+    whole = op in ('Shrink', 'Drop')
+    tr, cars, types = bytearray(r.bytes(0x60)), r.bytes(6 * 0x200), r.bytes(0x200)
+    tr[4] = tr[4] & ~1 | r.choice([0, 0, 0, 0, 1])
+    put(tr, 0x18, 'I', TYPE)
+    put(tr, 0x30, 'I', n if r.random() < 0.97 or op == 'Drop' else 0x80000003)
+    for k in range(6):
+        c = 0x200 * k
+        put(cars, c + 4, 'I', k)
+        put(cars, c + 8, 'I', r.getrandbits(32) & ~0x12002000 | r.choice([0, 0, 0, 0x2000]) | r.choice([0, 0x10000000]))
+        put(cars, c + 0x70, 'II', r.randrange(4), 0)
+        put(cars, c + 0x100, 'I', SPL)
+        rate_values(r, cars, c)
+        put(cars, c + 0xe8, 'I', r.choice([fb(r.random()), fb(r.random()), fb(r.choice([0.0, 1.0])), r.f()]))
+    for k in range(6):
+        put(tr, 0x34 + 4 * k, 'I', CARS + 0x200 * k if whole or r.random() < 0.9 else 0)
+    shortest = r.uniform(0.5, 4)
+    put(types, 0xbc, 'fff', shortest, shortest + r.choice([r.uniform(0.5, 4)] * 5 + [0.0]), r.uniform(0, 1))
+    low = r.uniform(0, 6)
+    put(types, 0x68, 'ff', low, low + r.choice([r.uniform(0, 30), r.uniform(0, 30), r.uniform(0, 5), -1.0]))
+    if r.random() < 0.05:
+        put(types, r.choice([0x68, 0x6c, 0xbc, 0xc4]), 'I', r.choice([0x7fc00000, 0xffc00000]))
+    regions = {COAST: r.bytes(0x10), CARS: cars, SPL: tr, TYPE: types, **rate_env(r, types)}
+    if op == 'Shrink':
+        return Call(0x433a90, [COAST, TYPE, SPL], regions, ret='a')
+    if op == 'Drop':   # 0x442d70: the rides' values (+8, +4, +0x78, +0x44) in a block each; the car dropped any of the n, its slot (+4) now and
+        # then another (past the count too), now and then in a later slot as well (so that slot's car is the one moved again)
+        holders, chain = bytearray(regions[NODES]), bytearray(r.bytes(0x400))
+        for k in range(4):
+            b = CHAIN + 0x100 * k
+            put(holders, 0x20 * k + 8, 'I', b)
+            put(chain, 0x100 * k + 4, 'I', b + 0x20)
+            put(chain, 0x100 * k + 0x98, 'I', b + 0xa0)
+            put(chain, 0x100 * k + 0xe4, 'I', r.choice([fb(r.uniform(-5, 5)), r.f()]))
+        regions.update({NODES: holders, CHAIN: chain})
+        k = r.randrange(n)
+        if r.random() < 0.15:
+            put(cars, 0x200 * k + 4, 'I', r.choice([0, 1, 2, n - 1, n, n + 1, r.randrange(7)]))
+        if r.random() < 0.1 and k + 1 < n:
+            put(tr, 0x34 + 4 * r.randrange(k + 1, n), 'I', CARS + 0x200 * k)
+        return Call(0x442d70, [COAST, CARS + 0x200 * k], regions, ret='v')
+    height = r.choice([fb(r.uniform(-5, 40)), fb(r.uniform(-5, 40)), fb(r.uniform(0, 10)), r.f()])
+    return Call(0x433790, [COAST, CARS + 0x200 * r.randrange(n), TYPE, height, r.choice([0, 0, 0, 1, 7])], regions)
+
+
+def restore(r):
+    """0x4338e0: the saved train header (0x790ff0: count +0x30 of 0..5, now and then 6 with a sixth slot past the header; slots to
+    cars) and saved cars (0x791d00, 0x104 bytes each: any bytes but a train +0x100 with flag 1 or not and its type, rate values and flags
+    as for Rates); the cars' own bytes (their +8 bits 0x600000 kept, +0x70 rides); the +0x50 words at 0x791038."""
+    n = r.choice([0, 1, 2, 3, 4, 5, 5, 6])
+    header = r.bytes(0x48)
+    put(header, 0x30, 'I', n)
+    for k in range(5):
+        put(header, 0x34 + 4 * k, 'I', CARS + 0x200 * k)
+    tr = r.bytes(0x60)
+    put(tr, 0x48, 'I', CARS + 0x200 * 5)
+    saved, cars, link, types = r.bytes(6 * 0x104), r.bytes(6 * 0x200), bytearray(r.bytes(0x40)), r.bytes(0x200)
+    for k in range(6):
+        put(saved, 0x104 * k + 8, 'I', r.getrandbits(32) & ~0x12002000 | r.choice([0, 0, 0, 0x2000]) | r.choice([0, 0x10000000]))
+        put(saved, 0x104 * k + 0x100, 'I', SPL)
+        rate_values(r, saved, 0x104 * k)
+        put(cars, 0x200 * k + 0x70, 'I', r.randrange(4))
+    link[4] = link[4] & ~1 | r.choice([0, 0, 0, 0, 1])
+    put(link, 0x18, 'I', TYPE)
+    return Call(0x4338e0, [COAST, PIECES], {COAST: r.bytes(0x10), PIECES: tr, CARS: cars, SPL: link, TYPE: types, 0x790ff0: header,
+                                            0x791038: r.bytes(0x18), 0x791cd0: r.bytes(0x10), 0x791d00: saved, **rate_env(r, types)})
+
+
 def train(r, op):
+    if op == 'Restore':
+        return restore(r)
+    if op == 'Rates':
+        return car_rates(r)
+    if op in ('Fit', 'Shrink', 'Drop'):
+        return pylon(r, op)
     if op == 'Refresh':  # pieces +8 flags, +0x64 next, +0x6c, +0x90 -> {count, 0x58-byte nodes}
         n = r.randrange(0, 5)
         track, pieces, lists, nodes = r.bytes(0x40), r.bytes(0x500), r.bytes(0x50), r.bytes(5 * 4 * 0x58)
@@ -1077,12 +1214,12 @@ def ride_orient(r, op):
 
 KINDS = {'Reset': ratings, 'Step': ratings, 'Finish': ratings, 'Point': spline, 'Tangent': spline, 'Set': orient,
          'Init': orient, 'Frame': frame, 'At': frame,
-         'RoundUp': helpers, 'Lerp': helpers, 'Dot': helpers, 'Normalize': helpers, 'NormXZ': helpers, 'Swing': cars, 'Space': cars, 'Segs': cars, 'Setup': cars, 'Riders': cars, 'Extent': cars, 'Drop': cars, 'Window': cars, 'InWindow': cars, 'Dist': cars,
-         'NodeLerp': nodes, 'PastEnd': nodes, 'Zone': nodes, 'Merge': keys, 'Append': lists,
+         'RoundUp': helpers, 'Split': helpers, 'Lerp': helpers, 'Dot': helpers, 'Normalize': helpers, 'NormXZ': helpers, 'Swing': cars, 'Space': cars, 'Segs': cars, 'Setup': cars, 'Riders': cars, 'Extent': cars, 'Drop': cars, 'Window': cars, 'InWindow': cars, 'Dist': cars,
+         'NodeLerp': nodes, 'PastEnd': nodes, 'SplineAt': nodes, 'Zone': nodes, 'Merge': keys, 'Append': lists,
          'Link': queue, 'Unload': queue, 'QPush': queue, 'QAdd': queue, 'QRoom': queue, 'QPop': queue, 'QAdvance': queue,
          'CNext': cursor, 'CPrev': cursor, 'CPoint': cursor,
          'Count': registry, 'LinkNodes': registry, 'Pair': registry, 'EntryPos': registry, 'SearchReset': registry,
-         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Pick': train, 'Tile': tiles, 'End': current, 'OnRide': current, 'Marked': current, 'Select': pieces, 'Renumber': pieces, 'RideTrain': ride_train, 'CarValue': ride_train, 'BeginEnd': current, 'Bit18': by_id, 'Bit18Ride': by_id, 'ById': by_id, 'IdValue': by_id, 'SetById': by_id, 'Key': tiles, 'Focus': tiles, 'Event': event, 'SetEnd': current, 'ClearEnd': current, 'ClearPair': contacts, 'ObjLink': by_id, 'ObjOpen': by_id, 'ObjBare': by_id, 'SelGet': small, 'SelSet': small, 'State': small, 'Changed': small, 'LostPair': small, 'Unlerp': small, 'Scale': small, 'Lerp': small, 'Flag1': small, 'SetCur': small, 'Moved': small, 'Position': small, 'Bounds': bounds, 'Segments': segments, 'RideOrient': ride_orient, 'SetFirst': pieces, 'Append': pieces, 'ClearSel': pieces, 'EndSel': pieces, 'Tools': current, 'Remove': pieces, 'ObjOther': by_id, 'ObjParams': by_id, 'Cost': cost, 'Gaps': gaps, 'Save': save, 'Claim': claim}
+         'PieceAt': registry, 'Contacts': contacts, 'ClearAll': contacts, 'Refresh': train, 'Couple': train, 'TrainLen': train, 'Rates': train, 'Fit': train, 'Shrink': train, 'Drop': train, 'Restore': train, 'Pick': train, 'Tile': tiles, 'End': current, 'OnRide': current, 'Marked': current, 'Select': pieces, 'Renumber': pieces, 'RideTrain': ride_train, 'CarValue': ride_train, 'BeginEnd': current, 'Bit18': by_id, 'Bit18Ride': by_id, 'ById': by_id, 'IdValue': by_id, 'SetById': by_id, 'Key': tiles, 'Focus': tiles, 'Event': event, 'SetEnd': current, 'ClearEnd': current, 'ClearPair': contacts, 'ObjLink': by_id, 'ObjOpen': by_id, 'ObjBare': by_id, 'SelGet': small, 'SelSet': small, 'State': small, 'Changed': small, 'LostPair': small, 'Unlerp': small, 'Scale': small, 'Lerp': small, 'Flag1': small, 'SetCur': small, 'Moved': small, 'Position': small, 'Bounds': bounds, 'Segments': segments, 'RideOrient': ride_orient, 'SetFirst': pieces, 'Append': pieces, 'ClearSel': pieces, 'EndSel': pieces, 'Tools': current, 'Remove': pieces, 'ObjOther': by_id, 'ObjParams': by_id, 'Cost': cost, 'Gaps': gaps, 'Save': save, 'Claim': claim}
 OPS = [k for k in os.environ.get('OPS', ','.join(list(KINDS) + ['Focus'] * 5)).split(',') if k]   # (Focus weighted: the gate's 400 cases)
 
 
