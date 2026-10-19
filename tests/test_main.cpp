@@ -274,7 +274,7 @@ static void test_quat() {
 static void test_slerp() {
     static float values[4096];
     SinTable sines{values, 0, 0};
-    SinTable_Build(values, 4096, &sines.mask, &sines.scale);
+    SinTable_Fill(values, 4096, &sines.mask, &sines.scale);
     CHECK(sines.mask == 0xfff && sines.scale == 4096 * 0.159154937f);
     CHECK(values[0] == 0 && values[1024] == 1 && values[3072] == -1);
 
@@ -376,7 +376,7 @@ static void test_matrix() {
 
     static float values[4096];
     SinTable sines{values, 0, 0};
-    SinTable_Build(values, 4096, &sines.mask, &sines.scale);
+    SinTable_Fill(values, 4096, &sines.mask, &sines.scale);
     const float angles[3] = {0, 1.5707964f, 0};
     Matrix_Identity(m);
     Matrix_RotateEulerWith(sines, m, 0, angles);  // "FUK": nothing
@@ -456,7 +456,7 @@ static void test_vector() {
 
     static float values[4096];
     SinTable sines{values, 0, 0};
-    SinTable_Build(values, 4096, &sines.mask, &sines.scale);
+    SinTable_Fill(values, 4096, &sines.mask, &sines.scale);
     float y[3] = {0, 1, 0};
     Vec3_RotateXWith(sines, y, 0);  // cos 0 = values[1024] = 1, sin 0 = values[0] = 0
     CHECK(y[0] == 0 && y[1] == 1 && y[2] == 0);
@@ -602,7 +602,7 @@ static void test_track_apply() {
     u32 rotations = 0, points_count = 0, motion = 0;
     float values[4096];
     SinTable sines{values, 0, 0};
-    SinTable_Build(values, 4096, &sines.mask, &sines.scale);
+    SinTable_Fill(values, 4096, &sines.mask, &sines.scale);
     const MotionEnv env{&rotations, &points_count, &motion, sines};
     CHECK(Track_ApplyWith(env, state, model, node, track) == 1);
     const float *m = reinterpret_cast<const float *>(node + 4);

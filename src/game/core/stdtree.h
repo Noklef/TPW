@@ -71,6 +71,8 @@ u8 **__fastcall StdTree_EraseRangeE(u8 *tree, void *, u8 **out, u8 *first, u8 *l
 // Tree B's destructor (no address of its own; inlined in 0x40f970): every node erased (StdTree_EraseRangeB), the head node freed, the head and the size zeroed, the map
 // counter 0x785de0 lowered and at 0 the nil node 0x785de4 freed and cleared.
 void StdTree_DtorB(u8 *tree);
+// Tree B's constructor (no address of its own; inlined in 0x405460): as StdTree_CtorA (node size 0x14, the nil node 0x785de4, the map counter 0x785de0).
+void StdTree_CtorB(u8 *tree);
 // 0x4e5870 / 0x4e5800 / 0x4e58e0 (thiscall): the same destructor for trees C, D and E (StdTree_EraseRangeC / D / E; the map counters 0x7ced30 / 0x7ced28 /
 // 0x7ced38, the nil nodes 0x7ced2c / 0x7ced24 / 0x7ced34).
 void __fastcall StdTree_DtorC(u8 *tree);

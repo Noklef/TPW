@@ -346,6 +346,7 @@
 #include "../game/ui/windowreg.h"
 #include "../game/ui/cursor.h"
 #include "../game/ui/dialog7cb2fc.h"
+#include "../game/ui/dialogbase.h"
 #include "../game/ui/focus.h"
 #include "../game/ui/panel7cc298.h"
 #include "../game/ui/radiogroup.h"
@@ -1748,6 +1749,7 @@ const Hook kHooks[] = {
     {"Bits_Count",                0x005911d0, (void *)&Bits_Count, {0x8b, 0x4c, 0x24, 0x04, 0x33}},
     {"Bits_Shift",                0x005911f0, (void *)&Bits_Shift, {0x8b, 0x4c, 0x24, 0x04, 0x33}},
     {"SinTable256_Build",         0x005913f0, (void *)&SinTable256_Build, {0x51, 0xc7, 0x44, 0x24, 0x00}},
+    {"SinTable_Build",            0x004708d0, (void *)&SinTable_Build, {0x83, 0xec, 0x08, 0x8b, 0x54}},
     {"Draw_Box",                  0x0061bc90, (void *)&Draw_Box, {0xa0, 0xf4, 0x76, 0xfa, 0x00}},
     {"Draw_BoxOutline",           0x00628aa0, (void *)&Draw_BoxOutline, {0x51, 0x53, 0x55, 0x56, 0x8b}},
     {"Draw_Circle",               0x00629bf0, (void *)&Draw_Circle, {0xa0, 0xf4, 0x76, 0xfa, 0x00}},
@@ -3640,6 +3642,7 @@ const Hook kHooks[] = {
     {"Class6fdaf8_Ctor",          0x0041e190, (void *)&Class6fdaf8_Ctor, {0x6a, 0xff, 0x68, 0xb6, 0x83}},
     {"Class6fd9d8_AddFolderAndWadIn", 0x0041cd50, (void *)&Class6fd9d8_AddFolderAndWadIn, {0x6a, 0xff, 0x68, 0xd3, 0x80}},
     {"Class6fd9d8_AddFolderAndWadBoth", 0x0041cc20, (void *)&Class6fd9d8_AddFolderAndWadBoth, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
+    {"Class6fd9d8_FindFirstMatch", 0x0041e8e0, (void *)&Class6fd9d8_FindFirstMatch, {0x6a, 0xff, 0x68, 0x21, 0x85}},
     {"Animator_Sleep",            0x004254c0, (void *)&Animator_Sleep, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Object_BackOfQueueTo",      0x004de110, (void *)&Object_BackOfQueueTo, {0x8a, 0x41, 0x32, 0x56, 0x8b}},
     {"Object_QueuePositionOfNone", 0x004ddf40, (void *)&Object_QueuePositionOfNone, {0x51, 0x8b, 0xc4, 0x66, 0xc7}},
@@ -3909,6 +3912,8 @@ const Hook kHooks[] = {
     {"MessageCentre_Save",        0x0040fc80, (void *)&MessageCentre_Save, {0x83, 0xec, 0x1c, 0x53, 0x55}},
     {"MessageCentre_AddThing",    0x0040f9e0, (void *)&MessageCentre_AddThing, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"MessageCentre_Load",        0x0040fd60, (void *)&MessageCentre_Load, {0x83, 0xec, 0x24, 0x53, 0x55}},
+    {"MessageSlot_Ctor",          0x00405460, (void *)&MessageSlot_Ctor, {0x6a, 0xff, 0x68, 0x28, 0x79}},
+    {"MessageCentre_Instance",    0x00415e00, (void *)&MessageCentre_Instance, {0x6a, 0xff, 0x68, 0x8b, 0x7f}},
     {"SteerSeek_Ctor",            0x0050ce50, (void *)&SteerSeek_Ctor, {0x53, 0x56, 0x8b, 0xd1, 0x57}},
     {"SteerArrival_Ctor",         0x0050ced0, (void *)&SteerArrival_Ctor, {0x53, 0x56, 0x8b, 0xd1, 0x57}},
     {"SteerSeparation_Ctor",      0x0050cf40, (void *)&SteerSeparation_Ctor, {0x53, 0x56, 0x8b, 0xd1, 0x57}},
@@ -4660,6 +4665,7 @@ const Hook kHooks[] = {
     {"Panel7cc298_Update",        0x004b1ee0, (void *)&Panel7cc298_Update, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
     {"Dialog7cb2fc_SetToggle",    0x004a3960, (void *)&Dialog7cb2fc_SetToggle, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Window705b20_SetRange",     0x0066b47d, (void *)&Window705b20_SetRange, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Dialog_BaseHandler",        0x0047ee90, (void *)&Dialog_BaseHandler, {0x56, 0x8b, 0x74, 0x24, 0x08}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

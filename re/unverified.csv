@@ -1,5 +1,4 @@
 address,name,module,reason
-44a1d0,Screen_Shutdown,render/screen,todo
 475430,SpriteScripts_Draw,sprite/script,todo
 4d7bb0,World_InitBlock,world/mapcell,todo
 50b350,Thing_GetHandle,world/things,todo: indirect only
@@ -21,12 +20,6 @@ address,name,module,reason
 55f780,TerrainBlend_Tile,terrain,todo
 57cb90,Cpu_Ticks16,core/cpuinfo,"reads the time-stamp counter (rdtsc): the hardware's value, nothing to compare"
 58b300,TexCacheItem_Ctor,gfx/texcache,todo: indirect only
-58b330,TexCacheItem_SetFlags,gfx/texcache,todo
-58b350,TexCacheItem_Flag1,gfx/texcache,todo
-58b360,TexCacheItem_Flag2,gfx/texcache,todo
-58b370,TexCacheItem_Flag4,gfx/texcache,todo
-58b380,TexCacheItem_SetFlag1,gfx/texcache,todo
-58b390,TexCacheItem_ClearFlag1,gfx/texcache,todo
 591210,Cpu_Ticks,core/cpuinfo,"reads the time-stamp counter (rdtsc): the hardware's value, nothing to compare"
 5e42d0,PtrList_Append,core/ptrlist,todo: indirect only
 5f5650,Wrap_Owner64_Copy4At34_5f5650,core/thunks,todo
@@ -69,9 +62,6 @@ address,name,module,reason
 5f8cf0,RegKey_GetU32Or,core/regkey,todo
 5f8d40,RegKey_TypeOf,core/regkey,todo
 5f8da0,RegKey_Ctor,core/regkey,todo
-5f8e20,Font_DrawGlyph,gfx/text,not in the listing (_re/text.asm): the emulator cannot run it
-5f8e50,Font_Measure,gfx/text,not in the listing (_re/text.asm): the emulator cannot run it
-5f8e80,Font_DrawGlyphShape,gfx/text,not in the listing (_re/text.asm): the emulator cannot run it
 5f8f80,Surface_SetDirectDraw,gfx/surface,todo
 5f8f90,Surface_Attach,gfx/surface,todo
 5f9040,Surface_Restore,gfx/surface,todo
@@ -80,19 +70,6 @@ address,name,module,reason
 5f9550,Surface_Lock,gfx/surface,todo
 5f9600,Surface_Unlock,gfx/surface,todo
 5f9620,Surface_GetSurface,gfx/surface,todo
-5f9780,Display_IsVisible,gfx/display,todo
-5f97c0,Display_Pixel,gfx/display,todo
-5f97f0,Display_Line,gfx/display,todo
-5f9860,Display_HLine,gfx/display,todo
-5f98d0,Display_VLine,gfx/display,todo
-5f9940,Display_Triangle,gfx/display,todo
-5f9a30,Display_FillRect,gfx/display,todo
-5f9a80,Display_BoxFill,gfx/display,todo
-5f9ac0,Display_SetWindow,gfx/display,todo
-5f9b60,Display_SetClip,gfx/display,todo
-5f9ca0,Display_GetClip,gfx/display,todo
-5f9cb0,Display_SetSurfaceInfo,gfx/display,todo
-5f9d90,Display_SetSurface,gfx/display,todo
 5f9fa0,FpuControl_DeletingDtor,core/fpu,todo
 5f9fc0,FpuControl_Dtor,core/fpu,todo
 5f9fd0,FpuControl_BaseDeletingDtor,core/fpu,todo
@@ -109,13 +86,6 @@ address,name,module,reason
 5fa540,Screen_WndProc,gfx/screen,todo
 5fa630,Screen_SetActive,gfx/screen,todo
 5fa650,Result_FromLastError,core/result,todo
-5fa680,SurfaceInfo_Ctor,gfx/surface,todo: indirect only
-5fa6a0,SurfaceInfo_Init,gfx/surface,todo
-5fa6f0,SurfaceInfo_Alloc,gfx/surface,todo
-5fa740,SurfaceInfo_Free,gfx/surface,todo
-5fa760,SurfaceInfo_SubRectAt,gfx/surface,todo
-5fa7b0,SurfaceInfo_SubRect,gfx/surface,todo
-5fa890,SurfaceInfo_Size,gfx/surface,todo
 5fa8a0,ImageCodec_InfoFromFile,gfx/imagecodec,todo
 5fa970,ImageCodec_InfoFromStream,gfx/imagecodec,todo
 5faa00,ImageCodec_LoadFromFile,gfx/imagecodec,todo
@@ -189,105 +159,7 @@ address,name,module,reason
 5fc840,JpegCodec_Load,gfx/jpeg,todo
 5fcbc0,JpegCodec_IsJpeg,gfx/jpeg,todo
 5fcc50,FileTime_FromSpan,core/filetime,todo
-5fd640,Canvas8_Circle,gfx/canvasdraw,todo
-600060,Canvas8_Disc,gfx/canvasdraw,todo
-601a00,Canvas8_Pixel,gfx/canvasdraw,todo
-601b40,Canvas8_HSpan,gfx/canvasdraw,todo
-601d10,Canvas8_VSpan,gfx/canvasdraw,todo
-601ee0,Canvas8_Line,gfx/canvasdraw,todo
-6025c0,Canvas_Outline,gfx/canvasdraw,todo
-6026b0,Canvas8_FillRect,gfx/canvasdraw,todo
-6028e0,Canvas8_Triangle,gfx/canvasdraw,todo
-602d70,Canvas8_Mask,gfx/canvasdraw,todo
-6033a0,Canvas8_Sprite,gfx/canvasdraw,todo
-6038e0,Canvas8_Text,gfx/canvasdraw,todo
-603ef0,Canvas16_Circle,gfx/canvasdraw,todo
-6066c0,Canvas16_Disc,gfx/canvasdraw,todo
-608140,Canvas16_Pixel,gfx/canvasdraw,todo
-608270,Canvas16_HSpan,gfx/canvasdraw,todo
-608430,Canvas16_VSpan,gfx/canvasdraw,todo
-608600,Canvas16_Line,gfx/canvasdraw,todo
-608c60,Canvas16_FillRect,gfx/canvasdraw,todo
-608e80,Canvas16_Triangle,gfx/canvasdraw,todo
-609320,Canvas16_Mask,gfx/canvasdraw,todo
-609910,Canvas16_Sprite,gfx/canvasdraw,todo
-609e70,Canvas16_Text,gfx/canvasdraw,todo
-60a480,Canvas24_Circle,gfx/canvasdraw,todo
-60d4f0,Canvas24_Disc,gfx/canvasdraw,todo
-60ef50,Canvas24_Pixel,gfx/canvasdraw,todo
-60f090,Canvas24_HSpan,gfx/canvasdraw,todo
-60f240,Canvas24_VSpan,gfx/canvasdraw,todo
-60f410,Canvas24_Line,gfx/canvasdraw,todo
-60fab0,Canvas24_FillRect,gfx/canvasdraw,todo
-60fc90,Canvas24_Triangle,gfx/canvasdraw,todo
-610160,Canvas24_Mask,gfx/canvasdraw,todo
-6106e0,Canvas24_Sprite,gfx/canvasdraw,todo
-610d20,Canvas24_Text,gfx/canvasdraw,todo
-611360,Canvas32_Circle,gfx/canvasdraw,todo
-6139a0,Canvas32_Disc,gfx/canvasdraw,todo
-615250,Canvas32_Pixel,gfx/canvasdraw,todo
-615380,Canvas32_HSpan,gfx/canvasdraw,todo
-615520,Canvas32_VSpan,gfx/canvasdraw,todo
-6156c0,Canvas32_Line,gfx/canvasdraw,todo
-615cd0,Canvas32_FillRect,gfx/canvasdraw,todo
-615ea0,Canvas32_Triangle,gfx/canvasdraw,todo
-616340,Canvas32_Mask,gfx/canvasdraw,todo
-616890,Canvas32_Sprite,gfx/canvasdraw,todo
-616de0,Canvas32_Text,gfx/canvasdraw,todo
-61b030,Draw_Sprite,gfx/text,not in the listing (_re/text.asm): the emulator cannot run it
-61b050,Draw_SpriteShape,gfx/text,not in the listing (_re/text.asm): the emulator cannot run it
-61b1e0,Draw8_Sprite,gfx/draw8,todo
-61b270,Draw8_SpriteShape,gfx/draw8,todo
-61baf0,Draw8_Pixel,gfx/draw8,todo
-61bc90,Draw_Box,gfx/draw8,todo
-61bce0,Draw8_Line,gfx/draw8,todo
-61c2e0,Draw8_HLine,gfx/draw8,todo
-61c490,Draw8_VLine,gfx/draw8,todo
-61c630,Draw8_CircleOutline,gfx/draw8,todo
-61e100,Draw8_CircleFill,gfx/draw8,todo
-61eab0,Draw_Triangle,gfx/draw8,todo
-61ee30,Draw8_Clear,gfx/draw8,todo
-61eed0,Draw8_BoxFill,gfx/draw8,todo
-61f0a0,Draw8_Text,gfx/draw8,todo
-61f220,Draw8_TextW,gfx/draw8,todo
-61f3a0,Draw24_Pixel,gfx/drawrgb,todo
-61f540,Draw24_Line,gfx/drawrgb,todo
-61fc20,Draw24_HLine,gfx/drawrgb,todo
-61fdd0,Draw24_VLine,gfx/drawrgb,todo
-61ffa0,Draw24_CircleOutline,gfx/drawrgb,todo
-621ae0,Draw24_CircleFill,gfx/drawrgb,todo
-622110,Draw24_Clear,gfx/drawrgb,todo
-622190,Draw24_BoxFill,gfx/drawrgb,todo
-622340,Draw24_Text,gfx/drawrgb,todo
-622540,Draw24_TextW,gfx/drawrgb,todo
-622740,Draw24_Sprite,gfx/drawrgb,todo
-622fd0,Draw24_SpriteShape,gfx/drawrgb,todo
-623690,Draw32_Pixel,gfx/drawrgb,todo
-623880,Draw32_Line,gfx/drawrgb,todo
-623ed0,Draw32_HLine,gfx/drawrgb,todo
-6240d0,Draw32_VLine,gfx/drawrgb,todo
-6242e0,Draw32_CircleOutline,gfx/drawrgb,todo
-6265a0,Draw32_CircleFill,gfx/drawrgb,todo
-626ee0,Draw32_Clear,gfx/drawrgb,todo
-626f80,Draw32_BoxFill,gfx/drawrgb,todo
-6271b0,Draw32_Text,gfx/drawrgb,todo
-627480,Draw32_TextW,gfx/drawrgb,todo
-627730,Draw32_Sprite,gfx/drawrgb,todo
-6280a0,Draw32_SpriteShape,gfx/drawrgb,todo
-628870,Draw16_Pixel,gfx/drawrgb,todo
-628aa0,Draw_BoxOutline,gfx/draw8,todo
-628b60,Draw16_Line,gfx/drawrgb,todo
-629650,Draw16_HLine,gfx/drawrgb,todo
-629910,Draw16_VLine,gfx/drawrgb,todo
-629bf0,Draw_Circle,gfx/draw8,todo
-629c50,Draw16_CircleOutline,gfx/drawrgb,todo
-62c7d0,Draw16_CircleFill,gfx/drawrgb,todo
-62d440,Draw16_Clear,gfx/drawrgb,todo
-62d540,Draw16_BoxFill,gfx/drawrgb,todo
-62d840,Draw16_Text,gfx/drawrgb,todo
-62dc10,Draw16_TextW,gfx/drawrgb,todo
-62dff0,Draw16_Sprite,gfx/drawrgb,todo
-62ed00,Draw16_SpriteShape,gfx/drawrgb,todo
+616340,Canvas32_Mask,gfx/canvasdraw,"the listing decodes 0x616773 (SUB ECX,EDI) from 0x616774 as IRETD, which its column skip falls into: the emulator cannot run it"
 63a7b0,IndexConverter_Ctor,gfx/pixconv,todo
 63a810,IndexConverter_DeletingDtor,gfx/pixconv,todo
 63a830,IndexConverter_Dtor,gfx/pixconv,todo

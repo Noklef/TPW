@@ -7,6 +7,12 @@ extern "C" {
 
 // 0x40f970 (thiscall on a slot; name unconfirmed): the destructor of one of the message centre's slots, a dword and then a std::map of tree B at +4 (StdTree_DtorB).
 void __fastcall MessageSlot_Dtor(u8 *slot);
+// 0x405460 (thiscall on a slot; name unconfirmed): the constructor of one of the message centre's slots: the map's tree (StdTree_CtorB) at +4, its multi flag +0xc = 0
+// and its two allocator / comparator bytes +4 and +5 = 0 (the original copies an uninitialised stack byte there; the STL lock it takes is left out). Returns the slot.
+u8 *__fastcall MessageSlot_Ctor(u8 *slot);
+// 0x415e00 (cdecl; name unconfirmed): the message centre (the global 0x788d3c), made on the first call: 0x244 bytes (Mem_Alloc) whose 29 slots are constructed
+// (CRT_VectorCtorIterator with MessageSlot_Ctor / MessageSlot_Dtor); a failed allocation stores and returns 0.
+u8 *__cdecl MessageCentre_Instance();
 
 // 0x409250 (thiscall on the message centre; name unconfirmed): its 29 slots of 0x14 bytes from +0 destroyed, the last first (CRT_VectorDtorIterator with MessageSlot_Dtor).
 void __fastcall MessageCentre_DtorSlots(u8 *centre);

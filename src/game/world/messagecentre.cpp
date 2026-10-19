@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/crt.h"
+#include "../core/gameheap.h"
 #include "../core/stdtree.h"
 #include "../files/file.h"
 #include "things.h"
@@ -10,6 +11,25 @@
 extern "C" {
 
 void __fastcall MessageSlot_Dtor(u8 *slot) { StdTree_DtorB(slot + 4); }
+
+u8 *__fastcall MessageSlot_Ctor(u8 *slot) {
+    slot[5] = 0;  // (sic: the original copies the same uninitialised stack byte, its std::less / allocator temporaries, into +4 and +5)
+    slot[4] = 0;
+    slot[0xc] = 0;
+    StdTree_CtorB(slot + 4);
+    return slot;
+}
+
+u8 *__cdecl MessageCentre_Instance() {
+    u8 *&centre = *reinterpret_cast<u8 **>(static_cast<uintptr_t>(0x00788d3c));
+    if (!centre) {
+        u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x244));
+        if (block)
+            CRT_VectorCtorIterator(block, 0x14, 0x1d, reinterpret_cast<void(__fastcall *)(void *)>(&MessageSlot_Ctor), reinterpret_cast<void *>(&MessageSlot_Dtor));
+        centre = block;
+    }
+    return centre;
+}
 
 void __fastcall MessageCentre_DtorSlots(u8 *centre) { CRT_VectorDtorIterator(centre, 0x14, 0x1d, reinterpret_cast<void(__fastcall *)(void *)>(&MessageSlot_Dtor)); }
 

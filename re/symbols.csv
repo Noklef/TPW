@@ -581,7 +581,7 @@ address,name,kind,confidence,notes
 0x007b49e8,gCurvePointCount,data,high,"u32; set by Track_Apply from the curve (u16 at +4) before calling the Curve_* functions, which wrap indices by it"
 0x00474120,Quat_ToMatrix,function,high,"reimplemented; (q = x,y,z,w; m 3x3 row major), scaled by 2/|q|^2"
 0x004742a0,Quat_Slerp,function,high,"reimplemented; (a, b, t, out) through gSinTable and the CRT acos; lerps when 1 - dot <= 0.001; when dot + 1 <= 0.001 turns through (-y, x, -w, z) and never blends w (as in Graphics Gems)"
-0x004708d0,SinTable_Build,function,high,"(n): gSinTable[i] = (float)fsin(i / n * 2pi_f), mask n - 1, scale n / 2pi; run with n = 4096 at startup (53-bit precision, before Direct3D) and again at shutdown (24-bit; that copy differs)"
+0x004708d0,SinTable_Build,function,high,"reimplemented (src/game/math/sintable); cdecl (n): gSinTable[i] = (float)fsin(i / n * 2pi_f), mask n - 1, count n, scale n / 2pi; at the x87 precision set (24 bits: the shutdown run; else 53, the startup run)"
 0x007b0968,gSinTable,data,high,"float[4096]; sin of 2 pi i / 4096; an angle is looked up as gSinTable[fistp(a * gSinTableScale) & gSinTableMask]"
 0x007b0960,gSinTableMask,data,high,"u32; table size - 1 (0xfff)"
 0x007b095c,gSinTableScale,data,high,"float; table size / 2 pi"
@@ -3948,6 +3948,7 @@ address,name,kind,confidence,notes
 0x0041e190,Class6fdaf8_Ctor,function,high,"reimplemented (src/game/core/class6fd9d8); thiscall (name, folder); the base part, then the vtable 0x6fdaf8"
 0x0041cd50,Class6fd9d8_AddFolderAndWadIn,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (path): the game's second root (0xf816c0 +0x14) with a trailing backslash and the path appended, added as a folder, then with "".wad"" as a WAD (name unconfirmed)"
 0x0041cc20,Class6fd9d8_AddFolderAndWadBoth,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (path): Class6fd9d8_AddFolderAndWad, then Class6fd9d8_AddFolderAndWadIn, on the path (name unconfirmed)"
+0x0041e8e0,Class6fd9d8_FindFirstMatch,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (base, arg): base + ""*"" tried on the list objects through slot 1; the first found gets slot 4 (arg, 0x78be50); 1 / 0 in AL; name unconfirmed"
 0x004254c0,Animator_Sleep,function,high,reimplemented (src/game/model/holder); the holder sleeps and flag 0x4000 clears
 0x004de110,Object_BackOfQueueTo,function,high,reimplemented (src/game/world/objectmsg); Object_BackOfQueue returning out
 0x004ddf40,Object_QueuePositionOfNone,function,high,reimplemented (src/game/world/objectmsg); the position of the person with no handle
@@ -4143,6 +4144,8 @@ address,name,kind,confidence,notes
 0x00409250,MessageCentre_DtorSlots,function,high,"reimplemented (src/game/world/messagecentre); thiscall: the 29 slots of 0x14 bytes from +0 destroyed, the last first (CRT_VectorDtorIterator, MessageSlot_Dtor); name unconfirmed"
 0x0040fa40,MessageCentre_RemoveThing,function,low,"reimplemented (src/game/world/messagecentre); thiscall (thing); the thing's handle erased from each of the 29 slots' maps (lower bound, key check, StdTree_EraseB); returns the count erased"
 0x0040f9e0,MessageCentre_AddThing,function,low,"reimplemented (src/game/world/messagecentre); thiscall (thing, slot): the handle inserted into the slot map when slot < 29; whether inserted"
+0x00405460,MessageSlot_Ctor,function,low,"reimplemented (src/game/world/messagecentre); thiscall on a slot: the map (tree B) at +4 constructed, its multi flag and allocator bytes zeroed (the original copies an uninitialised stack byte to +4 / +5); name unconfirmed"
+0x00415e00,MessageCentre_Instance,function,low,"reimplemented (src/game/world/messagecentre); cdecl (): the message centre (0x788d3c) made on the first call: 0x244 bytes, 29 slots (MessageSlot_Ctor); name unconfirmed"
 0x0050ce50,SteerSeek_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009b8, name ""seek"" copied to +4; returns this"
 0x0050ced0,SteerArrival_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009c0, name ""arrival"" copied to +4; returns this"
 0x0050cf40,SteerSeparation_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009c4, name ""separation"" copied to +4; returns this"
@@ -5054,3 +5057,4 @@ address,name,kind,confidence,notes
 0x004b1ee0,Panel7cc298_Update,function,low,"reimplemented (src/game/ui/panel7cc298); thiscall; slot 1 of the vtable 0x6ffce8 (the panel at 0x7cc298): object +0x20 slot 9 (slot 13), slots 6, 5; the thing [0x7c2658] shown in the window +0x10's children"
 0x004a3960,Dialog7cb2fc_SetToggle,function,low,"reimplemented (src/game/ui/dialog7cb2fc); cdecl (row, label, on, other, select, button): row's child 0x1d4c9 slot 9 the label + on/off text (wcsncpy 31 to the stack, wcscat into 0x7ba058); select: button state !on"
 0x0066b47d,Window705b20_SetRange,function,low,"reimplemented (src/game/ui/window705b20); thiscall (from, to): unless both are the range already, the step +0x144 turned toward to, +0x13c = from, +0x138 = to"
+0x0047ee90,Dialog_BaseHandler,function,low,"reimplemented (src/game/ui/dialogbase); cdecl (window, message, a, b): on 0x14 the parent (+0x60) posted 4 and the focus given back; then the default handler; name unconfirmed"
