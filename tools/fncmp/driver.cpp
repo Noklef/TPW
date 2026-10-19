@@ -44,6 +44,8 @@
 #include "../../src/game/files/wrapsources.h"
 #include "../../src/game/files/zlibcodec.h"
 #include "../../src/game/gfx/canvas.h"
+#include "../../src/game/gfx/canvasdraw.h"
+#include "../../src/game/gfx/draw.h"
 #include "../../src/game/gfx/pixconv.h"
 #include "../../src/game/gfx/surfbuf.h"
 #include "../../src/game/gfx/tga.h"
@@ -493,7 +495,14 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006fd8a8, 2},   // ObjectDef,
                                    {0x006fd8b0, 2},   // TrackType,
                                    {0x00700398, 2},   // Challenges,
-                                   {0x007034d8, 16},  // the 8-bit draw primitives (DrawDriver table; 14, the sprite blitter, is not hooked)
+                                   {0x007034d8, 16},  // the draw primitives (DrawDriver tables): 8 bits (slot 14 hands over to the blitter, see Draw_SetEnv below),
+                                   {0x00703518, 16},  // 16,
+                                   {0x00703558, 16},  // 24,
+                                   {0x00703598, 16},  // 32 bits
+                                   {0x00703650, 12},  // the canvas primitives (CanvasDriver tables): 8,
+                                   {0x00703680, 12},  // 16,
+                                   {0x007036b0, 12},  // 24,
+                                   {0x007036e0, 12},  // 32 bits
                                    {0x006fd958, 2},   // AdvisorScoring,
                                    {0x00702800, 2},   // a theme's (Table73f8a8_At, BalanceFile_GetValues)
                                    {0x00702250, 10},   // the texture surface B's virtual base (its thunks; slot 1 FreePixels' the destructor calls)
@@ -716,6 +725,18 @@ int main(int argc, char **argv) {
     // 0x6acd60 (the text formatter, library code): stub_cdecl_log4, as tests/fncmp/objectdefs.py hooks it.
     static const TextFormatEnv textFormat = {reinterpret_cast<u32(__cdecl *)(void *, u16 *, u32, u32, ...)>(&stub_cdecl_log4)};
     TextFormat_SetEnv(&textFormat);
+    // The 8-bit sprite's hand-written blitter (0x6e73c0, cseg: not in the listing): stub_cdecl_log4, as tests/fncmp/draw8.py hooks it; the rest the game's.
+    static const DrawEnv draw = {reinterpret_cast<DrawContext *>((uintptr_t)0x00fa76b8), reinterpret_cast<const u8 *>((uintptr_t)0x00778108),
+                                 reinterpret_cast<SpriteDrawParams *>((uintptr_t)0x00faa4d8),
+                                 reinterpret_cast<void(__cdecl *)(s32, s32, const RleSprite *)>(&stub_cdecl_log4), reinterpret_cast<const u8 *>((uintptr_t)0x00fa71f8)};
+    Draw_SetEnv(&draw);
+    // The canvas primitives': the colour conversion's and rectangles' hooks; the font and the game's clip bottom the game's.
+    static const CanvasDrawEnv canvasDraw = {reinterpret_cast<u32(__fastcall *)(Color *, void *, const PixelFormat *)>(hooked(0x005fd050)),
+                                             reinterpret_cast<void(__fastcall *)(Rect *)>(hooked(0x0062f940)),
+                                             reinterpret_cast<u32(__fastcall *)(const Rect *, void *, const Rect *)>(hooked(0x0062f890)),
+                                             reinterpret_cast<Rect *(__fastcall *)(const Rect *, void *, Rect *, const Rect *)>(hooked(0x0062f810)),
+                                             reinterpret_cast<const u8 *>((uintptr_t)0x007796e0), reinterpret_cast<const s32 *>((uintptr_t)0x00fa76cc)};
+    CanvasDraw_SetEnv(&canvasDraw);
     static CanvasEnv canvas = *Canvas_GetEnv();
     canvas.infoCtor = reinterpret_cast<SurfaceInfo *(__fastcall *)(SurfaceInfo *)>(hooked(0x005fa680));
     Canvas_SetEnv(&canvas);
