@@ -816,6 +816,8 @@ address,name,kind,confidence,notes
 0x004c94c0,ParkAnalyser_Total,function,high,"reimplemented (src/game/world/analyser); thiscall: the running total, +0x21c08"
 0x004c94d0,ParkAnalyser_TotalSince,function,high,"reimplemented (src/game/world/analyser); thiscall (back): the total less its value back entries ago in the ring at +0x20824, or 0 for none"
 0x004c7b70,ParkAnalyser_Cell,function,high,"reimplemented (src/game/world/analyser); thiscall (pos): the cell of pos - 1 on a 128-wide grid, row and column divided by +0xc, row stride +0x10"
+0x004c7680,ParkAnalyser_StampTime21c30,function,low,reimplemented (src/game/world/analyser); the funny time now stamped at the park analyser's +0x21c30 (name unconfirmed)
+0x004c76d0,ParkAnalyser_StampTime21c38,function,low,reimplemented (src/game/world/analyser); the funny time now stamped at the park analyser's +0x21c38 (name unconfirmed)
 0x004d0af0,MapHandle_Entry28,function,high,reimplemented (src/game/world/mapcell); thiscall on a u16 handle: gMapCells + 0x10ffd8 + handle * 0x28
 0x004d0b10,MapHandle_Cell44,function,high,reimplemented (src/game/world/mapcell); thiscall on a u16 handle: gMapCells + (handle - 1) * 0x44
 0x004d0a70,MemRanges_Set,function,high,"reimplemented (src/game/world/mapcell); thiscall on 0x7cdb30 (index, a, b, name): entry index = (a, b); name unused (""World Struture"")"
