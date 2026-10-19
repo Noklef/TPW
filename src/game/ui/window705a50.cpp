@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
 #include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
@@ -86,5 +87,20 @@ u16 __fastcall Window705a50_SetState(u8 *window, void *, u8 state, u8 notify) {
     if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 1u, event);
     Window705a50_NotifyLook(window);
     return 1;
+}
+
+u32 __fastcall Window705a50_SetPair(u8 *window, void *, u32 a, u32 b) {
+    Fn_6693f0(window, nullptr, a);
+    return Fn_6693d0(window, nullptr, b);
+}
+
+void __fastcall Window705a50_Set14c(u8 *window, void *, u32 value) {
+    at<u32>(window, 0x14c) = value;
+    Window705a50_NotifyLook(window);
+}
+
+void __fastcall Window705a50_Set154(u8 *window, void *, u32 value) {
+    at<u32>(window, 0x154) = value;
+    Window705a50_NotifyLook(window);
 }
 }

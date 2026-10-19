@@ -1,6 +1,6 @@
 // The GUI library's window subclass with the vtable 0x705a50 (built by 0x6688b3 over Window_Ctor: the handlers 0x668f9c, a text row
 // (ui/textpool) at +0x148, the dwords +0x13c 500 and +0x140 125, colour-like bytes +0x14c-+0x14f 0xff; what it is is unconfirmed).
-// Reimplementation of 0x6689bc, 0x6693a0, 0x66852b, 0x668820, 0x668ad3 and 0x668bec. 0x66852b reads a wide text at +0x138 (it may be a
+// Reimplementation of 0x6689bc, 0x6693a0, 0x66852b, 0x668820, 0x668ad3, 0x668bec, 0x668f35, 0x668f5a and 0x668f7b. 0x66852b reads a wide text at +0x138 (it may be a
 // sibling class's); the constructor and 0x668bec keep a state byte there, +0x139 a byte, +0x13c a limit.
 #pragma once
 
@@ -34,4 +34,13 @@ void __fastcall Window705a50_NotifyLook(u8 *window);
 // set) gets slot 3 (1, event), the event's word +4 the look (Window705a50_Look) and its dword +0x18 1 (the rest unset); then
 // Window705a50_NotifyLook, and 1 (AX).
 u16 __fastcall Window705a50_SetState(u8 *window, void *, u8 state, u8 notify);
+
+// 0x668f35 (thiscall (a, b), pops 8; name unconfirmed): +0x13c = a (Fn_6693f0), then +0x140 = b (Fn_6693d0, whose EAX, the window, is
+// returned): the two dwords the constructor sets to 500 and 125.
+u32 __fastcall Window705a50_SetPair(u8 *window, void *, u32 a, u32 b);
+
+// 0x668f5a / 0x668f7b (thiscall (value), pops 4; names unconfirmed): +0x14c / +0x154 = value (the values Window705a50_NotifyLook hands
+// on: +0x14c for the looks 4, 0 and 2, +0x154 for 3 and 5), then Window705a50_NotifyLook.
+void __fastcall Window705a50_Set14c(u8 *window, void *, u32 value);
+void __fastcall Window705a50_Set154(u8 *window, void *, u32 value);
 }

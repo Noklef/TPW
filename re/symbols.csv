@@ -5025,6 +5025,9 @@ address,name,kind,confidence,notes
 0x00668820,Window705a50_Look,function,low,"reimplemented (src/game/ui/window705a50); thiscall: the window's look (AX): 1 with flag 2 of +0x48, else 3 / 2 with +0x139 by bit 0 of the state +0x138, else 4 / 5 / 0 by its bits 1 / 0"
 0x00668ad3,Window705a50_NotifyLook,function,low,"reimplemented (src/game/ui/window705a50); thiscall: the object +0x9c's slot 3 (code, event) with the look's fields of the window (+0x158 / +0x159, +0x14c / +0x154; code 0x4c000, 0 for look 1)"
 0x00668bec,Window705a50_SetState,function,low,"reimplemented (src/game/ui/window705a50); thiscall (state, notify), pops 8: a new state +0x138 set, posted 1 with notify and [0xfaa5d4], the object +0x98's slot 3 (1, the look), NotifyLook; 1 / 0 (AX)"
+0x00668f35,Window705a50_SetPair,function,low,"reimplemented (src/game/ui/window705a50); thiscall (a, b): +0x13c = a (Fn_6693f0), +0x140 = b (Fn_6693d0, its EAX the window)"
+0x00668f5a,Window705a50_Set14c,function,low,"reimplemented (src/game/ui/window705a50); thiscall (value): +0x14c = value, then Window705a50_NotifyLook"
+0x00668f7b,Window705a50_Set154,function,low,"reimplemented (src/game/ui/window705a50); thiscall (value): +0x154 = value, then Window705a50_NotifyLook"
 0x00486530,ThingPreview_Show,function,low,"reimplemented (src/game/ui/thingpreview); cdecl (rect, thing, depth, scale float): any shown copy killed, [0x7c24d8] = thing; its script +0xc cloned at a position from the rect (x87, __ftol) and Sprite_FlipY(depth), the slot to [0x7c24a0] and returned (no script: [0x7c24d8] 0, the thing returned)"
 0x00486630,ThingPreview_Hide,function,low,reimplemented (src/game/ui/thingpreview); cdecl: with [0x7c24d8] set the copy (slot [0x7c24a0]) killed and [0x7c24d8] cleared
 0x00480d30,HilightList_NewRow,function,low,"reimplemented (src/game/ui/listrows); cdecl: the ""hilight"" list's row window (0x138 bytes, Window_Ctor (0, 0, 100, font 7's height * 0x600 / [0xfaa5c0] + 6)), the height first"

@@ -2,12 +2,13 @@
 # Look: random windows, flag 2 of +0x48 and the bytes +0x138 / +0x139 set or not.
 # NotifyLook: Look's windows with the object +0x9c a recorder (slot 3) or 0. SetState: Look's windows, the state equal to +0x138 now and
 # then, notify 0 / 1 (the pushed register's upper bytes random), [0xfaa5d4] set or not, window.py's message queues (Window_PostMessage),
-# the objects +0x98 / +0x9c recorders (slot 3: k 3 and 22) or 0.
+# the objects +0x98 / +0x9c recorders (slot 3: k 3 and 22) or 0. SetPair: Look's windows, any two values. Set14c / Set154: NotifyLook's
+# windows and objects, the value 0, -1 or any.
 # Masked: both functions hand their listeners an event on the stack that they only partly set, so each recorder logs its event as a hash of
 # the bytes set (fncmp.blob_bytes): 0x668bec's event its look word +4 and the dword +0x18 (1); 0x668ad3's its dword +0x18 (the code) and, by
 # the pointer +0x10, the second event's words +0xa / +0xc and dword +0x10, except for look 1, where nothing there is set (the pointer itself
 # is a stack address, not compared). The other bytes are stack garbage that differs between the sides.
-# usage: window705a50.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Look,NotifyLook,SetState)
+# usage: window705a50.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Look,NotifyLook,SetState,SetPair,Set14c,Set154)
 import os
 import sys
 
@@ -16,8 +17,8 @@ from fncmp import LOG, Bench, Call, RAM, blob_bytes, log_region, put, recorder, 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from window import queues  # noqa: E402
 
-CALLS = {'Look': 0x668820, 'NotifyLook': 0x668ad3, 'SetState': 0x668bec}
-RANGES = [(0x668820, 0x6688b3), (0x668ad3, 0x668bd4), (0x668bec, 0x668c89),
+CALLS = {'Look': 0x668820, 'NotifyLook': 0x668ad3, 'SetState': 0x668bec, 'SetPair': 0x668f35, 'Set14c': 0x668f5a, 'Set154': 0x668f7b}
+RANGES = [(0x668820, 0x6688b3), (0x668ad3, 0x668bd4), (0x668bec, 0x668c89), (0x668f35, 0x668f9c), (0x6693d0, 0x669407),
           (0x658ccc, 0x658d9f), (0x6697e3, 0x6698a4), (0x659710, 0x659721)]
 B = Bench(RANGES)
 WINDOW, OBJ98, OBJ9C, VT98, VT9C = RAM, RAM + 0x200, RAM + 0x240, RAM + 0x280, RAM + 0x300
@@ -68,6 +69,11 @@ def case(r):
     if op == 'NotifyLook':
         objects(r, regions, log, w, [(0x9c, OBJ9C)])
         return Call(CALLS[op], [WINDOW], regions, conv='t', ret='v')
+    if op == 'SetPair':
+        return Call(CALLS[op], [WINDOW, r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='a')
+    if op in ('Set14c', 'Set154'):   # (NotifyLook's, the value it hands on for some looks set first)
+        objects(r, regions, log, w, [(0x9c, OBJ9C)])
+        return Call(CALLS[op], [WINDOW, r.choice([0, 0xffffffff, r.getrandbits(32)])], regions, conv='t', ret='v')
     state = w[0x138] if r.random() < 0.25 else r.choice([0, 1, 2, 3, r.getrandbits(8)])
     objects(r, regions, log, w, [(0x98, OBJ98), (0x9c, OBJ9C)])
     w2 = bytearray(w)   # the look the notification sees: after the state is set
