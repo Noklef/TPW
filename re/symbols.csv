@@ -972,6 +972,7 @@ address,name,kind,confidence,notes
 0x004fe900,Person_MoveScript,function,high,reimplemented (src/game/world/personscripts); the +0x210 script moved to a new position
 0x0050be40,Person_KillScript84After,function,high,reimplemented (src/game/world/personscripts); the +0x84 script killed once the clock is 12 ticks past +0x8c
 0x0050bab0,Person_KillScript84Keep,function,high,reimplemented (src/game/world/personscripts); kills the script slot at +0x84 without clearing it
+0x004f9e60,Person_PlaceScript,function,low,"reimplemented (src/game/world/personscripts); thiscall (x, y, z, r15, anim): starts the reference +0xc at entry anim when its slot is 0, places its script at (x, y less the ground height at (x, z), z) with r15, sets the reference +4 to anim unless the script is at it; returns 0"
 0x0052a3a0,Position_StepA,function,high,reimplemented (src/game/world/dirstep); steps a position by a direction in the first scheme
 0x0052a420,Position_StepB,function,high,reimplemented (src/game/world/dirstep); steps a position by a direction in the second scheme
 0x004c9f90,Things_CountKind3Flag1,function,high,reimplemented (src/game/world/thingscan); counts the kind 3 things with flag bit 0 and nothing at +0x68

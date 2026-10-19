@@ -1,9 +1,13 @@
 #include "personscripts.h"
 
 #include <cstdint>
+#include <cstring>
 
+#include "../core/accessors.h"
+#include "../math/x87.h"
 #include "../sprite/script.h"
 #include "../sprite/scriptref.h"
+#include "../terrain/land.h"
 #include "person.h"
 
 namespace {
@@ -60,5 +64,19 @@ void __fastcall Person_KillScript84(u8 *person) {
 void __fastcall Person_KillScript84Keep(u8 *person) {
     if (at<u32>(person, 0x84))
         SpriteScript_Kill((s32)at<u32>(person, 0x84));
+}
+
+u32 __fastcall Person_PlaceScript(u8 *person, void *, u32 x, float y, u32 z, u32 r15, u32 anim) {
+    u8 *const ref = person + 0xc;
+    if (!at<u32>(ref, 0)) ScriptRef_Start(ref, nullptr, anim, at<u32>(person, 0x24), at<u32>(person, 0x20));
+    float fx, fz;
+    std::memcpy(&fx, &x, 4);
+    std::memcpy(&fz, &z, 4);
+    const float above = (float)X87_SubR(X87Reg(Terrain_HeightAt(fx, fz)), X87Reg(y));  // fsubr y; fstp float
+    u32 bits;
+    std::memcpy(&bits, &above, 4);
+    SpriteScript_SetPosition(at<s32>(ref, 0), x, bits, z, r15);
+    if (!ScriptRef_IsAt(ref, nullptr, anim)) Set4_4217f0(ref, nullptr, anim);
+    return 0;
 }
 }
