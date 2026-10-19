@@ -265,6 +265,13 @@ void __cdecl Global7ca1bc_Release() {
         vcall<u32>(object, 8, 1u);
 }
 
+void __cdecl Global8023d8_Release() {
+    if (!global<u32>(0x008023d0)) return;
+    if (global<u32>(0x008023d4)) comcall<u32>(global<u8 *>(0x008023d8), 0x80, 0u);
+    comcall<u32>(global<u8 *>(0x008023d8), 8);
+    global<u32>(0x008023d0) = 0;
+}
+
 u32 __fastcall Obj_CallMember20Slot14(u8 *object, void *, u32 a) { return vcall<u32>(at<u8 *>(object, 0x20), 0x14, a); }
 
 void __fastcall Obj_CallSlot14IfGlobalThing(u8 *object, void *, u32 handle) {

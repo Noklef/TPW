@@ -3477,6 +3477,7 @@ address,name,kind,confidence,notes
 0x0057c360,Global8bba48_Create,function,low,"reimplemented (src/game/core/vwrap); cdecl: without an object at [0x8bba48] a new one (0xa8 bytes, vbtable 0x701b40, virtual base vtable 0x701b30, function pointers at +0x84..+0x9c) added to the live objects, 1; 0 when there was one or the allocation failed (error 3 pushed)"
 0x00481530,Obj7b51f0_PassThingTo7cc218,function,low,"reimplemented (src/game/core/vwrap); thiscall on the object at 0x7b51f0, this not used (handle, pops 4): Obj_CallSlot14IfGlobalThing on the object at 0x7cc218 (name unconfirmed)"
 0x004b7a00,Obj_CallSlot2cIfGlobalIf10,function,low,"reimplemented (src/game/core/vwrap); the slot 0x2c call when the global, for an object with a +0x10"
+0x0051af90,Global8023d8_Release,function,low,"reimplemented (src/game/core/vwrap); cdecl: with 0x8023d0 set, the COM object 0x8023d8 gets slot 0x80 (0) when 0x8023d4 is set, is released, and 0x8023d0 cleared"
 0x005e3b90,Class702d48_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor that registers the object with a global one
 0x005e3c00,Class702d48_Release,function,high,reimplemented (src/game/core/vdtor); releases the object from a global one
 0x005e3bd0,Class702d48_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor that releases the object from a global one
