@@ -3,15 +3,12 @@ address,name,module,reason
 43e480,Angle_Lerp,coaster/helpers,todo
 43fcd0,CoasterList_Append,coaster/lists,todo
 44a1d0,Screen_Shutdown,render/screen,todo
-44ab90,PartStates_UpdateNode,model/partstate,todo: indirect only
 46c580,MouseModeTile_Ctor,world/mousemode,todo
 470a00,Block_BindNodes,motion/track,todo: indirect only
 4721f0,Motion_Apply,motion/track,todo
 472270,Motion_CopyVertices,motion/track,todo
 472310,Motion_ResetChannels,motion/track,todo: indirect only
 473440,Motion_UpdateClocks,motion/animator,todo
-473a40,Node_UpdateNormals,motion/normals,todo: indirect only
-473c30,Model_UpdateNormals,motion/normals,todo
 4745c0,Motion_ApplyUVs,motion/uvanim,todo
 475010,SpriteScript_Run,sprite/script,todo
 475290,SpriteScripts_Init,sprite/script,todo
