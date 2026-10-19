@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from thunks_static import clock as timer  # noqa: E402
 
 B = Bench([(0x46f150, 0x475010), (0x67a400, 0x690000), (0x402d70, 0x402e00), (0x402e60, 0x4030f0), (0x403150, 0x403172), (0x4031e0, 0x403202),
-           (0x4033a0, 0x4033f0), (0x5f5f10, 0x5f5fc0)], sines=256)
+           (0x4033a0, 0x4033f0), (0x5f5f10, 0x5f5fc0), (0x429df0, 0x429e17)], sines=256)
 GCLOCK = 0x785970      # the game clock (Motion_UpdateClocks reads its time and real time)
 ANIM, LAYERS, HOLDER, MODEL, NODES, REST, RNODES, DATA, TFLAGS, OUT = (RAM + 0x1000 * k for k in range(10))
 CLOCKS = 0x7b4960     # gMotionTime (+0xc), gMotionRealTime (+0x14), step (+0x1c), gMotionFlags (+0x20), ...
@@ -293,6 +293,12 @@ def case(r):
         put(c, 0x20, 'd', r.choice([1.0, 1.0, 0.5, 2.0, 0.0, r.uniform(0, 4)]))
         regs[GCLOCK] = c
         return Call(0x473440, [], regs)
+    if op == 'SlotAnimate':  # the model slots (0x790398, 0xb0 bytes each): the animator at +4, or none
+        slots = bytearray(r.bytes(0xb0 * 4))
+        for k in range(4):
+            put(slots, 0xb0 * k + 4, 'I', r.choice([ANIM, ANIM, 0]))
+        regs[0x790398] = slots
+        return Call(0x429df0, [r.randrange(4)], regs)
     if op == 'BindNodes':
         return Call(0x470a00, [HOLDER, r.choice(blocks), r.choice([0, 1])], regs)
     if op == 'ResetChannels':
@@ -313,7 +319,7 @@ def case(r):
 OPS_ALL = ['Start', 'Advance', 'SetBlock', 'TimeLeft', 'Play', 'AnimPlay', 'IsIdle', 'Update', 'AnimUpdate', 'Reset',
            'ResetLayers', 'QSpeed', 'SetSpeed', 'EndMs', 'Playback', 'SetTime', 'Time', 'HasMotion', 'MarkNodes', 'CountLayers',
            'SetPlaying', 'ClearQueue', 'RefreshNodes', 'GetFlags', 'GetQueued', 'SetFlags', 'BindNodes', 'ResetChannels',
-           'MotionApply', 'CopyVertices', 'UpdateClocks']
+           'MotionApply', 'CopyVertices', 'UpdateClocks', 'SlotAnimate']
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 
