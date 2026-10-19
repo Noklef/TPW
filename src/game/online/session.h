@@ -59,4 +59,11 @@ u8 *__fastcall Auth_DeletingDtor(u8 *auth, void *, u32 flags);
 // record's count (+0x68) decremented and the record freed at 0; +0x68 = 0 and +0x60 (logged in) and +0x64 = 1. Else +0x68 = the error:
 // 0x4e, 0x4d, 0x4c, 0x4b for -6, -5, -4, -2, 0x37 for anything else; +0x60 = 0, +0x64 = 1.
 void __fastcall Online_LoginResult(u8 *session, void *, s32 status, u32, u32, u8 *record);
+
+// 0x5b7430 (thiscall; name unconfirmed; six callers): the city's connection reset. +0xd8 = the time (Time_GetMs), +0xdc = 1. With a City
+// (+0xd4): City::Release (0x6fd4f4); when still set ~City (0x6fd540) and freed; +0xd4 cleared; "ONLINE CITY: Connection released" said.
+// Then the lists the dwords +0xe0 to +0x100 point to are reset (+4 = -1, +8 to +0x20 = 0): +0xe0's native list (+0x30, when set)
+// released by ccCityList::Release (0x6fd538), +0xe4 / +0xe8 / +0xec's by ccParkList::Release (0x6fd4e8), each +0x30 then cleared;
+// +0xf0 and +0xf4 Shared_Release66, +0xf8 Shared_Release10; +0xfc and +0x100 Obj_ResetAndRelease26 / 34 (0, 0).
+void __fastcall Online_ResetCity(u8 *session);
 }

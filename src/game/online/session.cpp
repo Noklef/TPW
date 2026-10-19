@@ -4,7 +4,9 @@
 #include <initializer_list>
 
 #include "../core/gameheap.h"
+#include "../core/buffers.h"
 #include "../core/vcall.h"
+#include "../files/file.h"
 
 namespace {
 
@@ -31,6 +33,23 @@ void FreeNews(u8 *session) {
     }
     at<u32>(session, 0x6c) = 0;
     Say(0x007733f0);
+}
+
+// A list member's state reset: +4 = -1, +8 to +0x20 cleared.
+void ResetList(u8 *list) {
+    at<u32>(list, 4) = 0xffffffff;
+    for (u32 offset = 8; offset <= 0x20; offset += 4)
+        at<u32>(list, offset) = 0;
+}
+
+// The same, then its native list (+0x30, read first; when set) released through the import and +0x30 cleared.
+void ResetNativeList(u8 *list, u32 release) {
+    u8 *const native = at<u8 *>(list, 0x30);
+    ResetList(list);
+    if (native) {
+        CallImport(release, native);
+        at<u32>(list, 0x30) = 0;
+    }
 }
 
 }  // namespace
@@ -163,5 +182,30 @@ void __fastcall Online_LoginResult(u8 *session, void *, s32 status, u32, u32, u8
     at<u32>(session, 0x68) = error;
     at<u32>(session, 0x60) = 0;
     at<u32>(session, 0x64) = 1;
+}
+
+void __fastcall Online_ResetCity(u8 *session) {
+    at<u32>(session, 0xd8) = Time_GetMs();
+    at<u32>(session, 0xdc) = 1;
+    if (at<u8 *>(session, 0xd4)) {
+        CallImport(0x006fd4f4, at<u8 *>(session, 0xd4));   // City::Release
+        if (u8 *const city = at<u8 *>(session, 0xd4)) {
+            CallImport(0x006fd540, city);   // City::~City
+            GameHeap_Free(city);
+        }
+        at<u32>(session, 0xd4) = 0;
+        Say(0x0077386c);
+    }
+    ResetNativeList(at<u8 *>(session, 0xe0), 0x006fd538);   // ccCityList::Release
+    for (u32 offset = 0xe4; offset <= 0xec; offset += 4)
+        ResetNativeList(at<u8 *>(session, offset), 0x006fd4e8);   // ccParkList::Release
+    ResetList(at<u8 *>(session, 0xf0));
+    Shared_Release66(at<u8 *>(session, 0xf0));
+    ResetList(at<u8 *>(session, 0xf4));
+    Shared_Release66(at<u8 *>(session, 0xf4));
+    ResetList(at<u8 *>(session, 0xf8));
+    Shared_Release10(at<u8 *>(session, 0xf8));
+    Obj_ResetAndRelease26(at<u8 *>(session, 0xfc), nullptr, 0, 0);
+    Obj_ResetAndRelease34(at<u8 *>(session, 0x100), nullptr, 0, 0);
 }
 }
