@@ -44,6 +44,7 @@
 #include "../../src/game/files/wrapsources.h"
 #include "../../src/game/files/zlibcodec.h"
 #include "../../src/game/gfx/canvas.h"
+#include "../../src/game/gfx/surfbuf.h"
 #include "../../src/game/render/engineerrors.h"
 #include "../../src/game/sprite/script.h"
 #include "../../src/game/world/mapline.h"
@@ -247,6 +248,7 @@ const PtrListEnv kPtrListEnv = {&heap_alloc};
 const GameHeapEnv kGameHeapEnv = {&heap_alloc, &heap_free};
 const WadSourceEnv kWadSourceEnv = {&heap_alloc, &heap_free};
 const BufferedSourceEnv kBufferedSourceEnv = {&heap_alloc, &heap_free};
+const SurfaceBufferEnv kSurfaceBufferEnv = {0x00703998, &heap_free};
 // atexit is stub_cdecl_log (kStubs + 0x50; the benches hook 0x67a7d0 with fncmp._cdecl_log); the compressor's destructor stays the game's address, which is only
 // handed to atexit, never called here.
 const WrapSourcesEnv kWrapSourcesEnv = {&heap_alloc, &heap_free, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)),
@@ -640,6 +642,7 @@ int main(int argc, char **argv) {
     GameHeap_SetEnv(&kGameHeapEnv);
     WadSource_SetEnv(&kWadSourceEnv);
     BufferedSource_SetEnv(&kBufferedSourceEnv);
+    SurfaceBuffer_SetEnv(&kSurfaceBufferEnv);
     WrapSources_SetEnv(&kWrapSourcesEnv);
     static FileEnv files = *Files_GetEnv();  // (the import slots the case maps; Mem_Alloc is game code)
     files.alloc = &heap_alloc;
