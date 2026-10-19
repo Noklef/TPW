@@ -341,6 +341,10 @@ u8 *__fastcall Wrap_Deleter_Minus60_42a090_42a080(u8 *self, void *, u32 a2) {
     return Deleter_Minus60_42a090(Adjust(self), nullptr, a2);
 }
 
+u8 *__fastcall Wrap_Deleter_Minus8_458970_42a070(u8 *self, void *, u32 a2) {
+    return Deleter_Minus8_458970(Adjust(self), nullptr, a2);
+}
+
 u32 __fastcall Wrap_VBase_CallSlot8_564af0(u8 *self, void *, u32 a2, u32 a3) {
     return VBase_CallSlot8(Adjust(self), nullptr, a2, a3);
 }
