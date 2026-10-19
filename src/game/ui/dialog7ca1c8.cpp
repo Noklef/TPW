@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "cursor.h"
+#include "radiogroup.h"
 #include "window.h"
 
 namespace {
@@ -41,4 +43,24 @@ void __cdecl Dialog7ca1c8_SetChecksIfUp(u32 flags) {
 void __fastcall Dialog7ca1c8_SetChecksIfUpThis(void *, void *, u32 flags) { Dialog7ca1c8_SetChecksIfUp(flags); }
 
 u32 __cdecl Dialog7ca1c8_Focus() { return Window_SetFocus(global<u8 *>(0x007ca1c8), nullptr, 0); }
+
+void __cdecl Dialog7ca1c8_SelectButton(u32 flags) {
+    u8 *const group = Window_FindChild(global<u8 *>(0x007ca1c8), nullptr, 0x18);
+    struct Pick { u32 bit, id, cursor; };   // (cursor 0: none)
+    static const Pick picks[] = {{4, 0x1b, 0},     {1, 0x1f, 0},     {2, 0x20, 0},     {8, 0x19, 0xe},    {0x10, 0x1a, 0xc},
+                                 {0x20, 0x1c, 0xd}, {0x40, 0x21, 0xa}, {0x80, 0x1e, 0xf}, {0x100, 0x1d, 0x10}};
+    for (const Pick &p : picks) {
+        if (!(flags & p.bit)) continue;
+        RadioGroup_Select(group, nullptr, p.id);
+        if (p.cursor) GameCursor_Set(p.cursor);
+        return;
+    }
+    RadioGroup_Select(group, nullptr, 0xffffffffu);
+}
+
+void __cdecl Dialog7ca1c8_SelectButtonIfUp(u32 flags) {
+    if (global<u8 *>(0x007ca1c8) && global<u32>(0x007ca1cc)) Dialog7ca1c8_SelectButton(flags);
+}
+
+void __fastcall Dialog7ca1c8_SelectButtonIfUpThis(void *, void *, u32 flags) { Dialog7ca1c8_SelectButtonIfUp(flags); }
 }

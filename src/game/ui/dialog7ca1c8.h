@@ -1,5 +1,6 @@
 // The dialog whose window is at 0x7ca1c8 (built by 0x498790 from the template 0x751530; 0x7ca1cc set while it is up): its nine check buttons
-// (ids 0x18-0x21 in its child 0x18) shown from a flags word. Reimplementation of 0x498090, 0x498a50 and 0x498a80.
+// (ids 0x18-0x21 in its child 0x18) shown from a flags word, or one of them selected. Reimplementation of 0x498090, 0x498a50, 0x498a80,
+// 0x4981d0, 0x498a30 and 0x4819f0.
 #pragma once
 
 #include "../../../re/types.h"
@@ -19,4 +20,15 @@ void __fastcall Dialog7ca1c8_SetChecksIfUpThis(void *self, void *, u32 flags);
 
 // 0x498a80 (cdecl; name unconfirmed): the window [0x7ca1c8] takes the focus (Window_SetFocus(0), its result returned).
 u32 __cdecl Dialog7ca1c8_Focus();
+
+// 0x4981d0 (cdecl (flags); name unconfirmed): in the child 0x18 of the window [0x7ca1c8] (Window_FindChild; a ui/radiogroup), the first
+// flag of 4, 1, 2, 8, 0x10, 0x20, 0x40, 0x80, 0x100 that is set selects the button 0x1b, 0x1f, 0x20, 0x19, 0x1a, 0x1c, 0x21, 0x1e, 0x1d
+// (RadioGroup_Select); those from 8 on also set the game cursor (GameCursor_Set) 0xe, 0xc, 0xd, 0xa, 0xf, 0x10. No flag: none selected (-1).
+void __cdecl Dialog7ca1c8_SelectButton(u32 flags);
+
+// 0x498a30 (cdecl (flags); name unconfirmed): Dialog7ca1c8_SelectButton when [0x7ca1c8] and [0x7ca1cc] are both not 0.
+void __cdecl Dialog7ca1c8_SelectButtonIfUp(u32 flags);
+
+// 0x4819f0 (thiscall on the object at 0x7b51f0, this not used (flags), pops 4; name unconfirmed): Dialog7ca1c8_SelectButtonIfUp(flags).
+void __fastcall Dialog7ca1c8_SelectButtonIfUpThis(void *self, void *, u32 flags);
 }

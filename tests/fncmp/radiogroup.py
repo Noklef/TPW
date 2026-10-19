@@ -21,14 +21,15 @@ KID = 0x180
 IDS = [1, 2, 3, 0x19, 0x1f]
 
 
-def group_env(r, regions, log, group_at=GROUP, group=None):
-    """a group (at group_at, or the given bytes) with 0-5 children; returns the group's bytes and the children's (id, bytes) in order"""
+def group_env(r, regions, log, group=None, ids=IDS):
+    """a group at GROUP (its bytes random, or the given ones) with 0-5 children of `ids`; returns the group's bytes and the children's (id,
+    bytes) in order"""
     g = group if group is not None else bytearray(r.bytes(0x160))
     n = r.choice([0, 1, 2, 3, 4, 5])
     kids = []
     for i in range(n):
         w = window(r)
-        ident = r.choice(IDS)
+        ident = r.choice(ids)
         put(w, 0x8c, 'I', ident)
         put(w, 0x54, 'I', KIDS + KID * (i + 1) if i + 1 < n else 0)
         put(w, 0x98, 'I', OBJ98 if r.random() < 0.8 else 0)
@@ -40,7 +41,7 @@ def group_env(r, regions, log, group_at=GROUP, group=None):
         kids.append((ident, w))
     put(g, 0x5c, 'I', KIDS if n else 0)
     put(g, 0x138, 'I', r.choice([k[0] for k in kids] + [0xffffffff, 7, r.getrandbits(32)]))
-    regions[group_at] = g
+    regions[GROUP] = g
     regions[VT98] = vtable({3: 2}, size=8)
     regions[OBJ98] = put(bytearray(r.bytes(0x20)), 0, 'I', VT98)
     blob_bytes(log, 3, 1, EVENT_MASK)

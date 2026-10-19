@@ -4934,6 +4934,9 @@ address,name,kind,confidence,notes
 0x00498a50,Dialog7ca1c8_SetChecksIfUp,function,low,reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): Dialog7ca1c8_SetChecks when [0x7ca1c8] and [0x7ca1cc] are not 0
 0x00481a00,Dialog7ca1c8_SetChecksIfUpThis,function,low,"reimplemented (src/game/ui/dialog7ca1c8); thiscall (flags), pops 4, this unused: Dialog7ca1c8_SetChecksIfUp(flags)"
 0x00498a80,Dialog7ca1c8_Focus,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl: the window [0x7ca1c8] takes the focus (Window_SetFocus(0)), its result returned"
+0x004981d0,Dialog7ca1c8_SelectButton,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): in the child 0x18 of [0x7ca1c8] the first set flag of 4, 1, 2, 8 ... 0x100 selects a button (RadioGroup_Select; from 8 on also GameCursor_Set), none -1"
+0x00498a30,Dialog7ca1c8_SelectButtonIfUp,function,low,reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): Dialog7ca1c8_SelectButton when [0x7ca1c8] and [0x7ca1cc] are set
+0x004819f0,Dialog7ca1c8_SelectButtonIfUpThis,function,low,"reimplemented (src/game/ui/dialog7ca1c8); thiscall (flags), pops 4, this unused: Dialog7ca1c8_SelectButtonIfUp(flags)"
 0x004b87f0,Dialog7cc47c_Message4,function,low,"reimplemented (src/game/ui/dialogs); cdecl: Window_SendMessage([0x7cc47c], 4, 0, 0)"
 0x004b8810,Dialog7cc47c_Message6On,function,low,"reimplemented (src/game/ui/dialogs); cdecl: Window_SendMessage([0x7cc47c], 6, 1, 0)"
 0x004b8830,Dialog7cc47c_Message6Off,function,low,"reimplemented (src/game/ui/dialogs); cdecl: Window_SendMessage([0x7cc47c], 6, 0, 0)"
