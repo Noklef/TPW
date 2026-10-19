@@ -346,6 +346,7 @@
 #include "../game/ui/windowreg.h"
 #include "../game/ui/cursor.h"
 #include "../game/ui/focus.h"
+#include "../game/ui/panel7cc298.h"
 #include "../game/ui/radiogroup.h"
 #include "../game/ui/textbutton.h"
 #include "../game/ui/windowtimers.h"
@@ -4648,6 +4649,7 @@ const Hook kHooks[] = {
     {"Window7cb2cc_Close",        0x004a27c0, (void *)&Window7cb2cc_Close, {0xa1, 0xcc, 0xb2, 0x7c, 0x00}},
     {"RadioGroup_Select",         0x0066a295, (void *)&RadioGroup_Select, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"RadioGroup_SetSelectedState", 0x0066a1b0, (void *)&RadioGroup_SetSelectedState, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Panel7cc298_Update",        0x004b1ee0, (void *)&Panel7cc298_Update, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

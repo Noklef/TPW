@@ -366,6 +366,7 @@ add_library(tpw_game STATIC
     src/game/ui/textbutton.cpp
     src/game/ui/focus.cpp
     src/game/ui/radiogroup.cpp
+    src/game/ui/panel7cc298.cpp
 )
 
 # Proxy dinput.dll that loads into tp.exe and installs the hooks.

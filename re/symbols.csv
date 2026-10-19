@@ -5045,3 +5045,4 @@ address,name,kind,confidence,notes
 0x004a27c0,Window7cb2cc_Close,function,low,"reimplemented (src/game/ui/focus); cdecl: the window [0x7cb2cc] (when set) sent 4 (Window_SendMessage), forgotten; Focus_Restore's result"
 0x0066a1b0,RadioGroup_SetSelectedState,function,low,"reimplemented (src/game/ui/radiogroup); thiscall (state: a byte), pops 4: the child with the selected id (+0x138; Window_FindChild) gets Window705a50_SetState(state, 1)"
 0x0066a295,RadioGroup_Select,function,low,"reimplemented (src/game/ui/radiogroup); thiscall (id), pops 4: the selected child's state 0, id selected (+0x138), its state 1; the id before (AX), -1 for the same id, none found or -1 (none selected)"
+0x004b1ee0,Panel7cc298_Update,function,low,"reimplemented (src/game/ui/panel7cc298); thiscall; slot 1 of the vtable 0x6ffce8 (the panel at 0x7cc298): object +0x20 slot 9 (slot 13), slots 6, 5; the thing [0x7c2658] shown in the window +0x10's children"
