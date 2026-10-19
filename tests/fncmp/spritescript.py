@@ -269,8 +269,13 @@ def case(r):
         return Call(0x475b80, [slot, code_arg], regions)
     if op == 'IsAt':
         return Call(0x475c50, [slot, code_arg], regions, ret='a')
-    if op == 'CopyFrom':
-        return Call(0x475e10, [slot, r.choice([r.randrange(1, nslots + 1), 0, r.randrange(13)])], regions)
+    if op == 'CopyFrom':  # both slots in use mostly (an empty or out-of-range one is a null copy: crash in both)
+        table = struct.unpack('<12I', regions[TABLE])
+        used = [k for k in range(1, nslots) if table[k]]
+        src = r.choice([r.randrange(1, nslots + 1), 0, r.randrange(13)])
+        if used and r.random() < 0.8:
+            slot, src = r.choice(used), r.choice(used)
+        return Call(0x475e10, [slot, src], regions)
     if op == 'FindShown':
         return Call(0x475ef0, [r.choice([SCRIPTS + STRIDE * r.randrange(NSCRIPTS) + 0xd0, SCRIPTS + 0xd0, 0, OUT])], regions, ret='a')
     if op == 'WrapSprites':
