@@ -3856,6 +3856,7 @@ address,name,kind,confidence,notes
 0x00452a60,Map_RideIndexAt,function,low,"reimplemented (src/game/terrain/land); cdecl (x, y): the ride index of a map cell, from its dword or the ride object there"
 0x00450ac0,Terrain_RideAt,function,low,"reimplemented (src/game/terrain/land); cdecl (x, y): the ride at the grid cell, clamped to the grid"
 0x00452ae0,Terrain_SurfaceHeight,function,low,"reimplemented (src/game/terrain/land); cdecl (x, y, slot): the height at cell (x, y): the ride height map there (by its origin and angle) or the ground"
+0x00452560,Terrain_GridHeightAt,function,low,"reimplemented (src/game/terrain/land); cdecl (x, z, any): the ground height at a point by the map's grid (+0x6c) from its origin (+8/+0xc) and cell sizes, blended over the cell's triangle (flag 4 picks the diagonal); 0 off the grid, FLT_MAX in a flag-1 cell unless any (double in st0)"
 0x00450b30,Terrain_ScaleNormals,function,low,"reimplemented (src/game/terrain/normals); cdecl (node, matrix by value): the node's matrix applied; its normals scaled to 0.225 or 1 by the grid flag 0x400 under their vertices; then its children"
 0x00450d10,Terrain_ShadeNormals,function,low,"reimplemented (src/game/terrain/normals); cdecl: grid flag 0x400 from each map cell's flags 0x40 / 0x80, then Terrain_ScaleNormals from the map's model with the identity"
 0x0046eeb0,Terrain_NodeCells,function,low,"reimplemented (src/game/terrain/nodecells); cdecl (node, grid, matrix by value): the node box through its matrix to the cells it covers (+0x90), flags 0x2000 / 0x4000000; then its children"

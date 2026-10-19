@@ -287,6 +287,41 @@ double __cdecl Terrain_HeightAt(float x, float y) {
     return (((u * h[a]) + X87Reg(fx) * h[a + 1]) + (X87Reg(h[b + 1]) - h[a + 1]) * fy).v;
 }
 
+double __cdecl Terrain_GridHeightAt(float x, float z, u32 any) {
+    const u8 *const grid = *reinterpret_cast<const u8 *const volatile *>(*reinterpret_cast<const u8 *const volatile *>(0x007a0854) + 0x6c);
+    if (!(x >= 0.0f) || !(z >= 0.0f))   // (0x6fe3dc; unordered is "below")
+        return 0.0;
+    if (!(X87_MulInt(at<u32>(grid, 0x18), 10.0f) > x) || !(X87_MulInt(at<u32>(grid, 0x1c), 10.0f) > z))   // (0x6fe3e4; fild qword)
+        return 0.0;
+    const X87Reg gx = (X87Reg(x) - at<float>(grid, 8)) / at<float>(grid, 0x10);
+    if (!(gx.v >= 0.0)) return 0.0;
+    const float cx = (float)gx;
+    if (cx > (float)at<u32>(grid, 0x18)) return 0.0;
+    double whole;   // (CRT modf 0x67b280)
+    const float fx = (float)std::modf((double)cx, &whole);
+    const s32 ix = (s32)(long long)cx;   // (__ftol of gx itself)
+    const X87Reg gz = (X87Reg(z) - at<float>(grid, 0xc)) / at<float>(grid, 0x14);
+    if (!(gz.v >= 0.0)) return 0.0;
+    const float cz = (float)gz;
+    if ((double)at<u32>(grid, 0x1c) < cz) return 0.0;
+    const double fz = std::modf((double)cz, &whole);   // (kept in st0, unrounded)
+    const s32 iz = (s32)(long long)whole;
+    const u32 w = at<u32>(grid, 0x18);
+    const u32 flags = at<u32>(at<const u8 *>(grid, 0x2c), (ix + iz * w) * 4);
+    if (!any && (flags & 1)) return (double)3.40282347e38f;   // 0x6fe400
+    const u32 a = ix + iz * (w + 1), b = a + 1, c = ix + (iz + 1) * (w + 1), d = c + 1;
+    bool right, upper;   // (the triangle: its far side through h11 - h10 or h01 - h00; blended from the next row or this one)
+    if (flags & 4)   // (fcomp; test ah, 1: a NaN counts as below)
+        right = upper = fx >= (X87Reg(1.0f) - fz).v;
+    else
+        upper = !(right = fx >= fz);
+    const float *const h = at<const float *>(grid, 0x28);
+    const X87Reg side = right ? X87Reg(h[d]) - h[b] : X87Reg(h[c]) - h[a];
+    const X87Reg u = X87Reg(1.0f) - fx;
+    if (upper) return (((u * h[c]) + X87Reg(h[d]) * fx) + (X87Reg(1.0f) - fz) * X87Reg(-side.v)).v;
+    return (((u * h[a]) + X87Reg(h[b]) * fx) + X87Reg(fz) * side).v;
+}
+
 }  // extern "C"
 
 namespace {
