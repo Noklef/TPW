@@ -16,7 +16,8 @@ CALLS = {'S18': (0x5c5510, 't', 'a', 0x20), 'Pass': (0x617dd0, 't', 'a', 0x20), 
          'Shared': (0x565930, 't', 'a', 0x50), 'G2c': (0x48ccd0, 't', 'a', 0x30), 'G2c10': (0x4b7a00, 't', 'a', 0x14), 'D9acc': (0x569ef0, 'c', 'a', 0x30), 'D9ac0': (0x5667a0, 'c', 'a', 0x30),
          'D4b84': (0x47e990, 'c', 'v', 0x20), 'R2fc': (0x4b3f20, 'c', 'v', 0x40), 'T26b0': (0x48eaf0, 'c', 'v', 0x30), 'VB48': (0x57c4a0, 'c', 'a', 0x30),
          'Drain': (0x576230, 't', 'v', 0x30), 'Rel': (0x591a80, 't', 'a', 0x30), 'R1bc': (0x497b60, 'c', 'v', 0x12), 'M20': (0x48d860, 't', 'a', 0x10),
-         'GThing': (0x4af9f0, 't', 'v', 0x4f), 'GThingW': (0x481530, 't', 'v', 0x12),'Keys': (0x5e2310, 't', 'a', 0x50), 'C14': (0x5c5000, 'c', 'a', 0x10)}
+         'GThing': (0x4af9f0, 't', 'v', 0x4f), 'GThingW': (0x481530, 't', 'v', 0x12),'Keys': (0x5e2310, 't', 'a', 0x50), 'C14': (0x5c5000, 'c', 'a', 0x10),
+         'R8d8': (0x51af90, 'c', 'v', 0x38)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()] + [(0x5da3c0, 0x5da3c1)])
 OBJ, OBJ2, VT, VT2 = RAM, RAM + 0x200, RAM + 0x1000, RAM + 0x1100
 
@@ -125,6 +126,11 @@ def case(r):
         regions.update({RAM + 0x3000: own, RAM + 0x600: held, VT: bytearray(vtable({})), VT2: vtable({7: 1})})
         struct.pack_into('<I', regions[VT], 4, off)
         return Call(address, [RAM + 0x3000 + 0x54], regions, conv=conv, ret=ret)
+    if name == 'R8d8':   # (the flags 0x8023d0 / 0x8023d4 set or not, the COM object 0x8023d8's slots 0x80 (with 0) and 8 recorders)
+        regions[0x8023d0] = struct.pack('<3I', r.choice([0, 1, 1, 0x100, r.getrandbits(32)]), r.choice([0, 1, 1, r.getrandbits(32)]), OBJ)
+        put(obj, 0, 'I', VT)
+        regions[VT] = vtable({}, size=33, com={2: 1, 32: 2})
+        return Call(address, [], regions, conv=conv, ret=ret)
     if name == 'R1bc':
         regions[0x7ca1bc] = struct.pack('<I', OBJ if r.random() < 0.7 else 0)
         put(obj, 0, 'I', VT)

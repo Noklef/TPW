@@ -2,9 +2,20 @@
 
 #include <cstdint>
 
+#include "../core/filetime.h"
+#include "../core/funnytime.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+// The funny time now (FunnyTime_Now of the world's clock, [0x80239c] + 0x2a0, no fields) to the analyser's 8 bytes at offset.
+void stamp(u8 *analyser, u32 offset) {
+    FileTime now;
+    const FileTime *t = FunnyTime_Now(*reinterpret_cast<u8 *const *>(0x0080239c) + 0x2a0, nullptr, &now, nullptr, nullptr, nullptr, nullptr,
+                                      nullptr, nullptr, nullptr, nullptr);
+    at<FileTime>(analyser, offset) = *t;
+}
 
 }  // namespace
 
@@ -65,4 +76,8 @@ u8 *__fastcall ParkAnalyser_Cell(u8 *analyser, void *, u32 pos) {
     const u32 row = (u32)((s32)(i >> 7) / scale), column = (u32)((s32)(i & 0x7f) / scale);
     return analyser + 0x20 + (row * at<u32>(analyser, 0x10) + column) * 0x7c;
 }
+
+void __fastcall ParkAnalyser_StampTime21c30(u8 *analyser) { stamp(analyser, 0x21c30); }
+
+void __fastcall ParkAnalyser_StampTime21c38(u8 *analyser) { stamp(analyser, 0x21c38); }
 }

@@ -1,5 +1,5 @@
 # The nav's position and velocity accessors, its world-to-local transform, predicted position and path progress
-# (src/game/world/nav: 0x5100e0, 0x510160, 0x50f280, 0x50f870, 0x50fd40) against the originals: outs apart, the same,
+# (src/game/world/nav: 0x5100e0, 0x510160, 0x50f280, 0x50f870, 0x50fd40 and the jump 0x510180 to it) against the originals: outs apart, the same,
 # or over the position; 16.16 values small and of any size; path totals that fit and, now and then, ones whose IDIV
 # faults in both.
 # usage: nav.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetPosVel,GetPos,WorldToLocal,PredictPos,PathProgress)
@@ -10,7 +10,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM  # noqa: E402
 
-B = Bench([(0x5100e0, 0x5100ff), (0x510160, 0x510175), (0x50f280, 0x50f30e), (0x50f870, 0x50f8dd), (0x50fd40, 0x50fde2),
+B = Bench([(0x5100e0, 0x5100ff), (0x510160, 0x510175), (0x50f280, 0x50f30e), (0x50f870, 0x50f8dd), (0x50fd40, 0x50fde2), (0x510180, 0x510186),
            (0x50cd80, 0x50cdaa), (0x50df70, 0x50dfb6), (0x50ece0, 0x50ed0a)])
 NAV = RAM + 0x100
 OPS = os.environ.get('OPS', 'SetPosVel,GetPos,WorldToLocal,PredictPos,PathProgress').split(',')
@@ -50,7 +50,7 @@ def case(r):
     total = r.choice([0, 0, r.randrange(0x1000, 0x2000000), r.randrange(0x1000, 0x2000000), -r.randrange(0x1000, 0x2000000),
                       r.randrange(0x400000, 0x10000000), r.randrange(1, 0x100) if r.random() < 0.15 else 0x100000])
     struct.pack_into('<i', mem, 0x1a0, total)
-    return Call(0x50fd40, [NAV], {RAM: mem}, conv='t', ret='a')
+    return Call(r.choice([0x50fd40, 0x510180]), [NAV], {RAM: mem}, conv='t', ret='a')   # (0x510180: the jump to it)
 
 
 if __name__ == '__main__':

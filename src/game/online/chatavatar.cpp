@@ -2,6 +2,10 @@
 
 #include <cstdint>
 
+#include "../core/crt.h"
+#include "../core/gameheap.h"
+#include "../core/stdwstring.h"
+#include "../sprite/script.h"
 #include "../world/person.h"
 #include "../world/personscripts.h"
 #include "../world/things.h"
@@ -55,12 +59,45 @@ void __fastcall ChatAvatar_Arrive(u8 *avatar, void *, u32 x, u32 y) {
     movePlayer(avatar, (s16)x, (s16)y, 1);
 }
 
+void __fastcall ChatAvatar_Enter(u8 *avatar, void *, u32 x, u32 y) {
+    Person_PlaceScript(at<u8 *>(avatar, 4), nullptr, 0, 0.0f, 0, 0, 3);
+    SpriteScript_SetRegF(at<s32>(at<u8 *>(avatar, 4), 0xc), 8, 0x3fc00000);   // 1.5f
+    moveTo(avatar, x, y, 1);
+}
+
 u32 __fastcall ChatAvatar_SayPosition(u8 *avatar) {
     const u8 *const thing = at<u8 *>(avatar, 4);
     return movePlayer(avatar, at<s16>(thing, 4), at<s16>(thing, 6), 2);
 }
 
 void __fastcall ChatAvatar_MoveTo3(u8 *avatar, void *, u32 x, u32 y) { moveTo(avatar, x, y, 3); }
+
+u32 __fastcall ChatAvatar_MovePlayer1(u8 *avatar, void *, u32 x, u32 y) { return movePlayer(avatar, (s16)x, (s16)y, 1); }
+
+void __fastcall ChatAvatar_GotoRoom(u8 *avatar) {
+    const u16 *text = at<const u16 *>(avatar, 0xf00);
+    if (!text) text = reinterpret_cast<const u16 *>(0x006fd6c4);
+    StdWString name;  // (its allocator byte is an uninitialised stack byte in the original)
+    name.allocator = 0;
+    name.ptr = nullptr;
+    name.len = 0;
+    name.res = 0;
+    const u32 n = Crt().wcslen(text);
+    if (StdWString_Grow(&name, nullptr, n, 1)) {
+        for (u32 k = 0; k < n; ++k) name.ptr[k] = text[k];
+        name.ptr[n] = 0;
+        name.len = n;
+    }
+    using Method = u32(__fastcall *)(void *, void *, StdWString *, void *);
+    (*reinterpret_cast<const Method *>((uintptr_t)0x006fd490))(at<void *>(avatar, 0), nullptr, &name, avatar);
+    if (name.ptr) {  // _Tidy(true), inlined
+        u8 &refs = *reinterpret_cast<u8 *>(reinterpret_cast<uintptr_t>(name.ptr) - 1);
+        if (refs != 0 && refs != 0xff)
+            --refs;
+        else
+            GameHeap_Free(reinterpret_cast<u8 *>(name.ptr) - 2);
+    }
+}
 
 u8 __fastcall ChatAvatar_PlaceAtCell(u8 *self, void *, u32 handle, u32 cell) {
     const u32 x = ((u32)(uintptr_t)self & 0xffff0000) | ((cell - 1) & 0x7f) << 8 | 0x80;

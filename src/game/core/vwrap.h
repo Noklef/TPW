@@ -1,5 +1,5 @@
 // Small functions that call a virtual method of an object and little else: reimplementation of 0x5c5510, 0x617dd0, 0x5d60d0, 0x5d60f0, 0x46c330,
-// 0x498b90, 0x4987d0, 0x578390, 0x5c5530 and 0x5c5560. The slots are named by their vtable offsets until the classes are known.
+// 0x498b90, 0x4987d0, 0x578390, 0x5c5530, 0x5c5560 and 0x51af90. The slots are named by their vtable offsets until the classes are known.
 #pragma once
 
 #include "../../../re/types.h"
@@ -102,6 +102,10 @@ s32 __fastcall Refcounted_Release(u8 *field);
 
 // 0x497b60 (cdecl): when the dword at 0x7ca1bc is not 0 the object it points to is released (slot 8 with 1); the dword is left.
 void __cdecl Global7ca1bc_Release();
+
+// 0x51af90 (cdecl; name unconfirmed): when the dword at 0x8023d0 is set, the COM object at 0x8023d8 gets its slot 0x80 called with 0
+// when the dword at 0x8023d4 is set too, then is released (IUnknown::Release, slot 8); 0x8023d0 = 0.
+void __cdecl Global8023d8_Release();
 
 // 0x48d860 (thiscall; a, pops 4): the slot 0x14 of the object the dword at +0x20 points to, called with a. Returns what it returns.
 u32 __fastcall Obj_CallMember20Slot14(u8 *object, void *, u32 a);

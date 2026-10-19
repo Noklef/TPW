@@ -1,5 +1,5 @@
 // The park analyser (thing model 13: a 32x32 grid of cells and circular-buffer statistics):
-// reimplementation of the small methods 0x4c5d10, 0x4c74b0, 0x4c74f0, 0x4c7b70 and
+// reimplementation of the small methods 0x4c5d10, 0x4c74b0, 0x4c74f0, 0x4c7680, 0x4c76d0, 0x4c7b70 and
 // 0x4c94a0-0x4c94d0 (thiscall).
 //
 // Cells (0x7c bytes) from +0x20, 0x400 of them; four CircBufU16s of 3 from +0x1f068; CircBufU8s
@@ -36,4 +36,9 @@ u32 __fastcall ParkAnalyser_TotalSince(const u8 *analyser, void *, s32 back);
 // 0x4c7b70 (pos, its low 16 bits): the cell of pos - 1 (a 128-wide grid): (row / +0xc) *
 // +0x10 + (column / +0xc), signed divisions.
 u8 *__fastcall ParkAnalyser_Cell(u8 *analyser, void *, u32 pos);
+
+// 0x4c7680 / 0x4c76d0 (names unconfirmed): the funny time now (FunnyTime_Now of the world's clock, [0x80239c] + 0x2a0) to the 8 bytes at
+// +0x21c30 / +0x21c38 (their callers: 0x4db7a3, and the research lab's 0x504c65).
+void __fastcall ParkAnalyser_StampTime21c30(u8 *analyser);
+void __fastcall ParkAnalyser_StampTime21c38(u8 *analyser);
 }

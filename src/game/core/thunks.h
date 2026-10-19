@@ -433,4 +433,14 @@ u32 __fastcall Wrap_D3dProbe_SetFlags_569cc0(u8 *self, void *, u32 flags);
 u8 *__fastcall Wrap_Renderer_NewSurfaceA_5738c0(void *self);
 // 0x4813f0: jumps to 0x48a290 (ui/panel7b9940).
 void __cdecl Wrap_Panel7b9940_Close_4813f0();
+// 0x481400: jumps to Panel7b9940_Show (ui/panel7b9940).
+u32 __cdecl Wrap_Panel7b9940_Show_481400();
+// 0x4f8ad0 (thiscall): jumps to Nav_Dtor (world/nav).
+void __fastcall Wrap_Nav_Dtor_4f8ad0(u8 *nav);
+// 0x510150 (thiscall): jumps to Nav_Update (world/nav).
+void __fastcall Wrap_Nav_Update_510150(u8 *nav);
+// 0x510180 (thiscall): jumps to Nav_PathProgress (world/nav).
+s32 __fastcall Wrap_Nav_PathProgress_510180(const u8 *nav);
+// 0x4815c0: jumps to KeyMap_AsyncModifiers (core/keymap).
+u32 __cdecl Wrap_KeyMap_AsyncModifiers_4815c0();
 }  // extern "C"

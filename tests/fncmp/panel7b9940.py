@@ -6,8 +6,8 @@
 # Close (0x48a290, and the jump 0x4813f0 to it): the same, with the ten 0x7c26b0 records, the released globals, the dialog [0x7ca098]
 # and the windows [0x7cb2ac] / [0x7cb2b0] each 0, a window (recorder vtable, closed or not, fncmp's logger the handler) or an object;
 # the message hook [0xfaa5fc] set or not. Show (0x48a310): the second base 0x10-0x40 in, the GUI's two queues (two entries) set or
-# not, the timed table empty or none, the byte 0x78d90e 0 or set (the manager's slot 3 or 4).
-# usage: panel7b9940.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Detach,Jump,Ctor,Close,CloseJump,Show)
+# not, the timed table empty or none, the byte 0x78d90e 0 or set (the manager's slot 3 or 4); ShowJump: the jump 0x481400 to it.
+# usage: panel7b9940.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Detach,Jump,Ctor,Close,CloseJump,Show,ShowJump)
 import os
 import struct
 import sys
@@ -15,9 +15,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, log_region, put, set_return, vtable  # noqa: E402
 
-CALLS = {'Detach': 0x48a3d0, 'Jump': 0x481410, 'Ctor': 0x4855d0, 'Close': 0x48a290, 'CloseJump': 0x4813f0, 'Show': 0x48a310}
+CALLS = {'Detach': 0x48a3d0, 'Jump': 0x481410, 'Ctor': 0x4855d0, 'Close': 0x48a290, 'CloseJump': 0x4813f0, 'Show': 0x48a310, 'ShowJump': 0x481400}
 B = Bench([(0x481410, 0x481415), (0x48a3d0, 0x48a40a), (0x659607, 0x65961c), (0x576540, 0x5765d0), (0x4855d0, 0x4856bf),
-           (0x5836b0, 0x5836c2), (0x4813f0, 0x4813f5), (0x48a290, 0x48a310), (0x48ee20, 0x48ee4e), (0x498b90, 0x498ba2),
+           (0x5836b0, 0x5836c2), (0x4813f0, 0x4813f5), (0x481400, 0x481405), (0x48a290, 0x48a310), (0x48ee20, 0x48ee4e), (0x498b90, 0x498ba2),
            (0x4b3f20, 0x4b3f54), (0x497b60, 0x497b72), (0x48d990, 0x48d9b3), (0x4987d0, 0x4987e2), (0x658d9f, 0x658df4),
            (0x659710, 0x659721), (0x65f697, 0x65f6d1), (0x48eaf0, 0x48eb20), (0x5da3c0, 0x5da3c1),
            (0x48a310, 0x48a3c3), (0x659064, 0x6590a5), (0x669eb3, 0x669efb), (0x669c62, 0x669c8d), (0x669bdb, 0x669c30),
@@ -58,7 +58,7 @@ def case(r):
                0x77c48c: struct.pack('<II', MANAGER, MANAGER), TABLE: struct.pack('<II', r.getrandbits(32), d),
                OBJECT: put(bytearray(r.bytes(0x30)), 0, 'I', TABLE), RENDERER: renderer, NODES: nodes,
                0x87a6d0: struct.pack('<I', RENDERER), 0x8bd508: r.bytes(8)}
-    if op == 'Show':
+    if op in ('Show', 'ShowJump'):
         # the object's two vbtable offsets (the first base's vtable the recorder), the renderer's free nodes and its tag 0x20 list (of
         # recorder objects or the base); the two queues (2 entries each) and an empty timed table, or none
         d, second = r.choice([(8, 0x10), (8, 0x20), (8, 0x40), (0x20, 0x40)])

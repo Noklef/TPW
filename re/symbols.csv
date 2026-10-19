@@ -161,10 +161,10 @@ address,name,kind,confidence,notes
 0x00424c20,Save_ReadU8,function,high,"reimplemented (src/game/core/savegame); cdecl (stream, destination, name, quiet): reads a 1-byte field, announced unless quiet; 0 when it all came, else 1"
 0x00510240,Save_Read8Bytes,function,high,"reimplemented (src/game/core/savegame); cdecl (stream, destination, name, quiet): reads an 8-byte field, announced unless quiet; 0 when it all came, else 1"
 0x005134d0,Save_Read12Bytes,function,high,"reimplemented (src/game/core/savegame); cdecl (stream, destination, name, quiet): reads a 12-byte field, announced unless quiet; 0 when it all came, else 1"
-0x004ced70,Save_WriteU32,function,high,
-0x004cee50,Save_WriteU8,function,high,
-0x004ceec0,Save_WriteU16,function,high,
-0x004cede0,Save_Write8Bytes,function,high,
+0x004ced70,Save_WriteU32,function,high,reimplemented (src/game/core/savegame); a dword field written to a save stream (name unconfirmed)
+0x004cee50,Save_WriteU8,function,high,reimplemented (src/game/core/savegame); a byte field written to a save stream (name unconfirmed)
+0x004ceec0,Save_WriteU16,function,high,reimplemented (src/game/core/savegame); a word field written to a save stream (name unconfirmed)
+0x004cede0,Save_Write8Bytes,function,high,reimplemented (src/game/core/savegame); an 8-byte field written to a save stream (name unconfirmed)
 0x0050b090,Thing_Serialize,function,high,"reimplemented (src/game/world/things); thiscall (stream, save, version, unused): the thing's words +4, +6, +0xa, +8 saved or loaded; a full load clears the byte +3"
 0x00509bc0,ThingBasic_Serialize,function,high,"reimplemented (src/game/world/things); thiscall (stream, save, version, unused): Thing_Serialize, its result as 0 or 1"
 0x004d7a70,WorldGlobals_Serialize,function,high,"staff pool, game clock, park gates"
@@ -210,6 +210,7 @@ address,name,kind,confidence,notes
 0x00504210,ResearchProject_Serialize,function,high,reimplemented (src/game/world/research); a project's 6 fields
 0x00504760,ResearchGroup_Serialize,function,high,reimplemented (src/game/world/research); a group's 4 fields
 0x00512010,Weather_Serialize,function,high,"reimplemented (src/game/world/weather); thing model 15: thing, fields, forecast at +0x20, fields"
+0x00512c50,Weather_RandomBolt,function,low,"reimplemented (src/game/world/weather); thiscall (&start, &end, unused): a lightning bolt's random ends, start on the ground inside the map, end 300 up and within 50 of it"
 0x005132a0,Forecast_Serialize,function,high,"reimplemented (src/game/world/forecast); thiscall (stream, save, version, unused): the forecast's time (8 bytes), quality and valid byte saved or loaded"
 0x004cf920,BankAccount_Serialize,function,high,"thing model 16: balance, admission fee, 8 loans"
 0x004d2320,Challenges_Serialize,function,high,"reimplemented (src/game/world/challenges); thing model 19: thing, 0x14 challenges, then 7 fields"
@@ -548,7 +549,7 @@ address,name,kind,confidence,notes
 0x004714a0,Motion_UnpackVertices,function,high,"reimplemented (src/game/motion/vertexanim); (node, block, frame, unused, add): group 0 lerped into the node box (+0x78), raw group 1 once (block flag 2), the rest into the positions (+0x60); node flags 0x800000 (unpacked once), 0x10000"
 0x004745c0,Motion_ApplyUVs,function,high,"reimplemented (src/game/motion/uvanim); (state, track, add): per-UV keys around the whole frame lerped, set or added into the node's {u[4], v[4]} blocks (node +0x68)"
 0x00fb3540,gAdvisorScoring,data,high,"AdvisorScoring: advisor.sam values (mMinScoreForConsideration at 0xfb3560); guard bit 0xfb2766 & 1"
-0x004d1ce0,Challenges_LoadSam,function,medium,"reads data/challenges.sam into a stack BalanceChallenges (vtable 0x700398) and copies the challenges out"
+0x004d1ce0,Challenges_LoadSam,function,medium,"reimplemented (src/game/world/challenges); thiscall: the list emptied, data/challenges.sam read into a stack BalanceChallenges, gBalanceLevel's indices (0x7857d4) rows copied into the free slots, orphans dropped"
 0x00414410,TrackTypeBalance_Dtor,function,low,"reimplemented (src/game/core/balancefile); thiscall: vtable 0x6fd8b0 back, then BalanceFile_Release"
 0x00423dc0,BalanceGraphics_Dtor,function,low,"reimplemented (src/game/core/balancefile); thiscall: vtable 0x6fd630 back, then BalanceFile_Release"
 0x00415e90,AdvisorScoring_GetSchema,function,low,"reimplemented (src/game/core/balancefile); thiscall (i), this unused: &key record i of the advisor scoring schema (0x72e120)"
@@ -823,6 +824,8 @@ address,name,kind,confidence,notes
 0x004c94c0,ParkAnalyser_Total,function,high,"reimplemented (src/game/world/analyser); thiscall: the running total, +0x21c08"
 0x004c94d0,ParkAnalyser_TotalSince,function,high,"reimplemented (src/game/world/analyser); thiscall (back): the total less its value back entries ago in the ring at +0x20824, or 0 for none"
 0x004c7b70,ParkAnalyser_Cell,function,high,"reimplemented (src/game/world/analyser); thiscall (pos): the cell of pos - 1 on a 128-wide grid, row and column divided by +0xc, row stride +0x10"
+0x004c7680,ParkAnalyser_StampTime21c30,function,low,reimplemented (src/game/world/analyser); the funny time now stamped at the park analyser's +0x21c30 (name unconfirmed)
+0x004c76d0,ParkAnalyser_StampTime21c38,function,low,reimplemented (src/game/world/analyser); the funny time now stamped at the park analyser's +0x21c38 (name unconfirmed)
 0x004d0af0,MapHandle_Entry28,function,high,reimplemented (src/game/world/mapcell); thiscall on a u16 handle: gMapCells + 0x10ffd8 + handle * 0x28
 0x004d0b10,MapHandle_Cell44,function,high,reimplemented (src/game/world/mapcell); thiscall on a u16 handle: gMapCells + (handle - 1) * 0x44
 0x004d0a70,MemRanges_Set,function,high,"reimplemented (src/game/world/mapcell); thiscall on 0x7cdb30 (index, a, b, name): entry index = (a, b); name unused (""World Struture"")"
@@ -901,6 +904,7 @@ address,name,kind,confidence,notes
 0x004d1e60,BalanceChallenges_GetSchema,function,high,"reimplemented (src/game/world/challenges); thiscall (index), vtable 0x700398 slot 0: 0x739b98 + index * 0x3c"
 0x004d2df0,Challenges_AcceptOffer,function,low,"reimplemented (src/game/world/challenges); thiscall: the offered challenge accepted: on, next event at now + its target days"
 0x004d2ec0,Challenges_DeclineOffer,function,low,"reimplemented (src/game/world/challenges); thiscall: the offered challenge declined: half the prize credited unless independent, next event after the declined wait"
+0x004d1e80,BalanceChallenges_Dtor,function,low,"reimplemented (src/game/world/challenges); thiscall: vtable 0x700398 back, then BalanceFile_Release"
 0x004e2650,Thing_MapId,function,high,reimplemented (src/game/world/person); thiscall (&out): the thing's map id ((mY >> 8) * 128 + (mX >> 8) + 1)
 0x004f9460,Sprite_RecordMapId,function,high,"reimplemented (src/game/world/person); thiscall (&out): the old mLastRecordedMapId (+0xcc) out, the current map id recorded"
 0x004fd950,Visitor_TimeInPark,function,high,reimplemented (src/game/world/person); thiscall: (gWorld tick +0x1da70c - mArrivalDate +0x1d4) >> 2
@@ -913,6 +917,9 @@ address,name,kind,confidence,notes
 0x00503b30,ResearchLab_CountNotDone,function,high,reimplemented (src/game/world/research); thiscall (cat): projects of the category (5: any) with !(mResearchDone >= mCost)
 0x00504040,ResearchLab_CurrentNotDone,function,high,reimplemented (src/game/world/research); thiscall (group): (u8) the group's current project exists and is not done
 0x00504750,ResearchGroup_Ctor,function,high,"reimplemented (src/game/world/research); thiscall: currentProject -1, highestGroupAvailable 1"
+0x00504580,ResearchProject_SetNextUpgrade,function,low,reimplemented (src/game/world/research); a project made from an object definition's next upgrade (name unconfirmed)
+0x005031a0,ResearchLab_FillProjects,function,low,reimplemented (src/game/world/research); the lab's projects from the object definitions and its groups' outputs (name unconfirmed)
+0x004ca6b0,Research_AllDone,function,low,reimplemented (src/game/world/research); whether nothing is left to research (name unconfirmed)
 0x005100e0,Nav_SetPosVel,function,high,"reimplemented (src/game/world/nav); thiscall (x, y, vx, vy): pos (+8) and vel (+0x10) set"
 0x00510160,Nav_GetPos,function,high,"reimplemented (src/game/world/nav); thiscall (&x, &y): pos (+8, +0xc) read"
 0x0051aad0,World_ArrivalVehicleNotSize1,function,high,reimplemented (src/game/world/world); thiscall: 1 when mCurrentArrivalVehicle (+0x1da72a) is set and is not mArrivalVehicle_Size1 (+0x1da72c)
@@ -979,6 +986,7 @@ address,name,kind,confidence,notes
 0x004fe900,Person_MoveScript,function,high,reimplemented (src/game/world/personscripts); the +0x210 script moved to a new position
 0x0050be40,Person_KillScript84After,function,high,reimplemented (src/game/world/personscripts); the +0x84 script killed once the clock is 12 ticks past +0x8c
 0x0050bab0,Person_KillScript84Keep,function,high,reimplemented (src/game/world/personscripts); kills the script slot at +0x84 without clearing it
+0x004f9e60,Person_PlaceScript,function,low,"reimplemented (src/game/world/personscripts); thiscall (x, y, z, r15, anim): starts the reference +0xc at entry anim when its slot is 0, places its script at (x, y less the ground height at (x, z), z) with r15, sets the reference +4 to anim unless the script is at it; returns 0"
 0x0052a3a0,Position_StepA,function,high,reimplemented (src/game/world/dirstep); steps a position by a direction in the first scheme
 0x0052a420,Position_StepB,function,high,reimplemented (src/game/world/dirstep); steps a position by a direction in the second scheme
 0x004c9f90,Things_CountKind3Flag1,function,high,reimplemented (src/game/world/thingscan); counts the kind 3 things with flag bit 0 and nothing at +0x68
@@ -1673,6 +1681,7 @@ address,name,kind,confidence,notes
 0x004d49a0,Math_ISqrt,function,low,"reimplemented (src/game/math/intpair); cdecl (n): fild (n as unsigned) fsqrt __ftol, at the game's 24-bit precision"
 0x0050f600,IntPair_Truncate,function,low,"reimplemented (src/game/math/intpair); cdecl (&out, &pair, limit): the pair cut to the limit's length (octagonal-free ISqrt length in three tiers; one IDIV that faults on 0 or overflow)"
 0x0050f700,IntPair_Normalize,function,low,"reimplemented (src/game/math/intpair); cdecl (&out, &pair): the pair made 1.0 long (ISqrt length in three tiers; 0 for a zero root)"
+0x004d9cc0,IntPair_Rotated,function,low,"reimplemented (src/game/math/intpair); thiscall (&out, angle): out = the pair turned by angle % 360 in quarter turns (others a copy)"
 0x005428a0,IntSin,function,high,"reimplemented (src/game/math/intsin); cdecl (angle, 512 a turn): the integer sine table's (0x877358) entry angle & 0x1ff, shifted left 2"
 0x005428c0,IntCos,function,high,reimplemented (src/game/math/intsin); cdecl (angle): as IntSin for angle + 0x80
 0x005442e0,IntSin_BuildTable,function,low,"reimplemented (src/game/math/intsin); cdecl: the 512 entries at 0x877358 = __ftol(fsin(2i * 0.00613591796875) * 256.0) (x87, 24-bit)"
@@ -3157,7 +3166,12 @@ address,name,kind,confidence,notes
 0x004813f0,Wrap_Panel7b9940_Close_4813f0,function,low,reimplemented (src/game/core/thunks); jump to 0x48a290
 0x00565090,Wrap_Texture_DecodeWct_565090,function,low,"reimplemented (src/game/core/thunks); thiscall (pixels; pops 4): this lowered by the dword before it (a virtual base offset), then Texture_DecodeWct"
 0x00565080,Wrap_Texture_DecodeWctInto_565080,function,low,"reimplemented (src/game/core/thunks); thiscall (surface, flip; pops 8): this lowered by the dword before it (a virtual base offset), then Texture_DecodeWctInto"
+0x00481400,Wrap_Panel7b9940_Show_481400,function,low,reimplemented (src/game/core/thunks); jump to 0x48a310
+0x004f8ad0,Wrap_Nav_Dtor_4f8ad0,function,low,reimplemented (src/game/core/thunks); jump to 0x50f200
+0x00510150,Wrap_Nav_Update_510150,function,low,reimplemented (src/game/core/thunks); jump to 0x50f3b0
+0x00510180,Wrap_Nav_PathProgress_510180,function,low,reimplemented (src/game/core/thunks); jump to 0x50fd40
 0x0042a070,Wrap_Deleter_Minus8_458970_42a070,function,low,"reimplemented (src/game/core/thunks); thiscall (flags; pops 4): this lowered by the dword before it (a virtual base offset), then Deleter_Minus8_458970"
+0x004815c0,Wrap_KeyMap_AsyncModifiers_4815c0,function,low,reimplemented (src/game/core/thunks); a jump to KeyMap_AsyncModifiers
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value
@@ -3391,6 +3405,10 @@ address,name,kind,confidence,notes
 0x004fa530,Sprite_SetDestinationCell,function,low,reimplemented (src/game/world/person); thiscall (cell id): Sprite_SetDestination to the centre of the cell
 0x004f7de0,Sprite_SetDestinationMarked,function,low,"reimplemented (src/game/world/person); thiscall (x, y): Sprite_SetDestination; when it succeeds the dwords +0x39c and +0x10 set to 1"
 0x004f7da0,Sprite_SetDestinationCellMarked,function,low,"reimplemented (src/game/world/person); thiscall (cell): Sprite_SetDestinationCell; when it answers nonzero +0x39c and +0xc's Set4_4217f0 set to 1, and 1; else 0"
+0x004fec10,Visitor_IsState6To10,function,low,reimplemented (src/game/world/person); thiscall: whether mState (+0x220) is 6 to 10
+0x004fe9c0,Visitor_Raise19c,function,low,"reimplemented (src/game/world/person); thiscall (index): the float +0x19c raised by the global byte for index, kept to 0..100"
+0x004fea70,Visitor_Lower19c,function,low,"reimplemented (src/game/world/person); thiscall (index): the float +0x19c lowered by the global byte for index, kept to 0..100"
+0x004fb4f0,Stat100_Add,function,low,"reimplemented (src/game/world/person); thiscall on a float (delta): the float plus delta, kept to 0..100"
 0x00550d80,Setting_SetMode,function,high,reimplemented (src/game/core/options); stores a mode and sets its flag bits
 0x005633e0,Quad_Push,function,high,reimplemented (src/game/core/seqs); pushes four dwords into the next of four slots
 0x0059c390,Table76e300_GetObjectDword,function,high,reimplemented (src/game/world/objectdefs); a dword of the object indexed through a record of the table
@@ -3477,6 +3495,7 @@ address,name,kind,confidence,notes
 0x0057c360,Global8bba48_Create,function,low,"reimplemented (src/game/core/vwrap); cdecl: without an object at [0x8bba48] a new one (0xa8 bytes, vbtable 0x701b40, virtual base vtable 0x701b30, function pointers at +0x84..+0x9c) added to the live objects, 1; 0 when there was one or the allocation failed (error 3 pushed)"
 0x00481530,Obj7b51f0_PassThingTo7cc218,function,low,"reimplemented (src/game/core/vwrap); thiscall on the object at 0x7b51f0, this not used (handle, pops 4): Obj_CallSlot14IfGlobalThing on the object at 0x7cc218 (name unconfirmed)"
 0x004b7a00,Obj_CallSlot2cIfGlobalIf10,function,low,"reimplemented (src/game/core/vwrap); the slot 0x2c call when the global, for an object with a +0x10"
+0x0051af90,Global8023d8_Release,function,low,"reimplemented (src/game/core/vwrap); cdecl: with 0x8023d0 set, the COM object 0x8023d8 gets slot 0x80 (0) when 0x8023d4 is set, is released, and 0x8023d0 cleared"
 0x005e3b90,Class702d48_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor that registers the object with a global one
 0x005e3c00,Class702d48_Release,function,high,reimplemented (src/game/core/vdtor); releases the object from a global one
 0x005e3bd0,Class702d48_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor that releases the object from a global one
@@ -4535,6 +4554,7 @@ address,name,kind,confidence,notes
 0x0048f150,RendererPart_Ctor,function,low,"reimplemented (src/game/render/renderer); thiscall (value), pops 4: GuiDialog_Ctor, frame +0x54, image +0x9c, the sprite set +0xb4 inline (live objects), vtable 0x6ff2d8, its tracked array at +0x98 pointing at the frame; returns this"
 0x0048f300,RendererPart_Dtor,function,low,"reimplemented (src/game/render/renderer); thiscall: vtable 0x6ff2d8, SpriteSet_Dtor(+0xb4) inline, SpriteImage_Dtor(+0x9c), GuiDialog_Dtor"
 0x0048f2e0,RendererPart_ScalarDtor,function,low,"reimplemented (src/game/render/renderer); thiscall (flags), pops 4, slot 0 of 0x6ff2d8: RendererPart_Dtor, freed for flags bit 0; returns this"
+0x0048f420,RendererPart_SetLayout,function,low,"reimplemented (src/game/render/renderer); the renderer part's rectangle, size, depth and clip-space corner (name unconfirmed)"
 0x005777a0,Backdrop_Clear5c,function,high,"reimplemented (src/game/render/backdrop); thiscall (the tiled backdrop, 0x87aee8): +0x5c = 0"
 0x00577940,Backdrop_SetRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the rectangle drawn into, +0x20..+0x2c, and flag 2 in +0"
 0x00577970,Backdrop_SetSourceRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the part of the image drawn, +0x30..+0x3c"
@@ -4834,7 +4854,12 @@ address,name,kind,confidence,notes
 0x004ea240,ChatAvatar_Arrive,function,high,"reimplemented (src/game/online/chatavatar); thiscall (x, y, pops 8): the avatar thing's scripts released, its handle's slot thing placed at (x, y) when of kind 0x12, then Chat::MovePlayer(x, y, mode 1)"
 0x004f7d70,ChatPlayer_NameIs,function,high,"reimplemented (src/game/online/chatavatar); thiscall (name, pops 4): whether the std::wstring's characters (null: the empty string) equal the wide name at +0x19c (wcscmp == 0); AL"
 0x004ebf00,ChatPlayers_FindByName,function,high,"reimplemented (src/game/online/chatavatar); stdcall (name, pops 4): the first thing of the park (newest first) that is a chat player (kind 0x12) of that name, or 0"
+0x004eace0,ChatAvatar_MovePlayer1,function,low,"reimplemented (src/game/online/chatavatar); thiscall (x, y), pops 8: Chat::MovePlayer(x, y as 16-bit values, mode 1, the avatar); its result"
+0x004eeb50,ChatAvatar_GotoRoom,function,low,"reimplemented (src/game/online/chatavatar); thiscall: the wide text +0xf00 (or the empty string 0x6fd6c4) as a stack std::wstring told to Chat::Goto (import 0x6fd490) with the avatar, then released"
+0x004ea2d0,ChatAvatar_Enter,function,low,"reimplemented (src/game/online/chatavatar); thiscall (x, y): the avatar thing script placed at (0, 0, 0) at entry point 3 (Person_PlaceScript), its register 8 set to 1.5, then the moves of ChatAvatar_MoveTo with mode 1"
 0x005d2720,Ftp_ListLineSize,function,low,"reimplemented (src/game/online/ftp); thiscall, this unused (line; pops 4): atoi of a directory listing line's fifth field (its size), past four runs of non-spaces and spaces (isspace; a NUL is not one, sic)"
+0x004e6130,OnlineChat_Set29And2a,function,low,reimplemented (src/game/online/chat); the online chat's bytes +0x29 and +0x2a set under its lock (name unconfirmed)
+0x004e6150,OnlineChat_Get2a,function,low,reimplemented (src/game/online/chat); the online chat's byte +0x2a read under its lock (name unconfirmed)
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"
@@ -4848,6 +4873,7 @@ address,name,kind,confidence,notes
 0x004922e0,HelpBg_Show,function,low,"reimplemented (src/game/frontend/helpbg); thiscall, slot 3 of 0x6ff598: with the word +0xc set, the word +4 = 1 and the window +0x18 shown"
 0x00492300,HelpBg_Hide,function,low,"reimplemented (src/game/frontend/helpbg); thiscall, slot 4 of 0x6ff598: with the word +0xc set, Frame_Stop and the window +0x18 hidden"
 0x00492330,HelpBg_MoveTo,function,low,"reimplemented (src/game/frontend/helpbg); thiscall (x, y), pops 8: with the window +0x18, Window_Offset by x, y less its inner rectangle's left, top (0xffff keeps one); the rect dtor's EAX or 0"
+0x004924b0,HelpBg_SetText,function,low,"reimplemented (src/game/frontend/helpbg); cdecl (text): the help background 0x7ca0c0 (words +0xc, +4 set) tells its window NotifyC00(1, no newline), then closes on an empty text or shows the window and hands it the text (slot 9)"
 0x005da120,Class702af0_AcquireModels,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall: once (+4), each list item (+0x58) not yet set up (+0xc) has its lobby model (+8) set up by RideUser_Acquire"
 0x005dfca0,Class702ca8_AcquireModels,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall: once (+0x10), the lobby models at +4 and +8 set up by RideUser_Acquire"
 0x005e1350,Class702cb0_StartPendingPlay,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall, vtable 0x702cb0 slot 6: a pending play (state +0x14 == 2) started with LobbyModel_Play(entry 1); 0 when the state is 0, else 1 and the state cleared"
@@ -4907,6 +4933,7 @@ address,name,kind,confidence,notes
 0x00498090,Dialog7ca1c8_SetChecks,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): the nine check buttons of the 0x7ca1c8 dialog's child 0x18 set (vtable slot 5, bool) from flags bits 0-8 (0x20's also needs [0x7ca1d0]+0x50)"
 0x00498a50,Dialog7ca1c8_SetChecksIfUp,function,low,reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): Dialog7ca1c8_SetChecks when [0x7ca1c8] and [0x7ca1cc] are not 0
 0x00481a00,Dialog7ca1c8_SetChecksIfUpThis,function,low,"reimplemented (src/game/ui/dialog7ca1c8); thiscall (flags), pops 4, this unused: Dialog7ca1c8_SetChecksIfUp(flags)"
+0x00498a80,Dialog7ca1c8_Focus,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl: the window [0x7ca1c8] takes the focus (Window_SetFocus(0)), its result returned"
 0x004b87f0,Dialog7cc47c_Message4,function,low,"reimplemented (src/game/ui/dialogs); cdecl: Window_SendMessage([0x7cc47c], 4, 0, 0)"
 0x004b8810,Dialog7cc47c_Message6On,function,low,"reimplemented (src/game/ui/dialogs); cdecl: Window_SendMessage([0x7cc47c], 6, 1, 0)"
 0x004b8830,Dialog7cc47c_Message6Off,function,low,"reimplemented (src/game/ui/dialogs); cdecl: Window_SendMessage([0x7cc47c], 6, 0, 0)"
@@ -5002,3 +5029,5 @@ address,name,kind,confidence,notes
 0x004814a0,Obj7b51f0_SetCursor,function,low,"reimplemented (src/game/ui/cursor); thiscall on 0x7b51f0, this not used (id), pops 4: GameCursor_Set with [0x7cb2ac] set, else Window_SetCursor on [0x7cc8c0] and [0x7cc8bc] when set"
 0x0052f950,GameCursor_Update,function,low,"reimplemented (src/game/ui/cursor); cdecl: GameCursor_Set with the cursor for the game mode [0x81ae2c] (5 / 0x12 by the dwords 0x816d60 / 0x816d4c), then 8 with Global816d48_Get() and 0x14 with 0x816d5c set"
 0x00492d80,TextButton_Handler,function,low,"reimplemented (src/game/ui/textbutton); cdecl (window, message, a, b): 0x10006 plays the interface sound 0xc1 and sends the parent 0x100001 (id +0x8c, 0), 0; 0x14 releases the text row (Window_DwordA0 1); else Window_CallDefault"
+0x0048c8d0,Global7c2534_HasSource,function,low,reimplemented (src/game/ui/focus); whether the object at 0x7c2534 has its +0xc set (name unconfirmed)
+0x004862a0,Focus_Restore,function,low,reimplemented (src/game/ui/focus); the focus given back to the first shown of the game's windows (name unconfirmed)

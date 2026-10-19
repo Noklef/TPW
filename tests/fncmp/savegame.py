@@ -1,6 +1,7 @@
 # The save game's field announcer and field readers (src/game/core/savegame: 0x416e10; 0x424c20, 0x4d37e0, 0x4fae10, 0x510240, 0x5134d0) against the
 # originals. The announcer: random sizes, names and load flags; it returns 0 and pops its three arguments. The readers (1, 2, 4, 8 and 12 bytes): a
-# record stream with room for the field or not, announced or quiet; 0 when it read the whole field, else 1.
+# record stream with room for the field or not, announced or quiet; 0 when it read the whole field, else 1. The writers (0x4cee50, 0x4ceec0,
+# 0x4ced70, 0x4cede0: 1, 2, 4 and 8 bytes) the same with the stream's write.
 # usage: savegame.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import sys
@@ -8,9 +9,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, record_stream  # noqa: E402
 
-B = Bench([(0x416e10, 0x416e15), (0x424c20, 0x424c8e), (0x4d37e0, 0x4d384e), (0x4fae10, 0x4fae7e), (0x510240, 0x5102ae), (0x5134d0, 0x51353e), (0x5f5e20, 0x5f5e50),
+B = Bench([(0x416e10, 0x416e15), (0x424c20, 0x424c8e), (0x4d37e0, 0x4d384e), (0x4fae10, 0x4fae7e), (0x510240, 0x5102ae), (0x5134d0, 0x51353e), (0x5f5e20, 0x5f5e90), (0x4ced70, 0x4cef2e),
            (0x5da3c0, 0x5da3c1)])
-READERS = {0x424c20: 1, 0x4d37e0: 2, 0x4fae10: 4, 0x510240: 8, 0x5134d0: 12}
+READERS = {0x424c20: 1, 0x4d37e0: 2, 0x4fae10: 4, 0x510240: 8, 0x5134d0: 12, 0x4cee50: 1, 0x4ceec0: 2, 0x4ced70: 4, 0x4cede0: 8}
 STREAM, SINK, OUT = RAM, RAM + 0x1000, RAM + 0x2000
 
 

@@ -3,20 +3,92 @@
 # values (so that they match, chains drop in order, and some name themselves); current indexes
 # about 0 and 20; and the guard's state checks (world/staff: 0x4d6330, 0x4d6350). The offer accepted or declined (0x4d2df0, 0x4d2ec0):
 # waiting or not, target times and prizes about 0 and the wraps, independent or not; the world's calendar clock and its imports
-# (funnytime.py's), the money record and park through the world's handles (as stafftrain.py).
-# usage: challenges.py [CASES [SEED]] [--wild|--both] [--show N]
+# (funnytime.py's), the money record and park through the world's handles (as stafftrain.py). The load from data/challenges.sam
+# (0x4d1ce0): the file served as balanceload.py serves a stack balance file (its values block the heap's first, at VALUES), its text
+# comment lines or a "Challenges[row].Type n" line, gBalanceLevel's 20 indices rows of the file (1-59; 0 or less skipped); and the
+# file's destructor (0x4d1e80) with or without a values block.
+# usage: challenges.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Drop,Current,Schema,Guard,Accept,Decline,LoadSam,Dtor)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import IMPORT_TABLE as IAT, LOG, Bench, Call, RAM, fill, import_table, log_region, put, set_return  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE as IAT, LOG, Bench, Call, RAM, fill, global_heap, heap, import_table, log_region, put, set_return  # noqa: E402
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from funnytime import IMPORTS, K, RANGES as CLOCK_RANGES  # noqa: E402
+import balanceload  # noqa: E402
 
+FILE_RANGES = [(0x401030, 0x401212), (0x401250, 0x40127a), (0x401280, 0x4013dc), (0x4013e0, 0x40161d), (0x401650, 0x4017a0),
+               (0x4017a0, 0x402720), (0x402720, 0x402a1e), (0x405710, 0x405742), (0x5f5660, 0x5f5690), (0x5b0d60, 0x5b0d64),
+               (0x412c90, 0x412ca2), (0x4143f0, 0x414402), (0x5f56f0, 0x5f5a30), (0x5f5ad0, 0x5f5bc0), (0x5f5c70, 0x5f5d0e),
+               (0x5f5e20, 0x5f5e90), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x6902c0), (0x583280, 0x5832f0), (0x585710, 0x58571d)]
 B = Bench([(0x4d1c80, 0x4d1cdc), (0x4d1e60, 0x4d1e74), (0x4d2840, 0x4d285d), (0x4d6330, 0x4d6348),
            (0x4d6350, 0x4d635f), (0x4d2df0, 0x4d2eb7), (0x4d2ec0, 0x4d2fac), (0x4d0190, 0x4d01f0), (0x5195d0, 0x519610),
-           (0x519510, 0x519550), (0x5da3c0, 0x5da3c1)] + CLOCK_RANGES)
+           (0x519510, 0x519550), (0x5da3c0, 0x5da3c1), (0x4d1ce0, 0x4d1e5e), (0x4d1e80, 0x4d1e8c)] + CLOCK_RANGES + FILE_RANGES)
+VALUES = balanceload.VALUES
+LEVEL = 0x7857d4   # gBalanceLevel's challenge indices (20 dwords)
+SCHEMA = 12        # the BalanceChallenges schema's records: a group of 10 fields (60 rows) and its end
+FIELDS = ['Type', 'FollowupType', 'TargetTime', 'TargetVal', 'TargetObj', 'TargetObj2', 'TargetStaffType', 'Prize', 'CheckAtEndOnly', 'Independent']
+
+
+def load_sam(r, mem):
+    """Challenges_LoadSam: the file as balanceload serves a stack file; its first heap block (the 12 values entries, 0x90 bytes) at VALUES
+    and the next from VALUES + 0x90; the text comment lines, or lines setting a row's Type and a field; the level's indices rows in range,
+    the typed row's often or only, or none positive."""
+    regions = balanceload.common(r, 'Check', True)
+    log = regions[LOG]   # the file always read (found, a few bytes, opened, every allocation served): an unread one leaves the rows
+    size = r.choice([16, 40, 96, 96, 200])   # uninitialised stack in the original, which only the emulator zeroes
+    set_return(log, balanceload.FIND_FIRST, 0x1234)
+    fill(log, balanceload.FIND_FIRST, 1, bytes(0x20) + struct.pack('<I', size) + bytes(0x10), 0)
+    fill(log, balanceload.OPEN, 0, struct.pack('<i', 0), 1)
+    set_return(log, balanceload.ATTRIBUTES, 0x20)
+    put(regions[HEAP], 0, 'I', VALUES)
+    block = regions.pop(VALUES + 0x180)
+    typed = None
+    if r.random() < 0.7:   # (the text two 48-byte lines in turn, the block starting at a line: "Challenges[row].Field value" sets a field of a
+        typed = r.choice([1, 2, 3, r.randrange(60)])   # row; the first line a Type, so that the row's records fill successive slots)
+        lines = []
+        for field in ('Type', r.choice(FIELDS + ['CheckAtEndOnly', 'Independent', 'TargetObj', 'TargetObj2', 'TargetObj2'])):
+            value = r.choice([1, 2, 3, 9, -1, 0x12345, r.randrange(100), r.getrandbits(31)])
+            line = b'Challenges[%d].%s %d' % (r.choice([typed, typed, r.randrange(60)]), field.encode(), value)
+            lines.append(line + b' ' * (47 - len(line)) + b'\n')
+        text = b''.join(lines)
+        block[:] = text * (len(block) // 96) + block[len(block) // 96 * 96:]
+    regions[VALUES + 0x90] = block[:0x1000]
+    rows = [r.randrange(1, 60) for _ in range(20)]
+    mode = r.random()
+    if typed is not None and mode < 0.3:
+        rows = [typed] * 20   # (every slot filled when the row's mType is set)
+    elif typed is not None and mode < 0.6:
+        rows = [r.choice([typed, typed, typed, r.randrange(1, 60), 0, -1]) for _ in range(20)]
+    elif mode < 0.7:
+        rows = [r.choice([0, 0, -1, -0x80000000]) for _ in range(20)]   # (none positive: nothing copied, a 0 not row 0)
+    elif mode < 0.85:
+        rows[r.randrange(20)] = r.choice([0, -1, -0x80000000])
+    regions[LEVEL] = struct.pack('<20i', *rows)
+    regions[RAM] = mem
+    return Call(0x4d1ce0, [C], regions, conv='t')
+
+
+def dtor(r, mem):
+    """BalanceChallenges_Dtor: the file at C with a values block (12 entries: values at RAM + 0x3000 + 0x200 * j, a stride of 1 or 2) or none."""
+    log = log_region()
+    iat = import_table(log, {})
+    for at, v in global_heap().items():
+        iat[at - IAT:at - IAT + 4] = v
+    regions = {IAT: iat, LOG: log, HEAP: heap(0x100), RAM: mem}
+    put(mem, 0x100, 'I', r.getrandbits(32))
+    if r.random() < 0.8:
+        entries = bytearray(0xc * SCHEMA)
+        for j in range(SCHEMA):
+            put(entries, 0xc * j, 'IiI', RAM + 0x3000 + 0x200 * j, r.choice([1, 1, 2]), RAM + 0x5000 + 4 * j)
+            regions[RAM + 0x3000 + 0x200 * j] = r.bytes(0x200)
+        regions[RAM + 0x5000] = r.bytes(0x40)
+        regions[RAM + 0x1000] = entries
+        put(mem, 0x104, 'I', RAM + 0x1000)
+    else:
+        put(mem, 0x104, 'I', 0)
+    return Call(0x4d1e80, [C], regions, conv='t')
 C = RAM + 0x100
 MONEY, PARK, WORLD = RAM + 0x1000, RAM + 0x40000, RAM + 0x80000
 DAYS = [0, 1, 7, 30, 365, -1, -30, 0x7fffffff, -0x80000000, 0x10000]
@@ -56,6 +128,10 @@ def case(r):
     op = r.deal(OPS)
     if op in ('Accept', 'Decline'):
         return offer(r, bytearray(mem), op)
+    if op == 'LoadSam':
+        return load_sam(r, mem)
+    if op == 'Dtor':
+        return dtor(r, bytearray(mem))
     op = ['Drop', 'Current', 'Schema'].index(op) if op != 'Guard' else 3
     if op == 0:
         k = r.choice([3, 6, 25, 1 << 32])
@@ -72,7 +148,7 @@ def case(r):
     return Call(r.choice([0x4d6330, 0x4d6350]), [C], {RAM: mem}, conv='t', ret='a')
 
 
-OPS = ['Drop', 'Current', 'Schema', 'Guard', 'Guard', 'Accept', 'Decline']
+OPS = [k for k in os.environ.get('OPS', 'Drop,Current,Schema,Guard,Guard,Accept,Decline,LoadSam,LoadSam,Dtor').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

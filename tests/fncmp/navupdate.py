@@ -1,4 +1,4 @@
-# The nav's step of src/game/world/nav (0x50f3b0) against the original: a behaviour list of up to three entries (two objects whose force is a recorder's
+# The nav's step of src/game/world/nav (0x50f3b0, and the jump 0x510150 to it) against the original: a behaviour list of up to three entries (two objects whose force is a recorder's
 # that writes the case's force; weights about 1.0 and any), navs whose 16.16 values are near each other (so that the truncations and the path progress take
 # each branch), and for the move test (the pointer at 0x762190, laid out here) the cdecl logger of the two map ids, passable or not (the native driver
 # cannot call the game's code through a pointer: its own code is at those addresses).
@@ -10,7 +10,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import CDECL_LOG2, LOG, Bench, Call, RAM, echo, fill, log_region, recorder, set_return, strings  # noqa: E402
 
-B = Bench([(0x50f3b0, 0x50f5f5), (0x50dd80, 0x50dfd0), (0x50cba0, 0x50cdc0), (0x4d49a0, 0x4d49e0), (0x50e080, 0x50e0d4), (0x50ece0, 0x50ed20),
+B = Bench([(0x50f3b0, 0x50f5f5), (0x510150, 0x510156), (0x50dd80, 0x50dfd0), (0x50cba0, 0x50cdc0), (0x4d49a0, 0x4d49e0), (0x50e080, 0x50e0d4), (0x50ece0, 0x50ed20),
            (0x50f1a0, 0x50f202), (0x50f600, 0x50f6f9), (0x50f700, 0x50f84a), (0x50f850, 0x50f86f), (0x4d99c0, 0x4d99d3), (0x4d97b0, 0x4d97d9),
            (0x5104b0, 0x510502), (0x510870, 0x51089d), (0x4d8300, 0x4d8328), (0x50fd40, 0x50fde2), (0x5da3c0, 0x5da3c1)])
 NAV, TARGET, OBJECTS, LIST, VTABLES = RAM + 0x100, RAM + 0x20, RAM + 0x1c0, RAM + 0x1000, RAM + 0x2000
@@ -68,7 +68,7 @@ def case(r):
         put(entries, 8 * k, r.choice([0x10000, 0x8000, 0xe666, 0x1999, 0, -0x10000, r.getrandbits(32)]), OBJECTS + 0x20 * r.randrange(2))
     regions = {RAM: mem, LIST: entries, 0x7cf078: struct.pack('<II', LIST, LIST + 8 * n), 0x762190: struct.pack('<I', CDECL_LOG2), LOG: log,
                VTABLES: struct.pack('<2I', recorder(0, 2), recorder(1, 2))}
-    return Call(0x50f3b0, [NAV], regions, conv='t', ret='v')
+    return Call(r.choice([0x50f3b0, 0x510150]), [NAV], regions, conv='t', ret='v')   # (0x510150: the jump to it)
 
 
 if __name__ == '__main__':

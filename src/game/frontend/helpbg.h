@@ -34,4 +34,9 @@ void __fastcall HelpBg_Hide(u8 *self);
 // (Window_Offset) by x and y less its inner rectangle's left and top (Window_GetRect through a GUI rectangle on the stack); a word 0xffff
 // for x or y keeps that one. EAX: the rectangle's destructor's (a stack address), or 0 without the window.
 u32 __fastcall HelpBg_MoveTo(u8 *self, void *, u32 x, u32 y);
+
+// 0x4924b0 (cdecl (text); name unconfirmed): the help background at 0x7ca0c0, while its words +0xc and +4 are set, shows a wide text: its
+// window +0x18 told Window_NotifyC00(1, 1 when the text has no '\n' (wcschr), else 0); an empty text (wcslen 0) then only calls the
+// background's slot 1 (its close); any other shows the window (Window_SetShown(1)) and hands it the text through the window's slot 9.
+void __cdecl HelpBg_SetText(const u16 *text);
 }  // extern "C"

@@ -1,5 +1,5 @@
 // The dialog whose window is at 0x7ca1c8 (built by 0x498790 from the template 0x751530; 0x7ca1cc set while it is up): its nine check buttons
-// (ids 0x18-0x21 in its child 0x18) shown from a flags word. Reimplementation of 0x498090 and 0x498a50.
+// (ids 0x18-0x21 in its child 0x18) shown from a flags word. Reimplementation of 0x498090, 0x498a50 and 0x498a80.
 #pragma once
 
 #include "../../../re/types.h"
@@ -16,4 +16,7 @@ void __cdecl Dialog7ca1c8_SetChecksIfUp(u32 flags);
 
 // 0x481a00 (thiscall (flags), pops 4; name unconfirmed; `this` unused): Dialog7ca1c8_SetChecksIfUp(flags).
 void __fastcall Dialog7ca1c8_SetChecksIfUpThis(void *self, void *, u32 flags);
+
+// 0x498a80 (cdecl; name unconfirmed): the window [0x7ca1c8] takes the focus (Window_SetFocus(0), its result returned).
+u32 __cdecl Dialog7ca1c8_Focus();
 }

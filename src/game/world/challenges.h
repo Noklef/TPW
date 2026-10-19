@@ -29,6 +29,20 @@ void __fastcall Challenges_DeclineOffer(u8 *challenges);
 // this is unused.
 const u8 *__fastcall BalanceChallenges_GetSchema(const u8 *file, void *, u32 index);
 
+// 0x4d1e80 (thiscall): a BalanceChallenges destroyed: its vtable (0x700398) back, then BalanceFile_Release.
+void __fastcall BalanceChallenges_Dtor(u8 *file);
+
+// 0x4d1ce0 (thiscall): the challenges loaded from data/challenges.sam. Every slot of the list is freed (+0 = 0); a BalanceChallenges on the
+// stack (0x970 bytes: the schema's one group of 10 fields by 60 rows, 0x28 bytes a row from +0xc) is set up (BalanceFile_Init) and read
+// (BalanceFile_Load, keep 0; a failed read only asserted). Then for each of gBalanceLevel's challenge indices (0x7857d4, 20 dwords)
+// that is positive: row index of the file goes into the first free slot (+0 = 0) as mType (+0) = Type, mDoubleOrNothingFollowup
+// (+0x18) = FollowupType, mTargetTime (+4) = TargetTime, mTargetVal (+8) = TargetVal, mTargetObj / mTargetObj2 (+0xc, +0xe, words) =
+// the low words of TargetObj / TargetObj2, mTargetStaffType (+0x10) = TargetStaffType, mPrize (+0x14) = Prize, mCheckAtEndOnly (+0x1c)
+// = CheckAtEndOnly != 0, mIndependent (+0x1d) = Independent != 0, +0x20..+0x2b, +0x2c and +0x2e (a word) 0; with no free slot the
+// index is skipped. (The bytes +0x1e, +0x1f and +0x2d are uninitialised stack in the original: 0 here, sic.) Then the orphans are dropped
+// (Challenges_DropOrphans) and the file destroyed (BalanceChallenges_Dtor).
+void __fastcall Challenges_LoadSam(u8 *challenges);
+
 // 0x4d0f90 (thiscall; stream, save, version, unused): a challenge's 0x30 bytes saved or loaded as a serializer does (Save_Field; the load
 // path through the readers): mType, mTargetTime, mTargetVal, mTargetObj, mTargetObj2, mTargetStaffType, mPrize, mDoubleOrNothingFollowup,
 // mCheckAtEndOnly (+0x1c), mChallengeOffered, mChallengeLost, mChallengeDeclined, mHaveWon (+0x2c), mIndependent (+0x1d),

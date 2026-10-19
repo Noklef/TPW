@@ -34,4 +34,10 @@ void __fastcall Person_KillScript84(u8 *person);
 
 // 0x50bab0 (thiscall): like Person_KillScript84 but +0x84 is left as it is.
 void __fastcall Person_KillScript84Keep(u8 *person);
+
+// 0x4f9e60 (thiscall (x, y, z, r15, anim), pops 20; name unconfirmed): the person's script reference at +0xc, when its slot is 0, started
+// at entry point anim (ScriptRef_Start with the folder +0x24 and sprite +0x20); then the script placed (SpriteScript_SetPosition) at x,
+// y less the ground height at (x, z) (Terrain_HeightAt; fsubr, stored as a float), z, with r15; then, unless it is at that entry point
+// (ScriptRef_IsAt), the reference's +4 = anim (Set4_4217f0). Returns 0.
+u32 __fastcall Person_PlaceScript(u8 *person, void *, u32 x, float y, u32 z, u32 r15, u32 anim);
 }
