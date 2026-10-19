@@ -42,6 +42,12 @@ void __cdecl Car_FitHeight(const u8 *owner, u8 *car, const u8 *type, float heigh
 // (The length is worked out again before each car: the whole train's, as the last car's slot counts them.)
 u32 __cdecl Train_ShrinkToTop(const u8 *owner, const u8 *type, const u8 *train);
 
+// 0x4338e0 (cdecl; owner, train; name unconfirmed): the train put back as 0x436230 saved it: its first 0x48 bytes from 0x790ff0 (so its
+// count +0x30 and car slots +0x34..+0x44 too), then for each of the saved count (0x791020) of its cars, from the saved copy (0x104 bytes
+// each from 0x791d00) at the same offsets: +4, +8 (keeping the car's bits 0x600000), +0xc..+0x6c, +0x90..+0xac and +0xd4..+0x100; +0x50
+// from 0x791038 (a dword each); and Car_SetChannelRates (owner +4, car). Slots from the count to 5 are cleared; 0x791cd8 = 0.
+void __cdecl Train_RestoreSaved(const u8 *owner, u8 *train);
+
 // 0x436750: picks car's coupling as Train_SetCouplings does, without touching its flags.
 void __cdecl Car_PickCoupling(u8 *car);
 

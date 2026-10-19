@@ -122,6 +122,24 @@ u32 __cdecl Train_ShrinkToTop(const u8 *owner, const u8 *type, const u8 *train) 
     return shrunk;
 }
 
+void __cdecl Train_RestoreSaved(const u8 *owner, u8 *train) {
+    for (u32 o = 0; o < 0x48; o += 4) at<u32>(train, o) = global<u32>(0x00790ff0 + o);   // (rep movsd)
+    u32 i = 0;
+    for (; i < global<u32>(0x00791020); ++i) {
+        const u8 *const saved = reinterpret_cast<const u8 *>((uintptr_t)(0x00791d00 + 0x104 * i));
+        u8 *const car = at<u8 *>(train, 0x34 + 4 * i);
+        at<u32>(car, 4) = at<u32>(saved, 4);
+        at<u32>(car, 8) = (at<u32>(car, 8) & 0x600000) | at<u32>(saved, 8);
+        constexpr u32 kRuns[][2] = {{0xc, 0x70}, {0x90, 0xb0}, {0xd4, 0x104}};
+        for (const auto &run : kRuns)
+            for (u32 o = run[0]; o < run[1]; o += 4) at<u32>(car, o) = at<u32>(saved, o);
+        at<u32>(car, 0x50) = global<u32>(0x00791038 + 4 * i);
+        Car_SetChannelRates(at<u32>(owner, 4), car);
+    }
+    for (; i < 5; ++i) at<u32>(train, 0x34 + 4 * i) = 0;
+    global<u32>(0x00791cd8) = 0;
+}
+
 u8 *__cdecl Ride_Train(u32 index, u32 *cars) {
     const u8 *ride = reinterpret_cast<const u8 *const *>(0x007a4610)[index];
     if (!(at<u32>(ride, 4) & 0x80000)) {
