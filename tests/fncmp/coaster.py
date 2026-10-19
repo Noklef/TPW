@@ -535,19 +535,19 @@ def car_rates(r):
     +0xe8..+0xf8 about 0..1 (either side, phases past whole numbers, special); the train's type's five ranges (+0xd0 on: min below max
     mostly, scales and offsets that push past either end); the rides' +0x10 blocks with their +0x1c bases."""
     car, tr, types, rides, blocks = r.bytes(0x200), bytearray(r.bytes(0x40)), r.bytes(0x200), r.bytes(0x100), r.bytes(4 * 0x200)
-    flags = r.getrandbits(32) & ~0x12002000 | r.choice([0, 0, 0x2000]) | r.choice([0, 0x10000000])
+    flags = r.getrandbits(32) & ~0x12002000 | r.choice([0, 0, 0, 0x2000]) | r.choice([0, 0x10000000])
     put(car, 8, 'I', flags)
     put(car, 0x70, 'I', r.randrange(4))
     put(car, 0x100, 'I', SPL)
-    tr[4] = tr[4] & ~1 | r.choice([0, 0, 0, 1])
+    tr[4] = tr[4] & ~1 | r.choice([0, 0, 0, 0, 1])
     put(tr, 0x18, 'I', TYPE)
     for o in range(0xe8, 0xfc, 4):
         put(car, o, 'I', r.choice([fb(r.uniform(-0.5, 1.5)), fb(r.uniform(-3, 3)), fb(r.randrange(-3, 4) + r.choice([0, -1e-8, 1e-7])), r.f(), r.f(1e4)]))
     for k in range(5):
         b = 0xd0 + 0x10 * k
-        lo = r.uniform(-2, 2)
-        put(types, b, 'ff', lo, lo + r.choice([r.uniform(0, 3), 0.0, -1.0]))
-        put(types, b + 8, 'II', r.choice([fb(r.uniform(-4, 4)), r.f()]), r.choice([fb(r.uniform(-2, 2)), r.f()]))
+        lo = r.uniform(-3, 1)
+        put(types, b, 'ff', lo, lo + r.choice([r.uniform(1, 6), r.uniform(1, 6), r.uniform(0, 1), 0.0, -1.0]))   # (mostly room inside)
+        put(types, b + 8, 'II', r.choice([fb(r.uniform(-2, 2)), fb(r.uniform(-2, 2)), r.f()]), r.choice([fb(r.uniform(-1, 1)), fb(r.uniform(-1, 1)), r.f()]))
         if r.random() < 0.05:
             put(types, b + r.choice([0, 4]), 'I', r.choice([0x7fc00000, 0xffc00000]))
     for k in range(4):
