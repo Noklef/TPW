@@ -7,7 +7,6 @@ address,name,module,reason
 472270,Motion_CopyVertices,motion/track,todo
 472310,Motion_ResetChannels,motion/track,todo: indirect only
 473440,Motion_UpdateClocks,motion/animator,todo
-4745c0,Motion_ApplyUVs,motion/uvanim,todo
 475430,SpriteScripts_Draw,sprite/script,todo
 4d7bb0,World_InitBlock,world/mapcell,todo
 50b350,Thing_GetHandle,world/things,todo: indirect only
