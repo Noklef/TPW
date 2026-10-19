@@ -19,14 +19,14 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 u16 map_id(const u8 *thing) { return (u16)((at<u8>(thing, 7) << 7) + at<u8>(thing, 5) + 1); }
 
-// The float at +0x19c = v kept to 0..100 (fcom 100.0: above it 100; fcom 0.0: below it, or unordered, 0).
-void set19c(u8 *visitor, X87Reg v) {
+// The float at p = v kept to 0..100 (fcom 100.0: above it 100; fcom 0.0: below it, or unordered, 0).
+void set100(void *p, X87Reg v) {
     if (v.v > 100.0)
-        at<u32>(visitor, 0x19c) = 0x42c80000;
+        at<u32>(p, 0) = 0x42c80000;
     else if (!(v.v >= 0.0))
-        at<u32>(visitor, 0x19c) = 0;
+        at<u32>(p, 0) = 0;
     else
-        at<float>(visitor, 0x19c) = (float)v.v;
+        at<float>(p, 0) = (float)v.v;
 }
 
 }  // namespace
@@ -214,10 +214,12 @@ u32 __fastcall Visitor_IsState6To10(const u8 *visitor) {
 }
 
 void __fastcall Visitor_Raise19c(u8 *visitor, void *, u32 index) {
-    set19c(visitor, X87Reg((double)Bytes785058_Get(index)) + X87Reg(at<float>(visitor, 0x19c)));
+    set100(visitor + 0x19c, X87Reg((double)Bytes785058_Get(index)) + X87Reg(at<float>(visitor, 0x19c)));
 }
 
 void __fastcall Visitor_Lower19c(u8 *visitor, void *, u32 index) {
-    set19c(visitor, X87Reg(-(double)Bytes785058_Get(index)) + X87Reg(at<float>(visitor, 0x19c)));   // fild; fchs; fadd
+    set100(visitor + 0x19c, X87Reg(-(double)Bytes785058_Get(index)) + X87Reg(at<float>(visitor, 0x19c)));   // fild; fchs; fadd
 }
+
+void __fastcall Stat100_Add(float *stat, void *, float delta) { set100(stat, X87Reg(delta) + X87Reg(*stat)); }
 }

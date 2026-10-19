@@ -1,6 +1,6 @@
 // The things' map ids and the people (Sprite, the moving-person base serialized at 0x4f8b10, and
 // Visitor, thing model 1, at 0x4fb530): reimplementation of 0x4e2650, 0x4f9460, 0x4fd950 and
-// 0x4fdc60, 0x501290, 0x502430, 0x4fec10, 0x4fe9c0 and 0x4fea70 (thiscall). A thing's mX and mY (+4, +6) are 8.8 fixed point; its map id is the cell's
+// 0x4fdc60, 0x501290, 0x502430, 0x4fec10, 0x4fe9c0, 0x4fea70 and 0x4fb4f0 (thiscall). A thing's mX and mY (+4, +6) are 8.8 fixed point; its map id is the cell's
 // row (mY's high byte) * 128 + column (mX's high byte) + 1. Sprite +0xcc mLastRecordedMapId;
 // Visitor +0x1d4 mArrivalDate (a world tick), +0x1e8 mPreviousRides (u16[4], newest first),
 // +0x19c a float kept to 0..100, +0x1f1 mQueuePos (a byte), +0x220 mState, +0x224 mSavedState.
@@ -37,6 +37,10 @@ u32 __fastcall Visitor_IsState6To10(const u8 *visitor);
 // (Bytes785058_Get's, inlined: 0 past 2) in x87 single precision, then kept to 0..100: above 100 it is 100, below 0 (or NaN) 0.
 void __fastcall Visitor_Raise19c(u8 *visitor, void *, u32 index);
 void __fastcall Visitor_Lower19c(u8 *visitor, void *, u32 index);
+
+// 0x4fb4f0 (thiscall on a float; delta, pops 4; name unconfirmed): the float plus delta in x87 single precision, kept to 0..100 as
+// Visitor_Raise19c's (the visitor's 0..100 values: +0x1b8 and others).
+void __fastcall Stat100_Add(float *stat, void *, float delta);
 
 // 0x50ba80: a person's thoughts (serialized at 0x50bad0) cleared: +0, the 32 u16 pairs of
 // the action history (+4), mThoughtScript (+0x84), mActionHistIndex (+0x88) and

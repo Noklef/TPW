@@ -3388,6 +3388,7 @@ address,name,kind,confidence,notes
 0x004fec10,Visitor_IsState6To10,function,low,reimplemented (src/game/world/person); thiscall: whether mState (+0x220) is 6 to 10
 0x004fe9c0,Visitor_Raise19c,function,low,"reimplemented (src/game/world/person); thiscall (index): the float +0x19c raised by the global byte for index, kept to 0..100"
 0x004fea70,Visitor_Lower19c,function,low,"reimplemented (src/game/world/person); thiscall (index): the float +0x19c lowered by the global byte for index, kept to 0..100"
+0x004fb4f0,Stat100_Add,function,low,"reimplemented (src/game/world/person); thiscall on a float (delta): the float plus delta, kept to 0..100"
 0x00550d80,Setting_SetMode,function,high,reimplemented (src/game/core/options); stores a mode and sets its flag bits
 0x005633e0,Quad_Push,function,high,reimplemented (src/game/core/seqs); pushes four dwords into the next of four slots
 0x0059c390,Table76e300_GetObjectDword,function,high,reimplemented (src/game/world/objectdefs); a dword of the object indexed through a record of the table
