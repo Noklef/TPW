@@ -319,12 +319,6 @@ address,name,module,reason
 630720,SurfaceBuffer_Dtor,gfx/surfbuf,todo
 630730,SurfaceBuffer_Create,gfx/surfbuf,todo
 630790,SurfaceBuffer_Release,gfx/surfbuf,todo
-6307c0,Semaphore_Ctor,core/semaphore,todo: indirect only
-6307e0,Semaphore_Dtor,core/semaphore,todo
-6307f0,SemaphoreLock_Ctor,core/semaphore,todo
-630810,SemaphoreLock_Dtor,core/semaphore,todo
-630820,SemaphoreLock_Acquire,core/semaphore,todo
-630850,SemaphoreLock_Release,core/semaphore,todo
 630880,PixelConversion_Ctor,gfx/pixconv,todo
 630890,PixelConversion_Setup,gfx/pixconv,todo
 630b70,PixelConversion_Row,gfx/pixconv,todo
