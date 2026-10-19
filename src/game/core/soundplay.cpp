@@ -46,4 +46,18 @@ u32 __cdecl SoundUi_Play(u32 sound) { return Sound_PlayAt(0, global<u32>(0x00803
 
 u32 __cdecl SoundUi_Play1d() { return Sound_PlayAt(0, global<u32>(0x00803a2c), 0x1d, 0, 0, 0); }
 
+u32 __cdecl KidSound_Play(s32 level, s32 x, s32 y, s32 z) {
+    if (level == 0) return 0;
+    const u32 sound = level == 1 ? 0x69 : level < 4 ? 0x6a : level < 8 ? 0x6c : 0x6d;
+    return Sound_PlayAt(0, global<u32>(0x00803a24), sound, x, y, z);
+}
+
+u32 __cdecl KidSound_PlayGraded(s32 level, s32 a, s32 b, s32 x, s32 y, s32 z) {
+    s32 grade = (s32)((u32)a + (u32)b) / 50;
+    if (grade > 3) grade = 3;
+    if (level == 0 || grade < 0) return 0;
+    const u32 base = level == 1 ? 0x4b : level < 4 ? 0x4f : level < 8 ? 0x53 : 0x57;
+    return Sound_PlayAt(0, global<u32>(0x00803a24), base + (u32)grade, x, y, z);
+}
+
 }

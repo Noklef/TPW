@@ -311,16 +311,20 @@ LOG_ENTRIES = 40  # (the room: 4 + 48 * 40 bytes)
 LOG_RETURNS = 0x800  # from here an override for each slot: a flag and a value (flag 2: the value is an argument's index, see echo())
 
 
-def recorder(k, n, com=False):
+def recorder(k, n, com=False, cdecl=False):
     if com:  # (slots 0-63, 0x800 for each n)
         return VSTUBS + 0x4000 + 0x800 * n + 0x20 * k
+    if cdecl:  # (slots 0-31, n up to 15, from +0xa000: the caller pops the arguments; this logged as 0 and k as k | 0x200)
+        return VSTUBS + 0xa000 + 0x400 * n + 0x20 * k
     return VSTUBS + 0x400 * n + 0x20 * k
 
 
-def vtable(slots, size=32, com=None):
-    """A vtable's bytes: slot k calls a recorder taking slots[k] stack arguments (k not in slots: no arguments); com[k] for a COM-style slot."""
-    com = com or {}
-    return bytearray(struct.pack('<%dI' % size, *[recorder(k, com[k], True) if k in com else recorder(k, slots.get(k, 0)) for k in range(size)]))
+def vtable(slots, size=32, com=None, cdecl=None):
+    """A vtable's bytes: slot k calls a recorder taking slots[k] stack arguments (k not in slots: no arguments); com[k] for a COM-style slot
+    (this the first stack argument), cdecl[k] for a cdecl one (the caller pops the arguments, as the game's vtables of plain function pointers)."""
+    com, cdecl = com or {}, cdecl or {}
+    return bytearray(struct.pack('<%dI' % size, *[recorder(k, com[k], True) if k in com else recorder(k, cdecl[k], cdecl=True) if k in cdecl
+                                                  else recorder(k, slots.get(k, 0)) for k in range(size)]))
 
 
 def log_region():
@@ -472,12 +476,12 @@ def tail_hash(args):
     return h
 
 
-def _recorder(k, n, com=False):
+def _recorder(k, n, com=False, cdecl=False):
     def hook(e):
         sp = e.r['ESP'] + (4 if e.tail else 0)
         raw = [e.u32(sp + 4 * i) for i in range(n)]
-        this = 0 if com else e.r['ECX']
-        kk = k | 0x100 if com else k
+        this = 0 if com or cdecl else e.r['ECX']
+        kk = k | 0x100 if com else k | 0x200 if cdecl else k
         args = _log_args(e, k, raw)
         count = e.u32(LOG)
         if count < LOG_ENTRIES:
@@ -486,6 +490,8 @@ def _recorder(k, n, com=False):
             e.write(LOG, struct.pack('<I', count + 1))
         flag, value = struct.unpack('<2I', e.read(LOG + LOG_RETURNS + 8 * k, 8))
         e.r['EAX'] = raw[value] if flag == 2 and value < n else value if flag else vhash(kk, n, this, args)
+        if cdecl:  # (the caller pops them)
+            return
         if e.tail:  # the return address goes up over the arguments the callee would have popped
             ret = e.u32(e.r['ESP'])
             e.r['ESP'] += 4 * n
@@ -654,6 +660,7 @@ class Bench:
                                0x6918f0: _throw('_Xlen'), 0x691ba0: _throw('_Xran')})
         self.emu.hooks.update({recorder(k, n): _recorder(k, n) for k in range(32) for n in range(16)})  # (n up to 15 fits below the COM recorders at +0x4000)
         self.emu.hooks.update({recorder(k, n, True): _recorder(k, n, True) for k in range(64) for n in range(12)})
+        self.emu.hooks.update({recorder(k, n, cdecl=True): _recorder(k, n, cdecl=True) for k in range(32) for n in range(16)})
         self.emu.hooks.update(hooks or {})
         self.emu.cpuid, self.emu.id_writable = _cpuid, _id_writable
         self.extra = {0x7b095c: sine_table(sines)} if sines else {}

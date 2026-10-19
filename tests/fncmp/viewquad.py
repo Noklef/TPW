@@ -14,7 +14,9 @@ QUAD = RAM + 0x100
 
 
 def case(r):
-    fov = r.choice([0x42b40000, r.f(), r.f(180), r.pos(180), r.f(1e6), r.f(1e12), r.f(1e18), r.f(1e21), fb(r.choice([180.0, 360.0, -180.0, 0.0, 1e22, -3e21, math.inf]))])
+    # (the last: angles of 2^24 to 2^62, where fptan's reduction by the 66-bit pi shows)
+    fov = r.choice([0x42b40000, r.f(), r.f(180), r.pos(180), r.f(1e6), r.f(1e12), r.f(1e18), r.f(1e21), fb(r.choice([180.0, 360.0, -180.0, 0.0, 1e22, -3e21, math.inf])),
+                    fb(r.choice([-1, 1]) * r.uniform(1, 2) * 2.0 ** r.randint(31, 68))])
     aspect = r.choice([fb(4 / 3), fb(0.75), r.f(), r.f(4)])
     regions = {QUAD: r.bytes(0x30), 0x8bcbcc: struct.pack('<I', aspect)}
     return Call(0x56b790, [QUAD, fov], regions, conv='t')
