@@ -4817,6 +4817,8 @@ address,name,kind,confidence,notes
 0x004eeb50,ChatAvatar_GotoRoom,function,low,"reimplemented (src/game/online/chatavatar); thiscall: the wide text +0xf00 (or the empty string 0x6fd6c4) as a stack std::wstring told to Chat::Goto (import 0x6fd490) with the avatar, then released"
 0x004ea2d0,ChatAvatar_Enter,function,low,"reimplemented (src/game/online/chatavatar); thiscall (x, y): the avatar thing script placed at (0, 0, 0) at entry point 3 (Person_PlaceScript), its register 8 set to 1.5, then the moves of ChatAvatar_MoveTo with mode 1"
 0x005d2720,Ftp_ListLineSize,function,low,"reimplemented (src/game/online/ftp); thiscall, this unused (line; pops 4): atoi of a directory listing line's fifth field (its size), past four runs of non-spaces and spaces (isspace; a NUL is not one, sic)"
+0x004e6130,OnlineChat_Set29And2a,function,low,reimplemented (src/game/online/chat); the online chat's bytes +0x29 and +0x2a set under its lock (name unconfirmed)
+0x004e6150,OnlineChat_Get2a,function,low,reimplemented (src/game/online/chat); the online chat's byte +0x2a read under its lock (name unconfirmed)
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"

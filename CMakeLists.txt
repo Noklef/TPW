@@ -337,6 +337,7 @@ add_library(tpw_game STATIC
     src/game/online/onlinelist.cpp
     src/game/online/chatavatar.cpp
     src/game/online/ftp.cpp
+    src/game/online/chat.cpp
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
     src/game/frontend/lobbyscene.cpp
