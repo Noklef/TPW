@@ -8,6 +8,8 @@
 #include "vcall.h"
 #include "vobj3.h"
 #include "../gfx/texture.h"
+#include "../render/fixedverts.h"
+#include "../render/softrender.h"
 #include "../render/engineerrors.h"
 
 namespace {
@@ -268,6 +270,48 @@ u32 __fastcall Object_ReleaseSavedPairs130(u8 *object) {
 u32 __fastcall Obj_ReleaseSevenIfMode1(u8 *object) {
     if (global<u32>(0x008bd524) == 1)
         return Obj_ReleaseSevenComMembers(object);
+    return 1;
+}
+u32 __fastcall Object_RenderToBlock13c(u8 *object, void *, u8 *mesh) {
+    FixedVerts_Pack(at<u8 *>(mesh, 0x28), at<u32>(mesh, 0x20), 0x20);
+    SoftRenderer_ClearBuffer(global<u8 *>(0x00879dac));
+    vcall<void>(global<u8 *>(0x00879acc), 0x14, mesh);
+    if (global<u32>(0x008bd554) != 2)
+        return 1;
+    const u32 *const pixels = at<const u32 *>(global<u8 *>(0x00879dac), 8);
+    u16 *out = reinterpret_cast<u16 *>(Texture_Lock(at<u8 *>(at<u8 *>(object, 0x13c), 0x18)));
+    s32 width = global<s32>(0x008bd4ac), count = global<s32>(0x008bd4b0);
+    const s32 side = width / count;
+    if (count <= 0)
+        return 1;
+    s32 row = 0;
+    for (s32 by = 0;;) {
+        if (count > 0) {
+            s32 column = 0;
+            for (s32 bx = 0;;) {
+                s32 sum = 0;
+                if (side > 0) {
+                    const u32 stride = (u32)width;
+                    const u32 *line = pixels + ((u32)width * (u32)row + (u32)column);
+                    for (s32 y = side; y != 0; y--, line += stride) {
+                        for (s32 x = 0; x < side; x++)
+                            sum += (s32)((line[x] >> 16) & 0xff);
+                    }
+                }
+                const s32 mean = sum / (s32)((u32)side * (u32)side);
+                const u32 high = (u32)mean & 0xf0;
+                *out++ = (u16)(((high | 0xff00) << 4) | (u32)(mean >> 4) | high);
+                count = global<s32>(0x008bd4b0);
+                width = global<s32>(0x008bd4ac);
+                column += side;
+                if (++bx >= count)
+                    break;
+            }
+        }
+        row += side;
+        if (++by >= count)
+            break;
+    }
     return 1;
 }
 }  // extern "C"
