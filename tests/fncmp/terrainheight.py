@@ -35,8 +35,8 @@ def coordinate(r, n, size, other):
     return r.uniform(0, max(edge, 1.0))
 
 
-def case(r):
-    op = r.deal(OPS)
+def case(r, ops=None):   # (ops: other benches take the Height ground alone)
+    op = r.deal(ops or OPS)
     w, h = (r.choice([0, 1, 2, 3, 4, 5, 8, 8]) for _ in range(2))
     if r.random() < 0.03:
         w, h = r.getrandbits(32), r.getrandbits(32)

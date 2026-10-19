@@ -32,7 +32,7 @@ def quad(r):
 def case(r):
     if r.deal(['add', 'quad']) == 'quad':
         return quad(r)
-    ground = terrainheight.case(r)
+    ground = terrainheight.case(r, ['Height'])
     x, z = ground.args
     if r.random() < 0.2:
         x, z = r.f(), r.f()
