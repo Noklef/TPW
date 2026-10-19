@@ -24,6 +24,22 @@ u32 __cdecl Save_Read8Bytes(Stream *stream, void *dst, const char *name, u32 qui
 
 u32 __cdecl Save_Read12Bytes(Stream *stream, void *dst, const char *name, u32 quiet) { return read_field(stream, dst, name, quiet, 12); }
 
+// The writers' shared body: announce the field unless quiet, write it; 0 when the whole field went, else 1 (after the empty print of 0x747120).
+static u32 write_field(Stream *stream, const void *src, const char *name, u32 quiet, s32 size) {
+    if (quiet == 0)
+        Save_FieldName((u32)size, name, 0);
+    s32 result, done = 0;
+    if (*Stream_Write(&result, stream, src, size, &done) < 0 || done != size)
+        return 1;
+    return 0;
+}
+
+u32 __cdecl Save_WriteU8(Stream *stream, const void *src, const char *name, u32 quiet) { return write_field(stream, src, name, quiet, 1); }
+
+u32 __cdecl Save_WriteU16(Stream *stream, const void *src, const char *name, u32 quiet) { return write_field(stream, src, name, quiet, 2); }
+
+u32 __cdecl Save_WriteU32(Stream *stream, const void *src, const char *name, u32 quiet) { return write_field(stream, src, name, quiet, 4); }
+
 void __cdecl Save_InitUnusedOne() { *reinterpret_cast<float *>(0x0078aa2c) = 1.0f; }
 
 void __cdecl Save_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x0078b11c) = 1.0f / 8388608.0f; }

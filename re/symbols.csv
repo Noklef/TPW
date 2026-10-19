@@ -161,9 +161,9 @@ address,name,kind,confidence,notes
 0x00424c20,Save_ReadU8,function,high,"reimplemented (src/game/core/savegame); cdecl (stream, destination, name, quiet): reads a 1-byte field, announced unless quiet; 0 when it all came, else 1"
 0x00510240,Save_Read8Bytes,function,high,"reimplemented (src/game/core/savegame); cdecl (stream, destination, name, quiet): reads an 8-byte field, announced unless quiet; 0 when it all came, else 1"
 0x005134d0,Save_Read12Bytes,function,high,"reimplemented (src/game/core/savegame); cdecl (stream, destination, name, quiet): reads a 12-byte field, announced unless quiet; 0 when it all came, else 1"
-0x004ced70,Save_WriteU32,function,high,
-0x004cee50,Save_WriteU8,function,high,
-0x004ceec0,Save_WriteU16,function,high,
+0x004ced70,Save_WriteU32,function,high,reimplemented (src/game/core/savegame); a dword field written to a save stream (name unconfirmed)
+0x004cee50,Save_WriteU8,function,high,reimplemented (src/game/core/savegame); a byte field written to a save stream (name unconfirmed)
+0x004ceec0,Save_WriteU16,function,high,reimplemented (src/game/core/savegame); a word field written to a save stream (name unconfirmed)
 0x004cede0,Save_Write8Bytes,function,high,
 0x0050b090,Thing_Serialize,function,high,"reimplemented (src/game/world/things); thiscall (stream, save, version, unused): the thing's words +4, +6, +0xa, +8 saved or loaded; a full load clears the byte +3"
 0x00509bc0,ThingBasic_Serialize,function,high,"reimplemented (src/game/world/things); thiscall (stream, save, version, unused): Thing_Serialize, its result as 0 or 1"
