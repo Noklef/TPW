@@ -1667,6 +1667,7 @@ address,name,kind,confidence,notes
 0x004d49a0,Math_ISqrt,function,low,"reimplemented (src/game/math/intpair); cdecl (n): fild (n as unsigned) fsqrt __ftol, at the game's 24-bit precision"
 0x0050f600,IntPair_Truncate,function,low,"reimplemented (src/game/math/intpair); cdecl (&out, &pair, limit): the pair cut to the limit's length (octagonal-free ISqrt length in three tiers; one IDIV that faults on 0 or overflow)"
 0x0050f700,IntPair_Normalize,function,low,"reimplemented (src/game/math/intpair); cdecl (&out, &pair): the pair made 1.0 long (ISqrt length in three tiers; 0 for a zero root)"
+0x004d9cc0,IntPair_Rotated,function,low,"reimplemented (src/game/math/intpair); thiscall (&out, angle): out = the pair turned by angle % 360 in quarter turns (others a copy)"
 0x005428a0,IntSin,function,high,"reimplemented (src/game/math/intsin); cdecl (angle, 512 a turn): the integer sine table's (0x877358) entry angle & 0x1ff, shifted left 2"
 0x005428c0,IntCos,function,high,reimplemented (src/game/math/intsin); cdecl (angle): as IntSin for angle + 0x80
 0x005442e0,IntSin_BuildTable,function,low,"reimplemented (src/game/math/intsin); cdecl: the 512 entries at 0x877358 = __ftol(fsin(2i * 0.00613591796875) * 256.0) (x87, 24-bit)"

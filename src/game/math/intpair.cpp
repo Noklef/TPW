@@ -17,6 +17,31 @@ u32 *__fastcall IntPair_Scaled(const u32 *pair, void *, u32 *out, u32 scale) {
     return out;
 }
 
+u32 *__fastcall IntPair_Rotated(const u32 *pair, void *, u32 *out, s32 angle) {
+    const u32 x = pair[0], y = pair[1];
+    switch (angle % 360) {
+    case 90:
+    case -270:
+        out[0] = y;
+        out[1] = 0 - x;
+        return out;
+    case 180:
+    case -180:
+        out[0] = 0 - x;
+        out[1] = 0 - y;
+        return out;
+    case 270:
+    case -90:
+        out[0] = 0 - y;
+        out[1] = x;
+        return out;
+    default:   // (0, or another reported to the empty Debug_Printf)
+        out[0] = pair[0];
+        out[1] = pair[1];
+        return out;
+    }
+}
+
 s32 *__fastcall IntPair_DivFixed(const s32 *pair, void *, s32 *out, s32 divisor) {
     const s32 y = (s32)(((long long)pair[1] << 16) / divisor);
     const s32 x = (s32)(((long long)pair[0] << 16) / divisor);
