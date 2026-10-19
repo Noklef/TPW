@@ -57,7 +57,7 @@ address,name,kind,confidence,notes
 0x0055de70,FlyingRides_Save,function,high,reimplemented (src/game/core/savemods); writes the flying rides module to the save game
 0x005597a0,RSSE_Load,function,high,module RSSE
 0x00559350,RSSE_Save,function,high,reimplemented (src/game/core/savemods); writes the script contexts to the save game
-0x0042cec0,Camera_Load,function,high,module KAME
+0x0042cec0,Camera_Load,function,high,"reimplemented (src/game/core/savemods); 0x42cec0 (stream): the mirror of Camera_Save, then the flags cleared, 0x7909e0 the yaw, and the yaw snapped to a quarter turn when 0x78d912 is set"
 0x0042cdc0,Camera_Save,function,high,reimplemented (src/game/core/savemods); writes the camera values to the save game
 0x00437b60,Coasters_Load,function,high,module COAS
 0x00437300,Coasters_Save,function,high,"reimplemented (src/game/coaster/save); cdecl u32 (stream): link count, three globals, per link a 0x20-byte record, its pieces' 0x22-byte records and word lists, its cars' 0x1b- and seats' 0xb-byte records and arrays; failed writes never stop it; returns 1"

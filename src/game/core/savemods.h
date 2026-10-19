@@ -31,4 +31,9 @@ u32 __cdecl RSSE_Save(Stream *stream);
 // 0x80cef4 keep their values through the read. Returns 0.
 u32 __cdecl Particles_Load(Stream *stream);
 
+// 0x42cec0 (stream): the mirror of Camera_Save, read into the same globals in the same order; 0 as soon as a read reports an error. Then
+// gCameraFlags (0x790ab0) cleared, 0x7909e0 = the yaw, and when the byte 0x78d912 is set the yaw snapped to a quarter turn (Camera_SnapYaw,
+// inlined in the original). Returns 1.
+u32 __cdecl Camera_Load(Stream *stream);
+
 }  // extern "C"
