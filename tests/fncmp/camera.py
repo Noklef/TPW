@@ -33,7 +33,9 @@ def case(r):
         message = r.choice(list(range(0x1e, 0x23)) * 2 + list(range(0x10001, 0x1000e)) + [0x1d, 0x23, 0x10000, 0x1000e, 0, r.getrandbits(32)])
         param = r.choice([r.getrandbits(32), r.randrange(0x10000) << 16 | r.randrange(0x10000), 0, 1, 2, 3, 0xffffffff, 0x80000000,
                           r.choice([120, -120, 240, -240]) & 0xffffffff])
-        cam = bytearray(r.bytes(0xf0))
+        if message == 0x1000d and r.random() < 0.3:   # (the wheel at 0: not negative)
+            param = 0
+        cam =bytearray(r.bytes(0xf0))
         for at in (0x9ec, 0xa38, 0xac8, 0xacc):
             put(cam, at - 0x9e0, 'I', r.choice([fb(r.uniform(-1000, 1000)), fb(r.uniform(0, 1000)), fb(110.0), r.f()]))
         screen = bytearray(r.bytes(8))
