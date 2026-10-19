@@ -3738,6 +3738,8 @@ address,name,kind,confidence,notes
 0x00479260,Ime_OnChar,function,low,"reimplemented (src/game/core/ime); thiscall (window, character, lparam), pops 12: 0 unless IsDBCSLeadByte(character); up to 10 PeekMessageA(WM_CHAR, removed) for the trail byte (1 when none); MultiByteToWideChar of lead + trail (1 unless one character); message 0x410 with the character and lparam through the IME handler +0x50 or DefWindowProcA; 1"
 0x004791a0,ImeContext_Get,function,low,"reimplemented (src/game/core/ime); thiscall (window), pops 4: context { window, ImmGetContext(window) }; returns context"
 0x00478d20,ImeContext_Release,function,low,"reimplemented (src/game/core/ime); thiscall: with a context, ImmReleaseContext(window, context); returns EAX (that, else 0)"
+0x00478be0,Ime_Dtor,function,low,"reimplemented (src/game/core/ime); thiscall destructor: vtable 0x6fef04, ImmDestroyContext(+0x5c) when set, each 0x24 entry's strings cleared (CountedVector4_Clear +0x10), the entries' block freed and +0x3c-+0x44 0, then the wide strings +0x28 / +0x18 / +0x8 tidied (inlined)"
+0x00478bc0,Ime_DeletingDtor,function,low,"reimplemented (src/game/core/ime); thiscall (flags), pops 4: Ime_Dtor, then freed for flags bit 0; returns ime"
 0x0047f9a0,TextMetrics_Width,function,high,reimplemented (src/game/gfx/text); width of a run of characters by the glyph width slot
 0x0047fa00,TextMetrics_FitIndex,function,high,reimplemented (src/game/gfx/text); index at which the width runs out
 0x0047f990,TextMetrics_ForwardSlot8,function,high,reimplemented (src/game/gfx/text); Forwards to virtual call 8 of the inner object (name unconfirmed)

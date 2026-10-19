@@ -67,4 +67,12 @@ u32 __fastcall Ime_OnChar(u8 *ime, void *, u32 window, u32 character, u32 lparam
 // ImmReleaseContext (0x6fd080, thunk 0x6b55a0) of window and context; returns what EAX holds (the release's answer, else 0).
 u32 *__fastcall ImeContext_Get(u32 *context, void *, u32 window);
 u32 __fastcall ImeContext_Release(const u32 *context);
+
+// 0x478be0 (thiscall; the destructor): the vtable back to 0x6fef04, the context +0x5c (when set) destroyed (ImmDestroyContext 0x6fd07c,
+// thunk 0x6b559a); each 0x24-byte entry of the vector +0x38 (first +0x3c up to last +0x40, read once) has its strings' vector +0x10
+// cleared (CountedVector4_Clear), the block freed (null too) and +0x3c-+0x44 cleared; then the wide strings +0x28, +0x18 and +0x8 tidied
+// (inlined: released or their count lowered, emptied). 0x478bc0 (thiscall; flags, pops 4): that, then the IME freed for flags bit 0;
+// returns ime.
+void __fastcall Ime_Dtor(u8 *ime);
+u8 *__fastcall Ime_DeletingDtor(u8 *ime, void *, u32 flags);
 }

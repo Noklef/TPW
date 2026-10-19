@@ -19,6 +19,22 @@ struct Message {   // (MSG)
     u32 window, message, wparam, lparam, time, x, y;
 };
 
+// The wide string's _Tidy(true), inlined in the destructor: the block (two bytes before the characters) freed when the count byte before
+// them is 0 or 0xff (frozen), else that count lowered; then ptr, len and res 0. s is the string { allocator, ptr, len, res }.
+void TidyWide(u8 *s) {
+    u8 *const characters = at<u8 *>(s, 4);
+    if (characters) {
+        const u8 count = characters[-1];
+        if (count != 0 && count != 0xff)
+            characters[-1] = (u8)(count - 1);
+        else
+            GameHeap_Free(characters - 2);
+    }
+    at<u32>(s, 4) = 0;
+    at<u32>(s, 8) = 0;
+    at<u32>(s, 0xc) = 0;
+}
+
 }  // namespace
 
 extern "C" {
@@ -285,5 +301,26 @@ u32 __fastcall ImeContext_Release(const u32 *context) {
     const u32 himc = context[1];
     if (!himc) return 0;
     return import<u32(__stdcall *)(u32, u32)>(0x006fd080)(context[0], himc);
+}
+
+void __fastcall Ime_Dtor(u8 *ime) {
+    at<u32>(ime, 0) = 0x006fef04;
+    const u32 context = at<u32>(ime, 0x5c);
+    if (context) import<u32(__stdcall *)(u32)>(0x006fd07c)(context);
+    u8 *const last = at<u8 *>(ime, 0x40);
+    for (u8 *entry = at<u8 *>(ime, 0x3c); entry != last; entry += 0x24) CountedVector4_Clear(entry + 0x10);
+    GameHeap_Free(at<void *>(ime, 0x3c));
+    at<u32>(ime, 0x3c) = 0;
+    at<u32>(ime, 0x40) = 0;
+    at<u32>(ime, 0x44) = 0;
+    TidyWide(ime + 0x28);
+    TidyWide(ime + 0x18);
+    TidyWide(ime + 8);
+}
+
+u8 *__fastcall Ime_DeletingDtor(u8 *ime, void *, u32 flags) {
+    Ime_Dtor(ime);
+    if (flags & 1) GameHeap_Free(ime);
+    return ime;
 }
 }
