@@ -9,18 +9,9 @@ address,name,module,reason
 4721f0,Motion_Apply,motion/track,todo
 472270,Motion_CopyVertices,motion/track,todo
 472310,Motion_ResetChannels,motion/track,todo: indirect only
-472d10,Animator_HasMotion,motion/animator,todo
-472d70,Motion_MarkNodes,motion/animator,todo: indirect only
-472ee0,Animator_CountLayers,motion/animator,todo
-472f40,Animator_SetPlaying,motion/animator,todo
-473270,Layer_ClearQueue,motion/animator,todo
 473440,Motion_UpdateClocks,motion/animator,todo
-473550,Animator_RefreshNodes,motion/animator,todo
 473a40,Node_UpdateNormals,motion/normals,todo: indirect only
 473c30,Model_UpdateNormals,motion/normals,todo
-473fb0,Layer_GetFlags,motion/animator,todo
-473ff0,Layer_GetQueued,motion/animator,todo
-4740d0,Motion_SetFlags,motion/animator,todo
 4745c0,Motion_ApplyUVs,motion/uvanim,todo
 475010,SpriteScript_Run,sprite/script,todo
 475290,SpriteScripts_Init,sprite/script,todo

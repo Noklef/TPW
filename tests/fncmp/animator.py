@@ -202,8 +202,22 @@ def world(r):
     return regs, nlayers, blocks
 
 
+def mark_tracks(r, regs, blocks):
+    """Motion_MarkNodes only reads the tracks' flags: add the vertex (0x1000), UV (0x10000) and matrix (1, 0x200) bits."""
+    data = regs[DATA]
+    for b in blocks:
+        o = b - DATA
+        n, tracks = struct.unpack_from('<H', data, o + 0x12)[0], struct.unpack_from('<I', data, o + 0x2c)[0] - DATA
+        for k in range(n):
+            flags = struct.unpack_from('<I', data, tracks + 0x40 * k + 4)[0]
+            for bit in (0x1000, 0x10000, 1, 0x200):
+                if r.random() < 0.3:
+                    flags |= bit
+            put(data, tracks + 0x40 * k + 4, 'I', flags)
+
+
 def case(r):
-    op = r.choice(OPS)
+    op = r.deal(OPS)
     regs, nlayers, blocks = world(r)
     layer = LAYERS + 0x38 * r.randrange(nlayers)
     blk = r.choice(blocks + [0])
@@ -243,11 +257,33 @@ def case(r):
         return Call(0x474050, [ANIM, speed, r.randrange(nlayers)], regs)
     if op == 'EndMs':
         return Call(0x474070, [ANIM, bank, entry], regs, ret='a')
+    index = r.randrange(nlayers)
+    if op == 'HasMotion':
+        put(regs[OUT], 0xc, 'I', ANIM)
+        return Call(0x472d10, [OUT + 0xc, bank, entry], regs, ret='a')
+    if op == 'MarkNodes':
+        mark_tracks(r, regs, blocks)
+        return Call(0x472d70, [r.choice(blocks), HOLDER], regs)
+    if op == 'CountLayers':
+        return Call(0x472ee0, [ANIM], regs)
+    if op == 'SetPlaying':
+        return Call(0x472f40, [ANIM], regs)
+    if op == 'ClearQueue':
+        return Call(0x473270, [ANIM, index], regs, ret='a')
+    if op == 'RefreshNodes':
+        return Call(0x473550, [ANIM], regs)
+    if op == 'GetFlags':
+        return Call(0x473fb0, [ANIM, r.choice([OUT, 0]), r.choice([OUT + 4, 0]), index], regs, ret='a')
+    if op == 'GetQueued':
+        return Call(0x473ff0, [ANIM, r.choice([OUT, 0]), r.choice([OUT + 4, 0]), index], regs)
+    if op == 'SetFlags':
+        return Call(0x4740d0, [r.getrandbits(32)], regs)
     return Call(0x473f50, [ANIM, OUT, r.choice([OUT + 4, 0]), OUT + 8, r.randrange(nlayers)], regs, ret='a')
 
 
 OPS_ALL = ['Start', 'Advance', 'SetBlock', 'TimeLeft', 'Play', 'AnimPlay', 'IsIdle', 'Update', 'AnimUpdate', 'Reset',
-           'ResetLayers', 'QSpeed', 'SetSpeed', 'EndMs', 'Playback', 'SetTime', 'Time']
+           'ResetLayers', 'QSpeed', 'SetSpeed', 'EndMs', 'Playback', 'SetTime', 'Time', 'HasMotion', 'MarkNodes', 'CountLayers',
+           'SetPlaying', 'ClearQueue', 'RefreshNodes', 'GetFlags', 'GetQueued', 'SetFlags']
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 
