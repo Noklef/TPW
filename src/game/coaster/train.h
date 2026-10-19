@@ -29,6 +29,19 @@ double __cdecl Car_TrainLength(const u8 *car);
 //   channels 0x70 and 0xa8 from +0xf0 and +0xf4 (ranges +0xf0, +0x100), each plus 0.5 after the offset.
 void __cdecl Car_SetChannelRates(u32 unused, u8 *car);
 
+// 0x433790 (cdecl; owner, car, type, height, free; name unconfirmed): the car's length (+0xe8, a 0..1 fraction of the type's shortest +0xbc
+// to longest +0xc0) for its top to reach height: height less the train length of the car before it (its train's (+0x100) car car+4 - 1;
+// Car_TrainLength, inlined in the original) and the type's gap (+0xc4), or height less the gap alone when that slot is empty, or height
+// itself for the first car (+4 = 0); unless free, held to the type's +0x68..+0x6c (not above +0x68, or a NaN, gives +0x68; then from
+// +0x6c up +0x6c); unlerped and held to 0..1 (not above 0, or a NaN, 0). Then Car_SetChannelRates (owner +4, car). All on the x87.
+void __cdecl Car_FitHeight(const u8 *owner, u8 *car, const u8 *type, float height, u32 free);
+
+// 0x433a90 (cdecl; owner, type, train; name unconfirmed): while the train length of the train's last car (Car_TrainLength, inlined; 0 for an
+// empty slot) is above the type's +0x6c, its cars from the last down each take the length +0x68 (unlerped against the type's +0xbc..+0xc0,
+// held to 0..1 as Car_FitHeight does) and Car_SetChannelRates (owner +4, car). 1 when any car changed; 0 for a train of one car or none.
+// (The length is worked out again before each car: the whole train's, as the last car's slot counts them.)
+u32 __cdecl Train_ShrinkToTop(const u8 *owner, const u8 *type, const u8 *train);
+
 // 0x436750: picks car's coupling as Train_SetCouplings does, without touching its flags.
 void __cdecl Car_PickCoupling(u8 *car);
 

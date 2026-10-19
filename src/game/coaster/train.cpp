@@ -85,6 +85,43 @@ void __cdecl Car_SetChannelRates(u32, u8 *car) {
     set(0xa8, 0x30, X87Reg(at<float>(car, 0xf4)) * at<float>(ranges, 0x38) + at<float>(ranges, 0x3c) - kMinusHalf);
 }
 
+void __cdecl Car_FitHeight(const u8 *owner, u8 *car, const u8 *type, float height, u32 free) {
+    X87Reg v = height;
+    if (const u32 slot = at<u32>(car, 4)) {
+        const u8 *const before = at<const u8 *>(at<const u8 *>(car, 0x100), 0x30 + slot * 4);
+        const X87Reg below = before ? X87Reg(Car_TrainLength(before)) : X87Reg(0.0f);   // (inlined: the same sums)
+        v = X87_SubR(below + at<float>(type, 0xc4), X87Reg(height));   // fsubr
+    }
+    if (!free) {
+        if (!(v.v > at<float>(type, 0x68))) v = at<float>(type, 0x68);
+        if (v.v >= at<float>(type, 0x6c)) v = at<float>(type, 0x6c);   // (a NaN top keeps v)
+    }
+    X87Reg t = (v - at<float>(type, 0xbc)) / (X87Reg(at<float>(type, 0xc0)) - at<float>(type, 0xbc));
+    if (!(t.v > 0.0)) t = 0.0f;
+    if (!(t.v < 1.0)) t = 1.0f;
+    at<float>(car, 0xe8) = (float)t;
+    Car_SetChannelRates(at<u32>(owner, 4), car);
+}
+
+u32 __cdecl Train_ShrinkToTop(const u8 *owner, const u8 *type, const u8 *train) {
+    const u32 count = at<u32>(train, 0x30);
+    if (count <= 1) return 0;
+    u32 shrunk = 0;
+    const u8 *const last = at<const u8 *>(train, 0x30 + count * 4);
+    for (s32 i = (s32)(count - 1); i >= 0; --i) {
+        u8 *const car = at<u8 *>(train, 0x34 + 4 * (u32)i);
+        const X87Reg length = last ? X87Reg(Car_TrainLength(last)) : X87Reg(0.0f);   // (inlined: the same sums)
+        if (!(length.v > at<float>(type, 0x6c))) break;
+        X87Reg t = (X87Reg(at<float>(type, 0x68)) - at<float>(type, 0xbc)) / (X87Reg(at<float>(type, 0xc0)) - at<float>(type, 0xbc));
+        if (!(t.v > 0.0)) t = 0.0f;
+        if (!(t.v < 1.0)) t = 1.0f;
+        at<float>(car, 0xe8) = (float)t;
+        Car_SetChannelRates(at<u32>(owner, 4), car);
+        shrunk = 1;
+    }
+    return shrunk;
+}
+
 u8 *__cdecl Ride_Train(u32 index, u32 *cars) {
     const u8 *ride = reinterpret_cast<const u8 *const *>(0x007a4610)[index];
     if (!(at<u32>(ride, 4) & 0x80000)) {
