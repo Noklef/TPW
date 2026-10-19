@@ -363,8 +363,24 @@ void map_com_recorders(u8 *page) {  // the COM-style ones (this on the stack, EC
     }
 }
 
+void map_cdecl_recorders(u8 *page) {  // the cdecl ones (the caller pops the arguments, ECX undefined): this is logged as 0 and k as k | 0x200
+    for (u32 n = 0; n < 16; ++n) {  // (up to 15 stack arguments: + 0xb000 to + 0xf000)
+        for (u32 k = 0; k < 32; ++k) {
+            u8 *at = page + 0xb000 + 0x400 * n + 0x20 * k;
+            const u8 head[] = {0x89, 0xe0, 0x50, 0x6a, 0x00, 0x6a, (u8)n, 0x68, (u8)k, 0x02, 0x00, 0x00, 0xe8};  // mov eax,esp; push eax; push 0; push n; push k|0x200; call rel32
+            std::memcpy(at, head, sizeof head);
+            const u32 rel = (u32)(uintptr_t)&record_call - ((u32)(uintptr_t)at + sizeof head + 4);
+            std::memcpy(at + sizeof head, &rel, 4);
+            u8 *tail = at + sizeof head + 4;
+            tail[0] = 0x83, tail[1] = 0xc4, tail[2] = 0x10;  // add esp,16
+            tail[3] = 0xc3;                                  // ret (the arguments are the caller's to pop)
+        }
+    }
+}
+
 void map_recorders(u8 *page) {
     map_com_recorders(page);
+    map_cdecl_recorders(page);
     for (u32 n = 0; n < 16; ++n) {  // (up to 15 arguments: the layout ends where the COM recorders begin)
         for (u32 k = 0; k < 32; ++k) {
             u8 *at = page + 0x1000 + 0x400 * n + 0x20 * k;

@@ -306,7 +306,9 @@
 #include "../game/render/fixedverts.h"
 #include "../game/render/texcoords.h"
 #include "../game/render/graphicssettings.h"
+#include "../game/render/meshdraws.h"
 #include "../game/render/textparts.h"
+#include "../game/render/transformer.h"
 #include "../game/render/vertexblock.h"
 #include "../game/render/viewquad.h"
 #include "../game/render/weatherfx.h"
@@ -3779,6 +3781,8 @@ const Hook kHooks[] = {
     {"SyncEvent_Wait",            0x005c8bf0, (void *)&SyncEvent_Wait, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"SyncEvent_Set",             0x005c8c20, (void *)&SyncEvent_Set, {0x8b, 0x01, 0x50, 0xff, 0x15}},
     {"CpuInfo_Ctor",              0x0055e470, (void *)&CpuInfo_Ctor, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Cpu_Ticks",                 0x00591210, (void *)&Cpu_Ticks, {0x55, 0x8b, 0xec, 0x51, 0x0f}},
+    {"Cpu_Ticks16",               0x0057cb90, (void *)&Cpu_Ticks16, {0x55, 0x8b, 0xec, 0x51, 0x50}},
     {"WStdString_AssignSub",      0x004f21d0, (void *)&WStdString_AssignSub, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
     {"WStdString_Grow",           0x004f39e0, (void *)&WStdString_Grow, {0x53, 0x56, 0x57, 0x8b, 0x7c}},
     {"WStdString_Copy",           0x004f6090, (void *)&WStdString_Copy, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
@@ -3817,6 +3821,8 @@ const Hook kHooks[] = {
     {"Sound_PlayAtRange",         0x0051c130, (void *)&Sound_PlayAtRange, {0xa1, 0xc8, 0x2b, 0x80, 0x00}},
     {"SoundUi_Play",              0x00485aa0, (void *)&SoundUi_Play, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"SoundUi_Play1d",            0x00486ae0, (void *)&SoundUi_Play1d, {0xa1, 0x2c, 0x3a, 0x80, 0x00}},
+    {"KidSound_Play",             0x00551560, (void *)&KidSound_Play, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"KidSound_PlayGraded",       0x00551320, (void *)&KidSound_PlayGraded, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -4175,6 +4181,8 @@ const Hook kHooks[] = {
     {"ClipPoly_Indexed",          0x00562c90, (void *)&ClipPoly_Indexed, {0x83, 0xec, 0x34, 0x8d, 0x44}},
     {"ClipPoly_TriangleFan",      0x00562ed0, (void *)&ClipPoly_TriangleFan, {0x83, 0xec, 0x08, 0x8b, 0x44}},
     {"ClipPoly_Vertices",         0x00562a70, (void *)&ClipPoly_Vertices, {0x83, 0xec, 0x14, 0x8b, 0x54}},
+    {"Transformer_Transform",     0x00570d20, (void *)&Transformer_Transform, {0x56, 0x8b, 0x74, 0x24, 0x18}},
+    {"MeshDraws_Add",             0x00581cd0, (void *)&MeshDraws_Add, {0x53, 0x8b, 0xd9, 0x8b, 0x0b}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

@@ -33,4 +33,10 @@ const CpuInfoEnv *CpuInfo_GetEnv();
 extern "C" {
 // 0x55e470 (thiscall, no return value).
 void __fastcall CpuInfo_Ctor(CpuInfo *c);
+
+// 0x591210 (cdecl; name unconfirmed): the low dword of the time-stamp counter (rdtsc).
+u32 __cdecl Cpu_Ticks();
+
+// 0x57cb90 (cdecl; name unconfirmed): the time-stamp counter's bits 4..35 (rdtsc; shrd eax, edx, 4).
+u32 __cdecl Cpu_Ticks16();
 }

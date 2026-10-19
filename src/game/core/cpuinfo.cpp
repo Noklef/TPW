@@ -61,4 +61,8 @@ void __fastcall CpuInfo_Ctor(CpuInfo *c) {
     if (family >= 5 && c->features & 0x10) c->hasTsc = 1;
 }
 
+u32 __cdecl Cpu_Ticks() { return static_cast<u32>(__rdtsc()); }
+
+u32 __cdecl Cpu_Ticks16() { return static_cast<u32>(__rdtsc() >> 4); }
+
 }  // extern "C"

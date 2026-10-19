@@ -21,4 +21,13 @@ u32 __cdecl SoundUi_Play(u32 sound);
 // 0x486ae0 (cdecl; name unconfirmed): Sound_PlayAt(0, [0x803a2c], 0x1d, 0, 0, 0).
 u32 __cdecl SoundUi_Play1d();
 
+// 0x551560 (cdecl (level, x, y, z); name unconfirmed): a kids' sound for a level played at a position in the category gSndCatKids
+// [0x803a24]: 0 for level 0 (nothing played), else sound 0x69 for level 1, 0x6a below 4, 0x6c below 8 (signed: so 0x6a for a
+// negative level), 0x6d from 8 on; Sound_PlayAt's result.
+u32 __cdecl KidSound_Play(s32 level, s32 x, s32 y, s32 z);
+
+// 0x551320 (cdecl (level, a, b, x, y, z); name unconfirmed): as KidSound_Play, the sound graded by (a + b) / 50 (truncated, at most 3)
+// over a base of 0x4b for level 1, 0x4f below 4, 0x53 below 8, 0x57 from 8 on: 0 (nothing played) for level 0 or a negative grade.
+u32 __cdecl KidSound_PlayGraded(s32 level, s32 a, s32 b, s32 x, s32 y, s32 z);
+
 }

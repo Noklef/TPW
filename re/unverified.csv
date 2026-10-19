@@ -50,6 +50,7 @@ address,name,module,reason
 5573a0,RSSE_OperandValue,?,todo
 557a70,RSSE_FetchWord,?,todo
 55f780,TerrainBlend_Tile,terrain,todo
+57cb90,Cpu_Ticks16,core/cpuinfo,"reads the time-stamp counter (rdtsc): the hardware's value, nothing to compare"
 58b300,TexCacheItem_Ctor,gfx/texcache,todo: indirect only
 58b330,TexCacheItem_SetFlags,gfx/texcache,todo
 58b350,TexCacheItem_Flag1,gfx/texcache,todo
@@ -57,6 +58,7 @@ address,name,module,reason
 58b370,TexCacheItem_Flag4,gfx/texcache,todo
 58b380,TexCacheItem_SetFlag1,gfx/texcache,todo
 58b390,TexCacheItem_ClearFlag1,gfx/texcache,todo
+591210,Cpu_Ticks,core/cpuinfo,"reads the time-stamp counter (rdtsc): the hardware's value, nothing to compare"
 5e42d0,PtrList_Append,core/ptrlist,todo: indirect only
 5f5650,Wrap_Owner64_Copy4At34_5f5650,core/thunks,todo
 5f63d0,String_Format,core/string,todo

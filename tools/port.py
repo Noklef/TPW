@@ -44,7 +44,7 @@ import time
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 AUTHOR = ['-c', 'user.name=Noklef', '-c', 'user.email=281545466+Noklef@users.noreply.github.com']
-TRAILER = 'Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>'
+TRAILER = os.environ.get('PORT_TRAILER', 'Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>')  # (an agent's prompt may give another)
 FLAGS = ('--msg', '--mut', '--also', '--unverified', '--low', '--known', '--crashy')
 MIN_CASES = 10
 TABLES = ['src/hook/hooks.cpp', 're/symbols.csv', 'CMakeLists.txt', 're/unverified.csv']  # (integrate.py's and this script's edits)
@@ -201,10 +201,12 @@ def main():
         if bad:
             fail('port: refusing to commit %s' % bad)
         text = open(msg[0], encoding='utf-8').read().rstrip('\n')
+        trailer = re.search(r'^Co-Authored-By:.*$', text, re.M)  # (any model's, when the message has one; else TRAILER)
+        if trailer:
+            text = text.replace(trailer.group(0), '').rstrip('\n')
         if crashy:   # (before the trailer, so a reviewer sees why the bench's crashes were accepted)
-            text = text.replace(TRAILER, '').rstrip('\n') + '\n\nCrashes in both accepted: ' + crashy
-        if TRAILER not in text:
-            text += '\n\n' + TRAILER
+            text += '\n\nCrashes in both accepted: ' + crashy
+        text += '\n\n' + (trailer.group(0) if trailer else TRAILER)
         text += '\n'
         tmp = msg[0] + '.port'
         open(tmp, 'w', encoding='utf-8', newline='\n').write(text)
