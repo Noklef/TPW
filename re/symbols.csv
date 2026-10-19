@@ -3171,6 +3171,7 @@ address,name,kind,confidence,notes
 0x00510150,Wrap_Nav_Update_510150,function,low,reimplemented (src/game/core/thunks); jump to 0x50f3b0
 0x00510180,Wrap_Nav_PathProgress_510180,function,low,reimplemented (src/game/core/thunks); jump to 0x50fd40
 0x0042a070,Wrap_Deleter_Minus8_458970_42a070,function,low,"reimplemented (src/game/core/thunks); thiscall (flags; pops 4): this lowered by the dword before it (a virtual base offset), then Deleter_Minus8_458970"
+0x004815c0,Wrap_KeyMap_AsyncModifiers_4815c0,function,low,reimplemented (src/game/core/thunks); a jump to KeyMap_AsyncModifiers
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value

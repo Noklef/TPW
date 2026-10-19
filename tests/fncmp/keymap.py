@@ -14,10 +14,10 @@ from fncmp import IMPORT_TABLE, LOG, Bench, Call, RAM, _cdecl_log4, fill, import
 
 B = Bench([(0x40c870, 0x40c8b3), (0x40c8c0, 0x40c8f7), (0x40ca20, 0x40ca93), (0x40cb40, 0x40cb47),
            (0x40cb50, 0x40cb78), (0x40cf60, 0x40cf98), (0x40cfa0, 0x40d06a),
-           (0x46b420, 0x46b460), (0x486aa0, 0x486ae0), (0x40caa0, 0x40cb34)],
+           (0x46b420, 0x46b460), (0x486aa0, 0x486ae0), (0x40caa0, 0x40cb34), (0x4815c0, 0x4815c5)],
           hooks={0x6acd60: _cdecl_log4})  # the text formatter: a log stub (driver: TextFormatEnv)
 GLOBALS = (0x78718c, 0x787a60, 0x787c14, 0x78733c, 0x78721c)
-CALLS = ('Key', 'Action', 'Held', 'Enable', 'Reset', 'EnableAll', 'ResetAll', 'Modifiers', 'AsyncModifiers', 'SetKey')
+CALLS = ('Key', 'Action', 'Held', 'Enable', 'Reset', 'EnableAll', 'ResetAll', 'Modifiers', 'AsyncModifiers', 'SetKey', 'AsyncJump')
 IMPORTS = {'GetKeyState': (40, 0x6fd324, 1, 0, 0), 'GetAsyncKeyState': (41, 0x6fd320, 1, 0, 0)}
 
 
@@ -42,12 +42,12 @@ def keymap(r, at, regs):
 def case(r):
     op = r.choice(OPS)
     regs = {}
-    if op.endswith('Modifiers'):
+    if op.endswith('Modifiers') or op == 'AsyncJump':   # (AsyncJump: 0x4815c0, a jump to 0x486aa0)
         log = log_region()
         for k in (40, 41):
             if r.random() < 0.7:
                 set_return(log, k, r.choice([0, 1, 0x7fff, 0x8000, 0xffff, 0xffff8000, 0xffff0001, 0x80000000, r.getrandbits(32)]))
-        return Call(0x46b420 if op == 'Modifiers' else 0x486aa0, [], {LOG: log, IMPORT_TABLE: import_table(log, IMPORTS)}, ret='a')
+        return Call({'Modifiers': 0x46b420, 'AsyncModifiers': 0x486aa0, 'AsyncJump': 0x4815c0}[op], [], {LOG: log, IMPORT_TABLE: import_table(log, IMPORTS)}, ret='a')
     if op.endswith('All'):
         for k, g in enumerate(GLOBALS):
             keymap(r, RAM + k * 0x2000 + 0x40, regs)

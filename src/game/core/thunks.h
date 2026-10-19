@@ -441,4 +441,6 @@ void __fastcall Wrap_Nav_Dtor_4f8ad0(u8 *nav);
 void __fastcall Wrap_Nav_Update_510150(u8 *nav);
 // 0x510180 (thiscall): jumps to Nav_PathProgress (world/nav).
 s32 __fastcall Wrap_Nav_PathProgress_510180(const u8 *nav);
+// 0x4815c0: jumps to KeyMap_AsyncModifiers (core/keymap).
+u32 __cdecl Wrap_KeyMap_AsyncModifiers_4815c0();
 }  // extern "C"

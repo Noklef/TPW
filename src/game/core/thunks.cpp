@@ -42,6 +42,7 @@
 #include "string.h"
 #include "../terrain/texcache.h"
 #include "../ui/panel7b9940.h"
+#include "keymap.h"
 #include "../world/nav.h"
 
 namespace {
@@ -622,4 +623,5 @@ u32 __cdecl Wrap_Panel7b9940_Show_481400() { return Panel7b9940_Show(); }
 void __fastcall Wrap_Nav_Dtor_4f8ad0(u8 *nav) { Nav_Dtor(nav); }
 void __fastcall Wrap_Nav_Update_510150(u8 *nav) { Nav_Update(nav); }
 s32 __fastcall Wrap_Nav_PathProgress_510180(const u8 *nav) { return Nav_PathProgress(nav); }
+u32 __cdecl Wrap_KeyMap_AsyncModifiers_4815c0() { return KeyMap_AsyncModifiers(); }
 }  // extern "C"
