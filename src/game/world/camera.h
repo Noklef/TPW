@@ -74,4 +74,11 @@ void __cdecl Camera_CentreOnGlobalThing();
 // u16 at +0x38, less 1 as a dword: x = 5 - (low 7 bits) * -10, z = 5 - (the rest) * -10) and, when that cell's direction (MapCell_Direction of the
 // world [[0x7cf6ec]]'s cell) has exactly one of the bits 1 / 4 / 0x10 / 0x40 among 0x55, the yaw (0x790a38) = pi, pi / 2, 0 or 3 pi / 2.
 void __cdecl Camera_SnapToRide();
+
+// 0x42a990 (cdecl; name unconfirmed): the camera back to its defaults: 0x7909ec, the yaw 0x790a38 and the point 0x7908f0 from 0x6fdd40-0x6fdd50,
+// gCameraFlags 0x790ab0 cleared; the matrices 0x790990, 0x790a48 and 0x790948 the identity; 0x7909c0 a copy of the point (y and z through the
+// x87: a signalling NaN comes out quiet); [0x87afe8] assigned 0x790990 (Mat4_Assign); the field of view [0x74c9b8] [0x6fdd80] (x87, stored as
+// a float) to the perspective 0x87b110 (Mat4_Perspective 0.1, 1000) and the view quad [0x879d54] (ViewQuad_SetFov); 0x790aac and 0x7909d0 =
+// 0x790aac's bit 0x200 | 0x80; 0x7909e4 the game clock's real time (Clocks_RealNow); 0x790a88-0x790a90 and gCameraFlags 0, 0x7908e8 1.
+void __cdecl Camera_Reset();
 }

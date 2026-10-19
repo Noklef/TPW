@@ -2,7 +2,11 @@
 
 #include <cmath>
 
+#include "../core/gameclock.h"
+#include "../math/mat4.h"
+#include "../math/matrix.h"
 #include "../math/x87.h"
+#include "../render/viewquad.h"
 #include "mapcell.h"
 #include "things.h"
 
@@ -146,5 +150,33 @@ void __cdecl Camera_SnapToRide() {
     case 0x10: yaw = 0; break;
     case 0x40: yaw = 0x4096cbe4; break;   // 3 pi / 2
     }
+}
+
+void __cdecl Camera_Reset() {
+    global(0x007909ec) = global(0x006fdd40);
+    global(0x00790a38) = global(0x006fdd44);
+    global(0x00790ab0) = 0;
+    global(0x007908f0) = global(0x006fdd48);
+    global(0x007908f4) = global(0x006fdd4c);
+    global(0x007908f8) = global(0x006fdd50);
+    Matrix_Identity(&global<float>(0x00790990));
+    Matrix_Identity(&global<float>(0x00790a48));
+    Matrix_Identity(&global<float>(0x00790948));
+    global(0x007909c4) = X87_FloatThrough(global(0x007908f4));
+    global(0x007909c0) = global(0x007908f0);
+    global(0x007909c8) = X87_FloatThrough(global(0x007908f8));
+    Mat4_Assign(global<u32 *>(0x0087afe8), nullptr, &global(0x00790990));
+    const float fov = (float)(X87Reg(global<float>(0x0074c9b8)) * X87Reg(global<float>(0x006fdd80)));
+    Mat4_Perspective(reinterpret_cast<float *>(0x0087b110), nullptr, 0.1f, 1000.0f, fov);
+    ViewQuad_SetFov(global<float *>(0x00879d54), nullptr, fov);
+    const u32 flags = (global(0x00790aac) & 0x200) | 0x80;
+    global(0x00790aac) = flags;
+    global(0x007909d0) = flags;
+    global(0x007909e4) = Clocks_RealNow(reinterpret_cast<u8 *>(0x00785970));
+    global(0x00790a88) = 0;
+    global(0x007908e8) = 1;
+    global(0x00790a8c) = 0;
+    global(0x00790a90) = 0;
+    global(0x00790ab0) = 0;
 }
 }
