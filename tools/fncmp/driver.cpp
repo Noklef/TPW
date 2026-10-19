@@ -44,6 +44,7 @@
 #include "../../src/game/files/wrapsources.h"
 #include "../../src/game/files/zlibcodec.h"
 #include "../../src/game/gfx/canvas.h"
+#include "../../src/game/gfx/pixconv.h"
 #include "../../src/game/gfx/surfbuf.h"
 #include "../../src/game/render/engineerrors.h"
 #include "../../src/game/sprite/script.h"
@@ -604,6 +605,22 @@ void __cdecl script_op(u32 address) {
     reinterpret_cast<void(__cdecl *)()>(fn)();
 }
 
+// Mem_AllocCounted / Mem_FreeCounted (0x642860 / 0x642880, stdcall, not ported): the hooked Mem_GlobalAlloc / Free (0x5f5660 / 0x5f5680, through the
+// GlobalAlloc import slots the case maps, global_heap()) and the count of blocks at 0xfaa534, as the originals keep it.
+void *__stdcall stub_alloc_counted(u32 size) {
+    static const auto alloc = reinterpret_cast<void *(__cdecl *)(u32)>(hooked(0x005f5660));
+    void *const p = alloc(size);
+    if (p) ++*reinterpret_cast<volatile u32 *>(static_cast<std::uintptr_t>(0x00faa534));
+    return p;
+}
+
+s32 __stdcall stub_free_counted(void *block) {
+    static const auto release = reinterpret_cast<void(__cdecl *)(void *)>(hooked(0x005f5680));
+    if (block) release(block);
+    --*reinterpret_cast<volatile u32 *>(static_cast<std::uintptr_t>(0x00faa534));
+    return 1;
+}
+
 u8 nibble(char c) { return (u8)(c <= '9' ? c - '0' : (c | 0x20) - 'a' + 10); }
 
 // (by hand: sscanf("%2x") per byte measures the rest of the string each call, which made a 1 MB region cost seconds)
@@ -739,6 +756,12 @@ int main(int argc, char **argv) {
                                             reinterpret_cast<void(__cdecl *)(u32 *, void *, const void *, u32, u32)>(hooked(0x005f5e50)),
                                             reinterpret_cast<void(__cdecl *)(u32 *, void *, void *, u32, u32)>(hooked(0x005f5e20)), &script_op};
     SpriteScripts_SetEnv(&sprites);
+    // The pixel conversion's: the heap, the counted allocations above, the inverse colour map's hooks; the game's two formats.
+    static const PixConvEnv pixConv = {&heap_free, &stub_alloc_counted, &stub_free_counted, reinterpret_cast<void *(__fastcall *)(void *, void *)>(hooked(0x00642150)),
+                                       reinterpret_cast<void(__fastcall *)(void *, void *, u32, u32, const u32 *, u32, u32 *, u8 *)>(hooked(0x00642190)),
+                                       reinterpret_cast<void(__fastcall *)(void *, void *)>(hooked(0x00642180)), reinterpret_cast<const u32 *>((uintptr_t)0x00faa268),
+                                       reinterpret_cast<const u32 *>((uintptr_t)0x00faa280), &heap_alloc};
+    PixConv_SetEnv(&pixConv);
     // A region of up to 8 MB, as hex. Mapped top-down rather than static: a static this size grew the driver's .bss by 12 MB past the
     // game's addresses, where a case's wild pointer read memory natively that the emulator (the original's side) does not have.
     char *const token = static_cast<char *>(VirtualAlloc(nullptr, 1 << 24, MEM_RESERVE | MEM_COMMIT | MEM_TOP_DOWN, PAGE_READWRITE));
