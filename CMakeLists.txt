@@ -145,6 +145,7 @@ add_library(tpw_game STATIC
     src/game/ui/panel7cc328.cpp
     src/game/core/wscanner.cpp
     src/game/core/soundplay.cpp
+    src/game/core/startcheck.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

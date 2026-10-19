@@ -163,6 +163,7 @@
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
 #include "../game/core/soundplay.h"
+#include "../game/core/startcheck.h"
 #include "../game/core/stringmapsrecord.h"
 #include "../game/core/wscanner.h"
 #include "../game/core/wtraits.h"
@@ -3835,6 +3836,7 @@ const Hook kHooks[] = {
     {"SoundUi_Play1d",            0x00486ae0, (void *)&SoundUi_Play1d, {0xa1, 0x2c, 0x3a, 0x80, 0x00}},
     {"KidSound_Play",             0x00551560, (void *)&KidSound_Play, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"KidSound_PlayGraded",       0x00551320, (void *)&KidSound_PlayGraded, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"Startup_CheckCanRun",       0x0045f640, (void *)&Startup_CheckCanRun, {0xe8, 0x6b, 0x00, 0x00, 0x00}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
