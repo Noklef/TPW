@@ -245,4 +245,11 @@ u8 *__fastcall Online_OpenCity(u8 *session) {
     at<u32>(session, 0xdc) = 1;
     return at<u8 *>(session, 0xd4);
 }
+
+u32 __fastcall Online_UnpublishPark(u8 *session, void *, u32 park) {
+    if (!Online_OpenCity(session))
+        return 0;
+    using Unpublish = u32(__fastcall *)(u8 *, void *, u32, u32, u32);
+    return (*reinterpret_cast<const Unpublish *>((uintptr_t)0x006fd4fc))(at<u8 *>(session, 0xd4), nullptr, 0, park, at<u32>(session, 0x34));
+}
 }

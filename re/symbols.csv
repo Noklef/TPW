@@ -4773,6 +4773,7 @@ address,name,kind,confidence,notes
 0x005b62e0,Online_LoginResult,function,low,"reimplemented (src/game/online/session); thiscall (status, -, -, record): on 60 the user's record copied in and logged in, else the error code set (name unconfirmed)"
 0x005b7430,Online_ResetCity,function,low,"reimplemented (src/game/online/session); thiscall: +0xd8 = Time_GetMs, +0xdc = 1; the City (+0xd4) released, destroyed and freed (""ONLINE CITY""); the lists +0xe0..+0x100 reset, their native lists released (ccCityList / ccParkList::Release) or shared records released"
 0x005b72f0,Online_OpenCity,function,low,"reimplemented (src/game/online/session); thiscall: unless +0xd4 is set, a City made (Mem_Alloc, City::City) and connected (City::Connect to [0x7a1524] or """", the pick, the port word, 0x5b72c0); not 1: released; 1: +0xd8 = Time_GetMs, City::SetSessionInfo(language, +0x34, +0x38, +0x28), +0xdc = 1; returns +0xd4"
+0x005b7960,Online_UnpublishPark,function,low,"reimplemented (src/game/online/session); thiscall (park; pops 4): with the city's connection open (Online_OpenCity), City::UnpublishPark(0, park, +0x34)'s answer, else 0"
 0x005bc9c0,Owner2c_FindByKey,function,high,reimplemented (src/game/online/itemlist); the last item of the owner's list whose +8 is the key
 0x005bcb60,Owner2c_At,function,high,reimplemented (src/game/online/itemlist); the index'th item of the owner's list
 0x005bd270,Owner2c_ValueByKey,function,high,reimplemented (src/game/online/itemlist); the +0x14 of the last item whose +8 is the key

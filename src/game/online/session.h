@@ -74,4 +74,8 @@ void __fastcall Online_ResetCity(u8 *session);
 // Online_ResetCity does. 1: "Connected" said, +0xd8 = Time_GetMs, City::SetSessionInfo (0x6fd53c) with the language's id (0x78b530) and
 // +0x34, +0x38, +0x28; +0xdc = 1. Returns +0xd4. (The City::City call's unwind, freeing the block, is not kept.)
 u8 *__fastcall Online_OpenCity(u8 *session);
+
+// 0x5b7960 (thiscall; park; pops 4; name unconfirmed): with the city's connection open (Online_OpenCity), City::UnpublishPark (0x6fd4fc)
+// with 0, the park and +0x34; returns its answer, else 0.
+u32 __fastcall Online_UnpublishPark(u8 *session, void *, u32 park);
 }
