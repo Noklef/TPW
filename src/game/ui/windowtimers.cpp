@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "guimanager.h"
 
 namespace {
 
@@ -40,5 +41,44 @@ u32 __cdecl WindowTimers_Kill(u32 window, u32 id) {
     if (node == timers()) timers() = at<u8 *>(node, 0x18);
     WindowTimer_Delete(node, nullptr, 1);
     return 1;
+}
+
+u8 *__cdecl WindowTimer_New(u32) {
+    u8 *found = nullptr;
+    for (s32 i = 0; i < *reinterpret_cast<s32 *>((uintptr_t)0x00faa62c) && !found; ++i) {
+        u8 *const node = *reinterpret_cast<u8 **>((uintptr_t)0x00faa630) + 0x20 * i;
+        if (at<u32>(node, 0x14)) {
+            found = node;
+            at<u32>(node, 0x14) = 0;
+        }
+    }
+    return found;
+}
+
+u8 *__fastcall WindowTimer_Ctor(u8 *node, void *, u32 window, u32 interval, u32 id) {
+    at<u32>(node, 0) = window;
+    at<u32>(node, 8) = interval;
+    at<u32>(node, 0xc) = id;
+    at<u32>(node, 0x18) = 0;
+    at<u32>(node, 0x1c) = 0;
+    at<u32>(node, 4) = GuiClock_Now();
+    at<u32>(node, 0x10) = 0;
+    at<u32>(node, 0x14) = 0;
+    return node;
+}
+
+u8 *__cdecl WindowTimers_Add(u32 window, u32 interval, u32 id) {
+    u8 *node = WindowTimer_New(0x20);
+    if (node) node = WindowTimer_Ctor(node, nullptr, window, interval, id);
+    if (!node) return nullptr;
+    if (!timers()) {
+        timers() = node;
+    } else {
+        u8 *last = timers();
+        while (at<u8 *>(last, 0x18)) last = at<u8 *>(last, 0x18);
+        at<u8 *>(last, 0x18) = node;
+        at<u8 *>(node, 0x1c) = last;
+    }
+    return node;
 }
 }
