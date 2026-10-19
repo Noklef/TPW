@@ -81,4 +81,8 @@ void __cdecl Camera_SnapToRide();
 // a float) to the perspective 0x87b110 (Mat4_Perspective 0.1, 1000) and the view quad [0x879d54] (ViewQuad_SetFov); 0x790aac and 0x7909d0 =
 // 0x790aac's bit 0x200 | 0x80; 0x7909e4 the game clock's real time (Clocks_RealNow); 0x790a88-0x790a90 and gCameraFlags 0, 0x7908e8 1.
 void __cdecl Camera_Reset();
+
+// 0x42aff0 (cdecl; name unconfirmed): the yaw 0x790a38 snapped to the nearest quarter turn: r = fmod(yaw, pi / 2) (_CIfmod); for r below
+// -pi / 4 (or a NaN) yaw - (r + pi / 2), for r above pi / 4 (pi / 2 - r) + yaw, else yaw - r (x87 at the game's precision, stored as a float).
+void __cdecl Camera_SnapYaw();
 }

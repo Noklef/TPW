@@ -3,8 +3,9 @@
 # setter, flag 0x80, the matrix closeness test 0x42b070 and the cell clamp. CentreCell (0x4868d0) sets the view's point from a cell id (0, 1,
 # 0xffff or any); CentreThing (0x4867b0) from a thing's cell (a handle naming a slot of a thing, an empty slot or 0, high bits random);
 # CentreGlobal (0x48ce80) the same for the handle of the thing [0x7c2658] points to.
-# Reset (0x42a990): the camera back to its defaults (see reset()).
+# Reset (0x42a990): the camera back to its defaults (see reset()). SnapYaw (0x42aff0): the yaw to the nearest quarter turn.
 # usage: camera.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
+import math
 import os
 import struct
 import sys
@@ -16,7 +17,7 @@ B = Bench([(0x42a0f0, 0x42a183), (0x42a410, 0x42a43a), (0x42a4e0, 0x42a4fb), (0x
            (0x42afd0, 0x42afed), (0x42b070, 0x42b1b6), (0x42cd40, 0x42cd7f), (0x42cd80, 0x42cdb8), (0x4bd020, 0x4bd08f), (0x4867b0, 0x486858), (0x4868d0, 0x48691f), (0x48ce80, 0x48ce9f), (0x50b350, 0x50b35d),
            (0x5da3c0, 0x5da3c1),
            (0x42a990, 0x42aaac), (0x46f150, 0x46f190), (0x56b790, 0x56b827), (0x578bc0, 0x578bd4), (0x578be0, 0x578d20), (0x583220, 0x583280),
-           (0x402d80, 0x403220), (0x4033a0, 0x4033f0), (0x5f5e20, 0x5f5e90), (0x5f5fa0, 0x5f5fc0)])
+           (0x402d80, 0x403220), (0x4033a0, 0x4033f0), (0x5f5e20, 0x5f5e90), (0x5f5fa0, 0x5f5fc0), (0x42aff0, 0x42b063)])
 INITS = {'One': (0x42a0f0, 0x7909e8, 4), 'Epsilon': (0x42a110, 0x790a94, 4), 'Zoom': (0x42a130, 0x7909ec, 4),
          'Yaw': (0x42a140, 0x790a38, 4), 'E0': (0x42a150, 0x7909e0, 4), 'Point': (0x42a160, 0x7908f0, 12)}
 
@@ -25,6 +26,11 @@ def case(r):
     op = r.deal(OPS)
     if op == 'Reset':
         return reset(r)
+    if op == 'SnapYaw':   # 0x42aff0: yaws about the quarter turns (and the eighths between), any, or special
+        q = r.randrange(-12, 13) * math.pi / 4
+        yaw = r.choice([fb(q), fb(q + r.uniform(-0.01, 0.01)), fb(q + r.uniform(-1, 1)), fb(r.uniform(-1e4, 1e4)), r.f(), r.f(), 0x80000000,
+                        0x7f800000, 0xff800000, 0x7fc00000, 0x7f800001, 0xffc12345])
+        return Call(0x42aff0, [], {0x790a38: struct.pack('<I', yaw)}, ret='v')
     if op in ('CentreCell', 'CentreThing', 'CentreGlobal'):
         regions = {0x790a88: bytearray(r.bytes(12)), 0x7908f0: bytearray(r.bytes(12)), 0x7909ec: bytearray(r.bytes(4)),
                    0x790a38: bytearray(r.bytes(4)), 0x74c9bc: bytearray(r.bytes(4))}
@@ -119,7 +125,7 @@ def reset(r):
     return Call(0x42a990, [], regions, ret='v')
 
 
-OPS_ALL = list(INITS) + ['Follow'] * 6 + ['Close'] * 6 + ['Followed'] * 3 + ['Face', 'View', 'Clamp', 'CellOf', 'Pack'] * 4 + ['Flag80'] * 2 + ['CentreCell', 'CentreThing', 'CentreGlobal'] * 3 + ['Reset'] * 3
+OPS_ALL = list(INITS) + ['Follow'] * 6 + ['Close'] * 6 + ['Followed'] * 3 + ['Face', 'View', 'Clamp', 'CellOf', 'Pack'] * 4 + ['Flag80'] * 2 + ['CentreCell', 'CentreThing', 'CentreGlobal'] * 3 + ['Reset'] * 3 + ['SnapYaw'] * 4
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

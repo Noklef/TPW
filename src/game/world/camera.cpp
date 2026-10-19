@@ -179,4 +179,20 @@ void __cdecl Camera_Reset() {
     global(0x00790a90) = 0;
     global(0x00790ab0) = 0;
 }
+
+void __cdecl Camera_SnapYaw() {
+    constexpr float kHalfPi = 1.57079637f, kQuarterPi = 0.785398185f;   // (0x6fdd68 / 0x6fdd98; 0x6fdd88 is the half as a double)
+    float &yaw = global<float>(0x00790a38);
+    const X87Reg r = std::fmod((double)yaw, (double)kHalfPi);   // _CIfmod (0x67b24a), exact
+    if (!(r.v >= 0.0)) {   // (below 0 or unordered)
+        if (!(r.v >= -kQuarterPi))
+            yaw = (float)X87_SubR(r - X87Reg(-kHalfPi), X87Reg(yaw));
+        else
+            yaw = (float)(X87Reg(yaw) - r);
+    } else if (r.v > kQuarterPi) {
+        yaw = (float)((X87Reg(kHalfPi) - r) + X87Reg(yaw));
+    } else {
+        yaw = (float)(X87Reg(yaw) - r);
+    }
+}
 }
