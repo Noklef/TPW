@@ -69,12 +69,9 @@ address,name,module,reason
 5f8cf0,RegKey_GetU32Or,core/regkey,todo
 5f8d40,RegKey_TypeOf,core/regkey,todo
 5f8da0,RegKey_Ctor,core/regkey,todo
-5f8db0,Text_Draw,gfx/text,todo
-5f8e20,Font_DrawGlyph,gfx/text,todo
-5f8e50,Font_Measure,gfx/text,todo
-5f8e80,Font_DrawGlyphShape,gfx/text,todo
-5f8ec0,Text_SetDriver,gfx/text,todo
-5f8f40,Text_LineHeight,gfx/text,todo
+5f8e20,Font_DrawGlyph,gfx/text,not in the listing (_re/text.asm): the emulator cannot run it
+5f8e50,Font_Measure,gfx/text,not in the listing (_re/text.asm): the emulator cannot run it
+5f8e80,Font_DrawGlyphShape,gfx/text,not in the listing (_re/text.asm): the emulator cannot run it
 5f8f80,Surface_SetDirectDraw,gfx/surface,todo
 5f8f90,Surface_Attach,gfx/surface,todo
 5f9040,Surface_Restore,gfx/surface,todo
@@ -244,8 +241,8 @@ address,name,module,reason
 6173e0,Canvas_Ctor,gfx/canvas,todo: indirect only
 617420,Canvas_SetSurface,gfx/canvas,todo
 6175b0,Canvas_Clip,gfx/canvas,todo
-61b030,Draw_Sprite,gfx/text,todo
-61b050,Draw_SpriteShape,gfx/text,todo
+61b030,Draw_Sprite,gfx/text,not in the listing (_re/text.asm): the emulator cannot run it
+61b050,Draw_SpriteShape,gfx/text,not in the listing (_re/text.asm): the emulator cannot run it
 61b1e0,Draw8_Sprite,gfx/draw8,todo
 61b270,Draw8_SpriteShape,gfx/draw8,todo
 61baf0,Draw8_Pixel,gfx/draw8,todo
