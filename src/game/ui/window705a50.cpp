@@ -99,6 +99,15 @@ void __fastcall Window705a50_NotifyLook(u8 *window) {
     vcall<void>(listener, 0xc, code, event);
 }
 
+u16 __fastcall Window705a50_SetEnabled(u8 *window, void *, u32 enabled) {
+    if ((s16)Window_SetEnabled(window, nullptr, enabled) == 0) return 0;
+    u8 event[0x18];  // (only the look +4 set)
+    at<u16>(event, 4) = Window705a50_Look(window);
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 1u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 1u, event);
+    return 1;
+}
+
 u16 __fastcall Window705a50_SetState(u8 *window, void *, u8 state, u8 notify) {
     if (state == at<u8>(window, 0x138)) return 0;
     u8 event[0x1c];  // (only the look +4 and the dword +0x18 set)

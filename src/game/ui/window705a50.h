@@ -40,6 +40,11 @@ void __fastcall Window705a50_NotifyLook(u8 *window);
 // Window705a50_NotifyLook, and 1 (AX).
 u16 __fastcall Window705a50_SetState(u8 *window, void *, u8 state, u8 notify);
 
+// 0x668a23 (thiscall (enabled: a word), pops 4; slot 5 of the vtable 0x705a50; name unconfirmed): Window_SetEnabled; when that changed
+// nothing, 0 (AX). Otherwise the objects +0x98 and +0x9c (each when set) get slot 3 (1, event), the event's word +4 the look
+// (Window705a50_Look; the rest unset), and 1 (AX).
+u16 __fastcall Window705a50_SetEnabled(u8 *window, void *, u32 enabled);
+
 // 0x668f35 (thiscall (a, b), pops 8; name unconfirmed): +0x13c = a (Fn_6693f0), then +0x140 = b (Fn_6693d0, whose EAX, the window, is
 // returned): the two dwords the constructor sets to 500 and 125.
 u32 __fastcall Window705a50_SetPair(u8 *window, void *, u32 a, u32 b);
