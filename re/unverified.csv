@@ -246,10 +246,6 @@ address,name,module,reason
 6175b0,Canvas_Clip,gfx/canvas,todo
 61b030,Draw_Sprite,gfx/text,todo
 61b050,Draw_SpriteShape,gfx/text,todo
-61b090,PixelChannel_Set,gfx/surface,todo
-61b0e0,PixelShifts_Set,gfx/surface,todo
-61b130,Surface_SetInfo,gfx/surface,todo
-61b190,Surface_Refresh,gfx/surface,todo
 61b1e0,Draw8_Sprite,gfx/draw8,todo
 61b270,Draw8_SpriteShape,gfx/draw8,todo
 61baf0,Draw8_Pixel,gfx/draw8,todo
