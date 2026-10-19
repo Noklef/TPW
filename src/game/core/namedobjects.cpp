@@ -6,6 +6,8 @@
 #include "gameheap.h"
 #include "stdlist.h"
 #include "initializers.h"
+#include "language.h"
+#include "methods.h"
 #include "string.h"
 #include "vcall.h"
 #include "vobj2.h"
@@ -157,5 +159,27 @@ u32 __fastcall Flags7a1a14_Update(const u8 *object) {
         return 0;
     flags |= 2;
     return flags;
+}
+
+void __fastcall NamedObjects_SetThemeLabel(u8 *, void *, const WString *theme, u8 *label) {
+    String unused;   // (constructed and destroyed, never used)
+    String_Ctor(&unused);
+    static constexpr u32 kThemes[][2] = {{0x00786478, 2}, {0x00786808, 1}, {0x00786970, 0}, {0x007869e8, 3}};
+    for (const auto &t : kThemes) {
+        if (WNames_Equal(reinterpret_cast<const u8 *>(theme), reinterpret_cast<const u8 *>((uintptr_t)t[0]))) {
+            const u8 *const table = *reinterpret_cast<u8 *const *>((uintptr_t)0x0078bad4);
+            vcall<void>(label, 0x14, Language_Widen(Records_DataIfTerminated(table, nullptr, t[1])));
+            break;
+        }
+    }
+    String_Dtor(&unused);
+}
+
+void __fastcall NamedObjects_SetThemeLabelAnsi(u8 *self, void *, const String *theme, u8 *label) {
+    WString wide;
+    WString_Ctor(&wide);
+    if (WString_AssignFromAnsi(&wide, theme))
+        NamedObjects_SetThemeLabel(self, nullptr, &wide, label);
+    WString_Dtor(&wide);
 }
 }
