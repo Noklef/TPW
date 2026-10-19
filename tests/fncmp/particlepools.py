@@ -59,13 +59,18 @@ def case(r):
     for k in range(16):
         put(pools, 0x44 * index + 4 + 4 * k, 'I', handle())
     regions[POOLS] = pools
-    if op == 'Setup':  # pool 2's count from the area width * height: sizes about the counts' steps (0.0016 + 0.0051 / 3 apart) or anything; the
+    if op == 'Setup':  # pool 2's count from the area width * height: sizes about the counts' steps (0.0016 + 0.0051 / 3 apart), on their edges
+        # (a few float steps either side, so the product's and each operation's rounding tell) or anything; the
         # position block (0xf86900 on) random under the pools, the clock as for a move
         regions.update(less_pauses(r).regions)
         regions[0xf86900] = bytes(r.bytes(0x2c)) + bytes(regions.pop(POOLS))
         side = lambda: r.choice([fb(r.uniform(0.03, 0.1)), fb(r.uniform(0, 0.2)), fb(r.uniform(-0.1, 0.1)), r.f(), fb(0.0), fb(-0.0)])  # noqa: E731
         w = side()
         h = r.choice([side(), w])
+        if r.random() < 0.4:  # a size within a few float steps of where the truncated step count changes (0.0016 + 0.0051 * k / 3)
+            w = r.uniform(0.04, 0.1)
+            size = (0.0016 + 0.0051 * r.randrange(-1, 5) / 3) * (1 + r.uniform(-3e-7, 3e-7) * r.choice([1, 0.1, 10]))
+            w, h = fb(w), fb(size / struct.unpack('<f', struct.pack('<I', fb(w)))[0])
         return Call(0x5ed920, [r.f(), r.f(), w, h], regions, ret='v')
     effect = c.args[0] if r.random() < 0.9 else r.choice([0, 1, 0x68])
     if op != 'Resize':  # pool 2 emptied, the first marking its systems (ParticleSystem_Set2a) first
