@@ -4,6 +4,7 @@
 # (the allocator bytes copy it, sic); the vector helpers overlapping, to null, empty; the sizes
 # of vectors null, empty, inverted. The host's window check (0x480f90) and the text window's length (ui/window705a50: 0x66852b): texts of
 # 0-40 characters or none, limits about them. The double-byte character 0x479260 (Char): the imports and the IME's handler as recorders.
+# The input context's get / release (0x4791a0 / 0x478d20): ImmGetContext / ImmReleaseContext as recorders, a context or none.
 # usage: ime.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -15,7 +16,9 @@ from fncmp import IMPORT_TABLE, LOG, Bench, Call, RAM, blob, fill, import_table,
 B = Bench([(0x478b60, 0x478bc0), (0x47c910, 0x47c93e), (0x47c940, 0x47c963), (0x47db00, 0x47db11),
            (0x47c720, 0x47c733), (0x47c700, 0x47c713), (0x47ae40, 0x47ae53), (0x47b300, 0x47b313),
            (0x47a960, 0x47a975), (0x47a980, 0x47a99f), (0x47ba30, 0x47ba43), (0x480e70, 0x480eb8),
-           (0x480f90, 0x480fce), (0x66852b, 0x668564), (0x67acd0, 0x67ad00), (0x479260, 0x47937b)])
+           (0x480f90, 0x480fce), (0x66852b, 0x668564), (0x67acd0, 0x67ad00), (0x479260, 0x47937b),
+           (0x4791a0, 0x4791b8), (0x478d20, 0x478d31), (0x6b559a, 0x6b55ac)])
+CONTEXT_IMPORTS = {'ImmGetContext': (0, 0x6fd084, 1, 0, 0), 'ImmReleaseContext': (1, 0x6fd080, 2, 0, 0)}
 CHAR_IMPORTS = {'IsDBCSLeadByte': (0, 0x6fd154, 1, 0, 0), 'PeekMessageA': (1, 0x6fd354, 5, 0, 1),
                 'MultiByteToWideChar': (2, 0x6fd174, 6, 0, 0x10), 'DefWindowProcA': (3, 0x6fd340, 4, 0, 0)}
 SIZES = [0x47c720, 0x47c700, 0x47ae40, 0x47b300]
@@ -57,6 +60,15 @@ def case(r):
         regions[RAM] = ime
         character = r.choice([r.getrandbits(32), r.getrandbits(8), 0x81, 0xe0, 0])
         return Call(0x479260, [RAM, r.getrandbits(32), character, r.getrandbits(32)], regions, conv='t', ret='a')
+    if op in ('GetContext', 'ReleaseContext'):   # 0x4791a0 / 0x478d20 through the IMM32 thunks: the imports as recorders
+        log = log_region()
+        regions = {LOG: log, IMPORT_TABLE: import_table(log, CONTEXT_IMPORTS), RAM: mem}
+        if r.random() < 0.7:
+            set_return(log, r.choice([0, 1]), r.choice([0, 1, r.getrandbits(32)]))
+        if op == 'GetContext':
+            return Call(0x4791a0, [RAM + 0x100, r.choice([0, r.getrandbits(32)])], regions, conv='t', ret='a')
+        put(mem, 0x104, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
+        return Call(0x478d20, [RAM + 0x100], regions, conv='t', ret='a')
     if op == 'Size':
         first = r.choice([0, RAM + 0x400])
         put(mem, 0x104, '3I', first, *((first + r.choice([0, 4, 16, 0x40, r.randrange(-0x40, 0x40)])) & 0xffffffff for _ in range(2)))
@@ -83,7 +95,7 @@ def case(r):
     return Call(0x47c940, [r.getrandbits(32), dst, n, value], {RAM: mem}, conv='t')
 
 
-OPS_ALL = ['Ctor', 'Copy', 'Fill', 'Size', 'Current', 'Limit', 'Construct', 'SetLength', 'Host', 'TextLength', 'OnWindow', 'Char']
+OPS_ALL = ['Ctor', 'Copy', 'Fill', 'Size', 'Current', 'Limit', 'Construct', 'SetLength', 'Host', 'TextLength', 'OnWindow', 'Char', 'GetContext', 'ReleaseContext']
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

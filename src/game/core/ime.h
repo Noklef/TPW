@@ -61,4 +61,10 @@ void __fastcall ImeVector_InsertN(u8 *vec, void *, u32 *position, u32 count, con
 // page 0): 1 unless exactly one. The character (its low word) sent as message 0x410 with lparam to the window through the IME's handler
 // +0x50 (stdcall) or, without one, DefWindowProcA (0x6fd340); 1.
 u32 __fastcall Ime_OnChar(u8 *ime, void *, u32 window, u32 character, u32 lparam);
+
+// A window's input context: { window, context }. 0x4791a0 (thiscall; window, pops 4; name unconfirmed): window stored, then the context
+// from ImmGetContext (0x6fd084, through its thunk 0x6b55a6); returns context. 0x478d20 (thiscall; name unconfirmed): with a context,
+// ImmReleaseContext (0x6fd080, thunk 0x6b55a0) of window and context; returns what EAX holds (the release's answer, else 0).
+u32 *__fastcall ImeContext_Get(u32 *context, void *, u32 window);
+u32 __fastcall ImeContext_Release(const u32 *context);
 }

@@ -274,4 +274,16 @@ u32 __fastcall Ime_OnChar(u8 *ime, void *, u32 window, u32 character, u32 lparam
     }
     return 1;
 }
+
+u32 *__fastcall ImeContext_Get(u32 *context, void *, u32 window) {
+    context[0] = window;
+    context[1] = import<u32(__stdcall *)(u32)>(0x006fd084)(window);
+    return context;
+}
+
+u32 __fastcall ImeContext_Release(const u32 *context) {
+    const u32 himc = context[1];
+    if (!himc) return 0;
+    return import<u32(__stdcall *)(u32, u32)>(0x006fd080)(context[0], himc);
+}
 }
