@@ -345,6 +345,7 @@
 #include "../game/ui/cursor.h"
 #include "../game/ui/textbutton.h"
 #include "../game/ui/windowtimers.h"
+#include "../game/lib/zlib.h"
 
 namespace tpw::hook {
 
@@ -4569,6 +4570,12 @@ const Hook kHooks[] = {
     {"Window_ApplyCursor",        0x0065f150, (void *)&Window_ApplyCursor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"GameCursor_Update",         0x0052f950, (void *)&GameCursor_Update, {0xa1, 0x2c, 0xae, 0x81, 0x00}},
     {"TextButton_Handler",        0x00492d80, (void *)&TextButton_Handler, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
+    {"adler32",                   0x0063ea00, (void *)&adler32, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
+    {"init_block",                0x0063eba0, (void *)&init_block, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"set_data_type",             0x00640460, (void *)&set_data_type, {0x53, 0x56, 0x57, 0x8b, 0x7c}},
+    {"bi_flush",                  0x006404f0, (void *)&bi_flush, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"bi_windup",                 0x00640580, (void *)&bi_windup, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"copy_block",                0x006405f0, (void *)&copy_block, {0x53, 0x56, 0x8b, 0x74, 0x24}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

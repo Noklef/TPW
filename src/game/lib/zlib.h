@@ -1,0 +1,59 @@
+// zlib 1.1.3 as the game links it: the exe's copies (0x6351a0..0x64bf70, re/libmap.csv) replaced by the
+// library built from third_party/zlib-1.1.3 (tpw_zlib), unmodified. See docs/porting.md, "Library functions".
+//
+// The hook table points the exe's addresses at these. Most are zlib's own `local` (static) functions:
+// tpw_zlib is built with -Dlocal= (zlib's documented switch, zutil.h) so they link by name. The
+// declarations use the library's own types by their struct tags only, so this header pulls in none of
+// zlib's macros (deflate.h defines Len, Code, Freq; zutil.h defines local). All are cdecl, as in the exe.
+#pragma once
+
+extern "C" {
+
+struct internal_state;        // deflate_state (deflate.h), 0x16b8 bytes
+struct ct_data_s;             // ct_data: {freq | code, dad | len} (u16, u16)
+struct tree_desc_s;           // tree_desc: {dyn_tree, max_code, stat_desc}
+struct inflate_huft_s;        // inflate_huft (inftrees.h), 8 bytes
+struct z_stream_s;            // z_stream (zlib.h), 0x38 bytes
+
+// adler32.c
+// 0x63ea00: the Adler-32 checksum of len bytes at buf, continuing adler (1 for a null buf).
+unsigned long __cdecl adler32(unsigned long adler, const unsigned char *buf, unsigned int len);
+
+// trees.c
+// 0x63eba0: zeroes the three trees' frequencies (END_BLOCK's is 1) and the block's counters.
+void __cdecl init_block(internal_state *s);
+// 0x63ec10: sends a stored block (3 header bits, then the bytes after the length and its complement).
+void __cdecl _tr_stored_block(internal_state *s, char *buf, unsigned long stored_len, int eof);
+// 0x63ecb0: sends an empty static block (and another if the last EOB left fewer than 9 bits lookahead).
+void __cdecl _tr_align(internal_state *s);
+// 0x63ef00: ends the block: the cheapest of stored, static and dynamic trees; init_block; bi_windup at eof.
+void __cdecl _tr_flush_block(internal_state *s, char *buf, unsigned long stored_len, int eof);
+// 0x63f100: builds desc's Huffman tree from its frequencies (codes and lengths, opt_len and static_len).
+void __cdecl build_tree(internal_state *s, tree_desc_s *desc);
+// 0x63f340: sifts heap entry k down (smaller frequency, then smaller depth, first).
+void __cdecl pqdownheap(internal_state *s, ct_data_s *tree, int k);
+// 0x63f400: the optimal bit lengths for the tree under construction, limited to max_length.
+void __cdecl gen_bitlen(internal_state *s, tree_desc_s *desc);
+// 0x63f630: the codes for the lengths in tree[0..max_code] from bl_count (bits reversed).
+void __cdecl gen_codes(ct_data_s *tree, int max_code, unsigned short *bl_count);
+// 0x63f6b0: the bit length tree of both trees; the index of the last bit length code sent.
+int __cdecl build_bl_tree(internal_state *s);
+// 0x63f730: counts tree's code lengths (runs as REP_3_6 / REPZ_3_10 / REPZ_11_138) into bl_tree.
+void __cdecl scan_tree(internal_state *s, ct_data_s *tree, int max_code);
+// 0x63f820: sends the header of a dynamic block: the counts, the bit length codes, both trees.
+void __cdecl send_all_trees(internal_state *s, int lcodes, int dcodes, int blcodes);
+// 0x63fa90: sends tree's code lengths with the bit length codes.
+void __cdecl send_tree(internal_state *s, ct_data_s *tree, int max_code);
+// 0x640010: sends the block's literals and matches with the given trees, then END_BLOCK.
+void __cdecl compress_block(internal_state *s, ct_data_s *ltree, ct_data_s *dtree);
+// 0x640460: data_type: binary (0) or ASCII (1), from the literals' frequencies.
+void __cdecl set_data_type(internal_state *s);
+// 0x6404d0: the low len bits of code in reverse order.
+unsigned __cdecl bi_reverse(unsigned code, int len);
+// 0x6404f0: writes out bi_buf's full bytes (16 bits as a short, 8 or more as a byte).
+void __cdecl bi_flush(internal_state *s);
+// 0x640580: writes out the rest of bi_buf, byte aligned.
+void __cdecl bi_windup(internal_state *s);
+// 0x6405f0: bi_windup, then len bytes of buf (after len and ~len as shorts when header).
+void __cdecl copy_block(internal_state *s, char *buf, unsigned len, int header);
+}
