@@ -1,5 +1,6 @@
 #include "train.h"
 
+#include <cmath>
 #include <cstdint>
 
 #include "../core/globalmem.h"
@@ -53,6 +54,35 @@ double __cdecl Car_TrainLength(const u8 *car) {
         sum = sum + at<float>(type, 0xc4);
     }
     return ((sum + (X87Reg(longest) - shortest) * at<float>(car, 0xe8)) + shortest).v;
+}
+
+void __cdecl Car_SetChannelRates(u32, u8 *car) {
+    const u8 *const train = at<const u8 *>(car, 0x100);
+    if ((at<u8>(train, 4) & 1) || (at<u32>(car, 8) & 0x2000)) return;
+    constexpr float kMinusOne = -1.0f, kMinusHalf = -0.5f;   // 0x6fde9c, 0x6fdea0 (subtracted)
+    const u32 ride = at<u32>(car, 0x70);
+    const u8 *const ranges = at<const u8 *>(train, 0x18) + 0xd0;
+    const auto set = [ride, ranges](u32 channel, u32 range, X87Reg rate) {
+        if (!(rate.v >= at<float>(ranges, range))) rate = at<float>(ranges, range);   // (fcom; test ah, 1: a NaN too)
+        if (rate.v > at<float>(ranges, range + 4)) rate = at<float>(ranges, range + 4);
+        u8 *const block = at<u8 *>(reinterpret_cast<u8 *const *>(0x007a4610)[ride], 0x10) + channel;
+        at<float>(block, 0x20) = (float)(X87Reg(at<float>(block, 0x1c)) * rate);
+    };
+    float &t = at<float>(car, 0xe8);
+    if (t > 1.0f)   // 0x6fde70
+        t = 1.0f;
+    else if (!(t >= 0.0f))   // 0x6fde74
+        t = 0.0f;
+    double whole;
+    const double phase = std::modf((double)at<float>(car, 0xf8), &whole);   // CRT modf (0x67b280)
+    at<float>(car, 0xf8) = !(phase >= 0.0) ? (float)(X87Reg((float)phase) - kMinusOne) : (float)phase;
+    set(0, 0, X87Reg(t) * at<float>(ranges, 8) + at<float>(ranges, 0xc));
+    X87Reg pitch = at<float>(car, 0xec);
+    if (at<u32>(car, 8) & 0x10000000) pitch = std::modf((pitch - kMinusHalf).v, &whole);
+    set(0x38, 0x10, pitch * at<float>(ranges, 0x18) + at<float>(ranges, 0x1c));
+    set(0xe0, 0x40, X87Reg(at<float>(car, 0xf8)) * at<float>(ranges, 0x48) + at<float>(ranges, 0x4c));
+    set(0x70, 0x20, X87Reg(at<float>(car, 0xf0)) * at<float>(ranges, 0x28) + at<float>(ranges, 0x2c) - kMinusHalf);
+    set(0xa8, 0x30, X87Reg(at<float>(car, 0xf4)) * at<float>(ranges, 0x38) + at<float>(ranges, 0x3c) - kMinusHalf);
 }
 
 u8 *__cdecl Ride_Train(u32 index, u32 *cars) {

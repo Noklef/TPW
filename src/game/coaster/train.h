@@ -19,6 +19,16 @@ void __cdecl Train_SetCouplings(u32 unused, u8 *train);
 // sic: the count is car+4, not the train's +0x30; empty slots are skipped.
 double __cdecl Car_TrainLength(const u8 *car);
 
+// 0x430ca0 (cdecl; the first argument unused, car; name unconfirmed): unless the car's train (+0x100) has flag 1 (byte +4) or the car flag
+// 0x2000 (+8), the rates of five channels of its ride's (table 0x7a4610 [car+0x70]) +0x10 block (0x38 bytes each: +0x20 = +0x1c times
+// the rate) from the car's values, each as value * scale + offset with its range from the train's type (+0x18) +0xd0 on (min, max, scale,
+// offset; below min or a NaN gives min, then above max gives max), all on the x87:
+//   +0xe8 first clamped (above 1 gives 1, below 0 or a NaN 0), channel 0 from it (range +0xd0);
+//   +0xf8 first wrapped (its modf fraction, plus 1 when negative or a NaN, stored as a float), channel 0xe0 from it (range +0x110);
+//   channel 0x38 from +0xec (range +0xe0), first through modf(+0xec + 0.5) when the car has flag 0x10000000;
+//   channels 0x70 and 0xa8 from +0xf0 and +0xf4 (ranges +0xf0, +0x100), each plus 0.5 after the offset.
+void __cdecl Car_SetChannelRates(u32 unused, u8 *car);
+
 // 0x436750: picks car's coupling as Train_SetCouplings does, without touching its flags.
 void __cdecl Car_PickCoupling(u8 *car);
 

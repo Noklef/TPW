@@ -23,6 +23,13 @@ int __cdecl Float_RoundUp(float x) {
     return n;
 }
 
+double __cdecl Float_SplitWhole(float x, s32 *whole) {
+    double w;
+    const double fraction = std::modf((double)x, &w);   // CRT modf (0x67b280)
+    if (whole) *whole = (s32)(long long)w;   // __ftol
+    return fraction;
+}
+
 double __cdecl Angle_Lerp(float a, float b, float t) {
     const X87Reg gap = std::fabs((X87Reg(a) - b).v);
     if (!(gap.v > kPi)) return (X87Reg(b) * t + (X87Reg(1.0f) - t) * a).v;
