@@ -45,25 +45,26 @@ def defs(r, regions, thing):
     regions[DEFS] = table
 
 
-def texts(r, regions):
-    """the language object's converter (on or off) and record table [0x78ba94] about the indexes 0x33 / 0x34"""
+def texts(r, regions, first=0x33, n=2, buffer=None):
+    """the language object's converter (on or off) and record table [0x78ba94] about the n indexes from first (0x33 / 0x34); the wide
+    buffer 0x7ba058 the given bytes or 0x55s"""
     lang = bytearray(r.bytes(0x600))
     conv = bytearray(r.bytes(0x10))
     put(conv, 8, 'BBHI', r.choice([0x80, 0x81, 0xa0, 0, 0xff, r.getrandbits(8)]), r.getrandbits(8), r.choice([0, 3, 0x80, 0x400, 0x7ff]), TEXTS + 0x4000)
     put(lang, 0x54c, 'II', TEXTS + 0x800, r.choice([0, 1, 1, 1, r.getrandbits(32)]))
     table = bytearray(r.bytes(0x20))
-    put(table, 8, 'II', r.choice([0x35, 0x35, 0x35, 0x34, 5]), TEXTS + 0xb00 - 4 * 0x33)
+    put(table, 8, 'II', r.choice([first + n] * 3 + [first + n - 1, 5]), TEXTS + 0xb00 - 4 * first)
     put(lang, 0x564, 'I', TEXTS + 0xa00)
     pool = bytearray()
-    for i in range(2):
+    for i in range(n):
         body = text(r) + bytes([0]) * r.choice([1, 1, 2])
         head = r.choice([1] * 6 + [2, 0x101]) | (len(body) << 8 if r.random() < 0.9 else r.randrange(0x40) << 8)
         rec = bytearray(struct.pack('<I', head) + body + bytes(0x40 - 4 - len(body)))
         if r.random() < 0.15:
             rec[4 + ((len(body) + 3) & ~3)] = 1   # (not terminated)
         pool += rec
-    regions.update({0x78b530: lang, TEXTS + 0x800: conv, TEXTS + 0x4000: r.bytes(0x1000), 0x7ba058: bytes([0x55]) * 0x404, TEXTS + 0xa00: table,
-                    TEXTS + 0xc00: bytes(pool), TEXTS + 0xb00: struct.pack('<2I', TEXTS + 0xc00, TEXTS + 0xc40)})
+    regions.update({0x78b530: lang, TEXTS + 0x800: conv, TEXTS + 0x4000: r.bytes(0x1000), 0x7ba058: buffer or bytes([0x55]) * 0x404, TEXTS + 0xa00: table,
+                    TEXTS + 0xc00: bytes(pool), TEXTS + 0xb00: struct.pack('<%dI' % n, *[TEXTS + 0xc00 + 0x40 * i for i in range(n)])})
 
 
 def case(r):
