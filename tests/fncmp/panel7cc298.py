@@ -3,7 +3,8 @@
 # +0x194 and byte +0x190 any, its definition (gObjectDefs 0x7890a0 as object.py's: a few, the thing's found, the cache hit or not) with its
 # dword +0x10c 0 or not; the window +0x10's children (dialog7cb398.py's lists: decoys about the children 0xa08e, 0xa08f, 0xa090, 0xa0a5-0xa0a7,
 # their slots 7 / 9 recorders and their own children none or window.py's tree for Window_SetShown) and the 0x705a50 button 0xa08a (as in
-# window705a50.py, now and then missing), its +0x98 / +0x9c objects recorders (k 23 / 24) masked as that bench says by the look it gets.
+# window705a50.py, now and then missing), its +0x98 / +0x9c objects recorders (k 23 / 24) masked as that bench says by the look it gets,
+# [0xfaa5d4] set or not (its post of 1 to the queues).
 # The texts 0x33 / 0x34 as language.py's (Language_WideText): a record table about them, the converter on or off.
 # usage: panel7cc298.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Update)
 import os
@@ -95,6 +96,7 @@ def case(r):
     texts(r, regions)
     after = bytearray(btn)   # (the look the notification sees: after the state is set)
     after[0x138] = 1 if struct.unpack_from('<I', thing, 0x68)[0] == 0 else 0
+    regions[0xfaa5d4] = put(bytearray(4), 0, 'I', r.choice([0, 1, 0x80000000]))   # (the button posted 1 when it is set)
     blob_bytes(log, 23, 1, EVENT_MASK)
     blob_bytes(log, 24, 1, NOTIFY_MASK, None if look(after) == 1 else INNER)
     panel = bytearray(r.bytes(0x40))
