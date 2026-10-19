@@ -1,0 +1,52 @@
+address,size,source_file,function,confidence,evidence,checked
+0x006351a0,560,deflate.c,deflateInit2_,high,"zcalloc/zcfree defaults, sizeof(deflate_state) 0x16b8, window/prev/head/pending_buf allocs, memLevel checks",yes
+0x006353d0,128,deflate.c,deflateReset,high,"_tr_init, lm_init, status INIT_STATE 42",yes
+0x00635450,704,deflate.c,deflate,high,"configuration_table 0x703d90 func dispatch, FINISH_STATE 666, putShortMSB, flush_pending, _tr_align/_tr_stored_block",yes
+0x00635710,48,deflate.c,putShortMSB,high,two put_byte of b>>8 and b&0xff,yes
+0x00635740,128,deflate.c,flush_pending,high,"copies pending to next_out, pending_out reset",yes
+0x006357c0,176,deflate.c,deflateEnd,high,"frees pending_buf/head/prev/window/state, FINISH_STATE 666 check",yes
+0x00635870,160,deflate.c,lm_init,high,"configuration_table fields 0x703d88.., window_size, CLEAR_HASH",yes
+0x00635910,352,deflate.c,deflate_stored,high,"fill_window, FLUSH_BLOCK (_tr_flush_block), flush_pending, MIN_LOOKAHEAD 0x106",yes
+0x00635a70,304,deflate.c,fill_window,high,"slide window, read_buf, UPDATE_HASH",yes
+0x00635ba0,128,deflate.c,read_buf,high,"adler32 unless noheader, memcpy",yes
+0x00635c20,864,deflate.c,deflate_fast,high,"longest_match, _tr_tally_dist inline (_length_code/_dist_code tables), FLUSH_BLOCK",yes
+0x00635f80,384,deflate.c,longest_match,high,"MAX_MATCH 258 (0x102), nice_match/good_match chain loop",yes
+0x00636100,1120,deflate.c,deflate_slow,high,"lazy match, prev_match/prev_length, TOO_FAR 4096",yes
+0x00636560,80,inflate.c,inflateReset,high,"total_in/out=0, mode, inflate_blocks_reset",yes
+0x006365b0,80,inflate.c,inflateEnd,high,"inflate_blocks_free, ZFREE state",yes
+0x00636600,272,inflate.c,inflateInit2_,high,"version 1.1.3 / sizeof(z_stream) check, zcalloc/zcfree, windowBits, inflate_blocks_new with adler32",yes
+0x00636710,1104,inflate.c,inflate,high,"method/flag/dict/blocks/check modes, z_errmsg strings",yes
+0x0063e9e0,32,zutil.c,zcalloc,high,"calloc(items, size) (0x67fcb0); zcfree is the shared free(arg 2) at 0x642990 (jmemansi jpeg_free_large/small fold into it)",yes
+0x0063ea00,304,adler32.c,adler32,high,"BASE 65521 (0xfff1), NMAX 5552 (0x15b0)",yes
+0x0063eb30,112,trees.c,_tr_init,high,"static_l_desc/static_d_desc/static_bl_desc, tr_static_init (empty without GEN_TREES_H) is the shared bare RET at 0x631270, init_block",yes
+0x0063eba0,112,trees.c,init_block,high,"clears dyn_ltree/dtree/bl_tree freqs, END_BLOCK 256 freq=1",yes
+0x0063ec10,160,trees.c,_tr_stored_block,high,"STORED_BLOCK bits, bi_windup inline, copy_block",yes
+0x0063ecb0,592,trees.c,_tr_align,high,"STATIC_TREES, send_code(END_BLOCK, static_ltree): static_ltree is 0x704158 (0x704558 is its END_BLOCK entry), bi_flush, last_eob_len 0x16ac",yes
+0x0063ef00,512,trees.c,_tr_flush_block,high,"set_data_type, build_tree x2, build_bl_tree, _tr_stored_block, send_all_trees, compress_block static/dyn, init_block, bi_windup",yes
+0x0063f100,576,trees.c,build_tree,high,"heap 0xb54, pqdownheap, gen_bitlen, gen_codes",yes
+0x0063f340,192,trees.c,pqdownheap,high,heap/depth sift,yes
+0x0063f400,560,trees.c,gen_bitlen,high,"bl_count 0xb34, opt_len/static_len, MAX_BITS overflow loop",yes
+0x0063f630,128,trees.c,gen_codes,high,"next_code[], bi_reverse",yes
+0x0063f6b0,128,trees.c,build_bl_tree,high,"scan_tree x2, build_tree(bl_desc), bl_order loop from 18, opt_len += 3*(max+1)+5+5+4",yes
+0x0063f730,240,trees.c,scan_tree,high,REP_3_6/REPZ_3_10/REPZ_11_138 freq counting,yes
+0x0063f820,624,trees.c,send_all_trees,high,"sends lcodes-257 / dcodes-1 / blcodes-4, bl_order, send_tree x2",yes
+0x0063fa90,1408,trees.c,send_tree,high,send_code of REP_3_6 (16) etc with send_bits inlined,yes
+0x00640010,1104,trees.c,compress_block,high,"d_buf/l_buf, _length_code 0x704850, _dist_code, extra bits, END_BLOCK",yes
+0x00640460,112,trees.c,set_data_type,high,"sums dyn_ltree freqs 0-6 / 7-127 / 128-255, data_type 0x1c",yes
+0x006404d0,32,trees.c,bi_reverse,high,hooked as Bits_Reverse,yes
+0x006404f0,144,trees.c,bi_flush,high,bi_valid==16 / >=8 paths on bi_buf 0x16b0,yes
+0x00640580,112,trees.c,bi_windup,high,"flushes bi_buf, bi_valid=0",yes
+0x006405f0,160,trees.c,copy_block,high,"bi_windup, header len/~len, byte copy",yes
+0x00640690,128,infblock.c,inflate_blocks_reset,high,"frees codes state, checkfn(0,NULL,0), ZFREE",yes
+0x00640710,176,infblock.c,inflate_blocks_new,high,"ZALLOC state, MANY=1440 (0x5a0) hufts, window",yes
+0x006407c0,3312,infblock.c,inflate_blocks,high,"mode switch jump tables; inflate_trees_fixed/bits/dynamic, inflate_codes_new/inflate_codes/free, inflate_flush, border[] 0x704a40",yes
+0x006414b0,80,infblock.c,inflate_blocks_free,high,"inflate_blocks_reset, ZFREE window/hufts/state",yes
+0x00649550,64,infcodes.c,inflate_codes_new,high,"ZALLOC codes state, lbits/dbits/ltree/dtree",yes
+0x00649590,1968,infcodes.c,inflate_codes,high,"mode jump table, inflate_fast, inflate_flush, invalid literal/length/distance code strings",yes
+0x00649d40,32,infcodes.c,inflate_codes_free,high,ZFREE codes state,yes
+0x00649d60,176,inftrees.c,inflate_trees_bits,high,"huft_build, oversubscribed/incomplete dynamic bit lengths tree strings",yes
+0x00649e10,1200,inftrees.c,huft_build,high,"BMAX 15 counts, stack x[], Z_DATA_ERROR/-5 paths",yes
+0x0064a2c0,400,inftrees.c,inflate_trees_dynamic,high,"cplens/cplext/cpdist/cpdext tables, distance tree strings",yes
+0x0064a450,48,inftrees.c,inflate_trees_fixed,high,"*bl=fixed_bl *bd=fixed_bd *tl=0x77a0a0 *td=0x77b0a0 (inffixed.h, no BUILDFIXED); hooked as Fn_64a450",yes
+0x0064a480,320,infutil.c,inflate_flush,high,"copies the window from read to write (and the wrap) to next_out, checkfn, inlined memcpy; ends at 0x64a5b1 (Ghidra ran it on into the 6b jidct*.c functions at 0x64a5c0..0x64bbcf, size was given as 5968)",yes
+0x0064bbd0,928,inffast.c,inflate_fast,high,"GRABBITS/DUMPBITS fast loop with inflate_mask, called from inflate_codes",yes
