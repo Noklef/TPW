@@ -8,16 +8,7 @@ address,name,module,reason
 472310,Motion_ResetChannels,motion/track,todo: indirect only
 473440,Motion_UpdateClocks,motion/animator,todo
 4745c0,Motion_ApplyUVs,motion/uvanim,todo
-475010,SpriteScript_Run,sprite/script,todo
-475290,SpriteScripts_Init,sprite/script,todo
-4752e0,SpriteScripts_Shutdown,sprite/script,todo
-475360,SpriteScripts_Update,sprite/script,todo
 475430,SpriteScripts_Draw,sprite/script,todo
-475650,SpriteScripts_Save,sprite/script,todo
-475730,SpriteScripts_Load,sprite/script,todo
-4758f0,SpriteScript_Init,sprite/script,todo
-475a10,SpriteScript_Start,sprite/script,todo: indirect only
-475cf0,SpriteScript_Clone,sprite/script,todo
 4d7bb0,World_InitBlock,world/mapcell,todo
 50b350,Thing_GetHandle,world/things,todo: indirect only
 515660,World_Attach,world/things,todo

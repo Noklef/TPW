@@ -9,10 +9,13 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, put  # noqa: E402
+from fncmp import HEAP, Bench, Call, RAM, global_heap, heap, put, record_stream  # noqa: E402
 
-B = Bench([(0x475010, 0x476a30), (0x540b90, 0x540d78), (0x541f60, 0x541f70), (0x5da3c0, 0x5da3c1)])
-SCRIPTS, TABLE, SPRITES, OUT = (RAM + 0x1000 * k for k in range(4))
+B = Bench([(0x475010, 0x476a30), (0x540b90, 0x540d78), (0x541f60, 0x541f70), (0x5da3c0, 0x5da3c1), (0x402d70, 0x403220), (0x4033a0, 0x4033f0),
+           (0x5f5660, 0x5f56a0), (0x5f5e20, 0x5f5e90), (0x5f5fa0, 0x5f5fc0)])
+SCRIPTS, TABLE, SPRITES, OUT, STREAM, DATA = (RAM + 0x1000 * k for k in range(6))
+CLOCK = 0x785970     # the game clock: frozen (+0x38), its time +0x3c, plus +0x48
+END = 0x5da3c0       # the END opcode (the empty Debug_Printf)
 GLOBALS = 0x7b49f0   # slot table, slots, registers, now, code, ?, steps, ?, step limit, ready, current
 FOLDERS = 0x763f88   # gSpriteFolders: 14 x (name, first sprite, count)
 GSPRITES = 0x876b48  # gSprites: sprite pointers
@@ -87,8 +90,105 @@ def script(r, k, code):
     return s
 
 
+LIST = ['Run', 'Update', 'ListInit', 'Shutdown', 'Save', 'Load', 'ScriptInit', 'Start', 'Clone']
+
+
+def list_case(r, op, regions, slot, code_arg, current, nslots, words):
+    """The run loop and the list functions that allocate, free, stream or read the clock: the scripts from heap() through the GlobalAlloc
+    import (global_heap()), the game clock frozen at a time some scripts are due by (+0x7c), END opcodes among the code."""
+    regions[HEAP] = heap()
+    regions.update(global_heap())
+    clock = bytearray(r.bytes(0x80))
+    t, d = r.getrandbits(31), r.choice([0, 0, small(r)])
+    put(clock, 0x38, 'III', 1, t, r.getrandbits(32))
+    put(clock, 0x48, 'I', d)
+    regions[CLOCK] = clock
+    now = (t + d) & 0xffffffff
+    for k in range(NSCRIPTS):
+        put(regions[SCRIPTS], STRIDE * k + 0x7c, 'I', (now + r.choice([-100, -1, 0, 1, 100, r.randrange(-2000, 2000)])) & 0xffffffff)
+    if op in ('Run', 'Update'):  # a program of whole instructions, the scripts at their starts
+        starts = program(r, words)
+        for k in range(NSCRIPTS):
+            if r.random() < 0.9:
+                put(regions[SCRIPTS], STRIDE * k + 8, 'i', r.choice(starts))
+                put(regions[SCRIPTS], STRIDE * k + 0x14, 'I', CODE)
+    for _ in range(r.randrange(0, 3)):
+        words[r.randrange(0x100)] = END
+    regions[CODE] = bytearray(struct.pack('<256I', *words))
+    xyz = [freg(r) for _ in range(3)]
+    folder, sprite, anim = r.randrange(14), r.choice([r.randrange(8), r.randrange(2)]), r.randrange(5)
+    if op == 'Run':
+        return Call(0x475010, [r.choice([current, SCRIPTS + STRIDE * r.randrange(NSCRIPTS)])], regions, ret='a')
+    if op == 'Update':
+        return Call(0x475360, [], regions, ret='a')
+    if op == 'ListInit':
+        return Call(0x475290, [], regions)
+    if op == 'Shutdown':
+        return Call(0x4752e0, [], regions)
+    if op == 'Save':
+        regions[STREAM] = record_stream(STREAM, DATA, r.choice([0x1000, 0x1000, 0x1000, r.randrange(0x200), 8, 12]))
+        regions[DATA] = r.bytes(0x1000)
+        return Call(0x475650, [STREAM], regions)
+    if op == 'Load':
+        n = r.choice([1, 2, 5, 12, r.randrange(1, 13), r.randrange(1, 13)])
+        table = [0] + [r.choice([0, RAM + 0x3000]) for _ in range(n - 1)]
+        data = struct.pack('<3I', 0x53435054 if r.random() < 0.9 else r.getrandbits(32), 0x118 if r.random() < 0.9 else r.choice([0x120, 0]), n)
+        data += struct.pack('<%dI' % n, *table)
+        for k in range(n):
+            if table[k]:
+                data += bytes(script(r, k, CODE)[:0x118])
+        left = len(data) if r.random() < 0.8 else r.randrange(len(data) + 1)
+        regions[STREAM] = record_stream(STREAM, DATA, left)
+        regions[DATA] = data + r.bytes(0x10)
+        return Call(0x475730, [STREAM], regions, ret='a')
+    if op == 'ScriptInit':
+        code = r.choice([CODE_TABLE + 4 * r.randrange(1858), CODE_TABLE + 4 * r.randrange(1858), CODE_TABLE, CODE_TABLE - 4, r.getrandbits(32)])
+        return Call(0x4758f0, [SCRIPTS + STRIDE * r.randrange(NSCRIPTS), code, folder, sprite, anim] + xyz + [imm(r), imm(r)], regions)
+    if op == 'Start':
+        return Call(0x475a10, [code_arg, folder, sprite, anim] + xyz, regions, ret='a')
+    table = struct.unpack('<12I', regions[TABLE])
+    used = [k for k in range(1, nslots) if table[k]]
+    if not used and nslots > 1:
+        put(regions[TABLE], 4, 'I', SCRIPTS)
+        used = [1]
+    if used and r.random() < 0.9:
+        slot = r.choice(used)
+    return Call(0x475cf0, [slot] + xyz + [freg(r)], regions, ret='a')
+
+
+def program(r, words):
+    """words (256) become whole instructions with operands that make sense, END among them; returns where each starts."""
+    starts, at, gotos = [], 0, []
+    while at < 0x100 - 4:
+        name = r.choice(list(OP) + ['End'] + ['Set', 'Add', 'If', 'EndIf', 'Yield'] * 2)
+        starts.append(at)
+        if name == 'End':
+            ops = [END]
+        elif name in ('If', 'Until'):
+            t = r.randrange(1, 9)
+            ops = [OP[name], regidx(r), t, regidx(r) if t <= 4 else imm(r)]
+        elif name in ('Set', 'Add', 'Sub'):
+            ops = [OP[name], regidx(r), imm(r)]
+        elif name == 'Move':
+            ops = [OP[name], regidx(r), regidx(r)]
+        elif name in ('Goto', 'Gosub'):
+            ops = [OP[name], 0]
+            gotos.append(at + 1)
+        elif name == 'PlayReg':
+            ops = [OP[name], regidx(r)]
+        elif name in ('SetAnim', 'Play', 'PlayAlways'):
+            ops = [OP[name], r.choice([small(r), 0xffffffff, imm(r)])]
+        else:
+            ops = [OP[name]]
+        words[at:at + len(ops)] = ops
+        at += len(ops)
+    for g in gotos:
+        words[g] = CODE + 4 * r.choice(starts) if r.random() < 0.95 else r.choice([CODE - 4, CODE + 4 * r.randrange(0x100)])
+    return starts
+
+
 def case(r):
-    op = r.choice(OPS)
+    op = r.deal(OPS)
     code = CODE
     words = [code_word(r) for _ in range(0x100)]
     scripts = bytearray()
@@ -117,6 +217,8 @@ def case(r):
                FOLDERS: folders, GSPRITES: bytearray(gs)}
     slot = r.choice([r.randrange(1, nslots + 1), r.randrange(1, nslots + 1), 0, -1, nslots, r.randrange(13)])
     code_arg = r.choice([0, 1, 2, 3, CODE_TABLE + 4 * r.randrange(1858), CODE_TABLE + 4 * r.randrange(1858), 4, -1 & 0xffffffff])
+    if op in LIST:
+        return list_case(r, op, regions, slot, code_arg, current, nslots, words)
     if op in OP:
         s = regions[SCRIPTS]
         pc = struct.unpack_from('<i', s, current - SCRIPTS + 8)[0]
@@ -185,7 +287,7 @@ def case(r):
 
 OPS_ALL = list(OP) + ['Push', 'Pop', 'SkipBlock', 'SkipToElse', 'SetPosition', 'GetPosition', 'Kill', 'SetReg', 'SetRegF',
                       'SetPeriod', 'Jump', 'IsAt', 'CopyFrom', 'FindShown', 'WrapSprites', 'Show', 'FrameCount',
-                      'GetAction', 'FolderCount']
+                      'GetAction', 'FolderCount'] + LIST
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 
