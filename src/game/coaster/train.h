@@ -48,6 +48,13 @@ u32 __cdecl Train_ShrinkToTop(const u8 *owner, const u8 *type, const u8 *train);
 // from 0x791038 (a dword each); and Car_SetChannelRates (owner +4, car). Slots from the count to 5 are cleared; 0x791cd8 = 0.
 void __cdecl Train_RestoreSaved(const u8 *owner, u8 *train);
 
+// 0x442d70 (cdecl; owner, car; name unconfirmed): the car taken out of its train (+0x100): the count (+0x30) lowered, and from the car's
+// slot (+4) on each later car moved down a slot (its +4 lowered). The car that takes the slot first (while its index is the car's +4) also
+// takes the ride value of the car before it (its ride's +8, +4, +0x78, +0x44), and its length +0xe8 becomes the unlerp (CarType_Unlerp
+// with the train's type +0x18) of its train length less the length up to the slot before plus the type's gap (+0xc4; 0 for slot 0),
+// held to 0..1 (below 0 or a NaN 0); then Car_SetChannelRates (owner +4, car). The slot past the new count is cleared.
+void __cdecl Train_RemoveCar(const u8 *owner, const u8 *car);
+
 // 0x436750: picks car's coupling as Train_SetCouplings does, without touching its flags.
 void __cdecl Car_PickCoupling(u8 *car);
 

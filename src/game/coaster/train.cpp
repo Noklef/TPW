@@ -140,6 +140,43 @@ void __cdecl Train_RestoreSaved(const u8 *owner, u8 *train) {
     global<u32>(0x00791cd8) = 0;
 }
 
+void __cdecl Train_RemoveCar(const u8 *owner, const u8 *car) {
+    const auto ride_value = [](const u8 *c) -> float & {   // (the car's ride +8, +4, +0x78, +0x44)
+        const u8 *const ride = reinterpret_cast<const u8 *const *>(0x007a4610)[at<u32>(c, 0x70)];
+        return at<float>(at<const u8 *>(at<const u8 *>(at<const u8 *>(ride, 8), 4), 0x78), 0x44);
+    };
+    u8 *const train = at<u8 *>(car, 0x100);
+    const u32 n = --at<u32>(train, 0x30);
+    u32 i = at<u32>(car, 4);
+    if (i >= n) {
+        at<u32>(train, 0x34 + at<u32>(train, 0x30) * 4) = 0;
+        return;
+    }
+    do {
+        if (i == at<u32>(car, 4)) {   // (read again each time)
+            const float kept = ride_value(at<const u8 *>(train, 0x34 + 4 * i));
+            float below = 0.0f;
+            if (i)
+                below = (float)(X87Reg(Car_TrainLength(at<const u8 *>(train, 0x30 + 4 * i))) + at<float>(at<const u8 *>(train, 0x18), 0xc4));
+            const double length = Car_TrainLength(at<const u8 *>(train, 0x38 + 4 * i));
+            ride_value(at<const u8 *>(train, 0x38 + 4 * i)) = kept;
+            const double t = CarType_Unlerp((float)(X87Reg(length) - below), at<const u8 *>(train, 0x18));
+            u8 *const next = at<u8 *>(train, 0x38 + 4 * i);
+            at<float>(next, 0xe8) = (float)t;
+            if (!(t >= 0.0))   // (fcomp 0x6fe1b4 of the unrounded value: below or unordered)
+                at<float>(next, 0xe8) = 0.0f;
+            if (at<float>(next, 0xe8) > 1.0f)   // (0x6fe1a8)
+                at<float>(next, 0xe8) = 1.0f;
+            Car_SetChannelRates(at<u32>(owner, 4), at<u8 *>(train, 0x38 + 4 * i));
+        }
+        u8 *const next = at<u8 *>(train, 0x38 + 4 * i);
+        at<u8 *>(train, 0x34 + 4 * i) = next;
+        --at<u32>(next, 4);
+        ++i;
+    } while (i < at<u32>(train, 0x30));
+    at<u32>(train, 0x34 + at<u32>(train, 0x30) * 4) = 0;
+}
+
 u8 *__cdecl Ride_Train(u32 index, u32 *cars) {
     const u8 *ride = reinterpret_cast<const u8 *const *>(0x007a4610)[index];
     if (!(at<u32>(ride, 4) & 0x80000)) {
