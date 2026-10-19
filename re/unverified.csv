@@ -302,15 +302,6 @@ address,name,module,reason
 62dc10,Draw16_TextW,gfx/drawrgb,todo
 62dff0,Draw16_Sprite,gfx/drawrgb,todo
 62ed00,Draw16_SpriteShape,gfx/drawrgb,todo
-62fe00,RowReader_Decode,gfx/tga,todo
-6300c0,RowReader_CopyRow,gfx/tga,todo
-6300f0,TgaReader_Load,gfx/tga,todo
-630150,TgaReader_ReadHeader,gfx/tga,todo
-630400,TgaReader_Begin,gfx/tga,todo
-630440,TgaReader_ReadRow,gfx/tga,todo
-630500,TgaReader_MirrorRow,gfx/tga,todo
-630580,TgaReader_ReadRunRow,gfx/tga,todo
-6306a0,TgaReader_RowBytes,gfx/tga,todo
 63a7b0,IndexConverter_Ctor,gfx/pixconv,todo
 63a810,IndexConverter_DeletingDtor,gfx/pixconv,todo
 63a830,IndexConverter_Dtor,gfx/pixconv,todo
