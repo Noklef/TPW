@@ -58,4 +58,42 @@ u32 __fastcall Window705950_SetInner(u8 *window, void *, u32 left, u32 top, u32 
 }
 
 void __fastcall Window705950_OffsetInner(u8 *window, void *, u32 dx, u32 dy) { vcall<void>(window + 0x138, 8, (u32)(u16)dx, (u32)(u16)dy); }
+
+void __fastcall Window705950_SelectAt(u8 *window, void *, u32, u32 y) {
+    if (!at<s16>(window, 0x154)) return;
+    s32 row = ((s32)(s16)y - (s32)at<s16>(window, 0x13e)) / (s32)at<s16>(window, 0x154);
+    if (row < (s32)at<s16>(window, 0x156) && row < at<s32>(window, 0x14c)) row += at<s32>(window, 0x150);
+    else row = -1;
+    if (row == at<s32>(window, 0x148)) return;
+    at<s32>(window, 0x148) = row;
+    if (at<s32>(window, 0x148) >= 0) Window_PostMessage(at<u8 *>(window, 0x60), 0x201, at<u32>(window, 0x8c), at<u32>(window, 0x148));
+    if (*reinterpret_cast<u32 *>((uintptr_t)0x00faa5d4)) Window_PostMessage(window, 3, 0, 0);
+}
+
+void __fastcall Window705950_TrackAt(u8 *window, void *, u32 x, u32 y) {
+    if (!(at<u32>(window, 0x48) & 0x80)) return;
+    if ((s16)vcall<u32>(window + 0x2c, 0, (u32)(u16)x, (u32)(u16)y) == 0) return;
+    Window705950_SelectAt(window, nullptr, (u16)x, (u16)y);
+}
+
+void __fastcall Window705950_PostChosen(u8 *window) {
+    if (at<s32>(window, 0x148) >= 0) Window_PostMessage(at<u8 *>(window, 0x60), 0x200, at<u32>(window, 0x8c), at<u32>(window, 0x148));
+}
+
+void __fastcall Window705950_ClickAt(u8 *window, void *, u32 x, u32 y) {
+    if (at<u32>(window, 0x48) & 0x80) {
+        if (at<s32>(window, 0x148) >= 0) Window_PostMessage(at<u8 *>(window, 0x60), 0x200, at<u32>(window, 0x8c), at<u32>(window, 0x148));
+        return;
+    }
+    Window705950_SelectAt(window, nullptr, (u16)x, (u16)y);
+}
+
+void __fastcall Window705950_Scrolled(u8 *window) {
+    u8 *const bar = Window_FindChild(window, nullptr, 1);
+    if (!bar) return;
+    const u32 first = vcall<u32>(bar, 0x20);
+    if (first == at<u32>(window, 0x150)) return;
+    at<u32>(window, 0x150) = first;
+    if (*reinterpret_cast<u32 *>((uintptr_t)0x00faa5d4)) Window_PostMessage(window, 3, 0, 0);
+}
 }
