@@ -28,15 +28,17 @@ CALLS = {'HilightList_NewRow': 0x480d30, 'List7cc188_NewRow': 0x4a8380, 'Hilight
          'List7cc338_NewRow': 0x4b4c70, 'List7cc530_NewRow': 0x4bacc0, 'List7cc530_InitRow': 0x4bad70, 'List7ca140_NewRow': 0x4938c0,
          'List7ca158_NewRow': 0x4944d0, 'List7ca314_NewRow': 0x49bbb0, 'List7cb24c_NewRow': 0x49f0b0, 'List7cb264_NewRow': 0x4a02b0,
          'List7cc200_NewRow': 0x4ad240, 'List7cc250_NewRow': 0x4ae700, 'List7cc654_NewRow': 0x4bcbc0, 'List7ca314_NewRowJump': 0x49c870,
-         'List7ca314_InitRow': 0x49c880, 'List7cb24c_InitRow': 0x49f170, 'List7cc250_InitRow': 0x4ae7d0, 'List7cc654_InitRow': 0x4bcca0}
+         'List7ca314_InitRow': 0x49c880, 'List7cb24c_InitRow': 0x49f170, 'List7cc250_InitRow': 0x4ae7d0, 'List7cc654_InitRow': 0x4bcca0,
+         'List7cc94c_NewRow': 0x4c02d0, 'List7cca90_NewRow': 0x4c1b30}
 TEXT_ROWS = {'List7ca314_InitRow', 'List7cb24c_InitRow', 'List7cc250_InitRow', 'List7cc654_InitRow'}
 # the factories that make children (with windowfactory.py's surroundings), those whose first allocation failing would fault in both
 # (their child or handler of no window, sic), and the dwords their height is cached in with the dword their font index is in (or 7)
 CHILDREN = {k for k in CALLS if k.endswith('NewRow')} - {'HilightList_NewRow', 'List7cc188_NewRow'}
-UNCHECKED = {'List7cc530_NewRow', 'List7ca158_NewRow', 'List7cb24c_NewRow', 'List7cb264_NewRow'}
+UNCHECKED = {'List7cc530_NewRow', 'List7ca158_NewRow', 'List7cb24c_NewRow', 'List7cb264_NewRow', 'List7cc94c_NewRow', 'List7cca90_NewRow'}
 CACHES = {'List7cc338_NewRow': (0x7cc35c, 0x756f38), 'List7ca140_NewRow': (0x7ca140, 0x7508b4), 'List7ca158_NewRow': (0x7ca158, 0x750d54),
           'List7ca314_NewRow': (0x7ca314, 0x7523dc), 'List7cb24c_NewRow': (0x7cb24c, None), 'List7cb264_NewRow': (0x7cb264, 0x752934),
-          'List7cc200_NewRow': (0x7cc200, 0x755134), 'List7cc250_NewRow': (0x7cc250, 0x75583c)}
+          'List7cc200_NewRow': (0x7cc200, 0x755134), 'List7cc250_NewRow': (0x7cc250, 0x75583c), 'List7cc94c_NewRow': (0x7cc94c, None),
+          'List7cca90_NewRow': (0x7cca90, None)}
 # (the initialisers: the text part's construction (textparts.py's ranges), SetLayout (0x48fc40, 0x48f420), the pixels (trackedglobal.py's),
 # the renderer's tag 0x30 list (0x48f5c0, Renderer_Add, Pool_AddSorted), Window_Notify40000)
 PART_RANGES = [(0x48f150, 0x48f290), (0x5775d0, 0x577660), (0x579b40, 0x579c30), (0x588320, 0x588420), (0x588d70, 0x588e50), (0x58a4f0, 0x58a560),
@@ -52,7 +54,7 @@ B = Bench(sorted(set(RANGES + PART_RANGES + REG_RANGES + windowfactory.FACTORY +
     (0x49f0b0, 0x49f16e), (0x4a02b0, 0x4a03c1), (0x4ad240, 0x4ad334), (0x4ae700, 0x4ae7c9), (0x4bcbc0, 0x4bcc9d), (0x490250, 0x490300),
     (0x4907b0, 0x490860), (0x49c870, 0x49c96b), (0x49f170, 0x49f27f), (0x4ae7d0, 0x4ae8d6), (0x4bcca0, 0x4bce08), (0x65c388, 0x65c55a),
     (0x65d56b, 0x65d58c), (0x65d773, 0x65d7cc), (0x6616b0, 0x661710), (0x6617f0, 0x661820), (0x4903e0, 0x4904d0), (0x490940, 0x490a00), (0x6acb70, 0x6accb0),
-    (0x6acd60, 0x6ace70), (0x6b00e0, 0x6b0140)])))
+    (0x6acd60, 0x6ace70), (0x6b00e0, 0x6b0140), (0x4c02d0, 0x4c03dd), (0x4c1b30, 0x4c1c28)])))
 ROW, OLD, OBJ98, VT98, VTOLD, OBJ4C, REND = RAM + 0x9000, RAM + 0x9200, RAM + 0x9300, RAM + 0x9380, RAM + 0x9400, RAM + 0x9480, RAM + 0x9500
 PARENTS = RAM + 0x9600
 NODES, FOUND, FVT, CUT, BOX, BOXVT = RAM + 0xa000, RAM + 0xa100, RAM + 0xa200, RAM + 0xa300, RAM + 0xa500, RAM + 0xa780

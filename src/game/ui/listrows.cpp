@@ -69,6 +69,29 @@ u8 *firstChild(u8 *window) { return reinterpret_cast<u8 *>((uintptr_t)Fn_65d547(
 u8 *nextSibling(u8 *window) { return reinterpret_cast<u8 *>((uintptr_t)Fn_65d56b(window)); }
 
 u8 *lookOf(const char *name) { return reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(name)); }
+
+// a TextPart_Ctor part, font 7 and the text 0 (Window_NotifyImpl100)
+void textRow(u8 *window) {
+    setPart(window, TextPart_Ctor);
+    Window_Set4c(window, nullptr, Language_Font(7));
+    Window_NotifyImpl100(window, nullptr, 0);
+}
+
+// a TextPart6ff500_Ctor part as the object +0x98, font 7 and the bytes 1, 1 as 0xc00
+void objectRow(u8 *window) {
+    u8 *const part = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
+    Window_SetObject98(window, nullptr, part ? TextPart6ff500_Ctor(part, nullptr, 0) : nullptr);
+    Window_Set4c(window, nullptr, Language_Font(7));
+    Window_NotifyC00(window, nullptr, 1, 1);
+}
+
+// a TextPart6ff350_Ctor part, font 7, slot 7 called with 0 and the bytes 1, 1 as 0xc00
+void partRow(u8 *window) {
+    setPart(window, TextPart6ff350_Ctor);
+    Window_Set4c(window, nullptr, Language_Font(7));
+    vcall<void>(window, 0x1c, 0u);
+    Window_NotifyC00(window, nullptr, 1, 1);
+}
 }  // namespace
 
 extern "C" {
@@ -247,5 +270,77 @@ void __cdecl List7cc654_InitRow(u8 *row) {
     Window_SetObject98(box1, nullptr, lookOf("i_boxtick"));
     u8 *const box2 = nextSibling(box1);
     Window_SetObject98(box2, nullptr, lookOf("i_boxtick"));
+}
+
+u8 *__cdecl List7cc94c_NewRow() {
+    u8 *const window = newRow(0, 0, cachedHeight(0x007cc94c, &kFont7));
+    for (u32 id = 2; id <= 6; id++) child(window, 1, 1, id);   // (sic: not checked)
+    return window;
+}
+
+u8 *__cdecl List7cca90_NewRow() {
+    u8 *const window = newRow(0, 0, cachedHeight(0x007cca90, &kFont7));
+    for (u32 id = 2; id <= 5; id++) child(window, 1, 1, id);   // (sic: not checked)
+    return window;
+}
+
+void __cdecl List7cc94c_InitRow(u8 *row) {
+    textRow(row);
+    u8 *window = firstChild(row);
+    textRow(window);
+    Window_NotifyC00(window, nullptr, 1, 1);
+    window = nextSibling(window);
+    textRow(window);
+    Window_NotifyC00(window, nullptr, 1, 1);
+    window = nextSibling(window);
+    objectRow(window);
+    for (int k = 0; k < 2; k++) {
+        window = nextSibling(window);
+        partRow(window);
+    }
+}
+
+void __cdecl List7cca90_InitRow(u8 *row) {
+    textRow(row);
+    u8 *window = firstChild(row);
+    textRow(window);
+    window = nextSibling(window);
+    objectRow(window);
+    for (int k = 0; k < 2; k++) {
+        window = nextSibling(window);
+        partRow(window);
+    }
+}
+
+void __cdecl List7cc200_InitRow(u8 *row) {
+    setPart(row, TextPart_Ctor);
+    Window_Set4c(row, nullptr, Language_Font(global<u32>(0x00755134)));
+    Window_Notify40000(row, nullptr, 0xff, 0xff, 0xff, 0xff);
+    u8 *const text = firstChild(row);
+    setPart(text, TextPart6ff3e0_Ctor);
+    Window_Set4c(text, nullptr, Language_Font(global<u32>(0x00755134)));
+    Window_NotifyC00(text, nullptr, 2, 1);
+    vcall<void>(text, 0x1c, 0u);
+    u8 *const box = nextSibling(text);
+    Window_SetObject98(box, nullptr, lookOf("i_boxtick"));
+    vcall<void>(box, 0x1c, 0u);
+}
+
+void __cdecl List7cb264_InitRow(u8 *row) {
+    setPart(row, TextPart_Ctor);
+    Window_Set4c(row, nullptr, Language_Font(global<u32>(0x00752934)));
+    Window_SetHandler(row, nullptr, 0x004a0710);
+    static const PartCtor kParts[5] = {TextPart6ff3b0_Ctor, TextPart6ff350_Ctor, TextPart6ff440_Ctor, TextPart6ff3b0_Ctor, TextPart6ff3b0_Ctor};
+    u8 *window = row;
+    for (int k = 0; k < 5; k++) {
+        window = k ? nextSibling(window) : firstChild(window);
+        Window_SetHandler(window, nullptr, 0x004a0710);
+        setPart(window, kParts[k]);
+        const bool label = kParts[k] == TextPart6ff3b0_Ctor;
+        if (label) Window_NotifyC00(window, nullptr, 2, 1);
+        Window_Set4c(window, nullptr, Language_Font(global<u32>(0x00752934)));
+        vcall<void>(window, 0x1c, 0u);
+        if (!label) Window_NotifyC00(window, nullptr, 1, 1);
+    }
 }
 }  // extern "C"
