@@ -22,7 +22,7 @@ from gamestring import BACKSLASH, DOT, LOCALE, SLASH2, string  # noqa: E402
 RANGES = gamestring.B_RANGES + [(0x41cff0, 0x41d2d0), (0x41ce90, 0x41ce94), (0x421720, 0x421780), (0x4217e0, 0x421800), (0x5c4d50, 0x5c4f70),
                                  (0x46f120, 0x46f160), (0x5c4f80, 0x5c4fb0), (0x618d30, 0x618d90), (0x44a280, 0x44a3c4), (0x461790, 0x461a60),
                                  (0x45b9d0, 0x45ba15),
-                                 (0x4036a0, 0x4036e0)]   # (the last: StreamBase's read and write, for memory_source())
+                                 (0x4036a0, 0x4036e0), (0x639100, 0x639110)]   # (the last two: StreamBase's read, write and size, for memory_source())
 B = Bench(RANGES)
 TAIL, WAD, EMPTY = 0x78bf40, 0x78c810, 0x78be50
 PATH, BASE, OUT = RAM, RAM + 0x40, RAM + 0x80

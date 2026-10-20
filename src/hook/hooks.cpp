@@ -126,6 +126,7 @@
 #include "../game/gfx/surfacepool.h"
 #include "../game/gfx/texsprite.h"
 #include "../game/gfx/texatlas.h"
+#include "../game/gfx/texfile.h"
 #include "../game/gfx/textlayout.h"
 #include "../game/gfx/tvstatic.h"
 #include "../game/gfx/wctimage.h"
@@ -4098,6 +4099,7 @@ const Hook kHooks[] = {
     {"TextLayout_BreakLines",     0x006aec80, (void *)&TextLayout_BreakLines, {0x51, 0x8b, 0x54, 0x24, 0x08}},
     {"TextLayout_Arrange",        0x006aeb10, (void *)&TextLayout_Arrange, {0x55, 0x56, 0x57, 0x8b, 0xf9}},
     {"TextLayout_SetOrigin",      0x006adfb0, (void *)&TextLayout_SetOrigin, {0x83, 0xec, 0x08, 0x53, 0x56}},
+    {"TexFile_Load",              0x00574bd0, (void *)&TexFile_Load, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
