@@ -89,6 +89,7 @@ void __cdecl jquant1_finish_pass_1_quant(j_decompress_ptr cinfo);  // (not a hoo
 void __cdecl jquant2_lib_jinit_2pass_quantizer(j_decompress_ptr cinfo);
 void __cdecl jquant2_lib_start_pass_2_quant(j_decompress_ptr cinfo, boolean is_pre_scan);
 void __cdecl jquant2_finish_pass2(j_decompress_ptr cinfo);  // (not a hook: its exe copy is the shared bare RET)
+void __cdecl jmemmgr_lib_jinit_memory_mgr(j_common_ptr cinfo);
 void __cdecl jpeg_idct_float(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, short *coef_block, unsigned char **output_buf,
                              unsigned int output_col);
 }
@@ -189,6 +190,18 @@ const ExeMethod kExeMethods[] = {
     {fn(&jquant2_pass2_no_dither), 0x647860},
     {fn(&jquant2_pass2_fs_dither), 0x647db0},
     {fn(&jquant2_finish_pass2), 0x631270},
+    // jmemmgr.c
+    {fn(&jmemmgr_alloc_small), 0x63d520},
+    {fn(&jmemmgr_alloc_large), 0x63d670},
+    {fn(&jmemmgr_alloc_sarray), 0x63d720},
+    {fn(&jmemmgr_alloc_barray), 0x63d7d0},
+    {fn(&jmemmgr_request_virt_sarray), 0x63d880},
+    {fn(&jmemmgr_request_virt_barray), 0x63d8f0},
+    {fn(&jmemmgr_realize_virt_arrays), 0x63d960},
+    {fn(&jmemmgr_access_virt_sarray), 0x63db00},
+    {fn(&jmemmgr_access_virt_barray), 0x63dcd0},
+    {fn(&jmemmgr_free_pool), 0x63deb0},
+    {fn(&jmemmgr_self_destruct), 0x63dfb0},
 };
 
 // The method pointer at slot: the exe's address in place of a library method's (anything else is left as it is).
@@ -344,6 +357,22 @@ void __cdecl jquant2_start_pass_2_quant(j_decompress_ptr cinfo, boolean is_pre_s
     jquant2_lib_start_pass_2_quant(cinfo, is_pre_scan);
     exe_method(cinfo->cquantize->color_quantize);
     exe_method(cinfo->cquantize->finish_pass);
+}
+
+void __cdecl jinit_memory_mgr(j_common_ptr cinfo) {
+    jmemmgr_lib_jinit_memory_mgr(cinfo);
+    jpeg_memory_mgr *mem = cinfo->mem;
+    exe_method(mem->alloc_small);
+    exe_method(mem->alloc_large);
+    exe_method(mem->alloc_sarray);
+    exe_method(mem->alloc_barray);
+    exe_method(mem->request_virt_sarray);
+    exe_method(mem->request_virt_barray);
+    exe_method(mem->realize_virt_arrays);
+    exe_method(mem->access_virt_sarray);
+    exe_method(mem->access_virt_barray);
+    exe_method(mem->free_pool);
+    exe_method(mem->self_destruct);
 }
 }
 

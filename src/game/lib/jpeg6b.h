@@ -426,6 +426,47 @@ void *__cdecl jpeg_get_small(jpeg_common_struct *cinfo, size_t sizeofobject);
 void __cdecl jpeg_free_small(jpeg_common_struct *cinfo, void *object, size_t sizeofobject);
 // 0x6429a0: mem->max_memory_to_use (+0x2c) - already_allocated.
 long __cdecl jpeg_mem_available(jpeg_common_struct *cinfo, long min_bytes_needed, long max_bytes_needed, long already_allocated);
+
+// jmemmgr.c, the memory manager, through third_party/wrap/jpeg-6b/jmemmgr.c: cinfo->mem (my_memory_mgr, 0x54 bytes: the public
+// jpeg_memory_mgr 0x34, small_list[2] +0x34, large_list[2] +0x3c, virt_sarray_list +0x44, virt_barray_list +0x48,
+// total_space_allocated +0x4c, last_rowsperchunk +0x50); pools 0 (JPOOL_PERMANENT) and 1 (JPOOL_IMAGE); a pool's blocks start with a
+// 16-byte header (next, bytes_used, bytes_left). Its getenv / sscanf and jpeg_open_backing_store are the exe's (Jpeg6bCrtEnv below).
+struct jvirt_sarray_control;  // 0x78 bytes (the backing store's info at +0x28)
+struct jvirt_barray_control;  // 0x78 bytes
+typedef short jpeg6b_block[64];  // JBLOCK
+// 0x63d3d0: the manager (jpeg_get_small of 0x54, ERREXIT1 JERR_OUT_OF_MEMORY 0x36 without it), its eleven methods,
+// max_memory_to_use from jpeg_mem_init, or JPEGMEM's (thousands, or millions with an m / M); cinfo->mem. Through the method shim.
+void __cdecl jinit_memory_mgr(jpeg_common_struct *cinfo);
+// 0x63d650: ERREXIT1 JERR_OUT_OF_MEMORY (0x36) with which.
+void __cdecl jmemmgr_out_of_memory(jpeg_common_struct *cinfo, int which);
+// 0x63d520: sizeofobject (rounded up to 8) from the first small pool of pool_id with room, else a new pool (jpeg_get_small of the
+// object, its header and the pool's slop, the slop halved while it fails; out_of_memory below 50).
+void *__cdecl jmemmgr_alloc_small(jpeg_common_struct *cinfo, int pool_id, size_t sizeofobject);
+// 0x63d670: a large object of its own (jpeg_get_large), linked into large_list[pool_id].
+void *__cdecl jmemmgr_alloc_large(jpeg_common_struct *cinfo, int pool_id, size_t sizeofobject);
+// 0x63d720, 0x63d7d0: numrows rows (pointers from alloc_small, the rows from alloc_large in chunks of last_rowsperchunk).
+unsigned char **__cdecl jmemmgr_alloc_sarray(jpeg_common_struct *cinfo, int pool_id, unsigned int samplesperrow, unsigned int numrows);
+jpeg6b_block **__cdecl jmemmgr_alloc_barray(jpeg_common_struct *cinfo, int pool_id, unsigned int blocksperrow, unsigned int numrows);
+// 0x63d880, 0x63d8f0: a virtual array's control block (JPOOL_IMAGE only), unrealized, at the head of its list.
+jvirt_sarray_control *__cdecl jmemmgr_request_virt_sarray(jpeg_common_struct *cinfo, int pool_id, unsigned char pre_zero,
+                                                          unsigned int samplesperrow, unsigned int numrows, unsigned int maxaccess);
+jvirt_barray_control *__cdecl jmemmgr_request_virt_barray(jpeg_common_struct *cinfo, int pool_id, unsigned char pre_zero,
+                                                          unsigned int blocksperrow, unsigned int numrows, unsigned int maxaccess);
+// 0x63d960: every unrealized array its buffer, all of it in memory when jpeg_mem_available allows, else a backing store.
+void __cdecl jmemmgr_realize_virt_arrays(jpeg_common_struct *cinfo);
+// 0x63db00, 0x63dcd0: rows start_row.. of a virtual array, read in (and the old ones written out) through the backing store when
+// they are not in memory, zeroed when undefined and pre_zero.
+unsigned char **__cdecl jmemmgr_access_virt_sarray(jpeg_common_struct *cinfo, jvirt_sarray_control *ptr, unsigned int start_row,
+                                                   unsigned int num_rows, unsigned char writable);
+jpeg6b_block **__cdecl jmemmgr_access_virt_barray(jpeg_common_struct *cinfo, jvirt_barray_control *ptr, unsigned int start_row,
+                                                  unsigned int num_rows, unsigned char writable);
+// 0x63dc30, 0x63de10: the buffer's chunks read from or written to the backing store.
+void __cdecl jmemmgr_do_sarray_io(jpeg_common_struct *cinfo, jvirt_sarray_control *ptr, unsigned char writing);
+void __cdecl jmemmgr_do_barray_io(jpeg_common_struct *cinfo, jvirt_barray_control *ptr, unsigned char writing);
+// 0x63deb0: a pool's blocks freed (the image pool's backing stores closed first), large then small.
+void __cdecl jmemmgr_free_pool(jpeg_common_struct *cinfo, int pool_id);
+// 0x63dfb0: both pools freed, then the manager; cinfo->mem NULL.
+void __cdecl jmemmgr_self_destruct(jpeg_common_struct *cinfo);
 }
 
 // What the library calls outside itself, the exe's: its C runtime's (a DLL's would be another heap, environment copy and FILE table)
