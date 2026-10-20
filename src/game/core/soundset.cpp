@@ -1,8 +1,10 @@
 #include "soundset.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "class6fd9d8.h"
+#include "gameheap.h"
 #include "string.h"
 #include "vcall.h"
 
@@ -14,6 +16,14 @@ void set(u32 address, u32 value) {
     global<u32>(0x00803ac8) = 1;
     global<u32>(address) = value;
 }
+
+// The named objects registry's (0x786b9c) folder of the key's name; false unless NamedList_Find answers 1.
+bool find_folder(const void *key, u8 **found) {
+    return NamedList_Find(global<u8 **>(0x00786b9c), nullptr, static_cast<const u8 *>(key), found) == 1;
+}
+
+const char *text(u32 address) { return reinterpret_cast<const char *>((uintptr_t)address); }
+const StringView *view(u32 address) { return reinterpret_cast<const StringView *>((uintptr_t)address); }
 
 }  // namespace
 
@@ -74,5 +84,61 @@ void __cdecl Sound_Shutdown() {
         vcall<void>(global<void *>(0x00802bcc), 0, &result);
     }
     global<u32>(0x00802bd4) = 0;
+}
+
+s32 __cdecl Sound_RegisterLobbyCategories(const char *name) {
+    String key;
+    String_CtorCopy(&key, nullptr, view(0x00803768));
+    String_AppendStr(&key, nullptr, name);
+    u8 *found = nullptr;
+    if (!find_folder(&key, &found)) {
+        String_Dtor(&key);
+        return -1;
+    }
+    const u32 music = Sound_QueryFound(text(0x00762c40), found);   // "cat_locallobbymusic"
+    const u32 sfx = Sound_QueryFound(text(0x00762c2c), found);     // "cat_locallobbysfx"
+    const u32 count = ++global<u32>(0x00803a50);
+    u8 *const pairs = reinterpret_cast<u8 *>((uintptr_t)Sound_Alloc(count * 8));
+    if (global<u8 *>(0x00803a4c)) {
+        memcpy(pairs, global<u8 *>(0x00803a4c), global<u32>(0x00803a50) * 8 - 8);   // (rep movsd / movsb)
+        Sound_Free(global<u8 *>(0x00803a4c));
+    }
+    global<u8 *>(0x00803a4c) = pairs;
+    *reinterpret_cast<u32 *>(pairs + global<u32>(0x00803a50) * 8 - 4) = music;
+    *reinterpret_cast<u32 *>(global<u8 *>(0x00803a4c) + global<u32>(0x00803a50) * 8 - 8) = sfx;
+    const s32 index = global<s32>(0x00803a50) - 1;
+    String_Dtor(&key);
+    return index;
+}
+
+void __cdecl Sound_RegisterGlobalCategories() {
+    u8 *found = nullptr;
+    if (find_folder(reinterpret_cast<const void *>(0x008030d8), &found)) {
+        global<u32>(0x00803a20) = Sound_QueryFound(text(0x00762c8c), found);   // "cat_ambient"
+        global<u32>(0x00803a28) = Sound_QueryFound(text(0x00762c80), found);   // "cat_rides"
+        global<u32>(0x00803a2c) = Sound_QueryFound(text(0x00762c78), found);   // "cat_ui"
+        global<u32>(0x00803a24) = Sound_QueryFound(text(0x00762c6c), found);   // "cat_kids"
+        global<u32>(0x00803a30) = Sound_QueryFound(text(0x00762c60), found);   // "cat_staff"
+    }
+    if (find_folder(reinterpret_cast<const void *>(0x00803558), &found))
+        global<u32>(0x00803a34) = Sound_QueryFound(text(0x00762c54), found);   // "cat_speech"
+}
+
+void __cdecl Sound_RegisterThemeCategories(const StringView *theme) {
+    String key;
+    String_CtorCopy(&key, nullptr, view(0x00803768));
+    u8 *found = nullptr;
+    String_Append(&key, nullptr, theme);
+    if (find_folder(&key, &found)) {
+        global<u32>(0x00803a38) = Sound_QueryFound(text(0x00762c8c), found);   // "cat_ambient"
+        global<u32>(0x00803a3c) = Sound_QueryFound(text(0x00762c80), found);   // "cat_rides"
+    }
+    String_AssignWide(&key, nullptr, reinterpret_cast<const WString *>(0x008039c0));   // (slot 6: its data as chars, length bytes)
+    String_Append(&key, nullptr, theme);
+    if (find_folder(&key, &found)) global<u32>(0x00803a40) = Sound_QueryFound(text(0x00762c54), found);   // "cat_speech"
+    String_AssignWide(&key, nullptr, reinterpret_cast<const WString *>(0x00802e68));
+    String_Append(&key, nullptr, theme);
+    if (find_folder(&key, &found)) global<u32>(0x00803a44) = Sound_QueryFound(text(0x00762e68), found);   // "cat_music"
+    String_Dtor(&key);
 }
 }

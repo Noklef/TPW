@@ -358,8 +358,8 @@ address,name,kind,confidence,notes
 0x00521e60,Particle_Spawn,function,high,"reimplemented (src/game/render/particles); cdecl (effect, x, y, z): starts a particle system from the effect definition: a free system to the live list, the definition copied, its first burst emitted, its linked voice or effect started; returns its handle, 0 for an optional effect while reduced, -1 when none"
 0x0051b530,Sound_QueryFound,function,low,"reimplemented (src/game/core/soundset); cdecl (name, folders): the name found in a folder list (Class6fd9d8_FindFirstMatch), then the sound manager's +4 (&folders, found text, name, &name) when on and started; else 0"
 0x0051b620,SoundCategory_Release,function,medium,
-0x0051eae0,Sound_RegisterGlobalCategories,function,high,"cat_ambient, cat_rides, cat_ui, cat_kids, cat_staff, cat_speech"
-0x0051ec50,Sound_RegisterThemeCategories,function,high,"theme folder's cat_ambient, cat_rides, cat_speech, cat_music"
+0x0051eae0,Sound_RegisterGlobalCategories,function,high,"reimplemented (src/game/core/soundset); cdecl: cat_ambient, cat_rides, cat_ui, cat_kids, cat_staff (folder 0x8030d8) and cat_speech (0x803558) to 0x803a20-0x803a34"
+0x0051ec50,Sound_RegisterThemeCategories,function,high,"reimplemented (src/game/core/soundset); cdecl (theme): the theme folders' cat_ambient, cat_rides, cat_speech and cat_music to 0x803a38-0x803a44"
 0x0051eda0,Sound_ReleaseGlobalCategories,function,high,
 0x0051ee40,Sound_ReleaseThemeCategories,function,high,
 0x00803a20,gSndCatAmbient,data,high,
@@ -2461,6 +2461,7 @@ address,name,kind,confidence,notes
 0x0051e710,Sound_Set803ad0,function,high,"reimplemented (src/game/core/soundset); cdecl (value): the u16 [0x803ad0] = value, changed"
 0x0051b4f0,Sound_Query,function,low,"reimplemented (src/game/core/soundset); cdecl (a, b): when sound is on and started, the manager's vtable +4 (&a, a, b, &b); b as left, else 0"
 0x0051b7c0,Sound_Shutdown,function,low,"reimplemented (src/game/core/soundset); cdecl: when on and started, the manager's vtable +0 (&result); then not started"
+0x0051e8f0,Sound_RegisterLobbyCategories,function,low,"reimplemented (src/game/core/soundset); cdecl (name): the lobby folder's music and sfx categories appended as a pair to the array at 0x803a4c; its index, or -1"
 0x005af7f0,GlobalSave_ThemeByte,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte i of the global save info's (0xf7c58c) current theme record (+0x48)
 0x005af800,GlobalSave_Byte26,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte +0x26 + i of the global save info
 0x005afc30,GlobalSave_Inc20,function,high,reimplemented (src/game/core/globalsave); thiscall: the global save info's counter +0x20 incremented
