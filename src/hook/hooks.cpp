@@ -4617,6 +4617,7 @@ const Hook kHooks[] = {
     {"Dialog7ca1c8_SelectButton", 0x004981d0, (void *)&Dialog7ca1c8_SelectButton, {0x8b, 0x0d, 0xc8, 0xa1, 0x7c}},
     {"Dialog7ca1c8_SelectButtonIfUp", 0x00498a30, (void *)&Dialog7ca1c8_SelectButtonIfUp, {0xa1, 0xc8, 0xa1, 0x7c, 0x00}},
     {"Dialog7ca1c8_SelectButtonIfUpThis", 0x004819f0, (void *)&Dialog7ca1c8_SelectButtonIfUpThis, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"Dialog7ca1c8_UpdateLoopButton", 0x004987f0, (void *)&Dialog7ca1c8_UpdateLoopButton, {0x51, 0x8b, 0x0d, 0xc8, 0xa1}},
     {"Dialog7cc47c_Message6Off",  0x004b8830, (void *)&Dialog7cc47c_Message6Off, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
     {"Dialog7cc47c_Message6On",   0x004b8810, (void *)&Dialog7cc47c_Message6On, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
     {"Dialog7cc47c_Message4",     0x004b87f0, (void *)&Dialog7cc47c_Message4, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},

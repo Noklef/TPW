@@ -2,9 +2,11 @@
 
 #include <cstdint>
 
+#include "../coaster/registry.h"
 #include "cursor.h"
 #include "radiogroup.h"
 #include "window.h"
+#include "windowreg.h"
 
 namespace {
 
@@ -63,4 +65,22 @@ void __cdecl Dialog7ca1c8_SelectButtonIfUp(u32 flags) {
 }
 
 void __fastcall Dialog7ca1c8_SelectButtonIfUpThis(void *, void *, u32 flags) { Dialog7ca1c8_SelectButtonIfUp(flags); }
+
+void __cdecl Dialog7ca1c8_UpdateLoopButton() {
+    u8 *const button = Window_FindChild(Window_FindChild(global<u8 *>(0x007ca1c8), nullptr, 0x18), nullptr, 0x20);
+    using Show = void(__fastcall *)(u8 *, void *, u32);
+    const auto show = [button](u32 on) { reinterpret_cast<Show>(at<void **>(button, 0)[5])(button, nullptr, on); };
+    if (at<u8>(global<u8 *>(0x007ca1d0), 0x50) == 0) {
+        Window_SetObject98(button, nullptr, nullptr);
+        show(0);
+        return;
+    }
+    u32 tools;
+    CoasterEdit_Tools(&tools);
+    show(1);
+    const bool trough = (tools & 0x200) != 0;
+    Window_SetObject98(button, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(trough ? "cb_trough" : "cb_loop")));
+    at<u32>(button, 0x90) = at<u32>(button, 0x94) = trough ? 0x134 : 0x132;
+    show((tools & 2) ? 1 : 0);
+}
 }
