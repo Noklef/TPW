@@ -108,7 +108,7 @@ B = Bench([(a, e) for a, e, *_ in FUNCS])
 
 
 def case(r):
-    address, _end, conv, n, ret, globs, ptr = r.choice(FUNCS)
+    address, _end, conv, n, ret, globs, ptr = FUNCS[r.deal(range(len(FUNCS)))]   # (dealt: 400 cases reach each of them)
     obj = bytearray(r.bytes(0x400))
     for k in range(0, 0x400, 4):  # many dwords point into the object, so a chain of pointers can be followed
         if r.random() < 0.5:
