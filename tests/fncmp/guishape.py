@@ -37,6 +37,39 @@ def points(r, n):
     return struct.pack('<%dh' % (2 * n), *[r.randrange(-30, 31) for _ in range(2 * n)])
 
 
+TRIPLES = [(0, 1, 1), (1, 0, 1), (3, 4, 5), (4, 3, 5), (5, 12, 13), (6, 8, 10), (8, 15, 17), (0, 7, 7), (12, 0, 12), (20, 21, 29)]
+
+
+def boundary(r, op, shape, block, cx, cy):
+    """A point on (or one off) the shape's edge: the circle's radius exactly, the ellipse's axes' ends (sets its radii), the polygon's
+    vertices, edge midpoints and vertex rows."""
+    off = r.choice([0, 0, 0, 0, -1, 1])
+    if op == 'CircleContains':
+        a, b, c = r.choice(TRIPLES)
+        struct.pack_into('<h', shape, 8, c if r.random() < 0.8 else -c)
+        return (cx + r.choice([a, -a]) + off) & 0xffff, (cy + r.choice([b, -b])) & 0xffff
+    if op == 'EllipseContains':
+        rx, ry = r.choice([1, 2, 3, 5, 9, 20, -4]), r.choice([1, 2, 4, 7, 15, -3])
+        struct.pack_into('<hh', shape, 8, rx, ry)
+        if r.random() < 0.5:
+            return (cx + r.choice([rx, -rx]) + off) & 0xffff, cy & 0xffff
+        return cx & 0xffff, (cy + r.choice([ry, -ry]) + off) & 0xffff
+    n = struct.unpack_from('<h', shape, 4)[0]
+    if block is None or n <= 0:
+        return near(r, cx, 3), near(r, cy, 3)
+    pts = struct.unpack_from('<%dh' % (2 * n), block)
+    i = r.randrange(n)
+    x0, y0 = pts[2 * i], pts[2 * i + 1]
+    pick = r.random()
+    if pick < 0.35:
+        return (x0 + off) & 0xffff, y0 & 0xffff
+    if pick < 0.7:
+        j = (i + 1) % n
+        x1, y1 = pts[2 * j], pts[2 * j + 1]
+        return ((x0 + x1) // 2 + off) & 0xffff, ((y0 + y1) // 2) & 0xffff
+    return near(r, x0, 30), y0 & 0xffff
+
+
 def case(r):
     op = r.deal(OPS)
     address = CALLS[op]
@@ -72,6 +105,8 @@ def case(r):
     x, y = near(r, cx, spread), near(r, cy, spread)
     if r.random() < 0.15:
         x, y = word(r) & 0xffff, word(r) & 0xffff
+    elif r.random() < 0.45:
+        x, y = boundary(r, op, shape, regions.get(BLOCK), cx, cy)
     ret = 'a' if op == 'EllipseContains' else 'w'
     return Call(address, [SHAPE, high(r, x) if r.random() < 0.5 else x, high(r, y) if r.random() < 0.5 else y], regions, conv='t', ret=ret)
 
