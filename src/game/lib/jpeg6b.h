@@ -42,6 +42,14 @@ void __cdecl jpeg_idct_2x2(jpeg_decompress_struct *cinfo, jpeg6b_component_info 
 void __cdecl jpeg_idct_1x1(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, short *coef_block,
                            unsigned char **output_buf, unsigned int output_col);
 
+// jddctmgr.c (through wrap/jpeg-6b/jddctmgr.c): the IDCT manager, cinfo->idct (my_idct_controller: start_pass, inverse_DCT[10],
+// cur_method[10] +0x2c). Both are shims (jpeg6b.cpp): they store method addresses.
+// 0x645a80: cinfo->idct allocated, a zeroed multiplier table (0x100 bytes) for each component's dct_table, cur_method -1.
+void __cdecl jinit_inverse_dct(jpeg_decompress_struct *cinfo);
+// 0x645b00: start_pass: each component's IDCT by DCT_scaled_size and cinfo->dct_method, and its multiplier table from its quant_table
+// when the method changed (islow: the quantval; ifast: scaled by aanscales; float: by aanscalefactor, x87 in the exe).
+void __cdecl jddctmgr_start_pass(jpeg_decompress_struct *cinfo);
+
 // jdcolor.c (through wrap/jpeg-6b/jdcolor.c): the output colour space converters, cinfo->cconvert's color_convert methods. Each
 // converts num_rows rows from input_buf (one row array per component) at input_row into output_buf's rows, cinfo->output_width
 // pixels a row.
@@ -59,6 +67,9 @@ void __cdecl jdcolor_grayscale_convert(jpeg_decompress_struct *cinfo, unsigned c
 // 0x646d00: grayscale -> RGB: each sample three times.
 void __cdecl jdcolor_gray_rgb_convert(jpeg_decompress_struct *cinfo, unsigned char ***input_buf, unsigned int input_row,
                                       unsigned char **output_buf, int num_rows);
+// 0x646860: the module's init (a shim, jpeg6b.cpp): cinfo->cconvert allocated (alloc_small) and set up for jpeg_color_space ->
+// out_color_space (out_color_components, the converter, build_ycc_rgb_table), with the exe's method addresses.
+void __cdecl jinit_color_deconverter(jpeg_decompress_struct *cinfo);
 // 0x646d70: YCCK -> CMYK: the YCbCr part through the tables, inverted (range_limit[MAXJSAMPLE - ...]), K passed through.
 void __cdecl jdcolor_ycck_cmyk_convert(jpeg_decompress_struct *cinfo, unsigned char ***input_buf, unsigned int input_row,
                                        unsigned char **output_buf, int num_rows);
@@ -66,6 +77,9 @@ void __cdecl jdcolor_ycck_cmyk_convert(jpeg_decompress_struct *cinfo, unsigned c
 // jdmerge.c (through wrap/jpeg-6b/jdmerge.c): the merged upsampler, chroma upsampling and YCbCr -> RGB in one pass for h2v1 and h2v2
 // sampling. cinfo->upsample is its my_upsampler (upmethod +0xc, the four tables +0x10..+0x1c, spare_row +0x20, spare_full +0x24,
 // out_row_width +0x28, rows_to_go +0x2c).
+// 0x646ee0: the module's init (a shim, jpeg6b.cpp): cinfo->upsample allocated and set up (the h2v1 or h2v2 methods, spare_row for
+// h2v2, the tables), with the exe's method addresses.
+void __cdecl jinit_merged_upsampler(jpeg_decompress_struct *cinfo);
 // 0x646f70: the upsampler's YCbCr -> RGB tables (as jdcolor.c's, into cinfo->upsample).
 void __cdecl jdmerge_build_ycc_rgb_table(jpeg_decompress_struct *cinfo);
 // 0x647040: spare_full cleared, rows_to_go = cinfo->output_height.
@@ -90,6 +104,10 @@ void __cdecl jdmerge_h2v2_merged_upsample(jpeg_decompress_struct *cinfo, unsigne
 // cinfo->upsample is its my_upsampler (color_buf[10] +0xc, methods[10] +0x34, next_row_out +0x5c, rows_to_go +0x60,
 // rowgroup_height[10] +0x64, h_expand[10] +0x8c, v_expand[10] +0x96; 0xa0 bytes). The per-component methods take input_data (the
 // component's row group) and output_data_ptr (its color_buf entry) and fill cinfo->max_v_samp_factor rows.
+// 0x6460c0: the module's init (a shim, jpeg6b.cpp): cinfo->upsample allocated, each component's method chosen from its sampling
+// factors (h_expand / v_expand for int_upsample), color_buf rows allocated (alloc_sarray) where one is needed, with the exe's method
+// addresses.
+void __cdecl jinit_upsampler(jpeg_decompress_struct *cinfo);
 // 0x6462e0: next_row_out = max_v_samp_factor (color_buf empty), rows_to_go = output_height.
 void __cdecl jdsample_start_pass_upsample(jpeg_decompress_struct *cinfo);
 // 0x646300: upsample: each component's method when color_buf is used up, then cinfo->cconvert->color_convert of what fits.

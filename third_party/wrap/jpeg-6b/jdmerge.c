@@ -15,5 +15,10 @@
 #define merged_1v_upsample jdmerge_merged_1v_upsample
 #define h2v1_merged_upsample jdmerge_h2v1_merged_upsample
 #define h2v2_merged_upsample jdmerge_h2v2_merged_upsample
+/* (a method-storing init: see wrap/jpeg-6b/jdcolor.c) */
+#define jinit_merged_upsampler jdmerge_lib_jinit_merged_upsampler
 
 #include "../../jpeg-6b/jdmerge.c"  /* (by its path: a plain "jdmerge.c" would find this file first) */
+
+/* The private method src/game/lib/jpeg6b.cpp's shim maps by its offset: upmethod at +0xc. */
+typedef char jdmerge_upmethod_at_0xc[offsetof(my_upsampler, upmethod) == 0xc ? 1 : -1];

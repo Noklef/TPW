@@ -6,18 +6,23 @@
 # the case heap (its (opaque, items, size) is alloc_small's (cinfo, JPOOL_IMAGE = 1, size)).
 # ycck_cmyk_convert (0x646d70) has four components (the perturbed tables reach range_limit up to 384 below sample_range_limit + 255,
 # so a little before the table: zeros in both).
+# jinit_color_deconverter (0x646860) is the library's through jpeg6b.cpp's shim, which puts the exe's method addresses in place of the
+# library's: the bench compares them as stored. cinfo->err at ERR (error_exit a cdecl recorder, slot 0; msg_code +0x14), the
+# colour spaces (jpeg_color_space +0x28, out_color_space +0x2c, 0..5 and sometimes past), num_components, comp_info at COMP (each
+# component_needed +0x30), quantize_colors +0x4a; it writes out_color_components +0x64 and output_components +0x68.
 # usage: jpeg6b_color.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ycc_rgb,...)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, RAM, ZALLOC, Bench, Call, heap  # noqa: E402
+from fncmp import HEAP, LOG, RAM, ZALLOC, Bench, Call, heap, log_region, recorder  # noqa: E402
 
 # the exe's copies (re/libmap.csv): name -> (address, end)
 FUNCS = {
     'build_ycc_rgb_table': (0x646a30, 0x646b00), 'ycc_rgb_convert': (0x646b00, 0x646c40), 'null_convert': (0x646c40, 0x646cd0),
     'grayscale_convert': (0x646cd0, 0x646d00), 'gray_rgb_convert': (0x646d00, 0x646d70), 'ycck_cmyk_convert': (0x646d70, 0x646ee0),
+    'jinit_color_deconverter': (0x646860, 0x646a30),
 }
 B = Bench(sorted(list(FUNCS.values()) + [(0x6428e0, 0x642930)]))  # (and jcopy_sample_rows, which grayscale_convert calls)
 
@@ -99,7 +104,27 @@ def build(r):
     return Call(0x646a30, [CINFO], {CINFO: cinfo, MEM: struct.pack('<I', ZALLOC) + r.bytes(0x2c), CC: r.bytes(0x18), HEAP: heap(0x1100)})
 
 
-OPS = [f for f in (build, converter(0x646b00, 3), converter(0x646c40, 0), converter(0x646cd0, 1), converter(0x646d00, 1), converter(0x646d70, 4))
+ERR, COMP = RAM + 0x180, RAM + 0x3000
+JPEG_COLOR_SPACE, OUT_COLOR_SPACE, QUANTIZE_COLORS, COMP_INFO, COMPONENT_NEEDED, COMP_SIZE = 0x28, 0x2c, 0x4a, 0xc4, 0x30, 0x54
+
+
+def jinit(r):
+    cinfo = bytearray(r.bytes(0x1b0))
+    struct.pack_into('<I', cinfo, 0, ERR)
+    struct.pack_into('<I', cinfo, MEM_, MEM)
+    space = r.choice([1, 2, 3, 3, 4, 5, r.randrange(0, 8)])
+    struct.pack_into('<i', cinfo, JPEG_COLOR_SPACE, space)
+    struct.pack_into('<i', cinfo, OUT_COLOR_SPACE, r.choice([1, 2, 2, 4, space, r.randrange(0, 8)]))
+    usual = {1: 1, 2: 3, 3: 3, 4: 4, 5: 4}.get(space, r.randrange(0, 6))
+    struct.pack_into('<i', cinfo, NUM_COMPONENTS, usual if r.random() < 0.8 else r.randrange(-1, 6))
+    struct.pack_into('<I', cinfo, COMP_INFO, COMP)
+    cinfo[QUANTIZE_COLORS] = r.choice([0, 1, r.randrange(256)])
+    return Call(0x646860, [CINFO], {CINFO: cinfo, ERR: struct.pack('<I', recorder(0, 1, cdecl=True)) + r.bytes(0x7c),
+                                    MEM: struct.pack('<I', ZALLOC) + r.bytes(0x2c), COMP: r.bytes(5 * COMP_SIZE), HEAP: heap(0x1100),
+                                    LOG: log_region()})
+
+
+OPS = [f for f in (build, jinit, converter(0x646b00, 3), converter(0x646c40, 0), converter(0x646cd0, 1), converter(0x646d00, 1), converter(0x646d70, 4))
        if not os.environ.get('OPS') or f.__name__ in os.environ['OPS'].split(',')]
 
 
