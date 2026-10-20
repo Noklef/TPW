@@ -25,7 +25,7 @@ def items(r, window, regions):
     """the forest: returns the item indices"""
     n = r.randint(1, 12)
     shift = 1 if r.random() < 0.1 else 0
-    idx = [4 * k + shift for k in range(n)]
+    idx = [4 * k + shift for k in r.sample(range(n), n)]   # (shuffled: a child, a sibling or a parent at index 0 too)
     links = [r.getrandbits(32) for _ in range(4 * n + 8)]
     parent = [None] + [r.choice([None, r.randrange(k)]) for k in range(1, n)]
     kids = {p: [k for k in range(n) if parent[k] == p] for p in [None] + list(range(n))}
