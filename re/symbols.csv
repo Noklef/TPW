@@ -2823,6 +2823,7 @@ address,name,kind,confidence,notes
 0x005c7d00,Records24_IfUsed,function,high,reimplemented (src/game/files/userslots); a 24-byte record's address when its dword at +4 is set
 0x005c7bb0,Records24_CountUsed,function,high,reimplemented (src/game/files/userslots); how many of four 24-byte records are in use
 0x005b0d40,Table73f8a8_At,function,high,reimplemented (src/game/core/balancefile); the address of a 60-byte record of the table at 0x73f8a8
+0x005b11c0,ThemeRecord_LoadGlobalSam,function,low,reimplemented (src/game/core/balancefile); a theme's global.sam loaded
 0x005d5ee0,Obj_Flags1cAnd,function,high,reimplemented (src/game/core/globals); the dword at +0x1c masked
 0x005d1440,Span_Limited,function,high,"reimplemented (src/game/core/codecvt); to - from, at most a limit"
 0x005dd810,Obj_Positive40,function,high,reimplemented (src/game/frontend/viewcontrols); 1 when the signed dword at +0x40 is above 0

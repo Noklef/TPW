@@ -233,6 +233,30 @@ void __fastcall ThemeRecord_Dtor(u8 *self) {
     String_Dtor(reinterpret_cast<String *>(self + 0x20));
 }
 
+u8 __fastcall ThemeRecord_LoadGlobalSam(u8 *self) {
+    if (at<u8 *>(self, 0x1c))
+        return 1;
+    u8 *file = static_cast<u8 *>(GameHeap_Alloc(0x1c));
+    if (file) {
+        at<u32>(file, 0) = 0x00702800;
+        BalanceFile_Init(file);
+    }
+    at<u8 *>(self, 0x1c) = file;
+    if (!file)
+        return 0;
+    char path[0x104];
+    Crt().sprintf(path, reinterpret_cast<const char *>(0x007733b4), at<const char *>(self, 0x28));   // "data\levels\%s\global.sam"
+    if (BalanceFile_Load(at<u8 *>(self, 0x1c), nullptr, path, 0))
+        return 1;
+    if (u8 *const loaded = at<u8 *>(self, 0x1c)) {
+        at<u32>(loaded, 0) = 0x00702800;
+        BalanceFile_Release(loaded);
+        GameHeap_Free(loaded);
+    }
+    at<u8 *>(self, 0x1c) = nullptr;   // (then the empty Debug_Printf (0x5da3c0): nothing)
+    return 0;
+}
+
 void __fastcall AdvisorScoring_Dtor(u8 *self) {
     at<u32>(self, 0xc) = 0x006fd958;
     BalanceFile_Release(self + 0xc);
