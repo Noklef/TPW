@@ -7,6 +7,7 @@
 #include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
+#include "cursor.h"
 #include "guimanager.h"
 #include "guirect.h"
 #include "guitimers.h"
@@ -859,5 +860,93 @@ u32 __fastcall Window_ScriptTick(u8 *window) {
     u8 *const manager = *reinterpret_cast<u8 **>((uintptr_t)0x0077c48c);
     if (at<u8 *>(manager, 0x14) == window) vcall<void>(manager, 0x30);
     return Window_ScriptStep(window);
+}
+
+namespace {
+u8 *press(u32 button) { return reinterpret_cast<u8 *>((uintptr_t)(0x00faa598u + button * 0xcu)); }
+s32 iabs(s32 v) { return v < 0 ? -v : v; }
+}  // namespace
+
+u32 __cdecl Window_DefaultProc(u8 *window, u32 message, u32 a, u32 b) {
+    if (message & 0x80000000u) return 0;
+    u8 *const manager = *reinterpret_cast<u8 **>((uintptr_t)0x0077c48c);
+    const s32 doubleTime = *reinterpret_cast<const s32 *>((uintptr_t)0x0077c480);
+    switch (message) {
+    case 1: Window_OpenTree(window); break;
+    case 2: Window_CloseTree(window); break;
+    case 3: vcall<void>(window, 0x10); break;
+    case 4:
+        if (window) vcall<void>(window, 8, 1u);
+        return 0;
+    case 5: Window_PostMessage(window, 4, 0, 0); break;
+    case 6: Window_SetShown(window, nullptr, (u16)a); break;
+    case 7: Window_Offset(window, nullptr, (u16)a, (u16)b); break;
+    case 8: Window_SetRectTo(window, nullptr, (u32)((s32)a >> 16), a & 0xffff, (u32)((s32)b >> 16), b & 0xffff); break;
+    case 9:
+        if (Window_RaiseToTop(window) && a && *reinterpret_cast<const u32 *>((uintptr_t)0x00faa5d4)) Window_PostMessage(window, 1, 0, 0);
+        break;
+    case 12:
+        *reinterpret_cast<u32 *>((uintptr_t)0x00faa618) = vcall<u32>(window, 0x2c);
+        return 0x00faa618;
+    case 0x10:
+        if (a == 0x80084) Window_ScriptStep(window);
+        else if (a == 0x80085) Window_SlideStep(window);
+        break;
+    case 0x1e: Window_ScriptTick(window); break;
+    case 0x10001:
+        Window_ApplyCursor(window);
+        vcall<void>(manager, 0x24, window);
+        break;
+    case 0x10002: vcall<void>(manager, 0x28); break;
+    case 0x10003: {
+        const s16 x = (s16)((s32)a >> 16), y = (s16)a;
+        vcall<void>(manager, 0x20, (u32)((s32)a >> 16), (u32)(u16)y);
+        if (at<u32>(window, 0x11c)) {
+            for (s32 i = 0; i < 3; ++i) {
+                u8 *const e = press((u32)i);
+                if (at<s16>(e, 0) == 1 && (iabs((s32)at<s16>(e, 2) - x) > 6 || iabs((s32)at<s16>(e, 4) - y) > 6)) at<u16>(e, 0) = 2;
+            }
+        }
+        break;
+    }
+    case 0x10004: {
+        Window_PostIfHit(window, nullptr, message, a, b);
+        u8 *const e = press(a);
+        const u32 bit = 1u << (a & 31);
+        if (at<s16>(e, 0) == 1 && (at<u32>(window, 0x11c) & bit)) {
+            const u32 now = GuiClock_Now();
+            if ((s32)(now - at<u32>(e, 8)) < doubleTime)
+                Window_PostMessage(window, 0x10006, a, (u32)((s32)at<s16>(e, 2) << 16 | (s32)at<s16>(e, 4)));  // sic
+            at<u32>(e, 8) = now;
+        } else {
+            at<u32>(e, 8) = 0;
+        }
+        at<u32>(window, 0x11c) &= ~bit;
+        at<u16>(e, 0) = 0;
+        break;
+    }
+    case 0x10005: {
+        Window_Activate(window);
+        Window_PostIfHit(window, nullptr, message, a, b);
+        const u32 now = GuiClock_Now();
+        u8 *const e = press(a);
+        if (at<s16>(e, 0) == 0) {
+            at<u32>(window, 0x11c) |= 1u << (a & 31);
+            at<u16>(e, 2) = (u16)((s32)b >> 16);
+            at<u16>(e, 4) = (u16)b;
+            at<u16>(e, 0) = 1;
+            if (!(Fn_65d57c(window) & 8) && (s32)(now - at<u32>(e, 8)) < doubleTime) {
+                Window_PostMessage(window, 0x10007, a, b);
+                at<u16>(e, 0) = 2;
+            }
+            at<u32>(e, 8) = GuiClock_Now();
+        }
+        break;
+    }
+    case 0x10006:
+    case 0x10007: Window_PostIfHit(window, nullptr, message, a, b); break;
+    default: break;
+    }
+    return 0;
 }
 }

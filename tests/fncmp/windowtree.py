@@ -19,13 +19,16 @@ from window import MANAGER, MISC, NODES, OBJECT98, RANGES, TREE, VTABLE, WINDOW,
 CALLS = {'FindChild': 0x65d7d0, 'IsShown': 0x65d773, 'OffsetByParents': 0x65c979, 'HitTest': 0x65db25, 'UpdateHover': 0x6589f9,
          'NotifyShown': 0x65d90b, 'SetShown': 0x65d9dd, 'Offset': 0x65c7fe, 'SetEnabled': 0x65da8d,
          'RaiseToTop': 0x65dbf0, 'OpenTree': 0x65c707, 'CloseTree': 0x65c778, 'SetRect': 0x65cc04, 'ResizeChildren': 0x65c9bd,
-         'SetRectTo': 0x65cf5e, 'AddChild': 0x65f447, 'ScriptStep': 0x65e9a4, 'SlideStep': 0x65ee7a, 'ScriptTick': 0x65c357}
+         'SetRectTo': 0x65cf5e, 'AddChild': 0x65f447, 'ScriptStep': 0x65e9a4, 'SlideStep': 0x65ee7a, 'ScriptTick': 0x65c357,
+         'DefaultProc': 0x65f6d1}
 ARG = RAM + 0xb000
 B = Bench(RANGES + [(0x65da8d, 0x65db25), (0x65dbf0, 0x65dcaf), (0x65c707, 0x65c7fe), (0x65c9bd, 0x65cd95),
                        (0x65cf5e, 0x65cfd4), (0x661700, 0x66176a), (0x659e3e, 0x659e83), (0x659d43, 0x659d90),
                        (0x65f447, 0x65f538), (0x65f345, 0x65f410), (0x65f16b, 0x65f246),
                        (0x65e9a4, 0x65ecb0), (0x65ee7a, 0x65ef90), (0x65f286, 0x65f330), (0x65d3a3, 0x65d40c), (0x662097, 0x6620ac),
-                       (0x65968e, 0x6596a2), (0x65c357, 0x65c388)])
+                       (0x65968e, 0x6596a2), (0x65c357, 0x65c388),
+                       (0x65f6d1, 0x65fba8), (0x680050, 0x68005b), (0x65f150, 0x65f16b), (0x6590f7, 0x6591d4), (0x65dcaf, 0x65dd18),
+                       (0x65dd18, 0x65dd5f)])
 SCRIPT, TNODE, CLOCK = ARG + 0x400, ARG + 0x600, ARG + 0x700
 
 
@@ -69,6 +72,8 @@ def case(r):
         return Call(CALLS[op], [], regions, ret='w')
     if op in ('ScriptStep', 'SlideStep', 'ScriptTick'):
         return script_case(r, op, regions, log)
+    if op == 'DefaultProc':
+        return proc_case(r, regions, log)
     if op in ('SetRect', 'ResizeChildren', 'SetRectTo'):   # see rect_env()
         wins = rect_env(r, regions, log)
         window = r.choice(wins[:1] * 3 + wins)
@@ -228,7 +233,83 @@ def script_case(r, op, regions, log):
     mask = {None: 0, 'rect': 0xf00000, 'word': 0x300, 'notify': 0x30}[kind]
     blob_bytes(log, 3, 1, mask)
     blob_bytes(log, 22, 1, mask)
-    return Call(CALLS[op], [window], regions, conv='t', ret='w')
+    c = Call(CALLS[op], [window], regions, conv='t', ret='w')
+    c.wins, c.now = wins, now   # (for proc_case)
+    return c
+
+
+PROC_MESSAGES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0x10, 0x10, 0x10, 0x1e, 0x1e, 0x10001, 0x10002, 0x10003, 0x10003, 0x10004, 0x10004,
+                 0x10005, 0x10005, 0x10006, 0x10007, 0, 13, 0x11, 0x1f, 0x10000, 0x10008, 0x80000001, 0x80010005]
+
+
+def proc_case(r, regions, log):
+    """DefaultProc (0x65f6d1): script_case's (the timers' and the tick's), the windows' vtable +0 recorders (slot 2 one argument; slot 11's
+    answer random) and their previous links +0x58 set (RaiseToTop, OpenTree); messages 0-13, the timer 0x10 (0x80084 / 0x80085 or not), 0x1e,
+    0x10001-0x10008 and a few others (the top bit set too); a and b by the message: the moves' and edges' words, the press buttons 0-3 (the
+    table [0xfaa598]'s entries pressed or not, points near the one moved to), the timers' ids; the double-click time [0x77c480], the flags
+    +0x48 bit 3 and the buttons held +0x11c; the cursor table [0xfaa604] 0 (ApplyCursor returns at once), [0xfaa5d4] and the active window
+    [0xfaa5dc]. The objects' events hashed by what the message runs (SetRectTo's, Offset's, the steps'; nothing for the rest)."""
+    message = r.choice(PROC_MESSAGES)
+    a, b = r.getrandbits(32), r.getrandbits(32)
+    if message == 0x10:
+        a = r.choice([0x80084, 0x80085, 0x80084, 0x80085, 0x80083, 0x80086, a])
+    sub = 'SlideStep' if message == 0x10 and a == 0x80085 else 'ScriptStep'
+    c = script_case(r, sub, regions, log)
+    window, regions = c.args[0], c.regions
+    wins = c.wins
+    for w in wins:
+        prev, k = 0, struct.unpack_from('<I', regions[w], 0x5c)[0]
+        while k:
+            put(regions[k], 0x58, 'I', prev)
+            prev, k = k, struct.unpack_from('<I', regions[k], 0x54)[0]
+        put(regions[w], 0, 'I', VTABLE)
+    put(regions[wins[0]], 0x58, 'I', 0)
+    regions[VTABLE] = vtable({5: 1, 3: 2, 2: 1})
+    set_return(log, 11, r.getrandbits(32))
+    regions[MANAGER + 0x40] = vtable({13: 1, 8: 2, 9: 1})
+    buf = regions[window]
+    put(buf, 0x11c, 'I', r.choice([0, 0, 1, 2, 4, 7, r.getrandbits(32)]))
+    put(buf, 0x48, 'I', struct.unpack_from('<I', buf, 0x48)[0] & ~8 | r.choice([0, 0, 8]))
+    if message in (0x10003, 0x10004, 0x10005):
+        x, y = r.randrange(-50, 50), r.randrange(-50, 50)
+        table = bytearray()
+        for _ in range(4):
+            table += struct.pack('<hhhHI', r.choice([0, 0, 1, 1, 2, -1]), x + r.choice([0, 3, -6, 7, -9, 40]), y + r.choice([0, 6, -7, 2, 30]),
+                                 r.getrandbits(16), r.choice([0, r.getrandbits(32)]))
+        regions[0xfaa598] = table
+        point = (x & 0xffff) << 16 | (y & 0xffff)
+        if message == 0x10003:
+            a = point if r.random() < 0.9 else r.getrandbits(32)
+        else:
+            a, b = r.choice([0, 1, 2, 3]), point if r.random() < 0.8 else r.getrandbits(32)
+            for i in range(4):
+                if r.random() < 0.6:   # (the last time near the clock's now: within the double-click time or not)
+                    struct.pack_into('<I', regions[0xfaa598], 0xc * i + 8, (c.now - r.choice([0, 5, 200, 1000])) & 0xffffffff)
+    elif message in (0x10006, 0x10007):
+        a = r.choice([0, 1, 2, 3])
+        regions[0xfaa598] = r.bytes(0x30)
+    regions[0x77c480] = struct.pack('<i', r.choice([0, 100, 500, -1, 0x7fffffff]))
+    regions[0xfaa604] = bytes(4)
+    regions[0xfaa5d4] = struct.pack('<I', r.choice([0, 1]))
+    regions[0xfaa5dc] = struct.pack('<I', r.choice([window, 0, wins[0]]))
+    if message in (6, 7, 8, 9):
+        a, b = r.choice([a, a & 0xffff, word(r), 0, 1]), r.choice([b, word(r), 0])
+    if message == 8:   # (the edges near the window's: a >> 16 left, a's word top)
+        left, top, right, bottom = struct.unpack_from('<hhhh', buf, 0xc)
+        if r.random() < 0.6:
+            a = (left + r.choice([0, 2])) << 16 & 0xffffffff | (top + r.choice([0, -3])) & 0xffff
+            b = (right + r.choice([0, 1])) << 16 & 0xffffffff | (bottom + r.choice([0, 4])) & 0xffff
+    mask = None
+    if message == 8:
+        mask = 0xf00000
+    elif message == 7:
+        mask = 0xf0f000
+    elif message not in (0x10, 0x1e):
+        mask = 0
+    if mask is not None:
+        blob_bytes(log, 3, 1, mask)
+        blob_bytes(log, 22, 1, mask)
+    return Call(CALLS['DefaultProc'], [window, message, a, b], regions, ret='a')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]

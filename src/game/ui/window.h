@@ -320,4 +320,21 @@ u32 __fastcall Window_SlideStep(u8 *window);
 // 0x65c357 (thiscall; name unconfirmed): the manager [0x77c48c]'s slot 12 (no arguments) when its +0x14 is the window; then the script's
 // step (Window_ScriptStep), whose answer it returns.
 u32 __fastcall Window_ScriptTick(u8 *window);
+
+// 0x65f6d1 (cdecl; name unconfirmed): a window's default handler (+0x114 / +0x118 of a new window). Messages with the top bit set: nothing.
+// 1 / 2 the tree opened / closed (Window_OpenTree / Window_CloseTree); 3 the window's slot 4; 4 its slot 2 (1: its deleting destructor);
+// 5 the window posted 4; 6 shown by a's word (Window_SetShown); 7 moved by a's and b's words (Window_Offset); 8 its rectangle set to the
+// edges a >> 16 (signed), a's word, b >> 16 (signed), b's word (Window_SetRectTo); 9 raised (Window_RaiseToTop) and, when that answers a
+// window, a is not 0 and [0xfaa5d4] is set, posted 1; 12 its slot 11's answer kept at 0xfaa618, whose address it returns. 0x10 a timer: a
+// 0x80084 the script's step, 0x80085 the slide's (Window_ScriptStep / Window_SlideStep); 0x1e Window_ScriptTick. 0x10001 the window's
+// cursor (Window_ApplyCursor) and the manager [0x77c48c]'s slot 9 (window); 0x10002 the manager's slot 10; 0x10003 the mouse moved to a
+// (x a >> 16 signed, y its word: the manager's slot 8) and, with buttons held (+0x11c), each of the press table [0xfaa598]'s first three
+// pressed entries (word +0 1) more than 6 away from its point (+2 / +4) in either axis made 2 (a drag). 0x10004 / 0x10005 a button a
+// released / pressed and 0x10006 / 0x10007 a click / double click: first Window_PostIfHit (the message, a, b); a press (after
+// Window_Activate) of a free entry (+0 0) sets the button's bit of +0x11c, the entry's point to b and its state 1, and, within the
+// double-click time [0x77c480] (signed) of the entry's last time +8 and the window's flags +0x48 without bit 3, posts 0x10007 (a, b)
+// and the state 2; then the time now. A release of a pressed entry with the bit set posts, within that time of its last one, 0x10006
+// (a, the point: sic, the y signed, so a negative one fills the upper half) and keeps now as the time; else the time 0; the bit and the
+// state cleared. Returns 0 but for 12.
+u32 __cdecl Window_DefaultProc(u8 *window, u32 message, u32 a, u32 b);
 }
