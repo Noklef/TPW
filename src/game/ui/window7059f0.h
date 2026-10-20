@@ -85,6 +85,15 @@ void __cdecl Window7059f0_FitBar(u8 *bar, s32 count, s32 rows, u32 first);
 // its next. Its child -1, its parent -2 (free); the count +0x150 one less, the first shown +0x160 -1 at 0.
 void __fastcall Window7059f0_FreeItem(u8 *window, void *, u32 unused, s32 item, s32 previous, u32 siblings);
 
+// 0x66525c (thiscall (row), pops 4; name unconfirmed): the row selected: below 0 none (-1); one below the rows shown (+0x172, signed)
+// and the count +0x150 the item +0x154 + row; another none with flag 0x100 of +0x48, else nothing. When that is not the selection +0x14c,
+// the highlight object +0x174 (when set) is hidden (its slot 5, 0) going to none, shown (1) going from none while the window is shown
+// (Window_IsShown); the selection set, its parent (+0x60) posted 0x401 (the id +0x8c, the selection) and, with the dword 0xfaa5d4 set,
+// the window posted 3 (0, 0) (Window_PostMessage). Then with a highlight and a selection, the highlight's slot 3 gets 0x10 and an event
+// whose +0x14 points at the selection's row rectangle (GuiRect_CtorWith): left +0x13c, right +0x140, top +0x13e + the row height +0x170
+// * (selection - +0x154), the bottom one row further (32-bit, wrapping).
+void __fastcall Window7059f0_Select(u8 *window, void *, s32 row);
+
 // 0x663324 (thiscall; name unconfirmed): with the row window array +0x148 set, the rows (+0x172, signed) refreshed from the item +0x154
 // on (Window7059f0_NthItem), its level the number of its parents: each row window shown (Window_SetShown) when the list is
 // (Window_IsShown) and the row is below the count +0x150 (row + +0x154, signed); for such a row each of the columns (+0x164, signed),

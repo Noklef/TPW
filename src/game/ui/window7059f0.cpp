@@ -215,6 +215,38 @@ void __fastcall Window7059f0_FreeItem(u8 *window, void *, u32 unused, s32 item, 
     if (--at<s32>(window, 0x150) == 0) at<s32>(window, 0x160) = -1;
 }
 
+void __fastcall Window7059f0_Select(u8 *window, void *, s32 row) {
+    if (row < 0) {
+        row = -1;
+    } else if (row < at<s16>(window, 0x172) && row < at<s32>(window, 0x150)) {
+        row += at<s32>(window, 0x154);
+    } else if (at<u32>(window, 0x48) & 0x100) {
+        row = -1;
+    } else {
+        return;
+    }
+    if (row != at<s32>(window, 0x14c)) {
+        if (at<u8 *>(window, 0x174)) {
+            if (row == -1 && at<s32>(window, 0x14c) != -1)
+                vcall<void>(at<u8 *>(window, 0x174), 0x14, 0u);
+            else if (row != -1 && at<s32>(window, 0x14c) == -1 && (s16)Window_IsShown(window) != 0)
+                vcall<void>(at<u8 *>(window, 0x174), 0x14, 1u);
+        }
+        at<s32>(window, 0x14c) = row;
+        Window_PostMessage(at<u8 *>(window, 0x60), 0x401, at<u32>(window, 0x8c), at<u32>(window, 0x14c));
+        if (*reinterpret_cast<const u32 *>((uintptr_t)0x00faa5d4)) Window_PostMessage(window, 3, 0, 0);
+    }
+    if (!at<u8 *>(window, 0x174) || at<s32>(window, 0x14c) == -1) return;
+    const u32 top = (u32)(s32)at<s16>(window, 0x13e), height = (u32)(s32)at<s16>(window, 0x170);
+    const u32 bottom = top + height * ((u32)at<s32>(window, 0x14c) + 1 - (u32)at<s32>(window, 0x154));
+    u8 rect[0xc], event[0x18];   // (only the event's pointer +0x14 set)
+    GuiRect_CtorWith(rect, nullptr, at<u16>(window, 0x13c), top + height * ((u32)at<s32>(window, 0x14c) - (u32)at<s32>(window, 0x154)),
+                     at<u16>(window, 0x140), bottom);
+    at<u8 *>(event, 0x14) = rect;
+    vcall<void>(at<u8 *>(window, 0x174), 0xc, 0x10u, event);
+    GuiRect_Dtor(rect);
+}
+
 void __fastcall Window7059f0_RefreshRows(u8 *window) {
     s32 *cells = at<s32 *>(window, 0x144);
     if (!at<u8 **>(window, 0x148)) return;

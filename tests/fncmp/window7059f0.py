@@ -14,7 +14,9 @@
 # FitBar (0x664495): a bar of its own (shown or not, its parent one of notify_env's tree, a recorder slot 7, its range and step any), or
 # none; the count around the rows or at the edges. FreeItem (0x664605): items() of 4 + 0-3 columns, their cells distinct objects (with
 # counted buffers or none) or 0, some items free, the column bottoms 0 or not, the heap; the item any, previous its true one mostly,
-# siblings 0 or not (0x100 too: a dword).
+# siblings 0 or not (0x100 too: a dword). Select (0x66525c): the queues, 0xfaa5d4 set or not, a shown or hidden parent (or none), the
+# highlight a recorder (its event's rectangle hashed) or none, the rows / count / first small or negative, the row in and around them,
+# the selection the row's, none or any; +0x48's flag 0x100 random.
 # usage: window7059f0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ColumnBottom,NextItem,...)
 import os
 import struct
@@ -23,19 +25,21 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, heap, log_region, put, set_return, vtable  # noqa: E402
-from window import MISC, OBJECT98, RANGES, VTABLE, notify_blobs, notify_env  # noqa: E402
+from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, blob_bytes, heap, log_region, put, set_return, vtable  # noqa: E402
+from window import MISC, OBJECT98, RANGES, VTABLE, notify_blobs, notify_env, queues  # noqa: E402
 
 CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'SetNthItemData': 0x664b68, 'SetRowHeight': 0x664ba8,
          'FindItemData': 0x664d2a, 'RefreshRows': 0x663324, 'ResetItems': 0x663085, 'RootEnd': 0x663cb8, 'FitBar': 0x664495,
-         'FreeItem': 0x664605}
+         'FreeItem': 0x664605, 'Select': 0x66525c}
 B = Bench(RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
                     (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707),
                     (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508),
-                    (0x664605, 0x6647cb), (0x47db20, 0x47db80)])
+                    (0x664605, 0x6647cb), (0x47db20, 0x47db80),
+                    (0x66525c, 0x665494), (0x659d43, 0x659d90)])
 WINDOW, COLUMNS, LINKS, OUT = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x800
 LIST, LINKS2, COLS2, CELLS, ROWS2, ROWWINS = RAM + 0x9000, RAM + 0x9420, RAM + 0x9e00, RAM + 0x9f00, RAM + 0x9c00, RAM + 0xb000
 BAR, OBJS, BUFS = RAM + 0xd000, RAM + 0x1000, RAM + 0x1200
+HILITE, HVT, OWNER = RAM + 0xe000, RAM + 0xe100, RAM + 0xe400
 
 
 def none(r):
@@ -211,6 +215,35 @@ def free_case(r, window, regions):
                 conv='t', ret='v')
 
 
+def select_case(r):
+    """Select (0x66525c): see the top"""
+    log = log_region()
+    regions = {LOG: log}
+    queues(r, regions)
+    regions[0xfaa5d4] = struct.pack('<I', r.choice([0, 0, 1, r.getrandbits(32)]))
+    window = bytearray(r.bytes(0x180))
+    regions[WINDOW] = window
+    owner = bytearray(r.bytes(0x80))
+    owner[0x48] = (owner[0x48] & 0xfe) | r.choice([0, 1, 1])
+    put(owner, 0x60, 'I', 0)
+    regions[OWNER] = owner
+    window[0x48] = (window[0x48] & 0xfe) | r.choice([0, 1, 1])
+    put(window, 0x60, 'I', r.choice([OWNER, OWNER, 0]))
+    put(window, 0x174, 'I', r.choice([HILITE, HILITE, 0]))
+    regions[HILITE] = struct.pack('<I', HVT)
+    regions[HVT] = vtable({5: 1, 3: 2})
+    blob_bytes(log, 3, 1, 0, (0x14, 0xfff))
+    rows, count, first = r.choice([0, 1, 3, 8, -1]), r.choice([0, 1, 2, 5, 9, -1]), r.choice([0, 0, 1, 4, -2, r.getrandbits(32)])
+    put(window, 0x172, 'h', rows)
+    put(window, 0x150, 'i', count)
+    put(window, 0x154, 'I', first & 0xffffffff)
+    row = r.choice([-1, -5, 0, 1, 2, rows - 1, rows, count - 1, count, 0x7fffffff, r.randrange(10)])
+    selected = (row + first) & 0xffffffff if 0 <= row < min(rows, count) else 0xffffffff
+    put(window, 0x14c, 'I', r.choice([selected, selected, 0xffffffff, 0xffffffff, r.randrange(10), r.getrandbits(32)]))
+    put(window, 0x170, 'h', r.choice([0, 1, 12, 20, -3, r.getrandbits(16) - 0x8000]))
+    return Call(CALLS['Select'], [WINDOW, row & 0xffffffff], regions, conv='t', ret='v')
+
+
 def bar_case(r):
     """FitBar (0x664495): see the top"""
     log = log_region()
@@ -240,6 +273,8 @@ def case(r):
         return refresh_case(r)
     if op == 'FitBar':
         return bar_case(r)
+    if op == 'Select':
+        return select_case(r)
     window = bytearray(r.bytes(0x180))
     regions = {WINDOW: window}
     if op == 'SetRowHeight':   # (the inner rectangle's top and bottom near each other or any; the height small, negative or 0: a fault in both)
