@@ -27,13 +27,6 @@ address,name,module,reason
 5f6c50,WString_Format,core/string,todo
 5f7360,Palette_ExpandRgb,gfx/palette,todo
 5f73a0,Palette_Nearest,gfx/palette,todo: indirect only
-5fa8a0,ImageCodec_InfoFromFile,gfx/imagecodec,todo
-5fa970,ImageCodec_InfoFromStream,gfx/imagecodec,todo
-5faa00,ImageCodec_LoadFromFile,gfx/imagecodec,todo
-5faab0,ImageCodec_LoadFromStream,gfx/imagecodec,todo
-5fabb0,TgaCodec_GetInfo,gfx/imagecodec,todo
-5fabe0,TgaCodec_Load,gfx/imagecodec,todo
-5fac10,TgaCodec_IsTga,gfx/imagecodec,todo
 5fc740,JpegCodec_GetInfo,gfx/jpeg,todo
 5fc840,JpegCodec_Load,gfx/jpeg,todo
 5fcbc0,JpegCodec_IsJpeg,gfx/jpeg,todo
