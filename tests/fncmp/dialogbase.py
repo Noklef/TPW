@@ -2,7 +2,7 @@
 # windows, the message queues, the focus globals), one of the tree's windows called with its parent (+0x60) another of them or none and its
 # default handler (+0x118) fncmp's logger (its result now and then set); message 0x14 mostly, else others. Create (0x47ed80):
 # windowscript.py's Build set-up (windowfactory.py's CreateChild set-up: window.py's tree, the heap, the timers, the focus; the registry
-# [0xfaa610]), the GUI root [0xfaa5d8] WINDOW2 or the tree's (now and then none: a fault in both), the kinds (slot 3) not 7, a script
+# [0xfaa610]), the GUI root [0xfaa5d8] WINDOW2 or the tree's (now and then none: a fault in both), the kinds (slot 3, the tree's too) not 7, a script
 # generated for the new kind 1 frame, the handler 0 or fncmp's logger, shaded or not; the registry's hash now and then "lolight"'s
 # (its window's slot 8 answering 0: an implementation would be told about the frame through a block on the stack); guidepth.py's globals.
 # usage: dialogbase.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=BaseHandler,Create)
@@ -48,7 +48,9 @@ def create_case(r):
     c = windowscript.run_case(r, 'Build')
     regions, log = c.regions, c.regions[LOG]
     set_return(log, 3, r.choice([4, 4, 1, 2, 11]))
-    root = r.choice([windowscript.WINDOW2] * 4 + [window.TREE] * 2 + [0])
+    for k in [k for k in regions if window.TREE <= k < window.RECTS]:   # (the tree's kinds too: Gui_TopDepth walks the root's children)
+        regions[k] = put(bytearray(regions[k]), 0, 'I', window.VTABLE)
+    root = r.choice([windowscript.WINDOW2] * 6 + [window.TREE] * 5 + [0])
     regions[0xfaa5d8] = struct.pack('<I', root) + regions[0xfaa5d8][4:]
     h = r.getrandbits(32)
     if windowscript.REG in regions:
