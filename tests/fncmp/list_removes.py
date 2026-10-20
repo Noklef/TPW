@@ -132,7 +132,9 @@ def setup_5e4250(r, obj, regions):
 
 
 def setup_5f42f0(r, obj, regions):
-    out = setup_5e4250(r, obj, regions)   # (the list's pointer at +0x18 too: harmless)
+    out = setup_5e4250(r, obj, regions)
+    put(obj, 0x80 + 0x18, 'I', RAM + 0x1800)   # (not the list at +0x18: an empty one)
+    regions[RAM + 0x1800] = bytes(0x10)
     regions[RAM + 0x80 + 0x20080] = struct.pack('<I', RAM + 0x1000)   # the list at +0x20080, past the object's bytes
     return out
 
