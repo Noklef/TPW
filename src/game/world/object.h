@@ -178,6 +178,10 @@ u32 __fastcall Object_HistoryAverage(const u8 *object);
 // is set to 0, +0x44 = 100.0, the word +0x5e and the dword +0x64 = 0.
 void __fastcall Object_ResetCondition(u8 *object);
 
+// 0x4e0390 (thiscall; x87; name unconfirmed): with flag 1 of the byte +0x32, whether the low byte of __ftol(the condition float +0x44) is below 25
+// (Object_ResetCondition's test), else 0.
+u32 __fastcall Object_InPoorCondition(const u8 *object);
+
 // 0x4db7d0 (thiscall; stream, save, version, unused): an object: Thing_Serialize first (1 if it fails); for a version of 0..1 then, saved or loaded as
 // a serializer does (Save_Field; the load through the readers): mAngle, mId, the date +0x18 as a SYSTEMTIME's eight fields in dwords (saved from
 // FileTime_ToSystemTime, loaded into FileTime_FromSystemTime, the day of the week skipped), MeshInstanceID, mFlags, mNameA[i] and mNameB[i] for each

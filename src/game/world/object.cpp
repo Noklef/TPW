@@ -628,4 +628,8 @@ u8 __fastcall Object_Rating(const u8 *object, void *, u32 baseOnly) {
         return Object_ComputeRating(object, nullptr, at<s32>(object, 0x188), at<s32>(object, 0x194), at<u8>(object, 0x190));
     return Object_ComputeRating(object, nullptr, at<s32>(object, 0x58), at<u8>(object, 0x5c), at<u8>(object, 0x5d));
 }
+
+u32 __fastcall Object_InPoorCondition(const u8 *object) {
+    return at<u8>(object, 0x32) & 1 && (u8)(long long)at<float>(object, 0x44) < 25 ? 1 : 0;
+}
 }
