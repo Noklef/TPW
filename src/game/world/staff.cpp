@@ -11,6 +11,7 @@
 #include "analyser.h"
 #include "messagecentre.h"
 #include "money.h"
+#include "person.h"
 #include "things.h"
 #include "thingscan.h"
 #include "world.h"
@@ -329,6 +330,43 @@ u32 __fastcall StaffPoolEntry_Serialize(u8 *entry, void *, Stream *stream, u32 s
     if (!Save_Fields(stream, save, entry, kFields, 6) || TimeSig_Serialize(entry + 0xc, nullptr, stream, save, version, unused))
         return 1;
     return Save_Field(stream, save, entry + 0x10, 4, 0x0075e69c) ? 0 : 1;
+}
+
+u32 __fastcall Staff_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    if (Sprite_Serialize(staff, nullptr, stream, save, version, unused) != 0)
+        return 1;
+    if (version < 0 || version > 1)
+        return 0;
+    static const SaveSpec kRest[] = {{0x20a, 2, 0x0075e370}, {0x20c, 2, 0x0075e360}, {0x1e8, 1, 0x0075e348}, {0x208, 2, 0x0075e33c},
+                                     {0x19c, 4, 0x0075b5b0}, {0x200, 4, 0x0075d1e0}, {0x1f0, 8, 0x0075e330}};
+    if (save != 0) {
+        // the two floats are saved as the float of their __ftol's low byte
+        float happiness = (float)(u8)(long long)at<float>(staff, 0x1f8);
+        if (!Save_Field(stream, save, staff + 0x1e4, 4, 0x0075e398) || !Save_Field(stream, save, &happiness, 4, 0x0075b444) ||
+            !Save_Field(stream, save, staff + 0x204, 4, 0x0075e38c))
+            return 1;
+        for (u32 i = 0; i < 0x21; ++i)
+            if (!Save_Field(stream, save, staff + 0x1a0 + i * 2, 2, 0x0075e380))
+                return 1;
+        if (!Save_Fields(stream, save, staff, kRest, 7))
+            return 1;
+        float energy = (float)(u8)(long long)at<float>(staff, 0x1fc);
+        return Save_Field(stream, save, &energy, 4, 0x0075b444) ? 0 : 1;
+    }
+    // (the load reads all but the first two fields through the readers, which announce and read the same way; the floats land only when whole)
+    u32 value = 0;
+    if (!Save_Field(stream, 0, staff + 0x1e4, 4, 0x0075e398) || !Save_Field(stream, 0, &value, 4, 0x0075b444))
+        return 1;
+    at<u32>(staff, 0x1f8) = value;
+    if (!Save_Field(stream, 0, staff + 0x204, 4, 0x0075e38c))
+        return 1;
+    for (u32 i = 0; i < 0x21; ++i)
+        if (!Save_Field(stream, 0, staff + 0x1a0 + i * 2, 2, 0x0075e380))
+            return 1;
+    if (!Save_Fields(stream, 0, staff, kRest, 7) || !Save_Field(stream, 0, &value, 4, 0x0075b444))
+        return 1;
+    at<u32>(staff, 0x1fc) = value;
+    return 0;
 }
 
 u32 __fastcall StaffPool_Serialize(u8 *pool, void *, Stream *stream, u32 save, s32 version, u32 unused) {

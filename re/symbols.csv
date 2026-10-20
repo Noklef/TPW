@@ -188,7 +188,7 @@ address,name,kind,confidence,notes
 0x0050d150,Nav_Serialize,function,high,reimplemented (src/game/world/nav); steering/pathing state (float vectors); loading clears +0x34 and +0x30
 0x0050bad0,Thoughts_Serialize,function,high,"reimplemented (src/game/world/person); thiscall (stream, save, version, unused): a person's thoughts (history index, 32 history pairs, +0, script, bubble time) saved or loaded"
 0x004fb530,Visitor_Serialize,function,high,thing model 1
-0x00504de0,Staff_Serialize,function,high,"staff base: pay grade, UTF-16 name[0x21], patrol region, time hired"
+0x00504de0,Staff_Serialize,function,high,"reimplemented (src/game/world/staff); thiscall: a staff member: Sprite_Serialize, then (version 0..1) its fields saved or loaded, the two floats as the float of their __ftol's low byte"
 0x004da110,Mechanic_Serialize,function,high,thing model 4
 0x004d6d60,Handyman_Serialize,function,high,thing model 5
 0x004d4460,Entertainer_Serialize,function,high,thing model 6

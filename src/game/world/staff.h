@@ -136,6 +136,12 @@ void __fastcall Staff_TrainAll(const s32 *amounts);
 // 1 if it fails) and the dword at +0x10.
 u32 __fastcall StaffPoolEntry_Serialize(u8 *entry, void *, Stream *stream, u32 save, s32 version, u32 unused);
 
+// 0x504de0 (thiscall; the same arguments): a staff member: Sprite_Serialize first (1 if it fails); for a version of 0..1 then +0x1e4, the
+// float +0x1f8 (as the float of its __ftol's low byte), +0x204, the 0x21 words from +0x1a0, the words +0x20a and +0x20c, the byte +0x1e8, the
+// word +0x208, the dwords +0x19c and +0x200, the 8 bytes at +0x1f0 and the float +0x1fc (as +0x1f8), as a serializer does (Save_Field; the
+// load partly through the readers, the floats landing only when read whole); 1 at the first that fails, else 0.
+u32 __fastcall Staff_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
 // 0x507850 (thiscall; the same arguments): the staff pool: its 0x20 entries (StaffPoolEntry_Serialize, 0x14 bytes from +0), 1 at the first
 // that fails; then for each of the 5 categories mPeopleInCat[i] (dwords from +0x280) and mStopProducing[i] (bytes from +0x299), the time
 // stamp at +0x294 (TimeSig_Serialize) and the byte at +0x298, as a serializer does (Save_Field).

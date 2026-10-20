@@ -6,6 +6,8 @@
 # destination then set all the same). The cell destination: ids over the map, 0 and past it. The marked one: the object 0x3a0 bytes.
 # The nearest thing: up to 7 things in the game's list (the head word at +0x1da746 of the world) about the person's cell, with flag 0x40 or
 # not, their cells (+0x36) mostly the one the person is in (which it can be sent to) or another; radii small, 0 and with squares that wrap.
+# A staff member's serializer (0x504de0): the serializer's case with the staff's fields after the person's in the stream, its two floats whole
+# bytes, about them or any.
 # usage: movingperson.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=4f8b10,...)
 import os
 import struct
@@ -17,11 +19,11 @@ sys.path.insert(0, HERE)
 import navpath  # noqa: E402
 import objectblocks  # noqa: E402
 import serializers  # noqa: E402
-from fncmp import Bench, Call, RAM, put, record_stream  # noqa: E402
+from fncmp import Bench, Call, RAM, fb, put, record_stream  # noqa: E402
 
 RANGES = []
 for a, b in sorted([(0x4f8b10, 0x4f9435), (0x541f60, 0x541f6f), (0x4fa530, 0x4fa5e7), (0x4f7de0, 0x4f7e1b), (0x4217f0, 0x421800), (0x4f7da0, 0x4f7dd2),
-                    (0x500dc0, 0x500eff), (0x5da3c0, 0x5da3c1)]
+                    (0x500dc0, 0x500eff), (0x5da3c0, 0x5da3c1), (0x504de0, 0x5054a0)]
                    + navpath.RANGES + serializers.RANGES):
     if RANGES and a <= RANGES[-1][1]:
         RANGES[-1] = (RANGES[-1][0], max(RANGES[-1][1], b))
@@ -38,7 +40,7 @@ COPIES = [(0, 4, 4), (20, 0x18, 4), (29, 0x24, 4), (NAV_AT + 48, 0xd4 + 0xb4, 4)
 LIMIT_AT = NAV_AT + sum(NAV) + 12  # +0x198 in the stream
 
 
-def serial(r):
+def serial(r, sizes=SIZES):
     c = navpath.person_case(r)
     regions = dict(c.regions)
     obj = regions[RAM]
@@ -50,7 +52,7 @@ def serial(r):
     sink = bytearray(r.bytes(0x1400))
     for at, field, size in COPIES + ([(LIMIT_AT, 0x198, 4)] if r.random() < 0.8 else []):
         sink[at:at + size] = obj[field:field + size]
-    ends = [sum(SIZES[:i + 1]) for i in range(len(SIZES))]
+    ends = [sum(sizes[:i + 1]) for i in range(len(sizes))]
     total = ends[-1]
     end = r.choice(ends)
     left = r.choice([total, total, total, total, 0x1400, 0, end, end - 1, end + 1, r.randrange(total)])
@@ -59,6 +61,22 @@ def serial(r):
     save = r.choice([0, 0, 1, 1, r.getrandbits(32)])
     version = r.choice([0, 1, 0, 1, 0, 1, -1, 2, r.getrandbits(32)])
     return Call(0x4f8b10, [RAM, STREAM, save, version & 0xffffffff, r.getrandbits(32)], regions, conv='t', ret='a')
+
+
+STAFF = SIZES + [4, 4, 4] + [2] * 0x21 + [2, 2, 1, 2, 4, 4, 8, 4]  # (the sprite's, then the staff's)
+
+
+def staff(r):
+    """0x504de0: serial()'s person (its sprite fields first) with the staff's fields after them in the stream, its floats +0x1f8 / +0x1fc whole bytes,
+    about them or any (their __ftol's low byte is saved)."""
+    c = serial(r, STAFF)
+    obj = c.regions[RAM]
+    if len(obj) < 0x220:
+        obj += bytearray(r.bytes(0x220 - len(obj)))
+    for off in (0x1f8, 0x1fc):
+        put(obj, off, 'I', fb(r.choice([0.0, 1.0, 50.5, 100.0, 255.0, 255.9, 256.0, -1.0])) if r.random() < 0.7 else r.f(1000.0))
+    c.address = 0x504de0
+    return c
 
 
 def cell_xy(cid):
@@ -108,9 +126,11 @@ def marked(r):
 
 
 def case(r):
-    op = r.deal(OPS or [0x4f8b10, 0x4f8b10, 0x4fa530, 0x4f7de0, 0x4f7da0, 0x500dc0])
+    op = r.deal(OPS or [0x4f8b10, 0x4f8b10, 0x4fa530, 0x4f7de0, 0x4f7da0, 0x500dc0, 0x504de0, 0x504de0])
     if op == 0x4f8b10:
         return serial(r)
+    if op == 0x504de0:
+        return staff(r)
     return marked(r) if op == 0x4f7de0 else nearest(r) if op == 0x500dc0 else cell(r, op)
 
 
