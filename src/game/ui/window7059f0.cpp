@@ -360,6 +360,82 @@ u32 __fastcall Window7059f0_SortsBefore(u8 *window, void *, const u32 *texts, co
     return Crt().wcscmp(reinterpret_cast<const u16 *>((uintptr_t)cell), reinterpret_cast<const u16 *>((uintptr_t)texts[column])) < 0 ? 1 : 0;
 }
 
+s32 __fastcall Window7059f0_AddItem(u8 *window, void *, const u32 *texts, u32 data, s32 parent, u32 refresh) {
+    auto links = [window]() { return at<s32 *>(window, 0x144); };
+    s32 shown = at<s32>(window, 0x160);
+    bool child = false;
+    if (!texts) return -1;
+    if (at<s32>(window, 0x150) * (at<s16>(window, 0x164) + 4) >= at<s32>(window, 0x158))
+        Window7059f0_Grow(window, nullptr, at<s32>(window, 0x158) == 0 ? 0x14 : 0xa);
+    s32 item;
+    if (parent != -1 && parent < at<s32>(window, 0x150)) {
+        parent = Window7059f0_NthItem(window, nullptr, parent);
+        item = links()[parent + 2];
+        child = true;
+    } else {
+        item = at<s32>(window, 0x160);
+    }
+    s32 added, last;   // (the first free item and the one before it, Window7059f0_RootEnd)
+    if (item == -1) {
+        if (child) {   // (the parent's first child)
+            Window7059f0_RootEnd(window, nullptr, &added, &last);
+            Window7059f0_CopyCells(window, nullptr, texts, reinterpret_cast<u32 *>(links() + added + 4));
+            links()[parent + 2] = added;
+            links()[last] = links()[added];
+            links()[added] = -1;
+            links()[added + 3] = parent;
+        } else {   // (no items: the first, sic)
+            Window7059f0_CopyCells(window, nullptr, texts, reinterpret_cast<u32 *>(links() + 4));
+            shown = 0;
+            added = 0;
+        }
+    } else {
+        Window7059f0_RootEnd(window, nullptr, &added, &last);
+        Window7059f0_CopyCells(window, nullptr, texts, reinterpret_cast<u32 *>(links() + added + 4));
+        if (at<u32>(window, 0x48) & 0x10) {   // (sorted: before the first sibling it sorts before; else it stays after the roots, sic)
+            if (Window7059f0_SortsBefore(window, nullptr, texts, reinterpret_cast<const u32 *>(links() + item + 4))) {
+                links()[last] = links()[added];
+                links()[added] = item;
+                if (child) {
+                    links()[parent + 2] = added;
+                    links()[added + 3] = parent;
+                } else {
+                    shown = added;
+                }
+            } else {
+                bool done = false;
+                for (s32 i = 1; !done && i < at<s32>(window, 0x150);) {
+                    const s32 previous = item;
+                    item = links()[item];
+                    ++i;
+                    if (item == -1 || Window7059f0_SortsBefore(window, nullptr, texts, reinterpret_cast<const u32 *>(links() + item + 4))) {
+                        links()[last] = links()[added];
+                        links()[added] = item;
+                        links()[previous] = added;
+                        if (child) links()[added + 3] = parent;
+                        done = true;
+                    }
+                }
+            }
+        }
+    }
+    if (links()[added + 3] < 0) links()[added + 3] = -1;
+    links()[added + 1] = (s32)data;
+    at<s32>(window, 0x160) = shown;
+    if (++at<s32>(window, 0x150) == 1) Window7059f0_Select(window, nullptr, 0);
+    if (refresh) {
+        Window7059f0_RefreshRows(window);
+        if (*reinterpret_cast<const u32 *>((uintptr_t)0x00faa5d4)) Window_PostMessage(window, 3, 0, 0);
+    }
+    const u32 first = at<u32>(window, 0x154);
+    const s32 rows = at<s16>(window, 0x172), count = at<s32>(window, 0x150);
+    Window7059f0_FitBar(Window_FindChild(window, nullptr, 1), count, rows, first);
+    s32 end = at<s32>(window, 0x154) + at<s16>(window, 0x172);
+    if (end >= at<s32>(window, 0x150)) end = at<s32>(window, 0x150) - 1;
+    Window_SendMessage(at<u8 *>(window, 0x60), 0x405, at<u32>(window, 0x154), (u32)end);
+    return 0;
+}
+
 u32 __fastcall Window7059f0_RemoveItem(u8 *window, void *, s32 n) {
     if (n >= at<s32>(window, 0x150) || !at<s32 *>(window, 0x144) || n < 0) return 0;
     s32 shown = at<s32>(window, 0x160);

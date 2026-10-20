@@ -43,12 +43,13 @@ from window import MISC, OBJECT98, RANGES, VTABLE, notify_blobs, notify_env, que
 CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'SetNthItemData': 0x664b68, 'SetRowHeight': 0x664ba8,
          'FindItemData': 0x664d2a, 'RefreshRows': 0x663324, 'ResetItems': 0x663085, 'RootEnd': 0x663cb8, 'FitBar': 0x664495,
          'FreeItem': 0x664605, 'Select': 0x66525c, 'FindText': 0x664db7, 'RemoveItem': 0x6647cb, 'Clear': 0x6649d5,
-         'ScrollTo': 0x665739, 'Grow': 0x66316b, 'SortsBefore': 0x663edc, 'CopyCells': 0x663dfa}
+         'ScrollTo': 0x665739, 'Grow': 0x66316b, 'SortsBefore': 0x663edc, 'CopyCells': 0x663dfa,
+         'AddItem': 0x66403b}
 B = Bench(RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
                     (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707),
                     (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508),
                     (0x664605, 0x6647cb), (0x47db20, 0x47db80), (0x6647cb, 0x664b68), (0x665739, 0x6658b9), (0x66316b, 0x663324), (0x67fff0, 0x680060), (0x6800f0, 0x6802f8), (0x663edc, 0x66403b), (0x67c290, 0x67c2e2), (0x663dfa, 0x663edc), (0x4f0170, 0x4f0237), (0x405280, 0x405390),
-                    (0x4f23f0, 0x4f2450),
+                    (0x4f23f0, 0x4f2450), (0x66403b, 0x664495),
                     (0x66525c, 0x665494), (0x659d43, 0x659d90), (0x664db7, 0x664ea3), (0x4f7870, 0x4f7910), (0x665f30, 0x665f71),
                     (0x67acd0, 0x67ad00), (0x45b380, 0x45b5f0), (0x45b680, 0x45b9b0), (0x67bb90, 0x67bd98), (0x67d250, 0x67d2c0),
                     (0x67d3a0, 0x67d400), (0x6918f0, 0x691a30), (0x691ba0, 0x691ce0)])
@@ -313,9 +314,10 @@ def bar_case(r):
     return Call(CALLS['FitBar'], [r.choice([BAR] * 9 + [0]), count, rows & 0xffffffff, r.getrandbits(32)], regions, ret='v')
 
 
-def allocator_masks(fail, lengths):
+def allocator_masks(fail, lengths, first=None):
     """The heap offsets of the allocator bytes of the strings made from texts of these lengths (None: no string) in turn, the heap
-    failing its allocation fail (fncmp's _alloc: blocks 16-aligned from +0x10, a countdown in the low bits): a Mask, or none"""
+    failing its allocation fail (fncmp's _alloc: blocks 16-aligned from +0x10, a countdown in the low bits), after an allocation of
+    first bytes when given: a Mask, or none"""
     nxt, offsets = HEAP + 0x10 + fail, []
 
     def alloc(size):
@@ -327,6 +329,8 @@ def allocator_masks(fail, lengths):
         nxt = p + ((size + 15) & ~15) + (countdown - 1 if countdown else 0)
         return p
 
+    if first is not None:
+        alloc(first)
     for n in lengths:
         if n is None:
             continue
@@ -447,8 +451,100 @@ def list_case(r, op):
     return Call(CALLS[op], [LIST3, n & 0xffffffff], regions, conv='t', ret='w' if op == 'RemoveItem' else 'v')
 
 
+ACHARS, ATEXTS = RAM + 0xfd00, RAM + 0xfe00
+
+
+def add_case(r):
+    """AddItem (0x66403b): list_env()'s windows, a new forest at LINKS3 (4 + 0-3 columns) whose last root goes on to the free items'
+    chain (parent -2, no child; their cells 0) or ends; the cells of a number column (bottom 1) numbers, the others string objects (+4
+    one of 8 short strings of ALPHA, now and then none) or 0; the dword count theirs or the used ones' (the array grown: the heap's first
+    block) or 0, now and then no array; the sort column and direction, flag 0x10 (sorted) set or not; the texts like the cells (strings
+    for the string columns, mostly set) or none; the parent -1, a position or past the count; refresh or not. The new strings' allocator
+    bytes masked (allocator_masks)."""
+    window, regions, _ = list_env(r)
+    ncols = r.choice([0, 1, 2, 3, 3])
+    put(window, 0x164, 'h', ncols)
+    stride = 4 + ncols
+    bottoms = [r.choice([0, 0, 1, 1, -1]) for _ in range(4)]
+    regions[COLS3] = b''.join(put(bytearray(r.bytes(0xc)), 0xa, 'h', v) for v in bottoms)
+    chars = bytearray(0x100)
+    for j in range(8):
+        t = [r.choice(ALPHA) for _ in range(r.choice([0, 1, 1, 2, 3]))]
+        struct.pack_into('<%dH' % (len(t) + 1), chars, 0x20 * j, *t, 0)
+    regions[ACHARS] = chars
+    objs = bytearray(r.bytes(0x10 * 16))
+    for j in range(16):
+        put(objs, 0x10 * j + 4, 'I', r.choice([ACHARS + 0x20 * r.randrange(8)] * 9 + [0]))
+    regions[OBJS3] = objs
+    nums = [0, 1, -1, 5, 6, 0x7fffffff, -0x80000000]
+
+    def cell(c, free=False):
+        if free:
+            return 0
+        if bottoms[c] == 1:
+            return r.choice(nums)
+        return r.choice([OBJS3 + 0x10 * r.randrange(16)] * 4 + [0])
+
+    used, nfree = r.choice([0, 1, 1, 2, 3, 5, 8]), r.choice([0, 0, 1, 2, 4])
+    if used + nfree == 0:
+        nfree = 1
+    total = used + nfree
+    pos = [stride * k for k in r.sample(range(total), total)]
+    idx, fidx = pos[:used], pos[used:]
+    parent = [None] + [r.choice([None, None, r.randrange(k)]) for k in range(1, used)] if used else []
+    kids = {p: [k for k in range(used) if parent[k] == p] for p in [None] + list(range(used))}
+    links = [none(r) for _ in range(stride * total)]
+    tail = (fidx[0] if fidx and r.random() < 0.85 else -1)
+    for k in range(used):
+        i = idx[k]
+        sibs = kids[parent[k]]
+        at = sibs.index(k)
+        links[i] = idx[sibs[at + 1]] if at + 1 < len(sibs) else tail if parent[k] is None else -1
+        links[i + 1] = r.getrandbits(31) - 0x80000000
+        links[i + 2] = idx[kids[k][0]] if kids[k] else -1
+        links[i + 3] = idx[parent[k]] if parent[k] is not None else -1
+        for c in range(ncols):
+            links[i + 4 + c] = cell(c)
+    for j, i in enumerate(fidx):
+        links[i:i + 4] = [fidx[j + 1] if j + 1 < len(fidx) else -1, 0, -1, -2]
+        for c in range(ncols):
+            links[i + 4 + c] = cell(c, r.random() < 0.9)
+    regions[LINKS3 - 0x20] = struct.pack('<8i', *[none(r) for _ in range(8)]) + struct.pack('<%di' % len(links), *links)
+    put(window, 0x144, 'I', LINKS3)
+    dwords = r.choice([len(links)] * 4 + [stride * used] * 2 + [0])
+    if r.random() < 0.05:   # (no array: the dword count 0, so it is made)
+        put(window, 0x144, 'I', 0)
+        dwords = 0
+    put(window, 0x158, 'i', dwords)
+    count = r.choice([used] * 6 + [r.randrange(used + 1)])
+    put(window, 0x150, 'i', count)
+    roots = kids[None]
+    put(window, 0x160, 'i', idx[roots[0]] if roots and r.random() < 0.95 else -1)
+    put(window, 0x168, 'hh', r.randrange(max(ncols, 1)), r.choice([0, 0, 1, 1, 0x100]))   # (0x100: only the upper byte set)
+    window[0x48] = (window[0x48] & ~0x10) | r.choice([0, 0x10, 0x10])
+    texts, lengths = [], []
+    for c in range(4):
+        j = r.randrange(8)
+        if bottoms[c] == 1:
+            texts.append(r.choice(nums + [r.choice(nums) + 1]) & 0xffffffff)
+        else:
+            texts.append(r.choice([ACHARS + 0x20 * j] * 19 + [0]))
+        n = struct.unpack_from('<4H', chars, 0x20 * j).index(0) if texts[-1] else 0
+        lengths.append(n if c < ncols and bottoms[c] == 0 and texts[-1] else None)
+    regions[ATEXTS] = struct.pack('<4I', *texts)
+    fail = r.choice([0] * 8 + [1, 2])
+    regions[HEAP] = heap(fail=fail)
+    grows = count * stride >= dwords and ncols != 0
+    first = (dwords + (20 if dwords == 0 else 10) * stride) * 4 if grows else None
+    p = r.choice([-1] * 4 + [r.randrange(count)] * 4 + [count, -2] if count else [-1, -1, 0, 1])
+    args = [LIST3, r.choice([ATEXTS] * 19 + [0]), r.getrandbits(32), p & 0xffffffff, r.choice([0, 1])]
+    return Call(CALLS['AddItem'], args, regions, conv='t', ret='a', masks=allocator_masks(fail, lengths, first) if args[1] else [])
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'AddItem':
+        return add_case(r)
     if op in ('RemoveItem', 'Clear', 'ScrollTo'):
         return list_case(r, op)
     if op == 'RefreshRows':

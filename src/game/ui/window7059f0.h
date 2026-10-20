@@ -126,6 +126,17 @@ void __fastcall Window7059f0_CopyCells(u8 *window, void *, const u32 *texts, u32
 // set the same the other way round (the dword above, the cell's string below the text; an empty cell 1 too).
 u32 __fastcall Window7059f0_SortsBefore(u8 *window, void *, const u32 *texts, const u32 *cells);
 
+// 0x66403b (thiscall (texts, data, parent, refresh), pops 16; name unconfirmed): -1 without texts. Else an item added, the array grown
+// first when the count +0x150 times the columns + 4 reaches the dword count +0x158 (Window7059f0_Grow 20, or 10 with an array). Under the
+// parent (a position below the count, else -1: the roots) whose first child, or the first shown +0x160, is looked at: none: the first free
+// item (Window7059f0_RootEnd) becomes the parent's only child (unlinked from the free chain), or without a parent item 0 takes the cells
+// and becomes the first shown, unlinked (sic). Else the first free item gets the cells (Window7059f0_CopyCells) and, with flag 0x10 of
+// +0x48 (sorted), is moved before the first of the siblings from there (at most count - 1 steps) it sorts before
+// (Window7059f0_SortsBefore) or to their end; unsorted it stays where it is, after the roots even under a parent (sic). Its parent -1
+// when below 0, its data set, the count raised (the selection 0 at 1, Window7059f0_Select); with refresh the rows refreshed and, with the
+// dword 0xfaa5d4 set, the window posted 3 (0, 0); the bar fitted and the parent +0x60 sent 0x405. Returns 0.
+s32 __fastcall Window7059f0_AddItem(u8 *window, void *, const u32 *texts, u32 data, s32 parent, u32 refresh);
+
 // 0x6647cb (thiscall (n), pops 4; name unconfirmed): 0 for n at or past the count +0x150, without items +0x144 or below 0. Else the n-th
 // item (Window7059f0_NthItem) freed with its children (Window7059f0_FreeItem, n, previous, no siblings): previous -1 for the first one
 // (whose next sibling becomes the first shown +0x160) and for its parent's first child, else the (n - 1)-th item of the walk (not always a
