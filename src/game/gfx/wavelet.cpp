@@ -491,6 +491,37 @@ void __fastcall WaveletCodec_DecodeGrey(u8 *codec, void *, u32 width, u32 height
     Ptr_FreeIfSet(reinterpret_cast<u8 **>(&row.data));
 }
 
+void __fastcall WaveletCodec_DecodeColour(u8 *codec, void *, u32 width, u32 height, const void *src, u8 *pixels, float qY, float qCb, float qCr) {
+    // The SEH frame is left out.
+    const u32 w = SideFor(width), h = SideFor(height);
+    const u32 side = w > h ? w : h, half = side >> 1, count = side * side;
+    Buffer_Decompress(src, kStream, at<void *>(codec, 0x4c));
+    IntArray_SetSize(codec + 0x2c, nullptr, (s32)count, -1);  // inline in the original, the same steps
+    IntArray_SetSize(codec + 0x1c, nullptr, (s32)count, -1);  // likewise
+    IntArray_SetSize(codec + 0xc, nullptr, (s32)count, -1);
+    struct {
+        u32 *data;
+        u32 size, max, growBy;
+    } row = {};
+    IntArray_SetSize(reinterpret_cast<u8 *>(&row), nullptr, (s32)side, -1);
+    const u8 *cursor = kStream;
+    // Each plane: its rows' coefficients put into the plane at +0x3c along the rows, then down the columns into its own.
+    const auto plane = [&](u32 n, float q, u32 to) {
+        float *out = at<float *>(codec, 0x3c);
+        for (u32 y = n; y != 0; --y) {
+            WaveletCodec_ReadCoefficients(codec, nullptr, &cursor, reinterpret_cast<float *>(row.data), n, q);
+            WaveletCodec_InverseD4Row(codec, nullptr, reinterpret_cast<float *>(row.data), out, (s32)n);
+            out += n;
+        }
+        WaveletCodec_InverseD4Columns(codec, nullptr, &at<float *>(codec, 0x3c), &at<float *>(codec, to), n, n);
+    };
+    plane(side, qY, 0x2c);
+    plane(half, qCb, 0x1c);
+    plane(half, qCr, 0xc);
+    WaveletCodec_YuvToRgb(codec, nullptr, width, height, side, pixels);
+    Ptr_FreeIfSet(reinterpret_cast<u8 **>(&row.data));
+}
+
 void __fastcall WaveletCodec_YuvToRgb(u8 *codec, void *, u32 width, u32 height, u32 stride, u8 *dst) {
     const auto bits = [](X87Reg r) {
         const float f = (float)r;

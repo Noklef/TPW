@@ -96,6 +96,14 @@ void __fastcall WaveletCodec_InverseD4Columns(u8 *codec, void *, float *const *s
 // byte. The stack array is freed (Ptr_FreeIfSet).
 void __fastcall WaveletCodec_DecodeGrey(u8 *codec, void *, u32 width, u32 height, const void *src, u8 *pixels, float q);
 
+// 0x592730 (thiscall on the codec; width, height, packed source, BGR pixels, the Y, Cb and Cr quantisers; pops 0x1c; the SEH frame left
+// out; name unconfirmed): the colour decoder. The side and the stream as in WaveletCodec_DecodeGrey; the planes at +0x2c, +0x1c (both
+// with IntArray_SetSize's steps inline) and +0xc each sized side x side; a stack array of side floats. Y: side rows of side
+// coefficients (WaveletCodec_ReadCoefficients, the cursor running on) each put into the plane at +0x3c (WaveletCodec_InverseD4Row),
+// then WaveletCodec_InverseD4Columns from +0x3c into +0x2c (side x side); Cb and Cr the same at half the side into +0x1c and +0xc
+// (rows half the side apart); then WaveletCodec_YuvToRgb (width, height, the side) and the stack array freed (Ptr_FreeIfSet).
+void __fastcall WaveletCodec_DecodeColour(u8 *codec, void *, u32 width, u32 height, const void *src, u8 *pixels, float qY, float qCb, float qCr);
+
 // 0x5935a0 (thiscall on the codec; width, height, the luma plane's stride in floats, the BGR pixels; pops 0x10): the planes at +0x2c (Y),
 // +0x1c (Cb) and +0xc (Cr, read at its distance from Cb rounded down to a dword) to 3-byte pixels. Its strides and the factors 1.772,
 // 1.402, 0.344136, 0.714136 and 1.5 * 2^23 + 128 go to globals at 0xfb2768-0xfb27ac first. Each 2 x 2 block (half the width by half the
