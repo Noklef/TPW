@@ -323,17 +323,22 @@ def tr_flush_block(r):
 
 # --- deflate.c: the window, the hash chains and the stream
 STRM, OUT, WIN, PREV, HEAD = RAM + 0x5000, RAM + 0x5100, RAM + 0x6100, RAM + 0x6b00, RAM + 0x7400
+WIN_BIG, PREV_BIG = RAM + 0x20000, RAM + 0x28000  # (windowBits 13: the window and prev of deflating(big=True))
 OUT_SIZE, WIN_SLACK = 0x1000, 0x110  # (longest_match reads up to MAX_MATCH past a string; zlib's window has that room, the bench gives it)
 W_SIZE, W_BITS, W_MASK, WINDOW, WINDOW_SIZE, PREV_, HEAD_, INS_H, HASH_SIZE, HASH_BITS, HASH_MASK, HASH_SHIFT = (
     0x24, 0x28, 0x2c, 0x30, 0x34, 0x38, 0x3c, 0x40, 0x44, 0x48, 0x4c, 0x50)
 BLOCK_START, MATCH_LENGTH, PREV_MATCH, MATCH_AVAILABLE, STRSTART, MATCH_START, LOOKAHEAD, PREV_LENGTH = 0x54, 0x58, 0x5c, 0x60, 0x64, 0x68, 0x6c, 0x70
 MAX_CHAIN, MAX_LAZY, STRATEGY, GOOD_MATCH, NICE_MATCH, NOHEADER, PENDING_OUT, PENDING_BUF_SIZE = 0x74, 0x78, 0x80, 0x84, 0x88, 0x18, 0x10, 0xc
-MIN_MATCH, MAX_MATCH, MIN_LOOKAHEAD = 3, 258, 262
+MIN_MATCH, MAX_MATCH, MIN_LOOKAHEAD, TOO_FAR = 3, 258, 262, 4096
 # the z_stream: next_in, avail_in, total_in, next_out, avail_out, total_out, msg, state, zalloc, zfree, opaque, data_type, adler, reserved
 
 
 def text(r, n):
-    """Bytes that repeat (a small alphabet, copied runs), so strings match."""
+    """Bytes that repeat (a small alphabet, copied runs, or a short period with sparse changes), so strings match, at many lengths."""
+    if r.random() < 0.3:
+        period, every = r.randrange(1, 12), r.choice([4, 8, 16, 32, 64])
+        unit = bytes(r.randrange(0x61, 0x65) for _ in range(period))
+        return bytearray(r.randrange(0x61, 0x65) if r.randrange(every) == 0 else unit[i % period] for i in range(n))
     out = bytearray()
     alpha = r.choice([2, 4, 26, 256])
     while len(out) < n:
@@ -345,15 +350,17 @@ def text(r, n):
     return out[:n]
 
 
-def deflating(r, fresh=False):
+def deflating(r, fresh=False, big=False):
     """A deflate_state as deflateInit2_ lays it out (window, prev, head; pending_buf overlaid by d_buf and l_buf) at memLevel 1..3 and
-    windowBits 9 or 10, with its stream at STRM. fresh: as lm_init leaves it; else part way through (random positions and chains)."""
+    windowBits 9 or 10 (big: 13, past TOO_FAR, the window and prev at WIN_BIG / PREV_BIG), with its stream at STRM. fresh: as lm_init
+    leaves it; else part way through (random positions and chains)."""
     s = state(r)
-    w_bits, mem = r.choice([9, 10]), r.choice([1, 2, 3])
+    w_bits, mem = 13 if big else r.choice([9, 10]), r.choice([1, 2, 3])
+    win, prv = (WIN_BIG, PREV_BIG) if big else (WIN, PREV)
     w_size, hash_bits, lit = 1 << w_bits, mem + 7, 1 << (mem + 6)
     struct.pack_into('<IiI', s, 0, STRM, r.choice([42, 113]), PEND)
     struct.pack_into('<IIiiBBxxiIII', s, PENDING_BUF_SIZE, lit * 4, PEND, 0, r.choice([0, 0, 1]), 2, 8, 0, w_size, w_bits, w_size - 1)
-    struct.pack_into('<IIIIIIIII', s, WINDOW, WIN, 2 * w_size, PREV, HEAD, 0, 1 << hash_bits, hash_bits, (1 << hash_bits) - 1, (hash_bits + 2) // 3)
+    struct.pack_into('<IIIIIIIII', s, WINDOW, win, 2 * w_size, prv, HEAD, 0, 1 << hash_bits, hash_bits, (1 << hash_bits) - 1, (hash_bits + 2) // 3)
     level = r.choice([1, 2, 3, 4, 6, 9])
     good, lazy, nice, chain = [(4, 4, 8, 4), (4, 5, 16, 8), (4, 6, 32, 32), (4, 4, 16, 16), (8, 16, 128, 128), (32, 258, 258, 4096)][[1, 2, 3, 4, 6, 9].index(level)]
     struct.pack_into('<IIiiII', s, MAX_CHAIN, chain, lazy, level, r.choice([0, 0, 1, 2]), good, nice)
@@ -380,10 +387,10 @@ def deflating(r, fresh=False):
                          strstart, r.randrange(strstart + 1), lookahead, r.randrange(2, 258))
         struct.pack_into('<I', s, INS_H, r.getrandbits(hash_bits))
     struct.pack_into('<HxxI', s, BI_BUF, 0, 0)
-    n = r.choice([0, 1, 3, r.randrange(300), r.randrange(4 * w_size)])
+    n = r.choice([0, 1, 3, r.randrange(300), r.randrange(4 * min(w_size, 1024))])  # (BUF has 0x1000 bytes before LBUF)
     strm = struct.pack('<6I', BUF, n, r.getrandbits(16), OUT, r.choice([OUT_SIZE, r.randrange(1, 64), 0]), r.getrandbits(16)) + \
         struct.pack('<IIIIIIII', 0, S, 0, 0, 0, 2, r.getrandbits(32), 0)
-    return s, {S: s, PEND: r.bytes(lit * 4), STRM: strm, OUT: bytes(OUT_SIZE), WIN: window, PREV: prev, HEAD: head, BUF: text(r, max(n, 4))}
+    return s, {S: s, PEND: r.bytes(lit * 4), STRM: strm, OUT: bytes(OUT_SIZE), win: window, prv: prev, HEAD: head, BUF: text(r, max(n, 4))}
 
 
 def put_short_msb(r):
@@ -393,7 +400,10 @@ def put_short_msb(r):
 
 def flush_pending(r):
     s, regs = deflating(r)
-    struct.pack_into('<II', s, PENDING_OUT, PEND + r.randrange(0x40), r.choice([0, 1, r.randrange(0x100)]))
+    pending = r.choice([0, 1, 2, 3, r.randrange(0x100), r.randrange(0x100)])
+    struct.pack_into('<II', s, PENDING_OUT, PEND + r.randrange(0x40), pending)
+    if r.random() < 0.6:  # (avail_out at or just under pending: all of it, or all but one or two bytes)
+        regs[STRM] = regs[STRM][:16] + struct.pack('<I', max(0, pending - r.choice([0, 1, 1, 2]))) + regs[STRM][20:]
     return Call(0x635740, [STRM], regs)
 
 
@@ -411,12 +421,41 @@ def lm_init(r):
 def longest_match(r):
     s, regs = deflating(r)
     strstart = struct.unpack_from('<I', s, STRSTART)[0]
-    struct.pack_into('<I', s, MAX_CHAIN, r.choice([1, 4, 32, 128, 4096]))
+    # (configuration_table's chains, at least 4: one under 4 shifted right by good_match's >>= 2 is 0, which --chain_length wraps; 4096
+    # links of long matches pass the emulator's step limit)
+    struct.pack_into('<I', s, MAX_CHAIN, r.choice([4, 8, 16, 32, 128, 512]))
+    if r.random() < 0.5:  # (a nice_match that matches reach, so one stops the chain at exactly it)
+        struct.pack_into('<I', s, NICE_MATCH, r.choice([3, 4, 5, 8, 16, r.randrange(3, 40)]))
+    w_size = struct.unpack_from('<I', s, W_SIZE)[0]
+    if strstart >= 64 and r.random() < 0.3:
+        return nice_chain(r, s, regs, strstart, w_size)
     return Call(0x635f80, [S, r.randrange(strstart) if strstart else 0], regs, ret='a')
+
+
+def nice_chain(r, s, regs, strstart, w_size):
+    """A chain of two: the first match exactly nice_match long (zlib stops there), the second longer."""
+    nice, more = r.randrange(3, 21), r.randrange(1, 10)
+    window, prev = regs[WIN], regs[PREV]
+    lo = max(1, strstart - (w_size - MIN_LOOKAHEAD) + 1)  # (the chain goes on while above strstart - MAX_DIST)
+    first, second = r.sample(range(lo, strstart - nice - more - 2), 2)
+    for at, n in ((second, nice + more), (first, nice)):  # (the second first: the first's bytes win where the two overlap)
+        window[at:at + n] = window[strstart:strstart + n]
+        window[at + n] = window[strstart + n] ^ 1
+    struct.pack_into('<H', prev, 2 * (first & (w_size - 1)), second)
+    struct.pack_into('<H', prev, 2 * (second & (w_size - 1)), 0)
+    struct.pack_into('<I', s, NICE_MATCH, nice)
+    struct.pack_into('<I', s, LOOKAHEAD, r.randrange(MIN_LOOKAHEAD, 2 * w_size - strstart + 1))
+    struct.pack_into('<I', s, PREV_LENGTH, MIN_MATCH - 1)
+    return Call(0x635f80, [S, first], regs, ret='a')
 
 
 def fill_window(r):
     s, regs = deflating(r, fresh=r.random() < 0.3)
+    if r.random() < 0.3:  # (strstart at the slide's threshold, wsize + MAX_DIST)
+        w_size = struct.unpack_from('<I', s, W_SIZE)[0]
+        strstart = 2 * w_size - MIN_LOOKAHEAD + r.choice([-1, 0, 0, 1])
+        struct.pack_into('<I', s, STRSTART, strstart)
+        struct.pack_into('<I', s, LOOKAHEAD, r.randrange(2 * w_size - strstart + 1))
     return Call(0x635a70, [S], regs)
 
 
@@ -425,6 +464,8 @@ def deflate_block(address):
     deflate_slow execute CPUID (leaf 0) in their prologue, inside PUSHAD / POPAD, its EAX into bflush's slot, which is written before it
     is read: dead, but the emulator needs the fake CPU to run it (docs/porting.md, "Library functions")."""
     def op(r):
+        if address == 0x636100 and r.random() < 0.25:
+            return too_far(r)
         fresh = r.random() < 0.5
         s, regs = deflating(r, fresh)
         if r.random() < 0.2:
@@ -437,10 +478,43 @@ def deflate_block(address):
                 struct.pack_into('<I', s, MATCH_START, r.randrange(max(0, strstart - 1 - (w_size - MIN_LOOKAHEAD)), strstart - 1))
             else:
                 struct.pack_into('<I', s, MATCH_LENGTH, MIN_MATCH - 1)
+            if address == 0x635910 and lookahead >= 2 and r.random() < 0.4:  # (the block at MAX_DIST: deflate_stored flushes there)
+                lookahead = r.choice([2, 2, lookahead])  # (2: the least it moves on without refilling first)
+                struct.pack_into('<I', s, LOOKAHEAD, lookahead)
+                struct.pack_into('<i', s, BLOCK_START, strstart + lookahead - (w_size - MIN_LOOKAHEAD) + r.choice([-1, 0, 0, 1]))
+            if address == 0x635c20 and r.random() < 0.5:  # (levels 1-3's max_insert_length, so matches of exactly it are common)
+                struct.pack_into('<I', s, MAX_LAZY, r.choice([4, 5, 6]))
+        struct.pack_into('<Ii', s, PENDING_OUT, PEND, 0)  # (deflate() flushes before it compresses: nothing pending, or no room)
         regs[CPU] = cpu_region(1, [(r.choice([1, 2, 3, 0xd, 0x16, 0x20]), 0x756e6547, 0x6c65746e, 0x49656e69)])
         return Call(address, [S, r.choice([0, 0, 2, 3, 4])], regs, ret='a')  # Z_NO_FLUSH, Z_SYNC_FLUSH, Z_FULL_FLUSH, Z_FINISH
     op.__name__ = 'deflate_%x' % address
     return op
+
+
+def too_far(r):
+    """deflate_slow at windowBits 13 with the next string's hash chain holding one match of exactly MIN_MATCH bytes about TOO_FAR back
+    (zlib drops a 3-byte match further than that). The other chains are empty and the lookahead short, so no other match is that far:
+    at this memLevel many distant matches make the block's codes overrun d_buf in pending_buf (zlib's overlay; CVE-2018-25032) and
+    d_code read past _dist_code, where the exe's and the library's neighbours differ. The game's codec (memLevel 9) never gets there."""
+    s, regs = deflating(r, big=True)
+    regs[PREV_BIG][:] = bytes(len(regs[PREV_BIG]))
+    regs[HEAD][:] = bytes(len(regs[HEAD]))
+    regs[STRM] = regs[STRM][:4] + struct.pack('<I', 0) + regs[STRM][8:]
+    w_size, hash_shift, hash_mask, ins_h = (struct.unpack_from('<I', s, o)[0] for o in (W_SIZE, HASH_SHIFT, HASH_MASK, INS_H))
+    strstart = r.randrange(TOO_FAR + 8, 2 * w_size - MIN_LOOKAHEAD)
+    match = strstart - TOO_FAR + r.choice([-1, 0, 0, 1])
+    window, prev, head = regs[WIN_BIG], regs[PREV_BIG], regs[HEAD]
+    window[match:match + 3] = window[strstart:strstart + 3]
+    window[match + 3] = window[strstart + 3] ^ 1
+    struct.pack_into('<H', prev, 2 * (match & (w_size - 1)), 0)  # (the chain ends there)
+    struct.pack_into('<H', head, 2 * (((ins_h << hash_shift) ^ window[strstart + 2]) & hash_mask), match)
+    struct.pack_into('<iIIiIIII', s, BLOCK_START, strstart - r.randrange(64), MIN_MATCH - 1, 0, 0, strstart, 0,
+                     r.randrange(MIN_LOOKAHEAD, min(MIN_LOOKAHEAD + 400, 2 * w_size - strstart + 1)), MIN_MATCH - 1)
+    struct.pack_into('<I', s, MAX_LAZY, r.choice([4, 16, 258]))
+    struct.pack_into('<i', s, STRATEGY, 0)  # (Z_DEFAULT_STRATEGY: Z_FILTERED drops it anyway)
+    struct.pack_into('<Ii', s, PENDING_OUT, PEND, 0)
+    regs[CPU] = cpu_region(1, [(0xd, 0x756e6547, 0x6c65746e, 0x49656e69)])
+    return Call(0x636100, [S, r.choice([0, 2, 4])], regs, ret='a')
 
 
 deflate_stored, deflate_fast, deflate_slow = deflate_block(0x635910), deflate_block(0x635c20), deflate_block(0x636100)
