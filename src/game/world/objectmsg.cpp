@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../coaster/registry.h"
+#include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
 #include "analysercell.h"
@@ -155,6 +156,42 @@ u32 __fastcall Object_QueueOpen(u8 *object) {
     if (at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x9c) == 3 && !Object_LinkOtherOpen(object)) return 0;
     if (at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x9c) == 1 && at<u32>(object, 0x2c) == 0) return 0;
     if (at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x9c) == 2 && at<u32>(object, 0x2c) == 0) return 0;
+    return 1;
+}
+
+u32 __fastcall Object_EntranceOnPath(u8 *object) {
+    u8 *const cells = *reinterpret_cast<u8 **>(0x008023a0);
+    if (at<u8>(object, 0x32) & 8) {
+        u16 back;
+        Object_BackOfQueue(object, nullptr, &back);
+        if (back == 0) return 0;
+        const u8 *cell = cells + (u32)back * 0x44 - 0x44;
+        const u8 neighbours = MapCell_Neighbours(cell);
+        return neighbours != MapCell_Direction(cell) ? 1 : 0;
+    }
+    u8 *const cell = cells + (u32)at<u16>(object, 0x36) * 0x44 - 0x44;
+    u8 bit = 0;  // the original's is a stale stack byte for an angle that is not a quarter turn
+    switch (at<s32>(object, 0x10)) {
+    case 0: bit = 0x10; break;
+    case 0x5a: bit = 4; break;
+    case 0xb4: bit = 1; break;
+    case 0x10e: bit = 0x40; break;
+    default: break;
+    }
+    const u8 opposite = (u8)Nibble_Scale(bit);
+    const u8 *next = Map_StepCellInDirection(reinterpret_cast<const u16 *>(cell), nullptr, opposite);
+    if (!MapCell_IsType1(next)) return 0;  // (sic: a step off the map gives null, which is read)
+    if (!(MapCell_Neighbours(next) & bit)) return 0;
+    if (!(MapCell_Neighbours(cell) & opposite)) return 0;
+    return 1;
+}
+
+u32 __fastcall Object_CanOpen(u8 *object) {
+    const s32 state = at<s32>(object, 0x19c);
+    if (state == 1 || state == 4 || at<u32>(object, 0x64) != 0 || state == 2) return 0;
+    if (!Object_EntranceOnPath(object)) return 0;
+    const u8 *def = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(object, 0xe));
+    if (at<s32>(def, 0x9c) == 3 && !Object_LinkOtherOpen(object)) return 0;
     return 1;
 }
 }  // extern "C"

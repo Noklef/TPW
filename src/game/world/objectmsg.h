@@ -43,4 +43,15 @@ u32 __fastcall Object_QueueHasRoom(u8 *object);
 // a back of the queue (Object_BackOfQueue, not 0) and room (Object_QueuePosition of the person 0 below the dword at +0x40 times 4, unsigned); and by the definition's
 // kind (+0x9c of ObjectDefs_Find of the id at +0xe, found anew for each test): for 3 Object_LinkOtherOpen, for 1 and 2 the dword at +0x2c set.
 u32 __fastcall Object_QueueOpen(u8 *object);
+
+// 0x4de4a0 (thiscall; name unconfirmed): whether the object's entrance meets the path. With flag 8 of +0x32: the cell of its back of the queue (Object_BackOfQueue;
+// 0 gives 0) in the cells at [0x8023a0] (0x44 bytes, the id less 1), whose neighbour bits (MapCell_Neighbours) differ from its direction (MapCell_Direction). Without:
+// its own cell (the word at +0x36) and the bit its angle (+0x10) faces (0: 0x10, 0x5a: 4, 0xb4: 1, 0x10e: 0x40); the cell one step towards the opposite bit
+// (Nibble_Scale of it, Map_StepCellInDirection) is a type 1 cell with the bit among its neighbours, and its own cell has the opposite one. Another angle leaves the
+// original's bit a stale stack byte (the port's is 0; the game's angles are quarter turns).
+u32 __fastcall Object_EntranceOnPath(u8 *object);
+
+// 0x4df290 (thiscall; name unconfirmed): whether the object can be opened: the dword at +0x19c is not 1, 4 or 2, the dword at +0x64 is 0, Object_EntranceOnPath, and
+// for a definition (ObjectDefs_Find of the id at +0xe) of kind 3 (+0x9c) Object_LinkOtherOpen.
+u32 __fastcall Object_CanOpen(u8 *object);
 }  // extern "C"
