@@ -180,17 +180,38 @@ stand-ins for the codec's bench: a bench of those functions removes them from `B
 mutants edit the library's source: a surviving mutant there means a missing edge case, as for a port (NMAX, _tr_align's second block,
 _tr_flush_block's stored-or-static tie, longest_match stopping at exactly nice_match and deflate_slow's TOO_FAR each needed one).
 
-**libjpeg (next):** the same scheme, with more code pointers: every module's init stores its methods in the cinfo structs
-(jpeg_std_error's error_exit, src->fill_input_buffer, the memory manager's alloc_small, ...), so most 6b functions only come exact with a
-shim that maps the library's method addresses to the exe's, or a bench that compares through such a map. The leaves come first (jidct*,
-jfdct*, the colour converters, the Huffman decoders' bit readers, jutils), which take their state by pointer and store no methods. The
-exe's 6b memory manager backend is jmemansi.c, not jmemnobs.c: jpeg_mem_init answers 1000000 (0x642b20), jpeg_mem_available is
-max_memory_to_use - already_allocated (0x6429a0), jpeg_open_backing_store a tmpfile() (0x6429c0); tpw_jpeg6b is built with jmemnobs.c, so
-its build has to follow the exe first. libjpeg has no `-Dlocal=`: jmorecfg.h defines METHODDEF and LOCAL as `static` unconditionally,
-and the modules reuse static names (start_pass, ...), so the statics cannot simply be made external. The way in that keeps the source
-unmodified is a wrapper unit per module that `#include`s the module's .c in place of compiling it and exports its statics under
-module-prefixed names (or as an address table) for the hook rows. 6a is a second copy (tpw_jpeg6a already renames its externals jpeg6a_*
-through config/jpeg6a_prefix.h); it gets its own libmap rows, checked like the zlib rows, before any of it is replaced.
+**libjpeg 6b (the leaves are the library's):** the same scheme, with more code pointers: every module's init stores its methods in the
+cinfo structs (jpeg_std_error's error_exit, src->fill_input_buffer, the memory manager's alloc_small, ...), so those inits and whatever
+compares method addresses only come exact with a shim that maps the library's method addresses to the exe's. The leaves, which take
+their state by pointer and store no methods, are replaced (src/game/lib/jpeg6b.h lists them): jutils (jround_up, jcopy_sample_rows,
+jcopy_block_row, jzero_far), the integer IDCTs (jpeg_idct_islow, _ifast, _4x4, _2x2, _1x1), jdcolor.c's table and converters, jdmerge.c's
+merged upsampler and jdsample.c's upsamplers (the methods that call further methods, sep_upsample and merged_*v_upsample, are benched
+with recorders in their place). tpw_jpeg6b is built with jmemansi.c, as the exe is (jpeg_mem_init answers 1000000 at 0x642b20,
+jpeg_mem_available is max_memory_to_use - already_allocated at 0x6429a0, jpeg_open_backing_store a tmpfile() at 0x6429c0).
+- **Wrapper units.** libjpeg has no `-Dlocal=`: jmorecfg.h defines METHODDEF and LOCAL as `static` unconditionally, and the modules reuse
+  static names (build_ycc_rgb_table is in jdcolor.c and jdmerge.c), so a module's statics are reached through
+  third_party/wrap/jpeg-6b/<module>.c: it includes jinclude.h and jpeglib.h with JPEG_INTERNALS, redefines METHODDEF and LOCAL without
+  `static`, `#define`s each static name to <module>_<name> and `#include`s "../../jpeg-6b/<module>.c" (by its relative path: a plain
+  "<module>.c" finds the wrapper itself). tpw_jpeg() in third_party/CMakeLists.txt compiles wrap/<tree>/<module>.c in the module's place
+  when there is one; the source stays unmodified. The cinfo offsets the leaves read are static_asserted in src/game/lib/jpeg6b.cpp
+  (boolean is an unsigned char, as jconfig.vc has it and the exe's structs show).
+- **Benches** (tests/fncmp/jpeg6b_*.py): cinfo, the module's private struct and the row arrays as regions; alloc_small is fncmp's ZALLOC
+  stub (its cdecl (opaque, items, size) is alloc_small's (cinfo, JPOOL_IMAGE, size)); the Bench's ranges add jcopy_sample_rows for the
+  callers of it. No region may be empty (the driver reads a region's bytes as one hex token, so an empty one desynchronises every case
+  after it). A row-pointer argument on the caller's stack (merged_2v_upsample's work_ptrs) is logged with blob().
+
+**What stays the exe's (libjpeg 6b), and why:**
+- jdiv_round_up (0x6428b0) is DivCeil and jpeg_mem_init (0x642b20) is Const_1000000, hand ports already exact; jquant2's
+  find_biggest_color_pop (0x6486e0) is Records32_MaxWeight, also a hand port (find_biggest_volume at 0x648720 is not mapped yet).
+- jpeg_idct_float (0x64b040): its `(INT32)` casts of out-of-range values differ (the exe's __ftol keeps the low half of a 64-bit FISTP;
+  the library's build gives 0x80000000), and /arch:IA32 did not change that. The game selects JDCT_ISLOW / IFAST, never the float IDCT.
+- ycck_cmyk_convert (0x646d70): the listing has no code from 0x646d62 to 0x646dc9 (Ghidra never reached its head), so the emulator cannot
+  run it until the listing is dumped again with a function there.
+- The jinit_* functions (jinit_color_deconverter 0x646860, jinit_merged_upsampler 0x646ee0, jinit_upsampler 0x6460c0) and every other
+  function that stores methods: they need the method-address shim first.
+
+6a is a second copy (tpw_jpeg6a already renames its externals jpeg6a_* through config/jpeg6a_prefix.h); it gets its own libmap rows,
+checked like the zlib rows, before any of it is replaced.
 
 ## Scope and stop
 - Port within your address range, bottom-up, a module at a time.
