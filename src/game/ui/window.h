@@ -290,4 +290,16 @@ void __fastcall Window_ResizeChildren(u8 *window, void *, u32 dl, u32 dt, u32 dr
 // 0x65cf5e (thiscall (left, top, right, bottom: words), pops 16; name unconfirmed): Window_SetRect with a rectangle of those on the stack
 // (GuiRect_CtorWith, GuiRect_Dtor). 1 in AX.
 u32 __fastcall Window_SetRectTo(u8 *window, void *, u32 left, u32 top, u32 right, u32 bottom);
+
+// 0x65f345 (thiscall (a, b: words), pops 8; recursive; name unconfirmed): the words +0xe4 = a and +0xe6 = b; the objects +0x98 and +0x9c
+// (when set) told through their slot 3 (0x40, an event on the stack whose only words set, +0xc / +0xe, are those two); then each child
+// (+0x5c, then +0x54) given the same. EAX not kept.
+void __fastcall Window_SetWordsE4(u8 *window, void *, u32 a, u32 b);
+
+// 0x65f447 (thiscall (child, depth, words: bytes), pops 12; name unconfirmed): 0 in AX for no child or one with a parent (+0x60), a next
+// (+0x54) or a previous (+0x58) already. Else it becomes the window's last child (its parent the window, its previous the old last one
+// or 0; the window's first +0x5c when it had none); with depth (signed byte) not 0 it is given the window's depth +0xe0 + 2
+// (Window_SetDepth), with words not 0 the window's +0xe4 / +0xe6 (Window_SetWordsE4); the hover updated (Window_UpdateHover) and the
+// window's focus let go (Window_KillFocus (0)); 1 in AX (the rest of EAX the focus call's).
+u32 __fastcall Window_AddChild(u8 *window, void *, u8 *child, u32 depth, u32 words);
 }

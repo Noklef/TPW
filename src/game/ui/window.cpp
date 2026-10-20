@@ -761,4 +761,34 @@ u32 __fastcall Window_SetRectTo(u8 *window, void *, u32 left, u32 top, u32 right
     GuiRect_Dtor(rect);
     return 1;
 }
+
+void __fastcall Window_SetWordsE4(u8 *window, void *, u32 a, u32 b) {
+    at<u16>(window, 0xe4) = (u16)a;
+    at<u16>(window, 0xe6) = (u16)b;
+    u8 event[0x18];  // (only the words +0xc / +0xe set)
+    at<u16>(event, 0xc) = at<u16>(window, 0xe4);
+    at<u16>(event, 0xe) = at<u16>(window, 0xe6);
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 0x40u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0x40u, event);
+    for (u8 *child = at<u8 *>(window, 0x5c); child; child = at<u8 *>(child, 0x54)) Window_SetWordsE4(child, nullptr, (u16)a, (u16)b);
+}
+
+u32 __fastcall Window_AddChild(u8 *window, void *, u8 *child, u32 depth, u32 words) {
+    if (!child || at<u8 *>(child, 0x60) || at<u8 *>(child, 0x54) || at<u8 *>(child, 0x58)) return 0;
+    u8 *last = nullptr;
+    at<u8 *>(child, 0x60) = window;
+    if (at<u8 *>(window, 0x5c)) {
+        last = at<u8 *>(window, 0x5c);
+        while (at<u8 *>(last, 0x54)) last = at<u8 *>(last, 0x54);
+        at<u8 *>(last, 0x54) = child;
+    } else {
+        at<u8 *>(window, 0x5c) = child;
+    }
+    at<u8 *>(child, 0x58) = last;
+    if ((s8)depth != 0) Window_SetDepth(child, nullptr, (u32)((s32)at<s16>(window, 0xe0) + 2));
+    if ((s8)words != 0) Window_SetWordsE4(child, nullptr, at<u16>(window, 0xe4), at<u16>(window, 0xe6));
+    Window_UpdateHover();
+    Window_KillFocus(window, nullptr, 0);
+    return 1;
+}
 }
