@@ -2820,6 +2820,7 @@ address,name,kind,confidence,notes
 0x005c7490,WString_CtorReturning,function,high,"reimplemented (src/game/core/string); an empty wide string, returned"
 0x005c5230,DirEntry_IsRealDir,function,high,reimplemented (src/game/files/direntry); a directory entry whose name does not start with a full stop
 0x004d3860,ChunkFile_ReadStream,function,low,"reimplemented (src/game/files/chunkfile); thiscall (stream, name), pops 8: the stream read whole into a GlobalAlloc block; the magic +0x10 checked; each chunk from +0x24 (tag, length, data) offered to the handlers on the list +4 until ""END "" or the end"
+0x0041cff0,Path_StripBase,function,low,"reimplemented (src/game/files/vfs); cdecl (path, base, out); the path taken relative to a base folder (an archive's pattern dropped), leading backslashes dropped; 1 when under it, else out empty and 0"
 0x005c9040,Class70295c_Ctor,function,high,"reimplemented (src/game/core/vdtor); Init_5d36c0, vtable 0x70295c and four zeroed dwords"
 0x005d03b0,Obj_SwapPair,function,high,reimplemented (src/game/core/stdlist); the dwords at +4 and +8 swapped with another object's
 0x005dd3d0,Obj_ChooseVector,function,high,reimplemented (src/game/frontend/viewcontrols); the vector at +0x10 taken from one of two others
