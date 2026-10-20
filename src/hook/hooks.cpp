@@ -4862,6 +4862,13 @@ const Hook kHooks[] = {
     {"jdhuff_decode_mcu",         0x00644860, (void *)&jdhuff_decode_mcu, {0x83, 0xec, 0x3c, 0x53, 0x8b}},
     {"jdhuff_start_pass_huff_decoder", 0x00644710, (void *)&jdhuff_start_pass_huff_decoder, {0x51, 0x53, 0x55, 0x56, 0x57}},
     {"jinit_huff_decoder",        0x006446d0, (void *)&jinit_huff_decoder, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jdphuff_decode_mcu_AC_refine", 0x00645660, (void *)&jdphuff_decode_mcu_AC_refine, {0x81, 0xec, 0x44, 0x01, 0x00}},
+    {"jdphuff_decode_mcu_DC_refine", 0x00645560, (void *)&jdphuff_decode_mcu_DC_refine, {0x83, 0xec, 0x18, 0x53, 0x55}},
+    {"jdphuff_decode_mcu_AC_first", 0x00645300, (void *)&jdphuff_decode_mcu_AC_first, {0x83, 0xec, 0x28, 0x53, 0x55}},
+    {"jdphuff_process_restart",   0x00645270, (void *)&jdphuff_process_restart, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jdphuff_decode_mcu_DC_first", 0x00645030, (void *)&jdphuff_decode_mcu_DC_first, {0x83, 0xec, 0x40, 0x53, 0x8b}},
+    {"jdphuff_start_pass_phuff_decoder", 0x00644db0, (void *)&jdphuff_start_pass_phuff_decoder, {0x83, 0xec, 0x0c, 0x53, 0x55}},
+    {"jinit_phuff_decoder",       0x00644d30, (void *)&jinit_phuff_decoder, {0x53, 0x56, 0x8b, 0x74, 0x24}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

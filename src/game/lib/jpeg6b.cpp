@@ -32,6 +32,7 @@ static_assert(offsetof(jpeg_decompress_struct, entropy) == 0x198, "cinfo->entrop
 static_assert(offsetof(jpeg_decompress_struct, unread_marker) == 0x17c, "cinfo->unread_marker (jpeg_fill_bit_buffer)");
 static_assert(offsetof(jpeg_decompress_struct, marker) == 0x194, "cinfo->marker (process_restart's read_restart_marker)");
 static_assert(offsetof(jpeg_decompress_struct, blocks_in_MCU) == 0x140, "cinfo->blocks_in_MCU (decode_mcu)");
+static_assert(offsetof(jpeg_decompress_struct, coef_bits) == 0x8c, "cinfo->coef_bits (jinit_phuff_decoder)");
 
 // The method-address shim. Every module's init (and jddctmgr.c's start_pass) stores the addresses of its methods in the structs the
 // exe's code also reads and calls through. The library stores its own functions' addresses; the exe's copy of the same code stores the
@@ -49,6 +50,8 @@ void __cdecl jdsample_lib_jinit_upsampler(j_decompress_ptr cinfo);
 void __cdecl jddctmgr_lib_jinit_inverse_dct(j_decompress_ptr cinfo);
 void __cdecl jddctmgr_lib_start_pass(j_decompress_ptr cinfo);
 void __cdecl jdhuff_lib_jinit_huff_decoder(j_decompress_ptr cinfo);
+void __cdecl jdphuff_lib_jinit_phuff_decoder(j_decompress_ptr cinfo);
+void __cdecl jdphuff_lib_start_pass_phuff_decoder(j_decompress_ptr cinfo);
 void __cdecl jpeg_idct_float(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, short *coef_block, unsigned char **output_buf,
                              unsigned int output_col);
 }
@@ -97,6 +100,12 @@ const ExeMethod kExeMethods[] = {
     // jdhuff.c
     {fn(&jdhuff_start_pass_huff_decoder), 0x644710},
     {fn(&jdhuff_decode_mcu), 0x644860},
+    // jdphuff.c
+    {fn(&jdphuff_lib_start_pass_phuff_decoder), 0x644db0},
+    {fn(&jdphuff_decode_mcu_DC_first), 0x645030},
+    {fn(&jdphuff_decode_mcu_AC_first), 0x645300},
+    {fn(&jdphuff_decode_mcu_DC_refine), 0x645560},
+    {fn(&jdphuff_decode_mcu_AC_refine), 0x645660},
 };
 
 // The method pointer at slot: the exe's address in place of a library method's (anything else is left as it is).
@@ -154,6 +163,16 @@ void __cdecl jddctmgr_start_pass(j_decompress_ptr cinfo) {
 void __cdecl jinit_huff_decoder(j_decompress_ptr cinfo) {
     jdhuff_lib_jinit_huff_decoder(cinfo);
     exe_method(cinfo->entropy->start_pass);
+    exe_method(cinfo->entropy->decode_mcu);
+}
+
+void __cdecl jinit_phuff_decoder(j_decompress_ptr cinfo) {
+    jdphuff_lib_jinit_phuff_decoder(cinfo);
+    exe_method(cinfo->entropy->start_pass);
+}
+
+void __cdecl jdphuff_start_pass_phuff_decoder(j_decompress_ptr cinfo) {
+    jdphuff_lib_start_pass_phuff_decoder(cinfo);
     exe_method(cinfo->entropy->decode_mcu);
 }
 }

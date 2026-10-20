@@ -77,6 +77,24 @@ unsigned char __cdecl jdhuff_decode_mcu(jpeg_decompress_struct *cinfo, short (**
 // predictions zeroed, restarts_to_go reset, insufficient_data cleared unless a marker is pending.
 unsigned char __cdecl jdhuff_process_restart(jpeg_decompress_struct *cinfo);
 
+// jdphuff.c (through wrap/jpeg-6b/jdphuff.c): the progressive Huffman decoder. cinfo->entropy is its phuff_entropy_decoder (pub,
+// bitstate +0xc, EOBRUN +0x14, last_dc_val[4] +0x18, restarts_to_go +0x28, derived_tbls[4] +0x2c, ac_derived_tbl +0x3c; 0x40 bytes).
+// 0x644d30: the module's init (a shim, jpeg6b.cpp): cinfo->entropy allocated with the exe's start_pass, and cinfo->coef_bits (64
+// ints a component) all -1.
+void __cdecl jinit_phuff_decoder(jpeg_decompress_struct *cinfo);
+// 0x644db0: start_pass (a shim, jpeg6b.cpp): the scan's progression checked (ERREXIT4 for a bad one, warnings against coef_bits,
+// which it updates), the scan's decode_mcu chosen (the exe's address), its tables built, the bit buffer and EOB run emptied.
+void __cdecl jdphuff_start_pass_phuff_decoder(jpeg_decompress_struct *cinfo);
+// 0x645030, 0x645300, 0x645560, 0x645660: decode_mcu for a first DC scan (each block's DC difference, shifted by Al), a first AC scan
+// (MCU_data[0]'s band Ss..Se, with EOB runs), and their refinements (a bit for each nonzero coefficient, new ones +-1 << Al; an AC
+// refinement that suspends takes back the coefficients it made nonzero). FALSE: suspended.
+unsigned char __cdecl jdphuff_decode_mcu_DC_first(jpeg_decompress_struct *cinfo, short (**MCU_data)[64]);
+unsigned char __cdecl jdphuff_decode_mcu_AC_first(jpeg_decompress_struct *cinfo, short (**MCU_data)[64]);
+unsigned char __cdecl jdphuff_decode_mcu_DC_refine(jpeg_decompress_struct *cinfo, short (**MCU_data)[64]);
+unsigned char __cdecl jdphuff_decode_mcu_AC_refine(jpeg_decompress_struct *cinfo, short (**MCU_data)[64]);
+// 0x645270: process_restart: as jdhuff.c's, the EOB run emptied too.
+unsigned char __cdecl jdphuff_process_restart(jpeg_decompress_struct *cinfo);
+
 // jdcolor.c (through wrap/jpeg-6b/jdcolor.c): the output colour space converters, cinfo->cconvert's color_convert methods. Each
 // converts num_rows rows from input_buf (one row array per component) at input_row into output_buf's rows, cinfo->output_width
 // pixels a row.
