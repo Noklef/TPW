@@ -4190,6 +4190,7 @@ address,name,kind,confidence,notes
 0x004f9440,Nav_SerializeFwd,function,low,reimplemented (src/game/world/nav); thiscall: Nav_Serialize with the same arguments (the sprite's call on its nav)
 0x0050f8e0,Nav_PathTo,function,low,"reimplemented (src/game/world/nav); thiscall (&target, prepend): Route_Find from the nav's cell to the target's on the route at 0x7cf108, then the nav's waypoints (up to 5 cell centres), their octagonal lengths and the route's; 0 (and the nav stopped) when none"
 0x00510100,Nav_PathToPoint,function,low,"reimplemented (src/game/world/nav); thiscall (x, y): Nav_PathTo the point, not prepending the nav's cell"
+0x00510190,Nav_SetSpeed,function,low,"reimplemented (src/game/world/nav); thiscall (speed), x87: the speed held to 2.0; max_force and max_speed __ftol of 0.4 and 0.2 cells (16.16) per unit of it, each at least 0x28f"
 0x0052a050,Cell_ExtendPath,function,high,reimplemented (src/game/world/mapcell); one step of a path across the map's cells
 0x0052c420,MapGrid_MarkEdges,function,high,"reimplemented (src/game/world/mapcell); edge cells of a map grid of types 4, 9, 0x17 and 0xa"
 0x0052c5b0,MapGrid_ClassifyTypes,function,high,reimplemented (src/game/world/mapcell); a map grid's cell types as codes 1 to 4

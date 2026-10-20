@@ -13,6 +13,10 @@ void __fastcall Nav_SetPosVel(u8 *nav, void *, u32 x, u32 y, u32 vx, u32 vy);
 
 // 0x510160 (&x, &y): pos read (x then y).
 void __fastcall Nav_GetPos(const u8 *nav, void *, u32 *x, u32 *y);
+
+// 0x510190 (thiscall; speed, pops 4; x87; name unconfirmed): the speed held to 2.0 (above it; NaN kept); max_force (+0x18) = __ftol(speed *
+// 26214.4) and max_speed (+0x1c) = __ftol(speed * 13107.2) (16.16: 0.4 and 0.2 of a cell per unit), their low dwords, each at least 0x28f (signed).
+void __fastcall Nav_SetSpeed(u8 *nav, void *, float speed);
 // 0x50ffe0 (thiscall): constants and zeroes into the first 0xbc bytes (the final values: +0 0x10000, +4 and +0x1c 0x3333, +0x18 0x6666, the byte at +0x60 1; +0x48 is left
 // alone), and the five 8-byte elements at +0x64 constructed (IntPair_Ctor, through CRT_VectorCtorIterator). Returns the object.
 u8 *__fastcall Nav_Ctor(u8 *object);
