@@ -1,8 +1,9 @@
 # A handyman's next job (0x4d7880 Handyman_FindJob, src/game/world/staff) against the original: movingperson.py's nearest() set-up (navpath.py's
 # person, so the destination it is sent to by cell works): up to 7 objects in the world's list (the head +0x1da746) about the person's
-# cell, flag bits 0 and 1 of +0x32 any, tracking nobody, the person or another (+0x5e, the stamp +0x60 about the world's tick), +0x64
-# set or not, the condition float +0x44 about 25 (Object_InPoorCondition), their entrance cells (+0x36) mostly the person's; the person's
-# pay grade +0x1e4 0-3 mostly (the radii 0x7853f0) and handle +0 one of the objects' trackers or not.
+# cell, flag bits 0 and 1 of +0x32 any, tracking nobody, the person or another (+0x5e, the stamp +0x60 about the world's tick; the other
+# handles' thing a person of kind 4 / 5 naming an object or not), +0x64 set or not, the condition float +0x44 about 25
+# (Object_InPoorCondition), their entrance cells (+0x36) the destination navpath prepares; the person's pay grade +0x1e4 0-3 mostly (the
+# radii 0x7853f0) and handle +0 (1-12) one of the objects' or not.
 # usage: handyjob.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -23,7 +24,8 @@ B = Bench(wctimage.merged(navpath.RANGES + [
     (0x4fa770, 0x4fa880), (0x506580, 0x5065e0), (0x50b350, 0x50b370), (0x50cd80, 0x50cdc0), (0x50f8e0, 0x50fd50), (0x510100, 0x510160),
     (0x5108a0, 0x511f00), (0x522770, 0x5227a0), (0x522850, 0x522870), (0x536300, 0x536360), (0x536380, 0x536460), (0x67bb90, 0x67bd98),
     (0x5da3c0, 0x5da3c1)]))
-POOL, OUT = RAM + 0x8000, RAM + 0x7000
+POOL, OUT, TRACKER = RAM + 0x8000, RAM + 0x7000, RAM + 0x9000
+STRIDE = 0x240   # (an object can be another's tracker: Person_HasWord reads its +0x218 / +0x21a)
 
 
 def case(r):
@@ -35,24 +37,30 @@ def case(r):
         person += bytearray(r.bytes(0x200 - len(person)))
     n = r.choice([0, 1, 2, 3, 5, 7])
     handles = r.sample(range(1, 13), n)
-    mine = r.choice(handles + [r.randrange(1, 0x10000)] if handles else [r.randrange(1, 0x10000)])
+    mine = r.choice(handles + [r.randrange(1, 13)])   # (within the thing table: objects can track the person)
     put(person, 0, 'H', mine)
     put(person, 0x1e4, 'I', r.choice([0, 1, 2, 3, 0, 1, 2, 3, 4, 0xffffffff]))
     regions[RAM] = person
     now = r.choice([0, 100, 5000, 0xfffffff0, r.getrandbits(32)])
     table = bytearray(r.bytes(20 * 13))
-    pool = bytearray(r.bytes(0x80 * max(n, 1)))
+    tracker = bytearray(r.bytes(0x220))   # the other handles' thing: a person of kind 4 / 5 (Person_HasWord's +0x218 / +0x21a) or not
+    tracker[2] = r.choice([4, 5, 4, 5, r.getrandbits(8)])
+    put(tracker, 0x218, 'HH', r.choice(handles + [0]), r.choice(handles + [0]))
+    for h in set(range(1, 13)) - set(handles):
+        put(table, 20 * h, 'I', TRACKER)
+    regions[TRACKER] = tracker
+    pool = bytearray(r.bytes(STRIDE * max(n, 1)))
     for i, h in enumerate(handles):
-        put(table, 20 * h, 'I', POOL + 0x80 * i)
-        at = 0x80 * i
+        put(table, 20 * h, 'I', POOL + STRIDE * i)
+        at = STRIDE * i
         put(pool, at, 'H', h)
         put(pool, at + 0xc, 'H', handles[i + 1] if i + 1 < n else 0)
         pool[at + 0x32] = r.choice([1, 1, 3, 3, 0, 2, r.getrandbits(8)])
         pool[at + 5] = (person[5] + r.randrange(-6, 7)) & 0xff if r.random() < 0.9 else r.getrandbits(8)
         pool[at + 7] = (person[7] + r.randrange(-6, 7)) & 0xff if r.random() < 0.9 else r.getrandbits(8)
-        put(pool, at + 0x36, 'H', r.choice([cid] * 18 + [0, r.randrange(1, 0x4001)]))
+        put(pool, at + 0x36, 'H', cid)
         put(pool, at + 0x44, 'I', fb(r.choice([0.0, 10.0, 24.0, 24.9, 25.0, 26.0, 100.0, -1.0, 255.5, 256.0, r.uniform(0, 100)])))
-        put(pool, at + 0x5e, 'H', r.choice([0, 0, mine, mine, r.choice(handles), r.getrandbits(16)]))
+        put(pool, at + 0x5e, 'H', r.choice([0, 0, mine, mine, r.choice(handles), r.randrange(1, 13)]))
         put(pool, at + 0x60, 'I', (now - r.choice([0, 1, 0x63, 0x64, 0x65, 1000, r.getrandbits(32)])) & 0xffffffff)
         put(pool, at + 0x64, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
     regions[0x7cfb90] = table
