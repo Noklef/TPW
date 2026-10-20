@@ -5145,6 +5145,7 @@ address,name,kind,confidence,notes
 0x00663085,Window7059f0_ResetItems,function,low,"reimplemented (src/game/ui/window7059f0); thiscall: the items (+0x164 + 4 dwords each, +0x158 dwords) chained as free: next sibling the following one, no child, parent -2"
 0x00663cb8,Window7059f0_RootEnd,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (end*, last*): along the siblings from the first shown item to the first free (parent -2) or none, stored with the one before it"
 0x00664495,Window7059f0_FitBar,function,low,"reimplemented (src/game/ui/window7059f0); cdecl (bar, count, rows, first): the scroll bar shown with range count - rows and slot 7 first when count > rows, else hidden with range 0"
+0x00664605,Window7059f0_FreeItem,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (unused, item, previous, siblings): the item (its children, its siblings with the flag) freed, its cells deleted, moved after the last used root item"
 0x0065fbf0,WindowScript_ReadDword,function,low,reimplemented (src/game/ui/windowscript); a window script's next dword (two words)
 0x0065fc18,WindowScript_ReadWord,function,low,reimplemented (src/game/ui/windowscript); a window script's next word
 0x0065fc38,WindowScript_ReadRect,function,low,reimplemented (src/game/ui/windowscript); a window script's next four words to four outputs

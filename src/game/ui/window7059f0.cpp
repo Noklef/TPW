@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/buffers.h"
 #include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../core/initializers.h"
@@ -183,6 +184,35 @@ void __cdecl Window7059f0_FitBar(u8 *bar, s32 count, s32 rows, u32 first) {
         Window_SetShown(bar, nullptr, 0);
         Window705b20_SetRange(bar, nullptr, 0, 0);
     }
+}
+
+void __fastcall Window7059f0_FreeItem(u8 *window, void *, u32 unused, s32 item, s32 previous, u32 siblings) {
+    const s32 child = at<s32 *>(window, 0x144)[item + 2];
+    if (child >= 0) Window7059f0_FreeItem(window, nullptr, unused, child, -1, 1);
+    if (siblings) {
+        const s32 next = at<s32 *>(window, 0x144)[item];
+        if (next >= 0) Window7059f0_FreeItem(window, nullptr, unused, next, item, 1);
+    }
+    for (s32 column = 0; column < at<s16>(window, 0x164); ++column) {
+        if (Window7059f0_ColumnBottom(window, nullptr, (u32)column) != 0) continue;
+        if (u8 *const object = reinterpret_cast<u8 *>((uintptr_t)(u32)at<s32 *>(window, 0x144)[item + 4 + column]))
+            CountedBuf_Deleter(object, nullptr, 1);
+    }
+    s32 end, last;   // (both unset without the array, sic)
+    Window7059f0_RootEnd(window, nullptr, &end, &last);
+    if (last != item) {   // (the item moved to the end of the first shown one's siblings)
+        if (previous >= 0) {
+            at<s32 *>(window, 0x144)[previous] = at<s32 *>(window, 0x144)[item];
+        } else {
+            const s32 parent = at<s32 *>(window, 0x144)[item + 3];
+            if (parent >= 0) at<s32 *>(window, 0x144)[parent + 2] = -1;   // (its other children dropped, sic)
+        }
+        at<s32 *>(window, 0x144)[item] = end;
+        at<s32 *>(window, 0x144)[last] = item;
+    }
+    at<s32 *>(window, 0x144)[item + 2] = -1;
+    at<s32 *>(window, 0x144)[item + 3] = -2;
+    if (--at<s32>(window, 0x150) == 0) at<s32>(window, 0x160) = -1;
 }
 
 void __fastcall Window7059f0_RefreshRows(u8 *window) {

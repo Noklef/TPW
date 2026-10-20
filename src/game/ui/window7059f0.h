@@ -77,6 +77,14 @@ void __fastcall Window7059f0_RootEnd(u8 *window, void *, s32 *end, s32 *last);
 // hidden and its range 0, 0.
 void __cdecl Window7059f0_FitBar(u8 *bar, s32 count, s32 rows, u32 first);
 
+// 0x664605 (thiscall (unused, item, previous, siblings), pops 16; name unconfirmed): the item freed: first its first child (previous -1)
+// and, with siblings, its next sibling (previous the item), each with its siblings; each column's cell (the item's dword +4 + column)
+// whose bottom (Window7059f0_ColumnBottom) is 0 deleted when set (CountedBuf_Deleter 1). Then, unless the item is the last one before
+// the free ones (Window7059f0_RootEnd), it is unlinked (previous's next sibling its own with previous 0 or more, else its parent's first
+// child -1, its other children dropped, sic) and put after that last one (it -1: the dword before the array, sic), the first free one
+// its next. Its child -1, its parent -2 (free); the count +0x150 one less, the first shown +0x160 -1 at 0.
+void __fastcall Window7059f0_FreeItem(u8 *window, void *, u32 unused, s32 item, s32 previous, u32 siblings);
+
 // 0x663324 (thiscall; name unconfirmed): with the row window array +0x148 set, the rows (+0x172, signed) refreshed from the item +0x154
 // on (Window7059f0_NthItem), its level the number of its parents: each row window shown (Window_SetShown) when the list is
 // (Window_IsShown) and the row is below the count +0x150 (row + +0x154, signed); for such a row each of the columns (+0x164, signed),

@@ -12,7 +12,9 @@
 # (0x663085): the columns +0x164 small, negative (-4 a fault in both), the dword count +0x158 small or negative, the links with room before
 # them. RootEnd (0x663cb8): items() with some made free (parent -2), the first shown one of them, -1 or -2, now and then no array.
 # FitBar (0x664495): a bar of its own (shown or not, its parent one of notify_env's tree, a recorder slot 7, its range and step any), or
-# none; the count around the rows or at the edges.
+# none; the count around the rows or at the edges. FreeItem (0x664605): items() of 4 + 0-3 columns, their cells distinct objects (with
+# counted buffers or none) or 0, some items free, the column bottoms 0 or not, the heap; the item any, previous its true one mostly,
+# siblings 0 or not (0x100 too: a dword).
 # usage: window7059f0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ColumnBottom,NextItem,...)
 import os
 import struct
@@ -21,17 +23,19 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, log_region, put, set_return, vtable  # noqa: E402
+from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, heap, log_region, put, set_return, vtable  # noqa: E402
 from window import MISC, OBJECT98, RANGES, VTABLE, notify_blobs, notify_env  # noqa: E402
 
 CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'SetNthItemData': 0x664b68, 'SetRowHeight': 0x664ba8,
-         'FindItemData': 0x664d2a, 'RefreshRows': 0x663324, 'ResetItems': 0x663085, 'RootEnd': 0x663cb8, 'FitBar': 0x664495}
+         'FindItemData': 0x664d2a, 'RefreshRows': 0x663324, 'ResetItems': 0x663085, 'RootEnd': 0x663cb8, 'FitBar': 0x664495,
+         'FreeItem': 0x664605}
 B = Bench(RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
                     (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707),
-                    (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508)])
+                    (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508),
+                    (0x664605, 0x6647cb), (0x47db20, 0x47db80)])
 WINDOW, COLUMNS, LINKS, OUT = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x800
 LIST, LINKS2, COLS2, CELLS, ROWS2, ROWWINS = RAM + 0x9000, RAM + 0x9420, RAM + 0x9e00, RAM + 0x9f00, RAM + 0x9c00, RAM + 0xb000
-BAR = RAM + 0xd000
+BAR, OBJS, BUFS = RAM + 0xd000, RAM + 0x1000, RAM + 0x1200
 
 
 def none(r):
@@ -173,6 +177,40 @@ def refresh_case(r):
     return Call(CALLS['RefreshRows'], [LIST], regions, conv='t', ret='v')
 
 
+def free_case(r, window, regions):
+    """FreeItem (0x664605): see the top"""
+    ncols = r.choice([0, 1, 2, 3])
+    put(window, 0x164, 'h', ncols)
+    regions[HEAP] = heap()
+    regions[COLUMNS] = b''.join(put(bytearray(r.bytes(0xc)), 0xa, 'h', r.choice([0, 0, 1, -1])) for _ in range(4))
+    put(window, 0x16c, 'I', COLUMNS)
+    bufs = bytearray(r.bytes(0x20 * 8))
+    for i in range(8):
+        bufs[0x20 * i + 2] = r.choice([0, 1, 2, 5, 0xff])
+    regions[BUFS] = bufs
+    objs = bytearray(r.bytes(0x10 * 16))
+    for j in range(16):
+        put(objs, 0x10 * j + 4, 'I', r.choice([0, BUFS + 0x20 * r.randrange(8) + 3]))
+    regions[OBJS] = objs
+    idx = items(r, window, regions, stride=4 + ncols)
+    links = list(struct.unpack('<%di' % (len(regions[LINKS]) // 4), regions.pop(LINKS)))
+    cells = r.sample(range(16), 16)
+    for i in idx:
+        for c in range(ncols):
+            links[i + 4 + c] = OBJS + 0x10 * cells.pop() if cells and r.random() < 0.8 else 0
+        if r.random() < 0.15:   # (free)
+            links[i + 3] = -2
+    regions[LINKS - 0x20] = r.bytes(0x20) + struct.pack('<%di' % len(links), *links)   # (room for the dword before the array)
+    item = r.choice(idx)
+    before = [j for j in idx if links[j] == item]
+    roots = [j for j in idx if links[j + 3] < 0 and not any(links[k] == j for k in idx)]
+    put(window, 0x150, 'i', r.choice([len(idx), len(idx), 1, r.randrange(len(idx) + 1)]))
+    put(window, 0x160, 'i', r.choice(roots[:1] * 4 + idx + [-1]))
+    previous = r.choice((before[:1] or [-1]) * 4 + [-1, r.choice(idx)])
+    return Call(CALLS['FreeItem'], [WINDOW, r.getrandbits(32), item, previous & 0xffffffff, r.choice([0, 1, 1, 0x100])], regions,
+                conv='t', ret='v')
+
+
 def bar_case(r):
     """FitBar (0x664495): see the top"""
     log = log_region()
@@ -221,6 +259,8 @@ def case(r):
         put(window, 0x164, 'h', r.choice([0, 1, 2, 3, 5, -1, -3, -5, -8, -4]))
         put(window, 0x158, 'i', r.choice([0, 1, 3, 4, 7, 8, 9, 20, 33, 48, -1, -9, r.randrange(64)]))
         return Call(CALLS[op], [WINDOW], regions, conv='t', ret='v')
+    if op == 'FreeItem':
+        return free_case(r, window, regions)
     idx = items(r, window, regions)
     if op == 'RootEnd':   # (some items free: their parent -2; the outputs' old values random)
         links = bytearray(regions[LINKS])
