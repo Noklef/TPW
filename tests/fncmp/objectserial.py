@@ -2,7 +2,7 @@
 # the fields, none, or up to and about each field's end; versions in and out of 0..1. The six histories' counts (each +0x80 saved, the
 # stream's second dword of each loaded) small, 30, 31 or negative; the date's SYSTEMTIME through FileTimeToSystemTime / SystemTimeToFileTime
 # recorders filling their outs (the first always succeeding: on a failure the original saves stack dwords), the SYSTEMTIME handed over logged
-# as the hash of its dwords but the day's (the day of the week beside it is the original's stack). The stats +0x44..+0x4c whole bytes, about
+# as the hash of its bytes but the day of the week's (the original's stack; the day after it is hashed). The stats +0x44..+0x4c whole bytes, about
 # them or any; the price per use loaded about 0 and 500. The object and the sink compared after.
 # usage: objectserial.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import funnytime  # noqa: E402
 import serializers  # noqa: E402
-from fncmp import IMPORT_TABLE as IAT, LOG, Bench, Call, RAM, blob, fb, fill, import_table, log_region, put, record_stream, set_return  # noqa: E402
+from fncmp import IMPORT_TABLE as IAT, LOG, Bench, Call, RAM, blob_bytes, fb, fill, import_table, log_region, put, record_stream, set_return  # noqa: E402
 
 B = Bench([(0x4db7d0, 0x4dcf90), (0x4ced70, 0x4cedf0), (0x4cee50, 0x4ceed0), (0x5fc5c0, 0x5fc65e), (0x5fc660, 0x5fc733)] + serializers.RANGES)
 OBJ, STREAM, SINK = RAM, RAM + 0x2000, RAM + 0x3000
@@ -63,7 +63,7 @@ def case(r):
     fill(log, FROM, 1, r.bytes(8), 1)
     if r.random() < 0.7:
         set_return(log, FROM, r.choice([0, 1, r.getrandbits(32)]))
-    blob(log, FROM, 0, 0b1101)
+    blob_bytes(log, FROM, 0, 0xffcf)  # (all but the day of the week's word, bytes 4-5)
     regions = {OBJ: obj, STREAM: record_stream(STREAM, SINK, left), SINK: sink, LOG: log, IAT: import_table(log, IMPORTS)}
     save = r.choice([0, 0, 1, 1, r.getrandbits(32)])
     version = r.choice([0, 1, 0, 1, 0, 1, -1, 2, r.getrandbits(32)])

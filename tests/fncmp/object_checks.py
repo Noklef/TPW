@@ -1,11 +1,11 @@
 # The object functions of src/game/world/object that read the object definitions and cells (0x4dd7f0 Object_SetCapacity, 0x52c2b0 Object_TrackNeighboursOk) against the originals:
 #   Capacity: ridelist.py's definitions and ride records (the limits around the capacity, a sum of limits above or not);
 #   Track: an object of track type 0, 1, 2 or others at an angle of 0, 0x5a, 0xb4, 0x10e or another, the cells it looks at laid out one by one with one neighbour bit or more.
-#   Score, Percent (0x4df450 Object_DefRowScore, 0x4df640 Object_DefRowPercent): definition rows and limits about the inputs, the ride's load in and outside them;
-#   Stand (0x4dedf0 Object_CellStandPoint): entrance or exit points turned by the angle; History (0x4e1f20 Object_HistoryPercent): the two rings' sums.
+#   Score, Percent (0x4df450 Object_DefRowScore, 0x4df640 Object_DefRowPercent): definition rows and limits about the inputs, the ride's load in and outside them (or huge, with rows about load * 0.1f);
+#   Stand (0x4dedf0 Object_CellStandPoint): entrance or exit points turned by the angle (some n / 255 outside (0, 1)); History (0x4e1f20 Object_HistoryPercent): the two rings' sums.
 #   Fill (0x4dda40 Object_FillRate): the flag, the count and the bytes 0 or not, definition rows of limits 0 or below and floats of either sign;
 #   Pay (0x4e1920 Object_PayRunningCost): stafftrain.py's money record and table, definitions of +0x4ac 0-3, a slots object whose selected slot matches or not;
-#   Settings, Current (0x4e1a30, 0x4e1b40): settings on and about the ends of the range (or any floats; bytes), definitions of kinds 0-4, the multiplier any;
+#   Settings, Current (0x4e1a30, 0x4e1b40): settings on and about the ends of the range (or any floats, NaN; bytes), definitions of kinds 0-4, the multiplier any;
 #   Diff, Average (0x4e1c70, 0x4e1e30): History's rings at +0x70 and +0xf8, at +0x340 (signed values there);
 #   Reset (0x4dfd80 Object_ResetCondition): Score's ride record, the float +0x44 about 25 and its byte's wrap, mapstep.py's spread records and cells;
 #   WontPay (0x4fde50 Visitor_WontPay, person.cpp's): a visitor's stats and cash about an object's price, definitions of kinds 0-3, their effects and
@@ -101,6 +101,14 @@ def score(r):
     put(node, 0x8c, 'i', r.choice([6, 6, 6, 8, 5]))
     elements = bytearray(r.bytes(0x20))
     put(elements, 0x14, 'i', r.choice([-5, -1, 0, 1, 3, 10, 50, 1000, 0x7fffffff]))
+    if r.random() < 0.15:  # a huge load under a huge limit, the rows' +0x19c about load * 0.1f: loads where 0.1f's error moves the 24-bit
+        # rounded product past an integer (load * 0.1 would round to 1e8, 12345679 or 2e8), the limit between the two roundings
+        load, tenth = r.choice([(1000000026, 100000004), (123456794, 12345680), (2000000051, 200000008), (1000000000, 100000000)])
+        put(elements, 0x14, 'i', load)
+        for i in range(NITEMS):
+            put(items, i * ITEM + 0x128, 'i', 0x7fffffff)
+            for row in range(4):
+                put(items, i * ITEM + 0x40 * row + 0x19c, 'i', r.choice([tenth, tenth, tenth - 1, tenth + 1, load // 10]))
     put(obj, 0x24, 'I', 7 if r.random() < 0.9 else 8)
     regions.update({OBJ: obj, nodes: node, arrays: elements, 0x8791a0: struct.pack('<I', 1 if r.random() < 0.95 else 0), 0x8791b0: struct.pack('<I', nodes)})
     scale = r.choice([1.0, 10.0, 100.0, 1000.0])
@@ -121,7 +129,9 @@ def stand(r):
     items = bytearray(regions[ITEMS])
     for i in range(NITEMS):
         for off in (0xd4, 0xd8, 0xdc, 0xe0):
-            put(items, i * ITEM + off, 'I', fb(r.random()) if r.random() < 0.7 else r.f(4.0))
+            # (or n / 255 outside (0, 1): times 255 within half a 24-bit step of n, which the x87's rounding carries to n before __ftol)
+            k = r.random()
+            put(items, i * ITEM + off, 'I', fb(r.random()) if k < 0.6 else fb(r.randrange(-1020, 1021) / 255.0) if k < 0.75 else r.f(4.0))
     regions[ITEMS] = items
     obj = bytearray(r.bytes(0x60))
     n = struct.unpack_from('<i', regions[0x7890a0], 0x528)[0]
@@ -223,7 +233,7 @@ def settings_obj(r):
 
 def setting(r):
     if r.random() < 0.6:
-        return fb(r.choice([0.0, 50.0, 100.0, 25.0, 75.0, -50.0, 150.0, -49.0, 151.0, 49.5, 1.0, 99.0]))
+        return fb(r.choice([0.0, 50.0, 100.0, 25.0, 75.0, -50.0, 150.0, -49.0, 151.0, 49.5, 1.0, 99.0, float('nan')]))
     return r.f(r.choice([100.0, 1000.0, 1e30]))
 
 
