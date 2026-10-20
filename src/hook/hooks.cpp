@@ -369,6 +369,7 @@
 #include "../game/ui/windowfactory.h"
 #include "../game/ui/windowscript.h"
 #include "../game/ui/buttontext.h"
+#include "../game/ui/msgtags.h"
 #include "../game/ui/windowtimers.h"
 #include "../game/lib/jpeg6b.h"
 #include "../game/lib/zlib.h"
@@ -4904,6 +4905,8 @@ const Hook kHooks[] = {
     {"Gui_TopDepth",              0x00659409, (void *)&Gui_TopDepth, {0x55, 0x8b, 0xec, 0x83, 0x7d}},
     {"Gui_TopDepthIn",            0x00659437, (void *)&Gui_TopDepthIn, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"ButtonText_Init",           0x00486660, (void *)&ButtonText_Init, {0x6a, 0xff, 0x68, 0x2b, 0x92}},
+    {"MsgTags_Create",            0x0048eaa0, (void *)&MsgTags_Create, {0x53, 0x56, 0x57, 0x33, 0xdb}},
+    {"MsgTag_NewWindow",          0x0048ea00, (void *)&MsgTag_NewWindow, {0x6a, 0xff, 0x68, 0x6b, 0x97}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
