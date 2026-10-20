@@ -19,4 +19,15 @@ void __fastcall VertexBlock_Add(u8 *block, void *, float x, float y, float z, fl
 // entry, its words +2, +4, +6 written, +0 left): (base + 2, base + 1, base) and (base + 1, base + 2, base + 3), the list stepping 8 and its
 // count +0x98 one up after each. Returns the new +0x98.
 u32 __fastcall VertexBlock_AddQuad(u8 *block, void *, const u32 *positions, u32 unused, const u32 *uvs, const u8 *normals);
+
+// 0x53df30 (thiscall (x, y, z, face, turn, type, unused, big, unused, fixed), pops 0x28; name unconfirmed): a face of a cell-sized cube
+// (side 20 when big, else 10; one 10 high) added as four vertices (VertexBlock_Add, the normal (0, 1, 0)): face 0 the top (y), 1 the
+// side at z, 4 the side at x + side, 0x10 the side at z + side, 0x40 the side at x; any other face adds nothing. Unless fixed, with
+// [0x874fc4] 0 and the type below 13, in scenes 4, 0xe and 0x13 (Global81ae2c_Get_52f840, asked up to three times) x and z are moved
+// by -10 * the dwords at 0x8186b8 / 0x8186b4 and +the floats at 0x820afc / 0x820af8 first. The vertices wave for a type other than -1
+// below 15; their texture coordinates are entries of the 12-byte table at 0x871ee8 (from 5 for the types 8-14), turned by the byte
+// turn (4, 0x10, 0x40: a quarter, a half, three quarters). Then the two triangles of the count before (base): (base + 1, base, base + 3)
+// and (base, base + 2, base + 3) as VertexBlock_AddQuad's. Returns the new +0x98.
+u32 __fastcall VertexBlock_AddFace(u8 *block, void *, u32 x, u32 y, u32 z, u32 face, u32 turn, s32 type, u32 unused6, u32 big, u32 unused8,
+                                   u32 fixed);
 }

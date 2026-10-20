@@ -2,7 +2,9 @@
 # (any group and lane), a vertex of any floats (the ground's map and point as terrainheight.py makes them, for x and z), with the wave
 # (the sine table, a phase at 0x874fc0 of any float, 0, large ones and NaNs), a normal of any floats, or neither. Quad (0x53e530): four
 # corners, texture coordinates and normals of any floats, the index list's entries and count random, the vertex count 0-11 or about
-# the word indices' wrap.
+# the word indices' wrap. Face (0x53df30): a face (0, 1, 4, 0x10, 0x40 or any byte) of a cube at a ground point as Add's, turned
+# (0, 4, 0x10, 0x40 or any), its type -1-15 or any, big or not, fixed or not; [0x874fc4] 0 or not, the scene (0x81ae2c) 4, 0xe, 0x13
+# or another, the offsets at 0x8186b4 / 0x8186b8 and 0x820af8 / 0x820afc any, the texture table at 0x871ee8 any floats.
 # usage: vertexblock.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -13,7 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fncmp import RAM, Bench, Call, fb, put  # noqa: E402
 import terrainheight  # noqa: E402
 
-B = Bench([(0x53ddd0, 0x53df30), (0x4527f0, 0x452a70), (0x53e530, 0x53e61c)], sines=4096)
+B = Bench([(0x53ddd0, 0x53df30), (0x4527f0, 0x452a70), (0x53e530, 0x53e61c), (0x53df30, 0x53e4d0), (0x52f840, 0x52f860)], sines=4096)
 BLOCK, POS, NORMALS, UVS, NORMAL = RAM + 0x8000, RAM + 0x8100, RAM + 0x8400, RAM + 0x8600, RAM + 0x8800
 INDICES, CORNERS, CORNER_UVS, CORNER_NORMALS = RAM + 0x8a00, RAM + 0x8b00, RAM + 0x8c00, RAM + 0x8d00
 
@@ -29,9 +31,30 @@ def quad(r):
     return Call(0x53e530, [BLOCK, CORNERS, r.getrandbits(32), CORNER_UVS, CORNER_NORMALS], regions, conv='t', ret='a')
 
 
-def case(r):
-    if r.deal(['add', 'quad']) == 'quad':
+def face(r):
+    c = case(r, ['add'])
+    regions = dict(c.regions)
+    x, z = c.args[1], c.args[3]
+    put(regions[BLOCK], 0x94, 'II', INDICES + 8 * r.randrange(3), r.choice([0, 1, 7, r.getrandbits(32)]))
+    regions[INDICES] = r.bytes(0x40)
+    regions[0x874fc0] = regions[0x874fc0] + struct.pack('<I', r.choice([0, 0, 0, 1]))
+    regions[0x81ae2c] = struct.pack('<I', r.choice([4, 0xe, 0x13, 4, r.randrange(0x20)]))
+    regions[0x8186b4] = struct.pack('<2i', *(r.choice([0, r.randrange(-64, 64), r.getrandbits(31)]) for _ in range(2)))
+    regions[0x820af8] = r.floats(bytearray(8), [0, 4])
+    regions[0x871ee8] = r.floats(bytearray(0x9c), range(0, 0x9c, 4))
+    face = r.choice([0, 1, 4, 0x10, 0x40, 0, 1, 4, 0x10, 0x40, r.getrandbits(8), r.getrandbits(32)])
+    turn = r.choice([0, 4, 0x10, 0x40, r.getrandbits(32)])
+    kind = r.choice([-1, r.randrange(-1, 16), r.randrange(-1, 16), r.choice([12, 13, 14, 15, 7, 8]), r.getrandbits(32) - (1 << 31)])
+    args = [x, r.f(), z, face, turn, kind & 0xffffffff, r.getrandbits(32), r.choice([0, 1, r.getrandbits(32)]), r.getrandbits(32), r.choice([0, 0, 1])]
+    return Call(0x53df30, [BLOCK] + args, regions, conv='t', ret='a')
+
+
+def case(r, ops=('add', 'quad', 'face')):
+    op = r.deal(list(ops))
+    if op == 'quad':
         return quad(r)
+    if op == 'face':
+        return face(r)
     ground = terrainheight.case(r, ['Height'])
     x, z = ground.args
     if r.random() < 0.2:
