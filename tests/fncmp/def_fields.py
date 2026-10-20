@@ -5,7 +5,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, Bench, Call, RAM, heap, put  # noqa: E402
+from fncmp import HEAP, Bench, Call, RAM, heap, put, off_code  # noqa: E402
 
 # (address, end, convention, stack arguments, returns, globals touched, arguments used as pointers)
 FUNCS = [
@@ -88,6 +88,7 @@ def case(r):
     for k in range(0, 0x400, 4):  # many dwords point into the object, so a chain of pointers can be followed
         if r.random() < 0.5:
             put(obj, k, 'I', RAM + 0x100 + 4 * r.randrange(0x40))
+    off_code(obj)   # (a random dword in the exe's code would read the driver's code natively)
     regions = {RAM: obj}
     override = SETUP[address](r, obj, regions) if address in SETUP else None
     for g in globs:
