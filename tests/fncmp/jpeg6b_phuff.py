@@ -15,11 +15,11 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, RAM, Bench, Call, heap  # noqa: E402
+from fncmp import HEAP, LOG, RAM, Bench, Call, heap, set_return  # noqa: E402
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from jpeg6b_huff import (AC_TBLS, BLOCKS, BLOCKS_IN_MCU, CINFO, COMP, COMP_SIZE, COMPS_IN_SCAN, CUR_COMP_INFO, DC_TBLS, DTBL,  # noqa: E402
-                         DTBL2, DTBL_SIZE, ENTROPY, HTBL, HTBL_SIZE, MCUDATA, RESTART_INTERVAL, SS, common, htbl_bytes, mcu_tables,
-                         scan, source)
+from jpeg6b_huff import (AC_TBLS, BLOCKS, CINFO, COMP, COMP_SIZE, COMPS_IN_SCAN, DC_TBLS, DTBL, DTBL2, DTBL_SIZE, ENTROPY,  # noqa: E402
+                         HTBL, HTBL_SIZE, K_FILL, MCUDATA, MORE, RESTART_INTERVAL, SRC, SS, UNREAD_MARKER, common, derived, htbl_bytes, mcu_tables, scan,
+                         source)
 
 # the exe's copies (re/libmap.csv): name -> (address, end)
 FUNCS = {'jinit_phuff_decoder': (0x644d30, 0x644db0), 'start_pass_phuff_decoder': (0x644db0, 0x645030),
@@ -116,13 +116,42 @@ def blocks(r):
     return struct.pack('<640h', *vals)
 
 
+def refine_tables(r, regions):
+    """An AC refinement's table, as an encoder makes it: mostly symbols of size 1 (run << 4 | 1) and EOB runs (r << 4)."""
+    raw_ac, bits, vals = htbl_bytes(r, False, False)
+    vals = [v if r.random() < 0.1 else (v & 0xf0) | (1 if r.random() < 0.8 else 0) for v in vals]
+    regions[HTBL] = regions[HTBL][:HTBL_SIZE] + bytes(bits) + bytes(vals) + raw_ac[17 + len(vals):]
+    regions[DTBL2] = derived(bits, HTBL + HTBL_SIZE, vals)
+
+
+def run_dry(r, regions, e):
+    """A source that runs dry mid-block and suspends: a full bit buffer, a few more bytes without a marker (a marker, pending or met,
+    fills zeros instead), then FALSE; no EOB run and data left; a long AC band. An AC refinement then stops after it made coefficients
+    nonzero, which undoit takes back."""
+    cinfo = regions[CINFO]
+    struct.pack_into('<i', cinfo, UNREAD_MARKER, 0)
+    al = r.randrange(0, 3)
+    struct.pack_into('<iiii', cinfo, SS, r.randrange(1, 10), 63, al + 1, al)
+    regions[MORE] = bytes(r.randrange(0, 0xff) for _ in range(len(regions[MORE])))
+    src = bytearray(regions[SRC])
+    struct.pack_into('<I', src, 4, r.randrange(0, 8))
+    regions[SRC] = src
+    set_return(regions[LOG], K_FILL, 0)
+    e[8] = 0
+    struct.pack_into('<IiI', e, 0xc, r.getrandbits(32), r.randrange(8, 26), 0)
+
+
 def decode(address):
     def op(r):
         regions, nblocks = setup(r)
         source(r, regions)
         struct.pack_into('<I', regions[CINFO], RESTART_INTERVAL, r.choice([0, 0, 1, r.randrange(1, 100)]))
         mcu_tables(r, regions)
+        if address == 0x645660 and r.random() < 0.6:
+            refine_tables(r, regions)
         e = entropy_bytes(r)
+        if r.random() < 0.3:
+            run_dry(r, regions, e)
         struct.pack_into('<4I', e, 0x2c, DTBL, DTBL, DTBL, DTBL)
         struct.pack_into('<I', e, 0x3c, DTBL2)
         regions.update({ENTROPY: e, MCUDATA: struct.pack('<10I', *[BLOCKS + 0x80 * b for b in range(10)]), BLOCKS: blocks(r)})
