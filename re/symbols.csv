@@ -5646,3 +5646,11 @@ address,name,kind,confidence,notes
 0x0065000f,jpeg6a_jcmarker_write_file_trailer,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c write_file_trailer: EOI (the library's)
 0x00650025,jpeg6a_jcmarker_write_tables_only,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c write_tables_only: SOI, DQTs, DHTs, EOI (the library's)"
 0x0064c9f4,jpeg6a_jpeg_write_tables,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapimin.c jpeg_write_tables: a tables-only datastream through a marker writer of its own (the library's)
+0x00655ea0,jpeg6a_jinit_c_master_control,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmaster.c jinit_c_master_control: the master, its methods, the parameters checked, the passes counted (the library's, through the method shim)"
+0x00655fc0,jpeg6a_jcmaster_initial_setup,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmaster.c initial_setup: the dimensions checked, the sampling maxima, each component's sizes, total_iMCU_rows (the library's)"
+0x006562fc,jpeg6a_jcmaster_validate_script,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmaster.c validate_script: the scan script checked, progressive_mode set (the library's)"
+0x0065691e,jpeg6a_jcmaster_prepare_for_pass,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmaster.c prepare_for_pass: the modules started for the next pass (the library's)
+0x00656bb2,jpeg6a_jcmaster_select_scan_parameters,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmaster.c select_scan_parameters: the scan's components and progression (the library's)
+0x00656d38,jpeg6a_jcmaster_per_scan_setup,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmaster.c per_scan_setup: the MCU layout of the scan, the restart interval (the library's)"
+0x0065701a,jpeg6a_jcmaster_pass_startup,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmaster.c pass_startup: the frame and scan headers (the library's)
+0x00657055,jpeg6a_jcmaster_finish_pass_master,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmaster.c finish_pass_master: the entropy coder's finish_pass, the next pass's type (the library's)"

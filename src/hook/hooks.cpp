@@ -5319,6 +5319,14 @@ const Hook kHooks[] = {
     {"jpeg6a_jcmarker_write_any_marker", 0x0064f520, (void *)&jpeg6a_jcmarker_write_any_marker, {0x55, 0x8b, 0xec, 0x81, 0x7d}},
     {"jpeg6a_jinit_marker_writer", 0x0064f4a0, (void *)&jpeg6a_jinit_marker_writer, {0x55, 0x8b, 0xec, 0x6a, 0x18}},
     {"jpeg6a_jpeg_write_tables",  0x0064c9f4, (void *)&jpeg6a_jpeg_write_tables, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jcmaster_finish_pass_master", 0x00657055, (void *)&jpeg6a_jcmaster_finish_pass_master, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcmaster_pass_startup", 0x0065701a, (void *)&jpeg6a_jcmaster_pass_startup, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jcmaster_per_scan_setup", 0x00656d38, (void *)&jpeg6a_jcmaster_per_scan_setup, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcmaster_select_scan_parameters", 0x00656bb2, (void *)&jpeg6a_jcmaster_select_scan_parameters, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcmaster_prepare_for_pass", 0x0065691e, (void *)&jpeg6a_jcmaster_prepare_for_pass, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcmaster_validate_script", 0x006562fc, (void *)&jpeg6a_jcmaster_validate_script, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"jpeg6a_jcmaster_initial_setup", 0x00655fc0, (void *)&jpeg6a_jcmaster_initial_setup, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jinit_c_master_control", 0x00655ea0, (void *)&jpeg6a_jinit_c_master_control, {0x55, 0x8b, 0xec, 0x51, 0x6a}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

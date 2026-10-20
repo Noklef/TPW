@@ -79,6 +79,30 @@ void __cdecl jpeg6a_jcmarker_emit_sos(jpeg6a_compress_struct *cinfo);
 void __cdecl jpeg6a_jcmarker_write_file_trailer(jpeg6a_compress_struct *cinfo);
 void __cdecl jpeg6a_jcmarker_write_tables_only(jpeg6a_compress_struct *cinfo);
 
+// jcmaster.c, the master control, through third_party/wrap/jpeg-6a/jcmaster.c.
+// 0x655ea0: cinfo->master (alloc_small of the image pool, 0x24) and its three methods (through the method shim, jpeg6a.cpp);
+// initial_setup, validate_script with a scan script (else one sequential scan), optimize_coding forced when progressive; the first
+// pass_type (main, or the transcoder's Huffman-optimisation / output pass), total_passes num_scans (twice with optimize_coding).
+void __cdecl jpeg6a_jinit_c_master_control(jpeg6a_compress_struct *cinfo, int transcode_only);
+// 0x655fc0 (static): JERR_EMPTY_IMAGE 0x1f, JERR_IMAGE_TOO_BIG 0x28 past 65500, JERR_WIDTH_OVERFLOW 0x45, JERR_BAD_PRECISION 0xd,
+// JERR_COMPONENT_COUNT 0x18, JERR_BAD_SAMPLING 0x10; each component's index, sizes in blocks and samples; total_iMCU_rows.
+void __cdecl jpeg6a_jcmaster_initial_setup(jpeg6a_compress_struct *cinfo);
+// 0x6562fc (static): the scan script checked (JERR_BAD_SCAN_SCRIPT 0x11, JERR_BAD_PROG_SCRIPT 0xf, JERR_MISSING_DATA 0x2c), progressive
+// when the first scan's Ss or Se or Ah or Al is not the sequential 0, 63, 0, 0.
+void __cdecl jpeg6a_jcmaster_validate_script(jpeg6a_compress_struct *cinfo);
+// 0x65691e: the modules started for the pass by pass_type (JERR_NOT_COMPILED 0x2f for another), the scan's headers on an output
+// pass, is_last_pass, the progress monitor's counts.
+void __cdecl jpeg6a_jcmaster_prepare_for_pass(jpeg6a_compress_struct *cinfo);
+// 0x656bb2 (static): the scan's components and Ss..Al, from the script or all of them (JERR_COMPONENT_COUNT past 4).
+void __cdecl jpeg6a_jcmaster_select_scan_parameters(jpeg6a_compress_struct *cinfo);
+// 0x656d38 (static): MCUs_per_row, MCU_rows_in_scan, blocks_in_MCU and MCU_membership (JERR_BAD_MCU_SIZE 0xb past 10),
+// restart_interval from restart_in_rows.
+void __cdecl jpeg6a_jcmaster_per_scan_setup(jpeg6a_compress_struct *cinfo);
+// 0x65701a: the frame header (the first scan only) and the scan header; 0x657055: the entropy coder's finish_pass, then the next
+// pass_type, scan_number and pass_number.
+void __cdecl jpeg6a_jcmaster_pass_startup(jpeg6a_compress_struct *cinfo);
+void __cdecl jpeg6a_jcmaster_finish_pass_master(jpeg6a_compress_struct *cinfo);
+
 // jcomapi.c: what compression and decompression share.
 // 0x64f3c0: the image pool freed (mem->free_pool of pool 1), global_state back to the start (DSTATE_START 200 for a decompressor,
 // else CSTATE_START 100).

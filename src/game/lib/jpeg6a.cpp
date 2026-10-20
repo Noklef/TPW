@@ -61,6 +61,7 @@ static_assert(offsetof(jpeg_memory_mgr, free_pool) == 0x24 && offsetof(jpeg_memo
 // code that compares or calls them sees its own (the game's hooks then run the library's anyway).
 extern "C" void __cdecl jpeg6a_jmemmgr_lib_jinit_memory_mgr(jpeg6a_common_struct *cinfo);
 extern "C" void __cdecl jpeg6a_jcmarker_lib_jinit_marker_writer(jpeg6a_compress_struct *cinfo);
+extern "C" void __cdecl jpeg6a_jcmaster_lib_jinit_c_master_control(jpeg6a_compress_struct *cinfo, int transcode_only);
 
 namespace {
 struct ExeMethod {
@@ -91,6 +92,10 @@ const ExeMethod kExeMethods[] = {
     {fn(&jpeg6a_jcmarker_write_scan_header), 0x64fc34},
     {fn(&jpeg6a_jcmarker_write_file_trailer), 0x65000f},
     {fn(&jpeg6a_jcmarker_write_tables_only), 0x650025},
+    // jcmaster.c
+    {fn(&jpeg6a_jcmaster_prepare_for_pass), 0x65691e},
+    {fn(&jpeg6a_jcmaster_pass_startup), 0x65701a},
+    {fn(&jpeg6a_jcmaster_finish_pass_master), 0x657055},
 };
 
 bool g_native_methods = false;  // (Jpeg6a_SetNativeMethods: the tests' driver, which cannot call the exe's addresses)
@@ -135,6 +140,14 @@ void __cdecl jpeg6a_jinit_marker_writer(j_compress_ptr cinfo) {
     exe_method(marker->write_scan_header);
     exe_method(marker->write_file_trailer);
     exe_method(marker->write_tables_only);
+}
+
+void __cdecl jpeg6a_jinit_c_master_control(j_compress_ptr cinfo, boolean transcode_only) {
+    jpeg6a_jcmaster_lib_jinit_c_master_control(cinfo, transcode_only);
+    jpeg_comp_master *master = cinfo->master;
+    exe_method(master->prepare_for_pass);
+    exe_method(master->pass_startup);
+    exe_method(master->finish_pass);
 }
 }
 
