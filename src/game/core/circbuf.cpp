@@ -184,15 +184,24 @@ void __fastcall CircBufU32_30_Sum(const u8 *buf, void *, double *sum, s32 count)
     }
 }
 
-u32 __fastcall CircBufU32_30_Serialize(u8 *buf, void *, Stream *stream, u32 save, s32 version, u32) {
-    static const SaveSpec kFields[] = {{0x7c, 4, 0x00759a80}, {0x80, 4, 0x00759a74}, {0x84, 1, 0x00759a64}, {0x0, 4, 0x00759a5c}};
+// A CircBufU32's serializer for its cursor's offset (4 + 4 * its size).
+static u32 SerializeU32(u8 *buf, Stream *stream, u32 save, s32 version, u16 cursor) {
+    const SaveSpec fields[] = {{cursor, 4, 0x00759a80}, {(u16)(cursor + 4), 4, 0x00759a74}, {(u16)(cursor + 8), 1, 0x00759a64}, {0x0, 4, 0x00759a5c}};
     if (version < 0 || version > 1)
         return 0;
-    if (!Save_Fields(stream, save, buf, kFields, 4))
+    if (!Save_Fields(stream, save, buf, fields, 4))
         return 1;
-    for (s32 i = 0; i < at<s32>(buf, 0x80); ++i)  // sic: not bounded by the 30 entries
+    for (s32 i = 0; i < at<s32>(buf, cursor + 4); ++i)  // sic: not bounded by the buffer's size
         if (!Save_Field(stream, save, buf + 4 + i * 4, 4, 0x00759a50))
             return 1;
     return 0;
+}
+
+u32 __fastcall CircBufU32_30_Serialize(u8 *buf, void *, Stream *stream, u32 save, s32 version, u32) {
+    return SerializeU32(buf, stream, save, version, 0x7c);
+}
+
+u32 __fastcall CircBufU32_144_Serialize(u8 *buf, void *, Stream *stream, u32 save, s32 version, u32) {
+    return SerializeU32(buf, stream, save, version, 0x244);
 }
 }

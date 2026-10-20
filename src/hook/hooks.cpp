@@ -241,6 +241,7 @@
 #include "../game/world/trackrides.h"
 #include "../game/world/things.h"
 #include "../game/world/analysercell.h"
+#include "../game/world/bankaccount.h"
 #include "../game/world/linestep.h"
 #include "../game/world/money.h"
 #include "../game/world/objectmsg.h"
@@ -2124,6 +2125,7 @@ const Hook kHooks[] = {
     {"CircBufU32_30_Sum",         0x00495c20, (void *)&CircBufU32_30_Sum, {0x83, 0xec, 0x08, 0x33, 0xc0}},
     {"CircBufU32_30_Count",       0x00495d40, (void *)&CircBufU32_30_Count, {0x8a, 0x81, 0x84, 0x00, 0x00}},
     {"CircBufF32_144_MaxInWindow", 0x004802a0, (void *)&CircBufF32_144_MaxInWindow, {0x8b, 0x44, 0x24, 0x0c, 0x53}},
+    {"CircBufU32_144_Serialize",  0x004cdf00, (void *)&CircBufU32_144_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"TextArg_Ctor",              0x004a77a0, (void *)&TextArg_Ctor, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
     {"TextArgString_Ctor",        0x004ea220, (void *)&TextArgString_Ctor, {0x8b, 0x54, 0x24, 0x08, 0x8b}},
     {"TextArgInt_Ctor",           0x0050aef0, (void *)&TextArgInt_Ctor, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
@@ -4113,6 +4115,7 @@ const Hook kHooks[] = {
     {"AdvisorScoring_ScoreDetail", 0x0059c0a0, (void *)&AdvisorScoring_ScoreDetail, {0x53, 0x56, 0x8b, 0x74, 0x24}},
     {"AdvisorMsg_Init",           0x0059b590, (void *)&AdvisorMsg_Init, {0x66, 0x8b, 0x44, 0x24, 0x08}},
     {"Visitor_ScoreOption",       0x004fcc30, (void *)&Visitor_ScoreOption, {0x83, 0xec, 0x38, 0x53, 0x55}},
+    {"BankAccount_Serialize",     0x004cf920, (void *)&BankAccount_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x83}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

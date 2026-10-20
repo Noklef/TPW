@@ -255,6 +255,7 @@ add_library(tpw_game STATIC
     src/game/world/uimsgreceiver.cpp
     src/game/world/objectstatus.cpp
     src/game/world/visitoroption.cpp
+    src/game/world/bankaccount.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp

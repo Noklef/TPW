@@ -206,7 +206,7 @@ address,name,kind,confidence,notes
 0x004c85b0,AnalyserCell_Serialize,function,high,
 0x004cd9c0,AnalyserVal_Serialize,function,high,"u32 mVal, u8 mWorkedOut"
 0x004cdb80,CircBufU16_Serialize,function,high,"mCurrentEntry, mNumEntries, mWrappedAround, mTemp, mData[mNumEntries]"
-0x004cdf00,CircBufU32_Serialize,function,high,
+0x004cdf00,CircBufU32_144_Serialize,function,low,"reimplemented (src/game/core/circbuf); thiscall (stream, save, version, unused): a CircBufU32 of 144 saved or loaded (cursor, count, wrapped, temp, then count entries)"
 0x004cea00,CircBufU8_Serialize,function,high,
 0x00502dc0,ResearchLab_Serialize,function,high,"reimplemented (src/game/world/research); thing model 14: thing, 0x100 projects, 5 groups, 4 fields"
 0x00504210,ResearchProject_Serialize,function,high,reimplemented (src/game/world/research); a project's 6 fields
@@ -214,7 +214,7 @@ address,name,kind,confidence,notes
 0x00512010,Weather_Serialize,function,high,"reimplemented (src/game/world/weather); thing model 15: thing, fields, forecast at +0x20, fields"
 0x00512c50,Weather_RandomBolt,function,low,"reimplemented (src/game/world/weather); thiscall (&start, &end, unused): a lightning bolt's random ends, start on the ground inside the map, end 300 up and within 50 of it"
 0x005132a0,Forecast_Serialize,function,high,"reimplemented (src/game/world/forecast); thiscall (stream, save, version, unused): the forecast's time (8 bytes), quality and valid byte saved or loaded"
-0x004cf920,BankAccount_Serialize,function,high,"thing model 16: balance, admission fee, 8 loans"
+0x004cf920,BankAccount_Serialize,function,high,"reimplemented (src/game/world/bankaccount); thiscall (stream, save, version, unused): the bank account's serializer (thing model 16: the head dwords, eight loans of eight dwords; loads past the third through Save_ReadU32)"
 0x004d2320,Challenges_Serialize,function,high,"reimplemented (src/game/world/challenges); thing model 19: thing, 0x14 challenges, then 7 fields"
 0x004d0f90,Challenge_Serialize,function,high,reimplemented (src/game/world/challenges); a challenge's 15 fields
 0x006c58f0,SoundBank_OpenSdt,function,medium,"appends HD.sdt or HW.sdt to the bank path and opens it, falling back to the other; arg3 == 0 tries HW first"
