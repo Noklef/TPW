@@ -31,4 +31,15 @@ u8 *__fastcall Window705bc8_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 
     Window_SetHandler(window, nullptr, 0x66d001);
     return window;
 }
+
+u8 *__fastcall Window705bc8_SetRange(u8 *window, void *, const s32 *low, const s32 *high) {
+    if (low) at<s32>(window, 0x138) = *low;
+    if (high) at<s32>(window, 0x13c) = *high;
+    if (at<s32>(window, 0x138) > at<s32>(window, 0x13c)) {
+        at<s32>(window, 0x138) = at<s32>(window, 0x13c);
+        at<s32>(window, 0x13c) = at<s32>(window, 0x138);  // sic
+    }
+    at<s32>(window, 0x140) = at<s32>(window, 0x13c) - at<s32>(window, 0x138);
+    return window;
+}
 }
