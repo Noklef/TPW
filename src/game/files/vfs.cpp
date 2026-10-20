@@ -8,6 +8,7 @@
 #include "../core/string.h"
 #include "../core/vcall.h"
 #include "../core/vobj2.h"
+#include "../core/vwrap.h"
 #include "handles.h"
 
 namespace {
@@ -105,5 +106,12 @@ StreamBase *__cdecl VFS_Open(const char *name) {
                                            static_cast<u32>(reinterpret_cast<std::uintptr_t>(&path))) == 1;
     String_Dtor(&path);
     return opened ? stream : nullptr;
+}
+
+u32 __cdecl VFS_FileExists(const char *name) {
+    StreamBase *const stream = VFS_Open(name);
+    if (!stream) return 0;
+    Object_FinishAndDelete(reinterpret_cast<u8 *>(stream));
+    return 1;
 }
 }

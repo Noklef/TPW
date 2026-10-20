@@ -1,5 +1,5 @@
 // The game's virtual file system: files in the mounted WAD archives or on disk. Reimplementation of 0x41cff0, the path taken relative to
-// a base (an archive's folder or the archive itself), and of 0x5c4d50, a file opened through the mounts.
+// a base (an archive's folder or the archive itself), of 0x5c4d50, a file opened through the mounts, and of 0x46f120, whether one opens.
 #pragma once
 
 #include "../../../re/types.h"
@@ -26,4 +26,8 @@ u32 __cdecl Path_StripBase(String *path, String *base, String *out);
 // (or without a source) the list's objects are asked in turn (ListRef_AnyHandles on [0x786b9c]): the stream on 1, else 0 - the stream
 // is not freed then, nor when an earlier step failed.
 StreamBase *__cdecl VFS_Open(const char *name);
+
+// 0x46f120 (cdecl; name): VFS_Open(name) (the game pushes a second argument, 0x74cfb8,
+// which VFS_Open does not read); a stream got is finished and deleted (Object_FinishAndDelete) and 1 returned, else 0.
+u32 __cdecl VFS_FileExists(const char *name);
 }
