@@ -159,6 +159,9 @@ def case(r):
         regions[HEAP] = heap(0x2000, r.choice([0] * 5 + ([] if op in UNCHECKED else [1])))
         regions[0xfaa5ec] = struct.pack('<I', r.choice([wins[0], 0, 0]))
         cache, font = CACHES.get(op, (None, None))
+        for _, other in CACHES.values():   # (the other lists' font dwords not 7: the exe's 7 would hide reading the wrong one)
+            if other:
+                regions[other] = struct.pack('<I', r.choice([0, 1, 12]))
         if font:
             which = r.choice([7] * 6 + list(range(13)))
             put(lang, 0x1c + (7 + 13 * group) * 0x18, 'I', r.getrandbits(32))
