@@ -3,6 +3,7 @@
 # masks 0, one bit or any, nodes in use or not; chunk lists of up to three chunks with a node pair or none. The nearest area node
 # (0x549070): see nearest(); a ride car steered (0x547c60): see steer().
 # usage: collobj.py [CASES [SEED]] [--wild|--both] [--show N]
+import math
 import os
 import struct
 import sys
@@ -79,7 +80,8 @@ def nearest(r):
 def steer(r):
     """0x547c60: nearest()'s nodes and area, the car at CAR with flags 0x10000 / 0x4000 / 0x80000 mixed, its area that one or none, its
     position and target on the same grid or anywhere, the kind (KIND) a small or any speed and turn rate, +0x54 2 now and then; the sine
-    table small values or any; the point as nearest()'s."""
+    table small values or any; the point as nearest()'s. Now and then the car goes straight to a target at a distance's edge (see below)
+    with its heading on or about the bearing."""
     c = nearest(r)
     regions = dict(c.regions)
     area, x, y = c.args[0], c.args[1], c.args[2]
@@ -91,16 +93,30 @@ def steer(r):
     put(car, 0x6c, 'ii', spot(), spot())
     put(car, 0x74, 'ii', r.choice([0, r.randrange(-0x400, 0x400)]), r.choice([0, r.randrange(-0x400, 0x400)]))
     put(car, 0x50, 'I', r.choice([r.randrange(0x200), r.getrandbits(32)]))
-    put(car, 0x68, 'i', r.choice([0, r.randrange(-8, 40), r.getrandbits(32) - (1 << 31)]))
+    put(car, 0x68, 'i', r.choice([0, r.randrange(-8, 40), r.randrange(-90, -20), r.getrandbits(32) - (1 << 31)]))
     put(car, 0x98, 'II', area if r.random() < 0.85 else 0, KIND)
     kind = bytearray(r.bytes(0x60))
     put(kind, 0x20, 'i', r.choice([r.randrange(0, 80), r.getrandbits(32) - (1 << 31)]))
-    put(kind, 0x28, 'i', r.choice([r.randrange(0, 0x40), r.randrange(-0x40, 0x200), r.getrandbits(32) - (1 << 31)]))
+    put(kind, 0x28, 'i', r.choice([r.randrange(0, 0x40), r.randrange(-0x40, 0x200), -1, -3, r.getrandbits(32) - (1 << 31)]))
     put(kind, 0x54, 'i', r.choice([2, 0, 1, 3]))
     sine = bytearray(r.bytes(0x800))
     if r.random() < 0.8:
         for i in range(0x200):
             put(sine, 4 * i, 'i', r.randrange(-1024, 1025))
+    if r.random() < 0.4:   # (straight to a target: the distance's edges (|dx| 0x8000, sums one below a square), none, and the heading about the bearing)
+        put(car, 0, 'I', flags & ~0x10000)
+        j = r.randrange(3, 150)
+        dx, dy = r.choice([(2 * j * j, 2 * j), (0, 0), (0x8000, r.randrange(-0x7fff, 0x8000)), (-0x8000, r.randrange(0x100)), (0x7fff, 0x8000),
+                           (r.randrange(-50, 50), -(1 << 31)), (r.randrange(-0x2000, 0x2000), r.randrange(-0x2000, 0x2000))])
+        if r.random() < 0.5:
+            dx, dy = dy, dx
+        dx, dy = r.choice([1, -1]) * dx, r.choice([1, -1]) * dy
+        px, py = struct.unpack_from('<ii', car, 0x34)
+        put(car, 0x6c, 'II', (px + dx) & 0xffffffff, (py + dy) & 0xffffffff)
+        ndy = -dy if -dy < (1 << 31) else dy
+        bearing = int(math.atan2(dx, ndy) / math.pi * 256 - 256)
+        rate = struct.unpack_from('<i', kind, 0x28)[0]
+        put(car, 0x50, 'I', (-bearing + r.choice([0, 0, 1, -1, 2, rate // 2, -(rate // 2), rate // 2 + 1, 0x16, 0x15, 0x30, 0x2f, 0x100, 0x101])) & 0x1ff)
     regions.update({CAR: car, KIND: kind, 0x877358: sine})
     return Call(0x547c60, [CAR, x, y], regions, ret='a')
 
