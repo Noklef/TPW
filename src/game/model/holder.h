@@ -146,9 +146,17 @@ u32 __cdecl Dword_ClearBit0(u32 *p);
 // (Holder_Create) after the texture directories are set (TexDirs_SetForModel with the record); the animator's flag 0x2000 (and 8 with
 // flags 1). Returns 1.
 u32 __cdecl Animator_Create(u8 *animator, u8 *record, const char *name, u32 flags);
+
+// 0x455690 (cdecl; animator, unused, flags, out; name unconfirmed): a copy of the animator in a block of its own (GlobalMem_Alloc, not
+// zeroed; the copy at the block aligned to 8, its nodes after it at +0x40, the block at +0x34): its 0x40 bytes (unless the block or the
+// animator is null) and its u16 count (+4) of 0x30-byte nodes; the holder cloned (Holder_Clone with unused, [0x79fb2c] for 0, flags,
+// into the copy's +0x24, mask 0) and made (Holder_Create); the tables +0x10-+0x1c from the new model's +0x58, +0x5c, +0x60 and +0x68;
+// the nodes' +0x28 and +0x2c the parts' matrices and +0x6c (from the model's +0x70, the first skipped for more than one node); the
+// record's (+0x3c) use count +0x1c raised. *out = the copy; returns Holder_Clone's result.
+u32 __cdecl Animator_Clone(const u8 *animator, u32 unused, u32 flags, u8 **out);
 }
 
-// Animator_Create's calls out (the game's, i.e. the ports', unless swapped; tools/fncmp's driver logs them).
+// Animator_Create's calls out (and Animator_Clone's holder) (the game's, i.e. the ports', unless swapped; tools/fncmp's driver logs them).
 struct AnimatorMeshEnv {
     void(__cdecl *setTexDirs)(u8 *info, u8 *model);  // 0x46e4e0 TexDirs_SetForModel
     void(__cdecl *createHolder)(u8 *holder);          // 0x45bbc0 Holder_Create

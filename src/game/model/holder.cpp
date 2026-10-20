@@ -8,6 +8,7 @@
 #include "../core/gameheap.h"
 #include "../core/globalmem.h"
 #include "../core/crt.h"
+#include "clone.h"
 #include "../gfx/texdirs.h"
 #include "../core/liveobjects.h"
 #include "objmodel.h"
@@ -498,6 +499,43 @@ u32 __cdecl Animator_Create(u8 *animator, u8 *record, const char *name, u32 flag
     g_animatorMeshEnv->setTexDirs(record, animator);
     g_animatorMeshEnv->createHolder(at<u8 *>(animator, 0x24));
     return 1;
+}
+
+u32 __cdecl Animator_Clone(const u8 *animator, u32 unused, u32 flags, u8 **out) {
+    if (!unused)
+        unused = global<u32>(0x0079fb2c);
+    u8 *const block = static_cast<u8 *>(GlobalMem_Alloc((u32)at<u16>(animator, 4) * 0x30 + 0x44, 0));
+    u8 *const copy = reinterpret_cast<u8 *>(((uintptr_t)block + 7) & ~(uintptr_t)7);
+    if (copy && animator) {
+        for (u32 k = 0; k < 0x40; k += 4)   // (REP MOVSD, upward)
+            at<u32>(copy, k) = at<u32>(animator, k);
+    }
+    at<u8 *>(copy, 8) = copy + 0x40;
+    at<u8 *>(copy, 0x34) = block;
+    for (u32 i = 0; i < at<u16>(copy, 4); ++i) {
+        for (u32 k = 0; k < 0x30; k += 4)
+            at<u32>(at<u8 *>(copy, 8) + i * 0x30, k) = at<u32>(at<u8 *>(animator, 8) + i * 0x30, k);
+    }
+    const u32 result = Holder_Clone(at<u8 *>(animator, 0x24), unused, flags, &at<u8 *>(copy, 0x24), 0);
+    g_animatorMeshEnv->createHolder(at<u8 *>(copy, 0x24));
+    const u8 *const holder = at<u8 *>(copy, 0x24);
+    at<u32>(copy, 0x10) = at<u32>(at<u8 *>(holder, 4), 0x58);
+    at<u32>(copy, 0x14) = at<u32>(at<u8 *>(holder, 4), 0x5c);
+    at<u32>(copy, 0x18) = at<u32>(at<u8 *>(holder, 4), 0x60);
+    at<u32>(copy, 0x1c) = at<u32>(at<u8 *>(holder, 4), 0x68);
+    const u16 count = at<u16>(copy, 4);
+    u8 *part = at<u8 *>(at<u8 *>(holder, 4), 0x70);
+    if (count > 1)
+        part += 0xa0;
+    if (count) {
+        for (u32 i = 0; i < at<u16>(copy, 4); ++i, part += 0xa0) {
+            at<u8 *>(at<u8 *>(copy, 8) + i * 0x30, 0x28) = part + 0x10;
+            at<u32>(at<u8 *>(copy, 8) + i * 0x30, 0x2c) = at<u32>(part, 0x6c);
+        }
+    }
+    at<u32>(at<u8 *>(copy, 0x3c), 0x1c) += 1;
+    *out = copy;
+    return result;
 }
 }
 
