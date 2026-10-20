@@ -6,7 +6,6 @@ address,name,module,reason
 515fb0,World_DeleteAllThings,world/things,todo
 51a280,Get1da710_51a280,core/accessors,todo: indirect only
 52c2a0,Fn_52c2a0,core/accessors,todo
-55f780,TerrainBlend_Tile,terrain,todo
 57cb90,Cpu_Ticks16,core/cpuinfo,"reads the time-stamp counter (rdtsc): the hardware's value, nothing to compare"
 591210,Cpu_Ticks,core/cpuinfo,"reads the time-stamp counter (rdtsc): the hardware's value, nothing to compare"
 5fc740,JpegCodec_GetInfo,gfx/jpeg,todo

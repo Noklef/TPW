@@ -30,7 +30,10 @@ bool TerrainBlend_WeightMap(const Array3D *control, u32 x, u32 y, int channel, i
 void TerrainBlend_TileInto(const Lnd *lnd, u8 *out, u32 x, u32 y, const TerrainOverlay *overlay,
                            u8 *scratch);
 
-// Hook entry for 0x55f780, using the game's scratch buffer (gTerrainBlendScratch 0x8798c8).
+// Hook entry for 0x55f780, using the game's scratch buffer (gTerrainBlendScratch 0x8798c8; nothing without one), its weight maps
+// (W1 0x8798a8, W2 0x8798b8, W3 0x879398, made over at the tile size first, then built from the control map) and its five ramps
+// (0x8793a8-0x8798a8, which Lnd_Read builds). With a tile size not a multiple of 16 the last size % 16 pixels of each row are not
+// drawn and the sources' rows drift by that much (sic); where both selectors are mixed the run's first W1 byte serves all 16 (sic).
 void __fastcall TerrainBlend_Tile(const Lnd *self, void *edx, u8 *out, u32 x, u32 y,
                                   const TerrainOverlay *overlay);
 }

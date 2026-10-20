@@ -381,7 +381,7 @@ address,name,kind,confidence,notes
 0x0055f470,Lnd_ReadLevel,function,high,"reimplemented (src/game/terrain/land); Reads a level's tile size, number and thirteen arrays from a stream"
 0x0055f630,Lnd_Clear,function,high,reimplemented (src/game/terrain/land); Clears the land object and gives its three tile levels their sizes
 0x0055f720,Lnd_SetTileSize,function,high,reimplemented (src/game/terrain/land); 0x40/0x20/0x10 -> detail level 0/1/2
-0x0055f780,TerrainBlend_Tile,function,high,"reimplemented (src/game/terrain); (out, x, y, overlay): grey unless the tile's control byte 0 is 255; mixes 3 colour groups by 2 selectors in 16-pixel MMX runs, rows bottom-up, then the path overlay"
+0x0055f780,TerrainBlend_Tile,function,high,"reimplemented (src/game/terrain); (out, x, y, overlay): grey unless the tile's control byte 0 is 255; mixes 3 colour groups by 2 selectors in 16-pixel MMX runs, rows bottom-up, then the path overlay; the game's weight maps and ramps"
 0x0055e780,Lnd_BuildWeightMap,function,high,reimplemented (src/game/terrain/terrain_blend); bilinear upsampling of a tile of the control map
 0x0055e710,Lnd_BuildRamp,function,high,"reimplemented (src/game/terrain/terrain_blend); (table, centre, width): 256-entry 0..255 ramp"
 0x0055ee10,Lnd_BlendRow16,function,high,reimplemented (src/game/terrain/terrain_blend); blend of 16 texels from two colour pairs
