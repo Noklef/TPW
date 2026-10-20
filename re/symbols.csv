@@ -5115,6 +5115,7 @@ address,name,kind,confidence,notes
 0x0065f286,Window_SetWordE2,function,low,"reimplemented (src/game/ui/window); thiscall (value word): +0xe2 = value, +0x98 / +0x9c told (slot 3, code 4, word +8), the children given the same"
 0x0065c672,Window_NotifyC000,function,low,"reimplemented (src/game/ui/window); thiscall (a, b words): with +0x98 or +0x9c set, each told by slot 3 (0xc000, an event whose +0x10 points to a second with the words +0xa = a, +0xc = b)"
 0x0065d865,Window_GetSize,function,low,"reimplemented (src/game/ui/window); thiscall (width, height: word pointers, inner: a word), pops 12: the size of the rectangle +8 (GuiRect_GetSize), with inner each less the margins +0xfc - +0xf8 / +0xfe - +0xfa; 1 in AX"
+0x0065d3a3,Window_Notify1,function,low,"reimplemented (src/game/ui/window); thiscall (value: a word), pops 4: the objects +0x98 and +0x9c (when set) told through slot 3 (1, an event on the stack with only the word +4 set: the value)"
 0x00498090,Dialog7ca1c8_SetChecks,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): the nine check buttons of the 0x7ca1c8 dialog's child 0x18 set (vtable slot 5, bool) from flags bits 0-8 (0x20's also needs [0x7ca1d0]+0x50)"
 0x00498a50,Dialog7ca1c8_SetChecksIfUp,function,low,reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): Dialog7ca1c8_SetChecks when [0x7ca1c8] and [0x7ca1cc] are not 0
 0x00481a00,Dialog7ca1c8_SetChecksIfUpThis,function,low,"reimplemented (src/game/ui/dialog7ca1c8); thiscall (flags), pops 4, this unused: Dialog7ca1c8_SetChecksIfUp(flags)"
