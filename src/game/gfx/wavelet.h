@@ -96,6 +96,15 @@ void __fastcall WaveletCodec_InverseD4Columns(u8 *codec, void *, float *const *s
 // byte. The stack array is freed (Ptr_FreeIfSet).
 void __fastcall WaveletCodec_DecodeGrey(u8 *codec, void *, u32 width, u32 height, const void *src, u8 *pixels, float q);
 
+// 0x5935a0 (thiscall on the codec; width, height, the luma plane's stride in floats, the BGR pixels; pops 0x10): the planes at +0x2c (Y),
+// +0x1c (Cb) and +0xc (Cr, read at its distance from Cb rounded down to a dword) to 3-byte pixels. Its strides and the factors 1.772,
+// 1.402, 0.344136, 0.714136 and 1.5 * 2^23 + 128 go to globals at 0xfb2768-0xfb27ac first. Each 2 x 2 block (half the width by half the
+// height, do-whiles: a width or height below 2 runs 2^32 times, sic) shares one Cb and Cr: blue Y + 1.772 Cb + m, red Y + 1.402 Cr + m,
+// green Y + ((m - 0.344136 Cb) - 0.714136 Cr), each stored as a float (the six of a row at 0xfb27b0-0xfb27c4) and its low 9 bits
+// indexing the clamp table at 0xc27008. An odd width's last column and an odd height's last row (in that order) use the factors in
+// .rdata with 1.5 * 2^23 subtracted and the table at 0xc27088; the column steps its chroma every odd row by half the stride (floats).
+void __fastcall WaveletCodec_YuvToRgb(u8 *codec, void *, u32 width, u32 height, u32 stride, u8 *dst);
+
 // 0x564b60 (cdecl; name unconfirmed): undoes 0x564b20, which keeps a codec (0x5985c0) at 0x879a64 and a block of the draw buffer at
 // 0x879a68: with no block, returns 0; otherwise the block is freed (TrackedGlobal_Free) and cleared, the codec (when set) told through
 // its slot 6 (+0x18; the codec pointer is kept) and 1 returned.

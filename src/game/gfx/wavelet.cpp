@@ -490,4 +490,125 @@ void __fastcall WaveletCodec_DecodeGrey(u8 *codec, void *, u32 width, u32 height
     }
     Ptr_FreeIfSet(reinterpret_cast<u8 **>(&row.data));
 }
+
+void __fastcall WaveletCodec_YuvToRgb(u8 *codec, void *, u32 width, u32 height, u32 stride, u8 *dst) {
+    const auto bits = [](X87Reg r) {
+        const float f = (float)r;
+        u32 b;
+        std::memcpy(&b, &f, 4);
+        return b;
+    };
+    const auto k = [](u32 b) {
+        float f;
+        std::memcpy(&f, &b, 4);
+        return X87Reg(f);
+    };
+    const u32 halfH = height >> 1, halfW = width >> 1;
+    global<u32>(0x00fb2768) = halfH;
+    global<u32>(0x00fb276c) = halfW;
+    global<u32>(0x00fb2770) = stride * 2;
+    global<u32>(0x00fb2774) = stride * 4;
+    global<u32>(0x00fb2778) = stride * 8;
+    global<u32>(0x00fb277c) = 0x3fe2d0e5;   // 1.772
+    global<u32>(0x00fb2780) = 0x3fb374bc;   // 1.402
+    global<u32>(0x00fb2784) = 0x3eb03298;   // 0.344136
+    global<u32>(0x00fb2788) = 0x3f36d19e;   // 0.714136
+    global<u32>(0x00fb278c) = 0x4b400080;   // 1.5 * 2^23 + 128
+    global<u32>(0x00fb2790) = width * 3;
+    global<u32>(0x00fb2794) = width * 6;
+    global<u32>(0x00fb2798) = 8 - stride * 4;
+    global<u32>(0x00fb279c) = 6 - width * 3;
+    u8 *const y = at<u8 *>(codec, 0x2c);
+    global<u8 *>(0x00fb27a0) = y;
+    u8 *const cr = at<u8 *>(codec, 0xc);
+    global<u8 *>(0x00fb27a4) = cr;
+    u8 *const cb = at<u8 *>(codec, 0x1c);
+    global<u8 *>(0x00fb27a8) = cb;
+    const u32 diff = (u32)((s32)(cr - cb) >> 2) << 2;
+    global<u32>(0x00fb27ac) = diff;
+    const u8 *const table = reinterpret_cast<const u8 *>(0x00c27008);
+    const X87Reg magic = k(0x4b400080);
+    const auto put = [&](u8 *o, X87Reg b0, X87Reg r0, X87Reg g0, X87Reg b1, X87Reg r1, X87Reg g1) {
+        global<u32>(0x00fb27b0) = bits(b0);
+        global<u32>(0x00fb27b4) = bits(r0);
+        global<u32>(0x00fb27b8) = bits(g0);
+        global<u32>(0x00fb27bc) = bits(b1);
+        global<u32>(0x00fb27c0) = bits(r1);
+        global<u32>(0x00fb27c4) = bits(g1);
+        const u8 c0 = table[global<u32>(0x00fb27b0) & 0x1ff], c1 = table[global<u32>(0x00fb27b8) & 0x1ff];
+        const u8 c2 = table[global<u32>(0x00fb27b4) & 0x1ff], c3 = table[global<u32>(0x00fb27bc) & 0x1ff];
+        const u32 i4 = global<u32>(0x00fb27c4) & 0x1ff, i5 = global<u32>(0x00fb27c0) & 0x1ff;
+        o[0] = c0;
+        o[1] = c1;
+        o[2] = c2;
+        o[3] = c3;
+        o[4] = table[i4];
+        o[5] = table[i5];
+    };
+    u8 *ys = y, *out = dst, *cbs = cb;
+    u32 rows = halfH;
+    do {   // (do-while: a height below 2 runs 2^32 rows, sic)
+        u8 *yp = ys, *o = out, *c = cbs;
+        u32 cols = global<u32>(0x00fb276c);
+        do {
+            const X87Reg a = X87Reg(at<float>(c, 0)) * k(0x3fe2d0e5) + magic;
+            const X87Reg b = X87Reg(at<float>(c, diff)) * k(0x3fb374bc) + magic;
+            const X87Reg g = X87_SubR(X87Reg(at<float>(c, diff)) * k(0x3f36d19e), X87_SubR(X87Reg(at<float>(c, 0)) * k(0x3eb03298), magic));
+            X87Reg y0 = at<float>(yp, 0), y1 = at<float>(yp, 4);
+            put(o, y0 + a, y0 + b, y0 + g, y1 + a, y1 + b, y1 + g);
+            yp += global<u32>(0x00fb2774);
+            o += global<u32>(0x00fb2790);
+            y0 = at<float>(yp, 0);
+            const X87Reg b2 = y0 + a, r2 = y0 + b, g2 = y0 + g;
+            const X87Reg b3 = a + X87Reg(at<float>(yp, 4)), r3 = b + X87Reg(at<float>(yp, 4)), g3 = g + X87Reg(at<float>(yp, 4));
+            put(o, b2, r2, g2, b3, r3, g3);
+            yp += global<u32>(0x00fb2798);
+            o += global<u32>(0x00fb279c);
+            c += 4;
+        } while (--cols != 0);
+        ys += global<u32>(0x00fb2778);
+        out += global<u32>(0x00fb2794);
+        cbs += global<u32>(0x00fb2770);
+    } while (--rows != 0);
+    const u8 *const edge = reinterpret_cast<const u8 *>(0x00c27088);
+    const X87Reg low = k(0xcb400000);   // -1.5 * 2^23
+    const auto pixel = [&](u8 *o, const u8 *yp, const u8 *cbp, const u8 *crp) {
+        const X87Reg yv = at<float>(yp, 0), e = at<float>(cbp, 0), c = at<float>(crp, 0);
+        o[0] = edge[bits(X87_SubR(e * k(0xbfe2d0e5), yv) - low) & 0x1ff];
+        const u32 red = bits(X87_SubR(c * k(0xbfb374bc), yv) - low);
+        const u32 green = bits(X87_SubR(e * k(0x3eb03298), yv) - c * k(0x3f36d19e) - low);
+        o[1] = edge[green & 0x1ff];
+        o[2] = edge[red & 0x1ff];
+    };
+    if (width & 1) {
+        const u8 *yp = y + width * 4 - 4, *crp = cr + halfW * 4 - 4, *cbp = cb + halfW * 4 - 4;
+        u8 *o = dst + width * 3 - 3;
+        const u32 step = stride >> 1;
+        for (s32 i = 0; i < (s32)height; ++i) {
+            pixel(o, yp, cbp, crp);
+            yp += stride * 4;
+            if (i & 1) {
+                crp += step * 4;
+                cbp += step * 4;
+            }
+            o += width * 3;
+        }
+    }
+    if (height & 1) {
+        const u32 last = height - 1;
+        const u8 *yp = y + stride * last * 4;
+        const u32 off = ((halfH - 1) * stride >> 1) << 2;
+        const u8 *cbp = cb + off, *crp = cr + off;
+        u8 *o = dst + width * last * 3;
+        for (s32 j = 0; j < (s32)width; ++j) {
+            pixel(o, yp, cbp, crp);
+            yp += 4;
+            if (j & 1) {
+                crp += 4;
+                cbp += 4;
+            }
+            o += 3;
+        }
+    }
+}
 }
