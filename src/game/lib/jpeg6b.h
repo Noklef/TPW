@@ -108,6 +108,36 @@ unsigned char __cdecl jdphuff_decode_mcu_AC_refine(jpeg_decompress_struct *cinfo
 // 0x645270: process_restart: as jdhuff.c's, the EOB run emptied too.
 unsigned char __cdecl jdphuff_process_restart(jpeg_decompress_struct *cinfo);
 
+// jdcoefct.c (through wrap/jpeg-6b/jdcoefct.c): the coefficient buffer controller between the entropy decoder and the IDCT.
+// cinfo->coef is its my_coef_controller (pub (start_input_pass, consume_data, start_output_pass, decompress_data, coef_arrays),
+// MCU_ctr +0x14, MCU_vert_offset +0x18, MCU_rows_per_iMCU_row +0x1c, MCU_buffer[10] +0x20, whole_image[10] +0x48,
+// coef_bits_latch +0x70; 0x74 bytes). The decompress methods take (cinfo, output_buf) and answer JPEG_SUSPENDED (0),
+// JPEG_ROW_COMPLETED (3) or JPEG_SCAN_COMPLETED (4).
+// 0x643240: the module's init (a shim, jpeg6b.cpp): with a full buffer, each component's virtual block array
+// (mem->request_virt_barray) and the multi-scan methods, else one MCU's blocks (mem->alloc_large) and the one-pass ones.
+void __cdecl jinit_d_coef_controller(jpeg_decompress_struct *cinfo, unsigned char need_full_buffer);
+// 0x643350: start_input_pass: input_iMCU_row zeroed, then start_iMCU_row.
+void __cdecl jdcoefct_start_input_pass(jpeg_decompress_struct *cinfo);
+// 0x643370: the iMCU row's MCU rows (1 for an interleaved scan, else the component's v_samp_factor or last_row_height), the
+// counters zeroed.
+void __cdecl jdcoefct_start_iMCU_row(jpeg_decompress_struct *cinfo);
+// 0x6433d0: start_output_pass (a shim, jpeg6b.cpp): with the virtual arrays, decompress_data or (do_block_smoothing and
+// smoothing_ok) decompress_smooth_data; output_iMCU_row zeroed.
+void __cdecl jdcoefct_start_output_pass(jpeg_decompress_struct *cinfo);
+// 0x643420: a single-scan iMCU row: each MCU zeroed, decoded (entropy->decode_mcu) and its needed blocks through the IDCT.
+int __cdecl jdcoefct_decompress_onepass(jpeg_decompress_struct *cinfo, unsigned char ***output_buf);
+// 0x643680: a multi-scan iMCU row decoded into the virtual arrays (mem->access_virt_barray, writable).
+int __cdecl jdcoefct_consume_data(jpeg_decompress_struct *cinfo);
+// 0x643890: input consumed up to the output row (inputctl->consume_input), then each needed component's blocks of the
+// output iMCU row through the IDCT.
+int __cdecl jdcoefct_decompress_data(jpeg_decompress_struct *cinfo, unsigned char ***output_buf);
+// 0x643a40: progressive with coef_bits, every component's quant_table entries 0, 1, 2, 8, 9 and 16 nonzero, its DC known:
+// coef_bits 1-5 latched (alloc_small once), TRUE if any is nonzero.
+unsigned char __cdecl jdcoefct_smoothing_ok(jpeg_decompress_struct *cinfo);
+// 0x643b70: as decompress_data, with the zero low-frequency AC coefficients estimated from the neighbouring blocks' DC values
+// (JPEG K.8) in a copy of each block (jcopy_block_row) before the IDCT.
+int __cdecl jdcoefct_decompress_smooth_data(jpeg_decompress_struct *cinfo, unsigned char ***output_buf);
+
 // jdmainct.c (through wrap/jpeg-6b/jdmainct.c): the main buffer controller between the coefficient controller and the
 // postprocessor. cinfo->main is its my_main_controller (pub, buffer[10] +8, buffer_full +0x30, rowgroup_ctr +0x34, xbuffer[2] +0x38,
 // whichptr +0x40, context_state +0x44, rowgroups_avail +0x48, iMCU_row_ctr +0x4c; 0x50 bytes). M is min_DCT_scaled_size, a

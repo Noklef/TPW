@@ -43,6 +43,9 @@ static_assert(offsetof(jpeg_decompress_struct, post) == 0x18c, "cinfo->post (jdp
 static_assert(offsetof(jpeg_decompress_struct, main) == 0x184, "cinfo->main (jdmainct.c's my_main_controller)");
 static_assert(offsetof(jpeg_decompress_struct, coef) == 0x188, "cinfo->coef (the main controller's decompress_data)");
 static_assert(offsetof(jpeg_decompress_struct, min_DCT_scaled_size) == 0x118, "cinfo->min_DCT_scaled_size (the row groups)");
+static_assert(offsetof(jpeg_decompress_struct, inputctl) == 0x190, "cinfo->inputctl (the coefficient controller's consume_input)");
+static_assert(offsetof(jpeg_decompress_struct, idct) == 0x19c, "cinfo->idct (the coefficient controller's inverse_DCT)");
+static_assert(offsetof(jpeg_decompress_struct, Ss) == 0x16c, "cinfo->Ss (decompress_smooth_data)");
 static_assert(offsetof(jpeg_decompress_struct, cquantize) == 0x1a8, "cinfo->cquantize (the post-processor's color_quantize)");
 
 // The method-address shim. Every module's init (and jddctmgr.c's start_pass) stores the addresses of its methods in the structs the
@@ -67,6 +70,9 @@ void __cdecl jdpostct_lib_jinit_d_post_controller(j_decompress_ptr cinfo, boolea
 void __cdecl jdpostct_lib_start_pass_dpost(j_decompress_ptr cinfo, J_BUF_MODE pass_mode);
 void __cdecl jdmainct_lib_jinit_d_main_controller(j_decompress_ptr cinfo, boolean need_full_buffer);
 void __cdecl jdmainct_lib_start_pass_main(j_decompress_ptr cinfo, J_BUF_MODE pass_mode);
+void __cdecl jdcoefct_lib_jinit_d_coef_controller(j_decompress_ptr cinfo, boolean need_full_buffer);
+void __cdecl jdcoefct_lib_start_output_pass(j_decompress_ptr cinfo);
+int __cdecl jdcoefct_dummy_consume_data(j_decompress_ptr cinfo);  // (not a hook: its exe copy is a shared return 0)
 void __cdecl jpeg_idct_float(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, short *coef_block, unsigned char **output_buf,
                              unsigned int output_col);
 }
@@ -131,6 +137,14 @@ const ExeMethod kExeMethods[] = {
     {fn(&jdmainct_process_data_simple_main), 0x642ea0},
     {fn(&jdmainct_process_data_context_main), 0x642f10},
     {fn(&jdmainct_process_data_crank_post), 0x643210},
+    // jdcoefct.c (its dummy_consume_data, a bare JPEG_SUSPENDED, is the exe's 0x66f4d0: a return 0 the linker shares)
+    {fn(&jdcoefct_start_input_pass), 0x643350},
+    {fn(&jdcoefct_lib_start_output_pass), 0x6433d0},
+    {fn(&jdcoefct_decompress_onepass), 0x643420},
+    {fn(&jdcoefct_consume_data), 0x643680},
+    {fn(&jdcoefct_decompress_data), 0x643890},
+    {fn(&jdcoefct_decompress_smooth_data), 0x643b70},
+    {fn(&jdcoefct_dummy_consume_data), 0x66f4d0},
 };
 
 // The method pointer at slot: the exe's address in place of a library method's (anything else is left as it is).
@@ -219,5 +233,18 @@ void __cdecl jinit_d_main_controller(j_decompress_ptr cinfo, boolean need_full_b
 void __cdecl jdmainct_start_pass_main(j_decompress_ptr cinfo, int pass_mode) {
     jdmainct_lib_start_pass_main(cinfo, static_cast<J_BUF_MODE>(pass_mode));
     exe_method(cinfo->main->process_data);
+}
+
+void __cdecl jinit_d_coef_controller(j_decompress_ptr cinfo, boolean need_full_buffer) {
+    jdcoefct_lib_jinit_d_coef_controller(cinfo, need_full_buffer);
+    exe_method(cinfo->coef->start_input_pass);
+    exe_method(cinfo->coef->consume_data);
+    exe_method(cinfo->coef->start_output_pass);
+    exe_method(cinfo->coef->decompress_data);
+}
+
+void __cdecl jdcoefct_start_output_pass(j_decompress_ptr cinfo) {
+    jdcoefct_lib_start_output_pass(cinfo);
+    exe_method(cinfo->coef->decompress_data);
 }
 }

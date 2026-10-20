@@ -4887,6 +4887,15 @@ const Hook kHooks[] = {
     {"jdmainct_start_pass_main",  0x00642cc0, (void *)&jdmainct_start_pass_main, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"jdmainct_alloc_funny_pointers", 0x00642c10, (void *)&jdmainct_alloc_funny_pointers, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"jinit_d_main_controller",   0x00642b30, (void *)&jinit_d_main_controller, {0x53, 0x55, 0x56, 0x8b, 0x74}},
+    {"jdcoefct_decompress_smooth_data", 0x00643b70, (void *)&jdcoefct_decompress_smooth_data, {0x81, 0xec, 0x04, 0x01, 0x00}},
+    {"jdcoefct_smoothing_ok",     0x00643a40, (void *)&jdcoefct_smoothing_ok, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"jdcoefct_decompress_data",  0x00643890, (void *)&jdcoefct_decompress_data, {0x83, 0xec, 0x20, 0x53, 0x55}},
+    {"jdcoefct_consume_data",     0x00643680, (void *)&jdcoefct_consume_data, {0x83, 0xec, 0x30, 0x53, 0x55}},
+    {"jdcoefct_decompress_onepass", 0x00643420, (void *)&jdcoefct_decompress_onepass, {0x83, 0xec, 0x38, 0x53, 0x55}},
+    {"jdcoefct_start_output_pass", 0x006433d0, (void *)&jdcoefct_start_output_pass, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jdcoefct_start_iMCU_row",   0x00643370, (void *)&jdcoefct_start_iMCU_row, {0x8b, 0x4c, 0x24, 0x04, 0x56}},
+    {"jdcoefct_start_input_pass", 0x00643350, (void *)&jdcoefct_start_input_pass, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"jinit_d_coef_controller",   0x00643240, (void *)&jinit_d_coef_controller, {0x53, 0x55, 0x57, 0x8b, 0x7c}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
