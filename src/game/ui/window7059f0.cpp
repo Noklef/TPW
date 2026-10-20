@@ -8,6 +8,7 @@
 #include "../core/gameheap.h"
 #include "../core/initializers.h"
 #include "../core/selectors.h"
+#include "../core/string.h"
 #include "../core/vcall.h"
 #include "guirect.h"
 #include "window.h"
@@ -245,6 +246,25 @@ void __fastcall Window7059f0_Select(u8 *window, void *, s32 row) {
     at<u8 *>(event, 0x14) = rect;
     vcall<void>(at<u8 *>(window, 0x174), 0xc, 0x10u, event);
     GuiRect_Dtor(rect);
+}
+
+s32 __fastcall Window7059f0_FindText(u8 *window, void *, const u16 *text, s32 column) {
+    s32 item = Window7059f0_NthItem(window, nullptr, 0), position = -1, found = -1;
+    bool done = false;
+    if (column < 1) column = 1;
+    if (column > at<s16>(window, 0x164)) column = at<s16>(window, 0x164);
+    --column;
+    if (!at<u8 *>(window, 0x16c) || Window7059f0_ColumnBottom(window, nullptr, (u32)column) != 0) return found;
+    while (item != -1 && !done && position < at<s32>(window, 0x150) - 1) {
+        ++position;
+        const u8 *const cell = reinterpret_cast<const u8 *>((uintptr_t)(u32)at<s32 *>(window, 0x144)[item + column + 4]);
+        if (WString_CompareText(cell, nullptr, text) == 0) {
+            done = true;
+            found = position;
+        }
+        item = Window7059f0_NextItem(window, nullptr, item, nullptr);
+    }
+    return found;
 }
 
 void __fastcall Window7059f0_RefreshRows(u8 *window) {

@@ -94,6 +94,11 @@ void __fastcall Window7059f0_FreeItem(u8 *window, void *, u32 unused, s32 item, 
 // * (selection - +0x154), the bottom one row further (32-bit, wrapping).
 void __fastcall Window7059f0_Select(u8 *window, void *, s32 row);
 
+// 0x664db7 (thiscall (text, column), pops 8; name unconfirmed): the position (from 0) of the first item from the first shown one whose
+// cell in the column (1 to the columns +0x164, clamped; from 1) is a wide string equal to text (WString_CompareText), stepping as
+// Window7059f0_FindItemData; -1 when none, without columns +0x16c or when that column's bottom (Window7059f0_ColumnBottom) is not 0.
+s32 __fastcall Window7059f0_FindText(u8 *window, void *, const u16 *text, s32 column);
+
 // 0x663324 (thiscall; name unconfirmed): with the row window array +0x148 set, the rows (+0x172, signed) refreshed from the item +0x154
 // on (Window7059f0_NthItem), its level the number of its parents: each row window shown (Window_SetShown) when the list is
 // (Window_IsShown) and the row is below the count +0x150 (row + +0x154, signed); for such a row each of the columns (+0x164, signed),

@@ -16,7 +16,8 @@
 # counted buffers or none) or 0, some items free, the column bottoms 0 or not, the heap; the item any, previous its true one mostly,
 # siblings 0 or not (0x100 too: a dword). Select (0x66525c): the queues, 0xfaa5d4 set or not, a shown or hidden parent (or none), the
 # highlight a recorder (its event's rectangle hashed) or none, the rows / count / first small or negative, the row in and around them,
-# the selection the row's, none or any; +0x48's flag 0x100 random.
+# the selection the row's, none or any; +0x48's flag 0x100 random. FindText (0x664db7): items() of 4 + 0-3 columns (-1 now and then),
+# their cells 16 wide strings of six texts (some without data), the column bottoms mostly 0, the column 1-4 or past either end.
 # usage: window7059f0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ColumnBottom,NextItem,...)
 import os
 import struct
@@ -30,16 +31,20 @@ from window import MISC, OBJECT98, RANGES, VTABLE, notify_blobs, notify_env, que
 
 CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'SetNthItemData': 0x664b68, 'SetRowHeight': 0x664ba8,
          'FindItemData': 0x664d2a, 'RefreshRows': 0x663324, 'ResetItems': 0x663085, 'RootEnd': 0x663cb8, 'FitBar': 0x664495,
-         'FreeItem': 0x664605, 'Select': 0x66525c}
+         'FreeItem': 0x664605, 'Select': 0x66525c, 'FindText': 0x664db7}
 B = Bench(RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
                     (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707),
                     (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508),
                     (0x664605, 0x6647cb), (0x47db20, 0x47db80),
-                    (0x66525c, 0x665494), (0x659d43, 0x659d90)])
+                    (0x66525c, 0x665494), (0x659d43, 0x659d90), (0x664db7, 0x664ea3), (0x4f7870, 0x4f7910), (0x665f30, 0x665f71),
+                    (0x67acd0, 0x67ad00), (0x45b380, 0x45b5f0), (0x45b680, 0x45b9b0), (0x67bb90, 0x67bd98), (0x67d250, 0x67d2c0),
+                    (0x67d3a0, 0x67d400), (0x6918f0, 0x691a30), (0x691ba0, 0x691ce0)])
 WINDOW, COLUMNS, LINKS, OUT = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x800
 LIST, LINKS2, COLS2, CELLS, ROWS2, ROWWINS = RAM + 0x9000, RAM + 0x9420, RAM + 0x9e00, RAM + 0x9f00, RAM + 0x9c00, RAM + 0xb000
 BAR, OBJS, BUFS = RAM + 0xd000, RAM + 0x1000, RAM + 0x1200
 HILITE, HVT, OWNER = RAM + 0xe000, RAM + 0xe100, RAM + 0xe400
+WSTRS, WCHARS = RAM + 0x1000, RAM + 0x1400
+ALPHA = [0x41, 0x42, 0x100, 0xffff]
 
 
 def none(r):
@@ -245,6 +250,33 @@ def select_case(r):
     return Call(CALLS['Select'], [WINDOW, row & 0xffffffff], regions, conv='t', ret='v')
 
 
+def text_case(r, window, regions):
+    """FindText (0x664db7): see the top"""
+    ncols = r.choice([0, 1, 2, 3])
+    put(window, 0x164, 'h', r.choice([ncols] * 5 + [-1]))
+    regions[COLUMNS - 0x20] = b''.join(put(bytearray(r.bytes(0xc)), 0xa, 'h', r.choice([0, 0, 0, 1])) for _ in range(6))
+    put(window, 0x16c, 'I', COLUMNS if r.random() < 0.95 else 0)
+    texts = [tuple(r.choice(ALPHA) for _ in range(r.choice([0, 1, 2, 3]))) for _ in range(6)]
+    chars, strs = bytearray(0x20 * 16), bytearray(r.bytes(0x10 * 16))
+    for j in range(16):
+        t = r.choice(texts)
+        struct.pack_into('<%dH' % len(t), chars, 0x20 * j, *t)
+        put(strs, 0x10 * j + 4, 'II', WCHARS + 0x20 * j if t or r.random() < 0.5 else 0, len(t))
+    regions[WSTRS], regions[WCHARS] = strs, chars
+    idx = items(r, window, regions, stride=4 + max(ncols, 1))
+    links = bytearray(regions[LINKS])
+    for i in idx:
+        for c in range(max(ncols, 1)):
+            put(links, 4 * (i + 4 + c), 'I', WSTRS + 0x10 * r.randrange(16))
+    regions[LINKS] = links
+    put(window, 0x150, 'i', r.choice([len(idx), len(idx), 0, 1, r.randrange(len(idx) + 1), len(idx) + 2]))
+    put(window, 0x160, 'i', r.choice(idx + [idx[0], -1]))
+    text = r.choice(texts + [(0x42, 0x41, 0x41, 0x41)])
+    regions[WCHARS + 0x200] = struct.pack('<%dH' % (len(text) + 1), *text, 0)
+    column = r.choice([0, 1, 2, 3, 4, -1, 0x7fffffff, -0x80000000])
+    return Call(CALLS['FindText'], [WINDOW, WCHARS + 0x200, column & 0xffffffff], regions, conv='t', ret='a')
+
+
 def bar_case(r):
     """FitBar (0x664495): see the top"""
     log = log_region()
@@ -297,6 +329,8 @@ def case(r):
         return Call(CALLS[op], [WINDOW], regions, conv='t', ret='v')
     if op == 'FreeItem':
         return free_case(r, window, regions)
+    if op == 'FindText':
+        return text_case(r, window, regions)
     idx = items(r, window, regions)
     if op == 'RootEnd':   # (some items free: their parent -2; the outputs' old values random)
         links = bytearray(regions[LINKS])

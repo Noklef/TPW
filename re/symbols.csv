@@ -5149,6 +5149,7 @@ address,name,kind,confidence,notes
 0x00664495,Window7059f0_FitBar,function,low,"reimplemented (src/game/ui/window7059f0); cdecl (bar, count, rows, first): the scroll bar shown with range count - rows and slot 7 first when count > rows, else hidden with range 0"
 0x00664605,Window7059f0_FreeItem,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (unused, item, previous, siblings): the item (its children, its siblings with the flag) freed, its cells deleted, moved after the last used root item"
 0x0066525c,Window7059f0_Select,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (row): the row selected (+0x14c = +0x154 + row, or -1), the highlight +0x174 shown or hidden and given the row's rectangle, the parent posted 0x401"
+0x00664db7,Window7059f0_FindText,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (text, column): the position of the first item from the first shown one whose cell in the column (from 1, clamped) is a wide string equal to text; -1"
 0x0065fbf0,WindowScript_ReadDword,function,low,reimplemented (src/game/ui/windowscript); a window script's next dword (two words)
 0x0065fc18,WindowScript_ReadWord,function,low,reimplemented (src/game/ui/windowscript); a window script's next word
 0x0065fc38,WindowScript_ReadRect,function,low,reimplemented (src/game/ui/windowscript); a window script's next four words to four outputs
