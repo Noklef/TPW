@@ -9,6 +9,7 @@
 #include "../core/funnytime.h"
 #include "../core/gameheap.h"
 #include "../core/initializers.h"
+#include "../core/savegame.h"
 #include "../math/x87.h"
 #include "../model/stripanim.h"
 #include "objectdefs.h"
@@ -16,6 +17,7 @@
 #include "mapcell.h"
 #include "ridelist.h"
 #include "money.h"
+#include "things.h"
 #include "world.h"
 
 namespace {
@@ -519,5 +521,57 @@ void __fastcall Object_ResetCondition(u8 *object) {
     at<float>(object, 0x44) = 100.0f;
     at<u16>(object, 0x5e) = 0;
     at<u32>(object, 0x64) = 0;
+}
+
+u32 __fastcall Object_Serialize(u8 *object, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    if (Thing_Serialize(object, nullptr, stream, save, version, unused) != 0)
+        return 1;
+    if (version < 0 || version > 1)
+        return 0;
+    if (!Save_Field(stream, save, object + 0x10, 4, 0x0075b614) || !Save_Field(stream, save, object + 0xe, 2, 0x0075b610))
+        return 1;
+    // the date (+0x18) as a SYSTEMTIME's eight fields (year, month, day, day of the week, hour, minute, second, ms) in dwords
+    u32 date[8] = {};
+    s32 result;
+    if (save != 0)
+        FileTime_ToSystemTime(reinterpret_cast<FileTime *>(object + 0x18), nullptr, &result, &date[0], &date[1], &date[2], &date[3], &date[4], &date[5],
+                              &date[6], &date[7]);  // (on a failure the original saves its stack's dwords)
+    for (u32 i = 0; i < 8; ++i)
+        if (!Save_Field(stream, save, &date[i], 4, 0x0075b608))
+            return 1;
+    if (save == 0)
+        FileTime_FromSystemTime(reinterpret_cast<FileTime *>(object + 0x18), nullptr, &result, date[0], date[1], date[2], date[4], date[5], date[6],
+                                date[7]);
+    static const SaveSpec kHead[] = {{0x20, 4, 0x0075b5f8}, {0x32, 2, 0x0075a080}};
+    if (!Save_Fields(stream, save, object, kHead, 2))
+        return 1;
+    for (u32 i = 0; i < 0x21; ++i)  // mNameA[i] and mNameB[i], a pair at a time
+        if (!Save_Field(stream, save, object + 0x3c8 + i * 2, 2, 0x0075b5ec) || !Save_Field(stream, save, object + 0x40a + i * 2, 2, 0x0075b5e0))
+            return 1;
+    static const SaveSpec kIds[] = {{0x24, 4, 0x0075b5cc}, {0x28, 4, 0x0075b5b8}, {0x19c, 4, 0x0075b5b0}, {0x34, 2, 0x0075b5a4}, {0x36, 2, 0x0075b598},
+                                    {0xc, 2, 0x0075a4f4},  {0x5e, 2, 0x0075b580}, {0x3a, 2, 0x0075b570},  {0x68, 4, 0x0075b564}, {0x38, 2, 0x0075b558},
+                                    {0x3c, 2, 0x0075b54c}, {0x2c, 4, 0x0075b538}, {0x30, 2, 0x0075b528}};
+    if (!Save_Fields(stream, save, object, kIds, 13))
+        return 1;
+    // the histories (the save path inlines CircBufU32_30_Serialize) with the customer and walk-away counts among them
+    if (CircBufU32_30_Serialize(object + 0xf8, nullptr, stream, save, version, unused) != 0 ||
+        CircBufU32_30_Serialize(object + 0x70, nullptr, stream, save, version, unused) != 0 || !Save_Field(stream, save, object + 0x1a0, 4, 0x0075b518) ||
+        CircBufU32_30_Serialize(object + 0x1a8, nullptr, stream, save, version, unused) != 0 || !Save_Field(stream, save, object + 0x1a4, 4, 0x0075b508) ||
+        CircBufU32_30_Serialize(object + 0x230, nullptr, stream, save, version, unused) != 0 ||
+        CircBufU32_30_Serialize(object + 0x2b8, nullptr, stream, save, version, unused) != 0 ||
+        CircBufU32_30_Serialize(object + 0x340, nullptr, stream, save, version, unused) != 0)
+        return 1;
+    static const SaveSpec kGoods[] = {{0x5d, 1, 0x0075b4f4},  {0x5c, 1, 0x0075b4e0},  {0x58, 4, 0x0075b4d0},  {0x6c, 2, 0x0075b4bc},
+                                      {0x188, 4, 0x0075b4ac}, {0x18c, 4, 0x0075b49c}, {0x190, 4, 0x0075b488}, {0x194, 4, 0x0075b478}};
+    if (!Save_Fields(stream, save, object, kGoods, 8))
+        return 1;
+    if (save == 0) {  // the price per use loaded is held to 0..500
+        s32 &price = at<s32>(object, 0x194);
+        price = price < 0 ? 0 : price > 500 ? 500 : price;
+    }
+    static const SaveSpec kTail[] = {{0x198, 4, 0x0075b45c},     {0x40, 4, 0x0075b448},  {0x4c, 4, kSaveStatName}, {0x48, 4, kSaveStatName},
+                                     {0x44, 4, kSaveStatName},   {0x64, 4, 0x0075b430},  {0x60, 4, 0x0075b414},    {0x184, 4, 0x0075b408},
+                                     {0x180, 4, 0x0075b3f8},     {0x54, 4, 0x0075b3e0},  {0x50, 1, 0x0075b3d0}};
+    return Save_StatFields(stream, save, object, kTail, 11) ? 0 : 1;
 }
 }

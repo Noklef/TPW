@@ -194,7 +194,7 @@ address,name,kind,confidence,notes
 0x004d4460,Entertainer_Serialize,function,high,thing model 6
 0x004d6000,Guard_Serialize,function,high,thing model 7
 0x00502760,Researcher_Serialize,function,high,thing model 8
-0x004db7d0,Object_Serialize,function,high,"thing model 3: rides, shops, facilities"
+0x004db7d0,Object_Serialize,function,high,"reimplemented (src/game/world/object); thiscall: an object: Thing_Serialize, then (version 0..1) its fields saved or loaded: the date as SYSTEMTIME dwords, the names, the six histories, the price held to 0..500 on load, three stats as the float of their __ftol's low byte"
 0x00508bb0,StaffHQ_Serialize,function,high,"reimplemented (src/game/world/headquarters); thiscall (stream, save, version, unused): the thing's fields, mForceStrike, mStaffMemberPickedUp, mStrikeLevel[5], then the training record"
 0x0050c640,StaffTraining_Serialize,function,high,"reimplemented (src/game/world/staff); thiscall (stream, save, version, unused): the five training budgets and the ever-trained byte saved or loaded"
 0x004da960,MechanicHQ_Serialize,function,high,"reimplemented (src/game/world/headquarters); thiscall (stream, save, version, unused): the thing's fields, then mNextObject"

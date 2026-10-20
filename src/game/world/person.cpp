@@ -29,31 +29,6 @@ void set100(void *p, X87Reg v) {
         at<float>(p, 0) = (float)v.v;
 }
 
-// The name the person serializers give their 0..100 stats (floats): saved as the float of their __ftol's low byte, loaded into a temporary and
-// stored only when read whole.
-constexpr u32 kStatName = 0x0075b444;
-
-// Save_Fields, with the stats (the fields named kStatName) as above.
-bool PersonFields(Stream *stream, u32 save, u8 *person, const SaveSpec *spec, u32 count) {
-    for (u32 i = 0; i < count; ++i) {
-        const SaveSpec &f = spec[i];
-        if (f.name != kStatName) {
-            if (!Save_Field(stream, save, person + f.at, f.size, f.name))
-                return false;
-        } else if (save != 0) {
-            float stat = (float)(u8)(long long)at<float>(person, f.at);
-            if (!Save_Field(stream, save, &stat, 4, kStatName))
-                return false;
-        } else {
-            u32 value = 0;
-            if (!Save_Field(stream, 0, &value, 4, kStatName))
-                return false;
-            at<u32>(person, f.at) = value;
-        }
-    }
-    return true;
-}
-
 }  // namespace
 
 extern "C" {
@@ -239,18 +214,18 @@ u32 __fastcall Visitor_Serialize(u8 *visitor, void *, Stream *stream, u32 save, 
     if (version < 0 || version > 1)
         return 0;
     static const SaveSpec kHead[] = {{0x1d4, 4, 0x0075d380}, {0x1d8, 4, 0x0075d370}, {0x210, 4, 0x0075d360}, {0x1f8, 4, 0x0075d350}, {0x1a0, 4, 0x0075d348},
-                                     {0x1bc, 4, 0x0075d33c}, {0x19c, 4, kStatName},  {0x1a8, 4, kStatName},  {0x218, 4, 0x0075d330}, {0x21c, 4, 0x0075d324},
-                                     {0x1b4, 4, kStatName},  {0x1dc, 2, 0x0075d318}, {0x1c4, 4, 0x0075d30c}, {0x1c8, 4, 0x0075d300}, {0x1cc, 4, 0x0075d2f0},
+                                     {0x1bc, 4, 0x0075d33c}, {0x19c, 4, kSaveStatName},  {0x1a8, 4, kSaveStatName},  {0x218, 4, 0x0075d330}, {0x21c, 4, 0x0075d324},
+                                     {0x1b4, 4, kSaveStatName},  {0x1dc, 2, 0x0075d318}, {0x1c4, 4, 0x0075d30c}, {0x1c8, 4, 0x0075d300}, {0x1cc, 4, 0x0075d2f0},
                                      {0x1d0, 4, 0x0075d2dc}, {0x204, 4, 0x0075d2cc}, {0x200, 4, 0x0075d2b4}, {0x1f0, 1, 0x0075d2a8}, {0x1c0, 1, 0x0075d298}};
     static const SaveSpec kTail[] = {{0x228, 2, 0x0075d260}, {0x22a, 2, 0x0075d258}, {0x1f4, 4, 0x0075d248}, {0x1f1, 1, 0x0075d23c}, {0x214, 4, 0x0075d224},
-                                     {0x1de, 2, 0x0075d214}, {0x224, 4, 0x0075d208}, {0x220, 4, 0x0075b5b0}, {0x1a4, 4, kStatName},  {0x208, 4, 0x0075d1f4},
-                                     {0x1fc, 4, 0x0075d1e0}, {0x1b8, 4, kStatName},  {0x1ac, 4, kStatName},  {0x1b0, 4, kStatName}};
-    if (!PersonFields(stream, save, visitor, kHead, 20))
+                                     {0x1de, 2, 0x0075d214}, {0x224, 4, 0x0075d208}, {0x220, 4, 0x0075b5b0}, {0x1a4, 4, kSaveStatName},  {0x208, 4, 0x0075d1f4},
+                                     {0x1fc, 4, 0x0075d1e0}, {0x1b8, 4, kSaveStatName},  {0x1ac, 4, kSaveStatName},  {0x1b0, 4, kSaveStatName}};
+    if (!Save_StatFields(stream, save, visitor, kHead, 20))
         return 1;
     for (u32 i = 0; i < 4; ++i)  // the previous rides and the previous temporary rides, a pair at a time
         if (!Save_Field(stream, save, visitor + 0x1e0 + i * 2, 2, 0x0075d284) || !Save_Field(stream, save, visitor + 0x1e8 + i * 2, 2, 0x0075d268))
             return 1;
-    return PersonFields(stream, save, visitor, kTail, 14) ? 0 : 1;
+    return Save_StatFields(stream, save, visitor, kTail, 14) ? 0 : 1;
 }
 
 u32 __fastcall Visitor_IsState6To10(const u8 *visitor) {

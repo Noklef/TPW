@@ -6,6 +6,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../files/file.h"
 
 extern "C" {
 
@@ -176,4 +177,15 @@ u32 __fastcall Object_HistoryAverage(const u8 *object);
 // +7) has spread record 6 taken back and record 1 spread (Map_SpreadRemove, Map_SpreadAdd on [0x8023a0]); then its ride record's (Rides_FindById of +0x24) element 8
 // is set to 0, +0x44 = 100.0, the word +0x5e and the dword +0x64 = 0.
 void __fastcall Object_ResetCondition(u8 *object);
+
+// 0x4db7d0 (thiscall; stream, save, version, unused): an object: Thing_Serialize first (1 if it fails); for a version of 0..1 then, saved or loaded as
+// a serializer does (Save_Field; the load through the readers): mAngle, mId, the date +0x18 as a SYSTEMTIME's eight fields in dwords (saved from
+// FileTime_ToSystemTime, loaded into FileTime_FromSystemTime, the day of the week skipped), MeshInstanceID, mFlags, mNameA[i] and mNameB[i] for each
+// of the 33, mRideScriptHandle, mTrackRideHandle, mState, mTopLeft, mEntryPos, mNext, mAssignedStaffMember, mBackOfQueue, mCanLoad, mExitPos,
+// mFirstInQ, mIsTrackRideValid, mUpgradeParent, the histories mHist1 and mHist0 (CircBufU32_30_Serialize), mNumCustomers, mHist2, mNumWalkAways,
+// mHist3, mHist4, mHist5, mOperatingCapacity, mOperatingDuration, mOperatingSpeed, mPersonBeingLoaded, mCostOfGoods, mQualityOfGoods,
+// mChanceOfWinning, mPricePerUse (loaded: held to 0..500, signed), mAmountOfSpecialIngredient, mQueueSizeInCells, the stats +0x4c, +0x48, +0x44
+// (Save_StatFields), mRequestedService, mTimeMarkedForMaintenance, mTotalCosts, mTotalTakings, mUpgradeBalloonSprite and mUpgradeLevel (re/types.h's
+// Object). 1 at the first that fails, else 0.
+u32 __fastcall Object_Serialize(u8 *object, void *, Stream *stream, u32 save, s32 version, u32 unused);
 }
