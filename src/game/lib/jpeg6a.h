@@ -243,6 +243,51 @@ void __cdecl jpeg6a_jcdctmgr_forward_DCT_float(jpeg6a_compress_struct *cinfo, jp
                                                unsigned int start_col, unsigned int num_blocks);
 void __cdecl jpeg6a_jpeg_fdct_float(float *data);  // (jfdctflt.c: built, unhooked)
 
+// jchuff.c, the sequential Huffman encoder, through third_party/wrap/jpeg-6a/jchuff.c (with ENTROPY_OPT_SUPPORTED, as the exe's).
+// jpeg6a_c_derived_tbl is jchuff.h's c_derived_tbl (untagged), 0x500 bytes (ehufco[256], ehufsi[256]); jpeg6a_huff_working_state
+// jchuff.c's working_state (untagged), 0x24 bytes: next_output_byte, free_in_buffer, put_buffer +8, put_bits +0xc, last_dc_val[4]
+// +0x10, cinfo +0x20.
+struct jpeg6a_c_derived_tbl;
+struct jpeg6a_huff_working_state;
+// 0x6510e0: htbl's codes and lengths by symbol (codes assigned in order of length, from bits[1..16]) into *pdtbl, allocated
+// (alloc_small of the image pool) when null; ehufsi zeroed first, so a symbol without a code has length 0.
+void __cdecl jpeg6a_jpeg_make_c_derived_tbl(jpeg6a_compress_struct *cinfo, jpeg6a_huff_tbl *htbl, jpeg6a_c_derived_tbl **pdtbl);
+// 0x6512ad: the optimal table for the symbol counts freq[0..255] (freq[256] set to 1 and the counts merged as it goes): code
+// lengths over 16 folded into shorter ones (JERR_HUFF_CLEN_OVERFLOW 0x26 past 32), the reserved code removed, bits and huffval
+// into htbl, sent_table FALSE.
+void __cdecl jpeg6a_jpeg_gen_optimal_table(jpeg6a_compress_struct *cinfo, jpeg6a_huff_tbl *htbl, long *freq);
+// 0x651772: cinfo->entropy (alloc_small of the image pool, 0x6c), start_pass start_pass_huff (through the method shim, jpeg6a.cpp),
+// no derived tables or counts yet.
+void __cdecl jpeg6a_jinit_huff_encoder(jpeg6a_compress_struct *cinfo);
+// 0x6517f9 (static, through the shim as jinit_huff_encoder): encode_mcu and finish_pass for gathering statistics or encoding; for
+// each component in the scan its DC and AC tables checked (JERR_NO_HUFF_TABLE 0x31 out of range, or missing when encoding) and
+// derived, or its counts allocated once and zeroed; the DC predictions, the bit buffer and the restart count reset.
+void __cdecl jpeg6a_jchuff_start_pass_huff(jpeg6a_compress_struct *cinfo, int gather_statistics);
+// 0x651f05 (static): dest->empty_output_buffer and the state's buffer from dest; FALSE when it suspends.
+int __cdecl jpeg6a_jchuff_dump_buffer(jpeg6a_huff_working_state *state);
+// 0x651db5 (static): size bits of code into the bit buffer (JERR_HUFF_MISSING_CODE 0x27 for size 0), whole bytes out with a 0
+// stuffed after each 0xFF; FALSE when the destination suspends.
+int __cdecl jpeg6a_jchuff_emit_bits(jpeg6a_huff_working_state *state, unsigned int code, int size);
+// 0x652030 (static): the partial byte filled with ones, the bit buffer emptied.
+int __cdecl jpeg6a_jchuff_flush_bits(jpeg6a_huff_working_state *state);
+// 0x651bb5 (static): a block's DC difference from last_dc_val and its AC coefficients in zigzag order (runs of 16 zeros as 0xF0,
+// the trailing zeros as EOB), coded with dctbl and actbl.
+int __cdecl jpeg6a_jchuff_encode_one_block(jpeg6a_huff_working_state *state, short *block, int last_dc_val,
+                                           jpeg6a_c_derived_tbl *dctbl, jpeg6a_c_derived_tbl *actbl);
+// 0x651f4c (static): the bits flushed, the marker RST0 + restart_num, the scan's DC predictions reset.
+int __cdecl jpeg6a_jchuff_emit_restart(jpeg6a_huff_working_state *state, int restart_num);
+// 0x651a21 (static): the MCU's blocks encoded (a restart marker first when the interval is up), the state back to the entropy
+// encoder and the destination unless the destination suspends.
+int __cdecl jpeg6a_jchuff_encode_mcu_huff(jpeg6a_compress_struct *cinfo, short (**MCU_data)[64]);
+// 0x652066 (static): the last bits flushed (JERR_CANT_SUSPEND 0x16 if the destination suspends).
+void __cdecl jpeg6a_jchuff_finish_pass_huff(jpeg6a_compress_struct *cinfo);
+// 0x652210 (static): encode_one_block's symbols counted instead of emitted.
+void __cdecl jpeg6a_jchuff_htest_one_block(short *block, int last_dc_val, long *dc_counts, long *ac_counts);
+// 0x6520fe (static): the MCU's blocks counted (the DC predictions reset at a restart).
+int __cdecl jpeg6a_jchuff_encode_mcu_gather(jpeg6a_compress_struct *cinfo, short (**MCU_data)[64]);
+// 0x652345 (static): each table the scan uses, once, the optimal one for its counts (allocated, jpeg_alloc_huff_table, when null).
+void __cdecl jpeg6a_jchuff_finish_pass_gather(jpeg6a_compress_struct *cinfo);
+
 // jcomapi.c: what compression and decompression share.
 // 0x64f3c0: the image pool freed (mem->free_pool of pool 1), global_state back to the start (DSTATE_START 200 for a decompressor,
 // else CSTATE_START 100).

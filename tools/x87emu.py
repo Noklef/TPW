@@ -686,6 +686,10 @@ class Emu:
             self.write(self.r['EDI'], self.read(self.r['ESI'], n))
             self.r['ESI'] = (self.r['ESI'] + self.dstep(n)) & 0xffffffff
             self.r['EDI'] = (self.r['EDI'] + self.dstep(n)) & 0xffffffff
+        elif mn in ('STOSB', 'STOSW', 'STOSD'):  # one element, no REP (a MEMZERO's odd byte: 0x6512c6)
+            n = {'STOSB': 1, 'STOSW': 2, 'STOSD': 4}[mn]
+            self.write(self.r['EDI'], (self.r['EAX'] & 0xffffffff).to_bytes(4, 'little')[:n])
+            self.r['EDI'] = (self.r['EDI'] + self.dstep(n)) & 0xffffffff
         elif mn in ('MOVSD.REP', 'STOSD.REP'):
             while self.r['ECX']:
                 if mn == 'MOVSD.REP':

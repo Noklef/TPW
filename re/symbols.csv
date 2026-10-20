@@ -5695,3 +5695,17 @@ address,name,kind,confidence,notes
 0x00653610,jpeg6a_jinit_forward_dct,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcdctmgr.c jinit_forward_dct: the forward DCT manager, its methods and DCT routine for dct_method (the library's, through the method shim)"
 0x006536f7,jpeg6a_jcdctmgr_start_pass_fdctmgr,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcdctmgr.c start_pass_fdctmgr: each component's quantization divisors for the DCT method (the library's)
 0x0065398f,jpeg6a_jcdctmgr_forward_DCT,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcdctmgr.c forward_DCT: a row of blocks through the integer DCT, quantized (the library's)"
+0x006510e0,jpeg6a_jpeg_make_c_derived_tbl,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jchuff.c jpeg_make_c_derived_tbl: a Huffman table's code and length by symbol (the library's)
+0x006512ad,jpeg6a_jpeg_gen_optimal_table,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jchuff.c jpeg_gen_optimal_table: the optimal Huffman table for symbol counts, lengths limited to 16 (the library's)"
+0x00651772,jpeg6a_jinit_huff_encoder,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jchuff.c jinit_huff_encoder: the sequential Huffman encoder (the library's, through the method shim)"
+0x006517f9,jpeg6a_jchuff_start_pass_huff,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jchuff.c start_pass_huff: the pass's methods, each scan component's tables derived or counts zeroed (the library's, through the method shim)"
+0x00651a21,jpeg6a_jchuff_encode_mcu_huff,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jchuff.c encode_mcu_huff: an MCU's blocks Huffman coded, a restart marker when due (the library's)"
+0x00651bb5,jpeg6a_jchuff_encode_one_block,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jchuff.c encode_one_block: a block's DC difference and AC run-lengths coded (the library's)
+0x00651db5,jpeg6a_jchuff_emit_bits,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jchuff.c emit_bits: bits into the bit buffer, whole bytes out with 0xFF stuffing (the library's)"
+0x00651f05,jpeg6a_jchuff_dump_buffer,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jchuff.c dump_buffer: the destination emptied, its new buffer taken (the library's)"
+0x00651f4c,jpeg6a_jchuff_emit_restart,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jchuff.c emit_restart: the bits flushed, an RSTn marker, the DC predictions reset (the library's)"
+0x00652030,jpeg6a_jchuff_flush_bits,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jchuff.c flush_bits: the partial byte padded with ones (the library's)
+0x00652066,jpeg6a_jchuff_finish_pass_huff,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jchuff.c finish_pass_huff: the last bits flushed, JERR_CANT_SUSPEND if it cannot be (the library's)"
+0x006520fe,jpeg6a_jchuff_encode_mcu_gather,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jchuff.c encode_mcu_gather: an MCU's symbols counted (the library's)
+0x00652210,jpeg6a_jchuff_htest_one_block,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jchuff.c htest_one_block: a block's DC and AC symbols counted (the library's)
+0x00652345,jpeg6a_jchuff_finish_pass_gather,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jchuff.c finish_pass_gather: each table the scan uses made optimal for its counts (the library's)

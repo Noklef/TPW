@@ -5371,6 +5371,20 @@ const Hook kHooks[] = {
     {"jpeg6a_jcdctmgr_forward_DCT", 0x0065398f, (void *)&jpeg6a_jcdctmgr_forward_DCT, {0x55, 0x8b, 0xec, 0x81, 0xec}},
     {"jpeg6a_jcdctmgr_start_pass_fdctmgr", 0x006536f7, (void *)&jpeg6a_jcdctmgr_start_pass_fdctmgr, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jpeg6a_jinit_forward_dct",  0x00653610, (void *)&jpeg6a_jinit_forward_dct, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jchuff_finish_pass_gather", 0x00652345, (void *)&jpeg6a_jchuff_finish_pass_gather, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jchuff_htest_one_block", 0x00652210, (void *)&jpeg6a_jchuff_htest_one_block, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jchuff_encode_mcu_gather", 0x006520fe, (void *)&jpeg6a_jchuff_encode_mcu_gather, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jchuff_finish_pass_huff", 0x00652066, (void *)&jpeg6a_jchuff_finish_pass_huff, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jchuff_flush_bits",  0x00652030, (void *)&jpeg6a_jchuff_flush_bits, {0x55, 0x8b, 0xec, 0x6a, 0x07}},
+    {"jpeg6a_jchuff_emit_restart", 0x00651f4c, (void *)&jpeg6a_jchuff_emit_restart, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"jpeg6a_jchuff_dump_buffer", 0x00651f05, (void *)&jpeg6a_jchuff_dump_buffer, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"jpeg6a_jchuff_emit_bits",   0x00651db5, (void *)&jpeg6a_jchuff_emit_bits, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jchuff_encode_one_block", 0x00651bb5, (void *)&jpeg6a_jchuff_encode_one_block, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jchuff_encode_mcu_huff", 0x00651a21, (void *)&jpeg6a_jchuff_encode_mcu_huff, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jchuff_start_pass_huff", 0x006517f9, (void *)&jpeg6a_jchuff_start_pass_huff, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jinit_huff_encoder", 0x00651772, (void *)&jpeg6a_jinit_huff_encoder, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jpeg_gen_optimal_table", 0x006512ad, (void *)&jpeg6a_jpeg_gen_optimal_table, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"jpeg6a_jpeg_make_c_derived_tbl", 0x006510e0, (void *)&jpeg6a_jpeg_make_c_derived_tbl, {0x55, 0x8b, 0xec, 0x81, 0xec}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

@@ -70,6 +70,8 @@ extern "C" void __cdecl jpeg6a_jccoefct_lib_start_pass_coef(jpeg6a_compress_stru
 extern "C" void __cdecl jpeg6a_jccolor_lib_jinit_color_converter(jpeg6a_compress_struct *cinfo);
 extern "C" void __cdecl jpeg6a_jcsample_lib_jinit_downsampler(jpeg6a_compress_struct *cinfo);
 extern "C" void __cdecl jpeg6a_jcdctmgr_lib_jinit_forward_dct(jpeg6a_compress_struct *cinfo);
+extern "C" void __cdecl jpeg6a_jchuff_lib_jinit_huff_encoder(jpeg6a_compress_struct *cinfo);
+extern "C" void __cdecl jpeg6a_jchuff_lib_start_pass_huff(jpeg6a_compress_struct *cinfo, int gather_statistics);
 
 namespace {
 struct ExeMethod {
@@ -140,6 +142,12 @@ const ExeMethod kExeMethods[] = {
     {fn(&jpeg6a_jpeg_fdct_islow), 0x657810},
     {fn(&jpeg6a_jpeg_fdct_ifast), 0x657480},
     {fn(&jpeg6a_jpeg_fdct_float), 0x657110},
+    // jchuff.c (the library's start_pass_huff, behind its shim)
+    {fn(&jpeg6a_jchuff_lib_start_pass_huff), 0x6517f9},
+    {fn(&jpeg6a_jchuff_encode_mcu_huff), 0x651a21},
+    {fn(&jpeg6a_jchuff_finish_pass_huff), 0x652066},
+    {fn(&jpeg6a_jchuff_encode_mcu_gather), 0x6520fe},
+    {fn(&jpeg6a_jchuff_finish_pass_gather), 0x652345},
 };
 
 bool g_native_methods = false;  // (Jpeg6a_SetNativeMethods: the tests' driver, which cannot call the exe's addresses)
@@ -246,6 +254,18 @@ void __cdecl jpeg6a_jinit_forward_dct(j_compress_ptr cinfo) {
     exe_method(cinfo->fdct->forward_DCT);
     exe_method_at(reinterpret_cast<char *>(cinfo->fdct) + 0x8);
     exe_method_at(reinterpret_cast<char *>(cinfo->fdct) + 0x1c);
+}
+
+void __cdecl jpeg6a_jinit_huff_encoder(j_compress_ptr cinfo) {
+    jpeg6a_jchuff_lib_jinit_huff_encoder(cinfo);
+    exe_method(cinfo->entropy->start_pass);
+}
+
+// start_pass_huff stores encode_mcu and finish_pass (a method that stores methods).
+void __cdecl jpeg6a_jchuff_start_pass_huff(j_compress_ptr cinfo, boolean gather_statistics) {
+    jpeg6a_jchuff_lib_start_pass_huff(cinfo, gather_statistics);
+    exe_method(cinfo->entropy->encode_mcu);
+    exe_method(cinfo->entropy->finish_pass);
 }
 }
 
