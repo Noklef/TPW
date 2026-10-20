@@ -14,6 +14,21 @@ extern "C" {
 
 struct jpeg_decompress_struct;  // 0x1b0 bytes (config/jconfig.h's boolean)
 struct jpeg6b_component_info;   // jpeg_component_info (an untagged typedef in jpeglib.h), 0x54 bytes
+struct jpeg_common_struct;      // the fields compression and decompression share
+struct jpeg6b_quant_tbl;        // JQUANT_TBL (untagged), 0x82 bytes
+struct jpeg6b_huff_tbl;         // JHUFF_TBL (untagged), 0x112 bytes
+struct jpeg6b_d_derived_tbl;    // jdhuff.h's d_derived_tbl (untagged), 0x590 bytes
+struct jpeg6b_bitread_working_state;  // jdhuff.h's bitread_working_state (untagged), 0x14 bytes
+
+// jcomapi.c: what compression and decompression share.
+// 0x63dff0: the image pool freed (mem->free_pool of pool 1; nothing without a memory manager), global_state back to the start
+// (DSTATE_START with marker_list null, or CSTATE_START).
+void __cdecl jpeg_abort(jpeg_common_struct *cinfo);
+// 0x63e040: mem->self_destruct when there is a manager, then mem and global_state zeroed.
+void __cdecl jpeg_destroy(jpeg_common_struct *cinfo);
+// 0x63e070, 0x63e090: a permanent JQUANT_TBL / JHUFF_TBL, sent_table FALSE.
+jpeg6b_quant_tbl *__cdecl jpeg_alloc_quant_table(jpeg_common_struct *cinfo);
+jpeg6b_huff_tbl *__cdecl jpeg_alloc_huff_table(jpeg_common_struct *cinfo);
 
 // jutils.c
 // 0x6428c0: a rounded up to a multiple of b (b > 0).
@@ -42,6 +57,140 @@ void __cdecl jpeg_idct_2x2(jpeg_decompress_struct *cinfo, jpeg6b_component_info 
 void __cdecl jpeg_idct_1x1(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, short *coef_block,
                            unsigned char **output_buf, unsigned int output_col);
 
+// jddctmgr.c (through wrap/jpeg-6b/jddctmgr.c): the IDCT manager, cinfo->idct (my_idct_controller: start_pass, inverse_DCT[10],
+// cur_method[10] +0x2c). Both are shims (jpeg6b.cpp): they store method addresses.
+// 0x645a80: cinfo->idct allocated, a zeroed multiplier table (0x100 bytes) for each component's dct_table, cur_method -1.
+void __cdecl jinit_inverse_dct(jpeg_decompress_struct *cinfo);
+// 0x645b00: start_pass: each component's IDCT by DCT_scaled_size and cinfo->dct_method, and its multiplier table from its quant_table
+// when the method changed (islow: the quantval; ifast: scaled by aanscales; float: by aanscalefactor, x87 in the exe).
+void __cdecl jddctmgr_start_pass(jpeg_decompress_struct *cinfo);
+
+// jdhuff.c: the sequential Huffman decoder's exported leaves. The bit reader's get_buffer is a long, bits_left an int.
+// 0x6441f0: the derived tables (maxcode, valoffset, lookahead) of dc_huff_tbl_ptrs[tblno] (isDC) or ac_huff_tbl_ptrs[tblno] into
+// *pdtbl, allocated when null.
+void __cdecl jpeg_make_d_derived_tbl(jpeg_decompress_struct *cinfo, unsigned char isDC, int tblno, jpeg6b_d_derived_tbl **pdtbl);
+// 0x6444d0: get_buffer refilled to at least nbits from the data source (FALSE: the source suspended); at a marker, zeros.
+unsigned char __cdecl jpeg_fill_bit_buffer(jpeg6b_bitread_working_state *state, long get_buffer, int bits_left, int nbits);
+// 0x6445e0: a code of min_bits or more bits decoded through htbl's maxcode / valoffset (-1: suspended; 0 for a bad code).
+int __cdecl jpeg_huff_decode(jpeg6b_bitread_working_state *state, long get_buffer, int bits_left, jpeg6b_d_derived_tbl *htbl,
+                             int min_bits);
+// The decoder itself (through wrap/jpeg-6b/jdhuff.c): cinfo->entropy is its huff_entropy_decoder (pub, bitstate +0xc, last_dc_val[4]
+// +0x14, restarts_to_go +0x24, dc / ac_derived_tbls[4] +0x28 / +0x38, dc / ac_cur_tbls[10] +0x48 / +0x70, dc / ac_needed[10] +0x98 /
+// +0xa2; 0xac bytes).
+// 0x6446d0: the module's init (a shim, jpeg6b.cpp): cinfo->entropy allocated, its derived tables null, with the exe's method
+// addresses.
+void __cdecl jinit_huff_decoder(jpeg_decompress_struct *cinfo);
+// 0x644710: start_pass: a warning unless the scan is sequential (Ss 0, Se 63, Ah = Al = 0); each scan component's derived tables, the
+// tables and needs of each block of the MCU, the bit buffer emptied, restarts_to_go = restart_interval.
+void __cdecl jdhuff_start_pass_huff_decoder(jpeg_decompress_struct *cinfo);
+// 0x644860: decode_mcu: a restart first when one is due, then each block's DC difference (added to its component's last_dc_val) and
+// AC coefficients into MCU_data (FALSE: suspended, nothing kept); nothing decoded once the data ran out (insufficient_data).
+unsigned char __cdecl jdhuff_decode_mcu(jpeg_decompress_struct *cinfo, short (**MCU_data)[64]);
+// 0x644cb0: process_restart: the bit buffer's whole bytes counted as discarded, cinfo->marker->read_restart_marker, the DC
+// predictions zeroed, restarts_to_go reset, insufficient_data cleared unless a marker is pending.
+unsigned char __cdecl jdhuff_process_restart(jpeg_decompress_struct *cinfo);
+
+// jdphuff.c (through wrap/jpeg-6b/jdphuff.c): the progressive Huffman decoder. cinfo->entropy is its phuff_entropy_decoder (pub,
+// bitstate +0xc, EOBRUN +0x14, last_dc_val[4] +0x18, restarts_to_go +0x28, derived_tbls[4] +0x2c, ac_derived_tbl +0x3c; 0x40 bytes).
+// 0x644d30: the module's init (a shim, jpeg6b.cpp): cinfo->entropy allocated with the exe's start_pass, and cinfo->coef_bits (64
+// ints a component) all -1.
+void __cdecl jinit_phuff_decoder(jpeg_decompress_struct *cinfo);
+// 0x644db0: start_pass (a shim, jpeg6b.cpp): the scan's progression checked (ERREXIT4 for a bad one, warnings against coef_bits,
+// which it updates), the scan's decode_mcu chosen (the exe's address), its tables built, the bit buffer and EOB run emptied.
+void __cdecl jdphuff_start_pass_phuff_decoder(jpeg_decompress_struct *cinfo);
+// 0x645030, 0x645300, 0x645560, 0x645660: decode_mcu for a first DC scan (each block's DC difference, shifted by Al), a first AC scan
+// (MCU_data[0]'s band Ss..Se, with EOB runs), and their refinements (a bit for each nonzero coefficient, new ones +-1 << Al; an AC
+// refinement that suspends takes back the coefficients it made nonzero). FALSE: suspended.
+unsigned char __cdecl jdphuff_decode_mcu_DC_first(jpeg_decompress_struct *cinfo, short (**MCU_data)[64]);
+unsigned char __cdecl jdphuff_decode_mcu_AC_first(jpeg_decompress_struct *cinfo, short (**MCU_data)[64]);
+unsigned char __cdecl jdphuff_decode_mcu_DC_refine(jpeg_decompress_struct *cinfo, short (**MCU_data)[64]);
+unsigned char __cdecl jdphuff_decode_mcu_AC_refine(jpeg_decompress_struct *cinfo, short (**MCU_data)[64]);
+// 0x645270: process_restart: as jdhuff.c's, the EOB run emptied too.
+unsigned char __cdecl jdphuff_process_restart(jpeg_decompress_struct *cinfo);
+
+// jdcoefct.c (through wrap/jpeg-6b/jdcoefct.c): the coefficient buffer controller between the entropy decoder and the IDCT.
+// cinfo->coef is its my_coef_controller (pub (start_input_pass, consume_data, start_output_pass, decompress_data, coef_arrays),
+// MCU_ctr +0x14, MCU_vert_offset +0x18, MCU_rows_per_iMCU_row +0x1c, MCU_buffer[10] +0x20, whole_image[10] +0x48,
+// coef_bits_latch +0x70; 0x74 bytes). The decompress methods take (cinfo, output_buf) and answer JPEG_SUSPENDED (0),
+// JPEG_ROW_COMPLETED (3) or JPEG_SCAN_COMPLETED (4).
+// 0x643240: the module's init (a shim, jpeg6b.cpp): with a full buffer, each component's virtual block array
+// (mem->request_virt_barray) and the multi-scan methods, else one MCU's blocks (mem->alloc_large) and the one-pass ones.
+void __cdecl jinit_d_coef_controller(jpeg_decompress_struct *cinfo, unsigned char need_full_buffer);
+// 0x643350: start_input_pass: input_iMCU_row zeroed, then start_iMCU_row.
+void __cdecl jdcoefct_start_input_pass(jpeg_decompress_struct *cinfo);
+// 0x643370: the iMCU row's MCU rows (1 for an interleaved scan, else the component's v_samp_factor or last_row_height), the
+// counters zeroed.
+void __cdecl jdcoefct_start_iMCU_row(jpeg_decompress_struct *cinfo);
+// 0x6433d0: start_output_pass (a shim, jpeg6b.cpp): with the virtual arrays, decompress_data or (do_block_smoothing and
+// smoothing_ok) decompress_smooth_data; output_iMCU_row zeroed.
+void __cdecl jdcoefct_start_output_pass(jpeg_decompress_struct *cinfo);
+// 0x643420: a single-scan iMCU row: each MCU zeroed, decoded (entropy->decode_mcu) and its needed blocks through the IDCT.
+int __cdecl jdcoefct_decompress_onepass(jpeg_decompress_struct *cinfo, unsigned char ***output_buf);
+// 0x643680: a multi-scan iMCU row decoded into the virtual arrays (mem->access_virt_barray, writable).
+int __cdecl jdcoefct_consume_data(jpeg_decompress_struct *cinfo);
+// 0x643890: input consumed up to the output row (inputctl->consume_input), then each needed component's blocks of the
+// output iMCU row through the IDCT.
+int __cdecl jdcoefct_decompress_data(jpeg_decompress_struct *cinfo, unsigned char ***output_buf);
+// 0x643a40: progressive with coef_bits, every component's quant_table entries 0, 1, 2, 8, 9 and 16 nonzero, its DC known:
+// coef_bits 1-5 latched (alloc_small once), TRUE if any is nonzero.
+unsigned char __cdecl jdcoefct_smoothing_ok(jpeg_decompress_struct *cinfo);
+// 0x643b70: as decompress_data, with the zero low-frequency AC coefficients estimated from the neighbouring blocks' DC values
+// (JPEG K.8) in a copy of each block (jcopy_block_row) before the IDCT.
+int __cdecl jdcoefct_decompress_smooth_data(jpeg_decompress_struct *cinfo, unsigned char ***output_buf);
+
+// jdmainct.c (through wrap/jpeg-6b/jdmainct.c): the main buffer controller between the coefficient controller and the
+// postprocessor. cinfo->main is its my_main_controller (pub, buffer[10] +8, buffer_full +0x30, rowgroup_ctr +0x34, xbuffer[2] +0x38,
+// whichptr +0x40, context_state +0x44, rowgroups_avail +0x48, iMCU_row_ctr +0x4c; 0x50 bytes). M is min_DCT_scaled_size, a
+// component's rgroup v_samp_factor * DCT_scaled_size / M rows. The process_data methods take (cinfo, output_buf, out_row_ctr,
+// out_rows_avail).
+// 0x642b30: the module's init (a shim, jpeg6b.cpp): cinfo->main allocated with the exe's start_pass, the pointer lists when the
+// upsampler needs context rows (M + 2 row groups, else M), each component's buffer (mem->alloc_sarray).
+void __cdecl jinit_d_main_controller(jpeg_decompress_struct *cinfo, unsigned char need_full_buffer);
+// 0x642c10: the two xbuffer lists, each component's 2 * rgroup * (M + 4) row pointers, one row group in.
+void __cdecl jdmainct_alloc_funny_pointers(jpeg_decompress_struct *cinfo);
+// 0x642cc0: start_pass (a shim, jpeg6b.cpp): the pass's process_data by pass_mode (a J_BUF_MODE; the context lists made), the
+// buffer emptied.
+void __cdecl jdmainct_start_pass_main(jpeg_decompress_struct *cinfo, int pass_mode);
+// 0x642d40: the xbuffer lists from the buffer's rows, the second with the last two row groups swapped, the first with the top
+// row group above repeating the first row.
+void __cdecl jdmainct_make_funny_pointers(jpeg_decompress_struct *cinfo);
+// 0x642ea0: no context: an iMCU row from the coefficient controller into the buffer, then the postprocessor over it.
+void __cdecl jdmainct_process_data_simple_main(jpeg_decompress_struct *cinfo, unsigned char **output_buf, unsigned int *out_row_ctr,
+                                               unsigned int out_rows_avail);
+// 0x642f10: with context rows: the state machine over the two xbuffer lists (a postponed row group, then the iMCU row).
+void __cdecl jdmainct_process_data_context_main(jpeg_decompress_struct *cinfo, unsigned char **output_buf,
+                                                unsigned int *out_row_ctr, unsigned int out_rows_avail);
+// 0x643050: after the first iMCU row: the wraparound row groups above and below each list.
+void __cdecl jdmainct_set_wraparound_pointers(jpeg_decompress_struct *cinfo);
+// 0x643170: at the last iMCU row: the rows past each component's bottom repeat its last row; rowgroups_avail from component 0.
+void __cdecl jdmainct_set_bottom_pointers(jpeg_decompress_struct *cinfo);
+// 0x643210: the two-pass quantizer's second pass: the postprocessor alone.
+void __cdecl jdmainct_process_data_crank_post(jpeg_decompress_struct *cinfo, unsigned char **output_buf, unsigned int *out_row_ctr,
+                                              unsigned int out_rows_avail);
+
+// jdpostct.c (through wrap/jpeg-6b/jdpostct.c): the postprocessing controller between the upsampler and the colour quantizer.
+// cinfo->post is its my_post_controller (pub, whole_image +8, buffer +0xc, strip_height +0x10, starting_row +0x14, next_row +0x18;
+// 0x1c bytes). The post_process_data methods take (cinfo, input_buf, in_row_group_ctr, in_row_groups_avail, output_buf,
+// out_row_ctr, out_rows_avail).
+// 0x645d50: the module's init (a shim, jpeg6b.cpp): cinfo->post allocated with the exe's start_pass; when quantizing, a strip of
+// max_v_samp_factor rows: a virtual array (need_full_buffer, two-pass) or a strip buffer.
+void __cdecl jinit_d_post_controller(jpeg_decompress_struct *cinfo, unsigned char need_full_buffer);
+// 0x645de0: start_pass (a shim, jpeg6b.cpp): the pass's post_process_data by pass_mode (a J_BUF_MODE: the upsampler's own method
+// when not quantizing; ERREXIT for a mode the buffer cannot serve), the strip emptied.
+void __cdecl jdpostct_start_pass_dpost(jpeg_decompress_struct *cinfo, int pass_mode);
+// 0x645ee0: one-pass quantizing: a strip upsampled into the buffer, then quantized into output_buf.
+void __cdecl jdpostct_post_process_1pass(jpeg_decompress_struct *cinfo, unsigned char ***input_buf, unsigned int *in_row_group_ctr,
+                                         unsigned int in_row_groups_avail, unsigned char **output_buf, unsigned int *out_row_ctr,
+                                         unsigned int out_rows_avail);
+// 0x645f60: the two-pass prepass: upsampled into the virtual array's strip, which the quantizer scans (no output).
+void __cdecl jdpostct_post_process_prepass(jpeg_decompress_struct *cinfo, unsigned char ***input_buf,
+                                           unsigned int *in_row_group_ctr, unsigned int in_row_groups_avail,
+                                           unsigned char **output_buf, unsigned int *out_row_ctr, unsigned int out_rows_avail);
+// 0x646010: the second pass: the virtual array's rows quantized into output_buf.
+void __cdecl jdpostct_post_process_2pass(jpeg_decompress_struct *cinfo, unsigned char ***input_buf, unsigned int *in_row_group_ctr,
+                                         unsigned int in_row_groups_avail, unsigned char **output_buf, unsigned int *out_row_ctr,
+                                         unsigned int out_rows_avail);
+
 // jdcolor.c (through wrap/jpeg-6b/jdcolor.c): the output colour space converters, cinfo->cconvert's color_convert methods. Each
 // converts num_rows rows from input_buf (one row array per component) at input_row into output_buf's rows, cinfo->output_width
 // pixels a row.
@@ -59,10 +208,19 @@ void __cdecl jdcolor_grayscale_convert(jpeg_decompress_struct *cinfo, unsigned c
 // 0x646d00: grayscale -> RGB: each sample three times.
 void __cdecl jdcolor_gray_rgb_convert(jpeg_decompress_struct *cinfo, unsigned char ***input_buf, unsigned int input_row,
                                       unsigned char **output_buf, int num_rows);
+// 0x646860: the module's init (a shim, jpeg6b.cpp): cinfo->cconvert allocated (alloc_small) and set up for jpeg_color_space ->
+// out_color_space (out_color_components, the converter, build_ycc_rgb_table), with the exe's method addresses.
+void __cdecl jinit_color_deconverter(jpeg_decompress_struct *cinfo);
+// 0x646d70: YCCK -> CMYK: the YCbCr part through the tables, inverted (range_limit[MAXJSAMPLE - ...]), K passed through.
+void __cdecl jdcolor_ycck_cmyk_convert(jpeg_decompress_struct *cinfo, unsigned char ***input_buf, unsigned int input_row,
+                                       unsigned char **output_buf, int num_rows);
 
 // jdmerge.c (through wrap/jpeg-6b/jdmerge.c): the merged upsampler, chroma upsampling and YCbCr -> RGB in one pass for h2v1 and h2v2
 // sampling. cinfo->upsample is its my_upsampler (upmethod +0xc, the four tables +0x10..+0x1c, spare_row +0x20, spare_full +0x24,
 // out_row_width +0x28, rows_to_go +0x2c).
+// 0x646ee0: the module's init (a shim, jpeg6b.cpp): cinfo->upsample allocated and set up (the h2v1 or h2v2 methods, spare_row for
+// h2v2, the tables), with the exe's method addresses.
+void __cdecl jinit_merged_upsampler(jpeg_decompress_struct *cinfo);
 // 0x646f70: the upsampler's YCbCr -> RGB tables (as jdcolor.c's, into cinfo->upsample).
 void __cdecl jdmerge_build_ycc_rgb_table(jpeg_decompress_struct *cinfo);
 // 0x647040: spare_full cleared, rows_to_go = cinfo->output_height.
@@ -87,6 +245,10 @@ void __cdecl jdmerge_h2v2_merged_upsample(jpeg_decompress_struct *cinfo, unsigne
 // cinfo->upsample is its my_upsampler (color_buf[10] +0xc, methods[10] +0x34, next_row_out +0x5c, rows_to_go +0x60,
 // rowgroup_height[10] +0x64, h_expand[10] +0x8c, v_expand[10] +0x96; 0xa0 bytes). The per-component methods take input_data (the
 // component's row group) and output_data_ptr (its color_buf entry) and fill cinfo->max_v_samp_factor rows.
+// 0x6460c0: the module's init (a shim, jpeg6b.cpp): cinfo->upsample allocated, each component's method chosen from its sampling
+// factors (h_expand / v_expand for int_upsample), color_buf rows allocated (alloc_sarray) where one is needed, with the exe's method
+// addresses.
+void __cdecl jinit_upsampler(jpeg_decompress_struct *cinfo);
 // 0x6462e0: next_row_out = max_v_samp_factor (color_buf empty), rows_to_go = output_height.
 void __cdecl jdsample_start_pass_upsample(jpeg_decompress_struct *cinfo);
 // 0x646300: upsample: each component's method when color_buf is used up, then cinfo->cconvert->color_convert of what fits.

@@ -18,5 +18,10 @@
 #define h2v2_upsample jdsample_h2v2_upsample
 #define h2v1_fancy_upsample jdsample_h2v1_fancy_upsample
 #define h2v2_fancy_upsample jdsample_h2v2_fancy_upsample
+/* (a method-storing init: see wrap/jpeg-6b/jdcolor.c) */
+#define jinit_upsampler jdsample_lib_jinit_upsampler
 
 #include "../../jpeg-6b/jdsample.c"  /* (by its path: a plain "jdsample.c" would find this file first) */
+
+/* The private methods src/game/lib/jpeg6b.cpp's shim maps by their offset: methods[MAX_COMPONENTS] at +0x34. */
+typedef char jdsample_methods_at_0x34[offsetof(my_upsampler, methods) == 0x34 && MAX_COMPONENTS == 10 ? 1 : -1];

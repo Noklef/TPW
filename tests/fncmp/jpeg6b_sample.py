@@ -5,14 +5,18 @@
 # +0x8c and v_expand[10] +0x96 (bytes). The per-component methods take (cinfo, compptr, input_data, output_data_ptr): input_data is a
 # row array one row in (h2v2_fancy_upsample reads input_data[-1]), *output_data_ptr the output rows. sep_upsample calls methods[ci] and
 # cconvert->color_convert, cdecl recorders here (slots 0-3 and 10). int_upsample and h2v2_upsample call jcopy_sample_rows.
-# jinit_upsampler stays the exe's: it stores the methods' addresses.
+# jinit_upsampler (0x6460c0) is the library's through jpeg6b.cpp's shim, which puts the exe's method addresses in place of the
+# library's (start_pass, upsample, methods[ci]): the bench compares them as stored. cinfo->err at ERR (error_exit a cdecl recorder,
+# slot 11), cinfo->mem at MEM (alloc_small ZALLOC, alloc_sarray +8 a cdecl recorder, slot 12, whose hash lands in color_buf[ci]); it
+# reads CCIR601_sampling +0x10a, do_fancy_upsampling +0x48, max_h_samp_factor +0x110, max_v +0x114, min_DCT_scaled_size +0x118 and
+# each component's h / v_samp_factor +0x8 / +0xc, DCT_scaled_size +0x24, component_needed +0x30 and downsampled_width.
 # usage: jpeg6b_sample.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=int,...)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, RAM, Bench, Call, log_region, recorder  # noqa: E402
+from fncmp import HEAP, LOG, RAM, ZALLOC, Bench, Call, heap, log_region, recorder  # noqa: E402
 
 # the exe's copies (re/libmap.csv): name -> (address, end)
 FUNCS = {
@@ -20,7 +24,8 @@ FUNCS = {
     'noop_upsample': (0x646410, 0x646420), 'int_upsample': (0x646420, 0x646540), 'h2v1_upsample': (0x646540, 0x6465a0),
     'h2v2_upsample': (0x6465a0, 0x646630), 'h2v1_fancy_upsample': (0x646630, 0x646700), 'h2v2_fancy_upsample': (0x646700, 0x646860),
 }
-B = Bench(sorted(list(FUNCS.values()) + [(0x6428e0, 0x642930)]))  # (and jcopy_sample_rows, which int_ and h2v2_upsample call)
+FUNCS['jinit_upsampler'] = (0x6460c0, 0x6462e0)
+B = Bench(sorted(list(FUNCS.values()) + [(0x6428c0, 0x642930)]))  # (and jcopy_sample_rows, which int_ and h2v2_upsample call, and jround_up, jinit_upsampler's)
 
 CINFO, UPS, COMP, CC, PTR, CTRS, IMAGE, ROWS, OUT_ROWS = (RAM, RAM + 0x200, RAM + 0x300, RAM + 0x480, RAM + 0x4a0, RAM + 0x4b0,
                                                           RAM + 0x4c0, RAM + 0x500, RAM + 0x800)
@@ -85,7 +90,34 @@ def sep(r):
     return Call(0x646300, [CINFO, IMAGE, CTRS, r.randrange(4), OUT_ROWS, CTRS + 4, out_ctr + r.choice([0, 1, 2, 4, r.randrange(8)])], regions)
 
 
-OPS = [f for f in (start_pass, sep, method(0x646400, 'fullsize'), method(0x646410, 'noop'), method(0x646420, 'int'),
+ERR, MEM = RAM + 0x1000, RAM + 0x1100
+K_ERROR, K_SARRAY = 11, 12
+
+
+def jinit(r):
+    n = r.choice([1, 3, 3, 4, r.randrange(0, 6)])
+    min_dct = r.choice([1, 2, 4, 8, 8, 8])
+    cinfo = cinfo_bytes(r, r.choice([1, 2, 2, r.randrange(1, 5)]), r.choice([1, 2, 7, 8, r.randrange(1, 100)]))
+    struct.pack_into('<I', cinfo, 0, ERR)
+    struct.pack_into('<I', cinfo, 4, MEM)
+    struct.pack_into('<i', cinfo, NUM_COMPONENTS, n)
+    struct.pack_into('<i', cinfo, 0x110, r.choice([1, 2, 2, r.randrange(1, 5)]))  # max_h_samp_factor
+    struct.pack_into('<i', cinfo, 0x118, min_dct)
+    cinfo[0x10a] = 0 if r.random() < 0.9 else r.randrange(1, 256)  # CCIR601_sampling
+    cinfo[0x48] = r.choice([0, 1, 1, r.randrange(256)])            # do_fancy_upsampling
+    comps = bytearray(r.bytes(5 * COMP_SIZE))
+    for ci in range(5):
+        o = ci * COMP_SIZE
+        struct.pack_into('<ii', comps, o + 8, r.choice([1, 1, 2, r.randrange(1, 5)]), r.choice([1, 1, 2, r.randrange(1, 5)]))
+        struct.pack_into('<i', comps, o + 0x24, min_dct if r.random() < 0.95 else r.choice([1, 2, 4, 8]))
+        struct.pack_into('<I', comps, o + DOWNSAMPLED_WIDTH, r.choice([1, 2, 3, r.randrange(1, 50)]))
+        comps[o + 0x30] = r.choice([0, 1, 1, 1, r.randrange(256)])
+    return Call(0x6460c0, [CINFO], {CINFO: cinfo, COMP: comps, ERR: struct.pack('<I', recorder(K_ERROR, 1, cdecl=True)) + r.bytes(0x7c),
+                                    MEM: struct.pack('<3I', ZALLOC, 0, recorder(K_SARRAY, 4, cdecl=True)) + r.bytes(0x24),
+                                    HEAP: heap(0x200), LOG: log_region()})
+
+
+OPS = [f for f in (start_pass, jinit, sep, method(0x646400, 'fullsize'), method(0x646410, 'noop'), method(0x646420, 'int'),
                    method(0x646540, 'h2v1'), method(0x6465a0, 'h2v2'), method(0x646630, 'h2v1_fancy'), method(0x646700, 'h2v2_fancy'))
        if not os.environ.get('OPS') or f.__name__ in os.environ['OPS'].split(',')]
 

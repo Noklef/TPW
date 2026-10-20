@@ -51,5 +51,9 @@ endfunction()
 
 # 6b keeps its names; 6a's are renamed jpeg6a_* (config/jpeg6a_prefix.h, written by tools/jpegprefix.py) so the two copies link together.
 tpw_jpeg(tpw_jpeg6b jpeg-6b jmemansi)
+# jddctmgr.c's start_pass builds the float IDCT's multiplier table as (double) quantval * aanscalefactor[row] * aanscalefactor[col]
+# stored to a float: x87 code in the exe (FILD, FMUL, FMUL, FSTP under the FPU's precision, single in the game). The library's SSE2
+# build rounds once from double, differing in the last bit; compiled for x87 it is the same instructions.
+set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/wrap/jpeg-6b/jddctmgr.c PROPERTIES COMPILE_OPTIONS /arch:IA32)
 tpw_jpeg(tpw_jpeg6a jpeg-6a jmemnobs)
 target_compile_options(tpw_jpeg6a PRIVATE /FI${CMAKE_CURRENT_SOURCE_DIR}/config/jpeg6a_prefix.h)

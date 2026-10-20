@@ -15,7 +15,8 @@ A test script defines a case generator and calls run():
 Call(address, args, regions, conv='c'|'s'|'t'|'f', ret='v'|'a'|'b'|'w'|'i'|'d'): ret 'a' compares
 EAX, 'b' AL (a flag returned over whatever EAX held), 'w' AX (likewise a u16), 'c' the x87 control word left (Call(cw=) going in, 0x7f; 'wc' AX too), 'i' EAX and EDX, 'd' the double left in
 st0. Region addresses must be in the game's data (0x6e7000-0xfc5200) or at 0x10000000 and up (RAM, ALLOC.. are free slots); anything a case
-does not set reads as the exe image there, else zero, in both. The emulator is strict, like
+does not set reads as the exe image there, else zero, in both. No region may be empty (the driver reads its bytes as one hex token, so an
+empty one would desynchronise every later case): Bench.cases refuses such a case, naming the bench, the case and the region. The emulator is strict, like
 the driver: an access outside the regions' 64 KB chunks, the stack and the game's data (the
 exe's code is readable too) faults, so a case with a wild pointer shows up as such ("crash
 ... (emu: write of ADDR at PC)") instead of passing in the emulator and crashing natively. A
@@ -800,10 +801,13 @@ class Bench:
     def cases(self, gen, n, seed, wild):
         r = Rand(seed, wild)
         out = []
-        for _ in range(n):
+        for i in range(n):
             c = gen(r)
             for k, v in self.extra.items():
                 c.regions.setdefault(k, v)
+            for k, v in c.regions.items():  # (the driver reads a region's bytes as one hex token: an empty one would shift every later token of the
+                if not len(v):              # case, and so desynchronise every case after it, possibly passing silently)
+                    raise ValueError('%s: case %d (%x) has an empty region at %x' % (os.path.basename(sys.argv[0]), i, c.address, k))
             out.append(c)
         return out
 

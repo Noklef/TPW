@@ -7,7 +7,9 @@
 # argument is logged as a hash of its two row pointers (blob), and merged_1v's output_buf + *out_row_ctr the same way. merged_2v also
 # calls jcopy_sample_rows (the spare row out). build_ycc_rgb_table allocates through cinfo->mem->alloc_small, fncmp's ZALLOC stub over
 # the case heap (its (opaque, items, size) is alloc_small's (cinfo, JPOOL_IMAGE = 1, size)).
-# jinit_merged_upsampler (0x646ee0) stays the exe's: it stores the methods' addresses.
+# jinit_merged_upsampler (0x646ee0) is the library's through jpeg6b.cpp's shim, which puts the exe's method addresses in place of the
+# library's (upsample, start_pass, upmethod): the bench compares them as stored. alloc_small and alloc_large are both ZALLOC; it reads
+# output_width, out_color_components +0x64 and max_v_samp_factor +0x114 (2: h2v2 with a spare row, anything else h2v1).
 # usage: jpeg6b_merge.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=h2v1,...)
 import os
 import struct
@@ -22,6 +24,7 @@ FUNCS = {
     'merged_2v_upsample': (0x647060, 0x647130), 'merged_1v_upsample': (0x647130, 0x647170),
     'h2v1_merged_upsample': (0x647170, 0x6472f0), 'h2v2_merged_upsample': (0x6472f0, 0x6474f0),
 }
+FUNCS['jinit_merged_upsampler'] = (0x646ee0, 0x646f70)
 B = Bench(sorted(list(FUNCS.values()) + [(0x6428e0, 0x642930)]))  # (and jcopy_sample_rows, which merged_2v_upsample calls)
 
 CINFO, MEM, UPS, IMAGE, CTRS, COMP_ROWS, OUT_ROWS, RANGE, TABLES = (RAM, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x480, RAM + 0x500,
@@ -136,7 +139,16 @@ def build(r):
     return Call(0x646f70, [CINFO], {CINFO: cinfo, MEM: struct.pack('<I', ZALLOC) + r.bytes(0x2c), UPS: r.bytes(0x30), HEAP: heap(0x1100)})
 
 
-OPS = [f for f in (build, start_pass, h2v1, h2v2, merged(0x647060), merged(0x647130))
+def jinit(r):
+    cinfo = bytearray(r.bytes(0x1b0))
+    struct.pack_into('<I', cinfo, MEM_, MEM)
+    struct.pack_into('<I', cinfo, OUTPUT_WIDTH, width_of(r))
+    struct.pack_into('<i', cinfo, 0x64, r.choice([1, 3, 3, 4, r.randrange(0, 6)]))  # out_color_components
+    struct.pack_into('<i', cinfo, 0x114, r.choice([1, 2, 2, r.randrange(0, 5)]))     # max_v_samp_factor
+    return Call(0x646ee0, [CINFO], {CINFO: cinfo, MEM: struct.pack('<2I', ZALLOC, ZALLOC) + r.bytes(0x28), HEAP: heap(0x1800)})
+
+
+OPS = [f for f in (build, jinit, start_pass, h2v1, h2v2, merged(0x647060), merged(0x647130))
        if not os.environ.get('OPS') or f.__name__ in os.environ['OPS'].split(',')]
 
 

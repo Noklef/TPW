@@ -18,5 +18,8 @@
 #define gray_rgb_convert jdcolor_gray_rgb_convert
 #define ycck_cmyk_convert jdcolor_ycck_cmyk_convert
 #define start_pass_dcolor jdcolor_start_pass_dcolor
+/* (a method-storing init: built as jdcolor_lib_<name>; src/game/lib/jpeg6b.cpp's shim of the library's name calls it and puts the exe's
+   method addresses in place of the library's) */
+#define jinit_color_deconverter jdcolor_lib_jinit_color_deconverter
 
 #include "../../jpeg-6b/jdcolor.c"  /* (by its path: a plain "jdcolor.c" would find this file first) */
