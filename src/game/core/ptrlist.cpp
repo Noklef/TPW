@@ -142,6 +142,19 @@ void __fastcall ListRemove18_5e4250(u8 *o, void *, u32 v0) {
     u8 *list = at<u8 *>(o, 0x18); u8 *node = at<u8 *>(list, 4); while (node && at<u32>(node, 0) != v0) node = at<u8 *>(node, 4); if (!node) return; if (node == at<u8 *>(list, 4)) at<u8 *>(list, 4) = at<u8 *>(node, 4); else at<u8 *>(at<u8 *>(node, 8), 4) = at<u8 *>(node, 4); if (node == at<u8 *>(list, 8)) at<u8 *>(list, 8) = at<u8 *>(node, 8); else at<u8 *>(at<u8 *>(node, 4), 8) = at<u8 *>(node, 8); at<u32>(list, 0xc) -= 1; GameHeap_Free(node);
 }
 
+void __fastcall ListRemove20080_5f42f0(u8 *o, void *, u32 v0) {
+    u8 *list = at<u8 *>(o, 0x20080);
+    u8 *node = at<u8 *>(list, 4);
+    while (node && at<u32>(node, 0) != v0) node = at<u8 *>(node, 4);
+    if (!node) return;
+    if (node == at<u8 *>(list, 4)) at<u8 *>(list, 4) = at<u8 *>(node, 4);
+    else at<u8 *>(at<u8 *>(node, 8), 4) = at<u8 *>(node, 4);
+    if (node == at<u8 *>(list, 8)) at<u8 *>(list, 8) = at<u8 *>(node, 8);
+    else at<u8 *>(at<u8 *>(node, 4), 8) = at<u8 *>(node, 8);
+    at<u32>(list, 0xc) -= 1;
+    GameHeap_Free(node);
+}
+
 void __fastcall SortedPtrList_Add(u8 *holder, void *, u8 *item) {
     u8 *const list = at<u8 *>(holder, 8);
     if (at<u32>(list, 0xc) == 0) {

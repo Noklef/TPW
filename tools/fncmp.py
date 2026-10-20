@@ -312,8 +312,8 @@ LOG_RETURNS = 0x800  # from here an override for each slot: a flag and a value (
 
 
 def recorder(k, n, com=False, cdecl=False):
-    if com:  # (slots 0-63, 0x800 for each n)
-        return VSTUBS + 0x4000 + 0x800 * n + 0x20 * k
+    if com:  # (slots 0-63, 0x800 for each n; n 12-15 past the cdecl ones, from + 0xf000)
+        return VSTUBS + (0x4000 + 0x800 * n if n < 12 else 0xf000 + 0x800 * (n - 12)) + 0x20 * k
     if cdecl:  # (slots 0-31, n up to 15, from +0xa000: the caller pops the arguments; this logged as 0 and k as k | 0x200)
         return VSTUBS + 0xa000 + 0x400 * n + 0x20 * k
     return VSTUBS + 0x400 * n + 0x20 * k
@@ -661,7 +661,7 @@ class Bench:
                                0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove,
                                0x6918f0: _throw('_Xlen'), 0x691ba0: _throw('_Xran')})
         self.emu.hooks.update({recorder(k, n): _recorder(k, n) for k in range(32) for n in range(16)})  # (n up to 15 fits below the COM recorders at +0x4000)
-        self.emu.hooks.update({recorder(k, n, True): _recorder(k, n, True) for k in range(64) for n in range(12)})
+        self.emu.hooks.update({recorder(k, n, True): _recorder(k, n, True) for k in range(64) for n in range(16)})
         self.emu.hooks.update({recorder(k, n, cdecl=True): _recorder(k, n, cdecl=True) for k in range(32) for n in range(16)})
         self.emu.hooks.update(hooks or {})
         self.emu.cpuid, self.emu.id_writable = _cpuid, _id_writable

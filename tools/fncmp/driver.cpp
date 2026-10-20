@@ -27,6 +27,10 @@
 #include <vector>
 
 #include "../../src/game/core/cpuinfo.h"
+#include "../../src/game/core/events.h"
+#include "../../src/game/gfx/cursor.h"
+#include "../../src/game/gfx/pointer.h"
+#include "../../src/game/gfx/screen.h"
 #include "../../src/game/core/fpu.h"
 #include "../../src/game/core/gameheap.h"
 #include "../../src/game/core/ptrlist.h"
@@ -354,9 +358,9 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
 }
 
 void map_com_recorders(u8 *page) {  // the COM-style ones (this on the stack, ECX undefined): this is logged as 0 and k as k | 0x100
-    for (u32 n = 0; n < 12; ++n) {  // (up to 11 stack arguments: to + 0xb000)
+    for (u32 n = 0; n < 16; ++n) {  // (up to 11 stack arguments to + 0xb000, 12-15 from + 0x10000: CreateWindowEx's 12)
         for (u32 k = 0; k < 64; ++k) {
-            u8 *at = page + 0x5000 + 0x800 * n + 0x20 * k;
+            u8 *at = page + (n < 12 ? 0x5000 + 0x800 * n : 0x10000 + 0x800 * (n - 12)) + 0x20 * k;
             const u8 head[] = {0x89, 0xe0, 0x50, 0x6a, 0x00, 0x6a, (u8)n, 0x68, (u8)k, 0x01, 0x00, 0x00, 0xe8};  // mov eax,esp; push eax; push 0; push n; push k|0x100; call rel32
             std::memcpy(at, head, sizeof head);
             const u32 rel = (u32)(uintptr_t)&record_call - ((u32)(uintptr_t)at + sizeof head + 4);
@@ -536,7 +540,7 @@ void resolve_vtables() {
 }
 
 void map_stubs() {
-    u8 *p = static_cast<u8 *>(VirtualAlloc((void *)(uintptr_t)kStubs, 0x10000, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE));
+    u8 *p = static_cast<u8 *>(VirtualAlloc((void *)(uintptr_t)kStubs, 0x12000, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE));
     if (!p) fail("cannot map the stubs at", kStubs);
     const void *stubs[] = {(const void *)&stub_read, (const void *)&stub_write, (const void *)&stub_global_alloc,
                            (const void *)&stub_global_free, (const void *)&stub_mark, (const void *)&stub_cdecl_log, (const void *)&stub_counter,
@@ -809,6 +813,33 @@ int main(int argc, char **argv) {
                                reinterpret_cast<const u32 *>((uintptr_t)0x00faa2b0), reinterpret_cast<const u32 *>((uintptr_t)0x00faa268),
                                reinterpret_cast<const u32 *>((uintptr_t)0x00faa280)};
     Tga_SetEnv(&tga);
+    // The event queue's: the heap; atexit stub_cdecl_log (tests/fncmp/events.py hooks 0x67a7d0 with fncmp._cdecl_log), handed the game's 0x5fbe10 as
+    // the original is; the instance 0xfa7cb0 and the critical section's import slots the game's (the case maps them, the slots COM recorders).
+    static EventQueueEnv events = *EventQueue_GetEnv();
+    events.alloc = &heap_alloc;
+    events.free = &heap_free;
+    events.atExit = reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50));
+    EventQueue_SetEnv(&events);
+    // The screen's: the hooked EventQueue_Post (0x5fbf80) and the heap; the rest the game's addresses (the case maps them, the import slots COM recorders).
+    static ScreenEnv screen = *Screen_GetEnv();
+    screen.post = reinterpret_cast<void(__fastcall *)(void *, void *, u32, const u32 *)>(hooked(0x005fbf80));
+    screen.alloc = &heap_alloc;
+    screen.free = &heap_free;
+    Screen_SetEnv(&screen);
+    // The software cursor's: atExit stub_cdecl_log (tests/fncmp/softcursor.py hooks 0x67a7d0 with fncmp._cdecl_log), handed the game's 0x5fadc0 as the
+    // original is; the heap.
+    static CursorEnv cursor = *Cursor_GetEnv();
+    cursor.atExit = reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50));
+    cursor.free = &heap_free;
+    Cursor_SetEnv(&cursor);
+    // The asynchronous pointer's: the heap; _beginthreadex and _endthreadex the cdecl recorders k 30 (six arguments) and 31 (one), as
+    // tests/fncmp/asyncpointer.py hooks 0x67f780 and 0x67f8b0 (fncmp.recorder(k, n, cdecl=True)); the thread procedure stays the game's 0x5fba00, a value.
+    static AsyncPointerEnv pointer = *AsyncPointer_GetEnv();
+    pointer.free = &heap_free;
+    pointer.beginThread = reinterpret_cast<void *(__cdecl *)(void *, u32, u32(__stdcall *)(void *), void *, u32, u32 *)>(
+        (uintptr_t)(kStubs + 0xb000 + 0x400 * 6 + 0x20 * 30));
+    pointer.endThread = reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)(kStubs + 0xb000 + 0x400 * 1 + 0x20 * 31));
+    AsyncPointer_SetEnv(&pointer);
     // A region of up to 8 MB, as hex. Mapped top-down rather than static: a static this size grew the driver's .bss by 12 MB past the
     // game's addresses, where a case's wild pointer read memory natively that the emulator (the original's side) does not have.
     char *const token = static_cast<char *>(VirtualAlloc(nullptr, 1 << 24, MEM_RESERVE | MEM_COMMIT | MEM_TOP_DOWN, PAGE_READWRITE));
