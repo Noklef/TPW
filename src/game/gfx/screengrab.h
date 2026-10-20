@@ -19,4 +19,10 @@ u32 __fastcall ScreenGrab_ToRgb24(u8 *grab, void *);
 // 0x5617c0 (thiscall on the grab at 0x8798d0; name; pops 4; name unconfirmed): the file name to grab to next: a name is measured, then
 // copied with its 0 to +0xc (0x80 bytes, unchecked, sic) and +0x8c pointed at the copy; a null name leaves both. Returns 1.
 u32 __fastcall ScreenGrab_SetName(u8 *grab, void *, const char *name);
+
+// 0x550460 (cdecl; name unconfirmed): the next free grab name: a local FileStream (StreamBase_Ctor, vtable 0x6fd930) closed
+// (StreamBase_Close), the counter at 0x879084 raised and "Scr%05ld.tga" of it printed (CRT sprintf, a 0x14-byte buffer) and opened
+// (FileStream_OpenPath, mode 0x80000001), again while that succeeds (its result not negative); then the stream closed, the name
+// given to the grab at 0x8798d0 (ScreenGrab_SetName) and the stream destroyed (StreamBase_Dtor).
+void __cdecl ScreenGrab_NextName();
 }
