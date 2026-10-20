@@ -5645,3 +5645,4 @@ address,name,kind,confidence,notes
 0x0064febc,jpeg6a_jcmarker_emit_sos,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c emit_sos: the SOS marker (the library's)
 0x0065000f,jpeg6a_jcmarker_write_file_trailer,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c write_file_trailer: EOI (the library's)
 0x00650025,jpeg6a_jcmarker_write_tables_only,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c write_tables_only: SOI, DQTs, DHTs, EOI (the library's)"
+0x0064c9f4,jpeg6a_jpeg_write_tables,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapimin.c jpeg_write_tables: a tables-only datastream through a marker writer of its own (the library's)

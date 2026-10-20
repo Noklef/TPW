@@ -11,21 +11,29 @@
 # cases where it starts clear put the master inside cinfo (at +0x20, so is_last_pass is cinfo's +0x30) and make prepare_for_pass fill
 # cinfo's first 0x34 bytes as they are with is_last_pass set, so the loop runs once; the others start with it set.
 # jpeg_write_scanlines' process_data gets &row_ctr (a stack address: logged as 0) and fills it with the rows it took.
-# usage: jpeg6a_api.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=create,destroy,abort,suppress,finish,marker,scanlines,raw)
+# jpeg_write_tables runs jinit_marker_writer (alloc_small fncmp's ZALLOC over the case heap) and then the write_tables_only it stored:
+# the driver's native-methods mode (FNCMP_JPEG6A_NATIVE) leaves the library's method there for the library's side to call, and gives
+# the exe's address back in the heap it reports. Its tables are whole (TABLES, as jpeg6a_marker.py's), its bytes go to OUT through
+# dest (next_output_byte +0, free_in_buffer +4, init_destination +8, empty_output_buffer +0xc), reset_error_mgr is err's +0x10.
+# usage: jpeg6a_api.py [CASES [SEED]] [--wild|--both] [--show N]
+#        (env OPS=create,destroy,abort,suppress,finish,marker,scanlines,raw,tables)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, LOG, RAM, Bench, Call, _alloc, _free, _recorder, fill, heap, log_region, recorder, set_return, strings  # noqa: E402
+from fncmp import HEAP, LOG, RAM, ZALLOC, Bench, Call, _alloc, _free, _recorder, fill, heap, log_region, recorder, set_return, strings  # noqa: E402
 
 # the exe's copies (re/libmap.csv): name -> (address, end); then what they run: jinit_memory_mgr, jcomapi.c's jpeg_abort /
 # jpeg_destroy, jmemansi.c's and jpeg_mem_init
 FUNCS = {'jpeg_CreateCompress': (0x64c5f0, 0x64c740), 'jpeg_destroy_compress': (0x64c740, 0x64c751),
          'jpeg_abort_compress': (0x64c751, 0x64c762), 'jpeg_suppress_tables': (0x64c762, 0x64c7fd),
          'jpeg_finish_compress': (0x64c7fd, 0x64c982), 'jpeg_write_marker': (0x64c982, 0x64c9f4),
-         'jpeg_write_scanlines': (0x64cb3c, 0x64cc5e), 'jpeg_write_raw_data': (0x64cc5e, 0x64cd8f)}
-CALLED = [(0x64e020, 0x64e21d), (0x64f3c0, 0x64f43e), (0x650210, 0x650265), (0x6503c1, 0x6503d0)]
+         'jpeg_write_scanlines': (0x64cb3c, 0x64cc5e), 'jpeg_write_raw_data': (0x64cc5e, 0x64cd8f),
+         'jpeg_write_tables': (0x64c9f4, 0x64cb3c)}
+# (and jcmarker.c, for jpeg_write_tables)
+CALLED = [(0x64e020, 0x64e21d), (0x64f3c0, 0x64f43e), (0x64f4a0, 0x6500ea), (0x650210, 0x650265), (0x6503c1, 0x6503d0)]
+os.environ['FNCMP_JPEG6A_NATIVE'] = '1'  # (see the header: jpeg_write_tables)
 K_GETENV, K_SSCANF, K_OPEN = 24, 25, 26  # (driver.cpp's kJpeg6aCrtEnv)
 B = Bench(sorted(FUNCS.values()) + CALLED,
           hooks={0x67dcd0: _alloc, 0x67ad90: _free, 0x67fbf0: _recorder(K_GETENV, 1, cdecl=True),
@@ -34,9 +42,10 @@ B = Bench(sorted(FUNCS.values()) + CALLED,
 CINFO, ERR, MEM, PROGRESS, DEST, MASTER, MAIN, COEF, MARKER, SCANLINES, STR = (
     RAM, RAM + 0x200, RAM + 0x300, RAM + 0x340, RAM + 0x360, RAM + 0x380, RAM + 0x3a0, RAM + 0x3c0, RAM + 0x3e0, RAM + 0x400,
     RAM + 0x440)
-TABLES = RAM + 0x1000  # (table i at TABLES + 0x200 * i; only its sent_table is a region)
+TABLES = RAM + 0x1000  # (table i at TABLES + 0x200 * i; only its sent_table is a region, but for tables)
+OUT = RAM + 0x3000
 K_ERROR, K_EMIT, K_PREPARE, K_STARTUP, K_FINISH_PASS, K_COMPRESS, K_PROGRESS, K_TRAILER, K_TERM, K_FREE_POOL, K_SELF_DESTRUCT, \
-    K_PROCESS, K_ANY_MARKER = range(13)
+    K_PROCESS, K_ANY_MARKER, K_RESET, K_INIT, K_EMPTY = range(16)
 IN_CINFO = 0x20  # (the master inside cinfo: see the header)
 
 
@@ -160,7 +169,42 @@ def raw(r):
     return Call(0x64cc5e, [CINFO, SCANLINES, num], regs, ret='a')
 
 
-OPS = [f for f in (create, destroy, abort, suppress, finish, marker, scanlines, raw)
+def huff_table(r):
+    """A JHUFF_TBL counting at most 256 symbols (as jpeg6a_marker.py's), sent_table at +0x114."""
+    bits = [0] * 17
+    for _ in range(r.choice([0, 1, 12, 162, r.randrange(257)])):
+        bits[r.randrange(1, 17)] += 1
+    if any(b > 255 for b in bits):
+        bits = [0] + [16] * 16
+    return bytes(bits) + r.bytes(256) + bytes(3) + struct.pack('<I', r.choice([0, 0, 1, r.getrandbits(32)]))
+
+
+def tables(r):
+    regs = common(r)
+    cinfo = regs[CINFO]
+    state(r, cinfo, [100])
+    regs[ERR] = regs[ERR][:0x10] + struct.pack('<I', recorder(K_RESET, 1, cdecl=True)) + regs[ERR][0x14:]
+    regs[MEM][0:4] = struct.pack('<I', ZALLOC)
+    regs[DEST] = struct.pack('<IIII', OUT, r.choice([0x10000, 0x10000, 1, 5, r.randrange(1, 400)]), recorder(K_INIT, 1, cdecl=True),
+                             recorder(K_EMPTY, 1, cdecl=True)) + regs[DEST][0x10:]
+    set_return(regs[LOG], K_EMPTY, r.choice([0, 1, 1]))
+    struct.pack_into('<i', cinfo, 0xac, r.choice([0, 0, 0, 1]))
+    for i in range(12):  # (as suppress)
+        off = 0x40 + 4 * i if i < 4 else (0x50 if i % 2 == 0 else 0x60) + 4 * ((i - 4) // 2)
+        tbl = TABLES + 0x200 * i if r.random() < 0.7 else 0
+        struct.pack_into('<I', cinfo, off, tbl)
+        if tbl and i < 4:
+            big = r.random() < 0.2
+            regs[tbl] = struct.pack('<64H', *[r.randrange(1, 65536 if big else 256) for _ in range(64)]) + \
+                struct.pack('<I', r.choice([0, 0, 1, r.getrandbits(32)]))
+        elif tbl:
+            regs[tbl] = huff_table(r)
+    regs[OUT] = r.bytes(0xc00)
+    regs[HEAP] = heap(0x100)
+    return Call(0x64c9f4, [CINFO], regs)
+
+
+OPS = [f for f in (create, destroy, abort, suppress, finish, marker, scanlines, raw, tables)
        if not os.environ.get('OPS') or f.__name__ in os.environ['OPS'].split(',')]
 
 

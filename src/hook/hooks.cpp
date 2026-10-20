@@ -5318,6 +5318,7 @@ const Hook kHooks[] = {
     {"jpeg6a_jcmarker_emit_byte", 0x0064f580, (void *)&jpeg6a_jcmarker_emit_byte, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"jpeg6a_jcmarker_write_any_marker", 0x0064f520, (void *)&jpeg6a_jcmarker_write_any_marker, {0x55, 0x8b, 0xec, 0x81, 0x7d}},
     {"jpeg6a_jinit_marker_writer", 0x0064f4a0, (void *)&jpeg6a_jinit_marker_writer, {0x55, 0x8b, 0xec, 0x6a, 0x18}},
+    {"jpeg6a_jpeg_write_tables",  0x0064c9f4, (void *)&jpeg6a_jpeg_write_tables, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
