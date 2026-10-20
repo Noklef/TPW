@@ -5359,6 +5359,15 @@ const Hook kHooks[] = {
     {"jpeg6a_jccolor_rgb_ycc_convert", 0x00655980, (void *)&jpeg6a_jccolor_rgb_ycc_convert, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jpeg6a_jccolor_rgb_ycc_start", 0x0065586f, (void *)&jpeg6a_jccolor_rgb_ycc_start, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jpeg6a_jinit_color_converter", 0x006554d0, (void *)&jpeg6a_jinit_color_converter, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcsample_fullsize_smooth_downsample", 0x0065527e, (void *)&jpeg6a_jcsample_fullsize_smooth_downsample, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcsample_h2v2_smooth_downsample", 0x00654ebf, (void *)&jpeg6a_jcsample_h2v2_smooth_downsample, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcsample_h2v2_downsample", 0x00654db3, (void *)&jpeg6a_jcsample_h2v2_downsample, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcsample_h2v1_downsample", 0x00654ce5, (void *)&jpeg6a_jcsample_h2v1_downsample, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcsample_fullsize_downsample", 0x00654c94, (void *)&jpeg6a_jcsample_fullsize_downsample, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jcsample_expand_right_edge", 0x00654c1d, (void *)&jpeg6a_jcsample_expand_right_edge, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcsample_int_downsample", 0x00654ab1, (void *)&jpeg6a_jcsample_int_downsample, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcsample_sep_downsample", 0x00654a22, (void *)&jpeg6a_jcsample_sep_downsample, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jinit_downsampler",  0x006547f0, (void *)&jpeg6a_jinit_downsampler, {0x55, 0x8b, 0xec, 0x83, 0xec}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

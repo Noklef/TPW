@@ -68,6 +68,7 @@ extern "C" void __cdecl jpeg6a_jcprepct_lib_jinit_c_prep_controller(jpeg6a_compr
 extern "C" void __cdecl jpeg6a_jccoefct_lib_jinit_c_coef_controller(jpeg6a_compress_struct *cinfo, int need_full_buffer);
 extern "C" void __cdecl jpeg6a_jccoefct_lib_start_pass_coef(jpeg6a_compress_struct *cinfo, int pass_mode);
 extern "C" void __cdecl jpeg6a_jccolor_lib_jinit_color_converter(jpeg6a_compress_struct *cinfo);
+extern "C" void __cdecl jpeg6a_jcsample_lib_jinit_downsampler(jpeg6a_compress_struct *cinfo);
 
 namespace {
 struct ExeMethod {
@@ -122,6 +123,15 @@ const ExeMethod kExeMethods[] = {
     {fn(&jpeg6a_jccolor_cmyk_ycck_convert), 0x655bbf},
     {fn(&jpeg6a_jccolor_grayscale_convert), 0x655d55},
     {fn(&jpeg6a_jccolor_null_convert), 0x655ddc},
+    // jcsample.c (the empty start_pass_downsample to the exe's hand port of its own)
+    {fn(&jpeg6a_jcsample_start_pass_downsample), 0x654a1d},
+    {fn(&jpeg6a_jcsample_sep_downsample), 0x654a22},
+    {fn(&jpeg6a_jcsample_int_downsample), 0x654ab1},
+    {fn(&jpeg6a_jcsample_fullsize_downsample), 0x654c94},
+    {fn(&jpeg6a_jcsample_h2v1_downsample), 0x654ce5},
+    {fn(&jpeg6a_jcsample_h2v2_downsample), 0x654db3},
+    {fn(&jpeg6a_jcsample_h2v2_smooth_downsample), 0x654ebf},
+    {fn(&jpeg6a_jcsample_fullsize_smooth_downsample), 0x65527e},
 };
 
 bool g_native_methods = false;  // (Jpeg6a_SetNativeMethods: the tests' driver, which cannot call the exe's addresses)
@@ -208,6 +218,16 @@ void __cdecl jpeg6a_jinit_color_converter(j_compress_ptr cinfo) {
     jpeg6a_jccolor_lib_jinit_color_converter(cinfo);
     exe_method(cinfo->cconvert->start_pass);
     exe_method(cinfo->cconvert->color_convert);
+}
+
+// jinit_downsampler also stores a method for each component in my_downsampler's private methods[10] (+0xc, wrap/jpeg-6a/jcsample.c
+// pins the layout).
+void __cdecl jpeg6a_jinit_downsampler(j_compress_ptr cinfo) {
+    jpeg6a_jcsample_lib_jinit_downsampler(cinfo);
+    exe_method(cinfo->downsample->start_pass);
+    exe_method(cinfo->downsample->downsample);
+    for (int ci = 0; ci < cinfo->num_components; ci++)
+        exe_method_at(reinterpret_cast<char *>(cinfo->downsample) + 0xc + 4 * ci);
 }
 }
 

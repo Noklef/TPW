@@ -187,6 +187,40 @@ void __cdecl jpeg6a_jccolor_null_convert(jpeg6a_compress_struct *cinfo, unsigned
 // The empty start_pass (built, unhooked: 0x655e8d stays the exe's hand port).
 void __cdecl jpeg6a_jccolor_null_method(jpeg6a_compress_struct *cinfo);
 
+// jcsample.c, the downsampler, through third_party/wrap/jpeg-6a/jcsample.c (with INPUT_SMOOTHING_SUPPORTED, as the exe's).
+// jpeg6a_component_info is jpeg_component_info (untagged in jpeglib.h), 0x54 bytes.
+struct jpeg6a_component_info;
+// 0x6547f0: cinfo->downsample (alloc_small of the image pool, 0x34) and its methods (through the method shim, jpeg6a.cpp):
+// JERR_CCIR601_NOTIMPL 0x17 for CCIR601_sampling; for each component by its factors against the maxima fullsize (smoothed with a
+// smoothing_factor), h2v1, h2v2 (smoothed likewise), int for integral ratios, else JERR_FRACT_SAMPLE_NOTIMPL 0x25; smoothing asked
+// for with a ratio it cannot smooth is a trace (JTRC_SMOOTH_NOTIMPL). start_pass is the empty start_pass_downsample (0x654a1d, the
+// exe's).
+void __cdecl jpeg6a_jinit_downsampler(jpeg6a_compress_struct *cinfo);
+// 0x654a22 (static): each component's method on its rows from in_row_index, to its row group out_row_group_index.
+void __cdecl jpeg6a_jcsample_sep_downsample(jpeg6a_compress_struct *cinfo, unsigned char ***input_buf, unsigned int in_row_index,
+                                            unsigned char ***output_buf, unsigned int out_row_group_index);
+// 0x654c1d (static): num_rows rows widened from input_cols to output_cols with their last sample.
+void __cdecl jpeg6a_jcsample_expand_right_edge(unsigned char **image_data, int num_rows, unsigned int input_cols,
+                                               unsigned int output_cols);
+// 0x654ab1, 0x654c94, 0x654ce5, 0x654db3, 0x654ebf, 0x65527e (static): a row group of one component to width_in_blocks * 8
+// samples (the input edge-expanded first): the rounded average of each h x v box; copied; 2:1 horizontally, 2:1 both ways (an
+// alternating bias of 0, 1 / 1, 2); 2:1 both ways and full size smoothed with the neighbouring rows and columns
+// (smoothing_factor / 1024).
+void __cdecl jpeg6a_jcsample_int_downsample(jpeg6a_compress_struct *cinfo, jpeg6a_component_info *compptr,
+                                            unsigned char **input_data, unsigned char **output_data);
+void __cdecl jpeg6a_jcsample_fullsize_downsample(jpeg6a_compress_struct *cinfo, jpeg6a_component_info *compptr,
+                                                 unsigned char **input_data, unsigned char **output_data);
+void __cdecl jpeg6a_jcsample_h2v1_downsample(jpeg6a_compress_struct *cinfo, jpeg6a_component_info *compptr,
+                                             unsigned char **input_data, unsigned char **output_data);
+void __cdecl jpeg6a_jcsample_h2v2_downsample(jpeg6a_compress_struct *cinfo, jpeg6a_component_info *compptr,
+                                             unsigned char **input_data, unsigned char **output_data);
+void __cdecl jpeg6a_jcsample_h2v2_smooth_downsample(jpeg6a_compress_struct *cinfo, jpeg6a_component_info *compptr,
+                                                    unsigned char **input_data, unsigned char **output_data);
+void __cdecl jpeg6a_jcsample_fullsize_smooth_downsample(jpeg6a_compress_struct *cinfo, jpeg6a_component_info *compptr,
+                                                        unsigned char **input_data, unsigned char **output_data);
+// The empty start_pass (built, unhooked: 0x654a1d stays the exe's hand port).
+void __cdecl jpeg6a_jcsample_start_pass_downsample(jpeg6a_compress_struct *cinfo);
+
 // jcomapi.c: what compression and decompression share.
 // 0x64f3c0: the image pool freed (mem->free_pool of pool 1), global_state back to the start (DSTATE_START 200 for a decompressor,
 // else CSTATE_START 100).

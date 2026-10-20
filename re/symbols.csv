@@ -5683,3 +5683,12 @@ address,name,kind,confidence,notes
 0x00655bbf,jpeg6a_jccolor_cmyk_ycck_convert,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jccolor.c cmyk_ycck_convert: CMYK rows to YCCK (the library's)
 0x00655d55,jpeg6a_jccolor_grayscale_convert,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jccolor.c grayscale_convert: each pixel's first sample (the library's)
 0x00655ddc,jpeg6a_jccolor_null_convert,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jccolor.c null_convert: interleaved samples to one plane a component (the library's)
+0x006547f0,jpeg6a_jinit_downsampler,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcsample.c jinit_downsampler: the downsampler, a method for each component's sampling ratio (the library's, through the method shim)"
+0x00654a22,jpeg6a_jcsample_sep_downsample,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcsample.c sep_downsample: a row group of each component through its method (the library's)
+0x00654ab1,jpeg6a_jcsample_int_downsample,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcsample.c int_downsample: any integral ratio, the average of each box (the library's)"
+0x00654c1d,jpeg6a_jcsample_expand_right_edge,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcsample.c expand_right_edge: each row's last sample repeated to the width (the library's)
+0x00654c94,jpeg6a_jcsample_fullsize_downsample,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcsample.c fullsize_downsample: the rows copied and edge-expanded (the library's)
+0x00654ce5,jpeg6a_jcsample_h2v1_downsample,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcsample.c h2v1_downsample: 2:1 horizontally with an alternating bias (the library's)
+0x00654db3,jpeg6a_jcsample_h2v2_downsample,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcsample.c h2v2_downsample: 2:1 both ways with an alternating bias (the library's)
+0x00654ebf,jpeg6a_jcsample_h2v2_smooth_downsample,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcsample.c h2v2_smooth_downsample: 2:1 both ways, smoothed with the neighbours (the library's)"
+0x0065527e,jpeg6a_jcsample_fullsize_smooth_downsample,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcsample.c fullsize_smooth_downsample: full size, smoothed with the neighbours (the library's)"
