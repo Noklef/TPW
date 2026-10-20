@@ -116,6 +116,31 @@ void __cdecl jpeg6a_jcmainct_start_pass_main(jpeg6a_compress_struct *cinfo, int 
 void __cdecl jpeg6a_jcmainct_process_data_simple_main(jpeg6a_compress_struct *cinfo, unsigned char **input_buf,
                                                       unsigned int *in_row_ctr, unsigned int in_rows_avail);
 
+// jcprepct.c, the preprocessing controller, through third_party/wrap/jpeg-6a/jcprepct.c (with CONTEXT_ROWS_SUPPORTED, as the exe's).
+// 0x654090: cinfo->prep (alloc_small of the image pool, 0x40) and its methods (through the method shim, jpeg6a.cpp); a full buffer
+// is JERR_BAD_BUFFER_MODE 4; when the downsampler needs context rows, pre_process_context and create_context_buffer, else
+// pre_process_data and a row group of max_v_samp_factor rows for each component (alloc_sarray).
+void __cdecl jpeg6a_jinit_c_prep_controller(jpeg6a_compress_struct *cinfo, int need_full_buffer);
+// 0x654188 (static): JBUF_PASS_THRU only (JERR_BAD_BUFFER_MODE); rows_to_go image_height, the buffer empty, next_buf_stop two row
+// groups.
+void __cdecl jpeg6a_jcprepct_start_pass_prep(jpeg6a_compress_struct *cinfo, int pass_mode);
+// 0x6541ed (static): rows colour-converted into color_buf until a row group is there, then downsampled into output_buf; at the
+// image's bottom the last row repeated, in color_buf and then in output_buf to its full height.
+void __cdecl jpeg6a_jcprepct_pre_process_data(jpeg6a_compress_struct *cinfo, unsigned char **input_buf, unsigned int *in_row_ctr,
+                                              unsigned int in_rows_avail, unsigned char ***output_buf,
+                                              unsigned int *out_row_group_ctr, unsigned int out_row_groups_avail);
+// 0x6543fc (static): rows input_rows..output_rows-1 copies of row input_rows-1 (jcopy_sample_rows).
+void __cdecl jpeg6a_jcprepct_expand_bottom_edge(unsigned char **image_data, unsigned int num_cols, int input_rows, int output_rows);
+// 0x654440 (static): pre_process_data with a row group of context above and below, in color_buf's wraparound of three row groups
+// (the top row copied above the image first, the last below it at the bottom).
+void __cdecl jpeg6a_jcprepct_pre_process_context(jpeg6a_compress_struct *cinfo, unsigned char **input_buf,
+                                                 unsigned int *in_row_ctr, unsigned int in_rows_avail,
+                                                 unsigned char ***output_buf, unsigned int *out_row_group_ctr,
+                                                 unsigned int out_row_groups_avail);
+// 0x6546a5 (static): each component's three row groups (alloc_sarray) behind five groups of row pointers (alloc_small), the first
+// and last the wraparound's.
+void __cdecl jpeg6a_jcprepct_create_context_buffer(jpeg6a_compress_struct *cinfo);
+
 // jcomapi.c: what compression and decompression share.
 // 0x64f3c0: the image pool freed (mem->free_pool of pool 1), global_state back to the start (DSTATE_START 200 for a decompressor,
 // else CSTATE_START 100).

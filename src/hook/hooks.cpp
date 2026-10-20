@@ -5330,6 +5330,12 @@ const Hook kHooks[] = {
     {"jpeg6a_jcmainct_process_data_simple_main", 0x00650608, (void *)&jpeg6a_jcmainct_process_data_simple_main, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"jpeg6a_jcmainct_start_pass_main", 0x00650589, (void *)&jpeg6a_jcmainct_start_pass_main, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jpeg6a_jinit_c_main_controller", 0x006504c0, (void *)&jpeg6a_jinit_c_main_controller, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcprepct_create_context_buffer", 0x006546a5, (void *)&jpeg6a_jcprepct_create_context_buffer, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcprepct_pre_process_context", 0x00654440, (void *)&jpeg6a_jcprepct_pre_process_context, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcprepct_expand_bottom_edge", 0x006543fc, (void *)&jpeg6a_jcprepct_expand_bottom_edge, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"jpeg6a_jcprepct_pre_process_data", 0x006541ed, (void *)&jpeg6a_jcprepct_pre_process_data, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcprepct_start_pass_prep", 0x00654188, (void *)&jpeg6a_jcprepct_start_pass_prep, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"jpeg6a_jinit_c_prep_controller", 0x00654090, (void *)&jpeg6a_jinit_c_prep_controller, {0x55, 0x8b, 0xec, 0x83, 0xec}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

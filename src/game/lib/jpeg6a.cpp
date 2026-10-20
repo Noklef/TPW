@@ -64,6 +64,7 @@ extern "C" void __cdecl jpeg6a_jcmarker_lib_jinit_marker_writer(jpeg6a_compress_
 extern "C" void __cdecl jpeg6a_jcmaster_lib_jinit_c_master_control(jpeg6a_compress_struct *cinfo, int transcode_only);
 extern "C" void __cdecl jpeg6a_jcmainct_lib_jinit_c_main_controller(jpeg6a_compress_struct *cinfo, int need_full_buffer);
 extern "C" void __cdecl jpeg6a_jcmainct_lib_start_pass_main(jpeg6a_compress_struct *cinfo, int pass_mode);
+extern "C" void __cdecl jpeg6a_jcprepct_lib_jinit_c_prep_controller(jpeg6a_compress_struct *cinfo, int need_full_buffer);
 
 namespace {
 struct ExeMethod {
@@ -101,6 +102,10 @@ const ExeMethod kExeMethods[] = {
     // jcmainct.c (the library's start_pass_main, behind its shim)
     {fn(&jpeg6a_jcmainct_lib_start_pass_main), 0x650589},
     {fn(&jpeg6a_jcmainct_process_data_simple_main), 0x650608},
+    // jcprepct.c
+    {fn(&jpeg6a_jcprepct_start_pass_prep), 0x654188},
+    {fn(&jpeg6a_jcprepct_pre_process_data), 0x6541ed},
+    {fn(&jpeg6a_jcprepct_pre_process_context), 0x654440},
 };
 
 bool g_native_methods = false;  // (Jpeg6a_SetNativeMethods: the tests' driver, which cannot call the exe's addresses)
@@ -164,6 +169,12 @@ void __cdecl jpeg6a_jinit_c_main_controller(j_compress_ptr cinfo, boolean need_f
 void __cdecl jpeg6a_jcmainct_start_pass_main(j_compress_ptr cinfo, int pass_mode) {  // (a J_BUF_MODE)
     jpeg6a_jcmainct_lib_start_pass_main(cinfo, pass_mode);
     exe_method(cinfo->main->process_data);
+}
+
+void __cdecl jpeg6a_jinit_c_prep_controller(j_compress_ptr cinfo, boolean need_full_buffer) {
+    jpeg6a_jcprepct_lib_jinit_c_prep_controller(cinfo, need_full_buffer);
+    exe_method(cinfo->prep->start_pass);
+    exe_method(cinfo->prep->pre_process_data);
 }
 }
 
