@@ -90,6 +90,11 @@ u32 __fastcall Sprite_SetDestinationCellMarked(u8 *sprite, void *, u32 cell);
 // (16.16 cells to the scene's units) stored to floats, the height 0, the frame the dword +0x1c.
 void __fastcall Sprite_InterpolatedPos(const u8 *sprite, void *, float t, u32 unit, float *x, u32 *height, float *z, u32 *frame);
 
+// 0x4faa00 (thiscall; category, sound, pops 8; name unconfirmed): Sound_PlayAt(0, category, sound, x, y, z) at the sprite's script's position
+// (+0xc, SpriteScript_GetPosition: its float registers, each __ftol'd to its low dword); its result. Without the script (or the list not ready)
+// the original passes its uninitialised locals; the port passes 0s.
+u32 __fastcall Sprite_PlaySound(const u8 *sprite, void *, u32 category, u32 sound);
+
 // 0x4f8b10 (thiscall; stream, save, version, unused): a moving person: 1 when the thing (Thing_Serialize) or the script reference (+0xc,
 // SpriteAnim_Serialize) fails. Then, for a version of 0..1, saved (save nonzero) or loaded: the words +0x18, +0x1a, +0xc4, +0xc0, the byte +0x2c,
 // the dword +0x24, the word +0xcc, the nav (+0xd4: Nav_Serialize; loading Nav_SerializeFwd with save 0), the dwords +0xc8, +0x190, +0x194, +0x198,

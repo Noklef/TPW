@@ -1,11 +1,13 @@
 #include "person.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "../core/globals.h"
 #include "../core/savegame.h"
+#include "../core/soundplay.h"
 #include "../math/x87.h"
 #include "../sprite/script.h"
 #include "../sprite/scriptref.h"
@@ -314,5 +316,16 @@ void __fastcall Sprite_InterpolatedPos(const u8 *sprite, void *, float t, u32 un
     *height = 0;
     *z = (float)(X87_MulDouble((double)y, 10.0) / 65536.0);
     *frame = at<u32>(sprite, 0x1c);
+}
+
+u32 __fastcall Sprite_PlaySound(const u8 *sprite, void *, u32 category, u32 sound) {
+    u32 x = 0, y = 0, z = 0, r15;   // (the original's are uninitialised when the script is missing)
+    SpriteScript_GetPosition(at<s32>(sprite, 0xc), &x, &y, &z, &r15);
+    const auto whole = [](u32 bits) {
+        float f;
+        std::memcpy(&f, &bits, 4);
+        return (s32)(long long)f;
+    };
+    return Sound_PlayAt(0, category, sound, whole(x), whole(y), whole(z));
 }
 }
