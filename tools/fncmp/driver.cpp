@@ -973,6 +973,8 @@ int main(int argc, char **argv) {
     // addresses, where a case's wild pointer read memory natively that the emulator (the original's side) does not have. At 0x5a000000,
     // not top-down: that put it at 0x7ef00000-0x7fef0000, under the bits of +inf, NaN and big floats (0x7f800000, 0x7fc00000, 3e38),
     // which a case's float stored over a pointer then wrote through natively while the emulator faulted (barmesh.py's 0x477d20).
+    // Wherever it is, a random pointer can land in it (partstate.py's 0x44b410 read 0x5ac39898): the case loop takes its access away
+    // while a case runs.
     char *token = static_cast<char *>(VirtualAlloc((void *)0x5a000000, 1 << 24, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE));
     if (!token) token = static_cast<char *>(VirtualAlloc(nullptr, 1 << 24, MEM_RESERVE | MEM_COMMIT | MEM_TOP_DOWN, PAGE_READWRITE));
     if (!token) fail("cannot map the token buffer", 0);
@@ -986,6 +988,8 @@ int main(int argc, char **argv) {
         std::scanf("%x", &regions);
         reset_memory();
         std::vector<std::pair<u32, u32>> spans;
+        DWORD was;
+        VirtualProtect(token, 1 << 24, PAGE_READWRITE, &was);
         for (u32 i = 0; i < regions; ++i) {
             u32 at;
             std::scanf("%x %16777215s", &at, token);
@@ -994,6 +998,8 @@ int main(int argc, char **argv) {
             std::memcpy(reinterpret_cast<void *>((uintptr_t)at), bytes.data(), bytes.size());
             spans.push_back({at, (u32)bytes.size()});
         }
+        // No access while the case runs: a wild pointer into it faults natively, as in the emulator, which has no such memory.
+        VirtualProtect(token, 1 << 24, PAGE_NOACCESS, &was);
         void *fn = find(address);
         if (!fn) {
             std::printf("nohook\n");
