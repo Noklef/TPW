@@ -834,6 +834,7 @@ address,name,kind,confidence,notes
 0x004c76d0,ParkAnalyser_StampTime21c38,function,low,reimplemented (src/game/world/analyser); the funny time now stamped at the park analyser's +0x21c38 (name unconfirmed)
 0x004c7a90,ParkAnalyser_InitCells,function,low,"reimplemented (src/game/world/analyser); thiscall: message centre slots 0xc, 0x11, 0x13, then rows * columns cell rectangles (x, y, w, h; cut at the width / height); returns 1"
 0x004c58c0,ParkAnalyser_Ctor,function,low,"reimplemented (src/game/world/analyser); thiscall: the park analyser's constructor (thing kind 0xd, cells, rings, stamps, InitCells); returns it"
+0x004cd880,ParkAnalyser_AveragePersonStat19c,function,low,"reimplemented (src/game/world/analyser); thiscall (cell id, radius): the average of the low bytes of the people's floats +0x19c in the cells within radius of the cell"
 0x004d0af0,MapHandle_Entry28,function,high,reimplemented (src/game/world/mapcell); thiscall on a u16 handle: gMapCells + 0x10ffd8 + handle * 0x28
 0x004d0b10,MapHandle_Cell44,function,high,reimplemented (src/game/world/mapcell); thiscall on a u16 handle: gMapCells + (handle - 1) * 0x44
 0x004d0a70,MemRanges_Set,function,high,"reimplemented (src/game/world/mapcell); thiscall on 0x7cdb30 (index, a, b, name): entry index = (a, b); name unused (""World Struture"")"

@@ -145,4 +145,27 @@ u32 __fastcall AnalyserVal_Serialize(u8 *val, void *, Stream *stream, u32 save, 
     if (version < 0 || version > 1) return 0;
     return Save_Fields(stream, save, val, kVal, 2) ? 0 : 1;
 }
+
+s32 __fastcall ParkAnalyser_AveragePersonStat19c(void *, void *, u32 cell, u32 radius) {
+    const u32 id = (cell & 0xffff) - 1;
+    const u32 column = id & 0x7f, row = id >> 7;
+    const s32 left = (s32)(column - radius), top = (s32)(row - radius);
+    const s32 right = column + radius > 0x7f ? 0x7f : (s32)(column + radius);   // (unsigned)
+    const s32 bottom = row + radius > 0x7f ? 0x7f : (s32)(row + radius);
+    s32 sum = 0, count = 0;
+    for (s32 x = left; x <= right; ++x)
+        for (s32 y = top; y <= bottom; ++y) {
+            const u16 id_xy = (u16)(((u32)y << 7) + (u32)x + 1);
+            u16 handle = at<u16>(*reinterpret_cast<u8 *const *>(0x008023a0), id_xy * 0x44u - 0x20u);
+            while (handle) {
+                const u8 *thing = static_cast<const u8 *>(reinterpret_cast<ThingSlot *>(0x007cfb90)[handle].thing);
+                if (at<u8>(thing, 2) == 1) {
+                    ++count;
+                    sum += (u8)(long long)at<float>(thing, 0x19c);   // (__ftol's low byte)
+                }
+                handle = at<u16>(thing, 0xa);
+            }
+        }
+    return count ? sum / count : 0;
+}
 }
