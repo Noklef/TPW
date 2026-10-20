@@ -9,18 +9,21 @@
 #include "../core/savegame.h"
 #include "../core/soundplay.h"
 #include "../math/x87.h"
+#include "../render/dynfaces.h"
 #include "../sprite/script.h"
 #include "../sprite/scriptref.h"
 #include "analyser.h"
 #include "nav.h"
 #include "object.h"
 #include "objectdefs.h"
+#include "personscripts.h"
 #include "things.h"
 #include "world.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 u16 map_id(const u8 *thing) { return (u16)((at<u8>(thing, 7) << 7) + at<u8>(thing, 5) + 1); }
 
@@ -327,5 +330,54 @@ u32 __fastcall Sprite_PlaySound(const u8 *sprite, void *, u32 category, u32 soun
         return (s32)(long long)f;
     };
     return Sound_PlayAt(0, category, sound, whole(x), whole(y), whole(z));
+}
+
+void __fastcall Person_PlaceSprite(u8 *person, void *, float t) {
+    const auto bits = [](X87Reg v) {   // (fstp m32)
+        const float f = (float)v.v;
+        u32 b;
+        std::memcpy(&b, &f, 4);
+        return b;
+    };
+    float x0, z0, x1, z1;
+    u32 h0, frame0, h1, frame1;
+    Sprite_InterpolatedPos(person, nullptr, (float)(X87Reg(t) - X87Reg(0.35f)).v, 0, &x0, &h0, &z0, &frame0);
+    Sprite_InterpolatedPos(person, nullptr, t, 1, &x1, &h1, &z1, &frame1);
+    frame1 = (frame1 - 0x380) & 0x7ff;
+    u32 x1b, z1b;
+    std::memcpy(&x1b, &x1, 4);
+    std::memcpy(&z1b, &z1, 4);
+    if (!at<u32>(person, 0x28)) SpriteScript_SetPosition(at<s32>(person, 0xc), x1b, h1, z1b, frame1 >> 8);
+    if (Counter7cdb98_Inc() < at<u32>(person, 0x198)) at<u32>(person, 0x198) = 0;
+    if (at<u32>(person, 0x198)) {   // (a square face on the person's cell)
+        const u32 cell = (u32)map_id(person) - 1;
+        DynFaces_AddSquare(bits(X87_MulInt(cell & 0x7f, 10.0f)), 0x3f800000, bits(X87_MulInt(cell >> 7, 10.0f)), 0, 1, 0, 0x3f800000, 0, 0, 0, 0);
+    }
+    if (const s32 slot = at<s32>(person, 0xb4)) {
+        float h;
+        std::memcpy(&h, &h1, 4);
+        SpriteScript_SetPosition(slot, x1b, bits(X87Reg(h) + X87Reg(2.5f)), z1b, 0);
+    }
+    if (at<u8>(person, 2) != 1 || !at<u32>(person, 0x210)) return;
+    // the script +0x210 bobs: a row of the table 0x75c810 (12-byte rows of three floats, the count the dword 0x75c80c) by the handle and
+    // the row 0x7cedd4, lower the further the person moved (|dx| + |dz| over the 0.35 since the earlier position)
+    u16 handle;
+    const u32 rows = global<u32>(0x0075c80c);
+    const u32 row = ((u32)*Thing_GetHandle(person, nullptr, &handle) + global<u32>(0x007cedd4)) % rows;
+    float h0f;
+    std::memcpy(&h0f, &h0, 4);
+    const X87Reg moved = (X87Reg(std::fabs((double)(X87Reg(x0) - X87Reg(x1)).v)) + X87Reg(std::fabs((double)(X87Reg(z0) - X87Reg(z1)).v))) / X87Reg(0.5f);
+    const float *const bob = &global<float>(0x0075c810 + 12 * row);
+    const X87Reg c = X87Reg(bob[2]) * X87Reg(1.5f) + X87Reg(z0);
+    const X87Reg b = X87_SubR(moved, X87Reg(1.0f)) + X87Reg(bob[1]) * X87Reg(1.5f) + X87Reg(h0f);
+    const X87Reg a = X87Reg(bob[0]) * X87Reg(1.5f) + X87Reg(x0);
+    Person_MoveScript(person, nullptr, bits(a), bits(b), bits(c), 0);
+    float &time = global<float>(0x007cedd8);
+    if (!((double)X87Reg(time).v >= 1.0)) {   // (fcomp 1.0: below or unordered)
+        time = (float)(X87Reg(0.1f) + X87Reg(time)).v;
+    } else {
+        global<u32>(0x007cedd4) = (global<u32>(0x007cedd4) + 1) % rows;
+        global<u32>(0x007cedd8) = 0;
+    }
 }
 }

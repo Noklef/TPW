@@ -120,4 +120,14 @@ u32 __fastcall Visitor_Serialize(u8 *visitor, void *, Stream *stream, u32 save, 
 // the game table entry of [0x7cf83c]'s +0x1da720): for kind 1 the ingredient's (+0x158, 1-4) and the appearance's (+0x15c: 1 -> 6, 2 -> 7),
 // for kind 2 ring 9. 1 when the price is above that or above mCash (+0x1a0), else 0.
 u32 __fastcall Visitor_WontPay(const u8 *visitor, void *, u8 *object);
+
+// 0x4fa030 (thiscall; t, pops 4; x87; name unconfirmed): a moving person's sprite placed for the moment t: its position at t - 0.35 (unit 0) and at t
+// (unit 1) by Sprite_InterpolatedPos. Unless +0x28 is set, the script reference +0xc's slot is moved there (SpriteScript_SetPosition; r15 the
+// frame less 0x380, & 0x7ff, >> 8). The timer +0x198 is zeroed when the counter 0x7cdb98 (Counter7cdb98_Inc) is below it; while it is set, a square
+// face (DynFaces_AddSquare, tag 1) on the person's cell (column and row times 10.0f). The slot +0xb4 (when set) goes to the position 2.5 higher (r15
+// 0). For a person of kind 1 (byte +2) with the script +0x210, that is moved (Person_MoveScript) to the position at t - 0.35 plus a row of the
+// bob table 0x75c810 (three floats times 1.5; the row the handle plus 0x7cedd4, modulo the dword 0x75c80c), its height plus
+// 1 - (|dx| + |dz|) / 0.5 between the two positions; then the bob's time 0x7cedd8 gains 0.1 until it is 1.0 or more, when it is 0 and the
+// row 0x7cedd4 moves on (modulo the count). All x87 at 24 bits.
+void __fastcall Person_PlaceSprite(u8 *person, void *, float t);
 }
