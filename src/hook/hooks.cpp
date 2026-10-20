@@ -5235,6 +5235,21 @@ const Hook kHooks[] = {
     {"jpeg6a_jpeg_get_large",     0x00650232, (void *)&jpeg6a_jpeg_get_large, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
     {"jpeg6a_jpeg_free_small",    0x00650221, (void *)&jpeg6a_jpeg_free_small, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
     {"jpeg6a_jpeg_get_small",     0x00650210, (void *)&jpeg6a_jpeg_get_small, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jmemmgr_self_destruct", 0x0064f360, (void *)&jpeg6a_jmemmgr_self_destruct, {0x55, 0x8b, 0xec, 0x51, 0xc7}},
+    {"jpeg6a_jmemmgr_free_pool",  0x0064f1aa, (void *)&jpeg6a_jmemmgr_free_pool, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jmemmgr_do_barray_io", 0x0064f061, (void *)&jpeg6a_jmemmgr_do_barray_io, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jmemmgr_access_virt_barray", 0x0064ee6f, (void *)&jpeg6a_jmemmgr_access_virt_barray, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jmemmgr_do_sarray_io", 0x0064ed29, (void *)&jpeg6a_jmemmgr_do_sarray_io, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jmemmgr_access_virt_sarray", 0x0064eb3a, (void *)&jpeg6a_jmemmgr_access_virt_sarray, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jmemmgr_realize_virt_arrays", 0x0064e85f, (void *)&jpeg6a_jmemmgr_realize_virt_arrays, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jmemmgr_request_virt_barray", 0x0064e7ba, (void *)&jpeg6a_jmemmgr_request_virt_barray, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jmemmgr_request_virt_sarray", 0x0064e715, (void *)&jpeg6a_jmemmgr_request_virt_sarray, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jmemmgr_alloc_barray", 0x0064e600, (void *)&jpeg6a_jmemmgr_alloc_barray, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jmemmgr_alloc_sarray", 0x0064e4ff, (void *)&jpeg6a_jmemmgr_alloc_sarray, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jmemmgr_alloc_large", 0x0064e40d, (void *)&jpeg6a_jmemmgr_alloc_large, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jmemmgr_out_of_memory", 0x0064e3e3, (void *)&jpeg6a_jmemmgr_out_of_memory, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jmemmgr_alloc_small", 0x0064e21d, (void *)&jpeg6a_jmemmgr_alloc_small, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jinit_memory_mgr",   0x0064e020, (void *)&jpeg6a_jinit_memory_mgr, {0x55, 0x8b, 0xec, 0x83, 0xec}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

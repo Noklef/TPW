@@ -78,6 +78,52 @@ void __cdecl jpeg6a_jpeg_free_large(jpeg6a_common_struct *cinfo, void *object, s
 // 0x650254: mem->max_memory_to_use (+0x2c) - already_allocated.
 long __cdecl jpeg6a_jpeg_mem_available(jpeg6a_common_struct *cinfo, long min_bytes_needed, long max_bytes_needed, long already_allocated);
 
+// jmemmgr.c, the memory manager, through third_party/wrap/jpeg-6a/jmemmgr.c: cinfo->mem (my_memory_mgr, 0x50 bytes: the public
+// jpeg_memory_mgr 0x30 (no max_alloc_chunk in 6a), small_list[2] +0x30, large_list[2] +0x38, virt_sarray_list +0x40,
+// virt_barray_list +0x44, total_space_allocated +0x48, last_rowsperchunk +0x4c); pools 0 (JPOOL_PERMANENT) and 1 (JPOOL_IMAGE); a
+// pool's blocks start with a 16-byte header (next, bytes_used, bytes_left). Its getenv / sscanf and jpeg_open_backing_store are the
+// exe's (Jpeg6aCrtEnv below).
+struct jpeg6a_jvirt_sarray_control;  // 0x80 bytes (int booleans pre_zero +0x20, dirty +0x24, b_s_open +0x28; the backing store +0x30)
+struct jpeg6a_jvirt_barray_control;  // 0x80 bytes
+typedef short jpeg6a_block[64];      // JBLOCK
+// 0x64e020: the manager (jpeg_get_small of 0x50, JERR_OUT_OF_MEMORY 0x35 without it), its eleven methods, max_memory_to_use from
+// jpeg_mem_init, or JPEGMEM's (thousands, or millions with an m / M); cinfo->mem. Through the method shim (jpeg6a.cpp).
+void __cdecl jpeg6a_jinit_memory_mgr(jpeg6a_common_struct *cinfo);
+// 0x64e3e3 (static): ERREXIT1 JERR_OUT_OF_MEMORY (0x35) with which.
+void __cdecl jpeg6a_jmemmgr_out_of_memory(jpeg6a_common_struct *cinfo, int which);
+// 0x64e21d: sizeofobject (rounded up to 8) from the first small pool of pool_id with room, else a new pool (jpeg_get_small of the
+// object, its header and the pool's slop, the slop halved while it fails; out_of_memory below 50).
+void *__cdecl jpeg6a_jmemmgr_alloc_small(jpeg6a_common_struct *cinfo, int pool_id, std::size_t sizeofobject);
+// 0x64e40d: a large object of its own (jpeg_get_large), linked into large_list[pool_id].
+void *__cdecl jpeg6a_jmemmgr_alloc_large(jpeg6a_common_struct *cinfo, int pool_id, std::size_t sizeofobject);
+// 0x64e4ff, 0x64e600: numrows rows (pointers from alloc_small, the rows from alloc_large in chunks of last_rowsperchunk).
+unsigned char **__cdecl jpeg6a_jmemmgr_alloc_sarray(jpeg6a_common_struct *cinfo, int pool_id, unsigned int samplesperrow,
+                                                    unsigned int numrows);
+jpeg6a_block **__cdecl jpeg6a_jmemmgr_alloc_barray(jpeg6a_common_struct *cinfo, int pool_id, unsigned int blocksperrow,
+                                                   unsigned int numrows);
+// 0x64e715, 0x64e7ba: a virtual array's control block (JPOOL_IMAGE only), unrealized, at the head of its list.
+jpeg6a_jvirt_sarray_control *__cdecl jpeg6a_jmemmgr_request_virt_sarray(jpeg6a_common_struct *cinfo, int pool_id, int pre_zero,
+                                                                        unsigned int samplesperrow, unsigned int numrows,
+                                                                        unsigned int maxaccess);
+jpeg6a_jvirt_barray_control *__cdecl jpeg6a_jmemmgr_request_virt_barray(jpeg6a_common_struct *cinfo, int pool_id, int pre_zero,
+                                                                        unsigned int blocksperrow, unsigned int numrows,
+                                                                        unsigned int maxaccess);
+// 0x64e85f: every unrealized array its buffer, all of it in memory when jpeg_mem_available allows, else a backing store.
+void __cdecl jpeg6a_jmemmgr_realize_virt_arrays(jpeg6a_common_struct *cinfo);
+// 0x64eb3a, 0x64ee6f: rows start_row.. of a virtual array, read in (and the old ones written out) through the backing store when
+// they are not in memory, zeroed when undefined and pre_zero.
+unsigned char **__cdecl jpeg6a_jmemmgr_access_virt_sarray(jpeg6a_common_struct *cinfo, jpeg6a_jvirt_sarray_control *ptr,
+                                                          unsigned int start_row, unsigned int num_rows, int writable);
+jpeg6a_block **__cdecl jpeg6a_jmemmgr_access_virt_barray(jpeg6a_common_struct *cinfo, jpeg6a_jvirt_barray_control *ptr,
+                                                         unsigned int start_row, unsigned int num_rows, int writable);
+// 0x64ed29, 0x64f061 (static): the buffer's chunks read from or written to the backing store.
+void __cdecl jpeg6a_jmemmgr_do_sarray_io(jpeg6a_common_struct *cinfo, jpeg6a_jvirt_sarray_control *ptr, int writing);
+void __cdecl jpeg6a_jmemmgr_do_barray_io(jpeg6a_common_struct *cinfo, jpeg6a_jvirt_barray_control *ptr, int writing);
+// 0x64f1aa: a pool's blocks freed (the image pool's backing stores closed first), large then small.
+void __cdecl jpeg6a_jmemmgr_free_pool(jpeg6a_common_struct *cinfo, int pool_id);
+// 0x64f360: both pools freed, then the manager; cinfo->mem NULL.
+void __cdecl jpeg6a_jmemmgr_self_destruct(jpeg6a_common_struct *cinfo);
+
 // jutils.c (the same source as 6b's; the exe's copies use inline REP MOVS / STOS, the library's memcpy / memset)
 // 0x6503d0: a / b rounded up (a >= 0, b > 0).
 long __cdecl jpeg6a_jdiv_round_up(long a, long b);

@@ -5567,3 +5567,18 @@ address,name,kind,confidence,notes
 0x00650232,jpeg6a_jpeg_get_large,function,low,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemansi.c jpeg_get_large: malloc, the exe's (the library's)"
 0x00650243,jpeg6a_jpeg_free_large,function,low,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemansi.c jpeg_free_large: free, the exe's (the library's)"
 0x00650254,jpeg6a_jpeg_mem_available,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemansi.c jpeg_mem_available: max_memory_to_use - already_allocated (the library's)
+0x0064e020,jpeg6a_jinit_memory_mgr,function,low,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c jinit_memory_mgr: the memory manager and its methods, JPEGMEM (the library's, through the method shim)"
+0x0064e21d,jpeg6a_jmemmgr_alloc_small,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c alloc_small: an object from a small pool (the library's)
+0x0064e3e3,jpeg6a_jmemmgr_out_of_memory,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c out_of_memory: JERR_OUT_OF_MEMORY (the library's)
+0x0064e40d,jpeg6a_jmemmgr_alloc_large,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c alloc_large: a large object of its own (the library's)
+0x0064e4ff,jpeg6a_jmemmgr_alloc_sarray,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c alloc_sarray: a sample array in chunks (the library's)
+0x0064e600,jpeg6a_jmemmgr_alloc_barray,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c alloc_barray: a coefficient block array in chunks (the library's)
+0x0064e715,jpeg6a_jmemmgr_request_virt_sarray,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c request_virt_sarray: a virtual sample array's control block (the library's)
+0x0064e7ba,jpeg6a_jmemmgr_request_virt_barray,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c request_virt_barray: a virtual block array's control block (the library's)
+0x0064e85f,jpeg6a_jmemmgr_realize_virt_arrays,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c realize_virt_arrays: the virtual arrays' buffers or backing stores (the library's)
+0x0064eb3a,jpeg6a_jmemmgr_access_virt_sarray,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c access_virt_sarray: rows of a virtual sample array (the library's)
+0x0064ed29,jpeg6a_jmemmgr_do_sarray_io,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c do_sarray_io: a virtual sample array's backing store read or write (the library's)
+0x0064ee6f,jpeg6a_jmemmgr_access_virt_barray,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c access_virt_barray: rows of a virtual block array (the library's)
+0x0064f061,jpeg6a_jmemmgr_do_barray_io,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c do_barray_io: a virtual block array's backing store read or write (the library's)
+0x0064f1aa,jpeg6a_jmemmgr_free_pool,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c free_pool: a pool's blocks freed (the library's)
+0x0064f360,jpeg6a_jmemmgr_self_destruct,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c self_destruct: both pools and the manager freed (the library's)
