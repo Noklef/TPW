@@ -4155,6 +4155,9 @@ address,name,kind,confidence,notes
 0x0040c450,KeyAction_Credit10000,function,low,reimplemented (src/game/core/keyactions); cdecl: Money_Credit 10000 to the world's money record; returns 1 (alt '1')
 0x0040c480,KeyAction_Toggle787d1c,function,low,"reimplemented (src/game/core/keyactions); cdecl: 0x787d1c = 1 - itself, Global878128_Set_550510 of it; returns 1"
 0x0040c830,KeyAction_ViewFillStep,function,low,reimplemented (src/game/core/keyactions); cdecl: bits 0xc of the render view flags 0x8bcbc8 stepped 0 -> 0xc -> 4 -> 0; returns 1 (control 'T')
+0x0040c430,KeyAction_FlagResearchControls,function,low,reimplemented (src/game/core/keyactions); cdecl: ResearchLab_FlagProjectControls on the lab of the game [0x7cf83c] (GameTable7cfb90_Get1da722_519550); returns 1 (alt 'R')
+0x0040c4b0,KeyAction_ToggleOverlay,function,low,reimplemented (src/game/core/keyactions); cdecl: Obj7b51f0_ToggleOverlay on 0x7b51f0; returns 1 (F3)
+0x0040c5d0,KeyAction_GuiManagerSlotAndFlag,function,low,reimplemented (src/game/core/keyactions); cdecl: Obj7b51f0_GuiManagerSlotAndFlag on 0x7b51f0; returns 1 (control 'H')
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
