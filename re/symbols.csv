@@ -2779,6 +2779,8 @@ address,name,kind,confidence,notes
 0x00458940,MeshRef_SetFlag10000000,function,high,reimplemented (src/game/render/lightsource); flag 0x10000000 of the referenced part set
 0x004a9350,Countdown7cc150_Step,function,high,reimplemented (src/game/core/framecountdown); a counter stepped down; 1 at zero when another global is set
 0x004b4670,Obj_KillSlot24,function,high,reimplemented (src/game/ui/panel7cc328); the script slot at +0x24 killed and the slot fields cleared
+0x004b47e0,Panel7cc328_AddStaffRow,function,low,"reimplemented (src/game/ui/panel7cc328); cdecl (staff), returns 1: a staff member resting in the area [0x7cc310] added to the list [0x7cc314]: its name and the low byte of its float +0x1fc times 1024 / 100"
+0x004b4850,Panel7cc328_OnMessage,function,low,"reimplemented (src/game/ui/panel7cc328); cdecl (window, message, id, b): message 0x101 with b 1 from the tabs 0x1e7d-0x1e81: the list 0x1e7b cleared and filled with the resting staff of the tab's group, its rows refreshed, the panel's slot 8; then the default handler's result"
 0x004bcec0,Global7cc698_Choose,function,high,reimplemented (src/game/ui/dialogs); a global set from the first of three sources that applies
 0x0052fbf0,PairTable_Add,function,high,reimplemented (src/game/world/cellrun); a pair appended to the 8-byte entry table unless it is past 0x400
 0x004d09a0,Obj_SmallestEntry,function,high,"reimplemented (src/game/world/money); the index of the smallest non-zero entry size of eight, or -1"

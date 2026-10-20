@@ -14,9 +14,10 @@ from thingenv import ITEM, ITEMS, NITEMS, POOL, THING, park  # noqa: E402
 
 # name: (address, with a kind argument)
 CALLS = {'Kind': (0x482040, True), 'Word': (0x482100, False), 'Up': (0x4821b0, False), 'F1': (0x482270, False), 'F0': (0x482340, False), 'F2': (0x482400, False), 'Select': (0x481bc0, False), 'Count': (0x48ca00, False), 'One': (0x48cad0, False)}
-B = Bench([(a, a + 0xd0) for (a, _k) in CALLS.values()] + [(0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x412e90, 0x412eea), (0x4dd4e0, 0x4dd500),
+SWEEP_RANGES = ([(a, a + 0xd0) for (a, _k) in CALLS.values()] + [(0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x412e90, 0x412eea), (0x4dd4e0, 0x4dd500),
           (0x4e2710, 0x4e273a), (0x5da3c0, 0x5da3c1), (0x481bc0, 0x481f7e), (0x481f80, 0x482040), (0x4cd300, 0x4cd331),
           (0x48ca00, 0x48caac), (0x48cad0, 0x48cae1)])
+B = Bench(SWEEP_RANGES)
 OWNER, COUNTS = RAM + 0x21000, 0x7c2658   # the count owner (its +4 the group); 0x7c2658 the value, 0x7c2660 the count
 GROUPS = [-3, -2, -1, 0, 1, 2, 3, 4, 0x3e9, 0x3ea, 0x3eb, 0x3ec, 0x3ed]
 HEADS = RAM + 0x20000
@@ -31,8 +32,8 @@ def kinds(r, env):
     return env
 
 
-def select(r, count=False):
-    regions, handles, addrs = kinds(r, park(r, count=r.choice([0, 2, 3, 4, 6, 6]), kinds=(3, 3, 3, 3, 3, 1, 4, 5, 6, 7, 8, 0xff, 0), defs=True))
+def select(r, count=False, pool=POOL):
+    regions, handles, addrs = kinds(r, park(r, count=r.choice([0, 2, 3, 4, 6, 6]), kinds=(3, 3, 3, 3, 3, 1, 4, 5, 6, 7, 8, 0xff, 0), defs=True, pool=pool))
     regions[LOG] = log_region()
     lists = [[] for _ in range(5)]
     for i in range(len(handles)):
@@ -40,7 +41,7 @@ def select(r, count=False):
         if k < 5:
             lists[k].append(i)
     heads = [0] * 5
-    pool = regions[POOL]
+    pool = regions[pool]
     for k, members in enumerate(lists):
         r.shuffle(members)
         for j, i in enumerate(members):
