@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "../../src/game/core/cpuinfo.h"
+#include "../../src/game/core/events.h"
 #include "../../src/game/core/fpu.h"
 #include "../../src/game/core/gameheap.h"
 #include "../../src/game/core/ptrlist.h"
@@ -809,6 +810,13 @@ int main(int argc, char **argv) {
                                reinterpret_cast<const u32 *>((uintptr_t)0x00faa2b0), reinterpret_cast<const u32 *>((uintptr_t)0x00faa268),
                                reinterpret_cast<const u32 *>((uintptr_t)0x00faa280)};
     Tga_SetEnv(&tga);
+    // The event queue's: the heap; atexit stub_cdecl_log (tests/fncmp/events.py hooks 0x67a7d0 with fncmp._cdecl_log), handed the game's 0x5fbe10 as
+    // the original is; the instance 0xfa7cb0 and the critical section's import slots the game's (the case maps them, the slots COM recorders).
+    static EventQueueEnv events = *EventQueue_GetEnv();
+    events.alloc = &heap_alloc;
+    events.free = &heap_free;
+    events.atExit = reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50));
+    EventQueue_SetEnv(&events);
     // A region of up to 8 MB, as hex. Mapped top-down rather than static: a static this size grew the driver's .bss by 12 MB past the
     // game's addresses, where a case's wild pointer read memory natively that the emulator (the original's side) does not have.
     char *const token = static_cast<char *>(VirtualAlloc(nullptr, 1 << 24, MEM_RESERVE | MEM_COMMIT | MEM_TOP_DOWN, PAGE_READWRITE));
