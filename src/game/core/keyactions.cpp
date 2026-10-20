@@ -2,7 +2,10 @@
 
 #include <cstdint>
 
+#include "../ui/focus.h"
+#include "../ui/guimanager.h"
 #include "../world/money.h"
+#include "../world/research.h"
 #include "../world/world.h"
 #include "actionrec.h"
 #include "gameclock.h"
@@ -60,6 +63,21 @@ u32 __cdecl KeyAction_ViewFillStep() {
     case 0xc: flags = (flags & ~8u) | 4; break;
     default: flags |= 0xc; break;
     }
+    return 1;
+}
+
+u32 __cdecl KeyAction_FlagResearchControls() {
+    ResearchLab_FlagProjectControls(reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(global<u8 *>(0x007cf83c))));
+    return 1;
+}
+
+u32 __cdecl KeyAction_ToggleOverlay() {
+    Obj7b51f0_ToggleOverlay(reinterpret_cast<void *>((uintptr_t)0x007b51f0));
+    return 1;
+}
+
+u32 __cdecl KeyAction_GuiManagerSlotAndFlag() {
+    Obj7b51f0_GuiManagerSlotAndFlag(reinterpret_cast<void *>((uintptr_t)0x007b51f0));
     return 1;
 }
 }

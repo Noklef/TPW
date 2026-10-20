@@ -14,7 +14,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import LOG, Bench, Call, RAM, blob_bytes, log_region, put, vtable  # noqa: E402
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from radiogroup import GROUP, RANGES as GROUP_RANGES, group_env, masks, select_states  # noqa: E402
-import coaster  # noqa: E402
 import listrows  # noqa: E402
 
 CALLS = {'SelectButton': 0x4981d0, 'SelectButtonIfUp': 0x498a30, 'SelectButtonIfUpThis': 0x4819f0, 'UpdateLoopButton': 0x4987f0}
@@ -32,6 +31,7 @@ def loop_case(r):
     vtable a recorder: slot 5, one argument; its object +0x98 none or one released, +0x4c none or an object; shown or not up its parents)
     first or after another; the edit object [0x7ca1d0]'s byte +0x50 0, 1 or any; coaster.py's Tools surroundings (the current link);
     the GUI's registered windows of listrows.py's register() with "cb_trough" or "cb_loop" among them or not"""
+    import coaster  # here: coaster.py imports this module for its RANGES at load
     regions = dict(coaster.current(r, 'Tools').regions)
     log = log_region()
     regions[LOG] = log

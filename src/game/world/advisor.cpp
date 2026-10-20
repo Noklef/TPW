@@ -2,16 +2,27 @@
 
 #include <cstdint>
 
+#include "../core/indexed.h"
+#include "../core/selectors.h"
 #include "../model/parts.h"
 #include "../model/slots.h"
 #include "../motion/animator.h"
 #include "../render/particles.h"
+#include "advisorscore.h"
 #include "messagecentre.h"
+#include "objectdefs.h"
 #include "things.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+// A message's 6 dwords copied (forward, as REP MOVSD).
+void copy_message(u8 *to, const u8 *from) {
+    for (u32 i = 0; i < 0x18; i += 4)
+        at<u32>(to, i) = at<u32>(from, i);
+}
 
 }  // namespace
 
@@ -74,5 +85,89 @@ u8 *__fastcall Advisor_Ctor(u8 *advisor) {
     dword(0xdc) = 0;
     dword(0xd8) = 0;
     return advisor;
+}
+
+u8 __fastcall Advisor_MayPost(u8 *self, void *, u32 id, u8 urgent) {
+    if (!global<u8>(0x0078d90d)) {
+        AdvisorScoring_Instance();
+        if (Record_IsActive(id))
+            return 0;
+    }
+    const u8 *const record = self + (id + 0xe) * 0x10;
+    if (Obj_Get0Shr2(record)) {
+        const u32 wait = Table76e300_GetObjectDword(AdvisorScoring_Instance(), nullptr, id);
+        if (Game1da70c_MinusAt0Quarters(reinterpret_cast<const u32 *>(record)) < wait)
+            return 0;
+    }
+    if (!urgent) {
+        if (Table76e300_ObjectDwordSet(AdvisorScoring_Instance(), nullptr, id) && at<u8>(self, 0x10 * id + 0xe8))
+            return 0;
+        if (Table76e300_LimitCheck(AdvisorScoring_Instance(), nullptr, id, at<s32>(self, 0x10 * id + 0xec)))
+            return 0;
+    }
+    s32 queued = 0;
+    for (u32 i = 0; i < 8; ++i) {
+        if (at<u8>(self, 0x28 + 0x18 * i) && at<u32>(self, 0x20 + 0x18 * i) == id)
+            ++queued;
+    }
+    AdvisorScoring_Instance();
+    if (queued >= (s32)Table76e300_GetByte(id))
+        return 0;
+    AdvisorScoring_Instance();
+    if (!DefField2c_59c490(id)) {
+        AdvisorScoring_Instance();
+        if (at<u32>(self, 0x10 * id + 0xe4) == DefField28_59c2b0(id) - 1)
+            return 0;
+    }
+    return 1;
+}
+
+u8 __fastcall Advisor_Post(u8 *self, void *, const u8 *message) {
+    const u32 id = at<u32>(message, 0xc);
+    AdvisorScoring_Instance();
+    if (DefField8_59c500(id) == 1)
+        copy_message(self + 0x16d0, message);
+    if (!Advisor_MayPost(self, nullptr, at<u32>(message, 0xc), at<u8>(message, 0x15)))
+        return 0;
+    for (u32 i = 0; i < 8; ++i) {
+        if (!at<u8>(self, 0x28 + 0x18 * i)) {
+            copy_message(self + 0x14 + 0x18 * i, message);
+            return 1;
+        }
+    }
+    s32 lowest = -1, score = 0;
+    for (s32 i = 0; i < 8; ++i) {
+        if (!at<u8>(self, 0x28 + 0x18 * i))
+            continue;
+        const s32 s = at<s32>(self, 0x24 + 0x18 * i);
+        if (lowest < 0 || s < score) {
+            lowest = i;
+            score = s;
+        }
+    }
+    if (lowest < 0)
+        return 0;
+    u8 *const slot = self + 0x14 + 0x18 * lowest;
+    const s32 held = at<u8>(slot, 0x14) ? at<s32>(slot, 0x10) : -1;
+    const s32 offered = at<u8>(message, 0x14) ? at<s32>(message, 0x10) : -1;
+    if (held < offered)
+        copy_message(slot, message);
+    return 1;
+}
+
+u8 __fastcall Advisor_PostKindEvent(u8 *self, void *, const u8 *event) {
+    const u32 n = at<u32>(event, 0xc);
+    u32 id;
+    switch (at<u32>(event, 8)) {
+    case 0: id = n * 5 + 0x22; break;
+    case 1: id = n * 5 + 0x21; break;
+    case 2: id = n * 5 + 0x24; break;
+    case 3: id = (n + 7) * 5; break;
+    case 4: id = n * 5 + 0x25; break;
+    default: id = (u32)(uintptr_t)event; break;   // (sic: the stack slot read there is the argument's)
+    }
+    u8 message[0x18];   // (its bytes +2, +3 and +0x17 never written, sic)
+    AdvisorMsg_Init(message, nullptr, id, 0, 0, 0xffffffffu, 0, -1);
+    return Advisor_Post(self, nullptr, message);
 }
 }

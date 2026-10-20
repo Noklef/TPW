@@ -672,6 +672,9 @@ class Emu:
             self.r['EBP'] = self.pop()
         elif mn == 'JECXZ':
             return int(o[0], 16) if self.r['ECX'] == 0 else nxt
+        elif mn == 'LOOP':   # ECX decremented (flags untouched), the jump taken while it is not 0
+            self.r['ECX'] = (self.r['ECX'] - 1) & 0xffffffff
+            return int(o[0], 16) if self.r['ECX'] else nxt
         elif mn == 'MOVSB.REP':
             while self.r['ECX']:
                 self.write(self.r['EDI'], self.read(self.r['ESI'], 1))

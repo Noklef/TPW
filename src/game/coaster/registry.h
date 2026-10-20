@@ -131,6 +131,10 @@ void __cdecl CoasterLink_SetCurrent(u8 *link);
 // sic: three paths by 0x79c638's flags all come to the same.
 u32 __cdecl CoasterEdit_Tools(u32 *out);
 
+// 0x444740 (cdecl): the edit tools worked out again (CoasterEdit_Tools(0)), then the 0x7ca1c8 dialog's check buttons set to 0x79c6e0
+// (Dialog7ca1c8_SetChecksIfUpThis) and its button selected by 0x79c638 (Dialog7ca1c8_SelectButtonIfUpThis), each on 0x7b51f0.
+void __cdecl CoasterEdit_RefreshTools();
+
 // 0x441970: whether object's link (Object_CoasterLink) is another open one: it has no +0x140,
 // flag 1 but not 2 in +0x3c, and is not the current link (0x790fec).
 u32 __cdecl Object_LinkOtherOpen(const u8 *object);

@@ -12,7 +12,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 import struct
 
-from fncmp import HEAP, LOG, Bench, Call, RAM, fb, global_heap, heap, log_region, put  # noqa: E402
+from fncmp import HEAP, LOG, Bench, Call, RAM, _cdecl_log, fb, global_heap, heap, log_region, put, set_return, vtable  # noqa: E402
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import cursor  # noqa: E402
@@ -26,7 +26,8 @@ B = Bench([(0x46c450, 0x46c453), (0x46c460, 0x46c480), (0x46c580, 0x46c5c6), (0x
            (0x46c0d0, 0x46c0ff), (0x57cb10, 0x57cb28), (0x67a400, 0x6902c0),
            (0x46ce80, 0x46ceca), (0x46d590, 0x46d59d), (0x46c730, 0x46c87a), (0x46cbf0, 0x46cc37), (0x402d70, 0x403220), (0x4033a0, 0x4033f0),
            (0x475550, 0x4755a0), (0x4758f0, 0x475b90), (0x540c60, 0x540da0), (0x5f5660, 0x5f56a0), (0x5f5e20, 0x5f5e90), (0x5f5fa0, 0x5f5fc0),
-           (0x4814a0, 0x4814e3), (0x4a2aa0, 0x4a2abf), (0x6590f7, 0x6591d4), (0x65f11d, 0x65f14e), (0x66190a, 0x66191b), (0x661d96, 0x661dca)])
+           (0x4814a0, 0x4814e3), (0x4a2aa0, 0x4a2abf), (0x6590f7, 0x6591d4), (0x65f11d, 0x65f14e), (0x66190a, 0x66191b), (0x661d96, 0x661dca),
+           (0x46c350, 0x46c448), (0x550ca0, 0x550d90), (0x46cfb0, 0x46cfc0), (0x40f3a0, 0x40f3a6), (0x5d1750, 0x5d1751)], hooks={0x67a7d0: _cdecl_log})
 HTYPES = [0, 0, 1, 1, 3, 9, 2, 4, 0xb, 0xc, 0xd, 0x10, 0x11, 0x12, 0x19, 0x1e]
 CELLS = RAM + 0x1000   # the 0x44-byte cells: [0x7cf83c] + 0x294
 ENTRIES = CELLS - 0x294 + 0x1102b0   # the 0x28-byte entries of handles 0-5
@@ -108,8 +109,35 @@ def assign(r, op):
     return Call(ASSIGNS[op], [RAM], regions, conv='t', ret='a' if op == 'Online' else 'v')
 
 
+def set_mode(r):
+    """0x46c350: the current mode (or 0) and the one given (or 0) with recorder vtables (slot 0 the deleting destructor, slot 9 answering 1
+    mostly); the setting's guard set or not (then read from 0x7a1a8c's bits 23-25, the atexit logged) and the setting 1 mostly; the new
+    CMMOnline from the heap (failing now and then) with assign()'s cursor windows, its own vtable's Assign the game's."""
+    log = log_region()
+    regions = {LOG: log, HEAP: heap(fail=r.choice([0, 0, 0, 0, 1]))}
+    cursor.cursor_env(r, regions)
+    wins = [cursor.WINDOW + 0x80 * i for i in range(3)]
+    for w in wins:
+        regions[w] = bytearray(r.bytes(0x60))
+    put(regions[0xfaa5e0], 0, 'I', r.choice(wins + [0]))
+    regions[0x7cb2a8] = put(bytearray(r.bytes(0x38)), 4, 'I', r.choice([wins[0], wins[0], 0]))
+    regions[0x7cc8bc] = put(bytearray(8), 0, 'II', r.choice([wins[1], 0]), r.choice([wins[2], 0]))
+    old, new = RAM + 0x8000, RAM + 0x8100
+    regions[RAM + 0x8200] = vtable({0: 1})
+    regions[old] = put(bytearray(r.bytes(0x20)), 0, 'I', RAM + 0x8200)
+    regions[new] = put(bytearray(r.bytes(0x20)), 0, 'I', RAM + 0x8200)
+    set_return(log, 9, r.choice([1, 1, 1, 0, 7, r.getrandbits(32)]))
+    regions[0x7b05d8] = put(bytearray(4), 0, 'I', r.choice([old, old, 0]))
+    regions[0xfb3518] = bytes([r.choice([1, 1, 0, 0, 2, 3, r.getrandbits(8)])])
+    regions[0xfb3b7c] = put(bytearray(4), 0, 'I', r.choice([1, 1, 1, 0, 2, r.getrandbits(32)]))
+    regions[0x7a1a8c] = put(bytearray(4), 0, 'I', r.getrandbits(32) & ~(7 << 23) | r.choice([0, 1, 2, 3, 4, 6, 7]) << 23)
+    return Call(0x46c350, [r.choice([new, new, new, 0])], regions, conv='s', ret='v')
+
+
 def case(r):
     op = r.choice(OPS)
+    if op == 'Set':
+        return set_mode(r)
     if op in ASSIGNS:
         return assign(r, op)
     if op == 'Hover':
@@ -143,7 +171,7 @@ def case(r):
     return Call(at, [RAM] + args, regions, conv='t', ret=ret)
 
 
-OPS_ALL = list(CALLS) + list(STATICS) + ['TileAt'] * 3 + ['Hover'] * 10 + ['Fps'] * 2 + list(ASSIGNS) * 3
+OPS_ALL = list(CALLS) + list(STATICS) + ['TileAt'] * 3 + ['Hover'] * 10 + ['Fps'] * 2 + list(ASSIGNS) * 3 + ['Set'] * 3
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

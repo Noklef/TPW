@@ -70,7 +70,7 @@ address,name,kind,confidence,notes
 0x004053b0,CheatSystem_Construct,function,high,"reimplemented (src/game/core/cheatmodule); sets +0xa, +0xb, +0x9; returns the object"
 0x0059c860,AdvisorScoring_Load,function,high,reimplemented (src/game/core/cheatmodule); the advisor scoring's first dword read from a chunk's stream
 0x0059c890,AdvisorScoring_Save,function,high,reimplemented (src/game/core/cheatmodule); the advisor scoring's first dword written to a chunk's stream
-0x0059bea0,AdvisorScoring_Construct,function,medium,function-static singleton constructor
+0x0059bea0,AdvisorScoring_Construct,function,medium,reimplemented (src/game/core/balancefile); thiscall: gAdvisorScoring's file laid out (vtable 0x6fd958) and data/advisor/advisor.sam loaded; returns the object
 0x00481680,UI_Load,function,high,"last module, no tag check"
 0x004816a0,UI_Save,function,high,"last module; original logs 'UI: loaded' here (copy-paste bug)"
 0x00551cb0,RSSE_ExecuteInstruction,function,high,"fetches one code word, dispatches via 106-entry jump table (0x5567d8); needs tools/FixJumpTable.java to decompile. ctx: +0x18 code*, +0x1c vars*, +0x3c pc (-10000 = error), +0x50 code_len"
@@ -104,9 +104,9 @@ address,name,kind,confidence,notes
 0x00598800,WaveletCodec_DeletingDtor,function,medium,
 0x007026d8,WaveletCodec_vtable,data,high,"slots: DecodeV12, DecodeV13Scaled, DecodeV13"
 0x007026b8,IWaveletCodec_vtable,data,high,interface vtable (this-adjusting thunks at 0x598780..)
-0x0046ead0,TextureSet_Load,function,medium,"builds dir+name, forces '.wct', 'Could not load texture %s'"
-0x0046f120,File_Exists,function,medium,opens via VFS_Open and closes
-0x005c4d50,VFS_Open,function,medium,"tries the mounted WAD archives first, then the disk"
+0x0046ead0,TextureSet_Load,function,medium,"reimplemented (src/game/gfx/texdirs); cdecl (set, probe, unused); the set's textures given directories: the second's when the quickload stem or the .wct/.tga file is found there, else the third's, else the table's first"
+0x0046f120,VFS_FileExists,function,low,"reimplemented (src/game/files/vfs); cdecl (name); VFS_Open, a stream got finished and deleted: 1, else 0"
+0x005c4d50,VFS_Open,function,medium,"reimplemented (src/game/files/vfs); cdecl (name); a new stream opened through the mounts: the source's archive by the path relative to its root, the source itself, then the list's objects; the stream or 0 (leaked)"
 0x00477ff0,UITexture_Construct,function,medium,"thiscall(name); loads UI textures such as 'happygrad.wct'"
 0x00591600,WaveletCodec_InitD4Filter,data,high,"4 static-initialiser stubs (0x591600/30/60/90) computing D4 h0..h3 into 0xc27208..14 via x87; not functions in Ghidra"
 0x00c27208,D4_h0,data,high,(1+sqrt3)/(4 sqrt2)
@@ -780,6 +780,7 @@ address,name,kind,confidence,notes
 0x0046d590,MouseMode6fead0_Assign,function,low,"reimplemented (src/game/world/mousemode); thiscall, slot 10 (Assign) of the 0x6fead0 mode: the cursor 0x13"
 0x0046c730,MMPlaceStaff_Assign,function,low,"reimplemented (src/game/world/mousemode); thiscall, slot 10 (Assign): the cursor 9; kinds 4-8 start a sprite script (0x74ed98, folder 6/5/4/7/8, sprite +0x11) into +8, the old one killed"
 0x0046cbf0,MMStaffDrop_Assign,function,low,"reimplemented (src/game/world/mousemode); thiscall, slot 10 (Assign) of the 0x6fea70 mode: the cursor 9, a sprite script (0x74ed98, folder +0xc, sprite +0x10) into +8, the old one killed"
+0x0046c350,MouseMode_Set,function,low,"reimplemented (src/game/world/mousemode); stdcall; the mouse mode switched: the current one left and deleted, a mode the setting turns online replaced by a new CMMOnline, stored at 0x7b05d8 and assigned"
 0x0040f290,ThingMsg01_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (a): +8 a; vtable set, +4 cleared; returns this"
 0x0040f240,ThingMsg02_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (c, b): +8 b, +0xc c; vtable set, +4 cleared; returns this"
 0x0040f330,ThingMsg06_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (u16 a): +8 a; vtable set, +4 cleared; returns this"
@@ -1368,6 +1369,7 @@ address,name,kind,confidence,notes
 0x0067acf0,CRT_VectorCtorIterator,function,high,reimplemented (src/game/core/crt); constructs the elements of an array in turn
 0x0067afa0,CRT_VectorDtorIterator,function,high,"reimplemented (src/game/core/crt); destroys the elements of an array, the last first"
 0x00401000,CRT_VectorCtorIteratorNoEh,function,low,"reimplemented (src/game/core/crt); stdcall (array, size, count, ctor): the vector constructor iterator without unwinding; count - 1 tested for a sign (0x80000000 runs, sic)"
+0x0067d830,CRT_VectorVbaseCtorIterator,function,low,"reimplemented (src/game/core/crt); stdcall (array, size, count, ctor, dtor; pops 20): the compiler's array constructor iterator for a class with a virtual base: ctor (thiscall, 1 for most derived) on each element in turn; the dtor only for the unwinding"
 0x0067f1a0,CRT_toupper,function,medium,"cdecl; the CRT toupper (locale-aware, ASCII in the C locale)"
 0x0067fa60,CRT_tolower,function,medium,"cdecl; the CRT tolower (locale-aware, ASCII in the C locale)"
 0x006fe67c,StringList2_vtable,data,high,one entry (0x61a7e0); src/game/files/waddir
@@ -1720,6 +1722,7 @@ address,name,kind,confidence,notes
 0x00461820,Quickload_Has,function,high,reimplemented (src/game/files/quickload); whether a quickload index lists a name (stricmp); -1 before loading
 0x004618a0,Quickload_Find,function,high,"reimplemented (src/game/files/quickload); the first quickload index listing a name, or -1"
 0x00461920,Quickload_HasStem,function,high,"reimplemented (src/game/files/quickload); Quickload_Has comparing names without extensions (path, index, second)"
+0x0044a280,Quickload_Locate,function,low,"reimplemented (src/game/files/quickload); cdecl (name, flags, &index); a ride file through the quickload indexes (flag 2; 4 falls back, 8 the second directory) or VFS_FileExists; the buffer 0x79c9d0 (flag 1) or the directory [0x79cb4c][index]"
 0x00427450,TextScan_IsAlpha,function,high,reimplemented (src/game/files/textscan); 1 when the scanner's character is a letter
 0x00427480,TextScan_IsDigit,function,high,reimplemented (src/game/files/textscan); 1 when the scanner's character is a digit
 0x004274a0,TextScan_IsPunct,function,high,reimplemented (src/game/files/textscan); 1 when the scanner's character is punctuation
@@ -2466,6 +2469,8 @@ address,name,kind,confidence,notes
 0x005b0d70,ThemeSaveRecord_Serialize,function,low,"reimplemented (src/game/core/globalsave); thiscall (stream, save, unused): a theme's save record written or read field by field (6 bytes, 4 x byte+dword, 0x21 x mSignNameA/B u16s, mNameChanged, mAllResearchCompleted); 1 at the first short field, else 0"
 0x005b0940,GlobalSave_SetSignNameA,function,low,"reimplemented (src/game/core/globalsave); thiscall (name): with a current theme (+0x48), its mSignNameA (+0x34) given (wcsncpy of 0x21 units) and mNameChanged (+0xb8) set"
 0x005b0970,GlobalSave_SetSignNameB,function,low,"reimplemented (src/game/core/globalsave); thiscall (name): with a current theme (+0x48), its mSignNameB (+0x76) given (wcsncpy of 0x21 units) and mNameChanged (+0xb8) set"
+0x005aef50,GlobalSave_Construct,function,low,"reimplemented (src/game/core/globalsave); thiscall: the global save info constructed (two lists, two trees on the shared nils 0xf7c970 / 0xf7c968; flags set). Returns it"
+0x00409410,GlobalSave_Instance,function,low,"reimplemented (src/game/core/globalsave); cdecl: the global save info (0xf7c58c), made the first time (Mem_Alloc(0x50), GlobalSave_Construct)"
 0x005775d0,LiveObjects_Add,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): appended to the live objects list (0x87a6d8, count 0x87aed8, room for 0x200; the rest dropped); 1 either way"
 0x00577600,LiveObjects_Remove,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): the last match is replaced by the last entry and the count drops; 1, or 0 when not there"
 0x00579cd0,LiveObject7019f8_Construct,function,low,"reimplemented (src/game/core/liveobjects); thiscall (most derived): two identity matrices, fields cleared, the virtual base's vtable 0x7019f8 set and the base added to the live objects"
@@ -2805,6 +2810,9 @@ address,name,kind,confidence,notes
 0x00409260,Flags7a1a14_Update,function,high,reimplemented (src/game/core/namedobjects); a flag word updated from another and an object's advance
 0x005989c0,Advisor_Init,function,low,"reimplemented (src/game/world/advisor); cdecl: the advisor block at 0xf79660 zeroed (count 5 at 0xf79770, -1 at 0xf7978c); slots 0/1 holders' mouth part indices (Model_FindMouthPart 1-5, -1); slot 1's (or 0's) holder's motion bank 5 end times 0-19 (the 14th cleared), then ParticlePools_Reset"
 0x00599e70,Advisor_Ctor,function,low,reimplemented (src/game/world/advisor); thiscall: the advisor thing's constructor (thing model 11; name unconfirmed)
+0x0059abc0,Advisor_MayPost,function,low,"reimplemented (src/game/world/advisor); thiscall (id, urgent): whether a message of id may join the advisor's queue (active, waited, flagged, limit, count, last-of-definition tests)"
+0x0059a940,Advisor_Post,function,low,"reimplemented (src/game/world/advisor); thiscall (message): an advisor message offered to the 8-slot queue (first free slot, else replaces the lowest score when below it); 0 when refused"
+0x0059afc0,Advisor_PostKindEvent,function,low,reimplemented (src/game/world/advisor); thiscall (event): an unscored advisor message for 5 n + a base by the event's kind (0-4) posted (Advisor_Post)
 0x00486610,Global7c24d8_CopyScript,function,high,reimplemented (src/game/ui/thingpreview); a sprite script slot made a copy of another
 0x00557110,Rsse_TakeFinished,function,high,"reimplemented (src/game/rsse/rsse_vm); the value of the first finished entry, which is cleared"
 0x0054dcc0,Flag54dcc0_Test,function,high,reimplemented (src/game/render/mode); a flag test on two settings
@@ -2822,6 +2830,7 @@ address,name,kind,confidence,notes
 0x005c7490,WString_CtorReturning,function,high,"reimplemented (src/game/core/string); an empty wide string, returned"
 0x005c5230,DirEntry_IsRealDir,function,high,reimplemented (src/game/files/direntry); a directory entry whose name does not start with a full stop
 0x004d3860,ChunkFile_ReadStream,function,low,"reimplemented (src/game/files/chunkfile); thiscall (stream, name), pops 8: the stream read whole into a GlobalAlloc block; the magic +0x10 checked; each chunk from +0x24 (tag, length, data) offered to the handlers on the list +4 until ""END "" or the end"
+0x0041cff0,Path_StripBase,function,low,"reimplemented (src/game/files/vfs); cdecl (path, base, out); the path taken relative to a base folder (an archive's pattern dropped), leading backslashes dropped; 1 when under it, else out empty and 0"
 0x005c9040,Class70295c_Ctor,function,high,"reimplemented (src/game/core/vdtor); Init_5d36c0, vtable 0x70295c and four zeroed dwords"
 0x005d03b0,Obj_SwapPair,function,high,reimplemented (src/game/core/stdlist); the dwords at +4 and +8 swapped with another object's
 0x005dd3d0,Obj_ChooseVector,function,high,reimplemented (src/game/frontend/viewcontrols); the vector at +0x10 taken from one of two others
@@ -4181,6 +4190,9 @@ address,name,kind,confidence,notes
 0x0040c450,KeyAction_Credit10000,function,low,reimplemented (src/game/core/keyactions); cdecl: Money_Credit 10000 to the world's money record; returns 1 (alt '1')
 0x0040c480,KeyAction_Toggle787d1c,function,low,"reimplemented (src/game/core/keyactions); cdecl: 0x787d1c = 1 - itself, Global878128_Set_550510 of it; returns 1"
 0x0040c830,KeyAction_ViewFillStep,function,low,reimplemented (src/game/core/keyactions); cdecl: bits 0xc of the render view flags 0x8bcbc8 stepped 0 -> 0xc -> 4 -> 0; returns 1 (control 'T')
+0x0040c430,KeyAction_FlagResearchControls,function,low,reimplemented (src/game/core/keyactions); cdecl: ResearchLab_FlagProjectControls on the lab of the game [0x7cf83c] (GameTable7cfb90_Get1da722_519550); returns 1 (alt 'R')
+0x0040c4b0,KeyAction_ToggleOverlay,function,low,reimplemented (src/game/core/keyactions); cdecl: Obj7b51f0_ToggleOverlay on 0x7b51f0; returns 1 (F3)
+0x0040c5d0,KeyAction_GuiManagerSlotAndFlag,function,low,reimplemented (src/game/core/keyactions); cdecl: Obj7b51f0_GuiManagerSlotAndFlag on 0x7b51f0; returns 1 (control 'H')
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
@@ -4264,6 +4276,9 @@ address,name,kind,confidence,notes
 0x0053a540,MapCell_PickModel,function,low,"reimplemented (src/game/world/cellmodel); thiscall (cell; angle out), pops 4: the cell's model (group << 16 | index) from the table for its type by its neighbour bits (exact, else a subset), *angle the row's plus 180 for straight cells facing 0x40 / 0x10, then adjusted by flags, corners, junctions and for type 0x19 a random variant; 8 for types 4, 5, 7, 9, 0xa, 0xc, 0x11"
 0x0050c9b0,UIMsgReceiver_Ctor,function,low,"reimplemented (src/game/world/uimsgreceiver); thiscall: Thing_Construct (cell 1, kind 0x11), then message centre slots 0x12, 0xa, 7, 8, 0x1b, 0xf, 0x13, 0x1c; returns it"
 0x00485f60,Object_Status,function,low,"reimplemented (src/game/world/objectstatus); cdecl (object, count): the object's status for its panel, an index into 0x74fb50's text ids: broken, closed for want of a link, waiting states by the world's words and the tracked person, the entrance or exit cut off, the queue"
+0x0059bf20,AdvisorScoring_Score,function,low,reimplemented (src/game/world/advisorscore); thiscall (id): the method of id's record of the table at 0x76e300 called on gAdvisorScoring when it applies to the mode setting; -1 otherwise
+0x0059c0a0,AdvisorScoring_ScoreDetail,function,low,"reimplemented (src/game/world/advisorscore); thiscall (id, &word, &dword): AdvisorScoring_Score with the word +4 and dword +8 cleared first and copied out after"
+0x0059b590,AdvisorMsg_Init,function,low,"reimplemented (src/game/world/advisorscore); thiscall (id, type, a, b, flag, score): an advisor message; a score below 0 taken from gAdvisorScoring (built on first use)"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
@@ -4277,6 +4292,7 @@ address,name,kind,confidence,notes
 0x0046e640,TexDirs_SetCurrent,function,high,reimplemented (src/game/gfx/texdirs); sets the pointer at 0x7b0620
 0x0046e670,TexDirs_Set,function,high,"reimplemented (src/game/gfx/texdirs); sets the three texture directories (base + name + backslash), reusing unchanged strings"
 0x0046ea80,TexDirs_Reset,function,high,reimplemented (src/game/gfx/texdirs); frees the texture directory blocks and clears the table
+0x0046e4e0,TexDirs_SetForModel,function,low,"reimplemented (src/game/gfx/texdirs); cdecl (info, model); the texture directories set under the located model file's directory (Quickload_Locate, .wct on the second try) and the model's texture set loaded with probe 1"
 0x0047faa0,Gauge_Init,function,high,reimplemented (src/game/gfx/gauge); a framed gauge zeroed
 0x0047fb10,Gauge_SetMarksX,function,high,reimplemented (src/game/gfx/gauge); the gauge's three marks' x
 0x0047fb30,Gauge_SetMarksY,function,high,reimplemented (src/game/gfx/gauge); the gauge's three marks' y
@@ -4336,9 +4352,15 @@ address,name,kind,confidence,notes
 0x00575fa0,TexSet_TextureSlot,function,high,reimplemented (src/game/gfx/texset); thiscall (i): &[+8][i]
 0x00575f00,TexSet_Release,function,low,"reimplemented (src/game/gfx/texset); thiscall: one user less; the last frees the textures (a shared array released and destroyed, else each released from the texture manager) and the list; returns 1 then, else 0 (name unconfirmed)"
 0x00575c00,TexSet_InitShared,function,low,"reimplemented (src/game/gfx/texset); thiscall (array): all zero, then a tracked list of one at +8 holding the shared texture array, +0xc = 0x8000, +0xe = 1: 1; the list not got: error 2 pushed (EngineErrors_Push), 0"
+0x00575e10,TexSet_LoadTextures,function,low,"reimplemented (src/game/gfx/texset); thiscall: each texture of the set looked up by folder and name through the texture manager (TexManager_Acquire) with the load flags its definition asks for, and flagged"
+0x00575b90,TexSet_LoadDeferred,function,low,"reimplemented (src/game/gfx/texset); cdecl: TexSet_LoadTextures on each set waiting at 0x87a270, then their count (0x87a670) cleared"
+0x00575c60,TexSet_Init,function,low,"reimplemented (src/game/gfx/texset); thiscall (definition, file info; pops 8): a set already listed gets a user more; else its list, one blank texture (definition 0x80) or its textures loaded now or later"
+0x00575ee0,TexSet_InitFromPair,function,low,reimplemented (src/game/gfx/texset); thiscall (pair; pops 4): TexSet_Init with the pair's two dwords
 0x00575b80,TexManager_SetLoadFlags,function,high,"reimplemented (src/game/gfx/texman); thiscall (the texture manager, [0x87a268]; flags): +0x10008 = flags for the next load (2: mip levels), replacing the old ones"
 0x00574b10,TexManager_Destroy,function,low,"reimplemented (src/game/gfx/texman); cdecl: the texture manager at [0x87a268] (0 without one): each slot's texture array released then destroyed (released twice, sic), the manager freed and the global cleared; returns 1 (name unconfirmed)"
 0x00575ad0,TexManager_ReleaseTexture,function,low,"reimplemented (src/game/gfx/texman); thiscall (textures): the slot holding the array found from the last, its users decremented; at 0 the array released and the last slot moved over it, 1; else 0 (name unconfirmed)"
+0x005755f0,TexManager_Load,function,low,"reimplemented (src/game/gfx/texman); thiscall (path; pops 4): levels + 1 textures built (by the load flags and the device kind), the file read into them (TexFile_Load), their format from what the read found"
+0x00575870,TexManager_Acquire,function,low,"reimplemented (src/game/gfx/texman); thiscall (folder, name; pops 8): the slot with that folder and name gets a user more, else the textures loaded from [0x786de4] + folder + name into a new slot, else the fallback slot's"
 0x00590cb0,Texture_UpdateWrapMask,function,high,"reimplemented (src/game/gfx/texture); thiscall (a texture): +0x44 = (height - 1) << 8 | (width - 1) when both (s16 +0x14 / +0x16) are powers of two, else -1"
 0x00590cf0,Texture_Level,function,high,"reimplemented (src/game/gfx/texture); thiscall: the flags' low 3 bits when 0x30 are set, else by the width (above 128 0 ... at most 8: 5)"
 0x00590f80,Texture_ClearCacheFlags,function,high,"reimplemented (src/game/gfx/texture); thiscall: flags (+8) 0x1000, 0x2000 and 0x4000 cleared"
@@ -4410,6 +4432,7 @@ address,name,kind,confidence,notes
 0x00565000,WctImage_DeletingDtor,function,low,"reimplemented (src/game/gfx/wctimage); thiscall on the part at +0x2c (flags; pops 4): virtual base vtable 0x7011c8 back, the tracked blocks at +0x20/+0x24 freed, +4..+0x1c cleared, part vtable 0x701178, freed on bit 0 (name unconfirmed)"
 0x00564ef0,Texture_DecodeWctInto,function,low,"reimplemented (src/game/gfx/wctimage); thiscall on the part (surface, flip; pops 8): 0 for a kind up to 0x12; else the surface flipped (last row, pitch negated) on request and the codec's slot 1 with the kind, sizes, the surface's width/height/pitch, pixel size, blocks, pixels and the steps; returns 1"
 0x00564d00,WctImage_Read,function,low,"reimplemented (src/game/gfx/wctimage); thiscall (stream; pops 4): the 0x2c-byte header read into 0x879a38, +6 = 0x20, sizes, quantiser words from its floats (2f-2, 4f-4, 4f-4, f-1 via __ftol), block sizes; two tracked blocks allocated and read (a failed second frees the first); 1, or 0 on a failure"
+0x00564c00,WctImage_Load,function,low,"reimplemented (src/game/gfx/wctimage); thiscall (name; pops 4); the WCT file opened through the mounts, its 0x1c-byte header read into +4 and its one or two blocks (+0x24, +0x20 with +6 = 0x20) into tracked blocks; 0 for another kind or a block not got"
 0x00561460,ScreenGrab_ToRgb24,function,low,"reimplemented (src/game/gfx/screengrab); thiscall: by the display depth (0x8bcbe4) the pixels at +0 (count +8) become 24-bit ones at +4: 32 packed in place, 24 moved, 16 converted into a new tracked block through the display's masks and shifts (0 and the error pushed when that fails); returns 1 (name unconfirmed)"
 0x005617c0,ScreenGrab_SetName,function,low,reimplemented (src/game/gfx/screengrab); thiscall (name): the name copied to +0xc and +0x8c pointed at it; a null name leaves them; returns 1
 0x0053e650,TvStatic_CreateSurface,function,low,"reimplemented (src/game/gfx/tvstatic); cdecl (SEH frame left out): a new Surface (0x50 bytes, key/+0x20/+0x24 cleared, info constructed) and a 320x240 off-screen system memory DirectDraw surface for it (CreateSurface, slot 6 of [[0x879a24]]), attached (Surface_Attach); on a failure the Surface is freed and 0 returned (name unconfirmed)"
@@ -4419,6 +4442,7 @@ address,name,kind,confidence,notes
 0x00586d70,LoadScreen_StaticDtor,function,low,reimplemented (src/game/gfx/loadscreen); cdecl: the atexit destructor of the loading screen at 0x8c4748 (the same steps)
 0x00587130,LoadScreen_ShowImage,function,low,"reimplemented (src/game/gfx/loadscreen); thiscall on an image (pixels, width, height, bytes a pixel): stretched upside down into the locked display surface (driver kind 1, u16 or u32) or the renderer's buffer (kind 4); returns 1"
 0x00587a70,LoadScreen_DrawBar,function,low,"reimplemented (src/game/gfx/loadscreen); thiscall on the loading screen: the progress bar (+0 steps times +0x18, 318 wide past 100 %) drawn as three rectangles scaled to the screen through the renderer [0x879ab0] (slots 0x1c, 0x28, 0x20); +4 / +0xc = the bar; 0 when a rectangle is refused, else 1"
+0x00587c80,LoadScreen_Tick,function,low,"reimplemented (src/game/gfx/loadscreen); thiscall on the loading screen: a step (the screen cleared and timed on the first; an image shown or the device poked while fewer than 3; the bar drawn), then the display restored"
 0x005848b0,SurfacePool_SideIndex,function,low,"reimplemented (src/game/gfx/surfacepool); cdecl (side): a power-of-two side's index, 0x100 -> 0 down to 1 -> 8, else -1"
 0x0058b1f0,SurfacePool_Next,function,low,"reimplemented (src/game/gfx/surfacepool); thiscall on the surface pool 0x8c47d8 (side, unused; pops 8): the side's turn (+0x80) flipped, the surface of the old turn returned"
 0x006ad5d0,TextStyle_Ctor,function,low,"reimplemented (src/game/gfx/textlayout); thiscall: the text style's fields cleared (state 3, +0x10 1, its SurfaceInfo constructed), vtable 0x70a0d8; returns this"
@@ -4446,6 +4470,8 @@ address,name,kind,confidence,notes
 0x006aec80,TextLayout_BreakLines,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (begin, end): the 16-byte character records broken into lines no wider than +0xa8, each appended to the lines (+0x70); returns the line count"
 0x006aeb10,TextLayout_Arrange,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (status, left, top, right, bottom): the lines rebuilt per paragraph, the text box (+0xac-+0xb8) placed by the kinds at +0xa0 / +0xa4; *status = 0; returns status"
 0x006adfb0,TextLayout_SetOrigin,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (status, rect): the positions (+0x84) resized to one, the origin (+0x98/+0x9c) placed in the rect by the kinds at +0xa0 / +0xa4 and stored as the first position; *status = 0; returns status"
+0x00574bd0,TexFile_Load,function,low,"reimplemented (src/game/gfx/texfile); cdecl (name, &width, &height, flags, table or 0, pixel size or 0); a texture's file read: flag 1 the raw bytes (rows flipped for a top-first TGA, sic twice), else the name as a WCT image, else the TGA converted to the format (with flag 2 an alpha mask made); 0x87a24c what was found"
+0x00678d30,Mmx_FillRows,function,low,"reimplemented (src/game/gfx/mmxfill); cdecl (width, rows, buffer, pitch): each row filled with the 8-byte pattern at 0x77e580, 16 bytes a store while the width (8 a store) stays above 0"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
@@ -4510,6 +4536,7 @@ address,name,kind,confidence,notes
 0x00447a10,CoasterEdit_Tool2,function,low,"reimplemented (src/game/coaster/registry); cdecl: the edit's tool 2 (recorded 0x38; mode 1 or 2 and flag 0x40 by the end piece), then CoasterEdit_SetBounds"
 0x004445b0,CoasterEdit_SetTool,function,low,"reimplemented (src/game/coaster/registry); cdecl (tool): CoasterEdit_Tool2 for tool 2, else CoasterEdit_Tool1 with 0x79c644 = tool"
 0x00432c10,CoasterLink_AddEntry,function,low,"reimplemented (src/game/coaster/registry); cdecl (x, y, flags, unused, value, position): a new 0x48-byte entry for the current link, its cell and position from position or (x, y)"
+0x00444740,CoasterEdit_RefreshTools,function,low,"reimplemented (src/game/coaster/registry); the edit tools worked out again, then the 0x7ca1c8 dialog's checks and button set from them"
 0x0043b0e0,Coaster_QueuePush,function,high,"reimplemented (src/game/coaster/queue); cdecl (index, peep): appends the peep to the queue ring (+0xb0) of coaster index (table 0x790bd0) when it has room"
 0x0043b130,CoasterQueue_Add,function,high,"reimplemented (src/game/coaster/queue); cdecl (coaster, peep): appends the peep to the queue ring (+0xb0), else to the boarding ring (+0xd0), whichever has room"
 0x0043b1f0,Coaster_QueueRoom,function,high,"reimplemented (src/game/coaster/queue); cdecl (index): the queue ring's limit - reserved - count, at least 0"
@@ -4600,6 +4627,7 @@ address,name,kind,confidence,notes
 0x0044dd50,Options_Apply,function,high,"reimplemented (src/game/render/state); the video options applied to the render, settings and scene flags"
 0x00583720,RenderDevice_Call0,function,low,reimplemented (src/game/render/state); no arguments: tail call of slot 0 of the object at 0x8bd52c (name unconfirmed)
 0x005d9230,Render_SetAmbient,function,low,"reimplemented (src/game/render/state); thiscall (object unused; on, colour): the ambient colour 0x879dd8 = {1, r, g, b} from the 0xRRGGBB colour over 255, or {1, 0, 0, 0} when off"
+0x00583730,Display_RestoreIfFocused,function,low,"reimplemented (src/game/render/state); cdecl: with the game's window focused, the device generation bumped and the render device restored (slot 1), else the surface-lost errors dropped"
 0x0057d910,WeatherFx_SetDropCount,function,high,"reimplemented (src/game/render/weatherfx); thiscall (the weather renderer, [0x8bcbac]; count): +0x3318 = how many drops fall"
 0x0057dc40,WeatherFx_SetFallSpeed,function,high,"reimplemented (src/game/render/weatherfx); thiscall (speed): the fall speed of each kind showing (+0x3338 when bit 1 of +0, +0x333c when bit 2)"
 0x0057dc70,WeatherFx_RequestReload,function,high,"reimplemented (src/game/render/weatherfx); thiscall: +4 = 1, the textures to be reloaded (0x57d850 clears it)"
@@ -4710,6 +4738,7 @@ address,name,kind,confidence,notes
 0x00567620,D3dProbe_SetFlags,function,low,"reimplemented (src/game/render/d3dprobe); thiscall on the probe + 0x2c (flags, pops 4): the render and stage states of the flags that changed (Shadow_ setters), the flags set last at base +0x14"
 0x005686d0,D3dProbe_SetTextureStages,function,low,"reimplemented (src/game/render/d3dprobe); thiscall (mode, textures; pops 8): the texture stage states and textures of pass mode 0-2 when the probe's +0x18 is 4"
 0x0056af20,EngineErrors_Push,function,low,"reimplemented (src/game/render/engineerrors); thiscall (list; kind, code), pops 8: a (kind, code) pair added to the engine's error list (0x40 at most, the count at +0x200), a kind 3 one with the engine debug flag (0x1000000 at 0x8bd508) first written to the engine debug log (0x564650) as its result message"
+0x0056afc0,EngineErrors_DropSurfaceLost,function,low,"reimplemented (src/game/render/engineerrors); thiscall on the error list: each DDERR_SURFACELOST pair, from the last, replaced by the list's last; any: scene flag 0x10000000 and 1"
 0x00581410,Model_TexCoords,function,low,"reimplemented (src/game/render/texcoords); cdecl (out, settings, index, texture, stride, mode, two ignored): the texture coordinates of a model entry's vertices into a batch (zeros, normals by the view, or the stored ones, shifted by the light with mode bit 2), x87"
 0x00566690,Vertex_SetTexCoords,function,low,"reimplemented (src/game/render/texcoords); thiscall (stage, u, v): a transformed vertex's (u, v) for the stage at +0x18 + 8 * stage, through the x87"
 0x0044d8f0,GraphicsSettings_Apply,function,low,"reimplemented (src/game/render/graphicssettings); cdecl: the graphics settings (0x785878..0x7858b8) applied to the render flags, view depth range and landscape detail"
@@ -4804,6 +4833,9 @@ address,name,kind,confidence,notes
 0x0045bac0,Holder_Free,function,low,"reimplemented (src/game/model/holder); cdecl (holder): a holder's part, object model, blocks and itself freed"
 0x00463db0,Instance_Free,function,low,"reimplemented (src/game/model/holder); cdecl (instance, kept): an instance its arrays, animator, object, holder and itself freed"
 0x00463ed0,InstanceTypes_FreeAll,function,low,"reimplemented (src/game/model/holder); cdecl: the type tables instances freed, the last first"
+0x0045bbc0,Holder_Create,function,low,"reimplemented (src/game/model/holder); cdecl (holder): its part made (Mem_Alloc(0x158), LiveObject7019f8_Construct) and given the holder model (ObjModel_Load); the owner count +0x34 raised; the part at +0x1c"
+0x0045bd30,Holder_WakeWithMatrix,function,low,"reimplemented (src/game/model/holder); cdecl (holder, matrix, grid): the part gets the matrix; added to the renderer under 0x10 (flags 0x11) or 0x20 (flags 9)"
+0x00425440,Animator_Wake,function,low,reimplemented (src/game/model/holder); cdecl (animator): its holder wakes with the matrix at +0xc (Holder_WakeWithMatrix) or plainly (Holder_Wake); flag 0x4000. Returns 1
 0x0046de00,Model_RemapTextures,function,high,"reimplemented (src/game/model/remap); (model, remap, textures, first): face texture pointers and grid cell textures renumbered"
 0x0046e130,Model_AddTerrainSets,function,low,"reimplemented (src/game/model/remap); cdecl (model, sets, dir): the model's textures found among the sets' tiles by name or kept, a new table of the kept ones then the tiles (named, numbered, their directories), Model_RemapTextures onto it; 1"
 0x00469180,Highlight_Update,function,high,"reimplemented (src/game/model/highlight); releases the current holder (0x7a1ce0) for another target (0x7afda0), highlights the target: mesh vertex blocks copied into 0x7afd00"
@@ -4875,6 +4907,8 @@ address,name,kind,confidence,notes
 0x004511a0,View_FloorAt,function,low,"reimplemented (src/game/model/heightat); cdecl (x, z, &out): the floor under a point by the view's way (0x79fb10): the ground, the offset, the parts or the main node, plus the model's offset (+0xa0, a NaN cleared)"
 0x0046f100,M3D2_DataErrorBox,function,low,"reimplemented (src/game/model/m3d2); cdecl (text): MessageBoxA(0, text, ""M3D2 Exporter - Data Error"", 0x31) != IDCANCEL"
 0x0057a100,ObjModel_Unload,function,low,"reimplemented (src/game/model/objmodel); thiscall: an engine object's model unloaded (meshes' tracked blocks, saved pairs, block, texture sets, tracked block, procedural textures); +8 and flag 0x10000000 cleared; returns 1"
+0x00579e00,ObjModel_Load,function,low,"reimplemented (src/game/model/objmodel); thiscall (model), pops 4: an engine object's model loaded (procedural textures set up, BlueprintMesh parts flagged, texture sets made and set up, sharp textures flagged, waiting loads run, the tracked mesh block laid out, a loading step); unloaded and 0 on failure"
+0x0057a260,ObjModel_SetMatrices,function,low,"reimplemented (src/game/model/objmodel); thiscall (which, matrix): the matrix (with a flip) through the vertex transformer slot 6 into the static 0xfb3400, copied to the object +0x10 (bit 1) / +0x50 (bit 2)"
 0x0045aee0,Online_ApplyBalance,function,high,reimplemented (src/game/online/servers); copies Online.sam (gBalanceOnline) into the servers object 0x7a14f0
 0x005b6450,Online_LoggedIn,function,high,"reimplemented (src/game/online/session); thiscall u32: the online session's (0xf7d88c) +0x60, set while logged in"
 0x005b6460,Online_Restricted,function,high,reimplemented (src/game/online/session); thiscall u32: 1 unless logged in (+0x60) with the user's flag 0x20 (+0x58) clear
@@ -5175,6 +5209,7 @@ address,name,kind,confidence,notes
 0x004a3960,Dialog7cb2fc_SetToggle,function,low,"reimplemented (src/game/ui/dialog7cb2fc); cdecl (row, label, on, other, select, button): row's child 0x1d4c9 slot 9 the label + on/off text (wcsncpy 31 to the stack, wcscat into 0x7ba058); select: button state !on"
 0x0066b47d,Window705b20_SetRange,function,low,"reimplemented (src/game/ui/window705b20); thiscall (from, to): unless both are the range already, the step +0x144 turned toward to, +0x13c = from, +0x138 = to"
 0x0047ee90,Dialog_BaseHandler,function,low,"reimplemented (src/game/ui/dialogbase); cdecl (window, message, a, b): on 0x14 the parent (+0x60) posted 4 and the focus given back; then the default handler; name unconfirmed"
+0x0047ed80,Dialog_Create,function,low,"reimplemented (src/game/ui/dialogbase); cdecl (script, handler, shaded): a kind 1 frame under the GUI root [0xfaa5d8], the script built in it (WindowScript_Build); its depth the top one (shaded: of the GUI, the frame given the ""lolight"" implementation; else over the built window's inner rectangle) + 1, the handler and the focus to the built window, which is returned (0 when none)"
 0x0066ae83,Window705b20_SetEnabled,function,low,"reimplemented (src/game/ui/window705b20); thiscall (enabled: a word), pops 4, slot 5 of the vtable 0x705b20: 0 when flag 2 of +0x48 already says so; else Window_SetEnabled, each child's slot 5, a post 1 (0, 0) with [0xfaa5d4] set, and 1 (AX)"
 0x0066ac00,Window705b20_Layout,function,low,"reimplemented (src/game/ui/window705b20); thiscall, slot 1 of the vtable 0x705b20: +0x2c from +8 with bit 4 of +0x14c, else laid out by bit 2 (the ends moved in by the other side's length)"
 0x0066b557,Window705b20_AddArrow1,function,low,"reimplemented (src/game/ui/window705b20); thiscall: a child of the factory's kind 2 (flags 0, id 1) at the first end of +0x2c by bit 2 of +0x14c, shown when made"

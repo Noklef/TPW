@@ -5,10 +5,13 @@
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
 #include "../math/x87.h"
+#include "../render/state.h"
+#include "mmxfill.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+template <typename T> T &at(u8 *base, u32 offset) { return *reinterpret_cast<T *>(base + offset); }
 
 void close(u8 *screen) {
     if (global<u32>(0x008c478c)) {
@@ -117,5 +120,45 @@ u32 __fastcall LoadScreen_DrawBar(u8 *screen) {
     *reinterpret_cast<s32 *>(screen + 0xc) = bar;
     *reinterpret_cast<s32 *>(screen + 4) = bar;
     return 1;
+}
+
+u32 __fastcall LoadScreen_Tick(u8 *screen) {
+    u32(__stdcall *const timeGetTime)() = *reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)0x006fd3ec);
+    if (at<u32>(screen, 0) == 0) {
+        at<u32>(screen, 0x28) = timeGetTime();
+        at<u32>(screen, 0x2c) = 0;
+        if (global<u32>(0x008bd524) == 4) {
+            if (u8 *const buffer = at<u8 *>(global<u8 *>(0x00879dac), 4))
+                Mmx_FillRows(global<s32>(0x008bcbd0), global<u32>(0x008bcbd4), buffer, global<s32>(0x008bcbd0) * 2);
+        }
+    }
+    timeGetTime();   // (its answer unused)
+    u8 *const first = at<u8 *>(screen, 0x10);
+    if (!first && !at<u32>(screen, 0x14)) {
+        const s32 steps = at<s32>(screen, 0x2c);
+        at<s32>(screen, 0x2c) = steps + 1;
+        if (steps < 3)
+            RenderDevice_Call0();
+    } else {
+        u8 *image = nullptr;
+        if (global<u32>(0x008c478c) == 1) {
+            if (at<u32>(screen, 0x14) && at<s32>(screen, 0x2c) < 3) {
+                if (at<s32>(screen, 0x2c) == 0)
+                    global<u32>(0x008c4780) = timeGetTime();
+                image = at<u8 *>(screen, 0x14);
+            }
+        } else if (first && at<s32>(screen, 0x2c) < 3) {
+            image = first;
+        }
+        if (image) {
+            LoadScreen_ShowImage(image);
+            global<u32>(0x008bd508) |= 0x8000000;
+            ++at<s32>(screen, 0x2c);
+        }
+    }
+    ++at<u32>(screen, 0);
+    if (!at<u32>(screen, 0x14) && !LoadScreen_DrawBar(screen))
+        return 0;
+    return Display_RestoreIfFocused() ? 1 : 0;
 }
 }

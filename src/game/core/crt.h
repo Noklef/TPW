@@ -51,6 +51,10 @@ void __stdcall CRT_VectorCtorIterator(u8 *array, u32 size, s32 count, void(__fas
 // tested for a sign, so 0 and below do nothing but 0x80000000 runs 0x80000000 times (sic).
 void __stdcall CRT_VectorCtorIteratorNoEh(u8 *array, u32 size, s32 count, void(__fastcall *ctor)(void *));
 
+// 0x67d830 (stdcall; array, size, count, ctor, dtor, pops 20): the iterator for a class with a virtual base: ctor (thiscall on the element, 1
+// for most derived; pops 4) for each of the count (signed) elements of size bytes in turn; the dtor is only for the unwinding.
+void __stdcall CRT_VectorVbaseCtorIterator(u8 *array, u32 size, s32 count, void(__fastcall *ctor)(void *, void *, u32), void *dtor);
+
 // 0x67afa0 (stdcall; array, size, count, dtor, pops 16): dtor (thiscall) for each of the count elements, the last first.
 void __stdcall CRT_VectorDtorIterator(u8 *array, u32 size, s32 count, void(__fastcall *dtor)(void *));
 

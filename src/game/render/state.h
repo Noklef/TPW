@@ -33,6 +33,11 @@ void __fastcall SceneFlags_Touch(u32 *flags);
 // by 0x572d0b and others), its result returned.
 u32 __cdecl RenderDevice_Call0();
 
+// 0x583730 (cdecl; name unconfirmed): 1 unless the window with the focus (GetFocus, the import at 0x6fd328) is the game's (0x8bd518).
+// Then the device generation (0x8bcc40) bumped and 0x8bcc44 cleared; the render device ([0x8bd52c]) asked to restore (its slot 1):
+// done, 1; else EngineErrors_DropSurfaceLost on the engine's error list (0x879ad0) answers.
+u32 __cdecl Display_RestoreIfFocused();
+
 // 0x5d9680 / 0x5d9690 (thiscall, the object unused): fog (0x8bcbc8 flag 0x2000) on / off.
 void __fastcall Render_FogOn(void *);
 void __fastcall Render_FogOff(void *);

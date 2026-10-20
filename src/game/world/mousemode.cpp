@@ -5,6 +5,9 @@
 
 #include "../core/accessors.h"
 #include "../core/crt.h"
+#include "../core/gameheap.h"
+#include "../core/options.h"
+#include "../core/vcall.h"
 #include "../math/x87.h"
 #include "../model/highlight.h"
 #include "../render/dynfaces.h"
@@ -23,7 +26,8 @@ u32 bits(float f) {
     return u;
 }
 
-const MouseModeEnv kGameEnv = {reinterpret_cast<void(__cdecl *)(void *)>(0x0067acb0)};
+const MouseModeEnv kGameEnv = {reinterpret_cast<void(__cdecl *)(void *)>(0x0067acb0),
+                                reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0)};
 const MouseModeEnv *g_env = &kGameEnv;
 
 }  // namespace
@@ -179,6 +183,28 @@ u8 *__fastcall MMOnline_Ctor(u8 *self) {
     at<u32>(self, 0) = 0x006fe980;
     Obj7b51f0_SetCursor(reinterpret_cast<void *>(0x007b51f0), nullptr, 0);
     return self;
+}
+
+void __stdcall MouseMode_Set(u8 *mode) {
+    u8 *&current = *reinterpret_cast<u8 **>(0x007b05d8);
+    if (current) {
+        vcall<void>(current, 0x2c);
+        if (current) vcall<void>(current, 0, 1u);
+    }
+    u8 &guard = *reinterpret_cast<u8 *>(0x00fb3518);
+    const u8 bits = guard;
+    if (!(bits & 1)) {
+        guard = bits | 1;
+        Setting_ReadMode(reinterpret_cast<u8 *>(0x00fb3b7c));
+        g_env->atExit(reinterpret_cast<void(__cdecl *)()>(0x005d1750));
+    }
+    if (*reinterpret_cast<u32 *>(0x00fb3b7c) == 1 && mode && vcall<u32>(mode, 0x24) == 1) {
+        vcall<void>(mode, 0, 1u);
+        u8 *const block = static_cast<u8 *>(GameHeap_Alloc(8));
+        mode = block ? MMOnline_Ctor(block) : nullptr;
+    }
+    current = mode;
+    if (mode) vcall<void>(mode, 0x28);
 }
 
 void __fastcall MouseMode6fead0_Assign(u8 *) { Obj7b51f0_SetCursor(reinterpret_cast<void *>(0x007b51f0), nullptr, 0x13); }

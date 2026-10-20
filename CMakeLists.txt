@@ -70,6 +70,7 @@ add_library(tpw_game STATIC
     src/game/files/direntry.cpp
     src/game/files/userslots.cpp
     src/game/files/chunkfile.cpp
+    src/game/files/vfs.cpp
     src/game/core/regkey.cpp
     src/game/core/stdstring.cpp
     src/game/core/globalmem.cpp
@@ -175,6 +176,8 @@ add_library(tpw_game STATIC
     src/game/gfx/loadscreen.cpp
     src/game/gfx/surfacepool.cpp
     src/game/gfx/textlayout.cpp
+    src/game/gfx/texfile.cpp
+    src/game/gfx/mmxfill.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp
@@ -209,6 +212,7 @@ add_library(tpw_game STATIC
     src/game/world/thingmsg.cpp
     src/game/world/staff.cpp
     src/game/world/advisor.cpp
+    src/game/world/advisorscore.cpp
     src/game/world/analyser.cpp
     src/game/world/mapcell.cpp
     src/game/world/challenges.cpp

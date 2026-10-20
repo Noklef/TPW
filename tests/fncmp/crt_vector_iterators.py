@@ -1,13 +1,14 @@
-# The compiler runtime's array constructor and destructor iterators (src/game/core/crt: 0x67acf0, 0x67afa0, and 0x401000, the one without unwinding) against the originals, calling the driver's stand-in
-# (STUBS + 0x40) that stores a vtable pointer at the element over arrays of different element sizes and counts (zero, negative).
-# usage: crt_vector_iterators.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,Dtor,CtorNoEh)
+# The compiler runtime's array constructor and destructor iterators (src/game/core/crt: 0x67acf0, 0x67afa0, 0x401000, the one without unwinding, and 0x67d830, the one for a virtual base) against the originals, calling the driver's stand-in
+# (STUBS + 0x40) that stores a vtable pointer at the element over arrays of different element sizes and counts (zero, negative); the virtual base's
+# a recorder (thiscall, its argument logged).
+# usage: crt_vector_iterators.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,Dtor,CtorNoEh,VbaseCtor)
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, STUBS  # noqa: E402
+from fncmp import LOG, Bench, Call, RAM, STUBS, log_region, recorder  # noqa: E402
 
-B = Bench([(0x67acf0, 0x67ad90), (0x67afa0, 0x67b060), (0x401000, 0x40102a)])
+B = Bench([(0x67acf0, 0x67ad90), (0x67afa0, 0x67b060), (0x401000, 0x40102a), (0x67d830, 0x67d8be)])
 ARR = RAM + 0x100
 
 
@@ -18,12 +19,15 @@ def case(r):
     regions = {ARR: r.bytes(0x200)}
     if name == 'CtorNoEh':
         return Call(0x401000, [ARR, size, count, STUBS + 0x40], regions, conv='s', ret='v')
+    if name == 'VbaseCtor':
+        regions[LOG] = log_region()
+        return Call(0x67d830, [ARR, size, count, recorder(0, 1), r.getrandbits(32)], regions, conv='s', ret='v')
     if name == 'Ctor':
         return Call(0x67acf0, [ARR, size, count, STUBS + 0x40, r.getrandbits(32)], regions, conv='s', ret='v')
     return Call(0x67afa0, [ARR, size, count, STUBS + 0x40], regions, conv='s', ret='v')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Ctor,Dtor,CtorNoEh').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Ctor,Dtor,CtorNoEh,VbaseCtor').split(',') if k]
 
 
 if __name__ == '__main__':

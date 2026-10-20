@@ -22,8 +22,10 @@ def name(r):
     return s
 
 
-def quickload(r):
-    """Both tables of up to count indexes (each a list of names), the marks and a name to look for."""
+def quickload(r, base=RAM):
+    """Both tables of up to count indexes (each a list of names), the marks and a name to look for (the tables, lists, text and name at
+    base on, as TABLES, LISTS, TEXT and ARG are at RAM)."""
+    TABLES, LISTS, TEXT, ARG = base, base + 0x1000, base + 0x10000, base + 0x20000  # noqa: N806
     count = r.choice([1, 1, 1, 2, 3, 0]) if not r.wild else r.choice([0, 1, 3, 0xffffffff])
     tables, lists, text = bytearray(0x200), bytearray(0x8000), bytearray()
     for t in range(2):

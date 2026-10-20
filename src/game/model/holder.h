@@ -33,6 +33,20 @@ void __cdecl Holder_Sleep(u8 *holder);
 // 0x4254c0 (cdecl; the animator): the holder at +0x24 sleeps (Holder_Sleep) and flag 0x4000 of the animator's flags (+0) is cleared. Returns 1.
 u32 __cdecl Animator_Sleep(u8 *animator);
 
+// 0x45bbc0 (cdecl; the holder): its part made: a 0x158-byte block (Mem_Alloc) constructed (LiveObject7019f8_Construct, most derived;
+// none when the allocation fails, and the load below then faults in the game too) and given the holder's model (+4; ObjModel_Load, its
+// result ignored); the count at +0x34 of the owner (the holder at +8, else itself) raised and the part stored at +0x1c.
+void __cdecl Holder_Create(u8 *holder);
+
+// 0x45bd30 (cdecl; holder, matrix, grid): the holder's part (+0x1c, unadjusted) gets the matrix as its first (ObjModel_SetMatrices with
+// 1); then it is added to the renderer ([0x87a6d0]; Renderer_Add, the part reached through the virtual base offset in the word at +4 of
+// its vtable, none for no part) under the tag 0x10 and the holder's flags get 0x11 (grid set), else under 0x20 with 9.
+void __cdecl Holder_WakeWithMatrix(u8 *holder, const u32 *matrix, u32 grid);
+
+// 0x425440 (cdecl; the animator; name unconfirmed): with a matrix at +0xc the holder at +0x24 wakes with it (Holder_WakeWithMatrix, grid
+// 0), else plainly (Holder_Wake); the animator's flag 0x4000 set. Returns 1.
+u32 __cdecl Animator_Wake(u8 *animator);
+
 // 0x45bc60 (cdecl; the holder): with flag 1 the holder's part sleeps (Holder_Sleep); the count at +0x34 of the owner (the holder at +8, else itself) is lowered; the part at +0x1c
 // (adjusted by the virtual base offset in the word at +4 of its vtable) is deleted through its slot 0 (with 1) and the pointer cleared.
 void __cdecl Holder_Destroy(u8 *holder);

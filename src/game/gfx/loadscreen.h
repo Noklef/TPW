@@ -37,4 +37,13 @@ void __cdecl LoadScreen_StaticDtor();
 // in the second's and third's y0 and integers added elsewhere. A rectangle refused (0) returns 0 at once; else the renderer is ended (slot
 // 0x20), +4 and +0xc = bar and 1 returned.
 u32 __fastcall LoadScreen_DrawBar(u8 *screen);
+
+// 0x587c80 (thiscall on the loading screen; name unconfirmed): a loading step. On the first (+0 is 0): +0x28 = timeGetTime (the import at
+// 0x6fd3ec), +0x2c = 0, and with display driver kind (0x8bd524) 4 the renderer's buffer ([0x879dac] + 4) when set filled (Mmx_FillRows:
+// width 0x8bcbd0, rows 0x8bcbd4, pitch twice the width). timeGetTime is asked again (its answer unused). Without images (+0x10, +0x14) the
+// image count +0x2c is bumped and RenderDevice_Call0 called when it was below 3. Else the image shown (LoadScreen_ShowImage) while +0x2c
+// is below 3 is +0x14 when shown once ([0x8c478c] 1; when +0x2c is 0, [0x8c4780] = timeGetTime first), else +0x10 (when set); after
+// showing one, bit 0x8000000 of 0x8bd508 is set and +0x2c bumped. +0 is bumped; without +0x14 the bar is drawn (LoadScreen_DrawBar),
+// returning 0 when it fails. Returns Display_RestoreIfFocused() != 0.
+u32 __fastcall LoadScreen_Tick(u8 *screen);
 }

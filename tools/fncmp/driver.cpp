@@ -62,6 +62,8 @@
 #include "../../src/game/render/engineerrors.h"
 #include "../../src/game/sprite/draw.h"
 #include "../../src/game/sprite/script.h"
+#include "../../src/game/world/advisorscore.h"
+#include "../../src/game/model/objmodel.h"
 #include "../../src/game/world/mapline.h"
 #include "../../src/game/world/mousemode.h"
 #include "crt.h"
@@ -272,7 +274,9 @@ s32 __fastcall stub_seek(u8 *self, void *, u32 offset, u32 origin) {
 void __cdecl heap_throw() { RaiseException(0xe0000001, 0, 0, nullptr); }
 
 const StdStringEnv kStdStringEnv = {&heap_alloc, &heap_free, &heap_throw, &heap_throw};
-const MouseModeEnv kMouseModeEnv = {&heap_free};
+const MouseModeEnv kMouseModeEnv = {&heap_free, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
+const AdvisorScoreEnv kAdvisorScoreEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
+const ObjModelEnv kObjModelEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const PtrListEnv kPtrListEnv = {&heap_alloc};
 const GameHeapEnv kGameHeapEnv = {&heap_alloc, &heap_free};
 const Jpeg6bHeapEnv kJpeg6bHeapEnv = {&heap_alloc, &heap_free};  // (jmemansi.c's malloc / free)
@@ -562,8 +566,10 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006ff320, 11},  // the text part's (a list row's impl: slots 3, 5 and 10 from Window_SetImpl)
                                    {0x006ff3b0, 11},  // two more text part kinds' (list rows' children: 0x49c880, 0x4ae7d0; slot 3,
                                    {0x006ff410, 11},  // 0x4903e0 / 0x490940, unported: the cases give it a recorder)
+                                   {0x007011c8, 4},   // the WCT image's virtual base (the deleting destructor's thunk TexFile_Load calls)
                                    {0x006fdcc8, 4},   // the light parts' (directional, point: slot 2 the thunk to Stub_One the renderer's sorted add calls)
-                                   {0x006fe548, 4}};
+                                   {0x006fe548, 4},
+                                   {0x006fe980, 11}};  // CMMOnline's (slot 10 Debug_Nop_46cfb0, which MouseMode_Set calls on the new mode)
 
 void __cdecl debug_printf(const char *, ...) {}  // Debug_Printf 0x5da3c0 (RefObject's teardown slot among others)
 
@@ -737,6 +743,8 @@ int main(int argc, char **argv) {
     resolve_vtables();
     StdStrings_SetEnv(&kStdStringEnv);
     MouseModes_SetEnv(&kMouseModeEnv);
+    AdvisorScore_SetEnv(&kAdvisorScoreEnv);
+    ObjModel_SetEnv(&kObjModelEnv);
     PtrList_SetEnv(&kPtrListEnv);
     GameHeap_SetEnv(&kGameHeapEnv);
     Jpeg6b_SetHeapEnv(&kJpeg6bHeapEnv);

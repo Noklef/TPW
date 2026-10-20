@@ -2,7 +2,10 @@
 # The holder functions of src/game/model/holder that go through the renderer (0x45bdd0 Holder_Sleep, 0x4254c0 Animator_Sleep, 0x45bc60 Holder_Destroy, 0x45bac0 Holder_Free) against the originals: a
 # holder whose part sits in a renderer's slot lists (tags 0x10, 0x20, 0x70) or not; an animator holding such a holder; and a holder whose part has a vtable (a recorder) giving the
 # virtual base offset; a holder disposed of (and the owner that holds it); a holder added to the renderer's grid (grid_masks.py's environment, the part reached through its virtual base offset); a user of the holder behind [0x79fcb4] taking it out by its rectangle (rem_rect()'s grid) or by sleeping, and putting it back (Wake: the slot list; Acquire / RideAcquire: the grid rectangle or Wake).
-# usage: holder.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Sleep,Animator,Destroy,Release,Grid,Dispose,Owner,AnimGrid,Children,Wake,Acquire,RideAcquire,AddObj,SetPart,Unlink,AnimDispose,InstDispose,Free,InstFree,FreeAll,TerrainFree,RemRect,RemRect14,Clear0)
+# WakeMatrix (0x45bd30): Wake's environment with the part room for its matrices, given one (objmodel.py's matrices_env), into the grid or
+# not; AnimWake (0x425440): an animator holding that holder, with that matrix or none (Holder_Wake then). Matrices: objmodel.py's
+# 0x57a260 cases (port.py takes one bench).
+# usage: holder.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Matrices,WakeMatrix,AnimWake,Sleep,Animator,Destroy,Release,Grid,Dispose,Owner,AnimGrid,Children,Wake,Acquire,RideAcquire,AddObj,SetPart,Unlink,AnimDispose,InstDispose,Free,InstFree,FreeAll,TerrainFree,RemRect,RemRect14,Clear0)
 import os
 import struct
 import sys
@@ -11,19 +14,20 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import grid_masks  # noqa: E402
+import objmodel  # noqa: E402
 import vobj3  # noqa: E402
-from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put, vtable  # noqa: E402
+from fncmp import Bench, Call, HEAP, LOG, RAM, _cdecl_log, global_heap, heap, log_region, put, vtable  # noqa: E402
 
 RANGES = [(0x424ed0, 0x424ee9), (0x425490, 0x4254c0), (0x43eac0, 0x43eb00), (0x455a50, 0x455ae0), (0x45ba00, 0x45ba30), (0x4254c0, 0x4254f0), (0x45bc60, 0x45bcb0), (0x45bdd0, 0x45be90), (0x45be80, 0x45bed0), (0x576540, 0x5765d0), (0x5766e0, 0x57681a), (0x5d8820, 0x5d8870), (0x45bcb0, 0x45bd10), (0x576620, 0x5766f0), (0x576270, 0x576320), (0x5e2a80, 0x5e2b80), (0x67acb0, 0x67acb1), (0x590730, 0x590750), (0x5da3c0, 0x5da3c1), (0x45bd00, 0x45bd30), (0x576410, 0x576550), (0x5d8130, 0x5d8190), (0x5d87d0, 0x5d8820), (0x56b2f0, 0x56b340), (0x48f5c0, 0x48f650),
            (0x43bd20, 0x43bdc0), (0x44b270, 0x44b2c0), (0x44b4c0, 0x44b520), (0x475550, 0x4755a0), (0x5f5680, 0x5f56a0), (0x4254f0, 0x4255c0), (0x455ae0, 0x455c00),
            (0x45bac0, 0x45bbbc), (0x57a100, 0x57a258), (0x44aae0, 0x44ab30),
            (0x463db0, 0x463ec5), (0x463ed0, 0x464140), (0x452540, 0x452560), (0x46b3b0, 0x46b3d0), (0x468200, 0x468246), (0x45baa0, 0x45bab4),
-           (0x450a80, 0x450abf), (0x427bb0, 0x427bfb)]
-HOOKS = {0x691de0: vobj3.lock, 0x691ea0: lambda e: None}
+           (0x450a80, 0x450abf), (0x427bb0, 0x427bfb), (0x45bd30, 0x45bd99), (0x425440, 0x425483), (0x57a260, 0x57a41c)]
+HOOKS = {0x691de0: vobj3.lock, 0x691ea0: lambda e: None, 0x67a7d0: _cdecl_log}
 B = Bench(RANGES, hooks=HOOKS)
 ANIM, OWNER, TARGET, USER = RAM + 0x2000, RAM + 0x2500, RAM + 0x3000, RAM + 0x3200
 UMODEL, UPARTS, UPS, UENTRIES, USCRIPTS = RAM + 0x3400, RAM + 0x3500, RAM + 0x3700, RAM + 0x3740, RAM + 0x3800   # (Unlink's)
-ACQ_TARGET, ACQ_USER = RAM + 0x7400, RAM + 0x7600   # clear of the grid environment (grid_masks.py's vtables sit at RAM + 0x3000)
+ACQ_TARGET, ACQ_USER, AWAKE = RAM + 0x7400, RAM + 0x7600, RAM + 0x7800   # clear of the grid environment (grid_masks.py's vtables sit at RAM + 0x3000)
 
 
 def sleep(r):
@@ -148,6 +152,23 @@ def clean_slots(r, c):
 def wake(r):
     c = clean_slots(r, add_to_grid(r))
     return Call(0x45bd00, c.args[:1], c.regions, conv='c', ret='v')
+
+
+def wake_matrix(r):
+    c = clean_slots(r, add_to_grid(r))
+    regions = dict(c.regions)
+    holder = c.args[0]
+    part = struct.unpack_from('<I', regions[holder], 0x1c)[0]
+    regions[part] = put(bytearray(r.bytes(0x98)), 0, 'I', struct.unpack_from('<I', regions[part])[0])   # (room for its flags and matrices)
+    objmodel.matrices_env(r, regions)
+    return Call(0x45bd30, [holder, objmodel.MATRIX, r.choice([0, 0, 1, 0x100, r.getrandbits(32)])], regions, conv='c', ret='v')
+
+
+def animator_wake(r):
+    c = wake_matrix(r)
+    regions = dict(c.regions)
+    regions[AWAKE] = put(put(bytearray(r.bytes(0x40)), 0xc, 'I', r.choice([0, objmodel.MATRIX, objmodel.MATRIX])), 0x24, 'I', c.args[0])
+    return Call(0x425440, [AWAKE], regions, conv='c', ret='a')
 
 
 def acquire(r, ride):
@@ -442,7 +463,7 @@ def clear0(r):   # 0x424ed0: bit 0 of a dword cleared
     return Call(0x424ed0, [RAM + 0x10], {RAM: r.bytes(0x400)}, ret='a')
 
 
-CASES = {'Sleep': sleep, 'Animator': animator, 'Destroy': destroy, 'Release': release, 'Grid': add_to_grid, 'Dispose': dispose, 'Owner': dispose_owner, 'AnimGrid': animator_grid, 'Children': children, 'Wake': wake, 'Acquire': lambda r: acquire(r, False), 'RideAcquire': lambda r: acquire(r, True), 'AddObj': add_obj, 'SetPart': set_part, 'Unlink': unlink, 'AnimDispose': animator_dispose, 'InstDispose': instance_dispose, 'Free': holder_free, 'InstFree': instance_free, 'FreeAll': free_all, 'TerrainFree': terrain_free,
+CASES = {'Matrices': objmodel.matrices, 'WakeMatrix': wake_matrix, 'AnimWake': animator_wake, 'Sleep': sleep, 'Animator': animator, 'Destroy': destroy, 'Release': release, 'Grid': add_to_grid, 'Dispose': dispose, 'Owner': dispose_owner, 'AnimGrid': animator_grid, 'Children': children, 'Wake': wake, 'Acquire': lambda r: acquire(r, False), 'RideAcquire': lambda r: acquire(r, True), 'AddObj': add_obj, 'SetPart': set_part, 'Unlink': unlink, 'AnimDispose': animator_dispose, 'InstDispose': instance_dispose, 'Free': holder_free, 'InstFree': instance_free, 'FreeAll': free_all, 'TerrainFree': terrain_free,
          'RemRect': lambda r: rem_rect(r, 'RemRect'), 'RemRect14': lambda r: rem_rect(r, 'RemRect14'), 'Clear0': clear0}
 
 

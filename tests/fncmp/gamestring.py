@@ -30,7 +30,9 @@ OPS_TABLE = {
     'StripSuffix': (0x424d30, 0, '', 'a'), 'SkipDot': (0x41cea0, 0, '', 'a'), 'EnsureSlash': (0x5c5480, 0, '', 'v'), 'IsWad': (0x5c53c0, 0, '', 'a'),
     'JoinPath': (0x5c5580, 0, '', 'v'),
 }
-B = Bench([(0x41cea0, 0x41cfe4), (0x424cf0, 0x424dc0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000), (0x5c53c0, 0x5c5510), (0x5c5580, 0x5c55a9), (0x5c7490, 0x5c749c)])
+B_RANGES = [(0x41cea0, 0x41cfe4), (0x424cf0, 0x424dc0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000), (0x5c53c0, 0x5c5510), (0x5c5580, 0x5c55a9),
+            (0x5c7490, 0x5c749c)]
+B = Bench(B_RANGES)
 DOT, BACKSLASH = 0x78c648, 0x78bee0   # the game's global strings "." and "\" (String objects in .bss)
 SLASH2, WAD = 0xf80be0, 0xf80808      # and "\" and ".wad" of the folder code
 LOCALE = 0xfb1440   # the CRT's LC_CTYPE handle: 0, the C locale (_stricmp's)

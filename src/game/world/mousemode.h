@@ -15,9 +15,10 @@
 #include "../../../re/types.h"
 
 struct MouseModeEnv {
-    void(__cdecl *free)(void *block);  // Mem_Free (0x67acb0)
+    void(__cdecl *free)(void *block);                  // Mem_Free (0x67acb0)
+    s32(__cdecl *atExit)(void(__cdecl *fn)());        // crt_atexit (0x67a7d0)
 };
-// The deleting destructors' frees go to env (nullptr: the game's).
+// The deleting destructors' frees and MouseMode_Set's atexit go to env (nullptr: the game's).
 void MouseModes_SetEnv(const MouseModeEnv *env);
 
 extern "C" {
@@ -87,6 +88,12 @@ u8 *__fastcall MouseMode6fead0_Ctor(u8 *self);
 // 0x46ce80 (name unconfirmed; its vtable's slot 10 prints "Assigning CMMOnline"): CMMOnline (vtable 0x6fe980): +4 0, then the cursor
 // 0 (Obj7b51f0_SetCursor). Returns self.
 u8 *__fastcall MMOnline_Ctor(u8 *self);
+
+// 0x46c350 (stdcall; mode, pops 4; name unconfirmed): the mouse mode switched to `mode`. The current one ([0x7b05d8]) left (slot 0x2c),
+// then (re-read) deleted (slot 0, 1). The mode setting at 0xfb3b7c is a function-local static (the guard 0xfb3518 & 1: Setting_ReadMode,
+// atexit(0x5d1750)); when it is 1, a mode given whose slot 0x24 answers 1 is deleted (slot 0, 1) and replaced by a new CMMOnline (8 bytes
+// from the game's heap, MMOnline_Ctor; 0 when that failed). The mode (or 0) is stored at 0x7b05d8 and, if any, assigned (slot 0x28).
+void __stdcall MouseMode_Set(u8 *mode);
 
 // Slot 10 of the modes (Assign, by CMMOnline's debug print; names unconfirmed). 0x46d590 (the 0x6fead0 mode): the cursor 0x13.
 void __fastcall MouseMode6fead0_Assign(u8 *self);
