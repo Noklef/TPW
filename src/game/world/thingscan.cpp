@@ -1,7 +1,9 @@
 #include "thingscan.h"
 
 #include <cstdint>
+#include <cstring>
 
+#include "../coaster/registry.h"
 #include "../core/accessors.h"
 #include "../core/circbuf.h"
 #include "../core/indexed.h"
@@ -669,6 +671,29 @@ template <typename Test> double averageByte(Test test, u32 offset) {
     return (X87Reg((double)sum) / X87Reg((double)count)).v;
 }
 
+// The coaster (a thing of kind 3 whose definition is of kind 3, of the definition asked for unless that is 0) the take test picks from
+// its link's figures (Object_LinkParams' b and d), the output its handle (0 beforehand); the figure take keeps, 0 when none.
+template <typename Take> u32 bestCoaster(u16 *out, u32 def, Take take) {
+    *out = 0;
+    bool found = false;
+    u32 best = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (at<u8>(thing, 2) == 3 && Object_DefIsKind3(thing) && (!(u16)def || (u16)def == at<u16>(thing, 0xe))) {
+            u32 a, b, c, d;
+            Object_LinkParams(thing, &a, &b, &c, &d);
+            if (take(found, best, b, d)) {
+                found = true;
+                *out = handle;
+            }
+        }
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    return found ? best : 0;
+}
+
 }  // namespace
 
 extern "C" {
@@ -859,5 +884,23 @@ double __fastcall Things_AveragePersonStat19c(void *, void *, u32) {
 
 double __fastcall Things_AverageStaffStat1f8(void *, void *, u32) {
     return averageByte([](const u8 *thing) { return at<u8>(thing, 2) >= 4 && at<u8>(thing, 2) <= 8; }, 0x1f8);
+}
+
+u32 __stdcall Things_CoasterMostFlaggedCars(u16 *out, u32 def) {
+    return bestCoaster(out, def, [](bool found, u32 &best, u32, u32 cars) {
+        if (found && cars <= best) return false;
+        best = cars;
+        return true;
+    });
+}
+
+u32 __stdcall Things_TallestCoaster(u16 *out, u32 def) {
+    return bestCoaster(out, def, [](bool found, u32 &best, u32 bits, u32) {
+        float height;
+        std::memcpy(&height, &bits, 4);
+        if (found && !((double)best < (double)height || height != height)) return false;   // (a NaN height is taken, x87's FCOMP)
+        best = (u32)(long long)height;
+        return true;
+    });
 }
 }  // extern "C"

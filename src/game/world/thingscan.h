@@ -220,4 +220,14 @@ double __fastcall Things_AveragePersonStat19c(void *self, void *, u32 unused);
 
 // 0x4c7cc0 (as 0x4c7bb0, without the +0x1da710 check; name unconfirmed): the same over the staff (kinds 4 to 8) of their float +0x1f8.
 double __fastcall Things_AverageStaffStat1f8(void *self, void *, u32 unused);
+
+// 0x4cc810 (stdcall (out, definition), pops 8; name unconfirmed): over the things of kind 3 whose definition is of kind 3
+// (Object_DefIsKind3), of the definition id asked for (the low words) unless that is 0, the one whose coaster link (Object_LinkParams,
+// which must be found) has the most flagged cars (+0x108, unsigned; the first of a tie): its handle to out (0 beforehand), the count
+// returned, 0 when none. The debug prints of the slot check are left out.
+u32 __stdcall Things_CoasterMostFlaggedCars(u16 *out, u32 def);
+
+// 0x4cc920 (as 0x4cc810; name unconfirmed): the same for the tallest, the link's height +0x110 a float: one taken when the best so far
+// (the height cut to an integer, its low dword, unsigned) is below it or it is a NaN (x87), so a later 5.5 beats a 5.7 cut to 5, sic.
+u32 __stdcall Things_TallestCoaster(u16 *out, u32 def);
 }  // extern "C"
