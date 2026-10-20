@@ -219,6 +219,16 @@ void __fastcall Window_Notify3000(u8 *window, void *, u32 a, u32 b) {
     if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0x3000u, event);
 }
 
+void __fastcall Window_NotifyC000(u8 *window, void *, u32 a, u32 b) {
+    if (!at<u8 *>(window, 0x98) && !at<u8 *>(window, 0x9c)) return;
+    u8 inner[0x14], event[0x18];  // (only inner's words +0xa / +0xc and event's pointer +0x10 set)
+    at<u8 *>(event, 0x10) = inner;
+    at<u16>(inner, 0xa) = (u16)a;
+    at<u16>(inner, 0xc) = (u16)b;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 0xc000u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0xc000u, event);
+}
+
 void __fastcall Window_Notify20000(u8 *window, void *, u32 a) {
     if (!at<u8 *>(window, 0x98) && !at<u8 *>(window, 0x9c)) return;
     u8 inner[0x14], event[0x18];  // (only inner's byte +9 and event's pointer +0x10 set)
