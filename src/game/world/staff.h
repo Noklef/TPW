@@ -179,4 +179,13 @@ void __fastcall Staff_InitBase(u8 *staff);
 // byte +0x20) made, the mode holder made when missing (MouseModes_EnsureHolder) and the mode set (MouseMode_Set; 0 when the allocation failed).
 // Others: only stored (the original's debug print left out).
 void __fastcall Staff_SetState(u8 *staff, void *, u32 state);
+
+// 0x4d7880 (thiscall; out, pops 4; name unconfirmed: Handyman_Update's, which keeps the result at +0x21a): the handyman's next job, by the world's
+// object list (head +0x1da746 of [0x80239c], the thing table 0x7cfb90, next +0xc). An object with flag 0 of +0x32 that tracks nobody or this
+// handyman (Obj_GetTrackedHandle; asked twice) is a candidate at squared cell distance d2 (bytes +5 / +7 of both) when its +0x64 is set
+// (Get64_4e03d0) and d2 is below the best so far (unsigned, from 0xffffffff), or failing that when it is in poor condition
+// (Object_InPoorCondition) and d2 is below the square of the grade's radius (the dword 0x7853f0 + 12 * the pay grade +0x1e4; wrapping).
+// A candidate is taken when the handyman can be sent to its entrance cell (+0x36, Sprite_SetDestinationCell, so each candidate redirects
+// him). Each one taken is the best (later ones may be taken further off). The last one taken tracks the handyman (Obj_StampAt5e with its handle); its handle (0: none) goes to out. Returns out.
+u16 *__fastcall Handyman_FindJob(u8 *staff, void *, u16 *out);
 }

@@ -16,6 +16,7 @@
 #include "messagecentre.h"
 #include "money.h"
 #include "mousemode.h"
+#include "object.h"
 #include "person.h"
 #include "personscripts.h"
 #include "things.h"
@@ -500,5 +501,41 @@ void __fastcall Staff_SetState(u8 *staff, void *, u32 state) {
         break;
     }
     at<u32>(staff, 0x19c) = state;
+}
+
+u16 *__fastcall Handyman_FindJob(u8 *staff, void *, u16 *out) {
+    u16 word;
+    u32 best = 0xffffffff;
+    u16 found = 0;
+    for (u16 handle = at<u16>(global<u8 *>(0x0080239c), 0x1da746); handle;) {
+        u8 *const object = global<u8 *>(0x007cfb90 + 20 * handle);
+        if (at<u8>(object, 0x32) & 1) {
+            bool free = *Obj_GetTrackedHandle(object, nullptr, &word) == 0;
+            if (!free) {
+                const u16 *const mine = Thing_GetHandle(staff, nullptr, &word);
+                u16 tracked;
+                free = *Obj_GetTrackedHandle(object, nullptr, &tracked) == *mine;
+            }
+            if (free) {
+                const u32 o = (u16)((at<u8>(object, 7) << 7) + at<u8>(object, 5) + 1) - 1;
+                const u32 s = (u16)((at<u8>(staff, 7) << 7) + at<u8>(staff, 5) + 1) - 1;
+                const s32 dx = (s32)(o & 0x7f) - (s32)(s & 0x7f), dy = (s32)(o >> 7) - (s32)(s >> 7);
+                const u32 d2 = (u32)(dx * dx) + (u32)(dy * dy);
+                bool near = Get64_4e03d0(object) && d2 < best;
+                if (!near && Object_InPoorCondition(object)) {
+                    const u32 radius = global<u32>(0x007853f0 + 12 * at<u32>(staff, 0x1e4));
+                    near = d2 < radius * radius;
+                }
+                if (near && Sprite_SetDestinationCell(staff, nullptr, at<u16>(object, 0x36))) {
+                    best = d2;
+                    found = handle;
+                }
+            }
+        }
+        handle = at<u16>(object, 0xc);
+    }
+    if (found) Obj_StampAt5e(global<u8 *>(0x007cfb90 + 20 * found), nullptr, *Thing_GetHandle(staff, nullptr, &word));
+    *out = found;
+    return out;
 }
 }
