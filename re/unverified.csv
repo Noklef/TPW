@@ -27,23 +27,6 @@ address,name,module,reason
 5f6c50,WString_Format,core/string,todo
 5f7360,Palette_ExpandRgb,gfx/palette,todo
 5f73a0,Palette_Nearest,gfx/palette,todo: indirect only
-5f76c0,Lib_StrLen,core/libc,todo: indirect only
-5f76e0,Lib_StrCpy,core/libc,todo: indirect only
-5f7710,Lib_StrNCpy,core/libc,todo: indirect only
-5f7730,Lib_StrCat,core/libc,todo: indirect only
-5f7770,Lib_StrNCat,core/libc,todo: indirect only
-5f7790,Lib_AtoI,core/libc,todo
-5f77a0,Lib_IsDigit,core/libc,todo
-5f77c0,Lib_VSPrintf,core/libc,todo
-5f77e0,Lib_VSNPrintf,core/libc,todo
-5f7800,Lib_WcsLen,core/libc,todo: indirect only
-5f7810,Lib_WcsCpy,core/libc,todo: indirect only
-5f7830,Lib_WcsNCpy,core/libc,todo: indirect only
-5f7850,Lib_WcsCat,core/libc,todo: indirect only
-5f7870,Lib_WcsNCat,core/libc,todo: indirect only
-5f7890,Lib_WtoI,core/libc,todo
-5f78a0,Lib_IsDigitW,core/libc,todo
-5f78c0,Lib_VSWPrintf,core/libc,todo
 5f86a0,App_GetInstance,core/app,todo: indirect only
 5f86b0,App_SetInstance,core/app,todo
 5f86c0,App_GetWindow,core/app,todo: indirect only
