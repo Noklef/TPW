@@ -63,4 +63,13 @@ u32 __fastcall CircBufU32_30_Serialize(u8 *buf, void *, Stream *stream, u32 save
 
 // 0x4cdf00 (likewise): the same for a CircBufU32 of 144 (+0x244, +0x248, +0x24c; the same names).
 u32 __fastcall CircBufU32_144_Serialize(u8 *buf, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x4ce2d0 / 0x4ce660 (likewise; names unconfirmed): the same for a CircBufU32 of 50 (+0xcc, +0xd0, +0xd4) and of 5 (+0x18, +0x1c, +0x20).
+u32 __fastcall CircBufU32_50_Serialize(u8 *buf, void *, Stream *stream, u32 save, s32 version, u32 unused);
+u32 __fastcall CircBufU32_5_Serialize(u8 *buf, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x4cdb80 / 0x4cea00 (likewise): the same for a CircBufU16 (its mTemp a word, the entries words from +2: +8, +0xc, +0x10; the entries'
+// load through Save_ReadU16) and a CircBufU8 of 50 (bytes from +1: +0x34, +0x38, +0x3c; Save_ReadU8).
+u32 __fastcall CircBufU16_Serialize(u8 *buf, void *, Stream *stream, u32 save, s32 version, u32 unused);
+u32 __fastcall CircBufU8_Serialize(u8 *buf, void *, Stream *stream, u32 save, s32 version, u32 unused);
 }

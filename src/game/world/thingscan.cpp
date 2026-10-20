@@ -1,9 +1,13 @@
 #include "thingscan.h"
 
 #include <cstdint>
+#include <cstring>
 
+#include "../coaster/registry.h"
+#include "../core/accessors.h"
 #include "../core/circbuf.h"
 #include "../core/indexed.h"
+#include "../math/x87.h"
 #include "analysercell.h"
 #include "mapcell.h"
 #include "object.h"
@@ -136,9 +140,26 @@ u32 CellDistanceSquared(const u8 *a, const u8 *b) {
     return (u32)(dx * dx + dy * dy);
 }
 
-// The objects older than 30 days whose definition the test accepts: the most walk-aways per 100 customers among them (Object_HistoryPercent's
-// sums, with the walk-aways' ring +0x230 for its +0x2b8; objects without customers are passed over), its handle to *out (0 for none).
-template <typename Test> s32 MostWalkAways(u16 *out, Test test) {
+// Whether the object's definition's category (+0x164) is 1, 5 or 6 (the original fetches the definition again for each).
+bool category156(const u8 *thing) {
+    const u32 category = at<u32>(Object_GetDef(thing), 0x164);
+    return category == 1 || category == 5 || category == 6;
+}
+
+// The dword +0x4ac of the object's definition (ObjectDefs_Find on gObjectDefs by its id +0xe).
+u32 def4ac(const u8 *thing) { return at<u32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(thing, 0xe)), 0x4ac); }
+
+// Whether the object had customers: the low half of __ftol of its customers' ring +0x1a8's newest 30 summed (CircBufU32_30_Sum; inlined in
+// 0x4cbec0).
+bool hadCustomers(const u8 *thing) {
+    double customers;
+    CircBufU32_30_Sum(thing + 0x1a8, nullptr, &customers, 0x1e);
+    return (u32)(long long)customers != 0;
+}
+
+// The objects older than 30 days that the test accepts and that value() gives a figure (signed): the one with the largest (or with fewest,
+// the smallest; the first on a tie), its handle to *out (0 for none); returns that figure (0 for none).
+template <bool fewest, typename Test, typename Value> s32 BestObject(u16 *out, Test test, Value value) {
     *out = 0;
     bool found = false;
     s32 best = 0;   // (unset in the original until found)
@@ -146,23 +167,35 @@ template <typename Test> s32 MostWalkAways(u16 *out, Test test) {
     World_FirstThing(world(), nullptr, &handle);
     while (handle) {
         const u8 *thing = thing_of(handle);
-        if (at<u8>(thing, 2) == 3 && test(Object_GetDef(thing)) && Object_AgeDays(thing) > 30) {
-            double customers, walkaways, again;
-            CircBufU32_30_Sum(thing + 0x1a8, nullptr, &customers, 0x1e);
-            if ((u32)(long long)customers != 0) {   // (__ftol, the low half)
-                CircBufU32_30_Sum(thing + 0x230, nullptr, &walkaways, 0x1e);
-                CircBufU32_30_Sum(thing + 0x1a8, nullptr, &again, 0x1e);
-                const s32 percent = (s32)((u32)(long long)walkaways * 100u / (u32)(long long)again);
-                if (!found || percent > best) {
-                    best = percent;
-                    found = true;
-                    *out = handle;
-                }
+        s32 figure;
+        if (at<u8>(thing, 2) == 3 && test(thing) && Object_AgeDays(thing) > 30 && value(thing, &figure)) {
+            if (!found || (fewest ? figure < best : figure > best)) {
+                best = figure;
+                found = true;
+                *out = handle;
             }
         }
         World_NextThing(world(), nullptr, &handle, thing);
     }
     return found ? best : 0;
+}
+
+// The walk-aways per 100 customers (Object_HistoryPercent's sums, with the walk-aways' ring +0x230 for its +0x2b8); none without customers.
+bool walkAways(const u8 *thing, s32 *percent) {
+    if (!hadCustomers(thing)) return false;
+    double walkaways, customers;
+    CircBufU32_30_Sum(thing + 0x230, nullptr, &walkaways, 0x1e);
+    CircBufU32_30_Sum(thing + 0x1a8, nullptr, &customers, 0x1e);
+    *percent = (s32)((u32)(long long)walkaways * 100u / (u32)(long long)customers);
+    return true;
+}
+
+template <bool fewest, typename Test> s32 MostWalkAways(u16 *out, Test test) { return BestObject<fewest>(out, test, walkAways); }
+
+// The happiness (Object_HistoryAverage).
+bool happiness(const u8 *thing, s32 *average) {
+    *average = (s32)Object_HistoryAverage(thing);
+    return true;
 }
 
 }  // namespace
@@ -620,6 +653,95 @@ u16 staffNext(const u8 *previous, u16 *(__fastcall *first)(const u8 *, void *, u
     return previous ? *reinterpret_cast<const u16 *>(previous + 0x210) : *first(categoryWorld(), nullptr, &out);
 }
 
+// The average of a byte of the things that pass: each float at the offset cut to an integer and its low byte, summed (each sum by the x87
+// and cut again); none: the float [0x70031c].
+template <typename Test> double averageByte(Test test, u32 offset) {
+    s32 sum = 0, count = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (test(thing)) {
+            sum = (s32)(long long)(X87Reg((double)(u8)(long long)at<float>(thing, offset)) + X87Reg((double)sum)).v;
+            ++count;
+        }
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    if (count <= 0) return global<float>(0x0070031c);
+    return (X87Reg((double)sum) / X87Reg((double)count)).v;
+}
+
+// The coaster (a thing of kind 3 whose definition is of kind 3, of the definition asked for unless that is 0) the take test picks from
+// its link's figures (Object_LinkParams' b and d), the output its handle (0 beforehand); the figure take keeps, 0 when none.
+template <typename Take> u32 bestCoaster(u16 *out, u32 def, Take take) {
+    *out = 0;
+    bool found = false;
+    u32 best = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (at<u8>(thing, 2) == 3 && Object_DefIsKind3(thing) && (!(u16)def || (u16)def == at<u16>(thing, 0xe))) {
+            u32 a, b, c, d;
+            Object_LinkParams(thing, &a, &b, &c, &d);
+            if (take(found, best, b, d)) {
+                found = true;
+                *out = handle;
+            }
+        }
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    return found ? best : 0;
+}
+
+// A count the analyser keeps at off (+0 the game time it was taken, +4 the count, byte +8 set once taken): kept while it is set and
+// no more than maxAge quarters old (Game1da70c_MinusAt0Quarters, unsigned), else taken again over the things that pass.
+template <typename Test> u32 cachedCount(u8 *analyser, u32 off, u32 maxAge, Test test) {
+    u32 *const cache = reinterpret_cast<u32 *>(analyser + off);
+    if (at<u8>(cache, 8) && maxAge >= Game1da70c_MinusAt0Quarters(cache)) return cache[1];
+    s32 count = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (test(thing)) ++count;
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    cache[1] = (u32)count;
+    at<u8>(cache, 8) = 1;
+    Out_SetFromGame1da70c(cache);
+    return cache[1];
+}
+
+// Each thing of kind 1 on a plain analyser cell (AnalyserCell_TypePlain) to visit, with the low byte of its float at offset cut to an
+// integer.
+template <typename Visit> void forPlainPeople(u32 offset, Visit visit) {
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (at<u8>(thing, 2) == 1 && AnalyserCell_TypePlain(thing)) visit((u8)(long long)at<float>(thing, offset));
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+}
+
+s32 countAbove(u32 offset, u32 least) {
+    s32 count = 0;
+    forPlainPeople(offset, [&](u8 value) {
+        if (value > (u8)least) ++count;
+    });
+    return count;
+}
+
+template <bool above> s32 percentBeyond(s32 bound) {
+    s32 total = 0, count = 0;
+    forPlainPeople(0x19c, [&](u8 value) {
+        ++total;
+        if (above ? (s32)value > bound : (s32)value < bound) ++count;
+    });
+    return total > 0 ? (s32)((u32)count * 100) / total : 0;
+}
+
 }  // namespace
 
 extern "C" {
@@ -759,13 +881,122 @@ void __cdecl ThingBrowser_Step() {
 }
 
 s32 __fastcall Things_MostWalkAwaysOf(void *, void *, u32 category, u16 *out) {
-    return MostWalkAways(out, [category](const u8 *def) { return at<u32>(def, 0x164) == category; });
+    return MostWalkAways<false>(out, [category](const u8 *thing) { return at<u32>(Object_GetDef(thing), 0x164) == category; });
 }
 
 s32 __fastcall Things_MostWalkAwaysOf156(void *, void *, u16 *out) {
-    return MostWalkAways(out, [](const u8 *def) {
-        const u32 category = at<u32>(def, 0x164);   // (the original fetches the definition again for each)
-        return category == 1 || category == 5 || category == 6;
+    return MostWalkAways<false>(out, [](const u8 *thing) { return category156(thing); });
+}
+
+s32 __fastcall Things_FewestWalkAwaysOf(void *, void *, u32 category, u16 *out) {
+    return MostWalkAways<true>(out, [category](const u8 *thing) { return at<u32>(Object_GetDef(thing), 0x164) == category; });
+}
+
+s32 __fastcall Things_FewestWalkAwaysOf156(void *, void *, u16 *out) {
+    return MostWalkAways<true>(out, [](const u8 *thing) { return category156(thing); });
+}
+
+s32 __fastcall Things_MostWalkAwaysDef4ac2(void *, void *, u16 *out) {
+    return MostWalkAways<false>(out, [](const u8 *thing) { return def4ac(thing) == 2; });
+}
+
+s32 __fastcall Things_FewestWalkAwaysDef4ac2(void *, void *, u16 *out) {
+    return MostWalkAways<true>(out, [](const u8 *thing) { return def4ac(thing) == 2; });
+}
+
+s32 __fastcall Things_HappiestOf(void *, void *, u32 category, u16 *out) {
+    return BestObject<false>(out, [category](const u8 *thing) { return at<u32>(Object_GetDef(thing), 0x164) == category; }, happiness);
+}
+
+s32 __fastcall Things_UnhappiestOf(void *, void *, u32 category, u16 *out) {
+    return BestObject<true>(out, [category](const u8 *thing) { return at<u32>(Object_GetDef(thing), 0x164) == category; }, happiness);
+}
+
+s32 __fastcall Things_HappiestOf156(void *, void *, u16 *out) {
+    return BestObject<false>(out, [](const u8 *thing) { return category156(thing); }, happiness);
+}
+
+s32 __fastcall Things_UnhappiestOf156(void *, void *, u16 *out) {
+    return BestObject<true>(out, [](const u8 *thing) { return category156(thing); }, happiness);
+}
+
+s32 __fastcall Things_HappiestDef4ac2(void *, void *, u16 *out) {
+    return BestObject<false>(out, [](const u8 *thing) { return def4ac(thing) == 2; },
+                             [](const u8 *thing, s32 *average) { return hadCustomers(thing) && happiness(thing, average); });
+}
+
+double __fastcall Things_AveragePersonStat19c(void *, void *, u32) {
+    if (Get1da710_51a280(static_cast<const u8 *>(world()))) return global<float>(0x0070031c);
+    return averageByte([](const u8 *thing) { return at<u8>(thing, 2) == 1 && AnalyserCell_TypePlain(thing); }, 0x19c);
+}
+
+double __fastcall Things_AverageStaffStat1f8(void *, void *, u32) {
+    return averageByte([](const u8 *thing) { return at<u8>(thing, 2) >= 4 && at<u8>(thing, 2) <= 8; }, 0x1f8);
+}
+
+u32 __stdcall Things_CoasterMostFlaggedCars(u16 *out, u32 def) {
+    return bestCoaster(out, def, [](bool found, u32 &best, u32, u32 cars) {
+        if (found && cars <= best) return false;
+        best = cars;
+        return true;
     });
+}
+
+u32 __stdcall Things_TallestCoaster(u16 *out, u32 def) {
+    return bestCoaster(out, def, [](bool found, u32 &best, u32 bits, u32) {
+        float height;
+        std::memcpy(&height, &bits, 4);
+        if (found && !((double)best < (double)height || height != height)) return false;   // (a NaN height is taken, x87's FCOMP)
+        best = (u32)(long long)height;
+        return true;
+    });
+}
+
+u32 __fastcall ParkAnalyser_CountKind1OnPlainCell(u8 *analyser, void *, u32 maxAge) {
+    return cachedCount(analyser, 0x1f0b8, maxAge, [](const u8 *thing) { return at<u8>(thing, 2) == 1 && AnalyserCell_TypePlain(thing); });
+}
+
+u32 __fastcall ParkAnalyser_CountDef4ac0(u8 *analyser, void *, u32 maxAge) {
+    return cachedCount(analyser, 0x1f0c4, maxAge, [](const u8 *thing) {
+        return at<u8>(thing, 2) == 3 && !at<u32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(thing, 0xe)), 0x4ac);
+    });
+}
+
+s32 __fastcall Things_CountPeopleStat1a8Above(void *, void *, u32 least) { return countAbove(0x1a8, least); }
+
+s32 __fastcall Things_CountPeopleStat1a4Above(void *, void *, u32 least) { return countAbove(0x1a4, least); }
+
+s32 __fastcall Things_PercentPeopleStat19cAbove(void *, void *, s32 bound) { return percentBeyond<true>(bound); }
+
+s32 __fastcall Things_PercentPeopleStat19cBelow(void *, void *, s32 bound) { return percentBeyond<false>(bound); }
+
+s32 __stdcall Things_AverageStat1f8OfKind(u32 kind) {
+    s32 sum = 0, count = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (at<u8>(thing, 2) == kind) {
+            ++count;
+            sum += (u8)(long long)at<float>(thing, 0x1f8);
+        }
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    return count ? sum / count : 0;
+}
+
+s32 __cdecl Things_AverageKind3Flag1Of100Minus44() {
+    s32 sum = 0, count = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (at<u8>(thing, 2) == 3 && (at<u8>(thing, 0x32) & 1)) {
+            ++count;
+            sum += 100 - (u8)(long long)at<float>(thing, 0x44);
+        }
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    return count ? sum / count : 0;
 }
 }  // extern "C"

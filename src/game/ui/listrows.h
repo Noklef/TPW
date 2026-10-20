@@ -99,4 +99,32 @@ void __cdecl List7cc250_InitRow(u8 *row);
 // a TextPart_Ctor part, the bytes 1, 1 as 0xc00 and as 0x3000 (Window_Notify3000), font 7, the bytes 0xff and the text 0; that child's
 // next two siblings (+0x54, then theirs) given the object of the GUI window registered as "i_boxtick" (Window_SetObject98).
 void __cdecl List7cc654_InitRow(u8 *row);
+
+// 0x4c02d0 (the list child 0xe05b of the window [0x7cc944], with the initialiser 0x4c03e0): the cache [0x7cc94c] (font 7); flags 0,
+// right 0; the children (1, 1, 2) to (1, 1, 6) whether the window was made or not (sic).
+u8 *__cdecl List7cc94c_NewRow();
+
+// 0x4c1b30 (the list child 0x14beb of the window [0x7cca70], with the initialiser 0x4c1c30): the cache [0x7cca90] (font 7); flags 0,
+// right 0; the children (1, 1, 2) to (1, 1, 5) whether the window was made or not (sic).
+u8 *__cdecl List7cca90_NewRow();
+
+// 0x4c03e0 (with 0x4c02d0): the row a TextPart_Ctor part, font 7 and the text 0 (Window_NotifyImpl100); its first child and that
+// child's next sibling (+0x54) the same and the bytes 1, 1 as 0xc00; the next a TextPart6ff500_Ctor part as its object +0x98
+// (Window_SetObject98), font 7 and the bytes 1, 1; the next two each a TextPart6ff350_Ctor part, font 7, slot 7 called with 0 and the
+// bytes 1, 1.
+void __cdecl List7cc94c_InitRow(u8 *row);
+
+// 0x4c1c30 (with 0x4c1b30): as 0x4c03e0 with one TextPart_Ctor child fewer, and that one (the first) not told the bytes 1, 1.
+void __cdecl List7cca90_InitRow(u8 *row);
+
+// 0x4ad340 (with 0x4ad240): the row a TextPart_Ctor part, the font [0x755134] and the bytes 0xff; its first child a TextPart6ff3e0_Ctor
+// part, the font [0x755134] (read again), the bytes 2, 1 as 0xc00 and its slot 7 called with 0; that child's next sibling given the
+// object of the GUI window registered as "i_boxtick" (Window_SetObject98) and its slot 7 called with 0.
+void __cdecl List7cc200_InitRow(u8 *row);
+
+// 0x4a03d0 (with 0x4a02b0): the row a TextPart_Ctor part, the font [0x752934] and the handler 0x4a0710 (Window_SetHandler); then its
+// first child and the next four siblings, each given the handler 0x4a0710 first, then a part (the kinds 0x6ff3b0, 0x6ff350, 0x6ff440,
+// 0x6ff3b0, 0x6ff3b0), the font [0x752934] (read each time), its slot 7 called with 0 and the bytes as 0xc00: 2, 1 for the 0x6ff3b0
+// parts (told before the font), 1, 1 for the others (told last).
+void __cdecl List7cb264_InitRow(u8 *row);
 }

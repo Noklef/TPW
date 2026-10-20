@@ -176,7 +176,7 @@ address,name,kind,confidence,notes
 0x004f8730,FunnyTime_SpanOf,function,low,"reimplemented (src/game/core/funnytime); thiscall (out, ticks): the funny time span of quarter seconds at the clock's rate"
 0x004f8800,FunnyTime_Elapsed,function,low,reimplemented (src/game/core/funnytime); thiscall (out): the funny time now less its start
 0x004f88b0,FunnyTime_SpanSince,function,low,"reimplemented (src/game/core/funnytime); thiscall (out, ticks): the funny time span of the world's ticks since ticks"
-0x004cf050,ParkGates_Serialize,function,high,"arrival rate, bus capacity, gates open"
+0x004cf050,ParkGates_Serialize,function,high,"reimplemented (src/game/world/parkgates); thiscall (stream, save, version, unused): mArrivalRate, the time stamp +4 (TimeSig_Serialize), mTargetVehicleCapacity, mPeopleOnBus, mOffloading, mGatesOpen saved or loaded"
 0x004d3aa0,ObjectControls_Serialize,function,high,"reimplemented (src/game/world/objectdefs); thiscall (stream, save, version, unused): the 0x96 object control records, their count and the search key saved or loaded; a full load clears the key and +0x12c8"
 0x004d7ea0,Map_Serialize,function,high,"128x128 cells; per-cell status byte: bit0 map cell, bit1 track cell, bit2 RE cell"
 0x004d0b30,MapCellBase_Serialize,function,high,"reimplemented (src/game/world/mapcell); 29 bytes: direction, flags, mesh instance, neighbours, overlap, parent, tile data, type, hoarding"
@@ -204,10 +204,10 @@ address,name,kind,confidence,notes
 0x0059ba30,AdvisorMsg_Serialize,function,high,
 0x004c5d70,ParkAnalyser_Serialize,function,high,"thing model 13: 32x32 analysis grid + circular-buffer statistics"
 0x004c85b0,AnalyserCell_Serialize,function,high,
-0x004cd9c0,AnalyserVal_Serialize,function,high,"u32 mVal, u8 mWorkedOut"
-0x004cdb80,CircBufU16_Serialize,function,high,"mCurrentEntry, mNumEntries, mWrappedAround, mTemp, mData[mNumEntries]"
+0x004cd9c0,AnalyserVal_Serialize,function,high,"reimplemented (src/game/world/analyser); thiscall (stream, save, version, unused): mVal (+4) and mWorkedOut (+8) saved or loaded"
+0x004cdb80,CircBufU16_Serialize,function,high,"reimplemented (src/game/core/circbuf); thiscall (stream, save, version, unused): a CircBufU16 saved or loaded (cursor +8, count, wrapped, the word temp, then count word entries)"
 0x004cdf00,CircBufU32_144_Serialize,function,low,"reimplemented (src/game/core/circbuf); thiscall (stream, save, version, unused): a CircBufU32 of 144 saved or loaded (cursor, count, wrapped, temp, then count entries)"
-0x004cea00,CircBufU8_Serialize,function,high,
+0x004cea00,CircBufU8_Serialize,function,high,"reimplemented (src/game/core/circbuf); thiscall (stream, save, version, unused): a CircBufU8 of 50 saved or loaded (cursor +0x34, count, wrapped, the byte temp, then count byte entries)"
 0x00502dc0,ResearchLab_Serialize,function,high,"reimplemented (src/game/world/research); thing model 14: thing, 0x100 projects, 5 groups, 4 fields"
 0x00504210,ResearchProject_Serialize,function,high,reimplemented (src/game/world/research); a project's 6 fields
 0x00504760,ResearchGroup_Serialize,function,high,reimplemented (src/game/world/research); a group's 4 fields
@@ -834,6 +834,7 @@ address,name,kind,confidence,notes
 0x004c76d0,ParkAnalyser_StampTime21c38,function,low,reimplemented (src/game/world/analyser); the funny time now stamped at the park analyser's +0x21c38 (name unconfirmed)
 0x004c7a90,ParkAnalyser_InitCells,function,low,"reimplemented (src/game/world/analyser); thiscall: message centre slots 0xc, 0x11, 0x13, then rows * columns cell rectangles (x, y, w, h; cut at the width / height); returns 1"
 0x004c58c0,ParkAnalyser_Ctor,function,low,"reimplemented (src/game/world/analyser); thiscall: the park analyser's constructor (thing kind 0xd, cells, rings, stamps, InitCells); returns it"
+0x004cd880,ParkAnalyser_AveragePersonStat19c,function,low,"reimplemented (src/game/world/analyser); thiscall (cell id, radius): the average of the low bytes of the people's floats +0x19c in the cells within radius of the cell"
 0x004d0af0,MapHandle_Entry28,function,high,reimplemented (src/game/world/mapcell); thiscall on a u16 handle: gMapCells + 0x10ffd8 + handle * 0x28
 0x004d0b10,MapHandle_Cell44,function,high,reimplemented (src/game/world/mapcell); thiscall on a u16 handle: gMapCells + (handle - 1) * 0x44
 0x004d0a70,MemRanges_Set,function,high,"reimplemented (src/game/world/mapcell); thiscall on 0x7cdb30 (index, a, b, name): entry index = (a, b); name unused (""World Struture"")"
@@ -930,6 +931,8 @@ address,name,kind,confidence,notes
 0x005031a0,ResearchLab_FillProjects,function,low,reimplemented (src/game/world/research); the lab's projects from the object definitions and its groups' outputs (name unconfirmed)
 0x004ca6b0,Research_AllDone,function,low,reimplemented (src/game/world/research); whether nothing is left to research (name unconfirmed)
 0x00503ff0,ResearchLab_FlagProjectControls,function,low,"reimplemented (src/game/world/research); thiscall: each project's object control record (ObjectControls_Find, not quiet) gets byte +0x10 = 1, the last project first"
+0x005034f0,ResearchLab_NextProject,function,low,reimplemented (src/game/world/research); thiscall (group): the group's current project moved to the next one it can take up (else the first before it; none: a done one dropped)
+0x005036a0,ResearchLab_PrevProject,function,low,reimplemented (src/game/world/research); thiscall (group): the same going down: the previous one it can take up (else the last after it)
 0x005100e0,Nav_SetPosVel,function,high,"reimplemented (src/game/world/nav); thiscall (x, y, vx, vy): pos (+8) and vel (+0x10) set"
 0x00510160,Nav_GetPos,function,high,"reimplemented (src/game/world/nav); thiscall (&x, &y): pos (+8, +0xc) read"
 0x0051aad0,World_ArrivalVehicleNotSize1,function,high,reimplemented (src/game/world/world); thiscall: 1 when mCurrentArrivalVehicle (+0x1da72a) is set and is not mArrivalVehicle_Size1 (+0x1da72c)
@@ -1055,6 +1058,27 @@ address,name,kind,confidence,notes
 0x004cceb0,Things_FacilityScore,function,low,"reimplemented (src/game/world/thingscan); thiscall on the analyser: the sum of capped counts (plain kind-1 things, objects by definition +0x4ac, staff of kinds 4-8)"
 0x004caae0,Things_MostWalkAwaysOf,function,low,"reimplemented (src/game/world/thingscan); thiscall (category, &out): of the objects older than 30 days with that category, the most walk-aways per 100 customers; its handle to out"
 0x004cb300,Things_MostWalkAwaysOf156,function,low,"reimplemented (src/game/world/thingscan); thiscall (&out): the same for the categories 1, 5 and 6"
+0x004cadf0,Things_FewestWalkAwaysOf,function,low,reimplemented (src/game/world/thingscan); the object of a category with the fewest walk-aways per 100 customers
+0x004cb640,Things_FewestWalkAwaysOf156,function,low,"reimplemented (src/game/world/thingscan); the same for the categories 1, 5 and 6"
+0x004cbba0,Things_MostWalkAwaysDef4ac2,function,low,reimplemented (src/game/world/thingscan); the object whose definition has 2 at +0x4ac with the most walk-aways per 100 customers
+0x004cc090,Things_FewestWalkAwaysDef4ac2,function,low,reimplemented (src/game/world/thingscan); the same with the fewest
+0x004cb100,Things_HappiestOf,function,low,"reimplemented (src/game/world/thingscan); thiscall (category, &out): of the objects older than 30 days with that category, the happiest (Object_HistoryAverage); its handle to out, its average returned"
+0x004cb200,Things_UnhappiestOf,function,low,"reimplemented (src/game/world/thingscan); thiscall (category, &out): the same with the unhappiest"
+0x004cb980,Things_HappiestOf156,function,low,"reimplemented (src/game/world/thingscan); thiscall (&out): the happiest of the categories 1, 5 and 6"
+0x004cba90,Things_UnhappiestOf156,function,low,"reimplemented (src/game/world/thingscan); thiscall (&out): the unhappiest of the categories 1, 5 and 6"
+0x004cbec0,Things_HappiestDef4ac2,function,low,reimplemented (src/game/world/thingscan); thiscall (&out): the happiest of the objects whose definition has 2 at +0x4ac and that had customers
+0x004c7bb0,Things_AveragePersonStat19c,function,low,"reimplemented (src/game/world/thingscan); The average of the low bytes of +0x19c of the kind 1 things on plain cells, [0x70031c] (0.0f) when none or +0x1da710 is set"
+0x004c7cc0,Things_AverageStaffStat1f8,function,low,"reimplemented (src/game/world/thingscan); The average of the low bytes of +0x1f8 of the staff (kinds 4 to 8), [0x70031c] when none"
+0x004cc810,Things_CoasterMostFlaggedCars,function,low,"reimplemented (src/game/world/thingscan); The coaster (of a definition, or any) whose link has the most flagged cars (+0x108): handle out, count returned"
+0x004cc920,Things_TallestCoaster,function,low,"reimplemented (src/game/world/thingscan); The coaster (of a definition, or any) whose link's height +0x110 is greatest: handle out, the height cut to an integer returned"
+0x004c7fa0,ParkAnalyser_CountKind1OnPlainCell,function,low,"reimplemented (src/game/world/thingscan); The analyser's kept count (+0x1f0b8) of kind 1 things on plain cells, counted again when unset or older than the age asked for"
+0x004c8070,ParkAnalyser_CountDef4ac0,function,low,"reimplemented (src/game/world/thingscan); The analyser's kept count (+0x1f0c4) of objects whose definition has 0 at +0x4ac, counted again when unset or older than the age asked for"
+0x004c9340,Things_CountPeopleStat1a8Above,function,low,reimplemented (src/game/world/thingscan); How many kind 1 things on plain cells have the low byte of float +0x1a8 above the bound's low byte
+0x004c93f0,Things_CountPeopleStat1a4Above,function,low,reimplemented (src/game/world/thingscan); How many kind 1 things on plain cells have the low byte of float +0x1a4 above the bound's low byte
+0x004c9670,Things_PercentPeopleStat19cAbove,function,low,reimplemented (src/game/world/thingscan); The percentage of kind 1 things on plain cells whose float +0x19c's low byte is above the bound (signed)
+0x004c9750,Things_PercentPeopleStat19cBelow,function,low,reimplemented (src/game/world/thingscan); The percentage of kind 1 things on plain cells whose float +0x19c's low byte is below the bound (signed)
+0x004c9cc0,Things_AverageStat1f8OfKind,function,low,"reimplemented (src/game/world/thingscan); The average of the low bytes of float +0x1f8 of the things of a kind, 0 when none"
+0x004ca160,Things_AverageKind3Flag1Of100Minus44,function,low,"reimplemented (src/game/world/thingscan); The average of 100 less the low byte of float +0x44 of the objects with +0x32 bit 0, 0 when none"
 0x0054b130,Buoy_FindFree,function,high,"reimplemented (src/game/world/trackpools); the first free buoy record, its index stored in it"
 0x0054b170,Buoy_Alloc,function,high,reimplemented (src/game/world/trackpools); takes the first free buoy record
 0x0054b1e0,CollNode_FindFree,function,high,reimplemented (src/game/world/trackpools); the first free collision node
@@ -2448,6 +2472,8 @@ address,name,kind,confidence,notes
 0x00495c20,CircBufU32_30_Sum,function,low,"reimplemented (src/game/core/circbuf); thiscall (&sum, count): the CHistory sum of the newest count entries (at most size once wrapped, else cursor + 1) into a double, added on the x87 at 24 bits (name unconfirmed)"
 0x00495d40,CircBufU32_30_Count,function,low,reimplemented (src/game/core/circbuf); the entries a circular buffer holds
 0x004802a0,CircBufF32_144_MaxInWindow,function,low,"reimplemented (src/game/core/circbuf); the greatest of the newest float samples, out raised to its __ftol"
+0x004ce2d0,CircBufU32_50_Serialize,function,low,"reimplemented (src/game/core/circbuf); thiscall (stream, save, version, unused): a CircBufU32 of 50 saved or loaded (cursor +0xcc, count, wrapped, temp, then count entries)"
+0x004ce660,CircBufU32_5_Serialize,function,low,"reimplemented (src/game/core/circbuf); thiscall (stream, save, version, unused): a CircBufU32 of 5 saved or loaded (cursor +0x18, count, wrapped, temp, then count entries)"
 0x004a77a0,TextArg_Ctor,function,high,"reimplemented (src/game/core/textarg); thiscall (n): the abstract format argument (vtable 0x6ffb34: _purecall, tag 'MRAV', number +8)"
 0x004ea220,TextArgString_Ctor,function,high,"reimplemented (src/game/core/textarg); thiscall (n, string): a string format argument (vtable 0x6ff174)"
 0x0050aef0,TextArgInt_Ctor,function,high,"reimplemented (src/game/core/textarg); thiscall (n, value, isSigned): a number format argument (vtable 0x6ff170, L""%d""); signed negatives as magnitude + flag (+0x10)"
@@ -5129,6 +5155,7 @@ address,name,kind,confidence,notes
 0x004b4470,Dialog7cb2b8_ResetChild21Only,function,low,reimplemented (src/game/ui/dialogs); cdecl: Dialog7cb2b8_ResetChild21(0)
 0x004816b0,Obj7b51f0_ResetDialogChild21,function,low,reimplemented (src/game/ui/dialogs); thiscall on 0x7b51f0: 0 without [0x7cc2f0]; else Dialog7cb2b8_ResetChild21Only and 1
 0x004bcb70,WindowText7cb4d0_Handler,function,low,"reimplemented (src/game/ui/dialogs); cdecl (window, message, a, b): on 0x800 Window_NotifyC000(0, -b) and slot 9 given 0x7cb4d0; then Window_CallDefault"
+0x004b9a70,Dialog7cc4c4_Create,function,low,"reimplemented (src/game/ui/dialogs); cdecl (): unless made, the dialog [0x7cc4c4] built from the script 0x7581a0 on the frame [0xf82884]'s window +4 (handler 0x4b9950); its texts 0x16c11 / 0x16c12 dressed (TextPart_Ctor, fonts 5 / 8); [0x7cc4e4] = 0"
 0x00659607,GuiManager_CallSlot4,function,low,"reimplemented (src/game/ui/guimanager); cdecl: slot 4 (thiscall, no arguments) of the GUI manager [0x77c48c], its result"
 0x0065961c,GuiManager_CallSlot3,function,low,"reimplemented (src/game/ui/guimanager); cdecl: slot 3 (thiscall, no arguments) of the GUI manager [0x77c48c], its result"
 0x00659631,GuiManager_Word4Set,function,low,"reimplemented (src/game/ui/guimanager); cdecl: 1 when the GUI manager's word +4 (Fn_659790) is not 0, else 0"
@@ -5220,6 +5247,12 @@ address,name,kind,confidence,notes
 0x0049f170,List7cb24c_InitRow,function,low,"reimplemented (src/game/ui/listrows); cdecl (row): the row and its first child as 0x480dd0 (text part, font 7, 0xff x 4), the child's 2, 1 as 0xc00"
 0x004ae7d0,List7cc250_InitRow,function,low,"reimplemented (src/game/ui/listrows); cdecl (row): the row a text part, the font [0x75583c] and 0xff x 4; its first child a TextPart6ff410 part, the font again, 2, 1 as 0xc00 and its slot 7 with 0"
 0x004bcca0,List7cc654_InitRow,function,low,"reimplemented (src/game/ui/listrows); cdecl (row): the row a text part, 0xff x 4, font 7, text 0; its first child the same with 1, 1 as 0xc00 / 0x3000; the child's next two siblings the ""i_boxtick"" look"
+0x004c02d0,List7cc94c_NewRow,function,low,"reimplemented (src/game/ui/listrows); cdecl (): the list row of the window [0x7cc944]'s list 0xe05b: a 0x138-byte window (flags 0, right 0, height cached in [0x7cc94c] from font 7) and the children (1, 1, 2) to (1, 1, 6), unchecked (sic)"
+0x004c1b30,List7cca90_NewRow,function,low,"reimplemented (src/game/ui/listrows); cdecl (): the list row of the window [0x7cca70]'s list 0x14beb: a 0x138-byte window (height cached in [0x7cca90] from font 7) and the children (1, 1, 2) to (1, 1, 5), unchecked (sic)"
+0x004c03e0,List7cc94c_InitRow,function,low,"reimplemented (src/game/ui/listrows); cdecl (row): 0x4c02d0's row dressed: text parts (TextPart_Ctor x3, 6ff500 as object +0x98, 6ff350 x2), font 7, the texts 0 and the bytes 1, 1 as 0xc00"
+0x004c1c30,List7cca90_InitRow,function,low,reimplemented (src/game/ui/listrows); cdecl (row): 0x4c1b30's row dressed as 0x4c03e0 with one TextPart_Ctor child fewer
+0x004ad340,List7cc200_InitRow,function,low,"reimplemented (src/game/ui/listrows); cdecl (row): 0x4ad240's row dressed: a TextPart_Ctor part, the font [0x755134], the bytes 0xff; the child a 6ff3e0 part; the next the ""i_boxtick"" look"
+0x004a03d0,List7cb264_InitRow,function,low,"reimplemented (src/game/ui/listrows); cdecl (row): 0x4a02b0's row dressed: the handler 0x4a0710 on it and its five children, their parts (6ff3b0, 6ff350, 6ff440, 6ff3b0, 6ff3b0) and the font [0x752934]"
 0x0066a084,Frame_SetInterval,function,low,"reimplemented (src/game/ui/frame); thiscall (value): +0x14 = value; with the words +4 and +0xc set, +0x10 = GuiClock_Now"
 0x0066a016,Frame_Stop,function,low,"reimplemented (src/game/ui/frame); thiscall: the word +4 = 0, then with the word +6 set slot 1 (its result returned, else the frame)"
 0x004a4ab0,Dialog7cb398_ShowTopThree,function,low,"reimplemented (src/game/ui/dialog7cb398); cdecl: the window [0x7cb398]'s child 0x4a68d1, then Things_TopThreeValues shown by its children 0x4a68d4/d3/d2 (1..0x16: slot 7 with value - 1, else hidden)"
@@ -5240,6 +5273,8 @@ address,name,kind,confidence,notes
 0x00481490,Obj7b51f0_ToggleOverlay,function,low,reimplemented (src/game/ui/focus); thiscall on 0x7b51f0: Overlay7cb2b4_Toggle
 0x004815d0,Obj7b51f0_CloseOverlay,function,low,"reimplemented (src/game/ui/focus); thiscall on 0x7b51f0: Overlay7cb2b4_Toggle while Global7cb2e8_Get, else 0"
 0x00485b70,Window7c24c8_Set,function,low,"reimplemented (src/game/ui/focus); cdecl (window): with a window, the mode holder made when missing; when the current mode answers 9 (slot 0x24), a new CMMOnline base set (the holder again first); the cursor 0, the three key maps reset, Dialog7cb2b8_ResetChild21(1). Then [0x7c24c8] = the window and Focus_Restore's result"
+0x004a2790,Window7cb2cc_Open,function,low,"reimplemented (src/game/ui/focus); cdecl: unless the window [0x7cb2cc] is set, it becomes Dialog_Create(0x752e00, 0x4a2680, 1); returns it"
+0x0048a6e0,Window7cb2cc_OpenOnGui,function,low,reimplemented (src/game/ui/focus); cdecl: 0 without the GUI root [0xfaa5d8]; else Fn_662411 and Window7cb2cc_Open
 0x0066a1b0,RadioGroup_SetSelectedState,function,low,"reimplemented (src/game/ui/radiogroup); thiscall (state: a byte), pops 4: the child with the selected id (+0x138; Window_FindChild) gets Window705a50_SetState(state, 1)"
 0x0066a295,RadioGroup_Select,function,low,"reimplemented (src/game/ui/radiogroup); thiscall (id), pops 4: the selected child's state 0, id selected (+0x138), its state 1; the id before (AX), -1 for the same id, none found or -1 (none selected)"
 0x0066a1e8,RadioGroup_Ctor,function,low,"reimplemented (src/game/ui/radiogroup); thiscall (parent, flags, id, left, top, right, bottom), pops 28: kind 8 of the factory 0x65dd7b; Window_Ctor, the vtable 0x705ac0, none selected (+0x138 -1), handlers 0x66a31c; returns the group"

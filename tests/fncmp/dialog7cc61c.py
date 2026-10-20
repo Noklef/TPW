@@ -17,7 +17,7 @@ B = Bench(window.RANGES + [(0x47ee90, 0x47eed0), (0x65d55a, 0x65d57b), (0x4bb690
 
 
 def case(r):
-    c = dialogbase.case(r)
+    c = dialogbase.case(r, [])
     wins = sorted(k for k in c.regions if window.TREE <= k < window.RECTS)
     frame = window.FOCUS + 0x40
     c.regions[0xf82884] = struct.pack('<I', frame)

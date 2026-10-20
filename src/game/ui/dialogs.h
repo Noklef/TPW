@@ -118,4 +118,11 @@ void __cdecl Window7cc8bc_SetC3129(u8 value);
 // set to 0, notifying (Window705a50_SetState(0, 1)): with mode 3 the children 0x12277 and 0x1227b, else 0x12279, 0x12278, 0x1227c, 0x1227d,
 // 0x1227a and 0x1227e, in that order.
 void __cdecl Window7ca2e8_ClearButtons(u32 mode);
+
+// 0x4b9a70 (cdecl; called by 0x5dd650 / 0x5dd910 after 0x4c4fb0; name unconfirmed): unless the dialog [0x7cc4c4] is made, it is built
+// from the window script 0x7581a0 (WindowScript_Build: the last child it makes) on the window +4 of the frame [0xf82884] (not checked)
+// with the handler 0x4b9950; its children 0x16c11 and 0x16c12 (Window_FindChild, not checked) each get a TextPart_Ctor part (0x1a4 bytes,
+// GameHeap_Alloc; none when that fails; Window_SetImpl), the bytes 1, 1 as 0xc00 and 0x3000, the font 5 / 8 (Language_Font), the bytes
+// 0xff and the text 0; then [0x7cc4e4] = 0.
+void __cdecl Dialog7cc4c4_Create();
 }

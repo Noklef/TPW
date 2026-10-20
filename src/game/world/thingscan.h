@@ -188,4 +188,76 @@ s32 __fastcall Things_MostWalkAwaysOf(void *self, void *, u32 category, u16 *out
 
 // 0x4cb300 (thiscall as 0x4caae0; &out; pops 4; name unconfirmed): the same for the categories 1, 5 and 6.
 s32 __fastcall Things_MostWalkAwaysOf156(void *self, void *, u16 *out);
+
+// 0x4cadf0 / 0x4cb640 (thiscall as 0x4caae0 / 0x4cb300; names unconfirmed): the same with the fewest walk-aways per 100 customers (the
+// smaller wins, signed; the first on a tie).
+s32 __fastcall Things_FewestWalkAwaysOf(void *self, void *, u32 category, u16 *out);
+s32 __fastcall Things_FewestWalkAwaysOf156(void *self, void *, u16 *out);
+
+// 0x4cbba0 / 0x4cc090 (thiscall as 0x4cb300; names unconfirmed): the most / the fewest for the objects whose definition (ObjectDefs_Find on
+// gObjectDefs 0x7890a0 by the id +0xe) has 2 at +0x4ac.
+s32 __fastcall Things_MostWalkAwaysDef4ac2(void *self, void *, u16 *out);
+s32 __fastcall Things_FewestWalkAwaysDef4ac2(void *self, void *, u16 *out);
+
+// 0x4cb100 / 0x4cb200 (thiscall as 0x4caae0; names unconfirmed): of the objects older than 30 days with that category, the happiest /
+// unhappiest (Object_HistoryAverage, signed; the first on a tie); its handle to out (0 for none); returns its average (0 for none).
+s32 __fastcall Things_HappiestOf(void *self, void *, u32 category, u16 *out);
+s32 __fastcall Things_UnhappiestOf(void *self, void *, u32 category, u16 *out);
+
+// 0x4cb980 / 0x4cba90 (thiscall as 0x4cb300; names unconfirmed): the same for the categories 1, 5 and 6.
+s32 __fastcall Things_HappiestOf156(void *self, void *, u16 *out);
+s32 __fastcall Things_UnhappiestOf156(void *self, void *, u16 *out);
+
+// 0x4cbec0 (thiscall as 0x4cb300; name unconfirmed): the happiest of the objects whose definition has 2 at +0x4ac (as 0x4cbba0's) and
+// that had customers (as the walk-aways'). The debug prints of the size check are left out.
+s32 __fastcall Things_HappiestDef4ac2(void *self, void *, u16 *out);
+
+// 0x4c7bb0 (thiscall, pops 4; the object and argument unused; name unconfirmed): the float [0x70031c] while the world's dword +0x1da710 is set
+// (Get1da710_51a280); else the average over the things of kind 1 on a plain analyser cell (AnalyserCell_TypePlain) of the low byte of
+// their float +0x19c cut to an integer (x87: each sum by FIADD, cut again; the average FIDIV at the game's precision), [0x70031c] when there
+// are none. The debug prints of the slot check are left out.
+double __fastcall Things_AveragePersonStat19c(void *self, void *, u32 unused);
+
+// 0x4c7cc0 (as 0x4c7bb0, without the +0x1da710 check; name unconfirmed): the same over the staff (kinds 4 to 8) of their float +0x1f8.
+double __fastcall Things_AverageStaffStat1f8(void *self, void *, u32 unused);
+
+// 0x4cc810 (stdcall (out, definition), pops 8; name unconfirmed): over the things of kind 3 whose definition is of kind 3
+// (Object_DefIsKind3), of the definition id asked for (the low words) unless that is 0, the one whose coaster link (Object_LinkParams,
+// which must be found) has the most flagged cars (+0x108, unsigned; the first of a tie): its handle to out (0 beforehand), the count
+// returned, 0 when none. The debug prints of the slot check are left out.
+u32 __stdcall Things_CoasterMostFlaggedCars(u16 *out, u32 def);
+
+// 0x4cc920 (as 0x4cc810; name unconfirmed): the same for the tallest, the link's height +0x110 a float: one taken when the best so far
+// (the height cut to an integer, its low dword, unsigned) is below it or it is a NaN (x87), so a later 5.5 beats a 5.7 cut to 5, sic.
+u32 __stdcall Things_TallestCoaster(u16 *out, u32 def);
+
+// 0x4c7fa0 (thiscall on the analyser (maxAge), pops 4; name unconfirmed): the count of the things of kind 1 on a plain analyser cell
+// (AnalyserCell_TypePlain) the analyser keeps at +0x1f0b8 (+0 the game time [0x80239c] +0x1da70c it was taken, +4 the count, byte +8 set):
+// kept while +8 is set and it is no more than maxAge quarters old (Game1da70c_MinusAt0Quarters, unsigned); else counted again, +8 set and
+// the time stamped (Out_SetFromGame1da70c). Returns +4. The debug prints of the slot check are left out.
+u32 __fastcall ParkAnalyser_CountKind1OnPlainCell(u8 *analyser, void *, u32 maxAge);
+
+// 0x4c8070 (as 0x4c7fa0, at +0x1f0c4; name unconfirmed): the count of the objects (kind 3) whose definition (ObjectDefs_Find) has 0 at
+// +0x4ac.
+u32 __fastcall ParkAnalyser_CountDef4ac0(u8 *analyser, void *, u32 maxAge);
+
+// 0x4c9340 / 0x4c93f0 (thiscall, the analyser unused (least), pops 4; names unconfirmed): how many things of kind 1 on a plain analyser
+// cell (AnalyserCell_TypePlain) have the low byte of their float +0x1a8 / +0x1a4 cut to an integer above least's low byte (unsigned).
+// The debug prints of the slot check are left out.
+s32 __fastcall Things_CountPeopleStat1a8Above(void *self, void *, u32 least);
+s32 __fastcall Things_CountPeopleStat1a4Above(void *self, void *, u32 least);
+
+// 0x4c9670 / 0x4c9750 (as 0x4c9340; names unconfirmed): the percentage (count * 100 / all, signed) of those things whose float +0x19c's
+// low byte (as 0x4c9340's) is above / below bound (signed), 0 when there are none.
+s32 __fastcall Things_PercentPeopleStat19cAbove(void *self, void *, s32 bound);
+s32 __fastcall Things_PercentPeopleStat19cBelow(void *self, void *, s32 bound);
+
+// 0x4c9cc0 (thiscall, the analyser unused (kind), pops 4; name unconfirmed): over the things whose kind byte (+2) is kind (all of its
+// dword), the average (signed) of the low bytes of their float +0x1f8 cut to an integer, 0 when there are none. The debug prints of the
+// slot check are left out.
+s32 __stdcall Things_AverageStat1f8OfKind(u32 kind);
+
+// 0x4ca160 (thiscall, the analyser unused, no arguments; name unconfirmed): over the objects (kind 3) with bit 0 of +0x32 set, the
+// average (signed) of 100 less the low byte of their float +0x44 cut to an integer, 0 when there are none.
+s32 __cdecl Things_AverageKind3Flag1Of100Minus44();
 }  // extern "C"

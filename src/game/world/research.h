@@ -65,4 +65,14 @@ void __fastcall ResearchLab_FillProjects(u8 *lab);
 // +0x4ac not 4 has its control record's dword +0x18 (ObjectControls_FindUncached, not quiet, in the game's table) or its own +0xc4 set.
 // Else 0 (in AL only).
 u8 __cdecl Research_AllDone();
+
+// 0x5034f0 / 0x5036a0 (thiscall (group), pops 4; names unconfirmed): the group's current project moved to the next / previous one it can
+// take up: of the group's category (mCat == group), its mResearchGroup at most the group's highestGroupAvailable (bytes, unsigned), not
+// done; for the group 4 also the object control record (ObjectControls_Find, not quiet; none faults) of the id (the word +0x284 of the
+// project's definition (ObjectDefs_Find), or mObjId when that is 0) with its byte +0x10 set, and that id a key of the global save info
+// (GlobalSave_HasKey) when the id's definition has a positive +0xc4 (each looked up whatever the one before gave). The first such project
+// after the current one (before it, going down from the last), else the first (last) before (after) it; the current one itself is not
+// taken. None: a current project that is done is dropped (-1). (EAX is left as it happens; the callers 0x4aa0e9 and on ignore it.)
+void __fastcall ResearchLab_NextProject(u8 *lab, void *, u32 group);
+void __fastcall ResearchLab_PrevProject(u8 *lab, void *, u32 group);
 }

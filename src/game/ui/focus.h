@@ -1,7 +1,8 @@
 // The game's choice of the window to take the focus back (after a dialog or a key: 0x4862a0) among its windows and dialogs: the object at
 // [0x7c2534] (its window +0x10 while its +0xc is set), the windows [0x7cb2ac], [0x7cb2b0], [0x7cb2b4], [0x7cc8bc], [0x7cc8c0], [0x7c24c8],
 // [0x7c24cc], [0x7ca1c8] and the frame's ([0xf82884] + 4); two windows closed before it; and the overlay [0x7cb2b4] toggled.
-// Reimplementation of 0x48c8d0, 0x4862a0, 0x485b40, 0x4a27c0 and 0x4a29d0 (cdecl), 0x481490 and 0x4815d0. The names are unconfirmed.
+// Reimplementation of 0x48c8d0, 0x4862a0, 0x485b40, 0x4a2790, 0x4a27c0, 0x48a6e0 and 0x4a29d0 (cdecl), 0x481490 and 0x4815d0. The names
+// are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -30,6 +31,14 @@ u32 __cdecl Window7c24c8_Close();
 // [0x78733c] and [0x787a60] reset (KeyMap_Reset) and Dialog7cb2b8_ResetChild21(1). Either way [0x7c24c8] = the window and the focus
 // restored (Focus_Restore, its result returned).
 u32 __cdecl Window7c24c8_Set(u8 *window);
+
+// 0x4a2790: unless the window [0x7cb2cc] is set, it becomes the dialog built from the script 0x752e00 with the handler 0x4a2680, shaded
+// (Dialog_Create(script, 0x4a2680, 1)). Returns the window.
+u8 *__cdecl Window7cb2cc_Open();
+
+// 0x48a6e0 (the thunk 0x481440 jumps to it): 0 without the GUI root [0xfaa5d8]; else [0xfaa638] = 1 (Fn_662411) and Window7cb2cc_Open's
+// result.
+u8 *__cdecl Window7cb2cc_OpenOnGui();
 
 // 0x4a27c0: with the window [0x7cb2cc] set, it is sent 4 (0, 0) (Window_SendMessage); it is forgotten either way and the focus restored
 // (Focus_Restore, its result returned).

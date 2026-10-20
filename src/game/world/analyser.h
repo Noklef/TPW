@@ -10,6 +10,8 @@
 
 #include "../../../re/types.h"
 
+struct Stream;
+
 extern "C" {
 
 // 0x4c5d10 (on a cell): nine trackers of (value 0, best, flag 0) from +0x10, 12 bytes each; the
@@ -54,4 +56,15 @@ u32 __fastcall ParkAnalyser_InitCells(u8 *analyser);
 // cell size +0xc 4, columns and rows +0x10 / +0x14 32, width and height +0x18 / +0x1c 128; the tallies and total +0x21bfc-+0x21c08 0; the six
 // time stamps +0x21c10-+0x21c38 the funny time now (as ParkAnalyser_StampTime21c30); +0x21c40-+0x21c48 0; then ParkAnalyser_InitCells. Returns it.
 u8 *__fastcall ParkAnalyser_Ctor(u8 *analyser);
+
+// 0x4cd9c0 (thiscall (stream, save, version, unused), pops 16): an analyser value, as a serializer does (Save_Field): mVal (+4, 4 bytes)
+// and mWorkedOut (+8, 1). 1 at the first that fails (the debug print left out), else 0; 0 for a version outside 0..1.
+u32 __fastcall AnalyserVal_Serialize(u8 *val, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x4cd880 (thiscall on the analyser, not read (cell id, a word; radius), pops 8; name unconfirmed): the people (things of kind 1) in the
+// map's cells (gMapCells [0x8023a0], each one's first thing the word +0x24, then each thing's +0xa) within radius columns and rows of the
+// cell id (column (id - 1) & 0x7f, row (id - 1) >> 7, unsigned; the far edges cut at 0x7f as unsigned sums, the near ones signed and not
+// cut, the cells' ids (row << 7) + column + 1 as words): the average (signed division) of the low bytes of __ftol of their floats +0x19c;
+// 0 for none.
+s32 __fastcall ParkAnalyser_AveragePersonStat19c(void *self, void *, u32 cell, u32 radius);
 }

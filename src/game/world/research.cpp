@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/globalsave.h"
 #include "../core/savegame.h"
 #include "objectdefs.h"
 #include "things.h"
@@ -17,6 +18,49 @@ bool not_done(const u8 *p) { return !(at<float>(p, 0x10) >= at<float>(p, 0xc)); 
 
 // The object control record of a definition's id (ObjectControls_Find, not quiet, in the game's table).
 u8 *controls(const u8 *def) { return ObjectControls_Find(*reinterpret_cast<u8 *const *>(0x0080239c) + 0x1d943c, nullptr, at<u16>(def, 0), 0); }
+
+// Whether the group can take the project up (the module comment in research.h).
+bool available(const u8 *lab, u32 group, const u8 *p) {
+    if (at<u32>(p, 4) != group || at<u8>(p, 8) > at<u8>(group_of(lab, group), 0xc) || !not_done(p)) return false;
+    if (group != 4) return true;
+    u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
+    u16 id = at<u16>(ObjectDefs_Find(defs, nullptr, at<u16>(p, 0)), 0x284);
+    if (!id) id = at<u16>(p, 0);
+    bool ok = at<u8>(ObjectControls_Find(*reinterpret_cast<u8 *const *>(0x0080239c) + 0x1d943c, nullptr, id, 0), 0x10) != 0;
+    if (at<s32>(ObjectDefs_Find(defs, nullptr, id), 0xc4) > 0 && !(u8)GlobalSave_HasKey(id)) ok = false;
+    return ok;
+}
+
+// The group's next (or with back, previous) project it can take up, after (before) its current one, else the first (last) before (after)
+// it; none: a current project that is done is dropped (-1).
+template <bool back> void chooseProject(u8 *lab, u32 group) {
+    u8 *const g = lab + 0x140c + group * 16;
+    s32 chosen = -1;
+    auto consider = [&](s32 i) {   // (true: stop there)
+        if (!available(lab, group, project(lab, i))) return false;
+        const s32 current = at<s32>(g, 8);
+        if (back ? i > current : i < current) {
+            if (chosen < 0) chosen = i;
+            return false;
+        }
+        if (i == current) return false;
+        chosen = i;
+        return true;
+    };
+    if (back) {
+        for (s32 i = (s32)(at<u32>(lab, 0x145c) - 1); i >= 0; --i)   // (a count of -2^31 runs from 2^31 - 1, sic)
+            if (consider(i)) break;
+    } else {
+        for (s32 i = 0; i < at<s32>(lab, 0x145c); ++i)
+            if (consider(i)) break;
+    }
+    if (chosen >= 0) {
+        at<s32>(g, 8) = chosen;
+        return;
+    }
+    const s32 current = at<s32>(g, 8);
+    if (current >= 0 && !not_done(project(lab, current))) at<s32>(g, 8) = -1;
+}
 
 }  // namespace
 
@@ -145,4 +189,8 @@ u8 __cdecl Research_AllDone() {
     }
     return 1;
 }
+
+void __fastcall ResearchLab_NextProject(u8 *lab, void *, u32 group) { chooseProject<false>(lab, group); }
+
+void __fastcall ResearchLab_PrevProject(u8 *lab, void *, u32 group) { chooseProject<true>(lab, group); }
 }
