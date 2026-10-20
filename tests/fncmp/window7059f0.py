@@ -225,6 +225,7 @@ def select_case(r):
     regions[WINDOW] = window
     owner = bytearray(r.bytes(0x80))
     owner[0x48] = (owner[0x48] & 0xfe) | r.choice([0, 1, 1])
+    owner[4], window[4] = (0 if r.random() < 0.85 else 1 for _ in range(2))   # (byte +4 set: no posts to it)
     put(owner, 0x60, 'I', 0)
     regions[OWNER] = owner
     window[0x48] = (window[0x48] & 0xfe) | r.choice([0, 1, 1])
