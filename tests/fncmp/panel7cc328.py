@@ -3,7 +3,8 @@
 # (SpriteScript_Kill) does nothing.
 # OnMessage (0x4b4850, and through its sweep 0x4b47e0): the message mostly 0x101, b mostly 1, the id mostly one of the tabs 0x1e7d-0x1e81
 # (around them, any now and then); the window's default handler +0x118 the driver's four-argument logging stub; the panel [0x7cc338]'s
-# children (+0x5c, on through +0x54) another window, then window7059f0.py's list (list_case's Clear surroundings, its id +0x8c 0x1e7b);
+# children (+0x5c, on through +0x54) another window, then window7059f0.py's list (list_case's Clear surroundings, its id +0x8c 0x1e7b,
+# 0-4 rows of row_windows() for RefreshRows: their slot 3 events hashed as refresh_case's);
 # ridesweep.py's staff lists over a park of things (the pool moved past the GUI's windows), each thing resting (+0x19c 3) or not, its area
 # word +0x208 the area's [0x7c2658] or not, its float +0x1fc small, large, negative or past the dword range; the panel object 0x7cc328 a
 # recorder vtable (slot 8). The list's columns are at most two (the texts are two dwords: a third column's would be the stack's), all number
@@ -21,6 +22,7 @@ sys.path.insert(0, HERE)
 import ridesweep  # noqa: E402
 import window7059f0  # noqa: E402
 from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, put, vtable  # noqa: E402
+from window import VTABLE, notify_blobs  # noqa: E402
 from thingenv import THING  # noqa: E402
 
 CALLS = {'Kill24': 0x4b4670, 'OnMessage': 0x4b4850, 'AddStaffRow': 0x4b47e0}
@@ -28,6 +30,7 @@ B = Bench(sorted(set(window7059f0.LIST_RANGES + ridesweep.SWEEP_RANGES + [
     (0x4b4670, 0x4b4695), (0x475550, 0x47558b), (0x4b47e0, 0x4b4850), (0x4b4850, 0x4b4a3c), (0x506650, 0x506675), (0x506860, 0x506867),
     (0x65f66e, 0x65f697)])))
 POOL2, PANEL, OTHER, WIN, AREA, PVT = RAM + 0x40000, RAM + 0x50000, RAM + 0x50100, RAM + 0x50200, RAM + 0x50400, RAM + 0x50500
+ROWS, ROWWINS = RAM + 0x50600, RAM + 0x52000   # (the rows' windows past the park's definitions)
 FLOATS = [0.0, 0.5, 1.0, 50.0, 99.9, 100.0, 255.9, 256.0, 300.5, -1.5, -0.5, 1e10, -1e10]
 
 
@@ -56,6 +59,13 @@ def env(r, empty=False):
         put(window, 0x14c, 'iii', -1, 0, 0)
         put(window, 0x160, 'i', -1)
     regions[window7059f0.COLS3] = b''.join(put(bytearray(r.bytes(0xc)), 0xa, 'h', 1) for _ in range(4))
+    regions[VTABLE] = vtable({5: 1, 3: 2, 0: 1, 7: 1, 9: 1})   # (the rows' windows: RefreshRows' slots 7 and 9 too)
+    notify_blobs(regions[LOG], 0, 0x3c00)
+    nrows = r.choice([0, 1, 2, 3, 4])
+    rows = window7059f0.row_windows(r, regions, [], nrows, ncols, list3, ROWWINS)
+    regions[ROWS] = struct.pack('<%dI' % (nrows + 1), *rows, r.getrandbits(32))
+    put(window, 0x148, 'I', ROWS)
+    put(window, 0x172, 'h', nrows)
     put(regions[list3], 0x8c, 'I', 0x1e7b)
     put(regions[list3], 0x54, 'I', 0)
     regions[OTHER] = put(put(bytearray(r.bytes(0x100)), 0x8c, 'I', r.choice([0, 1, 0x1e7c, 0x1e7d])), 0x54, 'I', list3)

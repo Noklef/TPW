@@ -133,6 +133,29 @@ def walk(arr, shown, first, count, nrows, ncols, bottoms, cells):
     return True
 
 
+def row_windows(r, regions, wins, nrows, ncols, owner, base=ROWWINS):
+    """the rows: a window each with its columns' windows (its first child, then that one's siblings), shown or not, from base on; the
+    row's parent one of wins, the list owner or none. Returns the rows."""
+    rows, at = [], base
+    for _ in range(nrows):
+        group = [at + 0x120 * k for k in range(max(ncols, 1) + r.choice([0, 0, 1]))]
+        at += 0x120 * len(group)
+        for k, w in enumerate(group):
+            buf = bytearray(r.bytes(0x120))
+            buf[4] = 0 if r.random() < 0.9 else 1
+            buf[0x48] = (buf[0x48] & 0xfe) | r.choice([0, 1])
+            put(buf, 0, 'I', VTABLE)
+            put(buf, 0x5c, 'I', group[1] if k == 0 and len(group) > 1 else 0)
+            put(buf, 0x54, 'I', group[k + 1] if 0 < k < len(group) - 1 else 0)
+            put(buf, 0x60, 'I', r.choice(wins + [owner, 0]) if k == 0 else group[0])
+            put(buf, 0x98, 'I', r.choice([OBJECT98, OBJECT98, 0]))
+            put(buf, 0x9c, 'I', r.choice([MISC + 0x40, MISC + 0x40, 0]))
+            put(buf, 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
+            regions[w] = buf
+        rows.append(group[0])
+    return rows
+
+
 def refresh_case(r):
     """RefreshRows (0x663324): see the top"""
     log = log_region()
@@ -153,24 +176,7 @@ def refresh_case(r):
         nrows -= 1
     put(window, 0x172, 'h', r.choice([nrows] * 6 + [-1]))
     put(window, 0x164, 'h', r.choice([ncols] * 6 + [-1]))
-    # the rows: a window each with its columns' windows (its first child, then that one's siblings), shown or not
-    rows, at = [], ROWWINS
-    for _ in range(nrows):
-        group = [at + 0x120 * k for k in range(max(ncols, 1) + r.choice([0, 0, 1]))]
-        at += 0x120 * len(group)
-        for k, w in enumerate(group):
-            buf = bytearray(r.bytes(0x120))
-            buf[4] = 0 if r.random() < 0.9 else 1
-            buf[0x48] = (buf[0x48] & 0xfe) | r.choice([0, 1])
-            put(buf, 0, 'I', VTABLE)
-            put(buf, 0x5c, 'I', group[1] if k == 0 and len(group) > 1 else 0)
-            put(buf, 0x54, 'I', group[k + 1] if 0 < k < len(group) - 1 else 0)
-            put(buf, 0x60, 'I', r.choice(wins + [LIST, 0]) if k == 0 else group[0])
-            put(buf, 0x98, 'I', r.choice([OBJECT98, OBJECT98, 0]))
-            put(buf, 0x9c, 'I', r.choice([MISC + 0x40, MISC + 0x40, 0]))
-            put(buf, 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
-            regions[w] = buf
-        rows.append(group[0])
+    rows = row_windows(r, regions, wins, nrows, ncols, LIST)
     regions[ROWS2] = struct.pack('<%dI' % (nrows + 1), *rows, r.getrandbits(32))
     put(window, 0x148, 'I', ROWS2 if r.random() < 0.95 else 0)
     bottoms = [r.choice([1, 1, 0, 2, -1]) for _ in range(4)]
