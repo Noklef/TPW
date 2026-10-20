@@ -4782,6 +4782,15 @@ const Hook kHooks[] = {
     {"jdmerge_merged_2v_upsample", 0x00647060, (void *)&jdmerge_merged_2v_upsample, {0x8b, 0x54, 0x24, 0x04, 0x83}},
     {"jdmerge_start_pass_merged_upsample", 0x00647040, (void *)&jdmerge_start_pass_merged_upsample, {0x8b, 0x4c, 0x24, 0x04, 0x8b}},
     {"jdmerge_build_ycc_rgb_table", 0x00646f70, (void *)&jdmerge_build_ycc_rgb_table, {0x53, 0x55, 0x56, 0x57, 0x8b}},
+    {"jdsample_h2v2_fancy_upsample", 0x00646700, (void *)&jdsample_h2v2_fancy_upsample, {0x83, 0xec, 0x14, 0x8b, 0x44}},
+    {"jdsample_h2v1_fancy_upsample", 0x00646630, (void *)&jdsample_h2v1_fancy_upsample, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
+    {"jdsample_h2v2_upsample",    0x006465a0, (void *)&jdsample_h2v2_upsample, {0x8b, 0x44, 0x24, 0x10, 0x53}},
+    {"jdsample_h2v1_upsample",    0x00646540, (void *)&jdsample_h2v1_upsample, {0x8b, 0x44, 0x24, 0x10, 0x53}},
+    {"jdsample_int_upsample",     0x00646420, (void *)&jdsample_int_upsample, {0x83, 0xec, 0x10, 0x8b, 0x4c}},
+    {"jdsample_noop_upsample",    0x00646410, (void *)&jdsample_noop_upsample, {0x8b, 0x44, 0x24, 0x10, 0xc7}},
+    {"jdsample_fullsize_upsample", 0x00646400, (void *)&jdsample_fullsize_upsample, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
+    {"jdsample_sep_upsample",     0x00646300, (void *)&jdsample_sep_upsample, {0x51, 0x53, 0x55, 0x56, 0x57}},
+    {"jdsample_start_pass_upsample", 0x006462e0, (void *)&jdsample_start_pass_upsample, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

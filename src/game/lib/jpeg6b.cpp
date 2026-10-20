@@ -21,3 +21,7 @@ static_assert(offsetof(jpeg_decompress_struct, output_width) == 0x5c, "cinfo->ou
 static_assert(offsetof(jpeg_decompress_struct, output_height) == 0x60, "cinfo->output_height (start_pass_merged_upsample)");
 static_assert(offsetof(jpeg_decompress_struct, upsample) == 0x1a0, "cinfo->upsample (jdmerge.c's my_upsampler)");
 static_assert(offsetof(jpeg_decompress_struct, cconvert) == 0x1a4, "cinfo->cconvert (jdcolor.c's my_color_deconverter)");
+static_assert(offsetof(jpeg_decompress_struct, comp_info) == 0xc4, "cinfo->comp_info (sep_upsample)");
+static_assert(offsetof(jpeg_decompress_struct, max_v_samp_factor) == 0x114, "cinfo->max_v_samp_factor (the upsamplers' rows)");
+static_assert(offsetof(jpeg_component_info, component_index) == 0x4, "compptr->component_index (int_upsample)");
+static_assert(offsetof(jpeg_component_info, downsampled_width) == 0x28, "compptr->downsampled_width (the fancy upsamplers)");

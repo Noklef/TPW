@@ -82,4 +82,34 @@ void __cdecl jdmerge_h2v1_merged_upsample(jpeg_decompress_struct *cinfo, unsigne
 // 0x6472f0: upmethod for h2v2: shared by a 2x2 block (two luma rows, two output rows).
 void __cdecl jdmerge_h2v2_merged_upsample(jpeg_decompress_struct *cinfo, unsigned char ***input_buf, unsigned int in_row_group_ctr,
                                           unsigned char **output_buf);
+
+// jdsample.c (through wrap/jpeg-6b/jdsample.c): the separate upsampler, each component upsampled into color_buf, then colour converted.
+// cinfo->upsample is its my_upsampler (color_buf[10] +0xc, methods[10] +0x34, next_row_out +0x5c, rows_to_go +0x60,
+// rowgroup_height[10] +0x64, h_expand[10] +0x8c, v_expand[10] +0x96; 0xa0 bytes). The per-component methods take input_data (the
+// component's row group) and output_data_ptr (its color_buf entry) and fill cinfo->max_v_samp_factor rows.
+// 0x6462e0: next_row_out = max_v_samp_factor (color_buf empty), rows_to_go = output_height.
+void __cdecl jdsample_start_pass_upsample(jpeg_decompress_struct *cinfo);
+// 0x646300: upsample: each component's method when color_buf is used up, then cinfo->cconvert->color_convert of what fits.
+void __cdecl jdsample_sep_upsample(jpeg_decompress_struct *cinfo, unsigned char ***input_buf, unsigned int *in_row_group_ctr,
+                                   unsigned int in_row_groups_avail, unsigned char **output_buf, unsigned int *out_row_ctr,
+                                   unsigned int out_rows_avail);
+// 0x646400: full size: the input rows themselves.
+void __cdecl jdsample_fullsize_upsample(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, unsigned char **input_data,
+                                        unsigned char ***output_data_ptr);
+// 0x646410: a component nobody needs: null.
+void __cdecl jdsample_noop_upsample(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, unsigned char **input_data,
+                                    unsigned char ***output_data_ptr);
+// 0x646420: integral factors h_expand x v_expand by replication (jcopy_sample_rows for the rows).
+void __cdecl jdsample_int_upsample(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, unsigned char **input_data,
+                                   unsigned char ***output_data_ptr);
+// 0x646540, 0x6465a0: 2:1 horizontal, and 2:1 both ways, by replication.
+void __cdecl jdsample_h2v1_upsample(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, unsigned char **input_data,
+                                    unsigned char ***output_data_ptr);
+void __cdecl jdsample_h2v2_upsample(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, unsigned char **input_data,
+                                    unsigned char ***output_data_ptr);
+// 0x646630, 0x646700: the same by triangular interpolation ("fancy"; h2v2 reads the context rows input_data[-1] and past the group).
+void __cdecl jdsample_h2v1_fancy_upsample(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, unsigned char **input_data,
+                                          unsigned char ***output_data_ptr);
+void __cdecl jdsample_h2v2_fancy_upsample(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, unsigned char **input_data,
+                                          unsigned char ***output_data_ptr);
 }

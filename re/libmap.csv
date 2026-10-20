@@ -46,6 +46,16 @@ address,size,source_file,function,confidence,evidence,checked
 0x006428e0,80,jpeg-6b/jutils.c,jcopy_sample_rows,high,"input_array += source_row, output_array += dest_row; per row an inline memcpy (REP MOVSD, REP MOVSB) of num_cols bytes",yes
 0x00642930,48,jpeg-6b/jutils.c,jcopy_block_row,high,inline memcpy of num_blocks << 7 bytes (DCTSIZE2 * sizeof(JCOEF)),yes
 0x00642960,32,jpeg-6b/jutils.c,jzero_far,high,"inline memset 0 (REP STOSD, REP STOSB); jutils.c order after jcopy_block_row",yes
+0x006460c0,533,jpeg-6b/jdsample.c,jinit_upsampler,high,"alloc_small 0xa0 (my_upsampler) into cinfo +0x1a0, start_pass 0x6462e0, upsample 0x646300, per-component methods (0x646400 0x646410 0x646420 0x646540 0x6465a0 0x646630 0x646700) into +0x34",yes
+0x006462e0,26,jpeg-6b/jdsample.c,start_pass_upsample,high,"upsample +0x5c next_row_out = max_v_samp_factor +0x114, +0x60 rows_to_go = output_height +0x60",yes
+0x00646300,244,jpeg-6b/jdsample.c,sep_upsample,high,"CALL [upsample + 0x34 + 4 * ci] (cinfo, compptr, input_buf[ci] + ctr * rowgroup_height +0x64, color_buf + ci), comp_info +0xc4 step 0x54; CALL [cconvert +0x1a4 +4]",yes
+0x00646400,11,jpeg-6b/jdsample.c,fullsize_upsample,high,*output_data_ptr = input_data,yes
+0x00646410,11,jpeg-6b/jdsample.c,noop_upsample,high,*output_data_ptr = NULL,yes
+0x00646420,276,jpeg-6b/jdsample.c,int_upsample,high,"h_expand / v_expand bytes at upsample +0x8c / +0x96 by component_index +4, jcopy_sample_rows for v_expand > 1",yes
+0x00646540,86,jpeg-6b/jdsample.c,h2v1_upsample,high,"max_v_samp_factor +0x114 rows, output_width +0x5c, each sample twice",yes
+0x006465a0,135,jpeg-6b/jdsample.c,h2v2_upsample,high,"each sample twice, then jcopy_sample_rows(output_data, outrow, output_data, outrow + 1, 1, output_width)",yes
+0x00646630,193,jpeg-6b/jdsample.c,h2v1_fancy_upsample,high,"downsampled_width +0x28 - 2 columns, invalue * 3 + neighbour + 1 / + 2 >> 2",yes
+0x00646700,338,jpeg-6b/jdsample.c,h2v2_fancy_upsample,high,"SUB ESP,0x14, input_data[inrow - 1] / [inrow + 1], thiscolsum * 3 sums, + 8 / + 7 >> 4",yes
 0x00646860,464,jpeg-6b/jdcolor.c,jinit_color_deconverter,high,"alloc_small 0x18 (my_color_deconverter) into cinfo +0x1a4, switch on jpeg_color_space / out_color_space (table at 0x646a18), calls build_ycc_rgb_table 0x646a30; stores the converters below and start_pass_dcolor as the shared bare RET 0x631270",yes
 0x00646a30,208,jpeg-6b/jdcolor.c,build_ycc_rgb_table,high,"four alloc_small (cinfo +4, slot 0) of 0x400; FIX(1.40200) 0x166e9, FIX(1.77200) 0x1c5a2, FIX(0.71414) 0xb6d2, FIX(0.34414) 0x581a, ONE_HALF 0x8000, SCALEBITS 16",yes
 0x00646b00,320,jpeg-6b/jdcolor.c,ycc_rgb_convert,high,"cconvert +8..+0x14 tables, sample_range_limit +0x120, output_width +0x5c, three components to RGB triples, SAR 16",yes
