@@ -11,6 +11,7 @@
 #include "analyser.h"
 #include "messagecentre.h"
 #include "money.h"
+#include "person.h"
 #include "things.h"
 #include "thingscan.h"
 #include "world.h"
@@ -331,6 +332,43 @@ u32 __fastcall StaffPoolEntry_Serialize(u8 *entry, void *, Stream *stream, u32 s
     return Save_Field(stream, save, entry + 0x10, 4, 0x0075e69c) ? 0 : 1;
 }
 
+u32 __fastcall Staff_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    if (Sprite_Serialize(staff, nullptr, stream, save, version, unused) != 0)
+        return 1;
+    if (version < 0 || version > 1)
+        return 0;
+    static const SaveSpec kRest[] = {{0x20a, 2, 0x0075e370}, {0x20c, 2, 0x0075e360}, {0x1e8, 1, 0x0075e348}, {0x208, 2, 0x0075e33c},
+                                     {0x19c, 4, 0x0075b5b0}, {0x200, 4, 0x0075d1e0}, {0x1f0, 8, 0x0075e330}};
+    if (save != 0) {
+        // the two floats are saved as the float of their __ftol's low byte
+        float happiness = (float)(u8)(long long)at<float>(staff, 0x1f8);
+        if (!Save_Field(stream, save, staff + 0x1e4, 4, 0x0075e398) || !Save_Field(stream, save, &happiness, 4, 0x0075b444) ||
+            !Save_Field(stream, save, staff + 0x204, 4, 0x0075e38c))
+            return 1;
+        for (u32 i = 0; i < 0x21; ++i)
+            if (!Save_Field(stream, save, staff + 0x1a0 + i * 2, 2, 0x0075e380))
+                return 1;
+        if (!Save_Fields(stream, save, staff, kRest, 7))
+            return 1;
+        float energy = (float)(u8)(long long)at<float>(staff, 0x1fc);
+        return Save_Field(stream, save, &energy, 4, 0x0075b444) ? 0 : 1;
+    }
+    // (the load reads all but the first two fields through the readers, which announce and read the same way; the floats land only when whole)
+    u32 value = 0;
+    if (!Save_Field(stream, 0, staff + 0x1e4, 4, 0x0075e398) || !Save_Field(stream, 0, &value, 4, 0x0075b444))
+        return 1;
+    at<u32>(staff, 0x1f8) = value;
+    if (!Save_Field(stream, 0, staff + 0x204, 4, 0x0075e38c))
+        return 1;
+    for (u32 i = 0; i < 0x21; ++i)
+        if (!Save_Field(stream, 0, staff + 0x1a0 + i * 2, 2, 0x0075e380))
+            return 1;
+    if (!Save_Fields(stream, 0, staff, kRest, 7) || !Save_Field(stream, 0, &value, 4, 0x0075b444))
+        return 1;
+    at<u32>(staff, 0x1fc) = value;
+    return 0;
+}
+
 u32 __fastcall StaffPool_Serialize(u8 *pool, void *, Stream *stream, u32 save, s32 version, u32 unused) {
     if (version < 0 || version > 1)
         return 0;
@@ -363,4 +401,51 @@ extern "C" void __fastcall Staff_InitBase(u8 *staff) {
     at<u16>(staff, 0xc0) = at<s32>(staff, 0x1e4) < 3 ? global<u16>(0x0075c7f8) : global<u16>(0x0075c7fc);
     MessageCentre_AddThing(MessageCentre_Instance(), nullptr, staff, 0xc);
     ParkAnalyser_StampTime21c38(reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(global<u8 *>(0x0080239c))));
+}
+
+namespace {
+
+// A staff type's serializer: Staff_Serialize, then (a version of 0..1) the type's fields; 1 at the first that fails, else 0.
+u32 StaffType_Serialize(u8 *staff, Stream *stream, u32 save, s32 version, u32 unused, const SaveSpec *spec, u32 count) {
+    if (Staff_Serialize(staff, nullptr, stream, save, version, unused) != 0)
+        return 1;
+    if (version < 0 || version > 1)
+        return 0;
+    return Save_Fields(stream, save, staff, spec, count) ? 0 : 1;
+}
+
+}  // namespace
+
+extern "C" {
+
+u32 __fastcall Handyman_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    static const SaveSpec kFields[] = {{0x218, 2, 0x0075aabc}, {0x214, 4, 0x0075aaa4}, {0x21a, 2, 0x0075aa94}, {0x210, 2, 0x0075a4f4}};
+    return StaffType_Serialize(staff, stream, save, version, unused, kFields, 4);
+}
+
+u32 __fastcall Guard_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    static const SaveSpec kFields[] = {{0x212, 2, 0x0075a8f0}, {0x214, 4, 0x0075a8d8}, {0x210, 2, 0x0075a4f4}};
+    return StaffType_Serialize(staff, stream, save, version, unused, kFields, 3);
+}
+
+u32 __fastcall Mechanic_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    static const SaveSpec kFields[] = {{0x214, 4, 0x0075b168}, {0x218, 2, 0x0075b158}, {0x210, 2, 0x0075a4f4}};
+    return StaffType_Serialize(staff, stream, save, version, unused, kFields, 3);
+}
+
+u32 __fastcall Entertainer_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    static const SaveSpec kFields[] = {{0x214, 4, 0x0075a4fc}, {0x210, 2, 0x0075a4f4}};
+    return StaffType_Serialize(staff, stream, save, version, unused, kFields, 2);
+}
+
+u32 __fastcall Researcher_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    static const SaveSpec kFields[] = {{0x214, 4, 0x0075e168}, {0x210, 2, 0x0075a4f4}};
+    return StaffType_Serialize(staff, stream, save, version, unused, kFields, 2);
+}
+
+u32 __fastcall Staff_GradeLevel(const u8 *staff) {
+    // fild grade; fild progress; fmul -0.01 (a double); fsubp; fmul 20.0f; __ftol's low dword
+    const X87Reg grade = X87Reg((double)at<s32>(staff, 0x1e4)) - X87Reg(X87_MulDouble((double)at<u8>(staff, 0x1e8), -0.01));
+    return (u32)(long long)X87_MulDouble(grade.v, 20.0);
+}
 }

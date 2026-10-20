@@ -1,8 +1,11 @@
 # The object's queue walks of src/game/world/objectmsg (0x4de130 Object_BackOfQueue, 0x4de110 Object_BackOfQueueTo, 0x4ddf40 Object_QueuePositionOfNone) against the originals:
 # an object with a set or unset queue back and a world where the neighbour walk ends or runs on (Back, BackTo); objectmsg.py's queue of persons (None: the position of the
 # person with no handle); whether the object takes people into its queue (0x4dd920: flags and states either side of each test, a queue back set or walked to, a queue of
-# persons shorter or longer than the room, definitions of kinds 0-3 and a coaster link open or not).
-# usage: objectqueue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Back,BackTo,None,Open)
+# persons shorter or longer than the room, definitions of kinds 0-3 and a coaster link open or not); whether the entrance meets the path (0x4de4a0 Object_EntranceOnPath,
+# Path: the back of the queue's cell or the cell ahead of a quarter-turn angle) and whether the object can be opened (0x4df290 Object_CanOpen: Open's states with Path's
+# cells). The angles are quarter turns only: another leaves the original's direction bit a stale stack byte (see objectmsg.h). Where a person at a place in the
+# queue stands (0x4de840 Object_QueueSpot, Spot: Path's world, places in the first cells or past the end, the world's random state); EntSpot (0x4dec30 Object_EntranceQueueSpot) on Spot's cases.
+# usage: objectqueue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Back,BackTo,None,Open,Path,CanOpen,Spot,EntSpot)
 import os
 import struct
 import sys
@@ -14,7 +17,8 @@ import objectmsg  # noqa: E402
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 from thingenv import park  # noqa: E402
 
-B = Bench([(0x4d8300, 0x4d8340), (0x4d96f0, 0x4d97f0), (0x4d99c0, 0x4d99f0), (0x4ddf40, 0x4de200), (0x4de040, 0x4de100), (0x4de670, 0x4de7f0), (0x502430, 0x502470), (0x50b350, 0x50b370),
+B = Bench([(0x4d8300, 0x4d8340), (0x4d8c00, 0x4d8c30), (0x4d96f0, 0x4d99f0), (0x4de4a0, 0x4de5b0), (0x4df290, 0x4df310), (0x4de840, 0x4dede8), (0x516330, 0x516380),
+           (0x4ddf40, 0x4de200), (0x4de040, 0x4de100), (0x4de670, 0x4de7f0), (0x502430, 0x502470), (0x50b350, 0x50b370),
            (0x522770, 0x5227a0), (0x522850, 0x522870), (0x536300, 0x53644c), (0x5da3c0, 0x5da3c1),
            (0x4dd920, 0x4dda20), (0x412e90, 0x412eea), (0x441970, 0x4419b0), (0x436860, 0x436880)])
 OUT = RAM + 0x7000
@@ -86,7 +90,62 @@ def open_(r):
     return c
 
 
-CASES = {'Back': back, 'BackTo': back_to, 'None': none, 'Open': open_}
+def entrance(r, c):
+    """The fields 0x4de4a0 reads, on a case with back()'s world: flag 8 of +0x32 or not, a quarter-turn angle, the object's cell in rows 1-2 (a step stays in the
+    cells; x 0 or 0x7f can step off the map: null, read in both), the cells mostly of type 1, a direction equal to the neighbour bits or not."""
+    obj = c.regions[RAM]
+    obj[0x32] = r.choice([8, 0xc, 0xff, 0, 4, 0xf7])
+    put(obj, 0x10, 'i', r.choice([0, 0x5a, 0xb4, 0x10e]))
+    put(obj, 0x36, 'H', r.randrange(0x81, 0x181))
+    cells = next(v for k, v in c.regions.items() if len(v) == 0x44 * 0x1c0)
+    for idx in range(0x1c0):
+        put(cells, 0x44 * idx + 8, 'I', r.choice([1, 1, 1, 3, 0, 9]))
+        if r.random() < 0.3:
+            cells[0x44 * idx + 0xd] = cells[0x44 * idx + 0xc]
+    c.regions[0x81b4cc] = bytes([r.choice([0, 0, 0, 1])])
+    return c
+
+
+def path(r):
+    c = back(r)
+    c.regions[RAM] = bytearray(c.regions[RAM])
+    c = entrance(r, c)
+    c.address, c.args = 0x4de4a0, c.args[:1]
+    return c
+
+
+def can_open(r):
+    """0x4df290: open_()'s states, definitions and links with entrance()'s fields and +0x64 set or not."""
+    c = entrance(r, open_(r))
+    put(c.regions[RAM], 0x64, 'I', r.choice([0, 0, 0, 1, 0x80000000]))
+    c.address = 0x4df290
+    return c
+
+
+def spot(r):
+    """0x4de840: back()'s world with entrance()'s cells, a place in the first cells of the queue or far beyond its end, the world's random state."""
+    c = path(r)
+    world = RAM + 0x10000
+    c.regions[world + 0x1da708] = r.bytes(4)
+    place = r.choice([0, 1, 2, 3, 3, 3, 4, 6, 7, 8, 11, 15, 0x23, 0x200, 0x200, 0x201, 0x80000003, r.getrandbits(32)])
+    if r.random() < 0.3:  # rows facing each other in turn (as Open's): the walk goes on, so a far place (512: along exactly 0x80) still ends on a cell
+        cells = next(v for k, v in c.regions.items() if len(v) == 0x44 * 0x1c0)
+        for idx in range(0x1c0):
+            put(cells, 0x44 * idx + 8, 'I', 3)
+            cells[0x44 * idx + 0xd] = (0x10, 1)[idx // 128 & 1]
+        place = r.choice([0, 3, 4, 0x23, 0x200, 0x200, 0x201, 0x3ff])  # (a walk of a huge place never ends in the emulator's step budget)
+    c.address, c.args, c.ret = 0x4de840, [RAM, place, OUT, OUT + 2, OUT + 3], 'a'
+    return c
+
+
+def entrance_spot(r):
+    """0x4dec30: Spot's cases (its places, world and random state)."""
+    c = spot(r)
+    c.address = 0x4dec30
+    return c
+
+
+CASES = {'Back': back, 'BackTo': back_to, 'None': none, 'Open': open_, 'Path': path, 'CanOpen': can_open, 'Spot': spot, 'EntSpot': entrance_spot}
 
 
 def case(r):

@@ -187,14 +187,14 @@ address,name,kind,confidence,notes
 0x004d3ee0,SpriteAnim_Serialize,function,high,"reimplemented (src/game/sprite/scriptref); thiscall (stream, save, version, unused): the script reference's three dwords saved or loaded"
 0x0050d150,Nav_Serialize,function,high,reimplemented (src/game/world/nav); steering/pathing state (float vectors); loading clears +0x34 and +0x30
 0x0050bad0,Thoughts_Serialize,function,high,"reimplemented (src/game/world/person); thiscall (stream, save, version, unused): a person's thoughts (history index, 32 history pairs, +0, script, bubble time) saved or loaded"
-0x004fb530,Visitor_Serialize,function,high,thing model 1
-0x00504de0,Staff_Serialize,function,high,"staff base: pay grade, UTF-16 name[0x21], patrol region, time hired"
-0x004da110,Mechanic_Serialize,function,high,thing model 4
-0x004d6d60,Handyman_Serialize,function,high,thing model 5
-0x004d4460,Entertainer_Serialize,function,high,thing model 6
-0x004d6000,Guard_Serialize,function,high,thing model 7
-0x00502760,Researcher_Serialize,function,high,thing model 8
-0x004db7d0,Object_Serialize,function,high,"thing model 3: rides, shops, facilities"
+0x004fb530,Visitor_Serialize,function,high,"reimplemented (src/game/world/person); thiscall: a visitor: Sprite_Serialize, then (version 0..1) its fields saved or loaded, the stats as the float of their __ftol's low byte"
+0x00504de0,Staff_Serialize,function,high,"reimplemented (src/game/world/staff); thiscall: a staff member: Sprite_Serialize, then (version 0..1) its fields saved or loaded, the two floats as the float of their __ftol's low byte"
+0x004da110,Mechanic_Serialize,function,high,"reimplemented (src/game/world/staff); thiscall: a mechanic: Staff_Serialize, then (version 0..1) mDurationOfRepair, mObjectToRepair, mNext"
+0x004d6d60,Handyman_Serialize,function,high,"reimplemented (src/game/world/staff); thiscall: a handyman: Staff_Serialize, then (version 0..1) mTargetLitterCell, mTimeStartedCleaning, mToiletToClean, mNext"
+0x004d4460,Entertainer_Serialize,function,high,"reimplemented (src/game/world/staff); thiscall: an entertainer: Staff_Serialize, then (version 0..1) mTimeStartedEntertaining, mNext"
+0x004d6000,Guard_Serialize,function,high,"reimplemented (src/game/world/staff); thiscall: a guard: Staff_Serialize, then (version 0..1) mPerp, mProsecutionTimestamp, mNext"
+0x00502760,Researcher_Serialize,function,high,"reimplemented (src/game/world/staff); thiscall: a researcher: Staff_Serialize, then (version 0..1) mTimeStartedResearching, mNext"
+0x004db7d0,Object_Serialize,function,high,"reimplemented (src/game/world/object); thiscall: an object: Thing_Serialize, then (version 0..1) its fields saved or loaded: the date as SYSTEMTIME dwords, the names, the six histories, the price held to 0..500 on load, three stats as the float of their __ftol's low byte"
 0x00508bb0,StaffHQ_Serialize,function,high,"reimplemented (src/game/world/headquarters); thiscall (stream, save, version, unused): the thing's fields, mForceStrike, mStaffMemberPickedUp, mStrikeLevel[5], then the training record"
 0x0050c640,StaffTraining_Serialize,function,high,"reimplemented (src/game/world/staff); thiscall (stream, save, version, unused): the five training budgets and the ever-trained byte saved or loaded"
 0x004da960,MechanicHQ_Serialize,function,high,"reimplemented (src/game/world/headquarters); thiscall (stream, save, version, unused): the thing's fields, then mNextObject"
@@ -3431,6 +3431,9 @@ address,name,kind,confidence,notes
 0x004fe9c0,Visitor_Raise19c,function,low,"reimplemented (src/game/world/person); thiscall (index): the float +0x19c raised by the global byte for index, kept to 0..100"
 0x004fea70,Visitor_Lower19c,function,low,"reimplemented (src/game/world/person); thiscall (index): the float +0x19c lowered by the global byte for index, kept to 0..100"
 0x004fb4f0,Stat100_Add,function,low,"reimplemented (src/game/world/person); thiscall on a float (delta): the float plus delta, kept to 0..100"
+0x004fde50,Visitor_WontPay,function,low,"reimplemented (src/game/world/person); thiscall (object): 0 for a free object; else what the visitor would pay from its stats, the definition's effects and cost, the controls; the margin to the park analyser's rings; 1 when the price is above that or the cash"
+0x004f9f00,Sprite_InterpolatedPos,function,low,"reimplemented (src/game/world/person); thiscall (t, unit, &x, &height, &z, &frame), x87: the position t (held to 0..1 or -1..2) of the way from the last to the nav's, in scene units, the height 0, the frame +0x1c"
+0x004faa00,Sprite_PlaySound,function,low,"reimplemented (src/game/world/person); thiscall: Sound_PlayAt(0, category, sound) at the sprite script position, each float __ftol low dword"
 0x00550d80,Setting_SetMode,function,high,reimplemented (src/game/core/options); stores a mode and sets its flag bits
 0x005633e0,Quad_Push,function,high,reimplemented (src/game/core/seqs); pushes four dwords into the next of four slots
 0x0059c390,Table76e300_GetObjectDword,function,high,reimplemented (src/game/world/objectdefs); a dword of the object indexed through a record of the table
@@ -3473,6 +3476,20 @@ address,name,kind,confidence,notes
 0x004e2400,Object_ScrapRefund,function,low,reimplemented (src/game/world/object); thiscall: the scrap value percentage of the first level's cost (32-bit product / 100)
 0x004dd670,Object_AgeDays,function,low,reimplemented (src/game/world/object); thiscall: the object's age in whole funny-time days from its date at +0x18
 0x004df300,Object_RestartRide,function,low,"reimplemented (src/game/world/object); thiscall: +0x68 and the word +0x6c cleared, ride record element 6 = 1, the ride's strip animation grown from frame 1"
+0x004df450,Object_DefRowScore,function,low,"reimplemented (src/game/world/object); thiscall, x87: a score from the object definition's row (+0x50) and the ride's load (element 5), two parts of x * 0.9 + 0.1 halved over a limit, summed times the row's +0x1b0 / 2"
+0x004df640,Object_DefRowPercent,function,low,"reimplemented (src/game/world/object); thiscall: 100 less __ftol(Object_DefRowScore with b * 9), AL"
+0x004dedf0,Object_CellStandPoint,function,low,"reimplemented (src/game/world/object); thiscall, x87: the entrance stand point or exit appear point of the object's definition, turned by its angle, times 255 into x / y with the cell's column and row"
+0x004e1f20,Object_HistoryPercent,function,low,"reimplemented (src/game/world/object); thiscall, x87: 100 times the CHistory sum of the ring at +0x2b8 over that of the ring at +0x1a8 (0 when that is 0)"
+0x004dda40,Object_FillRate,function,low,"reimplemented (src/game/world/object); thiscall, x87: 100 without flag 8 of +0x32; else +0x5d * the row's float +0x1b4 * (+0x58 over the row's +0x1a8, kept at [0x7cdc54]) over +0x5c, at least 4"
+0x004e1920,Object_PayRunningCost,function,low,"reimplemented (src/game/world/object); thiscall: the amount added to +0xf8 and +0x184, debited, and for definitions with +0x4ac 1 or 2 counted (negated) into the slots entry 0xc or 0xd"
+0x004e1a30,Object_SettingsValue,function,low,"reimplemented (src/game/world/object); thiscall, x87: two 0-100 settings as (s - 50) * 0.005 held to [-0.5, 0.5], the second negated for kinds 1 and 3; (sum + 1) * +0x188"
+0x004e1b40,Object_CurrentSettingsValue,function,low,"reimplemented (src/game/world/object); thiscall, x87: Object_SettingsValue of the bytes +0x18c and +0x198"
+0x004e1c70,Object_HistoryDifference,function,low,"reimplemented (src/game/world/object); thiscall, x87: the newest-30 sum of the ring at +0x70 less that of the ring at +0xf8"
+0x004e1e30,Object_HistoryAverage,function,low,"reimplemented (src/game/world/object); thiscall, x87: the newest (up to) 30 entries of the ring at +0x340, signed, averaged, plus 0x32 (0x32 for none)"
+0x004dfd80,Object_ResetCondition,function,low,"reimplemented (src/game/world/object); thiscall: with flag 1 of +0x32 and the byte of +0x44 below 25, spread record 6 taken back from the cell and record 1 spread; ride element 8 = 0, +0x44 = 100.0, +0x5e and +0x64 cleared"
+0x004e0560,Object_ComputeRating,function,low,"reimplemented (src/game/world/object); thiscall (a, b, c), x87: a sideshow's 20 + 8% of c times the root of a - b, a coaster's 50 + half its float, a ride's base (with its track's pieces) times its speed and duration over the row's limits"
+0x004e0860,Object_Rating,function,low,"reimplemented (src/game/world/object); thiscall (flag): the definition's base rating for a flag, else Object_ComputeRating of the object's goods (a sideshow) or settings"
+0x004e0390,Object_InPoorCondition,function,low,"reimplemented (src/game/world/object); thiscall, x87: with flag 1 of +0x32, whether the low byte of __ftol(the condition +0x44) is below 25"
 0x005d46d0,Blocks7_Free,function,high,reimplemented (src/game/core/buffers); frees the seven blocks of an object and clears its groups
 0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/string); whether the first name is after the second, case blind"
 0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/string); whether two names are equal, case blind"
@@ -3811,6 +3828,7 @@ address,name,kind,confidence,notes
 0x0050c800,Staff_TrainAll,function,low,"reimplemented (src/game/world/staff); thiscall (amounts[5]): count the staff by type, then train each with its type's amount divided by the count"
 0x00505b70,Staff_AgeDays,function,low,reimplemented (src/game/world/staff); thiscall: the staff member's age in whole funny-time days from the date at +0x1f0
 0x00504b90,Staff_InitBase,function,low,"reimplemented (src/game/world/staff); thiscall: the staff constructors' common tail: hire date = funny time now, energy / happiness 100.0f, the words at +0xc0 / +0xc2 from 0x75c7f0..0x75c7fc by type, message centre slot 0xc, the park's +0x21c38 stamped"
+0x00506550,Staff_GradeLevel,function,low,"reimplemented (src/game/world/staff); thiscall, x87: __ftol((the pay grade + the training progress over 100) * 20), its low dword"
 0x00520d60,FreeList_Take,function,high,reimplemented (src/game/core/voices); takes a record off the free list into a table entry
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/voices); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/voices); scales a voice's levels by the factor over 1024
@@ -3982,6 +4000,10 @@ address,name,kind,confidence,notes
 0x004ddf40,Object_QueuePositionOfNone,function,high,reimplemented (src/game/world/objectmsg); the position of the person with no handle
 0x004ddd20,Object_QueueRemovePerson,function,low,"reimplemented (src/game/world/objectmsg); thiscall (person handle): clear element 0 of the ride record when it is the person, unlink the person from the queue"
 0x004dd920,Object_QueueOpen,function,low,"reimplemented (src/game/world/objectmsg); thiscall: whether the object takes people into its queue (flags, state, back of the queue, room, definition kind tests)"
+0x004de4a0,Object_EntranceOnPath,function,low,"reimplemented (src/game/world/objectmsg); thiscall: whether the object's entrance meets the path (the back of the queue's cell, or the type 1 cell ahead of a quarter-turn angle with the facing bits)"
+0x004df290,Object_CanOpen,function,low,"reimplemented (src/game/world/objectmsg); thiscall: whether the object can be opened (state, +0x64, Object_EntranceOnPath, a kind 3 definition's link open)"
+0x004de840,Object_QueueSpot,function,low,"reimplemented (src/game/world/objectmsg); thiscall, x87: where a person at a place in the queue stands (the cell 4 places a step along the queue, along = __ftol(place / 4 * 255), across random, by the cell's or the next cell's direction)"
+0x004dec30,Object_EntranceQueueSpot,function,low,"reimplemented (src/game/world/objectmsg); thiscall, x87: Object_QueueSpot's along and across, the back of the queue to *cell (asked twice, sic), x / y by the direction of the object's own cell"
 0x004fa930,Thing_PlaceAt,function,high,reimplemented (src/game/world/things); a thing placed on the navigation block and moved
 0x0051fa20,TrackTypeSlot_ReadIntoFree,function,high,reimplemented (src/game/coaster/tracktypes); a stream read into the first free 0x140-byte slot
 0x004fcac0,Thing_SpriteChoice,function,high,"reimplemented (src/game/world/things); the flags of a sprite, or a random sprite of folder 1"
@@ -4170,6 +4192,7 @@ address,name,kind,confidence,notes
 0x004f9440,Nav_SerializeFwd,function,low,reimplemented (src/game/world/nav); thiscall: Nav_Serialize with the same arguments (the sprite's call on its nav)
 0x0050f8e0,Nav_PathTo,function,low,"reimplemented (src/game/world/nav); thiscall (&target, prepend): Route_Find from the nav's cell to the target's on the route at 0x7cf108, then the nav's waypoints (up to 5 cell centres), their octagonal lengths and the route's; 0 (and the nav stopped) when none"
 0x00510100,Nav_PathToPoint,function,low,"reimplemented (src/game/world/nav); thiscall (x, y): Nav_PathTo the point, not prepending the nav's cell"
+0x00510190,Nav_SetSpeed,function,low,"reimplemented (src/game/world/nav); thiscall (speed), x87: the speed held to 2.0; max_force and max_speed __ftol of 0.4 and 0.2 cells (16.16) per unit of it, each at least 0x28f"
 0x0052a050,Cell_ExtendPath,function,high,reimplemented (src/game/world/mapcell); one step of a path across the map's cells
 0x0052c420,MapGrid_MarkEdges,function,high,"reimplemented (src/game/world/mapcell); edge cells of a map grid of types 4, 9, 0x17 and 0xa"
 0x0052c5b0,MapGrid_ClassifyTypes,function,high,reimplemented (src/game/world/mapcell); a map grid's cell types as codes 1 to 4
@@ -4230,6 +4253,7 @@ address,name,kind,confidence,notes
 0x0053aac0,Map_ApplyLine,function,low,"reimplemented (src/game/world/mapline); cdecl (arg, x, y, &xEnd, &yEnd): the cell operation 0x5370e0 on every second map cell from (x, y) along the longer axis to the end (pulled in to an even distance); 0 when one answers 0"
 0x00539220,MapLine_LinkCell,function,low,"reimplemented (src/game/world/mapline); thiscall (cell; kind, stepX, stepY), pops 12: a line's cell of a track kind or 0x19 linked by neighbour bits to the one two back along the step (the last step on the first cell), when both are of a linking type with fewer than 4 neighbours and the other is unowned or the focus cell's; the step kept at 0x763b00"
 0x00523230,MapCell_PathLines,function,low,"reimplemented (src/game/world/mapline); cdecl (x, y): the path cell (or its parent) and its matching neighbours two cells away give a run; Map_ApplyLine over it with 0x85, 0x86 and 0x81"
+0x0052a1a0,Map_ApplyEntranceLines,function,low,"reimplemented (src/game/world/mapline); cdecl: the lines in front of a thing facing [0x818c4c]: Map_ApplyLine with the kind's code, 0x80, 0x82, 0x83; the start to [0x7639e0]; the cell four or five out (column, row and [0x8186cc] the focus cell) or nullptr"
 0x00531040,CellRun_Mark,function,low,"reimplemented (src/game/world/cellrun); cdecl (set): flag 0x20 set or cleared on a run of type 0x19 map cells from the cell at 0x7639f0, two cells a step, turning at corners"
 0x00530e80,CellRun_Corners,function,low,"reimplemented (src/game/world/cellrun); cdecl: the run of CellRun_Mark listing its start, each corner it turns at and its end in the point list at 0x81b740 (count 0x820a8c, at most 0x401), the end also at 0x81ede4"
 0x00530830,TrackRun_TraceA,function,low,"reimplemented (src/game/world/cellrun); cdecl (thing): from the thing's cell stepped by Position_StepA, a run over track cells (0xb / 0x10) two a step, setting their overlap counters and listing corners in the point list at 0x81b740, to an end of the same +0x10 or a dead end"
@@ -4239,6 +4263,7 @@ address,name,kind,confidence,notes
 0x005f1050,ParkMap_ApplyView,function,low,"reimplemented (src/game/world/parkmap); thiscall on the map: the view origin (+0x54, +0x58) kept to 0 to width / height - 1, the camera put on it times 10 (Camera_SetView), the window (+4) sent message 4"
 0x0053a540,MapCell_PickModel,function,low,"reimplemented (src/game/world/cellmodel); thiscall (cell; angle out), pops 4: the cell's model (group << 16 | index) from the table for its type by its neighbour bits (exact, else a subset), *angle the row's plus 180 for straight cells facing 0x40 / 0x10, then adjusted by flags, corners, junctions and for type 0x19 a random variant; 8 for types 4, 5, 7, 9, 0xa, 0xc, 0x11"
 0x0050c9b0,UIMsgReceiver_Ctor,function,low,"reimplemented (src/game/world/uimsgreceiver); thiscall: Thing_Construct (cell 1, kind 0x11), then message centre slots 0x12, 0xa, 7, 8, 0x1b, 0xf, 0x13, 0x1c; returns it"
+0x00485f60,Object_Status,function,low,"reimplemented (src/game/world/objectstatus); cdecl (object, count): the object's status for its panel, an index into 0x74fb50's text ids: broken, closed for want of a link, waiting states by the world's words and the tracked person, the entrance or exit cut off, the queue"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved

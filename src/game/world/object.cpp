@@ -3,16 +3,24 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../coaster/registry.h"
 #include "../core/accessors.h"
+#include "../core/circbuf.h"
 #include "../core/filetime.h"
 #include "../core/funnytime.h"
 #include "../core/gameheap.h"
 #include "../core/initializers.h"
+#include "../core/savegame.h"
+#include "../math/x87.h"
 #include "../model/stripanim.h"
 #include "objectdefs.h"
 #include "person.h"
 #include "mapcell.h"
 #include "ridelist.h"
+#include "money.h"
+#include "things.h"
+#include "trackrides.h"
+#include "world.h"
 
 namespace {
 
@@ -350,4 +358,278 @@ u32 __fastcall Obj_StampAt5e(u8 *object, void *, u32 word) {
 }
 
 u32 __fastcall Obj_Diff180_184(const u8 *object) { return at<const u32>(object, 0x180) - at<const u32>(object, 0x184); }
+
+double __fastcall Object_DefRowScore(const u8 *object, void *, float a, float b, u32, u32 useB) {
+    u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
+    const u16 id = at<u16>(object, 0xe);
+    const u32 row = (u32)at<u8>(object, 0x50) << 6;
+    // element 5 of the ride record, through fild and __ftol (exact)
+    s32 load = (s32)Rides_GetElement(Rides_FindById(at<s32>(object, 0x24)), 5);
+    if (load < 0) {
+        load = 0;
+    } else if (load > at<s32>(ObjectDefs_Find(defs, nullptr, id), 0x128)) {
+        load = at<s32>(ObjectDefs_Find(defs, nullptr, id), 0x128);
+    }
+    const float share = (float)(X87Reg(a) / X87Reg((double)at<s32>(ObjectDefs_Find(defs, nullptr, id), 0x138)) * X87Reg(0.9f));
+    const bool aOver = !((double)at<s32>(ObjectDefs_Find(defs, nullptr, id), row + 0x1ac) > (double)a);
+    X87Reg first = X87Reg(share) - X87Reg(-0.1f);
+    if (aOver) first = (first - X87Reg(-1.0f)) * X87Reg(0.5f);
+    const float firstStored = (float)first;
+    X87Reg q = useB & 0xff ? X87Reg(b) / X87Reg((double)at<s32>(ObjectDefs_Find(defs, nullptr, id), 0x128))
+                           : X87Reg((double)load) / X87Reg((double)at<s32>(ObjectDefs_Find(defs, nullptr, id), 0x128));
+    const float second = (float)(q * X87Reg(0.9f));
+    const double tenth = X87_MulIntDouble(load, 0.1f);
+    const bool loadOver = !((double)at<s32>(ObjectDefs_Find(defs, nullptr, id), row + 0x19c) > tenth);
+    X87Reg next = X87Reg(second) - X87Reg(-0.1f);
+    if (loadOver) next = (next - X87Reg(-1.0f)) * X87Reg(0.5f);
+    const float secondStored = (float)next;
+    const X87Reg sum = X87Reg(secondStored) + X87Reg(firstStored);
+    return (X87Reg(X87_MulIntDouble(at<s32>(ObjectDefs_Find(defs, nullptr, id), row + 0x1b0), sum.v)) * X87Reg(0.5f)).v;
+}
+
+u8 __fastcall Object_DefRowPercent(const u8 *object, void *, float a, float b, u32 c) {
+    const X87Reg score = X87Reg(Object_DefRowScore(object, nullptr, a, b, c, 1)) * X87Reg(9.0f);
+    return (u8)(0x64 - (u32)(long long)score.v);  // __ftol, low half
+}
+
+void __fastcall Object_CellStandPoint(const u8 *object, void *, u32 exit, u8 *x, u8 *y) {
+    u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
+    const u16 id = at<u16>(object, 0xe);
+    const u32 cell = at<u16>(object, exit ? 0x38 : 0x36);
+    x[1] = (u8)((cell - 1) & 0x7f);
+    y[1] = (u8)((cell - 1) >> 7);
+    // (the debug prints of a point outside (0, 1) are left out)
+    const float px = at<float>(ObjectDefs_Find(defs, nullptr, id), exit ? 0xdc : 0xd4);
+    const float py = at<float>(ObjectDefs_Find(defs, nullptr, id), exit ? 0xe0 : 0xd8);
+    X87Reg first = 0.0;
+    float second = px;
+    switch (at<s32>(object, 0x10)) {
+    case 0: first = X87Reg(px); second = py; break;
+    case 0x5a: first = X87Reg(py); second = (float)(X87Reg(1.0f) - X87Reg(px)); break;
+    case 0xb4: first = X87Reg(1.0f) - X87Reg(px); second = (float)(X87Reg(1.0f) - X87Reg(py)); break;
+    case 0x10e: first = X87Reg(1.0f) - X87Reg(py); second = px; break;
+    default: first = X87Reg(px); second = px; break;  // (sic: both from the x point)
+    }
+    *x = (u8)(long long)X87_MulDouble(first.v, 255.0);  // __ftol, the low byte
+    *y = (u8)(long long)X87_MulFloatDouble(second, 255.0);
+}
+
+u32 __fastcall Object_HistoryPercent(const u8 *object) {
+    // (each sum's debug print of whether 30 is within the size is left out; the second and third sums are CircBufU32_30_Sum inlined, in a register)
+    double first, second, third;
+    CircBufU32_30_Sum(object + 0x1a8, nullptr, &first, 0x1e);
+    if ((u32)(long long)first == 0) return 0;  // __ftol, the low half
+    CircBufU32_30_Sum(object + 0x2b8, nullptr, &second, 0x1e);
+    CircBufU32_30_Sum(object + 0x1a8, nullptr, &third, 0x1e);
+    return (u32)(long long)second * 100u / (u32)(long long)third;
+}
+
+u32 __fastcall Object_FillRate(const u8 *object) {
+    if (!(at<u8>(object, 0x32) & 8)) return 100;
+    u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
+    const u16 id = at<u16>(object, 0xe);
+    const u32 n = at<u32>(object, 0x58);
+    if (n != 0) {
+        const u32 row = (u32)at<u8>(object, 0x50) << 6;
+        global<float>(0x007cdc54) = (float)(X87Reg((double)n) / X87Reg((double)at<s32>(ObjectDefs_Find(defs, nullptr, id), row + 0x1a8)));
+    } else {
+        global<float>(0x007cdc54) = 1.0f;
+    }
+    const float per = at<float>(ObjectDefs_Find(defs, nullptr, id), ((u32)at<u8>(object, 0x50) << 6) + 0x1b4);  // (its debug check of above 0 is left out)
+    X87Reg rate = X87Reg((double)at<u8>(object, 0x5d)) * X87Reg(per) * X87Reg(global<float>(0x007cdc54)) / X87Reg((double)at<u8>(object, 0x5c));
+    if (!(rate.v > 4.0)) rate = 4.0;  // (a NaN too)
+    return (u32)(long long)rate.v;  // __ftol, the low half
+}
+
+void __fastcall Object_PayRunningCost(u8 *object, void *, s32 amount) {
+    at<s32>(object, 0xf8) += amount;
+    at<s32>(object, 0x184) += amount;
+    Money_Debit(reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(global<u8 *>(0x0080239c))), nullptr, amount);
+    u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
+    u32 id;
+    if (at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x4ac) == 1)
+        id = 0xc;
+    else if (at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x4ac) == 2)
+        id = 0xd;
+    else
+        return;
+    // (the extra's upper word is a stale stack word in the original; only its low word, 0, is read)
+    Slots_AddIfMatch(reinterpret_cast<u8 *>(GameTable7cfb90_Get1da736_519610(reinterpret_cast<u8 *>(Global80239c_Get()))), nullptr, id, (u32)-amount, 0, 0);
+}
+
+namespace {
+
+// 0x4e1a30 / 0x4e1b40's common tail: the two settings as stored (floats), each held to [-0.5, 0.5] (a NaN to -0.5), the second negated for a definition of kind
+// (+0x158) 1 or 3; (first + second + 1) times the dword at +0x188.
+u32 Object_SettingsTail(const u8 *object, float first, float second) {
+    if (!(first >= -0.5f)) first = -0.5f;
+    else if (first > 0.5f) first = 0.5f;
+    if (!(second >= -0.5f)) second = -0.5f;
+    else if (second > 0.5f) second = 0.5f;
+    const s32 kind = at<s32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(object, 0xe)), 0x158);
+    const X87Reg turned = kind == 1 || kind == 3 ? X87Reg(second) * X87Reg(-1.0f) : X87Reg(second);
+    const X87Reg sum = X87Reg(first) + turned;
+    const X87Reg value = (sum - X87Reg(-1.0f)) * X87Reg((double)at<u32>(object, 0x188));
+    return (u32)(long long)value.v;  // __ftol, the low half
+}
+
+}  // namespace
+
+u32 __fastcall Object_SettingsValue(const u8 *object, void *, float first, float second) {
+    const float a = (float)((X87Reg(first) - X87Reg(50.0f)) * X87Reg(0.005f));
+    const float b = (float)((X87Reg(second) - X87Reg(50.0f)) * X87Reg(0.005f));
+    return Object_SettingsTail(object, a, b);
+}
+
+u32 __fastcall Object_CurrentSettingsValue(const u8 *object) {
+    const float a = (float)((X87Reg((double)at<u8>(object, 0x18c)) - X87Reg(50.0f)) * X87Reg(0.005f));
+    const float b = (float)((X87Reg((double)at<u8>(object, 0x198)) - X87Reg(50.0f)) * X87Reg(0.005f));
+    return Object_SettingsTail(object, a, b);
+}
+
+u32 __fastcall Object_HistoryDifference(const u8 *object) {
+    // (each sum's debug print of whether 30 is within the size is left out; both are CircBufU32_30_Sum inlined, the second in a register)
+    double first, second;
+    CircBufU32_30_Sum(object + 0x70, nullptr, &first, 0x1e);
+    CircBufU32_30_Sum(object + 0xf8, nullptr, &second, 0x1e);
+    return (u32)(long long)(X87Reg(first) - X87Reg(second)).v;  // __ftol, the low half
+}
+
+u32 __fastcall Object_HistoryAverage(const u8 *object) {
+    // (the debug print of whether 30 is within the size is left out)
+    const u8 *const ring = object + 0x340;
+    const s32 held = at<u8>(ring, 0x84) ? at<s32>(ring, 0x80) : at<s32>(ring, 0x7c) + 1;
+    const s32 count = held < 0x1e ? held : 0x1e;
+    X87Reg sum = 0.0;
+    for (s32 i = 0; i < count; ++i) {
+        u32 value;
+        if (CircBufU32_30_Get(ring, nullptr, &value, i)) sum = X87_Add(sum.v, (double)(s32)value);  // fiadd: signed
+    }
+    if (count <= 0) return 0x32;
+    return (u32)(long long)(sum / X87Reg((double)count)).v + 0x32;  // __ftol, the low half
+}
+
+void __fastcall Object_ResetCondition(u8 *object) {
+    if (at<u8>(object, 0x32) & 1) {
+        const u8 level = (u8)(long long)at<float>(object, 0x44);  // __ftol, the low byte
+        if ((double)level < 25.0) {
+            u8 *const world = global<u8 *>(0x008023a0);
+            const u32 id = ((u32)at<u8>(object, 7) << 7) + at<u8>(object, 5) + 1;  // (a word; the dword's upper half is a stale stack word, unread)
+            Map_SpreadRemove(world, nullptr, 6, (u16)id);
+            Map_SpreadAdd(world, nullptr, 1, (u16)id);
+        }
+    }
+    Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 8, 0);
+    at<float>(object, 0x44) = 100.0f;
+    at<u16>(object, 0x5e) = 0;
+    at<u32>(object, 0x64) = 0;
+}
+
+u32 __fastcall Object_Serialize(u8 *object, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    if (Thing_Serialize(object, nullptr, stream, save, version, unused) != 0)
+        return 1;
+    if (version < 0 || version > 1)
+        return 0;
+    if (!Save_Field(stream, save, object + 0x10, 4, 0x0075b614) || !Save_Field(stream, save, object + 0xe, 2, 0x0075b610))
+        return 1;
+    // the date (+0x18) as a SYSTEMTIME's eight fields (year, month, day, day of the week, hour, minute, second, ms) in dwords
+    u32 date[8] = {};
+    s32 result;
+    if (save != 0)
+        FileTime_ToSystemTime(reinterpret_cast<FileTime *>(object + 0x18), nullptr, &result, &date[0], &date[1], &date[2], &date[3], &date[4], &date[5],
+                              &date[6], &date[7]);  // (on a failure the original saves its stack's dwords)
+    for (u32 i = 0; i < 8; ++i)
+        if (!Save_Field(stream, save, &date[i], 4, 0x0075b608))
+            return 1;
+    if (save == 0)
+        FileTime_FromSystemTime(reinterpret_cast<FileTime *>(object + 0x18), nullptr, &result, date[0], date[1], date[2], date[4], date[5], date[6],
+                                date[7]);
+    static const SaveSpec kHead[] = {{0x20, 4, 0x0075b5f8}, {0x32, 2, 0x0075a080}};
+    if (!Save_Fields(stream, save, object, kHead, 2))
+        return 1;
+    for (u32 i = 0; i < 0x21; ++i)  // mNameA[i] and mNameB[i], a pair at a time
+        if (!Save_Field(stream, save, object + 0x3c8 + i * 2, 2, 0x0075b5ec) || !Save_Field(stream, save, object + 0x40a + i * 2, 2, 0x0075b5e0))
+            return 1;
+    static const SaveSpec kIds[] = {{0x24, 4, 0x0075b5cc}, {0x28, 4, 0x0075b5b8}, {0x19c, 4, 0x0075b5b0}, {0x34, 2, 0x0075b5a4}, {0x36, 2, 0x0075b598},
+                                    {0xc, 2, 0x0075a4f4},  {0x5e, 2, 0x0075b580}, {0x3a, 2, 0x0075b570},  {0x68, 4, 0x0075b564}, {0x38, 2, 0x0075b558},
+                                    {0x3c, 2, 0x0075b54c}, {0x2c, 4, 0x0075b538}, {0x30, 2, 0x0075b528}};
+    if (!Save_Fields(stream, save, object, kIds, 13))
+        return 1;
+    // the histories (the save path inlines CircBufU32_30_Serialize) with the customer and walk-away counts among them
+    if (CircBufU32_30_Serialize(object + 0xf8, nullptr, stream, save, version, unused) != 0 ||
+        CircBufU32_30_Serialize(object + 0x70, nullptr, stream, save, version, unused) != 0 || !Save_Field(stream, save, object + 0x1a0, 4, 0x0075b518) ||
+        CircBufU32_30_Serialize(object + 0x1a8, nullptr, stream, save, version, unused) != 0 || !Save_Field(stream, save, object + 0x1a4, 4, 0x0075b508) ||
+        CircBufU32_30_Serialize(object + 0x230, nullptr, stream, save, version, unused) != 0 ||
+        CircBufU32_30_Serialize(object + 0x2b8, nullptr, stream, save, version, unused) != 0 ||
+        CircBufU32_30_Serialize(object + 0x340, nullptr, stream, save, version, unused) != 0)
+        return 1;
+    static const SaveSpec kGoods[] = {{0x5d, 1, 0x0075b4f4},  {0x5c, 1, 0x0075b4e0},  {0x58, 4, 0x0075b4d0},  {0x6c, 2, 0x0075b4bc},
+                                      {0x188, 4, 0x0075b4ac}, {0x18c, 4, 0x0075b49c}, {0x190, 4, 0x0075b488}, {0x194, 4, 0x0075b478}};
+    if (!Save_Fields(stream, save, object, kGoods, 8))
+        return 1;
+    if (save == 0) {  // the price per use loaded is held to 0..500
+        s32 &price = at<s32>(object, 0x194);
+        price = price < 0 ? 0 : price > 500 ? 500 : price;
+    }
+    static const SaveSpec kTail[] = {{0x198, 4, 0x0075b45c},     {0x40, 4, 0x0075b448},  {0x4c, 4, kSaveStatName}, {0x48, 4, kSaveStatName},
+                                     {0x44, 4, kSaveStatName},   {0x64, 4, 0x0075b430},  {0x60, 4, 0x0075b414},    {0x184, 4, 0x0075b408},
+                                     {0x180, 4, 0x0075b3f8},     {0x54, 4, 0x0075b3e0},  {0x50, 1, 0x0075b3d0}};
+    return Save_StatFields(stream, save, object, kTail, 11) ? 0 : 1;
+}
+
+u8 __fastcall Object_ComputeRating(const u8 *object, void *, s32 a, s32 b, s32 c) {
+    const u8 *const def = Object_GetDef(object);
+    if (at<s32>(def, 0x4ac) == 2) {  // a sideshow: 20 + 8% of c times the root of a - b (0..100)
+        s32 over = (s32)((u32)a - (u32)b);
+        over = over < 0 ? 0 : over > 100 ? 100 : over;
+        const double root = X87_Sqrt(X87Reg((double)over)).v;
+        const double x = X87_MulDouble(X87_MulDouble(X87_MulDouble(root, (double)c), 0.1), (double)-0.8f);
+        return (u8)(20 - (u8)(long long)x);
+    }
+    if (at<s32>(def, 0x9c) == 3) {  // a coaster: 50 + half its +0x104 float
+        const u32 coaster = Rides_GetE0ById(at<s32>(object, 0x24));
+        if (coaster == 0)
+            return 0;
+        u32 first, second;
+        Coaster_GetPair(coaster, &first, &second);
+        float value;
+        std::memcpy(&value, &second, 4);
+        return (u8)(long long)X87_SubR(X87Reg(value) * X87Reg(-0.5f), X87Reg(50.0f)).v;
+    }
+    // a ride: the base (60% of it, plus the track's pieces, 0..100, with a track ride) times the speed and duration over the row's limits (each 0.75..1.25)
+    s32 base = at<s32>(def, 0x13c);
+    const u32 row = (u32)at<u8>(object, 0x50) << 6;
+    const s32 speedLimit = at<s32>(def, row + 0x1a8);
+    const s32 durationLimit = at<s32>(def, row + 0x1a0);
+    const u32 track = at<u32>(object, 0x28);
+    if (track != 0) {
+        s32 others = 0, longest = 0, kind11 = 0, free = 0;
+        TrakRide_CountPieces(track, &others, &longest, &kind11, &free);
+        s32 pieces = kind11 * 3 + longest + others * 2;
+        pieces = pieces < 0 ? 0 : pieces > 40 ? 40 : pieces;
+        base = (s32)((u32)base * 60) / 100 + pieces;
+        base = base < 0 ? 0 : base > 100 ? 100 : base;
+    }
+    const auto clamp = [](X87Reg x) { return !(x.v >= 0.75) ? X87Reg(0.75) : x.v > 1.25 ? X87Reg(1.25) : x; };
+    const X87Reg speed = X87Reg((double)a) / X87Reg((double)speedLimit);
+    const float duration = (float)(X87Reg((double)b) / X87Reg((double)durationLimit));
+    const float speedFactor = (float)clamp(speed);
+    const float factor = (float)(clamp(X87Reg(duration)) * X87Reg(speedFactor));
+    return (u8)(long long)X87_MulDouble((double)base, factor);
+}
+
+u8 __fastcall Object_Rating(const u8 *object, void *, u32 baseOnly) {
+    const u32 rating = at<u32>(Object_GetDef(object), 0x13c);
+    if ((u8)baseOnly != 0)
+        return (u8)rating;
+    if (rating == 0)
+        return 0;
+    if (at<s32>(Object_GetDef(object), 0x4ac) == 2)
+        return Object_ComputeRating(object, nullptr, at<s32>(object, 0x188), at<s32>(object, 0x194), at<u8>(object, 0x190));
+    return Object_ComputeRating(object, nullptr, at<s32>(object, 0x58), at<u8>(object, 0x5c), at<u8>(object, 0x5d));
+}
+
+u32 __fastcall Object_InPoorCondition(const u8 *object) {
+    return at<u8>(object, 0x32) & 1 && (u8)(long long)at<float>(object, 0x44) < 25 ? 1 : 0;
+}
 }

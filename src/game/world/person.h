@@ -84,6 +84,17 @@ u32 __fastcall Sprite_SetDestinationMarked(u8 *sprite, void *, s32 x, s32 y);
 // 0x4f7da0 (thiscall; a cell id; name unconfirmed): the same with Sprite_SetDestinationCell.
 u32 __fastcall Sprite_SetDestinationCellMarked(u8 *sprite, void *, u32 cell);
 
+// 0x4f9f00 (thiscall; t, unit, &x, &height, &z, &frame, pops 0x18; x87; name unconfirmed): a moving person's position t of the way from the last one
+// (the dwords +0x190, +0x194) to its nav's (+0xd4, Nav_GetPos), t held to 0..1 for a nonzero unit, else to -1..2 (NaN to the low end): each
+// __ftol(the difference (wrapping) * t + the last) in the x87's 24-bit precision, its low dword. x and z are those times 10 over 65536
+// (16.16 cells to the scene's units) stored to floats, the height 0, the frame the dword +0x1c.
+void __fastcall Sprite_InterpolatedPos(const u8 *sprite, void *, float t, u32 unit, float *x, u32 *height, float *z, u32 *frame);
+
+// 0x4faa00 (thiscall; category, sound, pops 8; name unconfirmed): Sound_PlayAt(0, category, sound, x, y, z) at the sprite's script's position
+// (+0xc, SpriteScript_GetPosition: its float registers, each __ftol'd to its low dword); its result. Without the script (or the list not ready)
+// the original passes its uninitialised locals; the port passes 0s.
+u32 __fastcall Sprite_PlaySound(const u8 *sprite, void *, u32 category, u32 sound);
+
 // 0x4f8b10 (thiscall; stream, save, version, unused): a moving person: 1 when the thing (Thing_Serialize) or the script reference (+0xc,
 // SpriteAnim_Serialize) fails. Then, for a version of 0..1, saved (save nonzero) or loaded: the words +0x18, +0x1a, +0xc4, +0xc0, the byte +0x2c,
 // the dword +0x24, the word +0xcc, the nav (+0xd4: Nav_Serialize; loading Nav_SerializeFwd with save 0), the dwords +0xc8, +0x190, +0x194, +0x198,
@@ -91,4 +102,22 @@ u32 __fastcall Sprite_SetDestinationCellMarked(u8 *sprite, void *, u32 cell);
 // faults on 0) and +0x28, and the thoughts (+0x30, Thoughts_Serialize); 1 at the first that fails (the load's first four fields through Save_Field,
 // the rest through the readers, not quiet). Else (or a version outside 0..1) Sprite_SetDestination to the words +0x18 / +0x1a, and 0.
 u32 __fastcall Sprite_Serialize(u8 *sprite, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x4fb530 (thiscall; the same arguments): a visitor: Sprite_Serialize first (1 if it fails); for a version of 0..1 then, saved or loaded as a
+// serializer does (Save_Field; the load from mBeenAdmitted on through the readers): mArrivalDate, mArrivalIndex, mBalloonScript, mBeenAdmitted,
+// mCash, mExitLevel, mHappiness, mHunger, mLastPosX, mLastPosY, mLitter, mMajorDest, mNumRides, mNumShops, mNumSideshows, mNumSideshowsWon,
+// mPaidAdmission, mParkOpeningWaitingTime, mPersonType, mPrankeryIndex, mPreviousRides[i] and mPreviousTemporaryRides[i] for each i, mQNext,
+// mQPrev, mQueueMoveDelay, mQueuePos, mRemainingBalloonLife, mSavedMajorDest, mSavedState, mState, mThirst, mTimeOfLastSpotAnim,
+// mTimeStartedIdling, mTiredness, mToilet and mVomit (re/types.h's Visitor). The stats (floats) are saved as the float of their __ftol's low byte
+// and loaded through a temporary, stored only when read whole. 1 at the first that fails, else 0.
+u32 __fastcall Visitor_Serialize(u8 *visitor, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x4fde50 (thiscall; an object; name unconfirmed): 0 for a free object (Obj_Get194 0). Else what the visitor would pay: the definition's
+// effects (+0x150 happiness, against 100 less the __ftol low byte of mHappiness; +0x144 thirst, +0x148 hunger, +0x14c vomit, less, against the
+// stats') each times over 100 (signed), plus 100, times 115% of the first cost (+0x140), over 100; plus the object's +0x188 times its byte +0x190
+// over 100 for a definition of kind (+0x4ac) 2, times 100 + the controls' +0xc, over 100; times 100 + the happiness byte, over 100 (unsigned from
+// the first product on). The margin ((that + 5) - price) * 10, at most 100 (unsigned), goes to the park analyser's ring (ParkAnalyser_Record on
+// the game table entry of [0x7cf83c]'s +0x1da720): for kind 1 the ingredient's (+0x158, 1-4) and the appearance's (+0x15c: 1 -> 6, 2 -> 7),
+// for kind 2 ring 9. 1 when the price is above that or above mCash (+0x1a0), else 0.
+u32 __fastcall Visitor_WontPay(const u8 *visitor, void *, u8 *object);
 }

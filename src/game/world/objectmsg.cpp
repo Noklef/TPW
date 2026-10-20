@@ -3,12 +3,15 @@
 #include <cstdint>
 
 #include "../coaster/registry.h"
+#include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
+#include "../math/x87.h"
 #include "analysercell.h"
 #include "mapcell.h"
 #include "objectdefs.h"
 #include "person.h"
+#include "random.h"
 #include "ridelist.h"
 
 namespace {
@@ -155,6 +158,118 @@ u32 __fastcall Object_QueueOpen(u8 *object) {
     if (at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x9c) == 3 && !Object_LinkOtherOpen(object)) return 0;
     if (at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x9c) == 1 && at<u32>(object, 0x2c) == 0) return 0;
     if (at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x9c) == 2 && at<u32>(object, 0x2c) == 0) return 0;
+    return 1;
+}
+
+u32 __fastcall Object_EntranceOnPath(u8 *object) {
+    u8 *const cells = *reinterpret_cast<u8 **>(0x008023a0);
+    if (at<u8>(object, 0x32) & 8) {
+        u16 back;
+        Object_BackOfQueue(object, nullptr, &back);
+        if (back == 0) return 0;
+        const u8 *cell = cells + (u32)back * 0x44 - 0x44;
+        const u8 neighbours = MapCell_Neighbours(cell);
+        return neighbours != MapCell_Direction(cell) ? 1 : 0;
+    }
+    u8 *const cell = cells + (u32)at<u16>(object, 0x36) * 0x44 - 0x44;
+    u8 bit = 0;  // the original's is a stale stack byte for an angle that is not a quarter turn
+    switch (at<s32>(object, 0x10)) {
+    case 0: bit = 0x10; break;
+    case 0x5a: bit = 4; break;
+    case 0xb4: bit = 1; break;
+    case 0x10e: bit = 0x40; break;
+    default: break;
+    }
+    const u8 opposite = (u8)Nibble_Scale(bit);
+    const u8 *next = Map_StepCellInDirection(reinterpret_cast<const u16 *>(cell), nullptr, opposite);
+    if (!MapCell_IsType1(next)) return 0;  // (sic: a step off the map gives null, which is read)
+    if (!(MapCell_Neighbours(next) & bit)) return 0;
+    if (!(MapCell_Neighbours(cell) & opposite)) return 0;
+    return 1;
+}
+
+u32 __fastcall Object_QueueSpot(u8 *object, void *, u32 place, u16 *cellOut, u8 *x, u8 *y) {
+    u8 *const cells = *reinterpret_cast<u8 **>(0x008023a0);
+    u16 cell;
+    Object_NeighbourCellId(object, nullptr, &cell);
+    while (place >= 4 && cell != 0) {
+        u16 next;
+        place -= 4;
+        cell = *Map_FindFacingNeighbour(&next, cell);
+    }
+    *cellOut = cell;
+    const X87Reg scaled = X87Reg((double)place) * X87Reg(0.25f) * X87Reg(255.0f);
+    const u8 along = (u8)(long long)scaled.v;  // __ftol, the low byte
+    const u8 across = (u8)((u32)World_Rand(*reinterpret_cast<u8 **>(0x0080239c)) % 0x1c + 0x72);
+    u8 direction;
+    if (along <= 0x80) {
+        switch (MapCell_Direction(cells + (u32)cell * 0x44 - 0x44)) {
+        case 1: *x = across; *y = along; break;
+        case 4: *x = (u8)(0xff - along); *y = across; break;
+        case 0x10: *x = across; *y = (u8)(0xff - along); break;
+        case 0x40: *x = along; *y = across; break;
+        default: break;  // (a debug print is left out)
+        }
+        return 0;
+    }
+    u16 next;
+    Map_FindFacingNeighbour(&next, cell);
+    if (next != 0) {
+        direction = MapCell_Direction(cells + (u32)next * 0x44 - 0x44);
+    } else {
+        // the queue's end: the first direction (1, 4, 0x10, 0x40) in the cell's neighbour bits, read again, that leads to a type 1 cell; the direction is its opposite
+        const u8 *here = cells + (u32)cell * 0x44 - 0x44;
+        static const u8 kSides[4] = {1, 4, 0x10, 0x40};
+        const u8 neighbours = MapCell_Neighbours(here);
+        bool found = false;
+        direction = 1;
+        for (s32 i = 0; i < 4; i++) {
+            const u8 side = kSides[i];
+            if ((side & neighbours) && (side & MapCell_Neighbours(here)) &&
+                MapCell_IsType1(Map_StepCellInDirection(reinterpret_cast<const u16 *>(here), nullptr, side))) {
+                direction = kSides[(i + 2) & 3];
+                found = true;
+                break;
+            }
+        }
+        if (!found) direction = MapCell_Direction(here);  // (a debug print is left out)
+    }
+    switch (direction) {
+    case 1: *x = across; *y = along; break;
+    case 4: *x = (u8)(along + 0x80); *y = across; break;  // (sic: 0xff less it on the near side)
+    case 0x10: *x = across; *y = (u8)(0xff - along); break;
+    case 0x40: *x = along; *y = across; break;
+    default: break;
+    }
+    return 0;
+}
+
+u32 __fastcall Object_EntranceQueueSpot(u8 *object, void *, u32 place, u16 *cellOut, u8 *x, u8 *y) {
+    const X87Reg scaled = X87Reg((double)place) * X87Reg(0.25f) * X87Reg(255.0f);
+    const u8 along = (u8)(long long)scaled.v;  // __ftol, the low byte
+    const u8 across = (u8)((u32)World_Rand(*reinterpret_cast<u8 **>(0x0080239c)) % 0x1c + 0x72);
+    u16 cell;
+    Object_BackOfQueue(object, nullptr, &cell);  // (the same call with flag 8 of +0x32 or without)
+    *cellOut = cell;
+    const u8 *const here = *reinterpret_cast<u8 **>(0x008023a0) + (u32)at<u16>(object, 0x36) * 0x44 - 0x44;
+    u16 again;
+    Object_BackOfQueue(object, nullptr, &again);  // (sic: asked again, into the cell argument's stack slot, and not used)
+    switch (MapCell_Direction(here)) {
+    case 1: *x = across; *y = along; break;
+    case 4: *x = (u8)(0xff - along); *y = across; break;
+    case 0x10: *x = across; *y = (u8)(0xff - along); break;
+    case 0x40: *x = along; *y = across; break;
+    default: break;  // (a debug print is left out)
+    }
+    return 0;
+}
+
+u32 __fastcall Object_CanOpen(u8 *object) {
+    const s32 state = at<s32>(object, 0x19c);
+    if (state == 1 || state == 4 || at<u32>(object, 0x64) != 0 || state == 2) return 0;
+    if (!Object_EntranceOnPath(object)) return 0;
+    const u8 *def = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(object, 0xe));
+    if (at<s32>(def, 0x9c) == 3 && !Object_LinkOtherOpen(object)) return 0;
     return 1;
 }
 }  // extern "C"

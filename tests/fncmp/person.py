@@ -1,7 +1,8 @@
 # The things' map ids and the people's small methods (src/game/world/person: 0x4e2650, 0x4f9460,
-# 0x4fd950, 0x4fdc60, 0x501290, 0x502430, 0x4fec10, 0x4fe9c0, 0x4fea70, 0x4fb4f0) and the thoughts' constructor (0x50ba80) against the
-# originals: positions anywhere, outs over the fields, ticks about the wrap; Raise / Lower / Add100: the global bytes and the floats as below.
-# usage: person.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=MapId,Record,TimeInPark,PushRide,State11,State11To14,Thoughts,State6To10,Raise,Lower,Add100)
+# 0x4fd950, 0x4fdc60, 0x501290, 0x502430, 0x4fec10, 0x4fe9c0, 0x4fea70, 0x4fb4f0, 0x4f9f00) and the thoughts' constructor (0x50ba80) against the
+# originals: positions anywhere, outs over the fields, ticks about the wrap; Raise / Lower / Add100: the global bytes and the floats as below;
+# Lerp (Sprite_InterpolatedPos): t about both ranges (NaN, infinities, denormals), the positions near or far apart.
+# usage: person.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=MapId,Record,TimeInPark,PushRide,State11,State11To14,Thoughts,State6To10,Raise,Lower,Add100,Lerp)
 import os
 import struct
 import sys
@@ -10,12 +11,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
 B = Bench([(0x4e2650, 0x4e266d), (0x4f9460, 0x4f948b), (0x4fd950, 0x4fd967), (0x4fdc60, 0x4fdc89), (0x501290, 0x5012ac),
-           (0x502430, 0x502454), (0x50ba80, 0x50bab0), (0x4fe9c0, 0x4fea62), (0x4fea70, 0x4feb0a), (0x4fec10, 0x4fec48), (0x4fb4f0, 0x4fb52b),
+           (0x502430, 0x502454), (0x50ba80, 0x50bab0), (0x4fe9c0, 0x4fea62), (0x4fea70, 0x4feb0a), (0x4fec10, 0x4fec48), (0x4fb4f0, 0x4fb52b), (0x4f9f00, 0x4fa021), (0x510160, 0x510190),
            (0x5da3c0, 0x5da3c1)])
-THING, WORLD = RAM, RAM + 0x1000
+THING, WORLD, OUTS = RAM, RAM + 0x1000, RAM + 0x2000
 GWORLD = 0x80239c
 CALLS = {'MapId': 0x4e2650, 'Record': 0x4f9460, 'TimeInPark': 0x4fd950, 'PushRide': 0x4fdc60, 'State11': 0x501290, 'State11To14': 0x502430, 'Thoughts': 0x50ba80,
-         'State6To10': 0x4fec10, 'Raise': 0x4fe9c0, 'Lower': 0x4fea70, 'Add100': 0x4fb4f0}
+         'State6To10': 0x4fec10, 'Raise': 0x4fe9c0, 'Lower': 0x4fea70, 'Add100': 0x4fb4f0, 'Lerp': 0x4f9f00}
 
 
 def word(r):
@@ -57,6 +58,15 @@ def case(r):
         regions[0x785058] = bytes(r.choice([0, 1, 5, 50, 100, 255, r.getrandbits(8)]) if k % 4 == 0 else r.getrandbits(8) for k in range(12))
         put(thing, 0x19c, 'I', stat(r))
         return Call(CALLS[op], [THING, r.choice([0, 1, 2, 0, 1, 2, 3, 0xffffffff, r.getrandbits(32)])], regions, conv='t', ret='v')
+    if op == 'Lerp':   # t about both ranges' ends (NaN, infinities, denormals), the nav's position and the last one near or far apart, the outs apart
+        t = r.choice([0.0, -0.0, 0.25, 0.5, 1.0, 1.0000001, 1.5, 2.0, 2.5, -0.5, -1.0, -1.5, 1e-40, -1e-40, float('nan'), float('inf'), float('-inf'),
+                      r.uniform(-1.5, 2.5), r.uniform(0, 1), struct.unpack('<f', r.bytes(4))[0]])
+        for at in (0xdc, 0xe0):   # the nav (+0xd4)'s position, then the last one about it
+            pos = word(r) if r.random() < 0.3 else r.randrange(0x800000)
+            put(thing, at, 'I', pos)
+            put(thing, 0x190 + at - 0xdc, 'I', r.choice([pos, (pos + r.randrange(-0x2000, 0x2000)) & 0xffffffff, (pos ^ 0x80000000), word(r)]))
+        regions[OUTS] = r.bytes(0x10)
+        return Call(0x4f9f00, [THING, fb(t), r.choice([0, 1, 1, 0x100, 0xffffffff]), OUTS, OUTS + 4, OUTS + 8, OUTS + 0xc], regions, conv='t', ret='v')
     if op == 'Thoughts':
         return Call(0x50ba80, [THING + r.randrange(16)], regions, conv='t', ret='a')
     if op == 'PushRide':

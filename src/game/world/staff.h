@@ -17,6 +17,10 @@ extern "C" {
 // below the rest level ([0x785324], signed).
 u32 __fastcall Staff_IsTooTired(const u8 *staff);
 
+// 0x506550 (thiscall; x87; name unconfirmed): the grade with its progress, in twentieths of a grade: __ftol((the pay grade (+0x1e4) - the
+// training progress byte (+0x1e8) * -0.01) * 20) in the x87's 24-bit precision, its low dword (the panels' grade bar).
+u32 __fastcall Staff_GradeLevel(const u8 *staff);
+
 // 0x5066a0 (thiscall): energy less (6 - grade) * 0.012 and happiness less (6 - grade) *
 // 0.005, each clamped to [0, 100] (above 100 gives 100; below 0, or NaN, gives 0).
 void __fastcall Staff_TireA(u8 *staff);
@@ -135,6 +139,25 @@ void __fastcall Staff_TrainAll(const s32 *amounts);
 // partly through the readers): mType (+0), the dword at +4, the bytes at +8, +9, +0xa and +0xb, the time stamp at +0xc (TimeSig_Serialize;
 // 1 if it fails) and the dword at +0x10.
 u32 __fastcall StaffPoolEntry_Serialize(u8 *entry, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x504de0 (thiscall; the same arguments): a staff member: Sprite_Serialize first (1 if it fails); for a version of 0..1 then +0x1e4, the
+// float +0x1f8 (as the float of its __ftol's low byte), +0x204, the 0x21 words from +0x1a0, the words +0x20a and +0x20c, the byte +0x1e8, the
+// word +0x208, the dwords +0x19c and +0x200, the 8 bytes at +0x1f0 and the float +0x1fc (as +0x1f8), as a serializer does (Save_Field; the
+// load partly through the readers, the floats landing only when read whole); 1 at the first that fails, else 0.
+u32 __fastcall Staff_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// The staff types' serializers (thiscall; the same arguments): Staff_Serialize first (1 if it fails); for a version of 0..1 then their fields as
+// a serializer does (Save_Field); 1 at the first that fails, else 0. All end with mNext (the word +0x210).
+// 0x4d6d60: a handyman: mTargetLitterCell (+0x218), mTimeStartedCleaning (+0x214), mToiletToClean (+0x21a), mNext.
+u32 __fastcall Handyman_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused);
+// 0x4d6000: a guard: mPerp (+0x212), mProsecutionTimestamp (+0x214), mNext.
+u32 __fastcall Guard_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused);
+// 0x4da110: a mechanic: mDurationOfRepair (+0x214), mObjectToRepair (+0x218), mNext.
+u32 __fastcall Mechanic_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused);
+// 0x4d4460: an entertainer: mTimeStartedEntertaining (+0x214), mNext.
+u32 __fastcall Entertainer_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused);
+// 0x502760: a researcher: mTimeStartedResearching (+0x214), mNext.
+u32 __fastcall Researcher_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused);
 
 // 0x507850 (thiscall; the same arguments): the staff pool: its 0x20 entries (StaffPoolEntry_Serialize, 0x14 bytes from +0), 1 at the first
 // that fails; then for each of the 5 categories mPeopleInCat[i] (dwords from +0x280) and mStopProducing[i] (bytes from +0x299), the time

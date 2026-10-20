@@ -59,3 +59,23 @@ bool Save_Fields(Stream *stream, u32 save, u8 *object, const SaveSpec *spec, u32
             return false;
     return true;
 }
+
+bool Save_StatFields(Stream *stream, u32 save, u8 *object, const SaveSpec *spec, u32 count) {
+    for (u32 i = 0; i < count; ++i) {
+        const SaveSpec &f = spec[i];
+        if (f.name != kSaveStatName) {
+            if (!Save_Field(stream, save, object + f.at, f.size, f.name))
+                return false;
+        } else if (save != 0) {
+            float stat = (float)(u8)(long long)*reinterpret_cast<const float *>(object + f.at);
+            if (!Save_Field(stream, save, &stat, 4, kSaveStatName))
+                return false;
+        } else {
+            u32 value = 0;
+            if (!Save_Field(stream, 0, &value, 4, kSaveStatName))
+                return false;
+            *reinterpret_cast<u32 *>(object + f.at) = value;
+        }
+    }
+    return true;
+}

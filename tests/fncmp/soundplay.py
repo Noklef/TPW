@@ -3,19 +3,19 @@
 # 0x802bc8, started 0x802bd4 each 0 or not, the manager 0x802bcc) and the category gSndCatUi 0x803a2c; the manager's vtable +8 a recorder
 # logging the command as a hash of its 7 dwords (its result now and then set); the sound 0 or not, the position and range ints small,
 # large (rounded as floats) or negative.
-# usage: soundplay.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=PlayAt,PlayAtRange,UiPlay,UiPlay1d,KidPlay,KidPlayGraded)
+# usage: soundplay.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=PlayAt,PlayAtRange,UiPlay,UiPlay1d,KidPlay,KidPlayGraded,SpritePlay)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, RAM, Bench, Call, blob, log_region, put, set_return, vtable  # noqa: E402
+from fncmp import LOG, RAM, Bench, Call, blob, fb, log_region, put, set_return, vtable  # noqa: E402
 
 CALLS = {'PlayAt': 0x51bfc0, 'PlayAtRange': 0x51c130, 'UiPlay': 0x485aa0, 'UiPlay1d': 0x486ae0, 'KidPlay': 0x551560,
-         'KidPlayGraded': 0x551320}
+         'KidPlayGraded': 0x551320, 'SpritePlay': 0x4faa00}
 B = Bench([(0x51bfc0, 0x51c048), (0x51c130, 0x51c1b8), (0x485aa0, 0x485abd), (0x486ae0, 0x486af9), (0x551320, 0x551560),
-           (0x551560, 0x551600)])
-MANAGER, VT = RAM + 0x100, RAM + 0x200
+           (0x551560, 0x551600), (0x4faa00, 0x4faa5b), (0x4754e0, 0x475560)])
+MANAGER, VT, SCRIPT, SCRIPTS, SPRITE = RAM + 0x100, RAM + 0x200, RAM + 0x400, RAM + 0x600, RAM + 0x700
 
 
 def coord(r):
@@ -39,6 +39,18 @@ def case(r):
         return Call(CALLS[op], [sound], regions, ret='a')
     if op == 'UiPlay1d':
         return Call(CALLS[op], [], regions, ret='a')
+    if op == 'SpritePlay':   # 0x4faa00: a sprite's script (its slot +0xc, the list ready) with float registers 1-3 about the ints' range and past it
+        script = bytearray(r.bytes(0x100))
+        for off in (0x88, 0x8c, 0x90):
+            put(script, off, 'I', fb(r.choice([0.0, -0.0, 1.5, -1.5, 100.25, -2000.75, 16777217.0, 1e9, 3e9, -3e9, 1e20, float('nan'),
+                                               r.uniform(-5000, 5000)])))
+        g = bytearray(r.bytes(0x2c))
+        put(g, 0, 'Ii', SCRIPTS, 3)
+        put(g, 0x24, 'I', 1)
+        sprite = bytearray(r.bytes(0x20))
+        put(sprite, 0xc, 'I', r.choice([1, 2]))
+        regions.update({SCRIPT: script, SCRIPTS: struct.pack('<4I', 0, SCRIPT, SCRIPT, 0), 0x7b49f0: g, SPRITE: sprite})
+        return Call(0x4faa00, [SPRITE, r.getrandbits(32), sound], regions, conv='t', ret='a')
     if op in ('KidPlay', 'KidPlayGraded'):  # (the kids' category at 0x803a24; the level and the grade's parts around the thresholds)
         regions[0x803a24] = r.bytes(4)
         level = r.choice([0, 1, 2, 3, 4, 7, 8, 9, 100, -1, -5, r.getrandbits(32)]) & 0xffffffff

@@ -6,6 +6,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../files/file.h"
 
 extern "C" {
 
@@ -126,4 +127,83 @@ u16 *__fastcall Objects_NearestFreeFor(u8 *self, void *, u16 *out, u32 person);
 // (Map_StepCellInDirection; the original reads through a null one) names a cell (its id word) from which any step but the one back (MapCell_StepBlocked
 // in mode 0, directions 0-3 for 1, 4, 0x10, 0x40) open gives 1 (a debug print is left out), else 0.
 u32 __fastcall Object_ExitOpen(const u8 *object);
+
+// 0x4df450 (thiscall; a, b, an unused dword, a flag byte; pops 0x10; x87 at the game's precision, the result in ST0; name unconfirmed): a score from the object's
+// definition (ObjectDefs_Find of the id at +0xe; the row at +0x40 * the byte +0x50) and its ride record's element 5 (Rides_FindById of +0x24), the load, held to
+// [0, the definition's +0x128]. Two parts, each x * 0.9 + 0.1, halved after adding 1 when it is over: a / +0x138 over when the row's +0x1ac is not above a; b (with
+// the flag) or the load over +0x128, over when the row's +0x19c is not above a tenth of the load. Returns (second + first) * the row's +0x1b0 * 0.5 (as ST0 holds it:
+// a 24-bit significand, the double return keeps its exponent).
+double __fastcall Object_DefRowScore(const u8 *object, void *, float a, float b, u32 unused, u32 useB);
+
+// 0x4df640 (thiscall; a, b, c; pops 0xc; name unconfirmed): 100 less __ftol(Object_DefRowScore(a, b, c, with b) * 9), the low byte (AL).
+u8 __fastcall Object_DefRowPercent(const u8 *object, void *, float a, float b, u32 c);
+
+// 0x4dedf0 (thiscall; exit, x, y; pops 0xc; x87; name unconfirmed): the point a person stands at in the entrance cell (the word at +0x36; the definition's
+// (+0xd4, +0xd8)) or appears at in the exit cell (with exit: +0x38; (+0xdc, +0xe0)). x[1] / y[1] = the cell's column / row ((id - 1) & 0x7f, (id - 1) >> 7, 32-bit);
+// *x / *y = the low bytes of __ftol(255 times the point turned by the angle (+0x10): 0 (px, py), 0x5a (py, 1 - px), 0xb4 (1 - px, 1 - py), 0x10e (1 - py, px),
+// another (px, px) (sic)). The debug prints of a point outside (0, 1) are left out.
+void __fastcall Object_CellStandPoint(const u8 *object, void *, u32 exit, u8 *x, u8 *y);
+
+// 0x4e1f20 (thiscall; name unconfirmed): 100 times the CHistory sum (CircBufU32_30_Sum, newest 30) of the ring at +0x2b8 over that of the ring at +0x1a8 (__ftol's low
+// halves, unsigned, 32-bit); 0 when the latter is 0.
+u32 __fastcall Object_HistoryPercent(const u8 *object);
+
+// 0x4dda40 (thiscall; x87; name unconfirmed): 100 without flag 8 of the word at +0x32. Else [0x7cdc54] (a float) = the dword at +0x58 (unsigned) over the
+// definition's row (+0x40 * the byte +0x50) +0x1a8 (signed), or 1 when it is 0; returns __ftol (the low half) of the byte +0x5d * the row's float +0x1b4 * that
+// over the byte +0x5c, raised to 4 (a NaN too). The debug check of the float being above 0 is left out.
+u32 __fastcall Object_FillRate(const u8 *object);
+
+// 0x4e1920 (thiscall; amount, pops 4; name unconfirmed): amount added to the dwords +0xf8 and +0x184 and debited (Money_Debit of the game's money record, the table
+// entry GameTable7cfb90_Get1da726_5195d0 gives); for a definition (+0xe) whose +0x4ac is 1 or 2, Slots_AddIfMatch(0xc or 0xd, -amount, 0, 0) on the entry
+// GameTable7cfb90_Get1da736_519610 gives.
+void __fastcall Object_PayRunningCost(u8 *object, void *, s32 amount);
+
+// 0x4e1a30 (thiscall; first, second (floats), pops 8; x87; name unconfirmed): each setting (0-100) as (s - 50) * 0.005 stored to a float, held to [-0.5, 0.5] (a
+// NaN to -0.5); the second negated for a definition (+0xe) of kind (+0x158) 1 or 3; returns __ftol (the low half) of (first + second + 1) * the dword at +0x188.
+u32 __fastcall Object_SettingsValue(const u8 *object, void *, float first, float second);
+
+// 0x4e1b40 (thiscall; x87; name unconfirmed): Object_SettingsValue of the bytes at +0x18c and +0x198 (inlined).
+u32 __fastcall Object_CurrentSettingsValue(const u8 *object);
+
+// 0x4e1c70 (thiscall; x87; name unconfirmed): __ftol (the low half) of the CHistory sum (CircBufU32_30_Sum, newest 30; inlined) of the ring at +0x70 less that of the
+// ring at +0xf8. The debug prints of whether 30 is within each size are left out.
+u32 __fastcall Object_HistoryDifference(const u8 *object);
+
+// 0x4e1e30 (thiscall; x87; name unconfirmed): the newest (up to) 30 entries of the ring at +0x340 (CircBufU32_30_Get, inlined) summed as signed values (fiadd), over
+// their count, __ftol'd (the low half) plus 0x32; 0x32 when the ring is empty. The debug print of whether 30 is within the size is left out.
+u32 __fastcall Object_HistoryAverage(const u8 *object);
+
+// 0x4dfd80 (thiscall; name unconfirmed): with flag 1 of the word at +0x32, when the low byte of __ftol(the float +0x44) is below 25, the object's cell (the bytes +5,
+// +7) has spread record 6 taken back and record 1 spread (Map_SpreadRemove, Map_SpreadAdd on [0x8023a0]); then its ride record's (Rides_FindById of +0x24) element 8
+// is set to 0, +0x44 = 100.0, the word +0x5e and the dword +0x64 = 0.
+void __fastcall Object_ResetCondition(u8 *object);
+
+// 0x4e0390 (thiscall; x87; name unconfirmed): with flag 1 of the byte +0x32, whether the low byte of __ftol(the condition float +0x44) is below 25
+// (Object_ResetCondition's test), else 0.
+u32 __fastcall Object_InPoorCondition(const u8 *object);
+
+// 0x4db7d0 (thiscall; stream, save, version, unused): an object: Thing_Serialize first (1 if it fails); for a version of 0..1 then, saved or loaded as
+// a serializer does (Save_Field; the load through the readers): mAngle, mId, the date +0x18 as a SYSTEMTIME's eight fields in dwords (saved from
+// FileTime_ToSystemTime, loaded into FileTime_FromSystemTime, the day of the week skipped), MeshInstanceID, mFlags, mNameA[i] and mNameB[i] for each
+// of the 33, mRideScriptHandle, mTrackRideHandle, mState, mTopLeft, mEntryPos, mNext, mAssignedStaffMember, mBackOfQueue, mCanLoad, mExitPos,
+// mFirstInQ, mIsTrackRideValid, mUpgradeParent, the histories mHist1 and mHist0 (CircBufU32_30_Serialize), mNumCustomers, mHist2, mNumWalkAways,
+// mHist3, mHist4, mHist5, mOperatingCapacity, mOperatingDuration, mOperatingSpeed, mPersonBeingLoaded, mCostOfGoods, mQualityOfGoods,
+// mChanceOfWinning, mPricePerUse (loaded: held to 0..500, signed), mAmountOfSpecialIngredient, mQueueSizeInCells, the stats +0x4c, +0x48, +0x44
+// (Save_StatFields), mRequestedService, mTimeMarkedForMaintenance, mTotalCosts, mTotalTakings, mUpgradeBalloonSprite and mUpgradeLevel (re/types.h's
+// Object). 1 at the first that fails, else 0.
+u32 __fastcall Object_Serialize(u8 *object, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x4e0560 (thiscall; a, b, c, pops 12; x87; name unconfirmed): a rating (a byte; the definition looked up by the id at +0xe). For a definition of kind
+// (+0x4ac) 2: 20 - __ftol(c * the root of a - b (wrapping; held to 0..100) * 0.1 (a double) * -0.8f). Else for track type (+0x9c) 3: 0 when
+// Rides_GetE0ById of the dword +0x24 gives 0, else __ftol(50 - the coaster's +0x104 float (Coaster_GetPair's second) * -0.5). Else the base +0x13c,
+// with a track ride (+0x28 nonzero) 60% of it (signed, wrapping) plus 3 * TrakRide_CountPieces' kind 11 pieces + its longest run + 2 * its others
+// (held to 0..40), held to 0..100; times a over the row's (byte +0x50, 0x40 apart) limit +0x1a8 held to 0.75..1.25 (NaN 0.75) and stored to a float,
+// by b over the limit +0x1a0 (stored to a float), held the same, their product stored to a float; __ftol of base times that. The x87's 24-bit
+// precision throughout (X87Reg, X87_MulDouble).
+u8 __fastcall Object_ComputeRating(const u8 *object, void *, s32 a, s32 b, s32 c);
+
+// 0x4e0860 (thiscall; a flag, its low byte, pops 4; name unconfirmed): the definition's base rating (+0x13c, its low byte) for a nonzero flag, 0 for a
+// base of 0; else Object_ComputeRating of a kind-2 definition's object +0x188 (mCostOfGoods), +0x194 (mPricePerUse) and the byte +0x190
+// (mChanceOfWinning), of any other's +0x58 (mOperatingSpeed) and the bytes +0x5c (mOperatingDuration) and +0x5d (mOperatingCapacity).
+u8 __fastcall Object_Rating(const u8 *object, void *, u32 baseOnly);
 }

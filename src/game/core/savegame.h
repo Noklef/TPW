@@ -45,3 +45,9 @@ struct SaveSpec {
     u32 name;
 };
 bool Save_Fields(Stream *stream, u32 save, u8 *object, const SaveSpec *spec, u32 count);
+
+// The name the serializers give their 0..100 stats (floats: a visitor's, an object's): saved as the float of their __ftol's low byte, loaded into
+// a temporary and stored only when read whole.
+constexpr u32 kSaveStatName = 0x0075b444;
+// Save_Fields, with the stats (the fields named kSaveStatName) as above.
+bool Save_StatFields(Stream *stream, u32 save, u8 *object, const SaveSpec *spec, u32 count);

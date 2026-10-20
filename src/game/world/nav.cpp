@@ -8,6 +8,7 @@
 #include "../core/savegame.h"
 #include "../core/trivial.h"
 #include "../math/intpair.h"
+#include "../math/x87.h"
 #include "mapcell.h"
 #include "route.h"
 
@@ -287,5 +288,19 @@ u32 __fastcall Nav_PathTo(u8 *nav, void *, const s32 *target, u32 prepend) {
 u32 __fastcall Nav_PathToPoint(u8 *nav, void *, s32 x, s32 y) {
     const s32 target[2] = {x, y};
     return Nav_PathTo(nav, nullptr, target, 0);
+}
+
+void __fastcall Nav_SetSpeed(u8 *nav, void *, float speed) {
+    if (speed > 2.0f)
+        speed = 2.0f;
+    // fld speed; fmul a double; __ftol's low dword: max_force (+0x18) and max_speed (+0x1c), each at least 0x28f (0.01)
+    const s32 force = (s32)(long long)X87_MulFloatDouble(speed, 26214.4);
+    at<s32>(nav, 0x18) = force;
+    const s32 top = (s32)(long long)X87_MulFloatDouble(speed, 13107.2);
+    at<s32>(nav, 0x1c) = top;
+    if (force < 0x28f)
+        at<s32>(nav, 0x18) = 0x28f;
+    if (top < 0x28f)
+        at<s32>(nav, 0x1c) = 0x28f;
 }
 }

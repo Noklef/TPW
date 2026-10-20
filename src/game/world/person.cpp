@@ -1,17 +1,22 @@
 #include "person.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "../core/globals.h"
 #include "../core/savegame.h"
+#include "../core/soundplay.h"
 #include "../math/x87.h"
 #include "../sprite/script.h"
 #include "../sprite/scriptref.h"
+#include "analyser.h"
 #include "nav.h"
 #include "object.h"
+#include "objectdefs.h"
 #include "things.h"
+#include "world.h"
 
 namespace {
 
@@ -27,6 +32,18 @@ void set100(void *p, X87Reg v) {
         at<u32>(p, 0) = 0;
     else
         at<float>(p, 0) = (float)v.v;
+}
+
+// a * b / 100 as the original's IMUL and signed divide by 100 (the product wrapping).
+s32 MulDiv100(s32 a, s32 b) { return (s32)((u32)a * (u32)b) / 100; }
+
+// The park analyser's (the game table entry of [0x7cf83c]'s +0x1da720) ring of a price's margin: ((willing + 5) - price) * 10, at most 100 (unsigned).
+void RecordMargin(u32 ring, u32 willing, u32 price) {
+    u32 value = (willing + 5) * 10 - price * 10;
+    if (value >= 100)
+        value = 100;
+    u8 *const analyser = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 **>(0x007cf83c)));
+    ParkAnalyser_Record(analyser, nullptr, ring, value);
 }
 
 }  // namespace
@@ -208,6 +225,62 @@ u32 __fastcall Sprite_Serialize(u8 *sprite, void *, Stream *stream, u32 save, s3
     return 0;
 }
 
+u32 __fastcall Visitor_Serialize(u8 *visitor, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    if (Sprite_Serialize(visitor, nullptr, stream, save, version, unused) != 0)
+        return 1;
+    if (version < 0 || version > 1)
+        return 0;
+    static const SaveSpec kHead[] = {{0x1d4, 4, 0x0075d380}, {0x1d8, 4, 0x0075d370}, {0x210, 4, 0x0075d360}, {0x1f8, 4, 0x0075d350}, {0x1a0, 4, 0x0075d348},
+                                     {0x1bc, 4, 0x0075d33c}, {0x19c, 4, kSaveStatName},  {0x1a8, 4, kSaveStatName},  {0x218, 4, 0x0075d330}, {0x21c, 4, 0x0075d324},
+                                     {0x1b4, 4, kSaveStatName},  {0x1dc, 2, 0x0075d318}, {0x1c4, 4, 0x0075d30c}, {0x1c8, 4, 0x0075d300}, {0x1cc, 4, 0x0075d2f0},
+                                     {0x1d0, 4, 0x0075d2dc}, {0x204, 4, 0x0075d2cc}, {0x200, 4, 0x0075d2b4}, {0x1f0, 1, 0x0075d2a8}, {0x1c0, 1, 0x0075d298}};
+    static const SaveSpec kTail[] = {{0x228, 2, 0x0075d260}, {0x22a, 2, 0x0075d258}, {0x1f4, 4, 0x0075d248}, {0x1f1, 1, 0x0075d23c}, {0x214, 4, 0x0075d224},
+                                     {0x1de, 2, 0x0075d214}, {0x224, 4, 0x0075d208}, {0x220, 4, 0x0075b5b0}, {0x1a4, 4, kSaveStatName},  {0x208, 4, 0x0075d1f4},
+                                     {0x1fc, 4, 0x0075d1e0}, {0x1b8, 4, kSaveStatName},  {0x1ac, 4, kSaveStatName},  {0x1b0, 4, kSaveStatName}};
+    if (!Save_StatFields(stream, save, visitor, kHead, 20))
+        return 1;
+    for (u32 i = 0; i < 4; ++i)  // the previous rides and the previous temporary rides, a pair at a time
+        if (!Save_Field(stream, save, visitor + 0x1e0 + i * 2, 2, 0x0075d284) || !Save_Field(stream, save, visitor + 0x1e8 + i * 2, 2, 0x0075d268))
+            return 1;
+    return Save_StatFields(stream, save, visitor, kTail, 14) ? 0 : 1;
+}
+
+u32 __fastcall Visitor_WontPay(const u8 *visitor, void *, u8 *object) {
+    const u32 price = Obj_Get194(object);
+    if (price == 0)
+        return 0;
+    const u8 *const def = Object_GetDef(object);
+    // the stats' __ftol low bytes against the definition's effects, each product over 100 (signed)
+    const auto stat = [visitor](u32 offset) { return (s32)(u8)(long long)at<float>(visitor, offset); };
+    u32 mood = (u32)MulDiv100(at<s32>(def, 0x150), 100 - stat(0x19c));
+    mood += (u32)MulDiv100(at<s32>(def, 0x144), stat(0x1a4));
+    mood += (u32)MulDiv100(at<s32>(def, 0x148), stat(0x1a8));
+    mood = mood - (u32)MulDiv100(at<s32>(def, 0x14c), stat(0x1b0)) + 100;
+    const s32 cost = MulDiv100(at<s32>(def, 0x140), 0x73);
+    u32 willing = mood * (u32)cost / 100;  // (the products wrap; the divisions by 100 from here on unsigned)
+    Obj_Get194(object);
+    const u32 quality = GetByte190_4e21b0(object);
+    const s32 extra = at<s32>(Object_GetDef(object), 0x4ac) == 2 ? (s32)Obj_Get188(object) : 0;
+    const s32 controls = at<s32>(Obj_FindControls(object), 0xc);
+    willing = ((u32)MulDiv100(extra, (s32)quality) + willing) * ((u32)controls + 100) / 100;
+    willing = willing * (u32)(stat(0x19c) + 100) / 100;
+    // the analyser rings of the price margins: an ingredient (1-4) and an appearance (6, 7) for a kind-1 definition, 9 for a kind-2 one
+    u32 ring = 0;
+    const s32 kind = at<s32>(Object_GetDef(object), 0x4ac);
+    if (kind == 2) {
+        ring = 9;
+    } else if (kind == 1) {
+        const u32 ingredient = at<u32>(def, 0x158);
+        if (ingredient >= 1 && ingredient <= 4)
+            RecordMargin(ingredient, willing, price);
+        const s32 appearance = at<s32>(def, 0x15c);
+        ring = appearance == 1 ? 6 : appearance == 2 ? 7 : 0;
+    }
+    if (ring != 0)
+        RecordMargin(ring, willing, price);
+    return price > willing || at<u32>(visitor, 0x1a0) < price ? 1 : 0;
+}
+
 u32 __fastcall Visitor_IsState6To10(const u8 *visitor) {
     const s32 state = at<s32>(visitor, 0x220);
     return state == 6 || state == 7 || state == 8 || state == 10 || state == 9 ? 1 : 0;
@@ -222,4 +295,37 @@ void __fastcall Visitor_Lower19c(u8 *visitor, void *, u32 index) {
 }
 
 void __fastcall Stat100_Add(float *stat, void *, float delta) { set100(stat, X87Reg(delta) + X87Reg(*stat)); }
+
+void __fastcall Sprite_InterpolatedPos(const u8 *sprite, void *, float t, u32 unit, float *x, u32 *height, float *z, u32 *frame) {
+    if (unit)
+        t = !(t >= 0.0f) ? 0.0f : t > 1.0f ? 1.0f : t;
+    else
+        t = !(t >= -1.0f) ? -1.0f : t > 2.0f ? 2.0f : t;
+    u32 posX, posY;
+    Nav_GetPos(sprite + 0xd4, nullptr, &posX, &posY);
+    // the last position plus t of the way to the nav's (fild; fmul t; fiadd; __ftol's low dword)
+    const auto lerp = [t](u32 pos, s32 last) {
+        return (s32)(long long)X87_Add(X87_MulDouble((double)(s32)(pos - (u32)last), t), (double)last);
+    };
+    const s32 lastY = at<s32>(sprite, 0x194);
+    const s32 y = lerp(posY, lastY);
+    const s32 lastX = at<s32>(sprite, 0x190);
+    const s32 nx = lerp(posX, lastX);
+    // 16.16 cells to the scene's units: times 10 (rounded at 24 bits), over 65536 (exact), stored to floats
+    *x = (float)(X87_MulDouble((double)nx, 10.0) / 65536.0);
+    *height = 0;
+    *z = (float)(X87_MulDouble((double)y, 10.0) / 65536.0);
+    *frame = at<u32>(sprite, 0x1c);
+}
+
+u32 __fastcall Sprite_PlaySound(const u8 *sprite, void *, u32 category, u32 sound) {
+    u32 x = 0, y = 0, z = 0, r15;   // (the original's are uninitialised when the script is missing)
+    SpriteScript_GetPosition(at<s32>(sprite, 0xc), &x, &y, &z, &r15);
+    const auto whole = [](u32 bits) {
+        float f;
+        std::memcpy(&f, &bits, 4);
+        return (s32)(long long)f;
+    };
+    return Sound_PlayAt(0, category, sound, whole(x), whole(y), whole(z));
+}
 }
