@@ -83,6 +83,8 @@ def open_case(r, op):
 
 
 def case(r, ops=None):
+    """one of ops (OPS when None: port.py's mutants call case(r)); BaseHandler without dealing for none ([])"""
+    ops = OPS if ops is None else ops
     op = r.deal(ops) if ops else None
     if op == 'Create':
         return create_case(r)
@@ -103,4 +105,4 @@ def case(r, ops=None):
 OPS = [k for k in os.environ.get('OPS', 'BaseHandler,Create,Open,OpenOnGui').split(',') if k]
 
 if __name__ == '__main__':
-    B.main(lambda r: case(r, OPS))
+    B.main(case)
