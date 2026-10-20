@@ -5142,6 +5142,9 @@ address,name,kind,confidence,notes
 0x00664ba8,Window7059f0_SetRowHeight,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (height word): +0x170 = height, +0x172 = the inner rectangle's height / it (signed)"
 0x00664d2a,Window7059f0_FindItemData,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (data): the position from the first shown item of the first whose data is data, within the count; -1 when none"
 0x00663324,Window7059f0_RefreshRows,function,low,"reimplemented (src/game/ui/window7059f0); thiscall: the rows +0x148 refreshed from the item +0x154: shown, each column's window sent 0x403 and given its cell (slot 7, or slot 9 with the cell object's +4), the level as the first column's indent"
+0x00663085,Window7059f0_ResetItems,function,low,"reimplemented (src/game/ui/window7059f0); thiscall: the items (+0x164 + 4 dwords each, +0x158 dwords) chained as free: next sibling the following one, no child, parent -2"
+0x00663cb8,Window7059f0_RootEnd,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (end*, last*): along the siblings from the first shown item to the first free (parent -2) or none, stored with the one before it"
+0x00664495,Window7059f0_FitBar,function,low,"reimplemented (src/game/ui/window7059f0); cdecl (bar, count, rows, first): the scroll bar shown with range count - rows and slot 7 first when count > rows, else hidden with range 0"
 0x0065fbf0,WindowScript_ReadDword,function,low,reimplemented (src/game/ui/windowscript); a window script's next dword (two words)
 0x0065fc18,WindowScript_ReadWord,function,low,reimplemented (src/game/ui/windowscript); a window script's next word
 0x0065fc38,WindowScript_ReadRect,function,low,reimplemented (src/game/ui/windowscript); a window script's next four words to four outputs

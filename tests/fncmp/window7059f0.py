@@ -8,7 +8,11 @@
 # RefreshRows (0x663324): window.py's notify_env tree (the list's parent one of it), 0-4 rows (the word +0x172 now and then -1) of a row
 # window with 0-3 column windows (its first child and that one's siblings; +0x164 now and then -1), each shown or not with recorder
 # objects, handlers and a recorder vtable (slots 7 and 9); the items nine dwords apart (links, four cells that are objects of CELLS, a
-# dword whose address is sent), the column bottoms 1 or not, the count lowered until walk() keeps every read in the links.
+# dword whose address is sent), the column bottoms 1 or not, the count lowered until walk() keeps every read in the links. ResetItems
+# (0x663085): the columns +0x164 small, negative (-4 a fault in both), the dword count +0x158 small or negative, the links with room before
+# them. RootEnd (0x663cb8): items() with some made free (parent -2), the first shown one of them, -1 or -2, now and then no array.
+# FitBar (0x664495): a bar of its own (shown or not, its parent one of notify_env's tree, a recorder slot 7, its range and step any), or
+# none; the count around the rows or at the edges.
 # usage: window7059f0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ColumnBottom,NextItem,...)
 import os
 import struct
@@ -21,11 +25,13 @@ from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, log_region, put, set_return
 from window import MISC, OBJECT98, RANGES, VTABLE, notify_blobs, notify_env  # noqa: E402
 
 CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'SetNthItemData': 0x664b68, 'SetRowHeight': 0x664ba8,
-         'FindItemData': 0x664d2a, 'RefreshRows': 0x663324}
+         'FindItemData': 0x664d2a, 'RefreshRows': 0x663324, 'ResetItems': 0x663085, 'RootEnd': 0x663cb8, 'FitBar': 0x664495}
 B = Bench(RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
-                    (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707)])
+                    (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707),
+                    (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508)])
 WINDOW, COLUMNS, LINKS, OUT = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x800
 LIST, LINKS2, COLS2, CELLS, ROWS2, ROWWINS = RAM + 0x9000, RAM + 0x9420, RAM + 0x9e00, RAM + 0x9f00, RAM + 0x9c00, RAM + 0xb000
+BAR = RAM + 0xd000
 
 
 def none(r):
@@ -167,10 +173,35 @@ def refresh_case(r):
     return Call(CALLS['RefreshRows'], [LIST], regions, conv='t', ret='v')
 
 
+def bar_case(r):
+    """FitBar (0x664495): see the top"""
+    log = log_region()
+    regions = {LOG: log}
+    wins = notify_env(r, regions, log)
+    regions[VTABLE] = vtable({5: 1, 3: 2, 0: 1, 7: 1})
+    bar = bytearray(r.bytes(0x150))
+    bar[4] = 0 if r.random() < 0.9 else 1
+    bar[0x48] = (bar[0x48] & 0xfe) | r.choice([0, 1])
+    put(bar, 0, 'I', VTABLE)
+    put(bar, 0x5c, 'I', 0)
+    put(bar, 0x60, 'I', r.choice(wins + [0]))
+    put(bar, 0x98, 'I', r.choice([OBJECT98, OBJECT98, 0]))
+    put(bar, 0x9c, 'I', r.choice([MISC + 0x40, MISC + 0x40, 0]))
+    put(bar, 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
+    put(bar, 0x138, 'ii', r.choice([0, 0, r.randrange(-3, 9)]), r.choice([0, r.randrange(-3, 9)]))
+    put(bar, 0x144, 'i', r.choice([1, -1, 2, -3, 0]))
+    regions[BAR] = bar
+    rows = r.choice([0, 1, 5, 8, -1, 0x7fffffff, -0x80000000])
+    count = r.choice([rows, rows + 1, rows - 1, 0, 3, 12, -0x80000000, 0x7fffffff]) & 0xffffffff
+    return Call(CALLS['FitBar'], [r.choice([BAR] * 9 + [0]), count, rows & 0xffffffff, r.getrandbits(32)], regions, ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
     if op == 'RefreshRows':
         return refresh_case(r)
+    if op == 'FitBar':
+        return bar_case(r)
     window = bytearray(r.bytes(0x180))
     regions = {WINDOW: window}
     if op == 'SetRowHeight':   # (the inner rectangle's top and bottom near each other or any; the height small, negative or 0: a fault in both)
@@ -184,7 +215,24 @@ def case(r):
         put(window, 0x16c, 'I', COLUMNS)
         column = r.choice(list(range(12)) + [-1, -2]) & 0xffff
         return Call(CALLS[op], [WINDOW, column | r.choice([0, r.getrandbits(16)]) << 16], regions, conv='t', ret='a')
+    if op == 'ResetItems':   # (the columns +0x164 any small, -4 a fault in both; the dword count small, negative too)
+        regions[LINKS - 0x40] = r.bytes(0x40 + 4 * 80)
+        put(window, 0x144, 'I', LINKS)
+        put(window, 0x164, 'h', r.choice([0, 1, 2, 3, 5, -1, -3, -5, -8, -4]))
+        put(window, 0x158, 'i', r.choice([0, 1, 3, 4, 7, 8, 9, 20, 33, 48, -1, -9, r.randrange(64)]))
+        return Call(CALLS[op], [WINDOW], regions, conv='t', ret='v')
     idx = items(r, window, regions)
+    if op == 'RootEnd':   # (some items free: their parent -2; the outputs' old values random)
+        links = bytearray(regions[LINKS])
+        for i in idx:
+            if r.random() < 0.25:
+                put(links, 4 * (i + 3), 'i', -2)
+        regions[LINKS] = links
+        regions[OUT] = r.bytes(8)
+        put(window, 0x160, 'i', r.choice(idx + [idx[0], -1, -2]))
+        if r.random() < 0.1:
+            put(window, 0x144, 'I', 0)
+        return Call(CALLS[op], [WINDOW, OUT, OUT + 4], regions, conv='t', ret='v')
     if op == 'FindItemData':   # (the data of a few items a value looked for)
         links = bytearray(regions[LINKS])
         datas = [0, 7, 0xffffffff, r.getrandbits(32)]

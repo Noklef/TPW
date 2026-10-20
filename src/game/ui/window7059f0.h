@@ -63,6 +63,20 @@ void __fastcall Window7059f0_SetRowHeight(u8 *window, void *, u32 height);
 // dword (+1) is data, stepping (Window7059f0_NextItem) until -1 or the position reaches the count +0x150 - 1 (signed); -1 when none.
 s32 __fastcall Window7059f0_FindItemData(u8 *window, void *, u32 data);
 
+// 0x663085 (thiscall; name unconfirmed): the items made free, each (+0x164, signed) + 4 dwords: the dword count +0x158 / that (signed;
+// 0 faults, sic) items chained by their next sibling (+0), with no first child (-1) and the parent -2 (free); the last one's next -1.
+void __fastcall Window7059f0_ResetItems(u8 *window);
+
+// 0x663cb8 (thiscall (end, last), pops 8; name unconfirmed): with the array +0x144 set, from the first shown item (Window7059f0_NthItem
+// 0) along the next siblings to the first that is -1 or less or free (parent -2): it is stored through end and the one before it (-1 for
+// none) through last; neither is stored without the array.
+void __fastcall Window7059f0_RootEnd(u8 *window, void *, s32 *end, s32 *last);
+
+// 0x664495 (cdecl (bar, count, rows, first); name unconfirmed): with a scroll bar (kind 11), more items than rows (signed) shows it
+// (Window_SetShown), sets its range to count - rows, 0 (Window705b20_SetRange) and gives first to its slot 7 (thiscall); else it is
+// hidden and its range 0, 0.
+void __cdecl Window7059f0_FitBar(u8 *bar, s32 count, s32 rows, u32 first);
+
 // 0x663324 (thiscall; name unconfirmed): with the row window array +0x148 set, the rows (+0x172, signed) refreshed from the item +0x154
 // on (Window7059f0_NthItem), its level the number of its parents: each row window shown (Window_SetShown) when the list is
 // (Window_IsShown) and the row is below the count +0x150 (row + +0x154, signed); for such a row each of the columns (+0x164, signed),

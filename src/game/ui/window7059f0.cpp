@@ -147,6 +147,44 @@ s32 __fastcall Window7059f0_FindItemData(u8 *window, void *, u32 data) {
     return found ? position : -1;
 }
 
+void __fastcall Window7059f0_ResetItems(u8 *window) {
+    const s32 count = at<s32>(window, 0x158) / ((s32)at<s16>(window, 0x164) + 4);
+    s32 item = 0;
+    for (s32 i = 0; i < count - 1; ++i) {
+        at<s32 *>(window, 0x144)[item] = item + at<s16>(window, 0x164) + 4;
+        at<s32 *>(window, 0x144)[item + 2] = -1;
+        at<s32 *>(window, 0x144)[item + 3] = -2;
+        item += at<s16>(window, 0x164) + 4;
+    }
+    at<s32 *>(window, 0x144)[item] = -1;
+    at<s32 *>(window, 0x144)[item + 2] = -1;
+    at<s32 *>(window, 0x144)[item + 3] = -2;
+}
+
+void __fastcall Window7059f0_RootEnd(u8 *window, void *, s32 *end, s32 *last) {
+    s32 item = at<s32>(window, 0x160), before = -1;
+    if (!at<s32 *>(window, 0x144)) return;
+    for (s32 next = Window7059f0_NthItem(window, nullptr, 0); next >= 0 && at<s32 *>(window, 0x144)[next + 3] != -2;) {
+        before = item;
+        next = at<s32 *>(window, 0x144)[next];
+        item = next;
+    }
+    *end = item;
+    *last = before;
+}
+
+void __cdecl Window7059f0_FitBar(u8 *bar, s32 count, s32 rows, u32 first) {
+    if (!bar) return;
+    if (count > rows) {
+        Window_SetShown(bar, nullptr, 1);
+        Window705b20_SetRange(bar, nullptr, (s32)((u32)count - (u32)rows), 0);
+        vcall<void>(bar, 0x1c, first);
+    } else {
+        Window_SetShown(bar, nullptr, 0);
+        Window705b20_SetRange(bar, nullptr, 0, 0);
+    }
+}
+
 void __fastcall Window7059f0_RefreshRows(u8 *window) {
     s32 *cells = at<s32 *>(window, 0x144);
     if (!at<u8 **>(window, 0x148)) return;
