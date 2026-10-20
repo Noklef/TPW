@@ -86,4 +86,12 @@ void __cdecl GameClock_InitUnusedEpsilon();
 // while the clock is paused (Wrap_Obj_Get30_402df0, its +0x30) the first call marks a pause (0xf7977c = 1, its start 0xf79780 = now) and the
 // pause's start is the time; the first call after one ends it (0xf7977c = 0, the total 0xf79784 += now - start). Returns that time less the total.
 u32 __cdecl Clocks_RealNowLessPauses();
+
+// 0x4032d0 (thiscall; the double, pops 8; name unconfirmed): the rate (+0x20) = the double, its bits as they are.
+void __fastcall GameClock_SetRate(u8 *clock, void *, u32 low, u32 high);
+
+// 0x4032f0 / 0x403340 (thiscall; names unconfirmed): the rate (+0x20) times 1.25 / 0.8 (0x6fd658 / 0x6fd660; the x87 product, rounded
+// to 24 bits), kept in 0.25 to 2 (0x6fd648, 0x6fd650): below 0.25 or a NaN gives 0.25, above 2 gives 2.
+void __fastcall GameClock_Faster(u8 *clock);
+void __fastcall GameClock_Slower(u8 *clock);
 }
