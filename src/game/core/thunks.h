@@ -446,4 +446,6 @@ void __fastcall Wrap_Nav_Update_510150(u8 *nav);
 s32 __fastcall Wrap_Nav_PathProgress_510180(const u8 *nav);
 // 0x4815c0: jumps to KeyMap_AsyncModifiers (core/keymap).
 u32 __cdecl Wrap_KeyMap_AsyncModifiers_4815c0();
+// 0x481b70: jumps to MsgTags_AddVersion, of ui/msgtags.
+void __cdecl Wrap_MsgTags_AddVersion_481b70();
 }  // extern "C"
