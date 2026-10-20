@@ -4858,6 +4858,10 @@ const Hook kHooks[] = {
     {"jpeg_huff_decode",          0x006445e0, (void *)&jpeg_huff_decode, {0x8b, 0x44, 0x24, 0x0c, 0x53}},
     {"jpeg_fill_bit_buffer",      0x006444d0, (void *)&jpeg_fill_bit_buffer, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"jpeg_make_d_derived_tbl",   0x006441f0, (void *)&jpeg_make_d_derived_tbl, {0x81, 0xec, 0x24, 0x05, 0x00}},
+    {"jdhuff_process_restart",    0x00644cb0, (void *)&jdhuff_process_restart, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jdhuff_decode_mcu",         0x00644860, (void *)&jdhuff_decode_mcu, {0x83, 0xec, 0x3c, 0x53, 0x8b}},
+    {"jdhuff_start_pass_huff_decoder", 0x00644710, (void *)&jdhuff_start_pass_huff_decoder, {0x51, 0x53, 0x55, 0x56, 0x57}},
+    {"jinit_huff_decoder",        0x006446d0, (void *)&jinit_huff_decoder, {0x56, 0x8b, 0x74, 0x24, 0x08}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

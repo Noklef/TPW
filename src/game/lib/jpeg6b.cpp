@@ -28,6 +28,10 @@ static_assert(offsetof(jpeg_decompress_struct, max_v_samp_factor) == 0x114, "cin
 static_assert(offsetof(jpeg_component_info, component_index) == 0x4, "compptr->component_index (int_upsample)");
 static_assert(offsetof(jpeg_component_info, downsampled_width) == 0x28, "compptr->downsampled_width (the fancy upsamplers)");
 static_assert(offsetof(jpeg_decompress_struct, idct) == 0x19c, "cinfo->idct (jddctmgr.c's my_idct_controller)");
+static_assert(offsetof(jpeg_decompress_struct, entropy) == 0x198, "cinfo->entropy (jdhuff.c's huff_entropy_decoder)");
+static_assert(offsetof(jpeg_decompress_struct, unread_marker) == 0x17c, "cinfo->unread_marker (jpeg_fill_bit_buffer)");
+static_assert(offsetof(jpeg_decompress_struct, marker) == 0x194, "cinfo->marker (process_restart's read_restart_marker)");
+static_assert(offsetof(jpeg_decompress_struct, blocks_in_MCU) == 0x140, "cinfo->blocks_in_MCU (decode_mcu)");
 
 // The method-address shim. Every module's init (and jddctmgr.c's start_pass) stores the addresses of its methods in the structs the
 // exe's code also reads and calls through. The library stores its own functions' addresses; the exe's copy of the same code stores the
@@ -44,6 +48,7 @@ void __cdecl jdmerge_lib_jinit_merged_upsampler(j_decompress_ptr cinfo);
 void __cdecl jdsample_lib_jinit_upsampler(j_decompress_ptr cinfo);
 void __cdecl jddctmgr_lib_jinit_inverse_dct(j_decompress_ptr cinfo);
 void __cdecl jddctmgr_lib_start_pass(j_decompress_ptr cinfo);
+void __cdecl jdhuff_lib_jinit_huff_decoder(j_decompress_ptr cinfo);
 void __cdecl jpeg_idct_float(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, short *coef_block, unsigned char **output_buf,
                              unsigned int output_col);
 }
@@ -89,6 +94,9 @@ const ExeMethod kExeMethods[] = {
     {fn(&jpeg_idct_4x4), 0x64b5b0},
     {fn(&jpeg_idct_2x2), 0x64b970},
     {fn(&jpeg_idct_1x1), 0x64bb90},
+    // jdhuff.c
+    {fn(&jdhuff_start_pass_huff_decoder), 0x644710},
+    {fn(&jdhuff_decode_mcu), 0x644860},
 };
 
 // The method pointer at slot: the exe's address in place of a library method's (anything else is left as it is).
@@ -141,5 +149,11 @@ void __cdecl jddctmgr_start_pass(j_decompress_ptr cinfo) {
     jddctmgr_lib_start_pass(cinfo);
     for (int ci = 0; ci < cinfo->num_components; ++ci)  // (it sets inverse_DCT[ci] for each component)
         exe_method(cinfo->idct->inverse_DCT[ci]);
+}
+
+void __cdecl jinit_huff_decoder(j_decompress_ptr cinfo) {
+    jdhuff_lib_jinit_huff_decoder(cinfo);
+    exe_method(cinfo->entropy->start_pass);
+    exe_method(cinfo->entropy->decode_mcu);
 }
 }

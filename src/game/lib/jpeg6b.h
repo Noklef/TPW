@@ -61,6 +61,21 @@ unsigned char __cdecl jpeg_fill_bit_buffer(jpeg6b_bitread_working_state *state, 
 // 0x6445e0: a code of min_bits or more bits decoded through htbl's maxcode / valoffset (-1: suspended; 0 for a bad code).
 int __cdecl jpeg_huff_decode(jpeg6b_bitread_working_state *state, long get_buffer, int bits_left, jpeg6b_d_derived_tbl *htbl,
                              int min_bits);
+// The decoder itself (through wrap/jpeg-6b/jdhuff.c): cinfo->entropy is its huff_entropy_decoder (pub, bitstate +0xc, last_dc_val[4]
+// +0x14, restarts_to_go +0x24, dc / ac_derived_tbls[4] +0x28 / +0x38, dc / ac_cur_tbls[10] +0x48 / +0x70, dc / ac_needed[10] +0x98 /
+// +0xa2; 0xac bytes).
+// 0x6446d0: the module's init (a shim, jpeg6b.cpp): cinfo->entropy allocated, its derived tables null, with the exe's method
+// addresses.
+void __cdecl jinit_huff_decoder(jpeg_decompress_struct *cinfo);
+// 0x644710: start_pass: a warning unless the scan is sequential (Ss 0, Se 63, Ah = Al = 0); each scan component's derived tables, the
+// tables and needs of each block of the MCU, the bit buffer emptied, restarts_to_go = restart_interval.
+void __cdecl jdhuff_start_pass_huff_decoder(jpeg_decompress_struct *cinfo);
+// 0x644860: decode_mcu: a restart first when one is due, then each block's DC difference (added to its component's last_dc_val) and
+// AC coefficients into MCU_data (FALSE: suspended, nothing kept); nothing decoded once the data ran out (insufficient_data).
+unsigned char __cdecl jdhuff_decode_mcu(jpeg_decompress_struct *cinfo, short (**MCU_data)[64]);
+// 0x644cb0: process_restart: the bit buffer's whole bytes counted as discarded, cinfo->marker->read_restart_marker, the DC
+// predictions zeroed, restarts_to_go reset, insufficient_data cleared unless a marker is pending.
+unsigned char __cdecl jdhuff_process_restart(jpeg_decompress_struct *cinfo);
 
 // jdcolor.c (through wrap/jpeg-6b/jdcolor.c): the output colour space converters, cinfo->cconvert's color_convert methods. Each
 // converts num_rows rows from input_buf (one row array per component) at input_row into output_buf's rows, cinfo->output_width
