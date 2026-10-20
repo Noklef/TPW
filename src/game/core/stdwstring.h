@@ -64,6 +64,10 @@ StdWString *__fastcall StdWString_CtorCopy(StdWString *s, void *edx, const StdWS
 // 0x47af80: basic_string(n, ch, allocator): the allocator's byte, then empty and assign(n, ch) (inlined). Returns s.
 StdWString *__fastcall StdWString_CtorFill(StdWString *s, void *edx, u32 n, u32 ch, const u8 *allocator);
 
+// 0x4f0170 (thiscall (chars, allocator), pops 8; name unconfirmed): basic_string(const wchar_t *, allocator): the allocator's byte, then
+// empty and assign(chars, wcslen(chars)) (inlined, as Split's: a block of 31 or more characters made through _Copy for any). Returns s.
+StdWString *__fastcall StdWString_CtorChars(StdWString *s, void *edx, const u16 *chars, const u8 *allocator);
+
 // 0x47b600 (thiscall on a vector, which is not read; first, last, dest, pops 12): _Ucopy: each string of [first, last) copied
 // (CtorCopy, inlined) to the next 16 bytes from dest, unless dest is null (only skipped: the next is 0x10 on, sic). Returns the end.
 StdWString *__fastcall StdWStrings_UninitCopy(void *vector, void *edx, const StdWString *first, const StdWString *last, StdWString *dest);

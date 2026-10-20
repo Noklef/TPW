@@ -455,7 +455,7 @@ def case(r):
         regions[COLUMNS - 0x18] = b''.join(put(bytearray(r.bytes(0xc)), 0xa, 'h', v) for v in bottoms)
         put(window, 0x16c, 'I', COLUMNS)
         column = r.choice([0, 1, 2, 3, 0, 1, 2, 3, -1, -2])
-        put(window, 0x168, 'hh', column, r.choice([0, 0, 1, 1, r.getrandbits(16) - 0x8000]))
+        put(window, 0x168, 'hh', column, r.choice([0, 0, 1, 1, 0x100, -0x8000, r.getrandbits(16) - 0x8000]))   # (0x100: only the upper byte set)
         texts = [tuple(r.choice(ALPHA + [0x7fff, 0x8000]) for _ in range(r.choice([0, 1, 2, 3]))) for _ in range(5)]
         chars = bytearray(0x200)
         for j, t in enumerate(texts):
