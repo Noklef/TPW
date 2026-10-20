@@ -3,8 +3,12 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
+#include "../core/gameheap.h"
 #include "../core/string.h"
 #include "../core/vcall.h"
+#include "../core/vobj2.h"
+#include "handles.h"
 
 namespace {
 
@@ -65,5 +69,41 @@ u32 __cdecl Path_StripBase(String *path, String *base, String *out) {
     String_Dtor(&b);
     String_Dtor(&a);
     return result;
+}
+
+StreamBase *__cdecl VFS_Open(const char *name) {
+    void *const block = GameHeap_Alloc(8);
+    StreamBase *const stream = block ? StreamBase_Ctor(static_cast<StreamBase *>(block)) : nullptr;
+    u8 *const source = reinterpret_cast<u8 *>(static_cast<std::uintptr_t>(StreamBase_GetSource(*at<u8 **>(0x00786b9c))));
+    if (source) {
+        u8 *const archive = reinterpret_cast<u8 *>(static_cast<std::uintptr_t>(Get38_41ce90(source)));
+        if (archive) {
+            String relative, root, path;
+            String_Ctor(&relative);
+            String_Ctor(&root);
+            String_CtorStr(&path, nullptr, name);
+            vcall<void>(&root, 0x18, source + 0x18);
+            bool opened = false;
+            if (Path_StripBase(&path, &root, &relative) == 1) {
+                s32 result;
+                opened = *vcall<s32 *>(archive, 0xc, &result, stream, relative.data, 0x80000001u, 0u) >= 0;
+            }
+            String_Dtor(&path);
+            String_Dtor(&root);
+            String_Dtor(&relative);
+            if (opened) return stream;
+        }
+        String path;
+        String_CtorStr(&path, nullptr, name);
+        const bool opened = vcall<u32>(source, 8, stream, &path, 0x80000001u) == 1;
+        String_Dtor(&path);
+        if (opened) return stream;
+    }
+    String path;
+    String_CtorStr(&path, nullptr, name);
+    const bool opened = ListRef_AnyHandles(*at<u8 ***>(0x00786b9c), nullptr, static_cast<u32>(reinterpret_cast<std::uintptr_t>(stream)),
+                                           static_cast<u32>(reinterpret_cast<std::uintptr_t>(&path))) == 1;
+    String_Dtor(&path);
+    return opened ? stream : nullptr;
 }
 }

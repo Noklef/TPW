@@ -1,10 +1,11 @@
-// The game's virtual file system: paths inside the mounted WAD archives. Reimplementation of 0x41cff0, the path taken relative to a base
-// (an archive's folder or the archive itself).
+// The game's virtual file system: files in the mounted WAD archives or on disk. Reimplementation of 0x41cff0, the path taken relative to
+// a base (an archive's folder or the archive itself), and of 0x5c4d50, a file opened through the mounts.
 #pragma once
 
 #include "../../../re/types.h"
 
 struct String;
+struct StreamBase;
 
 extern "C" {
 
@@ -15,4 +16,14 @@ extern "C" {
 // String's length, and a's first b->length chars equal b (case blind), out = the rest of a with its leading "\"s dropped, and 1 is
 // returned; otherwise out = the empty String at 0x78be50 (vtable +0x18) and 0. Each assignment goes through the vtable's +0x1c.
 u32 __cdecl Path_StripBase(String *path, String *base, String *out);
+
+// 0x5c4d50 (cdecl; name): a stream for the file `name`. A new StreamBase (8 bytes from the game's heap, StreamBase_Ctor; 0 when that
+// failed, passed on as it is). The mounts object [0x786b9c] (+0 a list, +4 the current source; StreamBase_GetSource): with a source,
+// whose +0x38 holds an archive, the name is taken relative to the source's root (its WString at +0x18, through the vtable's +0x18, as
+// AssignWide does: Path_StripBase) and on 1 the archive opens it (slot 0xc: a result struct returned through its first argument, the
+// stream, the relative path's text, 0x80000001, 0), done when the result's first dword is not negative. Otherwise (no archive, not
+// under the root, or that failed) the source itself is asked (slot 8: the stream, a String of the name, 0x80000001), done on 1. Then
+// (or without a source) the list's objects are asked in turn (ListRef_AnyHandles on [0x786b9c]): the stream on 1, else 0 - the stream
+// is not freed then, nor when an earlier step failed.
+StreamBase *__cdecl VFS_Open(const char *name);
 }

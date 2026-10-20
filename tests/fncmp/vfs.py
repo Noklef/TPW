@@ -3,18 +3,20 @@
 # string of any text; the globals "\", ".", ".wad*\" (0x78bf40), ".wad*" (0x78c810), "" (0x78be50) and the folder code's "\" (0xf80be0),
 # now and then other texts, so that the archive branch, dead with the game's own pair, runs too ("." and the tail not empty, an archive in
 # a folder: as the game's, else both fault). The strings as gamestring.py's, their blocks from the heap region.
-# usage: vfs.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=StripBase)
+# Open (0x5c4d50): a file opened through the mounts' current source and its archive, or the list of the others (see open_()).
+# usage: vfs.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=StripBase,Open)
 import os
+import struct
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import Bench, Call, HEAP, RAM, heap  # noqa: E402
+from fncmp import LOG, Bench, Call, HEAP, RAM, blob, echo, fill, heap, log_region, put, recorder, set_return, strings  # noqa: E402
 import gamestring  # noqa: E402
 from gamestring import BACKSLASH, DOT, LOCALE, SLASH2, string  # noqa: E402
 
-B = Bench(gamestring.B_RANGES + [(0x41cff0, 0x41d2d0)])
+B = Bench(gamestring.B_RANGES + [(0x41cff0, 0x41d2d0), (0x41ce90, 0x41ce94), (0x421720, 0x421780), (0x4217e0, 0x421800), (0x5c4d50, 0x5c4f70)])
 TAIL, WAD, EMPTY = 0x78bf40, 0x78c810, 0x78be50
 PATH, BASE, OUT = RAM, RAM + 0x40, RAM + 0x80
 WORDS = [b'data', b'Data', b'ui', b'x.wct', b'a', b'TP', b'levels']
@@ -51,15 +53,87 @@ def strip_base(r):
     string(r, 0, PATH, RAM + 0x1000, regions, path)
     string(r, 0, BASE, RAM + 0x1400, regions, base)
     string(r, 0, OUT, RAM + 0x1800, regions)
+    globals_(r, regions)
+    return Call(0x41cff0, [PATH, BASE, OUT], regions, ret='a')
+
+
+def globals_(r, regions):
     for at, data, usual, other in ((BACKSLASH, RAM + 0x2000, b'\\', [b'/', b'\\\\', b'a']), (DOT, RAM + 0x2100, b'.', [b'.\\', b'..']),
                                     (TAIL, RAM + 0x2200, b'.wad*\\', [b'.wad*', b'.wad*', b'.wad']),
                                     (WAD, RAM + 0x2300, b'.wad*', [b'.wad*\\', b'.wad', b'']), (EMPTY, RAM + 0x2400, b'', [b'x', b'\\a']),
                                     (SLASH2, RAM + 0x2500, b'\\', [b'/', b'\\\\'])):
         string(r, 0, at, data, regions, usual if r.random() < 0.7 else r.choice(other))
-    return Call(0x41cff0, [PATH, BASE, OUT], regions, ret='a')
 
 
-OPS_ALL = {'StripBase': strip_base}
+MOUNTS, SOURCE, ARCHIVE, LIST, NODES, OBJS, NAME = RAM + 0x3000, RAM + 0x3100, RAM + 0x3200, RAM + 0x3300, RAM + 0x3400, RAM + 0x3500, RAM + 0x3800
+VT_SOURCE, VT_ARCHIVE, VT_OBJ = RAM + 0x3900, RAM + 0x3980, RAM + 0x3a00
+
+
+def open_(r):
+    """0x5c4d50 (cdecl; name): the mounts object [0x786b9c] with a list of 0-3 objects (slot 8: k 7) or none and a source (slot 8: k 2)
+    or none; the source's root at +0x18 a narrow String mostly (the code reads it as a WString: AssignWide copies its bytes), else a
+    wide one, and its +0x38 an archive (slot 0xc: k 3, the result struct filled through its first argument and returned, its dword any
+    sign) or 0; the name under the root or not (strip_base()'s texts); the answers 1 mostly, else 0 or another; the stream's block failing
+    now and then. The String arguments logged as their dwords (stack addresses), the relative path as its text."""
+    log = log_region()
+    regions = {LOG: log, HEAP: heap(fail=r.choice([0] * 7 + [1])), LOCALE: bytes(4)}
+    globals_(r, regions)
+    root = folder(r) or b'data'
+    if r.random() < 0.3:
+        root += b'\\'
+    k = r.random()
+    if k < 0.6:
+        name = flip(r, root) + r.choice([b'\\', b'', b'\\\\']) + folder(r)
+    elif k < 0.75:
+        name = flip(r, root[:r.randrange(len(root) + 1)])
+    else:
+        name = folder(r) + r.choice([b'', b'.wct'])
+    if r.random() < 0.2:
+        name = r.choice([b'.\\', b'\\']) + name
+    regions[NAME] = name + bytes(1) + r.bytes(7)
+    src = bytearray(r.bytes(0x40))
+    put(src, 0, 'I', VT_SOURCE)
+    part = {}
+    wide = r.random() < 0.2
+    text = root if not wide else b''.join(bytes([c, 0]) for c in root)
+    string(r, 0, RAM + 0x10, RAM + 0x3c00, part, text)
+    head = bytearray(part[RAM + 0x10][:0x14])
+    if wide:
+        put(head, 0, 'II', 0x7030c8, len(root))
+    src[0x18:0x2c] = head
+    regions[RAM + 0x3c00] = part[RAM + 0x3c00] + r.bytes(0x20)
+    put(src, 0x38, 'I', ARCHIVE if r.random() < 0.75 else 0)
+    regions[SOURCE] = src
+    regions[ARCHIVE] = put(bytearray(r.bytes(0x20)), 0, 'I', VT_ARCHIVE)
+    vt = bytearray(r.bytes(0x20))
+    put(vt, 8, 'I', recorder(2, 3))
+    regions[VT_SOURCE] = vt
+    vt = bytearray(r.bytes(0x20))
+    put(vt, 0xc, 'I', recorder(3, 5))
+    regions[VT_ARCHIVE] = vt
+    vt = bytearray(r.bytes(0x20))
+    put(vt, 8, 'I', recorder(7, 3))
+    regions[VT_OBJ] = vt
+    n = r.choice([0, 1, 2, 3])
+    nodes = bytearray(r.bytes(0x40))
+    for i in range(n):
+        put(nodes, 0x10 * i, 'II', OBJS + 0x20 * i, NODES + 0x10 * (i + 1) if i + 1 < n else 0)
+        regions[OBJS + 0x20 * i] = put(bytearray(r.bytes(0x20)), 0, 'I', VT_OBJ)
+    regions[NODES] = nodes
+    regions[LIST] = put(bytearray(r.bytes(0x10)), 4, 'I', NODES if n else 0)
+    regions[MOUNTS] = struct.pack('<II', LIST if r.random() < 0.9 else 0, SOURCE if r.random() < 0.85 else 0)
+    regions[0x786b9c] = struct.pack('<I', MOUNTS)
+    echo(log, 3, 0)
+    fill(log, 3, 0, struct.pack('<i', r.choice([0, 1, 5, -1, -0x80000000, r.getrandbits(31)])))
+    strings(log, 3, 1 << 2, out=1)
+    blob(log, 2, 1, 0x1f)
+    blob(log, 7, 1, 0x1f)
+    for k in (2, 7):
+        set_return(log, k, r.choice([1, 1, 0, 0, 2, r.getrandbits(32)]))
+    return Call(0x5c4d50, [NAME], regions, ret='a')
+
+
+OPS_ALL = {'StripBase': strip_base, 'Open': open_}
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 
