@@ -271,7 +271,7 @@ s32 __fastcall stub_seek(u8 *self, void *, u32 offset, u32 origin) {
 void __cdecl heap_throw() { RaiseException(0xe0000001, 0, 0, nullptr); }
 
 const StdStringEnv kStdStringEnv = {&heap_alloc, &heap_free, &heap_throw, &heap_throw};
-const MouseModeEnv kMouseModeEnv = {&heap_free};
+const MouseModeEnv kMouseModeEnv = {&heap_free, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const PtrListEnv kPtrListEnv = {&heap_alloc};
 const GameHeapEnv kGameHeapEnv = {&heap_alloc, &heap_free};
 const WadSourceEnv kWadSourceEnv = {&heap_alloc, &heap_free};
