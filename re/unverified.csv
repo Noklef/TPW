@@ -149,16 +149,9 @@ address,name,module,reason
 5fc340,Convert_RegisterExit,gfx/convert,todo
 5fc350,Convert_AtExit,gfx/convert,todo
 5fc360,SurfaceInfo_Convert,gfx/convert,todo
-5fc530,FileTime_Add,core/filetime,todo
-5fc550,FileTime_Sub,core/filetime,todo
-5fc570,FileTime_Greater,core/filetime,todo
-5fc5a0,FileTime_Assign,core/filetime,todo
-5fc5c0,FileTime_FromSystemTime,core/filetime,todo
-5fc660,FileTime_ToSystemTime,core/filetime,todo
 5fc740,JpegCodec_GetInfo,gfx/jpeg,todo
 5fc840,JpegCodec_Load,gfx/jpeg,todo
 5fcbc0,JpegCodec_IsJpeg,gfx/jpeg,todo
-5fcc50,FileTime_FromSpan,core/filetime,todo
 63a7b0,IndexConverter_Ctor,gfx/pixconv,todo
 63a810,IndexConverter_DeletingDtor,gfx/pixconv,todo
 63a830,IndexConverter_Dtor,gfx/pixconv,todo
