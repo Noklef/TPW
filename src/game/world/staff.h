@@ -170,4 +170,13 @@ u32 __fastcall StaffPool_Serialize(u8 *pool, void *, Stream *stream, u32 save, s
 // (+0x1e4) below 3 (signed), else at 0x75c7fc. Then the staff member is added to the message centre's slot 0xc and the park's +0x21c38
 // stamped (ParkAnalyser_StampTime21c38 on GameTable7cfb90_Get1da720_519510).
 void __fastcall Staff_InitBase(u8 *staff);
+
+// 0x5054d0 (thiscall; state, pops 4; name unconfirmed): the staff member's state (mState +0x19c, set last to `state`) entered. The reference +0xc's
+// +4 (Set4_4217f0) is the animation: 0: +0x200 the world's tick ([0x80239c] + 0x1da70c) when the old state is 1, else 0; the word +0xc2 the word
+// 0x75c7f0; anim 3 (Wrap_Set4_4217f0_4fa460). 1: anim 9. 4: +0xc2 the word 0x75c7f2, anim 9. 2: anim 1. 3: the +0x30 object's script
+// (Person_KillScript84) and the reference's slot (Obj_KillSlot) killed. 5: +0x1c = 0, +0xc2 the word 0x75c7f0, anim 0x13. 6: +0x200 the tick,
+// anim 0x14. 7 (picked up): the slot and the +0x30 script killed, an MMStaffDrop (0x14 bytes from the heap; MMStaffDrop_Ctor with +0x24 and the
+// byte +0x20) made, the mode holder made when missing (MouseModes_EnsureHolder) and the mode set (MouseMode_Set; 0 when the allocation failed).
+// Others: only stored (the original's debug print left out).
+void __fastcall Staff_SetState(u8 *staff, void *, u32 state);
 }

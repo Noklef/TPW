@@ -2,16 +2,22 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
 #include "../core/filetime.h"
 #include "../core/funnytime.h"
+#include "../core/gameheap.h"
 #include "../core/savegame.h"
 #include "../core/timesig.h"
 #include "../core/selectors.h"
+#include "../core/thunks.h"
 #include "../math/x87.h"
+#include "../sprite/scriptref.h"
 #include "analyser.h"
 #include "messagecentre.h"
 #include "money.h"
+#include "mousemode.h"
 #include "person.h"
+#include "personscripts.h"
 #include "things.h"
 #include "thingscan.h"
 #include "world.h"
@@ -447,5 +453,52 @@ u32 __fastcall Staff_GradeLevel(const u8 *staff) {
     // fild grade; fild progress; fmul -0.01 (a double); fsubp; fmul 20.0f; __ftol's low dword
     const X87Reg grade = X87Reg((double)at<s32>(staff, 0x1e4)) - X87Reg(X87_MulDouble((double)at<u8>(staff, 0x1e8), -0.01));
     return (u32)(long long)X87_MulDouble(grade.v, 20.0);
+}
+
+void __fastcall Staff_SetState(u8 *staff, void *, u32 state) {
+    u8 *const ref = staff + 0xc;
+    const auto tick = [] { return at<u32>(global<u8 *>(0x0080239c), 0x1da70c); };
+    switch (state) {
+    case 0:
+        at<u32>(staff, 0x200) = at<u32>(staff, 0x19c) == 1 ? tick() : 0;
+        at<u16>(staff, 0xc2) = global<u16>(0x0075c7f0);
+        Wrap_Set4_4217f0_4fa460(staff);
+        break;
+    case 4:
+        at<u16>(staff, 0xc2) = global<u16>(0x0075c7f2);
+        Set4_4217f0(ref, nullptr, 9);
+        break;
+    case 1:
+        Set4_4217f0(ref, nullptr, 9);
+        break;
+    case 2:
+        Set4_4217f0(ref, nullptr, 1);
+        break;
+    case 3:
+        Person_KillScript84(staff + 0x30);
+        Obj_KillSlot(ref);
+        break;
+    case 5:
+        at<u32>(staff, 0x1c) = 0;
+        at<u16>(staff, 0xc2) = global<u16>(0x0075c7f0);
+        Set4_4217f0(ref, nullptr, 0x13);
+        break;
+    case 6:
+        at<u32>(staff, 0x200) = tick();
+        Set4_4217f0(ref, nullptr, 0x14);
+        break;
+    case 7: {
+        Obj_KillSlot(ref);
+        Person_KillScript84(staff + 0x30);
+        u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x14));
+        u8 *const mode = block ? MMStaffDrop_Ctor(block, nullptr, at<u32>(staff, 0x24), at<u8>(staff, 0x20)) : nullptr;
+        MouseModes_EnsureHolder();
+        MouseMode_Set(mode);
+        break;
+    }
+    default:   // (the original's debug print)
+        break;
+    }
+    at<u32>(staff, 0x19c) = state;
 }
 }
