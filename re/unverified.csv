@@ -35,9 +35,6 @@ address,name,module,reason
 5f9550,Surface_Lock,gfx/surface,todo
 5f9600,Surface_Unlock,gfx/surface,todo
 5f9620,Surface_GetSurface,gfx/surface,todo
-5f9fa0,FpuControl_DeletingDtor,core/fpu,todo
-5f9fc0,FpuControl_Dtor,core/fpu,todo
-5f9fd0,FpuControl_BaseDeletingDtor,core/fpu,todo
 5fa030,Screen_SetGuid,gfx/screen,todo
 5fa040,Screen_GetDirectDraw,gfx/screen,todo
 5fa060,Screen_Close,gfx/screen,todo

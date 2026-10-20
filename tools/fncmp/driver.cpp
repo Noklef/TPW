@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "../../src/game/core/cpuinfo.h"
+#include "../../src/game/core/fpu.h"
 #include "../../src/game/core/gameheap.h"
 #include "../../src/game/core/ptrlist.h"
 #include "../../src/game/core/regkey.h"
@@ -776,6 +777,9 @@ int main(int argc, char **argv) {
     StreamOpen_SetEnv(&streamOpen);
     Crt_SetEnv(&kDriverCrt);
     Libc_SetEnv(&kDriverLibc);
+    static FpuEnv fpu = *Fpu_GetEnv();  // (the guard's deleting destructors free with the stand-in heap)
+    fpu.free = &heap_free;
+    Fpu_SetEnv(&fpu);
     // The sprite script list's calls: the hooked originals (Mem_GlobalAlloc / Free through the GlobalAlloc import slots the case maps, global_heap()).
     static const SpriteScriptEnv sprites = {reinterpret_cast<void *(__cdecl *)(u32)>(hooked(0x005f5660)), reinterpret_cast<void(__cdecl *)(void *)>(hooked(0x005f5680)),
                                             &script_now, reinterpret_cast<u32(__cdecl *)(u8 *)>(hooked(0x00475010)),
