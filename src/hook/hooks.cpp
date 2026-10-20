@@ -382,6 +382,7 @@
 #include "../game/ui/buttontext.h"
 #include "../game/ui/msgboxbutton.h"
 #include "../game/ui/msgtags.h"
+#include "../game/ui/thingbrowser.h"
 #include "../game/ui/windowtimers.h"
 #include "../game/lib/jpeg6b.h"
 #include "../game/lib/jpeg6a.h"
@@ -5181,6 +5182,8 @@ const Hook kHooks[] = {
     {"MsgTags_Create",            0x0048eaa0, (void *)&MsgTags_Create, {0x53, 0x56, 0x57, 0x33, 0xdb}},
     {"MsgTag_NewWindow",          0x0048ea00, (void *)&MsgTag_NewWindow, {0x6a, 0xff, 0x68, 0x6b, 0x97}},
     {"MsgBox_SetButton",          0x0048e610, (void *)&MsgBox_SetButton, {0x8b, 0x44, 0x24, 0x08, 0x56}},
+    {"ThingBrowser_ShowName",     0x004b3490, (void *)&ThingBrowser_ShowName, {0xa1, 0x08, 0xc3, 0x7c, 0x00}},
+    {"ThingBrowser_ShowDetail",   0x004b3580, (void *)&ThingBrowser_ShowDetail, {0x8b, 0x0d, 0x08, 0xc3, 0x7c}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
