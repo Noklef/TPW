@@ -4,23 +4,34 @@
 # negative. Next (0x504580) and Fill (0x5031a0): see defs() below; Fill's project counts also past 0x100, where the projects run into
 # the groups and mNumProjects. AllDone (0x4ca6b0): the lab (through the table at 0x7cfb90) with none to a few projects, done or not,
 # then defs()'s definitions and records. Flag (0x503ff0): defs()'s records, the lab's 0-12 projects (or a negative count) with ids mostly
-# among them.
-# usage: research.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Effort,ObjId,Count,NotDone,Ctor,Next,Fill,AllDone,Flag)
+# among them. Choose / ChooseBack (0x5034f0 / 0x5036a0): defs()'s definitions (their +0x284 ids none or known ones) and records (their
+# +0x10 bytes 0 or set), the global save info's keys (a red-black tree of stdtree.py's of 1-8 of the ids 0-11, the instance [0xf7c58c]),
+# the group 4 mostly, 0-12 projects mostly (or up to 0x100, or a negative count), their categories mostly the group's, their ids mostly
+# ones with a definition and a record, their research groups and the group's highest about each other, its current project none, among
+# them or past them.
+# usage: research.py [CASES [SEED]] [--wild|--both] [--show N]
+#   (env OPS=Effort,ObjId,Count,NotDone,Ctor,Next,Fill,AllDone,Flag,Choose,ChooseBack)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import stdtree  # noqa: E402
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x503850, 0x503861), (0x5039f0, 0x503a20), (0x503b30, 0x503b79), (0x504040, 0x504081),
            (0x504750, 0x50475e), (0x504580, 0x504627), (0x5031a0, 0x503325), (0x412e60, 0x412e6d), (0x412e70, 0x412e8f),
-           (0x4d3d10, 0x4d3d80), (0x5da3c0, 0x5da3c1), (0x4ca6b0, 0x4ca733), (0x4d3d80, 0x4d3df0), (0x519550, 0x51958d), (0x503ff0, 0x504037)])
+           (0x4d3d10, 0x4d3d80), (0x5da3c0, 0x5da3c1), (0x4ca6b0, 0x4ca733), (0x4d3d80, 0x4d3df0), (0x519550, 0x51958d), (0x503ff0, 0x504037),
+           (0x5034f0, 0x503693), (0x5036a0, 0x503844), (0x412e90, 0x412eea), (0x4d4b70, 0x4d4b84), (0x5af780, 0x5af7f0), (0x410ac0, 0x410b20),
+           (0x47d460, 0x47d4b0), (0x5b30b0, 0x5b3110), (0x409410, 0x40947a)],
+          hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})   # (as tree_finds.py's)
 LAB = RAM
 CALLS = {'Effort': 0x503850, 'ObjId': 0x5039f0, 'Count': 0x503b30, 'NotDone': 0x504040, 'Ctor': 0x504750, 'Next': 0x504580, 'Fill': 0x5031a0, 'AllDone': 0x4ca6b0,
-         'Flag': 0x503ff0}
+         'Flag': 0x503ff0, 'Choose': 0x5034f0, 'ChooseBack': 0x5036a0}
 TABLE, ITEMS, DEFS = RAM + 0x2000, RAM + 0x4000, 0x7890a0   # (the game's object control table, the object definitions and their list)
 IDS = [1, 2, 3, 4, 5, 9]
+SAVE, THEAD, TNIL, TNODES = RAM + 0x9000, RAM + 0x9100, RAM + 0x9200, RAM + 0xa000   # (the global save info and its tree of keys)
 FLOATS = [0.0, -0.0, 1.0, 100.0, 1e30, float('inf'), float('-inf'), float('nan')]
 
 
@@ -59,6 +70,51 @@ def defs(r, regions):
     return [ITEMS + 0x600 * i for i in range(6)]
 
 
+def save_keys(r, regions):
+    """the global save info [0xf7c58c] whose key tree (+0x28) holds 1-8 of the ids 0-11"""
+    n = r.choice([1, 2, 3, 5, 8])
+    nodes, root = stdtree.build(r, n)
+    keys = sorted(nodes)
+    ids = dict(zip(keys, sorted(r.sample(range(12), n))))   # (the order kept)
+    addr = {k: TNODES + 0x40 * i for i, k in enumerate(keys)}
+    ptr = lambda k: TNIL if k is None else addr[k]  # noqa: E731
+    blob = bytearray(0x40 * n)
+    for k in keys:
+        base = addr[k] - TNODES
+        put(blob, base, 'III', ptr(nodes[k][0]), THEAD if nodes[k][1] is None else addr[nodes[k][1]], ptr(nodes[k][2]))
+        put(blob, base + 0xc, 'II', ids[k], 0)
+        put(blob, base + 0x10, 'I', nodes[k][3])
+    regions.update({THEAD: struct.pack('<III', addr[keys[0]], addr[root], addr[keys[-1]]) + bytes(0x20), TNIL: put(bytearray(0x40), 0x10, 'I', 1),
+                    TNODES: blob, 0xf7c970: struct.pack('<I', TNIL), SAVE: put(bytearray(r.bytes(0x40)), 0x28, 'II', 0, THEAD),
+                    0xf7c58c: struct.pack('<I', SAVE)})
+
+
+def choose_case(r, op, lab):
+    """Choose / ChooseBack (the module comment)"""
+    regions = {LAB: lab}
+    defs(r, regions)
+    lst, items, table = regions[DEFS], regions[ITEMS], regions[TABLE]
+    have = [struct.unpack_from('<H', items, 0x600 * i)[0] for i in range(struct.unpack_from('<i', lst, 0x528)[0])]
+    known = [struct.unpack_from('<H', table, 0x20 * k)[0] for k in range(struct.unpack_from('<i', table, 0x12c0)[0])]
+    good = [i for i in have if i in known] or IDS
+    for i in range(6):
+        put(items, 0x600 * i + 0x284, 'H', r.choice([0, 0, 0, r.choice(good)]))
+        table[0x20 * i + 0x10] = r.choice([0, 1, 1, 0xff])
+    save_keys(r, regions)
+    group = r.choice([4, 4, 4, 0, 1, 2, 3])
+    n = r.choice([0, 1, 2, 3, 5, 8, 12, 12, r.randrange(0x101), -1, -5])
+    for i in range(max(0, min(n, 0x100))):
+        p = 0xc + i * 20
+        put(lab, p, 'H', r.choice(good) if r.random() < 0.97 else r.choice(IDS))
+        put(lab, p + 4, 'I', group if r.random() < 0.7 else r.choice([0, 1, 2, 3, 4, 5, r.getrandbits(32)]))
+        lab[p + 8] = r.choice([0, 1, 1, 2, 3, 0xff])
+    put(lab, 0x145c, 'i', n)
+    g = 0x140c + group * 16
+    put(lab, g + 8, 'i', r.choice([-1, -1, 0, 1, r.randrange(max(n, 1)), r.randrange(max(n, 1)), n, r.randrange(0x100)]))
+    lab[g + 0xc] = r.choice([0, 1, 2, 3, 3, 0xff])
+    return Call(CALLS[op], [LAB, group], regions, conv='t')
+
+
 def case(r):
     op = r.choice(OPS)
     lab = bytearray(r.bytes(0x1800))
@@ -71,6 +127,8 @@ def case(r):
         put(lab, 0x140c + g * 16 + 8, 'i', r.choice([-1, -2, 0, r.randrange(0x100), r.randrange(0x100)]))
     put(lab, 0x145c, 'i', r.choice([0, 1, 2, r.randrange(0x101), 0x100, -1, -5]))
     group = r.choice([0, 1, 2, 3, 4, r.randrange(5)])
+    if op in ('Choose', 'ChooseBack'):
+        return choose_case(r, op, lab)
     if op == 'Flag':   # the projects' ids mostly ones the table has (one missing faults in both)
         regions = {LAB: lab}
         defs(r, regions)
