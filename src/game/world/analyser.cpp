@@ -4,6 +4,7 @@
 
 #include "../core/filetime.h"
 #include "../core/funnytime.h"
+#include "messagecentre.h"
 
 namespace {
 
@@ -80,4 +81,25 @@ u8 *__fastcall ParkAnalyser_Cell(u8 *analyser, void *, u32 pos) {
 void __fastcall ParkAnalyser_StampTime21c30(u8 *analyser) { stamp(analyser, 0x21c30); }
 
 void __fastcall ParkAnalyser_StampTime21c38(u8 *analyser) { stamp(analyser, 0x21c38); }
+
+u32 __fastcall ParkAnalyser_InitCells(u8 *analyser) {
+    MessageCentre_AddThing(MessageCentre_Instance(), nullptr, analyser, 0xc);
+    MessageCentre_AddThing(MessageCentre_Instance(), nullptr, analyser, 0x11);
+    MessageCentre_AddThing(MessageCentre_Instance(), nullptr, analyser, 0x13);
+    const s32 count = (s32)(at<u32>(analyser, 0x14) * at<u32>(analyser, 0x10));
+    for (s32 i = 0; i < count; ++i) {
+        const s32 columns = at<s32>(analyser, 0x10);
+        const u32 size = at<u32>(analyser, 0xc);
+        const s32 column = i % columns, row = i / columns;
+        const u32 right = (u32)(column + 1) * size, bottom = (u32)(row + 1) * size;
+        const u32 w = (s32)right > at<s32>(analyser, 0x18) ? at<u32>(analyser, 0x18) - right + size : size;
+        const u32 h = (s32)bottom > at<s32>(analyser, 0x1c) ? at<u32>(analyser, 0x1c) - bottom + size : size;
+        u8 *const cell = analyser + 0x20 + i * 0x7c;
+        at<u32>(cell, 4) = (u32)row * size;
+        at<u32>(cell, 8) = w;
+        at<u32>(cell, 0) = (u32)column * size;
+        at<u32>(cell, 0xc) = h;
+    }
+    return 1;
+}
 }

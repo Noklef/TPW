@@ -41,4 +41,10 @@ u8 *__fastcall ParkAnalyser_Cell(u8 *analyser, void *, u32 pos);
 // +0x21c30 / +0x21c38 (their callers: 0x4db7a3, and the research lab's 0x504c65).
 void __fastcall ParkAnalyser_StampTime21c30(u8 *analyser);
 void __fastcall ParkAnalyser_StampTime21c38(u8 *analyser);
+
+// 0x4c7a90 (thiscall; name unconfirmed): the analyser added to the message centre's slots 0xc, 0x11 and 0x13, then each of its +0x14 * +0x10
+// cells (rows * columns, a 32-bit product; none when not positive; 0x7c bytes from +0x20) gets its rectangle: x = column * size, y = row * size,
+// w and h = size (+0xc), cut back where the cell passes the width (+0x18) or the height (+0x1c): w = width - (column + 1) * size + size. Column
+// and row are cell % columns and cell / columns, signed; the products wrap. Returns 1.
+u32 __fastcall ParkAnalyser_InitCells(u8 *analyser);
 }
