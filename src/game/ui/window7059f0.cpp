@@ -84,4 +84,9 @@ u32 __fastcall Window7059f0_SetColumn(u8 *window, void *, u32 index, u32 left, u
 u32 __fastcall Window7059f0_SetInner(u8 *window, void *, u32 left, u32 top, u32 right, u32 bottom) {
     return Fn_659dac(window + 0x138, nullptr, (u16)left, (u16)top, (u16)right, (u16)bottom);
 }
+
+u32 __fastcall Window7059f0_Item148Depth(const u8 *window) {
+    u8 *const *const cell = at<u8 *const *>(const_cast<u8 *>(window), 0x148);
+    return cell && *cell ? at<u16>(*cell, 0xe0) : 0;
+}
 }

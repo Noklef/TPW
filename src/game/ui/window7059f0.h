@@ -29,4 +29,8 @@ u32 __fastcall Window7059f0_SetColumn(u8 *window, void *, u32 index, u32 left, u
 // 0x6651ef (thiscall (left, top, right, bottom: words), pops 16; name unconfirmed): the rectangle +0x138's four words set (Fn_659dac), whose EAX
 // is returned.
 u32 __fastcall Window7059f0_SetInner(u8 *window, void *, u32 left, u32 top, u32 right, u32 bottom);
+
+// 0x665bfb (thiscall; name unconfirmed): with the dword +0x148 set and the window it points at set, that window's depth word +0xe0
+// (Fn_659730); else 0. Only AX is set.
+u32 __fastcall Window7059f0_Item148Depth(const u8 *window);
 }

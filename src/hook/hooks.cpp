@@ -351,6 +351,7 @@
 #include "../game/ui/dialog7cc61c.h"
 #include "../game/ui/dialogbase.h"
 #include "../game/ui/focus.h"
+#include "../game/ui/guidepth.h"
 #include "../game/ui/guishape.h"
 #include "../game/ui/panel7cc298.h"
 #include "../game/ui/radiogroup.h"
@@ -4752,6 +4753,7 @@ const Hook kHooks[] = {
     {"Window7059f0_SetColumns",   0x00663554, (void *)&Window7059f0_SetColumns, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window7059f0_SetColumn",    0x00663662, (void *)&Window7059f0_SetColumn, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window7059f0_SetInner",     0x006651ef, (void *)&Window7059f0_SetInner, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window7059f0_Item148Depth", 0x00665bfb, (void *)&Window7059f0_Item148Depth, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705950_Layout",       0x0065aac0, (void *)&Window705950_Layout, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705950_Ctor",         0x0065ab64, (void *)&Window705950_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window705950_SetInner",     0x0065bb10, (void *)&Window705950_SetInner, {0x55, 0x8b, 0xec, 0x51, 0x89}},
@@ -4810,6 +4812,8 @@ const Hook kHooks[] = {
     {"GuiCircle_CtorWith",        0x0066c054, (void *)&GuiCircle_CtorWith, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"GuiCircle_Ctor",            0x0066c01a, (void *)&GuiCircle_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"GuiShape_DeletingDtor",     0x0065a9f0, (void *)&GuiShape_DeletingDtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Gui_TopDepth",              0x00659409, (void *)&Gui_TopDepth, {0x55, 0x8b, 0xec, 0x83, 0x7d}},
+    {"Gui_TopDepthIn",            0x00659437, (void *)&Gui_TopDepthIn, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

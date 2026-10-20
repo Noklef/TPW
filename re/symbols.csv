@@ -5132,6 +5132,7 @@ address,name,kind,confidence,notes
 0x00663554,Window7059f0_SetColumns,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (count): with no columns yet an array of count GUI rectangles at +0x16c, column i i*32..(i+1)*32, +0x164 = count"
 0x00663662,Window7059f0_SetColumn,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (index, left, right): the column's rectangle set to left, 0, right, 1 for an index below the count"
 0x006651ef,Window7059f0_SetInner,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (left, top, right, bottom): the rectangle +0x138's words set (Fn_659dac)"
+0x00665bfb,Window7059f0_Item148Depth,function,low,"reimplemented (src/game/ui/window7059f0); thiscall: the depth word +0xe0 of the window [+0x148] points at, 0 when either is missing (AX)"
 0x0065fbf0,WindowScript_ReadDword,function,low,reimplemented (src/game/ui/windowscript); a window script's next dword (two words)
 0x0065fc18,WindowScript_ReadWord,function,low,reimplemented (src/game/ui/windowscript); a window script's next word
 0x0065fc38,WindowScript_ReadRect,function,low,reimplemented (src/game/ui/windowscript); a window script's next four words to four outputs
@@ -5185,3 +5186,5 @@ address,name,kind,confidence,notes
 0x0066c5a4,GuiPolygon_Contains,function,low,"reimplemented (src/game/ui/guishape); thiscall (x, y): 1 in AX when inside the polygon (crossing test)"
 0x0066c6c3,GuiPolygon_Offset,function,low,"reimplemented (src/game/ui/guishape); thiscall (dx, dy): each point moved"
 0x0066c7b0,GuiPolygon_DeletingDtor,function,low,reimplemented (src/game/ui/guishape); thiscall (flags): the polygon's scalar deleting destructor
+0x00659437,Gui_TopDepthIn,function,low,"reimplemented (src/game/ui/guidepth); cdecl (window, shape): [0xfaa594] raised to 1 above each shown child's depth (kind 7: Window7059f0_Item148Depth) that overlaps the shape (any without one), down the tree; the root starts it at its own depth"
+0x00659409,Gui_TopDepth,function,low,"reimplemented (src/game/ui/guidepth); cdecl (window, shape): Gui_TopDepthIn of the window or the GUI root [0xfaa5d8]; -1 with neither"
