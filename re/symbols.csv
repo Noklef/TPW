@@ -94,8 +94,8 @@ address,name,kind,confidence,notes
 0x00592060,WaveletCodec_Decode,function,high,reimplemented (src/game/gfx/wavelet); the decode dispatch on the format version 0x12 or 0x13
 0x005920f0,WaveletCodec_DecodeScaled,function,high,reimplemented (src/game/gfx/wavelet); the scaled decode dispatch for versions above 0x12
 0x00593ab0,WaveletCodec_DecodeV12,function,high,"one-level D4 like v0x13 but rows stored [all low, all high]; streams are BILZ (zlib); ported in tools/wct2png.py"
-0x00595920,WaveletCodec_DecodeV13,function,high,"one-level D4 wavelet, YUV 4:2:0 + optional alpha; ported in tools/wct2png.py"
-0x00597100,WaveletCodec_DecodeV13Scaled,function,medium,resampling variant; calls DecodeV13 when sizes match
+0x00595920,WaveletCodec_DecodeV13,function,high,"reimplemented (src/game/gfx/wavelet); the v0x13 decoder: LZ77-unpacked planes through the inverse D4 in per-plane orders, 32-bit or 16-bit pixels"
+0x00597100,WaveletCodec_DecodeV13Scaled,function,medium,"reimplemented (src/game/gfx/wavelet); the v0x13 decoder resampled to a destination size, or forwarded to slot 2"
 0x00597090,Wavelet_ReadBits,function,high,reimplemented (src/game/gfx/wavelet); reads bits least significant first from the 16 bit word stream
 0x0059c610,Record_IsActive,function,high,reimplemented (src/game/world/objectdefs); whether the record with an id has the dword 1 at +8
 0x00591a60,Obj_IncBefore4c,function,high,reimplemented (src/game/core/selectors); increments the dword at -0x4c and returns it

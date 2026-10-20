@@ -15,8 +15,14 @@
 # - the colour decoder (0x592730): the same with the planes at +0x2c, +0x1c and +0xc each empty or a block, sizes 2 to 16 (now and then
 #   0, 1, 17 or 20), three quantisers and YUV to BGR's tables and globals any bytes;
 # - YUV to BGR pixels (0x5935a0): sizes odd and even (now and then 0 or 1: 2^32 loops, sic), luma strides at, above and below the width,
-#   Cr above or below Cb (now and then not a dword apart), Y and chroma floats in range or any, the clamp tables any bytes.
-# usage: wavelet.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS,DGREY,RGB,DCOL)
+#   Cr above or below Cb (now and then not a dword apart), Y and chroma floats in range or any, the clamp tables any bytes;
+# - the v0x13 decoder (0x595920), dealt over its four outputs (32-bit and 16-bit, with and without an alpha block): sizes 1 to 16 (now and
+#   then up to 32, or 0), LZ77 blocks encoded here from coefficient streams (small values, 0x80 escapes, now and then a copy from before
+#   the stream), any quantisers, the filter the game's or any floats, the colour tables small values, the clamp and pixel words any bytes;
+# - its resampling variant (0x597100), dealt over the same four and the forward to the codec's slot 2 (a recorder): destinations 1 to 24
+#   (now and then 0: the division faults), pitches at, above and below the row.
+# usage: wavelet.py [CASES [SEED]] [--wild|--both] [--show N]
+#        (env OPS=PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS,DGREY,RGB,DCOL,V13,V13S)
 import math
 import os
 import struct
@@ -25,8 +31,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, LOG, Bench, Call, RAM, fb, heap, log_region, put, vtable  # noqa: E402
 
-B = Bench([(0x591ab0, 0x592010), (0x592150, 0x593ab0), (0x598630, 0x598790), (0x5f8050, 0x5f8120)])
-OPS = [k for k in os.environ.get('OPS', 'PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS,DGREY,RGB,DCOL').split(',') if k]
+B = Bench([(0x591ab0, 0x592010), (0x592150, 0x593ab0), (0x595920, 0x5985c0), (0x598630, 0x598790), (0x5f8050, 0x5f8120), (0x5839e0, 0x583a00)])
+OPS = [k for k in os.environ.get('OPS', 'PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS,DGREY,RGB,DCOL,V13,V13S').split(',') if k]
 CURSOR = RAM + 8
 CODEC, PLANES, SRC, DST, FILTER = RAM, RAM + 0x1000, RAM + 0x2000, RAM + 0x3000, 0xc27208
 OUT, SIZE, OLD, STREAM = RAM + 0x4000, RAM + 0x4100, RAM + 0x5000, 0xa067f8
@@ -78,6 +84,8 @@ def case(r):
         return Call(0x5924f0, [CODEC, SRC, DST, n & 0xffffffff],
                     {CODEC: r.bytes(0x10), SRC: r.floats(bytearray(size), range(0, size, 4)), DST: r.floats(bytearray(size), range(0, size, 4)),
                      FILTER: filt}, conv='t')
+    if op in ('V13', 'V13S'):
+        return decode_v13(r, op == 'V13S')
     if op == 'RGB':
         return yuv_to_rgb(r)
     if op == 'DCOL':
@@ -256,6 +264,115 @@ def decoder(r, op):
     return Call(0x5933a0, [CODEC, CODEC, CODEC + 4, width, n],
                 {CODEC: struct.pack('<II', PLANES, dst) + r.bytes(8), PLANES: r.floats(bytearray(size), range(0, size, 4)),
                  DST: r.floats(bytearray(size), range(0, size, 4)), FILTER: D4 if r.random() < 0.6 else r.floats(bytearray(0x10), range(0, 0x10, 4))},
+                conv='t')
+
+
+def coefficients(r, count):
+    """count coefficients as the v0x13 decoders read them: s8 bytes, mostly small, 0x80 escaping an s16 (the two bytes after it)."""
+    out = bytearray()
+    for _ in range(count):
+        v = r.choice([0, 0, 0, r.randrange(-4, 5), r.randrange(-40, 41), r.randrange(-127, 128)])
+        if r.random() < 0.04:
+            out += struct.pack('<Bh', 0x80, r.choice([r.randrange(-2000, 2001), r.randrange(-0x8000, 0x8000), -0x80, 0x7f]))
+        else:
+            out.append(v & 0xff)
+    return out
+
+
+def lz77(r, data):
+    """data as the v0x13 decoders' LZ77 block: bits taken from the low end of 16-bit words, a 0 and 8 bits a literal, a 1, 12 bits of
+    distance and 7 of length - 1 a copy (overlapping; now and then from before the stream), a distance of 0 the end."""
+    bits = []
+
+    def emit(value, n):
+        bits.extend((value >> k) & 1 for k in range(n))
+    seen = {}
+    i = 0
+    while i < len(data):
+        if i < 0xfc0 and r.random() < 0.002:   # a copy from the bytes before the stream: what follows reads differently
+            emit(1, 1), emit(i + r.randrange(1, 0x40), 12), emit(r.randrange(0, 0x14), 7)
+        best, dist = 0, 0
+        if r.random() < 0.8:
+            for d in [1, 2, 4] + [i - q for q in seen.get(bytes(data[i:i + 2]), [])[-3:]]:
+                if 1 <= d <= min(i, 0xfff):
+                    k = 0
+                    while k < 0x80 and i + k < len(data) and data[i + k - d] == data[i + k]:
+                        k += 1
+                    if k > best:
+                        best, dist = k, d
+        if best >= 2:
+            emit(1, 1), emit(dist, 12), emit(best - 1, 7)
+        else:
+            best = 1
+            emit(0, 1), emit(data[i], 8)
+        for q in range(i, i + best):
+            seen.setdefault(bytes(data[q:q + 2]), []).append(q)
+        i += best
+    emit(1, 1), emit(0, 12), emit(r.randrange(0, 0x80), 7)
+    out = bytearray((len(bits) + 15) // 16 * 2 + 8)
+    for k, b in enumerate(bits):
+        out[k >> 3] |= b << (k & 7)
+    return out
+
+
+V13_MAIN, V13_ALPHA, V13_VTABLE, V13_PIXELS = RAM + 0x10000, RAM + 0x18000, RAM + 0x1f000, RAM + 0x20000
+V13_KINDS = [(4, True), (4, False), (2, True), (2, False)]
+
+
+def plane(r, count):
+    """a plane's floats with slack after it (the 32-bit outputs read Y and alpha packed by pairs, past the side's rows)."""
+    size = 4 * count + 0x100
+    return r.floats(bytearray(size), range(0, size, 4))
+
+
+def decode_v13(r, scaled):
+    """0x595920 or 0x597100: the planes' globals, the colour tables and LZ77 blocks; the resampler now and then forwards (slot 2)."""
+    kind = r.deal(V13_KINDS + ['forward'] if scaled else V13_KINDS)
+    width, height = (r.randrange(1, 17) if r.random() < 0.92 else r.randrange(17, 33) for _ in range(2))
+    if r.random() < 0.02:
+        width, height = r.choice([(0, height), (width, 0)])
+    if kind == 'forward':
+        q = [r.f() for _ in range(4)]
+        args = [CODEC, width, height, width, height, width, r.choice([4, 2]), V13_MAIN, r.choice([0, V13_ALPHA]), V13_PIXELS] + q
+        return Call(0x597100, args, {CODEC: struct.pack('<I', V13_VTABLE) + r.bytes(0xc), V13_VTABLE: vtable({2: 10}), LOG: log_region()},
+                    conv='t')
+    pixel, alpha = kind
+    n = max(side(width), side(height))
+    half = n >> 1
+    count = n * n + 2 * half * half
+    data = coefficients(r, count)
+    low = bytearray(0x610)   # 0xc26c08: red by Cr (dwords), the clamp bytes, the filter
+    for off in range(0, 0x400, 4):
+        put(low, off, 'i', r.randrange(-0x100, 0x101))
+    low[0x400:0x600] = r.bytes(0x200)
+    low[0x600:0x610] = D4 if r.random() < 0.8 else r.floats(bytearray(0x10), range(0, 0x10, 4))
+    tabs = bytearray(r.bytes(0x1800))   # 0xcef228: the pixel words (any) and the green dwords by Cb and Cr (small)
+    for off in list(range(0x800, 0xc00, 4)) + list(range(0x1400, 0x1800, 4)):
+        put(tabs, off, 'i', r.randrange(-0x100, 0x101))
+    blue = bytearray(0x408)   # 0xbe6800: the bit reader's position, blue by Cb (dwords)
+    put(blue, 0, 'I', r.getrandbits(32))
+    for off in range(8, 0x408, 4):
+        put(blue, off, 'i', r.randrange(-0x100, 0x101))
+    regions = {V13_MAIN: lz77(r, data), 0xa066f8: r.bytes(0x100 + max(3 * count, len(data)) + 0x40), 0xc67218: r.bytes(4), 0xd70a28: r.bytes(4),
+               0xf74a48: r.bytes(4), 0xd30a28: plane(r, n * n), 0x8bd550: put(bytearray(r.bytes(0xc8)), 4, 'I', r.randrange(0, 5))}
+    if alpha:
+        regions[V13_ALPHA] = lz77(r, coefficients(r, n * n))
+    q = [r.choice([fb(r.uniform(0.5, 8)), fb(r.uniform(0.5, 8)), fb(r.uniform(8, 64)), r.f()]) for _ in range(4)]
+    if not scaled:
+        regions.update({0xe74a40: r.bytes(8), 0xaa67f8: r.bytes(8), 0xbe6800: blue + plane(r, n * n), 0xf34a48: plane(r, half * half),
+                        0xcef228: tabs + plane(r, half * half), 0x8c67f8: plane(r, n * n), 0xc26c08: low})
+        pairs = (width + 1) >> 1
+        regions[V13_PIXELS] = r.bytes(max(8 * pairs * height, 2 * width * (height + 1)) + 0x10)
+        return Call(0x595920, [CODEC, width, height, pixel, V13_MAIN, V13_ALPHA if alpha else 0, V13_PIXELS] + q, regions, conv='t')
+    regions.update({0xe74a40: r.bytes(8) + plane(r, half * half), 0xaa67f8: r.bytes(8) + plane(r, n * n), 0xbe6800: blue, 0xcef228: tabs,
+                    0xc6f228: plane(r, n * n), 0xc26c08: low + plane(r, half * half)})
+    dst_width, dst_height = (r.randrange(1, 25) if r.random() < 0.98 else 0 for _ in range(2))
+    row = pixel * dst_width
+    pitch = max(0, row + r.choice([0, 0, 0, pixel, 3 * pixel, 1, -pixel]))
+    if dst_width == pitch and width == dst_width and height == dst_height:
+        pitch += pixel
+    regions[V13_PIXELS] = r.bytes(dst_height * max(pitch, row) + 0x10)
+    return Call(0x597100, [CODEC, width, height, dst_width, dst_height, pitch, pixel, V13_MAIN, V13_ALPHA if alpha else 0, V13_PIXELS] + q, regions,
                 conv='t')
 
 
