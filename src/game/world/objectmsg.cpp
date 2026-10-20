@@ -244,6 +244,26 @@ u32 __fastcall Object_QueueSpot(u8 *object, void *, u32 place, u16 *cellOut, u8 
     return 0;
 }
 
+u32 __fastcall Object_EntranceQueueSpot(u8 *object, void *, u32 place, u16 *cellOut, u8 *x, u8 *y) {
+    const X87Reg scaled = X87Reg((double)place) * X87Reg(0.25f) * X87Reg(255.0f);
+    const u8 along = (u8)(long long)scaled.v;  // __ftol, the low byte
+    const u8 across = (u8)((u32)World_Rand(*reinterpret_cast<u8 **>(0x0080239c)) % 0x1c + 0x72);
+    u16 cell;
+    Object_BackOfQueue(object, nullptr, &cell);  // (the same call with flag 8 of +0x32 or without)
+    *cellOut = cell;
+    const u8 *const here = *reinterpret_cast<u8 **>(0x008023a0) + (u32)at<u16>(object, 0x36) * 0x44 - 0x44;
+    u16 again;
+    Object_BackOfQueue(object, nullptr, &again);  // (sic: asked again, into the cell argument's stack slot, and not used)
+    switch (MapCell_Direction(here)) {
+    case 1: *x = across; *y = along; break;
+    case 4: *x = (u8)(0xff - along); *y = across; break;
+    case 0x10: *x = across; *y = (u8)(0xff - along); break;
+    case 0x40: *x = along; *y = across; break;
+    default: break;  // (a debug print is left out)
+    }
+    return 0;
+}
+
 u32 __fastcall Object_CanOpen(u8 *object) {
     const s32 state = at<s32>(object, 0x19c);
     if (state == 1 || state == 4 || at<u32>(object, 0x64) != 0 || state == 2) return 0;

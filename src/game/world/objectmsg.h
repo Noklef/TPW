@@ -59,6 +59,11 @@ u32 __fastcall Object_EntranceOnPath(u8 *object);
 // step (Map_StepCellInDirection; a null one is read) is a type 1 cell, else the cell's own direction; then as above but 4 gives (along + 0x80, across). Returns 0.
 u32 __fastcall Object_QueueSpot(u8 *object, void *, u32 place, u16 *cell, u8 *x, u8 *y);
 
+// 0x4dec30 (thiscall; place, out cell word, out x and y bytes; pops 0x10; x87; name unconfirmed): Object_QueueSpot's along and across (in that order: __ftol of
+// place * 0.25 * 255, then World_Rand), the back of the queue (Object_BackOfQueue) to *cell, then Object_BackOfQueue asked again (sic: its cell unused), and the
+// first switch of Object_QueueSpot on the direction of the object's own cell (the word at +0x36). Returns 0.
+u32 __fastcall Object_EntranceQueueSpot(u8 *object, void *, u32 place, u16 *cell, u8 *x, u8 *y);
+
 // 0x4df290 (thiscall; name unconfirmed): whether the object can be opened: the dword at +0x19c is not 1, 4 or 2, the dword at +0x64 is 0, Object_EntranceOnPath, and
 // for a definition (ObjectDefs_Find of the id at +0xe) of kind 3 (+0x9c) Object_LinkOtherOpen.
 u32 __fastcall Object_CanOpen(u8 *object);
