@@ -50,12 +50,25 @@ u8 *child(u8 *row, u32 kind, u32 flags, u32 id, u32 left = 0, u32 top = 0, u32 r
     return Window_CreateChild(row, nullptr, kind, flags, id, left, top, right, bottom);
 }
 
-void initRow(u8 *row) {
+using PartCtor = u8 *(__fastcall *)(u8 *, void *, u32);
+
+// a new text part of the kind `ctor` builds (0x1a4 bytes; none when the allocation fails) as the window's impl
+void setPart(u8 *window, PartCtor ctor) {
     u8 *const part = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
-    Window_SetImpl(row, nullptr, part ? TextPart_Ctor(part, nullptr, 0) : nullptr);
+    Window_SetImpl(window, nullptr, part ? ctor(part, nullptr, 0) : nullptr);
+}
+
+void initRow(u8 *row) {
+    setPart(row, TextPart_Ctor);
     Window_Set4c(row, nullptr, Language_Font(7));
     Window_Notify40000(row, nullptr, 0xff, 0xff, 0xff, 0xff);
 }
+
+u8 *firstChild(u8 *window) { return reinterpret_cast<u8 *>((uintptr_t)Fn_65d547(window, nullptr, 0)); }
+
+u8 *nextSibling(u8 *window) { return reinterpret_cast<u8 *>((uintptr_t)Fn_65d56b(window)); }
+
+u8 *lookOf(const char *name) { return reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(name)); }
 }  // namespace
 
 extern "C" {
@@ -91,8 +104,8 @@ u8 *__cdecl List7cc530_NewRow() {
 
 void __cdecl List7cc530_InitRow(u8 *row) {
     initRow(row);
-    u8 *const box = reinterpret_cast<u8 *>((uintptr_t)Fn_65d547(row, nullptr, 0));
-    Window_SetObject98(box, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName("i_boxtick")));
+    u8 *const box = firstChild(row);
+    Window_SetObject98(box, nullptr, lookOf("i_boxtick"));
     vcall<void>(box, 0x1c, 0u);
 }
 
@@ -186,5 +199,53 @@ u8 *__cdecl List7cc200_NewRow() {
         child(window, 6, 1, 2, 0x64, 0, 0xc8, 0x32);
     }
     return window;
+}
+
+u8 *__cdecl List7ca314_NewRowJump() { return List7ca314_NewRow(); }
+
+void __cdecl List7ca314_InitRow(u8 *row) {
+    setPart(row, TextPart_Ctor);
+    Window_Set4c(row, nullptr, Language_Font(global<u32>(0x007523dc)));
+    u8 *const text = firstChild(row);
+    setPart(text, TextPart6ff3b0_Ctor);
+    Window_Set4c(text, nullptr, Language_Font(global<u32>(0x007523dc)));
+    Window_NotifyC00(text, nullptr, 2, 1);
+    vcall<void>(text, 0x1c, 0u);
+}
+
+void __cdecl List7cb24c_InitRow(u8 *row) {
+    initRow(row);
+    u8 *const text = firstChild(row);
+    initRow(text);
+    Window_NotifyC00(text, nullptr, 2, 1);
+}
+
+void __cdecl List7cc250_InitRow(u8 *row) {
+    setPart(row, TextPart_Ctor);
+    Window_Set4c(row, nullptr, Language_Font(global<u32>(0x0075583c)));
+    Window_Notify40000(row, nullptr, 0xff, 0xff, 0xff, 0xff);
+    u8 *const text = firstChild(row);
+    setPart(text, TextPart6ff410_Ctor);
+    Window_Set4c(text, nullptr, Language_Font(global<u32>(0x0075583c)));
+    Window_NotifyC00(text, nullptr, 2, 1);
+    vcall<void>(text, 0x1c, 0u);
+}
+
+void __cdecl List7cc654_InitRow(u8 *row) {
+    setPart(row, TextPart_Ctor);
+    Window_Notify40000(row, nullptr, 0xff, 0xff, 0xff, 0xff);
+    Window_Set4c(row, nullptr, Language_Font(7));
+    Window_NotifyImpl100(row, nullptr, 0);
+    u8 *const text = firstChild(row);
+    setPart(text, TextPart_Ctor);
+    Window_NotifyC00(text, nullptr, 1, 1);
+    Window_Notify3000(text, nullptr, 1, 1);
+    Window_Set4c(text, nullptr, Language_Font(7));
+    Window_Notify40000(text, nullptr, 0xff, 0xff, 0xff, 0xff);
+    Window_NotifyImpl100(text, nullptr, 0);
+    u8 *const box1 = nextSibling(text);
+    Window_SetObject98(box1, nullptr, lookOf("i_boxtick"));
+    u8 *const box2 = nextSibling(box1);
+    Window_SetObject98(box2, nullptr, lookOf("i_boxtick"));
 }
 }  // extern "C"

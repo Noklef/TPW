@@ -551,6 +551,8 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x00705b80, 5},   // polygon
                                    {0x006ff308, 3},   // the sprite set's virtual base (its deleting destructor's thunk, PtrArray_ReleaseAll's)
                                    {0x006ff320, 11},  // the text part's (a list row's impl: slots 3, 5 and 10 from Window_SetImpl)
+                                   {0x006ff3b0, 11},  // two more text part kinds' (list rows' children: 0x49c880, 0x4ae7d0; slot 3,
+                                   {0x006ff410, 11},  // 0x4903e0 / 0x490940, unported: the cases give it a recorder)
                                    {0x006fdcc8, 4},   // the light parts' (directional, point: slot 2 the thunk to Stub_One the renderer's sorted add calls)
                                    {0x006fe548, 4}};
 
