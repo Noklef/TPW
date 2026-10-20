@@ -24,6 +24,38 @@ s32 RideDistance(s32 dx, s32 dy) {
     return (s32)((u32)(s32)(long long)X87_Sqrt(X87Reg((double)squares)).v << shift);
 }
 
+// fpatan's atan2(a, b) (the integers loaded by fild) times [0x700eb8] (1 / pi) times by, x87 at the game's precision.
+double RideAtan(s32 a, s32 b, double by) {
+    return X87_MulDouble(X87_MulDouble(X87_Atan2((double)a, (double)b), global<double>(0x00700eb8)), by);
+}
+
+// The rides' angles in 512ths of a turn, truncated (__ftol): 256 - atan2(a, b) / pi * 256 (a heading) and atan2(a, b) / pi * 256 - 256.
+s32 RideTurn(s32 a, s32 b) { return (s32)(long long)X87_Add(global<double>(0x00700ec0), -RideAtan(a, b, global<double>(0x00700ec0))); }
+s32 RideBearing(s32 a, s32 b) { return (s32)(long long)X87_Add(RideAtan(a, b, global<double>(0x00700ec0)), global<double>(0x00700f18)); }
+
+s32 Abs(s32 v) { return v < 0 ? (s32)(0u - (u32)v) : v; }
+
+// x * y * 4 / 1024 (wrapping; the division toward 0), the rides' fixed-point product with the integer sine table (0x877358).
+s32 Scaled(s32 x, s32 y) { return (s32)((u32)x * (u32)y << 2) / 1024; }
+
+// The spinning kinds' (-5, -8, -12, -13) spin (+0x58) taking gap * 48: with the motion's bearing less than 0x100 from the heading
+// ((-heading - bearing) & 0x1ff) the larger of -that and it plus the spin, else the smaller of that and it plus the spin.
+void RideSpin(u8 *car, s32 heading, s32 bearing, s32 gap) {
+    const s32 spin = at<s32>(car, 0x58);
+    if (((0u - (u32)heading - (u32)bearing) & 0x1ff) < 0x100) {
+        const s32 kick = (s32)((0u - (u32)gap) * 48u), sum = (s32)((u32)kick + (u32)spin);
+        at<s32>(car, 0x58) = kick > sum ? kick : sum;
+    } else {
+        const s32 kick = (s32)((u32)gap * 48u), sum = (s32)((u32)kick + (u32)spin);
+        at<s32>(car, 0x58) = kick < sum ? kick : sum;
+    }
+}
+
+bool Spins(const u8 *kind) {
+    const s32 type = at<s32>(kind, 0);
+    return type == -5 || type == -8 || type == -12 || type == -13;
+}
+
 }  // namespace
 
 extern "C" {
@@ -146,11 +178,6 @@ void __cdecl Collider_BounceOffBlockers(u8 *car) {
     if (!node || !left)
         return;
     const s32 *const sine = reinterpret_cast<const s32 *>((uintptr_t)0x00877358);
-    const double k = global<double>(0x00700eb8), turn = global<double>(0x00700ec0);   // 1 / pi, 256
-    const auto angle = [&](s32 a, s32 b) {   // 256 - atan2(a, b) / pi * 256, truncated
-        return (s32)(long long)X87_Add(turn, -X87_MulDouble(X87_MulDouble(X87_Atan2((double)a, (double)b), k), turn));
-    };
-    const auto scaled = [](s32 a, s32 b) { return (s32)((u32)a * (u32)b << 2) / 1024; };
     do {
         const u32 flags = at<u32>(node, 0);
         if (flags & 1) {
@@ -158,39 +185,99 @@ void __cdecl Collider_BounceOffBlockers(u8 *car) {
             if ((flags & 0x40) && IntArea_Contains(at<s32>(car, 0x34), at<s32>(car, 0x38), reinterpret_cast<const s32 *>(node))) {
                 const s32 dx = (s32)(at<u32>(car, 0x34) - at<u32>(node, 4)), dy = (s32)(at<u32>(car, 0x38) - at<u32>(node, 8));
                 const s32 vx = at<s32>(car, 0x44), vy = at<s32>(car, 0x48);
-                const s32 heading = angle((s32)(0u - (u32)vx), vy);
-                const s32 away = angle(dx, (s32)(0u - (u32)dy));
+                const s32 heading = RideTurn((s32)(0u - (u32)vx), vy);
+                const s32 away = RideTurn(dx, (s32)(0u - (u32)dy));
                 const u32 apart = ((u32)heading - (u32)away) & 0x1ff;
                 if (apart < 0x80 || apart > 0x180) {
                     const s32 speed = (s32)(long long)X87_Sqrt(X87Reg((double)(s32)((u32)vx * (u32)vx + (u32)vy * (u32)vy))).v;
                     const u8 *const kind = at<const u8 *>(car, 0x9c);
-                    const s32 along = scaled(speed, sine[(apart + 0x80) & 0x1ff]);
+                    const s32 along = Scaled(speed, sine[(apart + 0x80) & 0x1ff]);
                     const s32 push = (s32)((u32)along * (at<u32>(kind, 0x2c) + 0x400)) / 1024;
-                    at<u32>(car, 0x3c) += (u32)scaled(sine[away & 0x1ff], push);
+                    at<u32>(car, 0x3c) += (u32)Scaled(sine[away & 0x1ff], push);
                     at<u32>(car, 0) |= 0x50000;
-                    at<u32>(car, 0x40) += (u32)scaled(sine[(away + 0x80) & 0x1ff], push);
+                    at<u32>(car, 0x40) += (u32)Scaled(sine[(away + 0x80) & 0x1ff], push);
                     const s32 length = RideDistance(dx, dy), radius = at<s32>(node, 0xc);
                     at<u32>(car, 0x34) = (u32)((s32)((u32)dx * (u32)radius) / length) + at<u32>(node, 4);   // (idiv: a length of 0 faults)
                     at<u32>(car, 0x38) = (u32)((s32)((u32)dy * (u32)radius) / length) + at<u32>(node, 8);
-                    const s32 type = at<s32>(kind, 0);
-                    if (type == -5 || type == -8 || type == -12 || type == -13) {
-                        const s32 gap = length - radius < 0 ? (s32)(0u - (u32)(length - radius)) : length - radius;
-                        const s32 moving = (s32)(long long)X87_Add(X87_MulDouble(X87_MulDouble(
-                            X87_Atan2((double)(s32)(0u - at<u32>(car, 0x3c)), (double)at<s32>(car, 0x40)), k), turn), global<double>(0x00700f18));
-                        const s32 spin = at<s32>(car, 0x58);
-                        if (((0u - (u32)heading - (u32)moving) & 0x1ff) < 0x100) {
-                            const s32 kick = (s32)((0u - (u32)gap) * 48u), sum = (s32)((u32)kick + (u32)spin);
-                            at<s32>(car, 0x58) = kick > sum ? kick : sum;
-                        } else {
-                            const s32 kick = (s32)((u32)gap * 48u), sum = (s32)((u32)kick + (u32)spin);
-                            at<s32>(car, 0x58) = kick < sum ? kick : sum;
-                        }
-                    }
+                    if (Spins(kind))
+                        RideSpin(car, heading, RideBearing((s32)(0u - at<u32>(car, 0x3c)), at<s32>(car, 0x40)),
+                                 Abs((s32)((u32)length - (u32)radius)));
                 }
             }
         }
         node += 0x20;
     } while (left);
+}
+
+void __cdecl Collider_KeepInArea(u8 *car) {
+    const s32 x = at<s32>(car, 0x34), y = at<s32>(car, 0x38);
+    if (IntArea_Contains(x, y, at<const s32 *>(car, 0x98)))
+        return;
+    u8 *found = nullptr;
+    u8 *node = global<u8 *>(0x00877b70);
+    u32 left = global<u32>(0x00877b74);
+    if (node && left) {
+        for (;;) {
+            const u32 flags = at<u32>(node, 0);
+            if (flags & 1) {
+                --left;
+                if (!(flags & 0x40) && IntArea_Contains(x, y, reinterpret_cast<const s32 *>(node))) {
+                    found = node;
+                    break;
+                }
+            }
+            node += 0x20;
+            if (!left)
+                break;
+        }
+    }
+    if (found) {
+        at<u8 *>(car, 0x98) = found;
+        at<u32>(car, 0) |= 0x10000;
+        return;
+    }
+    const u8 *const area = at<const u8 *>(car, 0x98);
+    if (!area)
+        return;
+    if (at<s32>(car, 0xa4) >= 0)
+        at<u32>(car, 0xa4) += 1;
+    const s32 dy = (s32)(at<u32>(car, 0x38) - at<u32>(area, 8));
+    const s32 heading = RideTurn(at<s32>(car, 0x44), (s32)(0u - at<u32>(car, 0x48)));
+    const s32 dx = (s32)(at<u32>(car, 0x34) - at<u32>(area, 4));
+    const u8 *const kind = at<const u8 *>(car, 0x9c);
+    s32 gap;
+    if (at<u8>(area, 0) & 0x20) {   // a box: each axis past its half size bounced back (the speed along it scaled by the kind's +0x2c)
+        gap = dx;   // (sic: unchanged inside both)
+        const s32 ax = Abs(dx), rx = at<s32>(area, 0xc);
+        if (ax > rx) {
+            at<u32>(car, 0x3c) = 0u - (u32)((s32)(at<u32>(kind, 0x2c) * at<u32>(car, 0x3c)) / 1024);
+            at<u32>(car, 0x34) = at<u32>(area, 4) + (dx < 0 ? 0u - (u32)rx : (u32)rx);
+            gap = Abs((s32)((u32)rx - (u32)ax));
+        }
+        const s32 ay = Abs(dy), ry = at<s32>(area, 0x10);
+        if (ay > ry) {
+            at<u32>(car, 0x40) = 0u - (u32)((s32)(at<u32>(kind, 0x2c) * at<u32>(car, 0x40)) / 1024);
+            at<u32>(car, 0x38) = at<u32>(area, 8) + (dy < 0 ? 0u - (u32)ry : (u32)ry);
+            gap = Abs((s32)((u32)ry - (u32)ay));
+        }
+    } else {   // a circle: the motion mirrored about the rim's normal, scaled by the kind's +0x2c, the car put on the rim
+        const double down = global<double>(0x00700f18);   // -256
+        const s32 away = (s32)(long long)X87_Add(down, -RideAtan(dx, (s32)(0u - (u32)dy), down));
+        const u32 mirror = (0xffffff80u - (u32)away) & 0x1ff, back = ((u32)heading - 0x100) & 0x1ff;
+        const u32 turn = (mirror * 2 - 0x100 - back - (u32)heading) & 0x1ff;
+        const s32 *const sine = reinterpret_cast<const s32 *>((uintptr_t)0x00877358);
+        const u32 k = at<u32>(kind, 0x2c);
+        const s32 vy = (s32)(k * at<u32>(car, 0x40)) / 1024, vx = (s32)(k * at<u32>(car, 0x3c)) / 1024;
+        const u32 s = (u32)sine[turn], c = (u32)sine[(turn + 0x80) & 0x1ff];
+        at<s32>(car, 0x3c) = (s32)(((u32)vy * s + (u32)vx * c) << 2) / 1024;
+        at<s32>(car, 0x40) = (s32)(((u32)vy * c - (u32)vx * s) << 2) / 1024;
+        const s32 length = RideDistance(dx, dy), radius = at<s32>(area, 0xc);
+        gap = Abs((s32)((u32)radius - (u32)length));
+        at<u32>(car, 0x34) = (u32)((s32)((u32)dx * (u32)radius) / length) + at<u32>(area, 4);   // (idiv: a length of 0 faults)
+        at<u32>(car, 0x38) = (u32)((s32)((u32)dy * at<u32>(area, 0xc)) / length) + at<u32>(area, 8);
+    }
+    if (Spins(kind))
+        RideSpin(car, heading, RideBearing(at<s32>(car, 0x3c), (s32)(0u - at<u32>(car, 0x40))), gap);
 }
 
 s32 __cdecl Collider_SteerTo(u8 *car, s32 x, s32 y) {

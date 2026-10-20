@@ -2807,6 +2807,7 @@ address,name,kind,confidence,notes
 0x00549070,CollArea_FindNearest,function,low,"reimplemented (src/game/world/collobj); cdecl (area, x, y, self): of the area nodes in use, the nearest (x, y) that is no blocker (0x40), is not area unless self, meets area and whose centre moved 0x87c towards its closed side is in no blocker; 0 for none"
 0x00547c60,Collider_SteerTo,function,low,"reimplemented (src/game/world/collobj); cdecl (car, x, y): a ride car steered to a point through the area nodes; the distance left or -1"
 0x005494d0,Collider_BounceOffBlockers,function,low,"reimplemented (src/game/world/collobj); cdecl (car): the ride car pushed out of the blocking areas it is in, its velocity kicked away and its spin changed for some kinds"
+0x005497b0,Collider_KeepInArea,function,low,reimplemented (src/game/world/collobj); a ride car kept in its area
 0x0056b340,Obj_ReleaseFromRenderer,function,high,reimplemented (src/game/render/renderer); bit 0 cleared and the part removed from the renderer's tag 0x60 list
 0x00583360,Masks_TopBits,function,high,"reimplemented (src/game/render/texformat); the highest set bit of three masks stored, and their union"
 0x004f36c0,Vector36_Size,function,high,reimplemented (src/game/core/countedpair); the number of 36-byte elements between a vector's pointers
