@@ -1073,6 +1073,10 @@ address,name,kind,confidence,notes
 0x004cc920,Things_TallestCoaster,function,low,"reimplemented (src/game/world/thingscan); The coaster (of a definition, or any) whose link's height +0x110 is greatest: handle out, the height cut to an integer returned"
 0x004c7fa0,ParkAnalyser_CountKind1OnPlainCell,function,low,"reimplemented (src/game/world/thingscan); The analyser's kept count (+0x1f0b8) of kind 1 things on plain cells, counted again when unset or older than the age asked for"
 0x004c8070,ParkAnalyser_CountDef4ac0,function,low,"reimplemented (src/game/world/thingscan); The analyser's kept count (+0x1f0c4) of objects whose definition has 0 at +0x4ac, counted again when unset or older than the age asked for"
+0x004c9340,Things_CountPeopleStat1a8Above,function,low,reimplemented (src/game/world/thingscan); How many kind 1 things on plain cells have the low byte of float +0x1a8 above the bound's low byte
+0x004c93f0,Things_CountPeopleStat1a4Above,function,low,reimplemented (src/game/world/thingscan); How many kind 1 things on plain cells have the low byte of float +0x1a4 above the bound's low byte
+0x004c9670,Things_PercentPeopleStat19cAbove,function,low,reimplemented (src/game/world/thingscan); The percentage of kind 1 things on plain cells whose float +0x19c's low byte is above the bound (signed)
+0x004c9750,Things_PercentPeopleStat19cBelow,function,low,reimplemented (src/game/world/thingscan); The percentage of kind 1 things on plain cells whose float +0x19c's low byte is below the bound (signed)
 0x0054b130,Buoy_FindFree,function,high,"reimplemented (src/game/world/trackpools); the first free buoy record, its index stored in it"
 0x0054b170,Buoy_Alloc,function,high,reimplemented (src/game/world/trackpools); takes the first free buoy record
 0x0054b1e0,CollNode_FindFree,function,high,reimplemented (src/game/world/trackpools); the first free collision node

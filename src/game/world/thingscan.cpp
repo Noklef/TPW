@@ -713,6 +713,35 @@ template <typename Test> u32 cachedCount(u8 *analyser, u32 off, u32 maxAge, Test
     return cache[1];
 }
 
+// Each thing of kind 1 on a plain analyser cell (AnalyserCell_TypePlain) to visit, with the low byte of its float at offset cut to an
+// integer.
+template <typename Visit> void forPlainPeople(u32 offset, Visit visit) {
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (at<u8>(thing, 2) == 1 && AnalyserCell_TypePlain(thing)) visit((u8)(long long)at<float>(thing, offset));
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+}
+
+s32 countAbove(u32 offset, u32 least) {
+    s32 count = 0;
+    forPlainPeople(offset, [&](u8 value) {
+        if (value > (u8)least) ++count;
+    });
+    return count;
+}
+
+template <bool above> s32 percentBeyond(s32 bound) {
+    s32 total = 0, count = 0;
+    forPlainPeople(0x19c, [&](u8 value) {
+        ++total;
+        if (above ? (s32)value > bound : (s32)value < bound) ++count;
+    });
+    return total > 0 ? (s32)((u32)count * 100) / total : 0;
+}
+
 }  // namespace
 
 extern "C" {
@@ -932,4 +961,12 @@ u32 __fastcall ParkAnalyser_CountDef4ac0(u8 *analyser, void *, u32 maxAge) {
         return at<u8>(thing, 2) == 3 && !at<u32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(thing, 0xe)), 0x4ac);
     });
 }
+
+s32 __fastcall Things_CountPeopleStat1a8Above(void *, void *, u32 least) { return countAbove(0x1a8, least); }
+
+s32 __fastcall Things_CountPeopleStat1a4Above(void *, void *, u32 least) { return countAbove(0x1a4, least); }
+
+s32 __fastcall Things_PercentPeopleStat19cAbove(void *, void *, s32 bound) { return percentBeyond<true>(bound); }
+
+s32 __fastcall Things_PercentPeopleStat19cBelow(void *, void *, s32 bound) { return percentBeyond<false>(bound); }
 }  // extern "C"
