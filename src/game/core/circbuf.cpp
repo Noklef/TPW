@@ -184,24 +184,40 @@ void __fastcall CircBufU32_30_Sum(const u8 *buf, void *, double *sum, s32 count)
     }
 }
 
-// A CircBufU32's serializer for its cursor's offset (4 + 4 * its size).
-static u32 SerializeU32(u8 *buf, Stream *stream, u32 save, s32 version, u16 cursor) {
-    const SaveSpec fields[] = {{cursor, 4, 0x00759a80}, {(u16)(cursor + 4), 4, 0x00759a74}, {(u16)(cursor + 8), 1, 0x00759a64}, {0x0, 4, 0x00759a5c}};
+// A circular buffer's serializer for its cursor's offset (element + element * its size) and its entries' size (mTemp's too).
+static u32 SerializeRing(u8 *buf, Stream *stream, u32 save, s32 version, u16 cursor, u16 element) {
+    const SaveSpec fields[] = {{cursor, 4, 0x00759a80}, {(u16)(cursor + 4), 4, 0x00759a74}, {(u16)(cursor + 8), 1, 0x00759a64}, {0x0, element, 0x00759a5c}};
     if (version < 0 || version > 1)
         return 0;
     if (!Save_Fields(stream, save, buf, fields, 4))
         return 1;
     for (s32 i = 0; i < at<s32>(buf, cursor + 4); ++i)  // sic: not bounded by the buffer's size
-        if (!Save_Field(stream, save, buf + 4 + i * 4, 4, 0x00759a50))
+        if (!Save_Field(stream, save, buf + element + i * element, element, 0x00759a50))
             return 1;
     return 0;
 }
 
 u32 __fastcall CircBufU32_30_Serialize(u8 *buf, void *, Stream *stream, u32 save, s32 version, u32) {
-    return SerializeU32(buf, stream, save, version, 0x7c);
+    return SerializeRing(buf, stream, save, version, 0x7c, 4);
 }
 
 u32 __fastcall CircBufU32_144_Serialize(u8 *buf, void *, Stream *stream, u32 save, s32 version, u32) {
-    return SerializeU32(buf, stream, save, version, 0x244);
+    return SerializeRing(buf, stream, save, version, 0x244, 4);
+}
+
+u32 __fastcall CircBufU32_50_Serialize(u8 *buf, void *, Stream *stream, u32 save, s32 version, u32) {
+    return SerializeRing(buf, stream, save, version, 0xcc, 4);
+}
+
+u32 __fastcall CircBufU32_5_Serialize(u8 *buf, void *, Stream *stream, u32 save, s32 version, u32) {
+    return SerializeRing(buf, stream, save, version, 0x18, 4);
+}
+
+u32 __fastcall CircBufU16_Serialize(u8 *buf, void *, Stream *stream, u32 save, s32 version, u32) {
+    return SerializeRing(buf, stream, save, version, 8, 2);
+}
+
+u32 __fastcall CircBufU8_Serialize(u8 *buf, void *, Stream *stream, u32 save, s32 version, u32) {
+    return SerializeRing(buf, stream, save, version, 0x34, 1);
 }
 }

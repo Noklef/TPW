@@ -4,8 +4,10 @@
 # 0x508bb0), the calendar clock (core/funnytime: 0x4f7f30), the map / track cells (world/mapcell: 0x4d0b30, 0x4d8dd0, 0x50c200), the
 # challenges (world/challenges: 0x4d0f90, 0x4d2320), the nav (world/nav: 0x50d150), the weather (world/weather: 0x512010), the research
 # lab, its projects and groups (world/research: 0x502dc0, 0x504210, 0x504760), the staff pool and its entries (world/staff: 0x507850,
-# 0x5070a0), circular buffers of 30 and 144 u32 (core/circbuf: 0x4e2c10, 0x4cdf00, the counts kept small), the sprite's nav call (world/nav: 0x4f9440)
-# a theme's save record (core/globalsave: 0x5b0d70) and the bank account (world/bankaccount: 0x4cf920)
+# 0x5070a0), circular buffers of 30, 144, 50 and 5 u32, of u16 and of 50 u8 (core/circbuf: 0x4e2c10, 0x4cdf00, 0x4ce2d0, 0x4ce660, 0x4cdb80,
+# 0x4cea00; the counts small, about the size or outside it), the sprite's nav call (world/nav: 0x4f9440)
+# a theme's save record (core/globalsave: 0x5b0d70), the bank account (world/bankaccount: 0x4cf920) and the park's gates (world/parkgates:
+# 0x4cf050)
 # against the originals: saves and loads through a record stream with room for all the fields, none, or up to and about each field's end;
 # versions in and out of 0..1; the object and the sink compared after.
 # usage: serializers.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=5b0d70,... the functions' addresses)
@@ -21,7 +23,8 @@ RANGES = [(0x50b090, 0x50b34c), (0x4d3aa0, 0x4d3d09), (0x4d3ee0, 0x4d4100), (0x5
           (0x424c20, 0x424ca0), (0x4d0b30, 0x4d0f80), (0x4d0f90, 0x4d1670), (0x4d2320, 0x4d27b0), (0x4d37e0, 0x4d3860), (0x4d8dd0, 0x4d9200),
           (0x50c200, 0x50c330), (0x5134d0, 0x513550), (0x510240, 0x5102c0), (0x50d150, 0x50dd90), (0x512010, 0x5127b0),
           (0x41a860, 0x41a970), (0x504210, 0x504590), (0x5070a0, 0x5074b0), (0x4e2c10, 0x4e2fb0), (0x4f9440, 0x4f9470), (0x502dc0, 0x5031b0),
-          (0x504760, 0x504a30), (0x507850, 0x507bc0), (0x5b0d70, 0x5b118f), (0x4cf920, 0x4d0182), (0x4cdf00, 0x4ce28c)]
+          (0x504760, 0x504a30), (0x507850, 0x507bc0), (0x5b0d70, 0x5b118f), (0x4cf920, 0x4d0182), (0x4cdf00, 0x4ce28c),
+          (0x4ce2d0, 0x4ce65a), (0x4ce660, 0x4ce9da), (0x4cdb80, 0x4cdefa), (0x4cea00, 0x4ced6f), (0x4cf050, 0x4cf3c8)]
 B = Bench(RANGES)
 OBJ, STREAM, SINK = RAM, RAM + 0x2000, RAM + 0x3000
 CELL = [1, 2, 4, 1, 2, 2, 12, 4, 1]
@@ -39,17 +42,23 @@ FIELDS = {0x50b090: [2, 2, 2, 2], 0x4d3aa0: [0x20] * 0x96 + [4, 2], 0x4d3ee0: [4
           0x5b0d70: [1] * 6 + [1, 4] * 4 + [2, 2] * 0x21 + [1, 1]}
 FIELDS[0x4f9440] = FIELDS[0x50d150]
 FIELDS[0x4cf920] = [2, 2, 2, 2] + [4] * 7 + [4] * 0x40
-FIELDS[0x4cdf00] = FIELDS[0x4e2c10]
+FIELDS[0x4cdf00] = FIELDS[0x4ce2d0] = FIELDS[0x4ce660] = FIELDS[0x4e2c10]
+FIELDS[0x4cdb80] = [4, 4, 1, 2]
+FIELDS[0x4cf050] = [4, 4, 4, 4, 1, 1]
+FIELDS[0x4cea00] = [4, 4, 1, 1]
 COUNTS = [0, 1, 2, 30, 31, 40, 0xffffffff, 0x80000000]  # the circular buffers' mNumEntries (saved, the stream's second dword loaded)
-RINGS = {0x4e2c10: 0x80, 0x4cdf00: 0x248}  # (where each keeps it)
+RINGS = {0x4e2c10: 0x80, 0x4cdf00: 0x248, 0x4ce2d0: 0xd0, 0x4ce660: 0x1c, 0x4cdb80: 0xc, 0x4cea00: 0x38}  # (where each keeps it)
+SIZES = {0x4cdf00: 144, 0x4ce2d0: 50, 0x4ce660: 5, 0x4cdb80: 3, 0x4cea00: 50}   # (their sizes, but 30's: the counts about them)
+ELEMENTS = {0x4cdb80: 2, 0x4cea00: 1}   # (their entries' size, else 4)
 
 
 def case(r):
     at = r.deal(OPS)
     sizes = FIELDS[at]
     if at in RINGS:
-        count = r.choice(COUNTS + [r.randrange(41)] + ([144, 145, 150, r.randrange(150)] if at == 0x4cdf00 else []))
-        sizes = sizes + [4] * (count if count < 0x80000000 else 0)
+        n = SIZES.get(at)
+        count = r.choice(COUNTS + [r.randrange(41)] + ([n, n + 1, n + 6, r.randrange(n + 6)] if n else []))
+        sizes = sizes + [ELEMENTS.get(at, 4)] * (count if count < 0x80000000 else 0)
     ends = [sum(sizes[:i + 1]) for i in range(len(sizes))]
     total = ends[-1]
     end = r.choice(ends[:3] + ends[-3:])

@@ -261,6 +261,7 @@
 #include "../game/world/wallfollow.h"
 #include "../game/world/cellmodel.h"
 #include "../game/world/objectstatus.h"
+#include "../game/world/parkgates.h"
 #include "../game/world/uimsgreceiver.h"
 #include "../game/world/visitoroption.h"
 #include "../game/world/weather.h"
@@ -2139,6 +2140,10 @@ const Hook kHooks[] = {
     {"CircBufU32_30_Count",       0x00495d40, (void *)&CircBufU32_30_Count, {0x8a, 0x81, 0x84, 0x00, 0x00}},
     {"CircBufF32_144_MaxInWindow", 0x004802a0, (void *)&CircBufF32_144_MaxInWindow, {0x8b, 0x44, 0x24, 0x0c, 0x53}},
     {"CircBufU32_144_Serialize",  0x004cdf00, (void *)&CircBufU32_144_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"CircBufU32_50_Serialize",   0x004ce2d0, (void *)&CircBufU32_50_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"CircBufU32_5_Serialize",    0x004ce660, (void *)&CircBufU32_5_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"CircBufU16_Serialize",      0x004cdb80, (void *)&CircBufU16_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"CircBufU8_Serialize",       0x004cea00, (void *)&CircBufU8_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"TextArg_Ctor",              0x004a77a0, (void *)&TextArg_Ctor, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
     {"TextArgString_Ctor",        0x004ea220, (void *)&TextArgString_Ctor, {0x8b, 0x54, 0x24, 0x08, 0x8b}},
     {"TextArgInt_Ctor",           0x0050aef0, (void *)&TextArgInt_Ctor, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
@@ -4140,6 +4145,7 @@ const Hook kHooks[] = {
     {"AdvisorMsg_Init",           0x0059b590, (void *)&AdvisorMsg_Init, {0x66, 0x8b, 0x44, 0x24, 0x08}},
     {"Visitor_ScoreOption",       0x004fcc30, (void *)&Visitor_ScoreOption, {0x83, 0xec, 0x38, 0x53, 0x55}},
     {"BankAccount_Serialize",     0x004cf920, (void *)&BankAccount_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x83}},
+    {"ParkGates_Serialize",       0x004cf050, (void *)&ParkGates_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
