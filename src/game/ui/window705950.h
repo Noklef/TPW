@@ -17,4 +17,12 @@ void __fastcall Window705950_Layout(u8 *window);
 // that, when made, gets slot 5 (0), Window_SetShown(1) and Window705b20_SetRange(0, 0); then the handler 0x65bb6b (Window_SetHandler).
 // Returns the window.
 u8 *__fastcall Window705950_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom);
+
+// 0x65bb10 (thiscall (left, top, right, bottom: words), pops 16; name unconfirmed): the rectangle +0x138's four words set (Fn_659dac), whose
+// EAX is returned.
+u32 __fastcall Window705950_SetInner(u8 *window, void *, u32 left, u32 top, u32 right, u32 bottom);
+
+// 0x65bb3f (thiscall (dx, dy: words), pops 8; name unconfirmed): the rectangle +0x138 moved through its slot 2 (GuiRect_Offset; the words pushed
+// as dwords whose upper halves are what the registers held).
+void __fastcall Window705950_OffsetInner(u8 *window, void *, u32 dx, u32 dy);
 }

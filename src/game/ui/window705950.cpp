@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/initializers.h"
 #include "../core/vcall.h"
 #include "guirect.h"
 #include "window.h"
@@ -51,4 +52,10 @@ u8 *__fastcall Window705950_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 
     Window_SetHandler(window, nullptr, 0x65bb6b);
     return window;
 }
+
+u32 __fastcall Window705950_SetInner(u8 *window, void *, u32 left, u32 top, u32 right, u32 bottom) {
+    return Fn_659dac(window + 0x138, nullptr, (u16)left, (u16)top, (u16)right, (u16)bottom);
+}
+
+void __fastcall Window705950_OffsetInner(u8 *window, void *, u32 dx, u32 dy) { vcall<void>(window + 0x138, 8, (u32)(u16)dx, (u32)(u16)dy); }
 }

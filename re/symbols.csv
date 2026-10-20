@@ -4950,6 +4950,7 @@ address,name,kind,confidence,notes
 0x0065f5b7,Window_NotifyImpl100,function,low,reimplemented (src/game/ui/window); send 0x100 with a dword to the window's object +0x9c
 0x0065f5fe,Window_NotifyObject98_100,function,low,reimplemented (src/game/ui/window); send 0x100 with a dword to the window's object +0x98
 0x0065e6d5,Window_SetDwordA0,function,low,reimplemented (src/game/ui/window); set one of a GUI window's sixteen dwords +0xa0
+0x0065cfff,Window_SetHitArea,function,low,reimplemented (src/game/ui/window); thiscall (area): the hit area +0x44 replaced (the old one deleted unless none or +8); none: +8
 0x00498090,Dialog7ca1c8_SetChecks,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): the nine check buttons of the 0x7ca1c8 dialog's child 0x18 set (vtable slot 5, bool) from flags bits 0-8 (0x20's also needs [0x7ca1d0]+0x50)"
 0x00498a50,Dialog7ca1c8_SetChecksIfUp,function,low,reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): Dialog7ca1c8_SetChecks when [0x7ca1c8] and [0x7ca1cc] are not 0
 0x00481a00,Dialog7ca1c8_SetChecksIfUpThis,function,low,"reimplemented (src/game/ui/dialog7ca1c8); thiscall (flags), pops 4, this unused: Dialog7ca1c8_SetChecksIfUp(flags)"
@@ -5095,6 +5096,8 @@ address,name,kind,confidence,notes
 0x0065dd7b,Window_CreateChild,function,low,"reimplemented (src/game/ui/windowfactory); thiscall on the parent (kind, flags, id, left, top, right, bottom), pops 28: the GUI window factory; 0 for a kind outside 1-13, else a heap block of the kind's size built by its constructor (kind 1 with flags & 0x100: +0x64 the parent) and put last among the parent's children (unchecked for 0, sic); returns it"
 0x0065aac0,Window705950_Layout,function,low,"reimplemented (src/game/ui/window705950); thiscall: +0x2c from +8 less 0x30 on the right, +0x138 that inset by 4"
 0x0065ab64,Window705950_Ctor,function,low,"reimplemented (src/game/ui/window705950); thiscall (parent, flags, id, left, top, right, bottom), pops 28: kind 4 of the factory 0x65dd7b; Window_Ctor, +0x138 a GUI rectangle, the vtable 0x705950, the layout, with flags & 0x1000 a scroll bar (kind 3) disabled, shown and ranged 0-0, the handler 0x65bb6b; returns the window"
+0x0065bb10,Window705950_SetInner,function,low,"reimplemented (src/game/ui/window705950); thiscall (left, top, right, bottom): the rectangle +0x138's words set (Fn_659dac)"
+0x0065bb3f,Window705950_OffsetInner,function,low,"reimplemented (src/game/ui/window705950); thiscall (dx, dy): the rectangle +0x138 moved through its slot 2"
 0x00662530,Window7059f0_Layout,function,low,reimplemented (src/game/ui/window7059f0); thiscall: +0x2c from +8 and +0x138 from +0x2c (GuiRect_Assign)
 0x00662562,Window7059f0_Ctor,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (parent, flags, id, left, top, right, bottom), pops 28: kind 7 of the factory 0x65dd7b; Window_Ctor, +0x138 a GUI rectangle, the vtable 0x7059f0, fields cleared (+0x14c / +0x160 -1), the layout, with flags & 0x1000 a scroll bar (kind 3) disabled, shown and ranged 0-0, the handlers 0x665c35; returns the window"
 0x0065fbf0,WindowScript_ReadDword,function,low,reimplemented (src/game/ui/windowscript); a window script's next dword (two words)
