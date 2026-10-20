@@ -1,6 +1,7 @@
 #include "headquarters.h"
 
 #include "../core/savegame.h"
+#include "messagecentre.h"
 #include "staff.h"
 #include "things.h"
 
@@ -25,5 +26,27 @@ u32 __fastcall StaffHQ_Serialize(u8 *hq, void *, Stream *stream, u32 save, s32 v
         if (!Save_Field(stream, save, hq + 0x24 + i * 0xc, 0xc, 0x0075e91c))
             return 1;
     return StaffTraining_Serialize(hq + 0xc, nullptr, stream, save, version, unused) != 0 ? 1 : 0;
+}
+
+u8 *__fastcall MechanicHQ_Ctor(u8 *hq) {
+    Thing_Construct(hq, nullptr, 1, 0xa);
+    *reinterpret_cast<u16 *>(hq + 0xc) = 0;
+    MessageCentre_AddThing(MessageCentre_Instance(), nullptr, hq, 7);
+    return hq;
+}
+
+u8 *__fastcall StaffHQ_Ctor(u8 *hq) {
+    Thing_Construct(hq, nullptr, 1, 9);
+    StaffTraining_Ctor(hq + 0xc);
+    for (u32 offset = 0x24; offset < 0x24 + 5 * 0xc; offset += 0xc) {
+        *reinterpret_cast<u32 *>(hq + offset) = 0;
+        *reinterpret_cast<u32 *>(hq + offset + 4) = 0;
+        *reinterpret_cast<u32 *>(hq + offset + 8) = 0;
+    }
+    *reinterpret_cast<u16 *>(hq + 0x60) = 0;
+    *reinterpret_cast<u32 *>(hq + 0x64) = 0;
+    MessageCentre_AddThing(MessageCentre_Instance(), nullptr, hq, 0xc);
+    MessageCentre_AddThing(MessageCentre_Instance(), nullptr, hq, 0xe);
+    return hq;
 }
 }
