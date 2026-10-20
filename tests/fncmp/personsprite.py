@@ -2,8 +2,9 @@
 # has it (both ranges' ends, NaN, infinities, denormals; the first position is at t - 0.35), the nav's and last positions near or far
 # apart; personscripts.py's script list behind the reference +0xc, the slots +0xb4 and +0x210 scripts of it or 0; +0x28 set or not, the
 # timer +0x198 about the counter 0x7cdb98 (the square face: dynfaces.py's queue), the byte +2 1 or not; the bob row 0x7cedd4 (0-20 or
-# any) and its time 0x7cedd8 about 1.0 (NaN too).
-# usage: personsprite.py [CASES [SEED]] [--wild|--both] [--show N]
+# any) and its time 0x7cedd8 about 1.0 (NaN too). CentreOnSprite (0x486860): the same sprite (or none) and the clock [0x8786bc] about
+# the last tick's [0x878a1c] (0-300 ms on, behind, or any); the camera's point and its three cleared dwords compared.
+# usage: personsprite.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=PlaceSprite,CentreOnSprite)
 import os
 import struct
 import sys
@@ -15,7 +16,8 @@ from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 from personscripts import script_list  # noqa: E402
 
 B = Bench([(0x475480, 0x4754f0), (0x4d8c50, 0x4d8c70), (0x4f9f00, 0x4fa2b0), (0x4fe900, 0x4fe960), (0x50b350, 0x50b370), (0x510160, 0x510190),
-           (0x53c8d0, 0x53c9d0), (0x5da3c0, 0x5da3c1)])
+           (0x53c8d0, 0x53c9d0), (0x5da3c0, 0x5da3c1), (0x486860, 0x4868c1), (0x42aab0, 0x42ab1d)])
+CALLS = {'PlaceSprite': 0x4fa030, 'CentreOnSprite': 0x486860}
 THING = RAM + 0x20000
 
 
@@ -24,6 +26,7 @@ def word(r):
 
 
 def case(r):
+    op = r.deal(OPS)
     regions = {}
     thing = bytearray(r.bytes(0x240))
     script_list(r, regions, thing)
@@ -44,9 +47,20 @@ def case(r):
                     0x874fc4: struct.pack('<I', r.choice([0, 0, 1, 5]))})
     bob = r.choice([0.0, 0.5, 0.9, 0.9000001, 0.95, 1.0, 1.05, -1.0, 1e30, float('nan'), r.uniform(0, 1.2)])
     regions[0x7cedd4] = struct.pack('<If', r.choice([0, 1, 18, 19, 20, 21, 0xffffffff, r.getrandbits(32)]), bob)
+    if op == 'CentreOnSprite':
+        last = r.getrandbits(32)
+        now = r.choice([last + r.randrange(0, 300), last + r.randrange(0, 300), last - r.randrange(1, 300), r.getrandbits(32)])
+        regions[0x878a1c] = struct.pack('<I', last)
+        regions[0x8786bc] = struct.pack('<I', now & 0xffffffff)
+        regions[0x7908f0] = r.bytes(12)
+        regions[0x790a88] = r.bytes(12)
+        return Call(CALLS[op], [r.choice([THING] * 9 + [0])], regions, ret='v')
     t = r.choice([0.0, -0.0, 0.25, 0.35, 0.5, 1.0, 1.35, 1.5, 2.0, 2.5, -0.5, -1.0, 1e-40, float('nan'), float('inf'), float('-inf'),
                   r.uniform(-1.5, 2.5), r.uniform(0, 1), r.uniform(0, 1), struct.unpack('<f', r.bytes(4))[0]])
-    return Call(0x4fa030, [THING, fb(t)], regions, conv='t', ret='v')
+    return Call(CALLS[op], [THING, fb(t)], regions, conv='t', ret='v')
+
+
+OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 
 
 if __name__ == '__main__':

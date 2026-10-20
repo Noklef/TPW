@@ -756,6 +756,7 @@ address,name,kind,confidence,notes
 0x0042a760,Camera_Input,function,low,"reimplemented (src/game/world/camera); cdecl (message, param): the camera's mouse input: the point from param's words scaled by the screen's height / 2048 and width / 1536; 0x1e turns the yaw by the point's x with button 2; 0x20 / 0x22 release; 0x10001 / 0x10003 set the point; 0x10004 / 0x10005 buttons; 0x1000d the wheel zoom"
 0x0042a500,Camera_SetControl100,function,low,reimplemented (src/game/world/camera); cdecl: bit 0x100 of the camera control flags 0x790aac set; returns 1 (a key map action handler)
 0x0042a520,Camera_ToggleControl200,function,low,reimplemented (src/game/world/camera); cdecl: bit 0x200 of the camera control flags 0x790aac toggled; returns 1 (a key map action handler)
+0x00486860,Camera_CentreOnSprite,function,low,reimplemented (src/game/world/camera); cdecl (sprite): the camera point set (x and z) to the sprite position this moment: Sprite_InterpolatedPos at (clock 0x8786bc - last tick 0x878a1c) * [0x6ff16c] on the x87
 0x0046c450,MouseMode_Nop4,function,high,reimplemented (src/game/world/mousemode); an empty mouse-mode method (4 arguments)
 0x0046c460,MouseMode_DeletingDtor,function,high,reimplemented (src/game/world/mousemode); the base mouse mode's deleting destructor
 0x0046c580,MouseModeTile_Ctor,function,high,reimplemented (src/game/world/mousemode); the 0x6fe9e0 tile mode's constructor

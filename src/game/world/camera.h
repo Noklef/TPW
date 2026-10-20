@@ -51,6 +51,11 @@ void __cdecl Camera_CentreOnCell(const u16 *cell);
 // thing table left out.)
 void __cdecl Camera_CentreOnThing(u32 handle);
 
+// 0x486860 (cdecl; sprite; name unconfirmed): for a sprite (0 nothing), the camera's point (Camera_SetView, x and z only) put where the
+// sprite is drawn this moment: Sprite_InterpolatedPos at t = (the time [0x8786bc] less the last tick's [0x878a1c], an int) times the float
+// [0x6ff16c] (1 / 248) on the x87, the second position (1).
+void __cdecl Camera_CentreOnSprite(const u8 *sprite);
+
 // 0x42afd0: sets (on) or clears gCameraFlags bit 0x80.
 void __cdecl Camera_SetFlag80(u32 on);
 
