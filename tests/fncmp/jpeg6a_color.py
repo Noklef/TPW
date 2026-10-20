@@ -4,7 +4,7 @@
 # case heap; image_width +0x18, input_components +0x20, in_color_space +0x24, num_components +0x34, jpeg_color_space +0x38;
 # cconvert +0x158 at CC (my_color_converter, 0xc bytes: start_pass, color_convert, rgb_ycc_tab +8 at TAB, 8 * 256 INT32s)).
 # jinit_color_converter's ERREXITs return, so its cases meet every colour space pair, valid or not (J_COLOR_SPACE 0..5 and one
-# past). The converters' rows are real: input_buf's row pointers into IROWS (rows of up to 32 pixels of 4 samples), output_buf's
+# past; each pair it converts dealt, with input_components one off either way in some). The converters' rows are real: input_buf's row pointers into IROWS (rows of up to 32 pixels of 4 samples), output_buf's
 # four components' row pointers into OROWS (eight rows of 32 samples each), output_row + num_rows at most eight; the table is random
 # (the converters only index it by sample values, 0..255 each part). grayscale_convert's stride (input_components) and null_convert's
 # num_components stay 1..4.
@@ -50,12 +50,18 @@ def common(r, ncomps=None, incomps=None):
             r.bytes(0x2c), CC: cc, LOG: log_region(), IPTRS: iptrs, OBUF: obuf, IROWS: r.bytes(4 * W * 8), OROWS: r.bytes(W * 32)}
 
 
+PAIRS = [(1, 1), (2, 1), (3, 1), (2, 2), (2, 3), (3, 3), (4, 4), (4, 5), (5, 5), (0, 0), (6, 6)]  # (pairs the library converts)
+
+
 def jinit(r):
     regs = common(r)
-    if r.random() < 0.5:  # (a pair the library converts)
-        space, jspace = r.choice([(1, 1), (2, 1), (3, 1), (2, 2), (2, 3), (3, 3), (4, 4), (4, 5), (5, 5), (0, 0), (6, 6)])
+    if r.random() < 0.6:
+        space, jspace = r.deal(PAIRS)
         nc = {1: 1, 2: 3, 3: 3, 4: 4, 5: 4}.get(jspace, r.randrange(1, 5))
-        struct.pack_into('<i', regs[CINFO], 0x20, nc if space else r.choice([nc, r.randrange(1, 5)]))
+        incomps = nc if space else r.choice([nc, r.randrange(1, 5)])
+        if r.random() < 0.4:  # (input_components one off, either way)
+            incomps += r.choice([-1, 1])
+        struct.pack_into('<i', regs[CINFO], 0x20, incomps)
         struct.pack_into('<i', regs[CINFO], 0x24, space)
         struct.pack_into('<ii', regs[CINFO], 0x34, nc, jspace)
     regs[HEAP] = heap(0x100)
