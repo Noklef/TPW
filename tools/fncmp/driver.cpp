@@ -78,7 +78,12 @@ using u32 = std::uint32_t;
 using s32 = std::int32_t;
 
 const u32 kGameLow = 0x006e7000, kGameHigh = 0x00fc5200;  // cseg .. .rsrc
+// Last in the image (.bss$zzz sorts after every .bss, the CRT's too), so that what follows the game's data natively is g_game's own
+// tail, which load_exe takes all access from. In the middle of .bss the driver's and the CRT's statics followed it, where a case's
+// wild pointer read natively what the emulator does not have (windowtimers.py's 0x65f024 read the CRT's stdout buffer at 0x10d30e4).
+#pragma bss_seg(".bss$zzz")
 u8 g_game[0xb00000];
+#pragma bss_seg()
 
 struct Section {
     u32 address;
@@ -113,6 +118,12 @@ void load_exe(const char *path) {
     }
     const u32 lo = (u32)(uintptr_t)g_game;
     if (lo > kGameLow || lo + sizeof g_game < kGameHigh) fail("g_game does not cover the game's data; it starts at", lo);
+    // Past the game's data nothing is the game's and no region is mapped there (tools/fncmp.py's GAME_HIGH): no access, so a wild
+    // pointer into it faults natively as in the emulator. Up to g_game's last page: it is last in .data, the rest of that page padding.
+    // (Past it only the CRT's .fptable and .rsrc pages are left mapped.)
+    const u32 tail = (kGameHigh + 0xfff) & ~0xfffu, end = (lo + (u32)sizeof g_game + 0xfff) & ~0xfffu;
+    DWORD was;
+    if (end > tail && !VirtualProtect((void *)(uintptr_t)tail, end - tail, PAGE_NOACCESS, &was)) fail("cannot protect g_game's tail at", tail);
 }
 
 void reset_memory() {
