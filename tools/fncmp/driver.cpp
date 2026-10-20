@@ -47,6 +47,7 @@
 #include "../../src/game/files/wadfind.h"
 #include "../../src/game/files/wadsource.h"
 #include "../../src/game/files/wrapsources.h"
+#include "../../src/game/lib/jpeg6b.h"
 #include "../../src/game/files/zlibcodec.h"
 #include "../../src/game/gfx/canvas.h"
 #include "../../src/game/gfx/canvasdraw.h"
@@ -270,6 +271,7 @@ const StdStringEnv kStdStringEnv = {&heap_alloc, &heap_free, &heap_throw, &heap_
 const MouseModeEnv kMouseModeEnv = {&heap_free};
 const PtrListEnv kPtrListEnv = {&heap_alloc};
 const GameHeapEnv kGameHeapEnv = {&heap_alloc, &heap_free};
+const Jpeg6bHeapEnv kJpeg6bHeapEnv = {&heap_alloc, &heap_free};  // (jmemansi.c's malloc / free)
 const WadSourceEnv kWadSourceEnv = {&heap_alloc, &heap_free};
 const BufferedSourceEnv kBufferedSourceEnv = {&heap_alloc, &heap_free};
 const SurfaceBufferEnv kSurfaceBufferEnv = {0x00703998, &heap_free};
@@ -716,6 +718,7 @@ int main(int argc, char **argv) {
     MouseModes_SetEnv(&kMouseModeEnv);
     PtrList_SetEnv(&kPtrListEnv);
     GameHeap_SetEnv(&kGameHeapEnv);
+    Jpeg6b_SetHeapEnv(&kJpeg6bHeapEnv);
     WadSource_SetEnv(&kWadSourceEnv);
     BufferedSource_SetEnv(&kBufferedSourceEnv);
     SurfaceBuffer_SetEnv(&kSurfaceBufferEnv);

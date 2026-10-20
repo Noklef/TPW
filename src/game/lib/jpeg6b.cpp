@@ -346,3 +346,18 @@ void __cdecl jquant2_start_pass_2_quant(j_decompress_ptr cinfo, boolean is_pre_s
     exe_method(cinfo->cquantize->finish_pass);
 }
 }
+
+// jmemansi.c's malloc and free (third_party/wrap/jpeg-6b/jmemansi.c #defines them to these two): the exe's, so the blocks the library's
+// jpeg_get_small hands out are the exe's heap's, which the exe's own code (zcfree, jmemmgr.c while it stays the exe's) frees there.
+namespace {
+const Jpeg6bHeapEnv kExeHeap = {reinterpret_cast<void *(__cdecl *)(size_t)>((uintptr_t)0x0067dcd0),
+                                reinterpret_cast<void(__cdecl *)(void *)>((uintptr_t)0x0067ad90)};
+const Jpeg6bHeapEnv *g_heap = &kExeHeap;
+}  // namespace
+
+void Jpeg6b_SetHeapEnv(const Jpeg6bHeapEnv *env) { g_heap = env ? env : &kExeHeap; }
+
+extern "C" {
+void *__cdecl jpeg6b_exe_malloc(size_t size) { return g_heap->alloc(size); }
+void __cdecl jpeg6b_exe_free(void *block) { g_heap->free(block); }
+}

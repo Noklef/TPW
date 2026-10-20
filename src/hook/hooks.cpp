@@ -4988,6 +4988,9 @@ const Hook kHooks[] = {
     {"jquant2_start_pass_2_quant", 0x006476c0, (void *)&jquant2_start_pass_2_quant, {0x55, 0x56, 0x8b, 0x74, 0x24}},
     {"jquant2_init_error_limit",  0x00647620, (void *)&jquant2_init_error_limit, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"jinit_2pass_quantizer",     0x006474f0, (void *)&jinit_2pass_quantizer, {0x55, 0x56, 0x8b, 0x74, 0x24}},
+    {"jpeg_mem_available",        0x006429a0, (void *)&jpeg_mem_available, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"jpeg_free_small",           0x00642990, (void *)&jpeg_free_small, {0x8b, 0x44, 0x24, 0x08, 0x50}},
+    {"jpeg_get_small",            0x00642980, (void *)&jpeg_get_small, {0x8b, 0x44, 0x24, 0x08, 0x50}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

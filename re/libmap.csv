@@ -75,6 +75,14 @@ address,size,source_file,function,confidence,evidence,checked
 0x006428e0,80,jpeg-6b/jutils.c,jcopy_sample_rows,high,"input_array += source_row, output_array += dest_row; per row an inline memcpy (REP MOVSD, REP MOVSB) of num_cols bytes",yes
 0x00642930,48,jpeg-6b/jutils.c,jcopy_block_row,high,inline memcpy of num_blocks << 7 bytes (DCTSIZE2 * sizeof(JCOEF)),yes
 0x00642960,32,jpeg-6b/jutils.c,jzero_far,high,"inline memset 0 (REP STOSD, REP STOSB); jutils.c order after jcopy_block_row",yes
+0x00642980,16,jpeg-6b/jmemansi.c,jpeg_get_small,high,"malloc (0x67dcd0) of the second argument; also jpeg_get_large (the same code, one copy); the library's through wrap/jpeg-6b/jmemansi.c, malloc the exe's",yes
+0x00642990,16,jpeg-6b/jmemansi.c,jpeg_free_small,high,"free (0x67ad90) of the second argument; also jpeg_free_large and zlib's zcfree (one copy); the library's through wrap/jpeg-6b/jmemansi.c, free the exe's",yes
+0x006429a0,32,jpeg-6b/jmemansi.c,jpeg_mem_available,high,"cinfo->mem (+4) max_memory_to_use (+0x2c) less already_allocated (the fourth argument)",yes
+0x006429c0,96,jpeg-6b/jmemansi.c,jpeg_open_backing_store,high,"tmpfile (0x67fd60) into info +0xc; NULL: JERR_TFILE_CREATE 0x3f with the 0x50-byte strncpy of the name (0x67ae00); stores read 0x642a20, write 0x642a90, close 0x642b00 (stays the exe's: tmpfile's FILE is its CRT's)",yes
+0x00642a20,112,jpeg-6b/jmemansi.c,read_backing_store,high,"fseek (0x67c100) SEEK_SET, JERR_TFILE_SEEK 0x41; fread (0x67e1d0) of byte_count, short: JERR_TFILE_READ 0x40 (stays the exe's)",yes
+0x00642a90,112,jpeg-6b/jmemansi.c,write_backing_store,high,"fseek (0x67c100) SEEK_SET, JERR_TFILE_SEEK 0x41; fwrite (0x67b6d0) of byte_count, short: JERR_TFILE_WRITE 0x42 (stays the exe's)",yes
+0x00642b00,32,jpeg-6b/jmemansi.c,close_backing_store,high,"fclose (0x67b620) of info +0xc (stays the exe's)",yes
+0x00642b20,16,jpeg-6b/jmemansi.c,jpeg_mem_init,high,"returns 1000000 (DEFAULT_MAX_MEM) (stays the exe's: the hand port Const_1000000)",yes
 0x00642b30,224,jpeg-6b/jdmainct.c,jinit_d_main_controller,high,"alloc_small 0x50 (my_main_controller) into cinfo +0x184, start_pass 0x642cc0, need_full_buffer ERREXIT 4, upsample +0x1a0 need_context_rows +8, min_DCT_scaled_size +0x118 < 2 ERREXIT 0x2f (JERR_NOTIMPL), alloc_funny_pointers 0x642c10, ngroups M + 2 or M, alloc_sarray (mem +8) of width_in_blocks +0x1c * DCT_scaled_size +0x24 by rgroup * ngroups into buffer[] +8",yes
 0x00642c10,176,jpeg-6b/jdmainct.c,alloc_funny_pointers,high,"alloc_small num_components * 8 into xbuffer[0] +0x38, xbuffer[1] +0x3c = it + num_components; per component alloc_small 2 * rgroup * (M + 4) pointers, rgroup in, then rgroup * (M + 4) on",yes
 0x00642cc0,128,jpeg-6b/jdmainct.c,start_pass_main,high,"pass_mode 0: need_context_rows ? 0x642f10 with make_funny_pointers 0x642d40, whichptr / context_state / iMCU_row_ctr zeroed : 0x642ea0, buffer_full / rowgroup_ctr zeroed; 2: 0x643210; else ERREXIT 4",yes

@@ -417,4 +417,23 @@ void *__cdecl jquant2_find_biggest_volume(void *boxlist, int numboxes);
 void __cdecl jquant2_compute_color(jpeg_decompress_struct *cinfo, void *boxp, int icolor);
 // 0x6488e0: needs_zeroed (the histogram is cleared at the next start_pass).
 void __cdecl jquant2_new_color_map_2_quant(jpeg_decompress_struct *cinfo);
+
+// jmemansi.c, the memory manager's system-dependent part, through third_party/wrap/jpeg-6b/jmemansi.c: its malloc and free are the
+// exe's C runtime's (Jpeg6b_SetHeapEnv below), so every block stays on the exe's heap.
+// 0x642980 (also jpeg_get_large: one copy): malloc(sizeofobject).
+void *__cdecl jpeg_get_small(jpeg_common_struct *cinfo, size_t sizeofobject);
+// 0x642990 (also jpeg_free_large and zlib's zcfree, whose block is the same second argument): free(object).
+void __cdecl jpeg_free_small(jpeg_common_struct *cinfo, void *object, size_t sizeofobject);
+// 0x6429a0: mem->max_memory_to_use (+0x2c) - already_allocated.
+long __cdecl jpeg_mem_available(jpeg_common_struct *cinfo, long min_bytes_needed, long max_bytes_needed, long already_allocated);
 }
+
+// The C runtime's malloc and free jmemansi.c calls (the exe's: malloc 0x67dcd0, free 0x67ad90, which are never replaced: they are the
+// front of its heap, as GameHeap's Mem_Alloc / Mem_Free are). The tests give it a stand-in.
+struct Jpeg6bHeapEnv {
+    void *(__cdecl *alloc)(size_t size);  // malloc (0x67dcd0)
+    void(__cdecl *free)(void *block);     // free (0x67ad90)
+};
+
+// Allocation and release go through env (nullptr: the exe's).
+void Jpeg6b_SetHeapEnv(const Jpeg6bHeapEnv *env);
