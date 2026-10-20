@@ -5,6 +5,7 @@
 #include "../model/holder.h"
 #include "../model/partstate.h"
 #include "../motion/animator.h"
+#include "../math/x87.h"
 #include "../render/particles.h"
 #include "trackpools.h"
 
@@ -24,6 +25,24 @@ u32 NameOf(const u8 *ride) {
     if (!loaded())
         return 0;
     return (u32)((s32)((uintptr_t)ride - global<uintptr_t>(0x00877b60)) / 0xd0) | at<u32>(ride, 0) << 8;
+}
+
+// A track section's collision node (CollNode_Alloc(x, y, size)) put at the head of its list (+0x1c; the node's +0x14 the next, +0x18 the
+// section). Returns it (0 for none).
+u8 *SectionNode(u8 *section, u32 x, u32 y, u32 size) {
+    u8 *const node = CollNode_Alloc(x, y, size);
+    if (node) {
+        at<u8 *>(node, 0x14) = at<u8 *>(section, 0x1c);
+        at<u8 *>(section, 0x1c) = node;
+        at<u8 *>(node, 0x18) = section;
+    }
+    return node;
+}
+
+// That node's flags (+0) cleared of clear and given set (no node: a write at address 0, faulting as the original does).
+u8 *Flagged(u8 *node, u32 clear, u32 set) {
+    at<u32>(node, 0) = (at<u32>(node, 0) & ~clear) | set;
+    return node;
 }
 
 }  // namespace
@@ -559,5 +578,115 @@ void __cdecl TrakRide_SetAsleep(u8 *ride, s32 asleep) {
     }
     for (u8 *node = at<u8 *>(ride, 0x30); node; node = at<u8 *>(node, 0x10))
         if (at<s32>(node, 8) != -1) PartStates_Activate(at<u8 *>(instances[at<u32>(ride, 8)], 8), at<u32>(node, 8), 0);
+}
+
+s32 __cdecl TrakRide_AddSection(u32 handle, s32 x, s32 y, u32 piece, u32 a, u32 b, u32 c) {
+    u8 *const ride = RideOf(handle);
+    if (!loaded() || NameOf(ride) != handle)
+        return 0;
+    for (const u8 *other = at<const u8 *>(ride, 0xbc); other; other = at<const u8 *>(other, 0x24))
+        if (at<s32>(other, 0x14) == x && at<s32>(other, 0x18) == y)
+            return 0;   // (after "Duplicate track section - IGNORED!" to the empty Debug_Printf)
+    u8 *section = global<u8 *>(0x00877b80);
+    if (!section)
+        return 0;
+    u32 i = 0;
+    for (; i < 0x400 && (at<u8>(section, 0) & 1); ++i)
+        section += 0x28;
+    if (i == 0x400)
+        return 0;
+    at<u32>(section, 0) = 1;
+    global<u32>(0x00877b84) += 1;
+    at<u32>(section, 8) = a;
+    at<u32>(section, 0xc) = b;
+    at<u32>(section, 0x10) = c;
+    at<u32>(section, 4) = piece;
+    at<s32>(section, 0x14) = x;
+    at<s32>(section, 0x18) = y;
+    at<u8 *>(section, 0x20) = ride;
+    at<u32>(section, 0x24) = 0;   // (+0x1c, the node list, is left as it was: sic)
+    if (u8 *last = at<u8 *>(ride, 0xbc)) {
+        while (at<u8 *>(last, 0x24))
+            last = at<u8 *>(last, 0x24);
+        at<u8 *>(last, 0x24) = section;
+    } else {
+        at<u8 *>(ride, 0xbc) = section;
+    }
+    const u32 X = (u32)x, Y = (u32)y, width = at<u32>(ride, 0xc) - at<u32>(ride, 8);
+    const u32 wide = width + 0xc00, narrow = 0xc00 - width;
+    u8 *first = nullptr;
+    u32 ox = Y + 0x1800, oy = Y + 0x1800;   // the buoy at (x + ox, y + 0x1800 - oy); these for the other kinds (sic)
+    const u32 kind = piece & 0xffff;
+    switch (kind) {
+    case 1:
+    case 5:
+        first = Flagged(SectionNode(section, X + 0x1800, Y, wide), 0x14, 0);
+        Flagged(SectionNode(section, X + 0x1800, Y, narrow), 0x14, 0x40);
+        ox = oy = 0xf84;
+        break;
+    case 2:
+    case 6:
+        first = Flagged(SectionNode(section, X, Y, wide), 0x12, 0);
+        Flagged(SectionNode(section, X, Y, narrow), 0x12, 0x40);
+        ox = 0x87c;
+        oy = 0xf84;
+        break;
+    case 3:
+    case 7:
+        first = Flagged(SectionNode(section, X, Y + 0x1800, wide), 0xa, 0);
+        Flagged(SectionNode(section, X, Y + 0x1800, narrow), 0xa, 0x40);
+        ox = oy = 0x87c;
+        break;
+    case 4:
+    case 8:
+        first = Flagged(SectionNode(section, X + 0x1800, Y + 0x1800, wide), 0xc, 0);
+        Flagged(SectionNode(section, X + 0x1800, Y + 0x1800, narrow), 0xc, 0x40);
+        ox = 0xf84;
+        oy = 0x87c;
+        break;
+    case 9:
+    case 12:
+        first = Flagged(SectionNode(section, X + 0xc00, Y + 0xc00, 0xc20), 0, kind == 12 ? 0x120 : 0x20);
+        at<u32>(first, 0x10) = width;
+        ox = oy = 0xc00;
+        break;
+    case 10:
+    case 13:
+        first = Flagged(SectionNode(section, X + 0xc00, Y + 0xc00, width), 0, kind == 13 ? 0x120 : 0x20);
+        at<u32>(first, 0x10) = 0xc20;
+        ox = oy = 0xc00;
+        break;
+    case 11: {
+        const s32 reach = (s32)(long long)X87_Sqrt(X87Reg((double)(s32)(width * width + 0x900000))).v;
+        first = SectionNode(section, X + 0xc00, Y + 0xc00, (u32)reach);
+        const s32 type = at<s32>(ride, 0);
+        if (type == -5 || type == -8 || type == -12 || type == -13)
+            Flagged(first, 0, 0x80);
+        Flagged(SectionNode(section, X + 0x1800, Y, narrow), 0x14, 0x40);
+        Flagged(SectionNode(section, X, Y, narrow), 0x12, 0x40);
+        Flagged(SectionNode(section, X, Y + 0x1800, narrow), 0xa, 0x40);
+        Flagged(SectionNode(section, X + 0x1800, Y + 0x1800, narrow), 0xc, 0x40);
+        ox = oy = 0xc00;
+        break;
+    }
+    default:
+        break;
+    }
+    if (!(piece & 0x10000)) {
+        if (u8 *const buoy = Buoy_Alloc(X + ox, Y + 0x1800 - oy)) {
+            at<u8 *>(buoy, 0x10) = ride;
+            at<u32>(ride, 0xac) += 1;
+            if (u8 *last = at<u8 *>(ride, 0xa8)) {
+                while (at<u8 *>(last, 0x14))
+                    last = at<u8 *>(last, 0x14);
+                at<u8 *>(last, 0x14) = buoy;
+            } else {
+                at<u8 *>(ride, 0xa8) = buoy;
+            }
+            at<u8 *>(buoy, 0x18) = first;
+            at<u8 *>(first, 0x1c) = buoy;   // (no first node, as for the other kinds: a write at address 0x1c)
+        }
+    }
+    return 1;
 }
 }
