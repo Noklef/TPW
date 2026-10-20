@@ -16,4 +16,9 @@ const EngineErrorsEnv *EngineErrors_GetEnv();
 extern "C" {
 // 0x56af20 (thiscall on the list; kind, code, pops 8).
 void __fastcall EngineErrors_Push(u8 *list, void *, u32 kind, u32 code);
+
+// 0x56afc0 (thiscall on the list; name unconfirmed): each pair from the last (the count read once, unsigned) whose code is 0x887601c2
+// (DDERR_SURFACELOST) replaced by the list's last (the count decremented; the pair moved in is not looked at again, sic). Any found:
+// flag 0x10000000 of the scene flags (0x8bd508) set and 1; else 0.
+u32 __fastcall EngineErrors_DropSurfaceLost(u8 *list);
 }
