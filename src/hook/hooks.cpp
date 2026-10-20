@@ -378,6 +378,7 @@
 #include "../game/ui/msgtags.h"
 #include "../game/ui/windowtimers.h"
 #include "../game/lib/jpeg6b.h"
+#include "../game/lib/jpeg6a.h"
 #include "../game/lib/zlib.h"
 
 namespace tpw::hook {
@@ -5154,6 +5155,11 @@ const Hook kHooks[] = {
     {"jpeg_read_header",          0x00630d90, (void *)&jpeg_read_header, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"jpeg_destroy_decompress",   0x00630d80, (void *)&jpeg_destroy_decompress, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"jpeg_CreateDecompress",     0x00630ca0, (void *)&jpeg_CreateDecompress, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"jpeg6a_jzero_far",          0x006504a2, (void *)&jpeg6a_jzero_far, {0x55, 0x8b, 0xec, 0x57, 0x8b}},
+    {"jpeg6a_jcopy_block_row",    0x0065047f, (void *)&jpeg6a_jcopy_block_row, {0x55, 0x8b, 0xec, 0x56, 0x57}},
+    {"jpeg6a_jcopy_sample_rows",  0x00650401, (void *)&jpeg6a_jcopy_sample_rows, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jround_up",          0x006503e3, (void *)&jpeg6a_jround_up, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jdiv_round_up",      0x006503d0, (void *)&jpeg6a_jdiv_round_up, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

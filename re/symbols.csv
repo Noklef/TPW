@@ -5500,3 +5500,8 @@ address,name,kind,confidence,notes
 0x00631460,jpeg_start_decompress,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdapistd.c jpeg_start_decompress: the master started, multi-scan input absorbed, the first output pass set up (the library's)"
 0x00631540,jdapistd_output_pass_setup,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdapistd.c output_pass_setup: the output pass prepared, the dummy passes of two-pass quantizing run (the library's)"
 0x00631610,jpeg_read_scanlines,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdapistd.c jpeg_read_scanlines: the state and row checks, the progress hook, a call to the main controller (the library's)"
+0x006503d0,jpeg6a_jdiv_round_up,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jutils.c jdiv_round_up: a / b rounded up (the library's)
+0x006503e3,jpeg6a_jround_up,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jutils.c jround_up: a rounded up to a multiple of b (the library's)
+0x00650401,jpeg6a_jcopy_sample_rows,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jutils.c jcopy_sample_rows: rows of samples copied between row arrays (the library's)
+0x0065047f,jpeg6a_jcopy_block_row,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jutils.c jcopy_block_row: a row of coefficient blocks copied (the library's)
+0x006504a2,jpeg6a_jzero_far,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jutils.c jzero_far: a span of bytes cleared (the library's)
