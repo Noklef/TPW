@@ -3,6 +3,7 @@
 # (about the bounds, and junk), the money record of the world as challenges.py lays it out, the dword 0x787d1c (0, 1 or any), the render
 # view's flags (any).
 # usage: keyactions.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Turn90,... to pick)
+import math
 import os
 import struct
 import sys
@@ -26,9 +27,12 @@ def case(r):
     regions = {}
     if op.startswith('Turn'):
         regions = recorded_actions.recorder(r)
-        regions[0x81b130] = r.bytes(0xc)
+        regions[0x81b130] = bytearray(r.bytes(0xc))
         angle = r.choice([0, 1, 90, 180, 270, 359, 360, 450, -90, -1, -360, 0x7fffffff, 0x7fffff00, r.randrange(360), r.getrandbits(32)])
         regions[0x81d7a0] = put(bytearray(r.bytes(0xc)), 4, 'I', angle & 0xffffffff)
+        if r.random() < 0.4:   # (0x81b134 the new angle: recorded only because forced)
+            turned = ((angle + (90 if op == 'Turn90' else 270) + (1 << 31)) % (1 << 32)) - (1 << 31)
+            put(regions[0x81b130], 4, 'I', int(math.fmod(turned, 360)) & 0xffffffff)
     elif op.startswith('Clock'):
         clock = bytearray(r.bytes(0x60))
         clock[0x20:0x28] = rate_double(r) if r.random() < 0.4 else struct.pack('<d', r.choice([0.2, 0.25, 0.3125, 1.6, 2.0, 2.5, r.uniform(0.15, 2.7)]))
