@@ -148,7 +148,7 @@ address,name,kind,confidence,notes
 0x008791a0,RSSE_Initialised,data,high,
 0x0087919c,RSSE_CritLock,data,high,set by CRIT_LOCK
 0x00879190,RSSE_ScriptVersion,data,medium,expected .RSE version (0x10F51)
-0x0046d6d0,MD2_Load,function,high,"loads a .md2 mesh: magic 0x1CD15D46, version <=0xDE; relocates ~18 header offsets and nested table pointers"
+0x0046d6d0,MD2_Load,function,high,"reimplemented (src/game/model/md2file); cdecl (name, flags): a .md2 model file read whole into a GlobalMem block and its offsets made pointers"
 0x00416e10,Save_FieldName,function,high,"reimplemented (src/game/core/savegame); stdcall (size, name, isLoad) debug stub: returns 0"
 0x00416e20,Save_InitUnusedOne,function,low,reimplemented (src/game/core/savegame); cdecl static initialiser: unused 0x78aa2c = 1.0f
 0x00416e40,Save_InitUnusedEpsilon,function,low,reimplemented (src/game/core/savegame); cdecl static initialiser: unused 0x78b11c = 1 / 2^23

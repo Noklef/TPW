@@ -299,6 +299,7 @@ add_library(tpw_game STATIC
     src/game/model/objmodel.cpp
     src/game/model/heightmap.cpp
     src/game/model/baseuvs.cpp
+    src/game/model/md2file.cpp
     src/game/render/mode.cpp
     src/game/render/frame.cpp
     src/game/render/screen.cpp
