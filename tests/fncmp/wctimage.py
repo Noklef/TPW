@@ -117,9 +117,9 @@ def read(r):
 def load(r):
     """0x564c00 (thiscall; name): vfs.py's mounts with its memory source over a 0x1c-byte header (kind 0x12 / 0x13 mostly, +2 0x20 mostly, the
     block sizes at +0x10 / +0x14 small) and the blocks' bytes; a name under the root or not; the tracked blocks as tracked(); the heap
-    failing its first (the stream's) or a later (a block's) allocation now and then; the image's other bytes random."""
+    failing its first (the stream's), third or fourth (the blocks': the second is the path String's) allocation now and then; the image's other bytes random."""
     log = log_region()
-    regions = {LOG: log, HEAP: heap(fail=r.choice([0] * 8 + [1, 4, 5, 6])), LOCALE: bytes(4), **global_heap()}
+    regions = {LOG: log, HEAP: heap(fail=r.choice([0] * 8 + [1, 3, 3, 4])), LOCALE: bytes(4), **global_heap()}
     tracked(r, regions)
     root = vfs.mounts(r, log, regions)
     header = bytearray(r.bytes(0x1c))
