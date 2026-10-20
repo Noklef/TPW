@@ -173,4 +173,6 @@ s32 *__cdecl IntPair_Normalize(s32 *out, const s32 *pair) {
     out[1] = y;
     return out;
 }
+
+void __cdecl IntPair_ZeroAtExit() {}
 }

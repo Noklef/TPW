@@ -1,6 +1,6 @@
 // A pair of 32-bit ints (8 bytes; copied in 151 places), x then y, at times 16.16 fixed point:
 // reimplementation of 0x4d99c0, 0x4d97b0, 0x4d9cc0, 0x50e080, 0x50ece0 and 0x50f1a0-0x50f1f0 (thiscall),
-// and 0x50f850, 0x5104b0 and 0x5104e0 (cdecl, returning a pair through a hidden &out).
+// and 0x50f850, 0x5104b0 and 0x5104e0 (cdecl, returning a pair through a hidden &out); 0x50ce20 (an atexit entry).
 #pragma once
 
 #include "../../../re/types.h"
@@ -66,4 +66,8 @@ s32 *__cdecl IntPair_Truncate(s32 *out, const s32 *pair, s32 limit);
 // root (0 for a root of 0) and out = (x * s, y * s) (32-bit products); else root = Math_ISqrt of the magnitudes shifted right (arithmetically) by 8
 // (under 0x400000) or 18, squared and summed, s = 0x1000000 / root or 0x4000 / root (0 for 0) and out = pair * s (16.16 products, y first). Returns out.
 s32 *__cdecl IntPair_Normalize(s32 *out, const s32 *pair);
+// 0x50ce20 (no arguments): the atexit entry of the pair 0x7cf100 (zeroed by the static initialiser 0x50ce00, which registers it): nothing
+// to destroy, a bare RET. The name is unconfirmed.
+void __cdecl IntPair_ZeroAtExit();
+
 }
