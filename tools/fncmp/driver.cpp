@@ -589,6 +589,15 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006ff320, 11},  // the text part's (a list row's impl: slots 3, 5 and 10 from Window_SetImpl)
                                    {0x006ff3b0, 11},  // two more text part kinds' (list rows' children: 0x49c880, 0x4ae7d0; slot 3,
                                    {0x006ff410, 11},  // 0x4903e0 / 0x490940, unported: the cases give it a recorder)
+                                   {0x006ff350, 11},  // the other text part kinds' (the windows dialogbuild.py's builders dress; their
+                                   {0x006ff380, 11},  // slots 3 and 9 unported, given recorders by the cases)
+                                   {0x006ff3e0, 11},
+                                   {0x006ff440, 11},
+                                   {0x006ff470, 11},
+                                   {0x006ff4a0, 11},
+                                   {0x006ff4d0, 11},
+                                   {0x006ff500, 11},
+                                   {0x006ff530, 11},
                                    {0x007011c8, 4},   // the WCT image's virtual base (the deleting destructor's thunk TexFile_Load calls)
                                    {0x006fdcc8, 4},   // the light parts' (directional, point: slot 2 the thunk to Stub_One the renderer's sorted add calls)
                                    {0x006fdcd8, 5},   // and a light's virtual base made by Obj_CtorVirtual (slot 2 the same; 5-7 are _purecall)
