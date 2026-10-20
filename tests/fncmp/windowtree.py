@@ -12,12 +12,13 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import LOG, Bench, Call, log_region, put, vtable  # noqa: E402
+from fncmp import CDECL_LOG4, LOG, Bench, Call, log_region, put, vtable  # noqa: E402
 from window import MISC, NODES, RANGES, TREE, VTABLE, WINDOW, chain, hover, offset_env, point, shown_env, tree, word  # noqa: E402
 
 CALLS = {'FindChild': 0x65d7d0, 'IsShown': 0x65d773, 'OffsetByParents': 0x65c979, 'HitTest': 0x65db25, 'UpdateHover': 0x6589f9,
-         'NotifyShown': 0x65d90b, 'SetShown': 0x65d9dd, 'Offset': 0x65c7fe, 'SetEnabled': 0x65da8d}
-B = Bench(RANGES + [(0x65da8d, 0x65db25)])
+         'NotifyShown': 0x65d90b, 'SetShown': 0x65d9dd, 'Offset': 0x65c7fe, 'SetEnabled': 0x65da8d,
+         'RaiseToTop': 0x65dbf0, 'OpenTree': 0x65c707, 'CloseTree': 0x65c778}
+B = Bench(RANGES + [(0x65da8d, 0x65db25), (0x65dbf0, 0x65dcaf), (0x65c707, 0x65c7fe)])
 
 
 def case(r):
@@ -62,6 +63,18 @@ def case(r):
         wins = offset_env(r, regions, log)
         return Call(CALLS[op], [r.choice(wins), word(r), word(r)], regions, conv='t', ret='a')
     wins = shown_env(r, regions, log)   # NotifyShown / SetShown: EDX the window's upper half or random
+    if op in ('RaiseToTop', 'OpenTree', 'CloseTree'):   # shown_env's, the previous links +0x58 set; the windows' vtable a recorder's (slot 0)
+        for w in wins:
+            prev, c = 0, struct.unpack_from('<I', regions[w], 0x5c)[0]
+            while c:
+                put(regions[c], 0x58, 'I', prev)
+                prev, c = c, struct.unpack_from('<I', regions[c], 0x54)[0]
+            put(regions[w], 0, 'I', VTABLE)
+        put(regions[wins[0]], 0x58, 'I', 0)
+        regions[0xfaa5fc] = struct.pack('<I', r.choice([0, 0, CDECL_LOG4]))
+        if op == 'RaiseToTop':
+            return Call(CALLS[op], [r.choice(wins[1:] * 4 + wins[:1]) if len(wins) > 1 else wins[0]], regions, conv='t', ret='a')
+        return Call(CALLS[op], [r.choice(wins[:1] * 3 + wins)], regions, conv='t', ret='w')
     window = r.choice(wins)
     if op == 'SetEnabled':
         for w in wins:
