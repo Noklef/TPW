@@ -57,7 +57,7 @@ tpw_jpeg(tpw_jpeg6b jpeg-6b jmemansi)
 # build rounds once from double, differing in the last bit; compiled for x87 it is the same instructions.
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/wrap/jpeg-6b/jddctmgr.c PROPERTIES COMPILE_OPTIONS /arch:IA32)
 tpw_jpeg(tpw_jpeg6a jpeg-6a jmemansi)
-set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/jpeg-6a/jmemansi.c PROPERTIES COMPILE_DEFINITIONS DEFAULT_MAX_MEM=10000000L)
+set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/wrap/jpeg-6a/jmemansi.c PROPERTIES COMPILE_DEFINITIONS DEFAULT_MAX_MEM=10000000L)
 target_compile_options(tpw_jpeg6a PRIVATE /FI${CMAKE_CURRENT_SOURCE_DIR}/config/jpeg6a_prefix.h)
 # 6a's jconfig.h (boolean an int, as in the exe's 6a) before the shared one; src/game/lib/jpeg6a.cpp includes it by path
 target_include_directories(tpw_jpeg6a BEFORE PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/config/jpeg-6a)

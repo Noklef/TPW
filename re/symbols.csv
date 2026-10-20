@@ -5545,3 +5545,43 @@ address,name,kind,confidence,notes
 0x006504a2,jpeg6a_jzero_far,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jutils.c jzero_far: a span of bytes cleared (the library's)
 0x00657480,jpeg6a_jpeg_fdct_ifast,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jfdctfst.c jpeg_fdct_ifast: one block's fast integer forward DCT in place (the library's)
 0x00657810,jpeg6a_jpeg_fdct_islow,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jfdctint.c jpeg_fdct_islow: one block's accurate integer forward DCT in place (the library's)
+0x0064f3c0,jpeg6a_jpeg_abort,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcomapi.c jpeg_abort: the image pool freed, global_state back to the start (the library's)"
+0x0064f40c,jpeg6a_jpeg_destroy,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcomapi.c jpeg_destroy: the memory manager's self_destruct, mem and global_state zeroed (the library's)"
+0x0064f43e,jpeg6a_jpeg_alloc_quant_table,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcomapi.c jpeg_alloc_quant_table: a permanent quantization table, sent_table FALSE (the library's)"
+0x0064f46f,jpeg6a_jpeg_alloc_huff_table,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcomapi.c jpeg_alloc_huff_table: a permanent Huffman table, sent_table FALSE (the library's)"
+0x0064cd90,jpeg6a_jpeg_add_quant_table,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c jpeg_add_quant_table: a quantization table scaled from a basic one and clamped (the library's)
+0x0064ce78,jpeg6a_jpeg_set_linear_quality,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c jpeg_set_linear_quality: the two standard tables at a percentage (the library's)
+0x0064ceb3,jpeg6a_jpeg_quality_scaling,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c jpeg_quality_scaling: a 1..100 quality as a percentage scaling (the library's)
+0x0064cef8,jpeg6a_jpeg_set_quality,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c jpeg_set_quality: the standard tables at a quality (the library's)
+0x0064cf20,jpeg6a_jpeg_set_defaults,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c jpeg_set_defaults: the default compression parameters, quality 75, the standard Huffman tables, the default colour space (the library's)"
+0x0064d0a8,jpeg6a_jcparam_std_huff_tables,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c std_huff_tables: the four standard Huffman tables (the library's)
+0x0064d121,jpeg6a_jcparam_add_huff_table,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c add_huff_table: a Huffman table's bits and values copied in (the library's)
+0x0064d188,jpeg6a_jpeg_default_colorspace,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c jpeg_default_colorspace: the JPEG colour space for the input's (the library's)
+0x0064d23b,jpeg6a_jpeg_set_colorspace,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c jpeg_set_colorspace: the JPEG colour space, its marker flags and components (the library's)"
+0x0064d859,jpeg6a_jpeg_simple_progression,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c jpeg_simple_progression: a progressive scan script (the library's)
+0x0064dab2,jpeg6a_jcparam_fill_a_scan,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c fill_a_scan: one scan of a component (the library's)
+0x0064daf9,jpeg6a_jcparam_fill_scans,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c fill_scans: a scan for each component (the library's)
+0x0064db5f,jpeg6a_jcparam_fill_dc_scans,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c fill_dc_scans: the DC scans of the components (the library's)
+0x00650210,jpeg6a_jpeg_get_small,function,low,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemansi.c jpeg_get_small: malloc, the exe's (the library's)"
+0x00650221,jpeg6a_jpeg_free_small,function,low,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemansi.c jpeg_free_small: free, the exe's (the library's)"
+0x00650232,jpeg6a_jpeg_get_large,function,low,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemansi.c jpeg_get_large: malloc, the exe's (the library's)"
+0x00650243,jpeg6a_jpeg_free_large,function,low,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemansi.c jpeg_free_large: free, the exe's (the library's)"
+0x00650254,jpeg6a_jpeg_mem_available,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemansi.c jpeg_mem_available: max_memory_to_use - already_allocated (the library's)
+0x0064e020,jpeg6a_jinit_memory_mgr,function,low,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c jinit_memory_mgr: the memory manager and its methods, JPEGMEM (the library's, through the method shim)"
+0x0064e21d,jpeg6a_jmemmgr_alloc_small,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c alloc_small: an object from a small pool (the library's)
+0x0064e3e3,jpeg6a_jmemmgr_out_of_memory,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c out_of_memory: JERR_OUT_OF_MEMORY (the library's)
+0x0064e40d,jpeg6a_jmemmgr_alloc_large,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c alloc_large: a large object of its own (the library's)
+0x0064e4ff,jpeg6a_jmemmgr_alloc_sarray,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c alloc_sarray: a sample array in chunks (the library's)
+0x0064e600,jpeg6a_jmemmgr_alloc_barray,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c alloc_barray: a coefficient block array in chunks (the library's)
+0x0064e715,jpeg6a_jmemmgr_request_virt_sarray,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c request_virt_sarray: a virtual sample array's control block (the library's)
+0x0064e7ba,jpeg6a_jmemmgr_request_virt_barray,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c request_virt_barray: a virtual block array's control block (the library's)
+0x0064e85f,jpeg6a_jmemmgr_realize_virt_arrays,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c realize_virt_arrays: the virtual arrays' buffers or backing stores (the library's)
+0x0064eb3a,jpeg6a_jmemmgr_access_virt_sarray,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c access_virt_sarray: rows of a virtual sample array (the library's)
+0x0064ed29,jpeg6a_jmemmgr_do_sarray_io,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c do_sarray_io: a virtual sample array's backing store read or write (the library's)
+0x0064ee6f,jpeg6a_jmemmgr_access_virt_barray,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c access_virt_barray: rows of a virtual block array (the library's)
+0x0064f061,jpeg6a_jmemmgr_do_barray_io,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c do_barray_io: a virtual block array's backing store read or write (the library's)
+0x0064f1aa,jpeg6a_jmemmgr_free_pool,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c free_pool: a pool's blocks freed (the library's)
+0x0064f360,jpeg6a_jmemmgr_self_destruct,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c self_destruct: both pools and the manager freed (the library's)
+0x0064de4f,jpeg6a_jerror_emit_message,function,low,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jerror.c emit_message: a warning or trace output by trace_level, warnings counted (the library's)"
+0x0064dead,jpeg6a_jerror_format_message,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jerror.c format_message: msg_code's text formatted with the exe's sprintf (the library's)
+0x0064dff8,jpeg6a_jerror_reset_error_mgr,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jerror.c reset_error_mgr: num_warnings and msg_code 0 (the library's)
