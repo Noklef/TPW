@@ -5,6 +5,7 @@
 #include "../core/filetime.h"
 #include "../core/circbuf.h"
 #include "../core/funnytime.h"
+#include "../core/savegame.h"
 #include "messagecentre.h"
 #include "things.h"
 
@@ -20,6 +21,7 @@ void stamp(u8 *analyser, u32 offset) {
     at<FileTime>(analyser, offset) = *t;
 }
 
+const SaveSpec kVal[] = {{0x4, 4, 0x00759a48}, {0x8, 1, 0x00759a3c}};   // mVal, mWorkedOut
 }  // namespace
 
 extern "C" {
@@ -137,5 +139,10 @@ u8 *__fastcall ParkAnalyser_Ctor(u8 *analyser) {
     at<u32>(analyser, 0x21c48) = 0;
     ParkAnalyser_InitCells(analyser);
     return analyser;
+}
+
+u32 __fastcall AnalyserVal_Serialize(u8 *val, void *, Stream *stream, u32 save, s32 version, u32) {
+    if (version < 0 || version > 1) return 0;
+    return Save_Fields(stream, save, val, kVal, 2) ? 0 : 1;
 }
 }
