@@ -254,6 +254,7 @@
 #include "../game/world/trackpools.h"
 #include "../game/world/wallfollow.h"
 #include "../game/world/cellmodel.h"
+#include "../game/world/objectstatus.h"
 #include "../game/world/uimsgreceiver.h"
 #include "../game/world/weather.h"
 #include "../game/world/world.h"
@@ -4062,6 +4063,7 @@ const Hook kHooks[] = {
     {"Weather_Serialize",         0x00512010, (void *)&Weather_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x53}},
     {"Weather_RandomBolt",        0x00512c50, (void *)&Weather_RandomBolt, {0x83, 0xec, 0x1c, 0x8d, 0x44}},
     {"UIMsgReceiver_Ctor",        0x0050c9b0, (void *)&UIMsgReceiver_Ctor, {0x51, 0x66, 0xc7, 0x44, 0x24}},
+    {"Object_Status",             0x00485f60, (void *)&Object_Status, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
