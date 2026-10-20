@@ -27,15 +27,6 @@ address,name,module,reason
 5f6c50,WString_Format,core/string,todo
 5f7360,Palette_ExpandRgb,gfx/palette,todo
 5f73a0,Palette_Nearest,gfx/palette,todo: indirect only
-5f86a0,App_GetInstance,core/app,todo: indirect only
-5f86b0,App_SetInstance,core/app,todo
-5f86c0,App_GetWindow,core/app,todo: indirect only
-5f86d0,App_SetWindow,core/app,todo
-5f86e0,App_PumpMessages,core/app,todo
-5f8750,App_SetQuit,core/app,todo
-5f8760,App_GetWndProc,core/app,todo
-5f8770,App_GetIconId,core/app,todo
-5f8780,App_GetName,core/app,todo
 5f8f80,Surface_SetDirectDraw,gfx/surface,todo
 5f8f90,Surface_Attach,gfx/surface,todo
 5f9040,Surface_Restore,gfx/surface,todo
