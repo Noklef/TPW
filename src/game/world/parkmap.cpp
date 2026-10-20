@@ -7,6 +7,7 @@
 #include "../core/accessors.h"
 #include "../core/ptrlist.h"
 #include "../math/x87.h"
+#include "../render/backdrop.h"
 #include "../ui/window.h"
 #include "camera.h"
 #include "mapcell.h"
@@ -125,6 +126,61 @@ s32 __fastcall ParkMap_ApplyView(u8 *map) {
     const float fz = (float)(s32)((u32)(s32)(long long)z * 10u);
     Camera_SetView(reinterpret_cast<const u32 *>(&fx), reinterpret_cast<const u32 *>(&fz), nullptr, nullptr, nullptr);
     return Window_SendMessage(at<u8 *>(map, 4), 4, 0, 0);
+}
+
+void __fastcall ParkMap_LayOut(const u8 *map) {
+    const auto bits = [](float f) {
+        u32 b;
+        std::memcpy(&b, &f, 4);
+        return b;
+    };
+    const u32 width = global<u32>(0x007a1968), height = global<u32>(0x007a1930);
+    const float zoom = at<float>(map, 0x5c);
+    const X87Reg toX = X87_DivR(static_cast<double>(at<s32>(map, 0x24)), 480.0f);
+    const float widthF = static_cast<float>(static_cast<double>(width));
+    const X87Reg halfW = X87Reg(static_cast<double>(width)) / zoom * 0.5f;
+    const X87Reg toY = X87_DivR(static_cast<double>(at<s32>(map, 0x28)), 425.0f);
+    const float heightF = static_cast<float>(static_cast<double>(height));
+    const X87Reg halfH = X87Reg(static_cast<double>(height)) / zoom * 0.5f;
+    const X87Reg cx = toX * at<float>(map, 0x54) - -15.0f;
+    const X87Reg cy = toY * at<float>(map, 0x58) - -42.0f;
+    const float cxF = static_cast<float>(cx), halfWF = static_cast<float>(halfW);
+    const X87Reg left = cx - halfWF;
+    float l = static_cast<float>(left);
+    const float cyF = static_cast<float>(cy);
+    const float halfHF = static_cast<float>(halfH);
+    float r = static_cast<float>(cx + halfWF);
+    float t = static_cast<float>(cy - halfHF);
+    float b = static_cast<float>(X87Reg(cyF) + halfHF);
+    if (!(left.v >= 0.0))   // (the register before its store)
+        l = 0.0f;
+    if (!(t >= 0.0f))
+        t = 0.0f;
+    const double lastX = static_cast<double>(at<u32>(map, 0x48) - 1), lastY = static_cast<double>(at<u32>(map, 0x4c) - 1);
+    if (!(r < lastX) && r == r)
+        r = static_cast<float>(lastX);
+    if (!(b < lastY) && b == b)
+        b = static_cast<float>(lastY);
+    const auto whole = [](float f) { return static_cast<float>(static_cast<s32>(static_cast<long long>(f))); };   // __ftol, then fild
+    Backdrop_SetRect(reinterpret_cast<u8 *>(0x0087aee8), nullptr, bits(whole(l)), bits(whole(t)), bits(whole(r)), bits(whole(b)));
+    const X87Reg halfWidth = X87Reg(widthF) * 0.5f;
+    const float halfWidthF = static_cast<float>(halfWidth);
+    const X87Reg halfHeight = X87Reg(heightF) * 0.5f;
+    const X87Reg u0 = X87_SubR((X87Reg(cxF) - l) * zoom, halfWidthF);
+    const X87Reg v0 = X87_SubR((X87Reg(cyF) - t) * zoom, halfHeight);
+    const X87Reg u1 = (X87Reg(r) - cxF) * zoom + halfWidthF;
+    const X87Reg v1 = (X87Reg(b) - cyF) * zoom + halfHeight;
+    const auto edge = [](X87Reg v, float size) {   // 2v / size - 1, stored, then kept to -1 to 1 (a NaN to -1)
+        const float e = static_cast<float>((v + v) / size - 1.0f);
+        return !(e >= -1.0f) ? -1.0f : e > 1.0f ? 1.0f : e;
+    };
+    const float su0 = edge(u0, widthF), sv0 = edge(v0, heightF), su1 = edge(u1, widthF), sv1 = edge(v1, heightF);
+    Backdrop_SetSourceRect(reinterpret_cast<u8 *>(0x0087aee8), nullptr, bits(su0), bits(sv0), bits(su1), bits(sv1));
+    for (const u8 *node = at<const u8 *>(at<const u8 *>(map, 0x20080), 4); node;) {
+        const u8 *const next = at<const u8 *>(node, 4);
+        ParkMap_PlaceSprite(map, nullptr, at<u8 *>(node, 0));
+        node = next;
+    }
 }
 
 }  // extern "C"

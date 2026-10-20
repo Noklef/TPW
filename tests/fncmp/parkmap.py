@@ -3,8 +3,8 @@
 # laid ids, flag 0x40 now and then) and 0x28-byte entries (track types, 0xc / 0x11 with parents among the laid ids, 0x19, others), the owners'
 # thing lists (heads at +0x24, linked by +0xa without cycles) over the park of thingenv (things of models 3 mostly, definitions found by id whose
 # map kind +0x4ac is 0 to 3 mostly) and the entries' old contents random. The sprite placed on it (0x5f4180): see place(). The view
-# origin applied (0x5f1050): see view().
-# usage: parkmap.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Classify,PlaceSprite,ApplyView)
+# origin applied (0x5f1050): see view(). The overview laid out (0x5f3230): see lay_out().
+# usage: parkmap.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Classify,PlaceSprite,ApplyView,LayOut)
 import os
 import struct
 import sys
@@ -17,10 +17,10 @@ from thingenv import ITEM, ITEMS, NITEMS, POOL, THING, park  # noqa: E402
 B = Bench([(0x5f2050, 0x5f2363), (0x536310, 0x536490), (0x535db0, 0x535dd0), (0x4d0af0, 0x4d0b10), (0x53ad30, 0x53adb0), (0x4dd4e0, 0x4dd510),
            (0x412e90, 0x412f00), (0x5da3c0, 0x5da3c1), (0x5f4180, 0x5f42c6), (0x56b570, 0x56b5d0), (0x56b620, 0x56b628),
            (0x5f1050, 0x5f1123), (0x42aab0, 0x42ab1d), (0x658d9f, 0x658e04), (0x659710, 0x659740), (0x67a830, 0x67a860),
-           (0x65d7bc, 0x65d832), (0x65f697, 0x65f6e1)])
+           (0x65d7bc, 0x65d832), (0x65f697, 0x65f6e1), (0x5f3230, 0x5f35aa), (0x577940, 0x577990)])
 MAP = RAM + 0x40000
 SPRITE, FRAME, ARRAY, KEYS, WINDOW = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400
-OPS = [k for k in os.environ.get('OPS', 'Classify,PlaceSprite,ApplyView').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Classify,PlaceSprite,ApplyView,LayOut').split(',') if k]
 WORLD = RAM + 0x80000
 CELL_TYPES = [0, 1, 2, 3, 4, 9, 0xa, 0x15, 0xb, 0xd, 0x10, 0x19, 0xc, 0x5, 0x1e, 0x104]
 ENTRY_TYPES = [0xb, 0xd, 0x10, 0x12, 0x19, 0xc, 0x11, 0xc, 0x11, 0x19, 0, 1, 0xe, 0x10b]
@@ -55,6 +55,36 @@ def place(r):
     return Call(0x5f4180, [MAP, SPRITE], regions, conv='t', ret='v')
 
 
+LIST, NODES = RAM + 0x500, RAM + 0x600
+
+
+def lay_out(r):
+    # LayOut: place()'s map, screen and frame; the map's +0x48 / +0x4c (the limits less 1, unsigned) small, 0 or anything; the origin now and
+    # then about the edges (the clamps); 0-3 sprites on the list at +0x20080 (place()'s, sharing its frame), and the backdrop at 0x87aee8 any.
+    c = place(r)
+    regions = dict(c.regions)
+    m = bytearray(regions[MAP])
+    put(m, 0x48, 'II', *(r.choice([r.randrange(1, 0x81), 0x80, 1, 0, r.getrandbits(32)]) for _ in range(2)))
+    if r.random() < 0.3:
+        put(m, 0x54, 'II', *(fb(r.choice([0.0, -1.0, 1.0, 64.0, 127.5, r.uniform(-50, 200)])) for _ in range(2)))
+    regions[MAP] = m
+    n = r.choice([0, 1, 2, 3])
+    nodes = bytearray(r.bytes(0x18))
+    for i in range(n):
+        sprite = bytearray(r.bytes(0x30))
+        r.floats(sprite, (4, 8), r.choice([128, 1000]))
+        put(sprite, 0x14, 'i', r.choice([-1, 0, 1, 2, 3]))
+        put(sprite, 0x24, 'I', r.f(r.choice([1, 50])))
+        put(sprite, 0x28, 'I', FRAME)
+        regions[RAM + 0x700 + 0x40 * i] = sprite
+        put(nodes, 8 * i, 'II', RAM + 0x700 + 0x40 * i, NODES + 8 * (i + 1) if i + 1 < n else 0)
+    regions[NODES] = nodes
+    regions[LIST] = put(bytearray(r.bytes(0x10)), 4, 'I', NODES if n else 0)
+    regions[MAP + 0x20080] = struct.pack('<I', LIST)
+    regions[0x87aee8] = r.bytes(0x40)
+    return Call(0x5f3230, [MAP], regions, conv='t', ret='v')
+
+
 def view(r):
     # ApplyView: the map's width and height (+0x24, +0x28) small, 0, 2^24 + 3 (the limit unrounded) or anything; the origin (+0x54, +0x58)
     # floats about them (below 0, on the limit, past it by a little or much, NaN, infinities); the camera's globals and the window anything,
@@ -79,6 +109,8 @@ def case(r):
         return place(r)
     if op == 'ApplyView':
         return view(r)
+    if op == 'LayOut':
+        return lay_out(r)
     w = r.choice([r.randrange(1, 9), r.randrange(1, 9), r.randrange(1, 4), 0])
     h = r.choice([r.randrange(1, 9), r.randrange(1, 9), r.randrange(1, 4), 0, -1])
     regions, handles, _addrs = park(r, count=r.choice([2, 3, 4, 6, 6]), kinds=(3, 3, 3, 3, 1, 2, 0))
