@@ -58,6 +58,7 @@
 #include "../../src/game/gfx/surfbuf.h"
 #include "../../src/game/gfx/tga.h"
 #include "../../src/game/render/engineerrors.h"
+#include "../../src/game/sprite/draw.h"
 #include "../../src/game/sprite/script.h"
 #include "../../src/game/world/mapline.h"
 #include "../../src/game/world/mousemode.h"
@@ -843,6 +844,12 @@ int main(int argc, char **argv) {
                                                  hooked(0x006300f0)),
                                              &stub_strncmp, reinterpret_cast<const char *>((uintptr_t)0x00775860)};
     ImageCodec_SetEnv(&imageCodec);
+    // The sprite draw lists': the ground height the game's (out of range; tests/fncmp/spritedraw.py's scripts carry their own); the thing under the
+    // cursor (0x532bd0) cdecl recorder 1, its hand-over (0x423b50 on 0x7b05a8) cdecl recorder 2 (the bench hooks both with them).
+    static const SpriteDrawEnv spriteDraw = {reinterpret_cast<double(__cdecl *)(u32, u32)>((uintptr_t)0x004527f0),
+                                             reinterpret_cast<u32(__cdecl *)()>((uintptr_t)(kStubs + 0x1000 + 0xa000 + 0x20 * 1)),
+                                             reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)(kStubs + 0x1000 + 0xa000 + 0x400 + 0x20 * 2))};
+    SpriteDraw_SetEnv(&spriteDraw);
     // The event queue's: the heap; atexit stub_cdecl_log (tests/fncmp/events.py hooks 0x67a7d0 with fncmp._cdecl_log), handed the game's 0x5fbe10 as
     // the original is; the instance 0xfa7cb0 and the critical section's import slots the game's (the case maps them, the slots COM recorders).
     static EventQueueEnv events = *EventQueue_GetEnv();
