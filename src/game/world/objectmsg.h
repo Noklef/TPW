@@ -51,6 +51,14 @@ u32 __fastcall Object_QueueOpen(u8 *object);
 // original's bit a stale stack byte (the port's is 0; the game's angles are quarter turns).
 u32 __fastcall Object_EntranceOnPath(u8 *object);
 
+// 0x4de840 (thiscall; place, out cell word, out x and y bytes; pops 0x10; x87; name unconfirmed): where a person at a place in the queue stands. From the cell
+// Object_NeighbourCellId gives, Map_FindFacingNeighbour is followed while the place is 4 or more (less 4 each step) and the cell is not 0; the cell goes to *cell. Along =
+// __ftol(place * 0.25 * 255) (the low byte), across = World_Rand % 28 + 0x72. Along up to 0x80: by the cell's direction (MapCell_Direction) 1 (x, y) = (across,
+// along), 4 (0xff - along, across), 0x10 (across, 0xff - along), 0x40 (along, across); another writes neither (a debug print is left out). Above 0x80: the direction of
+// the cell after it (Map_FindFacingNeighbour), or at the queue's end the opposite of the first of 1, 4, 0x10, 0x40 among the cell's neighbour bits (asked twice) whose
+// step (Map_StepCellInDirection; a null one is read) is a type 1 cell, else the cell's own direction; then as above but 4 gives (along + 0x80, across). Returns 0.
+u32 __fastcall Object_QueueSpot(u8 *object, void *, u32 place, u16 *cell, u8 *x, u8 *y);
+
 // 0x4df290 (thiscall; name unconfirmed): whether the object can be opened: the dword at +0x19c is not 1, 4 or 2, the dword at +0x64 is 0, Object_EntranceOnPath, and
 // for a definition (ObjectDefs_Find of the id at +0xe) of kind 3 (+0x9c) Object_LinkOtherOpen.
 u32 __fastcall Object_CanOpen(u8 *object);
