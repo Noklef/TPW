@@ -24,7 +24,41 @@ bool same(const char *a, const char *b) {
     return false;
 }
 
+const ObjModelEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0)};
+const ObjModelEnv *g_env = &kGameEnv;
+
+// The engine's static matrix (0xfb3400): the identity, built the first time under the guard 0xfb33e0 & 1.
+u32 *static_matrix() {
+    u8 &guard = *reinterpret_cast<u8 *>((uintptr_t)0x00fb33e0);
+    u32 *const m = reinterpret_cast<u32 *>((uintptr_t)0x00fb3400);
+    const u8 bits = guard;
+    if (!(bits & 1)) {
+        for (u32 i = 0; i < 16; ++i)
+            m[i] = 0;
+        guard = bits | 1;
+        m[15] = m[10] = m[5] = m[0] = 0x3f800000;
+        g_env->atExit(reinterpret_cast<void(__cdecl *)()>(0x005d1750));
+    }
+    return m;
+}
+
+struct MatrixFrame {   // (the game's frame: the flip at +0x10, the copy at +0x50)
+    u32 flip[16];
+    u32 copy[16];
+};
+
+void transform_into(MatrixFrame &frame, u32 *into) {
+    u32 *const out = static_matrix();
+    using Slot = void(__cdecl *)(void *, u32 *, u32 *, u32 *);
+    void *const transformer = *reinterpret_cast<void **>((uintptr_t)0x0087b1d8);
+    reinterpret_cast<Slot>((*static_cast<void *const *const *>(transformer))[6])(transformer, frame.copy, frame.flip, out);
+    for (u32 i = 0; i < 16; ++i)
+        into[i] = out[i];
+}
+
 }  // namespace
+
+void ObjModel_SetEnv(const ObjModelEnv *env) { g_env = env ? env : &kGameEnv; }
 
 extern "C" {
 
@@ -143,5 +177,25 @@ u32 __fastcall ObjModel_Load(u8 *object, void *, u8 *model) {
         LoadScreen_Tick(reinterpret_cast<u8 *>((uintptr_t)0x008c4748));
     at<u32>(object, 4) |= 0x10000000;
     return 1;
+}
+
+void __fastcall ObjModel_SetMatrices(u8 *object, void *, u8 which, const u32 *matrix) {
+    MatrixFrame frame;
+    for (u32 i = 0; i < 16; ++i)
+        frame.flip[i] = 0;
+    frame.flip[15] = 0x3f800000;
+    frame.flip[10] = 0x3f800000;
+    frame.flip[0] = 0x3f800000;
+    frame.flip[5] = 0xbf800000;
+    for (u32 i = 0; i < 16; ++i)
+        frame.copy[i] = matrix[i];
+    if (which & 1) {
+        transform_into(frame, &at<u32>(object, 0x10));
+        at<u32>(object, 4) |= 1;
+    }
+    if (which & 2) {
+        transform_into(frame, &at<u32>(object, 0x50));
+        at<u32>(object, 4) |= 2;
+    }
 }
 }

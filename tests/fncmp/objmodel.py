@@ -3,14 +3,15 @@
 # not, 0-3 texture sets (or none) with 1, 2 or 0 users (their own counts 0: the tracked blocks only), the saved pairs off, the block
 # at +0x13c none or one without a texture, the tracked blocks (+0x144, the meshes' +0x74, the sets' +8) as in spritesfree.py's
 # table, the model's flag 2 with the procedural texture object (no cache; a tracked block or none) there or not.
-# The load (0x579e00): see load(). A holder's part made (0x45bbc0, model/holder): see create().
-# usage: objmodel.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Unload,Load,Create)
+# The load (0x579e00): see load(). A holder's part made (0x45bbc0, model/holder): see create(). The object's matrices set (0x57a260):
+# see matrices() and matrices_env().
+# usage: objmodel.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Unload,Load,Create,Matrices)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, LOG, RAM, Bench, Call, global_heap, heap, log_region, put, recorder, set_return  # noqa: E402
+from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, _cdecl_log, blob, fill, global_heap, heap, log_region, put, recorder, set_return, strings  # noqa: E402
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import engineerrors  # noqa: E402
 import loadscreen  # noqa: E402
@@ -20,8 +21,9 @@ import wctimage  # noqa: E402
 
 B = Bench(wctimage.merged([(0x57a100, 0x57a258), (0x579b80, 0x579c13), (0x57b2e0, 0x57b393), (0x57b070, 0x57b130), (0x57b5b0, 0x57b608),
                            (0x575f00, 0x575f8d), (0x56e4e0, 0x56e549), (0x67afa0, 0x67b0d0), (0x67acb0, 0x67acb1), (0x579e00, 0x57a0f2),
-                           (0x54dcc0, 0x54dce8), (0x45bbc0, 0x45bc58), (0x579cd0, 0x579df1), (0x5775d0, 0x5775f3)] + texset.RANGES + texcache.RANGES + loadscreen.RANGES))
-CALLS = {'Unload': 0x57a100, 'Load': 0x579e00, 'Create': 0x45bbc0}
+                           (0x54dcc0, 0x54dce8), (0x45bbc0, 0x45bc58), (0x579cd0, 0x579df1), (0x5775d0, 0x5775f3), (0x57a260, 0x57a41c)] + texset.RANGES + texcache.RANGES
+                          + loadscreen.RANGES), hooks={0x67a7d0: _cdecl_log})
+CALLS = {'Unload': 0x57a100, 'Load': 0x579e00, 'Create': 0x45bbc0, 'Matrices': 0x57a260}
 OBJ, MODEL, SETS, SET, MESHES, FACES, WORDS, BLOCK, TEX = (RAM, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x1000, RAM + 0x2000,
                                                         RAM + 0x2400, RAM + 0x2600, RAM + 0x3000)
 COUNT, TABLE = 0x8bb214, 0x87b1f8
@@ -211,10 +213,35 @@ def create(r):
     return Call(0x45bbc0, [HOLDER], regions, ret='v')
 
 
+XF, XFVT, MATRIX = RAM + 0x49000, RAM + 0x49100, RAM + 0x49200
+
+
+def matrices_env(r, regions):
+    """0x57a260's surroundings: the matrix at MATRIX (any dwords); the vertex transformer [0x87b1d8] whose slot 6 is CDECL_LOG4, the copy and
+    the flip it is given (the game's frame: the flip, then the copy 0x40 on) hashed through the flip's pointer and the copy's own pointer
+    logged as 0 (stack addresses that differ between the sides), the static matrix it is given filled with any bytes now and then; the
+    static matrix (0xfb3400) any, built or not (its guard 0xfb33e0)."""
+    log = regions.setdefault(LOG, log_region())
+    blob(log, 0x3d, 2, 0xffffffff)
+    strings(log, 0x3d, 0, out=2)
+    if r.random() < 0.7:
+        fill(log, 0x3d, 3, r.bytes(0x40), which=1)
+    regions.update({0x87b1d8: struct.pack('<I', XF), XF: struct.pack('<I', XFVT) + r.bytes(0xc), XFVT: put(bytearray(r.bytes(0x20)), 0x18, 'I', CDECL_LOG4),
+                    MATRIX: r.bytes(0x40), 0xfb33e0: bytes([r.getrandbits(8)]), 0xfb3400: r.bytes(0x40)})
+    return regions
+
+
+def matrices(r):   # 0x57a260: an object (any bytes) given the matrix for its first, second, both or neither (which: a byte, the rest any)
+    regions = matrices_env(r, {OBJ: r.bytes(0x100)})
+    return Call(0x57a260, [OBJ, r.choice([0, 1, 2, 3, r.getrandbits(32)]), MATRIX], regions, conv='t', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
     if op == 'Load':
         return load(r)
+    if op == 'Matrices':
+        return matrices(r)
     return create(r) if op == 'Create' else unload(r)
 
 

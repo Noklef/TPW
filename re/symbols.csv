@@ -4804,6 +4804,8 @@ address,name,kind,confidence,notes
 0x00463db0,Instance_Free,function,low,"reimplemented (src/game/model/holder); cdecl (instance, kept): an instance its arrays, animator, object, holder and itself freed"
 0x00463ed0,InstanceTypes_FreeAll,function,low,"reimplemented (src/game/model/holder); cdecl: the type tables instances freed, the last first"
 0x0045bbc0,Holder_Create,function,low,"reimplemented (src/game/model/holder); cdecl (holder): its part made (Mem_Alloc(0x158), LiveObject7019f8_Construct) and given the holder model (ObjModel_Load); the owner count +0x34 raised; the part at +0x1c"
+0x0045bd30,Holder_WakeWithMatrix,function,low,"reimplemented (src/game/model/holder); cdecl (holder, matrix, grid): the part gets the matrix; added to the renderer under 0x10 (flags 0x11) or 0x20 (flags 9)"
+0x00425440,Animator_Wake,function,low,reimplemented (src/game/model/holder); cdecl (animator): its holder wakes with the matrix at +0xc (Holder_WakeWithMatrix) or plainly (Holder_Wake); flag 0x4000. Returns 1
 0x0046de00,Model_RemapTextures,function,high,"reimplemented (src/game/model/remap); (model, remap, textures, first): face texture pointers and grid cell textures renumbered"
 0x0046e130,Model_AddTerrainSets,function,low,"reimplemented (src/game/model/remap); cdecl (model, sets, dir): the model's textures found among the sets' tiles by name or kept, a new table of the kept ones then the tiles (named, numbered, their directories), Model_RemapTextures onto it; 1"
 0x00469180,Highlight_Update,function,high,"reimplemented (src/game/model/highlight); releases the current holder (0x7a1ce0) for another target (0x7afda0), highlights the target: mesh vertex blocks copied into 0x7afd00"
@@ -4876,6 +4878,7 @@ address,name,kind,confidence,notes
 0x0046f100,M3D2_DataErrorBox,function,low,"reimplemented (src/game/model/m3d2); cdecl (text): MessageBoxA(0, text, ""M3D2 Exporter - Data Error"", 0x31) != IDCANCEL"
 0x0057a100,ObjModel_Unload,function,low,"reimplemented (src/game/model/objmodel); thiscall: an engine object's model unloaded (meshes' tracked blocks, saved pairs, block, texture sets, tracked block, procedural textures); +8 and flag 0x10000000 cleared; returns 1"
 0x00579e00,ObjModel_Load,function,low,"reimplemented (src/game/model/objmodel); thiscall (model), pops 4: an engine object's model loaded (procedural textures set up, BlueprintMesh parts flagged, texture sets made and set up, sharp textures flagged, waiting loads run, the tracked mesh block laid out, a loading step); unloaded and 0 on failure"
+0x0057a260,ObjModel_SetMatrices,function,low,"reimplemented (src/game/model/objmodel); thiscall (which, matrix): the matrix (with a flip) through the vertex transformer slot 6 into the static 0xfb3400, copied to the object +0x10 (bit 1) / +0x50 (bit 2)"
 0x0045aee0,Online_ApplyBalance,function,high,reimplemented (src/game/online/servers); copies Online.sam (gBalanceOnline) into the servers object 0x7a14f0
 0x005b6450,Online_LoggedIn,function,high,"reimplemented (src/game/online/session); thiscall u32: the online session's (0xf7d88c) +0x60, set while logged in"
 0x005b6460,Online_Restricted,function,high,reimplemented (src/game/online/session); thiscall u32: 1 unless logged in (+0x60) with the user's flag 0x20 (+0x58) clear

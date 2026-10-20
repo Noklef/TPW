@@ -1,11 +1,17 @@
 // An engine object's model (the class with vtable 0x7019f8, LiveObject7019f8_Construct in core/liveobjects): reimplementation of its
-// unload, 0x57a100, and load, 0x579e00.
+// unload, 0x57a100, and load, 0x579e00, and of the object's matrices set (0x57a260).
 //
 // The object keeps its model at +8 (flags +0x30; +0x36 texture sets as 8-byte pairs from +0x50, the set at +4 of each; +0x44 meshes
 // of 0xa0 bytes from +0x70), its flags at +4 and a tracked block at +0x144 (the load, 0x579e00, makes it and unloads on failure).
 #pragma once
 
 #include "../../../re/types.h"
+
+struct ObjModelEnv {
+    s32(__cdecl *atExit)(void(__cdecl *fn)());   // crt_atexit (0x67a7d0)
+};
+// The atexit of the engine's static matrix (0xfb3400) goes to env (nullptr: the game's).
+void ObjModel_SetEnv(const ObjModelEnv *env);
 
 extern "C" {
 
@@ -33,4 +39,12 @@ u32 __fastcall ObjModel_Unload(u8 *object);
 // steps (LoadScreen_Tick on 0x8c4748). +4 gets 0x10000000; returns 1. The object's +8 and the model's arrays are read again where the
 // original reads them.
 u32 __fastcall ObjModel_Load(u8 *object, void *, u8 *model);
+
+// 0x57a260 (thiscall; which, matrix: pops 8; name unconfirmed): the matrix (16 dwords) copied to the stack beside a flip diag(1, -1, 1,
+// 1); for each of which's bits 1 and 2 the vertex transformer's ([0x87b1d8]) slot 6 called (cdecl) as (transformer, the copy, the flip,
+// the engine's static matrix 0xfb3400) and that static matrix copied to the object's +0x10 (bit 1) or +0x50 (bit 2), the object's +4
+// getting the bit. The static matrix is built the first time (the identity) under the guard 0xfb33e0 & 1 that 0x578473 and others
+// share, its (empty) destructor 0x5d1750 given to atexit. The two stack matrices keep the game's layout (the flip, then the copy 0x40
+// on), which the bench hashes through the flip's pointer.
+void __fastcall ObjModel_SetMatrices(u8 *object, void *, u8 which, const u32 *matrix);
 }

@@ -158,6 +158,29 @@ void __cdecl Holder_Wake(u8 *holder) {
     at<u32>(holder, 0) = at<u32>(holder, 0) | 1;
 }
 
+void __cdecl Holder_WakeWithMatrix(u8 *holder, const u32 *matrix, u32 grid) {
+    ObjModel_SetMatrices(at<u8 *>(holder, 0x1c), nullptr, 1, matrix);
+    u8 *part = nullptr;
+    if (u8 *const sub = at<u8 *>(holder, 0x1c))
+        part = sub + at<s32>(at<u8 *>(sub, 0), 4);
+    if (grid) {
+        Renderer_Add(global<u8 *>(0x0087a6d0), nullptr, part, 0x10);
+        at<u32>(holder, 0) = at<u32>(holder, 0) | 0x11;
+    } else {
+        Renderer_Add(global<u8 *>(0x0087a6d0), nullptr, part, 0x20);
+        at<u32>(holder, 0) = at<u32>(holder, 0) | 9;
+    }
+}
+
+u32 __cdecl Animator_Wake(u8 *animator) {
+    if (const u32 *const matrix = at<const u32 *>(animator, 0xc))
+        Holder_WakeWithMatrix(at<u8 *>(animator, 0x24), matrix, 0);
+    else
+        Holder_Wake(at<u8 *>(animator, 0x24));
+    at<u32>(animator, 0) = at<u32>(animator, 0) | 0x4000;
+    return 1;
+}
+
 void __fastcall HolderUser_Acquire(u8 *user) {
     if (at<u32>(user, 4) != 0)
         return;
