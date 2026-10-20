@@ -5,6 +5,8 @@
 # the word indices' wrap. Face (0x53df30): a face (0, 1, 4, 0x10, 0x40 or any byte) of a cube at a ground point as Add's, turned
 # (0, 4, 0x10, 0x40 or any), its type -1-15 or any, big or not, fixed or not; [0x874fc4] 0 or not, the scene (0x81ae2c) 4, 0xe, 0x13
 # or another, the offsets at 0x8186b4 / 0x8186b8 and 0x820af8 / 0x820afc any, the texture table at 0x871ee8 any floats.
+# Construct (0x53d790): a block of 0-3 cubes and 0-5 quads built (animatormesh.py's environment: global_heap(), the texture directories
+# and holder logged), the face scene as Face's, the wake mostly into an empty renderer pool (see construct()).
 # usage: vertexblock.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -54,14 +56,19 @@ def face(r):
     return Call(0x53df30, [BLOCK] + args, regions, conv='t', ret='a')
 
 
-CBLOCK, CNAME, CTEXT, CRESULT = RAM + 0x60000, RAM + 0x60200, RAM + 0x60300, RAM + 0x60400
+CBLOCK, CNAME, CTEXT, CRESULT, CRENDER = RAM + 0x60000, RAM + 0x60200, RAM + 0x60300, RAM + 0x60400, RAM + 0x60500
 
 
 def construct(r):
     """0x53d790 (thiscall; cubes, quads, result, name, head, five dwords): a block of 0-3 cubes and 0-5 quads built (now and then a cube
-    or quad count with high bits); the node's word +0xc (block +0x30) small; the text at +8 of 0x786b68 any; the render flags (0x78d968,
-    0x785874, 0x79d86c) as rendermode.py's; the face scene as face()'s; holder.py's Wake environment (its renderer) for the wake."""
-    regions = dict(holder.wake(r).regions)
+    or quad count with high bits, a quarter of them); the node's word +0xc (block +0x30) small; the text at +8 of 0x786b68 any; the render flags (0x78d968,
+    0x785874, 0x79d86c) as rendermode.py's; the face scene as face()'s. The holder made is the logged Holder_Create's, without a part,
+    so the wake's Renderer_Add finds an object only with an empty pool (the renderer's +4 0): mostly so, else holder.py's Wake environment
+    (its renderer's pool), where it faults in both."""
+    if r.random() < 0.1:
+        regions = dict(holder.wake(r).regions)
+    else:
+        regions = {0x87a6d0: struct.pack('<I', CRENDER), CRENDER: put(bytearray(r.bytes(0x10)), 4, 'I', 0)}
     block = bytearray(r.bytes(0xa4))
     put(block, 0x30, 'H', r.choice([0, 1, 2, r.randrange(3, 13)]))
     regions.update({CBLOCK: block, CNAME: animatormesh.text(r), CTEXT: animatormesh.text(r), CRESULT: r.bytes(4), HEAP: heap(0x2000),
@@ -76,8 +83,9 @@ def construct(r):
     regions[0x8186b4] = struct.pack('<2i', *(r.choice([0, r.randrange(-64, 64), r.getrandbits(31)]) for _ in range(2)))
     regions[0x820af8] = r.floats(bytearray(8), [0, 4])
     regions[0x871ee8] = r.floats(bytearray(0x80), range(0, 0x80, 4))
-    cubes = r.choice([0, 1, 1, 2, 3, 0x10002 if r.random() < 0.1 else 1])
-    quads = r.choice([0, 1, 2, 5, 0x10001 if r.random() < 0.1 else 2])
+    high = lambda: r.choice([0x10000, r.getrandbits(16) << 16]) if r.random() < 0.25 else 0
+    cubes = r.choice([0, 1, 1, 2, 3]) | high()
+    quads = r.choice([0, 1, 2, 5]) | high()
     name = r.choice([CNAME, CNAME, CNAME, 0])
     args = [cubes, quads, CRESULT, name] + [r.getrandbits(32) for _ in range(7)]
     return Call(0x53d790, [CBLOCK] + args, regions, conv='t', ret='a')
