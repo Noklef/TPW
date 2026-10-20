@@ -238,8 +238,8 @@ def script_case(r, op, regions, log):
     return c
 
 
-PROC_MESSAGES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0x10, 0x10, 0x10, 0x1e, 0x1e, 0x10001, 0x10002, 0x10003, 0x10003, 0x10004, 0x10004,
-                 0x10005, 0x10005, 0x10006, 0x10007, 0, 13, 0x11, 0x1f, 0x10000, 0x10008, 0x80000001, 0x80010005]
+PROC_MESSAGES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9, 10, 11, 12, 0x10, 0x10, 0x10, 0x1e, 0x1e, 0x10001, 0x10002, 0x10003, 0x10003, 0x10004, 0x10004,
+                 0x10004, 0x10004, 0x10005, 0x10005, 0x10005, 0x10006, 0x10007, 0, 13, 0x11, 0x1f, 0x10000, 0x10008, 0x80000001, 0x80010005]
 
 
 def proc_case(r, regions, log):
@@ -267,8 +267,12 @@ def proc_case(r, regions, log):
     regions[VTABLE] = vtable({5: 1, 3: 2, 2: 1})
     set_return(log, 11, r.getrandbits(32))
     regions[MANAGER + 0x40] = vtable({13: 1, 8: 2, 9: 1})
+    later = [w for w in wins if struct.unpack_from('<I', regions[w], 0x54)[0]]
+    if message == 9 and later and r.random() < 0.7:   # (raised only with a next sibling)
+        window = r.choice(later)
     buf = regions[window]
     put(buf, 0x11c, 'I', r.choice([0, 0, 1, 2, 4, 7, r.getrandbits(32)]))
+    buf[4] = r.choice([0, 0, 0, 1])   # (posts refused for a window whose byte +4 is set)
     put(buf, 0x48, 'I', struct.unpack_from('<I', buf, 0x48)[0] & ~8 | r.choice([0, 0, 8]))
     if message in (0x10003, 0x10004, 0x10005):
         x, y = r.randrange(-50, 50), r.randrange(-50, 50)
@@ -285,6 +289,9 @@ def proc_case(r, regions, log):
             for i in range(4):
                 if r.random() < 0.6:   # (the last time near the clock's now: within the double-click time or not)
                     struct.pack_into('<I', regions[0xfaa598], 0xc * i + 8, (c.now - r.choice([0, 5, 200, 1000])) & 0xffffffff)
+            if r.random() < 0.6:   # (the button's entry pressed and its bit held more often)
+                struct.pack_into('<h', regions[0xfaa598], 0xc * a, 1)
+                put(buf, 0x11c, 'I', struct.unpack_from('<I', buf, 0x11c)[0] | 1 << a)
     elif message in (0x10006, 0x10007):
         a = r.choice([0, 1, 2, 3])
         regions[0xfaa598] = r.bytes(0x30)
@@ -293,7 +300,7 @@ def proc_case(r, regions, log):
     regions[0xfaa5d4] = struct.pack('<I', r.choice([0, 1]))
     regions[0xfaa5dc] = struct.pack('<I', r.choice([window, 0, wins[0]]))
     if message in (6, 7, 8, 9):
-        a, b = r.choice([a, a & 0xffff, word(r), 0, 1]), r.choice([b, word(r), 0])
+        a, b = r.choice([a, a & 0xffff, word(r), 0, 0, 1]), r.choice([b, word(r), 0])
     if message == 8:   # (the edges near the window's: a >> 16 left, a's word top)
         left, top, right, bottom = struct.unpack_from('<hhhh', buf, 0xc)
         if r.random() < 0.6:
