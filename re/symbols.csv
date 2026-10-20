@@ -5505,3 +5505,5 @@ address,name,kind,confidence,notes
 0x00650401,jpeg6a_jcopy_sample_rows,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jutils.c jcopy_sample_rows: rows of samples copied between row arrays (the library's)
 0x0065047f,jpeg6a_jcopy_block_row,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jutils.c jcopy_block_row: a row of coefficient blocks copied (the library's)
 0x006504a2,jpeg6a_jzero_far,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jutils.c jzero_far: a span of bytes cleared (the library's)
+0x00657480,jpeg6a_jpeg_fdct_ifast,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jfdctfst.c jpeg_fdct_ifast: one block's fast integer forward DCT in place (the library's)
+0x00657810,jpeg6a_jpeg_fdct_islow,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jfdctint.c jpeg_fdct_islow: one block's accurate integer forward DCT in place (the library's)
