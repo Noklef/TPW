@@ -33,4 +33,12 @@ void __fastcall GuiRect_Adjust(u8 *rect, void *, u32 dl, u32 dt, u32 dr, u32 db)
 // 0x65aa20 (thiscall (source), pops 4; name unconfirmed): the assignment: the base's (Fn_65aa80, which does nothing), then the four words
 // copied from the source; returns the rectangle.
 u8 *__fastcall GuiRect_Assign(u8 *rect, void *, const u8 *source);
+
+// 0x659f3d (thiscall (shape), pops 4; name unconfirmed): how the shape (its words +4 / +6 / +8 / +0xa read as a rectangle's, whatever it
+// is) lies against the rectangle, in AX: 0x200 when they are the same (the shape's bottom compared with the top, sic); 0x100 when the
+// shape contains (its slot 0) the points (left + 1, top + 1) and (right - 1, bottom - 1); else the rectangle's own slot 0 tells which of
+// the shape's corners it contains (top left 0x51, top right 0x92, bottom right 0xa8, bottom left 0x64, or-ed), returned when any of the
+// bits 0xf is set; else the shape's edges crossing it: with the shape spanning it across (left <= left, right >= right), its top (0x10)
+// and bottom (0x20) strictly between the top and bottom; spanning it down, its left (0x40) and right (0x80) strictly between the sides.
+u32 __fastcall GuiRect_Overlap(u8 *rect, void *, u8 *shape);
 }
