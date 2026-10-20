@@ -53,7 +53,7 @@ def case(r):
         return Call(CALLS[op], [LIST], regions, conv='t', ret='v')
     x = r.choice([left, right - 1, r.randrange(left - 5, right + 5), r.randrange(-0x8000, 0x8000)]) & 0xffff
     if r.random() < 0.7 and height:
-        y = inner + height * r.randrange(-1, 10) + r.choice([0, 1, abs(height) - 1])
+        y = inner + height * r.choice([0, 0, 0, -1, 1, 2, r.randrange(10)]) + r.choice([0, 1, abs(height) - 1])
     else:
         y = r.choice([top, bottom - 1, r.randrange(top - 5, bottom + 5), r.randrange(-0x8000, 0x8000)])
     return Call(CALLS[op], [LIST, x | r.getrandbits(16) << 16, (y & 0xffff) | r.getrandbits(16) << 16], regions, conv='t', ret='v')
