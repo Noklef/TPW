@@ -630,4 +630,5 @@ void __fastcall Wrap_Nav_Update_510150(u8 *nav) { Nav_Update(nav); }
 s32 __fastcall Wrap_Nav_PathProgress_510180(const u8 *nav) { return Nav_PathProgress(nav); }
 u32 __cdecl Wrap_KeyMap_AsyncModifiers_4815c0() { return KeyMap_AsyncModifiers(); }
 void __cdecl Wrap_MsgTags_AddVersion_481b70() { MsgTags_AddVersion(); }
+u32 __stdcall Wrap_MsgTags_Post_481580(const u8 *message) { return MsgTags_Post(message); }
 }  // extern "C"

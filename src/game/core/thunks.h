@@ -448,4 +448,6 @@ s32 __fastcall Wrap_Nav_PathProgress_510180(const u8 *nav);
 u32 __cdecl Wrap_KeyMap_AsyncModifiers_4815c0();
 // 0x481b70: jumps to MsgTags_AddVersion, of ui/msgtags.
 void __cdecl Wrap_MsgTags_AddVersion_481b70();
+// 0x481580 (stdcall (message); ECX unused): calls MsgTags_Post, of ui/msgtags.
+u32 __stdcall Wrap_MsgTags_Post_481580(const u8 *message);
 }  // extern "C"

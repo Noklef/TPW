@@ -1,6 +1,6 @@
 // The ten message tags' windows (the 0x208-byte records from 0x7c26b0: +0 the window, +4 a word (in use), +6 their text) and the tags
-// put up from messages, the one shown in the message box [0x7ca098]: reimplementation of 0x48ea00, 0x48eaa0, 0x48d9c0, 0x48eb20, 0x48ede0
-// and 0x48f090. The names are unconfirmed.
+// put up from messages, the one shown in the message box [0x7ca098], and their load: reimplementation of 0x48ea00, 0x48eaa0, 0x48d9c0,
+// 0x48eb20, 0x48ede0, 0x48f090, 0x48ef70 and 0x481680. The names are unconfirmed.
 //
 // A tag's message (on the stack or a save's record): +0 an id, +4 its kind (the same as +0: an update of the tag of that kind), +8 its
 // text (wide; 0 none), +0xc its life in ms (0 or less: none), +0x10 a word (signed: the tag's notification), +0x14 / +0x18 dwords, +0x1c
@@ -10,6 +10,8 @@
 #pragma once
 
 #include "../../../re/types.h"
+
+struct Stream;
 
 extern "C" {
 
@@ -49,4 +51,15 @@ u32 __cdecl MsgTags_Post(const u8 *message);
 // "Ver 2.0" (the CRT's swprintf of the format at 0x750694 with 2 and 0, into 16 characters on the stack), the rest 0 and the byte +0x24 1,
 // added (MsgTags_Add) and, when added, opened (MsgTag_Open).
 void __cdecl MsgTags_AddVersion();
+
+// 0x48ef70 (cdecl (stream); name unconfirmed): a count read (Stream_Read of 4 bytes; nothing when 0), then that many 0x21c-byte records
+// (as the save 0x48ee50 writes them: +0 the id, +4 the text, +0x204 the life, +0x208 the word +0x10, +0x20c / +0x210 the dwords +0x14 /
+// +0x18, +0x214 the word +0x1c, +0x218 the dword +0x20) each read into one buffer on the stack and added (MsgTags_Add) as a message of
+// kind 0x17f (whatever the tag's was, sic) with that text; its byte +0x24 stays 0, so the open after the add never happens (sic). The
+// reads' results are not checked: a short record keeps what the buffer held. Returns 0 (the count run down).
+u32 __cdecl MsgTags_Load(Stream *stream);
+
+// 0x481680 (stdcall (stream); the UI module's load, ECX unused): message 5 to the tags' windows (Windows7c26b0_Message5), then MsgTags_Load;
+// its 0 returned.
+u32 __stdcall UI_Load(Stream *stream);
 }

@@ -7,6 +7,7 @@
 #include "../core/gameheap.h"
 #include "../core/soundplay.h"
 #include "../core/vcall.h"
+#include "../files/file.h"
 #include "../render/particles.h"
 #include "../world/advisor.h"
 #include "dialogs.h"
@@ -144,5 +145,45 @@ void __cdecl MsgTags_AddVersion() {
     *reinterpret_cast<u32 *>(message + 0x20) = 0;
     message[0x24] = 1;
     if (u8 *const tag = MsgTags_Add(message)) MsgTag_Open(tag);
+}
+
+u32 __cdecl MsgTags_Load(Stream *stream) {
+    u8 message[0x28];
+    *reinterpret_cast<u32 *>(message + 0) = 0x17f;
+    *reinterpret_cast<u32 *>(message + 4) = 0x17f;
+    *reinterpret_cast<u32 *>(message + 8) = 0;
+    *reinterpret_cast<u32 *>(message + 0xc) = 0;
+    *reinterpret_cast<u16 *>(message + 0x10) = 0;
+    *reinterpret_cast<u32 *>(message + 0x14) = 0;
+    *reinterpret_cast<u32 *>(message + 0x18) = 0;
+    *reinterpret_cast<u16 *>(message + 0x1c) = 0;
+    *reinterpret_cast<u32 *>(message + 0x20) = 0;
+    message[0x24] = 0;
+    s32 result, done, count;
+    Stream_Read(&result, stream, &count, 4, &done);
+    if (!count) return 0;
+    u8 record[0x21c];
+    do {
+        Stream_Read(&result, stream, record, 0x21c, &done);
+        *reinterpret_cast<u32 *>(message + 0) = at<u32>(record, 0);
+        *reinterpret_cast<u16 *>(message + 0x10) = at<u16>(record, 0x208);
+        *reinterpret_cast<u8 **>(message + 8) = record + 4;
+        *reinterpret_cast<u16 *>(message + 0x1c) = at<u16>(record, 0x214);
+        *reinterpret_cast<u32 *>(message + 0xc) = at<u32>(record, 0x204);
+        *reinterpret_cast<u32 *>(message + 0x14) = at<u32>(record, 0x20c);
+        *reinterpret_cast<u32 *>(message + 0x18) = at<u32>(record, 0x210);
+        *reinterpret_cast<u32 *>(message + 0x20) = at<u32>(record, 0x218);
+        if (message[0x24] == 1) {
+            if (u8 *const tag = MsgTags_Add(message)) MsgTag_Open(tag);
+        } else {
+            MsgTags_Add(message);
+        }
+    } while (--count);
+    return 0;
+}
+
+u32 __stdcall UI_Load(Stream *stream) {
+    Windows7c26b0_Message5();
+    return MsgTags_Load(stream);
 }
 }  // extern "C"
