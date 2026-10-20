@@ -8,6 +8,8 @@
 #include "../core/timesig.h"
 #include "../core/selectors.h"
 #include "../math/x87.h"
+#include "analyser.h"
+#include "messagecentre.h"
 #include "money.h"
 #include "things.h"
 #include "thingscan.h"
@@ -342,4 +344,23 @@ u32 __fastcall StaffPool_Serialize(u8 *pool, void *, Stream *stream, u32 save, s
         return 1;
     return Save_Field(stream, save, pool + 0x298, 1, 0x0075e788) ? 0 : 1;
 }
+}
+
+extern "C" void __fastcall Staff_InitBase(u8 *staff) {
+    at<u8>(staff, 0x1e8) = 0;
+    FileTime now;
+    const FileTime *t = FunnyTime_Now(global<u8 *>(0x0080239c) + 0x2a0, nullptr, &now, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+                                      nullptr, nullptr);
+    at<FileTime>(staff, 0x1f0) = *t;
+    at<u16>(staff, 0x208) = 0;
+    at<u32>(staff, 0x204) = 0;
+    at<u32>(staff, 0x200) = 0;
+    at<u16>(staff, 0x20a) = 1;
+    at<u32>(staff, 0x1f8) = 0x42c80000;  // 100.0f
+    at<u32>(staff, 0x1fc) = 0x42c80000;
+    at<u16>(staff, 0x20c) = 0x4000;
+    at<u16>(staff, 0xc2) = global<u16>(0x0075c7f0);
+    at<u16>(staff, 0xc0) = at<s32>(staff, 0x1e4) < 3 ? global<u16>(0x0075c7f8) : global<u16>(0x0075c7fc);
+    MessageCentre_AddThing(MessageCentre_Instance(), nullptr, staff, 0xc);
+    ParkAnalyser_StampTime21c38(reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(global<u8 *>(0x0080239c))));
 }

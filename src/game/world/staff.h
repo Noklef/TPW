@@ -140,4 +140,11 @@ u32 __fastcall StaffPoolEntry_Serialize(u8 *entry, void *, Stream *stream, u32 s
 // that fails; then for each of the 5 categories mPeopleInCat[i] (dwords from +0x280) and mStopProducing[i] (bytes from +0x299), the time
 // stamp at +0x294 (TimeSig_Serialize) and the byte at +0x298, as a serializer does (Save_Field).
 u32 __fastcall StaffPool_Serialize(u8 *pool, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x504b90 (thiscall; the staff constructors' common tail, name unconfirmed): the training progress (+0x1e8) = 0, the date at +0x1f0 = the
+// world's funny time now (FunnyTime_Now, no fields), +0x200, +0x204 and the word +0x208 = 0, the word +0x20a = 1, the energy and happiness
+// (+0x1f8, +0x1fc) = 100.0f, the word +0x20c = 0x4000; the word +0xc2 = the word at 0x75c7f0 and +0xc0 = the word at 0x75c7f8 for a type
+// (+0x1e4) below 3 (signed), else at 0x75c7fc. Then the staff member is added to the message centre's slot 0xc and the park's +0x21c38
+// stamped (ParkAnalyser_StampTime21c38 on GameTable7cfb90_Get1da720_519510).
+void __fastcall Staff_InitBase(u8 *staff);
 }
