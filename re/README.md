@@ -9,6 +9,7 @@ The Ghidra database (`_re/ghidra`) is binary, large and git-ignored. **This fold
 | `types.h` | Recovered structs (RSSE context, file headers), byte-exact for 32-bit; layout checked by static asserts |
 | `type_uses.csv` | `address,target,type,notes`: which parameters/globals get which recovered type |
 | `rsse_opcodes.csv` | The RSSE script VM instruction set (index, mnemonic, operand count), extracted from the exe's table at `0x765280` |
+| `libmap.csv` | `address,size,source_file,function,confidence,evidence,checked`: the exe's copies of the statically linked libraries (third_party/) mapped to their source functions; `checked` = yes once the listing's calls, constants and tables were compared with the source (zlib 1.1.3 so far) |
 
 ## Repairs (Ghidra analysis fixes)
 Ghidra's auto-analysis misses some things. Apply these once after import, before `ApplySymbols`:

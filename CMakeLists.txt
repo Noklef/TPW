@@ -381,7 +381,10 @@ add_library(tpw_game STATIC
     src/game/ui/window7059f0.cpp
     src/game/ui/windowfactory.cpp
     src/game/ui/windowscript.cpp
+    src/game/lib/zlib.cpp
 )
+# The libraries whose functions replace the exe's copies (src/game/lib); their headers stay private to those units.
+target_link_libraries(tpw_game PRIVATE tpw_zlib)
 
 # Proxy dinput.dll that loads into tp.exe and installs the hooks.
 add_library(tpw_hook SHARED

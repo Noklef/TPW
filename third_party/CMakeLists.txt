@@ -15,6 +15,9 @@ add_library(tpw_zlib STATIC
     ${ZLIB_DIR}/infutil.c ${ZLIB_DIR}/inffast.c)
 target_include_directories(tpw_zlib PUBLIC ${ZLIB_DIR})
 target_compile_options(tpw_zlib PRIVATE ${TPW_THIRD_PARTY_OPTIONS})
+# -Dlocal= (zutil.h's own switch) gives the static functions and tables external names, so the hook table can point the exe's copies
+# of them at these. The code is the same.
+target_compile_definitions(tpw_zlib PRIVATE local=)
 
 # libjpeg: makefile.vc's LIBOBJECTS, with jmemnobs as the memory manager. config/jconfig.h is jconfig.vc (see its header).
 set(JPEG_LIBOBJECTS jcapimin jcapistd jctrans jcparam jdatadst jcinit jcmaster jcmarker jcmainct jcprepct jccoefct jccolor jcsample
