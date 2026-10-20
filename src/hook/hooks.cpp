@@ -5221,6 +5221,15 @@ const Hook kHooks[] = {
     {"jpeg6a_jpeg_quality_scaling", 0x0064ceb3, (void *)&jpeg6a_jpeg_quality_scaling, {0x55, 0x8b, 0xec, 0x83, 0x7d}},
     {"jpeg6a_jpeg_set_linear_quality", 0x0064ce78, (void *)&jpeg6a_jpeg_set_linear_quality, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
     {"jpeg6a_jpeg_add_quant_table", 0x0064cd90, (void *)&jpeg6a_jpeg_add_quant_table, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcparam_fill_dc_scans", 0x0064db5f, (void *)&jpeg6a_jcparam_fill_dc_scans, {0x55, 0x8b, 0xec, 0x51, 0x83}},
+    {"jpeg6a_jcparam_fill_scans", 0x0064daf9, (void *)&jpeg6a_jcparam_fill_scans, {0x55, 0x8b, 0xec, 0x51, 0xc7}},
+    {"jpeg6a_jcparam_fill_a_scan", 0x0064dab2, (void *)&jpeg6a_jcparam_fill_a_scan, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jpeg_simple_progression", 0x0064d859, (void *)&jpeg6a_jpeg_simple_progression, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jpeg_set_colorspace", 0x0064d23b, (void *)&jpeg6a_jpeg_set_colorspace, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jpeg_default_colorspace", 0x0064d188, (void *)&jpeg6a_jpeg_default_colorspace, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"jpeg6a_jcparam_add_huff_table", 0x0064d121, (void *)&jpeg6a_jcparam_add_huff_table, {0x55, 0x8b, 0xec, 0x56, 0x57}},
+    {"jpeg6a_jcparam_std_huff_tables", 0x0064d0a8, (void *)&jpeg6a_jcparam_std_huff_tables, {0x55, 0x8b, 0xec, 0x68, 0x1c}},
+    {"jpeg6a_jpeg_set_defaults",  0x0064cf20, (void *)&jpeg6a_jpeg_set_defaults, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

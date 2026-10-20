@@ -5553,3 +5553,12 @@ address,name,kind,confidence,notes
 0x0064ce78,jpeg6a_jpeg_set_linear_quality,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c jpeg_set_linear_quality: the two standard tables at a percentage (the library's)
 0x0064ceb3,jpeg6a_jpeg_quality_scaling,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c jpeg_quality_scaling: a 1..100 quality as a percentage scaling (the library's)
 0x0064cef8,jpeg6a_jpeg_set_quality,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c jpeg_set_quality: the standard tables at a quality (the library's)
+0x0064cf20,jpeg6a_jpeg_set_defaults,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c jpeg_set_defaults: the default compression parameters, quality 75, the standard Huffman tables, the default colour space (the library's)"
+0x0064d0a8,jpeg6a_jcparam_std_huff_tables,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c std_huff_tables: the four standard Huffman tables (the library's)
+0x0064d121,jpeg6a_jcparam_add_huff_table,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c add_huff_table: a Huffman table's bits and values copied in (the library's)
+0x0064d188,jpeg6a_jpeg_default_colorspace,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c jpeg_default_colorspace: the JPEG colour space for the input's (the library's)
+0x0064d23b,jpeg6a_jpeg_set_colorspace,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c jpeg_set_colorspace: the JPEG colour space, its marker flags and components (the library's)"
+0x0064d859,jpeg6a_jpeg_simple_progression,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c jpeg_simple_progression: a progressive scan script (the library's)
+0x0064dab2,jpeg6a_jcparam_fill_a_scan,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c fill_a_scan: one scan of a component (the library's)
+0x0064daf9,jpeg6a_jcparam_fill_scans,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c fill_scans: a scan for each component (the library's)
+0x0064db5f,jpeg6a_jcparam_fill_dc_scans,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c fill_dc_scans: the DC scans of the components (the library's)

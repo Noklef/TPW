@@ -39,6 +39,33 @@ void __cdecl jpeg6a_jpeg_set_linear_quality(jpeg6a_compress_struct *cinfo, int s
 int __cdecl jpeg6a_jpeg_quality_scaling(int quality);
 // 0x64cef8: jpeg_set_linear_quality at jpeg_quality_scaling(quality).
 void __cdecl jpeg6a_jpeg_set_quality(jpeg6a_compress_struct *cinfo, int quality, int force_baseline);
+// 0x64cf20: the defaults (JERR_BAD_STATE unless CSTATE_START): comp_info (alloc_small of 10 entries when null), 8-bit precision,
+// jpeg_set_quality(75, TRUE), the standard Huffman tables, the arithmetic conditioning, no scan script, no raw data, arithmetic or
+// optimised coding, CCIR601 sampling, smoothing, restarts; JDCT_ISLOW, density 1:1, then jpeg_default_colorspace.
+void __cdecl jpeg6a_jpeg_set_defaults(jpeg6a_compress_struct *cinfo);
+// 0x64d0a8 (static): the four standard Huffman tables (DC / AC, luminance / chrominance) through add_huff_table. Each huffval is
+// copied whole (256 bytes) from a shorter list, so past its symbols it holds the library's neighbouring bytes, not the exe's: no code
+// reads past the symbols (jpeg6a_param.py's mask has the proof).
+void __cdecl jpeg6a_jcparam_std_huff_tables(jpeg6a_compress_struct *cinfo);
+// 0x64d121 (static): *htblptr (jpeg_alloc_huff_table when null) given bits[17] and huffval[256] copied from bits and val, sent_table
+// FALSE.
+void __cdecl jpeg6a_jcparam_add_huff_table(jpeg6a_compress_struct *cinfo, jpeg6a_huff_tbl **htblptr, const unsigned char *bits,
+                                           const unsigned char *val);
+// 0x64d188: jpeg_set_colorspace by in_color_space (RGB to YCbCr, the others to themselves); JERR_BAD_IN_COLORSPACE (7) for another.
+void __cdecl jpeg6a_jpeg_default_colorspace(jpeg6a_compress_struct *cinfo);
+// 0x64d23b: jpeg_color_space, the JFIF / Adobe marker flags, num_components and each component's id, sampling and table numbers for
+// colorspace (J_COLOR_SPACE; JCS_UNKNOWN takes input_components, JERR_COMPONENT_COUNT (0x18) outside 1..10, the components set all
+// the same); JERR_BAD_STATE, JERR_BAD_J_COLORSPACE (8).
+void __cdecl jpeg6a_jpeg_set_colorspace(jpeg6a_compress_struct *cinfo, int colorspace);
+// 0x64d859: a progressive scan script in a permanent block (10 scans for 3-component YCbCr, else 2 + 4 a component, 6 a component
+// past four), through fill_dc_scans / fill_a_scan / fill_scans; JERR_BAD_STATE.
+void __cdecl jpeg6a_jpeg_simple_progression(jpeg6a_compress_struct *cinfo);
+struct jpeg6a_scan_info;  // jpeg_scan_info (untagged), 0x24 bytes
+// 0x64dab2, 0x64daf9, 0x64db5f (static): one scan of component ci; a scan for each of ncomps components; the DC scan of ncomps
+// components together (one scan a component past four). Each returns the scan after the last it wrote.
+jpeg6a_scan_info *__cdecl jpeg6a_jcparam_fill_a_scan(jpeg6a_scan_info *scanptr, int ci, int Ss, int Se, int Ah, int Al);
+jpeg6a_scan_info *__cdecl jpeg6a_jcparam_fill_scans(jpeg6a_scan_info *scanptr, int ncomps, int Ss, int Se, int Ah, int Al);
+jpeg6a_scan_info *__cdecl jpeg6a_jcparam_fill_dc_scans(jpeg6a_scan_info *scanptr, int ncomps, int Ah, int Al);
 
 // jutils.c (the same source as 6b's; the exe's copies use inline REP MOVS / STOS, the library's memcpy / memset)
 // 0x6503d0: a / b rounded up (a >= 0, b > 0).
