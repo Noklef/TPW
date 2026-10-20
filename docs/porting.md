@@ -128,48 +128,53 @@ zlib's own switch `-Dlocal=` (zutil.h), set on tpw_zlib; the code is the same.
   store its EAX in bflush's stack slot, which every path writes before reading. It is dead; the benches give the emulator fncmp's fake CPU
   so it can run it.
 
-**Per function: exact, shim, or with its callers.**
+**Per function: exact, shim, or with its callers.** All of zlib 1.1.3 in the exe is the library's now, but the four functions below.
 - *Exact* (a plain hook row): the function only computes, reads tables and writes through the state or its arguments, and calls only
   library functions (and the stream's zalloc / zfree / checkfn pointers). Its bench then compares the library's whole subtree with the
-  exe's. Replaced and benched so far: adler32; all of trees.c but _tr_init and bi_reverse (Bits_Reverse, a hand port that stays); deflate.c's putShortMSB, flush_pending, lm_init,
-  read_buf, longest_match, fill_window, deflate_stored / fast / slow. Expected exact, not yet benched: deflateEnd, deflateReset's tail,
-  inflateReset, inflateEnd, inflate_flush, inflate_blocks_reset / free, inflate_codes_new / free, inflate_fast (but its error message, below).
-- *Needs a shim*: the function leaves a pointer to one of the library's own tables or strings in memory the exe's code also sees.
-  - _tr_init (and deflateReset, deflateInit2_ through it) stores &static_l_desc / &static_d_desc / &static_bl_desc in the state's descriptors.
-  - inflate_trees_fixed hands out &fixed_tl / &fixed_td; inflate_blocks keeps them (and pointers into them) in its codes state.
-  - Every error path stores a string literal in strm->msg: inflate, inflate_blocks, inflate_trees_bits / dynamic, inflate_codes,
-    inflate_fast ("invalid distance code", ...) and deflate (ERR_MSG through zutil.c's z_errmsg).
+  exe's: adler32; trees.c but _tr_init; deflate.c's putShortMSB, flush_pending, lm_init, read_buf, longest_match, fill_window,
+  deflate_stored / fast / slow, deflateEnd; huft_build; inflate_flush, inflate_blocks_reset / new / free, inflate_codes_new / free,
+  inflateReset, inflateEnd.
+- *Through a shim* (src/game/lib/zlib.cpp, zlib_inflate.cpp): the function leaves a pointer to one of the library's own tables, strings or
+  functions in memory the exe's code also sees. third_party/config/zlib_shims.h (force-included into tpw_zlib) renames the library's
+  function to zlib_<name>; the shim has the library's name, calls it and puts the exe's address back (the same contents at the exe's
+  address), so the memory is exact and both the game and the bench driver can read it (the driver maps the exe's data at its addresses):
+  - _tr_init, deflateReset, deflateInit2_: the state's static descriptors (&static_l_desc / d_desc / bl_desc) to the exe's 0x779ba8 /
+    0x779bc0 / 0x779bd8.
+  - inflate_blocks and inflate (through it): a fixed block's codes state holds &fixed_tl / &fixed_td (inflate_trees_fixed's) and
+    pointers into them; mapped to the exe's tables (0x77a0a0 / 0x77b0a0) when inflate_blocks returns with it live, and before it is
+    freed.
+  - inflateInit2_: the blocks state's checkfn, the library's adler32, to the exe's (0x63ea00, hooked: in game it is the library's again).
+  - strm->msg: every error path stores a string literal (inflate, inflate_blocks, inflate_trees_bits / dynamic, inflate_codes,
+    inflate_fast, deflate and deflateInit2_ through z_errmsg); zlibshim::exe_message maps a new value to the exe's copy of the text.
+- *Only with its callers*: inflate_codes / inflate_blocks hold pointers into the hufts huft_build made, so they were benched (and
+  replaced) together, from inflate_blocks down; tests/fncmp/zlib_inflate.py benches the inflate side, zlib.py the deflate side.
 
-  The values differ from the exe's (the library's addresses), the contents do not. The shim is a C++ wrapper in lib/zlib that calls the
-  library's function and puts the exe's address back (the descriptor or table at the same offset, the exe's copy of the same string): exact
-  in memory, and both the game and the bench driver can read the exe's tables (the driver maps the exe's data at its addresses).
-- *Only with its callers*: a function whose result is only right as part of a larger state, e.g. inflate_codes / inflate_blocks hold
-  pointers into the hufts huft_build made, so they are benched (and replaced) together, from inflate_blocks down.
+**Masks.** huft_build fills its tables by copying a local inflate_huft whose union pad bytes (+2, +3 of each entry) are never set, so the
+tables carry whatever was on the stack, different in the exe and the library. fncmp's Mask leaves those bytes of the hufts region out
+of the comparison, and the emulator fails a case if the exe's code reads one: zlib_inflate.py's header has the proof from the listing that
+inflate_codes / inflate_fast read exop, bits and base only. Every bench that builds tables masks them (huft_build, inflate_trees_bits /
+dynamic, inflate_blocks, inflate).
 
-**What cannot be made bit-exact (left unreplaced):**
-- Uninitialised bytes. huft_build (0x649e10) fills its tables by copying a local inflate_huft whose union pad bytes (+2, +3 of each
-  entry) are never set, so the tables carry whatever was on the stack: the exe's and the library's differ there. Nothing reads those bytes
-  (inflate_codes / inflate_fast read exop, bits and base only), but fncmp compares every byte, so huft_build is not replaced; and the
-  callers that build tables (inflate_trees_bits / dynamic, inflate_blocks) inherit it. Replacing them needs a fncmp option to mask bytes
-  of a region, not a weaker bench.
-- Code pointers. inflateInit2_ stores the library's adler32 as the blocks state's checkfn, deflateInit2_ / inflateInit2_ the library's
-  zcalloc / zcfree when the caller left zalloc / zfree null. A shim could write the exe's adler32 (0x63ea00: hooked, so it lands in the
-  library in game), but the driver cannot call an exe code address (its own image sits there), so benches of the inflate path give
-  checkfn as null or a recorder. The zcalloc / zcfree defaults cannot be fixed afterwards at all: deflateInit2_ has already allocated
-  through them, from the DLL's CRT heap instead of the exe's (calloc 0x67fcb0 / free 0x67ad90). The game never takes that path (the zlib
-  codec always passes ZlibCodec_ArenaAlloc and a no-op free), so it stays a documented difference rather than a shim.
-- The allocator itself: zcalloc (0x63e9e0) and zcfree (folded into 0x642990 with libjpeg's jpeg_free_small / large) stay the exe's:
-  replacing them alone would hand the exe's free a block from the DLL's heap. They are unreachable once deflateInit2_ and inflateInit2_
-  are the library's.
+**What stays the exe's, and why:**
+- zcalloc (0x63e9e0) and zcfree (folded into 0x642990 with libjpeg's jpeg_free_small / large): replacing them alone would hand the exe's
+  free a block from the DLL's heap. With deflateInit2_ and inflateInit2_ the library's they are unreachable from zlib.
+- inflate_trees_fixed (0x64a450): Fn_64a450, a hand port already exact (it hands out the exe's fixed tables).
+- bi_reverse (0x6404d0): Bits_Reverse, a hand port.
+- deflateParams, deflateSetDictionary, inflateSetDictionary, inflateSync, compress, gzio, ...: not in the exe.
+- A documented difference, not a shim: deflateInit2_ / inflateInit2_ store the library's zcalloc / zcfree when the caller left zalloc /
+  zfree null, and allocate through them from the DLL's CRT heap. The game never takes that path (the zlib codec always passes
+  ZlibCodec_ArenaAlloc and a no-op free), and the benches give ZALLOC / ZFREE.
 
-**Benches** (tests/fncmp/zlib.py): the same regions-and-EAX comparison as a port, so the bench must compare everything the function can
+**Benches** (tests/fncmp/zlib.py, zlib_inflate.py): the same regions-and-EAX comparison as a port, so the bench must compare everything the function can
 write: the whole state, the pending buffer, the window / prev / head, the stream and its output. The state is laid out as the library
 leaves it (descriptors pointing at the exe's static descriptors, which both sides read; d_buf and l_buf overlaid on pending_buf as
 deflateInit2_ sets them; between calls nothing pending and no match pending except deflate_slow's lazy one), at small sizes (windowBits
 9-10, memLevel 1-3) so the cases stay small and reach the slide, the block flushes and the hash wrap. A state the library never makes
 can read past its tables, where the exe's neighbours and the library's differ: with many distant matches at a low memLevel, a block's
 codes overrun d_buf in the pending_buf overlay (zlib 1.1.3's bug, CVE-2018-25032; the game's codec uses memLevel 9) and d_code then
-reads past _dist_code, so the windowBits 13 case (TOO_FAR) holds one distant match only. The Bench's ranges must cover the exe's whole callee
+reads past _dist_code, so the windowBits 13 case (TOO_FAR) holds one distant match only. Likewise deflate_fast's states keep lm_init's prev_length (a longer one makes
+longest_match report a match at a stale match_start, distance 0 when that is strstart). The game's deflateInit2_ calls (0x6192f2,
+0x61950c) pass memLevel 9 and windowBits 15, where the overrun cannot happen. The Bench's ranges must cover the exe's whole callee
 subtree. fncmp.Bench serves the six zlib entry points (deflateInit2_, deflate, deflateEnd, inflateInit2_, inflate, inflateEnd) with
 stand-ins for the codec's bench: a bench of those functions removes them from `B.emu.hooks` first. B.mutants mirrors third_party/, so
 mutants edit the library's source: a surviving mutant there means a missing edge case, as for a port (NMAX, _tr_align's second block,
