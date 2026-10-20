@@ -44,6 +44,23 @@ def surface_format(r, depth, other=0.1):
     return put(f, 0x10, 'I', count)
 
 
+def zero_some(r, codes, rows):
+    """Now and then a literal's bytes 0 here and there (a sprite's index 0; where a clipped row starts inside a literal, the code drops the
+    rest of it when the byte reached is 0, and a mask's next row then starts in the literal)."""
+    if r.random() < 0.6:
+        return codes
+    codes, p = bytearray(codes), 0
+    for _ in range(rows):
+        while codes[p]:
+            n = codes[p] if codes[p] < 0x80 else 0
+            for i in range(p + 1, p + 1 + n):
+                if r.random() < 0.15:
+                    codes[i] = 0
+            p += n + 1
+        p += 1
+    return codes
+
+
 def case(r):
     global FORMATS
     if FORMATS is None:
@@ -102,7 +119,7 @@ def case(r):
             if r.random() < 0.03:
                 w, h = r.choice([(0, h), (w, 0)])
             regions[MASK] = put(bytearray(8), 0, 'IHH', DATA, w, h)
-            regions[DATA] = draw8.rle(r, max(w, 1), max(h, 1)) + bytes(256)
+            regions[DATA] = zero_some(r, draw8.rle(r, max(w, 1), max(h, 1)), max(h, 1)) + bytes(256)
             args.append(MASK)
         elif ch == 'P':
             regions[TABLE] = r.bytes(0x400)
