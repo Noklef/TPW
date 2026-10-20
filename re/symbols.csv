@@ -2762,6 +2762,8 @@ address,name,kind,confidence,notes
 0x004d9600,Obj_StampAt30,function,high,reimplemented (src/game/world/litter); a word at +0x30 and the world's stamp at +0x34
 0x004e01f0,Obj_StampAt5e,function,high,reimplemented (src/game/world/object); a word at +0x5e and the world's stamp at +0x60
 0x0040f300,Obj_CtorPart8,function,high,"reimplemented (src/game/world/thingmsg); vtable 0x6fd7b8, a part built at +8, vtable 0x6fd7b0"
+0x00405530,ThingMsg15_Type,function,low,reimplemented (src/game/world/thingmsg); thiscall: the message number 0x15 (slot 0 of 0x6fd6c8)
+0x00405540,ThingMsg15_DeletingDtor,function,low,"reimplemented (src/game/world/thingmsg); thiscall (u8 flags), pops 4: vtable 0x6fd6c8 set, freed (GameHeap_Free) when bit 0 of flags is set; returns msg"
 0x00458910,MeshRef_ClearFlag10000000,function,high,reimplemented (src/game/render/lightsource); flag 0x10000000 of the referenced part cleared
 0x00458940,MeshRef_SetFlag10000000,function,high,reimplemented (src/game/render/lightsource); flag 0x10000000 of the referenced part set
 0x004a9350,Countdown7cc150_Step,function,high,reimplemented (src/game/core/framecountdown); a counter stepped down; 1 at zero when another global is set

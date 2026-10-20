@@ -58,4 +58,9 @@ u32 __fastcall ThingMsg19_Type(const u8 *msg);  // 0x40f810
 u32 __fastcall ThingMsg1a_Type(const u8 *msg);  // 0x40f880
 u32 __fastcall ThingMsg1c_Type(const u8 *msg);  // 0x40f8d0
 u32 __fastcall ThingMsg1b_Type(const u8 *msg);  // 0x40f920
+
+// Message 15's two vtable slots (0x6fd6c8), at 0x405530 / 0x405540 apart from the others: Type gives 0x15; the scalar deleting
+// destructor (flags, pops 4) sets the vtable, frees msg (GameHeap_Free) when bit 0 of flags is set and returns msg.
+u32 __fastcall ThingMsg15_Type(const u8 *msg);
+u8 *__fastcall ThingMsg15_DeletingDtor(u8 *msg, void *, u8 flags);
 }

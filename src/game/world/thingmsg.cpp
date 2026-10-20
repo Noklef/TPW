@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/gameheap.h"
 #include "../core/initializers.h"
 
 namespace {
@@ -135,7 +136,14 @@ THINGMSG_TYPE(19)
 THINGMSG_TYPE(1a)
 THINGMSG_TYPE(1b)
 THINGMSG_TYPE(1c)
+THINGMSG_TYPE(15)
 #undef THINGMSG_TYPE
+
+u8 *__fastcall ThingMsg15_DeletingDtor(u8 *msg, void *, u8 flags) {
+    at<u32>(msg, 0) = 0x006fd6c8;
+    if (flags & 1) GameHeap_Free(msg);
+    return msg;
+}
 
 u8 *__fastcall Obj_CtorPart8(u8 *object, void *, u32 value) {
     at<u32>(object, 4) = 0;
