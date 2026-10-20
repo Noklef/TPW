@@ -389,6 +389,7 @@ add_library(tpw_game STATIC
     src/game/lib/zlib_inflate.cpp
     src/game/lib/jpeg6b.cpp
     src/game/ui/guidepth.cpp
+    src/game/ui/buttontext.cpp
 )
 # The libraries whose functions replace the exe's copies (src/game/lib); their headers stay private to those units.
 target_link_libraries(tpw_game PRIVATE tpw_zlib tpw_jpeg6b)
