@@ -418,7 +418,7 @@ address,name,kind,confidence,notes
 0x00763f88,gSpriteFolders,data,high,"14 x (char* folder, first sprite index, count)"
 0x00764030,gAvatarSprites,data,high,"SPR_BI/KI/TA/SU.ESP"
 0x00790ab0,gCameraFlags,data,medium,"bits 2/4/0x10 = ground-level camera"
-0x0051f370,ParticleLib_Load,function,high,"reads Data/Particle/Tp2.plb: effects (0x140) into 0x804370, effectors (0x68) into 0x80c6b0, 2 settings"
+0x0051f370,ParticleLib_Load,function,high,"reimplemented (src/game/render/particles); cdecl (name): reads the particle library (effects into 0x804370, effectors into 0x80c6b0, two settings, the first clamped 10-500), then resets the effects' and effectors' fields and the emitters; 1 without the particles or the file, else 0"
 0x00520560,Particle_Emit,function,high,"reimplemented (src/game/render/particles); cdecl (slot): emits a particle from the system: a free list record with its lifetime, sprite, position in the spawn box or ellipse (turned, pushed) and velocity; returns its index, negative when none is free"
 0x005214a0,Particles_Update,function,high,"reimplemented (src/game/render/particles); cdecl: one step of every live system's particles: age (the end spawns the death effect and frees the record), sprite, frame, size, colour, kick, drag, gravity, motion and the system's bounds"
 0x00521810,Particle_RandSigned,function,high,reimplemented (src/game/render/particles); the particles' random number (signed shift) modulo n
