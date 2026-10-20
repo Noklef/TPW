@@ -1,5 +1,5 @@
 // The quickload indexes: reimplementation of 0x461790-0x461a5c (the loader, 0x461a60, is not
-// yet ported).
+// yet ported), and of 0x44a280, a ride file located through them or the file system.
 //
 // A qickload.txt (sic) lists the files a ride directory holds, so rides can be found without
 // searching. There are two tables of [0x6fe228] (1) indexes of 12 bytes {count, names, the
@@ -35,5 +35,12 @@ s32 __cdecl Quickload_Find(const char *name, u32 second);
 // unless a '\' follows it), through 0x104-byte stack copies (a longer name overruns, sic). 0
 // when nothing has loaded. Note the argument order.
 u32 __cdecl Quickload_HasStem(const char *path, u32 index, u32 second);
-}
 
+// 0x44a280 (cdecl; name, flags, &index or 0; name unconfirmed): 0 for a null name. Without loaded indexes flag 2 is dropped. With
+// flag 2 the name's last part (after its last '\') is looked up (Quickload_Find, the second directory's with flag 8) and the
+// index, -1 too, stored; -1 fails (0) unless flag 4, which drops flag 2. Without flag 2 the index stored is -1. The name is then
+// copied to the buffer at 0x79c9d0 (after the directory [0x79cb4c][found with flag 2, else 0] is read). With flag 2 that is the
+// answer; else the copy must open (VFS_FileExists: the index stored is 0) or the index stored is -1 and 0 returned. The answer is
+// the buffer with flag 1, else the directory read.
+char *__cdecl Quickload_Locate(const char *name, u32 flags, s32 *index);
+}

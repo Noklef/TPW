@@ -4,8 +4,9 @@
 # now and then other texts, so that the archive branch, dead with the game's own pair, runs too ("." and the tail not empty, an archive in
 # a folder: as the game's, else both fault). The strings as gamestring.py's, their blocks from the heap region.
 # Open (0x5c4d50): a file opened through the mounts' current source and its archive, or the list of the others (see open_()); Exists
-# (0x46f120) the same, the stream got closed and deleted.
-# usage: vfs.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=StripBase,Open,Exists)
+# (0x46f120) the same, the stream got closed and deleted. Locate (0x44a280): a ride file through the quickload indexes or Exists (see
+# locate()).
+# usage: vfs.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=StripBase,Open,Exists,Locate)
 import os
 import struct
 import sys
@@ -14,11 +15,13 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 from fncmp import LOG, Bench, Call, HEAP, RAM, blob, echo, fill, heap, log_region, put, recorder, set_return, strings  # noqa: E402
+import files  # noqa: E402
 import gamestring  # noqa: E402
 from gamestring import BACKSLASH, DOT, LOCALE, SLASH2, string  # noqa: E402
 
 B = Bench(gamestring.B_RANGES + [(0x41cff0, 0x41d2d0), (0x41ce90, 0x41ce94), (0x421720, 0x421780), (0x4217e0, 0x421800), (0x5c4d50, 0x5c4f70),
-                                 (0x46f120, 0x46f160), (0x5c4f80, 0x5c4fb0), (0x618d30, 0x618d90)])
+                                 (0x46f120, 0x46f160), (0x5c4f80, 0x5c4fb0), (0x618d30, 0x618d90), (0x44a280, 0x44a3c4), (0x461790, 0x461a60),
+                                 (0x45b9d0, 0x45ba15)])
 TAIL, WAD, EMPTY = 0x78bf40, 0x78c810, 0x78be50
 PATH, BASE, OUT = RAM, RAM + 0x40, RAM + 0x80
 WORDS = [b'data', b'Data', b'ui', b'x.wct', b'a', b'TP', b'levels']
@@ -72,17 +75,15 @@ VT_SOURCE, VT_ARCHIVE, VT_OBJ = RAM + 0x3900, RAM + 0x3980, RAM + 0x3a00
 
 
 def open_(r, address=0x5c4d50, extra=()):
-    """0x5c4d50 (cdecl; name): the mounts object [0x786b9c] with a list of 0-3 objects (slot 8: k 7) or none and a source (slot 8: k 2)
-    or none; the source's root at +0x18 a narrow String mostly (the code reads it as a WString: AssignWide copies its bytes), else a
-    wide one, and its +0x38 an archive (slot 0xc: k 3, the result struct filled through its first argument and returned, its dword any
-    sign) or 0; the name under the root or not (strip_base()'s texts); the answers 1 mostly, else 0 or another; the stream's block failing
-    now and then. The String arguments logged as their dwords (stack addresses), the relative path as its text."""
+    """0x5c4d50 (cdecl; name): mounts()'s case and a name under its root or not (strip_base()'s texts)."""
     log = log_region()
     regions = {LOG: log, HEAP: heap(fail=r.choice([0] * 7 + [1])), LOCALE: bytes(4)}
-    globals_(r, regions)
-    root = folder(r) or b'data'
-    if r.random() < 0.3:
-        root += b'\\'
+    root = mounts(r, log, regions)
+    regions[NAME] = name_under(r, root) + bytes(1) + r.bytes(7)
+    return Call(address, [NAME, *extra], regions, ret='a')
+
+
+def name_under(r, root):
     k = r.random()
     if k < 0.6:
         name = flip(r, root) + r.choice([b'\\', b'', b'\\\\']) + folder(r)
@@ -92,7 +93,19 @@ def open_(r, address=0x5c4d50, extra=()):
         name = folder(r) + r.choice([b'', b'.wct'])
     if r.random() < 0.2:
         name = r.choice([b'.\\', b'\\']) + name
-    regions[NAME] = name + bytes(1) + r.bytes(7)
+    return name
+
+
+def mounts(r, log, regions):
+    """The mounts object [0x786b9c] with a list of 0-3 objects (slot 8: k 7) or none and a source (slot 8: k 2)
+    or none; the source's root at +0x18 a narrow String mostly (the code reads it as a WString: AssignWide copies its bytes), else a
+    wide one, and its +0x38 an archive (slot 0xc: k 3, the result struct filled through its first argument and returned, its dword any
+    sign) or 0; the answers 1 mostly, else 0 or another; the stream's block failing now and then (the caller's heap()). The String
+    arguments logged as their dwords (stack addresses), the relative path as its text. Returns the root's text."""
+    globals_(r, regions)
+    root = folder(r) or b'data'
+    if r.random() < 0.3:
+        root += b'\\'
     src = bytearray(r.bytes(0x40))
     put(src, 0, 'I', VT_SOURCE)
     part = {}
@@ -132,7 +145,7 @@ def open_(r, address=0x5c4d50, extra=()):
     blob(log, 7, 1, 0x1f)
     for k in (2, 7):
         set_return(log, k, r.choice([1, 1, 0, 0, 2, r.getrandbits(32)]))
-    return Call(address, [NAME, *extra], regions, ret='a')
+    return root
 
 
 def exists(r):
@@ -140,7 +153,33 @@ def exists(r):
     return open_(r, 0x46f120, [0x74cfb8])
 
 
-OPS_ALL = {'StripBase': strip_base, 'Open': open_, 'Exists': exists}
+def locate(r):
+    """0x44a280 (cdecl; name or 0, flags, &index or 0): mounts()'s case and files.py's quickload tables (at RAM + 0x40000 on, loaded or
+    not); the name one of files.py's names, now and then under a folder, or one under the root (name_under()); flags of bits 0-3 or any;
+    the directories [0x79cb4c] 64 dwords, the buffer 0x79c9d0 up to them."""
+    log = log_region()
+    regions = {LOG: log, HEAP: heap(fail=r.choice([0] * 7 + [1])), LOCALE: bytes(4)}
+    root = mounts(r, log, regions)
+    quick, _count = files.quickload(r, RAM + 0x40000)
+    regions.update(quick)
+    k = r.random()
+    if k < 0.4:
+        name = files.name(r)
+    elif k < 0.6:
+        name = folder(r) + b'\\' + files.name(r)
+    else:
+        name = name_under(r, root)
+    regions[RAM + 0x60000] = name + bytes(1) + r.bytes(7)
+    regions[0x79c9d0] = r.bytes(0x17c)
+    regions[0x79cb4c] = struct.pack('<I', RAM + 0x3d00)
+    regions[RAM + 0x3d00] = r.bytes(0x100)
+    regions[RAM + 0x3e00] = r.bytes(4)
+    flags = r.choice([0, 1, 2, 3, 4, 6, 7, 0xa, 0xb, 0xe, 0xf, 0xc, r.getrandbits(4), r.getrandbits(32)])
+    args = [0 if r.random() < 0.04 else RAM + 0x60000, flags, r.choice([RAM + 0x3e00] * 4 + [0])]
+    return Call(0x44a280, args, regions, ret='a')
+
+
+OPS_ALL = {'StripBase': strip_base, 'Open': open_, 'Exists': exists, 'Locate': locate}
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 
