@@ -46,6 +46,7 @@
 #include "../../src/game/files/zlibcodec.h"
 #include "../../src/game/gfx/canvas.h"
 #include "../../src/game/gfx/canvasdraw.h"
+#include "../../src/game/gfx/convert.h"
 #include "../../src/game/gfx/draw.h"
 #include "../../src/game/gfx/pixconv.h"
 #include "../../src/game/gfx/surfbuf.h"
@@ -794,6 +795,12 @@ int main(int argc, char **argv) {
                                        reinterpret_cast<void(__fastcall *)(void *, void *)>(hooked(0x00642180)), reinterpret_cast<const u32 *>((uintptr_t)0x00faa268),
                                        reinterpret_cast<const u32 *>((uintptr_t)0x00faa280), &heap_alloc};
     PixConv_SetEnv(&pixConv);
+    // The static conversion's set-up and the bitmap copy: the pixel conversion's ports; atexit stub_cdecl_log (tests/fncmp/convert.py hooks 0x67a7d0
+    // with fncmp._cdecl_log), handed the game's 0x5fc350 as the original is.
+    static const ConvertEnv convert = {reinterpret_cast<PixelConversion *>((uintptr_t)0x00fa7d18), &PixelConversion_Ctor, &PixelConversion_Dtor,
+                                       &PixelConversion_Setup, &PixelConversion_Rect, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)),
+                                       reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005fc350)};
+    Convert_SetEnv(&convert);
     // The TGA reader's: the hooked Mem_GlobalAlloc / Free (the GlobalAlloc import slots the case maps) and Palette_ExpandRgb, the pixel conversion's ports.
     static const TgaEnv tga = {reinterpret_cast<void *(__cdecl *)(u32)>(hooked(0x005f5660)), reinterpret_cast<void *(__cdecl *)(void *)>(hooked(0x005f5680)),
                                reinterpret_cast<void(__cdecl *)(u8 *, const u8 *, u32)>(hooked(0x005f7360)), &PixelConversion_Ctor, &PixelConversion_Setup,

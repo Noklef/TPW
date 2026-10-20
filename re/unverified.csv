@@ -105,11 +105,6 @@ address,name,module,reason
 5fc100,EventQueue_Unlisten,core/events,todo
 5fc220,EventQueue_Clear,core/events,todo
 5fc2d0,EventListBase_DeletingDtor,core/events,todo
-5fc320,Convert_StaticInit,gfx/convert,todo
-5fc330,Convert_Construct,gfx/convert,todo
-5fc340,Convert_RegisterExit,gfx/convert,todo
-5fc350,Convert_AtExit,gfx/convert,todo
-5fc360,SurfaceInfo_Convert,gfx/convert,todo
 5fc740,JpegCodec_GetInfo,gfx/jpeg,todo
 5fc840,JpegCodec_Load,gfx/jpeg,todo
 5fcbc0,JpegCodec_IsJpeg,gfx/jpeg,todo
