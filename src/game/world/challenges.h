@@ -53,4 +53,10 @@ u32 __fastcall Challenge_Serialize(u8 *challenge, void *, Stream *stream, u32 sa
 // (sic), then mCurrentChallenge (+0x3cc), mNextChallengeEventTime (8 bytes), mSystemSwitchedOn, mChallengeOn, mWaitingForReply, mValue
 // (+0x3dc) and mActualThing (+0x3e0).
 u32 __fastcall Challenges_Serialize(u8 *challenges, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x4d1bd0 (thiscall; name unconfirmed): the thing constructor (Thing_Construct, cell 1, kind 0x13; the original pushes this's high address
+// bits above the 1), each of the 0x14 challenges' +0, +0x20, +0x24, +0x28 and the byte +0x2c zeroed, mCurrentChallenge (+0x3cc) = -1,
+// +0x3d0, +0x3d4, the bytes +0x3d8..+0x3da, +0x3dc and the word +0x3e0 zeroed; the thing added to the message centre's slots 0x1a, 0xb and
+// 0x11; then the challenges loaded (Challenges_LoadSam). Returns challenges.
+u8 *__fastcall Challenges_Ctor(u8 *challenges);
 }

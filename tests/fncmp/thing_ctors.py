@@ -28,10 +28,20 @@ CENTRE = RAM + 0x20000   # the message centre's slots, then the maps' heads, nil
 MODELS = {'MechanicHQ': (0x4da920, 0x10), 'StaffHQ': (0x5089c0, 0x68), 'TagSystem': (0x509b40, 0x40), 'UIMsgReceiver': (0x50c9b0, 0x40)}
 
 
-def centre(r, regions):
-    """The message centre: made (29 slots at CENTRE, as messagecentre.slot builds them) mostly, else not made yet (the heap gives it its block)."""
+def centre(r, regions, empty=False):
+    """The message centre: made (29 slots at CENTRE, as messagecentre.slot builds them, or with empty maps) mostly, else not made yet (the heap gives
+    it its block; never when empty)."""
     nil = bytearray(0x20)
     struct.pack_into('<I', nil, 0x10, stdtree.BLACK)
+    if empty:   # (each map's head its own first and last, the nil node its root; nothing in it, so each add allocates one node)
+        slots, heads = bytearray(0x14 * messagecentre.SLOT_COUNT), bytearray(0x20 * messagecentre.SLOT_COUNT)
+        for k in range(messagecentre.SLOT_COUNT):
+            head = CENTRE + 0x400 + 0x20 * k
+            struct.pack_into('<5I', heads, 0x20 * k, head, CENTRE + 0x800, head, r.getrandbits(32), stdtree.RED)
+            struct.pack_into('<5I', slots, 0x14 * k, r.getrandbits(32), r.getrandbits(32), head, r.getrandbits(32) & 0xff, 0)
+        regions.update({CENTRE: slots, CENTRE + 0x400: heads, CENTRE + 0x800: nil, messagecentre.CENTRE: struct.pack('<I', CENTRE),
+                        messagecentre.COUNTER: struct.pack('<II', r.choice([1, 2, 7]), CENTRE + 0x800)})
+        return
     if r.random() < 0.2:
         regions[messagecentre.CENTRE] = bytes(4)
         regions[messagecentre.COUNTER] = struct.pack('<II', r.choice([0, 1, 2]), r.choice([0, CENTRE + 0x800]))
@@ -50,10 +60,13 @@ def centre(r, regions):
                     messagecentre.CENTRE: struct.pack('<I', CENTRE), messagecentre.COUNTER: struct.pack('<II', r.choice([1, 2, 7]), CENTRE + 0x800)})
 
 
-def thing_regions(r):
-    """things_methods.py's regions for the thing constructor, without its thing."""
+def thing_regions(r, cells=None):
+    """things_methods.py's regions for the thing constructor, without its thing (its map cells moved to cells if given)."""
     regions = dict(things_methods.construct(r).regions)
     regions.pop(things_methods.NEWTHING, None)
+    if cells:
+        regions[cells] = regions.pop(things_methods.NEWCELLS)
+        regions[0x8023a0] = struct.pack('<I', cells)
     return regions
 
 
