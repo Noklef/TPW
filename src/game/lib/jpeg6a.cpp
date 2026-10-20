@@ -65,6 +65,8 @@ extern "C" void __cdecl jpeg6a_jcmaster_lib_jinit_c_master_control(jpeg6a_compre
 extern "C" void __cdecl jpeg6a_jcmainct_lib_jinit_c_main_controller(jpeg6a_compress_struct *cinfo, int need_full_buffer);
 extern "C" void __cdecl jpeg6a_jcmainct_lib_start_pass_main(jpeg6a_compress_struct *cinfo, int pass_mode);
 extern "C" void __cdecl jpeg6a_jcprepct_lib_jinit_c_prep_controller(jpeg6a_compress_struct *cinfo, int need_full_buffer);
+extern "C" void __cdecl jpeg6a_jccoefct_lib_jinit_c_coef_controller(jpeg6a_compress_struct *cinfo, int need_full_buffer);
+extern "C" void __cdecl jpeg6a_jccoefct_lib_start_pass_coef(jpeg6a_compress_struct *cinfo, int pass_mode);
 
 namespace {
 struct ExeMethod {
@@ -106,6 +108,11 @@ const ExeMethod kExeMethods[] = {
     {fn(&jpeg6a_jcprepct_start_pass_prep), 0x654188},
     {fn(&jpeg6a_jcprepct_pre_process_data), 0x6541ed},
     {fn(&jpeg6a_jcprepct_pre_process_context), 0x654440},
+    // jccoefct.c (the library's start_pass_coef, behind its shim)
+    {fn(&jpeg6a_jccoefct_lib_start_pass_coef), 0x650818},
+    {fn(&jpeg6a_jccoefct_compress_data), 0x650982},
+    {fn(&jpeg6a_jccoefct_compress_first_pass), 0x650c30},
+    {fn(&jpeg6a_jccoefct_compress_output), 0x650ee3},
 };
 
 bool g_native_methods = false;  // (Jpeg6a_SetNativeMethods: the tests' driver, which cannot call the exe's addresses)
@@ -175,6 +182,17 @@ void __cdecl jpeg6a_jinit_c_prep_controller(j_compress_ptr cinfo, boolean need_f
     jpeg6a_jcprepct_lib_jinit_c_prep_controller(cinfo, need_full_buffer);
     exe_method(cinfo->prep->start_pass);
     exe_method(cinfo->prep->pre_process_data);
+}
+
+void __cdecl jpeg6a_jinit_c_coef_controller(j_compress_ptr cinfo, boolean need_full_buffer) {
+    jpeg6a_jccoefct_lib_jinit_c_coef_controller(cinfo, need_full_buffer);
+    exe_method(cinfo->coef->start_pass);
+}
+
+// start_pass_coef stores compress_data (a method that stores a method).
+void __cdecl jpeg6a_jccoefct_start_pass_coef(j_compress_ptr cinfo, int pass_mode) {  // (a J_BUF_MODE)
+    jpeg6a_jccoefct_lib_start_pass_coef(cinfo, pass_mode);
+    exe_method(cinfo->coef->compress_data);
 }
 }
 

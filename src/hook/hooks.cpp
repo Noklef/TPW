@@ -5346,6 +5346,12 @@ const Hook kHooks[] = {
     {"jpeg6a_jcprepct_pre_process_data", 0x006541ed, (void *)&jpeg6a_jcprepct_pre_process_data, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jpeg6a_jcprepct_start_pass_prep", 0x00654188, (void *)&jpeg6a_jcprepct_start_pass_prep, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"jpeg6a_jinit_c_prep_controller", 0x00654090, (void *)&jpeg6a_jinit_c_prep_controller, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jccoefct_compress_output", 0x00650ee3, (void *)&jpeg6a_jccoefct_compress_output, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jccoefct_compress_first_pass", 0x00650c30, (void *)&jpeg6a_jccoefct_compress_first_pass, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jccoefct_compress_data", 0x00650982, (void *)&jpeg6a_jccoefct_compress_data, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jccoefct_start_iMCU_row", 0x00650908, (void *)&jpeg6a_jccoefct_start_iMCU_row, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"jpeg6a_jccoefct_start_pass_coef", 0x00650818, (void *)&jpeg6a_jccoefct_start_pass_coef, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jinit_c_coef_controller", 0x00650700, (void *)&jpeg6a_jinit_c_coef_controller, {0x55, 0x8b, 0xec, 0x83, 0xec}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

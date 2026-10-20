@@ -141,6 +141,27 @@ void __cdecl jpeg6a_jcprepct_pre_process_context(jpeg6a_compress_struct *cinfo, 
 // and last the wraparound's.
 void __cdecl jpeg6a_jcprepct_create_context_buffer(jpeg6a_compress_struct *cinfo);
 
+// jccoefct.c, the coefficient buffer controller, through third_party/wrap/jpeg-6a/jccoefct.c (with FULL_COEF_BUFFER_SUPPORTED, as
+// the exe's). Blocks are 64 shorts (JBLOCK).
+// 0x650700: cinfo->coef (alloc_small of the image pool, 0x68) and start_pass (through the method shim, jpeg6a.cpp); a full buffer is
+// a virtual block array for each component, padded to whole MCUs (request_virt_barray), else ten blocks (alloc_large) behind
+// MCU_buffer and whole_image[0] null.
+void __cdecl jpeg6a_jinit_c_coef_controller(jpeg6a_compress_struct *cinfo, int need_full_buffer);
+// 0x650818 (static, through its own shim): iMCU_row_num 0, the row's counters; compress_data for JBUF_PASS_THRU (no virtual arrays),
+// compress_first_pass for JBUF_SAVE_AND_PASS, compress_output for JBUF_CRANK_DEST (with them), else JERR_BAD_BUFFER_MODE 4.
+void __cdecl jpeg6a_jccoefct_start_pass_coef(jpeg6a_compress_struct *cinfo, int pass_mode);
+// 0x650908 (static): MCU_rows_per_iMCU_row (1 for an interleaved scan, else the component's v_samp_factor, or last_row_height in
+// the last iMCU row), mcu_ctr and MCU_vert_offset 0.
+void __cdecl jpeg6a_jccoefct_start_iMCU_row(jpeg6a_compress_struct *cinfo);
+// 0x650982 (static): an iMCU row's MCUs, each block row through the forward DCT into MCU_buffer (dummy blocks past the right and
+// bottom edges: zeroed, the previous block's DC), each MCU to the entropy encoder; FALSE when it suspends, the counters kept.
+int __cdecl jpeg6a_jccoefct_compress_data(jpeg6a_compress_struct *cinfo, unsigned char ***input_buf);
+// 0x650c30 (static): every component's iMCU row through the forward DCT into its virtual array (dummy blocks at the right edge and,
+// in the last iMCU row, dummy block rows, the DC of each MCU's last real block), then compress_output.
+int __cdecl jpeg6a_jccoefct_compress_first_pass(jpeg6a_compress_struct *cinfo, unsigned char ***input_buf);
+// 0x650ee3 (static): the scan's MCUs of the iMCU row from the virtual arrays to the entropy encoder (MCU_buffer pointing into them).
+int __cdecl jpeg6a_jccoefct_compress_output(jpeg6a_compress_struct *cinfo, unsigned char ***input_buf);
+
 // jcomapi.c: what compression and decompression share.
 // 0x64f3c0: the image pool freed (mem->free_pool of pool 1), global_state back to the start (DSTATE_START 200 for a decompressor,
 // else CSTATE_START 100).
