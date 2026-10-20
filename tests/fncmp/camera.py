@@ -1,6 +1,6 @@
 # The camera (src/game/world/camera: 0x42a0f0-0x42a182 and the leaves 0x42a410-0x42cd40)
 # against the original: the static initialisers, the follow tests, the part face, the view
-# setter, flag 0x80, the matrix closeness test 0x42b070 and the cell clamp. CentreCell (0x4868d0) sets the view's point from a cell id (0, 1,
+# setter, flag 0x80, the control flags' handlers 0x42a500 / 0x42a520, the matrix closeness test 0x42b070 and the cell clamp. CentreCell (0x4868d0) sets the view's point from a cell id (0, 1,
 # 0xffff or any); CentreThing (0x4867b0) from a thing's cell (a handle naming a slot of a thing, an empty slot or 0, high bits random);
 # CentreGlobal (0x48ce80) the same for the handle of the thing [0x7c2658] points to.
 # Reset (0x42a990): the camera back to its defaults (see reset()). SnapYaw (0x42aff0): the yaw to the nearest quarter turn.
@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
 B = Bench([(0x42a0f0, 0x42a183), (0x42a410, 0x42a43a), (0x42a4e0, 0x42a4fb), (0x42a720, 0x42a75f), (0x42aab0, 0x42ab1d),
-           (0x42afd0, 0x42afed), (0x42b070, 0x42b1b6), (0x42cd40, 0x42cd7f), (0x42cd80, 0x42cdb8), (0x4bd020, 0x4bd08f), (0x4867b0, 0x486858), (0x4868d0, 0x48691f), (0x48ce80, 0x48ce9f), (0x50b350, 0x50b35d),
+           (0x42afd0, 0x42afed), (0x42a500, 0x42a553), (0x42b070, 0x42b1b6), (0x42cd40, 0x42cd7f), (0x42cd80, 0x42cdb8), (0x4bd020, 0x4bd08f), (0x4867b0, 0x486858), (0x4868d0, 0x48691f), (0x48ce80, 0x48ce9f), (0x50b350, 0x50b35d),
            (0x5da3c0, 0x5da3c1),
            (0x42a990, 0x42aaac), (0x46f150, 0x46f190), (0x56b790, 0x56b827), (0x578bc0, 0x578bd4), (0x578be0, 0x578d20), (0x583220, 0x583280),
            (0x402d80, 0x403220), (0x4033a0, 0x4033f0), (0x5f5e20, 0x5f5e90), (0x5f5fa0, 0x5f5fc0), (0x42aff0, 0x42b063), (0x42a760, 0x42a949)])
@@ -90,6 +90,8 @@ def case(r):
         x = r.choice([0, RAM])
         z = RAM + 4 if x else r.choice([RAM + 4, 0])
         return Call(0x42aab0, [x, z] + [r.choice([0, RAM + 8 + 4 * i]) for i in range(3)], regions)
+    if op in ('Control100', 'Control200'):   # 0x42a500 / 0x42a520: the control flags 0x790aac (bit 0x200 set or not)
+        return Call(0x42a500 if op == 'Control100' else 0x42a520, [], {0x790aac: bytearray(r.bytes(4))}, ret='a')
     if op == 'Flag80':
         return Call(0x42afd0, [r.choice([0, 1, r.getrandbits(32)])], {0x790ab0: bytearray(r.bytes(4))})
     if op == 'Pack':   # coordinates about the map, negative, huge or not numbers; the outputs apart or the same
@@ -142,7 +144,7 @@ def reset(r):
     return Call(0x42a990, [], regions, ret='v')
 
 
-OPS_ALL = list(INITS) + ['Follow'] * 6 + ['Close'] * 6 + ['Followed'] * 3 + ['Face', 'View', 'Clamp', 'CellOf', 'Pack'] * 4 + ['Flag80'] * 2 + ['CentreCell', 'CentreThing', 'CentreGlobal'] * 3 + ['Reset'] * 3 + ['SnapYaw'] * 4 + ['Input'] * 4
+OPS_ALL = list(INITS) + ['Follow'] * 6 + ['Close'] * 6 + ['Followed'] * 3 + ['Face', 'View', 'Clamp', 'CellOf', 'Pack'] * 4 + ['Flag80', 'Control100', 'Control200'] * 2 + ['CentreCell', 'CentreThing', 'CentreGlobal'] * 3 + ['Reset'] * 3 + ['SnapYaw'] * 4 + ['Input'] * 4
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

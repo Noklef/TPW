@@ -27,41 +27,6 @@ address,name,module,reason
 5f6c50,WString_Format,core/string,todo
 5f7360,Palette_ExpandRgb,gfx/palette,todo
 5f73a0,Palette_Nearest,gfx/palette,todo: indirect only
-5f76c0,Lib_StrLen,core/libc,todo: indirect only
-5f76e0,Lib_StrCpy,core/libc,todo: indirect only
-5f7710,Lib_StrNCpy,core/libc,todo: indirect only
-5f7730,Lib_StrCat,core/libc,todo: indirect only
-5f7770,Lib_StrNCat,core/libc,todo: indirect only
-5f7790,Lib_AtoI,core/libc,todo
-5f77a0,Lib_IsDigit,core/libc,todo
-5f77c0,Lib_VSPrintf,core/libc,todo
-5f77e0,Lib_VSNPrintf,core/libc,todo
-5f7800,Lib_WcsLen,core/libc,todo: indirect only
-5f7810,Lib_WcsCpy,core/libc,todo: indirect only
-5f7830,Lib_WcsNCpy,core/libc,todo: indirect only
-5f7850,Lib_WcsCat,core/libc,todo: indirect only
-5f7870,Lib_WcsNCat,core/libc,todo: indirect only
-5f7890,Lib_WtoI,core/libc,todo
-5f78a0,Lib_IsDigitW,core/libc,todo
-5f78c0,Lib_VSWPrintf,core/libc,todo
-5f86a0,App_GetInstance,core/app,todo: indirect only
-5f86b0,App_SetInstance,core/app,todo
-5f86c0,App_GetWindow,core/app,todo: indirect only
-5f86d0,App_SetWindow,core/app,todo
-5f86e0,App_PumpMessages,core/app,todo
-5f8750,App_SetQuit,core/app,todo
-5f8760,App_GetWndProc,core/app,todo
-5f8770,App_GetIconId,core/app,todo
-5f8780,App_GetName,core/app,todo
-5f8ae0,RegKey_Open,core/regkey,todo
-5f8b70,RegKey_Dtor,core/regkey,todo
-5f8b80,RegKey_Close,core/regkey,todo
-5f8bc0,Reg_CreateKey,core/regkey,todo
-5f8c00,RegKey_Query,core/regkey,todo
-5f8c50,RegKey_GetU32,core/regkey,todo
-5f8cf0,RegKey_GetU32Or,core/regkey,todo
-5f8d40,RegKey_TypeOf,core/regkey,todo
-5f8da0,RegKey_Ctor,core/regkey,todo
 5f8f80,Surface_SetDirectDraw,gfx/surface,todo
 5f8f90,Surface_Attach,gfx/surface,todo
 5f9040,Surface_Restore,gfx/surface,todo
@@ -70,9 +35,6 @@ address,name,module,reason
 5f9550,Surface_Lock,gfx/surface,todo
 5f9600,Surface_Unlock,gfx/surface,todo
 5f9620,Surface_GetSurface,gfx/surface,todo
-5f9fa0,FpuControl_DeletingDtor,core/fpu,todo
-5f9fc0,FpuControl_Dtor,core/fpu,todo
-5f9fd0,FpuControl_BaseDeletingDtor,core/fpu,todo
 5fa030,Screen_SetGuid,gfx/screen,todo
 5fa040,Screen_GetDirectDraw,gfx/screen,todo
 5fa060,Screen_Close,gfx/screen,todo
@@ -85,7 +47,6 @@ address,name,module,reason
 5fa490,Screen_RegisterClass,gfx/screen,todo
 5fa540,Screen_WndProc,gfx/screen,todo
 5fa630,Screen_SetActive,gfx/screen,todo
-5fa650,Result_FromLastError,core/result,todo
 5fa8a0,ImageCodec_InfoFromFile,gfx/imagecodec,todo
 5fa970,ImageCodec_InfoFromStream,gfx/imagecodec,todo
 5faa00,ImageCodec_LoadFromFile,gfx/imagecodec,todo
@@ -144,22 +105,9 @@ address,name,module,reason
 5fc100,EventQueue_Unlisten,core/events,todo
 5fc220,EventQueue_Clear,core/events,todo
 5fc2d0,EventListBase_DeletingDtor,core/events,todo
-5fc320,Convert_StaticInit,gfx/convert,todo
-5fc330,Convert_Construct,gfx/convert,todo
-5fc340,Convert_RegisterExit,gfx/convert,todo
-5fc350,Convert_AtExit,gfx/convert,todo
-5fc360,SurfaceInfo_Convert,gfx/convert,todo
-5fc530,FileTime_Add,core/filetime,todo
-5fc550,FileTime_Sub,core/filetime,todo
-5fc570,FileTime_Greater,core/filetime,todo
-5fc5a0,FileTime_Assign,core/filetime,todo
-5fc5c0,FileTime_FromSystemTime,core/filetime,todo
-5fc660,FileTime_ToSystemTime,core/filetime,todo
 5fc740,JpegCodec_GetInfo,gfx/jpeg,todo
 5fc840,JpegCodec_Load,gfx/jpeg,todo
 5fcbc0,JpegCodec_IsJpeg,gfx/jpeg,todo
-5fcc50,FileTime_FromSpan,core/filetime,todo
-616340,Canvas32_Mask,gfx/canvasdraw,"the listing decodes 0x616773 (SUB ECX,EDI) from 0x616774 as IRETD, which its column skip falls into: the emulator cannot run it"
 63a7b0,IndexConverter_Ctor,gfx/pixconv,todo
 63a810,IndexConverter_DeletingDtor,gfx/pixconv,todo
 63a830,IndexConverter_Dtor,gfx/pixconv,todo

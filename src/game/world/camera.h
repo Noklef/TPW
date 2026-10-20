@@ -54,6 +54,11 @@ void __cdecl Camera_CentreOnThing(u32 handle);
 // 0x42afd0: sets (on) or clears gCameraFlags bit 0x80.
 void __cdecl Camera_SetFlag80(u32 on);
 
+// 0x42a500 / 0x42a520 (cdecl; key map action handlers, names unconfirmed): bit 0x100 of the camera's control flags 0x790aac set / bit
+// 0x200 toggled. Return 1.
+u32 __cdecl Camera_SetControl100();
+u32 __cdecl Camera_ToggleControl200();
+
 // 0x42cd40: clamps a cell to [0, 0x7a0314 - 1] x [0, 0x7a0374 - 1] (signed; the lower bound
 // first).
 void __cdecl Camera_ClampCell(s32 *x, s32 *z);

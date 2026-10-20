@@ -130,6 +130,15 @@ inline double X87_Add(double a, double b) {
     return s < 0 ? -r : r;
 }
 
+// fld a; fmul b (both doubles): the exact product of up to 53 by 53 bits rounded once to 24 bits. The double product and its exact
+// error (fma) place it as X87_Add places a sum. Exact for normal double products; a NaN, an infinity, a zero, and products past the
+// double range or in its denormals come out as the double product has them (the x87's register would keep its 15-bit exponent).
+inline double X87_MulDouble(double a, double b) {
+    const double p = a * b;
+    if (!std::isfinite(p) || p == 0 || std::fabs(p) < 0x1p-969) return p;
+    return X87_Add(p, std::fma(a, b, -p));
+}
+
 // fpatan (y in st1, the destination; x in st0): atan2, except that NaNs come through as the
 // x87 has them (two: the larger significand, y on a tie), where the CRT's may not.
 inline double X87_Atan2(double y, double x) { return y != y || x != x ? X87_Add(y, x) : std::atan2(y, x); }

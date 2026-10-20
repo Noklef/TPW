@@ -208,4 +208,18 @@ u8 *__fastcall Obj_CtorOne(u8 *object) {
     u32_at(object, 0x24) = 0x3ff00000;
     return object;
 }
+
+// The rate times k (fld; fmul: rounded once to 24 bits), clamped to [0.25, 2] (a NaN fails the first test).
+static void scaleRate(u8 *clock, double k) {
+    const double rate = X87_MulDouble(double_at(clock, 0x20), k);
+    double_at(clock, 0x20) = rate >= 0.25 ? (rate > 2.0 ? 2.0 : rate) : 0.25;
+}
+
+void __fastcall GameClock_SetRate(u8 *clock, void *, u32 low, u32 high) {
+    u32_at(clock, 0x20) = low;
+    u32_at(clock, 0x24) = high;
+}
+
+void __fastcall GameClock_Faster(u8 *clock) { scaleRate(clock, 1.25); }
+void __fastcall GameClock_Slower(u8 *clock) { scaleRate(clock, 0.8); }
 }

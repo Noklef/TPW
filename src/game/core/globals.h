@@ -122,6 +122,9 @@ u32 __cdecl Global820a8c_Get_52fbe0();
 // 0x5508b0: 0x879088 = value; returns it.
 u32 __cdecl Global879088_Set_5508b0(u32 v0);
 
+// 0x550510: 0x878128 = value; returns it.
+u32 __cdecl Global878128_Set_550510(u32 v0);
+
 // 0x691530: the dword at 0x781fc8.
 u32 __cdecl Global781fc8_Get_691530();
 

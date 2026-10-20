@@ -100,8 +100,15 @@ char *__cdecl strncat(char *to, const char *from, u32 n) {
     return to;
 }
 
-// The host's (its classification of the C locale; MSVC6 asks the same tables for c < 0x100 and Windows for the rest).
-u32 __cdecl iswctype(u32 c, u32 mask) { return (u32)::iswctype((wint_t)c, (wctype_t)mask); }
+// MSVC6's (0x67f330) on the low word of c: WEOF 0; below 0x100 the game's table (_pwctype, [0x77ea94]); above, 0 while no locale is set
+// ([0xfb1440] 0, as in the game's data), else the host's classification (where MSVC6 asks Windows).
+u32 __cdecl iswctype(u32 c, u32 mask) {
+    c &= 0xffff;
+    if (c == 0xffff) return 0;
+    if (c < 0x100) return (*reinterpret_cast<const u16 *const *>((uintptr_t)0x77ea94))[c] & mask & 0xffff;
+    if (!*reinterpret_cast<const u32 *>((uintptr_t)0xfb1440)) return 0;
+    return (u32)::iswctype((wint_t)c, (wctype_t)mask) & mask & 0xffff;
+}
 
 // (The host's classification: checked against the game's for c below 0x80; above that MSVC6 asks its Latin-1 table, then Windows.)
 u32 __cdecl iswspace(u32 c) { return iswctype(c & 0xffff, 8); }

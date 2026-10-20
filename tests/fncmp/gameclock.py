@@ -2,7 +2,7 @@
 # 0x402e30) against the originals, through a record stream with room for the bytes or not; the double at +0x20 (0x403390). The clocks' reads
 # and the functions on them (0x402d70-0x402f10, 0x402f40-0x4030d0, 0x403150-0x4031f0, 0x4033a0): the game's Timer and its imports as
 # thunks_static.clock() sets them up, a clock object of random times, paused, frozen or not, run doubles and rates from 0 and 1 to junk.
-# The frozen time's step (0x402ef0) and the constructor (0x4032b0) on such a clock object. The real time less the pauses (0x5988e0): the clock object at 0x785970, its statics (in a pause or not, the pause's start, the total) of random times.
+# The frozen time's step (0x402ef0), the constructor (0x4032b0) and the rate's setter, faster and slower (0x4032d0, 0x4032f0, 0x403340) on such a clock object. The real time less the pauses (0x5988e0): the clock object at 0x785970, its statics (in a pause or not, the pause's start, the total) of random times.
 # usage: gameclock.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Records,Now,... to pick)
 import os
 import struct
@@ -15,7 +15,7 @@ from thunks_static import clock as timer  # noqa: E402
 
 B = Bench([(0x402e00, 0x402e25), (0x402e30, 0x402e55), (0x4030f0, 0x403116), (0x403120, 0x403146), (0x403180, 0x4031a6), (0x4031b0, 0x4031d6),
            (0x5f5e20, 0x5f5e50), (0x5f5e50, 0x5f5e80), (0x403390, 0x403394), (0x402d70, 0x402e00), (0x402e60, 0x4030f0), (0x403150, 0x403172),
-           (0x4031e0, 0x403202), (0x4033a0, 0x4033f0), (0x5f5f10, 0x5f5fc0), (0x5988e0, 0x598955), (0x4032b0, 0x4032ca)])
+           (0x4031e0, 0x403202), (0x4033a0, 0x4033f0), (0x5f5f10, 0x5f5fc0), (0x5988e0, 0x598955), (0x4032b0, 0x4032ca), (0x4032d0, 0x403384)])
 CLOCK, OUT, SINK = RAM, RAM + 0x1000, RAM + 0x2000
 # name: (address, arguments past this, returns)
 FUNCS = {'Now': (0x402d70, 0, 1), 'RealNow': (0x402d80, 0, 1), 'Pause': (0x402d90, 0, 0), 'Resume': (0x402db0, 0, 0), 'Toggle': (0x402dd0, 0, 0),
@@ -23,7 +23,7 @@ FUNCS = {'Now': (0x402d70, 0, 1), 'RealNow': (0x402d80, 0, 1), 'Pause': (0x402d9
          'RRead': (0x402f40, 0, 1), 'RPause': (0x402f80, 0, 0), 'RResume': (0x402fa0, 0, 0), 'RToggle': (0x402fd0, 0, 0), 'RElapsed': (0x403010, 0, 1),
          'GPause': (0x403030, 0, 0), 'GResume': (0x403050, 0, 0), 'GToggle': (0x403080, 0, 0), 'GElapsed': (0x4030d0, 0, 1), 'RNow': (0x403150, 0, 1),
          'RRestoreNow': (0x403160, 0, 0), 'GNow': (0x4031e0, 0, 1), 'GRestoreNow': (0x4031f0, 0, 0), 'GRead': (0x4033a0, 0, 1),
-         'Advance': (0x402ef0, 0, 1), 'CtorOne': (0x4032b0, 0, 1)}
+         'Advance': (0x402ef0, 0, 1), 'CtorOne': (0x4032b0, 0, 1), 'SetRate': (0x4032d0, 2, 0), 'Faster': (0x4032f0, 0, 0), 'Slower': (0x403340, 0, 0)}
 REAL = {'RRead', 'RPause', 'RResume', 'RToggle', 'RElapsed', 'RNow', 'RRestoreNow'}   # (on the real-time clock at +0x50)
 
 
@@ -52,12 +52,16 @@ def clocks(r, name):
     c[0x18:0x20] = run_double(r)
     c[0x20:0x28] = rate_double(r)
     c[0x58:0x60] = run_double(r)
+    if name in ('Faster', 'Slower') and r.random() < 0.6:   # (about the bounds 0.25 and 2, before and after the step)
+        c[0x20:0x28] = struct.pack('<d', r.choice([0.2, 0.25, 0.3125, 0.32, 1.6, 1.5, 2.0, 2.5, -0.0, r.uniform(0.15, 2.7), r.uniform(0.15, 2.7)]))
     if r.random() < 0.3:   # (the last reads near the timer's ms)
         put(c, 0x10, 'I', r.getrandbits(8))
         put(c, 0x50, 'I', r.getrandbits(8))
     regions[CLOCK] = c
     address, nargs, returns = FUNCS[name]
     args = [CLOCK + 0x50 if name in REAL else CLOCK] + [r.choice([1, 2, 25, 30, 60, 1000, 1001, 0xffffffff, 0 if r.random() < 0.2 else 50])] * nargs
+    if name == 'SetRate':   # (the double's two halves)
+        args[1:] = struct.unpack('<2I', rate_double(r))
     return Call(address, args, regions, conv='t', ret='a' if returns else 'v')
 
 

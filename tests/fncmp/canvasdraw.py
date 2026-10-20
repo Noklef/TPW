@@ -31,9 +31,6 @@ ADDRESSES = {8: [0x5fd640, 0x600060, 0x601b40, 0x601d10, 0x601ee0, 0x601a00, 0x6
              32: [0x611360, 0x6139a0, 0x615380, 0x615520, 0x6156c0, 0x615250, 0x616de0, None, 0x615cd0, 0x615ea0, 0x616340, 0x616890]}
 CALLS = {SLOTS[slot][0] + ('' if slot == 7 else str(depth)): (slot, at, depth) for depth, slots in ADDRESSES.items()
          for slot, at in enumerate(slots) if at}
-# Gap: the 32-bit mask (0x616340) is left out: the listing decodes 0x616773 (SUB ECX,EDI, 2b cf) from 0x616774 as IRETD, which its column skip
-# (a run shorter than the columns still to pass) falls into, so the emulator cannot run it.
-del CALLS['Mask32']
 FORMATS = None
 STATIC = [0xfa7d40, 0xfa7de8, 0xfa7e18, 0xfa7d88, 0xfa7d70, 0xfa7e00, 0xfa7dd0, 0xfa7db8, 0xfa7d58, 0xfa7da0, 0xfa7d28]
 
@@ -45,6 +42,23 @@ def surface_format(r, depth, other=0.1):
     f = bytearray(r.choice(mine) if mine and r.random() < 0.7 else gfxbasics.generic_format(r))
     count = depth if r.random() >= other else r.choice([0, 8, 15, 16, 24, 32])
     return put(f, 0x10, 'I', count)
+
+
+def zero_some(r, codes, rows):
+    """Now and then a literal's bytes 0 here and there (a sprite's index 0; where a clipped row starts inside a literal, the code drops the
+    rest of it when the byte reached is 0, and a mask's next row then starts in the literal)."""
+    if r.random() < 0.6:
+        return codes
+    codes, p = bytearray(codes), 0
+    for _ in range(rows):
+        while codes[p]:
+            n = codes[p] if codes[p] < 0x80 else 0
+            for i in range(p + 1, p + 1 + n):
+                if r.random() < 0.15:
+                    codes[i] = 0
+            p += n + 1
+        p += 1
+    return codes
 
 
 def case(r):
@@ -105,7 +119,7 @@ def case(r):
             if r.random() < 0.03:
                 w, h = r.choice([(0, h), (w, 0)])
             regions[MASK] = put(bytearray(8), 0, 'IHH', DATA, w, h)
-            regions[DATA] = draw8.rle(r, max(w, 1), max(h, 1)) + bytes(256)
+            regions[DATA] = zero_some(r, draw8.rle(r, max(w, 1), max(h, 1)), max(h, 1)) + bytes(256)
             args.append(MASK)
         elif ch == 'P':
             regions[TABLE] = r.bytes(0x400)

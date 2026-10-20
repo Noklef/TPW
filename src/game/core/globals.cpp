@@ -226,6 +226,11 @@ u32 __cdecl Global879088_Set_5508b0(u32 v0) {
     return v0;
 }
 
+u32 __cdecl Global878128_Set_550510(u32 v0) {
+    global<u32>(0x00878128) = v0;
+    return v0;
+}
+
 u32 __cdecl Global781fc8_Get_691530() {
     return global<u32>(0x00781fc8);
 }
