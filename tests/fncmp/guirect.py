@@ -9,9 +9,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM  # noqa: E402
 
-CALLS = {'Ctor': 0x659d00, 'CtorWith': 0x659d43, 'Dtor': 0x659d90, 'Contains': 0x659e83, 'Centre': 0x659ee2, 'Offset': 0x65a3e9,
+CALLS = {'Equals': 0x661700, 'GetSize': 0x659e3e, 'Ctor': 0x659d00, 'CtorWith': 0x659d43, 'Dtor': 0x659d90, 'Contains': 0x659e83, 'Centre': 0x659ee2, 'Offset': 0x65a3e9,
          'Adjust': 0x65a43e, 'Overlap': 0x659f3d}
-B = Bench([(0x659d00, 0x659dbc), (0x659e83, 0x65a1c3), (0x65a3e9, 0x65a4a3), (0x65a9d0, 0x65aa00), (0x66bff7, 0x66c01b), (0x66c01a, 0x66c7dc),
+B = Bench([(0x661700, 0x66176a), (0x659e3e, 0x659e83), (0x659d00, 0x659dbc), (0x659e83, 0x65a1c3), (0x65a3e9, 0x65a4a3), (0x65a9d0, 0x65aa00), (0x66bff7, 0x66c01b), (0x66c01a, 0x66c7dc),
            (0x67acb0, 0x67acb1)])
 RECT, OUT, SHAPE, POINTS = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300
 SHAPES = {'rect': 0x705920, 'circle': 0x705b50, 'ellipse': 0x705b68, 'polygon': 0x705b80}
@@ -78,7 +78,14 @@ def case(r):
         if r.random() < 0.15:
             x, y = word(r), word(r)
         return Call(CALLS[op], [RECT, x | (r.getrandbits(16) << 16), y | (r.getrandbits(16) << 16)], regions, conv='t', ret='w')
-    if op == 'Centre':
+    if op == 'Equals':   # the other rectangle a copy of this one, with one word changed now and then (in its low or high byte)
+        other = bytearray(rect)
+        if r.random() < 0.6:
+            k = r.choice([4, 5, 6, 7, 8, 9, 10, 11])
+            other[k] ^= r.choice([1, 0x80, 0xff])
+        regions[OUT] = bytes(other)
+        return Call(CALLS[op], [RECT, OUT], regions, conv='t', ret='a')
+    if op in ('Centre', 'GetSize'):
         return Call(CALLS[op], [RECT, r.choice([OUT, OUT, 0]), r.choice([OUT + 4, OUT + 4, 0])], regions, conv='t')
     if op == 'Offset':
         return Call(CALLS[op], [RECT, word(r), word(r)], regions, conv='t')

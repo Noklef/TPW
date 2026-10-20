@@ -17,10 +17,10 @@ sys.path.insert(0, HERE)
 from fncmp import HEAP, LOG, Bench, Call, heap, log_region, put, vtable  # noqa: E402
 from window import MISC, RANGES, VTABLE, WINDOW  # noqa: E402
 
-CALLS = {'RectAssign': 0x65aa20, 'SaveRect': 0x65bc90, 'GetRect': 0x65d42e, 'SetSavedRect': 0x65cfd4, 'SaveInsetRect': 0x485e30,
+CALLS = {'GetSize': 0x65d865, 'RectAssign': 0x65aa20, 'SaveRect': 0x65bc90, 'GetRect': 0x65d42e, 'SetSavedRect': 0x65cfd4, 'SaveInsetRect': 0x485e30,
          'SetHitArea': 0x65cfff, 'SetInner': 0x65bb10, 'OffsetInner': 0x65bb3f,
          'SetInner7059f0': 0x6651ef, 'SetColumns': 0x663554, 'SetColumn': 0x663662, 'SetRange705bc8': 0x66cad3}
-B = Bench(RANGES + [(0x65cfff, 0x65d070), (0x65bb10, 0x65bb6b), (0x659dac, 0x659de5), (0x6651ef, 0x66521e),
+B = Bench(RANGES + [(0x65d865, 0x65d8e7), (0x659e3e, 0x659e83), (0x65cfff, 0x65d070), (0x65bb10, 0x65bb6b), (0x659dac, 0x659de5), (0x6651ef, 0x66521e),
                        (0x663554, 0x663662), (0x663662, 0x6636b2), (0x66cad3, 0x66cb69), (0x67acf0, 0x67ada0), (0x5da3c0, 0x5da3c1)])
 
 
@@ -28,6 +28,14 @@ def case(r):
     op = r.deal(OPS)
     log = log_region()
     regions = {LOG: log, VTABLE: vtable({5: 1})}
+    if op == 'GetSize':   # the rectangle +8 and the insets small or edges; the two out pointers each set or 0; inner's low word 0 or not
+        win = bytearray(r.bytes(0x120))
+        for k in list(range(0xc, 0x14, 2)) + list(range(0xf8, 0x100, 2)):
+            put(win, k, 'H', r.choice([0, 1, 2, 5, 40, 0x7fff, 0x8000, 0xffff, r.randrange(-50, 50) & 0xffff, r.getrandbits(16)]))
+        regions[WINDOW] = win
+        regions[MISC] = r.bytes(8)
+        inner = r.choice([0, 1, 0x10000, 0xffff0000, r.getrandbits(32)])
+        return Call(CALLS[op], [WINDOW, r.choice([MISC, MISC, 0]), r.choice([MISC + 4, MISC + 4, 0]), inner], regions, conv='t', ret='w')
     if op in ('GetRect', 'SetSavedRect'):   # the rectangle a GUI one, a recorder (slot 3: four) or 0; insets small or edges; inner's low word 0 or not
         win = bytearray(r.bytes(0x120))
         for k in range(0xf8, 0x100, 2):

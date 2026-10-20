@@ -21,9 +21,9 @@ from window import IMPL, LOOK, MISC, OBJECT98, RANGES, VTABLE, WINDOW, notify_bl
 CALLS = {'Set4c': 0x65c388, 'NotifyC00': 0x65c428, 'Notify3000': 0x65c4b9, 'Notify20000': 0x65c54a, 'SetImpl': 0x65d1c8,
          'ImplRelease': 0x6616b0, 'ImplSlot7': 0x65d6db, 'ImplSlot6': 0x65d745, 'DwordA0': 0x65e705, 'SetObject98': 0x65d070,
          'Notify40000': 0x65c5d5, 'NotifyImpl100': 0x65f5b7, 'SetDwordA0': 0x65e6d5,
-         'NotifyObject98_100': 0x65f5fe, 'SetDepth': 0x65f16b, 'SetWordE2': 0x65f286, 'NotifyC000': 0x65c672}
+         'NotifyObject98_100': 0x65f5fe, 'SetDepth': 0x65f16b, 'SetWordE2': 0x65f286, 'NotifyC000': 0x65c672, 'Notify1': 0x65d3a3, 'SetWordsE4': 0x65f345}
 B = Bench(RANGES + [(0x65d070, 0x65d1c8), (0x65c5d5, 0x65c672), (0x65f5b7, 0x65f643), (0x65e6d5, 0x65e705), (0x65f16b, 0x65f246),
-                    (0x65f286, 0x65f330), (0x65c672, 0x65c707)])
+                    (0x65f286, 0x65f330), (0x65c672, 0x65c707), (0x65d3a3, 0x65d40c), (0x65f345, 0x65f410)])
 
 
 def case(r):
@@ -66,6 +66,12 @@ def case(r):
             blob_bytes(log, k, 1, 0, (0x10, 0xf, 0x10) if op == 'Notify40000' else (0x10, 0xf))
         args = [r.getrandbits(32) for _ in range(4 if op == 'Notify40000' else 1)]
         return Call(CALLS[op], [window] + args, regions, conv='t', ret='v')
+    if op == 'SetWordsE4':   # (the event's words +0xc / +0xe; the upper halves random)
+        notify_blobs(log, 0xf000, 0)
+        return Call(CALLS[op], [window, r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='v')
+    if op == 'Notify1':   # (the event's word +4)
+        notify_blobs(log, 0x30, 0)
+        return Call(CALLS[op], [window, r.getrandbits(32)], regions, conv='t', ret='v')
     if op in ('SetDepth', 'SetWordE2'):   # (the event's word +6 / +8; the value near the depth's limit 0x100 or any, its upper half random)
         notify_blobs(log, 0xc0 if op == 'SetDepth' else 0x300, 0)
         value = r.choice([0, 1, 2, 0xfe, 0xff, 0x100, 0x101, 0x7fff, 0x8000, 0xfffe, 0xffff, r.getrandbits(16)]) | r.choice([0, r.getrandbits(16)]) << 16

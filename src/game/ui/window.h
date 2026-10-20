@@ -240,4 +240,101 @@ void __fastcall Window_SetDepth(u8 *window, void *, u32 depth);
 // their slot 3 (4, an event on the stack whose only word set, +8, is +0xe2); then each child (+0x5c, then +0x54) given the same. EAX not
 // kept.
 void __fastcall Window_SetWordE2(u8 *window, void *, u32 value);
+
+// 0x65d3a3 (thiscall (value: a word), pops 4; name unconfirmed): the objects +0x98 and +0x9c (when set) told through their slot 3 (1, one
+// event on the stack whose only word set, +4, is the value). EAX not kept.
+void __fastcall Window_Notify1(u8 *window, void *, u32 value);
+
+// 0x65d865 (thiscall (width, height: word pointers, each may be 0; inner: a word), pops 12; name unconfirmed): the size of the rectangle
+// +8 (GuiRect_GetSize); with inner not 0 each one set less the margins: width less +0xfc - +0xf8, height less +0xfe - +0xfa. 1 in AX (the
+// rest of EAX left).
+u32 __fastcall Window_GetSize(u8 *window, void *, s16 *width, s16 *height, u32 inner);
+
+// 0x65dcaf (thiscall (message, button, point), pops 12; name unconfirmed): when the point (x the upper half, signed, y the lower) is in
+// the rectangle +0x2c (its slot 0), the window is posted message | 0x1000 (button, the button's press point: the words +2 << 16 | +4,
+// each signed, of the entry button of [0xfaa598] (0xc bytes each); sic: a negative +4 fills the upper half) (Window_PostMessage). EAX not
+// kept.
+void __fastcall Window_PostIfHit(u8 *window, void *, u32 message, u32 button, u32 point);
+
+// 0x65dd18 (thiscall; name unconfirmed): nothing when the window is the active one [0xfaa5dc] already; else that one is posted 0x1b, the
+// window becomes the active one and is posted 0x1a (Window_PostMessage). EAX not kept.
+void __fastcall Window_Activate(u8 *window);
+
+// 0x65dbf0 (thiscall; name unconfirmed): 0 when the window has no next sibling (+0x54); else it moves to the end of its siblings: after
+// the last one, its old previous (+0x58) and next linked up (the next one the parent's (+0x60) first child +0x5c when there was no
+// previous), the window posted 0x18 and the old last one 0x19 (Window_PostMessage). Returns the old last one.
+u8 *__fastcall Window_RaiseToTop(u8 *window);
+
+// 0x65c707 (thiscall; recursive; name unconfirmed): for a window with bit 0 of +0x48 set: unless one of its top four bits is set, its slot 0
+// and then the message 3 sent (Window_SendMessage); then each child (+0x5c, then +0x54) the same. 1 in AX (the rest of EAX left).
+u32 __fastcall Window_OpenTree(u8 *window);
+
+// 0x65c778 (thiscall; recursive; name unconfirmed): Window_OpenTree in reverse: for a window with bit 0 of +0x48 set, its children from
+// the last one back (by +0x58) first, then (unless one of the top four bits of +0x48 is set) the message 3 sent and its slot 0. 1 in AX.
+u32 __fastcall Window_CloseTree(u8 *window);
+
+// 0x65cc04 (thiscall (rect), pops 4; name unconfirmed): nothing for no rectangle or one equal to +8 (GuiRect_Equals). One of the same size
+// (GuiRect_GetSize) moves the window (Window_Offset by the left / top differences). Otherwise +8 is kept at +0x20, set from the rectangle
+// (GuiRect_Assign), the children laid out again (Window_ResizeChildren with the four edges' moves), the objects +0x98 / +0x9c told
+// through slot 3 (0x10, an event on the stack whose only dword set, +0x14, points to +8 for the first and +0x2c for the second) and the
+// window sent 0x12 (the new width and height, sign-extended). Both ways end with Window_UpdateHover. 1 in AX.
+u32 __fastcall Window_SetRect(u8 *window, void *, u8 *rect);
+
+// 0x65c9bd (thiscall (dl, dt, dr, db: words), pops 16; name unconfirmed): the rectangle +0x2c grown by the four (its slot 3), then each
+// child (+0x5c, then +0x54) by its anchors (+0x48, read before its rectangle with the margins, Window_GetRect (1)): with all of
+// 0xf0000 each edge moved (when any is not 0) and the rectangle set (Window_SetRect), and nothing more; else with both of 0x30000 the
+// left and right moved (when either is not 0) and set, or with both of 0xc0000 the top and bottom, those bits then dropped; then each
+// of 0x10000 / 0x20000 / 0x40000 / 0x80000 left set moves it (Window_Offset) by dl / dr across or dt / db down, when that is not 0.
+void __fastcall Window_ResizeChildren(u8 *window, void *, u32 dl, u32 dt, u32 dr, u32 db);
+
+// 0x65cf5e (thiscall (left, top, right, bottom: words), pops 16; name unconfirmed): Window_SetRect with a rectangle of those on the stack
+// (GuiRect_CtorWith, GuiRect_Dtor). 1 in AX.
+u32 __fastcall Window_SetRectTo(u8 *window, void *, u32 left, u32 top, u32 right, u32 bottom);
+
+// 0x65f345 (thiscall (a, b: words), pops 8; recursive; name unconfirmed): the words +0xe4 = a and +0xe6 = b; the objects +0x98 and +0x9c
+// (when set) told through their slot 3 (0x40, an event on the stack whose only words set, +0xc / +0xe, are those two); then each child
+// (+0x5c, then +0x54) given the same. EAX not kept.
+void __fastcall Window_SetWordsE4(u8 *window, void *, u32 a, u32 b);
+
+// 0x65f447 (thiscall (child, depth, words: bytes), pops 12; name unconfirmed): 0 in AX for no child or one with a parent (+0x60), a next
+// (+0x54) or a previous (+0x58) already. Else it becomes the window's last child (its parent the window, its previous the old last one
+// or 0; the window's first +0x5c when it had none); with depth (signed byte) not 0 it is given the window's depth +0xe0 + 2
+// (Window_SetDepth), with words not 0 the window's +0xe4 / +0xe6 (Window_SetWordsE4); the hover updated (Window_UpdateHover) and the
+// window's focus let go (Window_KillFocus (0)); 1 in AX (the rest of EAX the focus call's).
+u32 __fastcall Window_AddChild(u8 *window, void *, u8 *child, u32 depth, u32 words);
+
+// 0x65e9a4 (thiscall; recursive; name unconfirmed): one step of the window's script (+0xe8, steps of four words; the step +0xec). Only with
+// the byte +0x135 1 (signed), a script and the GUI clock (GuiClock_Now) past the last time +0xf4 by more than the interval +0xf0 (signed);
+// else 0xffff in AX. The time is set to now and the step's first word says: -9999 the end (+0x135 and +0xec 0, the rectangle +8 less the
+// margins +0xf8..+0xfe set (Window_SetRect) and the margins 0); -9998 the word +0xe2 the second word (Window_SetWordE2); -9997 a jump (+0xec
+// the second word and the step run again: its answer dropped); -9996 a notification of the second word (Window_Notify1, signed); else the
+// four words added to the rectangle +8 (Window_SetRect) and the margins. The step +0xec moves on after all but the end and the jump; it is
+// returned in AX (the rest of EAX the rectangle's destructor's).
+u32 __fastcall Window_ScriptStep(u8 *window);
+
+// 0x65ee7a (thiscall; name unconfirmed): with the byte +0x136 set, either (the count +0x10c 0) the timer +0x100 stopped (Fn_662097), +0x136
+// 0, the rectangle set to the target +0x38 (Window_SetRect) and the window posted 0x1d (0, 0) (Window_PostMessage); or the rectangle +8
+// moved by the words +0x104..+0x10a (Window_SetRect) and the count less 1. 0xffff in AX (the rest of EAX the rectangle's destructor's).
+u32 __fastcall Window_SlideStep(u8 *window);
+
+// 0x65c357 (thiscall; name unconfirmed): the manager [0x77c48c]'s slot 12 (no arguments) when its +0x14 is the window; then the script's
+// step (Window_ScriptStep), whose answer it returns.
+u32 __fastcall Window_ScriptTick(u8 *window);
+
+// 0x65f6d1 (cdecl; name unconfirmed): a window's default handler (+0x114 / +0x118 of a new window). Messages with the top bit set: nothing.
+// 1 / 2 the tree opened / closed (Window_OpenTree / Window_CloseTree); 3 the window's slot 4; 4 its slot 2 (1: its deleting destructor);
+// 5 the window posted 4; 6 shown by a's word (Window_SetShown); 7 moved by a's and b's words (Window_Offset); 8 its rectangle set to the
+// edges a >> 16 (signed), a's word, b >> 16 (signed), b's word (Window_SetRectTo); 9 raised (Window_RaiseToTop) and, when that answers a
+// window, a is not 0 and [0xfaa5d4] is set, posted 1; 12 its slot 11's answer kept at 0xfaa618, whose address it returns. 0x10 a timer: a
+// 0x80084 the script's step, 0x80085 the slide's (Window_ScriptStep / Window_SlideStep); 0x1e Window_ScriptTick. 0x10001 the window's
+// cursor (Window_ApplyCursor) and the manager [0x77c48c]'s slot 9 (window); 0x10002 the manager's slot 10; 0x10003 the mouse moved to a
+// (x a >> 16 signed, y its word: the manager's slot 8) and, with buttons held (+0x11c), each of the press table [0xfaa598]'s first three
+// pressed entries (word +0 1) more than 6 away from its point (+2 / +4) in either axis made 2 (a drag). 0x10004 / 0x10005 a button a
+// released / pressed and 0x10006 / 0x10007 a click / double click: first Window_PostIfHit (the message, a, b); a press (after
+// Window_Activate) of a free entry (+0 0) sets the button's bit of +0x11c, the entry's point to b and its state 1, and, within the
+// double-click time [0x77c480] (signed) of the entry's last time +8 and the window's flags +0x48 without bit 3, posts 0x10007 (a, b)
+// and the state 2; then the time now. A release of a pressed entry with the bit set posts, within that time of its last one, 0x10006
+// (a, the point: sic, the y signed, so a negative one fills the upper half) and keeps now as the time; else the time 0; the bit and the
+// state cleared. Returns 0 but for 12.
+u32 __cdecl Window_DefaultProc(u8 *window, u32 message, u32 a, u32 b);
 }

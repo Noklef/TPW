@@ -8,6 +8,7 @@
 #include "../math/x87.h"
 #include "../render/viewquad.h"
 #include "mapcell.h"
+#include "person.h"
 #include "things.h"
 
 namespace {
@@ -87,6 +88,16 @@ void __cdecl Camera_CentreOnThing(u32 handle) {
     if (!thing) return;
     const u16 cell = static_cast<u16>(thing[7] * 128 + thing[5] + 1);
     Camera_CentreOnCell(&cell);
+}
+
+void __cdecl Camera_CentreOnSprite(const u8 *sprite) {
+    if (!sprite) return;
+    const s32 elapsed = *reinterpret_cast<const s32 *>(0x008786bc) - *reinterpret_cast<const s32 *>(0x00878a1c);
+    const float t = (float)(X87Reg((double)elapsed) * X87Reg((double)*reinterpret_cast<const float *>(0x006ff16c)));
+    float x, z;
+    u32 height, frame;
+    Sprite_InterpolatedPos(sprite, nullptr, t, 1, &x, &height, &z, &frame);
+    Camera_SetView(reinterpret_cast<const u32 *>(&x), reinterpret_cast<const u32 *>(&z), nullptr, nullptr, nullptr);
 }
 
 void __cdecl Camera_SetFlag80(u32 on) {

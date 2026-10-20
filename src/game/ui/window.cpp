@@ -7,6 +7,8 @@
 #include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
+#include "cursor.h"
+#include "guimanager.h"
 #include "guirect.h"
 #include "guitimers.h"
 #include "msgqueue.h"
@@ -610,5 +612,341 @@ void __fastcall Window_SetWordE2(u8 *window, void *, u32 value) {
     if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 4u, event);
     if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 4u, event);
     for (u8 *child = at<u8 *>(window, 0x5c); child; child = at<u8 *>(child, 0x54)) Window_SetWordE2(child, nullptr, value);
+}
+
+void __fastcall Window_Notify1(u8 *window, void *, u32 value) {
+    u8 event[0x18];  // (only the word +4 set)
+    at<u16>(event, 4) = (u16)value;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 1u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 1u, event);
+}
+
+u32 __fastcall Window_GetSize(u8 *window, void *, s16 *width, s16 *height, u32 inner) {
+    GuiRect_GetSize(window + 8, nullptr, (u16 *)width, (u16 *)height);
+    if ((s16)inner != 0) {
+        if (width) *width = (s16)(*width - (s16)(at<s16>(window, 0xfc) - at<s16>(window, 0xf8)));
+        if (height) *height = (s16)(*height - (s16)(at<s16>(window, 0xfe) - at<s16>(window, 0xfa)));
+    }
+    return 1;
+}
+
+void __fastcall Window_PostIfHit(u8 *window, void *, u32 message, u32 button, u32 point) {
+    if ((s16)vcall<u32>(window + 0x2c, 0, (u32)((s32)point >> 16), point & 0xffff) == 0) return;
+    const u8 *const entry = reinterpret_cast<const u8 *>((uintptr_t)0x00faa598 + button * 0xc);
+    const u32 press = (u32)((s32)*reinterpret_cast<const s16 *>(entry + 2) << 16) | (u32)(s32)*reinterpret_cast<const s16 *>(entry + 4);  // sic
+    Window_PostMessage(window, message | 0x1000, button, press);
+}
+
+void __fastcall Window_Activate(u8 *window) {
+    u8 *&active = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5dc);
+    if (active == window) return;
+    Window_PostMessage(active, 0x1b, 0, 0);
+    active = window;
+    Window_PostMessage(active, 0x1a, 0, 0);
+}
+
+u8 *__fastcall Window_RaiseToTop(u8 *window) {
+    if (!at<u8 *>(window, 0x54)) return nullptr;
+    u8 *const prev = at<u8 *>(window, 0x58);
+    u8 *const next = at<u8 *>(window, 0x54);
+    u8 *last = window;
+    while (at<u8 *>(last, 0x54)) last = at<u8 *>(last, 0x54);
+    at<u8 *>(window, 0x54) = nullptr;
+    at<u8 *>(last, 0x54) = window;
+    at<u8 *>(window, 0x58) = last;
+    if (prev) at<u8 *>(prev, 0x54) = next;
+    if (next) {
+        at<u8 *>(next, 0x58) = prev;
+        if (!prev) at<u8 *>(at<u8 *>(next, 0x60), 0x5c) = next;
+    }
+    Window_PostMessage(window, 0x18, 0, 0);
+    Window_PostMessage(last, 0x19, 0, 0);
+    return last;
+}
+
+u32 __fastcall Window_OpenTree(u8 *window) {
+    if (at<u32>(window, 0x48) & 1) {
+        if (!(at<u32>(window, 0x48) & 0xf0000000u)) {
+            vcall<void>(window, 0);
+            Window_SendMessage(window, 3, 0, 0);
+        }
+        for (u8 *child = at<u8 *>(window, 0x5c); child; child = at<u8 *>(child, 0x54)) Window_OpenTree(child);
+    }
+    return 1;
+}
+
+u32 __fastcall Window_CloseTree(u8 *window) {
+    if (at<u32>(window, 0x48) & 1) {
+        u8 *child = at<u8 *>(window, 0x5c);
+        if (child) {
+            while (at<u8 *>(child, 0x54)) child = at<u8 *>(child, 0x54);
+            for (; child; child = at<u8 *>(child, 0x58)) Window_CloseTree(child);
+        }
+        if (!(at<u32>(window, 0x48) & 0xf0000000u)) {
+            Window_SendMessage(window, 3, 0, 0);
+            vcall<void>(window, 0);
+        }
+    }
+    return 1;
+}
+
+u32 __fastcall Window_SetRect(u8 *window, void *, u8 *rect) {
+    if (!rect || GuiRect_Equals(rect, nullptr, window + 8)) return 1;
+    u16 width, height, oldWidth, oldHeight;
+    GuiRect_GetSize(rect, nullptr, &width, &height);
+    GuiRect_GetSize(window + 8, nullptr, &oldWidth, &oldHeight);
+    if ((s16)width == (s16)oldWidth && (s16)height == (s16)oldHeight) {
+        Window_Offset(window, nullptr, (u32)(at<s16>(rect, 4) - at<s16>(window, 0xc)), (u32)(at<s16>(rect, 6) - at<s16>(window, 0xe)));
+        Window_UpdateHover();
+        return 1;
+    }
+    GuiRect_Assign(window + 0x20, nullptr, window + 8);
+    GuiRect_Assign(window + 8, nullptr, rect);
+    Window_ResizeChildren(window, nullptr, (u32)(at<s16>(window, 0xc) - at<s16>(window, 0x24)), (u32)(at<s16>(window, 0xe) - at<s16>(window, 0x26)),
+                          (u32)(at<s16>(window, 0x10) - at<s16>(window, 0x28)), (u32)(at<s16>(window, 0x12) - at<s16>(window, 0x2a)));
+    u8 event[0x28];  // (only the dword +0x14 set)
+    at<u8 *>(event, 0x14) = window + 8;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 0x10u, event);
+    at<u8 *>(event, 0x14) = window + 0x2c;
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0x10u, event);
+    Window_SendMessage(window, 0x12, (u32)(s32)(s16)width, (u32)(s32)(s16)height);
+    Window_UpdateHover();
+    return 1;
+}
+
+void __fastcall Window_ResizeChildren(u8 *window, void *, u32 dl, u32 dt, u32 dr, u32 db) {
+    u8 *child = at<u8 *>(window, 0x5c);
+    u8 rect[0xc];
+    GuiRect_Ctor(rect);
+    vcall<void>(window + 0x2c, 0xc, (u32)(u16)dl, (u32)(u16)dt, (u32)(u16)dr, (u32)(u16)db);
+    const s16 l = (s16)dl, t = (s16)dt, r = (s16)dr, b = (s16)db;
+    for (; child; child = at<u8 *>(child, 0x54)) {
+        u32 flags = at<u32>(child, 0x48);
+        Window_GetRect(child, nullptr, rect, 1);
+        if ((flags & 0xf0000) == 0xf0000) {
+            if (l || r || t || b) {
+                at<u16>(rect, 4) += l;
+                at<u16>(rect, 8) += r;
+                at<u16>(rect, 6) += t;
+                at<u16>(rect, 0xa) += b;
+                Window_SetRect(child, nullptr, rect);
+            }
+            continue;
+        }
+        if ((flags & 0x30000) == 0x30000) {
+            if (l || r) {
+                at<u16>(rect, 4) += l;
+                at<u16>(rect, 8) += r;
+                Window_SetRect(child, nullptr, rect);
+            }
+            flags &= 0xfffcffff;
+        } else if ((flags & 0xc0000) == 0xc0000) {
+            if (t || b) {
+                at<u16>(rect, 6) += t;
+                at<u16>(rect, 0xa) += b;
+                Window_SetRect(child, nullptr, rect);
+            }
+            flags &= 0xfff3ffff;
+        }
+        if ((flags & 0x10000) && l) Window_Offset(child, nullptr, (u16)l, 0);
+        if ((flags & 0x20000) && r) Window_Offset(child, nullptr, (u16)r, 0);
+        if ((flags & 0x40000) && t) Window_Offset(child, nullptr, 0, (u16)t);
+        if ((flags & 0x80000) && b) Window_Offset(child, nullptr, 0, (u16)b);
+    }
+    GuiRect_Dtor(rect);
+}
+
+u32 __fastcall Window_SetRectTo(u8 *window, void *, u32 left, u32 top, u32 right, u32 bottom) {
+    u8 rect[0xc];
+    GuiRect_CtorWith(rect, nullptr, (u16)left, (u16)top, (u16)right, (u16)bottom);
+    Window_SetRect(window, nullptr, rect);
+    GuiRect_Dtor(rect);
+    return 1;
+}
+
+void __fastcall Window_SetWordsE4(u8 *window, void *, u32 a, u32 b) {
+    at<u16>(window, 0xe4) = (u16)a;
+    at<u16>(window, 0xe6) = (u16)b;
+    u8 event[0x18];  // (only the words +0xc / +0xe set)
+    at<u16>(event, 0xc) = at<u16>(window, 0xe4);
+    at<u16>(event, 0xe) = at<u16>(window, 0xe6);
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 0x40u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0x40u, event);
+    for (u8 *child = at<u8 *>(window, 0x5c); child; child = at<u8 *>(child, 0x54)) Window_SetWordsE4(child, nullptr, (u16)a, (u16)b);
+}
+
+u32 __fastcall Window_AddChild(u8 *window, void *, u8 *child, u32 depth, u32 words) {
+    if (!child || at<u8 *>(child, 0x60) || at<u8 *>(child, 0x54) || at<u8 *>(child, 0x58)) return 0;
+    u8 *last = nullptr;
+    at<u8 *>(child, 0x60) = window;
+    if (at<u8 *>(window, 0x5c)) {
+        last = at<u8 *>(window, 0x5c);
+        while (at<u8 *>(last, 0x54)) last = at<u8 *>(last, 0x54);
+        at<u8 *>(last, 0x54) = child;
+    } else {
+        at<u8 *>(window, 0x5c) = child;
+    }
+    at<u8 *>(child, 0x58) = last;
+    if ((s8)depth != 0) Window_SetDepth(child, nullptr, (u32)((s32)at<s16>(window, 0xe0) + 2));
+    if ((s8)words != 0) Window_SetWordsE4(child, nullptr, at<u16>(window, 0xe4), at<u16>(window, 0xe6));
+    Window_UpdateHover();
+    Window_KillFocus(window, nullptr, 0);
+    return 1;
+}
+
+u32 __fastcall Window_ScriptStep(u8 *window) {
+    u8 rect[0x10];
+    GuiRect_Ctor(rect);
+    if ((s8)at<u8>(window, 0x135) != 1 || !at<u8 *>(window, 0xe8) ||
+        (s32)(GuiClock_Now() - at<u32>(window, 0xf4)) <= at<s32>(window, 0xf0)) {
+        GuiRect_Dtor(rect);
+        return 0xffff;
+    }
+    at<u32>(window, 0xf4) = GuiClock_Now();
+    const s16 *const step = reinterpret_cast<const s16 *>(at<u8 *>(window, 0xe8) + (s32)at<s16>(window, 0xec) * 8);
+    if (step[0] == -9999) {
+        at<u8>(window, 0x135) = 0;
+        at<u16>(window, 0xec) = 0;
+        GuiRect_Assign(rect, nullptr, window + 8);
+        GuiRect_Adjust(rect, nullptr, (u32)-(s32)at<s16>(window, 0xf8), (u32)-(s32)at<s16>(window, 0xfa), (u32)-(s32)at<s16>(window, 0xfc),
+                       (u32)-(s32)at<s16>(window, 0xfe));
+        Window_SetRect(window, nullptr, rect);
+        at<u16>(window, 0xfe) = 0;
+        at<u16>(window, 0xfc) = 0;
+        at<u16>(window, 0xfa) = 0;
+        at<u16>(window, 0xf8) = 0;
+    } else if (step[0] == -9998) {
+        Window_SetWordE2(window, nullptr, (u16)step[1]);
+        at<u16>(window, 0xec) += 1;
+    } else if (step[0] == -9997) {
+        at<u16>(window, 0xec) = (u16)step[1];
+        Window_ScriptStep(window);
+    } else if (step[0] == -9996) {
+        Window_Notify1(window, nullptr, (u32)(s32)step[1]);
+        at<u16>(window, 0xec) += 1;
+    } else {
+        GuiRect_Assign(rect, nullptr, window + 8);
+        for (int i = 0; i < 4; ++i) at<u16>(rect, 4 + 2 * i) += (u16)step[i];
+        for (int i = 0; i < 4; ++i) at<u16>(window, 0xf8 + 2 * i) += (u16)step[i];
+        Window_SetRect(window, nullptr, rect);
+        at<u16>(window, 0xec) += 1;
+    }
+    const u16 now = at<u16>(window, 0xec);
+    GuiRect_Dtor(rect);
+    return now;
+}
+
+u32 __fastcall Window_SlideStep(u8 *window) {
+    u8 rect[0x10];
+    GuiRect_Ctor(rect);
+    if (at<u8>(window, 0x136)) {
+        if (at<s16>(window, 0x10c) == 0) {
+            Fn_662097(at<u8 *>(window, 0x100));
+            at<u8>(window, 0x136) = 0;
+            Window_SetRect(window, nullptr, window + 0x38);
+            Window_PostMessage(window, 0x1d, 0, 0);
+        } else {
+            GuiRect_Assign(rect, nullptr, window + 8);
+            GuiRect_Adjust(rect, nullptr, at<u16>(window, 0x104), at<u16>(window, 0x106), at<u16>(window, 0x108), at<u16>(window, 0x10a));
+            Window_SetRect(window, nullptr, rect);
+            at<u16>(window, 0x10c) -= 1;
+        }
+    }
+    GuiRect_Dtor(rect);
+    return 0xffff;
+}
+
+u32 __fastcall Window_ScriptTick(u8 *window) {
+    u8 *const manager = *reinterpret_cast<u8 **>((uintptr_t)0x0077c48c);
+    if (at<u8 *>(manager, 0x14) == window) vcall<void>(manager, 0x30);
+    return Window_ScriptStep(window);
+}
+
+namespace {
+u8 *press(u32 button) { return reinterpret_cast<u8 *>((uintptr_t)(0x00faa598u + button * 0xcu)); }
+s32 iabs(s32 v) { return v < 0 ? -v : v; }
+}  // namespace
+
+u32 __cdecl Window_DefaultProc(u8 *window, u32 message, u32 a, u32 b) {
+    if (message & 0x80000000u) return 0;
+    u8 *const manager = *reinterpret_cast<u8 **>((uintptr_t)0x0077c48c);
+    const s32 doubleTime = *reinterpret_cast<const s32 *>((uintptr_t)0x0077c480);
+    switch (message) {
+    case 1: Window_OpenTree(window); break;
+    case 2: Window_CloseTree(window); break;
+    case 3: vcall<void>(window, 0x10); break;
+    case 4:
+        if (window) vcall<void>(window, 8, 1u);
+        return 0;
+    case 5: Window_PostMessage(window, 4, 0, 0); break;
+    case 6: Window_SetShown(window, nullptr, (u16)a); break;
+    case 7: Window_Offset(window, nullptr, (u16)a, (u16)b); break;
+    case 8: Window_SetRectTo(window, nullptr, (u32)((s32)a >> 16), a & 0xffff, (u32)((s32)b >> 16), b & 0xffff); break;
+    case 9:
+        if (Window_RaiseToTop(window) && a && *reinterpret_cast<const u32 *>((uintptr_t)0x00faa5d4)) Window_PostMessage(window, 1, 0, 0);
+        break;
+    case 12:
+        *reinterpret_cast<u32 *>((uintptr_t)0x00faa618) = vcall<u32>(window, 0x2c);
+        return 0x00faa618;
+    case 0x10:
+        if (a == 0x80084) Window_ScriptStep(window);
+        else if (a == 0x80085) Window_SlideStep(window);
+        break;
+    case 0x1e: Window_ScriptTick(window); break;
+    case 0x10001:
+        Window_ApplyCursor(window);
+        vcall<void>(manager, 0x24, window);
+        break;
+    case 0x10002: vcall<void>(manager, 0x28); break;
+    case 0x10003: {
+        const s16 x = (s16)((s32)a >> 16), y = (s16)a;
+        vcall<void>(manager, 0x20, (u32)((s32)a >> 16), (u32)(u16)y);
+        if (at<u32>(window, 0x11c)) {
+            for (s32 i = 0; i < 3; ++i) {
+                u8 *const e = press((u32)i);
+                if (at<s16>(e, 0) == 1 && (iabs((s32)at<s16>(e, 2) - x) > 6 || iabs((s32)at<s16>(e, 4) - y) > 6)) at<u16>(e, 0) = 2;
+            }
+        }
+        break;
+    }
+    case 0x10004: {
+        Window_PostIfHit(window, nullptr, message, a, b);
+        u8 *const e = press(a);
+        const u32 bit = 1u << (a & 31);
+        if (at<s16>(e, 0) == 1 && (at<u32>(window, 0x11c) & bit)) {
+            const u32 now = GuiClock_Now();
+            if ((s32)(now - at<u32>(e, 8)) < doubleTime)
+                Window_PostMessage(window, 0x10006, a, (u32)((s32)at<s16>(e, 2) << 16 | (s32)at<s16>(e, 4)));  // sic
+            at<u32>(e, 8) = now;
+        } else {
+            at<u32>(e, 8) = 0;
+        }
+        at<u32>(window, 0x11c) &= ~bit;
+        at<u16>(e, 0) = 0;
+        break;
+    }
+    case 0x10005: {
+        Window_Activate(window);
+        Window_PostIfHit(window, nullptr, message, a, b);
+        const u32 now = GuiClock_Now();
+        u8 *const e = press(a);
+        if (at<s16>(e, 0) == 0) {
+            at<u32>(window, 0x11c) |= 1u << (a & 31);
+            at<u16>(e, 2) = (u16)((s32)b >> 16);
+            at<u16>(e, 4) = (u16)b;
+            at<u16>(e, 0) = 1;
+            if (!(Fn_65d57c(window) & 8) && (s32)(now - at<u32>(e, 8)) < doubleTime) {
+                Window_PostMessage(window, 0x10007, a, b);
+                at<u16>(e, 0) = 2;
+            }
+            at<u32>(e, 8) = GuiClock_Now();
+        }
+        break;
+    }
+    case 0x10006:
+    case 0x10007: Window_PostIfHit(window, nullptr, message, a, b); break;
+    default: break;
+    }
+    return 0;
 }
 }
