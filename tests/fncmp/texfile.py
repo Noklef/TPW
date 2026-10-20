@@ -16,8 +16,9 @@ import vfs  # noqa: E402
 import wctimage  # noqa: E402
 from gamestring import LOCALE  # noqa: E402
 
-B = Bench(wctimage.merged(vfs.RANGES + [(0x564ba0, 0x5650b0), (0x574bd0, 0x575600), (0x5839e0, 0x583a00), (0x579b40, 0x579c30), (0x5c4d50, 0x5c5020),
-                                        (0x67a400, 0x690000)]))
+RANGES = wctimage.merged(vfs.RANGES + [(0x564ba0, 0x5650b0), (0x574bd0, 0x575600), (0x5839e0, 0x583a00), (0x579b40, 0x579c30), (0x5c4d50, 0x5c5020),
+                                        (0x67a400, 0x690000)])
+B = Bench(RANGES)
 TABLE, OUT, DEV = RAM + 0x8000, RAM + 0x7f00, RAM + 0x7f80
 
 
@@ -35,11 +36,12 @@ def tga(r, flags):
     return bytes(h) + r.bytes(max(w * ht, 0) * 4 * 3)
 
 
-def case(r):
-    flags = r.choice([0, 1, 2, 3, 0, 2, r.getrandbits(32)])
+def scene(r, flags, first=0):
+    """The regions for a file read with these flags: the heap (failing now and then; first: the allocations before the load's), the
+    mounts serving the file's bytes, the name at vfs.NAME, 0x87a24c's globals, the device and the current format. Returns them."""
     fail = r.choice([0] * 6 + [1, 3] if flags & 1 else [0] * 8 + [2, 4, 6, 7])   # (no string's: those fault in both)
     log = log_region()
-    regions = {LOG: log, HEAP: heap(0x10000, fail=fail), LOCALE: bytes(4), **global_heap()}
+    regions = {LOG: log, HEAP: heap(0x10000, fail=fail + first if fail else 0), LOCALE: bytes(4), **global_heap()}
     wctimage.tracked(r, regions)
     root = vfs.mounts(r, log, regions)
     if flags & 1 or fail == 2:   # (2: the WCT image's stream not got, nothing read for it)
@@ -64,6 +66,12 @@ def case(r):
     regions[DEV] = put(bytearray(r.bytes(0x28)), 0x24, 'I', r.choice([1, 3, 3, 1, 2, 0]))
     index = r.randrange(4)
     regions[0x8bd550] = put(bytearray(r.bytes(0x88 + 0x1000 * 4)), 4, 'I', index)
+    return regions
+
+
+def case(r):
+    flags = r.choice([0, 1, 2, 3, 0, 2, r.getrandbits(32)])
+    regions = scene(r, flags)
     regions[TABLE] = r.bytes(0x1000)
     regions[OUT] = r.bytes(8)
     args = [vfs.NAME, OUT, OUT + 4, flags, r.choice([TABLE, 0]), r.choice([0, 0, 2, 4, 3])]
