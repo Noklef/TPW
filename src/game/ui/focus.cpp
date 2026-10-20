@@ -10,6 +10,7 @@
 #include "../world/mousemode.h"
 #include "cursor.h"
 #include "dialog7ca1c8.h"
+#include "dialogbase.h"
 #include "dialogs.h"
 #include "window.h"
 #include "windowfactory.h"
@@ -98,6 +99,17 @@ u32 __cdecl Window7c24c8_Set(u8 *window) {
     }
     global<u8 *>(0x007c24c8) = window;
     return Focus_Restore();
+}
+
+u8 *__cdecl Window7cb2cc_Open() {
+    if (!global<u8 *>(0x007cb2cc)) global<u8 *>(0x007cb2cc) = Dialog_Create(reinterpret_cast<u8 *>(0x00752e00), 0x004a2680, 1);
+    return global<u8 *>(0x007cb2cc);
+}
+
+u8 *__cdecl Window7cb2cc_OpenOnGui() {
+    if (!global<u8 *>(0x00faa5d8)) return nullptr;
+    Fn_662411();
+    return Window7cb2cc_Open();
 }
 
 u32 __cdecl Window7cb2cc_Close() {

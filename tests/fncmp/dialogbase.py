@@ -5,7 +5,9 @@
 # [0xfaa610]), the GUI root [0xfaa5d8] WINDOW2 or the tree's (now and then none: a fault in both), the kinds (slot 3, the tree's too) not 7, a script
 # generated for the new kind 1 frame, the handler 0 or fncmp's logger, shaded or not; the registry's hash now and then "lolight"'s
 # (its window's slot 8 answering 0: an implementation would be told about the frame through a block on the stack); guidepth.py's globals.
-# usage: dialogbase.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=BaseHandler,Create)
+# Window7cb2cc_Open / _OpenOnGui (src/game/ui/focus: 0x4a2790, 0x48a6e0): Create's set-up with the script at 0x752e00, the window
+# [0x7cb2cc] none (mostly) or set, [0xfaa638] random.
+# usage: dialogbase.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=BaseHandler,Create,Open,OpenOnGui)
 import os
 import sys
 
@@ -31,7 +33,9 @@ CREATE = [(0x47ed80, 0x47eea0), (0x6588b6, 0x6588ff), (0x6589f9, 0x658abb), (0x6
           (0x65d7d0, 0x65d832), (0x661830, 0x661880), (0x663554, 0x6636c2), (0x6651ef, 0x66522e), (0x66c054, 0x66c0a6), (0x66c1a6, 0x66c203),
           (0x66c4a1, 0x66c578), (0x66cad3, 0x66cb79), (0x66c760, 0x66c7dc), (0x66c568, 0x66c5a4), (0x67acf0, 0x67ada0), (0x67b050, 0x67b0d0)]     + [(a, a + 0x10) for a in (0x65c2c8, 0x65ad33, 0x6628e4, 0x6662a7, 0x668aad, 0x66ae73, 0x66c84a, 0x66cac3, 0x66d1e8, 0x66d875, 0x66da3d,
                                0x66a5b4, 0x66a271)]
-B = Bench(sorted(set(window.RANGES + [(0x47ee90, 0x47eed0), (0x65d55a, 0x65d57b)] + FACTORY + CREATE)))
+B = Bench(sorted(set(window.RANGES + [(0x47ee90, 0x47eed0), (0x65d55a, 0x65d57b), (0x4a2790, 0x4a27b3), (0x48a6e0, 0x48a6f4),
+                                      (0x662411, 0x662420)] + FACTORY + CREATE)))
+OPENS = {'Open': 0x4a2790, 'OpenOnGui': 0x48a6e0}
 
 
 def name_hash(text):
@@ -69,9 +73,21 @@ def create_case(r):
     return Call(0x47ed80, [windowscript.WORDS, r.choice([0, CDECL_LOG4]), r.choice([0, 1, 0x100, r.getrandbits(32)])], regions, ret='a')
 
 
+def open_case(r, op):
+    c = create_case(r)
+    regions = c.regions
+    regions[0x752e00] = regions.pop(windowscript.WORDS)
+    regions[0x7cb2cc] = struct.pack('<I', r.choice([0] * 8 + [r.getrandbits(32) | 1]))
+    regions[0xfaa638] = r.bytes(4)
+    return Call(OPENS[op], [], regions, ret='a')
+
+
 def case(r, ops=None):
-    if ops and r.deal(ops) == 'Create':
+    op = r.deal(ops) if ops else None
+    if op == 'Create':
         return create_case(r)
+    if op in OPENS:
+        return open_case(r, op)
     c = focus.case(r, ['FocusRestore'])
     wins = sorted(k for k in c.regions if window.TREE <= k < window.RECTS)
     w = r.choice(wins)
@@ -84,7 +100,7 @@ def case(r, ops=None):
     return c
 
 
-OPS = [k for k in os.environ.get('OPS', 'BaseHandler,Create').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'BaseHandler,Create,Open,OpenOnGui').split(',') if k]
 
 if __name__ == '__main__':
     B.main(lambda r: case(r, OPS))
