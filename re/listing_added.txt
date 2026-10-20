@@ -294,3 +294,4 @@
 0x6c4540  # immediate from 6c4520
 0x6d7cfd  # immediate from 40c188
 0x6db1c7  # immediate from 4b4288
+0x6920d0  # immediate from 6920c0 (the atexit destructor of the static initialiser at 0x692020)

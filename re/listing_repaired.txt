@@ -11,3 +11,10 @@
 0x646e42  # INC EAX at 646e45; 89 5c 24 40 is MOV [ESP+0x40],EBX
 0x6b8363  # AND AL,0x8 at 6b8365; 8b 54 24 08 is MOV EDX,[ESP+0x8]
 # Jump targets inside the cleared ranges, decoded again: 0x5b690d, 0x5b6917, 0x61677f, 0x61678b, 0x6b8380.
+0x692020  # ADD [EAX],AL / ADD CL,CH / XCHG from 692022 (a static initialiser only a .data table at 72dfbc points at, so FlowGaps never saw it); e8 0b 00 00 00 e9 96 00 00 00 is CALL 0x692030; JMP 0x6920c0 (its atexit registration, decoded with it)
+# Not mis-decodes, never decoded: __except filter expressions (MOV EAX,1; RET) that only SEH scope tables point at (scratchpad scan of
+# .data / .rdata pointers into .text whose neighbours are instruction starts), decoded on 2026-10-20 with tools/Redisassemble.java.
+0x6822ab  # scope table 708b54
+0x6825da  # scope table 708b80
+0x682661  # scope table 708b98
+0x6d1856  # scope table 7118fc
