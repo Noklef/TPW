@@ -12,16 +12,17 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, blob, log_region, put, vtable  # noqa: E402
-from window import MISC, NODES, RANGES, TREE, VTABLE, WINDOW, chain, hover, offset_env, point, shown_env, tree, word  # noqa: E402
+from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, blob, blob_bytes, log_region, put, recorder, vtable  # noqa: E402
+from window import MISC, NODES, OBJECT98, RANGES, TREE, VTABLE, WINDOW, chain, hover, offset_env, point, shown_env, tree, word  # noqa: E402
 
 CALLS = {'FindChild': 0x65d7d0, 'IsShown': 0x65d773, 'OffsetByParents': 0x65c979, 'HitTest': 0x65db25, 'UpdateHover': 0x6589f9,
          'NotifyShown': 0x65d90b, 'SetShown': 0x65d9dd, 'Offset': 0x65c7fe, 'SetEnabled': 0x65da8d,
          'RaiseToTop': 0x65dbf0, 'OpenTree': 0x65c707, 'CloseTree': 0x65c778, 'SetRect': 0x65cc04, 'ResizeChildren': 0x65c9bd,
-         'SetRectTo': 0x65cf5e}
+         'SetRectTo': 0x65cf5e, 'AddChild': 0x65f447}
 ARG = RAM + 0xb000
 B = Bench(RANGES + [(0x65da8d, 0x65db25), (0x65dbf0, 0x65dcaf), (0x65c707, 0x65c7fe), (0x65c9bd, 0x65cd95),
-                       (0x65cf5e, 0x65cfd4), (0x661700, 0x66176a), (0x659e3e, 0x659e83), (0x659d43, 0x659d90)])
+                       (0x65cf5e, 0x65cfd4), (0x661700, 0x66176a), (0x659e3e, 0x659e83), (0x659d43, 0x659d90),
+                       (0x65f447, 0x65f538), (0x65f345, 0x65f410), (0x65f16b, 0x65f246)])
 
 
 def case(r):
@@ -95,6 +96,42 @@ def case(r):
         wins = offset_env(r, regions, log)
         return Call(CALLS[op], [r.choice(wins), word(r), word(r)], regions, conv='t', ret='a')
     wins = shown_env(r, regions, log)   # NotifyShown / SetShown: EDX the window's upper half or random
+    if op == 'AddChild':   # shown_env's (previous links set) and a new window (no links now and then one set, children or not), or one of
+        # the tree's or none; the flags' low bytes 0 or not; the objects' events hashed by what the flags ask; the focus [0xfaa5ec]
+        for w in wins:
+            prev, c = 0, struct.unpack_from('<I', regions[w], 0x5c)[0]
+            while c:
+                put(regions[c], 0x58, 'I', prev)
+                prev, c = c, struct.unpack_from('<I', regions[c], 0x54)[0]
+        put(regions[wins[0]], 0x58, 'I', 0)
+        child = bytearray(r.bytes(0x120))
+        for off in (0x60, 0x54, 0x58):
+            put(child, off, 'I', 0 if r.random() < 0.85 else r.choice(wins))
+        put(child, 0x5c, 'I', r.choice([0, 0, ARG + 0x200]))   # (a leaf child of its own: a tree's window could loop back)
+        leaf = bytearray(r.bytes(0x120))
+        put(leaf, 0x54, 'I', 0)
+        put(leaf, 0x5c, 'I', 0)
+        put(leaf, 0x98, 'I', r.choice([OBJECT98, 0]))
+        put(leaf, 0x9c, 'I', r.choice([MISC + 0x40, 0]))
+        regions[ARG + 0x200] = leaf
+        put(child, 0x98, 'I', r.choice([OBJECT98, 0]))
+        put(child, 0x9c, 'I', r.choice([MISC + 0x40, 0]))
+        regions[ARG] = child
+        window = r.choice(wins[:1] * 3 + wins)
+        up, w = [], window   # (the window and its parents left out of the children offered: they would make a loop)
+        while w in regions and w not in up:
+            up.append(w)
+            w = struct.unpack_from('<I', regions[w], 0x60)[0]
+        arg = r.choice([ARG] * 8 + [0] + [w for w in wins if w not in up])
+        depth, words = r.choice([0, 0, 1, 0x80, 0x100]), r.choice([0, 0, 1, 0xff, 0x200])
+        mask = (0xc0 if depth & 0xff else 0) | (0xf000 if words & 0xff else 0)
+        blob_bytes(log, 3, 1, 0 if mask == 0xf0c0 else mask)
+        blob_bytes(log, 22, 1, 0 if mask == 0xf0c0 else mask)
+        regions[VTABLE] = vtable({5: 1, 3: 2})
+        put(regions[MISC + 0x80], 0xc, 'I', recorder(22, 2))
+        regions[0xfaa5ec] = struct.pack('<I', r.choice([0, wins[0], r.choice(wins)]))
+        return Call(CALLS[op], [window, arg, depth | r.getrandbits(8) << 24, words | r.getrandbits(8) << 24],
+                    regions, conv='t', ret='w')
     if op in ('RaiseToTop', 'OpenTree', 'CloseTree'):   # shown_env's, the previous links +0x58 set; the windows' vtable a recorder's (slot 0)
         for w in wins:
             prev, c = 0, struct.unpack_from('<I', regions[w], 0x5c)[0]
