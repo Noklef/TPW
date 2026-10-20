@@ -162,6 +162,7 @@
 #include "../game/core/gameerror.h"
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
+#include "../game/core/keyactions.h"
 #include "../game/core/soundplay.h"
 #include "../game/core/startcheck.h"
 #include "../game/core/stringmapsrecord.h"
@@ -3885,6 +3886,14 @@ const Hook kHooks[] = {
     {"KidSound_Play",             0x00551560, (void *)&KidSound_Play, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"KidSound_PlayGraded",       0x00551320, (void *)&KidSound_PlayGraded, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"Startup_CheckCanRun",       0x0045f640, (void *)&Startup_CheckCanRun, {0xe8, 0x6b, 0x00, 0x00, 0x00}},
+    {"KeyAction_Turn90",          0x0040c120, (void *)&KeyAction_Turn90, {0x6a, 0x01, 0xe8, 0xc9, 0x30}},
+    {"KeyAction_Turn270",         0x0040c150, (void *)&KeyAction_Turn270, {0x6a, 0x01, 0xe8, 0x99, 0x30}},
+    {"KeyAction_ClockSlower",     0x0040c3b0, (void *)&KeyAction_ClockSlower, {0xb9, 0x70, 0x59, 0x78, 0x00}},
+    {"KeyAction_ClockFaster",     0x0040c3c0, (void *)&KeyAction_ClockFaster, {0xb9, 0x70, 0x59, 0x78, 0x00}},
+    {"KeyAction_ClockNormal",     0x0040c3d0, (void *)&KeyAction_ClockNormal, {0x68, 0x00, 0x00, 0xf0, 0x3f}},
+    {"KeyAction_Credit10000",     0x0040c450, (void *)&KeyAction_Credit10000, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
+    {"KeyAction_Toggle787d1c",    0x0040c480, (void *)&KeyAction_Toggle787d1c, {0x8b, 0x15, 0x1c, 0x7d, 0x78}},
+    {"KeyAction_ViewFillStep",    0x0040c830, (void *)&KeyAction_ViewFillStep, {0xa1, 0xc8, 0xcb, 0x8b, 0x00}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

@@ -4124,6 +4124,14 @@ address,name,kind,confidence,notes
 0x005e6b30,WScanner_SetText,function,low,"reimplemented (src/game/core/wscanner); thiscall (text by value, context, flags; pops 0x18): flag bytes +0x3d-+0x3f and +0x40 set, the wstring at +4 assigned the text and frozen, +0x34/+0x38 its characters and 0, the text destroyed"
 0x005e73f0,WKeywordPair_Ctor,function,low,"reimplemented (src/game/core/wscanner); thiscall (key by value, 16-byte value by value; pops 0x20): the wstring at +0 made empty and assigned the key, +0x10..+0x1c the value, the key destroyed; returns the pair"
 0x0045f640,Startup_CheckCanRun,function,low,"reimplemented (src/game/core/startcheck); cdecl u8 (): 0 with game error 0 when not installed (Registry_GameInstalled); else CreateMutexA(0, 1, [0x7a2508]) kept at 0x7a267c, and when made with GetLastError 0xb7 (already exists) game error 1, CloseHandle, 0; else 1"
+0x0040c120,KeyAction_Turn90,function,low,"reimplemented (src/game/core/keyactions); cdecl: Global81d7a4_SetRecorded((0x81d7a4 + 90) signed mod 360, 1); returns 1 (key ',')"
+0x0040c150,KeyAction_Turn270,function,low,"reimplemented (src/game/core/keyactions); cdecl: Global81d7a4_SetRecorded((0x81d7a4 + 270) signed mod 360, 1); returns 1 (key '.')"
+0x0040c3b0,KeyAction_ClockSlower,function,low,reimplemented (src/game/core/keyactions); cdecl: GameClock_Slower on the game clock 0x785970; returns 1 (numpad '-')
+0x0040c3c0,KeyAction_ClockFaster,function,low,reimplemented (src/game/core/keyactions); cdecl: GameClock_Faster on the game clock 0x785970; returns 1 (numpad '+')
+0x0040c3d0,KeyAction_ClockNormal,function,low,reimplemented (src/game/core/keyactions); cdecl: GameClock_SetRate(1.0) on the game clock 0x785970; returns 1 (numpad '*')
+0x0040c450,KeyAction_Credit10000,function,low,reimplemented (src/game/core/keyactions); cdecl: Money_Credit 10000 to the world's money record; returns 1 (alt '1')
+0x0040c480,KeyAction_Toggle787d1c,function,low,"reimplemented (src/game/core/keyactions); cdecl: 0x787d1c = 1 - itself, Global878128_Set_550510 of it; returns 1"
+0x0040c830,KeyAction_ViewFillStep,function,low,reimplemented (src/game/core/keyactions); cdecl: bits 0xc of the render view flags 0x8bcbc8 stepped 0 -> 0xc -> 4 -> 0; returns 1 (control 'T')
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
