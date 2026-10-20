@@ -2949,6 +2949,7 @@ address,name,kind,confidence,notes
 0x005dd490,Owner8_Append,function,high,reimplemented (src/game/core/forwarders); PtrList_Append on the list at +8
 0x005dd4a0,Owner6c_Append,function,high,reimplemented (src/game/core/forwarders); PtrList_Append on the list at +0x6c
 0x00618600,Owner64_Copy4At34,function,high,reimplemented (src/game/core/forwarders); Obj_Copy4At34 on the object at +0x64
+0x005f42d0,Owner20080_Append,function,low,"reimplemented (src/game/core/forwarders); thiscall (item, pops 4): PtrList_Append on the list at +0x20080, its EAX returned; the park map's (0xf86db8) vtable 0x703078 slot 0"
 0x00402df0,Wrap_Obj_Get30_402df0,function,high,reimplemented (src/game/core/thunks); calls Obj_Get30
 0x0040f220,Wrap_Flags7a1a14_Update_40f220,function,high,reimplemented (src/game/core/thunks); calls Flags7a1a14_Update
 0x00454540,Wrap_Dword_ClearBit0_454540,function,high,reimplemented (src/game/core/thunks); calls Dword_ClearBit0

@@ -35,6 +35,8 @@ u32 __fastcall Owner8_Append(u8 *owner, void *, u32 item) { return Append(owner,
 
 u32 __fastcall Owner6c_Append(u8 *owner, void *, u32 item) { return Append(owner, 0x6c, item); }
 
+u32 __fastcall Owner20080_Append(u8 *owner, void *, u32 item) { return Append(owner, 0x20080, item); }
+
 u32 __fastcall Owner64_Copy4At34(u8 *owner, void *, const u32 *source) {
     return Obj_Copy4At34(at<u8 *>(owner, 0x64), nullptr, source);
 }

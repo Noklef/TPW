@@ -16,6 +16,8 @@ u32 __fastcall Owner58_Append(u8 *owner, void *, u32 item);  // 0x5da170
 u32 __fastcall Owner4_Append(u8 *owner, void *, u32 item);   // 0x5da440
 u32 __fastcall Owner8_Append(u8 *owner, void *, u32 item);   // 0x5dd490
 u32 __fastcall Owner6c_Append(u8 *owner, void *, u32 item);  // 0x5dd4a0
+// 0x5f42d0: the same on the list at +0x20080 (the park map's sprites: its vtable 0x703078's first slot).
+u32 __fastcall Owner20080_Append(u8 *owner, void *, u32 item);
 
 // 0x618600 (thiscall; source, pops 4): Obj_Copy4At34 on the object at +0x64 with the source.
 u32 __fastcall Owner64_Copy4At34(u8 *owner, void *, const u32 *source);
