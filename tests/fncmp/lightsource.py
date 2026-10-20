@@ -163,7 +163,7 @@ def slot(r, regions, renderer, nodes, bases):
     on = r.choice([0, 1, 1, 1, 0x80000000])
     v = [r.choice([0.0, 1.0, -1.0, r.uniform(-2, 2), r.uniform(-1e3, 1e3)]) for _ in range(3)]
     if r.random() < 0.05:
-        v = r.choice([[0.0, 0.0, 0.0], [1e30, 1e30, 0.0], [1e-30, 0.0, 0.0], [float('nan'), 1.0, 0.0]])
+        v = r.choice([[0.0, 0.0, 0.0], [1e30, 1e30, 0.0], [1e-30, 0.0, 0.0], [float('nan'), 1.0, 0.0], [3e38, 3e38, 0.0]])   # (the last's length past a float)
     block = put(put(bytearray(r.bytes(0x18)), 0, '3f', *v), 0xc, 'I', r.choice([0, 0xffffffff, 0xff808080, r.getrandbits(32)]))
     colour = r.choice([RAM + 0x180c, RAM + 0x180c, 0])
     direction = r.choice([RAM + 0x1800, RAM + 0x1800, 0])
