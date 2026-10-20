@@ -24,6 +24,13 @@ u32 __cdecl Focus_Restore();
 // then 1, else 0.
 u32 __cdecl Window7c24c8_Close();
 
+// 0x485b70 (cdecl (window); name unconfirmed): with a window, the mouse mode holder [0x7b05e8] made when missing (MouseModes_EnsureHolder);
+// when the current mode [0x7b05d8] answers 9 from its slot 0x24 (none: 0), a new CMMOnline base (Mem_Alloc(8), MouseModeOnlineBase_Ctor;
+// 0 when that failed), the holder again and that mode set (MouseMode_Set); then the cursor 0 (GameCursor_Set), the key maps [0x787c14],
+// [0x78733c] and [0x787a60] reset (KeyMap_Reset) and Dialog7cb2b8_ResetChild21(1). Either way [0x7c24c8] = the window and the focus
+// restored (Focus_Restore, its result returned).
+u32 __cdecl Window7c24c8_Set(u8 *window);
+
 // 0x4a27c0: with the window [0x7cb2cc] set, it is sent 4 (0, 0) (Window_SendMessage); it is forgotten either way and the focus restored
 // (Focus_Restore, its result returned).
 u32 __cdecl Window7cb2cc_Close();

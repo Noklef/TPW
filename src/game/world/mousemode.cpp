@@ -13,6 +13,7 @@
 #include "../render/dynfaces.h"
 #include "../sprite/script.h"
 #include "../ui/cursor.h"
+#include "../ui/focus.h"
 #include "mapcell.h"
 #include "thingscan.h"
 
@@ -33,6 +34,19 @@ const MouseModeEnv *g_env = &kGameEnv;
 }  // namespace
 
 void MouseModes_SetEnv(const MouseModeEnv *env) { g_env = env ? env : &kGameEnv; }
+
+void MouseModes_EnsureHolder() {
+    u8 *&holder = *reinterpret_cast<u8 **>(0x007b05e8);
+    if (holder) return;
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(1));
+    if (block) {
+        u8 *const mode = static_cast<u8 *>(GameHeap_Alloc(8));
+        MouseMode_Set(mode ? MouseModeOnlineBase_Ctor(mode) : nullptr);
+        *reinterpret_cast<u32 *>(0x007b05e0) = 0xffffffffu;
+        *reinterpret_cast<u32 *>(0x007b05d4) = 0xffffffffu;
+    }
+    holder = block;
+}
 
 extern "C" {
 
@@ -205,6 +219,14 @@ void __stdcall MouseMode_Set(u8 *mode) {
     }
     current = mode;
     if (mode) vcall<void>(mode, 0x28);
+}
+
+void __cdecl MouseMode_Enter6fead0() {
+    Window7c24c8_Close();
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(8));
+    u8 *const mode = block ? MouseMode6fead0_Ctor(block) : nullptr;
+    MouseModes_EnsureHolder();
+    MouseMode_Set(mode);
 }
 
 void __fastcall MouseMode6fead0_Assign(u8 *) { Obj7b51f0_SetCursor(reinterpret_cast<void *>(0x007b51f0), nullptr, 0x13); }
