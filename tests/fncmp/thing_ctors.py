@@ -1,8 +1,8 @@
 # The thing of kind 0xe and the person base constructors (src/game/world/things, person: 0x502d20, 0x518e20, 0x518e00) against the originals: things_methods.py's thing table and cells for the thing
 # constructor (a thing of kind 0xe, with room for its record array), a plain object of random bytes for the person constructors.
-# The thing models' constructors that add the thing to the message centre (headquarters: 0x4da920 the mechanic HQ, 0x5089c0 the staff HQ; 0x509b40 the tag system; 0x50c9b0 the UI message receiver): the thing table as for
+# The thing models' constructors that add the thing to the message centre (headquarters: 0x4da920 the mechanic HQ, 0x5089c0 the staff HQ; 0x509b40 the tag system; 0x50c9b0 the UI message receiver; 0x599e70 the advisor): the thing table as for
 # kind 0xe, and the message centre (0x788d3c) made already, its 29 slots messagecentre.py's maps of 0 to 4 keys at CENTRE, or not made yet (Instance makes it).
-# usage: thing_ctors.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Thing,Class,Parts,MechanicHQ,StaffHQ,TagSystem,UIMsgReceiver)
+# usage: thing_ctors.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Thing,Class,Parts,MechanicHQ,StaffHQ,TagSystem,UIMsgReceiver,Advisor)
 import os
 import struct
 import sys
@@ -21,11 +21,11 @@ CENTRE_RANGES = [(0x409250, 0x409260), (0x40f970, 0x40f9e0), (0x40f950, 0x40f961
 CENTRE_HOOKS = {0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None}
 B = Bench([(0x4d91f0, 0x4d9290), (0x502d20, 0x502d70), (0x50afe0, 0x50b090), (0x50ba80, 0x50bac0), (0x50f1f0, 0x50f200), (0x50ffe0, 0x5100f0), (0x516270, 0x516320),
            (0x518e00, 0x518e20), (0x518e20, 0x518e70), (0x5d1750, 0x5d1751), (0x67acf0, 0x67ada0), (0x67b050, 0x67b0d0), (0x5da3c0, 0x5da3c1),
-           (0x4da920, 0x4da970), (0x5089c0, 0x508a21), (0x50c620, 0x50c650), (0x509b40, 0x509bb6), (0x50c9b0, 0x50ca44)] + CENTRE_RANGES, hooks=CENTRE_HOOKS)
+           (0x4da920, 0x4da970), (0x5089c0, 0x508a21), (0x50c620, 0x50c650), (0x509b40, 0x509bb6), (0x50c9b0, 0x50ca44), (0x599e70, 0x599f55)] + CENTRE_RANGES, hooks=CENTRE_HOOKS)
 OBJ = RAM + 0x8000
 CENTRE = RAM + 0x20000   # the message centre's slots, then the maps' heads, nil node and nodes
 # name: (address, object size)
-MODELS = {'MechanicHQ': (0x4da920, 0x10), 'StaffHQ': (0x5089c0, 0x68), 'TagSystem': (0x509b40, 0x40), 'UIMsgReceiver': (0x50c9b0, 0x40)}
+MODELS = {'MechanicHQ': (0x4da920, 0x10), 'StaffHQ': (0x5089c0, 0x68), 'TagSystem': (0x509b40, 0x40), 'UIMsgReceiver': (0x50c9b0, 0x40), 'Advisor': (0x599e70, 0x16e8)}
 
 
 def centre(r, regions, empty=False):

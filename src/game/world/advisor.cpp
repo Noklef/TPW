@@ -6,6 +6,8 @@
 #include "../model/slots.h"
 #include "../motion/animator.h"
 #include "../render/particles.h"
+#include "messagecentre.h"
+#include "things.h"
 
 namespace {
 
@@ -45,5 +47,32 @@ void __cdecl Advisor_Init() {
         global<u32>(0x00f796c8 + 4 * k) = Animator_MotionEndMs(holder, 5, k);
     global<u32>(0x00f796fc) = 0;
     ParticlePools_Reset();
+}
+
+u8 *__fastcall Advisor_Ctor(u8 *advisor) {
+    Thing_Construct(advisor, nullptr, 1, 0xb);
+    auto dword = [advisor](u32 offset) -> u32 & { return *reinterpret_cast<u32 *>(advisor + offset); };
+    dword(0xc) = 0;
+    dword(0x10) = 0;
+    for (u32 k = 0; k < 8; ++k)
+        advisor[0x28 + 0x18 * k] = 0;
+    dword(0xd4) = 0;
+    dword(0xdc) = 0;
+    for (u32 k = 0; k < 0x15f; ++k) {
+        const u32 at = 0xe0 + 0x10 * k;
+        dword(at) = 0;
+        dword(at + 4) = 0xffffffffu;
+        advisor[at + 8] = 0;
+        dword(at + 0xc) = 0;
+    }
+    advisor[0x16e4] = 0;
+    static const s32 kSlots[] = {5, 0x11, 0x13, 0x17, 0xe, 8, 0x19};
+    for (s32 slot : kSlots)
+        MessageCentre_AddThing(MessageCentre_Instance(), nullptr, advisor, slot);
+    dword(0x10) = 0;
+    dword(0xd4) = 0;
+    dword(0xdc) = 0;
+    dword(0xd8) = 0;
+    return advisor;
 }
 }
