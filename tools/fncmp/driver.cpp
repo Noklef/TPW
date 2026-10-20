@@ -573,6 +573,7 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006ff410, 11},  // 0x4903e0 / 0x490940, unported: the cases give it a recorder)
                                    {0x007011c8, 4},   // the WCT image's virtual base (the deleting destructor's thunk TexFile_Load calls)
                                    {0x006fdcc8, 4},   // the light parts' (directional, point: slot 2 the thunk to Stub_One the renderer's sorted add calls)
+                                   {0x006fdcd8, 5},   // and a light's virtual base made by Obj_CtorVirtual (slot 2 the same; 5-7 are _purecall)
                                    {0x006fe548, 4},
                                    {0x006fe980, 11}};  // CMMOnline's (slot 10 Debug_Nop_46cfb0, which MouseMode_Set calls on the new mode)
 
