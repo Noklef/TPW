@@ -76,4 +76,11 @@ s32 *__fastcall AsyncPointer_SetImage(AsyncPointer *p, void *edx, s32 *out, Surf
                                       const s32 *hot);
 void __fastcall AsyncPointer_BeginFlip(AsyncPointer *p);  // 0x5fbd40
 void __fastcall AsyncPointer_EndFlip(AsyncPointer *p);    // 0x5fbd90
+
+// The 0x6fefc8 class's virtual slots 2 and 3 (its constructor and destructors: core/initializers; names unconfirmed), on the game's asynchronous
+// pointer [0x7b4b84]. The object: +4 a shown byte, +5 / +6 the hot spot (signed bytes), +0xc a frame, +0x14 a Surface whose frames are
+// 32 x 32 side by side. 0x47ebc0 (thiscall) shows the frame: SetImage(the Surface, frame * 32, 0 to (frame + 1) * 32, 32, the hot spot),
+// shown = 1. 0x47ec30 (thiscall) takes it away: SetImage(no image, a zero rectangle and hot spot), shown = 0.
+void __fastcall PointerFrames_Show(u8 *self);
+void __fastcall PointerFrames_Hide(u8 *self);
 }

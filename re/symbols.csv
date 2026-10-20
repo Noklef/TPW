@@ -1879,6 +1879,8 @@ address,name,kind,confidence,notes
 0x005fbcf0,AsyncPointer_SetImage,function,high,"reimplemented (src/game/gfx/pointer); thiscall (&out, image, &rect, &hotspot); Cursor_SetImage under the lock, Tick"
 0x005fbd40,AsyncPointer_BeginFlip,function,high,reimplemented (src/game/gfx/pointer); thiscall; locks; Cursor_Update(front surface)
 0x005fbd90,AsyncPointer_EndFlip,function,high,reimplemented (src/game/gfx/pointer); thiscall; Cursor_Restore(front surface); next tick; unlocks
+0x0047ebc0,PointerFrames_Show,function,low,"reimplemented (src/game/gfx/pointer); thiscall, the 0x6fefc8 class slot 2: the async pointer [0x7b4b84] given the Surface at +0x14, frame +0xc of 32 x 32 ones, the hot spot (+5, +6 signed bytes); +4 = 1 (name unconfirmed)"
+0x0047ec30,PointerFrames_Hide,function,low,"reimplemented (src/game/gfx/pointer); thiscall, the 0x6fefc8 class slot 3: the async pointer [0x7b4b84] given no image, a zero rectangle and hot spot; +4 = 0 (name unconfirmed)"
 0x005fbde0,EventQueue_StaticInit,function,high,"reimplemented (src/game/core/events); cdecl; the queue at 0xfa7cb0 constructed, its destructor registered"
 0x005fbdf0,EventQueue_Construct,function,high,reimplemented (src/game/core/events); cdecl; EventQueue_Ctor(0xfa7cb0)
 0x005fbe00,EventQueue_RegisterExit,function,high,reimplemented (src/game/core/events); cdecl; atexit(EventQueue_AtExit)
