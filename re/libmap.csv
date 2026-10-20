@@ -41,6 +41,35 @@ address,size,source_file,function,confidence,evidence,checked
 0x00640710,176,infblock.c,inflate_blocks_new,high,"ZALLOC state, MANY=1440 (0x5a0) hufts, window",yes
 0x006407c0,3312,infblock.c,inflate_blocks,high,"mode switch jump tables; inflate_trees_fixed/bits/dynamic, inflate_codes_new/inflate_codes/free, inflate_flush, border[] 0x704a40",yes
 0x006414b0,80,infblock.c,inflate_blocks_free,high,"inflate_blocks_reset, ZFREE window/hufts/state",yes
+0x006428b0,16,jpeg-6b/jutils.c,jdiv_round_up,high,"(a + b - 1) / b, CDQ / IDIV; hooked as DivCeil (a hand port)",yes
+0x006428c0,32,jpeg-6b/jutils.c,jround_up,high,"a += b - 1; a - a % b (IDIV, EDX)",yes
+0x006428e0,80,jpeg-6b/jutils.c,jcopy_sample_rows,high,"input_array += source_row, output_array += dest_row; per row an inline memcpy (REP MOVSD, REP MOVSB) of num_cols bytes",yes
+0x00642930,48,jpeg-6b/jutils.c,jcopy_block_row,high,inline memcpy of num_blocks << 7 bytes (DCTSIZE2 * sizeof(JCOEF)),yes
+0x00642960,32,jpeg-6b/jutils.c,jzero_far,high,"inline memset 0 (REP STOSD, REP STOSB); jutils.c order after jcopy_block_row",yes
+0x006460c0,533,jpeg-6b/jdsample.c,jinit_upsampler,high,"alloc_small 0xa0 (my_upsampler) into cinfo +0x1a0, start_pass 0x6462e0, upsample 0x646300, per-component methods (0x646400 0x646410 0x646420 0x646540 0x6465a0 0x646630 0x646700) into +0x34",yes
+0x006462e0,26,jpeg-6b/jdsample.c,start_pass_upsample,high,"upsample +0x5c next_row_out = max_v_samp_factor +0x114, +0x60 rows_to_go = output_height +0x60",yes
+0x00646300,244,jpeg-6b/jdsample.c,sep_upsample,high,"CALL [upsample + 0x34 + 4 * ci] (cinfo, compptr, input_buf[ci] + ctr * rowgroup_height +0x64, color_buf + ci), comp_info +0xc4 step 0x54; CALL [cconvert +0x1a4 +4]",yes
+0x00646400,11,jpeg-6b/jdsample.c,fullsize_upsample,high,*output_data_ptr = input_data,yes
+0x00646410,11,jpeg-6b/jdsample.c,noop_upsample,high,*output_data_ptr = NULL,yes
+0x00646420,276,jpeg-6b/jdsample.c,int_upsample,high,"h_expand / v_expand bytes at upsample +0x8c / +0x96 by component_index +4, jcopy_sample_rows for v_expand > 1",yes
+0x00646540,86,jpeg-6b/jdsample.c,h2v1_upsample,high,"max_v_samp_factor +0x114 rows, output_width +0x5c, each sample twice",yes
+0x006465a0,135,jpeg-6b/jdsample.c,h2v2_upsample,high,"each sample twice, then jcopy_sample_rows(output_data, outrow, output_data, outrow + 1, 1, output_width)",yes
+0x00646630,193,jpeg-6b/jdsample.c,h2v1_fancy_upsample,high,"downsampled_width +0x28 - 2 columns, invalue * 3 + neighbour + 1 / + 2 >> 2",yes
+0x00646700,338,jpeg-6b/jdsample.c,h2v2_fancy_upsample,high,"SUB ESP,0x14, input_data[inrow - 1] / [inrow + 1], thiscolsum * 3 sums, + 8 / + 7 >> 4",yes
+0x00646860,464,jpeg-6b/jdcolor.c,jinit_color_deconverter,high,"alloc_small 0x18 (my_color_deconverter) into cinfo +0x1a4, switch on jpeg_color_space / out_color_space (table at 0x646a18), calls build_ycc_rgb_table 0x646a30; stores the converters below and start_pass_dcolor as the shared bare RET 0x631270",yes
+0x00646a30,208,jpeg-6b/jdcolor.c,build_ycc_rgb_table,high,"four alloc_small (cinfo +4, slot 0) of 0x400; FIX(1.40200) 0x166e9, FIX(1.77200) 0x1c5a2, FIX(0.71414) 0xb6d2, FIX(0.34414) 0x581a, ONE_HALF 0x8000, SCALEBITS 16",yes
+0x00646b00,320,jpeg-6b/jdcolor.c,ycc_rgb_convert,high,"cconvert +8..+0x14 tables, sample_range_limit +0x120, output_width +0x5c, three components to RGB triples, SAR 16",yes
+0x00646c40,144,jpeg-6b/jdcolor.c,null_convert,high,"num_components +0x24 planes interleaved, output_width +0x5c",yes
+0x00646cd0,48,jpeg-6b/jdcolor.c,grayscale_convert,high,"jcopy_sample_rows(input_buf[0], input_row, output_buf, 0, num_rows, output_width)",yes
+0x00646d00,98,jpeg-6b/jdcolor.c,gray_rgb_convert,high,"one sample to three bytes, output_width +0x5c",yes
+0x00646d70,368,jpeg-6b/jdcolor.c,ycck_cmyk_convert,high,"SUB ESP,0x24, cconvert +0x1a4, sample_range_limit +0x120, four components; its head (0x646d70..0x646dc9) is not in the listing",yes
+0x00646ee0,144,jpeg-6b/jdmerge.c,jinit_merged_upsampler,high,"alloc_small 0x30 (my_upsampler) into cinfo +0x1a0, start_pass 0x647040, out_row_width = output_width * out_color_components (+0x5c * +0x64), max_v_samp_factor +0x114 == 2: upsample 0x647060 / upmethod 0x6472f0 and alloc_small spare row, else 0x647130 / 0x647170; calls 0x646f70",yes
+0x00646f70,208,jpeg-6b/jdmerge.c,build_ycc_rgb_table,high,"four alloc_small (cinfo +4, slot 0) of 0x400 into upsample (+0x1a0) +0x10..+0x1c; the jdcolor.c constants",yes
+0x00647040,32,jpeg-6b/jdmerge.c,start_pass_merged_upsample,high,"upsample +0x24 spare_full = 0 (a byte), +0x2c rows_to_go = output_height +0x60",yes
+0x00647060,208,jpeg-6b/jdmerge.c,merged_2v_upsample,high,"spare_full: jcopy_sample_rows(&spare_row, 0, output_buf + *out_row_ctr, 0, 1, out_row_width); else MIN(2, rows_to_go, avail), work_ptrs on the stack, CALL [upsample +0xc]",yes
+0x00647130,64,jpeg-6b/jdmerge.c,merged_1v_upsample,high,"CALL [upsample +0xc] (cinfo, input_buf, *in_row_group_ctr, output_buf + *out_row_ctr), both counters incremented",yes
+0x00647170,384,jpeg-6b/jdmerge.c,h2v1_merged_upsample,high,"SUB ESP,0x18, upsample +0x10..+0x1c tables, sample_range_limit +0x120, output_width >> 1 pairs and the odd pixel",yes
+0x006472f0,512,jpeg-6b/jdmerge.c,h2v2_merged_upsample,high,"SUB ESP,0x24, input_buf[0] rows 2 * ctr and 2 * ctr + 1, two output rows, the tables and sample_range_limit",yes
 0x00649550,64,infcodes.c,inflate_codes_new,high,"ZALLOC codes state, lbits/dbits/ltree/dtree",yes
 0x00649590,1968,infcodes.c,inflate_codes,high,"mode jump table, inflate_fast, inflate_flush, invalid literal/length/distance code strings",yes
 0x00649d40,32,infcodes.c,inflate_codes_free,high,ZFREE codes state,yes
@@ -49,4 +78,10 @@ address,size,source_file,function,confidence,evidence,checked
 0x0064a2c0,400,inftrees.c,inflate_trees_dynamic,high,"cplens/cplext/cpdist/cpdext tables, distance tree strings",yes
 0x0064a450,48,inftrees.c,inflate_trees_fixed,high,"*bl=fixed_bl *bd=fixed_bd *tl=0x77a0a0 *td=0x77b0a0 (inffixed.h, no BUILDFIXED); hooked as Fn_64a450",yes
 0x0064a480,320,infutil.c,inflate_flush,high,"copies the window from read to write (and the wrap) to next_out, checkfn, inlined memcpy; ends at 0x64a5b1 (Ghidra ran it on into the 6b jidct*.c functions at 0x64a5c0..0x64bbcf, size was given as 5968)",yes
+0x0064a5c0,1520,jpeg-6b/jidctint.c,jpeg_idct_islow,high,"FIX_0_298631336 0x98e, FIX_2_053119869 0x41b3, FIX_3_072711026 0x6254, FIX_0_899976223 0x1ccd; DESCALE 11 / 18; RANGE_MASK 0x3ff; cinfo +0x120 sample_range_limit + 0x80, compptr +0x50 dct_table (int), the all-AC-zero column shortcut",yes
+0x0064abb0,1168,jpeg-6b/jidctfst.c,jpeg_idct_ifast,high,"CONST_BITS 8 / PASS1_BITS 2 descales (SAR 8, 5), RANGE_MASK 0x3ff, the all-AC-zero column shortcut, compptr +0x50",yes
+0x0064b040,1392,jpeg-6b/jidctflt.c,jpeg_idct_float,high,"x87 throughout, float workspace, 8 x __ftol (0x67a830) per row with DESCALE 3, RANGE_MASK 0x3ff",yes
+0x0064b5b0,960,jpeg-6b/jidctred.c,jpeg_idct_4x4,high,"FIX_0_899976223 0x1ccd, FIX_2_172734803 0x4587, DESCALE 12 / 19, RANGE_MASK 0x3ff",yes
+0x0064b970,544,jpeg-6b/jidctred.c,jpeg_idct_2x2,high,"FIX_0_720959822 0x1712, FIX_1_272758580 0x28ba, DESCALE 13 / 20, RANGE_MASK 0x3ff",yes
+0x0064bb90,64,jpeg-6b/jidctred.c,jpeg_idct_1x1,high,"DC times dct_table[0], DESCALE 3, RANGE_MASK 0x3ff, one sample",yes
 0x0064bbd0,928,inffast.c,inflate_fast,high,"GRABBITS/DUMPBITS fast loop with inflate_mask, called from inflate_codes",yes

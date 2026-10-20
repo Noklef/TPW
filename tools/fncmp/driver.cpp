@@ -190,6 +190,20 @@ void *__stdcall stub_global_free(void *block) {
     return nullptr;
 }
 
+// zlib's alloc_func / free_func (cdecl) for a z_stream's zalloc / zfree (kStubs + 0xa0 / + 0xb0, tools/fncmp.py ZALLOC / ZFREE): the same
+// heap, with opaque and items hashed in before the size (items * size), and opaque before the freed block.
+void *__cdecl stub_zalloc(u32 opaque, u32 items, u32 size) {
+    u32 *h = reinterpret_cast<u32 *>((uintptr_t)kHeap);
+    h[1] = (h[1] * 33 ^ opaque) * 33 ^ items;
+    return heap_alloc(items * size);
+}
+
+void __cdecl stub_zfree(u32 opaque, void *block) {
+    u32 *h = reinterpret_cast<u32 *>((uintptr_t)kHeap);
+    h[3] = h[3] * 33 ^ opaque;
+    heap_free(block);
+}
+
 // The fake CPU a case maps at kCpu (tools/fncmp.py CPU, cpu_region(); its emulator answers CPUID and EFLAGS.ID from the same bytes): +0 1 when
 // EFLAGS.ID can be toggled, then from +0x10 the (EAX, EBX, ECX, EDX) answers for leaf 0, 1, 0x80000001 and any other leaf.
 const u32 kCpu = 0x2d000000;
@@ -544,7 +558,8 @@ void map_stubs() {
     if (!p) fail("cannot map the stubs at", kStubs);
     const void *stubs[] = {(const void *)&stub_read, (const void *)&stub_write, (const void *)&stub_global_alloc,
                            (const void *)&stub_global_free, (const void *)&stub_mark, (const void *)&stub_cdecl_log, (const void *)&stub_counter,
-                           (const void *)&stub_seek, (const void *)&stub_cdecl_log2, (const void *)&stub_cdecl_log4};
+                           (const void *)&stub_seek, (const void *)&stub_cdecl_log2, (const void *)&stub_cdecl_log4, (const void *)&stub_zalloc,
+                           (const void *)&stub_zfree};
     for (u32 i = 0; i < sizeof stubs / sizeof stubs[0]; ++i) jump(p + 0x10 * i, stubs[i]);
     map_recorders(p);
 }

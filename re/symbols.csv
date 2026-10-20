@@ -30,9 +30,9 @@ address,name,kind,confidence,notes
 0x00703128,ZlibCodec_vtable,data,high,src/game/files/wrapsources
 0x00619280,ZlibCodec_Compress,function,high,"reimplemented (src/game/files/zlibcodec); thiscall (dst, src, size, work) -> packed size or 0; 28-byte BILZ header (magic, unpacked, packed, windowBits 15, memLevel 9, 0, 0) + deflate(Z_FINISH) into at most size bytes; size <= 0x1c: 0"
 0x00619380,ZlibCodec_Decompress,function,high,"reimplemented (src/game/files/zlibcodec); thiscall (dst, src, work) -> unpacked size or 0; BILZ magic, inflateInit2_(header windowBits), inflate(Z_FINISH) with avail_in 0xc0000000"
-0x00636600,zlib_inflateInit2_,function,high,"statically linked zlib 1.1.3 (version string '1.1.3', stream size 0x38)"
-0x00636710,zlib_inflate,function,high,
-0x006365b0,zlib_inflateEnd,function,high,
+0x00636600,inflateInit2_,function,high,reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 inflate.c: a stream's state for a window size (shim: the exe's adler32 as the check function)
+0x00636710,inflate,function,high,reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 inflate.c: inflates a zlib stream (shim: the exe's z->msg strings and fixed tables)
+0x006365b0,inflateEnd,function,high,"reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 inflate.c: frees a stream's state (the library's, tpw_zlib)"
 0x006fd930,FileStream_vtable,data,high,
 0x00403780,ActionRec_Serialize,function,high,"reimplemented (src/game/core/actionrec); thiscall (stream, save, version, unused): +8, the first stream size and its bytes saved, or loaded into a restarted recorder; 1 on a failed transfer"
 0x005179c0,World_Load,function,high,module WRLD
@@ -1271,9 +1271,9 @@ address,name,kind,confidence,notes
 0x00619480,ZlibCodec_UnpackedSize,function,high,"reimplemented (src/game/files/zlibcodec); thiscall (header); its unpacked size, 0 when not BILZ"
 0x006194a0,ZlibCodec_CompressStream,function,high,"reimplemented (src/game/files/zlibcodec); thiscall (src, size, buffer, capacity, work, writer) -> packed size or 0; full buffers to writer vtbl+4 (buffer, bytes); the header goes out with packed 0"
 0x00619600,ZlibCodec_DecompressStream,function,high,"reimplemented (src/game/files/zlibcodec); thiscall (dst, buffer, capacity, work, reader) -> unpacked size or 0; reader vtbl+8 (buffer, capacity) refills; inflate(Z_SYNC_FLUSH), windowBits 15; capacity <= 0x1d: 0"
-0x006351a0,zlib_deflateInit2_,function,high,statically linked zlib 1.1.3
-0x00635450,zlib_deflate,function,high,
-0x006357c0,zlib_deflateEnd,function,high,
+0x006351a0,deflateInit2_,function,high,reimplemented (src/game/lib/zlib); zlib 1.1.3 deflate.c: a deflate state and its buffers (shim: the exe's descriptors and z->msg strings)
+0x00635450,deflate,function,high,reimplemented (src/game/lib/zlib); zlib 1.1.3 deflate.c: compresses a stream (shim: the exe's z->msg strings)
+0x006357c0,deflateEnd,function,high,"reimplemented (src/game/lib/zlib); zlib 1.1.3 deflate.c: frees a stream's buffers and state (the library's, tpw_zlib)"
 0x007780ec,gZlibInputLimit,data,high,0xc0000000: ZlibCodec_Decompress avail_in
 0x007780f0,gZlibVersion,data,high,"""1.1.3"""
 0x00619730,RefObject2_Ctor,function,high,"reimplemented (src/game/files/handles); thiscall; Semaphore_Ctor(+8), String_Ctor(+0x10 path), vtable 0x703898, refs and link 0"
@@ -5173,3 +5173,47 @@ address,name,kind,confidence,notes
 0x0066c5a4,GuiPolygon_Contains,function,low,"reimplemented (src/game/ui/guishape); thiscall (x, y): 1 in AX when inside the polygon (crossing test)"
 0x0066c6c3,GuiPolygon_Offset,function,low,"reimplemented (src/game/ui/guishape); thiscall (dx, dy): each point moved"
 0x0066c7b0,GuiPolygon_DeletingDtor,function,low,reimplemented (src/game/ui/guishape); thiscall (flags): the polygon's scalar deleting destructor
+0x0063eb30,_tr_init,function,high,reimplemented (src/game/lib/zlib); zlib 1.1.3 trees.c: a new stream's trees (shim: the exe's static descriptors)
+0x006353d0,deflateReset,function,high,reimplemented (src/game/lib/zlib); zlib 1.1.3 deflate.c: a stream back to its start (shim: the exe's static descriptors)
+0x00649e10,huft_build,function,high,"reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 inftrees.c: the decoding tables for a set of code lengths (the library's, tpw_zlib)"
+0x00649d60,inflate_trees_bits,function,high,reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 inftrees.c: the bit length codes' table (shim: the exe's z->msg strings)
+0x0064a2c0,inflate_trees_dynamic,function,high,reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 inftrees.c: a dynamic block's literal/length and distance tables (shim: the exe's z->msg strings)
+0x00649550,inflate_codes_new,function,high,"reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 infcodes.c: a codes state for a block's tables (the library's, tpw_zlib)"
+0x00649590,inflate_codes,function,high,reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 infcodes.c: decodes a block's codes into the window (shim: the exe's z->msg strings)
+0x00649d40,inflate_codes_free,function,high,"reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 infcodes.c: frees a codes state (the library's, tpw_zlib)"
+0x0064a480,inflate_flush,function,high,"reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 infutil.c: the window's pending output to next_out (the library's, tpw_zlib)"
+0x0064bbd0,inflate_fast,function,high,reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 inffast.c: the fast decoding loop (shim: the exe's z->msg strings)
+0x00640690,inflate_blocks_reset,function,high,"reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 infblock.c: a blocks state back to TYPE (the library's, tpw_zlib)"
+0x00640710,inflate_blocks_new,function,high,"reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 infblock.c: a blocks state with its tables and window (the library's, tpw_zlib)"
+0x006407c0,inflate_blocks,function,high,reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 infblock.c: decodes blocks into the window (shim: the exe's z->msg strings and fixed tables)
+0x006414b0,inflate_blocks_free,function,high,"reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 infblock.c: frees a blocks state (the library's, tpw_zlib)"
+0x00636560,inflateReset,function,high,"reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 inflate.c: a stream back to its start (the library's, tpw_zlib)"
+0x006428c0,jround_up,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jutils.c: a rounded up to a multiple of b (the library's, tpw_jpeg6b)"
+0x006428e0,jcopy_sample_rows,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jutils.c: copies sample rows between row arrays (the library's, tpw_jpeg6b)"
+0x00642930,jcopy_block_row,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jutils.c: copies a row of coefficient blocks (the library's, tpw_jpeg6b)"
+0x00642960,jzero_far,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jutils.c: clears a block of memory (the library's, tpw_jpeg6b)"
+0x0064a5c0,jpeg_idct_islow,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jidctint.c: accurate integer inverse DCT of a block (the library's, tpw_jpeg6b)"
+0x0064abb0,jpeg_idct_ifast,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jidctfst.c: fast integer inverse DCT of a block (the library's, tpw_jpeg6b)"
+0x0064b5b0,jpeg_idct_4x4,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jidctred.c: inverse DCT of a block scaled to 4x4 (the library's, tpw_jpeg6b)"
+0x0064b970,jpeg_idct_2x2,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jidctred.c: inverse DCT of a block scaled to 2x2 (the library's, tpw_jpeg6b)"
+0x0064bb90,jpeg_idct_1x1,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jidctred.c: inverse DCT of a block scaled to one sample (the library's, tpw_jpeg6b)"
+0x00646a30,jdcolor_build_ycc_rgb_table,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdcolor.c build_ycc_rgb_table: the YCbCr -> RGB tables (the library's, through wrap/jpeg-6b/jdcolor.c)"
+0x00646b00,jdcolor_ycc_rgb_convert,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdcolor.c ycc_rgb_convert: YCbCr rows to RGB (the library's, through wrap/jpeg-6b/jdcolor.c)"
+0x00646c40,jdcolor_null_convert,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdcolor.c null_convert: component planes interleaved (the library's, through wrap/jpeg-6b/jdcolor.c)"
+0x00646cd0,jdcolor_grayscale_convert,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdcolor.c grayscale_convert: the first component's rows copied (the library's, through wrap/jpeg-6b/jdcolor.c)"
+0x00646d00,jdcolor_gray_rgb_convert,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdcolor.c gray_rgb_convert: grayscale rows to RGB (the library's, through wrap/jpeg-6b/jdcolor.c)"
+0x00646f70,jdmerge_build_ycc_rgb_table,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmerge.c build_ycc_rgb_table: the merged upsampler's YCbCr -> RGB tables (the library's, through wrap/jpeg-6b/jdmerge.c)"
+0x00647040,jdmerge_start_pass_merged_upsample,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmerge.c start_pass_merged_upsample (the library's, through wrap/jpeg-6b/jdmerge.c)"
+0x00647060,jdmerge_merged_2v_upsample,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmerge.c merged_2v_upsample: two output rows a row group, the spare row (the library's, through wrap/jpeg-6b/jdmerge.c)"
+0x00647130,jdmerge_merged_1v_upsample,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmerge.c merged_1v_upsample: one output row a row group (the library's, through wrap/jpeg-6b/jdmerge.c)"
+0x00647170,jdmerge_h2v1_merged_upsample,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmerge.c h2v1_merged_upsample: upsample and convert one row (the library's, through wrap/jpeg-6b/jdmerge.c)"
+0x006472f0,jdmerge_h2v2_merged_upsample,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmerge.c h2v2_merged_upsample: upsample and convert two rows (the library's, through wrap/jpeg-6b/jdmerge.c)"
+0x006462e0,jdsample_start_pass_upsample,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdsample.c start_pass_upsample (the library's, through wrap/jpeg-6b/jdsample.c)"
+0x00646300,jdsample_sep_upsample,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdsample.c sep_upsample: per-component upsampling, then colour conversion (the library's, through wrap/jpeg-6b/jdsample.c)"
+0x00646400,jdsample_fullsize_upsample,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdsample.c fullsize_upsample (the library's, through wrap/jpeg-6b/jdsample.c)"
+0x00646410,jdsample_noop_upsample,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdsample.c noop_upsample (the library's, through wrap/jpeg-6b/jdsample.c)"
+0x00646420,jdsample_int_upsample,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdsample.c int_upsample: integral factors by replication (the library's, through wrap/jpeg-6b/jdsample.c)"
+0x00646540,jdsample_h2v1_upsample,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdsample.c h2v1_upsample (the library's, through wrap/jpeg-6b/jdsample.c)"
+0x006465a0,jdsample_h2v2_upsample,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdsample.c h2v2_upsample (the library's, through wrap/jpeg-6b/jdsample.c)"
+0x00646630,jdsample_h2v1_fancy_upsample,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdsample.c h2v1_fancy_upsample: triangular interpolation (the library's, through wrap/jpeg-6b/jdsample.c)"
+0x00646700,jdsample_h2v2_fancy_upsample,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdsample.c h2v2_fancy_upsample: triangular interpolation (the library's, through wrap/jpeg-6b/jdsample.c)"

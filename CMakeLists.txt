@@ -386,9 +386,11 @@ add_library(tpw_game STATIC
     src/game/lib/zlib.cpp
     src/game/ui/dialog7cc61c.cpp
     src/game/ui/guishape.cpp
+    src/game/lib/zlib_inflate.cpp
+    src/game/lib/jpeg6b.cpp
 )
 # The libraries whose functions replace the exe's copies (src/game/lib); their headers stay private to those units.
-target_link_libraries(tpw_game PRIVATE tpw_zlib)
+target_link_libraries(tpw_game PRIVATE tpw_zlib tpw_jpeg6b)
 
 # Proxy dinput.dll that loads into tp.exe and installs the hooks.
 add_library(tpw_hook SHARED

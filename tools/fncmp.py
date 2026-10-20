@@ -43,6 +43,13 @@ A case can hand the code a heap (heap() is its region at HEAP): the same bump al
 both for Mem_Alloc / Mem_Free (and memmove 0x67bb90 in the emulator); _Xlen / _Xran fail the
 case (the driver reports a crash, the emulator raises).
 
+A z_stream's zalloc / zfree can be ZALLOC / ZFREE (with heap() at HEAP): zlib's alloc_func (opaque, items, size) and free_func
+(opaque, block), cdecl, over the same heap (opaque and items hashed into the sizes' hash, opaque into the frees').
+
+A case can leave bytes out of the comparison, Call(masks=[Mask(region, offsets, reason)]), when the two runs leave different values
+there that no code reads (zlib's huft_build copies a local whose union padding is never set: stack garbage in both). The bench header
+proves from the listing that nothing reads them; the emulator fails the case if the original reads one anyway.
+
 A case can hand the code a fake CPU (cpu_region() is its region at CPU): CPUID's answers and whether EFLAGS.ID toggles, in both (the
 emulator's CPUID / PUSHFD / POPFD, the driver's CpuInfo env).
 
@@ -238,9 +245,57 @@ def put(buf, off, fmt, *values):
 
 
 class Call:
-    def __init__(self, address, args, regions, conv='c', ret='v', cw=0x7f):
+    def __init__(self, address, args, regions, conv='c', ret='v', cw=0x7f, masks=()):
         self.address, self.args, self.regions, self.conv, self.ret = address, list(args), dict(regions), conv, ret
         self.cw = cw
+        self.masks = list(masks)
+        for m in self.masks:
+            if m.region not in self.regions or (m.offsets and m.offsets[-1] >= len(self.regions[m.region])):
+                raise ValueError('mask outside the case\'s region %x: %s' % (m.region, m.reason))
+
+
+class Mask:
+    """Bytes of a case's region left out of the comparison: the region (a key of the case's regions), the offsets into it, and the reason,
+    which says why the bytes differ between the two runs and why nothing reads them. Only for bytes no code reads: the bench's header
+    proves that from the listing for each mask, and the emulator fails the case ("masked byte read") if the original's code reads one
+    (any read, of any width, by any instruction; writes are what the mask is for). A mask never hides a difference no one has explained.
+    Give it to Call(masks=[...])."""
+
+    def __init__(self, region, offsets, reason):
+        if not reason or not reason.strip():
+            raise ValueError('a mask needs its reason')
+        self.region, self.offsets, self.reason = region, sorted(set(offsets)), reason
+
+
+class MaskedRead(Exception):
+    pass
+
+
+def _watching(e, watch):
+    """The emulator's byte read, failing on an address in watch (a masked byte)."""
+    plain = x87emu.Emu.rb
+
+    def rb(a):
+        if a & 0xffffffff in watch:
+            raise MaskedRead(a & 0xffffffff)
+        return plain(e, a)
+    return rb
+
+
+def _unmasked(c, out):
+    """A run's result (EAX, EDX, ST0, then each region's hex) with the case's masked bytes zeroed."""
+    if not c.masks or isinstance(out, str):
+        return out
+    out = list(out)
+    keys = list(c.regions)
+    for m in c.masks:
+        i = 3 + keys.index(m.region)
+        b = bytearray.fromhex(out[i])
+        for o in m.offsets:
+            if o < len(b):
+                b[o] = 0
+        out[i] = b.hex()
+    return out
 
 
 def sine_table(n):
@@ -270,8 +325,9 @@ def heap(size=0x4000, fail=0):
     return bytearray(struct.pack('<4I', HEAP + 0x10 + fail, 0, 0, 0)) + bytearray([0xcd]) * (size - 0x10)
 
 
-def _alloc(e):  # cdecl (size) (driver.cpp heap_alloc)
-    nxt, h, size = e.u32(HEAP), e.u32(HEAP + 4), e.u32(e.r['ESP'])
+def _alloc(e, size=None):  # cdecl (size) (driver.cpp heap_alloc)
+    nxt, h = e.u32(HEAP), e.u32(HEAP + 4)
+    size = e.u32(e.r['ESP']) if size is None else size
     countdown, p = nxt & 15, nxt & ~15
     if countdown == 1:
         e.write(HEAP, struct.pack('<2I', p, (h * 33 ^ size) & 0xffffffff))
@@ -281,9 +337,25 @@ def _alloc(e):  # cdecl (size) (driver.cpp heap_alloc)
     e.r['EAX'] = p
 
 
-def _free(e):  # cdecl (block)
+def _free(e, block=None):  # cdecl (block)
     frees, h = e.u32(HEAP + 8), e.u32(HEAP + 12)
-    e.write(HEAP + 8, struct.pack('<2I', frees + 1, (h * 33 ^ e.u32(e.r['ESP'])) & 0xffffffff))
+    e.write(HEAP + 8, struct.pack('<2I', frees + 1, (h * 33 ^ (e.u32(e.r['ESP']) if block is None else block)) & 0xffffffff))
+
+
+ZALLOC, ZFREE = STUBS + 0xa0, STUBS + 0xb0  # zlib's alloc_func / free_func for a z_stream's zalloc / zfree, over heap() (driver.cpp stub_zalloc)
+
+
+def _zalloc(e):  # cdecl (opaque, items, size): opaque and items hashed in, then items * size from the heap
+    sp = e.r['ESP'] + (4 if e.tail else 0)
+    opaque, items, size = e.u32(sp), e.u32(sp + 4), e.u32(sp + 8)
+    e.write(HEAP + 4, struct.pack('<I', ((e.u32(HEAP + 4) * 33 ^ opaque) * 33 ^ items) & 0xffffffff))
+    _alloc(e, items * size & 0xffffffff)
+
+
+def _zfree(e):  # cdecl (opaque, block): opaque hashed in with the block
+    sp = e.r['ESP'] + (4 if e.tail else 0)
+    e.write(HEAP + 12, struct.pack('<I', (e.u32(HEAP + 12) * 33 ^ e.u32(sp)) & 0xffffffff))
+    _free(e, e.u32(sp + 4))
 
 
 def global_heap():
@@ -658,7 +730,7 @@ class Bench:
                                STUBS + 0x20: _global_alloc, STUBS + 0x30: _global_free, STUBS + 0x40: _mark, CDECL_LOG: _cdecl_log, COUNTER: _counter, SEEK: _seek, CDECL_LOG2: _cdecl_log2, CDECL_LOG4: _cdecl_log4,
                                0x6351a0: _zlib_init(0x140, 7), 0x635450: _zlib_copy(1), 0x6357c0: _zlib_end(0x142), 0x636600: _zlib_init(0x143, 3),
                                0x636710: _zlib_copy(2), 0x6365b0: _zlib_end(0x145),
-                               0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove,
+                               0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove, ZALLOC: _zalloc, ZFREE: _zfree,
                                0x6918f0: _throw('_Xlen'), 0x691ba0: _throw('_Xran')})
         self.emu.hooks.update({recorder(k, n): _recorder(k, n) for k in range(32) for n in range(16)})  # (n up to 15 fits below the COM recorders at +0x4000)
         self.emu.hooks.update({recorder(k, n, True): _recorder(k, n, True) for k in range(64) for n in range(16)})
@@ -700,6 +772,8 @@ class Bench:
         pc = c.address
         entered, hooked, stand_ins = self.entered, self.hooked, e.hooks
         entered.clear()
+        if c.masks:  # (the original must never read a masked byte: Mask)
+            e.rb = _watching(e, {(m.region + o) & 0xffffffff for m in c.masks for o in m.offsets})
         try:
             for _ in range(5_000_000):
                 if pc == x87emu.SENTINEL:
@@ -714,6 +788,10 @@ class Bench:
             return '%s (emu: %s at %08x)' % (CRASH, f, at)
         except x87emu.DivFault as f:
             return 'crash %08x (emu: %s at %08x)' % (f.code, f, at)
+        except MaskedRead as f:
+            return 'masked byte %08x read (emu at %08x)' % (f.args[0], at)
+        finally:
+            e.__dict__.pop('rb', None)
         st0 = struct.unpack('<Q', struct.pack('<d', e.st[0]))[0] if c.ret == 'd' and e.st else 0
         head = ['%08x' % e.r['EAX'] if c.ret in 'ai' else '%02x' % (e.r['EAX'] & 0xff) if c.ret == 'b' else '%04x' % (e.r['EAX'] & 0xffff) if 'w' in c.ret else '-', '%08x' % e.r['EDX'] if c.ret == 'i' else '%04x' % e.cw if 'c' in c.ret else '-',
                 '%016x' % st0 if c.ret == 'd' else '-']
@@ -759,6 +837,7 @@ class Bench:
         direct, indirect = {}, set()
         for i, (c, cpp) in enumerate(zip(cases, nat)):
             emu = self.original(c)
+            emu, cpp = _unmasked(c, emu), _unmasked(c, cpp)
             if emu == cpp:
                 if COVER and not isinstance(emu, str):
                     direct[c.address] = direct.get(c.address, 0) + 1

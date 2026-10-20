@@ -14,12 +14,17 @@ struct ct_data_s;             // ct_data: {freq | code, dad | len} (u16, u16)
 struct tree_desc_s;           // tree_desc: {dyn_tree, max_code, stat_desc}
 struct inflate_huft_s;        // inflate_huft (inftrees.h), 8 bytes
 struct z_stream_s;            // z_stream (zlib.h), 0x38 bytes
+struct inflate_blocks_state;  // inflate_blocks_statef (infutil.h), 0x40 bytes
+struct inflate_codes_state;   // inflate_codes_statef (private to infcodes.c), 0x1c bytes
 
 // adler32.c
 // 0x63ea00: the Adler-32 checksum of len bytes at buf, continuing adler (1 for a null buf).
 unsigned long __cdecl adler32(unsigned long adler, const unsigned char *buf, unsigned int len);
 
 // deflate.c
+// 0x6357c0: frees the stream's buffers and state (zfree), state null; Z_DATA_ERROR if it was part way through a stream, Z_STREAM_ERROR
+// without a state or in a state no deflate leaves.
+int __cdecl deflateEnd(z_stream_s *strm);
 // 0x635710: two bytes into the pending buffer, most significant first.
 void __cdecl putShortMSB(internal_state *s, unsigned int b);
 // 0x635740: as much of the pending output as fits into next_out.
@@ -74,4 +79,80 @@ void __cdecl bi_flush(internal_state *s);
 void __cdecl bi_windup(internal_state *s);
 // 0x6405f0: bi_windup, then len bytes of buf (after len and ~len as shorts when header).
 void __cdecl copy_block(internal_state *s, char *buf, unsigned len, int header);
+
+// inftrees.c
+// 0x649e10: the decoding tables (from hp + *hn) for n codes of lengths b; values below s are themselves, the others d[] with e[]
+// extra bits; *t the first table, *m its bits; Z_OK, Z_BUF_ERROR (incomplete), Z_DATA_ERROR (oversubscribed) or Z_MEM_ERROR.
+int __cdecl huft_build(unsigned *b, unsigned n, unsigned s, const unsigned *d, const unsigned *e, inflate_huft_s **t, unsigned *m,
+                       inflate_huft_s *hp, unsigned *hn, unsigned *v);
+
+// infcodes.c
+// 0x649550: a codes state (START) for the tables tl / td of bl / bd bits (zalloc; null when it fails).
+inflate_codes_state *__cdecl inflate_codes_new(unsigned bl, unsigned bd, inflate_huft_s *tl, inflate_huft_s *td, z_stream_s *z);
+// 0x649d40: frees c (zfree).
+void __cdecl inflate_codes_free(inflate_codes_state *c, z_stream_s *z);
+
+// inflate.c
+// 0x636560: the stream back to its start (totals zero, msg null, METHOD or BLOCKS, the blocks reset); Z_STREAM_ERROR without a state.
+int __cdecl inflateReset(z_stream_s *z);
+// 0x6365b0: the blocks state and the stream's state freed (zfree), state null; Z_STREAM_ERROR without a state or zfree.
+int __cdecl inflateEnd(z_stream_s *z);
+
+// infblock.c
+// 0x640690: back to TYPE (a codes state or bit length array freed), the bit buffer and window emptied, the check restarted (*c gets
+// the old one when c is not null).
+void __cdecl inflate_blocks_reset(inflate_blocks_state *s, z_stream_s *z, unsigned long *c);
+// 0x640710: a blocks state with its table space (MANY entries) and a window of w bytes (zalloc; null when one fails), reset; c the
+// check function or null.
+inflate_blocks_state *__cdecl inflate_blocks_new(z_stream_s *z, unsigned long(__cdecl *c)(unsigned long, const unsigned char *, unsigned),
+                                                 unsigned w);
+// 0x6414b0: inflate_blocks_reset, then the window, the table space and the state freed; Z_OK.
+int __cdecl inflate_blocks_free(inflate_blocks_state *s, z_stream_s *z);
+
+// infutil.c
+// 0x64a480: as much of the window's pending output (read .. write, wrapping at end) as fits into next_out, checkfn over it; r, or
+// Z_OK for Z_BUF_ERROR when anything was copied.
+int __cdecl inflate_flush(inflate_blocks_state *s, z_stream_s *z, int r);
+
+// The shims: the library's function (built as zlib_<name>, third_party/config/zlib_shims.h), then the exe's copy put back where it
+// left one of its own addresses (src/game/lib/zlib.cpp).
+// 0x63eb30: a new stream's trees (the descriptors, the bit buffer, init_block); the static descriptors are the exe's (0x779ba8,
+// 0x779bc0, 0x779bd8) as the exe's _tr_init sets them, byte for byte the library's static_l_desc / static_d_desc / static_bl_desc.
+void __cdecl _tr_init(internal_state *s);
+// 0x6353d0: the stream back to its start (_tr_init, lm_init; the exe's static descriptors); Z_STREAM_ERROR without a state, zalloc
+// or zfree.
+int __cdecl deflateReset(z_stream_s *strm);
+// 0x6351a0: a deflate state for the parameters and its buffers (zalloc), reset; Z_VERSION_ERROR, Z_STREAM_ERROR, or Z_MEM_ERROR with
+// strm->msg (the exe's z_errmsg entry).
+int __cdecl deflateInit2_(z_stream_s *strm, int level, int method, int windowBits, int memLevel, int strategy, const char *version,
+                          int stream_size);
+// 0x635450: compresses what fits (the zlib header first, the level's deflate_stored / fast / slow, flushes, the Adler-32 trailer at
+// Z_FINISH); strm->msg on a bad call (the exe's z_errmsg entry).
+int __cdecl deflate(z_stream_s *strm, int flush);
+// 0x649d60: the bit length codes' table (19 lengths in c); z->msg on a bad set (the exe's string).
+int __cdecl inflate_trees_bits(unsigned *c, unsigned *bb, inflate_huft_s **tb, inflate_huft_s *hp, z_stream_s *z);
+// 0x64a2c0: the literal / length and distance tables of a dynamic block (nl + nd lengths in c); z->msg on a bad set (the exe's string).
+int __cdecl inflate_trees_dynamic(unsigned nl, unsigned nd, unsigned *c, unsigned *bl, unsigned *bd, inflate_huft_s **tl, inflate_huft_s **td,
+                                  inflate_huft_s *hp, z_stream_s *z);
+// 0x636600: a stream's state and blocks state for windowBits w (negative: no zlib header or check), reset; Z_VERSION_ERROR,
+// Z_STREAM_ERROR or Z_MEM_ERROR. The blocks' check function is the exe's adler32 (0x63ea00) as the exe's sets it: the hook of the
+// same function (the library's adler32).
+int __cdecl inflateInit2_(z_stream_s *z, int w, const char *version, int stream_size);
+// 0x636710: inflates: the zlib header, the blocks (inflate_blocks), the Adler-32 trailer; z->msg on bad data (the exe's string), and
+// the exe's fixed tables in a fixed block's codes state, as inflate_blocks.
+int __cdecl inflate(z_stream_s *z, int f);
+// 0x6407c0: decodes blocks (stored, fixed, dynamic) into the window and flushes it to next_out; z->msg on bad data (the exe's
+// string), and a codes state for a fixed block points at the exe's fixed_tl / fixed_td (as the exe's inflate_trees_fixed's).
+int __cdecl inflate_blocks(inflate_blocks_state *s, z_stream_s *z, int r);
+// 0x649590: decodes the block's literals, lengths and distances (s's codes state) into the window until the end of block, input or
+// window room runs out; z->msg on a bad code (the exe's string).
+int __cdecl inflate_codes(inflate_blocks_state *s, z_stream_s *z, int r);
+// 0x64bbd0: inflate_codes' fast loop while 258 bytes of window room and 10 of input remain; z->msg on a bad code (the exe's string).
+int __cdecl inflate_fast(unsigned bl, unsigned bd, inflate_huft_s *tl, inflate_huft_s *td, inflate_blocks_state *s, z_stream_s *z);
+}
+
+// What the shims share (src/game/lib/zlib.cpp).
+namespace zlibshim {
+// The call stored a message in z->msg (it is no longer `before`): the exe's copy of the same text instead of the library's.
+void exe_message(z_stream_s *z, const char *before);
 }
