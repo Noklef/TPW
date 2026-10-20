@@ -33,6 +33,7 @@
 #include "../../src/game/gfx/screen.h"
 #include "../../src/game/core/fpu.h"
 #include "../../src/game/core/gameheap.h"
+#include "../../src/game/core/string.h"
 #include "../../src/game/core/ptrlist.h"
 #include "../../src/game/core/regkey.h"
 #include "../../src/game/core/stdstring.h"
@@ -844,6 +845,12 @@ int main(int argc, char **argv) {
                                                  hooked(0x006300f0)),
                                              &stub_strncmp, reinterpret_cast<const char *>((uintptr_t)0x00775860)};
     ImageCodec_SetEnv(&imageCodec);
+    // The game strings': the game heap (the stand-in's, through GameHeap), the host's vsprintf / vswprintf for Format (tests/fncmp/stringformat.py
+    // hooks the game's, 0x67c1e0 / 0x67f4d0, with the same formats).
+    static const StringEnv strings = {[](u32 size) -> void * { return GameHeap_Alloc(size); }, [](void *block) { GameHeap_Free(block); },
+                                      reinterpret_cast<s32(__cdecl *)(char *, const char *, va_list)>(kDriverLibc.vsprintf),
+                                      reinterpret_cast<s32(__cdecl *)(u16 *, const u16 *, va_list)>(kDriverLibc.vswprintf)};
+    Strings_SetEnv(&strings);
     // The sprite draw lists': the ground height the game's (out of range; tests/fncmp/spritedraw.py's scripts carry their own); the thing under the
     // cursor (0x532bd0) cdecl recorder 1, its hand-over (0x423b50 on 0x7b05a8) cdecl recorder 2 (the bench hooks both with them).
     static const SpriteDrawEnv spriteDraw = {reinterpret_cast<double(__cdecl *)(u32, u32)>((uintptr_t)0x004527f0),
