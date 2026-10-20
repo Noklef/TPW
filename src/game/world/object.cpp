@@ -15,6 +15,8 @@
 #include "person.h"
 #include "mapcell.h"
 #include "ridelist.h"
+#include "money.h"
+#include "world.h"
 
 namespace {
 
@@ -416,5 +418,106 @@ u32 __fastcall Object_HistoryPercent(const u8 *object) {
     CircBufU32_30_Sum(object + 0x2b8, nullptr, &second, 0x1e);
     CircBufU32_30_Sum(object + 0x1a8, nullptr, &third, 0x1e);
     return (u32)(long long)second * 100u / (u32)(long long)third;
+}
+
+u32 __fastcall Object_FillRate(const u8 *object) {
+    if (!(at<u8>(object, 0x32) & 8)) return 100;
+    u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
+    const u16 id = at<u16>(object, 0xe);
+    const u32 n = at<u32>(object, 0x58);
+    if (n != 0) {
+        const u32 row = (u32)at<u8>(object, 0x50) << 6;
+        global<float>(0x007cdc54) = (float)(X87Reg((double)n) / X87Reg((double)at<s32>(ObjectDefs_Find(defs, nullptr, id), row + 0x1a8)));
+    } else {
+        global<float>(0x007cdc54) = 1.0f;
+    }
+    const float per = at<float>(ObjectDefs_Find(defs, nullptr, id), ((u32)at<u8>(object, 0x50) << 6) + 0x1b4);  // (its debug check of above 0 is left out)
+    X87Reg rate = X87Reg((double)at<u8>(object, 0x5d)) * X87Reg(per) * X87Reg(global<float>(0x007cdc54)) / X87Reg((double)at<u8>(object, 0x5c));
+    if (!(rate.v > 4.0)) rate = 4.0;  // (a NaN too)
+    return (u32)(long long)rate.v;  // __ftol, the low half
+}
+
+void __fastcall Object_PayRunningCost(u8 *object, void *, s32 amount) {
+    at<s32>(object, 0xf8) += amount;
+    at<s32>(object, 0x184) += amount;
+    Money_Debit(reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(global<u8 *>(0x0080239c))), nullptr, amount);
+    u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
+    u32 id;
+    if (at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x4ac) == 1)
+        id = 0xc;
+    else if (at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x4ac) == 2)
+        id = 0xd;
+    else
+        return;
+    // (the extra's upper word is a stale stack word in the original; only its low word, 0, is read)
+    Slots_AddIfMatch(reinterpret_cast<u8 *>(GameTable7cfb90_Get1da736_519610(reinterpret_cast<u8 *>(Global80239c_Get()))), nullptr, id, (u32)-amount, 0, 0);
+}
+
+namespace {
+
+// 0x4e1a30 / 0x4e1b40's common tail: the two settings as stored (floats), each held to [-0.5, 0.5] (a NaN to -0.5), the second negated for a definition of kind
+// (+0x158) 1 or 3; (first + second + 1) times the dword at +0x188.
+u32 Object_SettingsTail(const u8 *object, float first, float second) {
+    if (!(first >= -0.5f)) first = -0.5f;
+    else if (first > 0.5f) first = 0.5f;
+    if (!(second >= -0.5f)) second = -0.5f;
+    else if (second > 0.5f) second = 0.5f;
+    const s32 kind = at<s32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(object, 0xe)), 0x158);
+    const X87Reg turned = kind == 1 || kind == 3 ? X87Reg(second) * X87Reg(-1.0f) : X87Reg(second);
+    const X87Reg sum = X87Reg(first) + turned;
+    const X87Reg value = (sum - X87Reg(-1.0f)) * X87Reg((double)at<u32>(object, 0x188));
+    return (u32)(long long)value.v;  // __ftol, the low half
+}
+
+}  // namespace
+
+u32 __fastcall Object_SettingsValue(const u8 *object, void *, float first, float second) {
+    const float a = (float)((X87Reg(first) - X87Reg(50.0f)) * X87Reg(0.005f));
+    const float b = (float)((X87Reg(second) - X87Reg(50.0f)) * X87Reg(0.005f));
+    return Object_SettingsTail(object, a, b);
+}
+
+u32 __fastcall Object_CurrentSettingsValue(const u8 *object) {
+    const float a = (float)((X87Reg((double)at<u8>(object, 0x18c)) - X87Reg(50.0f)) * X87Reg(0.005f));
+    const float b = (float)((X87Reg((double)at<u8>(object, 0x198)) - X87Reg(50.0f)) * X87Reg(0.005f));
+    return Object_SettingsTail(object, a, b);
+}
+
+u32 __fastcall Object_HistoryDifference(const u8 *object) {
+    // (each sum's debug print of whether 30 is within the size is left out; both are CircBufU32_30_Sum inlined, the second in a register)
+    double first, second;
+    CircBufU32_30_Sum(object + 0x70, nullptr, &first, 0x1e);
+    CircBufU32_30_Sum(object + 0xf8, nullptr, &second, 0x1e);
+    return (u32)(long long)(X87Reg(first) - X87Reg(second)).v;  // __ftol, the low half
+}
+
+u32 __fastcall Object_HistoryAverage(const u8 *object) {
+    // (the debug print of whether 30 is within the size is left out)
+    const u8 *const ring = object + 0x340;
+    const s32 held = at<u8>(ring, 0x84) ? at<s32>(ring, 0x80) : at<s32>(ring, 0x7c) + 1;
+    const s32 count = held < 0x1e ? held : 0x1e;
+    X87Reg sum = 0.0;
+    for (s32 i = 0; i < count; ++i) {
+        u32 value;
+        if (CircBufU32_30_Get(ring, nullptr, &value, i)) sum = X87_Add(sum.v, (double)(s32)value);  // fiadd: signed
+    }
+    if (count <= 0) return 0x32;
+    return (u32)(long long)(sum / X87Reg((double)count)).v + 0x32;  // __ftol, the low half
+}
+
+void __fastcall Object_ResetCondition(u8 *object) {
+    if (at<u8>(object, 0x32) & 1) {
+        const u8 level = (u8)(long long)at<float>(object, 0x44);  // __ftol, the low byte
+        if ((double)level < 25.0) {
+            u8 *const world = global<u8 *>(0x008023a0);
+            const u32 id = ((u32)at<u8>(object, 7) << 7) + at<u8>(object, 5) + 1;  // (a word; the dword's upper half is a stale stack word, unread)
+            Map_SpreadRemove(world, nullptr, 6, (u16)id);
+            Map_SpreadAdd(world, nullptr, 1, (u16)id);
+        }
+    }
+    Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 8, 0);
+    at<float>(object, 0x44) = 100.0f;
+    at<u16>(object, 0x5e) = 0;
+    at<u32>(object, 0x64) = 0;
 }
 }

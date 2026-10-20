@@ -3477,6 +3477,13 @@ address,name,kind,confidence,notes
 0x004df640,Object_DefRowPercent,function,low,"reimplemented (src/game/world/object); thiscall: 100 less __ftol(Object_DefRowScore with b * 9), AL"
 0x004dedf0,Object_CellStandPoint,function,low,"reimplemented (src/game/world/object); thiscall, x87: the entrance stand point or exit appear point of the object's definition, turned by its angle, times 255 into x / y with the cell's column and row"
 0x004e1f20,Object_HistoryPercent,function,low,"reimplemented (src/game/world/object); thiscall, x87: 100 times the CHistory sum of the ring at +0x2b8 over that of the ring at +0x1a8 (0 when that is 0)"
+0x004dda40,Object_FillRate,function,low,"reimplemented (src/game/world/object); thiscall, x87: 100 without flag 8 of +0x32; else +0x5d * the row's float +0x1b4 * (+0x58 over the row's +0x1a8, kept at [0x7cdc54]) over +0x5c, at least 4"
+0x004e1920,Object_PayRunningCost,function,low,"reimplemented (src/game/world/object); thiscall: the amount added to +0xf8 and +0x184, debited, and for definitions with +0x4ac 1 or 2 counted (negated) into the slots entry 0xc or 0xd"
+0x004e1a30,Object_SettingsValue,function,low,"reimplemented (src/game/world/object); thiscall, x87: two 0-100 settings as (s - 50) * 0.005 held to [-0.5, 0.5], the second negated for kinds 1 and 3; (sum + 1) * +0x188"
+0x004e1b40,Object_CurrentSettingsValue,function,low,"reimplemented (src/game/world/object); thiscall, x87: Object_SettingsValue of the bytes +0x18c and +0x198"
+0x004e1c70,Object_HistoryDifference,function,low,"reimplemented (src/game/world/object); thiscall, x87: the newest-30 sum of the ring at +0x70 less that of the ring at +0xf8"
+0x004e1e30,Object_HistoryAverage,function,low,"reimplemented (src/game/world/object); thiscall, x87: the newest (up to) 30 entries of the ring at +0x340, signed, averaged, plus 0x32 (0x32 for none)"
+0x004dfd80,Object_ResetCondition,function,low,"reimplemented (src/game/world/object); thiscall: with flag 1 of +0x32 and the byte of +0x44 below 25, spread record 6 taken back from the cell and record 1 spread; ride element 8 = 0, +0x44 = 100.0, +0x5e and +0x64 cleared"
 0x005d46d0,Blocks7_Free,function,high,reimplemented (src/game/core/buffers); frees the seven blocks of an object and clears its groups
 0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/string); whether the first name is after the second, case blind"
 0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/string); whether two names are equal, case blind"

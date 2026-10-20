@@ -146,4 +146,34 @@ void __fastcall Object_CellStandPoint(const u8 *object, void *, u32 exit, u8 *x,
 // 0x4e1f20 (thiscall; name unconfirmed): 100 times the CHistory sum (CircBufU32_30_Sum, newest 30) of the ring at +0x2b8 over that of the ring at +0x1a8 (__ftol's low
 // halves, unsigned, 32-bit); 0 when the latter is 0.
 u32 __fastcall Object_HistoryPercent(const u8 *object);
+
+// 0x4dda40 (thiscall; x87; name unconfirmed): 100 without flag 8 of the word at +0x32. Else [0x7cdc54] (a float) = the dword at +0x58 (unsigned) over the
+// definition's row (+0x40 * the byte +0x50) +0x1a8 (signed), or 1 when it is 0; returns __ftol (the low half) of the byte +0x5d * the row's float +0x1b4 * that
+// over the byte +0x5c, raised to 4 (a NaN too). The debug check of the float being above 0 is left out.
+u32 __fastcall Object_FillRate(const u8 *object);
+
+// 0x4e1920 (thiscall; amount, pops 4; name unconfirmed): amount added to the dwords +0xf8 and +0x184 and debited (Money_Debit of the game's money record, the table
+// entry GameTable7cfb90_Get1da726_5195d0 gives); for a definition (+0xe) whose +0x4ac is 1 or 2, Slots_AddIfMatch(0xc or 0xd, -amount, 0, 0) on the entry
+// GameTable7cfb90_Get1da736_519610 gives.
+void __fastcall Object_PayRunningCost(u8 *object, void *, s32 amount);
+
+// 0x4e1a30 (thiscall; first, second (floats), pops 8; x87; name unconfirmed): each setting (0-100) as (s - 50) * 0.005 stored to a float, held to [-0.5, 0.5] (a
+// NaN to -0.5); the second negated for a definition (+0xe) of kind (+0x158) 1 or 3; returns __ftol (the low half) of (first + second + 1) * the dword at +0x188.
+u32 __fastcall Object_SettingsValue(const u8 *object, void *, float first, float second);
+
+// 0x4e1b40 (thiscall; x87; name unconfirmed): Object_SettingsValue of the bytes at +0x18c and +0x198 (inlined).
+u32 __fastcall Object_CurrentSettingsValue(const u8 *object);
+
+// 0x4e1c70 (thiscall; x87; name unconfirmed): __ftol (the low half) of the CHistory sum (CircBufU32_30_Sum, newest 30; inlined) of the ring at +0x70 less that of the
+// ring at +0xf8. The debug prints of whether 30 is within each size are left out.
+u32 __fastcall Object_HistoryDifference(const u8 *object);
+
+// 0x4e1e30 (thiscall; x87; name unconfirmed): the newest (up to) 30 entries of the ring at +0x340 (CircBufU32_30_Get, inlined) summed as signed values (fiadd), over
+// their count, __ftol'd (the low half) plus 0x32; 0x32 when the ring is empty. The debug print of whether 30 is within the size is left out.
+u32 __fastcall Object_HistoryAverage(const u8 *object);
+
+// 0x4dfd80 (thiscall; name unconfirmed): with flag 1 of the word at +0x32, when the low byte of __ftol(the float +0x44) is below 25, the object's cell (the bytes +5,
+// +7) has spread record 6 taken back and record 1 spread (Map_SpreadRemove, Map_SpreadAdd on [0x8023a0]); then its ride record's (Rides_FindById of +0x24) element 8
+// is set to 0, +0x44 = 100.0, the word +0x5e and the dword +0x64 = 0.
+void __fastcall Object_ResetCondition(u8 *object);
 }
