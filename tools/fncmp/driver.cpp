@@ -63,6 +63,7 @@
 #include "../../src/game/sprite/draw.h"
 #include "../../src/game/sprite/script.h"
 #include "../../src/game/world/advisorscore.h"
+#include "../../src/game/model/holder.h"
 #include "../../src/game/model/objmodel.h"
 #include "../../src/game/world/mapline.h"
 #include "../../src/game/world/mousemode.h"
@@ -798,6 +799,10 @@ int main(int argc, char **argv) {
     // 0x564650 (the engine debug log, a file): stub_cdecl_log, as tests/fncmp/engineerrors.py hooks it (the text hashed: strings(log, 0x3f, 1)).
     static const EngineErrorsEnv engineErrors = {reinterpret_cast<void(__cdecl *)(const char *)>(&stub_cdecl_log)};
     EngineErrors_SetEnv(&engineErrors);
+    // Animator_Create's texture directories and holder (0x46e4e0, 0x45bbc0): stub_cdecl_log2 and stub_cdecl_log, as tests/fncmp/animatormesh.py
+    // hooks them (their own benches are texdirs.py and objmodel.py).
+    static const AnimatorMeshEnv animatorMeshEnv = {reinterpret_cast<void(__cdecl *)(u8 *, u8 *)>(&stub_cdecl_log2), reinterpret_cast<void(__cdecl *)(u8 *)>(&stub_cdecl_log)};
+    Animator_SetMeshEnv(&animatorMeshEnv);
     // 0x6acd60 (the text formatter, library code): stub_cdecl_log4, as tests/fncmp/objectdefs.py hooks it.
     static const TextFormatEnv textFormat = {reinterpret_cast<u32(__cdecl *)(void *, u16 *, u32, u32, ...)>(&stub_cdecl_log4)};
     TextFormat_SetEnv(&textFormat);
