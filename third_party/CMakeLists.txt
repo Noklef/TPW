@@ -25,7 +25,8 @@ target_compile_options(tpw_zlib PRIVATE /FI${CMAKE_CURRENT_SOURCE_DIR}/config/zl
 
 # libjpeg: makefile.vc's LIBOBJECTS, and the memory manager's system-dependent backend as the copy in the exe has it: 6b's is
 # jmemansi.c (jpeg_mem_init's 1000000 at 0x642b20, jpeg_mem_available's max_memory_to_use - already_allocated, a tmpfile() backing
-# store), 6a keeps jmemnobs.c until its own libmap rows say. config/jconfig.h is jconfig.vc (see its header).
+# store), and 6a's too, with DEFAULT_MAX_MEM 10000000 (its jpeg_mem_init at 0x6503c1 answers 0x989680; the source's default is
+# 1000000). config/jconfig.h is jconfig.vc (see its header).
 set(JPEG_LIBOBJECTS jcapimin jcapistd jctrans jcparam jdatadst jcinit jcmaster jcmarker jcmainct jcprepct jccoefct jccolor jcsample
     jchuff jcphuff jcdctmgr jfdctfst jfdctflt jfdctint jdapimin jdapistd jdtrans jdatasrc jdmaster jdinput jdmarker jdhuff jdphuff
     jdmainct jdcoefct jdpostct jddctmgr jidctfst jidctflt jidctint jidctred jdsample jdcolor jquant1 jquant2 jdmerge jcomapi jutils
@@ -55,5 +56,6 @@ tpw_jpeg(tpw_jpeg6b jpeg-6b jmemansi)
 # stored to a float: x87 code in the exe (FILD, FMUL, FMUL, FSTP under the FPU's precision, single in the game). The library's SSE2
 # build rounds once from double, differing in the last bit; compiled for x87 it is the same instructions.
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/wrap/jpeg-6b/jddctmgr.c PROPERTIES COMPILE_OPTIONS /arch:IA32)
-tpw_jpeg(tpw_jpeg6a jpeg-6a jmemnobs)
+tpw_jpeg(tpw_jpeg6a jpeg-6a jmemansi)
+set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/jpeg-6a/jmemansi.c PROPERTIES COMPILE_DEFINITIONS DEFAULT_MAX_MEM=10000000L)
 target_compile_options(tpw_jpeg6a PRIVATE /FI${CMAKE_CURRENT_SOURCE_DIR}/config/jpeg6a_prefix.h)

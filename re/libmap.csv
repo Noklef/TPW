@@ -192,3 +192,163 @@ address,size,source_file,function,confidence,evidence,checked
 0x0064b970,544,jpeg-6b/jidctred.c,jpeg_idct_2x2,high,"FIX_0_720959822 0x1712, FIX_1_272758580 0x28ba, DESCALE 13 / 20, RANGE_MASK 0x3ff",yes
 0x0064bb90,64,jpeg-6b/jidctred.c,jpeg_idct_1x1,high,"DC times dct_table[0], DESCALE 3, RANGE_MASK 0x3ff, one sample",yes
 0x0064bbd0,928,inffast.c,inflate_fast,high,"GRABBITS/DUMPBITS fast loop with inflate_mask, called from inflate_codes",yes
+0x0064c5f0,336,jpeg-6a/jcapimin.c,jpeg_CreateCompress,high,"version 61 (0x3d) and struct size 0x168 checked; MEMZERO of 0x5a dwords; input_gamma 1.0; global_state CSTATE_START 100; called by game 0x64c258",yes
+0x0064c740,17,jpeg-6a/jcapimin.c,jpeg_destroy_compress,high,"jpeg_destroy; called by game 0x64c258",yes
+0x0064c751,17,jpeg-6a/jcapimin.c,jpeg_abort_compress,high,"jpeg_abort; not called or stored in the exe",yes
+0x0064c762,155,jpeg-6a/jcapimin.c,jpeg_suppress_tables,high,"sent_table (+0x80 of the quant tables at +0x40, +0x114 of the huff tables at +0x50 and +0x60) set to the argument; called by jpeg_start_compress",yes
+0x0064c7fd,389,jpeg-6a/jcapimin.c,jpeg_finish_compress,high,"global_state 101 / 102 / 103; JERR_TOO_LITTLE_DATA, BAD_STATE, CANT_SUSPEND; ends in jpeg_abort; called by game 0x64c258",yes
+0x0064c982,114,jpeg-6a/jcapimin.c,jpeg_write_marker,high,"global_state 101 / 102 / 103 is JERR_BAD_STATE; write_any_marker through the marker writer; called by game 0x64c258",yes
+0x0064c9f4,144,jpeg-6a/jcapimin.c,jpeg_write_tables,high,"jinit_marker_writer, write_tables_only, jpeg_abort; not called or stored in the exe",yes
+0x0064ca90,172,jpeg-6a/jcapistd.c,jpeg_start_compress,high,"jpeg_suppress_tables then jinit_compress_master; called by game 0x64c258",yes
+0x0064cb3c,290,jpeg-6a/jcapistd.c,jpeg_write_scanlines,high,"JERR_BAD_STATE, JWRN_TOO_MUCH_DATA; called by game 0x64c258",yes
+0x0064cc5e,305,jpeg-6a/jcapistd.c,jpeg_write_raw_data,high,"JERR_BAD_STATE, JWRN_TOO_MUCH_DATA, JERR_BUFFER_SIZE; not called or stored in the exe",yes
+0x0064cd90,232,jpeg-6a/jcparam.c,jpeg_add_quant_table,high,"jpeg_alloc_quant_table; quantval clamped to 32767 / 255 over DCTSIZE2 64; called by jpeg_set_linear_quality",yes
+0x0064ce78,59,jpeg-6a/jcparam.c,jpeg_set_linear_quality,high,"two jpeg_add_quant_table calls; called by jpeg_set_quality",yes
+0x0064ceb3,69,jpeg-6a/jcparam.c,jpeg_quality_scaling,high,"5000 / quality or 200 - quality*2, quality clamped to 1..100; called by jpeg_set_quality",yes
+0x0064cef8,40,jpeg-6a/jcparam.c,jpeg_set_quality,high,"jpeg_quality_scaling then jpeg_set_linear_quality; called by game 0x64c258, jpeg_set_defaults",yes
+0x0064cf20,392,jpeg-6a/jcparam.c,jpeg_set_defaults,high,"jpeg_set_quality, std_huff_tables, jpeg_default_colorspace; JERR_BAD_STATE; called by game 0x64c258",yes
+0x0064d0a8,121,jpeg-6a/jcparam.c,std_huff_tables,high,"four add_huff_table calls; called by jpeg_set_defaults",yes
+0x0064d121,103,jpeg-6a/jcparam.c,add_huff_table,high,"jpeg_alloc_huff_table; bits[17] and huffval copied; called by std_huff_tables",yes
+0x0064d188,155,jpeg-6a/jcparam.c,jpeg_default_colorspace,high,"JERR_BAD_IN_COLORSPACE; jpeg_set_colorspace; called by jpeg_set_defaults",yes
+0x0064d23b,1542,jpeg-6a/jcparam.c,jpeg_set_colorspace,high,"write_JFIF_header / write_Adobe_marker; component ids 1-3, R G B, C M Y K; called by jpeg_default_colorspace",yes
+0x0064d859,601,jpeg-6a/jcparam.c,jpeg_simple_progression,high,"fill_dc_scans, fill_a_scan, fill_scans; not called or stored in the exe",yes
+0x0064dab2,71,jpeg-6a/jcparam.c,fill_a_scan,high,"one scan's fields; called by jpeg_simple_progression",yes
+0x0064daf9,102,jpeg-6a/jcparam.c,fill_scans,high,"a scan per component; called by jpeg_simple_progression, fill_dc_scans",yes
+0x0064db5f,146,jpeg-6a/jcparam.c,fill_dc_scans,high,"called by jpeg_simple_progression",yes
+0x0064dd60,140,jpeg-6a/jerror.c,jpeg_std_error,high,"stores the five methods; jpeg_std_message_table; last_jpeg_message 0x77; called by game 0x64c258",yes
+0x0064ddec,39,jpeg-6a/jerror.c,error_exit,high,"output_message, jpeg_destroy, exit(1) (0x67f920); stored by jpeg_std_error",yes
+0x0064de13,60,jpeg-6a/jerror.c,output_message,high,"format_message into 200 bytes; fprintf (0x67dad0); stored by jpeg_std_error",yes
+0x0064de4f,94,jpeg-6a/jerror.c,emit_message,high,"two indirect calls (output_message); stored by jpeg_std_error",yes
+0x0064dead,331,jpeg-6a/jerror.c,format_message,high,"the message or addon table; the %s test; sprintf (0x67a650); stored by jpeg_std_error",yes
+0x0064dff8,29,jpeg-6a/jerror.c,reset_error_mgr,high,"num_warnings and msg_code zeroed; stored by jpeg_std_error",yes
+0x0064e020,509,jpeg-6a/jmemmgr.c,jinit_memory_mgr,high,"stores the eleven methods; jpeg_mem_init, jpeg_mem_term; getenv JPEGMEM, sscanf; JERR_BAD_ALIGN_TYPE, BAD_ALLOC_CHUNK, OUT_OF_MEMORY; called by jpeg_CreateCompress",yes
+0x0064e21d,454,jpeg-6a/jmemmgr.c,alloc_small,high,"JERR_BAD_POOL_ID; MAX_ALLOC_CHUNK 1000000000; jpeg_get_small; out_of_memory; called by alloc_sarray, alloc_barray, request_virt_sarray, request_virt_barray; stored by jinit_memory_mgr",yes
+0x0064e3e3,42,jpeg-6a/jmemmgr.c,out_of_memory,high,"JERR_OUT_OF_MEMORY; called by alloc_small, alloc_large",yes
+0x0064e40d,242,jpeg-6a/jmemmgr.c,alloc_large,high,"JERR_BAD_POOL_ID; jpeg_get_large; out_of_memory; called by alloc_sarray, alloc_barray; stored by jinit_memory_mgr",yes
+0x0064e4ff,257,jpeg-6a/jmemmgr.c,alloc_sarray,high,"JERR_WIDTH_OVERFLOW; alloc_small then alloc_large rows; called by realize_virt_arrays; stored by jinit_memory_mgr",yes
+0x0064e600,277,jpeg-6a/jmemmgr.c,alloc_barray,high,"JERR_WIDTH_OVERFLOW; alloc_small then alloc_large rows; called by realize_virt_arrays; stored by jinit_memory_mgr",yes
+0x0064e715,165,jpeg-6a/jmemmgr.c,request_virt_sarray,high,"JERR_BAD_POOL_ID; alloc_small of the control block; stored by jinit_memory_mgr",yes
+0x0064e7ba,165,jpeg-6a/jmemmgr.c,request_virt_barray,high,"JERR_BAD_POOL_ID; alloc_small of the control block; stored by jinit_memory_mgr",yes
+0x0064e85f,731,jpeg-6a/jmemmgr.c,realize_virt_arrays,high,"jpeg_mem_available, jpeg_open_backing_store, alloc_sarray, alloc_barray; stored by jinit_memory_mgr",yes
+0x0064eb3a,495,jpeg-6a/jmemmgr.c,access_virt_sarray,high,"JERR_BAD_VIRTUAL_ACCESS, VIRTUAL_BUG; do_sarray_io; jzero_far; stored by jinit_memory_mgr",yes
+0x0064ed29,326,jpeg-6a/jmemmgr.c,do_sarray_io,high,"read / write_backing_store through the info; called by access_virt_sarray",yes
+0x0064ee6f,498,jpeg-6a/jmemmgr.c,access_virt_barray,high,"JERR_BAD_VIRTUAL_ACCESS, VIRTUAL_BUG; do_barray_io; jzero_far; stored by jinit_memory_mgr",yes
+0x0064f061,329,jpeg-6a/jmemmgr.c,do_barray_io,high,"read / write_backing_store through the info; called by access_virt_barray",yes
+0x0064f1aa,438,jpeg-6a/jmemmgr.c,free_pool,high,"JERR_BAD_POOL_ID; close_backing_store; jpeg_free_large, jpeg_free_small; called by self_destruct; stored by jinit_memory_mgr",yes
+0x0064f360,93,jpeg-6a/jmemmgr.c,self_destruct,high,"free_pool, jpeg_free_small, jpeg_mem_term; stored by jinit_memory_mgr",yes
+0x0064f3c0,76,jpeg-6a/jcomapi.c,jpeg_abort,high,"free_pool through the memory manager; global_state 100; called by jpeg_abort_compress, jpeg_finish_compress, jpeg_write_tables",yes
+0x0064f40c,50,jpeg-6a/jcomapi.c,jpeg_destroy,high,"self_destruct through the memory manager; called by jpeg_destroy_compress, error_exit",yes
+0x0064f43e,49,jpeg-6a/jcomapi.c,jpeg_alloc_quant_table,high,"alloc_small; sent_table FALSE; called by jpeg_add_quant_table",yes
+0x0064f46f,49,jpeg-6a/jcomapi.c,jpeg_alloc_huff_table,high,"alloc_small; sent_table FALSE; called by add_huff_table, finish_pass_gather, finish_pass_gather_phuff",yes
+0x0064f4a0,128,jpeg-6a/jcmarker.c,jinit_marker_writer,high,"stores the six methods; called by jpeg_write_tables, jinit_compress_master",yes
+0x0064f520,96,jpeg-6a/jcmarker.c,write_any_marker,high,"datalen checked against 65533; emit_marker, emit_2bytes, emit_byte; stored by jinit_marker_writer",yes
+0x0064f580,107,jpeg-6a/jcmarker.c,emit_byte,high,"empty_output_buffer; JERR_CANT_SUSPEND; called by write_any_marker, emit_marker, emit_2bytes, emit_jfif_app0, emit_adobe_app14, emit_dqt, emit_sof, emit_dht, emit_sos",yes
+0x0064f5eb,38,jpeg-6a/jcmarker.c,emit_marker,high,"0xFF and the code through emit_byte; called by write_any_marker, write_file_header, emit_jfif_app0, emit_adobe_app14, emit_dqt, emit_sof, emit_dht, emit_dri, emit_sos, write_file_trailer, write_tables_only",yes
+0x0064f611,51,jpeg-6a/jcmarker.c,emit_2bytes,high,"two emit_byte calls; called by write_any_marker, emit_jfif_app0, emit_adobe_app14, emit_dqt, emit_sof, emit_dht, emit_dri, emit_sos",yes
+0x0064f644,70,jpeg-6a/jcmarker.c,write_file_header,high,"emit_marker SOI, emit_jfif_app0, emit_adobe_app14; stored by jinit_marker_writer",yes
+0x0064f68a,236,jpeg-6a/jcmarker.c,emit_jfif_app0,high,"the JFIF APP0 bytes; called by write_file_header",yes
+0x0064f776,220,jpeg-6a/jcmarker.c,emit_adobe_app14,high,"the Adobe APP14 bytes; called by write_file_header",yes
+0x0064f852,371,jpeg-6a/jcmarker.c,write_frame_header,high,"emit_dqt, emit_sof; JTRC_16BIT_TABLES; stored by jinit_marker_writer",yes
+0x0064f9c5,320,jpeg-6a/jcmarker.c,emit_dqt,high,"JERR_NO_QUANT_TABLE; DCTSIZE2 64 values; called by write_frame_header, write_tables_only",yes
+0x0064fb05,303,jpeg-6a/jcmarker.c,emit_sof,high,"JERR_IMAGE_TOO_BIG above 65535; called by write_frame_header",yes
+0x0064fc34,256,jpeg-6a/jcmarker.c,write_scan_header,high,"emit_dht, emit_dac, emit_dri, emit_sos; stored by jinit_marker_writer",yes
+0x0064fd34,329,jpeg-6a/jcmarker.c,emit_dht,high,"JERR_NO_HUFF_TABLE; called by write_scan_header, write_tables_only",yes
+0x0064fe7d,5,jpeg-6a/jcmarker.c,emit_dac,high,"an empty body (no arithmetic coding); called by write_scan_header",yes
+0x0064fe82,58,jpeg-6a/jcmarker.c,emit_dri,high,"emit_marker, emit_2bytes; called by write_scan_header",yes
+0x0064febc,339,jpeg-6a/jcmarker.c,emit_sos,high,"emit_marker, emit_2bytes, emit_byte; called by write_scan_header",yes
+0x0065000f,22,jpeg-6a/jcmarker.c,write_file_trailer,high,"emit_marker EOI; stored by jinit_marker_writer",yes
+0x00650025,197,jpeg-6a/jcmarker.c,write_tables_only,high,"emit_marker, emit_dqt, emit_dht; stored by jinit_marker_writer",yes
+0x006500f0,279,jpeg-6a/jcinit.c,jinit_compress_master,high,"the ten jinit_* calls (master, colour, downsampler, prep, fdct, huff or phuff, coef, main, marker); realize_virt_arrays, write_file_header; called by jpeg_start_compress",yes
+0x00650210,17,jpeg-6a/jmemansi.c,jpeg_get_small,high,"the exe's malloc (0x67dcd0); called by jinit_memory_mgr, alloc_small",yes
+0x00650221,17,jpeg-6a/jmemansi.c,jpeg_free_small,high,"the exe's free (0x67ad90); called by free_pool, self_destruct",yes
+0x00650232,17,jpeg-6a/jmemansi.c,jpeg_get_large,high,"the exe's malloc (0x67dcd0); called by alloc_large",yes
+0x00650243,17,jpeg-6a/jmemansi.c,jpeg_free_large,high,"the exe's free (0x67ad90); called by free_pool",yes
+0x00650254,17,jpeg-6a/jmemansi.c,jpeg_mem_available,high,"max_memory_to_use (+0x2c) less already_allocated; called by realize_virt_arrays",yes
+0x00650265,104,jpeg-6a/jmemansi.c,jpeg_open_backing_store,high,"tmpfile (0x67fd60); JERR_TFILE_CREATE; stores read / write / close_backing_store; called by realize_virt_arrays",yes
+0x006502cd,112,jpeg-6a/jmemansi.c,read_backing_store,high,"fseek, fread; JERR_TFILE_SEEK, TFILE_READ; stored by jpeg_open_backing_store",yes
+0x0065033d,112,jpeg-6a/jmemansi.c,write_backing_store,high,"fseek, fwrite; JERR_TFILE_SEEK, TFILE_WRITE; stored by jpeg_open_backing_store",yes
+0x006503ad,20,jpeg-6a/jmemansi.c,close_backing_store,high,"fclose; stored by jpeg_open_backing_store",yes
+0x006503c1,10,jpeg-6a/jmemansi.c,jpeg_mem_init,high,"returns 10000000 (DEFAULT_MAX_MEM overridden: the source's default is 1000000); called by jinit_memory_mgr",yes
+0x006503cb,5,jpeg-6a/jmemansi.c,jpeg_mem_term,high,"empty; called by jinit_memory_mgr, self_destruct",yes
+0x006503d0,19,jpeg-6a/jutils.c,jdiv_round_up,high,"(a + b - 1) / b; called by initial_setup, per_scan_setup",yes
+0x006503e3,30,jpeg-6a/jutils.c,jround_up,high,"a + b - 1 less its remainder; called by jinit_c_coef_controller",yes
+0x00650401,126,jpeg-6a/jutils.c,jcopy_sample_rows,high,"called by expand_bottom_edge, pre_process_context, fullsize_downsample",yes
+0x0065047f,35,jpeg-6a/jutils.c,jcopy_block_row,high,"memcpy of num_blocks << 7 bytes (REP MOVSD, REP MOVSB); unreferenced, between jcopy_sample_rows and jzero_far; not called or stored in the exe",yes
+0x006504a2,29,jpeg-6a/jutils.c,jzero_far,high,"called by access_virt_sarray, access_virt_barray, compress_data, compress_first_pass",yes
+0x006504c0,201,jpeg-6a/jcmainct.c,jinit_c_main_controller,high,"JERR_BAD_BUFFER_MODE; stores start_pass_main; called by jinit_compress_master",yes
+0x00650589,127,jpeg-6a/jcmainct.c,start_pass_main,high,"JERR_BAD_BUFFER_MODE; stores process_data_simple_main; stored by jinit_c_main_controller",yes
+0x00650608,234,jpeg-6a/jcmainct.c,process_data_simple_main,high,"pre_process_data and compress_data through the controllers; stored by start_pass_main",yes
+0x00650700,280,jpeg-6a/jccoefct.c,jinit_c_coef_controller,high,"jround_up; stores start_pass_coef; called by jinit_compress_master",yes
+0x00650818,240,jpeg-6a/jccoefct.c,start_pass_coef,high,"JERR_BAD_BUFFER_MODE; start_iMCU_row; stores compress_data / compress_first_pass / compress_output; stored by jinit_c_coef_controller",yes
+0x00650908,122,jpeg-6a/jccoefct.c,start_iMCU_row,high,"called by start_pass_coef, compress_data, compress_output",yes
+0x00650982,686,jpeg-6a/jccoefct.c,compress_data,high,"jzero_far of the dummy blocks; start_iMCU_row; stored by start_pass_coef",yes
+0x00650c30,691,jpeg-6a/jccoefct.c,compress_first_pass,high,"jzero_far; ends in compress_output; stored by start_pass_coef",yes
+0x00650ee3,509,jpeg-6a/jccoefct.c,compress_output,high,"start_iMCU_row; called by compress_first_pass; stored by start_pass_coef",yes
+0x006510e0,461,jpeg-6a/jchuff.c,jpeg_make_c_derived_tbl,high,"huffsize[257] / huffcode[257] locals; called by start_pass_huff, start_pass_phuff",yes
+0x006512ad,1221,jpeg-6a/jchuff.c,jpeg_gen_optimal_table,high,"freq[256] = 1000000000; JERR_HUFF_CLEN_OVERFLOW; called by finish_pass_gather, finish_pass_gather_phuff",yes
+0x00651772,135,jpeg-6a/jchuff.c,jinit_huff_encoder,high,"stores start_pass_huff; called by jinit_compress_master",yes
+0x006517f9,552,jpeg-6a/jchuff.c,start_pass_huff,high,"jpeg_make_c_derived_tbl; JERR_NO_HUFF_TABLE; stores encode_mcu_huff / finish_pass_huff / encode_mcu_gather / finish_pass_gather; stored by jinit_huff_encoder",yes
+0x00651a21,404,jpeg-6a/jchuff.c,encode_mcu_huff,high,"encode_one_block, emit_restart; stored by start_pass_huff",yes
+0x00651bb5,512,jpeg-6a/jchuff.c,encode_one_block,high,"emit_bits; called by encode_mcu_huff",yes
+0x00651db5,336,jpeg-6a/jchuff.c,emit_bits,high,"dump_buffer; JERR_HUFF_MISSING_CODE; called by encode_one_block, flush_bits",yes
+0x00651f05,71,jpeg-6a/jchuff.c,dump_buffer,high,"empty_output_buffer; called by emit_bits, emit_restart",yes
+0x00651f4c,228,jpeg-6a/jchuff.c,emit_restart,high,"flush_bits, dump_buffer, RST0 0xd0; called by encode_mcu_huff",yes
+0x00652030,54,jpeg-6a/jchuff.c,flush_bits,high,"emit_bits; called by emit_restart, finish_pass_huff",yes
+0x00652066,152,jpeg-6a/jchuff.c,finish_pass_huff,high,"flush_bits; JERR_CANT_SUSPEND; stored by start_pass_huff",yes
+0x006520fe,274,jpeg-6a/jchuff.c,encode_mcu_gather,high,"htest_one_block; stored by start_pass_huff",yes
+0x00652210,309,jpeg-6a/jchuff.c,htest_one_block,high,"called by encode_mcu_gather",yes
+0x00652345,301,jpeg-6a/jchuff.c,finish_pass_gather,high,"jpeg_alloc_huff_table, jpeg_gen_optimal_table; stored by start_pass_huff",yes
+0x00652480,117,jpeg-6a/jcphuff.c,jinit_phuff_encoder,high,"stores start_pass_phuff; called by jinit_compress_master",yes
+0x006524f5,666,jpeg-6a/jcphuff.c,start_pass_phuff,high,"jpeg_make_c_derived_tbl; JERR_NO_HUFF_TABLE; stores the four encode_mcu_* and the two finish passes; stored by jinit_phuff_encoder",yes
+0x0065278f,456,jpeg-6a/jcphuff.c,encode_mcu_DC_first,high,"emit_restart, emit_symbol, emit_bits; stored by start_pass_phuff",yes
+0x00652957,334,jpeg-6a/jcphuff.c,emit_bits,high,"dump_buffer; JERR_HUFF_MISSING_CODE; called by encode_mcu_DC_first, emit_symbol, flush_bits, emit_eobrun, emit_buffered_bits, encode_mcu_AC_first, encode_mcu_DC_refine, encode_mcu_AC_refine",yes
+0x00652aa5,98,jpeg-6a/jcphuff.c,dump_buffer,high,"empty_output_buffer; JERR_CANT_SUSPEND; called by emit_bits, emit_restart",yes
+0x00652b07,104,jpeg-6a/jcphuff.c,emit_symbol,high,"emit_bits; called by encode_mcu_DC_first, emit_eobrun, encode_mcu_AC_first, encode_mcu_AC_refine",yes
+0x00652b6f,261,jpeg-6a/jcphuff.c,emit_restart,high,"emit_eobrun, flush_bits, dump_buffer, RST0 0xd0; called by encode_mcu_DC_first, encode_mcu_AC_first, encode_mcu_DC_refine, encode_mcu_AC_refine",yes
+0x00652c74,41,jpeg-6a/jcphuff.c,flush_bits,high,"emit_bits; called by emit_restart, finish_pass_phuff",yes
+0x00652c9d,165,jpeg-6a/jcphuff.c,emit_eobrun,high,"emit_symbol, emit_bits, emit_buffered_bits; called by emit_restart, encode_mcu_AC_first, encode_mcu_AC_refine, finish_pass_phuff, finish_pass_gather_phuff",yes
+0x00652d42,64,jpeg-6a/jcphuff.c,emit_buffered_bits,high,"emit_bits; called by emit_eobrun, encode_mcu_AC_refine",yes
+0x00652d82,586,jpeg-6a/jcphuff.c,encode_mcu_AC_first,high,"EOB run limit 0x7fff; stored by start_pass_phuff",yes
+0x00652fcc,296,jpeg-6a/jcphuff.c,encode_mcu_DC_refine,high,"emit_restart, emit_bits; stored by start_pass_phuff",yes
+0x006530f4,932,jpeg-6a/jcphuff.c,encode_mcu_AC_refine,high,"MAX_CORR_BITS 1000 (937 + DCTSIZE2), EOB run limit 0x7fff; stored by start_pass_phuff",yes
+0x00653498,102,jpeg-6a/jcphuff.c,finish_pass_phuff,high,"emit_eobrun, flush_bits; stored by start_pass_phuff",yes
+0x006534fe,272,jpeg-6a/jcphuff.c,finish_pass_gather_phuff,high,"emit_eobrun, jpeg_alloc_huff_table, jpeg_gen_optimal_table; stored by start_pass_phuff",yes
+0x00653610,231,jpeg-6a/jcdctmgr.c,jinit_forward_dct,high,"JERR_NOT_COMPILED; stores start_pass_fdctmgr, forward_DCT / forward_DCT_float, jpeg_fdct_islow / ifast / float; called by jinit_compress_master",yes
+0x006536f7,664,jpeg-6a/jcdctmgr.c,start_pass_fdctmgr,high,"JERR_NO_QUANT_TABLE, NOT_COMPILED; stored by jinit_forward_dct",yes
+0x0065398f,931,jpeg-6a/jcdctmgr.c,forward_DCT,high,"stored by jinit_forward_dct",yes
+0x00653d32,850,jpeg-6a/jcdctmgr.c,forward_DCT_float,high,"_ftol (0x67a830); stored by jinit_forward_dct",yes
+0x00654090,248,jpeg-6a/jcprepct.c,jinit_c_prep_controller,high,"JERR_BAD_BUFFER_MODE; create_context_buffer; stores start_pass_prep / pre_process_data / pre_process_context; called by jinit_compress_master",yes
+0x00654188,101,jpeg-6a/jcprepct.c,start_pass_prep,high,"JERR_BAD_BUFFER_MODE; stored by jinit_c_prep_controller",yes
+0x006541ed,527,jpeg-6a/jcprepct.c,pre_process_data,high,"expand_bottom_edge; stored by jinit_c_prep_controller",yes
+0x006543fc,68,jpeg-6a/jcprepct.c,expand_bottom_edge,high,"jcopy_sample_rows; called by pre_process_data, pre_process_context",yes
+0x00654440,613,jpeg-6a/jcprepct.c,pre_process_context,high,"jcopy_sample_rows, expand_bottom_edge; stored by jinit_c_prep_controller",yes
+0x006546a5,331,jpeg-6a/jcprepct.c,create_context_buffer,high,"called by jinit_c_prep_controller",yes
+0x006547f0,557,jpeg-6a/jcsample.c,jinit_downsampler,high,"JERR_CCIR601_NOTIMPL, FRACT_SAMPLE_NOTIMPL, JTRC_SMOOTH_NOTIMPL; stores the methods; called by jinit_compress_master",yes
+0x00654a1d,5,jpeg-6a/jcsample.c,start_pass_downsample,high,"empty; stored by jinit_downsampler",yes
+0x00654a22,143,jpeg-6a/jcsample.c,sep_downsample,high,"stored by jinit_downsampler",yes
+0x00654ab1,364,jpeg-6a/jcsample.c,int_downsample,high,"expand_right_edge; stored by jinit_downsampler",yes
+0x00654c1d,119,jpeg-6a/jcsample.c,expand_right_edge,high,"called by int_downsample, fullsize_downsample, h2v1_downsample, h2v2_downsample, h2v2_smooth_downsample, fullsize_smooth_downsample",yes
+0x00654c94,81,jpeg-6a/jcsample.c,fullsize_downsample,high,"jcopy_sample_rows, expand_right_edge; stored by jinit_downsampler",yes
+0x00654ce5,206,jpeg-6a/jcsample.c,h2v1_downsample,high,"expand_right_edge; stored by jinit_downsampler",yes
+0x00654db3,268,jpeg-6a/jcsample.c,h2v2_downsample,high,"expand_right_edge; stored by jinit_downsampler",yes
+0x00654ebf,959,jpeg-6a/jcsample.c,h2v2_smooth_downsample,high,"memberscale 16384 - SF*80, neighscale SF*16; stored by jinit_downsampler",yes
+0x0065527e,589,jpeg-6a/jcsample.c,fullsize_smooth_downsample,high,"memberscale 65536 - SF*... over 32768; stored by jinit_downsampler",yes
+0x006554d0,887,jpeg-6a/jccolor.c,jinit_color_converter,high,"JERR_BAD_IN_COLORSPACE, BAD_J_COLORSPACE, CONVERSION_NOTIMPL; stores the converters; called by jinit_compress_master",yes
+0x0065586f,273,jpeg-6a/jccolor.c,rgb_ycc_start,high,"FIX(0.29900) 0x4c8b, FIX(0.58700) 0x9646, FIX(0.11400) 0x1d2f; stored by jinit_color_converter",yes
+0x00655980,356,jpeg-6a/jccolor.c,rgb_ycc_convert,high,"stored by jinit_color_converter",yes
+0x00655ae4,219,jpeg-6a/jccolor.c,rgb_gray_convert,high,"stored by jinit_color_converter",yes
+0x00655bbf,406,jpeg-6a/jccolor.c,cmyk_ycck_convert,high,"MAXJSAMPLE 255 complements; stored by jinit_color_converter",yes
+0x00655d55,135,jpeg-6a/jccolor.c,grayscale_convert,high,"stored by jinit_color_converter",yes
+0x00655ddc,177,jpeg-6a/jccolor.c,null_convert,high,"stored by jinit_color_converter",yes
+0x00655e8d,5,jpeg-6a/jccolor.c,null_method,high,"empty; stored by jinit_color_converter",yes
+0x00655ea0,288,jpeg-6a/jcmaster.c,jinit_c_master_control,high,"initial_setup, validate_script; stores prepare_for_pass / pass_startup / finish_pass_master; called by jinit_compress_master",yes
+0x00655fc0,828,jpeg-6a/jcmaster.c,initial_setup,high,"jdiv_round_up; JERR_EMPTY_IMAGE, IMAGE_TOO_BIG, BAD_PRECISION, COMPONENT_COUNT, BAD_SAMPLING; called by jinit_c_master_control",yes
+0x006562fc,1570,jpeg-6a/jcmaster.c,validate_script,high,"JERR_BAD_SCAN_SCRIPT, BAD_PROG_SCRIPT, COMPONENT_COUNT, MISSING_DATA; called by jinit_c_master_control",yes
+0x0065691e,660,jpeg-6a/jcmaster.c,prepare_for_pass,high,"select_scan_parameters, per_scan_setup; JERR_NOT_COMPILED; stored by jinit_c_master_control",yes
+0x00656bb2,390,jpeg-6a/jcmaster.c,select_scan_parameters,high,"JERR_COMPONENT_COUNT; called by prepare_for_pass",yes
+0x00656d38,738,jpeg-6a/jcmaster.c,per_scan_setup,high,"jdiv_round_up; JERR_COMPONENT_COUNT, BAD_MCU_SIZE; called by prepare_for_pass",yes
+0x0065701a,59,jpeg-6a/jcmaster.c,pass_startup,high,"write_frame_header, write_scan_header through the marker writer; stored by jinit_c_master_control",yes
+0x00657055,173,jpeg-6a/jcmaster.c,finish_pass_master,high,"stored by jinit_c_master_control",yes
+0x00657110,868,jpeg-6a/jfdctflt.c,jpeg_fdct_float,high,"stored by jinit_forward_dct",yes
+0x00657480,898,jpeg-6a/jfdctfst.c,jpeg_fdct_ifast,high,"FIX_0_707106781 181, FIX_0_382683433 98, FIX_0_541196100 139, FIX_1_306562965 334; stored by jinit_forward_dct",yes
+0x00657810,1187,jpeg-6a/jfdctint.c,jpeg_fdct_islow,high,"FIX_0_541196100 4433 (0x1151), FIX_0_765366865 6270 (0x187e); stored by jinit_forward_dct",yes
