@@ -5293,6 +5293,14 @@ const Hook kHooks[] = {
     {"jpeg6a_jerror_reset_error_mgr", 0x0064dff8, (void *)&jpeg6a_jerror_reset_error_mgr, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
     {"jpeg6a_jerror_format_message", 0x0064dead, (void *)&jpeg6a_jerror_format_message, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jpeg6a_jerror_emit_message", 0x0064de4f, (void *)&jpeg6a_jerror_emit_message, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"jpeg6a_jpeg_write_raw_data", 0x0064cc5e, (void *)&jpeg6a_jpeg_write_raw_data, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"jpeg6a_jpeg_write_scanlines", 0x0064cb3c, (void *)&jpeg6a_jpeg_write_scanlines, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jpeg_write_marker",  0x0064c982, (void *)&jpeg6a_jpeg_write_marker, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jpeg_finish_compress", 0x0064c7fd, (void *)&jpeg6a_jpeg_finish_compress, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"jpeg6a_jpeg_suppress_tables", 0x0064c762, (void *)&jpeg6a_jpeg_suppress_tables, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jpeg_abort_compress", 0x0064c751, (void *)&jpeg6a_jpeg_abort_compress, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jpeg_destroy_compress", 0x0064c740, (void *)&jpeg6a_jpeg_destroy_compress, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jpeg_CreateCompress", 0x0064c5f0, (void *)&jpeg6a_jpeg_CreateCompress, {0x55, 0x8b, 0xec, 0x83, 0xec}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

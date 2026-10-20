@@ -5620,3 +5620,11 @@ address,name,kind,confidence,notes
 0x0064de4f,jpeg6a_jerror_emit_message,function,low,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jerror.c emit_message: a warning or trace output by trace_level, warnings counted (the library's)"
 0x0064dead,jpeg6a_jerror_format_message,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jerror.c format_message: msg_code's text formatted with the exe's sprintf (the library's)
 0x0064dff8,jpeg6a_jerror_reset_error_mgr,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jerror.c reset_error_mgr: num_warnings and msg_code 0 (the library's)
+0x0064c5f0,jpeg6a_jpeg_CreateCompress,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapimin.c jpeg_CreateCompress: version and size checked, the struct zeroed, the memory manager, CSTATE_START (the library's)"
+0x0064c740,jpeg6a_jpeg_destroy_compress,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapimin.c jpeg_destroy_compress: jpeg_destroy (the library's)
+0x0064c751,jpeg6a_jpeg_abort_compress,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapimin.c jpeg_abort_compress: jpeg_abort (the library's)
+0x0064c762,jpeg6a_jpeg_suppress_tables,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapimin.c jpeg_suppress_tables: every table's sent_table set (the library's)
+0x0064c7fd,jpeg6a_jpeg_finish_compress,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapimin.c jpeg_finish_compress: the remaining passes, the trailer, term_destination, jpeg_abort (the library's)"
+0x0064c982,jpeg6a_jpeg_write_marker,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapimin.c jpeg_write_marker: write_any_marker before the first scanline (the library's)
+0x0064cb3c,jpeg6a_jpeg_write_scanlines,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapistd.c jpeg_write_scanlines: rows through the main controller (the library's)
+0x0064cc5e,jpeg6a_jpeg_write_raw_data,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapistd.c jpeg_write_raw_data: one iMCU row through the coefficient controller (the library's)

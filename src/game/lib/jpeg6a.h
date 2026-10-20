@@ -18,6 +18,28 @@ struct jpeg6a_compress_struct;  // jpeg_compress_struct, 0x168 bytes (6a's boole
 struct jpeg6a_quant_tbl;        // JQUANT_TBL (untagged), 0x84 bytes (sent_table at +0x80)
 struct jpeg6a_huff_tbl;         // JHUFF_TBL (untagged), 0x118 bytes (sent_table at +0x114)
 
+// jcapimin.c / jcapistd.c: the compressor's interface. Error codes are jpeg-6a/jerror.h's.
+// 0x64c5f0: mem NULL; version 61 and structsize 0x168 checked (JERR_BAD_LIB_VERSION 0xa, JERR_BAD_STRUCT_SIZE 0x13); the struct zeroed
+// but err, then the memory manager (jinit_memory_mgr), the table pointers NULL, input_gamma 1.0, global_state CSTATE_START (100).
+void __cdecl jpeg6a_jpeg_CreateCompress(jpeg6a_compress_struct *cinfo, int version, std::size_t structsize);
+// 0x64c740, 0x64c751: jpeg_destroy, jpeg_abort.
+void __cdecl jpeg6a_jpeg_destroy_compress(jpeg6a_compress_struct *cinfo);
+void __cdecl jpeg6a_jpeg_abort_compress(jpeg6a_compress_struct *cinfo);
+// 0x64c762: every quantization and Huffman table's sent_table set to suppress.
+void __cdecl jpeg6a_jpeg_suppress_tables(jpeg6a_compress_struct *cinfo, int suppress);
+// 0x64c7fd: the first pass finished (JERR_TOO_LITTLE_DATA 0x42 below image_height; JERR_BAD_STATE 0x12 outside CSTATE_SCANNING /
+// RAW_OK / WRCOEFS), the remaining passes run through the master and the coefficient controller (JERR_CANT_SUSPEND 0x16), then the
+// file trailer, term_destination and jpeg_abort.
+void __cdecl jpeg6a_jpeg_finish_compress(jpeg6a_compress_struct *cinfo);
+// 0x64c982: the marker writer's write_any_marker, before the first scanline only (JERR_BAD_STATE).
+void __cdecl jpeg6a_jpeg_write_marker(jpeg6a_compress_struct *cinfo, int marker, const unsigned char *dataptr, unsigned int datalen);
+// 0x64cb3c: up to the rows left of num_lines through the main controller's process_data (JERR_BAD_STATE outside CSTATE_SCANNING,
+// JWRN_TOO_MUCH_DATA 0x77 past the image), after the progress monitor and the master's pass_startup; the rows taken.
+unsigned int __cdecl jpeg6a_jpeg_write_scanlines(jpeg6a_compress_struct *cinfo, unsigned char **scanlines, unsigned int num_lines);
+// 0x64cc5e: one iMCU row of raw data through the coefficient controller (JERR_BAD_STATE outside CSTATE_RAW_OK, JERR_BUFFER_SIZE 0x15
+// below max_v_samp_factor * 8 lines); its line count, 0 when it suspends or past the image.
+unsigned int __cdecl jpeg6a_jpeg_write_raw_data(jpeg6a_compress_struct *cinfo, unsigned char ***data, unsigned int num_lines);
+
 // jcomapi.c: what compression and decompression share.
 // 0x64f3c0: the image pool freed (mem->free_pool of pool 1), global_state back to the start (DSTATE_START 200 for a decompressor,
 // else CSTATE_START 100).
