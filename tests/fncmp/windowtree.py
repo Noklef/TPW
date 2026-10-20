@@ -4,6 +4,7 @@
 # real GUI rectangles (window.py's tree()), points near them or anywhere (upper halves random), the root, the hovered window and the queues set
 # or not. NotifyShown / SetShown (0x65d90b, 0x65d9dd): window.py's shown_env. Offset (0x65c7fe): window.py's offset_env, moved by words 0 or
 # not (upper halves random). SetEnabled (0x65da8d): shown_env's, flag 2 of each window's +0x48 either way; AX compared (only AX is set).
+# ScriptStep / SlideStep / ScriptTick (0x65e9a4, 0x65ee7a, 0x65c357): see script_case().
 # usage: windowtree.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FindChild,IsShown,...)
 import os
 import struct
@@ -12,17 +13,20 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, blob, blob_bytes, log_region, put, recorder, vtable  # noqa: E402
-from window import MISC, NODES, OBJECT98, RANGES, TREE, VTABLE, WINDOW, chain, hover, offset_env, point, shown_env, tree, word  # noqa: E402
+from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, blob, blob_bytes, log_region, put, recorder, set_return, vtable  # noqa: E402
+from window import MANAGER, MISC, NODES, OBJECT98, RANGES, TREE, VTABLE, WINDOW, chain, hover, offset_env, point, shown_env, tree, word  # noqa: E402
 
 CALLS = {'FindChild': 0x65d7d0, 'IsShown': 0x65d773, 'OffsetByParents': 0x65c979, 'HitTest': 0x65db25, 'UpdateHover': 0x6589f9,
          'NotifyShown': 0x65d90b, 'SetShown': 0x65d9dd, 'Offset': 0x65c7fe, 'SetEnabled': 0x65da8d,
          'RaiseToTop': 0x65dbf0, 'OpenTree': 0x65c707, 'CloseTree': 0x65c778, 'SetRect': 0x65cc04, 'ResizeChildren': 0x65c9bd,
-         'SetRectTo': 0x65cf5e, 'AddChild': 0x65f447}
+         'SetRectTo': 0x65cf5e, 'AddChild': 0x65f447, 'ScriptStep': 0x65e9a4, 'SlideStep': 0x65ee7a, 'ScriptTick': 0x65c357}
 ARG = RAM + 0xb000
 B = Bench(RANGES + [(0x65da8d, 0x65db25), (0x65dbf0, 0x65dcaf), (0x65c707, 0x65c7fe), (0x65c9bd, 0x65cd95),
                        (0x65cf5e, 0x65cfd4), (0x661700, 0x66176a), (0x659e3e, 0x659e83), (0x659d43, 0x659d90),
-                       (0x65f447, 0x65f538), (0x65f345, 0x65f410), (0x65f16b, 0x65f246)])
+                       (0x65f447, 0x65f538), (0x65f345, 0x65f410), (0x65f16b, 0x65f246),
+                       (0x65e9a4, 0x65ecb0), (0x65ee7a, 0x65ef90), (0x65f286, 0x65f330), (0x65d3a3, 0x65d40c), (0x662097, 0x6620ac),
+                       (0x65968e, 0x6596a2), (0x65c357, 0x65c388)])
+SCRIPT, TNODE, CLOCK = ARG + 0x400, ARG + 0x600, ARG + 0x700
 
 
 def case(r):
@@ -63,18 +67,10 @@ def case(r):
     if op == 'UpdateHover':   # the root [0xfaa5d8] or none, [0xfaa5e8] mostly 0, the hovered window [0xfaa5e0] one of them or none
         hover(r, regions, tree(r, regions))
         return Call(CALLS[op], [], regions, ret='w')
-    if op in ('SetRect', 'ResizeChildren', 'SetRectTo'):   # offset_env's, small rectangles +8 / +0x2c and margins, anchors 0xf0000 mixed in
-        wins = offset_env(r, regions, log)
-        blob(log, 3, 1, 0x20)   # (SetRect's event sets only its +0x14)
-        blob(log, 22, 1, 0x20)
-        for w in wins:
-            buf = regions[w]
-            left, top = r.randrange(-30, 30), r.randrange(-30, 30)
-            put(buf, 0xc, 'hhhh', left, top, left + r.choice([0, 5, 40]), top + r.choice([0, 5, 40]))
-            put(buf, 0x30, 'hhhh', *[r.randrange(-30, 70) for _ in range(4)])
-            put(buf, 0xf8, 'hhhh', *[r.choice([0, 0, 1, 2, -1]) for _ in range(4)])
-            put(buf, 0x48, 'I', struct.unpack_from('<I', buf, 0x48)[0] & 0xfff0ffff | r.choice(
-                [0, 0, 0x10000, 0x20000, 0x30000, 0x40000, 0x80000, 0xc0000, 0xf0000, 0xf0000, 0x50000, 0xa0000, 0x70000, 0xd0000]))
+    if op in ('ScriptStep', 'SlideStep', 'ScriptTick'):
+        return script_case(r, op, regions, log)
+    if op in ('SetRect', 'ResizeChildren', 'SetRectTo'):   # see rect_env()
+        wins = rect_env(r, regions, log)
         window = r.choice(wins[:1] * 3 + wins)
         if op == 'ResizeChildren':
             return Call(CALLS[op], [window] + [word(r) for _ in range(4)], regions, conv='t', ret='v')
@@ -153,6 +149,86 @@ def case(r):
         edx = r.choice([window & 0xffff0000, r.getrandbits(32)])
         return Call(CALLS[op], [window, edx, shown], regions, conv='f', ret='v')
     return Call(CALLS[op], [window, shown], regions, conv='t', ret='w' if op == 'SetEnabled' else 'a')
+
+
+def rect_env(r, regions, log):
+    """offset_env's windows, small rectangles +8 / +0x2c and margins +0xf8, anchors 0xf0000 mixed in; the objects' events (SetRect's sets only
+    its +0x14) hashed"""
+    wins = offset_env(r, regions, log)
+    blob(log, 3, 1, 0x20)
+    blob(log, 22, 1, 0x20)
+    for w in wins:
+        buf = regions[w]
+        left, top = r.randrange(-30, 30), r.randrange(-30, 30)
+        put(buf, 0xc, 'hhhh', left, top, left + r.choice([0, 5, 40]), top + r.choice([0, 5, 40]))
+        put(buf, 0x30, 'hhhh', *[r.randrange(-30, 70) for _ in range(4)])
+        put(buf, 0xf8, 'hhhh', *[r.choice([0, 0, 1, 2, -1]) for _ in range(4)])
+        put(buf, 0x48, 'I', struct.unpack_from('<I', buf, 0x48)[0] & 0xfff0ffff | r.choice(
+            [0, 0, 0x10000, 0x20000, 0x30000, 0x40000, 0x80000, 0xc0000, 0xf0000, 0xf0000, 0x50000, 0xa0000, 0x70000, 0xd0000]))
+    return wins
+
+
+def anyword(r):
+    return r.randrange(-0x8000, 0x8000)
+
+
+def script_case(r, op, regions, log):
+    """ScriptStep / SlideStep / ScriptTick: rect_env's, the window one with room past +0x120 (made 0x140 bytes): its script of 2-7 steps (the
+    last the end; jumps only forward), the step in it, the byte +0x135 1 or not, the interval +0xf0 (negative ones too: a jump then runs the
+    next step at once) and the last time against the clock [0x77c490] (a recorder answering one time); the slide's byte +0x136, count +0x10c
+    (0 or not), moves, timer node and target rectangle +0x38; the manager's +0x14 the window or not. The objects' events hashed by the step
+    that runs."""
+    wins = rect_env(r, regions, log)
+    window = r.choice([w for w in wins if not any(w < o < w + 0x140 for o in regions)])
+    buf = regions[window]
+    buf.extend(r.bytes(0x140 - len(buf)))
+    n = r.randrange(2, 8)
+    steps = []
+    for i in range(n - 1):
+        kind = r.choice(['end', 'word', 'jump', 'notify', 'move', 'move', 'move'])
+        if kind == 'end':
+            steps.append((-9999, anyword(r), anyword(r), 0))
+        elif kind == 'word':
+            steps.append((-9998, anyword(r), anyword(r), 0))
+        elif kind == 'jump':
+            steps.append((-9997, r.randrange(i + 1, n), anyword(r), 0))
+        elif kind == 'notify':
+            steps.append((-9996, r.choice([0, 1, -1, anyword(r)]), 0, 0))
+        else:
+            steps.append(tuple(r.choice([0, 1, -2, 5, r.randrange(-0x8000, -10000), r.randrange(-9995, 0x8000)]) for _ in range(4)))
+    steps.append((-9999, anyword(r), 0, 0))
+    regions[SCRIPT] = b''.join(struct.pack('<hhhh', *st) for st in steps)
+    now = r.getrandbits(32)
+    set_return(log, 0, now)
+    regions[CLOCK] = struct.pack('<I', CLOCK + 0x10) + bytes(12) + vtable({}, size=4)
+    regions[0x77c490] = struct.pack('<I', CLOCK)
+    on, script, at = r.choice([1, 1, 1, 0, 0x81]), r.choice([SCRIPT] * 9 + [0]), r.randrange(n)
+    interval = r.choice([0, 5, 100, -1, -50, 0x7fffffff, -0x80000000])
+    last = (now - r.choice([0, 3, 6, 101, 1000, r.getrandbits(32)])) & 0xffffffff
+    put(buf, 0x135, 'B', on)
+    put(buf, 0xe8, 'I', script)
+    put(buf, 0xec, 'h', at)
+    put(buf, 0xf0, 'i', interval)
+    put(buf, 0xf4, 'I', last)
+    put(buf, 0x136, 'B', r.choice([0, 1, 0x80]))
+    put(buf, 0x10c, 'h', r.choice([0, 0, 1, 3, -1]))
+    put(buf, 0x104, 'hhhh', *[r.choice([0, 1, -3, 7]) for _ in range(4)])
+    put(buf, 0x100, 'I', TNODE)
+    regions[TNODE] = r.bytes(0x20)
+    put(buf, 0x38, 'Ihhhh', 0x705920, *[r.randrange(-30, 70) for _ in range(4)])
+    regions[MANAGER] = struct.pack('<6I', MANAGER + 0x40, 0, 0, 0, 0, r.choice([window, window, 0, wins[0]]))
+    kind = None   # (the step that runs: past the jumps, each one's next step run at once only for a negative interval)
+    if op == 'SlideStep':
+        kind = 'rect' if buf[0x136] else None
+    elif on == 1 and script and ((now - last + 0x80000000) & 0xffffffff) - 0x80000000 > interval:
+        i = at
+        while steps[i][0] == -9997 and 0 > interval:
+            i = steps[i][1]
+        kind = None if steps[i][0] == -9997 else {-9998: 'word', -9996: 'notify'}.get(steps[i][0], 'rect')
+    mask = {None: 0, 'rect': 0xf00000, 'word': 0x300, 'notify': 0x30}[kind]
+    blob_bytes(log, 3, 1, mask)
+    blob_bytes(log, 22, 1, mask)
+    return Call(CALLS[op], [window], regions, conv='t', ret='w')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]

@@ -7,6 +7,7 @@
 #include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
+#include "guimanager.h"
 #include "guirect.h"
 #include "guitimers.h"
 #include "msgqueue.h"
@@ -790,5 +791,73 @@ u32 __fastcall Window_AddChild(u8 *window, void *, u8 *child, u32 depth, u32 wor
     Window_UpdateHover();
     Window_KillFocus(window, nullptr, 0);
     return 1;
+}
+
+u32 __fastcall Window_ScriptStep(u8 *window) {
+    u8 rect[0x10];
+    GuiRect_Ctor(rect);
+    if ((s8)at<u8>(window, 0x135) != 1 || !at<u8 *>(window, 0xe8) ||
+        (s32)(GuiClock_Now() - at<u32>(window, 0xf4)) <= at<s32>(window, 0xf0)) {
+        GuiRect_Dtor(rect);
+        return 0xffff;
+    }
+    at<u32>(window, 0xf4) = GuiClock_Now();
+    const s16 *const step = reinterpret_cast<const s16 *>(at<u8 *>(window, 0xe8) + (s32)at<s16>(window, 0xec) * 8);
+    if (step[0] == -9999) {
+        at<u8>(window, 0x135) = 0;
+        at<u16>(window, 0xec) = 0;
+        GuiRect_Assign(rect, nullptr, window + 8);
+        GuiRect_Adjust(rect, nullptr, (u32)-(s32)at<s16>(window, 0xf8), (u32)-(s32)at<s16>(window, 0xfa), (u32)-(s32)at<s16>(window, 0xfc),
+                       (u32)-(s32)at<s16>(window, 0xfe));
+        Window_SetRect(window, nullptr, rect);
+        at<u16>(window, 0xfe) = 0;
+        at<u16>(window, 0xfc) = 0;
+        at<u16>(window, 0xfa) = 0;
+        at<u16>(window, 0xf8) = 0;
+    } else if (step[0] == -9998) {
+        Window_SetWordE2(window, nullptr, (u16)step[1]);
+        at<u16>(window, 0xec) += 1;
+    } else if (step[0] == -9997) {
+        at<u16>(window, 0xec) = (u16)step[1];
+        Window_ScriptStep(window);
+    } else if (step[0] == -9996) {
+        Window_Notify1(window, nullptr, (u32)(s32)step[1]);
+        at<u16>(window, 0xec) += 1;
+    } else {
+        GuiRect_Assign(rect, nullptr, window + 8);
+        for (int i = 0; i < 4; ++i) at<u16>(rect, 4 + 2 * i) += (u16)step[i];
+        for (int i = 0; i < 4; ++i) at<u16>(window, 0xf8 + 2 * i) += (u16)step[i];
+        Window_SetRect(window, nullptr, rect);
+        at<u16>(window, 0xec) += 1;
+    }
+    const u16 now = at<u16>(window, 0xec);
+    GuiRect_Dtor(rect);
+    return now;
+}
+
+u32 __fastcall Window_SlideStep(u8 *window) {
+    u8 rect[0x10];
+    GuiRect_Ctor(rect);
+    if (at<u8>(window, 0x136)) {
+        if (at<s16>(window, 0x10c) == 0) {
+            Fn_662097(at<u8 *>(window, 0x100));
+            at<u8>(window, 0x136) = 0;
+            Window_SetRect(window, nullptr, window + 0x38);
+            Window_PostMessage(window, 0x1d, 0, 0);
+        } else {
+            GuiRect_Assign(rect, nullptr, window + 8);
+            GuiRect_Adjust(rect, nullptr, at<u16>(window, 0x104), at<u16>(window, 0x106), at<u16>(window, 0x108), at<u16>(window, 0x10a));
+            Window_SetRect(window, nullptr, rect);
+            at<u16>(window, 0x10c) -= 1;
+        }
+    }
+    GuiRect_Dtor(rect);
+    return 0xffff;
+}
+
+u32 __fastcall Window_ScriptTick(u8 *window) {
+    u8 *const manager = *reinterpret_cast<u8 **>((uintptr_t)0x0077c48c);
+    if (at<u8 *>(manager, 0x14) == window) vcall<void>(manager, 0x30);
+    return Window_ScriptStep(window);
 }
 }

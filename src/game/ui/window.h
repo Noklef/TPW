@@ -302,4 +302,22 @@ void __fastcall Window_SetWordsE4(u8 *window, void *, u32 a, u32 b);
 // (Window_SetDepth), with words not 0 the window's +0xe4 / +0xe6 (Window_SetWordsE4); the hover updated (Window_UpdateHover) and the
 // window's focus let go (Window_KillFocus (0)); 1 in AX (the rest of EAX the focus call's).
 u32 __fastcall Window_AddChild(u8 *window, void *, u8 *child, u32 depth, u32 words);
+
+// 0x65e9a4 (thiscall; recursive; name unconfirmed): one step of the window's script (+0xe8, steps of four words; the step +0xec). Only with
+// the byte +0x135 1 (signed), a script and the GUI clock (GuiClock_Now) past the last time +0xf4 by more than the interval +0xf0 (signed);
+// else 0xffff in AX. The time is set to now and the step's first word says: -9999 the end (+0x135 and +0xec 0, the rectangle +8 less the
+// margins +0xf8..+0xfe set (Window_SetRect) and the margins 0); -9998 the word +0xe2 the second word (Window_SetWordE2); -9997 a jump (+0xec
+// the second word and the step run again: its answer dropped); -9996 a notification of the second word (Window_Notify1, signed); else the
+// four words added to the rectangle +8 (Window_SetRect) and the margins. The step +0xec moves on after all but the end and the jump; it is
+// returned in AX (the rest of EAX the rectangle's destructor's).
+u32 __fastcall Window_ScriptStep(u8 *window);
+
+// 0x65ee7a (thiscall; name unconfirmed): with the byte +0x136 set, either (the count +0x10c 0) the timer +0x100 stopped (Fn_662097), +0x136
+// 0, the rectangle set to the target +0x38 (Window_SetRect) and the window posted 0x1d (0, 0) (Window_PostMessage); or the rectangle +8
+// moved by the words +0x104..+0x10a (Window_SetRect) and the count less 1. 0xffff in AX (the rest of EAX the rectangle's destructor's).
+u32 __fastcall Window_SlideStep(u8 *window);
+
+// 0x65c357 (thiscall; name unconfirmed): the manager [0x77c48c]'s slot 12 (no arguments) when its +0x14 is the window; then the script's
+// step (Window_ScriptStep), whose answer it returns.
+u32 __fastcall Window_ScriptTick(u8 *window);
 }
