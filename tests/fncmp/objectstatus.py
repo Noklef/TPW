@@ -72,8 +72,12 @@ def front(r):
     item_fields(r, items, len(items) // ITEM, True)
     c.regions[ITEMS] = items
     table = bytearray(c.regions[0x7cfb90])
-    put(table, 20 * 11, 'I', THING)
+    put(table, 20 * 11, 'I', THING)   # the game table entry (+0x1da718 is 11): its indexed dwords 0 and 1 (+0x28, +0x34) set or not
     c.regions[0x7cfb90] = table
+    thing = bytearray(r.bytes(0x220))
+    put(thing, 0x28, 'II', r.choice([0, 0, 1]), 0)
+    put(thing, 0x34, 'I', r.choice([0, 0, 1]))
+    c.regions[THING] = thing
     for h in range(12):   # the things the tracked handle names: their kind and words (+0x218, +0x21a) the object's handle or not, their state
         thing = struct.unpack_from('<I', table, 20 * h)[0]
         for base, data in c.regions.items():
@@ -92,11 +96,6 @@ def front(r):
             spare[0x300 * h + 2] = r.choice([0, 4, 5])
             put(spare, 0x300 * h + 0x218, 'HH', *[struct.unpack_from('<H', obj, 0)[0] if r.random() < 0.5 else r.getrandbits(16) for _ in range(2)])
             put(spare, 0x300 * h + 0x19c, 'I', r.choice([0xb, 0xd, 1, 2]))
-    thing = bytearray(r.bytes(0x220))
-    put(thing, 0x28, 'II', r.choice([0, 0, 1]), 0)
-    put(thing, 0x34, 'I', r.choice([0, 0, 1]))
-    thing[2] = 4
-    c.regions[THING] = thing
     tail = bytearray(r.bytes(0x40))   # world + 0x1da700: the tick (+0xc), the entry's index (+0x18), the words +0x3c, +0x3e
     stamp = struct.unpack_from('<I', obj, 0x60)[0]
     put(tail, 0xc, 'I', (stamp + r.choice([0, 0x63, 0x64, 0x65, 1000, r.getrandbits(32)])) & 0xffffffff)
