@@ -1,10 +1,11 @@
 # A list's new row window (src/game/ui/listrows: 0x480d30 / 0x4a8380) against the originals. HilightList_NewRow / List7cc188_NewRow:
 # window.py's tree and queues (Window_Ctor's surroundings), the heap failing now and then, font 7 (Language_Font, of group 0-2) a recorder
 # whose slot 1 gives its height (edges too), the divisor word [0xfaa5c0] any but 0.
-# List7cc338_NewRow / List7cc530_NewRow (0x4b4c70 / 0x4bacc0): the same, the font of 4b4c70 the dword [0x756f38] (7 mostly, 0-12 or past
-# them) and its height cached in [0x7cc35c] or not (any dword); their child (Window_CreateChild kinds 9 and 6) made with
-# windowfactory.py's timer_env() surroundings and heap, the row's allocation failing now and then for 0x4b4c70 (for 0x4bacc0 never: the
-# child of no window faults in both, sic; nor the child's: CreateChild's failures fault in both, windowfactory.py).
+# The factories with children (List7cc338_NewRow 0x4b4c70, List7cc530_NewRow 0x4bacc0 and the others of CHILDREN below): the same, the
+# fonts of those that keep their index in a dword (CACHES) that dword's (7 mostly, 0-12), the height cache any dword, 0 mostly; the
+# children (Window_CreateChild) made with windowfactory.py's timer_env() surroundings and heap, the row's allocation failing now and then
+# but for UNCHECKED's (the child of no window faults in both, sic; never the children's: CreateChild's failures fault in both,
+# windowfactory.py); 0x4944d0's state [0x7ca154] 0-3 mostly.
 # HilightList_InitRow / List7cc188_InitRow (0x480dd0 / 0x4a8420): see init_case() below. List7cc530_InitRow (0x4bad70): init_case()'s,
 # the row's first child +0x5c a window of random bytes (its +0x98 none, an object of the +0x98 kind or the one found; +0x4c none or an
 # object; its slot 7 a recorder), the GUI's registered windows of register() below with "i_boxtick" among them or not.
@@ -22,7 +23,16 @@ from fncmp import HEAP, LOG, RAM, Bench, Call, blob_bytes, heap, log_region, put
 from window import RANGES, VTABLE, queues, tree  # noqa: E402
 
 CALLS = {'HilightList_NewRow': 0x480d30, 'List7cc188_NewRow': 0x4a8380, 'HilightList_InitRow': 0x480dd0, 'List7cc188_InitRow': 0x4a8420,
-         'List7cc338_NewRow': 0x4b4c70, 'List7cc530_NewRow': 0x4bacc0, 'List7cc530_InitRow': 0x4bad70}
+         'List7cc338_NewRow': 0x4b4c70, 'List7cc530_NewRow': 0x4bacc0, 'List7cc530_InitRow': 0x4bad70, 'List7ca140_NewRow': 0x4938c0,
+         'List7ca158_NewRow': 0x4944d0, 'List7ca314_NewRow': 0x49bbb0, 'List7cb24c_NewRow': 0x49f0b0, 'List7cb264_NewRow': 0x4a02b0,
+         'List7cc200_NewRow': 0x4ad240, 'List7cc250_NewRow': 0x4ae700, 'List7cc654_NewRow': 0x4bcbc0}
+# the factories that make children (with windowfactory.py's surroundings), those whose first allocation failing would fault in both
+# (their child or handler of no window, sic), and the dwords their height is cached in with the dword their font index is in (or 7)
+CHILDREN = {k for k in CALLS if k.endswith('NewRow')} - {'HilightList_NewRow', 'List7cc188_NewRow'}
+UNCHECKED = {'List7cc530_NewRow', 'List7ca158_NewRow', 'List7cb24c_NewRow', 'List7cb264_NewRow'}
+CACHES = {'List7cc338_NewRow': (0x7cc35c, 0x756f38), 'List7ca140_NewRow': (0x7ca140, 0x7508b4), 'List7ca158_NewRow': (0x7ca158, 0x750d54),
+          'List7ca314_NewRow': (0x7ca314, 0x7523dc), 'List7cb24c_NewRow': (0x7cb24c, None), 'List7cb264_NewRow': (0x7cb264, 0x752934),
+          'List7cc200_NewRow': (0x7cc200, 0x755134), 'List7cc250_NewRow': (0x7cc250, 0x75583c)}
 # (the initialisers: the text part's construction (textparts.py's ranges), SetLayout (0x48fc40, 0x48f420), the pixels (trackedglobal.py's),
 # the renderer's tag 0x30 list (0x48f5c0, Renderer_Add, Pool_AddSorted), Window_Notify40000)
 PART_RANGES = [(0x48f150, 0x48f290), (0x5775d0, 0x577660), (0x579b40, 0x579c30), (0x588320, 0x588420), (0x588d70, 0x588e50), (0x58a4f0, 0x58a560),
@@ -34,7 +44,8 @@ PART_RANGES = [(0x48f150, 0x48f290), (0x5775d0, 0x577660), (0x579b40, 0x579c30),
 # (GuiWindows_FindByName and Window_SetObject98 with what they call; the new rows and their children: windowfactory.py's)
 REG_RANGES = [(0x659bc9, 0x659c42), (0x6588b6, 0x6588ef), (0x65d070, 0x65d1c8), (0x65f5b7, 0x65f5fe), (0x668f5a, 0x668f9c), (0x65d547, 0x65d558)]
 B = Bench(sorted(set(RANGES + PART_RANGES + REG_RANGES + windowfactory.FACTORY + [
-    (0x4b4c70, 0x4b4d34), (0x4bacc0, 0x4bad69), (0x4bad70, 0x4bae2b)])))
+    (0x4b4c70, 0x4b4d34), (0x4bacc0, 0x4bad69), (0x4bad70, 0x4bae2b), (0x4938c0, 0x4939c7), (0x4944d0, 0x494679), (0x49bbb0, 0x49bc74),
+    (0x49f0b0, 0x49f16e), (0x4a02b0, 0x4a03c1), (0x4ad240, 0x4ad334), (0x4ae700, 0x4ae7c9), (0x4bcbc0, 0x4bcc9d)])))
 ROW, OLD, OBJ98, VT98, VTOLD, OBJ4C, REND = RAM + 0x9000, RAM + 0x9200, RAM + 0x9300, RAM + 0x9380, RAM + 0x9400, RAM + 0x9480, RAM + 0x9500
 PARENTS = RAM + 0x9600
 NODES, FOUND, FVT, CUT, BOX, BOXVT = RAM + 0xa000, RAM + 0xa100, RAM + 0xa200, RAM + 0xa300, RAM + 0xa500, RAM + 0xa700
@@ -142,17 +153,21 @@ def case(r):
     regions[0x78b530] = lang
     regions[VTABLE] = vtable({})
     set_return(log, 1, r.choice([r.randrange(0, 40), 0x7fff, 0x8000, 0xffff, r.getrandbits(16)]) | (r.getrandbits(16) << 16 if r.random() < 0.5 else 0))
-    if op in ('List7cc338_NewRow', 'List7cc530_NewRow'):
+    if op in CHILDREN:
         regions[VTABLE] = vtable({5: 1})
         windowfactory.timer_env(r, regions, log)
-        regions[HEAP] = heap(0x2000, r.choice([0] * 5 + ([] if op == 'List7cc530_NewRow' else [1])))
+        regions[HEAP] = heap(0x2000, r.choice([0] * 5 + ([] if op in UNCHECKED else [1])))
         regions[0xfaa5ec] = struct.pack('<I', r.choice([wins[0], 0, 0]))
-        if op == 'List7cc338_NewRow':
+        cache, font = CACHES.get(op, (None, None))
+        if font:
             which = r.choice([7] * 6 + list(range(13)))
             put(lang, 0x1c + (7 + 13 * group) * 0x18, 'I', r.getrandbits(32))
             put(lang, 0x1c + (which + 13 * group) * 0x18, 'I', VTABLE)
-            regions[0x756f38] = struct.pack('<I', which)
-            regions[0x7cc35c] = struct.pack('<I', r.choice([0, 0, 0, r.randrange(1, 40), r.getrandbits(32)]))
+            regions[font] = struct.pack('<I', which)
+        if cache:
+            regions[cache] = struct.pack('<I', r.choice([0, 0, 0, r.randrange(1, 40), r.getrandbits(32)]))
+        if op == 'List7ca158_NewRow':
+            regions[0x7ca154] = struct.pack('<I', r.choice([0, 1, 2, 3] * 3 + [4, r.getrandbits(32)]))
     return Call(CALLS[op], [], regions, ret='a')
 
 
