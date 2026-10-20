@@ -4851,6 +4851,7 @@ const Hook kHooks[] = {
     {"jdsample_start_pass_upsample", 0x006462e0, (void *)&jdsample_start_pass_upsample, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"jdcolor_ycck_cmyk_convert", 0x00646d70, (void *)&jdcolor_ycck_cmyk_convert, {0x83, 0xec, 0x24, 0x8b, 0x4c}},
     {"jinit_color_deconverter",   0x00646860, (void *)&jinit_color_deconverter, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jinit_merged_upsampler",    0x00646ee0, (void *)&jinit_merged_upsampler, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
