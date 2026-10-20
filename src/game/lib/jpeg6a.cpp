@@ -67,6 +67,7 @@ extern "C" void __cdecl jpeg6a_jcmainct_lib_start_pass_main(jpeg6a_compress_stru
 extern "C" void __cdecl jpeg6a_jcprepct_lib_jinit_c_prep_controller(jpeg6a_compress_struct *cinfo, int need_full_buffer);
 extern "C" void __cdecl jpeg6a_jccoefct_lib_jinit_c_coef_controller(jpeg6a_compress_struct *cinfo, int need_full_buffer);
 extern "C" void __cdecl jpeg6a_jccoefct_lib_start_pass_coef(jpeg6a_compress_struct *cinfo, int pass_mode);
+extern "C" void __cdecl jpeg6a_jccolor_lib_jinit_color_converter(jpeg6a_compress_struct *cinfo);
 
 namespace {
 struct ExeMethod {
@@ -113,6 +114,14 @@ const ExeMethod kExeMethods[] = {
     {fn(&jpeg6a_jccoefct_compress_data), 0x650982},
     {fn(&jpeg6a_jccoefct_compress_first_pass), 0x650c30},
     {fn(&jpeg6a_jccoefct_compress_output), 0x650ee3},
+    // jccolor.c (the empty null_method to the exe's hand port of its own)
+    {fn(&jpeg6a_jccolor_null_method), 0x655e8d},
+    {fn(&jpeg6a_jccolor_rgb_ycc_start), 0x65586f},
+    {fn(&jpeg6a_jccolor_rgb_ycc_convert), 0x655980},
+    {fn(&jpeg6a_jccolor_rgb_gray_convert), 0x655ae4},
+    {fn(&jpeg6a_jccolor_cmyk_ycck_convert), 0x655bbf},
+    {fn(&jpeg6a_jccolor_grayscale_convert), 0x655d55},
+    {fn(&jpeg6a_jccolor_null_convert), 0x655ddc},
 };
 
 bool g_native_methods = false;  // (Jpeg6a_SetNativeMethods: the tests' driver, which cannot call the exe's addresses)
@@ -193,6 +202,12 @@ void __cdecl jpeg6a_jinit_c_coef_controller(j_compress_ptr cinfo, boolean need_f
 void __cdecl jpeg6a_jccoefct_start_pass_coef(j_compress_ptr cinfo, int pass_mode) {  // (a J_BUF_MODE)
     jpeg6a_jccoefct_lib_start_pass_coef(cinfo, pass_mode);
     exe_method(cinfo->coef->compress_data);
+}
+
+void __cdecl jpeg6a_jinit_color_converter(j_compress_ptr cinfo) {
+    jpeg6a_jccolor_lib_jinit_color_converter(cinfo);
+    exe_method(cinfo->cconvert->start_pass);
+    exe_method(cinfo->cconvert->color_convert);
 }
 }
 

@@ -162,6 +162,31 @@ int __cdecl jpeg6a_jccoefct_compress_first_pass(jpeg6a_compress_struct *cinfo, u
 // 0x650ee3 (static): the scan's MCUs of the iMCU row from the virtual arrays to the entropy encoder (MCU_buffer pointing into them).
 int __cdecl jpeg6a_jccoefct_compress_output(jpeg6a_compress_struct *cinfo, unsigned char ***input_buf);
 
+// jccolor.c, the input colour converter, through third_party/wrap/jpeg-6a/jccolor.c. J_COLOR_SPACE: JCS_UNKNOWN 0, GRAYSCALE 1,
+// RGB 2, YCbCr 3, CMYK 4, YCCK 5.
+// 0x6554d0: cinfo->cconvert (alloc_small of the image pool, 0xc) and its methods (through the method shim, jpeg6a.cpp):
+// input_components checked against in_color_space (JERR_BAD_IN_COLORSPACE 7), num_components against jpeg_color_space
+// (JERR_BAD_J_COLORSPACE 8), the converter for the pair (JERR_CONVERSION_NOTIMPL 0x19 for another); start_pass the empty null_method
+// (0x655e8d, the exe's) or rgb_ycc_start.
+void __cdecl jpeg6a_jinit_color_converter(jpeg6a_compress_struct *cinfo);
+// 0x65586f (static): the RGB to YCbCr table, eight parts of 256 INT32s (alloc_small of the image pool).
+void __cdecl jpeg6a_jccolor_rgb_ycc_start(jpeg6a_compress_struct *cinfo);
+// 0x655980, 0x655ae4, 0x655bbf, 0x655d55, 0x655ddc (static): num_rows rows of image_width pixels from input_buf to output_buf's
+// components from output_row: RGB to YCbCr, RGB to Y, CMYK to YCCK (K as it is), the first of input_components samples, each of
+// num_components samples to its own component.
+void __cdecl jpeg6a_jccolor_rgb_ycc_convert(jpeg6a_compress_struct *cinfo, unsigned char **input_buf, unsigned char ***output_buf,
+                                            unsigned int output_row, int num_rows);
+void __cdecl jpeg6a_jccolor_rgb_gray_convert(jpeg6a_compress_struct *cinfo, unsigned char **input_buf, unsigned char ***output_buf,
+                                             unsigned int output_row, int num_rows);
+void __cdecl jpeg6a_jccolor_cmyk_ycck_convert(jpeg6a_compress_struct *cinfo, unsigned char **input_buf,
+                                              unsigned char ***output_buf, unsigned int output_row, int num_rows);
+void __cdecl jpeg6a_jccolor_grayscale_convert(jpeg6a_compress_struct *cinfo, unsigned char **input_buf,
+                                              unsigned char ***output_buf, unsigned int output_row, int num_rows);
+void __cdecl jpeg6a_jccolor_null_convert(jpeg6a_compress_struct *cinfo, unsigned char **input_buf, unsigned char ***output_buf,
+                                         unsigned int output_row, int num_rows);
+// The empty start_pass (built, unhooked: 0x655e8d stays the exe's hand port).
+void __cdecl jpeg6a_jccolor_null_method(jpeg6a_compress_struct *cinfo);
+
 // jcomapi.c: what compression and decompression share.
 // 0x64f3c0: the image pool freed (mem->free_pool of pool 1), global_state back to the start (DSTATE_START 200 for a decompressor,
 // else CSTATE_START 100).

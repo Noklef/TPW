@@ -5676,3 +5676,10 @@ address,name,kind,confidence,notes
 0x00650982,jpeg6a_jccoefct_compress_data,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jccoefct.c compress_data: an iMCU row's MCUs through the forward DCT to the entropy encoder, dummy edge blocks (the library's)"
 0x00650c30,jpeg6a_jccoefct_compress_first_pass,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jccoefct.c compress_first_pass: every component's iMCU row into its virtual array, dummy edge blocks, then compress_output (the library's)"
 0x00650ee3,jpeg6a_jccoefct_compress_output,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jccoefct.c compress_output: the scan's MCUs from the virtual arrays to the entropy encoder (the library's)
+0x006554d0,jpeg6a_jinit_color_converter,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jccolor.c jinit_color_converter: the colour converter, the colour spaces checked, its methods for the pair (the library's, through the method shim)"
+0x0065586f,jpeg6a_jccolor_rgb_ycc_start,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jccolor.c rgb_ycc_start: the RGB to YCbCr tables (the library's)
+0x00655980,jpeg6a_jccolor_rgb_ycc_convert,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jccolor.c rgb_ycc_convert: RGB rows to Y, Cb and Cr (the library's)"
+0x00655ae4,jpeg6a_jccolor_rgb_gray_convert,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jccolor.c rgb_gray_convert: RGB rows to Y (the library's)
+0x00655bbf,jpeg6a_jccolor_cmyk_ycck_convert,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jccolor.c cmyk_ycck_convert: CMYK rows to YCCK (the library's)
+0x00655d55,jpeg6a_jccolor_grayscale_convert,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jccolor.c grayscale_convert: each pixel's first sample (the library's)
+0x00655ddc,jpeg6a_jccolor_null_convert,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jccolor.c null_convert: interleaved samples to one plane a component (the library's)

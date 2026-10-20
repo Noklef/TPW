@@ -5352,6 +5352,13 @@ const Hook kHooks[] = {
     {"jpeg6a_jccoefct_start_iMCU_row", 0x00650908, (void *)&jpeg6a_jccoefct_start_iMCU_row, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"jpeg6a_jccoefct_start_pass_coef", 0x00650818, (void *)&jpeg6a_jccoefct_start_pass_coef, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jpeg6a_jinit_c_coef_controller", 0x00650700, (void *)&jpeg6a_jinit_c_coef_controller, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jccolor_null_convert", 0x00655ddc, (void *)&jpeg6a_jccolor_null_convert, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jccolor_grayscale_convert", 0x00655d55, (void *)&jpeg6a_jccolor_grayscale_convert, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jccolor_cmyk_ycck_convert", 0x00655bbf, (void *)&jpeg6a_jccolor_cmyk_ycck_convert, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jccolor_rgb_gray_convert", 0x00655ae4, (void *)&jpeg6a_jccolor_rgb_gray_convert, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jccolor_rgb_ycc_convert", 0x00655980, (void *)&jpeg6a_jccolor_rgb_ycc_convert, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jccolor_rgb_ycc_start", 0x0065586f, (void *)&jpeg6a_jccolor_rgb_ycc_start, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jinit_color_converter", 0x006554d0, (void *)&jpeg6a_jinit_color_converter, {0x55, 0x8b, 0xec, 0x83, 0xec}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
