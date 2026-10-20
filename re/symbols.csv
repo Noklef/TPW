@@ -5241,3 +5241,8 @@ address,name,kind,confidence,notes
 0x0063e040,jpeg_destroy,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jcomapi.c jpeg_destroy: the memory manager destroyed (the library's)
 0x0063e070,jpeg_alloc_quant_table,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jcomapi.c jpeg_alloc_quant_table: a permanent JQUANT_TBL (the library's)
 0x0063e090,jpeg_alloc_huff_table,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jcomapi.c jpeg_alloc_huff_table: a permanent JHUFF_TBL (the library's)
+0x00645d50,jinit_d_post_controller,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdpostct.c jinit_d_post_controller: the postprocessing controller and its strip buffer (the library's, through the method-address shim)"
+0x00645de0,jdpostct_start_pass_dpost,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdpostct.c start_pass_dpost: the pass's post_process_data (the library's, through the method-address shim)"
+0x00645ee0,jdpostct_post_process_1pass,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdpostct.c post_process_1pass: a strip upsampled and quantized (the library's, through wrap/jpeg-6b/jdpostct.c)"
+0x00645f60,jdpostct_post_process_prepass,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdpostct.c post_process_prepass: the two-pass quantizer's prepass over the virtual array (the library's, through wrap/jpeg-6b/jdpostct.c)"
+0x00646010,jdpostct_post_process_2pass,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdpostct.c post_process_2pass: the virtual array's rows quantized (the library's, through wrap/jpeg-6b/jdpostct.c)"

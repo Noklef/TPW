@@ -108,6 +108,29 @@ unsigned char __cdecl jdphuff_decode_mcu_AC_refine(jpeg_decompress_struct *cinfo
 // 0x645270: process_restart: as jdhuff.c's, the EOB run emptied too.
 unsigned char __cdecl jdphuff_process_restart(jpeg_decompress_struct *cinfo);
 
+// jdpostct.c (through wrap/jpeg-6b/jdpostct.c): the postprocessing controller between the upsampler and the colour quantizer.
+// cinfo->post is its my_post_controller (pub, whole_image +8, buffer +0xc, strip_height +0x10, starting_row +0x14, next_row +0x18;
+// 0x1c bytes). The post_process_data methods take (cinfo, input_buf, in_row_group_ctr, in_row_groups_avail, output_buf,
+// out_row_ctr, out_rows_avail).
+// 0x645d50: the module's init (a shim, jpeg6b.cpp): cinfo->post allocated with the exe's start_pass; when quantizing, a strip of
+// max_v_samp_factor rows: a virtual array (need_full_buffer, two-pass) or a strip buffer.
+void __cdecl jinit_d_post_controller(jpeg_decompress_struct *cinfo, unsigned char need_full_buffer);
+// 0x645de0: start_pass (a shim, jpeg6b.cpp): the pass's post_process_data by pass_mode (a J_BUF_MODE: the upsampler's own method
+// when not quantizing; ERREXIT for a mode the buffer cannot serve), the strip emptied.
+void __cdecl jdpostct_start_pass_dpost(jpeg_decompress_struct *cinfo, int pass_mode);
+// 0x645ee0: one-pass quantizing: a strip upsampled into the buffer, then quantized into output_buf.
+void __cdecl jdpostct_post_process_1pass(jpeg_decompress_struct *cinfo, unsigned char ***input_buf, unsigned int *in_row_group_ctr,
+                                         unsigned int in_row_groups_avail, unsigned char **output_buf, unsigned int *out_row_ctr,
+                                         unsigned int out_rows_avail);
+// 0x645f60: the two-pass prepass: upsampled into the virtual array's strip, which the quantizer scans (no output).
+void __cdecl jdpostct_post_process_prepass(jpeg_decompress_struct *cinfo, unsigned char ***input_buf,
+                                           unsigned int *in_row_group_ctr, unsigned int in_row_groups_avail,
+                                           unsigned char **output_buf, unsigned int *out_row_ctr, unsigned int out_rows_avail);
+// 0x646010: the second pass: the virtual array's rows quantized into output_buf.
+void __cdecl jdpostct_post_process_2pass(jpeg_decompress_struct *cinfo, unsigned char ***input_buf, unsigned int *in_row_group_ctr,
+                                         unsigned int in_row_groups_avail, unsigned char **output_buf, unsigned int *out_row_ctr,
+                                         unsigned int out_rows_avail);
+
 // jdcolor.c (through wrap/jpeg-6b/jdcolor.c): the output colour space converters, cinfo->cconvert's color_convert methods. Each
 // converts num_rows rows from input_buf (one row array per component) at input_row into output_buf's rows, cinfo->output_width
 // pixels a row.

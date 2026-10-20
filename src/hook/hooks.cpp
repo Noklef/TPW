@@ -4873,6 +4873,11 @@ const Hook kHooks[] = {
     {"jpeg_alloc_quant_table",    0x0063e070, (void *)&jpeg_alloc_quant_table, {0x8b, 0x44, 0x24, 0x04, 0x68}},
     {"jpeg_destroy",              0x0063e040, (void *)&jpeg_destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"jpeg_abort",                0x0063dff0, (void *)&jpeg_abort, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
+    {"jdpostct_post_process_2pass", 0x00646010, (void *)&jdpostct_post_process_2pass, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"jdpostct_post_process_prepass", 0x00645f60, (void *)&jdpostct_post_process_prepass, {0x53, 0x55, 0x56, 0x57, 0x8b}},
+    {"jdpostct_post_process_1pass", 0x00645ee0, (void *)&jdpostct_post_process_1pass, {0x8b, 0x44, 0x24, 0x1c, 0x53}},
+    {"jdpostct_start_pass_dpost", 0x00645de0, (void *)&jdpostct_start_pass_dpost, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"jinit_d_post_controller",   0x00645d50, (void *)&jinit_d_post_controller, {0x55, 0x56, 0x8b, 0x74, 0x24}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
