@@ -14,6 +14,8 @@ extern "C" {
 
 struct jpeg_decompress_struct;  // 0x1b0 bytes (config/jconfig.h's boolean)
 struct jpeg6b_component_info;   // jpeg_component_info (an untagged typedef in jpeglib.h), 0x54 bytes
+struct jpeg6b_d_derived_tbl;    // jdhuff.h's d_derived_tbl (untagged), 0x590 bytes
+struct jpeg6b_bitread_working_state;  // jdhuff.h's bitread_working_state (untagged), 0x14 bytes
 
 // jutils.c
 // 0x6428c0: a rounded up to a multiple of b (b > 0).
@@ -49,6 +51,16 @@ void __cdecl jinit_inverse_dct(jpeg_decompress_struct *cinfo);
 // 0x645b00: start_pass: each component's IDCT by DCT_scaled_size and cinfo->dct_method, and its multiplier table from its quant_table
 // when the method changed (islow: the quantval; ifast: scaled by aanscales; float: by aanscalefactor, x87 in the exe).
 void __cdecl jddctmgr_start_pass(jpeg_decompress_struct *cinfo);
+
+// jdhuff.c: the sequential Huffman decoder's exported leaves. The bit reader's get_buffer is a long, bits_left an int.
+// 0x6441f0: the derived tables (maxcode, valoffset, lookahead) of dc_huff_tbl_ptrs[tblno] (isDC) or ac_huff_tbl_ptrs[tblno] into
+// *pdtbl, allocated when null.
+void __cdecl jpeg_make_d_derived_tbl(jpeg_decompress_struct *cinfo, unsigned char isDC, int tblno, jpeg6b_d_derived_tbl **pdtbl);
+// 0x6444d0: get_buffer refilled to at least nbits from the data source (FALSE: the source suspended); at a marker, zeros.
+unsigned char __cdecl jpeg_fill_bit_buffer(jpeg6b_bitread_working_state *state, long get_buffer, int bits_left, int nbits);
+// 0x6445e0: a code of min_bits or more bits decoded through htbl's maxcode / valoffset (-1: suspended; 0 for a bad code).
+int __cdecl jpeg_huff_decode(jpeg6b_bitread_working_state *state, long get_buffer, int bits_left, jpeg6b_d_derived_tbl *htbl,
+                             int min_bits);
 
 // jdcolor.c (through wrap/jpeg-6b/jdcolor.c): the output colour space converters, cinfo->cconvert's color_convert methods. Each
 // converts num_rows rows from input_buf (one row array per component) at input_row into output_buf's rows, cinfo->output_width

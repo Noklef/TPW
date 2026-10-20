@@ -4855,6 +4855,9 @@ const Hook kHooks[] = {
     {"jinit_upsampler",           0x006460c0, (void *)&jinit_upsampler, {0x83, 0xec, 0x18, 0x53, 0x55}},
     {"jddctmgr_start_pass",       0x00645b00, (void *)&jddctmgr_start_pass, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
     {"jinit_inverse_dct",         0x00645a80, (void *)&jinit_inverse_dct, {0x53, 0x56, 0x8b, 0x74, 0x24}},
+    {"jpeg_huff_decode",          0x006445e0, (void *)&jpeg_huff_decode, {0x8b, 0x44, 0x24, 0x0c, 0x53}},
+    {"jpeg_fill_bit_buffer",      0x006444d0, (void *)&jpeg_fill_bit_buffer, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"jpeg_make_d_derived_tbl",   0x006441f0, (void *)&jpeg_make_d_derived_tbl, {0x81, 0xec, 0x24, 0x05, 0x00}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

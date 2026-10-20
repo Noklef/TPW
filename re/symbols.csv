@@ -5223,3 +5223,6 @@ address,name,kind,confidence,notes
 0x006460c0,jinit_upsampler,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdsample.c jinit_upsampler: the separate upsampler, a method per component (the library's, through the method-address shim)"
 0x00645a80,jinit_inverse_dct,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jddctmgr.c jinit_inverse_dct: the IDCT manager and each component's zeroed multiplier table (the library's, through the method-address shim)"
 0x00645b00,jddctmgr_start_pass,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jddctmgr.c start_pass: each component's IDCT and multiplier table (the library's, through the method-address shim)"
+0x006441f0,jpeg_make_d_derived_tbl,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdhuff.c jpeg_make_d_derived_tbl: a Huffman table's derived decoding tables (the library's)
+0x006444d0,jpeg_fill_bit_buffer,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdhuff.c jpeg_fill_bit_buffer: the bit buffer refilled from the data source, stopping at a marker (the library's)"
+0x006445e0,jpeg_huff_decode,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdhuff.c jpeg_huff_decode: the slow path of a Huffman decode, codes longer than the lookahead (the library's)"
