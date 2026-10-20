@@ -6,6 +6,7 @@
 #include "../core/globals.h"
 #include "../core/vcall.h"
 #include "../math/x87.h"
+#include "engineerrors.h"
 
 namespace {
 
@@ -22,6 +23,19 @@ void __fastcall SceneFlags_Touch(u32 *flags) {
 }
 
 u32 __cdecl RenderDevice_Call0() { return vcall<u32>(global<u8 *>(0x008bd52c), 0); }
+
+u32 __cdecl Display_RestoreIfFocused() {
+    u32(__stdcall *const getFocus)() = *reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)0x006fd328);
+    if (getFocus() != global<u32>(0x008bd518))
+        return 1;
+    const u32 generation = global<u32>(0x008bcc40) + 1;
+    u8 *const device = global<u8 *>(0x008bd52c);
+    global<u32>(0x008bcc44) = 0;
+    global<u32>(0x008bcc40) = generation;
+    if (vcall<u32>(device, 4))
+        return 1;
+    return EngineErrors_DropSurfaceLost(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0));
+}
 
 void __fastcall Render_FogOn(void *) { global<u32>(0x008bcbc8) |= 0x2000; }
 
