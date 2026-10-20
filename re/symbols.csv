@@ -1940,6 +1940,7 @@ address,name,kind,confidence,notes
 0x00fa7e00,gColorFormatRgb888,data,high,PixelFormat (0x18): RGB888
 0x00fa7e18,gColorFormatRgb555,data,high,PixelFormat (0x18): RGB555
 0x00fa7cb0,gEventQueue,data,high,"EventQueue (src/game/core/events), six channels of listeners"
+0x0047e9d0,EventQueue_PostKind4,function,low,"reimplemented (src/game/core/events); cdecl (value): the event {4, value} (0x14 bytes on the stack, the rest unset) posted on channel 0 of the queue 0xfa7cb0; the window procedure (0x46b752) posts one (name unconfirmed)"
 0x005f9fa0,FpuControl_DeletingDtor,function,high,"reimplemented (src/game/core/fpu); thiscall (flags); vtable 0x7035d8 slot 0: Dtor, Mem_Free when flags & 1"
 0x005f9fc0,FpuControl_Dtor,function,high,reimplemented (src/game/core/fpu); thiscall; base vtable 0x7035dc then Restore
 0x005f9fd0,FpuControl_BaseDeletingDtor,function,high,"reimplemented (src/game/core/fpu); thiscall (flags); vtable 0x7035dc slot 0"

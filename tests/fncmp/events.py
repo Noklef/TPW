@@ -3,21 +3,22 @@
 # context; the channel logged as `this`, 0), none, or other values, contexts few so that Unlisten's matches happen; the critical section's
 # imports (InitializeCriticalSection, DeleteCriticalSection, Enter / Leave) COM-style recorders in the import table; atexit fncmp's cdecl log
 # on both sides (driver.cpp's EventQueue env); allocations from the heap region, failing now and then. Post, Listen, Unlisten on channels 0-6
-# (6 is "none"); Clear and the destructors over every list; the lists' constructor and destructors on a list of their own.
+# (6 is "none"); Clear and the destructors over every list; the lists' constructor and destructors on a list of their own. PostKind4 (0x47e9d0)
+# posts {4, value} on channel 0 from the stack (the callbacks log its first two dwords).
 # usage: events.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=StaticInit,... to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _cdecl_log, heap, import_table, log_region, put, recorder  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _cdecl_log, blob, heap, import_table, log_region, put, recorder  # noqa: E402
 
-B = Bench([(0x5fbde0, 0x5fc330), (0x67a740, 0x67a800), (0x67acf0, 0x67ae10), (0x67afa0, 0x67b0d0), (0x67dcd0, 0x67dd50), (0x67efc0, 0x67f1b0),
+B = Bench([(0x5fbde0, 0x5fc330), (0x47e9d0, 0x47e9f8), (0x67a740, 0x67a800), (0x67acf0, 0x67ae10), (0x67afa0, 0x67b0d0), (0x67dcd0, 0x67dd50), (0x67efc0, 0x67f1b0),
            (0x67fa20, 0x67fa50), (0x681740, 0x681970), (0x682720, 0x6827d0), (0x6828a0, 0x682a20), (0x682a70, 0x6830a0), (0x688710, 0x688740)],
           hooks={0x67a7d0: _cdecl_log})
 CALLS = {'StaticInit': 0x5fbde0, 'Construct': 0x5fbdf0, 'RegisterExit': 0x5fbe00, 'AtExit': 0x5fbe10, 'Ctor': 0x5fbe20, 'ListCtor': 0x5fbe90,
          'ListDtor': 0x5fbeb0, 'ListDelDtor': 0x5fbef0, 'Dtor': 0x5fbf10, 'Post': 0x5fbf80, 'GuardRelease': 0x5fc010, 'Listen': 0x5fc030,
-         'Unlisten': 0x5fc100, 'Clear': 0x5fc220, 'BaseDelDtor': 0x5fc2d0}
+         'Unlisten': 0x5fc100, 'Clear': 0x5fc220, 'BaseDelDtor': 0x5fc2d0, 'PostKind4': 0x47e9d0}
 Q = 0xfa7cb0
 LOCK, NODES, LISTENERS, EVENT, GUARD, LIST, OTHER = RAM, RAM + 0x100, RAM + 0x400, RAM + 0x700, RAM + 0x780, RAM + 0x800, RAM + 0x900
 IMPORTS = {'InitializeCriticalSection': (10, 0x6fd144, 1, 0, 0), 'DeleteCriticalSection': (11, 0x6fd0d0, 1, 0, 0),
@@ -55,6 +56,10 @@ def case(r):
                GUARD: struct.pack('<I', r.choice([LOCK, LOCK, 0])), LOG: log, IMPORT_TABLE: import_table(log, IMPORTS),
                HEAP: heap(fail=r.choice([0, 0, 0, 0, 0, 1]))}
     address = CALLS[op]
+    if op == 'PostKind4':
+        for k in (1, 2, 3):
+            blob(log, k, 1, 3)   # (the event: on the stack)
+        return Call(address, [r.choice([0, 1, 0x100, r.getrandbits(32)])], regions, conv='c', ret='v')
     if op in ('StaticInit', 'Construct', 'RegisterExit', 'AtExit'):
         return Call(address, [], regions, conv='c', ret='a' if op == 'Construct' else 'v')
     if op == 'Ctor':

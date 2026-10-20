@@ -194,4 +194,11 @@ EventList *__fastcall EventListBase_DeletingDtor(EventList *l, void *, u32 flags
     return l;
 }
 
+void __cdecl EventQueue_PostKind4(u32 value) {
+    u32 event[5];  // (0x14 bytes, the rest unset as the original's)
+    event[0] = 4;
+    event[1] = value;
+    EventQueue_Post(g_env->instance, nullptr, 0, event);
+}
+
 }  // extern "C"
