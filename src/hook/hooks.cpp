@@ -130,6 +130,7 @@
 #include "../game/gfx/texfile.h"
 #include "../game/gfx/textlayout.h"
 #include "../game/gfx/tvstatic.h"
+#include "../game/gfx/aaline.h"
 #include "../game/gfx/wctimage.h"
 #include "../game/core/crt.h"
 #include "../game/core/gameheap.h"
@@ -4234,6 +4235,10 @@ const Hook kHooks[] = {
     {"TextLayout_SetOrigin",      0x006adfb0, (void *)&TextLayout_SetOrigin, {0x83, 0xec, 0x08, 0x53, 0x56}},
     {"TexFile_Load",              0x00574bd0, (void *)&TexFile_Load, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Mmx_FillRows",              0x00678d30, (void *)&Mmx_FillRows, {0x55, 0x8b, 0xec, 0x53, 0x56}},
+    {"AaLine_Draw8",              0x005edad0, (void *)&AaLine_Draw8, {0x83, 0xec, 0x54, 0x8b, 0x44}},
+    {"AaLine_Draw16",             0x005ee580, (void *)&AaLine_Draw16, {0x83, 0xec, 0x54, 0x8b, 0x44}},
+    {"AaLine_Draw24",             0x005ef040, (void *)&AaLine_Draw24, {0x83, 0xec, 0x54, 0x8b, 0x44}},
+    {"AaLine_Draw32",             0x005efb10, (void *)&AaLine_Draw32, {0x83, 0xec, 0x54, 0x8b, 0x44}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
