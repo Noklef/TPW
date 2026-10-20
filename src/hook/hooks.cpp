@@ -5230,6 +5230,11 @@ const Hook kHooks[] = {
     {"jpeg6a_jcparam_add_huff_table", 0x0064d121, (void *)&jpeg6a_jcparam_add_huff_table, {0x55, 0x8b, 0xec, 0x56, 0x57}},
     {"jpeg6a_jcparam_std_huff_tables", 0x0064d0a8, (void *)&jpeg6a_jcparam_std_huff_tables, {0x55, 0x8b, 0xec, 0x68, 0x1c}},
     {"jpeg6a_jpeg_set_defaults",  0x0064cf20, (void *)&jpeg6a_jpeg_set_defaults, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"jpeg6a_jpeg_mem_available", 0x00650254, (void *)&jpeg6a_jpeg_mem_available, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jpeg_free_large",    0x00650243, (void *)&jpeg6a_jpeg_free_large, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jpeg_get_large",     0x00650232, (void *)&jpeg6a_jpeg_get_large, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jpeg_free_small",    0x00650221, (void *)&jpeg6a_jpeg_free_small, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jpeg_get_small",     0x00650210, (void *)&jpeg6a_jpeg_get_small, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
