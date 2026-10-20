@@ -5123,3 +5123,8 @@ address,name,kind,confidence,notes
 0x00649e10,huft_build,function,high,"reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 inftrees.c: the decoding tables for a set of code lengths (the library's, tpw_zlib)"
 0x00649d60,inflate_trees_bits,function,high,reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 inftrees.c: the bit length codes' table (shim: the exe's z->msg strings)
 0x0064a2c0,inflate_trees_dynamic,function,high,reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 inftrees.c: a dynamic block's literal/length and distance tables (shim: the exe's z->msg strings)
+0x00649550,inflate_codes_new,function,high,"reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 infcodes.c: a codes state for a block's tables (the library's, tpw_zlib)"
+0x00649590,inflate_codes,function,high,reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 infcodes.c: decodes a block's codes into the window (shim: the exe's z->msg strings)
+0x00649d40,inflate_codes_free,function,high,"reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 infcodes.c: frees a codes state (the library's, tpw_zlib)"
+0x0064a480,inflate_flush,function,high,"reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 infutil.c: the window's pending output to next_out (the library's, tpw_zlib)"
+0x0064bbd0,inflate_fast,function,high,reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 inffast.c: the fast decoding loop (shim: the exe's z->msg strings)

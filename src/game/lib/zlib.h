@@ -14,6 +14,8 @@ struct ct_data_s;             // ct_data: {freq | code, dad | len} (u16, u16)
 struct tree_desc_s;           // tree_desc: {dyn_tree, max_code, stat_desc}
 struct inflate_huft_s;        // inflate_huft (inftrees.h), 8 bytes
 struct z_stream_s;            // z_stream (zlib.h), 0x38 bytes
+struct inflate_blocks_state;  // inflate_blocks_statef (infutil.h), 0x40 bytes
+struct inflate_codes_state;   // inflate_codes_statef (private to infcodes.c), 0x1c bytes
 
 // adler32.c
 // 0x63ea00: the Adler-32 checksum of len bytes at buf, continuing adler (1 for a null buf).
@@ -81,6 +83,17 @@ void __cdecl copy_block(internal_state *s, char *buf, unsigned len, int header);
 int __cdecl huft_build(unsigned *b, unsigned n, unsigned s, const unsigned *d, const unsigned *e, inflate_huft_s **t, unsigned *m,
                        inflate_huft_s *hp, unsigned *hn, unsigned *v);
 
+// infcodes.c
+// 0x649550: a codes state (START) for the tables tl / td of bl / bd bits (zalloc; null when it fails).
+inflate_codes_state *__cdecl inflate_codes_new(unsigned bl, unsigned bd, inflate_huft_s *tl, inflate_huft_s *td, z_stream_s *z);
+// 0x649d40: frees c (zfree).
+void __cdecl inflate_codes_free(inflate_codes_state *c, z_stream_s *z);
+
+// infutil.c
+// 0x64a480: as much of the window's pending output (read .. write, wrapping at end) as fits into next_out, checkfn over it; r, or
+// Z_OK for Z_BUF_ERROR when anything was copied.
+int __cdecl inflate_flush(inflate_blocks_state *s, z_stream_s *z, int r);
+
 // The shims: the library's function (built as zlib_<name>, third_party/config/zlib_shims.h), then the exe's copy put back where it
 // left one of its own addresses (src/game/lib/zlib.cpp).
 // 0x649d60: the bit length codes' table (19 lengths in c); z->msg on a bad set (the exe's string).
@@ -88,6 +101,11 @@ int __cdecl inflate_trees_bits(unsigned *c, unsigned *bb, inflate_huft_s **tb, i
 // 0x64a2c0: the literal / length and distance tables of a dynamic block (nl + nd lengths in c); z->msg on a bad set (the exe's string).
 int __cdecl inflate_trees_dynamic(unsigned nl, unsigned nd, unsigned *c, unsigned *bl, unsigned *bd, inflate_huft_s **tl, inflate_huft_s **td,
                                   inflate_huft_s *hp, z_stream_s *z);
+// 0x649590: decodes the block's literals, lengths and distances (s's codes state) into the window until the end of block, input or
+// window room runs out; z->msg on a bad code (the exe's string).
+int __cdecl inflate_codes(inflate_blocks_state *s, z_stream_s *z, int r);
+// 0x64bbd0: inflate_codes' fast loop while 258 bytes of window room and 10 of input remain; z->msg on a bad code (the exe's string).
+int __cdecl inflate_fast(unsigned bl, unsigned bd, inflate_huft_s *tl, inflate_huft_s *td, inflate_blocks_state *s, z_stream_s *z);
 }
 
 // What the shims share (src/game/lib/zlib.cpp).
