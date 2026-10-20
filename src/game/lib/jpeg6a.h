@@ -124,6 +124,19 @@ void __cdecl jpeg6a_jmemmgr_free_pool(jpeg6a_common_struct *cinfo, int pool_id);
 // 0x64f360: both pools freed, then the manager; cinfo->mem NULL.
 void __cdecl jpeg6a_jmemmgr_self_destruct(jpeg6a_common_struct *cinfo);
 
+// jerror.c's methods, through third_party/wrap/jpeg-6a/jerror.c: cinfo->err (jpeg_error_mgr, 0x84 bytes, 6b's layout: the five
+// methods +0, msg_code +0x14, msg_parm +0x18 (eight ints or an 80-character string), trace_level +0x68, num_warnings +0x6c,
+// jpeg_message_table +0x70, last_jpeg_message +0x74, addon_message_table +0x78, first_addon_message +0x7c, last_addon_message +0x80).
+// error_exit (0x64ddec), output_message (0x64de13) and jpeg_std_error (the hand port Fn_64dd60) stay the exe's.
+// 0x64de4f: a warning (msg_level < 0) is output when it is the first or trace_level >= 3, and counted; a trace when trace_level >=
+// msg_level.
+void __cdecl jpeg6a_jerror_emit_message(jpeg6a_common_struct *cinfo, int msg_level);
+// 0x64dead: msg_code's text (the library's table, else the add-on table, else message 0 with msg_code as its parameter) formatted into
+// buffer with sprintf (the exe's, Jpeg6aCrtEnv): msg_parm.s when the text's first % is a %s, else the eight ints.
+void __cdecl jpeg6a_jerror_format_message(jpeg6a_common_struct *cinfo, char *buffer);
+// 0x64dff8: num_warnings and msg_code 0.
+void __cdecl jpeg6a_jerror_reset_error_mgr(jpeg6a_common_struct *cinfo);
+
 // jutils.c (the same source as 6b's; the exe's copies use inline REP MOVS / STOS, the library's memcpy / memset)
 // 0x6503d0: a / b rounded up (a >= 0, b > 0).
 long __cdecl jpeg6a_jdiv_round_up(long a, long b);

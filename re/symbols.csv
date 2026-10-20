@@ -5582,3 +5582,6 @@ address,name,kind,confidence,notes
 0x0064f061,jpeg6a_jmemmgr_do_barray_io,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c do_barray_io: a virtual block array's backing store read or write (the library's)
 0x0064f1aa,jpeg6a_jmemmgr_free_pool,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c free_pool: a pool's blocks freed (the library's)
 0x0064f360,jpeg6a_jmemmgr_self_destruct,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemmgr.c self_destruct: both pools and the manager freed (the library's)
+0x0064de4f,jpeg6a_jerror_emit_message,function,low,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jerror.c emit_message: a warning or trace output by trace_level, warnings counted (the library's)"
+0x0064dead,jpeg6a_jerror_format_message,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jerror.c format_message: msg_code's text formatted with the exe's sprintf (the library's)
+0x0064dff8,jpeg6a_jerror_reset_error_mgr,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jerror.c reset_error_mgr: num_warnings and msg_code 0 (the library's)

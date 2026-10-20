@@ -5250,6 +5250,9 @@ const Hook kHooks[] = {
     {"jpeg6a_jmemmgr_out_of_memory", 0x0064e3e3, (void *)&jpeg6a_jmemmgr_out_of_memory, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
     {"jpeg6a_jmemmgr_alloc_small", 0x0064e21d, (void *)&jpeg6a_jmemmgr_alloc_small, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jpeg6a_jinit_memory_mgr",   0x0064e020, (void *)&jpeg6a_jinit_memory_mgr, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jerror_reset_error_mgr", 0x0064dff8, (void *)&jpeg6a_jerror_reset_error_mgr, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jerror_format_message", 0x0064dead, (void *)&jpeg6a_jerror_format_message, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jerror_emit_message", 0x0064de4f, (void *)&jpeg6a_jerror_emit_message, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
