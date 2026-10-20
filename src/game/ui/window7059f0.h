@@ -115,6 +115,11 @@ void __fastcall Window7059f0_RefreshRows(u8 *window);
 // before the block, sic) set to the old count and the old array freed (Mem_Free). The block becomes +0x144, the count raised; returns it.
 s32 *__fastcall Window7059f0_Grow(u8 *window, void *, s32 n);
 
+// 0x663dfa (thiscall (texts, cells), pops 8; name unconfirmed): for each column (+0x164, signed), the next cell: a column whose bottom
+// (Window7059f0_ColumnBottom) is not 0 gets the text's dword as it is; else a set text becomes a new wide string (Mem_Alloc(0x10),
+// StdWString_CtorChars; none: 0) whose allocator byte is that of a local never set (sic), and an unset one leaves the cell as it was.
+void __fastcall Window7059f0_CopyCells(u8 *window, void *, const u32 *texts, u32 *cells);
+
 // 0x663edc (thiscall (texts, cells), pops 8; name unconfirmed): whether a new item's texts go before an item's cells in the sort column
 // +0x168 (signed): with +0x16a 0 (ascending), for a column whose bottom (Window7059f0_ColumnBottom) is 1 the dwords compared signed
 // (texts' below), else 1 for an empty cell or the text below the cell's string (wcscmp, the cell through Obj_Get4Or6fd6c4); with +0x16a

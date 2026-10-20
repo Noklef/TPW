@@ -9,6 +9,7 @@
 #include "../core/gameheap.h"
 #include "../core/initializers.h"
 #include "../core/selectors.h"
+#include "../core/stdwstring.h"
 #include "../core/string.h"
 #include "../core/vcall.h"
 #include "guirect.h"
@@ -328,6 +329,20 @@ s32 *__fastcall Window7059f0_Grow(u8 *window, void *, s32 n) {
     at<s32 *>(window, 0x144) = links;
     at<s32>(window, 0x158) += added;
     return links;
+}
+
+void __fastcall Window7059f0_CopyCells(u8 *window, void *, const u32 *texts, u32 *cells) {
+    u8 allocator;   // (never set: its byte goes into each new string, sic)
+    for (s32 column = 0; column < at<s16>(window, 0x164); ++column, ++texts, ++cells) {
+        if (Window7059f0_ColumnBottom(window, nullptr, (u32)column) != 0) {
+            *cells = *texts;
+        } else if (*texts) {
+            void *const block = GameHeap_Alloc(0x10);
+            *cells = block ? (u32)(uintptr_t)StdWString_CtorChars(static_cast<StdWString *>(block), nullptr,
+                                                                  reinterpret_cast<const u16 *>((uintptr_t)*texts), &allocator)
+                           : 0;
+        }
+    }
 }
 
 u32 __fastcall Window7059f0_SortsBefore(u8 *window, void *, const u32 *texts, const u32 *cells) {

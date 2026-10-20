@@ -25,6 +25,10 @@
 # SortsBefore (0x663edc): the sort column +0x168 0-3 (or -1 / -2: before the column array), +0x16a 0, 1 or any, the column bottoms 1 or not;
 # the texts four dwords (wide strings of a few short texts, or numbers around each other), the cells four counted strings (their text
 # or none) or 0 or numbers.
+# CopyCells (0x663dfa): 0-4 columns (now and then -1), the bottoms mostly 0; the texts wide strings of 0-40 characters, 0 or (bottom not
+# 0) any dword; the cells random; the heap, failing now and then. Each new string's allocator byte is a stack byte the original never
+# sets (sic), different in the two runs: allocator_masks() leaves those bytes of the heap out (the strings' first byte; the listing reads
+# no string's allocator: CopyCells only stores the new string, StdWString_CtorChars writes the byte and nothing after it reads one).
 # usage: window7059f0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ColumnBottom,NextItem,...)
 import os
 import struct
@@ -33,17 +37,18 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, blob_bytes, heap, log_region, put, recorder, set_return, vtable  # noqa: E402
+from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, Mask, blob_bytes, heap, log_region, put, recorder, set_return, vtable  # noqa: E402
 from window import MISC, OBJECT98, RANGES, VTABLE, notify_blobs, notify_env, queues  # noqa: E402
 
 CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'SetNthItemData': 0x664b68, 'SetRowHeight': 0x664ba8,
          'FindItemData': 0x664d2a, 'RefreshRows': 0x663324, 'ResetItems': 0x663085, 'RootEnd': 0x663cb8, 'FitBar': 0x664495,
          'FreeItem': 0x664605, 'Select': 0x66525c, 'FindText': 0x664db7, 'RemoveItem': 0x6647cb, 'Clear': 0x6649d5,
-         'ScrollTo': 0x665739, 'Grow': 0x66316b, 'SortsBefore': 0x663edc}
+         'ScrollTo': 0x665739, 'Grow': 0x66316b, 'SortsBefore': 0x663edc, 'CopyCells': 0x663dfa}
 B = Bench(RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
                     (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707),
                     (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508),
-                    (0x664605, 0x6647cb), (0x47db20, 0x47db80), (0x6647cb, 0x664b68), (0x665739, 0x6658b9), (0x66316b, 0x663324), (0x67fff0, 0x680060), (0x6800f0, 0x6802f8), (0x663edc, 0x66403b), (0x67c290, 0x67c2e2),
+                    (0x664605, 0x6647cb), (0x47db20, 0x47db80), (0x6647cb, 0x664b68), (0x665739, 0x6658b9), (0x66316b, 0x663324), (0x67fff0, 0x680060), (0x6800f0, 0x6802f8), (0x663edc, 0x66403b), (0x67c290, 0x67c2e2), (0x663dfa, 0x663edc), (0x4f0170, 0x4f0237), (0x405280, 0x405390),
+                    (0x4f23f0, 0x4f2450),
                     (0x66525c, 0x665494), (0x659d43, 0x659d90), (0x664db7, 0x664ea3), (0x4f7870, 0x4f7910), (0x665f30, 0x665f71),
                     (0x67acd0, 0x67ad00), (0x45b380, 0x45b5f0), (0x45b680, 0x45b9b0), (0x67bb90, 0x67bd98), (0x67d250, 0x67d2c0),
                     (0x67d3a0, 0x67d400), (0x6918f0, 0x691a30), (0x691ba0, 0x691ce0)])
@@ -308,6 +313,31 @@ def bar_case(r):
     return Call(CALLS['FitBar'], [r.choice([BAR] * 9 + [0]), count, rows & 0xffffffff, r.getrandbits(32)], regions, ret='v')
 
 
+def allocator_masks(fail, lengths):
+    """The heap offsets of the allocator bytes of the strings made from texts of these lengths (None: no string) in turn, the heap
+    failing its allocation fail (fncmp's _alloc: blocks 16-aligned from +0x10, a countdown in the low bits): a Mask, or none"""
+    nxt, offsets = HEAP + 0x10 + fail, []
+
+    def alloc(size):
+        nonlocal nxt
+        countdown, p = nxt & 15, nxt & ~15
+        if countdown == 1:
+            nxt = p
+            return 0
+        nxt = p + ((size + 15) & ~15) + (countdown - 1 if countdown else 0)
+        return p
+
+    for n in lengths:
+        if n is None:
+            continue
+        p = alloc(0x10)
+        if p:
+            offsets.append(p - HEAP)
+            if n:
+                alloc(((n | 31) + 2) * 2)
+    return [Mask(HEAP, offsets, "the new strings' allocator byte: a stack byte the original never sets")] if offsets else []
+
+
 LIST3, COLS3, LINKS3, OBJS3, BUFS3, BAR3, OTHER3 = RAM + 0xf000, RAM + 0xf200, RAM + 0xf400, RAM + 0xf800, RAM + 0xf900, RAM + 0xfa00, RAM + 0xfc00
 
 
@@ -450,6 +480,25 @@ def case(r):
         return free_case(r, window, regions)
     if op == 'FindText':
         return text_case(r, window, regions)
+    if op == 'CopyCells':
+        ncols = r.choice([0, 1, 2, 3, 4, 4, -1])
+        put(window, 0x164, 'h', ncols)
+        bottoms = [r.choice([0, 0, 0, 1, 2]) for _ in range(4)]
+        regions[COLUMNS] = b''.join(put(bytearray(r.bytes(0xc)), 0xa, 'h', v) for v in bottoms)
+        put(window, 0x16c, 'I', COLUMNS)
+        chars, texts, lengths = bytearray(0x400), [], []
+        for c in range(4):
+            n = r.choice([0, 1, 5, 31, 32, r.randrange(41)])
+            struct.pack_into('<%dH' % (n + 1), chars, 0x100 * c, *[r.randrange(1, 0x10000) for _ in range(n)], 0)
+            text = r.choice([WCHARS + 0x100 * c] * 4 + [0]) if bottoms[c] == 0 else r.getrandbits(32)
+            texts.append(text)
+            lengths.append(n if c < ncols and bottoms[c] == 0 and text else None)
+        regions[WCHARS] = chars
+        regions[OUT] = struct.pack('<4I', *texts)
+        regions[OUT + 0x40] = r.bytes(0x10)
+        fail = r.choice([0] * 8 + [1, 2])
+        regions[HEAP] = heap(fail=fail)
+        return Call(CALLS[op], [WINDOW, OUT, OUT + 0x40], regions, conv='t', ret='v', masks=allocator_masks(fail, lengths))
     if op == 'SortsBefore':
         bottoms = [r.choice([1, 1, 0, 2, -1]) for _ in range(6)]
         regions[COLUMNS - 0x18] = b''.join(put(bytearray(r.bytes(0xc)), 0xa, 'h', v) for v in bottoms)
