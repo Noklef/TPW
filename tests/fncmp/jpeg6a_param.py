@@ -98,7 +98,7 @@ def colour(r, regs, null=False):
     cinfo = regs[CINFO]
     struct.pack_into('<I', cinfo, 0x3c, 0 if null and r.random() < 0.05 else COMP)
     regs[COMP] = r.bytes(12 * CSIZE)
-    struct.pack_into('<i', cinfo, 0x20, r.choice([1, 3, 4, r.randrange(-1, 13)]))  # input_components
+    struct.pack_into('<i', cinfo, 0x20, r.choice([1, 3, 4, 10, 11, r.randrange(-1, 13)]))  # input_components (10 and 11: either side of MAX_COMPONENTS)
     struct.pack_into('<I', cinfo, 0x24, r.randrange(6) if r.random() < 0.95 else r.choice([-1, 6, r.getrandbits(32)]) & 0xffffffff)  # in_color_space
     struct.pack_into('<I', cinfo, 0x30, r.choice([8, 8, 12, r.getrandbits(32)]) & 0xffffffff)  # data_precision (set to 8 by jpeg_set_defaults)
 
