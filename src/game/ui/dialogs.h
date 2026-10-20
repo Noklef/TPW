@@ -66,6 +66,10 @@ s32 __cdecl Dialog7cb2b8_Handler(u8 *window, u32 message, u32 a, u32 b);
 // 0x4a0a90 (cdecl (window, message, a, b); a handler installed at 0x4a245b and 0x4a24f4; name unconfirmed): Window_CallDefault.
 s32 __cdecl Window_DefaultHandler(u8 *window, u32 message, u32 a, u32 b);
 
+// 0x4bcb70 (cdecl (window, message, a, b); the handler a window made at 0x4bc821 gets; name unconfirmed): on message 0x800 the window
+// told 0 and -b (Window_NotifyC000) and its slot 9 (thiscall) given 0x7cb4d0; then Window_CallDefault, its result returned.
+s32 __cdecl WindowText7cb4d0_Handler(u8 *window, u32 message, u32 a, u32 b);
+
 // 0x48c8b0 (thiscall (flags), pops 4; name unconfirmed): the scalar deleting destructor: WindowAt10_Message4IfAny, then the object freed
 // (GameHeap_Free) for flags bit 0; returns the object.
 u8 *__fastcall WindowAt10_ScalarDtor(u8 *object, void *, u32 flags);
@@ -90,6 +94,19 @@ u32 __cdecl Global7cc698_Choose();
 // child's dword +0xa0 slot 2 (Window_DwordA0) is set; else message 0xb (0, 0) sent to it (Window_SendMessage) and message 0xa (value, 0)
 // posted (Window_PostMessage). Returns the value otherwise (no dialog, value 0 or no such child included).
 u32 __cdecl Dialog7cb2b8_Child21Post(u32 value);
+
+// 0x4a25f0 (cdecl (flag: a word); name unconfirmed): with the window [0x7cb2ac] and the dialog [0x7cb2b8] set, the dialog's child 0x21
+// (Window_FindChild), when there is one: for its byte +0x134 3 or 4 its dword +0xa0 slot 2 cleared when set (Window_DwordA0 /
+// Window_SetDwordA0), else message 0xb (0, 0) sent (Window_SendMessage). With the flag, the dialog's child 0x25's child 0x27 (neither
+// checked, sic) gets state 0, notified (Window705a50_SetState).
+void __cdecl Dialog7cb2b8_ResetChild21(u32 clear27);
+
+// 0x4b4470 (cdecl; name unconfirmed): Dialog7cb2b8_ResetChild21(0).
+void __cdecl Dialog7cb2b8_ResetChild21Only();
+
+// 0x4816b0 (thiscall on the object at 0x7b51f0, this not used; name unconfirmed): 0 when the dword [0x7cc2f0] (Global7cc2f0_Get_4b4480) is
+// 0; else Dialog7cb2b8_ResetChild21Only and 1.
+u32 __fastcall Obj7b51f0_ResetDialogChild21(void *self);
 
 // 0x4bd400 / 0x4bd450 (cdecl (value: a byte); names unconfirmed): with the window [0x7cc8bc] set, its child 0xc3123's child 0xc3124's child
 // 0xc3128 / 0xc3129 (Window_FindChild three times, none checked): 0x4bd400 sets that 0x705a50 window's state to value == 1, notifying

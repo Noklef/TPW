@@ -926,6 +926,7 @@ address,name,kind,confidence,notes
 0x00504580,ResearchProject_SetNextUpgrade,function,low,reimplemented (src/game/world/research); a project made from an object definition's next upgrade (name unconfirmed)
 0x005031a0,ResearchLab_FillProjects,function,low,reimplemented (src/game/world/research); the lab's projects from the object definitions and its groups' outputs (name unconfirmed)
 0x004ca6b0,Research_AllDone,function,low,reimplemented (src/game/world/research); whether nothing is left to research (name unconfirmed)
+0x00503ff0,ResearchLab_FlagProjectControls,function,low,"reimplemented (src/game/world/research); thiscall: each project's object control record (ObjectControls_Find, not quiet) gets byte +0x10 = 1, the last project first"
 0x005100e0,Nav_SetPosVel,function,high,"reimplemented (src/game/world/nav); thiscall (x, y, vx, vy): pos (+8) and vel (+0x10) set"
 0x00510160,Nav_GetPos,function,high,"reimplemented (src/game/world/nav); thiscall (&x, &y): pos (+8, +0xc) read"
 0x0051aad0,World_ArrivalVehicleNotSize1,function,high,reimplemented (src/game/world/world); thiscall: 1 when mCurrentArrivalVehicle (+0x1da72a) is set and is not mArrivalVehicle_Size1 (+0x1da72c)
@@ -2370,6 +2371,7 @@ address,name,kind,confidence,notes
 0x00479230,WTraits_Copy,function,high,"reimplemented (src/game/core/wtraits); cdecl (dst, src, n): n u16 copied forward one at a time; returns dst"
 0x00478cf0,WTraits_Assign,function,high,"reimplemented (src/game/core/wtraits); cdecl (dst, ch, n): n u16 of ch (rep stosd, then a stosw); returns dst"
 0x0047ba30,ImeWString_SetLength,function,high,"reimplemented (src/game/core/wtraits); thiscall (length); +8 = length, then the u16 characters (+4) ended there"
+0x00665f60,WTraits_Length,function,low,reimplemented (src/game/core/wtraits); cdecl (text): the wide text's length (wcslen)
 0x0041a5a0,Language_SetFontSet,function,high,"reimplemented (src/game/core/language); thiscall (width): +4 = 0 up to 512, 1 up to 640, 2 up to 800, else 3 (signed); picks the font set"
 0x0041a820,Language_Buffer,function,high,"reimplemented (src/game/core/language); thiscall; returns the buffer 0xf7f230, used as a string"
 0x0041a830,Language_Id,function,high,reimplemented (src/game/core/language); thiscall; the Windows language id (+8)
@@ -3718,6 +3720,7 @@ address,name,kind,confidence,notes
 0x00424d10,WNames_Equal,function,low,"reimplemented (src/game/core/string); cdecl (a, b; name unconfirmed): whether the wide texts at +8 of a and b are equal, case blind"
 0x004f7870,WString_CompareSub,function,high,"reimplemented (src/game/core/string); thiscall (pos, n, other, count; pops 16): the wide string's compare(pos, n, other, count)"
 0x005accb0,WNamedList_FindAfter,function,low,"reimplemented (src/game/core/string); thiscall on a list (key; pops 4): walks to the first item whose wide text equals the key's (WNames_Equal(key, item)) and returns the item after it (sic), 0 when the match is last or none"
+0x00665f30,WString_CompareText,function,low,"reimplemented (src/game/core/string); thiscall (text): compare(text): WString_CompareSub(0, the length, text, its length)"
 0x005bdc10,Class702938_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings
 0x005be320,Class702940_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three strings
 0x005be750,Class702948_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings
@@ -4969,6 +4972,9 @@ address,name,kind,confidence,notes
 0x0065f5fe,Window_NotifyObject98_100,function,low,reimplemented (src/game/ui/window); send 0x100 with a dword to the window's object +0x98
 0x0065e6d5,Window_SetDwordA0,function,low,reimplemented (src/game/ui/window); set one of a GUI window's sixteen dwords +0xa0
 0x0065cfff,Window_SetHitArea,function,low,reimplemented (src/game/ui/window); thiscall (area): the hit area +0x44 replaced (the old one deleted unless none or +8); none: +8
+0x0065f16b,Window_SetDepth,function,low,"reimplemented (src/game/ui/window); thiscall (depth word): +0xe0 = depth (at most 0x100), +0x98 / +0x9c told (slot 3, code 2, word +6 depth / depth + 1), the children given depth + 2"
+0x0065f286,Window_SetWordE2,function,low,"reimplemented (src/game/ui/window); thiscall (value word): +0xe2 = value, +0x98 / +0x9c told (slot 3, code 4, word +8), the children given the same"
+0x0065c672,Window_NotifyC000,function,low,"reimplemented (src/game/ui/window); thiscall (a, b words): with +0x98 or +0x9c set, each told by slot 3 (0xc000, an event whose +0x10 points to a second with the words +0xa = a, +0xc = b)"
 0x00498090,Dialog7ca1c8_SetChecks,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): the nine check buttons of the 0x7ca1c8 dialog's child 0x18 set (vtable slot 5, bool) from flags bits 0-8 (0x20's also needs [0x7ca1d0]+0x50)"
 0x00498a50,Dialog7ca1c8_SetChecksIfUp,function,low,reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): Dialog7ca1c8_SetChecks when [0x7ca1c8] and [0x7ca1cc] are not 0
 0x00481a00,Dialog7ca1c8_SetChecksIfUpThis,function,low,"reimplemented (src/game/ui/dialog7ca1c8); thiscall (flags), pops 4, this unused: Dialog7ca1c8_SetChecksIfUp(flags)"
@@ -5005,11 +5011,17 @@ address,name,kind,confidence,notes
 0x004bd400,Window7cc8bc_SetC3128,function,low,"reimplemented (src/game/ui/dialogs); cdecl (byte): [0x7cc8bc]'s child c3123/c3124/c3128 (FindChild) set to state value == 1, notifying"
 0x004bd450,Window7cc8bc_SetC3129,function,low,reimplemented (src/game/ui/dialogs); cdecl (byte): [0x7cc8bc]'s child c3123/c3124/c3129 (FindChild) slot 5 (value == 0)
 0x0049ab80,Window7ca2e8_ClearButtons,function,low,"reimplemented (src/game/ui/dialogs); cdecl (mode): [0x7ca2e8]'s child 0x12272's buttons set to state 0, notifying (two for mode 3, else six)"
+0x004a25f0,Dialog7cb2b8_ResetChild21,function,low,"reimplemented (src/game/ui/dialogs); cdecl (flag): the dialog's child 0x21 reset (kind 3/4: A0 slot 2 cleared, else message 0xb); with the flag, child 0x25's child 0x27 state 0"
+0x004b4470,Dialog7cb2b8_ResetChild21Only,function,low,reimplemented (src/game/ui/dialogs); cdecl: Dialog7cb2b8_ResetChild21(0)
+0x004816b0,Obj7b51f0_ResetDialogChild21,function,low,reimplemented (src/game/ui/dialogs); thiscall on 0x7b51f0: 0 without [0x7cc2f0]; else Dialog7cb2b8_ResetChild21Only and 1
+0x004bcb70,WindowText7cb4d0_Handler,function,low,"reimplemented (src/game/ui/dialogs); cdecl (window, message, a, b): on 0x800 Window_NotifyC000(0, -b) and slot 9 given 0x7cb4d0; then Window_CallDefault"
 0x00659607,GuiManager_CallSlot4,function,low,"reimplemented (src/game/ui/guimanager); cdecl: slot 4 (thiscall, no arguments) of the GUI manager [0x77c48c], its result"
 0x0065961c,GuiManager_CallSlot3,function,low,"reimplemented (src/game/ui/guimanager); cdecl: slot 3 (thiscall, no arguments) of the GUI manager [0x77c48c], its result"
 0x00659631,GuiManager_Word4Set,function,low,"reimplemented (src/game/ui/guimanager); cdecl: 1 when the GUI manager's word +4 (Fn_659790) is not 0, else 0"
 0x0065968e,GuiClock_Now,function,low,reimplemented (src/game/ui/guimanager); cdecl: slot 0 (thiscall) of the GUI clock [0x77c490]; its result returned
 0x0065958a,Gui_GetMousePos,function,low,"reimplemented (src/game/ui/guimanager); cdecl (x, y): the mouse position words 0xfaa540 / 0xfaa544 to *x / *y"
+0x006595cd,GuiManager_CallSlot4Or3,function,low,"reimplemented (src/game/ui/guimanager); cdecl: slot 4 of the GUI manager [0x77c48c] when its word +4 is set, else slot 3; the result"
+0x004817f0,Obj7b51f0_GuiManagerSlotAndFlag,function,low,"reimplemented (src/game/ui/guimanager); thiscall on 0x7b51f0: GuiManager_CallSlot4Or3, then GuiManager_Word4Set to the byte 0x78d90e and returned"
 0x00659d00,GuiRect_Ctor,function,low,"reimplemented (src/game/ui/guirect); thiscall: base ctor 0x65a9d0, vtable 0x705920, the four words 0; returns this"
 0x00659d43,GuiRect_CtorWith,function,low,"reimplemented (src/game/ui/guirect); thiscall (left, top, right, bottom words), pops 16: as GuiRect_Ctor with the words given; returns this"
 0x00659d90,GuiRect_Dtor,function,low,"reimplemented (src/game/ui/guirect); thiscall: vtable 0x705920, then the base dtor 0x66bff7 (its EAX)"
@@ -5018,6 +5030,7 @@ address,name,kind,confidence,notes
 0x0065a3e9,GuiRect_Offset,function,low,"reimplemented (src/game/ui/guirect); thiscall (dx, dy words), pops 8, slot 2: dx added to left and right, dy to top and bottom"
 0x0065a43e,GuiRect_Adjust,function,low,"reimplemented (src/game/ui/guirect); thiscall (dl, dt, dr, db words), pops 16, slot 3: each added to left, top, right and bottom"
 0x0065aa20,GuiRect_Assign,function,low,"reimplemented (src/game/ui/guirect); thiscall (source): the base's assignment (Fn_65aa80), the four words copied; returns the rectangle"
+0x00659f3d,GuiRect_Overlap,function,low,"reimplemented (src/game/ui/guirect); thiscall (shape): how the shape lies against the rectangle: 0x200 the same (bottom vs top, sic), 0x100 contains it, corner bits 0x51/0x92/0xa8/0x64, else edge bits 0x10-0x80"
 0x006599f2,GuiDialog_SetA,function,low,"reimplemented (src/game/ui/guidialog); thiscall (word), pops 4: +0xa = value when value < the word +0xe (signed)"
 0x00659a19,GuiDialog_SetC,function,low,"reimplemented (src/game/ui/guidialog); thiscall (word), pops 4: +0xc = value when value < the word +0xe (signed)"
 0x006598f7,GuiDialog_Apply,function,low,"reimplemented (src/game/ui/guidialog); thiscall (flags, source), pops 8, slot 3: bit 0 SetC(src+4), bit 2 +0x30 = src+8, bit 19 SetA(src+0xa), bit 6 +0x34/+0x36 = src+0xc/+0xe; nothing for flags 0 or no source"
@@ -5090,6 +5103,9 @@ address,name,kind,confidence,notes
 0x004862a0,Focus_Restore,function,low,reimplemented (src/game/ui/focus); the focus given back to the first shown of the game's windows (name unconfirmed)
 0x00485b40,Window7c24c8_Close,function,low,"reimplemented (src/game/ui/focus); cdecl: with the window [0x7c24c8], sent 5 (Window_SendMessage), forgotten, Focus_Restore; 1, else 0"
 0x004a27c0,Window7cb2cc_Close,function,low,"reimplemented (src/game/ui/focus); cdecl: the window [0x7cb2cc] (when set) sent 4 (Window_SendMessage), forgotten; Focus_Restore's result"
+0x004a29d0,Overlay7cb2b4_Toggle,function,low,"reimplemented (src/game/ui/focus); cdecl: with [0x7cb2ac], the toggle [0x7cb2e8] flipped: the overlay [0x7cb2b4] deleted, or made (unless 0x790ab0 & 0x16) as a child of the GUI root; [0x7cb2ac] shown by the old toggle; Focus_Restore when it ends 0"
+0x00481490,Obj7b51f0_ToggleOverlay,function,low,reimplemented (src/game/ui/focus); thiscall on 0x7b51f0: Overlay7cb2b4_Toggle
+0x004815d0,Obj7b51f0_CloseOverlay,function,low,"reimplemented (src/game/ui/focus); thiscall on 0x7b51f0: Overlay7cb2b4_Toggle while Global7cb2e8_Get, else 0"
 0x0066a1b0,RadioGroup_SetSelectedState,function,low,"reimplemented (src/game/ui/radiogroup); thiscall (state: a byte), pops 4: the child with the selected id (+0x138; Window_FindChild) gets Window705a50_SetState(state, 1)"
 0x0066a295,RadioGroup_Select,function,low,"reimplemented (src/game/ui/radiogroup); thiscall (id), pops 4: the selected child's state 0, id selected (+0x138), its state 1; the id before (AX), -1 for the same id, none found or -1 (none selected)"
 0x0066a1e8,RadioGroup_Ctor,function,low,"reimplemented (src/game/ui/radiogroup); thiscall (parent, flags, id, left, top, right, bottom), pops 28: kind 8 of the factory 0x65dd7b; Window_Ctor, the vtable 0x705ac0, none selected (+0x138 -1), handlers 0x66a31c; returns the group"
@@ -5122,10 +5138,26 @@ address,name,kind,confidence,notes
 0x00663554,Window7059f0_SetColumns,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (count): with no columns yet an array of count GUI rectangles at +0x16c, column i i*32..(i+1)*32, +0x164 = count"
 0x00663662,Window7059f0_SetColumn,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (index, left, right): the column's rectangle set to left, 0, right, 1 for an index below the count"
 0x006651ef,Window7059f0_SetInner,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (left, top, right, bottom): the rectangle +0x138's words set (Fn_659dac)"
+0x00665bfb,Window7059f0_Item148Depth,function,low,"reimplemented (src/game/ui/window7059f0); thiscall: the depth word +0xe0 of the window [+0x148] points at, 0 when either is missing (AX)"
+0x006636f6,Window7059f0_ColumnBottom,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (column word): the bottom word of the column's rectangle in +0x16c, sign-extended"
+0x00663a93,Window7059f0_NextItem,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (item, level*): the next item in the +0x144 tree's order (child, sibling, or up to a parent's sibling), the level change stored"
+0x00663ba2,Window7059f0_NthItem,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (n): the n-th item after the first shown one (+0x160), within the count +0x150"
+0x00664b68,Window7059f0_SetNthItemData,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (n, data): the n-th item's data dword (+1) set; 1 in AX, 0 without that item"
+0x00664ba8,Window7059f0_SetRowHeight,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (height word): +0x170 = height, +0x172 = the inner rectangle's height / it (signed)"
+0x00664d2a,Window7059f0_FindItemData,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (data): the position from the first shown item of the first whose data is data, within the count; -1 when none"
+0x00663324,Window7059f0_RefreshRows,function,low,"reimplemented (src/game/ui/window7059f0); thiscall: the rows +0x148 refreshed from the item +0x154: shown, each column's window sent 0x403 and given its cell (slot 7, or slot 9 with the cell object's +4), the level as the first column's indent"
+0x00663085,Window7059f0_ResetItems,function,low,"reimplemented (src/game/ui/window7059f0); thiscall: the items (+0x164 + 4 dwords each, +0x158 dwords) chained as free: next sibling the following one, no child, parent -2"
+0x00663cb8,Window7059f0_RootEnd,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (end*, last*): along the siblings from the first shown item to the first free (parent -2) or none, stored with the one before it"
+0x00664495,Window7059f0_FitBar,function,low,"reimplemented (src/game/ui/window7059f0); cdecl (bar, count, rows, first): the scroll bar shown with range count - rows and slot 7 first when count > rows, else hidden with range 0"
+0x00664605,Window7059f0_FreeItem,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (unused, item, previous, siblings): the item (its children, its siblings with the flag) freed, its cells deleted, moved after the last used root item"
+0x0066525c,Window7059f0_Select,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (row): the row selected (+0x14c = +0x154 + row, or -1), the highlight +0x174 shown or hidden and given the row's rectangle, the parent posted 0x401"
+0x00664db7,Window7059f0_FindText,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (text, column): the position of the first item from the first shown one whose cell in the column (from 1, clamped) is a wide string equal to text; -1"
 0x0065fbf0,WindowScript_ReadDword,function,low,reimplemented (src/game/ui/windowscript); a window script's next dword (two words)
 0x0065fc18,WindowScript_ReadWord,function,low,reimplemented (src/game/ui/windowscript); a window script's next word
 0x0065fc38,WindowScript_ReadRect,function,low,reimplemented (src/game/ui/windowscript); a window script's next four words to four outputs
 0x0065fcc5,WindowScript_ReadPair,function,low,reimplemented (src/game/ui/windowscript); a window script's next two words to two outputs
+0x0065fd58,WindowScript_Run,function,low,"reimplemented (src/game/ui/windowscript); thiscall (script), pops 4: the window script interpreter (opcodes to 5 or past 0x12; children made and their scripts run); returns the last child made"
+0x0065fd0e,WindowScript_Build,function,low,"reimplemented (src/game/ui/windowscript); thiscall (script, handler), pops 8: read position 0, WindowScript_Run, the handler set on the child it returns"
 0x0063ea00,adler32,function,high,"reimplemented (src/game/lib/zlib); zlib 1.1.3 adler32.c, the library's own (third_party/zlib-1.1.3)"
 0x0063eba0,init_block,function,high,"reimplemented (src/game/lib/zlib); zlib 1.1.3 trees.c, the library's own (third_party/zlib-1.1.3)"
 0x00640460,set_data_type,function,high,"reimplemented (src/game/lib/zlib); zlib 1.1.3 trees.c, the library's own (third_party/zlib-1.1.3)"
@@ -5217,3 +5249,5 @@ address,name,kind,confidence,notes
 0x006465a0,jdsample_h2v2_upsample,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdsample.c h2v2_upsample (the library's, through wrap/jpeg-6b/jdsample.c)"
 0x00646630,jdsample_h2v1_fancy_upsample,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdsample.c h2v1_fancy_upsample: triangular interpolation (the library's, through wrap/jpeg-6b/jdsample.c)"
 0x00646700,jdsample_h2v2_fancy_upsample,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdsample.c h2v2_fancy_upsample: triangular interpolation (the library's, through wrap/jpeg-6b/jdsample.c)"
+0x00659437,Gui_TopDepthIn,function,low,"reimplemented (src/game/ui/guidepth); cdecl (window, shape): [0xfaa594] raised to 1 above each shown child's depth (kind 7: Window7059f0_Item148Depth) that overlaps the shape (any without one), down the tree; the root starts it at its own depth"
+0x00659409,Gui_TopDepth,function,low,"reimplemented (src/game/ui/guidepth); cdecl (window, shape): Gui_TopDepthIn of the window or the GUI root [0xfaa5d8]; -1 with neither"

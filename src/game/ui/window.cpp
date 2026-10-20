@@ -219,6 +219,16 @@ void __fastcall Window_Notify3000(u8 *window, void *, u32 a, u32 b) {
     if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0x3000u, event);
 }
 
+void __fastcall Window_NotifyC000(u8 *window, void *, u32 a, u32 b) {
+    if (!at<u8 *>(window, 0x98) && !at<u8 *>(window, 0x9c)) return;
+    u8 inner[0x14], event[0x18];  // (only inner's words +0xa / +0xc and event's pointer +0x10 set)
+    at<u8 *>(event, 0x10) = inner;
+    at<u16>(inner, 0xa) = (u16)a;
+    at<u16>(inner, 0xc) = (u16)b;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 0xc000u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0xc000u, event);
+}
+
 void __fastcall Window_Notify20000(u8 *window, void *, u32 a) {
     if (!at<u8 *>(window, 0x98) && !at<u8 *>(window, 0x9c)) return;
     u8 inner[0x14], event[0x18];  // (only inner's byte +9 and event's pointer +0x10 set)
@@ -580,5 +590,25 @@ u16 __fastcall Window_Unlink(u8 *window) {
 u16 __fastcall Window_SetHandler(u8 *window, void *, u32 handler) {
     if (handler) at<u32>(window, 0x114) = handler;
     return 1;
+}
+
+void __fastcall Window_SetDepth(u8 *window, void *, u32 depth) {
+    at<u16>(window, 0xe0) = (u16)depth;
+    if (at<s16>(window, 0xe0) > 0x100) at<u16>(window, 0xe0) = 0x100;
+    u8 event[0x18];  // (only the word +6 set)
+    at<u16>(event, 6) = at<u16>(window, 0xe0);
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 2u, event);
+    at<u16>(event, 6) = (u16)(at<s16>(window, 0xe0) + 1);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 2u, event);
+    for (u8 *child = at<u8 *>(window, 0x5c); child; child = at<u8 *>(child, 0x54)) Window_SetDepth(child, nullptr, (u32)((s16)depth + 2));
+}
+
+void __fastcall Window_SetWordE2(u8 *window, void *, u32 value) {
+    at<u16>(window, 0xe2) = (u16)value;
+    u8 event[0x18];  // (only the word +8 set)
+    at<u16>(event, 8) = at<u16>(window, 0xe2);
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 4u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 4u, event);
+    for (u8 *child = at<u8 *>(window, 0x5c); child; child = at<u8 *>(child, 0x54)) Window_SetWordE2(child, nullptr, value);
 }
 }

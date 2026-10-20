@@ -4,6 +4,7 @@
 
 #include "../core/accessors.h"
 #include "../core/initializers.h"
+#include "../core/vcall.h"
 
 namespace {
 
@@ -69,5 +70,27 @@ u8 *__fastcall GuiRect_Assign(u8 *rect, void *, const u8 *source) {
     for (u32 off = 4; off < 0xc; off += 2)
         at<u16>(rect, off) = at<u16>(const_cast<u8 *>(source), off);
     return rect;
+}
+
+u32 __fastcall GuiRect_Overlap(u8 *rect, void *, u8 *shape) {
+    const s32 l = at<s16>(rect, 4), t = at<s16>(rect, 6), r = at<s16>(rect, 8), b = at<s16>(rect, 0xa);
+    const s32 sl = at<s16>(shape, 4), st = at<s16>(shape, 6), sr = at<s16>(shape, 8), sb = at<s16>(shape, 0xa);
+    if (sl == l && st == t && sr == r && sb == t) return 0x200;   // (the bottom against the top, sic)
+    if ((u16)vcall<u32>(shape, 0, (u32)(l + 1), (u32)(t + 1)) && (u16)vcall<u32>(shape, 0, (u32)(r - 1), (u32)(b - 1))) return 0x100;
+    u16 bits = 0;
+    if ((u16)vcall<u32>(rect, 0, (u32)(u16)sl, (u32)(u16)st)) bits |= 0x51;
+    if ((u16)vcall<u32>(rect, 0, (u32)(u16)sr, (u32)(u16)st)) bits |= 0x92;
+    if ((u16)vcall<u32>(rect, 0, (u32)(u16)sr, (u32)(u16)sb)) bits |= 0xa8;
+    if ((u16)vcall<u32>(rect, 0, (u32)(u16)sl, (u32)(u16)sb)) bits |= 0x64;
+    if (bits & 0xf) return bits;
+    if (sl <= l && sr >= r) {
+        if (st > t && st < b) bits |= 0x10;
+        if (sb > t && sb < b) bits |= 0x20;
+    }
+    if (st <= t && sb >= b) {
+        if (sl > l && sl < r) bits |= 0x40;
+        if (sr > l && sr < r) bits |= 0x80;
+    }
+    return bits;
 }
 }

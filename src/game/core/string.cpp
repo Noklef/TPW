@@ -12,6 +12,7 @@
 #include "methods.h"
 #include "stdstring.h"
 #include "vcall.h"
+#include "wtraits.h"
 
 namespace {
 
@@ -637,6 +638,11 @@ s32 __fastcall WString_CompareSub(const u8 *self, void *, u32 pos, u32 n, const 
     if (n < count)
         return -1;
     return n != count ? 1 : 0;
+}
+
+s32 __fastcall WString_CompareText(const u8 *self, void *, const u16 *text) {
+    const u32 count = WTraits_Length(text);
+    return WString_CompareSub(self, nullptr, 0, at<u32>(self, 8), text, count);
 }
 
 u32 __cdecl Names_FirstAfter(const u8 *a, const u8 *b) {

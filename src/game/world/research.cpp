@@ -45,6 +45,13 @@ u8 __fastcall ResearchLab_CurrentNotDone(const u8 *lab, void *, u32 group) {
     return current >= 0 && not_done(project(lab, current));
 }
 
+void __fastcall ResearchLab_FlagProjectControls(const u8 *lab) {
+    const u32 last = at<u32>(lab, 0x145c) - 1;
+    if ((s32)last < 0) return;
+    const u8 *p = lab + 0xc + last * 20;
+    for (u32 left = last + 1; left != 0; --left, p -= 20) at<u8>(controls(p), 0x10) = 1;   // (none found faults, sic)
+}
+
 u8 *__fastcall ResearchGroup_Ctor(u8 *group) {
     at<u8>(group, 0xc) = 1;
     at<s32>(group, 8) = -1;

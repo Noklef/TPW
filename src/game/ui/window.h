@@ -101,6 +101,9 @@ void __fastcall Window_NotifyC00(u8 *window, void *, u32 a, u32 b);
 // 0x65c4b9 (thiscall (a, b: bytes), pops 8; name unconfirmed): as Window_NotifyC00 with 0x3000 and the bytes at +6 / +7.
 void __fastcall Window_Notify3000(u8 *window, void *, u32 a, u32 b);
 
+// 0x65c672 (thiscall (a, b: words), pops 8; name unconfirmed): as Window_NotifyC00 with 0xc000 and the words at +0xa / +0xc.
+void __fastcall Window_NotifyC000(u8 *window, void *, u32 a, u32 b);
+
 // 0x65c54a (thiscall (a: a byte), pops 4; name unconfirmed): as Window_NotifyC00 with 0x20000 and the one byte at +9.
 void __fastcall Window_Notify20000(u8 *window, void *, u32 a);
 
@@ -227,4 +230,14 @@ u32 __cdecl Gui_MouseDown(u32 button, u32 x, u32 y);
 // 0x658b5b (cdecl (button, x, y: words); name unconfirmed): a mouse button released: the same, the button's window posted 0x10004 and
 // cleared, its bit cleared in [0xfaa5bc]; 1 in AX (the rest of EAX the inverted bit's).
 u32 __cdecl Gui_MouseUp(u32 button, u32 x, u32 y);
+
+// 0x65f16b (thiscall (depth: a word), pops 4; name unconfirmed): the depth word +0xe0 = depth, at most 0x100 (signed); the objects +0x98
+// and +0x9c (when set) told through their slot 3 (2, an event on the stack whose only word set, +6, is +0xe0 for +0x98 and +0xe0 + 1 for
+// +0x9c); then each child (+0x5c, then +0x54) given depth + 2 (from the word passed, not the clamped one). EAX not kept.
+void __fastcall Window_SetDepth(u8 *window, void *, u32 depth);
+
+// 0x65f286 (thiscall (value: a word), pops 4; name unconfirmed): the word +0xe2 = value; the objects +0x98 and +0x9c (when set) told through
+// their slot 3 (4, an event on the stack whose only word set, +8, is +0xe2); then each child (+0x5c, then +0x54) given the same. EAX not
+// kept.
+void __fastcall Window_SetWordE2(u8 *window, void *, u32 value);
 }

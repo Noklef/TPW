@@ -2,9 +2,13 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
+#include "../core/buffers.h"
 #include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../core/initializers.h"
+#include "../core/selectors.h"
+#include "../core/string.h"
 #include "../core/vcall.h"
 #include "guirect.h"
 #include "window.h"
@@ -83,5 +87,216 @@ u32 __fastcall Window7059f0_SetColumn(u8 *window, void *, u32 index, u32 left, u
 
 u32 __fastcall Window7059f0_SetInner(u8 *window, void *, u32 left, u32 top, u32 right, u32 bottom) {
     return Fn_659dac(window + 0x138, nullptr, (u16)left, (u16)top, (u16)right, (u16)bottom);
+}
+
+u32 __fastcall Window7059f0_Item148Depth(const u8 *window) {
+    u8 *const *const cell = at<u8 *const *>(const_cast<u8 *>(window), 0x148);
+    return cell && *cell ? at<u16>(*cell, 0xe0) : 0;
+}
+
+s32 __fastcall Window7059f0_ColumnBottom(u8 *window, void *, u32 column) {
+    return at<s16>(at<u8 *>(window, 0x16c) + (s16)column * 0xc, 0xa);
+}
+
+s32 __fastcall Window7059f0_NextItem(u8 *window, void *, s32 item, s32 *level) {
+    const s32 *const links = at<s32 *>(window, 0x144);
+    s32 next = -2, depth = 0;
+    if (links[item + 2] >= 0) {   // the first child
+        next = links[item + 2];
+        ++depth;
+    } else if (links[item] >= 0) {   // the next sibling
+        next = links[item];
+    } else if (links[item + 3] >= 0) {   // up to the first parent with a next sibling (or the last parent's next: -1 or less)
+        next = links[item + 3];
+        --depth;
+        while (links[next] < 0 && links[next + 3] >= 0) {
+            next = links[next + 3];
+            --depth;
+        }
+        next = links[next];
+    }
+    if (level) *level = depth;
+    return next;
+}
+
+s32 __fastcall Window7059f0_NthItem(u8 *window, void *, s32 n) {
+    s32 item = at<s32>(window, 0x160);
+    for (s32 i = 0; n >= 0 && n < at<s32>(window, 0x150) && at<u32>(window, 0x144) && i < n && item != -1; ++i)
+        item = Window7059f0_NextItem(window, nullptr, item, nullptr);
+    return item;
+}
+
+u32 __fastcall Window7059f0_SetNthItemData(u8 *window, void *, s32 n, u32 data) {
+    const s32 item = Window7059f0_NthItem(window, nullptr, n);
+    if (item == -1) return 0;
+    at<s32 *>(window, 0x144)[item + 1] = (s32)data;
+    return 1;
+}
+
+void __fastcall Window7059f0_SetRowHeight(u8 *window, void *, u32 height) {
+    at<u16>(window, 0x170) = (u16)height;
+    at<u16>(window, 0x172) = (u16)((at<s16>(window, 0x142) - at<s16>(window, 0x13e)) / at<s16>(window, 0x170));
+}
+
+s32 __fastcall Window7059f0_FindItemData(u8 *window, void *, u32 data) {
+    s32 item = Window7059f0_NthItem(window, nullptr, 0), position = -1;
+    bool found = false;
+    while (item != -1 && !found && position < at<s32>(window, 0x150) - 1) {
+        ++position;
+        if ((u32)at<s32 *>(window, 0x144)[item + 1] == data) found = true;
+        item = Window7059f0_NextItem(window, nullptr, item, nullptr);
+    }
+    return found ? position : -1;
+}
+
+void __fastcall Window7059f0_ResetItems(u8 *window) {
+    const s32 count = at<s32>(window, 0x158) / ((s32)at<s16>(window, 0x164) + 4);
+    s32 item = 0;
+    for (s32 i = 0; i < count - 1; ++i) {
+        at<s32 *>(window, 0x144)[item] = item + at<s16>(window, 0x164) + 4;
+        at<s32 *>(window, 0x144)[item + 2] = -1;
+        at<s32 *>(window, 0x144)[item + 3] = -2;
+        item += at<s16>(window, 0x164) + 4;
+    }
+    at<s32 *>(window, 0x144)[item] = -1;
+    at<s32 *>(window, 0x144)[item + 2] = -1;
+    at<s32 *>(window, 0x144)[item + 3] = -2;
+}
+
+void __fastcall Window7059f0_RootEnd(u8 *window, void *, s32 *end, s32 *last) {
+    s32 item = at<s32>(window, 0x160), before = -1;
+    if (!at<s32 *>(window, 0x144)) return;
+    for (s32 next = Window7059f0_NthItem(window, nullptr, 0); next >= 0 && at<s32 *>(window, 0x144)[next + 3] != -2;) {
+        before = item;
+        next = at<s32 *>(window, 0x144)[next];
+        item = next;
+    }
+    *end = item;
+    *last = before;
+}
+
+void __cdecl Window7059f0_FitBar(u8 *bar, s32 count, s32 rows, u32 first) {
+    if (!bar) return;
+    if (count > rows) {
+        Window_SetShown(bar, nullptr, 1);
+        Window705b20_SetRange(bar, nullptr, (s32)((u32)count - (u32)rows), 0);
+        vcall<void>(bar, 0x1c, first);
+    } else {
+        Window_SetShown(bar, nullptr, 0);
+        Window705b20_SetRange(bar, nullptr, 0, 0);
+    }
+}
+
+void __fastcall Window7059f0_FreeItem(u8 *window, void *, u32 unused, s32 item, s32 previous, u32 siblings) {
+    const s32 child = at<s32 *>(window, 0x144)[item + 2];
+    if (child >= 0) Window7059f0_FreeItem(window, nullptr, unused, child, -1, 1);
+    if (siblings) {
+        const s32 next = at<s32 *>(window, 0x144)[item];
+        if (next >= 0) Window7059f0_FreeItem(window, nullptr, unused, next, item, 1);
+    }
+    for (s32 column = 0; column < at<s16>(window, 0x164); ++column) {
+        if (Window7059f0_ColumnBottom(window, nullptr, (u32)column) != 0) continue;
+        if (u8 *const object = reinterpret_cast<u8 *>((uintptr_t)(u32)at<s32 *>(window, 0x144)[item + 4 + column]))
+            CountedBuf_Deleter(object, nullptr, 1);
+    }
+    s32 end, last;   // (both unset without the array, sic)
+    Window7059f0_RootEnd(window, nullptr, &end, &last);
+    if (last != item) {   // (the item moved to the end of the first shown one's siblings)
+        if (previous >= 0) {
+            at<s32 *>(window, 0x144)[previous] = at<s32 *>(window, 0x144)[item];
+        } else {
+            const s32 parent = at<s32 *>(window, 0x144)[item + 3];
+            if (parent >= 0) at<s32 *>(window, 0x144)[parent + 2] = -1;   // (its other children dropped, sic)
+        }
+        at<s32 *>(window, 0x144)[item] = end;
+        at<s32 *>(window, 0x144)[last] = item;
+    }
+    at<s32 *>(window, 0x144)[item + 2] = -1;
+    at<s32 *>(window, 0x144)[item + 3] = -2;
+    if (--at<s32>(window, 0x150) == 0) at<s32>(window, 0x160) = -1;
+}
+
+void __fastcall Window7059f0_Select(u8 *window, void *, s32 row) {
+    if (row < 0) {
+        row = -1;
+    } else if (row < at<s16>(window, 0x172) && row < at<s32>(window, 0x150)) {
+        row += at<s32>(window, 0x154);
+    } else if (at<u32>(window, 0x48) & 0x100) {
+        row = -1;
+    } else {
+        return;
+    }
+    if (row != at<s32>(window, 0x14c)) {
+        if (at<u8 *>(window, 0x174)) {
+            if (row == -1 && at<s32>(window, 0x14c) != -1)
+                vcall<void>(at<u8 *>(window, 0x174), 0x14, 0u);
+            else if (row != -1 && at<s32>(window, 0x14c) == -1 && (s16)Window_IsShown(window) != 0)
+                vcall<void>(at<u8 *>(window, 0x174), 0x14, 1u);
+        }
+        at<s32>(window, 0x14c) = row;
+        Window_PostMessage(at<u8 *>(window, 0x60), 0x401, at<u32>(window, 0x8c), at<u32>(window, 0x14c));
+        if (*reinterpret_cast<const u32 *>((uintptr_t)0x00faa5d4)) Window_PostMessage(window, 3, 0, 0);
+    }
+    if (!at<u8 *>(window, 0x174) || at<s32>(window, 0x14c) == -1) return;
+    const u32 top = (u32)(s32)at<s16>(window, 0x13e), height = (u32)(s32)at<s16>(window, 0x170);
+    const u32 bottom = top + height * ((u32)at<s32>(window, 0x14c) + 1 - (u32)at<s32>(window, 0x154));
+    u8 rect[0xc], event[0x18];   // (only the event's pointer +0x14 set)
+    GuiRect_CtorWith(rect, nullptr, at<u16>(window, 0x13c), top + height * ((u32)at<s32>(window, 0x14c) - (u32)at<s32>(window, 0x154)),
+                     at<u16>(window, 0x140), bottom);
+    at<u8 *>(event, 0x14) = rect;
+    vcall<void>(at<u8 *>(window, 0x174), 0xc, 0x10u, event);
+    GuiRect_Dtor(rect);
+}
+
+s32 __fastcall Window7059f0_FindText(u8 *window, void *, const u16 *text, s32 column) {
+    s32 item = Window7059f0_NthItem(window, nullptr, 0), position = -1, found = -1;
+    bool done = false;
+    if (column < 1) column = 1;
+    if (column > at<s16>(window, 0x164)) column = at<s16>(window, 0x164);
+    --column;
+    if (!at<u8 *>(window, 0x16c) || Window7059f0_ColumnBottom(window, nullptr, (u32)column) != 0) return found;
+    while (item != -1 && !done && position < at<s32>(window, 0x150) - 1) {
+        ++position;
+        const u8 *const cell = reinterpret_cast<const u8 *>((uintptr_t)(u32)at<s32 *>(window, 0x144)[item + column + 4]);
+        if (WString_CompareText(cell, nullptr, text) == 0) {
+            done = true;
+            found = position;
+        }
+        item = Window7059f0_NextItem(window, nullptr, item, nullptr);
+    }
+    return found;
+}
+
+void __fastcall Window7059f0_RefreshRows(u8 *window) {
+    s32 *cells = at<s32 *>(window, 0x144);
+    if (!at<u8 **>(window, 0x148)) return;
+    s32 item = Window7059f0_NthItem(window, nullptr, at<s32>(window, 0x154));
+    const s32 enabled = (s16)Window_IsShown(window);
+    s32 level = 0;
+    if (item >= 0)
+        for (s32 p = at<s32 *>(window, 0x144)[item + 3]; p >= 0; p = at<s32 *>(window, 0x144)[p + 3]) ++level;
+    for (s32 row = 0; row < at<s16>(window, 0x172); ++row) {
+        u8 *child = at<u8 **>(window, 0x148)[row];
+        const bool visible = row + at<s32>(window, 0x154) < at<s32>(window, 0x150);
+        Window_SetShown(child, nullptr, enabled && visible ? 1 : 0);
+        if (visible) cells = at<s32 *>(window, 0x144) + item + 4;
+        for (s32 column = 0; column < at<s16>(window, 0x164); ++column) {
+            if (visible) {
+                Window_SendMessage(child, 0x403, (u32)(uintptr_t)(cells + 4), (u32)at<s32 *>(window, 0x144)[item + 1]);
+                if (Window7059f0_ColumnBottom(window, nullptr, (u32)column) == 1) {
+                    vcall<void>(child, 0x1c, (u32)cells[column]);
+                } else {
+                    if (column == 0) Window_NotifyC000(child, nullptr, (u32)(level * 0x14), 0);
+                    vcall<void>(child, 0x24, Obj_Get4Or6fd6c4(reinterpret_cast<const u8 *>((uintptr_t)(u32)cells[column])));
+                }
+            }
+            child = reinterpret_cast<u8 *>((uintptr_t)(column == 0 ? Fn_65d547(child, nullptr, 0) : Fn_65d56b(child)));
+        }
+        if (visible) {
+            s32 delta;
+            item = Window7059f0_NextItem(window, nullptr, item, &delta);
+            level += delta;
+        }
+    }
 }
 }

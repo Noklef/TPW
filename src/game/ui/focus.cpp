@@ -4,9 +4,11 @@
 
 #include "../core/accessors.h"
 #include "../core/keymap.h"
+#include "../core/vcall.h"
 #include "../files/wrapsources.h"
 #include "dialog7ca1c8.h"
 #include "window.h"
+#include "windowfactory.h"
 
 namespace {
 
@@ -79,4 +81,31 @@ u32 __cdecl Window7cb2cc_Close() {
     global<u8 *>(0x007cb2cc) = nullptr;
     return Focus_Restore();
 }
+
+u32 __cdecl Overlay7cb2b4_Toggle() {
+    u32 &on = global<u32>(0x007cb2e8);
+    u8 *&overlay = global<u8 *>(0x007cb2b4);
+    if (!global<u8 *>(0x007cb2ac)) return 0;
+    if (on) {
+        if (overlay) vcall<void>(overlay, 8, 1u);
+        overlay = nullptr;
+    } else {
+        if (global<u8>(0x00790ab0) & 0x16) return 0;
+        if (!overlay) {
+            overlay = Window_CreateChild(global<u8 *>(0x00faa5d8), nullptr, 1, 1, 0xddf22, 0, 0, 0x7ff, 0x5ff);
+            if (overlay) {
+                Window_SetHandler(overlay, nullptr, 0x004a2840);
+                focus(overlay);
+            }
+        }
+    }
+    Window_SetShown(global<u8 *>(0x007cb2ac), nullptr, (u16)on);
+    const u32 old = on;
+    on = 1 - old;
+    return on ? old : Focus_Restore();
+}
+
+u32 __fastcall Obj7b51f0_ToggleOverlay(void *) { return Overlay7cb2b4_Toggle(); }
+
+u32 __fastcall Obj7b51f0_CloseOverlay(void *) { return Global7cb2e8_Get() ? Overlay7cb2b4_Toggle() : 0; }
 }
