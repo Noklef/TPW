@@ -1067,6 +1067,8 @@ address,name,kind,confidence,notes
 0x004cb980,Things_HappiestOf156,function,low,"reimplemented (src/game/world/thingscan); thiscall (&out): the happiest of the categories 1, 5 and 6"
 0x004cba90,Things_UnhappiestOf156,function,low,"reimplemented (src/game/world/thingscan); thiscall (&out): the unhappiest of the categories 1, 5 and 6"
 0x004cbec0,Things_HappiestDef4ac2,function,low,reimplemented (src/game/world/thingscan); thiscall (&out): the happiest of the objects whose definition has 2 at +0x4ac and that had customers
+0x004c7bb0,Things_AveragePersonStat19c,function,low,"reimplemented (src/game/world/thingscan); The average of the low bytes of +0x19c of the kind 1 things on plain cells, [0x70031c] when none or +0x1da710 is 0"
+0x004c7cc0,Things_AverageStaffStat1f8,function,low,"reimplemented (src/game/world/thingscan); The average of the low bytes of +0x1f8 of the staff (kinds 4 to 8), [0x70031c] when none"
 0x0054b130,Buoy_FindFree,function,high,"reimplemented (src/game/world/trackpools); the first free buoy record, its index stored in it"
 0x0054b170,Buoy_Alloc,function,high,reimplemented (src/game/world/trackpools); takes the first free buoy record
 0x0054b1e0,CollNode_FindFree,function,high,reimplemented (src/game/world/trackpools); the first free collision node

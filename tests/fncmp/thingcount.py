@@ -3,6 +3,8 @@
 # kind with radius 0 to 3 (to the corner of the map too), counting or stopping at the first; or some of them chained (+0xa) from a cell's
 # word at +0x24, of kinds 1, 2, 3 and 0xff, for the first of kind 3; that from a cell (in and out of the map) of type 4, 9, 0xa or another,
 # or its parent, the objects' cells (+0x34) over the map, 0 and past it; the entrance's columns and row about the cell's (and wrapping).
+# The averages 0x4c7bb0 / 0x4c7cc0 (Person / Staff): the park's things of kind 1 mostly (or 4 to 8 mostly) on cells of every type, their
+# floats +0x19c (+0x1f8) 0..100 mostly (else negative, past 255, huge or NaN), the world's +0x1da710 mostly 0.
 # usage: thingcount.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Top,Area)
 import os
 import struct
@@ -14,8 +16,9 @@ sys.path.insert(0, HERE)
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 from thingenv import CELLS, POOL, THING, park  # noqa: E402
 
-CALLS = {'Top': 0x4c8430, 'Area': 0x4c8d30, 'Near': 0x4c8ed0, 'Unlink': 0x4d9280, 'Any': 0x4c8eb0, 'First': 0x4d99e0, 'At': 0x527d60, 'Entrance': 0x527e80, 'Hover': 0x46c110}
-B = Bench([(0x4c8430, 0x4c85a8), (0x4c8d30, 0x4c8ea0), (0x4c8ed0, 0x4c9040), (0x4d9280, 0x4d93b0), (0x4c8eb0, 0x4c8ed0), (0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x5da3c0, 0x5da3c1), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c), (0x4d99e0, 0x4d9a5b), (0x527d60, 0x527e76), (0x527e80, 0x527ed8), (0x4d8300, 0x4d8328), (0x46c110, 0x46c1c4)])
+CALLS = {'Person': 0x4c7bb0, 'Staff': 0x4c7cc0, 'Top': 0x4c8430, 'Area': 0x4c8d30, 'Near': 0x4c8ed0, 'Unlink': 0x4d9280, 'Any': 0x4c8eb0, 'First': 0x4d99e0, 'At': 0x527d60, 'Entrance': 0x527e80, 'Hover': 0x46c110}
+B = Bench([(0x4c8430, 0x4c85a8), (0x4c8d30, 0x4c8ea0), (0x4c8ed0, 0x4c9040), (0x4d9280, 0x4d93b0), (0x4c8eb0, 0x4c8ed0), (0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x5da3c0, 0x5da3c1), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c), (0x4d99e0, 0x4d9a5b), (0x527d60, 0x527e76), (0x527e80, 0x527ed8), (0x4d8300, 0x4d8328), (0x46c110, 0x46c1c4),
+           (0x4c7bb0, 0x4c7cb4), (0x4c7cc0, 0x4c7da7), (0x51a280, 0x51a287), (0x67a830, 0x67a860)])
 OUT = RAM + 0x1000
 
 
@@ -103,6 +106,18 @@ def case(r):
     regions, handles, things = park(r, count=count, kinds=(1, 1, 1, 2, 3), defs=False, cells=True)
     pool = bytearray(regions[POOL])
     grid = bytearray(regions[CELLS])
+    if name in ('Person', 'Staff'):
+        kinds = [1] * 6 + [0, 2, 3, 4, 8] if name == 'Person' else [4, 5, 6, 7, 8] * 2 + [1, 3, 9, 0xff]
+        for i in range(count):
+            pool[THING * i + 2] = r.choice(kinds)
+            if r.random() < 0.85:
+                f = r.choice([0.0, 1.0, 50.0, 99.9, 100.0, 0.5, r.uniform(0, 100)])
+            else:
+                f = r.choice([-1.0, -0.5, 255.9, 256.0, 300.0, float('nan'), 1e10, -1e10])
+            put(pool, THING * i + (0x19c if name == 'Person' else 0x1f8), 'f', f)
+        regions[POOL] = pool
+        regions[RAM + 0x1da710] = struct.pack('<I', r.choice([0, 0, 0, 1, r.getrandbits(32)]))
+        return Call(CALLS[name], [r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='d')
     if name == 'Top':
         for i in range(count):
             put(pool, THING * i + 0x30, 'i', r.choice([0, 1, 2, 3, 4, 5, 10, 21, 22, r.randrange(23)]))

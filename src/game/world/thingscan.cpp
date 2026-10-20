@@ -2,8 +2,10 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
 #include "../core/circbuf.h"
 #include "../core/indexed.h"
+#include "../math/x87.h"
 #include "analysercell.h"
 #include "mapcell.h"
 #include "object.h"
@@ -649,6 +651,24 @@ u16 staffNext(const u8 *previous, u16 *(__fastcall *first)(const u8 *, void *, u
     return previous ? *reinterpret_cast<const u16 *>(previous + 0x210) : *first(categoryWorld(), nullptr, &out);
 }
 
+// The average of a byte of the things that pass: each float at the offset cut to an integer and its low byte, summed (each sum by the x87
+// and cut again); none: the float [0x70031c].
+template <typename Test> double averageByte(Test test, u32 offset) {
+    s32 sum = 0, count = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (test(thing)) {
+            sum = (s32)(long long)(X87Reg((double)(u8)(long long)at<float>(thing, offset)) + X87Reg((double)sum)).v;
+            ++count;
+        }
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    if (count <= 0) return global<float>(0x0070031c);
+    return (X87Reg((double)sum) / X87Reg((double)count)).v;
+}
+
 }  // namespace
 
 extern "C" {
@@ -830,5 +850,14 @@ s32 __fastcall Things_UnhappiestOf156(void *, void *, u16 *out) {
 s32 __fastcall Things_HappiestDef4ac2(void *, void *, u16 *out) {
     return BestObject<false>(out, [](const u8 *thing) { return def4ac(thing) == 2; },
                              [](const u8 *thing, s32 *average) { return hadCustomers(thing) && happiness(thing, average); });
+}
+
+double __fastcall Things_AveragePersonStat19c(void *, void *, u32) {
+    if (Get1da710_51a280(static_cast<const u8 *>(world()))) return global<float>(0x0070031c);
+    return averageByte([](const u8 *thing) { return at<u8>(thing, 2) == 1 && AnalyserCell_TypePlain(thing); }, 0x19c);
+}
+
+double __fastcall Things_AverageStaffStat1f8(void *, void *, u32) {
+    return averageByte([](const u8 *thing) { return at<u8>(thing, 2) >= 4 && at<u8>(thing, 2) <= 8; }, 0x1f8);
 }
 }  // extern "C"

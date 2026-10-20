@@ -211,4 +211,13 @@ s32 __fastcall Things_UnhappiestOf156(void *self, void *, u16 *out);
 // 0x4cbec0 (thiscall as 0x4cb300; name unconfirmed): the happiest of the objects whose definition has 2 at +0x4ac (as 0x4cbba0's) and
 // that had customers (as the walk-aways'). The debug prints of the size check are left out.
 s32 __fastcall Things_HappiestDef4ac2(void *self, void *, u16 *out);
+
+// 0x4c7bb0 (thiscall, pops 4; the object and argument unused; name unconfirmed): the float [0x70031c] while the world's dword +0x1da710 is set
+// (Get1da710_51a280); else the average over the things of kind 1 on a plain analyser cell (AnalyserCell_TypePlain) of the low byte of
+// their float +0x19c cut to an integer (x87: each sum by FIADD, cut again; the average FIDIV at the game's precision), [0x70031c] when there
+// are none. The debug prints of the slot check are left out.
+double __fastcall Things_AveragePersonStat19c(void *self, void *, u32 unused);
+
+// 0x4c7cc0 (as 0x4c7bb0, without the +0x1da710 check; name unconfirmed): the same over the staff (kinds 4 to 8) of their float +0x1f8.
+double __fastcall Things_AverageStaffStat1f8(void *self, void *, u32 unused);
 }  // extern "C"
