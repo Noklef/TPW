@@ -10,6 +10,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 
 extern "C" {
 
@@ -39,6 +40,44 @@ unsigned int __cdecl jpeg6a_jpeg_write_scanlines(jpeg6a_compress_struct *cinfo, 
 // 0x64cc5e: one iMCU row of raw data through the coefficient controller (JERR_BAD_STATE outside CSTATE_RAW_OK, JERR_BUFFER_SIZE 0x15
 // below max_v_samp_factor * 8 lines); its line count, 0 when it suspends or past the image.
 unsigned int __cdecl jpeg6a_jpeg_write_raw_data(jpeg6a_compress_struct *cinfo, unsigned char ***data, unsigned int num_lines);
+// 0x64c9f4: a tables-only datastream (JERR_BAD_STATE outside CSTATE_START): reset_error_mgr, init_destination, jinit_marker_writer,
+// its write_tables_only, term_destination, jpeg_abort.
+void __cdecl jpeg6a_jpeg_write_tables(jpeg6a_compress_struct *cinfo);
+
+// jcmarker.c, the marker writer, through third_party/wrap/jpeg-6a/jcmarker.c. Bytes go to cinfo->dest (next_output_byte +0,
+// free_in_buffer +4, empty_output_buffer +0xc: JERR_CANT_SUSPEND 0x16 when it answers FALSE).
+// 0x64f4a0: cinfo->marker (alloc_small of the image pool, 0x18) and its six methods. Through the method shim (jpeg6a.cpp).
+void __cdecl jpeg6a_jinit_marker_writer(jpeg6a_compress_struct *cinfo);
+// 0x64f520: marker, the length and datalen bytes of dataptr, when datalen is at most 65533.
+void __cdecl jpeg6a_jcmarker_write_any_marker(jpeg6a_compress_struct *cinfo, int marker, const unsigned char *dataptr,
+                                              unsigned int datalen);
+// 0x64f580, 0x64f5eb, 0x64f611 (static): a byte; 0xff and the marker code; a 16-bit value, high byte first.
+void __cdecl jpeg6a_jcmarker_emit_byte(jpeg6a_compress_struct *cinfo, int val);
+void __cdecl jpeg6a_jcmarker_emit_marker(jpeg6a_compress_struct *cinfo, int mark);
+void __cdecl jpeg6a_jcmarker_emit_2bytes(jpeg6a_compress_struct *cinfo, int value);
+// 0x64f644: SOI, then the JFIF APP0 (0x64f68a, static) when write_JFIF_header, the Adobe APP14 (0x64f776, static: its transform 1
+// for YCbCr, 2 for YCCK) when write_Adobe_marker.
+void __cdecl jpeg6a_jcmarker_write_file_header(jpeg6a_compress_struct *cinfo);
+void __cdecl jpeg6a_jcmarker_emit_jfif_app0(jpeg6a_compress_struct *cinfo);
+void __cdecl jpeg6a_jcmarker_emit_adobe_app14(jpeg6a_compress_struct *cinfo);
+// 0x64f852: each component's DQT, then SOF0 (baseline), SOF1, SOF2 (progressive) or SOF9 (arithmetic); JTRC_16BIT_TABLES (0x4a) for
+// a baseline frame with 16-bit tables.
+void __cdecl jpeg6a_jcmarker_write_frame_header(jpeg6a_compress_struct *cinfo);
+// 0x64f9c5 (static): table index's DQT unless sent (JERR_NO_QUANT_TABLE 0x33 for none), sent_table TRUE; 1 when a value is over 255.
+int __cdecl jpeg6a_jcmarker_emit_dqt(jpeg6a_compress_struct *cinfo, int index);
+// 0x64fb05 (static): the SOF marker code (JERR_IMAGE_TOO_BIG 0x28 past 65535).
+void __cdecl jpeg6a_jcmarker_emit_sof(jpeg6a_compress_struct *cinfo, int code);
+// 0x64fc34: the scan's Huffman tables (emit_dac with arithmetic coding, the exe's empty hand port 0x64fe7d), DRI with a restart
+// interval, SOS.
+void __cdecl jpeg6a_jcmarker_write_scan_header(jpeg6a_compress_struct *cinfo);
+// 0x64fd34 (static): a DC or AC (is_ac) table's DHT unless sent (JERR_NO_HUFF_TABLE 0x31 for none), sent_table TRUE.
+void __cdecl jpeg6a_jcmarker_emit_dht(jpeg6a_compress_struct *cinfo, int index, int is_ac);
+// 0x64fe82, 0x64febc (static): DRI with restart_interval; SOS with the scan's components and tables, Ss, Se, Ah, Al.
+void __cdecl jpeg6a_jcmarker_emit_dri(jpeg6a_compress_struct *cinfo);
+void __cdecl jpeg6a_jcmarker_emit_sos(jpeg6a_compress_struct *cinfo);
+// 0x65000f: EOI. 0x650025: SOI, every quantization table's DQT, the Huffman tables' DHTs (without arithmetic coding), EOI.
+void __cdecl jpeg6a_jcmarker_write_file_trailer(jpeg6a_compress_struct *cinfo);
+void __cdecl jpeg6a_jcmarker_write_tables_only(jpeg6a_compress_struct *cinfo);
 
 // jcomapi.c: what compression and decompression share.
 // 0x64f3c0: the image pool freed (mem->free_pool of pool 1), global_state back to the start (DSTATE_START 200 for a decompressor,
@@ -203,3 +242,9 @@ struct Jpeg6aCrtEnv {
 
 // The library's calls go through env (nullptr: the exe's).
 void Jpeg6a_SetCrtEnv(const Jpeg6aCrtEnv *env);
+
+// For the tests' driver, as 6b's (jpeg6b.h's Jpeg6b_SetNativeMethods): with native methods the shims leave the library's method
+// addresses in place, so a case can run a method an init it called stored, and Jpeg6a_ExeMethod gives the exe's address of a library
+// method's (0 for anything else), which the driver puts back in the memory it reports.
+void Jpeg6a_SetNativeMethods(bool native);
+std::uint32_t Jpeg6a_ExeMethod(std::uint32_t address);

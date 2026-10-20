@@ -60,6 +60,7 @@ static_assert(offsetof(jpeg_memory_mgr, free_pool) == 0x24 && offsetof(jpeg_memo
 // wrapper unit), and the shim of its name calls it and puts the exe's address of each method in place of the library's, so the exe's
 // code that compares or calls them sees its own (the game's hooks then run the library's anyway).
 extern "C" void __cdecl jpeg6a_jmemmgr_lib_jinit_memory_mgr(jpeg6a_common_struct *cinfo);
+extern "C" void __cdecl jpeg6a_jcmarker_lib_jinit_marker_writer(jpeg6a_compress_struct *cinfo);
 
 namespace {
 struct ExeMethod {
@@ -83,10 +84,20 @@ const ExeMethod kExeMethods[] = {
     {fn(&jpeg6a_jmemmgr_access_virt_barray), 0x64ee6f},
     {fn(&jpeg6a_jmemmgr_free_pool), 0x64f1aa},
     {fn(&jpeg6a_jmemmgr_self_destruct), 0x64f360},
+    // jcmarker.c
+    {fn(&jpeg6a_jcmarker_write_any_marker), 0x64f520},
+    {fn(&jpeg6a_jcmarker_write_file_header), 0x64f644},
+    {fn(&jpeg6a_jcmarker_write_frame_header), 0x64f852},
+    {fn(&jpeg6a_jcmarker_write_scan_header), 0x64fc34},
+    {fn(&jpeg6a_jcmarker_write_file_trailer), 0x65000f},
+    {fn(&jpeg6a_jcmarker_write_tables_only), 0x650025},
 };
+
+bool g_native_methods = false;  // (Jpeg6a_SetNativeMethods: the tests' driver, which cannot call the exe's addresses)
 
 // The method pointer at slot: the exe's address in place of a library method's (anything else is left as it is).
 void exe_method_at(void *slot) {
+    if (g_native_methods) return;
     void *&p = *static_cast<void **>(slot);
     for (const ExeMethod &m : kExeMethods)
         if (p == m.library) {
@@ -114,6 +125,25 @@ void __cdecl jpeg6a_jinit_memory_mgr(j_common_ptr cinfo) {
     exe_method(mem->free_pool);
     exe_method(mem->self_destruct);
 }
+
+void __cdecl jpeg6a_jinit_marker_writer(j_compress_ptr cinfo) {
+    jpeg6a_jcmarker_lib_jinit_marker_writer(cinfo);
+    jpeg_marker_writer *marker = cinfo->marker;
+    exe_method(marker->write_any_marker);
+    exe_method(marker->write_file_header);
+    exe_method(marker->write_frame_header);
+    exe_method(marker->write_scan_header);
+    exe_method(marker->write_file_trailer);
+    exe_method(marker->write_tables_only);
+}
+}
+
+void Jpeg6a_SetNativeMethods(bool native) { g_native_methods = native; }
+
+std::uint32_t Jpeg6a_ExeMethod(std::uint32_t address) {
+    for (const ExeMethod &m : kExeMethods)
+        if ((std::uintptr_t)m.library == address) return (std::uint32_t)m.exe;
+    return 0;
 }
 
 // What the library calls outside itself (jpeg6a.h's Jpeg6aCrtEnv), as jpeg6b.cpp's: jmemansi.c's malloc and free

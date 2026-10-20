@@ -5301,6 +5301,23 @@ const Hook kHooks[] = {
     {"jpeg6a_jpeg_abort_compress", 0x0064c751, (void *)&jpeg6a_jpeg_abort_compress, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
     {"jpeg6a_jpeg_destroy_compress", 0x0064c740, (void *)&jpeg6a_jpeg_destroy_compress, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
     {"jpeg6a_jpeg_CreateCompress", 0x0064c5f0, (void *)&jpeg6a_jpeg_CreateCompress, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcmarker_write_tables_only", 0x00650025, (void *)&jpeg6a_jcmarker_write_tables_only, {0x55, 0x8b, 0xec, 0x51, 0x68}},
+    {"jpeg6a_jcmarker_write_file_trailer", 0x0065000f, (void *)&jpeg6a_jcmarker_write_file_trailer, {0x55, 0x8b, 0xec, 0x68, 0xd9}},
+    {"jpeg6a_jcmarker_emit_sos",  0x0064febc, (void *)&jpeg6a_jcmarker_emit_sos, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcmarker_emit_dri",  0x0064fe82, (void *)&jpeg6a_jcmarker_emit_dri, {0x55, 0x8b, 0xec, 0x68, 0xdd}},
+    {"jpeg6a_jcmarker_emit_dht",  0x0064fd34, (void *)&jpeg6a_jcmarker_emit_dht, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcmarker_write_scan_header", 0x0064fc34, (void *)&jpeg6a_jcmarker_write_scan_header, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcmarker_emit_sof",  0x0064fb05, (void *)&jpeg6a_jcmarker_emit_sof, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcmarker_emit_dqt",  0x0064f9c5, (void *)&jpeg6a_jcmarker_emit_dqt, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcmarker_write_frame_header", 0x0064f852, (void *)&jpeg6a_jcmarker_write_frame_header, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcmarker_emit_adobe_app14", 0x0064f776, (void *)&jpeg6a_jcmarker_emit_adobe_app14, {0x55, 0x8b, 0xec, 0x51, 0x68}},
+    {"jpeg6a_jcmarker_emit_jfif_app0", 0x0064f68a, (void *)&jpeg6a_jcmarker_emit_jfif_app0, {0x55, 0x8b, 0xec, 0x68, 0xe0}},
+    {"jpeg6a_jcmarker_write_file_header", 0x0064f644, (void *)&jpeg6a_jcmarker_write_file_header, {0x55, 0x8b, 0xec, 0x68, 0xd8}},
+    {"jpeg6a_jcmarker_emit_2bytes", 0x0064f611, (void *)&jpeg6a_jcmarker_emit_2bytes, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jcmarker_emit_marker", 0x0064f5eb, (void *)&jpeg6a_jcmarker_emit_marker, {0x55, 0x8b, 0xec, 0x68, 0xff}},
+    {"jpeg6a_jcmarker_emit_byte", 0x0064f580, (void *)&jpeg6a_jcmarker_emit_byte, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"jpeg6a_jcmarker_write_any_marker", 0x0064f520, (void *)&jpeg6a_jcmarker_write_any_marker, {0x55, 0x8b, 0xec, 0x81, 0x7d}},
+    {"jpeg6a_jinit_marker_writer", 0x0064f4a0, (void *)&jpeg6a_jinit_marker_writer, {0x55, 0x8b, 0xec, 0x6a, 0x18}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

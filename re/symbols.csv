@@ -5628,3 +5628,20 @@ address,name,kind,confidence,notes
 0x0064c982,jpeg6a_jpeg_write_marker,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapimin.c jpeg_write_marker: write_any_marker before the first scanline (the library's)
 0x0064cb3c,jpeg6a_jpeg_write_scanlines,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapistd.c jpeg_write_scanlines: rows through the main controller (the library's)
 0x0064cc5e,jpeg6a_jpeg_write_raw_data,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapistd.c jpeg_write_raw_data: one iMCU row through the coefficient controller (the library's)
+0x0064f4a0,jpeg6a_jinit_marker_writer,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c jinit_marker_writer: the marker writer and its six methods (the library's, through the method shim)"
+0x0064f520,jpeg6a_jcmarker_write_any_marker,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c write_any_marker: a marker with its data, up to 65533 bytes (the library's)"
+0x0064f580,jpeg6a_jcmarker_emit_byte,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c emit_byte: a byte to the destination, empty_output_buffer when full (the library's)"
+0x0064f5eb,jpeg6a_jcmarker_emit_marker,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c emit_marker: 0xff and the code (the library's)
+0x0064f611,jpeg6a_jcmarker_emit_2bytes,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c emit_2bytes: 16 bits, high byte first (the library's)"
+0x0064f644,jpeg6a_jcmarker_write_file_header,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c write_file_header: SOI, JFIF APP0, Adobe APP14 (the library's)"
+0x0064f68a,jpeg6a_jcmarker_emit_jfif_app0,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c emit_jfif_app0: the JFIF APP0 marker (the library's)
+0x0064f776,jpeg6a_jcmarker_emit_adobe_app14,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c emit_adobe_app14: the Adobe APP14 marker (the library's)
+0x0064f852,jpeg6a_jcmarker_write_frame_header,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c write_frame_header: the DQTs and the SOF (the library's)
+0x0064f9c5,jpeg6a_jcmarker_emit_dqt,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c emit_dqt: a quantization table unless sent; its precision (the library's)
+0x0064fb05,jpeg6a_jcmarker_emit_sof,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c emit_sof: the SOF marker (the library's)
+0x0064fc34,jpeg6a_jcmarker_write_scan_header,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c write_scan_header: the scan's DHTs, DRI, SOS (the library's)"
+0x0064fd34,jpeg6a_jcmarker_emit_dht,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c emit_dht: a Huffman table unless sent (the library's)
+0x0064fe82,jpeg6a_jcmarker_emit_dri,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c emit_dri: the DRI marker (the library's)
+0x0064febc,jpeg6a_jcmarker_emit_sos,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c emit_sos: the SOS marker (the library's)
+0x0065000f,jpeg6a_jcmarker_write_file_trailer,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c write_file_trailer: EOI (the library's)
+0x00650025,jpeg6a_jcmarker_write_tables_only,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c write_tables_only: SOI, DQTs, DHTs, EOI (the library's)"
