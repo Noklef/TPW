@@ -10,12 +10,12 @@
 # dwords the builders read 0-12, 7 mostly. The heap fails one of the parts now and then (never one of a part's own allocations: those
 # fault in both). Each window's fields after the call are compared.
 # The dialogs, scripted(): listrows.py's init_case() surroundings of the parts (no row), windowscript.py's of a script's build
-# (windowfactory.py's tree, queues, timers and focus; the parent window WINDOW2 as windowscript.py's Run gets it, its rectangles
-# 100-300 wide, the frame [0xf82884]'s window +4), a heap large enough for the parts' pixels (failing now and then), the dialog's global
-# none (mostly) or made, and the script at the builder's address generated: 0-2 plain children (kinds 1-13 with windowfactory.py's
-# flags, small rectangles, no opcodes of their own), then the dialog (kind 1, up to 160 wide) whose children are the texts it looks for
-# (kind 1, inside it: other kinds' rectangles or edges outside give parts more pixels than the heap holds), in any order, among 0-2
-# others, now and then one of them missing (a fault in both). The new windows' fields are compared through the heap.
+# (windowfactory.py's tree, queues, timers and focus; the parent window WINDOW2 as windowscript.py's Run gets it, its rectangles 100-300
+# wide, the frame [0xf82884]'s window +4), a heap large enough for the parts' pixels (failing now and then), the dialog's global none
+# (mostly) or made, the globals it writes random, and the script at the builder's address generated: 0-2 plain children (kinds 1-13 with
+# windowfactory.py's flags, small rectangles, no opcodes of their own), then the dialog (kind 1, up to 160 wide) whose children are the
+# texts it looks for (kind 1, inside it: other kinds' rectangles or edges outside give parts more pixels than the heap holds), in any
+# order, among 0-2 others, now and then one of them missing (a fault in both). The new windows' fields are compared through the heap.
 # Not given: HelpBg_Build 0x492180 (its slot 5 with 0 on its new window calls that window's default handler 0x65f6d1, unported; the
 # driver cannot run it natively).
 # usage: dialogbuild.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=List7cc94c_InitRow,...)
@@ -37,8 +37,8 @@ CALLS = {'List7cc94c_InitRow': 0x4c03e0, 'List7cca90_InitRow': 0x4c1c30, 'List7c
 # each list row's initialiser: (the children it dresses, the GUI name it looks up or None, the font dword it reads or None)
 SHAPES = {'List7cc94c_InitRow': (5, None, None), 'List7cca90_InitRow': (4, None, None), 'List7cc200_InitRow': (2, 'i_boxtick', 0x755134),
           'List7cb264_InitRow': (5, None, 0x752934)}
-# each dialog builder: (its global, the script's address, the texts' ids)
-DIALOGS = {'Dialog7cc4c4_Create': (0x7cc4c4, 0x7581a0, (0x16c11, 0x16c12))}
+# each dialog builder: (its global, the script's address, the texts' ids, the other globals it writes)
+DIALOGS = {'Dialog7cc4c4_Create': (0x7cc4c4, 0x7581a0, (0x16c11, 0x16c12), (0x7cc4e4,))}
 B = Bench(sorted(set(window.RANGES + listrows.PART_RANGES + listrows.REG_RANGES + windowscript.RANGES + [
     (0x48f6a0, 0x491aac), (0x65c388, 0x65c55a), (0x65d56b, 0x65d58c), (0x65d773, 0x65d7cc), (0x6616b0, 0x661710), (0x6617f0, 0x661820),
     (0x65e526, 0x65e549), (0x4c03e0, 0x4c0653), (0x4c1c30, 0x4c1e33), (0x4ad340, 0x4ad46d), (0x4a03d0, 0x4a06a4), (0x4b9a70, 0x4b9bf6)])))
@@ -105,7 +105,7 @@ def child(r, w, ident, script=(5,), size=40, kind=None):
 
 def scripted(r, op):
     """the dialogs' surroundings (above); returns the regions"""
-    address, at, texts = DIALOGS[op]
+    address, at, texts, written = DIALOGS[op]
     regions = dict(listrows.init_case(r, 'HilightList_InitRow').regions)
     for k in (ROW, listrows.OLD, listrows.VTOLD, listrows.OBJ98, listrows.VT98, listrows.OBJ4C, listrows.PARENTS, listrows.PARENTS + 0x80):
         regions.pop(k)
@@ -134,6 +134,8 @@ def scripted(r, op):
     regions[FRAME] = put(bytearray(r.bytes(8)), 4, 'I', window.WINDOW2)
     regions[0xf82884] = struct.pack('<I', FRAME)
     regions[address] = struct.pack('<I', r.choice([0] * 9 + [r.getrandbits(32) | 1]))
+    for k in written:
+        regions[k] = r.bytes(4)
     w = []
     for _ in range(r.choice([0, 0, 1, 2])):
         child(r, w, r.choice([0, 1, r.getrandbits(32)]))
