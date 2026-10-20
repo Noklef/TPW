@@ -85,6 +85,8 @@ def cmd_list(lo, hi, unlock=False):
     import leafq
     import x87emu
     hooked = set(int(x, 16) for x in re.findall(r'0x00([0-9a-f]{6})', open(os.path.join(ROOT, 'src', 'hook', 'hooks.cpp')).read())) | leafq.PROVIDED
+    if os.environ.get('FPU'):
+        hooked |= {0x67a830, 0x67b280, 0x67b24a}  # __ftol, modf, _CIfmod: ports compute them inline and fncmp's emulator stubs them
     text, tbase = None, None
     for base, data in x87emu.exe_sections():
         if base <= 0x401000 < base + len(data):
