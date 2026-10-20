@@ -80,4 +80,15 @@ u32 __fastcall TexSurfaceA_ReleaseSurfaces(u8 *sub);
 // (the s16 pitch +0x34 in pixels) of size +0x10 x +0x12, 16.16 steps (source size << 16 over the size drawn: one IDIV each, faulting, sic,
 // on a size of 0); flag 0x40000 reads the rows from the last up. A height of 0 draws nothing. Returns 1.
 u32 __fastcall TexSurfaceB_Blit(u8 *sub, void *, u8 *texture, s32 x, s32 y);
+
+// 0x58bd10 (thiscall on class A's sub-object; texture, x, y; pops 0xc; name unconfirmed; behind the thunk 0x58c340): the texture drawn
+// scaled into the frame at 0x8c48cc (pitch 0x8c48b8 in bytes, the pixel size at ECX - 0x14) at (x, y), into the s16 +0x14 x +0x16
+// box. A box wider than the source (+0x10) is cut to it, centred (the margin's left half rounded down), and taller than it (+0x12)
+// likewise; each cut sets the texture's flag 0x80000000 and zeroes its margins' bytes (rows from the last up: left, then right, then
+// top, then bottom). With texture flag 0x10000000 its object at +0x40 is asked first (virtual call 1: a stack record of the
+// destination, the width, the height and the pitch, and the flag 0x40000): not 0, done. Else as TexSurfaceB_Blit (the IDIVs first:
+// faulting, sic, on a size of 0), its rows from the s16 pitch +0x34 in pixels, 2-byte pixels unless the pixel size is 4, each copied
+// or, with texture flag 0x400 and a shade map at +0x3c (bytes, the same pitch), multiplied per channel by the dword the map's byte picks
+// from 0x879e38 (4-bit channels below the top one for 2-byte pixels, bytes below the top one for 4-byte), >> 8. Returns 1.
+u32 __fastcall TexSurfaceA_Blit(u8 *sub, void *, u8 *texture, s32 x, s32 y);
 }

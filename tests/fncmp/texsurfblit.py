@@ -2,7 +2,10 @@
 # source sizes 1-32 (pitch at or past the width), sizes drawn 1-24 (a few 0, where the IDIV faults in both, or negative), at (0-8, 0-8) of
 # a destination its pitch at or past x + the width; flipped (0x40000) or not; flag 0x10000000: the texture's object asked first (a
 # recorder, its stack record logged as a hash) answering 0 or not, then locked by Texture_Lock (0x590d40) through the same object.
-# usage: texsurfblit.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Blit,Thunk)
+# Class A's (0x58bd10, and its thunk 0x58c340) the same into the frame at 0x8c48cc (pitch 0x8c48b8), pixel sizes 2 and 4 (now and then
+# 1 or 3), boxes wider and taller than the source as often as not (their margins zeroed), flag 0x400 with a shade map or none, the
+# tint table at 0x879e38 any bytes.
+# usage: texsurfblit.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Blit,Thunk,ABlit,AThunk)
 import os
 import struct
 import sys
@@ -10,8 +13,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import LOG, RAM, Bench, Call, blob, log_region, put, set_return, vtable  # noqa: E402
 
-B = Bench([(0x58c750, 0x58c89d), (0x58c930, 0x58c938), (0x590d40, 0x590d96)])
-CALLS = {'Blit': 0x58c750, 'Thunk': 0x58c930}
+B = Bench([(0x58c750, 0x58c89d), (0x58c930, 0x58c938), (0x590d40, 0x590d96), (0x58bd10, 0x58c27f), (0x58c340, 0x58c348)])
+CALLS = {'Blit': 0x58c750, 'Thunk': 0x58c930, 'ABlit': 0x58bd10, 'AThunk': 0x58c340}
+SHADE, FRAME = RAM + 0x1000, 0x8c48b8
 SUB, VBT, TEX, OBJ, SRC, DST, OFF, ADJ = RAM + 0x100, RAM + 0x40, RAM + 0x400, RAM + 0x600, RAM + 0x2000, RAM + 0x8000, 0x20, 0x30
 
 
@@ -23,6 +27,8 @@ def size(r, lo, hi):
 
 def case(r):
     op = r.deal(OPS)
+    if op.startswith('A'):
+        return class_a(r, op)
     log = log_region()
     sw, sh, dw, dh = size(r, 1, 32), size(r, 1, 32), size(r, 1, 24), size(r, 1, 24)
     x, y = r.randrange(9), r.randrange(9)
@@ -50,6 +56,43 @@ def case(r):
             set_return(log, 1, 0)
         regions[0x879a68] = struct.pack('<I', SRC)
     this = SUB + ADJ if op == 'Thunk' else SUB
+    return Call(CALLS[op], [this, TEX, x, y], regions, conv='t', ret='a')
+
+
+def class_a(r, op):
+    log = log_region()
+    sw, sh, dw, dh = size(r, 1, 24), size(r, 1, 24), size(r, 1, 32), size(r, 1, 32)
+    if r.random() < 0.4:
+        dw = min(dw, sw)
+    if r.random() < 0.4:
+        dh = min(dh, sh)
+    x, y = r.randrange(9), r.randrange(9)
+    n = r.choice([2, 2, 4, 4, 1, 3]) if r.random() < 0.9 else r.choice([2, 4])
+    spitch = max(sw, 0) + r.choice([0, 0, 1, 3])
+    dpitch = (x + max(dw, 0)) * n + r.choice([0, 0, 2, 4, 10])
+    flags = r.getrandbits(32) & ~0x10040400 | r.choice([0, 0x40000]) | r.choice([0, 0x400]) | (0x10000000 if r.random() < 0.2 else 0)
+    texture = bytearray(r.bytes(0x60))
+    put(texture, 8, 'I', flags)
+    put(texture, 0x10, 'hhhh', sw, sh, dw, dh)
+    put(texture, 0x34, 'h', spitch)
+    put(texture, 0x3c, 'I', SHADE if r.random() < 0.8 else 0)
+    put(texture, 0x40, 'I', SRC)
+    area = bytearray(r.bytes(0x200))   # (RAM: the sub-object at +0x100, the pixel size before it)
+    put(area, SUB - RAM - 0x14, 'I', n)
+    put(area, SUB - RAM + ADJ - 4, 'I', ADJ)
+    rows = max(sh, 1)
+    regions = {RAM: area, TEX: texture, LOG: log, SRC: r.bytes(spitch * rows * n + 0x20), SHADE: r.bytes(spitch * rows + 0x20),
+               DST: r.bytes(dpitch * (y + max(dh, 1)) + 0x20), 0x879e38: r.bytes(0x400), 0x8bd554: struct.pack('<I', r.choice([2, 3]))}
+    regions[FRAME] = struct.pack('<I', dpitch) + r.bytes(0x10) + struct.pack('<I', DST)
+    if flags & 0x10000000:
+        put(texture, 0x40, 'I', OBJ)
+        regions[OBJ] = struct.pack('<I', OBJ + 0x10) + r.bytes(0xc) + vtable({1: 2, 2: 1}, 8)
+        blob(log, 1, 0, 0xf)
+        blob(log, 2, 0, 0xf)
+        if r.random() < 0.7:
+            set_return(log, 1, 0)
+        regions[0x879a68] = struct.pack('<I', SRC)
+    this = SUB + ADJ if op == 'AThunk' else SUB
     return Call(CALLS[op], [this, TEX, x, y], regions, conv='t', ret='a')
 
 

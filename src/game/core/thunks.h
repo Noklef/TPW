@@ -167,6 +167,9 @@ u32 __fastcall Wrap_TexSurfaceB_AllocPixels_58c8e0(u8 *self, void *, u32 width, 
 // 0x58c930 (thiscall): this lowered by the dword before it, then TexSurfaceB_Blit.
 u32 __fastcall Wrap_TexSurfaceB_Blit_58c930(u8 *self, void *, u8 *texture, s32 x, s32 y);
 
+// 0x58c340 (thiscall): this lowered by the dword before it, then TexSurfaceA_Blit.
+u32 __fastcall Wrap_TexSurfaceA_Blit_58c340(u8 *self, void *, u8 *texture, s32 x, s32 y);
+
 // 0x58c8f0 (thiscall): this lowered by the dword before it, then TexSurfaceB_FreePixels.
 u32 __fastcall Wrap_TexSurfaceB_FreePixels_58c8f0(u8 *self);
 
