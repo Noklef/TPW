@@ -40,6 +40,9 @@ static_assert(offsetof(jpeg_decompress_struct, marker) == 0x194, "cinfo->marker 
 static_assert(offsetof(jpeg_decompress_struct, blocks_in_MCU) == 0x140, "cinfo->blocks_in_MCU (decode_mcu)");
 static_assert(offsetof(jpeg_decompress_struct, coef_bits) == 0x8c, "cinfo->coef_bits (jinit_phuff_decoder)");
 static_assert(offsetof(jpeg_decompress_struct, post) == 0x18c, "cinfo->post (jdpostct.c's my_post_controller)");
+static_assert(offsetof(jpeg_decompress_struct, main) == 0x184, "cinfo->main (jdmainct.c's my_main_controller)");
+static_assert(offsetof(jpeg_decompress_struct, coef) == 0x188, "cinfo->coef (the main controller's decompress_data)");
+static_assert(offsetof(jpeg_decompress_struct, min_DCT_scaled_size) == 0x118, "cinfo->min_DCT_scaled_size (the row groups)");
 static_assert(offsetof(jpeg_decompress_struct, cquantize) == 0x1a8, "cinfo->cquantize (the post-processor's color_quantize)");
 
 // The method-address shim. Every module's init (and jddctmgr.c's start_pass) stores the addresses of its methods in the structs the
@@ -62,6 +65,8 @@ void __cdecl jdphuff_lib_jinit_phuff_decoder(j_decompress_ptr cinfo);
 void __cdecl jdphuff_lib_start_pass_phuff_decoder(j_decompress_ptr cinfo);
 void __cdecl jdpostct_lib_jinit_d_post_controller(j_decompress_ptr cinfo, boolean need_full_buffer);
 void __cdecl jdpostct_lib_start_pass_dpost(j_decompress_ptr cinfo, J_BUF_MODE pass_mode);
+void __cdecl jdmainct_lib_jinit_d_main_controller(j_decompress_ptr cinfo, boolean need_full_buffer);
+void __cdecl jdmainct_lib_start_pass_main(j_decompress_ptr cinfo, J_BUF_MODE pass_mode);
 void __cdecl jpeg_idct_float(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, short *coef_block, unsigned char **output_buf,
                              unsigned int output_col);
 }
@@ -121,6 +126,11 @@ const ExeMethod kExeMethods[] = {
     {fn(&jdpostct_post_process_1pass), 0x645ee0},
     {fn(&jdpostct_post_process_prepass), 0x645f60},
     {fn(&jdpostct_post_process_2pass), 0x646010},
+    // jdmainct.c
+    {fn(&jdmainct_lib_start_pass_main), 0x642cc0},
+    {fn(&jdmainct_process_data_simple_main), 0x642ea0},
+    {fn(&jdmainct_process_data_context_main), 0x642f10},
+    {fn(&jdmainct_process_data_crank_post), 0x643210},
 };
 
 // The method pointer at slot: the exe's address in place of a library method's (anything else is left as it is).
@@ -199,5 +209,15 @@ void __cdecl jinit_d_post_controller(j_decompress_ptr cinfo, boolean need_full_b
 void __cdecl jdpostct_start_pass_dpost(j_decompress_ptr cinfo, int pass_mode) {
     jdpostct_lib_start_pass_dpost(cinfo, static_cast<J_BUF_MODE>(pass_mode));
     exe_method(cinfo->post->post_process_data);
+}
+
+void __cdecl jinit_d_main_controller(j_decompress_ptr cinfo, boolean need_full_buffer) {
+    jdmainct_lib_jinit_d_main_controller(cinfo, need_full_buffer);
+    exe_method(cinfo->main->start_pass);
+}
+
+void __cdecl jdmainct_start_pass_main(j_decompress_ptr cinfo, int pass_mode) {
+    jdmainct_lib_start_pass_main(cinfo, static_cast<J_BUF_MODE>(pass_mode));
+    exe_method(cinfo->main->process_data);
 }
 }

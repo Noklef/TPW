@@ -4878,6 +4878,15 @@ const Hook kHooks[] = {
     {"jdpostct_post_process_1pass", 0x00645ee0, (void *)&jdpostct_post_process_1pass, {0x8b, 0x44, 0x24, 0x1c, 0x53}},
     {"jdpostct_start_pass_dpost", 0x00645de0, (void *)&jdpostct_start_pass_dpost, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"jinit_d_post_controller",   0x00645d50, (void *)&jinit_d_post_controller, {0x55, 0x56, 0x8b, 0x74, 0x24}},
+    {"jdmainct_process_data_crank_post", 0x00643210, (void *)&jdmainct_process_data_crank_post, {0x8b, 0x54, 0x24, 0x10, 0x8b}},
+    {"jdmainct_set_bottom_pointers", 0x00643170, (void *)&jdmainct_set_bottom_pointers, {0x51, 0x53, 0x55, 0x56, 0x8b}},
+    {"jdmainct_set_wraparound_pointers", 0x00643050, (void *)&jdmainct_set_wraparound_pointers, {0x83, 0xec, 0x20, 0x55, 0x57}},
+    {"jdmainct_process_data_context_main", 0x00642f10, (void *)&jdmainct_process_data_context_main, {0x53, 0x55, 0x56, 0x57, 0x8b}},
+    {"jdmainct_process_data_simple_main", 0x00642ea0, (void *)&jdmainct_process_data_simple_main, {0x53, 0x55, 0x56, 0x57, 0x8b}},
+    {"jdmainct_make_funny_pointers", 0x00642d40, (void *)&jdmainct_make_funny_pointers, {0x83, 0xec, 0x24, 0x55, 0x56}},
+    {"jdmainct_start_pass_main",  0x00642cc0, (void *)&jdmainct_start_pass_main, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"jdmainct_alloc_funny_pointers", 0x00642c10, (void *)&jdmainct_alloc_funny_pointers, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"jinit_d_main_controller",   0x00642b30, (void *)&jinit_d_main_controller, {0x53, 0x55, 0x56, 0x8b, 0x74}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

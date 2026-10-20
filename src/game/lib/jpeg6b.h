@@ -108,6 +108,36 @@ unsigned char __cdecl jdphuff_decode_mcu_AC_refine(jpeg_decompress_struct *cinfo
 // 0x645270: process_restart: as jdhuff.c's, the EOB run emptied too.
 unsigned char __cdecl jdphuff_process_restart(jpeg_decompress_struct *cinfo);
 
+// jdmainct.c (through wrap/jpeg-6b/jdmainct.c): the main buffer controller between the coefficient controller and the
+// postprocessor. cinfo->main is its my_main_controller (pub, buffer[10] +8, buffer_full +0x30, rowgroup_ctr +0x34, xbuffer[2] +0x38,
+// whichptr +0x40, context_state +0x44, rowgroups_avail +0x48, iMCU_row_ctr +0x4c; 0x50 bytes). M is min_DCT_scaled_size, a
+// component's rgroup v_samp_factor * DCT_scaled_size / M rows. The process_data methods take (cinfo, output_buf, out_row_ctr,
+// out_rows_avail).
+// 0x642b30: the module's init (a shim, jpeg6b.cpp): cinfo->main allocated with the exe's start_pass, the pointer lists when the
+// upsampler needs context rows (M + 2 row groups, else M), each component's buffer (mem->alloc_sarray).
+void __cdecl jinit_d_main_controller(jpeg_decompress_struct *cinfo, unsigned char need_full_buffer);
+// 0x642c10: the two xbuffer lists, each component's 2 * rgroup * (M + 4) row pointers, one row group in.
+void __cdecl jdmainct_alloc_funny_pointers(jpeg_decompress_struct *cinfo);
+// 0x642cc0: start_pass (a shim, jpeg6b.cpp): the pass's process_data by pass_mode (a J_BUF_MODE; the context lists made), the
+// buffer emptied.
+void __cdecl jdmainct_start_pass_main(jpeg_decompress_struct *cinfo, int pass_mode);
+// 0x642d40: the xbuffer lists from the buffer's rows, the second with the last two row groups swapped, the first with the top
+// row group above repeating the first row.
+void __cdecl jdmainct_make_funny_pointers(jpeg_decompress_struct *cinfo);
+// 0x642ea0: no context: an iMCU row from the coefficient controller into the buffer, then the postprocessor over it.
+void __cdecl jdmainct_process_data_simple_main(jpeg_decompress_struct *cinfo, unsigned char **output_buf, unsigned int *out_row_ctr,
+                                               unsigned int out_rows_avail);
+// 0x642f10: with context rows: the state machine over the two xbuffer lists (a postponed row group, then the iMCU row).
+void __cdecl jdmainct_process_data_context_main(jpeg_decompress_struct *cinfo, unsigned char **output_buf,
+                                                unsigned int *out_row_ctr, unsigned int out_rows_avail);
+// 0x643050: after the first iMCU row: the wraparound row groups above and below each list.
+void __cdecl jdmainct_set_wraparound_pointers(jpeg_decompress_struct *cinfo);
+// 0x643170: at the last iMCU row: the rows past each component's bottom repeat its last row; rowgroups_avail from component 0.
+void __cdecl jdmainct_set_bottom_pointers(jpeg_decompress_struct *cinfo);
+// 0x643210: the two-pass quantizer's second pass: the postprocessor alone.
+void __cdecl jdmainct_process_data_crank_post(jpeg_decompress_struct *cinfo, unsigned char **output_buf, unsigned int *out_row_ctr,
+                                              unsigned int out_rows_avail);
+
 // jdpostct.c (through wrap/jpeg-6b/jdpostct.c): the postprocessing controller between the upsampler and the colour quantizer.
 // cinfo->post is its my_post_controller (pub, whole_image +8, buffer +0xc, strip_height +0x10, starting_row +0x14, next_row +0x18;
 // 0x1c bytes). The post_process_data methods take (cinfo, input_buf, in_row_group_ctr, in_row_groups_avail, output_buf,
