@@ -5,6 +5,8 @@
 # CancelPosted / CancelPostedFirst / CancelTimed (0x658fe9, 0x659012, 0x65903b) and ResetQueues (0x659064): window.py's timers() (the queues
 # and the timed table, entries the window's now and then, each now and then missing); the window or 0. MouseDown / MouseUp (0x658af1,
 # 0x658b5b): buttons 0-7, the windows the window or none, the queues as for PostMessage.
+# PostIfHit (0x65dcaf): the rectangle +0x2c a GUI one or a recorder (its answer's upper half set or not), the point in it or near, the press
+# points [0xfaa598] small or negative words. Activate (0x65dd18): the active window [0xfaa5dc] the window, another or none.
 # usage: windowmessages.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=CallHandler,SendMessage,...)
 import os
 import struct
@@ -52,6 +54,10 @@ def case(r):
         left, top = r.randrange(-30, 20), r.randrange(-30, 20)
         right, bottom = left + r.choice([0, 1, 10, 30]), top + r.choice([0, 1, 10, 30])
         put(win, 0x2c, 'Ihhhh', 0x705920, left, top, right, bottom)
+        if r.random() < 0.25:   # (a recorder rectangle whose slot 0 answers a word with the upper half set or not)
+            put(win, 0x2c, 'I', VTABLE)
+            regions[VTABLE] = vtable({5: 1, 0: 2})
+            set_return(log, 0, r.choice([0, 1, 0x10000, 0xffff0001, 0x8000]))
         regions[WINDOW] = win
         queues(r, regions)
         regions[0xfaa598] = bytes(b for _ in range(0x18) for b in struct.pack('<h', r.choice([0, 1, 7, -1, -300, 0x7fff, r.randrange(-0x8000, 0x8000)])))
