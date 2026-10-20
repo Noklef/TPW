@@ -39,8 +39,9 @@ def index():
     return idx
 
 
-def extent(start):
-    """The size of the function at start: to the first RET / JMP that is past every forward jump target (as tools/extent.py)."""
+def extent(start, limit=None):
+    """The size of the function at start: to the first RET / JMP that is past every forward jump target (as tools/extent.py). Jump
+    targets count up to limit (the next known function start) when given, else within 0x1000 bytes (a function over 4 KB needs limit)."""
     import bisect
     global ADDRS, TEXTS
     if ADDRS is None:
@@ -57,7 +58,7 @@ def extent(start):
         m = re.search(r'J\w+ 0x([0-9a-f]{8})', t)
         if m and not t.startswith('JMP dword'):
             target = int(m.group(1), 16)
-            if far < target and target - start < 0x1000:
+            if far < target and (target < limit if limit else target - start < 0x1000):
                 far = target
         nxt = ADDRS[j + 1] if j + 1 < len(ADDRS) else ADDRS[j] + 1
         if (t.startswith('RET') or t.startswith('JMP')) and nxt > far:
@@ -85,6 +86,8 @@ def cmd_list(lo, hi, unlock=False):
     import leafq
     import x87emu
     hooked = set(int(x, 16) for x in re.findall(r'0x00([0-9a-f]{6})', open(os.path.join(ROOT, 'src', 'hook', 'hooks.cpp')).read())) | leafq.PROVIDED
+    if os.environ.get('FPU'):
+        hooked |= {0x67a830, 0x67b280, 0x67b24a}  # __ftol, modf, _CIfmod: ports compute them inline and fncmp's emulator stubs them
     text, tbase = None, None
     for base, data in x87emu.exe_sections():
         if base <= 0x401000 < base + len(data):
@@ -133,7 +136,7 @@ def cmd_list(lo, hi, unlock=False):
                 changed = True
     wave0 = sorted(a for a in closure if all(t in hooked for t in info[a]['callees']))
     for a in info:
-        info[a]['size'] = extent(a)
+        info[a]['size'] = extent(a, end.get(a))
     if unlock:
         gain = {}
         for a, r in info.items():
