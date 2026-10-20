@@ -5139,3 +5139,8 @@ address,name,kind,confidence,notes
 0x006428e0,jcopy_sample_rows,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jutils.c: copies sample rows between row arrays (the library's, tpw_jpeg6b)"
 0x00642930,jcopy_block_row,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jutils.c: copies a row of coefficient blocks (the library's, tpw_jpeg6b)"
 0x00642960,jzero_far,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jutils.c: clears a block of memory (the library's, tpw_jpeg6b)"
+0x0064a5c0,jpeg_idct_islow,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jidctint.c: accurate integer inverse DCT of a block (the library's, tpw_jpeg6b)"
+0x0064abb0,jpeg_idct_ifast,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jidctfst.c: fast integer inverse DCT of a block (the library's, tpw_jpeg6b)"
+0x0064b5b0,jpeg_idct_4x4,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jidctred.c: inverse DCT of a block scaled to 4x4 (the library's, tpw_jpeg6b)"
+0x0064b970,jpeg_idct_2x2,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jidctred.c: inverse DCT of a block scaled to 2x2 (the library's, tpw_jpeg6b)"
+0x0064bb90,jpeg_idct_1x1,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jidctred.c: inverse DCT of a block scaled to one sample (the library's, tpw_jpeg6b)"

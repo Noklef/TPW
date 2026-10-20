@@ -26,14 +26,14 @@ void __cdecl jcopy_block_row(short (*input_row)[64], short (*output_row)[64], un
 // 0x642960: bytestozero bytes at target cleared.
 void __cdecl jzero_far(void *target, std::size_t bytestozero);
 
-// jidctint.c, jidctfst.c, jidctflt.c, jidctred.c: one block's inverse DCT, dequantized by compptr->dct_table, range-limited through
-// cinfo->sample_range_limit into output_buf's rows at output_col (8, 8, 8, 4, 2 and 1 samples square).
-// 0x64a5c0 (accurate integer), 0x64abb0 (fast integer), 0x64b040 (float), 0x64b5b0, 0x64b970, 0x64bb90 (scaled: 4x4, 2x2, 1x1).
+// jidctint.c, jidctfst.c, jidctred.c: one block's inverse DCT, dequantized by compptr->dct_table, range-limited through
+// cinfo->sample_range_limit into output_buf's rows at output_col (8, 8, 4, 2 and 1 samples square).
+// 0x64a5c0 (accurate integer), 0x64abb0 (fast integer), 0x64b5b0, 0x64b970, 0x64bb90 (scaled: 4x4, 2x2, 1x1). The float one
+// (jidctflt.c, 0x64b040) stays the exe's: its (INT32) casts past +-2^31 are the low half of __ftol's 64-bit FISTP there and
+// 0x80000000 in the library (SSE2's cvttss2si, or __ftol2_sse as x87 code); the game never selects JDCT_FLOAT.
 void __cdecl jpeg_idct_islow(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, short *coef_block,
                              unsigned char **output_buf, unsigned int output_col);
 void __cdecl jpeg_idct_ifast(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, short *coef_block,
-                             unsigned char **output_buf, unsigned int output_col);
-void __cdecl jpeg_idct_float(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, short *coef_block,
                              unsigned char **output_buf, unsigned int output_col);
 void __cdecl jpeg_idct_4x4(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, short *coef_block,
                            unsigned char **output_buf, unsigned int output_col);
