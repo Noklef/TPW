@@ -82,11 +82,11 @@ _tr_flush_block's stored-or-static tie, longest_match stopping at exactly nice_m
 
 **libjpeg 6b (the decoder below the API is the library's):** the same scheme, with more code pointers: every module's init stores its
 methods in the cinfo structs (src->fill_input_buffer, the memory manager's alloc_small, entropy->decode_mcu, ...), so the inits, and
-everything else that stores methods, come exact only through the method-address shim below. Replaced so far (src/game/lib/jpeg6b.h lists
-them with their addresses): jutils (jround_up, jcopy_sample_rows, jcopy_block_row, jzero_far), the integer IDCTs (jpeg_idct_islow, _ifast,
-_4x4, _2x2, _1x1), the whole of jdcolor.c, jdmerge.c, jdsample.c, jddctmgr.c, jdhuff.c, jdphuff.c, jdcoefct.c, jdmainct.c, jdpostct.c,
-jcomapi.c, jdmarker.c, jdinput.c and jquant1.c, jquant2.c but find_biggest_color_pop, and jmemansi.c's jpeg_get_small / large,
-jpeg_free_small / large and jpeg_mem_available. tpw_jpeg6b is built with jmemansi.c, as the exe is (jpeg_mem_init answers 1000000 at
+everything else that stores methods, come exact only through the method-address shim below. All of 6b in the exe is the library's
+now (src/game/lib/jpeg6b.h lists it with the addresses) but what "What stays the exe's" below lists: jdapimin.c, jdapistd.c,
+jdmaster.c, jdinput.c, jdmarker.c, jdhuff.c, jdphuff.c, jdcoefct.c, jdmainct.c, jdpostct.c, jddctmgr.c, the integer IDCTs, jdsample.c,
+jdmerge.c, jdcolor.c, jquant1.c, jquant2.c, jcomapi.c, jutils.c, jmemmgr.c, jerror.c's emit_message / format_message /
+reset_error_mgr, and jmemansi.c's jpeg_get_small / large, jpeg_free_small / large and jpeg_mem_available. tpw_jpeg6b is built with jmemansi.c, as the exe is (jpeg_mem_init answers 1000000 at
 0x642b20, jpeg_mem_available is max_memory_to_use - already_allocated at 0x6429a0, jpeg_open_backing_store a tmpfile() at 0x6429c0).
 - **Wrapper units.** libjpeg has no `-Dlocal=`: jmorecfg.h defines METHODDEF and LOCAL as `static` unconditionally, and the modules reuse
   static names (build_ycc_rgb_table is in jdcolor.c and jdmerge.c), so a module's statics are reached through
@@ -114,15 +114,26 @@ jpeg_free_small / large and jpeg_mem_available. tpw_jpeg6b is built with jmemans
   jinit_d_main_controller and start_pass_main, jinit_d_post_controller and start_pass_dpost, jinit_marker_reader (with the private
   process_COM / process_APPn[16] by offset), jinit_input_controller, reset_input_controller and finish_input_pass (consume_input),
   jinit_1pass_quantizer and start_pass_1_quant, jinit_2pass_quantizer and start_pass_2_quant (jquant1's finish_pass_1_quant and
-  jquant2's finish_pass2 are empty: the bare RET 0x631270).
+  jquant2's finish_pass2 are empty: the bare RET 0x631270), jinit_memory_mgr (its eleven methods), jinit_master_decompress
+  (prepare_for_output_pass, finish_output_pass).
 - **jmemansi.c through the exe's heap.** The exe's jpeg_get_small / large (one copy, 0x642980) call its CRT's malloc (0x67dcd0) and
   jpeg_free_small / large (0x642990, the same copy as zlib's zcfree) its free (0x67ad90). The library's would allocate from the DLL's
   CRT, a different heap, while the exe's own code (zcfree, jmemmgr.c while it stays the exe's) frees the blocks on the exe's. So
   third_party/wrap/jpeg-6b/jmemansi.c `#define`s malloc and free (after the headers have declared the real ones) to jpeg6b.cpp's
   jpeg6b_exe_malloc / jpeg6b_exe_free, which call the exe's two through Jpeg6b_SetCrtEnv's env (the exe's by default; the bench driver
   gives fncmp's heap, the emulator hooks the same two addresses). malloc and free are never replaced (the front of the exe's heap, as
-  GameHeap's Mem_Alloc / Mem_Free), so blocks from either side free on either side. jpeg_mem_available is the library's as it is. When
-  jmemmgr.c becomes the library's, its allocations go to the exe's heap the same way.
+  GameHeap's Mem_Alloc / Mem_Free), so blocks from either side free on either side. jpeg_mem_available is the library's as it is.
+- **The rest of the exe's CRT** goes through the same env (Jpeg6bCrtEnv; the bench driver's kJpeg6bCrtEnv gives recorders 24..28,
+  the emulator hooks the exe's addresses): jmemmgr.c's getenv("JPEGMEM") and sscanf (0x67fbf0, 0x67f620), jpeg_open_backing_store
+  (0x6429c0, the exe's: see below) and jerror.c's sprintf (0x67a650). format_message calls sprintf with either msg_parm.s or the
+  eight ints; wrap/jpeg-6b/jerror.c `#define`s sprintf to jpeg6b_exe_sprintf, which tells the two apart as format_message does (the
+  text's first % followed by an s) and passes sprintf_string or sprintf_ints, so the benches log each call with what it passed.
+- **Native methods in the bench driver.** jpeg_CreateDecompress and jpeg_start_decompress call methods the inits they ran just stored,
+  and the shims store the exe's addresses, which the driver cannot call (its own code lies at the exe's code addresses). With
+  FNCMP_JPEG6B_NATIVE set (jpeg6b_api.py sets it) the driver calls Jpeg6b_SetNativeMethods(true): the shims keep the library's
+  addresses, and before reporting it turns every aligned dword of the case heap that is one of them back into the exe's
+  (jpeg6b_methods_back, Jpeg6b_ExeMethod over kExeMethods). That is no mask: the bytes compared are exactly the exe's. The game never
+  sets it.
 - **Declarations next to jpeglib.h.** jpeg6b.h declares everything with its own struct tags where jpeglib.h's types are untagged
   typedefs (jpeg6b_component_info, jpeg6b_quant_tbl, jpeg6b_huff_tbl, jpeg6b_d_derived_tbl, jpeg6b_bitread_working_state); an enum
   parameter (J_BUF_MODE) is an int there and the shim casts it. jpeg6b.cpp includes both headers, so it renames jpeglib.h's own
@@ -131,7 +142,7 @@ jpeg_free_small / large and jpeg_mem_available. tpw_jpeg6b is built with jmemans
 - **Build options.** wrap/jpeg-6b/jddctmgr.c is compiled /arch:IA32: start_pass builds the float IDCT's multiplier table with x87 code
   in the exe, and the SSE2 build rounds once from double, a last bit apart (third_party/CMakeLists.txt has the details).
 - **Benches** (tests/fncmp/jpeg6b_*.py, one a module: _color, _merge, _sample, _dctmgr, _idct, _utils, _huff, _phuff, _coefct, _mainct,
-  _postct, _comapi, _marker, _input, _quant1, _quant2, _memansi): cinfo, the module's private struct and the row arrays as regions; alloc_small (and alloc_large) is fncmp's ZALLOC
+  _postct, _comapi, _marker, _input, _quant1, _quant2, _memansi, _memmgr, _error, _master, _api): cinfo, the module's private struct and the row arrays as regions; alloc_small (and alloc_large) is fncmp's ZALLOC
   stub (its cdecl (opaque, items, size) is alloc_small's (cinfo, JPOOL_IMAGE, size)); every other module's method the code calls is a
   cdecl recorder, and a recorder that would advance a counter the code passes it (the postprocessor's row group and output row counters,
   the upsampler's) writes it with fill(). The Bench's ranges add the jutils functions the module calls. fncmp refuses a case with an
@@ -165,14 +176,13 @@ jpeg_free_small / large and jpeg_mem_available. tpw_jpeg6b is built with jmemans
 - jerror.c's error_exit (0x6312d0) and output_message (0x631300): they call the exe's CRT exit (0x67f920) and fprintf(stderr) (0x67dad0,
   0x77e840), the DLL's are a different exit and stderr. jpeg_std_error (0x631280) is Codec631280_Init, a hand port already exact: the
   library's would need a shim mapping all five methods (0x6312d0, 0x631340, 0x631300, 0x631380, 0x631440) and the message table
-  (the exe's 0x7039d0, last code 0x7b) back, for nothing gained. emit_message (0x631340), format_message (0x631380, sprintf 0x67a650 is
-  the exe's CRT's, so it needs the same treatment as malloc) and reset_error_mgr (0x631440) are candidates.
+  (the exe's 0x7039d0, last code 0x7b) back, for nothing gained.
+- jpeg_mem_term is the exe's empty Debug_Printf (0x5da3c0, game code), not hooked; the library's own empty one runs from the library.
+- Not in the exe (built, unhooked): jpeg_new_colormap, jpeg_abort_decompress, jpeg_has_multiple_scans, jpeg_input_complete,
+  jpeg_read_raw_data, jpeg_start_output, jpeg_finish_output, and the compressor half (6a's, below).
 - The game's data source is game code, not libjpeg's: 0x631140 makes the game's JpegStream the source (jpeg_stdio_src's shape), with
   init_source 0x6311b0, fill_input_buffer 0x6311c0, skip_input_data 0x631230, the library's resync_to_restart (jdmarker.c, 0x63b8f0) and
   term_source the shared bare RET 0x631270 (src/game/gfx/jpeg.h).
-- Not yet replaced (the next modules, leaves first): jdmaster.c, jdapimin.c / jdapistd.c (0x630ca0 on: jpeg_CreateDecompress checks
-  the struct size 0x1b0), jerror.c's emit_message / format_message / reset_error_mgr, jmemmgr.c. Their libmap rows come first, checked
-  against the listing.
 
 **libjpeg 6a (0x64c5f0..0x657cb4) is the compressor**: jcapimin / jcapistd, jcparam, jerror, jmemmgr, jcomapi, jcmarker, jcinit, jmemansi,
 jutils, jcmainct, jccoefct, jchuff, jcphuff, jcdctmgr, jcprepct, jcsample, jccolor, jcmaster and the three forward DCTs, 160 functions,
@@ -182,9 +192,15 @@ then its methods), so the address order is not the source's. Its only caller is 
 with 0x64c202, the palette test 0x64c552 and 0x64c5c4), which installs its own destination manager (0x64dc00, its methods 0x64dc5a,
 0x64dc9c, 0x64dd00 write through 0x5d5350): game code, not jdatadst.c. The exe's 6a was built with jmemansi.c and DEFAULT_MAX_MEM
 10000000 (jpeg_mem_init at 0x6503c1 answers 0x989680; the source's default is 1000000), and its jpeg_get_small / large call the same
-malloc / free; tpw_jpeg6a is now built so (third_party/CMakeLists.txt). tpw_jpeg6a renames its externals jpeg6a_* through
-config/jpeg6a_prefix.h; its statics will need wrap/jpeg-6a/ units like 6b's. Nothing of it is replaced yet: the leaves first (jutils,
-jcomapi, the forward DCTs, jcparam's quality functions), then jmemansi.c the 6b way. The two jerror.h
+malloc / free; tpw_jpeg6a is now built so (third_party/CMakeLists.txt). Its boolean is an int (jmorecfg.h's default, not 6b's
+jconfig.vc: jpeg_set_defaults stores the booleans as dwords at +0xa8..+0xb4, and the struct is 0x168 only so), so tpw_jpeg6a finds
+third_party/config/jpeg-6a/jconfig.h first. tpw_jpeg6a renames its externals jpeg6a_* through config/jpeg6a_prefix.h, and the hook
+rows use those names (unit lib/jpeg6a: src/game/lib/jpeg6a.cpp includes 6a's headers by path, the include path finding 6b's first,
+and asserts the struct size, the version and the boolean); its statics will need wrap/jpeg-6a/ units like 6b's. Replaced so far:
+jutils.c (all five), jpeg_fdct_islow and jpeg_fdct_ifast (benches jpeg6a_utils.py, jpeg6a_fdct.py). Hand ports already there: jpeg_std_error
+(0x64dd60), emit_dac, jpeg_mem_init / term, start_pass_downsample, null_method (src/game/core/framestubs). jpeg_fdct_float stays the
+exe's for now (x87 against SSE rounding, as 6b's float IDCT; only JDCT_FLOAT stores it). Next: jcomapi.c, jcparam.c's quality
+functions, then jmemansi.c the 6b way and up the compressor. The two jerror.h
 lists differ: 6b added JERR_BAD_DCT_COEF (code 8) and JERR_BAD_HUFF_TABLE (10), dropped 6a's JERR_DHT_COUNTS (6a's 30) and added three
 JTRC_THUMB_* traces at the end, so most codes are one apart (two between 10 and 30) and a 6a bench takes its numbers from jpeg-6a's.
 
