@@ -4748,6 +4748,10 @@ const Hook kHooks[] = {
     {"inflate_codes_free",        0x00649d40, (void *)&inflate_codes_free, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"inflate_codes",             0x00649590, (void *)&inflate_codes, {0x83, 0xec, 0x14, 0x53, 0x8b}},
     {"inflate_codes_new",         0x00649550, (void *)&inflate_codes_new, {0x8b, 0x44, 0x24, 0x14, 0x6a}},
+    {"inflate_blocks_free",       0x006414b0, (void *)&inflate_blocks_free, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
+    {"inflate_blocks",            0x006407c0, (void *)&inflate_blocks, {0x83, 0xec, 0x30, 0x8b, 0x44}},
+    {"inflate_blocks_new",        0x00640710, (void *)&inflate_blocks_new, {0x53, 0x56, 0x57, 0x8b, 0x7c}},
+    {"inflate_blocks_reset",      0x00640690, (void *)&inflate_blocks_reset, {0x8b, 0x44, 0x24, 0x0c, 0x56}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

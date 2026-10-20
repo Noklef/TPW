@@ -1,5 +1,5 @@
 # zlib 1.1.3's inflate side (src/game/lib/zlib: the library built from third_party/zlib-1.1.3) against the exe's copies of it: the
-# decoding tables (inftrees.c), the codes' decoders (infcodes.c, inffast.c) and the window's flush (infutil.c).
+# decoding tables (inftrees.c), the codes' decoders (infcodes.c, inffast.c), the window's flush (infutil.c) and the blocks (infblock.c).
 # A z_stream at Z whose zalloc / zfree are fncmp's ZALLOC / ZFREE over the heap at HEAP.
 # usage: zlib_inflate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=huft_build,...)
 #
@@ -23,8 +23,10 @@ FUNCS = {
     'huft_build': (0x649e10, 0x64a2c0), 'inflate_trees_bits': (0x649d60, 0x649e10), 'inflate_trees_dynamic': (0x64a2c0, 0x64a450),
     'inflate_codes_new': (0x649550, 0x649590), 'inflate_codes': (0x649590, 0x649d40), 'inflate_codes_free': (0x649d40, 0x649d60),
     'inflate_flush': (0x64a480, 0x64a5c0), 'inflate_fast': (0x64bbd0, 0x64bf80),
+    'inflate_blocks_reset': (0x640690, 0x640710), 'inflate_blocks_new': (0x640710, 0x6407c0), 'inflate_blocks': (0x6407c0, 0x6414b0),
+    'inflate_blocks_free': (0x6414b0, 0x641500),
 }
-B = Bench(sorted(FUNCS.values()))
+B = Bench(sorted(list(FUNCS.values()) + [(0x64a450, 0x64a480)]))  # (and inflate_trees_fixed: the exe's, which inflate_blocks calls)
 Z, OUTS, LENS, V, HP = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x800, RAM + 0x10000
 MANY = 1440
 CPLENS, CPLEXT, CPDIST, CPDEXT = 0x704f08, 0x704f88, 0x705008, 0x705080  # (the exe's: inflate_trees_dynamic pushes them)
@@ -158,11 +160,11 @@ def decode(data, p, h):  # (canonical codes, a bit at a time: as puff.c)
     raise ValueError('no such code')
 
 
-def header(data):
-    """The first block's literal / length and distance code lengths and the bit after its header (None: a stored block)."""
-    btype, p = getbits(data, 1, 2)
+def header(data, p=0):
+    """The literal / length and distance code lengths of the block at bit p and the bit after its header (None: a stored block)."""
+    btype, p = getbits(data, p + 1, 2)
     if btype == 1:
-        return FIXED_L, FIXED_D, 3
+        return FIXED_L, FIXED_D, p
     if btype != 2:
         return None
     nl, p = getbits(data, p, 5)
@@ -184,7 +186,8 @@ def header(data):
 
 
 def farthest(data, p, ll, dl):
-    """The farthest distance the block's symbols from bit p reach back, up to its end of block, a bad code or the end of the data."""
+    """The farthest distance the block's symbols from bit p reach back, up to its end of block, a bad code or the end of the data;
+    and the bit after its end of block (None: it has none)."""
     hl, hd, far = Huff(ll), Huff(dl), 0
     try:
         while True:
@@ -192,15 +195,15 @@ def farthest(data, p, ll, dl):
             if x < 256:
                 continue
             if x == 256 or x > 285:
-                return far
+                return far, p if x == 256 else None
             _, p = getbits(data, p, LEXT[x - 257])
             d, p = decode(data, p, hd)
             if d >= 30:
-                return far
+                return far, None
             e, p = getbits(data, p, DEXT[d])
             far = max(far, DBASE[d] + e)
     except (EOFError, ValueError):
-        return far
+        return far, None
 
 
 def payload(r, n):
@@ -258,7 +261,7 @@ def tables(r, ll, dl):
 def window_ends(r, wsize, fast=False):
     """The window's read / write offsets: anywhere (the end too); for inflate_fast, 258 bytes of room from write."""
     if fast:
-        wo = r.randrange(wsize - 257)
+        wo = r.choice([0, r.randrange(wsize - 257)])  # (0: the stream's first copy can reach back to the window's start exactly)
         return r.choice([wo, r.randrange(wo + 1)] + ([r.randrange(wo + 259, wsize + 1)] if wo + 259 <= wsize else [])), wo
     pick = lambda: r.choice([0, wsize, r.randrange(wsize + 1), r.randrange(wsize + 1)])  # noqa: E731
     wo = pick()
@@ -273,7 +276,7 @@ def codes_case(r, fast=False):
         if t:
             break
     bl, bd, tl, td, hp = t
-    far = farthest(data, p, ll, dl)
+    far, _ = farthest(data, p, ll, dl)
     wsize = max(1 << max(far - 1, 0).bit_length(), 1 << r.choice([8, 9, 10, 11, 12] if not fast else [9, 10, 11]))
     k = (-p) % 8
     b = data[p >> 3] >> (p & 7) if k else 0
@@ -296,13 +299,13 @@ def codes_case(r, fast=False):
     return regions, (bl, bd, tl, td)
 
 
-def resumed(r, regions):
-    """The state after the exe's inflate_codes ran on part of the input into part of the room (a state inside a symbol, a copy, ...),
+def resumed(r, regions, address=0x649590):
+    """The state after the exe's inflate_codes (or inflate_blocks) ran on part of the input into part of the room (a state inside a symbol, a copy, ...),
     then given the rest of the input (or part of it) and a fresh output buffer: None if that run crashed."""
     z = bytearray(regions[Z])
     struct.pack_into('<I', z, 4, r.randrange(struct.unpack_from('<I', z, 4)[0] + 1))
     pre = {**regions, Z: bytes(z)}
-    out = B.original(Call(0x649590, [S, Z, r.choice([0, -5])], pre, ret='a'))
+    out = B.original(Call(address, [S, Z, r.choice([0, -5])], pre, ret='a'))
     if isinstance(out, str):
         return None
     after = {k: bytearray.fromhex(v) for k, v in zip(pre, out[3:])}
@@ -349,7 +352,110 @@ def codes_free(r):
     return Call(0x649d40, [r.choice([HEAP + 0x10, r.getrandbits(32)]), Z], {Z: stream(r), HEAP: heap(0x100)})
 
 
-OPS = [f for f in (huft_build, trees_bits, trees_dynamic, codes, fast, flush, codes_new, codes_free)
+# The blocks: a whole raw deflate stream (several blocks sometimes: flushes part way, level 0's stored blocks), sometimes with bits
+# flipped anywhere (bad block types, stored lengths, headers, codes) or random bytes from the start. The window: no smaller than the
+# farthest distance any block reaches (decoded here) for an intact stream; 32 KB, more than any distance, for a damaged one (its
+# headers are not decoded here as the exe would).
+TYPE, BTREE, DTREE, BAD = 0, 4, 5, 9  # (inflate_blocks' modes)
+
+
+def farthest_all(data):
+    """The farthest distance any block of an intact stream reaches back."""
+    p, far = 0, 0
+    try:
+        while True:
+            last, _ = getbits(data, p, 1)
+            btype, _ = getbits(data, p + 1, 2)
+            if btype == 0:
+                p = (p + 3 + 7) & ~7
+                n, p = getbits(data, p, 16)
+                p += 16 + 8 * n
+            elif btype == 3:
+                return far
+            else:
+                ll, dl, p = header(data, p)
+                f, p = farthest(data, p, ll, dl)
+                if p is None:
+                    return max(far, f)
+                far = max(far, f)
+            if last:
+                return far
+    except (EOFError, ValueError):
+        return far
+
+
+def whole_stream(r):
+    """A raw deflate stream (damaged sometimes) and whether it is intact."""
+    if r.random() < 0.08:
+        return r.bytes(r.randrange(1, 400)), False
+    z = zlib.compressobj(r.choice([0, r.randrange(1, 10)]), zlib.DEFLATED, -r.choice([9, 10, 11, 12, 15]), 8,
+                         r.choice([zlib.Z_DEFAULT_STRATEGY] * 3 + [zlib.Z_FIXED, zlib.Z_HUFFMAN_ONLY, zlib.Z_RLE]))
+    data = bytearray()
+    for _ in range(r.choice([1, 1, 2, 3])):
+        data += z.compress(payload(r, r.randrange(1, 1 << r.randrange(4, 12))))
+        data += z.flush(r.choice([zlib.Z_NO_FLUSH, zlib.Z_SYNC_FLUSH, zlib.Z_FULL_FLUSH, zlib.Z_PARTIAL_FLUSH]))
+    data += z.flush()
+    intact = r.random() < 0.75
+    if not intact:
+        for _ in range(r.choice([1, 1, 2, 8])):
+            i = r.randrange(8 * len(data))
+            data[i >> 3] ^= 1 << (i & 7)
+    return bytes(data + r.bytes(r.choice([0, r.randrange(16), r.randrange(300)]))), intact
+
+
+def blocks_case(r):
+    data, intact = whole_stream(r)
+    wsize = max(1 << max(farthest_all(data) - 1, 0).bit_length(), 1 << r.randrange(8, 13)) if intact else 0x8000
+    k, b, nxt = 0, 0, 0
+    for _ in range(r.choice([0, 0, 0, 1, 2])):  # (whole bytes already in the bit buffer)
+        if nxt < len(data):
+            b, k, nxt = b | data[nxt] << k, k + 8, nxt + 1
+    left = len(data) - nxt
+    ro, wo = window_ends(r, wsize)
+    out = r.choice([0, r.randrange(1, 64), r.randrange(0x1000)])
+    return {Z: struct.pack('<14I', IN + nxt, r.choice([left, left, r.randrange(left + 1)]), r.getrandbits(16), OUT, out, r.getrandbits(16),
+                           r.choice(MSGS), 0, ZALLOC, ZFREE, r.getrandbits(32), r.getrandbits(2), r.getrandbits(32), 0),
+            S: struct.pack('<16I', TYPE, *[r.getrandbits(32) for _ in range(5)], r.getrandbits(1), k, b, HP, W, W + wsize, W + ro, W + wo,
+                           r.choice([0, recorder(0, 3, cdecl=True)]), r.getrandbits(32)),
+            HP: r.bytes(8 * MANY), IN: data, W: r.bytes(wsize), OUT: r.bytes(out + 16), LOG: log_region(),
+            HEAP: heap(0x8000, r.choice([0] * 12 + [1, 2]))}
+
+
+def blocks(r):
+    regions = blocks_case(r)
+    if r.random() < 0.6:
+        regions = resumed(r, regions, 0x6407c0) or regions
+    return Call(0x6407c0, [S, Z, r.choice([0, 0, -5])], regions, ret='a', masks=entry_masks(HP, 8 * MANY))
+
+
+def blocks_state(r, mode):
+    """A blocks state in mode (its union's pointers: a codes state, a bit length array, all hashed only by zfree)."""
+    return struct.pack('<16I', mode, *[r.choice([HEAP + 0x10, r.getrandbits(32)]) for _ in range(5)], r.getrandbits(1), r.getrandbits(5),
+                       r.getrandbits(32), HP, W, W + 0x100, W + r.randrange(0x101), W + r.randrange(0x101),
+                       r.choice([0, recorder(0, 3, cdecl=True)]), r.getrandbits(32))
+
+
+def blocks_reset(r):
+    regions = {Z: stream(r), S: blocks_state(r, r.choice([TYPE, BTREE, DTREE, CODES, CODES, r.randrange(10)])), OUTS: r.bytes(8),
+               HEAP: heap(0x100), LOG: log_region()}
+    return Call(0x640690, [S, Z, r.choice([0, OUTS])], regions)
+
+
+def blocks_new(r):
+    w = r.choice([0x8000, 1 << r.randrange(8, 16), r.randrange(1, 0x8000)])
+    regions = {Z: stream(r), HEAP: heap(0xc000, r.choice([0] * 4 + [1, 2, 3])), LOG: log_region()}
+    return Call(0x640710, [Z, r.choice([0, recorder(0, 3, cdecl=True)]), w], regions, ret='a')
+
+
+def blocks_free(r):
+    regions = {Z: stream(r), S: blocks_state(r, r.choice([TYPE, BTREE, DTREE, CODES, r.randrange(10)])), HEAP: heap(0x100), LOG: log_region()}
+    return Call(0x6414b0, [S, Z], regions, ret='a')
+
+
+
+
+OPS = [f for f in (huft_build, trees_bits, trees_dynamic, codes, fast, flush, codes_new, codes_free, blocks, blocks_reset, blocks_new,
+                   blocks_free)
        if not os.environ.get('OPS') or f.__name__ in os.environ['OPS'].split(',')]
 
 

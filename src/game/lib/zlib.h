@@ -89,6 +89,17 @@ inflate_codes_state *__cdecl inflate_codes_new(unsigned bl, unsigned bd, inflate
 // 0x649d40: frees c (zfree).
 void __cdecl inflate_codes_free(inflate_codes_state *c, z_stream_s *z);
 
+// infblock.c
+// 0x640690: back to TYPE (a codes state or bit length array freed), the bit buffer and window emptied, the check restarted (*c gets
+// the old one when c is not null).
+void __cdecl inflate_blocks_reset(inflate_blocks_state *s, z_stream_s *z, unsigned long *c);
+// 0x640710: a blocks state with its table space (MANY entries) and a window of w bytes (zalloc; null when one fails), reset; c the
+// check function or null.
+inflate_blocks_state *__cdecl inflate_blocks_new(z_stream_s *z, unsigned long(__cdecl *c)(unsigned long, const unsigned char *, unsigned),
+                                                 unsigned w);
+// 0x6414b0: inflate_blocks_reset, then the window, the table space and the state freed; Z_OK.
+int __cdecl inflate_blocks_free(inflate_blocks_state *s, z_stream_s *z);
+
 // infutil.c
 // 0x64a480: as much of the window's pending output (read .. write, wrapping at end) as fits into next_out, checkfn over it; r, or
 // Z_OK for Z_BUF_ERROR when anything was copied.
@@ -101,6 +112,9 @@ int __cdecl inflate_trees_bits(unsigned *c, unsigned *bb, inflate_huft_s **tb, i
 // 0x64a2c0: the literal / length and distance tables of a dynamic block (nl + nd lengths in c); z->msg on a bad set (the exe's string).
 int __cdecl inflate_trees_dynamic(unsigned nl, unsigned nd, unsigned *c, unsigned *bl, unsigned *bd, inflate_huft_s **tl, inflate_huft_s **td,
                                   inflate_huft_s *hp, z_stream_s *z);
+// 0x6407c0: decodes blocks (stored, fixed, dynamic) into the window and flushes it to next_out; z->msg on bad data (the exe's
+// string), and a codes state for a fixed block points at the exe's fixed_tl / fixed_td (as the exe's inflate_trees_fixed's).
+int __cdecl inflate_blocks(inflate_blocks_state *s, z_stream_s *z, int r);
 // 0x649590: decodes the block's literals, lengths and distances (s's codes state) into the window until the end of block, input or
 // window room runs out; z->msg on a bad code (the exe's string).
 int __cdecl inflate_codes(inflate_blocks_state *s, z_stream_s *z, int r);
