@@ -4433,6 +4433,7 @@ address,name,kind,confidence,notes
 0x006aeb10,TextLayout_Arrange,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (status, left, top, right, bottom): the lines rebuilt per paragraph, the text box (+0xac-+0xb8) placed by the kinds at +0xa0 / +0xa4; *status = 0; returns status"
 0x006adfb0,TextLayout_SetOrigin,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (status, rect): the positions (+0x84) resized to one, the origin (+0x98/+0x9c) placed in the rect by the kinds at +0xa0 / +0xa4 and stored as the first position; *status = 0; returns status"
 0x00574bd0,TexFile_Load,function,low,"reimplemented (src/game/gfx/texfile); cdecl (name, &width, &height, flags, table or 0, pixel size or 0); a texture's file read: flag 1 the raw bytes (rows flipped for a top-first TGA, sic twice), else the name as a WCT image, else the TGA converted to the format (with flag 2 an alpha mask made); 0x87a24c what was found"
+0x00678d30,Mmx_FillRows,function,low,"reimplemented (src/game/gfx/mmxfill); cdecl (width, rows, buffer, pitch): each row filled with the 8-byte pattern at 0x77e580, 16 bytes a store while the width (8 a store) stays above 0"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
