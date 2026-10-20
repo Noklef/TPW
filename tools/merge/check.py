@@ -157,6 +157,9 @@ def kept(path, pats, base, branch, table, moved=False):
 
 
 def main():
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    import lowprio
+    lowprio.below_normal()   # (the builds and benches it starts inherit it)
     a = sys.argv[1:]
     if not a or a[0].startswith('-'):
         sys.exit(__doc__)

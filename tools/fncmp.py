@@ -70,6 +70,8 @@ import json
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
+import lowprio  # noqa: E402
+lowprio.below_normal()   # (every bench, the gate and the driver they start run below normal)
 import x87emu  # noqa: E402
 
 EXE = os.path.join(ROOT, '.data', 'nocd', 'tp.exe')
