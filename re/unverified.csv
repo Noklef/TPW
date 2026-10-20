@@ -27,14 +27,6 @@ address,name,module,reason
 5f6c50,WString_Format,core/string,todo
 5f7360,Palette_ExpandRgb,gfx/palette,todo
 5f73a0,Palette_Nearest,gfx/palette,todo: indirect only
-5f8f80,Surface_SetDirectDraw,gfx/surface,todo
-5f8f90,Surface_Attach,gfx/surface,todo
-5f9040,Surface_Restore,gfx/surface,todo
-5f9160,Surface_BltFast,gfx/surface,todo
-5f92e0,Surface_Blt,gfx/surface,todo
-5f9550,Surface_Lock,gfx/surface,todo
-5f9600,Surface_Unlock,gfx/surface,todo
-5f9620,Surface_GetSurface,gfx/surface,todo
 5fa030,Screen_SetGuid,gfx/screen,todo
 5fa040,Screen_GetDirectDraw,gfx/screen,todo
 5fa060,Screen_Close,gfx/screen,todo
