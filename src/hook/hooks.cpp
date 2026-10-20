@@ -130,6 +130,7 @@
 #include "../game/gfx/texfile.h"
 #include "../game/gfx/textlayout.h"
 #include "../game/gfx/tvstatic.h"
+#include "../game/gfx/aaline.h"
 #include "../game/gfx/wctimage.h"
 #include "../game/core/crt.h"
 #include "../game/core/gameheap.h"
@@ -2001,6 +2002,7 @@ const Hook kHooks[] = {
     {"TexSurfaceB_AllocPixels",   0x0058c670, (void *)&TexSurfaceB_AllocPixels, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
     {"TexSurfaceB_Blit",          0x0058c750, (void *)&TexSurfaceB_Blit, {0x83, 0xec, 0x18, 0x53, 0x55}},
     {"TexSurfaceB_DeletingDtor",  0x0058c960, (void *)&TexSurfaceB_DeletingDtor, {0x8b, 0x41, 0xf0, 0x56, 0x8d}},
+    {"TexSurfaceA_Blit",          0x0058bd10, (void *)&TexSurfaceA_Blit, {0x83, 0xec, 0x44, 0x8b, 0x54}},
     {"Array3D_Fill",              0x005e7740, (void *)&Array3D_Fill, {0x8b, 0x41, 0x0c, 0x53, 0x56}},
     {"Array3D_CopyTo",            0x005e77c0, (void *)&Array3D_CopyTo, {0x8b, 0xc1, 0x56, 0x8b, 0x70}},
     {"Array3D_ReverseBytes",      0x005e77f0, (void *)&Array3D_ReverseBytes, {0x51, 0x8b, 0x11, 0x8b, 0x41}},
@@ -2959,6 +2961,7 @@ const Hook kHooks[] = {
     {"Wrap_Deleter_Minus8_458970_42a070", 0x0042a070, (void *)&Wrap_Deleter_Minus8_458970_42a070, {0x2b, 0x49, 0xfc, 0xe9, 0xf8}},
     {"Wrap_KeyMap_AsyncModifiers_4815c0", 0x004815c0, (void *)&Wrap_KeyMap_AsyncModifiers_4815c0, {0xe9, 0xdb, 0x54, 0x00, 0x00}},
     {"Wrap_Debug_Printf_579090",  0x00579090, (void *)&Wrap_Debug_Printf_579090, {0x8b, 0x4c, 0x24, 0x04, 0x2b}},
+    {"Wrap_TexSurfaceA_Blit_58c340", 0x0058c340, (void *)&Wrap_TexSurfaceA_Blit_58c340, {0x2b, 0x49, 0xfc, 0xe9, 0xc8}},
     {"Table_AddressPlus18",       0x006b0620, (void *)&Table_AddressPlus18, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Table_Address",             0x006b0650, (void *)&Table_Address, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Packed_Read",               0x006b0510, (void *)&Packed_Read, {0x56, 0x8b, 0x74, 0x24, 0x08}},
@@ -3640,6 +3643,8 @@ const Hook kHooks[] = {
     {"WaveletCodec_InverseD4Columns", 0x005933a0, (void *)&WaveletCodec_InverseD4Columns, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"WaveletCodec_DecodeGrey",   0x00592e60, (void *)&WaveletCodec_DecodeGrey, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Wavelet_Shutdown",          0x00564b60, (void *)&Wavelet_Shutdown, {0xa1, 0x68, 0x9a, 0x87, 0x00}},
+    {"WaveletCodec_YuvToRgb",     0x005935a0, (void *)&WaveletCodec_YuvToRgb, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"WaveletCodec_DecodeColour", 0x00592730, (void *)&WaveletCodec_DecodeColour, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Record_IsActive",           0x0059c610, (void *)&Record_IsActive, {0x8b, 0x4c, 0x24, 0x04, 0x81}},
     {"ObjectDef_FindMarkedCells", 0x00413410, (void *)&ObjectDef_FindMarkedCells, {0x6a, 0xff, 0x68, 0x58, 0x7e}},
     {"ObjectDef_Ctor",            0x00412c20, (void *)&ObjectDef_Ctor, {0x56, 0x8b, 0xf1, 0x8d, 0x4e}},
@@ -4233,6 +4238,10 @@ const Hook kHooks[] = {
     {"TextLayout_SetOrigin",      0x006adfb0, (void *)&TextLayout_SetOrigin, {0x83, 0xec, 0x08, 0x53, 0x56}},
     {"TexFile_Load",              0x00574bd0, (void *)&TexFile_Load, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Mmx_FillRows",              0x00678d30, (void *)&Mmx_FillRows, {0x55, 0x8b, 0xec, 0x53, 0x56}},
+    {"AaLine_Draw8",              0x005edad0, (void *)&AaLine_Draw8, {0x83, 0xec, 0x54, 0x8b, 0x44}},
+    {"AaLine_Draw16",             0x005ee580, (void *)&AaLine_Draw16, {0x83, 0xec, 0x54, 0x8b, 0x44}},
+    {"AaLine_Draw24",             0x005ef040, (void *)&AaLine_Draw24, {0x83, 0xec, 0x54, 0x8b, 0x44}},
+    {"AaLine_Draw32",             0x005efb10, (void *)&AaLine_Draw32, {0x83, 0xec, 0x54, 0x8b, 0x44}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
@@ -4317,6 +4326,7 @@ const Hook kHooks[] = {
     {"Backdrop_SetRect",          0x00577940, (void *)&Backdrop_SetRect, {0x8b, 0x01, 0x8b, 0x54, 0x24}},
     {"Backdrop_SetSourceRect",    0x00577970, (void *)&Backdrop_SetSourceRect, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Backdrop_UncacheRect",      0x00577990, (void *)&Backdrop_UncacheRect, {0x51, 0x8b, 0x44, 0x24, 0x08}},
+    {"Backdrop_Create",           0x005777b0, (void *)&Backdrop_Create, {0x6a, 0xff, 0x68, 0x7b, 0xf2}},
     {"MeshQueue_Clear",           0x00579c70, (void *)&MeshQueue_Clear, {0xc7, 0x81, 0x00, 0x04, 0x00}},
     {"MeshQueue2_Init",           0x0057c260, (void *)&MeshQueue2_Init, {0xc7, 0x05, 0x38, 0xb6, 0x8b}},
     {"MeshQueue2_Add",            0x0057c270, (void *)&MeshQueue2_Add, {0x8b, 0x01, 0x3d, 0x00, 0x01}},

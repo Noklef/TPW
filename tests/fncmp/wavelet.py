@@ -11,8 +11,12 @@
 #   now and then over the stream, a count of 0 now and then), the inverse D4 along a row (0x592c50; n below and above 6, odd, zero and
 #   negative, the destination now and then over the source) and down the columns (0x5933a0; widths above n, in place now and then);
 # - the grey decoder (0x592e60): sizes as the encoders', the plane at +0x2c empty or a block to fit in or grow from, the one at +0x3c any
-#   floats, a stream of any bytes (escapes often) as the decompressor recorder leaves it, the coefficient tables built or not, any quantisers.
-# usage: wavelet.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS,DGREY)
+#   floats, a stream of any bytes (escapes often) as the decompressor recorder leaves it, the coefficient tables built or not, any quantisers;
+# - the colour decoder (0x592730): the same with the planes at +0x2c, +0x1c and +0xc each empty or a block, sizes 2 to 16 (now and then
+#   0, 1, 17 or 20), three quantisers and YUV to BGR's tables and globals any bytes;
+# - YUV to BGR pixels (0x5935a0): sizes odd and even (now and then 0 or 1: 2^32 loops, sic), luma strides at, above and below the width,
+#   Cr above or below Cb (now and then not a dword apart), Y and chroma floats in range or any, the clamp tables any bytes.
+# usage: wavelet.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS,DGREY,RGB,DCOL)
 import math
 import os
 import struct
@@ -21,8 +25,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, LOG, Bench, Call, RAM, fb, heap, log_region, put, vtable  # noqa: E402
 
-B = Bench([(0x591ab0, 0x592010), (0x592150, 0x5935b0), (0x598630, 0x598790), (0x5f8050, 0x5f8120)])
-OPS = [k for k in os.environ.get('OPS', 'PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS,DGREY').split(',') if k]
+B = Bench([(0x591ab0, 0x592010), (0x592150, 0x593ab0), (0x598630, 0x598790), (0x5f8050, 0x5f8120)])
+OPS = [k for k in os.environ.get('OPS', 'PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS,DGREY,RGB,DCOL').split(',') if k]
 CURSOR = RAM + 8
 CODEC, PLANES, SRC, DST, FILTER = RAM, RAM + 0x1000, RAM + 0x2000, RAM + 0x3000, 0xc27208
 OUT, SIZE, OLD, STREAM = RAM + 0x4000, RAM + 0x4100, RAM + 0x5000, 0xa067f8
@@ -74,6 +78,10 @@ def case(r):
         return Call(0x5924f0, [CODEC, SRC, DST, n & 0xffffffff],
                     {CODEC: r.bytes(0x10), SRC: r.floats(bytearray(size), range(0, size, 4)), DST: r.floats(bytearray(size), range(0, size, 4)),
                      FILTER: filt}, conv='t')
+    if op == 'RGB':
+        return yuv_to_rgb(r)
+    if op == 'DCOL':
+        return decode_colour(r)
     if op in ('READ', 'IROW', 'ICOLS', 'DGREY'):
         return decoder(r, op)
     if op != 'HALVE':
@@ -174,6 +182,49 @@ def decode_grey(r):
     put(obj, 0x3c, 'I', DPLANE)
     q = r.choice([fb(1.0), fb(r.uniform(0.5, 4)), fb(r.uniform(1, 64)), r.f()])
     return Call(0x592e60, [CODEC, width, height, SRC, DST, q], regions, conv='t')
+
+
+def decode_colour(r):
+    def size():   # 0 and 1 make YUV to BGR loop 2^32 times (sic): now and then
+        return r.randrange(2, 17) if r.random() < 0.97 else r.choice([0, 1, 17, 20])
+    width, height = size(), size()
+    n = max(side(width), side(height))
+    count = n * n
+    obj = bytearray(r.bytes(0x58))
+    regions = {CODEC: obj, SRC: r.bytes(0x20), DST: r.bytes(max(1, width * height * 3) + 0x10), LOG: log_region(),
+               GUARD: struct.pack('<II', 1 | r.getrandbits(8) & 0xfe, COMPRESSOR_VTABLE), COMPRESSOR_VTABLE: vtable({1: 4, 2: 3}),
+               HEAP: heap(0x1000 + 3 * (8 * count + 0x1400) + 8 * n), FILTER: D4 if r.random() < 0.8 else r.floats(bytearray(0x10), range(0, 0x10, 4)),
+               DPLANE: r.floats(bytearray(4 * count), range(0, 4 * count, 4)), 0xc27008: r.bytes(0x280), 0xfb2768: r.bytes(0x60), **tables(r)}
+    stream = bytearray(r.bytes(5 * count + 0x10))
+    for k in range(len(stream)):
+        if r.random() < 0.15:
+            stream[k] = 0x80
+    regions[STREAM] = stream
+    for k, off in enumerate((0x2c, 0x1c, 0xc)):
+        obj[off:off + 0x10] = array(r, regions, off, count, k)
+    put(obj, 0x3c, 'I', DPLANE)
+    q = [r.choice([fb(1.0), fb(r.uniform(0.5, 4)), fb(r.uniform(1, 64)), r.f()]) for _ in range(3)]
+    return Call(0x592730, [CODEC, width, height, SRC, DST] + q, regions, conv='t')
+
+
+def yuv_to_rgb(r):
+    def size():
+        return r.choice([2, 4, 6, 8, 3, 5, 7, 9, r.randrange(2, 13)]) if r.random() < 0.97 else r.choice([0, 1])
+    width, height = size(), size()
+    stride = r.choice([width, width, width + r.randrange(1, 4), max(0, width - r.randrange(1, 3))])
+    luma, chroma = (PLANES, PLANES + 0x400), PLANES + 0x800
+    cb, cr = (luma[1], chroma) if r.random() < 0.6 else (chroma, luma[1])
+    if r.random() < 0.06:
+        cr += r.choice([1, 2, 3])
+    obj = bytearray(r.bytes(0x30))
+    for off, at in ((0x2c, luma[0]), (0x1c, cb), (0xc, cr)):
+        put(obj, off, 'I', at)
+    planes = bytearray(0xc10)
+    ranges = [(range(0, 0x400, 4), r.choice([None, 255, 255])), (range(0x400, 0xc10, 4), r.choice([None, 128, 128]))]
+    for offsets, scale in ranges:
+        r.floats(planes, offsets, scale)
+    return Call(0x5935a0, [CODEC, width, height, stride, DST], {CODEC: obj, PLANES: planes, DST: r.bytes(max(1, width * height * 3) + 8),
+                                                               0xc27008: r.bytes(0x280), 0xfb2768: r.bytes(0x60)}, conv='t')
 
 
 def decoder(r, op):

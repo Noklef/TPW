@@ -159,6 +159,121 @@ u32 __fastcall TexSurfaceA_ReleaseSurfaces(u8 *sub) {
     return 1;
 }
 
+u32 __fastcall TexSurfaceA_Blit(u8 *sub, void *, u8 *texture, s32 x, s32 y) {
+    const auto pitch = []() { return *reinterpret_cast<const u32 *>((uintptr_t)0x008c48b8); };
+    const auto size = [&]() { return back<u32>(sub, 0x14); };
+    const auto zero = [](uintptr_t p, u32 n) {
+        for (u32 k = 0; k < n; ++k)
+            reinterpret_cast<u8 *>(p)[k] = 0;
+    };
+    const uintptr_t base = (u32)y * pitch() + *reinterpret_cast<const u32 *>((uintptr_t)0x008c48cc) + (u32)x * size();
+    s32 height = at<s16>(texture, 0x16);
+    s32 width = at<s16>(texture, 0x14);
+    s32 top = 0, left = 0;
+    const s32 srcWidth = at<s16>(texture, 0x10);
+    if (width > srcWidth) {   // cut to the source's width, centred; the margins zeroed
+        const s32 boxWidth = width;
+        at<u32>(texture, 8) |= 0x80000000;
+        left = (boxWidth - srcWidth) >> 1;
+        const u32 bytes = size();
+        width = srcWidth;
+        const u32 leftBytes = (u32)left * bytes, rightBytes = (u32)(boxWidth - left - srcWidth) * bytes, right = (u32)(srcWidth + left) * bytes;
+        if (leftBytes)
+            for (u32 row = (u32)height; row != 0;) {
+                --row;
+                zero(row * pitch() + base, leftBytes);
+            }
+        if (rightBytes)
+            for (u32 row = (u32)(s32)at<s16>(texture, 0x16); row != 0;) {
+                --row;
+                zero(row * pitch() + right + base, rightBytes);
+            }
+    }
+    const s32 srcHeight = at<s16>(texture, 0x12);
+    if (height > srcHeight) {   // the same for the height
+        height = srcHeight;
+        const u32 rowBytes = size() * (u32)(s32)at<s16>(texture, 0x14);
+        at<u32>(texture, 8) |= 0x80000000;
+        top = ((s32)at<s16>(texture, 0x16) - srcHeight) >> 1;
+        if (top)
+            for (u32 row = (u32)top; row != 0;) {
+                --row;
+                zero(row * pitch() + base, rowBytes);
+            }
+        u32 bottom = (u32)((s32)at<s16>(texture, 0x16) - srcHeight - top);
+        if (bottom)
+            for (u32 row = (u32)(s32)at<s16>(texture, 0x16); bottom != 0; --bottom) {
+                --row;
+                zero(row * pitch() + base, rowBytes);
+            }
+    }
+    uintptr_t dst = (u32)left * size() + (u32)top * pitch() + base;
+    if (at<u32>(texture, 8) & 0x10000000) {
+        u32 record[4] = {(u32)dst, (u32)width, (u32)height, pitch()};
+        if (vcall<u32>(at<u8 *>(texture, 0x40), 4, record, at<u32>(texture, 8) & 0x40000))
+            return 1;
+    }
+    const s32 stepX = Idiv((s32)((u32)(s32)at<s16>(texture, 0x10) << 16), width);
+    uintptr_t shade = at<u32>(texture, 0x3c);
+    u32 frac = 0;
+    s32 stepY = Idiv((s32)((u32)(s32)at<s16>(texture, 0x12) << 16), height);
+    uintptr_t src = (uintptr_t)Texture_Lock(texture);
+    const u32 bytes = size();
+    const u32 srcPitch = (u32)(s32)at<s16>(texture, 0x34) * bytes;
+    const u32 skip = pitch() - (u32)width * bytes;
+    u32 mode = (at<u32>(texture, 8) & 0x400) && at<u32>(texture, 0x3c) ? 1 : 0;   // 1: shaded
+    if (bytes == 4)
+        mode |= 2;   // 4-byte pixels
+    if (at<u32>(texture, 8) & 0x40000) {   // from the last row up
+        const u32 last = (u32)(height - 1) * (u32)stepY;
+        stepY = -stepY;
+        const s32 rows = (s32)last >> 16;
+        src += srcPitch * (u32)rows;
+        shade += (u32)(s32)at<s16>(texture, 0x34) * (u32)rows;
+        frac = last & 0xffff;
+    }
+    if (height == 0)
+        return 1;
+    const u32 *const tints = reinterpret_cast<const u32 *>((uintptr_t)0x00879e38);
+    u32 rows = (u32)height;
+    do {
+        u32 fx = 0;
+        u32 n = (u32)width;
+        if (n) {
+            do {
+                const u32 i = (u32)((s32)fx >> 16);
+                if (mode == 0) {
+                    *reinterpret_cast<u16 *>(dst) = *reinterpret_cast<const u16 *>(src + i * 2);
+                    dst += 2;
+                } else if (mode == 1) {
+                    const u32 t = tints[reinterpret_cast<const u8 *>(shade)[i]];
+                    const u32 p = *reinterpret_cast<const u16 *>(src + i * 2);
+                    const u32 r = ((t >> 16 & 0xff) * (p >> 8 & 0xf)) >> 8, g = ((t >> 8 & 0xff) * (p >> 4 & 0xf)) >> 8, b = ((t & 0xff) * (p & 0xf)) >> 8;
+                    *reinterpret_cast<u16 *>(dst) = (u16)((((r << 4) + g) << 4) + b + (p & 0xf000));
+                    dst += 2;
+                } else if (mode == 2) {
+                    *reinterpret_cast<u32 *>(dst) = *reinterpret_cast<const u32 *>(src + i * 4);
+                    dst += 4;
+                } else {
+                    const u32 t = tints[reinterpret_cast<const u8 *>(shade)[i]];
+                    const u32 p = *reinterpret_cast<const u32 *>(src + i * 4);
+                    const u32 r = ((p >> 16 & 0xff) * (t >> 16 & 0xff)) >> 8, g = ((p >> 8 & 0xff) * (t >> 8 & 0xff)) >> 8, b = ((p & 0xff) * (t & 0xff)) >> 8;
+                    *reinterpret_cast<u32 *>(dst) = (((r << 8) + g) << 8) + b + (p & 0xff000000);
+                    dst += 4;
+                }
+                fx += (u32)stepX;
+            } while (--n);
+        }
+        frac += (u32)stepY;
+        const s32 step = (s32)frac >> 16;
+        src += srcPitch * (u32)step;
+        dst += skip;
+        shade += (u32)(s32)at<s16>(texture, 0x34) * (u32)step;
+        frac &= 0xffff;
+    } while (--rows);
+    return 1;
+}
+
 u32 __fastcall TexSurfaceB_Blit(u8 *sub, void *, u8 *texture, s32 x, s32 y) {
     const s32 height = at<s16>(texture, 0x16);
     uintptr_t dst = back<u32>(sub, 0xc) + (at<u32>(sub, SubBaseOffset(sub)) * (u32)y + (u32)x) * 4;

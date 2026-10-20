@@ -396,9 +396,9 @@ address,name,kind,confidence,notes
 0x005ecb40,SignStyle_Render,function,medium,"(HDC, text lines + target textures)"
 0x005e7990,Array3D_ReadCompressed,function,high,"reimplemented (src/game/gfx/array3d); thiscall (stream, codec; pops 8): width, height, depth read and a cleared block made; by the depth (1, 3, 4) the parts read and decoded through the codec's slot 3, the depth 4 alpha and colour interleaved; AL 0 when a part's block is not made, else 1"
 0x005987b0,WaveletCodec_DecodePlanes,function,high,"vtable slot 3: colour -> 0x592730, grey -> 0x592e60; takes float quantiser steps"
-0x00592730,WaveletCodec_DecodeColourStream,function,high,"Buffer_Decompress, then Y (q1), Cb (q2), Cr (q3) planes, inverse D4, YUV->RGB"
+0x00592730,WaveletCodec_DecodeColour,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (width, height, packed source, BGR pixels, three quantisers), pops 0x1c: the colour decoder, Y then Cb and Cr at half the side through the row and column inverse steps, then YUV to BGR"
 0x00592e60,WaveletCodec_DecodeGrey,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (width, height, packed source, pixels, q): the grey decoder, rows through the coefficient reader and inverse D4, then the columns, then clamped bytes (name unconfirmed)"
-0x005935a0,WaveletCodec_YuvToRgb,function,high,"1.402 / 0.344136 / 0.714136 / 1.772"
+0x005935a0,WaveletCodec_YuvToRgb,function,high,"reimplemented (src/game/gfx/wavelet); thiscall (width, height, luma stride, pixels), pops 0x10: the Y, Cb and Cr planes to BGR pixels through the clamp tables, 2 x 2 blocks then an odd last column and row"
 0x00599050,Advisor_Say,function,high,"'Advisor says ResponseID %d': looks up gAdvisorResponses, loads Speech/lips/sp_%03d.lip, starts gesture and animation"
 0x00599880,Advisor_UpdateSpeech,function,medium,"plays the sample 200 ms after the animation starts; toggles the mouth at each .lip time"
 0x00768fb8,gAdvisorResponses,data,high,"0x20-byte rows: response id, sample, lip number, gesture, theme<<16|anim, ?, ?, ?; ends with 9999"
@@ -3245,6 +3245,7 @@ address,name,kind,confidence,notes
 0x0042a070,Wrap_Deleter_Minus8_458970_42a070,function,low,"reimplemented (src/game/core/thunks); thiscall (flags; pops 4): this lowered by the dword before it (a virtual base offset), then Deleter_Minus8_458970"
 0x004815c0,Wrap_KeyMap_AsyncModifiers_4815c0,function,low,reimplemented (src/game/core/thunks); a jump to KeyMap_AsyncModifiers
 0x00579090,Wrap_Debug_Printf_579090,function,low,"reimplemented (src/game/core/thunks); cdecl: this (the first stack argument) lowered by the dword before it, then the empty Debug_Printf (0x5da3c0); several slots of the 0x7010xx vtables"
+0x0058c340,Wrap_TexSurfaceA_Blit_58c340,function,low,"reimplemented (src/game/core/thunks); thiscall thunk: this lowered by the dword before it, then TexSurfaceA_Blit"
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value
@@ -4471,6 +4472,7 @@ address,name,kind,confidence,notes
 0x0058c670,TexSurfaceB_AllocPixels,function,low,"reimplemented (src/game/gfx/texsurface); thiscall (width, height, -, -; pops 0x10): without pixels, a square from the texture pages (flag 0x10000000 when cut from an old one) and the base's size set; 1 when got (name unconfirmed)"
 0x0058c750,TexSurfaceB_Blit,function,low,"reimplemented (src/game/gfx/texsurface); thiscall on class B's sub-object (texture, x, y; pops 0xc): the texture drawn scaled into its pixels at (x, y), or by the texture's object (virtual call 1)"
 0x0058c960,TexSurfaceB_DeletingDtor,function,low,"reimplemented (src/game/gfx/texsurface); thiscall on the sub-object (flags; pops 4): the scalar deleting destructor of class B: base vtable 0x702250 and its offset dword, its slot 1 (FreePixels), +0x10 vtable 0x702198, freed with flags bit 0; returns the object"
+0x0058bd10,TexSurfaceA_Blit,function,low,"reimplemented (src/game/gfx/texsurface); thiscall on class A's sub-object (texture, x, y), pops 0xc: the texture drawn scaled into the frame at 0x8c48cc, its box cut to the source and centred with the margins zeroed, copied or shaded through 0x879e38"
 0x005e7740,Array3D_Fill,function,high,"reimplemented (src/game/gfx/array3d); fills the pixels with a colour (4 bytes: d, a, b, c; 1 byte: d)"
 0x005e77c0,Array3D_CopyTo,function,high,reimplemented (src/game/gfx/array3d); copies the pixel bytes to another buffer
 0x005e77f0,Array3D_ReverseBytes,function,high,reimplemented (src/game/gfx/array3d); reverses the bytes of each 4-byte pixel
@@ -4528,6 +4530,10 @@ address,name,kind,confidence,notes
 0x006adfb0,TextLayout_SetOrigin,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (status, rect): the positions (+0x84) resized to one, the origin (+0x98/+0x9c) placed in the rect by the kinds at +0xa0 / +0xa4 and stored as the first position; *status = 0; returns status"
 0x00574bd0,TexFile_Load,function,low,"reimplemented (src/game/gfx/texfile); cdecl (name, &width, &height, flags, table or 0, pixel size or 0); a texture's file read: flag 1 the raw bytes (rows flipped for a top-first TGA, sic twice), else the name as a WCT image, else the TGA converted to the format (with flag 2 an alpha mask made); 0x87a24c what was found"
 0x00678d30,Mmx_FillRows,function,low,"reimplemented (src/game/gfx/mmxfill); cdecl (width, rows, buffer, pitch): each row filled with the 8-byte pattern at 0x77e580, 16 bytes a store while the width (8 a store) stays above 0"
+0x005edad0,AaLine_Draw8,function,low,"reimplemented (src/game/gfx/aaline); cdecl (unused, surface info, clip, colour, from, to): an antialiased line of 1-byte pixels, three pixels a step blended by their distance from it"
+0x005ee580,AaLine_Draw16,function,low,"reimplemented (src/game/gfx/aaline); cdecl (unused, surface info, clip, colour, from, to): an antialiased line of 2-byte pixels, three pixels a step blended by their distance from it"
+0x005ef040,AaLine_Draw24,function,low,"reimplemented (src/game/gfx/aaline); cdecl (unused, surface info, clip, colour, from, to): an antialiased line of 3-byte pixels, three pixels a step blended by their distance from it"
+0x005efb10,AaLine_Draw32,function,low,"reimplemented (src/game/gfx/aaline); cdecl (unused, surface info, clip, colour, from, to): an antialiased line of 4-byte pixels, three pixels a step blended by their distance from it"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
@@ -4715,6 +4721,7 @@ address,name,kind,confidence,notes
 0x00577940,Backdrop_SetRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the rectangle drawn into, +0x20..+0x2c, and flag 2 in +0"
 0x00577970,Backdrop_SetSourceRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the part of the image drawn, +0x30..+0x3c"
 0x00577990,Backdrop_UncacheRect,function,low,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1): the tiles of the pixel rectangle (divided by 64 toward 0, ends included) unlinked from the texture cache (name unconfirmed)"
+0x005777b0,Backdrop_Create,function,low,"reimplemented (src/game/render/backdrop); thiscall (pixels, width, height, pitch in bytes), pops 0x10: the image cut into 64x64 textures (count-prefixed block, Texture_Ctor each), each tile's pitch and pixels set; +0x58 the count; returns 1 (name unconfirmed)"
 0x00579c70,MeshQueue_Clear,function,high,"reimplemented (src/game/render/meshqueue); thiscall (the first mesh queue, 0x8bb220): +0x400 = 0, emptied"
 0x0057c260,MeshQueue2_Init,function,high,reimplemented (src/game/render/meshqueue); static initialiser: the second mesh queue (0x8bb638) emptied
 0x0057c270,MeshQueue2_Add,function,high,"reimplemented (src/game/render/meshqueue); thiscall (the second mesh queue; mesh): appended when there is room (0x100); 1, or 0 when full"
