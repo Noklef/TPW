@@ -96,6 +96,16 @@ void __cdecl Camera_SetFlag80(u32 on) {
         global(0x00790ab0) &= ~0x80u;
 }
 
+u32 __cdecl Camera_SetControl100() {
+    global(0x00790aac) |= 0x100;
+    return 1;
+}
+
+u32 __cdecl Camera_ToggleControl200() {
+    global(0x00790aac) ^= 0x200;
+    return 1;
+}
+
 void __cdecl Camera_ClampCell(s32 *x, s32 *z) {
     if (*x < 0) *x = 0;
     if (*z < 0) *z = 0;
