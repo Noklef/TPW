@@ -25,10 +25,9 @@ def word(r):
     return r.choice([0, 1, 4, 0x7fffffff, 0x80000000, 0xffffffff, r.getrandbits(32)])
 
 
-def case(r):
-    op = r.deal(OPS)
-    regions = {}
-    thing = bytearray(r.bytes(0x240))
+def sprite_env(r, regions, size=0x240):
+    """the sprite THING (size bytes) and what placing it reads (see the header); returns its bytes"""
+    thing = bytearray(r.bytes(size))
     script_list(r, regions, thing)
     for off in (0xb4, 0x210):
         put(thing, off, 'I', r.choice([0, 0, 1, 2, 3, 4]))
@@ -47,13 +46,25 @@ def case(r):
                     0x874fc4: struct.pack('<I', r.choice([0, 0, 1, 5]))})
     bob = r.choice([0.0, 0.5, 0.9, 0.9000001, 0.95, 1.0, 1.05, -1.0, 1e30, float('nan'), r.uniform(0, 1.2)])
     regions[0x7cedd4] = struct.pack('<If', r.choice([0, 1, 18, 19, 20, 21, 0xffffffff, r.getrandbits(32)]), bob)
+    return thing
+
+
+def centre_env(r, regions):
+    """CentreOnSprite's clock [0x8786bc] about the last tick's [0x878a1c] and the camera's point and cleared dwords"""
+    last = r.getrandbits(32)
+    now = r.choice([last + r.randrange(0, 300), last + r.randrange(0, 300), last - r.randrange(1, 300), r.getrandbits(32)])
+    regions[0x878a1c] = struct.pack('<I', last)
+    regions[0x8786bc] = struct.pack('<I', now & 0xffffffff)
+    regions[0x7908f0] = r.bytes(12)
+    regions[0x790a88] = r.bytes(12)
+
+
+def case(r):
+    op = r.deal(OPS)
+    regions = {}
+    sprite_env(r, regions)
     if op == 'CentreOnSprite':
-        last = r.getrandbits(32)
-        now = r.choice([last + r.randrange(0, 300), last + r.randrange(0, 300), last - r.randrange(1, 300), r.getrandbits(32)])
-        regions[0x878a1c] = struct.pack('<I', last)
-        regions[0x8786bc] = struct.pack('<I', now & 0xffffffff)
-        regions[0x7908f0] = r.bytes(12)
-        regions[0x790a88] = r.bytes(12)
+        centre_env(r, regions)
         return Call(CALLS[op], [r.choice([THING] * 9 + [0])], regions, ret='v')
     t = r.choice([0.0, -0.0, 0.25, 0.35, 0.5, 1.0, 1.35, 1.5, 2.0, 2.5, -0.5, -1.0, 1e-40, float('nan'), float('inf'), float('-inf'),
                   r.uniform(-1.5, 2.5), r.uniform(0, 1), r.uniform(0, 1), struct.unpack('<f', r.bytes(4))[0]])
