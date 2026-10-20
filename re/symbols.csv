@@ -5627,3 +5627,46 @@ address,name,kind,confidence,notes
 0x0064de4f,jpeg6a_jerror_emit_message,function,low,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jerror.c emit_message: a warning or trace output by trace_level, warnings counted (the library's)"
 0x0064dead,jpeg6a_jerror_format_message,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jerror.c format_message: msg_code's text formatted with the exe's sprintf (the library's)
 0x0064dff8,jpeg6a_jerror_reset_error_mgr,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jerror.c reset_error_mgr: num_warnings and msg_code 0 (the library's)
+0x0064c5f0,jpeg6a_jpeg_CreateCompress,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapimin.c jpeg_CreateCompress: version and size checked, the struct zeroed, the memory manager, CSTATE_START (the library's)"
+0x0064c740,jpeg6a_jpeg_destroy_compress,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapimin.c jpeg_destroy_compress: jpeg_destroy (the library's)
+0x0064c751,jpeg6a_jpeg_abort_compress,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapimin.c jpeg_abort_compress: jpeg_abort (the library's)
+0x0064c762,jpeg6a_jpeg_suppress_tables,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapimin.c jpeg_suppress_tables: every table's sent_table set (the library's)
+0x0064c7fd,jpeg6a_jpeg_finish_compress,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapimin.c jpeg_finish_compress: the remaining passes, the trailer, term_destination, jpeg_abort (the library's)"
+0x0064c982,jpeg6a_jpeg_write_marker,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapimin.c jpeg_write_marker: write_any_marker before the first scanline (the library's)
+0x0064cb3c,jpeg6a_jpeg_write_scanlines,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapistd.c jpeg_write_scanlines: rows through the main controller (the library's)
+0x0064cc5e,jpeg6a_jpeg_write_raw_data,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapistd.c jpeg_write_raw_data: one iMCU row through the coefficient controller (the library's)
+0x0064f4a0,jpeg6a_jinit_marker_writer,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c jinit_marker_writer: the marker writer and its six methods (the library's, through the method shim)"
+0x0064f520,jpeg6a_jcmarker_write_any_marker,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c write_any_marker: a marker with its data, up to 65533 bytes (the library's)"
+0x0064f580,jpeg6a_jcmarker_emit_byte,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c emit_byte: a byte to the destination, empty_output_buffer when full (the library's)"
+0x0064f5eb,jpeg6a_jcmarker_emit_marker,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c emit_marker: 0xff and the code (the library's)
+0x0064f611,jpeg6a_jcmarker_emit_2bytes,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c emit_2bytes: 16 bits, high byte first (the library's)"
+0x0064f644,jpeg6a_jcmarker_write_file_header,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c write_file_header: SOI, JFIF APP0, Adobe APP14 (the library's)"
+0x0064f68a,jpeg6a_jcmarker_emit_jfif_app0,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c emit_jfif_app0: the JFIF APP0 marker (the library's)
+0x0064f776,jpeg6a_jcmarker_emit_adobe_app14,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c emit_adobe_app14: the Adobe APP14 marker (the library's)
+0x0064f852,jpeg6a_jcmarker_write_frame_header,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c write_frame_header: the DQTs and the SOF (the library's)
+0x0064f9c5,jpeg6a_jcmarker_emit_dqt,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c emit_dqt: a quantization table unless sent; its precision (the library's)
+0x0064fb05,jpeg6a_jcmarker_emit_sof,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c emit_sof: the SOF marker (the library's)
+0x0064fc34,jpeg6a_jcmarker_write_scan_header,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c write_scan_header: the scan's DHTs, DRI, SOS (the library's)"
+0x0064fd34,jpeg6a_jcmarker_emit_dht,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c emit_dht: a Huffman table unless sent (the library's)
+0x0064fe82,jpeg6a_jcmarker_emit_dri,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c emit_dri: the DRI marker (the library's)
+0x0064febc,jpeg6a_jcmarker_emit_sos,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c emit_sos: the SOS marker (the library's)
+0x0065000f,jpeg6a_jcmarker_write_file_trailer,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c write_file_trailer: EOI (the library's)
+0x00650025,jpeg6a_jcmarker_write_tables_only,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmarker.c write_tables_only: SOI, DQTs, DHTs, EOI (the library's)"
+0x0064c9f4,jpeg6a_jpeg_write_tables,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapimin.c jpeg_write_tables: a tables-only datastream through a marker writer of its own (the library's)
+0x00655ea0,jpeg6a_jinit_c_master_control,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmaster.c jinit_c_master_control: the master, its methods, the parameters checked, the passes counted (the library's, through the method shim)"
+0x00655fc0,jpeg6a_jcmaster_initial_setup,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmaster.c initial_setup: the dimensions checked, the sampling maxima, each component's sizes, total_iMCU_rows (the library's)"
+0x006562fc,jpeg6a_jcmaster_validate_script,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmaster.c validate_script: the scan script checked, progressive_mode set (the library's)"
+0x0065691e,jpeg6a_jcmaster_prepare_for_pass,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmaster.c prepare_for_pass: the modules started for the next pass (the library's)
+0x00656bb2,jpeg6a_jcmaster_select_scan_parameters,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmaster.c select_scan_parameters: the scan's components and progression (the library's)
+0x00656d38,jpeg6a_jcmaster_per_scan_setup,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmaster.c per_scan_setup: the MCU layout of the scan, the restart interval (the library's)"
+0x0065701a,jpeg6a_jcmaster_pass_startup,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmaster.c pass_startup: the frame and scan headers (the library's)
+0x00657055,jpeg6a_jcmaster_finish_pass_master,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmaster.c finish_pass_master: the entropy coder's finish_pass, the next pass's type (the library's)"
+0x006504c0,jpeg6a_jinit_c_main_controller,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmainct.c jinit_c_main_controller: the main controller, start_pass, a strip buffer for each component (the library's, through the method shim)"
+0x00650589,jpeg6a_jcmainct_start_pass_main,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmainct.c start_pass_main: the counters, process_data for the pass mode (the library's, through its shim)"
+0x00650608,jpeg6a_jcmainct_process_data_simple_main,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmainct.c process_data_simple_main: iMCU rows through the preprocessor to the coefficient controller (the library's)
+0x00654090,jpeg6a_jinit_c_prep_controller,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcprepct.c jinit_c_prep_controller: the preprocessing controller, its methods, the colour buffer (the library's, through the method shim)"
+0x00654188,jpeg6a_jcprepct_start_pass_prep,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcprepct.c start_pass_prep: the pass's row counters (the library's)
+0x006541ed,jpeg6a_jcprepct_pre_process_data,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcprepct.c pre_process_data: colour conversion and downsampling a row group at a time, the bottom edge padded (the library's)"
+0x006543fc,jpeg6a_jcprepct_expand_bottom_edge,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcprepct.c expand_bottom_edge: the last row repeated to the height (the library's)
+0x00654440,jpeg6a_jcprepct_pre_process_context,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcprepct.c pre_process_context: pre_process_data with context rows in a wraparound buffer (the library's)
+0x006546a5,jpeg6a_jcprepct_create_context_buffer,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcprepct.c create_context_buffer: three row groups a component behind five groups of row pointers (the library's)

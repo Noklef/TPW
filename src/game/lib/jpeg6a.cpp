@@ -60,6 +60,11 @@ static_assert(offsetof(jpeg_memory_mgr, free_pool) == 0x24 && offsetof(jpeg_memo
 // wrapper unit), and the shim of its name calls it and puts the exe's address of each method in place of the library's, so the exe's
 // code that compares or calls them sees its own (the game's hooks then run the library's anyway).
 extern "C" void __cdecl jpeg6a_jmemmgr_lib_jinit_memory_mgr(jpeg6a_common_struct *cinfo);
+extern "C" void __cdecl jpeg6a_jcmarker_lib_jinit_marker_writer(jpeg6a_compress_struct *cinfo);
+extern "C" void __cdecl jpeg6a_jcmaster_lib_jinit_c_master_control(jpeg6a_compress_struct *cinfo, int transcode_only);
+extern "C" void __cdecl jpeg6a_jcmainct_lib_jinit_c_main_controller(jpeg6a_compress_struct *cinfo, int need_full_buffer);
+extern "C" void __cdecl jpeg6a_jcmainct_lib_start_pass_main(jpeg6a_compress_struct *cinfo, int pass_mode);
+extern "C" void __cdecl jpeg6a_jcprepct_lib_jinit_c_prep_controller(jpeg6a_compress_struct *cinfo, int need_full_buffer);
 
 namespace {
 struct ExeMethod {
@@ -83,10 +88,31 @@ const ExeMethod kExeMethods[] = {
     {fn(&jpeg6a_jmemmgr_access_virt_barray), 0x64ee6f},
     {fn(&jpeg6a_jmemmgr_free_pool), 0x64f1aa},
     {fn(&jpeg6a_jmemmgr_self_destruct), 0x64f360},
+    // jcmarker.c
+    {fn(&jpeg6a_jcmarker_write_any_marker), 0x64f520},
+    {fn(&jpeg6a_jcmarker_write_file_header), 0x64f644},
+    {fn(&jpeg6a_jcmarker_write_frame_header), 0x64f852},
+    {fn(&jpeg6a_jcmarker_write_scan_header), 0x64fc34},
+    {fn(&jpeg6a_jcmarker_write_file_trailer), 0x65000f},
+    {fn(&jpeg6a_jcmarker_write_tables_only), 0x650025},
+    // jcmaster.c
+    {fn(&jpeg6a_jcmaster_prepare_for_pass), 0x65691e},
+    {fn(&jpeg6a_jcmaster_pass_startup), 0x65701a},
+    {fn(&jpeg6a_jcmaster_finish_pass_master), 0x657055},
+    // jcmainct.c (the library's start_pass_main, behind its shim)
+    {fn(&jpeg6a_jcmainct_lib_start_pass_main), 0x650589},
+    {fn(&jpeg6a_jcmainct_process_data_simple_main), 0x650608},
+    // jcprepct.c
+    {fn(&jpeg6a_jcprepct_start_pass_prep), 0x654188},
+    {fn(&jpeg6a_jcprepct_pre_process_data), 0x6541ed},
+    {fn(&jpeg6a_jcprepct_pre_process_context), 0x654440},
 };
+
+bool g_native_methods = false;  // (Jpeg6a_SetNativeMethods: the tests' driver, which cannot call the exe's addresses)
 
 // The method pointer at slot: the exe's address in place of a library method's (anything else is left as it is).
 void exe_method_at(void *slot) {
+    if (g_native_methods) return;
     void *&p = *static_cast<void **>(slot);
     for (const ExeMethod &m : kExeMethods)
         if (p == m.library) {
@@ -114,6 +140,50 @@ void __cdecl jpeg6a_jinit_memory_mgr(j_common_ptr cinfo) {
     exe_method(mem->free_pool);
     exe_method(mem->self_destruct);
 }
+
+void __cdecl jpeg6a_jinit_marker_writer(j_compress_ptr cinfo) {
+    jpeg6a_jcmarker_lib_jinit_marker_writer(cinfo);
+    jpeg_marker_writer *marker = cinfo->marker;
+    exe_method(marker->write_any_marker);
+    exe_method(marker->write_file_header);
+    exe_method(marker->write_frame_header);
+    exe_method(marker->write_scan_header);
+    exe_method(marker->write_file_trailer);
+    exe_method(marker->write_tables_only);
+}
+
+void __cdecl jpeg6a_jinit_c_master_control(j_compress_ptr cinfo, boolean transcode_only) {
+    jpeg6a_jcmaster_lib_jinit_c_master_control(cinfo, transcode_only);
+    jpeg_comp_master *master = cinfo->master;
+    exe_method(master->prepare_for_pass);
+    exe_method(master->pass_startup);
+    exe_method(master->finish_pass);
+}
+
+void __cdecl jpeg6a_jinit_c_main_controller(j_compress_ptr cinfo, boolean need_full_buffer) {
+    jpeg6a_jcmainct_lib_jinit_c_main_controller(cinfo, need_full_buffer);
+    exe_method(cinfo->main->start_pass);
+}
+
+// start_pass_main stores process_data (a method that stores a method).
+void __cdecl jpeg6a_jcmainct_start_pass_main(j_compress_ptr cinfo, int pass_mode) {  // (a J_BUF_MODE)
+    jpeg6a_jcmainct_lib_start_pass_main(cinfo, pass_mode);
+    exe_method(cinfo->main->process_data);
+}
+
+void __cdecl jpeg6a_jinit_c_prep_controller(j_compress_ptr cinfo, boolean need_full_buffer) {
+    jpeg6a_jcprepct_lib_jinit_c_prep_controller(cinfo, need_full_buffer);
+    exe_method(cinfo->prep->start_pass);
+    exe_method(cinfo->prep->pre_process_data);
+}
+}
+
+void Jpeg6a_SetNativeMethods(bool native) { g_native_methods = native; }
+
+std::uint32_t Jpeg6a_ExeMethod(std::uint32_t address) {
+    for (const ExeMethod &m : kExeMethods)
+        if ((std::uintptr_t)m.library == address) return (std::uint32_t)m.exe;
+    return 0;
 }
 
 // What the library calls outside itself (jpeg6a.h's Jpeg6aCrtEnv), as jpeg6b.cpp's: jmemansi.c's malloc and free

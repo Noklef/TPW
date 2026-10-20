@@ -765,6 +765,14 @@ void jpeg6b_methods_back(u32 at, u32 size) {
     }
 }
 
+// libjpeg 6a's, the same (FNCMP_JPEG6A_NATIVE, Jpeg6a_SetNativeMethods / Jpeg6a_ExeMethod).
+void jpeg6a_methods_back(u32 at, u32 size) {
+    for (u32 o = 0; o + 4 <= size; o += 4) {
+        u32 *const p = reinterpret_cast<u32 *>((uintptr_t)(at + o));
+        if (const u32 exe = Jpeg6a_ExeMethod(*p)) *p = exe;
+    }
+}
+
 void put_hex(const u8 *p, u32 n) {
     static const char digits[] = "0123456789abcdef";
     char buf[4096];
@@ -798,6 +806,8 @@ int main(int argc, char **argv) {
     Jpeg6a_SetCrtEnv(&kJpeg6aCrtEnv);
     const bool jpeg6b_native = std::getenv("FNCMP_JPEG6B_NATIVE") != nullptr;  // (a libjpeg 6b bench's, see jpeg6b_methods_back)
     Jpeg6b_SetNativeMethods(jpeg6b_native);
+    const bool jpeg6a_native = std::getenv("FNCMP_JPEG6A_NATIVE") != nullptr;  // (a libjpeg 6a bench's, see jpeg6a_methods_back)
+    Jpeg6a_SetNativeMethods(jpeg6a_native);
     WadSource_SetEnv(&kWadSourceEnv);
     BufferedSource_SetEnv(&kBufferedSourceEnv);
     SurfaceBuffer_SetEnv(&kSurfaceBufferEnv);
@@ -1058,6 +1068,7 @@ int main(int argc, char **argv) {
             std::putchar(' ');
             const u8 *p = reinterpret_cast<const u8 *>((uintptr_t)s.first);
             if (jpeg6b_native && s.first == kHeap) jpeg6b_methods_back(s.first, s.second);
+            if (jpeg6a_native && s.first == kHeap) jpeg6a_methods_back(s.first, s.second);
             put_hex(p, s.second);
         }
         std::putchar('\n');
