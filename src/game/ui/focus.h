@@ -1,7 +1,7 @@
 // The game's choice of the window to take the focus back (after a dialog or a key: 0x4862a0) among its windows and dialogs: the object at
 // [0x7c2534] (its window +0x10 while its +0xc is set), the windows [0x7cb2ac], [0x7cb2b0], [0x7cb2b4], [0x7cc8bc], [0x7cc8c0], [0x7c24c8],
-// [0x7c24cc], [0x7ca1c8] and the frame's ([0xf82884] + 4); and two windows closed before it. Reimplementation of 0x48c8d0, 0x4862a0,
-// 0x485b40 and 0x4a27c0 (cdecl). The names are unconfirmed.
+// [0x7c24cc], [0x7ca1c8] and the frame's ([0xf82884] + 4); two windows closed before it; and the overlay [0x7cb2b4] toggled.
+// Reimplementation of 0x48c8d0, 0x4862a0, 0x485b40, 0x4a27c0 and 0x4a29d0 (cdecl), 0x481490 and 0x4815d0. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -27,4 +27,17 @@ u32 __cdecl Window7c24c8_Close();
 // 0x4a27c0: with the window [0x7cb2cc] set, it is sent 4 (0, 0) (Window_SendMessage); it is forgotten either way and the focus restored
 // (Focus_Restore, its result returned).
 u32 __cdecl Window7cb2cc_Close();
+
+// 0x4a29d0 (cdecl): with the window [0x7cb2ac] set, the toggle [0x7cb2e8] flipped (1 - it): when set, the overlay window [0x7cb2b4] (when
+// there is one) deleted through its slot 2 (1) and forgotten; when not, nothing (0) with any of the flags 0x16 of the byte 0x790ab0, else
+// the overlay made when missing: a child of the GUI root [0xfaa5d8] (Window_CreateChild kind 1, flags 1, id 0xddf22, 0, 0 - 0x7ff, 0x5ff)
+// that, when made, gets the handler 0x4a2840 (Window_SetHandler) and the focus (Window_SetFocus(0)). Then [0x7cb2ac] shown or hidden by the
+// old toggle's word (Window_SetShown) and the toggle flipped; returns the old toggle while the new one is set, else Focus_Restore's result.
+// 0 without [0x7cb2ac].
+u32 __cdecl Overlay7cb2b4_Toggle();
+
+// 0x481490 / 0x4815d0 (thiscall on the object at 0x7b51f0, this not used): Overlay7cb2b4_Toggle; 0x4815d0 only while the toggle is set
+// (Global7cb2e8_Get; 0 otherwise).
+u32 __fastcall Obj7b51f0_ToggleOverlay(void *self);
+u32 __fastcall Obj7b51f0_CloseOverlay(void *self);
 }

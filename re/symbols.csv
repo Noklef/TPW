@@ -5092,6 +5092,9 @@ address,name,kind,confidence,notes
 0x004862a0,Focus_Restore,function,low,reimplemented (src/game/ui/focus); the focus given back to the first shown of the game's windows (name unconfirmed)
 0x00485b40,Window7c24c8_Close,function,low,"reimplemented (src/game/ui/focus); cdecl: with the window [0x7c24c8], sent 5 (Window_SendMessage), forgotten, Focus_Restore; 1, else 0"
 0x004a27c0,Window7cb2cc_Close,function,low,"reimplemented (src/game/ui/focus); cdecl: the window [0x7cb2cc] (when set) sent 4 (Window_SendMessage), forgotten; Focus_Restore's result"
+0x004a29d0,Overlay7cb2b4_Toggle,function,low,"reimplemented (src/game/ui/focus); cdecl: with [0x7cb2ac], the toggle [0x7cb2e8] flipped: the overlay [0x7cb2b4] deleted, or made (unless 0x790ab0 & 0x16) as a child of the GUI root; [0x7cb2ac] shown by the old toggle; Focus_Restore when it ends 0"
+0x00481490,Obj7b51f0_ToggleOverlay,function,low,reimplemented (src/game/ui/focus); thiscall on 0x7b51f0: Overlay7cb2b4_Toggle
+0x004815d0,Obj7b51f0_CloseOverlay,function,low,"reimplemented (src/game/ui/focus); thiscall on 0x7b51f0: Overlay7cb2b4_Toggle while Global7cb2e8_Get, else 0"
 0x0066a1b0,RadioGroup_SetSelectedState,function,low,"reimplemented (src/game/ui/radiogroup); thiscall (state: a byte), pops 4: the child with the selected id (+0x138; Window_FindChild) gets Window705a50_SetState(state, 1)"
 0x0066a295,RadioGroup_Select,function,low,"reimplemented (src/game/ui/radiogroup); thiscall (id), pops 4: the selected child's state 0, id selected (+0x138), its state 1; the id before (AX), -1 for the same id, none found or -1 (none selected)"
 0x0066a1e8,RadioGroup_Ctor,function,low,"reimplemented (src/game/ui/radiogroup); thiscall (parent, flags, id, left, top, right, bottom), pops 28: kind 8 of the factory 0x65dd7b; Window_Ctor, the vtable 0x705ac0, none selected (+0x138 -1), handlers 0x66a31c; returns the group"
