@@ -488,7 +488,7 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x007030c8, 11},  // WString_vtable
                                    {0x00703e08, 9},   // TextWriter_vtable
                                    {0x00703908, 13},  // WadSource_vtable
-                                   {0x006fd930, 12},  // FileStream_vtable
+                                   {0x006fd930, 10},  // FileStream_vtable (AdvisorScoring's follows at 0x6fd958)
                                    {0x00703ea0, 12},  // SharedSource_vtable
                                    {0x00703ed0, 12},  // BufferSource_vtable (RefPack)
                                    {0x00703f18, 12},  // ZlibBufferSource_vtable
@@ -542,11 +542,15 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
 
 void __cdecl debug_printf(const char *, ...) {}  // Debug_Printf 0x5da3c0 (RefObject's teardown slot among others)
 
+// Each slot once: a resolved slot holds a driver address, and the driver's code lies at the game's .text addresses, so resolving it again (two entries
+// overlapping) could take it for a hooked game function there (BalanceFile_GetValues was linked at 0x492320, HelpBg_Refresh's address).
 void resolve_vtables() {
+    std::set<u32> done;
     for (const auto &v : kResolvedVtables)
         for (Section &s : g_sections)
             if (v[0] >= s.address && v[0] + 4 * v[1] <= s.address + s.raw.size())
                 for (u32 i = 0; i < v[1]; ++i) {
+                    if (!done.insert(v[0] + 4 * i).second) continue;
                     u32 *const slot = reinterpret_cast<u32 *>(s.raw.data() + (v[0] - s.address) + 4 * i);
                     if (*slot == 0x005da3c0) *slot = (u32)(uintptr_t)&debug_printf;  // (empty in the retail build)
                     else if (void *const fn = find(*slot)) *slot = (u32)(uintptr_t)fn;  // (a slot not hooked stays the game's)
@@ -579,6 +583,10 @@ int crash_filter(EXCEPTION_POINTERS *x) {
         const EXCEPTION_RECORD *const r = x->ExceptionRecord;
         std::fprintf(stderr, "crash %08x at %08x touching %08x (esp %08x)\n", (u32)r->ExceptionCode, (u32)(uintptr_t)r->ExceptionAddress,
                      r->NumberParameters > 1 ? (u32)r->ExceptionInformation[1] : 0, (u32)x->ContextRecord->Esp);
+        const u32 *const sp = reinterpret_cast<const u32 *>((uintptr_t)x->ContextRecord->Esp);  // (return addresses to look up in the map)
+        std::fprintf(stderr, "  stack");
+        for (int i = 0; i < 12; ++i) std::fprintf(stderr, " %08x", sp[i]);
+        std::fprintf(stderr, "\n");
     }
     return EXCEPTION_EXECUTE_HANDLER;
 }
