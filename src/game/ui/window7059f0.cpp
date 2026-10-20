@@ -2,6 +2,9 @@
 
 #include <cstdint>
 
+#include "../core/crt.h"
+#include "../core/gameheap.h"
+#include "../core/initializers.h"
 #include "../core/vcall.h"
 #include "guirect.h"
 #include "window.h"
@@ -55,5 +58,30 @@ u8 *__fastcall Window7059f0_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 
     at<u32>(window, 0x114) = 0x665c35;
     at<u32>(window, 0x118) = at<u32>(window, 0x114);
     return window;
+}
+
+void __fastcall Window7059f0_SetColumns(u8 *window, void *, u32 count) {
+    if (at<s16>(window, 0x164) != 0) return;
+    const s32 n = (s16)count;
+    u8 *columns = nullptr;
+    if (u8 *const block = static_cast<u8 *>(GameHeap_Alloc((u32)(n * 0xc + 4)))) {
+        at<s32>(block, 0) = n;
+        CRT_VectorCtorIterator(block + 4, 0xc, n, reinterpret_cast<void(__fastcall *)(void *)>(&GuiRect_Ctor), reinterpret_cast<void *>(&GuiRect_Dtor));
+        columns = block + 4;
+    }
+    at<u8 *>(window, 0x16c) = columns;
+    for (s32 i = 0; i < n; ++i) Fn_659dac(at<u8 *>(window, 0x16c) + i * 0xc, nullptr, (u32)(i << 5), 0, (u32)((i + 1) << 5), 1);
+    at<u16>(window, 0x164) = (u16)count;
+}
+
+u32 __fastcall Window7059f0_SetColumn(u8 *window, void *, u32 index, u32 left, u32 right) {
+    const s32 i = (s16)index;
+    if (i >= at<s16>(window, 0x164)) return (u32)i;
+    if (!at<u8 *>(window, 0x16c)) return (u32)(uintptr_t)window;
+    return Fn_659dac(at<u8 *>(window, 0x16c) + i * 0xc, nullptr, (u16)left, 0, (u16)right, 1);
+}
+
+u32 __fastcall Window7059f0_SetInner(u8 *window, void *, u32 left, u32 top, u32 right, u32 bottom) {
+    return Fn_659dac(window + 0x138, nullptr, (u16)left, (u16)top, (u16)right, (u16)bottom);
 }
 }

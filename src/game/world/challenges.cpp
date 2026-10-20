@@ -7,6 +7,7 @@
 #include "../core/filetime.h"
 #include "../core/funnytime.h"
 #include "../core/savegame.h"
+#include "messagecentre.h"
 #include "money.h"
 #include "things.h"
 #include "world.h"
@@ -137,5 +138,29 @@ u32 __fastcall Challenges_Serialize(u8 *challenges, void *, Stream *stream, u32 
     for (u32 i = 0; i < 0x14; ++i)
         Challenge_Serialize(challenges + 0xc + i * 0x30, nullptr, stream, save, version, unused);  // sic: the results are ignored
     return Save_Fields(stream, save, challenges, kFields, 7) ? 0 : 1;
+}
+
+u8 *__fastcall Challenges_Ctor(u8 *challenges) {
+    Thing_Construct(challenges, nullptr, 1, 0x13);
+    for (u32 offset = 0xc; offset < 0xc + 0x14 * 0x30; offset += 0x30) {
+        at<u32>(challenges, offset) = 0;
+        at<u32>(challenges, offset + 0x20) = 0;
+        at<u32>(challenges, offset + 0x24) = 0;
+        at<u32>(challenges, offset + 0x28) = 0;
+        at<u8>(challenges, offset + 0x2c) = 0;
+    }
+    at<u32>(challenges, 0x3cc) = 0xffffffff;
+    at<u32>(challenges, 0x3d0) = 0;
+    at<u32>(challenges, 0x3d4) = 0;
+    at<u8>(challenges, 0x3d8) = 0;
+    at<u8>(challenges, 0x3d9) = 0;
+    at<u8>(challenges, 0x3da) = 0;
+    at<u32>(challenges, 0x3dc) = 0;
+    at<u16>(challenges, 0x3e0) = 0;
+    MessageCentre_AddThing(MessageCentre_Instance(), nullptr, challenges, 0x1a);
+    MessageCentre_AddThing(MessageCentre_Instance(), nullptr, challenges, 0xb);
+    MessageCentre_AddThing(MessageCentre_Instance(), nullptr, challenges, 0x11);
+    Challenges_LoadSam(challenges);
+    return challenges;
 }
 }

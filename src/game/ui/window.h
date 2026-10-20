@@ -67,6 +67,10 @@ u16 __fastcall Window_GetRect(u8 *window, void *, u8 *rect, u32 inner);
 // (GuiRect_Assign); 1 (AX).
 u16 __fastcall Window_SetSavedRect(u8 *window, void *, const u8 *rect);
 
+// 0x65cfff (thiscall (area), pops 4; name unconfirmed): the hit area +0x44 replaced: the old one, unless none or the window's own rectangle +8,
+// deleted (slot 4 (1)); then +0x44 = area, or +8 for none. EAX is left the window.
+u8 *__fastcall Window_SetHitArea(u8 *window, void *, u8 *area);
+
 // 0x485e30 (cdecl (window, dx, dy); game code, called from 0x493b79, 0x493ba3 and 0x494793; name unconfirmed): the saved rectangle +0x2c
 // set (Window_SetSavedRect) to the inner one (Window_GetRect) shrunk by dx on the left and right and dy on the top and bottom
 // (GuiRect_Adjust: dx, dy, -dx, -dy as words), through a GUI rectangle on the stack (EAX: its destructor's, the stack address; left out).

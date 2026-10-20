@@ -138,6 +138,13 @@ u16 __fastcall Window_GetRect(u8 *window, void *, u8 *rect, u32 inner) {
     return 1;
 }
 
+u8 *__fastcall Window_SetHitArea(u8 *window, void *, u8 *area) {
+    u8 *const old = at<u8 *>(window, 0x44);
+    if (old && old != window + 8) vcall<void>(old, 0x10, 1u);
+    at<u8 *>(window, 0x44) = area ? area : window + 8;
+    return window;
+}
+
 u16 __fastcall Window_SetSavedRect(u8 *window, void *, const u8 *rect) {
     if (!rect) return 0;
     GuiRect_Assign(window + 0x2c, nullptr, rect);

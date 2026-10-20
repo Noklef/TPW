@@ -254,6 +254,7 @@
 #include "../game/world/trackpools.h"
 #include "../game/world/wallfollow.h"
 #include "../game/world/cellmodel.h"
+#include "../game/world/uimsgreceiver.h"
 #include "../game/world/weather.h"
 #include "../game/world/world.h"
 #include "../game/model/holder.h"
@@ -347,8 +348,10 @@
 #include "../game/ui/windowreg.h"
 #include "../game/ui/cursor.h"
 #include "../game/ui/dialog7cb2fc.h"
+#include "../game/ui/dialog7cc61c.h"
 #include "../game/ui/dialogbase.h"
 #include "../game/ui/focus.h"
+#include "../game/ui/guishape.h"
 #include "../game/ui/panel7cc298.h"
 #include "../game/ui/radiogroup.h"
 #include "../game/ui/textbutton.h"
@@ -692,6 +695,7 @@ const Hook kHooks[] = {
     {"ParkAnalyser_Cell",         0x004c7b70, (void *)&ParkAnalyser_Cell, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"ParkAnalyser_StampTime21c30", 0x004c7680, (void *)&ParkAnalyser_StampTime21c30, {0x83, 0xec, 0x08, 0x8d, 0x44}},
     {"ParkAnalyser_StampTime21c38", 0x004c76d0, (void *)&ParkAnalyser_StampTime21c38, {0x83, 0xec, 0x08, 0x8d, 0x44}},
+    {"ParkAnalyser_InitCells",    0x004c7a90, (void *)&ParkAnalyser_InitCells, {0x83, 0xec, 0x14, 0x53, 0x55}},
     {"MapHandle_Entry28",         0x004d0af0, (void *)&MapHandle_Entry28, {0x33, 0xc0, 0x66, 0x8b, 0x01}},
     {"MapHandle_Cell44",          0x004d0b10, (void *)&MapHandle_Cell44, {0x33, 0xc0, 0x8b, 0x15, 0xa0}},
     {"MemRanges_Set",             0x004d0a70, (void *)&MemRanges_Set, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
@@ -774,6 +778,7 @@ const Hook kHooks[] = {
     {"Challenges_DeclineOffer",   0x004d2ec0, (void *)&Challenges_DeclineOffer, {0x83, 0xec, 0x18, 0x56, 0x8b}},
     {"Challenges_LoadSam",        0x004d1ce0, (void *)&Challenges_LoadSam, {0x6a, 0xff, 0x68, 0x8b, 0xc0}},
     {"BalanceChallenges_Dtor",    0x004d1e80, (void *)&BalanceChallenges_Dtor, {0xc7, 0x01, 0x98, 0x03, 0x70}},
+    {"Challenges_Ctor",           0x004d1bd0, (void *)&Challenges_Ctor, {0x51, 0x66, 0xc7, 0x44, 0x24}},
     {"Object_GetDef",             0x004dd4e0, (void *)&Object_GetDef, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
     {"Object_AddWalkAway",        0x004e1670, (void *)&Object_AddWalkAway, {0x8b, 0x81, 0xa4, 0x01, 0x00}},
     {"Object_AddCustomer",        0x004e1690, (void *)&Object_AddCustomer, {0x8b, 0x81, 0xa0, 0x01, 0x00}},
@@ -2104,6 +2109,7 @@ const Hook kHooks[] = {
     {"Sound_Set803ad0",           0x0051e710, (void *)&Sound_Set803ad0, {0x66, 0x8b, 0x44, 0x24, 0x04}},
     {"Sound_Query",               0x0051b4f0, (void *)&Sound_Query, {0xa1, 0xc8, 0x2b, 0x80, 0x00}},
     {"Sound_Shutdown",            0x0051b7c0, (void *)&Sound_Shutdown, {0x51, 0xa1, 0xc8, 0x2b, 0x80}},
+    {"Sound_QueryFound",          0x0051b530, (void *)&Sound_QueryFound, {0x6a, 0xff, 0x68, 0x60, 0xe9}},
     {"GlobalSave_ThemeByte",      0x005af7f0, (void *)&GlobalSave_ThemeByte, {0x8b, 0x41, 0x48, 0x8b, 0x4c}},
     {"GlobalSave_Byte26",         0x005af800, (void *)&GlobalSave_Byte26, {0x8b, 0x44, 0x24, 0x04, 0x8a}},
     {"GlobalSave_Inc20",          0x005afc30, (void *)&GlobalSave_Inc20, {0xff, 0x41, 0x20, 0xc3, 0x90}},
@@ -3479,6 +3485,7 @@ const Hook kHooks[] = {
     {"StaffPoolEntry_Serialize",  0x005070a0, (void *)&StaffPoolEntry_Serialize, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
     {"StaffPool_Serialize",       0x00507850, (void *)&StaffPool_Serialize, {0x83, 0xec, 0x10, 0x8b, 0x44}},
     {"Staff_AgeDays",             0x00505b70, (void *)&Staff_AgeDays, {0x83, 0xec, 0x10, 0x81, 0xc1}},
+    {"Staff_InitBase",            0x00504b90, (void *)&Staff_InitBase, {0x83, 0xec, 0x08, 0x8d, 0x44}},
     {"FreeList_Take",             0x00520d60, (void *)&FreeList_Take, {0x56, 0x66, 0x8b, 0x35, 0x24}},
     {"FreeList_Return",           0x00521890, (void *)&FreeList_Return, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
     {"Voice_ScaleLevels",         0x00521d60, (void *)&Voice_ScaleLevels, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
@@ -3943,6 +3950,7 @@ const Hook kHooks[] = {
     {"MessageCentre_Load",        0x0040fd60, (void *)&MessageCentre_Load, {0x83, 0xec, 0x24, 0x53, 0x55}},
     {"MessageSlot_Ctor",          0x00405460, (void *)&MessageSlot_Ctor, {0x6a, 0xff, 0x68, 0x28, 0x79}},
     {"MessageCentre_Instance",    0x00415e00, (void *)&MessageCentre_Instance, {0x6a, 0xff, 0x68, 0x8b, 0x7f}},
+    {"MessageCentre_CtorSlots",   0x004a8bd0, (void *)&MessageCentre_CtorSlots, {0x56, 0x68, 0x70, 0xf9, 0x40}},
     {"SteerSeek_Ctor",            0x0050ce50, (void *)&SteerSeek_Ctor, {0x53, 0x56, 0x8b, 0xd1, 0x57}},
     {"SteerArrival_Ctor",         0x0050ced0, (void *)&SteerArrival_Ctor, {0x53, 0x56, 0x8b, 0xd1, 0x57}},
     {"SteerSeparation_Ctor",      0x0050cf40, (void *)&SteerSeparation_Ctor, {0x53, 0x56, 0x8b, 0xd1, 0x57}},
@@ -3969,11 +3977,14 @@ const Hook kHooks[] = {
     {"SteerSeparation_Steer",     0x0050e0e0, (void *)&SteerSeparation_Steer, {0x83, 0xec, 0x08, 0x53, 0x56}},
     {"Steering_SetPathBehaviours", 0x0050fdf0, (void *)&Steering_SetPathBehaviours, {0xa1, 0x7c, 0xf0, 0x7c, 0x00}},
     {"TagTable_Find",             0x0050af40, (void *)&TagTable_Find, {0x8b, 0x54, 0x24, 0x04, 0x81}},
+    {"TagSystem_Ctor",            0x00509b40, (void *)&TagSystem_Ctor, {0x51, 0x66, 0xc7, 0x44, 0x24}},
     {"Ride_IsBusy",               0x0042a440, (void *)&Ride_IsBusy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Ride_Sleep",                0x0043bd20, (void *)&Ride_Sleep, {0x8b, 0x44, 0x24, 0x04, 0x57}},
     {"Forecast_Serialize",        0x005132a0, (void *)&Forecast_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"MechanicHQ_Serialize",      0x004da960, (void *)&MechanicHQ_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x53}},
     {"StaffHQ_Serialize",         0x00508bb0, (void *)&StaffHQ_Serialize, {0x83, 0xec, 0x08, 0x8b, 0x44}},
+    {"MechanicHQ_Ctor",           0x004da920, (void *)&MechanicHQ_Ctor, {0x51, 0x66, 0xc7, 0x44, 0x24}},
+    {"StaffHQ_Ctor",              0x005089c0, (void *)&StaffHQ_Ctor, {0x51, 0x66, 0xc7, 0x44, 0x24}},
     {"WallFollower_Step",         0x00511c90, (void *)&WallFollower_Step, {0x53, 0x56, 0x8b, 0x74, 0x24}},
     {"Route_Straighten",          0x005110d0, (void *)&Route_Straighten, {0x83, 0xec, 0x34, 0x53, 0x55}},
     {"Route_Search",              0x00511470, (void *)&Route_Search, {0x81, 0xec, 0x24, 0x04, 0x00}},
@@ -3997,6 +4008,7 @@ const Hook kHooks[] = {
     {"MapCell_PickModel",         0x0053a540, (void *)&MapCell_PickModel, {0x83, 0xec, 0x1c, 0x53, 0x55}},
     {"Weather_Serialize",         0x00512010, (void *)&Weather_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x53}},
     {"Weather_RandomBolt",        0x00512c50, (void *)&Weather_RandomBolt, {0x83, 0xec, 0x1c, 0x8d, 0x44}},
+    {"UIMsgReceiver_Ctor",        0x0050c9b0, (void *)&UIMsgReceiver_Ctor, {0x51, 0x66, 0xc7, 0x44, 0x24}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
@@ -4579,6 +4591,7 @@ const Hook kHooks[] = {
     {"Window_NotifyImpl100",      0x0065f5b7, (void *)&Window_NotifyImpl100, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window_NotifyObject98_100", 0x0065f5fe, (void *)&Window_NotifyObject98_100, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window_SetDwordA0",         0x0065e6d5, (void *)&Window_SetDwordA0, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window_SetHitArea",         0x0065cfff, (void *)&Window_SetHitArea, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Dialog7ca1c8_SetChecks",    0x00498090, (void *)&Dialog7ca1c8_SetChecks, {0x8b, 0x0d, 0xc8, 0xa1, 0x7c}},
     {"Dialog7ca1c8_SetChecksIfUp", 0x00498a50, (void *)&Dialog7ca1c8_SetChecksIfUp, {0xa1, 0xc8, 0xa1, 0x7c, 0x00}},
     {"Dialog7ca1c8_SetChecksIfUpThis", 0x00481a00, (void *)&Dialog7ca1c8_SetChecksIfUpThis, {0x8b, 0x44, 0x24, 0x04, 0x50}},
@@ -4719,12 +4732,18 @@ const Hook kHooks[] = {
     {"Window705c28_Ctor",         0x0066d750, (void *)&Window705c28_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window705af0_Ctor",         0x0066a4c0, (void *)&Window705af0_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window705bc8_Ctor",         0x0066c970, (void *)&Window705bc8_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Window705bc8_SetRange",     0x0066cad3, (void *)&Window705bc8_SetRange, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window705a20_Ctor",         0x00665fcd, (void *)&Window705a20_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window705a20_SaveRect",     0x00665fb0, (void *)&Window705a20_SaveRect, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window7059f0_Layout",       0x00662530, (void *)&Window7059f0_Layout, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window7059f0_Ctor",         0x00662562, (void *)&Window7059f0_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Window7059f0_SetColumns",   0x00663554, (void *)&Window7059f0_SetColumns, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Window7059f0_SetColumn",    0x00663662, (void *)&Window7059f0_SetColumn, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window7059f0_SetInner",     0x006651ef, (void *)&Window7059f0_SetInner, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705950_Layout",       0x0065aac0, (void *)&Window705950_Layout, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705950_Ctor",         0x0065ab64, (void *)&Window705950_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Window705950_SetInner",     0x0065bb10, (void *)&Window705950_SetInner, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705950_OffsetInner",  0x0065bb3f, (void *)&Window705950_OffsetInner, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window_CreateChild",        0x0065dd7b, (void *)&Window_CreateChild, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"WindowScript_ReadPair",     0x0065fcc5, (void *)&WindowScript_ReadPair, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
     {"WindowScript_ReadRect",     0x0065fc38, (void *)&WindowScript_ReadRect, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
@@ -4757,6 +4776,26 @@ const Hook kHooks[] = {
     {"lm_init",                   0x00635870, (void *)&lm_init, {0x8b, 0x54, 0x24, 0x04, 0x53}},
     {"flush_pending",             0x00635740, (void *)&flush_pending, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"putShortMSB",               0x00635710, (void *)&putShortMSB, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Dialog7cc61c_Handler",      0x004bb690, (void *)&Dialog7cc61c_Handler, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
+    {"GuiPolygon_DeletingDtor",   0x0066c7b0, (void *)&GuiPolygon_DeletingDtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiPolygon_Offset",         0x0066c6c3, (void *)&GuiPolygon_Offset, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiPolygon_Contains",       0x0066c5a4, (void *)&GuiPolygon_Contains, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiPolygon_Dtor",           0x0066c568, (void *)&GuiPolygon_Dtor, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiPolygon_CtorPoints",     0x0066c4a1, (void *)&GuiPolygon_CtorPoints, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"GuiPolygon_CtorQuad",       0x0066c3cb, (void *)&GuiPolygon_CtorQuad, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"GuiPolygon_CtorTriangle",   0x0066c311, (void *)&GuiPolygon_CtorTriangle, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"GuiPolygon_Ctor",           0x0066c2df, (void *)&GuiPolygon_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiCircle_Dtor",            0x0066c790, (void *)&GuiCircle_Dtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiCircle_DeletingDtor",    0x0066c760, (void *)&GuiCircle_DeletingDtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiEllipse_Offset",         0x0066c2a1, (void *)&GuiEllipse_Offset, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiEllipse_Contains",       0x0066c22c, (void *)&GuiEllipse_Contains, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiEllipse_CtorWith",       0x0066c1a6, (void *)&GuiEllipse_CtorWith, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiEllipse_Ctor",           0x0066c163, (void *)&GuiEllipse_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiCircle_Offset",          0x0066c125, (void *)&GuiCircle_Offset, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiCircle_Contains",        0x0066c0c4, (void *)&GuiCircle_Contains, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiCircle_CtorWith",        0x0066c054, (void *)&GuiCircle_CtorWith, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiCircle_Ctor",            0x0066c01a, (void *)&GuiCircle_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiShape_DeletingDtor",     0x0065a9f0, (void *)&GuiShape_DeletingDtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

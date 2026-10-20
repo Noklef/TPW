@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "class6fd9d8.h"
+#include "string.h"
 #include "vcall.h"
 
 namespace {
@@ -47,6 +49,23 @@ u32 __cdecl Sound_Query(u32 a, u32 b) {
     u32 first = a, out = b;
     vcall<void>(manager, 4, &first, a, b, &out);
     return out;
+}
+
+u32 __cdecl Sound_QueryFound(const char *name, u8 *folders) {
+    String found, key;
+    String_Ctor(&found);
+    String_CtorStr(&key, nullptr, name);
+    const bool hit = Class6fd9d8_FindFirstMatch(folders, nullptr, reinterpret_cast<const StringView *>(&key), (u32)(uintptr_t)&found) == 1;
+    String_Dtor(&key);
+    u32 result = 0;
+    if (hit && global<u32>(0x00802bc8) && global<u32>(0x00802bd4)) {
+        u8 *first = folders;
+        u32 out = (u32)(uintptr_t)name;
+        vcall<void>(global<void *>(0x00802bcc), 4, &first, found.data, name, &out);
+        result = out;
+    }
+    String_Dtor(&found);
+    return result;
 }
 
 void __cdecl Sound_Shutdown() {

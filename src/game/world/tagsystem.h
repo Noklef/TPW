@@ -11,4 +11,8 @@ extern "C" {
 // 0x75eca8 + id * 0x20 (any id, the address wrapping) when its id is id; else the first record of the table with that id,
 // or 0 (after a "CTagTable - not found" debug print, not reproduced).
 u32 *__fastcall TagTable_Find(void *self, void *, u32 id);
+
+// 0x509b40 (thiscall): the thing constructor (Thing_Construct, cell 1, kind 0xc), then the tag system added to the message centre's slots
+// 7, 0xc, 0x14, 0x18, 0x19 and 0x13 in that order. Returns it. (The cell the original pushes has this's high address bits above the 1.)
+u8 *__fastcall TagSystem_Ctor(u8 *tags);
 }

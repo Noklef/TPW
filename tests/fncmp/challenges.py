@@ -6,8 +6,9 @@
 # (funnytime.py's), the money record and park through the world's handles (as stafftrain.py). The load from data/challenges.sam
 # (0x4d1ce0): the file served as balanceload.py serves a stack balance file (its values block the heap's first, at VALUES), its text
 # comment lines or a "Challenges[row].Type n" line, gBalanceLevel's 20 indices rows of the file (1-59; 0 or less skipped); and the
-# file's destructor (0x4d1e80) with or without a values block.
-# usage: challenges.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Drop,Current,Schema,Guard,Accept,Decline,LoadSam,Dtor)
+# file's destructor (0x4d1e80) with or without a values block. The constructor (0x4d1bd0): the thing made (thing_ctors.py's thing table), added to the
+# message centre (empty maps), then that load.
+# usage: challenges.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Drop,Current,Schema,Guard,Accept,Decline,LoadSam,Dtor,Ctor)
 import os
 import struct
 import sys
@@ -17,6 +18,7 @@ from fncmp import HEAP, IMPORT_TABLE as IAT, LOG, Bench, Call, RAM, fill, global
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from funnytime import IMPORTS, K, RANGES as CLOCK_RANGES  # noqa: E402
 import balanceload  # noqa: E402
+import thing_ctors  # noqa: E402
 
 FILE_RANGES = [(0x401030, 0x401212), (0x401250, 0x40127a), (0x401280, 0x4013dc), (0x4013e0, 0x40161d), (0x401650, 0x4017a0),
                (0x4017a0, 0x402720), (0x402720, 0x402a1e), (0x405710, 0x405742), (0x5f5660, 0x5f5690), (0x5b0d60, 0x5b0d64),
@@ -24,7 +26,9 @@ FILE_RANGES = [(0x401030, 0x401212), (0x401250, 0x40127a), (0x401280, 0x4013dc),
                (0x5f5e20, 0x5f5e90), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x6902c0), (0x583280, 0x5832f0), (0x585710, 0x58571d)]
 B = Bench([(0x4d1c80, 0x4d1cdc), (0x4d1e60, 0x4d1e74), (0x4d2840, 0x4d285d), (0x4d6330, 0x4d6348),
            (0x4d6350, 0x4d635f), (0x4d2df0, 0x4d2eb7), (0x4d2ec0, 0x4d2fac), (0x4d0190, 0x4d01f0), (0x5195d0, 0x519610),
-           (0x519510, 0x519550), (0x5da3c0, 0x5da3c1), (0x4d1ce0, 0x4d1e5e), (0x4d1e80, 0x4d1e8c)] + CLOCK_RANGES + FILE_RANGES)
+           (0x519510, 0x519550), (0x5da3c0, 0x5da3c1), (0x4d1ce0, 0x4d1e5e), (0x4d1e80, 0x4d1e8c), (0x4d1bd0, 0x4d1c73), (0x4d91f0, 0x4d9290),
+           (0x50afe0, 0x50b090), (0x50b350, 0x50b370), (0x516270, 0x516320), (0x67b050, 0x67b0d0)] + CLOCK_RANGES + FILE_RANGES + thing_ctors.CENTRE_RANGES,
+          hooks=thing_ctors.CENTRE_HOOKS)
 VALUES = balanceload.VALUES
 LEVEL = 0x7857d4   # gBalanceLevel's challenge indices (20 dwords)
 SCHEMA = 12        # the BalanceChallenges schema's records: a group of 10 fields (60 rows) and its end
@@ -68,6 +72,21 @@ def load_sam(r, mem):
     regions[LEVEL] = struct.pack('<20i', *rows)
     regions[RAM] = mem
     return Call(0x4d1ce0, [C], regions, conv='t')
+
+
+def ctor(r, mem):
+    """Challenges_Ctor (0x4d1bd0): the thing constructed (thing_ctors.py's thing table, its map cells moved clear of the file's texts), added to the
+    message centre's three slots (their maps empty, so each add takes one 0x20-byte node from the heap: the heap starts 0x60 below the file's values
+    block so that the load finds it where load_sam put it), then the load as load_sam serves it."""
+    c = load_sam(r, mem)
+    things = thing_ctors.thing_regions(r, cells=RAM + 0x24000)
+    for k in (HEAP, RAM, RAM + 0x300):   # (the file's heap; the object's block; Thing_Add's out, which the constructor does not use)
+        things.pop(k, None)
+    c.regions.update(things)
+    thing_ctors.centre(r, c.regions, empty=True)
+    put(c.regions[HEAP], 0, 'I', VALUES - 0x60)
+    c.address, c.ret = 0x4d1bd0, 'a'
+    return c
 
 
 def dtor(r, mem):
@@ -130,6 +149,8 @@ def case(r):
         return offer(r, bytearray(mem), op)
     if op == 'LoadSam':
         return load_sam(r, mem)
+    if op == 'Ctor':
+        return ctor(r, mem)
     if op == 'Dtor':
         return dtor(r, bytearray(mem))
     op = ['Drop', 'Current', 'Schema'].index(op) if op != 'Guard' else 3
@@ -148,7 +169,7 @@ def case(r):
     return Call(r.choice([0x4d6330, 0x4d6350]), [C], {RAM: mem}, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Drop,Current,Schema,Guard,Guard,Accept,Decline,LoadSam,LoadSam,Dtor').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Drop,Current,Schema,Guard,Guard,Accept,Decline,LoadSam,LoadSam,Dtor,Ctor').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

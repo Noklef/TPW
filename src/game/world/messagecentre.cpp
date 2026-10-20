@@ -31,6 +31,11 @@ u8 *__cdecl MessageCentre_Instance() {
     return centre;
 }
 
+u8 *__fastcall MessageCentre_CtorSlots(u8 *centre) {
+    CRT_VectorCtorIterator(centre, 0x14, 0x1d, reinterpret_cast<void(__fastcall *)(void *)>(&MessageSlot_Ctor), reinterpret_cast<void *>(&MessageSlot_Dtor));
+    return centre;
+}
+
 void __fastcall MessageCentre_DtorSlots(u8 *centre) { CRT_VectorDtorIterator(centre, 0x14, 0x1d, reinterpret_cast<void(__fastcall *)(void *)>(&MessageSlot_Dtor)); }
 
 u8 __fastcall MessageCentre_AddThing(u8 *centre, void *, const u8 *thing, s32 slot) {

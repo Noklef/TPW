@@ -14,6 +14,10 @@ u8 *__fastcall MessageSlot_Ctor(u8 *slot);
 // (CRT_VectorCtorIterator with MessageSlot_Ctor / MessageSlot_Dtor); a failed allocation stores and returns 0.
 u8 *__cdecl MessageCentre_Instance();
 
+// 0x4a8bd0 (thiscall; name unconfirmed): the 29 slots of 0x14 bytes from +0 constructed in place (CRT_VectorCtorIterator with MessageSlot_Ctor / MessageSlot_Dtor),
+// as Instance does for its block; returns the centre. Called from 0x4a8860, 0x4dd139, 0x50b7e2 and 0x51a068.
+u8 *__fastcall MessageCentre_CtorSlots(u8 *centre);
+
 // 0x409250 (thiscall on the message centre; name unconfirmed): its 29 slots of 0x14 bytes from +0 destroyed, the last first (CRT_VectorDtorIterator with MessageSlot_Dtor).
 void __fastcall MessageCentre_DtorSlots(u8 *centre);
 

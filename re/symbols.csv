@@ -198,6 +198,8 @@ address,name,kind,confidence,notes
 0x00508bb0,StaffHQ_Serialize,function,high,"reimplemented (src/game/world/headquarters); thiscall (stream, save, version, unused): the thing's fields, mForceStrike, mStaffMemberPickedUp, mStrikeLevel[5], then the training record"
 0x0050c640,StaffTraining_Serialize,function,high,"reimplemented (src/game/world/staff); thiscall (stream, save, version, unused): the five training budgets and the ever-trained byte saved or loaded"
 0x004da960,MechanicHQ_Serialize,function,high,"reimplemented (src/game/world/headquarters); thiscall (stream, save, version, unused): the thing's fields, then mNextObject"
+0x004da920,MechanicHQ_Ctor,function,low,"reimplemented (src/game/world/headquarters); thiscall: Thing_Construct (cell 1, kind 0xa), +0xc word 0, message centre slot 7; returns hq"
+0x005089c0,StaffHQ_Ctor,function,low,"reimplemented (src/game/world/headquarters); thiscall: Thing_Construct (cell 1, kind 9), StaffTraining_Ctor at +0xc, strike levels / +0x60 / +0x64 zeroed, message centre slots 0xc and 0xe; returns hq"
 0x00599f60,Advisor_Serialize,function,high,thing model 11: message queue + history
 0x0059ba30,AdvisorMsg_Serialize,function,high,
 0x004c5d70,ParkAnalyser_Serialize,function,high,"thing model 13: 32x32 analysis grid + circular-buffer statistics"
@@ -354,7 +356,7 @@ address,name,kind,confidence,notes
 0x00551320,KidSound_PlayGraded,function,low,"reimplemented (src/game/core/soundplay); cdecl (level, a, b, x, y, z): a kids' sound for a level (base 0x4b / 0x4f / 0x53 / 0x57) graded by (a + b) / 50 (at most 3; nothing for level 0 or a negative grade) played at a position in gSndCatKids"
 0x0051c5d0,Sound_SetArea,function,medium,"(sound, x, z, w, d): spreads an emitter over the rect (x, z)..(x+w, z+d)"
 0x00521e60,Particle_Spawn,function,high,"reimplemented (src/game/render/particles); cdecl (effect, x, y, z): starts a particle system from the effect definition: a free system to the live list, the definition copied, its first burst emitted, its linked voice or effect started; returns its handle, 0 for an optional effect while reduced, -1 when none"
-0x0051b530,SoundCategory_Register,function,medium,"loads a cat_<name> sound category (bank + map)"
+0x0051b530,Sound_QueryFound,function,low,"reimplemented (src/game/core/soundset); cdecl (name, folders): the name found in a folder list (Class6fd9d8_FindFirstMatch), then the sound manager's +4 (&folders, found text, name, &name) when on and started; else 0"
 0x0051b620,SoundCategory_Release,function,medium,
 0x0051eae0,Sound_RegisterGlobalCategories,function,high,"cat_ambient, cat_rides, cat_ui, cat_kids, cat_staff, cat_speech"
 0x0051ec50,Sound_RegisterThemeCategories,function,high,"theme folder's cat_ambient, cat_rides, cat_speech, cat_music"
@@ -828,6 +830,7 @@ address,name,kind,confidence,notes
 0x004c7b70,ParkAnalyser_Cell,function,high,"reimplemented (src/game/world/analyser); thiscall (pos): the cell of pos - 1 on a 128-wide grid, row and column divided by +0xc, row stride +0x10"
 0x004c7680,ParkAnalyser_StampTime21c30,function,low,reimplemented (src/game/world/analyser); the funny time now stamped at the park analyser's +0x21c30 (name unconfirmed)
 0x004c76d0,ParkAnalyser_StampTime21c38,function,low,reimplemented (src/game/world/analyser); the funny time now stamped at the park analyser's +0x21c38 (name unconfirmed)
+0x004c7a90,ParkAnalyser_InitCells,function,low,"reimplemented (src/game/world/analyser); thiscall: message centre slots 0xc, 0x11, 0x13, then rows * columns cell rectangles (x, y, w, h; cut at the width / height); returns 1"
 0x004d0af0,MapHandle_Entry28,function,high,reimplemented (src/game/world/mapcell); thiscall on a u16 handle: gMapCells + 0x10ffd8 + handle * 0x28
 0x004d0b10,MapHandle_Cell44,function,high,reimplemented (src/game/world/mapcell); thiscall on a u16 handle: gMapCells + (handle - 1) * 0x44
 0x004d0a70,MemRanges_Set,function,high,"reimplemented (src/game/world/mapcell); thiscall on 0x7cdb30 (index, a, b, name): entry index = (a, b); name unused (""World Struture"")"
@@ -907,6 +910,7 @@ address,name,kind,confidence,notes
 0x004d2df0,Challenges_AcceptOffer,function,low,"reimplemented (src/game/world/challenges); thiscall: the offered challenge accepted: on, next event at now + its target days"
 0x004d2ec0,Challenges_DeclineOffer,function,low,"reimplemented (src/game/world/challenges); thiscall: the offered challenge declined: half the prize credited unless independent, next event after the declined wait"
 0x004d1e80,BalanceChallenges_Dtor,function,low,"reimplemented (src/game/world/challenges); thiscall: vtable 0x700398 back, then BalanceFile_Release"
+0x004d1bd0,Challenges_Ctor,function,low,"reimplemented (src/game/world/challenges); thiscall: Thing_Construct (cell 1, kind 0x13), the 20 challenges' state and the fields after them zeroed (+0x3cc = -1), message centre slots 0x1a, 0xb, 0x11, then Challenges_LoadSam; returns it"
 0x004e2650,Thing_MapId,function,high,reimplemented (src/game/world/person); thiscall (&out): the thing's map id ((mY >> 8) * 128 + (mX >> 8) + 1)
 0x004f9460,Sprite_RecordMapId,function,high,"reimplemented (src/game/world/person); thiscall (&out): the old mLastRecordedMapId (+0xcc) out, the current map id recorded"
 0x004fd950,Visitor_TimeInPark,function,high,reimplemented (src/game/world/person); thiscall: (gWorld tick +0x1da70c - mArrivalDate +0x1d4) >> 2
@@ -3792,6 +3796,7 @@ address,name,kind,confidence,notes
 0x00508000,Staff_CountTypes,function,low,"reimplemented (src/game/world/staff); thiscall: count the world's staff by type, flagging the types that reached their limits"
 0x0050c800,Staff_TrainAll,function,low,"reimplemented (src/game/world/staff); thiscall (amounts[5]): count the staff by type, then train each with its type's amount divided by the count"
 0x00505b70,Staff_AgeDays,function,low,reimplemented (src/game/world/staff); thiscall: the staff member's age in whole funny-time days from the date at +0x1f0
+0x00504b90,Staff_InitBase,function,low,"reimplemented (src/game/world/staff); thiscall: the staff constructors' common tail: hire date = funny time now, energy / happiness 100.0f, the words at +0xc0 / +0xc2 from 0x75c7f0..0x75c7fc by type, message centre slot 0xc, the park's +0x21c38 stamped"
 0x00520d60,FreeList_Take,function,high,reimplemented (src/game/core/voices); takes a record off the free list into a table entry
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/voices); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/voices); scales a voice's levels by the factor over 1024
@@ -4162,6 +4167,7 @@ address,name,kind,confidence,notes
 0x0040f9e0,MessageCentre_AddThing,function,low,"reimplemented (src/game/world/messagecentre); thiscall (thing, slot): the handle inserted into the slot map when slot < 29; whether inserted"
 0x00405460,MessageSlot_Ctor,function,low,"reimplemented (src/game/world/messagecentre); thiscall on a slot: the map (tree B) at +4 constructed, its multi flag and allocator bytes zeroed (the original copies an uninitialised stack byte to +4 / +5); name unconfirmed"
 0x00415e00,MessageCentre_Instance,function,low,"reimplemented (src/game/world/messagecentre); cdecl (): the message centre (0x788d3c) made on the first call: 0x244 bytes, 29 slots (MessageSlot_Ctor); name unconfirmed"
+0x004a8bd0,MessageCentre_CtorSlots,function,low,reimplemented (src/game/world/messagecentre); thiscall: the 29 message slots constructed in place (CRT_VectorCtorIterator with MessageSlot_Ctor / MessageSlot_Dtor); returns the centre
 0x0050ce50,SteerSeek_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009b8, name ""seek"" copied to +4; returns this"
 0x0050ced0,SteerArrival_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009c0, name ""arrival"" copied to +4; returns this"
 0x0050cf40,SteerSeparation_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009c4, name ""separation"" copied to +4; returns this"
@@ -4188,6 +4194,7 @@ address,name,kind,confidence,notes
 0x0050e0e0,SteerSeparation_Steer,function,low,"reimplemented (src/game/world/steering); separation's slot 0, thiscall (&out, nav): (0, 0) near the last path point, else the force summed by Nav_VisitNeighbours (radius * 2, SteerSeparation_Neighbour)"
 0x0050fdf0,Steering_SetPathBehaviours,function,low,"reimplemented (src/game/world/steering); cdecl: empty the behaviour list, then push avoid_walls (0.9), follow_path (0.5) and separation (0.1) found by name"
 0x0050af40,TagTable_Find,function,low,"reimplemented (src/game/world/tagsystem); the CTagTable lookup: 0 for ids 0x17e/0x17f, the record at 0x75eca8 + id * 0x20 when its id matches, else the first record with the id, else 0"
+0x00509b40,TagSystem_Ctor,function,low,"reimplemented (src/game/world/tagsystem); thiscall: Thing_Construct (cell 1, kind 0xc), then message centre slots 7, 0xc, 0x14, 0x18, 0x19, 0x13; returns it"
 0x0042a440,Ride_IsBusy,function,low,"reimplemented (src/game/world/ridestate); cdecl (object, index): the track ride link, flying ride slot, coaster link or a key-1 0x1000 model part says the ride is busy"
 0x0043bd20,Ride_Sleep,function,low,"reimplemented (src/game/world/ridestate); cdecl (index): the ride holder's awake instance out of the renderer (rectangle or sleep), the active part states of its flag-0x80 parts released"
 0x00511c90,WallFollower_Step,function,low,"reimplemented (src/game/world/wallfollow); cdecl (walker): one step along the edge of what blocks the walk, turning towards it when open; 0x32 back on the line, 0x33 past 0xfb cells"
@@ -4211,6 +4218,7 @@ address,name,kind,confidence,notes
 0x005f4180,ParkMap_PlaceSprite,function,low,"reimplemented (src/game/world/parkmap); thiscall on the park map (sprite; pops 4): the sprite's screen position from its map position, its frame's vector in the array at 0x879ce0 and the frame's +0x2c size"
 0x005f1050,ParkMap_ApplyView,function,low,"reimplemented (src/game/world/parkmap); thiscall on the map: the view origin (+0x54, +0x58) kept to 0 to width / height - 1, the camera put on it times 10 (Camera_SetView), the window (+4) sent message 4"
 0x0053a540,MapCell_PickModel,function,low,"reimplemented (src/game/world/cellmodel); thiscall (cell; angle out), pops 4: the cell's model (group << 16 | index) from the table for its type by its neighbour bits (exact, else a subset), *angle the row's plus 180 for straight cells facing 0x40 / 0x10, then adjusted by flags, corners, junctions and for type 0x19 a random variant; 8 for types 4, 5, 7, 9, 0xa, 0xc, 0x11"
+0x0050c9b0,UIMsgReceiver_Ctor,function,low,"reimplemented (src/game/world/uimsgreceiver); thiscall: Thing_Construct (cell 1, kind 0x11), then message centre slots 0x12, 0xa, 7, 8, 0x1b, 0xf, 0x13, 0x1c; returns it"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
@@ -4958,6 +4966,7 @@ address,name,kind,confidence,notes
 0x0065f5b7,Window_NotifyImpl100,function,low,reimplemented (src/game/ui/window); send 0x100 with a dword to the window's object +0x9c
 0x0065f5fe,Window_NotifyObject98_100,function,low,reimplemented (src/game/ui/window); send 0x100 with a dword to the window's object +0x98
 0x0065e6d5,Window_SetDwordA0,function,low,reimplemented (src/game/ui/window); set one of a GUI window's sixteen dwords +0xa0
+0x0065cfff,Window_SetHitArea,function,low,reimplemented (src/game/ui/window); thiscall (area): the hit area +0x44 replaced (the old one deleted unless none or +8); none: +8
 0x00498090,Dialog7ca1c8_SetChecks,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): the nine check buttons of the 0x7ca1c8 dialog's child 0x18 set (vtable slot 5, bool) from flags bits 0-8 (0x20's also needs [0x7ca1d0]+0x50)"
 0x00498a50,Dialog7ca1c8_SetChecksIfUp,function,low,reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): Dialog7ca1c8_SetChecks when [0x7ca1c8] and [0x7ca1cc] are not 0
 0x00481a00,Dialog7ca1c8_SetChecksIfUpThis,function,low,"reimplemented (src/game/ui/dialog7ca1c8); thiscall (flags), pops 4, this unused: Dialog7ca1c8_SetChecksIfUp(flags)"
@@ -5097,14 +5106,20 @@ address,name,kind,confidence,notes
 0x0066d750,Window705c28_Ctor,function,low,"reimplemented (src/game/ui/window705c28); thiscall (parent, flags, id, left, top, right, bottom), pops 28: kind 9 of the factory 0x65dd7b; Window_Ctor, a GUI rectangle +0x148, the vtable 0x705c28, +0x138-+0x140 0, +0x2c from +8 and +0x148 from +0x2c; returns the window"
 0x0066d0c0,Window705bf8_Ctor,function,low,"reimplemented (src/game/ui/window705bf8); thiscall (parent, flags, id, left, top, right, bottom), pops 28: kind 10 of the factory 0x65dd7b; Window_Ctor, the vtable 0x705bf8, +0x138-+0x148 and words +0x14c / +0x14e 0, +0x2c from +8, the handler 0x66d6f5; returns the window"
 0x0066c970,Window705bc8_Ctor,function,low,"reimplemented (src/game/ui/window705bc8); thiscall (parent, flags, id, left, top, right, bottom), pops 28: kind 11 of the factory 0x65dd7b; Window_Ctor, the vtable 0x705bc8, ranges +0x138..+0x13c (0xfff) and +0x14c..+0x150 (1) with spans, +0x2c from +8, the handler 0x66d001; returns the window"
+0x0066cad3,Window705bc8_SetRange,function,low,"reimplemented (src/game/ui/window705bc8); thiscall (low*, high*): the range +0x138 / +0x13c set (both the high end when crossed, sic), the span +0x140"
 0x0066a4c0,Window705af0_Ctor,function,low,"reimplemented (src/game/ui/window705af0); thiscall (parent, flags, id, left, top, right, bottom), pops 28: kind 12 of the factory 0x65dd7b; Window_Ctor, the vtable 0x705af0, +0x138 0, +0x13c 1, +0x140 0x9708cd, +0x148 1, +0x2c from +8, the handler 0x66aa61; returns the window"
 0x00665fb0,Window705a20_SaveRect,function,low,reimplemented (src/game/ui/window705a20); thiscall: the saved rectangle +0x2c set from +8 (GuiRect_Assign)
 0x00665fcd,Window705a20_Ctor,function,low,"reimplemented (src/game/ui/window705a20); thiscall (parent, flags, id, left, top, right, bottom), pops 28: kind 5 of the factory 0x65dd7b; Window_Ctor, the vtable 0x705a20, with flags & 0x40 a 0x200-byte buffer +0x138 (+0x13c 0xff), a window timer +0x164 (0x2ee, 0x75e88), fields cleared, the handler 0x66857d, Window_SetFocus(0), +0x160 1, +0x162 from the byte 0xfaa56c; returns the window"
 0x0065dd7b,Window_CreateChild,function,low,"reimplemented (src/game/ui/windowfactory); thiscall on the parent (kind, flags, id, left, top, right, bottom), pops 28: the GUI window factory; 0 for a kind outside 1-13, else a heap block of the kind's size built by its constructor (kind 1 with flags & 0x100: +0x64 the parent) and put last among the parent's children (unchecked for 0, sic); returns it"
 0x0065aac0,Window705950_Layout,function,low,"reimplemented (src/game/ui/window705950); thiscall: +0x2c from +8 less 0x30 on the right, +0x138 that inset by 4"
 0x0065ab64,Window705950_Ctor,function,low,"reimplemented (src/game/ui/window705950); thiscall (parent, flags, id, left, top, right, bottom), pops 28: kind 4 of the factory 0x65dd7b; Window_Ctor, +0x138 a GUI rectangle, the vtable 0x705950, the layout, with flags & 0x1000 a scroll bar (kind 3) disabled, shown and ranged 0-0, the handler 0x65bb6b; returns the window"
+0x0065bb10,Window705950_SetInner,function,low,"reimplemented (src/game/ui/window705950); thiscall (left, top, right, bottom): the rectangle +0x138's words set (Fn_659dac)"
+0x0065bb3f,Window705950_OffsetInner,function,low,"reimplemented (src/game/ui/window705950); thiscall (dx, dy): the rectangle +0x138 moved through its slot 2"
 0x00662530,Window7059f0_Layout,function,low,reimplemented (src/game/ui/window7059f0); thiscall: +0x2c from +8 and +0x138 from +0x2c (GuiRect_Assign)
 0x00662562,Window7059f0_Ctor,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (parent, flags, id, left, top, right, bottom), pops 28: kind 7 of the factory 0x65dd7b; Window_Ctor, +0x138 a GUI rectangle, the vtable 0x7059f0, fields cleared (+0x14c / +0x160 -1), the layout, with flags & 0x1000 a scroll bar (kind 3) disabled, shown and ranged 0-0, the handlers 0x665c35; returns the window"
+0x00663554,Window7059f0_SetColumns,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (count): with no columns yet an array of count GUI rectangles at +0x16c, column i i*32..(i+1)*32, +0x164 = count"
+0x00663662,Window7059f0_SetColumn,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (index, left, right): the column's rectangle set to left, 0, right, 1 for an index below the count"
+0x006651ef,Window7059f0_SetInner,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (left, top, right, bottom): the rectangle +0x138's words set (Fn_659dac)"
 0x0065fbf0,WindowScript_ReadDword,function,low,reimplemented (src/game/ui/windowscript); a window script's next dword (two words)
 0x0065fc18,WindowScript_ReadWord,function,low,reimplemented (src/game/ui/windowscript); a window script's next word
 0x0065fc38,WindowScript_ReadRect,function,low,reimplemented (src/game/ui/windowscript); a window script's next four words to four outputs
@@ -5136,3 +5151,23 @@ address,name,kind,confidence,notes
 0x00635910,deflate_stored,function,high,"reimplemented (src/game/lib/zlib); zlib 1.1.3 deflate.c, the library's own (third_party/zlib-1.1.3)"
 0x00635c20,deflate_fast,function,high,"reimplemented (src/game/lib/zlib); zlib 1.1.3 deflate.c, the library's own (third_party/zlib-1.1.3)"
 0x00636100,deflate_slow,function,high,"reimplemented (src/game/lib/zlib); zlib 1.1.3 deflate.c, the library's own (third_party/zlib-1.1.3)"
+0x004bb690,Dialog7cc61c_Handler,function,low,"reimplemented (src/game/ui/dialog7cc61c); cdecl (window, message, a, b): 0x14 clears 0x7cc61c, sends (6, 1, 0) to [0xf82884]+4 and restores the focus; 0x15 sends (6, 0, 0); 0x100 with a = -1 sends (4, 0, 0) to [0x7cc61c] and returns 0; else Dialog_BaseHandler"
+0x0065a9f0,GuiShape_DeletingDtor,function,low,"reimplemented (src/game/ui/guishape); thiscall (flags): the GUI shape base's scalar deleting destructor (Fn_66bff7, Mem_Free on bit 0)"
+0x0066c01a,GuiCircle_Ctor,function,low,"reimplemented (src/game/ui/guishape); thiscall: the circle (vtable 0x705b50), x, y, radius 0"
+0x0066c054,GuiCircle_CtorWith,function,low,"reimplemented (src/game/ui/guishape); thiscall (x, y, radius: words): the circle (vtable 0x705b50)"
+0x0066c0c4,GuiCircle_Contains,function,low,"reimplemented (src/game/ui/guishape); thiscall (x, y): 1 in AX when inside the circle (dx*dx + dy*dy < r*r)"
+0x0066c125,GuiCircle_Offset,function,low,"reimplemented (src/game/ui/guishape); thiscall (dx, dy): the circle's centre moved"
+0x0066c163,GuiEllipse_Ctor,function,low,"reimplemented (src/game/ui/guishape); thiscall: the ellipse (vtable 0x705b68), its four words 0"
+0x0066c1a6,GuiEllipse_CtorWith,function,low,"reimplemented (src/game/ui/guishape); thiscall (x, y, rx, ry: words): the ellipse (vtable 0x705b68)"
+0x0066c22c,GuiEllipse_Contains,function,low,"reimplemented (src/game/ui/guishape); thiscall (x, y): 1 when inside the ellipse (dx scaled by ry / rx)"
+0x0066c2a1,GuiEllipse_Offset,function,low,"reimplemented (src/game/ui/guishape); thiscall (dx, dy): the ellipse's centre moved"
+0x0066c760,GuiCircle_DeletingDtor,function,low,reimplemented (src/game/ui/guishape); thiscall (flags): the circle's and the ellipse's scalar deleting destructor
+0x0066c790,GuiCircle_Dtor,function,low,reimplemented (src/game/ui/guishape); thiscall: the circle's and the ellipse's destructor (Fn_66bff7 only)
+0x0066c2df,GuiPolygon_Ctor,function,low,"reimplemented (src/game/ui/guishape); thiscall: the polygon (vtable 0x705b80), no points"
+0x0066c311,GuiPolygon_CtorTriangle,function,low,reimplemented (src/game/ui/guishape); thiscall (3 points as 6 words): the polygon of 3 points
+0x0066c3cb,GuiPolygon_CtorQuad,function,low,reimplemented (src/game/ui/guishape); thiscall (4 points as 8 words): the polygon of 4 points
+0x0066c4a1,GuiPolygon_CtorPoints,function,low,"reimplemented (src/game/ui/guishape); thiscall (count, points): the polygon of count points copied from an array"
+0x0066c568,GuiPolygon_Dtor,function,low,reimplemented (src/game/ui/guishape); thiscall: the polygon's destructor (its block freed)
+0x0066c5a4,GuiPolygon_Contains,function,low,"reimplemented (src/game/ui/guishape); thiscall (x, y): 1 in AX when inside the polygon (crossing test)"
+0x0066c6c3,GuiPolygon_Offset,function,low,"reimplemented (src/game/ui/guishape); thiscall (dx, dy): each point moved"
+0x0066c7b0,GuiPolygon_DeletingDtor,function,low,reimplemented (src/game/ui/guishape); thiscall (flags): the polygon's scalar deleting destructor

@@ -12,4 +12,9 @@ extern "C" {
 // +0x15c 0, the saved rectangle +0x2c set from +8 (GuiRect_Assign), the word +0x164 0 and the handler 0x66d001 (Window_SetHandler). Returns
 // the window.
 u8 *__fastcall Window705bc8_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom);
+
+// 0x66cad3 (thiscall (low, high: dword pointers, each may be 0), pops 8; name unconfirmed): the first range's ends +0x138 / +0x13c set from
+// those given; when the low end is above the high one (signed) both become the high end (sic: the low end saved for the swap is never
+// used); then the span +0x140 = high - low. EAX is left the window.
+u8 *__fastcall Window705bc8_SetRange(u8 *window, void *, const s32 *low, const s32 *high);
 }
