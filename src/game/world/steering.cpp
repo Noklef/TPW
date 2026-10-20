@@ -6,6 +6,7 @@
 #include "../math/intpair.h"
 #include "../math/matrix.h"
 #include "../core/seqs.h"
+#include "mapcell.h"
 #include "nav.h"
 
 namespace {
@@ -83,6 +84,23 @@ s32 Octagonal(const s32 *d) {
     const s32 ax = Abs(d[0]), ay = Abs(d[1]);
     const s32 shorter = ax > ay ? ay : ax;
     return (s32)((u32)ay - (u32)(shorter >> 1) + (u32)ax);
+}
+
+// avoid_walls' corner (cell (x, y)'s top-left, 16.16): when the ray from the nav's pos along dir meets the circle of the nav's radius about it
+// (Steer_RayCircleHit) at a hit above 0 and at most len (not 0x7fffffff), out = (pos + dir * hit - corner) / radius and true.
+bool WallCorner(s32 *out, const u8 *nav, const s32 *dir, s32 len, u32 x, u32 y) {
+    s32 corner[2];
+    IntPair_ToFixed(U(corner), x, y);
+    const s32 hit = Steer_RayCircleHit(&at<s32>(nav, 8), dir, corner, (s32)at<u32>(nav, 4));
+    if (hit == 0x7fffffff || hit <= 0 || hit > len) return false;
+    s32 step[2], point[2], away[2], push[2];
+    IntPair_MulFixed(dir, nullptr, step, hit);
+    IntPair_Add(&at<u32>(nav, 8), nullptr, U(point), U(step));
+    IntPair_Sub(U(point), nullptr, U(away), U(corner));
+    IntPair_DivFixed(away, nullptr, push, (s32)at<u32>(nav, 4));
+    out[0] = push[0];
+    out[1] = push[1];
+    return true;
 }
 
 }  // namespace
@@ -234,6 +252,82 @@ s32 *__fastcall SteerRepelObstacle_Steer(void *, void *, s32 *out, const u8 *) {
     g_force(1) = 0;
     out[0] = g_force(0);
     out[1] = g_force(1);
+    return out;
+}
+
+s32 *__fastcall SteerAvoidWalls_Steer(void *, void *, s32 *out, const u8 *nav) {
+    s32 ahead[2], cell[2] = {0, 0}, dir[2];
+    Nav_PredictPos(nav, nullptr, ahead, 0x10000);
+    IntPair_FromFixed(U(cell), at<u32>(nav, 8), at<u32>(nav, 0xc));
+    const u32 cx = (u32)cell[0], cy = (u32)cell[1];
+    Map_IdAt((s32)cx, (s32)cy);  // (its result unused)
+    IntPair_Sub(U(ahead), nullptr, U(dir), &at<u32>(nav, 8));
+    const s32 len = (s32)Length(dir);
+    if (len != 0) {
+        s32 unit[2];
+        IntPair_DivFixed(dir, nullptr, unit, len);
+        dir[0] = unit[0];
+        dir[1] = unit[1];
+    }
+    const bool east = dir[0] >= 0, west = !east, south = dir[1] >= 0, north = !south;
+    const s32 mode = (s32)at<u32>(nav, 0xb4), radius = (s32)at<u32>(nav, 4);
+    auto blocked = [mode](u32 x, u32 y, u32 d) { return MapCell_StepBlocked(x, y, d, mode) != 0; };
+    s32 wall[2];
+    if (east && blocked(cx, cy, 1)) {
+        IntPair_ToFixed(U(wall), cx + 1, 0);
+        const s32 limit = (s32)((u32)wall[0] - (u32)radius);
+        if (ahead[0] > limit) {
+            out[0] = (s32)(((u32)limit - (u32)ahead[0]) << 1);
+            out[1] = 0;
+            return out;
+        }
+    }
+    if (west && blocked(cx, cy, 3)) {
+        IntPair_ToFixed(U(wall), cx, 0);
+        const s32 limit = (s32)((u32)radius + (u32)wall[0]);
+        if (ahead[0] < limit) {
+            out[0] = (s32)(((u32)limit - (u32)ahead[0]) << 1);
+            out[1] = 0;
+            return out;
+        }
+    }
+    if (south && blocked(cx, cy, 2)) {
+        IntPair_ToFixed(U(wall), 0, cy + 1);
+        const s32 limit = (s32)((u32)wall[1] - (u32)radius);
+        if (ahead[1] > limit) {
+            out[0] = 0;
+            out[1] = (s32)(((u32)limit - (u32)ahead[1]) << 1);
+            return out;
+        }
+    }
+    if (north && blocked(cx, cy, 0)) {
+        IntPair_ToFixed(U(wall), 0, cy);
+        const s32 limit = (s32)((u32)radius + (u32)wall[1]);
+        if (ahead[1] < limit) {
+            out[0] = 0;
+            out[1] = (s32)(((u32)limit - (u32)ahead[1]) << 1);
+            return out;
+        }
+    }
+    // The corners: the diagonal cell blocked one way or the other, both cells beside it open both ways.
+    if (south) {
+        if (east && (blocked(cx + 1, cy + 1, 0) || blocked(cx + 1, cy + 1, 3)) && !blocked(cx, cy + 1, 0) && !blocked(cx + 1, cy, 3) &&
+            WallCorner(out, nav, dir, len, cx + 1, cy + 1))
+            return out;
+        if (west && (blocked(cx - 1, cy + 1, 0) || blocked(cx - 1, cy + 1, 1)) && !blocked(cx, cy + 1, 0) && !blocked(cx - 1, cy, 1) &&
+            WallCorner(out, nav, dir, len, cx, cy + 1))
+            return out;
+    }
+    if (north) {
+        if (west && (blocked(cx - 1, cy - 1, 2) || blocked(cx - 1, cy - 1, 1)) && !blocked(cx - 1, cy, 1) && !blocked(cx, cy - 1, 2) &&
+            WallCorner(out, nav, dir, len, cx, cy))
+            return out;
+        if (east && (blocked(cx + 1, cy - 1, 2) || blocked(cx + 1, cy - 1, 3)) && !blocked(cx + 1, cy, 3) && !blocked(cx, cy - 1, 2) &&
+            WallCorner(out, nav, dir, len, cx + 1, cy))
+            return out;
+    }
+    out[0] = 0;
+    out[1] = 0;
     return out;
 }
 

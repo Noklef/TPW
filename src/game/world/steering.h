@@ -89,6 +89,16 @@ s32 *__fastcall SteerSeparation_Steer(void *self, void *, s32 *out, const u8 *na
 // with SteerRepel_Neighbour (radius * 2) calls the shared empty function 0x5da3c0 in this build, so the force stays 0.
 s32 *__fastcall SteerRepelObstacle_Steer(void *self, void *, s32 *out, const u8 *nav);
 
+// 0x50e4a0 (avoid_walls' slot 0; thiscall (&out, nav), this unused): ahead = Nav_PredictPos(1.0), the cell (cx, cy) = pos >> 16 (logical; a
+// Map_IdAt of it, unused), dir = ahead - pos made unit (IntPair_DivFixed by its inlined three-tier length len, unless 0). Moving east (dir x
+// >= 0, else west) and south (dir y >= 0, else north), against a blocked step out of the cell that way (MapCell_StepBlocked in the nav's mode
+// +0xb4: east 1, west 3, south 2, north 0; tried in that order) whose wall ahead passes (east: ahead x > (cx + 1) << 16 - radius; west: ahead x
+// < cx << 16 + radius; south / north alike in y): out = twice (that limit - ahead) on the axis, 0 on the other. Else the corner ahead (south:
+// east then west; then north: west then east) when the diagonal cell's step into the row or column is blocked either way and the two cells
+// beside it are open, and the ray from pos along dir meets the radius circle about the corner within len (above 0): out = (pos + dir * hit -
+// corner) / radius. Else out = (0, 0). Returns out.
+s32 *__fastcall SteerAvoidWalls_Steer(void *self, void *, s32 *out, const u8 *nav);
+
 // 0x50fdf0 (cdecl; name unconfirmed): the behaviour list (0x7cf078-0x7cf080, {weight, behaviour} entries) emptied as EntryStack_Clear (core/seqs) does,
 // then avoid_walls with 0.9, follow_path with 0.5 and separation with 0.1 (16.16) pushed, each found by its name in the table at 0x761ec0 (eight
 // pointers, the last 0: read, sic, when no other matches) and only while the list's end is not at its capacity.
