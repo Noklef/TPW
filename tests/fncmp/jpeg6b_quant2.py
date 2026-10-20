@@ -108,7 +108,10 @@ def rows(r, regions, address):
 
 
 def prescan(r):
-    return rows(r, common(r), 0x6477e0)
+    regions = common(r)
+    if r.random() < 0.3:  # (cells at the count's top, which prescan_quantize keeps from wrapping, and just under it)
+        regions[HIST] = b''.join(struct.pack('<H', r.choice([0xffff, 0xffff, 0xfffe, r.randrange(0x10000)])) for _ in range(4 * 0x800))
+    return rows(r, regions, 0x6477e0)
 
 
 def pass2(r):
@@ -172,7 +175,19 @@ def corner(r):
 def nearby(r):
     regions = common(r)
     regions[COLORLIST] = r.bytes(0x100)
-    return Call(0x647a50, [CINFO] + corner(r) + [COLORLIST], regions, ret='a')
+    at = corner(r)
+    if r.random() < 0.3:  # (a tie: a colour at the box's lower corner and its reflection through the upper one, whose mindist is the
+        k = [r.randrange(7) for _ in range(3)]  # first's maxdist, the minmaxdist; find_nearby_colors keeps a colour whose mindist equals it)
+        at = [(k[0] << 5) + 4, (k[1] << 5) + 2, (k[2] << 5) + 4]
+        far = [at[0] + 48, at[1] + 56, at[2] + 48]
+        pair = [at, far] if r.random() < 0.5 else [far, at]
+        cmap = bytearray(regions[CMAP_ROWS])
+        for i, colour in enumerate(pair):
+            for c in range(3):
+                cmap[0x100 * c + i] = colour[c]
+        regions[CMAP_ROWS] = bytes(cmap)
+        struct.pack_into('<i', regions[CINFO], 0x70, r.choice([2, 2, 3]))
+    return Call(0x647a50, [CINFO] + at + [COLORLIST], regions, ret='a')
 
 
 def best(r):
