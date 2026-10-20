@@ -188,4 +188,14 @@ s32 __fastcall Things_MostWalkAwaysOf(void *self, void *, u32 category, u16 *out
 
 // 0x4cb300 (thiscall as 0x4caae0; &out; pops 4; name unconfirmed): the same for the categories 1, 5 and 6.
 s32 __fastcall Things_MostWalkAwaysOf156(void *self, void *, u16 *out);
+
+// 0x4cadf0 / 0x4cb640 (thiscall as 0x4caae0 / 0x4cb300; names unconfirmed): the same with the fewest walk-aways per 100 customers (the
+// smaller wins, signed; the first on a tie).
+s32 __fastcall Things_FewestWalkAwaysOf(void *self, void *, u32 category, u16 *out);
+s32 __fastcall Things_FewestWalkAwaysOf156(void *self, void *, u16 *out);
+
+// 0x4cbba0 / 0x4cc090 (thiscall as 0x4cb300; names unconfirmed): the most / the fewest for the objects whose definition (ObjectDefs_Find on
+// gObjectDefs 0x7890a0 by the id +0xe) has 2 at +0x4ac.
+s32 __fastcall Things_MostWalkAwaysDef4ac2(void *self, void *, u16 *out);
+s32 __fastcall Things_FewestWalkAwaysDef4ac2(void *self, void *, u16 *out);
 }  // extern "C"

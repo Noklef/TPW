@@ -136,9 +136,19 @@ u32 CellDistanceSquared(const u8 *a, const u8 *b) {
     return (u32)(dx * dx + dy * dy);
 }
 
-// The objects older than 30 days whose definition the test accepts: the most walk-aways per 100 customers among them (Object_HistoryPercent's
-// sums, with the walk-aways' ring +0x230 for its +0x2b8; objects without customers are passed over), its handle to *out (0 for none).
-template <typename Test> s32 MostWalkAways(u16 *out, Test test) {
+// Whether the object's definition's category (+0x164) is 1, 5 or 6 (the original fetches the definition again for each).
+bool category156(const u8 *thing) {
+    const u32 category = at<u32>(Object_GetDef(thing), 0x164);
+    return category == 1 || category == 5 || category == 6;
+}
+
+// The dword +0x4ac of the object's definition (ObjectDefs_Find on gObjectDefs by its id +0xe).
+u32 def4ac(const u8 *thing) { return at<u32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(thing, 0xe)), 0x4ac); }
+
+// The objects older than 30 days that the test accepts: the most (or with fewest, the fewest) walk-aways per 100 customers among them
+// (Object_HistoryPercent's sums, with the walk-aways' ring +0x230 for its +0x2b8; objects without customers are passed over), its handle to
+// *out (0 for none).
+template <bool fewest, typename Test> s32 MostWalkAways(u16 *out, Test test) {
     *out = 0;
     bool found = false;
     s32 best = 0;   // (unset in the original until found)
@@ -146,14 +156,14 @@ template <typename Test> s32 MostWalkAways(u16 *out, Test test) {
     World_FirstThing(world(), nullptr, &handle);
     while (handle) {
         const u8 *thing = thing_of(handle);
-        if (at<u8>(thing, 2) == 3 && test(Object_GetDef(thing)) && Object_AgeDays(thing) > 30) {
+        if (at<u8>(thing, 2) == 3 && test(thing) && Object_AgeDays(thing) > 30) {
             double customers, walkaways, again;
             CircBufU32_30_Sum(thing + 0x1a8, nullptr, &customers, 0x1e);
             if ((u32)(long long)customers != 0) {   // (__ftol, the low half)
                 CircBufU32_30_Sum(thing + 0x230, nullptr, &walkaways, 0x1e);
                 CircBufU32_30_Sum(thing + 0x1a8, nullptr, &again, 0x1e);
                 const s32 percent = (s32)((u32)(long long)walkaways * 100u / (u32)(long long)again);
-                if (!found || percent > best) {
+                if (!found || (fewest ? percent < best : percent > best)) {
                     best = percent;
                     found = true;
                     *out = handle;
@@ -759,13 +769,26 @@ void __cdecl ThingBrowser_Step() {
 }
 
 s32 __fastcall Things_MostWalkAwaysOf(void *, void *, u32 category, u16 *out) {
-    return MostWalkAways(out, [category](const u8 *def) { return at<u32>(def, 0x164) == category; });
+    return MostWalkAways<false>(out, [category](const u8 *thing) { return at<u32>(Object_GetDef(thing), 0x164) == category; });
 }
 
 s32 __fastcall Things_MostWalkAwaysOf156(void *, void *, u16 *out) {
-    return MostWalkAways(out, [](const u8 *def) {
-        const u32 category = at<u32>(def, 0x164);   // (the original fetches the definition again for each)
-        return category == 1 || category == 5 || category == 6;
-    });
+    return MostWalkAways<false>(out, [](const u8 *thing) { return category156(thing); });
+}
+
+s32 __fastcall Things_FewestWalkAwaysOf(void *, void *, u32 category, u16 *out) {
+    return MostWalkAways<true>(out, [category](const u8 *thing) { return at<u32>(Object_GetDef(thing), 0x164) == category; });
+}
+
+s32 __fastcall Things_FewestWalkAwaysOf156(void *, void *, u16 *out) {
+    return MostWalkAways<true>(out, [](const u8 *thing) { return category156(thing); });
+}
+
+s32 __fastcall Things_MostWalkAwaysDef4ac2(void *, void *, u16 *out) {
+    return MostWalkAways<false>(out, [](const u8 *thing) { return def4ac(thing) == 2; });
+}
+
+s32 __fastcall Things_FewestWalkAwaysDef4ac2(void *, void *, u16 *out) {
+    return MostWalkAways<true>(out, [](const u8 *thing) { return def4ac(thing) == 2; });
 }
 }  // extern "C"
