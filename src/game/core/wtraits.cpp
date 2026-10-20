@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "crt.h"
+
 extern "C" {
 
 u16 *__cdecl WTraits_Move(u16 *dst, const u16 *src, u32 n) {
@@ -30,4 +32,6 @@ void __fastcall ImeWString_SetLength(u8 *string, void *, u32 length) {
     *reinterpret_cast<u32 *>(string + 8) = length;
     (*reinterpret_cast<u16 **>(string + 4))[length] = 0;
 }
+
+u32 __cdecl WTraits_Length(const u16 *text) { return Crt().wcslen(text); }
 }

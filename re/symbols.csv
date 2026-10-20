@@ -2371,6 +2371,7 @@ address,name,kind,confidence,notes
 0x00479230,WTraits_Copy,function,high,"reimplemented (src/game/core/wtraits); cdecl (dst, src, n): n u16 copied forward one at a time; returns dst"
 0x00478cf0,WTraits_Assign,function,high,"reimplemented (src/game/core/wtraits); cdecl (dst, ch, n): n u16 of ch (rep stosd, then a stosw); returns dst"
 0x0047ba30,ImeWString_SetLength,function,high,"reimplemented (src/game/core/wtraits); thiscall (length); +8 = length, then the u16 characters (+4) ended there"
+0x00665f60,WTraits_Length,function,low,reimplemented (src/game/core/wtraits); cdecl (text): the wide text's length (wcslen)
 0x0041a5a0,Language_SetFontSet,function,high,"reimplemented (src/game/core/language); thiscall (width): +4 = 0 up to 512, 1 up to 640, 2 up to 800, else 3 (signed); picks the font set"
 0x0041a820,Language_Buffer,function,high,"reimplemented (src/game/core/language); thiscall; returns the buffer 0xf7f230, used as a string"
 0x0041a830,Language_Id,function,high,reimplemented (src/game/core/language); thiscall; the Windows language id (+8)
@@ -3718,6 +3719,7 @@ address,name,kind,confidence,notes
 0x00424d10,WNames_Equal,function,low,"reimplemented (src/game/core/string); cdecl (a, b; name unconfirmed): whether the wide texts at +8 of a and b are equal, case blind"
 0x004f7870,WString_CompareSub,function,high,"reimplemented (src/game/core/string); thiscall (pos, n, other, count; pops 16): the wide string's compare(pos, n, other, count)"
 0x005accb0,WNamedList_FindAfter,function,low,"reimplemented (src/game/core/string); thiscall on a list (key; pops 4): walks to the first item whose wide text equals the key's (WNames_Equal(key, item)) and returns the item after it (sic), 0 when the match is last or none"
+0x00665f30,WString_CompareText,function,low,"reimplemented (src/game/core/string); thiscall (text): compare(text): WString_CompareSub(0, the length, text, its length)"
 0x005bdc10,Class702938_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings
 0x005be320,Class702940_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three strings
 0x005be750,Class702948_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings

@@ -153,6 +153,10 @@ s32 __fastcall WString_Compare(const u8 *self, void *, const u8 *other);
 // characters from pos (no data stays a null pointer, sic, not the empty string) against the count at other, as WString_Compare. -1, 0 or 1.
 s32 __fastcall WString_CompareSub(const u8 *self, void *, u32 pos, u32 n, const u16 *other, u32 count);
 
+// 0x665f30 (thiscall; text, pops 4; the GUI library's; name unconfirmed): compare(text): WString_CompareSub(0, the length +8, text, its
+// length (WTraits_Length)).
+s32 __fastcall WString_CompareText(const u8 *self, void *, const u16 *text);
+
 // 0x424cc0 / 0x424cf0 (cdecl; a, b): the texts the dwords at +8 of a and b point to compare, case blind: 1 when the first is after the second / when
 // they are equal, otherwise 0.
 u32 __cdecl Names_FirstAfter(const u8 *a, const u8 *b);
