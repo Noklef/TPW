@@ -73,6 +73,10 @@ void __cdecl jdmainct_lib_start_pass_main(j_decompress_ptr cinfo, J_BUF_MODE pas
 void __cdecl jdcoefct_lib_jinit_d_coef_controller(j_decompress_ptr cinfo, boolean need_full_buffer);
 void __cdecl jdcoefct_lib_start_output_pass(j_decompress_ptr cinfo);
 int __cdecl jdcoefct_dummy_consume_data(j_decompress_ptr cinfo);  // (not a hook: its exe copy is a shared return 0)
+void __cdecl jdmarker_lib_jinit_marker_reader(j_decompress_ptr cinfo);
+void __cdecl jdinput_lib_jinit_input_controller(j_decompress_ptr cinfo);
+void __cdecl jdinput_lib_finish_input_pass(j_decompress_ptr cinfo);
+void __cdecl jdinput_lib_reset_input_controller(j_decompress_ptr cinfo);
 void __cdecl jpeg_idct_float(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, short *coef_block, unsigned char **output_buf,
                              unsigned int output_col);
 }
@@ -145,6 +149,17 @@ const ExeMethod kExeMethods[] = {
     {fn(&jdcoefct_decompress_data), 0x643890},
     {fn(&jdcoefct_decompress_smooth_data), 0x643b70},
     {fn(&jdcoefct_dummy_consume_data), 0x66f4d0},
+    // jdmarker.c
+    {fn(&jdmarker_reset_marker_reader), 0x63d3a0},
+    {fn(&jdmarker_read_markers), 0x63c0e0},
+    {fn(&jdmarker_read_restart_marker), 0x63d300},
+    {fn(&jdmarker_skip_variable), 0x63c030},
+    {fn(&jdmarker_get_interesting_appn), 0x63bb80},
+    // jdinput.c (its start_input_pass stores the coefficient controller's consume_data, the exe's already)
+    {fn(&jdinput_consume_markers), 0x63b5e0},
+    {fn(&jdinput_lib_reset_input_controller), 0x63b8b0},
+    {fn(&jdinput_start_input_pass), 0x63b310},
+    {fn(&jdinput_lib_finish_input_pass), 0x63b5c0},
 };
 
 // The method pointer at slot: the exe's address in place of a library method's (anything else is left as it is).
@@ -163,6 +178,8 @@ void *at(void *base, std::size_t offset) { return static_cast<unsigned char *>(b
 
 constexpr std::size_t kMergedUpmethod = 0xc;  // jdmerge.c's my_upsampler.upmethod (pinned in wrap/jpeg-6b/jdmerge.c)
 constexpr std::size_t kSampleMethods = 0x34;  // jdsample.c's my_upsampler.methods[] (pinned in wrap/jpeg-6b/jdsample.c)
+constexpr std::size_t kMarkerProcessCOM = 0x18;   // jdmarker.c's my_marker_reader.process_COM (pinned in wrap/jpeg-6b/jdmarker.c)
+constexpr std::size_t kMarkerProcessAPPn = 0x1c;  // and its process_APPn[16]
 }  // namespace
 
 extern "C" {
@@ -246,5 +263,33 @@ void __cdecl jinit_d_coef_controller(j_decompress_ptr cinfo, boolean need_full_b
 void __cdecl jdcoefct_start_output_pass(j_decompress_ptr cinfo) {
     jdcoefct_lib_start_output_pass(cinfo);
     exe_method(cinfo->coef->decompress_data);
+}
+
+void __cdecl jinit_marker_reader(j_decompress_ptr cinfo) {
+    jdmarker_lib_jinit_marker_reader(cinfo);
+    exe_method(cinfo->marker->reset_marker_reader);
+    exe_method(cinfo->marker->read_markers);
+    exe_method(cinfo->marker->read_restart_marker);
+    exe_method_at(at(cinfo->marker, kMarkerProcessCOM));
+    for (int i = 0; i < 16; ++i)
+        exe_method_at(at(cinfo->marker, kMarkerProcessAPPn + 4 * i));
+}
+
+void __cdecl jinit_input_controller(j_decompress_ptr cinfo) {
+    jdinput_lib_jinit_input_controller(cinfo);
+    exe_method(cinfo->inputctl->consume_input);
+    exe_method(cinfo->inputctl->reset_input_controller);
+    exe_method(cinfo->inputctl->start_input_pass);
+    exe_method(cinfo->inputctl->finish_input_pass);
+}
+
+void __cdecl jdinput_reset_input_controller(j_decompress_ptr cinfo) {
+    jdinput_lib_reset_input_controller(cinfo);
+    exe_method(cinfo->inputctl->consume_input);
+}
+
+void __cdecl jdinput_finish_input_pass(j_decompress_ptr cinfo) {
+    jdinput_lib_finish_input_pass(cinfo);
+    exe_method(cinfo->inputctl->consume_input);
 }
 }
