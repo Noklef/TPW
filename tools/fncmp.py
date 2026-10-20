@@ -14,7 +14,8 @@ A test script defines a case generator and calls run():
 
 Call(address, args, regions, conv='c'|'s'|'t'|'f', ret='v'|'a'|'b'|'w'|'i'|'d'): ret 'a' compares
 EAX, 'b' AL (a flag returned over whatever EAX held), 'w' AX (likewise a u16), 'c' the x87 control word left (Call(cw=) going in, 0x7f; 'wc' AX too), 'i' EAX and EDX, 'd' the double left in
-st0. Region addresses must be in the game's data (0x6e7000-0xfc5200) or at 0x10000000 and up (RAM, ALLOC.. are free slots); anything a case
+st0. Call(ignore=[(address, count), ...]): those bytes of the regions are left out of the comparison in both (a stack address's low byte that
+the original stores, which the two sides' stacks cannot share). Region addresses must be in the game's data (0x6e7000-0xfc5200) or at 0x10000000 and up (RAM, ALLOC.. are free slots); anything a case
 does not set reads as the exe image there, else zero, in both. No region may be empty (the driver reads its bytes as one hex token, so an
 empty one would desynchronise every later case): Bench.cases refuses such a case, naming the bench, the case and the region. The emulator is strict, like
 the driver: an access outside the regions' 64 KB chunks, the stack and the game's data (the
@@ -245,10 +246,21 @@ def put(buf, off, fmt, *values):
     return buf
 
 
+def off_code(buf):
+    """buf with each aligned dword that would point into the exe's image below its data (0x400000-0x6e7000) moved out of it (its top
+    bit set). The driver is linked over those addresses, so a read through such a pointer sees the driver's code natively and the
+    exe's in the emulator: a difference of the two environments, not of the code. For random object bytes a case dereferences."""
+    for k in range(0, len(buf) - 3, 4):
+        v = struct.unpack_from('<I', buf, k)[0]
+        if 0x400000 <= v < GAME_LOW:
+            struct.pack_into('<I', buf, k, v | 0x80000000)
+    return buf
+
+
 class Call:
-    def __init__(self, address, args, regions, conv='c', ret='v', cw=0x7f, masks=()):
+    def __init__(self, address, args, regions, conv='c', ret='v', cw=0x7f, masks=(), ignore=()):
         self.address, self.args, self.regions, self.conv, self.ret = address, list(args), dict(regions), conv, ret
-        self.cw = cw
+        self.cw, self.ignore = cw, list(ignore)
         self.masks = list(masks)
         for m in self.masks:
             if m.region not in self.regions or (m.offsets and m.offsets[-1] >= len(self.regions[m.region])):
@@ -296,6 +308,21 @@ def _unmasked(c, out):
             if o < len(b):
                 b[o] = 0
         out[i] = b.hex()
+    return out
+
+
+def _blank(c, out):
+    """A result with the bytes of c.ignore (absolute ranges in the case's regions) blanked."""
+    if isinstance(out, str) or not c.ignore:
+        return out
+    out = list(out)
+    for i, (k, v) in enumerate(c.regions.items()):
+        h = out[3 + i]
+        for at, n in c.ignore:
+            lo, hi = max(at, k), min(at + n, k + len(v))
+            if lo < hi:
+                h = h[:2 * (lo - k)] + '..' * (hi - lo) + h[2 * (hi - k):]
+        out[3 + i] = h
     return out
 
 
@@ -841,7 +868,7 @@ class Bench:
         direct, indirect = {}, set()
         for i, (c, cpp) in enumerate(zip(cases, nat)):
             emu = self.original(c)
-            emu, cpp = _unmasked(c, emu), _unmasked(c, cpp)
+            emu, cpp = _blank(c, _unmasked(c, emu)), _blank(c, _unmasked(c, cpp))
             if emu == cpp:
                 if COVER and not isinstance(emu, str):
                     direct[c.address] = direct.get(c.address, 0) + 1

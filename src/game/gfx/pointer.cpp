@@ -195,4 +195,21 @@ void __fastcall AsyncPointer_EndFlip(AsyncPointer *p) {
     AsyncPointer_Unlock(p);
 }
 
+void __fastcall PointerFrames_Show(u8 *self) {
+    const s32 hot[2] = {static_cast<s8>(self[5]), static_cast<s8>(self[6])};
+    const s32 frame = *reinterpret_cast<s32 *>(self + 0xc);
+    const Rect rect = {frame << 5, 0, (frame + 1) << 5, 0x20};
+    s32 out;
+    AsyncPointer_SetImage(*at<AsyncPointer **>(0x007b4b84), nullptr, &out, reinterpret_cast<Surface *>(self + 0x14), &rect, hot);
+    self[4] = 1;
+}
+
+void __fastcall PointerFrames_Hide(u8 *self) {
+    const s32 hot[2] = {0, 0};
+    const Rect rect = {0, 0, 0, 0};
+    s32 out = 0;
+    AsyncPointer_SetImage(*at<AsyncPointer **>(0x007b4b84), nullptr, &out, nullptr, &rect, hot);
+    self[4] = 0;
+}
+
 }  // extern "C"

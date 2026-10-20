@@ -5,6 +5,8 @@
 // skip work, so they are kept apart here to reproduce the output byte for byte.
 #include "terrain_blend.h"
 
+#include "../gfx/array3d.h"
+
 #include <cstring>
 #include <vector>
 
@@ -13,10 +15,10 @@ namespace {
 // Pointers into one source texture at the window used for a tile.
 struct Window {
     const u8 *base;
-    u32 stride;  // bytes per texture row
+    u32 stride;  // bytes per texture row, as the original steps it (see blend())
     u32 bpp;     // 4 for colour, 1 for masks (fixed by the code, not the array's depth)
 
-    Window(const Array3D &tex, u32 bpp_, u32 size, u32 x, u32 y) : stride(tex.width * bpp_), bpp(bpp_) {
+    Window(const Array3D &tex, u32 bpp_, u32 size, u32 x, u32 y) : stride((tex.width - (size & 15)) * bpp_), bpp(bpp_) {
         u32 ox = (size * x) % (tex.width - size);
         u32 oy = (size * y) % (tex.height - size);
         base = tex.data + (oy * tex.width + ox) * bpp;
@@ -229,26 +231,46 @@ extern "C" bool TerrainBlend_WeightMap(const Array3D *control, u32 x, u32 y, int
     return true;
 }
 
+namespace {
+
+// The tile's four control cells must all be on (byte 0 = 0xff); else the tile is a flat grey.
+bool tile_on(const Lnd *lnd, u32 x, u32 ty, u8 *out) {
+    const u32 size = lnd->tile_size;
+    const Array3D &ctl = lnd->control;
+    const u8 *mid = ctl.data + ((4 * ty + 1) * ctl.width + 4 * x + 1) * 4;
+    if ((mid[0] & mid[4] & mid[ctl.width * 4] & mid[ctl.width * 4 + 4]) == 0xff) return true;
+    for (u32 i = 0; i < size * size; ++i) std::memcpy(out + 4 * i, "\x00\x7f\x7f\x7f", 4);
+    return false;
+}
+
+// The blend proper over the weight maps W1..W3 (size x size) and the five ramps (A, B, select B, C, select C).
+void blend(const Lnd *lnd, u8 *out, u32 x, u32 ty, const TerrainOverlay *overlay, u8 *scratch, const u8 *w1, const u8 *w2,
+           const u8 *w3, const u8 *const ramps[5]);
+
+}  // namespace
+
 extern "C" void TerrainBlend_TileInto(const Lnd *lnd, u8 *out, u32 x, u32 y, const TerrainOverlay *overlay,
                                       u8 *scratch) {
     const u32 size = lnd->tile_size;
     const u32 ty = lnd->tiles_y - y - 1;  // tile row from the top of the control map
-    const Array3D &ctl = lnd->control;
-
-    const u8 *mid = ctl.data + ((4 * ty + 1) * ctl.width + 4 * x + 1) * 4;
-    if ((mid[0] & mid[4] & mid[ctl.width * 4] & mid[ctl.width * 4 + 4]) != 0xff) {
-        for (u32 i = 0; i < size * size; ++i) std::memcpy(out + 4 * i, "\x00\x7f\x7f\x7f", 4);
-        return;
-    }
+    if (!tile_on(lnd, x, ty, out)) return;
 
     std::vector<u8> w1(size * size), w2(size * size), w3(size * size);
-    TerrainBlend_WeightMap(&ctl, x, ty, 1, (int)size, w1.data());
-    TerrainBlend_WeightMap(&ctl, x, ty, 2, (int)size, w2.data());
-    TerrainBlend_WeightMap(&ctl, x, ty, 3, (int)size, w3.data());
+    TerrainBlend_WeightMap(&lnd->control, x, ty, 1, (int)size, w1.data());
+    TerrainBlend_WeightMap(&lnd->control, x, ty, 2, (int)size, w2.data());
+    TerrainBlend_WeightMap(&lnd->control, x, ty, 3, (int)size, w3.data());
 
-    u8 ramps[5][256];
-    for (int i = 0; i < 5; ++i) Lnd_BuildRamp(ramps[i], lnd->ramps[i][0], lnd->ramps[i][1]);
+    u8 tables[5][256];
+    for (int i = 0; i < 5; ++i) Lnd_BuildRamp(tables[i], lnd->ramps[i][0], lnd->ramps[i][1]);
+    const u8 *const ramps[5] = {tables[0], tables[1], tables[2], tables[3], tables[4]};
+    blend(lnd, out, x, ty, overlay, scratch, w1.data(), w2.data(), w3.data(), ramps);
+}
 
+namespace {
+
+void blend(const Lnd *lnd, u8 *out, u32 x, u32 ty, const TerrainOverlay *overlay, u8 *scratch, const u8 *w1, const u8 *w2,
+           const u8 *w3, const u8 *const ramps[5]) {
+    const u32 size = lnd->tile_size;
     const LndLevel &lv = lnd->levels[lnd->level];
     const Group A = {{lv.colour_a0, 4, size, x, ty}, {lv.colour_a1, 4, size, x, ty}, {lv.mask_a, 1, size, x, ty}, ramps[0]};
     const Group B = {{lv.colour_b0, 4, size, x, ty}, {lv.colour_b1, 4, size, x, ty}, {lv.mask_b, 1, size, x, ty}, ramps[1]};
@@ -256,18 +278,22 @@ extern "C" void TerrainBlend_TileInto(const Lnd *lnd, u8 *out, u32 x, u32 y, con
     const Window sb0(lv.select_b0, 1, size, x, ty), sb1(lv.select_b1, 1, size, x, ty);
     const Window sc0(lv.select_c0, 1, size, x, ty), sc1(lv.select_c1, 1, size, x, ty);
 
+    // The original goes along a row in runs of 16 and then steps each source on by its width less the size: with a size not a
+    // multiple of 16 the last size % 16 pixels of each row are not drawn (the scratch keeps what it had) and every source's rows
+    // drift that much to the left (sic; the Windows' stride, and the weight maps' size - size % 16 here).
+    const u32 wrow = size & ~15u;
     for (u32 r = 0; r < size; ++r) {
         u8 *dst_row = scratch + (size - 1 - r) * size * 4;  // written bottom-up
         for (u32 c0 = 0; c0 + 16 <= size; c0 += 16) {
-            const u8 *wt = &w1[r * size + c0];
+            const u8 *wt = &w1[r * wrow + c0];
             u8 *dst = dst_row + c0 * 4;
             u8 sel_c[16], sel_b[16];
-            Run run_c = selector(sc0, sc1, ramps[4], &w3[r * size + c0], r, c0, sel_c);
+            Run run_c = selector(sc0, sc1, ramps[4], &w3[r * wrow + c0], r, c0, sel_c);
             if (run_c == Run::Full) {
                 for (u32 i = 0; i < 16; ++i) C.pure(r, c0 + i, wt[i], dst + 4 * i);
                 continue;
             }
-            Run run_b = selector(sb0, sb1, ramps[2], &w2[r * size + c0], r, c0, sel_b);
+            Run run_b = selector(sb0, sb1, ramps[2], &w2[r * wrow + c0], r, c0, sel_b);
             for (u32 i = 0; i < 16; ++i) {
                 u32 c = c0 + i;
                 u8 *o = dst + 4 * i;
@@ -277,13 +303,15 @@ extern "C" void TerrainBlend_TileInto(const Lnd *lnd, u8 *out, u32 x, u32 y, con
                 }
                 u8 a[4], b[4], cc[4];
                 const Group &lower = run_c == Run::Zero ? A : run_b == Run::Full ? B : A;
-                lower.rgb(r, c, wt[i], a);
+                // 0x55eaa0 (both selectors mixed) does not step its W1 row (sic): the run's first byte serves all sixteen.
+                const u8 w = run_c != Run::Zero && run_b == Run::Mixed ? wt[0] : wt[i];
+                lower.rgb(r, c, w, a);
                 if (run_c != Run::Zero && run_b == Run::Mixed) {  // 0x55eaa0: A, B, then C
-                    B.rgb(r, c, wt[i], b);
+                    B.rgb(r, c, w, b);
                     for (int k = 1; k < 4; ++k) a[k] = lerp(a[k], b[k], sel_b[i]);
                 }
                 const Group &upper = run_c == Run::Zero ? B : C;
-                upper.rgb(r, c, wt[i], cc);
+                upper.rgb(r, c, w, cc);
                 u8 s = run_c == Run::Zero ? sel_b[i] : sel_c[i];
                 o[0] = 0;
                 for (int k = 1; k < 4; ++k) o[k] = lerp(a[k], cc[k], s);
@@ -297,11 +325,29 @@ extern "C" void TerrainBlend_TileInto(const Lnd *lnd, u8 *out, u32 x, u32 y, con
         std::memcpy(out, scratch, size * size * 4);
 }
 
+}  // namespace
+
 // The entry the hook patches in: __thiscall on the Lnd with 4 stack arguments, which
 // __fastcall matches (ECX = this, EDX unused, callee pops the rest). It blends through the
 // game's own scratch buffer, and like the original does nothing before one is allocated.
 extern "C" void __fastcall TerrainBlend_Tile(const Lnd *self, void * /*edx*/, u8 *out, u32 x, u32 y,
                                              const TerrainOverlay *overlay) {
     u8 *scratch = *reinterpret_cast<u8 *const *>(0x008798c8);  // gTerrainBlendScratch
-    if (scratch) TerrainBlend_TileInto(self, out, x, y, overlay, scratch);
+    if (!scratch) return;
+    // The weight maps are the game's (W1 0x8798a8, W3 0x879398, W2 0x8798b8: made over at the tile size first), and so are the
+    // ramps, built by Lnd_Read (0x560ff0) from the Lnd's (centre, width) pairs.
+    Array3D *const w1 = reinterpret_cast<Array3D *>((uintptr_t)0x008798a8), *const w2 = reinterpret_cast<Array3D *>((uintptr_t)0x008798b8),
+                   *const w3 = reinterpret_cast<Array3D *>((uintptr_t)0x00879398);
+    const u32 size = self->tile_size;
+    for (Array3D *w : {w1, w3, w2})
+        if (w->width != size) Array3D_Realloc(reinterpret_cast<u8 *>(w), nullptr, size, size, 1);
+    const u32 ty = self->tiles_y - y - 1;
+    if (!tile_on(self, x, ty, out)) return;
+    Lnd_BuildWeightMap(&self->control, (s32)x, (s32)ty, 1, w1);
+    Lnd_BuildWeightMap(&self->control, (s32)x, (s32)ty, 2, w2);
+    Lnd_BuildWeightMap(&self->control, (s32)x, (s32)ty, 3, w3);
+    const u8 *const ramps[5] = {reinterpret_cast<const u8 *>(0x008795a8), reinterpret_cast<const u8 *>(0x008796a8),
+                                reinterpret_cast<const u8 *>(0x008793a8), reinterpret_cast<const u8 *>(0x008797a8),
+                                reinterpret_cast<const u8 *>(0x008794a8)};
+    blend(self, out, x, ty, overlay, scratch, w1->data, w2->data, w3->data, ramps);
 }

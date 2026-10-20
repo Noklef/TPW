@@ -22,6 +22,9 @@ extern "C" {
 // Direct3D on: Screen_Shutdown's run) as the x87 rounds, else at 53 bits, as double arithmetic rounds (the startup run; 64 bits,
 // which the game never sets, is not modelled).
 void __cdecl SinTable_Build(u32 n);
+
+// 0x449eb0 (cdecl; name unconfirmed): SinTable_Build(4096), the game's table (the startup sequence at 0x45abb6 calls it).
+void __cdecl SinTable_BuildGame();
 }
 
 // The live table inside the game process (hook entries only).

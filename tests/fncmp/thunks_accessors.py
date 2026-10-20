@@ -30,6 +30,15 @@ EXTRA = [(4206320, 4206352), (4206784, 4206800), (4231776, 4231840), (4345552, 4
 B = Bench([(a, e) for a, e, *_ in FUNCS] + EXTRA)
 
 
+def setup_5f5650(r, obj, regions):
+    owner = bytearray(r.bytes(0x80))   # the owner at 0xfa6e40: its object at +0x64 (the object's +0x34 the copy's)
+    put(owner, 0x64, 'I', RAM + 0x100 + 4 * r.randrange(0x40))
+    regions[0xfa6e40] = owner
+
+
+SETUP = {0x5f5650: setup_5f5650}
+
+
 def case(r):
     address, _end, conv, n, ret, globs, ptr = r.choice(FUNCS)
     obj = bytearray(r.bytes(0x400))
@@ -37,6 +46,8 @@ def case(r):
         if r.random() < 0.5:
             put(obj, k, 'I', RAM + 0x100 + 4 * r.randrange(0x40))
     regions = {RAM: obj}
+    if address in SETUP:
+        SETUP[address](r, obj, regions)
     for g in globs:
         regions[g & ~0xf] = r.bytes(0x20)
     args = [r.choice([0, 1, 0xff, 0x7fffffff, 0xffffffff, r.getrandbits(32)]) for _ in range(n)]

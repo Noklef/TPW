@@ -5,6 +5,7 @@
 
 #include "../core/gameheap.h"
 #include "../core/initializers.h"
+#include "../core/methods.h"
 #include "../core/vcall.h"
 
 namespace {
@@ -170,6 +171,18 @@ u32 __fastcall TextMetrics_ForwardSlot8(u8 *object) {
     if (!inner)
         return 0;
     return vcall<u16>(inner, 0x20);
+}
+
+u32 __fastcall TextMetrics_Lookup(u8 *object, void *, u32 key) {
+    u8 *const inner = at<u8 *>(object, 0x14);
+    if (!inner)
+        return 0;
+    key = Ranges_LookupAdapter(*reinterpret_cast<const u8 *const *>((uintptr_t)0x0078ba80), nullptr, key);
+    u32 local[3];  // (the original's: [0] = &key, [1] handed to slot 7, [2] unused)
+    local[0] = static_cast<u32>(reinterpret_cast<uintptr_t>(&key));
+    const u32 found = vcall<u32>(inner, 0x14, local);
+    const u16 *const value = vcall<const u16 *>(inner, 0x1c, &local[1], found);
+    return (static_cast<u32>(reinterpret_cast<uintptr_t>(value)) & 0xffff0000u) | *value;
 }
 
 u8 *__fastcall Obj_CtorValue(u8 *object, void *, u32 value) {

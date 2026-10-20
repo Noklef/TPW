@@ -1,6 +1,6 @@
 # The sorted insertion into a pointer list of src/game/core/ptrlist (0x5e1540 SortedPtrList_Add) against the original: a holder whose list at +8 has none to four nodes whose items carry
-# signed keys at +0x24 (equal to the new item's, below or above), and the new item.
-# usage: ptrlist_sorted.py [CASES [SEED]] [--wild|--both] [--show N]
+# signed keys at +0x24 (equal to the new item's, below or above), and the new item; and PtrList_Append (0x5e42d0) called directly on that list.
+# usage: ptrlist_sorted.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Add,Append)
 import os
 import sys
 
@@ -25,7 +25,12 @@ def case(r):
     holder = bytearray(r.bytes(0x20))
     put(holder, 8, 'I', LIST)
     regions = {HOLDER: holder, LIST: lst, NODES: nodes, ITEMS: items, HEAP: heap()}
+    if r.deal(OPS) == 'Append':
+        return Call(0x5e42d0, [LIST, r.choice([ITEMS, 0, r.getrandbits(32)])], regions, conv='t', ret='v')
     return Call(0x5e1540, [HOLDER, ITEMS], regions, conv='t', ret='v')
+
+
+OPS = [k for k in os.environ.get('OPS', 'Add,Append').split(',') if k]
 
 
 if __name__ == '__main__':

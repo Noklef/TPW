@@ -33,6 +33,7 @@
 #include "../../src/game/gfx/screen.h"
 #include "../../src/game/core/fpu.h"
 #include "../../src/game/core/gameheap.h"
+#include "../../src/game/core/string.h"
 #include "../../src/game/core/ptrlist.h"
 #include "../../src/game/core/regkey.h"
 #include "../../src/game/core/stdstring.h"
@@ -52,10 +53,13 @@
 #include "../../src/game/gfx/canvasdraw.h"
 #include "../../src/game/gfx/convert.h"
 #include "../../src/game/gfx/draw.h"
+#include "../../src/game/gfx/imagecodec.h"
+#include "../../src/game/gfx/invmap.h"
 #include "../../src/game/gfx/pixconv.h"
 #include "../../src/game/gfx/surfbuf.h"
 #include "../../src/game/gfx/tga.h"
 #include "../../src/game/render/engineerrors.h"
+#include "../../src/game/sprite/draw.h"
 #include "../../src/game/sprite/script.h"
 #include "../../src/game/world/mapline.h"
 #include "../../src/game/world/mousemode.h"
@@ -529,6 +533,9 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x00702250, 10},   // the texture surface B's virtual base (its thunks; slot 1 FreePixels' the destructor calls)
                                    {0x00705920, 4},   // the GUI rectangle (GuiRect_Contains, _Centre, _Offset, _Adjust)
                                    {0x00703630, 4},   // the TGA reader (Begin, ReadRow, RowBytes, RowReader_CopyRow)
+                                   {0x006fefa8, 4},   // the TGA codec (slot 0 the game's: no hook), GetInfo, Load, IsTga
+                                   {0x007035e0, 9},   // the image loaders' file stream,
+                                   {0x00703608, 9},   // and buffered stream (StreamBase's slots)
                                    {0x007039a0, 3},   // the pixel converters (deleting destructor, forwards, backwards): palette,
                                    {0x007039b0, 3},   // RGB,
                                    {0x00703fa8, 3},   // index,
@@ -679,6 +686,17 @@ s32 __stdcall stub_free_counted(void *block) {
     --*reinterpret_cast<volatile u32 *>(static_cast<std::uintptr_t>(0x00faa534));
     return 1;
 }
+
+// StreamBase_OpenIn's stand-in for the image codecs (tests/fncmp/imagecodec.py's _open_in): the name's first dword is the result; when it is not
+// negative, the stream gets the name's second dword as its source (one the case lays out).
+s32 *__fastcall stub_open_in(StreamBase *s, void *, s32 *out, const char *name, const char *) {
+    const u32 *const p = reinterpret_cast<const u32 *>(name);
+    *out = static_cast<s32>(p[0]);
+    if (*out >= 0) s->source = reinterpret_cast<RefObject *>(static_cast<std::uintptr_t>(p[1]));
+    return out;
+}
+
+s32 __cdecl stub_strncmp(const char *a, const char *b, u32 n) { return std::strncmp(a, b, n); }
 
 u8 nibble(char c) { return (u8)(c <= '9' ? c - '0' : (c | 0x20) - 'a' + 10); }
 
@@ -836,6 +854,9 @@ int main(int argc, char **argv) {
                                        reinterpret_cast<void(__fastcall *)(void *, void *)>(hooked(0x00642180)), reinterpret_cast<const u32 *>((uintptr_t)0x00faa268),
                                        reinterpret_cast<const u32 *>((uintptr_t)0x00faa280), &heap_alloc};
     PixConv_SetEnv(&pixConv);
+    // The inverse colour map's: the heap; its loops' statics stay the game's (0xfaa500, mapped).
+    static const InverseMapEnv inverseMap = {&heap_free, reinterpret_cast<InverseMapStatics *>((uintptr_t)0x00faa500)};
+    InverseMap_SetEnv(&inverseMap);
     // The static conversion's set-up and the bitmap copy: the pixel conversion's ports; atexit stub_cdecl_log (tests/fncmp/convert.py hooks 0x67a7d0
     // with fncmp._cdecl_log), handed the game's 0x5fc350 as the original is.
     static const ConvertEnv convert = {reinterpret_cast<PixelConversion *>((uintptr_t)0x00fa7d18), &PixelConversion_Ctor, &PixelConversion_Dtor,
@@ -849,6 +870,29 @@ int main(int argc, char **argv) {
                                reinterpret_cast<const u32 *>((uintptr_t)0x00faa2b0), reinterpret_cast<const u32 *>((uintptr_t)0x00faa268),
                                reinterpret_cast<const u32 *>((uintptr_t)0x00faa280)};
     Tga_SetEnv(&tga);
+    // The image codecs': the stream and TGA reader ports, StreamBase_OpenIn's stand-in (stub_open_in), strncmp; the game's vtables (resolved above).
+    static const ImageCodecEnv imageCodec = {reinterpret_cast<StreamBase *(__fastcall *)(StreamBase *)>(hooked(0x005f7180)),
+                                             reinterpret_cast<void(__fastcall *)(StreamBase *)>(hooked(0x005f71e0)),
+                                             reinterpret_cast<s32(__fastcall *)(StreamBase *, void *, s32, u32)>(hooked(0x005f7210)), &stub_open_in,
+                                             reinterpret_cast<s32 *(__fastcall *)(StreamBase *, void *, s32 *, StreamBase *, u32)>(hooked(0x0062fd30)),
+                                             0x007035e0, 0x00703608, 0x00703630,
+                                             reinterpret_cast<s32 *(__fastcall *)(TgaReader *, void *, s32 *, StreamBase *, TgaCodec *)>(hooked(0x00630150)),
+                                             reinterpret_cast<s32 *(__fastcall *)(TgaReader *, void *, s32 *, SurfaceInfo *, StreamBase *, TgaCodec *)>(
+                                                 hooked(0x006300f0)),
+                                             &stub_strncmp, reinterpret_cast<const char *>((uintptr_t)0x00775860)};
+    ImageCodec_SetEnv(&imageCodec);
+    // The game strings': the game heap (the stand-in's, through GameHeap), the host's vsprintf / vswprintf for Format (tests/fncmp/stringformat.py
+    // hooks the game's, 0x67c1e0 / 0x67f4d0, with the same formats).
+    static const StringEnv strings = {[](u32 size) -> void * { return GameHeap_Alloc(size); }, [](void *block) { GameHeap_Free(block); },
+                                      reinterpret_cast<s32(__cdecl *)(char *, const char *, va_list)>(kDriverLibc.vsprintf),
+                                      reinterpret_cast<s32(__cdecl *)(u16 *, const u16 *, va_list)>(kDriverLibc.vswprintf)};
+    Strings_SetEnv(&strings);
+    // The sprite draw lists': the ground height the game's (out of range; tests/fncmp/spritedraw.py's scripts carry their own); the thing under the
+    // cursor (0x532bd0) cdecl recorder 1, its hand-over (0x423b50 on 0x7b05a8) cdecl recorder 2 (the bench hooks both with them).
+    static const SpriteDrawEnv spriteDraw = {reinterpret_cast<double(__cdecl *)(u32, u32)>((uintptr_t)0x004527f0),
+                                             reinterpret_cast<u32(__cdecl *)()>((uintptr_t)(kStubs + 0x1000 + 0xa000 + 0x20 * 1)),
+                                             reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)(kStubs + 0x1000 + 0xa000 + 0x400 + 0x20 * 2))};
+    SpriteDraw_SetEnv(&spriteDraw);
     // The event queue's: the heap; atexit stub_cdecl_log (tests/fncmp/events.py hooks 0x67a7d0 with fncmp._cdecl_log), handed the game's 0x5fbe10 as
     // the original is; the instance 0xfa7cb0 and the critical section's import slots the game's (the case maps them, the slots COM recorders).
     static EventQueueEnv events = *EventQueue_GetEnv();

@@ -1,60 +1,13 @@
 address,name,module,reason
-475430,SpriteScripts_Draw,sprite/script,todo
 4d7bb0,World_InitBlock,world/mapcell,todo
 50b350,Thing_GetHandle,world/things,todo: indirect only
 515660,World_Attach,world/things,todo
 515f30,Things_InitTable,world/things,todo
 515fb0,World_DeleteAllThings,world/things,todo
-516330,World_Rand,world/random,todo: indirect only
-516370,World_SetSeed,world/random,todo: indirect only
 51a280,Get1da710_51a280,core/accessors,todo: indirect only
 52c2a0,Fn_52c2a0,core/accessors,todo
-540b30,SpriteDraw_End,sprite/draw,todo
-540bd0,Sprite_Ctor,sprite/sprite,todo
-541f70,SpriteFolder_RandomSprite,sprite/sprite,todo: indirect only
-541fa0,Sprite_ActionCount,sprite/sprite,todo
-541fd0,Sprite_RandomAnim,sprite/sprite,todo
-5423a0,Sprite_FrameEntry,sprite/sprite,todo
-5573a0,RSSE_OperandValue,?,todo
-557a70,RSSE_FetchWord,?,todo
-55f780,TerrainBlend_Tile,terrain,todo
 57cb90,Cpu_Ticks16,core/cpuinfo,"reads the time-stamp counter (rdtsc): the hardware's value, nothing to compare"
-58b300,TexCacheItem_Ctor,gfx/texcache,todo: indirect only
 591210,Cpu_Ticks,core/cpuinfo,"reads the time-stamp counter (rdtsc): the hardware's value, nothing to compare"
-5e42d0,PtrList_Append,core/ptrlist,todo: indirect only
-5f5650,Wrap_Owner64_Copy4At34_5f5650,core/thunks,todo
-5f63d0,String_Format,core/string,todo
-5f6c50,WString_Format,core/string,todo
-5f7360,Palette_ExpandRgb,gfx/palette,todo
-5f73a0,Palette_Nearest,gfx/palette,todo: indirect only
-5fa8a0,ImageCodec_InfoFromFile,gfx/imagecodec,todo
-5fa970,ImageCodec_InfoFromStream,gfx/imagecodec,todo
-5faa00,ImageCodec_LoadFromFile,gfx/imagecodec,todo
-5faab0,ImageCodec_LoadFromStream,gfx/imagecodec,todo
-5fabb0,TgaCodec_GetInfo,gfx/imagecodec,todo
-5fabe0,TgaCodec_Load,gfx/imagecodec,todo
-5fac10,TgaCodec_IsTga,gfx/imagecodec,todo
 5fc740,JpegCodec_GetInfo,gfx/jpeg,todo
 5fc840,JpegCodec_Load,gfx/jpeg,todo
 5fcbc0,JpegCodec_IsJpeg,gfx/jpeg,todo
-63a7b0,IndexConverter_Ctor,gfx/pixconv,todo
-63a810,IndexConverter_DeletingDtor,gfx/pixconv,todo
-63a830,IndexConverter_Dtor,gfx/pixconv,todo
-63a880,IndexConverter_Init,gfx/pixconv,todo
-63aa20,IndexConverter_FreeTable,gfx/pixconv,todo
-63aa40,IndexConverter_Convert,gfx/pixconv,todo
-63ab70,IndexConverter_ConvertBack,gfx/pixconv,todo
-63ad80,IndexConverter_Nearest,gfx/pixconv,todo
-63ae60,Rgb16Converter_DeletingDtor,gfx/pixconv,todo
-63ae80,Rgb16Converter_Dtor,gfx/pixconv,todo
-641f10,RefPack_Decode,files,todo
-642110,RefPack_DecodedSize,?,todo
-642150,InverseMap_Ctor,gfx/invmap,todo
-642160,InverseMap_DeletingDtor,gfx/invmap,todo
-642180,InverseMap_Dtor,gfx/invmap,todo
-642190,InverseMap_Build,gfx/invmap,todo
-642340,InverseMap_RedLoop,gfx/invmap,todo
-642460,InverseMap_GreenLoop,gfx/invmap,todo
-6426b0,InverseMap_BlueLoop,gfx/invmap,todo
-642840,InverseMap_MaxFill,gfx/invmap,todo
-661830,Fn_661830,core/accessors,todo

@@ -2,7 +2,8 @@
 # floats (any, small, ones about the __ftol limits, NaNs and infinities) and a colour dword, 0x20 apart as the one caller has them or any
 # other stride (overlapping the 0x18-byte packed ones: 0, 4, 0x10, 0x18, ...), and now and then a count that runs off the buffer.
 # Also the rounding packer (0x563130: x and y * 8 or 16 by the flags 0x8bd508's 0x80000020, z * 32768, u and v * 16, each rounded to
-# nearest through the dwords at 0xfb34a0 / 0xfb34a4), with halves that tie.
+# nearest through the dwords at 0xfb34a0 / 0xfb34a4), with halves that tie. And the colour modulation (0x5630b0, MMX): any colour, 0-9
+# vertices or 0xffffffff, strides forwards, backwards, zero and under a dword (the pair overlapping).
 # usage: fixedverts.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -11,7 +12,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, Bench, Call, fb  # noqa: E402
 
-B = Bench([(0x563220, 0x5632a1), (0x563130, 0x563213), (0x67a830, 0x67a857)])
+B = Bench([(0x563220, 0x5632a1), (0x563130, 0x563213), (0x67a830, 0x67a857), (0x5630b0, 0x563125)])
 EDGE = [0x7fc00000, 0xffc00000, 0x7f800000, 0xff800000, 0x80000000, 0, 0x7f7fffff, 0x4f000000, 0xcf000000, 0x5f000000, 0x7f800001]
 
 
@@ -29,7 +30,12 @@ def value(r, scale):
 
 
 def case(r):
-    op = r.deal([0x563220, 0x563130])
+    op = r.deal([0x563220, 0x563130, 0x5630b0])
+    if op == 0x5630b0:
+        stride = r.choice([0x20, 0x20, 0x18, 0x40, 4, 0, 1, 2, 3, -4, -0x20])
+        count = r.choice([0, 1, 1, 2, 3, 4, 5, 9]) if r.random() < 0.95 else 0xffffffff
+        colour = r.choice([r.getrandbits(32), r.getrandbits(32), 0xffffffff, 0, 0x80808080, 0x01ff7f80])
+        return Call(0x5630b0, [RAM + 0x200, colour, count, stride & 0xffffffff], {RAM: r.bytes(0x400)}, ret='v')
     flags = r.getrandbits(32) & ~0x80000020 | r.choice([0, 0x80000020, 0x80000020, 0x20, 0x80000000])
     xy = 8 if flags & 0x80000020 == 0x80000020 else 16
     scales = ((0, 32), (4, 16), (8, 65535)) if op == 0x563220 else ((0, xy), (4, xy), (8, 32768))

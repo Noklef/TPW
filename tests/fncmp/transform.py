@@ -2,8 +2,8 @@
 # and vertices (special values now and then, and NaNs tying on significand), 0-8 vertices, strides forwards, backwards, zero and
 # overlapping, the output sometimes the input itself or just past it, every mode (and others), a first vertex past the second block
 # for the blocked one, any render view (its depth threshold's bits sometimes one of the z's) for the projection, and products into
-# either factor or across them.
-# usage: transform.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Blocked,Vertices,Project,Concat)
+# either factor or across them; and the SSE probe (0x579a80: its __try frame on FS:[0], made and taken down).
+# usage: transform.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Blocked,Vertices,Project,Concat,Probe)
 import os
 import struct
 import sys
@@ -11,8 +11,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, Bench, Call, put  # noqa: E402
 
-B = Bench([(0x579250, 0x579a50)])
-OPS = [k for k in os.environ.get('OPS', 'Blocked,Vertices,Project,Concat').split(',') if k]
+B = Bench([(0x579250, 0x579a50), (0x579a80, 0x579af9), (0x5f4ea0, 0x5f4eab)])
+OPS = [k for k in os.environ.get('OPS', 'Blocked,Vertices,Project,Concat,Probe').split(',') if k]
 MATRIX, BUF, SIZE = RAM, RAM + 0x100, 0x600
 MID = BUF + 0x300
 VIEW = 0x8bcbc8
@@ -29,6 +29,8 @@ def case(r):
                 put(buf, off, 'I', r.choice(NANS))
     count = r.choice([0, 1, 1, 2, 3, 4, 5, 8])
     out_stride = r.choice([16, 16, 12, 20, 32, 0, -16, 4])
+    if op == 'Probe':
+        return Call(0x579a80, [], regions, ret='a')
     if op == 'Concat':
         a, b = MID, MID + 0x40
         out = r.choice([MID + 0x100, a, b, b, MID + 0x20, MID - 0x20])

@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "x87.h"
+#include "../core/trivial.h"
 
 namespace {
 
@@ -99,5 +100,15 @@ void __cdecl Transform_Concatenate(void *, const float *a, const float *b, float
         out[r + 1] = (float)c[1];
         out[r + 3] = (float)c[3];
     }
+}
+
+u32 __cdecl Transform_SseProbe() {
+    volatile u32 result = 0;  // (the original's [EBP-0x1c], which its filter reads; there it is not set before the call)
+    __try {
+        result = ReturnOne();
+    } __except (result != 1 ? 1 : 0) {  // (EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
+        return 0;
+    }
+    return 1;
 }
 }

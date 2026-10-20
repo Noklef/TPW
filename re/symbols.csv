@@ -381,7 +381,7 @@ address,name,kind,confidence,notes
 0x0055f470,Lnd_ReadLevel,function,high,"reimplemented (src/game/terrain/land); Reads a level's tile size, number and thirteen arrays from a stream"
 0x0055f630,Lnd_Clear,function,high,reimplemented (src/game/terrain/land); Clears the land object and gives its three tile levels their sizes
 0x0055f720,Lnd_SetTileSize,function,high,reimplemented (src/game/terrain/land); 0x40/0x20/0x10 -> detail level 0/1/2
-0x0055f780,TerrainBlend_Tile,function,high,"reimplemented (src/game/terrain); (out, x, y, overlay): grey unless the tile's control byte 0 is 255; mixes 3 colour groups by 2 selectors in 16-pixel MMX runs, rows bottom-up, then the path overlay"
+0x0055f780,TerrainBlend_Tile,function,high,"reimplemented (src/game/terrain); (out, x, y, overlay): grey unless the tile's control byte 0 is 255; mixes 3 colour groups by 2 selectors in 16-pixel MMX runs, rows bottom-up, then the path overlay; the game's weight maps and ramps"
 0x0055e780,Lnd_BuildWeightMap,function,high,reimplemented (src/game/terrain/terrain_blend); bilinear upsampling of a tile of the control map
 0x0055e710,Lnd_BuildRamp,function,high,"reimplemented (src/game/terrain/terrain_blend); (table, centre, width): 256-entry 0..255 ramp"
 0x0055ee10,Lnd_BlendRow16,function,high,reimplemented (src/game/terrain/terrain_blend); blend of 16 texels from two colour pairs
@@ -597,7 +597,7 @@ address,name,kind,confidence,notes
 0x004709e0,Motion_Time,function,high,"reimplemented (src/game/motion/animator); cdecl (real): gMotionRealTime (0x7b4974) when real, else gMotionTime (0x7b496c)"
 0x00467030,Animator_Place,function,low,"reimplemented (src/game/motion/placement); (animator, x, y, cellX, cellY, angle, height, flags, w, d): flag 2 the footprint (turned by angle), flag 0x20 the turn and the grid position"
 0x004671f0,Animator_PlaceOnGround,function,low,"reimplemented (src/game/motion/placement); the animator moved to a cell on the ground, out of and back into the renderer"
-0x00449eb0,SinTable_Init,function,high,"SinTable_Build(4096); called once from the main loop before the Direct3D setup (0x44e080)"
+0x00449eb0,SinTable_BuildGame,function,low,"reimplemented (src/game/math/sintable); cdecl: SinTable_Build(4096), the game table (called from the startup sequence, 0x45abb6) (name unconfirmed)"
 0x0046f150,Matrix_Identity,function,high,"reimplemented (src/game/math); (m): 4x4 identity"
 0x0046f180,Matrix_ResetRotation,function,high,"reimplemented (src/game/math); (m): identity axes and m[15]; the translation m[12..14] is kept"
 0x0046f1c0,Matrix_Heading,function,high,"reimplemented (src/game/math); (m) -> x87 angle: atan2(m8, m10), or atan2(-m2, m0) when |m9| > 0.9"
@@ -1880,6 +1880,8 @@ address,name,kind,confidence,notes
 0x005fbcf0,AsyncPointer_SetImage,function,high,"reimplemented (src/game/gfx/pointer); thiscall (&out, image, &rect, &hotspot); Cursor_SetImage under the lock, Tick"
 0x005fbd40,AsyncPointer_BeginFlip,function,high,reimplemented (src/game/gfx/pointer); thiscall; locks; Cursor_Update(front surface)
 0x005fbd90,AsyncPointer_EndFlip,function,high,reimplemented (src/game/gfx/pointer); thiscall; Cursor_Restore(front surface); next tick; unlocks
+0x0047ebc0,PointerFrames_Show,function,low,"reimplemented (src/game/gfx/pointer); thiscall, the 0x6fefc8 class slot 2: the async pointer [0x7b4b84] given the Surface at +0x14, frame +0xc of 32 x 32 ones, the hot spot (+5, +6 signed bytes); +4 = 1 (name unconfirmed)"
+0x0047ec30,PointerFrames_Hide,function,low,"reimplemented (src/game/gfx/pointer); thiscall, the 0x6fefc8 class slot 3: the async pointer [0x7b4b84] given no image, a zero rectangle and hot spot; +4 = 0 (name unconfirmed)"
 0x005fbde0,EventQueue_StaticInit,function,high,"reimplemented (src/game/core/events); cdecl; the queue at 0xfa7cb0 constructed, its destructor registered"
 0x005fbdf0,EventQueue_Construct,function,high,reimplemented (src/game/core/events); cdecl; EventQueue_Ctor(0xfa7cb0)
 0x005fbe00,EventQueue_RegisterExit,function,high,reimplemented (src/game/core/events); cdecl; atexit(EventQueue_AtExit)
@@ -1939,6 +1941,7 @@ address,name,kind,confidence,notes
 0x00fa7e00,gColorFormatRgb888,data,high,PixelFormat (0x18): RGB888
 0x00fa7e18,gColorFormatRgb555,data,high,PixelFormat (0x18): RGB555
 0x00fa7cb0,gEventQueue,data,high,"EventQueue (src/game/core/events), six channels of listeners"
+0x0047e9d0,EventQueue_PostKind4,function,low,"reimplemented (src/game/core/events); cdecl (value): the event {4, value} (0x14 bytes on the stack, the rest unset) posted on channel 0 of the queue 0xfa7cb0; the window procedure (0x46b752) posts one (name unconfirmed)"
 0x005f9fa0,FpuControl_DeletingDtor,function,high,"reimplemented (src/game/core/fpu); thiscall (flags); vtable 0x7035d8 slot 0: Dtor, Mem_Free when flags & 1"
 0x005f9fc0,FpuControl_Dtor,function,high,reimplemented (src/game/core/fpu); thiscall; base vtable 0x7035dc then Restore
 0x005f9fd0,FpuControl_BaseDeletingDtor,function,high,"reimplemented (src/game/core/fpu); thiscall (flags); vtable 0x7035dc slot 0"
@@ -2798,6 +2801,7 @@ address,name,kind,confidence,notes
 0x005997b0,Table768fb8_Lookup,function,high,reimplemented (src/game/world/advisor); a value looked up by id in the 0x20-byte table at 0x768fb8
 0x00409260,Flags7a1a14_Update,function,high,reimplemented (src/game/core/namedobjects); a flag word updated from another and an object's advance
 0x005989c0,Advisor_Init,function,low,"reimplemented (src/game/world/advisor); cdecl: the advisor block at 0xf79660 zeroed (count 5 at 0xf79770, -1 at 0xf7978c); slots 0/1 holders' mouth part indices (Model_FindMouthPart 1-5, -1); slot 1's (or 0's) holder's motion bank 5 end times 0-19 (the 14th cleared), then ParticlePools_Reset"
+0x00599e70,Advisor_Ctor,function,low,reimplemented (src/game/world/advisor); thiscall: the advisor thing's constructor (thing model 11; name unconfirmed)
 0x00486610,Global7c24d8_CopyScript,function,high,reimplemented (src/game/ui/thingpreview); a sprite script slot made a copy of another
 0x00557110,Rsse_TakeFinished,function,high,"reimplemented (src/game/rsse/rsse_vm); the value of the first finished entry, which is cleared"
 0x0054dcc0,Flag54dcc0_Test,function,high,reimplemented (src/game/render/mode); a flag test on two settings
@@ -3186,6 +3190,7 @@ address,name,kind,confidence,notes
 0x00510180,Wrap_Nav_PathProgress_510180,function,low,reimplemented (src/game/core/thunks); jump to 0x50fd40
 0x0042a070,Wrap_Deleter_Minus8_458970_42a070,function,low,"reimplemented (src/game/core/thunks); thiscall (flags; pops 4): this lowered by the dword before it (a virtual base offset), then Deleter_Minus8_458970"
 0x004815c0,Wrap_KeyMap_AsyncModifiers_4815c0,function,low,reimplemented (src/game/core/thunks); a jump to KeyMap_AsyncModifiers
+0x00579090,Wrap_Debug_Printf_579090,function,low,"reimplemented (src/game/core/thunks); cdecl: this (the first stack argument) lowered by the dword before it, then the empty Debug_Printf (0x5da3c0); several slots of the 0x7010xx vtables"
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value
@@ -3600,7 +3605,7 @@ address,name,kind,confidence,notes
 0x00598770,Dwords_Zero,function,high,reimplemented (src/game/core/seqs); zeroes a run of dwords
 0x0056f2f0,Bands_SortValues,function,low,"reimplemented (src/game/core/seqs); thiscall on the bands object (values, lo, hi; pops 0xc): quicksort of dwords values[lo..hi] ascending unsigned; the j scan only when i > lo (sic), unbounded"
 0x0056f380,Bands_CollectTextures,function,low,"reimplemented (src/game/core/seqs); thiscall(ids, count, textures): each visible cell's texture (override box or its texture set's first) listed, its id added once; then the ids sorted"
-0x005f4ea0,ReturnOne,function,high,reimplemented (src/game/core/trivial); returns 1
+0x005f4ea0,ReturnOne,function,high,"reimplemented (src/game/core/trivial); returns 1 after MOVAPS XMM0,XMM0: the SSE probe 0x579a80 guards (it faults where the OS has not enabled SSE); the port leaves the MOVAPS out"
 0x00414670,Low16_414670,function,low,reimplemented (src/game/core/trivial); the low word of a value
 0x0044e600,OutOne_44e600,function,low,"reimplemented (src/game/core/trivial); an init step's answer: *out = 1, returns 1"
 0x00486b60,KeyMaps_EnableAllAndClearFlag,function,high,reimplemented (src/game/core/keymap); enables all keyboard maps and clears a flag
@@ -3781,6 +3786,7 @@ address,name,kind,confidence,notes
 0x0047fa00,TextMetrics_FitIndex,function,high,reimplemented (src/game/gfx/text); index at which the width runs out
 0x0047f990,TextMetrics_ForwardSlot8,function,high,reimplemented (src/game/gfx/text); Forwards to virtual call 8 of the inner object (name unconfirmed)
 0x0046c010,Text_SelectFont,function,low,"reimplemented (src/game/gfx/text); cdecl (index, mode): with the font table (0x7b059c) and a font in entry index (+0xc), Text_SetDriver of the plain glyph driver (mode 1) or the shape one (mode 0) with the font; 1, else 0 (name unconfirmed)"
+0x0047fa40,TextMetrics_Lookup,function,low,"reimplemented (src/game/gfx/text); thiscall (key), pops 4, the 0x6ff058 vtable slot 2: with the object at +0x14, the key through Ranges_LookupAdapter on [0x78ba80], then its slot 5 (&&key) and slot 7 (&local, that): the word at the pointer; else 0 (name unconfirmed)"
 0x0050f310,Matrix2_Transform,function,high,reimplemented (src/game/math/matrix); fixed point 2 x 2 transform of a pair
 0x005787b0,Vec2_Normalize,function,low,reimplemented (src/game/math/vec2); thiscall (x87): the float pair over its length; a zero or NaN length squared taken as 1
 0x00549020,IntVec2_Length,function,low,"reimplemented (src/game/math/vec2); cdecl (x, y): the integer pair's length, both halved while too big for the squares, the root shifted back"
@@ -3795,6 +3801,7 @@ address,name,kind,confidence,notes
 0x00579330,Transform_Vertices,function,low,"reimplemented (src/game/math/transform); cdecl: vertices transformed by a 4x4 matrix, by mode (4 in 4 out, point to 3, direction to 3, point to 4)"
 0x00579690,Transform_ProjectToScreen,function,low,"reimplemented (src/game/math/transform); cdecl: vertices divided by w and mapped to the render view's window, z by mode; returns the sum of the z's in st0"
 0x00579800,Transform_Concatenate,function,low,"reimplemented (src/game/math/transform); cdecl (self, a, b, out): out = a * b (4x4), a row at a time"
+0x00579a80,Transform_SseProbe,function,low,"reimplemented (src/game/math/transform); cdecl: whether SSE instructions run, 1: __try around 0x5f4ea0 (MOVAPS, then 1), whose __except (filter 0x579ad2: the result not 1; handler 0x579adc) returns 0; asked by 0x578224 when the CPUID SSE bit is set (name unconfirmed)"
 0x00503980,Table_ScaledBySum,function,high,reimplemented (src/game/world/staff); a table share scaled by the things' sum
 0x00505a10,Staff_Train,function,low,"reimplemented (src/game/world/staff); thiscall (amount): pay for training: debit the money, add to the park's spend, add amount / cost points of progress, raise the grade at 100"
 0x00508000,Staff_CountTypes,function,low,"reimplemented (src/game/world/staff); thiscall: count the world's staff by type, flagging the types that reached their limits"
@@ -4135,6 +4142,10 @@ address,name,kind,confidence,notes
 0x0040f000,CommandLine_Parse,function,low,"reimplemented (src/game/core/cmdline); cdecl (argc, argv): the switches v/version (0), flmouse, bwcursor and the skipped ones; the park file with the extension into 0x788164, else GameError_Set(2); 1 without an error"
 0x005e6b30,WScanner_SetText,function,low,"reimplemented (src/game/core/wscanner); thiscall (text by value, context, flags; pops 0x18): flag bytes +0x3d-+0x3f and +0x40 set, the wstring at +4 assigned the text and frozen, +0x34/+0x38 its characters and 0, the text destroyed"
 0x005e73f0,WKeywordPair_Ctor,function,low,"reimplemented (src/game/core/wscanner); thiscall (key by value, 16-byte value by value; pops 0x20): the wstring at +0 made empty and assigned the key, +0x10..+0x1c the value, the key destroyed; returns the pair"
+0x005e57c0,WScanner_PushToken0c,function,low,"reimplemented (src/game/core/wscanner); thiscall: a pair {"""", L"""", 0xc} pushed on the vector at +0x50, then the position set to the text's end (name unconfirmed)"
+0x005e6070,WScanner_PushToken12,function,low,"reimplemented (src/game/core/wscanner); thiscall: a pair {"""", L"""", 0x12} pushed on the vector at +0x50, then the position set to the text's end (name unconfirmed)"
+0x005e6540,WScanner_PushToken15,function,low,"reimplemented (src/game/core/wscanner); thiscall: a pair {"""", L"""", 0x15} pushed on the vector at +0x50, then the position set to the text's end (name unconfirmed)"
+0x005e6fc0,WScanner_SpanInSet14,function,low,"reimplemented (src/game/core/wscanner); thiscall: the run of characters from the position in the set at +0x14, the position moved past it; -1 at the text's end (name unconfirmed)"
 0x0045f640,Startup_CheckCanRun,function,low,"reimplemented (src/game/core/startcheck); cdecl u8 (): 0 with game error 0 when not installed (Registry_GameInstalled); else CreateMutexA(0, 1, [0x7a2508]) kept at 0x7a267c, and when made with GetLastError 0xb7 (already exists) game error 1, CloseHandle, 0; else 1"
 0x0040c120,KeyAction_Turn90,function,low,"reimplemented (src/game/core/keyactions); cdecl: Global81d7a4_SetRecorded((0x81d7a4 + 90) signed mod 360, 1); returns 1 (key ',')"
 0x0040c150,KeyAction_Turn270,function,low,"reimplemented (src/game/core/keyactions); cdecl: Global81d7a4_SetRecorded((0x81d7a4 + 270) signed mod 360, 1); returns 1 (key '.')"
@@ -4716,6 +4727,7 @@ address,name,kind,confidence,notes
 0x0056b8d0,WorldView_SetRangeY,function,low,"reimplemented (src/game/render/worldview); thiscall (start, end, step; pops 0xc): the same for +0x44/+0x48/+0x50 and +0x58/+0x60, computed twice (sic)"
 0x00563220,FixedVerts_Pack,function,low,"reimplemented (src/game/render/fixedverts); cdecl (verts, count, stride): transformed vertices packed in place to 0x18-byte fixed-point ones (x*32, y*16, z*65535, colour, u*16, v*16)"
 0x00563130,FixedVerts_PackRounded,function,low,"reimplemented (src/game/render/fixedverts); cdecl (verts, count, stride): FixedVerts_Pack's packing with x, y * 8 or 16 by the flags 0x8bd508, z * 32768, rounded to nearest through 0xfb34a0 / 0xfb34a4"
+0x005630b0,FixedVerts_Modulate,function,low,"reimplemented (src/game/render/fixedverts); cdecl (verts, colour, count, stride), MMX: the colour dwords (+0x10) of (count + 1) / 2 vertex pairs modulated by colour, each byte (byte * colour byte) >> 8 (name unconfirmed)"
 0x0053ddd0,VertexBlock_Add,function,low,"reimplemented (src/game/render/vertexblock); thiscall (x, y, z, u, v, wave, normal; pops 0x1c): a vertex added four abreast, y raised by the ground and a sine ripple when waving, with its normal"
 0x0053e530,VertexBlock_AddQuad,function,low,"reimplemented (src/game/render/vertexblock); thiscall (positions, unused, uvs, normals; pops 0x10): four corners added (VertexBlock_Add, no wave), then two triangles of word indices into the index list at +0x94, its count +0x98 up by two; returns the new count"
 0x00561c40,ClipEdge_YW,function,low,"reimplemented (src/game/render/clipedge); cdecl (out, a, b, stride): the vertex where edge b-a crosses y = w: t = 0.9999 dB / (dB - dA), w, texture coordinates, colours lerped, y = w"

@@ -75,4 +75,7 @@ void __fastcall EventQueue_Listen(EventQueue *q, void *edx, u32 channel, void *c
 void __fastcall EventQueue_Unlisten(EventQueue *q, void *edx, u32 channel, void *callback, void *context);
 void __fastcall EventQueue_Clear(EventQueue *q);  // 0x5fc220: every listener and node freed
 EventList *__fastcall EventListBase_DeletingDtor(EventList *l, void *edx, u32 flags);  // 0x5fc2d0
+// 0x47e9d0 (cdecl; value; name unconfirmed): an event {4, value} (0x14 bytes on the stack, the rest unset) posted on channel 0 of the queue;
+// the game's window procedure (0x46b752) posts one.
+void __cdecl EventQueue_PostKind4(u32 value);
 }

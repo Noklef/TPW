@@ -43,7 +43,8 @@ void __cdecl Stub_Ret2();
 
 u32 __cdecl Const_1000000();
 
-// 0x5f4ea0: returns 1.
+// 0x5f4ea0: returns 1. (The original runs MOVAPS XMM0,XMM0 first: the SSE probe 0x579a80 guards, which faults where the
+// operating system has not enabled SSE; left out, as every Windows the port runs on has.)
 u32 __fastcall ReturnOne();
 
 // 0x564a50 / 0x5ceaa0 (cdecl), 0x5cea90 (stdcall; one argument), 0x6bab20 (stdcall; four arguments): -1.

@@ -32,4 +32,10 @@ double __cdecl Transform_ProjectToScreen(void *self, float *vertices, s32 stride
 // computed, so out may be a, and out being b feeds the stored rows into the next), each element ((a0 * b0 + a1 * b1) + a2 * b2) +
 // a3 * b3.
 void __cdecl Transform_Concatenate(void *self, const float *a, const float *b, float *out);
+
+// 0x579a80 (cdecl): whether SSE instructions run: 1. The original guards a call of 0x5f4ea0 (ReturnOne here: MOVAPS XMM0,XMM0,
+// then 1) with __try; where the operating system has not enabled SSE the MOVAPS faults, its __except filter (0x579ad2: the result
+// not 1) takes the handler (0x579adc) and 0 is returned. The caller (0x578224) asks when CPUID's SSE bit (0x2000000) is set,
+// before it makes the SSE transformer. (Every Windows the port runs on has SSE enabled, and ReturnOne leaves the MOVAPS out.)
+u32 __cdecl Transform_SseProbe();
 }
