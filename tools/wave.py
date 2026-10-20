@@ -2,7 +2,9 @@
 usage:
   wave.py list [LO HI]     (env VCALLS=1 also takes functions with virtual calls) the unported functions of the range (default 401000 630000) whose callees are all hooked ("wave 0"), with their sizes; _re/wave0.json
                            and _re/r1.json (the portable closure: no x87, no indirect calls) are written. The function starts are the 16-byte aligned addresses after
-                           0xCC padding in the exe, and Ghidra's starts.
+                           0xCC padding in the exe, and Ghidra's starts. Env FPU=1 also takes x87 functions; SORT=size lists the biggest first.
+  wave.py unlock [LO HI]   the unported callees (anywhere) that are the ONLY unported callee of unported functions in the range: each with the
+                           functions and bytes its port would put in wave 0 (any x87 or virtual calls counted), the most bytes first. Port these to open the big ones.
   wave.py body ADDR...     the instructions of each function on one line (sizes from _re/r1.json, else 0x40)
   wave.py dec ADDR...      Ghidra's decompilation (_re/decomp-typed; env DECLIM = characters per function, default 6000)
   wave.py data ADDR:N...   N bytes of the exe at ADDR (jump tables)
@@ -79,7 +81,7 @@ def body(start, size, idx=None):
         i += 1
 
 
-def cmd_list(lo, hi):
+def cmd_list(lo, hi, unlock=False):
     import leafq
     import x87emu
     hooked = set(int(x, 16) for x in re.findall(r'0x00([0-9a-f]{6})', open(os.path.join(ROOT, 'src', 'hook', 'hooks.cpp')).read())) | leafq.PROVIDED
@@ -94,7 +96,7 @@ def cmd_list(lo, hi):
             listing.add(int(line[:8], 16))
         except ValueError:
             pass
-    starts = {va for va in listing if 0 < va - tbase < len(text) and text[va - tbase - 1] == 0xCC and text[va - tbase] != 0xCC}
+    starts = {va for va in listing if va % 16 == 0 and 0 < va - tbase < len(text) and text[va - tbase - 1] == 0xCC and text[va - tbase] != 0xCC}  # (aligned: x87 code ends instructions in CC bytes, FXCH ST4 = D9 CC)
     for f in glob.glob(os.path.join(ROOT, '_re', 'decomp-typed', 'decomp_*.c')):
         for m in re.finditer(r'^// ==== (\S+) @ ([0-9a-f]{8}) ====', open(f, errors='replace').read(), re.M):
             starts.add(int(m.group(2), 16))
@@ -121,7 +123,7 @@ def cmd_list(lo, hi):
             rec['vcall'] += 1
         if re.match(r'F[A-Z]', ins):
             rec['fpu'] += 1
-    cand = {a for a, r in info.items() if r['fpu'] == 0 and (r['vcall'] == 0 or os.environ.get('VCALLS'))}  # VCALLS=1: virtual and indirect calls allowed (recorder benches)
+    cand = {a for a, r in info.items() if (r['fpu'] == 0 or os.environ.get('FPU')) and (r['vcall'] == 0 or os.environ.get('VCALLS'))}  # VCALLS=1: virtual and indirect calls allowed (recorder benches)
     closure, changed = set(), True
     while changed:
         changed = False
@@ -132,11 +134,21 @@ def cmd_list(lo, hi):
     wave0 = sorted(a for a in closure if all(t in hooked for t in info[a]['callees']))
     for a in info:
         info[a]['size'] = extent(a)
+    if unlock:
+        gain = {}
+        for a, r in info.items():
+            missing = {t for t in r['callees'] if t not in hooked and 0x401000 <= t < 0x6e7000}
+            if len(missing) == 1:
+                g = gain.setdefault(missing.pop(), [0, 0])
+                g[0], g[1] = g[0] + 1, g[1] + r['size']
+        for t, (n, b) in sorted(gain.items(), key=lambda kv: -kv[1][1])[:40]:
+            print('%x%s  unlocks %d (%d bytes)' % (t, '(%d)' % info[t]['size'] if t in info else ' (outside the range)', n, b))
+        return
     json.dump({'%x' % a: [info[a]['size'], 0] for a in sorted(closure)}, open(os.path.join(ROOT, '_re', 'r1.json'), 'w'))
     json.dump(['%x' % a for a in wave0], open(os.path.join(ROOT, '_re', 'wave0.json'), 'w'))
     idx = index()
-    shown = 0
-    for a in wave0:
+    shown = shown_bytes = 0
+    for a in (sorted(wave0, key=lambda a: -info[a]['size']) if os.environ.get('SORT') == 'size' else wave0):
         b = body(a, info[a]['size'], idx)
         text_of = ' '.join(b)
         if b and (b[0].startswith('SUB ECX,dword ptr [ECX + -0x4]') or (len(b) <= 3 and b[-1].startswith('JMP')) or ('[EBP' in text_of and 'PUSH EBP' not in text_of)
@@ -144,13 +156,14 @@ def cmd_list(lo, hi):
             continue
         print('%x(%d)' % (a, info[a]['size']), end=' ')
         shown += 1
-    print('\n%d unported, %d portable, %d in wave 0, %d shown' % (len(info), len(closure), len(wave0), shown))
+        shown_bytes += info[a]['size']
+    print('\n%d unported, %d portable, %d in wave 0, %d shown (%d bytes)' % (len(info), len(closure), len(wave0), shown, shown_bytes))
 
 
 def main():
     cmd, args = sys.argv[1], sys.argv[2:]
-    if cmd == 'list':
-        cmd_list(int(args[0], 16) if args else 0x401000, int(args[1], 16) if len(args) > 1 else 0x630000)
+    if cmd in ('list', 'unlock'):
+        cmd_list(int(args[0], 16) if args else 0x401000, int(args[1], 16) if len(args) > 1 else 0x630000, unlock=cmd == 'unlock')
     elif cmd == 'body':
         r1 = json.load(open(os.path.join(ROOT, '_re', 'r1.json'))) if os.path.exists(os.path.join(ROOT, '_re', 'r1.json')) else {}
         idx = index()

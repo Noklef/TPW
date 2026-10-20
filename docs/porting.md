@@ -48,9 +48,12 @@ range, open items, known skips and the paths of the two memory files it should r
 - One or two existing benches as models, e.g. tests/fncmp/drives.py (imports via recorders), tests/fncmp/wrapsources.py (vtable recorders).
 
 ## The cycle
-1. Find candidates in your range:
-   - `python -I tools/wave.py list LO HI`: wave 0, functions whose callees are all ported. `VCALLS=1` also lists functions with virtual or
-     indirect calls (benchable with recorder vtables).
+1. Find candidates in your range. Progress is measured in bytes of game code ported, not in functions: most of what is left is a few
+   hundred functions over 1 KB, so prefer the biggest candidate you can bench over a run of small leaves.
+   - `SORT=size FPU=1 VCALLS=1 python -I tools/wave.py list LO HI`: wave 0, functions whose callees are all ported, the biggest first.
+     `VCALLS=1` takes functions with virtual or indirect calls (benchable with recorder vtables), `FPU=1` x87 ones (the emulator runs them).
+   - `python -I tools/wave.py unlock LO HI`: the unported callees that alone keep bigger functions out of wave 0, the most bytes first.
+     Port those (or name them to the lead when they are another agent's) to open the big ones.
    - `python -I tools/leafq.py LO HI` groups candidates by vtable, object and nearest symbol.
    - Port bottom-up. Once a batch lands, its callers may become wave 0.
 2. Understand each function from the listing, not Ghidra alone:
@@ -72,11 +75,14 @@ range, open items, known skips and the paths of the two memory files it should r
      `r.deal(list)` (tools/fncmp.py: a shuffled deck, every item once per round) instead of `r.choice`, or weight a shared op up, so every
      function in the bench gets 5+ cases in 400. Check with `FNCMP_COVER=x.jsonl python -I tests/fncmp/B.py 400 6` and read `direct` for
      the bench's addresses (one missing from the dict means 0). Never fix it by dropping ops.
+   - The coverage gate's "none" must not grow: every hook is compared somewhere. "indirect only" (compared through a caller's bench) is
+     enough for a function without logic of its own (a thunk, a forwarder); one with its own decisions gets a direct case.
    - Use `--unverified "REASON"` only for a function that truly cannot be compared (hardware, real imports with no recorder possible), never
      to get past a failing bench.
-5. Mutants:
-   - About 8 targeted ones per module: bounds, flags, signedness, constants, off-by-one.
-   - Use 1-2 for one-line leaves; skip trivial ctors/dtors.
+5. Mutants, where they can find something the cases miss:
+   - For code with decisions (branches, clamps, tie-breaks, loop bounds, signedness): about one targeted mutant per decision, at most
+     about 8 per module.
+   - None for straight-line code (accessors, stores, forwarding thunks, trivial ctors/dtors): the 1000-case comparison pins it.
    - Grep their output with `-iE "^caught|^survived|^build err"`. A survivor gets a better case, or is noted as equivalent with the reason.
 6. Driver/harness:
    - When a port's env calls game code by raw address, or a game vtable must point at the ports, the native driver needs a change in
@@ -246,15 +252,13 @@ checked like the zlib rows, before any of it is replaced.
 
 ## Scope and stop
 - Port within your address range, bottom-up, a module at a time.
-- Stop after about 30-40 committed functions, or earlier if your context is getting large. Then reply with a short report:
-  - your commits (hash and subject);
-  - the functions ported, per module, counted from the hooks rows your commits added (not from memory);
-  - new modules created;
-  - names you invented (unconfirmed);
+- Stop after about 40 committed functions or 20 KB of ported code (wave.py's sizes), whichever comes first, or earlier if your context is
+  getting large. Then reply with a short report of exceptions only (the lead reads your commits from git):
+  - the count and KB ported, counted from the hooks rows your commits added (not from memory);
+  - new modules created and names you invented (unconfirmed);
   - fncmp/driver changes;
-  - --unverified rows added and why;
-  - mutant survivors and why they are equivalent;
-  - anything skipped and why.
+  - --unverified rows added, mutant survivors and skips, each with its reason;
+  - blockers in another agent's range (address and blocker), and anything the lead must act on.
 - The lead may send you a follow-up message to continue.
 
 ## Merging a branch (lead)
@@ -266,5 +270,7 @@ In the main tree, one branch at a time:
    no duplicates or lone CRs, the branch's added hooks count, then build, tpw_tests, retcheck, convcheck and every touched bench at 1000
    cases --both. It stops at the first failure. Check the agent's reported function count against its hooks count.
 4. Commit the merge (message: the round, what it ported, anything not merged).
-5. `python -I tools/coverage.py --check` (about 400 s; nothing else builds or edits tests/fncmp while it runs).
-6. Fast-forward each worktree: `git -C .worktrees/X merge -q --ff-only main`. Start a fresh agent per round.
+5. Fast-forward the worktree (`git -C .worktrees/X merge -q --ff-only main`) and start the agent's next round right away (a fresh agent
+   per round).
+6. Then `python -I tools/coverage.py --check` (about 400 s; nothing else in the main tree builds or edits tests/fncmp while it runs). If it
+   fails, fix it on main and tell the running agents what changed.
