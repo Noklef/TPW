@@ -4791,6 +4791,7 @@ const Hook kHooks[] = {
     {"Dialog7cb2b8_ResetChild21Only", 0x004b4470, (void *)&Dialog7cb2b8_ResetChild21Only, {0x6a, 0x00, 0xe8, 0x79, 0xe1}},
     {"Obj7b51f0_ResetDialogChild21", 0x004816b0, (void *)&Obj7b51f0_ResetDialogChild21, {0xe8, 0xcb, 0x2d, 0x03, 0x00}},
     {"WindowText7cb4d0_Handler",  0x004bcb70, (void *)&WindowText7cb4d0_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x14}},
+    {"Dialog7cc4c4_Create",       0x004b9a70, (void *)&Dialog7cc4c4_Create, {0x6a, 0xff, 0x68, 0xd6, 0xb6}},
     {"GuiManager_Word4Set",       0x00659631, (void *)&GuiManager_Word4Set, {0x55, 0x8b, 0xec, 0x8b, 0x0d}},
     {"GuiManager_CallSlot3",      0x0065961c, (void *)&GuiManager_CallSlot3, {0x55, 0x8b, 0xec, 0xa1, 0x8c}},
     {"GuiManager_CallSlot4",      0x00659607, (void *)&GuiManager_CallSlot4, {0x55, 0x8b, 0xec, 0xa1, 0x8c}},

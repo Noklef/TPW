@@ -7,13 +7,27 @@
 #include "../core/language.h"
 #include "../core/vcall.h"
 #include "../render/particles.h"
+#include "../render/textparts.h"
 #include "guirect.h"
 #include "window.h"
 #include "window705a50.h"
+#include "windowscript.h"
 
 namespace {
 
 u8 *window(u32 address) { return *reinterpret_cast<u8 **>((uintptr_t)address); }
+
+// the 0x7cc4c4 dialog's texts: a TextPart_Ctor part (0x1a4 bytes, GameHeap_Alloc; none when that fails), the bytes 1, 1 as 0xc00 and
+// 0x3000, the font, the bytes 0xff and the text 0
+void dressText(u8 *text, u32 font) {
+    u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
+    Window_SetImpl(text, nullptr, memory ? TextPart_Ctor(memory, nullptr, 0) : nullptr);
+    Window_NotifyC00(text, nullptr, 1, 1);
+    Window_Notify3000(text, nullptr, 1, 1);
+    Window_Set4c(text, nullptr, Language_Font(font));
+    Window_Notify40000(text, nullptr, 0xff, 0xff, 0xff, 0xff);
+    Window_NotifyImpl100(text, nullptr, 0);
+}
 }
 
 extern "C" {
@@ -210,5 +224,15 @@ void __cdecl Window7ca2e8_ClearButtons(u32 mode) {
     const u32 n = mode == 3 ? 2 : 6;
     for (u32 i = 0; i < n; i++)
         Window705a50_SetState(Window_FindChild(panel, nullptr, ids[i]), nullptr, 0, 1);
+}
+
+void __cdecl Dialog7cc4c4_Create() {
+    if (window(0x007cc4c4)) return;
+    u8 *const frame = window(0x00f82884);
+    u8 *const dialog = WindowScript_Build(*reinterpret_cast<u8 **>(frame + 4), nullptr, reinterpret_cast<u8 *>(0x007581a0), 0x004b9950);
+    *reinterpret_cast<u8 **>(0x007cc4c4) = dialog;
+    dressText(Window_FindChild(dialog, nullptr, 0x16c11), 5);
+    dressText(Window_FindChild(window(0x007cc4c4), nullptr, 0x16c12), 8);
+    *reinterpret_cast<u32 *>(0x007cc4e4) = 0;
 }
 }
