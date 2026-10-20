@@ -81,7 +81,7 @@ def reset_case(r, op, regions):
     regions[0x7cb2ac] = struct.pack('<I', r.choice([1, 1, 1, 0, r.getrandbits(32)]))
     regions[0x7cc2f0] = struct.pack('<I', r.choice([1, 1, 0, r.getrandbits(32)]))
     if op == 'Dialog7cb2b8_ResetChild21':
-        flag = r.choice([0, 1, 1, 0x10000, r.getrandbits(32)])
+        flag = r.choice([0, 1, 1, 0x100, 0x8000, 0x10000, r.getrandbits(32)])   # (a word: 0x100 and 0x8000 count, 0x10000 does not)
         return Call(CALLS[op], [flag], regions)
     if op == 'Obj7b51f0_ResetDialogChild21':
         return Call(CALLS[op], [0x7b51f0], regions, conv='t', ret='a')
