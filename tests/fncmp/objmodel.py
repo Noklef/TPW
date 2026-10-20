@@ -3,8 +3,8 @@
 # not, 0-3 texture sets (or none) with 1, 2 or 0 users (their own counts 0: the tracked blocks only), the saved pairs off, the block
 # at +0x13c none or one without a texture, the tracked blocks (+0x144, the meshes' +0x74, the sets' +8) as in spritesfree.py's
 # table, the model's flag 2 with the procedural texture object (no cache; a tracked block or none) there or not.
-# The load (0x579e00): see load().
-# usage: objmodel.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Unload,Load)
+# The load (0x579e00): see load(). A holder's part made (0x45bbc0, model/holder): see create().
+# usage: objmodel.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Unload,Load,Create)
 import os
 import struct
 import sys
@@ -20,8 +20,8 @@ import wctimage  # noqa: E402
 
 B = Bench(wctimage.merged([(0x57a100, 0x57a258), (0x579b80, 0x579c13), (0x57b2e0, 0x57b393), (0x57b070, 0x57b130), (0x57b5b0, 0x57b608),
                            (0x575f00, 0x575f8d), (0x56e4e0, 0x56e549), (0x67afa0, 0x67b0d0), (0x67acb0, 0x67acb1), (0x579e00, 0x57a0f2),
-                           (0x54dcc0, 0x54dce8)] + texset.RANGES + texcache.RANGES + loadscreen.RANGES))
-CALLS = {'Unload': 0x57a100, 'Load': 0x579e00}
+                           (0x54dcc0, 0x54dce8), (0x45bbc0, 0x45bc58), (0x579cd0, 0x579df1), (0x5775d0, 0x5775f3)] + texset.RANGES + texcache.RANGES + loadscreen.RANGES))
+CALLS = {'Unload': 0x57a100, 'Load': 0x579e00, 'Create': 0x45bbc0}
 OBJ, MODEL, SETS, SET, MESHES, FACES, WORDS, BLOCK, TEX = (RAM, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x1000, RAM + 0x2000,
                                                         RAM + 0x2400, RAM + 0x2600, RAM + 0x3000)
 COUNT, TABLE = 0x8bb214, 0x87b1f8
@@ -193,10 +193,29 @@ def load(r):
     return Call(0x579e00, [LOBJ, address], regions, conv='t', ret='a')
 
 
+HOLDER, OWNER, LIVE = RAM + 0x48000, RAM + 0x48100, 0x87a6d8
+
+
+def create(r):
+    """0x45bbc0: load()'s case with its model at the holder's +4, the part made first (Mem_Alloc(0x158), its allocation failing now and
+    then: 0x579e00 then given no object, a crash in both; load()'s failing allocation one later), constructed (most derived; the live
+    objects 0-0x1ff listed) and loaded; the holder's owner (+8) or none, the count (+0x34) its or the holder's."""
+    c = load(r)
+    regions = c.regions
+    first = struct.unpack_from('<I', regions[HEAP], 0)[0]
+    fail = 1 if r.random() < 0.05 else (first & 15) + 1 if first & 15 else 0
+    regions[HEAP] = put(bytearray(regions[HEAP]), 0, 'I', first & ~15 | fail)
+    holder = put(bytearray(r.bytes(0x40)), 4, 'I', c.args[1])
+    put(holder, 8, 'I', r.choice([0, OWNER]))
+    regions.update({HOLDER: holder, OWNER: r.bytes(0x40), LIVE: put(bytearray(r.bytes(0x808)), 0x800, 'I', r.randrange(0x200))})
+    return Call(0x45bbc0, [HOLDER], regions, ret='v')
+
+
 def case(r):
-    if r.deal(OPS) == 'Load':
+    op = r.deal(OPS)
+    if op == 'Load':
         return load(r)
-    return unload(r)
+    return create(r) if op == 'Create' else unload(r)
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
