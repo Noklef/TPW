@@ -39,6 +39,8 @@ void __cdecl SinTable_Build(u32 n) {
         values[i] = (float)X87_Sin(single ? (X87Reg((double)i) / X87Reg(nf) * X87Reg(6.28318548f)).v : (double)i / nf * (double)6.28318548f);
 }
 
+void __cdecl SinTable_BuildGame() { SinTable_Build(0x1000); }
+
 void __cdecl SinTable256_Build() {
     float *values = reinterpret_cast<float *>(0x008c63d8);
     for (s32 i = 0; i < 0x100; ++i)

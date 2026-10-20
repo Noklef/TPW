@@ -1,5 +1,6 @@
 # The game's sine table build (src/game/math/sintable: 0x4708d0, n) against the original, at the precision the game runs it at shutdown (24 bits, the
 # emulator's): n from 0 up, mostly small, now and then the game's 4096 or past the table's 4096 entries (the values run over the count at 0x7b4968).
+# Also 0x449eb0, which builds it at 4096.
 # usage: sintable.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import sys
@@ -7,11 +8,13 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call  # noqa: E402
 
-B = Bench([(0x4708d0, 0x470937)])
+B = Bench([(0x4708d0, 0x470937), (0x449eb0, 0x449ebe)])
 SCALE, VALUES, COUNT = 0x7b095c, 0x7b0968, 0x7b4968
 
 
 def case(r):
+    if r.random() < 0.15:
+        return Call(0x449eb0, [], {SCALE: r.bytes(0xc + 4 * 4096), COUNT: r.bytes(4)})
     k = r.random()
     n = r.randrange(0, 40) if k < 0.6 else r.randrange(40, 600) if k < 0.92 else r.choice([4095, 4096, 4096, 4097, 4100])
     if VALUES + 4 * n <= COUNT:
