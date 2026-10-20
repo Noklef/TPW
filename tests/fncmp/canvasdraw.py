@@ -31,9 +31,6 @@ ADDRESSES = {8: [0x5fd640, 0x600060, 0x601b40, 0x601d10, 0x601ee0, 0x601a00, 0x6
              32: [0x611360, 0x6139a0, 0x615380, 0x615520, 0x6156c0, 0x615250, 0x616de0, None, 0x615cd0, 0x615ea0, 0x616340, 0x616890]}
 CALLS = {SLOTS[slot][0] + ('' if slot == 7 else str(depth)): (slot, at, depth) for depth, slots in ADDRESSES.items()
          for slot, at in enumerate(slots) if at}
-# Gap: the 32-bit mask (0x616340) is left out: the listing decodes 0x616773 (SUB ECX,EDI, 2b cf) from 0x616774 as IRETD, which its column skip
-# (a run shorter than the columns still to pass) falls into, so the emulator cannot run it.
-del CALLS['Mask32']
 FORMATS = None
 STATIC = [0xfa7d40, 0xfa7de8, 0xfa7e18, 0xfa7d88, 0xfa7d70, 0xfa7e00, 0xfa7dd0, 0xfa7db8, 0xfa7d58, 0xfa7da0, 0xfa7d28]
 

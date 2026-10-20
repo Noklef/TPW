@@ -159,7 +159,6 @@ address,name,module,reason
 5fc840,JpegCodec_Load,gfx/jpeg,todo
 5fcbc0,JpegCodec_IsJpeg,gfx/jpeg,todo
 5fcc50,FileTime_FromSpan,core/filetime,todo
-616340,Canvas32_Mask,gfx/canvasdraw,"the listing decodes 0x616773 (SUB ECX,EDI) from 0x616774 as IRETD, which its column skip falls into: the emulator cannot run it"
 63a7b0,IndexConverter_Ctor,gfx/pixconv,todo
 63a810,IndexConverter_DeletingDtor,gfx/pixconv,todo
 63a830,IndexConverter_Dtor,gfx/pixconv,todo
