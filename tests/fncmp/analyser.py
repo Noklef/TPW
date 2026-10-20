@@ -2,8 +2,8 @@
 # 0x4c7b70, 0x4c94a0-0x4c94d0) against the originals: rings with cursors before, at
 # and past their sizes, wrapped or not; looks back of every sign about the cursor and size;
 # positions 0 and beyond the grid with scales of either sign. The people's average about a cell (0x4cd880): a cell id of any column and
-# row (now and then 0, past the grid or with high bits), a radius 0-3 (now and then 4, 5, or past 2^32 - 127: the unsigned sums cut, no
-# cells); the map cells it reads (gMapCells [0x8023a0], each one's first thing, runs of ids each a region) and chains of up to eight things
+# row (now and then 0, past the grid or with high bits), a radius 0-3 (now and then 4, 5, or past 2^32 - 127, mostly about the cell 1:
+# the far edges' unsigned sums wrap and are cut); the map cells it reads (gMapCells [0x8023a0], each one's first thing, runs of ids each a region) and chains of up to eight things
 # (the slots at 0x7cfb90, their next +0xa; each thing in one chain or none) of kind 1 mostly, their floats +0x19c 0..100 mostly (else
 # negative, past 255 or NaN).
 # usage: analyser.py [CASES [SEED]] [--wild|--both] [--show N]
@@ -26,9 +26,11 @@ def s32(v):
 
 def around(r):
     """0x4cd880's case (the module comment)"""
+    radius = r.choice([0, 1, 1, 2, 3]) if r.random() < 0.8 else r.choice([4, 5, 0xffffffff, 0xfffffffe])
     column, row = r.choice([0, 1, 5, 126, 127, r.randrange(128)]), r.choice([0, 1, 126, 127, r.randrange(128), r.randrange(128, 0x200)])
+    if radius > 5 and r.random() < 0.7:   # (column and row 0: the far edges' sums wrap and are cut, the cells past the near ones read)
+        column, row = 0, 0
     cell = (row << 7) + column + 1 if r.random() < 0.9 else r.choice([0, r.getrandbits(16)])
-    radius = r.choice([0, 1, 1, 2, 3]) if r.random() < 0.9 else r.choice([4, 5, 0xffffffff, 0xfffffffe])
     cid = ((cell & 0xffff) - 1) & 0xffffffff
     cx, cy = cid & 0x7f, cid >> 7
     left, top = s32(cx - radius), s32(cy - radius)
