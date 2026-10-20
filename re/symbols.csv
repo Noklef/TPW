@@ -5124,6 +5124,8 @@ address,name,kind,confidence,notes
 0x0065fc18,WindowScript_ReadWord,function,low,reimplemented (src/game/ui/windowscript); a window script's next word
 0x0065fc38,WindowScript_ReadRect,function,low,reimplemented (src/game/ui/windowscript); a window script's next four words to four outputs
 0x0065fcc5,WindowScript_ReadPair,function,low,reimplemented (src/game/ui/windowscript); a window script's next two words to two outputs
+0x0065fd58,WindowScript_Run,function,low,"reimplemented (src/game/ui/windowscript); thiscall (script), pops 4: the window script interpreter (opcodes to 5 or past 0x12; children made and their scripts run); returns the last child made"
+0x0065fd0e,WindowScript_Build,function,low,"reimplemented (src/game/ui/windowscript); thiscall (script, handler), pops 8: read position 0, WindowScript_Run, the handler set on the child it returns"
 0x0063ea00,adler32,function,high,"reimplemented (src/game/lib/zlib); zlib 1.1.3 adler32.c, the library's own (third_party/zlib-1.1.3)"
 0x0063eba0,init_block,function,high,"reimplemented (src/game/lib/zlib); zlib 1.1.3 trees.c, the library's own (third_party/zlib-1.1.3)"
 0x00640460,set_data_type,function,high,"reimplemented (src/game/lib/zlib); zlib 1.1.3 trees.c, the library's own (third_party/zlib-1.1.3)"
