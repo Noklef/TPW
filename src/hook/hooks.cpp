@@ -5327,6 +5327,9 @@ const Hook kHooks[] = {
     {"jpeg6a_jcmaster_validate_script", 0x006562fc, (void *)&jpeg6a_jcmaster_validate_script, {0x55, 0x8b, 0xec, 0x81, 0xec}},
     {"jpeg6a_jcmaster_initial_setup", 0x00655fc0, (void *)&jpeg6a_jcmaster_initial_setup, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jpeg6a_jinit_c_master_control", 0x00655ea0, (void *)&jpeg6a_jinit_c_master_control, {0x55, 0x8b, 0xec, 0x51, 0x6a}},
+    {"jpeg6a_jcmainct_process_data_simple_main", 0x00650608, (void *)&jpeg6a_jcmainct_process_data_simple_main, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"jpeg6a_jcmainct_start_pass_main", 0x00650589, (void *)&jpeg6a_jcmainct_start_pass_main, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jinit_c_main_controller", 0x006504c0, (void *)&jpeg6a_jinit_c_main_controller, {0x55, 0x8b, 0xec, 0x83, 0xec}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

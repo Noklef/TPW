@@ -103,6 +103,19 @@ void __cdecl jpeg6a_jcmaster_per_scan_setup(jpeg6a_compress_struct *cinfo);
 void __cdecl jpeg6a_jcmaster_pass_startup(jpeg6a_compress_struct *cinfo);
 void __cdecl jpeg6a_jcmaster_finish_pass_master(jpeg6a_compress_struct *cinfo);
 
+// jcmainct.c, the main buffer controller, through third_party/wrap/jpeg-6a/jcmainct.c (without FULL_MAIN_BUFFER_SUPPORTED, as the
+// exe's build: a full-image buffer is JERR_BAD_BUFFER_MODE 4).
+// 0x6504c0: cinfo->main (alloc_small of the image pool, 0x40) and start_pass (through the method shim, jpeg6a.cpp); unless
+// raw_data_in, a strip of v_samp_factor * 8 rows for each component (alloc_sarray).
+void __cdecl jpeg6a_jinit_c_main_controller(jpeg6a_compress_struct *cinfo, int need_full_buffer);
+// 0x650589: the counters cleared and pass_mode kept, process_data_simple_main the process_data for JBUF_PASS_THRU (through its own
+// shim), JERR_BAD_BUFFER_MODE for another mode; nothing in raw-data mode.
+void __cdecl jpeg6a_jcmainct_start_pass_main(jpeg6a_compress_struct *cinfo, int pass_mode);
+// 0x650608: up to total_iMCU_rows iMCU rows, each filled by the preprocessor's pre_process_data and handed to the coefficient
+// controller's compress_data; when that suspends, in_row_ctr one back until the row is taken.
+void __cdecl jpeg6a_jcmainct_process_data_simple_main(jpeg6a_compress_struct *cinfo, unsigned char **input_buf,
+                                                      unsigned int *in_row_ctr, unsigned int in_rows_avail);
+
 // jcomapi.c: what compression and decompression share.
 // 0x64f3c0: the image pool freed (mem->free_pool of pool 1), global_state back to the start (DSTATE_START 200 for a decompressor,
 // else CSTATE_START 100).

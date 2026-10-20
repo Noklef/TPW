@@ -5654,3 +5654,6 @@ address,name,kind,confidence,notes
 0x00656d38,jpeg6a_jcmaster_per_scan_setup,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmaster.c per_scan_setup: the MCU layout of the scan, the restart interval (the library's)"
 0x0065701a,jpeg6a_jcmaster_pass_startup,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmaster.c pass_startup: the frame and scan headers (the library's)
 0x00657055,jpeg6a_jcmaster_finish_pass_master,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmaster.c finish_pass_master: the entropy coder's finish_pass, the next pass's type (the library's)"
+0x006504c0,jpeg6a_jinit_c_main_controller,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmainct.c jinit_c_main_controller: the main controller, start_pass, a strip buffer for each component (the library's, through the method shim)"
+0x00650589,jpeg6a_jcmainct_start_pass_main,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmainct.c start_pass_main: the counters, process_data for the pass mode (the library's, through its shim)"
+0x00650608,jpeg6a_jcmainct_process_data_simple_main,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcmainct.c process_data_simple_main: iMCU rows through the preprocessor to the coefficient controller (the library's)
