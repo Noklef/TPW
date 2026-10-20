@@ -1,7 +1,8 @@
 // The GUI library's window timers: 0x20-byte nodes from a pool (0x66214f; [0xfaa630] the nodes, [0xfaa62c] their number, the byte
 // +0x14 set when free) kept in a list from [0xfaa634]: the window +0, the time last fired +4, the interval +8, the id +0xc, the enabled
 // flag +0x10, the next +0x18 and the previous +0x1c. Each fires by posting its window 0x10 (id, n) (0x661fe5). Names unconfirmed.
-// Reimplementation of 0x661faa, 0x6620e2, 0x662306 and 0x662500.
+// Reimplementation of 0x661faa, 0x6620e2, 0x662306, 0x662500, 0x661f2b, 0x661ece, 0x66220d, 0x6620ac, and the window's own 0x65ef90,
+// 0x65f024 and 0x65f077.
 #pragma once
 
 #include "../../../re/types.h"
@@ -35,4 +36,21 @@ u8 *__fastcall WindowTimer_Ctor(u8 *node, void *, u32 window, u32 interval, u32 
 // 0x66220d (cdecl (window, interval, id); name unconfirmed): a node from the pool (WindowTimer_New) built (WindowTimer_Ctor) and put at
 // the end of the list [0xfaa634] (its head when the list is empty). Returns the node, 0 when the pool has none free.
 u8 *__cdecl WindowTimers_Add(u32 window, u32 interval, u32 id);
+
+// 0x6620ac (thiscall; name unconfirmed): the node enabled (+0x10 = 1) and its time +4 now (GuiClock_Now), which it returns.
+u32 __fastcall WindowTimer_Start(u8 *node);
+
+// The window's four timers, the nodes at +0x120 + 4 * index. Each takes an id: one with both bits 0x80080 set less 0x80080 is the index,
+// any other is the index as it is (sic: unchecked, as a large one reads past the window).
+// 0x65ef90 (thiscall (id, interval), pops 8; name unconfirmed): a node there given the interval (Fn_6620cc); else a new one
+// (WindowTimers_Add (window, interval, index + 0x80080)) put there. 1 in AX when there is a node there now, else 0 (the rest of EAX the
+// index's).
+u32 __fastcall Window_SetTimer(u8 *window, void *, u32 id, u32 interval);
+
+// 0x65f024 (thiscall (id), pops 4; name unconfirmed): 0 in AX without a node there (the rest of EAX the window's); else it is started
+// (WindowTimer_Start) and 1 in AX.
+u32 __fastcall Window_StartTimer(u8 *window, void *, u32 id);
+
+// 0x65f077 (thiscall (id), pops 4; name unconfirmed): as Window_StartTimer, the node stopped instead (Fn_662097: +0x10 = 0).
+u32 __fastcall Window_StopTimer(u8 *window, void *, u32 id);
 }

@@ -81,4 +81,38 @@ u8 *__cdecl WindowTimers_Add(u32 window, u32 interval, u32 id) {
     }
     return node;
 }
+
+u32 __fastcall WindowTimer_Start(u8 *node) {
+    at<u32>(node, 0x10) = 1;
+    const u32 now = GuiClock_Now();
+    at<u32>(node, 4) = now;
+    return now;
+}
+
+u32 __fastcall Window_SetTimer(u8 *window, void *, u32 id, u32 interval) {
+    if ((id & 0x80080) == 0x80080) id -= 0x80080;
+    u8 *&slot = at<u8 *>(window, 0x120 + 4 * id);
+    if (slot) {
+        Fn_6620cc(slot, nullptr, interval);
+        return 1;
+    }
+    slot = WindowTimers_Add((u32)(uintptr_t)window, interval, id + 0x80080);
+    return slot ? 1 : 0;
+}
+
+u32 __fastcall Window_StartTimer(u8 *window, void *, u32 id) {
+    if ((id & 0x80080) == 0x80080) id -= 0x80080;
+    u8 *const node = at<u8 *>(window, 0x120 + 4 * id);
+    if (!node) return 0;
+    WindowTimer_Start(node);
+    return 1;
+}
+
+u32 __fastcall Window_StopTimer(u8 *window, void *, u32 id) {
+    if ((id & 0x80080) == 0x80080) id -= 0x80080;
+    u8 *const node = at<u8 *>(window, 0x120 + 4 * id);
+    if (!node) return 0;
+    Fn_662097(node);
+    return 1;
+}
 }
