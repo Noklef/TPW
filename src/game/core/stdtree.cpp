@@ -403,7 +403,7 @@ using TreeB = Tree<0x00785de4, 0x10, kPlain, 0x00785de0, 0x14>;
 using TreeC = Tree<0x007ced2c, 0x20, kStdString, 0x007ced30, 0x24>;
 using TreeD = Tree<0x007ced24, 0x1c, kStdString, 0x007ced28, 0x20>;
 using TreeE = Tree<0x007ced34, 0x1c, kStdString, 0x007ced38, 0x20>;
-using TreeF = Tree<0x00f7c968, 0x24, kString, 0x00f7c96c, 0x28>;
+using TreeF = Tree<0x00f7c968, 0x24, kString, 0x00f7c964, 0x28>;  // (its users counted at 0xf7c964: 0x5af07e, 0x5af325, 0x5af470)
 using TreeG = Tree<0x00f7c970, 0x10, kPlain, 0x00f7c96c, 0x14>;
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
