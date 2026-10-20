@@ -37,6 +37,4 @@ address,name,module,reason
 5fc740,JpegCodec_GetInfo,gfx/jpeg,todo
 5fc840,JpegCodec_Load,gfx/jpeg,todo
 5fcbc0,JpegCodec_IsJpeg,gfx/jpeg,todo
-641f10,RefPack_Decode,files,todo
-642110,RefPack_DecodedSize,?,todo
 661830,Fn_661830,core/accessors,todo
