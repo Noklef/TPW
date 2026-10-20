@@ -10,6 +10,20 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
+// The track rides' distance: sqrt(dx^2 + dy^2) truncated (x87 at the game's precision), dx and dy first halved (arithmetically) until
+// |dx| <= 0x8000 and |dy| <= 0x7fff and the result shifted back (|-2^31| stays -2^31, whose square wraps to 0).
+s32 RideDistance(s32 dx, s32 dy) {
+    s32 ax = dx < 0 ? (s32)(0u - (u32)dx) : dx, ay = dy < 0 ? (s32)(0u - (u32)dy) : dy;
+    u32 shift = 0;
+    while (ax > 0x8000 || ay > 0x7fff) {
+        ++shift;
+        ax >>= 1;
+        ay >>= 1;
+    }
+    const s32 squares = (s32)((u32)ax * (u32)ax + (u32)ay * (u32)ay);
+    return (s32)((u32)(s32)(long long)X87_Sqrt(X87Reg((double)squares)).v << shift);
+}
+
 }  // namespace
 
 extern "C" {
@@ -136,17 +150,6 @@ void __cdecl Collider_BounceOffBlockers(u8 *car) {
     const auto angle = [&](s32 a, s32 b) {   // 256 - atan2(a, b) / pi * 256, truncated
         return (s32)(long long)X87_Add(turn, -X87_MulDouble(X87_MulDouble(X87_Atan2((double)a, (double)b), k), turn));
     };
-    const auto distance = [](s32 dx, s32 dy) {   // sqrt(dx^2 + dy^2), both halved until |dx| <= 0x8000 and |dy| <= 0x7fff, shifted back
-        s32 ax = dx < 0 ? (s32)(0u - (u32)dx) : dx, ay = dy < 0 ? (s32)(0u - (u32)dy) : dy;
-        u32 shift = 0;
-        while (ax > 0x8000 || ay > 0x7fff) {
-            ++shift;
-            ax >>= 1;
-            ay >>= 1;
-        }
-        const s32 squares = (s32)((u32)ax * (u32)ax + (u32)ay * (u32)ay);
-        return (s32)((u32)(s32)(long long)X87_Sqrt(X87Reg((double)squares)).v << shift);
-    };
     const auto scaled = [](s32 a, s32 b) { return (s32)((u32)a * (u32)b << 2) / 1024; };
     do {
         const u32 flags = at<u32>(node, 0);
@@ -166,7 +169,7 @@ void __cdecl Collider_BounceOffBlockers(u8 *car) {
                     at<u32>(car, 0x3c) += (u32)scaled(sine[away & 0x1ff], push);
                     at<u32>(car, 0) |= 0x50000;
                     at<u32>(car, 0x40) += (u32)scaled(sine[(away + 0x80) & 0x1ff], push);
-                    const s32 length = distance(dx, dy), radius = at<s32>(node, 0xc);
+                    const s32 length = RideDistance(dx, dy), radius = at<s32>(node, 0xc);
                     at<u32>(car, 0x34) = (u32)((s32)((u32)dx * (u32)radius) / length) + at<u32>(node, 4);   // (idiv: a length of 0 faults)
                     at<u32>(car, 0x38) = (u32)((s32)((u32)dy * (u32)radius) / length) + at<u32>(node, 8);
                     const s32 type = at<s32>(kind, 0);
@@ -246,15 +249,7 @@ s32 __cdecl Collider_SteerTo(u8 *car, s32 x, s32 y) {
     const s32 bearing = (s32)(long long)X87_Add(X87_MulDouble(X87_MulDouble(turned, global<double>(0x00700eb8)), global<double>(0x00700ec0)),
                                                global<double>(0x00700f18));   // (x / pi * 256 - 256, then __ftol)
     s32 turn = (s32)((0u - at<u32>(car, 0x50) - (u32)bearing) & 0x1ff);
-    s32 ax = dx < 0 ? (s32)(0u - (u32)dx) : dx, ay = dy < 0 ? (s32)(0u - (u32)dy) : dy;
-    u32 shift = 0;
-    while (ax > 0x8000 || ay > 0x7fff) {
-        ++shift;
-        ax >>= 1;
-        ay >>= 1;
-    }
-    const s32 squares = (s32)((u32)ax * (u32)ax + (u32)ay * (u32)ay);
-    const s32 distance = (s32)((u32)(s32)(long long)X87_Sqrt(X87Reg((double)squares)).v << shift);
+    const s32 distance = RideDistance(dx, dy);
     const u8 *const kind = at<const u8 *>(car, 0x9c);
     const s32 rate = at<s32>(kind, 0x28);
     s32 step = rate;
