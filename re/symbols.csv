@@ -4142,6 +4142,7 @@ address,name,kind,confidence,notes
 0x005e57c0,WScanner_PushToken0c,function,low,"reimplemented (src/game/core/wscanner); thiscall: a pair {"""", L"""", 0xc} pushed on the vector at +0x50, then the position set to the text's end (name unconfirmed)"
 0x005e6070,WScanner_PushToken12,function,low,"reimplemented (src/game/core/wscanner); thiscall: a pair {"""", L"""", 0x12} pushed on the vector at +0x50, then the position set to the text's end (name unconfirmed)"
 0x005e6540,WScanner_PushToken15,function,low,"reimplemented (src/game/core/wscanner); thiscall: a pair {"""", L"""", 0x15} pushed on the vector at +0x50, then the position set to the text's end (name unconfirmed)"
+0x005e6fc0,WScanner_SpanInSet14,function,low,"reimplemented (src/game/core/wscanner); thiscall: the run of characters from the position in the set at +0x14, the position moved past it; -1 at the text's end (name unconfirmed)"
 0x0045f640,Startup_CheckCanRun,function,low,"reimplemented (src/game/core/startcheck); cdecl u8 (): 0 with game error 0 when not installed (Registry_GameInstalled); else CreateMutexA(0, 1, [0x7a2508]) kept at 0x7a267c, and when made with GetLastError 0xb7 (already exists) game error 1, CloseHandle, 0; else 1"
 0x0040c120,KeyAction_Turn90,function,low,"reimplemented (src/game/core/keyactions); cdecl: Global81d7a4_SetRecorded((0x81d7a4 + 90) signed mod 360, 1); returns 1 (key ',')"
 0x0040c150,KeyAction_Turn270,function,low,"reimplemented (src/game/core/keyactions); cdecl: Global81d7a4_SetRecorded((0x81d7a4 + 270) signed mod 360, 1); returns 1 (key '.')"

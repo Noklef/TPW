@@ -1,7 +1,7 @@
 // A wide text scanner (subject unconfirmed): an object holding a std::wstring at +4 that it reads on from +0x34 (+0x38 its position),
 // set up by 0x5e45d0 (which then asks it for a '/'), with three flag bytes at +0x3d and a context pointer at +0x40. Reimplementation of
 // its text setter 0x5e6b30, of the keyword pair's constructor 0x5e73f0 and of three token pushes (0x5e57c0, 0x5e6070, 0x5e6540) onto the
-// vector of CountedPairs at +0x50.
+// vector of CountedPairs at +0x50, and of the run counter 0x5e6fc0 (a set of characters at +0x14).
 #pragma once
 
 #include "../../../re/types.h"
@@ -29,4 +29,11 @@ u8 *__fastcall WKeywordPair_Ctor(u8 *pair, void *, StdWString key, u32 v0, u32 v
 u32 __fastcall WScanner_PushToken0c(u8 *scanner);
 u32 __fastcall WScanner_PushToken12(u8 *scanner);
 u32 __fastcall WScanner_PushToken15(u8 *scanner);
+
+// 0x5e6fc0 (thiscall; name unconfirmed): the run of characters from the position +0x38 that are in the set of characters at +0x14 (a tree
+// of word keys, its head at +0x18; std::set::find inlined: Tree16b_LowerBound, then the key compared): for each one found the position
+// moves on by one; the run's length when a character is not in the set, or -1 when the position reaches the text's length (+0xc). Each
+// character is read as the string's operator[] reads it: past the length, _Nullstr's; else the string frozen first (a counted block, its
+// count byte neither 0 nor 0xff, gets its own copy: _Grow(len, false); then the count byte 0xff).
+s32 __fastcall WScanner_SpanInSet14(u8 *scanner);
 }
