@@ -182,6 +182,7 @@ class Emu:
         self.r = {k: 0 for k in REGS}
         self.r['ESP'] = 0x10000000
         self.st = []
+        self.mm = [0] * 8  # the MMX registers, kept apart from the x87 stack (the code they run in ends with EMMS)
         self.c0 = self.c2 = self.c3 = False
         self.cw = 0x007f  # the game's (single precision); FLDCW keeps it, arithmetic stays at 24 bits
         self.zf = self.sf = self.cf = self.of = self.pf = False
@@ -370,6 +371,31 @@ class Emu:
 
     def st0(self):
         return self.st[0]
+
+    # MMX: a register MM0-MM7, a general register (MOVD) or memory of the size the operand gives
+    def mmget(self, op):
+        m = re.fullmatch(r'MM([0-7])', op)
+        if m:
+            return self.mm[int(m.group(1))]
+        if op in self.r:
+            return self.r[op]
+        mo = self.mem_operand(op)
+        if mo:
+            return int.from_bytes(self.read(mo[0], SIZES.get(mo[1], 4)), 'little')
+        return int(op, 16)
+
+    def mmx(self, mn, o):
+        s = self.mmget(o[1])
+        d = 0 if mn in ('MOVD', 'MOVQ') else self.mmget(o[0])
+        v = MMX[mn](d, s) & 0xffffffffffffffff
+        m = re.fullmatch(r'MM([0-7])', o[0])
+        if m:
+            self.mm[int(m.group(1))] = v
+        elif o[0] in self.r:
+            self.r[o[0]] = v & 0xffffffff
+        else:
+            a, kind = self.mem_operand(o[0])
+            self.write(a, v.to_bytes(8, 'little')[:SIZES.get(kind, 4)])
 
     def step(self, pc):
         if pc in self.hooks:  # a tail call (jmp), into the listing or not: the hook sees the return address at [ESP]
@@ -672,6 +698,8 @@ class Emu:
             return target
         elif mn == 'EMMS':   # marks every x87 register empty
             self.st = []
+        elif mn in MMX:
+            self.mmx(mn, o)
         elif mn == 'RET':
             ret = self.pop()
             self.r['ESP'] = (self.r['ESP'] + (int(o[0], 16) if o else 0)) & 0xffffffff
@@ -679,6 +707,42 @@ class Emu:
         else:
             raise ValueError('%08x: unhandled %s %s' % (pc, mn, ops))
         return nxt
+
+
+def _lanes(v, bits):
+    m = (1 << bits) - 1
+    return [v >> (bits * i) & m for i in range(64 // bits)]
+
+
+def _join(lanes, bits):
+    m = (1 << bits) - 1
+    return sum((x & m) << (bits * i) for i, x in enumerate(lanes))
+
+
+def _signed(x, bits):
+    return x - (1 << bits) if x >> (bits - 1) else x
+
+
+def _shift(fn, bits):
+    def op(d, s):
+        return 0 if s >= bits else _join([fn(x, s) for x in _lanes(d, bits)], bits)
+    return op
+
+
+# The MMX instructions (64-bit lanes of bytes, words, dwords): dst, src -> the new dst.
+MMX = {'PADDW': lambda d, s: _join([a + b for a, b in zip(_lanes(d, 16), _lanes(s, 16))], 16),
+       'PSUBW': lambda d, s: _join([a - b for a, b in zip(_lanes(d, 16), _lanes(s, 16))], 16),
+       'PMULLW': lambda d, s: _join([_signed(a, 16) * _signed(b, 16) for a, b in zip(_lanes(d, 16), _lanes(s, 16))], 16),
+       'PMULHW': lambda d, s: _join([_signed(a, 16) * _signed(b, 16) >> 16 for a, b in zip(_lanes(d, 16), _lanes(s, 16))], 16),
+       'PSLLW': _shift(lambda x, s: x << s, 16),
+       'PSRLW': _shift(lambda x, s: x >> s, 16),
+       'PSRLQ': _shift(lambda x, s: x >> s, 64),
+       'PACKUSWB': lambda d, s: _join([min(255, max(0, _signed(x, 16))) for x in _lanes(d, 16) + _lanes(s, 16)], 8),
+       'PUNPCKLBW': lambda d, s: _join([x for p in zip(_lanes(d, 8)[:4], _lanes(s, 8)[:4]) for x in p], 8),
+       'PUNPCKLWD': lambda d, s: _join([x for p in zip(_lanes(d, 16)[:2], _lanes(s, 16)[:2]) for x in p], 16),
+       'PUNPCKLDQ': lambda d, s: _join([d & 0xffffffff, s & 0xffffffff], 32),
+       'PXOR': lambda d, s: d ^ s, 'PAND': lambda d, s: d & s, 'POR': lambda d, s: d | s,
+       'MOVD': lambda d, s: s & 0xffffffff, 'MOVQ': lambda d, s: s}
 
 
 def fbits(x):
