@@ -279,7 +279,16 @@ const AdvisorScoreEnv kAdvisorScoreEnv = {reinterpret_cast<s32(__cdecl *)(void(_
 const ObjModelEnv kObjModelEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const PtrListEnv kPtrListEnv = {&heap_alloc};
 const GameHeapEnv kGameHeapEnv = {&heap_alloc, &heap_free};
-const Jpeg6bHeapEnv kJpeg6bHeapEnv = {&heap_alloc, &heap_free};  // (jmemansi.c's malloc / free)
+// libjpeg 6b's calls outside itself (src/game/lib/jpeg6b.h): jmemansi.c's malloc / free the heap; jmemmgr.c's getenv, sscanf and
+// jpeg_open_backing_store and jerror.c's two sprintf calls cdecl recorders 24 (1 argument), 25 (4), 26 (3), 27 (3) and 28 (10), which the
+// benches hook the exe's 0x67fbf0, 0x67f620, 0x6429c0 and 0x67a650 with (tests/fncmp/jpeg6b_memmgr.py, jpeg6b_error.py).
+constexpr u32 jpeg_recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0xa000 + 0x400 * n + 0x20 * k; }
+const Jpeg6bCrtEnv kJpeg6bCrtEnv = {&heap_alloc, &heap_free, reinterpret_cast<char *(__cdecl *)(const char *)>((uintptr_t)jpeg_recorder(24, 1)),
+                                    reinterpret_cast<int(__cdecl *)(const char *, const char *, long *, char *)>((uintptr_t)jpeg_recorder(25, 4)),
+                                    reinterpret_cast<void(__cdecl *)(jpeg_common_struct *, void *, long)>((uintptr_t)jpeg_recorder(26, 3)),
+                                    reinterpret_cast<int(__cdecl *)(char *, const char *, const char *)>((uintptr_t)jpeg_recorder(27, 3)),
+                                    reinterpret_cast<int(__cdecl *)(char *, const char *, int, int, int, int, int, int, int, int)>(
+                                        (uintptr_t)jpeg_recorder(28, 10))};
 const WadSourceEnv kWadSourceEnv = {&heap_alloc, &heap_free};
 const BufferedSourceEnv kBufferedSourceEnv = {&heap_alloc, &heap_free};
 const SurfaceBufferEnv kSurfaceBufferEnv = {0x00703998, &heap_free};
@@ -747,7 +756,7 @@ int main(int argc, char **argv) {
     ObjModel_SetEnv(&kObjModelEnv);
     PtrList_SetEnv(&kPtrListEnv);
     GameHeap_SetEnv(&kGameHeapEnv);
-    Jpeg6b_SetHeapEnv(&kJpeg6bHeapEnv);
+    Jpeg6b_SetCrtEnv(&kJpeg6bCrtEnv);
     WadSource_SetEnv(&kWadSourceEnv);
     BufferedSource_SetEnv(&kBufferedSourceEnv);
     SurfaceBuffer_SetEnv(&kSurfaceBufferEnv);

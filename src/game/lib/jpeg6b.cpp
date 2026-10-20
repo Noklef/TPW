@@ -347,17 +347,30 @@ void __cdecl jquant2_start_pass_2_quant(j_decompress_ptr cinfo, boolean is_pre_s
 }
 }
 
-// jmemansi.c's malloc and free (third_party/wrap/jpeg-6b/jmemansi.c #defines them to these two): the exe's, so the blocks the library's
-// jpeg_get_small hands out are the exe's heap's, which the exe's own code (zcfree, jmemmgr.c while it stays the exe's) frees there.
+// What the library calls outside itself, the exe's (jpeg6b.h's Jpeg6bCrtEnv): jmemansi.c's malloc and free (third_party/wrap/jpeg-6b/
+// jmemansi.c #defines them to jpeg6b_exe_malloc / free), so the blocks the library's jpeg_get_small hands out are the exe's heap's,
+// which the exe's own code (zcfree) frees there; jmemmgr.c's getenv, sscanf and jpeg_open_backing_store (wrap/jpeg-6b/jmemmgr.c);
+// jerror.c's sprintf (wrap/jpeg-6b/jerror.c).
 namespace {
-const Jpeg6bHeapEnv kExeHeap = {reinterpret_cast<void *(__cdecl *)(size_t)>((uintptr_t)0x0067dcd0),
-                                reinterpret_cast<void(__cdecl *)(void *)>((uintptr_t)0x0067ad90)};
-const Jpeg6bHeapEnv *g_heap = &kExeHeap;
+const Jpeg6bCrtEnv kExeCrt = {
+    reinterpret_cast<void *(__cdecl *)(size_t)>((uintptr_t)0x0067dcd0),
+    reinterpret_cast<void(__cdecl *)(void *)>((uintptr_t)0x0067ad90),
+    reinterpret_cast<char *(__cdecl *)(const char *)>((uintptr_t)0x0067fbf0),
+    reinterpret_cast<int(__cdecl *)(const char *, const char *, long *, char *)>((uintptr_t)0x0067f620),
+    reinterpret_cast<void(__cdecl *)(jpeg_common_struct *, void *, long)>((uintptr_t)0x006429c0),
+    reinterpret_cast<int(__cdecl *)(char *, const char *, const char *)>((uintptr_t)0x0067a650),
+    reinterpret_cast<int(__cdecl *)(char *, const char *, int, int, int, int, int, int, int, int)>((uintptr_t)0x0067a650)};
+const Jpeg6bCrtEnv *g_crt = &kExeCrt;
 }  // namespace
 
-void Jpeg6b_SetHeapEnv(const Jpeg6bHeapEnv *env) { g_heap = env ? env : &kExeHeap; }
+void Jpeg6b_SetCrtEnv(const Jpeg6bCrtEnv *env) { g_crt = env ? env : &kExeCrt; }
 
 extern "C" {
-void *__cdecl jpeg6b_exe_malloc(size_t size) { return g_heap->alloc(size); }
-void __cdecl jpeg6b_exe_free(void *block) { g_heap->free(block); }
+void *__cdecl jpeg6b_exe_malloc(size_t size) { return g_crt->alloc(size); }
+void __cdecl jpeg6b_exe_free(void *block) { g_crt->free(block); }
+char *__cdecl jpeg6b_exe_getenv(const char *name) { return g_crt->getenv(name); }
+int __cdecl jpeg6b_exe_sscanf(const char *s, const char *format, long *value, char *ch) { return g_crt->sscanf(s, format, value, ch); }
+void __cdecl jpeg6b_exe_open_backing_store(jpeg_common_struct *cinfo, void *info, long total_bytes_needed) {
+    g_crt->open_backing_store(cinfo, info, total_bytes_needed);
+}
 }

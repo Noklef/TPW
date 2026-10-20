@@ -119,7 +119,7 @@ jpeg_free_small / large and jpeg_mem_available. tpw_jpeg6b is built with jmemans
   jpeg_free_small / large (0x642990, the same copy as zlib's zcfree) its free (0x67ad90). The library's would allocate from the DLL's
   CRT, a different heap, while the exe's own code (zcfree, jmemmgr.c while it stays the exe's) frees the blocks on the exe's. So
   third_party/wrap/jpeg-6b/jmemansi.c `#define`s malloc and free (after the headers have declared the real ones) to jpeg6b.cpp's
-  jpeg6b_exe_malloc / jpeg6b_exe_free, which call the exe's two through Jpeg6b_SetHeapEnv's env (the exe's by default; the bench driver
+  jpeg6b_exe_malloc / jpeg6b_exe_free, which call the exe's two through Jpeg6b_SetCrtEnv's env (the exe's by default; the bench driver
   gives fncmp's heap, the emulator hooks the same two addresses). malloc and free are never replaced (the front of the exe's heap, as
   GameHeap's Mem_Alloc / Mem_Free), so blocks from either side free on either side. jpeg_mem_available is the library's as it is. When
   jmemmgr.c becomes the library's, its allocations go to the exe's heap the same way.

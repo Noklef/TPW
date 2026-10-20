@@ -419,7 +419,7 @@ void __cdecl jquant2_compute_color(jpeg_decompress_struct *cinfo, void *boxp, in
 void __cdecl jquant2_new_color_map_2_quant(jpeg_decompress_struct *cinfo);
 
 // jmemansi.c, the memory manager's system-dependent part, through third_party/wrap/jpeg-6b/jmemansi.c: its malloc and free are the
-// exe's C runtime's (Jpeg6b_SetHeapEnv below), so every block stays on the exe's heap.
+// exe's C runtime's (Jpeg6b_SetCrtEnv below), so every block stays on the exe's heap.
 // 0x642980 (also jpeg_get_large: one copy): malloc(sizeofobject).
 void *__cdecl jpeg_get_small(jpeg_common_struct *cinfo, size_t sizeofobject);
 // 0x642990 (also jpeg_free_large and zlib's zcfree, whose block is the same second argument): free(object).
@@ -428,12 +428,22 @@ void __cdecl jpeg_free_small(jpeg_common_struct *cinfo, void *object, size_t siz
 long __cdecl jpeg_mem_available(jpeg_common_struct *cinfo, long min_bytes_needed, long max_bytes_needed, long already_allocated);
 }
 
-// The C runtime's malloc and free jmemansi.c calls (the exe's: malloc 0x67dcd0, free 0x67ad90, which are never replaced: they are the
-// front of its heap, as GameHeap's Mem_Alloc / Mem_Free are). The tests give it a stand-in.
-struct Jpeg6bHeapEnv {
+// What the library calls outside itself, the exe's: its C runtime's (a DLL's would be another heap, environment copy and FILE table)
+// and the functions of the exe's that stay its own. jmemansi.c's malloc and free (malloc 0x67dcd0, free 0x67ad90, which are never
+// replaced: they are the front of its heap, as GameHeap's Mem_Alloc / Mem_Free are); jmemmgr.c's getenv / sscanf of JPEGMEM and the
+// backing store it opens (jpeg_open_backing_store stays the exe's, see docs/porting-libraries.md); jerror.c's format_message's sprintf,
+// whose two calls are told apart by the message text as format_message does (its first % a %s: the string, else the eight ints).
+// The tests give it stand-ins.
+struct Jpeg6bCrtEnv {
     void *(__cdecl *alloc)(size_t size);  // malloc (0x67dcd0)
     void(__cdecl *free)(void *block);     // free (0x67ad90)
+    char *(__cdecl *getenv)(const char *name);                                // getenv (0x67fbf0)
+    int(__cdecl *sscanf)(const char *s, const char *format, long *value, char *ch);  // sscanf (0x67f620): jmemmgr.c's "%ld%c"
+    void(__cdecl *open_backing_store)(jpeg_common_struct *cinfo, void *info, long total_bytes_needed);  // jmemansi.c's, the exe's (0x6429c0)
+    int(__cdecl *sprintf_string)(char *buffer, const char *format, const char *s);  // sprintf (0x67a650), format_message's %s call
+    int(__cdecl *sprintf_ints)(char *buffer, const char *format, int i0, int i1, int i2, int i3, int i4, int i5, int i6,
+                               int i7);  // sprintf (0x67a650), its other call
 };
 
-// Allocation and release go through env (nullptr: the exe's).
-void Jpeg6b_SetHeapEnv(const Jpeg6bHeapEnv *env);
+// The library's calls go through env (nullptr: the exe's).
+void Jpeg6b_SetCrtEnv(const Jpeg6bCrtEnv *env);
