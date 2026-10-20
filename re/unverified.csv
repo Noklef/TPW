@@ -49,12 +49,4 @@ address,name,module,reason
 63ae80,Rgb16Converter_Dtor,gfx/pixconv,todo
 641f10,RefPack_Decode,files,todo
 642110,RefPack_DecodedSize,?,todo
-642150,InverseMap_Ctor,gfx/invmap,todo
-642160,InverseMap_DeletingDtor,gfx/invmap,todo
-642180,InverseMap_Dtor,gfx/invmap,todo
-642190,InverseMap_Build,gfx/invmap,todo
-642340,InverseMap_RedLoop,gfx/invmap,todo
-642460,InverseMap_GreenLoop,gfx/invmap,todo
-6426b0,InverseMap_BlueLoop,gfx/invmap,todo
-642840,InverseMap_MaxFill,gfx/invmap,todo
 661830,Fn_661830,core/accessors,todo
