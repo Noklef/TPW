@@ -3485,6 +3485,8 @@ address,name,kind,confidence,notes
 0x004e1c70,Object_HistoryDifference,function,low,"reimplemented (src/game/world/object); thiscall, x87: the newest-30 sum of the ring at +0x70 less that of the ring at +0xf8"
 0x004e1e30,Object_HistoryAverage,function,low,"reimplemented (src/game/world/object); thiscall, x87: the newest (up to) 30 entries of the ring at +0x340, signed, averaged, plus 0x32 (0x32 for none)"
 0x004dfd80,Object_ResetCondition,function,low,"reimplemented (src/game/world/object); thiscall: with flag 1 of +0x32 and the byte of +0x44 below 25, spread record 6 taken back from the cell and record 1 spread; ride element 8 = 0, +0x44 = 100.0, +0x5e and +0x64 cleared"
+0x004e0560,Object_ComputeRating,function,low,"reimplemented (src/game/world/object); thiscall (a, b, c), x87: a sideshow's 20 + 8% of c times the root of a - b, a coaster's 50 + half its float, a ride's base (with its track's pieces) times its speed and duration over the row's limits"
+0x004e0860,Object_Rating,function,low,"reimplemented (src/game/world/object); thiscall (flag): the definition's base rating for a flag, else Object_ComputeRating of the object's goods (a sideshow) or settings"
 0x005d46d0,Blocks7_Free,function,high,reimplemented (src/game/core/buffers); frees the seven blocks of an object and clears its groups
 0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/string); whether the first name is after the second, case blind"
 0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/string); whether two names are equal, case blind"

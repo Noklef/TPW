@@ -9,8 +9,11 @@
 #   Diff, Average (0x4e1c70, 0x4e1e30): History's rings at +0x70 and +0xf8, at +0x340 (signed values there);
 #   Reset (0x4dfd80 Object_ResetCondition): Score's ride record, the float +0x44 about 25 and its byte's wrap, mapstep.py's spread records and cells;
 #   WontPay (0x4fde50 Visitor_WontPay, person.cpp's): a visitor's stats and cash about an object's price, definitions of kinds 0-3, their effects and
-#   costs small or any, the controls' figure (cached), the park analyser's rings.
-# usage: object_checks.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Capacity,Track,Score,Percent,Stand,History,Fill,Pay,Settings,Current,Diff,Average,Reset,WontPay)
+#   costs small or any, the controls' figure (cached), the park analyser's rings;
+#   Rating, RatingOf (0x4e0560 Object_ComputeRating, 0x4e0860 Object_Rating): definitions of kinds 0-3 and track types with bases and row limits,
+#   the ride list's coaster index, the coasters' floats, a track ride's pieces; the arguments (the object's goods and settings) about the limits.
+# usage: object_checks.py [CASES [SEED]] [--wild|--both] [--show N]
+#   (env OPS=Capacity,Track,Score,Percent,Stand,History,Fill,Pay,Settings,Current,Diff,Average,Reset,WontPay,Rating,RatingOf)
 import os
 import struct
 import sys
@@ -27,7 +30,8 @@ B = Bench([(0x412e90, 0x412f00), (0x4dd4e0, 0x4dd510), (0x4d8c00, 0x4d8c30), (0x
            (0x495cf0, 0x495d50), (0x4dedf0, 0x4df160), (0x4e1f20, 0x4e2190),
            (0x4dda40, 0x4ddb70), (0x4e1910, 0x4e1a00), (0x4e1a30, 0x4e1e10), (0x4e1e30, 0x4e1f30), (0x409cd0, 0x409cf0), (0x4d01f0, 0x4d0270),
            (0x4d27a0, 0x4d2850), (0x519510, 0x519560), (0x5195d0, 0x519660), (0x4dfd80, 0x4dfe30), (0x4d8440, 0x4d8480), (0x4d8480, 0x4d8620),
-           (0x4fde50, 0x4fe1b0), (0x4c74b0, 0x4c7500), (0x4d3d10, 0x4d3d90), (0x4e1a00, 0x4e1a30), (0x4e21b0, 0x4e21d0), (0x4e2740, 0x4e2780)])
+           (0x4fde50, 0x4fe1b0), (0x4c74b0, 0x4c7500), (0x4d3d10, 0x4d3d90), (0x4e1a00, 0x4e1a30), (0x4e21b0, 0x4e21d0), (0x4e2740, 0x4e2780),
+           (0x4e0560, 0x4e0860), (0x4e0860, 0x4e0900), (0x43e0b0, 0x43e0f0), (0x545310, 0x545460), (0x55a4e0, 0x55a540)])
 OBJ, WORLD = RAM, RAM + 0x10000
 
 
@@ -306,9 +310,78 @@ def wont_pay(r):
     return Call(0x4fde50, [RAM + 0x6000, OBJ], regions, conv='t', ret='a')
 
 
+def rating_env(r):
+    """definitions of kinds 0-3 (+0x4ac) and track types (+0x9c, 3 a coaster) with a base (+0x13c) and row limits (+0x1a0, +0x1a8) small or any; an object
+    of row 0-3 whose ride (+0x24) is in the ride list (or not) with a coaster index 0-3 (+0xe0), coasters' +0x104 floats, a track ride (+0x28, its handle or 0)
+    of 0-5 pieces"""
+    limits = [0, 1, 2, 5, 10, 50, 100, -1, -7]
+    fields = {0x4ac: [0, 1, 2, 2, 3], 0x9c: [0, 1, 3, 3, 4], 0x13c: [0, 1, 5, 20, 50, 99, 100, 200, -10, 0x7fffffff]}
+    for row in range(4):
+        fields[0x40 * row + 0x1a0] = limits
+        fields[0x40 * row + 0x1a8] = limits
+    regions, obj = defs_obj(r, fields)
+    obj[0x50] = r.randrange(4)
+    # the ride list (0x8791a0 the system, 0x8791b0 the head): nodes +0 next, +8 id, +0xe0 the coaster index
+    ids = [r.getrandbits(32) for _ in range(3)]
+    nodes = bytearray(r.bytes(0x100 * 3))
+    for k, ident in enumerate(ids):
+        put(nodes, 0x100 * k, 'I', RAM + 0x20000 + 0x100 * (k + 1) if k < 2 else 0)
+        put(nodes, 0x100 * k + 8, 'I', ident)
+        put(nodes, 0x100 * k + 0xe0, 'I', r.choice([0, 1, 2, 3, 3]))
+    put(obj, 0x24, 'I', r.choice(ids + ids + [r.getrandbits(32)]))
+    regions.update({RAM + 0x20000: nodes, 0x8791a0: struct.pack('<I', r.choice([1, 1, 1, 0])), 0x8791b0: struct.pack('<I', RAM + 0x20000)})
+    # the coasters (0x790bd0's records): the float +0x104 of each (and +0x100)
+    coasters, table = bytearray(r.bytes(0x800)), bytearray(16)
+    for k in range(4):
+        put(table, 4 * k, 'I', RAM + 0x22000 + 0x200 * k)
+        put(coasters, 0x200 * k + 0x104, 'I', fb(r.choice([0.0, 1.0, -1.0, 20.0, 99.5, 101.0, -100.0, 512.0])) if r.random() < 0.8 else r.getrandbits(32))
+    regions.update({RAM + 0x22000: coasters, 0x790bd0: table})
+    # the track rides (trackrides.py's Count): the module's magic at 0x877b58, the pool at 0x877b60, a ride's chain of pieces at +0xbc
+    rides = bytearray(r.bytes(0x10 * 0xd0))
+    index, kind = r.randrange(0x10), r.choice([0, 1, 5])
+    put(rides, index * 0xd0, 'i', kind)
+    n = r.choice([0, 1, 2, 3, 5])
+    pieces = bytearray(r.bytes(0x40 * 6))
+    for k in range(n):
+        put(pieces, 0x40 * k + 4, 'H', r.choice([8, 9, 10, 11, 11, 12, 13, 13, 14, 0]))
+        put(pieces, 0x40 * k + 8, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
+        put(pieces, 0x40 * k + 0x24, 'I', RAM + 0x23000 + 0x40 * (k + 1) if k + 1 < n else 0)
+    put(rides, index * 0xd0 + 0xbc, 'I', RAM + 0x23000 if n else 0)
+    globals_ = bytearray(r.bytes(0x40))
+    put(globals_, 0, 'I', 0x4a454647)
+    put(globals_, 8, 'I', RAM + 0x24000)
+    put(obj, 0x28, 'I', r.choice([index | kind << 8, index | kind << 8, 0, index | (kind ^ 1) << 8]))
+    regions.update({RAM + 0x23000: pieces, RAM + 0x24000: rides, 0x877b58: globals_})
+    return regions, obj
+
+
+def rating(r):
+    """0x4e0560 (Object_ComputeRating): rating_env's object and definitions; the arguments about each other and the limits (a sideshow's cost over its price,
+    a ride's speed and duration), the third any"""
+    regions, obj = rating_env(r)
+    small = [0, 1, 2, 5, 10, 50, 99, 100, 101, 150, 200, -1, -50]
+    a, b = r.choice(small), r.choice(small)
+    if r.random() < 0.2:
+        a, b = r.getrandbits(32), r.getrandbits(32)
+    c = r.choice([0, 1, 10, 50, 100, 255, -1, 0x7fffffff, r.getrandbits(32)])
+    return Call(0x4e0560, [OBJ, a & 0xffffffff, b & 0xffffffff, c & 0xffffffff], regions, conv='t', ret='b')
+
+
+def rating_of(r):
+    """0x4e0860 (Object_Rating): rating_env's, the flag byte 0 or not (high bits any); the object's goods (+0x188, +0x194, +0x190) and settings (+0x58,
+    +0x5c, +0x5d) about each other"""
+    regions, obj = rating_env(r)
+    for off in (0x188, 0x194, 0x58):
+        put(obj, off, 'I', r.choice([0, 1, 5, 10, 50, 100, 200, 0xffffffff, r.getrandbits(32)]))
+    for off in (0x190, 0x5c, 0x5d):
+        obj[off] = r.choice([0, 1, 5, 10, 50, 100, 255])
+    flag = r.choice([0, 0, 0, 1, 0x100, 0xff]) | (r.getrandbits(24) << 8 if r.random() < 0.3 else 0)
+    return Call(0x4e0860, [OBJ, flag & 0xffffffff], regions, conv='t', ret='b')
+
+
 CASES = {'Capacity': capacity, 'Track': track, 'Score': score, 'Percent': percent, 'Stand': stand, 'History': history, 'Fill': fill, 'Pay': pay,
          'Settings': settings, 'Current': current, 'Diff': diff, 'Average': average, 'Reset': reset,
-         'WontPay': wont_pay}
+         'WontPay': wont_pay, 'Rating': rating, 'RatingOf': rating_of}
 
 
 def case(r):

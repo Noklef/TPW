@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../coaster/registry.h"
 #include "../core/accessors.h"
 #include "../core/circbuf.h"
 #include "../core/filetime.h"
@@ -18,6 +19,7 @@
 #include "ridelist.h"
 #include "money.h"
 #include "things.h"
+#include "trackrides.h"
 #include "world.h"
 
 namespace {
@@ -573,5 +575,57 @@ u32 __fastcall Object_Serialize(u8 *object, void *, Stream *stream, u32 save, s3
                                      {0x44, 4, kSaveStatName},   {0x64, 4, 0x0075b430},  {0x60, 4, 0x0075b414},    {0x184, 4, 0x0075b408},
                                      {0x180, 4, 0x0075b3f8},     {0x54, 4, 0x0075b3e0},  {0x50, 1, 0x0075b3d0}};
     return Save_StatFields(stream, save, object, kTail, 11) ? 0 : 1;
+}
+
+u8 __fastcall Object_ComputeRating(const u8 *object, void *, s32 a, s32 b, s32 c) {
+    const u8 *const def = Object_GetDef(object);
+    if (at<s32>(def, 0x4ac) == 2) {  // a sideshow: 20 + 8% of c times the root of a - b (0..100)
+        s32 over = (s32)((u32)a - (u32)b);
+        over = over < 0 ? 0 : over > 100 ? 100 : over;
+        const double root = X87_Sqrt(X87Reg((double)over)).v;
+        const double x = X87_MulDouble(X87_MulDouble(X87_MulDouble(root, (double)c), 0.1), (double)-0.8f);
+        return (u8)(20 - (u8)(long long)x);
+    }
+    if (at<s32>(def, 0x9c) == 3) {  // a coaster: 50 + half its +0x104 float
+        const u32 coaster = Rides_GetE0ById(at<s32>(object, 0x24));
+        if (coaster == 0)
+            return 0;
+        u32 first, second;
+        Coaster_GetPair(coaster, &first, &second);
+        float value;
+        std::memcpy(&value, &second, 4);
+        return (u8)(long long)X87_SubR(X87Reg(value) * X87Reg(-0.5f), X87Reg(50.0f)).v;
+    }
+    // a ride: the base (60% of it, plus the track's pieces, 0..100, with a track ride) times the speed and duration over the row's limits (each 0.75..1.25)
+    s32 base = at<s32>(def, 0x13c);
+    const u32 row = (u32)at<u8>(object, 0x50) << 6;
+    const s32 speedLimit = at<s32>(def, row + 0x1a8);
+    const s32 durationLimit = at<s32>(def, row + 0x1a0);
+    const u32 track = at<u32>(object, 0x28);
+    if (track != 0) {
+        s32 others = 0, longest = 0, kind11 = 0, free = 0;
+        TrakRide_CountPieces(track, &others, &longest, &kind11, &free);
+        s32 pieces = kind11 * 3 + longest + others * 2;
+        pieces = pieces < 0 ? 0 : pieces > 40 ? 40 : pieces;
+        base = (s32)((u32)base * 60) / 100 + pieces;
+        base = base < 0 ? 0 : base > 100 ? 100 : base;
+    }
+    const auto clamp = [](X87Reg x) { return !(x.v >= 0.75) ? X87Reg(0.75) : x.v > 1.25 ? X87Reg(1.25) : x; };
+    const X87Reg speed = X87Reg((double)a) / X87Reg((double)speedLimit);
+    const float duration = (float)(X87Reg((double)b) / X87Reg((double)durationLimit));
+    const float speedFactor = (float)clamp(speed);
+    const float factor = (float)(clamp(X87Reg(duration)) * X87Reg(speedFactor));
+    return (u8)(long long)X87_MulDouble((double)base, factor);
+}
+
+u8 __fastcall Object_Rating(const u8 *object, void *, u32 baseOnly) {
+    const u32 rating = at<u32>(Object_GetDef(object), 0x13c);
+    if ((u8)baseOnly != 0)
+        return (u8)rating;
+    if (rating == 0)
+        return 0;
+    if (at<s32>(Object_GetDef(object), 0x4ac) == 2)
+        return Object_ComputeRating(object, nullptr, at<s32>(object, 0x188), at<s32>(object, 0x194), at<u8>(object, 0x190));
+    return Object_ComputeRating(object, nullptr, at<s32>(object, 0x58), at<u8>(object, 0x5c), at<u8>(object, 0x5d));
 }
 }

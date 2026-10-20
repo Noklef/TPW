@@ -188,4 +188,18 @@ void __fastcall Object_ResetCondition(u8 *object);
 // (Save_StatFields), mRequestedService, mTimeMarkedForMaintenance, mTotalCosts, mTotalTakings, mUpgradeBalloonSprite and mUpgradeLevel (re/types.h's
 // Object). 1 at the first that fails, else 0.
 u32 __fastcall Object_Serialize(u8 *object, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x4e0560 (thiscall; a, b, c, pops 12; x87; name unconfirmed): a rating (a byte; the definition looked up by the id at +0xe). For a definition of kind
+// (+0x4ac) 2: 20 - __ftol(c * the root of a - b (wrapping; held to 0..100) * 0.1 (a double) * -0.8f). Else for track type (+0x9c) 3: 0 when
+// Rides_GetE0ById of the dword +0x24 gives 0, else __ftol(50 - the coaster's +0x104 float (Coaster_GetPair's second) * -0.5). Else the base +0x13c,
+// with a track ride (+0x28 nonzero) 60% of it (signed, wrapping) plus 3 * TrakRide_CountPieces' kind 11 pieces + its longest run + 2 * its others
+// (held to 0..40), held to 0..100; times a over the row's (byte +0x50, 0x40 apart) limit +0x1a8 held to 0.75..1.25 (NaN 0.75) and stored to a float,
+// by b over the limit +0x1a0 (stored to a float), held the same, their product stored to a float; __ftol of base times that. The x87's 24-bit
+// precision throughout (X87Reg, X87_MulDouble).
+u8 __fastcall Object_ComputeRating(const u8 *object, void *, s32 a, s32 b, s32 c);
+
+// 0x4e0860 (thiscall; a flag, its low byte, pops 4; name unconfirmed): the definition's base rating (+0x13c, its low byte) for a nonzero flag, 0 for a
+// base of 0; else Object_ComputeRating of a kind-2 definition's object +0x188 (mCostOfGoods), +0x194 (mPricePerUse) and the byte +0x190
+// (mChanceOfWinning), of any other's +0x58 (mOperatingSpeed) and the bytes +0x5c (mOperatingDuration) and +0x5d (mOperatingCapacity).
+u8 __fastcall Object_Rating(const u8 *object, void *, u32 baseOnly);
 }
