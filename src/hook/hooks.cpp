@@ -280,6 +280,7 @@
 #include "../game/model/m3d2.h"
 #include "../game/model/objmodel.h"
 #include "../game/model/stripanim.h"
+#include "../game/model/baseuvs.h"
 #include "../game/model/worldverts.h"
 #include "../game/render/frame.h"
 #include "../game/render/lightlist.h"
@@ -4508,6 +4509,7 @@ const Hook kHooks[] = {
     {"ObjModel_Load",             0x00579e00, (void *)&ObjModel_Load, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"ObjModel_SetMatrices",      0x0057a260, (void *)&ObjModel_SetMatrices, {0x81, 0xec, 0xc0, 0x00, 0x00}},
     {"HeightMap_Rasterize",       0x00451e20, (void *)&HeightMap_Rasterize, {0x83, 0xec, 0x70, 0x53, 0x55}},
+    {"RideBase_TidyUVs",          0x00467310, (void *)&RideBase_TidyUVs, {0x83, 0xec, 0x38, 0x53, 0x55}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
