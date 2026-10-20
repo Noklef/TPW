@@ -3948,6 +3948,7 @@ address,name,kind,confidence,notes
 0x00450d10,Terrain_ShadeNormals,function,low,"reimplemented (src/game/terrain/normals); cdecl: grid flag 0x400 from each map cell's flags 0x40 / 0x80, then Terrain_ScaleNormals from the map's model with the identity"
 0x0046eeb0,Terrain_NodeCells,function,low,"reimplemented (src/game/terrain/nodecells); cdecl (node, grid, matrix by value): the node box through its matrix to the cells it covers (+0x90), flags 0x2000 / 0x4000000; then its children"
 0x0046f0c0,Terrain_ModelCells,function,low,reimplemented (src/game/terrain/nodecells); cdecl (map): Terrain_NodeCells for the map model on its grid with the identity
+0x00427620,TerrainSets_Load,function,low,"reimplemented (src/game/terrain/tct); cdecl (name, sets): a level's terrain texture sets read from its .tct file in two passes (count, then place)"
 0x005ea510,Image_Dilate,function,high,reimplemented (src/game/gfx/imageops); separable maximum filter of an image
 0x005ea6d0,Image_Erode,function,high,reimplemented (src/game/gfx/imageops); separable minimum filter of an image
 0x005ea1f0,Image_MinMark,function,high,"reimplemented (src/game/gfx/imageops); 3 x 3 minimum of a two byte per pixel image, marking the changed pixels"
