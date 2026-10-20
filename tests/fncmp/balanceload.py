@@ -2,12 +2,13 @@
 # the settings applied), Options_CheckGraphicsMode (0x423bc0: a mode's graphics file on the stack against gBalanceGraphics, the options' change level)
 # and Options_LoadBalanceFiles (0x45b1f0: gBalanceSound, the options' defaults, gBalanceOnline and the servers, gBalanceResolution when it exists);
 # and two callers: GraphicsSettings_LoadForOptions (0x44de20: the game options' mode, the flag words) and Options_NoteChanges (0x423740: options and
-# their copy equal or not, two dwords either side of 0x785910).
+# their copy equal or not, two dwords either side of 0x785910). The advisor scoring's constructor (0x59bea0): gAdvisorScoring (0xfb3540) any
+# bytes, "data/advisor/advisor.sam" loaded as the others.
 # The real schemas; each file's values entries over zeroed data. The folder (the wide string at 0xf816c0 + 0x28) with or without its "\", the names
 # Strings of a few texts; FindFirstFileA (the size: 0, a few bytes, not found) and GetFileAttributesA recorded; the text whatever the heap held (its
 # blocks filled with comment lines, blank lines or 0xcd), the heap failing now and then. The files on the stack (Check, Changes) read and parsed
 # (their fields the defaults, 0), the fields of gBalanceGraphics they are checked against mostly 0.
-# usage: balanceload.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Graphics,Check,All,ForOptions,Changes)
+# usage: balanceload.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Graphics,Check,All,ForOptions,Changes,Advisor)
 import os
 import struct
 import sys
@@ -22,7 +23,7 @@ B = Bench([(0x44dc60, 0x44dd4e), (0x423bc0, 0x423db5), (0x45b1f0, 0x45b33a), (0x
            (0x4d1e60, 0x4d1e72), (0x5da3c0, 0x5da3c1), (0x5f56f0, 0x5f5a30), (0x5f5ad0, 0x5f5bc0), (0x5f5c70, 0x5f5d0e), (0x5f5e20, 0x5f5e90),
            (0x5f5fc0, 0x5f7f00), (0x67a400, 0x6902c0), (0x44d8f0, 0x44dc52), (0x583280, 0x5832f0), (0x585710, 0x58571d),
            (0x423690, 0x423714), (0x423dd0, 0x423e89), (0x51b3c0, 0x51b3e0), (0x51bb80, 0x51bc50), (0x45aee0, 0x45b1e4), (0x45b340, 0x45b9a0),
-           (0x44de20, 0x44df19), (0x423ba0, 0x423bb1), (0x423740, 0x4237ee)]
+           (0x44de20, 0x44df19), (0x423ba0, 0x423bb1), (0x423740, 0x4237ee), (0x59bea0, 0x59bf0f), (0x415e90, 0x415ea4)]
           + [(a, a + 0x12) for a in GETTERS])
 FILES = {0x785828: (0x6fd628, 15), 0x785868: (0x6fd630, 31), 0x7858e0: (0x6fd638, 3), 0x7858f0: (0x6fd640, 27)}   # (vtable, schema records)
 SIZES = {0x785828: 0x40, 0x785868: 0x78, 0x7858e0: 0x10, 0x7858f0: 0x48}
@@ -154,8 +155,17 @@ def load_all(r):   # Options_LoadBalanceFiles (cdecl): the three files, the opti
     return Call(0x45b1f0, [], regions, conv='c', ret='v')
 
 
+def advisor(r):   # AdvisorScoring_Construct (thiscall on gAdvisorScoring, 0x63c bytes up to the mode setting at 0xfb3b7c)
+    regions = common(r, 'Graphics')
+    regions[FILE_STREAM_VTABLE] = regions[FILE_STREAM_VTABLE][:0x28]   # (the stream's 10 slots: its file's vtable follows at 0x6fd958)
+    regions[0xfb3540] = r.bytes(0x63c)
+    return Call(0x59bea0, [0xfb3540], regions, conv='t', ret='a')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'Advisor':
+        return advisor(r)
     if op == 'Graphics':
         return graphics(r)
     if op == 'Check':
@@ -167,7 +177,7 @@ def case(r):
     return load_all(r)
 
 
-OPS = [k for k in os.environ.get('OPS', 'Graphics,Check,All,ForOptions,Changes').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Graphics,Check,All,ForOptions,Changes,Advisor').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

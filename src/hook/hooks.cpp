@@ -3814,6 +3814,7 @@ const Hook kHooks[] = {
     {"BalanceFile_Parse",         0x004017a0, (void *)&BalanceFile_Parse, {0x8b, 0x44, 0x24, 0x0c, 0x81}},
     {"BalanceFile_Load",          0x00401650, (void *)&BalanceFile_Load, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
     {"BalanceFile_LoadStream",    0x00401700, (void *)&BalanceFile_LoadStream, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"AdvisorScoring_Construct",  0x0059bea0, (void *)&AdvisorScoring_Construct, {0x6a, 0xff, 0x68, 0x6b, 0xf6}},
     {"TimeSig_Serialize",         0x0041a860, (void *)&TimeSig_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x56}},
     {"FloatConsts_InitOne_407b20", 0x00407b20, (void *)&FloatConsts_InitOne_407b20, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"FloatConsts_InitEpsilon_407b40", 0x00407b40, (void *)&FloatConsts_InitEpsilon_407b40, {0xd9, 0x05, 0x00, 0xd7, 0x6f}},

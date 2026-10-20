@@ -245,6 +245,15 @@ void __fastcall AdvisorScoringFile_Dtor(u8 *self) {
 
 void __cdecl AdvisorScoring_StaticDtor() { AdvisorScoring_Dtor(reinterpret_cast<u8 *>(0x00fb3540)); }
 
+u8 *__fastcall AdvisorScoring_Construct(u8 *self) {
+    u8 *const file = self + 0xc;
+    at<u32>(file, 0) = 0x006fd958;
+    BalanceFile_Init(file);
+    at<u32>(self, 0) = 0;
+    BalanceFile_Load(file, nullptr, reinterpret_cast<const char *>(0x00773014), 0);   // (failing: Debug_Printf, empty in this build)
+    return self;
+}
+
 u32 __cdecl BalanceFile_ParseMap(const char **text, u8 **map, const char **error, const u8 *symbols, s32 count) {
     u8 grid[0xc88] = {};  // +0 the width, +4 the height, +8 20 rows of 20 cells {the symbol's +4 dword, its +8 byte, 3 zeros}
     *error = nullptr;

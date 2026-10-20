@@ -75,6 +75,12 @@ void __fastcall AdvisorScoringFile_Dtor(u8 *self);
 // 0x415e70 (cdecl, at exit; name unconfirmed): AdvisorScoring_Dtor of gAdvisorScoring (0xfb3540).
 void __cdecl AdvisorScoring_StaticDtor();
 
+// 0x59bea0 (thiscall; the function-static gAdvisorScoring's constructor, under the guard 0xfb2766 & 1 with AdvisorScoring_StaticDtor
+// given to atexit by its callers): the balance file at +0xc gets vtable 0x6fd958 and is laid out (BalanceFile_Init), +0 = 0, and
+// "data/advisor/advisor.sam" (0x773014) loaded into it (BalanceFile_Load, keep 0; its failure only goes to the empty Debug_Printf).
+// Returns the object.
+u8 *__fastcall AdvisorScoring_Construct(u8 *self);
+
 // 0x402720 (cdecl; &text, &map, &error, symbols, count; name unconfirmed): a map description read from the text. *error = 0; the text's
 // leading white space (the CRT's iswspace of each char sign-extended to 16 bits) and the rest of that line are passed over; then a line of
 // "---" (at least), then rows up to a line starting "---": each character but spaces is looked up among the count symbols (0xc bytes: +0
