@@ -62,7 +62,7 @@ address,size,source_file,function,confidence,evidence,checked
 0x00646c40,144,jpeg-6b/jdcolor.c,null_convert,high,"num_components +0x24 planes interleaved, output_width +0x5c",yes
 0x00646cd0,48,jpeg-6b/jdcolor.c,grayscale_convert,high,"jcopy_sample_rows(input_buf[0], input_row, output_buf, 0, num_rows, output_width)",yes
 0x00646d00,98,jpeg-6b/jdcolor.c,gray_rgb_convert,high,"one sample to three bytes, output_width +0x5c",yes
-0x00646d70,368,jpeg-6b/jdcolor.c,ycck_cmyk_convert,high,"SUB ESP,0x24, cconvert +0x1a4, sample_range_limit +0x120, four components; its head (0x646d70..0x646dc9) is not in the listing",yes
+0x00646d70,368,jpeg-6b/jdcolor.c,ycck_cmyk_convert,high,"SUB ESP,0x24, cconvert +0x1a4, sample_range_limit +0x120, four components, range_limit[MAXJSAMPLE - (y + ...)] as EDX + 0xff - ..., K copied (+3)",yes
 0x00646ee0,144,jpeg-6b/jdmerge.c,jinit_merged_upsampler,high,"alloc_small 0x30 (my_upsampler) into cinfo +0x1a0, start_pass 0x647040, out_row_width = output_width * out_color_components (+0x5c * +0x64), max_v_samp_factor +0x114 == 2: upsample 0x647060 / upmethod 0x6472f0 and alloc_small spare row, else 0x647130 / 0x647170; calls 0x646f70",yes
 0x00646f70,208,jpeg-6b/jdmerge.c,build_ycc_rgb_table,high,"four alloc_small (cinfo +4, slot 0) of 0x400 into upsample (+0x1a0) +0x10..+0x1c; the jdcolor.c constants",yes
 0x00647040,32,jpeg-6b/jdmerge.c,start_pass_merged_upsample,high,"upsample +0x24 spare_full = 0 (a byte), +0x2c rows_to_go = output_height +0x60",yes

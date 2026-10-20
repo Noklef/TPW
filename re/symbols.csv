@@ -5217,3 +5217,4 @@ address,name,kind,confidence,notes
 0x006465a0,jdsample_h2v2_upsample,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdsample.c h2v2_upsample (the library's, through wrap/jpeg-6b/jdsample.c)"
 0x00646630,jdsample_h2v1_fancy_upsample,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdsample.c h2v1_fancy_upsample: triangular interpolation (the library's, through wrap/jpeg-6b/jdsample.c)"
 0x00646700,jdsample_h2v2_fancy_upsample,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdsample.c h2v2_fancy_upsample: triangular interpolation (the library's, through wrap/jpeg-6b/jdsample.c)"
+0x00646d70,jdcolor_ycck_cmyk_convert,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdcolor.c ycck_cmyk_convert: YCCK rows to CMYK (the library's, through wrap/jpeg-6b/jdcolor.c)"

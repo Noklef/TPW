@@ -4,8 +4,8 @@
 # tables at TABLES: build_ycc_rgb_table's values, or perturbed), the input image (an array of components' row arrays at IMAGE) and the
 # output rows at OUT_ROWS. build_ycc_rgb_table allocates its tables through cinfo->mem->alloc_small, here fncmp's ZALLOC stub over
 # the case heap (its (opaque, items, size) is alloc_small's (cinfo, JPOOL_IMAGE = 1, size)).
-# ycck_cmyk_convert (0x646d70) stays the exe's for now: the listing has no code from 0x646d62 to 0x646dc9 (Ghidra never reached its
-# head), so the emulator cannot run it until the listing is dumped again with a function there (re/listing_added.txt).
+# ycck_cmyk_convert (0x646d70) has four components (the perturbed tables reach range_limit up to 384 below sample_range_limit + 255,
+# so a little before the table: zeros in both).
 # usage: jpeg6b_color.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ycc_rgb,...)
 import os
 import struct
@@ -17,7 +17,7 @@ from fncmp import HEAP, RAM, ZALLOC, Bench, Call, heap  # noqa: E402
 # the exe's copies (re/libmap.csv): name -> (address, end)
 FUNCS = {
     'build_ycc_rgb_table': (0x646a30, 0x646b00), 'ycc_rgb_convert': (0x646b00, 0x646c40), 'null_convert': (0x646c40, 0x646cd0),
-    'grayscale_convert': (0x646cd0, 0x646d00), 'gray_rgb_convert': (0x646d00, 0x646d70),
+    'grayscale_convert': (0x646cd0, 0x646d00), 'gray_rgb_convert': (0x646d00, 0x646d70), 'ycck_cmyk_convert': (0x646d70, 0x646ee0),
 }
 B = Bench(sorted(list(FUNCS.values()) + [(0x6428e0, 0x642930)]))  # (and jcopy_sample_rows, which grayscale_convert calls)
 
@@ -88,7 +88,7 @@ def converter(address, components):
         if r.random() < 0.03:  # (num_rows below zero: nothing)
             args[4] = -r.randrange(1, 3) & 0xffffffff
         return Call(address, args, regions)
-    op.__name__ = {0x646b00: 'ycc_rgb', 0x646c40: 'null', 0x646cd0: 'grayscale', 0x646d00: 'gray_rgb'}[address]
+    op.__name__ = {0x646b00: 'ycc_rgb', 0x646c40: 'null', 0x646cd0: 'grayscale', 0x646d00: 'gray_rgb', 0x646d70: 'ycck_cmyk'}[address]
     return op
 
 
@@ -99,7 +99,7 @@ def build(r):
     return Call(0x646a30, [CINFO], {CINFO: cinfo, MEM: struct.pack('<I', ZALLOC) + r.bytes(0x2c), CC: r.bytes(0x18), HEAP: heap(0x1100)})
 
 
-OPS = [f for f in (build, converter(0x646b00, 3), converter(0x646c40, 0), converter(0x646cd0, 1), converter(0x646d00, 1))
+OPS = [f for f in (build, converter(0x646b00, 3), converter(0x646c40, 0), converter(0x646cd0, 1), converter(0x646d00, 1), converter(0x646d70, 4))
        if not os.environ.get('OPS') or f.__name__ in os.environ['OPS'].split(',')]
 
 

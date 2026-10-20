@@ -59,6 +59,9 @@ void __cdecl jdcolor_grayscale_convert(jpeg_decompress_struct *cinfo, unsigned c
 // 0x646d00: grayscale -> RGB: each sample three times.
 void __cdecl jdcolor_gray_rgb_convert(jpeg_decompress_struct *cinfo, unsigned char ***input_buf, unsigned int input_row,
                                       unsigned char **output_buf, int num_rows);
+// 0x646d70: YCCK -> CMYK: the YCbCr part through the tables, inverted (range_limit[MAXJSAMPLE - ...]), K passed through.
+void __cdecl jdcolor_ycck_cmyk_convert(jpeg_decompress_struct *cinfo, unsigned char ***input_buf, unsigned int input_row,
+                                       unsigned char **output_buf, int num_rows);
 
 // jdmerge.c (through wrap/jpeg-6b/jdmerge.c): the merged upsampler, chroma upsampling and YCbCr -> RGB in one pass for h2v1 and h2v2
 // sampling. cinfo->upsample is its my_upsampler (upmethod +0xc, the four tables +0x10..+0x1c, spare_row +0x20, spare_full +0x24,
