@@ -1,5 +1,7 @@
 # Functions created in the Ghidra project on 2026-10-20 (tools/CreateFunctions.java) that its analysis never reached: starts after a RET
 # or padding, referenced from .rdata / .data ("(table)": a neighbouring dword also points into .text, i.e. a vtable or function table).
+# Removed again (tools/RemovePadFunctions.java): 35 starts that were alignment padding (NOPs) a data value happened to point at
+# (often ASCII text: 0x6e6163 is "can"), not function starts; tools/CreateFunctions.java now refuses a start on 0x90 / 0xcc.
 0x405530  # from 6fd6c8 (table)
 0x405540  # from 6fd6cc (table)
 0x405d20  # from 727040 (table)
@@ -50,36 +52,16 @@
 0x40c800  # from 748138
 0x40c820  # from 74814c
 0x40c830  # from 748330
-0x41786f  # from 709720
 0x420010  # from 72807c (table)
 0x42a500  # from 7482e0 748344
 0x42a520  # from 7482a4
-0x444c49  # from 7657d0
-0x444c4e  # from 78199c
 0x450000  # from 7260fc 72919c (table)
 0x450020  # from 74a828 74aa04 74aa80 (table)
-0x45004d  # from 748824 74a9f0 74ae68 (table)
-0x45004e  # from 74a954 74a9e4 74ad2c (table)
-0x455a43  # from 781984
 0x45fff0  # from 729a5c (table)
-0x46004e  # from 74a804 (table)
-0x46004f  # from 74bb64 74bc80 74bd24 (table)
-0x4e004c  # from 74b078 (table)
-0x4e004f  # from 74a814 74aa4c 74aa7c (table)
-0x4e4f4e  # from 78189c
 0x4e5ba0  # from 700620 (table)
-0x4f000a  # from 7480f0
 0x53fff0  # from 72b7e8 (table)
-0x54004b  # from 74ae50 74b000 74b140 (table)
-0x54004c  # from 74ac0c 74af5c (table)
-0x54004e  # from 747a24 74ab48 74b610 (table)
-0x54004f  # from 74b134 74b438 74b44c (table)
-0x5400dc  # from 74ac78 (table)
-0x544357  # from 768aa8
-0x544e45  # from 78181c
 0x579ad2  # from 70198c (table)
 0x579adc  # from 701990 (table)
-0x5a005a  # from 74b5a8 (table)
 0x5a0a40  # from 72bda8 (table)
 0x5ab220  # from 72c118 (table)
 0x5c0010  # from 72cbe0 (table)
@@ -95,10 +77,6 @@
 0x6348f0  # from 703cf0 (table)
 0x6350d0  # from 703d2c (table)
 0x6350e0  # from 703d30 (table)
-0x640006  # from 748548
-0x64000f  # from 748284
-0x646f69  # from 762338
-0x646f6f  # from 74056c
 0x67a7f0  # from 72e0f0 (table)
 0x67ad5f  # from 708978
 0x67b013  # from 708988
@@ -130,16 +108,5 @@
 0x6d185c  # from 711900 (table)
 0x6d189c  # from 711908 (table)
 0x6d18a2  # from 71190c (table)
-0x6e0067  # from 75c6f8 (table)
-0x6e0069  # from 758540 75859c
-0x6e006f  # from 747a48 758534 (table)
-0x6e614a  # from 709810 (table)
-0x6e6163  # from 709398 7095f4 779514
-0x6e6168  # from 72e7fc 732744 735ad0
-0x6e6169  # from 709510 709544 7096a8
-0x6e616f  # from 7338a0
-0x6e6564  # from 7622c0
-0x6e656d  # from 73439c 735f48 740d20
-0x6e6965  # from 709500
 0x61b030  # Draw_Sprite (hooked; data ref not found)
 0x61b050  # Draw_SpriteShape
