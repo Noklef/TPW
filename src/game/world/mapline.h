@@ -46,4 +46,11 @@ void __fastcall MapLine_LinkCell(u8 *cell, void *, u32 kind, s32 stepX, s32 step
 // y -2, x +2, y +2, x -2. The start and the end are then each pushed two cells further apart on each axis where they differ, and
 // Map_ApplyLine runs from the start to the end with 0x85, 0x86 and 0x81 (the ends as the lines leave them); the last one's answer.
 u32 __cdecl MapCell_PathLines(s32 x, s32 y);
+
+// 0x52a1a0 (cdecl; thing, x out, y out, kind; name unconfirmed): the lines in front of a thing at column +8, row +0xc facing [0x818c4c] (0, 0x5a, 0xb4,
+// 0x10e): a start one cell out, an end two further along, Map_ApplyLine with the kind's code (1 -> 0xd, 2 -> 0x12, else the kind), then 0x80, 0x82
+// and 0x83, the ends as each leaves them; [0x818c50] the facing's direction bit (4, 1, 0x40, 0x10). An in-bounds start goes to [0x7639e0] /
+// [0x7639e4]. The cell four cells out (five for 0x5a / 0xb4) when in bounds: its column and row out, [0x8186cc] the focus cell, the cell
+// returned; nullptr otherwise.
+u8 *__cdecl Map_ApplyEntranceLines(const u8 *thing, s32 *xOut, s32 *yOut, u32 kind);
 }

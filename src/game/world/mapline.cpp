@@ -158,4 +158,38 @@ u32 __cdecl MapCell_PathLines(s32 x, s32 y) {
     return Map_ApplyLine(0x81, sx, sy, &xEnd, &yEnd);
 }
 
+
+u8 *__cdecl Map_ApplyEntranceLines(const u8 *thing, s32 *xOut, s32 *yOut, u32 kind) {
+    const u32 code = kind == 1 ? 0xd : kind == 2 ? 0x12 : kind;
+    s32 x = *reinterpret_cast<const s32 *>(thing + 8);
+    s32 y = *reinterpret_cast<const s32 *>(thing + 0xc);
+    s32 startX, startY, endX, endY, focusX, focusY;
+    switch (global<s32>(0x00818c4c)) {
+    case 0: startX = x; startY = y + 1; endX = x + 2; endY = y + 1; focusX = x; focusY = y + 1; x += 4; y += 1; global<u8>(0x00818c50) = 4; break;
+    case 0x5a: startX = x + 1; startY = y - 1; endX = x + 1; endY = y - 3; focusX = x + 1; focusY = y; x += 1; y -= 5; global<u8>(0x00818c50) = 1; break;
+    case 0xb4: startX = x - 1; startY = y - 2; endX = x - 3; endY = y - 2; focusX = x; focusY = y - 2; x -= 5; y -= 2; global<u8>(0x00818c50) = 0x40; break;
+    case 0x10e: startX = x - 2; startY = y; endX = x - 2; endY = y + 2; focusX = x - 2; focusY = y; x -= 2; y += 4; global<u8>(0x00818c50) = 0x10; break;
+    default:
+        // (another angle: the start and the focus row are the kind itself, the end's column and the focus column stale stack dwords (0 here) and the end's
+        // row the thing pointer, all as the original's stack slots leave them; the game's angles are quarter turns)
+        startX = startY = focusY = (s32)kind;
+        endX = focusX = 0;
+        endY = (s32)(uintptr_t)thing;
+        break;
+    }
+    Map_ApplyLine(code, startX, startY, &endX, &endY);
+    Map_ApplyLine(0x80, startX, startY, &endX, &endY);
+    Map_ApplyLine(0x82, startX, startY, &endX, &endY);
+    Map_ApplyLine(0x83, startX, startY, &endX, &endY);
+    if (Map_InBounds(startX, startY)) {
+        global<s32>(0x007639e0) = startX;
+        global<s32>(0x007639e4) = startY;
+    }
+    if (!Map_InBounds(x, y)) return nullptr;
+    *xOut = x;
+    *yOut = y;
+    global<u8 *>(0x008186cc) = cell(focusX, focusY);
+    return cell(*xOut, y);  // (x read back: the same pointer twice gives y)
+}
+
 }  // extern "C"
