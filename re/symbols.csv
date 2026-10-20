@@ -5144,3 +5144,8 @@ address,name,kind,confidence,notes
 0x0064b5b0,jpeg_idct_4x4,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jidctred.c: inverse DCT of a block scaled to 4x4 (the library's, tpw_jpeg6b)"
 0x0064b970,jpeg_idct_2x2,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jidctred.c: inverse DCT of a block scaled to 2x2 (the library's, tpw_jpeg6b)"
 0x0064bb90,jpeg_idct_1x1,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jidctred.c: inverse DCT of a block scaled to one sample (the library's, tpw_jpeg6b)"
+0x00646a30,jdcolor_build_ycc_rgb_table,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdcolor.c build_ycc_rgb_table: the YCbCr -> RGB tables (the library's, through wrap/jpeg-6b/jdcolor.c)"
+0x00646b00,jdcolor_ycc_rgb_convert,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdcolor.c ycc_rgb_convert: YCbCr rows to RGB (the library's, through wrap/jpeg-6b/jdcolor.c)"
+0x00646c40,jdcolor_null_convert,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdcolor.c null_convert: component planes interleaved (the library's, through wrap/jpeg-6b/jdcolor.c)"
+0x00646cd0,jdcolor_grayscale_convert,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdcolor.c grayscale_convert: the first component's rows copied (the library's, through wrap/jpeg-6b/jdcolor.c)"
+0x00646d00,jdcolor_gray_rgb_convert,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdcolor.c gray_rgb_convert: grayscale rows to RGB (the library's, through wrap/jpeg-6b/jdcolor.c)"

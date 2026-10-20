@@ -41,4 +41,22 @@ void __cdecl jpeg_idct_2x2(jpeg_decompress_struct *cinfo, jpeg6b_component_info 
                            unsigned char **output_buf, unsigned int output_col);
 void __cdecl jpeg_idct_1x1(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, short *coef_block,
                            unsigned char **output_buf, unsigned int output_col);
+
+// jdcolor.c (through wrap/jpeg-6b/jdcolor.c): the output colour space converters, cinfo->cconvert's color_convert methods. Each
+// converts num_rows rows from input_buf (one row array per component) at input_row into output_buf's rows, cinfo->output_width
+// pixels a row.
+// 0x646a30: cconvert's YCbCr -> RGB tables (Cr_r, Cb_b, Cr_g, Cb_g; 256 entries each, through cinfo->mem->alloc_small).
+void __cdecl jdcolor_build_ycc_rgb_table(jpeg_decompress_struct *cinfo);
+// 0x646b00: YCbCr -> RGB through the tables and cinfo->sample_range_limit.
+void __cdecl jdcolor_ycc_rgb_convert(jpeg_decompress_struct *cinfo, unsigned char ***input_buf, unsigned int input_row,
+                                     unsigned char **output_buf, int num_rows);
+// 0x646c40: no conversion: the components interleaved (cinfo->num_components a pixel).
+void __cdecl jdcolor_null_convert(jpeg_decompress_struct *cinfo, unsigned char ***input_buf, unsigned int input_row,
+                                  unsigned char **output_buf, int num_rows);
+// 0x646cd0: grayscale: component 0's rows copied (jcopy_sample_rows).
+void __cdecl jdcolor_grayscale_convert(jpeg_decompress_struct *cinfo, unsigned char ***input_buf, unsigned int input_row,
+                                       unsigned char **output_buf, int num_rows);
+// 0x646d00: grayscale -> RGB: each sample three times.
+void __cdecl jdcolor_gray_rgb_convert(jpeg_decompress_struct *cinfo, unsigned char ***input_buf, unsigned int input_row,
+                                      unsigned char **output_buf, int num_rows);
 }

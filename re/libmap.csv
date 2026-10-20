@@ -46,6 +46,13 @@ address,size,source_file,function,confidence,evidence,checked
 0x006428e0,80,jpeg-6b/jutils.c,jcopy_sample_rows,high,"input_array += source_row, output_array += dest_row; per row an inline memcpy (REP MOVSD, REP MOVSB) of num_cols bytes",yes
 0x00642930,48,jpeg-6b/jutils.c,jcopy_block_row,high,inline memcpy of num_blocks << 7 bytes (DCTSIZE2 * sizeof(JCOEF)),yes
 0x00642960,32,jpeg-6b/jutils.c,jzero_far,high,"inline memset 0 (REP STOSD, REP STOSB); jutils.c order after jcopy_block_row",yes
+0x00646860,464,jpeg-6b/jdcolor.c,jinit_color_deconverter,high,"alloc_small 0x18 (my_color_deconverter) into cinfo +0x1a4, switch on jpeg_color_space / out_color_space (table at 0x646a18), calls build_ycc_rgb_table 0x646a30; stores the converters below and start_pass_dcolor as the shared bare RET 0x631270",yes
+0x00646a30,208,jpeg-6b/jdcolor.c,build_ycc_rgb_table,high,"four alloc_small (cinfo +4, slot 0) of 0x400; FIX(1.40200) 0x166e9, FIX(1.77200) 0x1c5a2, FIX(0.71414) 0xb6d2, FIX(0.34414) 0x581a, ONE_HALF 0x8000, SCALEBITS 16",yes
+0x00646b00,320,jpeg-6b/jdcolor.c,ycc_rgb_convert,high,"cconvert +8..+0x14 tables, sample_range_limit +0x120, output_width +0x5c, three components to RGB triples, SAR 16",yes
+0x00646c40,144,jpeg-6b/jdcolor.c,null_convert,high,"num_components +0x24 planes interleaved, output_width +0x5c",yes
+0x00646cd0,48,jpeg-6b/jdcolor.c,grayscale_convert,high,"jcopy_sample_rows(input_buf[0], input_row, output_buf, 0, num_rows, output_width)",yes
+0x00646d00,98,jpeg-6b/jdcolor.c,gray_rgb_convert,high,"one sample to three bytes, output_width +0x5c",yes
+0x00646d70,368,jpeg-6b/jdcolor.c,ycck_cmyk_convert,high,"SUB ESP,0x24, cconvert +0x1a4, sample_range_limit +0x120, four components; its head (0x646d70..0x646dc9) is not in the listing",yes
 0x00649550,64,infcodes.c,inflate_codes_new,high,"ZALLOC codes state, lbits/dbits/ltree/dtree",yes
 0x00649590,1968,infcodes.c,inflate_codes,high,"mode jump table, inflate_fast, inflate_flush, invalid literal/length/distance code strings",yes
 0x00649d40,32,infcodes.c,inflate_codes_free,high,ZFREE codes state,yes

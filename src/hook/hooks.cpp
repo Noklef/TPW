@@ -4771,6 +4771,11 @@ const Hook kHooks[] = {
     {"jpeg_idct_4x4",             0x0064b5b0, (void *)&jpeg_idct_4x4, {0x81, 0xec, 0x98, 0x00, 0x00}},
     {"jpeg_idct_ifast",           0x0064abb0, (void *)&jpeg_idct_ifast, {0x81, 0xec, 0x2c, 0x01, 0x00}},
     {"jpeg_idct_islow",           0x0064a5c0, (void *)&jpeg_idct_islow, {0x81, 0xec, 0x38, 0x01, 0x00}},
+    {"jdcolor_gray_rgb_convert",  0x00646d00, (void *)&jdcolor_gray_rgb_convert, {0x8b, 0x44, 0x24, 0x04, 0x57}},
+    {"jdcolor_grayscale_convert", 0x00646cd0, (void *)&jdcolor_grayscale_convert, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"jdcolor_null_convert",      0x00646c40, (void *)&jdcolor_null_convert, {0x51, 0x8b, 0x44, 0x24, 0x08}},
+    {"jdcolor_ycc_rgb_convert",   0x00646b00, (void *)&jdcolor_ycc_rgb_convert, {0x83, 0xec, 0x20, 0x8b, 0x4c}},
+    {"jdcolor_build_ycc_rgb_table", 0x00646a30, (void *)&jdcolor_build_ycc_rgb_table, {0x53, 0x55, 0x56, 0x57, 0x8b}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
