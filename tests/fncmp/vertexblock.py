@@ -7,6 +7,7 @@
 # or another, the offsets at 0x8186b4 / 0x8186b8 and 0x820af8 / 0x820afc any, the texture table at 0x871ee8 any floats.
 # Construct (0x53d790): a block of 0-3 cubes and 0-5 quads built (animatormesh.py's environment: global_heap(), the texture directories
 # and holder logged), the face scene as Face's, the wake mostly into an empty renderer pool (see construct()).
+# Take (0x53d9e0): the scene's generated faces (see take()) added to a block in the face scene.
 # usage: vertexblock.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -21,7 +22,7 @@ import terrainheight  # noqa: E402
 from texdirs import merged  # noqa: E402
 
 B = Bench(merged([(0x53ddd0, 0x53df30), (0x4527f0, 0x452a70), (0x53e530, 0x53e61c), (0x53df30, 0x53e4d0), (0x52f840, 0x52f860), (0x53d790, 0x53d9db),
-                  (0x54dcc0, 0x54dcf0), (0x5c5520, 0x5c5530)] + animatormesh.RANGES + holder.RANGES), sines=4096,
+                  (0x54dcc0, 0x54dcf0), (0x5c5520, 0x5c5530), (0x53d9e0, 0x53ddc2), (0x5da3c0, 0x5da3c1)] + animatormesh.RANGES + holder.RANGES), sines=4096,
           hooks={**holder.HOOKS, **animatormesh.HOOKS})
 BLOCK, POS, NORMALS, UVS, NORMAL = RAM + 0x8000, RAM + 0x8100, RAM + 0x8400, RAM + 0x8600, RAM + 0x8800
 INDICES, CORNERS, CORNER_UVS, CORNER_NORMALS = RAM + 0x8a00, RAM + 0x8b00, RAM + 0x8c00, RAM + 0x8d00
@@ -91,8 +92,51 @@ def construct(r):
     return Call(0x53d790, [CBLOCK] + args, regions, conv='t', ret='a')
 
 
-def case(r, ops=('add', 'quad', 'face', 'construct')):
+ENTRIES, FACES, LIST = RAM + 0x9000, 0x820b00, 0x872168
+
+
+def take(r):
+    """0x53d9e0 (thiscall): face()'s scene and block (its +0x70 the index list, +0x50 entries for any type byte, the limit +0xa0 0-8 or
+    any); six face records at 0x820b00 (a cube's face at face()'s point (+0x94 set) or a quad of any floats (+0x94 0), each owned by
+    the block or not, the rest of their fields as face()'s arguments or any) and a list of 0-8 indices into them (any low five bits),
+    its count now and then negative."""
+    c = face(r)
+    regions = dict(c.regions)
+    x, z = c.args[1], c.args[3]
+    owner = r.getrandbits(32)
+    block = bytearray(regions[BLOCK]) + bytearray(4)
+    put(block, 0, 'I', owner)
+    put(block, 0x50, 'I', ENTRIES)
+    put(block, 0x70, 'I', INDICES)
+    put(block, 0xa0, 'i', r.choice([0, 1, 2, 3, 8, 8, 8, r.getrandbits(32) - (1 << 31)]))
+    regions[BLOCK] = block
+    regions[INDICES] = r.bytes(0x100)
+    regions[ENTRIES] = r.bytes(0x1010)
+    faces = bytearray()
+    for k in range(6):
+        rec = r.floats(bytearray(r.bytes(0xa0)), range(0, 0x90, 4))
+        cube = r.random() < 0.6
+        if cube:
+            put(rec, 0, 'III', x if r.random() < 0.9 else r.f(), r.f(), z if r.random() < 0.9 else r.f())
+        put(rec, 0xc, 'I', r.choice([0, 1, 4, 0x10, 0x40, r.getrandbits(32)]))
+        put(rec, 0x10, 'I', r.choice([0, 4, 0x10, 0x40, r.getrandbits(32)]))
+        put(rec, 0x18, 'I', r.choice([0, 1, r.getrandbits(32)]))
+        put(rec, 0x90, 'I', owner if r.random() < 0.7 else r.getrandbits(32))
+        put(rec, 0x94, 'I', (1 if r.random() < 0.8 else r.getrandbits(32) | 1) if cube else 0)
+        put(rec, 0x98, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
+        rec[0x9c] = r.choice([0xff, 0xff, r.randrange(16), r.randrange(16), r.randrange(20), r.getrandbits(8)])
+        faces += rec
+    regions[FACES] = bytes(faces)
+    n = r.choice([0, 1, 2, 3, 5, 8, 8])
+    regions[LIST] = struct.pack('<8I', *(r.randrange(6) << 5 | r.getrandbits(5) for _ in range(8)))
+    regions[0x871ee0] = struct.pack('<i', n if r.random() < 0.95 else r.choice([-1, -0x80000000]))
+    return Call(0x53d9e0, [BLOCK], regions, conv='t', ret='a')
+
+
+def case(r, ops=('add', 'quad', 'face', 'construct', 'take')):
     op = r.deal(list(ops))
+    if op == 'take':
+        return take(r)
     if op == 'construct':
         return construct(r)
     if op == 'quad':

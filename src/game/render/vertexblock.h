@@ -42,4 +42,16 @@ u32 __fastcall VertexBlock_AddFace(u8 *block, void *, u32 x, u32 y, u32 z, u32 f
 // woken (Animator_Wake). Returns the block.
 u8 *__fastcall VertexBlock_Construct(u8 *block, void *, u32 cubes, u32 quads, u32 *result, const char *name, u32 head, u32 a5, u32 a6, u32 a7,
                                      u32 a8, u32 a9, u32 a10);
+
+// 0x53d9e0 (thiscall; name unconfirmed; called for the blocks [0x871f64], [0x871ee4], [0x871ed8] once the list is sorted (0x53c1f0)):
+// the block's share of the scene's generated faces added afresh. The index list +0x94 the first part's (+0x70), the counts +0x9c, +0x98
+// 0, the first 20 entries (0x10 bytes at +0x50, by type) cleared at +4, +6, +8, +0xa. The faces are the 0xa0-byte records at 0x820b00 +
+// (index >> 5) * 0xa0 for the [0x871ee0] (signed) indices at 0x872168: those whose +0x90 is the block's +0 are its, and the first other
+// one after them ends the walk. For each: a type (the byte +0x9c) other than the last sets its entry's +4 to the word +0x98 and +8 to
+// +0x9c; past the limit +0xa0 (signed) the face is skipped (the empty Debug_Printf); else with +0x94 set it is added as a cube's face
+// (VertexBlock_AddFace: +0, +4, +8, the bytes +0xc and +0x10 (over the high bytes of +0x14 and +0x18), the type, +0x14, +0x18, the byte
+// +0x1c (over +0xa0's), +0x98), else as a quad (VertexBlock_AddQuad: +0, the type, +0x30, +0x60); the box +0x34..+0x48 becomes x, y, z
+// - 10 (at most 1024, a NaN too) and x, y, z + 10 (at least -1024) of the face's point, the entry's +6 the word +0x98 less its +4 and
+// +0xa the word +0x9c less 1, and the count goes up. Last the words +0x28 2 * count, +0x2a and +0x2c 4 * count; returns 4 * count.
+u32 __fastcall VertexBlock_TakeFaces(u8 *block);
 }

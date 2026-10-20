@@ -263,4 +263,68 @@ u8 *__fastcall VertexBlock_Construct(u8 *block, void *, u32 cubes, u32 quads, u3
     Animator_Wake(block + 0x54);
     return block;
 }
+
+u32 __fastcall VertexBlock_TakeFaces(u8 *block) {
+    at<u32>(block, 0x94) = at<u32>(block, 0x70);
+    at<u32>(block, 0x9c) = 0;
+    at<u32>(block, 0x98) = 0;
+    for (u32 i = 0x10; i <= 0x140; i += 0x10) {   // the first 20 types' entries
+        at<u16>(at<u8 *>(block, 0x50), i - 0xa) = 0;
+        at<u16>(at<u8 *>(block, 0x50), i - 0xc) = 0;
+        at<u16>(at<u8 *>(block, 0x50), i - 8) = 0;
+        at<u16>(at<u8 *>(block, 0x50), i - 6) = 0;
+    }
+    const auto low = [](const u8 *p) {   // fld p; fsub -10; at least -1024 (a NaN kept)
+        const X87Reg v = X87Reg(*reinterpret_cast<const float *>(p)) - X87Reg(-10.0f);
+        return -1024.0 > v.v ? -1024.0f : (float)v;
+    };
+    const auto high = [](const u8 *p) {   // fld p; fsub 10; at most 1024 (a NaN too)
+        const X87Reg v = X87Reg(*reinterpret_cast<const float *>(p)) - X87Reg(10.0f);
+        return !(1024.0 >= v.v) ? 1024.0f : (float)v;
+    };
+    s32 type = -1;
+    u32 count = 0;
+    bool found = false;
+    for (s32 n = 0; n < *reinterpret_cast<const s32 *>(0x00871ee0); ++n) {
+        const u32 index = reinterpret_cast<const u32 *>(0x00872168)[n];
+        const u8 *const face = reinterpret_cast<const u8 *>((uintptr_t)(0x00820b00u + (index >> 5) * 0xa0u));
+        if (at<u32>(face, 0x90) != at<u32>(block, 0)) {
+            if (found)
+                break;
+            continue;
+        }
+        found = true;
+        const u8 kind = at<u8>(face, 0x9c);
+        if ((s32)kind != type) {
+            type = kind;
+            at<u16>(at<u8 *>(block, 0x50), kind * 0x10 + 4) = at<u16>(block, 0x98);
+            at<u16>(at<u8 *>(block, 0x50), kind * 0x10 + 8) = at<u16>(block, 0x9c);
+        }
+        if ((s32)count >= at<s32>(block, 0xa0))
+            continue;   // (the empty Debug_Printf 0x5da3c0 with 6 and 0x763f04)
+        if (at<u32>(face, 0x94)) {   // (the bytes pushed over other dwords' high bytes, as the original's registers hold them)
+            VertexBlock_AddFace(block, nullptr, at<u32>(face, 0), at<u32>(face, 4), at<u32>(face, 8), (at<u32>(face, 0x14) & ~0xffu) | at<u8>(face, 0xc),
+                                (at<u32>(face, 0x18) & ~0xffu) | at<u8>(face, 0x10), kind, at<u32>(face, 0x14), at<u32>(face, 0x18),
+                                (at<u32>(block, 0xa0) & ~0xffu) | at<u8>(face, 0x1c), at<u32>(face, 0x98));
+        } else {
+            VertexBlock_AddQuad(block, nullptr, reinterpret_cast<const u32 *>(face), kind, reinterpret_cast<const u32 *>(face + 0x30), face + 0x60);
+        }
+        const float lz = low(face + 8), ly = low(face + 4), lx = low(face);   // (worked out z, y, x; stored from the last)
+        const float hz = high(face + 8), hy = high(face + 4), hx = high(face);
+        at<float>(block, 0x34) = hx;
+        at<float>(block, 0x38) = hy;
+        at<float>(block, 0x3c) = hz;
+        at<float>(block, 0x40) = lx;
+        at<float>(block, 0x44) = ly;
+        at<float>(block, 0x48) = lz;
+        u8 *const entry = at<u8 *>(block, 0x50) + (u32)type * 0x10;
+        at<u16>(entry, 6) = (u16)(at<u16>(block, 0x98) - at<u16>(entry, 4));
+        at<u16>(at<u8 *>(block, 0x50) + (u32)type * 0x10, 0xa) = (u16)(at<u16>(block, 0x9c) - 1);
+        ++count;
+    }
+    at<u16>(block, 0x28) = (u16)(count * 2);
+    at<u16>(block, 0x2a) = (u16)(count * 4);
+    at<u16>(block, 0x2c) = (u16)(count * 4);
+    return count * 4;
+}
 }

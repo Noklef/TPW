@@ -4798,6 +4798,7 @@ address,name,kind,confidence,notes
 0x0053e530,VertexBlock_AddQuad,function,low,"reimplemented (src/game/render/vertexblock); thiscall (positions, unused, uvs, normals; pops 0x10): four corners added (VertexBlock_Add, no wave), then two triangles of word indices into the index list at +0x94, its count +0x98 up by two; returns the new count"
 0x0053df30,VertexBlock_AddFace,function,low,"reimplemented (src/game/render/vertexblock); thiscall (x, y, z, face, turn, type, unused, big, unused, fixed), pops 0x28: a cube face added as four vertices and two triangles; returns the new triangle count"
 0x0053d790,VertexBlock_Construct,function,low,"reimplemented (src/game/render/vertexblock); thiscall (cubes, quads, result, name, head, five dwords), pops 0x2c: a block of cube tops and quads built as a mesh and woken; returns the block"
+0x0053d9e0,VertexBlock_TakeFaces,function,low,reimplemented (src/game/render/vertexblock); thiscall: the block's share of the scene's generated faces added afresh
 0x00561c40,ClipEdge_YW,function,low,"reimplemented (src/game/render/clipedge); cdecl (out, a, b, stride): the vertex where edge b-a crosses y = w: t = 0.9999 dB / (dB - dA), w, texture coordinates, colours lerped, y = w"
 0x00561ea0,ClipEdge_YNegW,function,low,"reimplemented (src/game/render/clipedge); cdecl (out, a, b, stride): as ClipEdge_YW for the plane y = -w (distance y + w), y = -w"
 0x00562100,ClipEdge_XW,function,low,"reimplemented (src/game/render/clipedge); cdecl (out, a, b, stride): as ClipEdge_YW for the plane x = w (distance w - x), x = w"
