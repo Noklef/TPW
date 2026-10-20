@@ -569,7 +569,9 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x007011c8, 4},   // the WCT image's virtual base (the deleting destructor's thunk TexFile_Load calls)
                                    {0x006fdcc8, 4},   // the light parts' (directional, point: slot 2 the thunk to Stub_One the renderer's sorted add calls)
                                    {0x006fe548, 4},
-                                   {0x006fe980, 11}};  // CMMOnline's (slot 10 Debug_Nop_46cfb0, which MouseMode_Set calls on the new mode)
+                                   {0x006fe980, 12},   // CMMOnline's (slot 10 Debug_Nop_46cfb0, which MouseMode_Set calls on the new mode; 11 its leave)
+                                   {0x006fea10, 12},   // CMMOnline's base (slots 0, 9 and 11 MouseMode_Set's; 0x481a10 / 0x485b70 make it)
+                                   {0x006fead0, 12}};  // the 0x6fead0 mode's (slots 9, 10: MouseMode_Set's on the mode 0x481a10 makes)
 
 void __cdecl debug_printf(const char *, ...) {}  // Debug_Printf 0x5da3c0 (RefObject's teardown slot among others)
 
