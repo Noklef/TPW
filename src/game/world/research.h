@@ -24,6 +24,10 @@ u32 __fastcall ResearchLab_CountNotDone(const u8 *lab, void *, u32 cat);
 // 0x504040 (group): whether the group has a current project and it is not done (a byte).
 u8 __fastcall ResearchLab_CurrentNotDone(const u8 *lab, void *, u32 group);
 
+// 0x503ff0 (thiscall; name unconfirmed): for each of the mNumProjects projects, the last first, the byte +0x10 of its object control
+// record (ObjectControls_Find of its id in the game's table, not quiet) set to 1; a record not found faults (sic).
+void __fastcall ResearchLab_FlagProjectControls(const u8 *lab);
+
 // 0x504750: no current project (-1), highestGroupAvailable 1. Returns the group.
 u8 *__fastcall ResearchGroup_Ctor(u8 *group);
 

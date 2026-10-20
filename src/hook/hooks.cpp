@@ -805,6 +805,7 @@ const Hook kHooks[] = {
     {"ResearchProject_SetNextUpgrade", 0x00504580, (void *)&ResearchProject_SetNextUpgrade, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"ResearchLab_FillProjects",  0x005031a0, (void *)&ResearchLab_FillProjects, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
     {"Research_AllDone",          0x004ca6b0, (void *)&Research_AllDone, {0x8b, 0x0d, 0x9c, 0x23, 0x80}},
+    {"ResearchLab_FlagProjectControls", 0x00503ff0, (void *)&ResearchLab_FlagProjectControls, {0x51, 0x8b, 0x81, 0x5c, 0x14}},
     {"Nav_SetPosVel",             0x005100e0, (void *)&Nav_SetPosVel, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Nav_GetPos",                0x00510160, (void *)&Nav_GetPos, {0x8b, 0x54, 0x24, 0x04, 0x8b}},
     {"World_ArrivalVehicleNotSize1", 0x0051aad0, (void *)&World_ArrivalVehicleNotSize1, {0x66, 0x8b, 0x81, 0x2a, 0xa7}},

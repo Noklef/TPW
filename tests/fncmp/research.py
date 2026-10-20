@@ -3,8 +3,9 @@
 # matching or 5, mResearchDone about mCost (equal, NaNs, infinities), project counts 0 to 0x100 and
 # negative. Next (0x504580) and Fill (0x5031a0): see defs() below; Fill's project counts also past 0x100, where the projects run into
 # the groups and mNumProjects. AllDone (0x4ca6b0): the lab (through the table at 0x7cfb90) with none to a few projects, done or not,
-# then defs()'s definitions and records.
-# usage: research.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Effort,ObjId,Count,NotDone,Ctor,Next,Fill,AllDone)
+# then defs()'s definitions and records. Flag (0x503ff0): defs()'s records, the lab's 0-12 projects (or a negative count) with ids mostly
+# among them.
+# usage: research.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Effort,ObjId,Count,NotDone,Ctor,Next,Fill,AllDone,Flag)
 import os
 import struct
 import sys
@@ -14,9 +15,10 @@ from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x503850, 0x503861), (0x5039f0, 0x503a20), (0x503b30, 0x503b79), (0x504040, 0x504081),
            (0x504750, 0x50475e), (0x504580, 0x504627), (0x5031a0, 0x503325), (0x412e60, 0x412e6d), (0x412e70, 0x412e8f),
-           (0x4d3d10, 0x4d3d80), (0x5da3c0, 0x5da3c1), (0x4ca6b0, 0x4ca733), (0x4d3d80, 0x4d3df0), (0x519550, 0x51958d)])
+           (0x4d3d10, 0x4d3d80), (0x5da3c0, 0x5da3c1), (0x4ca6b0, 0x4ca733), (0x4d3d80, 0x4d3df0), (0x519550, 0x51958d), (0x503ff0, 0x504037)])
 LAB = RAM
-CALLS = {'Effort': 0x503850, 'ObjId': 0x5039f0, 'Count': 0x503b30, 'NotDone': 0x504040, 'Ctor': 0x504750, 'Next': 0x504580, 'Fill': 0x5031a0, 'AllDone': 0x4ca6b0}
+CALLS = {'Effort': 0x503850, 'ObjId': 0x5039f0, 'Count': 0x503b30, 'NotDone': 0x504040, 'Ctor': 0x504750, 'Next': 0x504580, 'Fill': 0x5031a0, 'AllDone': 0x4ca6b0,
+         'Flag': 0x503ff0}
 TABLE, ITEMS, DEFS = RAM + 0x2000, RAM + 0x4000, 0x7890a0   # (the game's object control table, the object definitions and their list)
 IDS = [1, 2, 3, 4, 5, 9]
 FLOATS = [0.0, -0.0, 1.0, 100.0, 1e30, float('inf'), float('-inf'), float('nan')]
@@ -69,6 +71,16 @@ def case(r):
         put(lab, 0x140c + g * 16 + 8, 'i', r.choice([-1, -2, 0, r.randrange(0x100), r.randrange(0x100)]))
     put(lab, 0x145c, 'i', r.choice([0, 1, 2, r.randrange(0x101), 0x100, -1, -5]))
     group = r.choice([0, 1, 2, 3, 4, r.randrange(5)])
+    if op == 'Flag':   # the projects' ids mostly ones the table has (one missing faults in both)
+        regions = {LAB: lab}
+        defs(r, regions)
+        table = regions[TABLE]
+        known = [struct.unpack_from('<H', table, 0x20 * k)[0] for k in range(struct.unpack_from('<i', table, 0x12c0)[0])]
+        n = r.choice([0, 1, 2, 3, 5, 8, 12, -1, -7])
+        for i in range(max(n, 0)):
+            put(lab, 0xc + i * 20, 'H', r.choice(known) if r.random() < 0.97 else r.choice(IDS))
+        put(lab, 0x145c, 'i', n)
+        return Call(0x503ff0, [LAB], regions, conv='t')
     if op in ('Next', 'Fill', 'AllDone'):
         regions = {LAB: lab}
         items = defs(r, regions)
