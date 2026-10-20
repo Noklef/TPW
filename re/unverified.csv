@@ -7,7 +7,6 @@ address,name,module,reason
 515fb0,World_DeleteAllThings,world/things,todo
 51a280,Get1da710_51a280,core/accessors,todo: indirect only
 52c2a0,Fn_52c2a0,core/accessors,todo
-540b30,SpriteDraw_End,sprite/draw,todo
 5573a0,RSSE_OperandValue,?,todo
 557a70,RSSE_FetchWord,?,todo
 55f780,TerrainBlend_Tile,terrain,todo

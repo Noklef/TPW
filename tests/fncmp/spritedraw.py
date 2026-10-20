@@ -1,17 +1,26 @@
 # The sprite draw lists (src/game/sprite/draw: 0x540ab0, 0x542010, 0x5408e0/0x5408f0) against
 # the original: the camera heading, and a script's draw record appended to its map cell or the
 # overlay list. Scripts always carry flag 0x1000000 (their own height: without it the terrain
-# height is called, out of range); SpriteDraw_End calls out of range too.
+# height is called, out of range). SpriteDraw_End (0x540b30): the thing under the cursor (0x532bd0) is cdecl recorder 1, the
+# pick's hand-over (0x423b50, thiscall on 0x7b05a8) cdecl recorder 2 popping its argument (driver.cpp: the env's).
 # usage: spritedraw.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, put  # noqa: E402
+from fncmp import LOG, Bench, Call, RAM, _recorder, log_region, put, set_return  # noqa: E402
 
-B = Bench([(0x46f150, 0x475010), (0x67a400, 0x690000), (0x5408e0, 0x540900), (0x540ab0, 0x540b30),
-           (0x542010, 0x5423a0)])
+_pick = _recorder(1, 0, cdecl=True)
+
+
+def _set_picked(e):  # thiscall (thing) on 0x7b05a8: logged as the driver's cdecl one, then pops it
+    _recorder(2, 1, cdecl=True)(e)
+    e.r['ESP'] = e.r['ESP'] + 4
+
+
+B = Bench([(0x46f150, 0x475010), (0x67a400, 0x690000), (0x5408e0, 0x540900), (0x540ab0, 0x540bd0),
+           (0x542010, 0x5423a0)], hooks={0x532bd0: _pick, 0x423b50: _set_picked})
 SCRIPT, SPRITES, LISTS, MATRIX = (RAM + 0x1000 * k for k in range(4))
 FRAMES = RAM + 0x10000  # the sprites' frame tables (+4: the frame records)
 CAMERA = 0x790a30   # camera angle (+8), matrix pointer (+0x68), flags (+0x80)
@@ -45,7 +54,7 @@ def position(r):
 
 
 def case(r):
-    op = r.choice(OPS)
+    op = r.deal(OPS)
     bss = bytearray(r.bytes(0x1e60))
     o = lambda a: a - BSS  # noqa: E731
     lists = [LISTS + 0x100 * k for k in range(16)]
@@ -91,6 +100,14 @@ def case(r):
                BSS: bss, CAMERA: camera, ENABLED: folders}
     if op == 'Begin':
         return Call(0x540ab0, [], regions)
+    if op == 'End':
+        put(bss, o(0x877348), 'I', r.choice([0, 1, 0x100, r.getrandbits(32)]))
+        regions[0x8751e0] = r.bytes(0x260)   # (the renderer's copies of the counts, 0x8751f4 + 0x24 * cell)
+        log = log_region()
+        if r.random() < 0.8:
+            set_return(log, 1, r.choice([0, r.getrandbits(32)]))
+        regions[LOG] = log
+        return Call(0x540b30, [], regions)
     if op == 'Enable':
         return Call(0x5408e0, [], regions)
     if op == 'Disable':
@@ -98,7 +115,7 @@ def case(r):
     return Call(0x542010, [SCRIPT], regions)
 
 
-OPS_ALL = ['Begin', 'Draw', 'Draw', 'Draw', 'Enable', 'Disable']
+OPS_ALL = ['Begin', 'End', 'Draw', 'Draw', 'Draw', 'Enable', 'Disable']
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 
