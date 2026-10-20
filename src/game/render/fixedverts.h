@@ -1,4 +1,4 @@
-// Transformed vertices packed to fixed point in place: reimplementation of 0x563130 and 0x563220 (0x563220's one caller, 0x57b6e0, packs
+// Transformed vertices packed to fixed point in place, and their colours modulated: reimplementation of 0x5630b0, 0x563130 and 0x563220 (0x563220's one caller, 0x57b6e0, packs
 // a batch's 0x20-byte vertices: x, y, z, rhw, colour, specular, u, v).
 #pragma once
 
@@ -17,4 +17,9 @@ void __cdecl FixedVerts_Pack(u8 *verts, u32 count, s32 stride);
 // sic) and rounded to the nearest (fistp: 0x80000000 out of range or NaN) through the dword 0xfb34a0 (x, y) or 0xfb34a4 (z, u, v), which
 // keeps the last.
 void __cdecl FixedVerts_PackRounded(u8 *verts, u32 count, s32 stride);
+
+// 0x5630b0 (cdecl; name unconfirmed; MMX; one caller, 0x580d68): the colour dwords (+0x10) of the vertices from verts, stride bytes apart,
+// modulated by colour: each byte (byte * colour's byte) >> 8. The vertices go in pairs, (count + 1) / 2 of them (an odd count does
+// one more; 0xffffffff none), both of a pair read before either is written. (EAX is left 0xff00ff; the caller does not read it.)
+void __cdecl FixedVerts_Modulate(u8 *verts, u32 colour, u32 count, s32 stride);
 }

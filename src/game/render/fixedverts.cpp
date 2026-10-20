@@ -61,4 +61,19 @@ void __cdecl FixedVerts_PackRounded(u8 *verts, u32 count, s32 stride) {
         dst += 0x18;
     } while (--count);
 }
+
+void __cdecl FixedVerts_Modulate(u8 *verts, u32 colour, u32 count, s32 stride) {
+    auto modulate = [colour](u32 c) {
+        u32 out = 0;
+        for (int k = 0; k < 32; k += 8) out |= (((c >> k & 0xff) * (colour >> k & 0xff)) >> 8) << k;
+        return out;
+    };
+    u8 *p = verts + 0x10;
+    for (u32 n = (count + 1) >> 1; n; --n) {
+        const u32 a = at<u32>(p, 0), b = at<u32>(p, stride);
+        at<u32>(p, 0) = modulate(a);
+        at<u32>(p, stride) = modulate(b);
+        p += 2 * stride;
+    }
+}
 }
