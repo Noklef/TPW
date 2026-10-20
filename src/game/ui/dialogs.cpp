@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/gameheap.h"
+#include "../core/globals.h"
 #include "../core/language.h"
 #include "../core/vcall.h"
 #include "../render/particles.h"
@@ -139,6 +140,30 @@ u32 __cdecl Dialog7cb2b8_Child21Post(u32 value) {
     Window_SendMessage(child, 0xb, 0, 0);
     Window_PostMessage(child, 0xa, value, 0);
     return value;
+}
+
+void __cdecl Dialog7cb2b8_ResetChild21(u32 clear27) {
+    if (!window(0x007cb2ac) || !window(0x007cb2b8)) return;
+    if (u8 *const child = Window_FindChild(window(0x007cb2b8), nullptr, 0x21)) {
+        const u8 kind = child[0x134];
+        if (kind == 3 || kind == 4) {
+            if (Window_DwordA0(child, nullptr, 2)) Window_SetDwordA0(child, nullptr, 2, 0);
+        } else {
+            Window_SendMessage(child, 0xb, 0, 0);
+        }
+    }
+    if ((u16)clear27) {   // (neither child checked, sic)
+        u8 *const button = Window_FindChild(Window_FindChild(window(0x007cb2b8), nullptr, 0x25), nullptr, 0x27);
+        Window705a50_SetState(button, nullptr, 0, 1);
+    }
+}
+
+void __cdecl Dialog7cb2b8_ResetChild21Only() { Dialog7cb2b8_ResetChild21(0); }
+
+u32 __fastcall Obj7b51f0_ResetDialogChild21(void *) {
+    if (!Global7cc2f0_Get_4b4480()) return 0;
+    Dialog7cb2b8_ResetChild21Only();
+    return 1;
 }
 
 u32 __cdecl Global7cc698_Choose() {
