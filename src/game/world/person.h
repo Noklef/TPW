@@ -91,4 +91,13 @@ u32 __fastcall Sprite_SetDestinationCellMarked(u8 *sprite, void *, u32 cell);
 // faults on 0) and +0x28, and the thoughts (+0x30, Thoughts_Serialize); 1 at the first that fails (the load's first four fields through Save_Field,
 // the rest through the readers, not quiet). Else (or a version outside 0..1) Sprite_SetDestination to the words +0x18 / +0x1a, and 0.
 u32 __fastcall Sprite_Serialize(u8 *sprite, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x4fb530 (thiscall; the same arguments): a visitor: Sprite_Serialize first (1 if it fails); for a version of 0..1 then, saved or loaded as a
+// serializer does (Save_Field; the load from mBeenAdmitted on through the readers): mArrivalDate, mArrivalIndex, mBalloonScript, mBeenAdmitted,
+// mCash, mExitLevel, mHappiness, mHunger, mLastPosX, mLastPosY, mLitter, mMajorDest, mNumRides, mNumShops, mNumSideshows, mNumSideshowsWon,
+// mPaidAdmission, mParkOpeningWaitingTime, mPersonType, mPrankeryIndex, mPreviousRides[i] and mPreviousTemporaryRides[i] for each i, mQNext,
+// mQPrev, mQueueMoveDelay, mQueuePos, mRemainingBalloonLife, mSavedMajorDest, mSavedState, mState, mThirst, mTimeOfLastSpotAnim,
+// mTimeStartedIdling, mTiredness, mToilet and mVomit (re/types.h's Visitor). The stats (floats) are saved as the float of their __ftol's low byte
+// and loaded through a temporary, stored only when read whole. 1 at the first that fails, else 0.
+u32 __fastcall Visitor_Serialize(u8 *visitor, void *, Stream *stream, u32 save, s32 version, u32 unused);
 }
