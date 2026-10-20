@@ -100,6 +100,20 @@ void __fastcall Window_Notify3000(u8 *window, void *, u32 a, u32 b);
 // 0x65c54a (thiscall (a: a byte), pops 4; name unconfirmed): as Window_NotifyC00 with 0x20000 and the one byte at +9.
 void __fastcall Window_Notify20000(u8 *window, void *, u32 a);
 
+// 0x65c5d5 (thiscall (a, b, c, d: bytes), pops 16; name unconfirmed): as Window_NotifyC00 with 0x40000 and the four bytes at +0x10-+0x13.
+void __fastcall Window_Notify40000(u8 *window, void *, u32 a, u32 b, u32 c, u32 d);
+
+// 0x65f5b7 (thiscall (a), pops 4; name unconfirmed): the object +0x9c only (when set) gets slot 3 (0x100, event), the event's +0x10
+// pointing to a second one whose dword +0 is a (the rest of both unset). EAX not kept.
+void __fastcall Window_NotifyImpl100(u8 *window, void *, u32 a);
+
+// 0x65f5fe (thiscall (a), pops 4; name unconfirmed): Window_NotifyImpl100 for the object +0x98.
+void __fastcall Window_NotifyObject98_100(u8 *window, void *, u32 a);
+
+// 0x65d070 (thiscall (object), pops 4; name unconfirmed): as Window_SetImpl for the object +0x98, except that the old one's own slot 0
+// (1) is called when its release (WindowImpl_Release) answers -1, and the event's word +6 is +0xe0 itself and its +0x14 the window + 8.
+void __fastcall Window_SetObject98(u8 *window, void *, u8 *object);
+
 // 0x65d1c8 (thiscall (impl), pops 4; name unconfirmed): nothing when impl is +0x9c already. The old one (when set) let go
 // (WindowImpl_Release), and when that answers -1 (as a word) +0x98's slot 0 (1) called when +0x98 is set (sic: not the old one's).
 // +0x9c = impl; when set: Fn_6617f0 on it (+0x12 = 1), then its slot 3 (flags, an event on the stack: the words +4 = 0, +6 = the
@@ -165,6 +179,10 @@ u16 __fastcall Window_Unlink(u8 *window);
 
 // 0x65e526 (thiscall (handler), pops 4; name unconfirmed): a handler not 0 becomes the window's (+0x114); 1 in AX either way.
 u16 __fastcall Window_SetHandler(u8 *window, void *, u32 handler);
+
+// 0x65e6d5 (thiscall (index: a word, value), pops 8; name unconfirmed): for an index below 16 (signed: a negative one writes before the
+// array, sic) the dword +0xa0 + 4 * index = value and 1 in AX (the rest of EAX value's upper half); else 0.
+u32 __fastcall Window_SetDwordA0(u8 *window, void *, u32 index, u32 value);
 
 // 0x65e705 (thiscall (index: a word), pops 4; name unconfirmed): the dword +0xa0 + 4 * index (signed) for an index below 16, else 0.
 u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index);
