@@ -78,7 +78,7 @@ def jinit(r):
 
 
 def start(r):
-    return Call(0x654188, [CINFO, r.choice([0, 0, 0, 1, 2, 3])], common(r))
+    return Call(0x654188, [CINFO, r.choice([0, 0, 0, 1, 2, 3, -1])], common(r))
 
 
 def counters(r, regs, avail):
