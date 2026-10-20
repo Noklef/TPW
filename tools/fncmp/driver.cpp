@@ -518,6 +518,19 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x00705980, 6},   // the GUI window (Debug_Printf, Window_SaveRect, _DeletingDtor; 5 _SetEnabled)
                                    {0x00705a50, 6},   // its subclass (the same, but Window705a50_DeletingDtor, _SetEnabled)
                                    {0x00705b20, 6},   // the scroll bar window (slot 5 its SetEnabled, through its children's)
+                                   {0x00705950, 4},   // the other window kinds (slot 3 the kind, which the window scripts ask): 4,
+                                   {0x007059f0, 4},   // 7,
+                                   {0x00705a20, 4},   // 5,
+                                   {0x00705af0, 4},   // 12,
+                                   {0x00705b98, 4},   // 13,
+                                   {0x00705bc8, 4},   // 11,
+                                   {0x00705bf8, 4},   // 10,
+                                   {0x00705c28, 4},   // 9,
+                                   {0x00705c58, 4},   // 6,
+                                   {0x00705ac0, 4},   // 8 (the radio group)
+                                   {0x00705b50, 5},   // the GUI shapes (slot 4 the deleting destructor a window's new hit area calls): circle,
+                                   {0x00705b68, 5},   // ellipse,
+                                   {0x00705b80, 5},   // polygon
                                    {0x006ff308, 3},   // the sprite set's virtual base (its deleting destructor's thunk, PtrArray_ReleaseAll's)
                                    {0x006fdcc8, 4},   // the light parts' (directional, point: slot 2 the thunk to Stub_One the renderer's sorted add calls)
                                    {0x006fe548, 4}};
