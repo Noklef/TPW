@@ -45,4 +45,7 @@ u32 __fastcall GuiRect_Overlap(u8 *rect, void *, u8 *shape);
 // 0x659e3e (thiscall (width, height: word pointers, each may be 0), pops 8; name unconfirmed): right - left and bottom - top stored through
 // each pointer given.
 void __fastcall GuiRect_GetSize(u8 *rect, void *, u16 *width, u16 *height);
+
+// 0x661700 (thiscall (other), pops 4; name unconfirmed): 1 when the four words equal the other's, else 0.
+u32 __fastcall GuiRect_Equals(const u8 *rect, void *, const u8 *other);
 }

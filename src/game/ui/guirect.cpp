@@ -98,4 +98,10 @@ void __fastcall GuiRect_GetSize(u8 *rect, void *, u16 *width, u16 *height) {
     if (width) *width = (u16)(at<s16>(rect, 8) - at<s16>(rect, 4));
     if (height) *height = (u16)(at<s16>(rect, 0xa) - at<s16>(rect, 6));
 }
+
+u32 __fastcall GuiRect_Equals(const u8 *rect, void *, const u8 *other) {
+    for (u32 k = 4; k < 0xc; k += 2)
+        if (*reinterpret_cast<const s16 *>(rect + k) != *reinterpret_cast<const s16 *>(other + k)) return 0;
+    return 1;
+}
 }
