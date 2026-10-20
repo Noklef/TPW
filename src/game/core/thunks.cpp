@@ -389,6 +389,10 @@ void __cdecl Wrap_Transform_Concatenate_5790a0(u8 *self, const float *a, const f
     Transform_Concatenate(Adjust(self), a, b, out);
 }
 
+void __cdecl Wrap_Debug_Printf_579090(u8 *self) {
+    (void)*reinterpret_cast<const volatile u32 *>(reinterpret_cast<uintptr_t>(self) - 4);  // (the offset read; the empty target does nothing)
+}
+
 u8 *__fastcall Wrap_Class702198_DeletingDtor_58c360(u8 *self, void *, u32 a2) {
     return Class702198_DeletingDtor(Adjust(self), nullptr, a2);
 }

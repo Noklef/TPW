@@ -254,6 +254,9 @@ void __cdecl Wrap_Transform_BlockedPoints_579070(u8 *self, const float *matrix, 
                                                  u32 count);
 double __cdecl Wrap_Transform_ProjectToScreen_579080(u8 *self, float *vertices, s32 stride, u32 count, s32 mode);
 void __cdecl Wrap_Transform_Concatenate_5790a0(u8 *self, const float *a, const float *b, float *out);
+// 0x579090 (cdecl; this the first stack argument; several slots of the 0x7010xx vtables): this lowered by the dword before it, then
+// the empty Debug_Printf (0x5da3c0): only the read of that dword.
+void __cdecl Wrap_Debug_Printf_579090(u8 *self);
 
 // 0x58c360 (thiscall; 1 stack arguments): this lowered by the dword before it (a virtual base offset), then Class702198_DeletingDtor.
 u8 *__fastcall Wrap_Class702198_DeletingDtor_58c360(u8 *self, void *, u32 a2);

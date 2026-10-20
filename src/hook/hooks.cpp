@@ -2866,6 +2866,7 @@ const Hook kHooks[] = {
     {"Wrap_Nav_PathProgress_510180", 0x00510180, (void *)&Wrap_Nav_PathProgress_510180, {0xe9, 0xbb, 0xfb, 0xff, 0xff}},
     {"Wrap_Deleter_Minus8_458970_42a070", 0x0042a070, (void *)&Wrap_Deleter_Minus8_458970_42a070, {0x2b, 0x49, 0xfc, 0xe9, 0xf8}},
     {"Wrap_KeyMap_AsyncModifiers_4815c0", 0x004815c0, (void *)&Wrap_KeyMap_AsyncModifiers_4815c0, {0xe9, 0xdb, 0x54, 0x00, 0x00}},
+    {"Wrap_Debug_Printf_579090",  0x00579090, (void *)&Wrap_Debug_Printf_579090, {0x8b, 0x4c, 0x24, 0x04, 0x2b}},
     {"Table_AddressPlus18",       0x006b0620, (void *)&Table_AddressPlus18, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Table_Address",             0x006b0650, (void *)&Table_Address, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Packed_Read",               0x006b0510, (void *)&Packed_Read, {0x56, 0x8b, 0x74, 0x24, 0x08}},
