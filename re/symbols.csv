@@ -3677,6 +3677,7 @@ address,name,kind,confidence,notes
 0x005804b0,CreateGlobal8bcbb8_5804b0,function,low,"reimplemented (src/game/core/globals); cdecl: when the dword at 0x8bcbb8 is null a new block of 0x14004 bytes (first dword 0) there, 1; 0 when there was one or the allocation failed (error 3 pushed, EngineErrors_Push)"
 0x0058aff0,CreateGlobal8c47d4_58aff0,function,low,"reimplemented (src/game/core/globals); cdecl: when the dword at 0x8c47d4 is null a new block of 0xc bytes (first dword -1) there, 1; 0 when there was one or the allocation failed (error 3 pushed, EngineErrors_Push)"
 0x0056b650,Table879d08_FillFrom,function,low,"reimplemented (src/game/core/globals); cdecl: start = [0x8bcc40] & 0xf kept at 0x879d48; the sixteen dwords at 0x879d08 = 16 down to 1 from the start on, wrapping; returns 0"
+0x00550510,Global878128_Set_550510,function,low,reimplemented (src/game/core/globals); cdecl (value): 0x878128 = value; returns it
 0x004f0370,StdTreeC_PostInc,function,high,reimplemented (src/game/core/stdtree); post-increment of a std::map iterator
 0x004f0460,StdTreeE_PostInc,function,high,reimplemented (src/game/core/stdtree); post-increment of a std::map iterator
 0x004f0880,Obj_InitMinus1A,function,high,reimplemented (src/game/core/accessors); initialises an object with -1 ignoring three arguments
