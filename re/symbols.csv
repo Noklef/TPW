@@ -5097,3 +5097,4 @@ address,name,kind,confidence,notes
 0x0065fc18,WindowScript_ReadWord,function,low,reimplemented (src/game/ui/windowscript); a window script's next word
 0x0065fc38,WindowScript_ReadRect,function,low,reimplemented (src/game/ui/windowscript); a window script's next four words to four outputs
 0x0065fcc5,WindowScript_ReadPair,function,low,reimplemented (src/game/ui/windowscript); a window script's next two words to two outputs
+0x004bb690,Dialog7cc61c_Handler,function,low,"reimplemented (src/game/ui/dialog7cc61c); cdecl (window, message, a, b): 0x14 clears 0x7cc61c, sends (6, 1, 0) to [0xf82884]+4 and restores the focus; 0x15 sends (6, 0, 0); 0x100 with a = -1 sends (4, 0, 0) to [0x7cc61c] and returns 0; else Dialog_BaseHandler"

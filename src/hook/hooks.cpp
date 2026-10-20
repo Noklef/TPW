@@ -347,6 +347,7 @@
 #include "../game/ui/windowreg.h"
 #include "../game/ui/cursor.h"
 #include "../game/ui/dialog7cb2fc.h"
+#include "../game/ui/dialog7cc61c.h"
 #include "../game/ui/dialogbase.h"
 #include "../game/ui/focus.h"
 #include "../game/ui/panel7cc298.h"
@@ -4717,6 +4718,7 @@ const Hook kHooks[] = {
     {"WindowScript_ReadRect",     0x0065fc38, (void *)&WindowScript_ReadRect, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
     {"WindowScript_ReadWord",     0x0065fc18, (void *)&WindowScript_ReadWord, {0x55, 0x8b, 0xec, 0xa1, 0x20}},
     {"WindowScript_ReadDword",    0x0065fbf0, (void *)&WindowScript_ReadDword, {0x55, 0x8b, 0xec, 0x51, 0xa1}},
+    {"Dialog7cc61c_Handler",      0x004bb690, (void *)&Dialog7cc61c_Handler, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
