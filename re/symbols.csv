@@ -107,7 +107,7 @@ address,name,kind,confidence,notes
 0x0046ead0,TextureSet_Load,function,medium,"reimplemented (src/game/gfx/texdirs); cdecl (set, probe, unused); the set's textures given directories: the second's when the quickload stem or the .wct/.tga file is found there, else the third's, else the table's first"
 0x0046f120,VFS_FileExists,function,low,"reimplemented (src/game/files/vfs); cdecl (name); VFS_Open, a stream got finished and deleted: 1, else 0"
 0x005c4d50,VFS_Open,function,medium,"reimplemented (src/game/files/vfs); cdecl (name); a new stream opened through the mounts: the source's archive by the path relative to its root, the source itself, then the list's objects; the stream or 0 (leaked)"
-0x00477ff0,UITexture_Construct,function,medium,"thiscall(name); loads UI textures such as 'happygrad.wct'"
+0x00477ff0,MeshOverlay_Construct,function,low,"reimplemented (src/game/gfx/barmesh); thiscall (name), pops 4: the sibling overlay built the same way, its quads lying the other way; returns it"
 0x00591600,WaveletCodec_InitD4Filter,data,high,"4 static-initialiser stubs (0x591600/30/60/90) computing D4 h0..h3 into 0xc27208..14 via x87; not functions in Ghidra"
 0x00c27208,D4_h0,data,high,(1+sqrt3)/(4 sqrt2)
 0x00c2720c,D4_h1,data,high,(3+sqrt3)/(4 sqrt2)
@@ -4312,6 +4312,8 @@ address,name,kind,confidence,notes
 0x00477c30,BarMesh_ScalarDtor,function,low,"reimplemented (src/game/gfx/barmesh); thiscall (flags), pops 4: BarMesh_Dtor, freed for flags bit 0"
 0x00478390,MeshOverlay_Dtor,function,low,"reimplemented (src/game/gfx/barmesh); thiscall: the sibling mesh overlay's (0x6feeb8) destructor, as BarMesh_Dtor"
 0x00478370,MeshOverlay_ScalarDtor,function,low,"reimplemented (src/game/gfx/barmesh); thiscall (flags), pops 4: its scalar deleting destructor"
+0x00477870,BarMesh_Construct,function,low,"reimplemented (src/game/gfx/barmesh); thiscall (name), pops 4: the bar built over the GUI dialog base, its animator made into a two-quad mesh; returns the bar"
+0x00477d70,BarMesh_SetShown,function,low,"reimplemented (src/game/gfx/barmesh); thiscall (word), pops 4 (virtual slot 5): the animator woken or slept when the word +8 changes"
 0x00476e80,Overlay_ShowFrame,function,high,"reimplemented (src/game/gfx/overlay); shows node base + frame of the holder model list; old node 0x8010 set, new cleared"
 0x00476b70,Overlay_Dtor,function,low,"reimplemented (src/game/gfx/overlay); thiscall: the overlay base's destructor (holder disposed of or destroyed, then the GUI dialog base's)"
 0x00476b50,Overlay_ScalarDtor,function,low,"reimplemented (src/game/gfx/overlay); thiscall (flags), pops 4: Overlay_Dtor, freed for flags bit 0"

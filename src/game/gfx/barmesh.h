@@ -37,4 +37,23 @@ u8 *__fastcall BarMesh_ScalarDtor(u8 *bar, void *, u32 flags);
 void __fastcall MeshOverlay_Dtor(u8 *mesh);
 
 u8 *__fastcall MeshOverlay_ScalarDtor(u8 *mesh, void *, u32 flags);
+
+// 0x477870 (thiscall (name), pops 4; name unconfirmed): the bar built: the GUI dialog base (GuiDialog_Ctor with the name), vtable
+// 0x6fee88, its record (+0xbc; one name, the bar's at +0xb0) and animator (+0x6c; one node at +0x3c: 4 + 8 vertices, 8 normals, the
+// matrix at +0xdc) made into a mesh (Animator_Create with flags 1; on a failure, which neither call has, bit 0 of +0xbc cleared and the
+// bar returned as it is), the part's matrix the identity; then its two quads: vertices 0 (0, 100), 1 (100, 100), 2 (100, 0), 5 (100,
+// level), 3 and 4 (0, level), 6 (100, 0), 7 (0, 0) (z 0, the level +0x120 set to 0 first), the normals (0, 0, -1), the indices 0 1 2
+// 2 3 0 and 4 5 6 6 7 4, the texture block (the record's table +0xd4; 0, 4, 0, 7) and the coordinates (v level * 0.01 on the top
+// edge); +4 = 1. Returns the bar.
+u8 *__fastcall BarMesh_Construct(u8 *bar, void *, const char *name);
+
+// 0x477ff0 (thiscall (name), pops 4; name unconfirmed): the same for the sibling overlay (vtable 0x6feeb8), its quads lying the other
+// way: vertices 0 (0, 100), 6 (100, 100), 1 (0, 100), 4 (level, 100), 2 and 5 (level, 0), 7 (100, 0), 3 (0, 0), the indices 0 1 2 2 3
+// 0 and 4 6 7 7 5 4, the coordinates u level * 0.01. Returns the mesh.
+u8 *__fastcall MeshOverlay_Construct(u8 *mesh, void *, const char *name);
+
+// 0x477d70 (virtual, slot 5 of both vtables: the dialog's word +8; thiscall (word), pops 4; name unconfirmed): nothing when the word
+// is +8's already; else the animator (+0x6c) wakes (Animator_Wake) for a word other than 0 and sleeps (Animator_Sleep) for 0, and +8
+// takes the word.
+void __fastcall BarMesh_SetShown(u8 *mesh, void *, u32 shown);
 }
