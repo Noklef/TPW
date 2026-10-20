@@ -4174,6 +4174,7 @@ address,name,kind,confidence,notes
 0x0050e0e0,SteerSeparation_Steer,function,low,"reimplemented (src/game/world/steering); separation's slot 0, thiscall (&out, nav): (0, 0) near the last path point, else the force summed by Nav_VisitNeighbours (radius * 2, SteerSeparation_Neighbour)"
 0x0050fdf0,Steering_SetPathBehaviours,function,low,"reimplemented (src/game/world/steering); cdecl: empty the behaviour list, then push avoid_walls (0.9), follow_path (0.5) and separation (0.1) found by name"
 0x0050af40,TagTable_Find,function,low,"reimplemented (src/game/world/tagsystem); the CTagTable lookup: 0 for ids 0x17e/0x17f, the record at 0x75eca8 + id * 0x20 when its id matches, else the first record with the id, else 0"
+0x00509b40,TagSystem_Ctor,function,low,"reimplemented (src/game/world/tagsystem); thiscall: Thing_Construct (cell 1, kind 0xc), then message centre slots 7, 0xc, 0x14, 0x18, 0x19, 0x13; returns it"
 0x0042a440,Ride_IsBusy,function,low,"reimplemented (src/game/world/ridestate); cdecl (object, index): the track ride link, flying ride slot, coaster link or a key-1 0x1000 model part says the ride is busy"
 0x0043bd20,Ride_Sleep,function,low,"reimplemented (src/game/world/ridestate); cdecl (index): the ride holder's awake instance out of the renderer (rectangle or sleep), the active part states of its flag-0x80 parts released"
 0x00511c90,WallFollower_Step,function,low,"reimplemented (src/game/world/wallfollow); cdecl (walker): one step along the edge of what blocks the walk, turning towards it when open; 0x32 back on the line, 0x33 past 0xfb cells"
@@ -4197,6 +4198,7 @@ address,name,kind,confidence,notes
 0x005f4180,ParkMap_PlaceSprite,function,low,"reimplemented (src/game/world/parkmap); thiscall on the park map (sprite; pops 4): the sprite's screen position from its map position, its frame's vector in the array at 0x879ce0 and the frame's +0x2c size"
 0x005f1050,ParkMap_ApplyView,function,low,"reimplemented (src/game/world/parkmap); thiscall on the map: the view origin (+0x54, +0x58) kept to 0 to width / height - 1, the camera put on it times 10 (Camera_SetView), the window (+4) sent message 4"
 0x0053a540,MapCell_PickModel,function,low,"reimplemented (src/game/world/cellmodel); thiscall (cell; angle out), pops 4: the cell's model (group << 16 | index) from the table for its type by its neighbour bits (exact, else a subset), *angle the row's plus 180 for straight cells facing 0x40 / 0x10, then adjusted by flags, corners, junctions and for type 0x19 a random variant; 8 for types 4, 5, 7, 9, 0xa, 0xc, 0x11"
+0x0050c9b0,UIMsgReceiver_Ctor,function,low,"reimplemented (src/game/world/uimsgreceiver); thiscall: Thing_Construct (cell 1, kind 0x11), then message centre slots 0x12, 0xa, 7, 8, 0x1b, 0xf, 0x13, 0x1c; returns it"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved

@@ -253,6 +253,7 @@
 #include "../game/world/trackpools.h"
 #include "../game/world/wallfollow.h"
 #include "../game/world/cellmodel.h"
+#include "../game/world/uimsgreceiver.h"
 #include "../game/world/weather.h"
 #include "../game/world/world.h"
 #include "../game/model/holder.h"
@@ -3951,6 +3952,7 @@ const Hook kHooks[] = {
     {"SteerSeparation_Steer",     0x0050e0e0, (void *)&SteerSeparation_Steer, {0x83, 0xec, 0x08, 0x53, 0x56}},
     {"Steering_SetPathBehaviours", 0x0050fdf0, (void *)&Steering_SetPathBehaviours, {0xa1, 0x7c, 0xf0, 0x7c, 0x00}},
     {"TagTable_Find",             0x0050af40, (void *)&TagTable_Find, {0x8b, 0x54, 0x24, 0x04, 0x81}},
+    {"TagSystem_Ctor",            0x00509b40, (void *)&TagSystem_Ctor, {0x51, 0x66, 0xc7, 0x44, 0x24}},
     {"Ride_IsBusy",               0x0042a440, (void *)&Ride_IsBusy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Ride_Sleep",                0x0043bd20, (void *)&Ride_Sleep, {0x8b, 0x44, 0x24, 0x04, 0x57}},
     {"Forecast_Serialize",        0x005132a0, (void *)&Forecast_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
@@ -3981,6 +3983,7 @@ const Hook kHooks[] = {
     {"MapCell_PickModel",         0x0053a540, (void *)&MapCell_PickModel, {0x83, 0xec, 0x1c, 0x53, 0x55}},
     {"Weather_Serialize",         0x00512010, (void *)&Weather_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x53}},
     {"Weather_RandomBolt",        0x00512c50, (void *)&Weather_RandomBolt, {0x83, 0xec, 0x1c, 0x8d, 0x44}},
+    {"UIMsgReceiver_Ctor",        0x0050c9b0, (void *)&UIMsgReceiver_Ctor, {0x51, 0x66, 0xc7, 0x44, 0x24}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

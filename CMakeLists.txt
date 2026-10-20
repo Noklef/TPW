@@ -247,6 +247,7 @@ add_library(tpw_game STATIC
     src/game/world/parkmap.cpp
     src/game/world/cellmodel.cpp
     src/game/world/weather.cpp
+    src/game/world/uimsgreceiver.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
