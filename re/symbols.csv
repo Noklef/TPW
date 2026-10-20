@@ -4866,6 +4866,7 @@ address,name,kind,confidence,notes
 0x004511a0,View_FloorAt,function,low,"reimplemented (src/game/model/heightat); cdecl (x, z, &out): the floor under a point by the view's way (0x79fb10): the ground, the offset, the parts or the main node, plus the model's offset (+0xa0, a NaN cleared)"
 0x0046f100,M3D2_DataErrorBox,function,low,"reimplemented (src/game/model/m3d2); cdecl (text): MessageBoxA(0, text, ""M3D2 Exporter - Data Error"", 0x31) != IDCANCEL"
 0x0057a100,ObjModel_Unload,function,low,"reimplemented (src/game/model/objmodel); thiscall: an engine object's model unloaded (meshes' tracked blocks, saved pairs, block, texture sets, tracked block, procedural textures); +8 and flag 0x10000000 cleared; returns 1"
+0x00579e00,ObjModel_Load,function,low,"reimplemented (src/game/model/objmodel); thiscall (model), pops 4: an engine object's model loaded (procedural textures set up, BlueprintMesh parts flagged, texture sets made and set up, sharp textures flagged, waiting loads run, the tracked mesh block laid out, a loading step); unloaded and 0 on failure"
 0x0045aee0,Online_ApplyBalance,function,high,reimplemented (src/game/online/servers); copies Online.sam (gBalanceOnline) into the servers object 0x7a14f0
 0x005b6450,Online_LoggedIn,function,high,"reimplemented (src/game/online/session); thiscall u32: the online session's (0xf7d88c) +0x60, set while logged in"
 0x005b6460,Online_Restricted,function,high,reimplemented (src/game/online/session); thiscall u32: 1 unless logged in (+0x60) with the user's flag 0x20 (+0x58) clear

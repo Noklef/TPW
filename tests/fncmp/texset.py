@@ -23,9 +23,10 @@ import vfs  # noqa: E402
 import wctimage  # noqa: E402
 from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put  # noqa: E402
 
-B = Bench(wctimage.merged(texman.RANGES + [(0x575bd0, 0x575be5), (0x575f90, 0x575f9d), (0x575fa0, 0x575fad), (0x575f00, 0x575f8d), (0x575ad0, 0x575b7a),
+RANGES = wctimage.merged(texman.RANGES + [(0x575bd0, 0x575be5), (0x575f90, 0x575f9d), (0x575fa0, 0x575fad), (0x575f00, 0x575f8d), (0x575ad0, 0x575b7a),
                                             (0x579b80, 0x579c13), (0x590a70, 0x590a75), (0x590b90, 0x590c39), (0x58dc50, 0x58dd5e), (0x67afa0, 0x67b0d0),
-                                            (0x67acb0, 0x67acb1), (0x575b90, 0x575bc3), (0x575c60, 0x575ef3), (0x590a80, 0x590b88), (0x56af20, 0x56af9c)]))
+                                            (0x67acb0, 0x67acb1), (0x575b90, 0x575bc3), (0x575c60, 0x575ef3), (0x590a80, 0x590b88), (0x56af20, 0x56af9c)])
+B = Bench(RANGES)
 CALLS = {'Ctor': 0x575bd0, 'Texture': 0x575f90, 'TextureSlot': 0x575fa0, 'Release': 0x575f00, 'Init': 0x575c60, 'Pair': 0x575ee0,
          'LoadTextures': 0x575e10, 'LoadDeferred': 0x575b90}
 TEXTURES = RAM + 0x40
