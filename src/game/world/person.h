@@ -130,4 +130,10 @@ u32 __fastcall Visitor_WontPay(const u8 *visitor, void *, u8 *object);
 // 1 - (|dx| + |dz|) / 0.5 between the two positions; then the bob's time 0x7cedd8 gains 0.1 until it is 1.0 or more, when it is 0 and the
 // row 0x7cedd4 moves on (modulo the count). All x87 at 24 bits.
 void __fastcall Person_PlaceSprite(u8 *person, void *, float t);
+
+// 0x4faa60 (thiscall; name unconfirmed; called from 0x4f8af9 before the history at +0x30 goes, 0x50bab0): a debug dump of the action history (the
+// thoughts at +0x30): from the 32nd entry from the end to the last (Ring_FromEnd), the thing its handle (+2) names (its definition id +0xe when an
+// object, its cell +5 / +7) and the action (+0, by its kind 0..0x19) to the empty Debug_Printf: only the reads remain. Returns -1 (the loop's
+// counter, left in EAX; the caller ignores it).
+u32 __fastcall Person_DumpActionHistory(u8 *person);
 }

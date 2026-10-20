@@ -6,6 +6,7 @@
 #include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "../core/globals.h"
+#include "../core/rings.h"
 #include "../core/savegame.h"
 #include "../core/soundplay.h"
 #include "../math/x87.h"
@@ -379,5 +380,23 @@ void __fastcall Person_PlaceSprite(u8 *person, void *, float t) {
         global<u32>(0x007cedd4) = (global<u32>(0x007cedd4) + 1) % rows;
         global<u32>(0x007cedd8) = 0;
     }
+}
+
+u32 __fastcall Person_DumpActionHistory(u8 *person) {
+    auto read = [](const void *p, u32 offset) { (void)*reinterpret_cast<const volatile u16 *>((uintptr_t)p + offset); };
+    for (s32 i = 0x1f; i >= 0; --i) {
+        const u8 *const entry = Ring_FromEnd(person + 0x30, nullptr, (u32)i);
+        const u16 handle = *reinterpret_cast<const volatile u16 *>(entry + 2);
+        if (handle != 0) {
+            const u8 *const thing = *reinterpret_cast<const u8 *const volatile *>(0x007cfb90 + handle * 20u);
+            if (thing != nullptr) {
+                if (*reinterpret_cast<const volatile u8 *>(thing + 2) == 3) read(thing, 0xe);
+                read(thing, 5);  // (+5 and +7: the cell)
+                read(thing, 6);
+            }
+        }
+        read(entry, 0);  // the action, printed by its kind
+    }
+    return 0xffffffff;  // (the loop counter's last value, left in EAX)
 }
 }
