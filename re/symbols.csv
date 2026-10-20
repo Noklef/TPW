@@ -3826,6 +3826,7 @@ address,name,kind,confidence,notes
 0x0050c800,Staff_TrainAll,function,low,"reimplemented (src/game/world/staff); thiscall (amounts[5]): count the staff by type, then train each with its type's amount divided by the count"
 0x00505b70,Staff_AgeDays,function,low,reimplemented (src/game/world/staff); thiscall: the staff member's age in whole funny-time days from the date at +0x1f0
 0x00504b90,Staff_InitBase,function,low,"reimplemented (src/game/world/staff); thiscall: the staff constructors' common tail: hire date = funny time now, energy / happiness 100.0f, the words at +0xc0 / +0xc2 from 0x75c7f0..0x75c7fc by type, message centre slot 0xc, the park's +0x21c38 stamped"
+0x00506550,Staff_GradeLevel,function,low,"reimplemented (src/game/world/staff); thiscall, x87: __ftol((the pay grade + the training progress over 100) * 20), its low dword"
 0x00520d60,FreeList_Take,function,high,reimplemented (src/game/core/voices); takes a record off the free list into a table entry
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/voices); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/voices); scales a voice's levels by the factor over 1024

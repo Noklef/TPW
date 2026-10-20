@@ -17,6 +17,10 @@ extern "C" {
 // below the rest level ([0x785324], signed).
 u32 __fastcall Staff_IsTooTired(const u8 *staff);
 
+// 0x506550 (thiscall; x87; name unconfirmed): the grade with its progress, in twentieths of a grade: __ftol((the pay grade (+0x1e4) - the
+// training progress byte (+0x1e8) * -0.01) * 20) in the x87's 24-bit precision, its low dword (the panels' grade bar).
+u32 __fastcall Staff_GradeLevel(const u8 *staff);
+
 // 0x5066a0 (thiscall): energy less (6 - grade) * 0.012 and happiness less (6 - grade) *
 // 0.005, each clamped to [0, 100] (above 100 gives 100; below 0, or NaN, gives 0).
 void __fastcall Staff_TireA(u8 *staff);

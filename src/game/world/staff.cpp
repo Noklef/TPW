@@ -442,4 +442,10 @@ u32 __fastcall Researcher_Serialize(u8 *staff, void *, Stream *stream, u32 save,
     static const SaveSpec kFields[] = {{0x214, 4, 0x0075e168}, {0x210, 2, 0x0075a4f4}};
     return StaffType_Serialize(staff, stream, save, version, unused, kFields, 2);
 }
+
+u32 __fastcall Staff_GradeLevel(const u8 *staff) {
+    // fild grade; fild progress; fmul -0.01 (a double); fsubp; fmul 20.0f; __ftol's low dword
+    const X87Reg grade = X87Reg((double)at<s32>(staff, 0x1e4)) - X87Reg(X87_MulDouble((double)at<u8>(staff, 0x1e8), -0.01));
+    return (u32)(long long)X87_MulDouble(grade.v, 20.0);
+}
 }
