@@ -55,6 +55,14 @@ void __stdcall CRT_VectorCtorIteratorNoEh(u8 *array, u32 size, s32 count, void(_
     } while (--left);
 }
 
+void __stdcall CRT_VectorVbaseCtorIterator(u8 *array, u32 size, s32 count, void(__fastcall *ctor)(void *, void *, u32), void *) {
+    u8 *element = array;
+    for (s32 i = 0; i < count; ++i) {
+        ctor(element, nullptr, 1);
+        element += size;
+    }
+}
+
 void __stdcall CRT_VectorDtorIterator(u8 *array, u32 size, s32 count, void(__fastcall *dtor)(void *)) {
     u8 *element = array + count * size;
     for (s32 remaining = count - 1; remaining >= 0; --remaining) {
