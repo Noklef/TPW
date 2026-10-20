@@ -59,4 +59,27 @@ void __cdecl jdcolor_grayscale_convert(jpeg_decompress_struct *cinfo, unsigned c
 // 0x646d00: grayscale -> RGB: each sample three times.
 void __cdecl jdcolor_gray_rgb_convert(jpeg_decompress_struct *cinfo, unsigned char ***input_buf, unsigned int input_row,
                                       unsigned char **output_buf, int num_rows);
+
+// jdmerge.c (through wrap/jpeg-6b/jdmerge.c): the merged upsampler, chroma upsampling and YCbCr -> RGB in one pass for h2v1 and h2v2
+// sampling. cinfo->upsample is its my_upsampler (upmethod +0xc, the four tables +0x10..+0x1c, spare_row +0x20, spare_full +0x24,
+// out_row_width +0x28, rows_to_go +0x2c).
+// 0x646f70: the upsampler's YCbCr -> RGB tables (as jdcolor.c's, into cinfo->upsample).
+void __cdecl jdmerge_build_ycc_rgb_table(jpeg_decompress_struct *cinfo);
+// 0x647040: spare_full cleared, rows_to_go = cinfo->output_height.
+void __cdecl jdmerge_start_pass_merged_upsample(jpeg_decompress_struct *cinfo);
+// 0x647060: 2:1 vertical: two output rows a row group through upmethod, the second into spare_row when there is room for one only
+// (put out on the next call, jcopy_sample_rows).
+void __cdecl jdmerge_merged_2v_upsample(jpeg_decompress_struct *cinfo, unsigned char ***input_buf, unsigned int *in_row_group_ctr,
+                                        unsigned int in_row_groups_avail, unsigned char **output_buf, unsigned int *out_row_ctr,
+                                        unsigned int out_rows_avail);
+// 0x647130: 1:1 vertical: one output row a row group through upmethod.
+void __cdecl jdmerge_merged_1v_upsample(jpeg_decompress_struct *cinfo, unsigned char ***input_buf, unsigned int *in_row_group_ctr,
+                                        unsigned int in_row_groups_avail, unsigned char **output_buf, unsigned int *out_row_ctr,
+                                        unsigned int out_rows_avail);
+// 0x647170: upmethod for h2v1: a row group's Cb and Cr samples shared by two pixels of one row.
+void __cdecl jdmerge_h2v1_merged_upsample(jpeg_decompress_struct *cinfo, unsigned char ***input_buf, unsigned int in_row_group_ctr,
+                                          unsigned char **output_buf);
+// 0x6472f0: upmethod for h2v2: shared by a 2x2 block (two luma rows, two output rows).
+void __cdecl jdmerge_h2v2_merged_upsample(jpeg_decompress_struct *cinfo, unsigned char ***input_buf, unsigned int in_row_group_ctr,
+                                          unsigned char **output_buf);
 }

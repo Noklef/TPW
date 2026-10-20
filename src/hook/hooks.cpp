@@ -4776,6 +4776,12 @@ const Hook kHooks[] = {
     {"jdcolor_null_convert",      0x00646c40, (void *)&jdcolor_null_convert, {0x51, 0x8b, 0x44, 0x24, 0x08}},
     {"jdcolor_ycc_rgb_convert",   0x00646b00, (void *)&jdcolor_ycc_rgb_convert, {0x83, 0xec, 0x20, 0x8b, 0x4c}},
     {"jdcolor_build_ycc_rgb_table", 0x00646a30, (void *)&jdcolor_build_ycc_rgb_table, {0x53, 0x55, 0x56, 0x57, 0x8b}},
+    {"jdmerge_h2v2_merged_upsample", 0x006472f0, (void *)&jdmerge_h2v2_merged_upsample, {0x83, 0xec, 0x24, 0x53, 0x8b}},
+    {"jdmerge_h2v1_merged_upsample", 0x00647170, (void *)&jdmerge_h2v1_merged_upsample, {0x83, 0xec, 0x18, 0x53, 0x8b}},
+    {"jdmerge_merged_1v_upsample", 0x00647130, (void *)&jdmerge_merged_1v_upsample, {0x56, 0x8b, 0x74, 0x24, 0x1c}},
+    {"jdmerge_merged_2v_upsample", 0x00647060, (void *)&jdmerge_merged_2v_upsample, {0x8b, 0x54, 0x24, 0x04, 0x83}},
+    {"jdmerge_start_pass_merged_upsample", 0x00647040, (void *)&jdmerge_start_pass_merged_upsample, {0x8b, 0x4c, 0x24, 0x04, 0x8b}},
+    {"jdmerge_build_ycc_rgb_table", 0x00646f70, (void *)&jdmerge_build_ycc_rgb_table, {0x53, 0x55, 0x56, 0x57, 0x8b}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
