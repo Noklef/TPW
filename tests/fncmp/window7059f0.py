@@ -494,12 +494,12 @@ def add_case(r):
     parent = [None] + [r.choice([None, None, r.randrange(k)]) for k in range(1, used)] if used else []
     kids = {p: [k for k in range(used) if parent[k] == p] for p in [None] + list(range(used))}
     links = [none(r) for _ in range(stride * total)]
-    tail = (fidx[0] if fidx and r.random() < 0.85 else -1)
+    tail = (fidx[0] if fidx and r.random() < 0.85 else none(r))
     for k in range(used):
         i = idx[k]
         sibs = kids[parent[k]]
         at = sibs.index(k)
-        links[i] = idx[sibs[at + 1]] if at + 1 < len(sibs) else tail if parent[k] is None else -1
+        links[i] = idx[sibs[at + 1]] if at + 1 < len(sibs) else tail if parent[k] is None else none(r)   # (a chain's end mostly -1)
         links[i + 1] = r.getrandbits(31) - 0x80000000
         links[i + 2] = idx[kids[k][0]] if kids[k] else -1
         links[i + 3] = idx[parent[k]] if parent[k] is not None else -1
