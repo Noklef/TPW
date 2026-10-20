@@ -5135,6 +5135,9 @@ const Hook kHooks[] = {
     {"jmemmgr_alloc_small",       0x0063d520, (void *)&jmemmgr_alloc_small, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"jmemmgr_out_of_memory",     0x0063d650, (void *)&jmemmgr_out_of_memory, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"jinit_memory_mgr",          0x0063d3d0, (void *)&jinit_memory_mgr, {0x51, 0x53, 0x56, 0x57, 0x8b}},
+    {"jerror_reset_error_mgr",    0x00631440, (void *)&jerror_reset_error_mgr, {0x8b, 0x44, 0x24, 0x04, 0x33}},
+    {"jerror_format_message",     0x00631380, (void *)&jerror_format_message, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"jerror_emit_message",       0x00631340, (void *)&jerror_emit_message, {0x8b, 0x4c, 0x24, 0x04, 0x8b}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

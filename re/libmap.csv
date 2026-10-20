@@ -1,4 +1,10 @@
 address,size,source_file,function,confidence,evidence,checked
+0x00631280,76,jpeg-6b/jerror.c,jpeg_std_error,high,"the five methods error_exit 0x6312d0, emit_message 0x631340, output_message 0x631300, format_message 0x631380, reset_error_mgr 0x631440; trace_level +0x68, num_warnings +0x6c, msg_code +0x14 0; jpeg_std_message_table 0x7039d0, last_jpeg_message +0x74 0x7b (JMSG_LASTMSGCODE-1: 124 messages); addon table +0x78, first / last +0x7c / +0x80 0; the hand port Codec631280_Init",yes
+0x006312d0,35,jpeg-6b/jerror.c,error_exit,high,"output_message (err +8), jpeg_destroy 0x63e040, exit 0x67f920 of 1; stored by jpeg_std_error",yes
+0x00631300,54,jpeg-6b/jerror.c,output_message,high,"format_message (err +0xc) into a 0xc8-byte (JMSG_LENGTH_MAX) stack buffer, fprintf 0x67dad0 to stderr 0x77e840 with ""%s\n"" (0x764ff0); stored by jpeg_std_error",yes
+0x00631340,54,jpeg-6b/jerror.c,emit_message,high,"msg_level < 0: output_message (+8) when num_warnings +0x6c is 0 or trace_level +0x68 >= 3, num_warnings++; else output_message when trace_level >= msg_level; stored by jpeg_std_error",yes
+0x00631380,178,jpeg-6b/jerror.c,format_message,high,"msg_code +0x14 in 1..last_jpeg_message +0x74 from jpeg_message_table +0x70, else addon_message_table +0x78 within first / last +0x7c / +0x80; none: msg_parm.i[0] +0x18 = msg_code, message 0; first '%' followed by 's': sprintf 0x67a650 (buffer, text, msg_parm.s), else the eight ints +0x18..+0x34; stored by jpeg_std_error",yes
+0x00631440,17,jpeg-6b/jerror.c,reset_error_mgr,high,"num_warnings +0x6c and msg_code +0x14 0; stored by jpeg_std_error",yes
 0x006351a0,560,deflate.c,deflateInit2_,high,"zcalloc/zcfree defaults, sizeof(deflate_state) 0x16b8, window/prev/head/pending_buf allocs, memLevel checks",yes
 0x006353d0,128,deflate.c,deflateReset,high,"_tr_init, lm_init, status INIT_STATE 42",yes
 0x00635450,704,deflate.c,deflate,high,"configuration_table 0x703d90 func dispatch, FINISH_STATE 666, putShortMSB, flush_pending, _tr_align/_tr_stored_block",yes

@@ -2,6 +2,7 @@
 // exe's copies share with the library's code while both run (the offsets are the listing's), and holds the method-address shim.
 #include "jpeg6b.h"
 
+#include <cstdarg>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -53,6 +54,12 @@ static_assert(offsetof(jpeg_decompress_struct, out_color_components) == 0x64, "c
 static_assert(offsetof(jpeg_decompress_struct, enable_2pass_quant) == 0x5a, "cinfo->enable_2pass_quant (jinit_2pass_quantizer)");
 static_assert(offsetof(jpeg_decompress_struct, actual_number_of_colors) == 0x70, "cinfo->actual_number_of_colors (start_pass_2_quant)");
 static_assert(offsetof(jpeg_decompress_struct, colormap) == 0x74, "cinfo->colormap (find_nearby_colors)");
+static_assert(sizeof(jpeg_error_mgr) == 0x84 && offsetof(jpeg_error_mgr, msg_code) == 0x14 && offsetof(jpeg_error_mgr, msg_parm) == 0x18,
+              "jpeg_error_mgr (jpeg_std_error 0x631280, format_message)");
+static_assert(offsetof(jpeg_error_mgr, trace_level) == 0x68 && offsetof(jpeg_error_mgr, num_warnings) == 0x6c,
+              "err->trace_level, num_warnings (emit_message)");
+static_assert(offsetof(jpeg_error_mgr, jpeg_message_table) == 0x70 && offsetof(jpeg_error_mgr, last_addon_message) == 0x80,
+              "the message tables (format_message)");
 
 // The method-address shim. Every module's init (and jddctmgr.c's start_pass) stores the addresses of its methods in the structs the
 // exe's code also reads and calls through. The library stores its own functions' addresses; the exe's copy of the same code stores the
@@ -401,5 +408,27 @@ char *__cdecl jpeg6b_exe_getenv(const char *name) { return g_crt->getenv(name); 
 int __cdecl jpeg6b_exe_sscanf(const char *s, const char *format, long *value, char *ch) { return g_crt->sscanf(s, format, value, ch); }
 void __cdecl jpeg6b_exe_open_backing_store(jpeg_common_struct *cinfo, void *info, long total_bytes_needed) {
     g_crt->open_backing_store(cinfo, info, total_bytes_needed);
+}
+// format_message's two sprintf calls: the message's string parameter when its first '%' is a %s (format_message's own test, so the
+// call has the arguments the source passes), else the eight ints. The exe's sprintf is variadic, so either typed pointer calls it.
+int __cdecl jpeg6b_exe_sprintf(char *buffer, const char *format, ...) {
+    bool isstring = false;
+    for (const char *p = format; *p; p++)
+        if (*p == '%') {
+            isstring = p[1] == 's';
+            break;
+        }
+    va_list ap;
+    va_start(ap, format);
+    int n;
+    if (isstring) {
+        n = g_crt->sprintf_string(buffer, format, va_arg(ap, const char *));
+    } else {
+        int i[8];
+        for (int k = 0; k < 8; k++) i[k] = va_arg(ap, int);
+        n = g_crt->sprintf_ints(buffer, format, i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7]);
+    }
+    va_end(ap);
+    return n;
 }
 }

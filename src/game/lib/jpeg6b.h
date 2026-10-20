@@ -467,6 +467,18 @@ void __cdecl jmemmgr_do_barray_io(jpeg_common_struct *cinfo, jvirt_barray_contro
 void __cdecl jmemmgr_free_pool(jpeg_common_struct *cinfo, int pool_id);
 // 0x63dfb0: both pools freed, then the manager; cinfo->mem NULL.
 void __cdecl jmemmgr_self_destruct(jpeg_common_struct *cinfo);
+
+// jerror.c's methods, through third_party/wrap/jpeg-6b/jerror.c: cinfo->err (jpeg_error_mgr, 0x84 bytes: the five methods +0,
+// msg_code +0x14, msg_parm +0x18 (eight ints or an 80-character string), trace_level +0x68, num_warnings +0x6c, jpeg_message_table
+// +0x70, last_jpeg_message +0x74, addon_message_table +0x78, first_addon_message +0x7c, last_addon_message +0x80).
+// 0x631340: a warning (msg_level < 0) is output when it is the first or trace_level >= 3, and counted; a trace when trace_level >=
+// msg_level.
+void __cdecl jerror_emit_message(jpeg_common_struct *cinfo, int msg_level);
+// 0x631380: msg_code's text (the library's table, else the add-on table, else message 0 with msg_code as its parameter) formatted into
+// buffer with sprintf (the exe's, Jpeg6bCrtEnv): msg_parm.s when the text's first % is a %s, else the eight ints.
+void __cdecl jerror_format_message(jpeg_common_struct *cinfo, char *buffer);
+// 0x631440: num_warnings and msg_code 0.
+void __cdecl jerror_reset_error_mgr(jpeg_common_struct *cinfo);
 }
 
 // What the library calls outside itself, the exe's: its C runtime's (a DLL's would be another heap, environment copy and FILE table)

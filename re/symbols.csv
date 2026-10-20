@@ -5481,3 +5481,6 @@ address,name,kind,confidence,notes
 0x0063de10,jmemmgr_do_barray_io,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemmgr.c do_barray_io: a block array's buffer to or from its backing store (the library's)
 0x0063deb0,jmemmgr_free_pool,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemmgr.c free_pool: a pool's blocks freed, the image pool's backing stores closed (the library's)"
 0x0063dfb0,jmemmgr_self_destruct,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemmgr.c self_destruct: both pools and the manager freed (the library's)
+0x00631340,jerror_emit_message,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jerror.c emit_message: a warning output when first or traced, and counted; a trace by trace_level (the library's)"
+0x00631380,jerror_format_message,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jerror.c format_message: the message text formatted with the exe's sprintf, by its string or int parameters (the library's)"
+0x00631440,jerror_reset_error_mgr,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jerror.c reset_error_mgr: num_warnings and msg_code cleared (the library's)
