@@ -2,12 +2,15 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
 #include "../core/idmaps.h"
 #include "../core/textarg.h"
 #include "../core/vcall.h"
 #include "../world/camera.h"
 #include "../world/staff.h"
+#include "radiogroup.h"
 #include "window.h"
+#include "window705a50.h"
 
 namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -58,5 +61,14 @@ void __cdecl ThingBrowser_ShowDetail() {
     const u32 count = at<u32>(thing, 0x30);
     u8 *const child = Window_FindChild(global<u8 *>(0x007cc304), nullptr, 0x14a);
     vcall<void>(child, 0x1c, count ? count - 1 : 0x29au);
+}
+
+u32 __cdecl ThingBrowser_GroupHandler(u8 *group, u32 message, u32 a, u32 b) {
+    if (message != 0x100) return (u32)Window_CallDefault(group, nullptr, message, a, b);
+    u8 *const child = Window_FindChild(group, nullptr, a);
+    RadioGroup_Select(group, nullptr, a);
+    if (b != 1) Window705a50_SetState(child, nullptr, 1, 1);
+    Window_PostMessage(reinterpret_cast<u8 *>((uintptr_t)Fn_65d55a(group)), 0x101, a, 1);
+    return 1;
 }
 }

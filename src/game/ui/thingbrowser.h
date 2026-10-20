@@ -1,5 +1,5 @@
-// The thing browser's panel (the thing shown [0x7cc308], the panel window [0x7cc304]): its labels filled for the thing. Reimplementation
-// of 0x4b3490 and 0x4b3580. The names are unconfirmed.
+// The thing browser's panel (the thing shown [0x7cc308], the panel window [0x7cc304]): its labels filled for the thing, and the handler of
+// its windows' radio groups. Reimplementation of 0x4b3490, 0x4b3580 and 0x4b3b90. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -16,4 +16,10 @@ void __cdecl ThingBrowser_ShowName();
 // when not the one shown last [0x756b98], kept there and told to the child 0x148 (Window_Notify1); for the others the child 0x14a's slot
 // 7 given the count +0x30 less 1, or 0x29a for none.
 void __cdecl ThingBrowser_ShowDetail();
+
+// 0x4b3b90 (cdecl (window, message, a, b); the handler 0x4b3cf0 gives the child 0x95d of the browser's windows [0x7cc2fc] / [0x7cc300], a
+// radio group; name unconfirmed): message 0x100: the group's child a (Window_FindChild) found, a selected (RadioGroup_Select), for b other
+// than 1 the child set to state 1, notifying (Window705a50_SetState(1, 1); not checked for 0), and the group's parent (+0x60, Fn_65d55a)
+// posted 0x101 (a, 1); 1 returned. Other messages: Window_CallDefault's result.
+u32 __cdecl ThingBrowser_GroupHandler(u8 *group, u32 message, u32 a, u32 b);
 }

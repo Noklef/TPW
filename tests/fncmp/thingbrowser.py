@@ -4,7 +4,11 @@
 # slots 9 and 7 recorders of one argument; 0x148's objects +0x98 / +0x9c recorders of its notification, the event's word +4 hashed), the
 # last code [0x756b98] 0-3, 9 or any; personsprite.py's clock and camera (ShowName ends on Camera_CentreOnSprite). The text formatter
 # 0x6acd60 is a log stub on both sides (driver: TextFormatEnv), so the count's argument object, its fifth argument, is not compared.
-# usage: thingbrowser.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ShowName,ShowDetail)
+# GroupHandler (0x4b3b90): radiogroup.py's group (its children's notifications masked by the looks they end with: Select's states and,
+# for b other than 1, the child a set to 1), the message 0x100 mostly (else the default handler +0x118 fncmp's logger), a one of the
+# children's ids, the selected one, -1 or another (no child: SetState of 0 faults in both), b 1, 0 or any; the group's parent +0x60 a
+# window (its byte +4 refusing posts now and then) or 0, window.py's queues.
+# usage: thingbrowser.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ShowName,ShowDetail,GroupHandler)
 import os
 import struct
 import sys
@@ -12,19 +16,48 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import LOG, RAM, Bench, Call, _cdecl_log4, blob_bytes, log_region, put, vtable  # noqa: E402
+import radiogroup  # noqa: E402
+from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, _cdecl_log4, blob_bytes, log_region, put, vtable  # noqa: E402
+from window import RANGES  # noqa: E402
 from personsprite import THING, centre_env, sprite_env  # noqa: E402
 
-CALLS = {'ShowName': 0x4b3490, 'ShowDetail': 0x4b3580}
-B = Bench([(0x475480, 0x4754f0), (0x4d8c50, 0x4d8c70), (0x4f9f00, 0x4fa2b0), (0x4fe900, 0x4fe960), (0x50b350, 0x50b370), (0x510160, 0x510190),
+CALLS = {'ShowName': 0x4b3490, 'ShowDetail': 0x4b3580, 'GroupHandler': 0x4b3b90}
+B = Bench(sorted(set(RANGES + radiogroup.RANGES + [(0x4b3b90, 0x4b3c09), (0x65d55a, 0x65d56b), (0x475480, 0x4754f0), (0x4d8c50, 0x4d8c70), (0x4f9f00, 0x4fa2b0), (0x4fe900, 0x4fe960), (0x50b350, 0x50b370), (0x510160, 0x510190),
            (0x53c8d0, 0x53c9d0), (0x5da3c0, 0x5da3c1), (0x486860, 0x4868c1), (0x42aab0, 0x42ab1d),
            (0x4b3490, 0x4b3576), (0x4b3580, 0x4b3612), (0x65d7bc, 0x65d832), (0x65d3a3, 0x65d40c), (0x506860, 0x506867), (0x5064f0, 0x506523),
-           (0x485ec0, 0x485eea)], hooks={0x6acd60: _cdecl_log4})
+           (0x485ec0, 0x485eea)])), hooks={0x6acd60: _cdecl_log4})
 PANEL, KIDS, VT, OBJ, OVT = RAM + 0x30000, RAM + 0x30200, RAM + 0x30800, RAM + 0x30900, RAM + 0x30a00
+PARENT = RAM + 0x3000   # (GroupHandler's: past radiogroup.py's group and children, before window.py's queues' end)
+
+
+def group_case(r):
+    log = log_region()
+    regions = {LOG: log}
+    g, kids = radiogroup.group_env(r, regions, log)
+    put(g, 0x60, 'I', r.choice([PARENT] * 5 + [0]))
+    put(g, 0x118, 'I', CDECL_LOG4)
+    g[4] = 0
+    parent = bytearray(r.bytes(0x120))
+    parent[4] = r.choice([0, 0, 0, 1])
+    regions[PARENT] = parent
+    selected = int.from_bytes(g[0x138:0x13c], 'little')
+    message = r.choice([0x100] * 6 + [0x101, 0, r.getrandbits(32)])
+    a = r.choice([k[0] for k in kids] * 3 + [selected, 0xffffffff, 7])
+    b = r.choice([1, 1, 0, 0, 2, r.getrandbits(32)])
+    i = radiogroup.first(kids, a)
+    if i is None and r.random() < 0.85:   # (mostly not the fault)
+        b = 1
+    states = radiogroup.select_states(kids, selected, a) if message == 0x100 else {}
+    if message == 0x100 and b != 1 and i is not None:
+        states[i] = 1
+    radiogroup.masks(log, kids, states)
+    return Call(CALLS['GroupHandler'], [radiogroup.GROUP, message, a, b], regions, ret='a')
 
 
 def case(r):
     op = r.deal(OPS)
+    if op == 'GroupHandler':
+        return group_case(r)
     log = log_region()
     regions = {LOG: log}
     thing = sprite_env(r, regions)
