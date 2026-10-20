@@ -479,6 +479,28 @@ void __cdecl jerror_emit_message(jpeg_common_struct *cinfo, int msg_level);
 void __cdecl jerror_format_message(jpeg_common_struct *cinfo, char *buffer);
 // 0x631440: num_warnings and msg_code 0.
 void __cdecl jerror_reset_error_mgr(jpeg_common_struct *cinfo);
+
+// jdmaster.c, the decompression master, through third_party/wrap/jpeg-6b/jdmaster.c: cinfo->master (my_decomp_master, 0x1c bytes:
+// prepare_for_output_pass +0, finish_output_pass +4, is_dummy_pass +8, pass_number +0xc, using_merged_upsample +0x10,
+// quantizer_1pass +0x14, quantizer_2pass +0x18).
+// 0x63e2f0: whether the merged upsampler can do the upsampling and colour conversion (2h1v or 2h2v YCbCr to RGB, no fancy
+// upsampling, every component at the minimum DCT scale).
+unsigned char __cdecl jdmaster_use_merged_upsample(jpeg_decompress_struct *cinfo);
+// 0x63e0b0: the output size for scale_num / scale_denom (1/8, 1/4, 1/2 or 1), each component's DCT_scaled_size and downsampled
+// size, out_color_components / output_components and rec_outbuf_height (ERREXIT1 JERR_BAD_STATE 0x14 unless DSTATE_READY 0xca).
+void __cdecl jpeg_calc_output_dimensions(jpeg_decompress_struct *cinfo);
+// 0x63e5b0: sample_range_limit (alloc_small of 0x580: zeros, 0..255, 255s, zeros, then 0..127 again).
+void __cdecl jdmaster_prepare_range_limit_table(jpeg_decompress_struct *cinfo);
+// 0x63e3c0: the output dimensions, the range table, the quantizers asked for, the upsampler / colour converter (or merged one),
+// postprocessor, IDCT, entropy decoder, coefficient and main controllers; the virtual arrays realized, the first input pass
+// started, the progress monitor's passes.
+void __cdecl jdmaster_master_selection(jpeg_decompress_struct *cinfo);
+// 0x63e380: the master (alloc_small of 0x1c) and its two methods, then master_selection. Through the method shim.
+void __cdecl jinit_master_decompress(jpeg_decompress_struct *cinfo);
+// 0x63e630: an output pass's modules started (a 2-pass quantizer's dummy pass first), the progress monitor's passes.
+void __cdecl jdmaster_prepare_for_output_pass(jpeg_decompress_struct *cinfo);
+// 0x63e790: the quantizer's finish_pass, pass_number + 1.
+void __cdecl jdmaster_finish_output_pass(jpeg_decompress_struct *cinfo);
 }
 
 // What the library calls outside itself, the exe's: its C runtime's (a DLL's would be another heap, environment copy and FILE table)

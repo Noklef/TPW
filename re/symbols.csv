@@ -5484,3 +5484,10 @@ address,name,kind,confidence,notes
 0x00631340,jerror_emit_message,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jerror.c emit_message: a warning output when first or traced, and counted; a trace by trace_level (the library's)"
 0x00631380,jerror_format_message,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jerror.c format_message: the message text formatted with the exe's sprintf, by its string or int parameters (the library's)"
 0x00631440,jerror_reset_error_mgr,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jerror.c reset_error_mgr: num_warnings and msg_code cleared (the library's)
+0x0063e0b0,jpeg_calc_output_dimensions,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmaster.c jpeg_calc_output_dimensions: the output size for the scale, each component's DCT scale and downsampled size, the output components (the library's)"
+0x0063e2f0,jdmaster_use_merged_upsample,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmaster.c use_merged_upsample: whether the merged upsampler can convert (the library's)
+0x0063e380,jinit_master_decompress,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmaster.c jinit_master_decompress: the master and its methods, then the module selection (the library's, through the method shim)"
+0x0063e3c0,jdmaster_master_selection,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmaster.c master_selection: the decompressor's modules chosen and initialised (the library's)
+0x0063e5b0,jdmaster_prepare_range_limit_table,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmaster.c prepare_range_limit_table: the sample range limit table (the library's)
+0x0063e630,jdmaster_prepare_for_output_pass,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmaster.c prepare_for_output_pass: an output pass's modules started (the library's)
+0x0063e790,jdmaster_finish_output_pass,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmaster.c finish_output_pass: the quantizer's pass finished, the pass counted (the library's)"

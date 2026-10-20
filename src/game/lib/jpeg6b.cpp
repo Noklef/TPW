@@ -97,6 +97,7 @@ void __cdecl jquant2_lib_jinit_2pass_quantizer(j_decompress_ptr cinfo);
 void __cdecl jquant2_lib_start_pass_2_quant(j_decompress_ptr cinfo, boolean is_pre_scan);
 void __cdecl jquant2_finish_pass2(j_decompress_ptr cinfo);  // (not a hook: its exe copy is the shared bare RET)
 void __cdecl jmemmgr_lib_jinit_memory_mgr(j_common_ptr cinfo);
+void __cdecl jdmaster_lib_jinit_master_decompress(j_decompress_ptr cinfo);
 void __cdecl jpeg_idct_float(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, short *coef_block, unsigned char **output_buf,
                              unsigned int output_col);
 }
@@ -209,6 +210,9 @@ const ExeMethod kExeMethods[] = {
     {fn(&jmemmgr_access_virt_barray), 0x63dcd0},
     {fn(&jmemmgr_free_pool), 0x63deb0},
     {fn(&jmemmgr_self_destruct), 0x63dfb0},
+    // jdmaster.c
+    {fn(&jdmaster_prepare_for_output_pass), 0x63e630},
+    {fn(&jdmaster_finish_output_pass), 0x63e790},
 };
 
 // The method pointer at slot: the exe's address in place of a library method's (anything else is left as it is).
@@ -380,6 +384,13 @@ void __cdecl jinit_memory_mgr(j_common_ptr cinfo) {
     exe_method(mem->access_virt_barray);
     exe_method(mem->free_pool);
     exe_method(mem->self_destruct);
+}
+
+// (the methods are stored before master_selection runs the other modules' inits; their addresses are put back after)
+void __cdecl jinit_master_decompress(j_decompress_ptr cinfo) {
+    jdmaster_lib_jinit_master_decompress(cinfo);
+    exe_method(cinfo->master->prepare_for_output_pass);
+    exe_method(cinfo->master->finish_output_pass);
 }
 }
 

@@ -5138,6 +5138,13 @@ const Hook kHooks[] = {
     {"jerror_reset_error_mgr",    0x00631440, (void *)&jerror_reset_error_mgr, {0x8b, 0x44, 0x24, 0x04, 0x33}},
     {"jerror_format_message",     0x00631380, (void *)&jerror_format_message, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"jerror_emit_message",       0x00631340, (void *)&jerror_emit_message, {0x8b, 0x4c, 0x24, 0x04, 0x8b}},
+    {"jdmaster_finish_output_pass", 0x0063e790, (void *)&jdmaster_finish_output_pass, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"jdmaster_prepare_for_output_pass", 0x0063e630, (void *)&jdmaster_prepare_for_output_pass, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jdmaster_prepare_range_limit_table", 0x0063e5b0, (void *)&jdmaster_prepare_range_limit_table, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jdmaster_master_selection", 0x0063e3c0, (void *)&jdmaster_master_selection, {0x53, 0x56, 0x8b, 0x74, 0x24}},
+    {"jinit_master_decompress",   0x0063e380, (void *)&jinit_master_decompress, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jdmaster_use_merged_upsample", 0x0063e2f0, (void *)&jdmaster_use_merged_upsample, {0x8b, 0x54, 0x24, 0x04, 0x57}},
+    {"jpeg_calc_output_dimensions", 0x0063e0b0, (void *)&jpeg_calc_output_dimensions, {0x53, 0x55, 0x56, 0x8b, 0x74}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
