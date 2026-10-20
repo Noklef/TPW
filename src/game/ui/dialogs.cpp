@@ -98,6 +98,14 @@ s32 __cdecl Dialog7cb2b8_Handler(u8 *window, u32 message, u32 a, u32 b) {
 
 s32 __cdecl Window_DefaultHandler(u8 *window, u32 message, u32 a, u32 b) { return Window_CallDefault(window, nullptr, message, a, b); }
 
+s32 __cdecl WindowText7cb4d0_Handler(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 0x800) {
+        Window_NotifyC000(window, nullptr, 0, (u32)-(s32)b);
+        vcall<void>(window, 0x24, 0x007cb4d0u);
+    }
+    return Window_CallDefault(window, nullptr, message, a, b);
+}
+
 s32 __cdecl WindowAt10_Handler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x14) *reinterpret_cast<u32 *>(Window_DwordA0(window, nullptr, 0) + 0x10) = 0;
     return Window_CallDefault(window, nullptr, message, a, b);

@@ -66,6 +66,10 @@ s32 __cdecl Dialog7cb2b8_Handler(u8 *window, u32 message, u32 a, u32 b);
 // 0x4a0a90 (cdecl (window, message, a, b); a handler installed at 0x4a245b and 0x4a24f4; name unconfirmed): Window_CallDefault.
 s32 __cdecl Window_DefaultHandler(u8 *window, u32 message, u32 a, u32 b);
 
+// 0x4bcb70 (cdecl (window, message, a, b); the handler a window made at 0x4bc821 gets; name unconfirmed): on message 0x800 the window
+// told 0 and -b (Window_NotifyC000) and its slot 9 (thiscall) given 0x7cb4d0; then Window_CallDefault, its result returned.
+s32 __cdecl WindowText7cb4d0_Handler(u8 *window, u32 message, u32 a, u32 b);
+
 // 0x48c8b0 (thiscall (flags), pops 4; name unconfirmed): the scalar deleting destructor: WindowAt10_Message4IfAny, then the object freed
 // (GameHeap_Free) for flags bit 0; returns the object.
 u8 *__fastcall WindowAt10_ScalarDtor(u8 *object, void *, u32 flags);

@@ -7,6 +7,7 @@
 # value 0 or not, window.py's queues. WindowAt10_Handler / Dialog7cb2b8_Handler / DefaultHandler (0x492e00, 0x4a0a20, 0x4a0a90; [0x7cb2b8]
 # random): the default handler +0x118 fncmp's logger, the window's object A0[0] random bytes, the message 0x14 often.
 # Dialog7cb2b8_ResetChild21 / ResetChild21Only / Obj7b51f0_ResetDialogChild21 (0x4a25f0, 0x4b4470, 0x4816b0): see reset_case.
+# WindowText7cb4d0_Handler (0x4bcb70): a recorder window (slot 9), +0x98 / +0x9c recorder objects or 0, the message 0x800 often.
 # usage: dialogs.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Dialog7cc47c_Message4,...)
 import os
 import struct
@@ -15,7 +16,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, heap, log_region, put, set_return, vtable  # noqa: E402
+from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, blob_bytes, heap, log_region, put, recorder, set_return, vtable  # noqa: E402
 from window import HOLDER, KIDS, MISC, RANGES, VTABLE, WINDOW, WINDOW2, queues  # noqa: E402
 from window705a50 import window as window705a50  # noqa: E402
 
@@ -27,11 +28,13 @@ CALLS = {'Dialog7cc47c_Message4': 0x4b87f0, 'Dialog7cc47c_Message6On': 0x4b8810,
          'WindowAt10_Message4IfAny': 0x492e60, 'Windows7c26b0_Message5': 0x48ee20, 'WindowAt10_ScalarDtor': 0x48c8b0,
          'Windows7cc8bc_Message6Pair': 0x4bcef0, 'Global7cc698_Choose': 0x4bcec0, 'Dialog7cb2b8_Child21Post': 0x4a2590,
          'WindowAt10_Handler': 0x492e00, 'Dialog7cb2b8_Handler': 0x4a0a20, 'DefaultHandler': 0x4a0a90,
-         'Dialog7cb2b8_ResetChild21': 0x4a25f0, 'Dialog7cb2b8_ResetChild21Only': 0x4b4470, 'Obj7b51f0_ResetDialogChild21': 0x4816b0}
+         'Dialog7cb2b8_ResetChild21': 0x4a25f0, 'Dialog7cb2b8_ResetChild21Only': 0x4b4470, 'Obj7b51f0_ResetDialogChild21': 0x4816b0,
+         'WindowText7cb4d0_Handler': 0x4bcb70}
 SENDS = {k: int(k[6:12], 16) for k in CALLS if k.startswith('Dialog7') and 'Handler' not in k and 'Post' not in k and 'Reset' not in k}   # the window's global
 RESET_KIDS, BUTTONS = RAM + 0x9000, RAM + 0xa000   # (0x160 bytes each: the kind byte +0x134, the 0x705a50 window's state +0x138)
 B = Bench(sorted(set(RANGES + [(0x4816b0, 0x4816e0), (0x4a25f0, 0x4a2690), (0x4b4470, 0x4b44a0), (0x658ccc, 0x658e04), (0x659710, 0x659740),
-                               (0x65e6d5, 0x65e73d), (0x65f697, 0x65f6e1), (0x668820, 0x6688c3), (0x668ad3, 0x668c99), (0x6697e3, 0x6698b4)])))
+                               (0x65e6d5, 0x65e73d), (0x65f697, 0x65f6e1), (0x668820, 0x6688c3), (0x668ad3, 0x668c99), (0x6697e3, 0x6698b4),
+                               (0x4bcb70, 0x4bcbb3), (0x65c672, 0x65c707)])))
 
 
 def chain(r, regions, base, want, others, fill):
@@ -94,6 +97,23 @@ def case(r):
     regions = {LOG: log, VTABLE: vtable({5: 1})}
     if 'Reset' in op:
         return reset_case(r, op, regions)
+    if op == 'WindowText7cb4d0_Handler':   # a recorder window (slot 9 of one argument), +0x98 / +0x9c recorder objects or 0 (their events' words
+        win = bytearray(r.bytes(0x120))     # +0xa / +0xc hashed), the default handler fncmp's logger; the message 0x800 often
+        put(win, 0, 'I', VTABLE)
+        put(win, 0x118, 'I', CDECL_LOG4)
+        put(win, 0x98, 'II', r.choice([MISC, 0]), r.choice([MISC + 0x40, 0]))
+        regions[WINDOW] = win
+        regions[VTABLE] = vtable({3: 2, 9: 1})
+        regions[MISC] = struct.pack('<I', VTABLE)
+        regions[MISC + 0x40] = struct.pack('<I', MISC + 0x80)
+        regions[MISC + 0x80] = put(vtable({}, size=8), 0xc, 'I', recorder(22, 2))
+        for k in (3, 22):
+            blob_bytes(log, k, 1, 0, (0x10, 0x3c00))
+        if r.random() < 0.5:
+            set_return(log, 0x3d, r.choice([0, 1, -1, r.getrandbits(32)]))
+        message = r.choice([0x800, 0x800, 0x800, 0x801, 0, 0x14, r.getrandbits(32)])
+        b = r.choice([0, 1, 5, -1, -0x8000, 0x8000, 0x7fff, 0x10000, r.getrandbits(32)]) & 0xffffffff
+        return Call(CALLS[op], [WINDOW, message, r.getrandbits(32), b], regions, ret='a')
     if op == 'Global7cc698_Choose':   # 0x7cc8b8 set or not, the byte 0x7cc8b4 set or not, any windows
         g = bytearray(r.bytes(0x40))
         put(g, 0x28, 'I', r.choice([0, 0, 7, 0x80000000]))  # 0x7cc8b8 (region base 0x7cc890)

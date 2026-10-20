@@ -5010,6 +5010,7 @@ address,name,kind,confidence,notes
 0x004a25f0,Dialog7cb2b8_ResetChild21,function,low,"reimplemented (src/game/ui/dialogs); cdecl (flag): the dialog's child 0x21 reset (kind 3/4: A0 slot 2 cleared, else message 0xb); with the flag, child 0x25's child 0x27 state 0"
 0x004b4470,Dialog7cb2b8_ResetChild21Only,function,low,reimplemented (src/game/ui/dialogs); cdecl: Dialog7cb2b8_ResetChild21(0)
 0x004816b0,Obj7b51f0_ResetDialogChild21,function,low,reimplemented (src/game/ui/dialogs); thiscall on 0x7b51f0: 0 without [0x7cc2f0]; else Dialog7cb2b8_ResetChild21Only and 1
+0x004bcb70,WindowText7cb4d0_Handler,function,low,"reimplemented (src/game/ui/dialogs); cdecl (window, message, a, b): on 0x800 Window_NotifyC000(0, -b) and slot 9 given 0x7cb4d0; then Window_CallDefault"
 0x00659607,GuiManager_CallSlot4,function,low,"reimplemented (src/game/ui/guimanager); cdecl: slot 4 (thiscall, no arguments) of the GUI manager [0x77c48c], its result"
 0x0065961c,GuiManager_CallSlot3,function,low,"reimplemented (src/game/ui/guimanager); cdecl: slot 3 (thiscall, no arguments) of the GUI manager [0x77c48c], its result"
 0x00659631,GuiManager_Word4Set,function,low,"reimplemented (src/game/ui/guimanager); cdecl: 1 when the GUI manager's word +4 (Fn_659790) is not 0, else 0"
