@@ -84,6 +84,12 @@ u32 __fastcall Sprite_SetDestinationMarked(u8 *sprite, void *, s32 x, s32 y);
 // 0x4f7da0 (thiscall; a cell id; name unconfirmed): the same with Sprite_SetDestinationCell.
 u32 __fastcall Sprite_SetDestinationCellMarked(u8 *sprite, void *, u32 cell);
 
+// 0x4f9f00 (thiscall; t, unit, &x, &height, &z, &frame, pops 0x18; x87; name unconfirmed): a moving person's position t of the way from the last one
+// (the dwords +0x190, +0x194) to its nav's (+0xd4, Nav_GetPos), t held to 0..1 for a nonzero unit, else to -1..2 (NaN to the low end): each
+// __ftol(the difference (wrapping) * t + the last) in the x87's 24-bit precision, its low dword. x and z are those times 10 over 65536
+// (16.16 cells to the scene's units) stored to floats, the height 0, the frame the dword +0x1c.
+void __fastcall Sprite_InterpolatedPos(const u8 *sprite, void *, float t, u32 unit, float *x, u32 *height, float *z, u32 *frame);
+
 // 0x4f8b10 (thiscall; stream, save, version, unused): a moving person: 1 when the thing (Thing_Serialize) or the script reference (+0xc,
 // SpriteAnim_Serialize) fails. Then, for a version of 0..1, saved (save nonzero) or loaded: the words +0x18, +0x1a, +0xc4, +0xc0, the byte +0x2c,
 // the dword +0x24, the word +0xcc, the nav (+0xd4: Nav_Serialize; loading Nav_SerializeFwd with save 0), the dwords +0xc8, +0x190, +0x194, +0x198,

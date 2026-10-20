@@ -293,4 +293,26 @@ void __fastcall Visitor_Lower19c(u8 *visitor, void *, u32 index) {
 }
 
 void __fastcall Stat100_Add(float *stat, void *, float delta) { set100(stat, X87Reg(delta) + X87Reg(*stat)); }
+
+void __fastcall Sprite_InterpolatedPos(const u8 *sprite, void *, float t, u32 unit, float *x, u32 *height, float *z, u32 *frame) {
+    if (unit)
+        t = !(t >= 0.0f) ? 0.0f : t > 1.0f ? 1.0f : t;
+    else
+        t = !(t >= -1.0f) ? -1.0f : t > 2.0f ? 2.0f : t;
+    u32 posX, posY;
+    Nav_GetPos(sprite + 0xd4, nullptr, &posX, &posY);
+    // the last position plus t of the way to the nav's (fild; fmul t; fiadd; __ftol's low dword)
+    const auto lerp = [t](u32 pos, s32 last) {
+        return (s32)(long long)X87_Add(X87_MulDouble((double)(s32)(pos - (u32)last), t), (double)last);
+    };
+    const s32 lastY = at<s32>(sprite, 0x194);
+    const s32 y = lerp(posY, lastY);
+    const s32 lastX = at<s32>(sprite, 0x190);
+    const s32 nx = lerp(posX, lastX);
+    // 16.16 cells to the scene's units: times 10 (rounded at 24 bits), over 65536 (exact), stored to floats
+    *x = (float)(X87_MulDouble((double)nx, 10.0) / 65536.0);
+    *height = 0;
+    *z = (float)(X87_MulDouble((double)y, 10.0) / 65536.0);
+    *frame = at<u32>(sprite, 0x1c);
+}
 }
