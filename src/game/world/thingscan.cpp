@@ -145,10 +145,17 @@ bool category156(const u8 *thing) {
 // The dword +0x4ac of the object's definition (ObjectDefs_Find on gObjectDefs by its id +0xe).
 u32 def4ac(const u8 *thing) { return at<u32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(thing, 0xe)), 0x4ac); }
 
-// The objects older than 30 days that the test accepts: the most (or with fewest, the fewest) walk-aways per 100 customers among them
-// (Object_HistoryPercent's sums, with the walk-aways' ring +0x230 for its +0x2b8; objects without customers are passed over), its handle to
-// *out (0 for none).
-template <bool fewest, typename Test> s32 MostWalkAways(u16 *out, Test test) {
+// Whether the object had customers: the low half of __ftol of its customers' ring +0x1a8's newest 30 summed (CircBufU32_30_Sum; inlined in
+// 0x4cbec0).
+bool hadCustomers(const u8 *thing) {
+    double customers;
+    CircBufU32_30_Sum(thing + 0x1a8, nullptr, &customers, 0x1e);
+    return (u32)(long long)customers != 0;
+}
+
+// The objects older than 30 days that the test accepts and that value() gives a figure (signed): the one with the largest (or with fewest,
+// the smallest; the first on a tie), its handle to *out (0 for none); returns that figure (0 for none).
+template <bool fewest, typename Test, typename Value> s32 BestObject(u16 *out, Test test, Value value) {
     *out = 0;
     bool found = false;
     s32 best = 0;   // (unset in the original until found)
@@ -156,23 +163,35 @@ template <bool fewest, typename Test> s32 MostWalkAways(u16 *out, Test test) {
     World_FirstThing(world(), nullptr, &handle);
     while (handle) {
         const u8 *thing = thing_of(handle);
-        if (at<u8>(thing, 2) == 3 && test(thing) && Object_AgeDays(thing) > 30) {
-            double customers, walkaways, again;
-            CircBufU32_30_Sum(thing + 0x1a8, nullptr, &customers, 0x1e);
-            if ((u32)(long long)customers != 0) {   // (__ftol, the low half)
-                CircBufU32_30_Sum(thing + 0x230, nullptr, &walkaways, 0x1e);
-                CircBufU32_30_Sum(thing + 0x1a8, nullptr, &again, 0x1e);
-                const s32 percent = (s32)((u32)(long long)walkaways * 100u / (u32)(long long)again);
-                if (!found || (fewest ? percent < best : percent > best)) {
-                    best = percent;
-                    found = true;
-                    *out = handle;
-                }
+        s32 figure;
+        if (at<u8>(thing, 2) == 3 && test(thing) && Object_AgeDays(thing) > 30 && value(thing, &figure)) {
+            if (!found || (fewest ? figure < best : figure > best)) {
+                best = figure;
+                found = true;
+                *out = handle;
             }
         }
         World_NextThing(world(), nullptr, &handle, thing);
     }
     return found ? best : 0;
+}
+
+// The walk-aways per 100 customers (Object_HistoryPercent's sums, with the walk-aways' ring +0x230 for its +0x2b8); none without customers.
+bool walkAways(const u8 *thing, s32 *percent) {
+    if (!hadCustomers(thing)) return false;
+    double walkaways, customers;
+    CircBufU32_30_Sum(thing + 0x230, nullptr, &walkaways, 0x1e);
+    CircBufU32_30_Sum(thing + 0x1a8, nullptr, &customers, 0x1e);
+    *percent = (s32)((u32)(long long)walkaways * 100u / (u32)(long long)customers);
+    return true;
+}
+
+template <bool fewest, typename Test> s32 MostWalkAways(u16 *out, Test test) { return BestObject<fewest>(out, test, walkAways); }
+
+// The happiness (Object_HistoryAverage).
+bool happiness(const u8 *thing, s32 *average) {
+    *average = (s32)Object_HistoryAverage(thing);
+    return true;
 }
 
 }  // namespace
@@ -790,5 +809,26 @@ s32 __fastcall Things_MostWalkAwaysDef4ac2(void *, void *, u16 *out) {
 
 s32 __fastcall Things_FewestWalkAwaysDef4ac2(void *, void *, u16 *out) {
     return MostWalkAways<true>(out, [](const u8 *thing) { return def4ac(thing) == 2; });
+}
+
+s32 __fastcall Things_HappiestOf(void *, void *, u32 category, u16 *out) {
+    return BestObject<false>(out, [category](const u8 *thing) { return at<u32>(Object_GetDef(thing), 0x164) == category; }, happiness);
+}
+
+s32 __fastcall Things_UnhappiestOf(void *, void *, u32 category, u16 *out) {
+    return BestObject<true>(out, [category](const u8 *thing) { return at<u32>(Object_GetDef(thing), 0x164) == category; }, happiness);
+}
+
+s32 __fastcall Things_HappiestOf156(void *, void *, u16 *out) {
+    return BestObject<false>(out, [](const u8 *thing) { return category156(thing); }, happiness);
+}
+
+s32 __fastcall Things_UnhappiestOf156(void *, void *, u16 *out) {
+    return BestObject<true>(out, [](const u8 *thing) { return category156(thing); }, happiness);
+}
+
+s32 __fastcall Things_HappiestDef4ac2(void *, void *, u16 *out) {
+    return BestObject<false>(out, [](const u8 *thing) { return def4ac(thing) == 2; },
+                             [](const u8 *thing, s32 *average) { return hadCustomers(thing) && happiness(thing, average); });
 }
 }  // extern "C"

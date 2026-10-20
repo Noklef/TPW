@@ -1059,6 +1059,11 @@ address,name,kind,confidence,notes
 0x004cb640,Things_FewestWalkAwaysOf156,function,low,"reimplemented (src/game/world/thingscan); the same for the categories 1, 5 and 6"
 0x004cbba0,Things_MostWalkAwaysDef4ac2,function,low,reimplemented (src/game/world/thingscan); the object whose definition has 2 at +0x4ac with the most walk-aways per 100 customers
 0x004cc090,Things_FewestWalkAwaysDef4ac2,function,low,reimplemented (src/game/world/thingscan); the same with the fewest
+0x004cb100,Things_HappiestOf,function,low,"reimplemented (src/game/world/thingscan); thiscall (category, &out): of the objects older than 30 days with that category, the happiest (Object_HistoryAverage); its handle to out, its average returned"
+0x004cb200,Things_UnhappiestOf,function,low,"reimplemented (src/game/world/thingscan); thiscall (category, &out): the same with the unhappiest"
+0x004cb980,Things_HappiestOf156,function,low,"reimplemented (src/game/world/thingscan); thiscall (&out): the happiest of the categories 1, 5 and 6"
+0x004cba90,Things_UnhappiestOf156,function,low,"reimplemented (src/game/world/thingscan); thiscall (&out): the unhappiest of the categories 1, 5 and 6"
+0x004cbec0,Things_HappiestDef4ac2,function,low,reimplemented (src/game/world/thingscan); thiscall (&out): the happiest of the objects whose definition has 2 at +0x4ac and that had customers
 0x0054b130,Buoy_FindFree,function,high,"reimplemented (src/game/world/trackpools); the first free buoy record, its index stored in it"
 0x0054b170,Buoy_Alloc,function,high,reimplemented (src/game/world/trackpools); takes the first free buoy record
 0x0054b1e0,CollNode_FindFree,function,high,reimplemented (src/game/world/trackpools); the first free collision node

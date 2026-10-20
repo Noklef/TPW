@@ -198,4 +198,17 @@ s32 __fastcall Things_FewestWalkAwaysOf156(void *self, void *, u16 *out);
 // gObjectDefs 0x7890a0 by the id +0xe) has 2 at +0x4ac.
 s32 __fastcall Things_MostWalkAwaysDef4ac2(void *self, void *, u16 *out);
 s32 __fastcall Things_FewestWalkAwaysDef4ac2(void *self, void *, u16 *out);
+
+// 0x4cb100 / 0x4cb200 (thiscall as 0x4caae0; names unconfirmed): of the objects older than 30 days with that category, the happiest /
+// unhappiest (Object_HistoryAverage, signed; the first on a tie); its handle to out (0 for none); returns its average (0 for none).
+s32 __fastcall Things_HappiestOf(void *self, void *, u32 category, u16 *out);
+s32 __fastcall Things_UnhappiestOf(void *self, void *, u32 category, u16 *out);
+
+// 0x4cb980 / 0x4cba90 (thiscall as 0x4cb300; names unconfirmed): the same for the categories 1, 5 and 6.
+s32 __fastcall Things_HappiestOf156(void *self, void *, u16 *out);
+s32 __fastcall Things_UnhappiestOf156(void *self, void *, u16 *out);
+
+// 0x4cbec0 (thiscall as 0x4cb300; name unconfirmed): the happiest of the objects whose definition has 2 at +0x4ac (as 0x4cbba0's) and
+// that had customers (as the walk-aways'). The debug prints of the size check are left out.
+s32 __fastcall Things_HappiestDef4ac2(void *self, void *, u16 *out);
 }  // extern "C"
