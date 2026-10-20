@@ -5,8 +5,6 @@ address,name,module,reason
 515660,World_Attach,world/things,todo
 515f30,Things_InitTable,world/things,todo
 515fb0,World_DeleteAllThings,world/things,todo
-516330,World_Rand,world/random,todo: indirect only
-516370,World_SetSeed,world/random,todo: indirect only
 51a280,Get1da710_51a280,core/accessors,todo: indirect only
 52c2a0,Fn_52c2a0,core/accessors,todo
 540b30,SpriteDraw_End,sprite/draw,todo
