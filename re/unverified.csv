@@ -53,15 +53,6 @@ address,name,module,reason
 5f8760,App_GetWndProc,core/app,todo
 5f8770,App_GetIconId,core/app,todo
 5f8780,App_GetName,core/app,todo
-5f8ae0,RegKey_Open,core/regkey,todo
-5f8b70,RegKey_Dtor,core/regkey,todo
-5f8b80,RegKey_Close,core/regkey,todo
-5f8bc0,Reg_CreateKey,core/regkey,todo
-5f8c00,RegKey_Query,core/regkey,todo
-5f8c50,RegKey_GetU32,core/regkey,todo
-5f8cf0,RegKey_GetU32Or,core/regkey,todo
-5f8d40,RegKey_TypeOf,core/regkey,todo
-5f8da0,RegKey_Ctor,core/regkey,todo
 5f8f80,Surface_SetDirectDraw,gfx/surface,todo
 5f8f90,Surface_Attach,gfx/surface,todo
 5f9040,Surface_Restore,gfx/surface,todo
