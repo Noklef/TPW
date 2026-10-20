@@ -85,6 +85,74 @@ void __cdecl Mat4_LuBackSubstitute(const float *lu, const s32 *index, float *b) 
     }
 }
 
+void __cdecl Mat4_LuDecompose(float *a, s32 *index, float *sign) {
+    u32 *const bits = reinterpret_cast<u32 *>(a);
+    float scale[4];
+    *sign = 1.0f;
+    for (int i = 0; i < 4; ++i) {
+        float big = 0.0f;
+        for (int j = 0; j < 4; ++j) {
+            const float t = std::fabs(a[i * 4 + j]);
+            if (t > big) big = t;   // (a NaN never)
+        }
+        scale[i] = (float)(X87Reg(1.0f) / big);
+    }
+    s32 pivot = 0;   // (kept from the column before; see the header for the first)
+    for (int j = 0; j < 4; ++j) {
+        for (int i = 0; i < j; ++i) {
+            X87Reg sum = a[i * 4 + j];
+            for (int k = 0; k < i; ++k)
+                sum = sum - X87Reg(a[k * 4 + j]) * a[i * 4 + k];
+            a[i * 4 + j] = (float)sum;
+        }
+        float big = 0.0f;
+        for (int i = j; i < 4; ++i) {
+            X87Reg sum = a[i * 4 + j];
+            for (int k = 0; k < j; ++k)
+                sum = sum - X87Reg(a[k * 4 + j]) * a[i * 4 + k];
+            const X87Reg weight = X87Reg(std::fabs(sum.v)) * scale[i];
+            a[i * 4 + j] = (float)sum;
+            if (weight.v >= big) {   // (a NaN never)
+                big = (float)weight;
+                pivot = i;
+            }
+        }
+        if (j != pivot) {
+            for (int k = 0; k < 4; ++k) {
+                const float t = a[pivot * 4 + k];
+                bits[pivot * 4 + k] = bits[j * 4 + k];
+                a[j * 4 + k] = X87_Through(t);
+            }
+            *sign = -*sign;
+            scale[pivot] = scale[j];
+        }
+        index[j] = pivot;
+        if (!(a[j * 5] < 0) && !(a[j * 5] > 0))   // (zero or a NaN)
+            bits[j * 5] = 0x1e3ce508;   // 1e-20
+        if (j != 3) {
+            const float inverse = (float)(X87Reg(1.0f) / a[j * 5]);
+            for (int i = j + 1; i < 4; ++i)
+                a[i * 4 + j] = (float)(X87Reg(inverse) * a[i * 4 + j]);
+        }
+    }
+}
+
+void __fastcall Mat4_Invert(u32 *m) {
+    u32 a[16], y[16];
+    s32 index[4];
+    float sign;
+    std::memcpy(a, m, sizeof a);
+    Mat4_LuDecompose(reinterpret_cast<float *>(a), index, &sign);
+    for (int i = 0; i < 4; ++i) {
+        u32 column[4] = {0, 0, 0, 0};
+        column[i] = 0x3f800000;
+        Mat4_LuBackSubstitute(reinterpret_cast<const float *>(a), index, reinterpret_cast<float *>(column));
+        for (int j = 0; j < 4; ++j)
+            y[j * 4 + i] = column[j];
+    }
+    std::memcpy(m, y, sizeof y);
+}
+
 void __fastcall Mat4_Perspective(float *m, void *, float near_, float far_, float fov) {
     const X87Reg angle = X87Reg(fov) * 0.0174532924f;  // 0x7018b8
     const X87Reg ratio = X87Reg(near_) / far_;

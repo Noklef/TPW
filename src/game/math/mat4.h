@@ -28,6 +28,19 @@ void __fastcall Mat4_MoveAlongX(float *m, void *, float distance);
 // pass divides by the diagonal unchecked. The index is not range-checked (the name is unconfirmed).
 void __cdecl Mat4_LuBackSubstitute(const float *lu, const s32 *index, float *b);
 
+// 0x578900 (cdecl; a, index, sign; x87; the name unconfirmed): Numerical Recipes' ludcmp (Crout, implicit partial pivoting) for n = 4 on a
+// row-major a in place: *sign = 1, each row's scale 1 / its largest magnitude (NaNs passed over; a row of zeros gives infinity), then per
+// column j the upper sums, then the lower ones weighted by |sum| * scale, the last weight >= the best so far (stored as a float) taking the
+// pivot; a pivot other than j swaps the rows (the one moved down through the x87, a signalling NaN quieted), negates *sign and takes j's
+// scale; index[j] = the pivot; a zero or NaN diagonal becomes 1e-20; the column below it times (float)(1 / the diagonal). The pivot is
+// never reset: a column whose weights are all NaN keeps the column before's, and at the first column the stack's leftover (no row then
+// has a non-NaN a[i][0] in a row with a nonzero non-NaN entry; the port has 0 there).
+void __cdecl Mat4_LuDecompose(float *a, s32 *index, float *sign);
+
+// 0x578b20 (thiscall; x87; the name unconfirmed): the matrix inverted in place by Numerical Recipes' method: a copy decomposed
+// (Mat4_LuDecompose), then each column of the identity solved against it (Mat4_LuBackSubstitute) as the inverse's column.
+void __fastcall Mat4_Invert(u32 *m);
+
 // 0x578be0 (thiscall; near, far, field of view in degrees; pops 0xc; x87): the perspective matrix scaled by the sine of half the
 // angle: zeroed, then m[0] = m[5] = cos, m[10] = q = sin / (1 - near / far), m[14] = -q * near and m[11] = sin, or m[15] = 1 with the
 // render flag 0x200 (0x8bcbc8) set. The three arguments are kept at 0x87b1dc, 0x768acc and 0x87af58 (the name is unconfirmed).
