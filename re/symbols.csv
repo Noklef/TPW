@@ -5085,3 +5085,7 @@ address,name,kind,confidence,notes
 0x0065ab64,Window705950_Ctor,function,low,"reimplemented (src/game/ui/window705950); thiscall (parent, flags, id, left, top, right, bottom), pops 28: kind 4 of the factory 0x65dd7b; Window_Ctor, +0x138 a GUI rectangle, the vtable 0x705950, the layout, with flags & 0x1000 a scroll bar (kind 3) disabled, shown and ranged 0-0, the handler 0x65bb6b; returns the window"
 0x00662530,Window7059f0_Layout,function,low,reimplemented (src/game/ui/window7059f0); thiscall: +0x2c from +8 and +0x138 from +0x2c (GuiRect_Assign)
 0x00662562,Window7059f0_Ctor,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (parent, flags, id, left, top, right, bottom), pops 28: kind 7 of the factory 0x65dd7b; Window_Ctor, +0x138 a GUI rectangle, the vtable 0x7059f0, fields cleared (+0x14c / +0x160 -1), the layout, with flags & 0x1000 a scroll bar (kind 3) disabled, shown and ranged 0-0, the handlers 0x665c35; returns the window"
+0x0065fbf0,WindowScript_ReadDword,function,low,reimplemented (src/game/ui/windowscript); a window script's next dword (two words)
+0x0065fc18,WindowScript_ReadWord,function,low,reimplemented (src/game/ui/windowscript); a window script's next word
+0x0065fc38,WindowScript_ReadRect,function,low,reimplemented (src/game/ui/windowscript); a window script's next four words to four outputs
+0x0065fcc5,WindowScript_ReadPair,function,low,reimplemented (src/game/ui/windowscript); a window script's next two words to two outputs

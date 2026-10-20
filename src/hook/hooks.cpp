@@ -361,6 +361,7 @@
 #include "../game/ui/window705c28.h"
 #include "../game/ui/window705c58.h"
 #include "../game/ui/windowfactory.h"
+#include "../game/ui/windowscript.h"
 #include "../game/ui/windowtimers.h"
 
 namespace tpw::hook {
@@ -4701,6 +4702,10 @@ const Hook kHooks[] = {
     {"Window705950_Layout",       0x0065aac0, (void *)&Window705950_Layout, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705950_Ctor",         0x0065ab64, (void *)&Window705950_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window_CreateChild",        0x0065dd7b, (void *)&Window_CreateChild, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"WindowScript_ReadPair",     0x0065fcc5, (void *)&WindowScript_ReadPair, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"WindowScript_ReadRect",     0x0065fc38, (void *)&WindowScript_ReadRect, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"WindowScript_ReadWord",     0x0065fc18, (void *)&WindowScript_ReadWord, {0x55, 0x8b, 0xec, 0xa1, 0x20}},
+    {"WindowScript_ReadDword",    0x0065fbf0, (void *)&WindowScript_ReadDword, {0x55, 0x8b, 0xec, 0x51, 0xa1}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
