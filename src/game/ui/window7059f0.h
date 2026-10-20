@@ -107,4 +107,26 @@ s32 __fastcall Window7059f0_FindText(u8 *window, void *, const u16 *text, s32 co
 // (Window7059f0_ColumnBottom) is 1, else as that dword's object's +4 (Obj_Get4Or6fd6c4) through its slot 9, the first column told the level
 // * 0x14 and 0 first (Window_NotifyC000). Then the next item (Window7059f0_NextItem), its level change added.
 void __fastcall Window7059f0_RefreshRows(u8 *window);
+
+// 0x6647cb (thiscall (n), pops 4; name unconfirmed): 0 for n at or past the count +0x150, without items +0x144 or below 0. Else the n-th
+// item (Window7059f0_NthItem) freed with its children (Window7059f0_FreeItem, n, previous, no siblings): previous -1 for the first one
+// (whose next sibling becomes the first shown +0x160) and for its parent's first child, else the (n - 1)-th item of the walk (not always a
+// sibling, sic). The selection +0x14c when it was n: one less past the new count, -1 without items (Window7059f0_Select). With the dword
+// 0xfaa5d4 set and n among the rows shown (+0x154 to +0x154 + +0x172), the window posted 3 (0, 0); the bar (child 1, Window_FindChild)
+// fitted (Window7059f0_FitBar), the parent +0x60 sent 0x405 (+0x154, the last row shown, below the count) and the rows refreshed
+// (Window7059f0_RefreshRows). 1 in AX (the rest of EAX the last call's).
+u32 __fastcall Window7059f0_RemoveItem(u8 *window, void *, s32 n);
+
+// 0x6649d5 (thiscall; name unconfirmed): nothing without items (the count +0x150 0). Else each item's cells (the n-th item's for n below
+// the count) in the columns whose bottom (Window7059f0_ColumnBottom) is 0 deleted when set (CountedBuf_Deleter 1), the links reset
+// (Window7059f0_ResetItems), the window posted 3 (0, 0) with the dword 0xfaa5d4 set, the count, the selection +0x14c (-1), the first shown
+// +0x160 (-1) and the first row +0x154 cleared, the bar (child 1) fitted, the highlight +0x174 (when set) hidden (its slot 5, 0) and the
+// rows refreshed.
+void __fastcall Window7059f0_Clear(u8 *window);
+
+// 0x665739 (thiscall (position), pops 4; name unconfirmed): nothing without items +0x144. Below 0 the selection cleared (Select -1); else
+// the position (at most the count - 1) scrolled into the rows (+0x154 the position when outside them, then at most count - rows) and
+// selected (Select, the row on screen). Then the rows refreshed, the bar (child 1, Window_FindChild; none a fault, sic) given +0x154
+// through its slot 7 and, when +0x154 changed, the parent +0x60 sent 0x405 (+0x154, the last row shown, below the count).
+void __fastcall Window7059f0_ScrollTo(u8 *window, void *, s32 position);
 }
