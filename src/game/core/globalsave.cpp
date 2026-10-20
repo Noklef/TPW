@@ -5,6 +5,7 @@
 #include "gameheap.h"
 #include "savegame.h"
 #include "stdlist.h"
+#include "stdtree.h"
 #include "../files/file.h"
 
 namespace {
@@ -149,4 +150,6 @@ u8 *__cdecl GlobalSave_Instance() {
     }
     return info;
 }
+
+u32 __stdcall GlobalSave_HasKey(u32 key) { return Obj_HasKey5af780(GlobalSave_Instance(), nullptr, key); }
 }
