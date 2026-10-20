@@ -2,6 +2,7 @@
 // exe's copies share with the library's code while both run (the offsets are the listing's), and holds the method-address shim.
 #include "jpeg6b.h"
 
+#include <cstdarg>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -53,6 +54,12 @@ static_assert(offsetof(jpeg_decompress_struct, out_color_components) == 0x64, "c
 static_assert(offsetof(jpeg_decompress_struct, enable_2pass_quant) == 0x5a, "cinfo->enable_2pass_quant (jinit_2pass_quantizer)");
 static_assert(offsetof(jpeg_decompress_struct, actual_number_of_colors) == 0x70, "cinfo->actual_number_of_colors (start_pass_2_quant)");
 static_assert(offsetof(jpeg_decompress_struct, colormap) == 0x74, "cinfo->colormap (find_nearby_colors)");
+static_assert(sizeof(jpeg_error_mgr) == 0x84 && offsetof(jpeg_error_mgr, msg_code) == 0x14 && offsetof(jpeg_error_mgr, msg_parm) == 0x18,
+              "jpeg_error_mgr (jpeg_std_error 0x631280, format_message)");
+static_assert(offsetof(jpeg_error_mgr, trace_level) == 0x68 && offsetof(jpeg_error_mgr, num_warnings) == 0x6c,
+              "err->trace_level, num_warnings (emit_message)");
+static_assert(offsetof(jpeg_error_mgr, jpeg_message_table) == 0x70 && offsetof(jpeg_error_mgr, last_addon_message) == 0x80,
+              "the message tables (format_message)");
 
 // The method-address shim. Every module's init (and jddctmgr.c's start_pass) stores the addresses of its methods in the structs the
 // exe's code also reads and calls through. The library stores its own functions' addresses; the exe's copy of the same code stores the
@@ -89,6 +96,8 @@ void __cdecl jquant1_finish_pass_1_quant(j_decompress_ptr cinfo);  // (not a hoo
 void __cdecl jquant2_lib_jinit_2pass_quantizer(j_decompress_ptr cinfo);
 void __cdecl jquant2_lib_start_pass_2_quant(j_decompress_ptr cinfo, boolean is_pre_scan);
 void __cdecl jquant2_finish_pass2(j_decompress_ptr cinfo);  // (not a hook: its exe copy is the shared bare RET)
+void __cdecl jmemmgr_lib_jinit_memory_mgr(j_common_ptr cinfo);
+void __cdecl jdmaster_lib_jinit_master_decompress(j_decompress_ptr cinfo);
 void __cdecl jpeg_idct_float(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, short *coef_block, unsigned char **output_buf,
                              unsigned int output_col);
 }
@@ -189,10 +198,28 @@ const ExeMethod kExeMethods[] = {
     {fn(&jquant2_pass2_no_dither), 0x647860},
     {fn(&jquant2_pass2_fs_dither), 0x647db0},
     {fn(&jquant2_finish_pass2), 0x631270},
+    // jmemmgr.c
+    {fn(&jmemmgr_alloc_small), 0x63d520},
+    {fn(&jmemmgr_alloc_large), 0x63d670},
+    {fn(&jmemmgr_alloc_sarray), 0x63d720},
+    {fn(&jmemmgr_alloc_barray), 0x63d7d0},
+    {fn(&jmemmgr_request_virt_sarray), 0x63d880},
+    {fn(&jmemmgr_request_virt_barray), 0x63d8f0},
+    {fn(&jmemmgr_realize_virt_arrays), 0x63d960},
+    {fn(&jmemmgr_access_virt_sarray), 0x63db00},
+    {fn(&jmemmgr_access_virt_barray), 0x63dcd0},
+    {fn(&jmemmgr_free_pool), 0x63deb0},
+    {fn(&jmemmgr_self_destruct), 0x63dfb0},
+    // jdmaster.c
+    {fn(&jdmaster_prepare_for_output_pass), 0x63e630},
+    {fn(&jdmaster_finish_output_pass), 0x63e790},
 };
+
+bool g_native_methods = false;  // (Jpeg6b_SetNativeMethods: the tests' driver, which cannot call the exe's addresses)
 
 // The method pointer at slot: the exe's address in place of a library method's (anything else is left as it is).
 void exe_method_at(void *slot) {
+    if (g_native_methods) return;
     void *&p = *static_cast<void **>(slot);
     for (const ExeMethod &m : kExeMethods)
         if (p == m.library) {
@@ -345,19 +372,85 @@ void __cdecl jquant2_start_pass_2_quant(j_decompress_ptr cinfo, boolean is_pre_s
     exe_method(cinfo->cquantize->color_quantize);
     exe_method(cinfo->cquantize->finish_pass);
 }
+
+void __cdecl jinit_memory_mgr(j_common_ptr cinfo) {
+    jmemmgr_lib_jinit_memory_mgr(cinfo);
+    jpeg_memory_mgr *mem = cinfo->mem;
+    exe_method(mem->alloc_small);
+    exe_method(mem->alloc_large);
+    exe_method(mem->alloc_sarray);
+    exe_method(mem->alloc_barray);
+    exe_method(mem->request_virt_sarray);
+    exe_method(mem->request_virt_barray);
+    exe_method(mem->realize_virt_arrays);
+    exe_method(mem->access_virt_sarray);
+    exe_method(mem->access_virt_barray);
+    exe_method(mem->free_pool);
+    exe_method(mem->self_destruct);
 }
 
-// jmemansi.c's malloc and free (third_party/wrap/jpeg-6b/jmemansi.c #defines them to these two): the exe's, so the blocks the library's
-// jpeg_get_small hands out are the exe's heap's, which the exe's own code (zcfree, jmemmgr.c while it stays the exe's) frees there.
+// (the methods are stored before master_selection runs the other modules' inits; their addresses are put back after)
+void __cdecl jinit_master_decompress(j_decompress_ptr cinfo) {
+    jdmaster_lib_jinit_master_decompress(cinfo);
+    exe_method(cinfo->master->prepare_for_output_pass);
+    exe_method(cinfo->master->finish_output_pass);
+}
+}
+
+// What the library calls outside itself, the exe's (jpeg6b.h's Jpeg6bCrtEnv): jmemansi.c's malloc and free (third_party/wrap/jpeg-6b/
+// jmemansi.c #defines them to jpeg6b_exe_malloc / free), so the blocks the library's jpeg_get_small hands out are the exe's heap's,
+// which the exe's own code (zcfree) frees there; jmemmgr.c's getenv, sscanf and jpeg_open_backing_store (wrap/jpeg-6b/jmemmgr.c);
+// jerror.c's sprintf (wrap/jpeg-6b/jerror.c).
 namespace {
-const Jpeg6bHeapEnv kExeHeap = {reinterpret_cast<void *(__cdecl *)(size_t)>((uintptr_t)0x0067dcd0),
-                                reinterpret_cast<void(__cdecl *)(void *)>((uintptr_t)0x0067ad90)};
-const Jpeg6bHeapEnv *g_heap = &kExeHeap;
+const Jpeg6bCrtEnv kExeCrt = {
+    reinterpret_cast<void *(__cdecl *)(size_t)>((uintptr_t)0x0067dcd0),
+    reinterpret_cast<void(__cdecl *)(void *)>((uintptr_t)0x0067ad90),
+    reinterpret_cast<char *(__cdecl *)(const char *)>((uintptr_t)0x0067fbf0),
+    reinterpret_cast<int(__cdecl *)(const char *, const char *, long *, char *)>((uintptr_t)0x0067f620),
+    reinterpret_cast<void(__cdecl *)(jpeg_common_struct *, void *, long)>((uintptr_t)0x006429c0),
+    reinterpret_cast<int(__cdecl *)(char *, const char *, const char *)>((uintptr_t)0x0067a650),
+    reinterpret_cast<int(__cdecl *)(char *, const char *, int, int, int, int, int, int, int, int)>((uintptr_t)0x0067a650)};
+const Jpeg6bCrtEnv *g_crt = &kExeCrt;
 }  // namespace
 
-void Jpeg6b_SetHeapEnv(const Jpeg6bHeapEnv *env) { g_heap = env ? env : &kExeHeap; }
+void Jpeg6b_SetCrtEnv(const Jpeg6bCrtEnv *env) { g_crt = env ? env : &kExeCrt; }
+
+void Jpeg6b_SetNativeMethods(bool native) { g_native_methods = native; }
+
+std::uint32_t Jpeg6b_ExeMethod(std::uint32_t address) {
+    for (const ExeMethod &m : kExeMethods)
+        if ((std::uintptr_t)m.library == address) return (std::uint32_t)m.exe;
+    return 0;
+}
 
 extern "C" {
-void *__cdecl jpeg6b_exe_malloc(size_t size) { return g_heap->alloc(size); }
-void __cdecl jpeg6b_exe_free(void *block) { g_heap->free(block); }
+void *__cdecl jpeg6b_exe_malloc(size_t size) { return g_crt->alloc(size); }
+void __cdecl jpeg6b_exe_free(void *block) { g_crt->free(block); }
+char *__cdecl jpeg6b_exe_getenv(const char *name) { return g_crt->getenv(name); }
+int __cdecl jpeg6b_exe_sscanf(const char *s, const char *format, long *value, char *ch) { return g_crt->sscanf(s, format, value, ch); }
+void __cdecl jpeg6b_exe_open_backing_store(jpeg_common_struct *cinfo, void *info, long total_bytes_needed) {
+    g_crt->open_backing_store(cinfo, info, total_bytes_needed);
+}
+// format_message's two sprintf calls: the message's string parameter when its first '%' is a %s (format_message's own test, so the
+// call has the arguments the source passes), else the eight ints. The exe's sprintf is variadic, so either typed pointer calls it.
+int __cdecl jpeg6b_exe_sprintf(char *buffer, const char *format, ...) {
+    bool isstring = false;
+    for (const char *p = format; *p; p++)
+        if (*p == '%') {
+            isstring = p[1] == 's';
+            break;
+        }
+    va_list ap;
+    va_start(ap, format);
+    int n;
+    if (isstring) {
+        n = g_crt->sprintf_string(buffer, format, va_arg(ap, const char *));
+    } else {
+        int i[8];
+        for (int k = 0; k < 8; k++) i[k] = va_arg(ap, int);
+        n = g_crt->sprintf_ints(buffer, format, i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7]);
+    }
+    va_end(ap);
+    return n;
+}
 }

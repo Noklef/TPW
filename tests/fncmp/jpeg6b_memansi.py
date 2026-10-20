@@ -2,7 +2,7 @@
 # the module through its wrapper unit third_party/wrap/jpeg-6b/jmemansi.c, whose malloc and free are the exe's) against the exe's
 # copies. jpeg_get_small (0x642980, also jpeg_get_large: one copy) calls the exe's malloc (0x67dcd0) and jpeg_free_small (0x642990, also
 # jpeg_free_large and zlib's zcfree) its free (0x67ad90): here both sides get fncmp's heap for them (the emulator's hooks on the two
-# addresses, the driver's Jpeg6b_SetHeapEnv), which records the sizes asked for and the blocks freed. jpeg_mem_available (0x6429a0)
+# addresses, the driver's Jpeg6b_SetCrtEnv), which records the sizes asked for and the blocks freed. jpeg_mem_available (0x6429a0)
 # reads cinfo->mem (+4, at MEM) max_memory_to_use +0x2c. jpeg_open_backing_store and its methods, and jpeg_mem_init (the hand port
 # Const_1000000), stay the exe's.
 # usage: jpeg6b_memansi.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=get,free,available)

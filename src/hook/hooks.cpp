@@ -378,6 +378,7 @@
 #include "../game/ui/msgtags.h"
 #include "../game/ui/windowtimers.h"
 #include "../game/lib/jpeg6b.h"
+#include "../game/lib/jpeg6a.h"
 #include "../game/lib/zlib.h"
 
 namespace tpw::hook {
@@ -5120,6 +5121,47 @@ const Hook kHooks[] = {
     {"jpeg_mem_available",        0x006429a0, (void *)&jpeg_mem_available, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"jpeg_free_small",           0x00642990, (void *)&jpeg_free_small, {0x8b, 0x44, 0x24, 0x08, 0x50}},
     {"jpeg_get_small",            0x00642980, (void *)&jpeg_get_small, {0x8b, 0x44, 0x24, 0x08, 0x50}},
+    {"jmemmgr_self_destruct",     0x0063dfb0, (void *)&jmemmgr_self_destruct, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
+    {"jmemmgr_free_pool",         0x0063deb0, (void *)&jmemmgr_free_pool, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"jmemmgr_do_barray_io",      0x0063de10, (void *)&jmemmgr_do_barray_io, {0x53, 0x55, 0x56, 0x8b, 0x74}},
+    {"jmemmgr_access_virt_barray", 0x0063dcd0, (void *)&jmemmgr_access_virt_barray, {0x8b, 0x44, 0x24, 0x10, 0x53}},
+    {"jmemmgr_do_sarray_io",      0x0063dc30, (void *)&jmemmgr_do_sarray_io, {0x53, 0x55, 0x56, 0x8b, 0x74}},
+    {"jmemmgr_access_virt_sarray", 0x0063db00, (void *)&jmemmgr_access_virt_sarray, {0x8b, 0x44, 0x24, 0x10, 0x53}},
+    {"jmemmgr_realize_virt_arrays", 0x0063d960, (void *)&jmemmgr_realize_virt_arrays, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
+    {"jmemmgr_request_virt_barray", 0x0063d8f0, (void *)&jmemmgr_request_virt_barray, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"jmemmgr_request_virt_sarray", 0x0063d880, (void *)&jmemmgr_request_virt_sarray, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"jmemmgr_alloc_barray",      0x0063d7d0, (void *)&jmemmgr_alloc_barray, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
+    {"jmemmgr_alloc_sarray",      0x0063d720, (void *)&jmemmgr_alloc_sarray, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
+    {"jmemmgr_alloc_large",       0x0063d670, (void *)&jmemmgr_alloc_large, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
+    {"jmemmgr_alloc_small",       0x0063d520, (void *)&jmemmgr_alloc_small, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"jmemmgr_out_of_memory",     0x0063d650, (void *)&jmemmgr_out_of_memory, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"jinit_memory_mgr",          0x0063d3d0, (void *)&jinit_memory_mgr, {0x51, 0x53, 0x56, 0x57, 0x8b}},
+    {"jerror_reset_error_mgr",    0x00631440, (void *)&jerror_reset_error_mgr, {0x8b, 0x44, 0x24, 0x04, 0x33}},
+    {"jerror_format_message",     0x00631380, (void *)&jerror_format_message, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"jerror_emit_message",       0x00631340, (void *)&jerror_emit_message, {0x8b, 0x4c, 0x24, 0x04, 0x8b}},
+    {"jdmaster_finish_output_pass", 0x0063e790, (void *)&jdmaster_finish_output_pass, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"jdmaster_prepare_for_output_pass", 0x0063e630, (void *)&jdmaster_prepare_for_output_pass, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jdmaster_prepare_range_limit_table", 0x0063e5b0, (void *)&jdmaster_prepare_range_limit_table, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jdmaster_master_selection", 0x0063e3c0, (void *)&jdmaster_master_selection, {0x53, 0x56, 0x8b, 0x74, 0x24}},
+    {"jinit_master_decompress",   0x0063e380, (void *)&jinit_master_decompress, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jdmaster_use_merged_upsample", 0x0063e2f0, (void *)&jdmaster_use_merged_upsample, {0x8b, 0x54, 0x24, 0x04, 0x57}},
+    {"jpeg_calc_output_dimensions", 0x0063e0b0, (void *)&jpeg_calc_output_dimensions, {0x53, 0x55, 0x56, 0x8b, 0x74}},
+    {"jpeg_read_scanlines",       0x00631610, (void *)&jpeg_read_scanlines, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jdapistd_output_pass_setup", 0x00631540, (void *)&jdapistd_output_pass_setup, {0x53, 0x56, 0x8b, 0x74, 0x24}},
+    {"jpeg_start_decompress",     0x00631460, (void *)&jpeg_start_decompress, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jpeg_finish_decompress",    0x00631080, (void *)&jpeg_finish_decompress, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jdapimin_default_decompress_parms", 0x00630ee0, (void *)&jdapimin_default_decompress_parms, {0x53, 0x56, 0x8b, 0x74, 0x24}},
+    {"jpeg_consume_input",        0x00630e10, (void *)&jpeg_consume_input, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jpeg_read_header",          0x00630d90, (void *)&jpeg_read_header, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jpeg_destroy_decompress",   0x00630d80, (void *)&jpeg_destroy_decompress, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"jpeg_CreateDecompress",     0x00630ca0, (void *)&jpeg_CreateDecompress, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"jpeg6a_jzero_far",          0x006504a2, (void *)&jpeg6a_jzero_far, {0x55, 0x8b, 0xec, 0x57, 0x8b}},
+    {"jpeg6a_jcopy_block_row",    0x0065047f, (void *)&jpeg6a_jcopy_block_row, {0x55, 0x8b, 0xec, 0x56, 0x57}},
+    {"jpeg6a_jcopy_sample_rows",  0x00650401, (void *)&jpeg6a_jcopy_sample_rows, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jround_up",          0x006503e3, (void *)&jpeg6a_jround_up, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jdiv_round_up",      0x006503d0, (void *)&jpeg6a_jdiv_round_up, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jpeg_fdct_islow",    0x00657810, (void *)&jpeg6a_jpeg_fdct_islow, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jpeg_fdct_ifast",    0x00657480, (void *)&jpeg6a_jpeg_fdct_ifast, {0x55, 0x8b, 0xec, 0x83, 0xec}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

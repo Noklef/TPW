@@ -1,4 +1,4 @@
-/* third_party/config/jconfig.h: jpeg-6b/jconfig.vc as released, used by both jpeg trees. boolean is an unsigned char, which gives
+/* third_party/config/jconfig.h: jpeg-6b/jconfig.vc as released, 6b's (6a has its own, config/jpeg-6a/). boolean is an unsigned char, which gives
    the 0x1b0-byte jpeg_decompress_struct that tp.exe's 6b copy checks for in jpeg_CreateDecompress (0x630cd9). */
 
 /* jconfig.vc --- jconfig.h for Microsoft Visual C++ on Windows 95 or NT. */

@@ -9,6 +9,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 
 extern "C" {
 
@@ -419,21 +420,137 @@ void __cdecl jquant2_compute_color(jpeg_decompress_struct *cinfo, void *boxp, in
 void __cdecl jquant2_new_color_map_2_quant(jpeg_decompress_struct *cinfo);
 
 // jmemansi.c, the memory manager's system-dependent part, through third_party/wrap/jpeg-6b/jmemansi.c: its malloc and free are the
-// exe's C runtime's (Jpeg6b_SetHeapEnv below), so every block stays on the exe's heap.
+// exe's C runtime's (Jpeg6b_SetCrtEnv below), so every block stays on the exe's heap.
 // 0x642980 (also jpeg_get_large: one copy): malloc(sizeofobject).
 void *__cdecl jpeg_get_small(jpeg_common_struct *cinfo, size_t sizeofobject);
 // 0x642990 (also jpeg_free_large and zlib's zcfree, whose block is the same second argument): free(object).
 void __cdecl jpeg_free_small(jpeg_common_struct *cinfo, void *object, size_t sizeofobject);
 // 0x6429a0: mem->max_memory_to_use (+0x2c) - already_allocated.
 long __cdecl jpeg_mem_available(jpeg_common_struct *cinfo, long min_bytes_needed, long max_bytes_needed, long already_allocated);
+
+// jmemmgr.c, the memory manager, through third_party/wrap/jpeg-6b/jmemmgr.c: cinfo->mem (my_memory_mgr, 0x54 bytes: the public
+// jpeg_memory_mgr 0x34, small_list[2] +0x34, large_list[2] +0x3c, virt_sarray_list +0x44, virt_barray_list +0x48,
+// total_space_allocated +0x4c, last_rowsperchunk +0x50); pools 0 (JPOOL_PERMANENT) and 1 (JPOOL_IMAGE); a pool's blocks start with a
+// 16-byte header (next, bytes_used, bytes_left). Its getenv / sscanf and jpeg_open_backing_store are the exe's (Jpeg6bCrtEnv below).
+struct jvirt_sarray_control;  // 0x78 bytes (the backing store's info at +0x28)
+struct jvirt_barray_control;  // 0x78 bytes
+typedef short jpeg6b_block[64];  // JBLOCK
+// 0x63d3d0: the manager (jpeg_get_small of 0x54, ERREXIT1 JERR_OUT_OF_MEMORY 0x36 without it), its eleven methods,
+// max_memory_to_use from jpeg_mem_init, or JPEGMEM's (thousands, or millions with an m / M); cinfo->mem. Through the method shim.
+void __cdecl jinit_memory_mgr(jpeg_common_struct *cinfo);
+// 0x63d650: ERREXIT1 JERR_OUT_OF_MEMORY (0x36) with which.
+void __cdecl jmemmgr_out_of_memory(jpeg_common_struct *cinfo, int which);
+// 0x63d520: sizeofobject (rounded up to 8) from the first small pool of pool_id with room, else a new pool (jpeg_get_small of the
+// object, its header and the pool's slop, the slop halved while it fails; out_of_memory below 50).
+void *__cdecl jmemmgr_alloc_small(jpeg_common_struct *cinfo, int pool_id, size_t sizeofobject);
+// 0x63d670: a large object of its own (jpeg_get_large), linked into large_list[pool_id].
+void *__cdecl jmemmgr_alloc_large(jpeg_common_struct *cinfo, int pool_id, size_t sizeofobject);
+// 0x63d720, 0x63d7d0: numrows rows (pointers from alloc_small, the rows from alloc_large in chunks of last_rowsperchunk).
+unsigned char **__cdecl jmemmgr_alloc_sarray(jpeg_common_struct *cinfo, int pool_id, unsigned int samplesperrow, unsigned int numrows);
+jpeg6b_block **__cdecl jmemmgr_alloc_barray(jpeg_common_struct *cinfo, int pool_id, unsigned int blocksperrow, unsigned int numrows);
+// 0x63d880, 0x63d8f0: a virtual array's control block (JPOOL_IMAGE only), unrealized, at the head of its list.
+jvirt_sarray_control *__cdecl jmemmgr_request_virt_sarray(jpeg_common_struct *cinfo, int pool_id, unsigned char pre_zero,
+                                                          unsigned int samplesperrow, unsigned int numrows, unsigned int maxaccess);
+jvirt_barray_control *__cdecl jmemmgr_request_virt_barray(jpeg_common_struct *cinfo, int pool_id, unsigned char pre_zero,
+                                                          unsigned int blocksperrow, unsigned int numrows, unsigned int maxaccess);
+// 0x63d960: every unrealized array its buffer, all of it in memory when jpeg_mem_available allows, else a backing store.
+void __cdecl jmemmgr_realize_virt_arrays(jpeg_common_struct *cinfo);
+// 0x63db00, 0x63dcd0: rows start_row.. of a virtual array, read in (and the old ones written out) through the backing store when
+// they are not in memory, zeroed when undefined and pre_zero.
+unsigned char **__cdecl jmemmgr_access_virt_sarray(jpeg_common_struct *cinfo, jvirt_sarray_control *ptr, unsigned int start_row,
+                                                   unsigned int num_rows, unsigned char writable);
+jpeg6b_block **__cdecl jmemmgr_access_virt_barray(jpeg_common_struct *cinfo, jvirt_barray_control *ptr, unsigned int start_row,
+                                                  unsigned int num_rows, unsigned char writable);
+// 0x63dc30, 0x63de10: the buffer's chunks read from or written to the backing store.
+void __cdecl jmemmgr_do_sarray_io(jpeg_common_struct *cinfo, jvirt_sarray_control *ptr, unsigned char writing);
+void __cdecl jmemmgr_do_barray_io(jpeg_common_struct *cinfo, jvirt_barray_control *ptr, unsigned char writing);
+// 0x63deb0: a pool's blocks freed (the image pool's backing stores closed first), large then small.
+void __cdecl jmemmgr_free_pool(jpeg_common_struct *cinfo, int pool_id);
+// 0x63dfb0: both pools freed, then the manager; cinfo->mem NULL.
+void __cdecl jmemmgr_self_destruct(jpeg_common_struct *cinfo);
+
+// jerror.c's methods, through third_party/wrap/jpeg-6b/jerror.c: cinfo->err (jpeg_error_mgr, 0x84 bytes: the five methods +0,
+// msg_code +0x14, msg_parm +0x18 (eight ints or an 80-character string), trace_level +0x68, num_warnings +0x6c, jpeg_message_table
+// +0x70, last_jpeg_message +0x74, addon_message_table +0x78, first_addon_message +0x7c, last_addon_message +0x80).
+// 0x631340: a warning (msg_level < 0) is output when it is the first or trace_level >= 3, and counted; a trace when trace_level >=
+// msg_level.
+void __cdecl jerror_emit_message(jpeg_common_struct *cinfo, int msg_level);
+// 0x631380: msg_code's text (the library's table, else the add-on table, else message 0 with msg_code as its parameter) formatted into
+// buffer with sprintf (the exe's, Jpeg6bCrtEnv): msg_parm.s when the text's first % is a %s, else the eight ints.
+void __cdecl jerror_format_message(jpeg_common_struct *cinfo, char *buffer);
+// 0x631440: num_warnings and msg_code 0.
+void __cdecl jerror_reset_error_mgr(jpeg_common_struct *cinfo);
+
+// jdmaster.c, the decompression master, through third_party/wrap/jpeg-6b/jdmaster.c: cinfo->master (my_decomp_master, 0x1c bytes:
+// prepare_for_output_pass +0, finish_output_pass +4, is_dummy_pass +8, pass_number +0xc, using_merged_upsample +0x10,
+// quantizer_1pass +0x14, quantizer_2pass +0x18).
+// 0x63e2f0: whether the merged upsampler can do the upsampling and colour conversion (2h1v or 2h2v YCbCr to RGB, no fancy
+// upsampling, every component at the minimum DCT scale).
+unsigned char __cdecl jdmaster_use_merged_upsample(jpeg_decompress_struct *cinfo);
+// 0x63e0b0: the output size for scale_num / scale_denom (1/8, 1/4, 1/2 or 1), each component's DCT_scaled_size and downsampled
+// size, out_color_components / output_components and rec_outbuf_height (ERREXIT1 JERR_BAD_STATE 0x14 unless DSTATE_READY 0xca).
+void __cdecl jpeg_calc_output_dimensions(jpeg_decompress_struct *cinfo);
+// 0x63e5b0: sample_range_limit (alloc_small of 0x580: zeros, 0..255, 255s, zeros, then 0..127 again).
+void __cdecl jdmaster_prepare_range_limit_table(jpeg_decompress_struct *cinfo);
+// 0x63e3c0: the output dimensions, the range table, the quantizers asked for, the upsampler / colour converter (or merged one),
+// postprocessor, IDCT, entropy decoder, coefficient and main controllers; the virtual arrays realized, the first input pass
+// started, the progress monitor's passes.
+void __cdecl jdmaster_master_selection(jpeg_decompress_struct *cinfo);
+// 0x63e380: the master (alloc_small of 0x1c) and its two methods, then master_selection. Through the method shim.
+void __cdecl jinit_master_decompress(jpeg_decompress_struct *cinfo);
+// 0x63e630: an output pass's modules started (a 2-pass quantizer's dummy pass first), the progress monitor's passes.
+void __cdecl jdmaster_prepare_for_output_pass(jpeg_decompress_struct *cinfo);
+// 0x63e790: the quantizer's finish_pass, pass_number + 1.
+void __cdecl jdmaster_finish_output_pass(jpeg_decompress_struct *cinfo);
+
+// jdapimin.c / jdapistd.c, the decompressor's application interface, through third_party/wrap/jpeg-6b/jdapimin.c and jdapistd.c
+// (global_state +0x14: 0xc8 DSTATE_START .. 0xd2 DSTATE_STOPPING).
+// 0x630ca0: cinfo zeroed but err and client_data (ERREXIT2 for a version other than 62 or a size other than 0x1b0), the memory
+// manager, marker reader and input controller; DSTATE_START.
+void __cdecl jpeg_CreateDecompress(jpeg_decompress_struct *cinfo, int version, size_t structsize);
+// 0x630d80: jpeg_destroy.
+void __cdecl jpeg_destroy_decompress(jpeg_decompress_struct *cinfo);
+// 0x630d90: jpeg_consume_input to the first scan: 1 (JPEG_HEADER_OK), 2 for tables only (JERR_NO_IMAGE with require_image), or 0.
+int __cdecl jpeg_read_header(jpeg_decompress_struct *cinfo, unsigned char require_image);
+// 0x630e10: by global_state: the input controller reset and the source started, its consume_input, the default parameters at the
+// first SOS.
+int __cdecl jpeg_consume_input(jpeg_decompress_struct *cinfo);
+// 0x630ee0: the colour spaces from the components and the JFIF / Adobe markers, the output defaults.
+void __cdecl jdapimin_default_decompress_parms(jpeg_decompress_struct *cinfo);
+// 0x631080: the output pass finished, the input read to EOI (FALSE when suspended), the source terminated, jpeg_abort.
+unsigned char __cdecl jpeg_finish_decompress(jpeg_decompress_struct *cinfo);
+// 0x631460: the master from DSTATE_READY, a multi-scan file read in, then output_pass_setup.
+unsigned char __cdecl jpeg_start_decompress(jpeg_decompress_struct *cinfo);
+// 0x631540: the output pass prepared, a 2-pass quantizer's dummy passes run; DSTATE_SCANNING or RAW_OK.
+unsigned char __cdecl jdapistd_output_pass_setup(jpeg_decompress_struct *cinfo);
+// 0x631610: up to max_lines rows through the main controller's process_data; output_scanline advanced.
+unsigned int __cdecl jpeg_read_scanlines(jpeg_decompress_struct *cinfo, unsigned char **scanlines, unsigned int max_lines);
 }
 
-// The C runtime's malloc and free jmemansi.c calls (the exe's: malloc 0x67dcd0, free 0x67ad90, which are never replaced: they are the
-// front of its heap, as GameHeap's Mem_Alloc / Mem_Free are). The tests give it a stand-in.
-struct Jpeg6bHeapEnv {
+// What the library calls outside itself, the exe's: its C runtime's (a DLL's would be another heap, environment copy and FILE table)
+// and the functions of the exe's that stay its own. jmemansi.c's malloc and free (malloc 0x67dcd0, free 0x67ad90, which are never
+// replaced: they are the front of its heap, as GameHeap's Mem_Alloc / Mem_Free are); jmemmgr.c's getenv / sscanf of JPEGMEM and the
+// backing store it opens (jpeg_open_backing_store stays the exe's, see docs/porting-libraries.md); jerror.c's format_message's sprintf,
+// whose two calls are told apart by the message text as format_message does (its first % a %s: the string, else the eight ints).
+// The tests give it stand-ins.
+struct Jpeg6bCrtEnv {
     void *(__cdecl *alloc)(size_t size);  // malloc (0x67dcd0)
     void(__cdecl *free)(void *block);     // free (0x67ad90)
+    char *(__cdecl *getenv)(const char *name);                                // getenv (0x67fbf0)
+    int(__cdecl *sscanf)(const char *s, const char *format, long *value, char *ch);  // sscanf (0x67f620): jmemmgr.c's "%ld%c"
+    void(__cdecl *open_backing_store)(jpeg_common_struct *cinfo, void *info, long total_bytes_needed);  // jmemansi.c's, the exe's (0x6429c0)
+    int(__cdecl *sprintf_string)(char *buffer, const char *format, const char *s);  // sprintf (0x67a650), format_message's %s call
+    int(__cdecl *sprintf_ints)(char *buffer, const char *format, int i0, int i1, int i2, int i3, int i4, int i5, int i6,
+                               int i7);  // sprintf (0x67a650), its other call
 };
 
-// Allocation and release go through env (nullptr: the exe's).
-void Jpeg6b_SetHeapEnv(const Jpeg6bHeapEnv *env);
+// The library's calls go through env (nullptr: the exe's).
+void Jpeg6b_SetCrtEnv(const Jpeg6bCrtEnv *env);
+
+// For the tests' driver, whose own code lies at the exe's code addresses, so it cannot call a method the shims stored as the exe's
+// address: with native methods the shims leave the library's addresses in place (a case that runs a method an init it called stored,
+// jpeg_CreateDecompress's marker reader calling the new memory manager's alloc_small, then calls the library's, as the hooked game
+// does), and Jpeg6b_ExeMethod gives the exe's address of a library method's (0 for anything else), which the driver puts back in the
+// memory it reports, so it compares with the exe's.
+void Jpeg6b_SetNativeMethods(bool native);
+std::uint32_t Jpeg6b_ExeMethod(std::uint32_t address);

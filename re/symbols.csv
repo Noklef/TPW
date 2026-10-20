@@ -5466,3 +5466,44 @@ address,name,kind,confidence,notes
 0x00642980,jpeg_get_small,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemansi.c jpeg_get_small, also jpeg_get_large (one copy): malloc through the exe's (the library's, through wrap/jpeg-6b/jmemansi.c)"
 0x00642990,jpeg_free_small,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemansi.c jpeg_free_small, also jpeg_free_large and zlib's zcfree (one copy, the block the second argument): free through the exe's (the library's, through wrap/jpeg-6b/jmemansi.c)"
 0x006429a0,jpeg_mem_available,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemansi.c jpeg_mem_available: max_memory_to_use - already_allocated (the library's)
+0x0063d3d0,jinit_memory_mgr,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemmgr.c jinit_memory_mgr: the memory manager, JPEGMEM through the exe's getenv / sscanf (the library's, through the method shim)"
+0x0063d650,jmemmgr_out_of_memory,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemmgr.c out_of_memory: ERREXIT1 JERR_OUT_OF_MEMORY (the library's)
+0x0063d520,jmemmgr_alloc_small,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemmgr.c alloc_small: an object from a small pool, a new pool with slop when none has room (the library's)"
+0x0063d670,jmemmgr_alloc_large,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemmgr.c alloc_large: a large object of its own (the library's)
+0x0063d720,jmemmgr_alloc_sarray,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemmgr.c alloc_sarray: a 2-D sample array in large chunks (the library's)
+0x0063d7d0,jmemmgr_alloc_barray,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemmgr.c alloc_barray: a 2-D coefficient block array in large chunks (the library's)
+0x0063d880,jmemmgr_request_virt_sarray,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemmgr.c request_virt_sarray: a virtual sample array's control block (the library's)
+0x0063d8f0,jmemmgr_request_virt_barray,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemmgr.c request_virt_barray: a virtual block array's control block (the library's)
+0x0063d960,jmemmgr_realize_virt_arrays,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemmgr.c realize_virt_arrays: the virtual arrays' buffers, a backing store (the exe's) when memory is short (the library's)"
+0x0063db00,jmemmgr_access_virt_sarray,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemmgr.c access_virt_sarray: rows of a virtual sample array, swapped in as needed (the library's)"
+0x0063dc30,jmemmgr_do_sarray_io,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemmgr.c do_sarray_io: a sample array's buffer to or from its backing store (the library's)
+0x0063dcd0,jmemmgr_access_virt_barray,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemmgr.c access_virt_barray: rows of a virtual block array, swapped in as needed (the library's)"
+0x0063de10,jmemmgr_do_barray_io,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemmgr.c do_barray_io: a block array's buffer to or from its backing store (the library's)
+0x0063deb0,jmemmgr_free_pool,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemmgr.c free_pool: a pool's blocks freed, the image pool's backing stores closed (the library's)"
+0x0063dfb0,jmemmgr_self_destruct,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemmgr.c self_destruct: both pools and the manager freed (the library's)
+0x00631340,jerror_emit_message,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jerror.c emit_message: a warning output when first or traced, and counted; a trace by trace_level (the library's)"
+0x00631380,jerror_format_message,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jerror.c format_message: the message text formatted with the exe's sprintf, by its string or int parameters (the library's)"
+0x00631440,jerror_reset_error_mgr,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jerror.c reset_error_mgr: num_warnings and msg_code cleared (the library's)
+0x0063e0b0,jpeg_calc_output_dimensions,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmaster.c jpeg_calc_output_dimensions: the output size for the scale, each component's DCT scale and downsampled size, the output components (the library's)"
+0x0063e2f0,jdmaster_use_merged_upsample,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmaster.c use_merged_upsample: whether the merged upsampler can convert (the library's)
+0x0063e380,jinit_master_decompress,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmaster.c jinit_master_decompress: the master and its methods, then the module selection (the library's, through the method shim)"
+0x0063e3c0,jdmaster_master_selection,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmaster.c master_selection: the decompressor's modules chosen and initialised (the library's)
+0x0063e5b0,jdmaster_prepare_range_limit_table,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmaster.c prepare_range_limit_table: the sample range limit table (the library's)
+0x0063e630,jdmaster_prepare_for_output_pass,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmaster.c prepare_for_output_pass: an output pass's modules started (the library's)
+0x0063e790,jdmaster_finish_output_pass,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmaster.c finish_output_pass: the quantizer's pass finished, the pass counted (the library's)"
+0x00630ca0,jpeg_CreateDecompress,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdapimin.c jpeg_CreateDecompress: the version and size checks, the struct cleared, the memory manager, marker reader and input controller started (the library's)"
+0x00630d80,jpeg_destroy_decompress,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdapimin.c jpeg_destroy_decompress: jpeg_destroy on the decompressor (the library's)
+0x00630d90,jpeg_read_header,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdapimin.c jpeg_read_header: input consumed to the first SOS or EOI, the tables-only abort (the library's)"
+0x00630e10,jpeg_consume_input,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdapimin.c jpeg_consume_input: the input controller run by the state, the default parameters at the first SOS (the library's)"
+0x00630ee0,jdapimin_default_decompress_parms,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdapimin.c default_decompress_parms: the colour spaces guessed from the markers, the output defaults (the library's)"
+0x00631080,jpeg_finish_decompress,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdapimin.c jpeg_finish_decompress: the output pass finished, the input read to EOI, the abort (the library's)"
+0x00631460,jpeg_start_decompress,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdapistd.c jpeg_start_decompress: the master started, multi-scan input absorbed, the first output pass set up (the library's)"
+0x00631540,jdapistd_output_pass_setup,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdapistd.c output_pass_setup: the output pass prepared, the dummy passes of two-pass quantizing run (the library's)"
+0x00631610,jpeg_read_scanlines,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdapistd.c jpeg_read_scanlines: the state and row checks, the progress hook, a call to the main controller (the library's)"
+0x006503d0,jpeg6a_jdiv_round_up,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jutils.c jdiv_round_up: a / b rounded up (the library's)
+0x006503e3,jpeg6a_jround_up,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jutils.c jround_up: a rounded up to a multiple of b (the library's)
+0x00650401,jpeg6a_jcopy_sample_rows,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jutils.c jcopy_sample_rows: rows of samples copied between row arrays (the library's)
+0x0065047f,jpeg6a_jcopy_block_row,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jutils.c jcopy_block_row: a row of coefficient blocks copied (the library's)
+0x006504a2,jpeg6a_jzero_far,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jutils.c jzero_far: a span of bytes cleared (the library's)
+0x00657480,jpeg6a_jpeg_fdct_ifast,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jfdctfst.c jpeg_fdct_ifast: one block's fast integer forward DCT in place (the library's)
+0x00657810,jpeg6a_jpeg_fdct_islow,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jfdctint.c jpeg_fdct_islow: one block's accurate integer forward DCT in place (the library's)
