@@ -5549,3 +5549,7 @@ address,name,kind,confidence,notes
 0x0064f40c,jpeg6a_jpeg_destroy,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcomapi.c jpeg_destroy: the memory manager's self_destruct, mem and global_state zeroed (the library's)"
 0x0064f43e,jpeg6a_jpeg_alloc_quant_table,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcomapi.c jpeg_alloc_quant_table: a permanent quantization table, sent_table FALSE (the library's)"
 0x0064f46f,jpeg6a_jpeg_alloc_huff_table,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcomapi.c jpeg_alloc_huff_table: a permanent Huffman table, sent_table FALSE (the library's)"
+0x0064cd90,jpeg6a_jpeg_add_quant_table,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c jpeg_add_quant_table: a quantization table scaled from a basic one and clamped (the library's)
+0x0064ce78,jpeg6a_jpeg_set_linear_quality,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c jpeg_set_linear_quality: the two standard tables at a percentage (the library's)
+0x0064ceb3,jpeg6a_jpeg_quality_scaling,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c jpeg_quality_scaling: a 1..100 quality as a percentage scaling (the library's)
+0x0064cef8,jpeg6a_jpeg_set_quality,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcparam.c jpeg_set_quality: the standard tables at a quality (the library's)

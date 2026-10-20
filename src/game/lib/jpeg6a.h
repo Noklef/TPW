@@ -28,6 +28,18 @@ void __cdecl jpeg6a_jpeg_destroy(jpeg6a_common_struct *cinfo);
 jpeg6a_quant_tbl *__cdecl jpeg6a_jpeg_alloc_quant_table(jpeg6a_common_struct *cinfo);
 jpeg6a_huff_tbl *__cdecl jpeg6a_jpeg_alloc_huff_table(jpeg6a_common_struct *cinfo);
 
+// jcparam.c: the compression parameters.
+// 0x64cd90: quant_tbl_ptrs[which_tbl] (jpeg_alloc_quant_table when null) set to basic_table * scale_factor / 100 rounded, clamped
+// to 1..32767 (1..255 when force_baseline), sent_table FALSE; JERR_BAD_STATE (0x12) unless global_state is CSTATE_START.
+void __cdecl jpeg6a_jpeg_add_quant_table(jpeg6a_compress_struct *cinfo, int which_tbl, const unsigned int *basic_table, int scale_factor,
+                                         int force_baseline);
+// 0x64ce78: tables 0 and 1 from the standard luminance / chrominance tables at scale_factor percent.
+void __cdecl jpeg6a_jpeg_set_linear_quality(jpeg6a_compress_struct *cinfo, int scale_factor, int force_baseline);
+// 0x64ceb3: quality clamped to 1..100, then 5000 / quality below 50, else 200 - 2 * quality.
+int __cdecl jpeg6a_jpeg_quality_scaling(int quality);
+// 0x64cef8: jpeg_set_linear_quality at jpeg_quality_scaling(quality).
+void __cdecl jpeg6a_jpeg_set_quality(jpeg6a_compress_struct *cinfo, int quality, int force_baseline);
+
 // jutils.c (the same source as 6b's; the exe's copies use inline REP MOVS / STOS, the library's memcpy / memset)
 // 0x6503d0: a / b rounded up (a >= 0, b > 0).
 long __cdecl jpeg6a_jdiv_round_up(long a, long b);
