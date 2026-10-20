@@ -27,18 +27,6 @@ address,name,module,reason
 5f6c50,WString_Format,core/string,todo
 5f7360,Palette_ExpandRgb,gfx/palette,todo
 5f73a0,Palette_Nearest,gfx/palette,todo: indirect only
-5fa030,Screen_SetGuid,gfx/screen,todo
-5fa040,Screen_GetDirectDraw,gfx/screen,todo
-5fa060,Screen_Close,gfx/screen,todo
-5fa0e0,Screen_ReleaseSurfaces,gfx/screen,todo
-5fa1b0,Screen_ReleaseDirectDraw,gfx/screen,todo
-5fa1e0,Screen_Open,gfx/screen,todo
-5fa2b0,Screen_CreateDirectDraw,gfx/screen,todo
-5fa2f0,Screen_ListModes,gfx/screen,todo
-5fa440,Screen_AddMode,gfx/screen,todo
-5fa490,Screen_RegisterClass,gfx/screen,todo
-5fa540,Screen_WndProc,gfx/screen,todo
-5fa630,Screen_SetActive,gfx/screen,todo
 5fa8a0,ImageCodec_InfoFromFile,gfx/imagecodec,todo
 5fa970,ImageCodec_InfoFromStream,gfx/imagecodec,todo
 5faa00,ImageCodec_LoadFromFile,gfx/imagecodec,todo
