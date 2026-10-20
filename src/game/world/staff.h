@@ -142,6 +142,19 @@ u32 __fastcall StaffPoolEntry_Serialize(u8 *entry, void *, Stream *stream, u32 s
 // load partly through the readers, the floats landing only when read whole); 1 at the first that fails, else 0.
 u32 __fastcall Staff_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused);
 
+// The staff types' serializers (thiscall; the same arguments): Staff_Serialize first (1 if it fails); for a version of 0..1 then their fields as
+// a serializer does (Save_Field); 1 at the first that fails, else 0. All end with mNext (the word +0x210).
+// 0x4d6d60: a handyman: mTargetLitterCell (+0x218), mTimeStartedCleaning (+0x214), mToiletToClean (+0x21a), mNext.
+u32 __fastcall Handyman_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused);
+// 0x4d6000: a guard: mPerp (+0x212), mProsecutionTimestamp (+0x214), mNext.
+u32 __fastcall Guard_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused);
+// 0x4da110: a mechanic: mDurationOfRepair (+0x214), mObjectToRepair (+0x218), mNext.
+u32 __fastcall Mechanic_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused);
+// 0x4d4460: an entertainer: mTimeStartedEntertaining (+0x214), mNext.
+u32 __fastcall Entertainer_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused);
+// 0x502760: a researcher: mTimeStartedResearching (+0x214), mNext.
+u32 __fastcall Researcher_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
 // 0x507850 (thiscall; the same arguments): the staff pool: its 0x20 entries (StaffPoolEntry_Serialize, 0x14 bytes from +0), 1 at the first
 // that fails; then for each of the 5 categories mPeopleInCat[i] (dwords from +0x280) and mStopProducing[i] (bytes from +0x299), the time
 // stamp at +0x294 (TimeSig_Serialize) and the byte at +0x298, as a serializer does (Save_Field).

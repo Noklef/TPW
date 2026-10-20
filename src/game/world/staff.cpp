@@ -402,3 +402,44 @@ extern "C" void __fastcall Staff_InitBase(u8 *staff) {
     MessageCentre_AddThing(MessageCentre_Instance(), nullptr, staff, 0xc);
     ParkAnalyser_StampTime21c38(reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(global<u8 *>(0x0080239c))));
 }
+
+namespace {
+
+// A staff type's serializer: Staff_Serialize, then (a version of 0..1) the type's fields; 1 at the first that fails, else 0.
+u32 StaffType_Serialize(u8 *staff, Stream *stream, u32 save, s32 version, u32 unused, const SaveSpec *spec, u32 count) {
+    if (Staff_Serialize(staff, nullptr, stream, save, version, unused) != 0)
+        return 1;
+    if (version < 0 || version > 1)
+        return 0;
+    return Save_Fields(stream, save, staff, spec, count) ? 0 : 1;
+}
+
+}  // namespace
+
+extern "C" {
+
+u32 __fastcall Handyman_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    static const SaveSpec kFields[] = {{0x218, 2, 0x0075aabc}, {0x214, 4, 0x0075aaa4}, {0x21a, 2, 0x0075aa94}, {0x210, 2, 0x0075a4f4}};
+    return StaffType_Serialize(staff, stream, save, version, unused, kFields, 4);
+}
+
+u32 __fastcall Guard_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    static const SaveSpec kFields[] = {{0x212, 2, 0x0075a8f0}, {0x214, 4, 0x0075a8d8}, {0x210, 2, 0x0075a4f4}};
+    return StaffType_Serialize(staff, stream, save, version, unused, kFields, 3);
+}
+
+u32 __fastcall Mechanic_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    static const SaveSpec kFields[] = {{0x214, 4, 0x0075b168}, {0x218, 2, 0x0075b158}, {0x210, 2, 0x0075a4f4}};
+    return StaffType_Serialize(staff, stream, save, version, unused, kFields, 3);
+}
+
+u32 __fastcall Entertainer_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    static const SaveSpec kFields[] = {{0x214, 4, 0x0075a4fc}, {0x210, 2, 0x0075a4f4}};
+    return StaffType_Serialize(staff, stream, save, version, unused, kFields, 2);
+}
+
+u32 __fastcall Researcher_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    static const SaveSpec kFields[] = {{0x214, 4, 0x0075e168}, {0x210, 2, 0x0075a4f4}};
+    return StaffType_Serialize(staff, stream, save, version, unused, kFields, 2);
+}
+}

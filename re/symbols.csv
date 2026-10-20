@@ -189,11 +189,11 @@ address,name,kind,confidence,notes
 0x0050bad0,Thoughts_Serialize,function,high,"reimplemented (src/game/world/person); thiscall (stream, save, version, unused): a person's thoughts (history index, 32 history pairs, +0, script, bubble time) saved or loaded"
 0x004fb530,Visitor_Serialize,function,high,"reimplemented (src/game/world/person); thiscall: a visitor: Sprite_Serialize, then (version 0..1) its fields saved or loaded, the stats as the float of their __ftol's low byte"
 0x00504de0,Staff_Serialize,function,high,"reimplemented (src/game/world/staff); thiscall: a staff member: Sprite_Serialize, then (version 0..1) its fields saved or loaded, the two floats as the float of their __ftol's low byte"
-0x004da110,Mechanic_Serialize,function,high,thing model 4
-0x004d6d60,Handyman_Serialize,function,high,thing model 5
-0x004d4460,Entertainer_Serialize,function,high,thing model 6
-0x004d6000,Guard_Serialize,function,high,thing model 7
-0x00502760,Researcher_Serialize,function,high,thing model 8
+0x004da110,Mechanic_Serialize,function,high,"reimplemented (src/game/world/staff); thiscall: a mechanic: Staff_Serialize, then (version 0..1) mDurationOfRepair, mObjectToRepair, mNext"
+0x004d6d60,Handyman_Serialize,function,high,"reimplemented (src/game/world/staff); thiscall: a handyman: Staff_Serialize, then (version 0..1) mTargetLitterCell, mTimeStartedCleaning, mToiletToClean, mNext"
+0x004d4460,Entertainer_Serialize,function,high,"reimplemented (src/game/world/staff); thiscall: an entertainer: Staff_Serialize, then (version 0..1) mTimeStartedEntertaining, mNext"
+0x004d6000,Guard_Serialize,function,high,"reimplemented (src/game/world/staff); thiscall: a guard: Staff_Serialize, then (version 0..1) mPerp, mProsecutionTimestamp, mNext"
+0x00502760,Researcher_Serialize,function,high,"reimplemented (src/game/world/staff); thiscall: a researcher: Staff_Serialize, then (version 0..1) mTimeStartedResearching, mNext"
 0x004db7d0,Object_Serialize,function,high,"reimplemented (src/game/world/object); thiscall: an object: Thing_Serialize, then (version 0..1) its fields saved or loaded: the date as SYSTEMTIME dwords, the names, the six histories, the price held to 0..500 on load, three stats as the float of their __ftol's low byte"
 0x00508bb0,StaffHQ_Serialize,function,high,"reimplemented (src/game/world/headquarters); thiscall (stream, save, version, unused): the thing's fields, mForceStrike, mStaffMemberPickedUp, mStrikeLevel[5], then the training record"
 0x0050c640,StaffTraining_Serialize,function,high,"reimplemented (src/game/world/staff); thiscall (stream, save, version, unused): the five training budgets and the ever-trained byte saved or loaded"

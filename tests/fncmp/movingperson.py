@@ -6,8 +6,8 @@
 # destination then set all the same). The cell destination: ids over the map, 0 and past it. The marked one: the object 0x3a0 bytes.
 # The nearest thing: up to 7 things in the game's list (the head word at +0x1da746 of the world) about the person's cell, with flag 0x40 or
 # not, their cells (+0x36) mostly the one the person is in (which it can be sent to) or another; radii small, 0 and with squares that wrap.
-# A staff member's (0x504de0) and a visitor's (0x4fb530) serializers: the serializer's case with their fields after the person's in the stream,
-# their stats (floats) whole bytes, about them or any.
+# A staff member's (0x504de0), its types' (0x4d6d60, 0x4d6000, 0x4da110, 0x4d4460, 0x502760) and a visitor's (0x4fb530) serializers: the
+# serializer's case with their fields after the person's in the stream, their stats (floats) whole bytes, about them or any.
 # usage: movingperson.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=4f8b10,...)
 import os
 import struct
@@ -23,7 +23,8 @@ from fncmp import Bench, Call, RAM, fb, put, record_stream  # noqa: E402
 
 RANGES = []
 for a, b in sorted([(0x4f8b10, 0x4f9435), (0x541f60, 0x541f6f), (0x4fa530, 0x4fa5e7), (0x4f7de0, 0x4f7e1b), (0x4217f0, 0x421800), (0x4f7da0, 0x4f7dd2),
-                    (0x500dc0, 0x500eff), (0x5da3c0, 0x5da3c1), (0x504de0, 0x5054a0), (0x4fb530, 0x4fc800)]
+                    (0x500dc0, 0x500eff), (0x5da3c0, 0x5da3c1), (0x504de0, 0x5054a0), (0x4fb530, 0x4fc800),
+                    (0x4d6d60, 0x4d7070), (0x4d6000, 0x4d6270), (0x4da110, 0x4da380), (0x4d4460, 0x4d4630), (0x502760, 0x502930)]
                    + navpath.RANGES + serializers.RANGES):
     if RANGES and a <= RANGES[-1][1]:
         RANGES[-1] = (RANGES[-1][0], max(RANGES[-1][1], b))
@@ -66,7 +67,10 @@ def serial(r, sizes=SIZES):
 STAFF = SIZES + [4, 4, 4] + [2] * 0x21 + [2, 2, 1, 2, 4, 4, 8, 4]  # (the sprite's, then the staff's)
 VISITOR = SIZES + [4] * 11 + [2, 4, 4, 4, 4, 4, 4, 1, 1] + [2] * 8 + [2, 2, 4, 1, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4]
 DERIVED = {0x504de0: (STAFF, 0x220, (0x1f8, 0x1fc)),
-           0x4fb530: (VISITOR, 0x230, (0x19c, 0x1a4, 0x1a8, 0x1ac, 0x1b0, 0x1b4, 0x1b8))}
+           0x4fb530: (VISITOR, 0x230, (0x19c, 0x1a4, 0x1a8, 0x1ac, 0x1b0, 0x1b4, 0x1b8)),
+           0x4d6d60: (STAFF + [2, 4, 2, 2], 0x220, (0x1f8, 0x1fc)), 0x4d6000: (STAFF + [2, 4, 2], 0x220, (0x1f8, 0x1fc)),
+           0x4da110: (STAFF + [4, 2, 2], 0x220, (0x1f8, 0x1fc)), 0x4d4460: (STAFF + [4, 2], 0x220, (0x1f8, 0x1fc)),
+           0x502760: (STAFF + [4, 2], 0x220, (0x1f8, 0x1fc))}  # (the staff types': a handyman, a guard, a mechanic, an entertainer, a researcher)
 
 
 def derived(r, op):
@@ -130,7 +134,7 @@ def marked(r):
 
 
 def case(r):
-    op = r.deal(OPS or [0x4f8b10, 0x4f8b10, 0x4fa530, 0x4f7de0, 0x4f7da0, 0x500dc0, 0x504de0, 0x504de0, 0x4fb530, 0x4fb530])
+    op = r.deal(OPS or [0x4f8b10, 0x4f8b10, 0x4fa530, 0x4f7de0, 0x4f7da0, 0x500dc0, 0x504de0, 0x504de0, 0x4fb530, 0x4fb530, 0x4d6d60, 0x4d6000, 0x4da110, 0x4d4460, 0x502760])
     if op == 0x4f8b10:
         return serial(r)
     if op in DERIVED:
