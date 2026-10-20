@@ -102,9 +102,9 @@ def jinit(r):
     env = r.random() < 0.6
     set_return(log, K_GETENV, STR if env else 0)
     regs[STR] = r.choice([b'123', b'4m', b'77M', b'x', b'', b' 9k']).ljust(0x10, b'\0')
-    set_return(log, K_SSCANF, r.choice([-1, 0, 1, 2, 2]))
+    set_return(log, K_SSCANF, r.choice([-1, 0, 1, 2, 2, 2]))
     fill(log, K_SSCANF, 2, struct.pack('<i', r.choice([0, 1, 100, 4000, -3, r.randrange(1 << 20), r.getrandbits(32) - (1 << 31)])))
-    fill(log, K_SSCANF, 3, bytes([r.choice([ord('m'), ord('M'), ord('x'), ord('k'), 0, r.randrange(256)])]), which=1)
+    fill(log, K_SSCANF, 3, bytes([r.choice([ord('m'), ord('M'), ord('M'), ord('x'), ord('k'), 0, r.randrange(256)])]), which=1)
     regs[MEM] = r.bytes(0x10)
     return Call(0x63d3d0, [CINFO], regs)
 
@@ -194,8 +194,19 @@ def realize(r):
     regs = common(r, r.choice([0] * 30 + [1, 2]))
     mem = memmgr(r, regs)
     virt_lists(r, regs, mem)
-    struct.pack_into('<i', mem, 0x2c, r.choice([0, 100, 1000, 4000, 1000000, r.randrange(5000)]))
-    struct.pack_into('<I', mem, 0x4c, r.choice([0, 0x54, r.randrange(4000)]))
+    total = r.choice([0, 0x54, r.randrange(4000)])
+    # maximum_space over the unrealized arrays (mem_buffer NULL), so jpeg_mem_available can return it exactly
+    virt, slots = regs[VIRT], {0x44: 1, 0x48: 128}
+    space = 0
+    for slot, unit in slots.items():
+        head = struct.unpack_from('<I', mem, slot)[0]
+        while head:
+            buf, rows, width = struct.unpack_from('<3I', virt, head - VIRT)
+            space += 0 if buf else rows * width * unit
+            head = struct.unpack_from('<I', virt, head - VIRT + 0x24)[0]
+    exact = (total + space + r.choice([-1, 0, 0, 1])) & 0xffffffff
+    struct.pack_into('<I', mem, 0x2c, r.choice([0, 100, 1000, 4000, 1000000, r.randrange(5000), exact, exact]))
+    struct.pack_into('<I', mem, 0x4c, total)
     return Call(0x63d960, [CINFO], regs)
 
 
