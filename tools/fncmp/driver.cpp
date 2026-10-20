@@ -48,6 +48,7 @@
 #include "../../src/game/files/wadfind.h"
 #include "../../src/game/files/wadsource.h"
 #include "../../src/game/files/wrapsources.h"
+#include "../../src/game/lib/jpeg6a.h"
 #include "../../src/game/lib/jpeg6b.h"
 #include "../../src/game/files/zlibcodec.h"
 #include "../../src/game/gfx/canvas.h"
@@ -287,6 +288,14 @@ constexpr u32 jpeg_recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0xa000 + 0x
 const Jpeg6bCrtEnv kJpeg6bCrtEnv = {&heap_alloc, &heap_free, reinterpret_cast<char *(__cdecl *)(const char *)>((uintptr_t)jpeg_recorder(24, 1)),
                                     reinterpret_cast<int(__cdecl *)(const char *, const char *, long *, char *)>((uintptr_t)jpeg_recorder(25, 4)),
                                     reinterpret_cast<void(__cdecl *)(jpeg_common_struct *, void *, long)>((uintptr_t)jpeg_recorder(26, 3)),
+                                    reinterpret_cast<int(__cdecl *)(char *, const char *, const char *)>((uintptr_t)jpeg_recorder(27, 3)),
+                                    reinterpret_cast<int(__cdecl *)(char *, const char *, int, int, int, int, int, int, int, int)>(
+                                        (uintptr_t)jpeg_recorder(28, 10))};
+// libjpeg 6a's (src/game/lib/jpeg6a.h), the same: the heap and the same recorders (the benches hook the exe's 6a
+// jpeg_open_backing_store, 0x650265, with recorder 26: tests/fncmp/jpeg6a_memmgr.py, jpeg6a_error.py).
+const Jpeg6aCrtEnv kJpeg6aCrtEnv = {&heap_alloc, &heap_free, reinterpret_cast<char *(__cdecl *)(const char *)>((uintptr_t)jpeg_recorder(24, 1)),
+                                    reinterpret_cast<int(__cdecl *)(const char *, const char *, long *, char *)>((uintptr_t)jpeg_recorder(25, 4)),
+                                    reinterpret_cast<void(__cdecl *)(jpeg6a_common_struct *, void *, long)>((uintptr_t)jpeg_recorder(26, 3)),
                                     reinterpret_cast<int(__cdecl *)(char *, const char *, const char *)>((uintptr_t)jpeg_recorder(27, 3)),
                                     reinterpret_cast<int(__cdecl *)(char *, const char *, int, int, int, int, int, int, int, int)>(
                                         (uintptr_t)jpeg_recorder(28, 10))};
@@ -777,6 +786,7 @@ int main(int argc, char **argv) {
     PtrList_SetEnv(&kPtrListEnv);
     GameHeap_SetEnv(&kGameHeapEnv);
     Jpeg6b_SetCrtEnv(&kJpeg6bCrtEnv);
+    Jpeg6a_SetCrtEnv(&kJpeg6aCrtEnv);
     const bool jpeg6b_native = std::getenv("FNCMP_JPEG6B_NATIVE") != nullptr;  // (a libjpeg 6b bench's, see jpeg6b_methods_back)
     Jpeg6b_SetNativeMethods(jpeg6b_native);
     WadSource_SetEnv(&kWadSourceEnv);
