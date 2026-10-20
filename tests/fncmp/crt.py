@@ -102,6 +102,17 @@ def case(r):
         head = wide(r)[:0x60]
         out = head + b'\0\0' + r.bytes(0x100 - len(head) - 2)
         return Call(0x67bed0, [OUT, A], {A: wide(r)[:0x60] + b'\0\0' + junk(), OUT: out}, ret='a')
+    if op == 'wcscmp':   # a wide string and a copy with a changed unit (now and then above 0x7fff) or a cut, either way round
+        units = [r.choice([r.randrange(0x20, 0x7f), 0x41, 0x61, 0x7fff, 0x8000, 0xffff, r.randrange(1, 0x10000)])
+                 for _ in range(r.choice([0, 1, r.randrange(8), r.randrange(30)]))]
+        other = list(units)
+        if other and r.random() < 0.5:
+            other[r.randrange(len(other))] = r.choice([0x41, 0x61, 0x7fff, 0x8000, 0xffff, r.randrange(1, 0x10000)])
+        if r.random() < 0.25:
+            other = other[:r.randrange(len(other) + 1)]
+        w = lambda us: b''.join(c.to_bytes(2, 'little') for c in us) + b'\0\0' + junk()
+        a, z = (w(units), w(other)) if r.random() < 0.5 else (w(other), w(units))
+        return Call(0x67c290, [A, Z], {A: a, Z: z}, ret='a')
     if op == 'wcsicmp':   # a wide string and a copy with case flips, a changed unit or a cut
         units = [r.choice([r.randrange(0x20, 0x7f), r.choice(b'@AZ[`az{'), 0xc9, 0xe9, 0x141, 0x161, 0xff21, 0xff41, 0xffff, r.randrange(1, 0x10000)])
                  for _ in range(r.choice([0, 1, r.randrange(8), r.randrange(30)]))]
@@ -140,7 +151,7 @@ def case(r):
 
 CLASSES = {'isalpha': 0x67a530, 'isdigit': 0x67a560, 'isspace': 0x67a590, 'isalnum': 0x67a5c0}
 KINDS = ['stricmp', 'strrchr', 'strchr', 'strncmp', 'strstr', 'toupper', 'tolower', 'atoi', 'wcslen', 'sprintf', 'strncpy', 'iswspace',
-         'isalpha', 'isdigit', 'isspace', 'isalnum', 'atof', 'swprintf', 'wcsncpy', 'wcsicmp', 'wcscpy', 'wcscat']
+         'isalpha', 'isdigit', 'isspace', 'isalnum', 'atof', 'swprintf', 'wcsncpy', 'wcsicmp', 'wcscpy', 'wcscat', 'wcscmp']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':

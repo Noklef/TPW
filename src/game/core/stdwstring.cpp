@@ -216,6 +216,23 @@ StdWString *__fastcall StdWString_CtorFill(StdWString *s, void *, u32 n, u32 ch,
     return StdWString_AssignFill(s, nullptr, n, ch);
 }
 
+StdWString *__fastcall StdWString_CtorChars(StdWString *s, void *, const u16 *chars, const u8 *allocator) {
+    *bytes(s) = *allocator;
+    s->ptr = nullptr;
+    s->len = 0;
+    s->res = 0;
+    u32 n = 0;  // wcslen (0x67acd0)
+    while (chars[n]) ++n;
+    // assign(chars, n), inlined
+    if (n > kMaxSize) StdStrings_Xlen();
+    if (grow_trim(s, n)) {
+        for (u32 i = 0; i < n; ++i) s->ptr[i] = chars[i];
+        s->len = n;
+        s->ptr[n] = 0;
+    }
+    return s;
+}
+
 StdWString *__fastcall StdWStrings_UninitCopy(void *, void *, const StdWString *first, const StdWString *last, StdWString *dest) {
     for (; first != last; ++first, dest = reinterpret_cast<StdWString *>((uintptr_t)dest + sizeof(StdWString)))
         if (dest) StdWString_CtorCopy(dest, nullptr, first);

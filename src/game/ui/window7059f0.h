@@ -107,4 +107,55 @@ s32 __fastcall Window7059f0_FindText(u8 *window, void *, const u16 *text, s32 co
 // (Window7059f0_ColumnBottom) is 1, else as that dword's object's +4 (Obj_Get4Or6fd6c4) through its slot 9, the first column told the level
 // * 0x14 and 0 first (Window_NotifyC000). Then the next item (Window7059f0_NextItem), its level change added.
 void __fastcall Window7059f0_RefreshRows(u8 *window);
+
+// 0x66316b (thiscall (n), pops 4; name unconfirmed): 0 for n 0 or no columns (+0x164, signed). Else the item array +0x144 grown by n items
+// of columns + 4 dwords: a block of (the dword count +0x158 + that) * 4 bytes (Mem_Alloc; none: 0) cleared, the new items from the old
+// count on chained as free ones (each the next one's previous, child -1, parent -2; the last's next -1); with an old array, its dwords
+// copied over, the dword of the last item before the first free one (Window7059f0_RootEnd, taken before the allocation; -1: the dword
+// before the block, sic) set to the old count and the old array freed (Mem_Free). The block becomes +0x144, the count raised; returns it.
+s32 *__fastcall Window7059f0_Grow(u8 *window, void *, s32 n);
+
+// 0x663dfa (thiscall (texts, cells), pops 8; name unconfirmed): for each column (+0x164, signed), the next cell: a column whose bottom
+// (Window7059f0_ColumnBottom) is not 0 gets the text's dword as it is; else a set text becomes a new wide string (Mem_Alloc(0x10),
+// StdWString_CtorChars; none: 0) whose allocator byte is that of a local never set (sic), and an unset one leaves the cell as it was.
+void __fastcall Window7059f0_CopyCells(u8 *window, void *, const u32 *texts, u32 *cells);
+
+// 0x663edc (thiscall (texts, cells), pops 8; name unconfirmed): whether a new item's texts go before an item's cells in the sort column
+// +0x168 (signed): with +0x16a 0 (ascending), for a column whose bottom (Window7059f0_ColumnBottom) is 1 the dwords compared signed
+// (texts' below), else 1 for an empty cell or the text below the cell's string (wcscmp, the cell through Obj_Get4Or6fd6c4); with +0x16a
+// set the same the other way round (the dword above, the cell's string below the text; an empty cell 1 too).
+u32 __fastcall Window7059f0_SortsBefore(u8 *window, void *, const u32 *texts, const u32 *cells);
+
+// 0x66403b (thiscall (texts, data, parent, refresh), pops 16; name unconfirmed): -1 without texts. Else an item added, the array grown
+// first when the count +0x150 times the columns + 4 reaches the dword count +0x158 (Window7059f0_Grow 20, or 10 with an array). Under the
+// parent (a position below the count, else -1: the roots) whose first child, or the first shown +0x160, is looked at: none: the first free
+// item (Window7059f0_RootEnd) becomes the parent's only child (unlinked from the free chain), or without a parent item 0 takes the cells
+// and becomes the first shown, unlinked (sic). Else the first free item gets the cells (Window7059f0_CopyCells) and, with flag 0x10 of
+// +0x48 (sorted), is moved before the first of the siblings from there (at most count - 1 steps) it sorts before
+// (Window7059f0_SortsBefore) or to their end; unsorted it stays where it is, after the roots even under a parent (sic). Its parent -1
+// when below 0, its data set, the count raised (the selection 0 at 1, Window7059f0_Select); with refresh the rows refreshed and, with the
+// dword 0xfaa5d4 set, the window posted 3 (0, 0); the bar fitted and the parent +0x60 sent 0x405. Returns 0.
+s32 __fastcall Window7059f0_AddItem(u8 *window, void *, const u32 *texts, u32 data, s32 parent, u32 refresh);
+
+// 0x6647cb (thiscall (n), pops 4; name unconfirmed): 0 for n at or past the count +0x150, without items +0x144 or below 0. Else the n-th
+// item (Window7059f0_NthItem) freed with its children (Window7059f0_FreeItem, n, previous, no siblings): previous -1 for the first one
+// (whose next sibling becomes the first shown +0x160) and for its parent's first child, else the (n - 1)-th item of the walk (not always a
+// sibling, sic). The selection +0x14c when it was n: one less past the new count, -1 without items (Window7059f0_Select). With the dword
+// 0xfaa5d4 set and n among the rows shown (+0x154 to +0x154 + +0x172), the window posted 3 (0, 0); the bar (child 1, Window_FindChild)
+// fitted (Window7059f0_FitBar), the parent +0x60 sent 0x405 (+0x154, the last row shown, below the count) and the rows refreshed
+// (Window7059f0_RefreshRows). 1 in AX (the rest of EAX the last call's).
+u32 __fastcall Window7059f0_RemoveItem(u8 *window, void *, s32 n);
+
+// 0x6649d5 (thiscall; name unconfirmed): nothing without items (the count +0x150 0). Else each item's cells (the n-th item's for n below
+// the count) in the columns whose bottom (Window7059f0_ColumnBottom) is 0 deleted when set (CountedBuf_Deleter 1), the links reset
+// (Window7059f0_ResetItems), the window posted 3 (0, 0) with the dword 0xfaa5d4 set, the count, the selection +0x14c (-1), the first shown
+// +0x160 (-1) and the first row +0x154 cleared, the bar (child 1) fitted, the highlight +0x174 (when set) hidden (its slot 5, 0) and the
+// rows refreshed.
+void __fastcall Window7059f0_Clear(u8 *window);
+
+// 0x665739 (thiscall (position), pops 4; name unconfirmed): nothing without items +0x144. Below 0 the selection cleared (Select -1); else
+// the position (at most the count - 1) scrolled into the rows (+0x154 the position when outside them, then at most count - rows) and
+// selected (Select, the row on screen). Then the rows refreshed, the bar (child 1, Window_FindChild; none a fault, sic) given +0x154
+// through its slot 7 and, when +0x154 changed, the parent +0x60 sent 0x405 (+0x154, the last row shown, below the count).
+void __fastcall Window7059f0_ScrollTo(u8 *window, void *, s32 position);
 }

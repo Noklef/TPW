@@ -1,4 +1,7 @@
-// The row windows the GUI library's list controls (0x6639cb) are given factories for: reimplementation of 0x480d30 and 0x4a8380.
+// The row windows the GUI library's list controls (0x6639cb) are given factories and initialisers for: reimplementation of 0x480d30,
+// 0x480dd0, 0x4a8380, 0x4a8420, 0x4b4c70, 0x4bacc0, 0x4bad70 and of the row factories 0x4938c0, 0x4944d0, 0x49bbb0, 0x49f0b0, 0x4a02b0,
+// 0x4ad240, 0x4ae700 and 0x4bcbc0 (named after the dword their height is cached in, or 0x4bcbc0 after its list's window), the jump
+// 0x49c870 and the initialisers 0x49c880, 0x49f170, 0x4ae7d0 and 0x4bcca0 of the same lists.
 // The names are unconfirmed.
 #pragma once
 
@@ -14,4 +17,86 @@ u8 *__cdecl HilightList_NewRow();
 // 0x4a8380 (cdecl, no arguments; the row factory of the list of the window [0x7cc188]): the same, the height worked out only once the
 // allocation succeeded.
 u8 *__cdecl List7cc188_NewRow();
+
+// 0x480dd0 / 0x4a8420 (cdecl (row); the row initialisers of the same two lists, the same code): the row's impl a new text part (0x1a4
+// bytes, GameHeap_Alloc; TextPart_Ctor(0), or none when the allocation fails; Window_SetImpl), font 7 (Language_Font; Window_Set4c) and
+// the four bytes 0xff (Window_Notify40000).
+void __cdecl HilightList_InitRow(u8 *row);
+void __cdecl List7cc188_InitRow(u8 *row);
+
+// 0x4b4c70 (cdecl, no arguments; the row factory of the list built by 0x4b4a50, the child 0x1e7b of the window [0x7cc338]): the height
+// worked out once (the dword [0x7cc35c] while 0: the font [0x756f38]'s height as above), then a window of 0x138 bytes built as above
+// with the height's low word, and when there is one a child of it (Window_CreateChild: kind 9, flags 0x11, id 1, the rectangle
+// (100, 0, 200, 50)). Returns the window or 0.
+u8 *__cdecl List7cc338_NewRow();
+
+// 0x4bacc0 (cdecl, no arguments; the row factory of the list child 0xc of the window [0x7cc530], built at 0x4ba980): as 0x480d30, then
+// a child of the window (kind 6, flags 1, id 2, the same rectangle) whether the window was made or not (sic: 0 faults).
+u8 *__cdecl List7cc530_NewRow();
+
+// 0x4bad70 (cdecl (row); that list's row initialiser): as 0x480dd0, then the row's first child (+0x5c) given the object of the GUI
+// window registered as "i_boxtick" (GuiWindows_FindByName; Window_SetObject98) and its slot 7 called with 0.
+void __cdecl List7cc530_InitRow(u8 *row);
+
+// The row factories below (cdecl, no arguments) all build a window of 0x138 bytes (GameHeap_Alloc; 0 when that fails; Window_Ctor: no
+// parent, id 0, the rectangle (0, 0, right, height)) and give it children (Window_CreateChild (kind, flags, id, rectangle); the rectangle
+// (0, 0, 0, 0) where not given). Their height, as 0x480d30's, is cached in a dword (worked out while it is 0, with the font index a
+// global holds) and passed as its low word. Each returns the window or 0.
+
+// 0x4938c0: the cache [0x7ca140] set to 0x38 whatever it held (sic: while 0 the font [0x7508b4]'s slot 1, its height, is called and the answer dropped);
+// flags 0, right 0, height 0x38; when made, the children (1, 1, 3, (0, 0x2c, 0, 0x2c)), (1, 1, 0x3e7), (1, 0x11, 4), (6, 1, 4), (9, 0x11, 5).
+u8 *__cdecl List7ca140_NewRow();
+
+// 0x4944d0: the cache [0x7ca158] (font [0x750d54]); flags 0, right 0; the handler 0x4959c0 (Window_SetHandler; sic: the window not
+// checked); when made, by the dword [0x7ca154]: 0: (1, 1, 4), (9, 0x11, 5), (9, 0x11, 6), (9, 0x11, 3); 1: (1, 1, 3), (1, 1, 4),
+// (1, 1, 5), (9, 0x11, 6); 2: (1, 1, 2), (9, 0x11, 3), (1, 1, 4), (1, 1, 5), (9, 0x11, 6); 3: (1, 1, 4); none past 3.
+u8 *__cdecl List7ca158_NewRow();
+
+// 0x49bbb0 (reached through the jump 0x49c870): the cache [0x7ca314] (font [0x7523dc]); flags 0, right 100; when made, the child
+// (1, 1, 1, (100, 0, 200, 50)).
+u8 *__cdecl List7ca314_NewRow();
+
+// 0x49f0b0 (with the initialiser 0x49f170, the lists built at 0x49f05e and 0x49f3c1): the cache [0x7cb24c] (font 7); flags 0, right
+// 100; the child (1, 1, 1, (0, 0, 100, height)) whether the window was made or not (sic).
+u8 *__cdecl List7cb24c_NewRow();
+
+// 0x4a02b0: the cache [0x7cb264] (font [0x752934]); flags 0, right 100; the children (1, 1, 2) to (1, 1, 6) whether the window was made
+// or not (sic).
+u8 *__cdecl List7cb264_NewRow();
+
+// 0x4ad240: the cache [0x7cc200] (font [0x755134]); flags 0, right 100; when made, the handler 0x4acb70 (Window_SetHandler) for it and
+// for its child (1, 1, 1, (100, 0, 200, 50)) (sic: that child not checked), then the child (6, 1, 2, (100, 0, 200, 50)).
+u8 *__cdecl List7cc200_NewRow();
+
+// 0x4ae700 (with the initialiser 0x4ae7d0): the cache [0x7cc250] (font [0x75583c]); flags 1, right 100; when made, the child
+// (1, 1, 1, (100, 0, 200, height)).
+u8 *__cdecl List7cc250_NewRow();
+
+// 0x4bcbc0 (the list child 0xee8 of the window [0x7cc654], with the initialiser 0x4bcca0): the height of font 7 as 0x480d30's, worked
+// out first, not cached; flags 0, right 100; when made, the children (1, 1, 1, (100, 0, 200, 50)) and (6, 1, 2, (100, 0, 200, 50)) twice
+// (sic).
+u8 *__cdecl List7cc654_NewRow();
+
+// 0x49c870 (a jump to 0x49bbb0: the factory the list built at 0x49c0aa is given).
+u8 *__cdecl List7ca314_NewRowJump();
+
+// The initialisers below (cdecl (row)) give the row and its first child (+0x5c) new text parts (0x1a4 bytes, GameHeap_Alloc; none when
+// the allocation fails; Window_SetImpl) and fonts (Language_Font; Window_Set4c); "as 0x480dd0" is 0x480dd0's TextPart_Ctor, font 7 and
+// the four bytes 0xff (Window_Notify40000).
+
+// 0x49c880 (with 0x49c870): the row a TextPart_Ctor part and the font [0x7523dc]; its first child a TextPart6ff3b0_Ctor part, the font
+// [0x7523dc] (read again), the bytes 2, 1 as 0xc00 (Window_NotifyC00) and its slot 7 called with 0.
+void __cdecl List7ca314_InitRow(u8 *row);
+
+// 0x49f170 (with 0x49f0b0): the row and its first child as 0x480dd0, then the child's bytes 2, 1 as 0xc00.
+void __cdecl List7cb24c_InitRow(u8 *row);
+
+// 0x4ae7d0 (with 0x4ae700): the row a TextPart_Ctor part, the font [0x75583c] and the bytes 0xff; its first child a TextPart6ff410_Ctor
+// part, the font [0x75583c] (read again), the bytes 2, 1 as 0xc00 and its slot 7 called with 0.
+void __cdecl List7cc250_InitRow(u8 *row);
+
+// 0x4bcca0 (with 0x4bcbc0): the row a TextPart_Ctor part, the bytes 0xff, font 7 and the text 0 (Window_NotifyImpl100); its first child
+// a TextPart_Ctor part, the bytes 1, 1 as 0xc00 and as 0x3000 (Window_Notify3000), font 7, the bytes 0xff and the text 0; that child's
+// next two siblings (+0x54, then theirs) given the object of the GUI window registered as "i_boxtick" (Window_SetObject98).
+void __cdecl List7cc654_InitRow(u8 *row);
 }

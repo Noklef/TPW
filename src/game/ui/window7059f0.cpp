@@ -1,6 +1,7 @@
 #include "window7059f0.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "../core/accessors.h"
 #include "../core/buffers.h"
@@ -8,6 +9,7 @@
 #include "../core/gameheap.h"
 #include "../core/initializers.h"
 #include "../core/selectors.h"
+#include "../core/stdwstring.h"
 #include "../core/string.h"
 #include "../core/vcall.h"
 #include "guirect.h"
@@ -298,5 +300,221 @@ void __fastcall Window7059f0_RefreshRows(u8 *window) {
             level += delta;
         }
     }
+}
+
+s32 *__fastcall Window7059f0_Grow(u8 *window, void *, s32 n) {
+    if (!n || at<s16>(window, 0x164) == 0) return nullptr;
+    const s32 added = n * (at<s16>(window, 0x164) + 4);
+    s32 *const old = at<s32 *>(window, 0x144);
+    s32 end, last;   // (unset without the array; then unused)
+    if (old) Window7059f0_RootEnd(window, nullptr, &end, &last);
+    s32 *const links = static_cast<s32 *>(GameHeap_Alloc((u32)(at<s32>(window, 0x158) + added) << 2));
+    if (!links) return nullptr;
+    s32 item = at<s32>(window, 0x158);
+    std::memset(links, 0, (u32)(at<s32>(window, 0x158) + added) << 2);
+    for (s32 i = 0; i < n - 1; ++i) {   // (the new items free, each the next one's previous)
+        links[item] = item + at<s16>(window, 0x164) + 4;
+        links[item + 2] = -1;
+        links[item + 3] = -2;
+        item += at<s16>(window, 0x164) + 4;
+    }
+    links[item] = -1;
+    links[item + 2] = -1;
+    links[item + 3] = -2;
+    if (old) {
+        std::memcpy(links, old, (u32)at<s32>(window, 0x158) << 2);
+        links[last] = at<s32>(window, 0x158);   // (last -1: the dword before the block, sic)
+        GameHeap_Free(old);
+    }
+    at<s32 *>(window, 0x144) = links;
+    at<s32>(window, 0x158) += added;
+    return links;
+}
+
+void __fastcall Window7059f0_CopyCells(u8 *window, void *, const u32 *texts, u32 *cells) {
+    u8 allocator;   // (never set: its byte goes into each new string, sic)
+    for (s32 column = 0; column < at<s16>(window, 0x164); ++column, ++texts, ++cells) {
+        if (Window7059f0_ColumnBottom(window, nullptr, (u32)column) != 0) {
+            *cells = *texts;
+        } else if (*texts) {
+            void *const block = GameHeap_Alloc(0x10);
+            *cells = block ? (u32)(uintptr_t)StdWString_CtorChars(static_cast<StdWString *>(block), nullptr,
+                                                                  reinterpret_cast<const u16 *>((uintptr_t)*texts), &allocator)
+                           : 0;
+        }
+    }
+}
+
+u32 __fastcall Window7059f0_SortsBefore(u8 *window, void *, const u32 *texts, const u32 *cells) {
+    const s32 column = at<s16>(window, 0x168);
+    const bool numbers = Window7059f0_ColumnBottom(window, nullptr, at<u16>(window, 0x168)) == 1;
+    if (at<s16>(window, 0x16a) == 0) {
+        if (numbers) return (s32)texts[column] < (s32)cells[column] ? 1 : 0;
+        if (cells[column] == 0) return 1;
+        const u32 cell = Obj_Get4Or6fd6c4(reinterpret_cast<const u8 *>((uintptr_t)cells[column]));
+        return Crt().wcscmp(reinterpret_cast<const u16 *>((uintptr_t)texts[column]), reinterpret_cast<const u16 *>((uintptr_t)cell)) < 0 ? 1 : 0;
+    }
+    if (numbers) return (s32)texts[column] > (s32)cells[column] ? 1 : 0;
+    if (cells[column] == 0) return 1;
+    const u32 cell = Obj_Get4Or6fd6c4(reinterpret_cast<const u8 *>((uintptr_t)cells[column]));
+    return Crt().wcscmp(reinterpret_cast<const u16 *>((uintptr_t)cell), reinterpret_cast<const u16 *>((uintptr_t)texts[column])) < 0 ? 1 : 0;
+}
+
+s32 __fastcall Window7059f0_AddItem(u8 *window, void *, const u32 *texts, u32 data, s32 parent, u32 refresh) {
+    auto links = [window]() { return at<s32 *>(window, 0x144); };
+    s32 shown = at<s32>(window, 0x160);
+    bool child = false;
+    if (!texts) return -1;
+    if (at<s32>(window, 0x150) * (at<s16>(window, 0x164) + 4) >= at<s32>(window, 0x158))
+        Window7059f0_Grow(window, nullptr, at<s32>(window, 0x158) == 0 ? 0x14 : 0xa);
+    s32 item;
+    if (parent != -1 && parent < at<s32>(window, 0x150)) {
+        parent = Window7059f0_NthItem(window, nullptr, parent);
+        item = links()[parent + 2];
+        child = true;
+    } else {
+        item = at<s32>(window, 0x160);
+    }
+    s32 added, last;   // (the first free item and the one before it, Window7059f0_RootEnd)
+    if (item == -1) {
+        if (child) {   // (the parent's first child)
+            Window7059f0_RootEnd(window, nullptr, &added, &last);
+            Window7059f0_CopyCells(window, nullptr, texts, reinterpret_cast<u32 *>(links() + added + 4));
+            links()[parent + 2] = added;
+            links()[last] = links()[added];
+            links()[added] = -1;
+            links()[added + 3] = parent;
+        } else {   // (no items: the first, sic)
+            Window7059f0_CopyCells(window, nullptr, texts, reinterpret_cast<u32 *>(links() + 4));
+            shown = 0;
+            added = 0;
+        }
+    } else {
+        Window7059f0_RootEnd(window, nullptr, &added, &last);
+        Window7059f0_CopyCells(window, nullptr, texts, reinterpret_cast<u32 *>(links() + added + 4));
+        if (at<u32>(window, 0x48) & 0x10) {   // (sorted: before the first sibling it sorts before; else it stays after the roots, sic)
+            if (Window7059f0_SortsBefore(window, nullptr, texts, reinterpret_cast<const u32 *>(links() + item + 4))) {
+                links()[last] = links()[added];
+                links()[added] = item;
+                if (child) {
+                    links()[parent + 2] = added;
+                    links()[added + 3] = parent;
+                } else {
+                    shown = added;
+                }
+            } else {
+                bool done = false;
+                for (s32 i = 1; !done && i < at<s32>(window, 0x150);) {
+                    const s32 previous = item;
+                    item = links()[item];
+                    ++i;
+                    if (item == -1 || Window7059f0_SortsBefore(window, nullptr, texts, reinterpret_cast<const u32 *>(links() + item + 4))) {
+                        links()[last] = links()[added];
+                        links()[added] = item;
+                        links()[previous] = added;
+                        if (child) links()[added + 3] = parent;
+                        done = true;
+                    }
+                }
+            }
+        }
+    }
+    if (links()[added + 3] < 0) links()[added + 3] = -1;
+    links()[added + 1] = (s32)data;
+    at<s32>(window, 0x160) = shown;
+    if (++at<s32>(window, 0x150) == 1) Window7059f0_Select(window, nullptr, 0);
+    if (refresh) {
+        Window7059f0_RefreshRows(window);
+        if (*reinterpret_cast<const u32 *>((uintptr_t)0x00faa5d4)) Window_PostMessage(window, 3, 0, 0);
+    }
+    const u32 first = at<u32>(window, 0x154);
+    const s32 rows = at<s16>(window, 0x172), count = at<s32>(window, 0x150);
+    Window7059f0_FitBar(Window_FindChild(window, nullptr, 1), count, rows, first);
+    s32 end = at<s32>(window, 0x154) + at<s16>(window, 0x172);
+    if (end >= at<s32>(window, 0x150)) end = at<s32>(window, 0x150) - 1;
+    Window_SendMessage(at<u8 *>(window, 0x60), 0x405, at<u32>(window, 0x154), (u32)end);
+    return 0;
+}
+
+u32 __fastcall Window7059f0_RemoveItem(u8 *window, void *, s32 n) {
+    if (n >= at<s32>(window, 0x150) || !at<s32 *>(window, 0x144) || n < 0) return 0;
+    s32 shown = at<s32>(window, 0x160);
+    const s32 item = Window7059f0_NthItem(window, nullptr, n);
+    s32 previous = -1;
+    if (n > 0) {
+        const s32 parent = at<s32 *>(window, 0x144)[item + 3];
+        if (parent < 0 || at<s32 *>(window, 0x144)[parent + 2] != item)
+            previous = Window7059f0_NthItem(window, nullptr, n - 1);   // (the one before in the walk, not always a sibling, sic)
+    } else {
+        shown = at<s32 *>(window, 0x144)[item];
+    }
+    Window7059f0_FreeItem(window, nullptr, (u32)n, item, previous, 0);
+    at<s32>(window, 0x160) = shown;
+    if (at<s32>(window, 0x14c) == n) {
+        s32 row = at<s32>(window, 0x14c);
+        if (at<s32>(window, 0x150) > 0) {
+            if (row >= at<s32>(window, 0x150)) --row;
+        } else {
+            row = -1;
+        }
+        Window7059f0_Select(window, nullptr, row);
+    }
+    if (*reinterpret_cast<const u32 *>((uintptr_t)0x00faa5d4) && n >= at<s32>(window, 0x154) &&
+        n < at<s32>(window, 0x154) + at<s16>(window, 0x172))
+        Window_PostMessage(window, 3, 0, 0);
+    const u32 first = at<u32>(window, 0x154);
+    const s32 rows = at<s16>(window, 0x172), count = at<s32>(window, 0x150);
+    Window7059f0_FitBar(Window_FindChild(window, nullptr, 1), count, rows, first);
+    s32 last = at<s32>(window, 0x154) + at<s16>(window, 0x172);
+    if (last >= at<s32>(window, 0x150)) last = at<s32>(window, 0x150) - 1;
+    Window_SendMessage(at<u8 *>(window, 0x60), 0x405, at<u32>(window, 0x154), (u32)last);
+    Window7059f0_RefreshRows(window);
+    return 1;
+}
+
+void __fastcall Window7059f0_Clear(u8 *window) {
+    if (at<s32>(window, 0x150) == 0) return;
+    Window7059f0_NthItem(window, nullptr, 0);   // (unused)
+    for (s32 i = 0; i < at<s32>(window, 0x150); ++i) {
+        const s32 *const cells = at<s32 *>(window, 0x144) + Window7059f0_NthItem(window, nullptr, i) + 4;
+        for (s32 column = 0; column < at<s16>(window, 0x164); ++column) {
+            if (Window7059f0_ColumnBottom(window, nullptr, (u32)column) != 0) continue;
+            if (u8 *const object = reinterpret_cast<u8 *>((uintptr_t)(u32)cells[column])) CountedBuf_Deleter(object, nullptr, 1);
+        }
+    }
+    Window7059f0_ResetItems(window);
+    if (*reinterpret_cast<const u32 *>((uintptr_t)0x00faa5d4)) Window_PostMessage(window, 3, 0, 0);
+    at<s32>(window, 0x150) = 0;
+    at<s32>(window, 0x14c) = -1;
+    at<s32>(window, 0x160) = -1;
+    at<s32>(window, 0x154) = 0;
+    const u32 first = at<u32>(window, 0x154);
+    const s32 rows = at<s16>(window, 0x172), count = at<s32>(window, 0x150);
+    Window7059f0_FitBar(Window_FindChild(window, nullptr, 1), count, rows, first);
+    if (at<u8 *>(window, 0x174)) vcall<void>(at<u8 *>(window, 0x174), 0x14, 0u);
+    Window7059f0_RefreshRows(window);
+}
+
+void __fastcall Window7059f0_ScrollTo(u8 *window, void *, s32 position) {
+    if (!at<s32 *>(window, 0x144)) return;
+    const s32 old = at<s32>(window, 0x154);
+    if (position < 0) {
+        Window7059f0_Select(window, nullptr, -1);
+    } else {
+        if (position >= at<s32>(window, 0x150)) position = at<s32>(window, 0x150) - 1;
+        if (position < at<s32>(window, 0x154) || position >= at<s32>(window, 0x154) + at<s16>(window, 0x172)) {
+            at<s32>(window, 0x154) = position;
+            if (at<s32>(window, 0x154) + at<s16>(window, 0x172) > at<s32>(window, 0x150))
+                at<s32>(window, 0x154) = at<s32>(window, 0x150) - at<s16>(window, 0x172);
+        }
+        Window7059f0_Select(window, nullptr, position - at<s32>(window, 0x154));
+    }
+    Window7059f0_RefreshRows(window);
+    const u32 first = at<u32>(window, 0x154);
+    vcall<void>(Window_FindChild(window, nullptr, 1), 0x1c, first);
+    if (old == at<s32>(window, 0x154)) return;
+    s32 last = at<s32>(window, 0x154) + at<s16>(window, 0x172);
+    if (last >= at<s32>(window, 0x150)) last = at<s32>(window, 0x150) - 1;
+    Window_SendMessage(at<u8 *>(window, 0x60), 0x405, at<u32>(window, 0x154), (u32)last);
 }
 }

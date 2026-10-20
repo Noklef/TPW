@@ -32,6 +32,7 @@ struct CrtEnv {
     u16 *(__cdecl *wcsncpy)(u16 *to, const u16 *from, u32 n);      // 0x67b0d0: n chars, zeros after the end
     s32(__cdecl *wcsicmp)(const u16 *a, const u16 *b);             // 0x67b140: A-Z folded down, the difference of the last units
     u16 *(__cdecl *wcscat)(u16 *to, const u16 *from);              // 0x67bed0
+    s32(__cdecl *wcscmp)(const u16 *a, const u16 *b);              // 0x67c290: -1, 0 or 1 (the units compared unsigned)
 };
 
 // The CRT ports call (the game's unless swapped).

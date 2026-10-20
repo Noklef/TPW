@@ -89,4 +89,6 @@ u32 __cdecl Panel7b9940_Show() {
     Renderer_Add(global<u8 *>(0x0087a6d0), nullptr, self + vbase(self, 0, 4), 0x20);
     return global<u8>(0x0078d90e) ? GuiManager_CallSlot3() : GuiManager_CallSlot4();
 }
+
+void __cdecl Panel7b9940_SizeAtExit() {}
 }

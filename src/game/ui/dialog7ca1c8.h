@@ -1,6 +1,6 @@
 // The dialog whose window is at 0x7ca1c8 (built by 0x498790 from the template 0x751530; 0x7ca1cc set while it is up): its nine check buttons
 // (ids 0x18-0x21 in its child 0x18) shown from a flags word, or one of them selected. Reimplementation of 0x498090, 0x498a50, 0x498a80,
-// 0x4981d0, 0x498a30 and 0x4819f0.
+// 0x4981d0, 0x498a30, 0x4819f0 and 0x4987f0.
 #pragma once
 
 #include "../../../re/types.h"
@@ -31,4 +31,10 @@ void __cdecl Dialog7ca1c8_SelectButtonIfUp(u32 flags);
 
 // 0x4819f0 (thiscall on the object at 0x7b51f0, this not used (flags), pops 4; name unconfirmed): Dialog7ca1c8_SelectButtonIfUp(flags).
 void __fastcall Dialog7ca1c8_SelectButtonIfUpThis(void *self, void *, u32 flags);
+
+// 0x4987f0 (cdecl; name unconfirmed): the dialog's button 0x20 (in its child 0x18; Window_FindChild): when the byte +0x50 of [0x7ca1d0]
+// is 0, no object +0x98 (Window_SetObject98) and its slot 5 called with 0; else, by the coaster edit tools on offer (CoasterEdit_Tools),
+// its slot 5 called with 1, the object of the GUI window registered as "cb_trough" (tool 0x200; +0x90 and +0x94 0x134) or "cb_loop"
+// (0x132) as its +0x98, then slot 5 called again with whether tool 2 is on offer.
+void __cdecl Dialog7ca1c8_UpdateLoopButton();
 }
