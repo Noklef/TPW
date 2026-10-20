@@ -47,4 +47,10 @@ void __fastcall Window705950_ClickAt(u8 *window, void *, u32 x, u32 y);
 // 0x65b8dc (thiscall; name unconfirmed): the child with id 1 (Window_FindChild; the scroll bar) asked its slot 8; when that differs from
 // the first row shown +0x150 it becomes it, and with [0xfaa5d4] set the window is posted 3 (Window_PostMessage).
 void __fastcall Window705950_Scrolled(u8 *window);
+
+// 0x65bb6b (cdecl (window, message, a, b); name unconfirmed): the list's handler. 0x10003 the mouse at a (x a >> 16 signed, y its word:
+// Window705950_TrackAt), 0x13 the inner rectangle moved by a's and b's words (Window705950_OffsetInner), 0x11006 a click at b
+// (Window705950_ClickAt), 0x11007 the chosen row posted (Window705950_PostChosen), 0x800 the scroll bar followed (Window705950_Scrolled);
+// then every message (those too) goes on to the default handler (Window_DefaultProc), whose answer it returns.
+u32 __cdecl Window705950_Proc(u8 *window, u32 message, u32 a, u32 b);
 }

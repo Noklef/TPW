@@ -57,6 +57,18 @@ u32 __fastcall Window705950_SetInner(u8 *window, void *, u32 left, u32 top, u32 
     return Fn_659dac(window + 0x138, nullptr, (u16)left, (u16)top, (u16)right, (u16)bottom);
 }
 
+u32 __cdecl Window705950_Proc(u8 *window, u32 message, u32 a, u32 b) {
+    switch (message) {
+    case 0x10003: Window705950_TrackAt(window, nullptr, (u32)((s32)a >> 16), a & 0xffff); break;
+    case 0x13: Window705950_OffsetInner(window, nullptr, (u16)a, (u16)b); break;
+    case 0x11006: Window705950_ClickAt(window, nullptr, (u32)((s32)b >> 16), b & 0xffff); break;
+    case 0x11007: Window705950_PostChosen(window); break;
+    case 0x800: Window705950_Scrolled(window); break;
+    default: break;
+    }
+    return Window_DefaultProc(window, message, a, b);
+}
+
 void __fastcall Window705950_OffsetInner(u8 *window, void *, u32 dx, u32 dy) { vcall<void>(window + 0x138, 8, (u32)(u16)dx, (u32)(u16)dy); }
 
 void __fastcall Window705950_SelectAt(u8 *window, void *, u32, u32 y) {
