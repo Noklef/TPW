@@ -9,9 +9,12 @@
 #include "../math/x87.h"
 #include "../sprite/script.h"
 #include "../sprite/scriptref.h"
+#include "analyser.h"
 #include "nav.h"
 #include "object.h"
+#include "objectdefs.h"
 #include "things.h"
+#include "world.h"
 
 namespace {
 
@@ -27,6 +30,18 @@ void set100(void *p, X87Reg v) {
         at<u32>(p, 0) = 0;
     else
         at<float>(p, 0) = (float)v.v;
+}
+
+// a * b / 100 as the original's IMUL and signed divide by 100 (the product wrapping).
+s32 MulDiv100(s32 a, s32 b) { return (s32)((u32)a * (u32)b) / 100; }
+
+// The park analyser's (the game table entry of [0x7cf83c]'s +0x1da720) ring of a price's margin: ((willing + 5) - price) * 10, at most 100 (unsigned).
+void RecordMargin(u32 ring, u32 willing, u32 price) {
+    u32 value = (willing + 5) * 10 - price * 10;
+    if (value >= 100)
+        value = 100;
+    u8 *const analyser = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 **>(0x007cf83c)));
+    ParkAnalyser_Record(analyser, nullptr, ring, value);
 }
 
 }  // namespace
@@ -226,6 +241,42 @@ u32 __fastcall Visitor_Serialize(u8 *visitor, void *, Stream *stream, u32 save, 
         if (!Save_Field(stream, save, visitor + 0x1e0 + i * 2, 2, 0x0075d284) || !Save_Field(stream, save, visitor + 0x1e8 + i * 2, 2, 0x0075d268))
             return 1;
     return Save_StatFields(stream, save, visitor, kTail, 14) ? 0 : 1;
+}
+
+u32 __fastcall Visitor_WontPay(const u8 *visitor, void *, u8 *object) {
+    const u32 price = Obj_Get194(object);
+    if (price == 0)
+        return 0;
+    const u8 *const def = Object_GetDef(object);
+    // the stats' __ftol low bytes against the definition's effects, each product over 100 (signed)
+    const auto stat = [visitor](u32 offset) { return (s32)(u8)(long long)at<float>(visitor, offset); };
+    u32 mood = (u32)MulDiv100(at<s32>(def, 0x150), 100 - stat(0x19c));
+    mood += (u32)MulDiv100(at<s32>(def, 0x144), stat(0x1a4));
+    mood += (u32)MulDiv100(at<s32>(def, 0x148), stat(0x1a8));
+    mood = mood - (u32)MulDiv100(at<s32>(def, 0x14c), stat(0x1b0)) + 100;
+    const s32 cost = MulDiv100(at<s32>(def, 0x140), 0x73);
+    u32 willing = mood * (u32)cost / 100;  // (the products wrap; the divisions by 100 from here on unsigned)
+    Obj_Get194(object);
+    const u32 quality = GetByte190_4e21b0(object);
+    const s32 extra = at<s32>(Object_GetDef(object), 0x4ac) == 2 ? (s32)Obj_Get188(object) : 0;
+    const s32 controls = at<s32>(Obj_FindControls(object), 0xc);
+    willing = ((u32)MulDiv100(extra, (s32)quality) + willing) * ((u32)controls + 100) / 100;
+    willing = willing * (u32)(stat(0x19c) + 100) / 100;
+    // the analyser rings of the price margins: an ingredient (1-4) and an appearance (6, 7) for a kind-1 definition, 9 for a kind-2 one
+    u32 ring = 0;
+    const s32 kind = at<s32>(Object_GetDef(object), 0x4ac);
+    if (kind == 2) {
+        ring = 9;
+    } else if (kind == 1) {
+        const u32 ingredient = at<u32>(def, 0x158);
+        if (ingredient >= 1 && ingredient <= 4)
+            RecordMargin(ingredient, willing, price);
+        const s32 appearance = at<s32>(def, 0x15c);
+        ring = appearance == 1 ? 6 : appearance == 2 ? 7 : 0;
+    }
+    if (ring != 0)
+        RecordMargin(ring, willing, price);
+    return price > willing || at<u32>(visitor, 0x1a0) < price ? 1 : 0;
 }
 
 u32 __fastcall Visitor_IsState6To10(const u8 *visitor) {

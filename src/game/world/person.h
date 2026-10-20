@@ -100,4 +100,13 @@ u32 __fastcall Sprite_Serialize(u8 *sprite, void *, Stream *stream, u32 save, s3
 // mTimeStartedIdling, mTiredness, mToilet and mVomit (re/types.h's Visitor). The stats (floats) are saved as the float of their __ftol's low byte
 // and loaded through a temporary, stored only when read whole. 1 at the first that fails, else 0.
 u32 __fastcall Visitor_Serialize(u8 *visitor, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x4fde50 (thiscall; an object; name unconfirmed): 0 for a free object (Obj_Get194 0). Else what the visitor would pay: the definition's
+// effects (+0x150 happiness, against 100 less the __ftol low byte of mHappiness; +0x144 thirst, +0x148 hunger, +0x14c vomit, less, against the
+// stats') each times over 100 (signed), plus 100, times 115% of the first cost (+0x140), over 100; plus the object's +0x188 times its byte +0x190
+// over 100 for a definition of kind (+0x4ac) 2, times 100 + the controls' +0xc, over 100; times 100 + the happiness byte, over 100 (unsigned from
+// the first product on). The margin ((that + 5) - price) * 10, at most 100 (unsigned), goes to the park analyser's ring (ParkAnalyser_Record on
+// the game table entry of [0x7cf83c]'s +0x1da720): for kind 1 the ingredient's (+0x158, 1-4) and the appearance's (+0x15c: 1 -> 6, 2 -> 7),
+// for kind 2 ring 9. 1 when the price is above that or above mCash (+0x1a0), else 0.
+u32 __fastcall Visitor_WontPay(const u8 *visitor, void *, u8 *object);
 }

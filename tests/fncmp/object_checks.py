@@ -7,8 +7,10 @@
 #   Pay (0x4e1920 Object_PayRunningCost): stafftrain.py's money record and table, definitions of +0x4ac 0-3, a slots object whose selected slot matches or not;
 #   Settings, Current (0x4e1a30, 0x4e1b40): settings on and about the ends of the range (or any floats; bytes), definitions of kinds 0-4, the multiplier any;
 #   Diff, Average (0x4e1c70, 0x4e1e30): History's rings at +0x70 and +0xf8, at +0x340 (signed values there);
-#   Reset (0x4dfd80 Object_ResetCondition): Score's ride record, the float +0x44 about 25 and its byte's wrap, mapstep.py's spread records and cells.
-# usage: object_checks.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Capacity,Track,Score,Percent,Stand,History,Fill,Pay,Settings,Current,Diff,Average,Reset)
+#   Reset (0x4dfd80 Object_ResetCondition): Score's ride record, the float +0x44 about 25 and its byte's wrap, mapstep.py's spread records and cells;
+#   WontPay (0x4fde50 Visitor_WontPay, person.cpp's): a visitor's stats and cash about an object's price, definitions of kinds 0-3, their effects and
+#   costs small or any, the controls' figure (cached), the park analyser's rings.
+# usage: object_checks.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Capacity,Track,Score,Percent,Stand,History,Fill,Pay,Settings,Current,Diff,Average,Reset,WontPay)
 import os
 import struct
 import sys
@@ -24,7 +26,8 @@ B = Bench([(0x412e90, 0x412f00), (0x4dd4e0, 0x4dd510), (0x4d8c00, 0x4d8c30), (0x
            (0x55a070, 0x55a110), (0x55a0b0, 0x55a110), (0x55a390, 0x55a3f0), (0x5da3c0, 0x5da3c1),
            (0x495cf0, 0x495d50), (0x4dedf0, 0x4df160), (0x4e1f20, 0x4e2190),
            (0x4dda40, 0x4ddb70), (0x4e1910, 0x4e1a00), (0x4e1a30, 0x4e1e10), (0x4e1e30, 0x4e1f30), (0x409cd0, 0x409cf0), (0x4d01f0, 0x4d0270),
-           (0x4d27a0, 0x4d2850), (0x519510, 0x519560), (0x5195d0, 0x519660), (0x4dfd80, 0x4dfe30), (0x4d8440, 0x4d8480), (0x4d8480, 0x4d8620)])
+           (0x4d27a0, 0x4d2850), (0x519510, 0x519560), (0x5195d0, 0x519660), (0x4dfd80, 0x4dfe30), (0x4d8440, 0x4d8480), (0x4d8480, 0x4d8620),
+           (0x4fde50, 0x4fe1b0), (0x4c74b0, 0x4c7500), (0x4d3d10, 0x4d3d90), (0x4e1a00, 0x4e1a30), (0x4e21b0, 0x4e21d0), (0x4e2740, 0x4e2780)])
 OBJ, WORLD = RAM, RAM + 0x10000
 
 
@@ -269,8 +272,43 @@ def reset(r):
     return c
 
 
+def wont_pay(r):
+    """0x4fde50: a visitor's stats about whole bytes (or any) and cash about the price; definitions of kinds 0-3, ingredients 0-5, appearances 0-3, effects
+    and costs small or any; the object's price (0 too), byte +0x190 and +0x188; the controls' (cached) +0xc; the park analyser's rings sized 1, 2 or 0x30."""
+    effects = [0, 1, 5, 20, 100, -10, 0x7fffffff, -0x80000000]
+    regions, obj = defs_obj(r, {0x4ac: [0, 1, 2, 3, 1, 2], 0x158: [0, 1, 2, 3, 4, 5, 1], 0x15c: [0, 1, 2, 3, 1, 2], 0x140: [0, 1, 10, 50, 200, -5, 0x40000000],
+                                0x144: effects, 0x148: effects, 0x14c: effects, 0x150: effects})
+    price = r.choice([0, 1, 5, 20, 50, 100, 1000, 0xffffffff, r.getrandbits(32)])
+    put(obj, 0x194, 'I', price)
+    obj[0x190] = r.choice([0, 1, 50, 100, 255])
+    put(obj, 0x188, 'I', r.choice([0, 1, 10, 100, 1000, 0xffffffff, r.getrandbits(32)]))
+    visitor = bytearray(r.bytes(0x1c0))
+    for off in (0x19c, 0x1a4, 0x1a8, 0x1b0):
+        put(visitor, off, 'I', fb(r.choice([0.0, 1.0, 50.5, 100.0, 255.0, 255.9, 256.0, -1.0])) if r.random() < 0.7 else r.f(1000.0))
+    put(visitor, 0x1a0, 'I', (price + r.choice([0, 0, 1, -1, 100, -100])) & 0xffffffff if r.random() < 0.7 else r.getrandbits(32))
+    world, analyser, record = WORLD, RAM + 0x80000, RAM + 0x7000
+    tail = bytearray(r.bytes(0x50))              # the world from the controls' count (+0x1d943c + 0x12c0 = +0x1da6fc)
+    put(tail, 0, 'i', 0)                         # the count: the cached id is the one found
+    put(tail, 4, 'H', struct.unpack_from('<H', obj, 0xe)[0])
+    put(tail, 8, 'I', record)
+    put(tail, 0x24, 'H', 2)                      # +0x1da720: the analyser's table entry
+    rec = bytearray(r.bytes(0x20))
+    put(rec, 0xc, 'I', r.choice([0, 10, 50, -50, -100, 1000, r.getrandbits(32)]) & 0xffffffff)
+    rings = bytearray(r.bytes(0x280))
+    for k in range(10):
+        size = r.choice([1, 2, 0x30])
+        put(rings, k * 0x40 + 0x38, 'i', size)
+        put(rings, k * 0x40 + 0x34, 'i', r.randrange(size))
+    table = bytearray(r.bytes(20 * 4))
+    put(table, 20 * 2, 'I', analyser)
+    regions.update({RAM + 0x6000: visitor, world + 0x1da6fc: tail, record: rec, analyser + 0x216fc: rings, 0x7cfb90: table,
+                    0x80239c: struct.pack('<I', world), 0x7cf83c: struct.pack('<I', world)})
+    return Call(0x4fde50, [RAM + 0x6000, OBJ], regions, conv='t', ret='a')
+
+
 CASES = {'Capacity': capacity, 'Track': track, 'Score': score, 'Percent': percent, 'Stand': stand, 'History': history, 'Fill': fill, 'Pay': pay,
-         'Settings': settings, 'Current': current, 'Diff': diff, 'Average': average, 'Reset': reset}
+         'Settings': settings, 'Current': current, 'Diff': diff, 'Average': average, 'Reset': reset,
+         'WontPay': wont_pay}
 
 
 def case(r):
