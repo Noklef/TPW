@@ -47,7 +47,6 @@ address,name,module,reason
 5fa490,Screen_RegisterClass,gfx/screen,todo
 5fa540,Screen_WndProc,gfx/screen,todo
 5fa630,Screen_SetActive,gfx/screen,todo
-5fa650,Result_FromLastError,core/result,todo
 5fa8a0,ImageCodec_InfoFromFile,gfx/imagecodec,todo
 5fa970,ImageCodec_InfoFromStream,gfx/imagecodec,todo
 5faa00,ImageCodec_LoadFromFile,gfx/imagecodec,todo
