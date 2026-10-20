@@ -36,6 +36,22 @@ def tga(r, flags):
     return bytes(h) + r.bytes(max(w * ht, 0) * 4 * 3)
 
 
+def exact(r):
+    """A file's bytes that one read (flags without 1, the heap not failing) takes whole, so that another can follow: a valid WCT image
+    and its blocks, or a WCT header of kind 0 and a TGA with one level of pixels (its height 0-8)."""
+    if r.random() < 0.5:
+        header = bytearray(r.bytes(0x1c))
+        header[0], header[2] = r.choice([0x12, 0x13]), r.choice([0x20, 0x10])
+        sizes = [r.choice([0, 1, 4, 0x10, r.randrange(0x40)]) for _ in range(2)]
+        put(header, 0x10, '2I', *sizes)
+        return bytes(header) + r.bytes(sizes[0] + (sizes[1] if header[2] == 0x20 else 0))
+    h = bytearray(tga(r, 0)[:0x12])
+    w, ht = struct.unpack_from('<2h', h, 0xc)
+    ht = max(ht, 0)
+    put(h, 0xe, 'h', ht)
+    return bytes(0x1c) + bytes(h) + r.bytes(h[0x10] * w * ht >> 3)
+
+
 def scene(r, flags, first=0):
     """The regions for a file read with these flags: the heap (failing now and then; first: the allocations before the load's), the
     mounts serving the file's bytes, the name at vfs.NAME, 0x87a24c's globals, the device and the current format. Returns them."""

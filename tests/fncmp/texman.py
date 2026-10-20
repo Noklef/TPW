@@ -19,9 +19,10 @@ import wctimage  # noqa: E402
 from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put  # noqa: E402
 
 CALLS = {'SetLoadFlags': 0x575b80, 'Destroy': 0x574b10, 'Release': 0x575ad0, 'Load': 0x5755f0, 'Acquire': 0x575870}
-B = Bench(wctimage.merged(texfile.RANGES + [(0x575b80, 0x575b8d), (0x575ad0, 0x575b7a), (0x574b10, 0x574bc6), (0x590a70, 0x590a75), (0x590b90, 0x590c39),
+RANGES = wctimage.merged(texfile.RANGES + [(0x575b80, 0x575b8d), (0x575ad0, 0x575b7a), (0x574b10, 0x574bc6), (0x590a70, 0x590a75), (0x590b90, 0x590c39),
                                              (0x579b40, 0x579c13), (0x58dc50, 0x58dd5e), (0x67afa0, 0x67b0d0), (0x67acb0, 0x67acb1), (0x5755f0, 0x575acb),
-                                             (0x590a00, 0x590a70), (0x590d40, 0x590f7e)]))
+                                             (0x590a00, 0x590a70), (0x590d40, 0x590f7e)])
+B = Bench(RANGES)
 MANAGER, ARRAYS = RAM + 0x10000, RAM + 0x5000   # (texturemem.py's regions below RAM + 0x4000)
 
 
