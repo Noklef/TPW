@@ -5368,6 +5368,9 @@ const Hook kHooks[] = {
     {"jpeg6a_jcsample_int_downsample", 0x00654ab1, (void *)&jpeg6a_jcsample_int_downsample, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jpeg6a_jcsample_sep_downsample", 0x00654a22, (void *)&jpeg6a_jcsample_sep_downsample, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jpeg6a_jinit_downsampler",  0x006547f0, (void *)&jpeg6a_jinit_downsampler, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcdctmgr_forward_DCT", 0x0065398f, (void *)&jpeg6a_jcdctmgr_forward_DCT, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"jpeg6a_jcdctmgr_start_pass_fdctmgr", 0x006536f7, (void *)&jpeg6a_jcdctmgr_start_pass_fdctmgr, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jinit_forward_dct",  0x00653610, (void *)&jpeg6a_jinit_forward_dct, {0x55, 0x8b, 0xec, 0x83, 0xec}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

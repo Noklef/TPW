@@ -5692,3 +5692,6 @@ address,name,kind,confidence,notes
 0x00654db3,jpeg6a_jcsample_h2v2_downsample,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcsample.c h2v2_downsample: 2:1 both ways with an alternating bias (the library's)
 0x00654ebf,jpeg6a_jcsample_h2v2_smooth_downsample,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcsample.c h2v2_smooth_downsample: 2:1 both ways, smoothed with the neighbours (the library's)"
 0x0065527e,jpeg6a_jcsample_fullsize_smooth_downsample,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcsample.c fullsize_smooth_downsample: full size, smoothed with the neighbours (the library's)"
+0x00653610,jpeg6a_jinit_forward_dct,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcdctmgr.c jinit_forward_dct: the forward DCT manager, its methods and DCT routine for dct_method (the library's, through the method shim)"
+0x006536f7,jpeg6a_jcdctmgr_start_pass_fdctmgr,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcdctmgr.c start_pass_fdctmgr: each component's quantization divisors for the DCT method (the library's)
+0x0065398f,jpeg6a_jcdctmgr_forward_DCT,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcdctmgr.c forward_DCT: a row of blocks through the integer DCT, quantized (the library's)"

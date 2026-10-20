@@ -221,6 +221,28 @@ void __cdecl jpeg6a_jcsample_fullsize_smooth_downsample(jpeg6a_compress_struct *
 // The empty start_pass (built, unhooked: 0x654a1d stays the exe's hand port).
 void __cdecl jpeg6a_jcsample_start_pass_downsample(jpeg6a_compress_struct *cinfo);
 
+// jcdctmgr.c, the forward DCT manager, through third_party/wrap/jpeg-6a/jcdctmgr.c (compiled /arch:IA32: the float divisors are x87
+// code in the exe). forward_DCT_float (0x653d32) stays the exe's, as jpeg_fdct_float (0x657110): its (int) of an out-of-range
+// product (a zero quantval) is the low half of _ftol's 64-bit FISTP in the exe, 0x80000000 in the library's build.
+// 0x653610: cinfo->fdct (alloc_small of the image pool, 0x30) and its methods (through the method shim, jpeg6a.cpp): forward_DCT
+// with jpeg_fdct_islow or jpeg_fdct_ifast, forward_DCT_float with jpeg_fdct_float, by dct_method (else JERR_NOT_COMPILED 0x2f); no
+// divisor tables yet.
+void __cdecl jpeg6a_jinit_forward_dct(jpeg6a_compress_struct *cinfo);
+// 0x6536f7 (static): for each component's quantization table (JERR_NO_QUANT_TABLE 0x33 when it is missing) its divisors for the
+// DCT method, allocated once (alloc_small): quantval * 8 (JDCT_ISLOW), scaled by the AA&N factors (JDCT_IFAST), or the float
+// reciprocals of those (JDCT_FLOAT).
+void __cdecl jpeg6a_jcdctmgr_start_pass_fdctmgr(jpeg6a_compress_struct *cinfo);
+// 0x65398f (static): num_blocks blocks of samples from (start_row, start_col), less 128, through do_dct, each coefficient divided by
+// its divisor rounding half away from zero, into coef_blocks.
+void __cdecl jpeg6a_jcdctmgr_forward_DCT(jpeg6a_compress_struct *cinfo, jpeg6a_component_info *compptr,
+                                         unsigned char **sample_data, short (*coef_blocks)[64], unsigned int start_row,
+                                         unsigned int start_col, unsigned int num_blocks);
+// (built, unhooked: 0x653d32 stays the exe's)
+void __cdecl jpeg6a_jcdctmgr_forward_DCT_float(jpeg6a_compress_struct *cinfo, jpeg6a_component_info *compptr,
+                                               unsigned char **sample_data, short (*coef_blocks)[64], unsigned int start_row,
+                                               unsigned int start_col, unsigned int num_blocks);
+void __cdecl jpeg6a_jpeg_fdct_float(float *data);  // (jfdctflt.c: built, unhooked)
+
 // jcomapi.c: what compression and decompression share.
 // 0x64f3c0: the image pool freed (mem->free_pool of pool 1), global_state back to the start (DSTATE_START 200 for a decompressor,
 // else CSTATE_START 100).

@@ -69,6 +69,7 @@ extern "C" void __cdecl jpeg6a_jccoefct_lib_jinit_c_coef_controller(jpeg6a_compr
 extern "C" void __cdecl jpeg6a_jccoefct_lib_start_pass_coef(jpeg6a_compress_struct *cinfo, int pass_mode);
 extern "C" void __cdecl jpeg6a_jccolor_lib_jinit_color_converter(jpeg6a_compress_struct *cinfo);
 extern "C" void __cdecl jpeg6a_jcsample_lib_jinit_downsampler(jpeg6a_compress_struct *cinfo);
+extern "C" void __cdecl jpeg6a_jcdctmgr_lib_jinit_forward_dct(jpeg6a_compress_struct *cinfo);
 
 namespace {
 struct ExeMethod {
@@ -132,6 +133,13 @@ const ExeMethod kExeMethods[] = {
     {fn(&jpeg6a_jcsample_h2v2_downsample), 0x654db3},
     {fn(&jpeg6a_jcsample_h2v2_smooth_downsample), 0x654ebf},
     {fn(&jpeg6a_jcsample_fullsize_smooth_downsample), 0x65527e},
+    // jcdctmgr.c and the DCT routines it stores (forward_DCT_float and jpeg_fdct_float to the exe's own, which stay)
+    {fn(&jpeg6a_jcdctmgr_start_pass_fdctmgr), 0x6536f7},
+    {fn(&jpeg6a_jcdctmgr_forward_DCT), 0x65398f},
+    {fn(&jpeg6a_jcdctmgr_forward_DCT_float), 0x653d32},
+    {fn(&jpeg6a_jpeg_fdct_islow), 0x657810},
+    {fn(&jpeg6a_jpeg_fdct_ifast), 0x657480},
+    {fn(&jpeg6a_jpeg_fdct_float), 0x657110},
 };
 
 bool g_native_methods = false;  // (Jpeg6a_SetNativeMethods: the tests' driver, which cannot call the exe's addresses)
@@ -228,6 +236,16 @@ void __cdecl jpeg6a_jinit_downsampler(j_compress_ptr cinfo) {
     exe_method(cinfo->downsample->downsample);
     for (int ci = 0; ci < cinfo->num_components; ci++)
         exe_method_at(reinterpret_cast<char *>(cinfo->downsample) + 0xc + 4 * ci);
+}
+
+// jinit_forward_dct also stores the DCT routine in my_fdct_controller's private do_dct (+8) or do_float_dct (+0x1c)
+// (wrap/jpeg-6a/jcdctmgr.c pins the layout).
+void __cdecl jpeg6a_jinit_forward_dct(j_compress_ptr cinfo) {
+    jpeg6a_jcdctmgr_lib_jinit_forward_dct(cinfo);
+    exe_method(cinfo->fdct->start_pass);
+    exe_method(cinfo->fdct->forward_DCT);
+    exe_method_at(reinterpret_cast<char *>(cinfo->fdct) + 0x8);
+    exe_method_at(reinterpret_cast<char *>(cinfo->fdct) + 0x1c);
 }
 }
 
