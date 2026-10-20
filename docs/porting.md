@@ -102,6 +102,91 @@ range, open items, known skips and the paths of the two memory files it should r
   rebench it with port.py like new work, and drop anything you can't verify. Main may have changed the same benches since: re-apply patches
   by hand, never over newer code.
 
+## Library functions (zlib, libjpeg)
+tp.exe statically links zlib 1.1.3 and IJG libjpeg 6b (and a separate 6a build from 0x64c000). Their copies are not hand-ported: the hook rows
+point the exe's addresses at the libraries built from the unmodified sources in third_party/ (tpw_zlib, tpw_jpeg6b, tpw_jpeg6a).
+re/libmap.csv maps the exe's functions to their source functions (`checked` = yes once the listing's calls, constants and static tables were
+compared with the source).
+
+**Wiring.** One unit per library, src/game/lib/<library>.{h,cpp}, linked to its library privately. The header declares the functions
+`extern "C"`, `__cdecl`, with the library's own types by struct tag only (`internal_state *`, `ct_data_s *`), so none of the library's
+macros leak into hooks.cpp (deflate.h defines `Len`, `Code`, `Freq`; zutil.h `local`). The .cpp includes the library headers and
+static_asserts the layouts the exe's code shares with the library. Spec lines use the library's own names and unit lib/<library>, and
+port.py runs as for a port (`--known` the names: they are the library's). The library's `local` (static) functions get external names from
+zlib's own switch `-Dlocal=` (zutil.h), set on tpw_zlib; the code is the same.
+
+**What has to agree, and does (zlib):**
+- Calling convention: cdecl throughout (ZEXPORT is empty without ZLIB_DLL; the exe's copies all end in a plain RET). convcheck checks each row.
+- Layouts: the same types on 32-bit MSVC give the same structs: z_stream 0x38, deflate_state 0x16b8, inflate_huft 8, inflate_blocks_state
+  0x40 (lib/zlib.cpp asserts the offsets the exe's code uses). inflate's own internal_state (0x18) and inflate_codes_state (0x1c) are
+  private to inflate.c / infcodes.c, so they are checked against the exe's allocation sizes by hand and by the benches.
+- Configuration: STDC (tr_static_init is empty, the tables come from trees.h / inffixed.h), no BUILDFIXED, no FASTEST, no DEBUG; the exe's
+  copies have the same shape (tr_static_init is the shared bare RET at 0x631270, inflate_trees_fixed hands out the inffixed.h tables).
+- Static tables: every one of them (trees.h, inffixed.h, cplens..cpdext, border, inflate_mask, configuration_table's values) is
+  byte-for-byte the exe's. The library's code reads its own copies and the exe's code the exe's, so the two can run on one state.
+- One thing in the exe is in no source: deflate_fast and deflate_slow run CPUID (leaf 0) in their prologue inside PUSHAD / POPAD and
+  store its EAX in bflush's stack slot, which every path writes before reading. It is dead; the benches give the emulator fncmp's fake CPU
+  so it can run it.
+
+**Per function: exact, shim, or with its callers.**
+- *Exact* (a plain hook row): the function only computes, reads tables and writes through the state or its arguments, and calls only
+  library functions (and the stream's zalloc / zfree / checkfn pointers). Its bench then compares the library's whole subtree with the
+  exe's. Replaced and benched so far: adler32; all of trees.c but _tr_init and bi_reverse (Bits_Reverse, a hand port that stays); deflate.c's putShortMSB, flush_pending, lm_init,
+  read_buf, longest_match, fill_window, deflate_stored / fast / slow. Expected exact, not yet benched: deflateEnd, deflateReset's tail,
+  inflateReset, inflateEnd, inflate_flush, inflate_blocks_reset / free, inflate_codes_new / free, inflate_fast (but its error message, below).
+- *Needs a shim*: the function leaves a pointer to one of the library's own tables or strings in memory the exe's code also sees.
+  - _tr_init (and deflateReset, deflateInit2_ through it) stores &static_l_desc / &static_d_desc / &static_bl_desc in the state's descriptors.
+  - inflate_trees_fixed hands out &fixed_tl / &fixed_td; inflate_blocks keeps them (and pointers into them) in its codes state.
+  - Every error path stores a string literal in strm->msg: inflate, inflate_blocks, inflate_trees_bits / dynamic, inflate_codes,
+    inflate_fast ("invalid distance code", ...) and deflate (ERR_MSG through zutil.c's z_errmsg).
+
+  The values differ from the exe's (the library's addresses), the contents do not. The shim is a C++ wrapper in lib/zlib that calls the
+  library's function and puts the exe's address back (the descriptor or table at the same offset, the exe's copy of the same string): exact
+  in memory, and both the game and the bench driver can read the exe's tables (the driver maps the exe's data at its addresses).
+- *Only with its callers*: a function whose result is only right as part of a larger state, e.g. inflate_codes / inflate_blocks hold
+  pointers into the hufts huft_build made, so they are benched (and replaced) together, from inflate_blocks down.
+
+**What cannot be made bit-exact (left unreplaced):**
+- Uninitialised bytes. huft_build (0x649e10) fills its tables by copying a local inflate_huft whose union pad bytes (+2, +3 of each
+  entry) are never set, so the tables carry whatever was on the stack: the exe's and the library's differ there. Nothing reads those bytes
+  (inflate_codes / inflate_fast read exop, bits and base only), but fncmp compares every byte, so huft_build is not replaced; and the
+  callers that build tables (inflate_trees_bits / dynamic, inflate_blocks) inherit it. Replacing them needs a fncmp option to mask bytes
+  of a region, not a weaker bench.
+- Code pointers. inflateInit2_ stores the library's adler32 as the blocks state's checkfn, deflateInit2_ / inflateInit2_ the library's
+  zcalloc / zcfree when the caller left zalloc / zfree null. A shim could write the exe's adler32 (0x63ea00: hooked, so it lands in the
+  library in game), but the driver cannot call an exe code address (its own image sits there), so benches of the inflate path give
+  checkfn as null or a recorder. The zcalloc / zcfree defaults cannot be fixed afterwards at all: deflateInit2_ has already allocated
+  through them, from the DLL's CRT heap instead of the exe's (calloc 0x67fcb0 / free 0x67ad90). The game never takes that path (the zlib
+  codec always passes ZlibCodec_ArenaAlloc and a no-op free), so it stays a documented difference rather than a shim.
+- The allocator itself: zcalloc (0x63e9e0) and zcfree (folded into 0x642990 with libjpeg's jpeg_free_small / large) stay the exe's:
+  replacing them alone would hand the exe's free a block from the DLL's heap. They are unreachable once deflateInit2_ and inflateInit2_
+  are the library's.
+
+**Benches** (tests/fncmp/zlib.py): the same regions-and-EAX comparison as a port, so the bench must compare everything the function can
+write: the whole state, the pending buffer, the window / prev / head, the stream and its output. The state is laid out as the library
+leaves it (descriptors pointing at the exe's static descriptors, which both sides read; d_buf and l_buf overlaid on pending_buf as
+deflateInit2_ sets them; between calls nothing pending and no match pending except deflate_slow's lazy one), at small sizes (windowBits
+9-10, memLevel 1-3) so the cases stay small and reach the slide, the block flushes and the hash wrap. A state the library never makes
+can read past its tables, where the exe's neighbours and the library's differ: with many distant matches at a low memLevel, a block's
+codes overrun d_buf in the pending_buf overlay (zlib 1.1.3's bug, CVE-2018-25032; the game's codec uses memLevel 9) and d_code then
+reads past _dist_code, so the windowBits 13 case (TOO_FAR) holds one distant match only. The Bench's ranges must cover the exe's whole callee
+subtree. fncmp.Bench serves the six zlib entry points (deflateInit2_, deflate, deflateEnd, inflateInit2_, inflate, inflateEnd) with
+stand-ins for the codec's bench: a bench of those functions removes them from `B.emu.hooks` first. B.mutants mirrors third_party/, so
+mutants edit the library's source: a surviving mutant there means a missing edge case, as for a port (NMAX, _tr_align's second block,
+_tr_flush_block's stored-or-static tie, longest_match stopping at exactly nice_match and deflate_slow's TOO_FAR each needed one).
+
+**libjpeg (next):** the same scheme, with more code pointers: every module's init stores its methods in the cinfo structs
+(jpeg_std_error's error_exit, src->fill_input_buffer, the memory manager's alloc_small, ...), so most 6b functions only come exact with a
+shim that maps the library's method addresses to the exe's, or a bench that compares through such a map. The leaves come first (jidct*,
+jfdct*, the colour converters, the Huffman decoders' bit readers, jutils), which take their state by pointer and store no methods. The
+exe's 6b memory manager backend is jmemansi.c, not jmemnobs.c: jpeg_mem_init answers 1000000 (0x642b20), jpeg_mem_available is
+max_memory_to_use - already_allocated (0x6429a0), jpeg_open_backing_store a tmpfile() (0x6429c0); tpw_jpeg6b is built with jmemnobs.c, so
+its build has to follow the exe first. libjpeg has no `-Dlocal=`: jmorecfg.h defines METHODDEF and LOCAL as `static` unconditionally,
+and the modules reuse static names (start_pass, ...), so the statics cannot simply be made external. The way in that keeps the source
+unmodified is a wrapper unit per module that `#include`s the module's .c in place of compiling it and exports its statics under
+module-prefixed names (or as an address table) for the hook rows. 6a is a second copy (tpw_jpeg6a already renames its externals jpeg6a_*
+through config/jpeg6a_prefix.h); it gets its own libmap rows, checked like the zlib rows, before any of it is replaced.
+
 ## Scope and stop
 - Port within your address range, bottom-up, a module at a time.
 - Stop after about 30-40 committed functions, or earlier if your context is getting large. Then reply with a short report:
