@@ -364,6 +364,7 @@
 #include "../game/ui/windowfactory.h"
 #include "../game/ui/windowscript.h"
 #include "../game/ui/windowtimers.h"
+#include "../game/lib/jpeg6b.h"
 #include "../game/lib/zlib.h"
 
 namespace tpw::hook {
@@ -4761,6 +4762,10 @@ const Hook kHooks[] = {
     {"inflateInit2_",             0x00636600, (void *)&inflateInit2_, {0x8b, 0x44, 0x24, 0x0c, 0x56}},
     {"inflateEnd",                0x006365b0, (void *)&inflateEnd, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"inflateReset",              0x00636560, (void *)&inflateReset, {0x8b, 0x44, 0x24, 0x04, 0x33}},
+    {"jzero_far",                 0x00642960, (void *)&jzero_far, {0x8b, 0x4c, 0x24, 0x08, 0x57}},
+    {"jcopy_block_row",           0x00642930, (void *)&jcopy_block_row, {0x8b, 0x4c, 0x24, 0x0c, 0x56}},
+    {"jcopy_sample_rows",         0x006428e0, (void *)&jcopy_sample_rows, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"jround_up",                 0x006428c0, (void *)&jround_up, {0x8b, 0x44, 0x24, 0x04, 0x56}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
