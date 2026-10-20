@@ -694,6 +694,25 @@ template <typename Take> u32 bestCoaster(u16 *out, u32 def, Take take) {
     return found ? best : 0;
 }
 
+// A count the analyser keeps at off (+0 the game time it was taken, +4 the count, byte +8 set once taken): kept while it is set and
+// no more than maxAge quarters old (Game1da70c_MinusAt0Quarters, unsigned), else taken again over the things that pass.
+template <typename Test> u32 cachedCount(u8 *analyser, u32 off, u32 maxAge, Test test) {
+    u32 *const cache = reinterpret_cast<u32 *>(analyser + off);
+    if (at<u8>(cache, 8) && maxAge >= Game1da70c_MinusAt0Quarters(cache)) return cache[1];
+    s32 count = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (test(thing)) ++count;
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    cache[1] = (u32)count;
+    at<u8>(cache, 8) = 1;
+    Out_SetFromGame1da70c(cache);
+    return cache[1];
+}
+
 }  // namespace
 
 extern "C" {
@@ -901,6 +920,16 @@ u32 __stdcall Things_TallestCoaster(u16 *out, u32 def) {
         if (found && !((double)best < (double)height || height != height)) return false;   // (a NaN height is taken, x87's FCOMP)
         best = (u32)(long long)height;
         return true;
+    });
+}
+
+u32 __fastcall ParkAnalyser_CountKind1OnPlainCell(u8 *analyser, void *, u32 maxAge) {
+    return cachedCount(analyser, 0x1f0b8, maxAge, [](const u8 *thing) { return at<u8>(thing, 2) == 1 && AnalyserCell_TypePlain(thing); });
+}
+
+u32 __fastcall ParkAnalyser_CountDef4ac0(u8 *analyser, void *, u32 maxAge) {
+    return cachedCount(analyser, 0x1f0c4, maxAge, [](const u8 *thing) {
+        return at<u8>(thing, 2) == 3 && !at<u32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(thing, 0xe)), 0x4ac);
     });
 }
 }  // extern "C"

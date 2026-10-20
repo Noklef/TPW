@@ -1071,6 +1071,8 @@ address,name,kind,confidence,notes
 0x004c7cc0,Things_AverageStaffStat1f8,function,low,"reimplemented (src/game/world/thingscan); The average of the low bytes of +0x1f8 of the staff (kinds 4 to 8), [0x70031c] when none"
 0x004cc810,Things_CoasterMostFlaggedCars,function,low,"reimplemented (src/game/world/thingscan); The coaster (of a definition, or any) whose link has the most flagged cars (+0x108): handle out, count returned"
 0x004cc920,Things_TallestCoaster,function,low,"reimplemented (src/game/world/thingscan); The coaster (of a definition, or any) whose link's height +0x110 is greatest: handle out, the height cut to an integer returned"
+0x004c7fa0,ParkAnalyser_CountKind1OnPlainCell,function,low,"reimplemented (src/game/world/thingscan); The analyser's kept count (+0x1f0b8) of kind 1 things on plain cells, counted again when unset or older than the age asked for"
+0x004c8070,ParkAnalyser_CountDef4ac0,function,low,"reimplemented (src/game/world/thingscan); The analyser's kept count (+0x1f0c4) of objects whose definition has 0 at +0x4ac, counted again when unset or older than the age asked for"
 0x0054b130,Buoy_FindFree,function,high,"reimplemented (src/game/world/trackpools); the first free buoy record, its index stored in it"
 0x0054b170,Buoy_Alloc,function,high,reimplemented (src/game/world/trackpools); takes the first free buoy record
 0x0054b1e0,CollNode_FindFree,function,high,reimplemented (src/game/world/trackpools); the first free collision node

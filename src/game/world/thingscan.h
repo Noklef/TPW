@@ -230,4 +230,14 @@ u32 __stdcall Things_CoasterMostFlaggedCars(u16 *out, u32 def);
 // 0x4cc920 (as 0x4cc810; name unconfirmed): the same for the tallest, the link's height +0x110 a float: one taken when the best so far
 // (the height cut to an integer, its low dword, unsigned) is below it or it is a NaN (x87), so a later 5.5 beats a 5.7 cut to 5, sic.
 u32 __stdcall Things_TallestCoaster(u16 *out, u32 def);
+
+// 0x4c7fa0 (thiscall on the analyser (maxAge), pops 4; name unconfirmed): the count of the things of kind 1 on a plain analyser cell
+// (AnalyserCell_TypePlain) the analyser keeps at +0x1f0b8 (+0 the game time [0x80239c] +0x1da70c it was taken, +4 the count, byte +8 set):
+// kept while +8 is set and it is no more than maxAge quarters old (Game1da70c_MinusAt0Quarters, unsigned); else counted again, +8 set and
+// the time stamped (Out_SetFromGame1da70c). Returns +4. The debug prints of the slot check are left out.
+u32 __fastcall ParkAnalyser_CountKind1OnPlainCell(u8 *analyser, void *, u32 maxAge);
+
+// 0x4c8070 (as 0x4c7fa0, at +0x1f0c4; name unconfirmed): the count of the objects (kind 3) whose definition (ObjectDefs_Find) has 0 at
+// +0x4ac.
+u32 __fastcall ParkAnalyser_CountDef4ac0(u8 *analyser, void *, u32 maxAge);
 }  // extern "C"

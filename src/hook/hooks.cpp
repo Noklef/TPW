@@ -968,6 +968,8 @@ const Hook kHooks[] = {
     {"Things_AverageStaffStat1f8", 0x004c7cc0, (void *)&Things_AverageStaffStat1f8, {0x83, 0xec, 0x14, 0x8b, 0x0d}},
     {"Things_CoasterMostFlaggedCars", 0x004cc810, (void *)&Things_CoasterMostFlaggedCars, {0x83, 0xec, 0x18, 0x8d, 0x44}},
     {"Things_TallestCoaster",     0x004cc920, (void *)&Things_TallestCoaster, {0x8b, 0x44, 0x24, 0x04, 0x83}},
+    {"ParkAnalyser_CountKind1OnPlainCell", 0x004c7fa0, (void *)&ParkAnalyser_CountKind1OnPlainCell, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"ParkAnalyser_CountDef4ac0", 0x004c8070, (void *)&ParkAnalyser_CountDef4ac0, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"Rides_FindById",            0x0055a070, (void *)&Rides_FindById, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"Rides_SetElement",          0x0055a0b0, (void *)&Rides_SetElement, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"Rides_SetWordC0",           0x0055a300, (void *)&Rides_SetWordC0, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
