@@ -9,6 +9,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 
 extern "C" {
 
@@ -501,6 +502,29 @@ void __cdecl jinit_master_decompress(jpeg_decompress_struct *cinfo);
 void __cdecl jdmaster_prepare_for_output_pass(jpeg_decompress_struct *cinfo);
 // 0x63e790: the quantizer's finish_pass, pass_number + 1.
 void __cdecl jdmaster_finish_output_pass(jpeg_decompress_struct *cinfo);
+
+// jdapimin.c / jdapistd.c, the decompressor's application interface, through third_party/wrap/jpeg-6b/jdapimin.c and jdapistd.c
+// (global_state +0x14: 0xc8 DSTATE_START .. 0xd2 DSTATE_STOPPING).
+// 0x630ca0: cinfo zeroed but err and client_data (ERREXIT2 for a version other than 62 or a size other than 0x1b0), the memory
+// manager, marker reader and input controller; DSTATE_START.
+void __cdecl jpeg_CreateDecompress(jpeg_decompress_struct *cinfo, int version, size_t structsize);
+// 0x630d80: jpeg_destroy.
+void __cdecl jpeg_destroy_decompress(jpeg_decompress_struct *cinfo);
+// 0x630d90: jpeg_consume_input to the first scan: 1 (JPEG_HEADER_OK), 2 for tables only (JERR_NO_IMAGE with require_image), or 0.
+int __cdecl jpeg_read_header(jpeg_decompress_struct *cinfo, unsigned char require_image);
+// 0x630e10: by global_state: the input controller reset and the source started, its consume_input, the default parameters at the
+// first SOS.
+int __cdecl jpeg_consume_input(jpeg_decompress_struct *cinfo);
+// 0x630ee0: the colour spaces from the components and the JFIF / Adobe markers, the output defaults.
+void __cdecl jdapimin_default_decompress_parms(jpeg_decompress_struct *cinfo);
+// 0x631080: the output pass finished, the input read to EOI (FALSE when suspended), the source terminated, jpeg_abort.
+unsigned char __cdecl jpeg_finish_decompress(jpeg_decompress_struct *cinfo);
+// 0x631460: the master from DSTATE_READY, a multi-scan file read in, then output_pass_setup.
+unsigned char __cdecl jpeg_start_decompress(jpeg_decompress_struct *cinfo);
+// 0x631540: the output pass prepared, a 2-pass quantizer's dummy passes run; DSTATE_SCANNING or RAW_OK.
+unsigned char __cdecl jdapistd_output_pass_setup(jpeg_decompress_struct *cinfo);
+// 0x631610: up to max_lines rows through the main controller's process_data; output_scanline advanced.
+unsigned int __cdecl jpeg_read_scanlines(jpeg_decompress_struct *cinfo, unsigned char **scanlines, unsigned int max_lines);
 }
 
 // What the library calls outside itself, the exe's: its C runtime's (a DLL's would be another heap, environment copy and FILE table)
@@ -522,3 +546,11 @@ struct Jpeg6bCrtEnv {
 
 // The library's calls go through env (nullptr: the exe's).
 void Jpeg6b_SetCrtEnv(const Jpeg6bCrtEnv *env);
+
+// For the tests' driver, whose own code lies at the exe's code addresses, so it cannot call a method the shims stored as the exe's
+// address: with native methods the shims leave the library's addresses in place (a case that runs a method an init it called stored,
+// jpeg_CreateDecompress's marker reader calling the new memory manager's alloc_small, then calls the library's, as the hooked game
+// does), and Jpeg6b_ExeMethod gives the exe's address of a library method's (0 for anything else), which the driver puts back in the
+// memory it reports, so it compares with the exe's.
+void Jpeg6b_SetNativeMethods(bool native);
+std::uint32_t Jpeg6b_ExeMethod(std::uint32_t address);

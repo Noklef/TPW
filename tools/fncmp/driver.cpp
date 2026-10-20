@@ -727,6 +727,17 @@ std::vector<u8> unhex(const char *s) {
     return out;
 }
 
+// A libjpeg 6b bench whose cases run methods the shims store (FNCMP_JPEG6B_NATIVE, set by the bench: the shims leave the library's
+// addresses, which the driver can call, see Jpeg6b_SetNativeMethods): the heap's method fields back to the exe's addresses, as the
+// game's memory has them, before the heap is reported. Only the heap: the shims' structures are allocated there, and its unwritten
+// bytes are 0xcd, never a function's address.
+void jpeg6b_methods_back(u32 at, u32 size) {
+    for (u32 o = 0; o + 4 <= size; o += 4) {
+        u32 *const p = reinterpret_cast<u32 *>((uintptr_t)(at + o));
+        if (const u32 exe = Jpeg6b_ExeMethod(*p)) *p = exe;
+    }
+}
+
 void put_hex(const u8 *p, u32 n) {
     static const char digits[] = "0123456789abcdef";
     char buf[4096];
@@ -757,6 +768,8 @@ int main(int argc, char **argv) {
     PtrList_SetEnv(&kPtrListEnv);
     GameHeap_SetEnv(&kGameHeapEnv);
     Jpeg6b_SetCrtEnv(&kJpeg6bCrtEnv);
+    const bool jpeg6b_native = std::getenv("FNCMP_JPEG6B_NATIVE") != nullptr;  // (a libjpeg 6b bench's, see jpeg6b_methods_back)
+    Jpeg6b_SetNativeMethods(jpeg6b_native);
     WadSource_SetEnv(&kWadSourceEnv);
     BufferedSource_SetEnv(&kBufferedSourceEnv);
     SurfaceBuffer_SetEnv(&kSurfaceBufferEnv);
@@ -1003,6 +1016,7 @@ int main(int argc, char **argv) {
         for (auto &s : spans) {
             std::putchar(' ');
             const u8 *p = reinterpret_cast<const u8 *>((uintptr_t)s.first);
+            if (jpeg6b_native && s.first == kHeap) jpeg6b_methods_back(s.first, s.second);
             put_hex(p, s.second);
         }
         std::putchar('\n');

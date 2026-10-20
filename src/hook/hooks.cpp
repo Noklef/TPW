@@ -5145,6 +5145,15 @@ const Hook kHooks[] = {
     {"jinit_master_decompress",   0x0063e380, (void *)&jinit_master_decompress, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"jdmaster_use_merged_upsample", 0x0063e2f0, (void *)&jdmaster_use_merged_upsample, {0x8b, 0x54, 0x24, 0x04, 0x57}},
     {"jpeg_calc_output_dimensions", 0x0063e0b0, (void *)&jpeg_calc_output_dimensions, {0x53, 0x55, 0x56, 0x8b, 0x74}},
+    {"jpeg_read_scanlines",       0x00631610, (void *)&jpeg_read_scanlines, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jdapistd_output_pass_setup", 0x00631540, (void *)&jdapistd_output_pass_setup, {0x53, 0x56, 0x8b, 0x74, 0x24}},
+    {"jpeg_start_decompress",     0x00631460, (void *)&jpeg_start_decompress, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jpeg_finish_decompress",    0x00631080, (void *)&jpeg_finish_decompress, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jdapimin_default_decompress_parms", 0x00630ee0, (void *)&jdapimin_default_decompress_parms, {0x53, 0x56, 0x8b, 0x74, 0x24}},
+    {"jpeg_consume_input",        0x00630e10, (void *)&jpeg_consume_input, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jpeg_read_header",          0x00630d90, (void *)&jpeg_read_header, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jpeg_destroy_decompress",   0x00630d80, (void *)&jpeg_destroy_decompress, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"jpeg_CreateDecompress",     0x00630ca0, (void *)&jpeg_CreateDecompress, {0x8b, 0x44, 0x24, 0x08, 0x53}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

@@ -215,8 +215,11 @@ const ExeMethod kExeMethods[] = {
     {fn(&jdmaster_finish_output_pass), 0x63e790},
 };
 
+bool g_native_methods = false;  // (Jpeg6b_SetNativeMethods: the tests' driver, which cannot call the exe's addresses)
+
 // The method pointer at slot: the exe's address in place of a library method's (anything else is left as it is).
 void exe_method_at(void *slot) {
+    if (g_native_methods) return;
     void *&p = *static_cast<void **>(slot);
     for (const ExeMethod &m : kExeMethods)
         if (p == m.library) {
@@ -411,6 +414,14 @@ const Jpeg6bCrtEnv *g_crt = &kExeCrt;
 }  // namespace
 
 void Jpeg6b_SetCrtEnv(const Jpeg6bCrtEnv *env) { g_crt = env ? env : &kExeCrt; }
+
+void Jpeg6b_SetNativeMethods(bool native) { g_native_methods = native; }
+
+std::uint32_t Jpeg6b_ExeMethod(std::uint32_t address) {
+    for (const ExeMethod &m : kExeMethods)
+        if ((std::uintptr_t)m.library == address) return (std::uint32_t)m.exe;
+    return 0;
+}
 
 extern "C" {
 void *__cdecl jpeg6b_exe_malloc(size_t size) { return g_crt->alloc(size); }
