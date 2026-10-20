@@ -5,11 +5,28 @@
 // next to 6b, which keeps its own; the hook rows use those names. The declarations use the plain types the library's typedefs name
 // (JSAMPARRAY: unsigned char **, JDIMENSION: unsigned int, 8-bit DCTELEM: int), so this header pulls in none of libjpeg's macros. All
 // are cdecl, as in the exe (an unoptimised build: each function is its own, with a frame).
+// The structs are named by tags of their own, jpeg6a_*: 6b's jpeg6b.h names the same tags (jpeg_common_struct, ...), laid out
+// differently, and jpeg6a.cpp renames 6a's jpeglib.h's tags to these (and the untagged JQUANT_TBL / JHUFF_TBL are given these names).
 #pragma once
 
 #include <cstddef>
 
 extern "C" {
+
+struct jpeg6a_common_struct;    // jpeg_common_struct: err +0, mem +4, progress +8, is_decompressor +0xc, global_state +0x10
+struct jpeg6a_compress_struct;  // jpeg_compress_struct, 0x168 bytes (6a's boolean an int)
+struct jpeg6a_quant_tbl;        // JQUANT_TBL (untagged), 0x84 bytes (sent_table at +0x80)
+struct jpeg6a_huff_tbl;         // JHUFF_TBL (untagged), 0x118 bytes (sent_table at +0x114)
+
+// jcomapi.c: what compression and decompression share.
+// 0x64f3c0: the image pool freed (mem->free_pool of pool 1), global_state back to the start (DSTATE_START 200 for a decompressor,
+// else CSTATE_START 100).
+void __cdecl jpeg6a_jpeg_abort(jpeg6a_common_struct *cinfo);
+// 0x64f40c: mem->self_destruct when there is a manager, then mem and global_state zeroed.
+void __cdecl jpeg6a_jpeg_destroy(jpeg6a_common_struct *cinfo);
+// 0x64f43e, 0x64f46f: a permanent JQUANT_TBL / JHUFF_TBL (alloc_small of pool 0), sent_table FALSE.
+jpeg6a_quant_tbl *__cdecl jpeg6a_jpeg_alloc_quant_table(jpeg6a_common_struct *cinfo);
+jpeg6a_huff_tbl *__cdecl jpeg6a_jpeg_alloc_huff_table(jpeg6a_common_struct *cinfo);
 
 // jutils.c (the same source as 6b's; the exe's copies use inline REP MOVS / STOS, the library's memcpy / memset)
 // 0x6503d0: a / b rounded up (a >= 0, b > 0).

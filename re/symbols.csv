@@ -5545,3 +5545,7 @@ address,name,kind,confidence,notes
 0x006504a2,jpeg6a_jzero_far,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jutils.c jzero_far: a span of bytes cleared (the library's)
 0x00657480,jpeg6a_jpeg_fdct_ifast,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jfdctfst.c jpeg_fdct_ifast: one block's fast integer forward DCT in place (the library's)
 0x00657810,jpeg6a_jpeg_fdct_islow,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jfdctint.c jpeg_fdct_islow: one block's accurate integer forward DCT in place (the library's)
+0x0064f3c0,jpeg6a_jpeg_abort,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcomapi.c jpeg_abort: the image pool freed, global_state back to the start (the library's)"
+0x0064f40c,jpeg6a_jpeg_destroy,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcomapi.c jpeg_destroy: the memory manager's self_destruct, mem and global_state zeroed (the library's)"
+0x0064f43e,jpeg6a_jpeg_alloc_quant_table,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcomapi.c jpeg_alloc_quant_table: a permanent quantization table, sent_table FALSE (the library's)"
+0x0064f46f,jpeg6a_jpeg_alloc_huff_table,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcomapi.c jpeg_alloc_huff_table: a permanent Huffman table, sent_table FALSE (the library's)"
