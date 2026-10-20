@@ -4,6 +4,7 @@
 
 #include "buffers.h"
 #include "gameheap.h"
+#include "trivial.h"
 #include "wtraits.h"
 
 namespace {
@@ -80,5 +81,25 @@ u8 *__fastcall WKeywordPair_Ctor(u8 *pair, void *, StdWString key, u32 v0, u32 v
     destroy(key);
     return pair;
 }
+
+}  // extern "C"
+
+namespace {
+
+u32 pushToken(u8 *scanner, u32 kind) {
+    CountedPair token{};
+    token.value = kind;
+    u8 *const tokens = at<u8 *>(scanner, 0x50);
+    CountedPairVector_InsertN(tokens, nullptr, at<u32>(tokens, 8), 1, &token);
+    return Obj_CopyCToMark(scanner);
+}
+
+}  // namespace
+
+extern "C" {
+
+u32 __fastcall WScanner_PushToken0c(u8 *scanner) { return pushToken(scanner, 0xc); }
+u32 __fastcall WScanner_PushToken12(u8 *scanner) { return pushToken(scanner, 0x12); }
+u32 __fastcall WScanner_PushToken15(u8 *scanner) { return pushToken(scanner, 0x15); }
 
 }  // extern "C"

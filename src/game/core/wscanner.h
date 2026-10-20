@@ -1,9 +1,11 @@
 // A wide text scanner (subject unconfirmed): an object holding a std::wstring at +4 that it reads on from +0x34 (+0x38 its position),
 // set up by 0x5e45d0 (which then asks it for a '/'), with three flag bytes at +0x3d and a context pointer at +0x40. Reimplementation of
-// its text setter 0x5e6b30 and of the keyword pair's constructor 0x5e73f0.
+// its text setter 0x5e6b30, of the keyword pair's constructor 0x5e73f0 and of three token pushes (0x5e57c0, 0x5e6070, 0x5e6540) onto the
+// vector of CountedPairs at +0x50.
 #pragma once
 
 #include "../../../re/types.h"
+#include "countedpair.h"
 #include "stdwstring.h"
 
 extern "C" {
@@ -20,4 +22,11 @@ void __fastcall WScanner_SetText(u8 *scanner, void *, StdWString text, u32 conte
 // kept) made empty and assigned the key as WScanner_SetText assigns (not frozen), +0x10..+0x1c = the value's four dwords, the key
 // destroyed. Returns the pair.
 u8 *__fastcall WKeywordPair_Ctor(u8 *pair, void *, StdWString key, u32 v0, u32 v1, u32 v2, u32 v3);
+
+// 0x5e57c0, 0x5e6070, 0x5e6540 (thiscall; names unconfirmed): a pair {"", L"", 0xc / 0x12 / 0x15} (its strings built empty, their allocator
+// bytes stack garbage) inserted once at the end of the vector of CountedPairs [+0x50] (CountedPairVector_InsertN(last, 1)), the pair
+// destroyed (its strings hold no block), then Obj_CopyCToMark: the position +0x38 set to the text's length +0xc. Returns what that returns.
+u32 __fastcall WScanner_PushToken0c(u8 *scanner);
+u32 __fastcall WScanner_PushToken12(u8 *scanner);
+u32 __fastcall WScanner_PushToken15(u8 *scanner);
 }
