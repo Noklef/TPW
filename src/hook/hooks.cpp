@@ -131,6 +131,7 @@
 #include "../game/gfx/textlayout.h"
 #include "../game/gfx/tvstatic.h"
 #include "../game/gfx/aaline.h"
+#include "../game/gfx/signstyle.h"
 #include "../game/gfx/wctimage.h"
 #include "../game/core/crt.h"
 #include "../game/core/gameheap.h"
@@ -4244,6 +4245,7 @@ const Hook kHooks[] = {
     {"AaLine_Draw16",             0x005ee580, (void *)&AaLine_Draw16, {0x83, 0xec, 0x54, 0x8b, 0x44}},
     {"AaLine_Draw24",             0x005ef040, (void *)&AaLine_Draw24, {0x83, 0xec, 0x54, 0x8b, 0x44}},
     {"AaLine_Draw32",             0x005efb10, (void *)&AaLine_Draw32, {0x83, 0xec, 0x54, 0x8b, 0x44}},
+    {"SignStyle_Load",            0x005ec3a0, (void *)&SignStyle_Load, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

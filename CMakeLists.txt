@@ -179,6 +179,7 @@ add_library(tpw_game STATIC
     src/game/gfx/texfile.cpp
     src/game/gfx/mmxfill.cpp
     src/game/gfx/aaline.cpp
+    src/game/gfx/signstyle.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp
