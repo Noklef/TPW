@@ -19,9 +19,10 @@ import files  # noqa: E402
 import gamestring  # noqa: E402
 from gamestring import BACKSLASH, DOT, LOCALE, SLASH2, string  # noqa: E402
 
-B = Bench(gamestring.B_RANGES + [(0x41cff0, 0x41d2d0), (0x41ce90, 0x41ce94), (0x421720, 0x421780), (0x4217e0, 0x421800), (0x5c4d50, 0x5c4f70),
+RANGES = gamestring.B_RANGES + [(0x41cff0, 0x41d2d0), (0x41ce90, 0x41ce94), (0x421720, 0x421780), (0x4217e0, 0x421800), (0x5c4d50, 0x5c4f70),
                                  (0x46f120, 0x46f160), (0x5c4f80, 0x5c4fb0), (0x618d30, 0x618d90), (0x44a280, 0x44a3c4), (0x461790, 0x461a60),
-                                 (0x45b9d0, 0x45ba15)])
+                                 (0x45b9d0, 0x45ba15)]
+B = Bench(RANGES)
 TAIL, WAD, EMPTY = 0x78bf40, 0x78c810, 0x78be50
 PATH, BASE, OUT = RAM, RAM + 0x40, RAM + 0x80
 WORDS = [b'data', b'Data', b'ui', b'x.wct', b'a', b'TP', b'levels']

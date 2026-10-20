@@ -104,7 +104,7 @@ address,name,kind,confidence,notes
 0x00598800,WaveletCodec_DeletingDtor,function,medium,
 0x007026d8,WaveletCodec_vtable,data,high,"slots: DecodeV12, DecodeV13Scaled, DecodeV13"
 0x007026b8,IWaveletCodec_vtable,data,high,interface vtable (this-adjusting thunks at 0x598780..)
-0x0046ead0,TextureSet_Load,function,medium,"builds dir+name, forces '.wct', 'Could not load texture %s'"
+0x0046ead0,TextureSet_Load,function,medium,"reimplemented (src/game/gfx/texdirs); cdecl (set, probe, unused); the set's textures given directories: the second's when the quickload stem or the .wct/.tga file is found there, else the third's, else the table's first"
 0x0046f120,VFS_FileExists,function,low,"reimplemented (src/game/files/vfs); cdecl (name); VFS_Open, a stream got finished and deleted: 1, else 0"
 0x005c4d50,VFS_Open,function,medium,"reimplemented (src/game/files/vfs); cdecl (name); a new stream opened through the mounts: the source's archive by the path relative to its root, the source itself, then the list's objects; the stream or 0 (leaked)"
 0x00477ff0,UITexture_Construct,function,medium,"thiscall(name); loads UI textures such as 'happygrad.wct'"
@@ -4254,6 +4254,7 @@ address,name,kind,confidence,notes
 0x0046e640,TexDirs_SetCurrent,function,high,reimplemented (src/game/gfx/texdirs); sets the pointer at 0x7b0620
 0x0046e670,TexDirs_Set,function,high,"reimplemented (src/game/gfx/texdirs); sets the three texture directories (base + name + backslash), reusing unchanged strings"
 0x0046ea80,TexDirs_Reset,function,high,reimplemented (src/game/gfx/texdirs); frees the texture directory blocks and clears the table
+0x0046e4e0,TexDirs_SetForModel,function,low,"reimplemented (src/game/gfx/texdirs); cdecl (info, model); the texture directories set under the located model file's directory (Quickload_Locate, .wct on the second try) and the model's texture set loaded with probe 1"
 0x0047faa0,Gauge_Init,function,high,reimplemented (src/game/gfx/gauge); a framed gauge zeroed
 0x0047fb10,Gauge_SetMarksX,function,high,reimplemented (src/game/gfx/gauge); the gauge's three marks' x
 0x0047fb30,Gauge_SetMarksY,function,high,reimplemented (src/game/gfx/gauge); the gauge's three marks' y
