@@ -3780,6 +3780,7 @@ address,name,kind,confidence,notes
 0x0047fa00,TextMetrics_FitIndex,function,high,reimplemented (src/game/gfx/text); index at which the width runs out
 0x0047f990,TextMetrics_ForwardSlot8,function,high,reimplemented (src/game/gfx/text); Forwards to virtual call 8 of the inner object (name unconfirmed)
 0x0046c010,Text_SelectFont,function,low,"reimplemented (src/game/gfx/text); cdecl (index, mode): with the font table (0x7b059c) and a font in entry index (+0xc), Text_SetDriver of the plain glyph driver (mode 1) or the shape one (mode 0) with the font; 1, else 0 (name unconfirmed)"
+0x0047fa40,TextMetrics_Lookup,function,low,"reimplemented (src/game/gfx/text); thiscall (key), pops 4, the 0x6ff058 vtable slot 2: with the object at +0x14, the key through Ranges_LookupAdapter on [0x78ba80], then its slot 5 (&&key) and slot 7 (&local, that): the word at the pointer; else 0 (name unconfirmed)"
 0x0050f310,Matrix2_Transform,function,high,reimplemented (src/game/math/matrix); fixed point 2 x 2 transform of a pair
 0x005787b0,Vec2_Normalize,function,low,reimplemented (src/game/math/vec2); thiscall (x87): the float pair over its length; a zero or NaN length squared taken as 1
 0x00549020,IntVec2_Length,function,low,"reimplemented (src/game/math/vec2); cdecl (x, y): the integer pair's length, both halved while too big for the squares, the root shifted back"
