@@ -361,6 +361,8 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
         if (mask >> (16 + i) & 1) args[i] = 0;
         if (log[0x300 + (k & 63)] >> i & 1) args[i] &= 0xff;
     }
+    u32 earlier = 0;  // (this slot's calls in the log so far: fncmp.fail_after())
+    for (u32 i = 0; i < log[0] && i < 40; ++i) earlier += log[1 + 12 * i] == k;
     if (log[0] < 40) {
         u32 *entry = log + 1 + 12 * log[0];
         entry[0] = k;
@@ -378,7 +380,9 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     }
     u32 h = self * 0x9e3779b1u + (k + 1) * 0x10001u + n;
     for (u32 i = 0; i < n; ++i) h = h * 33 ^ args[i];
-    const u32 *override = log + 0x200 + 2 * (k & 63);  // (LOG_RETURNS: a flag and a value for the slot; flag 2: argument value, as passed)
+    const u32 *override = log + 0x200 + 2 * (k & 63);  // (LOG_RETURNS: a flag and a value for the slot; flag 2: argument value, as passed;
+    if (override[0] == 3)                               //  3: the first value & 0xffff calls unanswered, then value >> 16 sign-extended)
+        return earlier < (override[1] & 0xffff) ? h : (u32)(s32)(s16)(override[1] >> 16);
     return override[0] == 2 && override[1] < n ? stack[1 + override[1]] : override[0] ? override[1] : h;
 }
 

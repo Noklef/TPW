@@ -410,7 +410,7 @@ VSTUBS = STUBS + 0x1000  # the recorders: slot k (0-31) with n (0-15) stack argu
 LOG = STUBS + 0x100000  # their log (the case maps it, see log_region()): a count, then 12 dwords an entry (k, n, this, up to 7 arguments), room for 80
 LOG_ENTRY = 12
 LOG_ENTRIES = 40  # (the room: 4 + 48 * 40 bytes)
-LOG_RETURNS = 0x800  # from here an override for each slot: a flag and a value (flag 2: the value is an argument's index, see echo())
+LOG_RETURNS = 0x800  # from here an override for each slot: a flag and a value (flag 2: the value is an argument's index, see echo(); 3: see fail_after())
 
 
 def recorder(k, n, com=False, cdecl=False):
@@ -436,6 +436,29 @@ def log_region():
 def set_return(log, k, value):
     """Makes slot k's recorder return `value` (in the log region the case hands over)."""
     struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 1, value & 0xffffffff)
+
+
+def fail_after(log, k, n, value=0xffffffff):
+    """Makes slot k's recorder answer its first n calls (as counted in the log) as it would without an override, and every later one `value`
+    (a 16-bit value sign-extended: INVALID_HANDLE_VALUE by default), so that a loop that runs until a call fails ends: a CreateFileA that opens
+    n files."""
+    assert 0 <= n < 0x10000 and (value >> 15 == 0 or value | 0x7fff == 0xffffffff)
+    struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 3, (value & 0xffff) << 16 | n)
+
+
+def logged_calls(read, kk):
+    """How many of the log's entries are slot kk's (k as logged: | 0x100 for a COM-style one, | 0x200 for a cdecl one)."""
+    count = min(struct.unpack('<I', read(LOG, 4))[0], LOG_ENTRIES)
+    return sum(1 for i in range(count) if struct.unpack('<I', read(LOG + 4 + 4 * LOG_ENTRY * i, 4))[0] == kk)
+
+
+def answer(flag, value, raw, n, h, earlier):
+    """A recorder's return value: its override (LOG_RETURNS: flag and value) or the hash h (driver.cpp record_call)."""
+    if flag == 2 and value < n:
+        return raw[value]
+    if flag == 3:
+        return h if earlier < (value & 0xffff) else (value >> 16) - (0x10000 if value >> 31 else 0) & 0xffffffff
+    return value if flag else h
 
 
 def echo(log, k, arg):
@@ -587,13 +610,14 @@ def _recorder(k, n, com=False, cdecl=False):
         this = 0 if com or cdecl else e.r['ECX']
         kk = k | 0x100 if com else k | 0x200 if cdecl else k
         args = _log_args(e, k, raw)
+        earlier = logged_calls(e.read, kk)
         count = e.u32(LOG)
         if count < LOG_ENTRIES:
             entry = LOG + 4 + 4 * LOG_ENTRY * count
             e.write(entry, struct.pack('<%dI' % LOG_ENTRY, kk, n, this, *(args + [0] * 7)[:7], tail_hash(args), 0))
             e.write(LOG, struct.pack('<I', count + 1))
         flag, value = struct.unpack('<2I', e.read(LOG + LOG_RETURNS + 8 * k, 8))
-        e.r['EAX'] = raw[value] if flag == 2 and value < n else value if flag else vhash(kk, n, this, args)
+        e.r['EAX'] = answer(flag, value, raw, n, vhash(kk, n, this, args), earlier)
         if cdecl:  # (the caller pops them)
             return
         if e.tail:  # the return address goes up over the arguments the callee would have popped
