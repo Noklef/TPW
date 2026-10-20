@@ -1,6 +1,7 @@
 #include "lightsource.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "../core/gameheap.h"
 #include "../core/globalmem.h"
@@ -252,5 +253,63 @@ void __cdecl LightSource_UpdateMain(u32 update) {
     at<float>(b, 8) = (float)(X87Reg(X87_MulInt(colour >> 16 & 0xff, factor)) * k);
     at<float>(b, 0xc) = (float)(X87Reg(X87_MulInt(colour >> 8 & 0xff, factor)) * k);
     at<float>(b, 0x10) = (float)(X87Reg(X87_MulInt(colour & 0xff, factor)) * k);
+}
+void __fastcall LightSlot_Set(u8 *slot, void *, u32 on, const u32 *colour, const u32 *direction, u32 value) {
+    const auto paint = [](u8 *light, u32 c) {   // the colour's channels (high byte first) * [0x702a30] * [0x702a4c] at +4..+0x10, itself at +0x54
+        const float scale = global<float>(0x00702a30), k = global<float>(0x00702a4c);
+        SceneFlags_Touch(reinterpret_cast<u32 *>(0x008bd508));
+        at<u32>(light, 0x54) = c;
+        at<float>(light, 4) = (float)(X87Reg(X87_MulInt(c >> 24, scale)) * k);
+        at<float>(light, 8) = (float)(X87Reg(X87_MulInt(c >> 16 & 0xff, scale)) * k);
+        at<float>(light, 0xc) = (float)(X87Reg(X87_MulInt(c >> 8 & 0xff, scale)) * k);
+        at<float>(light, 0x10) = (float)(X87Reg(X87_MulInt(c & 0xff, scale)) * k);
+    };
+    const auto unit = [](const float v[3], float out[3]) {   // v over its length (the length stored as a float)
+        const X87Reg sum = (X87Reg(v[0]) * v[0] + X87Reg(v[1]) * v[1]) + X87Reg(v[2]) * v[2];
+        const float length = (float)X87_Sqrt(sum);
+        for (int i = 0; i < 3; ++i)
+            out[i] = (float)(X87Reg(v[i]) / length);
+    };
+    const auto base = [](u8 *light) { return light ? light + at<s32>(at<u8 *>(light, 0), 4) : nullptr; };
+    if (!on) {
+        if (u8 *const light = at<u8 *>(slot, 0x20)) {
+            Renderer_RemoveFromSlot(global<u8 *>(0x0087a6d0), nullptr, (u32)(uintptr_t)base(light), 0x70);
+            if (u8 *const again = at<u8 *>(slot, 0x20))
+                vcall<void>(base(again), 0, 1u);
+            at<u32>(slot, 0x20) = 0;
+        }
+        at<u32>(slot, 0x24) = value;
+        return;
+    }
+    if (u8 *const light = at<u8 *>(slot, 0x20)) {
+        if (colour)
+            paint(light, *colour);
+        if (direction) {
+            float v[3], out[3];
+            std::memcpy(v, direction, 12);
+            unit(v, out);
+            u8 *const again = at<u8 *>(slot, 0x20);
+            SceneFlags_Touch(reinterpret_cast<u32 *>(0x008bd508));
+            std::memcpy(&at<float>(again, 0x2c), out, 12);
+        }
+        at<u32>(slot, 0x24) = value;
+        return;
+    }
+    const u32 c = colour ? *colour : 0;
+    float v[3] = {1.0f, 0.0f, 0.0f}, out[3];
+    if (direction)
+        std::memcpy(v, direction, 12);
+    unit(v, out);
+    u8 *const made = static_cast<u8 *>(GameHeap_Alloc(0x64));
+    if (made)
+        Obj_CtorVirtual(made, nullptr, 1);   // (inline)
+    at<u8 *>(slot, 0x20) = made;
+    at<u32>(made, 0x50) = 2;   // (no block: through 0, sic)
+    paint(at<u8 *>(slot, 0x20), c);
+    u8 *const light = at<u8 *>(slot, 0x20);
+    SceneFlags_Touch(reinterpret_cast<u32 *>(0x008bd508));
+    std::memcpy(&at<float>(light, 0x2c), out, 12);
+    Renderer_Add(global<u8 *>(0x0087a6d0), nullptr, base(at<u8 *>(slot, 0x20)), 0x70);
+    at<u32>(slot, 0x24) = value;
 }
 }

@@ -34,4 +34,42 @@ void __cdecl Pool_FreeAll(u8 *owner);
 // side (y - 0x87c without flag 8, else + 0x87c without 0x10; x + 0x87c without flag 2, else - 0x87c without 4) lies in no blocker
 // (IntArea_Contains, the table and count reread for each). 0 for none, no table or a count of 0.
 u8 *__cdecl CollArea_FindNearest(const s32 *area, s32 x, s32 y, u32 self);
+
+// 0x547c60 (cdecl; car, x, y; name unconfirmed; the track rides' 0x547815, 0x547927 and 0x5479b2): a ride car steered towards (x, y); returns
+// the distance left, or -1. With flag 0x10000 (+0) and an area (+0x98): the first area node in use (the table [0x877b70] walked until
+// [0x877b74] are seen) that is no blocker (0x40) and contains the point (IntArea_Contains); none: the target (+0x6c, +0x70) is the point and
+// -1 returned. When the car's area meets that node (IntArea_Overlaps) the target is the point plus the offset (+0x74, +0x78) and the flag
+// cleared; else the nearest node (CollArea_FindNearest(area, x, y, 0); none: the velocity (+0x3c, +0x40) zeroed and -1, after the empty
+// Debug_Printf) with its centre moved 0x87c towards its closed side as CollArea_FindNearest does is the target, flag 0x20000 set and
+// 0x10000 cleared. Then: the bearing to the target, atan2(dx, -dy) / pi * 256 - 256 truncated (fpatan, x87 at the game's precision); the
+// turn (-heading (+0x50) - bearing) & 0x1ff; the distance sqrt(dx^2 + dy^2) truncated, both halved (arithmetically) until |dx| <= 0x8000
+// and |dy| <= 0x7fff and the result shifted back. The kind (+0x9c): a turn past 0x100 is taken the other way (0x200 - turn, the rate
+// +0x28 negated); a turn beyond rate / 2 with the kind's +0x54 not 2 and flag 0x4000 turns the heading by the rate (& 0x1ff). A turn below
+// distance / 512 kept to 0x16-0x30, with flags 0x84000 just 0x4000 and +0x54 not 2, adds speed (+0x20 + the car's +0x68; 3/4 of it unless
+// the area's flags have all of 0x1e) * the integer sine (0x877358) of the heading * 4 / 1024 to +0x3c, and of the heading + 0x80 to +0x40.
+s32 __cdecl Collider_SteerTo(u8 *car, s32 x, s32 y);
+
+// 0x5494d0 (cdecl; car; name unconfirmed; the track rides' 0x54710e): the car bounced off the blockers it is in. Each area node in use (the
+// table [0x877b70] walked until [0x877b74] are seen; none without a table or count) that is a blocker (0x40) and contains the car's position
+// (+0x34, +0x38; IntArea_Contains): unless the car's heading 256 - atan2(-vx, vy) / pi * 256 (the motion +0x44, +0x48) and the bearing away
+// from the node's centre 256 - atan2(dx, -dy) / pi * 256 (each truncated; fpatan, x87 at the game's precision) are 0x80-0x180 apart (& 0x1ff),
+// the speed sqrt(vx^2 + vy^2) truncated times the cosine of that difference (the integer sine table 0x877358 at it + 0x80) * 4 / 1024,
+// times the kind's (+0x9c) +0x2c + 0x400 / 1024, is added along the bearing (sine * 4 / 1024 to +0x3c, cosine to +0x40), flags 0x50000 set,
+// and the car put on the node's rim: centre + d * radius (+0xc) / |d| (|d| as Collider_SteerTo's distance; signed division, faulting on 0).
+// For kinds (the kind's +0) -5, -8, -12 and -13 the spin (+0x58) then takes 48 * |(|d| - radius)| against it: the bearing of the new
+// velocity atan2(-x, y) / pi * 256 - 256 (truncated) and the heading less than 0x100 apart (-heading - it, & 0x1ff): the larger of -that and
+// it plus the spin; else the smaller of that and it plus the spin.
+void __cdecl Collider_BounceOffBlockers(u8 *car);
+
+// 0x5497b0 (cdecl; car; name unconfirmed; the track rides' 0x547105): the car kept in its area. Nothing while its area (+0x98) contains its
+// position (+0x34, +0x38; IntArea_Contains). Else the first area node holding the position (as Collider_SteerTo's search) becomes its area,
+// flag 0x10000 set; with none and an area: the counter +0xa4 steps up unless negative, the heading 256 - atan2(vx, -vy) / pi * 256 (the
+// motion +0x44, +0x48; truncated) taken, and the car bounced back. A box area (flag 0x20): an axis whose |d| (from the centre) passes its
+// half size (+0xc, +0x10) has its speed (+0x3c, +0x40) times -(the kind's (+0x9c) +0x2c) / 1024 and its position put on that side. A circle:
+// the bearing away from the centre atan2(dx, -dy) / pi * 256 - 256 (truncated) mirrors the heading (r = 2 * ((-0x80 - away) & 0x1ff) -
+// 0x100 - ((heading - 0x100) & 0x1ff) - heading, & 0x1ff), the speed times +0x2c / 1024 turned by r on the integer sine table (x' = (y sin
+// + x cos) * 4 / 1024, y' = (y cos - x sin) * 4 / 1024), and the car put on the rim as Collider_BounceOffBlockers puts it. Then the
+// spinning kinds take the gap (a box's last |half size - |d||, or dx when neither axis passed, sic; a circle's |radius - |d||) as
+// Collider_BounceOffBlockers' do, against the bearing atan2(x, -y) of the new speed.
+void __cdecl Collider_KeepInArea(u8 *car);
 }

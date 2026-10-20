@@ -107,7 +107,7 @@ address,name,kind,confidence,notes
 0x0046ead0,TextureSet_Load,function,medium,"reimplemented (src/game/gfx/texdirs); cdecl (set, probe, unused); the set's textures given directories: the second's when the quickload stem or the .wct/.tga file is found there, else the third's, else the table's first"
 0x0046f120,VFS_FileExists,function,low,"reimplemented (src/game/files/vfs); cdecl (name); VFS_Open, a stream got finished and deleted: 1, else 0"
 0x005c4d50,VFS_Open,function,medium,"reimplemented (src/game/files/vfs); cdecl (name); a new stream opened through the mounts: the source's archive by the path relative to its root, the source itself, then the list's objects; the stream or 0 (leaked)"
-0x00477ff0,UITexture_Construct,function,medium,"thiscall(name); loads UI textures such as 'happygrad.wct'"
+0x00477ff0,MeshOverlay_Construct,function,low,"reimplemented (src/game/gfx/barmesh); thiscall (name), pops 4: the sibling overlay built the same way, its quads lying the other way; returns it"
 0x00591600,WaveletCodec_InitD4Filter,data,high,"4 static-initialiser stubs (0x591600/30/60/90) computing D4 h0..h3 into 0xc27208..14 via x87; not functions in Ghidra"
 0x00c27208,D4_h0,data,high,(1+sqrt3)/(4 sqrt2)
 0x00c2720c,D4_h1,data,high,(3+sqrt3)/(4 sqrt2)
@@ -148,7 +148,7 @@ address,name,kind,confidence,notes
 0x008791a0,RSSE_Initialised,data,high,
 0x0087919c,RSSE_CritLock,data,high,set by CRIT_LOCK
 0x00879190,RSSE_ScriptVersion,data,medium,expected .RSE version (0x10F51)
-0x0046d6d0,MD2_Load,function,high,"loads a .md2 mesh: magic 0x1CD15D46, version <=0xDE; relocates ~18 header offsets and nested table pointers"
+0x0046d6d0,MD2_Load,function,high,"reimplemented (src/game/model/md2file); cdecl (name, flags): a .md2 model file read whole into a GlobalMem block and its offsets made pointers"
 0x00416e10,Save_FieldName,function,high,"reimplemented (src/game/core/savegame); stdcall (size, name, isLoad) debug stub: returns 0"
 0x00416e20,Save_InitUnusedOne,function,low,reimplemented (src/game/core/savegame); cdecl static initialiser: unused 0x78aa2c = 1.0f
 0x00416e40,Save_InitUnusedEpsilon,function,low,reimplemented (src/game/core/savegame); cdecl static initialiser: unused 0x78b11c = 1 / 2^23
@@ -964,6 +964,7 @@ address,name,kind,confidence,notes
 0x005434d0,TrakChunk_End,function,low,"reimplemented (src/game/world/trackrides); cdecl: the total set from the stream's position, the header written again at the chunk's start, the stream sought back and the chunk freed; returns the total read after the free (name unconfirmed)"
 0x00544290,TrakChunk_Close,function,low,"reimplemented (src/game/world/trackrides); cdecl: the stream sought past the chunk (start + total), the chunk freed; returns the total (name unconfirmed)"
 0x00548e80,TrakRide_SetAsleep,function,low,"reimplemented (src/game/world/trackrides); cdecl (ride, asleep): flag 0x200 set / cleared, the instances at +8 / +0xc taken out of / put back in the renderer, the node list parts released / activated"
+0x0054b2f0,TrakRide_AddSection,function,low,reimplemented (src/game/world/trackrides); a track section added to a ride
 0x0055a570,FlyingRide_FirstSlotRide,function,high,"reimplemented (src/game/world/flyingrides); cdecl u32 (index): flying ride index's (1-99, 0x8791f8) first slot's ride (+0x11c), else 0"
 0x0055d610,FlyingRide_StepInSlot,function,high,"reimplemented (src/game/world/flyingrides); cdecl u32 (index): first slot in state 1 (slot +0x80) with a negative step (+0x8c): its ride part (key (base + -step) % count + 1, flag 0x80) released, step +1, +0x48 -1, the step's u32 (+0x90 + -step * 4); else 0"
 0x0055d720,FlyingRide_StepOutSlot,function,high,reimplemented (src/game/world/flyingrides); cdecl u32 (index): as 0x55d610 for the first slot with a positive step: step -1
@@ -1708,6 +1709,8 @@ address,name,kind,confidence,notes
 0x00578be0,Mat4_Perspective,function,low,"reimplemented (src/game/math/mat4); thiscall (near, far, fov degrees): the perspective matrix scaled by sin(fov / 2); the arguments kept in globals"
 0x00578ca0,Mat4_SetFar,function,low,"reimplemented (src/game/math/mat4); thiscall (far): the perspective remade with the kept near and field of view, and the depth at far (at least the near) handed to the render view's projection"
 0x00578d20,Mat4_Transform,function,low,"reimplemented (src/game/math/mat4); thiscall (out, in, mode; pops 0xc): the vector through the matrix by mode (point, 4D, point xyz, direction, transposed direction), x87"
+0x00578900,Mat4_LuDecompose,function,low,"reimplemented (src/game/math/mat4); cdecl (a, index, sign): Numerical Recipes ludcmp for 4x4, in place"
+0x00578b20,Mat4_Invert,function,low,reimplemented (src/game/math/mat4); thiscall: the matrix inverted through its LU decomposition
 0x005911d0,Bits_Count,function,high,reimplemented (src/game/math/bits); cdecl (mask): how many bits are set (a colour mask's width)
 0x005911f0,Bits_Shift,function,high,"reimplemented (src/game/math/bits); cdecl (mask): the clear bits below the lowest set one, 0 for 0 (a colour mask's shift)"
 0x005913f0,SinTable256_Build,function,high,reimplemented (src/game/math/sintable); fills the renderer sine table at 0x8c63d8
@@ -1856,6 +1859,7 @@ address,name,kind,confidence,notes
 0x00440a30,CoasterNodes_SplineAt,function,low,"reimplemented (src/game/coaster/nodes); cdecl (nodes, at): the spline node at a node index and fraction (walked on from the node's +0x2c while the next value is below), its +0 plus the way to the next as a fraction (double in st0)"
 0x0043f030,Keys_MergeSamples,function,high,"reimplemented (src/game/coaster/keys); cdecl (a, b, keys, out, span): n samples start + i/(n-1)*span (start at 0x79240c; n = **(b+0x90) when a == b, else 11) with the key times (0x10-byte keys) between them; returns the count written"
 0x0043fcd0,CoasterList_Append,function,high,"reimplemented (src/game/coaster/lists); cdecl (list): links the next 0x10-byte pool item (0x79c604) at the list tail, giving the list a mesh slot (counter 0x7925c8) first if it has none; returns the item"
+0x0043f150,CoasterMesh_Finish,function,low,"reimplemented (src/game/coaster/lists); cdecl (keep): the current coaster's mesh given its bounds, list slots and counts and woken, the lists reset; for keep 0 a fresh animator cloned and the build counters reset"
 0x0062fe00,RowReader_Decode,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); rows read ahead (vtable +0 Begin, +4 ReadRow), converted if the formats differ, copied top down or bottom up; a failed row read ends it as success"
 0x006300c0,RowReader_CopyRow,function,high,"reimplemented (src/game/gfx/tga); thiscall; copyBytes from the row buffer to the target, which moves by step; vtable +0xc"
 0x006300f0,TgaReader_Load,function,high,"reimplemented (src/game/gfx/tga); thiscall (&out, dst, stream, codec); ReadHeader, then RowReader_Decode"
@@ -2809,6 +2813,9 @@ address,name,kind,confidence,notes
 0x0056e780,Extents_Include,function,high,reimplemented (src/game/terrain/procedural); a column range's lowest and highest bytes extended
 0x0054b290,Pool_FreeAll,function,high,"reimplemented (src/game/world/collobj); every chunk of an owner's list freed, with its nodes"
 0x00549070,CollArea_FindNearest,function,low,"reimplemented (src/game/world/collobj); cdecl (area, x, y, self): of the area nodes in use, the nearest (x, y) that is no blocker (0x40), is not area unless self, meets area and whose centre moved 0x87c towards its closed side is in no blocker; 0 for none"
+0x00547c60,Collider_SteerTo,function,low,"reimplemented (src/game/world/collobj); cdecl (car, x, y): a ride car steered to a point through the area nodes; the distance left or -1"
+0x005494d0,Collider_BounceOffBlockers,function,low,"reimplemented (src/game/world/collobj); cdecl (car): the ride car pushed out of the blocking areas it is in, its velocity kicked away and its spin changed for some kinds"
+0x005497b0,Collider_KeepInArea,function,low,reimplemented (src/game/world/collobj); a ride car kept in its area
 0x0056b340,Obj_ReleaseFromRenderer,function,high,reimplemented (src/game/render/renderer); bit 0 cleared and the part removed from the renderer's tag 0x60 list
 0x00583360,Masks_TopBits,function,high,"reimplemented (src/game/render/texformat); the highest set bit of three masks stored, and their union"
 0x004f36c0,Vector36_Size,function,high,reimplemented (src/game/core/countedpair); the number of 36-byte elements between a vector's pointers
@@ -2830,6 +2837,7 @@ address,name,kind,confidence,notes
 0x005c7d00,Records24_IfUsed,function,high,reimplemented (src/game/files/userslots); a 24-byte record's address when its dword at +4 is set
 0x005c7bb0,Records24_CountUsed,function,high,reimplemented (src/game/files/userslots); how many of four 24-byte records are in use
 0x005b0d40,Table73f8a8_At,function,high,reimplemented (src/game/core/balancefile); the address of a 60-byte record of the table at 0x73f8a8
+0x005b11c0,ThemeRecord_LoadGlobalSam,function,low,reimplemented (src/game/core/balancefile); a theme's global.sam loaded
 0x005d5ee0,Obj_Flags1cAnd,function,high,reimplemented (src/game/core/globals); the dword at +0x1c masked
 0x005d1440,Span_Limited,function,high,"reimplemented (src/game/core/codecvt); to - from, at most a limit"
 0x005dd810,Obj_Positive40,function,high,reimplemented (src/game/frontend/viewcontrols); 1 when the signed dword at +0x40 is above 0
@@ -3876,6 +3884,7 @@ address,name,kind,confidence,notes
 0x005caf20,StringsListRecord_Dtor,function,low,"reimplemented (src/game/core/stdlist); thiscall (unwinds only): a record's std::strings (+0x2c, then +0x10, +0) tidied and its list of counted-buffer nodes at +0x20 erased (List_EraseNodeCounted), its sentinel freed"
 0x004a8ad0,TokenList_PushChars,function,low,reimplemented (src/game/core/stdlist); thiscall (chars; pops 4): a std::string of the characters pushed onto the owner's list of strings at +0x10
 0x005ca220,StringList34_PushChars,function,low,"reimplemented (src/game/core/stdlist); thiscall on an owner (chars; pops 4): a std::string of the characters pushed onto the owner's list of std::string at +0x30 (sentinel +0x34, count +0x38); TokenList_PushChars (0x4a8ad0) at +0x30 instead of +0x10"
+0x005cd440,StdListString_Next,function,low,"reimplemented (src/game/core/stdlist); thiscall: the string at the list cursor, the cursor moved on; at the sentinel an empty string made and released, its dead address returned"
 0x0041e2c0,Class6fda48_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
 0x0041e320,Class6fda68_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
 0x0041e4d0,Class6fdaa8_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
@@ -3957,6 +3966,7 @@ address,name,kind,confidence,notes
 0x00450d10,Terrain_ShadeNormals,function,low,"reimplemented (src/game/terrain/normals); cdecl: grid flag 0x400 from each map cell's flags 0x40 / 0x80, then Terrain_ScaleNormals from the map's model with the identity"
 0x0046eeb0,Terrain_NodeCells,function,low,"reimplemented (src/game/terrain/nodecells); cdecl (node, grid, matrix by value): the node box through its matrix to the cells it covers (+0x90), flags 0x2000 / 0x4000000; then its children"
 0x0046f0c0,Terrain_ModelCells,function,low,reimplemented (src/game/terrain/nodecells); cdecl (map): Terrain_NodeCells for the map model on its grid with the identity
+0x00427620,TerrainSets_Load,function,low,"reimplemented (src/game/terrain/tct); cdecl (name, sets): a level's terrain texture sets read from its .tct file in two passes (count, then place)"
 0x005ea510,Image_Dilate,function,high,reimplemented (src/game/gfx/imageops); separable maximum filter of an image
 0x005ea6d0,Image_Erode,function,high,reimplemented (src/game/gfx/imageops); separable minimum filter of an image
 0x005ea1f0,Image_MinMark,function,high,"reimplemented (src/game/gfx/imageops); 3 x 3 minimum of a two byte per pixel image, marking the changed pixels"
@@ -4289,6 +4299,7 @@ address,name,kind,confidence,notes
 0x005f2050,ParkMap_Classify,function,low,"reimplemented (src/game/world/parkmap); thiscall (map): each square of the map's width x height gets a kind (9 path, 1-8 by the owner's first thing's definition map kind and flags, 0xa / 0xb / 0xc by cell type 1 / 3 / flag 0x40) and the thing's handle in its 8-byte entry at +0x60"
 0x005f4180,ParkMap_PlaceSprite,function,low,"reimplemented (src/game/world/parkmap); thiscall on the park map (sprite; pops 4): the sprite's screen position from its map position, its frame's vector in the array at 0x879ce0 and the frame's +0x2c size"
 0x005f1050,ParkMap_ApplyView,function,low,"reimplemented (src/game/world/parkmap); thiscall on the map: the view origin (+0x54, +0x58) kept to 0 to width / height - 1, the camera put on it times 10 (Camera_SetView), the window (+4) sent message 4"
+0x005f3230,ParkMap_LayOut,function,low,"reimplemented (src/game/world/parkmap); thiscall: the overview backdrop framed on the view, its source rect set, the map sprites placed"
 0x0053a540,MapCell_PickModel,function,low,"reimplemented (src/game/world/cellmodel); thiscall (cell; angle out), pops 4: the cell's model (group << 16 | index) from the table for its type by its neighbour bits (exact, else a subset), *angle the row's plus 180 for straight cells facing 0x40 / 0x10, then adjusted by flags, corners, junctions and for type 0x19 a random variant; 8 for types 4, 5, 7, 9, 0xa, 0xc, 0x11"
 0x0050c9b0,UIMsgReceiver_Ctor,function,low,"reimplemented (src/game/world/uimsgreceiver); thiscall: Thing_Construct (cell 1, kind 0x11), then message centre slots 0x12, 0xa, 7, 8, 0x1b, 0xf, 0x13, 0x1c; returns it"
 0x00485f60,Object_Status,function,low,"reimplemented (src/game/world/objectstatus); cdecl (object, count): the object's status for its panel, an index into 0x74fb50's text ids: broken, closed for want of a link, waiting states by the world's words and the tracked person, the entrance or exit cut off, the queue"
@@ -4328,6 +4339,8 @@ address,name,kind,confidence,notes
 0x00477c30,BarMesh_ScalarDtor,function,low,"reimplemented (src/game/gfx/barmesh); thiscall (flags), pops 4: BarMesh_Dtor, freed for flags bit 0"
 0x00478390,MeshOverlay_Dtor,function,low,"reimplemented (src/game/gfx/barmesh); thiscall: the sibling mesh overlay's (0x6feeb8) destructor, as BarMesh_Dtor"
 0x00478370,MeshOverlay_ScalarDtor,function,low,"reimplemented (src/game/gfx/barmesh); thiscall (flags), pops 4: its scalar deleting destructor"
+0x00477870,BarMesh_Construct,function,low,"reimplemented (src/game/gfx/barmesh); thiscall (name), pops 4: the bar built over the GUI dialog base, its animator made into a two-quad mesh; returns the bar"
+0x00477d70,BarMesh_SetShown,function,low,"reimplemented (src/game/gfx/barmesh); thiscall (word), pops 4 (virtual slot 5): the animator woken or slept when the word +8 changes"
 0x00476e80,Overlay_ShowFrame,function,high,"reimplemented (src/game/gfx/overlay); shows node base + frame of the holder model list; old node 0x8010 set, new cleared"
 0x00476b70,Overlay_Dtor,function,low,"reimplemented (src/game/gfx/overlay); thiscall: the overlay base's destructor (holder disposed of or destroyed, then the GUI dialog base's)"
 0x00476b50,Overlay_ScalarDtor,function,low,"reimplemented (src/game/gfx/overlay); thiscall (flags), pops 4: Overlay_Dtor, freed for flags bit 0"
@@ -4451,6 +4464,7 @@ address,name,kind,confidence,notes
 0x00564c00,WctImage_Load,function,low,"reimplemented (src/game/gfx/wctimage); thiscall (name; pops 4); the WCT file opened through the mounts, its 0x1c-byte header read into +4 and its one or two blocks (+0x24, +0x20 with +6 = 0x20) into tracked blocks; 0 for another kind or a block not got"
 0x00561460,ScreenGrab_ToRgb24,function,low,"reimplemented (src/game/gfx/screengrab); thiscall: by the display depth (0x8bcbe4) the pixels at +0 (count +8) become 24-bit ones at +4: 32 packed in place, 24 moved, 16 converted into a new tracked block through the display's masks and shifts (0 and the error pushed when that fails); returns 1 (name unconfirmed)"
 0x005617c0,ScreenGrab_SetName,function,low,reimplemented (src/game/gfx/screengrab); thiscall (name): the name copied to +0xc and +0x8c pointed at it; a null name leaves them; returns 1
+0x00550460,ScreenGrab_NextName,function,low,"reimplemented (src/game/gfx/screengrab); cdecl: the next free grab name: Scr%05ld.tga of the raised counter at 0x879084 opened as a FileStream until that fails, then given to the grab at 0x8798d0"
 0x0053e650,TvStatic_CreateSurface,function,low,"reimplemented (src/game/gfx/tvstatic); cdecl (SEH frame left out): a new Surface (0x50 bytes, key/+0x20/+0x24 cleared, info constructed) and a 320x240 off-screen system memory DirectDraw surface for it (CreateSurface, slot 6 of [[0x879a24]]), attached (Surface_Attach); on a failure the Surface is freed and 0 returned (name unconfirmed)"
 0x0053e920,TvStatic_Init,function,low,reimplemented (src/game/gfx/tvstatic); cdecl: 0x874fd0 = TvStatic_CreateSurface() (name unconfirmed)
 0x0053e930,TvStatic_Free,function,low,"reimplemented (src/game/gfx/tvstatic); cdecl: the DirectDraw surface of the Surface at 0x874fd0 (Surface_GetSurface, addRef 1) released, the Surface freed (name unconfirmed)"
@@ -4735,6 +4749,7 @@ address,name,kind,confidence,notes
 0x00457e70,LightSource_Create,function,low,"reimplemented (src/game/render/lightsource); cdecl (kind, colour, point, direction): a light {kind, part, 0, part, colour} by kind: 0 the data error box and 0, 1 the ambient colour 0x879dd8, 2 / 3 a part built in place, coloured, given the direction / point and added to the renderer's tag 0x70 list"
 0x004584d0,LightSource_CreateMain,function,low,"reimplemented (src/game/render/lightsource); cdecl: the direction 0x7a0b30 normalised, the directional light of colour 0x7a0b3c made in it (LightSource_Create 2) and kept at 0x7a0b40, its part's flag 0x20 set"
 0x00458590,LightSource_UpdateMain,function,low,"reimplemented (src/game/render/lightsource); cdecl (update): when nonzero, the ambient 0x879dd8 = {1, rgb of 0x7a0b44 / 255}; the direction 0x7a0b30 normalised (times 0x74d0d8 over its float length); the main light's part takes it (+0x2c) and the colour 0x7a0b3c (+0x54, channels times 0x6fe50c / 255), SceneFlags_Touch before each"
+0x005d92e0,LightSlot_Set,function,low,"reimplemented (src/game/render/lightsource); thiscall (on, colour, direction, value): the slot light switched off (removed, deleted), repainted and turned, or made and added"
 0x00561bc0,ClipCodes_Compute,function,low,"reimplemented (src/game/render/clipcodes); fastcall-shaped (caller's ECX, EDX; out, codes, points, count, stride, mask), pops 24: each point's 7-bit sign/magnitude index into the table at 0x879970, masked, stored; out = AND | OR << 8 | ECX's high half"
 0x00570d60,ClipCodes_Run,function,low,reimplemented (src/game/render/clipcodes); the caller ECX and six arguments on to ClipCodes_Compute; returns out (name unconfirmed)
 0x00561840,ClipCodes_InitTable,function,low,"reimplemented (src/game/render/clipcodes); cdecl: the clip code table at 0x879970 built and the 8-byte block at 0x879a20 allocated, unless the block is there"
@@ -4805,6 +4820,9 @@ address,name,kind,confidence,notes
 0x005630b0,FixedVerts_Modulate,function,low,"reimplemented (src/game/render/fixedverts); cdecl (verts, colour, count, stride), MMX: the colour dwords (+0x10) of (count + 1) / 2 vertex pairs modulated by colour, each byte (byte * colour byte) >> 8 (name unconfirmed)"
 0x0053ddd0,VertexBlock_Add,function,low,"reimplemented (src/game/render/vertexblock); thiscall (x, y, z, u, v, wave, normal; pops 0x1c): a vertex added four abreast, y raised by the ground and a sine ripple when waving, with its normal"
 0x0053e530,VertexBlock_AddQuad,function,low,"reimplemented (src/game/render/vertexblock); thiscall (positions, unused, uvs, normals; pops 0x10): four corners added (VertexBlock_Add, no wave), then two triangles of word indices into the index list at +0x94, its count +0x98 up by two; returns the new count"
+0x0053df30,VertexBlock_AddFace,function,low,"reimplemented (src/game/render/vertexblock); thiscall (x, y, z, face, turn, type, unused, big, unused, fixed), pops 0x28: a cube face added as four vertices and two triangles; returns the new triangle count"
+0x0053d790,VertexBlock_Construct,function,low,"reimplemented (src/game/render/vertexblock); thiscall (cubes, quads, result, name, head, five dwords), pops 0x2c: a block of cube tops and quads built as a mesh and woken; returns the block"
+0x0053d9e0,VertexBlock_TakeFaces,function,low,reimplemented (src/game/render/vertexblock); thiscall: the block's share of the scene's generated faces added afresh
 0x00561c40,ClipEdge_YW,function,low,"reimplemented (src/game/render/clipedge); cdecl (out, a, b, stride): the vertex where edge b-a crosses y = w: t = 0.9999 dB / (dB - dA), w, texture coordinates, colours lerped, y = w"
 0x00561ea0,ClipEdge_YNegW,function,low,"reimplemented (src/game/render/clipedge); cdecl (out, a, b, stride): as ClipEdge_YW for the plane y = -w (distance y + w), y = -w"
 0x00562100,ClipEdge_XW,function,low,"reimplemented (src/game/render/clipedge); cdecl (out, a, b, stride): as ClipEdge_YW for the plane x = w (distance w - x), x = w"
@@ -4852,6 +4870,8 @@ address,name,kind,confidence,notes
 0x0045bbc0,Holder_Create,function,low,"reimplemented (src/game/model/holder); cdecl (holder): its part made (Mem_Alloc(0x158), LiveObject7019f8_Construct) and given the holder model (ObjModel_Load); the owner count +0x34 raised; the part at +0x1c"
 0x0045bd30,Holder_WakeWithMatrix,function,low,"reimplemented (src/game/model/holder); cdecl (holder, matrix, grid): the part gets the matrix; added to the renderer under 0x10 (flags 0x11) or 0x20 (flags 9)"
 0x00425440,Animator_Wake,function,low,reimplemented (src/game/model/holder); cdecl (animator): its holder wakes with the matrix at +0xc (Holder_WakeWithMatrix) or plainly (Holder_Wake); flag 0x4000. Returns 1
+0x00424ef0,Animator_Create,function,low,"reimplemented (src/game/model/holder); cdecl (animator, record, name, flags): the mesh built in one zeroed block (parts, tables, indices), the holder made after the texture directories; returns 1"
+0x00455690,Animator_Clone,function,low,"reimplemented (src/game/model/holder); cdecl (animator, unused, flags, out): a copy of the animator and its nodes in a block of its own, its holder cloned (Holder_Clone) and made; returns the clone's result"
 0x0046de00,Model_RemapTextures,function,high,"reimplemented (src/game/model/remap); (model, remap, textures, first): face texture pointers and grid cell textures renumbered"
 0x0046e130,Model_AddTerrainSets,function,low,"reimplemented (src/game/model/remap); cdecl (model, sets, dir): the model's textures found among the sets' tiles by name or kept, a new table of the kept ones then the tiles (named, numbered, their directories), Model_RemapTextures onto it; 1"
 0x00469180,Highlight_Update,function,high,"reimplemented (src/game/model/highlight); releases the current holder (0x7a1ce0) for another target (0x7afda0), highlights the target: mesh vertex blocks copied into 0x7afd00"
@@ -4925,6 +4945,7 @@ address,name,kind,confidence,notes
 0x0057a100,ObjModel_Unload,function,low,"reimplemented (src/game/model/objmodel); thiscall: an engine object's model unloaded (meshes' tracked blocks, saved pairs, block, texture sets, tracked block, procedural textures); +8 and flag 0x10000000 cleared; returns 1"
 0x00579e00,ObjModel_Load,function,low,"reimplemented (src/game/model/objmodel); thiscall (model), pops 4: an engine object's model loaded (procedural textures set up, BlueprintMesh parts flagged, texture sets made and set up, sharp textures flagged, waiting loads run, the tracked mesh block laid out, a loading step); unloaded and 0 on failure"
 0x0057a260,ObjModel_SetMatrices,function,low,"reimplemented (src/game/model/objmodel); thiscall (which, matrix): the matrix (with a flip) through the vertex transformer slot 6 into the static 0xfb3400, copied to the object +0x10 (bit 1) / +0x50 (bit 2)"
+0x00467310,RideBase_TidyUVs,function,low,"reimplemented (src/game/model/baseuvs); cdecl (model, part, tolerance, map, positions, warned): a ride base's texture coordinates snapped to whole numbers, moved down by their triangles' floors, groups on the base marked"
 0x0045aee0,Online_ApplyBalance,function,high,reimplemented (src/game/online/servers); copies Online.sam (gBalanceOnline) into the servers object 0x7a14f0
 0x005b6450,Online_LoggedIn,function,high,"reimplemented (src/game/online/session); thiscall u32: the online session's (0xf7d88c) +0x60, set while logged in"
 0x005b6460,Online_Restricted,function,high,reimplemented (src/game/online/session); thiscall u32: 1 unless logged in (+0x60) with the user's flag 0x20 (+0x58) clear

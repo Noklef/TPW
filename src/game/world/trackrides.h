@@ -116,4 +116,20 @@ u32 __cdecl TrakRide_Create(s32 kind, s32 x, s32 y, u32 orientation, u32 handle,
 // (PartStates_Release on the first instance's holder). Not asleep with the flag set: the flag is cleared and the same in reverse (Holder_AddToGrid / Holder_Wake,
 // PartStates_Activate with handle 0). Otherwise nothing.
 void __cdecl TrakRide_SetAsleep(u8 *ride, s32 asleep);
+
+// 0x54b2f0 (cdecl; handle, x, y, piece, a, b, c; name unconfirmed): a track section added to the ride when the module is loaded and the
+// handle names it; 0 otherwise, for a section of the ride's chain (+0xbc, the next at +0x24) already at (x, y) (after "Duplicate track
+// section - IGNORED!" to the empty Debug_Printf), or when the section pool (0x400 records of 0x28 bytes from [0x877b80], bit 0 of +0 in use;
+// none: 0) is full. The first free section: +0 = 1 (the count [0x877b84] up), +4 the piece, +8/+0xc/+0x10 a, b, c, +0x14/+0x18 the
+// position, +0x20 the ride, +0x24 = 0, appended to the chain; its node list +0x1c is not cleared (sic). By the piece's kind (its low word)
+// collision nodes (CollNode_Alloc, put at the head of that list: +0x14 the next, +0x18 the section; w = the ride's +0xc - +8): kinds 1-8,
+// in pairs (1 and 5, ...), two at a corner of the 0x1800 square (1: (x + 0x1800, y); 2: (x, y); 3: (x, y + 0x1800); 4: both) of sizes
+// w + 0xc00 and 0xc00 - w, both with that corner's flags (0x14, 0x12, 0xa, 0xc) cleared and the second a blocker (0x40); 9 and 12 a box
+// (0x20; 12 also 0x100) at the centre of size 0xc20 by w; 10 and 13 the same of w by 0xc20; 11 a circle at the centre of radius
+// sqrt(w^2 + 0x900000) (truncated; flag 0x80 for the ride kinds -5, -8, -12 and -13) and the four corners' blockers of 0xc00 - w. Unless the
+// piece has 0x10000 a buoy (Buoy_Alloc) at (x + ox, y + 0x1800 - oy) (1: 0xf84, 0xf84; 2: 0x87c, 0xf84; 3: 0x87c, 0x87c; 4: 0xf84, 0x87c;
+// 9-13: 0xc00, 0xc00; other kinds y + 0x1800 for both, sic) joins the ride's buoy chain (+0xa8, the next at +0x14; the count +0xac up),
+// its +0x10 the ride and +0x18 the first node, whose +0x1c is the buoy (no node, as for the other kinds, faults). A node the pool cannot
+// give faults at its flags. Returns 1.
+s32 __cdecl TrakRide_AddSection(u32 handle, s32 x, s32 y, u32 piece, u32 a, u32 b, u32 c);
 }

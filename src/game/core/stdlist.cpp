@@ -488,4 +488,30 @@ void __fastcall Obj_SwapPair(u8 *object, void *, u8 *other) {
     at<u32>(object, 8) = second;
     at<u32>(other, 8) = own;
 }
+
+const StdString *__fastcall StdListString_Next(u8 *list) {
+    u8 *const node = at<u8 *>(list, 0xc);
+    if (node != at<u8 *>(list, 4)) {
+        at<u8 *>(list, 0xc) = at<u8 *>(node, 0);
+        return reinterpret_cast<const StdString *>(node + 8);
+    }
+    static StdString dead;
+    StdString s = {0, nullptr, 0, 0};
+    const char *const text = reinterpret_cast<const char *>(0x00786de4);
+    const u32 n = (u32)std::strlen(text);
+    if (StdString_Grow(&s, nullptr, n, 1)) {
+        std::memcpy(s.ptr, text, n);
+        s.len = n;
+        s.ptr[n] = 0;
+    }
+    if (s.ptr) {
+        const u8 uses = (u8)s.ptr[-1];
+        if (uses == 0 || uses == 0xff)
+            GameHeap_Free(s.ptr - 1);
+        else
+            s.ptr[-1] = (char)(uses - 1);
+    }
+    dead = s;
+    return &dead;
+}
 }  // extern "C"

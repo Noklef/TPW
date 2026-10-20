@@ -7,6 +7,9 @@
 #include "../core/vcall.h"
 #include "../core/gameheap.h"
 #include "../core/globalmem.h"
+#include "../core/crt.h"
+#include "clone.h"
+#include "../gfx/texdirs.h"
 #include "../core/liveobjects.h"
 #include "objmodel.h"
 #include "partstate.h"
@@ -18,6 +21,9 @@ template <typename T> T &at(const void *p, u32 offset) {
     return *reinterpret_cast<T *>((uintptr_t)p + offset);
 }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+const AnimatorMeshEnv kGameAnimatorMeshEnv = {&TexDirs_SetForModel, &Holder_Create};
+const AnimatorMeshEnv *g_animatorMeshEnv = &kGameAnimatorMeshEnv;
 
 }  // namespace
 
@@ -339,4 +345,198 @@ u32 __cdecl Dword_ClearBit0(u32 *p) {
     *p &= 0xfffffffe;
     return 1;
 }
+
+u32 __cdecl Animator_Create(u8 *animator, u8 *record, const char *name, u32 flags) {
+    const u16 nodes = at<u16>(animator, 4);
+    const u32 parts = nodes == 1 ? 1 : (u32)nodes + 1;
+    at<u8 *>(animator, 0x3c) = record;
+    for (u32 offset = 0x28; offset <= 0x32; offset += 2)
+        at<u16>(animator, offset) = 0;
+    const u8 *node = at<const u8 *>(animator, 8);
+    for (u32 i = 0; i < nodes; ++i, node += 0x30) {
+        at<u16>(animator, 0x2a) += at<u16>(node, 6);
+        at<u16>(animator, 0x2e) += at<u16>(node, 4);
+        at<u16>(animator, 0x2c) += at<u16>(node, 0xa);
+        at<u16>(animator, 0x30) += at<u16>(node, 8);
+        const u16 sum = (u16)(at<u16>(node, 0xc) + at<u16>(animator, 0x32));
+        at<u16>(animator, 0x32) = sum;
+        if (!(at<u8>(node, 0) & 4))
+            at<u16>(animator, 0x32) = (u16)(at<u16>(node, 6) + sum);
+    }
+    at<u16>(animator, 0x28) = at<u16>(record, 4);
+    u32 owned, recordBytes;
+    if (at<u8>(record, 0) & 1) {
+        at<u32>(record, 0x1c) += 1;
+        owned = 0;
+        recordBytes = (u32)at<u16>(animator, 0x28) * 8;
+    } else {
+        at<u32>(record, 0x1c) = 1;
+        owned = 1;
+        at<u32>(animator, 0) |= 0x8000;
+        recordBytes = (u32)at<u16>(animator, 0x28) * 24;
+    }
+    const u32 q2a = ((u32)at<u16>(animator, 0x2a) + 3) >> 2, q30 = ((u32)at<u16>(animator, 0x30) + 3) >> 2;
+    const u32 size = recordBytes + 2 * (at<u16>(animator, 0x2a) + 6 * (at<u16>(animator, 0x32) + 0x25u) +
+                                         4 * (at<u16>(animator, 0x2e) + 2 * (at<u16>(animator, 0x2c) + 3 * q2a + 2 * (5 * parts + q30))));
+    u8 *const block = static_cast<u8 *>(GlobalMem_Alloc(size, 1));
+    at<u8 *>(animator, 0x20) = block;
+    u8 *cur = block + 0xb8;
+    at<void *>(animator, 0x24) = GlobalMem_AllocCounted((u32)(uintptr_t)block);
+    if (name)
+        Crt().strncpy(reinterpret_cast<char *>(block + 0x18), name, 0x14);
+    at<u8 *>(block, 0x70) = cur;
+    at<u8 *>(block, 0x78) = cur;
+    cur += parts * 0xa0;
+    if (at<u16>(animator, 0x28)) {
+        at<u8 *>(block, 0x50) = cur;
+        cur += (u32)at<u16>(animator, 0x28) * 8;
+        if (owned) {
+            at<u8 *>(block, 0x54) = cur;
+            cur += (u32)at<u16>(animator, 0x28) * 16;
+        } else {
+            at<u32>(block, 0x54) = at<u32>(record, 0x14);
+        }
+    }
+    if (at<u16>(animator, 0x2a)) {
+        at<u8 *>(block, 0x58) = cur;
+        cur += (((u32)at<u16>(animator, 0x2a) + 3) >> 2) * 0x30;
+    }
+    if (at<u16>(animator, 0x32)) {
+        at<u8 *>(block, 0x5c) = cur;
+        cur += (u32)at<u16>(animator, 0x32) * 0xc;
+    }
+    if (at<u16>(animator, 0x30)) {
+        at<u8 *>(block, 0x60) = cur;
+        cur += (((u32)at<u16>(animator, 0x30) + 3) >> 2) * 0x20;
+    }
+    if (at<u16>(animator, 0x2e)) {
+        at<u8 *>(block, 0x68) = cur;
+        cur += (u32)at<u16>(animator, 0x2e) * 8;
+    }
+    u8 *uvs = nullptr;
+    if (at<u16>(animator, 0x2c)) {
+        uvs = cur;
+        cur += (u32)at<u16>(animator, 0x2c) * 16;
+    }
+    u16 *indices = at<u16>(animator, 0x2a) ? reinterpret_cast<u16 *>(cur) : nullptr;
+    if (flags & 2)
+        at<u32>(block, 0x30) |= 0x200000;
+    at<u8 *>(block, 0x64) = uvs;
+    at<u16>(block, 0x3c) = at<u16>(animator, 0x2c);
+    at<u16>(block, 0x42) = (u16)parts;
+    at<u16>(block, 0x44) = (u16)parts;
+    at<u16>(block, 0x36) = at<u16>(animator, 0x28);
+    at<u16>(block, 0x38) = (u16)(((u32)at<u16>(animator, 0x2a) + 3) >> 2);
+    at<u16>(block, 0x3e) = at<u16>(animator, 0x2e);
+    at<u16>(block, 0x3a) = (u16)(((u32)at<u16>(animator, 0x30) + 3) >> 2);
+    at<u16>(block, 0x4a) = at<u16>(animator, 0x32);
+    at<u32>(animator, 0x10) = at<u32>(block, 0x58);
+    at<u32>(animator, 0x14) = at<u32>(block, 0x5c);
+    at<u32>(animator, 0x18) = at<u32>(block, 0x60);
+    at<u32>(animator, 0x1c) = at<u32>(block, 0x68);
+    at<u32>(record, 0x18) = at<u32>(block, 0x50);
+    at<u32>(record, 0x14) = at<u32>(block, 0x54);
+    at<u32>(record, 0) |= 1;
+    u8 *part = at<u8 *>(block, 0x70);
+    if (at<u16>(animator, 4) > 1) {   // the nodes' parts chained to the first
+        Matrix_Identity(reinterpret_cast<float *>(part + 0x10));
+        at<u8 *>(part, 0xc) = at<u8 *>(block, 0x70) + 0xa0;
+        for (u32 i = 0; i < at<u16>(animator, 4); ++i) {
+            if (i < (u32)at<u16>(animator, 4) - 1)
+                at<u8 *>(at<u8 *>(block, 0x70) + i * 0xa0, 0xa8) = at<u8 *>(block, 0x70) + i * 0xa0 + 0x140;
+            at<u8 *>(at<u8 *>(block, 0x70) + i * 0xa0, 0xa4) = part;
+        }
+        part += 0xa0;
+    }
+    at<u32>(block, 0x30) |= 0x21;
+    if (at<u32>(animator, 0) & 0x1000)
+        at<u32>(block, 0x30) |= 0x200;
+    u8 *entry = at<u8 *>(animator, 8);
+    for (u32 i = 0; i < at<u16>(animator, 4); ++i, entry += 0x30, part += 0xa0) {
+        at<u32>(part, 0) |= 0x80800;
+        at<u16>(part, 0x58) = at<u16>(entry, 6);
+        at<u16>(part, 0x5c) = at<u16>(entry, 4);
+        at<u16>(part, 0x5e) = at<u16>(entry, 8);
+        at<u16>(part, 0x5a) = at<u16>(entry, 0xa);
+        at<u32>(part, 0x60) = at<u32>(block, 0x58);
+        at<u32>(part, 0x64) = at<u32>(block, 0x5c);
+        at<u32>(part, 0x68) = at<u32>(block, 0x60);
+        at<u32>(part, 0x70) = at<u32>(block, 0x68);
+        if (at<u16>(part, 0x58)) {
+            at<u16 *>(part, 0x94) = indices;
+            if (flags & 1) {
+                for (u32 c = 0; c < at<u16>(part, 0x58); ++c)
+                    indices[c] = (u16)c;
+            }
+            indices += at<u16>(part, 0x58);
+        } else {
+            at<u32>(part, 0x94) = 0;
+        }
+        at<u8 *>(part, 0x6c) = uvs;
+        if (uvs)
+            uvs += (u32)at<u16>(entry, 0xa) * 16;
+        for (u32 k = 0; k < 0x18; k += 4)   // (REP MOVSD, upward)
+            at<u32>(part, 0x78 + k) = at<u32>(entry, 0x10 + k);
+        at<u8 *>(entry, 0x28) = part + 0x10;
+        at<u32>(entry, 0x2c) = at<u32>(part, 0x6c);
+    }
+    for (u32 i = 0; i < at<u16>(record, 4); ++i) {
+        if (owned) {   // the record's names copied into blocks of their own
+            at<u16>(at<u8 *>(block, 0x54) + i * 0x10, 0xa) = 1;
+            void *const text = GlobalMem_Alloc(0x14, 1);
+            at<void *>(at<u8 *>(block, 0x54) + i * 0x10, 0xc) = text;
+            Crt().strncpy(at<char *>(at<u8 *>(block, 0x54) + i * 0x10, 0xc), at<const char *>(at<u8 *>(record, 0x10) + i * 0x10, 4), 0x14);
+        }
+        at<u8>(at<u8 *>(block, 0x50) + i * 8, 0) |= 1;
+        if (at<u8>(at<u8 *>(record, 0x10) + i * 0x10, 0) & 1)
+            at<u8>(at<u8 *>(block, 0x50) + i * 8, 0) |= 2;
+        if (at<u8>(at<u8 *>(record, 0x10) + i * 0x10, 0) & 2)
+            at<u8>(at<u8 *>(block, 0x50) + i * 8, 0) |= 0x30;
+    }
+    at<u32>(animator, 0) |= 0x2000;
+    if (flags & 1)
+        at<u32>(animator, 0) |= 8;
+    g_animatorMeshEnv->setTexDirs(record, animator);
+    g_animatorMeshEnv->createHolder(at<u8 *>(animator, 0x24));
+    return 1;
 }
+
+u32 __cdecl Animator_Clone(const u8 *animator, u32 unused, u32 flags, u8 **out) {
+    if (!unused)
+        unused = global<u32>(0x0079fb2c);
+    u8 *const block = static_cast<u8 *>(GlobalMem_Alloc((u32)at<u16>(animator, 4) * 0x30 + 0x44, 0));
+    u8 *const copy = reinterpret_cast<u8 *>(((uintptr_t)block + 7) & ~(uintptr_t)7);
+    if (copy && animator) {
+        for (u32 k = 0; k < 0x40; k += 4)   // (REP MOVSD, upward)
+            at<u32>(copy, k) = at<u32>(animator, k);
+    }
+    at<u8 *>(copy, 8) = copy + 0x40;
+    at<u8 *>(copy, 0x34) = block;
+    for (u32 i = 0; i < at<u16>(copy, 4); ++i) {
+        for (u32 k = 0; k < 0x30; k += 4)
+            at<u32>(at<u8 *>(copy, 8) + i * 0x30, k) = at<u32>(at<u8 *>(animator, 8) + i * 0x30, k);
+    }
+    const u32 result = Holder_Clone(at<u8 *>(animator, 0x24), unused, flags, &at<u8 *>(copy, 0x24), 0);
+    g_animatorMeshEnv->createHolder(at<u8 *>(copy, 0x24));
+    const u8 *const holder = at<u8 *>(copy, 0x24);
+    at<u32>(copy, 0x10) = at<u32>(at<u8 *>(holder, 4), 0x58);
+    at<u32>(copy, 0x14) = at<u32>(at<u8 *>(holder, 4), 0x5c);
+    at<u32>(copy, 0x18) = at<u32>(at<u8 *>(holder, 4), 0x60);
+    at<u32>(copy, 0x1c) = at<u32>(at<u8 *>(holder, 4), 0x68);
+    const u16 count = at<u16>(copy, 4);
+    u8 *part = at<u8 *>(at<u8 *>(holder, 4), 0x70);
+    if (count > 1)
+        part += 0xa0;
+    if (count) {
+        for (u32 i = 0; i < at<u16>(copy, 4); ++i, part += 0xa0) {
+            at<u8 *>(at<u8 *>(copy, 8) + i * 0x30, 0x28) = part + 0x10;
+            at<u32>(at<u8 *>(copy, 8) + i * 0x30, 0x2c) = at<u32>(part, 0x6c);
+        }
+    }
+    at<u32>(at<u8 *>(copy, 0x3c), 0x1c) += 1;
+    *out = copy;
+    return result;
+}
+}
+
+void Animator_SetMeshEnv(const AnimatorMeshEnv *env) { g_animatorMeshEnv = env ? env : &kGameAnimatorMeshEnv; }

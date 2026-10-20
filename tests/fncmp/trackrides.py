@@ -1,7 +1,7 @@
 # The track rides' module helpers (src/game/world/trackrides: 0x543490, 0x54bbb0, 0x549b50,
 # 0x549d30, 0x5452a0, 0x54ab40) against the originals: writes and reads that fit or run short, pools absent, full or
 # with a free record anywhere, handles good, stale, of other rides or 0, with the module loaded
-# or not and links absent or flagged either way.
+# or not and links absent or flagged either way; a track section added (0x54b2f0): see section().
 # usage: trackrides.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Write,Read,Free,Linked,Field5c,PopNode)
 import os
 import sys
@@ -10,10 +10,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put, record_stream  # noqa: E402
 
 B = Bench([(0x5452a0, 0x545307), (0x54ab40, 0x54abc3), (0x543490, 0x5434d0), (0x54bbb0, 0x54bbd6), (0x549b50, 0x549b71), (0x549d30, 0x549da6),
-           (0x5f5e20, 0x5f5e50), (0x5f5e50, 0x5f5e80), (0x544a10, 0x544b50), (0x544840, 0x544a10), (0x545890, 0x546280), (0x54b130, 0x54b290), (0x544e50, 0x544f90), (0x545180, 0x5452a0), (0x545310, 0x545450), (0x54aa80, 0x54ab40), (0x51feb0, 0x51ff10), (0x544160, 0x5441f0), (0x5441f0, 0x544290), (0x544c00, 0x544c80), (0x545100, 0x545180), (0x54abd0, 0x54ac70), (0x5da3c0, 0x5da3c1)])
+           (0x5f5e20, 0x5f5e50), (0x5f5e50, 0x5f5e80), (0x544a10, 0x544b50), (0x544840, 0x544a10), (0x545890, 0x546280), (0x54b130, 0x54b290), (0x544e50, 0x544f90), (0x545180, 0x5452a0), (0x545310, 0x545450), (0x54aa80, 0x54ab40), (0x51feb0, 0x51ff10), (0x544160, 0x5441f0), (0x5441f0, 0x544290), (0x544c00, 0x544c80), (0x545100, 0x545180), (0x54abd0, 0x54ac70), (0x5da3c0, 0x5da3c1),
+           (0x54b2f0, 0x54bb71)])
 STREAM, SINK, BUF, POOL, LINKS, GLOBALS = RAM + 0x100, RAM + 0x200, RAM + 0x400, RAM + 0x1000, RAM + 0x800, 0x877b58
 SETUPREG, SYSTEMS_AT = 0x816d40, 0x80cefc
-CALLS = ['Write', 'Read', 'Free', 'Linked', 'Field5c', 'PopNode', 'Worn', 'Dur', 'PushNode', 'ReadN', 'ReadD', 'Close', 'Fixed', 'Perf', 'Count', 'AddCar', 'Open', 'Create']
+CALLS = ['Write', 'Read', 'Free', 'Linked', 'Field5c', 'PopNode', 'Worn', 'Dur', 'PushNode', 'ReadN', 'ReadD', 'Close', 'Fixed', 'Perf', 'Count', 'AddCar', 'Open', 'Create', 'Section']
 
 
 def case(r):
@@ -82,6 +83,8 @@ def case(r):
         put(globals_, 8, 'I', POOL)
         handle = r.choice([index | (kind << 8) & 0xffffffff] * 5 + [index | (kind ^ 1) << 8 & 0xffffffff, r.getrandbits(32)]) & 0xffffffff
         return Call(0x544840, [handle], {GLOBALS: globals_, POOL: rides, RAM + 0x8000: pieces}, ret='v')
+    if op == 'Section':
+        return section(r, globals_)
     if op == 'Create':  # the ride pool (a handle for a record, or the first free one), the collision node and buoy pools with the free ones anywhere
         rides = bytearray(r.bytes(0x100 * 0xd0))
         free = r.choice([0, 1, 5, 0x3f, 2, 3, 7, 0x20, -1])
@@ -207,6 +210,64 @@ def case(r):
     if op == 'Field5c':
         return Call(0x5452a0, [handle & 0xffffffff], {GLOBALS: globals_, POOL: rides, LINKS: links}, ret='a')
     return Call(0x549d30, [handle & 0xffffffff], {GLOBALS: globals_, POOL: rides, LINKS: links}, ret='a')
+
+
+def pool(r, data, stride, count):
+    """The pool's records in use up to some index (none, a few, all), its first free one there."""
+    first = r.choice([0, 1, 2, 5, 0x3f, count - 1, count - 20, 10, 100, -1, -1 if count == 0x400 else 0])
+    for k in range(count):
+        if k < first or first < 0:
+            data[k * stride] |= 1
+        elif k == first:
+            data[k * stride] &= 0xfe
+
+
+def section(r, globals_):
+    """0x54b2f0: a ride (its kind one of the spinning ones now and then, its +8 / +0xc close or any) named by the handle (or not); its chain
+    of 0-3 sections (taken from the section pool, one maybe at the point), its buoy chain of 0-2; the section, collision node and buoy pools
+    with the first free one anywhere (or full, or absent); the piece's kind 1-13 mostly, 0x10000 now and then."""
+    rides = bytearray(r.bytes(0x40 * 0xd0))
+    index = r.choice([0, 1, 0x3f, r.randrange(0x40)])
+    kind = r.choice([-5, -8, -12, -13, -1, -14, 0, r.getrandbits(32) - (1 << 31)])
+    ride = index * 0xd0
+    put(rides, ride, 'i', kind)
+    base = r.choice([0, r.randrange(-0x800, 0x800), r.getrandbits(32) - (1 << 31)])
+    put(rides, ride + 8, 'II', base & 0xffffffff, (base + r.choice([0, 0x200, -0x200, r.randrange(-0x1000, 0x1000), r.getrandbits(32)])) & 0xffffffff)
+    if r.random() < 0.1:
+        put(rides, ride + 8, 'II', r.getrandbits(32), r.getrandbits(32))
+    x, y = (r.choice([r.randrange(-8, 8) * 0x1800, r.randrange(-0x20000, 0x20000), r.getrandbits(32) - (1 << 31)]) for _ in range(2))
+    SECTIONS, COLLS, BUOYS = RAM + 0x70000, RAM + 0x40000, RAM + 0x60000
+    sections = bytearray(r.bytes(0x400 * 0x28))
+    colls = bytearray(r.bytes(0x800 * 0x20))
+    buoys = bytearray(r.bytes(0x400 * 0x1c))
+    pool(r, sections, 0x28, 0x400)
+    pool(r, colls, 0x20, 0x800)
+    pool(r, buoys, 0x1c, 0x400)
+    chain = r.sample(range(0x400), r.choice([0, 0, 1, 2, 3]))
+    for n, k in enumerate(chain):
+        sections[k * 0x28] |= 1
+        near = r.random() < 0.8
+        put(sections, k * 0x28 + 0x14, 'II', *((v + (r.choice([0x1800, -0x1800, 0, 1]) if near else 0)) & 0xffffffff for v in (x, y)))
+        put(sections, k * 0x28 + 0x24, 'I', SECTIONS + chain[n + 1] * 0x28 if n + 1 < len(chain) else 0)
+    put(rides, ride + 0xbc, 'I', SECTIONS + chain[0] * 0x28 if chain else 0)
+    tied = r.sample(range(0x400), r.choice([0, 1, 2]))
+    for n, k in enumerate(tied):
+        buoys[k * 0x1c] |= 1
+        put(buoys, k * 0x1c + 0x14, 'I', BUOYS + tied[n + 1] * 0x1c if n + 1 < len(tied) else 0)
+    put(rides, ride + 0xa8, 'I', BUOYS + tied[0] * 0x1c if tied else 0)
+    put(globals_, 0, 'I', 0x4a454647 if r.random() < 0.93 else r.getrandbits(32))
+    put(globals_, 8, 'I', POOL)
+    put(globals_, 0x18, 'I', COLLS if r.random() < 0.97 else 0)
+    put(globals_, 0x20, 'I', BUOYS if r.random() < 0.97 else 0)
+    put(globals_, 0x28, 'I', SECTIONS if r.random() < 0.95 else 0)
+    for at in (0x1c, 0x24, 0x2c):
+        put(globals_, at, 'I', r.getrandbits(8))
+    handle = r.choice([index | (kind << 8) & 0xffffffff] * 6 + [index | ((kind ^ 1) << 8) & 0xffffffff, r.getrandbits(32)])
+    piece = r.choice(range(1, 14)) | r.choice([0, 0, 0x10000, r.getrandbits(16) << 16])
+    if r.random() < 0.05:
+        piece = r.choice([0, 14, 0xffff]) | 0x10000
+    regions = {GLOBALS: globals_, POOL: rides, SECTIONS: sections, COLLS: colls, BUOYS: buoys}
+    return Call(0x54b2f0, [handle & 0xffffffff, x & 0xffffffff, y & 0xffffffff, piece] + [r.getrandbits(32) for _ in range(3)], regions, ret='a')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]

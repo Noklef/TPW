@@ -9,9 +9,10 @@
 # now and then), a point and a direction, the renderer's tag 0x70 list empty or not (the entries' slot 8 answering 1) and its free list
 # with nodes or none. MainCreate (0x4584d0): the directional light from the direction at 0x7a0b30 (normalised first: any length, none,
 # huge) and the colour 0x7a0b3c, kept at 0x7a0b40. MainUpdate (0x458590): that light's direction normalised again and its colour and
-# the ambient colour (0x7a0b44) set again.
-# usage: lightsource.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Destroy,Main,Colour,Scaled,Create,MainCreate,MainUpdate,CtorVirtual,SetVec,MeshClear,MeshSet)
+# the ambient colour (0x7a0b44) set again. Slot (0x5d92e0): see slot().
+# usage: lightsource.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Destroy,Main,Colour,Scaled,Create,MainCreate,MainUpdate,CtorVirtual,SetVec,MeshClear,MeshSet,Slot)
 import os
+import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
@@ -21,7 +22,8 @@ import m3d2  # noqa: E402
 
 B = Bench([(0x458400, 0x4584bc), (0x46f100, 0x46f11f), (0x576540, 0x5765b8), (0x458580, 0x45858f), (0x458890, 0x458909), (0x458350, 0x4583cf), (0x5836b0, 0x5836c2), (0x4587e0, 0x45888f),
            (0x458310, 0x45834d), (0x4583d0, 0x4583f6), (0x458910, 0x458935), (0x458940, 0x458965), (0x457e70, 0x458300), (0x458590, 0x4587a7), (0x45b9d0, 0x45ba15),
-           (0x576410, 0x576550), (0x576270, 0x576320), (0x42a030, 0x42a03b), (0x5d1410, 0x5d1416), (0x4584d0, 0x458573)])
+           (0x5d92e0, 0x5d9679), (0x67acc0, 0x67acc1),
+           (0x576410, 0x576550), (0x576270, 0x576320), (0x42a030, 0x42a03b), (0x42a0d0, 0x42a0d8), (0x5d1410, 0x5d1416), (0x4584d0, 0x458573)])
 LIGHT, PARTS, TABLES, RENDERER, NODES = RAM, RAM + 0x100, RAM + 0x800, RAM + 0x1000, RAM + 0x1100
 
 
@@ -109,6 +111,8 @@ def case(r):
                         TABLES: put(bytearray(r.bytes(0x10)), 8, 'i', d), 0x8bcc40: r.bytes(8),
                         0x74d0d8: put(bytearray(4), 0, 'f', r.choice([1.0, 1.0, 1.0, 0.5, 2.0, r.uniform(-3, 3)]))})
         return Call(0x458590, [r.choice([0, 1, 1, 1, 2, 0x80000000])], regions, ret='v')
+    if op == 'Slot':
+        return slot(r, regions, renderer, nodes, bases)
     if op == 'Main':
         regions[0x7a0b40] = put(bytearray(4), 0, 'I', LIGHT)
         return Call(0x458580, [], regions, ret='v')
@@ -148,8 +152,40 @@ def create(r, regions, renderer, nodes, main=False):   # 0x457e70 (kind, colour,
     return Call(0x457e70, [kind, colour, RAM + 0x1800, RAM + 0x180c], regions, ret='a')
 
 
+SLOT = RAM + 0x1900
+
+
+def slot(r, regions, renderer, nodes, bases):
+    """0x5d92e0 (thiscall on a slot; on, colour, direction, value): off (the slot's light (+0x20) one of Destroy's parts, or none), on with a
+    light (a part at a base offset 0-0x40; a colour and a direction each given or not: directions as MainUpdate's) or on without one (create()'s
+    renderer and heap, its Mem_Alloc failing now and then: a crash in both)."""
+    s = bytearray(r.bytes(0x28))
+    on = r.choice([0, 1, 1, 1, 0x80000000])
+    v = [r.choice([0.0, 1.0, -1.0, r.uniform(-2, 2), r.uniform(-1e3, 1e3)]) for _ in range(3)]
+    if r.random() < 0.05:
+        v = r.choice([[0.0, 0.0, 0.0], [1e30, 1e30, 0.0], [1e-30, 0.0, 0.0], [float('nan'), 1.0, 0.0], [3e38, 3e38, 0.0]])   # (the last's length past a float)
+    block = put(put(bytearray(r.bytes(0x18)), 0, '3f', *v), 0xc, 'I', r.choice([0, 0xffffffff, 0xff808080, r.getrandbits(32)]))
+    colour = r.choice([RAM + 0x180c, RAM + 0x180c, 0])
+    direction = r.choice([RAM + 0x1800, RAM + 0x1800, 0])
+    if not on:
+        light = regions[LIGHT]
+        put(s, 0x20, 'I', r.choice([struct.unpack_from('<I', light, 4)[0], struct.unpack_from('<I', light, 0xc)[0], 0]))
+    elif r.random() < 0.5:
+        d = r.choice([0, 8, 0x20, 0x40])
+        put(s, 0x20, 'I', PARTS)
+        regions.update({PARTS: put(bytearray(r.bytes(0xa0)), 0, 'I', TABLES), TABLES: put(bytearray(r.bytes(0x10)), 4, 'i', d)})
+    else:
+        c = create(r, regions, renderer, nodes)
+        regions = dict(c.regions)
+        regions[HEAP] = heap(0x1000, r.choice([0] * 20 + [1]))
+        put(s, 0x20, 'I', 0)
+    regions[SLOT] = s
+    regions[RAM + 0x1800] = block
+    return Call(0x5d92e0, [SLOT, on, colour, direction, r.getrandbits(32)], regions, conv='t', ret='v')
+
+
 PART_OPS = ['CtorVirtual', 'SetVec', 'MeshClear', 'MeshSet']
-OPS = [k for k in os.environ.get('OPS', ','.join(['Destroy', 'Main', 'Colour', 'Scaled', 'Create', 'MainCreate', 'MainUpdate'] + PART_OPS)).split(',') if k]
+OPS = [k for k in os.environ.get('OPS', ','.join(['Destroy', 'Main', 'Colour', 'Scaled', 'Create', 'MainCreate', 'MainUpdate', 'Slot'] + PART_OPS)).split(',') if k]
 
 
 if __name__ == '__main__':

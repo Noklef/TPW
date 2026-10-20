@@ -14,6 +14,12 @@ void __fastcall StdListString_Clear(u8 *list);
 // 0x5cdf00 (thiscall; x, pops 4): a node holding a copy of x (the allocator byte, then assign(x, 0, npos)) is linked in front of the sentinel, the count raised.
 void __fastcall StdListString_PushBack(u8 *list, void *, const StdString *x);
 
+// 0x5cd440 (thiscall; name unconfirmed): the string at the list's cursor (+0xc), the cursor moved on to the next node; at the sentinel (+4)
+// an empty string instead: a local made from the text at 0x786de4 (_Grow with trim, the characters copied, the length and terminator) and
+// released again (its block freed when its count byte is 0 or 0xff, else counted down), its address returned (sic: a dead stack address;
+// the port returns a static copy of the released local).
+const StdString *__fastcall StdListString_Next(u8 *list);
+
 // 0x4a8ad0 (thiscall on the owner of a list of std::string at +0x10 (sentinel +0x14, count +0x18); chars, pops 4; name unconfirmed): a std::string
 // made of the characters (_Grow(strlen, true); its allocator byte the low byte of the chars pointer, sic) is copied (StdString_CopyCtor) into a node linked in
 // front of the sentinel, the count raised; then released.

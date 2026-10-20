@@ -2,7 +2,10 @@
 
 #include <cstdint>
 
+#include "../core/crt.h"
 #include "../core/gameheap.h"
+#include "../files/filestream.h"
+#include "../files/handles.h"
 #include "../render/engineerrors.h"
 
 namespace {
@@ -63,5 +66,20 @@ u32 __fastcall ScreenGrab_SetName(u8 *grab, void *, const char *name) {
         at<u8 *>(grab, 0x8c) = out;
     }
     return 1;
+}
+
+void __cdecl ScreenGrab_NextName() {
+    StreamBase stream;
+    char name[0x14];
+    s32 result;
+    StreamBase_Ctor(&stream);
+    stream.vtable = reinterpret_cast<void *const *>(0x006fd930);
+    do {
+        StreamBase_Close(&stream);
+        Crt().sprintf(name, reinterpret_cast<const char *>(0x007650dc), ++global<s32>(0x00879084));   // "Scr%05ld.tga"
+    } while (*FileStream_OpenPath(&stream, nullptr, &result, name, 0x80000001) >= 0);
+    StreamBase_Close(&stream);
+    ScreenGrab_SetName(reinterpret_cast<u8 *>(0x008798d0), nullptr, name);
+    StreamBase_Dtor(&stream);
 }
 }

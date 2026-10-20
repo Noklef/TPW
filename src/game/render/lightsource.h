@@ -63,4 +63,13 @@ void __cdecl LightSource_CreateMain();
 // the main light's (0x7a0b40) part (+4, at the offset its vtable's +8 gives) takes that direction (+0x2c) and the colour 0x7a0b3c
 // as LightSource_Create sets it (+0x54, and the channels times 0x6fe50c over 255 at +4..+0x10), SceneFlags_Touch before each.
 void __cdecl LightSource_UpdateMain(u32 update);
+// 0x5d92e0 (thiscall on a slot; on, colour, direction, value, pops 16; names unconfirmed): the slot's light (+0x20) set. Off: a light leaves
+// the renderer's tag 0x70 list (Renderer_RemoveFromSlot of its virtual base), is deleted (its base's slot 0 with 1, read again) and +0x20
+// cleared. On with a light: a colour given repaints it (SceneFlags_Touch, then +0x54 the colour and +4..+0x10 its channels from the high
+// byte down, each * [0x702a30] * [0x702a4c], x87 at the game's precision); a direction given is stored unit length at +0x2c..+0x34 (each
+// over the length sqrt(xx + yy + zz) stored as a float; the flags touched first). On without one: the light made (Mem_Alloc 0x64;
+// Obj_CtorVirtual inline, most derived) at +0x20 with +0x50 = 2 (through 0 with no block, sic), painted with the colour (0 for none) and
+// given the direction ((1, 0, 0) for none) as above, then added to the renderer's tag 0x70 list (Renderer_Add of its virtual base, 0 for
+// none). In every case +0x24 = value.
+void __fastcall LightSlot_Set(u8 *slot, void *, u32 on, const u32 *colour, const u32 *direction, u32 value);
 }

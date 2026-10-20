@@ -134,4 +134,32 @@ u32 __cdecl Obj_RemoveRectAndClear14(u8 *object, u32 from, u32 to);
 
 // 0x424ed0 (cdecl; pointer): bit 0 of the dword (a holder's awake flag) cleared; returns 1.
 u32 __cdecl Dword_ClearBit0(u32 *p);
+
+// 0x424ef0 (cdecl; animator, record, name, flags; name unconfirmed): the animator's mesh built in one zeroed block (GlobalMem_Alloc,
+// the inverse of Animator_Dispose). The animator's u16 node count (+4; parts: 1 for one node, else nodes + 1) and its 0x30-byte nodes
+// (+8) give the totals at +0x2a (+6 of each node), +0x2e (+4), +0x2c (+0xa), +0x30 (+8) and +0x32 (+0xc, plus +6 unless the node's
+// flag 4); +0x28 is the record's u16 count (+4); the record (+0x3c) is shared (bit 0 of its flags: its use count +0x1c raised) or
+// owned (its count set to 1, the animator's flag 0x8000, its records' names copied into blocks of their own). The block: a 0xb8-byte
+// header (the name's 0x14 chars at +0x18 when given), the parts (0xa0 bytes; +0x70 and +0x78) and the tables (+0x50 / +0x54, +0x58,
+// +0x5c, +0x60, +0x68, +0x64; each only when its count is not 0), then a u16 index per vertex (flags 1: numbered from 0 per part).
+// Several parts are chained to the first (its matrix the identity). The holder (+0x24, GlobalMem_AllocCounted with the block) is made
+// (Holder_Create) after the texture directories are set (TexDirs_SetForModel with the record); the animator's flag 0x2000 (and 8 with
+// flags 1). Returns 1.
+u32 __cdecl Animator_Create(u8 *animator, u8 *record, const char *name, u32 flags);
+
+// 0x455690 (cdecl; animator, unused, flags, out; name unconfirmed): a copy of the animator in a block of its own (GlobalMem_Alloc, not
+// zeroed; the copy at the block aligned to 8, its nodes after it at +0x40, the block at +0x34): its 0x40 bytes (unless the block or the
+// animator is null) and its u16 count (+4) of 0x30-byte nodes; the holder cloned (Holder_Clone with unused, [0x79fb2c] for 0, flags,
+// into the copy's +0x24, mask 0) and made (Holder_Create); the tables +0x10-+0x1c from the new model's +0x58, +0x5c, +0x60 and +0x68;
+// the nodes' +0x28 and +0x2c the parts' matrices and +0x6c (from the model's +0x70, the first skipped for more than one node); the
+// record's (+0x3c) use count +0x1c raised. *out = the copy; returns Holder_Clone's result.
+u32 __cdecl Animator_Clone(const u8 *animator, u32 unused, u32 flags, u8 **out);
 }
+
+// Animator_Create's calls out (and Animator_Clone's holder) (the game's, i.e. the ports', unless swapped; tools/fncmp's driver logs them).
+struct AnimatorMeshEnv {
+    void(__cdecl *setTexDirs)(u8 *info, u8 *model);  // 0x46e4e0 TexDirs_SetForModel
+    void(__cdecl *createHolder)(u8 *holder);          // 0x45bbc0 Holder_Create
+};
+// nullptr restores the game's.
+void Animator_SetMeshEnv(const AnimatorMeshEnv *env);

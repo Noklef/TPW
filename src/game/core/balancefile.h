@@ -65,6 +65,13 @@ const u8 *__fastcall AdvisorScoring_GetSchema(const void *, void *, u32 index);
 // its vtable back, is released (BalanceFile_Release) and freed (Mem_Free); then its name (a String at +0x20) is destroyed.
 void __fastcall ThemeRecord_Dtor(u8 *self);
 
+// 0x5b11c0 (thiscall; name unconfirmed): the theme's balance file (+0x1c) loaded when it has none: a 0x1c-byte block (Mem_Alloc; none:
+// +0x1c 0 and 0) with vtable 0x702800 laid out (BalanceFile_Init) and loaded from "data\levels\%s\global.sam" of the theme's name
+// (+0x28; CRT sprintf into 0x104 bytes) with keep 0 (BalanceFile_Load); when that fails the file gets its vtable back, is released
+// (BalanceFile_Release) and freed (Mem_Free), +0x1c cleared, the empty Debug_Printf (0x5da3c0) called with (3, "...global.sam went
+// horribly wrong...") and 0. Returns 1 (AL) with a file.
+u8 __fastcall ThemeRecord_LoadGlobalSam(u8 *self);
+
 // 0x415e80 (thiscall; name unconfirmed): the balance file at +0xc gets vtable 0x6fd958 back and is released (BalanceFile_Release).
 void __fastcall AdvisorScoring_Dtor(u8 *self);
 

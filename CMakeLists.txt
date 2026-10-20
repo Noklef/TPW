@@ -282,6 +282,7 @@ add_library(tpw_game STATIC
     src/game/terrain/texcache.cpp
     src/game/terrain/normals.cpp
     src/game/terrain/nodecells.cpp
+    src/game/terrain/tct.cpp
     src/game/model/parts.cpp
     src/game/model/holder.cpp
     src/game/model/remap.cpp
@@ -300,6 +301,8 @@ add_library(tpw_game STATIC
     src/game/model/m3d2.cpp
     src/game/model/objmodel.cpp
     src/game/model/heightmap.cpp
+    src/game/model/baseuvs.cpp
+    src/game/model/md2file.cpp
     src/game/render/mode.cpp
     src/game/render/frame.cpp
     src/game/render/screen.cpp

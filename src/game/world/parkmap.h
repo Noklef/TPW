@@ -30,4 +30,12 @@ void __fastcall ParkMap_PlaceSprite(const u8 *map, void *, u8 *sprite);
 // one to 0, one past the limit to the limit, compared as an integer) and stored back as floats; the camera put on it (Camera_SetView of x and z
 // each truncated (the limit unrounded) times 10 as floats), then the map's window (+4) sent message 4 (0, 0). Returns what that returns.
 s32 __fastcall ParkMap_ApplyView(u8 *map);
+// 0x5f3230 (thiscall on the map; name unconfirmed): the overview's backdrop (0x87aee8) framed on the view, then the map's sprites placed. The
+// centre is (480 / width (+0x24) * the origin x (+0x54) + 15, 425 / height (+0x28) * the origin y (+0x58) + 42), the half sizes the screen's
+// (0x7a1968, 0x7a1930) / the zoom (+0x5c) / 2: left and top (below 0, or a NaN: 0; the left tested before its store) and right and bottom
+// (from the centre as stored, a float; from width - 1 (+0x48) and height - 1 (+0x4c) as unsigned on: that limit) are each truncated (__ftol) and given as floats to
+// Backdrop_SetRect; the source rect (Backdrop_SetSourceRect) is the screen half size less / plus the centre's distance from each edge times
+// the zoom, doubled, over the screen size, less 1, each kept to -1 to 1 (a NaN to -1). Then each sprite on the list at +0x20080 (its +4 the
+// first node: sprite, next) is placed (ParkMap_PlaceSprite). x87 at the game's precision (X87Reg), floats where the original stores them.
+void __fastcall ParkMap_LayOut(const u8 *map);
 }
