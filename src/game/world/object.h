@@ -136,4 +136,14 @@ double __fastcall Object_DefRowScore(const u8 *object, void *, float a, float b,
 
 // 0x4df640 (thiscall; a, b, c; pops 0xc; name unconfirmed): 100 less __ftol(Object_DefRowScore(a, b, c, with b) * 9), the low byte (AL).
 u8 __fastcall Object_DefRowPercent(const u8 *object, void *, float a, float b, u32 c);
+
+// 0x4dedf0 (thiscall; exit, x, y; pops 0xc; x87; name unconfirmed): the point a person stands at in the entrance cell (the word at +0x36; the definition's
+// (+0xd4, +0xd8)) or appears at in the exit cell (with exit: +0x38; (+0xdc, +0xe0)). x[1] / y[1] = the cell's column / row ((id - 1) & 0x7f, (id - 1) >> 7, 32-bit);
+// *x / *y = the low bytes of __ftol(255 times the point turned by the angle (+0x10): 0 (px, py), 0x5a (py, 1 - px), 0xb4 (1 - px, 1 - py), 0x10e (1 - py, px),
+// another (px, px) (sic)). The debug prints of a point outside (0, 1) are left out.
+void __fastcall Object_CellStandPoint(const u8 *object, void *, u32 exit, u8 *x, u8 *y);
+
+// 0x4e1f20 (thiscall; name unconfirmed): 100 times the CHistory sum (CircBufU32_30_Sum, newest 30) of the ring at +0x2b8 over that of the ring at +0x1a8 (__ftol's low
+// halves, unsigned, 32-bit); 0 when the latter is 0.
+u32 __fastcall Object_HistoryPercent(const u8 *object);
 }

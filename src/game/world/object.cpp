@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "../core/accessors.h"
+#include "../core/circbuf.h"
 #include "../core/filetime.h"
 #include "../core/funnytime.h"
 #include "../core/gameheap.h"
@@ -383,5 +384,37 @@ double __fastcall Object_DefRowScore(const u8 *object, void *, float a, float b,
 u8 __fastcall Object_DefRowPercent(const u8 *object, void *, float a, float b, u32 c) {
     const X87Reg score = X87Reg(Object_DefRowScore(object, nullptr, a, b, c, 1)) * X87Reg(9.0f);
     return (u8)(0x64 - (u32)(long long)score.v);  // __ftol, low half
+}
+
+void __fastcall Object_CellStandPoint(const u8 *object, void *, u32 exit, u8 *x, u8 *y) {
+    u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
+    const u16 id = at<u16>(object, 0xe);
+    const u32 cell = at<u16>(object, exit ? 0x38 : 0x36);
+    x[1] = (u8)((cell - 1) & 0x7f);
+    y[1] = (u8)((cell - 1) >> 7);
+    // (the debug prints of a point outside (0, 1) are left out)
+    const float px = at<float>(ObjectDefs_Find(defs, nullptr, id), exit ? 0xdc : 0xd4);
+    const float py = at<float>(ObjectDefs_Find(defs, nullptr, id), exit ? 0xe0 : 0xd8);
+    X87Reg first = 0.0;
+    float second = px;
+    switch (at<s32>(object, 0x10)) {
+    case 0: first = X87Reg(px); second = py; break;
+    case 0x5a: first = X87Reg(py); second = (float)(X87Reg(1.0f) - X87Reg(px)); break;
+    case 0xb4: first = X87Reg(1.0f) - X87Reg(px); second = (float)(X87Reg(1.0f) - X87Reg(py)); break;
+    case 0x10e: first = X87Reg(1.0f) - X87Reg(py); second = px; break;
+    default: first = X87Reg(px); second = px; break;  // (sic: both from the x point)
+    }
+    *x = (u8)(long long)X87_MulDouble(first.v, 255.0);  // __ftol, the low byte
+    *y = (u8)(long long)X87_MulFloatDouble(second, 255.0);
+}
+
+u32 __fastcall Object_HistoryPercent(const u8 *object) {
+    // (each sum's debug print of whether 30 is within the size is left out; the second and third sums are CircBufU32_30_Sum inlined, in a register)
+    double first, second, third;
+    CircBufU32_30_Sum(object + 0x1a8, nullptr, &first, 0x1e);
+    if ((u32)(long long)first == 0) return 0;  // __ftol, the low half
+    CircBufU32_30_Sum(object + 0x2b8, nullptr, &second, 0x1e);
+    CircBufU32_30_Sum(object + 0x1a8, nullptr, &third, 0x1e);
+    return (u32)(long long)second * 100u / (u32)(long long)third;
 }
 }
