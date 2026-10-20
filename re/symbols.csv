@@ -2813,6 +2813,7 @@ address,name,kind,confidence,notes
 0x0059abc0,Advisor_MayPost,function,low,"reimplemented (src/game/world/advisor); thiscall (id, urgent): whether a message of id may join the advisor's queue (active, waited, flagged, limit, count, last-of-definition tests)"
 0x0059a940,Advisor_Post,function,low,"reimplemented (src/game/world/advisor); thiscall (message): an advisor message offered to the 8-slot queue (first free slot, else replaces the lowest score when below it); 0 when refused"
 0x0059afc0,Advisor_PostKindEvent,function,low,reimplemented (src/game/world/advisor); thiscall (event): an unscored advisor message for 5 n + a base by the event's kind (0-4) posted (Advisor_Post)
+0x00486b00,Advisor_PostId,function,low,"reimplemented (src/game/world/advisor); cdecl (id): an advisor message for the id (type 0, a 0, b -1, flag 0, no score; on the stack, bytes +2, +3, +0x17 unwritten) posted to the world's advisor (GameTable7cfb90_Get1da71c_5194d0); Advisor_Post's answer"
 0x00486610,Global7c24d8_CopyScript,function,high,reimplemented (src/game/ui/thingpreview); a sprite script slot made a copy of another
 0x00557110,Rsse_TakeFinished,function,high,"reimplemented (src/game/rsse/rsse_vm); the value of the first finished entry, which is cleared"
 0x0054dcc0,Flag54dcc0_Test,function,high,reimplemented (src/game/render/mode); a flag test on two settings

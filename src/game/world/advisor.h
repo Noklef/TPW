@@ -44,4 +44,8 @@ u8 __fastcall Advisor_Post(u8 *self, void *, const u8 *message);
 // another kind: the event's address, sic) posted (Advisor_Post, whose answer is returned). The message is on the stack, its bytes +2, +3
 // and +0x17 never written: the queue slot it lands in gets whatever they held.
 u8 __fastcall Advisor_PostKindEvent(u8 *self, void *, const u8 *event);
+
+// 0x486b00 (cdecl (id); name unconfirmed): the same message for the id (type 0, a 0, b -1, flag 0, no score; on the stack, its bytes +2, +3
+// and +0x17 never written) posted to the advisor of the world [0x7cf83c] (GameTable7cfb90_Get1da71c_5194d0); Advisor_Post's answer.
+u8 __cdecl Advisor_PostId(u32 id);
 }

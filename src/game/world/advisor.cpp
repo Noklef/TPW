@@ -12,6 +12,7 @@
 #include "messagecentre.h"
 #include "objectdefs.h"
 #include "things.h"
+#include "world.h"
 
 namespace {
 
@@ -169,5 +170,12 @@ u8 __fastcall Advisor_PostKindEvent(u8 *self, void *, const u8 *event) {
     u8 message[0x18];   // (its bytes +2, +3 and +0x17 never written, sic)
     AdvisorMsg_Init(message, nullptr, id, 0, 0, 0xffffffffu, 0, -1);
     return Advisor_Post(self, nullptr, message);
+}
+
+u8 __cdecl Advisor_PostId(u32 id) {
+    u8 message[0x18];   // (its bytes +2, +3 and +0x17 never written, sic)
+    AdvisorMsg_Init(message, nullptr, id, 0, 0, 0xffffffffu, 0, -1);
+    u8 *const advisor = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da71c_5194d0(global<u8 *>(0x007cf83c)));
+    return Advisor_Post(advisor, nullptr, message);
 }
 }

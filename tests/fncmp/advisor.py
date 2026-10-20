@@ -11,7 +11,8 @@
 # The message it builds on the stack never has its bytes +2, +3 and +0x17 written, so the queue slot (+0x14 + 0x18 k) and the copy at +0x16d0
 # that take it are masked there: nothing in 0x59afc0, 0x59a940 or 0x59abc0 reads them (the slots are read at +0xc, +0x10 and +0x14 only;
 # +0x16d0 is also the advisor's record of id 0x15f, read by 0x59abc0, so it is not masked for that id, which has no definition to copy).
-# usage: advisor.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Lookup,Init,MayPost,Post,PostKind)
+# PostId (0x486b00): PostKind's message for one of Post's ids, the advisor found through the world's table entry; masked the same.
+# usage: advisor.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Lookup,Init,MayPost,Post,PostKind,PostId)
 import os
 import sys
 
@@ -23,8 +24,8 @@ from fncmp import LOG, RAM, Bench, Call, Mask, _cdecl_log, log_region, put, reco
 B = Bench([(0x5997b0, 0x5997f8), (0x429fe0, 0x42a010), (0x44b2e0, 0x44b3d0), (0x474070, 0x4740e0), (0x5442e0, 0x544340), (0x5989c0, 0x598ae0),
            (0x5ed580, 0x5ed5b0), (0x67a400, 0x6902c0), (0x59a940, 0x59aa63), (0x59abc0, 0x59ae1c), (0x59c2b0, 0x59c680), (0x41a980, 0x41a986),
            (0x41a990, 0x41a9a7), (0x5da3c0, 0x5da3c1), (0x59afc0, 0x59b049), (0x409cd0, 0x409cdd), (0x59b590, 0x59b611), (0x59bf20, 0x59c093),
-           (0x550ca0, 0x550d90), (0x5d1750, 0x5d1751)], hooks={0x67a7d0: _cdecl_log})
-OPS = [k for k in os.environ.get('OPS', 'Lookup,Init,MayPost,Post,PostKind').split(',') if k]
+           (0x550ca0, 0x550d90), (0x5d1750, 0x5d1751), (0x486b00, 0x486b3a), (0x5194d0, 0x51950d)], hooks={0x67a7d0: _cdecl_log})
+OPS = [k for k in os.environ.get('OPS', 'Lookup,Init,MayPost,Post,PostKind,PostId').split(',') if k]
 NAMES = [b'mouth - normal', b'MOUTH - aah', b'mouth - eee', b'Mouth - Ooh', b'mouth - sss', b'bug head', b'mouth', b'head', b'']
 
 
@@ -76,7 +77,7 @@ def init(r):
     return Call(0x5989c0, [], regions, ret='v')
 
 
-ADVISOR, MESSAGE, NOW, EVENT = RAM + 0x10000, RAM + 0x13000, RAM + 0x14000, RAM + 0x15000
+ADVISOR, MESSAGE, NOW, EVENT, WORLD = RAM + 0x10000, RAM + 0x13000, RAM + 0x14000, RAM + 0x15000, RAM + 0x16000
 BASES = [0x22, 0x21, 0x24, 0x23, 0x25]
 
 
@@ -123,14 +124,22 @@ def queue(r, op):   # Advisor_MayPost (thiscall (id, urgent)), Advisor_Post (thi
                0x78d90d: bytes([r.choice([0, 1])]), 0x80239c: struct.pack('<I', NOW - 0x1da70c & 0xffffffff), NOW: struct.pack('<I', now)}
     if op == 'MayPost':
         return Call(0x59abc0, [ADVISOR, id, r.choice([0, 0, 1, 0x100, r.getrandbits(32)])], regions, conv='t', ret='b')
-    if op == 'PostKind':
+    if op in ('PostKind', 'PostId'):
         log = log_region()
         set_return(log, 20, r.choice([0, 1, 5, 100, -1, r.getrandbits(32)]))
-        regions.update({EVENT: event, LOG: log, 0xfb34bc: bytes([r.choice([1, 1, 0, 3])]),
+        if op == 'PostKind':
+            regions[EVENT] = event
+        regions.update({LOG: log, 0xfb34bc: bytes([r.choice([1, 1, 0, 3])]),
                         0xfb3b7c: struct.pack('<I', r.choice([0, 1, 2, 3])), 0x7a1a8c: struct.pack('<I', r.getrandbits(32))})
         copy = [0x16d0 + k for k in (2, 3, 0x17)] if id != 0x15f else []   # (+0x16d0 is 0x15f's record, read; 0x15f has no definition to copy)
         offsets = sorted(copy + [0x14 + 0x18 * s + k for s in range(8) for k in (2, 3, 0x17)])
-        mask = Mask(ADVISOR, offsets, "the stack message's bytes +2, +3, +0x17, never written (0x59afc0), copied into a slot or +0x16d0")
+        mask = Mask(ADVISOR, offsets, "the stack message's bytes +2, +3, +0x17, never written (0x59afc0, 0x486b00), copied into a slot or +0x16d0")
+        if op == 'PostId':   # (the advisor the world's table entry: [0x7cf83c]'s word +0x1da71c indexes 0x7cfb90's entries of 20 bytes)
+            h = r.randrange(16)
+            regions[0x7cf83c] = struct.pack('<I', WORLD - 0x1da71c)
+            regions[WORLD] = struct.pack('<H', h)
+            regions[0x7cfb90 + 20 * h] = struct.pack('<I', ADVISOR)
+            return Call(0x486b00, [id], regions, ret='b', masks=[mask])
         return Call(0x59afc0, [ADVISOR, EVENT], regions, conv='t', ret='b', masks=[mask])
     regions[MESSAGE] = put(bytearray(r.bytes(0x18)), 0xc, 'Ii', id, r.choice([0, 3, 9, -1, r.getrandbits(31)]))
     put(regions[MESSAGE], 0x14, 'BB', r.choice([1, 1, 0]), r.choice([0, 0, 1]))
@@ -139,7 +148,7 @@ def queue(r, op):   # Advisor_MayPost (thiscall (id, urgent)), Advisor_Post (thi
 
 def case(r):
     op = r.deal(OPS)
-    if op in ('MayPost', 'Post', 'PostKind'):
+    if op in ('MayPost', 'Post', 'PostKind', 'PostId'):
         return queue(r, op)
     return init(r) if op == 'Init' else lookup(r)
 
