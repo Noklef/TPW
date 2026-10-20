@@ -94,7 +94,7 @@ def model(r, flags):
         m.leaf(0, o)
     m.table(0, 0x54, struct.unpack_from('<H', d, 0x36)[0], 0x10, (0xc,),
             fill=lambda t: put(m.data, t + 4, 'I', r.choice([0, r.getrandbits(32)])))
-    m.table(0, 0x6c, 1, 0x30, (), sometimes=True)
+    m.table(0, 0x6c, 1, 0x30, (0x28, 0x2c), sometimes=True)   # (both moved even when 0)
 
     def node(t):
         put(m.data, t + 0x5a, 'H', count(r))
