@@ -67,6 +67,17 @@ jpeg6a_scan_info *__cdecl jpeg6a_jcparam_fill_a_scan(jpeg6a_scan_info *scanptr, 
 jpeg6a_scan_info *__cdecl jpeg6a_jcparam_fill_scans(jpeg6a_scan_info *scanptr, int ncomps, int Ss, int Se, int Ah, int Al);
 jpeg6a_scan_info *__cdecl jpeg6a_jcparam_fill_dc_scans(jpeg6a_scan_info *scanptr, int ncomps, int Ah, int Al);
 
+// jmemansi.c, the memory manager's system-dependent part, through third_party/wrap/jpeg-6a/jmemansi.c: its malloc and free are the
+// exe's C runtime's (Jpeg6a_SetCrtEnv below), so every block stays on the exe's heap.
+// 0x650210, 0x650232: malloc(sizeofobject).
+void *__cdecl jpeg6a_jpeg_get_small(jpeg6a_common_struct *cinfo, std::size_t sizeofobject);
+void *__cdecl jpeg6a_jpeg_get_large(jpeg6a_common_struct *cinfo, std::size_t sizeofobject);
+// 0x650221, 0x650243: free(object).
+void __cdecl jpeg6a_jpeg_free_small(jpeg6a_common_struct *cinfo, void *object, std::size_t sizeofobject);
+void __cdecl jpeg6a_jpeg_free_large(jpeg6a_common_struct *cinfo, void *object, std::size_t sizeofobject);
+// 0x650254: mem->max_memory_to_use (+0x2c) - already_allocated.
+long __cdecl jpeg6a_jpeg_mem_available(jpeg6a_common_struct *cinfo, long min_bytes_needed, long max_bytes_needed, long already_allocated);
+
 // jutils.c (the same source as 6b's; the exe's copies use inline REP MOVS / STOS, the library's memcpy / memset)
 // 0x6503d0: a / b rounded up (a >= 0, b > 0).
 long __cdecl jpeg6a_jdiv_round_up(long a, long b);
@@ -85,4 +96,29 @@ void __cdecl jpeg6a_jzero_far(void *target, std::size_t bytestozero);
 void __cdecl jpeg6a_jpeg_fdct_islow(int *data);
 void __cdecl jpeg6a_jpeg_fdct_ifast(int *data);
 
+// What the library calls outside itself (Jpeg6aCrtEnv below), defined in jpeg6a.cpp for the wrapper units' #defines.
+void *__cdecl jpeg6a_exe_malloc(std::size_t size);
+void __cdecl jpeg6a_exe_free(void *block);
+char *__cdecl jpeg6a_exe_getenv(const char *name);
+int __cdecl jpeg6a_exe_sscanf(const char *s, const char *format, long *value, char *ch);
+void __cdecl jpeg6a_exe_open_backing_store(jpeg6a_common_struct *cinfo, void *info, long total_bytes_needed);
+int __cdecl jpeg6a_exe_sprintf(char *buffer, const char *format, ...);
+
 }  // extern "C"
+
+// What the library calls outside itself, the exe's, as 6b's (jpeg6b.h's Jpeg6bCrtEnv): its C runtime's malloc / free (jmemansi.c),
+// getenv / sscanf of JPEGMEM and the backing store (jmemmgr.c: jpeg_open_backing_store stays the exe's 6a one, 0x650265), and
+// format_message's two sprintf calls (jerror.c), told apart by the message text as format_message does. The tests give it stand-ins.
+struct Jpeg6aCrtEnv {
+    void *(__cdecl *alloc)(std::size_t size);  // malloc (0x67dcd0)
+    void(__cdecl *free)(void *block);          // free (0x67ad90)
+    char *(__cdecl *getenv)(const char *name);                                       // getenv (0x67fbf0)
+    int(__cdecl *sscanf)(const char *s, const char *format, long *value, char *ch);  // sscanf (0x67f620): jmemmgr.c's "%ld%c"
+    void(__cdecl *open_backing_store)(jpeg6a_common_struct *cinfo, void *info, long total_bytes_needed);  // the exe's (0x650265)
+    int(__cdecl *sprintf_string)(char *buffer, const char *format, const char *s);  // sprintf (0x67a650), format_message's %s call
+    int(__cdecl *sprintf_ints)(char *buffer, const char *format, int i0, int i1, int i2, int i3, int i4, int i5, int i6,
+                               int i7);  // sprintf (0x67a650), its other call
+};
+
+// The library's calls go through env (nullptr: the exe's).
+void Jpeg6a_SetCrtEnv(const Jpeg6aCrtEnv *env);

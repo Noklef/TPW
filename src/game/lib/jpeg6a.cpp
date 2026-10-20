@@ -2,7 +2,9 @@
 // declarations are the library's and pins the layouts the exe's copies share with it.
 #include "jpeg6a.h"
 
+#include <cstdarg>
 #include <cstddef>
+#include <cstdint>
 #include <cstdio>
 
 // 6a's own headers, by path (the include path finds 6b's jpeglib.h and jconfig.h first), under the library's external names. Its
@@ -51,3 +53,52 @@ static_assert(offsetof(jpeg_compress_struct, raw_data_in) == 0xa8 && offsetof(jp
 static_assert(sizeof(jpeg_component_info) == 0x54 && sizeof(jpeg_scan_info) == 0x24, "a component (10 at 0x348), a scan");
 static_assert(offsetof(jpeg_memory_mgr, free_pool) == 0x24 && offsetof(jpeg_memory_mgr, self_destruct) == 0x28,
               "mem->free_pool, self_destruct (jcomapi.c)");
+
+// What the library calls outside itself (jpeg6a.h's Jpeg6aCrtEnv), as jpeg6b.cpp's: jmemansi.c's malloc and free
+// (third_party/wrap/jpeg-6a/jmemansi.c #defines them to jpeg6a_exe_malloc / free), so the compressor's blocks are the exe's heap's;
+// jmemmgr.c's getenv, sscanf and jpeg_open_backing_store (wrap/jpeg-6a/jmemmgr.c); jerror.c's sprintf (wrap/jpeg-6a/jerror.c).
+namespace {
+const Jpeg6aCrtEnv kExeCrt = {
+    reinterpret_cast<void *(__cdecl *)(size_t)>((uintptr_t)0x0067dcd0),
+    reinterpret_cast<void(__cdecl *)(void *)>((uintptr_t)0x0067ad90),
+    reinterpret_cast<char *(__cdecl *)(const char *)>((uintptr_t)0x0067fbf0),
+    reinterpret_cast<int(__cdecl *)(const char *, const char *, long *, char *)>((uintptr_t)0x0067f620),
+    reinterpret_cast<void(__cdecl *)(jpeg6a_common_struct *, void *, long)>((uintptr_t)0x00650265),
+    reinterpret_cast<int(__cdecl *)(char *, const char *, const char *)>((uintptr_t)0x0067a650),
+    reinterpret_cast<int(__cdecl *)(char *, const char *, int, int, int, int, int, int, int, int)>((uintptr_t)0x0067a650)};
+const Jpeg6aCrtEnv *g_crt = &kExeCrt;
+}  // namespace
+
+void Jpeg6a_SetCrtEnv(const Jpeg6aCrtEnv *env) { g_crt = env ? env : &kExeCrt; }
+
+extern "C" {
+void *__cdecl jpeg6a_exe_malloc(size_t size) { return g_crt->alloc(size); }
+void __cdecl jpeg6a_exe_free(void *block) { g_crt->free(block); }
+char *__cdecl jpeg6a_exe_getenv(const char *name) { return g_crt->getenv(name); }
+int __cdecl jpeg6a_exe_sscanf(const char *s, const char *format, long *value, char *ch) { return g_crt->sscanf(s, format, value, ch); }
+void __cdecl jpeg6a_exe_open_backing_store(jpeg6a_common_struct *cinfo, void *info, long total_bytes_needed) {
+    g_crt->open_backing_store(cinfo, info, total_bytes_needed);
+}
+// format_message's two sprintf calls: the message's string parameter when its first '%' is a %s (format_message's own test, so the
+// call has the arguments the source passes), else the eight ints. The exe's sprintf is variadic, so either typed pointer calls it.
+int __cdecl jpeg6a_exe_sprintf(char *buffer, const char *format, ...) {
+    bool isstring = false;
+    for (const char *p = format; *p; p++)
+        if (*p == '%') {
+            isstring = p[1] == 's';
+            break;
+        }
+    va_list ap;
+    va_start(ap, format);
+    int n;
+    if (isstring) {
+        n = g_crt->sprintf_string(buffer, format, va_arg(ap, const char *));
+    } else {
+        int i[8];
+        for (int k = 0; k < 8; k++) i[k] = va_arg(ap, int);
+        n = g_crt->sprintf_ints(buffer, format, i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7]);
+    }
+    va_end(ap);
+    return n;
+}
+}
