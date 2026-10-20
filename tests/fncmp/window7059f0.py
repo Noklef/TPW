@@ -20,6 +20,8 @@
 # their cells 16 wide strings of six texts (some without data), the column bottoms mostly 0, the column 1-4 or past either end.
 # RemoveItem / Clear / ScrollTo (0x6647cb, 0x6649d5, 0x665739): list_env() (FreeItem's items with notify_env's windows, the queues, a
 # highlight, the bar child 1 or none, no row windows), the n / position around the count, the selection it or not, now and then no items.
+# Grow (0x66316b): items() of 4 + 0-3 columns (or a negative count), some free, the dword count +0x158 theirs or less, now and then no
+# array; n 0-20 or -1; the heap (its first allocation failing now and then).
 # usage: window7059f0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ColumnBottom,NextItem,...)
 import os
 import struct
@@ -34,11 +36,11 @@ from window import MISC, OBJECT98, RANGES, VTABLE, notify_blobs, notify_env, que
 CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'SetNthItemData': 0x664b68, 'SetRowHeight': 0x664ba8,
          'FindItemData': 0x664d2a, 'RefreshRows': 0x663324, 'ResetItems': 0x663085, 'RootEnd': 0x663cb8, 'FitBar': 0x664495,
          'FreeItem': 0x664605, 'Select': 0x66525c, 'FindText': 0x664db7, 'RemoveItem': 0x6647cb, 'Clear': 0x6649d5,
-         'ScrollTo': 0x665739}
+         'ScrollTo': 0x665739, 'Grow': 0x66316b}
 B = Bench(RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
                     (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707),
                     (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508),
-                    (0x664605, 0x6647cb), (0x47db20, 0x47db80), (0x6647cb, 0x664b68), (0x665739, 0x6658b9),
+                    (0x664605, 0x6647cb), (0x47db20, 0x47db80), (0x6647cb, 0x664b68), (0x665739, 0x6658b9), (0x66316b, 0x663324), (0x67fff0, 0x680060), (0x6800f0, 0x6802f8),
                     (0x66525c, 0x665494), (0x659d43, 0x659d90), (0x664db7, 0x664ea3), (0x4f7870, 0x4f7910), (0x665f30, 0x665f71),
                     (0x67acd0, 0x67ad00), (0x45b380, 0x45b5f0), (0x45b680, 0x45b9b0), (0x67bb90, 0x67bd98), (0x67d250, 0x67d2c0),
                     (0x67d3a0, 0x67d400), (0x6918f0, 0x691a30), (0x691ba0, 0x691ce0)])
@@ -364,7 +366,13 @@ def list_env(r):
             links[i + 4 + c] = OBJS3 + 0x10 * cells.pop() if cells and r.random() < 0.8 else 0
         if r.random() < 0.15:   # (free)
             links[i + 3] = -2
-    regions[LINKS3 - 0x20] = r.bytes(0x20) + struct.pack('<%di' % len(links), *links)   # (room for the dwords before the array)
+    # (the walks past the last item read the room before the array, the data dwords and the unused ones as links: all made negative)
+    used = {j for i in idx for j in range(i, i + 4 + ncols)}
+    for i in idx:
+        links[i + 1] = r.getrandbits(31) - 0x80000000
+    links = [v if j in used else none(r) for j, v in enumerate(links)]
+    regions[LINKS3 - 0x20] = struct.pack('<8i', *[none(r) for _ in range(8)]) + struct.pack('<%di' % len(links), *links)
+    put(window, 0x158, 'i', r.choice([len(links), len(links), (4 + ncols) * len(idx), 0]))   # (the array's dwords: ResetItems' count)
     roots = [j for j in idx if links[j + 3] < 0 and not any(links[k] == j for k in idx)]
     n = len(idx)
     put(window, 0x150, 'i', r.choice([n, n, n, 1, 0, r.randrange(n + 1)]))
@@ -384,7 +392,24 @@ def list_case(r, op):
         put(window, 0x144, 'I', 0)
     n = r.choice([-1, 0, 0, 1, 2, count - 1, count - 1, count, r.randrange(len(idx) + 1), 0x7fffffff])
     put(window, 0x14c, 'i', r.choice([n, n, -1, count - 1, r.randrange(10)]))
-    if op == 'Clear':
+    if op == 'Clear':   # (the count mostly at most the items the walk from the first shown one reaches: past them it reads cells as links)
+        links = struct.unpack('<%di' % (len(regions[LINKS3 - 0x20]) // 4), regions[LINKS3 - 0x20])[8:]
+        item, reach = struct.unpack_from('<i', window, 0x160)[0], 0
+        while item >= 0 and reach < 64:   # (NextItem)
+            reach += 1
+            if links[item + 2] >= 0 or links[item] >= 0:
+                item = links[item + 2] if links[item + 2] >= 0 else links[item]
+            elif links[item + 3] < 0:
+                item = -2
+            else:
+                item = links[item + 3]
+                for _ in range(64):
+                    if not (links[item] < 0 and links[item + 3] >= 0):
+                        break
+                    item = links[item + 3]
+                item = links[item]
+        if r.random() < 0.9:
+            put(window, 0x150, 'i', min(count, reach))
         return Call(CALLS[op], [LIST3], regions, conv='t', ret='v')
     return Call(CALLS[op], [LIST3, n & 0xffffffff], regions, conv='t', ret='w' if op == 'RemoveItem' else 'v')
 
@@ -422,6 +447,21 @@ def case(r):
         return free_case(r, window, regions)
     if op == 'FindText':
         return text_case(r, window, regions)
+    if op == 'Grow':   # (items() of 4 + 0-3 columns (now and then -1 or -3), some free; the dword count theirs or less; the heap failing now and then)
+        ncols = r.choice([0, 1, 2, 3, 3, -1, -3])
+        put(window, 0x164, 'h', ncols)
+        idx = items(r, window, regions, stride=4 + max(ncols, 0))
+        links = bytearray(regions.pop(LINKS))
+        for i in idx:
+            if r.random() < 0.3:
+                put(links, 4 * (i + 3), 'i', -2)
+        regions[LINKS - 0x20] = r.bytes(0x20) + links
+        put(window, 0x158, 'i', r.choice([len(links) // 4] * 3 + [4 * len(idx), r.randrange(len(links) // 4)]))
+        put(window, 0x160, 'i', r.choice(idx + [idx[0], -1]))
+        if r.random() < 0.1:
+            put(window, 0x144, 'I', 0)
+        regions[HEAP] = heap(fail=r.choice([0] * 9 + [1]))
+        return Call(CALLS[op], [WINDOW, r.choice([1, 2, 3, 10, 20, 20, 0, -1]) & 0xffffffff], regions, conv='t', ret='a')
     idx = items(r, window, regions)
     if op == 'RootEnd':   # (some items free: their parent -2; the outputs' old values random)
         links = bytearray(regions[LINKS])

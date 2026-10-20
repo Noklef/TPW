@@ -1,6 +1,7 @@
 #include "window7059f0.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "../core/accessors.h"
 #include "../core/buffers.h"
@@ -298,6 +299,35 @@ void __fastcall Window7059f0_RefreshRows(u8 *window) {
             level += delta;
         }
     }
+}
+
+s32 *__fastcall Window7059f0_Grow(u8 *window, void *, s32 n) {
+    if (!n || at<s16>(window, 0x164) == 0) return nullptr;
+    const s32 added = n * (at<s16>(window, 0x164) + 4);
+    s32 *const old = at<s32 *>(window, 0x144);
+    s32 end, last;   // (unset without the array; then unused)
+    if (old) Window7059f0_RootEnd(window, nullptr, &end, &last);
+    s32 *const links = static_cast<s32 *>(GameHeap_Alloc((u32)(at<s32>(window, 0x158) + added) << 2));
+    if (!links) return nullptr;
+    s32 item = at<s32>(window, 0x158);
+    std::memset(links, 0, (u32)(at<s32>(window, 0x158) + added) << 2);
+    for (s32 i = 0; i < n - 1; ++i) {   // (the new items free, each the next one's previous)
+        links[item] = item + at<s16>(window, 0x164) + 4;
+        links[item + 2] = -1;
+        links[item + 3] = -2;
+        item += at<s16>(window, 0x164) + 4;
+    }
+    links[item] = -1;
+    links[item + 2] = -1;
+    links[item + 3] = -2;
+    if (old) {
+        std::memcpy(links, old, (u32)at<s32>(window, 0x158) << 2);
+        links[last] = at<s32>(window, 0x158);   // (last -1: the dword before the block, sic)
+        GameHeap_Free(old);
+    }
+    at<s32 *>(window, 0x144) = links;
+    at<s32>(window, 0x158) += added;
+    return links;
 }
 
 u32 __fastcall Window7059f0_RemoveItem(u8 *window, void *, s32 n) {

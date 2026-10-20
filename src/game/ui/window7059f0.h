@@ -108,6 +108,13 @@ s32 __fastcall Window7059f0_FindText(u8 *window, void *, const u16 *text, s32 co
 // * 0x14 and 0 first (Window_NotifyC000). Then the next item (Window7059f0_NextItem), its level change added.
 void __fastcall Window7059f0_RefreshRows(u8 *window);
 
+// 0x66316b (thiscall (n), pops 4; name unconfirmed): 0 for n 0 or no columns (+0x164, signed). Else the item array +0x144 grown by n items
+// of columns + 4 dwords: a block of (the dword count +0x158 + that) * 4 bytes (Mem_Alloc; none: 0) cleared, the new items from the old
+// count on chained as free ones (each the next one's previous, child -1, parent -2; the last's next -1); with an old array, its dwords
+// copied over, the dword of the last item before the first free one (Window7059f0_RootEnd, taken before the allocation; -1: the dword
+// before the block, sic) set to the old count and the old array freed (Mem_Free). The block becomes +0x144, the count raised; returns it.
+s32 *__fastcall Window7059f0_Grow(u8 *window, void *, s32 n);
+
 // 0x6647cb (thiscall (n), pops 4; name unconfirmed): 0 for n at or past the count +0x150, without items +0x144 or below 0. Else the n-th
 // item (Window7059f0_NthItem) freed with its children (Window7059f0_FreeItem, n, previous, no siblings): previous -1 for the first one
 // (whose next sibling becomes the first shown +0x160) and for its parent's first child, else the (n - 1)-th item of the walk (not always a
