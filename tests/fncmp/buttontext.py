@@ -13,41 +13,20 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import listrows  # noqa: E402
-from fncmp import LOG, RAM, Bench, Call, put, recorder, set_return, vtable  # noqa: E402
+from listrows import register  # noqa: E402
+from fncmp import RAM, Bench, Call, recorder  # noqa: E402
 from window import RANGES  # noqa: E402
 
 B = Bench(sorted(set(RANGES + listrows.PART_RANGES + [
     (0x486660, 0x48677e), (0x659bc9, 0x659c42), (0x6588b6, 0x6588ef), (0x65d070, 0x65d1c8), (0x65f5b7, 0x65f5fe), (0x668f5a, 0x668f9c),
     (0x668820, 0x6688b3), (0x668ad3, 0x668bd4)])))
-NODES, FOUND, FVT, CUT = RAM + 0xa000, RAM + 0xa100, RAM + 0xa200, RAM + 0xa300
-
-
-def hash_name(name, multiplier=0x2f):
-    h = 0
-    for c in name.encode():
-        h = ((c - 256 if c > 127 else c) ^ h) * multiplier & 0xffffffff
-    return h
 
 
 def case(r):
     regions = dict(listrows.init_case(r, 'HilightList_InitRow').regions)
     row = regions[listrows.ROW] + bytearray(r.bytes(0x30))   # (the 0x705a50 kind's +0x14c-+0x15a)
     regions[listrows.ROW] = row
-    log = regions[LOG]
-    n = r.choice([0, 1, 2, 3])
-    found = r.randrange(n) if n and r.random() < 0.85 else -1
-    nodes = bytearray(r.bytes(0x18 * 3))
-    for i in range(n):
-        put(nodes, 0x18 * i, 'I', FOUND)
-        put(nodes, 0x18 * i + 0x10, 'I', hash_name('!cbut') if i == found else r.choice([hash_name('!frame'), r.getrandbits(32)]))
-        put(nodes, 0x18 * i + 0x14, 'I', NODES + 0x18 * (i + 1) if i + 1 < n else 0)
-    regions[NODES] = nodes
-    regions[0xfaa610] = struct.pack('<I', NODES if n else 0)
-    regions[listrows.VT98] = vtable({0: 1, 3: 2, 5: 1})   # (the old object +0x98 released too: WindowImpl_Release's slot 5)
-    regions[FOUND] = struct.pack('<I', FVT) + r.bytes(0x1c)
-    regions[FVT] = vtable({})
-    set_return(log, 8, r.choice([CUT, CUT, CUT, 0, listrows.OBJ98]))
-    regions[CUT] = put(put(bytearray(r.bytes(0x20)), 0, 'I', listrows.VT98), 0x10, 'HH', r.choice([0, 1, 2]), r.choice([0, 1, 2]))
+    register(r, regions, '!cbut')
     regions[0x6ff344] = struct.pack('<I', recorder(9, 1))   # (the text part's slot 9)
     text = r.choice([0, RAM + 0xa400, r.getrandbits(32)])
     font = r.choice(list(range(13)) + [13, 0xff, r.getrandbits(32)])

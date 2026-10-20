@@ -1,8 +1,14 @@
 # A list's new row window (src/game/ui/listrows: 0x480d30 / 0x4a8380) against the originals. HilightList_NewRow / List7cc188_NewRow:
 # window.py's tree and queues (Window_Ctor's surroundings), the heap failing now and then, font 7 (Language_Font, of group 0-2) a recorder
 # whose slot 1 gives its height (edges too), the divisor word [0xfaa5c0] any but 0.
-# HilightList_InitRow / List7cc188_InitRow (0x480dd0 / 0x4a8420): see init_case() below.
-# usage: listrows.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=HilightList_NewRow,List7cc188_NewRow,HilightList_InitRow,List7cc188_InitRow)
+# List7cc338_NewRow / List7cc530_NewRow (0x4b4c70 / 0x4bacc0): the same, the font of 4b4c70 the dword [0x756f38] (7 mostly, 0-12 or past
+# them) and its height cached in [0x7cc35c] or not (any dword); their child (Window_CreateChild kinds 9 and 6) made with
+# windowfactory.py's timer_env() surroundings and heap, the row's allocation failing now and then for 0x4b4c70 (for 0x4bacc0 never: the
+# child of no window faults in both, sic; nor the child's: CreateChild's failures fault in both, windowfactory.py).
+# HilightList_InitRow / List7cc188_InitRow (0x480dd0 / 0x4a8420): see init_case() below. List7cc530_InitRow (0x4bad70): init_case()'s,
+# the row's first child +0x5c a window of random bytes (its +0x98 none, an object of the +0x98 kind or the one found; +0x4c none or an
+# object; its slot 7 a recorder), the GUI's registered windows of register() below with "i_boxtick" among them or not.
+# usage: listrows.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=HilightList_NewRow,...)
 import os
 import struct
 import sys
@@ -11,10 +17,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import rendererpart  # noqa: E402
+import windowfactory  # noqa: E402
 from fncmp import HEAP, LOG, RAM, Bench, Call, blob_bytes, heap, log_region, put, set_return, vtable  # noqa: E402
 from window import RANGES, VTABLE, queues, tree  # noqa: E402
 
-CALLS = {'HilightList_NewRow': 0x480d30, 'List7cc188_NewRow': 0x4a8380, 'HilightList_InitRow': 0x480dd0, 'List7cc188_InitRow': 0x4a8420}
+CALLS = {'HilightList_NewRow': 0x480d30, 'List7cc188_NewRow': 0x4a8380, 'HilightList_InitRow': 0x480dd0, 'List7cc188_InitRow': 0x4a8420,
+         'List7cc338_NewRow': 0x4b4c70, 'List7cc530_NewRow': 0x4bacc0, 'List7cc530_InitRow': 0x4bad70}
 # (the initialisers: the text part's construction (textparts.py's ranges), SetLayout (0x48fc40, 0x48f420), the pixels (trackedglobal.py's),
 # the renderer's tag 0x30 list (0x48f5c0, Renderer_Add, Pool_AddSorted), Window_Notify40000)
 PART_RANGES = [(0x48f150, 0x48f290), (0x5775d0, 0x577660), (0x579b40, 0x579c30), (0x588320, 0x588420), (0x588d70, 0x588e50), (0x58a4f0, 0x58a560),
@@ -23,9 +31,41 @@ PART_RANGES = [(0x48f150, 0x48f290), (0x5775d0, 0x577660), (0x579b40, 0x579c30),
                (0x5fa680, 0x5fa6b0), (0x6ad5d0, 0x6ad670), (0x6ade00, 0x6adf30), (0x6b0230, 0x6b0290), (0x48fc40, 0x48fdac), (0x48f420, 0x48f5b7),
                (0x48f3d0, 0x48f409), (0x588940, 0x5889a1), (0x56af20, 0x56af9c), (0x588e40, 0x588ee8), (0x48f5c0, 0x48f650), (0x576410, 0x576550),
                (0x576270, 0x576320), (0x65c5d5, 0x65c672), (0x480dd0, 0x480e62), (0x4a8420, 0x4a84b2)]
-B = Bench(sorted(set(RANGES + PART_RANGES)))
+# (GuiWindows_FindByName and Window_SetObject98 with what they call; the new rows and their children: windowfactory.py's)
+REG_RANGES = [(0x659bc9, 0x659c42), (0x6588b6, 0x6588ef), (0x65d070, 0x65d1c8), (0x65f5b7, 0x65f5fe), (0x668f5a, 0x668f9c), (0x65d547, 0x65d558)]
+B = Bench(sorted(set(RANGES + PART_RANGES + REG_RANGES + windowfactory.FACTORY + [
+    (0x4b4c70, 0x4b4d34), (0x4bacc0, 0x4bad69), (0x4bad70, 0x4bae2b)])))
 ROW, OLD, OBJ98, VT98, VTOLD, OBJ4C, REND = RAM + 0x9000, RAM + 0x9200, RAM + 0x9300, RAM + 0x9380, RAM + 0x9400, RAM + 0x9480, RAM + 0x9500
 PARENTS = RAM + 0x9600
+NODES, FOUND, FVT, CUT, BOX, BOXVT = RAM + 0xa000, RAM + 0xa100, RAM + 0xa200, RAM + 0xa300, RAM + 0xa500, RAM + 0xa700
+
+
+def hash_name(name, multiplier=0x2f):
+    h = 0
+    for c in name.encode():
+        h = ((c - 256 if c > 127 else c) ^ h) * multiplier & 0xffffffff
+    return h
+
+
+def register(r, regions, name):
+    """the GUI's registered windows [0xfaa610]: a chain of 0-3 nodes, one of them `name` (Gui_HashName 0x2f) or none, its window a
+    recorder (slot 8 giving CUT, an object of the +0x98 kind, or 0 or OBJ98); VT98 releasing too (WindowImpl_Release's slot 5)"""
+    log = regions[LOG]
+    n = r.choice([0, 1, 2, 3])
+    found = r.randrange(n) if n and r.random() < 0.85 else -1
+    nodes = bytearray(r.bytes(0x18 * 3))
+    for i in range(n):
+        put(nodes, 0x18 * i, 'I', FOUND)
+        put(nodes, 0x18 * i + 0x10, 'I', hash_name(name) if i == found else r.choice([hash_name('!frame'), r.getrandbits(32)]))
+        put(nodes, 0x18 * i + 0x14, 'I', NODES + 0x18 * (i + 1) if i + 1 < n else 0)
+    regions[NODES] = nodes
+    regions[0xfaa610] = struct.pack('<I', NODES if n else 0)
+    regions[VT98] = vtable({0: 1, 3: 2, 5: 1})   # (the old object +0x98 released too: WindowImpl_Release's slot 5)
+    regions[FOUND] = struct.pack('<I', FVT) + r.bytes(0x1c)
+    regions[FVT] = vtable({})
+    set_return(log, 8, r.choice([CUT, CUT, CUT, 0, OBJ98]))
+    regions[CUT] = put(bytearray(r.bytes(0x20)), 0, 'I', VT98)
+    put(regions[CUT], 0x10, 'HH', r.choice([0, 1, 2]), r.choice([0, 1, 2]))
 
 
 def init_case(r, op):
@@ -71,6 +111,18 @@ def init_case(r, op):
 
 def case(r):
     op = r.deal(OPS)
+    if op == 'List7cc530_InitRow':
+        regions = dict(init_case(r, op).regions)
+        register(r, regions, 'i_boxtick')
+        box = bytearray(r.bytes(0x120))
+        put(box, 0, 'I', BOXVT)
+        put(box, 0x98, 'I', r.choice([0, 0, OBJ98, CUT]))
+        put(box, 0x4c, 'I', r.choice([0, OBJ4C]))
+        put(box, 0x60, 'I', ROW)   # (its parent the row: shown or not up the row's parents)
+        regions[BOX] = box
+        regions[BOXVT] = vtable({7: 1})
+        put(regions[ROW], 0x5c, 'I', BOX)
+        return Call(CALLS[op], [ROW], regions, ret='v')
     if op.endswith('InitRow'):
         return init_case(r, op)
 
@@ -90,6 +142,17 @@ def case(r):
     regions[0x78b530] = lang
     regions[VTABLE] = vtable({})
     set_return(log, 1, r.choice([r.randrange(0, 40), 0x7fff, 0x8000, 0xffff, r.getrandbits(16)]) | (r.getrandbits(16) << 16 if r.random() < 0.5 else 0))
+    if op in ('List7cc338_NewRow', 'List7cc530_NewRow'):
+        regions[VTABLE] = vtable({5: 1})
+        windowfactory.timer_env(r, regions, log)
+        regions[HEAP] = heap(0x2000, r.choice([0] * 5 + ([] if op == 'List7cc530_NewRow' else [1])))
+        regions[0xfaa5ec] = struct.pack('<I', r.choice([wins[0], 0, 0]))
+        if op == 'List7cc338_NewRow':
+            which = r.choice([7] * 6 + list(range(13)))
+            put(lang, 0x1c + (7 + 13 * group) * 0x18, 'I', r.getrandbits(32))
+            put(lang, 0x1c + (which + 13 * group) * 0x18, 'I', VTABLE)
+            regions[0x756f38] = struct.pack('<I', which)
+            regions[0x7cc35c] = struct.pack('<I', r.choice([0, 0, 0, r.randrange(1, 40), r.getrandbits(32)]))
     return Call(CALLS[op], [], regions, ret='a')
 
 
