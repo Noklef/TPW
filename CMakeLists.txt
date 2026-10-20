@@ -382,6 +382,7 @@ add_library(tpw_game STATIC
     src/game/ui/windowfactory.cpp
     src/game/ui/windowscript.cpp
     src/game/lib/zlib.cpp
+    src/game/lib/zlib_inflate.cpp
 )
 # The libraries whose functions replace the exe's copies (src/game/lib); their headers stay private to those units.
 target_link_libraries(tpw_game PRIVATE tpw_zlib)

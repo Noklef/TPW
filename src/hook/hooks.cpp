@@ -4740,6 +4740,9 @@ const Hook kHooks[] = {
     {"lm_init",                   0x00635870, (void *)&lm_init, {0x8b, 0x54, 0x24, 0x04, 0x53}},
     {"flush_pending",             0x00635740, (void *)&flush_pending, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"putShortMSB",               0x00635710, (void *)&putShortMSB, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"inflate_trees_dynamic",     0x0064a2c0, (void *)&inflate_trees_dynamic, {0x51, 0x53, 0x55, 0x56, 0x57}},
+    {"inflate_trees_bits",        0x00649d60, (void *)&inflate_trees_bits, {0x51, 0x53, 0x57, 0x8b, 0x7c}},
+    {"huft_build",                0x00649e10, (void *)&huft_build, {0x81, 0xec, 0xf0, 0x00, 0x00}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

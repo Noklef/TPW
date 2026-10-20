@@ -74,4 +74,24 @@ void __cdecl bi_flush(internal_state *s);
 void __cdecl bi_windup(internal_state *s);
 // 0x6405f0: bi_windup, then len bytes of buf (after len and ~len as shorts when header).
 void __cdecl copy_block(internal_state *s, char *buf, unsigned len, int header);
+
+// inftrees.c
+// 0x649e10: the decoding tables (from hp + *hn) for n codes of lengths b; values below s are themselves, the others d[] with e[]
+// extra bits; *t the first table, *m its bits; Z_OK, Z_BUF_ERROR (incomplete), Z_DATA_ERROR (oversubscribed) or Z_MEM_ERROR.
+int __cdecl huft_build(unsigned *b, unsigned n, unsigned s, const unsigned *d, const unsigned *e, inflate_huft_s **t, unsigned *m,
+                       inflate_huft_s *hp, unsigned *hn, unsigned *v);
+
+// The shims: the library's function (built as zlib_<name>, third_party/config/zlib_shims.h), then the exe's copy put back where it
+// left one of its own addresses (src/game/lib/zlib.cpp).
+// 0x649d60: the bit length codes' table (19 lengths in c); z->msg on a bad set (the exe's string).
+int __cdecl inflate_trees_bits(unsigned *c, unsigned *bb, inflate_huft_s **tb, inflate_huft_s *hp, z_stream_s *z);
+// 0x64a2c0: the literal / length and distance tables of a dynamic block (nl + nd lengths in c); z->msg on a bad set (the exe's string).
+int __cdecl inflate_trees_dynamic(unsigned nl, unsigned nd, unsigned *c, unsigned *bl, unsigned *bd, inflate_huft_s **tl, inflate_huft_s **td,
+                                  inflate_huft_s *hp, z_stream_s *z);
+}
+
+// What the shims share (src/game/lib/zlib.cpp).
+namespace zlibshim {
+// The call stored a message in z->msg (it is no longer `before`): the exe's copy of the same text instead of the library's.
+void exe_message(z_stream_s *z, const char *before);
 }
