@@ -338,4 +338,44 @@ void __cdecl jdinput_per_scan_setup(jpeg_decompress_struct *cinfo);
 void __cdecl jdinput_latch_quant_tables(jpeg_decompress_struct *cinfo);
 // 0x63b5c0: a scan's end (a shim): consume_input back to consume_markers.
 void __cdecl jdinput_finish_input_pass(jpeg_decompress_struct *cinfo);
+
+// jquant1.c (through wrap/jpeg-6b/jquant1.c): the one-pass colour quantizer, cinfo->cquantize (my_cquantizer, 0x58 bytes: pub
+// (start_pass, color_quantize, finish_pass, new_color_map), sv_colormap +0x10, sv_actual +0x14, colorindex +0x18, is_padded +0x1c,
+// Ncolors[4] +0x20, row_index +0x30, odither[4] +0x34, fserrors[4] +0x44, on_odd_row +0x54). Its finish_pass_1_quant is empty: the
+// exe's is the shared bare RET at 0x631270.
+// 0x6488f0: the module's init (a shim, jpeg6b.cpp): cinfo->cquantize allocated (JPOOL_IMAGE), the colormap and colorindex made,
+// the Floyd-Steinberg workspace for JDITHER_FS, with the exe's method addresses.
+void __cdecl jinit_1pass_quantizer(jpeg_decompress_struct *cinfo);
+// 0x648db0: a pass's start (a shim): colormap and actual_number_of_colors from the saved ones, color_quantize by dither_mode (and
+// out_color_components 3), the ordered-dither tables or the error rows made or cleared.
+void __cdecl jquant1_start_pass_1_quant(jpeg_decompress_struct *cinfo, unsigned char is_pre_scan);
+// 0x648b00: the colours per component (into Ncolors) for desired_number_of_colors; the total.
+int __cdecl jquant1_select_ncolors(jpeg_decompress_struct *cinfo, int *Ncolors);
+// 0x648bf0: the j-th of maxj + 1 output values (j * 255 + maxj / 2) / maxj.
+int __cdecl jquant1_output_value(jpeg_decompress_struct *cinfo, int ci, int j, int maxj);
+// 0x648d50: the largest input value mapped to the j-th output value ((2j + 1) * 255 + maxj) / (2 maxj).
+int __cdecl jquant1_largest_input_value(jpeg_decompress_struct *cinfo, int ci, int j, int maxj);
+// 0x648990: the colormap (alloc_sarray), sv_colormap and sv_actual.
+void __cdecl jquant1_create_colormap(jpeg_decompress_struct *cinfo);
+// 0x648c10: colorindex (alloc_sarray; padded by 255 either side for ordered dither, is_padded).
+void __cdecl jquant1_create_colorindex(jpeg_decompress_struct *cinfo);
+// 0x648f10: a 16 x 16 ordered-dither matrix for ncolors (alloc_small JPOOL_IMAGE).
+int *__cdecl jquant1_make_odither_array(jpeg_decompress_struct *cinfo, int ncolors);
+// 0x648ea0: odither[] for each component, shared between components with the same Ncolors.
+void __cdecl jquant1_create_odither_tables(jpeg_decompress_struct *cinfo);
+// 0x648f80 / 0x649040 (three components): rows quantized without dithering.
+void __cdecl jquant1_color_quantize(jpeg_decompress_struct *cinfo, unsigned char **input_buf, unsigned char **output_buf, int num_rows);
+void __cdecl jquant1_color_quantize3(jpeg_decompress_struct *cinfo, unsigned char **input_buf, unsigned char **output_buf, int num_rows);
+// 0x649100 / 0x649230 (three components): with ordered dithering (row_index advanced).
+void __cdecl jquant1_quantize_ord_dither(jpeg_decompress_struct *cinfo, unsigned char **input_buf, unsigned char **output_buf,
+                                         int num_rows);
+void __cdecl jquant1_quantize3_ord_dither(jpeg_decompress_struct *cinfo, unsigned char **input_buf, unsigned char **output_buf,
+                                          int num_rows);
+// 0x649360: with Floyd-Steinberg dithering (serpentine by on_odd_row, the errors in fserrors).
+void __cdecl jquant1_quantize_fs_dither(jpeg_decompress_struct *cinfo, unsigned char **input_buf, unsigned char **output_buf,
+                                        int num_rows);
+// 0x648d70: fserrors[], (output_width + 2) errors a component (alloc_large JPOOL_IMAGE).
+void __cdecl jquant1_alloc_fs_workspace(jpeg_decompress_struct *cinfo);
+// 0x649530: ERREXIT JERR_MODE_CHANGE (a one-pass quantizer's colormap cannot change).
+void __cdecl jquant1_new_color_map_1_quant(jpeg_decompress_struct *cinfo);
 }

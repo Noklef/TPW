@@ -47,6 +47,9 @@ static_assert(offsetof(jpeg_decompress_struct, inputctl) == 0x190, "cinfo->input
 static_assert(offsetof(jpeg_decompress_struct, idct) == 0x19c, "cinfo->idct (the coefficient controller's inverse_DCT)");
 static_assert(offsetof(jpeg_decompress_struct, Ss) == 0x16c, "cinfo->Ss (decompress_smooth_data)");
 static_assert(offsetof(jpeg_decompress_struct, cquantize) == 0x1a8, "cinfo->cquantize (the post-processor's color_quantize)");
+static_assert(offsetof(jpeg_decompress_struct, dither_mode) == 0x4c, "cinfo->dither_mode (start_pass_1_quant)");
+static_assert(offsetof(jpeg_decompress_struct, desired_number_of_colors) == 0x54, "cinfo->desired_number_of_colors (select_ncolors)");
+static_assert(offsetof(jpeg_decompress_struct, out_color_components) == 0x64, "cinfo->out_color_components (the quantizers' nc)");
 
 // The method-address shim. Every module's init (and jddctmgr.c's start_pass) stores the addresses of its methods in the structs the
 // exe's code also reads and calls through. The library stores its own functions' addresses; the exe's copy of the same code stores the
@@ -77,6 +80,9 @@ void __cdecl jdmarker_lib_jinit_marker_reader(j_decompress_ptr cinfo);
 void __cdecl jdinput_lib_jinit_input_controller(j_decompress_ptr cinfo);
 void __cdecl jdinput_lib_finish_input_pass(j_decompress_ptr cinfo);
 void __cdecl jdinput_lib_reset_input_controller(j_decompress_ptr cinfo);
+void __cdecl jquant1_lib_jinit_1pass_quantizer(j_decompress_ptr cinfo);
+void __cdecl jquant1_lib_start_pass_1_quant(j_decompress_ptr cinfo, boolean is_pre_scan);
+void __cdecl jquant1_finish_pass_1_quant(j_decompress_ptr cinfo);  // (not a hook: its exe copy is the shared bare RET)
 void __cdecl jpeg_idct_float(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, short *coef_block, unsigned char **output_buf,
                              unsigned int output_col);
 }
@@ -160,6 +166,15 @@ const ExeMethod kExeMethods[] = {
     {fn(&jdinput_lib_reset_input_controller), 0x63b8b0},
     {fn(&jdinput_start_input_pass), 0x63b310},
     {fn(&jdinput_lib_finish_input_pass), 0x63b5c0},
+    // jquant1.c (its finish_pass_1_quant is empty: the shared bare RET at 0x631270)
+    {fn(&jquant1_lib_start_pass_1_quant), 0x648db0},
+    {fn(&jquant1_finish_pass_1_quant), 0x631270},
+    {fn(&jquant1_new_color_map_1_quant), 0x649530},
+    {fn(&jquant1_color_quantize), 0x648f80},
+    {fn(&jquant1_color_quantize3), 0x649040},
+    {fn(&jquant1_quantize_ord_dither), 0x649100},
+    {fn(&jquant1_quantize3_ord_dither), 0x649230},
+    {fn(&jquant1_quantize_fs_dither), 0x649360},
 };
 
 // The method pointer at slot: the exe's address in place of a library method's (anything else is left as it is).
@@ -291,5 +306,17 @@ void __cdecl jdinput_reset_input_controller(j_decompress_ptr cinfo) {
 void __cdecl jdinput_finish_input_pass(j_decompress_ptr cinfo) {
     jdinput_lib_finish_input_pass(cinfo);
     exe_method(cinfo->inputctl->consume_input);
+}
+
+void __cdecl jinit_1pass_quantizer(j_decompress_ptr cinfo) {
+    jquant1_lib_jinit_1pass_quantizer(cinfo);
+    exe_method(cinfo->cquantize->start_pass);
+    exe_method(cinfo->cquantize->finish_pass);
+    exe_method(cinfo->cquantize->new_color_map);
+}
+
+void __cdecl jquant1_start_pass_1_quant(j_decompress_ptr cinfo, boolean is_pre_scan) {
+    jquant1_lib_start_pass_1_quant(cinfo, is_pre_scan);
+    exe_method(cinfo->cquantize->color_quantize);
 }
 }

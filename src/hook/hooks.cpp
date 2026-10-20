@@ -4956,6 +4956,22 @@ const Hook kHooks[] = {
     {"jdinput_per_scan_setup",    0x0063b360, (void *)&jdinput_per_scan_setup, {0x51, 0x53, 0x55, 0x56, 0x8b}},
     {"jdinput_start_input_pass",  0x0063b310, (void *)&jdinput_start_input_pass, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"jinit_input_controller",    0x0063b2c0, (void *)&jinit_input_controller, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jquant1_new_color_map_1_quant", 0x00649530, (void *)&jquant1_new_color_map_1_quant, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"jquant1_quantize_fs_dither", 0x00649360, (void *)&jquant1_quantize_fs_dither, {0x83, 0xec, 0x30, 0x8b, 0x44}},
+    {"jquant1_quantize3_ord_dither", 0x00649230, (void *)&jquant1_quantize3_ord_dither, {0x83, 0xec, 0x24, 0x8b, 0x4c}},
+    {"jquant1_quantize_ord_dither", 0x00649100, (void *)&jquant1_quantize_ord_dither, {0x83, 0xec, 0x1c, 0x8b, 0x44}},
+    {"jquant1_color_quantize3",   0x00649040, (void *)&jquant1_color_quantize3, {0x83, 0xec, 0x10, 0x8b, 0x4c}},
+    {"jquant1_color_quantize",    0x00648f80, (void *)&jquant1_color_quantize, {0x83, 0xec, 0x10, 0x8b, 0x44}},
+    {"jquant1_make_odither_array", 0x00648f10, (void *)&jquant1_make_odither_array, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"jquant1_create_odither_tables", 0x00648ea0, (void *)&jquant1_create_odither_tables, {0x55, 0x8b, 0x6c, 0x24, 0x08}},
+    {"jquant1_start_pass_1_quant", 0x00648db0, (void *)&jquant1_start_pass_1_quant, {0x53, 0x55, 0x56, 0x8b, 0x74}},
+    {"jquant1_alloc_fs_workspace", 0x00648d70, (void *)&jquant1_alloc_fs_workspace, {0x55, 0x56, 0x8b, 0x74, 0x24}},
+    {"jquant1_largest_input_value", 0x00648d50, (void *)&jquant1_largest_input_value, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"jquant1_create_colorindex", 0x00648c10, (void *)&jquant1_create_colorindex, {0x83, 0xec, 0x14, 0x53, 0x55}},
+    {"jquant1_output_value",      0x00648bf0, (void *)&jquant1_output_value, {0x8b, 0x4c, 0x24, 0x0c, 0x56}},
+    {"jquant1_select_ncolors",    0x00648b00, (void *)&jquant1_select_ncolors, {0x83, 0xec, 0x10, 0x53, 0x55}},
+    {"jquant1_create_colormap",   0x00648990, (void *)&jquant1_create_colormap, {0x83, 0xec, 0x24, 0x53, 0x55}},
+    {"jinit_1pass_quantizer",     0x006488f0, (void *)&jinit_1pass_quantizer, {0x56, 0x8b, 0x74, 0x24, 0x08}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
