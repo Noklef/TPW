@@ -8,9 +8,14 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fncmp import Bench, Call, RAM, bf, f32, fb, put, record_stream  # noqa: E402
+import dialog7ca1c8  # noqa: E402
+import radiogroup  # noqa: E402
+import window  # noqa: E402
+from fncmp import LOG, LOG_BYTES, blob_bytes, log_region, recorder, vtable  # noqa: E402
 
 B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b5ff), (0x44b4c0, 0x44b505), (0x475550, 0x47558b), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060), (0x433f70, 0x433ffd), (0x442d10, 0x442d70), (0x443ee0, 0x443f40), (0x444c00, 0x444c50), (0x444040, 0x444090), (0x444700, 0x444740), (0x447790, 0x447830), (0x442cd0, 0x442d10), (0x436820, 0x4368f0), (0x436150, 0x436190), (0x432bd0, 0x432c10), (0x444c50, 0x444cb0), (0x43af70, 0x43afa0), (0x4418d0, 0x4419b0), (0x434650, 0x434740), (0x5da3c0, 0x5da3d0), (0x447990, 0x4479a0), (0x430ac0, 0x430ad0), (0x433220, 0x433240), (0x435710, 0x435730), (0x439920, 0x439ab0), (0x43a060, 0x43a2b0), (0x43d8f0, 0x43dbb0), (0x46f150, 0x46f180), (0x46f350, 0x46f420), (0x46f5c0, 0x46f6f0), (0x444090, 0x444150), (0x445f30, 0x446042), (0x45d630, 0x45d660), (0x436190, 0x436230), (0x445910, 0x445a70), (0x4367a0, 0x436820), (0x447830, 0x447990), (0x432840, 0x432b50), (0x437300, 0x4379a0), (0x5f5e50, 0x5f5e80), (0x463ab0, 0x463c7a), (0x412e90, 0x412eea), (0x443df0, 0x443ed4), (0x433300, 0x433790), (0x434f10, 0x43501c), (0x4479a0, 0x447a03), (0x447a10, 0x447ad2), (0x403be0, 0x403c13), (0x4445b0, 0x4446f4),
-           (0x432c10, 0x432d4b), (0x466d70, 0x466fa0), (0x469930, 0x469950), (0x454050, 0x4541a0), (0x45b9d0, 0x45ba15), (0x430ca0, 0x430ee0), (0x438a70, 0x438ac0), (0x433790, 0x4338e0), (0x433a90, 0x433bd0), (0x4338e0, 0x433a90), (0x440a30, 0x440ad0), (0x442d70, 0x442e94)], sines=256)
+           (0x432c10, 0x432d4b), (0x466d70, 0x466fa0), (0x469930, 0x469950), (0x454050, 0x4541a0), (0x45b9d0, 0x45ba15), (0x430ca0, 0x430ee0), (0x438a70, 0x438ac0), (0x433790, 0x4338e0), (0x433a90, 0x433bd0), (0x4338e0, 0x433a90), (0x440a30, 0x440ad0), (0x442d70, 0x442e94)]
+          + [(0x444740, 0x444780), (0x4819f0, 0x481a20), (0x498090, 0x4982b0), (0x498a30, 0x498a80)] + dialog7ca1c8.RANGES + window.RANGES, sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 CHAIN = RAM + 0xc000
@@ -1412,6 +1417,79 @@ def add_entry(r, op):
 
 KINDS['AddEntry'] = add_entry
 OPS += ['AddEntry'] if 'OPS' not in os.environ else []
+
+
+def refresh_tools(r, op):
+    """0x444740: the 'Tools' set-up of the current link (at RAM + 0x10000 on: Tools's result 0x79c6e0 is the checks' flags), then the 0x7ca1c8
+    dialog (as dialog7ca1c8.py, up or not, or 0) whose child 0x18 is the radio group of the ten buttons 0x18-0x21 in some order, each one a
+    0x705a50 window (radiogroup.py's) with a recorder vtable whose slot 5 logs the check's bool (checkbuttons.py's), and [0x7ca1d0] +0x50 any;
+    the selection's flags 0x79c638 one or a few of bits 0-8, none or any."""
+    log = log_region()
+    regions = {LOG: log}
+    vt = RAM + 0x10500
+    regions[vt] = vtable({5: 1})
+    struct.pack_into('<I', log, LOG_BYTES + 4 * 5, 1)
+    ids = list(range(0x18, 0x22))
+    r.shuffle(ids)
+    kids = []
+    for i, ident in enumerate(ids):
+        w = radiogroup.window(r)
+        put(w, 0, 'I', vt)
+        put(w, 0x8c, 'I', ident)
+        put(w, 0x54, 'I', radiogroup.KIDS + radiogroup.KID * (i + 1) if i + 1 < len(ids) else 0)
+        put(w, 0x98, 'I', radiogroup.OBJ98 if r.random() < 0.8 else 0)
+        put(w, 0x9c, 'I', radiogroup.OBJS + 0x40 * i if r.random() < 0.8 else 0)
+        v9c = vtable({}, size=8)
+        put(v9c, 0xc, 'I', recorder(22 + i, 2))
+        regions[radiogroup.OBJS + 0x40 * i] = put(bytearray(r.bytes(0x20)), 0, 'I', radiogroup.OBJS + 0x40 * i + 0x20) + v9c
+        regions[radiogroup.KIDS + radiogroup.KID * i] = w
+        kids.append((ident, w))
+    g = bytearray(r.bytes(0x160))
+    g[0x48] = 0
+    put(g, 0x8c, 'I', 0x18)
+    put(g, 0x5c, 'I', radiogroup.KIDS)
+    put(g, 0x138, 'I', r.choice(ids + [0xffffffff, 7, r.getrandbits(32)]))
+    regions[radiogroup.VT98] = vtable({3: 2}, size=8)
+    regions[radiogroup.OBJ98] = put(bytearray(r.bytes(0x20)), 0, 'I', radiogroup.VT98)
+    blob_bytes(log, 3, 1, radiogroup.EVENT_MASK)
+    radiogroup.queues(r, regions)
+    regions[0xfaa5d4] = put(bytearray(4), 0, 'I', r.choice([0, 1, 0x80000000]))
+    other = bytearray(r.bytes(0x90))
+    put(other, 0x8c, 'I', r.choice([3, 0x19]))
+    put(other, 0x54, 'I', 0)
+    regions[dialog7ca1c8.OTHER] = other
+    if r.random() < 0.5:
+        put(g, 0x54, 'I', dialog7ca1c8.OTHER)
+        first = radiogroup.GROUP
+    else:
+        put(g, 0x54, 'I', 0)
+        put(other, 0x54, 'I', radiogroup.GROUP)
+        first = dialog7ca1c8.OTHER
+    regions[radiogroup.GROUP] = g
+    regions[dialog7ca1c8.DIALOG] = put(bytearray(r.bytes(0x60)), 0x5c, 'I', first)
+    regions[0x7ca1c8] = put(bytearray(8), 0, 'II', dialog7ca1c8.DIALOG if r.random() < 0.9 else 0, r.choice([1, 1, 1, 0, 0x100]))
+    regions[dialog7ca1c8.CURSOR_WINDOW] = bytearray(r.bytes(0x60))
+    regions[0x7cb2ac] = put(bytearray(4), 0, 'I', dialog7ca1c8.CURSOR_WINDOW if r.random() < 0.85 else 0)
+    regions[0xfaa5e0] = bytearray(4)
+    regions[0x7cb2d8] = put(bytearray(4), 0, 'I', r.getrandbits(32))
+    misc = bytearray(r.bytes(0x60))
+    misc[0x50] = r.choice([0, 0, 1, 2, 0xff])
+    regions[RAM + 0x10400] = misc
+    regions[0x7ca1d0] = struct.pack('<I', RAM + 0x10400)
+    flags = r.choice([1 << r.randrange(9), (1 << r.randrange(9)) | (1 << r.randrange(9)), 0, r.getrandbits(9), r.getrandbits(32)])
+    regions[0x79c638] = struct.pack('<I', flags)
+    ident = next((i for bit, i in dialog7ca1c8.PICKS if flags & bit), 0xffffffff)
+    radiogroup.masks(log, kids, radiogroup.select_states(kids, int.from_bytes(g[0x138:0x13c], 'little'), ident))
+    link, ltype, nodes = RAM + 0x10000, RAM + 0x10100, RAM + 0x10200
+    regions[link] = put(put(put(bytearray(r.bytes(0x80)), 4, 'I', ltype), 0x58, 'I', nodes), 0x60, 'I', nodes + 0x40)
+    regions[ltype], regions[nodes] = r.bytes(4), r.bytes(0x80)
+    regions[0x790fec] = struct.pack('<I', link)
+    regions[0x79c6e0] = r.bytes(4)
+    return Call(0x444740, [], regions, ret='v')
+
+
+KINDS['RefreshTools'] = refresh_tools
+OPS += ['RefreshTools'] if 'OPS' not in os.environ else []
 
 
 def case(r):

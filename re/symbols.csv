@@ -4484,6 +4484,7 @@ address,name,kind,confidence,notes
 0x00447a10,CoasterEdit_Tool2,function,low,"reimplemented (src/game/coaster/registry); cdecl: the edit's tool 2 (recorded 0x38; mode 1 or 2 and flag 0x40 by the end piece), then CoasterEdit_SetBounds"
 0x004445b0,CoasterEdit_SetTool,function,low,"reimplemented (src/game/coaster/registry); cdecl (tool): CoasterEdit_Tool2 for tool 2, else CoasterEdit_Tool1 with 0x79c644 = tool"
 0x00432c10,CoasterLink_AddEntry,function,low,"reimplemented (src/game/coaster/registry); cdecl (x, y, flags, unused, value, position): a new 0x48-byte entry for the current link, its cell and position from position or (x, y)"
+0x00444740,CoasterEdit_RefreshTools,function,low,"reimplemented (src/game/coaster/registry); the edit tools worked out again, then the 0x7ca1c8 dialog's checks and button set from them"
 0x0043b0e0,Coaster_QueuePush,function,high,"reimplemented (src/game/coaster/queue); cdecl (index, peep): appends the peep to the queue ring (+0xb0) of coaster index (table 0x790bd0) when it has room"
 0x0043b130,CoasterQueue_Add,function,high,"reimplemented (src/game/coaster/queue); cdecl (coaster, peep): appends the peep to the queue ring (+0xb0), else to the boarding ring (+0xd0), whichever has room"
 0x0043b1f0,Coaster_QueueRoom,function,high,"reimplemented (src/game/coaster/queue); cdecl (index): the queue ring's limit - reserved - count, at least 0"

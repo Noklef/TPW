@@ -8,6 +8,7 @@
 #include "../math/x87.h"
 #include "../model/highlight.h"
 #include "../terrain/land.h"
+#include "../ui/dialog7ca1c8.h"
 #include "../world/objectdefs.h"
 
 namespace {
@@ -414,5 +415,12 @@ u8 *__cdecl CoasterLink_AddEntry(s32 x, s32 y, u32 flags, u32, u32 value, const 
     at<u8 *>(entry, 0x14) = *reinterpret_cast<u8 **>(0x00790fec);
     at<u32>(entry, 0x18) = value;
     return entry;
+}
+
+void __cdecl CoasterEdit_RefreshTools() {
+    CoasterEdit_Tools(nullptr);
+    void *const owner = reinterpret_cast<void *>(static_cast<uintptr_t>(0x007b51f0));
+    Dialog7ca1c8_SetChecksIfUpThis(owner, nullptr, *reinterpret_cast<u32 *>(0x0079c6e0));
+    Dialog7ca1c8_SelectButtonIfUpThis(owner, nullptr, *reinterpret_cast<u32 *>(0x0079c638));
 }
 }
