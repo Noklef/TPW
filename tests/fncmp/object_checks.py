@@ -340,10 +340,11 @@ def rating_env(r):
     rides = bytearray(r.bytes(0x10 * 0xd0))
     index, kind = r.randrange(0x10), r.choice([0, 1, 5])
     put(rides, index * 0xd0, 'i', kind)
-    n = r.choice([0, 1, 2, 3, 5])
-    pieces = bytearray(r.bytes(0x40 * 6))
+    n = r.choice([0, 1, 2, 3, 5, 26, 30])   # (long chains of kind 11 reach the figure's cap of 40)
+    pieces = bytearray(r.bytes(0x40 * 30))
+    kinds = [8, 9, 10, 11, 11, 12, 13, 13, 14, 0] if n < 26 else [11, 11, 11, 11, 9, 0]
     for k in range(n):
-        put(pieces, 0x40 * k + 4, 'H', r.choice([8, 9, 10, 11, 11, 12, 13, 13, 14, 0]))
+        put(pieces, 0x40 * k + 4, 'H', r.choice(kinds))
         put(pieces, 0x40 * k + 8, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
         put(pieces, 0x40 * k + 0x24, 'I', RAM + 0x23000 + 0x40 * (k + 1) if k + 1 < n else 0)
     put(rides, index * 0xd0 + 0xbc, 'I', RAM + 0x23000 if n else 0)
