@@ -20,6 +20,16 @@
 // (as above) unless stopped; other cells only move. B stops after the first cell when the start is not of type 0xb, 0xd, 0x10, 0x12 or 0x19. The
 // end is listed and goes to 0x81ede4 / 0x81ede8.
 //
+// The track run animated (0x52a490 AnimateA, 0x52a700 AnimateB; names unconfirmed; called with [0x8186ac] from 0x524d29, 0x526bef, 0x526f62,
+// 0x554a1c): from the thing's cell stepped as by TraceA / TraceB (Position_StepA / StepB inlined; a direction other than the right angles gives
+// the code start's low byte, B's through Nibble_Scale), on each cell: one of type 0xb, 0xd, 0x10, 0x12 or 0x19 (MapCell_IsTypeBDOr10Or12Or19)
+// turns at a corner (the reverse direction xor its neighbour bits, or the direction itself xor them when the reverse is not among them) and has
+// its thing (+4, when not 0: entry of 0x7a4610) play bank 5 (start's low byte set) or 0xc, entry 0, mode 7, speed 1, layer 0 (Animator_Play);
+// any other cell sets the direction to 0. A cell not at a corner whose neighbour bits lack the direction stops the run, as does a next cell two
+// on that is an end of the same +0x10 word with the reverse side (as TraceB); the run moves on (as above) either way. The direction 0 on a
+// corner cell of no such type never moves and never stops (sic). Returns the last direction less 1 with the low byte cleared (the original's
+// EAX: 0xffffff00 for 0, else 0; the callers ignore it).
+//
 // The point list's own add and commit (0x52fbf0, called from 0x524800-0x526600; 0x52fc30, called from 0x48d013): the runs above add inline.
 #pragma once
 
@@ -33,6 +43,9 @@ void __cdecl CellRun_Corners();
 // 0x530830 / 0x530b70 (cdecl; thing).
 void __cdecl TrackRun_TraceA(const u8 *thing);
 void __cdecl TrackRun_TraceB(const u8 *thing);
+// 0x52a490 / 0x52a700 (cdecl; thing, start).
+u32 __cdecl TrackRun_AnimateA(const u8 *thing, u32 start);
+u32 __cdecl TrackRun_AnimateB(const u8 *thing, u32 start);
 
 // 0x52fbf0 (cdecl; a, b): appends the pair to the table of 8-byte entries at 0x81b740 (count at
 // 0x820a8c), unless the count is above 0x400 (signed): 0 then, else 1.
