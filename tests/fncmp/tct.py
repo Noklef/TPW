@@ -57,7 +57,7 @@ def case(r):
     put(sets, 0, 'II', n, GROUPS)
     put(sets, 0xc, 'I', r.choice([0, 0, 0, 0x10, 3]))
     regions[SETS] = sets
-    data = b''.join(line(r, names) for _ in range(r.choice([0, 1, 3, 8, 16])))
+    data = b''.join(line(r, names) for _ in range(r.choice([1, 3, 8, 16] * 6 + [0])))   # (an empty file: fncmp's heap answers 0 for its block: crashes in both)
     if r.random() < 0.1:
         data = data.rstrip(b'\n')
     second = data if r.random() < 0.9 else data[:r.randrange(len(data) + 1)] + bytes(len(data))
