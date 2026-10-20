@@ -50,6 +50,9 @@ static_assert(offsetof(jpeg_decompress_struct, cquantize) == 0x1a8, "cinfo->cqua
 static_assert(offsetof(jpeg_decompress_struct, dither_mode) == 0x4c, "cinfo->dither_mode (start_pass_1_quant)");
 static_assert(offsetof(jpeg_decompress_struct, desired_number_of_colors) == 0x54, "cinfo->desired_number_of_colors (select_ncolors)");
 static_assert(offsetof(jpeg_decompress_struct, out_color_components) == 0x64, "cinfo->out_color_components (the quantizers' nc)");
+static_assert(offsetof(jpeg_decompress_struct, enable_2pass_quant) == 0x5a, "cinfo->enable_2pass_quant (jinit_2pass_quantizer)");
+static_assert(offsetof(jpeg_decompress_struct, actual_number_of_colors) == 0x70, "cinfo->actual_number_of_colors (start_pass_2_quant)");
+static_assert(offsetof(jpeg_decompress_struct, colormap) == 0x74, "cinfo->colormap (find_nearby_colors)");
 
 // The method-address shim. Every module's init (and jddctmgr.c's start_pass) stores the addresses of its methods in the structs the
 // exe's code also reads and calls through. The library stores its own functions' addresses; the exe's copy of the same code stores the
@@ -83,6 +86,9 @@ void __cdecl jdinput_lib_reset_input_controller(j_decompress_ptr cinfo);
 void __cdecl jquant1_lib_jinit_1pass_quantizer(j_decompress_ptr cinfo);
 void __cdecl jquant1_lib_start_pass_1_quant(j_decompress_ptr cinfo, boolean is_pre_scan);
 void __cdecl jquant1_finish_pass_1_quant(j_decompress_ptr cinfo);  // (not a hook: its exe copy is the shared bare RET)
+void __cdecl jquant2_lib_jinit_2pass_quantizer(j_decompress_ptr cinfo);
+void __cdecl jquant2_lib_start_pass_2_quant(j_decompress_ptr cinfo, boolean is_pre_scan);
+void __cdecl jquant2_finish_pass2(j_decompress_ptr cinfo);  // (not a hook: its exe copy is the shared bare RET)
 void __cdecl jpeg_idct_float(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, short *coef_block, unsigned char **output_buf,
                              unsigned int output_col);
 }
@@ -175,6 +181,14 @@ const ExeMethod kExeMethods[] = {
     {fn(&jquant1_quantize_ord_dither), 0x649100},
     {fn(&jquant1_quantize3_ord_dither), 0x649230},
     {fn(&jquant1_quantize_fs_dither), 0x649360},
+    // jquant2.c (its finish_pass2 is empty: the shared bare RET at 0x631270)
+    {fn(&jquant2_lib_start_pass_2_quant), 0x6476c0},
+    {fn(&jquant2_new_color_map_2_quant), 0x6488e0},
+    {fn(&jquant2_prescan_quantize), 0x6477e0},
+    {fn(&jquant2_finish_pass1), 0x6480a0},
+    {fn(&jquant2_pass2_no_dither), 0x647860},
+    {fn(&jquant2_pass2_fs_dither), 0x647db0},
+    {fn(&jquant2_finish_pass2), 0x631270},
 };
 
 // The method pointer at slot: the exe's address in place of a library method's (anything else is left as it is).
@@ -318,5 +332,17 @@ void __cdecl jinit_1pass_quantizer(j_decompress_ptr cinfo) {
 void __cdecl jquant1_start_pass_1_quant(j_decompress_ptr cinfo, boolean is_pre_scan) {
     jquant1_lib_start_pass_1_quant(cinfo, is_pre_scan);
     exe_method(cinfo->cquantize->color_quantize);
+}
+
+void __cdecl jinit_2pass_quantizer(j_decompress_ptr cinfo) {
+    jquant2_lib_jinit_2pass_quantizer(cinfo);
+    exe_method(cinfo->cquantize->start_pass);
+    exe_method(cinfo->cquantize->new_color_map);
+}
+
+void __cdecl jquant2_start_pass_2_quant(j_decompress_ptr cinfo, boolean is_pre_scan) {
+    jquant2_lib_start_pass_2_quant(cinfo, is_pre_scan);
+    exe_method(cinfo->cquantize->color_quantize);
+    exe_method(cinfo->cquantize->finish_pass);
 }
 }

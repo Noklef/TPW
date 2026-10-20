@@ -378,4 +378,43 @@ void __cdecl jquant1_quantize_fs_dither(jpeg_decompress_struct *cinfo, unsigned 
 void __cdecl jquant1_alloc_fs_workspace(jpeg_decompress_struct *cinfo);
 // 0x649530: ERREXIT JERR_MODE_CHANGE (a one-pass quantizer's colormap cannot change).
 void __cdecl jquant1_new_color_map_1_quant(jpeg_decompress_struct *cinfo);
+
+// jquant2.c (through wrap/jpeg-6b/jquant2.c): the two-pass colour quantizer, cinfo->cquantize (my_cquantizer, 0x2c bytes: pub,
+// sv_colormap +0x10, desired +0x14, histogram +0x18 (32 rows of 64 x 32 UINT16 cells), needs_zeroed +0x1c, fserrors +0x20, on_odd_row
+// +0x24, error_limiter +0x28); boxes of 0x20 bytes (c0min..c2max, volume +0x18, colorcount +0x1c). Its finish_pass2 is empty (the exe's
+// is the shared bare RET 0x631270); find_biggest_color_pop (0x6486e0) stays the exe's, the hand port Records32_MaxWeight.
+// 0x6474f0: the module's init (a shim, jpeg6b.cpp): cinfo->cquantize, the histogram, sv_colormap when enable_2pass_quant, the F-S
+// workspace and error limiter, with the exe's method addresses.
+void __cdecl jinit_2pass_quantizer(jpeg_decompress_struct *cinfo);
+// 0x6476c0: a pass's start (a shim): the pre-scan's or the second pass's color_quantize and finish_pass, the F-S workspace cleared,
+// the histogram zeroed when needs_zeroed.
+void __cdecl jquant2_start_pass_2_quant(jpeg_decompress_struct *cinfo, unsigned char is_pre_scan);
+// 0x647620: the error limiter's 511 ints (error_limiter 255 in).
+void __cdecl jquant2_init_error_limit(jpeg_decompress_struct *cinfo);
+// 0x6477e0: pass 1: each pixel's histogram cell counted (saturating).
+void __cdecl jquant2_prescan_quantize(jpeg_decompress_struct *cinfo, unsigned char **input_buf, unsigned char **output_buf, int num_rows);
+// 0x647860 / 0x647db0: pass 2 without dithering / with Floyd-Steinberg, through the histogram as the inverse colormap's cache.
+void __cdecl jquant2_pass2_no_dither(jpeg_decompress_struct *cinfo, unsigned char **input_buf, unsigned char **output_buf, int num_rows);
+void __cdecl jquant2_pass2_fs_dither(jpeg_decompress_struct *cinfo, unsigned char **input_buf, unsigned char **output_buf, int num_rows);
+// 0x647930: the inverse colormap for the 4 x 8 x 4 cells around (c0, c1, c2).
+void __cdecl jquant2_fill_inverse_cmap(jpeg_decompress_struct *cinfo, int c0, int c1, int c2);
+// 0x647a50: the colours that can be nearest to some cell of the box at (minc0, minc1, minc2) into colorlist; their count.
+int __cdecl jquant2_find_nearby_colors(jpeg_decompress_struct *cinfo, int minc0, int minc1, int minc2, unsigned char *colorlist);
+// 0x647c50: each of the box's 128 cells' nearest colour of colorlist into bestcolor.
+void __cdecl jquant2_find_best_colors(jpeg_decompress_struct *cinfo, int minc0, int minc1, int minc2, int numcolors,
+                                      unsigned char *colorlist, unsigned char *bestcolor);
+// 0x6480a0: pass 1's end: the colormap selected (select_colors), needs_zeroed.
+void __cdecl jquant2_finish_pass1(jpeg_decompress_struct *cinfo);
+// 0x6480d0: median cut over the histogram to desired_colors boxes, one colour each; actual_number_of_colors.
+void __cdecl jquant2_select_colors(jpeg_decompress_struct *cinfo, int desired_colors);
+// 0x648160: a box shrunk to its non-zero cells; its volume and colour count.
+void __cdecl jquant2_update_box(jpeg_decompress_struct *cinfo, void *boxp);
+// 0x6485a0: boxes split until desired_colors (or nothing splits); the count.
+int __cdecl jquant2_median_cut(jpeg_decompress_struct *cinfo, void *boxlist, int numboxes, int desired_colors);
+// 0x648720: the box with the greatest volume (NULL when none is above 0).
+void *__cdecl jquant2_find_biggest_volume(void *boxlist, int numboxes);
+// 0x648750: a box's mean colour into colormap[][icolor].
+void __cdecl jquant2_compute_color(jpeg_decompress_struct *cinfo, void *boxp, int icolor);
+// 0x6488e0: needs_zeroed (the histogram is cleared at the next start_pass).
+void __cdecl jquant2_new_color_map_2_quant(jpeg_decompress_struct *cinfo);
 }

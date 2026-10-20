@@ -4972,6 +4972,22 @@ const Hook kHooks[] = {
     {"jquant1_select_ncolors",    0x00648b00, (void *)&jquant1_select_ncolors, {0x83, 0xec, 0x10, 0x53, 0x55}},
     {"jquant1_create_colormap",   0x00648990, (void *)&jquant1_create_colormap, {0x83, 0xec, 0x24, 0x53, 0x55}},
     {"jinit_1pass_quantizer",     0x006488f0, (void *)&jinit_1pass_quantizer, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jquant2_new_color_map_2_quant", 0x006488e0, (void *)&jquant2_new_color_map_2_quant, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"jquant2_compute_color",     0x00648750, (void *)&jquant2_compute_color, {0x83, 0xec, 0x30, 0x8b, 0x44}},
+    {"jquant2_find_biggest_volume", 0x00648720, (void *)&jquant2_find_biggest_volume, {0x8b, 0x54, 0x24, 0x08, 0x56}},
+    {"jquant2_median_cut",        0x006485a0, (void *)&jquant2_median_cut, {0x51, 0x8b, 0x44, 0x24, 0x14}},
+    {"jquant2_update_box",        0x00648160, (void *)&jquant2_update_box, {0x83, 0xec, 0x1c, 0x8b, 0x44}},
+    {"jquant2_select_colors",     0x006480d0, (void *)&jquant2_select_colors, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"jquant2_finish_pass1",      0x006480a0, (void *)&jquant2_finish_pass1, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"jquant2_pass2_fs_dither",   0x00647db0, (void *)&jquant2_pass2_fs_dither, {0x83, 0xec, 0x58, 0x8b, 0x44}},
+    {"jquant2_find_best_colors",  0x00647c50, (void *)&jquant2_find_best_colors, {0x81, 0xec, 0x20, 0x02, 0x00}},
+    {"jquant2_find_nearby_colors", 0x00647a50, (void *)&jquant2_find_nearby_colors, {0x81, 0xec, 0x2c, 0x04, 0x00}},
+    {"jquant2_fill_inverse_cmap", 0x00647930, (void *)&jquant2_fill_inverse_cmap, {0x81, 0xec, 0x84, 0x01, 0x00}},
+    {"jquant2_pass2_no_dither",   0x00647860, (void *)&jquant2_pass2_no_dither, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
+    {"jquant2_prescan_quantize",  0x006477e0, (void *)&jquant2_prescan_quantize, {0x8b, 0x44, 0x24, 0x04, 0x55}},
+    {"jquant2_start_pass_2_quant", 0x006476c0, (void *)&jquant2_start_pass_2_quant, {0x55, 0x56, 0x8b, 0x74, 0x24}},
+    {"jquant2_init_error_limit",  0x00647620, (void *)&jquant2_init_error_limit, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"jinit_2pass_quantizer",     0x006474f0, (void *)&jinit_2pass_quantizer, {0x55, 0x56, 0x8b, 0x74, 0x24}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
