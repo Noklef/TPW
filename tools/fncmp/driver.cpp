@@ -52,6 +52,7 @@
 #include "../../src/game/gfx/canvasdraw.h"
 #include "../../src/game/gfx/convert.h"
 #include "../../src/game/gfx/draw.h"
+#include "../../src/game/gfx/invmap.h"
 #include "../../src/game/gfx/pixconv.h"
 #include "../../src/game/gfx/surfbuf.h"
 #include "../../src/game/gfx/tga.h"
@@ -800,6 +801,9 @@ int main(int argc, char **argv) {
                                        reinterpret_cast<void(__fastcall *)(void *, void *)>(hooked(0x00642180)), reinterpret_cast<const u32 *>((uintptr_t)0x00faa268),
                                        reinterpret_cast<const u32 *>((uintptr_t)0x00faa280), &heap_alloc};
     PixConv_SetEnv(&pixConv);
+    // The inverse colour map's: the heap; its loops' statics stay the game's (0xfaa500, mapped).
+    static const InverseMapEnv inverseMap = {&heap_free, reinterpret_cast<InverseMapStatics *>((uintptr_t)0x00faa500)};
+    InverseMap_SetEnv(&inverseMap);
     // The static conversion's set-up and the bitmap copy: the pixel conversion's ports; atexit stub_cdecl_log (tests/fncmp/convert.py hooks 0x67a7d0
     // with fncmp._cdecl_log), handed the game's 0x5fc350 as the original is.
     static const ConvertEnv convert = {reinterpret_cast<PixelConversion *>((uintptr_t)0x00fa7d18), &PixelConversion_Ctor, &PixelConversion_Dtor,
