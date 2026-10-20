@@ -611,4 +611,80 @@ void __fastcall Window_SetWordE2(u8 *window, void *, u32 value) {
     if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 4u, event);
     for (u8 *child = at<u8 *>(window, 0x5c); child; child = at<u8 *>(child, 0x54)) Window_SetWordE2(child, nullptr, value);
 }
+
+void __fastcall Window_Notify1(u8 *window, void *, u32 value) {
+    u8 event[0x18];  // (only the word +4 set)
+    at<u16>(event, 4) = (u16)value;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 1u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 1u, event);
+}
+
+u32 __fastcall Window_GetSize(u8 *window, void *, s16 *width, s16 *height, u32 inner) {
+    GuiRect_GetSize(window + 8, nullptr, (u16 *)width, (u16 *)height);
+    if ((s16)inner != 0) {
+        if (width) *width = (s16)(*width - (s16)(at<s16>(window, 0xfc) - at<s16>(window, 0xf8)));
+        if (height) *height = (s16)(*height - (s16)(at<s16>(window, 0xfe) - at<s16>(window, 0xfa)));
+    }
+    return 1;
+}
+
+void __fastcall Window_PostIfHit(u8 *window, void *, u32 message, u32 button, u32 point) {
+    if ((s16)vcall<u32>(window + 0x2c, 0, (u32)((s32)point >> 16), point & 0xffff) == 0) return;
+    const u8 *const entry = reinterpret_cast<const u8 *>((uintptr_t)0x00faa598 + button * 0xc);
+    const u32 press = (u32)((s32)*reinterpret_cast<const s16 *>(entry + 2) << 16) | (u32)(s32)*reinterpret_cast<const s16 *>(entry + 4);  // sic
+    Window_PostMessage(window, message | 0x1000, button, press);
+}
+
+void __fastcall Window_Activate(u8 *window) {
+    u8 *&active = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5dc);
+    if (active == window) return;
+    Window_PostMessage(active, 0x1b, 0, 0);
+    active = window;
+    Window_PostMessage(active, 0x1a, 0, 0);
+}
+
+u8 *__fastcall Window_RaiseToTop(u8 *window) {
+    if (!at<u8 *>(window, 0x54)) return nullptr;
+    u8 *const prev = at<u8 *>(window, 0x58);
+    u8 *const next = at<u8 *>(window, 0x54);
+    u8 *last = window;
+    while (at<u8 *>(last, 0x54)) last = at<u8 *>(last, 0x54);
+    at<u8 *>(window, 0x54) = nullptr;
+    at<u8 *>(last, 0x54) = window;
+    at<u8 *>(window, 0x58) = last;
+    if (prev) at<u8 *>(prev, 0x54) = next;
+    if (next) {
+        at<u8 *>(next, 0x58) = prev;
+        if (!prev) at<u8 *>(at<u8 *>(next, 0x60), 0x5c) = next;
+    }
+    Window_PostMessage(window, 0x18, 0, 0);
+    Window_PostMessage(last, 0x19, 0, 0);
+    return last;
+}
+
+u32 __fastcall Window_OpenTree(u8 *window) {
+    if (at<u32>(window, 0x48) & 1) {
+        if (!(at<u32>(window, 0x48) & 0xf0000000u)) {
+            vcall<void>(window, 0);
+            Window_SendMessage(window, 3, 0, 0);
+        }
+        for (u8 *child = at<u8 *>(window, 0x5c); child; child = at<u8 *>(child, 0x54)) Window_OpenTree(child);
+    }
+    return 1;
+}
+
+u32 __fastcall Window_CloseTree(u8 *window) {
+    if (at<u32>(window, 0x48) & 1) {
+        u8 *child = at<u8 *>(window, 0x5c);
+        if (child) {
+            while (at<u8 *>(child, 0x54)) child = at<u8 *>(child, 0x54);
+            for (; child; child = at<u8 *>(child, 0x58)) Window_CloseTree(child);
+        }
+        if (!(at<u32>(window, 0x48) & 0xf0000000u)) {
+            Window_SendMessage(window, 3, 0, 0);
+            vcall<void>(window, 0);
+        }
+    }
+    return 1;
+}
 }

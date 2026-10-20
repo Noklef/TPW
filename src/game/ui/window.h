@@ -240,4 +240,36 @@ void __fastcall Window_SetDepth(u8 *window, void *, u32 depth);
 // their slot 3 (4, an event on the stack whose only word set, +8, is +0xe2); then each child (+0x5c, then +0x54) given the same. EAX not
 // kept.
 void __fastcall Window_SetWordE2(u8 *window, void *, u32 value);
+
+// 0x65d3a3 (thiscall (value: a word), pops 4; name unconfirmed): the objects +0x98 and +0x9c (when set) told through their slot 3 (1, one
+// event on the stack whose only word set, +4, is the value). EAX not kept.
+void __fastcall Window_Notify1(u8 *window, void *, u32 value);
+
+// 0x65d865 (thiscall (width, height: word pointers, each may be 0; inner: a word), pops 12; name unconfirmed): the size of the rectangle
+// +8 (GuiRect_GetSize); with inner not 0 each one set less the margins: width less +0xfc - +0xf8, height less +0xfe - +0xfa. 1 in AX (the
+// rest of EAX left).
+u32 __fastcall Window_GetSize(u8 *window, void *, s16 *width, s16 *height, u32 inner);
+
+// 0x65dcaf (thiscall (message, button, point), pops 12; name unconfirmed): when the point (x the upper half, signed, y the lower) is in
+// the rectangle +0x2c (its slot 0), the window is posted message | 0x1000 (button, the button's press point: the words +2 << 16 | +4,
+// each signed, of the entry button of [0xfaa598] (0xc bytes each); sic: a negative +4 fills the upper half) (Window_PostMessage). EAX not
+// kept.
+void __fastcall Window_PostIfHit(u8 *window, void *, u32 message, u32 button, u32 point);
+
+// 0x65dd18 (thiscall; name unconfirmed): nothing when the window is the active one [0xfaa5dc] already; else that one is posted 0x1b, the
+// window becomes the active one and is posted 0x1a (Window_PostMessage). EAX not kept.
+void __fastcall Window_Activate(u8 *window);
+
+// 0x65dbf0 (thiscall; name unconfirmed): 0 when the window has no next sibling (+0x54); else it moves to the end of its siblings: after
+// the last one, its old previous (+0x58) and next linked up (the next one the parent's (+0x60) first child +0x5c when there was no
+// previous), the window posted 0x18 and the old last one 0x19 (Window_PostMessage). Returns the old last one.
+u8 *__fastcall Window_RaiseToTop(u8 *window);
+
+// 0x65c707 (thiscall; recursive; name unconfirmed): for a window with bit 0 of +0x48 set: unless one of its top four bits is set, its slot 0
+// and then the message 3 sent (Window_SendMessage); then each child (+0x5c, then +0x54) the same. 1 in AX (the rest of EAX left).
+u32 __fastcall Window_OpenTree(u8 *window);
+
+// 0x65c778 (thiscall; recursive; name unconfirmed): Window_OpenTree in reverse: for a window with bit 0 of +0x48 set, its children from
+// the last one back (by +0x58) first, then (unless one of the top four bits of +0x48 is set) the message 3 sent and its slot 0. 1 in AX.
+u32 __fastcall Window_CloseTree(u8 *window);
 }
