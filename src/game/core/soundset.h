@@ -36,6 +36,11 @@ u8 *__fastcall SoundCmd_Ctor(u8 *cmd, void *, u32 value);
 // ("cat_ride") and keeps the answer.
 u32 __cdecl Sound_Query(u32 a, u32 b);
 
+// 0x51b530 (cdecl; name, folders; name unconfirmed): the name looked up in a folder list (Class6fd9d8_FindFirstMatch with a String of the name and an
+// empty String for what it finds); 0 when it is not found (the match's AL not 1), or sound is not on (0x802bc8) and started (0x802bd4). Else the
+// sound manager (0x802bcc) is asked through its vtable +4 (&folders, the found String's text, name, &name) and name as it left it is returned.
+u32 __cdecl Sound_QueryFound(const char *name, u8 *folders);
+
 // 0x51b7c0 (cdecl): when on and started, the sound manager's vtable +0 (&result, not read after); then not started. The
 // warning when the allocation count 0x802bd8 is not back to 0 is compiled out.
 void __cdecl Sound_Shutdown();

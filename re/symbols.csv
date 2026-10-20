@@ -356,7 +356,7 @@ address,name,kind,confidence,notes
 0x00551320,KidSound_PlayGraded,function,low,"reimplemented (src/game/core/soundplay); cdecl (level, a, b, x, y, z): a kids' sound for a level (base 0x4b / 0x4f / 0x53 / 0x57) graded by (a + b) / 50 (at most 3; nothing for level 0 or a negative grade) played at a position in gSndCatKids"
 0x0051c5d0,Sound_SetArea,function,medium,"(sound, x, z, w, d): spreads an emitter over the rect (x, z)..(x+w, z+d)"
 0x00521e60,Particle_Spawn,function,high,"reimplemented (src/game/render/particles); cdecl (effect, x, y, z): starts a particle system from the effect definition: a free system to the live list, the definition copied, its first burst emitted, its linked voice or effect started; returns its handle, 0 for an optional effect while reduced, -1 when none"
-0x0051b530,SoundCategory_Register,function,medium,"loads a cat_<name> sound category (bank + map)"
+0x0051b530,Sound_QueryFound,function,low,"reimplemented (src/game/core/soundset); cdecl (name, folders): the name found in a folder list (Class6fd9d8_FindFirstMatch), then the sound manager's +4 (&folders, found text, name, &name) when on and started; else 0"
 0x0051b620,SoundCategory_Release,function,medium,
 0x0051eae0,Sound_RegisterGlobalCategories,function,high,"cat_ambient, cat_rides, cat_ui, cat_kids, cat_staff, cat_speech"
 0x0051ec50,Sound_RegisterThemeCategories,function,high,"theme folder's cat_ambient, cat_rides, cat_speech, cat_music"
