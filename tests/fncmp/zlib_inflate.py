@@ -1,5 +1,6 @@
 # zlib 1.1.3's inflate side (src/game/lib/zlib: the library built from third_party/zlib-1.1.3) against the exe's copies of it: the
-# decoding tables (inftrees.c), the codes' decoders (infcodes.c, inffast.c), the window's flush (infutil.c) and the blocks (infblock.c).
+# decoding tables (inftrees.c), the codes' decoders (infcodes.c, inffast.c), the window's flush (infutil.c) the blocks (infblock.c)
+# and inflate (inflate.c).
 # A z_stream at Z whose zalloc / zfree are fncmp's ZALLOC / ZFREE over the heap at HEAP.
 # usage: zlib_inflate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=huft_build,...)
 #
@@ -16,7 +17,7 @@ import sys
 import zlib
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, LOG, RAM, ZALLOC, ZFREE, Bench, Call, Mask, heap, log_region, recorder  # noqa: E402
+from fncmp import HEAP, LOG, RAM, ZALLOC, ZFREE, Bench, Call, Mask, heap, log_region, recorder, set_return  # noqa: E402
 
 # the exe's copies (re/libmap.csv): name -> (address, end)
 FUNCS = {
@@ -24,9 +25,13 @@ FUNCS = {
     'inflate_codes_new': (0x649550, 0x649590), 'inflate_codes': (0x649590, 0x649d40), 'inflate_codes_free': (0x649d40, 0x649d60),
     'inflate_flush': (0x64a480, 0x64a5c0), 'inflate_fast': (0x64bbd0, 0x64bf80),
     'inflate_blocks_reset': (0x640690, 0x640710), 'inflate_blocks_new': (0x640710, 0x6407c0), 'inflate_blocks': (0x6407c0, 0x6414b0),
-    'inflate_blocks_free': (0x6414b0, 0x641500),
+    'inflate_blocks_free': (0x6414b0, 0x641500), 'inflateReset': (0x636560, 0x6365b0), 'inflateEnd': (0x6365b0, 0x636600),
+    'inflateInit2_': (0x636600, 0x636710), 'inflate': (0x636710, 0x636b70),
 }
-B = Bench(sorted(list(FUNCS.values()) + [(0x64a450, 0x64a480)]))  # (and inflate_trees_fixed: the exe's, which inflate_blocks calls)
+# (and the exe's inflate_trees_fixed, which inflate_blocks calls, and adler32, which inflateInit2_'s blocks reset calls)
+B = Bench(sorted(list(FUNCS.values()) + [(0x64a450, 0x64a480), (0x63ea00, 0x63eb30)]))
+for a in (0x636600, 0x636710, 0x6365b0):  # (fncmp's zlib stand-ins for the codec's benches: here the exe's own)
+    del B.emu.hooks[a]
 Z, OUTS, LENS, V, HP = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x800, RAM + 0x10000
 MANY = 1440
 CPLENS, CPLEXT, CPDIST, CPDEXT = 0x704f08, 0x704f88, 0x705008, 0x705080  # (the exe's: inflate_trees_dynamic pushes them)
@@ -299,19 +304,21 @@ def codes_case(r, fast=False):
     return regions, (bl, bd, tl, td)
 
 
-def resumed(r, regions, address=0x649590):
+def resumed(r, regions, address=0x649590, args=None):
     """The state after the exe's inflate_codes (or inflate_blocks) ran on part of the input into part of the room (a state inside a symbol, a copy, ...),
     then given the rest of the input (or part of it) and a fresh output buffer: None if that run crashed."""
     z = bytearray(regions[Z])
     struct.pack_into('<I', z, 4, r.randrange(struct.unpack_from('<I', z, 4)[0] + 1))
     pre = {**regions, Z: bytes(z)}
-    out = B.original(Call(address, [S, Z, r.choice([0, -5])], pre, ret='a'))
+    out = B.original(Call(address, args or [S, Z, r.choice([0, -5])], pre, ret='a'))
     if isinstance(out, str):
         return None
     after = {k: bytearray.fromhex(v) for k, v in zip(pre, out[3:])}
     nxt = struct.unpack_from('<I', after[Z], 0)[0] - IN
     left = len(regions[IN]) - nxt
     room = r.choice([0, r.randrange(1, 64), r.randrange(0x1000)])
+    if not struct.unpack_from('<I', after[Z], 0)[0]:
+        return None
     struct.pack_into('<5I', after[Z], 0, IN + nxt, r.choice([left, left, r.randrange(left + 1)]), struct.unpack_from('<I', after[Z], 8)[0], OUT, room)
     after[OUT] = r.bytes(room + 16)
     after[LOG] = log_region()
@@ -384,10 +391,42 @@ def farthest_all(data):
         return far
 
 
+def crafted(r):
+    """A block's header made here, then random bytes: a stored block's lengths (LEN with its top bit set sometimes, NLEN wrong
+    sometimes), or a dynamic block's counts (past the 29 allowed sometimes) and bit length code (a complete code over symbols that
+    include the repeats, so a repeat can come first)."""
+    acc, n = 0, 0
+
+    def put(v, bits):
+        nonlocal acc, n
+        acc, n = acc | v << n, n + bits
+    put(r.getrandbits(1), 1)
+    if r.random() < 0.5:
+        put(0, 2)
+        n = (n + 7) & ~7
+        length = r.choice([r.getrandbits(16), r.getrandbits(8), 0x8000 | r.getrandbits(8), 0x8000 | r.getrandbits(8)])
+        put(length, 16)
+        put(length ^ 0xffff if r.random() < 0.8 else r.getrandbits(16), 16)
+    else:
+        put(2, 2)
+        put(r.choice([r.randrange(30), 29, 30, 30, 31]), 5)
+        put(r.choice([r.randrange(30), 29, 29, 30, 31]), 5)
+        put(15, 4)
+        cl, _ = code_lengths(r, 19, 7, used=r.randrange(3, 20), complete=12)
+        if r.random() < 0.3:  # (a repeat or a length as likely as each other first)
+            cl = [0] * 19
+            cl[16] = cl[r.choice([0, 8, 17, 18])] = 1
+        for i in range(19):
+            put(cl[ORDER[i]], 3)
+    return acc.to_bytes((n + 7) >> 3, 'little') + r.bytes(r.randrange(400))
+
+
 def whole_stream(r):
     """A raw deflate stream (damaged sometimes) and whether it is intact."""
     if r.random() < 0.08:
         return r.bytes(r.randrange(1, 400)), False
+    if r.random() < 0.2:
+        return crafted(r), False
     z = zlib.compressobj(r.choice([0, r.randrange(1, 10)]), zlib.DEFLATED, -r.choice([9, 10, 11, 12, 15]), 8,
                          r.choice([zlib.Z_DEFAULT_STRATEGY] * 3 + [zlib.Z_FIXED, zlib.Z_HUFFMAN_ONLY, zlib.Z_RLE]))
     data = bytearray()
@@ -452,10 +491,102 @@ def blocks_free(r):
     return Call(0x6414b0, [S, Z], regions, ret='a')
 
 
+# inflate: a zlib stream (a raw one for nowrap; a preset dictionary sometimes, which this zlib only reports), damaged sometimes, on a
+# state at its start or where the exe's inflate left it part way. The check function is a recorder, made to answer the stream's
+# Adler-32 when it is intact (the driver cannot run the exe's adler32), so the trailer check passes or fails as the data says.
+IS, VER = RAM + 0x140, RAM + 0x180
+METHOD, BLOCKS, DONE, BADI = 0, 7, 12, 13  # (inflate's modes)
+
+
+def inflate_case(r):
+    nowrap = r.random() < 0.3
+    wbits = r.choice([9, 10, 11, 12, 15])
+    if r.random() < 0.06:
+        data, intact = r.bytes(r.randrange(1, 300)), False
+    else:
+        dict_ = r.random() < 0.08 and not nowrap
+        z = zlib.compressobj(r.choice([0, r.randrange(1, 10)]), zlib.DEFLATED, -wbits if nowrap else wbits, 8, zlib.Z_DEFAULT_STRATEGY,
+                             **({'zdict': payload(r, 40)} if dict_ else {}))
+        data = bytearray()
+        for _ in range(r.choice([1, 1, 2])):
+            data += z.compress(payload(r, r.randrange(1, 1 << r.randrange(4, 12))))
+            data += z.flush(r.choice([zlib.Z_NO_FLUSH, zlib.Z_SYNC_FLUSH, zlib.Z_FULL_FLUSH]))
+        data += z.flush()
+        intact = r.random() < 0.75
+        if not intact:
+            for _ in range(r.choice([1, 1, 2, 8])):
+                i = r.randrange(8 * len(data))
+                data[i >> 3] ^= 1 << (i & 7)
+        data = bytes(data)
+    raw = data if nowrap else data[2:]
+    wsize = max(1 << max(farthest_all(raw) - 1, 0).bit_length(), 1 << r.randrange(8, 13)) if intact else 0x8000
+    log = log_region()
+    if intact and not nowrap:
+        set_return(log, 0, int.from_bytes(data[-4:], 'big'))
+    data += r.bytes(r.choice([0, r.randrange(16)]))
+    ro, wo = window_ends(r, wsize)
+    out = r.choice([0, r.randrange(1, 64), r.randrange(0x1000)])
+    return {Z: struct.pack('<14I', IN, r.choice([len(data), len(data), r.randrange(len(data) + 1)]), r.getrandbits(16), OUT, out,
+                           r.getrandbits(16), r.choice(MSGS), IS, ZALLOC, ZFREE, r.getrandbits(32), r.getrandbits(2), r.getrandbits(32), 0),
+            IS: struct.pack('<6I', BLOCKS if nowrap else METHOD, r.getrandbits(32), r.getrandbits(32), nowrap,
+                            r.choice([15, 15, wbits, r.randrange(8, 16)]), S),
+            S: struct.pack('<16I', TYPE, *[r.getrandbits(32) for _ in range(5)], r.getrandbits(1), 0, 0, HP, W, W + wsize, W + ro, W + wo,
+                           r.choice([0, recorder(0, 3, cdecl=True)] if nowrap else [recorder(0, 3, cdecl=True)]), r.getrandbits(32)),
+            HP: r.bytes(8 * MANY), IN: data, W: r.bytes(wsize), OUT: r.bytes(out + 16), LOG: log, HEAP: heap(0x8000, r.choice([0] * 12 + [1, 2]))}
+
+
+FLUSHES = [0, 0, 4, 4, 2, 3]  # (Z_NO_FLUSH, Z_FINISH, Z_SYNC_FLUSH, Z_FULL_FLUSH)
+
+
+def inflate(r):
+    regions = inflate_case(r)
+    if r.random() < 0.6:
+        regions = resumed(r, regions, 0x636710, [Z, r.choice(FLUSHES)]) or regions
+    z = bytearray(regions[Z])
+    if r.random() < 0.03:  # (no state, no input: Z_STREAM_ERROR)
+        struct.pack_into('<I', z, r.choice([0, 0x1c]), 0)
+    regions[Z] = z
+    return Call(0x636710, [Z, r.choice(FLUSHES)], regions, ret='a', masks=entry_masks(HP, 8 * MANY))
+
+
+def inflate_state(r, blocks=S):
+    return {Z: stream(r), IS: struct.pack('<6I', r.randrange(14), r.getrandbits(32), r.getrandbits(32), r.getrandbits(1), r.randrange(8, 16),
+                                         blocks),
+            S: blocks_state(r, r.choice([TYPE, BTREE, DTREE, CODES, r.randrange(10)])), HEAP: heap(0x100), LOG: log_region()}
+
+
+def inflate_reset(r):
+    regions = inflate_state(r)
+    z = bytearray(regions[Z])
+    struct.pack_into('<I', z, 0x1c, r.choice([IS] * 9 + [0]))
+    regions[Z] = z
+    return Call(0x636560, [Z], regions, ret='a')
+
+
+def inflate_end(r):
+    regions = inflate_state(r, r.choice([S, S, S, 0]))  # (no blocks state: as inflateInit2_ cleans up when inflate_blocks_new fails)
+    z = bytearray(regions[Z])
+    struct.pack_into('<I', z, 0x1c, r.choice([IS] * 9 + [0]))
+    if r.random() < 0.08:
+        struct.pack_into('<I', z, 0x24, 0)
+    regions[Z] = z
+    return Call(0x6365b0, [Z], regions, ret='a')
+
+
+def inflate_init(r):
+    """The game's own call is inflateInit2_(z, 15, "1.1.3", 0x38) through inflateInit_; here the window bits, the version and the size
+    vary. zalloc / zfree are always given (zcalloc / zcfree stay the exe's: see docs/porting.md)."""
+    w = r.choice([15, 15, -15, r.randrange(8, 16), -r.randrange(8, 16), r.choice([0, 7, 16, -7, -16, 0x7fffffff])])
+    regions = {Z: stream(r), VER: r.choice([b'1.1.3\0'] * 4 + [b'1.2.11\0', b'2\0']), HEAP: heap(0x10000, r.choice([0] * 6 + [1, 2, 3, 4]))}
+    return Call(0x636600, [Z, w, r.choice([VER] * 12 + [0]), r.choice([0x38] * 12 + [0x34])], regions, ret='a')
+
+
+
+
 
 
 OPS = [f for f in (huft_build, trees_bits, trees_dynamic, codes, fast, flush, codes_new, codes_free, blocks, blocks_reset, blocks_new,
-                   blocks_free)
+                   blocks_free, inflate, inflate_reset, inflate_end, inflate_init)
        if not os.environ.get('OPS') or f.__name__ in os.environ['OPS'].split(',')]
 
 

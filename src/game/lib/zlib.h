@@ -89,6 +89,12 @@ inflate_codes_state *__cdecl inflate_codes_new(unsigned bl, unsigned bd, inflate
 // 0x649d40: frees c (zfree).
 void __cdecl inflate_codes_free(inflate_codes_state *c, z_stream_s *z);
 
+// inflate.c
+// 0x636560: the stream back to its start (totals zero, msg null, METHOD or BLOCKS, the blocks reset); Z_STREAM_ERROR without a state.
+int __cdecl inflateReset(z_stream_s *z);
+// 0x6365b0: the blocks state and the stream's state freed (zfree), state null; Z_STREAM_ERROR without a state or zfree.
+int __cdecl inflateEnd(z_stream_s *z);
+
 // infblock.c
 // 0x640690: back to TYPE (a codes state or bit length array freed), the bit buffer and window emptied, the check restarted (*c gets
 // the old one when c is not null).
@@ -112,6 +118,13 @@ int __cdecl inflate_trees_bits(unsigned *c, unsigned *bb, inflate_huft_s **tb, i
 // 0x64a2c0: the literal / length and distance tables of a dynamic block (nl + nd lengths in c); z->msg on a bad set (the exe's string).
 int __cdecl inflate_trees_dynamic(unsigned nl, unsigned nd, unsigned *c, unsigned *bl, unsigned *bd, inflate_huft_s **tl, inflate_huft_s **td,
                                   inflate_huft_s *hp, z_stream_s *z);
+// 0x636600: a stream's state and blocks state for windowBits w (negative: no zlib header or check), reset; Z_VERSION_ERROR,
+// Z_STREAM_ERROR or Z_MEM_ERROR. The blocks' check function is the exe's adler32 (0x63ea00) as the exe's sets it: the hook of the
+// same function (the library's adler32).
+int __cdecl inflateInit2_(z_stream_s *z, int w, const char *version, int stream_size);
+// 0x636710: inflates: the zlib header, the blocks (inflate_blocks), the Adler-32 trailer; z->msg on bad data (the exe's string), and
+// the exe's fixed tables in a fixed block's codes state, as inflate_blocks.
+int __cdecl inflate(z_stream_s *z, int f);
 // 0x6407c0: decodes blocks (stored, fixed, dynamic) into the window and flushes it to next_out; z->msg on bad data (the exe's
 // string), and a codes state for a fixed block points at the exe's fixed_tl / fixed_td (as the exe's inflate_trees_fixed's).
 int __cdecl inflate_blocks(inflate_blocks_state *s, z_stream_s *z, int r);

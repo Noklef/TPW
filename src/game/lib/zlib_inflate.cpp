@@ -99,6 +99,21 @@ template <class F> int with_exe_tables(inflate_blocks_statef *s, z_stream_s *z, 
     return r;
 }
 
+// inflate.c's internal_state (private to it; inflateInit2_ allocates 0x18 bytes).
+struct InflateState {
+    std::uint32_t mode;
+    std::uint32_t sub[2];
+    std::uint32_t nowrap, wbits;
+    inflate_blocks_statef *blocks;
+};
+static_assert(sizeof(InflateState) == 0x18 && offsetof(InflateState, blocks) == 0x14, "inflate's internal_state");
+
+inflate_blocks_statef *blocks_of(z_stream_s *z) {
+    return z && z->state ? reinterpret_cast<InflateState *>(z->state)->blocks : nullptr;
+}
+
+const std::uintptr_t kExeAdler32 = 0x63ea00;
+
 }  // namespace
 
 extern "C" {
@@ -116,6 +131,18 @@ int __cdecl inflate_trees_dynamic(unsigned nl, unsigned nd, unsigned *c, unsigne
     const int r = zlib_inflate_trees_dynamic(nl, nd, c, bl, bd, tl, td, hp, z);
     exe_message(z, before);
     return r;
+}
+
+int __cdecl inflateInit2_(z_stream_s *z, int w, const char *version, int stream_size) {
+    const int r = zlib_inflateInit2_(z, w, version, stream_size);
+    if (inflate_blocks_statef *const s = r == Z_OK ? blocks_of(z) : nullptr)
+        if (s->checkfn == &adler32) s->checkfn = reinterpret_cast<check_func>(kExeAdler32);
+    return r;
+}
+
+int __cdecl inflate(z_stream_s *z, int f) {
+    if (!z) return zlib_inflate(z, f);
+    return with_exe_tables(blocks_of(z), z, [&] { return zlib_inflate(z, f); });
 }
 
 int __cdecl inflate_blocks(inflate_blocks_state *s, z_stream_s *z, int r) {
