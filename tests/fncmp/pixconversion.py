@@ -1,7 +1,8 @@
 # The pixel conversion (src/game/gfx/pixconv: 0x630880-0x630c96, thiscall) against the originals: one that holds a converter of any kind (or none)
 # whose vtable is recorders (+0 the deleting destructor, +4 forwards, +8 backwards), or no converter; Setup from two formats (pixconv.py's, the
 # game's RGB888 / ARGB8888 ones, or paletted), a palette or none, flags any, the new converter allocated into the heap region (its allocation
-# failing now and then) and made by the originals' own converter code; the base converter's destructors (flags any, freed into the heap region).
+# failing now and then) and made by the originals' own converter code (the game's two formats mapped at 0xfaa268 / 0xfaa280, so a source of either
+# with a 16-bit target reaches the 16-bit converter); the base converter's destructors (flags any, freed into the heap region).
 # Gap: the index converter's inverse map is never built here (its table allocation fails, or it already has a table built from this palette).
 # usage: pixconversion.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,Dtor,Setup,Row,Rect,BaseDel,BaseDel2,BaseDtor)
 import os
@@ -16,6 +17,7 @@ from pixconv import FIXED, fmt, pack  # noqa: E402
 B = Bench([(0x630880, 0x630c97), (0x639230, 0x63b2c0), (0x642860, 0x6428a5), (0x5f5660, 0x5f568c), (0x67acb0, 0x67acb1), (0x67acc0, 0x67acc1)])
 CONV, OLD, VT, TARGET, SOURCE, PAL, TABLE, SRC, DST = RAM, RAM + 0x100, RAM + 0x600, RAM + 0x700, RAM + 0x720, RAM + 0x800, RAM + 0xc00, RAM + 0x1000, RAM + 0x1800
 COUNT = 0xfaa534   # (the counted allocations' count)
+FORMATS = 0xfaa268   # the game's RGB888 and ARGB8888 formats (0xfaa280)
 CALLS = {'Ctor': 0x630880, 'Dtor': 0x630c30, 'Setup': 0x630890, 'Row': 0x630b70, 'Rect': 0x630ba0, 'BaseDel': 0x630c50, 'BaseDel2': 0x630c70,
          'BaseDtor': 0x630c90}
 
@@ -43,8 +45,11 @@ def case(r):
     address = CALLS[op]
     if op == 'Setup':
         target, source = format_(r), format_(r)
+        if source in FIXED.values() and r.random() < 0.6:   # (the 16-bit converter's targets)
+            target = fmt(r, 16)
         palette = PAL if r.random() < 0.85 else 0
         regions[TARGET], regions[SOURCE] = pack(target), pack(source)
+        regions[FORMATS] = pack(FIXED[FORMATS]) + pack(FIXED[FORMATS + 0x18])
         fail = r.choice([0, 0, 0, 0, 1])
         if not source[5] and target[5] and palette:   # (the index converter: never building its map)
             if kind == 3 and r.random() < 0.5:
