@@ -5089,6 +5089,8 @@ address,name,kind,confidence,notes
 0x00486630,ThingPreview_Hide,function,low,reimplemented (src/game/ui/thingpreview); cdecl: with [0x7c24d8] set the copy (slot [0x7c24a0]) killed and [0x7c24d8] cleared
 0x00480d30,HilightList_NewRow,function,low,"reimplemented (src/game/ui/listrows); cdecl: the ""hilight"" list's row window (0x138 bytes, Window_Ctor (0, 0, 100, font 7's height * 0x600 / [0xfaa5c0] + 6)), the height first"
 0x004a8380,List7cc188_NewRow,function,low,"reimplemented (src/game/ui/listrows); cdecl: the same for the list of the window [0x7cc188], the height once allocated"
+0x00480dd0,HilightList_InitRow,function,low,"reimplemented (src/game/ui/listrows); cdecl (row): the ""hilight"" list's row initialiser: a new text part (0x1a4 bytes, TextPart_Ctor(0)) as the row's impl (Window_SetImpl), font 7 (Window_Set4c), the bytes 0xff (Window_Notify40000)"
+0x004a8420,List7cc188_InitRow,function,low,reimplemented (src/game/ui/listrows); cdecl (row): the same code for the list of the window [0x7cc188]
 0x0066a084,Frame_SetInterval,function,low,"reimplemented (src/game/ui/frame); thiscall (value): +0x14 = value; with the words +4 and +0xc set, +0x10 = GuiClock_Now"
 0x0066a016,Frame_Stop,function,low,"reimplemented (src/game/ui/frame); thiscall: the word +4 = 0, then with the word +6 set slot 1 (its result returned, else the frame)"
 0x004a4ab0,Dialog7cb398_ShowTopThree,function,low,"reimplemented (src/game/ui/dialog7cb398); cdecl: the window [0x7cb398]'s child 0x4a68d1, then Things_TopThreeValues shown by its children 0x4a68d4/d3/d2 (1..0x16: slot 7 with value - 1, else hidden)"

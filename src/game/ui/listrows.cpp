@@ -4,6 +4,7 @@
 
 #include "../core/gameheap.h"
 #include "../core/language.h"
+#include "../render/textparts.h"
 #include "window.h"
 
 namespace {
@@ -19,6 +20,13 @@ u32 rowHeight() {
 }
 
 u8 *build(u8 *window, u32 height) { return Window_Ctor(window, nullptr, nullptr, 0, 0, 0, 0, 0x64, height); }
+
+void initRow(u8 *row) {
+    u8 *const part = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
+    Window_SetImpl(row, nullptr, part ? TextPart_Ctor(part, nullptr, 0) : nullptr);
+    Window_Set4c(row, nullptr, Language_Font(7));
+    Window_Notify40000(row, nullptr, 0xff, 0xff, 0xff, 0xff);
+}
 }  // namespace
 
 extern "C" {
@@ -33,4 +41,8 @@ u8 *__cdecl List7cc188_NewRow() {
     u8 *const window = static_cast<u8 *>(GameHeap_Alloc(0x138));
     return window ? build(window, rowHeight()) : nullptr;
 }
+
+void __cdecl HilightList_InitRow(u8 *row) { initRow(row); }
+
+void __cdecl List7cc188_InitRow(u8 *row) { initRow(row); }
 }  // extern "C"
