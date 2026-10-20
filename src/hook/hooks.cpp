@@ -4948,6 +4948,14 @@ const Hook kHooks[] = {
     {"jdmarker_read_markers",     0x0063c0e0, (void *)&jdmarker_read_markers, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"jdmarker_reset_marker_reader", 0x0063d3a0, (void *)&jdmarker_reset_marker_reader, {0x8b, 0x4c, 0x24, 0x04, 0x33}},
     {"jinit_marker_reader",       0x0063bb10, (void *)&jinit_marker_reader, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
+    {"jdinput_reset_input_controller", 0x0063b8b0, (void *)&jdinput_reset_input_controller, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jdinput_initial_setup",     0x0063b6b0, (void *)&jdinput_initial_setup, {0x53, 0x55, 0x56, 0x8b, 0x74}},
+    {"jdinput_consume_markers",   0x0063b5e0, (void *)&jdinput_consume_markers, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jdinput_finish_input_pass", 0x0063b5c0, (void *)&jdinput_finish_input_pass, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"jdinput_latch_quant_tables", 0x0063b510, (void *)&jdinput_latch_quant_tables, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
+    {"jdinput_per_scan_setup",    0x0063b360, (void *)&jdinput_per_scan_setup, {0x51, 0x53, 0x55, 0x56, 0x8b}},
+    {"jdinput_start_input_pass",  0x0063b310, (void *)&jdinput_start_input_pass, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jinit_input_controller",    0x0063b2c0, (void *)&jinit_input_controller, {0x56, 0x8b, 0x74, 0x24, 0x08}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
