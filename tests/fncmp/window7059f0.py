@@ -5,30 +5,39 @@
 # pointer given or 0; NthItem's n -1 to past the count +0x150 (itself 0 to past the items), +0x144 set or 0, the first shown +0x160 one of
 # the items (or -1). SetNthItemData (0x664b68): NthItem's, any data. FindItemData (0x664d2a): the items' data dwords a few values, the count
 # mostly the items'. SetRowHeight (0x664ba8): the inner rectangle's top / bottom words, the height small, negative, 0 (a fault in both) or any.
+# RefreshRows (0x663324): window.py's notify_env tree (the list's parent one of it), 0-4 rows (the word +0x172 now and then -1) of a row
+# window with 0-3 column windows (its first child and that one's siblings; +0x164 now and then -1), each shown or not with recorder
+# objects, handlers and a recorder vtable (slots 7 and 9); the items nine dwords apart (links, four cells that are objects of CELLS, a
+# dword whose address is sent), the column bottoms 1 or not, the count lowered until walk() keeps every read in the links.
 # usage: window7059f0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ColumnBottom,NextItem,...)
 import os
 import struct
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, put  # noqa: E402
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
+sys.path.insert(0, HERE)
+from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, log_region, put, set_return, vtable  # noqa: E402
+from window import MISC, OBJECT98, RANGES, VTABLE, notify_blobs, notify_env  # noqa: E402
 
 CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'SetNthItemData': 0x664b68, 'SetRowHeight': 0x664ba8,
-         'FindItemData': 0x664d2a}
-B = Bench([(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7)])
+         'FindItemData': 0x664d2a, 'RefreshRows': 0x663324}
+B = Bench(RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
+                    (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707)])
 WINDOW, COLUMNS, LINKS, OUT = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x800
+LIST, LINKS2, COLS2, CELLS, ROWS2, ROWWINS = RAM + 0x9000, RAM + 0x9420, RAM + 0x9e00, RAM + 0x9f00, RAM + 0x9c00, RAM + 0xb000
 
 
 def none(r):
     return r.choice([-1] * 8 + [-2, -5])
 
 
-def items(r, window, regions):
-    """the forest: returns the item indices"""
+def items(r, window, regions, stride=4, base=LINKS):
+    """the forest, its items stride dwords apart at base: returns the item indices"""
     n = r.randint(1, 12)
     shift = 1 if r.random() < 0.1 else 0
-    idx = [4 * k + shift for k in r.sample(range(n), n)]   # (shuffled: a child, a sibling or a parent at index 0 too)
-    links = [r.getrandbits(32) for _ in range(4 * n + 8)]
+    idx = [stride * k + shift for k in r.sample(range(n), n)]   # (shuffled: a child, a sibling or a parent at index 0 too)
+    links = [r.getrandbits(32) for _ in range(stride * n + max(8, stride))]
     parent = [None] + [r.choice([None, r.randrange(k)]) for k in range(1, n)]
     kids = {p: [k for k in range(n) if parent[k] == p] for p in [None] + list(range(n))}
     for k in range(n):
@@ -37,13 +46,131 @@ def items(r, window, regions):
         sibs = kids[parent[k]]
         at = sibs.index(k)
         links[idx[k]] = idx[sibs[at + 1]] if at + 1 < len(sibs) else none(r)
-    regions[LINKS] = struct.pack('<%dI' % len(links), *[v & 0xffffffff for v in links])
-    put(window, 0x144, 'I', LINKS)
+    regions[base] = struct.pack('<%dI' % len(links), *[v & 0xffffffff for v in links])
+    put(window, 0x144, 'I', base)
     return idx
+
+
+PAD = 8
+
+
+def walk(arr, shown, first, count, nrows, ncols, bottoms, cells):
+    """RefreshRows' reads of the links (arr[i + PAD] is links[i]) in Python: False when one leaves the array, loops on or takes a cell
+    for an object that is none of the cells"""
+    def get(i):
+        if not -PAD <= i < len(arr) - PAD:
+            raise IndexError
+        return arr[i + PAD]
+
+    def nxt(i):
+        if get(i + 2) >= 0:
+            return get(i + 2)
+        if get(i) >= 0:
+            return get(i)
+        if get(i + 3) < 0:
+            return -2
+        n = get(i + 3)
+        for _ in range(64):
+            if not (get(n) < 0 and get(n + 3) >= 0):
+                return get(n)
+            n = get(n + 3)
+        raise IndexError
+
+    try:
+        item, i = shown, 0
+        while 0 <= first < count and i < first and item != -1:
+            item, i = nxt(item), i + 1
+        if item >= 0:
+            p, steps = get(item + 3), 0
+            while p >= 0:
+                p, steps = get(p + 3), steps + 1
+                if steps > 64:
+                    return False
+        for row in range(nrows):
+            if row + first < count:
+                get(item + 1)
+                get(item + 8)
+                for c in range(ncols):
+                    if bottoms[c] != 1 and get(item + 4 + c) & 0xffffffff not in cells:
+                        return False
+                item = nxt(item)
+    except IndexError:
+        return False
+    return True
+
+
+def refresh_case(r):
+    """RefreshRows (0x663324): see the top"""
+    log = log_region()
+    regions = {LOG: log}
+    wins = notify_env(r, regions, log)
+    regions[VTABLE] = vtable({5: 1, 3: 2, 0: 1, 7: 1, 9: 1})
+    notify_blobs(log, 0, 0x3c00)
+    regions[0xfaa5fc] = struct.pack('<I', r.choice([0, 0, CDECL_LOG4]))
+    for k in (7, 9):
+        if r.random() < 0.3:
+            set_return(log, k, r.getrandbits(32))
+    window = bytearray(r.bytes(0x180))
+    regions[LIST] = window
+    window[0x48] = (window[0x48] & 0xfe) | r.choice([0, 1, 1])
+    put(window, 0x60, 'I', r.choice(wins + [0]))
+    nrows, ncols = r.choice([0, 1, 2, 3, 4]), r.choice([0, 1, 1, 2, 3])
+    while nrows * ncols > 8:
+        nrows -= 1
+    put(window, 0x172, 'h', r.choice([nrows] * 6 + [-1]))
+    put(window, 0x164, 'h', r.choice([ncols] * 6 + [-1]))
+    # the rows: a window each with its columns' windows (its first child, then that one's siblings), shown or not
+    rows, at = [], ROWWINS
+    for _ in range(nrows):
+        group = [at + 0x120 * k for k in range(max(ncols, 1) + r.choice([0, 0, 1]))]
+        at += 0x120 * len(group)
+        for k, w in enumerate(group):
+            buf = bytearray(r.bytes(0x120))
+            buf[4] = 0 if r.random() < 0.9 else 1
+            buf[0x48] = (buf[0x48] & 0xfe) | r.choice([0, 1])
+            put(buf, 0, 'I', VTABLE)
+            put(buf, 0x5c, 'I', group[1] if k == 0 and len(group) > 1 else 0)
+            put(buf, 0x54, 'I', group[k + 1] if 0 < k < len(group) - 1 else 0)
+            put(buf, 0x60, 'I', r.choice(wins + [LIST, 0]) if k == 0 else group[0])
+            put(buf, 0x98, 'I', r.choice([OBJECT98, OBJECT98, 0]))
+            put(buf, 0x9c, 'I', r.choice([MISC + 0x40, MISC + 0x40, 0]))
+            put(buf, 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
+            regions[w] = buf
+        rows.append(group[0])
+    regions[ROWS2] = struct.pack('<%dI' % (nrows + 1), *rows, r.getrandbits(32))
+    put(window, 0x148, 'I', ROWS2 if r.random() < 0.95 else 0)
+    bottoms = [r.choice([1, 1, 0, 2, -1]) for _ in range(4)]
+    regions[COLS2] = b''.join(put(bytearray(r.bytes(0xc)), 0xa, 'h', b) for b in bottoms)
+    put(window, 0x16c, 'I', COLS2)
+    cells = [CELLS + 8 * j for j in range(8)]
+    regions[CELLS] = b''.join(struct.pack('<II', r.getrandbits(32), r.choice([0, r.getrandbits(32)])) for _ in cells)
+    # the items, nine dwords apart: four links, four cells (objects of CELLS), a dword whose address the rows are sent
+    idx = items(r, window, regions, stride=9, base=LINKS2)
+    raw = regions.pop(LINKS2)
+    links = list(struct.unpack('<%di' % (len(raw) // 4), raw))
+    for i in idx:
+        for c in range(4):
+            links[i + 4 + c] = r.choice(cells)
+    arr = [none(r) for _ in range(PAD)] + links   # (PAD dwords before the array: the reads of a missing item's links)
+    regions[LINKS2 - 4 * PAD] = struct.pack('<%di' % len(arr), *arr)
+    n = len(idx)
+    shown = r.choice(idx + [idx[0], -1])
+    first = r.choice([0, 0, 1, 2, -1, r.randrange(n)])
+    count = r.choice([n, n, first + nrows, r.randrange(-1, n + 3), 0x7fffffff])
+    for k in range(nrows, -2, -1):
+        if walk(arr, shown, first, count, nrows, max(ncols, 0), bottoms, cells):
+            break
+        count = first + k
+    put(window, 0x150, 'i', count)
+    put(window, 0x154, 'i', first)
+    put(window, 0x160, 'i', shown)
+    return Call(CALLS['RefreshRows'], [LIST], regions, conv='t', ret='v')
 
 
 def case(r):
     op = r.deal(OPS)
+    if op == 'RefreshRows':
+        return refresh_case(r)
     window = bytearray(r.bytes(0x180))
     regions = {WINDOW: window}
     if op == 'SetRowHeight':   # (the inner rectangle's top and bottom near each other or any; the height small, negative or 0: a fault in both)

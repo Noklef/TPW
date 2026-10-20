@@ -2,9 +2,11 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
 #include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../core/initializers.h"
+#include "../core/selectors.h"
 #include "../core/vcall.h"
 #include "guirect.h"
 #include "window.h"
@@ -143,5 +145,38 @@ s32 __fastcall Window7059f0_FindItemData(u8 *window, void *, u32 data) {
         item = Window7059f0_NextItem(window, nullptr, item, nullptr);
     }
     return found ? position : -1;
+}
+
+void __fastcall Window7059f0_RefreshRows(u8 *window) {
+    s32 *cells = at<s32 *>(window, 0x144);
+    if (!at<u8 **>(window, 0x148)) return;
+    s32 item = Window7059f0_NthItem(window, nullptr, at<s32>(window, 0x154));
+    const s32 enabled = (s16)Window_IsShown(window);
+    s32 level = 0;
+    if (item >= 0)
+        for (s32 p = at<s32 *>(window, 0x144)[item + 3]; p >= 0; p = at<s32 *>(window, 0x144)[p + 3]) ++level;
+    for (s32 row = 0; row < at<s16>(window, 0x172); ++row) {
+        u8 *child = at<u8 **>(window, 0x148)[row];
+        const bool visible = row + at<s32>(window, 0x154) < at<s32>(window, 0x150);
+        Window_SetShown(child, nullptr, enabled && visible ? 1 : 0);
+        if (visible) cells = at<s32 *>(window, 0x144) + item + 4;
+        for (s32 column = 0; column < at<s16>(window, 0x164); ++column) {
+            if (visible) {
+                Window_SendMessage(child, 0x403, (u32)(uintptr_t)(cells + 4), (u32)at<s32 *>(window, 0x144)[item + 1]);
+                if (Window7059f0_ColumnBottom(window, nullptr, (u32)column) == 1) {
+                    vcall<void>(child, 0x1c, (u32)cells[column]);
+                } else {
+                    if (column == 0) Window_NotifyC000(child, nullptr, (u32)(level * 0x14), 0);
+                    vcall<void>(child, 0x24, Obj_Get4Or6fd6c4(reinterpret_cast<const u8 *>((uintptr_t)(u32)cells[column])));
+                }
+            }
+            child = reinterpret_cast<u8 *>((uintptr_t)(column == 0 ? Fn_65d547(child, nullptr, 0) : Fn_65d56b(child)));
+        }
+        if (visible) {
+            s32 delta;
+            item = Window7059f0_NextItem(window, nullptr, item, &delta);
+            level += delta;
+        }
+    }
 }
 }

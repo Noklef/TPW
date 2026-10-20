@@ -62,4 +62,13 @@ void __fastcall Window7059f0_SetRowHeight(u8 *window, void *, u32 height);
 // 0x664d2a (thiscall (data), pops 4; name unconfirmed): the position (from 0) of the first item from the first shown one whose data
 // dword (+1) is data, stepping (Window7059f0_NextItem) until -1 or the position reaches the count +0x150 - 1 (signed); -1 when none.
 s32 __fastcall Window7059f0_FindItemData(u8 *window, void *, u32 data);
+
+// 0x663324 (thiscall; name unconfirmed): with the row window array +0x148 set, the rows (+0x172, signed) refreshed from the item +0x154
+// on (Window7059f0_NthItem), its level the number of its parents: each row window shown (Window_SetShown) when the list is
+// (Window_IsShown) and the row is below the count +0x150 (row + +0x154, signed); for such a row each of the columns (+0x164, signed),
+// walking the row window, its first child (Fn_65d547) and that one's siblings (Fn_65d56b), is sent message 0x403 (the item's dword +8's
+// address, its data +1) and given the item's dword +4 + column: through its slot 7 (thiscall) when the column's bottom
+// (Window7059f0_ColumnBottom) is 1, else as that dword's object's +4 (Obj_Get4Or6fd6c4) through its slot 9, the first column told the level
+// * 0x14 and 0 first (Window_NotifyC000). Then the next item (Window7059f0_NextItem), its level change added.
+void __fastcall Window7059f0_RefreshRows(u8 *window);
 }
