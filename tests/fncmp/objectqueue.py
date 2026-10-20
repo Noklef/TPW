@@ -127,7 +127,12 @@ def spot(r):
     c = path(r)
     world = RAM + 0x10000
     c.regions[world + 0x1da708] = r.bytes(4)
-    place = r.choice([0, 1, 2, 3, 3, 3, 4, 6, 7, 8, 11, 15, 0x23, 0x80000003, r.getrandbits(32)])
+    if r.random() < 0.3:  # rows facing each other in turn (as Open's): the walk goes on, so a far place (512: along exactly 0x80) still ends on a cell
+        cells = next(v for k, v in c.regions.items() if len(v) == 0x44 * 0x1c0)
+        for idx in range(0x1c0):
+            put(cells, 0x44 * idx + 8, 'I', 3)
+            cells[0x44 * idx + 0xd] = (0x10, 1)[idx // 128 & 1]
+    place = r.choice([0, 1, 2, 3, 3, 3, 4, 6, 7, 8, 11, 15, 0x23, 0x200, 0x200, 0x201, 0x80000003, r.getrandbits(32)])
     c.address, c.args, c.ret = 0x4de840, [RAM, place, OUT, OUT + 2, OUT + 3], 'a'
     return c
 
