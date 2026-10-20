@@ -513,8 +513,9 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x007039b0, 3},   // RGB,
                                    {0x00703fa8, 3},   // index,
                                    {0x00703fb8, 3},   // 16-bit (slot 2 the empty 0x5da3d0)
-                                   {0x00705980, 3},   // the GUI window (Debug_Printf, Window_SaveRect, Window_DeletingDtor)
-                                   {0x00705a50, 3},   // its subclass (the same, but Window705a50_DeletingDtor)
+                                   {0x00705980, 6},   // the GUI window (Debug_Printf, Window_SaveRect, _DeletingDtor; 5 _SetEnabled)
+                                   {0x00705a50, 6},   // its subclass (the same, but Window705a50_DeletingDtor, _SetEnabled)
+                                   {0x00705b20, 6},   // the scroll bar window (slot 5 its SetEnabled, through its children's)
                                    {0x006ff308, 3},   // the sprite set's virtual base (its deleting destructor's thunk, PtrArray_ReleaseAll's)
                                    {0x006fdcc8, 4},   // the light parts' (directional, point: slot 2 the thunk to Stub_One the renderer's sorted add calls)
                                    {0x006fe548, 4}};

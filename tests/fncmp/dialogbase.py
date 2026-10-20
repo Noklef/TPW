@@ -1,4 +1,4 @@
-# The dialogs' fallback message handler (src/game/ui/dialogbase: 0x47ee90) against the original: window.py's FocusRestore set-up (a tree of
+# The dialogs' fallback message handler (src/game/ui/dialogbase: 0x47ee90) against the original: focus.py's FocusRestore set-up (a tree of
 # windows, the message queues, the focus globals), one of the tree's windows called with its parent (+0x60) another of them or none and its
 # default handler (+0x118) fncmp's logger (its result now and then set); message 0x14 mostly, else others.
 # usage: dialogbase.py [CASES [SEED]] [--wild|--both] [--show N]
@@ -8,6 +8,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
+import focus  # noqa: E402
 import window  # noqa: E402
 from fncmp import CDECL_LOG4, LOG, Bench, put, set_return  # noqa: E402
 
@@ -15,8 +16,7 @@ B = Bench(window.RANGES + [(0x47ee90, 0x47eed0), (0x65d55a, 0x65d57b)])
 
 
 def case(r):
-    window.OPS = ['FocusRestore']
-    c = window.case(r)
+    c = focus.case(r, ['FocusRestore'])
     wins = sorted(k for k in c.regions if window.TREE <= k < window.RECTS)
     w = r.choice(wins)
     put(c.regions[w], 0x60, 'I', r.choice(wins + [0]))

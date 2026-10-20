@@ -17,6 +17,28 @@ template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>
 
 extern "C" {
 
+u8 *__fastcall Window705a50_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom) {
+    Window_Ctor(window, nullptr, parent, flags, id, left, top, right, bottom);
+    at<u32>(window, 0) = 0x705a50;
+    window[0x138] = 0;
+    window[0x139] = 0;
+    at<u32>(window, 0x13c) = 500;
+    at<u32>(window, 0x140) = 125;
+    at<u32>(window, 0x114) = 0x668f9c;
+    at<u32>(window, 0x118) = at<u32>(window, 0x114);
+    window[0x15a] = 0;
+    at<u32>(window, 0x148) = 0;
+    for (u32 off = 0x14c; off < 0x150; ++off)
+        window[off] = 0xff;
+    window[0x154] = 0;
+    window[0x155] = 0;
+    window[0x156] = 0;
+    window[0x157] = 0xff;
+    window[0x158] = 1;
+    window[0x159] = 1;
+    return window;
+}
+
 u16 __fastcall Window705a50_TextLength(const u8 *window) {
     const u16 *const text = *reinterpret_cast<const u16 *const *>(window + 0x138);
     return text ? (u16)Crt().wcslen(text) : 0;
@@ -75,6 +97,15 @@ void __fastcall Window705a50_NotifyLook(u8 *window) {
     }
     at<u32>(event, 0x18) = code;
     vcall<void>(listener, 0xc, code, event);
+}
+
+u16 __fastcall Window705a50_SetEnabled(u8 *window, void *, u32 enabled) {
+    if ((s16)Window_SetEnabled(window, nullptr, enabled) == 0) return 0;
+    u8 event[0x18];  // (only the look +4 set)
+    at<u16>(event, 4) = Window705a50_Look(window);
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 1u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 1u, event);
+    return 1;
 }
 
 u16 __fastcall Window705a50_SetState(u8 *window, void *, u8 state, u8 notify) {

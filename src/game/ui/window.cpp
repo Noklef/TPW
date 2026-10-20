@@ -112,6 +112,21 @@ u32 __fastcall Window_SetShown(u8 *window, void *, u32 shown) {
     return (vcall<u32>(manager, 0x34, window) & 0xffff0000u) | 1;
 }
 
+u32 __fastcall Window_SetEnabled(u8 *window, void *, u32 enabled) {
+    const s16 e = (s16)enabled;
+    if (e != 0) {
+        if (!(at<u32>(window, 0x48) & 2)) return 0;
+        at<u32>(window, 0x48) &= ~2u;
+    } else {
+        if (at<u32>(window, 0x48) & 2) return 0;
+        at<u32>(window, 0x48) |= 2;
+    }
+    using Handler = s32(__cdecl *)(u8 *, u32, s32, u32);
+    if (const Handler handler = at<Handler>(window, 0x114)) handler(window, 0x17, e, 0);
+    Window_UpdateHover();
+    return 1;
+}
+
 u8 *__fastcall Window_SaveRect(u8 *window) { return GuiRect_Assign(window + 0x2c, nullptr, window + 8); }
 
 u16 __fastcall Window_GetRect(u8 *window, void *, u8 *rect, u32 inner) {
@@ -204,6 +219,60 @@ void __fastcall Window_Notify20000(u8 *window, void *, u32 a) {
     inner[9] = (u8)a;
     if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 0x20000u, event);
     if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0x20000u, event);
+}
+
+void __fastcall Window_Notify40000(u8 *window, void *, u32 a, u32 b, u32 c, u32 d) {
+    if (!at<u8 *>(window, 0x98) && !at<u8 *>(window, 0x9c)) return;
+    u8 inner[0x14], event[0x18];  // (only inner's bytes +0x10-+0x13 and event's pointer +0x10 set)
+    at<u8 *>(event, 0x10) = inner;
+    inner[0x10] = (u8)a;
+    inner[0x11] = (u8)b;
+    inner[0x12] = (u8)c;
+    inner[0x13] = (u8)d;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 0x40000u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0x40000u, event);
+}
+
+void __fastcall Window_NotifyImpl100(u8 *window, void *, u32 a) {
+    if (!at<u8 *>(window, 0x9c)) return;
+    u8 inner[0x14], event[0x18];  // (only inner's dword +0 and event's pointer +0x10 set)
+    at<u8 *>(event, 0x10) = inner;
+    at<u32>(inner, 0) = a;
+    vcall<void>(at<u8 *>(window, 0x9c), 0xc, 0x100u, event);
+}
+
+void __fastcall Window_NotifyObject98_100(u8 *window, void *, u32 a) {
+    if (!at<u8 *>(window, 0x98)) return;
+    u8 inner[0x14], event[0x18];  // (only inner's dword +0 and event's pointer +0x10 set)
+    at<u8 *>(event, 0x10) = inner;
+    at<u32>(inner, 0) = a;
+    vcall<void>(at<u8 *>(window, 0x98), 0xc, 0x100u, event);
+}
+
+void __fastcall Window_SetObject98(u8 *window, void *, u8 *object) {
+    if (object == at<u8 *>(window, 0x98)) return;
+    if (u8 *const old = at<u8 *>(window, 0x98)) {
+        if ((s16)WindowImpl_Release(old) == -1) vcall<u32>(old, 0, 1u);
+    }
+    at<u8 *>(window, 0x98) = object;
+    if (!at<u8 *>(window, 0x98)) return;
+    Fn_6617f0(at<u8 *>(window, 0x98));
+    u8 inner[0x14], event[0x1c];  // (event's dword +0, its bytes +0xa / +0xb and inner but its byte +8 left as they are)
+    at<u16>(event, 4) = 0;
+    at<u16>(event, 6) = at<u16>(window, 0xe0);
+    at<u16>(event, 8) = at<u16>(window, 0xe2);
+    at<u8 *>(event, 0x14) = window + 8;
+    at<u16>(event, 0xc) = at<u16>(window, 0xe4);
+    at<u16>(event, 0xe) = at<u16>(window, 0xe6);
+    u32 flags = 0x57;
+    if (at<u8 *>(window, 0x4c)) {   // (else the pointer +0x10 is left as it is too)
+        flags |= 0x10000;
+        inner[8] = at<u8>(at<u8 *>(window, 0x4c), 0x10);
+        at<u8 *>(event, 0x10) = inner;
+    }
+    at<u32>(event, 0x18) = flags;
+    vcall<void>(at<u8 *>(window, 0x98), 0xc, flags, event);
+    if ((s16)Window_IsShown(window) != 0) vcall<void>(at<u8 *>(window, 0x98), 0x14, 1u);
 }
 
 void __fastcall Window_SetImpl(u8 *window, void *, u8 *impl) {
@@ -383,6 +452,13 @@ u8 *__fastcall Window_DeletingDtor(u8 *window, void *, u32 flags) {
     Window_Dtor(window);
     if (flags & 1) GameHeap_Free(window);
     return window;
+}
+
+u32 __fastcall Window_SetDwordA0(u8 *window, void *, u32 index, u32 value) {
+    const s32 i = static_cast<s16>(index);
+    if (i >= 16) return 0;
+    at<u32>(window, 0xa0 + 4 * i) = value;  // sic: a negative index writes before +0xa0
+    return (value & 0xffff0000u) | 1;
 }
 
 u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index) {

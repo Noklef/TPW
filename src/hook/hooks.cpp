@@ -351,7 +351,18 @@
 #include "../game/ui/panel7cc298.h"
 #include "../game/ui/radiogroup.h"
 #include "../game/ui/textbutton.h"
+#include "../game/ui/window705950.h"
+#include "../game/ui/window7059f0.h"
+#include "../game/ui/window705a20.h"
+#include "../game/ui/window705af0.h"
 #include "../game/ui/window705b20.h"
+#include "../game/ui/window705b98.h"
+#include "../game/ui/window705bc8.h"
+#include "../game/ui/window705bf8.h"
+#include "../game/ui/window705c28.h"
+#include "../game/ui/window705c58.h"
+#include "../game/ui/windowfactory.h"
+#include "../game/ui/windowscript.h"
 #include "../game/ui/windowtimers.h"
 
 namespace tpw::hook {
@@ -4544,6 +4555,12 @@ const Hook kHooks[] = {
     {"Window_Unlink",             0x0065f538, (void *)&Window_Unlink, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window_SetHandler",         0x0065e526, (void *)&Window_SetHandler, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window_PostTimed",          0x00658df4, (void *)&Window_PostTimed, {0x55, 0x8b, 0xec, 0x83, 0x3d}},
+    {"Window_SetEnabled",         0x0065da8d, (void *)&Window_SetEnabled, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window_SetObject98",        0x0065d070, (void *)&Window_SetObject98, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window_Notify40000",        0x0065c5d5, (void *)&Window_Notify40000, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window_NotifyImpl100",      0x0065f5b7, (void *)&Window_NotifyImpl100, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window_NotifyObject98_100", 0x0065f5fe, (void *)&Window_NotifyObject98_100, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window_SetDwordA0",         0x0065e6d5, (void *)&Window_SetDwordA0, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Dialog7ca1c8_SetChecks",    0x00498090, (void *)&Dialog7ca1c8_SetChecks, {0x8b, 0x0d, 0xc8, 0xa1, 0x7c}},
     {"Dialog7ca1c8_SetChecksIfUp", 0x00498a50, (void *)&Dialog7ca1c8_SetChecksIfUp, {0xa1, 0xc8, 0xa1, 0x7c, 0x00}},
     {"Dialog7ca1c8_SetChecksIfUpThis", 0x00481a00, (void *)&Dialog7ca1c8_SetChecksIfUpThis, {0x8b, 0x44, 0x24, 0x04, 0x50}},
@@ -4631,6 +4648,9 @@ const Hook kHooks[] = {
     {"WindowTimer_Find",          0x006620e2, (void *)&WindowTimer_Find, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"WindowTimer_Unlink",        0x00661faa, (void *)&WindowTimer_Unlink, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"WindowTimers_Kill",         0x00662306, (void *)&WindowTimers_Kill, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"WindowTimer_New",           0x00661f2b, (void *)&WindowTimer_New, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"WindowTimer_Ctor",          0x00661ece, (void *)&WindowTimer_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"WindowTimers_Add",          0x0066220d, (void *)&WindowTimers_Add, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window705a50_DeletingDtor", 0x006693a0, (void *)&Window705a50_DeletingDtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705a50_Dtor",         0x006689bc, (void *)&Window705a50_Dtor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window705a50_TextLength",   0x0066852b, (void *)&Window705a50_TextLength, {0x55, 0x8b, 0xec, 0x83, 0xec}},
@@ -4640,6 +4660,8 @@ const Hook kHooks[] = {
     {"Window705a50_SetPair",      0x00668f35, (void *)&Window705a50_SetPair, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705a50_Set14c",       0x00668f5a, (void *)&Window705a50_Set14c, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705a50_Set154",       0x00668f7b, (void *)&Window705a50_Set154, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705a50_Ctor",         0x006688b3, (void *)&Window705a50_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705a50_SetEnabled",   0x00668a23, (void *)&Window705a50_SetEnabled, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"ThingPreview_Hide",         0x00486630, (void *)&ThingPreview_Hide, {0xa1, 0xd8, 0x24, 0x7c, 0x00}},
     {"ThingPreview_Show",         0x00486530, (void *)&ThingPreview_Show, {0x51, 0xa1, 0xd8, 0x24, 0x7c}},
     {"List7cc188_NewRow",         0x004a8380, (void *)&List7cc188_NewRow, {0x6a, 0xff, 0x68, 0xdb, 0xa7}},
@@ -4662,10 +4684,34 @@ const Hook kHooks[] = {
     {"Window7cb2cc_Close",        0x004a27c0, (void *)&Window7cb2cc_Close, {0xa1, 0xcc, 0xb2, 0x7c, 0x00}},
     {"RadioGroup_Select",         0x0066a295, (void *)&RadioGroup_Select, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"RadioGroup_SetSelectedState", 0x0066a1b0, (void *)&RadioGroup_SetSelectedState, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"RadioGroup_Ctor",           0x0066a1e8, (void *)&RadioGroup_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Panel7cc298_Update",        0x004b1ee0, (void *)&Panel7cc298_Update, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
     {"Dialog7cb2fc_SetToggle",    0x004a3960, (void *)&Dialog7cb2fc_SetToggle, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Window705b20_SetRange",     0x0066b47d, (void *)&Window705b20_SetRange, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Dialog_BaseHandler",        0x0047ee90, (void *)&Dialog_BaseHandler, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Window705b20_SetEnabled",   0x0066ae83, (void *)&Window705b20_SetEnabled, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705b20_Layout",       0x0066ac00, (void *)&Window705b20_Layout, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705b20_AddArrow1",    0x0066b557, (void *)&Window705b20_AddArrow1, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705b20_AddArrow2",    0x0066b604, (void *)&Window705b20_AddArrow2, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705b20_AddThumb",     0x0066b6b1, (void *)&Window705b20_AddThumb, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705b20_Ctor",         0x0066acf9, (void *)&Window705b20_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Window705b98_Ctor",         0x0066c7e0, (void *)&Window705b98_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705c58_Ctor",         0x0066d9e0, (void *)&Window705c58_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705bf8_Ctor",         0x0066d0c0, (void *)&Window705bf8_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Window705c28_Ctor",         0x0066d750, (void *)&Window705c28_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Window705af0_Ctor",         0x0066a4c0, (void *)&Window705af0_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Window705bc8_Ctor",         0x0066c970, (void *)&Window705bc8_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Window705a20_Ctor",         0x00665fcd, (void *)&Window705a20_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Window705a20_SaveRect",     0x00665fb0, (void *)&Window705a20_SaveRect, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window7059f0_Layout",       0x00662530, (void *)&Window7059f0_Layout, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window7059f0_Ctor",         0x00662562, (void *)&Window7059f0_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Window705950_Layout",       0x0065aac0, (void *)&Window705950_Layout, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705950_Ctor",         0x0065ab64, (void *)&Window705950_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Window_CreateChild",        0x0065dd7b, (void *)&Window_CreateChild, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"WindowScript_ReadPair",     0x0065fcc5, (void *)&WindowScript_ReadPair, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"WindowScript_ReadRect",     0x0065fc38, (void *)&WindowScript_ReadRect, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"WindowScript_ReadWord",     0x0065fc18, (void *)&WindowScript_ReadWord, {0x55, 0x8b, 0xec, 0xa1, 0x20}},
+    {"WindowScript_ReadDword",    0x0065fbf0, (void *)&WindowScript_ReadDword, {0x55, 0x8b, 0xec, 0x51, 0xa1}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

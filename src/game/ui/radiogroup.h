@@ -7,6 +7,10 @@
 
 extern "C" {
 
+// 0x66a1e8 (thiscall (parent, flags, id, left, top, right, bottom: words), pops 28; kind 8 of the factory 0x65dd7b; name unconfirmed):
+// Window_Ctor, then the vtable 0x705ac0, none selected (+0x138 -1), both handlers 0x66a31c. Returns the group.
+u8 *__fastcall RadioGroup_Ctor(u8 *group, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom);
+
 // 0x66a1b0 (thiscall (state: a byte), pops 4; name unconfirmed): the child whose id is the selected one (+0x138; Window_FindChild), when
 // there is one, gets Window705a50_SetState(state, 1).
 void __fastcall RadioGroup_SetSelectedState(u8 *group, void *, u8 state);
