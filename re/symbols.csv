@@ -5221,3 +5221,5 @@ address,name,kind,confidence,notes
 0x00646860,jinit_color_deconverter,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdcolor.c jinit_color_deconverter: the colour deconverter set up for the colour spaces (the library's, through the method-address shim)"
 0x00646ee0,jinit_merged_upsampler,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmerge.c jinit_merged_upsampler: the merged upsampler set up for h2v1 or h2v2 (the library's, through the method-address shim)"
 0x006460c0,jinit_upsampler,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdsample.c jinit_upsampler: the separate upsampler, a method per component (the library's, through the method-address shim)"
+0x00645a80,jinit_inverse_dct,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jddctmgr.c jinit_inverse_dct: the IDCT manager and each component's zeroed multiplier table (the library's, through the method-address shim)"
+0x00645b00,jddctmgr_start_pass,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jddctmgr.c start_pass: each component's IDCT and multiplier table (the library's, through the method-address shim)"
