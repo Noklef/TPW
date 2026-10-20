@@ -369,6 +369,7 @@
 #include "../game/ui/windowfactory.h"
 #include "../game/ui/windowscript.h"
 #include "../game/ui/buttontext.h"
+#include "../game/ui/msgboxbutton.h"
 #include "../game/ui/msgtags.h"
 #include "../game/ui/windowtimers.h"
 #include "../game/lib/jpeg6b.h"
@@ -4907,6 +4908,7 @@ const Hook kHooks[] = {
     {"ButtonText_Init",           0x00486660, (void *)&ButtonText_Init, {0x6a, 0xff, 0x68, 0x2b, 0x92}},
     {"MsgTags_Create",            0x0048eaa0, (void *)&MsgTags_Create, {0x53, 0x56, 0x57, 0x33, 0xdb}},
     {"MsgTag_NewWindow",          0x0048ea00, (void *)&MsgTag_NewWindow, {0x6a, 0xff, 0x68, 0x6b, 0x97}},
+    {"MsgBox_SetButton",          0x0048e610, (void *)&MsgBox_SetButton, {0x8b, 0x44, 0x24, 0x08, 0x56}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
