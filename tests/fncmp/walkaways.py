@@ -33,9 +33,12 @@ def ring(r, buf, at):
     put(buf, at + 0x7c, 'i', r.choice([0, 1, 5, 28, 29, size - 1, r.randrange(30), -1, 30]))
     put(buf, at + 0x80, 'i', size)
     buf[at + 0x84] = r.choice([0, 1, 1, r.getrandbits(8)])
-    if r.random() < 0.1:   # (no customers: the sum 0, skipped)
+    few = r.random()
+    if few < 0.2:   # (no customers: the sum 0, skipped; or one or two: a percentage past 2^31 against many walk-aways, negative)
         for k in range(30):
             put(buf, at + 4 + 4 * k, 'I', 0)
+        if few < 0.1:
+            put(buf, at + 4 + 4 * r.randrange(30), 'I', r.choice([1, 2]))
 
 
 def case(r):
