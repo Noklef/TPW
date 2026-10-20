@@ -1,7 +1,7 @@
 # The track rides' collision object pool and list releases (src/game/world/collobj: 0x544330,
 # 0x5457e0, 0x545810, 0x54b290, 0x549070) against the originals: lists empty to 8 nodes in any order in memory,
 # masks 0, one bit or any, nodes in use or not; chunk lists of up to three chunks with a node pair or none. The nearest area node
-# (0x549070): see nearest().
+# (0x549070): see nearest(); a ride car steered (0x547c60): see steer().
 # usage: collobj.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -10,11 +10,12 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-ALL = ['Reset', 'ReleaseC0', 'KeepA8', 'FreeAll', 'Nearest']
+ALL = ['Reset', 'ReleaseC0', 'KeepA8', 'FreeAll', 'Nearest', 'Steer']
 OPS = [k for k in os.environ.get('OPS', ','.join(ALL)).split(',') if k]
 
 B = Bench([(0x544330, 0x544356), (0x5457e0, 0x545809), (0x545810, 0x545888), (0x54b290, 0x54b2f0), (0x549070, 0x5491db),
-           (0x5491e0, 0x5493ef), (0x5493f0, 0x5494c6), (0x549020, 0x54906e), (0x67a830, 0x67a860)])
+           (0x5491e0, 0x5493ef), (0x5493f0, 0x5494c6), (0x549020, 0x54906e), (0x67a830, 0x67a860),
+           (0x547c60, 0x547f4d), (0x5da3c0, 0x5da3c1)])
 NODES, POOL, GLOBALS = RAM + 0x200, RAM + 0x1000, 0x877b70
 
 
@@ -75,8 +76,42 @@ def nearest(r):
     return Call(0x549070, [target, point(), point(), r.choice([0, 1, r.getrandbits(32)])], {NODES: nodes, other: area, GLOBALS: globals_}, ret='a')
 
 
+def steer(r):
+    """0x547c60: nearest()'s nodes and area, the car at CAR with flags 0x10000 / 0x4000 / 0x80000 mixed, its area that one or none, its
+    position and target on the same grid or anywhere, the kind (KIND) a small or any speed and turn rate, +0x54 2 now and then; the sine
+    table small values or any; the point as nearest()'s."""
+    c = nearest(r)
+    regions = dict(c.regions)
+    area, x, y = c.args[0], c.args[1], c.args[2]
+    car = bytearray(r.bytes(0xa0))
+    flags = r.getrandbits(32) if r.random() < 0.1 else sum(b for b in (0x10000, 0x4000, 0x80000, 0x20000) if r.random() < 0.5)
+    spot = lambda: r.choice([r.randrange(-6, 7) * 0x400, r.randrange(-0x3000, 0x3000), r.getrandbits(32) - (1 << 31), r.randrange(-0x30000, 0x30000)])
+    put(car, 0, 'I', flags)
+    put(car, 0x34, 'ii', spot(), spot())
+    put(car, 0x6c, 'ii', spot(), spot())
+    put(car, 0x74, 'ii', r.choice([0, r.randrange(-0x400, 0x400)]), r.choice([0, r.randrange(-0x400, 0x400)]))
+    put(car, 0x50, 'I', r.choice([r.randrange(0x200), r.getrandbits(32)]))
+    put(car, 0x68, 'i', r.choice([0, r.randrange(-8, 40), r.getrandbits(32) - (1 << 31)]))
+    put(car, 0x98, 'II', area if r.random() < 0.85 else 0, KIND)
+    kind = bytearray(r.bytes(0x60))
+    put(kind, 0x20, 'i', r.choice([r.randrange(0, 80), r.getrandbits(32) - (1 << 31)]))
+    put(kind, 0x28, 'i', r.choice([r.randrange(0, 0x40), r.randrange(-0x40, 0x200), r.getrandbits(32) - (1 << 31)]))
+    put(kind, 0x54, 'i', r.choice([2, 0, 1, 3]))
+    sine = bytearray(r.bytes(0x800))
+    if r.random() < 0.8:
+        for i in range(0x200):
+            put(sine, 4 * i, 'i', r.randrange(-1024, 1025))
+    regions.update({CAR: car, KIND: kind, 0x877358: sine})
+    return Call(0x547c60, [CAR, x, y], regions, ret='a')
+
+
+CAR, KIND = RAM + 0x800, RAM + 0x900
+
+
 def case(r):
     op = ALL.index(r.deal(OPS))
+    if op == 5:
+        return steer(r)
     if op == 4:
         return nearest(r)
     if op == 3:

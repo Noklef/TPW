@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../math/vec2.h"
+#include "../math/x87.h"
 
 namespace {
 
@@ -123,5 +124,94 @@ u8 *__cdecl CollArea_FindNearest(const s32 *area, s32 x, s32 y, u32 self) {
             break;
     }
     return nearest;
+}
+
+s32 __cdecl Collider_SteerTo(u8 *car, s32 x, s32 y) {
+    if ((at<u32>(car, 0) & 0x10000) && at<u32>(car, 0x98)) {
+        u8 *found = nullptr;
+        u8 *node = global<u8 *>(0x00877b70);
+        u32 left = global<u32>(0x00877b74);
+        if (node && left) {
+            for (;;) {
+                const u32 flags = at<u32>(node, 0);
+                if (flags & 1) {
+                    --left;
+                    if (!(flags & 0x40) && IntArea_Contains(x, y, reinterpret_cast<const s32 *>(node))) {
+                        found = node;
+                        break;
+                    }
+                }
+                node += 0x20;
+                if (!left)
+                    break;
+            }
+        }
+        if (!found) {
+            at<s32>(car, 0x70) = y;
+            at<s32>(car, 0x6c) = x;
+            return -1;
+        }
+        if (IntArea_Overlaps(at<const s32 *>(car, 0x98), reinterpret_cast<const s32 *>(found))) {
+            at<u32>(car, 0x70) = at<u32>(car, 0x78) + (u32)y;
+            at<u32>(car, 0x6c) = at<u32>(car, 0x74) + (u32)x;
+            at<u32>(car, 0) &= ~0x10000u;
+        } else {
+            const u8 *const to = CollArea_FindNearest(at<const s32 *>(car, 0x98), x, y, 0);
+            if (!to) {   // (the original reports it to the empty Debug_Printf)
+                at<u32>(car, 0x40) = 0;
+                at<u32>(car, 0x3c) = 0;
+                return -1;
+            }
+            const u32 flags = at<u32>(to, 0);
+            u32 tx = at<u32>(to, 4), ty = at<u32>(to, 8);
+            if (!(flags & 8))
+                ty -= 0x87c;
+            else if (!(flags & 0x10))
+                ty += 0x87c;
+            if (!(flags & 2))
+                tx += 0x87c;
+            else if (!(flags & 4))
+                tx -= 0x87c;
+            at<u32>(car, 0x6c) = tx;
+            at<u32>(car, 0x70) = ty;
+            at<u32>(car, 0) = (at<u32>(car, 0) | 0x20000) & ~0x10000u;
+        }
+    }
+    const s32 dy = (s32)(at<u32>(car, 0x70) - at<u32>(car, 0x38)), dx = (s32)(at<u32>(car, 0x6c) - at<u32>(car, 0x34));
+    const double turned = X87_Atan2((double)dx, (double)(s32)(0u - (u32)dy));   // (fpatan: unrounded)
+    const s32 bearing = (s32)(long long)X87_Add(X87_MulDouble(X87_MulDouble(turned, global<double>(0x00700eb8)), global<double>(0x00700ec0)),
+                                               global<double>(0x00700f18));   // (x / pi * 256 - 256, then __ftol)
+    s32 turn = (s32)((0u - at<u32>(car, 0x50) - (u32)bearing) & 0x1ff);
+    s32 ax = dx < 0 ? (s32)(0u - (u32)dx) : dx, ay = dy < 0 ? (s32)(0u - (u32)dy) : dy;
+    u32 shift = 0;
+    while (ax > 0x8000 || ay > 0x7fff) {
+        ++shift;
+        ax >>= 1;
+        ay >>= 1;
+    }
+    const s32 squares = (s32)((u32)ax * (u32)ax + (u32)ay * (u32)ay);
+    const s32 distance = (s32)((u32)(s32)(long long)X87_Sqrt(X87Reg((double)squares)).v << shift);
+    const u8 *const kind = at<const u8 *>(car, 0x9c);
+    const s32 rate = at<s32>(kind, 0x28);
+    s32 step = rate;
+    if (turn > 0x100) {
+        step = (s32)(0u - (u32)rate);
+        turn = 0x200 - turn;
+    }
+    if (turn > rate / 2 && at<s32>(kind, 0x54) != 2 && (at<u32>(car, 0) & 0x4000))
+        at<u32>(car, 0x50) = (at<u32>(car, 0x50) + (u32)step) & 0x1ff;
+    const s32 reach = distance / 512, limit = reach < 0x16 ? 0x16 : reach > 0x30 ? 0x30 : reach;
+    if (turn < limit && (at<u32>(car, 0) & 0x84000) == 0x4000 && at<s32>(kind, 0x54) != 2) {
+        s32 speed = (s32)(at<u32>(kind, 0x20) + at<u32>(car, 0x68));
+        if ((at<u32>(at<const u8 *>(car, 0x98), 0) & 0x1e) != 0x1e)
+            speed = (s32)((u32)speed * 3) / 4;
+        const u32 heading = at<u32>(car, 0x50);
+        const s32 *const sine = reinterpret_cast<const s32 *>((uintptr_t)0x00877358);
+        const s32 vy = (s32)((u32)sine[(heading + 0x80) & 0x1ff] * (u32)speed << 2) / 1024;
+        const s32 vx = (s32)((u32)sine[heading & 0x1ff] * (u32)speed << 2) / 1024;
+        at<u32>(car, 0x3c) += (u32)vx;
+        at<u32>(car, 0x40) += (u32)vy;
+    }
+    return distance;
 }
 }
