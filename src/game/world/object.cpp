@@ -8,6 +8,7 @@
 #include "../core/funnytime.h"
 #include "../core/gameheap.h"
 #include "../core/initializers.h"
+#include "../math/x87.h"
 #include "../model/stripanim.h"
 #include "objectdefs.h"
 #include "person.h"
@@ -350,4 +351,37 @@ u32 __fastcall Obj_StampAt5e(u8 *object, void *, u32 word) {
 }
 
 u32 __fastcall Obj_Diff180_184(const u8 *object) { return at<const u32>(object, 0x180) - at<const u32>(object, 0x184); }
+
+double __fastcall Object_DefRowScore(const u8 *object, void *, float a, float b, u32, u32 useB) {
+    u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
+    const u16 id = at<u16>(object, 0xe);
+    const u32 row = (u32)at<u8>(object, 0x50) << 6;
+    // element 5 of the ride record, through fild and __ftol (exact)
+    s32 load = (s32)Rides_GetElement(Rides_FindById(at<s32>(object, 0x24)), 5);
+    if (load < 0) {
+        load = 0;
+    } else if (load > at<s32>(ObjectDefs_Find(defs, nullptr, id), 0x128)) {
+        load = at<s32>(ObjectDefs_Find(defs, nullptr, id), 0x128);
+    }
+    const float share = (float)(X87Reg(a) / X87Reg((double)at<s32>(ObjectDefs_Find(defs, nullptr, id), 0x138)) * X87Reg(0.9f));
+    const bool aOver = !((double)at<s32>(ObjectDefs_Find(defs, nullptr, id), row + 0x1ac) > (double)a);
+    X87Reg first = X87Reg(share) - X87Reg(-0.1f);
+    if (aOver) first = (first - X87Reg(-1.0f)) * X87Reg(0.5f);
+    const float firstStored = (float)first;
+    X87Reg q = useB & 0xff ? X87Reg(b) / X87Reg((double)at<s32>(ObjectDefs_Find(defs, nullptr, id), 0x128))
+                           : X87Reg((double)load) / X87Reg((double)at<s32>(ObjectDefs_Find(defs, nullptr, id), 0x128));
+    const float second = (float)(q * X87Reg(0.9f));
+    const double tenth = X87_MulIntDouble(load, 0.1f);
+    const bool loadOver = !((double)at<s32>(ObjectDefs_Find(defs, nullptr, id), row + 0x19c) > tenth);
+    X87Reg next = X87Reg(second) - X87Reg(-0.1f);
+    if (loadOver) next = (next - X87Reg(-1.0f)) * X87Reg(0.5f);
+    const float secondStored = (float)next;
+    const X87Reg sum = X87Reg(secondStored) + X87Reg(firstStored);
+    return (X87Reg(X87_MulIntDouble(at<s32>(ObjectDefs_Find(defs, nullptr, id), row + 0x1b0), sum.v)) * X87Reg(0.5f)).v;
+}
+
+u8 __fastcall Object_DefRowPercent(const u8 *object, void *, float a, float b, u32 c) {
+    const X87Reg score = X87Reg(Object_DefRowScore(object, nullptr, a, b, c, 1)) * X87Reg(9.0f);
+    return (u8)(0x64 - (u32)(long long)score.v);  // __ftol, low half
+}
 }

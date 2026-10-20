@@ -126,4 +126,14 @@ u16 *__fastcall Objects_NearestFreeFor(u8 *self, void *, u16 *out, u32 person);
 // (Map_StepCellInDirection; the original reads through a null one) names a cell (its id word) from which any step but the one back (MapCell_StepBlocked
 // in mode 0, directions 0-3 for 1, 4, 0x10, 0x40) open gives 1 (a debug print is left out), else 0.
 u32 __fastcall Object_ExitOpen(const u8 *object);
+
+// 0x4df450 (thiscall; a, b, an unused dword, a flag byte; pops 0x10; x87 at the game's precision, the result in ST0; name unconfirmed): a score from the object's
+// definition (ObjectDefs_Find of the id at +0xe; the row at +0x40 * the byte +0x50) and its ride record's element 5 (Rides_FindById of +0x24), the load, held to
+// [0, the definition's +0x128]. Two parts, each x * 0.9 + 0.1, halved after adding 1 when it is over: a / +0x138 over when the row's +0x1ac is not above a; b (with
+// the flag) or the load over +0x128, over when the row's +0x19c is not above a tenth of the load. Returns (second + first) * the row's +0x1b0 * 0.5 (as ST0 holds it:
+// a 24-bit significand, the double return keeps its exponent).
+double __fastcall Object_DefRowScore(const u8 *object, void *, float a, float b, u32 unused, u32 useB);
+
+// 0x4df640 (thiscall; a, b, c; pops 0xc; name unconfirmed): 100 less __ftol(Object_DefRowScore(a, b, c, with b) * 9), the low byte (AL).
+u8 __fastcall Object_DefRowPercent(const u8 *object, void *, float a, float b, u32 c);
 }

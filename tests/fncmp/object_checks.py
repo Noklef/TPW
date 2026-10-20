@@ -13,7 +13,8 @@ import ridelist  # noqa: E402
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 from thingenv import ITEM, ITEMS, NITEMS, park  # noqa: E402
 
-B = Bench([(0x412e90, 0x412f00), (0x4dd4e0, 0x4dd510), (0x4d8c00, 0x4d8c30), (0x4dd7f0, 0x4dd930), (0x522770, 0x5227f0), (0x52c2b0, 0x52c430), (0x55a070, 0x55a110), (0x55a0b0, 0x55a110), (0x5da3c0, 0x5da3c1)])
+B = Bench([(0x412e90, 0x412f00), (0x4dd4e0, 0x4dd510), (0x4d8c00, 0x4d8c30), (0x4dd7f0, 0x4dd930), (0x4df450, 0x4df66d), (0x522770, 0x5227f0), (0x52c2b0, 0x52c430),
+           (0x55a070, 0x55a110), (0x55a0b0, 0x55a110), (0x55a390, 0x55a3f0), (0x5da3c0, 0x5da3c1)])
 OBJ, WORLD = RAM, RAM + 0x10000
 
 
@@ -59,11 +60,51 @@ def track(r):
     return Call(0x52c2b0, [OBJ], regions, conv='c', ret='b')
 
 
+def score(r):
+    """0x4df450: definitions with small limits (+0x128, +0x138: 0 too) and rows (+0x19c, +0x1ac, +0x1b0) around the inputs, the row byte 0-3, the ride record's
+    element 5 (the load) below 0, inside or above the limit (or no record, no element 5, the list system off); a, b and the flag byte."""
+    regions, _h, _a = park(r, count=0, defs=True)
+    items = bytearray(regions[ITEMS])
+    for i in range(NITEMS):
+        put(items, i * ITEM + 0x128, 'i', r.choice([0, 1, 4, 10, 100, 1000, -3]))
+        put(items, i * ITEM + 0x138, 'i', r.choice([0, 1, 5, 10, 100, 7, -2]))
+        for row in range(4):
+            for off in (0x19c, 0x1ac, 0x1b0):
+                put(items, i * ITEM + 0x40 * row + off, 'i', r.choice([0, 1, 2, 5, 10, 50, 100, -1, 0x7fffff]))
+    regions[ITEMS] = items
+    obj = bytearray(r.bytes(0x60))
+    n = struct.unpack_from('<i', regions[0x7890a0], 0x528)[0]
+    put(obj, 0xe, 'H', struct.unpack_from('<H', items, ITEM * r.randrange(n))[0])
+    obj[0x50] = r.choice([0, 1, 2, 3])
+    nodes, arrays = RAM + 0x1000, RAM + 0x2000
+    node = bytearray(r.bytes(0x100))
+    put(node, 0, 'I', 0)
+    put(node, 8, 'I', 7)
+    put(node, 0x1c, 'I', arrays)
+    put(node, 0x8c, 'i', r.choice([6, 6, 6, 8, 5]))
+    elements = bytearray(r.bytes(0x20))
+    put(elements, 0x14, 'i', r.choice([-5, 0, 1, 3, 10, 50, 1000, 0x7fffffff]))
+    put(obj, 0x24, 'I', 7 if r.random() < 0.9 else 8)
+    regions.update({OBJ: obj, nodes: node, arrays: elements, 0x8791a0: struct.pack('<I', 1 if r.random() < 0.95 else 0), 0x8791b0: struct.pack('<I', nodes)})
+    scale = r.choice([1.0, 10.0, 100.0, 1000.0])
+    args = [OBJ, r.f(scale), r.f(scale), r.getrandbits(32), r.choice([0, 1, 0x100, 0xff])]
+    return Call(0x4df450, args, regions, conv='t', ret='d')
+
+
+def percent(r):
+    c = score(r)
+    c.address, c.args, c.ret = 0x4df640, c.args[:4], 'b'
+    return c
+
+
+CASES = {'Capacity': capacity, 'Track': track, 'Score': score, 'Percent': percent}
+
+
 def case(r):
-    return (capacity if r.choice(OPS) == 'Capacity' else track)(r)
+    return CASES[r.deal(OPS)](r)
 
 
-OPS = [k for k in os.environ.get('OPS', 'Capacity,Track').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', ','.join(CASES)).split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
