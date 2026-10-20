@@ -1,5 +1,5 @@
 // The wavelet-compressed (WCT) image class (vtable 0x7011d8): reimplementation of its constructor
-// Obj_CtorVirtual564ba0 (0x564ba0), deleting destructor 0x565000 and its read 0x564d00 and decoding 0x564e20 / 0x564ef0.
+// Obj_CtorVirtual564ba0 (0x564ba0), deleting destructor 0x565000, its load 0x564c00, read 0x564d00 and decoding 0x564e20 / 0x564ef0.
 //
 // +0 its virtual base table (0x7011d8), +0x20 and +0x24 tracked global blocks, the part at +0x2c (vtable 0x701178) and the virtual base
 // (vtable 0x7011c8, whose slots are the thunks 0x564ff0 (this destructor), 0x565080, 0x565090 and 0x5650a0).
@@ -38,4 +38,11 @@ u32 __fastcall Texture_DecodeWct(const u8 *part, void *, u8 *const *pixels);
 // then the codec's slot 1 (WaveletCodec_DecodeScaled) gets the kind, the sizes +8 / +0xa, the surface's width, height and pitch, the
 // pixel size, the blocks +0x24 and +0x20, its pixels and the four steps as Texture_DecodeWct's. Returns 1.
 u32 __fastcall Texture_DecodeWctInto(const u8 *part, void *, u32 *surface, u32 flip);
+
+// 0x564c00 (thiscall; name, pops 4; name unconfirmed): the file opened (VFS_Open; 0 when not), its 0x1c-byte header read into +4
+// (Object_CallSlot8Product: size 0x1c, count 1). A kind byte (+4, read after) other than 0x12 / 0x13 closes it (Object_FinishAndDelete) and
+// returns 0. Then the block +0x24 of the size +0x14 (TrackedGlobal_Alloc; closed and 0 when not got) is read (count +0x14 of size 1); with
+// +6 = 0x20 the block +0x20 of the size +0x18 likewise, a failed one closing, freeing +0x24 (TrackedGlobal_Free), clearing it and returning
+// 0. Then +7 &= 3, the file closed and 1.
+u32 __fastcall WctImage_Load(u8 *image, void *, const char *name);
 }

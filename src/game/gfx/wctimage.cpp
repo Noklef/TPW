@@ -4,6 +4,7 @@
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
 #include "../core/vwrap.h"
+#include "../files/vfs.h"
 #include "../math/x87.h"
 
 namespace {
@@ -107,5 +108,35 @@ u8 *__fastcall Obj_CtorVirtual564ba0(u8 *object, void *, u32 mostDerived) {
     at<u32>(object, 0x24) = 0;
     at<u32>(object, 0x20) = 0;
     return object;
+}
+
+u32 __fastcall WctImage_Load(u8 *image, void *, const char *name) {
+    u8 *const stream = reinterpret_cast<u8 *>(VFS_Open(name));
+    if (!stream) return 0;
+    Object_CallSlot8Product((u32)(uintptr_t)(image + 4), 0x1c, 1, stream);
+    const u8 kind = at<u8>(image, 4);
+    if (kind < 0x12 || kind > 0x13) {
+        Object_FinishAndDelete(stream);
+        return 0;
+    }
+    at<u32>(image, 0x24) = TrackedGlobal_Alloc(at<u32>(image, 0x14));
+    if (!at<u32>(image, 0x24)) {
+        Object_FinishAndDelete(stream);
+        return 0;
+    }
+    Object_CallSlot8Product(at<u32>(image, 0x24), 1, at<u32>(image, 0x14), stream);
+    if (at<u8>(image, 6) == 0x20) {
+        at<u32>(image, 0x20) = TrackedGlobal_Alloc(at<u32>(image, 0x18));
+        if (!at<u32>(image, 0x20)) {
+            Object_FinishAndDelete(stream);
+            TrackedGlobal_Free(at<u32>(image, 0x24));
+            at<u32>(image, 0x24) = 0;
+            return 0;
+        }
+        Object_CallSlot8Product(at<u32>(image, 0x20), 1, at<u32>(image, 0x18), stream);
+    }
+    at<u8>(image, 7) &= 3;
+    Object_FinishAndDelete(stream);
+    return 1;
 }
 }

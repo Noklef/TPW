@@ -5,17 +5,32 @@
 # and others). Decode / DecodeInto (0x564e20 / 0x564ef0, also through their thunks 0x565090 / 0x565080): kind bytes around 0x12, the
 # header words any (small often), formats 0-3, the codec a recorder whose slots 1 and 2 are logged; the surface's sizes and pitch any
 # (small often), flipped or not. Read (0x564d00): a recorder stream, the header at 0x879a38 random with floats about 0-100 (a few huge or
-# NaN) and block sizes small, GlobalAlloc failing for the first or second block now and then.
-# usage: wctimage.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Dtor,Shutdown,Ctor,Decode,DecodeInto,Read)
+# NaN) and block sizes small, GlobalAlloc failing for the first or second block now and then. Load (0x564c00): a file through vfs.py's
+# mounts and memory source (see load()).
+# usage: wctimage.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Dtor,Shutdown,Ctor,Decode,DecodeInto,Read,Load)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fncmp import HEAP, LOG, Bench, Call, RAM, global_heap, heap, log_region, put, vtable  # noqa: E402
+import vfs  # noqa: E402
+from gamestring import LOCALE  # noqa: E402
 
-B = Bench([(0x565000, 0x565070), (0x564b60, 0x564b94), (0x579b80, 0x579c13), (0x564ba0, 0x564bf0), (0x564e20, 0x564ee0), (0x564ef0, 0x564fe2),
-           (0x565080, 0x5650a0), (0x564d00, 0x564e12), (0x579b40, 0x579b80), (0x5c4f60, 0x5c4f7c), (0x67a830, 0x67a860)])
+
+def merged(ranges):   # (overlapping ranges joined: a listing line must not come twice)
+    out = []
+    for lo, hi in sorted(ranges):
+        if out and lo <= out[-1][1]:
+            out[-1] = (out[-1][0], max(out[-1][1], hi))
+        else:
+            out.append((lo, hi))
+    return out
+
+
+B = Bench(merged(vfs.RANGES + [(0x564c00, 0x564cf3), (0x565000, 0x565070), (0x564b60, 0x564b94), (0x579b80, 0x579c13), (0x564ba0, 0x564bf0), (0x564e20, 0x564ee0), (0x564ef0, 0x564fe2),
+           (0x565080, 0x5650a0), (0x564d00, 0x564e12), (0x579b40, 0x579b80), (0x5c4f60, 0x5c4f7c), (0x67a830, 0x67a860)]))
 COUNT, TABLE = 0x8bb214, 0x87b1f8   # the tracked blocks: their count and (block, block) pairs
 OBJ, VBT, CODEC, CVT, SURFACE = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400
 BLOCKS = [HEAP + 0x20, HEAP + 0x40, HEAP + 0x3c]
@@ -99,14 +114,34 @@ def read(r):
     return Call(0x564d00, [OBJ, CODEC], regions, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Dtor,Shutdown,Ctor,Decode,DecodeInto,Read').split(',') if k]
+def load(r):
+    """0x564c00 (thiscall; name): vfs.py's mounts with its memory source over a 0x1c-byte header (kind 0x12 / 0x13 mostly, +2 0x20 mostly, the
+    block sizes at +0x10 / +0x14 small) and the blocks' bytes; a name under the root or not; the tracked blocks as tracked(); the heap
+    failing its first (the stream's) or a later (a block's) allocation now and then; the image's other bytes random."""
+    log = log_region()
+    regions = {LOG: log, HEAP: heap(fail=r.choice([0] * 8 + [1, 4, 5, 6])), LOCALE: bytes(4), **global_heap()}
+    tracked(r, regions)
+    root = vfs.mounts(r, log, regions)
+    header = bytearray(r.bytes(0x1c))
+    header[0] = r.choice([0x12, 0x13, 0x12, 0x13, 0x11, 0x14, 0, r.randrange(256)])
+    header[2] = r.choice([0x20, 0x20, 0x10, r.randrange(256)])
+    header[3] = r.randrange(256)
+    sizes = [r.choice([0, 1, 4, 0x10, r.randrange(0x40)]) for _ in range(2)]
+    put(header, 0x10, '2I', *sizes)
+    vfs.memory_source(r, log, regions, bytes(header) + r.bytes(sum(sizes)))
+    regions[vfs.NAME] = vfs.name_under(r, root) + bytes(1) + r.bytes(7)
+    regions[OBJ] = bytearray(r.bytes(0x40))
+    return Call(0x564c00, [OBJ, vfs.NAME], regions, conv='t', ret='a')
+
+
+OPS = [k for k in os.environ.get('OPS', 'Dtor,Shutdown,Ctor,Decode,DecodeInto,Read,Load').split(',') if k]
 
 
 def case(r):
     op = r.deal(OPS)
     if op in ('Decode', 'DecodeInto'):
         return decode(r, 0x564e20 if op == 'Decode' else 0x564ef0)
-    return {'Dtor': dtor, 'Shutdown': shutdown, 'Ctor': ctor, 'Read': read}[op](r)
+    return {'Dtor': dtor, 'Shutdown': shutdown, 'Ctor': ctor, 'Read': read, 'Load': load}[op](r)
 
 
 if __name__ == '__main__':

@@ -14,14 +14,15 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import LOG, Bench, Call, HEAP, RAM, blob, echo, fill, heap, log_region, put, recorder, set_return, strings  # noqa: E402
+from fncmp import LOG, Bench, Call, HEAP, RAM, STUBS, SEEK, blob, echo, fill, heap, log_region, put, recorder, set_return, strings  # noqa: E402
 import files  # noqa: E402
 import gamestring  # noqa: E402
 from gamestring import BACKSLASH, DOT, LOCALE, SLASH2, string  # noqa: E402
 
 RANGES = gamestring.B_RANGES + [(0x41cff0, 0x41d2d0), (0x41ce90, 0x41ce94), (0x421720, 0x421780), (0x4217e0, 0x421800), (0x5c4d50, 0x5c4f70),
                                  (0x46f120, 0x46f160), (0x5c4f80, 0x5c4fb0), (0x618d30, 0x618d90), (0x44a280, 0x44a3c4), (0x461790, 0x461a60),
-                                 (0x45b9d0, 0x45ba15)]
+                                 (0x45b9d0, 0x45ba15),
+                                 (0x4036a0, 0x4036e0)]   # (the last: StreamBase's read and write, for memory_source())
 B = Bench(RANGES)
 TAIL, WAD, EMPTY = 0x78bf40, 0x78c810, 0x78be50
 PATH, BASE, OUT = RAM, RAM + 0x40, RAM + 0x80
@@ -147,6 +148,33 @@ def mounts(r, log, regions):
     for k in (2, 7):
         set_return(log, k, r.choice([1, 1, 0, 0, 2, r.getrandbits(32)]))
     return root
+
+
+VT_MEM, MEMSRC, MEMDATA = RAM + 0x3a80, RAM + 0x3ac0, RAM + 0x70000
+
+
+def memory_source(r, log, regions, data):
+    """After mounts(): the source (always there, without an archive) opens every file (k 2 answers 1) and attaches to the stream a memory
+    source over data (at MEMDATA, 0x100 random bytes after it): the stream's vtable 0x703100 and the source written through the open's first
+    argument (the second fill). The source is fncmp's memory_stream's layout (vtable, cursor, bytes left, start, size) with the RefObject's
+    slots: +4 read, +8 write, +0xc seek (the stubs), +0x10 size and +0x14 position recorders (k 8, 9), +0 and +0x24 (only reached when a
+    Release takes +8 to 0) recorder k 10. The close's Release goes through InterlockedDecrement's import, a stdcall recorder (k 11)
+    answering 1: the source is never freed."""
+    regions[SOURCE] = put(bytearray(regions[SOURCE]), 0x38, 'I', 0)
+    regions[MOUNTS] = put(bytearray(regions[MOUNTS]), 4, 'I', SOURCE)
+    set_return(log, 2, 1)
+    fill(log, 2, 0, struct.pack('<2I', 0x703100, MEMSRC), which=1)
+    size = len(data) + 0x100
+    regions[MEMSRC] = struct.pack('<5I', VT_MEM, MEMDATA, size, MEMDATA, size)
+    vt = bytearray(r.bytes(0x28))
+    put(vt, 0, '6I', recorder(10, 1), STUBS, STUBS + 0x10, SEEK, recorder(8, 0), recorder(9, 0))
+    put(vt, 0x24, 'I', recorder(10, 0))
+    regions[VT_MEM] = vt
+    regions[MEMDATA] = bytes(data) + r.bytes(0x100)
+    for k in (8, 9):
+        set_return(log, k, r.choice([0, len(data), r.getrandbits(32)]))
+    regions[0x6fd12c] = struct.pack('<I', recorder(11, 1, True))   # InterlockedDecrement: 1 (the close's Release frees nothing)
+    set_return(log, 11, 1)
 
 
 def exists(r):
