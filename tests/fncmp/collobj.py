@@ -1,7 +1,7 @@
 # The track rides' collision object pool and list releases (src/game/world/collobj: 0x544330,
 # 0x5457e0, 0x545810, 0x54b290, 0x549070) against the originals: lists empty to 8 nodes in any order in memory,
 # masks 0, one bit or any, nodes in use or not; chunk lists of up to three chunks with a node pair or none. The nearest area node
-# (0x549070): see nearest(); a ride car steered (0x547c60): see steer().
+# (0x549070): see nearest(); a ride car steered (0x547c60): see steer(); bounced off the blockers (0x5494d0): see bounce().
 # usage: collobj.py [CASES [SEED]] [--wild|--both] [--show N]
 import math
 import os
@@ -11,12 +11,12 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-ALL = ['Reset', 'ReleaseC0', 'KeepA8', 'FreeAll', 'Nearest', 'Steer']
+ALL = ['Reset', 'ReleaseC0', 'KeepA8', 'FreeAll', 'Nearest', 'Steer', 'Bounce']
 OPS = [k for k in os.environ.get('OPS', ','.join(ALL)).split(',') if k]
 
 B = Bench([(0x544330, 0x544356), (0x5457e0, 0x545809), (0x545810, 0x545888), (0x54b290, 0x54b2f0), (0x549070, 0x5491db),
            (0x5491e0, 0x5493ef), (0x5493f0, 0x5494c6), (0x549020, 0x54906e), (0x67a830, 0x67a860),
-           (0x547c60, 0x547f4d), (0x5da3c0, 0x5da3c1)])
+           (0x547c60, 0x547f4d), (0x5da3c0, 0x5da3c1), (0x5494d0, 0x5497a9)])
 NODES, POOL, GLOBALS = RAM + 0x200, RAM + 0x1000, 0x877b70
 
 
@@ -124,10 +124,35 @@ def steer(r):
 CAR, KIND = RAM + 0x800, RAM + 0x900
 
 
+def bounce(r):
+    """0x5494d0: steer()'s car, nodes (more of them blockers) and sine table; the car's position in a blocker (on its centre, within its
+    radius) now and then; its motion small, zero or any; the kind's +0 one of the spinning kinds (-5, -8, -12, -13) or not, its +0x2c small
+    or any. A car on a node's centre divides by 0: a crash in both."""
+    c = steer(r)
+    regions = dict(c.regions)
+    nodes = bytearray(regions[NODES])
+    for i in range(11):
+        if r.random() < 0.5:
+            put(nodes, 0x20 * i, 'I', struct.unpack_from('<I', nodes, 0x20 * i)[0] | 0x41)
+    car, kind = bytearray(regions[CAR]), bytearray(regions[KIND])
+    if r.random() < 0.7:
+        f, x, y, rx, ry = struct.unpack_from('<IiiII', nodes, 0x20 * r.randrange(11))
+        reach = max(1, min(rx, ry, 0x1000))
+        put(car, 0x34, 'ii', x + r.choice([0, 1, -1, r.randrange(-reach, reach + 1)]), y + r.choice([0, 1, r.randrange(-reach, reach + 1)]))
+    put(car, 0x44, 'ii', *(r.choice([0, r.randrange(-0x400, 0x400), r.randrange(-40, 40), r.getrandbits(32) - (1 << 31)]) for _ in range(2)))
+    put(car, 0x58, 'i', r.choice([0, r.randrange(-0x2000, 0x2000), r.getrandbits(32) - (1 << 31)]))
+    put(kind, 0, 'i', r.choice([-5, -8, -12, -13, -5, 0, -1, r.getrandbits(32) - (1 << 31)]))
+    put(kind, 0x2c, 'i', r.choice([0, r.randrange(-0x400, 0x400), r.getrandbits(32) - (1 << 31)]))
+    regions.update({NODES: nodes, CAR: car, KIND: kind})
+    return Call(0x5494d0, [CAR], regions)
+
+
 def case(r):
     op = ALL.index(r.deal(OPS))
     if op == 5:
         return steer(r)
+    if op == 6:
+        return bounce(r)
     if op == 4:
         return nearest(r)
     if op == 3:

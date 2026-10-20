@@ -126,6 +126,70 @@ u8 *__cdecl CollArea_FindNearest(const s32 *area, s32 x, s32 y, u32 self) {
     return nearest;
 }
 
+void __cdecl Collider_BounceOffBlockers(u8 *car) {
+    u8 *node = global<u8 *>(0x00877b70);
+    u32 left = global<u32>(0x00877b74);
+    if (!node || !left)
+        return;
+    const s32 *const sine = reinterpret_cast<const s32 *>((uintptr_t)0x00877358);
+    const double k = global<double>(0x00700eb8), turn = global<double>(0x00700ec0);   // 1 / pi, 256
+    const auto angle = [&](s32 a, s32 b) {   // 256 - atan2(a, b) / pi * 256, truncated
+        return (s32)(long long)X87_Add(turn, -X87_MulDouble(X87_MulDouble(X87_Atan2((double)a, (double)b), k), turn));
+    };
+    const auto distance = [](s32 dx, s32 dy) {   // sqrt(dx^2 + dy^2), both halved until |dx| <= 0x8000 and |dy| <= 0x7fff, shifted back
+        s32 ax = dx < 0 ? (s32)(0u - (u32)dx) : dx, ay = dy < 0 ? (s32)(0u - (u32)dy) : dy;
+        u32 shift = 0;
+        while (ax > 0x8000 || ay > 0x7fff) {
+            ++shift;
+            ax >>= 1;
+            ay >>= 1;
+        }
+        const s32 squares = (s32)((u32)ax * (u32)ax + (u32)ay * (u32)ay);
+        return (s32)((u32)(s32)(long long)X87_Sqrt(X87Reg((double)squares)).v << shift);
+    };
+    const auto scaled = [](s32 a, s32 b) { return (s32)((u32)a * (u32)b << 2) / 1024; };
+    do {
+        const u32 flags = at<u32>(node, 0);
+        if (flags & 1) {
+            --left;
+            if ((flags & 0x40) && IntArea_Contains(at<s32>(car, 0x34), at<s32>(car, 0x38), reinterpret_cast<const s32 *>(node))) {
+                const s32 dx = (s32)(at<u32>(car, 0x34) - at<u32>(node, 4)), dy = (s32)(at<u32>(car, 0x38) - at<u32>(node, 8));
+                const s32 vx = at<s32>(car, 0x44), vy = at<s32>(car, 0x48);
+                const s32 heading = angle((s32)(0u - (u32)vx), vy);
+                const s32 away = angle(dx, (s32)(0u - (u32)dy));
+                const u32 apart = ((u32)heading - (u32)away) & 0x1ff;
+                if (apart < 0x80 || apart > 0x180) {
+                    const s32 speed = (s32)(long long)X87_Sqrt(X87Reg((double)(s32)((u32)vx * (u32)vx + (u32)vy * (u32)vy))).v;
+                    const u8 *const kind = at<const u8 *>(car, 0x9c);
+                    const s32 along = scaled(speed, sine[(apart + 0x80) & 0x1ff]);
+                    const s32 push = (s32)((u32)along * (at<u32>(kind, 0x2c) + 0x400)) / 1024;
+                    at<u32>(car, 0x3c) += (u32)scaled(sine[away & 0x1ff], push);
+                    at<u32>(car, 0) |= 0x50000;
+                    at<u32>(car, 0x40) += (u32)scaled(sine[(away + 0x80) & 0x1ff], push);
+                    const s32 length = distance(dx, dy), radius = at<s32>(node, 0xc);
+                    at<u32>(car, 0x34) = (u32)((s32)((u32)dx * (u32)radius) / length) + at<u32>(node, 4);   // (idiv: a length of 0 faults)
+                    at<u32>(car, 0x38) = (u32)((s32)((u32)dy * (u32)radius) / length) + at<u32>(node, 8);
+                    const s32 type = at<s32>(kind, 0);
+                    if (type == -5 || type == -8 || type == -12 || type == -13) {
+                        const s32 gap = length - radius < 0 ? (s32)(0u - (u32)(length - radius)) : length - radius;
+                        const s32 moving = (s32)(long long)X87_Add(X87_MulDouble(X87_MulDouble(
+                            X87_Atan2((double)(s32)(0u - at<u32>(car, 0x3c)), (double)at<s32>(car, 0x40)), k), turn), global<double>(0x00700f18));
+                        const s32 spin = at<s32>(car, 0x58);
+                        if (((0u - (u32)heading - (u32)moving) & 0x1ff) < 0x100) {
+                            const s32 kick = (s32)((0u - (u32)gap) * 48u), sum = (s32)((u32)kick + (u32)spin);
+                            at<s32>(car, 0x58) = kick > sum ? kick : sum;
+                        } else {
+                            const s32 kick = (s32)((u32)gap * 48u), sum = (s32)((u32)kick + (u32)spin);
+                            at<s32>(car, 0x58) = kick < sum ? kick : sum;
+                        }
+                    }
+                }
+            }
+        }
+        node += 0x20;
+    } while (left);
+}
+
 s32 __cdecl Collider_SteerTo(u8 *car, s32 x, s32 y) {
     if ((at<u32>(car, 0) & 0x10000) && at<u32>(car, 0x98)) {
         u8 *found = nullptr;
