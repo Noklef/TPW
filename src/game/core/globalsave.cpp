@@ -2,12 +2,33 @@
 
 #include <cstdint>
 
+#include "gameheap.h"
 #include "savegame.h"
+#include "stdlist.h"
 #include "../files/file.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+// A tree's constructor as the game inlines it (std::_Tree with a shared nil node; the STL lock around it left out): the nil made the first
+// time (new(0, 1): parent 0, black; its left and right 0), its users counted, the head new(nil, 0) (red) with its left and right itself,
+// the size 0.
+void tree_ctor(u8 *tree, u32 nilAt, u32 usersAt, u8 *(__stdcall *make)(u32, u32)) {
+    if (!global<u8 *>(nilAt)) {
+        u8 *const nil = make(0, 1);
+        global<u8 *>(nilAt) = nil;
+        at<u32>(nil, 0) = 0;
+        at<u32>(global<u8 *>(nilAt), 8) = 0;
+    }
+    ++global<u32>(usersAt);
+    u8 *const head = make((u32)(uintptr_t)global<u8 *>(nilAt), 0);
+    at<u8 *>(tree, 4) = head;
+    at<u32>(tree, 0xc) = 0;
+    at<u8 *>(head, 0) = head;
+    at<u8 *>(at<u8 *>(tree, 4), 8) = at<u8 *>(tree, 4);
+}
 
 // One field written or read whole (Stream_Write / Stream_Read; a negative result or fewer bytes: false).
 bool Field(Stream *stream, u8 *at, s32 count, bool save) {
@@ -96,4 +117,36 @@ void __fastcall GlobalSave_SetAllResearchCompleted(u8 *info) {
 u8 __fastcall GlobalSave_Byte4c(const u8 *info) { return info[0x4c]; }
 
 void __fastcall GlobalSave_ClearByte4c(u8 *info) { info[0x4c] = 0; }
+
+u8 *__fastcall GlobalSave_Construct(u8 *info) {
+    u8 *const node = static_cast<u8 *>(GameHeap_Alloc(0x18));   // (not checked)
+    at<u8 *>(node, 0) = node;
+    at<u8 *>(node, 4) = node;
+    at<u8 *>(info, 4) = node;
+    at<u32>(info, 8) = 0;
+    at<u8 *>(info, 0x10) = Node18_New(0, 0);
+    at<u32>(info, 0x14) = 0;
+    at<u8>(info, 0x30) = 0;
+    tree_ctor(info + 0x28, 0x00f7c970, 0x00f7c96c, &Node14_New);
+    at<u8>(info, 0x40) = 0;
+    tree_ctor(info + 0x38, 0x00f7c968, 0x00f7c964, &Node28_New);
+    at<u32>(info, 0x18) = 0;
+    at<u16>(info, 0x1c) = 0;
+    at<u16>(info, 0x26) = 0;
+    at<u32>(info, 0x1c) = 0;
+    at<u32>(info, 0x20) = 0;
+    at<u8>(info, 0x24) = 0;
+    at<u8>(info, 0x25) = 1;
+    at<u8>(info, 0x4c) = 1;
+    return info;
+}
+
+u8 *__cdecl GlobalSave_Instance() {
+    u8 *&info = global<u8 *>(0x00f7c58c);
+    if (!info) {
+        u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x50));
+        info = block ? GlobalSave_Construct(block) : nullptr;
+    }
+    return info;
+}
 }

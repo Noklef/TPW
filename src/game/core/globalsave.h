@@ -49,5 +49,16 @@ void __fastcall GlobalSave_SetAllResearchCompleted(u8 *info);
 
 // 0x5b0cb0 / 0x5b0cc0: byte +0x4c / cleared.
 u8 __fastcall GlobalSave_Byte4c(const u8 *info);
+
+// 0x5aef50 (thiscall): the global save info constructed: +4 a list's head (a 0x18-byte block from Mem_Alloc, unchecked, its two links
+// itself) and +8 its size 0; +0x10 another's (Node18_New(0, 0)) and +0x14 0; +0x28 a tree of words (nil 0xf7c970 made the first time by
+// Node14_New(0, 1), its users 0xf7c96c; the head Node14_New(nil, 0)) with the byte +0x30 0; +0x38 a tree of strings likewise (nil
+// 0xf7c968 by Node28_New, users 0xf7c964) with +0x40 0; then +0x18, +0x1c, +0x20 0, the words +0x1c and +0x26 0, the bytes +0x24 0,
+// +0x25 1 and +0x4c 1. The bytes +0, +0xc, +0x28, +0x29, +0x38 and +0x39 (the lists' and trees' allocators and the trees' comparators)
+// get uninitialised stack bytes in the game (left as they are here); the STL lock around each tree is left out. Returns info.
+u8 *__fastcall GlobalSave_Construct(u8 *info);
+
+// 0x409410 (cdecl): the global save info (0xf7c58c), made the first time (Mem_Alloc(0x50), GlobalSave_Construct; none: it stays 0).
+u8 *__cdecl GlobalSave_Instance();
 void __fastcall GlobalSave_ClearByte4c(u8 *info);
 }
