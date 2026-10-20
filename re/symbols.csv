@@ -5156,6 +5156,7 @@ address,name,kind,confidence,notes
 0x006649d5,Window7059f0_Clear,function,low,"reimplemented (src/game/ui/window7059f0); thiscall: every item's cells deleted (bottom 0), the links reset, count / selection / first shown / first row cleared, the bar fitted, the highlight hidden, the rows refreshed"
 0x00665739,Window7059f0_ScrollTo,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (position), pops 4: the position scrolled into the rows and selected (below 0 none), the rows refreshed, the bar given +0x154, 0x405 to the parent when +0x154 changed"
 0x0066316b,Window7059f0_Grow,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (n), pops 4: the item array grown by n free items (a new cleared block, the old dwords copied, the last root item's next the old count, the old freed); returns the block or 0"
+0x00663edc,Window7059f0_SortsBefore,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (texts, cells), pops 8: whether new texts sort before an item's cells in column +0x168 (+0x16a the direction): numbers for a bottom-1 column, else wcscmp with the cell's string (an empty cell 1)"
 0x0065fbf0,WindowScript_ReadDword,function,low,reimplemented (src/game/ui/windowscript); a window script's next dword (two words)
 0x0065fc18,WindowScript_ReadWord,function,low,reimplemented (src/game/ui/windowscript); a window script's next word
 0x0065fc38,WindowScript_ReadRect,function,low,reimplemented (src/game/ui/windowscript); a window script's next four words to four outputs

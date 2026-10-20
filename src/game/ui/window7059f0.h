@@ -115,6 +115,12 @@ void __fastcall Window7059f0_RefreshRows(u8 *window);
 // before the block, sic) set to the old count and the old array freed (Mem_Free). The block becomes +0x144, the count raised; returns it.
 s32 *__fastcall Window7059f0_Grow(u8 *window, void *, s32 n);
 
+// 0x663edc (thiscall (texts, cells), pops 8; name unconfirmed): whether a new item's texts go before an item's cells in the sort column
+// +0x168 (signed): with +0x16a 0 (ascending), for a column whose bottom (Window7059f0_ColumnBottom) is 1 the dwords compared signed
+// (texts' below), else 1 for an empty cell or the text below the cell's string (wcscmp, the cell through Obj_Get4Or6fd6c4); with +0x16a
+// set the same the other way round (the dword above, the cell's string below the text; an empty cell 1 too).
+u32 __fastcall Window7059f0_SortsBefore(u8 *window, void *, const u32 *texts, const u32 *cells);
+
 // 0x6647cb (thiscall (n), pops 4; name unconfirmed): 0 for n at or past the count +0x150, without items +0x144 or below 0. Else the n-th
 // item (Window7059f0_NthItem) freed with its children (Window7059f0_FreeItem, n, previous, no siblings): previous -1 for the first one
 // (whose next sibling becomes the first shown +0x160) and for its parent's first child, else the (n - 1)-th item of the walk (not always a

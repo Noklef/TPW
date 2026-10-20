@@ -330,6 +330,21 @@ s32 *__fastcall Window7059f0_Grow(u8 *window, void *, s32 n) {
     return links;
 }
 
+u32 __fastcall Window7059f0_SortsBefore(u8 *window, void *, const u32 *texts, const u32 *cells) {
+    const s32 column = at<s16>(window, 0x168);
+    const bool numbers = Window7059f0_ColumnBottom(window, nullptr, at<u16>(window, 0x168)) == 1;
+    if (at<s16>(window, 0x16a) == 0) {
+        if (numbers) return (s32)texts[column] < (s32)cells[column] ? 1 : 0;
+        if (cells[column] == 0) return 1;
+        const u32 cell = Obj_Get4Or6fd6c4(reinterpret_cast<const u8 *>((uintptr_t)cells[column]));
+        return Crt().wcscmp(reinterpret_cast<const u16 *>((uintptr_t)texts[column]), reinterpret_cast<const u16 *>((uintptr_t)cell)) < 0 ? 1 : 0;
+    }
+    if (numbers) return (s32)texts[column] > (s32)cells[column] ? 1 : 0;
+    if (cells[column] == 0) return 1;
+    const u32 cell = Obj_Get4Or6fd6c4(reinterpret_cast<const u8 *>((uintptr_t)cells[column]));
+    return Crt().wcscmp(reinterpret_cast<const u16 *>((uintptr_t)cell), reinterpret_cast<const u16 *>((uintptr_t)texts[column])) < 0 ? 1 : 0;
+}
+
 u32 __fastcall Window7059f0_RemoveItem(u8 *window, void *, s32 n) {
     if (n >= at<s32>(window, 0x150) || !at<s32 *>(window, 0x144) || n < 0) return 0;
     s32 shown = at<s32>(window, 0x160);

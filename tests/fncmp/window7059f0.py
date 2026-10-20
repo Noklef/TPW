@@ -22,6 +22,9 @@
 # highlight, the bar child 1 or none, no row windows), the n / position around the count, the selection it or not, now and then no items.
 # Grow (0x66316b): items() of 4 + 0-3 columns (or a negative count), some free, the dword count +0x158 theirs or less, now and then no
 # array; n 0-20 or -1; the heap (its first allocation failing now and then).
+# SortsBefore (0x663edc): the sort column +0x168 0-3 (or -1 / -2: before the column array), +0x16a 0, 1 or any, the column bottoms 1 or not;
+# the texts four dwords (wide strings of a few short texts, or numbers around each other), the cells four counted strings (their text
+# or none) or 0 or numbers.
 # usage: window7059f0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ColumnBottom,NextItem,...)
 import os
 import struct
@@ -36,11 +39,11 @@ from window import MISC, OBJECT98, RANGES, VTABLE, notify_blobs, notify_env, que
 CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'SetNthItemData': 0x664b68, 'SetRowHeight': 0x664ba8,
          'FindItemData': 0x664d2a, 'RefreshRows': 0x663324, 'ResetItems': 0x663085, 'RootEnd': 0x663cb8, 'FitBar': 0x664495,
          'FreeItem': 0x664605, 'Select': 0x66525c, 'FindText': 0x664db7, 'RemoveItem': 0x6647cb, 'Clear': 0x6649d5,
-         'ScrollTo': 0x665739, 'Grow': 0x66316b}
+         'ScrollTo': 0x665739, 'Grow': 0x66316b, 'SortsBefore': 0x663edc}
 B = Bench(RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
                     (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707),
                     (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508),
-                    (0x664605, 0x6647cb), (0x47db20, 0x47db80), (0x6647cb, 0x664b68), (0x665739, 0x6658b9), (0x66316b, 0x663324), (0x67fff0, 0x680060), (0x6800f0, 0x6802f8),
+                    (0x664605, 0x6647cb), (0x47db20, 0x47db80), (0x6647cb, 0x664b68), (0x665739, 0x6658b9), (0x66316b, 0x663324), (0x67fff0, 0x680060), (0x6800f0, 0x6802f8), (0x663edc, 0x66403b), (0x67c290, 0x67c2e2),
                     (0x66525c, 0x665494), (0x659d43, 0x659d90), (0x664db7, 0x664ea3), (0x4f7870, 0x4f7910), (0x665f30, 0x665f71),
                     (0x67acd0, 0x67ad00), (0x45b380, 0x45b5f0), (0x45b680, 0x45b9b0), (0x67bb90, 0x67bd98), (0x67d250, 0x67d2c0),
                     (0x67d3a0, 0x67d400), (0x6918f0, 0x691a30), (0x691ba0, 0x691ce0)])
@@ -447,6 +450,31 @@ def case(r):
         return free_case(r, window, regions)
     if op == 'FindText':
         return text_case(r, window, regions)
+    if op == 'SortsBefore':
+        bottoms = [r.choice([1, 1, 0, 2, -1]) for _ in range(6)]
+        regions[COLUMNS - 0x18] = b''.join(put(bytearray(r.bytes(0xc)), 0xa, 'h', v) for v in bottoms)
+        put(window, 0x16c, 'I', COLUMNS)
+        column = r.choice([0, 1, 2, 3, 0, 1, 2, 3, -1, -2])
+        put(window, 0x168, 'hh', column, r.choice([0, 0, 1, 1, r.getrandbits(16) - 0x8000]))
+        texts = [tuple(r.choice(ALPHA + [0x7fff, 0x8000]) for _ in range(r.choice([0, 1, 2, 3]))) for _ in range(5)]
+        chars = bytearray(0x200)
+        for j, t in enumerate(texts):
+            struct.pack_into('<%dH' % len(t), chars, 0x20 * j, *t)
+        regions[WCHARS] = chars
+        strs = bytearray(r.bytes(0x10 * 8))
+        for j in range(8):
+            put(strs, 0x10 * j + 4, 'I', r.choice([WCHARS + 0x20 * r.randrange(5)] * 3 + [0]))
+        regions[WSTRS] = strs
+        nums = [0, 1, -1, 5, 0x7fffffff, -0x80000000]
+        a = [WCHARS + 0x20 * r.randrange(5) for _ in range(6)]
+        b = [r.choice([WSTRS + 0x10 * r.randrange(8)] * 6 + [0]) for _ in range(6)]
+        if bottoms[column + 2] == 1:   # (numbers: around each other, or the strings' addresses now and then)
+            x = r.choice(nums)
+            a[column + 2] = r.choice([x, x + 1, x - 1, r.choice(nums), a[column + 2]]) & 0xffffffff
+            b[column + 2] = r.choice([x, x, r.choice(nums), b[column + 2]]) & 0xffffffff
+        regions[OUT - 8] = struct.pack('<6I', *a)
+        regions[OUT + 0x40 - 8] = struct.pack('<6I', *b)
+        return Call(CALLS[op], [WINDOW, OUT, OUT + 0x40], regions, conv='t', ret='a')
     if op == 'Grow':   # (items() of 4 + 0-3 columns (now and then -1 or -3), some free; the dword count theirs or less; the heap failing now and then)
         ncols = r.choice([0, 1, 2, 3, 3, -1, -3])
         put(window, 0x164, 'h', ncols)
