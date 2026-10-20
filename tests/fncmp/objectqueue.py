@@ -4,7 +4,7 @@
 # persons shorter or longer than the room, definitions of kinds 0-3 and a coaster link open or not); whether the entrance meets the path (0x4de4a0 Object_EntranceOnPath,
 # Path: the back of the queue's cell or the cell ahead of a quarter-turn angle) and whether the object can be opened (0x4df290 Object_CanOpen: Open's states with Path's
 # cells). The angles are quarter turns only: another leaves the original's direction bit a stale stack byte (see objectmsg.h). Where a person at a place in the
-# queue stands (0x4de840 Object_QueueSpot, Spot: Path's world, places in the first cells or past the end, the world's random state); EntSpot (0x4dec30 Object_EntranceQueueSpot) on Spot's cases.
+# queue stands (0x4de840 Object_QueueSpot, Spot: Path's world, places in the first cells or past the end, the world's random state, now and then the one drawing 0x80000000); EntSpot (0x4dec30 Object_EntranceQueueSpot) on Spot's cases.
 # usage: objectqueue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Back,BackTo,None,Open,Path,CanOpen,Spot,EntSpot)
 import os
 import struct
@@ -126,8 +126,9 @@ def spot(r):
     """0x4de840: back()'s world with entrance()'s cells, a place in the first cells of the queue or far beyond its end, the world's random state."""
     c = path(r)
     world = RAM + 0x10000
-    c.regions[world + 0x1da708] = r.bytes(4)
-    place = r.choice([0, 1, 2, 3, 3, 3, 4, 6, 7, 8, 11, 15, 0x23, 0x200, 0x200, 0x201, 0x80000003, r.getrandbits(32)])
+    # (0x2b625fe5: the one state whose next draw is 0x80000000, the draw that stays negative: % 0x1c then takes it unsigned)
+    c.regions[world + 0x1da708] = struct.pack('<I', 0x2b625fe5) if r.random() < 0.15 else r.bytes(4)
+    place =r.choice([0, 1, 2, 3, 3, 3, 4, 6, 7, 8, 11, 15, 0x23, 0x200, 0x200, 0x201, 0x80000003, r.getrandbits(32)])
     if r.random() < 0.3:  # rows facing each other in turn (as Open's): the walk goes on, so a far place (512: along exactly 0x80) still ends on a cell
         cells = next(v for k, v in c.regions.items() if len(v) == 0x44 * 0x1c0)
         for idx in range(0x1c0):

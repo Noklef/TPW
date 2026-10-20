@@ -159,4 +159,12 @@ void __cdecl ParticleEffectors_Update();
 // (Particle_Move, unless the byte +0xab or it is still), an emitter (word +0xe) spawns when that is 1, and below its cap +0x64 it emits the quarter's
 // count (a negative count: once every -count frames, +0x66). Then ParticleEffectors_Update and Particles_Update.
 u32 __cdecl Particles_Tick();
+
+// 0x51f370 (cdecl; the name, "Data/Particle/Tp2.plb"): 1 without the particles (0x816d40) or the file (VFS_Open). Else read: the effects' count and record size, then
+// min(count, 0x69) records of that size into the effects 0x804370 (0x140 apart), skipping (count - 0x14) * size more (sic, 0x14) past 0x69; the effectors'
+// likewise (min(count, 0x14) records into 0x80c6b0, 0x68 apart, the rest skipped); the two settings 0x803b58 and 0x803b5c. Every read is again only while
+// 0x816d40 is set. The first is clamped to 10-500, the stream closed. Each effect's word +0 = 0 and +0xa2 = 1000 if 0, each effector's dword +0 = 0; then
+// Emitters_Reset; returns 0. (A count not read is the name's address, the original's count sharing its slot; a size not read is left as is: 0 here, any
+// value in the game.)
+u32 __cdecl ParticleLib_Load(const char *name);
 }

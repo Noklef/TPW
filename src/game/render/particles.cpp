@@ -4,6 +4,8 @@
 
 #include "../core/gameclock.h"
 #include "../core/voices.h"
+#include "../files/file.h"
+#include "../files/vfs.h"
 #include "../math/intsin.h"
 #include "../math/x87.h"
 #include "../ui/guirect.h"
@@ -752,5 +754,40 @@ u32 __cdecl Particles_Tick() {
     ParticleEffectors_Update();
     Particles_Update();
     return global<u32>(0x0080436c);
+}
+
+u32 __cdecl ParticleLib_Load(const char *name) {
+    const u32 &on = global<u32>(0x00816d40);
+    if (!on) return 1;
+    Stream *const stream = reinterpret_cast<Stream *>(VFS_Open(name));
+    if (!stream) return 1;
+    u32 count = (u32)(uintptr_t)name, size = 0;   // (the original's count is its argument's slot)
+    s32 result;
+    if (on) Stream_Read(&result, stream, &count, 4, nullptr);
+    if (on) Stream_Read(&result, stream, &size, 4, nullptr);
+    for (u32 i = 0, n = count < 0x69 ? count : 0x69; i < n; ++i)
+        if (on) Stream_Read(&result, stream, reinterpret_cast<void *>((uintptr_t)(0x00804370 + 0x140 * i)), (s32)size, nullptr);
+    if (count > 0x69 && on) Stream_Seek(stream, (s32)((count - 0x14) * size), 1);
+    if (on) Stream_Read(&result, stream, &count, 4, nullptr);
+    if (on) Stream_Read(&result, stream, &size, 4, nullptr);
+    for (u32 i = 0, n = count < 0x14 ? count : 0x14; i < n; ++i)
+        if (on) Stream_Read(&result, stream, reinterpret_cast<void *>((uintptr_t)(0x0080c6b0 + 0x68 * i)), (s32)size, nullptr);
+    if (count > 0x14 && on) Stream_Seek(stream, (s32)((count - 0x14) * size), 1);
+    if (on) {
+        Stream_Read(&result, stream, &global<u32>(0x00803b58), 4, nullptr);
+        if (on) Stream_Read(&result, stream, &global<u32>(0x00803b5c), 4, nullptr);
+    }
+    u32 &setting = global<u32>(0x00803b58);
+    if (setting < 10) setting = 10;
+    if (setting > 500) setting = 500;
+    if (on) Stream_Close(&result, stream);
+    for (u32 i = 0; i < 0x69; ++i) {
+        global<u16>(0x00804370 + 0x140 * i) = 0;
+        u16 &life = global<u16>(0x00804412 + 0x140 * i);
+        if (life == 0) life = 1000;
+    }
+    for (u32 i = 0; i < 0x14; ++i) global<u32>(0x0080c6b0 + 0x68 * i) = 0;
+    Emitters_Reset();
+    return 0;
 }
 }

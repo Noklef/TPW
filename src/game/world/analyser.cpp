@@ -3,8 +3,10 @@
 #include <cstdint>
 
 #include "../core/filetime.h"
+#include "../core/circbuf.h"
 #include "../core/funnytime.h"
 #include "messagecentre.h"
+#include "things.h"
 
 namespace {
 
@@ -101,5 +103,39 @@ u32 __fastcall ParkAnalyser_InitCells(u8 *analyser) {
         at<u32>(cell, 0xc) = h;
     }
     return 1;
+}
+
+u8 *__fastcall ParkAnalyser_Ctor(u8 *analyser) {
+    Thing_Construct(analyser, nullptr, 1, 0xd);  // (the cell's upper half the original's stack bytes: Thing_Construct takes 16 bits)
+    for (u32 i = 0; i < 0x400; ++i) AnalyserCell_Ctor(analyser + 0x20 + i * 0x7c);
+    for (u32 i = 0; i < 4; ++i) CircBufU16_3_Ctor(analyser + 0x1f068 + i * 0x14);
+    for (u32 i = 0; i < 6; ++i) {  // trackers: value 0, best -999, flag 0
+        at<u32>(analyser, 0x1f0b8 + i * 12) = 0;
+        at<s32>(analyser, 0x1f0bc + i * 12) = -999;
+        at<u8>(analyser, 0x1f0c0 + i * 12) = 0;
+    }
+    // inlined CircBufU32 constructors: value +0 = 0, cursor -1, size, wrapped 0
+    auto ring32 = [analyser](u32 offset, u32 size) {
+        at<u32>(analyser, offset) = 0;
+        at<s32>(analyser, offset + size * 4 + 4) = -1;
+        at<u32>(analyser, offset + size * 4 + 8) = size;
+        at<u8>(analyser, offset + size * 4 + 0xc) = 0;
+    };
+    for (u32 i = 0; i < 16; ++i) ring32(0x1f100 + i * 0x250, 0x90);
+    ring32(0x21600, 50);
+    ring32(0x216d8, 5);
+    for (u32 i = 0; i < 20; ++i) CircBufU8_50_Ctor(analyser + 0x216fc + i * 0x40);
+    at<u32>(analyser, 0xc) = 4;  // the cell size, the grid's columns and rows, the map's width and height
+    at<u32>(analyser, 0x10) = 0x20;
+    at<u32>(analyser, 0x14) = 0x20;
+    at<u32>(analyser, 0x18) = 0x80;
+    at<u32>(analyser, 0x1c) = 0x80;
+    for (u32 offset = 0x21bfc; offset < 0x21c0c; offset += 4) at<u32>(analyser, offset) = 0;  // the tallies and the running total
+    for (u32 offset = 0x21c10; offset < 0x21c40; offset += 8) stamp(analyser, offset);
+    at<u32>(analyser, 0x21c40) = 0;
+    at<u32>(analyser, 0x21c44) = 0;
+    at<u32>(analyser, 0x21c48) = 0;
+    ParkAnalyser_InitCells(analyser);
+    return analyser;
 }
 }

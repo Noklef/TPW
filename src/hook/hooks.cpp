@@ -241,6 +241,7 @@
 #include "../game/world/trackrides.h"
 #include "../game/world/things.h"
 #include "../game/world/analysercell.h"
+#include "../game/world/bankaccount.h"
 #include "../game/world/linestep.h"
 #include "../game/world/money.h"
 #include "../game/world/objectmsg.h"
@@ -260,6 +261,7 @@
 #include "../game/world/cellmodel.h"
 #include "../game/world/objectstatus.h"
 #include "../game/world/uimsgreceiver.h"
+#include "../game/world/visitoroption.h"
 #include "../game/world/weather.h"
 #include "../game/world/world.h"
 #include "../game/model/holder.h"
@@ -611,6 +613,7 @@ const Hook kHooks[] = {
     {"MMPlaceStaff_Assign",       0x0046c730, (void *)&MMPlaceStaff_Assign, {0x56, 0x8b, 0xf1, 0x57, 0x6a}},
     {"MMStaffDrop_Assign",        0x0046cbf0, (void *)&MMStaffDrop_Assign, {0x56, 0x8b, 0xf1, 0x57, 0x6a}},
     {"MouseMode_Set",             0x0046c350, (void *)&MouseMode_Set, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"MouseMode_Enter6fead0",     0x00481a10, (void *)&MouseMode_Enter6fead0, {0x6a, 0xff, 0x68, 0x21, 0x91}},
     {"ObjectDefs_Find",           0x00412e90, (void *)&ObjectDefs_Find, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"ObjectDefs_FindAt390",      0x00412ef0, (void *)&ObjectDefs_FindAt390, {0x53, 0x66, 0x8b, 0x5c, 0x24}},
     {"ObjectDefs_FindAt410",      0x00412f50, (void *)&ObjectDefs_FindAt410, {0x53, 0x66, 0x8b, 0x5c, 0x24}},
@@ -708,6 +711,7 @@ const Hook kHooks[] = {
     {"ParkAnalyser_StampTime21c30", 0x004c7680, (void *)&ParkAnalyser_StampTime21c30, {0x83, 0xec, 0x08, 0x8d, 0x44}},
     {"ParkAnalyser_StampTime21c38", 0x004c76d0, (void *)&ParkAnalyser_StampTime21c38, {0x83, 0xec, 0x08, 0x8d, 0x44}},
     {"ParkAnalyser_InitCells",    0x004c7a90, (void *)&ParkAnalyser_InitCells, {0x83, 0xec, 0x14, 0x53, 0x55}},
+    {"ParkAnalyser_Ctor",         0x004c58c0, (void *)&ParkAnalyser_Ctor, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"MapHandle_Entry28",         0x004d0af0, (void *)&MapHandle_Entry28, {0x33, 0xc0, 0x66, 0x8b, 0x01}},
     {"MapHandle_Cell44",          0x004d0b10, (void *)&MapHandle_Cell44, {0x33, 0xc0, 0x8b, 0x15, 0xa0}},
     {"MemRanges_Set",             0x004d0a70, (void *)&MemRanges_Set, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
@@ -939,6 +943,9 @@ const Hook kHooks[] = {
     {"Things_FindNextOfCategoryWrap", 0x00483740, (void *)&Things_FindNextOfCategoryWrap, {0x8b, 0x44, 0x24, 0x08, 0x56}},
     {"ThingBrowser_Step",         0x004b3340, (void *)&ThingBrowser_Step, {0xa1, 0x0c, 0xc3, 0x7c, 0x00}},
     {"Things_FindPrevOfCategoryWrap", 0x00483770, (void *)&Things_FindPrevOfCategoryWrap, {0x8b, 0x44, 0x24, 0x08, 0x56}},
+    {"Things_FacilityScore",      0x004cceb0, (void *)&Things_FacilityScore, {0x83, 0xec, 0x28, 0x53, 0x55}},
+    {"Things_MostWalkAwaysOf",    0x004caae0, (void *)&Things_MostWalkAwaysOf, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
+    {"Things_MostWalkAwaysOf156", 0x004cb300, (void *)&Things_MostWalkAwaysOf156, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
     {"Rides_FindById",            0x0055a070, (void *)&Rides_FindById, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"Rides_SetElement",          0x0055a0b0, (void *)&Rides_SetElement, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"Rides_SetWordC0",           0x0055a300, (void *)&Rides_SetWordC0, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
@@ -2121,6 +2128,7 @@ const Hook kHooks[] = {
     {"CircBufU32_30_Sum",         0x00495c20, (void *)&CircBufU32_30_Sum, {0x83, 0xec, 0x08, 0x33, 0xc0}},
     {"CircBufU32_30_Count",       0x00495d40, (void *)&CircBufU32_30_Count, {0x8a, 0x81, 0x84, 0x00, 0x00}},
     {"CircBufF32_144_MaxInWindow", 0x004802a0, (void *)&CircBufF32_144_MaxInWindow, {0x8b, 0x44, 0x24, 0x0c, 0x53}},
+    {"CircBufU32_144_Serialize",  0x004cdf00, (void *)&CircBufU32_144_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"TextArg_Ctor",              0x004a77a0, (void *)&TextArg_Ctor, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
     {"TextArgString_Ctor",        0x004ea220, (void *)&TextArgString_Ctor, {0x8b, 0x54, 0x24, 0x08, 0x8b}},
     {"TextArgInt_Ctor",           0x0050aef0, (void *)&TextArgInt_Ctor, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
@@ -2139,6 +2147,9 @@ const Hook kHooks[] = {
     {"Sound_Query",               0x0051b4f0, (void *)&Sound_Query, {0xa1, 0xc8, 0x2b, 0x80, 0x00}},
     {"Sound_Shutdown",            0x0051b7c0, (void *)&Sound_Shutdown, {0x51, 0xa1, 0xc8, 0x2b, 0x80}},
     {"Sound_QueryFound",          0x0051b530, (void *)&Sound_QueryFound, {0x6a, 0xff, 0x68, 0x60, 0xe9}},
+    {"Sound_RegisterLobbyCategories", 0x0051e8f0, (void *)&Sound_RegisterLobbyCategories, {0x6a, 0xff, 0x68, 0x78, 0xe9}},
+    {"Sound_RegisterGlobalCategories", 0x0051eae0, (void *)&Sound_RegisterGlobalCategories, {0x51, 0x8b, 0x15, 0x20, 0x3a}},
+    {"Sound_RegisterThemeCategories", 0x0051ec50, (void *)&Sound_RegisterThemeCategories, {0x6a, 0xff, 0x68, 0x98, 0xe9}},
     {"GlobalSave_ThemeByte",      0x005af7f0, (void *)&GlobalSave_ThemeByte, {0x8b, 0x41, 0x48, 0x8b, 0x4c}},
     {"GlobalSave_Byte26",         0x005af800, (void *)&GlobalSave_Byte26, {0x8b, 0x44, 0x24, 0x04, 0x8a}},
     {"GlobalSave_Inc20",          0x005afc30, (void *)&GlobalSave_Inc20, {0xff, 0x41, 0x20, 0xc3, 0x90}},
@@ -2154,6 +2165,7 @@ const Hook kHooks[] = {
     {"GlobalSave_SetSignNameB",   0x005b0970, (void *)&GlobalSave_SetSignNameB, {0x56, 0x8b, 0x71, 0x48, 0x85}},
     {"GlobalSave_Construct",      0x005aef50, (void *)&GlobalSave_Construct, {0x6a, 0xff, 0x68, 0x4b, 0xf8}},
     {"GlobalSave_Instance",       0x00409410, (void *)&GlobalSave_Instance, {0x6a, 0xff, 0x68, 0x8b, 0x7b}},
+    {"GlobalSave_HasKey",         0x004d4b70, (void *)&GlobalSave_HasKey, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"LiveObjects_Add",           0x005775d0, (void *)&LiveObjects_Add, {0xa1, 0xd8, 0xae, 0x87, 0x00}},
     {"LiveObjects_Remove",        0x00577600, (void *)&LiveObjects_Remove, {0xa1, 0xd8, 0xae, 0x87, 0x00}},
     {"LiveObject7019f8_Construct", 0x00579cd0, (void *)&LiveObject7019f8_Construct, {0x6a, 0xff, 0x68, 0xad, 0xf2}},
@@ -2502,6 +2514,7 @@ const Hook kHooks[] = {
     {"Advisor_MayPost",           0x0059abc0, (void *)&Advisor_MayPost, {0xa0, 0x0d, 0xd9, 0x78, 0x00}},
     {"Advisor_Post",              0x0059a940, (void *)&Advisor_Post, {0xa0, 0x66, 0x27, 0xfb, 0x00}},
     {"Advisor_PostKindEvent",     0x0059afc0, (void *)&Advisor_PostKindEvent, {0x8b, 0x44, 0x24, 0x04, 0x83}},
+    {"Advisor_PostId",            0x00486b00, (void *)&Advisor_PostId, {0x83, 0xec, 0x18, 0x6a, 0xff}},
     {"Flags7a1a14_Update",        0x00409260, (void *)&Flags7a1a14_Update, {0x56, 0x8b, 0x35, 0x14, 0x1a}},
     {"Obj_RemoveFromRect",        0x0045be80, (void *)&Obj_RemoveFromRect, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Global7c24d8_CopyScript",   0x00486610, (void *)&Global7c24d8_CopyScript, {0xa1, 0xd8, 0x24, 0x7c, 0x00}},
@@ -3147,6 +3160,8 @@ const Hook kHooks[] = {
     {"Visitor_WontPay",           0x004fde50, (void *)&Visitor_WontPay, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"Sprite_InterpolatedPos",    0x004f9f00, (void *)&Sprite_InterpolatedPos, {0x8b, 0x44, 0x24, 0x08, 0x83}},
     {"Sprite_PlaySound",          0x004faa00, (void *)&Sprite_PlaySound, {0x83, 0xec, 0x10, 0x8d, 0x44}},
+    {"Person_PlaceSprite",        0x004fa030, (void *)&Person_PlaceSprite, {0x83, 0xec, 0x20, 0xd9, 0x44}},
+    {"Person_DumpActionHistory",  0x004faa60, (void *)&Person_DumpActionHistory, {0x83, 0xec, 0x18, 0x53, 0x55}},
     {"Setting_SetMode",           0x00550d80, (void *)&Setting_SetMode, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Quad_Push",                 0x005633e0, (void *)&Quad_Push, {0x56, 0x8b, 0x74, 0x24, 0x14}},
     {"Table76e300_GetObjectDword", 0x0059c390, (void *)&Table76e300_GetObjectDword, {0x56, 0x8b, 0xf1, 0x8b, 0x4c}},
@@ -3558,6 +3573,8 @@ const Hook kHooks[] = {
     {"Entertainer_Serialize",     0x004d4460, (void *)&Entertainer_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x53}},
     {"Researcher_Serialize",      0x00502760, (void *)&Researcher_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x53}},
     {"Staff_GradeLevel",          0x00506550, (void *)&Staff_GradeLevel, {0x51, 0xdb, 0x81, 0xe4, 0x01}},
+    {"Staff_SetState",            0x005054d0, (void *)&Staff_SetState, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Handyman_FindJob",          0x004d7880, (void *)&Handyman_FindJob, {0x83, 0xec, 0x20, 0xa1, 0x9c}},
     {"FreeList_Take",             0x00520d60, (void *)&FreeList_Take, {0x56, 0x66, 0x8b, 0x35, 0x24}},
     {"FreeList_Return",           0x00521890, (void *)&FreeList_Return, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
     {"Voice_ScaleLevels",         0x00521d60, (void *)&Voice_ScaleLevels, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
@@ -4063,6 +4080,8 @@ const Hook kHooks[] = {
     {"SteerSeparation_Neighbour", 0x0050dfc0, (void *)&SteerSeparation_Neighbour, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"SteerSeparation_Steer",     0x0050e0e0, (void *)&SteerSeparation_Steer, {0x83, 0xec, 0x08, 0x53, 0x56}},
     {"Steering_SetPathBehaviours", 0x0050fdf0, (void *)&Steering_SetPathBehaviours, {0xa1, 0x7c, 0xf0, 0x7c, 0x00}},
+    {"SteerAvoidWalls_Steer",     0x0050e4a0, (void *)&SteerAvoidWalls_Steer, {0x6a, 0xff, 0x68, 0x38, 0xe4}},
+    {"SteerFollowPath_Steer",     0x0050ed10, (void *)&SteerFollowPath_Steer, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"TagTable_Find",             0x0050af40, (void *)&TagTable_Find, {0x8b, 0x54, 0x24, 0x04, 0x81}},
     {"TagSystem_Ctor",            0x00509b40, (void *)&TagSystem_Ctor, {0x51, 0x66, 0xc7, 0x44, 0x24}},
     {"Ride_IsBusy",               0x0042a440, (void *)&Ride_IsBusy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
@@ -4090,6 +4109,8 @@ const Hook kHooks[] = {
     {"CellRun_Corners",           0x00530e80, (void *)&CellRun_Corners, {0x83, 0xec, 0x0c, 0xa1, 0xf0}},
     {"TrackRun_TraceA",           0x00530830, (void *)&TrackRun_TraceA, {0x83, 0xec, 0x18, 0x8b, 0x4c}},
     {"TrackRun_TraceB",           0x00530b70, (void *)&TrackRun_TraceB, {0x83, 0xec, 0x1c, 0x8b, 0x4c}},
+    {"TrackRun_AnimateA",         0x0052a490, (void *)&TrackRun_AnimateA, {0x83, 0xec, 0x0c, 0x8b, 0x4c}},
+    {"TrackRun_AnimateB",         0x0052a700, (void *)&TrackRun_AnimateB, {0x83, 0xec, 0x0c, 0x8b, 0x4c}},
     {"ParkMap_Classify",          0x005f2050, (void *)&ParkMap_Classify, {0x83, 0xec, 0x28, 0xa1, 0x3c}},
     {"ParkMap_PlaceSprite",       0x005f4180, (void *)&ParkMap_PlaceSprite, {0x83, 0xec, 0x14, 0x56, 0x8b}},
     {"ParkMap_ApplyView",         0x005f1050, (void *)&ParkMap_ApplyView, {0x83, 0xec, 0x08, 0x56, 0x8b}},
@@ -4101,6 +4122,8 @@ const Hook kHooks[] = {
     {"AdvisorScoring_Score",      0x0059bf20, (void *)&AdvisorScoring_Score, {0x53, 0x56, 0x8b, 0x74, 0x24}},
     {"AdvisorScoring_ScoreDetail", 0x0059c0a0, (void *)&AdvisorScoring_ScoreDetail, {0x53, 0x56, 0x8b, 0x74, 0x24}},
     {"AdvisorMsg_Init",           0x0059b590, (void *)&AdvisorMsg_Init, {0x66, 0x8b, 0x44, 0x24, 0x08}},
+    {"Visitor_ScoreOption",       0x004fcc30, (void *)&Visitor_ScoreOption, {0x83, 0xec, 0x38, 0x53, 0x55}},
+    {"BankAccount_Serialize",     0x004cf920, (void *)&BankAccount_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x83}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
@@ -4204,6 +4227,7 @@ const Hook kHooks[] = {
     {"ParticlePool_Move",         0x005ed660, (void *)&ParticlePool_Move, {0x8b, 0x44, 0x24, 0x08, 0x56}},
     {"Particle_SpawnAtWindow",    0x00486b90, (void *)&Particle_SpawnAtWindow, {0x6a, 0xff, 0x68, 0x48, 0x92}},
     {"ParticlePool2_Setup",       0x005ed920, (void *)&ParticlePool2_Setup, {0xd9, 0x44, 0x24, 0x10, 0xd8}},
+    {"ParticleLib_Load",          0x0051f370, (void *)&ParticleLib_Load, {0xa1, 0x40, 0x6d, 0x81, 0x00}},
     {"SceneFlags_Touch",          0x005836b0, (void *)&SceneFlags_Touch, {0xa1, 0x40, 0xcc, 0x8b, 0x00}},
     {"Render_FogOn",              0x005d9680, (void *)&Render_FogOn, {0xa1, 0xc8, 0xcb, 0x8b, 0x00}},
     {"Render_FogOff",             0x005d9690, (void *)&Render_FogOff, {0xa1, 0xc8, 0xcb, 0x8b, 0x00}},
@@ -4851,6 +4875,7 @@ const Hook kHooks[] = {
     {"Overlay7cb2b4_Toggle",      0x004a29d0, (void *)&Overlay7cb2b4_Toggle, {0xa1, 0xac, 0xb2, 0x7c, 0x00}},
     {"Obj7b51f0_ToggleOverlay",   0x00481490, (void *)&Obj7b51f0_ToggleOverlay, {0xe9, 0x3b, 0x15, 0x02, 0x00}},
     {"Obj7b51f0_CloseOverlay",    0x004815d0, (void *)&Obj7b51f0_CloseOverlay, {0xe8, 0xbb, 0x14, 0x02, 0x00}},
+    {"Window7c24c8_Set",          0x00485b70, (void *)&Window7c24c8_Set, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"RadioGroup_Select",         0x0066a295, (void *)&RadioGroup_Select, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"RadioGroup_SetSelectedState", 0x0066a1b0, (void *)&RadioGroup_SetSelectedState, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"RadioGroup_Ctor",           0x0066a1e8, (void *)&RadioGroup_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},

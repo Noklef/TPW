@@ -47,4 +47,11 @@ void __fastcall ParkAnalyser_StampTime21c38(u8 *analyser);
 // w and h = size (+0xc), cut back where the cell passes the width (+0x18) or the height (+0x1c): w = width - (column + 1) * size + size. Column
 // and row are cell % columns and cell / columns, signed; the products wrap. Returns 1.
 u32 __fastcall ParkAnalyser_InitCells(u8 *analyser);
+
+// 0x4c58c0 (thiscall; the constructor): Thing_Construct (cell 1, kind 0xd); the 0x400 cells (AnalyserCell_Ctor from +0x20); the four CircBufU16s of
+// 3 (+0x1f068); six trackers (0, -999, flag 0; 12 bytes from +0x1f0b8); inlined CircBufU32s (value +0 = 0, then after the values cursor -1, size,
+// wrapped 0): sixteen of 144 from +0x1f100 (0x250 apart), one of 50 at +0x21600 and one of 5 at +0x216d8; twenty CircBufU8s of 50 (+0x216fc);
+// cell size +0xc 4, columns and rows +0x10 / +0x14 32, width and height +0x18 / +0x1c 128; the tallies and total +0x21bfc-+0x21c08 0; the six
+// time stamps +0x21c10-+0x21c38 the funny time now (as ParkAnalyser_StampTime21c30); +0x21c40-+0x21c48 0; then ParkAnalyser_InitCells. Returns it.
+u8 *__fastcall ParkAnalyser_Ctor(u8 *analyser);
 }

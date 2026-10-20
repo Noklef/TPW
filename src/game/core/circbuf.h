@@ -60,4 +60,7 @@ void __fastcall CircBufU32_30_Sum(const u8 *buf, void *, double *sum, s32 count)
 // load through Save_ReadU32): mCurrentEntry (+0x7c), mNumEntries (+0x80), mWrappedAround (+0x84), mTemp (+0); then mData[i] (from +4)
 // while i < mNumEntries (signed, read again each time: a loaded count over 30 runs past the buffer, sic).
 u32 __fastcall CircBufU32_30_Serialize(u8 *buf, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x4cdf00 (likewise): the same for a CircBufU32 of 144 (+0x244, +0x248, +0x24c; the same names).
+u32 __fastcall CircBufU32_144_Serialize(u8 *buf, void *, Stream *stream, u32 save, s32 version, u32 unused);
 }

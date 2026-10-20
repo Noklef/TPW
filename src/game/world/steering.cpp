@@ -6,6 +6,7 @@
 #include "../math/intpair.h"
 #include "../math/matrix.h"
 #include "../core/seqs.h"
+#include "mapcell.h"
 #include "nav.h"
 
 namespace {
@@ -83,6 +84,23 @@ s32 Octagonal(const s32 *d) {
     const s32 ax = Abs(d[0]), ay = Abs(d[1]);
     const s32 shorter = ax > ay ? ay : ax;
     return (s32)((u32)ay - (u32)(shorter >> 1) + (u32)ax);
+}
+
+// avoid_walls' corner (cell (x, y)'s top-left, 16.16): when the ray from the nav's pos along dir meets the circle of the nav's radius about it
+// (Steer_RayCircleHit) at a hit above 0 and at most len (not 0x7fffffff), out = (pos + dir * hit - corner) / radius and true.
+bool WallCorner(s32 *out, const u8 *nav, const s32 *dir, s32 len, u32 x, u32 y) {
+    s32 corner[2];
+    IntPair_ToFixed(U(corner), x, y);
+    const s32 hit = Steer_RayCircleHit(&at<s32>(nav, 8), dir, corner, (s32)at<u32>(nav, 4));
+    if (hit == 0x7fffffff || hit <= 0 || hit > len) return false;
+    s32 step[2], point[2], away[2], push[2];
+    IntPair_MulFixed(dir, nullptr, step, hit);
+    IntPair_Add(&at<u32>(nav, 8), nullptr, U(point), U(step));
+    IntPair_Sub(U(point), nullptr, U(away), U(corner));
+    IntPair_DivFixed(away, nullptr, push, (s32)at<u32>(nav, 4));
+    out[0] = push[0];
+    out[1] = push[1];
+    return true;
 }
 
 }  // namespace
@@ -234,6 +252,151 @@ s32 *__fastcall SteerRepelObstacle_Steer(void *, void *, s32 *out, const u8 *) {
     g_force(1) = 0;
     out[0] = g_force(0);
     out[1] = g_force(1);
+    return out;
+}
+
+s32 *__fastcall SteerAvoidWalls_Steer(void *, void *, s32 *out, const u8 *nav) {
+    s32 ahead[2], cell[2] = {0, 0}, dir[2];
+    Nav_PredictPos(nav, nullptr, ahead, 0x10000);
+    IntPair_FromFixed(U(cell), at<u32>(nav, 8), at<u32>(nav, 0xc));
+    const u32 cx = (u32)cell[0], cy = (u32)cell[1];
+    Map_IdAt((s32)cx, (s32)cy);  // (its result unused)
+    IntPair_Sub(U(ahead), nullptr, U(dir), &at<u32>(nav, 8));
+    const s32 len = (s32)Length(dir);
+    if (len != 0) {
+        s32 unit[2];
+        IntPair_DivFixed(dir, nullptr, unit, len);
+        dir[0] = unit[0];
+        dir[1] = unit[1];
+    }
+    const bool east = dir[0] >= 0, west = !east, south = dir[1] >= 0, north = !south;
+    const s32 mode = (s32)at<u32>(nav, 0xb4), radius = (s32)at<u32>(nav, 4);
+    auto blocked = [mode](u32 x, u32 y, u32 d) { return MapCell_StepBlocked(x, y, d, mode) != 0; };
+    s32 wall[2];
+    if (east && blocked(cx, cy, 1)) {
+        IntPair_ToFixed(U(wall), cx + 1, 0);
+        const s32 limit = (s32)((u32)wall[0] - (u32)radius);
+        if (ahead[0] > limit) {
+            out[0] = (s32)(((u32)limit - (u32)ahead[0]) << 1);
+            out[1] = 0;
+            return out;
+        }
+    }
+    if (west && blocked(cx, cy, 3)) {
+        IntPair_ToFixed(U(wall), cx, 0);
+        const s32 limit = (s32)((u32)radius + (u32)wall[0]);
+        if (ahead[0] < limit) {
+            out[0] = (s32)(((u32)limit - (u32)ahead[0]) << 1);
+            out[1] = 0;
+            return out;
+        }
+    }
+    if (south && blocked(cx, cy, 2)) {
+        IntPair_ToFixed(U(wall), 0, cy + 1);
+        const s32 limit = (s32)((u32)wall[1] - (u32)radius);
+        if (ahead[1] > limit) {
+            out[0] = 0;
+            out[1] = (s32)(((u32)limit - (u32)ahead[1]) << 1);
+            return out;
+        }
+    }
+    if (north && blocked(cx, cy, 0)) {
+        IntPair_ToFixed(U(wall), 0, cy);
+        const s32 limit = (s32)((u32)radius + (u32)wall[1]);
+        if (ahead[1] < limit) {
+            out[0] = 0;
+            out[1] = (s32)(((u32)limit - (u32)ahead[1]) << 1);
+            return out;
+        }
+    }
+    // The corners: the diagonal cell blocked one way or the other, both cells beside it open both ways.
+    if (south) {
+        if (east && (blocked(cx + 1, cy + 1, 0) || blocked(cx + 1, cy + 1, 3)) && !blocked(cx, cy + 1, 0) && !blocked(cx + 1, cy, 3) &&
+            WallCorner(out, nav, dir, len, cx + 1, cy + 1))
+            return out;
+        if (west && (blocked(cx - 1, cy + 1, 0) || blocked(cx - 1, cy + 1, 1)) && !blocked(cx, cy + 1, 0) && !blocked(cx - 1, cy, 1) &&
+            WallCorner(out, nav, dir, len, cx, cy + 1))
+            return out;
+    }
+    if (north) {
+        if (west && (blocked(cx - 1, cy - 1, 2) || blocked(cx - 1, cy - 1, 1)) && !blocked(cx - 1, cy, 1) && !blocked(cx, cy - 1, 2) &&
+            WallCorner(out, nav, dir, len, cx, cy))
+            return out;
+        if (east && (blocked(cx + 1, cy - 1, 2) || blocked(cx + 1, cy - 1, 3)) && !blocked(cx + 1, cy, 3) && !blocked(cx, cy - 1, 2) &&
+            WallCorner(out, nav, dir, len, cx + 1, cy))
+            return out;
+    }
+    out[0] = 0;
+    out[1] = 0;
+    return out;
+}
+
+s32 *__fastcall SteerFollowPath_Steer(void *, void *, s32 *out, u8 *nav) {
+    const s32 slowing = 0x20000;  // __ftol(2.0 * 65536.0), as arrival's
+    const u8 *const map = reinterpret_cast<const u8 *>(*Global(0x007cf83c) + 0x2d8);
+    if (Map_BlockValueAt(map, nullptr, (u32)(at<s32>(nav, 8) >> 20), (u32)(at<s32>(nav, 0xc) >> 20)) > at<u32>(nav, 0x48)) {
+        if (Nav_PathTo(nav, nullptr, &at<s32>(nav, 0x4c), 1) == 0) at<u32>(nav, 0xb8) = 1;  // (a debug print left out)
+    }
+    s32 progress = 0x10000;  // (Nav_PathProgress inlined)
+    if (at<u8>(nav, 0x60) != 1) {
+        s32 d[2];
+        IntPair_Sub(&at<u32>(nav, 0x64 + at<u32>(nav, 0x5c) * 8), nullptr, U(d), &at<u32>(nav, 8));
+        const s32 left = (s32)((u32)IntPair_ApproxLength(d) + at<u32>(nav, 0xa4) + at<u32>(nav, 0xa8));
+        if (at<s32>(nav, 0xa0) != 0) progress = (s32)(0x10000u - (u32)DivFixed(left, at<s32>(nav, 0xa0)));
+    }
+    if (progress != 0x10000) {
+        s32 stuck = 0;  // the share of the last 15 steps without progress
+        if (Nav_PathProgress(nav) != 0x10000) {
+            s32 count = 0;
+            for (u32 bit = 1, i = 15; i; bit <<= 1, --i)
+                if (at<u32>(nav, 0xb0) & bit) ++count;
+            stuck = DivFixed(count << 16, 0xf0000);
+        }
+        if (stuck >= 0x6666 && Nav_PathTo(nav, nullptr, &at<s32>(nav, 0x4c), 1) == 0) at<u32>(nav, 0xb8) = 1;  // (debug prints left out)
+    }
+    const s32 count = at<s32>(nav, 0x54);
+    if (count == 0 || at<u8>(nav, 0x60) == 1) {
+        IntPair_Neg(&at<u32>(nav, 0x10), nullptr, U(out));
+        return out;
+    }
+    s32 target[2], d[2];
+    if (at<s32>(nav, 0x5c) == count - 1) {  // the last point: the target itself, reached within 1.6 radii
+        target[0] = at<s32>(nav, 0x4c);
+        target[1] = at<s32>(nav, 0x50);
+        IntPair_Sub(U(target), nullptr, U(d), &at<u32>(nav, 8));
+        if (Octagonal(d) < MulFixed(0x19999, at<s32>(nav, 4))) at<u8>(nav, 0x60) = 1;
+    } else {  // a waypoint, passed within 2 radii
+        const u32 point = at<u32>(nav, 0x5c);
+        target[0] = at<s32>(nav, 0x64 + point * 8);
+        target[1] = at<s32>(nav, 0x68 + point * 8);
+        IntPair_Sub(U(target), nullptr, U(d), &at<u32>(nav, 8));
+        if (Octagonal(d) < MulFixed(0x20000, at<s32>(nav, 4))) {
+            at<u32>(nav, 0xa4) -= at<u32>(nav, 0x8c + point * 4);
+            at<u32>(nav, 0x5c) = point + 1;
+            if (point + 1 == at<u32>(nav, 0x58)) Nav_PathTo(nav, nullptr, &at<s32>(nav, 0x4c), 0);
+        }
+        const u32 next = at<u32>(nav, 0x5c);
+        target[0] = at<s32>(nav, 0x64 + next * 8);
+        target[1] = at<s32>(nav, 0x68 + next * 8);
+    }
+    s32 desired[2];
+    if (at<s32>(nav, 0x5c) < at<s32>(nav, 0x54) - 1) {  // seek the point
+        IntPair_Sub(U(target), nullptr, U(d), &at<u32>(nav, 8));
+        IntPair_MulFixed(d, nullptr, desired, 0x10000);
+        IntPair_Sub(U(desired), nullptr, U(out), &at<u32>(nav, 0x10));
+        return out;
+    }
+    IntPair_Sub(U(target), nullptr, U(d), &at<u32>(nav, 8));  // arrive at it
+    const s32 distance = (s32)Length(d);
+    if (distance == 0) {
+        out[0] = 0;
+        out[1] = 0;
+        return out;
+    }
+    const s32 maxSpeed = at<s32>(nav, 0x1c);
+    const s32 speed = maxSpeed < DivFixed(distance, slowing) ? maxSpeed : DivFixed(distance, slowing);
+    IntPair_MulFixed(d, nullptr, desired, DivFixed(speed, distance));
+    IntPair_Sub(U(desired), nullptr, U(out), &at<u32>(nav, 0x10));
     return out;
 }
 

@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../motion/animator.h"
 #include "dirstep.h"
 #include "mapcell.h"
 
@@ -86,6 +87,33 @@ void track_run(s32 x, s32 y, u8 direction, bool b, u16 saved, u32 done) {
     global<s32>(0x0081ede8) = y;
 }
 
+// The animated run shared by AnimateA and AnimateB (see cellrun.h); start's low byte picks the bank. Its answer: the last direction less 1, the
+// low byte cleared (the original's EAX).
+u32 animate_run(s32 x, s32 y, u8 direction, u32 start) {
+    bool more = true;
+    do {
+        u8 *const cell = cell_at(x, y);
+        if (MapCell_IsTypeBDOr10Or12Or19(cell)) {
+            if (MapCell_CornerNeighbours(cell)) {
+                u8 turn = static_cast<u8>(Nibble_Scale(direction));
+                if (!(turn & MapCell_Neighbours(cell))) turn = direction;
+                direction = static_cast<u8>(MapCell_Neighbours(cell) ^ turn);
+            }
+            const u32 thing = at<u32>(cell, 4);
+            if (thing != 0) Animator_Play(global<u8 *>(0x007a4610 + thing * 4), static_cast<u8>(start) ? 5 : 0xc, 0, 7, 1.0f, 0);
+        } else {
+            direction = 0;
+        }
+        if (!MapCell_CornerNeighbours(cell) && !(direction & MapCell_Neighbours(cell))) more = false;
+        const u8 *const next = Map_StepCell28InDirection(reinterpret_cast<const u16 *>(cell), nullptr, direction, 2);
+        if (next && MapCell_IsTypeDOr12ViaParent(next) && at<u16>(next, 0x10) == at<u16>(cell, 0x10) &&
+            (static_cast<u8>(Nibble_Scale(direction)) & MapCell_Neighbours(next)))
+            more = false;
+        move(direction, x, y);
+    } while (more);
+    return ((u32)direction - 1) & 0xffffff00;
+}
+
 }  // namespace
 
 extern "C" {
@@ -138,6 +166,34 @@ void __cdecl CellRun_Corners() {
     add_point(x, y);
     global<s32>(0x0081ede4) = x;
     global<s32>(0x0081ede8) = y;
+}
+
+u32 __cdecl TrackRun_AnimateA(const u8 *thing, u32 start) {
+    const u32 t = (static_cast<u32>(thing[7]) << 7) + thing[5];
+    s32 x = static_cast<s32>(t & 0x7f), y = static_cast<s32>(t >> 7);
+    u8 direction;
+    switch (at<s32>(thing, 0x10)) {  // (Position_StepA inlined)
+    case 0: x += 4; y += 1; direction = 4; break;
+    case 90: x += 1; y -= 5; direction = 1; break;
+    case 180: x -= 5; y -= 2; direction = 0x40; break;
+    case 270: x -= 2; y += 4; direction = 0x10; break;
+    default: direction = static_cast<u8>(start); break;  // (sic)
+    }
+    return animate_run(x, y, direction, start);
+}
+
+u32 __cdecl TrackRun_AnimateB(const u8 *thing, u32 start) {
+    const u32 t = (static_cast<u32>(thing[7]) << 7) + thing[5];
+    s32 x = static_cast<s32>(t & 0x7f), y = static_cast<s32>(t >> 7);
+    u32 code;
+    switch (at<s32>(thing, 0x10)) {  // (Position_StepB inlined)
+    case 0: x -= 2; y += 1; code = 4; break;
+    case 90: x += 1; y += 1; code = 1; break;
+    case 180: x += 1; y -= 2; code = 0x40; break;
+    case 270: x -= 2; y -= 2; code = 0x10; break;
+    default: code = start; break;  // (sic)
+    }
+    return animate_run(x, y, static_cast<u8>(Nibble_Scale(code)), start);
 }
 
 u32 __cdecl PairTable_Add(u32 a, u32 b) {

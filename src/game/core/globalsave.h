@@ -60,5 +60,8 @@ u8 *__fastcall GlobalSave_Construct(u8 *info);
 
 // 0x409410 (cdecl): the global save info (0xf7c58c), made the first time (Mem_Alloc(0x50), GlobalSave_Construct; none: it stays 0).
 u8 *__cdecl GlobalSave_Instance();
+
+// 0x4d4b70 (stdcall (key), pops 4; name unconfirmed): Obj_HasKey5af780 on the global save info (GlobalSave_Instance) with the key.
+u32 __stdcall GlobalSave_HasKey(u32 key);
 void __fastcall GlobalSave_ClearByte4c(u8 *info);
 }

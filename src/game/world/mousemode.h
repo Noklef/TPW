@@ -21,6 +21,11 @@ struct MouseModeEnv {
 // The deleting destructors' frees and MouseMode_Set's atexit go to env (nullptr: the game's).
 void MouseModes_SetEnv(const MouseModeEnv *env);
 
+// Inlined in 0x481a10 and 0x485b70 (not a function of the game's): the one-byte object at [0x7b05e8] made the first time (Mem_Alloc(1),
+// its byte left as it is): its constructor sets the mouse mode to a new CMMOnline base (Mem_Alloc(8), MouseModeOnlineBase_Ctor; 0 when
+// that failed; MouseMode_Set) and 0x7b05e0 and 0x7b05d4 to -1. Its allocation failing: [0x7b05e8] stays 0 and nothing else is done.
+void MouseModes_EnsureHolder();
+
 extern "C" {
 
 // 0x46c070 / 0x46c090: static initialisers of two floats nothing reads: 0x7b05a0 = 1 and
@@ -94,6 +99,11 @@ u8 *__fastcall MMOnline_Ctor(u8 *self);
 // atexit(0x5d1750)); when it is 1, a mode given whose slot 0x24 answers 1 is deleted (slot 0, 1) and replaced by a new CMMOnline (8 bytes
 // from the game's heap, MMOnline_Ctor; 0 when that failed). The mode (or 0) is stored at 0x7b05d8 and, if any, assigned (slot 0x28).
 void __stdcall MouseMode_Set(u8 *mode);
+
+// 0x481a10 (cdecl; name unconfirmed): the window [0x7c24c8] closed (Window7c24c8_Close), then a new 0x6fead0 mode (Mem_Alloc(8),
+// MouseMode6fead0_Ctor; 0 when that failed) made, the holder [0x7b05e8] made when missing (MouseModes_EnsureHolder) and the mode set
+// (MouseMode_Set).
+void __cdecl MouseMode_Enter6fead0();
 
 // Slot 10 of the modes (Assign, by CMMOnline's debug print; names unconfirmed). 0x46d590 (the 0x6fead0 mode): the cursor 0x13.
 void __fastcall MouseMode6fead0_Assign(u8 *self);

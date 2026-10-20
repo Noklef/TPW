@@ -8,6 +8,8 @@
 
 #include "../../../re/types.h"
 
+struct StringView;
+
 extern "C" {
 
 void __cdecl Sound_Set803ab8(u32 value);  // 0x51bb60
@@ -44,4 +46,23 @@ u32 __cdecl Sound_QueryFound(const char *name, u8 *folders);
 // 0x51b7c0 (cdecl): when on and started, the sound manager's vtable +0 (&result, not read after); then not started. The
 // warning when the allocation count 0x802bd8 is not back to 0 is compiled out.
 void __cdecl Sound_Shutdown();
+
+// The sound categories, each Sound_QueryFound of a category name in a folder object the named objects registry (0x786b9c, NamedList_Find)
+// holds under a key's name; a folder not found leaves its categories as they were. (Their releases, 0x51ea50, 0x51ea70, 0x51eda0 and 0x51ee40,
+// call SoundCategory_Release 0x51b620, not reimplemented.)
+//
+// 0x51e8f0 (cdecl; name; name unconfirmed): the folder named the global String 0x803768 with name appended (String_AppendStr): -1 when not
+// found; else its "cat_locallobbysfx" and "cat_locallobbymusic" are appended as a pair (+0, +4) to the array at 0x803a4c of 0x803a50 pairs (the
+// count incremented, a new block from Sound_Alloc, the old pairs copied and the old block given to Sound_Free) and the pair's index returned.
+s32 __cdecl Sound_RegisterLobbyCategories(const char *name);
+
+// 0x51eae0 (cdecl): from the folder named the global String 0x8030d8, cat_ambient, cat_rides, cat_ui, cat_kids and cat_staff to 0x803a20,
+// 0x803a28, 0x803a2c, 0x803a24 and 0x803a30; from the one named 0x803558, cat_speech to 0x803a34. (The debug prints of the six being 0
+// beforehand are left out.)
+void __cdecl Sound_RegisterGlobalCategories();
+
+// 0x51ec50 (cdecl; theme, a string or view): the String 0x803768 with the theme appended (String_Append): its folder's cat_ambient and
+// cat_rides to 0x803a38 and 0x803a3c; then assigned 0x8039c0 (through the string's slot 6, String_AssignWide: its data as chars) with the theme:
+// cat_speech to 0x803a40; then 0x802e68 with the theme: cat_music to 0x803a44.
+void __cdecl Sound_RegisterThemeCategories(const StringView *theme);
 }

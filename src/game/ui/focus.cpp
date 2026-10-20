@@ -3,10 +3,14 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/gameheap.h"
 #include "../core/keymap.h"
 #include "../core/vcall.h"
 #include "../files/wrapsources.h"
+#include "../world/mousemode.h"
+#include "cursor.h"
 #include "dialog7ca1c8.h"
+#include "dialogs.h"
 #include "window.h"
 #include "windowfactory.h"
 
@@ -74,6 +78,26 @@ u32 __cdecl Window7c24c8_Close() {
     global<u8 *>(0x007c24c8) = nullptr;
     Focus_Restore();
     return 1;
+}
+
+u32 __cdecl Window7c24c8_Set(u8 *window) {
+    if (window) {
+        MouseModes_EnsureHolder();
+        u8 *const current = global<u8 *>(0x007b05d8);
+        if ((current ? vcall<u32>(current, 0x24) : 0) == 9) {
+            u8 *const block = static_cast<u8 *>(GameHeap_Alloc(8));
+            u8 *const mode = block ? MouseModeOnlineBase_Ctor(block) : nullptr;
+            MouseModes_EnsureHolder();
+            MouseMode_Set(mode);
+        }
+        GameCursor_Set(0);
+        KeyMap_Reset(global<u8 *>(0x00787c14));
+        KeyMap_Reset(global<u8 *>(0x0078733c));
+        KeyMap_Reset(global<u8 *>(0x00787a60));
+        Dialog7cb2b8_ResetChild21(1);
+    }
+    global<u8 *>(0x007c24c8) = window;
+    return Focus_Restore();
 }
 
 u32 __cdecl Window7cb2cc_Close() {

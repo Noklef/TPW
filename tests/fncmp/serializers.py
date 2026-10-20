@@ -4,8 +4,8 @@
 # 0x508bb0), the calendar clock (core/funnytime: 0x4f7f30), the map / track cells (world/mapcell: 0x4d0b30, 0x4d8dd0, 0x50c200), the
 # challenges (world/challenges: 0x4d0f90, 0x4d2320), the nav (world/nav: 0x50d150), the weather (world/weather: 0x512010), the research
 # lab, its projects and groups (world/research: 0x502dc0, 0x504210, 0x504760), the staff pool and its entries (world/staff: 0x507850,
-# 0x5070a0), a circular buffer of 30 u32 (core/circbuf: 0x4e2c10, the count kept small), the sprite's nav call (world/nav: 0x4f9440)
-# and a theme's save record (core/globalsave: 0x5b0d70)
+# 0x5070a0), circular buffers of 30 and 144 u32 (core/circbuf: 0x4e2c10, 0x4cdf00, the counts kept small), the sprite's nav call (world/nav: 0x4f9440)
+# a theme's save record (core/globalsave: 0x5b0d70) and the bank account (world/bankaccount: 0x4cf920)
 # against the originals: saves and loads through a record stream with room for all the fields, none, or up to and about each field's end;
 # versions in and out of 0..1; the object and the sink compared after.
 # usage: serializers.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=5b0d70,... the functions' addresses)
@@ -21,7 +21,7 @@ RANGES = [(0x50b090, 0x50b34c), (0x4d3aa0, 0x4d3d09), (0x4d3ee0, 0x4d4100), (0x5
           (0x424c20, 0x424ca0), (0x4d0b30, 0x4d0f80), (0x4d0f90, 0x4d1670), (0x4d2320, 0x4d27b0), (0x4d37e0, 0x4d3860), (0x4d8dd0, 0x4d9200),
           (0x50c200, 0x50c330), (0x5134d0, 0x513550), (0x510240, 0x5102c0), (0x50d150, 0x50dd90), (0x512010, 0x5127b0),
           (0x41a860, 0x41a970), (0x504210, 0x504590), (0x5070a0, 0x5074b0), (0x4e2c10, 0x4e2fb0), (0x4f9440, 0x4f9470), (0x502dc0, 0x5031b0),
-          (0x504760, 0x504a30), (0x507850, 0x507bc0), (0x5b0d70, 0x5b118f)]
+          (0x504760, 0x504a30), (0x507850, 0x507bc0), (0x5b0d70, 0x5b118f), (0x4cf920, 0x4d0182), (0x4cdf00, 0x4ce28c)]
 B = Bench(RANGES)
 OBJ, STREAM, SINK = RAM, RAM + 0x2000, RAM + 0x3000
 CELL = [1, 2, 4, 1, 2, 2, 12, 4, 1]
@@ -38,22 +38,25 @@ FIELDS = {0x50b090: [2, 2, 2, 2], 0x4d3aa0: [0x20] * 0x96 + [4, 2], 0x4d3ee0: [4
           0x507850: [4, 4, 1, 1, 1, 1, 4, 4] * 0x20 + [4, 1] * 5 + [4, 1], 0x4e2c10: [4, 4, 1, 4],
           0x5b0d70: [1] * 6 + [1, 4] * 4 + [2, 2] * 0x21 + [1, 1]}
 FIELDS[0x4f9440] = FIELDS[0x50d150]
-COUNTS = [0, 1, 2, 30, 31, 40, 0xffffffff, 0x80000000]  # the circular buffer's mNumEntries (+0x80 saved, the stream's second dword loaded)
+FIELDS[0x4cf920] = [2, 2, 2, 2] + [4] * 7 + [4] * 0x40
+FIELDS[0x4cdf00] = FIELDS[0x4e2c10]
+COUNTS = [0, 1, 2, 30, 31, 40, 0xffffffff, 0x80000000]  # the circular buffers' mNumEntries (saved, the stream's second dword loaded)
+RINGS = {0x4e2c10: 0x80, 0x4cdf00: 0x248}  # (where each keeps it)
 
 
 def case(r):
     at = r.deal(OPS)
     sizes = FIELDS[at]
-    if at == 0x4e2c10:
-        count = r.choice(COUNTS + [r.randrange(41)])
+    if at in RINGS:
+        count = r.choice(COUNTS + [r.randrange(41)] + ([144, 145, 150, r.randrange(150)] if at == 0x4cdf00 else []))
         sizes = sizes + [4] * (count if count < 0x80000000 else 0)
     ends = [sum(sizes[:i + 1]) for i in range(len(sizes))]
     total = ends[-1]
     end = r.choice(ends[:3] + ends[-3:])
     left = r.choice([total, total, total, 0x1400, 0, end, end - 1, end + 1, r.randrange(total)])
     regions = {OBJ: bytearray(r.bytes(0x1300 if at != 0x502dc0 else 0x1480)), STREAM: record_stream(STREAM, SINK, left), SINK: bytearray(r.bytes(0x1400))}
-    if at == 0x4e2c10:
-        regions[OBJ][0x80:0x84] = regions[SINK][4:8] = count.to_bytes(4, 'little')
+    if at in RINGS:
+        regions[OBJ][RINGS[at]:RINGS[at] + 4] = regions[SINK][4:8] = count.to_bytes(4, 'little')
     save = r.choice([0, 1, 1, r.getrandbits(32)])
     version = r.choice([0, 1, 0, 1, 0, 1, -1, 2, r.getrandbits(32)])
     return Call(at, [OBJ, STREAM, save, version & 0xffffffff, r.getrandbits(32)], regions, conv='t', ret='a')

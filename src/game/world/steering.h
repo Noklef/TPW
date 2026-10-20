@@ -89,6 +89,27 @@ s32 *__fastcall SteerSeparation_Steer(void *self, void *, s32 *out, const u8 *na
 // with SteerRepel_Neighbour (radius * 2) calls the shared empty function 0x5da3c0 in this build, so the force stays 0.
 s32 *__fastcall SteerRepelObstacle_Steer(void *self, void *, s32 *out, const u8 *nav);
 
+// 0x50e4a0 (avoid_walls' slot 0; thiscall (&out, nav), this unused): ahead = Nav_PredictPos(1.0), the cell (cx, cy) = pos >> 16 (logical; a
+// Map_IdAt of it, unused), dir = ahead - pos made unit (IntPair_DivFixed by its inlined three-tier length len, unless 0). Moving east (dir x
+// >= 0, else west) and south (dir y >= 0, else north), against a blocked step out of the cell that way (MapCell_StepBlocked in the nav's mode
+// +0xb4: east 1, west 3, south 2, north 0; tried in that order) whose wall ahead passes (east: ahead x > (cx + 1) << 16 - radius; west: ahead x
+// < cx << 16 + radius; south / north alike in y): out = twice (that limit - ahead) on the axis, 0 on the other. Else the corner ahead (south:
+// east then west; then north: west then east) when the diagonal cell's step into the row or column is blocked either way and the two cells
+// beside it are open, and the ray from pos along dir meets the radius circle about the corner within len (above 0): out = (pos + dir * hit -
+// corner) / radius. Else out = (0, 0). Returns out.
+s32 *__fastcall SteerAvoidWalls_Steer(void *self, void *, s32 *out, const u8 *nav);
+
+// 0x50ed10 (follow_path's slot 0; thiscall (&out, nav), this unused): when the map block value under pos (Map_BlockValueAt on [0x7cf83c] + 0x2d8 at
+// pos >> 20, arithmetic) is above the nav's +0x48, Nav_PathTo the target +0x4c prepending (0: +0xb8 = 1). Then unless the path is done (byte +0x60
+// 1) or its total +0xa0 is 0, while its progress (Nav_PathProgress inlined: 1.0 - (ApproxLength(point - pos) + +0xa4 + +0xa8) / +0xa0) is not 1.0
+// and Nav_PathProgress itself is not 1.0, the share of the 15 low bits of the history +0xb0 set (count << 16 / 15.0) at 0.4 or more paths
+// again the same way. No points (+0x54 0) or done: out = -vel. At the last point (+0x5c is +0x54 - 1) the target is +0x4c and the path is done
+// (+0x60 = 1) within an octagonal 1.6 radii (0x19999 * radius); at a waypoint (of +0x64) within 2 radii the next becomes current (+0xa4 less the
+// waypoint's length at +0x8c; at the count +0x58, Nav_PathTo the target not prepending) and the target is the current waypoint. Before the last
+// point: out = (target - pos) * 1.0 - vel (IntPair_MulFixed). At it: arrival's steering toward the target (out = (0, 0) at it; speed max_speed
+// +0x1c held to distance / 2.0). Returns out.
+s32 *__fastcall SteerFollowPath_Steer(void *self, void *, s32 *out, u8 *nav);
+
 // 0x50fdf0 (cdecl; name unconfirmed): the behaviour list (0x7cf078-0x7cf080, {weight, behaviour} entries) emptied as EntryStack_Clear (core/seqs) does,
 // then avoid_walls with 0.9, follow_path with 0.5 and separation with 0.1 (16.16) pushed, each found by its name in the table at 0x761ec0 (eight
 // pointers, the last 0: read, sic, when no other matches) and only while the list's end is not at its capacity.
