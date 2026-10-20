@@ -581,4 +581,24 @@ u16 __fastcall Window_SetHandler(u8 *window, void *, u32 handler) {
     if (handler) at<u32>(window, 0x114) = handler;
     return 1;
 }
+
+void __fastcall Window_SetDepth(u8 *window, void *, u32 depth) {
+    at<u16>(window, 0xe0) = (u16)depth;
+    if (at<s16>(window, 0xe0) > 0x100) at<u16>(window, 0xe0) = 0x100;
+    u8 event[0x18];  // (only the word +6 set)
+    at<u16>(event, 6) = at<u16>(window, 0xe0);
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 2u, event);
+    at<u16>(event, 6) = (u16)(at<s16>(window, 0xe0) + 1);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 2u, event);
+    for (u8 *child = at<u8 *>(window, 0x5c); child; child = at<u8 *>(child, 0x54)) Window_SetDepth(child, nullptr, (u32)((s16)depth + 2));
+}
+
+void __fastcall Window_SetWordE2(u8 *window, void *, u32 value) {
+    at<u16>(window, 0xe2) = (u16)value;
+    u8 event[0x18];  // (only the word +8 set)
+    at<u16>(event, 8) = at<u16>(window, 0xe2);
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 4u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 4u, event);
+    for (u8 *child = at<u8 *>(window, 0x5c); child; child = at<u8 *>(child, 0x54)) Window_SetWordE2(child, nullptr, value);
+}
 }
