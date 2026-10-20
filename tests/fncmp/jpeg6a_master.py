@@ -162,7 +162,16 @@ def validate(r):
 
 
 def prepare(r):
-    return Call(0x65691e, [CINFO], common(r, r.choice([1, 2, 3, 3, 4])))
+    regs = common(r, r.choice([1, 2, 3, 3, 4]))
+    if SCANS in regs and r.random() < 0.4:  # (a DC refinement scan in the Huffman-optimisation pass, Huffman or arithmetic)
+        scans, nscans = regs[SCANS], struct.unpack_from('<i', regs[CINFO], 0xa0)[0]
+        refine = [i for i in range(min(nscans, len(scans) // 0x24))
+                  if struct.unpack_from('<i', scans, 0x24 * i + 0x14)[0] == 0 and struct.unpack_from('<i', scans, 0x24 * i + 0x1c)[0]]
+        if refine:
+            struct.pack_into('<i', regs[MASTER], 0x14, 1)
+            struct.pack_into('<i', regs[MASTER], 0x20, r.choice(refine))
+            struct.pack_into('<i', regs[CINFO], 0xac, r.choice([0, 1]))
+    return Call(0x65691e, [CINFO], regs)
 
 
 def select(r):
