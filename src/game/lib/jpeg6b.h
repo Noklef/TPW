@@ -14,8 +14,21 @@ extern "C" {
 
 struct jpeg_decompress_struct;  // 0x1b0 bytes (config/jconfig.h's boolean)
 struct jpeg6b_component_info;   // jpeg_component_info (an untagged typedef in jpeglib.h), 0x54 bytes
+struct jpeg_common_struct;      // the fields compression and decompression share
+struct jpeg6b_quant_tbl;        // JQUANT_TBL (untagged), 0x82 bytes
+struct jpeg6b_huff_tbl;         // JHUFF_TBL (untagged), 0x112 bytes
 struct jpeg6b_d_derived_tbl;    // jdhuff.h's d_derived_tbl (untagged), 0x590 bytes
 struct jpeg6b_bitread_working_state;  // jdhuff.h's bitread_working_state (untagged), 0x14 bytes
+
+// jcomapi.c: what compression and decompression share.
+// 0x63dff0: the image pool freed (mem->free_pool of pool 1; nothing without a memory manager), global_state back to the start
+// (DSTATE_START with marker_list null, or CSTATE_START).
+void __cdecl jpeg_abort(jpeg_common_struct *cinfo);
+// 0x63e040: mem->self_destruct when there is a manager, then mem and global_state zeroed.
+void __cdecl jpeg_destroy(jpeg_common_struct *cinfo);
+// 0x63e070, 0x63e090: a permanent JQUANT_TBL / JHUFF_TBL, sent_table FALSE.
+jpeg6b_quant_tbl *__cdecl jpeg_alloc_quant_table(jpeg_common_struct *cinfo);
+jpeg6b_huff_tbl *__cdecl jpeg_alloc_huff_table(jpeg_common_struct *cinfo);
 
 // jutils.c
 // 0x6428c0: a rounded up to a multiple of b (b > 0).

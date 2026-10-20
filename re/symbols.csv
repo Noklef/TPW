@@ -5237,3 +5237,7 @@ address,name,kind,confidence,notes
 0x00645300,jdphuff_decode_mcu_AC_first,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdphuff.c decode_mcu_AC_first: a block's band of a first AC scan (the library's, through wrap/jpeg-6b/jdphuff.c)"
 0x00645560,jdphuff_decode_mcu_DC_refine,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdphuff.c decode_mcu_DC_refine: an MCU's DC refinement bits (the library's, through wrap/jpeg-6b/jdphuff.c)"
 0x00645660,jdphuff_decode_mcu_AC_refine,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdphuff.c decode_mcu_AC_refine: a block's band of an AC refinement scan (the library's, through wrap/jpeg-6b/jdphuff.c)"
+0x0063dff0,jpeg_abort,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jcomapi.c jpeg_abort: the image pool freed and the object back to its start state (the library's)
+0x0063e040,jpeg_destroy,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jcomapi.c jpeg_destroy: the memory manager destroyed (the library's)
+0x0063e070,jpeg_alloc_quant_table,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jcomapi.c jpeg_alloc_quant_table: a permanent JQUANT_TBL (the library's)
+0x0063e090,jpeg_alloc_huff_table,function,high,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jcomapi.c jpeg_alloc_huff_table: a permanent JHUFF_TBL (the library's)

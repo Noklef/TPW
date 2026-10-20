@@ -6,10 +6,16 @@
 #include <cstdint>
 #include <cstdio>
 
+// (jpeglib.h declares the two table allocators with its untagged JQUANT_TBL / JHUFF_TBL, which jpeg6b.h names by tags of its own:
+// jpeglib.h's declarations of them are renamed away here, where nothing calls them)
+#define jpeg_alloc_quant_table jpeglib_h_jpeg_alloc_quant_table
+#define jpeg_alloc_huff_table jpeglib_h_jpeg_alloc_huff_table
 extern "C" {
 #define JPEG_INTERNALS
 #include "jpeglib.h"
 }
+#undef jpeg_alloc_quant_table
+#undef jpeg_alloc_huff_table
 
 static_assert(sizeof(jpeg_decompress_struct) == 0x1b0, "jpeg_decompress_struct (jpeg_CreateDecompress checks 0x1b0)");
 static_assert(sizeof(jpeg_component_info) == 0x54, "jpeg_component_info");
