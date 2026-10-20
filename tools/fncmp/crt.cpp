@@ -155,6 +155,15 @@ s32 __cdecl wcsicmp(const u16 *a, const u16 *b) {
     return x - y;
 }
 
+s32 __cdecl wcscmp(const u16 *a, const u16 *b) {
+    s32 d;
+    while ((d = (s32)*a - (s32)*b) == 0 && *b) {
+        ++a;
+        ++b;
+    }
+    return d < 0 ? -1 : d > 0 ? 1 : 0;
+}
+
 u16 *__cdecl wcscat(u16 *to, const u16 *from) {
     u16 *p = to;
     while (*p) ++p;
@@ -254,7 +263,7 @@ const CrtEnv kDriverCrt = {&msvc6::stricmp, &msvc6::strrchr, &msvc6::strchr, &ms
                            &msvc6::strncpy, &msvc6::iswspace, &msvc6::wcscpy,
                            &msvc6::isalpha, &msvc6::isdigit, &msvc6::isspace,
                            &msvc6::isalnum, &msvc6::atof, &msvc6::swprintf, &msvc6::wcsncpy, &msvc6::wcsicmp,
-                           &msvc6::wcscat};
+                           &msvc6::wcscat, &msvc6::wcscmp};
 
 const LibcEnv kDriverLibc = {&msvc6::strncpy, &msvc6::strncat, &msvc6::atoi,    &msvc6::iswctype, &msvc6::vsprintf,
                              &msvc6::vsnprintf, &msvc6::wcslen,  &msvc6::wcscpy,  &msvc6::wcsncpy,  &msvc6::wcscat,
@@ -269,5 +278,6 @@ const CrtStandIn kCrtStandIns[] = {
     {0x0067a530, (void *)&msvc6::isalpha}, {0x0067a560, (void *)&msvc6::isdigit}, {0x0067a590, (void *)&msvc6::isspace},
     {0x0067a5c0, (void *)&msvc6::isalnum}, {0x0067a6c0, (void *)&msvc6::atof},    {0x0067af00, (void *)&msvc6::swprintf},
     {0x0067b0d0, (void *)&msvc6::wcsncpy}, {0x0067b140, (void *)&msvc6::wcsicmp}, {0x0067bed0, (void *)&msvc6::wcscat},
+    {0x0067c290, (void *)&msvc6::wcscmp},
 };
 const u32 kCrtStandInCount = sizeof kCrtStandIns / sizeof kCrtStandIns[0];
