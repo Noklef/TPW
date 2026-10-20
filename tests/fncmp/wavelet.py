@@ -367,6 +367,8 @@ def decode_v13(r, scaled):
     regions.update({0xe74a40: r.bytes(8) + plane(r, half * half), 0xaa67f8: r.bytes(8) + plane(r, n * n), 0xbe6800: blue, 0xcef228: tabs,
                     0xc6f228: plane(r, n * n), 0xc26c08: low + plane(r, half * half)})
     dst_width, dst_height = (r.randrange(1, 25) if r.random() < 0.98 else 0 for _ in range(2))
+    if r.random() < 0.15:   # (the source's size kept: resampled all the same unless the pitch is the width, sic)
+        dst_width, dst_height = width, height
     row = pixel * dst_width
     pitch = max(0, row + r.choice([0, 0, 0, pixel, 3 * pixel, 1, -pixel]))
     if dst_width == pitch and width == dst_width and height == dst_height:
