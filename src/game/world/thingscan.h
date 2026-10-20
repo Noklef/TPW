@@ -172,4 +172,10 @@ u8 *__cdecl Things_FindPrevOfCategoryWrap(s32 category, const u8 *previous);
 // category 2, 4, 8, 0x10, 0x20 or 0x40; the thing at 0x7cc308 = Things_FindNextOfCategory after it, else (past the last) from the start (as
 // Things_FindNextOfCategoryWrap, the first result stored before the second call); another choice: 0.
 void __cdecl ThingBrowser_Step();
+
+// 0x4cceb0 (thiscall on the park analyser, which it only hands on; name unconfirmed; the analyser's 0x4c7a49 records it in its sixteenth ring):
+// the sum of capped counts: the things of kind 1 on a plain analyser cell (AnalyserCell_TypePlain; at most 1000) * 20 / 1000;
+// Things_CountByDef4ac(0, 0) * 3 / 2 (at most 20); (1, 0) * 2, (2, 0) * 2, (3, 0) and (0, 2) (at most 10 each); and the staff of kinds 5, 4, 6,
+// 7 and 8 (Things_CountStaffOfKind; at most 4 each). Each capped count is counted again when under its cap (the same answer).
+s32 __fastcall Things_FacilityScore(void *analyser);
 }  // extern "C"

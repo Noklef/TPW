@@ -453,6 +453,26 @@ s32 __stdcall Things_CountByDef4acIdle(s32 value) {
     return count;
 }
 
+s32 __fastcall Things_FacilityScore(void *) {
+    s32 plain = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (at<u8>(thing, 2) == 1 && AnalyserCell_TypePlain(thing)) ++plain;
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    auto cap = [](s32 v, s32 most) { return v < most ? v : most; };
+    s32 score = cap(plain, 1000) * 20 / 1000;
+    score += cap(Things_CountByDef4ac(0, 0) * 3 / 2, 20);
+    score += cap(Things_CountByDef4ac(1, 0) * 2, 10);
+    score += cap(Things_CountByDef4ac(2, 0) * 2, 10);
+    score += cap(Things_CountByDef4ac(3, 0), 10);
+    score += cap(Things_CountByDef4ac(0, 2), 10);
+    for (u32 kind = 4; kind <= 8; ++kind) score += cap(Things_CountStaffOfKind(kind), 4);  // (5 and 4 inlined, Thing_IsStaff and the kind)
+    return score;
+}
+
 void __fastcall Things_NearestRestArea(const u8 *thing, void *, u16 *out) {
     u16 best = 0;
     u32 bestDistance = 0xffffffff;
