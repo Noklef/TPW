@@ -196,11 +196,25 @@ malloc / free; tpw_jpeg6a is now built so (third_party/CMakeLists.txt). Its bool
 jconfig.vc: jpeg_set_defaults stores the booleans as dwords at +0xa8..+0xb4, and the struct is 0x168 only so), so tpw_jpeg6a finds
 third_party/config/jpeg-6a/jconfig.h first. tpw_jpeg6a renames its externals jpeg6a_* through config/jpeg6a_prefix.h, and the hook
 rows use those names (unit lib/jpeg6a: src/game/lib/jpeg6a.cpp includes 6a's headers by path, the include path finding 6b's first,
-and asserts the struct size, the version and the boolean); its statics will need wrap/jpeg-6a/ units like 6b's. Replaced so far:
-jutils.c (all five), jpeg_fdct_islow and jpeg_fdct_ifast (benches jpeg6a_utils.py, jpeg6a_fdct.py). Hand ports already there: jpeg_std_error
-(0x64dd60), emit_dac, jpeg_mem_init / term, start_pass_downsample, null_method (src/game/core/framestubs). jpeg_fdct_float stays the
-exe's for now (x87 against SSE rounding, as 6b's float IDCT; only JDCT_FLOAT stores it). Next: jcomapi.c, jcparam.c's quality
-functions, then jmemansi.c the 6b way and up the compressor. The two jerror.h
+and asserts the struct size, the version, the boolean and the offsets the exe's copies use). jpeg6a.h names 6a's structs by tags of
+its own (jpeg6a_common_struct, jpeg6a_compress_struct, jpeg6a_quant_tbl, ...), since jpeg6b.h has the same tags laid out differently
+(6a has no client_data: is_decompressor +0xc, global_state +0x10; its my_memory_mgr is 0x50, without max_alloc_chunk); jpeg6a.cpp
+renames jpeglib.h's tags to them. Statics go through wrap/jpeg-6a/ units as 6b's, named jpeg6a_<module>_<name> (jcparam, jmemmgr,
+jerror), and an init that stores methods is built as jpeg6a_<module>_lib_<name> behind a shim in jpeg6a.cpp (kExeMethods, so far
+jinit_memory_mgr's eleven). Jpeg6aCrtEnv is 6b's Jpeg6bCrtEnv again (malloc / free in wrap/jpeg-6a/jmemansi.c, which now carries the
+DEFAULT_MAX_MEM define; getenv / sscanf / jpeg_open_backing_store in wrap/jpeg-6a/jmemmgr.c, the exe's 6a backing store 0x650265;
+sprintf in wrap/jpeg-6a/jerror.c), and the fncmp driver's kJpeg6aCrtEnv uses the same recorders 24-28. Replaced so far: jutils.c
+(all five), jpeg_fdct_islow and jpeg_fdct_ifast, jcomapi.c (all four), jcparam.c (all thirteen), jmemansi.c's allocation and
+jpeg_mem_available, jmemmgr.c (all fifteen) and jerror.c's emit_message / format_message / reset_error_mgr (benches jpeg6a_utils.py,
+jpeg6a_fdct.py, jpeg6a_comapi.py, jpeg6a_param.py, jpeg6a_memansi.py, jpeg6a_memmgr.py, jpeg6a_error.py). jpeg6a_param.py masks
+huffval past each standard table's symbols: add_huff_table copies 256 bytes from 12- or 162-byte lists, so the bytes past them are
+each build's neighbouring data, and nothing reads past the count (jpeg_make_c_derived_tbl and emit_dht stop at it,
+jpeg_gen_optimal_table only writes). Stay the exe's: jpeg_fdct_float (x87 against SSE rounding, as 6b's float IDCT; only JDCT_FLOAT
+stores it), jpeg_open_backing_store and its read / write / close methods (a FILE of the exe's C runtime), error_exit and
+output_message (the exe's exit and fprintf(stderr)), and the hand ports jpeg_std_error (0x64dd60, which stores those and the exe's
+6a table 0x7054b8), emit_dac, jpeg_mem_init / term, start_pass_downsample, null_method (src/game/core/framestubs). Next: jcapimin /
+jcapistd, jcinit, jcmaster, jcmarker, then the controllers, colour, sampling, jcdctmgr and the entropy coders, whose inits store
+methods (more kExeMethods rows, and a native-methods mode for the driver as 6b's once a case runs a stored method). The two jerror.h
 lists differ: 6b added JERR_BAD_DCT_COEF (code 8) and JERR_BAD_HUFF_TABLE (10), dropped 6a's JERR_DHT_COUNTS (6a's 30) and added three
 JTRC_THUMB_* traces at the end, so most codes are one apart (two between 10 and 30) and a 6a bench takes its numbers from jpeg-6a's.
 
