@@ -2,6 +2,7 @@
 # object bytes, any global values, any arguments.
 # usage: list_removes.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
+import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
@@ -15,6 +16,7 @@ FUNCS = [
     (0x5dd4b0, 0x5dd530, 't', 1, 'v', [], ()),
     (0x5e15c0, 0x5e1640, 't', 1, 'v', [], ()),
     (0x5e4250, 0x5e42d0, 't', 1, 'v', [], ()),
+    (0x5f42f0, 0x5f4365, 't', 1, 'v', [], ()),
 ]
 EXTRA = []
 LISTY = ()  # linked list destructors: a real chain (next at +4) is built for them
@@ -129,7 +131,13 @@ def setup_5e4250(r, obj, regions):
     return [r.choice(values + [99, 0]) if values else r.choice([0, 1])]
 
 
-SETUP = {0x5d8a80: setup_5d8a80, 0x5da180: setup_5da180, 0x5da450: setup_5da450, 0x5dd4b0: setup_5dd4b0, 0x5e15c0: setup_5e15c0, 0x5e4250: setup_5e4250}
+def setup_5f42f0(r, obj, regions):
+    out = setup_5e4250(r, obj, regions)   # (the list's pointer at +0x18 too: harmless)
+    regions[RAM + 0x80 + 0x20080] = struct.pack('<I', RAM + 0x1000)   # the list at +0x20080, past the object's bytes
+    return out
+
+
+SETUP = {0x5f42f0: setup_5f42f0, 0x5d8a80: setup_5d8a80, 0x5da180: setup_5da180, 0x5da450: setup_5da450, 0x5dd4b0: setup_5dd4b0, 0x5e15c0: setup_5e15c0, 0x5e4250: setup_5e4250}
 
 
 def case(r):
