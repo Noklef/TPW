@@ -687,4 +687,78 @@ u32 __fastcall Window_CloseTree(u8 *window) {
     }
     return 1;
 }
+
+u32 __fastcall Window_SetRect(u8 *window, void *, u8 *rect) {
+    if (!rect || GuiRect_Equals(rect, nullptr, window + 8)) return 1;
+    u16 width, height, oldWidth, oldHeight;
+    GuiRect_GetSize(rect, nullptr, &width, &height);
+    GuiRect_GetSize(window + 8, nullptr, &oldWidth, &oldHeight);
+    if ((s16)width == (s16)oldWidth && (s16)height == (s16)oldHeight) {
+        Window_Offset(window, nullptr, (u32)(at<s16>(rect, 4) - at<s16>(window, 0xc)), (u32)(at<s16>(rect, 6) - at<s16>(window, 0xe)));
+        Window_UpdateHover();
+        return 1;
+    }
+    GuiRect_Assign(window + 0x20, nullptr, window + 8);
+    GuiRect_Assign(window + 8, nullptr, rect);
+    Window_ResizeChildren(window, nullptr, (u32)(at<s16>(window, 0xc) - at<s16>(window, 0x24)), (u32)(at<s16>(window, 0xe) - at<s16>(window, 0x26)),
+                          (u32)(at<s16>(window, 0x10) - at<s16>(window, 0x28)), (u32)(at<s16>(window, 0x12) - at<s16>(window, 0x2a)));
+    u8 event[0x28];  // (only the dword +0x14 set)
+    at<u8 *>(event, 0x14) = window + 8;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 0x10u, event);
+    at<u8 *>(event, 0x14) = window + 0x2c;
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0x10u, event);
+    Window_SendMessage(window, 0x12, (u32)(s32)(s16)width, (u32)(s32)(s16)height);
+    Window_UpdateHover();
+    return 1;
+}
+
+void __fastcall Window_ResizeChildren(u8 *window, void *, u32 dl, u32 dt, u32 dr, u32 db) {
+    u8 *child = at<u8 *>(window, 0x5c);
+    u8 rect[0xc];
+    GuiRect_Ctor(rect);
+    vcall<void>(window + 0x2c, 0xc, (u32)(u16)dl, (u32)(u16)dt, (u32)(u16)dr, (u32)(u16)db);
+    const s16 l = (s16)dl, t = (s16)dt, r = (s16)dr, b = (s16)db;
+    for (; child; child = at<u8 *>(child, 0x54)) {
+        u32 flags = at<u32>(child, 0x48);
+        Window_GetRect(child, nullptr, rect, 1);
+        if ((flags & 0xf0000) == 0xf0000) {
+            if (l || r || t || b) {
+                at<u16>(rect, 4) += l;
+                at<u16>(rect, 8) += r;
+                at<u16>(rect, 6) += t;
+                at<u16>(rect, 0xa) += b;
+                Window_SetRect(child, nullptr, rect);
+            }
+            continue;
+        }
+        if ((flags & 0x30000) == 0x30000) {
+            if (l || r) {
+                at<u16>(rect, 4) += l;
+                at<u16>(rect, 8) += r;
+                Window_SetRect(child, nullptr, rect);
+            }
+            flags &= 0xfffcffff;
+        } else if ((flags & 0xc0000) == 0xc0000) {
+            if (t || b) {
+                at<u16>(rect, 6) += t;
+                at<u16>(rect, 0xa) += b;
+                Window_SetRect(child, nullptr, rect);
+            }
+            flags &= 0xfff3ffff;
+        }
+        if ((flags & 0x10000) && l) Window_Offset(child, nullptr, (u16)l, 0);
+        if ((flags & 0x20000) && r) Window_Offset(child, nullptr, (u16)r, 0);
+        if ((flags & 0x40000) && t) Window_Offset(child, nullptr, 0, (u16)t);
+        if ((flags & 0x80000) && b) Window_Offset(child, nullptr, 0, (u16)b);
+    }
+    GuiRect_Dtor(rect);
+}
+
+u32 __fastcall Window_SetRectTo(u8 *window, void *, u32 left, u32 top, u32 right, u32 bottom) {
+    u8 rect[0xc];
+    GuiRect_CtorWith(rect, nullptr, (u16)left, (u16)top, (u16)right, (u16)bottom);
+    Window_SetRect(window, nullptr, rect);
+    GuiRect_Dtor(rect);
+    return 1;
+}
 }

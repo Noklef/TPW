@@ -12,13 +12,16 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import CDECL_LOG4, LOG, Bench, Call, log_region, put, vtable  # noqa: E402
+from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, blob, log_region, put, vtable  # noqa: E402
 from window import MISC, NODES, RANGES, TREE, VTABLE, WINDOW, chain, hover, offset_env, point, shown_env, tree, word  # noqa: E402
 
 CALLS = {'FindChild': 0x65d7d0, 'IsShown': 0x65d773, 'OffsetByParents': 0x65c979, 'HitTest': 0x65db25, 'UpdateHover': 0x6589f9,
          'NotifyShown': 0x65d90b, 'SetShown': 0x65d9dd, 'Offset': 0x65c7fe, 'SetEnabled': 0x65da8d,
-         'RaiseToTop': 0x65dbf0, 'OpenTree': 0x65c707, 'CloseTree': 0x65c778}
-B = Bench(RANGES + [(0x65da8d, 0x65db25), (0x65dbf0, 0x65dcaf), (0x65c707, 0x65c7fe)])
+         'RaiseToTop': 0x65dbf0, 'OpenTree': 0x65c707, 'CloseTree': 0x65c778, 'SetRect': 0x65cc04, 'ResizeChildren': 0x65c9bd,
+         'SetRectTo': 0x65cf5e}
+ARG = RAM + 0xb000
+B = Bench(RANGES + [(0x65da8d, 0x65db25), (0x65dbf0, 0x65dcaf), (0x65c707, 0x65c7fe), (0x65c9bd, 0x65cd95),
+                       (0x65cf5e, 0x65cfd4), (0x661700, 0x66176a), (0x659e3e, 0x659e83), (0x659d43, 0x659d90)])
 
 
 def case(r):
@@ -59,6 +62,35 @@ def case(r):
     if op == 'UpdateHover':   # the root [0xfaa5d8] or none, [0xfaa5e8] mostly 0, the hovered window [0xfaa5e0] one of them or none
         hover(r, regions, tree(r, regions))
         return Call(CALLS[op], [], regions, ret='w')
+    if op in ('SetRect', 'ResizeChildren', 'SetRectTo'):   # offset_env's, small rectangles +8 / +0x2c and margins, anchors 0xf0000 mixed in
+        wins = offset_env(r, regions, log)
+        blob(log, 3, 1, 0x20)   # (SetRect's event sets only its +0x14)
+        blob(log, 22, 1, 0x20)
+        for w in wins:
+            buf = regions[w]
+            left, top = r.randrange(-30, 30), r.randrange(-30, 30)
+            put(buf, 0xc, 'hhhh', left, top, left + r.choice([0, 5, 40]), top + r.choice([0, 5, 40]))
+            put(buf, 0x30, 'hhhh', *[r.randrange(-30, 70) for _ in range(4)])
+            put(buf, 0xf8, 'hhhh', *[r.choice([0, 0, 1, 2, -1]) for _ in range(4)])
+            put(buf, 0x48, 'I', struct.unpack_from('<I', buf, 0x48)[0] & 0xfff0ffff | r.choice(
+                [0, 0, 0x10000, 0x20000, 0x30000, 0x40000, 0x80000, 0xc0000, 0xf0000, 0xf0000, 0x50000, 0xa0000, 0x70000, 0xd0000]))
+        window = r.choice(wins[:1] * 3 + wins)
+        if op == 'ResizeChildren':
+            return Call(CALLS[op], [window] + [word(r) for _ in range(4)], regions, conv='t', ret='v')
+        left, top, right, bottom = struct.unpack_from('<hhhh', regions[window], 0xc)
+        how = r.choice(['same', 'moved', 'moved', 'sized', 'sized', 'any'])
+        if how == 'moved':
+            dx, dy = r.choice([0, 3, -7]), r.choice([0, 2, -5])
+            left, top, right, bottom = left + dx, top + dy, right + dx, bottom + dy
+        elif how == 'sized':
+            left, top, right, bottom = [v + r.choice([0, 0, 1, -2, 6]) for v in (left, top, right, bottom)]
+        elif how == 'any':
+            left, top, right, bottom = [r.randrange(-0x8000, 0x8000) for _ in range(4)]
+        if op == 'SetRectTo':
+            return Call(CALLS[op], [window] + [(v & 0xffff) | r.choice([0, r.getrandbits(16)]) << 16 for v in (left, top, right, bottom)],
+                        regions, conv='t', ret='w')
+        regions[ARG] = struct.pack('<Ihhhh', 0x705920, left, top, right, bottom)
+        return Call(CALLS[op], [window, r.choice([ARG] * 9 + [0])], regions, conv='t', ret='w')
     if op == 'Offset':   # see offset_env()
         wins = offset_env(r, regions, log)
         return Call(CALLS[op], [r.choice(wins), word(r), word(r)], regions, conv='t', ret='a')

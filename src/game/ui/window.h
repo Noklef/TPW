@@ -272,4 +272,22 @@ u32 __fastcall Window_OpenTree(u8 *window);
 // 0x65c778 (thiscall; recursive; name unconfirmed): Window_OpenTree in reverse: for a window with bit 0 of +0x48 set, its children from
 // the last one back (by +0x58) first, then (unless one of the top four bits of +0x48 is set) the message 3 sent and its slot 0. 1 in AX.
 u32 __fastcall Window_CloseTree(u8 *window);
+
+// 0x65cc04 (thiscall (rect), pops 4; name unconfirmed): nothing for no rectangle or one equal to +8 (GuiRect_Equals). One of the same size
+// (GuiRect_GetSize) moves the window (Window_Offset by the left / top differences). Otherwise +8 is kept at +0x20, set from the rectangle
+// (GuiRect_Assign), the children laid out again (Window_ResizeChildren with the four edges' moves), the objects +0x98 / +0x9c told
+// through slot 3 (0x10, an event on the stack whose only dword set, +0x14, points to +8 for the first and +0x2c for the second) and the
+// window sent 0x12 (the new width and height, sign-extended). Both ways end with Window_UpdateHover. 1 in AX.
+u32 __fastcall Window_SetRect(u8 *window, void *, u8 *rect);
+
+// 0x65c9bd (thiscall (dl, dt, dr, db: words), pops 16; name unconfirmed): the rectangle +0x2c grown by the four (its slot 3), then each
+// child (+0x5c, then +0x54) by its anchors (+0x48, read before its rectangle with the margins, Window_GetRect (1)): with all of
+// 0xf0000 each edge moved (when any is not 0) and the rectangle set (Window_SetRect), and nothing more; else with both of 0x30000 the
+// left and right moved (when either is not 0) and set, or with both of 0xc0000 the top and bottom, those bits then dropped; then each
+// of 0x10000 / 0x20000 / 0x40000 / 0x80000 left set moves it (Window_Offset) by dl / dr across or dt / db down, when that is not 0.
+void __fastcall Window_ResizeChildren(u8 *window, void *, u32 dl, u32 dt, u32 dr, u32 db);
+
+// 0x65cf5e (thiscall (left, top, right, bottom: words), pops 16; name unconfirmed): Window_SetRect with a rectangle of those on the stack
+// (GuiRect_CtorWith, GuiRect_Dtor). 1 in AX.
+u32 __fastcall Window_SetRectTo(u8 *window, void *, u32 left, u32 top, u32 right, u32 bottom);
 }
