@@ -4712,6 +4712,7 @@ address,name,kind,confidence,notes
 0x00491920,TextPart6ff530_Ctor,function,low,"reimplemented (src/game/render/textparts); thiscall (value): RendererPart_Ctor, TextLayout_Ctor(+0xe4), the text fields set, vtable 0x6ff530; returns this"
 0x004919e0,TextPart6ff530_Dtor,function,low,"reimplemented (src/game/render/textparts); thiscall: vtable 0x6ff320, TextLayout_Dtor(+0xe4), then the RendererPart destroyed (inlined)"
 0x004919c0,TextPart6ff530_DeletingDtor,function,low,"reimplemented (src/game/render/textparts); thiscall (flags): TextPart6ff530_Dtor, freed for flags bit 0; returns this"
+0x0048fc40,TextPart_SetLayout,function,low,"reimplemented (src/game/render/textparts); thiscall (flags, info), pops 8; slot 3 of vtable 0x6ff320: RendererPart_SetLayout, then from the info +0x10 record the text bytes/words by flags 0x400-0x20000, 0x40000 the colour (+0x48, +0x78 via the floats), 0x100 slot 9"
 0x0056b850,WorldView_UpdateDiagonal,function,low,"reimplemented (src/game/render/worldview); thiscall on the world view [0x879d54] (x87): +0x38 = sqrt(dx*dx + dy*dy), dx = +0x40 - +0x3c, dy = +0x48 - +0x44"
 0x0056b880,WorldView_SetRangeX,function,low,"reimplemented (src/game/render/worldview); thiscall (start, end, step; pops 0xc): +0x3c/+0x40/+0x4c set; unless the step is 0 or NaN +0x54 = __ftol((end - start) / step), +0x5c = that - 1"
 0x0056b8d0,WorldView_SetRangeY,function,low,"reimplemented (src/game/render/worldview); thiscall (start, end, step; pops 0xc): the same for +0x44/+0x48/+0x50 and +0x58/+0x60, computed twice (sic)"

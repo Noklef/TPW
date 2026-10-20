@@ -73,4 +73,12 @@ u8 *__fastcall TextPart6ff530_Ctor(u8 *part, void *, u32 value);
 void __fastcall TextPart6ff530_Dtor(u8 *part);
 u8 *__fastcall TextPart6ff530_DeletingDtor(u8 *part, void *, u32 flags);
 
+// 0x48fc40 (thiscall (flags, info), pops 8; slot 3 of vtable 0x6ff320; name unconfirmed): nothing for no info or no flags; else
+// RendererPart_SetLayout, then with any of the flags 0x7fd00 and the info's +0x10 set, from that record: flag 0x400 its byte +4 to
+// +0xd8, 0x800 +5 to +0xd9, 0x1000 +6 to +0xda, 0x2000 +7 to +0xdb, 0x4000 its word +0xa to +0xde, 0x8000 +0xc to +0xe0, 0x10000 the
+// byte +8 to +0xdc, 0x20000 +9 to +0xdd; 0x40000 its dword +0x10 to the colour bytes +0x48..+0x4b and +0x78 their colour (+0x4b, +0x48,
+// +0x49, +0x4a from the top byte down, each times the floats 1 / 255 and 255 at the x87's precision and truncated); 0x100 with its
+// dword +0 set: slot 9 called with it.
+void __fastcall TextPart_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
+
 }
