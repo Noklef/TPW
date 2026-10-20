@@ -12,7 +12,6 @@ address,name,module,reason
 55f780,TerrainBlend_Tile,terrain,todo
 57cb90,Cpu_Ticks16,core/cpuinfo,"reads the time-stamp counter (rdtsc): the hardware's value, nothing to compare"
 591210,Cpu_Ticks,core/cpuinfo,"reads the time-stamp counter (rdtsc): the hardware's value, nothing to compare"
-5f5650,Wrap_Owner64_Copy4At34_5f5650,core/thunks,todo
 5f63d0,String_Format,core/string,todo
 5f6c50,WString_Format,core/string,todo
 5fc740,JpegCodec_GetInfo,gfx/jpeg,todo
