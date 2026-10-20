@@ -252,9 +252,9 @@ def select_case(r):
 
 def text_case(r, window, regions):
     """FindText (0x664db7): see the top"""
-    ncols = r.choice([0, 1, 2, 3])
-    put(window, 0x164, 'h', r.choice([ncols] * 5 + [-1]))
-    regions[COLUMNS - 0x20] = b''.join(put(bytearray(r.bytes(0xc)), 0xa, 'h', r.choice([0, 0, 0, 1])) for _ in range(6))
+    ncols = r.choice([0, 1, 1, 2, 2, 3, 3])
+    put(window, 0x164, 'h', r.choice([ncols] * 9 + [-1]))
+    regions[COLUMNS - 0x18] = b''.join(put(bytearray(r.bytes(0xc)), 0xa, 'h', r.choice([0, 0, 0, 0, 1, 2, -1])) for _ in range(6))   # (two before)
     put(window, 0x16c, 'I', COLUMNS if r.random() < 0.95 else 0)
     texts = [tuple(r.choice(ALPHA) for _ in range(r.choice([0, 1, 2, 3]))) for _ in range(6)]
     chars, strs = bytearray(0x20 * 16), bytearray(r.bytes(0x10 * 16))
@@ -269,7 +269,7 @@ def text_case(r, window, regions):
         for c in range(max(ncols, 1)):
             put(links, 4 * (i + 4 + c), 'I', WSTRS + 0x10 * r.randrange(16))
     regions[LINKS] = links
-    put(window, 0x150, 'i', r.choice([len(idx), len(idx), 0, 1, r.randrange(len(idx) + 1), len(idx) + 2]))
+    put(window, 0x150, 'i', r.choice([len(idx)] * 4 + [0, 1, r.randrange(len(idx) + 1), len(idx) + 2]))
     put(window, 0x160, 'i', r.choice(idx + [idx[0], -1]))
     text = r.choice(texts + [(0x42, 0x41, 0x41, 0x41)])
     regions[WCHARS + 0x200] = struct.pack('<%dH' % (len(text) + 1), *text, 0)
