@@ -41,4 +41,8 @@ u8 *__fastcall GuiRect_Assign(u8 *rect, void *, const u8 *source);
 // bits 0xf is set; else the shape's edges crossing it: with the shape spanning it across (left <= left, right >= right), its top (0x10)
 // and bottom (0x20) strictly between the top and bottom; spanning it down, its left (0x40) and right (0x80) strictly between the sides.
 u32 __fastcall GuiRect_Overlap(u8 *rect, void *, u8 *shape);
+
+// 0x659e3e (thiscall (width, height: word pointers, each may be 0), pops 8; name unconfirmed): right - left and bottom - top stored through
+// each pointer given.
+void __fastcall GuiRect_GetSize(u8 *rect, void *, u16 *width, u16 *height);
 }

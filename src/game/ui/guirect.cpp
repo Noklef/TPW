@@ -93,4 +93,9 @@ u32 __fastcall GuiRect_Overlap(u8 *rect, void *, u8 *shape) {
     }
     return bits;
 }
+
+void __fastcall GuiRect_GetSize(u8 *rect, void *, u16 *width, u16 *height) {
+    if (width) *width = (u16)(at<s16>(rect, 8) - at<s16>(rect, 4));
+    if (height) *height = (u16)(at<s16>(rect, 0xa) - at<s16>(rect, 6));
+}
 }

@@ -5172,6 +5172,7 @@ address,name,kind,confidence,notes
 0x0065a43e,GuiRect_Adjust,function,low,"reimplemented (src/game/ui/guirect); thiscall (dl, dt, dr, db words), pops 16, slot 3: each added to left, top, right and bottom"
 0x0065aa20,GuiRect_Assign,function,low,"reimplemented (src/game/ui/guirect); thiscall (source): the base's assignment (Fn_65aa80), the four words copied; returns the rectangle"
 0x00659f3d,GuiRect_Overlap,function,low,"reimplemented (src/game/ui/guirect); thiscall (shape): how the shape lies against the rectangle: 0x200 the same (bottom vs top, sic), 0x100 contains it, corner bits 0x51/0x92/0xa8/0x64, else edge bits 0x10-0x80"
+0x00659e3e,GuiRect_GetSize,function,low,"reimplemented (src/game/ui/guirect); thiscall (width, height: word pointers, each may be 0), pops 8: right - left and bottom - top stored through each pointer given"
 0x006599f2,GuiDialog_SetA,function,low,"reimplemented (src/game/ui/guidialog); thiscall (word), pops 4: +0xa = value when value < the word +0xe (signed)"
 0x00659a19,GuiDialog_SetC,function,low,"reimplemented (src/game/ui/guidialog); thiscall (word), pops 4: +0xc = value when value < the word +0xe (signed)"
 0x006598f7,GuiDialog_Apply,function,low,"reimplemented (src/game/ui/guidialog); thiscall (flags, source), pops 8, slot 3: bit 0 SetC(src+4), bit 2 +0x30 = src+8, bit 19 SetA(src+0xa), bit 6 +0x34/+0x36 = src+0xc/+0xe; nothing for flags 0 or no source"
