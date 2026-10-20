@@ -1,6 +1,6 @@
 // The game object at 0x7b9940 (built by 0x4855d0): a renderable with a virtual base (its vtable pointer +0, the base's offset at the
 // vtable's +4) that the renderer holds in its tag 0x20 list while it is shown (0x48a410 adds it, 0x48a520 and 0x48a3d0 take it out).
-// Reimplementation of 0x4855d0, 0x48a290, 0x48a310 and 0x48a3d0. The names are unconfirmed.
+// Reimplementation of 0x4855d0, 0x48a290, 0x48a310, 0x48a3d0 and 0x48a6d0. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -32,5 +32,9 @@ void __cdecl Panel7b9940_Close();
 // ([0x87a6d0]) tag 0x20 list (Renderer_Add); then the GUI manager's slot 3 when the byte at 0x78d90e is set, else its slot 4
 // (GuiManager_CallSlot3 / 4), whose result is returned.
 u32 __cdecl Panel7b9940_Show();
+
+// 0x48a6d0 (no arguments): the atexit entry of the screen size 0x48a580 remembers at 0x7b9d00 (a pair, registered when its guard bit
+// 0x7c20e4 bit 0 is first set): nothing to destroy, a bare RET.
+void __cdecl Panel7b9940_SizeAtExit();
 
 }

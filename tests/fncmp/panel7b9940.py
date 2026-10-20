@@ -7,7 +7,8 @@
 # and the windows [0x7cb2ac] / [0x7cb2b0] each 0, a window (recorder vtable, closed or not, fncmp's logger the handler) or an object;
 # the message hook [0xfaa5fc] set or not. Show (0x48a310): the second base 0x10-0x40 in, the GUI's two queues (two entries) set or
 # not, the timed table empty or none, the byte 0x78d90e 0 or set (the manager's slot 3 or 4); ShowJump: the jump 0x481400 to it.
-# usage: panel7b9940.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Detach,Jump,Ctor,Close,CloseJump,Show,ShowJump)
+# SizeAtExit (0x48a6d0): the remembered size 0x7b9d00 and its guard any (a bare RET).
+# usage: panel7b9940.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Detach,Jump,Ctor,Close,CloseJump,Show,ShowJump,SizeAtExit)
 import os
 import struct
 import sys
@@ -15,13 +16,13 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, log_region, put, set_return, vtable  # noqa: E402
 
-CALLS = {'Detach': 0x48a3d0, 'Jump': 0x481410, 'Ctor': 0x4855d0, 'Close': 0x48a290, 'CloseJump': 0x4813f0, 'Show': 0x48a310, 'ShowJump': 0x481400}
+CALLS = {'Detach': 0x48a3d0, 'Jump': 0x481410, 'Ctor': 0x4855d0, 'Close': 0x48a290, 'CloseJump': 0x4813f0, 'Show': 0x48a310, 'ShowJump': 0x481400, 'SizeAtExit': 0x48a6d0}
 B = Bench([(0x481410, 0x481415), (0x48a3d0, 0x48a40a), (0x659607, 0x65961c), (0x576540, 0x5765d0), (0x4855d0, 0x4856bf),
            (0x5836b0, 0x5836c2), (0x4813f0, 0x4813f5), (0x481400, 0x481405), (0x48a290, 0x48a310), (0x48ee20, 0x48ee4e), (0x498b90, 0x498ba2),
            (0x4b3f20, 0x4b3f54), (0x497b60, 0x497b72), (0x48d990, 0x48d9b3), (0x4987d0, 0x4987e2), (0x658d9f, 0x658df4),
            (0x659710, 0x659721), (0x65f697, 0x65f6d1), (0x48eaf0, 0x48eb20), (0x5da3c0, 0x5da3c1),
            (0x48a310, 0x48a3c3), (0x659064, 0x6590a5), (0x669eb3, 0x669efb), (0x669c62, 0x669c8d), (0x669bdb, 0x669c30),
-           (0x67fff0, 0x680048), (0x576410, 0x576550), (0x65961c, 0x659631), (0x576270, 0x576320)])
+           (0x67fff0, 0x680048), (0x576410, 0x576550), (0x65961c, 0x659631), (0x576270, 0x576320), (0x48a6d0, 0x48a6d1)])
 MANAGER, VTABLE, TABLE, RENDERER, NODES, SELF = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500
 WINDOW, WINDOW2, THING = RAM + 0x600, RAM + 0x800, RAM + 0xa00
 OBJECT = 0x7b9940
@@ -40,6 +41,8 @@ def case(r):
     op = r.deal(OPS)
     if op == 'Ctor':
         return ctor(r)
+    if op == 'SizeAtExit':   # (the remembered size and its guard any: a bare RET)
+        return Call(CALLS[op], [], {0x7b9d00: r.bytes(8), 0x7c20e4: r.bytes(4)}, ret='v')
     log = log_region()
     if r.random() < 0.5:
         set_return(log, 4, r.getrandbits(32))

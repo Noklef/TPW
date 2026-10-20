@@ -5064,6 +5064,7 @@ address,name,kind,confidence,notes
 0x004855d0,Panel7b9940_Ctor,function,low,"reimplemented (src/game/ui/panel7b9940); thiscall (complete), pops 4: the constructor: complete sets the vbtables and vtable, then through the vbtable the vtable 0x6fdcc8, displacements, +0x50 2, scene flags touched twice, 1.0f fields, +0x54 -1; returns the object"
 0x0048a290,Panel7b9940_Close,function,low,"reimplemented (src/game/ui/panel7b9940); cdecl: message 5 to the 0x7c26b0 windows, the panel out of the renderer, the GUI manager slot 4, the front-end globals released and two windows sent message 4"
 0x0048a310,Panel7b9940_Show,function,low,"reimplemented (src/game/ui/panel7b9940); cdecl: GUI queues reset, the second base set up, the first base added to the renderer, the GUI manager slot 3 or 4"
+0x0048a6d0,Panel7b9940_SizeAtExit,function,low,"reimplemented (src/game/ui/panel7b9940); cdecl, no arguments: the atexit entry of the screen size 0x48a580 remembers at 0x7b9d00; a bare RET"
 0x006588b6,Gui_HashName,function,low,"reimplemented (src/game/ui/windowreg); cdecl (text, multiplier): h = (signed char ^ h) * multiplier over the characters; returns h"
 0x00659bc9,GuiWindows_FindByName,function,low,"reimplemented (src/game/ui/windowreg); cdecl (name): the first node with the name's hash (0x2f): its window's slot 0x20, else 0"
 0x00659c42,GuiWindows_FindByHash,function,low,"reimplemented (src/game/ui/windowreg); cdecl (hash): the first node with the hash: its window's slot 0x20, else 0"
