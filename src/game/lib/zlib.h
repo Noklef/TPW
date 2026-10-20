@@ -22,6 +22,9 @@ struct inflate_codes_state;   // inflate_codes_statef (private to infcodes.c), 0
 unsigned long __cdecl adler32(unsigned long adler, const unsigned char *buf, unsigned int len);
 
 // deflate.c
+// 0x6357c0: frees the stream's buffers and state (zfree), state null; Z_DATA_ERROR if it was part way through a stream, Z_STREAM_ERROR
+// without a state or in a state no deflate leaves.
+int __cdecl deflateEnd(z_stream_s *strm);
 // 0x635710: two bytes into the pending buffer, most significant first.
 void __cdecl putShortMSB(internal_state *s, unsigned int b);
 // 0x635740: as much of the pending output as fits into next_out.
@@ -113,6 +116,19 @@ int __cdecl inflate_flush(inflate_blocks_state *s, z_stream_s *z, int r);
 
 // The shims: the library's function (built as zlib_<name>, third_party/config/zlib_shims.h), then the exe's copy put back where it
 // left one of its own addresses (src/game/lib/zlib.cpp).
+// 0x63eb30: a new stream's trees (the descriptors, the bit buffer, init_block); the static descriptors are the exe's (0x779ba8,
+// 0x779bc0, 0x779bd8) as the exe's _tr_init sets them, byte for byte the library's static_l_desc / static_d_desc / static_bl_desc.
+void __cdecl _tr_init(internal_state *s);
+// 0x6353d0: the stream back to its start (_tr_init, lm_init; the exe's static descriptors); Z_STREAM_ERROR without a state, zalloc
+// or zfree.
+int __cdecl deflateReset(z_stream_s *strm);
+// 0x6351a0: a deflate state for the parameters and its buffers (zalloc), reset; Z_VERSION_ERROR, Z_STREAM_ERROR, or Z_MEM_ERROR with
+// strm->msg (the exe's z_errmsg entry).
+int __cdecl deflateInit2_(z_stream_s *strm, int level, int method, int windowBits, int memLevel, int strategy, const char *version,
+                          int stream_size);
+// 0x635450: compresses what fits (the zlib header first, the level's deflate_stored / fast / slow, flushes, the Adler-32 trailer at
+// Z_FINISH); strm->msg on a bad call (the exe's z_errmsg entry).
+int __cdecl deflate(z_stream_s *strm, int flush);
 // 0x649d60: the bit length codes' table (19 lengths in c); z->msg on a bad set (the exe's string).
 int __cdecl inflate_trees_bits(unsigned *c, unsigned *bb, inflate_huft_s **tb, inflate_huft_s *hp, z_stream_s *z);
 // 0x64a2c0: the literal / length and distance tables of a dynamic block (nl + nd lengths in c); z->msg on a bad set (the exe's string).

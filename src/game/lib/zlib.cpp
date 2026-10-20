@@ -13,6 +13,10 @@ extern "C" {
 #include "deflate.h"
 #include "inftrees.h"
 }
+#undef _tr_init
+#undef deflateReset
+#undef deflateInit2_
+#undef deflate
 
 // The exe's sizes: inflateInit2_ / deflateInit2_ check the stream size, deflateInit2_ allocates the state,
 // inflate_blocks_new the hufts (MANY of them).
@@ -55,3 +59,45 @@ void exe_message(z_stream_s *z, const char *before) {
         }
 }
 }  // namespace zlibshim
+
+namespace {
+// The exe's static_l_desc, static_d_desc and static_bl_desc, for the library's (trees.c) that _tr_init stores in the state: the
+// state holds the exe's addresses as the exe's _tr_init leaves them.
+const std::uintptr_t kExeStaticLDesc = 0x779ba8, kExeStaticDDesc = 0x779bc0, kExeStaticBlDesc = 0x779bd8;
+
+void exe_descs(deflate_state *s) {
+    s->l_desc.stat_desc = reinterpret_cast<static_tree_desc *>(kExeStaticLDesc);
+    s->d_desc.stat_desc = reinterpret_cast<static_tree_desc *>(kExeStaticDDesc);
+    s->bl_desc.stat_desc = reinterpret_cast<static_tree_desc *>(kExeStaticBlDesc);
+}
+}  // namespace
+
+extern "C" {
+
+void __cdecl _tr_init(internal_state *s) {
+    zlib__tr_init(s);
+    exe_descs(s);
+}
+
+int __cdecl deflateReset(z_stream_s *strm) {
+    const int r = zlib_deflateReset(strm);
+    if (r == Z_OK) exe_descs(strm->state);
+    return r;
+}
+
+int __cdecl deflateInit2_(z_stream_s *strm, int level, int method, int windowBits, int memLevel, int strategy, const char *version,
+                          int stream_size) {
+    const char *const before = strm ? strm->msg : nullptr;
+    const int r = zlib_deflateInit2_(strm, level, method, windowBits, memLevel, strategy, version, stream_size);
+    if (r == Z_OK) exe_descs(strm->state);
+    zlibshim::exe_message(strm, before);
+    return r;
+}
+
+int __cdecl deflate(z_stream_s *strm, int flush) {
+    const char *const before = strm ? strm->msg : nullptr;
+    const int r = zlib_deflate(strm, flush);
+    zlibshim::exe_message(strm, before);
+    return r;
+}
+}

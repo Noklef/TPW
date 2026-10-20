@@ -7,7 +7,8 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import CPU, EXE, RAM, Bench, Call, cpu_region  # noqa: E402
+from fncmp import CPU, EXE, RAM, ZALLOC, ZFREE, Bench, Call, cpu_region, heap  # noqa: E402
+from fncmp import HEAP as ZHEAP  # noqa: E402
 from pe_read import PE  # noqa: E402
 
 # the exe's copies (re/libmap.csv): name -> (address, end)
@@ -20,9 +21,12 @@ FUNCS = {
     'compress_block': (0x640010, 0x640460), 'bi_reverse': (0x6404d0, 0x6404f0),
     'putShortMSB': (0x635710, 0x635740), 'flush_pending': (0x635740, 0x6357c0), 'lm_init': (0x635870, 0x635910), 'deflate_stored': (0x635910, 0x635a70),
     'fill_window': (0x635a70, 0x635ba0), 'read_buf': (0x635ba0, 0x635c20), 'deflate_fast': (0x635c20, 0x635f80), 'longest_match': (0x635f80, 0x636100),
-    'deflate_slow': (0x636100, 0x636560),
+    'deflate_slow': (0x636100, 0x636560), 'deflateInit2_': (0x6351a0, 0x6353d0), 'deflateReset': (0x6353d0, 0x635450),
+    'deflate': (0x635450, 0x635710), 'deflateEnd': (0x6357c0, 0x635870), '_tr_init': (0x63eb30, 0x63eba0),
 }
-B = Bench(sorted(FUNCS.values()))
+B = Bench(sorted(list(FUNCS.values()) + [(0x631270, 0x631290)]))  # (and the bare RET _tr_init calls for tr_static_init)
+for a in (0x6351a0, 0x635450, 0x6357c0):  # (fncmp's zlib stand-ins for the codec's benches: here the exe's own)
+    del B.emu.hooks[a]
 S, PEND, BUF, LBUF, DBUF, BIG = RAM, RAM + 0x2000, RAM + 0x3000, RAM + 0x4000, RAM + 0x4800, RAM + 0x10000
 LIT_MAX = 300  # (symbols in a block: at most 6 bytes each in the pending buffer)
 STATE = 0x16b8
@@ -478,6 +482,10 @@ def deflate_block(address):
                 struct.pack_into('<I', s, MATCH_START, r.randrange(max(0, strstart - 1 - (w_size - MIN_LOOKAHEAD)), strstart - 1))
             else:
                 struct.pack_into('<I', s, MATCH_LENGTH, MIN_MATCH - 1)
+            if address != 0x636100:  # (only deflate_slow sets prev_length: for the others it stays lm_init's, and longest_match starts
+                # from it, so a longer one returns a match of that length where none was found, at the stale match_start: distance 0
+                # when that is strstart, which d_code looks up past _dist_code)
+                struct.pack_into('<I', s, PREV_LENGTH, MIN_MATCH - 1)
             if address == 0x635910 and lookahead >= 2 and r.random() < 0.4:  # (the block at MAX_DIST: deflate_stored flushes there)
                 lookahead = r.choice([2, 2, lookahead])  # (2: the least it moves on without refilling first)
                 struct.pack_into('<I', s, LOOKAHEAD, lookahead)
@@ -519,9 +527,82 @@ def too_far(r):
 
 deflate_stored, deflate_fast, deflate_slow = deflate_block(0x635910), deflate_block(0x635c20), deflate_block(0x636100)
 
+
+# --- deflate.c's entry points: deflate on deflating()'s states (status, last_flush, pending output, level 0's deflate_stored too), the
+# init / reset / end on streams whose zalloc / zfree are fncmp's ZALLOC / ZFREE over the heap at ZHEAP. deflateInit2_ runs at the small
+# sizes deflating() uses (windowBits 8..12, memLevel 1..3, so the heap region stays small) and now and then at the game's own: both of
+# its calls (0x6192f2, 0x61950c) pass memLevel 9 and windowBits 15, where the overrun too_far() avoids cannot happen.
+STATUS, LAST_FLUSH = 0x4, 0x20
+INIT_STATE, BUSY_STATE, FINISH_STATE = 42, 113, 666
+VER = RAM + 0x5080
+
+
+def deflate_call(r):
+    """A state as deflate_block() makes one for the function the level picks from configuration_table."""
+    address, levels = r.choice([(0x635910, [0]), (0x635c20, [1, 2, 3]), (0x636100, [4, 5, 6, 7, 8, 9])])
+    regs = deflate_block(address)(r).regions
+    s = regs[S]
+    struct.pack_into('<i', s, LEVEL, r.choice(levels))
+    struct.pack_into('<I', s, STATUS, r.choice([INIT_STATE, BUSY_STATE, BUSY_STATE, FINISH_STATE]))
+    struct.pack_into('<i', s, LAST_FLUSH, r.choice([0, 0, 1, 2, 3, 4, -1]))
+    pending = r.choice([0, 0, r.randrange(1, 0x40)])
+    struct.pack_into('<Ii', s, PENDING_OUT, PEND + r.randrange(0x40), pending)
+    strm = bytearray(regs[STRM])
+    struct.pack_into('<I', strm, 0x18, r.choice([0, 0x779b80]))  # (msg)
+    if r.random() < 0.05:  # (no input with avail_in, no output, no state)
+        struct.pack_into('<I', strm, r.choice([0, 0xc, 0x1c]), 0)
+    regs[STRM] = strm
+    return Call(0x635450, [STRM, r.choice([0, 0, 1, 2, 3, 4, 4, 5, -1])], regs, ret='a')  # (5, -1: Z_STREAM_ERROR)
+
+
+def z_stream(r, state=S):
+    return bytearray(struct.pack('<14I', BUF, r.getrandbits(8), r.getrandbits(16), OUT, r.getrandbits(8), r.getrandbits(16),
+                                 r.choice([0, 0x779b80]), state, ZALLOC, ZFREE, r.getrandbits(32), r.getrandbits(2), r.getrandbits(32), 0))
+
+
+def deflate_reset(r):
+    s, regs = deflating(r, r.random() < 0.5)
+    struct.pack_into('<i', s, NOHEADER, r.choice([0, 1, -1]))
+    strm = z_stream(r)
+    if r.random() < 0.1:  # (no state, zalloc or zfree: Z_STREAM_ERROR)
+        struct.pack_into('<I', strm, r.choice([0x1c, 0x20, 0x24]), 0)
+    regs[STRM] = strm
+    return Call(0x6353d0, [STRM], regs, ret='a')
+
+
+def deflate_end(r):
+    s = state(r)
+    struct.pack_into('<I', s, STATUS, r.choice([INIT_STATE, BUSY_STATE, FINISH_STATE, r.getrandbits(10)]))
+    for o in (PENDING_BUF, WINDOW, PREV_, HEAD_):  # (each freed when not null: zfree hashes the pointer)
+        struct.pack_into('<I', s, o, r.choice([0, r.getrandbits(32)]))
+    strm = z_stream(r, r.choice([S] * 9 + [0]))
+    return Call(0x6357c0, [STRM], {STRM: strm, S: s, ZHEAP: heap(0x100)}, ret='a')
+
+
+def deflate_init(r):
+    game = r.random() < 0.03
+
+    def bad(good, wrong):  # (each parameter out of range now and then: Z_STREAM_ERROR / Z_VERSION_ERROR)
+        return r.choice(wrong) if r.random() < 0.05 else good
+    w = 15 if game else bad(r.choice([r.randrange(8, 13), -r.randrange(8, 13)]), [7, 16, -7, 0])
+    mem = 9 if game else bad(r.choice([1, 2, 3, 3]), [0, 10])
+    args = [STRM, bad(r.choice([-1, 6, r.randrange(10)]), [10, -2]), bad(8, [7]), w, mem, bad(r.randrange(3), [3, -1]), bad(VER, [0]),
+            bad(0x38, [0x34])]
+    regs = {STRM: z_stream(r, r.getrandbits(32)), VER: r.choice([b'1.1.3\0'] * 8 + [b'1.2.11\0', b'2\0']),
+            ZHEAP: heap(0x82000 if game else 0x8000, r.choice([0] * 12 + [1, 2, 3, 4, 5, 6]))}
+    return Call(0x6351a0, args, regs, ret='a')
+
+
+def tr_init(r):
+    s = state(r)
+    return Call(0x63eb30, [S], regions(r, s))
+
+
+
 OPS = [f for f in (adler32, init_block, set_data_type, bi_flush, bi_windup, copy_block, build_tree, pqdownheap, gen_bitlen, gen_codes, scan_tree,
                    send_tree, build_bl_tree, send_all_trees, compress_block, tr_stored_block, tr_align, tr_flush_block, put_short_msb,
-                   flush_pending, read_buf, lm_init, longest_match, fill_window, deflate_stored, deflate_fast, deflate_slow)
+                   flush_pending, read_buf, lm_init, longest_match, fill_window, deflate_stored, deflate_fast, deflate_slow, deflate_call,
+                   deflate_reset, deflate_end, deflate_init, tr_init)
        if not os.environ.get('OPS') or f.__name__ in os.environ['OPS'].split(',')]
 
 

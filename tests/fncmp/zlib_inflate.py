@@ -387,7 +387,7 @@ def farthest_all(data):
                 far = max(far, f)
             if last:
                 return far
-    except (EOFError, ValueError):
+    except (EOFError, ValueError, IndexError):  # (IndexError: a repeat first)
         return far
 
 
@@ -501,6 +501,7 @@ METHOD, BLOCKS, DONE, BADI = 0, 7, 12, 13  # (inflate's modes)
 def inflate_case(r):
     nowrap = r.random() < 0.3
     wbits = r.choice([9, 10, 11, 12, 15])
+    dict_ = False
     if r.random() < 0.06:
         data, intact = r.bytes(r.randrange(1, 300)), False
     else:
@@ -518,7 +519,7 @@ def inflate_case(r):
                 i = r.randrange(8 * len(data))
                 data[i >> 3] ^= 1 << (i & 7)
         data = bytes(data)
-    raw = data if nowrap else data[2:]
+    raw = data if nowrap else data[6:] if dict_ else data[2:]  # (the header, and a preset dictionary's id)
     wsize = max(1 << max(farthest_all(raw) - 1, 0).bit_length(), 1 << r.randrange(8, 13)) if intact else 0x8000
     log = log_region()
     if intact and not nowrap:
