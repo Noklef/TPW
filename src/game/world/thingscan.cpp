@@ -969,4 +969,34 @@ s32 __fastcall Things_CountPeopleStat1a4Above(void *, void *, u32 least) { retur
 s32 __fastcall Things_PercentPeopleStat19cAbove(void *, void *, s32 bound) { return percentBeyond<true>(bound); }
 
 s32 __fastcall Things_PercentPeopleStat19cBelow(void *, void *, s32 bound) { return percentBeyond<false>(bound); }
+
+s32 __stdcall Things_AverageStat1f8OfKind(u32 kind) {
+    s32 sum = 0, count = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (at<u8>(thing, 2) == kind) {
+            ++count;
+            sum += (u8)(long long)at<float>(thing, 0x1f8);
+        }
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    return count ? sum / count : 0;
+}
+
+s32 __cdecl Things_AverageKind3Flag1Of100Minus44() {
+    s32 sum = 0, count = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (at<u8>(thing, 2) == 3 && (at<u8>(thing, 0x32) & 1)) {
+            ++count;
+            sum += 100 - (u8)(long long)at<float>(thing, 0x44);
+        }
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    return count ? sum / count : 0;
+}
 }  // extern "C"

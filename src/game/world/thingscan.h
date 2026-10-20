@@ -251,4 +251,13 @@ s32 __fastcall Things_CountPeopleStat1a4Above(void *self, void *, u32 least);
 // low byte (as 0x4c9340's) is above / below bound (signed), 0 when there are none.
 s32 __fastcall Things_PercentPeopleStat19cAbove(void *self, void *, s32 bound);
 s32 __fastcall Things_PercentPeopleStat19cBelow(void *self, void *, s32 bound);
+
+// 0x4c9cc0 (thiscall, the analyser unused (kind), pops 4; name unconfirmed): over the things whose kind byte (+2) is kind (all of its
+// dword), the average (signed) of the low bytes of their float +0x1f8 cut to an integer, 0 when there are none. The debug prints of the
+// slot check are left out.
+s32 __stdcall Things_AverageStat1f8OfKind(u32 kind);
+
+// 0x4ca160 (thiscall, the analyser unused, no arguments; name unconfirmed): over the objects (kind 3) with bit 0 of +0x32 set, the
+// average (signed) of 100 less the low byte of their float +0x44 cut to an integer, 0 when there are none.
+s32 __cdecl Things_AverageKind3Flag1Of100Minus44();
 }  // extern "C"

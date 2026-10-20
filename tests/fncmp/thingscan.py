@@ -6,7 +6,9 @@
 # are staff, kind 1 and objects, the staff lists' heads (world +0x1da73c..) and links (+0x210) name handles of the park or 0. Score (0x4cceb0): staff,
 # kind 1 on the map cells and objects whose definitions' +0x4ac are mostly the values it counts by; its analyser any pointer (only handed on).
 # CPlain / C4ac0 (0x4c7fa0 / 0x4c8070, the analyser's kept counts): its count at +0x1f0b8 / +0x1f0c4 kept or not (byte +8), taken some
-# quarters before the game time (or after it, wrapping), the age asked for about that.
+# quarters before the game time (or after it, wrapping), the age asked for about that. Avg1f8 (0x4c9cc0): the staff mostly, a kind asked
+# for (or with high bits), their floats +0x1f8; Avg44 (0x4ca160): objects with +0x32 bit 0 or not, their floats +0x44; the floats 0..100
+# mostly (else negative, past 255, huge or NaN).
 # usage: thingscan.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=C1,C2,Max,...)
 import os
 import struct
@@ -31,7 +33,8 @@ CALLS = {'C1': (0x4c9f90, 'c', 0xa0, 'n'), 'C2': (0x4ca0c0, 'c', 0xa0, 'n'), 'Ma
          'Cat': (0x4824d0, 'c', 0x40c, 'kp'), 'CatB': (0x482da0, 'c', 0x430, 'kp'), 'CatW': (0x483740, 'c', 0x23, 'kp'), 'CatPW': (0x483770, 'c', 0x23, 'kp'),
          'Step': (0x4b3340, 'c', 0x14c, 'kp'), 'Group': (0x48caf0, 't', 0xe4, 'kp'),
          'GroupB': (0x48cbe0, 't', 0xe4, 'kp'), 'Score': (0x4cceb0, 't', 0x449, 'a'),
-         'CPlain': (0x4c7fa0, 't', 0xc6, 'gc'), 'C4ac0': (0x4c8070, 't', 0xde, 'gc')}   # (Step's and Group's ranges take in their jump tables)
+         'CPlain': (0x4c7fa0, 't', 0xc6, 'gc'), 'C4ac0': (0x4c8070, 't', 0xde, 'gc'),
+         'Avg1f8': (0x4c9cc0, 's', 0xb3, 'v'), 'Avg44': (0x4ca160, 'c', 0xb4, 'n')}   # (Step's and Group's ranges take in their jump tables)
 B = Bench([(a, a + n) for (a, _c, n, _s) in CALLS.values()] + [(0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x4e0440, 0x4e0450),
                                                               (0x4e2710, 0x4e2740), (0x4dd4e0, 0x4dd500), (0x412e90, 0x412eea), (0x5da3c0, 0x5da3c1), (0x41a960, 0x41a970), (0x5161b0, 0x516200), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c), (0x519510, 0x519550),
                                                               (0x481f80, 0x481fa0), (0x481fc0, 0x482030), (0x4cd300, 0x4cd331), (0x41a990, 0x41a9a7)])
@@ -46,8 +49,8 @@ def case(r):
     if shape == 'kp':
         return category(r, address)
     regions, handles, things = park(r, count=r.choice([1, 2, 3, 4, 6]) if shape in ('o', 'u') or name.startswith('B') else None,
-                                    defs=name not in ('C1', 'C2', 'Max', 'C3', 'Staff', 'Avg', 'Re', 'P1', 'P2', 'P3', 'Sum', 'Cs') and shape != 'u',
-                                    kinds=(4, 5, 6, 7, 8, 3, 1, 0) if name in ('Staff', 'S5', 'S6', 'S4', 'S7', 'S8', 'Cs') else (1, 1, 1, 3, 0, 0xff) if name[0] == 'P' or name == 'CPlain' else
+                                    defs=name not in ('C1', 'C2', 'Max', 'C3', 'Staff', 'Avg', 'Re', 'P1', 'P2', 'P3', 'Sum', 'Cs', 'Avg1f8', 'Avg44') and shape != 'u',
+                                    kinds=(4, 5, 6, 7, 8, 3, 1, 0) if name in ('Staff', 'S5', 'S6', 'S4', 'S7', 'S8', 'Cs', 'Avg1f8') else (1, 1, 1, 3, 0, 0xff) if name[0] == 'P' or name == 'CPlain' else
                                     (4, 5, 5, 6, 7, 8, 1, 1, 3, 3, 3, 0) if name == 'Score' else (3, 3, 3, 1, 2, 0xff, 0),
                                     cells=name[0] == 'P' or name in ('Score', 'CPlain'))
     if name == 'Score':   # (the definitions' +0x4ac the values it counts by, mostly)
@@ -101,6 +104,13 @@ def case(r):
             obj[off:off + 4] = struct.pack('<i', r.choice([-2, -1, 0, 1, 2, 5]))
             obj[off + 4:off + 8] = struct.pack('<I', r.choice([0, 7, 0xdead]))
         regions[RAM + 0x4000 + 0x360] = bytes(obj)
+    if name in ('Avg1f8', 'Avg44'):
+        pool = regions[POOL]
+        for i in range(len(things)):
+            f = r.choice([0.0, 1.0, 50.0, 99.9, 100.0, 0.5, r.uniform(0, 100)]) if r.random() < 0.85 else \
+                r.choice([-1.0, -0.5, 255.9, 256.0, 300.0, float('nan'), 1e10])
+            struct.pack_into('<f', pool, THING * i + (0x1f8 if name == 'Avg1f8' else 0x44), f)
+        value = r.choice([4, 5, 6, 7, 8, 4, 5, 3, 1, 0x104, 0xff])
     if name == 'Avg':
         value = r.choice([3, 1, 2, 0xff, 0, 0x103])
     if name in ('D4', 'D5'):

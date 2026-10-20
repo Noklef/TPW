@@ -974,6 +974,8 @@ const Hook kHooks[] = {
     {"Things_CountPeopleStat1a4Above", 0x004c93f0, (void *)&Things_CountPeopleStat1a4Above, {0x8b, 0x0d, 0x9c, 0x23, 0x80}},
     {"Things_PercentPeopleStat19cAbove", 0x004c9670, (void *)&Things_PercentPeopleStat19cAbove, {0x83, 0xec, 0x0c, 0x8b, 0x0d}},
     {"Things_PercentPeopleStat19cBelow", 0x004c9750, (void *)&Things_PercentPeopleStat19cBelow, {0x83, 0xec, 0x0c, 0x8b, 0x0d}},
+    {"Things_AverageStat1f8OfKind", 0x004c9cc0, (void *)&Things_AverageStat1f8OfKind, {0x8b, 0x0d, 0x9c, 0x23, 0x80}},
+    {"Things_AverageKind3Flag1Of100Minus44", 0x004ca160, (void *)&Things_AverageKind3Flag1Of100Minus44, {0x8b, 0x0d, 0x9c, 0x23, 0x80}},
     {"Rides_FindById",            0x0055a070, (void *)&Rides_FindById, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"Rides_SetElement",          0x0055a0b0, (void *)&Rides_SetElement, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"Rides_SetWordC0",           0x0055a300, (void *)&Rides_SetWordC0, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
