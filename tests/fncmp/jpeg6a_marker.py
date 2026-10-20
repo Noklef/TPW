@@ -100,7 +100,7 @@ def jinit(r):
 
 def anymarker(r):
     regs = common(r)
-    if r.random() < 0.03:  # (65533 bytes: see the header)
+    if r.random() < 0.15:  # (65533 bytes: see the header)
         regs.pop(OUT)
         regs[BIG_OUT] = bytes(0x10010)
         struct.pack_into('<I', regs[DEST], 0, BIG_OUT)
@@ -136,7 +136,16 @@ def adobe(r):
 
 
 def frame(r):
-    return Call(0x64f852, [CINFO], common(r))
+    regs = common(r)
+    if r.random() < 0.5:  # (baseline's edge: every table number 0 or 1 but perhaps one 2, at 8 bits, Huffman, sequential)
+        struct.pack_into('<iiiI', regs[CINFO], 0x30, 8, r.choice([1, 2, 3, 4]), r.choice([1, 2, 3, 4, 5]), COMPS)
+        struct.pack_into('<i', regs[CINFO], 0xac, 0)
+        struct.pack_into('<i', regs[CINFO], 0xdc, 0)
+        for c in range(4):
+            struct.pack_into('<ii', regs[COMPS], 0x54 * c + 0x14, r.choice([0, 1]), r.choice([0, 1]))
+        if r.random() < 0.7:
+            struct.pack_into('<i', regs[COMPS], 0x54 * r.randrange(4) + r.choice([0x14, 0x18]), 2)
+    return Call(0x64f852, [CINFO], regs)
 
 
 def dqt(r):
@@ -160,7 +169,13 @@ def dri(r):
 
 
 def sos(r):
-    return Call(0x64febc, [CINFO], common(r))
+    regs = common(r)
+    if r.random() < 0.4:  # (a progressive DC refinement scan, Huffman or arithmetic)
+        struct.pack_into('<i', regs[CINFO], 0xdc, 1)
+        struct.pack_into('<i', regs[CINFO], 0xac, r.choice([0, 1]))
+        struct.pack_into('<ii', regs[CINFO], 0x134, 0, 0)
+        struct.pack_into('<i', regs[CINFO], 0x13c, r.choice([1, r.randrange(1, 14)]))
+    return Call(0x64febc, [CINFO], regs)
 
 
 def trailer(r):
