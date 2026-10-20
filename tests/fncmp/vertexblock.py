@@ -12,10 +12,15 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from fncmp import RAM, Bench, Call, fb, put  # noqa: E402
+from fncmp import HEAP, LOG, RAM, Bench, Call, fb, global_heap, heap, log_region, put  # noqa: E402
+import animatormesh  # noqa: E402
+import holder  # noqa: E402
 import terrainheight  # noqa: E402
+from texdirs import merged  # noqa: E402
 
-B = Bench([(0x53ddd0, 0x53df30), (0x4527f0, 0x452a70), (0x53e530, 0x53e61c), (0x53df30, 0x53e4d0), (0x52f840, 0x52f860)], sines=4096)
+B = Bench(merged([(0x53ddd0, 0x53df30), (0x4527f0, 0x452a70), (0x53e530, 0x53e61c), (0x53df30, 0x53e4d0), (0x52f840, 0x52f860), (0x53d790, 0x53d9db),
+                  (0x54dcc0, 0x54dcf0), (0x5c5520, 0x5c5530)] + animatormesh.RANGES + holder.RANGES), sines=4096,
+          hooks={**holder.HOOKS, **animatormesh.HOOKS})
 BLOCK, POS, NORMALS, UVS, NORMAL = RAM + 0x8000, RAM + 0x8100, RAM + 0x8400, RAM + 0x8600, RAM + 0x8800
 INDICES, CORNERS, CORNER_UVS, CORNER_NORMALS = RAM + 0x8a00, RAM + 0x8b00, RAM + 0x8c00, RAM + 0x8d00
 
@@ -49,8 +54,39 @@ def face(r):
     return Call(0x53df30, [BLOCK] + args, regions, conv='t', ret='a')
 
 
-def case(r, ops=('add', 'quad', 'face')):
+CBLOCK, CNAME, CTEXT, CRESULT = RAM + 0x60000, RAM + 0x60200, RAM + 0x60300, RAM + 0x60400
+
+
+def construct(r):
+    """0x53d790 (thiscall; cubes, quads, result, name, head, five dwords): a block of 0-3 cubes and 0-5 quads built (now and then a cube
+    or quad count with high bits); the node's word +0xc (block +0x30) small; the text at +8 of 0x786b68 any; the render flags (0x78d968,
+    0x785874, 0x79d86c) as rendermode.py's; the face scene as face()'s; holder.py's Wake environment (its renderer) for the wake."""
+    regions = dict(holder.wake(r).regions)
+    block = bytearray(r.bytes(0xa4))
+    put(block, 0x30, 'H', r.choice([0, 1, 2, r.randrange(3, 13)]))
+    regions.update({CBLOCK: block, CNAME: animatormesh.text(r), CTEXT: animatormesh.text(r), CRESULT: r.bytes(4), HEAP: heap(0x2000),
+                    LOG: log_region(), 0x871f68: r.bytes(0x80)})
+    regions.update(global_heap())
+    regions[0x786b68] = put(bytearray(r.bytes(0xc)), 8, 'I', CTEXT)
+    regions[0x78d968] = struct.pack('<I', r.choice([0, 0, 1, r.getrandbits(32)]))
+    regions[0x785874] = struct.pack('<I', r.choice([0, 1, 2, r.getrandbits(32)]))
+    regions[0x79d86c] = struct.pack('<I', r.getrandbits(32))
+    regions[0x874fc0] = struct.pack('<2I', r.f(), r.choice([0, 0, 0, 1]))
+    regions[0x81ae2c] = struct.pack('<I', r.choice([4, 0xe, 0x13, 4, r.randrange(0x20)]))
+    regions[0x8186b4] = struct.pack('<2i', *(r.choice([0, r.randrange(-64, 64), r.getrandbits(31)]) for _ in range(2)))
+    regions[0x820af8] = r.floats(bytearray(8), [0, 4])
+    regions[0x871ee8] = r.floats(bytearray(0x80), range(0, 0x80, 4))
+    cubes = r.choice([0, 1, 1, 2, 3, 0x10002 if r.random() < 0.1 else 1])
+    quads = r.choice([0, 1, 2, 5, 0x10001 if r.random() < 0.1 else 2])
+    name = r.choice([CNAME, CNAME, CNAME, 0])
+    args = [cubes, quads, CRESULT, name] + [r.getrandbits(32) for _ in range(7)]
+    return Call(0x53d790, [CBLOCK] + args, regions, conv='t', ret='a')
+
+
+def case(r, ops=('add', 'quad', 'face', 'construct')):
     op = r.deal(list(ops))
+    if op == 'construct':
+        return construct(r)
     if op == 'quad':
         return quad(r)
     if op == 'face':

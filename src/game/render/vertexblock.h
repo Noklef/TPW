@@ -30,4 +30,16 @@ u32 __fastcall VertexBlock_AddQuad(u8 *block, void *, const u32 *positions, u32 
 // and (base, base + 2, base + 3) as VertexBlock_AddQuad's. Returns the new +0x98.
 u32 __fastcall VertexBlock_AddFace(u8 *block, void *, u32 x, u32 y, u32 z, u32 face, u32 turn, s32 type, u32 unused6, u32 big, u32 unused8,
                                    u32 fixed);
+
+// 0x53d790 (thiscall (cubes, quads, result, name, head, five dwords), pops 0x2c; name unconfirmed): a block of that many cubes' tops
+// and quads built. *result = 1 first; +0 the head, +4 0, the word +8 the quads; +0xc the string 0x763ee4 or 0x74cb98 (Flag54dcc0_Test),
+// the path at 0x871f68 (its +0x10) 0x763ed4's text, the one at +8 of the object 0x786b68 (Obj_Self) and 0x763ec0's or 0x763eac's (asked
+// again) after it; +0x14 0x763b38. Its record (+4) and animator (+0x54: flags 3, one node, +0x24: flags 3, 2 * cubes triangles, 4 *
+// cubes vertices, normals and coordinates, the quads, the five dwords at +0x34..+0x48; the rest cleared, +0xa0 the cubes) made into a mesh
+// (Animator_Create with the name and flags 3, its result to *result). When that gives 1: the node's matrix the identity, the counts
+// +0x9c and +0x98 0, the index list +0x94 the first part's (+0x70); each cube's top added (VertexBlock_AddFace at the origin, turn 0xff,
+// type -1, 1.0f, small, not fixed); quad i's entry (0x10 bytes at +0x50) given +0x1c + 8 * i and its words +4, +6 cleared; the animator
+// woken (Animator_Wake). Returns the block.
+u8 *__fastcall VertexBlock_Construct(u8 *block, void *, u32 cubes, u32 quads, u32 *result, const char *name, u32 head, u32 a5, u32 a6, u32 a7,
+                                     u32 a8, u32 a9, u32 a10);
 }

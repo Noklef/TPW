@@ -5,6 +5,10 @@
 #include <cstring>
 
 #include "../core/globals.h"
+#include "../core/trivial.h"
+#include "../math/matrix.h"
+#include "../model/holder.h"
+#include "../render/mode.h"
 #include "../math/sintable.h"
 #include "../math/x87.h"
 #include "../terrain/land.h"
@@ -189,5 +193,74 @@ u32 __fastcall VertexBlock_AddFace(u8 *block, void *, u32 x, u32 y, u32 z, u32 f
     at<u8 *>(block, 0x94) = list;
     at<u32>(block, 0x98) = triangles;
     return triangles;
+}
+
+u8 *__fastcall VertexBlock_Construct(u8 *block, void *, u32 cubes, u32 quads, u32 *result, const char *name, u32 head, u32 a5, u32 a6, u32 a7,
+                                     u32 a8, u32 a9, u32 a10) {
+    const auto append = [](char *to, const char *from) {   // (the inlined strcat: the length, then the copy)
+        while (*to)
+            ++to;
+        u32 n = 0;
+        while (from[n])
+            ++n;
+        for (u32 i = 0; i <= n; ++i)
+            to[i] = from[i];
+    };
+    *result = 1;
+    at<u32>(block, 0) = head;
+    at<u32>(block, 4) = 0;
+    at<u16>(block, 8) = (u16)quads;
+    at<u32>(block, 0xc) = Flag54dcc0_Test() ? 0x763ee4 : 0x74cb98;
+    char *const path = reinterpret_cast<char *>(0x00871f68);
+    {
+        const char *const from = reinterpret_cast<const char *>(0x00763ed4);
+        u32 n = 0;
+        while (from[n])
+            ++n;
+        for (u32 i = 0; i <= n; ++i)
+            path[i] = from[i];
+    }
+    append(path, at<const char *>(Obj_Self(reinterpret_cast<u8 *>(0x00786b68)), 8));
+    append(path, reinterpret_cast<const char *>(Flag54dcc0_Test() ? 0x00763ec0 : 0x00763eac));
+    at<u32>(block, 0x10) = 0x871f68;
+    at<u32>(block, 0x14) = 0x763b38;
+    at<u32>(block, 0x54) = 3;
+    at<u16>(block, 0x58) = 1;
+    at<u8 *>(block, 0x5c) = block + 0x24;
+    at<u32>(block, 0x24) = 3;
+    at<u32>(block, 0x34) = a5;
+    at<u16>(block, 0x28) = (u16)(cubes * 2);
+    at<u16>(block, 0x2a) = (u16)(cubes * 4);
+    at<u16>(block, 0x2c) = (u16)(cubes * 4);
+    at<u32>(block, 0x3c) = a7;
+    at<u32>(block, 0x38) = a6;
+    at<u32>(block, 0x44) = a9;
+    at<u32>(block, 0x40) = a8;
+    at<u32>(block, 0x48) = a10;
+    for (u32 offset = 0x60; offset <= 0x78; offset += 4)
+        at<u32>(block, offset) = 0;
+    for (u32 offset = 0x7c; offset <= 0x86; offset += 2)
+        at<u16>(block, offset) = 0;
+    for (u32 offset = 0x88; offset <= 0x90; offset += 4)
+        at<u32>(block, offset) = 0;
+    at<u16>(block, 0x2e) = (u16)quads;
+    at<u32>(block, 0xa0) = cubes & 0xffff;
+    const u32 made = Animator_Create(block + 0x54, block + 4, name, 3);
+    *result = made;
+    if (made != 1)
+        return block;
+    Matrix_Identity(at<float *>(block, 0x4c));
+    at<u32>(block, 0x9c) = 0;
+    at<u32>(block, 0x98) = 0;
+    at<u32>(block, 0x94) = at<u32>(block, 0x70);
+    for (u32 i = cubes & 0xffff; i != 0; --i)
+        VertexBlock_AddFace(block, nullptr, 0, 0, 0, 0, 0xff, -1, 0x3f800000, 0, 0, 0);
+    for (u32 i = 0; i < (quads & 0xffff); ++i) {
+        at<u32>(at<u8 *>(block, 0x50) + i * 0x10, 0) = at<u32>(block, 0x1c) + i * 8;
+        at<u16>(at<u8 *>(block, 0x50) + i * 0x10, 4) = 0;
+        at<u16>(at<u8 *>(block, 0x50) + i * 0x10, 6) = 0;
+    }
+    Animator_Wake(block + 0x54);
+    return block;
 }
 }
