@@ -178,4 +178,14 @@ void __cdecl ThingBrowser_Step();
 // Things_CountByDef4ac(0, 0) * 3 / 2 (at most 20); (1, 0) * 2, (2, 0) * 2, (3, 0) and (0, 2) (at most 10 each); and the staff of kinds 5, 4, 6,
 // 7 and 8 (Things_CountStaffOfKind; at most 4 each). Each capped count is counted again when under its cap (the same answer).
 s32 __fastcall Things_FacilityScore(void *analyser);
+
+// 0x4caae0 (thiscall on an object it does not read, from 0x519510; category, &out; pops 8; name unconfirmed): of the objects (kind 3) whose
+// definition's category (+0x164) is the one asked for and whose age (Object_AgeDays) is over 30 days, the one with the most walk-aways per 100
+// customers: 100 times the CHistory sum (CircBufU32_30_Sum, newest 30) of the walk-aways' ring (+0x230) over that of the customers' (+0x1a8, summed
+// twice), __ftol's low halves, unsigned, 32-bit; objects whose customers' sum is 0 are passed over. Its handle goes to *out (0 for none) and its
+// percentage (the larger wins, signed; the first on a tie) is returned, 0 for none. The debug prints of each ring's count are left out.
+s32 __fastcall Things_MostWalkAwaysOf(void *self, void *, u32 category, u16 *out);
+
+// 0x4cb300 (thiscall as 0x4caae0; &out; pops 4; name unconfirmed): the same for the categories 1, 5 and 6.
+s32 __fastcall Things_MostWalkAwaysOf156(void *self, void *, u16 *out);
 }  // extern "C"

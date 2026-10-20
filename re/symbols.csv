@@ -1052,6 +1052,8 @@ address,name,kind,confidence,notes
 0x004b3340,ThingBrowser_Step,function,low,"reimplemented (src/game/world/thingscan); cdecl: the thing browser's (MFC dialog 0x7cc304) step: its choice (0x7cc30c) 1..6 picks the category 2..0x40, the thing at 0x7cc308 the next of it, wrapping round; another choice: 0 (name unconfirmed)"
 0x00483770,Things_FindPrevOfCategoryWrap,function,low,"reimplemented (src/game/world/thingscan); the category finder backwards, again from the end past the first"
 0x004cceb0,Things_FacilityScore,function,low,"reimplemented (src/game/world/thingscan); thiscall on the analyser: the sum of capped counts (plain kind-1 things, objects by definition +0x4ac, staff of kinds 4-8)"
+0x004caae0,Things_MostWalkAwaysOf,function,low,"reimplemented (src/game/world/thingscan); thiscall (category, &out): of the objects older than 30 days with that category, the most walk-aways per 100 customers; its handle to out"
+0x004cb300,Things_MostWalkAwaysOf156,function,low,"reimplemented (src/game/world/thingscan); thiscall (&out): the same for the categories 1, 5 and 6"
 0x0054b130,Buoy_FindFree,function,high,"reimplemented (src/game/world/trackpools); the first free buoy record, its index stored in it"
 0x0054b170,Buoy_Alloc,function,high,reimplemented (src/game/world/trackpools); takes the first free buoy record
 0x0054b1e0,CollNode_FindFree,function,high,reimplemented (src/game/world/trackpools); the first free collision node
