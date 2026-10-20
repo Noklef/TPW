@@ -50,4 +50,16 @@ s32 __fastcall Window7059f0_NextItem(u8 *window, void *, s32 item, s32 *level);
 // 0x663ba2 (thiscall (n), pops 4; name unconfirmed): the n-th item after the first shown one (+0x160), stepping Window7059f0_NextItem
 // while n is 0 to below the count +0x150 (signed), the array +0x144 is set and no step gave -1; the first shown one otherwise.
 s32 __fastcall Window7059f0_NthItem(u8 *window, void *, s32 n);
+
+// 0x664b68 (thiscall (n, data), pops 8; name unconfirmed): the n-th item's (Window7059f0_NthItem) data dword (+1) set; 1 in AX, 0 when
+// that gave -1.
+u32 __fastcall Window7059f0_SetNthItemData(u8 *window, void *, s32 n, u32 data);
+
+// 0x664ba8 (thiscall (height: a word), pops 4; name unconfirmed): the row height word +0x170 = height and the rows shown +0x172 = the
+// inner rectangle's height (+0x142 - +0x13e, signed) / it (signed; 0 faults, sic).
+void __fastcall Window7059f0_SetRowHeight(u8 *window, void *, u32 height);
+
+// 0x664d2a (thiscall (data), pops 4; name unconfirmed): the position (from 0) of the first item from the first shown one whose data
+// dword (+1) is data, stepping (Window7059f0_NextItem) until -1 or the position reaches the count +0x150 - 1 (signed); -1 when none.
+s32 __fastcall Window7059f0_FindItemData(u8 *window, void *, u32 data);
 }

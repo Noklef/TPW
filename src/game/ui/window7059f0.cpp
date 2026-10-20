@@ -121,4 +121,27 @@ s32 __fastcall Window7059f0_NthItem(u8 *window, void *, s32 n) {
         item = Window7059f0_NextItem(window, nullptr, item, nullptr);
     return item;
 }
+
+u32 __fastcall Window7059f0_SetNthItemData(u8 *window, void *, s32 n, u32 data) {
+    const s32 item = Window7059f0_NthItem(window, nullptr, n);
+    if (item == -1) return 0;
+    at<s32 *>(window, 0x144)[item + 1] = (s32)data;
+    return 1;
+}
+
+void __fastcall Window7059f0_SetRowHeight(u8 *window, void *, u32 height) {
+    at<u16>(window, 0x170) = (u16)height;
+    at<u16>(window, 0x172) = (u16)((at<s16>(window, 0x142) - at<s16>(window, 0x13e)) / at<s16>(window, 0x170));
+}
+
+s32 __fastcall Window7059f0_FindItemData(u8 *window, void *, u32 data) {
+    s32 item = Window7059f0_NthItem(window, nullptr, 0), position = -1;
+    bool found = false;
+    while (item != -1 && !found && position < at<s32>(window, 0x150) - 1) {
+        ++position;
+        if ((u32)at<s32 *>(window, 0x144)[item + 1] == data) found = true;
+        item = Window7059f0_NextItem(window, nullptr, item, nullptr);
+    }
+    return found ? position : -1;
+}
 }

@@ -3,8 +3,9 @@
 # NthItem (0x663a93, 0x663ba2): items(): a random forest of 1-12 items (each four dwords at an index 4k, or 4k + 1 now and then: the links
 # then read across items, still in the array) whose missing links are -1 (now and then -2 or -5), the item given one of them, the level
 # pointer given or 0; NthItem's n -1 to past the count +0x150 (itself 0 to past the items), +0x144 set or 0, the first shown +0x160 one of
-# the items (or -1).
-# usage: window7059f0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ColumnBottom,NextItem,NthItem)
+# the items (or -1). SetNthItemData (0x664b68): NthItem's, any data. FindItemData (0x664d2a): the items' data dwords a few values, the count
+# mostly the items'. SetRowHeight (0x664ba8): the inner rectangle's top / bottom words, the height small, negative, 0 (a fault in both) or any.
+# usage: window7059f0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ColumnBottom,NextItem,...)
 import os
 import struct
 import sys
@@ -12,8 +13,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2}
-B = Bench([(0x6636f6, 0x663718), (0x663a93, 0x663c11)])
+CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'SetNthItemData': 0x664b68, 'SetRowHeight': 0x664ba8,
+         'FindItemData': 0x664d2a}
+B = Bench([(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7)])
 WINDOW, COLUMNS, LINKS, OUT = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x800
 
 
@@ -44,12 +46,27 @@ def case(r):
     op = r.deal(OPS)
     window = bytearray(r.bytes(0x180))
     regions = {WINDOW: window}
+    if op == 'SetRowHeight':   # (the inner rectangle's top and bottom near each other or any; the height small, negative or 0: a fault in both)
+        if r.random() < 0.7:
+            top = r.randrange(-50, 300)
+            put(window, 0x13e, 'hh', top, top + r.randrange(-10, 400))
+        height = r.choice([1, 2, 7, 12, 16, 20, -3, -1, 0x7fff, 0x8000, r.getrandbits(16), 0]) & 0xffff
+        return Call(CALLS[op], [WINDOW, height | r.choice([0, r.getrandbits(16)]) << 16], regions, conv='t', ret='v')
     if op == 'ColumnBottom':
         regions[COLUMNS - 0x20] = r.bytes(0x20 + 12 * 12)
         put(window, 0x16c, 'I', COLUMNS)
         column = r.choice(list(range(12)) + [-1, -2]) & 0xffff
         return Call(CALLS[op], [WINDOW, column | r.choice([0, r.getrandbits(16)]) << 16], regions, conv='t', ret='a')
     idx = items(r, window, regions)
+    if op == 'FindItemData':   # (the data of a few items a value looked for)
+        links = bytearray(regions[LINKS])
+        datas = [0, 7, 0xffffffff, r.getrandbits(32)]
+        for i in idx:
+            put(links, 4 * (i + 1), 'I', r.choice(datas))
+        regions[LINKS] = links
+        put(window, 0x150, 'i', r.choice([len(idx), len(idx), 0, 1, r.randrange(len(idx) + 1), len(idx) + 2, -1]))
+        put(window, 0x160, 'i', r.choice(idx + [idx[0], -1]))
+        return Call(CALLS[op], [WINDOW, r.choice(datas + [5])], regions, conv='t', ret='a')
     if op == 'NextItem':
         regions[OUT] = r.bytes(4)
         return Call(CALLS[op], [WINDOW, r.choice(idx), r.choice([OUT, OUT, 0])], regions, conv='t', ret='a')
@@ -58,6 +75,8 @@ def case(r):
     if r.random() < 0.1:
         put(window, 0x144, 'I', 0)
     n = r.choice([-1, 0, 1, 2, 3, r.randrange(len(idx) + 2), len(idx) - 1, len(idx), 0x7fffffff, -0x80000000])
+    if op == 'SetNthItemData':
+        return Call(CALLS[op], [WINDOW, n & 0xffffffff, r.getrandbits(32)], regions, conv='t', ret='w')
     return Call(CALLS[op], [WINDOW, n & 0xffffffff], regions, conv='t', ret='a')
 
 
