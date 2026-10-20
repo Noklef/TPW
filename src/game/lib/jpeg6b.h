@@ -274,4 +274,166 @@ void __cdecl jdsample_h2v1_fancy_upsample(jpeg_decompress_struct *cinfo, jpeg6b_
                                           unsigned char ***output_data_ptr);
 void __cdecl jdsample_h2v2_fancy_upsample(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, unsigned char **input_data,
                                           unsigned char ***output_data_ptr);
+
+// jdmarker.c (through wrap/jpeg-6b/jdmarker.c): the marker reader, cinfo->marker (my_marker_reader, 0xa8 bytes: pub
+// (reset_marker_reader, read_markers, read_restart_marker, saw_SOI +0xc, saw_SOF +0xd, next_restart_num +0x10, discarded_bytes
+// +0x14), process_COM +0x18, process_APPn[16] +0x1c, length_limit_COM +0x5c, length_limit_APPn[16] +0x60, cur_marker +0xa0,
+// bytes_read +0xa4). Each reads the marker's bytes from cinfo->src (fill_input_buffer when the buffer is used up) and answers FALSE
+// (suspended) when a refill does; the trace and error messages go through cinfo->err.
+// 0x63bb10: the module's init (a shim, jpeg6b.cpp): cinfo->marker allocated (JPOOL_PERMANENT), the methods (COM and APPn skipped,
+// APP0 and APP14 examined), reset, with the exe's method addresses.
+void __cdecl jinit_marker_reader(jpeg_decompress_struct *cinfo);
+// 0x63d3a0: comp_info, input_scan_number, unread_marker, saw_SOI / SOF, discarded_bytes and cur_marker cleared.
+void __cdecl jdmarker_reset_marker_reader(jpeg_decompress_struct *cinfo);
+// 0x63c0e0: markers up to SOS (1, JPEG_REACHED_SOS) or EOI (2), or 0 when suspended; the first must be SOI.
+int __cdecl jdmarker_read_markers(jpeg_decompress_struct *cinfo);
+// 0x63d300: the expected RSTn (next_restart_num), or the source's resync_to_restart; next_restart_num advanced.
+unsigned char __cdecl jdmarker_read_restart_marker(jpeg_decompress_struct *cinfo);
+// 0x63b8f0: the default resync_to_restart: a marker before or after the desired RSTn read past or left (JWRN_MUST_RESYNC).
+unsigned char __cdecl jpeg_resync_to_restart(jpeg_decompress_struct *cinfo, int desired);
+// 0x63b9f0: the next marker (unread_marker), any bytes before it counted (JWRN_EXTRANEOUS_DATA).
+unsigned char __cdecl jdmarker_next_marker(jpeg_decompress_struct *cinfo);
+// 0x63d260: the first two bytes, which must be SOI.
+unsigned char __cdecl jdmarker_first_marker(jpeg_decompress_struct *cinfo);
+// 0x63c470: SOI: the per-image defaults (arithmetic conditioning, restart_interval, JFIF / Adobe fields), saw_SOI.
+unsigned char __cdecl jdmarker_get_soi(jpeg_decompress_struct *cinfo);
+// 0x63c530: SOFn: the frame (precision, height, width, components; comp_info allocated once), saw_SOF.
+unsigned char __cdecl jdmarker_get_sof(jpeg_decompress_struct *cinfo, unsigned char is_prog, unsigned char is_arith);
+// 0x63c850: SOS: the scan's components (cur_comp_info, their table numbers), Ss / Se / Ah / Al, input_scan_number.
+unsigned char __cdecl jdmarker_get_sos(jpeg_decompress_struct *cinfo);
+// 0x63cb60: DHT: Huffman tables into dc_ / ac_huff_tbl_ptrs (jpeg_alloc_huff_table when null).
+unsigned char __cdecl jdmarker_get_dht(jpeg_decompress_struct *cinfo);
+// 0x63cee0: DQT: quantization tables (8- or 16-bit, in zigzag order) into quant_tbl_ptrs (jpeg_alloc_quant_table when null).
+unsigned char __cdecl jdmarker_get_dqt(jpeg_decompress_struct *cinfo);
+// 0x63d170: DRI: restart_interval.
+unsigned char __cdecl jdmarker_get_dri(jpeg_decompress_struct *cinfo);
+// 0x63c030: a marker's length read and the rest skipped (src->skip_input_data): COM, the other APPn, DAC, DNL.
+unsigned char __cdecl jdmarker_skip_variable(jpeg_decompress_struct *cinfo);
+// 0x63bb80: APP0 / APP14: up to 14 bytes examined, the rest skipped.
+unsigned char __cdecl jdmarker_get_interesting_appn(jpeg_decompress_struct *cinfo);
+// 0x63bcc0: an APP0's first datalen bytes: JFIF (saw_JFIF_marker, version, density) or JFXX, else only traced.
+void __cdecl jdmarker_examine_app0(jpeg_decompress_struct *cinfo, unsigned char *data, unsigned int datalen, long remaining);
+// 0x63bf50: an APP14's: Adobe (saw_Adobe_marker, Adobe_transform), else only traced.
+void __cdecl jdmarker_examine_app14(jpeg_decompress_struct *cinfo, unsigned char *data, unsigned int datalen, long remaining);
+
+// jdinput.c (through wrap/jpeg-6b/jdinput.c): the input controller, cinfo->inputctl (my_input_controller, 0x18 bytes: pub
+// (consume_input, reset_input_controller, start_input_pass, finish_input_pass, has_multiple_scans +0x10, eoi_reached +0x11),
+// inheaders +0x14).
+// 0x63b2c0: the module's init (a shim, jpeg6b.cpp): cinfo->inputctl allocated (JPOOL_PERMANENT), consume_markers to consume input,
+// with the exe's method addresses.
+void __cdecl jinit_input_controller(jpeg_decompress_struct *cinfo);
+// 0x63b8b0: back to reading headers (a shim: consume_input is consume_markers again), the error manager and the marker reader reset.
+void __cdecl jdinput_reset_input_controller(jpeg_decompress_struct *cinfo);
+// 0x63b5e0: consume_input while reading markers: read_markers, then the first SOS's initial_setup or a later one's start_input_pass,
+// or EOI.
+int __cdecl jdinput_consume_markers(jpeg_decompress_struct *cinfo);
+// 0x63b6b0: after the first SOS: the image's checks and dimensions (components' blocks, downsampled sizes, total_iMCU_rows).
+void __cdecl jdinput_initial_setup(jpeg_decompress_struct *cinfo);
+// 0x63b310: a scan's start: per_scan_setup, latch_quant_tables, the entropy decoder's and coefficient controller's start passes,
+// consume_input the coefficient controller's consume_data.
+void __cdecl jdinput_start_input_pass(jpeg_decompress_struct *cinfo);
+// 0x63b360: the scan's MCU geometry (MCUs_per_row, MCU_rows_in_scan, blocks_in_MCU, MCU_membership, each component's MCU sizes).
+void __cdecl jdinput_per_scan_setup(jpeg_decompress_struct *cinfo);
+// 0x63b510: each scan component's quantization table copied (JPOOL_IMAGE) the first time it is used.
+void __cdecl jdinput_latch_quant_tables(jpeg_decompress_struct *cinfo);
+// 0x63b5c0: a scan's end (a shim): consume_input back to consume_markers.
+void __cdecl jdinput_finish_input_pass(jpeg_decompress_struct *cinfo);
+
+// jquant1.c (through wrap/jpeg-6b/jquant1.c): the one-pass colour quantizer, cinfo->cquantize (my_cquantizer, 0x58 bytes: pub
+// (start_pass, color_quantize, finish_pass, new_color_map), sv_colormap +0x10, sv_actual +0x14, colorindex +0x18, is_padded +0x1c,
+// Ncolors[4] +0x20, row_index +0x30, odither[4] +0x34, fserrors[4] +0x44, on_odd_row +0x54). Its finish_pass_1_quant is empty: the
+// exe's is the shared bare RET at 0x631270.
+// 0x6488f0: the module's init (a shim, jpeg6b.cpp): cinfo->cquantize allocated (JPOOL_IMAGE), the colormap and colorindex made,
+// the Floyd-Steinberg workspace for JDITHER_FS, with the exe's method addresses.
+void __cdecl jinit_1pass_quantizer(jpeg_decompress_struct *cinfo);
+// 0x648db0: a pass's start (a shim): colormap and actual_number_of_colors from the saved ones, color_quantize by dither_mode (and
+// out_color_components 3), the ordered-dither tables or the error rows made or cleared.
+void __cdecl jquant1_start_pass_1_quant(jpeg_decompress_struct *cinfo, unsigned char is_pre_scan);
+// 0x648b00: the colours per component (into Ncolors) for desired_number_of_colors; the total.
+int __cdecl jquant1_select_ncolors(jpeg_decompress_struct *cinfo, int *Ncolors);
+// 0x648bf0: the j-th of maxj + 1 output values (j * 255 + maxj / 2) / maxj.
+int __cdecl jquant1_output_value(jpeg_decompress_struct *cinfo, int ci, int j, int maxj);
+// 0x648d50: the largest input value mapped to the j-th output value ((2j + 1) * 255 + maxj) / (2 maxj).
+int __cdecl jquant1_largest_input_value(jpeg_decompress_struct *cinfo, int ci, int j, int maxj);
+// 0x648990: the colormap (alloc_sarray), sv_colormap and sv_actual.
+void __cdecl jquant1_create_colormap(jpeg_decompress_struct *cinfo);
+// 0x648c10: colorindex (alloc_sarray; padded by 255 either side for ordered dither, is_padded).
+void __cdecl jquant1_create_colorindex(jpeg_decompress_struct *cinfo);
+// 0x648f10: a 16 x 16 ordered-dither matrix for ncolors (alloc_small JPOOL_IMAGE).
+int *__cdecl jquant1_make_odither_array(jpeg_decompress_struct *cinfo, int ncolors);
+// 0x648ea0: odither[] for each component, shared between components with the same Ncolors.
+void __cdecl jquant1_create_odither_tables(jpeg_decompress_struct *cinfo);
+// 0x648f80 / 0x649040 (three components): rows quantized without dithering.
+void __cdecl jquant1_color_quantize(jpeg_decompress_struct *cinfo, unsigned char **input_buf, unsigned char **output_buf, int num_rows);
+void __cdecl jquant1_color_quantize3(jpeg_decompress_struct *cinfo, unsigned char **input_buf, unsigned char **output_buf, int num_rows);
+// 0x649100 / 0x649230 (three components): with ordered dithering (row_index advanced).
+void __cdecl jquant1_quantize_ord_dither(jpeg_decompress_struct *cinfo, unsigned char **input_buf, unsigned char **output_buf,
+                                         int num_rows);
+void __cdecl jquant1_quantize3_ord_dither(jpeg_decompress_struct *cinfo, unsigned char **input_buf, unsigned char **output_buf,
+                                          int num_rows);
+// 0x649360: with Floyd-Steinberg dithering (serpentine by on_odd_row, the errors in fserrors).
+void __cdecl jquant1_quantize_fs_dither(jpeg_decompress_struct *cinfo, unsigned char **input_buf, unsigned char **output_buf,
+                                        int num_rows);
+// 0x648d70: fserrors[], (output_width + 2) errors a component (alloc_large JPOOL_IMAGE).
+void __cdecl jquant1_alloc_fs_workspace(jpeg_decompress_struct *cinfo);
+// 0x649530: ERREXIT JERR_MODE_CHANGE (a one-pass quantizer's colormap cannot change).
+void __cdecl jquant1_new_color_map_1_quant(jpeg_decompress_struct *cinfo);
+
+// jquant2.c (through wrap/jpeg-6b/jquant2.c): the two-pass colour quantizer, cinfo->cquantize (my_cquantizer, 0x2c bytes: pub,
+// sv_colormap +0x10, desired +0x14, histogram +0x18 (32 rows of 64 x 32 UINT16 cells), needs_zeroed +0x1c, fserrors +0x20, on_odd_row
+// +0x24, error_limiter +0x28); boxes of 0x20 bytes (c0min..c2max, volume +0x18, colorcount +0x1c). Its finish_pass2 is empty (the exe's
+// is the shared bare RET 0x631270); find_biggest_color_pop (0x6486e0) stays the exe's, the hand port Records32_MaxWeight.
+// 0x6474f0: the module's init (a shim, jpeg6b.cpp): cinfo->cquantize, the histogram, sv_colormap when enable_2pass_quant, the F-S
+// workspace and error limiter, with the exe's method addresses.
+void __cdecl jinit_2pass_quantizer(jpeg_decompress_struct *cinfo);
+// 0x6476c0: a pass's start (a shim): the pre-scan's or the second pass's color_quantize and finish_pass, the F-S workspace cleared,
+// the histogram zeroed when needs_zeroed.
+void __cdecl jquant2_start_pass_2_quant(jpeg_decompress_struct *cinfo, unsigned char is_pre_scan);
+// 0x647620: the error limiter's 511 ints (error_limiter 255 in).
+void __cdecl jquant2_init_error_limit(jpeg_decompress_struct *cinfo);
+// 0x6477e0: pass 1: each pixel's histogram cell counted (saturating).
+void __cdecl jquant2_prescan_quantize(jpeg_decompress_struct *cinfo, unsigned char **input_buf, unsigned char **output_buf, int num_rows);
+// 0x647860 / 0x647db0: pass 2 without dithering / with Floyd-Steinberg, through the histogram as the inverse colormap's cache.
+void __cdecl jquant2_pass2_no_dither(jpeg_decompress_struct *cinfo, unsigned char **input_buf, unsigned char **output_buf, int num_rows);
+void __cdecl jquant2_pass2_fs_dither(jpeg_decompress_struct *cinfo, unsigned char **input_buf, unsigned char **output_buf, int num_rows);
+// 0x647930: the inverse colormap for the 4 x 8 x 4 cells around (c0, c1, c2).
+void __cdecl jquant2_fill_inverse_cmap(jpeg_decompress_struct *cinfo, int c0, int c1, int c2);
+// 0x647a50: the colours that can be nearest to some cell of the box at (minc0, minc1, minc2) into colorlist; their count.
+int __cdecl jquant2_find_nearby_colors(jpeg_decompress_struct *cinfo, int minc0, int minc1, int minc2, unsigned char *colorlist);
+// 0x647c50: each of the box's 128 cells' nearest colour of colorlist into bestcolor.
+void __cdecl jquant2_find_best_colors(jpeg_decompress_struct *cinfo, int minc0, int minc1, int minc2, int numcolors,
+                                      unsigned char *colorlist, unsigned char *bestcolor);
+// 0x6480a0: pass 1's end: the colormap selected (select_colors), needs_zeroed.
+void __cdecl jquant2_finish_pass1(jpeg_decompress_struct *cinfo);
+// 0x6480d0: median cut over the histogram to desired_colors boxes, one colour each; actual_number_of_colors.
+void __cdecl jquant2_select_colors(jpeg_decompress_struct *cinfo, int desired_colors);
+// 0x648160: a box shrunk to its non-zero cells; its volume and colour count.
+void __cdecl jquant2_update_box(jpeg_decompress_struct *cinfo, void *boxp);
+// 0x6485a0: boxes split until desired_colors (or nothing splits); the count.
+int __cdecl jquant2_median_cut(jpeg_decompress_struct *cinfo, void *boxlist, int numboxes, int desired_colors);
+// 0x648720: the box with the greatest volume (NULL when none is above 0).
+void *__cdecl jquant2_find_biggest_volume(void *boxlist, int numboxes);
+// 0x648750: a box's mean colour into colormap[][icolor].
+void __cdecl jquant2_compute_color(jpeg_decompress_struct *cinfo, void *boxp, int icolor);
+// 0x6488e0: needs_zeroed (the histogram is cleared at the next start_pass).
+void __cdecl jquant2_new_color_map_2_quant(jpeg_decompress_struct *cinfo);
+
+// jmemansi.c, the memory manager's system-dependent part, through third_party/wrap/jpeg-6b/jmemansi.c: its malloc and free are the
+// exe's C runtime's (Jpeg6b_SetHeapEnv below), so every block stays on the exe's heap.
+// 0x642980 (also jpeg_get_large: one copy): malloc(sizeofobject).
+void *__cdecl jpeg_get_small(jpeg_common_struct *cinfo, size_t sizeofobject);
+// 0x642990 (also jpeg_free_large and zlib's zcfree, whose block is the same second argument): free(object).
+void __cdecl jpeg_free_small(jpeg_common_struct *cinfo, void *object, size_t sizeofobject);
+// 0x6429a0: mem->max_memory_to_use (+0x2c) - already_allocated.
+long __cdecl jpeg_mem_available(jpeg_common_struct *cinfo, long min_bytes_needed, long max_bytes_needed, long already_allocated);
 }
+
+// The C runtime's malloc and free jmemansi.c calls (the exe's: malloc 0x67dcd0, free 0x67ad90, which are never replaced: they are the
+// front of its heap, as GameHeap's Mem_Alloc / Mem_Free are). The tests give it a stand-in.
+struct Jpeg6bHeapEnv {
+    void *(__cdecl *alloc)(size_t size);  // malloc (0x67dcd0)
+    void(__cdecl *free)(void *block);     // free (0x67ad90)
+};
+
+// Allocation and release go through env (nullptr: the exe's).
+void Jpeg6b_SetHeapEnv(const Jpeg6bHeapEnv *env);

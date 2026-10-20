@@ -571,21 +571,31 @@ class Emu:
             self.r['EDX'] = 0xffffffff if self.r['EAX'] >> 31 else 0
         elif mn in ('MUL', 'IMUL', 'DIV', 'IDIV') and len(o) == 1:  # with EDX:EAX
             signed = lambda x, bits: x - (1 << bits) if x >> (bits - 1) else x
-            v = self.get(o[0])
+            v, bits = self.get(o[0]), 8 * self.size(o[0])  # (a byte operand: AX = AL * r/m8, AL / AH = AX / r/m8; a word one: DX:AX)
+            mask, eax = (1 << bits) - 1, self.r['EAX']
             if mn in ('MUL', 'IMUL'):
-                full = signed(self.r['EAX'], 32) * signed(v, 32) if mn == 'IMUL' else self.r['EAX'] * v
-                full &= (1 << 64) - 1
-                self.r['EAX'], self.r['EDX'] = full & 0xffffffff, full >> 32
+                full = signed(eax & mask, bits) * signed(v, bits) if mn == 'IMUL' else (eax & mask) * v
+                full &= (1 << 2 * bits) - 1
+                if bits == 8:
+                    self.r['EAX'] = eax & 0xffff0000 | full
+                else:
+                    self.r['EAX'] = eax & ~mask & 0xffffffff | full & mask
+                    self.r['EDX'] = self.r['EDX'] & ~mask & 0xffffffff | full >> bits
             else:
-                n = self.r['EDX'] << 32 | self.r['EAX']
+                n = eax & 0xffff if bits == 8 else (self.r['EDX'] & mask) << bits | eax & mask
                 if mn == 'IDIV':
-                    n, v = signed(n, 64), signed(v, 32)
+                    n, v = signed(n, 2 * bits), signed(v, bits)
                 if v == 0:
                     raise DivFault(0xc0000094, 'divide by zero')
                 q = abs(n) // abs(v) * (1 if (n < 0) == (v < 0) else -1)
-                if not (-2 ** 31 <= q < 2 ** 31 if mn == 'IDIV' else q < 2 ** 32):
+                if not (-2 ** (bits - 1) <= q < 2 ** (bits - 1) if mn == 'IDIV' else q < 2 ** bits):
                     raise DivFault(0xc0000095, 'quotient overflow')
-                self.r['EAX'], self.r['EDX'] = q & 0xffffffff, (n - q * v) & 0xffffffff
+                rem = (n - q * v) & mask
+                if bits == 8:
+                    self.r['EAX'] = eax & 0xffff0000 | rem << 8 | q & mask
+                else:
+                    self.r['EAX'] = eax & ~mask & 0xffffffff | q & mask
+                    self.r['EDX'] = self.r['EDX'] & ~mask & 0xffffffff | rem
         elif mn == 'IMUL' and len(o) >= 2:  # IMUL r, r/m (, imm): low 32 bits, CF = OF = overflow
             signed = lambda x: x - (1 << 32) if x >> 31 else x
             a, b = (self.get(o[0]), self.get(o[1])) if len(o) == 2 else (self.get(o[1]), self.get(o[2]))

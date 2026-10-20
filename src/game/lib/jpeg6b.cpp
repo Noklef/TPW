@@ -47,6 +47,12 @@ static_assert(offsetof(jpeg_decompress_struct, inputctl) == 0x190, "cinfo->input
 static_assert(offsetof(jpeg_decompress_struct, idct) == 0x19c, "cinfo->idct (the coefficient controller's inverse_DCT)");
 static_assert(offsetof(jpeg_decompress_struct, Ss) == 0x16c, "cinfo->Ss (decompress_smooth_data)");
 static_assert(offsetof(jpeg_decompress_struct, cquantize) == 0x1a8, "cinfo->cquantize (the post-processor's color_quantize)");
+static_assert(offsetof(jpeg_decompress_struct, dither_mode) == 0x4c, "cinfo->dither_mode (start_pass_1_quant)");
+static_assert(offsetof(jpeg_decompress_struct, desired_number_of_colors) == 0x54, "cinfo->desired_number_of_colors (select_ncolors)");
+static_assert(offsetof(jpeg_decompress_struct, out_color_components) == 0x64, "cinfo->out_color_components (the quantizers' nc)");
+static_assert(offsetof(jpeg_decompress_struct, enable_2pass_quant) == 0x5a, "cinfo->enable_2pass_quant (jinit_2pass_quantizer)");
+static_assert(offsetof(jpeg_decompress_struct, actual_number_of_colors) == 0x70, "cinfo->actual_number_of_colors (start_pass_2_quant)");
+static_assert(offsetof(jpeg_decompress_struct, colormap) == 0x74, "cinfo->colormap (find_nearby_colors)");
 
 // The method-address shim. Every module's init (and jddctmgr.c's start_pass) stores the addresses of its methods in the structs the
 // exe's code also reads and calls through. The library stores its own functions' addresses; the exe's copy of the same code stores the
@@ -73,6 +79,16 @@ void __cdecl jdmainct_lib_start_pass_main(j_decompress_ptr cinfo, J_BUF_MODE pas
 void __cdecl jdcoefct_lib_jinit_d_coef_controller(j_decompress_ptr cinfo, boolean need_full_buffer);
 void __cdecl jdcoefct_lib_start_output_pass(j_decompress_ptr cinfo);
 int __cdecl jdcoefct_dummy_consume_data(j_decompress_ptr cinfo);  // (not a hook: its exe copy is a shared return 0)
+void __cdecl jdmarker_lib_jinit_marker_reader(j_decompress_ptr cinfo);
+void __cdecl jdinput_lib_jinit_input_controller(j_decompress_ptr cinfo);
+void __cdecl jdinput_lib_finish_input_pass(j_decompress_ptr cinfo);
+void __cdecl jdinput_lib_reset_input_controller(j_decompress_ptr cinfo);
+void __cdecl jquant1_lib_jinit_1pass_quantizer(j_decompress_ptr cinfo);
+void __cdecl jquant1_lib_start_pass_1_quant(j_decompress_ptr cinfo, boolean is_pre_scan);
+void __cdecl jquant1_finish_pass_1_quant(j_decompress_ptr cinfo);  // (not a hook: its exe copy is the shared bare RET)
+void __cdecl jquant2_lib_jinit_2pass_quantizer(j_decompress_ptr cinfo);
+void __cdecl jquant2_lib_start_pass_2_quant(j_decompress_ptr cinfo, boolean is_pre_scan);
+void __cdecl jquant2_finish_pass2(j_decompress_ptr cinfo);  // (not a hook: its exe copy is the shared bare RET)
 void __cdecl jpeg_idct_float(jpeg_decompress_struct *cinfo, jpeg6b_component_info *compptr, short *coef_block, unsigned char **output_buf,
                              unsigned int output_col);
 }
@@ -145,6 +161,34 @@ const ExeMethod kExeMethods[] = {
     {fn(&jdcoefct_decompress_data), 0x643890},
     {fn(&jdcoefct_decompress_smooth_data), 0x643b70},
     {fn(&jdcoefct_dummy_consume_data), 0x66f4d0},
+    // jdmarker.c
+    {fn(&jdmarker_reset_marker_reader), 0x63d3a0},
+    {fn(&jdmarker_read_markers), 0x63c0e0},
+    {fn(&jdmarker_read_restart_marker), 0x63d300},
+    {fn(&jdmarker_skip_variable), 0x63c030},
+    {fn(&jdmarker_get_interesting_appn), 0x63bb80},
+    // jdinput.c (its start_input_pass stores the coefficient controller's consume_data, the exe's already)
+    {fn(&jdinput_consume_markers), 0x63b5e0},
+    {fn(&jdinput_lib_reset_input_controller), 0x63b8b0},
+    {fn(&jdinput_start_input_pass), 0x63b310},
+    {fn(&jdinput_lib_finish_input_pass), 0x63b5c0},
+    // jquant1.c (its finish_pass_1_quant is empty: the shared bare RET at 0x631270)
+    {fn(&jquant1_lib_start_pass_1_quant), 0x648db0},
+    {fn(&jquant1_finish_pass_1_quant), 0x631270},
+    {fn(&jquant1_new_color_map_1_quant), 0x649530},
+    {fn(&jquant1_color_quantize), 0x648f80},
+    {fn(&jquant1_color_quantize3), 0x649040},
+    {fn(&jquant1_quantize_ord_dither), 0x649100},
+    {fn(&jquant1_quantize3_ord_dither), 0x649230},
+    {fn(&jquant1_quantize_fs_dither), 0x649360},
+    // jquant2.c (its finish_pass2 is empty: the shared bare RET at 0x631270)
+    {fn(&jquant2_lib_start_pass_2_quant), 0x6476c0},
+    {fn(&jquant2_new_color_map_2_quant), 0x6488e0},
+    {fn(&jquant2_prescan_quantize), 0x6477e0},
+    {fn(&jquant2_finish_pass1), 0x6480a0},
+    {fn(&jquant2_pass2_no_dither), 0x647860},
+    {fn(&jquant2_pass2_fs_dither), 0x647db0},
+    {fn(&jquant2_finish_pass2), 0x631270},
 };
 
 // The method pointer at slot: the exe's address in place of a library method's (anything else is left as it is).
@@ -163,6 +207,8 @@ void *at(void *base, std::size_t offset) { return static_cast<unsigned char *>(b
 
 constexpr std::size_t kMergedUpmethod = 0xc;  // jdmerge.c's my_upsampler.upmethod (pinned in wrap/jpeg-6b/jdmerge.c)
 constexpr std::size_t kSampleMethods = 0x34;  // jdsample.c's my_upsampler.methods[] (pinned in wrap/jpeg-6b/jdsample.c)
+constexpr std::size_t kMarkerProcessCOM = 0x18;   // jdmarker.c's my_marker_reader.process_COM (pinned in wrap/jpeg-6b/jdmarker.c)
+constexpr std::size_t kMarkerProcessAPPn = 0x1c;  // and its process_APPn[16]
 }  // namespace
 
 extern "C" {
@@ -247,4 +293,71 @@ void __cdecl jdcoefct_start_output_pass(j_decompress_ptr cinfo) {
     jdcoefct_lib_start_output_pass(cinfo);
     exe_method(cinfo->coef->decompress_data);
 }
+
+void __cdecl jinit_marker_reader(j_decompress_ptr cinfo) {
+    jdmarker_lib_jinit_marker_reader(cinfo);
+    exe_method(cinfo->marker->reset_marker_reader);
+    exe_method(cinfo->marker->read_markers);
+    exe_method(cinfo->marker->read_restart_marker);
+    exe_method_at(at(cinfo->marker, kMarkerProcessCOM));
+    for (int i = 0; i < 16; ++i)
+        exe_method_at(at(cinfo->marker, kMarkerProcessAPPn + 4 * i));
+}
+
+void __cdecl jinit_input_controller(j_decompress_ptr cinfo) {
+    jdinput_lib_jinit_input_controller(cinfo);
+    exe_method(cinfo->inputctl->consume_input);
+    exe_method(cinfo->inputctl->reset_input_controller);
+    exe_method(cinfo->inputctl->start_input_pass);
+    exe_method(cinfo->inputctl->finish_input_pass);
+}
+
+void __cdecl jdinput_reset_input_controller(j_decompress_ptr cinfo) {
+    jdinput_lib_reset_input_controller(cinfo);
+    exe_method(cinfo->inputctl->consume_input);
+}
+
+void __cdecl jdinput_finish_input_pass(j_decompress_ptr cinfo) {
+    jdinput_lib_finish_input_pass(cinfo);
+    exe_method(cinfo->inputctl->consume_input);
+}
+
+void __cdecl jinit_1pass_quantizer(j_decompress_ptr cinfo) {
+    jquant1_lib_jinit_1pass_quantizer(cinfo);
+    exe_method(cinfo->cquantize->start_pass);
+    exe_method(cinfo->cquantize->finish_pass);
+    exe_method(cinfo->cquantize->new_color_map);
+}
+
+void __cdecl jquant1_start_pass_1_quant(j_decompress_ptr cinfo, boolean is_pre_scan) {
+    jquant1_lib_start_pass_1_quant(cinfo, is_pre_scan);
+    exe_method(cinfo->cquantize->color_quantize);
+}
+
+void __cdecl jinit_2pass_quantizer(j_decompress_ptr cinfo) {
+    jquant2_lib_jinit_2pass_quantizer(cinfo);
+    exe_method(cinfo->cquantize->start_pass);
+    exe_method(cinfo->cquantize->new_color_map);
+}
+
+void __cdecl jquant2_start_pass_2_quant(j_decompress_ptr cinfo, boolean is_pre_scan) {
+    jquant2_lib_start_pass_2_quant(cinfo, is_pre_scan);
+    exe_method(cinfo->cquantize->color_quantize);
+    exe_method(cinfo->cquantize->finish_pass);
+}
+}
+
+// jmemansi.c's malloc and free (third_party/wrap/jpeg-6b/jmemansi.c #defines them to these two): the exe's, so the blocks the library's
+// jpeg_get_small hands out are the exe's heap's, which the exe's own code (zcfree, jmemmgr.c while it stays the exe's) frees there.
+namespace {
+const Jpeg6bHeapEnv kExeHeap = {reinterpret_cast<void *(__cdecl *)(size_t)>((uintptr_t)0x0067dcd0),
+                                reinterpret_cast<void(__cdecl *)(void *)>((uintptr_t)0x0067ad90)};
+const Jpeg6bHeapEnv *g_heap = &kExeHeap;
+}  // namespace
+
+void Jpeg6b_SetHeapEnv(const Jpeg6bHeapEnv *env) { g_heap = env ? env : &kExeHeap; }
+
+extern "C" {
+void *__cdecl jpeg6b_exe_malloc(size_t size) { return g_heap->alloc(size); }
+void __cdecl jpeg6b_exe_free(void *block) { g_heap->free(block); }
 }
