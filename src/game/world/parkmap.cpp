@@ -149,7 +149,7 @@ void __fastcall ParkMap_LayOut(const u8 *map) {
     float l = static_cast<float>(left);
     const float cyF = static_cast<float>(cy);
     const float halfHF = static_cast<float>(halfH);
-    float r = static_cast<float>(cx + halfWF);
+    float r = static_cast<float>(X87Reg(cxF) + halfWF);   // (from the stored centre, as the bottom)
     float t = static_cast<float>(cy - halfHF);
     float b = static_cast<float>(X87Reg(cyF) + halfHF);
     if (!(left.v >= 0.0))   // (the register before its store)

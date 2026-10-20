@@ -60,13 +60,18 @@ LIST, NODES = RAM + 0x500, RAM + 0x600
 
 def lay_out(r):
     # LayOut: place()'s map, screen and frame; the map's +0x48 / +0x4c (the limits less 1, unsigned) small, 0 or anything; the origin now and
-    # then about the edges (the clamps); 0-3 sprites on the list at +0x20080 (place()'s, sharing its frame), and the backdrop at 0x87aee8 any.
+    # then about the edges (the clamps), or NaN or huge with a small width or zero or NaN zoom; 0-3 sprites on the list at +0x20080 (place()'s, sharing its frame), and the backdrop at 0x87aee8 any.
     c = place(r)
     regions = dict(c.regions)
     m = bytearray(regions[MAP])
     put(m, 0x48, 'II', *(r.choice([r.randrange(1, 0x81), 0x80, 1, 0, r.getrandbits(32)]) for _ in range(2)))
     if r.random() < 0.3:
         put(m, 0x54, 'II', *(fb(r.choice([0.0, -1.0, 1.0, 64.0, 127.5, r.uniform(-50, 200)])) for _ in range(2)))
+    if r.random() < 0.25:   # (the edges NaN or past the float range: the centre huge, the zoom 0 or NaN)
+        put(m, 0x54, 'II', *(r.choice([0x7fc00000, 0x7f800000, 0xff800000, fb(3e38), fb(-3e38), fb(1e37), fb(64.0)]) for _ in range(2)))
+        put(m, 0x24, 'ii', *(r.choice([1, 2, -1, 0x100]) for _ in range(2)))
+        if r.random() < 0.7:
+            put(m, 0x5c, 'I', r.choice([0, 0, 0, 0x80000000, 0x7fc00000, fb(1e-30), fb(-1.0)]))
     regions[MAP] = m
     n = r.choice([0, 1, 2, 3])
     nodes = bytearray(r.bytes(0x18))
