@@ -2805,6 +2805,9 @@ address,name,kind,confidence,notes
 0x00409260,Flags7a1a14_Update,function,high,reimplemented (src/game/core/namedobjects); a flag word updated from another and an object's advance
 0x005989c0,Advisor_Init,function,low,"reimplemented (src/game/world/advisor); cdecl: the advisor block at 0xf79660 zeroed (count 5 at 0xf79770, -1 at 0xf7978c); slots 0/1 holders' mouth part indices (Model_FindMouthPart 1-5, -1); slot 1's (or 0's) holder's motion bank 5 end times 0-19 (the 14th cleared), then ParticlePools_Reset"
 0x00599e70,Advisor_Ctor,function,low,reimplemented (src/game/world/advisor); thiscall: the advisor thing's constructor (thing model 11; name unconfirmed)
+0x0059abc0,Advisor_MayPost,function,low,"reimplemented (src/game/world/advisor); thiscall (id, urgent): whether a message of id may join the advisor's queue (active, waited, flagged, limit, count, last-of-definition tests)"
+0x0059a940,Advisor_Post,function,low,"reimplemented (src/game/world/advisor); thiscall (message): an advisor message offered to the 8-slot queue (first free slot, else replaces the lowest score when below it); 0 when refused"
+0x0059afc0,Advisor_PostKindEvent,function,low,reimplemented (src/game/world/advisor); thiscall (event): an unscored advisor message for 5 n + a base by the event's kind (0-4) posted (Advisor_Post)
 0x00486610,Global7c24d8_CopyScript,function,high,reimplemented (src/game/ui/thingpreview); a sprite script slot made a copy of another
 0x00557110,Rsse_TakeFinished,function,high,"reimplemented (src/game/rsse/rsse_vm); the value of the first finished entry, which is cleared"
 0x0054dcc0,Flag54dcc0_Test,function,high,reimplemented (src/game/render/mode); a flag test on two settings

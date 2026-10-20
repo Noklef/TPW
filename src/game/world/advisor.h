@@ -23,4 +23,25 @@ void __cdecl Advisor_Init();
 // added to the message centre's slots 5, 0x11, 0x13, 0x17, 0xe, 8 and 0x19 in that order; then +0x10, +0xd4, +0xdc and +0xd8 cleared. Returns
 // it. (The cell the original pushes has this's high address bits above the 1.)
 u8 *__fastcall Advisor_Ctor(u8 *advisor);
+
+// 0x59abc0 (thiscall (id, urgent), pops 8; name unconfirmed): whether a message of id may go to the advisor's queue (gAdvisorScoring, which
+// the lookups take as this, built first each time as AdvisorScoring_Instance does). Not, as AL 0: unless the byte 0x78d90d is set, id's record
+// is active (Record_IsActive); the advisor's record for id (+0xe0 + 0x10 id) has a time (Obj_Get0Shr2) and the game's time since it
+// (Game1da70c_MinusAt0Quarters) is below (unsigned) the wait (Table76e300_GetObjectDword); not urgent, the scoring's flag is set
+// (Table76e300_ObjectDwordSet) with the record's byte +8, or its limit is reached by the record's +0xc (Table76e300_LimitCheck); the queued
+// messages of id (the 8 slots of 0x18 bytes from +0x14, set (+0x14) with +0xc id) at or above the table's byte (Table76e300_GetByte); with
+// DefField2c 0, the record's +4 equal to DefField28 - 1. Otherwise 1.
+u8 __fastcall Advisor_MayPost(u8 *self, void *, u32 id, u8 urgent);
+
+// 0x59a940 (thiscall (message), pops 4; name unconfirmed): an advisor message (see AdvisorMsg_Init) offered to the queue. With DefField8 of
+// its id 1 (gAdvisorScoring built first) it is copied to +0x16d0. Unless Advisor_MayPost (id, the byte +0x15) it is refused (0). Otherwise it
+// goes to the first slot not set (+0x14 + 0x18 k, its byte +0x14 0) and 1; with none, the set slot of the lowest score (signed, the first
+// such) is replaced when its score (+0x10, -1 when not set) is below the message's (likewise), and 1 either way (0 with no set slot at all).
+u8 __fastcall Advisor_Post(u8 *self, void *, const u8 *message);
+
+// 0x59afc0 (thiscall (event), pops 4; name unconfirmed; Advisor_HandleMessage's case for message 0x17): an advisor message of type 0, a 0,
+// b -1, flag 0 and no score (AdvisorMsg_Init) for the id 5 n + 0x22, 0x21, 0x24, 0x23 or 0x25 as the event's kind (+8) is 0-4 (n its +0xc;
+// another kind: the event's address, sic) posted (Advisor_Post, whose answer is returned). The message is on the stack, its bytes +2, +3
+// and +0x17 never written: the queue slot it lands in gets whatever they held.
+u8 __fastcall Advisor_PostKindEvent(u8 *self, void *, const u8 *event);
 }
