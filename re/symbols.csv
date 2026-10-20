@@ -5102,3 +5102,22 @@ address,name,kind,confidence,notes
 0x0065fc38,WindowScript_ReadRect,function,low,reimplemented (src/game/ui/windowscript); a window script's next four words to four outputs
 0x0065fcc5,WindowScript_ReadPair,function,low,reimplemented (src/game/ui/windowscript); a window script's next two words to two outputs
 0x004bb690,Dialog7cc61c_Handler,function,low,"reimplemented (src/game/ui/dialog7cc61c); cdecl (window, message, a, b): 0x14 clears 0x7cc61c, sends (6, 1, 0) to [0xf82884]+4 and restores the focus; 0x15 sends (6, 0, 0); 0x100 with a = -1 sends (4, 0, 0) to [0x7cc61c] and returns 0; else Dialog_BaseHandler"
+0x0065a9f0,GuiShape_DeletingDtor,function,low,"reimplemented (src/game/ui/guishape); thiscall (flags): the GUI shape base's scalar deleting destructor (Fn_66bff7, Mem_Free on bit 0)"
+0x0066c01a,GuiCircle_Ctor,function,low,"reimplemented (src/game/ui/guishape); thiscall: the circle (vtable 0x705b50), x, y, radius 0"
+0x0066c054,GuiCircle_CtorWith,function,low,"reimplemented (src/game/ui/guishape); thiscall (x, y, radius: words): the circle (vtable 0x705b50)"
+0x0066c0c4,GuiCircle_Contains,function,low,"reimplemented (src/game/ui/guishape); thiscall (x, y): 1 in AX when inside the circle (dx*dx + dy*dy < r*r)"
+0x0066c125,GuiCircle_Offset,function,low,"reimplemented (src/game/ui/guishape); thiscall (dx, dy): the circle's centre moved"
+0x0066c163,GuiEllipse_Ctor,function,low,"reimplemented (src/game/ui/guishape); thiscall: the ellipse (vtable 0x705b68), its four words 0"
+0x0066c1a6,GuiEllipse_CtorWith,function,low,"reimplemented (src/game/ui/guishape); thiscall (x, y, rx, ry: words): the ellipse (vtable 0x705b68)"
+0x0066c22c,GuiEllipse_Contains,function,low,"reimplemented (src/game/ui/guishape); thiscall (x, y): 1 when inside the ellipse (dx scaled by ry / rx)"
+0x0066c2a1,GuiEllipse_Offset,function,low,"reimplemented (src/game/ui/guishape); thiscall (dx, dy): the ellipse's centre moved"
+0x0066c760,GuiCircle_DeletingDtor,function,low,reimplemented (src/game/ui/guishape); thiscall (flags): the circle's and the ellipse's scalar deleting destructor
+0x0066c790,GuiCircle_Dtor,function,low,reimplemented (src/game/ui/guishape); thiscall: the circle's and the ellipse's destructor (Fn_66bff7 only)
+0x0066c2df,GuiPolygon_Ctor,function,low,"reimplemented (src/game/ui/guishape); thiscall: the polygon (vtable 0x705b80), no points"
+0x0066c311,GuiPolygon_CtorTriangle,function,low,reimplemented (src/game/ui/guishape); thiscall (3 points as 6 words): the polygon of 3 points
+0x0066c3cb,GuiPolygon_CtorQuad,function,low,reimplemented (src/game/ui/guishape); thiscall (4 points as 8 words): the polygon of 4 points
+0x0066c4a1,GuiPolygon_CtorPoints,function,low,"reimplemented (src/game/ui/guishape); thiscall (count, points): the polygon of count points copied from an array"
+0x0066c568,GuiPolygon_Dtor,function,low,reimplemented (src/game/ui/guishape); thiscall: the polygon's destructor (its block freed)
+0x0066c5a4,GuiPolygon_Contains,function,low,"reimplemented (src/game/ui/guishape); thiscall (x, y): 1 in AX when inside the polygon (crossing test)"
+0x0066c6c3,GuiPolygon_Offset,function,low,"reimplemented (src/game/ui/guishape); thiscall (dx, dy): each point moved"
+0x0066c7b0,GuiPolygon_DeletingDtor,function,low,reimplemented (src/game/ui/guishape); thiscall (flags): the polygon's scalar deleting destructor

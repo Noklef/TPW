@@ -350,6 +350,7 @@
 #include "../game/ui/dialog7cc61c.h"
 #include "../game/ui/dialogbase.h"
 #include "../game/ui/focus.h"
+#include "../game/ui/guishape.h"
 #include "../game/ui/panel7cc298.h"
 #include "../game/ui/radiogroup.h"
 #include "../game/ui/textbutton.h"
@@ -4724,6 +4725,25 @@ const Hook kHooks[] = {
     {"WindowScript_ReadWord",     0x0065fc18, (void *)&WindowScript_ReadWord, {0x55, 0x8b, 0xec, 0xa1, 0x20}},
     {"WindowScript_ReadDword",    0x0065fbf0, (void *)&WindowScript_ReadDword, {0x55, 0x8b, 0xec, 0x51, 0xa1}},
     {"Dialog7cc61c_Handler",      0x004bb690, (void *)&Dialog7cc61c_Handler, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
+    {"GuiPolygon_DeletingDtor",   0x0066c7b0, (void *)&GuiPolygon_DeletingDtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiPolygon_Offset",         0x0066c6c3, (void *)&GuiPolygon_Offset, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiPolygon_Contains",       0x0066c5a4, (void *)&GuiPolygon_Contains, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiPolygon_Dtor",           0x0066c568, (void *)&GuiPolygon_Dtor, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiPolygon_CtorPoints",     0x0066c4a1, (void *)&GuiPolygon_CtorPoints, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"GuiPolygon_CtorQuad",       0x0066c3cb, (void *)&GuiPolygon_CtorQuad, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"GuiPolygon_CtorTriangle",   0x0066c311, (void *)&GuiPolygon_CtorTriangle, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"GuiPolygon_Ctor",           0x0066c2df, (void *)&GuiPolygon_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiCircle_Dtor",            0x0066c790, (void *)&GuiCircle_Dtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiCircle_DeletingDtor",    0x0066c760, (void *)&GuiCircle_DeletingDtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiEllipse_Offset",         0x0066c2a1, (void *)&GuiEllipse_Offset, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiEllipse_Contains",       0x0066c22c, (void *)&GuiEllipse_Contains, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiEllipse_CtorWith",       0x0066c1a6, (void *)&GuiEllipse_CtorWith, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiEllipse_Ctor",           0x0066c163, (void *)&GuiEllipse_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiCircle_Offset",          0x0066c125, (void *)&GuiCircle_Offset, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiCircle_Contains",        0x0066c0c4, (void *)&GuiCircle_Contains, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiCircle_CtorWith",        0x0066c054, (void *)&GuiCircle_CtorWith, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiCircle_Ctor",            0x0066c01a, (void *)&GuiCircle_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiShape_DeletingDtor",     0x0065a9f0, (void *)&GuiShape_DeletingDtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
