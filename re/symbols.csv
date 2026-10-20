@@ -5133,6 +5133,9 @@ address,name,kind,confidence,notes
 0x00663662,Window7059f0_SetColumn,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (index, left, right): the column's rectangle set to left, 0, right, 1 for an index below the count"
 0x006651ef,Window7059f0_SetInner,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (left, top, right, bottom): the rectangle +0x138's words set (Fn_659dac)"
 0x00665bfb,Window7059f0_Item148Depth,function,low,"reimplemented (src/game/ui/window7059f0); thiscall: the depth word +0xe0 of the window [+0x148] points at, 0 when either is missing (AX)"
+0x006636f6,Window7059f0_ColumnBottom,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (column word): the bottom word of the column's rectangle in +0x16c, sign-extended"
+0x00663a93,Window7059f0_NextItem,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (item, level*): the next item in the +0x144 tree's order (child, sibling, or up to a parent's sibling), the level change stored"
+0x00663ba2,Window7059f0_NthItem,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (n): the n-th item after the first shown one (+0x160), within the count +0x150"
 0x0065fbf0,WindowScript_ReadDword,function,low,reimplemented (src/game/ui/windowscript); a window script's next dword (two words)
 0x0065fc18,WindowScript_ReadWord,function,low,reimplemented (src/game/ui/windowscript); a window script's next word
 0x0065fc38,WindowScript_ReadRect,function,low,reimplemented (src/game/ui/windowscript); a window script's next four words to four outputs

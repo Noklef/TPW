@@ -33,4 +33,21 @@ u32 __fastcall Window7059f0_SetInner(u8 *window, void *, u32 left, u32 top, u32 
 // 0x665bfb (thiscall; name unconfirmed): with the dword +0x148 set and the window it points at set, that window's depth word +0xe0
 // (Fn_659730); else 0. Only AX is set.
 u32 __fastcall Window7059f0_Item148Depth(const u8 *window);
+
+// The items: a tree in the dword array +0x144, each item four dwords from its index: +0 the next sibling, +2 the first child, +3 the
+// parent (-1 or less: none); +0x150 the item count, +0x160 the first shown.
+
+// 0x6636f6 (thiscall (column: a word), pops 4; name unconfirmed): the bottom word (+0xa, sign-extended) of the column's rectangle in the
+// array +0x16c (0xc bytes each).
+s32 __fastcall Window7059f0_ColumnBottom(u8 *window, void *, u32 column);
+
+// 0x663a93 (thiscall (item, level), pops 8; name unconfirmed): the item after the given one in the tree's order: its first child (level
+// 1), else its next sibling (0), else its parent's next sibling, going up while a parent has none but a parent of its own (level -1 for
+// each step up; the last one's next sibling, -1 or less, when none has one); -2 (level 0) with no sibling and no parent. The level
+// change is stored through level when it is not 0.
+s32 __fastcall Window7059f0_NextItem(u8 *window, void *, s32 item, s32 *level);
+
+// 0x663ba2 (thiscall (n), pops 4; name unconfirmed): the n-th item after the first shown one (+0x160), stepping Window7059f0_NextItem
+// while n is 0 to below the count +0x150 (signed), the array +0x144 is set and no step gave -1; the first shown one otherwise.
+s32 __fastcall Window7059f0_NthItem(u8 *window, void *, s32 n);
 }

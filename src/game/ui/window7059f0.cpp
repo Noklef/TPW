@@ -89,4 +89,36 @@ u32 __fastcall Window7059f0_Item148Depth(const u8 *window) {
     u8 *const *const cell = at<u8 *const *>(const_cast<u8 *>(window), 0x148);
     return cell && *cell ? at<u16>(*cell, 0xe0) : 0;
 }
+
+s32 __fastcall Window7059f0_ColumnBottom(u8 *window, void *, u32 column) {
+    return at<s16>(at<u8 *>(window, 0x16c) + (s16)column * 0xc, 0xa);
+}
+
+s32 __fastcall Window7059f0_NextItem(u8 *window, void *, s32 item, s32 *level) {
+    const s32 *const links = at<s32 *>(window, 0x144);
+    s32 next = -2, depth = 0;
+    if (links[item + 2] >= 0) {   // the first child
+        next = links[item + 2];
+        ++depth;
+    } else if (links[item] >= 0) {   // the next sibling
+        next = links[item];
+    } else if (links[item + 3] >= 0) {   // up to the first parent with a next sibling (or the last parent's next: -1 or less)
+        next = links[item + 3];
+        --depth;
+        while (links[next] < 0 && links[next + 3] >= 0) {
+            next = links[next + 3];
+            --depth;
+        }
+        next = links[next];
+    }
+    if (level) *level = depth;
+    return next;
+}
+
+s32 __fastcall Window7059f0_NthItem(u8 *window, void *, s32 n) {
+    s32 item = at<s32>(window, 0x160);
+    for (s32 i = 0; n >= 0 && n < at<s32>(window, 0x150) && at<u32>(window, 0x144) && i < n && item != -1; ++i)
+        item = Window7059f0_NextItem(window, nullptr, item, nullptr);
+    return item;
+}
 }
