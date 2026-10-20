@@ -40,7 +40,8 @@ QT_SIZE, COMP_SIZE = 0x84, 0x54
 
 def coefs(r, block):
     """A block's coefficients: DC, then mostly small values, with the five that smoothing estimates often zero."""
-    dc = r.randrange(-32768, 32768) if r.wild and r.random() < 0.3 else r.randrange(-1024, 1024)
+    # (small DC steps give estimates at the clamp, 1 << Al, and just under it)
+    dc = r.randrange(-32768, 32768) if r.wild and r.random() < 0.3 else r.choice([r.randrange(-1024, 1024), r.randrange(-24, 24)])
     vals = [dc] + [r.choice([0, 0, 0, 1, -1, r.randrange(-64, 64)]) for _ in range(63)]
     for i in (1, 2, 8, 9, 16):
         if r.random() < 0.6:
@@ -76,7 +77,7 @@ def layout(r, smooth=False):
         struct.pack_into('<I', c, 0x4c, QT + QT_SIZE * ci if smooth or r.random() < 0.9 else 0)
         comps += c
         q = [r.randrange(1, 65536) if r.wild else r.choice([1, 2, 16, r.randrange(1, 256)]) for _ in range(64)]
-        if not smooth and r.random() < 0.15:
+        if not smooth and r.random() < 0.3:
             q[r.choice([0, 1, 2, 8, 9, 16, r.randrange(64)])] = 0
         qts += struct.pack('<64H', *q) + r.bytes(4)
     # the scan's components (at most ten blocks to an MCU)
@@ -150,12 +151,31 @@ def output_pass(r):
 
 def smoothok(r):
     regions = layout(r)
+    if r.random() < 0.5:  # (one of the six entries smoothing needs zero, the rest of every table not)
+        qt = regions[QT]
+        for at in range(0, len(qt), QT_SIZE):
+            for i in (0, 1, 2, 8, 9, 16):
+                struct.pack_into('<H', qt, at + 2 * i, r.randrange(1, 256))
+        struct.pack_into('<H', qt, r.randrange(len(qt) // QT_SIZE) * QT_SIZE + 2 * r.choice([0, 1, 2, 8, 9, 16]), 0)
     regions[HEAP] = heap(0x1000)
     return Call(0x643a40, [CINFO], regions, ret='b')
 
 
 def onepass(r):
     regions = layout(r)
+    cinfo = regions[CINFO]
+    if struct.unpack_from('<i', cinfo, 0x124)[0] >= 2 and r.random() < 0.6:
+        # (a component not needed, of two block rows, ahead of one that is: its blocks are skipped as MCU_blocks, not MCU_width;
+        # one MCU a row so the IDCT calls after it stay in the log)
+        at = struct.unpack_from('<I', cinfo, 0x128)[0] - COMP
+        comps = regions[COMP]
+        comps[at + 0x30] = 0
+        struct.pack_into('<iii', comps, at + 0x34, 1, 2, 2)
+        struct.pack_into('<I', cinfo, 0x138, 1)
+        nxt = struct.unpack_from('<I', cinfo, 0x12c)[0] - COMP
+        comps[nxt + 0x30] = 1
+        struct.pack_into('<II', regions[COEF], 0x14, 0, 0)  # (from the row's first MCU, decoded)
+        set_return(regions[LOG], K_DECODE, 1)
     return Call(0x643420, [CINFO, OUTB], regions, ret='a')
 
 
@@ -172,7 +192,18 @@ def data(r):
 
 def smooth(r):
     regions = layout(r, smooth=True)
+    blk = regions[BLK]
+    for at in range(0, len(blk), 0x80):  # (small DC steps, mostly)
+        if r.random() < 0.7:
+            struct.pack_into('<h', blk, at, r.randrange(-24, 24))
     struct.pack_into('<I', regions[COEF], 0x70, LATCH)  # (start_output_pass latched them: smoothing_ok)
+    # (mostly small Al and unit quantizers, so the estimates land on the clamp, 1 << Al, as often as under and over it)
+    n = len(regions[LATCH]) // 4
+    regions[LATCH] = struct.pack('<%di' % n, *[r.choice([-1, 0, 1, 1, 2, 2, 3, r.randrange(-3, 14)]) for _ in range(n)])
+    for at in range(0, len(regions[QT]), QT_SIZE):
+        if r.random() < 0.5:
+            for i in (0, 1, 2, 8, 9, 16):
+                struct.pack_into('<H', regions[QT], at + 2 * i, r.choice([1, 1, 2]))
     blob(regions[LOG], K_IDCT, 2, 0xffffffff)  # (the workspace block on the stack)
     return Call(0x643b70, [CINFO, OUTB], regions, ret='a')
 
@@ -183,7 +214,7 @@ OPS = [f for f in (jinit, input_pass, imcu, output_pass, smoothok, onepass, cons
 
 
 def case(r):
-    return r.deal(OPS)(r)
+    return r.deal(OPS + [f for f in OPS if f in (onepass, smooth, smoothok)] * 2)(r)  # (these three times as often)
 
 
 if __name__ == '__main__':
