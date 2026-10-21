@@ -4,6 +4,7 @@
 
 #include "../core/accessors.h"
 #include "guimanager.h"
+#include "window.h"
 
 namespace {
 
@@ -113,6 +114,29 @@ u32 __fastcall Window_StopTimer(u8 *window, void *, u32 id) {
     u8 *const node = at<u8 *>(window, 0x120 + 4 * id);
     if (!node) return 0;
     Fn_662097(node);
+    return 1;
+}
+
+s32 __fastcall WindowTimer_Fire(u8 *node) {
+    s32 elapsed = (s32)(GuiClock_Now() - at<u32>(node, 4));
+    s32 fired = 0;
+    if (elapsed < at<s32>(node, 8)) return 0;
+    at<u32>(node, 4) = GuiClock_Now();
+    while (elapsed >= at<s32>(node, 8)) {
+        elapsed -= at<s32>(node, 8);
+        if (at<u32>(node, 0x10) && at<u8 *>(node, 0) && *reinterpret_cast<u32 *>((uintptr_t)0x0077c488)) {
+            Window_PostMessage(at<u8 *>(node, 0), 0x10, at<u32>(node, 0xc), (u32)fired);
+            ++fired;
+        }
+    }
+    at<u32>(node, 4) -= (u32)elapsed;
+    return fired;
+}
+
+u32 __cdecl WindowTimers_Remove(u8 *node) {
+    if (!timers() || !node) return 0;
+    if (node == timers()) timers() = at<u8 *>(node, 0x18);
+    WindowTimer_Delete(node, nullptr, 1);
     return 1;
 }
 }
