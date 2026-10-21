@@ -11,7 +11,8 @@
 # start_pass_huff meets table numbers out of range (-1, 4): what they index past the arrays (the dword before or after) is set to a
 # table or null, so its ERREXITs, which return, go on safely; a missing table when encoding crashes in both (the derived table
 # reads it). Huffman tables have at most 256 symbols (huffsize[257]); count tables at least one symbol besides the reserved 256
-# (else jpeg_gen_optimal_table's search for the longest length runs below bits[0]), lengths past 16 from Fibonacci counts, never past
+# with a count the merging takes, at most 1000000000 (else jpeg_gen_optimal_table's search for the longest length runs below
+# bits[0]), lengths past 16 from doubling counts, never past
 # 32 (JERR_HUFF_CLEN_OVERFLOW's ERREXIT returns into a write past bits[]). finish_pass_gather's tables are numbered 0..1 with a count
 # table each (did_dc / did_ac are indexed by them; a count table used twice would be the merged tree's).
 # usage: jpeg6a_huff.py [CASES [SEED]] [--wild|--both] [--show N]
@@ -86,20 +87,22 @@ def block(r):
     return struct.pack('<64h', *vals)
 
 
-def counts(r, fib=None):
+def counts(r, chain=None):
     """257 longs of symbol counts: at least one symbol of 0..255 counted. Few symbols, as a merge searches all 257 counts twice
-    (about 0.1 s of emulation each); now and then dozens, or a Fibonacci run of them for code lengths past 16."""
+    (about 0.1 s of emulation each); now and then dozens, or a chain of them for code lengths past 16: counts 1, 2, 4, ... (with
+    the reserved symbol's 1) merge one at a time into a single branch, n of them to lengths up to n, here 17..28 (their sum stays
+    under the search's 1000000000)."""
     c = [0] * 257
-    if fib is None:
-        fib = r.random() < 0.15
+    if chain is None:
+        chain = r.random() < 0.15
+    if chain:
+        for k, s in enumerate(r.sample(range(256), r.randrange(17, 29))):
+            c[s] = 1 << k
+        return struct.pack('<257I', *c)
     syms = r.sample(range(256), r.choice([1, 2, 3, r.randrange(1, 8), r.randrange(1, 8)] + [r.randrange(8, 40)] * (r.random() < 0.05)))
-    if fib:  # (lengths past 16, at most about 26)
-        a, b = 1, 1
-        for s in r.sample(range(256), r.randrange(18, 24)):
-            c[s] = a
-            a, b = b, a + b
     for s in syms:
         c[s] = r.choice([1, 2, r.randrange(1, 100), r.randrange(1, 100000), 1000000000, 1000000001])
+    c[syms[0]] = r.choice([1, 2, r.randrange(1, 100000)])  # (a count over 1000000000 is never merged: one that is)
     return struct.pack('<257I', *c)
 
 
@@ -275,7 +278,7 @@ def fgather(r):
     for t in HT[:2]:
         regs[t] = rb(r, 0x118)
     for t in CNT:
-        regs[t] = counts(r, fib=r.random() < 0.1)
+        regs[t] = counts(r, chain=r.random() < 0.1)
     regs[HEAP] = heap(0x600)
     return Call(0x652345, [CINFO], regs)
 
