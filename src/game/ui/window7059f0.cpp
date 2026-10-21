@@ -219,6 +219,17 @@ void __fastcall Window7059f0_SetHighlight(u8 *window, void *, u8 *highlight) {
     GuiRect_Dtor(rect);
 }
 
+void __fastcall Window7059f0_ShowRows(u8 *window, void *, u32 shown) {
+    const bool on = (s16)shown != 0;
+    if (at<u32>(window, 0x148)) {
+        for (s32 i = 0; i < at<s16>(window, 0x172); ++i) {
+            const u32 show = ((s32)((u32)i + at<u32>(window, 0x154)) < at<s32>(window, 0x150) && on) ? 1 : 0;
+            if (u8 *const row = at<u8 **>(window, 0x148)[i]) Window_SetShown(row, nullptr, show);
+        }
+    }
+    if (u8 *const highlight = at<u8 *>(window, 0x174)) vcall<void>(highlight, 0x14, (at<s32>(window, 0x14c) != -1 && on) ? 1u : 0u);
+}
+
 s32 __fastcall Window7059f0_FindItemData(u8 *window, void *, u32 data) {
     s32 item = Window7059f0_NthItem(window, nullptr, 0), position = -1;
     bool found = false;

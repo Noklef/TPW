@@ -5438,6 +5438,7 @@ address,name,kind,confidence,notes
 0x00663864,Window7059f0_SetRow,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (index, row), pops 8: the row window stored at index and its column windows laid out and given the depth"
 0x00662eee,Window7059f0_SetHighlight,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (highlight), pops 4: the highlight object +0x174 replaced (the old one let go), the new one told its row rectangle (slot 3, 0x17) and shown with the list when +0x14c is not -1"
 0x0066274e,Window7059f0_Dtor,function,low,"reimplemented (src/game/ui/window7059f0); thiscall: the list destructor: cleared, columns / rows / items / highlight let go, the rectangle, then Window_Dtor"
+0x00664fde,Window7059f0_ShowRows,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (shown), pops 4: the row windows shown (those with items) or hidden, the highlight told (slot 5)"
 0x0065fbf0,WindowScript_ReadDword,function,low,reimplemented (src/game/ui/windowscript); a window script's next dword (two words)
 0x0065fc18,WindowScript_ReadWord,function,low,reimplemented (src/game/ui/windowscript); a window script's next word
 0x0065fc38,WindowScript_ReadRect,function,low,reimplemented (src/game/ui/windowscript); a window script's next four words to four outputs

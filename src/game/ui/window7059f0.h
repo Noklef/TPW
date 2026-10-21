@@ -87,6 +87,12 @@ void __fastcall Window7059f0_SetRow(u8 *window, void *, s32 index, u8 *row);
 // (Window_IsShown) and its +0x14c not -1, its slot 5 (1). EAX not kept.
 void __fastcall Window7059f0_SetHighlight(u8 *window, void *, u8 *highlight);
 
+// 0x664fde (thiscall (shown: a word), pops 4; name unconfirmed): with the row array +0x148, each row window there (up to the rows shown
+// +0x172, signed; 0 skipped) shown (Window_SetShown) when shown is not 0 and its item (the row + the first shown +0x154, wrapping) is below
+// the count +0x150 (signed), else hidden; the highlight +0x174 (when set) told by its slot 5 (1 when +0x14c is not -1 and shown not 0,
+// else 0). EAX not kept.
+void __fastcall Window7059f0_ShowRows(u8 *window, void *, u32 shown);
+
 // 0x664d2a (thiscall (data), pops 4; name unconfirmed): the position (from 0) of the first item from the first shown one whose data
 // dword (+1) is data, stepping (Window7059f0_NextItem) until -1 or the position reaches the count +0x150 - 1 (signed); -1 when none.
 s32 __fastcall Window7059f0_FindItemData(u8 *window, void *, u32 data);
