@@ -2,7 +2,7 @@
 # GUI's mouse position any words, the picked draw record (0x8bd4fc) none, a shown script's (+0xd0) or another; the script VM's slot table
 # (0x7b49f0: table, count, ready at 0x7b4a14) of up to 5 scripts, active (+0x114) or not; the nine (dx, dy) pairs at 0x81ed40 the
 # game's ring about the tile (or any small ones); each cell in bounds its own chain of things (0x7cfb90 records, kinds that count or
-# not, owners the script's slot or not; the chains run forwards, so they end).
+# not, owners the script's slot or not; the chains run forwards, so they end); now and then only the last pair's cell has kinds that count.
 # usage: spritepick.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -42,19 +42,22 @@ def case(r):
     owners = [r.choice([0, 1, 2, 3, 4, r.getrandbits(32)]) for _ in range(4)] + [k]
     records, things, used = bytearray(), [], 0
     row, column = ((tile - 1) & 0xffffffff) >> 7, (tile - 1) & 0x7f
-    for dx, dy in ring:
+    last = r.random() < 0.25   # (things that count only in the last pair's cell)
+    for j, (dx, dy) in enumerate(ring):
         cx, cy = (dx + column) & 0xffffffff, (dy + row) & 0xffffffff
         if cx >= 0x80 or cy >= 0x80:
             continue
         cell = ((cy << 7) + cx + 1) & 0xffff
         chain = [used + 1 + i for i in range(r.choice([0, 1, 2, 3]))] if used < 12 else []
+        if last and j == 8:
+            chain = [used + 1 + i for i in range(r.choice([1, 2, 3]))]
         used += len(chain)
         regions[CELLS + cell * 0x44 + 0x2b8] = struct.pack('<H', chain[0] if chain else 0)
         for i, t in enumerate(chain):
             rec = bytearray(r.bytes(0x10))
-            rec[2] = r.choice(KINDS)
+            rec[2] = r.choice(KINDS if not last or j == 8 else KINDS[7:])
             put(rec, 0xa, 'H', chain[i + 1] if i + 1 < len(chain) else 0)
-            put(rec, 0xc, 'I', r.choice(owners))
+            put(rec, 0xc, 'I', r.choice([k, k, r.choice(owners)] if last and j == 8 else owners))
             things.append((t, RECORDS + len(records)))
             records += rec
     table = bytearray(r.bytes(0x14 * (used + 1)))
