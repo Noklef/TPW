@@ -5,7 +5,8 @@
 # Pack (0x66fd70): the channels 0-255, around 0, the table builder's ranges or any; the bits the usual formats (5 6 5, 5 5 5, 8 8 8,
 # 4 4 4) or each 0-9 now and then 31 / 32 (shift counts past 31: the CPU's mod 32); the shifts theirs or 0-35. Tables (0x66fc10): the
 # same formats and shifts, the three tables random before.
-# usage: tgqvideo.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Fill16,Fill32,Pack,Tables)
+# Quality: 0-100 mostly (else any: the products wrapping), the dequantiser 0xfb7820 random before.
+# usage: tgqvideo.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Fill16,Fill32,Pack,Tables,Quality)
 import os
 import struct
 import sys
@@ -13,8 +14,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, Bench, Call  # noqa: E402
 
-CALLS = {'Fill16': 0x671340, 'Fill32': 0x671650, 'Pack': 0x66fd70, 'Tables': 0x66fc10}
-B = Bench([(0x671340, 0x671532), (0x671650, 0x6717fc), (0x66fd70, 0x66ff96), (0x66fc10, 0x66fd69)])
+CALLS = {'Fill16': 0x671340, 'Fill32': 0x671650, 'Pack': 0x66fd70, 'Tables': 0x66fc10, 'Quality': 0x671000}
+B = Bench([(0x671340, 0x671532), (0x671650, 0x6717fc), (0x66fd70, 0x66ff96), (0x66fc10, 0x66fd69), (0x671000, 0x6710b9)])
 FORMATS = [(5, 6, 5, 11, 5, 0), (5, 5, 5, 10, 5, 0), (8, 8, 8, 16, 8, 0), (4, 4, 4, 8, 4, 0), (5, 6, 5, 0, 5, 11)]
 
 
@@ -31,6 +32,9 @@ OUT = RAM
 
 def case(r):
     op = r.deal(OPS)
+    if op == 'Quality':
+        quality = r.randrange(101) if r.random() < 0.85 else r.choice([-1, 101, 200, r.getrandbits(32)])
+        return Call(CALLS[op], [quality], {0xfb7820: r.bytes(0x100)}, ret='v')
     if op == 'Pack':
         return Call(CALLS[op], [channel(r), channel(r), channel(r), r.getrandbits(32)] + pixel_format(r), {}, conv='f', ret='a')
     if op == 'Tables':

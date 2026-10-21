@@ -88,6 +88,20 @@ void __fastcall TgqVideo_BuildTables(u32 unused, u32 red_bits, u32 green_bits, u
     }
 }
 
+void __cdecl TgqVideo_SetQuality(s32 quality) {
+    const u32 d = 100u - (u32)quality;
+    const s32 base = (s32)(d * 22) / 100 + 8;
+    const u32 step = (u32)((s32)(d * 50) / 100 + 10 - base);
+    u32 row_start = 0;
+    for (u32 i = 0; i < 0x40; row_start += step) {
+        u32 at = row_start;
+        for (s32 k = 0; k < 8; ++k, ++i, at += step) {
+            const u32 scale = (u32)((s32)at / 14 + base) << 16;
+            global<u32>(0x00fb7820 + i * 4) = fixmul(global<s32>(0x00705c88 + i * 4), (s32)scale);
+        }
+    }
+}
+
 void __cdecl TgqVideo_FillBlocks16(s32 y0, s32 y1, s32 y2, s32 y3, s32 c0, s32 c1, u8 *out, u32 pitch) {
     const u32 chroma = entry(0x00fb7d30, c0) + entry(0x00fb7b30, c1);
     const u32 step = (pitch >> 1) * 2;
