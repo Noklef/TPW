@@ -998,7 +998,7 @@ def case(r):
         regions[OUT] = r.bytes(4)
         return Call(CALLS[op], [WINDOW, r.choice(idx), r.choice([OUT, OUT, 0])], regions, conv='t', ret='a')
     put(window, 0x150, 'i', r.choice([0, 1, len(idx), len(idx) + 3, r.randrange(len(idx) + 1), -1]))
-    put(window, 0x160, 'i', r.choice(idx + [idx[0], -1]))
+    put(window, 0x160, 'i', r.choice(idx + [idx[0], -1, -2]))   # (-2: a head that is no item but not none, read as one)
     if r.random() < 0.1:
         put(window, 0x144, 'I', 0)
     n = r.choice([-1, 0, 1, 2, 3, r.randrange(len(idx) + 2), len(idx) - 1, len(idx), 0x7fffffff, -0x80000000])
