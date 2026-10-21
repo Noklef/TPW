@@ -4401,8 +4401,6 @@ const Hook kHooks[] = {
     {"TgqVideo_PixelRow16",       0x00673574, (void *)&RegThunk_TgqVideo_PixelRow16, {0x8b, 0x0f, 0x8b, 0x06, 0x8b}},
     {"TgqVideo_DecodeCoefficients", 0x00672e60, (void *)&RegThunk_TgqVideo_DecodeCoefficients, {0xa1, 0x28, 0x79, 0xfb, 0x00}},
     {"TgqVideo_PixelRow32",       0x006732e9, (void *)&RegThunk_TgqVideo_PixelRow32, {0x8b, 0x0f, 0x8b, 0x06, 0x8b}},
-    {"TgqVideo_DecodeMacroblock16", 0x00673fee, (void *)&TgqVideo_DecodeMacroblock16, {0x53, 0x51, 0x52, 0x56, 0x57}},
-    {"TgqVideo_DecodeMacroblock32", 0x0067380f, (void *)&TgqVideo_DecodeMacroblock32, {0x53, 0x51, 0x52, 0x56, 0x57}},
     {"TgqVideo_DecodeFrame16",    0x00671230, (void *)&TgqVideo_DecodeFrame16, {0x83, 0xec, 0x0c, 0x8b, 0x01}},
     {"TgqVideo_DecodeFrame32",    0x00671540, (void *)&TgqVideo_DecodeFrame32, {0x83, 0xec, 0x0c, 0x8b, 0x01}},
     {"TgqVideo_PackLanes",        0x00670090, (void *)&TgqVideo_PackLanes, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

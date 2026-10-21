@@ -10,5 +10,3 @@ address,name,module,reason
 5fc740,JpegCodec_GetInfo,gfx/jpeg,todo
 5fc840,JpegCodec_Load,gfx/jpeg,todo
 5fcbc0,JpegCodec_IsJpeg,gfx/jpeg,todo
-67380f,TgqVideo_DecodeMacroblock32,gfx/tgqvideo,"the original always faults at its first column write: 0x67673c writes through EDI, which 0x672e60 leaves at its counter (0 or below); ops Frame16 / Frame32 run a coded macroblock to that fault in both"
-673fee,TgqVideo_DecodeMacroblock16,gfx/tgqvideo,"the original always faults at its first column write: 0x67673c writes through EDI, which 0x672e60 leaves at its counter (0 or below); ops Frame16 / Frame32 run a coded macroblock to that fault in both"

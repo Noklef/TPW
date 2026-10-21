@@ -69,10 +69,12 @@ s32 __cdecl TgqVideo_DecodeCoefficients();
 // 16 rows of TgqVideo_PixelRow16 (luma 0xfb7000 + 0x40 j, chroma 0xfb7400 + 0x20 (j / 2), out + pitch * j). As the original runs, the
 // columns' out is EDI: 0xfb7700 + 4i goes on the stack, where 0x67673c never looks, and EDI is the counter TgqVideo_DecodeCoefficients
 // left there (0 or below), so the first column write faults (sic) and nothing after it is reached.
+// Not hooked (src/hook/hooks.cpp): under the bench the original always faults at 0x67673c's write through EDI, so the port cannot be
+// compared; it stays for TgqVideo_DecodeFrame16 to call.
 void __cdecl TgqVideo_DecodeMacroblock16(const u8 *data, u16 *out, u32 pitch);
 
 // 0x67380f (cdecl (data, out, pitch in bytes); name unconfirmed): as TgqVideo_DecodeMacroblock16 at 32 bits a pixel (the rows through
-// TgqVideo_PixelRow32): the same fault (sic).
+// TgqVideo_PixelRow32): the same fault (sic). Not hooked, for the same reason (TgqVideo_DecodeFrame32 calls it).
 void __cdecl TgqVideo_DecodeMacroblock32(const u8 *data, u32 *out, u32 pitch);
 
 // 0x671230 (fastcall (player, data; out, unused, pitch in bytes), pops 12; name unconfirmed): a frame's macroblocks at 16 bits a
