@@ -55,7 +55,7 @@ BIG = 0x160   # (the sliders' fields up to +0x148)
 
 def things(r, regions):
     """the park (no definitions of its own: the table below), the staff group's walk, the selected thing and its definition"""
-    env, handles, addrs = park(r, count=r.choice([0, 1, 2, 2, 3, 4]), kinds=(3, 3, 1, 2, 0xff, 0), defs=False, pool=POOL)
+    env, handles, addrs = park(r, count=r.choice([0, 1, 2, 2, 3, 4]), kinds=(4, 5, 6, 8, 3, 1, 2, 0xff, 0), defs=False, pool=POOL)
     regions.update(env)
     ids = [r.getrandbits(16) for _ in range(4)]
     for a in addrs:
