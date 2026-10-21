@@ -81,4 +81,22 @@ u32 __fastcall ParkAnalyser_Serialize(u8 *analyser, void *, Stream *stream, u32 
 // cut, the cells' ids (row << 7) + column + 1 as words): the average (signed division) of the low bytes of __ftol of their floats +0x19c;
 // 0 for none.
 s32 __fastcall ParkAnalyser_AveragePersonStat19c(void *self, void *, u32 cell, u32 radius);
+
+// 0x4c8c40 (thiscall on a cell (limit), pops 4; name unconfirmed): the count of busy map cells in the cell's rectangle, kept in its value
+// at +0x64 (+0x64 the ticks it was worked out at, +0x68 the count, +0x6c worked out): kept while worked out and limit is at least its age
+// in quarters (Game1da70c_MinusAt0Quarters, unsigned); else counted again over the map cells (gMapCells [0x8023a0], 0x44 bytes, the id
+// (row << 7) + column + 1 as a word) of the columns +0 up to +0 + +8 and the rows +4 up to +4 + +0xc (signed, the bounds read again at
+// each step) whose type is 1, 3 or 9, 9, 0xa or 4 (MapCell_IsType1, MapCell_IsType3Or9, MapCell_IsType9, MapCell_IsTypeA, Zero_5d60c0,
+// MapCell_IsType4), and +0x68 = that, +0x6c = 1, +0x64 the world's ticks (Out_SetFromGame1da70c). Returns +0x68.
+u32 __fastcall AnalyserCell_CountBusy(u8 *cell, void *, u32 limit);
+
+// 0x4c81b0 (thiscall (limit), pops 4; name unconfirmed): AnalyserCell_CountBusy of the 0x400 cells (+0x20, 0x7c apart), the last first,
+// summed.
+u32 __fastcall ParkAnalyser_CountBusy(u8 *analyser, void *, u32 limit);
+
+// 0x4c91c0 (thiscall; name unconfirmed): the people (kind 1) whose +0x220 is 3 in the chains (+0xa, from the cell's first thing, the word
+// [0x80239c] + id * 0x44 + 0x2b8) of the two ticket booths' cells (Map_TicketBoothPos 0 and 1 on [0x80239c] + 0x2d8; the same cell counted
+// twice when they are one), the world read again for each; the value +0x1f0d0's count +0x1f0d4 = that, +0x1f0d8 = 1, its ticks +0x1f0d0
+// the world's (Out_SetFromGame1da70c). Returns +0x1f0d4.
+u32 __fastcall ParkAnalyser_CountAtTicketBooths(u8 *analyser);
 }

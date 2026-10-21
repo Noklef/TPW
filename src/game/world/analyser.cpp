@@ -5,7 +5,10 @@
 #include "../core/filetime.h"
 #include "../core/circbuf.h"
 #include "../core/funnytime.h"
+#include "../core/indexed.h"
+#include "../core/trivial.h"
 #include "../core/savegame.h"
+#include "mapcell.h"
 #include "messagecentre.h"
 #include "things.h"
 
@@ -232,5 +235,49 @@ s32 __fastcall ParkAnalyser_AveragePersonStat19c(void *, void *, u32 cell, u32 r
             }
         }
     return count ? sum / count : 0;
+}
+
+u32 __fastcall AnalyserCell_CountBusy(u8 *cell, void *, u32 limit) {
+    if (!cell[0x6c] || limit < Game1da70c_MinusAt0Quarters(reinterpret_cast<const u32 *>(cell + 0x64))) {
+        u32 count = 0;
+        for (s32 x = at<s32>(cell, 0); x < at<s32>(cell, 0) + at<s32>(cell, 8); ++x)
+            for (s32 y = at<s32>(cell, 4); y < at<s32>(cell, 4) + at<s32>(cell, 0xc); ++y) {
+                const u16 id = (u16)((y << 7) + x + 1);
+                const u8 *const m = *reinterpret_cast<u8 *const *>(0x008023a0) + id * 0x44u - 0x44u;
+                count += MapCell_IsType1(m) || MapCell_IsType3Or9(m) || MapCell_IsType9(m) || MapCell_IsTypeA(m) || Zero_5d60c0() ||
+                                 MapCell_IsType4(m)
+                             ? 1
+                             : 0;
+            }
+        at<u32>(cell, 0x68) = count;
+        cell[0x6c] = 1;
+        Out_SetFromGame1da70c(reinterpret_cast<u32 *>(cell + 0x64));
+    }
+    return at<u32>(cell, 0x68);
+}
+
+u32 __fastcall ParkAnalyser_CountBusy(u8 *analyser, void *, u32 limit) {
+    u32 sum = 0;
+    for (u32 i = 0x400; i-- > 0;) sum += AnalyserCell_CountBusy(analyser + 0x20 + 0x7c * i, nullptr, limit);
+    return sum;
+}
+
+u32 __fastcall ParkAnalyser_CountAtTicketBooths(u8 *analyser) {
+    s32 count = 0;
+    for (u32 b = 0; b <= 1; ++b) {
+        u8 *const world = *reinterpret_cast<u8 *const *>(0x0080239c);
+        u16 pos;
+        const u32 id = *Map_TicketBoothPos(world + 0x2d8, nullptr, &pos, b);
+        u16 handle = at<u16>(world, id * 0x44 + 0x2b8);
+        while (handle) {
+            const u8 *thing = static_cast<const u8 *>(reinterpret_cast<ThingSlot *>(0x007cfb90)[handle].thing);
+            if (at<u8>(thing, 2) == 1 && at<u32>(thing, 0x220) == 3) ++count;
+            handle = at<u16>(thing, 0xa);
+        }
+    }
+    at<s32>(analyser, 0x1f0d4) = count;
+    analyser[0x1f0d8] = 1;
+    Out_SetFromGame1da70c(reinterpret_cast<u32 *>(analyser + 0x1f0d0));
+    return at<u32>(analyser, 0x1f0d4);
 }
 }
