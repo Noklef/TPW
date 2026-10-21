@@ -100,4 +100,11 @@ u32 __fastcall PtrArray_Init(u8 *object, void *, u32 frames, u32 images);
 // backwards for the key; when found the key's dwords at +0x14, +0x18, +0x1c = a, b, c and 1 is
 // returned, else 0.
 u32 __fastcall PtrArray_SetVectorOf(const u8 *list, void *, u8 *key, u32 a, u32 b, u32 c);
+
+// 0x6c49b0 (thiscall on a pointer list: head +4, tail +8, count +0xc, nodes of next +4 / previous +8; item, pops 4; name unconfirmed): a
+// copy of the item's 16 bytes (Mem_Alloc 0x10; none: 0) goes in before the first node whose record's float at +0xc the item's is above
+// (fcompp: not past NaNs): at the head through List_PushHead, else in a new node (Mem_Alloc 0xc, Init_6c4fd0) linked in; none: a new
+// node at the tail. The count is raised; returns the new node (the head's: the found node's previous). A failed node allocation is
+// written through anyway (sic).
+u8 *__fastcall PtrList_InsertCopyByKey(u8 *list, void *, const u8 *item);
 }  // extern "C"

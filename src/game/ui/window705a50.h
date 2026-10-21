@@ -1,6 +1,6 @@
 // The GUI library's window subclass with the vtable 0x705a50 (built by 0x6688b3 over Window_Ctor: the handlers 0x668f9c, a text row
 // (ui/textpool) at +0x148, the dwords +0x13c 500 and +0x140 125, colour-like bytes +0x14c-+0x14f 0xff; what it is is unconfirmed).
-// Reimplementation of 0x6689bc, 0x6693a0, 0x66852b, 0x668820, 0x668ad3, 0x668bec, 0x668f35, 0x668f5a and 0x668f7b. 0x66852b reads a wide text at +0x138 (it may be a
+// Reimplementation of 0x6689bc, 0x6693a0, 0x66852b, 0x668820, 0x668ad3, 0x668bec, 0x668f35, 0x668f5a, 0x668f7b, 0x668dd9 and 0x668c99. 0x66852b reads a wide text at +0x138 (it may be a
 // sibling class's); the constructor and 0x668bec keep a state byte there, +0x139 a byte, +0x13c a limit.
 #pragma once
 
@@ -53,4 +53,16 @@ u32 __fastcall Window705a50_SetPair(u8 *window, void *, u32 a, u32 b);
 // on: +0x14c for the looks 4, 0 and 2, +0x154 for 3 and 5), then Window705a50_NotifyLook.
 void __fastcall Window705a50_Set14c(u8 *window, void *, u32 value);
 void __fastcall Window705a50_Set154(u8 *window, void *, u32 value);
+
+// 0x668dd9 (thiscall; name unconfirmed): a held press's repeat, with flag 0x20 of +0x48 only: in phase 1 (the byte +0x15a, signed) once
+// the GUI clock (GuiClock_Now) is at least the delay +0x13c past the time +0x144 (signed), phase 2 and the time now (asked again), then
+// with bit 1 of the state +0x138 the window +0x60 posted 0x10009 (+0x8c, 0) (Window_PostMessage); in phase 2 once the clock is more
+// than the interval +0x140 past it, with bit 1 0x10008 (+0x8c, 0) posted, then the time now (asked again).
+void __fastcall Window705a50_Repeat(u8 *window);
+
+// 0x668c99 (thiscall (flag, notify: bytes), pops 8; name unconfirmed): 0 (AX) when the byte +0x139 is `flag` already. Otherwise it is set;
+// with `notify` and the dword [0xfaa5d4] set the window is posted 1 (0, 0) (Window_PostMessage); the objects +0x98 and +0x9c (each when
+// set) get slot 3 (1, event), the event's word +4 the look (Window705a50_Look) and its dword +0x18 1 (the rest unset); then 1 (AX).
+// As Window705a50_SetState, without the NotifyLook.
+u16 __fastcall Window705a50_SetFlag139(u8 *window, void *, u8 flag, u8 notify);
 }

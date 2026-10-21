@@ -5,7 +5,8 @@ SPEC has one function per line, "name|address|unit|description" (unit: under src
 extension, e.g. coaster/spline); blank lines and lines starting with # are skipped.
 
 For each function: adds its row to kHooks in src/hook/hooks.cpp (after the unit's last row,
-with the original's first five bytes from the exe), and its row to re/symbols.csv (replacing
+with the original's first five bytes from the exe; the replacement is RegThunk_NAME when src/hook/regthunks.h
+declares one, the naked thunk of a register convention), and its row to re/symbols.csv (replacing
 the row at that address if there is one, else after the unit's last row). Adds the unit's .cpp
 to tpw_game in CMakeLists.txt and its header to hooks.cpp if missing. Then builds, runs
 tpw_tests and, with --bench, the given fncmp suite. Functions already in kHooks are skipped,
@@ -22,6 +23,7 @@ import sys
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 EXE = os.path.join(ROOT, '.data', 'nocd', 'tp.exe')
 HOOKS = os.path.join(ROOT, 'src', 'hook', 'hooks.cpp')
+THUNKS = os.path.join(ROOT, 'src', 'hook', 'regthunks.h')
 SYMBOLS = os.path.join(ROOT, 're', 'symbols.csv')
 CMAKE = os.path.join(ROOT, 'CMakeLists.txt')
 TEXT_DELTA = 0x400c00  # .text VA - file offset
@@ -111,7 +113,8 @@ def add_hooks(spec, names_by_unit):
         if any('0x%08x,' % addr in l for l in lines[start:end]):
             sys.exit('hooks.cpp: 0x%08x is already hooked under another name' % addr)
         b = exe[addr - TEXT_DELTA:addr - TEXT_DELTA + 5]
-        row = '    {%-28s 0x%08x, (void *)&%s, {%s}},' % ('"%s",' % name, addr, name, ', '.join('0x%02x' % x for x in b))
+        fn = 'RegThunk_' + name if re.search(r'\bRegThunk_%s\(' % name, read(THUNKS)) else name  # (a register convention's naked thunk)
+        row = '    {%-28s 0x%08x, (void *)&%s, {%s}},' % ('"%s",' % name, addr, fn, ', '.join('0x%02x' % x for x in b))
         at = end
         for names in names_by_unit[unit]:
             for i in range(start + 1, end):

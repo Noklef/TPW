@@ -12,10 +12,13 @@ A test script defines a case generator and calls run():
         return Call(0x43e1b0, [A, B_, r.f(), OUT], {A: node, ...})
     B.main(case)                                # cmd line: CASES SEED [--wild] [--show N]
 
-Call(address, args, regions, conv='c'|'s'|'t'|'f', ret='v'|'a'|'b'|'w'|'i'|'d'): ret 'a' compares
+Call(address, args, regions, conv='c'|'s'|'t'|'f'|'esi'|'esiedi'..., ret='v'|'a'|'b'|'w'|'i'|'d'): ret 'a' compares
 EAX, 'b' AL (a flag returned over whatever EAX held), 'w' AX (likewise a u16), 'c' the x87 control word left (Call(cw=) going in, 0x7f; 'wc' AX too), 'i' EAX and EDX, 'd' the double left in
-st0. Call(ignore=[(address, count), ...]): those bytes of the regions are left out of the comparison in both (a stack address's low byte that
-the original stores, which the two sides' stacks cannot share). Call(steps=) the emulator's step limit (5 000 000: a case past it is a
+st0, 'edi' EDI (an original that leaves a result there, its port's naked thunk moving the port's EAX to it: src/hook/regthunks.h). Call(ignore=[(address, count), ...]): those bytes of the regions are left out of the comparison in both (a stack address's low byte that
+the original stores, which the two sides' stacks cannot share). A register convention (hand-written assembly taking
+its arguments in registers) names the registers, three letters each, in argument order: conv='esi' puts args[0] in ESI and the rest on the
+stack, 'esiedi' args[0] in ESI and args[1] in EDI (of EAX EBX ECX EDX ESI EDI); the hook row's replacement is then the port's naked thunk
+(src/hook/regthunks.h), which pushes the registers as the port's ordinary cdecl arguments. Call(steps=) the emulator's step limit (5 000 000: a case past it is a
 "step limit"; raise it only for a function whose smallest real input runs that long). Region addresses must be in the game's data (0x6e7000-0xfc5200) or at 0x10000000 and up (RAM, ALLOC.. are free slots); anything a case
 does not set reads as the exe image there, else zero, in both. No region may be empty (the driver reads its bytes as one hex token, so an
 empty one would desynchronise every later case): Bench.cases refuses such a case, naming the bench, the case and the region. The emulator is strict, like
@@ -39,6 +42,10 @@ A case can hand the code objects whose vtables point at recorders (vtable({slot:
 call through slot k with n stack arguments (thiscall, the callee pops them) appends (k, n, this, the arguments) to the log region at LOG and returns a hash of
 them, in both the driver and the emulator, so a function that calls virtual methods can be compared without the game's classes. A case can make slot k return a value
 of its own instead of the hash: set_return(log, k, value) on the log region.
+
+A slot can be a sequenced read (seq_read(log, k, ...)): each call copies the next slice of a byte string the case maps to its buffer argument, as
+a file's ReadFile or a source's read would, so code that reads a file record by record can be compared. Another slot can seek in that byte string
+(seq_seek(log, k, ...): SetFilePointer's), so the reads follow the positions asked for, as in one file (an archive and the entries in it).
 
 COM-style slots (stdcall, `this` the first stack argument, ECX undefined) are vtable(com={slot: stack arguments including this}): they log this as 0 and k | 0x100.
 
@@ -260,9 +267,25 @@ def off_code(buf):
     return buf
 
 
+REGISTER_ARGS = ('EAX', 'EBX', 'ECX', 'EDX', 'ESI', 'EDI')
+
+
+def register_args(conv):
+    """The registers of a register convention, conv a run of register names ('esi', 'esiedi'): each takes the next argument, in
+    order, before the stack ones (driver.cpp reads the same; the hook row points at a naked thunk, src/hook/regthunks.h)."""
+    if len(conv) < 3 or conv[0] != 'e':
+        return ()
+    regs = tuple(conv[i:i + 3].upper() for i in range(0, len(conv), 3))
+    if len(conv) % 3 or len(conv) > 15 or not all(r in REGISTER_ARGS for r in regs):
+        raise ValueError('register convention %r: names of %s, at most five' % (conv, '/'.join(REGISTER_ARGS)))
+    return regs
+
+
 class Call:
     def __init__(self, address, args, regions, conv='c', ret='v', cw=0x7f, masks=(), ignore=(), steps=5_000_000):
         self.address, self.args, self.regions, self.conv, self.ret = address, list(args), dict(regions), conv, ret
+        if len(register_args(conv)) > len(self.args):
+            raise ValueError('register convention %r needs %d arguments' % (conv, len(register_args(conv))))
         self.cw, self.ignore = cw, list(ignore)
         self.steps = steps   # (the emulator's step limit: raise it only for a case that must run that long)
         self.masks = list(masks)
@@ -412,7 +435,8 @@ VSTUBS = STUBS + 0x1000  # the recorders: slot k (0-31) with n (0-15) stack argu
 LOG = STUBS + 0x100000  # their log (the case maps it, see log_region()): a count, then 12 dwords an entry (k, n, this, up to 7 arguments), room for 80
 LOG_ENTRY = 12
 LOG_ENTRIES = 40  # (the room: 4 + 48 * 40 bytes)
-LOG_RETURNS = 0x800  # from here an override for each slot: a flag and a value (flag 2: the value is an argument's index, see echo(); 3: see fail_after())
+LOG_RETURNS = 0x800  # from here an override for each slot: a flag and a value (flag 2: the value is an argument's index, see echo(); 3: see fail_after();
+#                      4: see set_float_return())
 
 
 def recorder(k, n, com=False, cdecl=False):
@@ -440,12 +464,23 @@ def set_return(log, k, value):
     struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 1, value & 0xffffffff)
 
 
+def set_float_return(log, k, x):
+    """Makes slot k's recorder return the float x in st0 (pushed: a function returning a float), its bits in EAX."""
+    struct.pack_into('<If', log, LOG_RETURNS + 8 * k, 4, x)
+
+
 def fail_after(log, k, n, value=0xffffffff):
     """Makes slot k's recorder answer its first n calls (as counted in the log) as it would without an override, and every later one `value`
     (a 16-bit value sign-extended: INVALID_HANDLE_VALUE by default), so that a loop that runs until a call fails ends: a CreateFileA that opens
     n files."""
     assert 0 <= n < 0x10000 and (value >> 15 == 0 or value | 0x7fff == 0xffffffff)
     struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 3, (value & 0xffff) << 16 | n)
+
+
+def fail_mask(log, k, mask):
+    """Makes slot k's call j (its calls in the log so far) answer as it would without an override (the hash: a failure, for an import that answers
+    0 on success) when bit j of `mask` is set, else 0; calls 32 and later 0. A message that fails after two that succeed."""
+    struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 5, mask & 0xffffffff)
 
 
 def logged_calls(read, kk):
@@ -460,6 +495,8 @@ def answer(flag, value, raw, n, h, earlier):
         return raw[value]
     if flag == 3:
         return h if earlier < (value & 0xffff) else (value >> 16) - (0x10000 if value >> 31 else 0) & 0xffffffff
+    if flag == 5:
+        return h if earlier < 32 and value >> earlier & 1 else 0
     return value if flag else h
 
 
@@ -469,11 +506,63 @@ def echo(log, k, arg):
 
 
 LOG_STRINGS = 0xa00  # from here a mask for each slot: the arguments that are C strings, and out arguments (see strings())
-LOG_FILL = 0xb00  # two fills (+ 0x80 the second): (k | 0x80000000, argument, length), the bytes from + 0x10 (see fill())
-LOG_FILL3 = 0xf80  # a third fill (which=2), past the zlib overrides
-LOG_BYTES = 0xc00  # from here a mask for each slot: BYTE arguments, logged as their low byte (the rest of the pushed register is not the callee's)
+LOG_FILL = 0xb00  # two fills (+ 0x80 the second): (k | 0x80000000, argument, length, offset | records << 8), the bytes from + 0x10 (see fill())
+LOG_FILL2 = 0x1000  # six more fills, 0x80 each (fill(which=2..7): a log region that sets them is that much longer)
+FILLS = 8
+
+
+def _fill_at(which):
+    return LOG + (LOG_FILL + 0x80 * which if which < 2 else LOG_FILL2 + 0x80 * (which - 2))
+LOG_BYTES = 0xc00  # from here a mask for each slot: BYTE arguments, logged as their low byte (the rest of the pushed register is not the callee's);
+# bits 16-31 WORD arguments (bit 16 + i: argument i), logged as their low word
 LOG_BLOBS = 0xd00  # from here two dwords for each slot: an argument + 1 and a dword mask; that argument is logged as a hash of the dwords it selects (see blob())
 LOG_ZLIB = 0xf00  # the zlib stand-ins' overrides: the inits', deflate's, inflate's (a flag and a value each, see zlib_results())
+LOG_SEQ = 0xf40  # a sequenced read: (k | 0x80000000, buffer argument, count argument, done argument + 1, data address, length, cursor, flags) (see seq_read())
+LOG_SEEK = 0xf60  # a seek on the sequenced read's data: (k | 0x80000000, offset argument, origin argument) (see seq_seek())
+LOG_BLOB_WHEN = 0xf80  # four (k | 0x80000000, argument, value, mask): a blob's mask for the calls whose argument is value (see blob_when())
+
+
+def seq_read(log, k, data_at, length, buffer=0, count=1, done=None, returns=True):
+    """Makes slot k's recorder a sequenced read (a file's ReadFile, a source's read): each call copies the next `count` argument's bytes of the data
+    (length bytes at data_at, a region the case maps; fewer at its end, none for a negative count or a null buffer) to its `buffer` argument, moves the
+    cursor (the log's LOG_SEQ + 0x18) on, writes the bytes copied through its `done` argument (unless None or null) and, when `returns`, answers them."""
+    struct.pack_into('<8I', log, LOG_SEQ, (k & 63) | 0x80000000, buffer, count, 0 if done is None else done + 1, data_at, length, 0, int(returns))
+
+
+def seq_seek(log, k, offset=1, origin=3):
+    """Makes slot k's recorder a seek on the sequenced read's data (seq_read(), whose cursor it moves): to its `offset` argument from the data's
+    start, the cursor or the data's end (its `origin` argument 0, 1 or 2; any other as 0), answering the new cursor. With SetFilePointer's slot
+    (offset 1, origin 3) the ReadFile reads see one file at the positions asked for: any handle's (they share the one cursor)."""
+    struct.pack_into('<3I', log, LOG_SEEK, (k & 63) | 0x80000000, offset, origin)
+
+
+def _seq_seek(e, k, raw):
+    """(driver.cpp record_call) Slot k's seek, if it has one: (applied, the new cursor)."""
+    fk, off_i, org_i = struct.unpack('<3I', e.read(LOG + LOG_SEEK, 12))
+    n = len(raw)
+    if fk != (k & 63) | 0x80000000 or off_i >= n or org_i >= n:
+        return False, 0
+    length, cursor = struct.unpack('<2I', e.read(LOG + LOG_SEQ + 0x14, 8))
+    cursor = ((cursor if raw[org_i] == 1 else length if raw[org_i] == 2 else 0) + raw[off_i]) & 0xffffffff
+    e.write(LOG + LOG_SEQ + 0x18, struct.pack('<I', cursor))
+    return True, cursor
+
+
+def _seq_read(e, k, raw):
+    """(driver.cpp record_call) Slot k's sequenced read, if it has one: (applied, the bytes copied)."""
+    fk, buf_i, count_i, done_i, at, length, cursor, flags = struct.unpack('<8I', e.read(LOG + LOG_SEQ, 32))
+    n = len(raw)
+    if fk != (k & 63) | 0x80000000 or buf_i >= n or count_i >= n:
+        return False, flags
+    buffer, count = raw[buf_i], raw[count_i]
+    copied = 0
+    if buffer and 0 < count < 0x80000000 and cursor < length:
+        copied = min(count, length - cursor)
+        e.write(buffer, e.read(at + cursor, copied))
+    e.write(LOG + LOG_SEQ + 0x18, struct.pack('<I', (cursor + copied) & 0xffffffff))
+    if done_i and done_i <= n and raw[done_i - 1]:
+        e.write(raw[done_i - 1], struct.pack('<I', copied))
+    return bool(flags & 1), copied
 
 
 def strings(log, k, mask, out=0):
@@ -482,27 +571,41 @@ def strings(log, k, mask, out=0):
     struct.pack_into('<I', log, LOG_STRINGS + 4 * (k & 63), mask | out << 16)
 
 
-def fill_at(which):
-    return LOG_FILL3 if which == 2 else LOG_FILL + 0x80 * which
-
-
-def fill(log, k, arg, data, which=0):
-    """Makes slot k's recorder write `data` (at most 0x70 bytes) through its argument `arg` (unless null), as an import fills an out structure; which: 0, 1
-    or 2 (three fills: a key's handle, then a value's type and its data, say)."""
-    at = fill_at(which)
-    struct.pack_into('<3I', log, at, (k & 63) | 0x80000000, arg, len(data))
+def fill(log, k, arg, data, which=0, offset=0, records=1, through=None):
+    """Makes slot k's recorder write `data` (at most 0x70 bytes) through its argument `arg` (unless null) + offset (< 0x100), as an import fills an
+    out structure; which: 0-7 (2-7 lengthen the log region). With records > 1, data is that many records of equal length and the slot's call j (its
+    calls in the log so far) writes record j % records: a device's capabilities, asked for each device in turn. With through (an offset < 0xff),
+    the out structure is the one the pointer at that offset in the argument's structure points to (nothing when it is null): a buffer that a
+    structure argument names."""
+    assert 0 <= which < FILLS and 0 <= offset < 0x100 and 0 < records < 0x100 and len(data) % records == 0 and len(data) <= 0x70
+    assert through is None or 0 <= through < 0xff
+    at = _fill_at(which) - LOG
+    if len(log) < at + 0x80:
+        log.extend(bytearray(at + 0x80 - len(log)))
+    struct.pack_into('<4I', log, at, (k & 63) | 0x80000000, arg, len(data) // records, offset | records << 8 | (0 if through is None else through + 1) << 16)
     log[at + 0x10:at + 0x10 + len(data)] = data
 
 
 def fill_arg(log, k, arg, source, which=0):
     """Makes slot k's recorder write its argument `source` (a dword, as passed) through its argument `arg`: ReadFile's bytes read, all it was asked for."""
-    struct.pack_into('<3I', log, fill_at(which), (k & 63) | 0x80000000, arg, 0x80000000 | source)
+    at = _fill_at(which) - LOG
+    if len(log) < at + 0x80:
+        log.extend(bytearray(at + 0x80 - len(log)))
+    struct.pack_into('<3I', log, at, (k & 63) | 0x80000000, arg, 0x80000000 | source)
 
 
 def blob(log, k, arg, mask):
     """Makes slot k's recorder log its argument `arg` (unless null) as a hash of the dwords it points to that `mask` selects (bit i: dword i), not its
     address: a structure on the stack that the code under test only partly sets (the rest is stack garbage that differs between the sides)."""
     struct.pack_into('<II', log, LOG_BLOBS + 8 * (k & 63), arg + 1, mask)
+
+
+def blob_when(log, k, arg, value, mask, entry=0):
+    """Gives slot k's blob() / blob_bytes() hash the mask `mask` in place of its own for the calls whose argument `arg` (as passed) is `value`: a slot
+    called with events of different layouts (one message's event, another's), each only partly set. Four entries (`entry` 0-3), the last that
+    matches wins."""
+    assert 0 <= entry < 4
+    struct.pack_into('<4I', log, LOG_BLOB_WHEN + 16 * entry, (k & 63) | 0x80000000, arg, value & 0xffffffff, mask)
 
 
 def blob_bytes(log, k, arg, mask, inner=None):
@@ -574,22 +677,36 @@ def vhash(k, n, this, args):
     return h
 
 
-def _log_args(e, k, raw):
+def _log_args(e, k, raw, kk):
     """A recorder's arguments as driver.cpp's record_call logs them: slot k's fills written through them (fill(), fill_arg()), then each turned into a
-    blob's hash (blob()), a string's hash or 0 for an out argument (strings()), or its low byte (LOG_BYTES)."""
+    blob's hash (blob()), a string's hash or 0 for an out argument (strings()), or its low byte (LOG_BYTES). kk: k as logged (a fill's records)."""
     n = len(raw)
     args = list(raw)
     mask = e.u32(LOG + LOG_STRINGS + 4 * (k & 63))
     low = e.u32(LOG + LOG_BYTES + 4 * (k & 63))
-    fills = [(LOG + fill_at(f),) + struct.unpack('<3I', e.read(LOG + fill_at(f), 12)) for f in range(3)]
+    earlier = logged_calls(e.read, kk)
+    fills = [(_fill_at(f),) + struct.unpack('<4I', e.read(_fill_at(f), 16)) for f in range(FILLS)]
     blob_arg, blob_mask = struct.unpack('<2I', e.read(LOG + LOG_BLOBS + 8 * (k & 63), 8))
+    for w in range(4):   # (blob_when(): the mask for this call's argument)
+        wk, wa, wv, wm = struct.unpack('<4I', e.read(LOG + LOG_BLOB_WHEN + 16 * w, 16))
+        if wk == (k & 63) | 0x80000000 and wa < n and raw[wa] == wv:
+            blob_mask = wm
     for i in range(n):
-        for at, fk, fa, fn in fills:
+        for at, fk, fa, fn, how in fills:
             if fk == (k & 63) | 0x80000000 and fa == i and args[i]:
+                base = args[i]
+                if how >> 16 & 0xff:
+                    base = e.u32(args[i] + (how >> 16 & 0xff) - 1)
+                    if not base:
+                        continue
+                to, records = (base + (how & 0xff)) & 0xffffffff, how >> 8 & 0xff
                 if fn & 0x80000000:   # (fill_arg())
-                    e.write(args[i], struct.pack('<I', raw[fn & 0xff] if (fn & 0xff) < n else 0))
+                    e.write(to, struct.pack('<I', raw[fn & 0xff] if (fn & 0xff) < n else 0))
                 else:
-                    e.write(args[i], e.read(at + 0x10, min(fn, 0x70)))
+                    length = min(fn, 0x70)
+                    skip = earlier % records * length if records > 1 else 0
+                    if skip + length <= 0x70:
+                        e.write(to, e.read(at + 0x10 + skip, length))
         if (blob_arg & 0x1f) == i + 1 and args[i]:
             args[i] = blob_bytes_hash(e.read, args[i], blob_arg, blob_mask) if blob_arg & 0x80000000 else blob_hash(e.read, args[i], blob_mask)
         if mask >> i & 1:
@@ -598,6 +715,8 @@ def _log_args(e, k, raw):
             args[i] = 0
         if low >> i & 1:
             args[i] &= 0xff
+        if low >> (16 + i) & 1:
+            args[i] &= 0xffff
     return args
 
 
@@ -617,7 +736,9 @@ def _recorder(k, n, com=False, cdecl=False):
         raw = [e.u32(sp + 4 * i) for i in range(n)]
         this = 0 if com or cdecl else e.r['ECX']
         kk = k | 0x100 if com else k | 0x200 if cdecl else k
-        args = _log_args(e, k, raw)
+        args = _log_args(e, k, raw, kk)
+        returns_copied, copied = _seq_read(e, k, raw)
+        seeked, cursor = _seq_seek(e, k, raw)
         earlier = logged_calls(e.read, kk)
         count = e.u32(LOG)
         if count < LOG_ENTRIES:
@@ -625,7 +746,9 @@ def _recorder(k, n, com=False, cdecl=False):
             e.write(entry, struct.pack('<%dI' % LOG_ENTRY, kk, n, this, *(args + [0] * 7)[:7], tail_hash(args), 0))
             e.write(LOG, struct.pack('<I', count + 1))
         flag, value = struct.unpack('<2I', e.read(LOG + LOG_RETURNS + 8 * k, 8))
-        e.r['EAX'] = answer(flag, value, raw, n, vhash(kk, n, this, args), earlier)
+        e.r['EAX'] = copied if returns_copied else cursor if seeked else answer(flag, value, raw, n, vhash(kk, n, this, args), earlier)
+        if flag == 4 and not returns_copied and not seeked:
+            e.st.insert(0, struct.unpack('<f', struct.pack('<I', value))[0])
         if cdecl:  # (the caller pops them)
             return
         if e.tail:  # the return address goes up over the arguments the callee would have popped
@@ -681,7 +804,7 @@ CDECL_LOG4 = STUBS + 0x90  # a callback of four cdecl arguments that logs them (
 def _cdecl_log4(e):  # (driver.cpp stub_cdecl_log4)
     sp = e.r['ESP'] + (4 if e.tail else 0)
     raw = [e.u32(sp + 4 * i) for i in range(4)]
-    args = _log_args(e, 0x3d, raw)
+    args = _log_args(e, 0x3d, raw, 0x13d)
     count = e.u32(LOG)
     if count < LOG_ENTRIES:
         e.write(LOG + 4 + 4 * LOG_ENTRY * count, struct.pack('<%dI' % LOG_ENTRY, 0x13d, 4, 0, *args, *([0] * 5)))
@@ -828,6 +951,9 @@ class Bench:
             if c.conv == 'f' and args:
                 e.r['EDX'] = args[0]
                 args = args[1:]
+        for reg in register_args(c.conv):
+            e.r[reg] = args[0]
+            args = args[1:]
         for a in reversed(args):
             e.push(a & 0xffffffff)
         e.push(x87emu.SENTINEL)
@@ -855,7 +981,7 @@ class Bench:
         finally:
             e.__dict__.pop('rb', None)
         st0 = struct.unpack('<Q', struct.pack('<d', e.st[0]))[0] if c.ret == 'd' and e.st else 0
-        head = ['%08x' % e.r['EAX'] if c.ret in 'ai' else '%02x' % (e.r['EAX'] & 0xff) if c.ret == 'b' else '%04x' % (e.r['EAX'] & 0xffff) if 'w' in c.ret else '-', '%08x' % e.r['EDX'] if c.ret == 'i' else '%04x' % e.cw if 'c' in c.ret else '-',
+        head = ['%08x' % e.r['EDI'] if c.ret == 'edi' else '%08x' % e.r['EAX'] if c.ret in 'ai' else '%02x' % (e.r['EAX'] & 0xff) if c.ret == 'b' else '%04x' % (e.r['EAX'] & 0xffff) if 'w' in c.ret else '-', '%08x' % e.r['EDX'] if c.ret == 'i' else '%04x' % e.cw if 'c' in c.ret else '-',
                 '%016x' % st0 if c.ret == 'd' else '-']
         return head + [e.read(k, len(v)).hex() for k, v in c.regions.items()]
 
@@ -889,7 +1015,7 @@ class Bench:
             if len(w) < 3 or w[0] in ('crash', 'nohook', 'fncmp:'):
                 out.append(line)
                 continue
-            out.append([w[0] if c.ret in 'ai' else w[0][-2:] if c.ret == 'b' else w[0][-4:] if 'w' in c.ret else '-', w[1] if c.ret == 'i' else w[1][-4:] if 'c' in c.ret else '-', w[2] if c.ret == 'd' else '-'] + w[3:])
+            out.append([w[0] if c.ret in 'ai' or c.ret == 'edi' else w[0][-2:] if c.ret == 'b' else w[0][-4:] if 'w' in c.ret else '-', w[1] if c.ret == 'i' else w[1][-4:] if 'c' in c.ret else '-', w[2] if c.ret == 'd' else '-'] + w[3:])
         if len(out) < len(cases):
             out += ['driver stopped (exit %x): %s' % (p.returncode & 0xffffffff, p.stderr.strip()[:200])] * (len(cases) - len(out))
         return out

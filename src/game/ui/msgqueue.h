@@ -39,4 +39,10 @@ u32 __fastcall MsgQueue_Cancel(u8 *queue, void *, u32 window);
 
 // 0x669bdb (thiscall; name unconfirmed): with entries, both indices the capacity - 1, the count 0 and the entries zeroed (memset).
 void __fastcall MsgQueue_Clear(u8 *queue);
+
+// 0x658e42 (cdecl (most); name unconfirmed): the posted queue [0xfaa5f0]'s messages sent (MsgQueue_DispatchOne) until none is left or
+// `most` were counted; the count (0 without the queue). Without the hook [0xfaa5fc] (sic) one more is taken once `most` is reached (the
+// take comes before the check), uncounted; with it, each is first shown to the hook (the entry's window, message, a and b; MsgQueue_Peek,
+// none for a dropped one), the hook read again each time.
+s32 __cdecl MsgQueue_Pump(s32 most);
 }

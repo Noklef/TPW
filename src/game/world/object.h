@@ -110,6 +110,11 @@ u32 __fastcall Obj_TrackedPersonInState(u8 *object);
 // Fn_4e0210 (core/initializers: +0x5e and +0x60 = 0) lets it go.
 void __fastcall Objects_ReleaseTracked(void *self, void *, u32 unused1, u32 unused2);
 
+// 0x4ca310 (cdecl; name unconfirmed): of the things on the list from the u16 at +0x1da746 of the object [0x80239c] (the table at 0x7cfb90; the
+// next at +0xc), those whose definition (ObjectDefs_Find on 0x7890a0 by the id +0xe; it must exist) has map kind (+0x4ac) 0 and that are in
+// state 1 (+0x19c, Is19c_Eq1_4e0370) counted.
+s32 __cdecl Objects_CountKind0InState1();
+
 // 0x4fa770 (thiscall; name unconfirmed): whether the largest block value (Map_BlockValue of the map at [0x80239c] + 0x2d8) at the nine offsets of 0x7ced88 (dword pairs
 // x, y: id + y * 0x80 + x as a word) from a cell is below the dword at +0x198 (unsigned; the search stops early once the largest is above it). The cell is the object's
 // ((byte +7) * 0x80 + byte +5 + 1); when that is a type 3 or 9 cell, the last one of the chain Map_FindFacingNeighbour follows from it (forever round a loop).

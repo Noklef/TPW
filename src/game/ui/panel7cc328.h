@@ -1,6 +1,6 @@
 // The game panel object at 0x7cc328 (built by 0x4b44d0: the panel base 0x48c9e0 with vtable 0x6ff1f0, then its own vtable 0x6ffdd8 and
 // id 0x3eb; its methods 0x4b4a50, 0x4b4e30, 0x4b46a0, 0x4b4650 and 0x4b47a0 open the GUI windows 0x1e8a / 0x1e8b), with a sprite
-// script slot at +0x24. Reimplementation of 0x4b4670, 0x4b47e0 and 0x4b4850. The names are unconfirmed.
+// script slot at +0x24. Reimplementation of 0x4b4670, 0x4b47e0, 0x4b4850 and 0x4b46a0. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -22,4 +22,8 @@ u32 __cdecl Panel7cc328_AddStaffRow(u8 *staff);
 // the group 2, 0x20, 0x10, 4, 8 swept into it (Things_ForEachSelected, Panel7cc328_AddStaffRow; the original hands 0x4b47e0), the
 // rows refreshed (Window7059f0_RefreshRows) and slot 8 of the panel 0x7cc328 called. Then (always) Window_CallDefault's result.
 s32 __cdecl Panel7cc328_OnMessage(u8 *window, u32 message, u32 id, u32 b);
+
+// 0x4b46a0 (thiscall; slot 3 of the vtable 0x6ffdd8): the window +0x14's children dressed (ui/panelparts; the window and the children not
+// checked, the window read again for each): 0x1e8b text 0x38, 0x1e8a a 0x6ff3b0 part with 0.
+void __fastcall Panel7cc328_Dress(u8 *self);
 }  // extern "C"

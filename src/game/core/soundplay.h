@@ -30,4 +30,8 @@ u32 __cdecl KidSound_Play(s32 level, s32 x, s32 y, s32 z);
 // over a base of 0x4b for level 1, 0x4f below 4, 0x53 below 8, 0x57 from 8 on: 0 (nothing played) for level 0 or a negative grade.
 u32 __cdecl KidSound_PlayGraded(s32 level, s32 a, s32 b, s32 x, s32 y, s32 z);
 
+// 0x51eeb0 (cdecl (id, owner, category, index, x, y, z); name unconfirmed): the sound of the ride record the record of id links to, its
+// element index (Rides_GetLinkedElement), played with Sound_PlayAt(owner, category, it, x, y, z); 0 (nothing played) for none.
+u32 __cdecl Sound_PlayRideElement(s32 id, u32 owner, u32 category, s32 index, s32 x, s32 y, s32 z);
+
 }

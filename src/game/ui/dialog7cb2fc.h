@@ -1,5 +1,5 @@
 // The dialog window at 0x7cb2fc (its rows of on / off settings: the callers 0x4a36c0 and 0x4a4160 pass the rows 0x1d4cb, 0x1d4cc, ...
-// with the label texts 0x145, 0x146, ...). Reimplementation of 0x4a3960. The names are unconfirmed.
+// with the label texts 0x145, 0x146, ...). Reimplementation of 0x4a3960, 0x4a43b0 and 0x4a4490. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -13,4 +13,13 @@ extern "C" {
 // that buffer is what is used: with no label it still holds the first text) and the copy appended there (wcscat). With `select`, the
 // dialog's 0x705a50 child `button` (not checked) then gets the state !on, notifying (Window705a50_SetState(.., 1)).
 void __cdecl Dialog7cb2fc_SetToggle(u32 row, u32 label, u8 on, u8 other, u8 select, u32 button);
+
+// 0x4a43b0 (cdecl (row)): the dialog's child `row`'s child 0x1d4c9 (Window_FindChild for each step, neither checked) dressed: a
+// TextPart_Ctor part (0x1a4 bytes, GameHeap_Alloc; none when that fails), the bytes 0, 0, 0, 0xff as 0x40000, the font of the dword
+// [0x7537b4] (Language_Font) and the text 0.
+void __cdecl Dialog7cb2fc_DressRow(u32 row);
+
+// 0x4a4490 (cdecl (row, value)): as Dialog7cb2fc_DressRow, then the row (a 0x705b20 slider) given the range 0-100
+// (Window705b20_SetRange) and its slot 7 the value.
+void __cdecl Dialog7cb2fc_DressSlider(u32 row, u32 value);
 }

@@ -121,6 +121,11 @@ u32 __fastcall Visitor_Serialize(u8 *visitor, void *, Stream *stream, u32 save, 
 // for kind 2 ring 9. 1 when the price is above that or above mCash (+0x1a0), else 0.
 u32 __fastcall Visitor_WontPay(const u8 *visitor, void *, u8 *object);
 
+// 0x4fd4e0 (thiscall (object), pops 4; name unconfirmed): 100 for an object in poor condition (Object_InPoorCondition); else the gap
+// between the visitor's wanted rating (the byte of 0x7850e4's 12-byte row +0x1f0) and the object's (Object_Rating(0)), its size held to
+// 50, negative when the wanted one is at least the object's.
+s32 __fastcall Visitor_RatingGap(const u8 *visitor, void *, u8 *object);
+
 // 0x4fa030 (thiscall; t, pops 4; x87; name unconfirmed): a moving person's sprite placed for the moment t: its position at t - 0.35 (unit 0) and at t
 // (unit 1) by Sprite_InterpolatedPos. Unless +0x28 is set, the script reference +0xc's slot is moved there (SpriteScript_SetPosition; r15 the
 // frame less 0x380, & 0x7ff, >> 8). The timer +0x198 is zeroed when the counter 0x7cdb98 (Counter7cdb98_Inc) is below it; while it is set, a square

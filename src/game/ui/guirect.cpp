@@ -3,6 +3,8 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/crt.h"
+#include "../core/gameheap.h"
 #include "../core/initializers.h"
 #include "../core/vcall.h"
 
@@ -133,5 +135,16 @@ u32 __fastcall GuiRect_Equals(const u8 *rect, void *, const u8 *other) {
     for (u32 k = 4; k < 0xc; k += 2)
         if (*reinterpret_cast<const s16 *>(rect + k) != *reinterpret_cast<const s16 *>(other + k)) return 0;
     return 1;
+}
+
+u8 *__fastcall GuiRect_DeletingDtor(u8 *rect, void *, u32 flags) {
+    if (flags & 2) {
+        CRT_VectorDtorIterator(rect, 0xc, at<s32>(rect - 4, 0), reinterpret_cast<void(__fastcall *)(void *)>(&GuiRect_Dtor));
+        GameHeap_Free(rect - 4);
+    } else {
+        GuiRect_Dtor(rect);
+        if (flags & 1) GameHeap_Free(rect);
+    }
+    return rect;
 }
 }

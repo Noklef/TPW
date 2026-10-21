@@ -79,11 +79,20 @@ def significand(x):
     return struct.unpack('<Q', struct.pack('<d', x))[0] & ((1 << 52) - 1)
 
 
+def nan_pick(a, b):
+    """Of two quiet NaNs, the one the x87 answers with: the larger significand; of equal significands, the positive one (whatever the
+    operand order; SSE would take the first operand). Measured on the hardware; tests/test_main.cpp's test_x87_nan_rule checks it there,
+    selftest() below here."""
+    if significand(a) != significand(b):
+        return a if significand(a) > significand(b) else b
+    return a if math.copysign(1, a) > 0 else b
+
+
 def farith(fn, a, b):
     """fn(a, b) with the x87's NaN results."""
-    if math.isnan(a) or math.isnan(b):  # a NaN operand: it (both: the larger significand)
+    if math.isnan(a) or math.isnan(b):  # a NaN operand: it (both: nan_pick)
         if math.isnan(a) and math.isnan(b):
-            return a if significand(a) >= significand(b) else b
+            return nan_pick(a, b)
         return a if math.isnan(a) else b
     try:
         r = fn(a, b)
@@ -310,18 +319,23 @@ class Emu:
 
     # x87
     def fload(self, op):
+        self.snan = False
         if re.fullmatch(r'ST\d', op):
             return self.st[int(op[2])]
         a, kind = self.mem_operand(op)
-        # a signalling NaN loads quiet (invalid operation, masked)
+        # a signalling NaN loads quiet (invalid operation, masked); self.snan says this operand was one: an arithmetic operation with a
+        # memory operand then answers with a NaN in the register as it is, never comparing significands (measured: fadd m32 of
+        # 0xff812345 to 0x7fc00000 leaves 0x7fc00000, where fld; faddp of the same gives 0xffc12345)
         if kind == 'float':
             b = struct.unpack('<I', self.read(a, 4))[0]
             if b & 0x7f800000 == 0x7f800000 and b & 0x7fffff:
+                self.snan = not b & 0x400000
                 b |= 0x400000
             return struct.unpack('<f', struct.pack('<I', b))[0]
         if kind == 'double':
             b = struct.unpack('<Q', self.read(a, 8))[0]
             if b >> 52 & 0x7ff == 0x7ff and b & (1 << 52) - 1:
+                self.snan = not b & (1 << 51)
                 b |= 1 << 51
             return struct.unpack('<d', struct.pack('<Q', b))[0]
         if kind == 'extended double':
@@ -429,11 +443,10 @@ class Emu:
                 o = ['ST1', 'ST0']
             if len(o) == 1 and mn != base:  # FMULP STi: STi = STi op ST0, pop
                 o = [o[0], 'ST0']
-            if len(o) == 1:
-                self.st[0] = fn(self.st[0], self.fload(o[0]))
-            else:
-                d = int(o[0][2])
-                self.st[d] = fn(self.st[d], self.fload(o[1]))
+            d, src = (0, o[0]) if len(o) == 1 else (int(o[0][2]), o[1])
+            v = self.fload(src)
+            if not (self.snan and math.isnan(self.st[d])):   # (a signalling NaN from memory and a NaN in the register: the register's)
+                self.st[d] = fn(self.st[d], v)
             if mn != base:
                 self.st.pop(0)
         elif mn in ('FIADD', 'FISUB', 'FISUBR', 'FIMUL', 'FIDIV', 'FIDIVR'):
@@ -557,6 +570,13 @@ class Emu:
                 res = a if not m else ((a >> m) | (a << (bits - m)) if mn == 'ROR' else (a << m) | (a >> (bits - m))) & mask
                 self.cf = bool(res >> (bits - 1)) if mn == 'ROR' else bool(res & 1)
                 self.put(o[0], res)
+        elif mn in ('SHRD', 'SHLD'):  # the destination shifted with the source's bits filling in (a count mod 32; 0 changes nothing); CF the last bit out
+            a, b, n, bits = self.get(o[0]), self.get(o[1]), self.get(o[2]) & 31, 8 * self.size(o[0])
+            if n:
+                w = b << bits | a if mn == 'SHRD' else a << bits | b
+                res = w >> n if mn == 'SHRD' else w << n >> bits
+                cf = bool(a >> (n - 1) & 1) if mn == 'SHRD' else bool(a >> (bits - n) & 1)
+                self.put(o[0], self.flags(res, bits, cf))
         elif mn in ('RCR', 'RCL'):  # through CF: a rotate of the operand's size + 1 bits with CF above it; CF set, SF/ZF kept (_alldiv's)
             a, n, bits = self.get(o[0]), self.get(o[1]) & 31, 8 * self.size(o[0])
             n %= bits + 1
@@ -754,13 +774,63 @@ MMX = {'PADDW': lambda d, s: _join([a + b for a, b in zip(_lanes(d, 16), _lanes(
        'PSLLW': _shift(lambda x, s: x << s, 16),
        'PSRLW': _shift(lambda x, s: x >> s, 16),
        'PSRLQ': _shift(lambda x, s: x >> s, 64),
+       'PSRLD': _shift(lambda x, s: x >> s, 32),
+       'PADDUSB': lambda d, s: _join([min(255, a + b) for a, b in zip(_lanes(d, 8), _lanes(s, 8))], 8),
+       'PMADDWD': lambda d, s: _join([_signed(d1, 16) * _signed(s1, 16) + _signed(d2, 16) * _signed(s2, 16) for d1, d2, s1, s2 in
+                                      zip(_lanes(d, 16)[0::2], _lanes(d, 16)[1::2], _lanes(s, 16)[0::2], _lanes(s, 16)[1::2])], 32),
+       'PACKSSDW': lambda d, s: _join([min(0x7fff, max(-0x8000, _signed(x, 32))) for x in _lanes(d, 32) + _lanes(s, 32)], 16),
        'PACKUSWB': lambda d, s: _join([min(255, max(0, _signed(x, 16))) for x in _lanes(d, 16) + _lanes(s, 16)], 8),
        'PUNPCKLBW': lambda d, s: _join([x for p in zip(_lanes(d, 8)[:4], _lanes(s, 8)[:4]) for x in p], 8),
        'PUNPCKLWD': lambda d, s: _join([x for p in zip(_lanes(d, 16)[:2], _lanes(s, 16)[:2]) for x in p], 16),
        'PUNPCKLDQ': lambda d, s: _join([d & 0xffffffff, s & 0xffffffff], 32),
+       'PUNPCKHDQ': lambda d, s: _join([d >> 32, s >> 32], 32),
+       'PADDD': lambda d, s: _join([a + b for a, b in zip(_lanes(d, 32), _lanes(s, 32))], 32),
+       'PSLLD': _shift(lambda x, s: x << s, 32),
+       'PSRAD': lambda d, s: _join([_signed(x, 32) >> min(s, 31) for x in _lanes(d, 32)], 32),
+       'PMADDWD': lambda d, s: _join([_signed(a[0], 16) * _signed(b[0], 16) + _signed(a[1], 16) * _signed(b[1], 16)
+                                      for a, b in zip(zip(*[iter(_lanes(d, 16))] * 2), zip(*[iter(_lanes(s, 16))] * 2))], 32),
+       'PACKSSDW': lambda d, s: _join([min(0x7fff, max(-0x8000, _signed(x, 32))) for x in _lanes(d, 32) + _lanes(s, 32)], 16),
        'PXOR': lambda d, s: d ^ s, 'PAND': lambda d, s: d & s, 'POR': lambda d, s: d | s,
        'MOVD': lambda d, s: s & 0xffffffff, 'MOVQ': lambda d, s: s}
 
 
 def fbits(x):
     return struct.unpack('<I', struct.pack('<f', x))[0]
+
+# The x87's choice of NaN, as measured on the hardware (tests/test_main.cpp's test_x87_nan_rule checks the same rows there): fld a (a float
+# at [ECX]), then b (at [ECX + 4]) as a memory operand (fadd / fmul / fsubr m32) or loaded and the register forms (faddp / fsubrp / fmulp),
+# fstp to [ECX + 8]. A signalling b loads quiet for the register forms; as a memory operand it gives way to a NaN a (no significands
+# compared). Of two quiet NaNs the larger significand wins, of equal ones the positive, whichever side each is on.
+NAN_RULE = [  # (a, b, memory forms' result, register forms' result)
+    (0x7fc00000, 0xff812345, 0x7fc00000, 0xffc12345), (0x7fc00000, 0x7f800001, 0x7fc00000, 0x7fc00001),
+    (0xffc00001, 0x7f812345, 0xffc00001, 0x7fc12345), (0x3f800000, 0xff812345, 0xffc12345, 0xffc12345),
+    (0x7fc00000, 0xffc00000, 0x7fc00000, 0x7fc00000), (0xffc00000, 0x7fc00000, 0x7fc00000, 0x7fc00000),
+    (0x7fc00001, 0xffc00002, 0xffc00002, 0xffc00002), (0xffc12345, 0x7fc12345, 0x7fc12345, 0x7fc12345)]
+
+
+def selftest():
+    """x87emu against NAN_RULE: python -I tools/x87emu.py"""
+    import tempfile
+    forms = [['FADD float ptr [ECX + 0x4]'], ['FMUL float ptr [ECX + 0x4]'], ['FSUBR float ptr [ECX + 0x4]'],
+             ['FLD float ptr [ECX + 0x4]', 'FADDP'], ['FLD float ptr [ECX + 0x4]', 'FSUBRP ST1,ST0'], ['FLD float ptr [ECX + 0x4]', 'FMULP ST1']]
+    bad = 0
+    for form in forms:
+        lines = ['MOV ECX,dword ptr [ESP + 0x4]', 'FLD float ptr [ECX]'] + form + ['FSTP float ptr [ECX + 0x8]', 'RET']
+        with tempfile.NamedTemporaryFile('w', suffix='.asm', delete=False) as f:
+            f.write('\n'.join('%08x  %s' % (0x401000 + 0x10 * i, s) for i, s in enumerate(lines)))
+        emu = Emu([f.name])
+        os.unlink(f.name)
+        for a, b, want_mem, want_reg in NAN_RULE:
+            at = emu.alloc(12)
+            emu.write(at, struct.pack('<III', a, b, 0))
+            emu.call(0x401000, [at])
+            got, want = struct.unpack('<I', emu.read(at + 8, 4))[0], want_mem if len(form) == 1 else want_reg
+            if got != want:
+                bad += 1
+                print('FAIL %s: %08x, %08x gave %08x, the x87 %08x' % (' ; '.join(form), a, b, got, want))
+    print('x87emu NaN rule: %d of %d differ' % (bad, len(forms) * len(NAN_RULE)))
+    return bad == 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(0 if selftest() else 1)

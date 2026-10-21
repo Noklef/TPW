@@ -71,6 +71,7 @@ add_library(tpw_game STATIC
     src/game/files/userslots.cpp
     src/game/files/chunkfile.cpp
     src/game/files/vfs.cpp
+    src/game/files/substream.cpp
     src/game/core/regkey.cpp
     src/game/core/stdstring.cpp
     src/game/core/globalmem.cpp
@@ -159,9 +160,26 @@ add_library(tpw_game STATIC
     src/game/core/soundobject.cpp
     src/game/core/soundvoice.cpp
     src/game/core/soundeax.cpp
+    src/game/core/soundcategory.cpp
+    src/game/core/refcounted.cpp
+    src/game/core/sndreverb.cpp
+    src/game/core/mp2synth.cpp
+    src/game/core/mp2layer2.cpp
+    src/game/core/mp2layer1.cpp
     src/game/core/advisorscoring.cpp
     src/game/core/parkinfo.cpp
     src/game/core/authstamp.cpp
+    src/game/core/mp2frame.cpp
+    src/game/core/mp2decoder.cpp
+    src/game/core/mp2pool.cpp
+    src/game/core/mp2sample.cpp
+    src/game/core/sfman.cpp
+    src/game/core/voicecodec.cpp
+    src/game/core/releaselist.cpp
+    src/game/core/soundslot.cpp
+    src/game/core/sfbank.cpp
+    src/game/core/soundnames.cpp
+    src/game/core/soundindex.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -200,6 +218,12 @@ add_library(tpw_game STATIC
     src/game/gfx/dctvlc.cpp
     src/game/gfx/refblock.cpp
     src/game/gfx/moviepixels.cpp
+    src/game/gfx/movieidct.cpp
+    src/game/gfx/mmxblit.cpp
+    src/game/gfx/tqivideo.cpp
+    src/game/gfx/dderrors.cpp
+    src/game/gfx/moviesurface.cpp
+    src/game/gfx/moviesound.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp
@@ -307,6 +331,7 @@ add_library(tpw_game STATIC
     src/game/terrain/normals.cpp
     src/game/terrain/nodecells.cpp
     src/game/terrain/tct.cpp
+    src/game/terrain/attrmap.cpp
     src/game/model/parts.cpp
     src/game/model/holder.cpp
     src/game/model/remap.cpp
@@ -435,6 +460,13 @@ add_library(tpw_game STATIC
     src/game/ui/panel7ca178.cpp
     src/game/ui/panel7cc3b0.cpp
     src/game/ui/panel7cc408.cpp
+    src/game/ui/guifont.cpp
+    src/game/ui/panel7cc3e0.cpp
+    src/game/ui/guitoken.cpp
+    src/game/ui/levelmeter.cpp
+    src/game/ui/dialog7cca94.cpp
+    src/game/ui/hoverlabel.cpp
+    src/game/ui/dialog7cb25c.cpp
 )
 # The libraries whose functions replace the exe's copies (src/game/lib); their headers stay private to those units.
 target_link_libraries(tpw_game PRIVATE tpw_zlib tpw_jpeg6b tpw_jpeg6a)
@@ -445,6 +477,7 @@ add_library(tpw_hook SHARED
     src/hook/dinput_proxy.cpp
     src/hook/hooks.cpp
     src/hook/patch.cpp
+    src/hook/regthunks.cpp
     src/hook/dinput.def
 )
 set_target_properties(tpw_hook PROPERTIES OUTPUT_NAME dinput)
@@ -478,6 +511,7 @@ add_executable(tpw_tests
     tests/test_main.cpp
     src/hook/hooks.cpp
     src/hook/patch.cpp
+    src/hook/regthunks.cpp
 )
 target_link_libraries(tpw_tests PRIVATE tpw_game)
 
@@ -488,6 +522,7 @@ add_executable(tpw_fncmp
     tools/fncmp/crt.cpp
     src/hook/hooks.cpp
     src/hook/patch.cpp
+    src/hook/regthunks.cpp
 )
 target_link_libraries(tpw_fncmp PRIVATE tpw_game)
 # Not incremental: an incremental link keeps an old, larger .bss when a static shrinks, and a case's wild pointer reads the driver's own

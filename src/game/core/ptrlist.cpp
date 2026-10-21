@@ -7,6 +7,7 @@
 #include "../render/engineerrors.h"
 #include "../render/renderer.h"
 #include "gameheap.h"
+#include "initializers.h"
 #include "liveobjects.h"
 #include "stdlist.h"
 #include "vcall.h"
@@ -290,5 +291,41 @@ u32 __fastcall PtrArray_SetVectorOf(const u8 *list, void *, u8 *key, u32 a, u32 
     at<u32>(key, 0x18) = b;
     at<u32>(key, 0x1c) = c;
     return 1;
+}
+
+u8 *__fastcall PtrList_InsertCopyByKey(u8 *list, void *, const u8 *item) {
+    u8 *found = at<u8 *>(list, 4);
+    while (found && !(at<float>(item, 0xc) > at<float>(at<u8 *>(found, 0), 0xc)))
+        found = at<u8 *>(found, 4);
+    u8 *copy = static_cast<u8 *>(GameHeap_Alloc(0x10));
+    if (copy) {
+        for (u32 k = 0; k < 0x10; k += 4) at<u32>(copy, k) = at<u32>(item, k);
+    }
+    if (!found) {
+        u8 *node = static_cast<u8 *>(GameHeap_Alloc(0xc));
+        if (node) {
+            at<u8 *>(node, 0) = copy;
+            at<u32>(node, 4) = 0;
+            at<u32>(node, 8) = 0;
+        }
+        at<u8 *>(node, 8) = at<u8 *>(list, 8);
+        if (!at<u8 *>(list, 8)) at<u8 *>(list, 4) = node;
+        else at<u8 *>(at<u8 *>(list, 8), 4) = node;
+        at<u8 *>(list, 8) = node;
+        at<u32>(list, 0xc) += 1;
+        return node;
+    }
+    if (found == at<u8 *>(list, 4)) {
+        List_PushHead(list, nullptr, (u32)(uintptr_t)copy);
+        return at<u8 *>(found, 8);
+    }
+    u8 *node = static_cast<u8 *>(GameHeap_Alloc(0xc));
+    if (node) Init_6c4fd0(node, nullptr, (u32)(uintptr_t)copy);
+    at<u8 *>(node, 4) = found;
+    at<u8 *>(node, 8) = at<u8 *>(found, 8);
+    at<u8 *>(at<u8 *>(found, 8), 4) = node;
+    at<u8 *>(found, 8) = node;
+    at<u32>(list, 0xc) += 1;
+    return at<u8 *>(found, 8);
 }
 }  // extern "C"

@@ -8,24 +8,33 @@
 # them), ids 0x80080-0x80084, 0-4, with other high bits or any (a large index faults in both), Add's list, pool and clock. A window's
 # SlideTo (0x65ecb0): its edges +0xc..+0x12 and the target's words small or any, the time and interval small, negative or 0 (a fault in
 # both; so is a count of 0, the time below the interval), its timer +0x100 one of the list's nodes or 0 (then Add's: the pool and clock).
-# usage: windowtimers.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Unlink,Find,Delete,Kill,New,Ctor,Add,Start,SetTimer,...)
+# Fire (0x661fe5): a node, its window among two and 0, enabled or not, the interval small, 1 or large (never 0 or negative: the loop
+# would not end), the clock a few intervals on (or before, or a bit short), [0x77c488] set or not, window.py's message queues (the
+# windows' byte +4 mostly clear). Remove (0x662384): Kill's list, the node one of it or 0. KillTimer (0x65f0ca): Kill's list, the
+# window the first of them with its four nodes +0x120 each set or 0, the id as StopTimer's (half the time a node of the list its).
+# usage: windowtimers.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Unlink,Find,Delete,Kill,New,Ctor,Add,Start,SetTimer,...,Fire,Remove)
 import os
 import struct
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
+sys.path.insert(0, HERE)
 from fncmp import LOG, RAM, Bench, Call, log_region, put, set_return, vtable  # noqa: E402
+from window import queues  # noqa: E402
 
 CALLS = {'Unlink': 0x661faa, 'Find': 0x6620e2, 'Delete': 0x662500, 'Kill': 0x662306, 'New': 0x661f2b, 'Ctor': 0x661ece,
-         'Add': 0x66220d, 'Start': 0x6620ac, 'SetTimer': 0x65ef90, 'StartTimer': 0x65f024, 'StopTimer': 0x65f077,
-         'SlideTo': 0x65ecb0}
+         'Add': 0x66220d, 'Start': 0x6620ac, 'SetTimer': 0x65ef90, 'StartTimer': 0x65f024, 'StopTimer': 0x65f077, 'KillTimer': 0x65f0ca,
+         'SlideTo': 0x65ecb0, 'Fire': 0x661fe5, 'Remove': 0x662384}
 B = Bench([(0x661f9b, 0x661fe5), (0x6620e2, 0x66213e), (0x662306, 0x662384), (0x662500, 0x66252c), (0x661ece, 0x661f2b),
            (0x661f2b, 0x661f9b), (0x66220d, 0x6622d2), (0x65968e, 0x6596a2),
-           (0x6620ac, 0x6620cc), (0x6620cc, 0x6620e2), (0x662097, 0x6620ac), (0x65ef90, 0x65f024), (0x65f024, 0x65f077), (0x65f077, 0x65f0ca),
-           (0x65ecb0, 0x65edd1), (0x65aa20, 0x65aa72), (0x65aa80, 0x65aa8e)])
+           (0x6620ac, 0x6620cc), (0x6620cc, 0x6620e2), (0x662097, 0x6620ac), (0x65ef90, 0x65f024), (0x65f024, 0x65f077), (0x65f077, 0x65f0ca), (0x65f0ca, 0x65f11d),
+           (0x65ecb0, 0x65edd1), (0x65aa20, 0x65aa72), (0x65aa80, 0x65aa8e),
+           (0x661fe5, 0x662086), (0x662384, 0x6623ec), (0x658ccc, 0x658daf), (0x659710, 0x659740), (0x6697e3, 0x6698b4), (0x680050, 0x68005b)])
 TARGET = RAM + 0x3200
 NODES = RAM
 POOL, CLOCK, VTABLE = RAM + 0x2000, RAM + 0x3000, RAM + 0x3100
+FNODE = RAM + 0x6000
 WINDOWS = [RAM + 0x1000, RAM + 0x1200, 0]
 IDS = [0x80080, 0x80081, 0x80082, 0x80083, 1, 0x10]
 
@@ -88,11 +97,30 @@ def case(r):
         interval = r.choice([1, 10, 20, 33, 100, 7, -5] * 3 + [0, r.getrandbits(32)])
         time = r.choice([interval * r.randrange(1, 40)] * 12 + [500, 1000, 3, -100, 0, r.getrandbits(32)]) & 0xffffffff
         return Call(CALLS[op], [WINDOWS[0], TARGET, time, interval & 0xffffffff], regions, conv='t', ret='a')
+    if op == 'Fire':
+        regions = {}
+        clock(r, regions)
+        node = bytearray(r.bytes(0x20))
+        interval = r.choice([1, 2, 10, 0x2ee, 1000, 0x7fffffff, r.randrange(1, 0x10000)])
+        last = r.getrandbits(32)
+        k = r.choice([0, 1, 1, 2, 3, 5, 9])
+        now = last + k * interval + r.choice([0, 1, interval - 1, r.randrange(interval)]) if r.random() < 0.85 else last - r.randrange(1, 100)
+        if interval == 0x7fffffff and r.random() < 0.3:   # (any time: at most one firing; a small interval would loop for long)
+            now = r.getrandbits(32)
+        set_return(regions[LOG], 0, now & 0xffffffff)
+        put(node, 0, 'IIII', r.choice(WINDOWS + [WINDOWS[0]]), last, interval, r.choice(IDS + [r.getrandbits(32)]))
+        put(node, 0x10, 'I', r.choice([1, 1, 0, r.getrandbits(32)]))
+        regions[FNODE] = node   # (not at POOL: window.py's queues are there)
+        regions[0x77c488] = struct.pack('<I', r.choice([1, 1, 0, r.getrandbits(32)]))
+        queues(r, regions)
+        for w in WINDOWS[:2]:
+            regions[w] = put(bytearray(r.bytes(0x10)), 4, 'B', r.choice([0, 0, 0, 1]))
+        return Call(CALLS[op], [FNODE], regions, conv='t', ret='a')
     if op == 'Ctor':
         regions = {POOL: r.bytes(0x20)}
         clock(r, regions)
         return Call(CALLS[op], [POOL] + args, regions, conv='t', ret='a')
-    n = r.choice([0, 1, 1, 2, 3, 4, 6]) if op in ('Kill', 'Add') else r.choice([1, 2, 3, 4, 6])
+    n = r.choice([0, 1, 1, 2, 3, 4, 6]) if op in ('Kill', 'Add', 'KillTimer') else r.choice([1, 2, 3, 4, 6])
     nodes = [NODES + 0x20 * i for i in range(n)]
     buf = bytearray(r.bytes(0x20 * n))
     for i in range(n):
@@ -111,8 +139,21 @@ def case(r):
         pool(r, regions)
         clock(r, regions)
         return Call(CALLS[op], args, regions, ret='a')
+    if op == 'KillTimer':
+        win = bytearray(r.bytes(0x134))
+        for i in range(5):
+            put(win, 0x120 + 4 * i, 'I', r.choice([0, 0, r.getrandbits(32) | 1]))
+        regions[WINDOWS[0]] = win
+        ident = r.choice([0x80080, 0x80081, 0x80082, 0x80083, 0x80084, 0, 1, 2, 3, 4]) | r.choice([0] * 24 + [0x80000, 0x80, 0x100])
+        if n and r.random() < 0.5:   # (a node of the list the window's and the id's as Kill looks for it)
+            k = r.randrange(n)
+            put(buf, 0x20 * k, 'I', WINDOWS[0])
+            put(buf, 0x20 * k + 0xc, 'I', (ident - 0x80080 if ident & 0x80080 == 0x80080 else ident) + 0x80080 & 0xffffffff)
+        return Call(CALLS[op], [WINDOWS[0], ident], regions, conv='t', ret='a')
     if op == 'Kill':
         return Call(CALLS[op], [window, ident], regions, ret='a')
+    if op == 'Remove':
+        return Call(CALLS[op], [r.choice(nodes + [0])], regions, ret='a')
     node = r.choice(nodes)
     if op == 'Find':
         return Call(CALLS[op], [node, window, ident], regions, conv='t', ret='a')

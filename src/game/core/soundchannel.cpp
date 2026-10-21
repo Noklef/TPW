@@ -20,6 +20,12 @@ u32 *__fastcall SoundChannel_Apply(u8 *channel, void *, u32 *out, u8 *functor) {
     return out;
 }
 
+u32 *__fastcall SoundChannelFn70a260_Run(const u8 *, void *, u32 *out, u8 *channel) {
+    vcall<void>(at<u8 *>(channel, 0x18), 4);
+    *out = 0;
+    return out;
+}
+
 u32 *__fastcall SoundChannel_GetSettings(u8 *channel, void *, u32 *out, u8 *settings) {
     u8 *const record = settings;   // (the argument's slot is EaxBuffer_QueryAll's out below)
     if (at<u32>(record, 4) & 0x100) {

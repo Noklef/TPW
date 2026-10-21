@@ -454,6 +454,19 @@ s32 __stdcall Things_CountStaffOfKind(u32 kind) {
     return count;
 }
 
+s32 __stdcall Things_CountStaffWithPatrol(u32 kind) {
+    s32 count = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        const u8 k = at<u8>(thing, 2);
+        if ((k == 4 || k == 5 || k == 6 || k == 8 || k == 7) && (k == kind || kind == 0) && Staff_HasPatrolRegion(thing)) ++count;
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    return count;
+}
+
 s32 __stdcall Things_AverageOfKind(u32 kind) {
     s32 sum = 0;
     s32 count = 0;
@@ -954,6 +967,13 @@ u32 __stdcall Things_TallestCoaster(u16 *out, u32 def) {
 
 u32 __fastcall ParkAnalyser_CountKind1OnPlainCell(u8 *analyser, void *, u32 maxAge) {
     return cachedCount(analyser, 0x1f0b8, maxAge, [](const u8 *thing) { return at<u8>(thing, 2) == 1 && AnalyserCell_TypePlain(thing); });
+}
+
+s32 __fastcall ParkAnalyser_Kind1OnPlainHalfClamped(u8 *analyser) {
+    const auto half = [analyser] { return (s32)ParkAnalyser_CountKind1OnPlainCell(analyser, nullptr, 0) / 2; };
+    const s32 first = half() < 0 ? 0 : half();
+    if (first >= 100) return 100;
+    return half() < 0 ? 0 : half();
 }
 
 u32 __fastcall ParkAnalyser_CountDef4ac0(u8 *analyser, void *, u32 maxAge) {

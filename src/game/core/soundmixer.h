@@ -3,7 +3,7 @@
 // fieldops), +0x30 a stamp counter (Obj_Inc30), +0x34 a byte its worker sets when it has stopped, +0x38 the stop request, +0x3c an
 // object and +0x40 / +0x44 blocks it owns. A voice: +0x24 its sound, +0x2c its id (the low 16 bits the slot Pages100_EntryAt finds,
 // the high 16 a stamp), +0x30 flags. Reimplementation of 0x6b6120, 0x6b6170, 0x6b6260, 0x6b6440, 0x6b6550, 0x6b6830, 0x6b6990,
-// 0x6b6ab0 and 0x6b6ba0, and of the voice commands 0x6b64b0, 0x6b6510 and 0x6b65a0 (out: 0, or -1 when no voice has the id); the
+// 0x6b6ab0, 0x6b6ba0 and 0x6b62b0, and of the voice commands 0x6b64b0, 0x6b6510 and 0x6b65a0 (out: 0, or -1 when no voice has the id); the
 // names are unconfirmed.
 #pragma once
 
@@ -47,6 +47,13 @@ s32 *__cdecl VoicePage_New(s32 *status, u8 **out, u32 count);
 
 // 0x6b6ba0 (thiscall): the 0x7c bytes at the block +0x44 points to cleared and +0x48 = 0. Returns 0.
 u32 __fastcall SoundMixer_ClearLevels(u8 *mixer);
+
+// 0x6b62b0 (thiscall; the worker's step): SoundMixer_ClearLevels, the time (Time_GetMs), then for each active voice (its next read
+// first): with flag 0x10, or past its end (Obj_PastEnd), retired (SoundMixer_Retire); else with flag 0x100 its slot 6 (out, the
+// stack functor 0x70a2d0 and its sound); else unless flag 0x40, when its categories are enabled (SoundVoice_CategoryEnabled): slot
+// 0xb when the mixer's byte +0x50 and its flag 0x400 are set, then, when audible (SoundVoice_UpdateAudible), into the loudest ones
+// (Top_Insert, +0x44 / +0x4c). Then each of those (the array at +0x44 up to a null) gets slot 5 (out, the time).
+void __fastcall SoundMixer_Update(u8 *mixer);
 
 // 0x6b64b0 (thiscall (out, id, params), pops 0xc): the voice for the id (SoundMixer_FindVoice) gets a parameter block
 // (SoundVoice_EnsureParams; none when the allocation failed: a fault, sic), the 16 bytes at params copied to its +8, and flag 0x1000.

@@ -1,5 +1,5 @@
 // A deque of dwords' iterator (blocks of 0x1000 bytes, a map of block pointers): reimplementation
-// of 0x632200, 0x632230, 0x632290, 0x632310, and the constructor 0x632380 of an object nearby; the
+// of 0x632150, 0x632200, 0x632230, 0x632290, 0x632310, and the constructor 0x632380 of an object nearby; the
 // sound code's deque of dwords' members (Deque32_*, 0x6c1550-0x6c3010) below.
 //
 // The iterator is four dwords: +0 the block's first byte, +4 its end (first + 0x1000), +8 the
@@ -67,6 +67,9 @@ void __fastcall Deque32_FreeFront(u8 *deque);
 void __fastcall Deque32_FreeBack(u8 *deque);
 // 0x6c1550 (thiscall): pop_front: the begin position one dword on, the count lowered; at 0, or at the block's end, Deque32_FreeFront.
 void __fastcall Deque32_PopFront(u8 *deque);
+// 0x632150 (thiscall): pop_back: the end position one dword back, the count lowered; at 0, or at the block's start, the back block freed as
+// Deque32_FreeBack (inline in the original).
+void __fastcall Deque32_PopBack(u8 *deque);
 // 0x6c1940 (thiscall): a new block for the back (0x1000 bytes, allocated first). With the count at 0 a new map of 2 slots (the old one left), the
 // block in the second, both iterators at its middle (+0x800); with a slot left after the end's, the block goes there; else a map of twice the
 // blocks in use (n; 8n bytes, 0 when negative) takes their slots from slot (2n) / 4 on, the old map freed, the block after them, the begin

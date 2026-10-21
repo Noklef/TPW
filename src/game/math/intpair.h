@@ -70,4 +70,17 @@ s32 *__cdecl IntPair_Normalize(s32 *out, const s32 *pair);
 // to destroy, a bare RET. The name is unconfirmed.
 void __cdecl IntPair_ZeroAtExit();
 
+// 0x4d9a90, 0x4d9ae0, 0x4d9b30, 0x4d9b70, 0x4d9bc0, 0x4d9c10, 0x4d9c60, 0x4d9ca0 (no arguments; names unconfirmed): the atexit entries of the
+// eight unit steps (the static initialisers 0x4d9a60 .. 0x4d9c80 set and register them): (0, -1) at 0x7cdba0, (1, -1) 0x7cdbd8, (1, 0)
+// 0x7cdbc8, (1, 1) 0x7cdbb8, (0, 1) 0x7cdba8, (-1, 1) 0x7cdbb0, (-1, 0) 0x7cdbd0 and (-1, -1) 0x7cdbc0; each sets its bit (1, 2, 4 .. 0x80)
+// of the byte 0x7cdbe0 when it is clear (the byte left unwritten when it is set), nothing to destroy.
+void __cdecl IntPair_NorthAtExit();
+void __cdecl IntPair_NorthEastAtExit();
+void __cdecl IntPair_EastAtExit();
+void __cdecl IntPair_SouthEastAtExit();
+void __cdecl IntPair_SouthAtExit();
+void __cdecl IntPair_SouthWestAtExit();
+void __cdecl IntPair_WestAtExit();
+void __cdecl IntPair_NorthWestAtExit();
+
 }

@@ -5,8 +5,8 @@
 # row (now and then 0, past the grid or with high bits), a radius 0-3 (now and then 4, 5, or past 2^32 - 127, mostly about the cell 1:
 # the far edges' unsigned sums wrap and are cut); the map cells it reads (gMapCells [0x8023a0], each one's first thing, runs of ids each a region) and chains of up to eight things
 # (the slots at 0x7cfb90, their next +0xa; each thing in one chain or none) of kind 1 mostly, their floats +0x19c 0..100 mostly (else
-# negative, past 255 or NaN).
-# usage: analyser.py [CASES [SEED]] [--wild|--both] [--show N]
+# negative, past 255 or NaN). RingFull (0x4c9920): the rings 0-19, wrapped or not, their sizes and cursors about 50.
+# usage: analyser.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,Record,Tally,Get4a0,Get4c0,Back,Pos,Around,RingFull)
 import os
 import sys
 
@@ -14,7 +14,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x4c5d10, 0x4c5d70), (0x4c74b0, 0x4c74e9), (0x4c74f0, 0x4c751b), (0x4c7b70, 0x4c7bab),
-           (0x4c94a0, 0x4c952b), (0x4cd880, 0x4cd9b8), (0x5da3c0, 0x5da3c1)])
+           (0x4c94a0, 0x4c952b), (0x4cd880, 0x4cd9b8), (0x5da3c0, 0x5da3c1), (0x4c9920, 0x4c9956)])
+NAMES = ['Ctor', 'Record', 'Tally', 'Get4a0', 'Get4c0', 'Back', 'Pos', 'Around', 'RingFull']
+OPS = [k for k in os.environ.get('OPS', ','.join(NAMES)).split(',') if k]
 A = RAM  # the analyser; its +0x20800 on is the region at HI
 HI = RAM + 0x20800
 CELLS, PEOPLE, SLOTS = RAM + 0x100000, RAM + 0x8000, 0x7cfb90
@@ -77,9 +79,16 @@ def around(r):
 def case(r):
     lo, hi = r.bytes(0x100), r.bytes(0x1500)
     regions = {RAM: lo, HI: hi}
-    op = r.randrange(8)
+    op = NAMES.index(r.deal(OPS))
     if op == 7:
         return around(r)
+    if op == 8:
+        ring = r.randrange(20)
+        off = 0x216fc + ring * 0x40 - 0x20800
+        put(hi, off + 0x38, 'i', r.choice([0, 1, 49, 50, 51, -1, 0x7fffffff, r.randrange(-3, 60)]))
+        put(hi, off + 0x34, 'i', r.choice([0, 48, 49, 50, -1, -2, 0x7fffffff, r.randrange(-3, 60)]))
+        hi[off + 0x3c] = r.choice([0, 0, 1, 0x80])
+        return Call(0x4c9920, [A, ring], regions, conv='t', ret='b')
     if op == 0:
         return Call(0x4c5d10, [RAM + 0x1000 + 4 * r.randrange(8)], {RAM + 0x1000: r.bytes(0x100)},
                     conv='t', ret='a')

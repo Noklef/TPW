@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/vcall.h"
+#include "panelparts.h"
 #include "window.h"
 
 namespace {
@@ -24,6 +25,15 @@ void __fastcall Panel7ca228_Update(u8 *self) {
     Window_SetShown(Window_FindChild(at<u8 *>(self, 0x10), nullptr, 0x1581), nullptr, shown);
     vcall<void>(self, 0x18);
     vcall<void>(self, 0x14);
+}
+
+void __fastcall Panel7ca228_Dress(u8 *self) {
+    using namespace panelparts;
+    if (!at<u8 *>(self, 0x14)) return;
+    textIfAny(at<u8 *>(self, 0x14), 0x1587, 0x35);
+    partIfAny(at<u8 *>(self, 0x14), TextPart6ff350_Ctor, 0x1586, 0);
+    textIfAny(at<u8 *>(self, 0x14), 0x1585, 0x36);
+    partIfAny(at<u8 *>(self, 0x14), TextPart6ff3b0_Ctor, 0x1584, 0);
 }
 
 }
